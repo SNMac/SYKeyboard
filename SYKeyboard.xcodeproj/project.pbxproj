@@ -7,17 +7,19 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		5B0D82242C592CBD00F84180 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 5B7B3F5D2C569B7800F7C093 /* Assets.xcassets */; };
+		5B0D82342C5961BD00F84180 /* HangulAutomata.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B0D82322C5961BD00F84180 /* HangulAutomata.swift */; };
+		5B0D82362C5962A500F84180 /* SYKeyboardIOManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B0D82352C5962A500F84180 /* SYKeyboardIOManager.swift */; };
+		5B0D82382C59662A00F84180 /* SYKeyboardIOManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B0D82352C5962A500F84180 /* SYKeyboardIOManager.swift */; };
+		5B0D82392C5969BC00F84180 /* HangulAutomata.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B0D82322C5961BD00F84180 /* HangulAutomata.swift */; };
 		5B7B3F5A2C569B7800F7C093 /* SYKeyboardApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B7B3F592C569B7800F7C093 /* SYKeyboardApp.swift */; };
 		5B7B3F5C2C569B7800F7C093 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B7B3F5B2C569B7800F7C093 /* ContentView.swift */; };
 		5B7B3F5E2C569B7800F7C093 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 5B7B3F5D2C569B7800F7C093 /* Assets.xcassets */; };
 		5B7B3F612C569B7800F7C093 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 5B7B3F602C569B7800F7C093 /* Preview Assets.xcassets */; };
 		5B7B3F6E2C569B8200F7C093 /* SYKeyboardViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B7B3F6D2C569B8200F7C093 /* SYKeyboardViewController.swift */; };
 		5B7B3F722C569B8200F7C093 /* Naratgeul.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 5B7B3F6B2C569B8200F7C093 /* Naratgeul.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
-		5B7B3F792C569CF200F7C093 /* NaratgeulKeyboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B7B3F772C569CC900F7C093 /* NaratgeulKeyboardView.swift */; };
-		5B7B3F7C2C56C49000F7C093 /* SYKeyboardViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B7B3F6D2C569B8200F7C093 /* SYKeyboardViewController.swift */; };
-		5B7B3F822C57576600F7C093 /* NaratgeulKeyboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B7B3F772C569CC900F7C093 /* NaratgeulKeyboardView.swift */; };
-		5B7C99572C58070400E2D9B3 /* KeyboardData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BA5DEF72C57FED2001C25FA /* KeyboardData.swift */; };
-		5B7C99582C58071800E2D9B3 /* KeyboardData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BA5DEF72C57FED2001C25FA /* KeyboardData.swift */; };
+		5B7B3F792C569CF200F7C093 /* SYKeyboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B7B3F772C569CC900F7C093 /* SYKeyboardView.swift */; };
+		5B7B3F822C57576600F7C093 /* SYKeyboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B7B3F772C569CC900F7C093 /* SYKeyboardView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -45,6 +47,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		5B0D82322C5961BD00F84180 /* HangulAutomata.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HangulAutomata.swift; sourceTree = "<group>"; };
+		5B0D82352C5962A500F84180 /* SYKeyboardIOManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SYKeyboardIOManager.swift; sourceTree = "<group>"; };
 		5B7B3F562C569B7800F7C093 /* SYKeyboard.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SYKeyboard.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		5B7B3F592C569B7800F7C093 /* SYKeyboardApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SYKeyboardApp.swift; sourceTree = "<group>"; };
 		5B7B3F5B2C569B7800F7C093 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -53,8 +57,7 @@
 		5B7B3F6B2C569B8200F7C093 /* Naratgeul.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = Naratgeul.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		5B7B3F6D2C569B8200F7C093 /* SYKeyboardViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SYKeyboardViewController.swift; sourceTree = "<group>"; };
 		5B7B3F6F2C569B8200F7C093 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		5B7B3F772C569CC900F7C093 /* NaratgeulKeyboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NaratgeulKeyboardView.swift; sourceTree = "<group>"; };
-		5BA5DEF72C57FED2001C25FA /* KeyboardData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardData.swift; sourceTree = "<group>"; };
+		5B7B3F772C569CC900F7C093 /* SYKeyboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SYKeyboardView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -75,9 +78,18 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		5B0D82332C5961BD00F84180 /* Automata */ = {
+			isa = PBXGroup;
+			children = (
+				5B0D82322C5961BD00F84180 /* HangulAutomata.swift */,
+			);
+			path = Automata;
+			sourceTree = "<group>";
+		};
 		5B7B3F4D2C569B7800F7C093 = {
 			isa = PBXGroup;
 			children = (
+				5B0D82332C5961BD00F84180 /* Automata */,
 				5B7B3F582C569B7800F7C093 /* SYKeyboard */,
 				5B7B3F6C2C569B8200F7C093 /* Naratgeul */,
 				5B7B3F572C569B7800F7C093 /* Products */,
@@ -99,8 +111,7 @@
 				5B7B3F592C569B7800F7C093 /* SYKeyboardApp.swift */,
 				5B7B3F5B2C569B7800F7C093 /* ContentView.swift */,
 				5B7B3F5D2C569B7800F7C093 /* Assets.xcassets */,
-				5B7B3F772C569CC900F7C093 /* NaratgeulKeyboardView.swift */,
-				5BA5DEF72C57FED2001C25FA /* KeyboardData.swift */,
+				5B7B3F772C569CC900F7C093 /* SYKeyboardView.swift */,
 				5B7B3F5F2C569B7800F7C093 /* Preview Content */,
 			);
 			path = SYKeyboard;
@@ -118,6 +129,7 @@
 			isa = PBXGroup;
 			children = (
 				5B7B3F6D2C569B8200F7C093 /* SYKeyboardViewController.swift */,
+				5B0D82352C5962A500F84180 /* SYKeyboardIOManager.swift */,
 				5B7B3F6F2C569B8200F7C093 /* Info.plist */,
 			);
 			path = Naratgeul;
@@ -213,6 +225,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5B0D82242C592CBD00F84180 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -223,9 +236,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				5B7C99582C58071800E2D9B3 /* KeyboardData.swift in Sources */,
-				5B7B3F792C569CF200F7C093 /* NaratgeulKeyboardView.swift in Sources */,
-				5B7B3F7C2C56C49000F7C093 /* SYKeyboardViewController.swift in Sources */,
+				5B0D82392C5969BC00F84180 /* HangulAutomata.swift in Sources */,
+				5B0D82382C59662A00F84180 /* SYKeyboardIOManager.swift in Sources */,
+				5B7B3F792C569CF200F7C093 /* SYKeyboardView.swift in Sources */,
 				5B7B3F5C2C569B7800F7C093 /* ContentView.swift in Sources */,
 				5B7B3F5A2C569B7800F7C093 /* SYKeyboardApp.swift in Sources */,
 			);
@@ -236,8 +249,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				5B7B3F6E2C569B8200F7C093 /* SYKeyboardViewController.swift in Sources */,
-				5B7B3F822C57576600F7C093 /* NaratgeulKeyboardView.swift in Sources */,
-				5B7C99572C58070400E2D9B3 /* KeyboardData.swift in Sources */,
+				5B7B3F822C57576600F7C093 /* SYKeyboardView.swift in Sources */,
+				5B0D82342C5961BD00F84180 /* HangulAutomata.swift in Sources */,
+				5B0D82362C5962A500F84180 /* SYKeyboardIOManager.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -7,14 +7,21 @@
 
 import SwiftUI
 
+protocol SYKeyboardDelegate: AnyObject {
+    func hangulKeypadTap(char: String)
+    func deleteKeypadTap()
+    func enterKeypadTap()
+    func spaceKeypadTap()
+}
+
 struct HangulButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .font(.system(size: 24))
-            .foregroundStyle(.white)
-            .background(.gray)
-            .clipShape(.rect(cornerRadius: 6))
+            .foregroundStyle(Color(uiColor: UIColor.label))
+            .background(Color("PrimaryKeyboardButton"))
+            .clipShape(.rect(cornerRadius: 5))
     }
 }
 
@@ -22,10 +29,9 @@ struct FunctionButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .font(.system(size: 18))
-            .foregroundStyle(.white)
-            .background(.black.opacity(0.55))
-            .clipShape(.rect(cornerRadius: 6))
+            .foregroundStyle(Color(uiColor: UIColor.label))
+            .background(Color("SecondaryKeyboardButton"))
+            .clipShape(.rect(cornerRadius: 5))
     }
 }
 
@@ -41,48 +47,41 @@ struct NextKeyboardButtonOverlay: UIViewRepresentable {
 }
 
 
-struct NaratgeulKeyboardView: View {
+struct SYKeyboardView: View {
+
+    weak var delegate: SYKeyboardDelegate?
     
-    var insertText: (String) -> Void
-    var deleteText: () -> Void
-    
-    let KeyboardDataList = KeyboardData.list
     let keyboardHeight: CGFloat
-    let layout: [GridItem] = [
-            GridItem(.flexible()),
-            GridItem(.flexible()),
-            GridItem(.flexible()),
-            GridItem(.flexible()),
-        ]
     
     var needsInputModeSwitchKey: Bool = false
     var nextKeyboardAction: Selector? = nil
     
     var backgroundColor: Color = .clear
     
+
     var body: some View {
         VStack(spacing: 5) {
             HStack(spacing: 5) {
                 Button {
-                    insertText("ㄱ")
+                    delegate?.hangulKeypadTap(char: "ㄱ")
                 } label: {
                     Text("ㄱ")
                 }.buttonStyle(HangulButtonStyle())
                 
                 Button {
-                    insertText("ㄴ")
+                    delegate?.hangulKeypadTap(char: "ㄴ")
                 } label: {
                     Text("ㄴ")
                 }.buttonStyle(HangulButtonStyle())
                 
                 Button {
-                    insertText("")
+                    delegate?.hangulKeypadTap(char: "ㅏ")  // TODO:
                 } label: {
                     Text("ㅏㅓ")
                 }.buttonStyle(HangulButtonStyle())
                 
                 Button{
-                    deleteText()
+                    delegate?.deleteKeypadTap()
                 } label: {
                     Image(systemName: "delete.left")
                         .resizable()
@@ -93,90 +92,90 @@ struct NaratgeulKeyboardView: View {
             
             HStack(spacing: 5) {
                 Button {
-                    insertText("ㄹ")
+                    delegate?.hangulKeypadTap(char: "ㄹ")
                 } label: {
                     Text("ㄹ")
                 }.buttonStyle(HangulButtonStyle())
                 
                 Button {
-                    insertText("ㅁ")
+                    delegate?.hangulKeypadTap(char: "ㅁ")
                 } label: {
                     Text("ㅁ")
                 }.buttonStyle(HangulButtonStyle())
                 
                 Button {
-                    insertText("")
+                    delegate?.hangulKeypadTap(char: "ㅗ")  // TODO:
                 } label: {
                     Text("ㅗㅜ")
                 }.buttonStyle(HangulButtonStyle())
                 
                 Button{
-                    insertText(" ")
+                    delegate?.spaceKeypadTap()
                 } label: {
                     Image(systemName: "space")
                         .resizable()
                         .scaledToFit()
-                        .frame(width: 24)
+                        .frame(width: 26)
                 }.buttonStyle(FunctionButtonStyle())
             }.padding(.horizontal, 2)
             
             HStack(spacing: 5) {
                 Button {
-                    insertText("ㅅ")
+                    delegate?.hangulKeypadTap(char: "ㅅ")
                 } label: {
                     Text("ㅅ")
                 }.buttonStyle(HangulButtonStyle())
                 
                 Button {
-                    insertText("ㅇ")
+                    delegate?.hangulKeypadTap(char: "ㅇ")
                 } label: {
                     Text("ㅇ")
                 }.buttonStyle(HangulButtonStyle())
                 
                 Button {
-                    insertText("ㅣ")
+                    delegate?.hangulKeypadTap(char: "ㅣ")
                 } label: {
                     Text("ㅣ")
                 }.buttonStyle(HangulButtonStyle())
                 
                 Button{
-                    insertText("\n")
+                    delegate?.enterKeypadTap()
                 } label: {
                     Image(systemName: "return.left")
                         .resizable()
                         .scaledToFit()
-                        .frame(width: 18)
+                        .frame(width: 20)
                 }.buttonStyle(FunctionButtonStyle())
             }.padding(.horizontal, 2)
             
             HStack(spacing: 5) {
                 Button {
-                    insertText("")
+                    delegate?.hangulKeypadTap(char: ".")  // TODO:
                 } label: {
                     Text("획")
                 }.buttonStyle(HangulButtonStyle())
                 
                 Button {
-                    insertText("ㅡ")
+                    delegate?.hangulKeypadTap(char: "ㅡ")  // TODO:
                 } label: {
                     Text("ㅡ")
                 }.buttonStyle(HangulButtonStyle())
                 
                 Button {
-                    insertText("")
+                    delegate?.hangulKeypadTap(char: "ㄲ")  // TODO:
                 } label: {
                     Text("쌍")
                 }.buttonStyle(HangulButtonStyle())
                 
                 if needsInputModeSwitchKey && nextKeyboardAction != nil {
-                    HStack {
+                    HStack(spacing: 5) {
                         Button {
                             
                         } label: {
                             Image(systemName: "textformat.123")
                                 .resizable()
                                 .scaledToFit()
-                                .frame(width: 18)
+                                .frame(width: 24)
                         }.buttonStyle(FunctionButtonStyle())
                         
                         Button {
@@ -185,7 +184,7 @@ struct NaratgeulKeyboardView: View {
                             Image(systemName: "globe")
                                 .resizable()
                                 .scaledToFit()
-                                .frame(width: 18)
+                                .frame(width: 22)
                                 .overlay(NextKeyboardButtonOverlay(action: nextKeyboardAction!))
                         }.buttonStyle(FunctionButtonStyle())
                     }
@@ -196,18 +195,18 @@ struct NaratgeulKeyboardView: View {
                         Image(systemName: "textformat.123")
                             .resizable()
                             .scaledToFit()
-                            .frame(width: 30)
+                            .frame(width: 32)
                     }.buttonStyle(FunctionButtonStyle())
                 }
             }.padding(.horizontal, 2)
         }
         .frame(height: keyboardHeight)
-        .frame(maxWidth: .infinity)
-        .background(backgroundColor)
+        .padding(.vertical, 2)
+        .background(Color("KeyboardBackground"))
     }
 }
 
 
 #Preview {
-    NaratgeulKeyboardView(insertText: { _ in }, deleteText: {}, keyboardHeight: 260, needsInputModeSwitchKey: true)
+    SYKeyboardView(keyboardHeight: 260, needsInputModeSwitchKey: true)
 }
