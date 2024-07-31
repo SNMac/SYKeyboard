@@ -8,10 +8,13 @@
 import SwiftUI
 
 protocol SYKeyboardDelegate: AnyObject {
-    func hangulKeypadTap(char: String)
+    func hangulKeypadTap(letter: String)
+    func hoegKeypadTap()
+    func ssangKeypadTap()
     func deleteKeypadTap()
     func enterKeypadTap()
     func spaceKeypadTap()
+    func numKeypadTap()
 }
 
 struct HangulButtonStyle: ButtonStyle {
@@ -56,26 +59,23 @@ struct SYKeyboardView: View {
     var needsInputModeSwitchKey: Bool = false
     var nextKeyboardAction: Selector? = nil
     
-    var backgroundColor: Color = .clear
-    
-
     var body: some View {
         VStack(spacing: 5) {
             HStack(spacing: 5) {
                 Button {
-                    delegate?.hangulKeypadTap(char: "ㄱ")
+                    delegate?.hangulKeypadTap(letter: "ㄱ")
                 } label: {
                     Text("ㄱ")
                 }.buttonStyle(HangulButtonStyle())
                 
                 Button {
-                    delegate?.hangulKeypadTap(char: "ㄴ")
+                    delegate?.hangulKeypadTap(letter: "ㄴ")
                 } label: {
                     Text("ㄴ")
                 }.buttonStyle(HangulButtonStyle())
                 
                 Button {
-                    delegate?.hangulKeypadTap(char: "ㅏ")  // TODO:
+                    delegate?.hangulKeypadTap(letter: "ㅏ")
                 } label: {
                     Text("ㅏㅓ")
                 }.buttonStyle(HangulButtonStyle())
@@ -92,19 +92,19 @@ struct SYKeyboardView: View {
             
             HStack(spacing: 5) {
                 Button {
-                    delegate?.hangulKeypadTap(char: "ㄹ")
+                    delegate?.hangulKeypadTap(letter: "ㄹ")
                 } label: {
                     Text("ㄹ")
                 }.buttonStyle(HangulButtonStyle())
                 
                 Button {
-                    delegate?.hangulKeypadTap(char: "ㅁ")
+                    delegate?.hangulKeypadTap(letter: "ㅁ")
                 } label: {
                     Text("ㅁ")
                 }.buttonStyle(HangulButtonStyle())
                 
                 Button {
-                    delegate?.hangulKeypadTap(char: "ㅗ")  // TODO:
+                    delegate?.hangulKeypadTap(letter: "ㅗ")
                 } label: {
                     Text("ㅗㅜ")
                 }.buttonStyle(HangulButtonStyle())
@@ -121,19 +121,19 @@ struct SYKeyboardView: View {
             
             HStack(spacing: 5) {
                 Button {
-                    delegate?.hangulKeypadTap(char: "ㅅ")
+                    delegate?.hangulKeypadTap(letter: "ㅅ")
                 } label: {
                     Text("ㅅ")
                 }.buttonStyle(HangulButtonStyle())
                 
                 Button {
-                    delegate?.hangulKeypadTap(char: "ㅇ")
+                    delegate?.hangulKeypadTap(letter: "ㅇ")
                 } label: {
                     Text("ㅇ")
                 }.buttonStyle(HangulButtonStyle())
                 
                 Button {
-                    delegate?.hangulKeypadTap(char: "ㅣ")
+                    delegate?.hangulKeypadTap(letter: "ㅣ")
                 } label: {
                     Text("ㅣ")
                 }.buttonStyle(HangulButtonStyle())
@@ -150,19 +150,19 @@ struct SYKeyboardView: View {
             
             HStack(spacing: 5) {
                 Button {
-                    delegate?.hangulKeypadTap(char: ".")  // TODO:
+                    delegate?.hoegKeypadTap()
                 } label: {
                     Text("획")
                 }.buttonStyle(HangulButtonStyle())
                 
                 Button {
-                    delegate?.hangulKeypadTap(char: "ㅡ")  // TODO:
+                    delegate?.hangulKeypadTap(letter: "ㅡ")
                 } label: {
                     Text("ㅡ")
                 }.buttonStyle(HangulButtonStyle())
                 
                 Button {
-                    delegate?.hangulKeypadTap(char: "ㄲ")  // TODO:
+                    delegate?.ssangKeypadTap()
                 } label: {
                     Text("쌍")
                 }.buttonStyle(HangulButtonStyle())
@@ -190,7 +190,7 @@ struct SYKeyboardView: View {
                     }
                 } else {
                     Button {
-                        
+                        delegate?.numKeypadTap()
                     } label: {
                         Image(systemName: "textformat.123")
                             .resizable()

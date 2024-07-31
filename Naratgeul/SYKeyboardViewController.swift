@@ -16,16 +16,16 @@ class SYKeyboardViewController: UIInputViewController {
     
     // MARK: - View Properties
     private lazy var SYKeyboard: UIHostingController = {
-        let SYKeyboardView = UIHostingController(
+        let SYKeyboard = UIHostingController(
             rootView: SYKeyboardView(
                 delegate: keyboardIOManager,
                 keyboardHeight: keyboardHeight,
                 needsInputModeSwitchKey: self.needsInputModeSwitchKey,
 //                needsInputModeSwitchKey: true,
-                nextKeyboardAction: #selector(self.handleInputModeList(from:with:)),
-                backgroundColor: .clear
+                nextKeyboardAction: #selector(self.handleInputModeList(from:with:))
             ))
-        return SYKeyboardView
+        
+        return SYKeyboard
     }()
     
     // MARK: - LifeCycle

@@ -181,6 +181,7 @@ extension HangulAutomata {
     func hangulAutomata(key: String) {
         
         var canBeJongsung: Bool = false
+        
         if joongsungTable.contains(key) {
             chKind = .vowel
             keyCode = UInt32(joongsungTable.firstIndex(of: key) ?? 0)
@@ -247,8 +248,8 @@ extension HangulAutomata {
         default:
             break
         }
-        // MARK: - 오토마타 상태 별 작업 알고리즘
         
+        // MARK: - 오토마타 상태 별 작업 알고리즘
         switch currentHangulState {
         case .chosung:
             charCode = chosungTable[Int(keyCode)]
