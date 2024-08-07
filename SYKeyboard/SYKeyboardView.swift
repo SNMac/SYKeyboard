@@ -11,7 +11,7 @@ protocol SYKeyboardDelegate: AnyObject {
     func hangulKeypadTap(letter: String)
     func hoegKeypadTap()
     func ssangKeypadTap()
-    func deleteKeypadTap()
+    func removeKeypadTap()
     func enterKeypadTap()
     func spaceKeypadTap()
     func numKeypadTap()
@@ -81,7 +81,7 @@ struct SYKeyboardView: View {
                 }.buttonStyle(HangulButtonStyle())
                 
                 Button{
-                    delegate?.deleteKeypadTap()
+                    delegate?.removeKeypadTap()
                 } label: {
                     Image(systemName: "delete.left")
                         .resizable()

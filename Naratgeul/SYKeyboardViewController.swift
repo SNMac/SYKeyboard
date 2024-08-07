@@ -13,6 +13,8 @@ class SYKeyboardViewController: UIInputViewController {
     // MARK: - Properties
     private let keyboardIOManager = SYKeyboardIOManager()
     private let keyboardHeight: CGFloat = 260
+    private var cursorPos: Int = 0
+    private var bufferSize: Int = 0
     
     // MARK: - View Properties
     private lazy var SYKeyboard: UIHostingController = {
@@ -21,7 +23,7 @@ class SYKeyboardViewController: UIInputViewController {
                 delegate: keyboardIOManager,
                 keyboardHeight: keyboardHeight,
                 needsInputModeSwitchKey: self.needsInputModeSwitchKey,
-//                needsInputModeSwitchKey: true,
+                //                needsInputModeSwitchKey: true,
                 nextKeyboardAction: #selector(self.handleInputModeList(from:with:))
             ))
         
@@ -36,20 +38,56 @@ class SYKeyboardViewController: UIInputViewController {
         bindingKeyboardManager()
     }
     
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        
+        updateCursorPos()
+        updateBufferSize()
+    }
+    
     // MARK: - Method
     private func bindingKeyboardManager() {
-        keyboardIOManager.updateTextView = { [weak self] in
+        keyboardIOManager.inputText = { [weak self] in
             guard let self = self else { return }
+            let proxy = textDocumentProxy
             
-            while self.textDocumentProxy.hasText {
-                self.textDocumentProxy.deleteBackward()
+            if keyboardIOManager.isEditingLastCharacter {
+                for _ in 0..<bufferSize {
+                    proxy.deleteBackward()
+                }
             }
-            self.textDocumentProxy.insertText($0)
+            proxy.insertText($0)
+            
+            updateCursorPos()
+            updateBufferSize()
+        }
+        
+        keyboardIOManager.deleteText = { [weak self] in
+            guard let self = self else { return }
+            let proxy = textDocumentProxy
+            
+            proxy.deleteBackward()
+            
+            updateCursorPos()
+            updateBufferSize()
         }
         
         keyboardIOManager.dismiss = { [weak self] in
             self?.dismissKeyboard()
         }
+    }
+    
+    private func updateCursorPos() {
+        let proxy = textDocumentProxy
+        if let documentContext = proxy.documentContextBeforeInput {
+            cursorPos = documentContext.count
+        }
+        print("cursorPos) ", cursorPos)
+    }
+    
+    private func updateBufferSize() {
+        bufferSize = keyboardIOManager.getBufferSize()
+        print("bufferSize) ", bufferSize)
     }
 }
 

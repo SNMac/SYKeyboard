@@ -6,38 +6,43 @@
 //  Edited by 서동환 on 7/31/24.
 //  - Downloaded from https://github.com/Kim-Junhwan/IOS-CustomKeyboard - KeyboardIOManager.swift
 //
-
+ 
 import Foundation
 
 
 final class SYKeyboardIOManager {
     
     private var hangulAutomata = HangulAutomata()
-    
     private var lastInputLetter: String = ""
+    
+    var isEditingLastCharacter: Bool = false
     
     private var input: String = "" {
         didSet {
-            if input == " " {
-                hangulAutomata.buffer.append(" ")
+            if input == " " || input == "\n" {
+                hangulAutomata.buffer.removeAll()
                 hangulAutomata.inpStack.removeAll()
+                isEditingLastCharacter = false
                 hangulAutomata.currentHangulState = nil
-            } else if input == "\n" {
-                hangulAutomata.buffer.append("\n")
-                hangulAutomata.inpStack.removeAll()
-                hangulAutomata.currentHangulState = nil
+                inputText?(input)
             } else {
+                isEditingLastCharacter = true
                 hangulAutomata.hangulAutomata(key: input)
+                inputText?(hangulAutomata.buffer.reduce("", { $0 + $1 }))
             }
-            updateTextView?(hangulAutomata.buffer.reduce("", { $0 + $1 }))
         }
     }
     
-    var updateTextView: ((String) -> Void)?
+    var inputText: ((String) -> Void)?
+    var deleteText: (() -> Void)?
     var dismiss: (() -> Void)?
 }
 
 extension SYKeyboardIOManager: SYKeyboardDelegate {
+    func getBufferSize() -> Int {
+        return hangulAutomata.buffer.count
+    }
+    
     func hangulKeypadTap(letter: String) {
         var curLetter: String = ""
         switch letter {
@@ -213,18 +218,25 @@ extension SYKeyboardIOManager: SYKeyboardDelegate {
         lastInputLetter = curLetter
     }
     
-    func deleteKeypadTap() {
-        hangulAutomata.deleteBuffer()
-        updateTextView?(hangulAutomata.buffer.reduce("", { $0 + $1 }))
+    func removeKeypadTap() {
+        if hangulAutomata.buffer.isEmpty {
+            isEditingLastCharacter = false
+            deleteText?()
+        } else {
+            hangulAutomata.deleteBuffer()
+            inputText?(hangulAutomata.buffer.reduce("", { $0 + $1 }))
+        }
     }
     
     func enterKeypadTap() {
 //        dismiss?()
         self.input = "\n"
+        lastInputLetter = "\n"
     }
     
     func spaceKeypadTap() {
         self.input = " "
+        lastInputLetter = " "
     }
     
     func numKeypadTap() {

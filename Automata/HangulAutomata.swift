@@ -26,7 +26,7 @@ enum HangulCHKind {
 
 // 키 입력마다 쌓이는 입력 스택 정의
 struct InpStack {
-    var curhanst: HangulStatus  // 상태
+    var curHanStatus: HangulStatus  // 상태
     var key: UInt32  // 방금 입력된 키 코드
     var charCode: String  // 조합된 코드
     var chKind: HangulCHKind  // 입력된 키가 자음인지 모임인지
@@ -138,18 +138,18 @@ final class HangulAutomata {
             }
         } else {
             if let popHanguel = inpStack.popLast() {
-                if popHanguel.curhanst == .chosung {
+                if popHanguel.curHanStatus == .chosung {
                     buffer.removeLast()
-                } else if popHanguel.curhanst == .joongsung || popHanguel.curhanst == .dJoongsung {
-                    if inpStack[inpStack.count - 1].curhanst == .jongsung || inpStack[inpStack.count - 1].curhanst == .dJongsung {
+                } else if popHanguel.curHanStatus == .joongsung || popHanguel.curHanStatus == .dJoongsung {
+                    if inpStack[inpStack.count - 1].curHanStatus == .jongsung || inpStack[inpStack.count - 1].curHanStatus == .dJongsung {
                         buffer.removeLast()
                     }
-                        buffer[buffer.count - 1] = inpStack[inpStack.count - 1].charCode
+                    buffer[buffer.count - 1] = inpStack[inpStack.count - 1].charCode
                 } else {
                     if inpStack.isEmpty {
                         buffer.removeLast()
                     } else if popHanguel.chKind == .vowel {
-                        if inpStack[inpStack.count - 1].curhanst == .jongsung {
+                        if inpStack[inpStack.count - 1].curHanStatus == .jongsung {
                             if inpStack[inpStack.count - 1].chKind == .vowel {
                                 if isJoongSungPair(first: joongsungTable[Int(inpStack[inpStack.count - 1].key)] , result: joongsungTable[Int(popHanguel.key)]) {
                                     buffer[buffer.count - 1] = inpStack[inpStack.count - 1].charCode
@@ -167,7 +167,7 @@ final class HangulAutomata {
                 if inpStack.isEmpty {
                     currentHangulState = nil
                 } else {
-                    currentHangulState = inpStack[inpStack.count - 1].curhanst
+                    currentHangulState = inpStack[inpStack.count - 1].curHanStatus
                     oldKey = inpStack[inpStack.count - 1].key
                     oldChKind = inpStack[inpStack.count - 1].chKind
                     charCode = inpStack[inpStack.count - 1].charCode
@@ -223,7 +223,7 @@ extension HangulAutomata {
                 currentHangulState = .endOne
             }
         case .dJoongsung:
-            //추가
+            // 추가
             if joongsungPair() {
                 currentHangulState = .dJoongsung
             } else if canBeJongsung {
@@ -297,7 +297,7 @@ extension HangulAutomata {
         default:
             break
         }
-        inpStack.append(InpStack(curhanst: currentHangulState ?? .start, key: keyCode, charCode: String(Unicode.Scalar(charCode) ?? Unicode.Scalar(0)), chKind: chKind))
+        inpStack.append(InpStack(curHanStatus: currentHangulState ?? .start, key: keyCode, charCode: String(Unicode.Scalar(charCode) ?? Unicode.Scalar(0)), chKind: chKind))
         buffer[buffer.count - 1] = charCode
     }
 }
