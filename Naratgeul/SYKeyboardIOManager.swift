@@ -14,7 +14,6 @@ final class SYKeyboardIOManager {
     
     private var hangulAutomata = HangulAutomata()
     private var lastInputLetter: String = ""
-    
     var isEditingLastCharacter: Bool = false
     
     private var input: String = "" {
