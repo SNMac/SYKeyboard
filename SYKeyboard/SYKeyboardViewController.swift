@@ -51,13 +51,15 @@ class SYKeyboardViewController: UIInputViewController {
             guard let self = self else { return }
             let proxy = textDocumentProxy
             
+            // TODO: 커서 앞에 아무것도 없을때 버퍼 불러오지 않고 바로 입력하게 하기
+            
             if keyboardIOManager.isEditingLastCharacter {
                 for _ in 0..<bufferSize {
                     proxy.deleteBackward()
                 }
             }
             proxy.insertText($0)
-            print("lastInputLetter) " + keyboardIOManager.lastInputLetter)
+            
             updateCursorPos()
             updateBufferSize()
         }
@@ -75,6 +77,22 @@ class SYKeyboardViewController: UIInputViewController {
         keyboardIOManager.dismiss = { [weak self] in
             self?.dismissKeyboard()
         }
+    }
+    
+    override func textWillChange(_ textInput: (any UITextInput)?) {
+        super.textWillChange(textInput)
+        
+        keyboardIOManager.flushBuffer()
+        updateCursorPos()
+        updateBufferSize()
+    }
+    
+    override func selectionWillChange(_ textInput: (any UITextInput)?) {
+        super.selectionWillChange(textInput)
+        
+        keyboardIOManager.flushBuffer()
+        updateCursorPos()
+        updateBufferSize()
     }
     
     private func updateCursorPos() {

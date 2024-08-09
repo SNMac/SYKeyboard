@@ -46,6 +46,8 @@ struct SYKeyboardButton: View {
         .simultaneousGesture(
             DragGesture(minimumDistance: 0)
                 .onChanged { _ in
+                    Feedback.shared.playTypingSound()
+                    Feedback.shared.playHaptics()
                     onLongPress?()
                 }
                 .onEnded { _ in

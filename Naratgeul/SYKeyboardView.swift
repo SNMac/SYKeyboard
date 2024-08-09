@@ -11,6 +11,7 @@ import Combine
 
 protocol SYKeyboardDelegate: AnyObject {
     func getBufferSize() -> Int
+    func flushBuffer()
     func hangulKeypadTap(letter: String)
     func hoegKeypadTap()
     func ssangKeypadTap()
