@@ -53,7 +53,7 @@ final class HangulAutomata {
     
     private var jongsungTable: [String] = [" ", "ㄱ", "ㄲ", "ㄳ", "ㄴ", "ㄵ", "ㄶ", "ㄷ", "ㄹ", "ㄺ", "ㄻ", "ㄼ", "ㄽ", "ㄾ", "ㄿ","ㅀ", "ㅁ", "ㅂ", "ㅄ", "ㅅ", "ㅆ", "ㅇ", "ㅈ", "ㅊ", "ㅋ", "ㅌ", "ㅍ", "ㅎ"]
     
-    private var dJoongTable: [[String]] = [
+    private var dJoongsungTable: [[String]] = [
         ["ㅗ","ㅏ","ㅘ"],
         ["ㅗ","ㅐ","ㅙ"],
         ["ㅗ","ㅣ","ㅚ"],
@@ -68,7 +68,7 @@ final class HangulAutomata {
         ["ㅘ","ㅣ","ㅙ"]
     ]
     
-    private var dJongTable: [[String]] = [
+    private var dJongsungTable: [[String]] = [
         ["ㄱ","ㅅ","ㄳ"],
         ["ㄴ","ㅈ","ㄵ"],
         ["ㄴ","ㅎ","ㄶ"],
@@ -83,9 +83,9 @@ final class HangulAutomata {
     ]
     
     private func joongsungPair() -> Bool {
-        for i in 0..<dJoongTable.count {
-            if dJoongTable[i][0] == joongsungTable[Int(oldKey)] && dJoongTable[i][1] == joongsungTable[Int(keyCode)] {
-                keyCode = UInt32(joongsungTable.firstIndex(of: dJoongTable[i][2]) ?? 0)
+        for i in 0..<dJoongsungTable.count {
+            if dJoongsungTable[i][0] == joongsungTable[Int(oldKey)] && dJoongsungTable[i][1] == joongsungTable[Int(keyCode)] {
+                keyCode = UInt32(joongsungTable.firstIndex(of: dJoongsungTable[i][2]) ?? 0)
                 return true
             }
         }
@@ -93,18 +93,18 @@ final class HangulAutomata {
     }
     
     private func jongsungPair() -> Bool {
-        for i in 0..<dJongTable.count {
-            if dJongTable[i][0] == jongsungTable[Int(oldKey)] && dJongTable[i][1] == chosungTable[Int(keyCode)] {
-                keyCode = UInt32(jongsungTable.firstIndex(of: dJongTable[i][2]) ?? 0)
+        for i in 0..<dJongsungTable.count {
+            if dJongsungTable[i][0] == jongsungTable[Int(oldKey)] && dJongsungTable[i][1] == chosungTable[Int(keyCode)] {
+                keyCode = UInt32(jongsungTable.firstIndex(of: dJongsungTable[i][2]) ?? 0)
                 return true
             }
         }
         return false
     }
     
-    private func isJoongSungPair(first: String, result: String) -> Bool {
-        for i in 0..<dJoongTable.count {
-            if dJoongTable[i][0] == first && dJoongTable[i][2] == result {
+    private func isJoongsungPair(first: String, result: String) -> Bool {
+        for i in 0..<dJoongsungTable.count {
+            if dJoongsungTable[i][0] == first && dJoongsungTable[i][2] == result {
                 return true
             }
         }
@@ -131,7 +131,9 @@ final class HangulAutomata {
         return (((chosung * 21) + joongsung) * 28) + jongsung + 0xAC00
     }
     
-    func deleteBuffer() {
+    @discardableResult
+    func deleteBuffer() -> String {
+        var ret: String = ""
         if inpStack.count == 0 {
             if buffer.count > 0 {
                 buffer.removeLast()
@@ -151,7 +153,7 @@ final class HangulAutomata {
                     } else if popHanguel.chKind == .vowel {
                         if inpStack[inpStack.count - 1].curHanStatus == .jongsung {
                             if inpStack[inpStack.count - 1].chKind == .vowel {
-                                if isJoongSungPair(first: joongsungTable[Int(inpStack[inpStack.count - 1].key)] , result: joongsungTable[Int(popHanguel.key)]) {
+                                if isJoongsungPair(first: joongsungTable[Int(inpStack[inpStack.count - 1].key)] , result: joongsungTable[Int(popHanguel.key)]) {
                                     buffer[buffer.count - 1] = inpStack[inpStack.count - 1].charCode
                                 } else {
                                     buffer.removeLast()
@@ -171,9 +173,40 @@ final class HangulAutomata {
                     oldKey = inpStack[inpStack.count - 1].key
                     oldChKind = inpStack[inpStack.count - 1].chKind
                     charCode = inpStack[inpStack.count - 1].charCode
+                    
+                    switch oldChKind {
+                    case .consonant:
+                        if currentHangulState == .chosung {
+                            ret = chosungTable[Int(oldKey)]
+                        } else if currentHangulState == .jongsung {
+                            ret = jongsungTable[Int(oldKey)]
+                        } else if currentHangulState == .dJongsung {
+                            for i in 0..<dJongsungTable.count {
+                                if dJongsungTable[i][1] == jongsungTable[Int(oldKey)] {
+                                    ret = dJongsungTable[i][1]
+                                }
+                            }
+                        }
+                        
+                    case .vowel:
+                        if currentHangulState == .joongsung {
+                            ret = joongsungTable[Int(oldKey)]
+                        } else if currentHangulState == .dJoongsung {
+                            for i in 0..<dJoongsungTable.count {
+                                if dJoongsungTable[i][1] == joongsungTable[Int(oldKey)] {
+                                    ret = dJoongsungTable[i][1]
+                                }
+                            }
+                        }
+                        
+                    case nil:
+                        ret = ""
+                    }
                 }
             }
         }
+        
+        return ret
     }
 }
 

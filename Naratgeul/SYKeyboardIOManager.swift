@@ -13,7 +13,7 @@ import Foundation
 final class SYKeyboardIOManager {
     
     private var hangulAutomata = HangulAutomata()
-    private var lastInputLetter: String = ""
+    var lastInputLetter: String = ""
     var isEditingLastCharacter: Bool = false
     
     private var input: String = "" {
@@ -29,6 +29,7 @@ final class SYKeyboardIOManager {
                 hangulAutomata.hangulAutomata(key: input)
                 inputText?(hangulAutomata.buffer.reduce("", { $0 + $1 }))
             }
+            print("buffer) ", hangulAutomata.buffer)
         }
     }
     
@@ -222,9 +223,10 @@ extension SYKeyboardIOManager: SYKeyboardDelegate {
             isEditingLastCharacter = false
             deleteText?()
         } else {
-            hangulAutomata.deleteBuffer()
+            lastInputLetter = hangulAutomata.deleteBuffer()
             inputText?(hangulAutomata.buffer.reduce("", { $0 + $1 }))
         }
+        print("buffer) ", hangulAutomata.buffer)
     }
     
     func enterKeypadTap() {

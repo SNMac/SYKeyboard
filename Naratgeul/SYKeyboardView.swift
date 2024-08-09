@@ -70,13 +70,13 @@ struct SYKeyboardView: View {
                 SYKeyboardButton(
                     text: "ㄱ", primary: true,
                     action: {
-                        Feedback.shared.playTypeSound()
+                        Feedback.shared.playTypingSound()
                         Feedback.shared.playHaptics()
                         delegate?.hangulKeypadTap(letter: "ㄱ")
                     },
                     onLongPress: {
                         
-                        Feedback.shared.playTypeSound()
+                        Feedback.shared.playTypingSound()
                         Feedback.shared.playHaptics()
                     },
                     onLongPressFinished: {
@@ -86,13 +86,13 @@ struct SYKeyboardView: View {
                 SYKeyboardButton(
                     text: "ㄴ", primary: true,
                     action: {
-                        Feedback.shared.playTypeSound()
+                        Feedback.shared.playTypingSound()
                         Feedback.shared.playHaptics()
                         delegate?.hangulKeypadTap(letter: "ㄴ")
                     },
                     onLongPress: {
                         
-                        Feedback.shared.playTypeSound()
+                        Feedback.shared.playTypingSound()
                         Feedback.shared.playHaptics()
                     },
                     onLongPressFinished: {
@@ -102,13 +102,13 @@ struct SYKeyboardView: View {
                 SYKeyboardButton(
                     text: "ㅏㅓ", primary: true,
                     action: {
-                        Feedback.shared.playTypeSound()
+                        Feedback.shared.playTypingSound()
                         Feedback.shared.playHaptics()
                         delegate?.hangulKeypadTap(letter: "ㅏ")
                     },
                     onLongPress: {
                         
-                        Feedback.shared.playTypeSound()
+                        Feedback.shared.playTypingSound()
                         Feedback.shared.playHaptics()
                     },
                     onLongPressFinished: {
@@ -140,13 +140,13 @@ struct SYKeyboardView: View {
                 SYKeyboardButton(
                     text: "ㄹ", primary: true,
                     action: {
-                        Feedback.shared.playTypeSound()
+                        Feedback.shared.playTypingSound()
                         Feedback.shared.playHaptics()
                         delegate?.hangulKeypadTap(letter: "ㄹ")
                     },
                     onLongPress: {
                         
-                        Feedback.shared.playTypeSound()
+                        Feedback.shared.playTypingSound()
                         Feedback.shared.playHaptics()
                     },
                     onLongPressFinished: {
@@ -156,13 +156,13 @@ struct SYKeyboardView: View {
                 SYKeyboardButton(
                     text: "ㅁ", primary: true,
                     action: {
-                        Feedback.shared.playTypeSound()
+                        Feedback.shared.playTypingSound()
                         Feedback.shared.playHaptics()
                         delegate?.hangulKeypadTap(letter: "ㅁ")
                     },
                     onLongPress: {
                         
-                        Feedback.shared.playTypeSound()
+                        Feedback.shared.playTypingSound()
                         Feedback.shared.playHaptics()
                     },
                     onLongPressFinished: {
@@ -172,13 +172,13 @@ struct SYKeyboardView: View {
                 SYKeyboardButton(
                     text: "ㅗㅜ", primary: true,
                     action: {
-                        Feedback.shared.playTypeSound()
+                        Feedback.shared.playTypingSound()
                         Feedback.shared.playHaptics()
                         delegate?.hangulKeypadTap(letter: "ㅗ")
                     },
                     onLongPress: {
                         
-                        Feedback.shared.playTypeSound()
+                        Feedback.shared.playTypingSound()
                         Feedback.shared.playHaptics()
                     },
                     onLongPressFinished: {
@@ -198,13 +198,13 @@ struct SYKeyboardView: View {
                 SYKeyboardButton(
                     text: "ㅅ", primary: true,
                     action: {
-                        Feedback.shared.playTypeSound()
+                        Feedback.shared.playTypingSound()
                         Feedback.shared.playHaptics()
                         delegate?.hangulKeypadTap(letter: "ㅅ")
                     },
                     onLongPress: {
                         
-                        Feedback.shared.playTypeSound()
+                        Feedback.shared.playTypingSound()
                         Feedback.shared.playHaptics()
                     },
                     onLongPressFinished: {
@@ -214,13 +214,13 @@ struct SYKeyboardView: View {
                 SYKeyboardButton(
                     text: "ㅇ", primary: true,
                     action: {
-                        Feedback.shared.playTypeSound()
+                        Feedback.shared.playTypingSound()
                         Feedback.shared.playHaptics()
                         delegate?.hangulKeypadTap(letter: "ㅇ")
                     },
                     onLongPress: {
                         
-                        Feedback.shared.playTypeSound()
+                        Feedback.shared.playTypingSound()
                         Feedback.shared.playHaptics()
                     },
                     onLongPressFinished: {
@@ -230,13 +230,13 @@ struct SYKeyboardView: View {
                 SYKeyboardButton(
                     text: "ㅣ", primary: true,
                     action: {
-                        Feedback.shared.playTypeSound()
+                        Feedback.shared.playTypingSound()
                         Feedback.shared.playHaptics()
                         delegate?.hangulKeypadTap(letter: "ㅣ")
                     },
                     onLongPress: {
                         
-                        Feedback.shared.playTypeSound()
+                        Feedback.shared.playTypingSound()
                         Feedback.shared.playHaptics()
                     },
                     onLongPressFinished: {
@@ -256,13 +256,13 @@ struct SYKeyboardView: View {
                 SYKeyboardButton(
                     text: "획", primary: true,
                     action: {
-                        Feedback.shared.playTypeSound()
+                        Feedback.shared.playTypingSound()
                         Feedback.shared.playHaptics()
                         delegate?.hoegKeypadTap()
                     },
                     onLongPress: {
                         
-                        Feedback.shared.playTypeSound()
+                        Feedback.shared.playTypingSound()
                         Feedback.shared.playHaptics()
                     },
                     onLongPressFinished: {
@@ -272,13 +272,13 @@ struct SYKeyboardView: View {
                 SYKeyboardButton(
                     text: "ㅡ", primary: true,
                     action: {
-                        Feedback.shared.playTypeSound()
+                        Feedback.shared.playTypingSound()
                         Feedback.shared.playHaptics()
                         delegate?.hangulKeypadTap(letter: "ㅡ")
                     },
                     onLongPress: {
                         
-                        Feedback.shared.playTypeSound()
+                        Feedback.shared.playTypingSound()
                         Feedback.shared.playHaptics()
                     },
                     onLongPressFinished: {
@@ -288,13 +288,13 @@ struct SYKeyboardView: View {
                 SYKeyboardButton(
                     text: "쌍", primary: true,
                     action: {
-                        Feedback.shared.playTypeSound()
+                        Feedback.shared.playTypingSound()
                         Feedback.shared.playHaptics()
                         delegate?.ssangKeypadTap()
                     },
                     onLongPress: {
                         
-                        Feedback.shared.playTypeSound()
+                        Feedback.shared.playTypingSound()
                         Feedback.shared.playHaptics()
                     },
                     onLongPressFinished: {

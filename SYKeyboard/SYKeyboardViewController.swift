@@ -23,7 +23,7 @@ class SYKeyboardViewController: UIInputViewController {
                 delegate: keyboardIOManager,
                 keyboardHeight: keyboardHeight,
                 needsInputModeSwitchKey: self.needsInputModeSwitchKey,
-                //                needsInputModeSwitchKey: true,
+//                needsInputModeSwitchKey: true,
                 nextKeyboardAction: #selector(self.handleInputModeList(from:with:))
             ))
         
@@ -57,7 +57,7 @@ class SYKeyboardViewController: UIInputViewController {
                 }
             }
             proxy.insertText($0)
-            
+            print("lastInputLetter) " + keyboardIOManager.lastInputLetter)
             updateCursorPos()
             updateBufferSize()
         }

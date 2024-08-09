@@ -22,12 +22,12 @@ final class Feedback {
         defaults = UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")
     }
     
-    var haptics: Bool {
-        return defaults?.bool(forKey: "isHapticFeedbackEnabled") ?? true
-    }
-    
     var sounds: Bool {
         return defaults?.bool(forKey: "isSoundFeedbackEnabled") ?? true
+    }
+    
+    var haptics: Bool {
+        return defaults?.bool(forKey: "isHapticFeedbackEnabled") ?? true
     }
     
     func playHaptics() {
@@ -36,7 +36,7 @@ final class Feedback {
         generator.impactOccurred()
     }
     
-    func playTypeSound() {
+    func playTypingSound() {
         if !sounds { return }
         let systemSoundID: SystemSoundID = 1104
         AudioServicesPlaySystemSound(systemSoundID)
