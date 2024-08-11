@@ -6,31 +6,42 @@
 //  Edited by 서동환 on 7/31/24.
 //  - Downloaded from https://github.com/Kim-Junhwan/IOS-CustomKeyboard - KeyboardIOManager.swift
 //
- 
+
 import Foundation
 
 
 final class SYKeyboardIOManager {
     
     private var hangulAutomata = HangulAutomata()
-    private var lastInputLetter: String = ""
+    private var lastLetter: String = ""
     var isEditingLastCharacter: Bool = false
     
-    private var input: String = "" {
+    private var inputHangul: String = "" {
         didSet {
-            if input == " " || input == "\n" {
+            if inputHangul == " " || inputHangul == "\n" {
                 hangulAutomata.buffer.removeAll()
                 hangulAutomata.inpStack.removeAll()
                 isEditingLastCharacter = false
                 hangulAutomata.currentHangulState = nil
-                inputText?(input)
-                lastInputLetter = input
+                inputText?(inputHangul)
+            } else if inputHangul == "" {
+                hangulAutomata.buffer.removeAll()
+                hangulAutomata.inpStack.removeAll()
+                isEditingLastCharacter = false
+                hangulAutomata.currentHangulState = nil
             } else {
                 isEditingLastCharacter = true
-                hangulAutomata.hangulAutomata(key: input)
+                hangulAutomata.hangulAutomata(key: inputHangul)
                 inputText?(hangulAutomata.buffer.reduce("", { $0 + $1 }))
             }
-            print("buffer) ", hangulAutomata.buffer)
+        }
+    }
+    
+    private var inputOther: String = "" {
+        didSet {
+            isEditingLastCharacter = true
+            hangulAutomata.symbolAutomata(key: inputOther)
+            inputText?(hangulAutomata.buffer.reduce("", { $0 + $1 }))
         }
     }
     
@@ -49,17 +60,21 @@ extension SYKeyboardIOManager: SYKeyboardDelegate {
         hangulAutomata.inpStack.removeAll()
         isEditingLastCharacter = false
         hangulAutomata.currentHangulState = nil
-        lastInputLetter = ""
+        lastLetter = ""
+    }
+    
+    func inputlastLetter() {
+        self.inputHangul = lastLetter
     }
     
     func hangulKeypadTap(letter: String) {
-        var curLetter: String = ""
+        var curLetter: String
         switch letter {
         case "ㅏ" :
-            if lastInputLetter == "ㅏ" {
+            if lastLetter == "ㅏ" {
                 hangulAutomata.deleteBuffer()
                 curLetter = "ㅓ"
-            } else if lastInputLetter == "ㅓ" {
+            } else if lastLetter == "ㅓ" {
                 hangulAutomata.deleteBuffer()
                 curLetter = "ㅏ"
             } else {
@@ -67,10 +82,10 @@ extension SYKeyboardIOManager: SYKeyboardDelegate {
             }
             
         case "ㅗ" :
-            if lastInputLetter == "ㅗ" {
+            if lastLetter == "ㅗ" {
                 hangulAutomata.deleteBuffer()
                 curLetter = "ㅜ"
-            } else if lastInputLetter == "ㅜ" {
+            } else if lastLetter == "ㅜ" {
                 hangulAutomata.deleteBuffer()
                 curLetter = "ㅗ"
             } else {
@@ -81,15 +96,15 @@ extension SYKeyboardIOManager: SYKeyboardDelegate {
             curLetter = letter
         }
         
-        self.input = curLetter
-        lastInputLetter = curLetter
+        self.inputHangul = curLetter
+        lastLetter = curLetter
     }
     
     func hoegKeypadTap() {
         hangulAutomata.deleteBuffer()
         
         let curLetter: String
-        switch lastInputLetter {
+        switch lastLetter {
         case "ㄱ":
             curLetter = "ㅋ"
         case "ㅋ", "ㄲ":
@@ -154,15 +169,15 @@ extension SYKeyboardIOManager: SYKeyboardDelegate {
             curLetter = ""
         }
         
-        self.input = curLetter
-        lastInputLetter = curLetter
+        self.inputHangul = curLetter
+        lastLetter = curLetter
     }
     
     func ssangKeypadTap() {
         hangulAutomata.deleteBuffer()
         
         let curLetter: String
-        switch lastInputLetter {
+        switch lastLetter {
         case "ㄱ", "ㅋ":
             curLetter = "ㄲ"
         case "ㄲ":
@@ -223,8 +238,8 @@ extension SYKeyboardIOManager: SYKeyboardDelegate {
             curLetter = ""
         }
         
-        self.input = curLetter
-        lastInputLetter = curLetter
+        self.inputHangul = curLetter
+        lastLetter = curLetter
     }
     
     func removeKeypadTap() {
@@ -232,19 +247,25 @@ extension SYKeyboardIOManager: SYKeyboardDelegate {
             isEditingLastCharacter = false
             deleteText?()
         } else {
-            lastInputLetter = hangulAutomata.deleteBuffer()
+            lastLetter = hangulAutomata.deleteBuffer()
             inputText?(hangulAutomata.buffer.reduce("", { $0 + $1 }))
         }
-        print("buffer) ", hangulAutomata.buffer)
     }
     
     func enterKeypadTap() {
-//        dismiss?()
-        self.input = "\n"
+        //        dismiss?()
+        inputHangul = "\n"
+        lastLetter = inputHangul
     }
     
     func spaceKeypadTap() {
-        self.input = " "
+        inputHangul = " "
+        lastLetter = inputHangul
+    }
+    
+    func otherKeypadTap(letter: String) {
+        inputOther = letter
+        lastLetter = inputHangul
     }
     
     func numKeypadTap() {

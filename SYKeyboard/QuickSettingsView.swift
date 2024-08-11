@@ -35,7 +35,6 @@ struct QuickSettingsView: View {
     
     
     var body: some View {
-        //        let defaults = UserDefaults.standard
         VStack {
             Toggle("소리 피드백", isOn: $isSoundFeedbackEnabled)
             

@@ -12,12 +12,14 @@ import Combine
 protocol SYKeyboardDelegate: AnyObject {
     func getBufferSize() -> Int
     func flushBuffer()
+    func inputlastLetter()
     func hangulKeypadTap(letter: String)
     func hoegKeypadTap()
     func ssangKeypadTap()
     func removeKeypadTap()
     func enterKeypadTap()
     func spaceKeypadTap()
+    func otherKeypadTap(letter: String)
     func numKeypadTap()
 }
 
@@ -56,7 +58,6 @@ struct NextKeyboardButtonOverlay: UIViewRepresentable {
 
 struct SYKeyboardView: View {
     @State var timer: AnyCancellable?
-    @State var lastLongPressKey: String = ""
     
     weak var delegate: SYKeyboardDelegate?
     
@@ -67,21 +68,27 @@ struct SYKeyboardView: View {
     
     var body: some View {
         VStack(spacing: 5) {
+            // MARK: - ㄱ, ㄴ, ㅏㅓ, 􀆛
             HStack(spacing: 5) {
                 SYKeyboardButton(
                     text: "ㄱ", primary: true,
                     action: {
                         Feedback.shared.playTypingSound()
                         Feedback.shared.playHaptics()
-                        delegate?.hangulKeypadTap(letter: "ㄱ")
+//                        delegate?.hangulKeypadTap(letter: "ㄱ")
+                        delegate?.otherKeypadTap(letter: ",")
                     },
                     onLongPress: {
-                        
-                        Feedback.shared.playTypingSound()
-                        Feedback.shared.playHaptics()
+                        timer = Timer.publish(every: 0.05, on: .main, in: .common)
+                            .autoconnect()
+                            .sink { _ in
+                                Feedback.shared.playTypingSound()
+                                Feedback.shared.playHaptics()
+                                delegate?.inputlastLetter()
+                            }
                     },
                     onLongPressFinished: {
-                        
+                        timer?.cancel()
                     })
                 
                 SYKeyboardButton(
@@ -92,12 +99,16 @@ struct SYKeyboardView: View {
                         delegate?.hangulKeypadTap(letter: "ㄴ")
                     },
                     onLongPress: {
-                        
-                        Feedback.shared.playTypingSound()
-                        Feedback.shared.playHaptics()
+                        timer = Timer.publish(every: 0.05, on: .main, in: .common)
+                            .autoconnect()
+                            .sink { _ in
+                                Feedback.shared.playTypingSound()
+                                Feedback.shared.playHaptics()
+                                delegate?.inputlastLetter()
+                            }
                     },
                     onLongPressFinished: {
-                        
+                        timer?.cancel()
                     })
                 
                 SYKeyboardButton(
@@ -108,12 +119,16 @@ struct SYKeyboardView: View {
                         delegate?.hangulKeypadTap(letter: "ㅏ")
                     },
                     onLongPress: {
-                        
-                        Feedback.shared.playTypingSound()
-                        Feedback.shared.playHaptics()
+                        timer = Timer.publish(every: 0.05, on: .main, in: .common)
+                            .autoconnect()
+                            .sink { _ in
+                                Feedback.shared.playTypingSound()
+                                Feedback.shared.playHaptics()
+                                delegate?.inputlastLetter()
+                            }
                     },
                     onLongPressFinished: {
-                        
+                        timer?.cancel()
                     })
                 
                 SYKeyboardButton(
@@ -124,7 +139,7 @@ struct SYKeyboardView: View {
                         delegate?.removeKeypadTap()
                     },
                     onLongPress: {
-                        timer = Timer.publish(every: 0.1, on: .main, in: .common)
+                        timer = Timer.publish(every: 0.05, on: .main, in: .common)
                             .autoconnect()
                             .sink { _ in
                                 Feedback.shared.playDeleteSound()
@@ -137,6 +152,7 @@ struct SYKeyboardView: View {
                     })
             }.padding(.horizontal, 2)
             
+            // MARK: - ㄹ, ㅁ, ㅗㅜ, 􁁺
             HStack(spacing: 5) {
                 SYKeyboardButton(
                     text: "ㄹ", primary: true,
@@ -146,12 +162,16 @@ struct SYKeyboardView: View {
                         delegate?.hangulKeypadTap(letter: "ㄹ")
                     },
                     onLongPress: {
-                        
-                        Feedback.shared.playTypingSound()
-                        Feedback.shared.playHaptics()
+                        timer = Timer.publish(every: 0.05, on: .main, in: .common)
+                            .autoconnect()
+                            .sink { _ in
+                                Feedback.shared.playTypingSound()
+                                Feedback.shared.playHaptics()
+                                delegate?.inputlastLetter()
+                            }
                     },
                     onLongPressFinished: {
-                        
+                        timer?.cancel()
                     })
                 
                 SYKeyboardButton(
@@ -162,12 +182,16 @@ struct SYKeyboardView: View {
                         delegate?.hangulKeypadTap(letter: "ㅁ")
                     },
                     onLongPress: {
-                        
-                        Feedback.shared.playTypingSound()
-                        Feedback.shared.playHaptics()
+                        timer = Timer.publish(every: 0.05, on: .main, in: .common)
+                            .autoconnect()
+                            .sink { _ in
+                                Feedback.shared.playTypingSound()
+                                Feedback.shared.playHaptics()
+                                delegate?.inputlastLetter()
+                            }
                     },
                     onLongPressFinished: {
-                        
+                        timer?.cancel()
                     })
                 
                 SYKeyboardButton(
@@ -178,12 +202,16 @@ struct SYKeyboardView: View {
                         delegate?.hangulKeypadTap(letter: "ㅗ")
                     },
                     onLongPress: {
-                        
-                        Feedback.shared.playTypingSound()
-                        Feedback.shared.playHaptics()
+                        timer = Timer.publish(every: 0.05, on: .main, in: .common)
+                            .autoconnect()
+                            .sink { _ in
+                                Feedback.shared.playTypingSound()
+                                Feedback.shared.playHaptics()
+                                delegate?.inputlastLetter()
+                            }
                     },
                     onLongPressFinished: {
-                        
+                        timer?.cancel()
                     })
                 
                 SYKeyboardButton(
@@ -192,9 +220,22 @@ struct SYKeyboardView: View {
                         Feedback.shared.playModifierSound()
                         Feedback.shared.playHaptics()
                         delegate?.spaceKeypadTap()
+                    },
+                    onLongPress: {
+                        timer = Timer.publish(every: 0.05, on: .main, in: .common)
+                            .autoconnect()
+                            .sink { _ in
+                                Feedback.shared.playModifierSound()
+                                Feedback.shared.playHaptics()
+                                delegate?.spaceKeypadTap()
+                            }
+                    },
+                    onLongPressFinished: {
+                        timer?.cancel()
                     })
             }.padding(.horizontal, 2)
             
+            // MARK: - ㅅ, ㅇ, ㅣ, 􁂆
             HStack(spacing: 5) {
                 SYKeyboardButton(
                     text: "ㅅ", primary: true,
@@ -204,12 +245,16 @@ struct SYKeyboardView: View {
                         delegate?.hangulKeypadTap(letter: "ㅅ")
                     },
                     onLongPress: {
-                        
-                        Feedback.shared.playTypingSound()
-                        Feedback.shared.playHaptics()
+                        timer = Timer.publish(every: 0.05, on: .main, in: .common)
+                            .autoconnect()
+                            .sink { _ in
+                                Feedback.shared.playTypingSound()
+                                Feedback.shared.playHaptics()
+                                delegate?.inputlastLetter()
+                            }
                     },
                     onLongPressFinished: {
-                        
+                        timer?.cancel()
                     })
                 
                 SYKeyboardButton(
@@ -220,12 +265,16 @@ struct SYKeyboardView: View {
                         delegate?.hangulKeypadTap(letter: "ㅇ")
                     },
                     onLongPress: {
-                        
-                        Feedback.shared.playTypingSound()
-                        Feedback.shared.playHaptics()
+                        timer = Timer.publish(every: 0.05, on: .main, in: .common)
+                            .autoconnect()
+                            .sink { _ in
+                                Feedback.shared.playTypingSound()
+                                Feedback.shared.playHaptics()
+                                delegate?.inputlastLetter()
+                            }
                     },
                     onLongPressFinished: {
-                        
+                        timer?.cancel()
                     })
                 
                 SYKeyboardButton(
@@ -236,12 +285,16 @@ struct SYKeyboardView: View {
                         delegate?.hangulKeypadTap(letter: "ㅣ")
                     },
                     onLongPress: {
-                        
-                        Feedback.shared.playTypingSound()
-                        Feedback.shared.playHaptics()
+                        timer = Timer.publish(every: 0.05, on: .main, in: .common)
+                            .autoconnect()
+                            .sink { _ in
+                                Feedback.shared.playTypingSound()
+                                Feedback.shared.playHaptics()
+                                delegate?.inputlastLetter()
+                            }
                     },
                     onLongPressFinished: {
-                        
+                        timer?.cancel()
                     })
                 
                 SYKeyboardButton(
@@ -253,6 +306,7 @@ struct SYKeyboardView: View {
                     })
             }.padding(.horizontal, 2)
             
+            // MARK: - 획, ㅡ, 쌍, 􀅱
             HStack(spacing: 5) {
                 SYKeyboardButton(
                     text: "획", primary: true,
@@ -262,12 +316,17 @@ struct SYKeyboardView: View {
                         delegate?.hoegKeypadTap()
                     },
                     onLongPress: {
-                        
-                        Feedback.shared.playTypingSound()
-                        Feedback.shared.playHaptics()
+                        // TODO: 쉼표(,) 입력
+                        timer = Timer.publish(every: 0.05, on: .main, in: .common)
+                            .autoconnect()
+                            .sink { _ in
+                                Feedback.shared.playTypingSound()
+                                Feedback.shared.playHaptics()
+                                delegate?.inputlastLetter()
+                            }
                     },
                     onLongPressFinished: {
-                        
+                        timer?.cancel()
                     })
                 
                 SYKeyboardButton(
@@ -278,12 +337,16 @@ struct SYKeyboardView: View {
                         delegate?.hangulKeypadTap(letter: "ㅡ")
                     },
                     onLongPress: {
-                        
-                        Feedback.shared.playTypingSound()
-                        Feedback.shared.playHaptics()
+                        timer = Timer.publish(every: 0.05, on: .main, in: .common)
+                            .autoconnect()
+                            .sink { _ in
+                                Feedback.shared.playTypingSound()
+                                Feedback.shared.playHaptics()
+                                delegate?.inputlastLetter()
+                            }
                     },
                     onLongPressFinished: {
-                        
+                        timer?.cancel()
                     })
                 
                 SYKeyboardButton(
@@ -294,12 +357,17 @@ struct SYKeyboardView: View {
                         delegate?.ssangKeypadTap()
                     },
                     onLongPress: {
-                        
-                        Feedback.shared.playTypingSound()
-                        Feedback.shared.playHaptics()
+                        // TODO: 온점(.) 입력
+                        timer = Timer.publish(every: 0.05, on: .main, in: .common)
+                            .autoconnect()
+                            .sink { _ in
+                                Feedback.shared.playTypingSound()
+                                Feedback.shared.playHaptics()
+                                delegate?.inputlastLetter()
+                            }
                     },
                     onLongPressFinished: {
-                        
+                        timer?.cancel()
                     })
                 
                 if needsInputModeSwitchKey && nextKeyboardAction != nil {
@@ -313,7 +381,8 @@ struct SYKeyboardView: View {
                             })
                         
                         Button {
-                            
+                            Feedback.shared.playModifierSound()
+                            Feedback.shared.playHaptics()
                         } label: {
                             Image(systemName: "globe")
                                 .resizable()

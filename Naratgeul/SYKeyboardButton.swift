@@ -8,10 +8,12 @@
 //
 
 import SwiftUI
+import Combine
 
 
 struct SYKeyboardButton: View {
-    @State private var pressed: Bool = false
+    @State private var isPressed: Bool = false
+    @State private var timer: AnyCancellable?
     @Environment(\.colorScheme) var colorScheme
     
     var text: String?
@@ -43,29 +45,46 @@ struct SYKeyboardButton: View {
                     .clipShape(.rect(cornerRadius: 5))
             }
         }
-        .simultaneousGesture(
+        .gesture(
             DragGesture(minimumDistance: 0)
-                .onChanged { _ in
-                    Feedback.shared.playTypingSound()
-                    Feedback.shared.playHaptics()
-                    onLongPress?()
+                .onChanged { value in
+                    print("DragGesture) onChanged")
+                    if value.translation.width > 80 {
+                        print("Drag to right")
+                        isPressed = false
+                        // TODO: 커서 오른쪽으로 이동
+                    } else if value.translation.width < -80 {
+                        print("Drag to left")
+                        isPressed = false
+                        // TODO: 커서 왼쪽으로 이동
+                    }
                 }
-                .onEnded { _ in
-                    onLongPressFinished?()
-                }
+                .onEnded({ value in
+                    print("DragGesture) onEnded")
+                    isPressed = false
+                })
         )
         .highPriorityGesture(
-            withAnimation(.easeInOut(duration: 0.5)) {
-                TapGesture()
-                    .onEnded { _ in
-                        pressed = true
-                        action()
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
-                            pressed = false
-                        }
+            LongPressGesture(minimumDuration: 0.5)
+                .onChanged({ value in
+                    print("LongPressGesture) onChanged")
+                    isPressed = true
+                    action()
+                })
+                .onEnded({ value in
+                    print("LongPressGesture) onEnded")
+                    print("onLongPress")
+                    onLongPress?()
+                })
+                .sequenced(before: DragGesture(minimumDistance: 0))
+                .onEnded({ value in
+                    print("LongPressGesture->DragGesture) onEnded")
+                    onLongPressFinished?()
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                      isPressed = false
                     }
-            }
+                })
         )
-        .opacity(pressed ? 0.5 : 1.0)
+        .opacity(isPressed ? 0.5 : 1.0)
     }
 }

@@ -51,8 +51,6 @@ class SYKeyboardViewController: UIInputViewController {
             guard let self = self else { return }
             let proxy = textDocumentProxy
             
-            // TODO: 커서 앞에 아무것도 없을때 버퍼 불러오지 않고 바로 입력하게 하기
-            
             if keyboardIOManager.isEditingLastCharacter {
                 for _ in 0..<bufferSize {
                     proxy.deleteBackward()

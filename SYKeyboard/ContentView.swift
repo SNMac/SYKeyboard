@@ -11,6 +11,7 @@ struct ContentView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading) {
+                KeyboardTestView()
                 QuickSettingsView()
             }
             .padding()
