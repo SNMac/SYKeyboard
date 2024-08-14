@@ -21,6 +21,8 @@ final class SYKeyboardOptions: ObservableObject {
     var needsInputModeSwitchKey: Bool
     var nextKeyboardAction: Selector
     
+    var isHoegSsangAvailable: Bool = false
+    
     init(
         delegate: SYKeyboardDelegate,
         keyboardHeight: CGFloat,

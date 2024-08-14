@@ -20,7 +20,8 @@ class SYKeyboardViewController: UIInputViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        setup()
+        setupIOManager()
+        setupUI()
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -28,11 +29,73 @@ class SYKeyboardViewController: UIInputViewController {
         
         updateCursorPos()
         updateBufferSize()
+        updateHoegSsangAvailiable()
         Feedback.shared.prepareHaptics()
     }
     
     // MARK: - Method
-    private func setup() {
+    private func setupIOManager() {
+        keyboardIOManager.inputText = { [weak self] in
+            guard let self = self else { return }
+            let proxy = textDocumentProxy
+            
+            if keyboardIOManager.isEditingLastCharacter {
+                for _ in 0..<bufferSize {
+                    proxy.deleteBackward()
+                }
+            }
+            proxy.insertText($0)
+            
+            updateCursorPos()
+            updateBufferSize()
+            updateHoegSsangAvailiable()
+        }
+        
+        keyboardIOManager.deleteText = { [weak self] in
+            guard let self = self else { return }
+            let proxy = textDocumentProxy
+            
+            proxy.deleteBackward()
+            
+            updateCursorPos()
+            updateBufferSize()
+            updateHoegSsangAvailiable()
+        }
+        
+        keyboardIOManager.hoegPeriod = { [weak self] in
+            guard let self = self else { return }
+            let proxy = textDocumentProxy
+            
+            if proxy.documentContextBeforeInput?.last == " " {
+                proxy.deleteBackward()
+                proxy.insertText(". ")
+            } else if !keyboardIOManager.isEditingLastCharacter {
+                proxy.insertText(". ")
+            }
+            
+            updateCursorPos()
+            updateBufferSize()
+            updateHoegSsangAvailiable()
+        }
+        
+        keyboardIOManager.ssangComma = { [weak self] in
+            guard let self = self else { return }
+            let proxy = textDocumentProxy
+            
+            if proxy.documentContextBeforeInput?.last == " " {
+                proxy.deleteBackward()
+                proxy.insertText(", ")
+            } else if !keyboardIOManager.isEditingLastCharacter {
+                proxy.insertText(", ")
+            }
+            
+            updateCursorPos()
+            updateBufferSize()
+            updateHoegSsangAvailiable()
+        }
+    }
+    
+    private func setupUI() {
         let nextKeyboardAction = #selector(handleInputModeList(from:with:))
         let options = SYKeyboardOptions(
             delegate: keyboardIOManager,
@@ -57,31 +120,6 @@ class SYKeyboardViewController: UIInputViewController {
             SYKeyboard.view.rightAnchor.constraint(equalTo: view.rightAnchor),
             SYKeyboard.view.bottomAnchor.constraint(equalTo: view.bottomAnchor)
         ])
-        
-        keyboardIOManager.inputText = { [weak self] in
-            guard let self = self else { return }
-            let proxy = textDocumentProxy
-            
-            if keyboardIOManager.isEditingLastCharacter {
-                for _ in 0..<bufferSize {
-                    proxy.deleteBackward()
-                }
-            }
-            proxy.insertText($0)
-            
-            updateCursorPos()
-            updateBufferSize()
-        }
-        
-        keyboardIOManager.deleteText = { [weak self] in
-            guard let self = self else { return }
-            let proxy = textDocumentProxy
-            
-            proxy.deleteBackward()
-            
-            updateCursorPos()
-            updateBufferSize()
-        }
     }
     
     override func textWillChange(_ textInput: (any UITextInput)?) {
@@ -90,6 +128,7 @@ class SYKeyboardViewController: UIInputViewController {
         keyboardIOManager.flushBuffer()
         updateCursorPos()
         updateBufferSize()
+        updateHoegSsangAvailiable()
     }
     
     override func selectionWillChange(_ textInput: (any UITextInput)?) {
@@ -98,6 +137,7 @@ class SYKeyboardViewController: UIInputViewController {
         keyboardIOManager.flushBuffer()
         updateCursorPos()
         updateBufferSize()
+        updateHoegSsangAvailiable()
     }
     
     private func updateCursorPos() {
@@ -111,5 +151,9 @@ class SYKeyboardViewController: UIInputViewController {
     private func updateBufferSize() {
         bufferSize = keyboardIOManager.getBufferSize()
         print("bufferSize) ", bufferSize)
+    }
+    
+    private func updateHoegSsangAvailiable() {
+        options?.isHoegSsangAvailable = keyboardIOManager.isHoegSsangAvailiable
     }
 }

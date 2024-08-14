@@ -78,7 +78,7 @@ struct SYKeyboardButton: View {
                 })
         )
         .highPriorityGesture(
-            LongPressGesture(minimumDuration: 0.5)
+            LongPressGesture(minimumDuration: 0.4)
                 .onChanged({ value in
                     print("LongPressGesture) onChanged")
                     isPressed = true
@@ -86,7 +86,6 @@ struct SYKeyboardButton: View {
                 })
                 .onEnded({ value in
                     print("LongPressGesture) onEnded")
-                    print("onLongPress")
                     onLongPress?()
                 })
                 .sequenced(before: DragGesture(minimumDistance: 0))

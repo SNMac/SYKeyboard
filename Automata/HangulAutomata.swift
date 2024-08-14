@@ -380,7 +380,6 @@ extension HangulAutomata {
     func storeStackAndBuffer() {
         inpStack.append(InpStack(hangulStatus: curHanStatus ?? .start, keyKind: curKeyKind, keyIndex: curKeyIndex, geulja: String(Unicode.Scalar(curGeulja) ?? Unicode.Scalar(0)), hasChosung: curHasChosung))
         buffer[buffer.count - 1] = curGeulja
-        print("curHasChosung) ", curHasChosung)
         print("buffer) ", buffer)
     }
 }

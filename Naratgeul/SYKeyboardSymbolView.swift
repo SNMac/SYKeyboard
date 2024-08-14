@@ -28,12 +28,15 @@ struct SYKeyboardSymbolView: View {
                             options.delegate?.otherKeypadTap(letter: isShiftTapped ? "[" : "1")
                         },
                         onLongPress: {
+                            Feedback.shared.playTypingSound()
+                            Feedback.shared.playHaptics()
+                            options.delegate?.otherKeypadTap(letter: isShiftTapped ? "[" : "1")
                             timer = Timer.publish(every: 0.05, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
                                     Feedback.shared.playHaptics()
-                                    options.delegate?.inputlastLetter()
+                                    options.delegate?.inputLastLetter()
                                 }
                         },
                         onLongPressFinished: {
@@ -50,12 +53,15 @@ struct SYKeyboardSymbolView: View {
                             options.delegate?.otherKeypadTap(letter: isShiftTapped ? "]" : "2")
                         },
                         onLongPress: {
+                            Feedback.shared.playTypingSound()
+                            Feedback.shared.playHaptics()
+                            options.delegate?.otherKeypadTap(letter: isShiftTapped ? "]" : "2")
                             timer = Timer.publish(every: 0.05, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
                                     Feedback.shared.playHaptics()
-                                    options.delegate?.inputlastLetter()
+                                    options.delegate?.inputLastLetter()
                                 }
                         },
                         onLongPressFinished: {
@@ -72,12 +78,15 @@ struct SYKeyboardSymbolView: View {
                             options.delegate?.otherKeypadTap(letter: isShiftTapped ? "{" : "3")
                         },
                         onLongPress: {
+                            Feedback.shared.playTypingSound()
+                            Feedback.shared.playHaptics()
+                            options.delegate?.otherKeypadTap(letter: isShiftTapped ? "{" : "3")
                             timer = Timer.publish(every: 0.05, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
                                     Feedback.shared.playHaptics()
-                                    options.delegate?.inputlastLetter()
+                                    options.delegate?.inputLastLetter()
                                 }
                         },
                         onLongPressFinished: {
@@ -94,12 +103,15 @@ struct SYKeyboardSymbolView: View {
                             options.delegate?.otherKeypadTap(letter: isShiftTapped ? "}" : "4")
                         },
                         onLongPress: {
+                            Feedback.shared.playTypingSound()
+                            Feedback.shared.playHaptics()
+                            options.delegate?.otherKeypadTap(letter: isShiftTapped ? "}" : "4")
                             timer = Timer.publish(every: 0.05, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
                                     Feedback.shared.playHaptics()
-                                    options.delegate?.inputlastLetter()
+                                    options.delegate?.inputLastLetter()
                                 }
                         },
                         onLongPressFinished: {
@@ -116,12 +128,15 @@ struct SYKeyboardSymbolView: View {
                             options.delegate?.otherKeypadTap(letter: isShiftTapped ? "#" : "5")
                         },
                         onLongPress: {
+                            Feedback.shared.playTypingSound()
+                            Feedback.shared.playHaptics()
+                            options.delegate?.otherKeypadTap(letter: isShiftTapped ? "#" : "5")
                             timer = Timer.publish(every: 0.05, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
                                     Feedback.shared.playHaptics()
-                                    options.delegate?.inputlastLetter()
+                                    options.delegate?.inputLastLetter()
                                 }
                         },
                         onLongPressFinished: {
@@ -138,12 +153,15 @@ struct SYKeyboardSymbolView: View {
                             options.delegate?.otherKeypadTap(letter: isShiftTapped ? "%" : "6")
                         },
                         onLongPress: {
+                            Feedback.shared.playTypingSound()
+                            Feedback.shared.playHaptics()
+                            options.delegate?.otherKeypadTap(letter: isShiftTapped ? "%" : "6")
                             timer = Timer.publish(every: 0.05, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
                                     Feedback.shared.playHaptics()
-                                    options.delegate?.inputlastLetter()
+                                    options.delegate?.inputLastLetter()
                                 }
                         },
                         onLongPressFinished: {
@@ -160,12 +178,15 @@ struct SYKeyboardSymbolView: View {
                             options.delegate?.otherKeypadTap(letter: isShiftTapped ? "^" : "7")
                         },
                         onLongPress: {
+                            Feedback.shared.playTypingSound()
+                            Feedback.shared.playHaptics()
+                            options.delegate?.otherKeypadTap(letter: isShiftTapped ? "^" : "7")
                             timer = Timer.publish(every: 0.05, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
                                     Feedback.shared.playHaptics()
-                                    options.delegate?.inputlastLetter()
+                                    options.delegate?.inputLastLetter()
                                 }
                         },
                         onLongPressFinished: {
@@ -182,12 +203,15 @@ struct SYKeyboardSymbolView: View {
                             options.delegate?.otherKeypadTap(letter: isShiftTapped ? "*" : "8")
                         },
                         onLongPress: {
+                            Feedback.shared.playTypingSound()
+                            Feedback.shared.playHaptics()
+                            options.delegate?.otherKeypadTap(letter: isShiftTapped ? "*" : "8")
                             timer = Timer.publish(every: 0.05, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
                                     Feedback.shared.playHaptics()
-                                    options.delegate?.inputlastLetter()
+                                    options.delegate?.inputLastLetter()
                                 }
                         },
                         onLongPressFinished: {
@@ -204,12 +228,15 @@ struct SYKeyboardSymbolView: View {
                             options.delegate?.otherKeypadTap(letter: isShiftTapped ? "+" : "9")
                         },
                         onLongPress: {
+                            Feedback.shared.playTypingSound()
+                            Feedback.shared.playHaptics()
+                            options.delegate?.otherKeypadTap(letter: isShiftTapped ? "+" : "9")
                             timer = Timer.publish(every: 0.05, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
                                     Feedback.shared.playHaptics()
-                                    options.delegate?.inputlastLetter()
+                                    options.delegate?.inputLastLetter()
                                 }
                         },
                         onLongPressFinished: {
@@ -226,12 +253,15 @@ struct SYKeyboardSymbolView: View {
                             options.delegate?.otherKeypadTap(letter: isShiftTapped ? "=" : "0")
                         },
                         onLongPress: {
+                            Feedback.shared.playTypingSound()
+                            Feedback.shared.playHaptics()
+                            options.delegate?.otherKeypadTap(letter: isShiftTapped ? "=" : "0")
                             timer = Timer.publish(every: 0.05, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
                                     Feedback.shared.playHaptics()
-                                    options.delegate?.inputlastLetter()
+                                    options.delegate?.inputLastLetter()
                                 }
                         },
                         onLongPressFinished: {
@@ -251,12 +281,15 @@ struct SYKeyboardSymbolView: View {
                             options.delegate?.otherKeypadTap(letter: isShiftTapped ? "_" : "-")
                         },
                         onLongPress: {
+                            Feedback.shared.playTypingSound()
+                            Feedback.shared.playHaptics()
+                            options.delegate?.otherKeypadTap(letter: isShiftTapped ? "_" : "-")
                             timer = Timer.publish(every: 0.05, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
                                     Feedback.shared.playHaptics()
-                                    options.delegate?.inputlastLetter()
+                                    options.delegate?.inputLastLetter()
                                 }
                         },
                         onLongPressFinished: {
@@ -273,12 +306,15 @@ struct SYKeyboardSymbolView: View {
                             options.delegate?.otherKeypadTap(letter: isShiftTapped ? "\\" : "/")
                         },
                         onLongPress: {
+                            Feedback.shared.playTypingSound()
+                            Feedback.shared.playHaptics()
+                            options.delegate?.otherKeypadTap(letter: isShiftTapped ? "\\" : "/")
                             timer = Timer.publish(every: 0.05, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
                                     Feedback.shared.playHaptics()
-                                    options.delegate?.inputlastLetter()
+                                    options.delegate?.inputLastLetter()
                                 }
                         },
                         onLongPressFinished: {
@@ -295,12 +331,15 @@ struct SYKeyboardSymbolView: View {
                             options.delegate?.otherKeypadTap(letter: isShiftTapped ? "|" : ":")
                         },
                         onLongPress: {
+                            Feedback.shared.playTypingSound()
+                            Feedback.shared.playHaptics()
+                            options.delegate?.otherKeypadTap(letter: isShiftTapped ? "|" : ":")
                             timer = Timer.publish(every: 0.05, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
                                     Feedback.shared.playHaptics()
-                                    options.delegate?.inputlastLetter()
+                                    options.delegate?.inputLastLetter()
                                 }
                         },
                         onLongPressFinished: {
@@ -317,12 +356,15 @@ struct SYKeyboardSymbolView: View {
                             options.delegate?.otherKeypadTap(letter: isShiftTapped ? "~" : ";")
                         },
                         onLongPress: {
+                            Feedback.shared.playTypingSound()
+                            Feedback.shared.playHaptics()
+                            options.delegate?.otherKeypadTap(letter: isShiftTapped ? "~" : ";")
                             timer = Timer.publish(every: 0.05, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
                                     Feedback.shared.playHaptics()
-                                    options.delegate?.inputlastLetter()
+                                    options.delegate?.inputLastLetter()
                                 }
                         },
                         onLongPressFinished: {
@@ -339,12 +381,15 @@ struct SYKeyboardSymbolView: View {
                             options.delegate?.otherKeypadTap(letter: isShiftTapped ? "<" : "(")
                         },
                         onLongPress: {
+                            Feedback.shared.playTypingSound()
+                            Feedback.shared.playHaptics()
+                            options.delegate?.otherKeypadTap(letter: isShiftTapped ? "<" : "(")
                             timer = Timer.publish(every: 0.05, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
                                     Feedback.shared.playHaptics()
-                                    options.delegate?.inputlastLetter()
+                                    options.delegate?.inputLastLetter()
                                 }
                         },
                         onLongPressFinished: {
@@ -361,12 +406,15 @@ struct SYKeyboardSymbolView: View {
                             options.delegate?.otherKeypadTap(letter: isShiftTapped ? ">" : ")")
                         },
                         onLongPress: {
+                            Feedback.shared.playTypingSound()
+                            Feedback.shared.playHaptics()
+                            options.delegate?.otherKeypadTap(letter: isShiftTapped ? ">" : ")")
                             timer = Timer.publish(every: 0.05, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
                                     Feedback.shared.playHaptics()
-                                    options.delegate?.inputlastLetter()
+                                    options.delegate?.inputLastLetter()
                                 }
                         },
                         onLongPressFinished: {
@@ -383,12 +431,15 @@ struct SYKeyboardSymbolView: View {
                             options.delegate?.otherKeypadTap(letter: isShiftTapped ? "$" : "₩")
                         },
                         onLongPress: {
+                            Feedback.shared.playTypingSound()
+                            Feedback.shared.playHaptics()
+                            options.delegate?.otherKeypadTap(letter: isShiftTapped ? "$" : "₩")
                             timer = Timer.publish(every: 0.05, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
                                     Feedback.shared.playHaptics()
-                                    options.delegate?.inputlastLetter()
+                                    options.delegate?.inputLastLetter()
                                 }
                         },
                         onLongPressFinished: {
@@ -405,12 +456,15 @@ struct SYKeyboardSymbolView: View {
                             options.delegate?.otherKeypadTap(letter: isShiftTapped ? "£" : "&")
                         },
                         onLongPress: {
+                            Feedback.shared.playTypingSound()
+                            Feedback.shared.playHaptics()
+                            options.delegate?.otherKeypadTap(letter: isShiftTapped ? "£" : "&")
                             timer = Timer.publish(every: 0.05, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
                                     Feedback.shared.playHaptics()
-                                    options.delegate?.inputlastLetter()
+                                    options.delegate?.inputLastLetter()
                                 }
                         },
                         onLongPressFinished: {
@@ -427,12 +481,15 @@ struct SYKeyboardSymbolView: View {
                             options.delegate?.otherKeypadTap(letter: isShiftTapped ? "¥" : "@")
                         },
                         onLongPress: {
+                            Feedback.shared.playTypingSound()
+                            Feedback.shared.playHaptics()
+                            options.delegate?.otherKeypadTap(letter: isShiftTapped ? "¥" : "@")
                             timer = Timer.publish(every: 0.05, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
                                     Feedback.shared.playHaptics()
-                                    options.delegate?.inputlastLetter()
+                                    options.delegate?.inputLastLetter()
                                 }
                         },
                         onLongPressFinished: {
@@ -449,12 +506,15 @@ struct SYKeyboardSymbolView: View {
                             options.delegate?.otherKeypadTap(letter: isShiftTapped ? "•" : "\"")
                         },
                         onLongPress: {
+                            Feedback.shared.playTypingSound()
+                            Feedback.shared.playHaptics()
+                            options.delegate?.otherKeypadTap(letter: isShiftTapped ? "•" : "\"")
                             timer = Timer.publish(every: 0.05, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
                                     Feedback.shared.playHaptics()
-                                    options.delegate?.inputlastLetter()
+                                    options.delegate?.inputLastLetter()
                                 }
                         },
                         onLongPressFinished: {
@@ -462,7 +522,7 @@ struct SYKeyboardSymbolView: View {
                         })
                 }.padding(.horizontal, 4)
                 
-                // MARK: - ., ,, ?, !, `
+                // MARK: - #+=/123, ., ,, ?, !, `
                 HStack(spacing: 6) {
                     SYKeyboardButton(
                         text: isShiftTapped ? "123" : "#+=", primary: false,
@@ -482,12 +542,15 @@ struct SYKeyboardSymbolView: View {
                             options.delegate?.otherKeypadTap(letter: ".")
                         },
                         onLongPress: {
+                            Feedback.shared.playTypingSound()
+                            Feedback.shared.playHaptics()
+                            options.delegate?.otherKeypadTap(letter: ".")
                             timer = Timer.publish(every: 0.05, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
                                     Feedback.shared.playHaptics()
-                                    options.delegate?.inputlastLetter()
+                                    options.delegate?.inputLastLetter()
                                 }
                         },
                         onLongPressFinished: {
@@ -504,12 +567,15 @@ struct SYKeyboardSymbolView: View {
                             options.delegate?.otherKeypadTap(letter: ",")
                         },
                         onLongPress: {
+                            Feedback.shared.playTypingSound()
+                            Feedback.shared.playHaptics()
+                            options.delegate?.otherKeypadTap(letter: ",")
                             timer = Timer.publish(every: 0.05, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
                                     Feedback.shared.playHaptics()
-                                    options.delegate?.inputlastLetter()
+                                    options.delegate?.inputLastLetter()
                                 }
                         },
                         onLongPressFinished: {
@@ -526,12 +592,15 @@ struct SYKeyboardSymbolView: View {
                             options.delegate?.otherKeypadTap(letter: "?")
                         },
                         onLongPress: {
+                            Feedback.shared.playTypingSound()
+                            Feedback.shared.playHaptics()
+                            options.delegate?.otherKeypadTap(letter: "?")
                             timer = Timer.publish(every: 0.05, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
                                     Feedback.shared.playHaptics()
-                                    options.delegate?.inputlastLetter()
+                                    options.delegate?.inputLastLetter()
                                 }
                         },
                         onLongPressFinished: {
@@ -548,12 +617,15 @@ struct SYKeyboardSymbolView: View {
                             options.delegate?.otherKeypadTap(letter: "!")
                         },
                         onLongPress: {
+                            Feedback.shared.playTypingSound()
+                            Feedback.shared.playHaptics()
+                            options.delegate?.otherKeypadTap(letter: "!")
                             timer = Timer.publish(every: 0.05, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
                                     Feedback.shared.playHaptics()
-                                    options.delegate?.inputlastLetter()
+                                    options.delegate?.inputLastLetter()
                                 }
                         },
                         onLongPressFinished: {
@@ -570,12 +642,15 @@ struct SYKeyboardSymbolView: View {
                             options.delegate?.otherKeypadTap(letter: "`")
                         },
                         onLongPress: {
+                            Feedback.shared.playTypingSound()
+                            Feedback.shared.playHaptics()
+                            options.delegate?.otherKeypadTap(letter: "`")
                             timer = Timer.publish(every: 0.05, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
                                     Feedback.shared.playHaptics()
-                                    options.delegate?.inputlastLetter()
+                                    options.delegate?.inputLastLetter()
                                 }
                         },
                         onLongPressFinished: {
@@ -603,15 +678,32 @@ struct SYKeyboardSymbolView: View {
                         })
                 }.padding(.horizontal, 4)
                 
-                // MARK: - 한글, 􁁺, 􁂆
+                // MARK: - (한글, 􀆪), 􁁺, 􁂆
                 HStack(spacing: 6) {
-                    SYKeyboardButton(
-                        text: "한글", primary: false,
-                        onClick: {
-                            Feedback.shared.playModifierSound()
-                            Feedback.shared.playHaptics()
-                            options.current = .hangul
-                        })
+                    if options.needsInputModeSwitchKey {
+                        HStack(spacing: 6) {
+                            SYKeyboardButton(
+                                text: "한글", primary: false,
+                                onClick: {
+                                    Feedback.shared.playModifierSound()
+                                    Feedback.shared.playHaptics()
+                                    options.current = .hangul
+                                })
+                            
+                            NextKeyboardButton(
+                                systemName: "globe",
+                                action: options.nextKeyboardAction,
+                                primary: false)
+                        }
+                    } else {
+                        SYKeyboardButton(
+                            text: "한글", primary: false,
+                            onClick: {
+                                Feedback.shared.playModifierSound()
+                                Feedback.shared.playHaptics()
+                                options.current = .hangul
+                            })
+                    }
                     
                     SYKeyboardButton(
                         systemName: "space", primary: true,
@@ -623,12 +715,15 @@ struct SYKeyboardSymbolView: View {
                             options.delegate?.spaceKeypadTap()
                         },
                         onLongPress: {
+                            Feedback.shared.playModifierSound()
+                            Feedback.shared.playHaptics()
+                            options.delegate?.spaceKeypadTap()
                             timer = Timer.publish(every: 0.05, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playModifierSound()
                                     Feedback.shared.playHaptics()
-                                    options.delegate?.spaceKeypadTap()
+                                    options.delegate?.inputLastLetter()
                                 }
                         },
                         onLongPressFinished: {
@@ -642,6 +737,9 @@ struct SYKeyboardSymbolView: View {
                             Feedback.shared.playHaptics()
                         },
                         onRelease: {
+                            options.delegate?.enterKeypadTap()
+                        },
+                        onLongPressFinished: {
                             options.delegate?.enterKeypadTap()
                         }
                     )

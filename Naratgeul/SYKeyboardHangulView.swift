@@ -11,7 +11,6 @@ import Combine
 struct SYKeyboardHangulView: View {
     @EnvironmentObject var options: SYKeyboardOptions
     @State var timer: AnyCancellable?
-    
     var body: some View {
         GeometryReader { geometry in
             VStack(spacing: 5) {
@@ -27,12 +26,15 @@ struct SYKeyboardHangulView: View {
                             options.delegate?.hangulKeypadTap(letter: "ㄱ")
                         },
                         onLongPress: {
+                            Feedback.shared.playTypingSound()
+                            Feedback.shared.playHaptics()
+                            options.delegate?.hangulKeypadTap(letter: "ㄱ")
                             timer = Timer.publish(every: 0.05, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
                                     Feedback.shared.playHaptics()
-                                    options.delegate?.inputlastLetter()
+                                    options.delegate?.inputLastLetter()
                                 }
                         },
                         onLongPressFinished: {
@@ -46,15 +48,18 @@ struct SYKeyboardHangulView: View {
                             Feedback.shared.playHaptics()
                         },
                         onRelease: {
-                            options.delegate?.hangulKeypadTap(letter: "ㄱ")
+                            options.delegate?.hangulKeypadTap(letter: "ㄴ")
                         },
                         onLongPress: {
+                            Feedback.shared.playTypingSound()
+                            Feedback.shared.playHaptics()
+                            options.delegate?.hangulKeypadTap(letter: "ㄴ")
                             timer = Timer.publish(every: 0.05, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
                                     Feedback.shared.playHaptics()
-                                    options.delegate?.inputlastLetter()
+                                    options.delegate?.inputLastLetter()
                                 }
                         },
                         onLongPressFinished: {
@@ -71,12 +76,15 @@ struct SYKeyboardHangulView: View {
                             options.delegate?.hangulKeypadTap(letter: "ㅏ")
                         },
                         onLongPress: {
+                            Feedback.shared.playTypingSound()
+                            Feedback.shared.playHaptics()
+                            options.delegate?.hangulKeypadTap(letter: "ㅏ")
                             timer = Timer.publish(every: 0.05, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
                                     Feedback.shared.playHaptics()
-                                    options.delegate?.inputlastLetter()
+                                    options.delegate?.inputLastLetter()
                                 }
                         },
                         onLongPressFinished: {
@@ -116,12 +124,15 @@ struct SYKeyboardHangulView: View {
                             options.delegate?.hangulKeypadTap(letter: "ㄹ")
                         },
                         onLongPress: {
+                            Feedback.shared.playTypingSound()
+                            Feedback.shared.playHaptics()
+                            options.delegate?.hangulKeypadTap(letter: "ㄹ")
                             timer = Timer.publish(every: 0.05, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
                                     Feedback.shared.playHaptics()
-                                    options.delegate?.inputlastLetter()
+                                    options.delegate?.inputLastLetter()
                                 }
                         },
                         onLongPressFinished: {
@@ -138,12 +149,15 @@ struct SYKeyboardHangulView: View {
                             options.delegate?.hangulKeypadTap(letter: "ㅁ")
                         },
                         onLongPress: {
+                            Feedback.shared.playTypingSound()
+                            Feedback.shared.playHaptics()
+                            options.delegate?.hangulKeypadTap(letter: "ㅁ")
                             timer = Timer.publish(every: 0.05, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
                                     Feedback.shared.playHaptics()
-                                    options.delegate?.inputlastLetter()
+                                    options.delegate?.inputLastLetter()
                                 }
                         },
                         onLongPressFinished: {
@@ -160,12 +174,15 @@ struct SYKeyboardHangulView: View {
                             options.delegate?.hangulKeypadTap(letter: "ㅗ")
                         },
                         onLongPress: {
+                            Feedback.shared.playTypingSound()
+                            Feedback.shared.playHaptics()
+                            options.delegate?.hangulKeypadTap(letter: "ㅗ")
                             timer = Timer.publish(every: 0.05, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
                                     Feedback.shared.playHaptics()
-                                    options.delegate?.inputlastLetter()
+                                    options.delegate?.inputLastLetter()
                                 }
                         },
                         onLongPressFinished: {
@@ -182,12 +199,15 @@ struct SYKeyboardHangulView: View {
                             options.delegate?.spaceKeypadTap()
                         },
                         onLongPress: {
+                            Feedback.shared.playModifierSound()
+                            Feedback.shared.playHaptics()
+                            options.delegate?.spaceKeypadTap()
                             timer = Timer.publish(every: 0.05, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playModifierSound()
                                     Feedback.shared.playHaptics()
-                                    options.delegate?.spaceKeypadTap()
+                                    options.delegate?.inputLastLetter()
                                 }
                         },
                         onLongPressFinished: {
@@ -207,12 +227,15 @@ struct SYKeyboardHangulView: View {
                             options.delegate?.hangulKeypadTap(letter: "ㅅ")
                         },
                         onLongPress: {
+                            Feedback.shared.playTypingSound()
+                            Feedback.shared.playHaptics()
+                            options.delegate?.hangulKeypadTap(letter: "ㅅ")
                             timer = Timer.publish(every: 0.05, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
                                     Feedback.shared.playHaptics()
-                                    options.delegate?.inputlastLetter()
+                                    options.delegate?.inputLastLetter()
                                 }
                         },
                         onLongPressFinished: {
@@ -229,12 +252,15 @@ struct SYKeyboardHangulView: View {
                             options.delegate?.hangulKeypadTap(letter: "ㅇ")
                         },
                         onLongPress: {
+                            Feedback.shared.playTypingSound()
+                            Feedback.shared.playHaptics()
+                            options.delegate?.hangulKeypadTap(letter: "ㅇ")
                             timer = Timer.publish(every: 0.05, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
                                     Feedback.shared.playHaptics()
-                                    options.delegate?.inputlastLetter()
+                                    options.delegate?.inputLastLetter()
                                 }
                         },
                         onLongPressFinished: {
@@ -251,12 +277,15 @@ struct SYKeyboardHangulView: View {
                             options.delegate?.hangulKeypadTap(letter: "ㅣ")
                         },
                         onLongPress: {
+                            Feedback.shared.playTypingSound()
+                            Feedback.shared.playHaptics()
+                            options.delegate?.hangulKeypadTap(letter: "ㅣ")
                             timer = Timer.publish(every: 0.05, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
                                     Feedback.shared.playHaptics()
-                                    options.delegate?.inputlastLetter()
+                                    options.delegate?.inputLastLetter()
                                 }
                         },
                         onLongPressFinished: {
@@ -271,10 +300,13 @@ struct SYKeyboardHangulView: View {
                         },
                         onRelease: {
                             options.delegate?.enterKeypadTap()
+                        },
+                        onLongPressFinished: {
+                            options.delegate?.enterKeypadTap()
                         })
                 }.padding(.horizontal, 4)
                 
-                // MARK: - 획, ㅡ, 쌍, 􀅱
+                // MARK: - 획, ㅡ, 쌍, (123, 􀆪)
                 HStack(spacing: 6) {
                     SYKeyboardButton(
                         text: "획", primary: true,
@@ -287,13 +319,20 @@ struct SYKeyboardHangulView: View {
                         },
                         onLongPress: {
                             // TODO: 쉼표(,) 입력
-                            timer = Timer.publish(every: 0.05, on: .main, in: .common)
-                                .autoconnect()
-                                .sink { _ in
-                                    Feedback.shared.playTypingSound()
-                                    Feedback.shared.playHaptics()
-                                    options.delegate?.inputlastLetter()
-                                }
+                            Feedback.shared.playTypingSound()
+                            Feedback.shared.playHaptics()
+                            options.delegate?.hoegKeypadTap()
+                            if options.isHoegSsangAvailable {
+                                timer = Timer.publish(every: 0.05, on: .main, in: .common)
+                                    .autoconnect()
+                                    .sink { _ in
+                                        Feedback.shared.playTypingSound()
+                                        Feedback.shared.playHaptics()
+                                        options.delegate?.inputLastLetter()
+                                    }
+                            } else {
+                                options.delegate?.hoegKeypadLongPress()
+                            }
                         },
                         onLongPressFinished: {
                             timer?.cancel()
@@ -309,12 +348,15 @@ struct SYKeyboardHangulView: View {
                             options.delegate?.hangulKeypadTap(letter: "ㅡ")
                         },
                         onLongPress: {
+                            Feedback.shared.playTypingSound()
+                            Feedback.shared.playHaptics()
+                            options.delegate?.hangulKeypadTap(letter: "ㅡ")
                             timer = Timer.publish(every: 0.05, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
                                     Feedback.shared.playHaptics()
-                                    options.delegate?.inputlastLetter()
+                                    options.delegate?.inputLastLetter()
                                 }
                         },
                         onLongPressFinished: {
@@ -332,20 +374,27 @@ struct SYKeyboardHangulView: View {
                         },
                         onLongPress: {
                             // TODO: 온점(.) 입력
-                            timer = Timer.publish(every: 0.05, on: .main, in: .common)
-                                .autoconnect()
-                                .sink { _ in
-                                    Feedback.shared.playTypingSound()
-                                    Feedback.shared.playHaptics()
-                                    options.delegate?.inputlastLetter()
-                                }
+                            Feedback.shared.playTypingSound()
+                            Feedback.shared.playHaptics()
+                            options.delegate?.ssangKeypadTap()
+                            if options.isHoegSsangAvailable {
+                                timer = Timer.publish(every: 0.05, on: .main, in: .common)
+                                    .autoconnect()
+                                    .sink { _ in
+                                        Feedback.shared.playTypingSound()
+                                        Feedback.shared.playHaptics()
+                                        options.delegate?.inputLastLetter()
+                                    }
+                            } else {
+                                options.delegate?.ssangKeypadLongPress()
+                            }
                         },
                         onLongPressFinished: {
                             timer?.cancel()
                         })
                     
                     if options.needsInputModeSwitchKey {
-                        HStack(spacing: 5) {
+                        HStack(spacing: 6) {
                             SYKeyboardButton(
                                 text: "123", primary: false,
                                 onClick: {
@@ -375,6 +424,7 @@ struct SYKeyboardHangulView: View {
         .background(Color("KeyboardBackground"))
     }
 }
+    
 
 
 #Preview {
