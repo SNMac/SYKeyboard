@@ -29,9 +29,13 @@ final class Feedback {
         return defaults?.bool(forKey: "isHapticFeedbackEnabled") ?? true
     }
     
-    func playHaptics() {
+    func prepareHaptics() {
         if !haptics { return }
         generator.prepare()
+    }
+    
+    func playHaptics() {
+        if !haptics { return }
         generator.impactOccurred()
     }
     

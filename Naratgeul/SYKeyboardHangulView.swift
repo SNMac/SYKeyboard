@@ -19,9 +19,11 @@ struct SYKeyboardHangulView: View {
                 HStack(spacing: 6) {
                     SYKeyboardButton(
                         text: "ㄱ", primary: true,
-                        action: {
+                        onClick: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptics()
+                        },
+                        onRelease: {
                             options.delegate?.hangulKeypadTap(letter: "ㄱ")
                         },
                         onLongPress: {
@@ -39,10 +41,12 @@ struct SYKeyboardHangulView: View {
                     
                     SYKeyboardButton(
                         text: "ㄴ", primary: true,
-                        action: {
+                        onClick: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptics()
-                            options.delegate?.hangulKeypadTap(letter: "ㄴ")
+                        },
+                        onRelease: {
+                            options.delegate?.hangulKeypadTap(letter: "ㄱ")
                         },
                         onLongPress: {
                             timer = Timer.publish(every: 0.05, on: .main, in: .common)
@@ -59,9 +63,11 @@ struct SYKeyboardHangulView: View {
                     
                     SYKeyboardButton(
                         text: "ㅏㅓ", primary: true,
-                        action: {
+                        onClick: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptics()
+                        },
+                        onRelease: {
                             options.delegate?.hangulKeypadTap(letter: "ㅏ")
                         },
                         onLongPress: {
@@ -79,7 +85,7 @@ struct SYKeyboardHangulView: View {
                     
                     SYKeyboardButton(
                         systemName: "delete.left", primary: false,
-                        action: {
+                        onClick: {
                             Feedback.shared.playDeleteSound()
                             Feedback.shared.playHaptics()
                             options.delegate?.removeKeypadTap()
@@ -102,9 +108,11 @@ struct SYKeyboardHangulView: View {
                 HStack(spacing: 6) {
                     SYKeyboardButton(
                         text: "ㄹ", primary: true,
-                        action: {
+                        onClick: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptics()
+                        },
+                        onRelease: {
                             options.delegate?.hangulKeypadTap(letter: "ㄹ")
                         },
                         onLongPress: {
@@ -122,9 +130,11 @@ struct SYKeyboardHangulView: View {
                     
                     SYKeyboardButton(
                         text: "ㅁ", primary: true,
-                        action: {
+                        onClick: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptics()
+                        },
+                        onRelease: {
                             options.delegate?.hangulKeypadTap(letter: "ㅁ")
                         },
                         onLongPress: {
@@ -142,9 +152,11 @@ struct SYKeyboardHangulView: View {
                     
                     SYKeyboardButton(
                         text: "ㅗㅜ", primary: true,
-                        action: {
+                        onClick: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptics()
+                        },
+                        onRelease: {
                             options.delegate?.hangulKeypadTap(letter: "ㅗ")
                         },
                         onLongPress: {
@@ -162,9 +174,11 @@ struct SYKeyboardHangulView: View {
                     
                     SYKeyboardButton(
                         systemName: "space", primary: false,
-                        action: {
+                        onClick: {
                             Feedback.shared.playModifierSound()
                             Feedback.shared.playHaptics()
+                        },
+                        onRelease: {
                             options.delegate?.spaceKeypadTap()
                         },
                         onLongPress: {
@@ -185,9 +199,11 @@ struct SYKeyboardHangulView: View {
                 HStack(spacing: 6) {
                     SYKeyboardButton(
                         text: "ㅅ", primary: true,
-                        action: {
+                        onClick: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptics()
+                        },
+                        onRelease: {
                             options.delegate?.hangulKeypadTap(letter: "ㅅ")
                         },
                         onLongPress: {
@@ -205,9 +221,11 @@ struct SYKeyboardHangulView: View {
                     
                     SYKeyboardButton(
                         text: "ㅇ", primary: true,
-                        action: {
+                        onClick: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptics()
+                        },
+                        onRelease: {
                             options.delegate?.hangulKeypadTap(letter: "ㅇ")
                         },
                         onLongPress: {
@@ -225,9 +243,11 @@ struct SYKeyboardHangulView: View {
                     
                     SYKeyboardButton(
                         text: "ㅣ", primary: true,
-                        action: {
+                        onClick: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptics()
+                        },
+                        onRelease: {
                             options.delegate?.hangulKeypadTap(letter: "ㅣ")
                         },
                         onLongPress: {
@@ -245,9 +265,11 @@ struct SYKeyboardHangulView: View {
                     
                     SYKeyboardButton(
                         systemName: "return.left", primary: false,
-                        action: {
+                        onClick: {
                             Feedback.shared.playModifierSound()
                             Feedback.shared.playHaptics()
+                        },
+                        onRelease: {
                             options.delegate?.enterKeypadTap()
                         })
                 }.padding(.horizontal, 4)
@@ -256,9 +278,11 @@ struct SYKeyboardHangulView: View {
                 HStack(spacing: 6) {
                     SYKeyboardButton(
                         text: "획", primary: true,
-                        action: {
+                        onClick: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptics()
+                        },
+                        onRelease: {
                             options.delegate?.hoegKeypadTap()
                         },
                         onLongPress: {
@@ -277,9 +301,11 @@ struct SYKeyboardHangulView: View {
                     
                     SYKeyboardButton(
                         text: "ㅡ", primary: true,
-                        action: {
+                        onClick: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptics()
+                        },
+                        onRelease: {
                             options.delegate?.hangulKeypadTap(letter: "ㅡ")
                         },
                         onLongPress: {
@@ -297,9 +323,11 @@ struct SYKeyboardHangulView: View {
                     
                     SYKeyboardButton(
                         text: "쌍", primary: true,
-                        action: {
+                        onClick: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptics()
+                        },
+                        onRelease: {
                             options.delegate?.ssangKeypadTap()
                         },
                         onLongPress: {
@@ -320,7 +348,7 @@ struct SYKeyboardHangulView: View {
                         HStack(spacing: 5) {
                             SYKeyboardButton(
                                 text: "123", primary: false,
-                                action: {
+                                onClick: {
                                     Feedback.shared.playModifierSound()
                                     Feedback.shared.playHaptics()
                                     options.current = .symbol
@@ -334,7 +362,7 @@ struct SYKeyboardHangulView: View {
                     } else {
                         SYKeyboardButton(
                             text: "123", primary: false,
-                            action: {
+                            onClick: {
                                 Feedback.shared.playModifierSound()
                                 Feedback.shared.playHaptics()
                                 options.current = .symbol

@@ -17,7 +17,8 @@ struct SYKeyboardButton: View {
     var text: String?
     var systemName: String?
     let primary: Bool
-    var action: () -> Void
+    var onClick: () -> Void
+    var onRelease: (() -> Void)?
     var onLongPress: (() -> Void)?
     var onLongPressFinished: (() -> Void)?
     
@@ -72,6 +73,7 @@ struct SYKeyboardButton: View {
                 }
                 .onEnded({ value in
                     print("DragGesture) onEnded")
+                    onRelease?()
                     isPressed = false
                 })
         )
@@ -80,7 +82,7 @@ struct SYKeyboardButton: View {
                 .onChanged({ value in
                     print("LongPressGesture) onChanged")
                     isPressed = true
-                    action()
+                    onClick()
                 })
                 .onEnded({ value in
                     print("LongPressGesture) onEnded")

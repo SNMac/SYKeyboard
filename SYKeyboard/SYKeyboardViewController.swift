@@ -15,7 +15,6 @@ class SYKeyboardViewController: UIInputViewController {
     private var cursorPos: Int = 0
     private var bufferSize: Int = 0
     private var options: SYKeyboardOptions?
-    var isEditingLastCharacter: Bool = false
     
     // MARK: - LifeCycle
     override func viewDidLoad() {
@@ -29,6 +28,7 @@ class SYKeyboardViewController: UIInputViewController {
         
         updateCursorPos()
         updateBufferSize()
+        Feedback.shared.prepareHaptics()
     }
     
     // MARK: - Method
