@@ -22,13 +22,13 @@ final class SYKeyboardIOManager {
                 hangulAutomata.buffer.removeAll()
                 hangulAutomata.inpStack.removeAll()
                 isEditingLastCharacter = false
-                hangulAutomata.currentHangulState = nil
+                hangulAutomata.curHanStatus = nil
                 inputText?(inputHangul)
             } else if inputHangul == "" {
                 hangulAutomata.buffer.removeAll()
                 hangulAutomata.inpStack.removeAll()
                 isEditingLastCharacter = false
-                hangulAutomata.currentHangulState = nil
+                hangulAutomata.curHanStatus = nil
             } else {
                 isEditingLastCharacter = true
                 hangulAutomata.hangulAutomata(key: inputHangul)
@@ -59,7 +59,7 @@ extension SYKeyboardIOManager: SYKeyboardDelegate {
         hangulAutomata.buffer.removeAll()
         hangulAutomata.inpStack.removeAll()
         isEditingLastCharacter = false
-        hangulAutomata.currentHangulState = nil
+        hangulAutomata.curHanStatus = nil
         lastLetter = ""
     }
     

@@ -27,10 +27,11 @@ enum HangulCHKind {
 
 // 키 입력마다 쌓이는 입력 스택 정의
 struct InpStack {
-    var curHanState: HangulStatus  // 상태
+    var hangulStatus: HangulStatus  // 상태
     var keyKind: HangulCHKind  // 입력된 키가 자음인지 모임인지
     var keyIndex: UInt32  // 방금 입력된 키의 테이블 인덱스
     var geulja: String  // 조합된 글자
+    var hasChosung: Bool
 }
 
 final class HangulAutomata {
@@ -39,14 +40,14 @@ final class HangulAutomata {
     
     var inpStack: [InpStack] = []
     
-    var currentHangulState: HangulStatus?
+    var curHanStatus: HangulStatus?
     
     private var oldKeyKind: HangulCHKind?
     private var oldKeyIndex: UInt32 = 0
     private var curKeyKind = HangulCHKind.moeum
     private var curKeyIndex: UInt32 = 0
     private var curGeulja: String = ""
-    private var hasChosung: Bool = false
+    private var curHasChosung: Bool = false
     
     private var chosungTable: [String] = ["ㄱ","ㄲ", "ㄴ", "ㄷ", "ㄸ", "ㄹ", "ㅁ", "ㅂ", "ㅃ", "ㅅ", "ㅆ", "ㅇ", "ㅈ", "ㅉ", "ㅊ", "ㅋ", "ㅌ", "ㅍ", "ㅎ"]
     
@@ -149,10 +150,10 @@ final class HangulAutomata {
             }
         } else {
             if let popHanguel = inpStack.popLast() {
-                if popHanguel.curHanState == .chosung {
+                if popHanguel.hangulStatus == .chosung {
                     buffer.removeLast()
-                } else if popHanguel.curHanState == .jungsung || popHanguel.curHanState == .dJungsung {
-                    if inpStack[inpStack.count - 1].curHanState == .jongsung || inpStack[inpStack.count - 1].curHanState == .dJongsung {
+                } else if popHanguel.hangulStatus == .jungsung || popHanguel.hangulStatus == .dJungsung {
+                    if inpStack[inpStack.count - 1].hangulStatus == .jongsung || inpStack[inpStack.count - 1].hangulStatus == .dJongsung {
                         buffer.removeLast()
                     }
                     buffer[buffer.count - 1] = inpStack[inpStack.count - 1].geulja
@@ -160,7 +161,7 @@ final class HangulAutomata {
                     if inpStack.isEmpty {
                         buffer.removeLast()
                     } else if popHanguel.keyKind == .moeum {
-                        if inpStack[inpStack.count - 1].curHanState == .jongsung {
+                        if inpStack[inpStack.count - 1].hangulStatus == .jongsung {
                             if inpStack[inpStack.count - 1].keyKind == .moeum {
                                 if isJungsungPair(
                                     first: jungsungTable[Int(inpStack[inpStack.count - 1].keyIndex)], result: jungsungTable[Int(popHanguel.keyIndex)]) {
@@ -179,20 +180,20 @@ final class HangulAutomata {
                     }
                 }
                 if inpStack.isEmpty {
-                    currentHangulState = nil
+                    curHanStatus = nil
                 } else {
-                    currentHangulState = inpStack[inpStack.count - 1].curHanState
+                    curHanStatus = inpStack[inpStack.count - 1].hangulStatus
                     oldKeyIndex = inpStack[inpStack.count - 1].keyIndex
                     oldKeyKind = inpStack[inpStack.count - 1].keyKind
                     curGeulja = inpStack[inpStack.count - 1].geulja
                     
                     switch oldKeyKind {
                     case .jaeum:
-                        if currentHangulState == .chosung {
+                        if curHanStatus == .chosung {
                             ret = chosungTable[Int(oldKeyIndex)]
-                        } else if currentHangulState == .jongsung {
+                        } else if curHanStatus == .jongsung {
                             ret = jongsungTable[Int(oldKeyIndex)]
-                        } else if currentHangulState == .dJongsung {
+                        } else if curHanStatus == .dJongsung {
                             for i in 0..<dJongsungTable.count {
                                 if dJongsungTable[i][1] == jongsungTable[Int(oldKeyIndex)] {
                                     ret = dJongsungTable[i][1]
@@ -200,9 +201,9 @@ final class HangulAutomata {
                             }
                         }
                     case .moeum:
-                        if currentHangulState == .jungsung {
+                        if curHanStatus == .jungsung {
                             ret = jungsungTable[Int(oldKeyIndex)]
-                        } else if currentHangulState == .dJungsung {
+                        } else if curHanStatus == .dJungsung {
                             for i in 0..<dJungsungTable.count {
                                 if dJungsungTable[i][1] == jungsungTable[Int(oldKeyIndex)] {
                                     ret = dJungsungTable[i][1]
@@ -241,65 +242,70 @@ extension HangulAutomata {
         checkCurHanState(isSymbol: false)
         
         // MARK: - 오토마타 전이 알고리즘
-        switch currentHangulState {
+        switch curHanStatus {
         case .start:
             if curKeyKind == .jaeum {
-                currentHangulState = .chosung
-                hasChosung = true
+                curHanStatus = .chosung
+                curHasChosung = true
             } else {
-                currentHangulState = .jongsung
-                hasChosung = false
+                curHanStatus = .jongsung
+                curHasChosung = false
             }
         case .chosung:
             if curKeyKind == .moeum {
-                currentHangulState = .jungsung
+                curHanStatus = .jungsung
             } else {
-                currentHangulState = .endOne
+                curHanStatus = .endOne
             }
         case .jungsung:
             if canBeJongsung {
-                currentHangulState = .jongsung
+                curHanStatus = .jongsung
             } else if jungsungPair() {
-                currentHangulState = .dJungsung
+                curHanStatus = .dJungsung
             } else {
-                currentHangulState = .endOne
+                curHanStatus = .endOne
             }
         case .dJungsung:
             // 추가
             if jungsungPair() {
-                currentHangulState = .dJungsung
+                curHanStatus = .dJungsung
             } else if canBeJongsung {
-                currentHangulState = .jongsung
+                curHanStatus = .jongsung
             } else {
-                currentHangulState = .endOne
+                curHanStatus = .endOne
             }
         case .jongsung:
-            if hasChosung && curKeyKind == .jaeum && jongsungPair() {
-                currentHangulState = .dJongsung
+            if curHasChosung && curKeyKind == .jaeum && jongsungPair() {
+                curHanStatus = .dJongsung
             } else if curKeyKind == .moeum {
-                currentHangulState = .endTwo
+                curHanStatus = .endTwo
             } else {
-                currentHangulState = .endOne
+                curHanStatus = .endOne
             }
         case .dJongsung:
             if curKeyKind == .moeum {
-                currentHangulState = .endTwo
+                curHanStatus = .endTwo
             } else {
-                currentHangulState = .endOne
+                curHanStatus = .endOne
             }
         default:
             break
         }
         
         // MARK: - 오토마타 작업 알고리즘
-        switch currentHangulState {
+        switch curHanStatus {
         case .chosung:
             curGeulja = chosungTable[Int(curKeyIndex)]
         case .jungsung:
             curGeulja = String(Unicode.Scalar(combinationHangul(chosungIndex: oldKeyIndex, jungsungIndex: curKeyIndex)) ?? Unicode.Scalar(0))
         case .dJungsung:
-            let currentChosung = decompositionChosung(charCode: Unicode.Scalar(curGeulja)?.value ?? 0)
-            curGeulja = String(Unicode.Scalar(combinationHangul(chosungIndex: currentChosung, jungsungIndex: curKeyIndex)) ?? Unicode.Scalar(0))
+            if curHasChosung {
+                let currentChosung = decompositionChosung(charCode: Unicode.Scalar(curGeulja)?.value ?? 0)
+                curGeulja = String(Unicode.Scalar(combinationHangul(chosungIndex: currentChosung, jungsungIndex: curKeyIndex)) ?? Unicode.Scalar(0))
+            } else {
+                curGeulja = jungsungTable[Int(curKeyIndex)]
+                curHanStatus = .jongsung
+            }
         case .jongsung:
             if canBeJongsung {
                 curKeyIndex = UInt32(jongsungTable.firstIndex(of: key) ?? 0)
@@ -315,25 +321,29 @@ extension HangulAutomata {
         case .endOne:
             if curKeyKind == .jaeum {
                 curGeulja = chosungTable[Int(curKeyIndex)]
-                currentHangulState = .chosung
+                curHanStatus = .chosung
+                curHasChosung = true
             } else {
                 curGeulja = jungsungTable[Int(curKeyIndex)]
-                currentHangulState = .jungsung
+                curHanStatus = .jongsung
+                curHasChosung = false
             }
             buffer.append("")
         case .endTwo:
             if oldKeyKind == .jaeum {
                 oldKeyIndex = UInt32(chosungTable.firstIndex(of: jongsungTable[Int(oldKeyIndex)]) ?? 0)
                 curGeulja = String(Unicode.Scalar(combinationHangul(chosungIndex: oldKeyIndex, jungsungIndex: curKeyIndex)) ?? Unicode.Scalar(0))
-                currentHangulState = .jungsung
+                curHanStatus = .jungsung
                 buffer[buffer.count - 1] = inpStack[inpStack.count - 2].geulja
                 buffer.append("")
+                curHasChosung = true
             } else {
                 if !jungsungPair() {
                     buffer.append("")
+                    curHasChosung = false
                 }
                 curGeulja = jungsungTable[Int(curKeyIndex)]
-                currentHangulState = .jongsung
+                curHanStatus = .jongsung
             }
         default:
             break
@@ -349,26 +359,28 @@ extension HangulAutomata {
         
         checkCurHanState(isSymbol: true)
         storeStackAndBuffer()
-        currentHangulState = nil
+        curHanStatus = nil
     }
     
     func checkCurHanState(isSymbol: Bool) {
-        if currentHangulState != nil {
+        if curHanStatus != nil {
             oldKeyIndex = inpStack[inpStack.count - 1].keyIndex
             oldKeyKind = inpStack[inpStack.count - 1].keyKind
+            curHasChosung = inpStack[inpStack.count - 1].hasChosung
             if isSymbol {
                 buffer.append("")
-                currentHangulState = nil
+                curHanStatus = nil
             }
         } else {
-            currentHangulState = .start
+            curHanStatus = .start
             buffer.append("")
         }
     }
     
     func storeStackAndBuffer() {
-        inpStack.append(InpStack(curHanState: currentHangulState ?? .start, keyKind: curKeyKind, keyIndex: curKeyIndex, geulja: String(Unicode.Scalar(curGeulja) ?? Unicode.Scalar(0))))
+        inpStack.append(InpStack(hangulStatus: curHanStatus ?? .start, keyKind: curKeyKind, keyIndex: curKeyIndex, geulja: String(Unicode.Scalar(curGeulja) ?? Unicode.Scalar(0)), hasChosung: curHasChosung))
         buffer[buffer.count - 1] = curGeulja
+        print("curHasChosung) ", curHasChosung)
         print("buffer) ", buffer)
     }
 }

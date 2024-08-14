@@ -75,8 +75,7 @@ struct SYKeyboardView: View {
                     action: {
                         Feedback.shared.playTypingSound()
                         Feedback.shared.playHaptics()
-//                        delegate?.hangulKeypadTap(letter: "ㄱ")
-                        delegate?.otherKeypadTap(letter: ",")
+                        delegate?.hangulKeypadTap(letter: "ㄱ")
                     },
                     onLongPress: {
                         timer = Timer.publish(every: 0.05, on: .main, in: .common)
