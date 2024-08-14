@@ -10,10 +10,8 @@
 import SwiftUI
 import Combine
 
-
 struct SYKeyboardButton: View {
     @State private var isPressed: Bool = false
-    @State private var timer: AnyCancellable?
     @Environment(\.colorScheme) var colorScheme
     
     var text: String?
@@ -28,21 +26,32 @@ struct SYKeyboardButton: View {
             if systemName != nil {
                 Image(systemName: systemName!)
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
-                    .font(.system(size: 24))
+                    .font(.system(size: 20))
                     .foregroundColor(Color(uiColor: UIColor.label))
                     .background(
                         primary ? Color("PrimaryKeyboardButton") : Color("SecondaryKeyboardButton")
                     )
                     .clipShape(.rect(cornerRadius: 5))
             } else if text != nil {
-                Text(text!)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
-                    .font(.system(size: 24))
-                    .foregroundColor(Color(uiColor: UIColor.label))
-                    .background(
-                        primary ? Color("PrimaryKeyboardButton") : Color("SecondaryKeyboardButton")
-                    )
-                    .clipShape(.rect(cornerRadius: 5))
+                if text == "123" || text == "#+=" || text == "한글" {
+                    Text(text!)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+                        .font(.system(size: 18))
+                        .foregroundColor(Color(uiColor: UIColor.label))
+                        .background(
+                            primary ? Color("PrimaryKeyboardButton") : Color("SecondaryKeyboardButton")
+                        )
+                        .clipShape(.rect(cornerRadius: 5))
+                } else {
+                    Text(text!)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+                        .font(.system(size: 22))
+                        .foregroundColor(Color(uiColor: UIColor.label))
+                        .background(
+                            primary ? Color("PrimaryKeyboardButton") : Color("SecondaryKeyboardButton")
+                        )
+                        .clipShape(.rect(cornerRadius: 5))
+                }
             }
         }
         .gesture(
@@ -53,10 +62,12 @@ struct SYKeyboardButton: View {
                         print("Drag to right")
                         isPressed = false
                         // TODO: 커서 오른쪽으로 이동
+                        
                     } else if value.translation.width < -80 {
                         print("Drag to left")
                         isPressed = false
                         // TODO: 커서 왼쪽으로 이동
+                        
                     }
                 }
                 .onEnded({ value in
@@ -81,7 +92,7 @@ struct SYKeyboardButton: View {
                     print("LongPressGesture->DragGesture) onEnded")
                     onLongPressFinished?()
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
-                      isPressed = false
+                        isPressed = false
                     }
                 })
         )

@@ -9,7 +9,6 @@
 
 import SwiftUI
 
-
 struct QuickSettingsView: View {
     @AppStorage("isSoundFeedbackEnabled", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var isSoundFeedbackEnabled = true
     @AppStorage("isHapticFeedbackEnabled", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var isHapticFeedbackEnabled = true

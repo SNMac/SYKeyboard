@@ -7,7 +7,6 @@
 
 import SwiftUI
 
-
 class SYKeyboardViewController: UIInputViewController {
     
     // MARK: - Properties
@@ -15,27 +14,14 @@ class SYKeyboardViewController: UIInputViewController {
     private let keyboardHeight: CGFloat = 260
     private var cursorPos: Int = 0
     private var bufferSize: Int = 0
-    
-    // MARK: - View Properties
-    private lazy var SYKeyboard: UIHostingController = {
-        let SYKeyboard = UIHostingController(
-            rootView: SYKeyboardView(
-                delegate: keyboardIOManager,
-                keyboardHeight: keyboardHeight,
-                needsInputModeSwitchKey: self.needsInputModeSwitchKey,
-//                needsInputModeSwitchKey: true,
-                nextKeyboardAction: #selector(self.handleInputModeList(from:with:))
-            ))
-        
-        return SYKeyboard
-    }()
+    private var options: SYKeyboardOptions?
+    var isEditingLastCharacter: Bool = false
     
     // MARK: - LifeCycle
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        setConstraintsOfCustomKeyboard()
-        bindingKeyboardManager()
+        setup()
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -46,7 +32,32 @@ class SYKeyboardViewController: UIInputViewController {
     }
     
     // MARK: - Method
-    private func bindingKeyboardManager() {
+    private func setup() {
+        let nextKeyboardAction = #selector(handleInputModeList(from:with:))
+        let options = SYKeyboardOptions(
+            delegate: keyboardIOManager,
+            keyboardHeight: keyboardHeight,
+            colorScheme: traitCollection.userInterfaceStyle == .dark ? .dark : .light,
+            needsInputModeSwitchKey: needsInputModeSwitchKey,
+            nextKeyboardAction: nextKeyboardAction
+        )
+        
+        let SYKeyboard = UIHostingController(rootView: SYKeyboardView().environmentObject(options))
+        
+        self.options = options
+        
+        view.addSubview(SYKeyboard.view)
+        addChild(SYKeyboard)
+        SYKeyboard.didMove(toParent: self)
+        
+        SYKeyboard.view.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            SYKeyboard.view.leftAnchor.constraint(equalTo: view.leftAnchor),
+            SYKeyboard.view.topAnchor.constraint(equalTo: view.topAnchor),
+            SYKeyboard.view.rightAnchor.constraint(equalTo: view.rightAnchor),
+            SYKeyboard.view.bottomAnchor.constraint(equalTo: view.bottomAnchor)
+        ])
+        
         keyboardIOManager.inputText = { [weak self] in
             guard let self = self else { return }
             let proxy = textDocumentProxy
@@ -70,10 +81,6 @@ class SYKeyboardViewController: UIInputViewController {
             
             updateCursorPos()
             updateBufferSize()
-        }
-        
-        keyboardIOManager.dismiss = { [weak self] in
-            self?.dismissKeyboard()
         }
     }
     
@@ -104,24 +111,5 @@ class SYKeyboardViewController: UIInputViewController {
     private func updateBufferSize() {
         bufferSize = keyboardIOManager.getBufferSize()
         print("bufferSize) ", bufferSize)
-    }
-}
-
-// MARK: - UI
-extension SYKeyboardViewController {
-    private func setConstraintsOfCustomKeyboard() {
-        let keyboardView = SYKeyboard.view!
-        keyboardView.translatesAutoresizingMaskIntoConstraints = false
-        
-        self.addChild(SYKeyboard)
-        self.view.addSubview(keyboardView)
-        SYKeyboard.didMove(toParent: self)
-        
-        NSLayoutConstraint.activate([
-            keyboardView.leftAnchor.constraint(equalTo: view.leftAnchor),
-            keyboardView.topAnchor.constraint(equalTo: view.topAnchor),
-            keyboardView.rightAnchor.constraint(equalTo: view.rightAnchor),
-            keyboardView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
-        ])
     }
 }

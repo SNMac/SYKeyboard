@@ -49,13 +49,13 @@ final class HangulAutomata {
     private var curGeulja: String = ""
     private var curHasChosung: Bool = false
     
-    private var chosungTable: [String] = ["ㄱ","ㄲ", "ㄴ", "ㄷ", "ㄸ", "ㄹ", "ㅁ", "ㅂ", "ㅃ", "ㅅ", "ㅆ", "ㅇ", "ㅈ", "ㅉ", "ㅊ", "ㅋ", "ㅌ", "ㅍ", "ㅎ"]
+    private let chosungTable: [String] = ["ㄱ","ㄲ", "ㄴ", "ㄷ", "ㄸ", "ㄹ", "ㅁ", "ㅂ", "ㅃ", "ㅅ", "ㅆ", "ㅇ", "ㅈ", "ㅉ", "ㅊ", "ㅋ", "ㅌ", "ㅍ", "ㅎ"]
     
-    private var jungsungTable: [String] = ["ㅏ", "ㅐ", "ㅑ", "ㅒ", "ㅓ", "ㅔ", "ㅕ", "ㅖ", "ㅗ", "ㅘ", "ㅙ", "ㅚ", "ㅛ", "ㅜ", "ㅝ", "ㅞ", "ㅟ", "ㅠ", "ㅡ", "ㅢ", "ㅣ"]
+    private let jungsungTable: [String] = ["ㅏ", "ㅐ", "ㅑ", "ㅒ", "ㅓ", "ㅔ", "ㅕ", "ㅖ", "ㅗ", "ㅘ", "ㅙ", "ㅚ", "ㅛ", "ㅜ", "ㅝ", "ㅞ", "ㅟ", "ㅠ", "ㅡ", "ㅢ", "ㅣ"]
     
-    private var jongsungTable: [String] = [" ", "ㄱ", "ㄲ", "ㄳ", "ㄴ", "ㄵ", "ㄶ", "ㄷ", "ㄹ", "ㄺ", "ㄻ", "ㄼ", "ㄽ", "ㄾ", "ㄿ","ㅀ", "ㅁ", "ㅂ", "ㅄ", "ㅅ", "ㅆ", "ㅇ", "ㅈ", "ㅊ", "ㅋ", "ㅌ", "ㅍ", "ㅎ"]
+    private let jongsungTable: [String] = [" ", "ㄱ", "ㄲ", "ㄳ", "ㄴ", "ㄵ", "ㄶ", "ㄷ", "ㄹ", "ㄺ", "ㄻ", "ㄼ", "ㄽ", "ㄾ", "ㄿ","ㅀ", "ㅁ", "ㅂ", "ㅄ", "ㅅ", "ㅆ", "ㅇ", "ㅈ", "ㅊ", "ㅋ", "ㅌ", "ㅍ", "ㅎ"]
     
-    private var dJungsungTable: [[String]] = [
+    private let dJungsungTable: [[String]] = [
         ["ㅗ","ㅏ","ㅘ"],
         ["ㅗ","ㅐ","ㅙ"],
         ["ㅗ","ㅣ","ㅚ"],
@@ -70,7 +70,7 @@ final class HangulAutomata {
         ["ㅘ","ㅣ","ㅙ"]
     ]
     
-    private var dJongsungTable: [[String]] = [
+    private let dJongsungTable: [[String]] = [
         ["ㄱ","ㅅ","ㄳ"],
         ["ㄴ","ㅈ","ㄵ"],
         ["ㄴ","ㅎ","ㄶ"],
@@ -84,7 +84,7 @@ final class HangulAutomata {
         ["ㅂ","ㅅ","ㅄ"]
     ]
     
-    private var symbolTable: [String] = [
+    private let symbolTable: [String] = [
         "1", "2", "3", "4", "5", "6", "7", "8", "9", "0",
         "-", "/", ":", ";", "(", ")", "₩", "&", "@", "\"",
         "[", "]", "{", "}", "#", "%", "^", "*", "+", "=",

@@ -8,7 +8,20 @@
 //
 
 import Foundation
+import SwiftUI
 
+protocol SYKeyboardDelegate: AnyObject {
+    func getBufferSize() -> Int
+    func flushBuffer()
+    func inputlastLetter()
+    func hangulKeypadTap(letter: String)
+    func otherKeypadTap(letter: String)
+    func hoegKeypadTap()
+    func ssangKeypadTap()
+    func removeKeypadTap()
+    func enterKeypadTap()
+    func spaceKeypadTap()
+}
 
 final class SYKeyboardIOManager {
     
@@ -47,7 +60,6 @@ final class SYKeyboardIOManager {
     
     var inputText: ((String) -> Void)?
     var deleteText: (() -> Void)?
-    var dismiss: (() -> Void)?
 }
 
 extension SYKeyboardIOManager: SYKeyboardDelegate {
@@ -64,7 +76,7 @@ extension SYKeyboardIOManager: SYKeyboardDelegate {
     }
     
     func inputlastLetter() {
-        self.inputHangul = lastLetter
+        inputHangul = lastLetter
     }
     
     func hangulKeypadTap(letter: String) {
@@ -96,8 +108,13 @@ extension SYKeyboardIOManager: SYKeyboardDelegate {
             curLetter = letter
         }
         
-        self.inputHangul = curLetter
+        inputHangul = curLetter
         lastLetter = curLetter
+    }
+    
+    func otherKeypadTap(letter: String) {
+        inputOther = letter
+        lastLetter = inputHangul
     }
     
     func hoegKeypadTap() {
@@ -253,7 +270,6 @@ extension SYKeyboardIOManager: SYKeyboardDelegate {
     }
     
     func enterKeypadTap() {
-        //        dismiss?()
         inputHangul = "\n"
         lastLetter = inputHangul
     }
@@ -261,14 +277,5 @@ extension SYKeyboardIOManager: SYKeyboardDelegate {
     func spaceKeypadTap() {
         inputHangul = " "
         lastLetter = inputHangul
-    }
-    
-    func otherKeypadTap(letter: String) {
-        inputOther = letter
-        lastLetter = inputHangul
-    }
-    
-    func numKeypadTap() {
-        
     }
 }

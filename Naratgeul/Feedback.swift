@@ -10,7 +10,6 @@
 import AVFoundation
 import UIKit
 
-
 final class Feedback {
     static let shared = Feedback()
     
