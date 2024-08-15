@@ -36,7 +36,7 @@ struct SYKeyboardSymbolView: View {
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
                                     Feedback.shared.playHaptics()
-                                    options.delegate?.inputLastLetter()
+                                    options.delegate?.inputLastSymbol()
                                 }
                         },
                         onLongPressFinished: {
@@ -61,7 +61,7 @@ struct SYKeyboardSymbolView: View {
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
                                     Feedback.shared.playHaptics()
-                                    options.delegate?.inputLastLetter()
+                                    options.delegate?.inputLastSymbol()
                                 }
                         },
                         onLongPressFinished: {
@@ -86,7 +86,7 @@ struct SYKeyboardSymbolView: View {
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
                                     Feedback.shared.playHaptics()
-                                    options.delegate?.inputLastLetter()
+                                    options.delegate?.inputLastSymbol()
                                 }
                         },
                         onLongPressFinished: {
@@ -111,7 +111,7 @@ struct SYKeyboardSymbolView: View {
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
                                     Feedback.shared.playHaptics()
-                                    options.delegate?.inputLastLetter()
+                                    options.delegate?.inputLastSymbol()
                                 }
                         },
                         onLongPressFinished: {
@@ -136,7 +136,7 @@ struct SYKeyboardSymbolView: View {
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
                                     Feedback.shared.playHaptics()
-                                    options.delegate?.inputLastLetter()
+                                    options.delegate?.inputLastSymbol()
                                 }
                         },
                         onLongPressFinished: {
@@ -161,7 +161,7 @@ struct SYKeyboardSymbolView: View {
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
                                     Feedback.shared.playHaptics()
-                                    options.delegate?.inputLastLetter()
+                                    options.delegate?.inputLastSymbol()
                                 }
                         },
                         onLongPressFinished: {
@@ -186,7 +186,7 @@ struct SYKeyboardSymbolView: View {
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
                                     Feedback.shared.playHaptics()
-                                    options.delegate?.inputLastLetter()
+                                    options.delegate?.inputLastSymbol()
                                 }
                         },
                         onLongPressFinished: {
@@ -211,7 +211,7 @@ struct SYKeyboardSymbolView: View {
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
                                     Feedback.shared.playHaptics()
-                                    options.delegate?.inputLastLetter()
+                                    options.delegate?.inputLastSymbol()
                                 }
                         },
                         onLongPressFinished: {
@@ -236,7 +236,7 @@ struct SYKeyboardSymbolView: View {
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
                                     Feedback.shared.playHaptics()
-                                    options.delegate?.inputLastLetter()
+                                    options.delegate?.inputLastSymbol()
                                 }
                         },
                         onLongPressFinished: {
@@ -261,7 +261,7 @@ struct SYKeyboardSymbolView: View {
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
                                     Feedback.shared.playHaptics()
-                                    options.delegate?.inputLastLetter()
+                                    options.delegate?.inputLastSymbol()
                                 }
                         },
                         onLongPressFinished: {
@@ -289,7 +289,7 @@ struct SYKeyboardSymbolView: View {
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
                                     Feedback.shared.playHaptics()
-                                    options.delegate?.inputLastLetter()
+                                    options.delegate?.inputLastSymbol()
                                 }
                         },
                         onLongPressFinished: {
@@ -314,7 +314,7 @@ struct SYKeyboardSymbolView: View {
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
                                     Feedback.shared.playHaptics()
-                                    options.delegate?.inputLastLetter()
+                                    options.delegate?.inputLastSymbol()
                                 }
                         },
                         onLongPressFinished: {
@@ -339,7 +339,7 @@ struct SYKeyboardSymbolView: View {
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
                                     Feedback.shared.playHaptics()
-                                    options.delegate?.inputLastLetter()
+                                    options.delegate?.inputLastSymbol()
                                 }
                         },
                         onLongPressFinished: {
@@ -364,7 +364,7 @@ struct SYKeyboardSymbolView: View {
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
                                     Feedback.shared.playHaptics()
-                                    options.delegate?.inputLastLetter()
+                                    options.delegate?.inputLastSymbol()
                                 }
                         },
                         onLongPressFinished: {
@@ -389,7 +389,7 @@ struct SYKeyboardSymbolView: View {
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
                                     Feedback.shared.playHaptics()
-                                    options.delegate?.inputLastLetter()
+                                    options.delegate?.inputLastSymbol()
                                 }
                         },
                         onLongPressFinished: {
@@ -414,7 +414,7 @@ struct SYKeyboardSymbolView: View {
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
                                     Feedback.shared.playHaptics()
-                                    options.delegate?.inputLastLetter()
+                                    options.delegate?.inputLastSymbol()
                                 }
                         },
                         onLongPressFinished: {
@@ -439,7 +439,7 @@ struct SYKeyboardSymbolView: View {
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
                                     Feedback.shared.playHaptics()
-                                    options.delegate?.inputLastLetter()
+                                    options.delegate?.inputLastSymbol()
                                 }
                         },
                         onLongPressFinished: {
@@ -464,7 +464,7 @@ struct SYKeyboardSymbolView: View {
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
                                     Feedback.shared.playHaptics()
-                                    options.delegate?.inputLastLetter()
+                                    options.delegate?.inputLastSymbol()
                                 }
                         },
                         onLongPressFinished: {
@@ -489,7 +489,7 @@ struct SYKeyboardSymbolView: View {
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
                                     Feedback.shared.playHaptics()
-                                    options.delegate?.inputLastLetter()
+                                    options.delegate?.inputLastSymbol()
                                 }
                         },
                         onLongPressFinished: {
@@ -514,7 +514,7 @@ struct SYKeyboardSymbolView: View {
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
                                     Feedback.shared.playHaptics()
-                                    options.delegate?.inputLastLetter()
+                                    options.delegate?.inputLastSymbol()
                                 }
                         },
                         onLongPressFinished: {
@@ -550,7 +550,7 @@ struct SYKeyboardSymbolView: View {
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
                                     Feedback.shared.playHaptics()
-                                    options.delegate?.inputLastLetter()
+                                    options.delegate?.inputLastSymbol()
                                 }
                         },
                         onLongPressFinished: {
@@ -575,7 +575,7 @@ struct SYKeyboardSymbolView: View {
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
                                     Feedback.shared.playHaptics()
-                                    options.delegate?.inputLastLetter()
+                                    options.delegate?.inputLastSymbol()
                                 }
                         },
                         onLongPressFinished: {
@@ -600,7 +600,7 @@ struct SYKeyboardSymbolView: View {
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
                                     Feedback.shared.playHaptics()
-                                    options.delegate?.inputLastLetter()
+                                    options.delegate?.inputLastSymbol()
                                 }
                         },
                         onLongPressFinished: {
@@ -625,7 +625,7 @@ struct SYKeyboardSymbolView: View {
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
                                     Feedback.shared.playHaptics()
-                                    options.delegate?.inputLastLetter()
+                                    options.delegate?.inputLastSymbol()
                                 }
                         },
                         onLongPressFinished: {
@@ -650,7 +650,7 @@ struct SYKeyboardSymbolView: View {
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
                                     Feedback.shared.playHaptics()
-                                    options.delegate?.inputLastLetter()
+                                    options.delegate?.inputLastSymbol()
                                 }
                         },
                         onLongPressFinished: {
@@ -723,7 +723,7 @@ struct SYKeyboardSymbolView: View {
                                 .sink { _ in
                                     Feedback.shared.playModifierSound()
                                     Feedback.shared.playHaptics()
-                                    options.delegate?.inputLastLetter()
+                                    options.delegate?.inputLastSymbol()
                                 }
                         },
                         onLongPressFinished: {

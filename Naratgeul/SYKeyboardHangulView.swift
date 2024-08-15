@@ -35,7 +35,7 @@ struct SYKeyboardHangulView: View {
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
                                     Feedback.shared.playHaptics()
-                                    options.delegate?.inputLastLetter()
+                                    options.delegate?.inputLastHangul()
                                 }
                         },
                         onLongPressFinished: {
@@ -60,7 +60,7 @@ struct SYKeyboardHangulView: View {
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
                                     Feedback.shared.playHaptics()
-                                    options.delegate?.inputLastLetter()
+                                    options.delegate?.inputLastHangul()
                                 }
                         },
                         onLongPressFinished: {
@@ -85,7 +85,7 @@ struct SYKeyboardHangulView: View {
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
                                     Feedback.shared.playHaptics()
-                                    options.delegate?.inputLastLetter()
+                                    options.delegate?.inputLastHangul()
                                 }
                         },
                         onLongPressFinished: {
@@ -133,7 +133,7 @@ struct SYKeyboardHangulView: View {
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
                                     Feedback.shared.playHaptics()
-                                    options.delegate?.inputLastLetter()
+                                    options.delegate?.inputLastHangul()
                                 }
                         },
                         onLongPressFinished: {
@@ -158,7 +158,7 @@ struct SYKeyboardHangulView: View {
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
                                     Feedback.shared.playHaptics()
-                                    options.delegate?.inputLastLetter()
+                                    options.delegate?.inputLastHangul()
                                 }
                         },
                         onLongPressFinished: {
@@ -183,7 +183,7 @@ struct SYKeyboardHangulView: View {
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
                                     Feedback.shared.playHaptics()
-                                    options.delegate?.inputLastLetter()
+                                    options.delegate?.inputLastHangul()
                                 }
                         },
                         onLongPressFinished: {
@@ -208,7 +208,7 @@ struct SYKeyboardHangulView: View {
                                 .sink { _ in
                                     Feedback.shared.playModifierSound()
                                     Feedback.shared.playHaptics()
-                                    options.delegate?.inputLastLetter()
+                                    options.delegate?.inputLastHangul()
                                 }
                         },
                         onLongPressFinished: {
@@ -236,7 +236,7 @@ struct SYKeyboardHangulView: View {
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
                                     Feedback.shared.playHaptics()
-                                    options.delegate?.inputLastLetter()
+                                    options.delegate?.inputLastHangul()
                                 }
                         },
                         onLongPressFinished: {
@@ -261,7 +261,7 @@ struct SYKeyboardHangulView: View {
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
                                     Feedback.shared.playHaptics()
-                                    options.delegate?.inputLastLetter()
+                                    options.delegate?.inputLastHangul()
                                 }
                         },
                         onLongPressFinished: {
@@ -286,7 +286,7 @@ struct SYKeyboardHangulView: View {
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
                                     Feedback.shared.playHaptics()
-                                    options.delegate?.inputLastLetter()
+                                    options.delegate?.inputLastHangul()
                                 }
                         },
                         onLongPressFinished: {
@@ -329,7 +329,7 @@ struct SYKeyboardHangulView: View {
                                     .sink { _ in
                                         Feedback.shared.playTypingSound()
                                         Feedback.shared.playHaptics()
-                                        options.delegate?.inputLastLetter()
+                                        options.delegate?.inputLastHangul()
                                     }
                             } else {
                                 options.delegate?.hoegKeypadLongPress()
@@ -357,7 +357,7 @@ struct SYKeyboardHangulView: View {
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
                                     Feedback.shared.playHaptics()
-                                    options.delegate?.inputLastLetter()
+                                    options.delegate?.inputLastHangul()
                                 }
                         },
                         onLongPressFinished: {
@@ -384,7 +384,7 @@ struct SYKeyboardHangulView: View {
                                     .sink { _ in
                                         Feedback.shared.playTypingSound()
                                         Feedback.shared.playHaptics()
-                                        options.delegate?.inputLastLetter()
+                                        options.delegate?.inputLastHangul()
                                     }
                             } else {
                                 options.delegate?.ssangKeypadLongPress()

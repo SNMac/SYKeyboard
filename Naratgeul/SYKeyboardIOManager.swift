@@ -13,7 +13,8 @@ import SwiftUI
 protocol SYKeyboardDelegate: AnyObject {
     func getBufferSize() -> Int
     func flushBuffer()
-    func inputLastLetter()
+    func inputLastHangul()
+    func inputLastSymbol()
     func hangulKeypadTap(letter: String)
     func otherKeypadTap(letter: String)
     func hoegKeypadTap()
@@ -34,12 +35,14 @@ final class SYKeyboardIOManager {
     
     private var inputHangul: String = "" {
         didSet {
-            if inputHangul == " " || inputHangul == "\n" || inputHangul == "" {
+            if inputHangul == " " || inputHangul == "\n" {
                 hangulAutomata.buffer.removeAll()
                 hangulAutomata.inpStack.removeAll()
                 isEditingLastCharacter = false
                 hangulAutomata.curHanStatus = nil
                 inputText?(inputHangul)
+            } else if inputHangul == "" {
+                onlyUpdateHoegSsang?()
             } else {
                 isEditingLastCharacter = true
                 hangulAutomata.hangulAutomata(key: inputHangul)
@@ -48,10 +51,10 @@ final class SYKeyboardIOManager {
         }
     }
     
-    private var inputOther: String = "" {
+    private var inputSymbol: String = "" {
         didSet {
             isEditingLastCharacter = true
-            hangulAutomata.symbolAutomata(key: inputOther)
+            hangulAutomata.symbolAutomata(key: inputSymbol)
             inputText?(hangulAutomata.buffer.reduce("", { $0 + $1 }))
         }
     }
@@ -60,6 +63,7 @@ final class SYKeyboardIOManager {
     var deleteText: (() -> Void)?
     var hoegPeriod: (() -> Void)?
     var ssangComma: (() -> Void)?
+    var onlyUpdateHoegSsang: (() -> Void)?
 }
 
 extension SYKeyboardIOManager: SYKeyboardDelegate {
@@ -76,8 +80,12 @@ extension SYKeyboardIOManager: SYKeyboardDelegate {
         lastLetter = ""
     }
     
-    func inputLastLetter() {
+    func inputLastHangul() {
         inputHangul = lastLetter
+    }
+    
+    func inputLastSymbol() {
+        inputSymbol = lastLetter
     }
     
     func hangulKeypadTap(letter: String) {
@@ -117,7 +125,7 @@ extension SYKeyboardIOManager: SYKeyboardDelegate {
     func otherKeypadTap(letter: String) {
         isHoegSsangAvailiable = false
         lastLetter = letter
-        inputOther = lastLetter
+        inputSymbol = lastLetter
     }
     
     func hoegKeypadTap() {

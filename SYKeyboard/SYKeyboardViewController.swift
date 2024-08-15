@@ -73,10 +73,10 @@ class SYKeyboardViewController: UIInputViewController {
                 proxy.insertText(", ")
             }
             
+            keyboardIOManager.flushBuffer()
             updateCursorPos()
             updateBufferSize()
             updateHoegSsangAvailiable()
-            keyboardIOManager.flushBuffer()
         }
         
         keyboardIOManager.ssangComma = { [weak self] in
@@ -90,10 +90,15 @@ class SYKeyboardViewController: UIInputViewController {
                 proxy.insertText(". ")
             }
             
+            keyboardIOManager.flushBuffer()
             updateCursorPos()
             updateBufferSize()
             updateHoegSsangAvailiable()
-            keyboardIOManager.flushBuffer()
+        }
+        
+        keyboardIOManager.onlyUpdateHoegSsang = { [weak self] in
+            guard let self = self else { return }
+            updateHoegSsangAvailiable()
         }
     }
     
