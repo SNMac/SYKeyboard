@@ -20,7 +20,7 @@ struct SYKeyboardSymbolView: View {
                 HStack(spacing: 6) {
                     SYKeyboardButton(
                         text: isShiftTapped ? "[" : "1", primary: true,
-                        onClick: {
+                        onPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptics()
                         },
@@ -45,7 +45,7 @@ struct SYKeyboardSymbolView: View {
                     
                     SYKeyboardButton(
                         text: isShiftTapped ? "]" : "2", primary: true,
-                        onClick: {
+                        onPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptics()
                         },
@@ -70,7 +70,7 @@ struct SYKeyboardSymbolView: View {
                     
                     SYKeyboardButton(
                         text: isShiftTapped ? "{" : "3", primary: true,
-                        onClick: {
+                        onPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptics()
                         },
@@ -95,7 +95,7 @@ struct SYKeyboardSymbolView: View {
                     
                     SYKeyboardButton(
                         text: isShiftTapped ? "}" : "4", primary: true,
-                        onClick: {
+                        onPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptics()
                         },
@@ -120,7 +120,7 @@ struct SYKeyboardSymbolView: View {
                     
                     SYKeyboardButton(
                         text: isShiftTapped ? "#" : "5", primary: true,
-                        onClick: {
+                        onPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptics()
                         },
@@ -145,7 +145,7 @@ struct SYKeyboardSymbolView: View {
                     
                     SYKeyboardButton(
                         text: isShiftTapped ? "%" : "6", primary: true,
-                        onClick: {
+                        onPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptics()
                         },
@@ -170,7 +170,7 @@ struct SYKeyboardSymbolView: View {
                     
                     SYKeyboardButton(
                         text: isShiftTapped ? "^" : "7", primary: true,
-                        onClick: {
+                        onPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptics()
                         },
@@ -195,7 +195,7 @@ struct SYKeyboardSymbolView: View {
                     
                     SYKeyboardButton(
                         text: isShiftTapped ? "*" : "8", primary: true,
-                        onClick: {
+                        onPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptics()
                         },
@@ -220,7 +220,7 @@ struct SYKeyboardSymbolView: View {
                     
                     SYKeyboardButton(
                         text: isShiftTapped ? "+" : "9", primary: true,
-                        onClick: {
+                        onPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptics()
                         },
@@ -245,7 +245,7 @@ struct SYKeyboardSymbolView: View {
                     
                     SYKeyboardButton(
                         text: isShiftTapped ? "=" : "0", primary: true,
-                        onClick: {
+                        onPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptics()
                         },
@@ -273,7 +273,7 @@ struct SYKeyboardSymbolView: View {
                 HStack(spacing: 6) {
                     SYKeyboardButton(
                         text: isShiftTapped ? "_" : "-", primary: true,
-                        onClick: {
+                        onPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptics()
                         },
@@ -298,7 +298,7 @@ struct SYKeyboardSymbolView: View {
                     
                     SYKeyboardButton(
                         text: isShiftTapped ? "\\" : "/", primary: true,
-                        onClick: {
+                        onPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptics()
                         },
@@ -323,7 +323,7 @@ struct SYKeyboardSymbolView: View {
                     
                     SYKeyboardButton(
                         text: isShiftTapped ? "|" : ":", primary: true,
-                        onClick: {
+                        onPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptics()
                         },
@@ -348,7 +348,7 @@ struct SYKeyboardSymbolView: View {
                     
                     SYKeyboardButton(
                         text: isShiftTapped ? "~" : ";", primary: true,
-                        onClick: {
+                        onPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptics()
                         },
@@ -373,7 +373,7 @@ struct SYKeyboardSymbolView: View {
                     
                     SYKeyboardButton(
                         text: isShiftTapped ? "<" : "(", primary: true,
-                        onClick: {
+                        onPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptics()
                         },
@@ -398,7 +398,7 @@ struct SYKeyboardSymbolView: View {
                     
                     SYKeyboardButton(
                         text: isShiftTapped ? ">" : ")", primary: true,
-                        onClick: {
+                        onPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptics()
                         },
@@ -423,7 +423,7 @@ struct SYKeyboardSymbolView: View {
                     
                     SYKeyboardButton(
                         text: isShiftTapped ? "$" : "₩", primary: true,
-                        onClick: {
+                        onPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptics()
                         },
@@ -448,7 +448,7 @@ struct SYKeyboardSymbolView: View {
                     
                     SYKeyboardButton(
                         text: isShiftTapped ? "£" : "&", primary: true,
-                        onClick: {
+                        onPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptics()
                         },
@@ -473,7 +473,7 @@ struct SYKeyboardSymbolView: View {
                     
                     SYKeyboardButton(
                         text: isShiftTapped ? "¥" : "@", primary: true,
-                        onClick: {
+                        onPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptics()
                         },
@@ -498,7 +498,7 @@ struct SYKeyboardSymbolView: View {
                     
                     SYKeyboardButton(
                         text: isShiftTapped ? "•" : "\"", primary: true,
-                        onClick: {
+                        onPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptics()
                         },
@@ -526,7 +526,7 @@ struct SYKeyboardSymbolView: View {
                 HStack(spacing: 6) {
                     SYKeyboardButton(
                         text: isShiftTapped ? "123" : "#+=", primary: false,
-                        onClick: {
+                        onPress: {
                             Feedback.shared.playModifierSound()
                             Feedback.shared.playHaptics()
                             isShiftTapped.toggle()
@@ -534,7 +534,7 @@ struct SYKeyboardSymbolView: View {
                     
                     SYKeyboardButton(
                         text: ".", primary: true,
-                        onClick: {
+                        onPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptics()
                         },
@@ -559,7 +559,7 @@ struct SYKeyboardSymbolView: View {
                     
                     SYKeyboardButton(
                         text: ",", primary: true,
-                        onClick: {
+                        onPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptics()
                         },
@@ -584,7 +584,7 @@ struct SYKeyboardSymbolView: View {
                     
                     SYKeyboardButton(
                         text: "?", primary: true,
-                        onClick: {
+                        onPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptics()
                         },
@@ -609,7 +609,7 @@ struct SYKeyboardSymbolView: View {
                     
                     SYKeyboardButton(
                         text: "!", primary: true,
-                        onClick: {
+                        onPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptics()
                         },
@@ -634,7 +634,7 @@ struct SYKeyboardSymbolView: View {
                     
                     SYKeyboardButton(
                         text: "`", primary: true,
-                        onClick: {
+                        onPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptics()
                         },
@@ -659,7 +659,7 @@ struct SYKeyboardSymbolView: View {
                     
                     SYKeyboardButton(
                         systemName: "delete.left", primary: false,
-                        onClick: {
+                        onPress: {
                             Feedback.shared.playDeleteSound()
                             Feedback.shared.playHaptics()
                             options.delegate?.removeKeypadTap()
@@ -684,7 +684,7 @@ struct SYKeyboardSymbolView: View {
                         HStack(spacing: 6) {
                             SYKeyboardButton(
                                 text: "한글", primary: false,
-                                onClick: {
+                                onPress: {
                                     Feedback.shared.playModifierSound()
                                     Feedback.shared.playHaptics()
                                     options.current = .hangul
@@ -698,7 +698,7 @@ struct SYKeyboardSymbolView: View {
                     } else {
                         SYKeyboardButton(
                             text: "한글", primary: false,
-                            onClick: {
+                            onPress: {
                                 Feedback.shared.playModifierSound()
                                 Feedback.shared.playHaptics()
                                 options.current = .hangul
@@ -707,7 +707,7 @@ struct SYKeyboardSymbolView: View {
                     
                     SYKeyboardButton(
                         systemName: "space", primary: true,
-                        onClick: {
+                        onPress: {
                             Feedback.shared.playModifierSound()
                             Feedback.shared.playHaptics()
                         },
@@ -732,7 +732,7 @@ struct SYKeyboardSymbolView: View {
                     
                     SYKeyboardButton(
                         systemName: "return.left", primary: false,
-                        onClick: {
+                        onPress: {
                             Feedback.shared.playModifierSound()
                             Feedback.shared.playHaptics()
                         },

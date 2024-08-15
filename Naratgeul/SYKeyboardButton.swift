@@ -11,13 +11,13 @@ import SwiftUI
 import Combine
 
 struct SYKeyboardButton: View {
-    @State private var isPressed: Bool = false
+    @State private var isPressing: Bool = false
     @Environment(\.colorScheme) var colorScheme
     
     var text: String?
     var systemName: String?
     let primary: Bool
-    var onClick: () -> Void
+    var onPress: () -> Void
     var onRelease: (() -> Void)?
     var onLongPress: (() -> Void)?
     var onLongPressFinished: (() -> Void)?
@@ -59,14 +59,13 @@ struct SYKeyboardButton: View {
             DragGesture(minimumDistance: 0)
                 .onChanged { value in
                     print("DragGesture) onChanged")
-                    if value.translation.width > 80 {
+                    isPressing = false
+                    if value.translation.width > 100 {
                         print("Drag to right")
-                        isPressed = false
                         // TODO: 커서 오른쪽으로 이동
                         
-                    } else if value.translation.width < -80 {
+                    } else if value.translation.width < -100 {
                         print("Drag to left")
-                        isPressed = false
                         // TODO: 커서 왼쪽으로 이동
                         
                     }
@@ -74,15 +73,15 @@ struct SYKeyboardButton: View {
                 .onEnded({ value in
                     print("DragGesture) onEnded")
                     onRelease?()
-                    isPressed = false
+                    isPressing = false
                 })
         )
         .highPriorityGesture(
             LongPressGesture(minimumDuration: 0.4)
                 .onChanged({ value in
                     print("LongPressGesture) onChanged")
-                    isPressed = true
-                    onClick()
+                    isPressing = true
+                    onPress()
                 })
                 .onEnded({ value in
                     print("LongPressGesture) onEnded")
@@ -93,10 +92,10 @@ struct SYKeyboardButton: View {
                     print("LongPressGesture->DragGesture) onEnded")
                     onLongPressFinished?()
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
-                        isPressed = false
+                        isPressing = false
                     }
                 })
         )
-        .opacity(isPressed ? 0.5 : 1.0)
+        .opacity(isPressing ? 0.5 : 1.0)
     }
 }

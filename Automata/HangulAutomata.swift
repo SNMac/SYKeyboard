@@ -144,6 +144,7 @@ final class HangulAutomata {
     @discardableResult
     func deleteBuffer() -> String {
         var ret: String = ""
+        
         if inpStack.count == 0 {
             if buffer.count > 0 {
                 buffer.removeLast()
@@ -195,7 +196,7 @@ final class HangulAutomata {
                             ret = jongsungTable[Int(oldKeyIndex)]
                         } else if curHanStatus == .dJongsung {
                             for i in 0..<dJongsungTable.count {
-                                if dJongsungTable[i][1] == jongsungTable[Int(oldKeyIndex)] {
+                                if dJongsungTable[i][2] == jongsungTable[Int(oldKeyIndex)] {
                                     ret = dJongsungTable[i][1]
                                 }
                             }
@@ -205,7 +206,7 @@ final class HangulAutomata {
                             ret = jungsungTable[Int(oldKeyIndex)]
                         } else if curHanStatus == .dJungsung {
                             for i in 0..<dJungsungTable.count {
-                                if dJungsungTable[i][1] == jungsungTable[Int(oldKeyIndex)] {
+                                if dJungsungTable[i][2] == jungsungTable[Int(oldKeyIndex)] {
                                     ret = dJungsungTable[i][1]
                                 }
                             }

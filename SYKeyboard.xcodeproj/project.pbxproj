@@ -164,8 +164,8 @@
 				5B2B40112C6CC1D1007CA762 /* SYKeyboardOptions.swift */,
 				5B0D82442C63C72700F84180 /* SYKeyboardButton.swift */,
 				5B0D82422C63C16F00F84180 /* Feedback.swift */,
-				5B7B3F6F2C569B8200F7C093 /* Info.plist */,
 				5B2B40142C6CD2A4007CA762 /* NextKeyboardButton.swift */,
+				5B7B3F6F2C569B8200F7C093 /* Info.plist */,
 			);
 			path = Naratgeul;
 			sourceTree = "<group>";

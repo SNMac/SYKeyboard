@@ -68,14 +68,15 @@ class SYKeyboardViewController: UIInputViewController {
             
             if proxy.documentContextBeforeInput?.last == " " {
                 proxy.deleteBackward()
-                proxy.insertText(". ")
-            } else if !keyboardIOManager.isEditingLastCharacter {
-                proxy.insertText(". ")
+                proxy.insertText(", ")
+            } else {
+                proxy.insertText(", ")
             }
             
             updateCursorPos()
             updateBufferSize()
             updateHoegSsangAvailiable()
+            keyboardIOManager.flushBuffer()
         }
         
         keyboardIOManager.ssangComma = { [weak self] in
@@ -84,14 +85,15 @@ class SYKeyboardViewController: UIInputViewController {
             
             if proxy.documentContextBeforeInput?.last == " " {
                 proxy.deleteBackward()
-                proxy.insertText(", ")
-            } else if !keyboardIOManager.isEditingLastCharacter {
-                proxy.insertText(", ")
+                proxy.insertText(". ")
+            } else {
+                proxy.insertText(". ")
             }
             
             updateCursorPos()
             updateBufferSize()
             updateHoegSsangAvailiable()
+            keyboardIOManager.flushBuffer()
         }
     }
     

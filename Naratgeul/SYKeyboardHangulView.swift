@@ -11,6 +11,7 @@ import Combine
 struct SYKeyboardHangulView: View {
     @EnvironmentObject var options: SYKeyboardOptions
     @State var timer: AnyCancellable?
+    
     var body: some View {
         GeometryReader { geometry in
             VStack(spacing: 5) {
@@ -18,7 +19,7 @@ struct SYKeyboardHangulView: View {
                 HStack(spacing: 6) {
                     SYKeyboardButton(
                         text: "ㄱ", primary: true,
-                        onClick: {
+                        onPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptics()
                         },
@@ -43,7 +44,7 @@ struct SYKeyboardHangulView: View {
                     
                     SYKeyboardButton(
                         text: "ㄴ", primary: true,
-                        onClick: {
+                        onPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptics()
                         },
@@ -68,7 +69,7 @@ struct SYKeyboardHangulView: View {
                     
                     SYKeyboardButton(
                         text: "ㅏㅓ", primary: true,
-                        onClick: {
+                        onPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptics()
                         },
@@ -93,7 +94,7 @@ struct SYKeyboardHangulView: View {
                     
                     SYKeyboardButton(
                         systemName: "delete.left", primary: false,
-                        onClick: {
+                        onPress: {
                             Feedback.shared.playDeleteSound()
                             Feedback.shared.playHaptics()
                             options.delegate?.removeKeypadTap()
@@ -116,7 +117,7 @@ struct SYKeyboardHangulView: View {
                 HStack(spacing: 6) {
                     SYKeyboardButton(
                         text: "ㄹ", primary: true,
-                        onClick: {
+                        onPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptics()
                         },
@@ -141,7 +142,7 @@ struct SYKeyboardHangulView: View {
                     
                     SYKeyboardButton(
                         text: "ㅁ", primary: true,
-                        onClick: {
+                        onPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptics()
                         },
@@ -166,7 +167,7 @@ struct SYKeyboardHangulView: View {
                     
                     SYKeyboardButton(
                         text: "ㅗㅜ", primary: true,
-                        onClick: {
+                        onPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptics()
                         },
@@ -191,7 +192,7 @@ struct SYKeyboardHangulView: View {
                     
                     SYKeyboardButton(
                         systemName: "space", primary: false,
-                        onClick: {
+                        onPress: {
                             Feedback.shared.playModifierSound()
                             Feedback.shared.playHaptics()
                         },
@@ -219,7 +220,7 @@ struct SYKeyboardHangulView: View {
                 HStack(spacing: 6) {
                     SYKeyboardButton(
                         text: "ㅅ", primary: true,
-                        onClick: {
+                        onPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptics()
                         },
@@ -244,7 +245,7 @@ struct SYKeyboardHangulView: View {
                     
                     SYKeyboardButton(
                         text: "ㅇ", primary: true,
-                        onClick: {
+                        onPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptics()
                         },
@@ -269,7 +270,7 @@ struct SYKeyboardHangulView: View {
                     
                     SYKeyboardButton(
                         text: "ㅣ", primary: true,
-                        onClick: {
+                        onPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptics()
                         },
@@ -294,7 +295,7 @@ struct SYKeyboardHangulView: View {
                     
                     SYKeyboardButton(
                         systemName: "return.left", primary: false,
-                        onClick: {
+                        onPress: {
                             Feedback.shared.playModifierSound()
                             Feedback.shared.playHaptics()
                         },
@@ -310,7 +311,7 @@ struct SYKeyboardHangulView: View {
                 HStack(spacing: 6) {
                     SYKeyboardButton(
                         text: "획", primary: true,
-                        onClick: {
+                        onPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptics()
                         },
@@ -340,7 +341,7 @@ struct SYKeyboardHangulView: View {
                     
                     SYKeyboardButton(
                         text: "ㅡ", primary: true,
-                        onClick: {
+                        onPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptics()
                         },
@@ -365,7 +366,7 @@ struct SYKeyboardHangulView: View {
                     
                     SYKeyboardButton(
                         text: "쌍", primary: true,
-                        onClick: {
+                        onPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptics()
                         },
@@ -397,7 +398,7 @@ struct SYKeyboardHangulView: View {
                         HStack(spacing: 6) {
                             SYKeyboardButton(
                                 text: "123", primary: false,
-                                onClick: {
+                                onPress: {
                                     Feedback.shared.playModifierSound()
                                     Feedback.shared.playHaptics()
                                     options.current = .symbol
@@ -411,7 +412,7 @@ struct SYKeyboardHangulView: View {
                     } else {
                         SYKeyboardButton(
                             text: "123", primary: false,
-                            onClick: {
+                            onPress: {
                                 Feedback.shared.playModifierSound()
                                 Feedback.shared.playHaptics()
                                 options.current = .symbol

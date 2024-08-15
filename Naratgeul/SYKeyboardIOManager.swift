@@ -34,17 +34,12 @@ final class SYKeyboardIOManager {
     
     private var inputHangul: String = "" {
         didSet {
-            if inputHangul == " " || inputHangul == "\n" {
+            if inputHangul == " " || inputHangul == "\n" || inputHangul == "" {
                 hangulAutomata.buffer.removeAll()
                 hangulAutomata.inpStack.removeAll()
                 isEditingLastCharacter = false
                 hangulAutomata.curHanStatus = nil
                 inputText?(inputHangul)
-            } else if inputHangul == "" {
-                hangulAutomata.buffer.removeAll()
-                hangulAutomata.inpStack.removeAll()
-                isEditingLastCharacter = false
-                hangulAutomata.curHanStatus = nil
             } else {
                 isEditingLastCharacter = true
                 hangulAutomata.hangulAutomata(key: inputHangul)
@@ -76,6 +71,7 @@ extension SYKeyboardIOManager: SYKeyboardDelegate {
         hangulAutomata.buffer.removeAll()
         hangulAutomata.inpStack.removeAll()
         isEditingLastCharacter = false
+        isHoegSsangAvailiable = false
         hangulAutomata.curHanStatus = nil
         lastLetter = ""
     }
@@ -125,10 +121,9 @@ extension SYKeyboardIOManager: SYKeyboardDelegate {
     }
     
     func hoegKeypadTap() {
-        hangulAutomata.deleteBuffer()
         var isHoegAvailable: Bool = true
         
-        let curLetter: String
+        var curLetter: String = ""
         switch lastLetter {
         case "ㄱ":
             curLetter = "ㅋ"
@@ -153,7 +148,6 @@ extension SYKeyboardIOManager: SYKeyboardDelegate {
             
         case "ㄹ":
             isHoegAvailable = false
-            curLetter = "ㄹ"
             
         case "ㅁ", "ㅃ":
             curLetter = "ㅂ"
@@ -187,18 +181,18 @@ extension SYKeyboardIOManager: SYKeyboardDelegate {
             
         case "ㅣ":
             isHoegAvailable = false
-            curLetter = "ㅣ"
             
         case "ㅡ":
             isHoegAvailable = false
-            curLetter = "ㅡ"
             
         default:
             isHoegAvailable = false
-            curLetter = ""
         }
         
         isHoegSsangAvailiable = isHoegAvailable
+        if curLetter != "" {
+            hangulAutomata.deleteBuffer()
+        }
         lastLetter = curLetter
         inputHangul = lastLetter
     }
@@ -208,10 +202,9 @@ extension SYKeyboardIOManager: SYKeyboardDelegate {
     }
     
     func ssangKeypadTap() {
-        hangulAutomata.deleteBuffer()
         var isSsangAvailable: Bool = true
         
-        let curLetter: String
+        var curLetter: String = ""
         switch lastLetter {
         case "ㄱ", "ㅋ":
             curLetter = "ㄲ"
@@ -234,7 +227,6 @@ extension SYKeyboardIOManager: SYKeyboardDelegate {
             
         case "ㄹ":
             isSsangAvailable = false
-            curLetter = "ㄹ"
             
         case "ㅁ", "ㅂ", "ㅍ":
             curLetter = "ㅃ"
@@ -266,17 +258,17 @@ extension SYKeyboardIOManager: SYKeyboardDelegate {
             
         case "ㅣ":
             isSsangAvailable = false
-            curLetter = "ㅣ"
         case "ㅡ":
             isSsangAvailable = false
-            curLetter = "ㅡ"
             
         default:
             isSsangAvailable = false
-            curLetter = ""
         }
         
         isHoegSsangAvailiable = isSsangAvailable
+        if curLetter != "" {
+            hangulAutomata.deleteBuffer()
+        }
         lastLetter = curLetter
         inputHangul = lastLetter
     }
