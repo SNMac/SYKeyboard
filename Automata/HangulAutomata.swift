@@ -28,10 +28,10 @@ enum HangulCHKind {
 // 키 입력마다 쌓이는 입력 스택 정의
 struct InpStack {
     var hangulStatus: HangulStatus  // 상태
-    var keyKind: HangulCHKind  // 입력된 키가 자음인지 모임인지
+    var keyKind: HangulCHKind  // 입력된 키가 자음 / 모음 / 기호인지
     var keyIndex: UInt32  // 방금 입력된 키의 테이블 인덱스
     var geulja: String  // 조합된 글자
-    var hasChosung: Bool
+    var hasChosung: Bool  // 조합된 글자가 초성을 갖고있는지
 }
 
 final class HangulAutomata {
@@ -143,7 +143,7 @@ final class HangulAutomata {
     
     @discardableResult
     func deleteBuffer() -> String {
-        var ret: String = ""
+        var lastLetter: String = ""
         
         if inpStack.count == 0 {
             if buffer.count > 0 {
@@ -191,36 +191,36 @@ final class HangulAutomata {
                     switch oldKeyKind {
                     case .jaeum:
                         if curHanStatus == .chosung {
-                            ret = chosungTable[Int(oldKeyIndex)]
+                            lastLetter = chosungTable[Int(oldKeyIndex)]
                         } else if curHanStatus == .jongsung {
-                            ret = jongsungTable[Int(oldKeyIndex)]
+                            lastLetter = jongsungTable[Int(oldKeyIndex)]
                         } else if curHanStatus == .dJongsung {
                             for i in 0..<dJongsungTable.count {
                                 if dJongsungTable[i][2] == jongsungTable[Int(oldKeyIndex)] {
-                                    ret = dJongsungTable[i][1]
+                                    lastLetter = dJongsungTable[i][1]
                                 }
                             }
                         }
                     case .moeum:
                         if curHanStatus == .jungsung {
-                            ret = jungsungTable[Int(oldKeyIndex)]
+                            lastLetter = jungsungTable[Int(oldKeyIndex)]
                         } else if curHanStatus == .dJungsung {
                             for i in 0..<dJungsungTable.count {
                                 if dJungsungTable[i][2] == jungsungTable[Int(oldKeyIndex)] {
-                                    ret = dJungsungTable[i][1]
+                                    lastLetter = dJungsungTable[i][1]
                                 }
                             }
                         }
                     case .symbol:
-                        ret = symbolTable[Int(oldKeyIndex)]
+                        lastLetter = symbolTable[Int(oldKeyIndex)]
                     case nil:
-                        ret = ""
+                        lastLetter = ""
                     }
                 }
             }
         }
-        print("buffer) ", buffer)
-        return ret
+        print("buffer = ", buffer)
+        return lastLetter
     }
 }
 
@@ -381,6 +381,6 @@ extension HangulAutomata {
     func storeStackAndBuffer() {
         inpStack.append(InpStack(hangulStatus: curHanStatus ?? .start, keyKind: curKeyKind, keyIndex: curKeyIndex, geulja: String(Unicode.Scalar(curGeulja) ?? Unicode.Scalar(0)), hasChosung: curHasChosung))
         buffer[buffer.count - 1] = curGeulja
-        print("buffer) ", buffer)
+        print("buffer = ", buffer)
     }
 }

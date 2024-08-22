@@ -37,13 +37,8 @@ class SYKeyboardViewController: UIInputViewController {
     private func setupIOManager() {
         keyboardIOManager.inputText = { [weak self] in
             guard let self = self else { return }
-            let proxy = textDocumentProxy
             
-            if keyboardIOManager.isEditingLastCharacter {
-                for _ in 0..<bufferSize {
-                    proxy.deleteBackward()
-                }
-            }
+            let proxy = textDocumentProxy
             proxy.insertText($0)
             
             updateCursorPos()
@@ -51,21 +46,40 @@ class SYKeyboardViewController: UIInputViewController {
             updateHoegSsangAvailiable()
         }
         
-        keyboardIOManager.deleteText = { [weak self] in
+        keyboardIOManager.deleteForInput = { [weak self] in
             guard let self = self else { return }
-            let proxy = textDocumentProxy
             
-            proxy.deleteBackward()
+            let proxy = textDocumentProxy
+            if keyboardIOManager.isEditingLastCharacter {
+                proxy.deleteBackward()
+            }
+        }
+        
+        keyboardIOManager.deleteText = { [weak self] in
+            guard let self = self else { return false }
+            print("deleteText)")
+            
+            var isDeleted = false
+            
+            let proxy = textDocumentProxy
+            if let beforeInput = proxy.documentContextBeforeInput {
+                if !beforeInput.isEmpty {
+                    proxy.deleteBackward()
+                    isDeleted = true
+                }
+            }
             
             updateCursorPos()
             updateBufferSize()
             updateHoegSsangAvailiable()
+            
+            return isDeleted
         }
         
         keyboardIOManager.hoegPeriod = { [weak self] in
             guard let self = self else { return }
-            let proxy = textDocumentProxy
             
+            let proxy = textDocumentProxy
             if proxy.documentContextBeforeInput?.last == " " {
                 proxy.deleteBackward()
                 proxy.insertText(", ")
@@ -73,16 +87,16 @@ class SYKeyboardViewController: UIInputViewController {
                 proxy.insertText(", ")
             }
             
-            keyboardIOManager.flushBuffer()
             updateCursorPos()
+            keyboardIOManager.flushBuffer()
             updateBufferSize()
             updateHoegSsangAvailiable()
         }
         
         keyboardIOManager.ssangComma = { [weak self] in
             guard let self = self else { return }
-            let proxy = textDocumentProxy
             
+            let proxy = textDocumentProxy
             if proxy.documentContextBeforeInput?.last == " " {
                 proxy.deleteBackward()
                 proxy.insertText(". ")
@@ -90,8 +104,8 @@ class SYKeyboardViewController: UIInputViewController {
                 proxy.insertText(". ")
             }
             
-            keyboardIOManager.flushBuffer()
             updateCursorPos()
+            keyboardIOManager.flushBuffer()
             updateBufferSize()
             updateHoegSsangAvailiable()
         }
@@ -99,6 +113,48 @@ class SYKeyboardViewController: UIInputViewController {
         keyboardIOManager.onlyUpdateHoegSsang = { [weak self] in
             guard let self = self else { return }
             updateHoegSsangAvailiable()
+        }
+        
+        keyboardIOManager.moveCursorToLeft = { [weak self] in
+            guard let self = self else { return false }
+            print("moveCursorToLeft)")
+            
+            let prevCurPos = cursorPos
+            
+            let proxy = textDocumentProxy
+            proxy.adjustTextPosition(byCharacterOffset: -1)
+            
+            updateCursorPos()
+            keyboardIOManager.flushBuffer()
+            updateBufferSize()
+            updateHoegSsangAvailiable()
+            
+            if cursorPos != prevCurPos {
+                return true
+            } else {
+                return false
+            }
+        }
+        
+        keyboardIOManager.moveCursorToRight = { [weak self] in
+            guard let self = self else { return false }
+            print("moveCursorToRight)")
+            
+            let prevCurPos = cursorPos
+            
+            let proxy = textDocumentProxy
+            proxy.adjustTextPosition(byCharacterOffset: 1)
+            
+            updateCursorPos()
+            keyboardIOManager.flushBuffer()
+            updateBufferSize()
+            updateHoegSsangAvailiable()
+            
+            if cursorPos != prevCurPos {
+                return true
+            } else {
+                return false
+            }
         }
     }
     
@@ -130,34 +186,40 @@ class SYKeyboardViewController: UIInputViewController {
     }
     
     override func textWillChange(_ textInput: (any UITextInput)?) {
-        super.textWillChange(textInput)
+//        super.textWillChange(textInput)
         
-        keyboardIOManager.flushBuffer()
+        print("textWillChange) ")
+        let proxy = textDocumentProxy
+        let prevCursorPos = cursorPos
         updateCursorPos()
+        if cursorPos != prevCursorPos {
+            keyboardIOManager.flushBuffer()
+        }
         updateBufferSize()
         updateHoegSsangAvailiable()
     }
     
     override func selectionWillChange(_ textInput: (any UITextInput)?) {
-        super.selectionWillChange(textInput)
+//        super.selectionWillChange(textInput)
         
-        keyboardIOManager.flushBuffer()
+        print("selectionWillChange) ")
         updateCursorPos()
+        keyboardIOManager.flushBuffer()
         updateBufferSize()
         updateHoegSsangAvailiable()
     }
     
     private func updateCursorPos() {
         let proxy = textDocumentProxy
-        if let documentContext = proxy.documentContextBeforeInput {
-            cursorPos = documentContext.count
+        if let beforeInput = proxy.documentContextBeforeInput {
+            cursorPos = beforeInput.count
         }
-        print("cursorPos) ", cursorPos)
+        print("cursorPos = ", cursorPos)
     }
     
     private func updateBufferSize() {
         bufferSize = keyboardIOManager.getBufferSize()
-        print("bufferSize) ", bufferSize)
+        print("bufferSize = ", bufferSize)
     }
     
     private func updateHoegSsangAvailiable() {

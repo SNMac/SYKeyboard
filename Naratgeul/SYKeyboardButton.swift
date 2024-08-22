@@ -11,16 +11,22 @@ import SwiftUI
 import Combine
 
 struct SYKeyboardButton: View {
+    @EnvironmentObject var options: SYKeyboardOptions
     @State private var isPressing: Bool = false
+    @State private var isDragStart: Bool = false
+    @State private var isCursorMovable: Bool = false
+    @State private var dragStartWidth: Double = 0.0
     @Environment(\.colorScheme) var colorScheme
     
     var text: String?
     var systemName: String?
     let primary: Bool
+    
     var onPress: () -> Void
     var onRelease: (() -> Void)?
     var onLongPress: (() -> Void)?
     var onLongPressFinished: (() -> Void)?
+    
     
     var body: some View {
         Button(action: {}) {
@@ -60,20 +66,51 @@ struct SYKeyboardButton: View {
                 .onChanged { value in
                     print("DragGesture) onChanged")
                     isPressing = false
-                    if value.translation.width > 100 {
-                        print("Drag to right")
-                        // TODO: 커서 오른쪽으로 이동
-                        
-                    } else if value.translation.width < -100 {
-                        print("Drag to left")
-                        // TODO: 커서 왼쪽으로 이동
-                        
+                    if primary {
+                        if !isDragStart {  // drag start
+                            dragStartWidth = value.translation.width
+                            isDragStart = true
+                        } else {  // while dragging
+                            if !isCursorMovable {
+                                let dragWidthDiff = value.translation.width - dragStartWidth
+                                if dragWidthDiff < -30 || dragWidthDiff > 30 {
+                                    isCursorMovable = true
+                                    dragStartWidth = value.translation.width
+                                }
+                            }
+                        }
                     }
+                    
+                    if isCursorMovable {
+                        let dragWidthDiff = value.translation.width - dragStartWidth
+                        if dragWidthDiff < -10 {
+                            print("Drag to left")
+                            dragStartWidth = value.translation.width
+                            if let isMoved = options.delegate?.dragToLeft() {
+                                if isMoved {
+                                    Feedback.shared.playHaptics()
+                                }
+                            }
+                        } else if dragWidthDiff > 10 {
+                            print("Drag to right")
+                            dragStartWidth = value.translation.width
+                            if let isMoved = options.delegate?.dragToRight() {
+                                if isMoved {
+                                    Feedback.shared.playHaptics()
+                                }
+                            }
+                        }
+                    }
+                        
                 }
                 .onEnded({ value in
                     print("DragGesture) onEnded")
-                    onRelease?()
+                    if !isCursorMovable {
+                        onRelease?()
+                    }
                     isPressing = false
+                    isDragStart = false
+                    isCursorMovable = false
                 })
         )
         .highPriorityGesture(

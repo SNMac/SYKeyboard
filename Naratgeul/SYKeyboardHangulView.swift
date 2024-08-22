@@ -97,15 +97,18 @@ struct SYKeyboardHangulView: View {
                         onPress: {
                             Feedback.shared.playDeleteSound()
                             Feedback.shared.playHaptics()
-                            options.delegate?.removeKeypadTap()
+                            let _ = options.delegate?.removeKeypadTap()
                         },
                         onLongPress: {
                             timer = Timer.publish(every: 0.05, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
-                                    Feedback.shared.playDeleteSound()
-                                    Feedback.shared.playHaptics()
-                                    options.delegate?.removeKeypadTap()
+                                    if let isDeleted = options.delegate?.removeKeypadTap() {
+                                        if isDeleted {
+                                            Feedback.shared.playDeleteSound()
+                                            Feedback.shared.playHaptics()
+                                        }
+                                    }
                                 }
                         },
                         onLongPressFinished: {
@@ -425,7 +428,7 @@ struct SYKeyboardHangulView: View {
         .background(Color("KeyboardBackground"))
     }
 }
-    
+
 
 
 #Preview {
