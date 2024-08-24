@@ -68,7 +68,6 @@ final class SYKeyboardIOManager {
                 }
                 inputText?(text)
                 isEditingLastCharacter = true  // 순서 중요함
-//                inputText?(hangulAutomata.buffer.reduce("", { $0 + $1 }))
             }
             lastLetter = inputHangul
             
@@ -81,7 +80,6 @@ final class SYKeyboardIOManager {
             hangulAutomata.symbolAutomata(key: inputSymbol)
             curAutomataBufferSize = getBufferSize()
             inputText?(inputSymbol)
-//            inputText?(hangulAutomata.buffer.reduce("", { $0 + $1 }))
             lastLetter = inputSymbol
             isEditingLastCharacter = true
             
@@ -109,6 +107,7 @@ extension SYKeyboardIOManager: SYKeyboardDelegate {
     }
     
     func flushBuffer() {
+        print("flushBuffer()")
         hangulAutomata.buffer.removeAll()
         hangulAutomata.inpStack.removeAll()
         isEditingLastCharacter = false
@@ -339,10 +338,8 @@ extension SYKeyboardIOManager: SYKeyboardDelegate {
             inputText?(hangulAutomata.buffer.last ?? "")
             
             updateAutomataBufferSize()
-//            inputText?(hangulAutomata.buffer.reduce("", { $0 + $1 }))
             return true
         }
-        
     }
     
     func enterKeypadTap() {

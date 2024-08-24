@@ -64,7 +64,7 @@ struct SYKeyboardButton: View {
         .gesture(
             DragGesture(minimumDistance: 0)
                 .onChanged { value in
-                    print("DragGesture) onChanged")
+                    print("DragGesture() onChanged")
                     isPressing = false
                     if primary {
                         if !isDragStart {  // drag start
@@ -104,7 +104,7 @@ struct SYKeyboardButton: View {
                         
                 }
                 .onEnded({ value in
-                    print("DragGesture) onEnded")
+                    print("DragGesture() onEnded")
                     if !isCursorMovable {
                         onRelease?()
                     }
@@ -116,17 +116,17 @@ struct SYKeyboardButton: View {
         .highPriorityGesture(
             LongPressGesture(minimumDuration: 0.4)
                 .onChanged({ value in
-                    print("LongPressGesture) onChanged")
+                    print("LongPressGesture() onChanged")
                     isPressing = true
                     onPress()
                 })
                 .onEnded({ value in
-                    print("LongPressGesture) onEnded")
+                    print("LongPressGesture() onEnded")
                     onLongPress?()
                 })
                 .sequenced(before: DragGesture(minimumDistance: 0))
                 .onEnded({ value in
-                    print("LongPressGesture->DragGesture) onEnded")
+                    print("LongPressGesture()->DragGesture() onEnded")
                     onLongPressFinished?()
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
                         isPressing = false
