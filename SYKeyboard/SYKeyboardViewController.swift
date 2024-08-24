@@ -48,8 +48,10 @@ class SYKeyboardViewController: UIInputViewController {
             guard let self = self else { return }
             
             let proxy = textDocumentProxy
-            if keyboardIOManager.isEditingLastCharacter {
-                proxy.deleteBackward()
+            if let beforeInput = proxy.documentContextBeforeInput {
+                if !beforeInput.isEmpty && keyboardIOManager.isEditingLastCharacter {
+                    proxy.deleteBackward()
+                }
             }
         }
         
@@ -180,8 +182,8 @@ class SYKeyboardViewController: UIInputViewController {
     
     override func textDidChange(_ textInput: (any UITextInput)?) {
         super.textDidChange(textInput)
-        
         print("textDidChange()")
+        
         updateCursorPos()
         keyboardIOManager.flushBuffer()
         updateHoegSsangAvailiable()
@@ -189,15 +191,15 @@ class SYKeyboardViewController: UIInputViewController {
     
     override func selectionWillChange(_ textInput: (any UITextInput)?) {
         super.selectionWillChange(textInput)
-        
         print("selectionWillChange()")
+        
         updateCursorPos()
     }
     
     override func selectionDidChange(_ textInput: (any UITextInput)?) {
         super.selectionDidChange(textInput)
-        
         print("selectionDidChange()")
+        
         updateCursorPos()
     }
     
