@@ -130,11 +130,23 @@ extension SYKeyboardIOManager: SYKeyboardDelegate {
         switch letter {
         case "ㅏ" :
             if lastLetter == "ㅏ" {
-                hangulAutomata.deleteBuffer()
-                curLetter = "ㅓ"
+                if hangulAutomata.inpStack.last?.keyKind == .moeum
+                    && hangulAutomata.inpStack.last?.keyIndex == 9 {  // ㅗ + ㅏ
+                    curLetter = "ㅏ"
+                } else {
+                    hangulAutomata.deleteBuffer()
+                    curLetter = "ㅓ"
+                }
             } else if lastLetter == "ㅓ" {
-                hangulAutomata.deleteBuffer()
-                curLetter = "ㅏ"
+                if hangulAutomata.inpStack.last?.keyKind == .moeum
+                    && hangulAutomata.inpStack.last?.keyIndex == 14 {  // ㅝ
+                    curLetter = "ㅏ"
+                } else {
+                    hangulAutomata.deleteBuffer()
+                    curLetter = "ㅏ"
+                }
+            } else if lastLetter == "ㅜ" {
+                curLetter = "ㅓ"
             } else {
                 curLetter = "ㅏ"
             }

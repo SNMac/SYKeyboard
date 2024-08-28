@@ -176,7 +176,7 @@ final class HangulAutomata {
                         }
                     } else if popHanguel.keyKind == .jaeum {
                         buffer[buffer.count - 1] = inpStack[inpStack.count - 1].geulja
-                    } else {  // popHanguel.chKind == .symbol
+                    } else {  // popHanguel.keyKind == .symbol
                         buffer.removeLast()
                     }
                 }
@@ -195,20 +195,31 @@ final class HangulAutomata {
                         } else if curHanStatus == .jongsung {
                             lastLetter = jongsungTable[Int(oldKeyIndex)]
                         } else if curHanStatus == .dJongsung {
+                            let oldOldKeyIndex = inpStack[inpStack.count - 2].keyIndex
                             for i in 0..<dJongsungTable.count {
-                                if dJongsungTable[i][2] == jongsungTable[Int(oldKeyIndex)] {
+                                if dJongsungTable[i][0] == jongsungTable[Int(oldOldKeyIndex)]
+                                    && dJongsungTable[i][1] == jongsungTable[Int(oldKeyIndex)] {
                                     lastLetter = dJongsungTable[i][1]
                                 }
                             }
                         }
                     case .moeum:
-                        if curHanStatus == .jungsung {
-                            lastLetter = jungsungTable[Int(oldKeyIndex)]
-                        } else if curHanStatus == .dJungsung {
+                        if curHanStatus == .dJungsung {
                             for i in 0..<dJungsungTable.count {
                                 if dJungsungTable[i][2] == jungsungTable[Int(oldKeyIndex)] {
                                     lastLetter = dJungsungTable[i][1]
                                 }
+                            }
+                        } else {
+                            var isdJungsung = false
+                            for i in 0..<dJungsungTable.count {
+                                if dJungsungTable[i][2] == jungsungTable[Int(oldKeyIndex)] {
+                                    lastLetter = dJungsungTable[i][1]
+                                    isdJungsung = true
+                                }
+                            }
+                            if !isdJungsung {
+                                lastLetter = jungsungTable[Int(oldKeyIndex)]
                             }
                         }
                     case .symbol:

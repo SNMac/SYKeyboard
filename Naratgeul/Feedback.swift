@@ -15,7 +15,7 @@ final class Feedback {
     
     var defaults: UserDefaults?
     
-    let generator = UIImpactFeedbackGenerator(style: .light)
+    let lightHapticGenerator = UIImpactFeedbackGenerator(style: .light)
     
     init() {
         defaults = UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")
@@ -31,12 +31,12 @@ final class Feedback {
     
     func prepareHaptics() {
         if !haptics { return }
-        generator.prepare()
+        lightHapticGenerator.prepare()
     }
     
     func playHaptics() {
         if !haptics { return }
-        generator.impactOccurred()
+        lightHapticGenerator.impactOccurred()
     }
     
     func playTypingSound() {
