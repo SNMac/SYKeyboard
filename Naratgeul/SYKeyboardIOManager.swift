@@ -341,6 +341,9 @@ extension SYKeyboardIOManager: SYKeyboardDelegate {
         } else {
             lastLetter = hangulAutomata.deleteBuffer()
             curAutomataBufferSize = getBufferSize()
+            if curAutomataBufferSize == 0 {
+                isEditingLastCharacter = false
+            }
             if prevAutomataBufferSize > curAutomataBufferSize && curAutomataBufferSize > 0 {
                 let _ = deleteText?()
                 let _ = deleteText?()
