@@ -131,7 +131,7 @@ extension SYKeyboardIOManager: SYKeyboardDelegate {
         case "ㅏ" :
             if lastLetter == "ㅏ" {
                 if hangulAutomata.inpStack.last?.keyKind == .moeum
-                    && hangulAutomata.inpStack.last?.keyIndex == 9 {  // ㅗ + ㅏ
+                    && hangulAutomata.inpStack.last?.keyIndex == 9 {  // ㅘ
                     curLetter = "ㅏ"
                 } else {
                     hangulAutomata.deleteBuffer()

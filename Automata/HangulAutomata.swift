@@ -57,17 +57,18 @@ final class HangulAutomata {
     
     private let dJungsungTable: [[String]] = [
         ["ㅗ","ㅏ","ㅘ"],
+        ["ㅘ","ㅣ","ㅙ"],
         ["ㅗ","ㅐ","ㅙ"],
         ["ㅗ","ㅣ","ㅚ"],
         ["ㅜ","ㅓ","ㅝ"],
         ["ㅜ","ㅔ","ㅞ"],
+        ["ㅝ","ㅣ","ㅞ"],
         ["ㅜ","ㅣ","ㅟ"],
         ["ㅡ","ㅣ","ㅢ"],
         ["ㅏ","ㅣ","ㅐ"],
         ["ㅓ","ㅣ","ㅔ"],
         ["ㅕ","ㅣ","ㅖ"],
         ["ㅑ","ㅣ","ㅒ"],
-        ["ㅘ","ㅣ","ㅙ"]
     ]
     
     private let dJongsungTable: [[String]] = [
@@ -200,6 +201,7 @@ final class HangulAutomata {
                                 if dJongsungTable[i][0] == jongsungTable[Int(oldOldKeyIndex)]
                                     && dJongsungTable[i][1] == jongsungTable[Int(oldKeyIndex)] {
                                     lastLetter = dJongsungTable[i][1]
+                                    break
                                 }
                             }
                         }
@@ -208,6 +210,7 @@ final class HangulAutomata {
                             for i in 0..<dJungsungTable.count {
                                 if dJungsungTable[i][2] == jungsungTable[Int(oldKeyIndex)] {
                                     lastLetter = dJungsungTable[i][1]
+                                    break
                                 }
                             }
                         } else {
@@ -216,6 +219,7 @@ final class HangulAutomata {
                                 if dJungsungTable[i][2] == jungsungTable[Int(oldKeyIndex)] {
                                     lastLetter = dJungsungTable[i][1]
                                     isdJungsung = true
+                                    break
                                 }
                             }
                             if !isdJungsung {
@@ -230,7 +234,8 @@ final class HangulAutomata {
                 }
             }
         }
-        print("buffer = ", buffer)
+        print("deleteBuffer()->buffer =", buffer)
+        print("lastLetter =", lastLetter)
         return lastLetter
     }
 }
@@ -392,6 +397,6 @@ extension HangulAutomata {
     func storeStackAndBuffer() {
         inpStack.append(InpStack(hangulStatus: curHanStatus ?? .start, keyKind: curKeyKind, keyIndex: curKeyIndex, geulja: String(Unicode.Scalar(curGeulja) ?? Unicode.Scalar(0)), hasChosung: curHasChosung))
         buffer[buffer.count - 1] = curGeulja
-        print("buffer = ", buffer)
+        print("hangulAutomata()->buffer =", buffer)
     }
 }

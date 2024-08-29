@@ -208,7 +208,7 @@ class SYKeyboardViewController: UIInputViewController {
         if let beforeInput = proxy.documentContextBeforeInput {
             cursorPos = beforeInput.count
         }
-        print("cursorPos = ", cursorPos)
+        print("cursorPos =", cursorPos)
     }
     
     private func updateHoegSsangAvailiable() {
