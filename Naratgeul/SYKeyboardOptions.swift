@@ -15,6 +15,7 @@ enum KeyboardType {
 
 final class SYKeyboardOptions: ObservableObject {
     @Published var current: KeyboardType = .hangul
+    var curPressedButton: SYKeyboardButton?
     weak var delegate: SYKeyboardDelegate?
     var keyboardHeight: CGFloat
     var colorScheme: ColorScheme
