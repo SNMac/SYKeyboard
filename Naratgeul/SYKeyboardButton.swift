@@ -39,9 +39,9 @@ struct SYKeyboardButton: View {
                 curGestureState = .dragStart
             } else {  // 드래그 중
                 if !isCursorMovable {
-                    // 일정 거리 이상 드래그 -> 커서 이동 활성화
+                    // 일정 거리 초과/미만 드래그 -> 커서 이동 활성화
                     let dragWidthDiff = value.translation.width - dragStartWidth
-                    if dragWidthDiff < -30 || dragWidthDiff > 30 {
+                    if dragWidthDiff < -20 || dragWidthDiff > 20 {
                         isCursorMovable = true
                         dragStartWidth = value.translation.width
                     }
@@ -49,9 +49,9 @@ struct SYKeyboardButton: View {
             }
         }
         if isCursorMovable {  // 커서 이동 활성화 됐을 때
-            // 일정 거리 드래그 할때마다 한칸씩 커서를 드래그한 방향으로 이동
-            let dragWidthDiff = value.translation.width - dragStartWidth
-            if dragWidthDiff < -10 {
+            // 일정 거리 초과/미만 드래그 -> 커서를 한칸씩 드래그한 방향으로 이동
+            let dragDiff = value.translation.width - dragStartWidth
+            if dragDiff < -5 {
                 print("Drag to left")
                 dragStartWidth = value.translation.width
                 if let isMoved = options.delegate?.dragToLeft() {
@@ -59,7 +59,7 @@ struct SYKeyboardButton: View {
                         Feedback.shared.playHaptics()
                     }
                 }
-            } else if dragWidthDiff > 10 {
+            } else if dragDiff > 5 {
                 print("Drag to right")
                 dragStartWidth = value.translation.width
                 if let isMoved = options.delegate?.dragToRight() {
@@ -73,7 +73,7 @@ struct SYKeyboardButton: View {
     
     private func dragOnEnded() {  // 버튼 뗐을 때
         if !isCursorMovable {
-            // 드래그가 일정 거리 이하일 경우 무시하고 글자가 입력되도록 함
+            // 드래그를 일정 거리에 못미치게 했을 경우(터치 오차) 무시하고 글자가 입력되도록 함
             onRelease?()
         }
         isCursorMovable = false
