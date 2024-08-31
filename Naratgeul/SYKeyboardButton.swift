@@ -76,6 +76,7 @@ struct SYKeyboardButton: View {
             // 드래그가 일정 거리 이하일 경우 무시하고 글자가 입력되도록 함
             onRelease?()
         }
+        isCursorMovable = false
         curGestureState = nil
         options.curPressedButton = nil
     }
@@ -152,7 +153,6 @@ struct SYKeyboardButton: View {
             // 버튼 눌렀을 때 호출(버튼 누르면 무조건 첫번째로 호출)
                 .onChanged({ _ in
                     print("LongPressGesture() onChanged")
-//                    longPressOnChanged()
                     if options.curPressedButton != nil {  // 이미 다른 버튼이 눌려있는 상태
                         switch options.curPressedButton?.curGestureState {
                         case .pressing:
