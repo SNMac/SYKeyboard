@@ -86,13 +86,60 @@ struct SYKeyboardButton: View {
         onPress()
     }
     
-    private func longPressOnEnded() {  // 버튼을 길게 누르면(누른 상태에서 일정시간이 지나면) 호출
+    private func longPressOnEnded() {  // 버튼 길게 누르면(누른 상태에서 일정시간이 지나면) 호출
         curGestureState = .longPressing
         onLongPress?()
     }
     
     private func seqDragOnEnded() {  // 버튼 길게 눌렀다가 뗐을 때 호출
         onLongPressFinished?()
+        curGestureState = nil
+        options.curPressedButton = nil
+    }
+    
+    private func dragOnChangedForDeleteKey(value: DragGesture.Value) {  // 삭제 버튼 드래그 할 때 호출
+//        if curGestureState != .dragStart {  // 드래그 시작
+//            dragStartWidth = value.translation.width
+//            curGestureState = .dragStart
+//        } else {  // 드래그 중
+//            if !isCursorMovable {
+//                // 일정 거리 초과/미만 드래그 -> 커서 이동 활성화
+//                let dragWidthDiff = value.translation.width - dragStartWidth
+//                if dragWidthDiff < -20 || dragWidthDiff > 20 {
+//                    isCursorMovable = true
+//                    dragStartWidth = value.translation.width
+//                }
+//            }
+//        }
+//        if isCursorMovable {  // 커서 이동 활성화 됐을 때
+//            // 일정 거리 초과/미만 드래그 -> 커서를 한칸씩 드래그한 방향으로 이동
+//            let dragDiff = value.translation.width - dragStartWidth
+//            if dragDiff < -5 {
+//                print("Drag to left")
+//                dragStartWidth = value.translation.width
+//                if let isMoved = options.delegate?.dragToLeft() {
+//                    if isMoved {
+//                        Feedback.shared.playHaptics()
+//                    }
+//                }
+//            } else if dragDiff > 5 {
+//                print("Drag to right")
+//                dragStartWidth = value.translation.width
+//                if let isMoved = options.delegate?.dragToRight() {
+//                    if isMoved {
+//                        Feedback.shared.playHaptics()
+//                    }
+//                }
+//            }
+//        }
+    }
+    
+    private func dragOnEndedForDeleteKey() {  // 삭제 버튼 뗐을 때
+        if !isCursorMovable {
+            // 드래그를 일정 거리에 못미치게 했을 경우(터치 오차) 무시하고 글자가 입력되도록 함
+            onRelease?()
+        }
+        isCursorMovable = false
         curGestureState = nil
         options.curPressedButton = nil
     }
@@ -137,6 +184,11 @@ struct SYKeyboardButton: View {
                     print("DragGesture() onChanged")
                     if curGestureState != nil {
                         dragOnChanged(value: value)
+//                        if systemName == "delete.left" {
+//                            dragOnChangedForDeleteKey(value: value)
+//                        } else {
+//                            dragOnChanged(value: value)
+//                        }
                     }
                 }
             
@@ -144,7 +196,11 @@ struct SYKeyboardButton: View {
                 .onEnded({ _ in
                     print("DragGesture() onEnded")
                     if curGestureState != nil {
-                        dragOnEnded()
+                        if systemName == "delete.left" {
+                            dragOnEndedForDeleteKey()
+                        } else {
+                            dragOnEnded()
+                        }
                     }
                 })
         )
@@ -169,7 +225,7 @@ struct SYKeyboardButton: View {
                     longPressOnChanged()
                 })
             
-            // 버튼을 길게 누르면(누른 상태에서 일정시간이 지나면) 호출
+            // 버튼 길게 누르면(누른 상태에서 일정시간이 지나면) 호출
                 .onEnded({ _ in
                     print("LongPressGesture() onEnded")
                     if curGestureState != nil {

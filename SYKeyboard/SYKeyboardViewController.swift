@@ -11,7 +11,7 @@ class SYKeyboardViewController: UIInputViewController {
     
     // MARK: - Properties
     private let keyboardIOManager = SYKeyboardIOManager()
-    private let keyboardHeight: CGFloat = 260
+    private let keyboardHeight: CGFloat = 240
     private var cursorPos: Int = 0
     private var options: SYKeyboardOptions?
     

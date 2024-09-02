@@ -10,12 +10,12 @@
 import Foundation
 
 // 오토마타의 상태를 정의
-enum HangulStatus {
-    case start //s0
-    case chosung //s1
-    case jungsung, dJungsung //s2,s3
-    case jongsung, dJongsung //s4, s5
-    case endOne, endTwo //s6,s7
+enum AutomataStatus {
+    case start  //s0
+    case chosung  //s1
+    case jungsung, dJungsung  //s2,s3
+    case jongsung, dJongsung  //s4, s5
+    case endOne, endTwo  //s6,s7
 }
 
 // 입력된 키의 종류 판별 정의
@@ -27,8 +27,8 @@ enum HangulCHKind {
 
 // 키 입력마다 쌓이는 입력 스택 정의
 struct InpStack {
-    var hangulStatus: HangulStatus  // 상태
-    var keyKind: HangulCHKind  // 입력된 키가 자음 / 모음 / 기호인지
+    var hangulStatus: AutomataStatus  // 상태
+    var keyKind: HangulCHKind  // 입력된 키가 자음 or 모음 or 기호인지
     var keyIndex: UInt32  // 방금 입력된 키의 테이블 인덱스
     var geulja: String  // 조합된 글자
     var hasChosung: Bool  // 조합된 글자가 초성을 갖고있는지
@@ -37,10 +37,11 @@ struct InpStack {
 final class HangulAutomata {
     
     var buffer: [String] = []
+    var bufferTypingCount: [Int] = []
     
     var inpStack: [InpStack] = []
     
-    var curHanStatus: HangulStatus?
+    var curHanStatus: AutomataStatus?
     
     private var oldKeyKind: HangulCHKind?
     private var oldKeyIndex: UInt32 = 0
@@ -49,11 +50,11 @@ final class HangulAutomata {
     private var curGeulja: String = ""
     private var curHasChosung: Bool = false
     
-    private let chosungTable: [String] = ["ㄱ","ㄲ", "ㄴ", "ㄷ", "ㄸ", "ㄹ", "ㅁ", "ㅂ", "ㅃ", "ㅅ", "ㅆ", "ㅇ", "ㅈ", "ㅉ", "ㅊ", "ㅋ", "ㅌ", "ㅍ", "ㅎ"]
+    private let chosungTable: [String] = ["ㄱ", "ㄲ", "ㄴ", "ㄷ", "ㄸ", "ㄹ", "ㅁ", "ㅂ", "ㅃ", "ㅅ", "ㅆ", "ㅇ", "ㅈ", "ㅉ", "ㅊ", "ㅋ", "ㅌ", "ㅍ", "ㅎ"]
     
     private let jungsungTable: [String] = ["ㅏ", "ㅐ", "ㅑ", "ㅒ", "ㅓ", "ㅔ", "ㅕ", "ㅖ", "ㅗ", "ㅘ", "ㅙ", "ㅚ", "ㅛ", "ㅜ", "ㅝ", "ㅞ", "ㅟ", "ㅠ", "ㅡ", "ㅢ", "ㅣ"]
     
-    private let jongsungTable: [String] = [" ", "ㄱ", "ㄲ", "ㄳ", "ㄴ", "ㄵ", "ㄶ", "ㄷ", "ㄹ", "ㄺ", "ㄻ", "ㄼ", "ㄽ", "ㄾ", "ㄿ","ㅀ", "ㅁ", "ㅂ", "ㅄ", "ㅅ", "ㅆ", "ㅇ", "ㅈ", "ㅊ", "ㅋ", "ㅌ", "ㅍ", "ㅎ"]
+    private let jongsungTable: [String] = [" ", "ㄱ", "ㄲ", "ㄳ", "ㄴ", "ㄵ", "ㄶ", "ㄷ", "ㄹ", "ㄺ", "ㄻ", "ㄼ", "ㄽ", "ㄾ", "ㄿ", "ㅀ", "ㅁ", "ㅂ", "ㅄ", "ㅅ", "ㅆ", "ㅇ", "ㅈ", "ㅊ", "ㅋ", "ㅌ", "ㅍ", "ㅎ"]
     
     private let dJungsungTable: [[String]] = [
         ["ㅗ","ㅏ","ㅘ"],
@@ -142,99 +143,118 @@ final class HangulAutomata {
         return (((chosungIndex * 21) + jungsungIndex) * 28) + jongsungIndex + 0xAC00
     }
     
+    private func bufferRemoveLast() {
+        buffer.removeLast()
+        bufferTypingCount.removeLast()
+    }
+    
+    private func getAutomataContextFromStack() -> String {
+        var lastLetter: String = ""
+        curHanStatus = inpStack[inpStack.count - 1].hangulStatus
+        oldKeyIndex = inpStack[inpStack.count - 1].keyIndex
+        oldKeyKind = inpStack[inpStack.count - 1].keyKind
+        curGeulja = inpStack[inpStack.count - 1].geulja
+        
+        switch oldKeyKind {
+        case .jaeum:
+            if curHanStatus == .chosung {
+                lastLetter = chosungTable[Int(oldKeyIndex)]
+            } else if curHanStatus == .jongsung {
+                lastLetter = jongsungTable[Int(oldKeyIndex)]
+            } else if curHanStatus == .dJongsung {
+                let oldOldKeyIndex = inpStack[inpStack.count - 2].keyIndex
+                for i in 0..<dJongsungTable.count {
+                    if dJongsungTable[i][0] == jongsungTable[Int(oldOldKeyIndex)]
+                        && dJongsungTable[i][1] == jongsungTable[Int(oldKeyIndex)] {
+                        lastLetter = dJongsungTable[i][1]
+                        break
+                    }
+                }
+            }
+        case .moeum:
+            if curHanStatus == .dJungsung {
+                for i in 0..<dJungsungTable.count {
+                    if dJungsungTable[i][2] == jungsungTable[Int(oldKeyIndex)] {
+                        lastLetter = dJungsungTable[i][1]
+                        break
+                    }
+                }
+            } else {
+                var isdJungsung = false
+                for i in 0..<dJungsungTable.count {
+                    if dJungsungTable[i][2] == jungsungTable[Int(oldKeyIndex)] {
+                        lastLetter = dJungsungTable[i][1]
+                        isdJungsung = true
+                        break
+                    }
+                }
+                if !isdJungsung {
+                    lastLetter = jungsungTable[Int(oldKeyIndex)]
+                }
+            }
+        case .symbol:
+            lastLetter = symbolTable[Int(oldKeyIndex)]
+        case nil:
+            lastLetter = ""
+        }
+        
+        return lastLetter
+    }
+    
     @discardableResult
-    func deleteBuffer() -> String {
+    func deleteBufferLastInput() -> String {
         var lastLetter: String = ""
         
-        if inpStack.count == 0 {
-            if buffer.count > 0 {
-                buffer.removeLast()
-            }
-        } else {
-            if let popHanguel = inpStack.popLast() {
-                if popHanguel.hangulStatus == .chosung {
-                    buffer.removeLast()
-                } else if popHanguel.hangulStatus == .jungsung || popHanguel.hangulStatus == .dJungsung {
+        if buffer.count > 0 {
+            if let popHangul = inpStack.popLast() {
+                if popHangul.hangulStatus == .chosung {
+                    bufferRemoveLast()
+                } else if popHangul.hangulStatus == .jungsung || popHangul.hangulStatus == .dJungsung {
+                    var isRemoved: Bool = false
                     if inpStack[inpStack.count - 1].hangulStatus == .jongsung || inpStack[inpStack.count - 1].hangulStatus == .dJongsung {
-                        buffer.removeLast()
+                        bufferRemoveLast()
+                        bufferTypingCount[bufferTypingCount.count - 1] += 1
+                        isRemoved = true
                     }
                     buffer[buffer.count - 1] = inpStack[inpStack.count - 1].geulja
+                    if !isRemoved {
+                        bufferTypingCount[bufferTypingCount.count - 1] -= 1
+                    }
                 } else {
                     if inpStack.isEmpty {
-                        buffer.removeLast()
-                    } else if popHanguel.keyKind == .moeum {
+                        bufferRemoveLast()
+                    } else if popHangul.keyKind == .moeum {
                         if inpStack[inpStack.count - 1].hangulStatus == .jongsung {
                             if inpStack[inpStack.count - 1].keyKind == .moeum {
                                 if isJungsungPair(
-                                    first: jungsungTable[Int(inpStack[inpStack.count - 1].keyIndex)], result: jungsungTable[Int(popHanguel.keyIndex)]) {
+                                    first: jungsungTable[Int(inpStack[inpStack.count - 1].keyIndex)],
+                                    result: jungsungTable[Int(popHangul.keyIndex)]) {
                                     buffer[buffer.count - 1] = inpStack[inpStack.count - 1].geulja
+                                    bufferTypingCount[bufferTypingCount.count - 1] -= 1
                                 } else {
-                                    buffer.removeLast()
+                                    bufferRemoveLast()
                                 }
                             }
                         } else {
-                            buffer.removeLast()
+                            bufferRemoveLast()
                         }
-                    } else if popHanguel.keyKind == .jaeum {
+                    } else if popHangul.keyKind == .jaeum {
                         buffer[buffer.count - 1] = inpStack[inpStack.count - 1].geulja
+                        bufferTypingCount[bufferTypingCount.count - 1] -= 1
                     } else {  // popHanguel.keyKind == .symbol
-                        buffer.removeLast()
+                        bufferRemoveLast()
                     }
                 }
                 if inpStack.isEmpty {
                     curHanStatus = nil
                 } else {
-                    curHanStatus = inpStack[inpStack.count - 1].hangulStatus
-                    oldKeyIndex = inpStack[inpStack.count - 1].keyIndex
-                    oldKeyKind = inpStack[inpStack.count - 1].keyKind
-                    curGeulja = inpStack[inpStack.count - 1].geulja
-                    
-                    switch oldKeyKind {
-                    case .jaeum:
-                        if curHanStatus == .chosung {
-                            lastLetter = chosungTable[Int(oldKeyIndex)]
-                        } else if curHanStatus == .jongsung {
-                            lastLetter = jongsungTable[Int(oldKeyIndex)]
-                        } else if curHanStatus == .dJongsung {
-                            let oldOldKeyIndex = inpStack[inpStack.count - 2].keyIndex
-                            for i in 0..<dJongsungTable.count {
-                                if dJongsungTable[i][0] == jongsungTable[Int(oldOldKeyIndex)]
-                                    && dJongsungTable[i][1] == jongsungTable[Int(oldKeyIndex)] {
-                                    lastLetter = dJongsungTable[i][1]
-                                    break
-                                }
-                            }
-                        }
-                    case .moeum:
-                        if curHanStatus == .dJungsung {
-                            for i in 0..<dJungsungTable.count {
-                                if dJungsungTable[i][2] == jungsungTable[Int(oldKeyIndex)] {
-                                    lastLetter = dJungsungTable[i][1]
-                                    break
-                                }
-                            }
-                        } else {
-                            var isdJungsung = false
-                            for i in 0..<dJungsungTable.count {
-                                if dJungsungTable[i][2] == jungsungTable[Int(oldKeyIndex)] {
-                                    lastLetter = dJungsungTable[i][1]
-                                    isdJungsung = true
-                                    break
-                                }
-                            }
-                            if !isdJungsung {
-                                lastLetter = jungsungTable[Int(oldKeyIndex)]
-                            }
-                        }
-                    case .symbol:
-                        lastLetter = symbolTable[Int(oldKeyIndex)]
-                    case nil:
-                        lastLetter = ""
-                    }
+                    lastLetter = getAutomataContextFromStack()
                 }
             }
         }
-        print("deleteBuffer()->buffer =", buffer)
+        
+        print("deleteBufferLastInput()->buffer =", buffer)
+        print("deleteBufferLastInput()->bufferTypingCount =", bufferTypingCount)
         print("lastLetter =", lastLetter)
         return lastLetter
     }
@@ -261,6 +281,7 @@ extension HangulAutomata {
         // MARK: - 오토마타 전이 알고리즘
         switch curHanStatus {
         case .start:
+            appendingBuffer()
             if curKeyKind == .jaeum {
                 curHanStatus = .chosung
                 curHasChosung = true
@@ -283,7 +304,6 @@ extension HangulAutomata {
                 curHanStatus = .endOne
             }
         case .dJungsung:
-            // 추가
             if jungsungPair() {
                 curHanStatus = .dJungsung
             } else if canBeJongsung {
@@ -345,18 +365,22 @@ extension HangulAutomata {
                 curHanStatus = .jongsung
                 curHasChosung = false
             }
-            buffer.append("")
+            appendingBuffer()
         case .endTwo:
             if oldKeyKind == .jaeum {
                 oldKeyIndex = UInt32(chosungTable.firstIndex(of: jongsungTable[Int(oldKeyIndex)]) ?? 0)
                 curGeulja = String(Unicode.Scalar(combinationHangul(chosungIndex: oldKeyIndex, jungsungIndex: curKeyIndex)) ?? Unicode.Scalar(0))
                 curHanStatus = .jungsung
+                
                 buffer[buffer.count - 1] = inpStack[inpStack.count - 2].geulja
-                buffer.append("")
+                bufferTypingCount[bufferTypingCount.count - 1] -= 1
+                
+                appendingBuffer()
+                bufferTypingCount[bufferTypingCount.count - 1] += 1
                 curHasChosung = true
             } else {
                 if !jungsungPair() {
-                    buffer.append("")
+                    appendingBuffer()
                     curHasChosung = false
                 }
                 curGeulja = jungsungTable[Int(curKeyIndex)]
@@ -375,6 +399,7 @@ extension HangulAutomata {
         curGeulja = symbolTable[Int(curKeyIndex)]
         
         checkCurHanState(isSymbol: true)
+        appendingBuffer()
         storeStackAndBuffer()
         curHanStatus = nil
     }
@@ -385,18 +410,28 @@ extension HangulAutomata {
             oldKeyKind = inpStack[inpStack.count - 1].keyKind
             curHasChosung = inpStack[inpStack.count - 1].hasChosung
             if isSymbol {
-                buffer.append("")
                 curHanStatus = nil
             }
         } else {
             curHanStatus = .start
-            buffer.append("")
         }
     }
     
+    func appendingBuffer() {
+        buffer.append("")
+        bufferTypingCount.append(0)
+    }
+    
     func storeStackAndBuffer() {
-        inpStack.append(InpStack(hangulStatus: curHanStatus ?? .start, keyKind: curKeyKind, keyIndex: curKeyIndex, geulja: String(Unicode.Scalar(curGeulja) ?? Unicode.Scalar(0)), hasChosung: curHasChosung))
+        inpStack.append(InpStack(hangulStatus: curHanStatus ?? .start,
+                                 keyKind: curKeyKind,
+                                 keyIndex: curKeyIndex,
+                                 geulja: String(Unicode.Scalar(curGeulja) ?? Unicode.Scalar(0)),
+                                 hasChosung: curHasChosung
+                                ))
         buffer[buffer.count - 1] = curGeulja
+        bufferTypingCount[bufferTypingCount.count - 1] += 1
         print("hangulAutomata()->buffer =", buffer)
+        print("hangulAutomata()->bufferTypingCount =", bufferTypingCount)
     }
 }

@@ -662,13 +662,13 @@ struct SYKeyboardSymbolView: View {
                         onPress: {
                             Feedback.shared.playDeleteSound()
                             Feedback.shared.playHaptics()
-                            let _ = options.delegate?.removeKeypadTap()
+                            let _ = options.delegate?.removeKeypadTap(isLongPress: false)
                         },
                         onLongPress: {
                             timer = Timer.publish(every: 0.05, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
-                                    if let isDeleted = options.delegate?.removeKeypadTap() {
+                                    if let isDeleted = options.delegate?.removeKeypadTap(isLongPress: true) {
                                         if isDeleted {
                                             Feedback.shared.playDeleteSound()
                                             Feedback.shared.playHaptics()

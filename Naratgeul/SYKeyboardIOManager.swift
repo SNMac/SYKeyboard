@@ -21,7 +21,7 @@ protocol SYKeyboardDelegate: AnyObject {
     func hoegKeypadLongPress()
     func ssangKeypadTap()
     func ssangKeypadLongPress()
-    func removeKeypadTap() -> Bool
+    func removeKeypadTap(isLongPress: Bool) -> Bool
     func enterKeypadTap()
     func spaceKeypadTap()
     func dragToLeft() -> Bool
@@ -134,7 +134,7 @@ extension SYKeyboardIOManager: SYKeyboardDelegate {
                     && hangulAutomata.inpStack.last?.keyIndex == 9 {  // ㅘ
                     curLetter = "ㅏ"
                 } else {
-                    hangulAutomata.deleteBuffer()
+                    hangulAutomata.deleteBufferLastInput()
                     curLetter = "ㅓ"
                 }
             } else if lastLetter == "ㅓ" {
@@ -142,7 +142,7 @@ extension SYKeyboardIOManager: SYKeyboardDelegate {
                     && hangulAutomata.inpStack.last?.keyIndex == 14 {  // ㅝ
                     curLetter = "ㅏ"
                 } else {
-                    hangulAutomata.deleteBuffer()
+                    hangulAutomata.deleteBufferLastInput()
                     curLetter = "ㅏ"
                 }
             } else if lastLetter == "ㅜ" {
@@ -153,10 +153,10 @@ extension SYKeyboardIOManager: SYKeyboardDelegate {
             
         case "ㅗ" :
             if lastLetter == "ㅗ" {
-                hangulAutomata.deleteBuffer()
+                hangulAutomata.deleteBufferLastInput()
                 curLetter = "ㅜ"
             } else if lastLetter == "ㅜ" {
-                hangulAutomata.deleteBuffer()
+                hangulAutomata.deleteBufferLastInput()
                 curLetter = "ㅗ"
             } else {
                 curLetter = "ㅗ"
@@ -246,7 +246,7 @@ extension SYKeyboardIOManager: SYKeyboardDelegate {
         
         isHoegSsangAvailiable = isHoegAvailable
         if curLetter != "" {
-            hangulAutomata.deleteBuffer()
+            hangulAutomata.deleteBufferLastInput()
         }
         inputHangul = curLetter
     }
@@ -321,7 +321,7 @@ extension SYKeyboardIOManager: SYKeyboardDelegate {
         
         isHoegSsangAvailiable = isSsangAvailable
         if curLetter != "" {
-            hangulAutomata.deleteBuffer()
+            hangulAutomata.deleteBufferLastInput()
         }
         inputHangul = curLetter
     }
@@ -330,7 +330,7 @@ extension SYKeyboardIOManager: SYKeyboardDelegate {
         ssangComma?()
     }
     
-    func removeKeypadTap() -> Bool {
+    func removeKeypadTap(isLongPress: Bool) -> Bool {
         if hangulAutomata.buffer.isEmpty {
             isEditingLastCharacter = false
             if let isDeleted = deleteText?() {
@@ -339,19 +339,39 @@ extension SYKeyboardIOManager: SYKeyboardDelegate {
                 return false
             }
         } else {
-            lastLetter = hangulAutomata.deleteBuffer()
-            curAutomataBufferSize = getBufferSize()
-            if curAutomataBufferSize == 0 {
-                isEditingLastCharacter = false
-            }
-            if prevAutomataBufferSize > curAutomataBufferSize && curAutomataBufferSize > 0 {
-                let _ = deleteText?()
+            if isLongPress {
+                if hangulAutomata.bufferTypingCount.count > 0 {
+                    let count = hangulAutomata.bufferTypingCount[hangulAutomata.bufferTypingCount.count - 1]
+                    for _ in 0..<count {
+                        lastLetter = hangulAutomata.deleteBufferLastInput()
+                        curAutomataBufferSize = getBufferSize()
+                        if curAutomataBufferSize == 0 {
+                            isEditingLastCharacter = false
+                        }
+                    }
+                }
+//                while curAutomataBufferSize >= prevAutomataBufferSize {  // 버퍼 크기가 줄어들 때까지(글자를 하나 온전히 삭제할 때까지)
+//                    lastLetter = hangulAutomata.deleteBufferLastInput()
+//                    curAutomataBufferSize = getBufferSize()
+//                    if curAutomataBufferSize == 0 {
+//                        isEditingLastCharacter = false
+//                    }
+//                }
                 let _ = deleteText?()
             } else {
-                let _ = deleteText?()
+                lastLetter = hangulAutomata.deleteBufferLastInput()
+                curAutomataBufferSize = getBufferSize()
+                if curAutomataBufferSize == 0 {
+                    isEditingLastCharacter = false
+                }
+                if prevAutomataBufferSize > curAutomataBufferSize && curAutomataBufferSize > 0 {
+                    let _ = deleteText?()
+                    let _ = deleteText?()
+                } else {
+                    let _ = deleteText?()
+                }
+                inputText?(hangulAutomata.buffer.last ?? "")
             }
-            inputText?(hangulAutomata.buffer.last ?? "")
-            
             updateAutomataBufferSize()
             return true
         }
