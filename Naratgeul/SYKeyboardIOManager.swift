@@ -40,10 +40,7 @@ final class SYKeyboardIOManager {
     private var inputHangul: String = "" {
         didSet {
             if inputHangul == " " || inputHangul == "\n" {
-                hangulAutomata.buffer.removeAll()
-                hangulAutomata.inpStack.removeAll()
-                isEditingLastCharacter = false
-                hangulAutomata.curHanStatus = nil
+                flushBuffer()
                 inputText?(inputHangul)
             } else if inputHangul == "" {
                 onlyUpdateHoegSsang?()
@@ -109,6 +106,7 @@ extension SYKeyboardIOManager: SYKeyboardDelegate {
     func flushBuffer() {
         print("flushBuffer()")
         hangulAutomata.buffer.removeAll()
+        hangulAutomata.bufferTypingCount.removeAll()
         hangulAutomata.inpStack.removeAll()
         isEditingLastCharacter = false
         isHoegSsangAvailiable = false
@@ -350,13 +348,6 @@ extension SYKeyboardIOManager: SYKeyboardDelegate {
                         }
                     }
                 }
-//                while curAutomataBufferSize >= prevAutomataBufferSize {  // 버퍼 크기가 줄어들 때까지(글자를 하나 온전히 삭제할 때까지)
-//                    lastLetter = hangulAutomata.deleteBufferLastInput()
-//                    curAutomataBufferSize = getBufferSize()
-//                    if curAutomataBufferSize == 0 {
-//                        isEditingLastCharacter = false
-//                    }
-//                }
                 let _ = deleteText?()
             } else {
                 lastLetter = hangulAutomata.deleteBufferLastInput()
