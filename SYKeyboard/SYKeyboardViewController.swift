@@ -10,8 +10,8 @@ import SwiftUI
 class SYKeyboardViewController: UIInputViewController {
     
     // MARK: - Properties
+    private var defaults: UserDefaults?
     private let keyboardIOManager = SYKeyboardIOManager()
-    private let keyboardHeight: CGFloat = 240
     private var cursorPos: Int = 0
     private var options: SYKeyboardOptions?
     
@@ -19,6 +19,7 @@ class SYKeyboardViewController: UIInputViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        setupDefaults()
         setupIOManager()
         setupUI()
     }
@@ -32,6 +33,27 @@ class SYKeyboardViewController: UIInputViewController {
     }
     
     // MARK: - Method
+    private func setupDefaults() {
+        defaults = UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")
+        
+        // UserDefaults 값이 존재하는지 확인하고, 없으면 새로 만듬
+        if defaults?.object(forKey: "isSoundFeedbackEnabled") == nil {
+            defaults?.setValue(true, forKey: "isSoundFeedbackEnabled")
+        }
+        
+        if defaults?.object(forKey: "isHapticFeedbackEnabled") == nil {
+            defaults?.setValue(true, forKey: "isHapticFeedbackEnabled")
+        }
+        
+        if defaults?.object(forKey: "isAutocompleteEnabled") == nil {
+            defaults?.setValue(true, forKey: "isAutocompleteEnabled")
+        }
+        
+        if defaults?.object(forKey: "keyboardHeight") == nil {
+            defaults?.setValue(240.0, forKey: "keyboardHeight")
+        }
+    }
+    
     private func setupIOManager() {
         keyboardIOManager.inputText = { [weak self] in
             guard let self = self else { return }
@@ -157,7 +179,7 @@ class SYKeyboardViewController: UIInputViewController {
         let nextKeyboardAction = #selector(handleInputModeList(from:with:))
         let options = SYKeyboardOptions(
             delegate: keyboardIOManager,
-            keyboardHeight: keyboardHeight,
+            keyboardHeight: CGFloat(defaults?.integer(forKey: "keyboardHeight") ?? GlobalData().defaultHeight),
             colorScheme: traitCollection.userInterfaceStyle == .dark ? .dark : .light,
             needsInputModeSwitchKey: needsInputModeSwitchKey,
             nextKeyboardAction: nextKeyboardAction

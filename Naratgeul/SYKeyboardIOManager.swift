@@ -108,9 +108,9 @@ extension SYKeyboardIOManager: SYKeyboardDelegate {
         hangulAutomata.buffer.removeAll()
         hangulAutomata.bufferTypingCount.removeAll()
         hangulAutomata.inpStack.removeAll()
+        hangulAutomata.curHanStatus = nil
         isEditingLastCharacter = false
         isHoegSsangAvailiable = false
-        hangulAutomata.curHanStatus = nil
         lastLetter = ""
     }
     
@@ -369,12 +369,10 @@ extension SYKeyboardIOManager: SYKeyboardDelegate {
     }
     
     func enterKeypadTap() {
-        isHoegSsangAvailiable = false
         inputHangul = "\n"
     }
     
     func spaceKeypadTap() {
-        isHoegSsangAvailiable = false
         inputHangul = " "
     }
     

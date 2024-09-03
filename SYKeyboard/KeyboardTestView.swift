@@ -11,9 +11,9 @@ struct KeyboardTestView: View {
     @State private var test = ""
     
     var body: some View {
-        Form {
-            TextField("키보드를 테스트하세요", text: $test)
-        }
+        TextField("터치하여 키보드 테스트", text: $test)
+            .textFieldStyle(.roundedBorder)
+            .padding(EdgeInsets(top: 0, leading: 10, bottom: 0, trailing: 10))
     }
 }
 

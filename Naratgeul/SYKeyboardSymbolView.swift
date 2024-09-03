@@ -753,7 +753,3 @@ struct SYKeyboardSymbolView: View {
         .background(Color("KeyboardBackground"))
     }
 }
-
-#Preview {
-    SYKeyboardSymbolView()
-}

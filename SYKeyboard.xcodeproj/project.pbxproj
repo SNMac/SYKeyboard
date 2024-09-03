@@ -34,6 +34,10 @@
 		5B7B3F612C569B7800F7C093 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 5B7B3F602C569B7800F7C093 /* Preview Assets.xcassets */; };
 		5B7B3F6E2C569B8200F7C093 /* SYKeyboardViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B7B3F6D2C569B8200F7C093 /* SYKeyboardViewController.swift */; };
 		5B7B3F722C569B8200F7C093 /* Naratgeul.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 5B7B3F6B2C569B8200F7C093 /* Naratgeul.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		5BB0D2642C86FF3B00CE7AF5 /* HeightSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BB0D2632C86FF3B00CE7AF5 /* HeightSettingsView.swift */; };
+		5BB0D2682C8786C200CE7AF5 /* PreviewSYKeyboardButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BB0D2672C8786C200CE7AF5 /* PreviewSYKeyboardButton.swift */; };
+		5BB0D26A2C8793D000CE7AF5 /* GlobalData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BB0D2692C8793D000CE7AF5 /* GlobalData.swift */; };
+		5BB0D26B2C8793F300CE7AF5 /* GlobalData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BB0D2692C8793D000CE7AF5 /* GlobalData.swift */; };
 		5BDCDED72C67458600035B01 /* KeyboardTestView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BDCDED62C67458600035B01 /* KeyboardTestView.swift */; };
 /* End PBXBuildFile section */
 
@@ -82,6 +86,9 @@
 		5B7B3F6D2C569B8200F7C093 /* SYKeyboardViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SYKeyboardViewController.swift; sourceTree = "<group>"; };
 		5B7B3F6F2C569B8200F7C093 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		5B7B3F772C569CC900F7C093 /* SYKeyboardHangulView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SYKeyboardHangulView.swift; sourceTree = "<group>"; };
+		5BB0D2632C86FF3B00CE7AF5 /* HeightSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeightSettingsView.swift; sourceTree = "<group>"; };
+		5BB0D2672C8786C200CE7AF5 /* PreviewSYKeyboardButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewSYKeyboardButton.swift; sourceTree = "<group>"; };
+		5BB0D2692C8793D000CE7AF5 /* GlobalData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlobalData.swift; sourceTree = "<group>"; };
 		5BDCDED62C67458600035B01 /* KeyboardTestView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardTestView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -139,6 +146,9 @@
 				5B7B3F5B2C569B7800F7C093 /* ContentView.swift */,
 				5BDCDED62C67458600035B01 /* KeyboardTestView.swift */,
 				5B0D824E2C63D66600F84180 /* QuickSettingsView.swift */,
+				5BB0D2632C86FF3B00CE7AF5 /* HeightSettingsView.swift */,
+				5BB0D2672C8786C200CE7AF5 /* PreviewSYKeyboardButton.swift */,
+				5BB0D2692C8793D000CE7AF5 /* GlobalData.swift */,
 				5B7B3F5D2C569B7800F7C093 /* Assets.xcassets */,
 				5B7B3F5F2C569B7800F7C093 /* Preview Content */,
 			);
@@ -229,11 +239,11 @@
 			};
 			buildConfigurationList = 5B7B3F512C569B7800F7C093 /* Build configuration list for PBXProject "SYKeyboard" */;
 			compatibilityVersion = "Xcode 14.0";
-			developmentRegion = en;
+			developmentRegion = ko;
 			hasScannedForEncodings = 0;
 			knownRegions = (
-				en,
 				Base,
+				ko,
 			);
 			mainGroup = 5B7B3F4D2C569B7800F7C093;
 			productRefGroup = 5B7B3F572C569B7800F7C093 /* Products */;
@@ -273,9 +283,12 @@
 			files = (
 				5B0D824F2C63D66600F84180 /* QuickSettingsView.swift in Sources */,
 				5B0D82382C59662A00F84180 /* SYKeyboardIOManager.swift in Sources */,
+				5BB0D2642C86FF3B00CE7AF5 /* HeightSettingsView.swift in Sources */,
+				5BB0D2682C8786C200CE7AF5 /* PreviewSYKeyboardButton.swift in Sources */,
 				5B2B40012C6C899D007CA762 /* SYKeyboardSymbolView.swift in Sources */,
 				5B0D823E2C620CC300F84180 /* HangulAutomata.swift in Sources */,
 				5B2B40102C6CB837007CA762 /* SYKeyboardView.swift in Sources */,
+				5BB0D26A2C8793D000CE7AF5 /* GlobalData.swift in Sources */,
 				5B2B40162C6CD304007CA762 /* NextKeyboardButton.swift in Sources */,
 				5B0D82472C63CD1300F84180 /* SYKeyboardViewController.swift in Sources */,
 				5B0D82492C63CDC900F84180 /* SYKeyboardButton.swift in Sources */,
@@ -296,6 +309,7 @@
 				5B7B3F6E2C569B8200F7C093 /* SYKeyboardViewController.swift in Sources */,
 				5B0D82432C63C16F00F84180 /* Feedback.swift in Sources */,
 				5B2B40152C6CD2A4007CA762 /* NextKeyboardButton.swift in Sources */,
+				5BB0D26B2C8793F300CE7AF5 /* GlobalData.swift in Sources */,
 				5B0D824C2C63CDE700F84180 /* SYKeyboardHangulView.swift in Sources */,
 				5B0D823D2C5F355900F84180 /* HangulAutomata.swift in Sources */,
 				5B2B40002C6C8994007CA762 /* SYKeyboardSymbolView.swift in Sources */,
@@ -368,7 +382,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
@@ -425,7 +439,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
@@ -448,12 +462,13 @@
 				DEVELOPMENT_TEAM = NCJMGH8Z64;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "SY키보드";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -484,12 +499,13 @@
 				DEVELOPMENT_TEAM = NCJMGH8Z64;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "SY키보드";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -516,7 +532,7 @@
 				DEVELOPMENT_TEAM = NCJMGH8Z64;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Naratgeul/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = Naratgeul;
+				INFOPLIST_KEY_CFBundleDisplayName = "나랏글";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -542,7 +558,7 @@
 				DEVELOPMENT_TEAM = NCJMGH8Z64;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Naratgeul/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = Naratgeul;
+				INFOPLIST_KEY_CFBundleDisplayName = "나랏글";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",

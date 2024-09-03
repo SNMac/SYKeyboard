@@ -150,6 +150,7 @@ final class HangulAutomata {
     
     private func getAutomataContextFromStack() -> String {
         var lastLetter: String = ""
+        
         curHanStatus = inpStack[inpStack.count - 1].hangulStatus
         oldKeyIndex = inpStack[inpStack.count - 1].keyIndex
         oldKeyKind = inpStack[inpStack.count - 1].keyKind
@@ -262,7 +263,6 @@ final class HangulAutomata {
 
 extension HangulAutomata {
     func hangulAutomata(key: String) {
-        
         var canBeJongsung: Bool = false
         
         if jungsungTable.contains(key) {
@@ -372,10 +372,13 @@ extension HangulAutomata {
                 curGeulja = String(Unicode.Scalar(combinationHangul(chosungIndex: oldKeyIndex, jungsungIndex: curKeyIndex)) ?? Unicode.Scalar(0))
                 curHanStatus = .jungsung
                 
+                // 이전 글자
                 buffer[buffer.count - 1] = inpStack[inpStack.count - 2].geulja
                 bufferTypingCount[bufferTypingCount.count - 1] -= 1
                 
                 appendingBuffer()
+                
+                // 현재 글자
                 bufferTypingCount[bufferTypingCount.count - 1] += 1
                 curHasChosung = true
             } else {
@@ -431,7 +434,7 @@ extension HangulAutomata {
                                 ))
         buffer[buffer.count - 1] = curGeulja
         bufferTypingCount[bufferTypingCount.count - 1] += 1
-        print("hangulAutomata()->buffer =", buffer)
-        print("hangulAutomata()->bufferTypingCount =", bufferTypingCount)
+        print("storeStackAndBuffer()->buffer =", buffer)
+        print("storeStackAndBuffer()->bufferTypingCount =", bufferTypingCount)
     }
 }

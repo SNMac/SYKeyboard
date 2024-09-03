@@ -13,7 +13,7 @@ import UIKit
 final class Feedback {
     static let shared = Feedback()
     
-    var defaults: UserDefaults?
+    private let defaults: UserDefaults?
     
     let lightHapticGenerator = UIImpactFeedbackGenerator(style: .light)
     

@@ -428,9 +428,3 @@ struct SYKeyboardHangulView: View {
         .background(Color("KeyboardBackground"))
     }
 }
-
-
-
-#Preview {
-    SYKeyboardHangulView()
-}
