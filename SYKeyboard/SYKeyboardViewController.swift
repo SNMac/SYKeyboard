@@ -52,6 +52,10 @@ class SYKeyboardViewController: UIInputViewController {
         if defaults?.object(forKey: "keyboardHeight") == nil {
             defaults?.setValue(240.0, forKey: "keyboardHeight")
         }
+        
+        if defaults?.object(forKey: "tempKeyboardHeight") == nil {
+            defaults?.setValue(Double(GlobalData().defaultHeight), forKey: "tempKeyboardHeight")
+        }
     }
     
     private func setupIOManager() {
