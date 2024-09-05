@@ -30,7 +30,7 @@ struct SYKeyboardHangulView: View {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptics()
                             options.delegate?.hangulKeypadTap(letter: "ㄱ")
-                            timer = Timer.publish(every: 0.05, on: .main, in: .common)
+                            timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
@@ -55,7 +55,7 @@ struct SYKeyboardHangulView: View {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptics()
                             options.delegate?.hangulKeypadTap(letter: "ㄴ")
-                            timer = Timer.publish(every: 0.05, on: .main, in: .common)
+                            timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
@@ -80,7 +80,7 @@ struct SYKeyboardHangulView: View {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptics()
                             options.delegate?.hangulKeypadTap(letter: "ㅏ")
-                            timer = Timer.publish(every: 0.05, on: .main, in: .common)
+                            timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
@@ -100,7 +100,7 @@ struct SYKeyboardHangulView: View {
                             let _ = options.delegate?.removeKeypadTap(isLongPress: false)
                         },
                         onLongPress: {
-                            timer = Timer.publish(every: 0.05, on: .main, in: .common)
+                            timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     if let isDeleted = options.delegate?.removeKeypadTap(isLongPress: true) {
@@ -131,7 +131,7 @@ struct SYKeyboardHangulView: View {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptics()
                             options.delegate?.hangulKeypadTap(letter: "ㄹ")
-                            timer = Timer.publish(every: 0.05, on: .main, in: .common)
+                            timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
@@ -156,7 +156,7 @@ struct SYKeyboardHangulView: View {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptics()
                             options.delegate?.hangulKeypadTap(letter: "ㅁ")
-                            timer = Timer.publish(every: 0.05, on: .main, in: .common)
+                            timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
@@ -181,7 +181,7 @@ struct SYKeyboardHangulView: View {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptics()
                             options.delegate?.hangulKeypadTap(letter: "ㅗ")
-                            timer = Timer.publish(every: 0.05, on: .main, in: .common)
+                            timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
@@ -206,7 +206,7 @@ struct SYKeyboardHangulView: View {
                             Feedback.shared.playModifierSound()
                             Feedback.shared.playHaptics()
                             options.delegate?.spaceKeypadTap()
-                            timer = Timer.publish(every: 0.05, on: .main, in: .common)
+                            timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playModifierSound()
@@ -234,7 +234,7 @@ struct SYKeyboardHangulView: View {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptics()
                             options.delegate?.hangulKeypadTap(letter: "ㅅ")
-                            timer = Timer.publish(every: 0.05, on: .main, in: .common)
+                            timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
@@ -259,7 +259,7 @@ struct SYKeyboardHangulView: View {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptics()
                             options.delegate?.hangulKeypadTap(letter: "ㅇ")
-                            timer = Timer.publish(every: 0.05, on: .main, in: .common)
+                            timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
@@ -284,7 +284,7 @@ struct SYKeyboardHangulView: View {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptics()
                             options.delegate?.hangulKeypadTap(letter: "ㅣ")
-                            timer = Timer.publish(every: 0.05, on: .main, in: .common)
+                            timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
@@ -327,7 +327,7 @@ struct SYKeyboardHangulView: View {
                             Feedback.shared.playHaptics()
                             options.delegate?.hoegKeypadTap()
                             if options.isHoegSsangAvailable {
-                                timer = Timer.publish(every: 0.05, on: .main, in: .common)
+                                timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
                                     .autoconnect()
                                     .sink { _ in
                                         Feedback.shared.playTypingSound()
@@ -355,7 +355,7 @@ struct SYKeyboardHangulView: View {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptics()
                             options.delegate?.hangulKeypadTap(letter: "ㅡ")
-                            timer = Timer.publish(every: 0.05, on: .main, in: .common)
+                            timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
@@ -382,7 +382,7 @@ struct SYKeyboardHangulView: View {
                             Feedback.shared.playHaptics()
                             options.delegate?.ssangKeypadTap()
                             if options.isHoegSsangAvailable {
-                                timer = Timer.publish(every: 0.05, on: .main, in: .common)
+                                timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
                                     .autoconnect()
                                     .sink { _ in
                                         Feedback.shared.playTypingSound()

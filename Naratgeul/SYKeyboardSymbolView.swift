@@ -31,7 +31,7 @@ struct SYKeyboardSymbolView: View {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptics()
                             options.delegate?.symbolKeypadTap(letter: isShiftTapped ? "[" : "1")
-                            timer = Timer.publish(every: 0.05, on: .main, in: .common)
+                            timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
@@ -56,7 +56,7 @@ struct SYKeyboardSymbolView: View {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptics()
                             options.delegate?.symbolKeypadTap(letter: isShiftTapped ? "]" : "2")
-                            timer = Timer.publish(every: 0.05, on: .main, in: .common)
+                            timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
@@ -81,7 +81,7 @@ struct SYKeyboardSymbolView: View {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptics()
                             options.delegate?.symbolKeypadTap(letter: isShiftTapped ? "{" : "3")
-                            timer = Timer.publish(every: 0.05, on: .main, in: .common)
+                            timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
@@ -106,7 +106,7 @@ struct SYKeyboardSymbolView: View {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptics()
                             options.delegate?.symbolKeypadTap(letter: isShiftTapped ? "}" : "4")
-                            timer = Timer.publish(every: 0.05, on: .main, in: .common)
+                            timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
@@ -131,7 +131,7 @@ struct SYKeyboardSymbolView: View {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptics()
                             options.delegate?.symbolKeypadTap(letter: isShiftTapped ? "#" : "5")
-                            timer = Timer.publish(every: 0.05, on: .main, in: .common)
+                            timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
@@ -156,7 +156,7 @@ struct SYKeyboardSymbolView: View {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptics()
                             options.delegate?.symbolKeypadTap(letter: isShiftTapped ? "%" : "6")
-                            timer = Timer.publish(every: 0.05, on: .main, in: .common)
+                            timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
@@ -181,7 +181,7 @@ struct SYKeyboardSymbolView: View {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptics()
                             options.delegate?.symbolKeypadTap(letter: isShiftTapped ? "^" : "7")
-                            timer = Timer.publish(every: 0.05, on: .main, in: .common)
+                            timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
@@ -206,7 +206,7 @@ struct SYKeyboardSymbolView: View {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptics()
                             options.delegate?.symbolKeypadTap(letter: isShiftTapped ? "*" : "8")
-                            timer = Timer.publish(every: 0.05, on: .main, in: .common)
+                            timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
@@ -231,7 +231,7 @@ struct SYKeyboardSymbolView: View {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptics()
                             options.delegate?.symbolKeypadTap(letter: isShiftTapped ? "+" : "9")
-                            timer = Timer.publish(every: 0.05, on: .main, in: .common)
+                            timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
@@ -256,7 +256,7 @@ struct SYKeyboardSymbolView: View {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptics()
                             options.delegate?.symbolKeypadTap(letter: isShiftTapped ? "=" : "0")
-                            timer = Timer.publish(every: 0.05, on: .main, in: .common)
+                            timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
@@ -284,7 +284,7 @@ struct SYKeyboardSymbolView: View {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptics()
                             options.delegate?.symbolKeypadTap(letter: isShiftTapped ? "_" : "-")
-                            timer = Timer.publish(every: 0.05, on: .main, in: .common)
+                            timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
@@ -309,7 +309,7 @@ struct SYKeyboardSymbolView: View {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptics()
                             options.delegate?.symbolKeypadTap(letter: isShiftTapped ? "\\" : "/")
-                            timer = Timer.publish(every: 0.05, on: .main, in: .common)
+                            timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
@@ -334,7 +334,7 @@ struct SYKeyboardSymbolView: View {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptics()
                             options.delegate?.symbolKeypadTap(letter: isShiftTapped ? "|" : ":")
-                            timer = Timer.publish(every: 0.05, on: .main, in: .common)
+                            timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
@@ -359,7 +359,7 @@ struct SYKeyboardSymbolView: View {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptics()
                             options.delegate?.symbolKeypadTap(letter: isShiftTapped ? "~" : ";")
-                            timer = Timer.publish(every: 0.05, on: .main, in: .common)
+                            timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
@@ -384,7 +384,7 @@ struct SYKeyboardSymbolView: View {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptics()
                             options.delegate?.symbolKeypadTap(letter: isShiftTapped ? "<" : "(")
-                            timer = Timer.publish(every: 0.05, on: .main, in: .common)
+                            timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
@@ -409,7 +409,7 @@ struct SYKeyboardSymbolView: View {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptics()
                             options.delegate?.symbolKeypadTap(letter: isShiftTapped ? ">" : ")")
-                            timer = Timer.publish(every: 0.05, on: .main, in: .common)
+                            timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
@@ -434,7 +434,7 @@ struct SYKeyboardSymbolView: View {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptics()
                             options.delegate?.symbolKeypadTap(letter: isShiftTapped ? "$" : "₩")
-                            timer = Timer.publish(every: 0.05, on: .main, in: .common)
+                            timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
@@ -459,7 +459,7 @@ struct SYKeyboardSymbolView: View {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptics()
                             options.delegate?.symbolKeypadTap(letter: isShiftTapped ? "£" : "&")
-                            timer = Timer.publish(every: 0.05, on: .main, in: .common)
+                            timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
@@ -484,7 +484,7 @@ struct SYKeyboardSymbolView: View {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptics()
                             options.delegate?.symbolKeypadTap(letter: isShiftTapped ? "¥" : "@")
-                            timer = Timer.publish(every: 0.05, on: .main, in: .common)
+                            timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
@@ -509,7 +509,7 @@ struct SYKeyboardSymbolView: View {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptics()
                             options.delegate?.symbolKeypadTap(letter: isShiftTapped ? "•" : "\"")
-                            timer = Timer.publish(every: 0.05, on: .main, in: .common)
+                            timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
@@ -545,7 +545,7 @@ struct SYKeyboardSymbolView: View {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptics()
                             options.delegate?.symbolKeypadTap(letter: ".")
-                            timer = Timer.publish(every: 0.05, on: .main, in: .common)
+                            timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
@@ -570,7 +570,7 @@ struct SYKeyboardSymbolView: View {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptics()
                             options.delegate?.symbolKeypadTap(letter: ",")
-                            timer = Timer.publish(every: 0.05, on: .main, in: .common)
+                            timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
@@ -595,7 +595,7 @@ struct SYKeyboardSymbolView: View {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptics()
                             options.delegate?.symbolKeypadTap(letter: "?")
-                            timer = Timer.publish(every: 0.05, on: .main, in: .common)
+                            timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
@@ -620,7 +620,7 @@ struct SYKeyboardSymbolView: View {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptics()
                             options.delegate?.symbolKeypadTap(letter: "!")
-                            timer = Timer.publish(every: 0.05, on: .main, in: .common)
+                            timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
@@ -645,7 +645,7 @@ struct SYKeyboardSymbolView: View {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptics()
                             options.delegate?.symbolKeypadTap(letter: "'")
-                            timer = Timer.publish(every: 0.05, on: .main, in: .common)
+                            timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
@@ -665,7 +665,7 @@ struct SYKeyboardSymbolView: View {
                             let _ = options.delegate?.removeKeypadTap(isLongPress: false)
                         },
                         onLongPress: {
-                            timer = Timer.publish(every: 0.05, on: .main, in: .common)
+                            timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     if let isDeleted = options.delegate?.removeKeypadTap(isLongPress: true) {
@@ -721,7 +721,7 @@ struct SYKeyboardSymbolView: View {
                             Feedback.shared.playModifierSound()
                             Feedback.shared.playHaptics()
                             options.delegate?.spaceKeypadTap()
-                            timer = Timer.publish(every: 0.05, on: .main, in: .common)
+                            timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playModifierSound()

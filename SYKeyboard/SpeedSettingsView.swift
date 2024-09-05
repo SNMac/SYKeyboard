@@ -8,8 +8,61 @@
 import SwiftUI
 
 struct SpeedSettingsView: View {
+    @AppStorage("repeatTimerSpeed", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var repeatTimerSpeed = 0.06
+    @AppStorage("longPressSpeed", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var longPressSpeed = 0.6
+    
+    var longPressSpeedSetting: some View {
+        HStack {
+            Text("길게 누르기")
+                .frame(width: 84, alignment: .leading)
+            Spacer()
+            Text("\(longPressSpeed * 10, specifier: "%.1f")")
+                .frame(width: 26)
+            Slider(value: $longPressSpeed, in: 0.1...0.9, step: 0.05) { _ in
+                hideKeyboard()
+            }
+            
+            Button {
+                longPressSpeed = GlobalData().defaultLongPressSpeed
+                hideKeyboard()
+            } label: {
+                Text("리셋")
+            }.frame(width: 30)
+        }
+    }
+    
+    var repeatSpeedSetting: some View {
+        HStack {
+            Text("반복 입력")
+                .frame(width: 84, alignment: .leading)
+            Spacer()
+            Text("\(repeatTimerSpeed * 100, specifier: "%.1f")")
+                .frame(width: 26)
+            Slider(value: $repeatTimerSpeed, in: 0.01...0.09, step: 0.005) { _ in
+                hideKeyboard()
+            }
+            
+            Button {
+                repeatTimerSpeed = GlobalData().defaultRepeatTimerSpeed
+                hideKeyboard()
+            } label: {
+                Text("리셋")
+            }.frame(width: 30)
+        }
+    }
+    
     var body: some View {
-        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
+        NavigationStack {
+            KeyboardTestView()
+            List {
+                Section {
+                    longPressSpeedSetting
+                    repeatSpeedSetting
+                }
+            }
+            .navigationTitle("속도 설정")
+            .navigationBarTitleDisplayMode(.inline)
+        }
     }
 }
 

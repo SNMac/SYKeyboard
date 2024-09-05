@@ -8,40 +8,26 @@
 import SwiftUI
 
 struct ContentView: View {
-    private let defaults: UserDefaults?
+    private var defaults: UserDefaults?
     
     init() {
         defaults = UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")
-        
-        // UserDefaults 값이 존재하는지 확인하고, 없으면 새로 만듬
-        if defaults?.object(forKey: "isSoundFeedbackEnabled") == nil {
-            defaults?.setValue(true, forKey: "isSoundFeedbackEnabled")
-        }
-        
-        if defaults?.object(forKey: "isHapticFeedbackEnabled") == nil {
-            defaults?.setValue(true, forKey: "isHapticFeedbackEnabled")
-        }
-        
-        if defaults?.object(forKey: "isAutocompleteEnabled") == nil {
-            defaults?.setValue(true, forKey: "isAutocompleteEnabled")
-        }
-        
-        if defaults?.object(forKey: "keyboardHeight") == nil {
-            defaults?.setValue(GlobalData().defaultHeight, forKey: "keyboardHeight")
-        }
-        
-        if defaults?.object(forKey: "tempKeyboardHeight") == nil {
-            defaults?.setValue(Double(GlobalData().defaultHeight), forKey: "tempKeyboardHeight")
-        }
+        GlobalData().setupDefaults(defaults: defaults)
     }
     
-    private var insideNavigation: some View {
+    private var keyboardSettings: some View {
         List {
-            Section(content: {
-                QuickSettingsView()
-            }, header: {
-                Text("일반 설정")
-            })
+            Section{
+                FeedbackSettingsView()
+            } header: {
+                Text("피드백 설정")
+            }
+            
+            Section{
+                InputSettingsView()
+            } header: {
+                Text("입력 설정")
+            }
             
             Section {
                 NavigationLink("키보드 높이") {
@@ -62,16 +48,9 @@ struct ContentView: View {
     }
     
     var body: some View {
-        if #available(iOS 16.0, *) {
-            NavigationStack {
-                KeyboardTestView()
-                insideNavigation
-            }
-        } else {
-            NavigationView {
-                KeyboardTestView()
-                insideNavigation
-            }
+        NavigationStack {
+            KeyboardTestView()
+            keyboardSettings
         }
     }
 }

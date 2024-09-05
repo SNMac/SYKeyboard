@@ -205,7 +205,7 @@ struct SYKeyboardButton: View {
                 })
         )
         .highPriorityGesture(
-            LongPressGesture(minimumDuration: 0.4)
+            LongPressGesture(minimumDuration: options.longPressTime)
             // 버튼 눌렀을 때 호출(버튼 누르면 무조건 첫번째로 호출)
                 .onChanged({ _ in
                     print("LongPressGesture() onChanged")

@@ -8,7 +8,6 @@
 import SwiftUI
 
 class SYKeyboardViewController: UIInputViewController {
-    
     // MARK: - Properties
     private var defaults: UserDefaults?
     private let keyboardIOManager = SYKeyboardIOManager()
@@ -35,27 +34,7 @@ class SYKeyboardViewController: UIInputViewController {
     // MARK: - Method
     private func setupDefaults() {
         defaults = UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")
-        
-        // UserDefaults 값이 존재하는지 확인하고, 없으면 새로 만듬
-        if defaults?.object(forKey: "isSoundFeedbackEnabled") == nil {
-            defaults?.setValue(true, forKey: "isSoundFeedbackEnabled")
-        }
-        
-        if defaults?.object(forKey: "isHapticFeedbackEnabled") == nil {
-            defaults?.setValue(true, forKey: "isHapticFeedbackEnabled")
-        }
-        
-        if defaults?.object(forKey: "isAutocompleteEnabled") == nil {
-            defaults?.setValue(true, forKey: "isAutocompleteEnabled")
-        }
-        
-        if defaults?.object(forKey: "keyboardHeight") == nil {
-            defaults?.setValue(240.0, forKey: "keyboardHeight")
-        }
-        
-        if defaults?.object(forKey: "tempKeyboardHeight") == nil {
-            defaults?.setValue(Double(GlobalData().defaultHeight), forKey: "tempKeyboardHeight")
-        }
+        GlobalData().setupDefaults(defaults: defaults)
     }
     
     private func setupIOManager() {
@@ -183,11 +162,14 @@ class SYKeyboardViewController: UIInputViewController {
         let nextKeyboardAction = #selector(handleInputModeList(from:with:))
         let options = SYKeyboardOptions(
             delegate: keyboardIOManager,
-            keyboardHeight: CGFloat(defaults?.integer(forKey: "keyboardHeight") ?? GlobalData().defaultHeight),
+            keyboardHeight: CGFloat(defaults?.double(forKey: "keyboardHeight") ?? GlobalData().defaultKeyboardHeight),
+            longPressTime: 1.0 - (defaults?.double(forKey: "longPressSpeed") ?? GlobalData().defaultLongPressSpeed),
+            repeatTimerCycle: 0.10 - (defaults?.double(forKey: "repeatTimerSpeed") ?? GlobalData().defaultRepeatTimerSpeed),
             colorScheme: traitCollection.userInterfaceStyle == .dark ? .dark : .light,
             needsInputModeSwitchKey: needsInputModeSwitchKey,
             nextKeyboardAction: nextKeyboardAction
         )
+        print(options.longPressTime)
         
         let SYKeyboard = UIHostingController(rootView: SYKeyboardView().environmentObject(options))
         

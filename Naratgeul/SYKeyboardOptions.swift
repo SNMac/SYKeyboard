@@ -18,6 +18,8 @@ final class SYKeyboardOptions: ObservableObject {
     var curPressedButton: SYKeyboardButton?
     weak var delegate: SYKeyboardDelegate?
     var keyboardHeight: CGFloat
+    var longPressTime: Double
+    var repeatTimerCycle: Double
     var colorScheme: ColorScheme
     var needsInputModeSwitchKey: Bool
     var nextKeyboardAction: Selector
@@ -27,10 +29,16 @@ final class SYKeyboardOptions: ObservableObject {
     init(
         delegate: SYKeyboardDelegate,
         keyboardHeight: CGFloat,
-        colorScheme: ColorScheme, needsInputModeSwitchKey: Bool, nextKeyboardAction: Selector
+        longPressTime: Double,
+        repeatTimerCycle: Double,
+        colorScheme: ColorScheme,
+        needsInputModeSwitchKey: Bool,
+        nextKeyboardAction: Selector
     ) {
         self.delegate = delegate
         self.keyboardHeight = keyboardHeight
+        self.longPressTime = longPressTime
+        self.repeatTimerCycle = repeatTimerCycle
         self.colorScheme = colorScheme
         self.needsInputModeSwitchKey = needsInputModeSwitchKey
         self.nextKeyboardAction = nextKeyboardAction

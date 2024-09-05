@@ -9,8 +9,47 @@ import SwiftUI
 
 struct HeightSettingsView: View {
     @Environment(\.dismiss) private var dismiss
-    @AppStorage("keyboardHeight", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var keyboardHeight = 240
+    @AppStorage("keyboardHeight", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var keyboardHeight = 240.0
     @AppStorage("tempKeyboardHeight", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var tempKeyboardHeight = 240.0
+    
+    private var heightSettings: some View {
+        VStack {
+            Text("\(Int(tempKeyboardHeight) - 140)")
+                .padding(EdgeInsets(top: 10, leading: 0, bottom: 0, trailing: 0))
+            Slider(value: $tempKeyboardHeight, in: 190...290, step: 1)
+                .padding(EdgeInsets(top: 0, leading: 30, bottom: 0, trailing: 30))
+            Spacer()
+        }
+        .navigationTitle("키보드 높이")
+        .navigationBarTitleDisplayMode(.inline)
+        .navigationBarBackButtonHidden()
+        .toolbar {
+            ToolbarItem(placement: .topBarLeading) {
+                Button {
+                    tempKeyboardHeight = keyboardHeight
+                    dismiss()
+                } label: {
+                    Text("취소")
+                }
+            }
+            ToolbarItem(placement: .topBarTrailing) {
+                Button {
+                    tempKeyboardHeight = GlobalData().defaultKeyboardHeight
+                } label: {
+                    Text("리셋")
+                }
+            }
+            ToolbarItem(placement: .topBarTrailing) {
+                Button {
+                    keyboardHeight = tempKeyboardHeight
+                    dismiss()
+                } label: {
+                    Text("저장")
+                        .font(.system(size: 17, weight: .semibold))
+                }
+            }
+        }
+    }
     
     private var previewSYKeyboard: some View {
         VStack(spacing: 5) {
@@ -63,55 +102,10 @@ struct HeightSettingsView: View {
             .padding(EdgeInsets(top: 0, leading: 0, bottom: 40, trailing: 0))
     }
     
-    private var insideNavigation: some View {
-        VStack {
-            Text("\(Int(tempKeyboardHeight) - 140)")
-                .padding(EdgeInsets(top: 10, leading: 0, bottom: 0, trailing: 0))
-            Slider(value: $tempKeyboardHeight, in: 190...290, step: 1)
-                .padding(EdgeInsets(top: 0, leading: 30, bottom: 0, trailing: 30))
-            Spacer()
-        }
-        .navigationTitle("키보드 높이")
-        .navigationBarTitleDisplayMode(.inline)
-        .navigationBarBackButtonHidden()
-        .toolbar {
-            ToolbarItem(placement: .topBarLeading) {
-                Button {
-                    dismiss()
-                } label: {
-                    Text("취소")
-                }
-            }
-            ToolbarItem(placement: .topBarTrailing) {
-                Button {
-                    tempKeyboardHeight = Double(GlobalData().defaultHeight)
-                } label: {
-                    Text("리셋")
-                }
-            }
-            ToolbarItem(placement: .topBarTrailing) {
-                Button {
-                    keyboardHeight = Int(tempKeyboardHeight)
-                    dismiss()
-                } label: {
-                    Text("저장")
-                        .font(.system(size: 17, weight: .semibold))
-                }
-            }
-        }
-    }
-    
     var body: some View {
-        if #available(iOS 16.0, *) {
-            NavigationStack {
-                insideNavigation
-                previewSYKeyboard
-            }
-        } else {
-            NavigationView {
-                insideNavigation
-                previewSYKeyboard
-            }
+        NavigationStack {
+            heightSettings
+            previewSYKeyboard
         }
     }
 }
