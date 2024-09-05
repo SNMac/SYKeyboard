@@ -1,5 +1,5 @@
 //
-//  QuickSettingsView.swift
+//  FeedbackSettingsView.swift
 //  SYKeyboard
 //
 //  Created by Sunghyun Cho on 2024-01-30.
@@ -9,7 +9,7 @@
 
 import SwiftUI
 
-struct QuickSettingsView: View {
+struct FeedbackSettingsView: View {
     @AppStorage("isSoundFeedbackEnabled", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var isSoundFeedbackEnabled = true
     @AppStorage("isHapticFeedbackEnabled", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var isHapticFeedbackEnabled = true
     @AppStorage("isAutocompleteEnabled", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var isAutocompleteEnabled = true
@@ -31,5 +31,5 @@ struct QuickSettingsView: View {
 }
 
 #Preview {
-    QuickSettingsView()
+    FeedbackSettingsView()
 }
