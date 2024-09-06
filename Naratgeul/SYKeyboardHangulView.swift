@@ -12,11 +12,16 @@ struct SYKeyboardHangulView: View {
     @EnvironmentObject var options: SYKeyboardOptions
     @State var timer: AnyCancellable?
     
+    let vPadding: CGFloat = 4
+    let interItemVPadding: CGFloat = 2
+    let hPadding: CGFloat = 4
+    let interItemHPadding: CGFloat = 3
+    
     var body: some View {
         GeometryReader { geometry in
-            VStack(spacing: 5) {
+            VStack(spacing: 0) {
                 // MARK: - ㄱ, ㄴ, ㅏㅓ, 􀆛
-                HStack(spacing: 6) {
+                HStack(spacing: 0) {
                     SYKeyboardButton(
                         text: "ㄱ", primary: true,
                         onPress: {
@@ -41,6 +46,8 @@ struct SYKeyboardHangulView: View {
                         onLongPressFinished: {
                             timer?.cancel()
                         })
+                    .padding(EdgeInsets(top: vPadding, leading: hPadding, bottom: interItemVPadding, trailing: interItemHPadding))
+                    .contentShape(Rectangle())
                     
                     SYKeyboardButton(
                         text: "ㄴ", primary: true,
@@ -66,6 +73,8 @@ struct SYKeyboardHangulView: View {
                         onLongPressFinished: {
                             timer?.cancel()
                         })
+                    .padding(EdgeInsets(top: vPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
+                    .contentShape(Rectangle())
                     
                     SYKeyboardButton(
                         text: "ㅏㅓ", primary: true,
@@ -91,6 +100,8 @@ struct SYKeyboardHangulView: View {
                         onLongPressFinished: {
                             timer?.cancel()
                         })
+                    .padding(EdgeInsets(top: vPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
+                    .contentShape(Rectangle())
                     
                     SYKeyboardButton(
                         systemName: "delete.left", primary: false,
@@ -114,10 +125,13 @@ struct SYKeyboardHangulView: View {
                         onLongPressFinished: {
                             timer?.cancel()
                         })
-                }.padding(.horizontal, 4)
+                    .padding(EdgeInsets(top: vPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: hPadding))
+                    .contentShape(Rectangle())
+                }
+                
                 
                 // MARK: - ㄹ, ㅁ, ㅗㅜ, 􁁺
-                HStack(spacing: 6) {
+                HStack(spacing: 0) {
                     SYKeyboardButton(
                         text: "ㄹ", primary: true,
                         onPress: {
@@ -142,6 +156,8 @@ struct SYKeyboardHangulView: View {
                         onLongPressFinished: {
                             timer?.cancel()
                         })
+                    .padding(EdgeInsets(top: interItemVPadding, leading: hPadding, bottom: interItemVPadding, trailing: interItemHPadding))
+                    .contentShape(Rectangle())
                     
                     SYKeyboardButton(
                         text: "ㅁ", primary: true,
@@ -167,6 +183,8 @@ struct SYKeyboardHangulView: View {
                         onLongPressFinished: {
                             timer?.cancel()
                         })
+                    .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
+                    .contentShape(Rectangle())
                     
                     SYKeyboardButton(
                         text: "ㅗㅜ", primary: true,
@@ -192,6 +210,8 @@ struct SYKeyboardHangulView: View {
                         onLongPressFinished: {
                             timer?.cancel()
                         })
+                    .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
+                    .contentShape(Rectangle())
                     
                     SYKeyboardButton(
                         systemName: "space", primary: false,
@@ -217,10 +237,12 @@ struct SYKeyboardHangulView: View {
                         onLongPressFinished: {
                             timer?.cancel()
                         })
-                }.padding(.horizontal, 4)
+                    .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: hPadding))
+                    .contentShape(Rectangle())
+                }
                 
                 // MARK: - ㅅ, ㅇ, ㅣ, 􁂆
-                HStack(spacing: 6) {
+                HStack(spacing: 0) {
                     SYKeyboardButton(
                         text: "ㅅ", primary: true,
                         onPress: {
@@ -245,6 +267,8 @@ struct SYKeyboardHangulView: View {
                         onLongPressFinished: {
                             timer?.cancel()
                         })
+                    .padding(EdgeInsets(top: interItemVPadding, leading: hPadding, bottom: interItemVPadding, trailing: interItemHPadding))
+                    .contentShape(Rectangle())
                     
                     SYKeyboardButton(
                         text: "ㅇ", primary: true,
@@ -270,6 +294,8 @@ struct SYKeyboardHangulView: View {
                         onLongPressFinished: {
                             timer?.cancel()
                         })
+                    .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
+                    .contentShape(Rectangle())
                     
                     SYKeyboardButton(
                         text: "ㅣ", primary: true,
@@ -295,6 +321,8 @@ struct SYKeyboardHangulView: View {
                         onLongPressFinished: {
                             timer?.cancel()
                         })
+                    .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
+                    .contentShape(Rectangle())
                     
                     SYKeyboardButton(
                         systemName: "return.left", primary: false,
@@ -308,10 +336,12 @@ struct SYKeyboardHangulView: View {
                         onLongPressFinished: {
                             options.delegate?.enterKeypadTap()
                         })
-                }.padding(.horizontal, 4)
+                    .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: hPadding))
+                    .contentShape(Rectangle())
+                }
                 
                 // MARK: - 획, ㅡ, 쌍, (123, 􀆪)
-                HStack(spacing: 6) {
+                HStack(spacing: 0) {
                     SYKeyboardButton(
                         text: "획", primary: true,
                         onPress: {
@@ -341,6 +371,8 @@ struct SYKeyboardHangulView: View {
                         onLongPressFinished: {
                             timer?.cancel()
                         })
+                    .padding(EdgeInsets(top: interItemVPadding, leading: hPadding, bottom: vPadding, trailing: interItemHPadding))
+                    .contentShape(Rectangle())
                     
                     SYKeyboardButton(
                         text: "ㅡ", primary: true,
@@ -366,6 +398,8 @@ struct SYKeyboardHangulView: View {
                         onLongPressFinished: {
                             timer?.cancel()
                         })
+                    .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: vPadding, trailing: interItemHPadding))
+                    .contentShape(Rectangle())
                     
                     SYKeyboardButton(
                         text: "쌍", primary: true,
@@ -396,21 +430,26 @@ struct SYKeyboardHangulView: View {
                         onLongPressFinished: {
                             timer?.cancel()
                         })
+                    .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: vPadding, trailing: interItemHPadding))
+                    .contentShape(Rectangle())
                     
                     if options.needsInputModeSwitchKey {
-                        HStack(spacing: 6) {
+                        HStack {
                             SYKeyboardButton(
                                 text: "123", primary: false,
                                 onPress: {
                                     Feedback.shared.playModifierSound()
                                     Feedback.shared.playHaptics()
                                     options.current = .symbol
-                                })
+                                }).padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: vPadding, trailing: interItemHPadding))
                             
                             NextKeyboardButton(
                                 systemName: "globe",
                                 action: options.nextKeyboardAction,
-                                primary: false)
+                                primary: false
+                            )
+                            .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: vPadding, trailing: hPadding))
+                            .contentShape(Rectangle())
                         }
                     } else {
                         SYKeyboardButton(
@@ -420,9 +459,11 @@ struct SYKeyboardHangulView: View {
                                 Feedback.shared.playHaptics()
                                 options.current = .symbol
                             })
+                        .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: vPadding, trailing: hPadding))
+                        .contentShape(Rectangle())
                     }
-                }.padding(.horizontal, 4)
-            }.padding(.vertical, 4)
+                }
+            }
         }
         .frame(height: options.keyboardHeight)
         .background(Color("KeyboardBackground"))

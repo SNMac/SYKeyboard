@@ -13,11 +13,16 @@ struct SYKeyboardSymbolView: View {
     @State var timer: AnyCancellable?
     @State var isShiftTapped: Bool = false
     
+    let vPadding: CGFloat = 4
+    let interItemVPadding: CGFloat = 4
+    let hPadding: CGFloat = 4
+    let interItemHPadding: CGFloat = 3
+    
     var body: some View {
         GeometryReader { geometry in
-            VStack {
+            VStack(spacing: 0) {
                 // MARK: - 1, 2, 3, 4, 5, 6, 7, 8, 9, 0 / [, ], {, }, #, %, ^, *, +, =
-                HStack(spacing: 6) {
+                HStack(spacing: 0) {
                     SYKeyboardButton(
                         text: isShiftTapped ? "[" : "1", primary: true,
                         onPress: {
@@ -42,6 +47,8 @@ struct SYKeyboardSymbolView: View {
                         onLongPressFinished: {
                             timer?.cancel()
                         })
+                    .padding(EdgeInsets(top: vPadding, leading: hPadding, bottom: interItemVPadding, trailing: interItemHPadding))
+                    .contentShape(Rectangle())
                     
                     SYKeyboardButton(
                         text: isShiftTapped ? "]" : "2", primary: true,
@@ -67,6 +74,8 @@ struct SYKeyboardSymbolView: View {
                         onLongPressFinished: {
                             timer?.cancel()
                         })
+                    .padding(EdgeInsets(top: vPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
+                    .contentShape(Rectangle())
                     
                     SYKeyboardButton(
                         text: isShiftTapped ? "{" : "3", primary: true,
@@ -92,6 +101,8 @@ struct SYKeyboardSymbolView: View {
                         onLongPressFinished: {
                             timer?.cancel()
                         })
+                    .padding(EdgeInsets(top: vPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
+                    .contentShape(Rectangle())
                     
                     SYKeyboardButton(
                         text: isShiftTapped ? "}" : "4", primary: true,
@@ -117,6 +128,8 @@ struct SYKeyboardSymbolView: View {
                         onLongPressFinished: {
                             timer?.cancel()
                         })
+                    .padding(EdgeInsets(top: vPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
+                    .contentShape(Rectangle())
                     
                     SYKeyboardButton(
                         text: isShiftTapped ? "#" : "5", primary: true,
@@ -142,6 +155,8 @@ struct SYKeyboardSymbolView: View {
                         onLongPressFinished: {
                             timer?.cancel()
                         })
+                    .padding(EdgeInsets(top: vPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
+                    .contentShape(Rectangle())
                     
                     SYKeyboardButton(
                         text: isShiftTapped ? "%" : "6", primary: true,
@@ -167,6 +182,8 @@ struct SYKeyboardSymbolView: View {
                         onLongPressFinished: {
                             timer?.cancel()
                         })
+                    .padding(EdgeInsets(top: vPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
+                    .contentShape(Rectangle())
                     
                     SYKeyboardButton(
                         text: isShiftTapped ? "^" : "7", primary: true,
@@ -192,6 +209,8 @@ struct SYKeyboardSymbolView: View {
                         onLongPressFinished: {
                             timer?.cancel()
                         })
+                    .padding(EdgeInsets(top: vPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
+                    .contentShape(Rectangle())
                     
                     SYKeyboardButton(
                         text: isShiftTapped ? "*" : "8", primary: true,
@@ -217,6 +236,8 @@ struct SYKeyboardSymbolView: View {
                         onLongPressFinished: {
                             timer?.cancel()
                         })
+                    .padding(EdgeInsets(top: vPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
+                    .contentShape(Rectangle())
                     
                     SYKeyboardButton(
                         text: isShiftTapped ? "+" : "9", primary: true,
@@ -242,6 +263,8 @@ struct SYKeyboardSymbolView: View {
                         onLongPressFinished: {
                             timer?.cancel()
                         })
+                    .padding(EdgeInsets(top: vPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
+                    .contentShape(Rectangle())
                     
                     SYKeyboardButton(
                         text: isShiftTapped ? "=" : "0", primary: true,
@@ -267,10 +290,12 @@ struct SYKeyboardSymbolView: View {
                         onLongPressFinished: {
                             timer?.cancel()
                         })
-                }.padding(.horizontal, 4)
+                    .padding(EdgeInsets(top: vPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: hPadding))
+                    .contentShape(Rectangle())
+                }
                 
                 // MARK: - -, /, :, ;, (, ), ₩, &, @, " / _, \, |, ~, <, >, $, £, ¥, •
-                HStack(spacing: 6) {
+                HStack(spacing: 0) {
                     SYKeyboardButton(
                         text: isShiftTapped ? "_" : "-", primary: true,
                         onPress: {
@@ -295,6 +320,8 @@ struct SYKeyboardSymbolView: View {
                         onLongPressFinished: {
                             timer?.cancel()
                         })
+                    .padding(EdgeInsets(top: interItemVPadding, leading: hPadding, bottom: interItemVPadding, trailing: interItemHPadding))
+                    .contentShape(Rectangle())
                     
                     SYKeyboardButton(
                         text: isShiftTapped ? "\\" : "/", primary: true,
@@ -320,6 +347,8 @@ struct SYKeyboardSymbolView: View {
                         onLongPressFinished: {
                             timer?.cancel()
                         })
+                    .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
+                    .contentShape(Rectangle())
                     
                     SYKeyboardButton(
                         text: isShiftTapped ? "|" : ":", primary: true,
@@ -345,6 +374,8 @@ struct SYKeyboardSymbolView: View {
                         onLongPressFinished: {
                             timer?.cancel()
                         })
+                    .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
+                    .contentShape(Rectangle())
                     
                     SYKeyboardButton(
                         text: isShiftTapped ? "~" : ";", primary: true,
@@ -370,6 +401,8 @@ struct SYKeyboardSymbolView: View {
                         onLongPressFinished: {
                             timer?.cancel()
                         })
+                    .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
+                    .contentShape(Rectangle())
                     
                     SYKeyboardButton(
                         text: isShiftTapped ? "<" : "(", primary: true,
@@ -395,6 +428,8 @@ struct SYKeyboardSymbolView: View {
                         onLongPressFinished: {
                             timer?.cancel()
                         })
+                    .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
+                    .contentShape(Rectangle())
                     
                     SYKeyboardButton(
                         text: isShiftTapped ? ">" : ")", primary: true,
@@ -420,6 +455,8 @@ struct SYKeyboardSymbolView: View {
                         onLongPressFinished: {
                             timer?.cancel()
                         })
+                    .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
+                    .contentShape(Rectangle())
                     
                     SYKeyboardButton(
                         text: isShiftTapped ? "$" : "₩", primary: true,
@@ -445,6 +482,8 @@ struct SYKeyboardSymbolView: View {
                         onLongPressFinished: {
                             timer?.cancel()
                         })
+                    .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
+                    .contentShape(Rectangle())
                     
                     SYKeyboardButton(
                         text: isShiftTapped ? "£" : "&", primary: true,
@@ -470,6 +509,8 @@ struct SYKeyboardSymbolView: View {
                         onLongPressFinished: {
                             timer?.cancel()
                         })
+                    .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
+                    .contentShape(Rectangle())
                     
                     SYKeyboardButton(
                         text: isShiftTapped ? "¥" : "@", primary: true,
@@ -495,6 +536,8 @@ struct SYKeyboardSymbolView: View {
                         onLongPressFinished: {
                             timer?.cancel()
                         })
+                    .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
+                    .contentShape(Rectangle())
                     
                     SYKeyboardButton(
                         text: isShiftTapped ? "•" : "\"", primary: true,
@@ -520,10 +563,12 @@ struct SYKeyboardSymbolView: View {
                         onLongPressFinished: {
                             timer?.cancel()
                         })
-                }.padding(.horizontal, 4)
+                    .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: hPadding))
+                    .contentShape(Rectangle())
+                }
                 
                 // MARK: - #+=/123, ., ,, ?, !, ', 􀆛
-                HStack(spacing: 6) {
+                HStack(spacing: 0) {
                     SYKeyboardButton(
                         text: isShiftTapped ? "123" : "#+=", primary: false,
                         onPress: {
@@ -531,6 +576,8 @@ struct SYKeyboardSymbolView: View {
                             Feedback.shared.playHaptics()
                             isShiftTapped.toggle()
                         })
+                    .padding(EdgeInsets(top: interItemVPadding, leading: hPadding, bottom: interItemVPadding, trailing: interItemHPadding))
+                    .contentShape(Rectangle())
                     
                     SYKeyboardButton(
                         text: ".", primary: true,
@@ -556,6 +603,8 @@ struct SYKeyboardSymbolView: View {
                         onLongPressFinished: {
                             timer?.cancel()
                         })
+                    .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
+                    .contentShape(Rectangle())
                     
                     SYKeyboardButton(
                         text: ",", primary: true,
@@ -581,6 +630,8 @@ struct SYKeyboardSymbolView: View {
                         onLongPressFinished: {
                             timer?.cancel()
                         })
+                    .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
+                    .contentShape(Rectangle())
                     
                     SYKeyboardButton(
                         text: "?", primary: true,
@@ -606,6 +657,8 @@ struct SYKeyboardSymbolView: View {
                         onLongPressFinished: {
                             timer?.cancel()
                         })
+                    .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
+                    .contentShape(Rectangle())
                     
                     SYKeyboardButton(
                         text: "!", primary: true,
@@ -631,6 +684,8 @@ struct SYKeyboardSymbolView: View {
                         onLongPressFinished: {
                             timer?.cancel()
                         })
+                    .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
+                    .contentShape(Rectangle())
                     
                     SYKeyboardButton(
                         text: "`", primary: true,
@@ -656,6 +711,8 @@ struct SYKeyboardSymbolView: View {
                         onLongPressFinished: {
                             timer?.cancel()
                         })
+                    .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
+                    .contentShape(Rectangle())
                     
                     SYKeyboardButton(
                         systemName: "delete.left", primary: false,
@@ -679,12 +736,14 @@ struct SYKeyboardSymbolView: View {
                         onLongPressFinished: {
                             timer?.cancel()
                         })
-                }.padding(.horizontal, 4)
+                    .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: hPadding))
+                    .contentShape(Rectangle())
+                }
                 
                 // MARK: - (한글, 􀆪), 􁁺, 􁂆
-                HStack(spacing: 6) {
+                HStack(spacing: 0) {
                     if options.needsInputModeSwitchKey {
-                        HStack(spacing: 6) {
+                        HStack(spacing: 0) {
                             SYKeyboardButton(
                                 text: "한글", primary: false,
                                 onPress: {
@@ -692,11 +751,16 @@ struct SYKeyboardSymbolView: View {
                                     Feedback.shared.playHaptics()
                                     options.current = .hangul
                                 })
+                            .padding(EdgeInsets(top: interItemVPadding, leading: hPadding, bottom: vPadding, trailing: interItemHPadding))
+                            .contentShape(Rectangle())
                             
                             NextKeyboardButton(
                                 systemName: "globe",
                                 action: options.nextKeyboardAction,
-                                primary: false)
+                                primary: false
+                            )
+                            .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: vPadding, trailing: interItemHPadding))
+                            .contentShape(Rectangle())
                         }
                     } else {
                         SYKeyboardButton(
@@ -706,6 +770,8 @@ struct SYKeyboardSymbolView: View {
                                 Feedback.shared.playHaptics()
                                 options.current = .hangul
                             })
+                        .padding(EdgeInsets(top: interItemVPadding, leading: hPadding, bottom: vPadding, trailing: interItemHPadding))
+                        .contentShape(Rectangle())
                     }
                     
                     SYKeyboardButton(
@@ -731,7 +797,10 @@ struct SYKeyboardSymbolView: View {
                         },
                         onLongPressFinished: {
                             timer?.cancel()
-                        }).frame(width: geometry.size.width / 2)
+                        })
+                    .frame(width: geometry.size.width / 2)
+                    .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: vPadding, trailing: interItemHPadding))
+                    .contentShape(Rectangle())
                     
                     SYKeyboardButton(
                         systemName: "return.left", primary: false,
@@ -744,10 +813,11 @@ struct SYKeyboardSymbolView: View {
                         },
                         onLongPressFinished: {
                             options.delegate?.enterKeypadTap()
-                        }
-                    )
-                }.padding(.horizontal, 4)
-            }.padding(.vertical, 4)
+                        })
+                    .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: vPadding, trailing: hPadding))
+                    .contentShape(Rectangle())
+                }
+            }
         }
         .frame(height: options.keyboardHeight)
         .background(Color("KeyboardBackground"))
