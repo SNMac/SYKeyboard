@@ -86,14 +86,6 @@ final class HangulAutomata {
         ["ㅂ","ㅅ","ㅄ"]
     ]
     
-    private let symbolTable: [String] = [
-        "1", "2", "3", "4", "5", "6", "7", "8", "9", "0",
-        "-", "/", ":", ";", "(", ")", "₩", "&", "@", "\"",
-        "[", "]", "{", "}", "#", "%", "^", "*", "+", "=",
-        "_", "\\", "|", "~", "<", ">", "$", "£", "¥", "•",
-                    ".", ",", "?", "!", "'"
-    ]
-    
     private func jungsungPair() -> Bool {
         for i in 0..<dJungsungTable.count {
             if dJungsungTable[i][0] == jungsungTable[Int(oldKeyIndex)] && dJungsungTable[i][1] == jungsungTable[Int(curKeyIndex)] {
@@ -194,7 +186,7 @@ final class HangulAutomata {
                 }
             }
         case .symbol:
-            lastLetter = symbolTable[Int(oldKeyIndex)]
+            lastLetter = curGeulja
         case nil:
             lastLetter = ""
         }
@@ -398,8 +390,8 @@ extension HangulAutomata {
     
     func symbolAutomata(key: String) {
         curKeyKind = .symbol
-        curKeyIndex = UInt32(symbolTable.firstIndex(of: key) ?? 0)
-        curGeulja = symbolTable[Int(curKeyIndex)]
+        curKeyIndex = 0
+        curGeulja = key
         
         checkCurHanState(isSymbol: true)
         appendingBuffer()

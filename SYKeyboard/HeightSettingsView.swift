@@ -34,7 +34,7 @@ struct HeightSettingsView: View {
             }
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
-                    tempKeyboardHeight = GlobalData().defaultKeyboardHeight
+                    tempKeyboardHeight = DefaultValues().defaultKeyboardHeight
                 } label: {
                     Text("리셋")
                 }

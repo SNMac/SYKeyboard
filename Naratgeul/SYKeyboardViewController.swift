@@ -11,8 +11,22 @@ class SYKeyboardViewController: UIInputViewController {
     // MARK: - Properties
     private var defaults: UserDefaults?
     private let keyboardIOManager = SYKeyboardIOManager()
-    private var cursorPos: Int = 0
     private var options: SYKeyboardOptions?
+    private var cursorPos: Int = 0
+    
+    // 텍스트 대치 구현
+    private var userLexicon: UILexicon?
+    private var currentWord: String? {
+        var lastWord: String?
+        if let stringBeforeCursor = textDocumentProxy.documentContextBeforeInput {
+            stringBeforeCursor.enumerateSubstrings(in: stringBeforeCursor.startIndex..., options: .byWords) { word, _, _, _ in
+                if let word = word {
+                    lastWord = word
+                }
+            }
+        }
+        return lastWord
+    }
     
     // MARK: - LifeCycle
     override func viewDidLoad() {
@@ -21,6 +35,7 @@ class SYKeyboardViewController: UIInputViewController {
         setupDefaults()
         setupIOManager()
         setupUI()
+        setupUserLexicon()
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -34,7 +49,7 @@ class SYKeyboardViewController: UIInputViewController {
     // MARK: - Method
     private func setupDefaults() {
         defaults = UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")
-        GlobalData().setupDefaults(defaults: defaults)
+        DefaultValues().setupDefaults(defaults: defaults)
     }
     
     private func setupIOManager() {
@@ -43,6 +58,10 @@ class SYKeyboardViewController: UIInputViewController {
             print("inputText()")
             
             let proxy = textDocumentProxy
+            
+            if $0 == " " {
+                attemptToReplaceCurrentWord()
+            }
             proxy.insertText($0)
             
             updateCursorPos()
@@ -162,9 +181,9 @@ class SYKeyboardViewController: UIInputViewController {
         let nextKeyboardAction = #selector(handleInputModeList(from:with:))
         let options = SYKeyboardOptions(
             delegate: keyboardIOManager,
-            keyboardHeight: CGFloat(defaults?.double(forKey: "keyboardHeight") ?? GlobalData().defaultKeyboardHeight),
-            longPressTime: 1.0 - (defaults?.double(forKey: "longPressSpeed") ?? GlobalData().defaultLongPressSpeed),
-            repeatTimerCycle: 0.10 - (defaults?.double(forKey: "repeatTimerSpeed") ?? GlobalData().defaultRepeatTimerSpeed),
+            keyboardHeight: CGFloat(defaults?.double(forKey: "keyboardHeight") ?? DefaultValues().defaultKeyboardHeight),
+            longPressTime: 1.0 - (defaults?.double(forKey: "longPressSpeed") ?? DefaultValues().defaultLongPressSpeed),
+            repeatTimerCycle: 0.10 - (defaults?.double(forKey: "repeatTimerSpeed") ?? DefaultValues().defaultRepeatTimerSpeed),
             colorScheme: traitCollection.userInterfaceStyle == .dark ? .dark : .light,
             needsInputModeSwitchKey: needsInputModeSwitchKey,
             nextKeyboardAction: nextKeyboardAction
@@ -186,6 +205,12 @@ class SYKeyboardViewController: UIInputViewController {
             SYKeyboard.view.rightAnchor.constraint(equalTo: view.rightAnchor),
             SYKeyboard.view.bottomAnchor.constraint(equalTo: view.bottomAnchor)
         ])
+    }
+    
+    private func setupUserLexicon() {
+        requestSupplementaryLexicon { lexicon in
+            self.userLexicon = lexicon
+        }
     }
     
     override func textDidChange(_ textInput: (any UITextInput)?) {
@@ -221,5 +246,24 @@ class SYKeyboardViewController: UIInputViewController {
     
     private func updateHoegSsangAvailiable() {
         options?.isHoegSsangAvailable = keyboardIOManager.isHoegSsangAvailiable
+    }
+}
+
+extension SYKeyboardViewController {
+    func attemptToReplaceCurrentWord() {
+        let proxy = textDocumentProxy
+        
+        guard let entries = userLexicon?.entries, let currentWord = currentWord else { return }
+        
+        let replacementEntries = entries.filter {
+            $0.userInput.lowercased() == currentWord
+        }
+        
+        if let replacement = replacementEntries.first {
+            for _ in 0..<currentWord.count {
+                proxy.deleteBackward()
+            }
+            proxy.insertText(replacement.documentText)
+        }
     }
 }

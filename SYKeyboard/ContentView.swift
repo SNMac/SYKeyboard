@@ -12,7 +12,7 @@ struct ContentView: View {
     
     init() {
         defaults = UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")
-        GlobalData().setupDefaults(defaults: defaults)
+        DefaultValues().setupDefaults(defaults: defaults)
     }
     
     private var keyboardSettings: some View {
