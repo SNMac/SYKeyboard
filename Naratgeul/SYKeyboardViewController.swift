@@ -59,7 +59,7 @@ class SYKeyboardViewController: UIInputViewController {
             
             let proxy = textDocumentProxy
             
-            if $0 == " " {
+            if $0 == " " || $0 == "\n" {
                 attemptToReplaceCurrentWord()
             }
             proxy.insertText($0)
