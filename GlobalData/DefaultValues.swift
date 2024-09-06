@@ -7,8 +7,8 @@
 
 import Foundation
 
-final class GlobalData {
-    static let shared = GlobalData()
+final class DefaultValues {
+    static let shared = DefaultValues()
     
     let defaultKeyboardHeight: Double = 240
     let defaultLongPressSpeed: Double = 0.6
@@ -35,21 +35,21 @@ final class GlobalData {
         /* 입력 설정 -> 속도 설정 */
         // 길게 누르기 속도
         if defaults?.object(forKey: "longPressSpeed") == nil {
-            defaults?.setValue(GlobalData().defaultLongPressSpeed, forKey: "longPressSpeed")
+            defaults?.setValue(DefaultValues().defaultLongPressSpeed, forKey: "longPressSpeed")
         }
         // 반복 속도
         if defaults?.object(forKey: "repeatTimerSpeed") == nil {
-            defaults?.setValue(GlobalData().defaultRepeatTimerSpeed, forKey: "repeatTimerSpeed")
+            defaults?.setValue(DefaultValues().defaultRepeatTimerSpeed, forKey: "repeatTimerSpeed")
         }
         
         /* 외형 설정 */
         // 키보드 높이
         if defaults?.object(forKey: "keyboardHeight") == nil {
-            defaults?.setValue(GlobalData().defaultKeyboardHeight, forKey: "keyboardHeight")
+            defaults?.setValue(DefaultValues().defaultKeyboardHeight, forKey: "keyboardHeight")
         }
         // 키보드 높이 조절 슬라이더 값(임시)
         if defaults?.object(forKey: "tempKeyboardHeight") == nil {
-            defaults?.setValue(GlobalData().defaultKeyboardHeight, forKey: "tempKeyboardHeight")
+            defaults?.setValue(DefaultValues().defaultKeyboardHeight, forKey: "tempKeyboardHeight")
         }
     }
 }
