@@ -32,6 +32,11 @@ final class DefaultValues {
         if defaults?.object(forKey: "isAutocompleteEnabled") == nil {
             defaults?.setValue(true, forKey: "isAutocompleteEnabled")
         }
+        // 텍스트 대치
+        if defaults?.object(forKey: "isTextReplacementsEnabled") == nil {
+            defaults?.setValue(true, forKey: "isTextReplacementsEnabled")
+        }
+        
         /* 입력 설정 -> 속도 설정 */
         // 길게 누르기 속도
         if defaults?.object(forKey: "longPressSpeed") == nil {
@@ -50,6 +55,9 @@ final class DefaultValues {
         // 키보드 높이 조절 슬라이더 값(임시)
         if defaults?.object(forKey: "tempKeyboardHeight") == nil {
             defaults?.setValue(DefaultValues().defaultKeyboardHeight, forKey: "tempKeyboardHeight")
+        }
+        if defaults?.object(forKey: "needsInputModeSwitchKey") == nil {
+            defaults?.setValue(false, forKey: "needsInputModeSwitchKey")
         }
     }
 }

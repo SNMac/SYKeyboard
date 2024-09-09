@@ -11,11 +11,11 @@ import Foundation
 
 // 오토마타의 상태를 정의
 enum AutomataStatus {
-    case start  //s0
-    case chosung  //s1
-    case jungsung, dJungsung  //s2,s3
+    case start  // s0
+    case chosung  // s1
+    case jungsung, dJungsung  //s2, s3
     case jongsung, dJongsung  //s4, s5
-    case endOne, endTwo  //s6,s7
+    case endOne, endTwo  //s6, s7
 }
 
 // 입력된 키의 종류 판별 정의
@@ -34,7 +34,7 @@ struct InpStack {
     var hasChosung: Bool  // 조합된 글자가 초성을 갖고있는지
 }
 
-final class HangulAutomata {
+final class HangeulAutomata {
     
     var buffer: [String] = []
     var bufferTypingCount: [Int] = []
@@ -128,10 +128,10 @@ final class HangulAutomata {
         let jongsung = (unicodeHangul) % 28
         let jungsung = ((unicodeHangul - jongsung) / 28) % 21
         let chosung = (((unicodeHangul - jongsung) / 28) - jungsung) / 21
-        return combinationHangul(chosungIndex: chosung, jungsungIndex: jungsung, jongsungIndex: curKeyIndex)
+        return combinationHangeul(chosungIndex: chosung, jungsungIndex: jungsung, jongsungIndex: curKeyIndex)
     }
     
-    private func combinationHangul(chosungIndex: UInt32 = 0, jungsungIndex: UInt32, jongsungIndex: UInt32 = 0) -> UInt32 {
+    private func combinationHangeul(chosungIndex: UInt32 = 0, jungsungIndex: UInt32, jongsungIndex: UInt32 = 0) -> UInt32 {
         return (((chosungIndex * 21) + jungsungIndex) * 28) + jongsungIndex + 0xAC00
     }
     
@@ -253,8 +253,8 @@ final class HangulAutomata {
     }
 }
 
-extension HangulAutomata {
-    func hangulAutomata(key: String) {
+extension HangeulAutomata {
+    func hangeulAutomata(key: String) {
         var canBeJongsung: Bool = false
         
         if jungsungTable.contains(key) {
@@ -326,11 +326,11 @@ extension HangulAutomata {
         case .chosung:
             curGeulja = chosungTable[Int(curKeyIndex)]
         case .jungsung:
-            curGeulja = String(Unicode.Scalar(combinationHangul(chosungIndex: oldKeyIndex, jungsungIndex: curKeyIndex)) ?? Unicode.Scalar(0))
+            curGeulja = String(Unicode.Scalar(combinationHangeul(chosungIndex: oldKeyIndex, jungsungIndex: curKeyIndex)) ?? Unicode.Scalar(0))
         case .dJungsung:
             if curHasChosung {
                 let currentChosung = decompositionChosung(charCode: Unicode.Scalar(curGeulja)?.value ?? 0)
-                curGeulja = String(Unicode.Scalar(combinationHangul(chosungIndex: currentChosung, jungsungIndex: curKeyIndex)) ?? Unicode.Scalar(0))
+                curGeulja = String(Unicode.Scalar(combinationHangeul(chosungIndex: currentChosung, jungsungIndex: curKeyIndex)) ?? Unicode.Scalar(0))
             } else {
                 curGeulja = jungsungTable[Int(curKeyIndex)]
                 curHanStatus = .jongsung
@@ -361,7 +361,7 @@ extension HangulAutomata {
         case .endTwo:
             if oldKeyKind == .jaeum {
                 oldKeyIndex = UInt32(chosungTable.firstIndex(of: jongsungTable[Int(oldKeyIndex)]) ?? 0)
-                curGeulja = String(Unicode.Scalar(combinationHangul(chosungIndex: oldKeyIndex, jungsungIndex: curKeyIndex)) ?? Unicode.Scalar(0))
+                curGeulja = String(Unicode.Scalar(combinationHangeul(chosungIndex: oldKeyIndex, jungsungIndex: curKeyIndex)) ?? Unicode.Scalar(0))
                 curHanStatus = .jungsung
                 
                 // 이전 글자
@@ -388,7 +388,7 @@ extension HangulAutomata {
         storeStackAndBuffer()
     }
     
-    func symbolAutomata(key: String) {
+    func otherAutomata(key: String) {
         curKeyKind = .symbol
         curKeyIndex = 0
         curGeulja = key

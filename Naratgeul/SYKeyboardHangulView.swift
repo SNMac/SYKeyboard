@@ -231,7 +231,7 @@ struct SYKeyboardHangulView: View {
                                 .sink { _ in
                                     Feedback.shared.playModifierSound()
                                     Feedback.shared.playHaptics()
-                                    options.delegate?.inputLastHangul()
+                                    options.delegate?.inputLastSymbol()
                                 }
                         },
                         onLongPressFinished: {
@@ -434,14 +434,16 @@ struct SYKeyboardHangulView: View {
                     .contentShape(Rectangle())
                     
                     if options.needsInputModeSwitchKey {
-                        HStack {
+                        HStack(spacing: 0) {
                             SYKeyboardButton(
                                 text: "123", primary: false,
                                 onPress: {
                                     Feedback.shared.playModifierSound()
                                     Feedback.shared.playHaptics()
                                     options.current = .symbol
-                                }).padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: vPadding, trailing: interItemHPadding))
+                                })
+                            .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: vPadding, trailing: interItemHPadding))
+                            .contentShape(Rectangle())
                             
                             NextKeyboardButton(
                                 systemName: "globe",

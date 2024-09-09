@@ -12,18 +12,19 @@ struct NextKeyboardButton: View {
   let systemName: String
   let action: Selector
   let primary: Bool
+    
   var body: some View {
     Image(systemName: systemName)
       .overlay {
         NextKeyboardButtonOverlay(action: action)
       }
-      .frame(maxWidth: .infinity, minHeight: 56, alignment: .center)
-      .font(.system(size: 24))
+      .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+      .font(.system(size: 20))
       .foregroundColor(Color(uiColor: UIColor.label))
       .background(
         primary ? Color("PrimaryKeyboardButton") : Color("SecondaryKeyboardButton")
       )
-      .cornerRadius(5)
+      .clipShape(.rect(cornerRadius: 5))
   }
 }
 

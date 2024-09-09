@@ -21,7 +21,6 @@ struct SYKeyboardButton: View {
     @State private var curGestureState: GestureState?
     @State private var isCursorMovable: Bool = false
     @State private var dragStartWidth: Double = 0.0
-    @Environment(\.colorScheme) var colorScheme
     
     var text: String?
     var systemName: String?

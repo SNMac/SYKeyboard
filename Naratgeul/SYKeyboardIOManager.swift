@@ -29,57 +29,53 @@ protocol SYKeyboardDelegate: AnyObject {
 }
 
 final class SYKeyboardIOManager {
-    
-    private var hangulAutomata = HangulAutomata()
+    private let hangeulAutomata = HangeulAutomata()
     private var lastLetter: String = ""
     var prevAutomataBufferSize = 0
     var curAutomataBufferSize = 0
     var isEditingLastCharacter: Bool = false
     var isHoegSsangAvailiable: Bool = false
     
-    private var inputHangul: String = "" {
+    private var inputHangeul: String = "" {
         didSet {
-            if inputHangul == " " || inputHangul == "\n" {
-                flushBuffer()
-                inputText?(inputHangul)
-            } else if inputHangul == "" {
+            if inputHangeul == "" {
                 onlyUpdateHoegSsang?()
             } else {
                 var text: String = ""
                 
-                hangulAutomata.hangulAutomata(key: inputHangul)
+                hangeulAutomata.hangeulAutomata(key: inputHangeul)
                 curAutomataBufferSize = getBufferSize()
                 
                 if prevAutomataBufferSize < curAutomataBufferSize {
-                    hangulAutomata.buffer.suffix(2).forEach { geulja in
+                    hangeulAutomata.buffer.suffix(2).forEach { geulja in
                         text += geulja
                     }
                     deleteForInput?()
                 } else if prevAutomataBufferSize == curAutomataBufferSize {
-                    text = hangulAutomata.buffer.last ?? ""
+                    text = hangeulAutomata.buffer.last ?? ""
                     deleteForInput?()
                 } else {
-                    text = hangulAutomata.buffer.last ?? ""
+                    text = hangeulAutomata.buffer.last ?? ""
                     deleteForInput?()
                     deleteForInput?()
                 }
                 inputText?(text)
                 isEditingLastCharacter = true  // 순서 중요함
             }
-            lastLetter = inputHangul
             
+            lastLetter = inputHangeul
             updateAutomataBufferSize()
         }
     }
     
-    private var inputSymbol: String = "" {
+    private var inputOther: String = "" {
         didSet {
-            hangulAutomata.symbolAutomata(key: inputSymbol)
+            hangeulAutomata.otherAutomata(key: inputOther)
             curAutomataBufferSize = getBufferSize()
-            inputText?(inputSymbol)
-            lastLetter = inputSymbol
+            inputText?(inputOther)
             isEditingLastCharacter = true
             
+            lastLetter = inputOther
             updateAutomataBufferSize()
         }
     }
@@ -87,6 +83,8 @@ final class SYKeyboardIOManager {
     var inputText: ((String) -> Void)?
     var deleteForInput: (() -> Void)?
     var deleteText: (() -> Bool)?
+    var inputForDelete: ((String) -> Void)?
+    var attemptRestoreWord: (() -> Bool)?
     var hoegPeriod: (() -> Void)?
     var ssangComma: (() -> Void)?
     var onlyUpdateHoegSsang: (() -> Void)?
@@ -100,26 +98,28 @@ final class SYKeyboardIOManager {
 
 extension SYKeyboardIOManager: SYKeyboardDelegate {
     func getBufferSize() -> Int {
-        return hangulAutomata.buffer.count
+        return hangeulAutomata.buffer.count
     }
     
     func flushBuffer() {
         print("flushBuffer()")
-        hangulAutomata.buffer.removeAll()
-        hangulAutomata.bufferTypingCount.removeAll()
-        hangulAutomata.inpStack.removeAll()
-        hangulAutomata.curHanStatus = nil
+        hangeulAutomata.buffer.removeAll()
+        hangeulAutomata.bufferTypingCount.removeAll()
+        hangeulAutomata.inpStack.removeAll()
+        hangeulAutomata.curHanStatus = nil
         isEditingLastCharacter = false
         isHoegSsangAvailiable = false
         lastLetter = ""
+        curAutomataBufferSize = getBufferSize()
+        updateAutomataBufferSize()
     }
     
     func inputLastHangul() {
-        inputHangul = lastLetter
+        inputHangeul = lastLetter
     }
     
     func inputLastSymbol() {
-        inputSymbol = lastLetter
+        inputOther = lastLetter
     }
     
     func hangulKeypadTap(letter: String) {
@@ -128,19 +128,19 @@ extension SYKeyboardIOManager: SYKeyboardDelegate {
         switch letter {
         case "ㅏ" :
             if lastLetter == "ㅏ" {
-                if hangulAutomata.inpStack.last?.keyKind == .moeum
-                    && hangulAutomata.inpStack.last?.keyIndex == 9 {  // ㅘ
+                if hangeulAutomata.inpStack.last?.keyKind == .moeum
+                    && hangeulAutomata.inpStack.last?.keyIndex == 9 {  // ㅘ
                     curLetter = "ㅏ"
                 } else {
-                    hangulAutomata.deleteBufferLastInput()
+                    hangeulAutomata.deleteBufferLastInput()
                     curLetter = "ㅓ"
                 }
             } else if lastLetter == "ㅓ" {
-                if hangulAutomata.inpStack.last?.keyKind == .moeum
-                    && hangulAutomata.inpStack.last?.keyIndex == 14 {  // ㅝ
+                if hangeulAutomata.inpStack.last?.keyKind == .moeum
+                    && hangeulAutomata.inpStack.last?.keyIndex == 14 {  // ㅝ
                     curLetter = "ㅏ"
                 } else {
-                    hangulAutomata.deleteBufferLastInput()
+                    hangeulAutomata.deleteBufferLastInput()
                     curLetter = "ㅏ"
                 }
             } else if lastLetter == "ㅜ" {
@@ -151,10 +151,10 @@ extension SYKeyboardIOManager: SYKeyboardDelegate {
             
         case "ㅗ" :
             if lastLetter == "ㅗ" {
-                hangulAutomata.deleteBufferLastInput()
+                hangeulAutomata.deleteBufferLastInput()
                 curLetter = "ㅜ"
             } else if lastLetter == "ㅜ" {
-                hangulAutomata.deleteBufferLastInput()
+                hangeulAutomata.deleteBufferLastInput()
                 curLetter = "ㅗ"
             } else {
                 curLetter = "ㅗ"
@@ -164,13 +164,13 @@ extension SYKeyboardIOManager: SYKeyboardDelegate {
             curLetter = letter
         }
         
-        inputHangul = curLetter
+        inputHangeul = curLetter
     }
     
     func symbolKeypadTap(letter: String) {
         isHoegSsangAvailiable = false
         lastLetter = letter
-        inputSymbol = lastLetter
+        inputOther = lastLetter
     }
     
     func hoegKeypadTap() {
@@ -244,9 +244,9 @@ extension SYKeyboardIOManager: SYKeyboardDelegate {
         
         isHoegSsangAvailiable = isHoegAvailable
         if curLetter != "" {
-            hangulAutomata.deleteBufferLastInput()
+            hangeulAutomata.deleteBufferLastInput()
         }
-        inputHangul = curLetter
+        inputHangeul = curLetter
     }
     
     func hoegKeypadLongPress() {
@@ -319,9 +319,9 @@ extension SYKeyboardIOManager: SYKeyboardDelegate {
         
         isHoegSsangAvailiable = isSsangAvailable
         if curLetter != "" {
-            hangulAutomata.deleteBufferLastInput()
+            hangeulAutomata.deleteBufferLastInput()
         }
-        inputHangul = curLetter
+        inputHangeul = curLetter
     }
     
     func ssangKeypadLongPress() {
@@ -329,51 +329,65 @@ extension SYKeyboardIOManager: SYKeyboardDelegate {
     }
     
     func removeKeypadTap(isLongPress: Bool) -> Bool {
-        if hangulAutomata.buffer.isEmpty {
-            isEditingLastCharacter = false
-            if let isDeleted = deleteText?() {
-                return isDeleted
-            } else {
-                return false
-            }
-        } else {
-            if isLongPress {
-                if hangulAutomata.bufferTypingCount.count > 0 {
-                    let count = hangulAutomata.bufferTypingCount[hangulAutomata.bufferTypingCount.count - 1]
-                    for _ in 0..<count {
-                        lastLetter = hangulAutomata.deleteBufferLastInput()
+        if let isRestored = attemptRestoreWord?() {
+            if !isRestored {
+                if hangeulAutomata.buffer.isEmpty {
+                    isEditingLastCharacter = false
+                    if let isDeleted = deleteText?() {
+                        return isDeleted
+                    } else {
+                        return false
+                    }
+                } else {
+                    if isLongPress {
+                        if hangeulAutomata.bufferTypingCount.count > 0 {
+                            let count = hangeulAutomata.bufferTypingCount[hangeulAutomata.bufferTypingCount.count - 1]
+                            for _ in 0..<count {
+                                lastLetter = hangeulAutomata.deleteBufferLastInput()
+                                curAutomataBufferSize = getBufferSize()
+                                if curAutomataBufferSize == 0 {
+                                    isEditingLastCharacter = false
+                                }
+                            }
+                        }
+                        let _ = deleteText?()
+                    } else {
+                        lastLetter = hangeulAutomata.deleteBufferLastInput()
                         curAutomataBufferSize = getBufferSize()
                         if curAutomataBufferSize == 0 {
                             isEditingLastCharacter = false
                         }
+                        if prevAutomataBufferSize > curAutomataBufferSize && curAutomataBufferSize > 0 {
+                            let _ = deleteText?()
+                            let _ = deleteText?()
+                        } else {
+                            let _ = deleteText?()
+                        }
+                        inputForDelete?(hangeulAutomata.buffer.last ?? "")
                     }
+                    updateAutomataBufferSize()
+                    return true
                 }
-                let _ = deleteText?()
-            } else {
-                lastLetter = hangulAutomata.deleteBufferLastInput()
-                curAutomataBufferSize = getBufferSize()
-                if curAutomataBufferSize == 0 {
-                    isEditingLastCharacter = false
-                }
-                if prevAutomataBufferSize > curAutomataBufferSize && curAutomataBufferSize > 0 {
-                    let _ = deleteText?()
-                    let _ = deleteText?()
-                } else {
-                    let _ = deleteText?()
-                }
-                inputText?(hangulAutomata.buffer.last ?? "")
             }
-            updateAutomataBufferSize()
             return true
         }
+        return false
     }
     
     func enterKeypadTap() {
-        inputHangul = "\n"
+        inputText?("\n")
+        flushBuffer()
+        
+        lastLetter = "\n"
+        updateAutomataBufferSize()
     }
     
     func spaceKeypadTap() {
-        inputHangul = " "
+        inputText?(" ")
+        flushBuffer()
+        
+        lastLetter = " "
+        updateAutomataBufferSize()
     }
     
     func dragToLeft() -> Bool {

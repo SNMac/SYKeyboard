@@ -13,20 +13,8 @@ class SYKeyboardViewController: UIInputViewController {
     private let keyboardIOManager = SYKeyboardIOManager()
     private var options: SYKeyboardOptions?
     private var cursorPos: Int = 0
-    
-    // 텍스트 대치 구현
     private var userLexicon: UILexicon?
-    private var currentWord: String? {
-        var lastWord: String?
-        if let stringBeforeCursor = textDocumentProxy.documentContextBeforeInput {
-            stringBeforeCursor.enumerateSubstrings(in: stringBeforeCursor.startIndex..., options: .byWords) { word, _, _, _ in
-                if let word = word {
-                    lastWord = word
-                }
-            }
-        }
-        return lastWord
-    }
+    private var textReplacementHistory: [String] = []
     
     // MARK: - LifeCycle
     override func viewDidLoad() {
@@ -59,8 +47,10 @@ class SYKeyboardViewController: UIInputViewController {
             
             let proxy = textDocumentProxy
             
-            if $0 == " " || $0 == "\n" {
-                attemptToReplaceCurrentWord()
+            if defaults?.bool(forKey: "isTextReplacementsEnabled") ?? true {
+                if $0 == " " || $0 == "\n" {
+                    attemptToReplaceCurrentWord()
+                }
             }
             proxy.insertText($0)
             
@@ -70,6 +60,7 @@ class SYKeyboardViewController: UIInputViewController {
         
         keyboardIOManager.deleteForInput = { [weak self] in
             guard let self = self else { return }
+            print("deleteForInput()")
             
             let proxy = textDocumentProxy
             if let beforeInput = proxy.documentContextBeforeInput {
@@ -97,6 +88,23 @@ class SYKeyboardViewController: UIInputViewController {
             updateHoegSsangAvailiable()
             
             return isDeleted
+        }
+        
+        keyboardIOManager.inputForDelete = { [weak self] in
+            guard let self = self else { return }
+            print("inputForDelete()")
+            
+            let proxy = textDocumentProxy
+            proxy.insertText($0)
+            
+            updateCursorPos()
+            updateHoegSsangAvailiable()
+        }
+        
+        keyboardIOManager.attemptRestoreWord = { [weak self] in
+            guard let self = self else { return false }
+            
+            return attemptToRestoreReplacementWord()
         }
         
         keyboardIOManager.hoegPeriod = { [weak self] in
@@ -188,11 +196,12 @@ class SYKeyboardViewController: UIInputViewController {
             needsInputModeSwitchKey: needsInputModeSwitchKey,
             nextKeyboardAction: nextKeyboardAction
         )
-        print(options.longPressTime)
         
         let SYKeyboard = UIHostingController(rootView: SYKeyboardView().environmentObject(options))
         
         self.options = options
+        
+        defaults?.setValue(needsInputModeSwitchKey, forKey: "needsInputModeSwitchKey")
         
         view.addSubview(SYKeyboard.view)
         addChild(SYKeyboard)
@@ -250,20 +259,54 @@ class SYKeyboardViewController: UIInputViewController {
 }
 
 extension SYKeyboardViewController {
-    func attemptToReplaceCurrentWord() {
+    // MARK: - Extension
+    // 텍스트 대치
+    func attemptToReplaceCurrentWord() {  // 글자 입력할때 호출
         let proxy = textDocumentProxy
+        guard let entries = userLexicon?.entries else { return }
         
-        guard let entries = userLexicon?.entries, let currentWord = currentWord else { return }
-        
-        let replacementEntries = entries.filter {
-            $0.userInput.lowercased() == currentWord
-        }
-        
-        if let replacement = replacementEntries.first {
-            for _ in 0..<currentWord.count {
-                proxy.deleteBackward()
+        if let stringBeforeCursor = proxy.documentContextBeforeInput {
+            let replacementEntries = entries.filter {
+                stringBeforeCursor.lowercased().contains($0.userInput.lowercased())
             }
-            proxy.insertText(replacement.documentText)
+            
+            if let replacement = replacementEntries.first {
+                if replacement.userInput == stringBeforeCursor.suffix(replacement.userInput.count) {
+                    for _ in 0..<replacement.userInput.count {
+                        proxy.deleteBackward()
+                    }
+                    proxy.insertText(replacement.documentText)
+                    
+                    textReplacementHistory.append(replacement.documentText)
+                }
+            }
         }
+    }
+    
+    // 텍스트 대치 취소
+    func attemptToRestoreReplacementWord() -> Bool {  // 글자 지울때 호출
+        let proxy = textDocumentProxy
+        guard let entries = userLexicon?.entries else { return false }
+        
+        if let stringBeforeCursor = proxy.documentContextBeforeInput {
+            let replacementEntries = entries.filter {
+                textReplacementHistory.contains($0.documentText)
+            }
+            
+            if let replacement = replacementEntries.first {
+                if replacement.documentText == stringBeforeCursor.suffix(replacement.documentText.count) {
+                    for _ in 0..<replacement.documentText.count {
+                        proxy.deleteBackward()
+                    }
+                    proxy.insertText(replacement.userInput)
+                    
+                    if let historyIndex = textReplacementHistory.firstIndex(of: replacement.documentText) {
+                        textReplacementHistory.remove(at: historyIndex)
+                        return true
+                    }
+                }
+            }
+        }
+        return false
     }
 }

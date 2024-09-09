@@ -55,6 +55,10 @@ struct ContentView: View {
     }
 }
 
+class m: UIInputViewController {
+    
+}
+
 #Preview {
     ContentView()
 }

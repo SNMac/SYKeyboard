@@ -11,6 +11,7 @@ struct HeightSettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @AppStorage("keyboardHeight", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var keyboardHeight = 240.0
     @AppStorage("tempKeyboardHeight", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var tempKeyboardHeight = 240.0
+    @AppStorage("needsInputModeSwitchKey", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var needsInputModeSwitchKey = false
     
     let vPadding: CGFloat = 4
     let interItemVPadding: CGFloat = 2
@@ -128,15 +129,26 @@ struct HeightSettingsView: View {
                 PreviewSYKeyboardButton(text: "쌍", primary: true)
                     .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: vPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
-                
-                PreviewSYKeyboardButton(text: "123", primary: false)
-                    .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: vPadding, trailing: hPadding))
-                    .contentShape(Rectangle())
+                if needsInputModeSwitchKey {
+                    HStack(spacing: 0) {
+                        PreviewSYKeyboardButton(text: "123", primary: false)
+                            .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: vPadding, trailing: interItemHPadding))
+                            .contentShape(Rectangle())
+                        
+                        PreviewSYKeyboardButton(systemName: "globe", primary: false)
+                            .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: vPadding, trailing: hPadding))
+                            .contentShape(Rectangle())
+                    }
+                } else {
+                    PreviewSYKeyboardButton(text: "123", primary: false)
+                        .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: vPadding, trailing: hPadding))
+                        .contentShape(Rectangle())
+                }
             }
         }
             .frame(height: tempKeyboardHeight)
             .background(Color("KeyboardBackground"))
-            .padding(EdgeInsets(top: 0, leading: 0, bottom: 40, trailing: 0))
+            .padding(EdgeInsets(top: 0, leading: 0, bottom: (needsInputModeSwitchKey ? 0 : 40), trailing: 0))
     }
     
     var body: some View {
