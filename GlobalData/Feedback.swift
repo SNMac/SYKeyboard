@@ -2,7 +2,7 @@
 //  Feedback.swift
 //  Naratgeul
 //
-//  Created by Sunghyun Cho on 2023-01-21.
+//  Created by Sunghyun Cho on 1/21/23.
 //  Edited by 서동환 on 8/7/24.
 //  - Downloaded from https://github.com/anaclumos/sky-earth-human - Feedback.swift
 //

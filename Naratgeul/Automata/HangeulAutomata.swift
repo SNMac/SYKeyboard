@@ -2,7 +2,7 @@
 //  HangulAutomata.swift
 //  SYKeyboard
 //
-//  Created by JunHwan Kim on 2022/07/14.
+//  Created by JunHwan Kim on 8/14/22.
 //  Edited by 서동환 on 7/31/24.
 //  - Downloaded from https://github.com/Kim-Junhwan/IOS-CustomKeyboard - HangulAutomata.swift
 //

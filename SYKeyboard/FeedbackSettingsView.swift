@@ -2,7 +2,7 @@
 //  FeedbackSettingsView.swift
 //  SYKeyboard
 //
-//  Created by Sunghyun Cho on 2024-01-30.
+//  Created by Sunghyun Cho on 1/30/24.
 //  Edited by 서동환 on 8/8/24.
 //  - Downloaded from https://github.com/anaclumos/sky-earth-human - QuickSettingsView.swift
 //

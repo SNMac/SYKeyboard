@@ -83,6 +83,8 @@
 		5B7B3F6F2C569B8200F7C093 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		5B7B3F772C569CC900F7C093 /* SYKeyboardHangulView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SYKeyboardHangulView.swift; sourceTree = "<group>"; };
 		5B94722F2C8989C100B8B154 /* SpeedSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpeedSettingsView.swift; sourceTree = "<group>"; };
+		5BACCE422C9094AB006DCFB7 /* version.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = version.sh; sourceTree = "<group>"; };
+		5BACCE442C9096DE006DCFB7 /* Config.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config.xcconfig; sourceTree = "<group>"; };
 		5BB0D2632C86FF3B00CE7AF5 /* HeightSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeightSettingsView.swift; sourceTree = "<group>"; };
 		5BB0D2672C8786C200CE7AF5 /* PreviewSYKeyboardButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewSYKeyboardButton.swift; sourceTree = "<group>"; };
 		5BB0D2692C8793D000CE7AF5 /* DefaultValues.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DefaultValues.swift; sourceTree = "<group>"; };
@@ -131,6 +133,8 @@
 		5B7B3F582C569B7800F7C093 /* SYKeyboard */ = {
 			isa = PBXGroup;
 			children = (
+				5BACCE422C9094AB006DCFB7 /* version.sh */,
+				5BACCE442C9096DE006DCFB7 /* Config.xcconfig */,
 				5B0D82502C63F75900F84180 /* SYKeyboard.entitlements */,
 				5B7B3F592C569B7800F7C093 /* SYKeyboardApp.swift */,
 				5B7B3F5B2C569B7800F7C093 /* ContentView.swift */,
@@ -210,7 +214,6 @@
 				5B7B3F532C569B7800F7C093 /* Frameworks */,
 				5B7B3F542C569B7800F7C093 /* Resources */,
 				5B7B3F762C569B8200F7C093 /* Embed Foundation Extensions */,
-				5B5274AF2C8F7B84004C155E /* ShellScript */,
 			);
 			buildRules = (
 			);
@@ -229,7 +232,6 @@
 				5B7B3F672C569B8200F7C093 /* Sources */,
 				5B7B3F682C569B8200F7C093 /* Frameworks */,
 				5B7B3F692C569B8200F7C093 /* Resources */,
-				5B5274B02C8F7BF2004C155E /* ShellScript */,
 			);
 			buildRules = (
 			);
@@ -296,43 +298,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
-
-/* Begin PBXShellScriptBuildPhase section */
-		5B5274AF2C8F7B84004C155E /* ShellScript */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 8;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-			);
-			outputFileListPaths = (
-			);
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 1;
-			shellPath = /bin/sh;
-			shellScript = "# Type a script or drag a script file from your workspace to insert its path.\n/usr/libexec/PlistBuddy -c \"Set :BuildTimeStamp $(date '+%Y%m%d%H%M')\" \"$INFOPLIST_FILE\"\n\necho \"+================================+\"\necho \"|=B===I====D=====================|\"\necho \"|===U===L========================|\"\necho \"|============T===M===S===A===P===|\"\necho \"|==============I===E===T===M=====|\"\necho \"+================================+\"\necho $(date '+%Y%m%d%H%M')\necho \"=======================by atlas ^^b\"\n";
-		};
-		5B5274B02C8F7BF2004C155E /* ShellScript */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 8;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-			);
-			outputFileListPaths = (
-			);
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 1;
-			shellPath = /bin/sh;
-			shellScript = "# Type a script or drag a script file from your workspace to insert its path.\n/usr/libexec/PlistBuddy -c \"Set :BuildTimeStamp $(date '+%Y%m%d%H%M')\" \"$INFOPLIST_FILE\"\n\necho \"+================================+\"\necho \"|=B===I====D=====================|\"\necho \"|===U===L========================|\"\necho \"|============T===M===S===A===P===|\"\necho \"|==============I===E===T===M=====|\"\necho \"+================================+\"\necho $(date '+%Y%m%d%H%M')\necho \"=======================by atlas ^^b\"\n";
-		};
-/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		5B7B3F522C569B7800F7C093 /* Sources */ = {
@@ -420,7 +385,7 @@
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
-				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -483,7 +448,7 @@
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
-				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -504,13 +469,14 @@
 		};
 		5B7B3F652C569B7800F7C093 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 5BACCE442C9096DE006DCFB7 /* Config.xcconfig */;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = SYKeyboard/SYKeyboard.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = "$(BUILD_NUMBER)";
 				DEVELOPMENT_ASSET_PATHS = "\"SYKeyboard/Preview Content\"";
 				DEVELOPMENT_TEAM = NCJMGH8Z64;
 				ENABLE_PREVIEWS = YES;
@@ -527,7 +493,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = "$(VERSION)";
 				PRODUCT_BUNDLE_IDENTIFIER = "github.com-SNMac.SYKeyboard";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -536,19 +502,20 @@
 				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Debug;
 		};
 		5B7B3F662C569B7800F7C093 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 5BACCE442C9096DE006DCFB7 /* Config.xcconfig */;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = SYKeyboard/SYKeyboard.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = "$(BUILD_NUMBER)";
 				DEVELOPMENT_ASSET_PATHS = "\"SYKeyboard/Preview Content\"";
 				DEVELOPMENT_TEAM = NCJMGH8Z64;
 				ENABLE_PREVIEWS = YES;
@@ -565,7 +532,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = "$(VERSION)";
 				PRODUCT_BUNDLE_IDENTIFIER = "github.com-SNMac.SYKeyboard";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -574,16 +541,17 @@
 				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Release;
 		};
 		5B7B3F742C569B8200F7C093 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 5BACCE442C9096DE006DCFB7 /* Config.xcconfig */;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = Naratgeul/Naratgeul.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = "$(BUILD_NUMBER)";
 				DEVELOPMENT_TEAM = NCJMGH8Z64;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -595,22 +563,27 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = "$(VERSION)";
 				PRODUCT_BUNDLE_IDENTIFIER = "github.com-SNMac.SYKeyboard.Naratgeul";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Debug;
 		};
 		5B7B3F752C569B8200F7C093 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 5BACCE442C9096DE006DCFB7 /* Config.xcconfig */;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = Naratgeul/Naratgeul.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = "$(BUILD_NUMBER)";
 				DEVELOPMENT_TEAM = NCJMGH8Z64;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -622,13 +595,17 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = "$(VERSION)";
 				PRODUCT_BUNDLE_IDENTIFIER = "github.com-SNMac.SYKeyboard.Naratgeul";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Release;
 		};

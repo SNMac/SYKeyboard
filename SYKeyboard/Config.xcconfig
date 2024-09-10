@@ -1,0 +1,12 @@
+//
+//  Config.xcconfig
+//  SYKeyboard
+//
+//  Created by 서동환 on 9/11/24.
+//
+
+// Configuration settings file format documentation can be found at:
+// https://help.apple.com/xcode/#/dev745c5c974
+
+VERSION = 0.7.0
+BUILD_NUMBER = 202409112
