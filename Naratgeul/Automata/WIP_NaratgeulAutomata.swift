@@ -14,7 +14,7 @@ enum HangeulKind {
     case other  // 한글이 아닌 글자
 }
 
-final class Dep_NaratgeulAutomata {
+final class WIP_NaratgeulAutomata {
     private var nowGeulja: String = ""
     private var nowGeuljaKind: HangeulKind = .other
     private var nowGeuljaIndex: Int = 0
@@ -127,15 +127,6 @@ final class Dep_NaratgeulAutomata {
         return String(Unicode.Scalar(composed) ?? Unicode.Scalar(0))
     }
     
-//    private func decompositionChosung(char: Character) -> String {
-//        let unicodeValue = char.unicodeScalars.first!.value
-//        if isHangeul(unicodeValue: unicodeValue) {
-//            let index = Int(((unicodeValue - 0xAC00) / 28) / 21)
-//            return CHO_SUNG[index]
-//        }
-//        return String(char)
-//    }
-    
     private func decomposeHangeul(char: Character) -> [Int] {
         //  리턴이 1개면 한글 X, 2개 이상이면 한글 O
         let unicodeValue = char.unicodeScalars.first!.value
@@ -206,12 +197,16 @@ final class Dep_NaratgeulAutomata {
     }
 }
 
-extension Dep_NaratgeulAutomata {
+extension WIP_NaratgeulAutomata {
     func naratgeulAutomata(now: String) -> [String] {
+        var result: [String] = []
+        
+        if now == "" {
+            return result
+        }
+        
         oldGeulja = buffer.last ?? ""
         nowGeulja = now
-        
-        var result: [String] = []
         
         setupNowGeuljaKind()
         
@@ -311,15 +306,18 @@ extension Dep_NaratgeulAutomata {
                 result = [oldGeulja, nowGeulja]
             }
         }
-        
+        if oldGeulja != "" {
+            buffer.removeLast()
+        }
         buffer += result
+        print(buffer)
         resetAutomata()
         return result
     }
     
     func removeAutomata() -> [String] {
         var result: [String] = []
-        var suffixTwoGeulja: [String] = buffer.suffix(2)
+        let suffixTwoGeulja: [String] = buffer.suffix(2)
         
         if suffixTwoGeulja.count == 1 {
             self.oldGeulja = ""
@@ -380,37 +378,37 @@ extension Dep_NaratgeulAutomata {
                 let newJungsungIndex = dJungsungToJungsung(jungsungIndex: nowGeuljaIndex)
                 if newJungsungIndex != nowGeuljaIndex {
                     // 겹중성 => 중성
-                    result.append(JUNG_SUNG[newJungsungIndex])
+                    result = [oldGeulja, JUNG_SUNG[newJungsungIndex]]
                     
                 } else {
                     // 모음 => 삭제
-                    result = []
+                    result = [oldGeulja]
                 }
                 
             case .hangeul:  // buffer에 oldGeulja, nowGeulja 모두 존재 + nowGeulja가 완성된 한글
                 if oldGeuljaKind == .hangeul {
                     if nowGeuljaDecomposedIndexArr.count == 2 {  // nowGeulja에 초성과 중성(겹중성)만 존재
-                        
                         let newJungsungIndex = dJungsungToJungsung(jungsungIndex: nowGeuljaDecomposedIndexArr[1])
-                        if newJungsungIndex != nowGeuljaIndex {
+                        if newJungsungIndex != nowGeuljaDecomposedIndexArr[1] {
                             // 겹중성 => 중성
-                            result.append(combinationHangeul(chosungIndex: nowGeuljaDecomposedIndexArr[0], jungsungIndex: newJungsungIndex))
+                            result = [oldGeulja, combinationHangeul(chosungIndex: nowGeuljaDecomposedIndexArr[0],
+                                                                    jungsungIndex: newJungsungIndex)]
+                            
                         } else {
                             // 중성 => 삭제, 초성을 oldGeulja와 조합
+                            let newJongsungIndex = JONG_SUNG.firstIndex(of: CHO_SUNG[nowGeuljaDecomposedIndexArr[0]]) ?? 0
                             if oldGeuljaDecomposedIndexArr.count == 2 {  // oldGeulja에 초성과 중성(겹중성)만 존재
                                 // => 초성 + 중성 + 종성
-                                let newJongsungIndex = JONG_SUNG.firstIndex(of: CHO_SUNG[nowGeuljaDecomposedIndexArr[0]]) ?? 0
                                 result.append(combinationHangeul(chosungIndex: oldGeuljaDecomposedIndexArr[0],
-                                                   jungsungIndex: oldGeuljaDecomposedIndexArr[1],
-                                                   jongsungIndex: newJongsungIndex))
+                                                                 jungsungIndex: oldGeuljaDecomposedIndexArr[1],
+                                                                 jongsungIndex: newJongsungIndex))
                                 
                             } else if oldGeuljaDecomposedIndexArr.count == 3 {  // oldGeulja에 초성, 중성, 종성 존재
-                                let newJongsungIndex = JONG_SUNG.firstIndex(of: CHO_SUNG[oldGeuljaDecomposedIndexArr[0]]) ?? 0
                                 if attemptPairingJongsung(oldKeyIndex: oldGeuljaDecomposedIndexArr[2], nowKeyIndex: newJongsungIndex) {
                                     // 종성 => 겹종성
                                     result.append(combinationHangeul(chosungIndex: oldGeuljaDecomposedIndexArr[0],
-                                                       jungsungIndex: oldGeuljaDecomposedIndexArr[1],
-                                                       jongsungIndex: d_nowGeuljaIndex))
+                                                                     jungsungIndex: oldGeuljaDecomposedIndexArr[1],
+                                                                     jongsungIndex: d_nowGeuljaIndex))
                                 } else {
                                     // 겹종성 불가 => nowGeulja에 초성만 남김
                                     result = [oldGeulja, CHO_SUNG[nowGeuljaDecomposedIndexArr[0]]]
@@ -422,14 +420,14 @@ extension Dep_NaratgeulAutomata {
                         
                     } else if nowGeuljaDecomposedIndexArr.count == 3 {  // nowGeulja에 초성, 중성, 종성 존재
                         // => 초성 + 중성
-                        result.append(combinationHangeul(chosungIndex: nowGeuljaDecomposedIndexArr[0],
-                                                         jungsungIndex: nowGeuljaDecomposedIndexArr[1]))
+                        result = [oldGeulja, combinationHangeul(chosungIndex: nowGeuljaDecomposedIndexArr[0],
+                                                                jungsungIndex: nowGeuljaDecomposedIndexArr[1])]
                         
                     } else {  // nowGeulja에 초성, 중성, 겹종성 존재
                         // 겹종성 => 종성
-                        result.append(combinationHangeul(chosungIndex: nowGeuljaDecomposedIndexArr[0],
-                                                         jungsungIndex: nowGeuljaDecomposedIndexArr[1],
-                                                         jongsungIndex: nowGeuljaDecomposedIndexArr[2]))
+                        result = [oldGeulja, combinationHangeul(chosungIndex: nowGeuljaDecomposedIndexArr[0],
+                                                                jungsungIndex: nowGeuljaDecomposedIndexArr[1],
+                                                                jongsungIndex: nowGeuljaDecomposedIndexArr[2])]
                     }
                     
                 }
@@ -443,10 +441,11 @@ extension Dep_NaratgeulAutomata {
             result = []
         }
         
-        for _ in 0..<result.count {
+        for _ in 0..<suffixTwoGeulja.count {
             buffer.removeLast()
         }
         buffer += result
+        print(buffer)
         resetAutomata()
         return result
     }

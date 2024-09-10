@@ -33,8 +33,8 @@ final class DefaultValues {
             defaults?.setValue(true, forKey: "isAutocompleteEnabled")
         }
         // 텍스트 대치
-        if defaults?.object(forKey: "isTextReplacementsEnabled") == nil {
-            defaults?.setValue(true, forKey: "isTextReplacementsEnabled")
+        if defaults?.object(forKey: "isTextReplacementEnabled") == nil {
+            defaults?.setValue(true, forKey: "isTextReplacementEnabled")
         }
         
         /* 입력 설정 -> 속도 설정 */

@@ -18,7 +18,7 @@
 		5B2B40072C6CAB2F007CA762 /* SYKeyboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B2B40062C6CAB2F007CA762 /* SYKeyboardView.swift */; };
 		5B2B40122C6CC1D1007CA762 /* SYKeyboardOptions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B2B40112C6CC1D1007CA762 /* SYKeyboardOptions.swift */; };
 		5B2B40152C6CD2A4007CA762 /* NextKeyboardButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B2B40142C6CD2A4007CA762 /* NextKeyboardButton.swift */; };
-		5B5274A62C8E91A4004C155E /* Dep_NaratgeulAutomata.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B5274A52C8E91A4004C155E /* Dep_NaratgeulAutomata.swift */; };
+		5B5274A62C8E91A4004C155E /* WIP_NaratgeulAutomata.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B5274A52C8E91A4004C155E /* WIP_NaratgeulAutomata.swift */; };
 		5B7B3F5A2C569B7800F7C093 /* SYKeyboardApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B7B3F592C569B7800F7C093 /* SYKeyboardApp.swift */; };
 		5B7B3F5C2C569B7800F7C093 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B7B3F5B2C569B7800F7C093 /* ContentView.swift */; };
 		5B7B3F5E2C569B7800F7C093 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 5B7B3F5D2C569B7800F7C093 /* Assets.xcassets */; };
@@ -72,7 +72,7 @@
 		5B2B40062C6CAB2F007CA762 /* SYKeyboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SYKeyboardView.swift; sourceTree = "<group>"; };
 		5B2B40112C6CC1D1007CA762 /* SYKeyboardOptions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SYKeyboardOptions.swift; sourceTree = "<group>"; };
 		5B2B40142C6CD2A4007CA762 /* NextKeyboardButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NextKeyboardButton.swift; sourceTree = "<group>"; };
-		5B5274A52C8E91A4004C155E /* Dep_NaratgeulAutomata.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Dep_NaratgeulAutomata.swift; sourceTree = "<group>"; };
+		5B5274A52C8E91A4004C155E /* WIP_NaratgeulAutomata.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WIP_NaratgeulAutomata.swift; sourceTree = "<group>"; };
 		5B7B3F562C569B7800F7C093 /* SYKeyboard.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SYKeyboard.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		5B7B3F592C569B7800F7C093 /* SYKeyboardApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SYKeyboardApp.swift; sourceTree = "<group>"; };
 		5B7B3F5B2C569B7800F7C093 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -161,10 +161,10 @@
 				5B9472322C8AD70900B8B154 /* Automata */,
 				5B0D82512C63FDC300F84180 /* Naratgeul.entitlements */,
 				5B7B3F6D2C569B8200F7C093 /* SYKeyboardViewController.swift */,
+				5B0D82352C5962A500F84180 /* SYKeyboardIOManager.swift */,
 				5B2B40062C6CAB2F007CA762 /* SYKeyboardView.swift */,
 				5B7B3F772C569CC900F7C093 /* SYKeyboardHangulView.swift */,
 				5B2B3FFF2C6C8994007CA762 /* SYKeyboardSymbolView.swift */,
-				5B0D82352C5962A500F84180 /* SYKeyboardIOManager.swift */,
 				5B2B40112C6CC1D1007CA762 /* SYKeyboardOptions.swift */,
 				5B0D82442C63C72700F84180 /* SYKeyboardButton.swift */,
 				5B2B40142C6CD2A4007CA762 /* NextKeyboardButton.swift */,
@@ -186,7 +186,7 @@
 			isa = PBXGroup;
 			children = (
 				5B0D823C2C5F355900F84180 /* HangeulAutomata.swift */,
-				5B5274A52C8E91A4004C155E /* Dep_NaratgeulAutomata.swift */,
+				5B5274A52C8E91A4004C155E /* WIP_NaratgeulAutomata.swift */,
 			);
 			path = Automata;
 			sourceTree = "<group>";
@@ -358,7 +358,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				5B0D82452C63C72700F84180 /* SYKeyboardButton.swift in Sources */,
-				5B5274A62C8E91A4004C155E /* Dep_NaratgeulAutomata.swift in Sources */,
+				5B5274A62C8E91A4004C155E /* WIP_NaratgeulAutomata.swift in Sources */,
 				5B7B3F6E2C569B8200F7C093 /* SYKeyboardViewController.swift in Sources */,
 				5B0D82432C63C16F00F84180 /* Feedback.swift in Sources */,
 				5B2B40152C6CD2A4007CA762 /* NextKeyboardButton.swift in Sources */,

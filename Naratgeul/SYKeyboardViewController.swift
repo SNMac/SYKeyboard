@@ -47,12 +47,16 @@ class SYKeyboardViewController: UIInputViewController {
             
             let proxy = textDocumentProxy
             
-            if defaults?.bool(forKey: "isTextReplacementsEnabled") ?? true {
-                if $0 == " " || $0 == "\n" {
-                    attemptToReplaceCurrentWord()
+            if defaults?.bool(forKey: "isTextReplacementEnabled") ?? true {
+                if keyboardIOManager.isEditingLastCharacter {
+                    if $0 == " " || $0 == "\n" {
+                        let _ = attemptToReplaceCurrentWord()
+                    }
                 }
+                proxy.insertText($0)
+            } else {
+                proxy.insertText($0)
             }
-            proxy.insertText($0)
             
             updateCursorPos()
             updateHoegSsangAvailiable()
@@ -261,9 +265,9 @@ class SYKeyboardViewController: UIInputViewController {
 extension SYKeyboardViewController {
     // MARK: - Extension
     // 텍스트 대치
-    func attemptToReplaceCurrentWord() {  // 글자 입력할때 호출
+    func attemptToReplaceCurrentWord() -> Bool {  // 글자 입력할때 호출
         let proxy = textDocumentProxy
-        guard let entries = userLexicon?.entries else { return }
+        guard let entries = userLexicon?.entries else { return false }
         
         if let stringBeforeCursor = proxy.documentContextBeforeInput {
             let replacementEntries = entries.filter {
@@ -272,15 +276,18 @@ extension SYKeyboardViewController {
             
             if let replacement = replacementEntries.first {
                 if replacement.userInput == stringBeforeCursor.suffix(replacement.userInput.count) {
+                    
                     for _ in 0..<replacement.userInput.count {
                         proxy.deleteBackward()
                     }
                     proxy.insertText(replacement.documentText)
                     
                     textReplacementHistory.append(replacement.documentText)
+                    return true
                 }
             }
         }
+        return false
     }
     
     // 텍스트 대치 취소
