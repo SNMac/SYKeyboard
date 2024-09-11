@@ -15,7 +15,7 @@ struct SYKeyboardHangulView: View {
     let vPadding: CGFloat = 4
     let interItemVPadding: CGFloat = 2
     let hPadding: CGFloat = 4
-    let interItemHPadding: CGFloat = 3
+    let interItemHPadding: CGFloat = 2.5
     
     var body: some View {
         GeometryReader { geometry in

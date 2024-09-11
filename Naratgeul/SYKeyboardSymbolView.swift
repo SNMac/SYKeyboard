@@ -12,11 +12,12 @@ struct SYKeyboardSymbolView: View {
     @EnvironmentObject var options: SYKeyboardOptions
     @State var timer: AnyCancellable?
     @State var isShiftTapped: Bool = false
+    @State var isShiftReleased: Bool = true
     
     let vPadding: CGFloat = 4
-    let interItemVPadding: CGFloat = 4
+    let interItemVPadding: CGFloat = 4.5
     let hPadding: CGFloat = 4
-    let interItemHPadding: CGFloat = 3
+    let interItemHPadding: CGFloat = 2.5
     
     var body: some View {
         GeometryReader { geometry in
@@ -574,7 +575,29 @@ struct SYKeyboardSymbolView: View {
                         onPress: {
                             Feedback.shared.playModifierSound()
                             Feedback.shared.playHaptics()
-                            isShiftTapped.toggle()
+                            if !isShiftTapped {
+                                isShiftTapped = true
+                                isShiftReleased = false
+                            }
+                        },
+                        onRelease: {
+                            if isShiftTapped && isShiftReleased {
+                                isShiftTapped = false
+                                isShiftReleased = true
+                            }
+                            
+                            if isShiftTapped && !isShiftReleased {
+                                isShiftReleased = true
+                            }
+                        },onLongPressFinished: {
+                            if isShiftTapped && isShiftReleased {
+                                isShiftTapped = false
+                                isShiftReleased = true
+                            }
+                            
+                            if isShiftTapped && !isShiftReleased {
+                                isShiftReleased = true
+                            }
                         })
                     .padding(EdgeInsets(top: interItemVPadding, leading: hPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
