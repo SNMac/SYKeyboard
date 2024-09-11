@@ -43,6 +43,7 @@ struct ContentView: View {
                 Text("정보")
             }
         }
+        .scrollDismissesKeyboard(.immediately).ignoresSafeArea(.keyboard, edges: .all)
         .navigationTitle((Bundle.main.infoDictionary?["CFBundleDisplayName"] as? String)!)
         .navigationBarTitleDisplayMode(.inline)
     }
@@ -53,10 +54,6 @@ struct ContentView: View {
             keyboardSettings
         }
     }
-}
-
-class m: UIInputViewController {
-    
 }
 
 #Preview {
