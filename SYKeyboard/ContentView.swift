@@ -38,7 +38,7 @@ struct ContentView: View {
             }
             
             Section {
-                Text((Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String)!)
+                InfoView()
             } header: {
                 Text("정보")
             }

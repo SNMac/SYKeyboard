@@ -1,6 +1,6 @@
 //
 //  GlobalData.swift
-//  SYKeyboard
+//  SYKeyboard, Naratgeul
 //
 //  Created by 서동환 on 9/4/24.
 //

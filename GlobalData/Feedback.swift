@@ -1,6 +1,6 @@
 //
 //  Feedback.swift
-//  Naratgeul
+//  SYKeyboard, Naratgeul
 //
 //  Created by Sunghyun Cho on 1/21/23.
 //  Edited by 서동환 on 8/7/24.

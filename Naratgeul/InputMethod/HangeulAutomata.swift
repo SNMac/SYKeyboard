@@ -1,6 +1,6 @@
 //
 //  HangulAutomata.swift
-//  SYKeyboard
+//  Naratgeul
 //
 //  Created by JunHwan Kim on 8/14/22.
 //  Edited by 서동환 on 7/31/24.
@@ -13,9 +13,9 @@ import Foundation
 enum AutomataStatus {
     case start  // s0
     case chosung  // s1
-    case jungsung, dJungsung  //s2, s3
-    case jongsung, dJongsung  //s4, s5
-    case endOne, endTwo  //s6, s7
+    case jungsung, dJungsung  // s2, s3
+    case jongsung, dJongsung  // s4, s5
+    case endOne, endTwo  // s6, s7
 }
 
 // 입력된 키의 종류 판별 정의
