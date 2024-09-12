@@ -23,6 +23,7 @@ enum returnButtonType: String {
     case _continue = "계속"
     case search = "검색"
     case done = "완료"
+    case emergencyCall = "긴급통화"
 }
 
 final class SYKeyboardOptions: ObservableObject {

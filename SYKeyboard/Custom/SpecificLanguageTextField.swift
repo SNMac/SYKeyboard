@@ -43,7 +43,6 @@ struct SpecificLanguageTextFieldView: UIViewRepresentable {
         textField.placeholder = self.placeHolder
         textField.text = self.text
         textField.language = self.language
-        textField.returnKeyType = .continue
         return textField
     }
 

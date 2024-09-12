@@ -294,6 +294,8 @@ class SYKeyboardViewController: UIInputViewController {
             returnButtonLabel = .search
         case .done:
             returnButtonLabel = .done
+        case .emergencyCall:
+            returnButtonLabel = .emergencyCall
         case .continue:
             returnButtonLabel = ._continue
         default:
