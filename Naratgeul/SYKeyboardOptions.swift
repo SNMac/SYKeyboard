@@ -13,8 +13,17 @@ enum KeyboardType {
   case symbol
 }
 
+enum returnButtonType: String {
+    case normal = "return.left"
+    case search = "검색"
+    case done = "완료"
+    case go = "이동"
+}
+
 final class SYKeyboardOptions: ObservableObject {
     @Published var current: KeyboardType = .hangul
+    @Published var returnButtonLabel: returnButtonType = .normal
+    @Published var documentText: String = ""
     var curPressedButton: SYKeyboardButton?
     weak var delegate: SYKeyboardDelegate?
     var keyboardHeight: CGFloat
@@ -23,7 +32,6 @@ final class SYKeyboardOptions: ObservableObject {
     var colorScheme: ColorScheme
     var needsInputModeSwitchKey: Bool
     var nextKeyboardAction: Selector
-    
     var isHoegSsangAvailable: Bool = false
     
     init(

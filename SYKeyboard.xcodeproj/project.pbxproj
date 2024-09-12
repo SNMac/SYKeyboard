@@ -184,8 +184,7 @@
 				5B7B3F772C569CC900F7C093 /* SYKeyboardHangulView.swift */,
 				5B2B3FFF2C6C8994007CA762 /* SYKeyboardSymbolView.swift */,
 				5B2B40112C6CC1D1007CA762 /* SYKeyboardOptions.swift */,
-				5B0D82442C63C72700F84180 /* SYKeyboardButton.swift */,
-				5B2B40142C6CD2A4007CA762 /* NextKeyboardButton.swift */,
+				5B7BDD4B2C92C0170065C944 /* Button */,
 				5B7B3F6F2C569B8200F7C093 /* Info.plist */,
 			);
 			path = Naratgeul;
@@ -207,6 +206,15 @@
 				5B7BDD482C9204290065C944 /* SpecificLanguageTextField.swift */,
 			);
 			path = Custom;
+			sourceTree = "<group>";
+		};
+		5B7BDD4B2C92C0170065C944 /* Button */ = {
+			isa = PBXGroup;
+			children = (
+				5B0D82442C63C72700F84180 /* SYKeyboardButton.swift */,
+				5B2B40142C6CD2A4007CA762 /* NextKeyboardButton.swift */,
+			);
+			path = Button;
 			sourceTree = "<group>";
 		};
 		5B9472312C8AD6DD00B8B154 /* GlobalData */ = {

@@ -7,6 +7,8 @@
 
 import SwiftUI
 
+
+
 class SYKeyboardViewController: UIInputViewController {
     // MARK: - Properties
     private var defaults: UserDefaults?
@@ -15,6 +17,8 @@ class SYKeyboardViewController: UIInputViewController {
     private var cursorPos: Int = 0
     private var userLexicon: UILexicon?
     private var textReplacementHistory: [String] = []
+    
+    private var keyboardType: UIKeyboardType = .default
     
     // MARK: - LifeCycle
     override func viewDidLoad() {
@@ -30,7 +34,7 @@ class SYKeyboardViewController: UIInputViewController {
         super.viewWillAppear(animated)
         
         updateCursorPos()
-        updateHoegSsangAvailiable()
+        updateHoegSsangAvailiableToOptions()
         Feedback.shared.prepareHaptics()
     }
     
@@ -59,7 +63,8 @@ class SYKeyboardViewController: UIInputViewController {
             }
             
             updateCursorPos()
-            updateHoegSsangAvailiable()
+            updateDocumentTextToOptions()
+            updateHoegSsangAvailiableToOptions()
         }
         
         keyboardIOManager.deleteForInput = { [weak self] in
@@ -89,7 +94,8 @@ class SYKeyboardViewController: UIInputViewController {
             proxy.deleteBackward()
             
             updateCursorPos()
-            updateHoegSsangAvailiable()
+            updateDocumentTextToOptions()
+            updateHoegSsangAvailiableToOptions()
             
             return isDeleted
         }
@@ -102,7 +108,8 @@ class SYKeyboardViewController: UIInputViewController {
             proxy.insertText($0)
             
             updateCursorPos()
-            updateHoegSsangAvailiable()
+            updateDocumentTextToOptions()
+            updateHoegSsangAvailiableToOptions()
         }
         
         keyboardIOManager.attemptRestoreWord = { [weak self] in
@@ -123,8 +130,9 @@ class SYKeyboardViewController: UIInputViewController {
             }
             
             updateCursorPos()
+            updateDocumentTextToOptions()
             keyboardIOManager.flushBuffer()
-            updateHoegSsangAvailiable()
+            updateHoegSsangAvailiableToOptions()
         }
         
         keyboardIOManager.ssangComma = { [weak self] in
@@ -139,13 +147,14 @@ class SYKeyboardViewController: UIInputViewController {
             }
             
             updateCursorPos()
+            updateDocumentTextToOptions()
             keyboardIOManager.flushBuffer()
-            updateHoegSsangAvailiable()
+            updateHoegSsangAvailiableToOptions()
         }
         
         keyboardIOManager.onlyUpdateHoegSsang = { [weak self] in
             guard let self = self else { return }
-            updateHoegSsangAvailiable()
+            updateHoegSsangAvailiableToOptions()
         }
         
         keyboardIOManager.moveCursorToLeft = { [weak self] in
@@ -158,8 +167,9 @@ class SYKeyboardViewController: UIInputViewController {
             proxy.adjustTextPosition(byCharacterOffset: -1)
             
             updateCursorPos()
+            updateDocumentTextToOptions()
             keyboardIOManager.flushBuffer()
-            updateHoegSsangAvailiable()
+            updateHoegSsangAvailiableToOptions()
             
             if cursorPos != prevCurPos {
                 return true
@@ -178,8 +188,9 @@ class SYKeyboardViewController: UIInputViewController {
             proxy.adjustTextPosition(byCharacterOffset: 1)
             
             updateCursorPos()
+            updateDocumentTextToOptions()
             keyboardIOManager.flushBuffer()
-            updateHoegSsangAvailiable()
+            updateHoegSsangAvailiableToOptions()
             
             if cursorPos != prevCurPos {
                 return true
@@ -191,6 +202,7 @@ class SYKeyboardViewController: UIInputViewController {
     
     private func setupUI() {
         let nextKeyboardAction = #selector(handleInputModeList(from:with:))
+        
         let options = SYKeyboardOptions(
             delegate: keyboardIOManager,
             keyboardHeight: CGFloat(defaults?.double(forKey: "keyboardHeight") ?? DefaultValues().defaultKeyboardHeight),
@@ -226,13 +238,21 @@ class SYKeyboardViewController: UIInputViewController {
         }
     }
     
+    override func textWillChange(_ textInput: (any UITextInput)?) {
+        super.textWillChange(textInput)
+        print("textWillChange()")
+        
+        updateReturnButtonLabelToOptions()
+        updateDocumentTextToOptions()
+    }
+    
     override func textDidChange(_ textInput: (any UITextInput)?) {
         super.textDidChange(textInput)
         print("textDidChange()")
         
         updateCursorPos()
         keyboardIOManager.flushBuffer()
-        updateHoegSsangAvailiable()
+        updateHoegSsangAvailiableToOptions()
     }
     
     override func selectionWillChange(_ textInput: (any UITextInput)?) {
@@ -257,8 +277,30 @@ class SYKeyboardViewController: UIInputViewController {
         print("cursorPos =", cursorPos)
     }
     
-    private func updateHoegSsangAvailiable() {
+    private func updateHoegSsangAvailiableToOptions() {
         options?.isHoegSsangAvailable = keyboardIOManager.isHoegSsangAvailiable
+    }
+    
+    private func updateDocumentTextToOptions() {
+        let proxy = textDocumentProxy
+        options?.documentText = (proxy.documentContextBeforeInput ?? "") + (proxy.documentContextAfterInput ?? "")
+    }
+    
+    private func updateReturnButtonLabelToOptions() {
+        let proxy = textDocumentProxy
+        let returnKeyType = (proxy as UIKeyInput).returnKeyType
+        let returnButtonLabel: returnButtonType
+        switch returnKeyType {
+        case .search:
+            returnButtonLabel = .search
+        case .done:
+            returnButtonLabel = .done
+        case .go:
+            returnButtonLabel = .go
+        default:
+            returnButtonLabel = .normal
+        }
+        options?.returnButtonLabel = returnButtonLabel
     }
 }
 

@@ -31,6 +31,18 @@ struct SYKeyboardButton: View {
     var onLongPress: (() -> Void)?
     var onLongPressFinished: (() -> Void)?
     
+    private func setButtonDisable() -> Bool {
+        if systemName == "return.left" {
+            switch options.returnButtonLabel {
+            case .go:
+                return options.documentText.trimmingCharacters(in: .whitespaces).isEmpty
+            default:
+                return false
+            }
+        }
+        return false
+    }
+    
     private func dragOnChanged(value: DragGesture.Value) {  // 버튼 드래그 할 때 호출
         if primary {  // 글자 버튼에서만 드래그 가능
             if curGestureState != .dragStart {  // 드래그 시작
@@ -96,82 +108,61 @@ struct SYKeyboardButton: View {
         options.curPressedButton = nil
     }
     
-    private func dragOnChangedForDeleteKey(value: DragGesture.Value) {  // 삭제 버튼 드래그 할 때 호출
-//        if curGestureState != .dragStart {  // 드래그 시작
-//            dragStartWidth = value.translation.width
-//            curGestureState = .dragStart
-//        } else {  // 드래그 중
-//            if !isCursorMovable {
-//                // 일정 거리 초과/미만 드래그 -> 커서 이동 활성화
-//                let dragWidthDiff = value.translation.width - dragStartWidth
-//                if dragWidthDiff < -20 || dragWidthDiff > 20 {
-//                    isCursorMovable = true
-//                    dragStartWidth = value.translation.width
-//                }
-//            }
-//        }
-//        if isCursorMovable {  // 커서 이동 활성화 됐을 때
-//            // 일정 거리 초과/미만 드래그 -> 커서를 한칸씩 드래그한 방향으로 이동
-//            let dragDiff = value.translation.width - dragStartWidth
-//            if dragDiff < -5 {
-//                print("Drag to left")
-//                dragStartWidth = value.translation.width
-//                if let isMoved = options.delegate?.dragToLeft() {
-//                    if isMoved {
-//                        Feedback.shared.playHaptics()
-//                    }
-//                }
-//            } else if dragDiff > 5 {
-//                print("Drag to right")
-//                dragStartWidth = value.translation.width
-//                if let isMoved = options.delegate?.dragToRight() {
-//                    if isMoved {
-//                        Feedback.shared.playHaptics()
-//                    }
-//                }
-//            }
-//        }
-    }
-    
-    private func dragOnEndedForDeleteKey() {  // 삭제 버튼 뗐을 때
-        if !isCursorMovable {
-            // 드래그를 일정 거리에 못미치게 했을 경우(터치 오차) 무시하고 글자가 입력되도록 함
-            onRelease?()
-        }
-        isCursorMovable = false
-        curGestureState = nil
-        options.curPressedButton = nil
-    }
-    
     var body: some View {
         Button(action: {}) {
             if systemName != nil {
-                Image(systemName: systemName!)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
-                    .font(.system(size: 20))
-                    .foregroundColor(Color(uiColor: UIColor.label))
-                    .background(
-                        primary ? Color("PrimaryKeyboardButton") : Color("SecondaryKeyboardButton")
-                    )
-                    .clipShape(.rect(cornerRadius: 5))
+                if systemName == "return.left" {  // 리턴 버튼
+                    if options.returnButtonLabel == .normal {
+                        Image(systemName: options.returnButtonLabel.rawValue)
+                            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+                            .font(.system(size: 20))
+                            .foregroundColor(Color(uiColor: UIColor.label))
+                            .background(Color("SecondaryKeyboardButton"))
+                            .clipShape(.rect(cornerRadius: 5))
+                    } else if options.returnButtonLabel == .done {
+                        Text(options.returnButtonLabel.rawValue)
+                            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+                            .font(.system(size: 18))
+                            .foregroundColor(.white)
+                            .background(Color(.tintColor))
+                            .clipShape(.rect(cornerRadius: 5))
+                    } else {
+                        Text(options.returnButtonLabel.rawValue)
+                            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+                            .font(.system(size: 18))
+                            .foregroundColor(setButtonDisable() ? Color(.secondaryLabel) : .white)
+                            .background(setButtonDisable() ? Color("SecondaryKeyboardButton") : Color(.tintColor))
+                            .clipShape(.rect(cornerRadius: 5))
+                    }
+                } else if systemName == "globe" {
+                    Image(systemName: systemName!)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+                        .font(.system(size: 18))
+                        .foregroundColor(Color(uiColor: UIColor.label))
+                        .background(Color("SecondaryKeyboardButton"))
+                        .clipShape(.rect(cornerRadius: 5))
+                } else {
+                    Image(systemName: systemName!)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+                        .font(.system(size: 20))
+                        .foregroundColor(Color(uiColor: UIColor.label))
+                        .background(primary ? Color("PrimaryKeyboardButton") : Color("SecondaryKeyboardButton"))
+                        .clipShape(.rect(cornerRadius: 5))
+                }
             } else if text != nil {
                 if text == "123" || text == "#+=" || text == "한글" {
                     Text(text!)
                         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
-                        .font(.system(size: 18))
+                        .font(.system(size: options.needsInputModeSwitchKey ? 16 : 18))
                         .foregroundColor(Color(uiColor: UIColor.label))
-                        .background(
-                            primary ? Color("PrimaryKeyboardButton") : Color("SecondaryKeyboardButton")
-                        )
+                        .background(Color("SecondaryKeyboardButton"))
                         .clipShape(.rect(cornerRadius: 5))
                 } else {
                     Text(text!)
                         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
                         .font(.system(size: 22))
                         .foregroundColor(Color(uiColor: UIColor.label))
-                        .background(
-                            primary ? Color("PrimaryKeyboardButton") : Color("SecondaryKeyboardButton")
-                        )
+                        .background(Color("PrimaryKeyboardButton"))
                         .clipShape(.rect(cornerRadius: 5))
                 }
             }
@@ -183,11 +174,6 @@ struct SYKeyboardButton: View {
                     print("DragGesture() onChanged")
                     if curGestureState != nil {
                         dragOnChanged(value: value)
-//                        if systemName == "delete.left" {
-//                            dragOnChangedForDeleteKey(value: value)
-//                        } else {
-//                            dragOnChanged(value: value)
-//                        }
                     }
                 }
             
@@ -195,11 +181,7 @@ struct SYKeyboardButton: View {
                 .onEnded({ _ in
                     print("DragGesture() onEnded")
                     if curGestureState != nil {
-                        if systemName == "delete.left" {
-                            dragOnEndedForDeleteKey()
-                        } else {
-                            dragOnEnded()
-                        }
+                        dragOnEnded()
                     }
                 })
         )
@@ -242,5 +224,6 @@ struct SYKeyboardButton: View {
                 })
         )
         .opacity(curGestureState == .pressing || curGestureState == .longPressing ? 0.5 : 1.0)
+        .disabled(setButtonDisable())
     }
 }
