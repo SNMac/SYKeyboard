@@ -2,7 +2,9 @@
 //  SpecificLanguageTextField.swift
 //  SYKeyboard
 //
-//  Created by 서동환 on 9/12/24.
+//  Created by ARR on 1/31/21.
+//  Edited by 서동환 on 9/12/24.
+//  - Downloaded from https://stackoverflow.com/questions/65980139/how-can-i-change-the-keyboard-language-for-individual-textfields
 //
 
 import Foundation
@@ -34,13 +36,14 @@ class SpecificLanguageTextField: UITextField {
 struct SpecificLanguageTextFieldView: UIViewRepresentable {
     let placeHolder: String
     @Binding var text: String
-    var language: String = "en-US"
+    var language: String = "ko-KR"
 
     func makeUIView(context: Context) -> UITextField {
         let textField = SpecificLanguageTextField(frame: .zero)
         textField.placeholder = self.placeHolder
         textField.text = self.text
         textField.language = self.language
+        textField.returnKeyType = .continue
         return textField
     }
 

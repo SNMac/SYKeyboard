@@ -17,31 +17,25 @@ enum GestureState {
 }
 
 struct SYKeyboardButton: View {
+    @Environment(\.colorScheme) var colorScheme
     @EnvironmentObject var options: SYKeyboardOptions
     @State private var curGestureState: GestureState?
     @State private var isCursorMovable: Bool = false
     @State private var dragStartWidth: Double = 0.0
+    @State private var isButtonDisable: Bool = false
     
     var text: String?
     var systemName: String?
     let primary: Bool
     
+    let imageSize: CGFloat = 20
+    let textSize: CGFloat = 18
+    let keyTextSize: CGFloat = 22
+    
     var onPress: () -> Void
     var onRelease: (() -> Void)?
     var onLongPress: (() -> Void)?
     var onLongPressFinished: (() -> Void)?
-    
-    private func setButtonDisable() -> Bool {
-        if systemName == "return.left" {
-            switch options.returnButtonLabel {
-            case .go:
-                return options.documentText.trimmingCharacters(in: .whitespaces).isEmpty
-            default:
-                return false
-            }
-        }
-        return false
-    }
     
     private func dragOnChanged(value: DragGesture.Value) {  // 버튼 드래그 할 때 호출
         if primary {  // 글자 버튼에서만 드래그 가능
@@ -110,59 +104,83 @@ struct SYKeyboardButton: View {
     
     var body: some View {
         Button(action: {}) {
+            // Image 버튼들
             if systemName != nil {
-                if systemName == "return.left" {  // 리턴 버튼
-                    if options.returnButtonLabel == .normal {
-                        Image(systemName: options.returnButtonLabel.rawValue)
+                // 리턴 버튼
+                if systemName == "return.left" {
+                    if options.returnButtonLabel == ._default {
+                        Image(systemName: "return.left")
                             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
-                            .font(.system(size: 20))
-                            .foregroundColor(Color(uiColor: UIColor.label))
-                            .background(Color("SecondaryKeyboardButton"))
+                            .font(.system(size: imageSize))
+                            .foregroundStyle(Color(uiColor: UIColor.label))
+                            .background(curGestureState == .pressing || curGestureState == .longPressing ? Color("PrimaryKeyboardButton") : Color("SecondaryKeyboardButton"))
                             .clipShape(.rect(cornerRadius: 5))
-                    } else if options.returnButtonLabel == .done {
+                    } else if options.returnButtonLabel == ._continue || options.returnButtonLabel == .next {
                         Text(options.returnButtonLabel.rawValue)
                             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
-                            .font(.system(size: 18))
-                            .foregroundColor(.white)
-                            .background(Color(.tintColor))
+                            .font(.system(size: textSize))
+                            .foregroundStyle(Color(uiColor: UIColor.label))
+                            .background(curGestureState == .pressing || curGestureState == .longPressing ? Color("PrimaryKeyboardButton") : Color("SecondaryKeyboardButton"))
+                            .clipShape(.rect(cornerRadius: 5))
+                    } else if options.returnButtonLabel == .go || options.returnButtonLabel == .send {
+                        Text(options.returnButtonLabel.rawValue)
+                            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+                            .font(.system(size: textSize))
+                            .foregroundStyle(curGestureState == .pressing || curGestureState == .longPressing ? Color(.label) : .white)
+                            .background(curGestureState == .pressing || curGestureState == .longPressing ? Color(.white) : Color(.tintColor))
+                        // 눌렀을때 배경 하얀색, 글자 검은색으로 변경
                             .clipShape(.rect(cornerRadius: 5))
                     } else {
                         Text(options.returnButtonLabel.rawValue)
                             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
-                            .font(.system(size: 18))
-                            .foregroundColor(setButtonDisable() ? Color(.secondaryLabel) : .white)
-                            .background(setButtonDisable() ? Color("SecondaryKeyboardButton") : Color(.tintColor))
+                            .font(.system(size: textSize))
+                            .foregroundStyle(curGestureState == .pressing || curGestureState == .longPressing ? Color(.label) : .white)
+                            .background(curGestureState == .pressing || curGestureState == .longPressing ? Color(.white) : Color(.tintColor))
+                        // 눌렀을때 배경 하얀색, 글자 검은색으로 변경
                             .clipShape(.rect(cornerRadius: 5))
                     }
-                } else if systemName == "globe" {
-                    Image(systemName: systemName!)
+                    
+                    // 스페이스 버튼
+                } else if systemName == "space" {
+                    Image(systemName: "space")
                         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
-                        .font(.system(size: 18))
-                        .foregroundColor(Color(uiColor: UIColor.label))
-                        .background(Color("SecondaryKeyboardButton"))
+                        .font(.system(size: imageSize))
+                        .foregroundStyle(Color(uiColor: UIColor.label))
+                        .background(curGestureState == .pressing || curGestureState == .longPressing ? Color("PrimaryKeyboardButton") : Color("SecondaryKeyboardButton"))
                         .clipShape(.rect(cornerRadius: 5))
-                } else {
-                    Image(systemName: systemName!)
+                } else if systemName == "space_SymbolView" {
+                    Image(systemName: "space")
                         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
-                        .font(.system(size: 20))
-                        .foregroundColor(Color(uiColor: UIColor.label))
-                        .background(primary ? Color("PrimaryKeyboardButton") : Color("SecondaryKeyboardButton"))
+                        .font(.system(size: imageSize))
+                        .foregroundStyle(Color(uiColor: UIColor.label))
+                        .background(curGestureState == .pressing || curGestureState == .longPressing ? Color("SecondaryKeyboardButton") : Color("PrimaryKeyboardButton"))
+                        .clipShape(.rect(cornerRadius: 5))
+                    
+                    // 그 외 버튼
+                } else {
+                    Image(systemName: curGestureState == .pressing || curGestureState == .longPressing ? systemName! + ".fill" : systemName!)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+                        .font(.system(size: imageSize))
+                        .foregroundStyle(Color(uiColor: UIColor.label))
+                        .background(curGestureState == .pressing || curGestureState == .longPressing ? Color("PrimaryKeyboardButton") : Color("SecondaryKeyboardButton"))
                         .clipShape(.rect(cornerRadius: 5))
                 }
+                
+                // Text 버튼들
             } else if text != nil {
                 if text == "123" || text == "#+=" || text == "한글" {
                     Text(text!)
                         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
-                        .font(.system(size: options.needsInputModeSwitchKey ? 16 : 18))
-                        .foregroundColor(Color(uiColor: UIColor.label))
+                        .font(.system(size: options.needsInputModeSwitchKey ? textSize - 2 : textSize))
+                        .foregroundStyle(Color(uiColor: UIColor.label))
                         .background(Color("SecondaryKeyboardButton"))
                         .clipShape(.rect(cornerRadius: 5))
                 } else {
                     Text(text!)
                         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
-                        .font(.system(size: 22))
-                        .foregroundColor(Color(uiColor: UIColor.label))
-                        .background(Color("PrimaryKeyboardButton"))
+                        .font(.system(size: keyTextSize))
+                        .foregroundStyle(Color(uiColor: UIColor.label))
+                        .background(curGestureState == .pressing || curGestureState == .longPressing ? Color("SecondaryKeyboardButton") : Color("PrimaryKeyboardButton"))
                         .clipShape(.rect(cornerRadius: 5))
                 }
             }
@@ -223,7 +241,5 @@ struct SYKeyboardButton: View {
                     }
                 })
         )
-        .opacity(curGestureState == .pressing || curGestureState == .longPressing ? 0.5 : 1.0)
-        .disabled(setButtonDisable())
     }
 }

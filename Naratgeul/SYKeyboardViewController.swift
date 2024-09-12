@@ -7,8 +7,6 @@
 
 import SwiftUI
 
-
-
 class SYKeyboardViewController: UIInputViewController {
     // MARK: - Properties
     private var defaults: UserDefaults?
@@ -63,7 +61,6 @@ class SYKeyboardViewController: UIInputViewController {
             }
             
             updateCursorPos()
-            updateDocumentTextToOptions()
             updateHoegSsangAvailiableToOptions()
         }
         
@@ -94,7 +91,6 @@ class SYKeyboardViewController: UIInputViewController {
             proxy.deleteBackward()
             
             updateCursorPos()
-            updateDocumentTextToOptions()
             updateHoegSsangAvailiableToOptions()
             
             return isDeleted
@@ -108,7 +104,6 @@ class SYKeyboardViewController: UIInputViewController {
             proxy.insertText($0)
             
             updateCursorPos()
-            updateDocumentTextToOptions()
             updateHoegSsangAvailiableToOptions()
         }
         
@@ -130,7 +125,6 @@ class SYKeyboardViewController: UIInputViewController {
             }
             
             updateCursorPos()
-            updateDocumentTextToOptions()
             keyboardIOManager.flushBuffer()
             updateHoegSsangAvailiableToOptions()
         }
@@ -147,7 +141,6 @@ class SYKeyboardViewController: UIInputViewController {
             }
             
             updateCursorPos()
-            updateDocumentTextToOptions()
             keyboardIOManager.flushBuffer()
             updateHoegSsangAvailiableToOptions()
         }
@@ -167,7 +160,6 @@ class SYKeyboardViewController: UIInputViewController {
             proxy.adjustTextPosition(byCharacterOffset: -1)
             
             updateCursorPos()
-            updateDocumentTextToOptions()
             keyboardIOManager.flushBuffer()
             updateHoegSsangAvailiableToOptions()
             
@@ -188,7 +180,6 @@ class SYKeyboardViewController: UIInputViewController {
             proxy.adjustTextPosition(byCharacterOffset: 1)
             
             updateCursorPos()
-            updateDocumentTextToOptions()
             keyboardIOManager.flushBuffer()
             updateHoegSsangAvailiableToOptions()
             
@@ -208,7 +199,7 @@ class SYKeyboardViewController: UIInputViewController {
             keyboardHeight: CGFloat(defaults?.double(forKey: "keyboardHeight") ?? DefaultValues().defaultKeyboardHeight),
             longPressTime: 1.0 - (defaults?.double(forKey: "longPressSpeed") ?? DefaultValues().defaultLongPressSpeed),
             repeatTimerCycle: 0.10 - (defaults?.double(forKey: "repeatTimerSpeed") ?? DefaultValues().defaultRepeatTimerSpeed),
-            colorScheme: traitCollection.userInterfaceStyle == .dark ? .dark : .light,
+            colorScheme: traitCollection.userInterfaceStyle == .dark ? .dark : .light, 
             needsInputModeSwitchKey: needsInputModeSwitchKey,
             nextKeyboardAction: nextKeyboardAction
         )
@@ -243,7 +234,6 @@ class SYKeyboardViewController: UIInputViewController {
         print("textWillChange()")
         
         updateReturnButtonLabelToOptions()
-        updateDocumentTextToOptions()
     }
     
     override func textDidChange(_ textInput: (any UITextInput)?) {
@@ -281,24 +271,33 @@ class SYKeyboardViewController: UIInputViewController {
         options?.isHoegSsangAvailable = keyboardIOManager.isHoegSsangAvailiable
     }
     
-    private func updateDocumentTextToOptions() {
-        let proxy = textDocumentProxy
-        options?.documentText = (proxy.documentContextBeforeInput ?? "") + (proxy.documentContextAfterInput ?? "")
-    }
-    
     private func updateReturnButtonLabelToOptions() {
         let proxy = textDocumentProxy
         let returnKeyType = (proxy as UIKeyInput).returnKeyType
         let returnButtonLabel: returnButtonType
         switch returnKeyType {
+        case .go:
+            returnButtonLabel = .go
+        case .google:
+            returnButtonLabel = .search
+        case .join:
+            returnButtonLabel = .join
+        case .next:
+            returnButtonLabel = .next
+        case .route:
+            returnButtonLabel = .route
         case .search:
+            returnButtonLabel = .search
+        case .send:
+            returnButtonLabel = .send
+        case .yahoo:
             returnButtonLabel = .search
         case .done:
             returnButtonLabel = .done
-        case .go:
-            returnButtonLabel = .go
+        case .continue:
+            returnButtonLabel = ._continue
         default:
-            returnButtonLabel = .normal
+            returnButtonLabel = ._default
         }
         options?.returnButtonLabel = returnButtonLabel
     }

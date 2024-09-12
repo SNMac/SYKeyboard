@@ -779,8 +779,7 @@ struct SYKeyboardSymbolView: View {
                             
                             NextKeyboardButton(
                                 systemName: "globe",
-                                action: options.nextKeyboardAction,
-                                primary: false
+                                action: options.nextKeyboardAction
                             )
                             .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: vPadding, trailing: interItemHPadding))
                             .contentShape(Rectangle())
@@ -798,7 +797,7 @@ struct SYKeyboardSymbolView: View {
                     }
                     
                     SYKeyboardButton(
-                        systemName: "space", primary: true,
+                        systemName: "space_SymbolView", primary: true,
                         onPress: {
                             Feedback.shared.playModifierSound()
                             Feedback.shared.playHaptics()

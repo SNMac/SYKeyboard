@@ -447,8 +447,7 @@ struct SYKeyboardHangulView: View {
                             
                             NextKeyboardButton(
                                 systemName: "globe",
-                                action: options.nextKeyboardAction,
-                                primary: false
+                                action: options.nextKeyboardAction
                             )
                             .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: vPadding, trailing: hPadding))
                             .contentShape(Rectangle())
