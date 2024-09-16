@@ -11,6 +11,7 @@ import Combine
 struct SYKeyboardHangulView: View {
     @EnvironmentObject var options: SYKeyboardOptions
     @State var timer: AnyCancellable?
+    private var defaults: UserDefaults?
     
     let vPadding: CGFloat = 4
     let interItemVPadding: CGFloat = 2
@@ -350,6 +351,9 @@ struct SYKeyboardHangulView: View {
                         },
                         onRelease: {
                             options.delegate?.hoegKeypadTap()
+                            if !options.isHoegSsangAvailable {
+                                options.delegate?.hoegToComma(isLongPress: false)
+                            }
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()
@@ -364,7 +368,7 @@ struct SYKeyboardHangulView: View {
                                         options.delegate?.inputLastHangul()
                                     }
                             } else {
-                                options.delegate?.hoegKeypadLongPress()
+                                options.delegate?.hoegToComma(isLongPress: true)
                             }
                         },
                         onLongPressFinished: {
@@ -408,6 +412,9 @@ struct SYKeyboardHangulView: View {
                         },
                         onRelease: {
                             options.delegate?.ssangKeypadTap()
+                            if !options.isHoegSsangAvailable && options.isHoegSsangToCommaPeriodEnabled {
+                                options.delegate?.ssangToPeriod(isLongPress: false)
+                            }
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()
@@ -422,7 +429,9 @@ struct SYKeyboardHangulView: View {
                                         options.delegate?.inputLastHangul()
                                     }
                             } else {
-                                options.delegate?.ssangKeypadLongPress()
+                                if options.isHoegSsangToCommaPeriodEnabled {
+                                    options.delegate?.ssangToPeriod(isLongPress: true)
+                                }
                             }
                         },
                         onLongPressFinished: {

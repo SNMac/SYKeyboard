@@ -173,6 +173,38 @@ struct SYKeyboardButton: View {
                         .foregroundStyle(Color(uiColor: UIColor.label))
                         .background(Color("SecondaryKeyboardButton"))
                         .clipShape(.rect(cornerRadius: 5))
+                } else if text == "획" {
+                    if options.isHoegSsangToCommaPeriodEnabled && !options.isHoegSsangAvailable {
+                        Text(",")
+                            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+                            .font(.system(size: keyTextSize))
+                            .foregroundStyle(Color(uiColor: UIColor.label))
+                            .background(curGestureState == .pressing || curGestureState == .longPressing ? Color("SecondaryKeyboardButton") : Color("PrimaryKeyboardButton"))
+                            .clipShape(.rect(cornerRadius: 5))
+                    } else {
+                        Text("획")
+                            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+                            .font(.system(size: keyTextSize))
+                            .foregroundStyle(Color(uiColor: UIColor.label))
+                            .background(curGestureState == .pressing || curGestureState == .longPressing ? Color("SecondaryKeyboardButton") : Color("PrimaryKeyboardButton"))
+                            .clipShape(.rect(cornerRadius: 5))
+                    }
+                } else if text == "쌍" {
+                    if options.isHoegSsangToCommaPeriodEnabled && !options.isHoegSsangAvailable {
+                        Text(".")
+                            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+                            .font(.system(size: keyTextSize))
+                            .foregroundStyle(Color(uiColor: UIColor.label))
+                            .background(curGestureState == .pressing || curGestureState == .longPressing ? Color("SecondaryKeyboardButton") : Color("PrimaryKeyboardButton"))
+                            .clipShape(.rect(cornerRadius: 5))
+                    } else {
+                        Text("쌍")
+                            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+                            .font(.system(size: keyTextSize))
+                            .foregroundStyle(Color(uiColor: UIColor.label))
+                            .background(curGestureState == .pressing || curGestureState == .longPressing ? Color("SecondaryKeyboardButton") : Color("PrimaryKeyboardButton"))
+                            .clipShape(.rect(cornerRadius: 5))
+                    }
                 } else {
                     Text(text!)
                         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)

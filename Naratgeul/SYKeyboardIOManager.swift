@@ -20,6 +20,7 @@ final class SYKeyboardIOManager {
     
     private var inputHangeul: String = "" {
         didSet {
+            lastLetter = inputHangeul
             if inputHangeul == "" {
                 onlyUpdateHoegSsang?()
             } else {
@@ -45,19 +46,18 @@ final class SYKeyboardIOManager {
                 isEditingLastCharacter = true  // 순서 중요함
             }
             
-            lastLetter = inputHangeul
             updateAutomataBufferSize()
         }
     }
     
     private var inputOther: String = "" {
         didSet {
+            lastLetter = inputOther
             hangeulAutomata.otherAutomata(key: inputOther)
             curAutomataBufferSize = getBufferSize()
             inputText?(inputOther)
             isEditingLastCharacter = true
             
-            lastLetter = inputOther
             updateAutomataBufferSize()
         }
     }
@@ -67,8 +67,8 @@ final class SYKeyboardIOManager {
     var deleteText: (() -> Bool)?
     var inputForDelete: ((String) -> Void)?
     var attemptRestoreWord: (() -> Bool)?
-    var hoegPeriod: (() -> Void)?
-    var ssangComma: (() -> Void)?
+    var hoegComma: (() -> Void)?
+    var ssangPeriod: (() -> Void)?
     var onlyUpdateHoegSsang: (() -> Void)?
     var moveCursorToLeft: (() -> Bool)?
     var moveCursorToRight: (() -> Bool)?
@@ -155,10 +155,69 @@ extension SYKeyboardIOManager: SYKeyboardDelegate {
         inputOther = lastLetter
     }
     
+    func checkHoegSsangAvailable() {
+        switch lastLetter {
+        case "ㄱ":
+            isHoegSsangAvailiable = true
+        case "ㅋ", "ㄲ":
+            isHoegSsangAvailiable = true
+            
+        case "ㄴ", "ㄸ":
+            isHoegSsangAvailiable = true
+        case "ㄷ":
+            isHoegSsangAvailiable = true
+        case "ㅌ":
+            isHoegSsangAvailiable = true
+            
+        case "ㅏ":
+            isHoegSsangAvailiable = true
+        case "ㅑ":
+            isHoegSsangAvailiable = true
+        case "ㅓ":
+            isHoegSsangAvailiable = true
+        case "ㅕ":
+            isHoegSsangAvailiable = true
+            
+        case "ㅁ", "ㅃ":
+            isHoegSsangAvailiable = true
+        case "ㅂ":
+            isHoegSsangAvailiable = true
+        case "ㅍ":
+            isHoegSsangAvailiable = true
+            
+        case "ㅗ":
+            isHoegSsangAvailiable = true
+        case "ㅛ":
+            isHoegSsangAvailiable = true
+        case "ㅜ":
+            isHoegSsangAvailiable = true
+        case "ㅠ":
+            isHoegSsangAvailiable = true
+            
+        case "ㅅ", "ㅆ":
+            isHoegSsangAvailiable = true
+        case "ㅈ":
+            isHoegSsangAvailiable = true
+        case "ㅊ":
+            isHoegSsangAvailiable = true
+        case "ㅉ":
+            isHoegSsangAvailiable = true
+            
+        case "ㅇ":
+            isHoegSsangAvailiable = true
+        case "ㅎ":
+            isHoegSsangAvailiable = true
+            
+        default:
+            isHoegSsangAvailiable = false
+        }
+    }
+    
     func hoegKeypadTap() {
-        var isHoegAvailable: Bool = true
+        isHoegSsangAvailiable = true
         
         var curLetter: String = ""
+        
         switch lastLetter {
         case "ㄱ":
             curLetter = "ㅋ"
@@ -182,7 +241,7 @@ extension SYKeyboardIOManager: SYKeyboardDelegate {
             curLetter = "ㅓ"
             
         case "ㄹ":
-            isHoegAvailable = false
+            isHoegSsangAvailiable = false
             
         case "ㅁ", "ㅃ":
             curLetter = "ㅂ"
@@ -215,28 +274,33 @@ extension SYKeyboardIOManager: SYKeyboardDelegate {
             curLetter = "ㅇ"
             
         case "ㅣ":
-            isHoegAvailable = false
+            isHoegSsangAvailiable = false
             
         case "ㅡ":
-            isHoegAvailable = false
+            isHoegSsangAvailiable = false
             
         default:
-            isHoegAvailable = false
+            isHoegSsangAvailiable = false
         }
         
-        isHoegSsangAvailiable = isHoegAvailable
         if curLetter != "" {
             hangeulAutomata.deleteBufferLastInput()
         }
         inputHangeul = curLetter
     }
     
-    func hoegKeypadLongPress() {
-        hoegPeriod?()
+    func hoegToComma(isLongPress: Bool) {
+        if isLongPress {
+            inputOther = ","
+            inputOther = ","
+            inputOther = ","
+        } else {
+            inputOther = ","
+        }
     }
     
     func ssangKeypadTap() {
-        var isSsangAvailable: Bool = true
+        isHoegSsangAvailiable = true
         
         var curLetter: String = ""
         switch lastLetter {
@@ -260,7 +324,7 @@ extension SYKeyboardIOManager: SYKeyboardDelegate {
             curLetter = "ㅓ"
             
         case "ㄹ":
-            isSsangAvailable = false
+            isHoegSsangAvailiable = false
             
         case "ㅁ", "ㅂ", "ㅍ":
             curLetter = "ㅃ"
@@ -291,23 +355,28 @@ extension SYKeyboardIOManager: SYKeyboardDelegate {
             curLetter = "ㅇ"
             
         case "ㅣ":
-            isSsangAvailable = false
+            isHoegSsangAvailiable = false
         case "ㅡ":
-            isSsangAvailable = false
+            isHoegSsangAvailiable = false
             
         default:
-            isSsangAvailable = false
+            isHoegSsangAvailiable = false
         }
         
-        isHoegSsangAvailiable = isSsangAvailable
         if curLetter != "" {
             hangeulAutomata.deleteBufferLastInput()
         }
         inputHangeul = curLetter
     }
     
-    func ssangKeypadLongPress() {
-        ssangComma?()
+    func ssangToPeriod(isLongPress: Bool) {
+        if isLongPress {
+            inputOther = "."
+            inputOther = "."
+            inputOther = "."
+        } else {
+            inputOther = "."
+        }
     }
     
     func removeKeypadTap(isLongPress: Bool) -> Bool {
@@ -357,18 +426,18 @@ extension SYKeyboardIOManager: SYKeyboardDelegate {
     }
     
     func enterKeypadTap() {
+        lastLetter = "\n"
         inputText?("\n")
         flushBuffer()
         
-        lastLetter = "\n"
         updateAutomataBufferSize()
     }
     
     func spaceKeypadTap() {
+        lastLetter = " "
         inputText?(" ")
         flushBuffer()
         
-        lastLetter = " "
         updateAutomataBufferSize()
     }
     

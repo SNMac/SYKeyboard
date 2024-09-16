@@ -14,10 +14,11 @@ protocol SYKeyboardDelegate: AnyObject {
     func inputLastSymbol()
     func hangulKeypadTap(letter: String)
     func symbolKeypadTap(letter: String)
+    func checkHoegSsangAvailable()
     func hoegKeypadTap()
-    func hoegKeypadLongPress()
+    func hoegToComma(isLongPress: Bool)
     func ssangKeypadTap()
-    func ssangKeypadLongPress()
+    func ssangToPeriod(isLongPress: Bool)
     func removeKeypadTap(isLongPress: Bool) -> Bool
     func enterKeypadTap()
     func spaceKeypadTap()

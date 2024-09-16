@@ -36,6 +36,10 @@ final class DefaultValues {
         if defaults?.object(forKey: "isTextReplacementEnabled") == nil {
             defaults?.setValue(true, forKey: "isTextReplacementEnabled")
         }
+        // 획/쌍 → ","/"." 전환 허용
+        if defaults?.object(forKey: "isHoegSsangToCommaPeriodEnabled") == nil {
+            defaults?.setValue(true, forKey: "isHoegSsangToCommaPeriodEnabled")
+        }
         
         /* 입력 설정 -> 속도 설정 */
         // 길게 누르기 속도

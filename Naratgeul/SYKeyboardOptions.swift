@@ -29,21 +29,23 @@ enum returnButtonType: String {
 final class SYKeyboardOptions: ObservableObject {
     @Published var current: KeyboardType = .hangul
     @Published var returnButtonLabel: returnButtonType = ._default
+    @Published var isHoegSsangAvailable: Bool = false
     var colorScheme: ColorScheme
     var curPressedButton: SYKeyboardButton?
     weak var delegate: SYKeyboardDelegate?
     var keyboardHeight: CGFloat
     var longPressTime: Double
     var repeatTimerCycle: Double
+    var isHoegSsangToCommaPeriodEnabled: Bool
     var needsInputModeSwitchKey: Bool
     var nextKeyboardAction: Selector
-    var isHoegSsangAvailable: Bool = false
     
     init(
         delegate: SYKeyboardDelegate,
         keyboardHeight: CGFloat,
         longPressTime: Double,
         repeatTimerCycle: Double,
+        isHoegSsangToCommaPeriodEnabled: Bool,
         colorScheme: ColorScheme,
         needsInputModeSwitchKey: Bool,
         nextKeyboardAction: Selector
@@ -52,6 +54,7 @@ final class SYKeyboardOptions: ObservableObject {
         self.keyboardHeight = keyboardHeight
         self.longPressTime = longPressTime
         self.repeatTimerCycle = repeatTimerCycle
+        self.isHoegSsangToCommaPeriodEnabled = isHoegSsangToCommaPeriodEnabled
         self.colorScheme = colorScheme
         self.needsInputModeSwitchKey = needsInputModeSwitchKey
         self.nextKeyboardAction = nextKeyboardAction

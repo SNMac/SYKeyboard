@@ -61,6 +61,7 @@ class SYKeyboardViewController: UIInputViewController {
             }
             
             updateCursorPos()
+            keyboardIOManager.checkHoegSsangAvailable()
             updateHoegSsangAvailiableToOptions()
         }
         
@@ -91,6 +92,7 @@ class SYKeyboardViewController: UIInputViewController {
             proxy.deleteBackward()
             
             updateCursorPos()
+            keyboardIOManager.checkHoegSsangAvailable()
             updateHoegSsangAvailiableToOptions()
             
             return isDeleted
@@ -104,6 +106,7 @@ class SYKeyboardViewController: UIInputViewController {
             proxy.insertText($0)
             
             updateCursorPos()
+            keyboardIOManager.checkHoegSsangAvailable()
             updateHoegSsangAvailiableToOptions()
         }
         
@@ -111,38 +114,6 @@ class SYKeyboardViewController: UIInputViewController {
             guard let self = self else { return false }
             
             return attemptToRestoreReplacementWord()
-        }
-        
-        keyboardIOManager.hoegPeriod = { [weak self] in
-            guard let self = self else { return }
-            
-            let proxy = textDocumentProxy
-            if proxy.documentContextBeforeInput?.last == " " {
-                proxy.deleteBackward()
-                proxy.insertText(", ")
-            } else {
-                proxy.insertText(", ")
-            }
-            
-            updateCursorPos()
-            keyboardIOManager.flushBuffer()
-            updateHoegSsangAvailiableToOptions()
-        }
-        
-        keyboardIOManager.ssangComma = { [weak self] in
-            guard let self = self else { return }
-            
-            let proxy = textDocumentProxy
-            if proxy.documentContextBeforeInput?.last == " " {
-                proxy.deleteBackward()
-                proxy.insertText(". ")
-            } else {
-                proxy.insertText(". ")
-            }
-            
-            updateCursorPos()
-            keyboardIOManager.flushBuffer()
-            updateHoegSsangAvailiableToOptions()
         }
         
         keyboardIOManager.onlyUpdateHoegSsang = { [weak self] in
@@ -199,7 +170,8 @@ class SYKeyboardViewController: UIInputViewController {
             keyboardHeight: CGFloat(defaults?.double(forKey: "keyboardHeight") ?? DefaultValues().defaultKeyboardHeight),
             longPressTime: 1.0 - (defaults?.double(forKey: "longPressSpeed") ?? DefaultValues().defaultLongPressSpeed),
             repeatTimerCycle: 0.10 - (defaults?.double(forKey: "repeatTimerSpeed") ?? DefaultValues().defaultRepeatTimerSpeed),
-            colorScheme: traitCollection.userInterfaceStyle == .dark ? .dark : .light, 
+            isHoegSsangToCommaPeriodEnabled: defaults?.bool(forKey: "isHoegSsangToCommaPeriodEnabled") ?? true,
+            colorScheme: traitCollection.userInterfaceStyle == .dark ? .dark : .light,
             needsInputModeSwitchKey: needsInputModeSwitchKey,
             nextKeyboardAction: nextKeyboardAction
         )
