@@ -7,16 +7,13 @@
 
 import SwiftUI
 
+
+
 struct HeightSettingsView: View {
     @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject var options: PreviewSYKeyboardOptions
     @AppStorage("keyboardHeight", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var keyboardHeight = 240.0
-    @AppStorage("tempKeyboardHeight", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var tempKeyboardHeight = 240.0
-    @AppStorage("needsInputModeSwitchKey", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var needsInputModeSwitchKey = false
-    
-    let vPadding: CGFloat = 4
-    let interItemVPadding: CGFloat = 2
-    let hPadding: CGFloat = 4
-    let interItemHPadding: CGFloat = 3
+    @State var tempKeyboardHeight: Double = 240.0
     
     private var heightSettings: some View {
         VStack {
@@ -32,7 +29,6 @@ struct HeightSettingsView: View {
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
                 Button {
-                    tempKeyboardHeight = keyboardHeight
                     dismiss()
                 } label: {
                     Text("취소")
@@ -57,108 +53,21 @@ struct HeightSettingsView: View {
         }
     }
     
-    private var previewSYKeyboard: some View {
-        VStack(spacing: 0) {
-            // MARK: - ㄱ, ㄴ, ㅏㅓ, 􀆛
-            HStack(spacing: 0) {
-                PreviewSYKeyboardButton(text: "ㄱ", primary: true)
-                    .padding(EdgeInsets(top: vPadding, leading: hPadding, bottom: interItemVPadding, trailing: interItemHPadding))
-                    .contentShape(Rectangle())
-                
-                PreviewSYKeyboardButton(text: "ㄴ", primary: true)
-                    .padding(EdgeInsets(top: vPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
-                    .contentShape(Rectangle())
-                
-                PreviewSYKeyboardButton(text: "ㅏㅓ", primary: true)
-                    .padding(EdgeInsets(top: vPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
-                    .contentShape(Rectangle())
-                
-                PreviewSYKeyboardButton(systemName: "delete.left", primary: false)
-                    .padding(EdgeInsets(top: vPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: hPadding))
-                    .contentShape(Rectangle())
-            }
-            
-            // MARK: - ㄹ, ㅁ, ㅗㅜ, 􁁺
-            HStack(spacing: 0) {
-                PreviewSYKeyboardButton(text: "ㄹ", primary: true)
-                    .padding(EdgeInsets(top: interItemVPadding, leading: hPadding, bottom: interItemVPadding, trailing: interItemHPadding))
-                    .contentShape(Rectangle())
-                
-                PreviewSYKeyboardButton(text: "ㅁ", primary: true)
-                    .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
-                    .contentShape(Rectangle())
-                
-                PreviewSYKeyboardButton(text: "ㅗㅜ", primary: true)
-                    .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
-                    .contentShape(Rectangle())
-                
-                PreviewSYKeyboardButton(systemName: "space", primary: false)
-                    .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: hPadding))
-                    .contentShape(Rectangle())
-            }
-            
-            // MARK: - ㅅ, ㅇ, ㅣ, 􁂆
-            HStack(spacing: 0) {
-                PreviewSYKeyboardButton(text: "ㅅ", primary: true)
-                    .padding(EdgeInsets(top: interItemVPadding, leading: hPadding, bottom: interItemVPadding, trailing: interItemHPadding))
-                    .contentShape(Rectangle())
-                
-                PreviewSYKeyboardButton(text: "ㅇ", primary: true)
-                    .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
-                    .contentShape(Rectangle())
-                
-                PreviewSYKeyboardButton(text: "ㅣ", primary: true)
-                    .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
-                    .contentShape(Rectangle())
-                
-                PreviewSYKeyboardButton(systemName: "return.left", primary: false)
-                    .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: hPadding))
-                    .contentShape(Rectangle())
-            }
-            
-            // MARK: - 획, ㅡ, 쌍, (123, 􀆪)
-            HStack(spacing: 0) {
-                PreviewSYKeyboardButton(text: "획", primary: true)
-                    .padding(EdgeInsets(top: interItemVPadding, leading: hPadding, bottom: vPadding, trailing: interItemHPadding))
-                    .contentShape(Rectangle())
-                
-                PreviewSYKeyboardButton(text: "ㅡ", primary: true)
-                    .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: vPadding, trailing: interItemHPadding))
-                    .contentShape(Rectangle())
-                
-                PreviewSYKeyboardButton(text: "쌍", primary: true)
-                    .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: vPadding, trailing: interItemHPadding))
-                    .contentShape(Rectangle())
-                if needsInputModeSwitchKey {
-                    HStack(spacing: 0) {
-                        PreviewSYKeyboardButton(text: "123", primary: false)
-                            .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: vPadding, trailing: interItemHPadding))
-                            .contentShape(Rectangle())
-                        
-                        PreviewSYKeyboardButton(systemName: "globe", primary: false)
-                            .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: vPadding, trailing: hPadding))
-                            .contentShape(Rectangle())
-                    }
-                } else {
-                    PreviewSYKeyboardButton(text: "123", primary: false)
-                        .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: vPadding, trailing: hPadding))
-                        .contentShape(Rectangle())
-                }
-            }
-        }
-            .frame(height: tempKeyboardHeight)
-            .background(Color("KeyboardBackground"))
-            .padding(EdgeInsets(top: 0, leading: 0, bottom: (needsInputModeSwitchKey ? 0 : 40), trailing: 0))
-    }
-    
     var body: some View {
         NavigationStack {
             heightSettings
-            previewSYKeyboard
+            if options.current == .hangul {
+                PreviewSYKeyboardHangulView(tempKeyboardHeight: $tempKeyboardHeight)
+            } else if options.current == .symbol {
+                PreviewSYKeyboardSymbolView(tempKeyboardHeight: $tempKeyboardHeight)
+            }
+        }.onAppear {
+            tempKeyboardHeight = keyboardHeight
         }
     }
 }
 
 #Preview {
     HeightSettingsView()
+        .environmentObject(PreviewSYKeyboardOptions())
 }

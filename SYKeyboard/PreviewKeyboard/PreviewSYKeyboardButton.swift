@@ -1,14 +1,11 @@
 //
-//  SYKeyboardButton.swift
-//  Naratgeul
+//  PreviewSYKeyboardButton.swift
+//  SYKeyboard
 //
-//  Created by Sunghyun Cho on 12/20/22.
-//  Edited by 서동환 on 8/8/24.
-//  - Downloaded from https://github.com/anaclumos/sky-earth-human - KeyboardButton.swift
+//  Created by 서동환 on 9/16/24.
 //
 
 import SwiftUI
-import Combine
 
 enum GestureState {
     case pressing
@@ -16,9 +13,10 @@ enum GestureState {
     case dragStart
 }
 
-struct SYKeyboardButton: View {
-    @Environment(\.colorScheme) var colorScheme
-    @EnvironmentObject var options: SYKeyboardOptions
+struct PreviewSYKeyboardButton: View {
+    @EnvironmentObject var options: PreviewSYKeyboardOptions
+    @AppStorage("longPressSpeed", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var longPressSpeed = 0.6
+    @AppStorage("needsInputModeSwitchKey", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var needsInputModeSwitchKey = false
     @State private var curGestureState: GestureState?
     @State private var isCursorMovable: Bool = false
     @State private var dragStartWidth: Double = 0.0
@@ -59,19 +57,12 @@ struct SYKeyboardButton: View {
             if dragDiff < -5 {
                 print("Drag to left")
                 dragStartWidth = value.translation.width
-                if let isMoved = options.delegate?.dragToLeft() {
-                    if isMoved {
-                        Feedback.shared.playHaptics()
-                    }
-                }
+                Feedback.shared.playHaptics()
+                
             } else if dragDiff > 5 {
                 print("Drag to right")
                 dragStartWidth = value.translation.width
-                if let isMoved = options.delegate?.dragToRight() {
-                    if isMoved {
-                        Feedback.shared.playHaptics()
-                    }
-                }
+                Feedback.shared.playHaptics()
             }
         }
     }
@@ -103,42 +94,18 @@ struct SYKeyboardButton: View {
     }
     
     var body: some View {
+        let longPressTime = 1.0 - longPressSpeed
+        
         Button(action: {}) {
-            // Image 버튼들
             if systemName != nil {
                 // 리턴 버튼
                 if systemName == "return.left" {
-                    if options.returnButtonLabel == ._default {
-                        Image(systemName: "return.left")
-                            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
-                            .font(.system(size: imageSize))
-                            .foregroundStyle(Color(uiColor: UIColor.label))
-                            .background(curGestureState == .pressing || curGestureState == .longPressing ? Color("PrimaryKeyboardButton") : Color("SecondaryKeyboardButton"))
-                            .clipShape(.rect(cornerRadius: 5))
-                    } else if options.returnButtonLabel == ._continue || options.returnButtonLabel == .next {
-                        Text(options.returnButtonLabel.rawValue)
-                            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
-                            .font(.system(size: textSize))
-                            .foregroundStyle(Color(uiColor: UIColor.label))
-                            .background(curGestureState == .pressing || curGestureState == .longPressing ? Color("PrimaryKeyboardButton") : Color("SecondaryKeyboardButton"))
-                            .clipShape(.rect(cornerRadius: 5))
-                    } else if options.returnButtonLabel == .go || options.returnButtonLabel == .send {
-                        Text(options.returnButtonLabel.rawValue)
-                            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
-                            .font(.system(size: textSize))
-                            .foregroundStyle(curGestureState == .pressing || curGestureState == .longPressing ? Color(.label) : .white)
-                            .background(curGestureState == .pressing || curGestureState == .longPressing ? Color(.white) : Color(.tintColor))
-                        // 눌렀을때 배경 하얀색, 글자 검은색으로 변경
-                            .clipShape(.rect(cornerRadius: 5))
-                    } else {
-                        Text(options.returnButtonLabel.rawValue)
-                            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
-                            .font(.system(size: textSize))
-                            .foregroundStyle(curGestureState == .pressing || curGestureState == .longPressing ? Color(.label) : .white)
-                            .background(curGestureState == .pressing || curGestureState == .longPressing ? Color(.white) : Color(.tintColor))
-                        // 눌렀을때 배경 하얀색, 글자 검은색으로 변경
-                            .clipShape(.rect(cornerRadius: 5))
-                    }
+                    Image(systemName: "return.left")
+                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+                        .font(.system(size: imageSize))
+                        .foregroundStyle(Color(uiColor: UIColor.label))
+                        .background(curGestureState == .pressing || curGestureState == .longPressing ? Color("PrimaryKeyboardButton") : Color("SecondaryKeyboardButton"))
+                        .clipShape(.rect(cornerRadius: 5))
                     
                     // 스페이스 버튼
                 } else if systemName == "space" {
@@ -171,7 +138,7 @@ struct SYKeyboardButton: View {
                 if text == "123" || text == "#+=" || text == "한글" {
                     Text(text!)
                         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
-                        .font(.system(size: options.needsInputModeSwitchKey ? textSize - 2 : textSize))
+                        .font(.system(size: needsInputModeSwitchKey ? textSize - 2 : textSize))
                         .foregroundStyle(Color(uiColor: UIColor.label))
                         .background(Color("SecondaryKeyboardButton"))
                         .clipShape(.rect(cornerRadius: 5))
@@ -187,14 +154,6 @@ struct SYKeyboardButton: View {
         }
         .gesture(
             DragGesture(minimumDistance: 0)
-            // 버튼 드래그 할 때 호출
-                .onChanged { value in
-                    print("DragGesture() onChanged")
-                    if curGestureState != nil {
-                        dragOnChanged(value: value)
-                    }
-                }
-            
             // 버튼 뗐을 때
                 .onEnded({ _ in
                     print("DragGesture() onEnded")
@@ -204,7 +163,7 @@ struct SYKeyboardButton: View {
                 })
         )
         .highPriorityGesture(
-            LongPressGesture(minimumDuration: options.longPressTime)
+            LongPressGesture(minimumDuration: longPressTime)
             // 버튼 눌렀을 때 호출(버튼 누르면 무조건 첫번째로 호출)
                 .onChanged({ _ in
                     print("LongPressGesture() onChanged")

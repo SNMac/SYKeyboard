@@ -352,7 +352,6 @@ struct SYKeyboardHangulView: View {
                             options.delegate?.hoegKeypadTap()
                         },
                         onLongPress: {
-                            // TODO: 쉼표(,) 입력
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptics()
                             options.delegate?.hoegKeypadTap()
@@ -411,7 +410,6 @@ struct SYKeyboardHangulView: View {
                             options.delegate?.ssangKeypadTap()
                         },
                         onLongPress: {
-                            // TODO: 온점(.) 입력
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptics()
                             options.delegate?.ssangKeypadTap()

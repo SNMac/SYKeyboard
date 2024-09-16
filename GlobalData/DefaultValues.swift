@@ -10,7 +10,7 @@ import Foundation
 final class DefaultValues {
     static let shared = DefaultValues()
     
-    let defaultKeyboardHeight: Double = 240
+    let defaultKeyboardHeight: Double = 240.0
     let defaultLongPressSpeed: Double = 0.6
     let defaultRepeatTimerSpeed: Double = 0.06
     
@@ -51,10 +51,6 @@ final class DefaultValues {
         // 키보드 높이
         if defaults?.object(forKey: "keyboardHeight") == nil {
             defaults?.setValue(DefaultValues().defaultKeyboardHeight, forKey: "keyboardHeight")
-        }
-        // 키보드 높이 조절 슬라이더 값(임시)
-        if defaults?.object(forKey: "tempKeyboardHeight") == nil {
-            defaults?.setValue(DefaultValues().defaultKeyboardHeight, forKey: "tempKeyboardHeight")
         }
         if defaults?.object(forKey: "needsInputModeSwitchKey") == nil {
             defaults?.setValue(false, forKey: "needsInputModeSwitchKey")

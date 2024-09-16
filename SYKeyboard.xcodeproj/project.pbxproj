@@ -14,6 +14,10 @@
 		5B0D82452C63C72700F84180 /* SYKeyboardButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B0D82442C63C72700F84180 /* SYKeyboardButton.swift */; };
 		5B0D824C2C63CDE700F84180 /* SYKeyboardHangulView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B7B3F772C569CC900F7C093 /* SYKeyboardHangulView.swift */; };
 		5B0D824F2C63D66600F84180 /* FeedbackSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B0D824E2C63D66600F84180 /* FeedbackSettingsView.swift */; };
+		5B18F5142C97DC1D000548D4 /* PreviewSYKeyboardOptions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B18F5132C97DC1D000548D4 /* PreviewSYKeyboardOptions.swift */; };
+		5B18F5172C97DC7C000548D4 /* PreviewSYKeyboardButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B18F5162C97DC7C000548D4 /* PreviewSYKeyboardButton.swift */; };
+		5B18F5192C97DCE3000548D4 /* PreviewSYKeyboardHangulView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B18F5182C97DCE3000548D4 /* PreviewSYKeyboardHangulView.swift */; };
+		5B18F51B2C97DD27000548D4 /* PreviewSYKeyboardSymbolView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B18F51A2C97DD27000548D4 /* PreviewSYKeyboardSymbolView.swift */; };
 		5B2B40002C6C8994007CA762 /* SYKeyboardSymbolView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B2B3FFF2C6C8994007CA762 /* SYKeyboardSymbolView.swift */; };
 		5B2B40072C6CAB2F007CA762 /* SYKeyboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B2B40062C6CAB2F007CA762 /* SYKeyboardView.swift */; };
 		5B2B40122C6CC1D1007CA762 /* SYKeyboardOptions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B2B40112C6CC1D1007CA762 /* SYKeyboardOptions.swift */; };
@@ -33,7 +37,6 @@
 		5B9472332C8AD76000B8B154 /* Feedback.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B0D82422C63C16F00F84180 /* Feedback.swift */; };
 		5BACCE552C915423006DCFB7 /* SYKeyboardDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BACCE542C915423006DCFB7 /* SYKeyboardDelegate.swift */; };
 		5BB0D2642C86FF3B00CE7AF5 /* HeightSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BB0D2632C86FF3B00CE7AF5 /* HeightSettingsView.swift */; };
-		5BB0D2682C8786C200CE7AF5 /* PreviewSYKeyboardButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BB0D2672C8786C200CE7AF5 /* PreviewSYKeyboardButton.swift */; };
 		5BB0D26A2C8793D000CE7AF5 /* DefaultValues.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BB0D2692C8793D000CE7AF5 /* DefaultValues.swift */; };
 		5BB0D26B2C8793F300CE7AF5 /* DefaultValues.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BB0D2692C8793D000CE7AF5 /* DefaultValues.swift */; };
 		5BB0D26D2C883B8700CE7AF5 /* InputSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BB0D26C2C883B8700CE7AF5 /* InputSettingsView.swift */; };
@@ -73,6 +76,10 @@
 		5B0D824E2C63D66600F84180 /* FeedbackSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedbackSettingsView.swift; sourceTree = "<group>"; };
 		5B0D82502C63F75900F84180 /* SYKeyboard.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = SYKeyboard.entitlements; sourceTree = "<group>"; };
 		5B0D82512C63FDC300F84180 /* Naratgeul.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Naratgeul.entitlements; sourceTree = "<group>"; };
+		5B18F5132C97DC1D000548D4 /* PreviewSYKeyboardOptions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewSYKeyboardOptions.swift; sourceTree = "<group>"; };
+		5B18F5162C97DC7C000548D4 /* PreviewSYKeyboardButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewSYKeyboardButton.swift; sourceTree = "<group>"; };
+		5B18F5182C97DCE3000548D4 /* PreviewSYKeyboardHangulView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewSYKeyboardHangulView.swift; sourceTree = "<group>"; };
+		5B18F51A2C97DD27000548D4 /* PreviewSYKeyboardSymbolView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewSYKeyboardSymbolView.swift; sourceTree = "<group>"; };
 		5B2B3FFF2C6C8994007CA762 /* SYKeyboardSymbolView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SYKeyboardSymbolView.swift; sourceTree = "<group>"; };
 		5B2B40062C6CAB2F007CA762 /* SYKeyboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SYKeyboardView.swift; sourceTree = "<group>"; };
 		5B2B40112C6CC1D1007CA762 /* SYKeyboardOptions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SYKeyboardOptions.swift; sourceTree = "<group>"; };
@@ -96,7 +103,6 @@
 		5BACCE442C9096DE006DCFB7 /* Config.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config.xcconfig; sourceTree = "<group>"; };
 		5BACCE542C915423006DCFB7 /* SYKeyboardDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SYKeyboardDelegate.swift; sourceTree = "<group>"; };
 		5BB0D2632C86FF3B00CE7AF5 /* HeightSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeightSettingsView.swift; sourceTree = "<group>"; };
-		5BB0D2672C8786C200CE7AF5 /* PreviewSYKeyboardButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewSYKeyboardButton.swift; sourceTree = "<group>"; };
 		5BB0D2692C8793D000CE7AF5 /* DefaultValues.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DefaultValues.swift; sourceTree = "<group>"; };
 		5BB0D26C2C883B8700CE7AF5 /* InputSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputSettingsView.swift; sourceTree = "<group>"; };
 		5BB0D2712C88481500CE7AF5 /* View+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "View+Extension.swift"; sourceTree = "<group>"; };
@@ -121,6 +127,17 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		5B18F5152C97DC63000548D4 /* PreviewKeyboard */ = {
+			isa = PBXGroup;
+			children = (
+				5B18F5182C97DCE3000548D4 /* PreviewSYKeyboardHangulView.swift */,
+				5B18F51A2C97DD27000548D4 /* PreviewSYKeyboardSymbolView.swift */,
+				5B18F5132C97DC1D000548D4 /* PreviewSYKeyboardOptions.swift */,
+				5B18F5162C97DC7C000548D4 /* PreviewSYKeyboardButton.swift */,
+			);
+			path = PreviewKeyboard;
+			sourceTree = "<group>";
+		};
 		5B7B3F4D2C569B7800F7C093 = {
 			isa = PBXGroup;
 			children = (
@@ -153,8 +170,8 @@
 				5BB0D26C2C883B8700CE7AF5 /* InputSettingsView.swift */,
 				5B94722F2C8989C100B8B154 /* SpeedSettingsView.swift */,
 				5BB0D2632C86FF3B00CE7AF5 /* HeightSettingsView.swift */,
+				5B18F5152C97DC63000548D4 /* PreviewKeyboard */,
 				5B7BDD462C91E8860065C944 /* InfoView.swift */,
-				5BB0D2672C8786C200CE7AF5 /* PreviewSYKeyboardButton.swift */,
 				5BB0D2702C88470A00CE7AF5 /* Extension */,
 				5B7BDD4A2C9205830065C944 /* Custom */,
 				5B7B3F5D2C569B7800F7C093 /* Assets.xcassets */,
@@ -182,10 +199,8 @@
 				5BACCE542C915423006DCFB7 /* SYKeyboardDelegate.swift */,
 				5B0D82352C5962A500F84180 /* SYKeyboardIOManager.swift */,
 				5B2B40062C6CAB2F007CA762 /* SYKeyboardView.swift */,
-				5B7B3F772C569CC900F7C093 /* SYKeyboardHangulView.swift */,
-				5B2B3FFF2C6C8994007CA762 /* SYKeyboardSymbolView.swift */,
 				5B2B40112C6CC1D1007CA762 /* SYKeyboardOptions.swift */,
-				5B7BDD4B2C92C0170065C944 /* Button */,
+				5B7BDD4B2C92C0170065C944 /* KeyboardLayout */,
 				5B7B3F6F2C569B8200F7C093 /* Info.plist */,
 			);
 			path = Naratgeul;
@@ -209,13 +224,15 @@
 			path = Custom;
 			sourceTree = "<group>";
 		};
-		5B7BDD4B2C92C0170065C944 /* Button */ = {
+		5B7BDD4B2C92C0170065C944 /* KeyboardLayout */ = {
 			isa = PBXGroup;
 			children = (
+				5B7B3F772C569CC900F7C093 /* SYKeyboardHangulView.swift */,
+				5B2B3FFF2C6C8994007CA762 /* SYKeyboardSymbolView.swift */,
 				5B0D82442C63C72700F84180 /* SYKeyboardButton.swift */,
 				5B2B40142C6CD2A4007CA762 /* NextKeyboardButton.swift */,
 			);
-			path = Button;
+			path = KeyboardLayout;
 			sourceTree = "<group>";
 		};
 		5B7BDD522C92DF9E0065C944 /* Extension */ = {
@@ -353,10 +370,13 @@
 			files = (
 				5B0D824F2C63D66600F84180 /* FeedbackSettingsView.swift in Sources */,
 				5BB0D2722C88481500CE7AF5 /* View+Extension.swift in Sources */,
+				5B18F5172C97DC7C000548D4 /* PreviewSYKeyboardButton.swift in Sources */,
 				5BB0D2642C86FF3B00CE7AF5 /* HeightSettingsView.swift in Sources */,
-				5BB0D2682C8786C200CE7AF5 /* PreviewSYKeyboardButton.swift in Sources */,
+				5B18F51B2C97DD27000548D4 /* PreviewSYKeyboardSymbolView.swift in Sources */,
+				5B18F5192C97DCE3000548D4 /* PreviewSYKeyboardHangulView.swift in Sources */,
 				5B7BDD472C91E8860065C944 /* InfoView.swift in Sources */,
 				5B7BDD492C9204290065C944 /* SpecificLanguageTextField.swift in Sources */,
+				5B18F5142C97DC1D000548D4 /* PreviewSYKeyboardOptions.swift in Sources */,
 				5B9472332C8AD76000B8B154 /* Feedback.swift in Sources */,
 				5BB0D26D2C883B8700CE7AF5 /* InputSettingsView.swift in Sources */,
 				5BB0D26A2C8793D000CE7AF5 /* DefaultValues.swift in Sources */,

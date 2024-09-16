@@ -9,10 +9,13 @@ import SwiftUI
 
 struct ContentView: View {
     private var defaults: UserDefaults?
+    private var options: PreviewSYKeyboardOptions
     
     init() {
         defaults = UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")
         DefaultValues().setupDefaults(defaults: defaults)
+        
+        options = PreviewSYKeyboardOptions()
     }
     
     private var keyboardSettings: some View {
@@ -53,6 +56,7 @@ struct ContentView: View {
             KeyboardTestView()
             keyboardSettings
         }
+        .environmentObject(options)
     }
 }
 
