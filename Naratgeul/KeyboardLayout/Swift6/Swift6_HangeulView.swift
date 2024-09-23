@@ -10,7 +10,6 @@ import Combine
 
 struct Swift6_HangeulView: View {
     @EnvironmentObject var options: NaratgeulOptions
-    @AppStorage("isNumberPadEnabled", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var isNumberPadEnabled = true
     @State var timer: AnyCancellable?
     private var defaults: UserDefaults?
     
@@ -432,26 +431,17 @@ struct Swift6_HangeulView: View {
                     if options.needsInputModeSwitchKey {
                         HStack(spacing: 0) {
                             Swift6_NaratgeulButton(
-                                text: isNumberPadEnabled ? "123" : "!#1", primary: false,
+                                text: "!#1", primary: false,
                                 onPress: {
                                     Feedback.shared.playModifierSound()
                                     Feedback.shared.playHaptic(style: .light)
                                 },
                                 onRelease: {
-                                    if isNumberPadEnabled {
-                                        options.current = .number
-                                    } else {
-                                        options.current = .symbol
-                                    }
+                                    options.current = .symbol
                                 },
                                 onLongPressFinished: {
-                                    if isNumberPadEnabled {
-                                        options.current = .number
-                                    } else {
-                                        options.current = .symbol
-                                    }
+                                    options.current = .symbol
                                 })
-                            .monospaced()
                             .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: vPadding, trailing: interItemHPadding))
                             .contentShape(Rectangle())
                             
@@ -464,26 +454,17 @@ struct Swift6_HangeulView: View {
                         }
                     } else {
                         Swift6_NaratgeulButton(
-                            text: isNumberPadEnabled ? "123" : "!#1", primary: false,
+                            text: "!#1", primary: false,
                             onPress: {
                                 Feedback.shared.playModifierSound()
                                 Feedback.shared.playHaptic(style: .light)
                             },
                             onRelease: {
-                                if isNumberPadEnabled {
-                                    options.current = .number
-                                } else {
-                                    options.current = .symbol
-                                }
+                                options.current = .symbol
                             },
                             onLongPressFinished: {
-                                if isNumberPadEnabled {
-                                    options.current = .number
-                                } else {
-                                    options.current = .symbol
-                                }
+                                options.current = .symbol
                             })
-                        .monospaced()
                         .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: vPadding, trailing: hPadding))
                         .contentShape(Rectangle())
                     }

@@ -48,26 +48,24 @@ struct SYKeyboardButton: View {
                 if !isCursorMovable {
                     // 왼쪽으로 일정 거리 초과 드래그 -> 이전 자판으로 변경
                     let dragWidthDiff = value.translation.width - dragStartWidth
-                    if (text == "123" || text == "!#1") && dragWidthDiff < -20 {
+                    if options.current == .hangeul || options.current == .number && dragWidthDiff < -20 {
                         isCursorMovable = true
                         dragStartWidth = value.translation.width
-                        if text == "123" {  // 한글 자판
-                            options.current = .symbol
-                        } else {  // 한글 or 숫자 자판
+                        if options.current == .hangeul {  // 한글 자판
                             if isNumberPadEnabled {  // 숫자 자판
-                                options.current = .hangeul
+                                options.current = .number
                             } else {  // 한글 자판
                                 options.current = .symbol
                             }
+                        } else {  // 숫자 자판
+                            options.current = .symbol
                         }
-                    } else if text == "한글" && dragWidthDiff > 20 {
+                        Feedback.shared.playHaptic(style: .medium)
+                    } else if options.current == .symbol && dragWidthDiff > 20 {  // 기호 자판
                         isCursorMovable = true
                         dragStartWidth = value.translation.width
-                        if isNumberPadEnabled {
-                            options.current = .number
-                        } else {
-                            options.current = .hangeul
-                        }
+                        options.current = .hangeul
+                        Feedback.shared.playHaptic(style: .medium)
                     }
                 }
             }
@@ -196,26 +194,25 @@ struct SYKeyboardButton: View {
                 if text == "123" {
                     Text("123")
                         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+                        .monospaced()
                         .font(.system(size: options.needsInputModeSwitchKey ? textSize - 2 : textSize))
                         .foregroundStyle(Color(uiColor: UIColor.label))
                         .background(nowGesture == .pressing || nowGesture == .longPressing ? Color("PrimaryKeyboardButton") : Color("SecondaryKeyboardButton"))
                         .clipShape(.rect(cornerRadius: 5))
-                        .overlay(alignment: .bottomLeading, content: {
+                        .overlay(alignment: .bottomTrailing, content: {
                             HStack(spacing: 1) {
-                                if isNumberPadEnabled {
-                                    Image(systemName: "arrowtriangle.left.fill")
-                                    Text("!#1")
-                                }
+                                Text("한글")
+                                Image(systemName: "arrowtriangle.right.fill")
                             }
-                            .monospaced()
                             .font(.system(size: 10))
                             .foregroundStyle(Color(uiColor: .label))
                             .backgroundStyle(Color(uiColor: .clear))
-                            .padding(EdgeInsets(top: 0, leading: 2, bottom: 2, trailing: 0))
+                            .padding(EdgeInsets(top: 0, leading: 0, bottom: 2, trailing: 2))
                         })
                 } else if text == "!#1" {
                     Text("!#1")
                         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+                        .monospaced()
                         .font(.system(size: options.needsInputModeSwitchKey ? textSize - 2 : textSize))
                         .foregroundStyle(Color(uiColor: UIColor.label))
                         .background(nowGesture == .pressing || nowGesture == .longPressing ? Color("PrimaryKeyboardButton") : Color("SecondaryKeyboardButton"))
@@ -224,9 +221,10 @@ struct SYKeyboardButton: View {
                             HStack(spacing: 1) {
                                 if isNumberPadEnabled {
                                     Image(systemName: "arrowtriangle.left.fill")
-                                    Text("한글")
+                                    Text("123")
                                 }
                             }
+                            .monospaced()
                             .font(.system(size: 10))
                             .foregroundStyle(Color(uiColor: .label))
                             .backgroundStyle(Color(uiColor: .clear))
@@ -239,23 +237,24 @@ struct SYKeyboardButton: View {
                         .foregroundStyle(Color(uiColor: UIColor.label))
                         .background(nowGesture == .pressing || nowGesture == .longPressing ? Color("PrimaryKeyboardButton") : Color("SecondaryKeyboardButton"))
                         .clipShape(.rect(cornerRadius: 5))
-                        .overlay(alignment: .bottomTrailing, content: {
+                        .overlay(alignment: isNumberPadEnabled ? .bottomLeading : .bottomTrailing, content: {
                             HStack(spacing: 1) {
                                 if isNumberPadEnabled {
-                                    Text("123")
-                                    Image(systemName: "arrowtriangle.right.fill")
+                                    Image(systemName: "arrowtriangle.left.fill")
+                                    Text("!#1")
                                 }
                             }
                             .monospaced()
                             .font(.system(size: 10))
                             .foregroundStyle(Color(uiColor: .label))
                             .backgroundStyle(Color(uiColor: .clear))
-                            .padding(EdgeInsets(top: 0, leading: 0, bottom: 2, trailing: 2))
+                            .padding(EdgeInsets(top: 0, leading: isNumberPadEnabled ? 2 : 0, bottom: 2, trailing: isNumberPadEnabled ? 0 : 2))
                         })
                 }
                 else if text == "\(options.nowSymbolPage + 1)/\(options.totalSymbolPage)" {
                     Text("\(options.nowSymbolPage + 1)/\(options.totalSymbolPage)")
                         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+                        .monospaced()
                         .font(.system(size: textSize - 2))
                         .foregroundStyle(Color(uiColor: UIColor.label))
                         .background(Color("SecondaryKeyboardButton"))

@@ -10,8 +10,8 @@ import SwiftUI
 
 enum KeyboardType {
     case hangeul
-    case number
     case symbol
+    case number
 }
 
 enum returnButtonType: String {

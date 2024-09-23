@@ -10,6 +10,7 @@ import Combine
 
 struct SymbolView: View {
     @EnvironmentObject var options: NaratgeulOptions
+    @AppStorage("isNumberPadEnabled", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var isNumberPadEnabled = true
     @State var timer: AnyCancellable?
     
     let vPadding: CGFloat = 4
@@ -581,7 +582,6 @@ struct SymbolView: View {
                             Feedback.shared.playHaptic(style: .light)
                             options.nowSymbolPage = (options.nowSymbolPage + 1) % options.totalSymbolPage
                         })
-                    .monospaced()
                     .padding(EdgeInsets(top: interItemVPadding, leading: hPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
@@ -751,16 +751,24 @@ struct SymbolView: View {
                     if options.needsInputModeSwitchKey {
                         HStack(spacing: 0) {
                             SYKeyboardButton(
-                                text: "한글", primary: false,
+                                text: isNumberPadEnabled ? "123" : "한글", primary: false,
                                 onPress: {
                                     Feedback.shared.playModifierSound()
                                     Feedback.shared.playHaptic(style: .light)
                                 },
                                 onRelease: {
-                                    options.current = .hangeul
+                                    if isNumberPadEnabled {
+                                        options.current = .number
+                                    } else {
+                                        options.current = .hangeul
+                                    }
                                 },
                                 onLongPressFinished: {
-                                    options.current = .hangeul
+                                    if isNumberPadEnabled {
+                                        options.current = .number
+                                    } else {
+                                        options.current = .hangeul
+                                    }
                                 })
                             .padding(EdgeInsets(top: interItemVPadding, leading: hPadding, bottom: vPadding, trailing: interItemHPadding))
                             .contentShape(Rectangle())
@@ -774,16 +782,24 @@ struct SymbolView: View {
                         }
                     } else {
                         SYKeyboardButton(
-                            text: "한글", primary: false,
+                            text: isNumberPadEnabled ? "123" : "한글", primary: false,
                             onPress: {
                                 Feedback.shared.playModifierSound()
                                 Feedback.shared.playHaptic(style: .light)
                             },
                             onRelease: {
-                                options.current = .hangeul
+                                if isNumberPadEnabled {
+                                    options.current = .number
+                                } else {
+                                    options.current = .hangeul
+                                }
                             },
                             onLongPressFinished: {
-                                options.current = .hangeul
+                                if isNumberPadEnabled {
+                                    options.current = .number
+                                } else {
+                                    options.current = .hangeul
+                                }
                             })
                         .padding(EdgeInsets(top: interItemVPadding, leading: hPadding, bottom: vPadding, trailing: interItemHPadding))
                         .contentShape(Rectangle())

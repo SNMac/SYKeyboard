@@ -13,6 +13,7 @@ struct PreviewSymbolView: View {
     @AppStorage("repeatTimerSpeed", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var repeatTimerSpeed = 0.06
     @AppStorage("keyboardHeight", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var keyboardHeight = 240.0
     @AppStorage("needsInputModeSwitchKey", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var needsInputModeSwitchKey = false
+    @AppStorage("isNumberPadEnabled", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var isNumberPadEnabled = true
     @Binding var tempKeyboardHeight: Double
     @State var timer: AnyCancellable?
     @State var isShiftTapped: Bool = false
@@ -489,7 +490,6 @@ struct PreviewSymbolView: View {
                             Feedback.shared.playHaptic(style: .light)
                             options.nowSymbolPage = (options.nowSymbolPage + 1) % options.totalSymbolPage
                         })
-                    .monospaced()
                     .padding(EdgeInsets(top: interItemVPadding, leading: hPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
@@ -629,16 +629,24 @@ struct PreviewSymbolView: View {
                     if needsInputModeSwitchKey {
                         HStack(spacing: 0) {
                             PreviewNaratgeulButton(
-                                text: "한글", primary: false,
+                                text: isNumberPadEnabled ? "123" : "한글", primary: false,
                                 onPress: {
                                     Feedback.shared.playModifierSound()
                                     Feedback.shared.playHaptic(style: .light)
                                 },
                                 onRelease: {
-                                    options.current = .hangeul
+                                    if isNumberPadEnabled {
+                                        options.current = .number
+                                    } else {
+                                        options.current = .hangeul
+                                    }
                                 },
                                 onLongPressFinished: {
-                                    options.current = .hangeul
+                                    if isNumberPadEnabled {
+                                        options.current = .number
+                                    } else {
+                                        options.current = .hangeul
+                                    }
                                 })
                             .padding(EdgeInsets(top: interItemVPadding, leading: hPadding, bottom: vPadding, trailing: interItemHPadding))
                             .contentShape(Rectangle())
@@ -655,16 +663,24 @@ struct PreviewSymbolView: View {
                         }
                     } else {
                         PreviewNaratgeulButton(
-                            text: "한글", primary: false,
+                            text: isNumberPadEnabled ? "123" : "한글", primary: false,
                             onPress: {
                                 Feedback.shared.playModifierSound()
                                 Feedback.shared.playHaptic(style: .light)
                             },
                             onRelease: {
-                                options.current = .hangeul
+                                if isNumberPadEnabled {
+                                    options.current = .number
+                                } else {
+                                    options.current = .hangeul
+                                }
                             },
                             onLongPressFinished: {
-                                options.current = .hangeul
+                                if isNumberPadEnabled {
+                                    options.current = .number
+                                } else {
+                                    options.current = .hangeul
+                                }
                             })
                         .padding(EdgeInsets(top: interItemVPadding, leading: hPadding, bottom: vPadding, trailing: interItemHPadding))
                         .contentShape(Rectangle())

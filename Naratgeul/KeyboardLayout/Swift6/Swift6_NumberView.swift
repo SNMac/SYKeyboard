@@ -484,18 +484,17 @@ struct Swift6_NumberView: View {
                     if options.needsInputModeSwitchKey {
                         HStack(spacing: 0) {
                             Swift6_NaratgeulButton(
-                                text: "!#1", primary: false,
+                                text: "한글", primary: false,
                                 onPress: {
                                     Feedback.shared.playModifierSound()
                                     Feedback.shared.playHaptic(style: .light)
                                 },
                                 onRelease: {
-                                    options.current = .symbol
+                                    options.current = .hangeul
                                 },
                                 onLongPressFinished: {
-                                    options.current = .symbol
+                                    options.current = .hangeul
                                 })
-                            .monospaced()
                             .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: vPadding, trailing: interItemHPadding))
                             .contentShape(Rectangle())
                             
@@ -508,18 +507,17 @@ struct Swift6_NumberView: View {
                         }
                     } else {
                         Swift6_NaratgeulButton(
-                            text: "!#1", primary: false,
+                            text: "한글", primary: false,
                             onPress: {
                                 Feedback.shared.playModifierSound()
                                 Feedback.shared.playHaptic(style: .light)
                             },
                             onRelease: {
-                                options.current = .symbol
+                                options.current = .hangeul
                             },
                             onLongPressFinished: {
-                                options.current = .symbol
+                                options.current = .hangeul
                             })
-                        .monospaced()
                         .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: vPadding, trailing: hPadding))
                         .contentShape(Rectangle())
                     }

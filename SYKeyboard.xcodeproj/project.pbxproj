@@ -154,8 +154,8 @@
 			children = (
 				5B75570F2CA074020038BA9C /* Swift6 */,
 				5B18F5182C97DCE3000548D4 /* PreviewHangeulView.swift */,
-				5BA8097D2C9973A200CC1B25 /* PreviewNumberView.swift */,
 				5B18F51A2C97DD27000548D4 /* PreviewSymbolView.swift */,
+				5BA8097D2C9973A200CC1B25 /* PreviewNumberView.swift */,
 				5B18F5162C97DC7C000548D4 /* PreviewNaratgeulButton.swift */,
 				5B18F5132C97DC1D000548D4 /* PreviewNaratgeulOptions.swift */,
 			);
@@ -176,8 +176,8 @@
 			isa = PBXGroup;
 			children = (
 				5B7557072CA0717B0038BA9C /* Swift6_HangeulView.swift */,
-				5B75570B2CA072280038BA9C /* Swift6_NumberView.swift */,
 				5B75570D2CA072320038BA9C /* Swift6_SymbolView.swift */,
+				5B75570B2CA072280038BA9C /* Swift6_NumberView.swift */,
 			);
 			path = Swift6;
 			sourceTree = "<group>";
@@ -194,8 +194,8 @@
 			isa = PBXGroup;
 			children = (
 				5B13A2EC2CA08083004B7986 /* Swift6_PreviewHangeulView.swift */,
-				5B13A2E82CA07B34004B7986 /* Swift6_PreviewNumberView.swift */,
 				5B13A2EA2CA07B43004B7986 /* Swift6_PreviewSymbolView.swift */,
+				5B13A2E82CA07B34004B7986 /* Swift6_PreviewNumberView.swift */,
 				5B13A2E62CA0779F004B7986 /* Swift6_PreviewNaratgeulButton.swift */,
 			);
 			path = Swift6;
@@ -294,8 +294,8 @@
 			children = (
 				5B7557092CA071F70038BA9C /* Swift6 */,
 				5B7B3F772C569CC900F7C093 /* HangeulView.swift */,
-				5BA8097B2C99712A00CC1B25 /* NumberView.swift */,
 				5B2B3FFF2C6C8994007CA762 /* SymbolView.swift */,
+				5BA8097B2C99712A00CC1B25 /* NumberView.swift */,
 			);
 			path = KeyboardLayout;
 			sourceTree = "<group>";

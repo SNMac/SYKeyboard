@@ -76,6 +76,7 @@ struct HeightSettingsView: View {
             }
         }.onAppear {
             tempKeyboardHeight = keyboardHeight
+            options.current = .hangeul
         }
     }
 }

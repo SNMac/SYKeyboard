@@ -13,7 +13,6 @@ struct Swift6_PreviewHangeulView: View {
     @AppStorage("repeatTimerSpeed", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var repeatTimerSpeed = 0.06
     @AppStorage("keyboardHeight", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var keyboardHeight = 240.0
     @AppStorage("needsInputModeSwitchKey", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var needsInputModeSwitchKey = false
-    @AppStorage("isNumberPadEnabled", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var isNumberPadEnabled = true
     @Binding var tempKeyboardHeight: Double
     @State var timer: AnyCancellable?
     
@@ -357,26 +356,17 @@ struct Swift6_PreviewHangeulView: View {
                     if needsInputModeSwitchKey {
                         HStack(spacing: 0) {
                             Swift6_PreviewNaratgeulButton(
-                                text: isNumberPadEnabled ? "123" : "!#1", primary: false,
+                                text: "!#1", primary: false,
                                 onPress: {
                                     Feedback.shared.playModifierSound()
                                     Feedback.shared.playHaptic(style: .light)
                                 },
                                 onRelease: {
-                                    if isNumberPadEnabled {
-                                        options.current = .number
-                                    } else {
-                                        options.current = .symbol
-                                    }
+                                    options.current = .symbol
                                 },
                                 onLongPressFinished: {
-                                    if isNumberPadEnabled {
-                                        options.current = .number
-                                    } else {
-                                        options.current = .symbol
-                                    }
+                                    options.current = .symbol
                                 })
-                            .monospaced()
                             .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: vPadding, trailing: interItemHPadding))
                             .contentShape(Rectangle())
                             
@@ -392,26 +382,17 @@ struct Swift6_PreviewHangeulView: View {
                         }
                     } else {
                         Swift6_PreviewNaratgeulButton(
-                            text: isNumberPadEnabled ? "123" : "!#1", primary: false,
+                            text: "!#1", primary: false,
                             onPress: {
                                 Feedback.shared.playModifierSound()
                                 Feedback.shared.playHaptic(style: .light)
                             },
                             onRelease: {
-                                if isNumberPadEnabled {
-                                    options.current = .number
-                                } else {
-                                    options.current = .symbol
-                                }
+                                options.current = .symbol
                             },
                             onLongPressFinished: {
-                                if isNumberPadEnabled {
-                                    options.current = .number
-                                } else {
-                                    options.current = .symbol
-                                }
+                                options.current = .symbol
                             })
-                        .monospaced()
                         .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: vPadding, trailing: hPadding))
                         .contentShape(Rectangle())
                     }
