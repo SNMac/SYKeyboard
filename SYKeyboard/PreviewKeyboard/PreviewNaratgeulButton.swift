@@ -47,21 +47,21 @@ struct PreviewNaratgeulButton: View {
                     let dragWidthDiff = value.translation.width - dragStartWidth
                     if (options.current == .hangeul || options.current == .number) && dragWidthDiff < -20 {
                         isCursorMovable = true
-                        dragStartWidth = value.translation.width
                         if options.current == .hangeul {  // 한글 자판
                             if isNumberPadEnabled {
                                 options.current = .number
+                                Feedback.shared.playHaptic(style: .medium)
                             }
                         } else {  // 숫자 자판
                             options.current = .symbol
+                            Feedback.shared.playHaptic(style: .medium)
                         }
-                        Feedback.shared.playHaptic(style: .medium)
                     } else if options.current == .symbol && dragWidthDiff > 20 {  // 기호 자판
                         isCursorMovable = true
                         if isNumberPadEnabled {
                             options.current = .number
+                            Feedback.shared.playHaptic(style: .medium)
                         }
-                        Feedback.shared.playHaptic(style: .medium)
                     }
                 }
             }

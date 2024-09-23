@@ -12,14 +12,9 @@ struct AppearanceSettingsView: View {
     
     var body: some View {
         Toggle(isOn: $isNumberPadEnabled, label: {
-            Text("숫자 패드 활성화")
-            if isNumberPadEnabled {
-                Text("한글 - 기호 - 숫자")
-                    .font(.system(.caption))
-            } else {
-                Text("한글 - 기호")
-                    .font(.system(.caption))
-            }
+            Text("숫자 자판 활성화")
+            Text("자판 변경 버튼을 화살표 방향으로 드래그하여 전환")
+                .font(.system(.caption))
         }).onChange(of: isNumberPadEnabled) { _ in
             hideKeyboard()
         }
