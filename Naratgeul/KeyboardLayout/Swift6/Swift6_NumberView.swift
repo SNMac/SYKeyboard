@@ -341,7 +341,7 @@ struct Swift6_NumberView: View {
                     .contentShape(Rectangle())
                 }
                 
-                // MARK: - "-", ",", 0, ".", "/", (!#1, 􀆪)
+                // MARK: - "-", ",", 0, ".", "/", (한글, 􀆪)
                 HStack(spacing: 0) {HStack(spacing: 0) {
                     Swift6_NaratgeulButton(
                         text: "-", primary: true,
@@ -527,8 +527,4 @@ struct Swift6_NumberView: View {
         .frame(height: options.keyboardHeight)
         .background(Color("KeyboardBackground"))
     }
-}
-
-#Preview {
-    Swift6_NumberView()
 }

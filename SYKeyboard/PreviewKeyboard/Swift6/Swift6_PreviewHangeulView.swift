@@ -285,7 +285,7 @@ struct Swift6_PreviewHangeulView: View {
                     .contentShape(Rectangle())
                 }
                 
-                // MARK: - 획, ㅡ, 쌍, (123, 􀆪)
+                // MARK: - 획, ㅡ, 쌍, (!#1, 􀆪)
                 HStack(spacing: 0) {
                     Swift6_PreviewNaratgeulButton(
                         text: "획", primary: true,

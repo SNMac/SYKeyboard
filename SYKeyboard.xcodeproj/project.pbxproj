@@ -162,29 +162,12 @@
 			path = PreviewKeyboard;
 			sourceTree = "<group>";
 		};
-		5B7557062CA069130038BA9C /* KeyboardButton */ = {
-			isa = PBXGroup;
-			children = (
-				5B75570A2CA072140038BA9C /* Swift6 */,
-				5B0D82442C63C72700F84180 /* SYKeyboardButton.swift */,
-				5B2B40142C6CD2A4007CA762 /* NextKeyboardButton.swift */,
-			);
-			path = KeyboardButton;
-			sourceTree = "<group>";
-		};
 		5B7557092CA071F70038BA9C /* Swift6 */ = {
 			isa = PBXGroup;
 			children = (
 				5B7557072CA0717B0038BA9C /* Swift6_HangeulView.swift */,
 				5B75570D2CA072320038BA9C /* Swift6_SymbolView.swift */,
 				5B75570B2CA072280038BA9C /* Swift6_NumberView.swift */,
-			);
-			path = Swift6;
-			sourceTree = "<group>";
-		};
-		5B75570A2CA072140038BA9C /* Swift6 */ = {
-			isa = PBXGroup;
-			children = (
 				5B7556FE2CA0077A0038BA9C /* Swift6_NaratgeulButton.swift */,
 			);
 			path = Swift6;
@@ -264,8 +247,6 @@
 				5B2B40062C6CAB2F007CA762 /* NaratgeulView.swift */,
 				5B2B40112C6CC1D1007CA762 /* NaratgeulOptions.swift */,
 				5B7BDD4B2C92C0170065C944 /* KeyboardLayout */,
-				5B7557062CA069130038BA9C /* KeyboardButton */,
-				5B7BDD522C92DF9E0065C944 /* Extension */,
 				5B7B3F6F2C569B8200F7C093 /* Info.plist */,
 			);
 			path = Naratgeul;
@@ -296,15 +277,10 @@
 				5B7B3F772C569CC900F7C093 /* HangeulView.swift */,
 				5B2B3FFF2C6C8994007CA762 /* SymbolView.swift */,
 				5BA8097B2C99712A00CC1B25 /* NumberView.swift */,
+				5B0D82442C63C72700F84180 /* SYKeyboardButton.swift */,
+				5B2B40142C6CD2A4007CA762 /* NextKeyboardButton.swift */,
 			);
 			path = KeyboardLayout;
-			sourceTree = "<group>";
-		};
-		5B7BDD522C92DF9E0065C944 /* Extension */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = Extension;
 			sourceTree = "<group>";
 		};
 		5B9472312C8AD6DD00B8B154 /* GlobalData */ = {

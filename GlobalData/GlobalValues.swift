@@ -11,8 +11,8 @@ struct GlobalValues {
     private init() {}
     
     static let defaultKeyboardHeight: Double = 240.0
-    static let defaultLongPressSpeed: Double = 0.6
-    static let defaultRepeatTimerSpeed: Double = 0.06
+    static let defaultLongPressSpeed: Double = 0.5
+    static let defaultRepeatTimerSpeed: Double = 0.05
     
     static func setupDefaults(_ defaults: UserDefaults?) {
         // UserDefaults 값이 존재하는지 확인하고, 없으면 새로 만듬

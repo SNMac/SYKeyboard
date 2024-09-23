@@ -285,7 +285,7 @@ struct PreviewNumberView: View {
                     .contentShape(Rectangle())
                 }
                 
-                // MARK: - "-", ",", 0, ".", "/", (!#1, 􀆪)
+                // MARK: - "-", ",", 0, ".", "/", (한글, 􀆪)
                 HStack(spacing: 0) {
                     HStack(spacing: 0) {
                         PreviewNaratgeulButton(
@@ -408,7 +408,6 @@ struct PreviewNumberView: View {
                                 onPress: {
                                     Feedback.shared.playModifierSound()
                                     Feedback.shared.playHaptic(style: .light)
-                                    options.current = .symbol
                                 },
                                 onRelease: {
                                     options.current = .hangeul

@@ -43,10 +43,8 @@ struct Swift6_PreviewNaratgeulButton: View {
                         isCursorMovable = true
                         dragStartWidth = value.translation.width
                         if options.current == .hangeul {  // 한글 자판
-                            if isNumberPadEnabled {  // 숫자 자판
+                            if isNumberPadEnabled {
                                 options.current = .number
-                            } else {  // 한글 자판
-                                options.current = .symbol
                             }
                         } else {  // 숫자 자판
                             options.current = .symbol
@@ -54,8 +52,9 @@ struct Swift6_PreviewNaratgeulButton: View {
                         Feedback.shared.playHaptic(style: .medium)
                     } else if options.current == .symbol && dragWidthDiff > 20 {  // 기호 자판
                         isCursorMovable = true
-                        dragStartWidth = value.translation.width
-                        options.current = .hangeul
+                        if isNumberPadEnabled {
+                            options.current = .number
+                        }
                         Feedback.shared.playHaptic(style: .medium)
                     }
                 }
@@ -257,41 +256,8 @@ struct Swift6_PreviewNaratgeulButton: View {
             
             // Text 버튼들
         }  else if text != nil {
-            if text == "123" {
-                Text("123")
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
-                    .monospaced()
-                    .font(.system(size: needsInputModeSwitchKey ? textSize - 2 : textSize))
-                    .foregroundStyle(Color(uiColor: UIColor.label))
-                    .background(nowGesture == .pressing || nowGesture == .longPressing ? Color("PrimaryKeyboardButton") : Color("SecondaryKeyboardButton"))
-                    .clipShape(.rect(cornerRadius: 5))
-                    .overlay(alignment: .bottomTrailing, content: {
-                        HStack(spacing: 1) {
-                            Text("한글")
-                            Image(systemName: "arrowtriangle.right.fill")
-                        }
-                        .font(.system(size: 10))
-                        .foregroundStyle(Color(uiColor: .label))
-                        .backgroundStyle(Color(uiColor: .clear))
-                        .padding(EdgeInsets(top: 0, leading: 0, bottom: 2, trailing: 2))
-                    })
-                    .onLongPressGesture(minimumDuration: longPressTime, maximumDistance: 10) {
-                        // 버튼 길게 누르면(누른 상태에서 일정시간이 지나면) 호출
-                        print("onLongPressGesture()->perform: longPressing")
-                        onLongPressGesturePerform()
-                    } onPressingChanged: { isPressing in
-                        if isPressing {
-                            // 버튼 눌렀을 때 호출(버튼 누르면 무조건 첫번째로 호출)
-                            print("onLongPressGesture()->onPressingChanged: pressing")
-                            onLongPressGestureOnPressingTrue()
-                        } else {
-                            // 버튼 뗐을 때
-                            print("onLongPressGesture()->onPressingChanged: released")
-                            onLongPressGestureOnPressingFalse()
-                        }
-                    }
-                    .gesture(dragGesture)
-            } else if text == "!#1" {
+            if text == "!#1" {
+                // 한글 자판
                 Text("!#1")
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
                     .monospaced()
@@ -329,41 +295,81 @@ struct Swift6_PreviewNaratgeulButton: View {
                     }
                     .gesture(dragGesture)
             } else if text == "한글" {
-                Text("한글")
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
-                    .font(.system(size: needsInputModeSwitchKey ? textSize - 2 : textSize))
-                    .foregroundStyle(Color(uiColor: UIColor.label))
-                    .background(nowGesture == .pressing || nowGesture == .longPressing ? Color("PrimaryKeyboardButton") : Color("SecondaryKeyboardButton"))
-                    .clipShape(.rect(cornerRadius: 5))
-                    .overlay(alignment: isNumberPadEnabled ? .bottomLeading : .bottomTrailing, content: {
-                        HStack(spacing: 1) {
-                            if isNumberPadEnabled {
-                                Image(systemName: "arrowtriangle.left.fill")
-                                Text("!#1")
+                // 기호 자판
+                if options.current == .symbol {
+                    Text("한글")
+                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+                        .font(.system(size: needsInputModeSwitchKey ? textSize - 2 : textSize))
+                        .foregroundStyle(Color(uiColor: UIColor.label))
+                        .background(nowGesture == .pressing || nowGesture == .longPressing ? Color("PrimaryKeyboardButton") : Color("SecondaryKeyboardButton"))
+                        .clipShape(.rect(cornerRadius: 5))
+                        .overlay(alignment: .bottomTrailing, content: {
+                            HStack(spacing: 1) {
+                                if isNumberPadEnabled {
+                                    Text("123")
+                                    Image(systemName: "arrowtriangle.right.fill")
+                                }
+                            }
+                            .monospaced()
+                            .font(.system(size: 10))
+                            .foregroundStyle(Color(uiColor: .label))
+                            .backgroundStyle(Color(uiColor: .clear))
+                            .padding(EdgeInsets(top: 0, leading: 0, bottom: 2, trailing: 2))
+                        })
+                        .onLongPressGesture(minimumDuration: longPressTime, maximumDistance: 10) {
+                            // 버튼 길게 누르면(누른 상태에서 일정시간이 지나면) 호출
+                            print("onLongPressGesture()->perform: longPressing")
+                            onLongPressGesturePerform()
+                        } onPressingChanged: { isPressing in
+                            if isPressing {
+                                // 버튼 눌렀을 때 호출(버튼 누르면 무조건 첫번째로 호출)
+                                print("onLongPressGesture()->onPressingChanged: pressing")
+                                onLongPressGestureOnPressingTrue()
+                            } else {
+                                // 버튼 뗐을 때
+                                print("onLongPressGesture()->onPressingChanged: released")
+                                onLongPressGestureOnPressingFalse()
                             }
                         }
-                        .monospaced()
-                        .font(.system(size: 10))
-                        .foregroundStyle(Color(uiColor: .label))
-                        .backgroundStyle(Color(uiColor: .clear))
-                        .padding(EdgeInsets(top: 0, leading: isNumberPadEnabled ? 2 : 0, bottom: 2, trailing: isNumberPadEnabled ? 0 : 2))
-                    })
-                    .onLongPressGesture(minimumDuration: longPressTime, maximumDistance: 10) {
-                        // 버튼 길게 누르면(누른 상태에서 일정시간이 지나면) 호출
-                        print("onLongPressGesture()->perform: longPressing")
-                        onLongPressGesturePerform()
-                    } onPressingChanged: { isPressing in
-                        if isPressing {
-                            // 버튼 눌렀을 때 호출(버튼 누르면 무조건 첫번째로 호출)
-                            print("onLongPressGesture()->onPressingChanged: pressing")
-                            onLongPressGestureOnPressingTrue()
-                        } else {
-                            // 버튼 뗐을 때
-                            print("onLongPressGesture()->onPressingChanged: released")
-                            onLongPressGestureOnPressingFalse()
+                        .gesture(dragGesture)
+                } else if options.current == .number {
+                    // 숫자 자판
+                    Text("한글")
+                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+                        .font(.system(size: needsInputModeSwitchKey ? textSize - 2 : textSize))
+                        .foregroundStyle(Color(uiColor: UIColor.label))
+                        .background(nowGesture == .pressing || nowGesture == .longPressing ? Color("PrimaryKeyboardButton") : Color("SecondaryKeyboardButton"))
+                        .clipShape(.rect(cornerRadius: 5))
+                        .overlay(alignment: .bottomLeading, content: {
+                            HStack(spacing: 1) {
+                                if isNumberPadEnabled {
+                                    Image(systemName: "arrowtriangle.left.fill")
+                                    Text("!#1")
+                                }
+                            }
+                            .monospaced()
+                            .font(.system(size: 10))
+                            .foregroundStyle(Color(uiColor: .label))
+                            .backgroundStyle(Color(uiColor: .clear))
+                            .padding(EdgeInsets(top: 0, leading: 2, bottom: 2, trailing: 0))
+                        })
+                        .onLongPressGesture(minimumDuration: longPressTime, maximumDistance: 10) {
+                            // 버튼 길게 누르면(누른 상태에서 일정시간이 지나면) 호출
+                            print("onLongPressGesture()->perform: longPressing")
+                            onLongPressGesturePerform()
+                        } onPressingChanged: { isPressing in
+                            if isPressing {
+                                // 버튼 눌렀을 때 호출(버튼 누르면 무조건 첫번째로 호출)
+                                print("onLongPressGesture()->onPressingChanged: pressing")
+                                onLongPressGestureOnPressingTrue()
+                            } else {
+                                // 버튼 뗐을 때
+                                print("onLongPressGesture()->onPressingChanged: released")
+                                onLongPressGestureOnPressingFalse()
+                            }
                         }
-                    }
-                    .gesture(dragGesture)
+                        .gesture(dragGesture)
+                }
                 
             } else if text == "\(options.nowSymbolPage + 1)/\(options.totalSymbolPage)" {
                 Text("\(options.nowSymbolPage + 1)/\(options.totalSymbolPage)")

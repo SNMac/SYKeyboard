@@ -10,7 +10,6 @@ import Combine
 
 struct Swift6_SymbolView: View {
     @EnvironmentObject var options: NaratgeulOptions
-    @AppStorage("isNumberPadEnabled", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var isNumberPadEnabled = true
     @State var timer: AnyCancellable?
     
     let vPadding: CGFloat = 4
@@ -751,24 +750,16 @@ struct Swift6_SymbolView: View {
                     if options.needsInputModeSwitchKey {
                         HStack(spacing: 0) {
                             Swift6_NaratgeulButton(
-                                text: isNumberPadEnabled ? "123" : "한글", primary: false,
+                                text: "한글", primary: false,
                                 onPress: {
                                     Feedback.shared.playModifierSound()
                                     Feedback.shared.playHaptic(style: .light)
                                 },
                                 onRelease: {
-                                    if isNumberPadEnabled {
-                                        options.current = .number
-                                    } else {
-                                        options.current = .hangeul
-                                    }
+                                    options.current = .hangeul
                                 },
                                 onLongPressFinished: {
-                                    if isNumberPadEnabled {
-                                        options.current = .number
-                                    } else {
-                                        options.current = .hangeul
-                                    }
+                                    options.current = .hangeul
                                 })
                             .padding(EdgeInsets(top: interItemVPadding, leading: hPadding, bottom: vPadding, trailing: interItemHPadding))
                             .contentShape(Rectangle())
@@ -782,24 +773,16 @@ struct Swift6_SymbolView: View {
                         }
                     } else {
                         Swift6_NaratgeulButton(
-                            text: isNumberPadEnabled ? "123" : "한글", primary: false,
+                            text: "한글", primary: false,
                             onPress: {
                                 Feedback.shared.playModifierSound()
                                 Feedback.shared.playHaptic(style: .light)
                             },
                             onRelease: {
-                                if isNumberPadEnabled {
-                                    options.current = .number
-                                } else {
-                                    options.current = .hangeul
-                                }
+                                options.current = .hangeul
                             },
                             onLongPressFinished: {
-                                if isNumberPadEnabled {
-                                    options.current = .number
-                                } else {
-                                    options.current = .hangeul
-                                }
+                                options.current = .hangeul
                             })
                         .padding(EdgeInsets(top: interItemVPadding, leading: hPadding, bottom: vPadding, trailing: interItemHPadding))
                         .contentShape(Rectangle())
@@ -855,8 +838,4 @@ struct Swift6_SymbolView: View {
         .frame(height: options.keyboardHeight)
         .background(Color("KeyboardBackground"))
     }
-}
-
-#Preview {
-    Swift6_SymbolView()
 }

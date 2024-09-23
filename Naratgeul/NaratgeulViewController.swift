@@ -157,9 +157,9 @@ class NaratgeulViewController: UIInputViewController {
         
         let options = NaratgeulOptions(
             delegate: keyboardIOManager,
-            keyboardHeight: CGFloat(defaults?.double(forKey: "keyboardHeight") ?? 240.0),
-            longPressTime: 1.0 - (defaults?.double(forKey: "longPressSpeed") ?? 0.6),
-            repeatTimerCycle: 0.10 - (defaults?.double(forKey: "repeatTimerSpeed") ?? 0.06),
+            keyboardHeight: CGFloat(defaults?.double(forKey: "keyboardHeight") ?? GlobalValues.defaultKeyboardHeight),
+            longPressTime: 1.0 - (defaults?.double(forKey: "longPressSpeed") ?? GlobalValues.defaultLongPressSpeed),
+            repeatTimerCycle: 0.10 - (defaults?.double(forKey: "repeatTimerSpeed") ?? GlobalValues.defaultRepeatTimerSpeed),
             colorScheme: traitCollection.userInterfaceStyle == .dark ? .dark : .light,
             needsInputModeSwitchKey: needsInputModeSwitchKey,
             nextKeyboardAction: nextKeyboardAction

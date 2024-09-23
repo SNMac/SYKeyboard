@@ -52,10 +52,8 @@ struct SYKeyboardButton: View {
                         isCursorMovable = true
                         dragStartWidth = value.translation.width
                         if options.current == .hangeul {  // 한글 자판
-                            if isNumberPadEnabled {  // 숫자 자판
+                            if isNumberPadEnabled {
                                 options.current = .number
-                            } else {  // 한글 자판
-                                options.current = .symbol
                             }
                         } else {  // 숫자 자판
                             options.current = .symbol
@@ -63,8 +61,9 @@ struct SYKeyboardButton: View {
                         Feedback.shared.playHaptic(style: .medium)
                     } else if options.current == .symbol && dragWidthDiff > 20 {  // 기호 자판
                         isCursorMovable = true
-                        dragStartWidth = value.translation.width
-                        options.current = .hangeul
+                        if isNumberPadEnabled {
+                            options.current = .number
+                        }
                         Feedback.shared.playHaptic(style: .medium)
                     }
                 }
@@ -191,25 +190,8 @@ struct SYKeyboardButton: View {
                 
                 // Text 버튼들
             } else if text != nil {
-                if text == "123" {
-                    Text("123")
-                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
-                        .monospaced()
-                        .font(.system(size: options.needsInputModeSwitchKey ? textSize - 2 : textSize))
-                        .foregroundStyle(Color(uiColor: UIColor.label))
-                        .background(nowGesture == .pressing || nowGesture == .longPressing ? Color("PrimaryKeyboardButton") : Color("SecondaryKeyboardButton"))
-                        .clipShape(.rect(cornerRadius: 5))
-                        .overlay(alignment: .bottomTrailing, content: {
-                            HStack(spacing: 1) {
-                                Text("한글")
-                                Image(systemName: "arrowtriangle.right.fill")
-                            }
-                            .font(.system(size: 10))
-                            .foregroundStyle(Color(uiColor: .label))
-                            .backgroundStyle(Color(uiColor: .clear))
-                            .padding(EdgeInsets(top: 0, leading: 0, bottom: 2, trailing: 2))
-                        })
-                } else if text == "!#1" {
+                if text == "!#1" {
+                    // 한글 자판
                     Text("!#1")
                         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
                         .monospaced()
@@ -231,27 +213,51 @@ struct SYKeyboardButton: View {
                             .padding(EdgeInsets(top: 0, leading: 2, bottom: 2, trailing: 0))
                         })
                 } else if text == "한글" {
-                    Text("한글")
-                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
-                        .font(.system(size: options.needsInputModeSwitchKey ? textSize - 2 : textSize))
-                        .foregroundStyle(Color(uiColor: UIColor.label))
-                        .background(nowGesture == .pressing || nowGesture == .longPressing ? Color("PrimaryKeyboardButton") : Color("SecondaryKeyboardButton"))
-                        .clipShape(.rect(cornerRadius: 5))
-                        .overlay(alignment: isNumberPadEnabled ? .bottomLeading : .bottomTrailing, content: {
-                            HStack(spacing: 1) {
-                                if isNumberPadEnabled {
-                                    Image(systemName: "arrowtriangle.left.fill")
-                                    Text("!#1")
+                    // 기호 자판
+                    if options.current == .symbol {
+                        Text("한글")
+                            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+                            .font(.system(size: options.needsInputModeSwitchKey ? textSize - 2 : textSize))
+                            .foregroundStyle(Color(uiColor: UIColor.label))
+                            .background(nowGesture == .pressing || nowGesture == .longPressing ? Color("PrimaryKeyboardButton") : Color("SecondaryKeyboardButton"))
+                            .clipShape(.rect(cornerRadius: 5))
+                            .overlay(alignment: .bottomTrailing, content: {
+                                HStack(spacing: 1) {
+                                    if isNumberPadEnabled {
+                                        Text("123")
+                                        Image(systemName: "arrowtriangle.right.fill")
+                                    }
                                 }
-                            }
-                            .monospaced()
-                            .font(.system(size: 10))
-                            .foregroundStyle(Color(uiColor: .label))
-                            .backgroundStyle(Color(uiColor: .clear))
-                            .padding(EdgeInsets(top: 0, leading: isNumberPadEnabled ? 2 : 0, bottom: 2, trailing: isNumberPadEnabled ? 0 : 2))
-                        })
-                }
-                else if text == "\(options.nowSymbolPage + 1)/\(options.totalSymbolPage)" {
+                                .monospaced()
+                                .font(.system(size: 10))
+                                .foregroundStyle(Color(uiColor: .label))
+                                .backgroundStyle(Color(uiColor: .clear))
+                                .padding(EdgeInsets(top: 0, leading: 0, bottom: 2, trailing: 2))
+                            })
+                    } else if options.current == .number {
+                        // 숫자 자판
+                        Text("한글")
+                            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+                            .font(.system(size: options.needsInputModeSwitchKey ? textSize - 2 : textSize))
+                            .foregroundStyle(Color(uiColor: UIColor.label))
+                            .background(nowGesture == .pressing || nowGesture == .longPressing ? Color("PrimaryKeyboardButton") : Color("SecondaryKeyboardButton"))
+                            .clipShape(.rect(cornerRadius: 5))
+                            .overlay(alignment: .bottomLeading, content: {
+                                HStack(spacing: 1) {
+                                    if isNumberPadEnabled {
+                                        Image(systemName: "arrowtriangle.left.fill")
+                                        Text("!#1")
+                                    }
+                                }
+                                .monospaced()
+                                .font(.system(size: 10))
+                                .foregroundStyle(Color(uiColor: .label))
+                                .backgroundStyle(Color(uiColor: .clear))
+                                .padding(EdgeInsets(top: 0, leading: 2, bottom: 2, trailing: 0))
+                            })
+                    }
+                    
+                } else if text == "\(options.nowSymbolPage + 1)/\(options.totalSymbolPage)" {
                     Text("\(options.nowSymbolPage + 1)/\(options.totalSymbolPage)")
                         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
                         .monospaced()
