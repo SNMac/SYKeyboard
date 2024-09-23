@@ -48,7 +48,7 @@ struct SYKeyboardButton: View {
                 if !isCursorMovable {
                     // 왼쪽으로 일정 거리 초과 드래그 -> 이전 자판으로 변경
                     let dragWidthDiff = value.translation.width - dragStartWidth
-                    if options.current == .hangeul || options.current == .number && dragWidthDiff < -20 {
+                    if (options.current == .hangeul || options.current == .number) && dragWidthDiff < -20 {
                         isCursorMovable = true
                         dragStartWidth = value.translation.width
                         if options.current == .hangeul {  // 한글 자판
