@@ -11,7 +11,7 @@ import SwiftUI
 
 struct HeightSettingsView: View {
     @Environment(\.dismiss) private var dismiss
-    @EnvironmentObject var options: PreviewSYKeyboardOptions
+    @EnvironmentObject var options: PreviewNaratgeulOptions
     @AppStorage("keyboardHeight", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var keyboardHeight = 240.0
     @State var tempKeyboardHeight: Double = 240.0
     
@@ -36,7 +36,7 @@ struct HeightSettingsView: View {
             }
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
-                    tempKeyboardHeight = DefaultValues().defaultKeyboardHeight
+                    tempKeyboardHeight = GlobalValues.defaultKeyboardHeight
                 } label: {
                     Text("리셋")
                 }
@@ -56,10 +56,23 @@ struct HeightSettingsView: View {
     var body: some View {
         NavigationStack {
             heightSettings
-            if options.current == .hangul {
-                PreviewSYKeyboardHangulView(tempKeyboardHeight: $tempKeyboardHeight)
-            } else if options.current == .symbol {
-                PreviewSYKeyboardSymbolView(tempKeyboardHeight: $tempKeyboardHeight)
+            if #available(iOS 18, *) {
+                if options.current == .hangeul {
+                    Swift6_PreviewHangeulView(tempKeyboardHeight: $tempKeyboardHeight)
+                } else if options.current == .number {
+                    Swift6_PreviewNumberView(tempKeyboardHeight: $tempKeyboardHeight)
+                } else {
+                    Swift6_PreviewSymbolView(tempKeyboardHeight: $tempKeyboardHeight)
+                }
+                
+            } else {
+                if options.current == .hangeul {
+                    PreviewHangeulView(tempKeyboardHeight: $tempKeyboardHeight)
+                } else if options.current == .number {
+                    PreviewNumberView(tempKeyboardHeight: $tempKeyboardHeight)
+                } else {
+                    PreviewSymbolView(tempKeyboardHeight: $tempKeyboardHeight)
+                }
             }
         }.onAppear {
             tempKeyboardHeight = keyboardHeight
@@ -69,5 +82,5 @@ struct HeightSettingsView: View {
 
 #Preview {
     HeightSettingsView()
-        .environmentObject(PreviewSYKeyboardOptions())
+        .environmentObject(PreviewNaratgeulOptions())
 }

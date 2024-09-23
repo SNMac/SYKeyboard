@@ -1,5 +1,5 @@
 //
-//  GlobalData.swift
+//  GlobalValues.swift
 //  SYKeyboard, Naratgeul
 //
 //  Created by 서동환 on 9/4/24.
@@ -7,16 +7,16 @@
 
 import Foundation
 
-final class DefaultValues {
-    static let shared = DefaultValues()
+struct GlobalValues {
+    private init() {}
     
-    let defaultKeyboardHeight: Double = 240.0
-    let defaultLongPressSpeed: Double = 0.6
-    let defaultRepeatTimerSpeed: Double = 0.06
+    static let defaultKeyboardHeight: Double = 240.0
+    static let defaultLongPressSpeed: Double = 0.6
+    static let defaultRepeatTimerSpeed: Double = 0.06
     
-    func setupDefaults(defaults: UserDefaults?) {
+    static func setupDefaults(_ defaults: UserDefaults?) {
         // UserDefaults 값이 존재하는지 확인하고, 없으면 새로 만듬
-
+        
         /* 피드백 설정 */
         // 소리 피드백
         if defaults?.object(forKey: "isSoundFeedbackEnabled") == nil {
@@ -36,26 +36,27 @@ final class DefaultValues {
         if defaults?.object(forKey: "isTextReplacementEnabled") == nil {
             defaults?.setValue(true, forKey: "isTextReplacementEnabled")
         }
-        // 획/쌍 → ","/"." 전환 허용
-        if defaults?.object(forKey: "isHoegSsangToCommaPeriodEnabled") == nil {
-            defaults?.setValue(true, forKey: "isHoegSsangToCommaPeriodEnabled")
-        }
         
         /* 입력 설정 -> 속도 설정 */
         // 길게 누르기 속도
         if defaults?.object(forKey: "longPressSpeed") == nil {
-            defaults?.setValue(DefaultValues().defaultLongPressSpeed, forKey: "longPressSpeed")
+            defaults?.setValue(GlobalValues.defaultLongPressSpeed, forKey: "longPressSpeed")
         }
         // 반복 속도
         if defaults?.object(forKey: "repeatTimerSpeed") == nil {
-            defaults?.setValue(DefaultValues().defaultRepeatTimerSpeed, forKey: "repeatTimerSpeed")
+            defaults?.setValue(GlobalValues.defaultRepeatTimerSpeed, forKey: "repeatTimerSpeed")
         }
         
         /* 외형 설정 */
         // 키보드 높이
         if defaults?.object(forKey: "keyboardHeight") == nil {
-            defaults?.setValue(DefaultValues().defaultKeyboardHeight, forKey: "keyboardHeight")
+            defaults?.setValue(GlobalValues.defaultKeyboardHeight, forKey: "keyboardHeight")
         }
+        // 숫자 패드 활성화
+        if defaults?.object(forKey: "isNumberPadEnabled") == nil {
+            defaults?.setValue(true, forKey: "isNumberPadEnabled")
+        }
+        // 키보드 전환 버튼 표시 설정용
         if defaults?.object(forKey: "needsInputModeSwitchKey") == nil {
             defaults?.setValue(false, forKey: "needsInputModeSwitchKey")
         }

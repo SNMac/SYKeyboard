@@ -1,5 +1,5 @@
 //
-//  SYKeyboardOptions.swift
+//  NaratgeulOptions.swift
 //  Naratgeul
 //
 //  Created by 서동환 on 8/14/24.
@@ -8,7 +8,7 @@
 import Foundation
 import SwiftUI
 
-enum KeyboardType: CaseIterable {
+enum KeyboardType {
     case hangeul
     case number
     case symbol
@@ -31,10 +31,10 @@ final class NaratgeulOptions: ObservableObject {
     @Published var current: KeyboardType = .hangeul
     @Published var returnButtonLabel: returnButtonType = ._default
     @Published var isHoegSsangAvailable: Bool = false
-    @Published var curSymbolPage: Int = 0
+    @Published var nowSymbolPage: Int = 0
     @Published var totalSymbolPage: Int = 0
-    var curPressedButton: SYKeyboardButton?
-    var Swift6_curPressedButton: Swift6_NaratgeulButton?
+    var nowPressedButton: SYKeyboardButton?
+    var swift6_nowPressedButton: Swift6_NaratgeulButton?
     
     weak var delegate: NaratgeulDelegate?
     var keyboardHeight: CGFloat
@@ -60,19 +60,5 @@ final class NaratgeulOptions: ObservableObject {
         self.colorScheme = colorScheme
         self.needsInputModeSwitchKey = needsInputModeSwitchKey
         self.nextKeyboardAction = nextKeyboardAction
-    }
-}
-
-extension CaseIterable where Self: Equatable {
-    func previous() -> Self {
-        let all = Self.allCases
-        var idx = all.firstIndex(of: self)!
-        if idx == all.startIndex {
-            let lastIndex = all.index(all.endIndex, offsetBy: -1)
-            return all[lastIndex]
-        } else {
-            all.formIndex(&idx, offsetBy: -1)
-            return all[idx]
-        }
     }
 }

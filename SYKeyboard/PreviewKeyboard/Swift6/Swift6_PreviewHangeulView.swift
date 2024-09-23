@@ -1,18 +1,19 @@
 //
-//  PreviewSYKeyboardHangulView.swift
+//  Swift6_PreviewHangeulView.swift
 //  SYKeyboard
 //
-//  Created by 서동환 on 9/16/24.
+//  Created by 서동환 on 9/23/24.
 //
 
 import SwiftUI
 import Combine
 
-struct PreviewSYKeyboardHangulView: View {
-    @EnvironmentObject var options: PreviewSYKeyboardOptions
+struct Swift6_PreviewHangeulView: View {
+    @EnvironmentObject var options: PreviewNaratgeulOptions
     @AppStorage("repeatTimerSpeed", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var repeatTimerSpeed = 0.06
     @AppStorage("keyboardHeight", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var keyboardHeight = 240.0
     @AppStorage("needsInputModeSwitchKey", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var needsInputModeSwitchKey = false
+    @AppStorage("isNumberPadEnabled", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var isNumberPadEnabled = true
     @Binding var tempKeyboardHeight: Double
     @State var timer: AnyCancellable?
     
@@ -28,20 +29,20 @@ struct PreviewSYKeyboardHangulView: View {
             VStack(spacing: 0) {
                 // MARK: - ㄱ, ㄴ, ㅏㅓ, 􀆛
                 HStack(spacing: 0) {
-                    PreviewSYKeyboardButton(
+                    Swift6_PreviewNaratgeulButton(
                         text: "ㄱ", primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
-                            Feedback.shared.playHaptics()
+                            Feedback.shared.playHaptic(style: .light)
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()
-                            Feedback.shared.playHaptics()
+                            Feedback.shared.playHaptic(style: .light)
                             timer = Timer.publish(every: repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
-                                    Feedback.shared.playHaptics()
+                                    Feedback.shared.playHaptic(style: .light)
                                 }
                         },
                         onLongPressFinished: {
@@ -50,20 +51,20 @@ struct PreviewSYKeyboardHangulView: View {
                     .padding(EdgeInsets(top: vPadding, leading: hPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    PreviewSYKeyboardButton(
+                    Swift6_PreviewNaratgeulButton(
                         text: "ㄴ", primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
-                            Feedback.shared.playHaptics()
+                            Feedback.shared.playHaptic(style: .light)
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()
-                            Feedback.shared.playHaptics()
+                            Feedback.shared.playHaptic(style: .light)
                             timer = Timer.publish(every: repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
-                                    Feedback.shared.playHaptics()
+                                    Feedback.shared.playHaptic(style: .light)
                                 }
                         },
                         onLongPressFinished: {
@@ -72,20 +73,20 @@ struct PreviewSYKeyboardHangulView: View {
                     .padding(EdgeInsets(top: vPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    PreviewSYKeyboardButton(
+                    Swift6_PreviewNaratgeulButton(
                         text: "ㅏㅓ", primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
-                            Feedback.shared.playHaptics()
+                            Feedback.shared.playHaptic(style: .light)
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()
-                            Feedback.shared.playHaptics()
+                            Feedback.shared.playHaptic(style: .light)
                             timer = Timer.publish(every: repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
-                                    Feedback.shared.playHaptics()
+                                    Feedback.shared.playHaptic(style: .light)
                                 }
                         },
                         onLongPressFinished: {
@@ -94,18 +95,18 @@ struct PreviewSYKeyboardHangulView: View {
                     .padding(EdgeInsets(top: vPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    PreviewSYKeyboardButton(
+                    Swift6_PreviewNaratgeulButton(
                         systemName: "delete.left", primary: false,
                         onPress: {
                             Feedback.shared.playDeleteSound()
-                            Feedback.shared.playHaptics()
+                            Feedback.shared.playHaptic(style: .light)
                         },
                         onLongPress: {
                             timer = Timer.publish(every: repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playDeleteSound()
-                                    Feedback.shared.playHaptics()
+                                    Feedback.shared.playHaptic(style: .light)
                                 }
                         },
                         onLongPressFinished: {
@@ -118,20 +119,20 @@ struct PreviewSYKeyboardHangulView: View {
                 
                 // MARK: - ㄹ, ㅁ, ㅗㅜ, 􁁺
                 HStack(spacing: 0) {
-                    PreviewSYKeyboardButton(
+                    Swift6_PreviewNaratgeulButton(
                         text: "ㄹ", primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
-                            Feedback.shared.playHaptics()
+                            Feedback.shared.playHaptic(style: .light)
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()
-                            Feedback.shared.playHaptics()
+                            Feedback.shared.playHaptic(style: .light)
                             timer = Timer.publish(every: repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
-                                    Feedback.shared.playHaptics()
+                                    Feedback.shared.playHaptic(style: .light)
                                 }
                         },
                         onLongPressFinished: {
@@ -140,20 +141,20 @@ struct PreviewSYKeyboardHangulView: View {
                     .padding(EdgeInsets(top: interItemVPadding, leading: hPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    PreviewSYKeyboardButton(
+                    Swift6_PreviewNaratgeulButton(
                         text: "ㅁ", primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
-                            Feedback.shared.playHaptics()
+                            Feedback.shared.playHaptic(style: .light)
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()
-                            Feedback.shared.playHaptics()
+                            Feedback.shared.playHaptic(style: .light)
                             timer = Timer.publish(every: repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
-                                    Feedback.shared.playHaptics()
+                                    Feedback.shared.playHaptic(style: .light)
                                 }
                         },
                         onLongPressFinished: {
@@ -162,20 +163,20 @@ struct PreviewSYKeyboardHangulView: View {
                     .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    PreviewSYKeyboardButton(
+                    Swift6_PreviewNaratgeulButton(
                         text: "ㅗㅜ", primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
-                            Feedback.shared.playHaptics()
+                            Feedback.shared.playHaptic(style: .light)
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()
-                            Feedback.shared.playHaptics()
+                            Feedback.shared.playHaptic(style: .light)
                             timer = Timer.publish(every: repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
-                                    Feedback.shared.playHaptics()
+                                    Feedback.shared.playHaptic(style: .light)
                                 }
                         },
                         onLongPressFinished: {
@@ -184,20 +185,20 @@ struct PreviewSYKeyboardHangulView: View {
                     .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    PreviewSYKeyboardButton(
-                        systemName: "space", primary: false,
+                    Swift6_PreviewNaratgeulButton(
+                        systemName: "space", primary: true,
                         onPress: {
                             Feedback.shared.playModifierSound()
-                            Feedback.shared.playHaptics()
+                            Feedback.shared.playHaptic(style: .light)
                         },
                         onLongPress: {
                             Feedback.shared.playModifierSound()
-                            Feedback.shared.playHaptics()
+                            Feedback.shared.playHaptic(style: .light)
                             timer = Timer.publish(every: repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playModifierSound()
-                                    Feedback.shared.playHaptics()
+                                    Feedback.shared.playHaptic(style: .light)
                                 }
                         },
                         onLongPressFinished: {
@@ -209,20 +210,20 @@ struct PreviewSYKeyboardHangulView: View {
                 
                 // MARK: - ㅅ, ㅇ, ㅣ, 􁂆
                 HStack(spacing: 0) {
-                    PreviewSYKeyboardButton(
+                    Swift6_PreviewNaratgeulButton(
                         text: "ㅅ", primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
-                            Feedback.shared.playHaptics()
+                            Feedback.shared.playHaptic(style: .light)
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()
-                            Feedback.shared.playHaptics()
+                            Feedback.shared.playHaptic(style: .light)
                             timer = Timer.publish(every: repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
-                                    Feedback.shared.playHaptics()
+                                    Feedback.shared.playHaptic(style: .light)
                                 }
                         },
                         onLongPressFinished: {
@@ -231,20 +232,20 @@ struct PreviewSYKeyboardHangulView: View {
                     .padding(EdgeInsets(top: interItemVPadding, leading: hPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    PreviewSYKeyboardButton(
+                    Swift6_PreviewNaratgeulButton(
                         text: "ㅇ", primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
-                            Feedback.shared.playHaptics()
+                            Feedback.shared.playHaptic(style: .light)
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()
-                            Feedback.shared.playHaptics()
+                            Feedback.shared.playHaptic(style: .light)
                             timer = Timer.publish(every: repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
-                                    Feedback.shared.playHaptics()
+                                    Feedback.shared.playHaptic(style: .light)
                                 }
                         },
                         onLongPressFinished: {
@@ -253,20 +254,20 @@ struct PreviewSYKeyboardHangulView: View {
                     .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    PreviewSYKeyboardButton(
+                    Swift6_PreviewNaratgeulButton(
                         text: "ㅣ", primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
-                            Feedback.shared.playHaptics()
+                            Feedback.shared.playHaptic(style: .light)
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()
-                            Feedback.shared.playHaptics()
+                            Feedback.shared.playHaptic(style: .light)
                             timer = Timer.publish(every: repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
-                                    Feedback.shared.playHaptics()
+                                    Feedback.shared.playHaptic(style: .light)
                                 }
                         },
                         onLongPressFinished: {
@@ -275,11 +276,11 @@ struct PreviewSYKeyboardHangulView: View {
                     .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    PreviewSYKeyboardButton(
+                    Swift6_PreviewNaratgeulButton(
                         systemName: "return.left", primary: false,
                         onPress: {
                             Feedback.shared.playModifierSound()
-                            Feedback.shared.playHaptics()
+                            Feedback.shared.playHaptic(style: .light)
                         })
                     .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: hPadding))
                     .contentShape(Rectangle())
@@ -287,20 +288,20 @@ struct PreviewSYKeyboardHangulView: View {
                 
                 // MARK: - 획, ㅡ, 쌍, (123, 􀆪)
                 HStack(spacing: 0) {
-                    PreviewSYKeyboardButton(
+                    Swift6_PreviewNaratgeulButton(
                         text: "획", primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
-                            Feedback.shared.playHaptics()
+                            Feedback.shared.playHaptic(style: .light)
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()
-                            Feedback.shared.playHaptics()
+                            Feedback.shared.playHaptic(style: .light)
                             timer = Timer.publish(every: repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
-                                    Feedback.shared.playHaptics()
+                                    Feedback.shared.playHaptic(style: .light)
                                 }
                         },
                         onLongPressFinished: {
@@ -309,20 +310,20 @@ struct PreviewSYKeyboardHangulView: View {
                     .padding(EdgeInsets(top: interItemVPadding, leading: hPadding, bottom: vPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    PreviewSYKeyboardButton(
+                    Swift6_PreviewNaratgeulButton(
                         text: "ㅡ", primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
-                            Feedback.shared.playHaptics()
+                            Feedback.shared.playHaptic(style: .light)
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()
-                            Feedback.shared.playHaptics()
+                            Feedback.shared.playHaptic(style: .light)
                             timer = Timer.publish(every: repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
-                                    Feedback.shared.playHaptics()
+                                    Feedback.shared.playHaptic(style: .light)
                                 }
                         },
                         onLongPressFinished: {
@@ -331,20 +332,20 @@ struct PreviewSYKeyboardHangulView: View {
                     .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: vPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    PreviewSYKeyboardButton(
+                    Swift6_PreviewNaratgeulButton(
                         text: "쌍", primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
-                            Feedback.shared.playHaptics()
+                            Feedback.shared.playHaptic(style: .light)
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()
-                            Feedback.shared.playHaptics()
+                            Feedback.shared.playHaptic(style: .light)
                             timer = Timer.publish(every: repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
-                                    Feedback.shared.playHaptics()
+                                    Feedback.shared.playHaptic(style: .light)
                                 }
                         },
                         onLongPressFinished: {
@@ -355,34 +356,62 @@ struct PreviewSYKeyboardHangulView: View {
                     
                     if needsInputModeSwitchKey {
                         HStack(spacing: 0) {
-                            PreviewSYKeyboardButton(
-                                text: "123", primary: false,
+                            Swift6_PreviewNaratgeulButton(
+                                text: isNumberPadEnabled ? "123" : "!#1", primary: false,
                                 onPress: {
                                     Feedback.shared.playModifierSound()
-                                    Feedback.shared.playHaptics()
-                                    options.current = .symbol
+                                    Feedback.shared.playHaptic(style: .light)
+                                },
+                                onRelease: {
+                                    if isNumberPadEnabled {
+                                        options.current = .number
+                                    } else {
+                                        options.current = .symbol
+                                    }
+                                },
+                                onLongPressFinished: {
+                                    if isNumberPadEnabled {
+                                        options.current = .number
+                                    } else {
+                                        options.current = .symbol
+                                    }
                                 })
+                            .monospaced()
                             .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: vPadding, trailing: interItemHPadding))
                             .contentShape(Rectangle())
                             
-                            PreviewSYKeyboardButton(
+                            Swift6_PreviewNaratgeulButton(
                                 systemName: "globe", primary: false,
                                 onPress: {
                                     Feedback.shared.playModifierSound()
-                                    Feedback.shared.playHaptics()
+                                    Feedback.shared.playHaptic(style: .light)
                                 }
                             )
                             .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: vPadding, trailing: hPadding))
                             .contentShape(Rectangle())
                         }
                     } else {
-                        PreviewSYKeyboardButton(
-                            text: "123", primary: false,
+                        Swift6_PreviewNaratgeulButton(
+                            text: isNumberPadEnabled ? "123" : "!#1", primary: false,
                             onPress: {
                                 Feedback.shared.playModifierSound()
-                                Feedback.shared.playHaptics()
-                                options.current = .symbol
+                                Feedback.shared.playHaptic(style: .light)
+                            },
+                            onRelease: {
+                                if isNumberPadEnabled {
+                                    options.current = .number
+                                } else {
+                                    options.current = .symbol
+                                }
+                            },
+                            onLongPressFinished: {
+                                if isNumberPadEnabled {
+                                    options.current = .number
+                                } else {
+                                    options.current = .symbol
+                                }
                             })
+                        .monospaced()
                         .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: vPadding, trailing: hPadding))
                         .contentShape(Rectangle())
                     }

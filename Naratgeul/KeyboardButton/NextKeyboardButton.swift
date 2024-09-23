@@ -34,7 +34,7 @@ struct NextKeyboardButtonOverlay: UIViewRepresentable {
         button.addTarget(nil, action: action, for: .allTouchEvents)
         button.addAction(UIAction { _ in
             Feedback.shared.playModifierSound()
-            Feedback.shared.playHaptics()
+            Feedback.shared.playHaptic(style: .light)
         }, for: .touchDown)
         return button
     }

@@ -1,5 +1,5 @@
 //
-//  SYKeyboardDelegate.swift
+//  NaratgeulDelegate.swift
 //  Naratgeul
 //
 //  Created by 서동환 on 9/11/24.
@@ -7,18 +7,15 @@
 
 import Foundation
 
-protocol SYKeyboardDelegate: AnyObject {
+protocol NaratgeulDelegate: AnyObject {
     func getBufferSize() -> Int
     func flushBuffer()
-    func inputLastHangul()
+    func inputLastHangeul()
     func inputLastSymbol()
     func hangulKeypadTap(letter: String)
-    func symbolKeypadTap(letter: String)
-    func checkHoegSsangAvailable()
+    func otherKeypadTap(letter: String)
     func hoegKeypadTap()
-    func hoegToComma(isLongPress: Bool)
     func ssangKeypadTap()
-    func ssangToPeriod(isLongPress: Bool)
     func removeKeypadTap(isLongPress: Bool) -> Bool
     func enterKeypadTap()
     func spaceKeypadTap()

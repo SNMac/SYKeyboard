@@ -19,7 +19,7 @@ enum AutomataStatus {
 }
 
 // 입력된 키의 종류 판별 정의
-enum HangulCHKind {
+enum HangeulCHKind {
     case jaeum  // 자음
     case moeum  // 모음
     case symbol  // 기호
@@ -27,8 +27,8 @@ enum HangulCHKind {
 
 // 키 입력마다 쌓이는 입력 스택 정의
 struct InpStack {
-    var hangulStatus: AutomataStatus  // 상태
-    var keyKind: HangulCHKind  // 입력된 키가 자음 or 모음 or 기호인지
+    var hangeulStatus: AutomataStatus  // 상태
+    var keyKind: HangeulCHKind  // 입력된 키가 자음 or 모음 or 기호인지
     var keyIndex: UInt32  // 방금 입력된 키의 테이블 인덱스
     var geulja: String  // 조합된 글자
     var hasChosung: Bool  // 조합된 글자가 초성을 갖고있는지
@@ -43,9 +43,9 @@ final class HangeulAutomata {
     
     var curHanStatus: AutomataStatus?
     
-    private var oldKeyKind: HangulCHKind?
+    private var oldKeyKind: HangeulCHKind?
     private var oldKeyIndex: UInt32 = 0
-    private var curKeyKind = HangulCHKind.moeum
+    private var curKeyKind = HangeulCHKind.moeum
     private var curKeyIndex: UInt32 = 0
     private var curGeulja: String = ""
     private var curHasChosung: Bool = false
@@ -143,7 +143,7 @@ final class HangeulAutomata {
     private func getAutomataContextFromStack() -> String {
         var lastLetter: String = ""
         
-        curHanStatus = inpStack[inpStack.count - 1].hangulStatus
+        curHanStatus = inpStack[inpStack.count - 1].hangeulStatus
         oldKeyIndex = inpStack[inpStack.count - 1].keyIndex
         oldKeyKind = inpStack[inpStack.count - 1].keyKind
         curGeulja = inpStack[inpStack.count - 1].geulja
@@ -200,11 +200,11 @@ final class HangeulAutomata {
         
         if buffer.count > 0 {
             if let popHangul = inpStack.popLast() {
-                if popHangul.hangulStatus == .chosung {
+                if popHangul.hangeulStatus == .chosung {
                     bufferRemoveLast()
-                } else if popHangul.hangulStatus == .jungsung || popHangul.hangulStatus == .dJungsung {
+                } else if popHangul.hangeulStatus == .jungsung || popHangul.hangeulStatus == .dJungsung {
                     var isRemoved: Bool = false
-                    if inpStack[inpStack.count - 1].hangulStatus == .jongsung || inpStack[inpStack.count - 1].hangulStatus == .dJongsung {
+                    if inpStack[inpStack.count - 1].hangeulStatus == .jongsung || inpStack[inpStack.count - 1].hangeulStatus == .dJongsung {
                         bufferRemoveLast()
                         bufferTypingCount[bufferTypingCount.count - 1] += 1
                         isRemoved = true
@@ -217,7 +217,7 @@ final class HangeulAutomata {
                     if inpStack.isEmpty {
                         bufferRemoveLast()
                     } else if popHangul.keyKind == .moeum {
-                        if inpStack[inpStack.count - 1].hangulStatus == .jongsung {
+                        if inpStack[inpStack.count - 1].hangeulStatus == .jongsung {
                             if inpStack[inpStack.count - 1].keyKind == .moeum {
                                 if isJungsungPair(
                                     first: jungsungTable[Int(inpStack[inpStack.count - 1].keyIndex)],
@@ -246,9 +246,9 @@ final class HangeulAutomata {
             }
         }
         
-        print("deleteBufferLastInput()->buffer =", buffer)
-        print("deleteBufferLastInput()->bufferTypingCount =", bufferTypingCount)
-        print("lastLetter =", lastLetter)
+//        print("deleteBufferLastInput()->buffer =", buffer)
+//        print("deleteBufferLastInput()->bufferTypingCount =", bufferTypingCount)
+//        print("lastLetter =", lastLetter)
         return lastLetter
     }
 }
@@ -418,7 +418,7 @@ extension HangeulAutomata {
     }
     
     func storeStackAndBuffer() {
-        inpStack.append(InpStack(hangulStatus: curHanStatus ?? .start,
+        inpStack.append(InpStack(hangeulStatus: curHanStatus ?? .start,
                                  keyKind: curKeyKind,
                                  keyIndex: curKeyIndex,
                                  geulja: String(Unicode.Scalar(curGeulja) ?? Unicode.Scalar(0)),
@@ -426,7 +426,7 @@ extension HangeulAutomata {
                                 ))
         buffer[buffer.count - 1] = curGeulja
         bufferTypingCount[bufferTypingCount.count - 1] += 1
-        print("storeStackAndBuffer()->buffer =", buffer)
-        print("storeStackAndBuffer()->bufferTypingCount =", bufferTypingCount)
+//        print("storeStackAndBuffer()->buffer =", buffer)
+//        print("storeStackAndBuffer()->bufferTypingCount =", bufferTypingCount)
     }
 }

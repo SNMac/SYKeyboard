@@ -1,47 +1,51 @@
 //
-//  SYKeyboardSymbolView.swift
+//  Swift6_SymbolView.swift
 //  Naratgeul
 //
-//  Created by 서동환 on 8/14/24.
+//  Created by 서동환 on 9/23/24.
 //
 
 import SwiftUI
 import Combine
 
-struct SYKeyboardSymbolView: View {
-    @EnvironmentObject var options: SYKeyboardOptions
+struct Swift6_SymbolView: View {
+    @EnvironmentObject var options: NaratgeulOptions
     @State var timer: AnyCancellable?
-    @State var isShiftTapped: Bool = false
-    @State var isShiftReleased: Bool = true
     
     let vPadding: CGFloat = 4
     let interItemVPadding: CGFloat = 4.5
     let hPadding: CGFloat = 4
     let interItemHPadding: CGFloat = 2.5
     
+    let symbols = [
+        ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "-", "/", ":", ";", "(", ")", "₩", "&", "@", "“"],
+        ["[", "]", "{", "}", "#", "%", "^", "*", "+", "=", "_", "\\", "|", "~", "<", ">", "$", "£", "¥", "•"]
+    ]
+    let fixedSymbols = [".", ",", "?", "!", "’"]
+    
     var body: some View {
         GeometryReader { geometry in
             VStack(spacing: 0) {
-                // MARK: - 1, 2, 3, 4, 5, 6, 7, 8, 9, 0 / [, ], {, }, #, %, ^, *, +, =
+                // MARK: - symbols[0]
                 HStack(spacing: 0) {
-                    SYKeyboardButton(
-                        text: isShiftTapped ? "[" : "1", primary: true,
+                    Swift6_NaratgeulButton(
+                        text: symbols[options.nowSymbolPage][0], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
-                            Feedback.shared.playHaptics()
+                            Feedback.shared.playHaptic(style: .light)
                         },
                         onRelease: {
-                            options.delegate?.symbolKeypadTap(letter: isShiftTapped ? "[" : "1")
+                            options.delegate?.otherKeypadTap(letter: symbols[options.nowSymbolPage][0])
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()
-                            Feedback.shared.playHaptics()
-                            options.delegate?.symbolKeypadTap(letter: isShiftTapped ? "[" : "1")
+                            Feedback.shared.playHaptic(style: .light)
+                            options.delegate?.otherKeypadTap(letter: symbols[options.nowSymbolPage][0])
                             timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
-                                    Feedback.shared.playHaptics()
+                                    Feedback.shared.playHaptic(style: .light)
                                     options.delegate?.inputLastSymbol()
                                 }
                         },
@@ -51,24 +55,24 @@ struct SYKeyboardSymbolView: View {
                     .padding(EdgeInsets(top: vPadding, leading: hPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    SYKeyboardButton(
-                        text: isShiftTapped ? "]" : "2", primary: true,
+                    Swift6_NaratgeulButton(
+                        text: symbols[options.nowSymbolPage][1], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
-                            Feedback.shared.playHaptics()
+                            Feedback.shared.playHaptic(style: .light)
                         },
                         onRelease: {
-                            options.delegate?.symbolKeypadTap(letter: isShiftTapped ? "]" : "2")
+                            options.delegate?.otherKeypadTap(letter: symbols[options.nowSymbolPage][1])
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()
-                            Feedback.shared.playHaptics()
-                            options.delegate?.symbolKeypadTap(letter: isShiftTapped ? "]" : "2")
+                            Feedback.shared.playHaptic(style: .light)
+                            options.delegate?.otherKeypadTap(letter: symbols[options.nowSymbolPage][1])
                             timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
-                                    Feedback.shared.playHaptics()
+                                    Feedback.shared.playHaptic(style: .light)
                                     options.delegate?.inputLastSymbol()
                                 }
                         },
@@ -78,24 +82,24 @@ struct SYKeyboardSymbolView: View {
                     .padding(EdgeInsets(top: vPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    SYKeyboardButton(
-                        text: isShiftTapped ? "{" : "3", primary: true,
+                    Swift6_NaratgeulButton(
+                        text: symbols[options.nowSymbolPage][2], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
-                            Feedback.shared.playHaptics()
+                            Feedback.shared.playHaptic(style: .light)
                         },
                         onRelease: {
-                            options.delegate?.symbolKeypadTap(letter: isShiftTapped ? "{" : "3")
+                            options.delegate?.otherKeypadTap(letter: symbols[options.nowSymbolPage][2])
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()
-                            Feedback.shared.playHaptics()
-                            options.delegate?.symbolKeypadTap(letter: isShiftTapped ? "{" : "3")
+                            Feedback.shared.playHaptic(style: .light)
+                            options.delegate?.otherKeypadTap(letter: symbols[options.nowSymbolPage][2])
                             timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
-                                    Feedback.shared.playHaptics()
+                                    Feedback.shared.playHaptic(style: .light)
                                     options.delegate?.inputLastSymbol()
                                 }
                         },
@@ -105,24 +109,24 @@ struct SYKeyboardSymbolView: View {
                     .padding(EdgeInsets(top: vPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    SYKeyboardButton(
-                        text: isShiftTapped ? "}" : "4", primary: true,
+                    Swift6_NaratgeulButton(
+                        text: symbols[options.nowSymbolPage][3], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
-                            Feedback.shared.playHaptics()
+                            Feedback.shared.playHaptic(style: .light)
                         },
                         onRelease: {
-                            options.delegate?.symbolKeypadTap(letter: isShiftTapped ? "}" : "4")
+                            options.delegate?.otherKeypadTap(letter: symbols[options.nowSymbolPage][3])
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()
-                            Feedback.shared.playHaptics()
-                            options.delegate?.symbolKeypadTap(letter: isShiftTapped ? "}" : "4")
+                            Feedback.shared.playHaptic(style: .light)
+                            options.delegate?.otherKeypadTap(letter: symbols[options.nowSymbolPage][3])
                             timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
-                                    Feedback.shared.playHaptics()
+                                    Feedback.shared.playHaptic(style: .light)
                                     options.delegate?.inputLastSymbol()
                                 }
                         },
@@ -132,24 +136,24 @@ struct SYKeyboardSymbolView: View {
                     .padding(EdgeInsets(top: vPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    SYKeyboardButton(
-                        text: isShiftTapped ? "#" : "5", primary: true,
+                    Swift6_NaratgeulButton(
+                        text: symbols[options.nowSymbolPage][4], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
-                            Feedback.shared.playHaptics()
+                            Feedback.shared.playHaptic(style: .light)
                         },
                         onRelease: {
-                            options.delegate?.symbolKeypadTap(letter: isShiftTapped ? "#" : "5")
+                            options.delegate?.otherKeypadTap(letter: symbols[options.nowSymbolPage][4])
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()
-                            Feedback.shared.playHaptics()
-                            options.delegate?.symbolKeypadTap(letter: isShiftTapped ? "#" : "5")
+                            Feedback.shared.playHaptic(style: .light)
+                            options.delegate?.otherKeypadTap(letter: symbols[options.nowSymbolPage][4])
                             timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
-                                    Feedback.shared.playHaptics()
+                                    Feedback.shared.playHaptic(style: .light)
                                     options.delegate?.inputLastSymbol()
                                 }
                         },
@@ -159,24 +163,24 @@ struct SYKeyboardSymbolView: View {
                     .padding(EdgeInsets(top: vPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    SYKeyboardButton(
-                        text: isShiftTapped ? "%" : "6", primary: true,
+                    Swift6_NaratgeulButton(
+                        text: symbols[options.nowSymbolPage][5], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
-                            Feedback.shared.playHaptics()
+                            Feedback.shared.playHaptic(style: .light)
                         },
                         onRelease: {
-                            options.delegate?.symbolKeypadTap(letter: isShiftTapped ? "%" : "6")
+                            options.delegate?.otherKeypadTap(letter: symbols[options.nowSymbolPage][5])
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()
-                            Feedback.shared.playHaptics()
-                            options.delegate?.symbolKeypadTap(letter: isShiftTapped ? "%" : "6")
+                            Feedback.shared.playHaptic(style: .light)
+                            options.delegate?.otherKeypadTap(letter: symbols[options.nowSymbolPage][5])
                             timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
-                                    Feedback.shared.playHaptics()
+                                    Feedback.shared.playHaptic(style: .light)
                                     options.delegate?.inputLastSymbol()
                                 }
                         },
@@ -186,24 +190,24 @@ struct SYKeyboardSymbolView: View {
                     .padding(EdgeInsets(top: vPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    SYKeyboardButton(
-                        text: isShiftTapped ? "^" : "7", primary: true,
+                    Swift6_NaratgeulButton(
+                        text: symbols[options.nowSymbolPage][6], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
-                            Feedback.shared.playHaptics()
+                            Feedback.shared.playHaptic(style: .light)
                         },
                         onRelease: {
-                            options.delegate?.symbolKeypadTap(letter: isShiftTapped ? "^" : "7")
+                            options.delegate?.otherKeypadTap(letter: symbols[options.nowSymbolPage][6])
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()
-                            Feedback.shared.playHaptics()
-                            options.delegate?.symbolKeypadTap(letter: isShiftTapped ? "^" : "7")
+                            Feedback.shared.playHaptic(style: .light)
+                            options.delegate?.otherKeypadTap(letter: symbols[options.nowSymbolPage][6])
                             timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
-                                    Feedback.shared.playHaptics()
+                                    Feedback.shared.playHaptic(style: .light)
                                     options.delegate?.inputLastSymbol()
                                 }
                         },
@@ -213,24 +217,24 @@ struct SYKeyboardSymbolView: View {
                     .padding(EdgeInsets(top: vPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    SYKeyboardButton(
-                        text: isShiftTapped ? "*" : "8", primary: true,
+                    Swift6_NaratgeulButton(
+                        text: symbols[options.nowSymbolPage][7], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
-                            Feedback.shared.playHaptics()
+                            Feedback.shared.playHaptic(style: .light)
                         },
                         onRelease: {
-                            options.delegate?.symbolKeypadTap(letter: isShiftTapped ? "*" : "8")
+                            options.delegate?.otherKeypadTap(letter: symbols[options.nowSymbolPage][7])
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()
-                            Feedback.shared.playHaptics()
-                            options.delegate?.symbolKeypadTap(letter: isShiftTapped ? "*" : "8")
+                            Feedback.shared.playHaptic(style: .light)
+                            options.delegate?.otherKeypadTap(letter: symbols[options.nowSymbolPage][7])
                             timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
-                                    Feedback.shared.playHaptics()
+                                    Feedback.shared.playHaptic(style: .light)
                                     options.delegate?.inputLastSymbol()
                                 }
                         },
@@ -240,24 +244,24 @@ struct SYKeyboardSymbolView: View {
                     .padding(EdgeInsets(top: vPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    SYKeyboardButton(
-                        text: isShiftTapped ? "+" : "9", primary: true,
+                    Swift6_NaratgeulButton(
+                        text: symbols[options.nowSymbolPage][8], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
-                            Feedback.shared.playHaptics()
+                            Feedback.shared.playHaptic(style: .light)
                         },
                         onRelease: {
-                            options.delegate?.symbolKeypadTap(letter: isShiftTapped ? "+" : "9")
+                            options.delegate?.otherKeypadTap(letter: symbols[options.nowSymbolPage][8])
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()
-                            Feedback.shared.playHaptics()
-                            options.delegate?.symbolKeypadTap(letter: isShiftTapped ? "+" : "9")
+                            Feedback.shared.playHaptic(style: .light)
+                            options.delegate?.otherKeypadTap(letter: symbols[options.nowSymbolPage][8])
                             timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
-                                    Feedback.shared.playHaptics()
+                                    Feedback.shared.playHaptic(style: .light)
                                     options.delegate?.inputLastSymbol()
                                 }
                         },
@@ -267,24 +271,24 @@ struct SYKeyboardSymbolView: View {
                     .padding(EdgeInsets(top: vPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    SYKeyboardButton(
-                        text: isShiftTapped ? "=" : "0", primary: true,
+                    Swift6_NaratgeulButton(
+                        text: symbols[options.nowSymbolPage][9], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
-                            Feedback.shared.playHaptics()
+                            Feedback.shared.playHaptic(style: .light)
                         },
                         onRelease: {
-                            options.delegate?.symbolKeypadTap(letter: isShiftTapped ? "=" : "0")
+                            options.delegate?.otherKeypadTap(letter: symbols[options.nowSymbolPage][9])
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()
-                            Feedback.shared.playHaptics()
-                            options.delegate?.symbolKeypadTap(letter: isShiftTapped ? "=" : "0")
+                            Feedback.shared.playHaptic(style: .light)
+                            options.delegate?.otherKeypadTap(letter: symbols[options.nowSymbolPage][9])
                             timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
-                                    Feedback.shared.playHaptics()
+                                    Feedback.shared.playHaptic(style: .light)
                                     options.delegate?.inputLastSymbol()
                                 }
                         },
@@ -295,26 +299,26 @@ struct SYKeyboardSymbolView: View {
                     .contentShape(Rectangle())
                 }
                 
-                // MARK: - -, /, :, ;, (, ), ₩, &, @, " / _, \, |, ~, <, >, $, £, ¥, •
+                // MARK: - symbols[1]
                 HStack(spacing: 0) {
-                    SYKeyboardButton(
-                        text: isShiftTapped ? "_" : "-", primary: true,
+                    Swift6_NaratgeulButton(
+                        text: symbols[options.nowSymbolPage][10], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
-                            Feedback.shared.playHaptics()
+                            Feedback.shared.playHaptic(style: .light)
                         },
                         onRelease: {
-                            options.delegate?.symbolKeypadTap(letter: isShiftTapped ? "_" : "-")
+                            options.delegate?.otherKeypadTap(letter: symbols[options.nowSymbolPage][10])
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()
-                            Feedback.shared.playHaptics()
-                            options.delegate?.symbolKeypadTap(letter: isShiftTapped ? "_" : "-")
+                            Feedback.shared.playHaptic(style: .light)
+                            options.delegate?.otherKeypadTap(letter: symbols[options.nowSymbolPage][10])
                             timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
-                                    Feedback.shared.playHaptics()
+                                    Feedback.shared.playHaptic(style: .light)
                                     options.delegate?.inputLastSymbol()
                                 }
                         },
@@ -324,24 +328,24 @@ struct SYKeyboardSymbolView: View {
                     .padding(EdgeInsets(top: interItemVPadding, leading: hPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    SYKeyboardButton(
-                        text: isShiftTapped ? "\\" : "/", primary: true,
+                    Swift6_NaratgeulButton(
+                        text: symbols[options.nowSymbolPage][11], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
-                            Feedback.shared.playHaptics()
+                            Feedback.shared.playHaptic(style: .light)
                         },
                         onRelease: {
-                            options.delegate?.symbolKeypadTap(letter: isShiftTapped ? "\\" : "/")
+                            options.delegate?.otherKeypadTap(letter: symbols[options.nowSymbolPage][11])
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()
-                            Feedback.shared.playHaptics()
-                            options.delegate?.symbolKeypadTap(letter: isShiftTapped ? "\\" : "/")
+                            Feedback.shared.playHaptic(style: .light)
+                            options.delegate?.otherKeypadTap(letter: symbols[options.nowSymbolPage][11])
                             timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
-                                    Feedback.shared.playHaptics()
+                                    Feedback.shared.playHaptic(style: .light)
                                     options.delegate?.inputLastSymbol()
                                 }
                         },
@@ -351,24 +355,24 @@ struct SYKeyboardSymbolView: View {
                     .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    SYKeyboardButton(
-                        text: isShiftTapped ? "|" : ":", primary: true,
+                    Swift6_NaratgeulButton(
+                        text: symbols[options.nowSymbolPage][12], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
-                            Feedback.shared.playHaptics()
+                            Feedback.shared.playHaptic(style: .light)
                         },
                         onRelease: {
-                            options.delegate?.symbolKeypadTap(letter: isShiftTapped ? "|" : ":")
+                            options.delegate?.otherKeypadTap(letter: symbols[options.nowSymbolPage][12])
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()
-                            Feedback.shared.playHaptics()
-                            options.delegate?.symbolKeypadTap(letter: isShiftTapped ? "|" : ":")
+                            Feedback.shared.playHaptic(style: .light)
+                            options.delegate?.otherKeypadTap(letter: symbols[options.nowSymbolPage][12])
                             timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
-                                    Feedback.shared.playHaptics()
+                                    Feedback.shared.playHaptic(style: .light)
                                     options.delegate?.inputLastSymbol()
                                 }
                         },
@@ -378,24 +382,24 @@ struct SYKeyboardSymbolView: View {
                     .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    SYKeyboardButton(
-                        text: isShiftTapped ? "~" : ";", primary: true,
+                    Swift6_NaratgeulButton(
+                        text: symbols[options.nowSymbolPage][13], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
-                            Feedback.shared.playHaptics()
+                            Feedback.shared.playHaptic(style: .light)
                         },
                         onRelease: {
-                            options.delegate?.symbolKeypadTap(letter: isShiftTapped ? "~" : ";")
+                            options.delegate?.otherKeypadTap(letter: symbols[options.nowSymbolPage][13])
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()
-                            Feedback.shared.playHaptics()
-                            options.delegate?.symbolKeypadTap(letter: isShiftTapped ? "~" : ";")
+                            Feedback.shared.playHaptic(style: .light)
+                            options.delegate?.otherKeypadTap(letter: symbols[options.nowSymbolPage][13])
                             timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
-                                    Feedback.shared.playHaptics()
+                                    Feedback.shared.playHaptic(style: .light)
                                     options.delegate?.inputLastSymbol()
                                 }
                         },
@@ -405,24 +409,24 @@ struct SYKeyboardSymbolView: View {
                     .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    SYKeyboardButton(
-                        text: isShiftTapped ? "<" : "(", primary: true,
+                    Swift6_NaratgeulButton(
+                        text: symbols[options.nowSymbolPage][14], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
-                            Feedback.shared.playHaptics()
+                            Feedback.shared.playHaptic(style: .light)
                         },
                         onRelease: {
-                            options.delegate?.symbolKeypadTap(letter: isShiftTapped ? "<" : "(")
+                            options.delegate?.otherKeypadTap(letter: symbols[options.nowSymbolPage][14])
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()
-                            Feedback.shared.playHaptics()
-                            options.delegate?.symbolKeypadTap(letter: isShiftTapped ? "<" : "(")
+                            Feedback.shared.playHaptic(style: .light)
+                            options.delegate?.otherKeypadTap(letter: symbols[options.nowSymbolPage][14])
                             timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
-                                    Feedback.shared.playHaptics()
+                                    Feedback.shared.playHaptic(style: .light)
                                     options.delegate?.inputLastSymbol()
                                 }
                         },
@@ -432,24 +436,24 @@ struct SYKeyboardSymbolView: View {
                     .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    SYKeyboardButton(
-                        text: isShiftTapped ? ">" : ")", primary: true,
+                    Swift6_NaratgeulButton(
+                        text: symbols[options.nowSymbolPage][15], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
-                            Feedback.shared.playHaptics()
+                            Feedback.shared.playHaptic(style: .light)
                         },
                         onRelease: {
-                            options.delegate?.symbolKeypadTap(letter: isShiftTapped ? ">" : ")")
+                            options.delegate?.otherKeypadTap(letter: symbols[options.nowSymbolPage][15])
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()
-                            Feedback.shared.playHaptics()
-                            options.delegate?.symbolKeypadTap(letter: isShiftTapped ? ">" : ")")
+                            Feedback.shared.playHaptic(style: .light)
+                            options.delegate?.otherKeypadTap(letter: symbols[options.nowSymbolPage][15])
                             timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
-                                    Feedback.shared.playHaptics()
+                                    Feedback.shared.playHaptic(style: .light)
                                     options.delegate?.inputLastSymbol()
                                 }
                         },
@@ -459,24 +463,24 @@ struct SYKeyboardSymbolView: View {
                     .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    SYKeyboardButton(
-                        text: isShiftTapped ? "$" : "₩", primary: true,
+                    Swift6_NaratgeulButton(
+                        text: symbols[options.nowSymbolPage][16], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
-                            Feedback.shared.playHaptics()
+                            Feedback.shared.playHaptic(style: .light)
                         },
                         onRelease: {
-                            options.delegate?.symbolKeypadTap(letter: isShiftTapped ? "$" : "₩")
+                            options.delegate?.otherKeypadTap(letter: symbols[options.nowSymbolPage][16])
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()
-                            Feedback.shared.playHaptics()
-                            options.delegate?.symbolKeypadTap(letter: isShiftTapped ? "$" : "₩")
+                            Feedback.shared.playHaptic(style: .light)
+                            options.delegate?.otherKeypadTap(letter: symbols[options.nowSymbolPage][16])
                             timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
-                                    Feedback.shared.playHaptics()
+                                    Feedback.shared.playHaptic(style: .light)
                                     options.delegate?.inputLastSymbol()
                                 }
                         },
@@ -486,24 +490,24 @@ struct SYKeyboardSymbolView: View {
                     .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    SYKeyboardButton(
-                        text: isShiftTapped ? "£" : "&", primary: true,
+                    Swift6_NaratgeulButton(
+                        text: symbols[options.nowSymbolPage][17], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
-                            Feedback.shared.playHaptics()
+                            Feedback.shared.playHaptic(style: .light)
                         },
                         onRelease: {
-                            options.delegate?.symbolKeypadTap(letter: isShiftTapped ? "£" : "&")
+                            options.delegate?.otherKeypadTap(letter: symbols[options.nowSymbolPage][17])
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()
-                            Feedback.shared.playHaptics()
-                            options.delegate?.symbolKeypadTap(letter: isShiftTapped ? "£" : "&")
+                            Feedback.shared.playHaptic(style: .light)
+                            options.delegate?.otherKeypadTap(letter: symbols[options.nowSymbolPage][17])
                             timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
-                                    Feedback.shared.playHaptics()
+                                    Feedback.shared.playHaptic(style: .light)
                                     options.delegate?.inputLastSymbol()
                                 }
                         },
@@ -513,24 +517,24 @@ struct SYKeyboardSymbolView: View {
                     .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    SYKeyboardButton(
-                        text: isShiftTapped ? "¥" : "@", primary: true,
+                    Swift6_NaratgeulButton(
+                        text: symbols[options.nowSymbolPage][18], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
-                            Feedback.shared.playHaptics()
+                            Feedback.shared.playHaptic(style: .light)
                         },
                         onRelease: {
-                            options.delegate?.symbolKeypadTap(letter: isShiftTapped ? "¥" : "@")
+                            options.delegate?.otherKeypadTap(letter: symbols[options.nowSymbolPage][18])
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()
-                            Feedback.shared.playHaptics()
-                            options.delegate?.symbolKeypadTap(letter: isShiftTapped ? "¥" : "@")
+                            Feedback.shared.playHaptic(style: .light)
+                            options.delegate?.otherKeypadTap(letter: symbols[options.nowSymbolPage][18])
                             timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
-                                    Feedback.shared.playHaptics()
+                                    Feedback.shared.playHaptic(style: .light)
                                     options.delegate?.inputLastSymbol()
                                 }
                         },
@@ -540,24 +544,24 @@ struct SYKeyboardSymbolView: View {
                     .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    SYKeyboardButton(
-                        text: isShiftTapped ? "•" : "\"", primary: true,
+                    Swift6_NaratgeulButton(
+                        text: symbols[options.nowSymbolPage][19], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
-                            Feedback.shared.playHaptics()
+                            Feedback.shared.playHaptic(style: .light)
                         },
                         onRelease: {
-                            options.delegate?.symbolKeypadTap(letter: isShiftTapped ? "•" : "\"")
+                            options.delegate?.otherKeypadTap(letter: symbols[options.nowSymbolPage][19])
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()
-                            Feedback.shared.playHaptics()
-                            options.delegate?.symbolKeypadTap(letter: isShiftTapped ? "•" : "\"")
+                            Feedback.shared.playHaptic(style: .light)
+                            options.delegate?.otherKeypadTap(letter: symbols[options.nowSymbolPage][19])
                             timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
-                                    Feedback.shared.playHaptics()
+                                    Feedback.shared.playHaptic(style: .light)
                                     options.delegate?.inputLastSymbol()
                                 }
                         },
@@ -568,58 +572,37 @@ struct SYKeyboardSymbolView: View {
                     .contentShape(Rectangle())
                 }
                 
-                // MARK: - #+=/123, ., ,, ?, !, ', 􀆛
+                // MARK: - (options.curSymbolPage + 1)/options.totalSymbolPage, symbols.last, 􀆛
                 HStack(spacing: 0) {
-                    SYKeyboardButton(
-                        text: isShiftTapped ? "123" : "#+=", primary: false,
+                    Swift6_NaratgeulButton(
+                        text: "\(options.nowSymbolPage + 1)/\(options.totalSymbolPage)", primary: false,
                         onPress: {
                             Feedback.shared.playModifierSound()
-                            Feedback.shared.playHaptics()
-                            if !isShiftTapped {
-                                isShiftTapped = true
-                                isShiftReleased = false
-                            }
-                        },
-                        onRelease: {
-                            if isShiftTapped && isShiftReleased {
-                                isShiftTapped = false
-                                isShiftReleased = true
-                            }
-                            
-                            if isShiftTapped && !isShiftReleased {
-                                isShiftReleased = true
-                            }
-                        },onLongPressFinished: {
-                            if isShiftTapped && isShiftReleased {
-                                isShiftTapped = false
-                                isShiftReleased = true
-                            }
-                            
-                            if isShiftTapped && !isShiftReleased {
-                                isShiftReleased = true
-                            }
+                            Feedback.shared.playHaptic(style: .light)
+                            options.nowSymbolPage = (options.nowSymbolPage + 1) % options.totalSymbolPage
                         })
+                    .monospaced()
                     .padding(EdgeInsets(top: interItemVPadding, leading: hPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    SYKeyboardButton(
-                        text: ".", primary: true,
+                    Swift6_NaratgeulButton(
+                        text: fixedSymbols[0], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
-                            Feedback.shared.playHaptics()
+                            Feedback.shared.playHaptic(style: .light)
                         },
                         onRelease: {
-                            options.delegate?.symbolKeypadTap(letter: ".")
+                            options.delegate?.otherKeypadTap(letter: fixedSymbols[0])
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()
-                            Feedback.shared.playHaptics()
-                            options.delegate?.symbolKeypadTap(letter: ".")
+                            Feedback.shared.playHaptic(style: .light)
+                            options.delegate?.otherKeypadTap(letter: fixedSymbols[0])
                             timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
-                                    Feedback.shared.playHaptics()
+                                    Feedback.shared.playHaptic(style: .light)
                                     options.delegate?.inputLastSymbol()
                                 }
                         },
@@ -629,24 +612,24 @@ struct SYKeyboardSymbolView: View {
                     .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    SYKeyboardButton(
-                        text: ",", primary: true,
+                    Swift6_NaratgeulButton(
+                        text: fixedSymbols[1], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
-                            Feedback.shared.playHaptics()
+                            Feedback.shared.playHaptic(style: .light)
                         },
                         onRelease: {
-                            options.delegate?.symbolKeypadTap(letter: ",")
+                            options.delegate?.otherKeypadTap(letter: fixedSymbols[1])
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()
-                            Feedback.shared.playHaptics()
-                            options.delegate?.symbolKeypadTap(letter: ",")
+                            Feedback.shared.playHaptic(style: .light)
+                            options.delegate?.otherKeypadTap(letter: fixedSymbols[1])
                             timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
-                                    Feedback.shared.playHaptics()
+                                    Feedback.shared.playHaptic(style: .light)
                                     options.delegate?.inputLastSymbol()
                                 }
                         },
@@ -656,24 +639,24 @@ struct SYKeyboardSymbolView: View {
                     .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    SYKeyboardButton(
-                        text: "?", primary: true,
+                    Swift6_NaratgeulButton(
+                        text: fixedSymbols[2], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
-                            Feedback.shared.playHaptics()
+                            Feedback.shared.playHaptic(style: .light)
                         },
                         onRelease: {
-                            options.delegate?.symbolKeypadTap(letter: "?")
+                            options.delegate?.otherKeypadTap(letter: fixedSymbols[2])
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()
-                            Feedback.shared.playHaptics()
-                            options.delegate?.symbolKeypadTap(letter: "?")
+                            Feedback.shared.playHaptic(style: .light)
+                            options.delegate?.otherKeypadTap(letter: fixedSymbols[2])
                             timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
-                                    Feedback.shared.playHaptics()
+                                    Feedback.shared.playHaptic(style: .light)
                                     options.delegate?.inputLastSymbol()
                                 }
                         },
@@ -683,24 +666,24 @@ struct SYKeyboardSymbolView: View {
                     .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    SYKeyboardButton(
-                        text: "!", primary: true,
+                    Swift6_NaratgeulButton(
+                        text: fixedSymbols[3], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
-                            Feedback.shared.playHaptics()
+                            Feedback.shared.playHaptic(style: .light)
                         },
                         onRelease: {
-                            options.delegate?.symbolKeypadTap(letter: "!")
+                            options.delegate?.otherKeypadTap(letter: fixedSymbols[3])
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()
-                            Feedback.shared.playHaptics()
-                            options.delegate?.symbolKeypadTap(letter: "!")
+                            Feedback.shared.playHaptic(style: .light)
+                            options.delegate?.otherKeypadTap(letter: fixedSymbols[3])
                             timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
-                                    Feedback.shared.playHaptics()
+                                    Feedback.shared.playHaptic(style: .light)
                                     options.delegate?.inputLastSymbol()
                                 }
                         },
@@ -710,24 +693,24 @@ struct SYKeyboardSymbolView: View {
                     .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    SYKeyboardButton(
-                        text: "`", primary: true,
+                    Swift6_NaratgeulButton(
+                        text: fixedSymbols[4], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
-                            Feedback.shared.playHaptics()
+                            Feedback.shared.playHaptic(style: .light)
                         },
                         onRelease: {
-                            options.delegate?.symbolKeypadTap(letter: "'")
+                            options.delegate?.otherKeypadTap(letter: fixedSymbols[4])
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()
-                            Feedback.shared.playHaptics()
-                            options.delegate?.symbolKeypadTap(letter: "'")
+                            Feedback.shared.playHaptic(style: .light)
+                            options.delegate?.otherKeypadTap(letter: fixedSymbols[4])
                             timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
-                                    Feedback.shared.playHaptics()
+                                    Feedback.shared.playHaptic(style: .light)
                                     options.delegate?.inputLastSymbol()
                                 }
                         },
@@ -737,11 +720,11 @@ struct SYKeyboardSymbolView: View {
                     .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    SYKeyboardButton(
+                    Swift6_NaratgeulButton(
                         systemName: "delete.left", primary: false,
                         onPress: {
                             Feedback.shared.playDeleteSound()
-                            Feedback.shared.playHaptics()
+                            Feedback.shared.playHaptic(style: .light)
                             let _ = options.delegate?.removeKeypadTap(isLongPress: false)
                         },
                         onLongPress: {
@@ -751,7 +734,7 @@ struct SYKeyboardSymbolView: View {
                                     if let isDeleted = options.delegate?.removeKeypadTap(isLongPress: true) {
                                         if isDeleted {
                                             Feedback.shared.playDeleteSound()
-                                            Feedback.shared.playHaptics()
+                                            Feedback.shared.playHaptic(style: .light)
                                         }
                                     }
                                 }
@@ -767,12 +750,17 @@ struct SYKeyboardSymbolView: View {
                 HStack(spacing: 0) {
                     if options.needsInputModeSwitchKey {
                         HStack(spacing: 0) {
-                            SYKeyboardButton(
+                            Swift6_NaratgeulButton(
                                 text: "한글", primary: false,
                                 onPress: {
                                     Feedback.shared.playModifierSound()
-                                    Feedback.shared.playHaptics()
-                                    options.current = .hangul
+                                    Feedback.shared.playHaptic(style: .light)
+                                },
+                                onRelease: {
+                                    options.current = .hangeul
+                                },
+                                onLongPressFinished: {
+                                    options.current = .hangeul
                                 })
                             .padding(EdgeInsets(top: interItemVPadding, leading: hPadding, bottom: vPadding, trailing: interItemHPadding))
                             .contentShape(Rectangle())
@@ -785,36 +773,41 @@ struct SYKeyboardSymbolView: View {
                             .contentShape(Rectangle())
                         }
                     } else {
-                        SYKeyboardButton(
+                        Swift6_NaratgeulButton(
                             text: "한글", primary: false,
                             onPress: {
                                 Feedback.shared.playModifierSound()
-                                Feedback.shared.playHaptics()
-                                options.current = .hangul
+                                Feedback.shared.playHaptic(style: .light)
+                            },
+                            onRelease: {
+                                options.current = .hangeul
+                            },
+                            onLongPressFinished: {
+                                options.current = .hangeul
                             })
                         .padding(EdgeInsets(top: interItemVPadding, leading: hPadding, bottom: vPadding, trailing: interItemHPadding))
                         .contentShape(Rectangle())
                     }
                     
-                    SYKeyboardButton(
-                        systemName: "space_SymbolView", primary: true,
+                    Swift6_NaratgeulButton(
+                        systemName: "space", primary: true,
                         onPress: {
                             Feedback.shared.playModifierSound()
-                            Feedback.shared.playHaptics()
+                            Feedback.shared.playHaptic(style: .light)
                         },
                         onRelease: {
                             options.delegate?.spaceKeypadTap()
                         },
                         onLongPress: {
                             Feedback.shared.playModifierSound()
-                            Feedback.shared.playHaptics()
+                            Feedback.shared.playHaptic(style: .light)
                             options.delegate?.spaceKeypadTap()
                             timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playModifierSound()
-                                    Feedback.shared.playHaptics()
-                                    options.delegate?.inputLastSymbol()
+                                    Feedback.shared.playHaptic(style: .light)
+                                    options.delegate?.spaceKeypadTap()
                                 }
                         },
                         onLongPressFinished: {
@@ -824,11 +817,11 @@ struct SYKeyboardSymbolView: View {
                     .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: vPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    SYKeyboardButton(
+                    Swift6_NaratgeulButton(
                         systemName: "return.left", primary: false,
                         onPress: {
                             Feedback.shared.playModifierSound()
-                            Feedback.shared.playHaptics()
+                            Feedback.shared.playHaptic(style: .light)
                         },
                         onRelease: {
                             options.delegate?.enterKeypadTap()
@@ -840,8 +833,14 @@ struct SYKeyboardSymbolView: View {
                     .contentShape(Rectangle())
                 }
             }
+        }.onAppear {
+            options.totalSymbolPage = symbols.count
         }
         .frame(height: options.keyboardHeight)
         .background(Color("KeyboardBackground"))
     }
+}
+
+#Preview {
+    Swift6_SymbolView()
 }

@@ -10,33 +10,33 @@
 import AVFoundation
 import UIKit
 
-final class Feedback {
+final class Feedback: Sendable {
     static let shared = Feedback()
-    
-    private let defaults: UserDefaults?
-    
-    let lightHapticGenerator = UIImpactFeedbackGenerator(style: .light)
-    
-    init() {
-        defaults = UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")
-    }
+    private init() {}
     
     var sounds: Bool {
+        let defaults = UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")
         return defaults?.bool(forKey: "isSoundFeedbackEnabled") ?? true
     }
     
-    var haptics: Bool {
+    var haptic: Bool {
+        let defaults = UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")
         return defaults?.bool(forKey: "isHapticFeedbackEnabled") ?? true
     }
     
-    func prepareHaptics() {
-        if !haptics { return }
-        lightHapticGenerator.prepare()
+    @MainActor
+    func prepareHaptic() {
+        if !haptic { return }
+        let generator = UIImpactFeedbackGenerator(style: .light)
+        generator.prepare()
     }
-    
-    func playHaptics() {
-        if !haptics { return }
-        lightHapticGenerator.impactOccurred()
+        
+    @MainActor
+    func playHaptic(style: UIImpactFeedbackGenerator.FeedbackStyle) {
+        if !haptic { return }
+        let generator = UIImpactFeedbackGenerator(style: style)
+        generator.impactOccurred()
+        generator.prepare()
     }
     
     func playTypingSound() {

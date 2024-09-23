@@ -1,5 +1,5 @@
 //
-//  SYKeyboardViewController.swift
+//  NaratgeulViewController.swift
 //  Naratgeul
 //
 //  Created by 서동환 on 7/29/24.
@@ -7,11 +7,11 @@
 
 import SwiftUI
 
-class SYKeyboardViewController: UIInputViewController {
+class NaratgeulViewController: UIInputViewController {
     // MARK: - Properties
     private var defaults: UserDefaults?
-    private let keyboardIOManager = SYKeyboardIOManager()
-    private var options: SYKeyboardOptions?
+    private let keyboardIOManager = NaratgeulIOManager()
+    private var options: NaratgeulOptions?
     private var cursorPos: Int = 0
     private var userLexicon: UILexicon?
     private var textReplacementHistory: [String] = []
@@ -25,7 +25,9 @@ class SYKeyboardViewController: UIInputViewController {
         setupDefaults()
         setupIOManager()
         setupUI()
-        setupUserLexicon()
+        Task {
+            await setupUserLexicon()
+        }
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -33,20 +35,18 @@ class SYKeyboardViewController: UIInputViewController {
         
         updateCursorPos()
         updateHoegSsangAvailiableToOptions()
-        Feedback.shared.prepareHaptics()
+        Feedback.shared.prepareHaptic()
     }
     
     // MARK: - Method
     private func setupDefaults() {
         defaults = UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")
-        DefaultValues().setupDefaults(defaults: defaults)
+        GlobalValues.setupDefaults(defaults)
     }
     
     private func setupIOManager() {
         keyboardIOManager.inputText = { [weak self] in
             guard let self = self else { return }
-            print("inputText()")
-            
             let proxy = textDocumentProxy
             
             if defaults?.bool(forKey: "isTextReplacementEnabled") ?? true {
@@ -61,14 +61,11 @@ class SYKeyboardViewController: UIInputViewController {
             }
             
             updateCursorPos()
-            keyboardIOManager.checkHoegSsangAvailable()
             updateHoegSsangAvailiableToOptions()
         }
         
         keyboardIOManager.deleteForInput = { [weak self] in
             guard let self = self else { return }
-            print("deleteForInput()")
-            
             let proxy = textDocumentProxy
             if let beforeInput = proxy.documentContextBeforeInput {
                 if !beforeInput.isEmpty && keyboardIOManager.isEditingLastCharacter {
@@ -79,8 +76,6 @@ class SYKeyboardViewController: UIInputViewController {
         
         keyboardIOManager.deleteText = { [weak self] in
             guard let self = self else { return false }
-            print("deleteText()")
-            
             var isDeleted = false
             
             let proxy = textDocumentProxy
@@ -92,7 +87,6 @@ class SYKeyboardViewController: UIInputViewController {
             proxy.deleteBackward()
             
             updateCursorPos()
-            keyboardIOManager.checkHoegSsangAvailable()
             updateHoegSsangAvailiableToOptions()
             
             return isDeleted
@@ -100,19 +94,15 @@ class SYKeyboardViewController: UIInputViewController {
         
         keyboardIOManager.inputForDelete = { [weak self] in
             guard let self = self else { return }
-            print("inputForDelete()")
-            
             let proxy = textDocumentProxy
             proxy.insertText($0)
             
             updateCursorPos()
-            keyboardIOManager.checkHoegSsangAvailable()
             updateHoegSsangAvailiableToOptions()
         }
         
         keyboardIOManager.attemptRestoreWord = { [weak self] in
             guard let self = self else { return false }
-            
             return attemptToRestoreReplacementWord()
         }
         
@@ -165,18 +155,17 @@ class SYKeyboardViewController: UIInputViewController {
     private func setupUI() {
         let nextKeyboardAction = #selector(handleInputModeList(from:with:))
         
-        let options = SYKeyboardOptions(
+        let options = NaratgeulOptions(
             delegate: keyboardIOManager,
-            keyboardHeight: CGFloat(defaults?.double(forKey: "keyboardHeight") ?? DefaultValues().defaultKeyboardHeight),
-            longPressTime: 1.0 - (defaults?.double(forKey: "longPressSpeed") ?? DefaultValues().defaultLongPressSpeed),
-            repeatTimerCycle: 0.10 - (defaults?.double(forKey: "repeatTimerSpeed") ?? DefaultValues().defaultRepeatTimerSpeed),
-            isHoegSsangToCommaPeriodEnabled: defaults?.bool(forKey: "isHoegSsangToCommaPeriodEnabled") ?? true,
+            keyboardHeight: CGFloat(defaults?.double(forKey: "keyboardHeight") ?? 240.0),
+            longPressTime: 1.0 - (defaults?.double(forKey: "longPressSpeed") ?? 0.6),
+            repeatTimerCycle: 0.10 - (defaults?.double(forKey: "repeatTimerSpeed") ?? 0.06),
             colorScheme: traitCollection.userInterfaceStyle == .dark ? .dark : .light,
             needsInputModeSwitchKey: needsInputModeSwitchKey,
             nextKeyboardAction: nextKeyboardAction
         )
         
-        let SYKeyboard = UIHostingController(rootView: SYKeyboardView().environmentObject(options))
+        let SYKeyboard = UIHostingController(rootView: NaratgeulView().environmentObject(options))
         
         self.options = options
         
@@ -194,11 +183,9 @@ class SYKeyboardViewController: UIInputViewController {
             SYKeyboard.view.bottomAnchor.constraint(equalTo: view.bottomAnchor)
         ])
     }
-    
-    private func setupUserLexicon() {
-        requestSupplementaryLexicon { lexicon in
-            self.userLexicon = lexicon
-        }
+        
+    private func setupUserLexicon() async {
+        userLexicon = await requestSupplementaryLexicon()
     }
     
     override func textWillChange(_ textInput: (any UITextInput)?) {
@@ -236,7 +223,6 @@ class SYKeyboardViewController: UIInputViewController {
         if let beforeInput = proxy.documentContextBeforeInput {
             cursorPos = beforeInput.count
         }
-        print("cursorPos =", cursorPos)
     }
     
     private func updateHoegSsangAvailiableToOptions() {
@@ -277,8 +263,8 @@ class SYKeyboardViewController: UIInputViewController {
     }
 }
 
-extension SYKeyboardViewController {
-    // MARK: - Extension
+// MARK: - Extension
+extension NaratgeulViewController {
     // 텍스트 대치
     func attemptToReplaceCurrentWord() -> Bool {  // 글자 입력할때 호출
         let proxy = textDocumentProxy

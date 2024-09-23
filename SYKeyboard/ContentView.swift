@@ -9,13 +9,13 @@ import SwiftUI
 
 struct ContentView: View {
     private var defaults: UserDefaults?
-    private var options: PreviewSYKeyboardOptions
+    private var options: PreviewNaratgeulOptions
     
     init() {
         defaults = UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")
-        DefaultValues().setupDefaults(defaults: defaults)
+        GlobalValues.setupDefaults(defaults)
         
-        options = PreviewSYKeyboardOptions()
+        options = PreviewNaratgeulOptions()
     }
     
     private var keyboardSettings: some View {
@@ -36,6 +36,7 @@ struct ContentView: View {
                 NavigationLink("키보드 높이") {
                     HeightSettingsView()
                 }
+                AppearanceSettingsView()
             } header: {
                 Text("외형 설정")
             }

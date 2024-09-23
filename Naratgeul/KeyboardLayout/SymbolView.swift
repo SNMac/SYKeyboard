@@ -1,55 +1,52 @@
 //
-//  PreviewSYKeyboardSymbolView.swift
-//  SYKeyboard
+//  SymbolView.swift
+//  Naratgeul
 //
-//  Created by 서동환 on 9/16/24.
+//  Created by 서동환 on 8/14/24.
 //
 
 import SwiftUI
 import Combine
 
-struct PreviewSymbolView: View {
-    @EnvironmentObject var options: PreviewSYKeyboardOptions
-    @AppStorage("repeatTimerSpeed", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var repeatTimerSpeed = 0.06
-    @AppStorage("keyboardHeight", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var keyboardHeight = 240.0
-    @AppStorage("needsInputModeSwitchKey", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var needsInputModeSwitchKey = false
-    @Binding var tempKeyboardHeight: Double
+struct SymbolView: View {
+    @EnvironmentObject var options: NaratgeulOptions
     @State var timer: AnyCancellable?
-    @State var isShiftTapped: Bool = false
-    @State var isShiftReleased: Bool = true
     
     let vPadding: CGFloat = 4
     let interItemVPadding: CGFloat = 4.5
     let hPadding: CGFloat = 4
     let interItemHPadding: CGFloat = 2.5
     
+    let symbols = [
+        ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "-", "/", ":", ";", "(", ")", "₩", "&", "@", "“"],
+        ["[", "]", "{", "}", "#", "%", "^", "*", "+", "=", "_", "\\", "|", "~", "<", ">", "$", "£", "¥", "•"]
+    ]
+    let fixedSymbols = [".", ",", "?", "!", "’"]
+    
     var body: some View {
-        let repeatTimerCycle = 0.10 - repeatTimerSpeed
-        
         GeometryReader { geometry in
             VStack(spacing: 0) {
-                // MARK: - 1, 2, 3, 4, 5, 6, 7, 8, 9, 0 / [, ], {, }, #, %, ^, *, +, =
+                // MARK: - symbols[0]
                 HStack(spacing: 0) {
-                    PreviewSYKeyboardButton(
-                        text: isShiftTapped ? "[" : "1", primary: true,
+                    SYKeyboardButton(
+                        text: symbols[options.nowSymbolPage][0], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
-                            Task {
-                                await Feedback.shared.triggerFeedback()
-                            }
+                            Feedback.shared.playHaptic(style: .light)
+                        },
+                        onRelease: {
+                            options.delegate?.otherKeypadTap(letter: symbols[options.nowSymbolPage][0])
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()
-                            Task {
-                                await Feedback.shared.triggerFeedback()
-                            }
-                            timer = Timer.publish(every: repeatTimerCycle, on: .main, in: .common)
+                            Feedback.shared.playHaptic(style: .light)
+                            options.delegate?.otherKeypadTap(letter: symbols[options.nowSymbolPage][0])
+                            timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
-                                    Task {
-                                        await Feedback.shared.triggerFeedback()
-                                    }
+                                    Feedback.shared.playHaptic(style: .light)
+                                    options.delegate?.inputLastSymbol()
                                 }
                         },
                         onLongPressFinished: {
@@ -58,26 +55,25 @@ struct PreviewSymbolView: View {
                     .padding(EdgeInsets(top: vPadding, leading: hPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    PreviewSYKeyboardButton(
-                        text: isShiftTapped ? "]" : "2", primary: true,
+                    SYKeyboardButton(
+                        text: symbols[options.nowSymbolPage][1], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
-                            Task {
-                                await Feedback.shared.triggerFeedback()
-                            }
+                            Feedback.shared.playHaptic(style: .light)
+                        },
+                        onRelease: {
+                            options.delegate?.otherKeypadTap(letter: symbols[options.nowSymbolPage][1])
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()
-                            Task {
-                                await Feedback.shared.triggerFeedback()
-                            }
-                            timer = Timer.publish(every: repeatTimerCycle, on: .main, in: .common)
+                            Feedback.shared.playHaptic(style: .light)
+                            options.delegate?.otherKeypadTap(letter: symbols[options.nowSymbolPage][1])
+                            timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
-                                    Task {
-                                        await Feedback.shared.triggerFeedback()
-                                    }
+                                    Feedback.shared.playHaptic(style: .light)
+                                    options.delegate?.inputLastSymbol()
                                 }
                         },
                         onLongPressFinished: {
@@ -86,26 +82,25 @@ struct PreviewSymbolView: View {
                     .padding(EdgeInsets(top: vPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    PreviewSYKeyboardButton(
-                        text: isShiftTapped ? "{" : "3", primary: true,
+                    SYKeyboardButton(
+                        text: symbols[options.nowSymbolPage][2], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
-                            Task {
-                                await Feedback.shared.triggerFeedback()
-                            }
+                            Feedback.shared.playHaptic(style: .light)
+                        },
+                        onRelease: {
+                            options.delegate?.otherKeypadTap(letter: symbols[options.nowSymbolPage][2])
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()
-                            Task {
-                                await Feedback.shared.triggerFeedback()
-                            }
-                            timer = Timer.publish(every: repeatTimerCycle, on: .main, in: .common)
+                            Feedback.shared.playHaptic(style: .light)
+                            options.delegate?.otherKeypadTap(letter: symbols[options.nowSymbolPage][2])
+                            timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
-                                    Task {
-                                        await Feedback.shared.triggerFeedback()
-                                    }
+                                    Feedback.shared.playHaptic(style: .light)
+                                    options.delegate?.inputLastSymbol()
                                 }
                         },
                         onLongPressFinished: {
@@ -114,26 +109,25 @@ struct PreviewSymbolView: View {
                     .padding(EdgeInsets(top: vPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    PreviewSYKeyboardButton(
-                        text: isShiftTapped ? "}" : "4", primary: true,
+                    SYKeyboardButton(
+                        text: symbols[options.nowSymbolPage][3], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
-                            Task {
-                                await Feedback.shared.triggerFeedback()
-                            }
+                            Feedback.shared.playHaptic(style: .light)
+                        },
+                        onRelease: {
+                            options.delegate?.otherKeypadTap(letter: symbols[options.nowSymbolPage][3])
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()
-                            Task {
-                                await Feedback.shared.triggerFeedback()
-                            }
-                            timer = Timer.publish(every: repeatTimerCycle, on: .main, in: .common)
+                            Feedback.shared.playHaptic(style: .light)
+                            options.delegate?.otherKeypadTap(letter: symbols[options.nowSymbolPage][3])
+                            timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
-                                    Task {
-                                        await Feedback.shared.triggerFeedback()
-                                    }
+                                    Feedback.shared.playHaptic(style: .light)
+                                    options.delegate?.inputLastSymbol()
                                 }
                         },
                         onLongPressFinished: {
@@ -142,26 +136,25 @@ struct PreviewSymbolView: View {
                     .padding(EdgeInsets(top: vPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    PreviewSYKeyboardButton(
-                        text: isShiftTapped ? "#" : "5", primary: true,
+                    SYKeyboardButton(
+                        text: symbols[options.nowSymbolPage][4], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
-                            Task {
-                                await Feedback.shared.triggerFeedback()
-                            }
+                            Feedback.shared.playHaptic(style: .light)
+                        },
+                        onRelease: {
+                            options.delegate?.otherKeypadTap(letter: symbols[options.nowSymbolPage][4])
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()
-                            Task {
-                                await Feedback.shared.triggerFeedback()
-                            }
-                            timer = Timer.publish(every: repeatTimerCycle, on: .main, in: .common)
+                            Feedback.shared.playHaptic(style: .light)
+                            options.delegate?.otherKeypadTap(letter: symbols[options.nowSymbolPage][4])
+                            timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
-                                    Task {
-                                        await Feedback.shared.triggerFeedback()
-                                    }
+                                    Feedback.shared.playHaptic(style: .light)
+                                    options.delegate?.inputLastSymbol()
                                 }
                         },
                         onLongPressFinished: {
@@ -170,26 +163,25 @@ struct PreviewSymbolView: View {
                     .padding(EdgeInsets(top: vPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    PreviewSYKeyboardButton(
-                        text: isShiftTapped ? "%" : "6", primary: true,
+                    SYKeyboardButton(
+                        text: symbols[options.nowSymbolPage][5], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
-                            Task {
-                                await Feedback.shared.triggerFeedback()
-                            }
+                            Feedback.shared.playHaptic(style: .light)
+                        },
+                        onRelease: {
+                            options.delegate?.otherKeypadTap(letter: symbols[options.nowSymbolPage][5])
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()
-                            Task {
-                                await Feedback.shared.triggerFeedback()
-                            }
-                            timer = Timer.publish(every: repeatTimerCycle, on: .main, in: .common)
+                            Feedback.shared.playHaptic(style: .light)
+                            options.delegate?.otherKeypadTap(letter: symbols[options.nowSymbolPage][5])
+                            timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
-                                    Task {
-                                        await Feedback.shared.triggerFeedback()
-                                    }
+                                    Feedback.shared.playHaptic(style: .light)
+                                    options.delegate?.inputLastSymbol()
                                 }
                         },
                         onLongPressFinished: {
@@ -198,26 +190,25 @@ struct PreviewSymbolView: View {
                     .padding(EdgeInsets(top: vPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    PreviewSYKeyboardButton(
-                        text: isShiftTapped ? "^" : "7", primary: true,
+                    SYKeyboardButton(
+                        text: symbols[options.nowSymbolPage][6], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
-                            Task {
-                                await Feedback.shared.triggerFeedback()
-                            }
+                            Feedback.shared.playHaptic(style: .light)
+                        },
+                        onRelease: {
+                            options.delegate?.otherKeypadTap(letter: symbols[options.nowSymbolPage][6])
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()
-                            Task {
-                                await Feedback.shared.triggerFeedback()
-                            }
-                            timer = Timer.publish(every: repeatTimerCycle, on: .main, in: .common)
+                            Feedback.shared.playHaptic(style: .light)
+                            options.delegate?.otherKeypadTap(letter: symbols[options.nowSymbolPage][6])
+                            timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
-                                    Task {
-                                        await Feedback.shared.triggerFeedback()
-                                    }
+                                    Feedback.shared.playHaptic(style: .light)
+                                    options.delegate?.inputLastSymbol()
                                 }
                         },
                         onLongPressFinished: {
@@ -226,26 +217,25 @@ struct PreviewSymbolView: View {
                     .padding(EdgeInsets(top: vPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    PreviewSYKeyboardButton(
-                        text: isShiftTapped ? "*" : "8", primary: true,
+                    SYKeyboardButton(
+                        text: symbols[options.nowSymbolPage][7], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
-                            Task {
-                                await Feedback.shared.triggerFeedback()
-                            }
+                            Feedback.shared.playHaptic(style: .light)
+                        },
+                        onRelease: {
+                            options.delegate?.otherKeypadTap(letter: symbols[options.nowSymbolPage][7])
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()
-                            Task {
-                                await Feedback.shared.triggerFeedback()
-                            }
-                            timer = Timer.publish(every: repeatTimerCycle, on: .main, in: .common)
+                            Feedback.shared.playHaptic(style: .light)
+                            options.delegate?.otherKeypadTap(letter: symbols[options.nowSymbolPage][7])
+                            timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
-                                    Task {
-                                        await Feedback.shared.triggerFeedback()
-                                    }
+                                    Feedback.shared.playHaptic(style: .light)
+                                    options.delegate?.inputLastSymbol()
                                 }
                         },
                         onLongPressFinished: {
@@ -254,26 +244,25 @@ struct PreviewSymbolView: View {
                     .padding(EdgeInsets(top: vPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    PreviewSYKeyboardButton(
-                        text: isShiftTapped ? "+" : "9", primary: true,
+                    SYKeyboardButton(
+                        text: symbols[options.nowSymbolPage][8], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
-                            Task {
-                                await Feedback.shared.triggerFeedback()
-                            }
+                            Feedback.shared.playHaptic(style: .light)
+                        },
+                        onRelease: {
+                            options.delegate?.otherKeypadTap(letter: symbols[options.nowSymbolPage][8])
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()
-                            Task {
-                                await Feedback.shared.triggerFeedback()
-                            }
-                            timer = Timer.publish(every: repeatTimerCycle, on: .main, in: .common)
+                            Feedback.shared.playHaptic(style: .light)
+                            options.delegate?.otherKeypadTap(letter: symbols[options.nowSymbolPage][8])
+                            timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
-                                    Task {
-                                        await Feedback.shared.triggerFeedback()
-                                    }
+                                    Feedback.shared.playHaptic(style: .light)
+                                    options.delegate?.inputLastSymbol()
                                 }
                         },
                         onLongPressFinished: {
@@ -282,26 +271,25 @@ struct PreviewSymbolView: View {
                     .padding(EdgeInsets(top: vPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    PreviewSYKeyboardButton(
-                        text: isShiftTapped ? "=" : "0", primary: true,
+                    SYKeyboardButton(
+                        text: symbols[options.nowSymbolPage][9], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
-                            Task {
-                                await Feedback.shared.triggerFeedback()
-                            }
+                            Feedback.shared.playHaptic(style: .light)
+                        },
+                        onRelease: {
+                            options.delegate?.otherKeypadTap(letter: symbols[options.nowSymbolPage][9])
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()
-                            Task {
-                                await Feedback.shared.triggerFeedback()
-                            }
-                            timer = Timer.publish(every: repeatTimerCycle, on: .main, in: .common)
+                            Feedback.shared.playHaptic(style: .light)
+                            options.delegate?.otherKeypadTap(letter: symbols[options.nowSymbolPage][9])
+                            timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
-                                    Task {
-                                        await Feedback.shared.triggerFeedback()
-                                    }
+                                    Feedback.shared.playHaptic(style: .light)
+                                    options.delegate?.inputLastSymbol()
                                 }
                         },
                         onLongPressFinished: {
@@ -311,28 +299,27 @@ struct PreviewSymbolView: View {
                     .contentShape(Rectangle())
                 }
                 
-                // MARK: - -, /, :, ;, (, ), ₩, &, @, " / _, \, |, ~, <, >, $, £, ¥, •
+                // MARK: - symbols[1]
                 HStack(spacing: 0) {
-                    PreviewSYKeyboardButton(
-                        text: isShiftTapped ? "_" : "-", primary: true,
+                    SYKeyboardButton(
+                        text: symbols[options.nowSymbolPage][10], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
-                            Task {
-                                await Feedback.shared.triggerFeedback()
-                            }
+                            Feedback.shared.playHaptic(style: .light)
+                        },
+                        onRelease: {
+                            options.delegate?.otherKeypadTap(letter: symbols[options.nowSymbolPage][10])
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()
-                            Task {
-                                await Feedback.shared.triggerFeedback()
-                            }
-                            timer = Timer.publish(every: repeatTimerCycle, on: .main, in: .common)
+                            Feedback.shared.playHaptic(style: .light)
+                            options.delegate?.otherKeypadTap(letter: symbols[options.nowSymbolPage][10])
+                            timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
-                                    Task {
-                                        await Feedback.shared.triggerFeedback()
-                                    }
+                                    Feedback.shared.playHaptic(style: .light)
+                                    options.delegate?.inputLastSymbol()
                                 }
                         },
                         onLongPressFinished: {
@@ -341,26 +328,25 @@ struct PreviewSymbolView: View {
                     .padding(EdgeInsets(top: interItemVPadding, leading: hPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    PreviewSYKeyboardButton(
-                        text: isShiftTapped ? "\\" : "/", primary: true,
+                    SYKeyboardButton(
+                        text: symbols[options.nowSymbolPage][11], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
-                            Task {
-                                await Feedback.shared.triggerFeedback()
-                            }
+                            Feedback.shared.playHaptic(style: .light)
+                        },
+                        onRelease: {
+                            options.delegate?.otherKeypadTap(letter: symbols[options.nowSymbolPage][11])
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()
-                            Task {
-                                await Feedback.shared.triggerFeedback()
-                            }
-                            timer = Timer.publish(every: repeatTimerCycle, on: .main, in: .common)
+                            Feedback.shared.playHaptic(style: .light)
+                            options.delegate?.otherKeypadTap(letter: symbols[options.nowSymbolPage][11])
+                            timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
-                                    Task {
-                                        await Feedback.shared.triggerFeedback()
-                                    }
+                                    Feedback.shared.playHaptic(style: .light)
+                                    options.delegate?.inputLastSymbol()
                                 }
                         },
                         onLongPressFinished: {
@@ -369,26 +355,25 @@ struct PreviewSymbolView: View {
                     .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    PreviewSYKeyboardButton(
-                        text: isShiftTapped ? "|" : ":", primary: true,
+                    SYKeyboardButton(
+                        text: symbols[options.nowSymbolPage][12], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
-                            Task {
-                                await Feedback.shared.triggerFeedback()
-                            }
+                            Feedback.shared.playHaptic(style: .light)
+                        },
+                        onRelease: {
+                            options.delegate?.otherKeypadTap(letter: symbols[options.nowSymbolPage][12])
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()
-                            Task {
-                                await Feedback.shared.triggerFeedback()
-                            }
-                            timer = Timer.publish(every: repeatTimerCycle, on: .main, in: .common)
+                            Feedback.shared.playHaptic(style: .light)
+                            options.delegate?.otherKeypadTap(letter: symbols[options.nowSymbolPage][12])
+                            timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
-                                    Task {
-                                        await Feedback.shared.triggerFeedback()
-                                    }
+                                    Feedback.shared.playHaptic(style: .light)
+                                    options.delegate?.inputLastSymbol()
                                 }
                         },
                         onLongPressFinished: {
@@ -397,26 +382,25 @@ struct PreviewSymbolView: View {
                     .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    PreviewSYKeyboardButton(
-                        text: isShiftTapped ? "~" : ";", primary: true,
+                    SYKeyboardButton(
+                        text: symbols[options.nowSymbolPage][13], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
-                            Task {
-                                await Feedback.shared.triggerFeedback()
-                            }
+                            Feedback.shared.playHaptic(style: .light)
+                        },
+                        onRelease: {
+                            options.delegate?.otherKeypadTap(letter: symbols[options.nowSymbolPage][13])
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()
-                            Task {
-                                await Feedback.shared.triggerFeedback()
-                            }
-                            timer = Timer.publish(every: repeatTimerCycle, on: .main, in: .common)
+                            Feedback.shared.playHaptic(style: .light)
+                            options.delegate?.otherKeypadTap(letter: symbols[options.nowSymbolPage][13])
+                            timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
-                                    Task {
-                                        await Feedback.shared.triggerFeedback()
-                                    }
+                                    Feedback.shared.playHaptic(style: .light)
+                                    options.delegate?.inputLastSymbol()
                                 }
                         },
                         onLongPressFinished: {
@@ -425,26 +409,25 @@ struct PreviewSymbolView: View {
                     .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    PreviewSYKeyboardButton(
-                        text: isShiftTapped ? "<" : "(", primary: true,
+                    SYKeyboardButton(
+                        text: symbols[options.nowSymbolPage][14], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
-                            Task {
-                                await Feedback.shared.triggerFeedback()
-                            }
+                            Feedback.shared.playHaptic(style: .light)
+                        },
+                        onRelease: {
+                            options.delegate?.otherKeypadTap(letter: symbols[options.nowSymbolPage][14])
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()
-                            Task {
-                                await Feedback.shared.triggerFeedback()
-                            }
-                            timer = Timer.publish(every: repeatTimerCycle, on: .main, in: .common)
+                            Feedback.shared.playHaptic(style: .light)
+                            options.delegate?.otherKeypadTap(letter: symbols[options.nowSymbolPage][14])
+                            timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
-                                    Task {
-                                        await Feedback.shared.triggerFeedback()
-                                    }
+                                    Feedback.shared.playHaptic(style: .light)
+                                    options.delegate?.inputLastSymbol()
                                 }
                         },
                         onLongPressFinished: {
@@ -453,26 +436,25 @@ struct PreviewSymbolView: View {
                     .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    PreviewSYKeyboardButton(
-                        text: isShiftTapped ? ">" : ")", primary: true,
+                    SYKeyboardButton(
+                        text: symbols[options.nowSymbolPage][15], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
-                            Task {
-                                await Feedback.shared.triggerFeedback()
-                            }
+                            Feedback.shared.playHaptic(style: .light)
+                        },
+                        onRelease: {
+                            options.delegate?.otherKeypadTap(letter: symbols[options.nowSymbolPage][15])
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()
-                            Task {
-                                await Feedback.shared.triggerFeedback()
-                            }
-                            timer = Timer.publish(every: repeatTimerCycle, on: .main, in: .common)
+                            Feedback.shared.playHaptic(style: .light)
+                            options.delegate?.otherKeypadTap(letter: symbols[options.nowSymbolPage][15])
+                            timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
-                                    Task {
-                                        await Feedback.shared.triggerFeedback()
-                                    }
+                                    Feedback.shared.playHaptic(style: .light)
+                                    options.delegate?.inputLastSymbol()
                                 }
                         },
                         onLongPressFinished: {
@@ -481,26 +463,25 @@ struct PreviewSymbolView: View {
                     .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    PreviewSYKeyboardButton(
-                        text: isShiftTapped ? "$" : "₩", primary: true,
+                    SYKeyboardButton(
+                        text: symbols[options.nowSymbolPage][16], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
-                            Task {
-                                await Feedback.shared.triggerFeedback()
-                            }
+                            Feedback.shared.playHaptic(style: .light)
+                        },
+                        onRelease: {
+                            options.delegate?.otherKeypadTap(letter: symbols[options.nowSymbolPage][16])
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()
-                            Task {
-                                await Feedback.shared.triggerFeedback()
-                            }
-                            timer = Timer.publish(every: repeatTimerCycle, on: .main, in: .common)
+                            Feedback.shared.playHaptic(style: .light)
+                            options.delegate?.otherKeypadTap(letter: symbols[options.nowSymbolPage][16])
+                            timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
-                                    Task {
-                                        await Feedback.shared.triggerFeedback()
-                                    }
+                                    Feedback.shared.playHaptic(style: .light)
+                                    options.delegate?.inputLastSymbol()
                                 }
                         },
                         onLongPressFinished: {
@@ -509,26 +490,25 @@ struct PreviewSymbolView: View {
                     .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    PreviewSYKeyboardButton(
-                        text: isShiftTapped ? "£" : "&", primary: true,
+                    SYKeyboardButton(
+                        text: symbols[options.nowSymbolPage][17], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
-                            Task {
-                                await Feedback.shared.triggerFeedback()
-                            }
+                            Feedback.shared.playHaptic(style: .light)
+                        },
+                        onRelease: {
+                            options.delegate?.otherKeypadTap(letter: symbols[options.nowSymbolPage][17])
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()
-                            Task {
-                                await Feedback.shared.triggerFeedback()
-                            }
-                            timer = Timer.publish(every: repeatTimerCycle, on: .main, in: .common)
+                            Feedback.shared.playHaptic(style: .light)
+                            options.delegate?.otherKeypadTap(letter: symbols[options.nowSymbolPage][17])
+                            timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
-                                    Task {
-                                        await Feedback.shared.triggerFeedback()
-                                    }
+                                    Feedback.shared.playHaptic(style: .light)
+                                    options.delegate?.inputLastSymbol()
                                 }
                         },
                         onLongPressFinished: {
@@ -537,26 +517,25 @@ struct PreviewSymbolView: View {
                     .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    PreviewSYKeyboardButton(
-                        text: isShiftTapped ? "¥" : "@", primary: true,
+                    SYKeyboardButton(
+                        text: symbols[options.nowSymbolPage][18], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
-                            Task {
-                                await Feedback.shared.triggerFeedback()
-                            }
+                            Feedback.shared.playHaptic(style: .light)
+                        },
+                        onRelease: {
+                            options.delegate?.otherKeypadTap(letter: symbols[options.nowSymbolPage][18])
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()
-                            Task {
-                                await Feedback.shared.triggerFeedback()
-                            }
-                            timer = Timer.publish(every: repeatTimerCycle, on: .main, in: .common)
+                            Feedback.shared.playHaptic(style: .light)
+                            options.delegate?.otherKeypadTap(letter: symbols[options.nowSymbolPage][18])
+                            timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
-                                    Task {
-                                        await Feedback.shared.triggerFeedback()
-                                    }
+                                    Feedback.shared.playHaptic(style: .light)
+                                    options.delegate?.inputLastSymbol()
                                 }
                         },
                         onLongPressFinished: {
@@ -565,26 +544,25 @@ struct PreviewSymbolView: View {
                     .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    PreviewSYKeyboardButton(
-                        text: isShiftTapped ? "•" : "\"", primary: true,
+                    SYKeyboardButton(
+                        text: symbols[options.nowSymbolPage][19], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
-                            Task {
-                                await Feedback.shared.triggerFeedback()
-                            }
+                            Feedback.shared.playHaptic(style: .light)
+                        },
+                        onRelease: {
+                            options.delegate?.otherKeypadTap(letter: symbols[options.nowSymbolPage][19])
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()
-                            Task {
-                                await Feedback.shared.triggerFeedback()
-                            }
-                            timer = Timer.publish(every: repeatTimerCycle, on: .main, in: .common)
+                            Feedback.shared.playHaptic(style: .light)
+                            options.delegate?.otherKeypadTap(letter: symbols[options.nowSymbolPage][19])
+                            timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
-                                    Task {
-                                        await Feedback.shared.triggerFeedback()
-                                    }
+                                    Feedback.shared.playHaptic(style: .light)
+                                    options.delegate?.inputLastSymbol()
                                 }
                         },
                         onLongPressFinished: {
@@ -594,62 +572,38 @@ struct PreviewSymbolView: View {
                     .contentShape(Rectangle())
                 }
                 
-                // MARK: - #+=/123, ., ,, ?, !, ', 􀆛
+                // MARK: - (options.curSymbolPage + 1)/options.totalSymbolPage, symbols.last, 􀆛
                 HStack(spacing: 0) {
-                    PreviewSYKeyboardButton(
-                        text: isShiftTapped ? "123" : "#+=", primary: false,
+                    SYKeyboardButton(
+                        text: "\(options.nowSymbolPage + 1)/\(options.totalSymbolPage)", primary: false,
                         onPress: {
                             Feedback.shared.playModifierSound()
-                            Task {
-                                await Feedback.shared.triggerFeedback()
-                            }
-                            if !isShiftTapped {
-                                isShiftTapped = true
-                                isShiftReleased = false
-                            }
-                        },
-                        onRelease: {
-                            if isShiftTapped && isShiftReleased {
-                                isShiftTapped = false
-                                isShiftReleased = true
-                            }
-                            
-                            if isShiftTapped && !isShiftReleased {
-                                isShiftReleased = true
-                            }
-                        },onLongPressFinished: {
-                            if isShiftTapped && isShiftReleased {
-                                isShiftTapped = false
-                                isShiftReleased = true
-                            }
-                            
-                            if isShiftTapped && !isShiftReleased {
-                                isShiftReleased = true
-                            }
+                            Feedback.shared.playHaptic(style: .light)
+                            options.nowSymbolPage = (options.nowSymbolPage + 1) % options.totalSymbolPage
                         })
+                    .monospaced()
                     .padding(EdgeInsets(top: interItemVPadding, leading: hPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    PreviewSYKeyboardButton(
-                        text: ".", primary: true,
+                    SYKeyboardButton(
+                        text: fixedSymbols[0], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
-                            Task {
-                                await Feedback.shared.triggerFeedback()
-                            }
+                            Feedback.shared.playHaptic(style: .light)
+                        },
+                        onRelease: {
+                            options.delegate?.otherKeypadTap(letter: fixedSymbols[0])
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()
-                            Task {
-                                await Feedback.shared.triggerFeedback()
-                            }
-                            timer = Timer.publish(every: repeatTimerCycle, on: .main, in: .common)
+                            Feedback.shared.playHaptic(style: .light)
+                            options.delegate?.otherKeypadTap(letter: fixedSymbols[0])
+                            timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
-                                    Task {
-                                        await Feedback.shared.triggerFeedback()
-                                    }
+                                    Feedback.shared.playHaptic(style: .light)
+                                    options.delegate?.inputLastSymbol()
                                 }
                         },
                         onLongPressFinished: {
@@ -658,26 +612,25 @@ struct PreviewSymbolView: View {
                     .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    PreviewSYKeyboardButton(
-                        text: ",", primary: true,
+                    SYKeyboardButton(
+                        text: fixedSymbols[1], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
-                            Task {
-                                await Feedback.shared.triggerFeedback()
-                            }
+                            Feedback.shared.playHaptic(style: .light)
+                        },
+                        onRelease: {
+                            options.delegate?.otherKeypadTap(letter: fixedSymbols[1])
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()
-                            Task {
-                                await Feedback.shared.triggerFeedback()
-                            }
-                            timer = Timer.publish(every: repeatTimerCycle, on: .main, in: .common)
+                            Feedback.shared.playHaptic(style: .light)
+                            options.delegate?.otherKeypadTap(letter: fixedSymbols[1])
+                            timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
-                                    Task {
-                                        await Feedback.shared.triggerFeedback()
-                                    }
+                                    Feedback.shared.playHaptic(style: .light)
+                                    options.delegate?.inputLastSymbol()
                                 }
                         },
                         onLongPressFinished: {
@@ -686,26 +639,25 @@ struct PreviewSymbolView: View {
                     .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    PreviewSYKeyboardButton(
-                        text: "?", primary: true,
+                    SYKeyboardButton(
+                        text: fixedSymbols[2], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
-                            Task {
-                                await Feedback.shared.triggerFeedback()
-                            }
+                            Feedback.shared.playHaptic(style: .light)
+                        },
+                        onRelease: {
+                            options.delegate?.otherKeypadTap(letter: fixedSymbols[2])
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()
-                            Task {
-                                await Feedback.shared.triggerFeedback()
-                            }
-                            timer = Timer.publish(every: repeatTimerCycle, on: .main, in: .common)
+                            Feedback.shared.playHaptic(style: .light)
+                            options.delegate?.otherKeypadTap(letter: fixedSymbols[2])
+                            timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
-                                    Task {
-                                        await Feedback.shared.triggerFeedback()
-                                    }
+                                    Feedback.shared.playHaptic(style: .light)
+                                    options.delegate?.inputLastSymbol()
                                 }
                         },
                         onLongPressFinished: {
@@ -714,26 +666,25 @@ struct PreviewSymbolView: View {
                     .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    PreviewSYKeyboardButton(
-                        text: "!", primary: true,
+                    SYKeyboardButton(
+                        text: fixedSymbols[3], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
-                            Task {
-                                await Feedback.shared.triggerFeedback()
-                            }
+                            Feedback.shared.playHaptic(style: .light)
+                        },
+                        onRelease: {
+                            options.delegate?.otherKeypadTap(letter: fixedSymbols[3])
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()
-                            Task {
-                                await Feedback.shared.triggerFeedback()
-                            }
-                            timer = Timer.publish(every: repeatTimerCycle, on: .main, in: .common)
+                            Feedback.shared.playHaptic(style: .light)
+                            options.delegate?.otherKeypadTap(letter: fixedSymbols[3])
+                            timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
-                                    Task {
-                                        await Feedback.shared.triggerFeedback()
-                                    }
+                                    Feedback.shared.playHaptic(style: .light)
+                                    options.delegate?.inputLastSymbol()
                                 }
                         },
                         onLongPressFinished: {
@@ -742,26 +693,25 @@ struct PreviewSymbolView: View {
                     .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    PreviewSYKeyboardButton(
-                        text: "`", primary: true,
+                    SYKeyboardButton(
+                        text: fixedSymbols[4], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
-                            Task {
-                                await Feedback.shared.triggerFeedback()
-                            }
+                            Feedback.shared.playHaptic(style: .light)
+                        },
+                        onRelease: {
+                            options.delegate?.otherKeypadTap(letter: fixedSymbols[4])
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()
-                            Task {
-                                await Feedback.shared.triggerFeedback()
-                            }
-                            timer = Timer.publish(every: repeatTimerCycle, on: .main, in: .common)
+                            Feedback.shared.playHaptic(style: .light)
+                            options.delegate?.otherKeypadTap(letter: fixedSymbols[4])
+                            timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
-                                    Task {
-                                        await Feedback.shared.triggerFeedback()
-                                    }
+                                    Feedback.shared.playHaptic(style: .light)
+                                    options.delegate?.inputLastSymbol()
                                 }
                         },
                         onLongPressFinished: {
@@ -770,21 +720,22 @@ struct PreviewSymbolView: View {
                     .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    PreviewSYKeyboardButton(
+                    SYKeyboardButton(
                         systemName: "delete.left", primary: false,
                         onPress: {
                             Feedback.shared.playDeleteSound()
-                            Task {
-                                await Feedback.shared.triggerFeedback()
-                            }
+                            Feedback.shared.playHaptic(style: .light)
+                            let _ = options.delegate?.removeKeypadTap(isLongPress: false)
                         },
                         onLongPress: {
-                            timer = Timer.publish(every: repeatTimerCycle, on: .main, in: .common)
+                            timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
-                                    Feedback.shared.playDeleteSound()
-                                    Task {
-                                        await Feedback.shared.triggerFeedback()
+                                    if let isDeleted = options.delegate?.removeKeypadTap(isLongPress: true) {
+                                        if isDeleted {
+                                            Feedback.shared.playDeleteSound()
+                                            Feedback.shared.playHaptic(style: .light)
+                                        }
                                     }
                                 }
                         },
@@ -797,66 +748,66 @@ struct PreviewSymbolView: View {
                 
                 // MARK: - (한글, 􀆪), 􁁺, 􁂆
                 HStack(spacing: 0) {
-                    if needsInputModeSwitchKey {
+                    if options.needsInputModeSwitchKey {
                         HStack(spacing: 0) {
-                            PreviewSYKeyboardButton(
+                            SYKeyboardButton(
                                 text: "한글", primary: false,
                                 onPress: {
                                     Feedback.shared.playModifierSound()
-                                    Task {
-                                        await Feedback.shared.triggerFeedback()
-                                    }
-                                    options.current = .hangul
+                                    Feedback.shared.playHaptic(style: .light)
+                                },
+                                onRelease: {
+                                    options.current = .hangeul
+                                },
+                                onLongPressFinished: {
+                                    options.current = .hangeul
                                 })
                             .padding(EdgeInsets(top: interItemVPadding, leading: hPadding, bottom: vPadding, trailing: interItemHPadding))
                             .contentShape(Rectangle())
                             
-                            PreviewSYKeyboardButton(
-                                systemName: "globe", primary: false,
-                                onPress: {
-                                    Feedback.shared.playModifierSound()
-                                    Task {
-                                        await Feedback.shared.triggerFeedback()
-                                    }
-                                }
+                            NextKeyboardButton(
+                                systemName: "globe",
+                                action: options.nextKeyboardAction
                             )
                             .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: vPadding, trailing: interItemHPadding))
                             .contentShape(Rectangle())
                         }
                     } else {
-                        PreviewSYKeyboardButton(
+                        SYKeyboardButton(
                             text: "한글", primary: false,
                             onPress: {
                                 Feedback.shared.playModifierSound()
-                                Task {
-                                    await Feedback.shared.triggerFeedback()
-                                }
-                                options.current = .hangul
+                                Feedback.shared.playHaptic(style: .light)
+                            },
+                            onRelease: {
+                                options.current = .hangeul
+                            },
+                            onLongPressFinished: {
+                                options.current = .hangeul
                             })
                         .padding(EdgeInsets(top: interItemVPadding, leading: hPadding, bottom: vPadding, trailing: interItemHPadding))
                         .contentShape(Rectangle())
                     }
                     
-                    PreviewSYKeyboardButton(
-                        systemName: "space_SymbolView", primary: true,
+                    SYKeyboardButton(
+                        systemName: "space", primary: true,
                         onPress: {
                             Feedback.shared.playModifierSound()
-                            Task {
-                                await Feedback.shared.triggerFeedback()
-                            }
+                            Feedback.shared.playHaptic(style: .light)
+                        },
+                        onRelease: {
+                            options.delegate?.spaceKeypadTap()
                         },
                         onLongPress: {
                             Feedback.shared.playModifierSound()
-                            Task {
-                                await Feedback.shared.triggerFeedback()
-                            }
-                            timer = Timer.publish(every: repeatTimerCycle, on: .main, in: .common)
+                            Feedback.shared.playHaptic(style: .light)
+                            options.delegate?.spaceKeypadTap()
+                            timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playModifierSound()
-                                    Task {
-                                        await Feedback.shared.triggerFeedback()
-                                    }
+                                    Feedback.shared.playHaptic(style: .light)
+                                    options.delegate?.spaceKeypadTap()
                                 }
                         },
                         onLongPressFinished: {
@@ -866,21 +817,26 @@ struct PreviewSymbolView: View {
                     .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: vPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    PreviewSYKeyboardButton(
+                    SYKeyboardButton(
                         systemName: "return.left", primary: false,
                         onPress: {
                             Feedback.shared.playModifierSound()
-                            Task {
-                                await Feedback.shared.triggerFeedback()
-                            }
+                            Feedback.shared.playHaptic(style: .light)
+                        },
+                        onRelease: {
+                            options.delegate?.enterKeypadTap()
+                        },
+                        onLongPressFinished: {
+                            options.delegate?.enterKeypadTap()
                         })
                     .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: vPadding, trailing: hPadding))
                     .contentShape(Rectangle())
                 }
             }
+        }.onAppear {
+            options.totalSymbolPage = symbols.count
         }
-        .frame(height: tempKeyboardHeight)
+        .frame(height: options.keyboardHeight)
         .background(Color("KeyboardBackground"))
-        .padding(EdgeInsets(top: 0, leading: 0, bottom: (needsInputModeSwitchKey ? 0 : 40), trailing: 0))
     }
 }

@@ -1,5 +1,5 @@
 //
-//  SYKeyboardIOManager.swift
+//  NaratgeulIOManager.swift
 //  Naratgeul
 //
 //  Created by CHUBBY on 7/13/22.
@@ -8,19 +8,18 @@
 //
 
 import Foundation
-import SwiftUI
 
-final class SYKeyboardIOManager {
+final class NaratgeulIOManager {
     private let hangeulAutomata = HangeulAutomata()
     private var lastLetter: String = ""
-    var prevAutomataBufferSize = 0
-    var curAutomataBufferSize = 0
-    var isEditingLastCharacter: Bool = false
+    private var prevAutomataBufferSize = 0
+    private var curAutomataBufferSize = 0
+    private var isCommaInput: Bool = false
     var isHoegSsangAvailiable: Bool = false
+    var isEditingLastCharacter: Bool = false
     
     private var inputHangeul: String = "" {
         didSet {
-            lastLetter = inputHangeul
             if inputHangeul == "" {
                 onlyUpdateHoegSsang?()
             } else {
@@ -46,18 +45,19 @@ final class SYKeyboardIOManager {
                 isEditingLastCharacter = true  // 순서 중요함
             }
             
+            lastLetter = inputHangeul
             updateAutomataBufferSize()
         }
     }
     
     private var inputOther: String = "" {
         didSet {
-            lastLetter = inputOther
             hangeulAutomata.otherAutomata(key: inputOther)
             curAutomataBufferSize = getBufferSize()
             inputText?(inputOther)
             isEditingLastCharacter = true
             
+            lastLetter = inputOther
             updateAutomataBufferSize()
         }
     }
@@ -67,8 +67,6 @@ final class SYKeyboardIOManager {
     var deleteText: (() -> Bool)?
     var inputForDelete: ((String) -> Void)?
     var attemptRestoreWord: (() -> Bool)?
-    var hoegComma: (() -> Void)?
-    var ssangPeriod: (() -> Void)?
     var onlyUpdateHoegSsang: (() -> Void)?
     var moveCursorToLeft: (() -> Bool)?
     var moveCursorToRight: (() -> Bool)?
@@ -78,7 +76,7 @@ final class SYKeyboardIOManager {
     }
 }
 
-extension SYKeyboardIOManager: SYKeyboardDelegate {
+extension NaratgeulIOManager: NaratgeulDelegate {
     func getBufferSize() -> Int {
         return hangeulAutomata.buffer.count
     }
@@ -96,7 +94,7 @@ extension SYKeyboardIOManager: SYKeyboardDelegate {
         updateAutomataBufferSize()
     }
     
-    func inputLastHangul() {
+    func inputLastHangeul() {
         inputHangeul = lastLetter
     }
     
@@ -149,68 +147,10 @@ extension SYKeyboardIOManager: SYKeyboardDelegate {
         inputHangeul = curLetter
     }
     
-    func symbolKeypadTap(letter: String) {
+    func otherKeypadTap(letter: String) {
         isHoegSsangAvailiable = false
         lastLetter = letter
         inputOther = lastLetter
-    }
-    
-    func checkHoegSsangAvailable() {
-        switch lastLetter {
-        case "ㄱ":
-            isHoegSsangAvailiable = true
-        case "ㅋ", "ㄲ":
-            isHoegSsangAvailiable = true
-            
-        case "ㄴ", "ㄸ":
-            isHoegSsangAvailiable = true
-        case "ㄷ":
-            isHoegSsangAvailiable = true
-        case "ㅌ":
-            isHoegSsangAvailiable = true
-            
-        case "ㅏ":
-            isHoegSsangAvailiable = true
-        case "ㅑ":
-            isHoegSsangAvailiable = true
-        case "ㅓ":
-            isHoegSsangAvailiable = true
-        case "ㅕ":
-            isHoegSsangAvailiable = true
-            
-        case "ㅁ", "ㅃ":
-            isHoegSsangAvailiable = true
-        case "ㅂ":
-            isHoegSsangAvailiable = true
-        case "ㅍ":
-            isHoegSsangAvailiable = true
-            
-        case "ㅗ":
-            isHoegSsangAvailiable = true
-        case "ㅛ":
-            isHoegSsangAvailiable = true
-        case "ㅜ":
-            isHoegSsangAvailiable = true
-        case "ㅠ":
-            isHoegSsangAvailiable = true
-            
-        case "ㅅ", "ㅆ":
-            isHoegSsangAvailiable = true
-        case "ㅈ":
-            isHoegSsangAvailiable = true
-        case "ㅊ":
-            isHoegSsangAvailiable = true
-        case "ㅉ":
-            isHoegSsangAvailiable = true
-            
-        case "ㅇ":
-            isHoegSsangAvailiable = true
-        case "ㅎ":
-            isHoegSsangAvailiable = true
-            
-        default:
-            isHoegSsangAvailiable = false
-        }
     }
     
     func hoegKeypadTap() {
@@ -289,20 +229,11 @@ extension SYKeyboardIOManager: SYKeyboardDelegate {
         inputHangeul = curLetter
     }
     
-    func hoegToComma(isLongPress: Bool) {
-        if isLongPress {
-            inputOther = ","
-            inputOther = ","
-            inputOther = ","
-        } else {
-            inputOther = ","
-        }
-    }
-    
     func ssangKeypadTap() {
         isHoegSsangAvailiable = true
         
         var curLetter: String = ""
+        
         switch lastLetter {
         case "ㄱ", "ㅋ":
             curLetter = "ㄲ"
@@ -367,16 +298,6 @@ extension SYKeyboardIOManager: SYKeyboardDelegate {
             hangeulAutomata.deleteBufferLastInput()
         }
         inputHangeul = curLetter
-    }
-    
-    func ssangToPeriod(isLongPress: Bool) {
-        if isLongPress {
-            inputOther = "."
-            inputOther = "."
-            inputOther = "."
-        } else {
-            inputOther = "."
-        }
     }
     
     func removeKeypadTap(isLongPress: Bool) -> Bool {

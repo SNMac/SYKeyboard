@@ -23,7 +23,7 @@ struct SpeedSettingsView: View {
             }
             
             Button {
-                longPressSpeed = DefaultValues().defaultLongPressSpeed
+                longPressSpeed = GlobalValues.defaultLongPressSpeed
                 hideKeyboard()
             } label: {
                 Text("리셋")
@@ -43,7 +43,7 @@ struct SpeedSettingsView: View {
             }
             
             Button {
-                repeatTimerSpeed = DefaultValues().defaultRepeatTimerSpeed
+                repeatTimerSpeed = GlobalValues.defaultRepeatTimerSpeed
                 hideKeyboard()
             } label: {
                 Text("리셋")
