@@ -836,6 +836,5 @@ struct Swift6_SymbolView: View {
             options.totalSymbolPage = symbols.count
         }
         .frame(height: options.keyboardHeight)
-        .background(Color("KeyboardBackground"))
     }
 }

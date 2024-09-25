@@ -526,6 +526,5 @@ struct NumberView: View {
             }
         }
         .frame(height: options.keyboardHeight)
-        .background(Color("KeyboardBackground"))
     }
 }

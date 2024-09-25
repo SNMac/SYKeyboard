@@ -157,14 +157,14 @@ struct SYKeyboardButton: View {
                         Text(options.returnButtonLabel.rawValue)
                             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
                             .font(.system(size: textSize))
-                            .foregroundStyle(Color(uiColor: UIColor.label))
+                            .foregroundStyle(nowGesture == .pressing || nowGesture == .longPressing ? Color(uiColor: UIColor.label) : Color.white)
                             .background(nowGesture == .pressing || nowGesture == .longPressing ? Color("PrimaryKeyboardButton") : Color(.tintColor))
                             .clipShape(.rect(cornerRadius: 5))
                     } else {
                         Text(options.returnButtonLabel.rawValue)
                             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
                             .font(.system(size: textSize))
-                            .foregroundStyle(Color(uiColor: UIColor.label))
+                            .foregroundStyle(nowGesture == .pressing || nowGesture == .longPressing ? Color(uiColor: UIColor.label) : Color.white)
                             .background(nowGesture == .pressing || nowGesture == .longPressing ? Color("PrimaryKeyboardButton") : Color(.tintColor))
                             .clipShape(.rect(cornerRadius: 5))
                     }
@@ -275,10 +275,7 @@ struct SYKeyboardButton: View {
                 }
             }
         }
-        .background(RoundedRectangle(cornerRadius: 5)
-            .foregroundStyle(Color("KeyboardButtonShadow"))
-            .offset(x: 0, y: 1)
-        )
+        .shadow(color: Color("KeyboardButtonShadow"), radius: 0, x: 0, y: 1)
         .gesture(
             DragGesture(minimumDistance: 0)
             // 버튼 드래그 할 때 호출

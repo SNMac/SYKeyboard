@@ -166,6 +166,7 @@ class NaratgeulViewController: UIInputViewController {
         )
         
         let SYKeyboard = UIHostingController(rootView: NaratgeulView().environmentObject(options))
+        SYKeyboard.view.backgroundColor = .clear
         
         self.options = options
         

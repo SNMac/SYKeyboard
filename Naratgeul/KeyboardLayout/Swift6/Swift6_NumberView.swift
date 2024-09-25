@@ -525,6 +525,5 @@ struct Swift6_NumberView: View {
             }
         }
         .frame(height: options.keyboardHeight)
-        .background(Color("KeyboardBackground"))
     }
 }

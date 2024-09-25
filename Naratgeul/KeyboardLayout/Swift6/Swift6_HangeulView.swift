@@ -472,6 +472,5 @@ struct Swift6_HangeulView: View {
             }
         }
         .frame(height: options.keyboardHeight)
-        .background(Color("KeyboardBackground"))
     }
 }
