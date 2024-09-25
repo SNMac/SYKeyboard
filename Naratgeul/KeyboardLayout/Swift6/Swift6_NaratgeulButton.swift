@@ -198,7 +198,11 @@ struct Swift6_NaratgeulButton: View {
                         .foregroundStyle(Color(uiColor: UIColor.label))
                         .background(nowGesture == .pressing || nowGesture == .longPressing ? Color("PrimaryKeyboardButton") : Color("SecondaryKeyboardButton"))
                         .clipShape(.rect(cornerRadius: 5))
-                        .onLongPressGesture(minimumDuration: options.longPressTime, maximumDistance: 10) {
+                        .background(RoundedRectangle(cornerRadius: 5)
+                            .foregroundStyle(Color("KeyboardButtonShadow"))
+                            .offset(x: 0, y: 1)
+                        )
+                        .onLongPressGesture(minimumDuration: options.longPressTime) {
                             // 버튼 길게 누르면(누른 상태에서 일정시간이 지나면) 호출
                             print("onLongPressGesture()->perform: longPressing")
                             onLongPressGesturePerform()
@@ -222,7 +226,11 @@ struct Swift6_NaratgeulButton: View {
                         .foregroundStyle(Color(uiColor: UIColor.label))
                         .background(nowGesture == .pressing || nowGesture == .longPressing ? Color("PrimaryKeyboardButton") : Color("SecondaryKeyboardButton"))
                         .clipShape(.rect(cornerRadius: 5))
-                        .onLongPressGesture(minimumDuration: options.longPressTime, maximumDistance: 10) {
+                        .background(RoundedRectangle(cornerRadius: 5)
+                            .foregroundStyle(Color("KeyboardButtonShadow"))
+                            .offset(x: 0, y: 1)
+                        )
+                        .onLongPressGesture(minimumDuration: options.longPressTime) {
                             // 버튼 길게 누르면(누른 상태에서 일정시간이 지나면) 호출
                             print("onLongPressGesture()->perform: longPressing")
                             onLongPressGesturePerform()
@@ -246,7 +254,11 @@ struct Swift6_NaratgeulButton: View {
                         .foregroundStyle(Color(uiColor: UIColor.label))
                         .background(nowGesture == .pressing || nowGesture == .longPressing ? Color("PrimaryKeyboardButton") : Color(.tintColor))
                         .clipShape(.rect(cornerRadius: 5))
-                        .onLongPressGesture(minimumDuration: options.longPressTime, maximumDistance: 10) {
+                        .background(RoundedRectangle(cornerRadius: 5)
+                            .foregroundStyle(Color("KeyboardButtonShadow"))
+                            .offset(x: 0, y: 1)
+                        )
+                        .onLongPressGesture(minimumDuration: options.longPressTime) {
                             // 버튼 길게 누르면(누른 상태에서 일정시간이 지나면) 호출
                             print("onLongPressGesture()->perform: longPressing")
                             onLongPressGesturePerform()
@@ -270,7 +282,11 @@ struct Swift6_NaratgeulButton: View {
                         .foregroundStyle(Color(uiColor: UIColor.label))
                         .background(nowGesture == .pressing || nowGesture == .longPressing ? Color("PrimaryKeyboardButton") : Color(.tintColor))
                         .clipShape(.rect(cornerRadius: 5))
-                        .onLongPressGesture(minimumDuration: options.longPressTime, maximumDistance: 10) {
+                        .background(RoundedRectangle(cornerRadius: 5)
+                            .foregroundStyle(Color("KeyboardButtonShadow"))
+                            .offset(x: 0, y: 1)
+                        )
+                        .onLongPressGesture(minimumDuration: options.longPressTime) {
                             // 버튼 길게 누르면(누른 상태에서 일정시간이 지나면) 호출
                             print("onLongPressGesture()->perform: longPressing")
                             onLongPressGesturePerform()
@@ -296,7 +312,11 @@ struct Swift6_NaratgeulButton: View {
                     .foregroundStyle(Color(uiColor: UIColor.label))
                     .background(nowGesture == .pressing || nowGesture == .longPressing ? Color("SecondaryKeyboardButton") : Color("PrimaryKeyboardButton") )
                     .clipShape(.rect(cornerRadius: 5))
-                    .onLongPressGesture(minimumDuration: options.longPressTime, maximumDistance: 10) {
+                    .background(RoundedRectangle(cornerRadius: 5)
+                        .foregroundStyle(Color("KeyboardButtonShadow"))
+                        .offset(x: 0, y: 1)
+                    )
+                    .onLongPressGesture(minimumDuration: options.longPressTime) {
                         // 버튼 길게 누르면(누른 상태에서 일정시간이 지나면) 호출
                         print("onLongPressGesture()->perform: longPressing")
                         onLongPressGesturePerform()
@@ -321,7 +341,11 @@ struct Swift6_NaratgeulButton: View {
                     .foregroundStyle(Color(uiColor: UIColor.label))
                     .background(nowGesture == .pressing || nowGesture == .longPressing ? Color("PrimaryKeyboardButton") : Color("SecondaryKeyboardButton"))
                     .clipShape(.rect(cornerRadius: 5))
-                    .onLongPressGesture(minimumDuration: options.longPressTime, maximumDistance: 10) {
+                    .background(RoundedRectangle(cornerRadius: 5)
+                        .foregroundStyle(Color("KeyboardButtonShadow"))
+                        .offset(x: 0, y: 1)
+                    )
+                    .onLongPressGesture(minimumDuration: options.longPressTime) {
                         // 버튼 길게 누르면(누른 상태에서 일정시간이 지나면) 호출
                         print("onLongPressGesture()->perform: longPressing")
                         onLongPressGesturePerform()
@@ -350,6 +374,10 @@ struct Swift6_NaratgeulButton: View {
                     .foregroundStyle(Color(uiColor: UIColor.label))
                     .background(nowGesture == .pressing || nowGesture == .longPressing ? Color("PrimaryKeyboardButton") : Color("SecondaryKeyboardButton"))
                     .clipShape(.rect(cornerRadius: 5))
+                    .background(RoundedRectangle(cornerRadius: 5)
+                        .foregroundStyle(Color("KeyboardButtonShadow"))
+                        .offset(x: 0, y: 1)
+                    )
                     .overlay(alignment: .bottomLeading, content: {
                         HStack(spacing: 1) {
                             if isNumberPadEnabled {
@@ -363,7 +391,7 @@ struct Swift6_NaratgeulButton: View {
                         .backgroundStyle(Color(uiColor: .clear))
                         .padding(EdgeInsets(top: 0, leading: 2, bottom: 2, trailing: 0))
                     })
-                    .onLongPressGesture(minimumDuration: options.longPressTime, maximumDistance: 10) {
+                    .onLongPressGesture(minimumDuration: options.longPressTime) {
                         // 버튼 길게 누르면(누른 상태에서 일정시간이 지나면) 호출
                         print("onLongPressGesture()->perform: longPressing")
                         onLongPressGesturePerform()
@@ -388,6 +416,10 @@ struct Swift6_NaratgeulButton: View {
                         .foregroundStyle(Color(uiColor: UIColor.label))
                         .background(nowGesture == .pressing || nowGesture == .longPressing ? Color("PrimaryKeyboardButton") : Color("SecondaryKeyboardButton"))
                         .clipShape(.rect(cornerRadius: 5))
+                        .background(RoundedRectangle(cornerRadius: 5)
+                            .foregroundStyle(Color("KeyboardButtonShadow"))
+                            .offset(x: 0, y: 1)
+                        )
                         .overlay(alignment: .bottomTrailing, content: {
                             HStack(spacing: 1) {
                                 if isNumberPadEnabled {
@@ -401,7 +433,7 @@ struct Swift6_NaratgeulButton: View {
                             .backgroundStyle(Color(uiColor: .clear))
                             .padding(EdgeInsets(top: 0, leading: 0, bottom: 2, trailing: 2))
                         })
-                        .onLongPressGesture(minimumDuration: options.longPressTime, maximumDistance: 10) {
+                        .onLongPressGesture(minimumDuration: options.longPressTime) {
                             // 버튼 길게 누르면(누른 상태에서 일정시간이 지나면) 호출
                             print("onLongPressGesture()->perform: longPressing")
                             onLongPressGesturePerform()
@@ -425,6 +457,10 @@ struct Swift6_NaratgeulButton: View {
                         .foregroundStyle(Color(uiColor: UIColor.label))
                         .background(nowGesture == .pressing || nowGesture == .longPressing ? Color("PrimaryKeyboardButton") : Color("SecondaryKeyboardButton"))
                         .clipShape(.rect(cornerRadius: 5))
+                        .background(RoundedRectangle(cornerRadius: 5)
+                            .foregroundStyle(Color("KeyboardButtonShadow"))
+                            .offset(x: 0, y: 1)
+                        )
                         .overlay(alignment: .bottomLeading, content: {
                             HStack(spacing: 1) {
                                 if isNumberPadEnabled {
@@ -438,7 +474,7 @@ struct Swift6_NaratgeulButton: View {
                             .backgroundStyle(Color(uiColor: .clear))
                             .padding(EdgeInsets(top: 0, leading: 2, bottom: 2, trailing: 0))
                         })
-                        .onLongPressGesture(minimumDuration: options.longPressTime, maximumDistance: 10) {
+                        .onLongPressGesture(minimumDuration: options.longPressTime) {
                             // 버튼 길게 누르면(누른 상태에서 일정시간이 지나면) 호출
                             print("onLongPressGesture()->perform: longPressing")
                             onLongPressGesturePerform()
@@ -464,7 +500,11 @@ struct Swift6_NaratgeulButton: View {
                     .foregroundStyle(Color(uiColor: UIColor.label))
                     .background(Color("SecondaryKeyboardButton"))
                     .clipShape(.rect(cornerRadius: 5))
-                    .onLongPressGesture(minimumDuration: options.longPressTime, maximumDistance: 10) {
+                    .background(RoundedRectangle(cornerRadius: 5)
+                        .foregroundStyle(Color("KeyboardButtonShadow"))
+                        .offset(x: 0, y: 1)
+                    )
+                    .onLongPressGesture(minimumDuration: options.longPressTime) {
                         // 버튼 길게 누르면(누른 상태에서 일정시간이 지나면) 호출
                         print("onLongPressGesture()->perform: longPressing")
                         onLongPressGesturePerform()
@@ -487,7 +527,11 @@ struct Swift6_NaratgeulButton: View {
                     .foregroundStyle(Color(uiColor: UIColor.label))
                     .background(nowGesture == .pressing || nowGesture == .longPressing ? Color("SecondaryKeyboardButton") : Color("PrimaryKeyboardButton"))
                     .clipShape(.rect(cornerRadius: 5))
-                    .onLongPressGesture(minimumDuration: options.longPressTime, maximumDistance: 10) {
+                    .background(RoundedRectangle(cornerRadius: 5)
+                        .foregroundStyle(Color("KeyboardButtonShadow"))
+                        .offset(x: 0, y: 1)
+                    )
+                    .onLongPressGesture(minimumDuration: options.longPressTime) {
                         // 버튼 길게 누르면(누른 상태에서 일정시간이 지나면) 호출
                         print("onLongPressGesture()->perform: longPressing")
                         onLongPressGesturePerform()

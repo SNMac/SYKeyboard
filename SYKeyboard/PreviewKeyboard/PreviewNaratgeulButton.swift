@@ -240,6 +240,10 @@ struct PreviewNaratgeulButton: View {
                 }
             }
         }
+        .background(RoundedRectangle(cornerRadius: 5)
+            .foregroundStyle(Color("KeyboardButtonShadow"))
+            .offset(x: 0, y: 1)
+        )
         .gesture(
             DragGesture(minimumDistance: 0)
             // 버튼 드래그 할 때 호출
