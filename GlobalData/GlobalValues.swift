@@ -36,6 +36,10 @@ struct GlobalValues {
         if defaults?.object(forKey: "isTextReplacementEnabled") == nil {
             defaults?.setValue(true, forKey: "isTextReplacementEnabled")
         }
+        // 스페이스 후 한글 자판으로 변경
+        if defaults?.object(forKey: "isHangeulTypeAfterSpaceInputEnabled") == nil {
+            defaults?.setValue(true, forKey: "isHangeulTypeAfterSpaceInputEnabled")
+        }
         
         /* 입력 설정 -> 속도 설정 */
         // 길게 누르기 속도

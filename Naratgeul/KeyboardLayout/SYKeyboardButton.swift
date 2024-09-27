@@ -48,21 +48,21 @@ struct SYKeyboardButton: View {
                 if !isCursorMovable {
                     // 왼쪽으로 일정 거리 초과 드래그 -> 이전 자판으로 변경
                     let dragWidthDiff = value.translation.width - dragStartWidth
-                    if (options.current == .hangeul || options.current == .number) && dragWidthDiff < -20 {
+                    if (options.currentInputType == .hangeul || options.currentInputType == .number) && dragWidthDiff < -20 {
                         isCursorMovable = true
-                        if options.current == .hangeul {  // 한글 자판
+                        if options.currentInputType == .hangeul {  // 한글 자판
                             if isNumberPadEnabled {
-                                options.current = .number
+                                options.currentInputType = .number
                                 Feedback.shared.playHaptic(style: .medium)
                             }
                         } else {  // 숫자 자판
-                            options.current = .symbol
+                            options.currentInputType = .symbol
                             Feedback.shared.playHaptic(style: .medium)
                         }
-                    } else if options.current == .symbol && dragWidthDiff > 20 {  // 기호 자판
+                    } else if options.currentInputType == .symbol && dragWidthDiff > 20 {  // 기호 자판
                         isCursorMovable = true
                         if isNumberPadEnabled {
-                            options.current = .number
+                            options.currentInputType = .number
                             Feedback.shared.playHaptic(style: .medium)
                         }
                     }
@@ -139,29 +139,29 @@ struct SYKeyboardButton: View {
             if systemName != nil {
                 // 리턴 버튼
                 if systemName == "return.left" {
-                    if options.returnButtonLabel == ._default {
+                    if options.returnButtonType == ._default {
                         Image(systemName: "return.left")
                             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
                             .font(.system(size: imageSize))
                             .foregroundStyle(Color(uiColor: UIColor.label))
                             .background(nowGesture == .pressing || nowGesture == .longPressing ? Color("PrimaryKeyboardButton") : Color("SecondaryKeyboardButton"))
                             .clipShape(.rect(cornerRadius: 5))
-                    } else if options.returnButtonLabel == ._continue || options.returnButtonLabel == .next {
-                        Text(options.returnButtonLabel.rawValue)
+                    } else if options.returnButtonType == ._continue || options.returnButtonType == .next {
+                        Text(options.returnButtonType.rawValue)
                             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
                             .font(.system(size: textSize))
                             .foregroundStyle(Color(uiColor: UIColor.label))
                             .background(nowGesture == .pressing || nowGesture == .longPressing ? Color("PrimaryKeyboardButton") : Color("SecondaryKeyboardButton"))
                             .clipShape(.rect(cornerRadius: 5))
-                    } else if options.returnButtonLabel == .go || options.returnButtonLabel == .send {
-                        Text(options.returnButtonLabel.rawValue)
+                    } else if options.returnButtonType == .go || options.returnButtonType == .send {
+                        Text(options.returnButtonType.rawValue)
                             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
                             .font(.system(size: textSize))
                             .foregroundStyle(nowGesture == .pressing || nowGesture == .longPressing ? Color(uiColor: UIColor.label) : Color.white)
                             .background(nowGesture == .pressing || nowGesture == .longPressing ? Color("PrimaryKeyboardButton") : Color(.tintColor))
                             .clipShape(.rect(cornerRadius: 5))
                     } else {
-                        Text(options.returnButtonLabel.rawValue)
+                        Text(options.returnButtonType.rawValue)
                             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
                             .font(.system(size: textSize))
                             .foregroundStyle(nowGesture == .pressing || nowGesture == .longPressing ? Color(uiColor: UIColor.label) : Color.white)
@@ -214,7 +214,7 @@ struct SYKeyboardButton: View {
                         })
                 } else if text == "한글" {
                     // 기호 자판
-                    if options.current == .symbol {
+                    if options.currentInputType == .symbol {
                         Text("한글")
                             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
                             .font(.system(size: options.needsInputModeSwitchKey ? textSize - 2 : textSize))
@@ -234,7 +234,7 @@ struct SYKeyboardButton: View {
                                 .backgroundStyle(Color(uiColor: .clear))
                                 .padding(EdgeInsets(top: 0, leading: 0, bottom: 2, trailing: 2))
                             })
-                    } else if options.current == .number {
+                    } else if options.currentInputType == .number {
                         // 숫자 자판
                         Text("한글")
                             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
@@ -264,6 +264,27 @@ struct SYKeyboardButton: View {
                         .font(.system(size: textSize - 2))
                         .foregroundStyle(Color(uiColor: UIColor.label))
                         .background(Color("SecondaryKeyboardButton"))
+                        .clipShape(.rect(cornerRadius: 5))
+                } else if text == ".com" {
+                    Text(".com")
+                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+                        .font(.system(size: textSize))
+                        .foregroundStyle(Color(uiColor: UIColor.label))
+                        .background(nowGesture == .pressing || nowGesture == .longPressing ? Color("SecondaryKeyboardButton") : Color("PrimaryKeyboardButton"))
+                        .clipShape(.rect(cornerRadius: 5))
+                } else if text == "@_twitter" {
+                    Text("@")
+                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+                        .font(.system(size: textSize))
+                        .foregroundStyle(Color(uiColor: UIColor.label))
+                        .background(nowGesture == .pressing || nowGesture == .longPressing ? Color("PrimaryKeyboardButton") : Color("SecondaryKeyboardButton"))
+                        .clipShape(.rect(cornerRadius: 5))
+                } else if text == "#_twitter" {
+                    Text("#")
+                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+                        .font(.system(size: textSize))
+                        .foregroundStyle(Color(uiColor: UIColor.label))
+                        .background(nowGesture == .pressing || nowGesture == .longPressing ? Color("PrimaryKeyboardButton") : Color("SecondaryKeyboardButton"))
                         .clipShape(.rect(cornerRadius: 5))
                 } else {
                     Text(text!)

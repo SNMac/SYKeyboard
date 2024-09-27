@@ -193,6 +193,7 @@ class NaratgeulViewController: UIInputViewController {
         super.textWillChange(textInput)
         print("textWillChange()")
         
+        updateKeyboardTypeToOptions()
         updateReturnButtonLabelToOptions()
     }
     
@@ -230,37 +231,65 @@ class NaratgeulViewController: UIInputViewController {
         options?.isHoegSsangAvailable = keyboardIOManager.isHoegSsangAvailiable
     }
     
+    private func updateKeyboardTypeToOptions() {
+        let proxy = textDocumentProxy
+        let keyboardType = proxy.keyboardType
+        switch keyboardType {
+        case .default:
+            options?.currentKeyboardType = ._default
+        case .numbersAndPunctuation:
+            options?.currentKeyboardType = ._default
+            options?.currentInputType = .symbol
+        case .URL:
+            options?.currentKeyboardType = .URL
+        case .numberPad:
+            options?.currentKeyboardType = .numberPad
+            options?.currentInputType = .number
+        case .emailAddress:
+            options?.currentKeyboardType = .emailAddress
+        case .twitter:
+            options?.currentKeyboardType = .twitter
+        case .webSearch:
+            options?.currentKeyboardType = .webSearch
+        case .asciiCapableNumberPad:
+            options?.currentKeyboardType = .asciiCapableNumberPad
+            options?.currentInputType = .number
+        default:
+            options?.currentKeyboardType = ._default
+        }
+    }
+    
     private func updateReturnButtonLabelToOptions() {
         let proxy = textDocumentProxy
-        let returnKeyType = (proxy as UIKeyInput).returnKeyType
-        let returnButtonLabel: returnButtonType
+        let returnKeyType = proxy.returnKeyType
+        let returnButtonType: ReturnButtonType
         switch returnKeyType {
         case .go:
-            returnButtonLabel = .go
+            returnButtonType = .go
         case .google:
-            returnButtonLabel = .search
+            returnButtonType = .search
         case .join:
-            returnButtonLabel = .join
+            returnButtonType = .join
         case .next:
-            returnButtonLabel = .next
+            returnButtonType = .next
         case .route:
-            returnButtonLabel = .route
+            returnButtonType = .route
         case .search:
-            returnButtonLabel = .search
+            returnButtonType = .search
         case .send:
-            returnButtonLabel = .send
+            returnButtonType = .send
         case .yahoo:
-            returnButtonLabel = .search
+            returnButtonType = .search
         case .done:
-            returnButtonLabel = .done
+            returnButtonType = .done
         case .emergencyCall:
-            returnButtonLabel = .emergencyCall
+            returnButtonType = .emergencyCall
         case .continue:
-            returnButtonLabel = ._continue
+            returnButtonType = ._continue
         default:
-            returnButtonLabel = ._default
+            returnButtonType = ._default
         }
-        options?.returnButtonLabel = returnButtonLabel
+        options?.returnButtonType = returnButtonType
     }
 }
 

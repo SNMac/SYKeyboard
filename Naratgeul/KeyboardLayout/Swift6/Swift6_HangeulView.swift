@@ -437,10 +437,10 @@ struct Swift6_HangeulView: View {
                                     Feedback.shared.playHaptic(style: .light)
                                 },
                                 onRelease: {
-                                    options.current = .symbol
+                                    options.currentInputType = .symbol
                                 },
                                 onLongPressFinished: {
-                                    options.current = .symbol
+                                    options.currentInputType = .symbol
                                 })
                             .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: vPadding, trailing: interItemHPadding))
                             .contentShape(Rectangle())
@@ -460,10 +460,10 @@ struct Swift6_HangeulView: View {
                                 Feedback.shared.playHaptic(style: .light)
                             },
                             onRelease: {
-                                options.current = .symbol
+                                options.currentInputType = .symbol
                             },
                             onLongPressFinished: {
-                                options.current = .symbol
+                                options.currentInputType = .symbol
                             })
                         .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: vPadding, trailing: hPadding))
                         .contentShape(Rectangle())

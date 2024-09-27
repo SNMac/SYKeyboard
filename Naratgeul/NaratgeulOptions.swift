@@ -9,12 +9,22 @@ import Foundation
 import SwiftUI
 
 enum KeyboardType {
+    case _default
+    case URL
+    case numberPad
+    case emailAddress
+    case twitter
+    case webSearch
+    case asciiCapableNumberPad
+}
+
+enum InputType {
     case hangeul
     case symbol
     case number
 }
 
-enum returnButtonType: String {
+enum ReturnButtonType: String {
     case _default = "return.left"
     case go = "이동"
     case join = "연결"
@@ -28,8 +38,9 @@ enum returnButtonType: String {
 }
 
 final class NaratgeulOptions: ObservableObject {
-    @Published var current: KeyboardType = .hangeul
-    @Published var returnButtonLabel: returnButtonType = ._default
+    @Published var currentKeyboardType: KeyboardType = ._default
+    @Published var currentInputType: InputType = .hangeul
+    @Published var returnButtonType: ReturnButtonType = ._default
     @Published var isHoegSsangAvailable: Bool = false
     @Published var nowSymbolPage: Int = 0
     @Published var totalSymbolPage: Int = 0

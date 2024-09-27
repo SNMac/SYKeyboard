@@ -14,6 +14,16 @@
 		5B0D82452C63C72700F84180 /* SYKeyboardButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B0D82442C63C72700F84180 /* SYKeyboardButton.swift */; };
 		5B0D824C2C63CDE700F84180 /* HangeulView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B7B3F772C569CC900F7C093 /* HangeulView.swift */; };
 		5B0D824F2C63D66600F84180 /* FeedbackSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B0D824E2C63D66600F84180 /* FeedbackSettingsView.swift */; };
+		5B0F7FC62CA596C200EE7380 /* URLSymbolView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B0F7FC52CA596C200EE7380 /* URLSymbolView.swift */; };
+		5B0F7FC82CA5A1B100EE7380 /* EmailSymbolView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B0F7FC72CA5A1B100EE7380 /* EmailSymbolView.swift */; };
+		5B0F7FCA2CA5A34300EE7380 /* TwitterHangeulView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B0F7FC92CA5A34200EE7380 /* TwitterHangeulView.swift */; };
+		5B0F7FCC2CA5A35C00EE7380 /* WebSearchSymbolView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B0F7FCB2CA5A35C00EE7380 /* WebSearchSymbolView.swift */; };
+		5B0F7FCE2CA5A85D00EE7380 /* NumberPadView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B0F7FCD2CA5A85D00EE7380 /* NumberPadView.swift */; };
+		5B0F7FD42CA69CB900EE7380 /* Swift6_TwitterHangeulView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B0F7FD32CA69CB900EE7380 /* Swift6_TwitterHangeulView.swift */; };
+		5B0F7FD62CA69CCA00EE7380 /* Swift6_URLSymbolView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B0F7FD52CA69CCA00EE7380 /* Swift6_URLSymbolView.swift */; };
+		5B0F7FD82CA69CD900EE7380 /* Swift6_EmailSymbolView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B0F7FD72CA69CD900EE7380 /* Swift6_EmailSymbolView.swift */; };
+		5B0F7FDA2CA69CEE00EE7380 /* Swift6_WebSearchSymbolView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B0F7FD92CA69CEE00EE7380 /* Swift6_WebSearchSymbolView.swift */; };
+		5B0F7FDC2CA69D1100EE7380 /* Swift6_NumberPadView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B0F7FDB2CA69D1100EE7380 /* Swift6_NumberPadView.swift */; };
 		5B13A2E72CA0779F004B7986 /* Swift6_PreviewNaratgeulButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B13A2E62CA0779F004B7986 /* Swift6_PreviewNaratgeulButton.swift */; };
 		5B13A2E92CA07B34004B7986 /* Swift6_PreviewNumberView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B13A2E82CA07B34004B7986 /* Swift6_PreviewNumberView.swift */; };
 		5B13A2EB2CA07B43004B7986 /* Swift6_PreviewSymbolView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B13A2EA2CA07B43004B7986 /* Swift6_PreviewSymbolView.swift */; };
@@ -87,6 +97,16 @@
 		5B0D824E2C63D66600F84180 /* FeedbackSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedbackSettingsView.swift; sourceTree = "<group>"; };
 		5B0D82502C63F75900F84180 /* SYKeyboard.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = SYKeyboard.entitlements; sourceTree = "<group>"; };
 		5B0D82512C63FDC300F84180 /* Naratgeul.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Naratgeul.entitlements; sourceTree = "<group>"; };
+		5B0F7FC52CA596C200EE7380 /* URLSymbolView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URLSymbolView.swift; sourceTree = "<group>"; };
+		5B0F7FC72CA5A1B100EE7380 /* EmailSymbolView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmailSymbolView.swift; sourceTree = "<group>"; };
+		5B0F7FC92CA5A34200EE7380 /* TwitterHangeulView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TwitterHangeulView.swift; sourceTree = "<group>"; };
+		5B0F7FCB2CA5A35C00EE7380 /* WebSearchSymbolView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebSearchSymbolView.swift; sourceTree = "<group>"; };
+		5B0F7FCD2CA5A85D00EE7380 /* NumberPadView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NumberPadView.swift; sourceTree = "<group>"; };
+		5B0F7FD32CA69CB900EE7380 /* Swift6_TwitterHangeulView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Swift6_TwitterHangeulView.swift; sourceTree = "<group>"; };
+		5B0F7FD52CA69CCA00EE7380 /* Swift6_URLSymbolView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Swift6_URLSymbolView.swift; sourceTree = "<group>"; };
+		5B0F7FD72CA69CD900EE7380 /* Swift6_EmailSymbolView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Swift6_EmailSymbolView.swift; sourceTree = "<group>"; };
+		5B0F7FD92CA69CEE00EE7380 /* Swift6_WebSearchSymbolView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Swift6_WebSearchSymbolView.swift; sourceTree = "<group>"; };
+		5B0F7FDB2CA69D1100EE7380 /* Swift6_NumberPadView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Swift6_NumberPadView.swift; sourceTree = "<group>"; };
 		5B13A2E62CA0779F004B7986 /* Swift6_PreviewNaratgeulButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Swift6_PreviewNaratgeulButton.swift; sourceTree = "<group>"; };
 		5B13A2E82CA07B34004B7986 /* Swift6_PreviewNumberView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Swift6_PreviewNumberView.swift; sourceTree = "<group>"; };
 		5B13A2EA2CA07B43004B7986 /* Swift6_PreviewSymbolView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Swift6_PreviewSymbolView.swift; sourceTree = "<group>"; };
@@ -166,8 +186,13 @@
 			isa = PBXGroup;
 			children = (
 				5B7557072CA0717B0038BA9C /* Swift6_HangeulView.swift */,
+				5B0F7FD32CA69CB900EE7380 /* Swift6_TwitterHangeulView.swift */,
 				5B75570D2CA072320038BA9C /* Swift6_SymbolView.swift */,
+				5B0F7FD52CA69CCA00EE7380 /* Swift6_URLSymbolView.swift */,
+				5B0F7FD72CA69CD900EE7380 /* Swift6_EmailSymbolView.swift */,
+				5B0F7FD92CA69CEE00EE7380 /* Swift6_WebSearchSymbolView.swift */,
 				5B75570B2CA072280038BA9C /* Swift6_NumberView.swift */,
+				5B0F7FDB2CA69D1100EE7380 /* Swift6_NumberPadView.swift */,
 				5B7556FE2CA0077A0038BA9C /* Swift6_NaratgeulButton.swift */,
 			);
 			path = Swift6;
@@ -275,8 +300,13 @@
 			children = (
 				5B7557092CA071F70038BA9C /* Swift6 */,
 				5B7B3F772C569CC900F7C093 /* HangeulView.swift */,
+				5B0F7FC92CA5A34200EE7380 /* TwitterHangeulView.swift */,
 				5B2B3FFF2C6C8994007CA762 /* SymbolView.swift */,
+				5B0F7FC52CA596C200EE7380 /* URLSymbolView.swift */,
+				5B0F7FC72CA5A1B100EE7380 /* EmailSymbolView.swift */,
+				5B0F7FCB2CA5A35C00EE7380 /* WebSearchSymbolView.swift */,
 				5BA8097B2C99712A00CC1B25 /* NumberView.swift */,
+				5B0F7FCD2CA5A85D00EE7380 /* NumberPadView.swift */,
 				5B0D82442C63C72700F84180 /* SYKeyboardButton.swift */,
 				5B2B40142C6CD2A4007CA762 /* NextKeyboardButton.swift */,
 			);
@@ -440,21 +470,31 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5B0F7FCA2CA5A34300EE7380 /* TwitterHangeulView.swift in Sources */,
 				5B7BDD432C91E37C0065C944 /* DEP_SYKeyboardIOManager.swift in Sources */,
+				5B0F7FCE2CA5A85D00EE7380 /* NumberPadView.swift in Sources */,
 				5B7BDD442C91E3820065C944 /* DEP_SYKeyboardDelegate.swift in Sources */,
 				5B7BDD452C91E3850065C944 /* DEP_HangeulInputMethod.swift in Sources */,
 				5B0D82452C63C72700F84180 /* SYKeyboardButton.swift in Sources */,
+				5B0F7FD42CA69CB900EE7380 /* Swift6_TwitterHangeulView.swift in Sources */,
 				5B7B3F6E2C569B8200F7C093 /* NaratgeulViewController.swift in Sources */,
+				5B0F7FC82CA5A1B100EE7380 /* EmailSymbolView.swift in Sources */,
+				5B0F7FDA2CA69CEE00EE7380 /* Swift6_WebSearchSymbolView.swift in Sources */,
 				5B7557082CA0717B0038BA9C /* Swift6_HangeulView.swift in Sources */,
 				5B0D82432C63C16F00F84180 /* Feedback.swift in Sources */,
+				5B0F7FCC2CA5A35C00EE7380 /* WebSearchSymbolView.swift in Sources */,
 				5BA8097C2C99712A00CC1B25 /* NumberView.swift in Sources */,
 				5B2B40152C6CD2A4007CA762 /* NextKeyboardButton.swift in Sources */,
 				5B0D824C2C63CDE700F84180 /* HangeulView.swift in Sources */,
+				5B0F7FC62CA596C200EE7380 /* URLSymbolView.swift in Sources */,
+				5B0F7FD62CA69CCA00EE7380 /* Swift6_URLSymbolView.swift in Sources */,
 				5B0D823D2C5F355900F84180 /* HangeulAutomata.swift in Sources */,
 				5B75570C2CA072280038BA9C /* Swift6_NumberView.swift in Sources */,
+				5B0F7FDC2CA69D1100EE7380 /* Swift6_NumberPadView.swift in Sources */,
 				5BACCE552C915423006DCFB7 /* NaratgeulDelegate.swift in Sources */,
 				5B2B40002C6C8994007CA762 /* SymbolView.swift in Sources */,
 				5B7556FF2CA0077A0038BA9C /* Swift6_NaratgeulButton.swift in Sources */,
+				5B0F7FD82CA69CD900EE7380 /* Swift6_EmailSymbolView.swift in Sources */,
 				5B2B40122C6CC1D1007CA762 /* NaratgeulOptions.swift in Sources */,
 				5B75570E2CA072320038BA9C /* Swift6_SymbolView.swift in Sources */,
 				5B0D82362C5962A500F84180 /* NaratgeulIOManager.swift in Sources */,

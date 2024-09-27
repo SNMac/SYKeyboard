@@ -1,14 +1,14 @@
 //
-//  Swift6_SymbolView.swift
+//  Swift6_WebSearchSymbolView.swift
 //  Naratgeul
 //
-//  Created by 서동환 on 9/23/24.
+//  Created by 서동환 on 9/27/24.
 //
 
 import SwiftUI
 import Combine
 
-struct Swift6_SymbolView: View {
+struct Swift6_WebSearchSymbolView: View {
     @EnvironmentObject var options: NaratgeulOptions
     @State var timer: AnyCancellable?
     
@@ -744,7 +744,7 @@ struct Swift6_SymbolView: View {
                     .contentShape(Rectangle())
                 }
                 
-                // MARK: - (한글, 􀆪), 􁁺, 􁂆
+                // MARK: - (한글, 􀆪), 􁁺, ., 􁂆
                 HStack(spacing: 0) {
                     if options.needsInputModeSwitchKey {
                         HStack(spacing: 0) {
@@ -816,6 +816,34 @@ struct Swift6_SymbolView: View {
                     .contentShape(Rectangle())
                     
                     Swift6_NaratgeulButton(
+                        text: ".", primary: true,
+                        onPress: {
+                            Feedback.shared.playTypingSound()
+                            Feedback.shared.playHaptic(style: .light)
+                        },
+                        onRelease: {
+                            options.delegate?.otherKeypadTap(letter: ".")
+                        },
+                        onLongPress: {
+                            Feedback.shared.playTypingSound()
+                            Feedback.shared.playHaptic(style: .light)
+                            options.delegate?.otherKeypadTap(letter: ".")
+                            timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
+                                .autoconnect()
+                                .sink { _ in
+                                    Feedback.shared.playTypingSound()
+                                    Feedback.shared.playHaptic(style: .light)
+                                    options.delegate?.inputLastSymbol()
+                                }
+                        },
+                        onLongPressFinished: {
+                            timer?.cancel()
+                        })
+                    .frame(width: geometry.size.width / 4 / 3)
+                    .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: vPadding, trailing: interItemHPadding))
+                    .contentShape(Rectangle())
+                    
+                    Swift6_NaratgeulButton(
                         systemName: "return.left", primary: false,
                         onPress: {
                             Feedback.shared.playModifierSound()
@@ -827,6 +855,7 @@ struct Swift6_SymbolView: View {
                         onLongPressFinished: {
                             options.delegate?.enterKeypadTap()
                         })
+                    .frame(width: geometry.size.width / 4 / 3 * 2)
                     .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: vPadding, trailing: hPadding))
                     .contentShape(Rectangle())
                 }

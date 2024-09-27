@@ -1,14 +1,14 @@
 //
-//  Swift6_NumberView.swift
+//  Swift6_TwitterHangeulView.swift
 //  Naratgeul
 //
-//  Created by 서동환 on 9/23/24.
+//  Created by 서동환 on 9/27/24.
 //
 
 import SwiftUI
 import Combine
 
-struct Swift6_NumberView: View {
+struct Swift6_TwitterHangeulView: View {
     @EnvironmentObject var options: NaratgeulOptions
     @State var timer: AnyCancellable?
     private var defaults: UserDefaults?
@@ -21,27 +21,27 @@ struct Swift6_NumberView: View {
     var body: some View {
         GeometryReader { geometry in
             VStack(spacing: 0) {
-                // MARK: - 1, 2, 3, 􀆛
+                // MARK: - ㄱ, ㄴ, ㅏㅓ, 􀆛
                 HStack(spacing: 0) {
                     Swift6_NaratgeulButton(
-                        text: "1", primary: true,
+                        text: "ㄱ", primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
                         },
                         onRelease: {
-                            options.delegate?.otherKeypadTap(letter: "1")
+                            options.delegate?.hangulKeypadTap(letter: "ㄱ")
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
-                            options.delegate?.otherKeypadTap(letter: "1")
+                            options.delegate?.hangulKeypadTap(letter: "ㄱ")
                             timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
                                     Feedback.shared.playHaptic(style: .light)
-                                    options.delegate?.inputLastSymbol()
+                                    options.delegate?.inputLastHangeul()
                                 }
                         },
                         onLongPressFinished: {
@@ -51,24 +51,24 @@ struct Swift6_NumberView: View {
                     .contentShape(Rectangle())
                     
                     Swift6_NaratgeulButton(
-                        text: "2", primary: true,
+                        text: "ㄴ", primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
                         },
                         onRelease: {
-                            options.delegate?.otherKeypadTap(letter: "2")
+                            options.delegate?.hangulKeypadTap(letter: "ㄴ")
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
-                            options.delegate?.otherKeypadTap(letter: "2")
+                            options.delegate?.hangulKeypadTap(letter: "ㄴ")
                             timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
                                     Feedback.shared.playHaptic(style: .light)
-                                    options.delegate?.inputLastSymbol()
+                                    options.delegate?.inputLastHangeul()
                                 }
                         },
                         onLongPressFinished: {
@@ -78,24 +78,24 @@ struct Swift6_NumberView: View {
                     .contentShape(Rectangle())
                     
                     Swift6_NaratgeulButton(
-                        text: "3", primary: true,
+                        text: "ㅏㅓ", primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
                         },
                         onRelease: {
-                            options.delegate?.otherKeypadTap(letter: "3")
+                            options.delegate?.hangulKeypadTap(letter: "ㅏ")
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
-                            options.delegate?.otherKeypadTap(letter: "3")
+                            options.delegate?.hangulKeypadTap(letter: "ㅏ")
                             timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
                                     Feedback.shared.playHaptic(style: .light)
-                                    options.delegate?.inputLastSymbol()
+                                    options.delegate?.inputLastHangeul()
                                 }
                         },
                         onLongPressFinished: {
@@ -131,27 +131,27 @@ struct Swift6_NumberView: View {
                 }
                 
                 
-                // MARK: - 4, 5, 6, 􁁺
+                // MARK: - ㄹ, ㅁ, ㅗㅜ, 􁁺
                 HStack(spacing: 0) {
                     Swift6_NaratgeulButton(
-                        text: "4", primary: true,
+                        text: "ㄹ", primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
                         },
                         onRelease: {
-                            options.delegate?.otherKeypadTap(letter: "4")
+                            options.delegate?.hangulKeypadTap(letter: "ㄹ")
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
-                            options.delegate?.otherKeypadTap(letter: "4")
+                            options.delegate?.hangulKeypadTap(letter: "ㄹ")
                             timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
                                     Feedback.shared.playHaptic(style: .light)
-                                    options.delegate?.inputLastSymbol()
+                                    options.delegate?.inputLastHangeul()
                                 }
                         },
                         onLongPressFinished: {
@@ -161,24 +161,24 @@ struct Swift6_NumberView: View {
                     .contentShape(Rectangle())
                     
                     Swift6_NaratgeulButton(
-                        text: "5", primary: true,
+                        text: "ㅁ", primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
                         },
                         onRelease: {
-                            options.delegate?.otherKeypadTap(letter: "5")
+                            options.delegate?.hangulKeypadTap(letter: "ㅁ")
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
-                            options.delegate?.otherKeypadTap(letter: "5")
+                            options.delegate?.hangulKeypadTap(letter: "ㅁ")
                             timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
                                     Feedback.shared.playHaptic(style: .light)
-                                    options.delegate?.inputLastSymbol()
+                                    options.delegate?.inputLastHangeul()
                                 }
                         },
                         onLongPressFinished: {
@@ -188,24 +188,24 @@ struct Swift6_NumberView: View {
                     .contentShape(Rectangle())
                     
                     Swift6_NaratgeulButton(
-                        text: "6", primary: true,
+                        text: "ㅗㅜ", primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
                         },
                         onRelease: {
-                            options.delegate?.otherKeypadTap(letter: "6")
+                            options.delegate?.hangulKeypadTap(letter: "ㅗ")
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
-                            options.delegate?.otherKeypadTap(letter: "6")
+                            options.delegate?.hangulKeypadTap(letter: "ㅗ")
                             timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
                                     Feedback.shared.playHaptic(style: .light)
-                                    options.delegate?.inputLastSymbol()
+                                    options.delegate?.inputLastHangeul()
                                 }
                         },
                         onLongPressFinished: {
@@ -215,7 +215,7 @@ struct Swift6_NumberView: View {
                     .contentShape(Rectangle())
                     
                     Swift6_NaratgeulButton(
-                        systemName: "space", primary: false,
+                        systemName: "space", primary: true,
                         onPress: {
                             Feedback.shared.playModifierSound()
                             Feedback.shared.playHaptic(style: .light)
@@ -242,27 +242,27 @@ struct Swift6_NumberView: View {
                     .contentShape(Rectangle())
                 }
                 
-                // MARK: - 7, 8, 9, 􁂆
+                // MARK: - ㅅ, ㅇ, ㅣ, @, #
                 HStack(spacing: 0) {
                     Swift6_NaratgeulButton(
-                        text: "7", primary: true,
+                        text: "ㅅ", primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
                         },
                         onRelease: {
-                            options.delegate?.otherKeypadTap(letter: "7")
+                            options.delegate?.hangulKeypadTap(letter: "ㅅ")
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
-                            options.delegate?.otherKeypadTap(letter: "7")
+                            options.delegate?.hangulKeypadTap(letter: "ㅅ")
                             timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
                                     Feedback.shared.playHaptic(style: .light)
-                                    options.delegate?.inputLastSymbol()
+                                    options.delegate?.inputLastHangeul()
                                 }
                         },
                         onLongPressFinished: {
@@ -272,24 +272,24 @@ struct Swift6_NumberView: View {
                     .contentShape(Rectangle())
                     
                     Swift6_NaratgeulButton(
-                        text: "8", primary: true,
+                        text: "ㅇ", primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
                         },
                         onRelease: {
-                            options.delegate?.otherKeypadTap(letter: "8")
+                            options.delegate?.hangulKeypadTap(letter: "ㅇ")
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
-                            options.delegate?.otherKeypadTap(letter: "8")
+                            options.delegate?.hangulKeypadTap(letter: "ㅇ")
                             timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
                                     Feedback.shared.playHaptic(style: .light)
-                                    options.delegate?.inputLastSymbol()
+                                    options.delegate?.inputLastHangeul()
                                 }
                         },
                         onLongPressFinished: {
@@ -299,24 +299,24 @@ struct Swift6_NumberView: View {
                     .contentShape(Rectangle())
                     
                     Swift6_NaratgeulButton(
-                        text: "9", primary: true,
+                        text: "ㅣ", primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
                         },
                         onRelease: {
-                            options.delegate?.otherKeypadTap(letter: "9")
+                            options.delegate?.hangulKeypadTap(letter: "ㅣ")
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
-                            options.delegate?.otherKeypadTap(letter: "9")
+                            options.delegate?.hangulKeypadTap(letter: "ㅣ")
                             timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
                                     Feedback.shared.playHaptic(style: .light)
-                                    options.delegate?.inputLastSymbol()
+                                    options.delegate?.inputLastHangeul()
                                 }
                         },
                         onLongPressFinished: {
@@ -325,44 +325,63 @@ struct Swift6_NumberView: View {
                     .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    Swift6_NaratgeulButton(
-                        systemName: "return.left", primary: false,
-                        onPress: {
-                            Feedback.shared.playModifierSound()
-                            Feedback.shared.playHaptic(style: .light)
-                        },
-                        onRelease: {
-                            options.delegate?.enterKeypadTap()
-                        },
-                        onLongPressFinished: {
-                            options.delegate?.enterKeypadTap()
-                        })
-                    .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: hPadding))
-                    .contentShape(Rectangle())
+                    HStack(spacing: 0) {
+                        Swift6_NaratgeulButton(
+                            text: "@_twitter", primary: false,
+                            onPress: {
+                                Feedback.shared.playModifierSound()
+                                Feedback.shared.playHaptic(style: .light)
+                            },
+                            onRelease: {
+                                options.delegate?.otherKeypadTap(letter: "@")
+                            },
+                            onLongPressFinished: {
+                                options.delegate?.otherKeypadTap(letter: "@")
+                            })
+                        .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
+                        .contentShape(Rectangle())
+                        
+                        Swift6_NaratgeulButton(
+                            text: "#_twitter", primary: false,
+                            onPress: {
+                                Feedback.shared.playModifierSound()
+                                Feedback.shared.playHaptic(style: .light)
+                            },
+                            onRelease: {
+                                options.delegate?.otherKeypadTap(letter: "#")
+                            },
+                            onLongPressFinished: {
+                                options.delegate?.otherKeypadTap(letter: "#")
+                            })
+                        .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: hPadding))
+                        .contentShape(Rectangle())
+                    }
                 }
                 
-                // MARK: - "-", ",", 0, ".", "/", (한글, 􀆪)
-                HStack(spacing: 0) {HStack(spacing: 0) {
+                // MARK: - 획, ㅡ, 쌍, (!#1, 􀆪)
+                HStack(spacing: 0) {
                     Swift6_NaratgeulButton(
-                        text: "-", primary: true,
+                        text: "획", primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
                         },
                         onRelease: {
-                            options.delegate?.otherKeypadTap(letter: "-")
+                            options.delegate?.hoegKeypadTap()
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
-                            options.delegate?.otherKeypadTap(letter: "-")
-                            timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
-                                .autoconnect()
-                                .sink { _ in
-                                    Feedback.shared.playTypingSound()
-                                    Feedback.shared.playHaptic(style: .light)
-                                    options.delegate?.inputLastSymbol()
-                                }
+                            options.delegate?.hoegKeypadTap()
+                            if options.isHoegSsangAvailable {
+                                timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
+                                    .autoconnect()
+                                    .sink { _ in
+                                        Feedback.shared.playTypingSound()
+                                        Feedback.shared.playHaptic(style: .light)
+                                        options.delegate?.inputLastHangeul()
+                                    }
+                            }
                         },
                         onLongPressFinished: {
                             timer?.cancel()
@@ -371,80 +390,24 @@ struct Swift6_NumberView: View {
                     .contentShape(Rectangle())
                     
                     Swift6_NaratgeulButton(
-                        text: ",", primary: true,
+                        text: "ㅡ", primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
                         },
                         onRelease: {
-                            options.delegate?.otherKeypadTap(letter: ",")
+                            options.delegate?.hangulKeypadTap(letter: "ㅡ")
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
-                            options.delegate?.otherKeypadTap(letter: ",")
+                            options.delegate?.hangulKeypadTap(letter: "ㅡ")
                             timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
                                     Feedback.shared.playHaptic(style: .light)
-                                    options.delegate?.inputLastSymbol()
-                                }
-                        },
-                        onLongPressFinished: {
-                            timer?.cancel()
-                        })
-                    .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: vPadding, trailing: interItemHPadding))
-                    .contentShape(Rectangle())
-                }
-                
-                    Swift6_NaratgeulButton(
-                    text: "0", primary: true,
-                    onPress: {
-                        Feedback.shared.playTypingSound()
-                        Feedback.shared.playHaptic(style: .light)
-                    },
-                    onRelease: {
-                        options.delegate?.otherKeypadTap(letter: "0")
-                    },
-                    onLongPress: {
-                        Feedback.shared.playTypingSound()
-                        Feedback.shared.playHaptic(style: .light)
-                        options.delegate?.otherKeypadTap(letter: "0")
-                        timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
-                            .autoconnect()
-                            .sink { _ in
-                                Feedback.shared.playTypingSound()
-                                Feedback.shared.playHaptic(style: .light)
-                                options.delegate?.inputLastSymbol()
-                            }
-                    },
-                    onLongPressFinished: {
-                        timer?.cancel()
-                    })
-                .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: vPadding, trailing: interItemHPadding))
-                .contentShape(Rectangle())
-                
-                HStack(spacing: 0) {
-                    Swift6_NaratgeulButton(
-                        text: ".", primary: true,
-                        onPress: {
-                            Feedback.shared.playTypingSound()
-                            Feedback.shared.playHaptic(style: .light)
-                        },
-                        onRelease: {
-                            options.delegate?.otherKeypadTap(letter: ".")
-                        },
-                        onLongPress: {
-                            Feedback.shared.playTypingSound()
-                            Feedback.shared.playHaptic(style: .light)
-                            options.delegate?.otherKeypadTap(letter: ".")
-                            timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
-                                .autoconnect()
-                                .sink { _ in
-                                    Feedback.shared.playTypingSound()
-                                    Feedback.shared.playHaptic(style: .light)
-                                    options.delegate?.inputLastSymbol()
+                                    options.delegate?.inputLastHangeul()
                                 }
                         },
                         onLongPressFinished: {
@@ -454,46 +417,47 @@ struct Swift6_NumberView: View {
                     .contentShape(Rectangle())
                     
                     Swift6_NaratgeulButton(
-                        text: "/", primary: true,
+                        text: "쌍", primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
                         },
                         onRelease: {
-                            options.delegate?.otherKeypadTap(letter: "/")
+                            options.delegate?.ssangKeypadTap()
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
-                            options.delegate?.otherKeypadTap(letter: "/")
-                            timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
-                                .autoconnect()
-                                .sink { _ in
-                                    Feedback.shared.playTypingSound()
-                                    Feedback.shared.playHaptic(style: .light)
-                                    options.delegate?.inputLastSymbol()
-                                }
+                            options.delegate?.ssangKeypadTap()
+                            if options.isHoegSsangAvailable {
+                                timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
+                                    .autoconnect()
+                                    .sink { _ in
+                                        Feedback.shared.playTypingSound()
+                                        Feedback.shared.playHaptic(style: .light)
+                                        options.delegate?.inputLastHangeul()
+                                    }
+                            }
                         },
                         onLongPressFinished: {
                             timer?.cancel()
                         })
                     .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: vPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
-                }
                     
                     if options.needsInputModeSwitchKey {
                         HStack(spacing: 0) {
                             Swift6_NaratgeulButton(
-                                text: "한글", primary: false,
+                                text: "!#1", primary: false,
                                 onPress: {
                                     Feedback.shared.playModifierSound()
                                     Feedback.shared.playHaptic(style: .light)
                                 },
                                 onRelease: {
-                                    options.currentInputType = .hangeul
+                                    options.currentInputType = .symbol
                                 },
                                 onLongPressFinished: {
-                                    options.currentInputType = .hangeul
+                                    options.currentInputType = .symbol
                                 })
                             .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: vPadding, trailing: interItemHPadding))
                             .contentShape(Rectangle())
@@ -507,16 +471,16 @@ struct Swift6_NumberView: View {
                         }
                     } else {
                         Swift6_NaratgeulButton(
-                            text: "한글", primary: false,
+                            text: "!#1", primary: false,
                             onPress: {
                                 Feedback.shared.playModifierSound()
                                 Feedback.shared.playHaptic(style: .light)
                             },
                             onRelease: {
-                                options.currentInputType = .hangeul
+                                options.currentInputType = .symbol
                             },
                             onLongPressFinished: {
-                                options.currentInputType = .hangeul
+                                options.currentInputType = .symbol
                             })
                         .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: vPadding, trailing: hPadding))
                         .contentShape(Rectangle())

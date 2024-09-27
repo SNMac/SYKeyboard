@@ -1,14 +1,14 @@
 //
-//  Swift6_SymbolView.swift
+//  WebSearchSymbolView.swift
 //  Naratgeul
 //
-//  Created by 서동환 on 9/23/24.
+//  Created by 서동환 on 9/26/24.
 //
 
 import SwiftUI
 import Combine
 
-struct Swift6_SymbolView: View {
+struct WebSearchSymbolView: View {
     @EnvironmentObject var options: NaratgeulOptions
     @State var timer: AnyCancellable?
     
@@ -27,7 +27,7 @@ struct Swift6_SymbolView: View {
             VStack(spacing: 0) {
                 // MARK: - 1st row of Symbol Keyboard
                 HStack(spacing: 0) {
-                    Swift6_NaratgeulButton(
+                    SYKeyboardButton(
                         text: symbols[options.nowSymbolPage][0], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
@@ -54,7 +54,7 @@ struct Swift6_SymbolView: View {
                     .padding(EdgeInsets(top: vPadding, leading: hPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    Swift6_NaratgeulButton(
+                    SYKeyboardButton(
                         text: symbols[options.nowSymbolPage][1], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
@@ -81,7 +81,7 @@ struct Swift6_SymbolView: View {
                     .padding(EdgeInsets(top: vPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    Swift6_NaratgeulButton(
+                    SYKeyboardButton(
                         text: symbols[options.nowSymbolPage][2], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
@@ -108,7 +108,7 @@ struct Swift6_SymbolView: View {
                     .padding(EdgeInsets(top: vPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    Swift6_NaratgeulButton(
+                    SYKeyboardButton(
                         text: symbols[options.nowSymbolPage][3], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
@@ -135,7 +135,7 @@ struct Swift6_SymbolView: View {
                     .padding(EdgeInsets(top: vPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    Swift6_NaratgeulButton(
+                    SYKeyboardButton(
                         text: symbols[options.nowSymbolPage][4], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
@@ -162,7 +162,7 @@ struct Swift6_SymbolView: View {
                     .padding(EdgeInsets(top: vPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    Swift6_NaratgeulButton(
+                    SYKeyboardButton(
                         text: symbols[options.nowSymbolPage][5], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
@@ -189,7 +189,7 @@ struct Swift6_SymbolView: View {
                     .padding(EdgeInsets(top: vPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    Swift6_NaratgeulButton(
+                    SYKeyboardButton(
                         text: symbols[options.nowSymbolPage][6], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
@@ -216,7 +216,7 @@ struct Swift6_SymbolView: View {
                     .padding(EdgeInsets(top: vPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    Swift6_NaratgeulButton(
+                    SYKeyboardButton(
                         text: symbols[options.nowSymbolPage][7], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
@@ -243,7 +243,7 @@ struct Swift6_SymbolView: View {
                     .padding(EdgeInsets(top: vPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    Swift6_NaratgeulButton(
+                    SYKeyboardButton(
                         text: symbols[options.nowSymbolPage][8], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
@@ -270,7 +270,7 @@ struct Swift6_SymbolView: View {
                     .padding(EdgeInsets(top: vPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    Swift6_NaratgeulButton(
+                    SYKeyboardButton(
                         text: symbols[options.nowSymbolPage][9], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
@@ -300,7 +300,7 @@ struct Swift6_SymbolView: View {
                 
                 // MARK: - 2nd row of Symbol Keyboard
                 HStack(spacing: 0) {
-                    Swift6_NaratgeulButton(
+                    SYKeyboardButton(
                         text: symbols[options.nowSymbolPage][10], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
@@ -327,7 +327,7 @@ struct Swift6_SymbolView: View {
                     .padding(EdgeInsets(top: interItemVPadding, leading: hPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    Swift6_NaratgeulButton(
+                    SYKeyboardButton(
                         text: symbols[options.nowSymbolPage][11], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
@@ -354,7 +354,7 @@ struct Swift6_SymbolView: View {
                     .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    Swift6_NaratgeulButton(
+                    SYKeyboardButton(
                         text: symbols[options.nowSymbolPage][12], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
@@ -381,7 +381,7 @@ struct Swift6_SymbolView: View {
                     .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    Swift6_NaratgeulButton(
+                    SYKeyboardButton(
                         text: symbols[options.nowSymbolPage][13], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
@@ -408,7 +408,7 @@ struct Swift6_SymbolView: View {
                     .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    Swift6_NaratgeulButton(
+                    SYKeyboardButton(
                         text: symbols[options.nowSymbolPage][14], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
@@ -435,7 +435,7 @@ struct Swift6_SymbolView: View {
                     .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    Swift6_NaratgeulButton(
+                    SYKeyboardButton(
                         text: symbols[options.nowSymbolPage][15], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
@@ -462,7 +462,7 @@ struct Swift6_SymbolView: View {
                     .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    Swift6_NaratgeulButton(
+                    SYKeyboardButton(
                         text: symbols[options.nowSymbolPage][16], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
@@ -489,7 +489,7 @@ struct Swift6_SymbolView: View {
                     .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    Swift6_NaratgeulButton(
+                    SYKeyboardButton(
                         text: symbols[options.nowSymbolPage][17], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
@@ -516,7 +516,7 @@ struct Swift6_SymbolView: View {
                     .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    Swift6_NaratgeulButton(
+                    SYKeyboardButton(
                         text: symbols[options.nowSymbolPage][18], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
@@ -543,7 +543,7 @@ struct Swift6_SymbolView: View {
                     .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    Swift6_NaratgeulButton(
+                    SYKeyboardButton(
                         text: symbols[options.nowSymbolPage][19], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
@@ -573,7 +573,7 @@ struct Swift6_SymbolView: View {
                 
                 // MARK: - 3rd row of Symbol Keyboard
                 HStack(spacing: 0) {
-                    Swift6_NaratgeulButton(
+                    SYKeyboardButton(
                         text: "\(options.nowSymbolPage + 1)/\(options.totalSymbolPage)", primary: false,
                         onPress: {
                             Feedback.shared.playModifierSound()
@@ -583,7 +583,7 @@ struct Swift6_SymbolView: View {
                     .padding(EdgeInsets(top: interItemVPadding, leading: hPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    Swift6_NaratgeulButton(
+                    SYKeyboardButton(
                         text: symbols[options.nowSymbolPage][20], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
@@ -610,7 +610,7 @@ struct Swift6_SymbolView: View {
                     .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    Swift6_NaratgeulButton(
+                    SYKeyboardButton(
                         text: symbols[options.nowSymbolPage][21], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
@@ -637,7 +637,7 @@ struct Swift6_SymbolView: View {
                     .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    Swift6_NaratgeulButton(
+                    SYKeyboardButton(
                         text: symbols[options.nowSymbolPage][22], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
@@ -664,7 +664,7 @@ struct Swift6_SymbolView: View {
                     .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    Swift6_NaratgeulButton(
+                    SYKeyboardButton(
                         text: symbols[options.nowSymbolPage][23], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
@@ -691,7 +691,7 @@ struct Swift6_SymbolView: View {
                     .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    Swift6_NaratgeulButton(
+                    SYKeyboardButton(
                         text: symbols[options.nowSymbolPage][24], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
@@ -718,7 +718,7 @@ struct Swift6_SymbolView: View {
                     .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    Swift6_NaratgeulButton(
+                    SYKeyboardButton(
                         systemName: "delete.left", primary: false,
                         onPress: {
                             Feedback.shared.playDeleteSound()
@@ -744,11 +744,11 @@ struct Swift6_SymbolView: View {
                     .contentShape(Rectangle())
                 }
                 
-                // MARK: - (한글, 􀆪), 􁁺, 􁂆
+                // MARK: - (한글, 􀆪), 􁁺, ., 􁂆
                 HStack(spacing: 0) {
                     if options.needsInputModeSwitchKey {
                         HStack(spacing: 0) {
-                            Swift6_NaratgeulButton(
+                            SYKeyboardButton(
                                 text: "한글", primary: false,
                                 onPress: {
                                     Feedback.shared.playModifierSound()
@@ -771,7 +771,7 @@ struct Swift6_SymbolView: View {
                             .contentShape(Rectangle())
                         }
                     } else {
-                        Swift6_NaratgeulButton(
+                        SYKeyboardButton(
                             text: "한글", primary: false,
                             onPress: {
                                 Feedback.shared.playModifierSound()
@@ -787,7 +787,7 @@ struct Swift6_SymbolView: View {
                         .contentShape(Rectangle())
                     }
                     
-                    Swift6_NaratgeulButton(
+                    SYKeyboardButton(
                         systemName: "space", primary: true,
                         onPress: {
                             Feedback.shared.playModifierSound()
@@ -815,7 +815,35 @@ struct Swift6_SymbolView: View {
                     .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: vPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    Swift6_NaratgeulButton(
+                    SYKeyboardButton(
+                        text: ".", primary: true,
+                        onPress: {
+                            Feedback.shared.playTypingSound()
+                            Feedback.shared.playHaptic(style: .light)
+                        },
+                        onRelease: {
+                            options.delegate?.otherKeypadTap(letter: ".")
+                        },
+                        onLongPress: {
+                            Feedback.shared.playTypingSound()
+                            Feedback.shared.playHaptic(style: .light)
+                            options.delegate?.otherKeypadTap(letter: ".")
+                            timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
+                                .autoconnect()
+                                .sink { _ in
+                                    Feedback.shared.playTypingSound()
+                                    Feedback.shared.playHaptic(style: .light)
+                                    options.delegate?.inputLastSymbol()
+                                }
+                        },
+                        onLongPressFinished: {
+                            timer?.cancel()
+                        })
+                    .frame(width: geometry.size.width / 4 / 3)
+                    .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: vPadding, trailing: interItemHPadding))
+                    .contentShape(Rectangle())
+                    
+                    SYKeyboardButton(
                         systemName: "return.left", primary: false,
                         onPress: {
                             Feedback.shared.playModifierSound()
@@ -827,6 +855,7 @@ struct Swift6_SymbolView: View {
                         onLongPressFinished: {
                             options.delegate?.enterKeypadTap()
                         })
+                    .frame(width: geometry.size.width / 4 / 3 * 2)
                     .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: vPadding, trailing: hPadding))
                     .contentShape(Rectangle())
                 }

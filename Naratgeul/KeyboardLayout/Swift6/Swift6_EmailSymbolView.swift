@@ -1,14 +1,14 @@
 //
-//  Swift6_SymbolView.swift
+//  Swift6_EmailSymbolView.swift
 //  Naratgeul
 //
-//  Created by 서동환 on 9/23/24.
+//  Created by 서동환 on 9/27/24.
 //
 
 import SwiftUI
 import Combine
 
-struct Swift6_SymbolView: View {
+struct Swift6_EmailSymbolView: View {
     @EnvironmentObject var options: NaratgeulOptions
     @State var timer: AnyCancellable?
     
@@ -18,14 +18,14 @@ struct Swift6_SymbolView: View {
     let interItemHPadding: CGFloat = 2.5
     
     let symbols = [
-        ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "-", "/", ":", ";", "(", ")", "₩", "&", "@", "“", ".", ",", "?", "!", "’"],
-        ["[", "]", "{", "}", "#", "%", "^", "*", "+", "=", "_", "\\", "|", "~", "<", ">", "$", "£", "¥", "•", ".", ",", "?", "!", "’"]
+        ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "$", "!", "~", "&", "=", "#", "[", "]", ".", "_", "-", "+"],
+        ["`", "|", "{", "}", "?", "%", "^", "*", "/", "’", "$", "!", "~", "&", "=", "#", "[", "]", ".", "_", "-", "+"]
     ]
     
     var body: some View {
         GeometryReader { geometry in
             VStack(spacing: 0) {
-                // MARK: - 1st row of Symbol Keyboard
+                // MARK: - 1st row of Email Address Symbol Keyboard
                 HStack(spacing: 0) {
                     Swift6_NaratgeulButton(
                         text: symbols[options.nowSymbolPage][0], primary: true,
@@ -298,7 +298,7 @@ struct Swift6_SymbolView: View {
                     .contentShape(Rectangle())
                 }
                 
-                // MARK: - 2nd row of Symbol Keyboard
+                // MARK: - 2nd row of Email Address Symbol Keyboard
                 HStack(spacing: 0) {
                     Swift6_NaratgeulButton(
                         text: symbols[options.nowSymbolPage][10], primary: true,
@@ -515,6 +515,19 @@ struct Swift6_SymbolView: View {
                         })
                     .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
+                }
+                
+                // MARK: - 3rd row of Email Address Symbol Keyboard
+                HStack(spacing: 0) {
+                    Swift6_NaratgeulButton(
+                        text: "\(options.nowSymbolPage + 1)/\(options.totalSymbolPage)", primary: false,
+                        onPress: {
+                            Feedback.shared.playModifierSound()
+                            Feedback.shared.playHaptic(style: .light)
+                            options.nowSymbolPage = (options.nowSymbolPage + 1) % options.totalSymbolPage
+                        })
+                    .padding(EdgeInsets(top: interItemVPadding, leading: hPadding, bottom: interItemVPadding, trailing: interItemHPadding))
+                    .contentShape(Rectangle())
                     
                     Swift6_NaratgeulButton(
                         text: symbols[options.nowSymbolPage][18], primary: true,
@@ -567,20 +580,7 @@ struct Swift6_SymbolView: View {
                         onLongPressFinished: {
                             timer?.cancel()
                         })
-                    .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: hPadding))
-                    .contentShape(Rectangle())
-                }
-                
-                // MARK: - 3rd row of Symbol Keyboard
-                HStack(spacing: 0) {
-                    Swift6_NaratgeulButton(
-                        text: "\(options.nowSymbolPage + 1)/\(options.totalSymbolPage)", primary: false,
-                        onPress: {
-                            Feedback.shared.playModifierSound()
-                            Feedback.shared.playHaptic(style: .light)
-                            options.nowSymbolPage = (options.nowSymbolPage + 1) % options.totalSymbolPage
-                        })
-                    .padding(EdgeInsets(top: interItemVPadding, leading: hPadding, bottom: interItemVPadding, trailing: interItemHPadding))
+                    .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
                     Swift6_NaratgeulButton(
@@ -638,87 +638,6 @@ struct Swift6_SymbolView: View {
                     .contentShape(Rectangle())
                     
                     Swift6_NaratgeulButton(
-                        text: symbols[options.nowSymbolPage][22], primary: true,
-                        onPress: {
-                            Feedback.shared.playTypingSound()
-                            Feedback.shared.playHaptic(style: .light)
-                        },
-                        onRelease: {
-                            options.delegate?.otherKeypadTap(letter: symbols[options.nowSymbolPage][22])
-                        },
-                        onLongPress: {
-                            Feedback.shared.playTypingSound()
-                            Feedback.shared.playHaptic(style: .light)
-                            options.delegate?.otherKeypadTap(letter: symbols[options.nowSymbolPage][22])
-                            timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
-                                .autoconnect()
-                                .sink { _ in
-                                    Feedback.shared.playTypingSound()
-                                    Feedback.shared.playHaptic(style: .light)
-                                    options.delegate?.inputLastSymbol()
-                                }
-                        },
-                        onLongPressFinished: {
-                            timer?.cancel()
-                        })
-                    .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
-                    .contentShape(Rectangle())
-                    
-                    Swift6_NaratgeulButton(
-                        text: symbols[options.nowSymbolPage][23], primary: true,
-                        onPress: {
-                            Feedback.shared.playTypingSound()
-                            Feedback.shared.playHaptic(style: .light)
-                        },
-                        onRelease: {
-                            options.delegate?.otherKeypadTap(letter: symbols[options.nowSymbolPage][23])
-                        },
-                        onLongPress: {
-                            Feedback.shared.playTypingSound()
-                            Feedback.shared.playHaptic(style: .light)
-                            options.delegate?.otherKeypadTap(letter: symbols[options.nowSymbolPage][23])
-                            timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
-                                .autoconnect()
-                                .sink { _ in
-                                    Feedback.shared.playTypingSound()
-                                    Feedback.shared.playHaptic(style: .light)
-                                    options.delegate?.inputLastSymbol()
-                                }
-                        },
-                        onLongPressFinished: {
-                            timer?.cancel()
-                        })
-                    .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
-                    .contentShape(Rectangle())
-                    
-                    Swift6_NaratgeulButton(
-                        text: symbols[options.nowSymbolPage][24], primary: true,
-                        onPress: {
-                            Feedback.shared.playTypingSound()
-                            Feedback.shared.playHaptic(style: .light)
-                        },
-                        onRelease: {
-                            options.delegate?.otherKeypadTap(letter: symbols[options.nowSymbolPage][24])
-                        },
-                        onLongPress: {
-                            Feedback.shared.playTypingSound()
-                            Feedback.shared.playHaptic(style: .light)
-                            options.delegate?.otherKeypadTap(letter: symbols[options.nowSymbolPage][24])
-                            timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
-                                .autoconnect()
-                                .sink { _ in
-                                    Feedback.shared.playTypingSound()
-                                    Feedback.shared.playHaptic(style: .light)
-                                    options.delegate?.inputLastSymbol()
-                                }
-                        },
-                        onLongPressFinished: {
-                            timer?.cancel()
-                        })
-                    .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
-                    .contentShape(Rectangle())
-                    
-                    Swift6_NaratgeulButton(
                         systemName: "delete.left", primary: false,
                         onPress: {
                             Feedback.shared.playDeleteSound()
@@ -744,7 +663,7 @@ struct Swift6_SymbolView: View {
                     .contentShape(Rectangle())
                 }
                 
-                // MARK: - (한글, 􀆪), 􁁺, 􁂆
+                // MARK: - (한글, 􀆪), 􁁺, @, ., 􁂆
                 HStack(spacing: 0) {
                     if options.needsInputModeSwitchKey {
                         HStack(spacing: 0) {
@@ -811,7 +730,51 @@ struct Swift6_SymbolView: View {
                         onLongPressFinished: {
                             timer?.cancel()
                         })
-                    .frame(width: geometry.size.width / 2)
+                    .frame(width: geometry.size.width / 2 / 2)
+                    .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: vPadding, trailing: interItemHPadding))
+                    .contentShape(Rectangle())
+                    
+                    Swift6_NaratgeulButton(
+                        text: "@", primary: true,
+                        onPress: {
+                            Feedback.shared.playTypingSound()
+                            Feedback.shared.playHaptic(style: .light)
+                        },
+                        onRelease: {
+                            options.delegate?.otherKeypadTap(letter: "@")
+                        },
+                        onLongPress: {
+                            Feedback.shared.playTypingSound()
+                            Feedback.shared.playHaptic(style: .light)
+                            options.delegate?.otherKeypadTap(letter: "@")
+                            timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
+                                .autoconnect()
+                                .sink { _ in
+                                    Feedback.shared.playTypingSound()
+                                    Feedback.shared.playHaptic(style: .light)
+                                    options.delegate?.inputLastSymbol()
+                                }
+                        },
+                        onLongPressFinished: {
+                            timer?.cancel()
+                        })
+                    .frame(width: geometry.size.width / 2 / 4)
+                    .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: vPadding, trailing: interItemHPadding))
+                    .contentShape(Rectangle())
+                    
+                    Swift6_NaratgeulButton(
+                        text: ".", primary: true,
+                        onPress: {
+                            Feedback.shared.playTypingSound()
+                            Feedback.shared.playHaptic(style: .light)
+                        },
+                        onRelease: {
+                            options.delegate?.otherKeypadTap(letter: ".")
+                        },
+                        onLongPressFinished: {
+                            options.delegate?.otherKeypadTap(letter: ".")
+                        })
+                    .frame(width: geometry.size.width / 2 / 4)
                     .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: vPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     

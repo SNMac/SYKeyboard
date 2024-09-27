@@ -24,17 +24,16 @@ struct Swift6_PreviewSymbolView: View {
     let interItemHPadding: CGFloat = 2.5
     
     let symbols = [
-        ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "-", "/", ":", ";", "(", ")", "₩", "&", "@", "“"],
-        ["[", "]", "{", "}", "#", "%", "^", "*", "+", "=", "_", "\\", "|", "~", "<", ">", "$", "£", "¥", "•"]
+        ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "-", "/", ":", ";", "(", ")", "₩", "&", "@", "“", ".", ",", "?", "!", "’"],
+        ["[", "]", "{", "}", "#", "%", "^", "*", "+", "=", "_", "\\", "|", "~", "<", ">", "$", "£", "¥", "•", ".", ",", "?", "!", "’"]
     ]
-    let fixedSymbols = [".", ",", "?", "!", "’"]
     
     var body: some View {
         let repeatTimerCycle = 0.10 - repeatTimerSpeed
         
         GeometryReader { geometry in
             VStack(spacing: 0) {
-                // MARK: - symbols[0]
+                // MARK: - 1st row of Symbol Keyboard
                 HStack(spacing: 0) {
                     Swift6_PreviewNaratgeulButton(
                         text: symbols[options.nowSymbolPage][0], primary: true,
@@ -257,7 +256,7 @@ struct Swift6_PreviewSymbolView: View {
                     .contentShape(Rectangle())
                 }
                 
-                // MARK: - symbols[1]
+                // MARK: - 2nd row of Symbol Keyboard
                 HStack(spacing: 0) {
                     Swift6_PreviewNaratgeulButton(
                         text: symbols[options.nowSymbolPage][10], primary: true,
@@ -480,7 +479,7 @@ struct Swift6_PreviewSymbolView: View {
                     .contentShape(Rectangle())
                 }
                 
-                // MARK: - (options.curSymbolPage + 1)/options.totalSymbolPage, symbols.last, 􀆛
+                // MARK: - 3rd row of Symbol Keyboard
                 HStack(spacing: 0) {
                     Swift6_PreviewNaratgeulButton(
                         text: "\(options.nowSymbolPage + 1)/\(options.totalSymbolPage)", primary: false,
@@ -493,7 +492,7 @@ struct Swift6_PreviewSymbolView: View {
                     .contentShape(Rectangle())
                     
                     Swift6_PreviewNaratgeulButton(
-                        text: fixedSymbols[0], primary: true,
+                        text: symbols[options.nowSymbolPage][20], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
@@ -515,7 +514,7 @@ struct Swift6_PreviewSymbolView: View {
                     .contentShape(Rectangle())
                     
                     Swift6_PreviewNaratgeulButton(
-                        text: fixedSymbols[1], primary: true,
+                        text: symbols[options.nowSymbolPage][21], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
@@ -537,7 +536,7 @@ struct Swift6_PreviewSymbolView: View {
                     .contentShape(Rectangle())
                     
                     Swift6_PreviewNaratgeulButton(
-                        text: fixedSymbols[2], primary: true,
+                        text: symbols[options.nowSymbolPage][22], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
@@ -559,7 +558,7 @@ struct Swift6_PreviewSymbolView: View {
                     .contentShape(Rectangle())
                     
                     Swift6_PreviewNaratgeulButton(
-                        text: fixedSymbols[3], primary: true,
+                        text: symbols[options.nowSymbolPage][23], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
@@ -581,7 +580,7 @@ struct Swift6_PreviewSymbolView: View {
                     .contentShape(Rectangle())
                     
                     Swift6_PreviewNaratgeulButton(
-                        text: fixedSymbols[4], primary: true,
+                        text: symbols[options.nowSymbolPage][24], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)

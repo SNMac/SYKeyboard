@@ -12,20 +12,56 @@ struct NaratgeulView: View {
     
     var body: some View {
         if #available(iOS 18, *) {
-            if options.current == .hangeul {
-                Swift6_HangeulView()
-            } else if options.current == .number {
-                Swift6_NumberView()
-            } else {
-                Swift6_SymbolView()
+            switch options.currentInputType {
+            case .hangeul:
+                if options.currentKeyboardType == .twitter {
+                    Swift6_TwitterHangeulView()
+                } else {
+                    Swift6_HangeulView()
+                }
+            case .symbol:
+                if options.currentKeyboardType == .URL {
+                    Swift6_URLSymbolView()
+                } else if options.currentKeyboardType == .emailAddress {
+                    Swift6_EmailSymbolView()
+                } else if options.currentKeyboardType == .webSearch {
+                    Swift6_WebSearchSymbolView()
+                } else {
+                    Swift6_SymbolView()
+                }
+            case .number:
+                if options.currentKeyboardType == .numberPad {
+                    Swift6_NumberPadView()
+                } else {
+                    Swift6_NumberView()
+                }
             }
         } else {
-            if options.current == .hangeul {
-                HangeulView()
-            } else if options.current == .number {
-                NumberView()
-            } else {
-                SymbolView()
+            switch options.currentInputType {
+            case .hangeul:
+                if options.currentKeyboardType == .twitter {
+                    TwitterHangeulView()
+                } else {
+                    HangeulView()
+                }
+            case .symbol:
+                if options.currentKeyboardType == .URL {
+                    URLSymbolView()
+                } else if options.currentKeyboardType == .emailAddress {
+                    EmailSymbolView()
+                } else if options.currentKeyboardType == .webSearch {
+                    WebSearchSymbolView()
+                } else {
+                    SymbolView()
+                }
+            case .number:
+                if options.currentKeyboardType == .numberPad {
+                    NumberPadView()
+                } else if options.currentKeyboardType == .asciiCapableNumberPad {
+                    NumberPadView()
+                } else {
+                    NumberView()
+                }
             }
         }
     }

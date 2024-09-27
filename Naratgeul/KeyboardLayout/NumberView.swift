@@ -11,7 +11,6 @@ import Combine
 struct NumberView: View {
     @EnvironmentObject var options: NaratgeulOptions
     @State var timer: AnyCancellable?
-    private var defaults: UserDefaults?
     
     let vPadding: CGFloat = 4
     let interItemVPadding: CGFloat = 2
@@ -491,10 +490,10 @@ struct NumberView: View {
                                     Feedback.shared.playHaptic(style: .light)
                                 },
                                 onRelease: {
-                                    options.current = .hangeul
+                                    options.currentInputType = .hangeul
                                 },
                                 onLongPressFinished: {
-                                    options.current = .hangeul
+                                    options.currentInputType = .hangeul
                                 })
                             .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: vPadding, trailing: interItemHPadding))
                             .contentShape(Rectangle())
@@ -514,10 +513,10 @@ struct NumberView: View {
                                 Feedback.shared.playHaptic(style: .light)
                             },
                             onRelease: {
-                                options.current = .hangeul
+                                options.currentInputType = .hangeul
                             },
                             onLongPressFinished: {
-                                options.current = .hangeul
+                                options.currentInputType = .hangeul
                             })
                         .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: vPadding, trailing: hPadding))
                         .contentShape(Rectangle())
