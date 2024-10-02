@@ -13,9 +13,9 @@ class NaratgeulViewController: UIInputViewController {
     private let keyboardIOManager = NaratgeulIOManager()
     private var options: NaratgeulOptions?
     private var cursorPos: Int = 0
+    
     private var userLexicon: UILexicon?
     private var textReplacementHistory: [String] = []
-    
     private var keyboardType: UIKeyboardType = .default
     
     // MARK: - LifeCycle

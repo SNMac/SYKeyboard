@@ -20,13 +20,8 @@
         }
       ],
       "color" : {
-        "color-space" : "srgb",
-        "components" : {
-          "alpha" : "0.140",
-          "blue" : "0xFF",
-          "green" : "0xFF",
-          "red" : "0xFF"
-        }
+        "platform" : "universal",
+        "reference" : "quaternaryLabelColor"
       },
       "idiom" : "universal"
     }

@@ -17,6 +17,7 @@ final class NaratgeulIOManager {
     private var isCommaInput: Bool = false
     var isHoegSsangAvailiable: Bool = false
     var isEditingLastCharacter: Bool = false
+    var isSymbolInput: Bool = false
     
     private var inputHangeul: String = "" {
         didSet {
