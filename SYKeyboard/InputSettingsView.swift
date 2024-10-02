@@ -10,7 +10,7 @@ import SwiftUI
 struct InputSettingsView: View {
     @AppStorage("isAutocompleteEnabled", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var isAutocompleteEnabled = true
     @AppStorage("isTextReplacementEnabled", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var isTextReplacementEnabled = true
-    @AppStorage("isAutoChangeToHangeulInputTypeEnabled", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var isAutoChangeToHangeulInputTypeEnabled = true
+    @AppStorage("isAutoChangeToHangeulEnabled", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var isAutoChangeToHangeulEnabled = true
     
     var body: some View {
         NavigationLink("속도 설정") {
@@ -23,9 +23,9 @@ struct InputSettingsView: View {
                 .font(.system(.caption))
         })
         
-        Toggle(isOn: $isAutoChangeToHangeulInputTypeEnabled, label: {
+        Toggle(isOn: $isAutoChangeToHangeulEnabled, label: {
             Text("한글 자판 자동 변경")
-            Text("기호/숫자 입력 후 스페이스 → 한글 자판으로 변경")
+            Text("기호 자판 입력 후 스페이스/리턴 → 한글 자판으로 변경")
                 .font(.system(.caption))
         })
     }

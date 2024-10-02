@@ -9,13 +9,13 @@ import SwiftUI
 
 struct ContentView: View {
     private var defaults: UserDefaults?
-    private var options: PreviewNaratgeulOptions
+    private var state: PreviewNaratgeulState
     
     init() {
         defaults = UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")
         GlobalValues.setupDefaults(defaults)
         
-        options = PreviewNaratgeulOptions()
+        state = PreviewNaratgeulState()
     }
     
     private var keyboardSettings: some View {
@@ -57,7 +57,7 @@ struct ContentView: View {
             KeyboardTestView()
             keyboardSettings
         }
-        .environmentObject(options)
+        .environmentObject(state)
     }
 }
 

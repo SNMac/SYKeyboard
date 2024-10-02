@@ -9,7 +9,7 @@ import SwiftUI
 import Combine
 
 struct PreviewSymbolView: View {
-    @EnvironmentObject var options: PreviewNaratgeulOptions
+    @EnvironmentObject var state: PreviewNaratgeulState
     @AppStorage("repeatTimerSpeed", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var repeatTimerSpeed = 0.06
     @AppStorage("keyboardHeight", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var keyboardHeight = 240.0
     @AppStorage("needsInputModeSwitchKey", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var needsInputModeSwitchKey = false
@@ -24,20 +24,19 @@ struct PreviewSymbolView: View {
     let interItemHPadding: CGFloat = 2.5
     
     let symbols = [
-        ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "-", "/", ":", ";", "(", ")", "₩", "&", "@", "“"],
-        ["[", "]", "{", "}", "#", "%", "^", "*", "+", "=", "_", "\\", "|", "~", "<", ">", "$", "£", "¥", "•"]
+        ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "-", "/", ":", ";", "(", ")", "₩", "&", "@", "“", ".", ",", "?", "!", "’"],
+        ["[", "]", "{", "}", "#", "%", "^", "*", "+", "=", "_", "\\", "|", "~", "<", ">", "$", "£", "¥", "•", ".", ",", "?", "!", "’"]
     ]
-    let fixedSymbols = [".", ",", "?", "!", "’"]
     
     var body: some View {
         let repeatTimerCycle = 0.10 - repeatTimerSpeed
         
         GeometryReader { geometry in
             VStack(spacing: 0) {
-                // MARK: - symbols[0]
+                // MARK: - 1st row of Symbol Keyboard
                 HStack(spacing: 0) {
                     PreviewNaratgeulButton(
-                        text: symbols[options.nowSymbolPage][0], primary: true,
+                        text: symbols[state.nowSymbolPage][0], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
@@ -59,7 +58,7 @@ struct PreviewSymbolView: View {
                     .contentShape(Rectangle())
                     
                     PreviewNaratgeulButton(
-                        text: symbols[options.nowSymbolPage][1], primary: true,
+                        text: symbols[state.nowSymbolPage][1], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
@@ -81,7 +80,7 @@ struct PreviewSymbolView: View {
                     .contentShape(Rectangle())
                     
                     PreviewNaratgeulButton(
-                        text: symbols[options.nowSymbolPage][2], primary: true,
+                        text: symbols[state.nowSymbolPage][2], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
@@ -103,7 +102,7 @@ struct PreviewSymbolView: View {
                     .contentShape(Rectangle())
                     
                     PreviewNaratgeulButton(
-                        text: symbols[options.nowSymbolPage][3], primary: true,
+                        text: symbols[state.nowSymbolPage][3], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
@@ -125,7 +124,7 @@ struct PreviewSymbolView: View {
                     .contentShape(Rectangle())
                     
                     PreviewNaratgeulButton(
-                        text: symbols[options.nowSymbolPage][4], primary: true,
+                        text: symbols[state.nowSymbolPage][4], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
@@ -147,7 +146,7 @@ struct PreviewSymbolView: View {
                     .contentShape(Rectangle())
                     
                     PreviewNaratgeulButton(
-                        text: symbols[options.nowSymbolPage][5], primary: true,
+                        text: symbols[state.nowSymbolPage][5], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
@@ -169,7 +168,7 @@ struct PreviewSymbolView: View {
                     .contentShape(Rectangle())
                     
                     PreviewNaratgeulButton(
-                        text: symbols[options.nowSymbolPage][6], primary: true,
+                        text: symbols[state.nowSymbolPage][6], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
@@ -191,7 +190,7 @@ struct PreviewSymbolView: View {
                     .contentShape(Rectangle())
                     
                     PreviewNaratgeulButton(
-                        text: symbols[options.nowSymbolPage][7], primary: true,
+                        text: symbols[state.nowSymbolPage][7], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
@@ -213,7 +212,7 @@ struct PreviewSymbolView: View {
                     .contentShape(Rectangle())
                     
                     PreviewNaratgeulButton(
-                        text: symbols[options.nowSymbolPage][8], primary: true,
+                        text: symbols[state.nowSymbolPage][8], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
@@ -235,7 +234,7 @@ struct PreviewSymbolView: View {
                     .contentShape(Rectangle())
                     
                     PreviewNaratgeulButton(
-                        text: symbols[options.nowSymbolPage][9], primary: true,
+                        text: symbols[state.nowSymbolPage][9], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
@@ -257,10 +256,10 @@ struct PreviewSymbolView: View {
                     .contentShape(Rectangle())
                 }
                 
-                // MARK: - symbols[1]
+                // MARK: - 2nd row of Symbol Keyboard
                 HStack(spacing: 0) {
                     PreviewNaratgeulButton(
-                        text: symbols[options.nowSymbolPage][10], primary: true,
+                        text: symbols[state.nowSymbolPage][10], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
@@ -282,7 +281,7 @@ struct PreviewSymbolView: View {
                     .contentShape(Rectangle())
                     
                     PreviewNaratgeulButton(
-                        text: symbols[options.nowSymbolPage][11], primary: true,
+                        text: symbols[state.nowSymbolPage][11], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
@@ -304,7 +303,7 @@ struct PreviewSymbolView: View {
                     .contentShape(Rectangle())
                     
                     PreviewNaratgeulButton(
-                        text: symbols[options.nowSymbolPage][12], primary: true,
+                        text: symbols[state.nowSymbolPage][12], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
@@ -326,7 +325,7 @@ struct PreviewSymbolView: View {
                     .contentShape(Rectangle())
                     
                     PreviewNaratgeulButton(
-                        text: symbols[options.nowSymbolPage][13], primary: true,
+                        text: symbols[state.nowSymbolPage][13], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
@@ -348,7 +347,7 @@ struct PreviewSymbolView: View {
                     .contentShape(Rectangle())
                     
                     PreviewNaratgeulButton(
-                        text: symbols[options.nowSymbolPage][14], primary: true,
+                        text: symbols[state.nowSymbolPage][14], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
@@ -370,7 +369,7 @@ struct PreviewSymbolView: View {
                     .contentShape(Rectangle())
                     
                     PreviewNaratgeulButton(
-                        text: symbols[options.nowSymbolPage][15], primary: true,
+                        text: symbols[state.nowSymbolPage][15], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
@@ -392,7 +391,7 @@ struct PreviewSymbolView: View {
                     .contentShape(Rectangle())
                     
                     PreviewNaratgeulButton(
-                        text: symbols[options.nowSymbolPage][16], primary: true,
+                        text: symbols[state.nowSymbolPage][16], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
@@ -414,7 +413,7 @@ struct PreviewSymbolView: View {
                     .contentShape(Rectangle())
                     
                     PreviewNaratgeulButton(
-                        text: symbols[options.nowSymbolPage][17], primary: true,
+                        text: symbols[state.nowSymbolPage][17], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
@@ -436,7 +435,7 @@ struct PreviewSymbolView: View {
                     .contentShape(Rectangle())
                     
                     PreviewNaratgeulButton(
-                        text: symbols[options.nowSymbolPage][18], primary: true,
+                        text: symbols[state.nowSymbolPage][18], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
@@ -458,7 +457,7 @@ struct PreviewSymbolView: View {
                     .contentShape(Rectangle())
                     
                     PreviewNaratgeulButton(
-                        text: symbols[options.nowSymbolPage][19], primary: true,
+                        text: symbols[state.nowSymbolPage][19], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
@@ -480,20 +479,20 @@ struct PreviewSymbolView: View {
                     .contentShape(Rectangle())
                 }
                 
-                // MARK: - (options.curSymbolPage + 1)/options.totalSymbolPage, symbols.last, 􀆛
+                // MARK: - 3rd row of Symbol Keyboard
                 HStack(spacing: 0) {
                     PreviewNaratgeulButton(
-                        text: "\(options.nowSymbolPage + 1)/\(options.totalSymbolPage)", primary: false,
+                        text: "\(state.nowSymbolPage + 1)/\(state.totalSymbolPage)", primary: false,
                         onPress: {
                             Feedback.shared.playModifierSound()
                             Feedback.shared.playHaptic(style: .light)
-                            options.nowSymbolPage = (options.nowSymbolPage + 1) % options.totalSymbolPage
+                            state.nowSymbolPage = (state.nowSymbolPage + 1) % state.totalSymbolPage
                         })
                     .padding(EdgeInsets(top: interItemVPadding, leading: hPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
                     PreviewNaratgeulButton(
-                        text: fixedSymbols[0], primary: true,
+                        text: symbols[state.nowSymbolPage][20], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
@@ -515,7 +514,7 @@ struct PreviewSymbolView: View {
                     .contentShape(Rectangle())
                     
                     PreviewNaratgeulButton(
-                        text: fixedSymbols[1], primary: true,
+                        text: symbols[state.nowSymbolPage][21], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
@@ -537,7 +536,7 @@ struct PreviewSymbolView: View {
                     .contentShape(Rectangle())
                     
                     PreviewNaratgeulButton(
-                        text: fixedSymbols[2], primary: true,
+                        text: symbols[state.nowSymbolPage][22], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
@@ -559,7 +558,7 @@ struct PreviewSymbolView: View {
                     .contentShape(Rectangle())
                     
                     PreviewNaratgeulButton(
-                        text: fixedSymbols[3], primary: true,
+                        text: symbols[state.nowSymbolPage][23], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
@@ -581,7 +580,7 @@ struct PreviewSymbolView: View {
                     .contentShape(Rectangle())
                     
                     PreviewNaratgeulButton(
-                        text: fixedSymbols[4], primary: true,
+                        text: symbols[state.nowSymbolPage][24], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
@@ -634,10 +633,10 @@ struct PreviewSymbolView: View {
                                     Feedback.shared.playHaptic(style: .light)
                                 },
                                 onRelease: {
-                                    options.current = .hangeul
+                                    state.current = .hangeul
                                 },
                                 onLongPressFinished: {
-                                    options.current = .hangeul
+                                    state.current = .hangeul
                                 })
                             .padding(EdgeInsets(top: interItemVPadding, leading: hPadding, bottom: vPadding, trailing: interItemHPadding))
                             .contentShape(Rectangle())
@@ -660,10 +659,10 @@ struct PreviewSymbolView: View {
                                 Feedback.shared.playHaptic(style: .light)
                             },
                             onRelease: {
-                                options.current = .hangeul
+                                state.current = .hangeul
                             },
                             onLongPressFinished: {
-                                options.current = .hangeul
+                                state.current = .hangeul
                             })
                         .padding(EdgeInsets(top: interItemVPadding, leading: hPadding, bottom: vPadding, trailing: interItemHPadding))
                         .contentShape(Rectangle())
@@ -703,7 +702,7 @@ struct PreviewSymbolView: View {
                 }
             }
         }.onAppear {
-            options.totalSymbolPage = symbols.count
+            state.totalSymbolPage = symbols.count
         }
         .frame(height: tempKeyboardHeight)
         .background(Color("KeyboardBackground"))

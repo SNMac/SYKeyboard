@@ -15,10 +15,10 @@ enum Gestures {
 }
 
 struct PreviewNaratgeulButton: View {
-    @EnvironmentObject var options: PreviewNaratgeulOptions
+    @EnvironmentObject var state: PreviewNaratgeulState
     @AppStorage("longPressSpeed", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var longPressSpeed = 0.6
     @AppStorage("needsInputModeSwitchKey", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var needsInputModeSwitchKey = false
-    @AppStorage("isNumberPadEnabled", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var isNumberPadEnabled = true
+    @AppStorage("isNumberKeyboardTypeEnabled", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var isNumberKeyboardTypeEnabled = true
     @State private var nowGesture: Gestures = .released
     @State private var isCursorMovable: Bool = false
     @State private var dragStartWidth: Double = 0.0
@@ -45,21 +45,21 @@ struct PreviewNaratgeulButton: View {
                 if !isCursorMovable {
                     // 왼쪽으로 일정 거리 초과 드래그 -> 이전 자판으로 변경
                     let dragWidthDiff = value.translation.width - dragStartWidth
-                    if (options.current == .hangeul || options.current == .number) && dragWidthDiff < -20 {
+                    if (state.current == .hangeul || state.current == .number) && dragWidthDiff < -20 {
                         isCursorMovable = true
-                        if options.current == .hangeul {  // 한글 자판
-                            if isNumberPadEnabled {
-                                options.current = .number
+                        if state.current == .hangeul {  // 한글 자판
+                            if isNumberKeyboardTypeEnabled {
+                                state.current = .number
                                 Feedback.shared.playHaptic(style: .medium)
                             }
                         } else {  // 숫자 자판
-                            options.current = .symbol
+                            state.current = .symbol
                             Feedback.shared.playHaptic(style: .medium)
                         }
-                    } else if options.current == .symbol && dragWidthDiff > 20 {  // 기호 자판
+                    } else if state.current == .symbol && dragWidthDiff > 20 {  // 기호 자판
                         isCursorMovable = true
-                        if isNumberPadEnabled {
-                            options.current = .number
+                        if isNumberKeyboardTypeEnabled {
+                            state.current = .number
                             Feedback.shared.playHaptic(style: .medium)
                         }
                     }
@@ -101,7 +101,7 @@ struct PreviewNaratgeulButton: View {
         }
         isCursorMovable = false
         nowGesture = .released
-        options.nowPressedButton = nil
+        state.nowPressedButton = nil
     }
     
     private func longPressOnChanged() {  // 버튼 눌렀을 때 호출(버튼 누르면 무조건 첫번째로 호출)
@@ -117,7 +117,7 @@ struct PreviewNaratgeulButton: View {
     private func seqDragOnEnded() {  // 버튼 길게 눌렀다가 뗐을 때 호출
         onLongPressFinished?()
         nowGesture = .released
-        options.nowPressedButton = nil
+        state.nowPressedButton = nil
     }
     
     var body: some View {
@@ -166,7 +166,7 @@ struct PreviewNaratgeulButton: View {
                         .clipShape(.rect(cornerRadius: 5))
                         .overlay(alignment: .bottomLeading, content: {
                             HStack(spacing: 1) {
-                                if isNumberPadEnabled {
+                                if isNumberKeyboardTypeEnabled {
                                     Image(systemName: "arrowtriangle.left.fill")
                                     Text("123")
                                 }
@@ -179,7 +179,7 @@ struct PreviewNaratgeulButton: View {
                         })
                 } else if text == "한글" {
                     // 기호 자판
-                    if options.current == .symbol {
+                    if state.current == .symbol {
                         Text("한글")
                             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
                             .font(.system(size: needsInputModeSwitchKey ? textSize - 2 : textSize))
@@ -188,7 +188,7 @@ struct PreviewNaratgeulButton: View {
                             .clipShape(.rect(cornerRadius: 5))
                             .overlay(alignment: .bottomTrailing, content: {
                                 HStack(spacing: 1) {
-                                    if isNumberPadEnabled {
+                                    if isNumberKeyboardTypeEnabled {
                                         Text("123")
                                         Image(systemName: "arrowtriangle.right.fill")
                                     }
@@ -199,7 +199,7 @@ struct PreviewNaratgeulButton: View {
                                 .backgroundStyle(Color(uiColor: .clear))
                                 .padding(EdgeInsets(top: 0, leading: 0, bottom: 2, trailing: 2))
                             })
-                    } else if options.current == .number {
+                    } else if state.current == .number {
                         // 숫자 자판
                         Text("한글")
                             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
@@ -209,7 +209,7 @@ struct PreviewNaratgeulButton: View {
                             .clipShape(.rect(cornerRadius: 5))
                             .overlay(alignment: .bottomLeading, content: {
                                 HStack(spacing: 1) {
-                                    if isNumberPadEnabled {
+                                    if isNumberKeyboardTypeEnabled {
                                         Image(systemName: "arrowtriangle.left.fill")
                                         Text("!#1")
                                     }
@@ -222,8 +222,8 @@ struct PreviewNaratgeulButton: View {
                             })
                     }
                     
-                } else if text == "\(options.nowSymbolPage + 1)/\(options.totalSymbolPage)" {
-                    Text("\(options.nowSymbolPage + 1)/\(options.totalSymbolPage)")
+                } else if text == "\(state.nowSymbolPage + 1)/\(state.totalSymbolPage)" {
+                    Text("\(state.nowSymbolPage + 1)/\(state.totalSymbolPage)")
                         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
                         .monospaced()
                         .font(.system(size: textSize - 2))
@@ -240,6 +240,7 @@ struct PreviewNaratgeulButton: View {
                 }
             }
         }
+        .compositingGroup()
         .shadow(color: Color("KeyboardButtonShadow"), radius: 0, x: 0, y: 1)
         .gesture(
             DragGesture(minimumDistance: 0)
@@ -264,19 +265,19 @@ struct PreviewNaratgeulButton: View {
             // 버튼 눌렀을 때 호출(버튼 누르면 무조건 첫번째로 호출)
                 .onChanged { _ in
                     print("LongPressGesture() onChanged")
-                    if options.nowPressedButton != nil {  // 이미 다른 버튼이 눌려있는 상태
-                        switch options.nowPressedButton?.nowGesture {
+                    if state.nowPressedButton != nil {  // 이미 다른 버튼이 눌려있는 상태
+                        switch state.nowPressedButton?.nowGesture {
                         case .pressing:
-                            options.nowPressedButton?.dragOnEnded()
+                            state.nowPressedButton?.dragOnEnded()
                         case .longPressing:
-                            options.nowPressedButton?.seqDragOnEnded()
+                            state.nowPressedButton?.seqDragOnEnded()
                         case .dragging:
-                            options.nowPressedButton?.dragOnEnded()
+                            state.nowPressedButton?.dragOnEnded()
                         default:
                             break
                         }
                     }
-                    options.nowPressedButton = self
+                    state.nowPressedButton = self
                     longPressOnChanged()
                 }
             

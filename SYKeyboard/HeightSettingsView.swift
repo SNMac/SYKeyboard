@@ -11,7 +11,7 @@ import SwiftUI
 
 struct HeightSettingsView: View {
     @Environment(\.dismiss) private var dismiss
-    @EnvironmentObject var options: PreviewNaratgeulOptions
+    @EnvironmentObject var state: PreviewNaratgeulState
     @AppStorage("keyboardHeight", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var keyboardHeight = 240.0
     @State var tempKeyboardHeight: Double = 240.0
     
@@ -57,18 +57,18 @@ struct HeightSettingsView: View {
         NavigationStack {
             heightSettings
             if #available(iOS 18, *) {
-                if options.current == .hangeul {
+                if state.current == .hangeul {
                     Swift6_PreviewHangeulView(tempKeyboardHeight: $tempKeyboardHeight)
-                } else if options.current == .number {
+                } else if state.current == .number {
                     Swift6_PreviewNumberView(tempKeyboardHeight: $tempKeyboardHeight)
                 } else {
                     Swift6_PreviewSymbolView(tempKeyboardHeight: $tempKeyboardHeight)
                 }
                 
             } else {
-                if options.current == .hangeul {
+                if state.current == .hangeul {
                     PreviewHangeulView(tempKeyboardHeight: $tempKeyboardHeight)
-                } else if options.current == .number {
+                } else if state.current == .number {
                     PreviewNumberView(tempKeyboardHeight: $tempKeyboardHeight)
                 } else {
                     PreviewSymbolView(tempKeyboardHeight: $tempKeyboardHeight)
@@ -76,12 +76,12 @@ struct HeightSettingsView: View {
             }
         }.onAppear {
             tempKeyboardHeight = keyboardHeight
-            options.current = .hangeul
+            state.current = .hangeul
         }
     }
 }
 
 #Preview {
     HeightSettingsView()
-        .environmentObject(PreviewNaratgeulOptions())
+        .environmentObject(PreviewNaratgeulState())
 }

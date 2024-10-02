@@ -1,5 +1,5 @@
 //
-//  NaratgeulOptions.swift
+//  NaratgeulState.swift
 //  Naratgeul
 //
 //  Created by 서동환 on 8/14/24.
@@ -10,6 +10,7 @@ import SwiftUI
 
 enum KeyboardType {
     case _default
+    case numbersAndPunctuation
     case URL
     case numberPad
     case emailAddress
@@ -37,7 +38,7 @@ enum ReturnButtonType: String {
     case emergencyCall = "긴급통화"
 }
 
-final class NaratgeulOptions: ObservableObject {
+final class NaratgeulState: ObservableObject {
     @Published var currentKeyboardType: KeyboardType = ._default
     @Published var currentInputType: InputType = .hangeul
     @Published var returnButtonType: ReturnButtonType = ._default
@@ -51,7 +52,6 @@ final class NaratgeulOptions: ObservableObject {
     var keyboardHeight: CGFloat
     var longPressTime: Double
     var repeatTimerCycle: Double
-    var colorScheme: ColorScheme
     var needsInputModeSwitchKey: Bool
     var nextKeyboardAction: Selector
     
@@ -60,7 +60,6 @@ final class NaratgeulOptions: ObservableObject {
         keyboardHeight: CGFloat,
         longPressTime: Double,
         repeatTimerCycle: Double,
-        colorScheme: ColorScheme,
         needsInputModeSwitchKey: Bool,
         nextKeyboardAction: Selector
     ) {
@@ -68,7 +67,6 @@ final class NaratgeulOptions: ObservableObject {
         self.keyboardHeight = keyboardHeight
         self.longPressTime = longPressTime
         self.repeatTimerCycle = repeatTimerCycle
-        self.colorScheme = colorScheme
         self.needsInputModeSwitchKey = needsInputModeSwitchKey
         self.nextKeyboardAction = nextKeyboardAction
     }

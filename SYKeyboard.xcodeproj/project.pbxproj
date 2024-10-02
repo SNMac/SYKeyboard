@@ -29,13 +29,13 @@
 		5B13A2EB2CA07B43004B7986 /* Swift6_PreviewSymbolView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B13A2EA2CA07B43004B7986 /* Swift6_PreviewSymbolView.swift */; };
 		5B13A2ED2CA08083004B7986 /* Swift6_PreviewHangeulView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B13A2EC2CA08083004B7986 /* Swift6_PreviewHangeulView.swift */; };
 		5B13A2EF2CA0F24B004B7986 /* AppearanceSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B13A2EE2CA0F24B004B7986 /* AppearanceSettingsView.swift */; };
-		5B18F5142C97DC1D000548D4 /* PreviewNaratgeulOptions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B18F5132C97DC1D000548D4 /* PreviewNaratgeulOptions.swift */; };
+		5B18F5142C97DC1D000548D4 /* PreviewNaratgeulState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B18F5132C97DC1D000548D4 /* PreviewNaratgeulState.swift */; };
 		5B18F5172C97DC7C000548D4 /* PreviewNaratgeulButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B18F5162C97DC7C000548D4 /* PreviewNaratgeulButton.swift */; };
 		5B18F5192C97DCE3000548D4 /* PreviewHangeulView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B18F5182C97DCE3000548D4 /* PreviewHangeulView.swift */; };
 		5B18F51B2C97DD27000548D4 /* PreviewSymbolView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B18F51A2C97DD27000548D4 /* PreviewSymbolView.swift */; };
 		5B2B40002C6C8994007CA762 /* SymbolView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B2B3FFF2C6C8994007CA762 /* SymbolView.swift */; };
 		5B2B40072C6CAB2F007CA762 /* NaratgeulView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B2B40062C6CAB2F007CA762 /* NaratgeulView.swift */; };
-		5B2B40122C6CC1D1007CA762 /* NaratgeulOptions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B2B40112C6CC1D1007CA762 /* NaratgeulOptions.swift */; };
+		5B2B40122C6CC1D1007CA762 /* NaratgeulState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B2B40112C6CC1D1007CA762 /* NaratgeulState.swift */; };
 		5B2B40152C6CD2A4007CA762 /* NextKeyboardButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B2B40142C6CD2A4007CA762 /* NextKeyboardButton.swift */; };
 		5B7556EB2C9DD3B00038BA9C /* GlobalValues.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B7556EA2C9DD3B00038BA9C /* GlobalValues.swift */; };
 		5B7556EC2C9DD3B00038BA9C /* GlobalValues.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B7556EA2C9DD3B00038BA9C /* GlobalValues.swift */; };
@@ -112,13 +112,13 @@
 		5B13A2EA2CA07B43004B7986 /* Swift6_PreviewSymbolView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Swift6_PreviewSymbolView.swift; sourceTree = "<group>"; };
 		5B13A2EC2CA08083004B7986 /* Swift6_PreviewHangeulView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Swift6_PreviewHangeulView.swift; sourceTree = "<group>"; };
 		5B13A2EE2CA0F24B004B7986 /* AppearanceSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppearanceSettingsView.swift; sourceTree = "<group>"; };
-		5B18F5132C97DC1D000548D4 /* PreviewNaratgeulOptions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewNaratgeulOptions.swift; sourceTree = "<group>"; };
+		5B18F5132C97DC1D000548D4 /* PreviewNaratgeulState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewNaratgeulState.swift; sourceTree = "<group>"; };
 		5B18F5162C97DC7C000548D4 /* PreviewNaratgeulButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewNaratgeulButton.swift; sourceTree = "<group>"; };
 		5B18F5182C97DCE3000548D4 /* PreviewHangeulView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewHangeulView.swift; sourceTree = "<group>"; };
 		5B18F51A2C97DD27000548D4 /* PreviewSymbolView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewSymbolView.swift; sourceTree = "<group>"; };
 		5B2B3FFF2C6C8994007CA762 /* SymbolView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SymbolView.swift; sourceTree = "<group>"; };
 		5B2B40062C6CAB2F007CA762 /* NaratgeulView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NaratgeulView.swift; sourceTree = "<group>"; };
-		5B2B40112C6CC1D1007CA762 /* NaratgeulOptions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NaratgeulOptions.swift; sourceTree = "<group>"; };
+		5B2B40112C6CC1D1007CA762 /* NaratgeulState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NaratgeulState.swift; sourceTree = "<group>"; };
 		5B2B40142C6CD2A4007CA762 /* NextKeyboardButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NextKeyboardButton.swift; sourceTree = "<group>"; };
 		5B5274A52C8E91A4004C155E /* DEP_HangeulInputMethod.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DEP_HangeulInputMethod.swift; sourceTree = "<group>"; };
 		5B7556EA2C9DD3B00038BA9C /* GlobalValues.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlobalValues.swift; sourceTree = "<group>"; };
@@ -177,7 +177,7 @@
 				5B18F51A2C97DD27000548D4 /* PreviewSymbolView.swift */,
 				5BA8097D2C9973A200CC1B25 /* PreviewNumberView.swift */,
 				5B18F5162C97DC7C000548D4 /* PreviewNaratgeulButton.swift */,
-				5B18F5132C97DC1D000548D4 /* PreviewNaratgeulOptions.swift */,
+				5B18F5132C97DC1D000548D4 /* PreviewNaratgeulState.swift */,
 			);
 			path = PreviewKeyboard;
 			sourceTree = "<group>";
@@ -270,7 +270,7 @@
 				5BACCE542C915423006DCFB7 /* NaratgeulDelegate.swift */,
 				5B0D82352C5962A500F84180 /* NaratgeulIOManager.swift */,
 				5B2B40062C6CAB2F007CA762 /* NaratgeulView.swift */,
-				5B2B40112C6CC1D1007CA762 /* NaratgeulOptions.swift */,
+				5B2B40112C6CC1D1007CA762 /* NaratgeulState.swift */,
 				5B7BDD4B2C92C0170065C944 /* KeyboardLayout */,
 				5B7B3F6F2C569B8200F7C093 /* Info.plist */,
 			);
@@ -452,7 +452,7 @@
 				5B18F5192C97DCE3000548D4 /* PreviewHangeulView.swift in Sources */,
 				5B7BDD472C91E8860065C944 /* InfoView.swift in Sources */,
 				5B7BDD492C9204290065C944 /* SpecificLanguageTextField.swift in Sources */,
-				5B18F5142C97DC1D000548D4 /* PreviewNaratgeulOptions.swift in Sources */,
+				5B18F5142C97DC1D000548D4 /* PreviewNaratgeulState.swift in Sources */,
 				5B9472332C8AD76000B8B154 /* Feedback.swift in Sources */,
 				5BB0D26D2C883B8700CE7AF5 /* InputSettingsView.swift in Sources */,
 				5B13A2ED2CA08083004B7986 /* Swift6_PreviewHangeulView.swift in Sources */,
@@ -495,7 +495,7 @@
 				5B2B40002C6C8994007CA762 /* SymbolView.swift in Sources */,
 				5B7556FF2CA0077A0038BA9C /* Swift6_NaratgeulButton.swift in Sources */,
 				5B0F7FD82CA69CD900EE7380 /* Swift6_EmailSymbolView.swift in Sources */,
-				5B2B40122C6CC1D1007CA762 /* NaratgeulOptions.swift in Sources */,
+				5B2B40122C6CC1D1007CA762 /* NaratgeulState.swift in Sources */,
 				5B75570E2CA072320038BA9C /* Swift6_SymbolView.swift in Sources */,
 				5B0D82362C5962A500F84180 /* NaratgeulIOManager.swift in Sources */,
 				5B7556EB2C9DD3B00038BA9C /* GlobalValues.swift in Sources */,

@@ -1,5 +1,5 @@
 //
-//  PreviewSYKeyboardOptions.swift
+//  PreviewNaratgeulState.swift
 //  SYKeyboard
 //
 //  Created by 서동환 on 9/16/24.
@@ -13,7 +13,7 @@ enum PreviewInputType {
     case symbol
 }
 
-final class PreviewNaratgeulOptions: ObservableObject {
+final class PreviewNaratgeulState: ObservableObject {
     @Published var current: PreviewInputType = .hangeul
     @Published var nowSymbolPage: Int = 0
     @Published var totalSymbolPage: Int = 0

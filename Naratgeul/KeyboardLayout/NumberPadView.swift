@@ -9,7 +9,7 @@ import SwiftUI
 import Combine
 
 struct NumberPadView: View {
-    @EnvironmentObject var options: NaratgeulOptions
+    @EnvironmentObject var state: NaratgeulState
     @State var timer: AnyCancellable?
     
     let vPadding: CGFloat = 4
@@ -29,18 +29,18 @@ struct NumberPadView: View {
                             Feedback.shared.playHaptic(style: .light)
                         },
                         onRelease: {
-                            options.delegate?.otherKeypadTap(letter: "1")
+                            state.delegate?.otherKeypadTap(letter: "1")
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
-                            options.delegate?.otherKeypadTap(letter: "1")
-                            timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
+                            state.delegate?.otherKeypadTap(letter: "1")
+                            timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
                                     Feedback.shared.playHaptic(style: .light)
-                                    options.delegate?.inputLastSymbol()
+                                    state.delegate?.inputLastSymbol()
                                 }
                         },
                         onLongPressFinished: {
@@ -56,18 +56,18 @@ struct NumberPadView: View {
                             Feedback.shared.playHaptic(style: .light)
                         },
                         onRelease: {
-                            options.delegate?.otherKeypadTap(letter: "2")
+                            state.delegate?.otherKeypadTap(letter: "2")
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
-                            options.delegate?.otherKeypadTap(letter: "2")
-                            timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
+                            state.delegate?.otherKeypadTap(letter: "2")
+                            timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
                                     Feedback.shared.playHaptic(style: .light)
-                                    options.delegate?.inputLastSymbol()
+                                    state.delegate?.inputLastSymbol()
                                 }
                         },
                         onLongPressFinished: {
@@ -83,18 +83,18 @@ struct NumberPadView: View {
                             Feedback.shared.playHaptic(style: .light)
                         },
                         onRelease: {
-                            options.delegate?.otherKeypadTap(letter: "3")
+                            state.delegate?.otherKeypadTap(letter: "3")
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
-                            options.delegate?.otherKeypadTap(letter: "3")
-                            timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
+                            state.delegate?.otherKeypadTap(letter: "3")
+                            timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
                                     Feedback.shared.playHaptic(style: .light)
-                                    options.delegate?.inputLastSymbol()
+                                    state.delegate?.inputLastSymbol()
                                 }
                         },
                         onLongPressFinished: {
@@ -114,18 +114,18 @@ struct NumberPadView: View {
                             Feedback.shared.playHaptic(style: .light)
                         },
                         onRelease: {
-                            options.delegate?.otherKeypadTap(letter: "4")
+                            state.delegate?.otherKeypadTap(letter: "4")
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
-                            options.delegate?.otherKeypadTap(letter: "4")
-                            timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
+                            state.delegate?.otherKeypadTap(letter: "4")
+                            timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
                                     Feedback.shared.playHaptic(style: .light)
-                                    options.delegate?.inputLastSymbol()
+                                    state.delegate?.inputLastSymbol()
                                 }
                         },
                         onLongPressFinished: {
@@ -141,18 +141,18 @@ struct NumberPadView: View {
                             Feedback.shared.playHaptic(style: .light)
                         },
                         onRelease: {
-                            options.delegate?.otherKeypadTap(letter: "5")
+                            state.delegate?.otherKeypadTap(letter: "5")
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
-                            options.delegate?.otherKeypadTap(letter: "5")
-                            timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
+                            state.delegate?.otherKeypadTap(letter: "5")
+                            timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
                                     Feedback.shared.playHaptic(style: .light)
-                                    options.delegate?.inputLastSymbol()
+                                    state.delegate?.inputLastSymbol()
                                 }
                         },
                         onLongPressFinished: {
@@ -168,18 +168,18 @@ struct NumberPadView: View {
                             Feedback.shared.playHaptic(style: .light)
                         },
                         onRelease: {
-                            options.delegate?.otherKeypadTap(letter: "6")
+                            state.delegate?.otherKeypadTap(letter: "6")
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
-                            options.delegate?.otherKeypadTap(letter: "6")
-                            timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
+                            state.delegate?.otherKeypadTap(letter: "6")
+                            timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
                                     Feedback.shared.playHaptic(style: .light)
-                                    options.delegate?.inputLastSymbol()
+                                    state.delegate?.inputLastSymbol()
                                 }
                         },
                         onLongPressFinished: {
@@ -198,18 +198,18 @@ struct NumberPadView: View {
                             Feedback.shared.playHaptic(style: .light)
                         },
                         onRelease: {
-                            options.delegate?.otherKeypadTap(letter: "7")
+                            state.delegate?.otherKeypadTap(letter: "7")
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
-                            options.delegate?.otherKeypadTap(letter: "7")
-                            timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
+                            state.delegate?.otherKeypadTap(letter: "7")
+                            timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
                                     Feedback.shared.playHaptic(style: .light)
-                                    options.delegate?.inputLastSymbol()
+                                    state.delegate?.inputLastSymbol()
                                 }
                         },
                         onLongPressFinished: {
@@ -225,18 +225,18 @@ struct NumberPadView: View {
                             Feedback.shared.playHaptic(style: .light)
                         },
                         onRelease: {
-                            options.delegate?.otherKeypadTap(letter: "8")
+                            state.delegate?.otherKeypadTap(letter: "8")
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
-                            options.delegate?.otherKeypadTap(letter: "8")
-                            timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
+                            state.delegate?.otherKeypadTap(letter: "8")
+                            timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
                                     Feedback.shared.playHaptic(style: .light)
-                                    options.delegate?.inputLastSymbol()
+                                    state.delegate?.inputLastSymbol()
                                 }
                         },
                         onLongPressFinished: {
@@ -252,18 +252,18 @@ struct NumberPadView: View {
                             Feedback.shared.playHaptic(style: .light)
                         },
                         onRelease: {
-                            options.delegate?.otherKeypadTap(letter: "9")
+                            state.delegate?.otherKeypadTap(letter: "9")
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
-                            options.delegate?.otherKeypadTap(letter: "9")
-                            timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
+                            state.delegate?.otherKeypadTap(letter: "9")
+                            timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
                                     Feedback.shared.playHaptic(style: .light)
-                                    options.delegate?.inputLastSymbol()
+                                    state.delegate?.inputLastSymbol()
                                 }
                         },
                         onLongPressFinished: {
@@ -275,10 +275,10 @@ struct NumberPadView: View {
                 
                 // MARK: - (􀆪), 0, 􀆛
                 HStack(spacing: 0) {
-                    if options.needsInputModeSwitchKey {
+                    if state.needsInputModeSwitchKey {
                         NextKeyboardButton(
                             systemName: "globe",
-                            action: options.nextKeyboardAction
+                            action: state.nextKeyboardAction
                         )
                         .padding(EdgeInsets(top: interItemVPadding, leading: hPadding, bottom: vPadding, trailing: interItemHPadding))
                         .contentShape(Rectangle())
@@ -294,18 +294,18 @@ struct NumberPadView: View {
                             Feedback.shared.playHaptic(style: .light)
                         },
                         onRelease: {
-                            options.delegate?.otherKeypadTap(letter: "0")
+                            state.delegate?.otherKeypadTap(letter: "0")
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
-                            options.delegate?.otherKeypadTap(letter: "0")
-                            timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
+                            state.delegate?.otherKeypadTap(letter: "0")
+                            timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
                                     Feedback.shared.playHaptic(style: .light)
-                                    options.delegate?.inputLastSymbol()
+                                    state.delegate?.inputLastSymbol()
                                 }
                         },
                         onLongPressFinished: {
@@ -319,13 +319,13 @@ struct NumberPadView: View {
                         onPress: {
                             Feedback.shared.playDeleteSound()
                             Feedback.shared.playHaptic(style: .light)
-                            let _ = options.delegate?.removeKeypadTap(isLongPress: false)
+                            let _ = state.delegate?.removeKeypadTap(isLongPress: false)
                         },
                         onLongPress: {
-                            timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
+                            timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
-                                    if let isDeleted = options.delegate?.removeKeypadTap(isLongPress: true) {
+                                    if let isDeleted = state.delegate?.removeKeypadTap(isLongPress: true) {
                                         if isDeleted {
                                             Feedback.shared.playDeleteSound()
                                             Feedback.shared.playHaptic(style: .light)
@@ -341,6 +341,7 @@ struct NumberPadView: View {
                 }
             }
         }
-        .frame(height: options.keyboardHeight)
+        .frame(height: state.keyboardHeight)
+        .background(Color.white.opacity(0.001))
     }
 }

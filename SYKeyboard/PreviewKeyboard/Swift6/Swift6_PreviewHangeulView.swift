@@ -9,7 +9,7 @@ import SwiftUI
 import Combine
 
 struct Swift6_PreviewHangeulView: View {
-    @EnvironmentObject var options: PreviewNaratgeulOptions
+    @EnvironmentObject var state: PreviewNaratgeulState
     @AppStorage("repeatTimerSpeed", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var repeatTimerSpeed = 0.06
     @AppStorage("keyboardHeight", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var keyboardHeight = 240.0
     @AppStorage("needsInputModeSwitchKey", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var needsInputModeSwitchKey = false
@@ -362,10 +362,10 @@ struct Swift6_PreviewHangeulView: View {
                                     Feedback.shared.playHaptic(style: .light)
                                 },
                                 onRelease: {
-                                    options.current = .symbol
+                                    state.current = .symbol
                                 },
                                 onLongPressFinished: {
-                                    options.current = .symbol
+                                    state.current = .symbol
                                 })
                             .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: vPadding, trailing: interItemHPadding))
                             .contentShape(Rectangle())
@@ -388,10 +388,10 @@ struct Swift6_PreviewHangeulView: View {
                                 Feedback.shared.playHaptic(style: .light)
                             },
                             onRelease: {
-                                options.current = .symbol
+                                state.current = .symbol
                             },
                             onLongPressFinished: {
-                                options.current = .symbol
+                                state.current = .symbol
                             })
                         .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: vPadding, trailing: hPadding))
                         .contentShape(Rectangle())

@@ -37,8 +37,8 @@ struct GlobalValues {
             defaults?.setValue(true, forKey: "isTextReplacementEnabled")
         }
         // 스페이스 후 한글 자판으로 변경
-        if defaults?.object(forKey: "isAutoChangeToHangeulInputTypeEnabled") == nil {
-            defaults?.setValue(true, forKey: "isAutoChangeToHangeulInputTypeEnabled")
+        if defaults?.object(forKey: "isAutoChangeToHangeulEnabled") == nil {
+            defaults?.setValue(true, forKey: "isAutoChangeToHangeulEnabled")
         }
         
         /* 입력 설정 -> 속도 설정 */
@@ -57,8 +57,8 @@ struct GlobalValues {
             defaults?.setValue(GlobalValues.defaultKeyboardHeight, forKey: "keyboardHeight")
         }
         // 숫자 패드 활성화
-        if defaults?.object(forKey: "isNumberPadEnabled") == nil {
-            defaults?.setValue(true, forKey: "isNumberPadEnabled")
+        if defaults?.object(forKey: "isNumberKeyboardTypeEnabled") == nil {
+            defaults?.setValue(true, forKey: "isNumberKeyboardTypeEnabled")
         }
         // 키보드 전환 버튼 표시 설정용
         if defaults?.object(forKey: "needsInputModeSwitchKey") == nil {

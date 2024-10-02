@@ -9,9 +9,8 @@ import SwiftUI
 import Combine
 
 struct TwitterHangeulView: View {
-    @EnvironmentObject var options: NaratgeulOptions
+    @EnvironmentObject var state: NaratgeulState
     @State var timer: AnyCancellable?
-    private var defaults: UserDefaults?
     
     let vPadding: CGFloat = 4
     let interItemVPadding: CGFloat = 2
@@ -30,18 +29,18 @@ struct TwitterHangeulView: View {
                             Feedback.shared.playHaptic(style: .light)
                         },
                         onRelease: {
-                            options.delegate?.hangulKeypadTap(letter: "ㄱ")
+                            state.delegate?.hangulKeypadTap(letter: "ㄱ")
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
-                            options.delegate?.hangulKeypadTap(letter: "ㄱ")
-                            timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
+                            state.delegate?.hangulKeypadTap(letter: "ㄱ")
+                            timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
                                     Feedback.shared.playHaptic(style: .light)
-                                    options.delegate?.inputLastHangeul()
+                                    state.delegate?.inputLastHangeul()
                                 }
                         },
                         onLongPressFinished: {
@@ -57,18 +56,18 @@ struct TwitterHangeulView: View {
                             Feedback.shared.playHaptic(style: .light)
                         },
                         onRelease: {
-                            options.delegate?.hangulKeypadTap(letter: "ㄴ")
+                            state.delegate?.hangulKeypadTap(letter: "ㄴ")
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
-                            options.delegate?.hangulKeypadTap(letter: "ㄴ")
-                            timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
+                            state.delegate?.hangulKeypadTap(letter: "ㄴ")
+                            timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
                                     Feedback.shared.playHaptic(style: .light)
-                                    options.delegate?.inputLastHangeul()
+                                    state.delegate?.inputLastHangeul()
                                 }
                         },
                         onLongPressFinished: {
@@ -84,18 +83,18 @@ struct TwitterHangeulView: View {
                             Feedback.shared.playHaptic(style: .light)
                         },
                         onRelease: {
-                            options.delegate?.hangulKeypadTap(letter: "ㅏ")
+                            state.delegate?.hangulKeypadTap(letter: "ㅏ")
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
-                            options.delegate?.hangulKeypadTap(letter: "ㅏ")
-                            timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
+                            state.delegate?.hangulKeypadTap(letter: "ㅏ")
+                            timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
                                     Feedback.shared.playHaptic(style: .light)
-                                    options.delegate?.inputLastHangeul()
+                                    state.delegate?.inputLastHangeul()
                                 }
                         },
                         onLongPressFinished: {
@@ -109,13 +108,13 @@ struct TwitterHangeulView: View {
                         onPress: {
                             Feedback.shared.playDeleteSound()
                             Feedback.shared.playHaptic(style: .light)
-                            let _ = options.delegate?.removeKeypadTap(isLongPress: false)
+                            let _ = state.delegate?.removeKeypadTap(isLongPress: false)
                         },
                         onLongPress: {
-                            timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
+                            timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
-                                    if let isDeleted = options.delegate?.removeKeypadTap(isLongPress: true) {
+                                    if let isDeleted = state.delegate?.removeKeypadTap(isLongPress: true) {
                                         if isDeleted {
                                             Feedback.shared.playDeleteSound()
                                             Feedback.shared.playHaptic(style: .light)
@@ -140,18 +139,18 @@ struct TwitterHangeulView: View {
                             Feedback.shared.playHaptic(style: .light)
                         },
                         onRelease: {
-                            options.delegate?.hangulKeypadTap(letter: "ㄹ")
+                            state.delegate?.hangulKeypadTap(letter: "ㄹ")
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
-                            options.delegate?.hangulKeypadTap(letter: "ㄹ")
-                            timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
+                            state.delegate?.hangulKeypadTap(letter: "ㄹ")
+                            timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
                                     Feedback.shared.playHaptic(style: .light)
-                                    options.delegate?.inputLastHangeul()
+                                    state.delegate?.inputLastHangeul()
                                 }
                         },
                         onLongPressFinished: {
@@ -167,18 +166,18 @@ struct TwitterHangeulView: View {
                             Feedback.shared.playHaptic(style: .light)
                         },
                         onRelease: {
-                            options.delegate?.hangulKeypadTap(letter: "ㅁ")
+                            state.delegate?.hangulKeypadTap(letter: "ㅁ")
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
-                            options.delegate?.hangulKeypadTap(letter: "ㅁ")
-                            timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
+                            state.delegate?.hangulKeypadTap(letter: "ㅁ")
+                            timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
                                     Feedback.shared.playHaptic(style: .light)
-                                    options.delegate?.inputLastHangeul()
+                                    state.delegate?.inputLastHangeul()
                                 }
                         },
                         onLongPressFinished: {
@@ -194,18 +193,18 @@ struct TwitterHangeulView: View {
                             Feedback.shared.playHaptic(style: .light)
                         },
                         onRelease: {
-                            options.delegate?.hangulKeypadTap(letter: "ㅗ")
+                            state.delegate?.hangulKeypadTap(letter: "ㅗ")
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
-                            options.delegate?.hangulKeypadTap(letter: "ㅗ")
-                            timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
+                            state.delegate?.hangulKeypadTap(letter: "ㅗ")
+                            timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
                                     Feedback.shared.playHaptic(style: .light)
-                                    options.delegate?.inputLastHangeul()
+                                    state.delegate?.inputLastHangeul()
                                 }
                         },
                         onLongPressFinished: {
@@ -221,18 +220,18 @@ struct TwitterHangeulView: View {
                             Feedback.shared.playHaptic(style: .light)
                         },
                         onRelease: {
-                            options.delegate?.spaceKeypadTap()
+                            state.delegate?.spaceKeypadTap()
                         },
                         onLongPress: {
                             Feedback.shared.playModifierSound()
                             Feedback.shared.playHaptic(style: .light)
-                            options.delegate?.spaceKeypadTap()
-                            timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
+                            state.delegate?.spaceKeypadTap()
+                            timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playModifierSound()
                                     Feedback.shared.playHaptic(style: .light)
-                                    options.delegate?.spaceKeypadTap()
+                                    state.delegate?.spaceKeypadTap()
                                 }
                         },
                         onLongPressFinished: {
@@ -251,18 +250,18 @@ struct TwitterHangeulView: View {
                             Feedback.shared.playHaptic(style: .light)
                         },
                         onRelease: {
-                            options.delegate?.hangulKeypadTap(letter: "ㅅ")
+                            state.delegate?.hangulKeypadTap(letter: "ㅅ")
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
-                            options.delegate?.hangulKeypadTap(letter: "ㅅ")
-                            timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
+                            state.delegate?.hangulKeypadTap(letter: "ㅅ")
+                            timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
                                     Feedback.shared.playHaptic(style: .light)
-                                    options.delegate?.inputLastHangeul()
+                                    state.delegate?.inputLastHangeul()
                                 }
                         },
                         onLongPressFinished: {
@@ -278,18 +277,18 @@ struct TwitterHangeulView: View {
                             Feedback.shared.playHaptic(style: .light)
                         },
                         onRelease: {
-                            options.delegate?.hangulKeypadTap(letter: "ㅇ")
+                            state.delegate?.hangulKeypadTap(letter: "ㅇ")
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
-                            options.delegate?.hangulKeypadTap(letter: "ㅇ")
-                            timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
+                            state.delegate?.hangulKeypadTap(letter: "ㅇ")
+                            timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
                                     Feedback.shared.playHaptic(style: .light)
-                                    options.delegate?.inputLastHangeul()
+                                    state.delegate?.inputLastHangeul()
                                 }
                         },
                         onLongPressFinished: {
@@ -305,18 +304,18 @@ struct TwitterHangeulView: View {
                             Feedback.shared.playHaptic(style: .light)
                         },
                         onRelease: {
-                            options.delegate?.hangulKeypadTap(letter: "ㅣ")
+                            state.delegate?.hangulKeypadTap(letter: "ㅣ")
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
-                            options.delegate?.hangulKeypadTap(letter: "ㅣ")
-                            timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
+                            state.delegate?.hangulKeypadTap(letter: "ㅣ")
+                            timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
                                     Feedback.shared.playHaptic(style: .light)
-                                    options.delegate?.inputLastHangeul()
+                                    state.delegate?.inputLastHangeul()
                                 }
                         },
                         onLongPressFinished: {
@@ -333,10 +332,10 @@ struct TwitterHangeulView: View {
                                 Feedback.shared.playHaptic(style: .light)
                             },
                             onRelease: {
-                                options.delegate?.otherKeypadTap(letter: "@")
+                                state.delegate?.otherKeypadTap(letter: "@")
                             },
                             onLongPressFinished: {
-                                options.delegate?.otherKeypadTap(letter: "@")
+                                state.delegate?.otherKeypadTap(letter: "@")
                             })
                         .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                         .contentShape(Rectangle())
@@ -348,10 +347,10 @@ struct TwitterHangeulView: View {
                                 Feedback.shared.playHaptic(style: .light)
                             },
                             onRelease: {
-                                options.delegate?.otherKeypadTap(letter: "#")
+                                state.delegate?.otherKeypadTap(letter: "#")
                             },
                             onLongPressFinished: {
-                                options.delegate?.otherKeypadTap(letter: "#")
+                                state.delegate?.otherKeypadTap(letter: "#")
                             })
                         .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: hPadding))
                         .contentShape(Rectangle())
@@ -367,19 +366,19 @@ struct TwitterHangeulView: View {
                             Feedback.shared.playHaptic(style: .light)
                         },
                         onRelease: {
-                            options.delegate?.hoegKeypadTap()
+                            state.delegate?.hoegKeypadTap()
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
-                            options.delegate?.hoegKeypadTap()
-                            if options.isHoegSsangAvailable {
-                                timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
+                            state.delegate?.hoegKeypadTap()
+                            if state.isHoegSsangAvailable {
+                                timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
                                     .autoconnect()
                                     .sink { _ in
                                         Feedback.shared.playTypingSound()
                                         Feedback.shared.playHaptic(style: .light)
-                                        options.delegate?.inputLastHangeul()
+                                        state.delegate?.inputLastHangeul()
                                     }
                             }
                         },
@@ -396,18 +395,18 @@ struct TwitterHangeulView: View {
                             Feedback.shared.playHaptic(style: .light)
                         },
                         onRelease: {
-                            options.delegate?.hangulKeypadTap(letter: "ㅡ")
+                            state.delegate?.hangulKeypadTap(letter: "ㅡ")
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
-                            options.delegate?.hangulKeypadTap(letter: "ㅡ")
-                            timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
+                            state.delegate?.hangulKeypadTap(letter: "ㅡ")
+                            timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
                                     Feedback.shared.playHaptic(style: .light)
-                                    options.delegate?.inputLastHangeul()
+                                    state.delegate?.inputLastHangeul()
                                 }
                         },
                         onLongPressFinished: {
@@ -423,19 +422,19 @@ struct TwitterHangeulView: View {
                             Feedback.shared.playHaptic(style: .light)
                         },
                         onRelease: {
-                            options.delegate?.ssangKeypadTap()
+                            state.delegate?.ssangKeypadTap()
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
-                            options.delegate?.ssangKeypadTap()
-                            if options.isHoegSsangAvailable {
-                                timer = Timer.publish(every: options.repeatTimerCycle, on: .main, in: .common)
+                            state.delegate?.ssangKeypadTap()
+                            if state.isHoegSsangAvailable {
+                                timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
                                     .autoconnect()
                                     .sink { _ in
                                         Feedback.shared.playTypingSound()
                                         Feedback.shared.playHaptic(style: .light)
-                                        options.delegate?.inputLastHangeul()
+                                        state.delegate?.inputLastHangeul()
                                     }
                             }
                         },
@@ -445,7 +444,7 @@ struct TwitterHangeulView: View {
                     .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: vPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    if options.needsInputModeSwitchKey {
+                    if state.needsInputModeSwitchKey {
                         HStack(spacing: 0) {
                             SYKeyboardButton(
                                 text: "!#1", primary: false,
@@ -454,17 +453,17 @@ struct TwitterHangeulView: View {
                                     Feedback.shared.playHaptic(style: .light)
                                 },
                                 onRelease: {
-                                    options.currentInputType = .symbol
+                                    state.currentInputType = .symbol
                                 },
                                 onLongPressFinished: {
-                                    options.currentInputType = .symbol
+                                    state.currentInputType = .symbol
                                 })
                             .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: vPadding, trailing: interItemHPadding))
                             .contentShape(Rectangle())
                             
                             NextKeyboardButton(
                                 systemName: "globe",
-                                action: options.nextKeyboardAction
+                                action: state.nextKeyboardAction
                             )
                             .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: vPadding, trailing: hPadding))
                             .contentShape(Rectangle())
@@ -477,10 +476,10 @@ struct TwitterHangeulView: View {
                                 Feedback.shared.playHaptic(style: .light)
                             },
                             onRelease: {
-                                options.currentInputType = .symbol
+                                state.currentInputType = .symbol
                             },
                             onLongPressFinished: {
-                                options.currentInputType = .symbol
+                                state.currentInputType = .symbol
                             })
                         .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: vPadding, trailing: hPadding))
                         .contentShape(Rectangle())
@@ -488,6 +487,7 @@ struct TwitterHangeulView: View {
                 }
             }
         }
-        .frame(height: options.keyboardHeight)
+        .frame(height: state.keyboardHeight)
+        .background(Color.white.opacity(0.001))
     }
 }

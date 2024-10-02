@@ -10,8 +10,8 @@ import SwiftUI
 class NaratgeulViewController: UIInputViewController {
     // MARK: - Properties
     private var defaults: UserDefaults?
-    private let keyboardIOManager = NaratgeulIOManager()
-    private var options: NaratgeulOptions?
+    private let ioManager = NaratgeulIOManager()
+    private var state: NaratgeulState?
     private var cursorPos: Int = 0
     
     private var userLexicon: UILexicon?
@@ -45,12 +45,12 @@ class NaratgeulViewController: UIInputViewController {
     }
     
     private func setupIOManager() {
-        keyboardIOManager.inputText = { [weak self] in
+        ioManager.inputText = { [weak self] in
             guard let self = self else { return }
             let proxy = textDocumentProxy
             
             if defaults?.bool(forKey: "isTextReplacementEnabled") ?? true {
-                if keyboardIOManager.isEditingLastCharacter {
+                if ioManager.isEditingLastCharacter {
                     if $0 == " " || $0 == "\n" {
                         let _ = attemptToReplaceCurrentWord()
                     }
@@ -64,17 +64,17 @@ class NaratgeulViewController: UIInputViewController {
             updateHoegSsangAvailiableToOptions()
         }
         
-        keyboardIOManager.deleteForInput = { [weak self] in
+        ioManager.deleteForInput = { [weak self] in
             guard let self = self else { return }
             let proxy = textDocumentProxy
             if let beforeInput = proxy.documentContextBeforeInput {
-                if !beforeInput.isEmpty && keyboardIOManager.isEditingLastCharacter {
+                if !beforeInput.isEmpty && ioManager.isEditingLastCharacter {
                     proxy.deleteBackward()
                 }
             }
         }
         
-        keyboardIOManager.deleteText = { [weak self] in
+        ioManager.deleteText = { [weak self] in
             guard let self = self else { return false }
             var isDeleted = false
             
@@ -92,7 +92,7 @@ class NaratgeulViewController: UIInputViewController {
             return isDeleted
         }
         
-        keyboardIOManager.inputForDelete = { [weak self] in
+        ioManager.inputForDelete = { [weak self] in
             guard let self = self else { return }
             let proxy = textDocumentProxy
             proxy.insertText($0)
@@ -101,17 +101,17 @@ class NaratgeulViewController: UIInputViewController {
             updateHoegSsangAvailiableToOptions()
         }
         
-        keyboardIOManager.attemptRestoreWord = { [weak self] in
+        ioManager.attemptRestoreWord = { [weak self] in
             guard let self = self else { return false }
             return attemptToRestoreReplacementWord()
         }
         
-        keyboardIOManager.onlyUpdateHoegSsang = { [weak self] in
+        ioManager.onlyUpdateHoegSsang = { [weak self] in
             guard let self = self else { return }
             updateHoegSsangAvailiableToOptions()
         }
         
-        keyboardIOManager.moveCursorToLeft = { [weak self] in
+        ioManager.moveCursorToLeft = { [weak self] in
             guard let self = self else { return false }
             print("moveCursorToLeft()")
             
@@ -121,7 +121,7 @@ class NaratgeulViewController: UIInputViewController {
             proxy.adjustTextPosition(byCharacterOffset: -1)
             
             updateCursorPos()
-            keyboardIOManager.flushBuffer()
+            ioManager.flushBuffer()
             updateHoegSsangAvailiableToOptions()
             
             if cursorPos != prevCurPos {
@@ -131,7 +131,7 @@ class NaratgeulViewController: UIInputViewController {
             }
         }
         
-        keyboardIOManager.moveCursorToRight = { [weak self] in
+        ioManager.moveCursorToRight = { [weak self] in
             guard let self = self else { return false }
             print("moveCursorToRight()")
             
@@ -141,7 +141,7 @@ class NaratgeulViewController: UIInputViewController {
             proxy.adjustTextPosition(byCharacterOffset: 1)
             
             updateCursorPos()
-            keyboardIOManager.flushBuffer()
+            ioManager.flushBuffer()
             updateHoegSsangAvailiableToOptions()
             
             if cursorPos != prevCurPos {
@@ -155,12 +155,11 @@ class NaratgeulViewController: UIInputViewController {
     private func setupUI() {
         let nextKeyboardAction = #selector(handleInputModeList(from:with:))
         
-        let options = NaratgeulOptions(
-            delegate: keyboardIOManager,
+        let options = NaratgeulState(
+            delegate: ioManager,
             keyboardHeight: CGFloat(defaults?.double(forKey: "keyboardHeight") ?? GlobalValues.defaultKeyboardHeight),
             longPressTime: 1.0 - (defaults?.double(forKey: "longPressSpeed") ?? GlobalValues.defaultLongPressSpeed),
             repeatTimerCycle: 0.10 - (defaults?.double(forKey: "repeatTimerSpeed") ?? GlobalValues.defaultRepeatTimerSpeed),
-            colorScheme: traitCollection.userInterfaceStyle == .dark ? .dark : .light,
             needsInputModeSwitchKey: needsInputModeSwitchKey,
             nextKeyboardAction: nextKeyboardAction
         )
@@ -168,7 +167,7 @@ class NaratgeulViewController: UIInputViewController {
         let SYKeyboard = UIHostingController(rootView: NaratgeulView().environmentObject(options))
         SYKeyboard.view.backgroundColor = .clear
         
-        self.options = options
+        self.state = options
         
         defaults?.setValue(needsInputModeSwitchKey, forKey: "needsInputModeSwitchKey")
         
@@ -202,7 +201,7 @@ class NaratgeulViewController: UIInputViewController {
         print("textDidChange()")
         
         updateCursorPos()
-        keyboardIOManager.flushBuffer()
+        ioManager.flushBuffer()
         updateHoegSsangAvailiableToOptions()
     }
     
@@ -228,7 +227,7 @@ class NaratgeulViewController: UIInputViewController {
     }
     
     private func updateHoegSsangAvailiableToOptions() {
-        options?.isHoegSsangAvailable = keyboardIOManager.isHoegSsangAvailiable
+        state?.isHoegSsangAvailable = ioManager.isHoegSsangAvailiable
     }
     
     private func updateKeyboardTypeToOptions() {
@@ -236,26 +235,26 @@ class NaratgeulViewController: UIInputViewController {
         let keyboardType = proxy.keyboardType
         switch keyboardType {
         case .default:
-            options?.currentKeyboardType = ._default
+            state?.currentKeyboardType = ._default
         case .numbersAndPunctuation:
-            options?.currentKeyboardType = ._default
-            options?.currentInputType = .symbol
+            state?.currentKeyboardType = .numbersAndPunctuation
+            state?.currentInputType = .symbol
         case .URL:
-            options?.currentKeyboardType = .URL
+            state?.currentKeyboardType = .URL
         case .numberPad:
-            options?.currentKeyboardType = .numberPad
-            options?.currentInputType = .number
+            state?.currentKeyboardType = .numberPad
+            state?.currentInputType = .number
         case .emailAddress:
-            options?.currentKeyboardType = .emailAddress
+            state?.currentKeyboardType = .emailAddress
         case .twitter:
-            options?.currentKeyboardType = .twitter
+            state?.currentKeyboardType = .twitter
         case .webSearch:
-            options?.currentKeyboardType = .webSearch
+            state?.currentKeyboardType = .webSearch
         case .asciiCapableNumberPad:
-            options?.currentKeyboardType = .asciiCapableNumberPad
-            options?.currentInputType = .number
+            state?.currentKeyboardType = .asciiCapableNumberPad
+            state?.currentInputType = .number
         default:
-            options?.currentKeyboardType = ._default
+            state?.currentKeyboardType = ._default
         }
     }
     
@@ -289,7 +288,7 @@ class NaratgeulViewController: UIInputViewController {
         default:
             returnButtonType = ._default
         }
-        options?.returnButtonType = returnButtonType
+        state?.returnButtonType = returnButtonType
     }
 }
 

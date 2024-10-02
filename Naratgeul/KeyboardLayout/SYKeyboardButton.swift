@@ -18,9 +18,8 @@ enum Gestures {
 }
 
 struct SYKeyboardButton: View {
-    @Environment(\.colorScheme) var colorScheme
-    @EnvironmentObject var options: NaratgeulOptions
-    @AppStorage("isNumberPadEnabled", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var isNumberPadEnabled = true
+    @EnvironmentObject var state: NaratgeulState
+    @AppStorage("isNumberKeyboardTypeEnabled", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var isNumberKeyboardTypeEnabled = true
     @State var nowGesture: Gestures = .released
     @State private var isCursorMovable: Bool = false
     @State private var initialDragStartWidth: Double = 0.0
@@ -48,21 +47,20 @@ struct SYKeyboardButton: View {
                 if !isCursorMovable {
                     // 왼쪽으로 일정 거리 초과 드래그 -> 이전 자판으로 변경
                     let dragWidthDiff = value.translation.width - dragStartWidth
-                    if (options.currentInputType == .hangeul || options.currentInputType == .number) && dragWidthDiff < -20 {
+                    if state.currentInputType == .hangeul && dragWidthDiff < -20 {  // 한글 자판
                         isCursorMovable = true
-                        if options.currentInputType == .hangeul {  // 한글 자판
-                            if isNumberPadEnabled {
-                                options.currentInputType = .number
-                                Feedback.shared.playHaptic(style: .medium)
-                            }
-                        } else {  // 숫자 자판
-                            options.currentInputType = .symbol
+                        if isNumberKeyboardTypeEnabled {
+                            state.currentInputType = .number
                             Feedback.shared.playHaptic(style: .medium)
                         }
-                    } else if options.currentInputType == .symbol && dragWidthDiff > 20 {  // 기호 자판
+                    } else if state.currentInputType == .number && dragWidthDiff < -20 {  // 숫자 자판
                         isCursorMovable = true
-                        if isNumberPadEnabled {
-                            options.currentInputType = .number
+                        state.currentInputType = .symbol
+                        Feedback.shared.playHaptic(style: .medium)
+                    } else if state.currentInputType == .symbol && dragWidthDiff > 20 {  // 기호 자판
+                        isCursorMovable = true
+                        if isNumberKeyboardTypeEnabled {
+                            state.currentInputType = .number
                             Feedback.shared.playHaptic(style: .medium)
                         }
                     }
@@ -89,7 +87,7 @@ struct SYKeyboardButton: View {
                 if dragDiff < -5 {
                     print("Drag to left")
                     dragStartWidth = value.translation.width
-                    if let isMoved = options.delegate?.dragToLeft() {
+                    if let isMoved = state.delegate?.dragToLeft() {
                         if isMoved {
                             Feedback.shared.playHaptic(style: .light)
                         }
@@ -97,7 +95,7 @@ struct SYKeyboardButton: View {
                 } else if dragDiff > 5 {
                     print("Drag to right")
                     dragStartWidth = value.translation.width
-                    if let isMoved = options.delegate?.dragToRight() {
+                    if let isMoved = state.delegate?.dragToRight() {
                         if isMoved {
                             Feedback.shared.playHaptic(style: .light)
                         }
@@ -114,7 +112,7 @@ struct SYKeyboardButton: View {
         }
         isCursorMovable = false
         nowGesture = .released
-        options.nowPressedButton = nil
+        state.nowPressedButton = nil
     }
     
     private func longPressOnChanged() {  // 버튼 눌렀을 때 호출(버튼 누르면 무조건 첫번째로 호출)
@@ -130,7 +128,7 @@ struct SYKeyboardButton: View {
     private func seqDragOnEnded() {  // 버튼 길게 눌렀다가 뗐을 때 호출
         onLongPressFinished?()
         nowGesture = .released
-        options.nowPressedButton = nil
+        state.nowPressedButton = nil
     }
     
     var body: some View {
@@ -139,29 +137,29 @@ struct SYKeyboardButton: View {
             if systemName != nil {
                 // 리턴 버튼
                 if systemName == "return.left" {
-                    if options.returnButtonType == ._default {
+                    if state.returnButtonType == ._default {
                         Image(systemName: "return.left")
                             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
                             .font(.system(size: imageSize))
                             .foregroundStyle(Color(uiColor: UIColor.label))
                             .background(nowGesture == .pressing || nowGesture == .longPressing ? Color("PrimaryKeyboardButton") : Color("SecondaryKeyboardButton"))
                             .clipShape(.rect(cornerRadius: 5))
-                    } else if options.returnButtonType == ._continue || options.returnButtonType == .next {
-                        Text(options.returnButtonType.rawValue)
+                    } else if state.returnButtonType == ._continue || state.returnButtonType == .next {
+                        Text(state.returnButtonType.rawValue)
                             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
                             .font(.system(size: textSize))
                             .foregroundStyle(Color(uiColor: UIColor.label))
                             .background(nowGesture == .pressing || nowGesture == .longPressing ? Color("PrimaryKeyboardButton") : Color("SecondaryKeyboardButton"))
                             .clipShape(.rect(cornerRadius: 5))
-                    } else if options.returnButtonType == .go || options.returnButtonType == .send {
-                        Text(options.returnButtonType.rawValue)
+                    } else if state.returnButtonType == .go || state.returnButtonType == .send {
+                        Text(state.returnButtonType.rawValue)
                             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
                             .font(.system(size: textSize))
                             .foregroundStyle(nowGesture == .pressing || nowGesture == .longPressing ? Color(uiColor: UIColor.label) : Color.white)
                             .background(nowGesture == .pressing || nowGesture == .longPressing ? Color("PrimaryKeyboardButton") : Color(.tintColor))
                             .clipShape(.rect(cornerRadius: 5))
                     } else {
-                        Text(options.returnButtonType.rawValue)
+                        Text(state.returnButtonType.rawValue)
                             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
                             .font(.system(size: textSize))
                             .foregroundStyle(nowGesture == .pressing || nowGesture == .longPressing ? Color(uiColor: UIColor.label) : Color.white)
@@ -178,7 +176,7 @@ struct SYKeyboardButton: View {
                         .background(nowGesture == .pressing || nowGesture == .longPressing ? Color("SecondaryKeyboardButton") : Color("PrimaryKeyboardButton") )
                         .clipShape(.rect(cornerRadius: 5))
                     
-                    // 그 외 버튼
+                    // 삭제 버튼
                 } else if systemName == "delete.left" {
                     Image(systemName: nowGesture == .pressing || nowGesture == .longPressing ? "delete.left.fill" : "delete.left")
                         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
@@ -195,13 +193,13 @@ struct SYKeyboardButton: View {
                     Text("!#1")
                         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
                         .monospaced()
-                        .font(.system(size: options.needsInputModeSwitchKey ? textSize - 2 : textSize))
+                        .font(.system(size: state.needsInputModeSwitchKey ? textSize - 2 : textSize))
                         .foregroundStyle(Color(uiColor: UIColor.label))
                         .background(nowGesture == .pressing || nowGesture == .longPressing ? Color("PrimaryKeyboardButton") : Color("SecondaryKeyboardButton"))
                         .clipShape(.rect(cornerRadius: 5))
                         .overlay(alignment: .bottomLeading, content: {
                             HStack(spacing: 1) {
-                                if isNumberPadEnabled {
+                                if isNumberKeyboardTypeEnabled {
                                     Image(systemName: "arrowtriangle.left.fill")
                                     Text("123")
                                 }
@@ -214,16 +212,16 @@ struct SYKeyboardButton: View {
                         })
                 } else if text == "한글" {
                     // 기호 자판
-                    if options.currentInputType == .symbol {
+                    if state.currentInputType == .symbol {
                         Text("한글")
                             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
-                            .font(.system(size: options.needsInputModeSwitchKey ? textSize - 2 : textSize))
+                            .font(.system(size: state.needsInputModeSwitchKey ? textSize - 2 : textSize))
                             .foregroundStyle(Color(uiColor: UIColor.label))
                             .background(nowGesture == .pressing || nowGesture == .longPressing ? Color("PrimaryKeyboardButton") : Color("SecondaryKeyboardButton"))
                             .clipShape(.rect(cornerRadius: 5))
                             .overlay(alignment: .bottomTrailing, content: {
                                 HStack(spacing: 1) {
-                                    if isNumberPadEnabled {
+                                    if isNumberKeyboardTypeEnabled {
                                         Text("123")
                                         Image(systemName: "arrowtriangle.right.fill")
                                     }
@@ -234,20 +232,18 @@ struct SYKeyboardButton: View {
                                 .backgroundStyle(Color(uiColor: .clear))
                                 .padding(EdgeInsets(top: 0, leading: 0, bottom: 2, trailing: 2))
                             })
-                    } else if options.currentInputType == .number {
+                    } else if state.currentInputType == .number {
                         // 숫자 자판
                         Text("한글")
                             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
-                            .font(.system(size: options.needsInputModeSwitchKey ? textSize - 2 : textSize))
+                            .font(.system(size: state.needsInputModeSwitchKey ? textSize - 2 : textSize))
                             .foregroundStyle(Color(uiColor: UIColor.label))
                             .background(nowGesture == .pressing || nowGesture == .longPressing ? Color("PrimaryKeyboardButton") : Color("SecondaryKeyboardButton"))
                             .clipShape(.rect(cornerRadius: 5))
                             .overlay(alignment: .bottomLeading, content: {
                                 HStack(spacing: 1) {
-                                    if isNumberPadEnabled {
-                                        Image(systemName: "arrowtriangle.left.fill")
-                                        Text("!#1")
-                                    }
+                                    Image(systemName: "arrowtriangle.left.fill")
+                                    Text("!#1")
                                 }
                                 .monospaced()
                                 .font(.system(size: 10))
@@ -257,8 +253,8 @@ struct SYKeyboardButton: View {
                             })
                     }
                     
-                } else if text == "\(options.nowSymbolPage + 1)/\(options.totalSymbolPage)" {
-                    Text("\(options.nowSymbolPage + 1)/\(options.totalSymbolPage)")
+                } else if text == "\(state.nowSymbolPage + 1)/\(state.totalSymbolPage)" {
+                    Text("\(state.nowSymbolPage + 1)/\(state.totalSymbolPage)")
                         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
                         .monospaced()
                         .font(.system(size: textSize - 2))
@@ -296,6 +292,7 @@ struct SYKeyboardButton: View {
                 }
             }
         }
+        .compositingGroup()
         .shadow(color: Color("KeyboardButtonShadow"), radius: 0, x: 0, y: 1)
         .gesture(
             DragGesture(minimumDistance: 0)
@@ -316,23 +313,23 @@ struct SYKeyboardButton: View {
                 })
         )
         .highPriorityGesture(
-            LongPressGesture(minimumDuration: options.longPressTime)
+            LongPressGesture(minimumDuration: state.longPressTime)
             // 버튼 눌렀을 때 호출(버튼 누르면 무조건 첫번째로 호출)
                 .onChanged({ _ in
                     print("LongPressGesture() onChanged")
-                    if options.nowPressedButton != nil {  // 이미 다른 버튼이 눌려있는 상태
-                        switch options.nowPressedButton?.nowGesture {
+                    if state.nowPressedButton != nil {  // 이미 다른 버튼이 눌려있는 상태
+                        switch state.nowPressedButton?.nowGesture {
                         case .pressing:
-                            options.nowPressedButton?.dragOnEnded()
+                            state.nowPressedButton?.dragOnEnded()
                         case .longPressing:
-                            options.nowPressedButton?.seqDragOnEnded()
+                            state.nowPressedButton?.seqDragOnEnded()
                         case .dragging:
-                            options.nowPressedButton?.dragOnEnded()
+                            state.nowPressedButton?.dragOnEnded()
                         default:
                             break
                         }
                     }
-                    options.nowPressedButton = self
+                    state.nowPressedButton = self
                     longPressOnChanged()
                 })
             
