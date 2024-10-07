@@ -22,7 +22,6 @@ struct SYKeyboardButton: View {
     @AppStorage("isNumberKeyboardTypeEnabled", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var isNumberKeyboardTypeEnabled = true
     @State var nowGesture: Gestures = .released
     @State private var isCursorMovable: Bool = false
-    @State private var initialDragStartWidth: Double = 0.0
     @State private var dragStartWidth: Double = 0.0
     
     var text: String?
@@ -45,7 +44,7 @@ struct SYKeyboardButton: View {
                 nowGesture = .dragging
             } else {  // 드래그 중
                 if !isCursorMovable {
-                    // 왼쪽으로 일정 거리 초과 드래그 -> 이전 자판으로 변경
+                    // 특정 방향으로 일정 거리 초과 드래그 -> 다른 자판으로 변경
                     let dragWidthDiff = value.translation.width - dragStartWidth
                     if state.currentInputType == .hangeul && dragWidthDiff < -20 {  // 한글 자판
                         isCursorMovable = true

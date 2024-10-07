@@ -8,6 +8,12 @@
 import Foundation
 import SwiftUI
 
+enum InputType {
+    case hangeul
+    case symbol
+    case number
+}
+
 enum KeyboardType {
     case _default
     case numbersAndPunctuation
@@ -17,12 +23,6 @@ enum KeyboardType {
     case twitter
     case webSearch
     case asciiCapableNumberPad
-}
-
-enum InputType {
-    case hangeul
-    case symbol
-    case number
 }
 
 enum ReturnButtonType: String {
@@ -39,12 +39,13 @@ enum ReturnButtonType: String {
 }
 
 final class NaratgeulState: ObservableObject {
-    @Published var currentKeyboardType: KeyboardType = ._default
     @Published var currentInputType: InputType = .hangeul
+    @Published var currentKeyboardType: KeyboardType = ._default
     @Published var returnButtonType: ReturnButtonType = ._default
     @Published var isHoegSsangAvailable: Bool = false
     @Published var nowSymbolPage: Int = 0
     @Published var totalSymbolPage: Int = 0
+    
     var nowPressedButton: SYKeyboardButton?
     var swift6_nowPressedButton: Swift6_NaratgeulButton?
     
