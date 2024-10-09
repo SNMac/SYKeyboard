@@ -17,6 +17,8 @@ enum Gestures {
 struct PreviewNaratgeulButton: View {
     @EnvironmentObject var state: PreviewNaratgeulState
     @AppStorage("longPressSpeed", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var longPressSpeed = 0.6
+    @AppStorage("cursorActiveWidth", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var cursorActiveWidth = 20.0
+    @AppStorage("cursorMoveWidth", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var cursorMoveWidth = 20.0
     @AppStorage("needsInputModeSwitchKey", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var needsInputModeSwitchKey = false
     @AppStorage("isNumberKeyboardTypeEnabled", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var isNumberKeyboardTypeEnabled = true
     @State private var nowGesture: Gestures = .released
@@ -43,23 +45,24 @@ struct PreviewNaratgeulButton: View {
                 nowGesture = .dragging
             } else {  // 드래그 중
                 if !isCursorMovable {
-                    // 왼쪽으로 일정 거리 초과 드래그 -> 이전 자판으로 변경
+                    // 특정 방향으로 일정 거리 초과 드래그 -> 다른 자판으로 변경
                     let dragWidthDiff = value.translation.width - dragStartWidth
-                    if (state.current == .hangeul || state.current == .number) && dragWidthDiff < -20 {
+                    if state.currentInputType == .hangeul && dragWidthDiff < -20 {  // 한글 자판
                         isCursorMovable = true
-                        if state.current == .hangeul {  // 한글 자판
+                        if state.currentInputType == .hangeul {
                             if isNumberKeyboardTypeEnabled {
-                                state.current = .number
+                                state.currentInputType = .number
                                 Feedback.shared.playHaptic(style: .medium)
                             }
-                        } else {  // 숫자 자판
-                            state.current = .symbol
-                            Feedback.shared.playHaptic(style: .medium)
                         }
-                    } else if state.current == .symbol && dragWidthDiff > 20 {  // 기호 자판
+                    } else if state.currentInputType == .number && dragWidthDiff < -20 {  // 숫자 자판
+                        isCursorMovable = true
+                        state.currentInputType = .symbol
+                        Feedback.shared.playHaptic(style: .medium)
+                    } else if state.currentInputType == .symbol && dragWidthDiff > 20 {  // 기호 자판
                         isCursorMovable = true
                         if isNumberKeyboardTypeEnabled {
-                            state.current = .number
+                            state.currentInputType = .number
                             Feedback.shared.playHaptic(style: .medium)
                         }
                     }
@@ -74,7 +77,7 @@ struct PreviewNaratgeulButton: View {
                 if !isCursorMovable {
                     // 일정 거리 초과/미만 드래그 -> 커서 이동 활성화
                     let dragWidthDiff = value.translation.width - dragStartWidth
-                    if dragWidthDiff < -20 || dragWidthDiff > 20 {
+                    if dragWidthDiff < -cursorActiveWidth || dragWidthDiff > cursorActiveWidth {
                         isCursorMovable = true
                         dragStartWidth = value.translation.width
                     }
@@ -84,10 +87,10 @@ struct PreviewNaratgeulButton: View {
         if isCursorMovable {  // 커서 이동 활성화 됐을 때
             // 일정 거리 초과/미만 드래그 -> 커서를 한칸씩 드래그한 방향으로 이동
             let dragDiff = value.translation.width - dragStartWidth
-            if dragDiff < -5 {
+            if dragDiff < -cursorMoveWidth {
                 dragStartWidth = value.translation.width
                 Feedback.shared.playHaptic(style: .light)
-            } else if dragDiff > 5 {
+            } else if dragDiff > cursorMoveWidth {
                 dragStartWidth = value.translation.width
                 Feedback.shared.playHaptic(style: .light)
             }
@@ -179,7 +182,7 @@ struct PreviewNaratgeulButton: View {
                         })
                 } else if text == "한글" {
                     // 기호 자판
-                    if state.current == .symbol {
+                    if state.currentInputType == .symbol {
                         Text("한글")
                             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
                             .font(.system(size: needsInputModeSwitchKey ? textSize - 2 : textSize))
@@ -199,7 +202,7 @@ struct PreviewNaratgeulButton: View {
                                 .backgroundStyle(Color(uiColor: .clear))
                                 .padding(EdgeInsets(top: 0, leading: 0, bottom: 2, trailing: 2))
                             })
-                    } else if state.current == .number {
+                    } else if state.currentInputType == .number {
                         // 숫자 자판
                         Text("한글")
                             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)

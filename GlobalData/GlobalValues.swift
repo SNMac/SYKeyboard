@@ -13,6 +13,8 @@ struct GlobalValues {
     static let defaultKeyboardHeight: Double = 240.0
     static let defaultLongPressSpeed: Double = 0.5
     static let defaultRepeatTimerSpeed: Double = 0.05
+    static let defaultCursorActiveWidth: Double = 20.0
+    static let defaultCursorMoveWidth: Double = 5.0
     
     static func setupDefaults(_ defaults: UserDefaults?) {
         // UserDefaults 값이 존재하는지 확인하고, 없으면 새로 만듬
@@ -50,6 +52,14 @@ struct GlobalValues {
         if defaults?.object(forKey: "repeatTimerSpeed") == nil {
             defaults?.setValue(GlobalValues.defaultRepeatTimerSpeed, forKey: "repeatTimerSpeed")
         }
+        // 커서 이동 활성화 거리
+        if defaults?.object(forKey: "cursorActiveWidth") == nil {
+            defaults?.setValue(GlobalValues.defaultCursorActiveWidth, forKey: "cursorActiveWidth")
+        }
+        // 커서 이동 간격
+        if defaults?.object(forKey: "cursorMoveWidth") == nil {
+            defaults?.setValue(GlobalValues.defaultCursorMoveWidth, forKey: "cursorMoveWidth")
+        }
         
         /* 외형 설정 */
         // 키보드 높이
@@ -60,7 +70,8 @@ struct GlobalValues {
         if defaults?.object(forKey: "isNumberKeyboardTypeEnabled") == nil {
             defaults?.setValue(true, forKey: "isNumberKeyboardTypeEnabled")
         }
-        // 키보드 전환 버튼 표시 설정용
+        
+        /* 키보드 전환 버튼 표시 설정용 */
         if defaults?.object(forKey: "needsInputModeSwitchKey") == nil {
             defaults?.setValue(false, forKey: "needsInputModeSwitchKey")
         }

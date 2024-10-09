@@ -410,10 +410,10 @@ struct Swift6_PreviewNumberView: View {
                                     Feedback.shared.playHaptic(style: .light)
                                 },
                                 onRelease: {
-                                    state.current = .hangeul
+                                    state.currentInputType = .hangeul
                                 },
                                 onLongPressFinished: {
-                                    state.current = .hangeul
+                                    state.currentInputType = .hangeul
                                 })
                             .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: vPadding, trailing: interItemHPadding))
                             .contentShape(Rectangle())
@@ -436,10 +436,10 @@ struct Swift6_PreviewNumberView: View {
                                 Feedback.shared.playHaptic(style: .light)
                             },
                             onRelease: {
-                                state.current = .hangeul
+                                state.currentInputType = .hangeul
                             },
                             onLongPressFinished: {
-                                state.current = .hangeul
+                                state.currentInputType = .hangeul
                             })
                         .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: vPadding, trailing: hPadding))
                         .contentShape(Rectangle())

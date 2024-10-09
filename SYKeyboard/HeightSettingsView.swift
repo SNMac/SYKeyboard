@@ -57,18 +57,18 @@ struct HeightSettingsView: View {
         NavigationStack {
             heightSettings
             if #available(iOS 18, *) {
-                if state.current == .hangeul {
+                if state.currentInputType == .hangeul {
                     Swift6_PreviewHangeulView(tempKeyboardHeight: $tempKeyboardHeight)
-                } else if state.current == .number {
+                } else if state.currentInputType == .number {
                     Swift6_PreviewNumberView(tempKeyboardHeight: $tempKeyboardHeight)
                 } else {
                     Swift6_PreviewSymbolView(tempKeyboardHeight: $tempKeyboardHeight)
                 }
                 
             } else {
-                if state.current == .hangeul {
+                if state.currentInputType == .hangeul {
                     PreviewHangeulView(tempKeyboardHeight: $tempKeyboardHeight)
-                } else if state.current == .number {
+                } else if state.currentInputType == .number {
                     PreviewNumberView(tempKeyboardHeight: $tempKeyboardHeight)
                 } else {
                     PreviewSymbolView(tempKeyboardHeight: $tempKeyboardHeight)
@@ -76,7 +76,7 @@ struct HeightSettingsView: View {
             }
         }.onAppear {
             tempKeyboardHeight = keyboardHeight
-            state.current = .hangeul
+            state.currentInputType = .hangeul
         }
     }
 }

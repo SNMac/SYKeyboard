@@ -633,10 +633,10 @@ struct PreviewSymbolView: View {
                                     Feedback.shared.playHaptic(style: .light)
                                 },
                                 onRelease: {
-                                    state.current = .hangeul
+                                    state.currentInputType = .hangeul
                                 },
                                 onLongPressFinished: {
-                                    state.current = .hangeul
+                                    state.currentInputType = .hangeul
                                 })
                             .padding(EdgeInsets(top: interItemVPadding, leading: hPadding, bottom: vPadding, trailing: interItemHPadding))
                             .contentShape(Rectangle())
@@ -659,10 +659,10 @@ struct PreviewSymbolView: View {
                                 Feedback.shared.playHaptic(style: .light)
                             },
                             onRelease: {
-                                state.current = .hangeul
+                                state.currentInputType = .hangeul
                             },
                             onLongPressFinished: {
-                                state.current = .hangeul
+                                state.currentInputType = .hangeul
                             })
                         .padding(EdgeInsets(top: interItemVPadding, leading: hPadding, bottom: vPadding, trailing: interItemHPadding))
                         .contentShape(Rectangle())

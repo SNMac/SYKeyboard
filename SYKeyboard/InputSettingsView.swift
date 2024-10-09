@@ -13,8 +13,8 @@ struct InputSettingsView: View {
     @AppStorage("isAutoChangeToHangeulEnabled", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var isAutoChangeToHangeulEnabled = true
     
     var body: some View {
-        NavigationLink("속도 설정") {
-            SpeedSettingsView()
+        NavigationLink("속도/커서 설정") {
+            SpeedAndCursorSettingsView()
         }
         
         Toggle(isOn: $isTextReplacementEnabled, label: {

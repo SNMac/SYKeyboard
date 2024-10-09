@@ -9,6 +9,8 @@ import SwiftUI
 
 struct Swift6_NaratgeulButton: View {
     @EnvironmentObject var state: NaratgeulState
+    @AppStorage("cursorActiveWidth", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var cursorActiveWidth = 20.0
+    @AppStorage("cursorMoveWidth", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var cursorMoveWidth = 5.0
     @AppStorage("isNumberKeyboardTypeEnabled", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var isNumberKeyboardTypeEnabled = true
     @State var nowGesture: Gestures = .released
     @State private var isCursorMovable: Bool = false
@@ -65,7 +67,7 @@ struct Swift6_NaratgeulButton: View {
                 if !isCursorMovable {
                     // 일정 거리 초과 드래그 -> 커서 이동 활성화
                     let dragWidthDiff = value.translation.width - dragStartWidth
-                    if dragWidthDiff < -20 || dragWidthDiff > 20 {
+                    if dragWidthDiff < -cursorActiveWidth || dragWidthDiff > cursorActiveWidth {
                         isCursorMovable = true
                         dragStartWidth = value.translation.width
                     }
@@ -74,7 +76,7 @@ struct Swift6_NaratgeulButton: View {
             if isCursorMovable {  // 커서 이동 활성화 됐을 때
                 // 일정 거리 초과 드래그 -> 커서를 한칸씩 드래그한 방향으로 이동
                 let dragDiff = value.translation.width - dragStartWidth
-                if dragDiff < -5 {
+                if dragDiff < -cursorMoveWidth {
                     print("Drag to left")
                     dragStartWidth = value.translation.width
                     if let isMoved = state.delegate?.dragToLeft() {
@@ -82,7 +84,7 @@ struct Swift6_NaratgeulButton: View {
                             Feedback.shared.playHaptic(style: .light)
                         }
                     }
-                } else if dragDiff > 5 {
+                } else if dragDiff > cursorMoveWidth {
                     print("Drag to right")
                     dragStartWidth = value.translation.width
                     if let isMoved = state.delegate?.dragToRight() {

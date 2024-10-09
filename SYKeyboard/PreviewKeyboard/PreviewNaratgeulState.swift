@@ -14,9 +14,10 @@ enum PreviewInputType {
 }
 
 final class PreviewNaratgeulState: ObservableObject {
-    @Published var current: PreviewInputType = .hangeul
+    @Published var currentInputType: PreviewInputType = .hangeul
     @Published var nowSymbolPage: Int = 0
     @Published var totalSymbolPage: Int = 0
+    
     var nowPressedButton: PreviewNaratgeulButton?
     var swift6_nowPressedButton: Swift6_PreviewNaratgeulButton?
 }
