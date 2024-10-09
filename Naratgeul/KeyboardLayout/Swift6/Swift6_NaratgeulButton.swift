@@ -37,23 +37,51 @@ struct Swift6_NaratgeulButton: View {
                 nowGesture = .dragging
             } else {  // 드래그 중
                 if !isCursorMovable {
-                    // 특정 방향으로 일정 거리 초과 드래그 -> 다른 자판으로 변경
                     let dragWidthDiff = value.translation.width - dragStartWidth
-                    if state.currentInputType == .hangeul && dragWidthDiff < -20 {  // 한글 자판
-                        isCursorMovable = true
+                    // 특정 방향으로 일정 거리 초과 드래그 -> 다른 자판으로 변경
+                    if state.currentInputType == .hangeul {  // 한글 자판
                         if isNumberKeyboardTypeEnabled {
-                            state.currentInputType = .number
+                            if dragWidthDiff < -30 && state.selectedInputType != .number {
+                                state.isSelectingInputType = true
+                                state.selectedInputType = .number
+                                Feedback.shared.playHaptic(style: .medium)
+                            } else if state.isSelectingInputType && state.selectedInputType != .symbol && (dragWidthDiff > -25 && dragWidthDiff < -5) {
+                                state.selectedInputType = .symbol
+                                Feedback.shared.playHaptic(style: .medium)
+                            } else if state.isSelectingInputType && state.selectedInputType != .hangeul && dragWidthDiff > 0 {
+                                state.selectedInputType = .hangeul
+                                Feedback.shared.playHaptic(style: .medium)
+                            }
+                        } else {
+                            isCursorMovable = true
+                        }
+                    } else if state.currentInputType == .number {  // 숫자 자판
+                        if dragWidthDiff < -30 && state.selectedInputType != .symbol {
+                            state.isSelectingInputType = true
+                            state.selectedInputType = .symbol
+                            Feedback.shared.playHaptic(style: .medium)
+                        } else if state.isSelectingInputType && state.selectedInputType != .hangeul && (dragWidthDiff > -25 && dragWidthDiff < -5) {
+                            state.selectedInputType = .hangeul
+                            Feedback.shared.playHaptic(style: .medium)
+                        } else if state.isSelectingInputType && state.selectedInputType != .number && dragWidthDiff > 0 {
+                            state.selectedInputType = .number
                             Feedback.shared.playHaptic(style: .medium)
                         }
-                    } else if state.currentInputType == .number && dragWidthDiff < -20 {  // 숫자 자판
-                        isCursorMovable = true
-                        state.currentInputType = .symbol
-                        Feedback.shared.playHaptic(style: .medium)
-                    } else if state.currentInputType == .symbol && dragWidthDiff > 20 {  // 기호 자판
-                        isCursorMovable = true
+                    } else if state.currentInputType == .symbol {  // 기호 자판
                         if isNumberKeyboardTypeEnabled {
-                            state.currentInputType = .number
-                            Feedback.shared.playHaptic(style: .medium)
+                            if dragWidthDiff > 30 && state.selectedInputType != .number {
+                                state.isSelectingInputType = true
+                                state.selectedInputType = .number
+                                Feedback.shared.playHaptic(style: .medium)
+                            } else if state.isSelectingInputType && state.selectedInputType != .hangeul && (dragWidthDiff < 25 && dragWidthDiff > 5) {
+                                state.selectedInputType = .hangeul
+                                Feedback.shared.playHaptic(style: .medium)
+                            } else if state.selectedInputType != .symbol && dragWidthDiff < 0 {
+                                state.selectedInputType = .symbol
+                                Feedback.shared.playHaptic(style: .medium)
+                            }
+                        } else {
+                            isCursorMovable = true
                         }
                     }
                 }
@@ -105,6 +133,11 @@ struct Swift6_NaratgeulButton: View {
         isCursorMovable = false
         nowGesture = .released
         state.swift6_nowPressedButton = nil
+        state.isSelectingInputType = false
+        if let targetInputType = state.selectedInputType {
+            state.selectedInputType = nil
+            state.currentInputType = targetInputType
+        }
     }
     
     private func onPressing() {  // 버튼 눌렀을 때 호출(버튼 누르면 무조건 첫번째로 호출)

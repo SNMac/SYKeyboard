@@ -48,7 +48,7 @@ struct GlobalValues {
         if defaults?.object(forKey: "longPressSpeed") == nil {
             defaults?.setValue(GlobalValues.defaultLongPressSpeed, forKey: "longPressSpeed")
         }
-        // 반복 속도
+        // 반복 입력 속도
         if defaults?.object(forKey: "repeatTimerSpeed") == nil {
             defaults?.setValue(GlobalValues.defaultRepeatTimerSpeed, forKey: "repeatTimerSpeed")
         }

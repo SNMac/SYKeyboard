@@ -45,6 +45,8 @@ final class NaratgeulState: ObservableObject {
     @Published var isHoegSsangAvailable: Bool = false
     @Published var nowSymbolPage: Int = 0
     @Published var totalSymbolPage: Int = 0
+    @Published var isSelectingInputType: Bool = false
+    @Published var selectedInputType: InputType?
     
     var nowPressedButton: SYKeyboardButton?
     var swift6_nowPressedButton: Swift6_NaratgeulButton?

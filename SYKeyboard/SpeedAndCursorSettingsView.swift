@@ -21,7 +21,7 @@ struct SpeedAndCursorSettingsView: View {
             Text("\(longPressSpeed * 10, specifier: "%.1f")")
             Slider(value: $longPressSpeed, in: 0.1...0.9, step: 0.05) { _ in
                 hideKeyboard()
-            }.frame(width: 150)
+            }.frame(width: 140)
             
             Button {
                 longPressSpeed = GlobalValues.defaultLongPressSpeed
@@ -42,7 +42,7 @@ struct SpeedAndCursorSettingsView: View {
             Text("\(repeatTimerSpeed * 100, specifier: "%.1f")")
             Slider(value: $repeatTimerSpeed, in: 0.01...0.09, step: 0.005) { _ in
                 hideKeyboard()
-            }.frame(width: 150)
+            }.frame(width: 140)
             
             Button {
                 repeatTimerSpeed = GlobalValues.defaultRepeatTimerSpeed
@@ -61,9 +61,9 @@ struct SpeedAndCursorSettingsView: View {
                 .frame(alignment: .leading)
             Spacer()
             Text("\(cursorActiveWidth, specifier: "%.1f")")
-            Slider(value: $cursorActiveWidth, in: 10.0...30.0, step: 1.0) { _ in
+            Slider(value: $cursorActiveWidth, in: 5.0...35.0, step: 1.0) { _ in
                 hideKeyboard()
-            }.frame(width: 150)
+            }.frame(width: 140)
             
             Button {
                 cursorActiveWidth = GlobalValues.defaultCursorActiveWidth
@@ -84,7 +84,7 @@ struct SpeedAndCursorSettingsView: View {
             Text("\(cursorMoveWidth, specifier: "%.1f")")
             Slider(value: $cursorMoveWidth, in: 1.0...9.0, step: 0.5) { _ in
                 hideKeyboard()
-            }.frame(width: 150)
+            }.frame(width: 140)
             
             Button {
                 cursorMoveWidth = GlobalValues.defaultCursorMoveWidth

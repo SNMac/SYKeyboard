@@ -13,6 +13,7 @@ struct HeightSettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject var state: PreviewNaratgeulState
     @AppStorage("keyboardHeight", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var keyboardHeight = 240.0
+    @AppStorage("isNumberKeyboardTypeEnabled", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var isNumberKeyboardTypeEnabled = true
     @State var tempKeyboardHeight: Double = 240.0
     
     private var heightSettings: some View {
@@ -56,22 +57,29 @@ struct HeightSettingsView: View {
     var body: some View {
         NavigationStack {
             heightSettings
-            if #available(iOS 18, *) {
-                if state.currentInputType == .hangeul {
-                    Swift6_PreviewHangeulView(tempKeyboardHeight: $tempKeyboardHeight)
-                } else if state.currentInputType == .number {
-                    Swift6_PreviewNumberView(tempKeyboardHeight: $tempKeyboardHeight)
+            
+            ZStack {
+                if #available(iOS 18, *) {
+                    if state.currentInputType == .hangeul {
+                        Swift6_PreviewHangeulView(tempKeyboardHeight: $tempKeyboardHeight)
+                    } else if state.currentInputType == .number {
+                        Swift6_PreviewNumberView(tempKeyboardHeight: $tempKeyboardHeight)
+                    } else {
+                        Swift6_PreviewSymbolView(tempKeyboardHeight: $tempKeyboardHeight)
+                    }
+                    
                 } else {
-                    Swift6_PreviewSymbolView(tempKeyboardHeight: $tempKeyboardHeight)
+                    if state.currentInputType == .hangeul {
+                        PreviewHangeulView(tempKeyboardHeight: $tempKeyboardHeight)
+                    } else if state.currentInputType == .number {
+                        PreviewNumberView(tempKeyboardHeight: $tempKeyboardHeight)
+                    } else {
+                        PreviewSymbolView(tempKeyboardHeight: $tempKeyboardHeight)
+                    }
                 }
                 
-            } else {
-                if state.currentInputType == .hangeul {
-                    PreviewHangeulView(tempKeyboardHeight: $tempKeyboardHeight)
-                } else if state.currentInputType == .number {
-                    PreviewNumberView(tempKeyboardHeight: $tempKeyboardHeight)
-                } else {
-                    PreviewSymbolView(tempKeyboardHeight: $tempKeyboardHeight)
+                if isNumberKeyboardTypeEnabled && state.isSelectingInputType {
+                    PreviewInputTypeSelectView()
                 }
             }
         }.onAppear {
