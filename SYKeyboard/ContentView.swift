@@ -20,13 +20,22 @@ struct ContentView: View {
     
     private var keyboardSettings: some View {
         List {
-            Section{
+            Section {
+                InitialSettingsView()
+            } header: {
+                Text("초기 설정")
+            } footer: {
+                Text("키보드 ➡️ 나랏글, 전체 접근 허용 ON")
+                    .font(.system(.caption))
+            }
+            
+            Section {
                 FeedbackSettingsView()
             } header: {
                 Text("피드백 설정")
             }
             
-            Section{
+            Section {
                 InputSettingsView()
             } header: {
                 Text("입력 설정")

@@ -24,7 +24,7 @@ struct InputSettingsView: View {
         
         Toggle(isOn: $isAutoChangeToHangeulEnabled, label: {
             Text("한글 자판 자동 변경")
-            Text("기호 자판 입력 후 스페이스/리턴 → 한글 자판으로 변경")
+            Text("기호 자판 입력 후 스페이스/리턴 ➡️ 한글 자판")
                 .font(.system(.caption))
         })
     }
