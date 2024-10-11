@@ -246,9 +246,9 @@ final class HangeulAutomata {
             }
         }
         
-//        print("deleteBufferLastInput()->buffer =", buffer)
-//        print("deleteBufferLastInput()->bufferTypingCount =", bufferTypingCount)
-//        print("lastLetter =", lastLetter)
+        print("deleteBufferLastInput()->buffer =", buffer)
+        print("deleteBufferLastInput()->bufferTypingCount =", bufferTypingCount)
+        print("lastLetter =", lastLetter)
         return lastLetter
     }
 }
@@ -288,8 +288,12 @@ extension HangeulAutomata {
                 curHanStatus = .endOne
             }
         case .jungsung:
-            if canBeJongsung {
-                curHanStatus = .jongsung
+            if curKeyKind == .jaeum {
+                if canBeJongsung {
+                    curHanStatus = .jongsung
+                } else {
+                    curHanStatus = .endOne
+                }
             } else if jungsungPair() {
                 curHanStatus = .dJungsung
             } else {
@@ -426,7 +430,7 @@ extension HangeulAutomata {
                                 ))
         buffer[buffer.count - 1] = curGeulja
         bufferTypingCount[bufferTypingCount.count - 1] += 1
-//        print("storeStackAndBuffer()->buffer =", buffer)
-//        print("storeStackAndBuffer()->bufferTypingCount =", bufferTypingCount)
+        print("storeStackAndBuffer()->buffer =", buffer)
+        print("storeStackAndBuffer()->bufferTypingCount =", bufferTypingCount)
     }
 }

@@ -32,7 +32,7 @@ struct GlobalValues {
         /* 입력 설정 */
         // 자동 완성 및 추천
         if defaults?.object(forKey: "isAutocompleteEnabled") == nil {
-            defaults?.setValue(true, forKey: "isAutocompleteEnabled")
+            defaults?.setValue(false, forKey: "isAutocompleteEnabled")
         }
         // 텍스트 대치
         if defaults?.object(forKey: "isTextReplacementEnabled") == nil {
@@ -43,7 +43,7 @@ struct GlobalValues {
             defaults?.setValue(true, forKey: "isAutoChangeToHangeulEnabled")
         }
         
-        /* 입력 설정 -> 속도 설정 */
+        /* 입력 설정 -> 속도/커서 설정 */
         // 길게 누르기 속도
         if defaults?.object(forKey: "longPressSpeed") == nil {
             defaults?.setValue(GlobalValues.defaultLongPressSpeed, forKey: "longPressSpeed")

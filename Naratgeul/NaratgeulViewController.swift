@@ -12,11 +12,13 @@ class NaratgeulViewController: UIInputViewController {
     private var defaults: UserDefaults?
     private let ioManager = NaratgeulIOManager()
     private var state: NaratgeulState?
+    private var keyboardType: UIKeyboardType = .default
     private var cursorPos: Int = 0
     
     private var userLexicon: UILexicon?
     private var textReplacementHistory: [String] = []
-    private var keyboardType: UIKeyboardType = .default
+    private var autocomplete: TopAutocomplete?
+    private var uiTextChecker = UITextChecker()
     
     // MARK: - LifeCycle
     override func viewDidLoad() {
@@ -62,6 +64,7 @@ class NaratgeulViewController: UIInputViewController {
             
             updateCursorPos()
             updateHoegSsangAvailiableToOptions()
+            updateAutocomplete()
         }
         
         ioManager.deleteForInput = { [weak self] in
@@ -88,6 +91,7 @@ class NaratgeulViewController: UIInputViewController {
             
             updateCursorPos()
             updateHoegSsangAvailiableToOptions()
+            updateAutocomplete()
             
             return isDeleted
         }
@@ -164,17 +168,18 @@ class NaratgeulViewController: UIInputViewController {
             nextKeyboardAction: nextKeyboardAction
         )
         
-        let SYKeyboard = UIHostingController(rootView: NaratgeulView().environmentObject(options))
+        let autocomplete = TopAutocomplete(action: autocompleteAction)
+        autocomplete.list = ["", "", ""]
+        
+        let SYKeyboard = UIHostingController(rootView: NaratgeulView().environmentObject(options).environmentObject(autocomplete))
         SYKeyboard.view.backgroundColor = .clear
         
         self.state = options
+        self.autocomplete = autocomplete
         
         defaults?.setValue(needsInputModeSwitchKey, forKey: "needsInputModeSwitchKey")
         
         view.addSubview(SYKeyboard.view)
-        addChild(SYKeyboard)
-        SYKeyboard.didMove(toParent: self)
-        
         SYKeyboard.view.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             SYKeyboard.view.leftAnchor.constraint(equalTo: view.leftAnchor),
@@ -182,10 +187,23 @@ class NaratgeulViewController: UIInputViewController {
             SYKeyboard.view.rightAnchor.constraint(equalTo: view.rightAnchor),
             SYKeyboard.view.bottomAnchor.constraint(equalTo: view.bottomAnchor)
         ])
+        addChild(SYKeyboard)
+        SYKeyboard.didMove(toParent: self)
+        updateAutocomplete()
     }
         
     private func setupUserLexicon() async {
         userLexicon = await requestSupplementaryLexicon()
+    }
+    
+    private func autocompleteAction(completion: String) {
+        let proxy = textDocumentProxy
+        while let lastCharacter = proxy.documentContextBeforeInput?.last, lastCharacter != " " {
+            proxy.deleteBackward()
+        }
+        proxy.insertText(completion)
+        UITextChecker.learnWord(completion)
+        ioManager.flushBuffer()
     }
     
     override func textWillChange(_ textInput: (any UITextInput)?) {
@@ -228,6 +246,19 @@ class NaratgeulViewController: UIInputViewController {
     
     private func updateHoegSsangAvailiableToOptions() {
         state?.isHoegSsangAvailable = ioManager.isHoegSsangAvailiable
+    }
+    
+    private func updateAutocomplete() {
+        let proxy = textDocumentProxy
+        let allString = proxy.documentContextBeforeInput ?? ""
+        let lastWord = allString.components(separatedBy: " ").last ?? ""
+        let range = NSRange(location: 0, length: lastWord.count)
+        let guesses = uiTextChecker.completions(forPartialWordRange: range, in: lastWord, language: "ko_KR") ?? []
+        if guesses.count > 0, guesses[0] == lastWord {
+            autocomplete?.list = Array(guesses.dropFirst())
+        } else {
+            autocomplete?.list = guesses
+        }
     }
     
     private func updateKeyboardTypeToOptions() {

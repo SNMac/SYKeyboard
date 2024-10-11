@@ -17,6 +17,12 @@ struct InputSettingsView: View {
             SpeedAndCursorSettingsView()
         }
         
+        Toggle(isOn: $isAutocompleteEnabled, label: {
+            Text("자동 완성 텍스트")
+        }).onChange(of: isAutocompleteEnabled) { newValue in
+            hideKeyboard()
+        }
+        
         Toggle(isOn: $isTextReplacementEnabled, label: {
             Text("텍스트 대치")
             Text("시스템 설정의 단축키 사용")
