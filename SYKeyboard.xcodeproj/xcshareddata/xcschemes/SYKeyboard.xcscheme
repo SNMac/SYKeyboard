@@ -97,7 +97,7 @@
             ActionType = "Xcode.IDEStandardExecutionActionsCore.ExecutionActionType.ShellScriptAction">
             <ActionContent
                title = "Run Script"
-               scriptText = "# Type a script or drag a script file from your workspace to insert its path.&#10;cd &quot;$SRCROOT/$PRODUCT_NAME&quot;&#10;&#10;source gitpush.sh&#10;">
+               scriptText = "# Type a script or drag a script file from your workspace to insert its path.&#10;cd &quot;$SRCROOT/$PRODUCT_NAME&quot;&#10;&#10;source ./gitShellScript/gitpush.sh&#10;">
                <EnvironmentBuildable>
                   <BuildableReference
                      BuildableIdentifier = "primary"
