@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 63;
+	objectVersion = 70;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -146,6 +146,7 @@
 		5B94722F2C8989C100B8B154 /* SpeedAndCursorSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpeedAndCursorSettingsView.swift; sourceTree = "<group>"; };
 		5B9EC4152CB66B6C00800500 /* NaratgeulInputTypeSelectView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NaratgeulInputTypeSelectView.swift; sourceTree = "<group>"; };
 		5BA419D72CB98532005E7C86 /* InitialSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InitialSettingsView.swift; sourceTree = "<group>"; };
+		5BA419DE2CB99238005E7C86 /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
 		5BA8097B2C99712A00CC1B25 /* NumberView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NumberView.swift; sourceTree = "<group>"; };
 		5BA8097D2C9973A200CC1B25 /* PreviewNumberView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewNumberView.swift; sourceTree = "<group>"; };
 		5BACCE422C9094AB006DCFB7 /* version.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = version.sh; sourceTree = "<group>"; };
@@ -156,6 +157,10 @@
 		5BB0D2712C88481500CE7AF5 /* View+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "View+Extension.swift"; sourceTree = "<group>"; };
 		5BDCDED62C67458600035B01 /* KeyboardTestView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardTestView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		5BA419DB2CB98F2E005E7C86 /* gitShellScript */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = gitShellScript; sourceTree = "<group>"; };
+/* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		5B7B3F532C569B7800F7C093 /* Frameworks */ = {
@@ -219,6 +224,7 @@
 		5B7B3F4D2C569B7800F7C093 = {
 			isa = PBXGroup;
 			children = (
+				5BA419DE2CB99238005E7C86 /* .gitignore */,
 				5B9472312C8AD6DD00B8B154 /* GlobalData */,
 				5B7B3F582C569B7800F7C093 /* SYKeyboard */,
 				5B7B3F6C2C569B8200F7C093 /* Naratgeul */,
@@ -238,6 +244,7 @@
 		5B7B3F582C569B7800F7C093 /* SYKeyboard */ = {
 			isa = PBXGroup;
 			children = (
+				5BA419DB2CB98F2E005E7C86 /* gitShellScript */,
 				5BACCE422C9094AB006DCFB7 /* version.sh */,
 				5BACCE442C9096DE006DCFB7 /* Config.xcconfig */,
 				5B0D82502C63F75900F84180 /* SYKeyboard.entitlements */,
@@ -363,6 +370,9 @@
 			);
 			dependencies = (
 				5B7B3F712C569B8200F7C093 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				5BA419DB2CB98F2E005E7C86 /* gitShellScript */,
 			);
 			name = SYKeyboard;
 			productName = SYKeyboard;
