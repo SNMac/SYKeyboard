@@ -30,10 +30,6 @@ struct GlobalValues {
         }
         
         /* 입력 설정 */
-        // 자동 완성 및 추천
-        if defaults?.object(forKey: "isAutocompleteEnabled") == nil {
-            defaults?.setValue(false, forKey: "isAutocompleteEnabled")
-        }
         // 텍스트 대치
         if defaults?.object(forKey: "isTextReplacementEnabled") == nil {
             defaults?.setValue(true, forKey: "isTextReplacementEnabled")

@@ -15,6 +15,7 @@ final class NaratgeulIOManager {
     private var prevAutomataBufferSize = 0
     private var curAutomataBufferSize = 0
     private var isCommaInput: Bool = false
+    
     var isHoegSsangAvailiable: Bool = false
     var isEditingLastCharacter: Bool = false
     var isSymbolInput: Bool = false
@@ -75,13 +76,27 @@ final class NaratgeulIOManager {
     private func updateAutomataBufferSize() {
         prevAutomataBufferSize = curAutomataBufferSize
     }
+    
+    func deleteOneWholeLetter() {
+        if hangeulAutomata.bufferTypingCount.count > 0 {
+            let count = hangeulAutomata.bufferTypingCount[hangeulAutomata.bufferTypingCount.count - 1]
+            for _ in 0..<count {
+                lastLetter = hangeulAutomata.deleteBufferLastInput()
+                curAutomataBufferSize = getBufferSize()
+                if curAutomataBufferSize == 0 {
+                    isEditingLastCharacter = false
+                }
+            }
+        }
+        let _ = deleteText?()
+    }
 }
 
 extension NaratgeulIOManager: NaratgeulDelegate {
     func getBufferSize() -> Int {
         return hangeulAutomata.buffer.count
     }
-    
+
     func flushBuffer() {
         print("flushBuffer()")
         hangeulAutomata.buffer.removeAll()
@@ -313,17 +328,7 @@ extension NaratgeulIOManager: NaratgeulDelegate {
                     }
                 } else {
                     if isLongPress {
-                        if hangeulAutomata.bufferTypingCount.count > 0 {
-                            let count = hangeulAutomata.bufferTypingCount[hangeulAutomata.bufferTypingCount.count - 1]
-                            for _ in 0..<count {
-                                lastLetter = hangeulAutomata.deleteBufferLastInput()
-                                curAutomataBufferSize = getBufferSize()
-                                if curAutomataBufferSize == 0 {
-                                    isEditingLastCharacter = false
-                                }
-                            }
-                        }
-                        let _ = deleteText?()
+                        deleteOneWholeLetter()
                     } else {
                         lastLetter = hangeulAutomata.deleteBufferLastInput()
                         curAutomataBufferSize = getBufferSize()

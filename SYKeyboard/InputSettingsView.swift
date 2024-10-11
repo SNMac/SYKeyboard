@@ -8,19 +8,12 @@
 import SwiftUI
 
 struct InputSettingsView: View {
-    @AppStorage("isAutocompleteEnabled", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var isAutocompleteEnabled = true
     @AppStorage("isTextReplacementEnabled", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var isTextReplacementEnabled = true
     @AppStorage("isAutoChangeToHangeulEnabled", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var isAutoChangeToHangeulEnabled = true
     
     var body: some View {
         NavigationLink("속도/커서 설정") {
             SpeedAndCursorSettingsView()
-        }
-        
-        Toggle(isOn: $isAutocompleteEnabled, label: {
-            Text("자동 완성 텍스트")
-        }).onChange(of: isAutocompleteEnabled) { newValue in
-            hideKeyboard()
         }
         
         Toggle(isOn: $isTextReplacementEnabled, label: {

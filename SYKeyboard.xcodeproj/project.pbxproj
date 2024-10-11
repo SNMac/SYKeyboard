@@ -58,8 +58,6 @@
 		5B9472302C8989C100B8B154 /* SpeedAndCursorSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B94722F2C8989C100B8B154 /* SpeedAndCursorSettingsView.swift */; };
 		5B9472332C8AD76000B8B154 /* Feedback.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B0D82422C63C16F00F84180 /* Feedback.swift */; };
 		5B9EC4162CB66B6C00800500 /* NaratgeulInputTypeSelectView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B9EC4152CB66B6C00800500 /* NaratgeulInputTypeSelectView.swift */; };
-		5BA419D22CB7E3E5005E7C86 /* AutocompleteButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BA419D12CB7E3E5005E7C86 /* AutocompleteButton.swift */; };
-		5BA419D42CB7E4C7005E7C86 /* TopAutocomplete.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BA419D32CB7E4C7005E7C86 /* TopAutocomplete.swift */; };
 		5BA8097C2C99712A00CC1B25 /* NumberView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BA8097B2C99712A00CC1B25 /* NumberView.swift */; };
 		5BA8097E2C9973A200CC1B25 /* PreviewNumberView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BA8097D2C9973A200CC1B25 /* PreviewNumberView.swift */; };
 		5BACCE552C915423006DCFB7 /* NaratgeulDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BACCE542C915423006DCFB7 /* NaratgeulDelegate.swift */; };
@@ -146,8 +144,6 @@
 		5B7BDD482C9204290065C944 /* SpecificLanguageTextField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpecificLanguageTextField.swift; sourceTree = "<group>"; };
 		5B94722F2C8989C100B8B154 /* SpeedAndCursorSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpeedAndCursorSettingsView.swift; sourceTree = "<group>"; };
 		5B9EC4152CB66B6C00800500 /* NaratgeulInputTypeSelectView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NaratgeulInputTypeSelectView.swift; sourceTree = "<group>"; };
-		5BA419D12CB7E3E5005E7C86 /* AutocompleteButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutocompleteButton.swift; sourceTree = "<group>"; };
-		5BA419D32CB7E4C7005E7C86 /* TopAutocomplete.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TopAutocomplete.swift; sourceTree = "<group>"; };
 		5BA8097B2C99712A00CC1B25 /* NumberView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NumberView.swift; sourceTree = "<group>"; };
 		5BA8097D2C9973A200CC1B25 /* PreviewNumberView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewNumberView.swift; sourceTree = "<group>"; };
 		5BACCE422C9094AB006DCFB7 /* version.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = version.sh; sourceTree = "<group>"; };
@@ -309,7 +305,6 @@
 			isa = PBXGroup;
 			children = (
 				5B7557092CA071F70038BA9C /* Swift6 */,
-				5BA419D32CB7E4C7005E7C86 /* TopAutocomplete.swift */,
 				5B7B3F772C569CC900F7C093 /* HangeulView.swift */,
 				5B0F7FC92CA5A34200EE7380 /* TwitterHangeulView.swift */,
 				5B2B3FFF2C6C8994007CA762 /* SymbolView.swift */,
@@ -320,7 +315,6 @@
 				5B0F7FCD2CA5A85D00EE7380 /* NumberPadView.swift */,
 				5B0D82442C63C72700F84180 /* SYKeyboardButton.swift */,
 				5B2B40142C6CD2A4007CA762 /* NextKeyboardButton.swift */,
-				5BA419D12CB7E3E5005E7C86 /* AutocompleteButton.swift */,
 			);
 			path = KeyboardLayout;
 			sourceTree = "<group>";
@@ -497,7 +491,6 @@
 				5B7557082CA0717B0038BA9C /* Swift6_HangeulView.swift in Sources */,
 				5B0D82432C63C16F00F84180 /* Feedback.swift in Sources */,
 				5B0F7FCC2CA5A35C00EE7380 /* WebSearchSymbolView.swift in Sources */,
-				5BA419D42CB7E4C7005E7C86 /* TopAutocomplete.swift in Sources */,
 				5BA8097C2C99712A00CC1B25 /* NumberView.swift in Sources */,
 				5B2B40152C6CD2A4007CA762 /* NextKeyboardButton.swift in Sources */,
 				5B0D824C2C63CDE700F84180 /* HangeulView.swift in Sources */,
@@ -514,7 +507,6 @@
 				5B75570E2CA072320038BA9C /* Swift6_SymbolView.swift in Sources */,
 				5B0D82362C5962A500F84180 /* NaratgeulIOManager.swift in Sources */,
 				5B7556EB2C9DD3B00038BA9C /* GlobalValues.swift in Sources */,
-				5BA419D22CB7E3E5005E7C86 /* AutocompleteButton.swift in Sources */,
 				5B2B40072C6CAB2F007CA762 /* NaratgeulView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
