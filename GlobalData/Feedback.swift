@@ -26,11 +26,17 @@ final class Feedback: Sendable {
     
     @MainActor
     func prepareHaptic() {
-        if !haptic { return }
         let generator = UIImpactFeedbackGenerator(style: .light)
         generator.prepare()
     }
         
+    @MainActor
+    func playHapticByForce(style: UIImpactFeedbackGenerator.FeedbackStyle) {
+        let generator = UIImpactFeedbackGenerator(style: style)
+        generator.impactOccurred()
+        generator.prepare()
+    }
+    
     @MainActor
     func playHaptic(style: UIImpactFeedbackGenerator.FeedbackStyle) {
         if !haptic { return }

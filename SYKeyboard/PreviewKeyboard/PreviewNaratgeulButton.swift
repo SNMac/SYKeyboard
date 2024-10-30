@@ -52,13 +52,13 @@ struct PreviewNaratgeulButton: View {
                             if dragWidthDiff < -30 && state.selectedInputType != .number {
                                 state.isSelectingInputType = true
                                 state.selectedInputType = .number
-                                Feedback.shared.playHaptic(style: .medium)
+                                Feedback.shared.playHapticByForce(style: .medium)
                             } else if state.isSelectingInputType && state.selectedInputType != .symbol && (dragWidthDiff > -25 && dragWidthDiff < -5) {
                                 state.selectedInputType = .symbol
-                                Feedback.shared.playHaptic(style: .medium)
+                                Feedback.shared.playHapticByForce(style: .medium)
                             } else if state.isSelectingInputType && state.selectedInputType != .hangeul && dragWidthDiff > 0 {
                                 state.selectedInputType = .hangeul
-                                Feedback.shared.playHaptic(style: .medium)
+                                Feedback.shared.playHapticByForce(style: .medium)
                             }
                         } else {
                             isCursorMovable = true
@@ -67,26 +67,26 @@ struct PreviewNaratgeulButton: View {
                         if dragWidthDiff < -30 && state.selectedInputType != .symbol {
                             state.isSelectingInputType = true
                             state.selectedInputType = .symbol
-                            Feedback.shared.playHaptic(style: .medium)
+                            Feedback.shared.playHapticByForce(style: .medium)
                         } else if state.isSelectingInputType && state.selectedInputType != .hangeul && (dragWidthDiff > -25 && dragWidthDiff < -5) {
                             state.selectedInputType = .hangeul
-                            Feedback.shared.playHaptic(style: .medium)
+                            Feedback.shared.playHapticByForce(style: .medium)
                         } else if state.isSelectingInputType && state.selectedInputType != .number && dragWidthDiff > 0 {
                             state.selectedInputType = .number
-                            Feedback.shared.playHaptic(style: .medium)
+                            Feedback.shared.playHapticByForce(style: .medium)
                         }
                     } else if state.currentInputType == .symbol {  // 기호 자판
                         if isNumberKeyboardTypeEnabled {
                             if dragWidthDiff > 30 && state.selectedInputType != .number {
                                 state.isSelectingInputType = true
                                 state.selectedInputType = .number
-                                Feedback.shared.playHaptic(style: .medium)
+                                Feedback.shared.playHapticByForce(style: .medium)
                             } else if state.isSelectingInputType && state.selectedInputType != .hangeul && (dragWidthDiff < 25 && dragWidthDiff > 5) {
                                 state.selectedInputType = .hangeul
-                                Feedback.shared.playHaptic(style: .medium)
+                                Feedback.shared.playHapticByForce(style: .medium)
                             } else if state.selectedInputType != .symbol && dragWidthDiff < 0 {
                                 state.selectedInputType = .symbol
-                                Feedback.shared.playHaptic(style: .medium)
+                                Feedback.shared.playHapticByForce(style: .medium)
                             }
                         } else {
                             isCursorMovable = true
@@ -115,10 +115,10 @@ struct PreviewNaratgeulButton: View {
             let dragDiff = value.translation.width - dragStartWidth
             if dragDiff < -cursorMoveWidth {
                 dragStartWidth = value.translation.width
-                Feedback.shared.playHaptic(style: .light)
+                Feedback.shared.playHapticByForce(style: .light)
             } else if dragDiff > cursorMoveWidth {
                 dragStartWidth = value.translation.width
-                Feedback.shared.playHaptic(style: .light)
+                Feedback.shared.playHapticByForce(style: .light)
             }
         }
     }

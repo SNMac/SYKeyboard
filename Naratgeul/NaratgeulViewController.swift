@@ -222,6 +222,8 @@ class NaratgeulViewController: UIInputViewController {
         let proxy = textDocumentProxy
         if let beforeInput = proxy.documentContextBeforeInput {
             cursorPos = beforeInput.count
+        } else {
+            cursorPos = 0
         }
     }
     
