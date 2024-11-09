@@ -879,12 +879,12 @@ struct Swift6_WebSearchSymbolView: View {
                         
                         if state.isSelectingInputType {
                             InputTypeSelectOverlayView()
-                                .offset(x: 1, y: state.keyboardHeight / 8)
+                                .offset(x: geometry.size.width / 16, y: state.keyboardHeight / 8)
                         }
                         
                         if state.isSelectingOneHandType {
                             OneHandSelectOverlayView()
-                                .offset(x: 1, y: state.keyboardHeight / 8)
+                                .offset(x: geometry.size.width / 40, y: state.keyboardHeight / 8)
                         }
                     }
                 }

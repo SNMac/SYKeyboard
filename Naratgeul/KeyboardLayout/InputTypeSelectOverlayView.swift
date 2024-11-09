@@ -21,7 +21,7 @@ struct InputTypeSelectOverlayView: View {
                 Text("123")
                     .monospaced()
                     .font(.system(size: fontSize, weight: state.selectedInputType == .number ? .semibold : .regular))
-                    .frame(width: (overlayWidth - interItemSpacing * 4) / 3, height: state.keyboardHeight / 4 - 20)
+                    .frame(width: (overlayWidth - interItemSpacing * 3) / 2, height: state.keyboardHeight / 4 - 20)
                     .foregroundStyle(state.selectedInputType == .number ? Color.white : Color(uiColor: .label))
                     .background(RoundedRectangle(cornerRadius: 10).fill(state.selectedInputType == .number ? Color.blue : Color.clear))
                     .overlay {
@@ -34,33 +34,17 @@ struct InputTypeSelectOverlayView: View {
                         }
                     }
                 
-                Text("!#1")
-                    .monospaced()
-                    .font(.system(size: fontSize, weight: state.selectedInputType == .symbol ? .semibold : .regular))
-                    .frame(width: (overlayWidth - interItemSpacing * 4) / 3, height: state.keyboardHeight / 4 - 20)
-                    .foregroundStyle(state.selectedInputType == .symbol ? Color.white : Color(uiColor: .label))
-                    .background(RoundedRectangle(cornerRadius: 10).fill(state.selectedInputType == .symbol ? Color.blue : Color.clear))
-                    .overlay {
-                        GeometryReader { geometry in
-                            Color.clear
-                                .onAppear {
-                                    state.inputTypeButtonMinXPosition[1] = geometry.frame(in: .global).minX
-                                    state.inputTypeButtonMaxXPosition[1] = geometry.frame(in: .global).maxX
-                                }
-                        }
-                    }
-                
                 Image(systemName: state.selectedInputType == .hangeul ? "x.square.fill" : "x.square")
                     .font(.system(size: fontSize, weight: state.selectedInputType == .hangeul ? .semibold : .regular))
-                    .frame(width: (overlayWidth - interItemSpacing * 4) / 3, height: state.keyboardHeight / 4 - 20)
+                    .frame(width: (overlayWidth - interItemSpacing * 3) / 2, height: state.keyboardHeight / 4 - 20)
                     .foregroundStyle(state.selectedInputType == .hangeul ? Color.white : Color(uiColor: .label))
                     .background(RoundedRectangle(cornerRadius: 10).fill(state.selectedInputType == .hangeul ? Color.blue : Color.clear))
                     .overlay {
                         GeometryReader { geometry in
                             Color.clear
                                 .onAppear {
-                                    state.inputTypeButtonMinXPosition[2] = geometry.frame(in: .global).minX
-                                    state.inputTypeButtonMaxXPosition[2] = geometry.frame(in: .global).maxX
+                                    state.inputTypeButtonMinXPosition[1] = geometry.frame(in: .global).minX
+                                    state.inputTypeButtonMaxXPosition[1] = geometry.frame(in: .global).maxX
                                 }
                         }
                     }
@@ -70,7 +54,7 @@ struct InputTypeSelectOverlayView: View {
                 Text("!#1")
                     .monospaced()
                     .font(.system(size: fontSize, weight: state.selectedInputType == .symbol ? .semibold : .regular))
-                    .frame(width: (overlayWidth - interItemSpacing * 4) / 3, height: state.keyboardHeight / 4 - 20)
+                    .frame(width: (overlayWidth - interItemSpacing * 3) / 2, height: state.keyboardHeight / 4 - 20)
                     .foregroundStyle(state.selectedInputType == .symbol ? Color.white : Color(uiColor: .label))
                     .background(RoundedRectangle(cornerRadius: 10).fill(state.selectedInputType == .symbol ? Color.blue : Color.clear))
                     .overlay {
@@ -83,32 +67,17 @@ struct InputTypeSelectOverlayView: View {
                         }
                     }
                 
-                Text("한글")
-                    .font(.system(size: fontSize, weight: state.selectedInputType == .hangeul ? .semibold : .regular))
-                    .frame(width: (overlayWidth - interItemSpacing * 4) / 3, height: state.keyboardHeight / 4 - 20)
-                    .foregroundStyle(state.selectedInputType == .hangeul ? Color.white : Color(uiColor: .label))
-                    .background(RoundedRectangle(cornerRadius: 10).fill(state.selectedInputType == .hangeul ? Color.blue : Color.clear))
-                    .overlay {
-                        GeometryReader { geometry in
-                            Color.clear
-                                .onAppear {
-                                    state.inputTypeButtonMinXPosition[1] = geometry.frame(in: .global).minX
-                                    state.inputTypeButtonMaxXPosition[1] = geometry.frame(in: .global).maxX
-                                }
-                        }
-                    }
-                
                 Image(systemName: state.selectedInputType == .number ? "x.square.fill" : "x.square")
                     .font(.system(size: fontSize, weight: state.selectedInputType == .number ? .semibold : .regular))
-                    .frame(width: (overlayWidth - interItemSpacing * 4) / 3, height: state.keyboardHeight / 4 - 20)
+                    .frame(width: (overlayWidth - interItemSpacing * 3) / 2, height: state.keyboardHeight / 4 - 20)
                     .foregroundStyle(state.selectedInputType == .number ? Color.white : Color(uiColor: .label))
                     .background(RoundedRectangle(cornerRadius: 10).fill(state.selectedInputType == .number ? Color.blue : Color.clear))
                     .overlay {
                         GeometryReader { geometry in
                             Color.clear
                                 .onAppear {
-                                    state.inputTypeButtonMinXPosition[2] = geometry.frame(in: .global).minX
-                                    state.inputTypeButtonMaxXPosition[2] = geometry.frame(in: .global).maxX
+                                    state.inputTypeButtonMinXPosition[1] = geometry.frame(in: .global).minX
+                                    state.inputTypeButtonMaxXPosition[1] = geometry.frame(in: .global).maxX
                                 }
                         }
                     }
@@ -117,7 +86,7 @@ struct InputTypeSelectOverlayView: View {
             } else if state.currentInputType == .symbol {
                 Image(systemName: state.selectedInputType == .symbol ? "x.square.fill" : "x.square")
                     .font(.system(size: fontSize, weight: state.selectedInputType == .symbol ? .semibold : .regular))
-                    .frame(width: (overlayWidth - interItemSpacing * 4) / 3, height: state.keyboardHeight / 4 - 20)
+                    .frame(width: (overlayWidth - interItemSpacing * 3) / 2, height: state.keyboardHeight / 4 - 20)
                     .foregroundStyle(state.selectedInputType == .symbol ? Color.white : Color(uiColor: .label))
                     .background(RoundedRectangle(cornerRadius: 10).fill(state.selectedInputType == .symbol ? Color.blue : Color.clear))
                     .overlay {
@@ -130,33 +99,18 @@ struct InputTypeSelectOverlayView: View {
                         }
                     }
                 
-                Text("한글")
-                    .font(.system(size: fontSize, weight: state.selectedInputType == .hangeul ? .semibold : .regular))
-                    .frame(width: (overlayWidth - interItemSpacing * 4) / 3, height: state.keyboardHeight / 4 - 20)
-                    .foregroundStyle(state.selectedInputType == .hangeul ? Color.white : Color(uiColor: .label))
-                    .background(RoundedRectangle(cornerRadius: 10).fill(state.selectedInputType == .hangeul ? Color.blue : Color.clear))
-                    .overlay {
-                        GeometryReader { geometry in
-                            Color.clear
-                                .onAppear {
-                                    state.inputTypeButtonMinXPosition[1] = geometry.frame(in: .global).minX
-                                    state.inputTypeButtonMaxXPosition[1] = geometry.frame(in: .global).maxX
-                                }
-                        }
-                    }
-                
                 Text("123")
                     .monospaced()
                     .font(.system(size: fontSize, weight: state.selectedInputType == .number ? .semibold : .regular))
-                    .frame(width: (overlayWidth - interItemSpacing * 4) / 3, height: state.keyboardHeight / 4 - 20)
+                    .frame(width: (overlayWidth - interItemSpacing * 3) / 2, height: state.keyboardHeight / 4 - 20)
                     .foregroundStyle(state.selectedInputType == .number ? Color.white : Color(uiColor: .label))
                     .background(RoundedRectangle(cornerRadius: 10).fill(state.selectedInputType == .number ? Color.blue : Color.clear))
                     .overlay {
                         GeometryReader { geometry in
                             Color.clear
                                 .onAppear {
-                                    state.inputTypeButtonMinXPosition[2] = geometry.frame(in: .global).minX
-                                    state.inputTypeButtonMaxXPosition[2] = geometry.frame(in: .global).maxX
+                                    state.inputTypeButtonMinXPosition[1] = geometry.frame(in: .global).minX
+                                    state.inputTypeButtonMaxXPosition[1] = geometry.frame(in: .global).maxX
                                 }
                         }
                     }

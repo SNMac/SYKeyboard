@@ -16,6 +16,8 @@ struct Swift6_NaratgeulButton: View {
     @State private var isCursorMovable: Bool = false
     @State private var dragStartWidth: Double = 0.0
     
+    @GestureState var isLongPressed = false
+    
     var text: String?
     var systemName: String?
     let primary: Bool
@@ -32,55 +34,94 @@ struct Swift6_NaratgeulButton: View {
     var onLongPressFinished: (() -> Void)?
     
     // MARK: - Basic of Gesture Method
-    private func onDragging(value: DragGesture.Value) {  // 버튼 드래그 할 때 호출
+    private func sequencedDragOnChanged(value: DragGesture.Value) {
         if text == "!#1" || text == "한글" {  // 자판 전환 버튼
             if nowGesture != .dragging {  // 드래그 시작
-                dragStartWidth = value.translation.width
                 nowGesture = .dragging
             } else {  // 드래그 중
                 if !isCursorMovable {
-                    let dragWidthDiff = value.translation.width - dragStartWidth
-                    // 특정 방향으로 일정 거리 초과 드래그 -> 다른 자판으로 변경
+                    let dragXLocation = value.location.x
+                    let dragYLocation = value.location.y
+                    // 특정 방향으로 일정 거리 초과 드래그 -> 한손 키보드 변경
+                    if state.isSelectingOneHandType {
+                        if dragXLocation > state.oneHandButtonMinXPosition[0] && dragXLocation < state.oneHandButtonMaxXPosition[0]
+                            && dragYLocation > state.oneHandButtonMinYPosition[0] && dragYLocation < state.oneHandButtonMaxYPosition[0] {
+                            state.selectedOneHandType = .left
+                            Feedback.shared.playHapticByForce(style: .medium)
+                        } else if dragXLocation > state.oneHandButtonMaxXPosition[0] && dragXLocation < state.oneHandButtonMinXPosition[2]
+                                    && dragYLocation > state.oneHandButtonMinYPosition[1] && dragYLocation < state.oneHandButtonMaxYPosition[1] {
+                            state.selectedOneHandType = .center
+                            Feedback.shared.playHapticByForce(style: .medium)
+                        } else if dragXLocation > state.oneHandButtonMinXPosition[2] && dragXLocation < state.oneHandButtonMaxXPosition[2]
+                                    && dragYLocation > state.oneHandButtonMinYPosition[2] && dragYLocation < state.oneHandButtonMaxYPosition[2] {
+                            state.selectedOneHandType = .right
+                            Feedback.shared.playHapticByForce(style: .medium)
+                        } else {
+                            state.selectedOneHandType = state.currentOneHandType
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    private func onDragging(value: DragGesture.Value) {  // 버튼 드래그 할 때 호출
+        if text == "!#1" || text == "한글" {  // 자판 전환 버튼
+            if nowGesture != .dragging {  // 드래그 시작
+                nowGesture = .dragging
+            } else {  // 드래그 중
+                if !isCursorMovable {
+                    let dragXLocation = value.location.x
                     if state.currentInputType == .hangeul {  // 한글 자판
                         if isNumberKeyboardTypeEnabled {
-                            if dragWidthDiff < -30 && state.selectedInputType != .number {
+                            // 왼쪽으로 화면 너비 3/4 초과 드래그 -> 다른 자판으로 변경
+                            if !state.isSelectingInputType && dragXLocation < geometry.size.width / 4 * 3 {
                                 state.isSelectingInputType = true
-                                state.selectedInputType = .number
-                                Feedback.shared.playHapticByForce(style: .medium)
-                            } else if state.isSelectingInputType && state.selectedInputType != .symbol && (dragWidthDiff > -25 && dragWidthDiff < -5) {
-                                state.selectedInputType = .symbol
-                                Feedback.shared.playHapticByForce(style: .medium)
-                            } else if state.isSelectingInputType && state.selectedInputType != .hangeul && dragWidthDiff > 0 {
-                                state.selectedInputType = .hangeul
-                                Feedback.shared.playHapticByForce(style: .medium)
+                            }
+                            if state.isSelectingInputType {
+                                if state.selectedInputType != .number && dragXLocation <= state.inputTypeButtonMaxXPosition[0] {
+                                    state.selectedInputType = .number
+                                    Feedback.shared.playHapticByForce(style: .medium)
+                                } else if state.selectedInputType != .hangeul && dragXLocation >= state.inputTypeButtonMinXPosition[1] {
+                                    state.selectedInputType = .hangeul
+                                    Feedback.shared.playHapticByForce(style: .medium)
+                                }
                             }
                         } else {
                             isCursorMovable = true
                         }
+                        
+                        
                     } else if state.currentInputType == .number {  // 숫자 자판
-                        if dragWidthDiff < -30 && state.selectedInputType != .symbol {
+                        // 왼쪽으로 화면 너비 3/4 초과 드래그 -> 다른 자판으로 변경
+                        if !state.isSelectingInputType && dragXLocation < geometry.size.width / 4 * 3 {
                             state.isSelectingInputType = true
-                            state.selectedInputType = .symbol
-                            Feedback.shared.playHapticByForce(style: .medium)
-                        } else if state.isSelectingInputType && state.selectedInputType != .hangeul && (dragWidthDiff > -25 && dragWidthDiff < -5) {
-                            state.selectedInputType = .hangeul
-                            Feedback.shared.playHapticByForce(style: .medium)
-                        } else if state.isSelectingInputType && state.selectedInputType != .number && dragWidthDiff > 0 {
-                            state.selectedInputType = .number
-                            Feedback.shared.playHapticByForce(style: .medium)
                         }
-                    } else if state.currentInputType == .symbol {  // 기호 자판
-                        if isNumberKeyboardTypeEnabled {
-                            if dragWidthDiff > 30 && state.selectedInputType != .number {
-                                state.isSelectingInputType = true
-                                state.selectedInputType = .number
-                                Feedback.shared.playHapticByForce(style: .medium)
-                            } else if state.isSelectingInputType && state.selectedInputType != .hangeul && (dragWidthDiff < 25 && dragWidthDiff > 5) {
-                                state.selectedInputType = .hangeul
-                                Feedback.shared.playHapticByForce(style: .medium)
-                            } else if state.selectedInputType != .symbol && dragWidthDiff < 0 {
+                        if state.isSelectingInputType {
+                            if state.selectedInputType != .symbol && dragXLocation <= state.inputTypeButtonMaxXPosition[0] {
                                 state.selectedInputType = .symbol
                                 Feedback.shared.playHapticByForce(style: .medium)
+                            } else if state.selectedInputType != .number && dragXLocation >= state.inputTypeButtonMinXPosition[1] {
+                                state.selectedInputType = .number
+                                Feedback.shared.playHapticByForce(style: .medium)
+                            }
+                        }
+                        
+                       
+                    } else if state.currentInputType == .symbol {  // 기호 자판
+                        if isNumberKeyboardTypeEnabled {
+                            // 오른쪽으로 화면 너비 1/4 초과 드래그 -> 다른 자판으로 변경
+                            if !state.isSelectingInputType && dragXLocation > geometry.size.width / 4 {
+                                state.isSelectingInputType = true
+                            }
+                            if state.isSelectingInputType {
+                                if state.selectedInputType != .number && dragXLocation >= state.inputTypeButtonMinXPosition[1] {
+                                    state.selectedInputType = .number
+                                    Feedback.shared.playHapticByForce(style: .medium)
+                                } else if state.selectedInputType != .symbol && dragXLocation <= state.inputTypeButtonMaxXPosition[0] {
+                                    state.selectedInputType = .symbol
+                                    Feedback.shared.playHapticByForce(style: .medium)
+                                }
                             }
                         } else {
                             isCursorMovable = true
@@ -206,7 +247,7 @@ struct Swift6_NaratgeulButton: View {
     
     // MARK: - Swift6_NaratgeulButton
     var body: some View {
-        let dragGesture = DragGesture(minimumDistance: 10)
+        let dragGesture = DragGesture(minimumDistance: 0, coordinateSpace: .global)
         // 버튼 드래그 할 때 호출
             .onChanged { value in
                 print("DragGesture() onChanged")
@@ -429,7 +470,6 @@ struct Swift6_NaratgeulButton: View {
                     .onLongPressGesture(minimumDuration: state.longPressTime) {
                         // 버튼 길게 누르면(누른 상태에서 일정시간이 지나면) 호출
                         print("onLongPressGesture()->perform: longPressing")
-                        onLongPressGesturePerform()
                     } onPressingChanged: { isPressing in
                         if isPressing {
                             // 버튼 눌렀을 때 호출(버튼 누르면 무조건 첫번째로 호출)

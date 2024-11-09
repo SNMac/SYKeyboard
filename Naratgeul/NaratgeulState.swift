@@ -67,8 +67,8 @@ final class NaratgeulState: ObservableObject {
     var needsInputModeSwitchKey: Bool
     var nextKeyboardAction: Selector
     
-    var inputTypeButtonMinXPosition = [CGFloat](repeating: 0.0, count: 3)
-    var inputTypeButtonMaxXPosition = [CGFloat](repeating: 0.0, count: 3)
+    var inputTypeButtonMinXPosition = [CGFloat](repeating: 0.0, count: 2)
+    var inputTypeButtonMaxXPosition = [CGFloat](repeating: 0.0, count: 2)
     var oneHandButtonMinXPosition = [CGFloat](repeating: 0.0, count: 3)
     var oneHandButtonMaxXPosition = [CGFloat](repeating: 0.0, count: 3)
     var oneHandButtonMinYPosition = [CGFloat](repeating: 0.0, count: 3)

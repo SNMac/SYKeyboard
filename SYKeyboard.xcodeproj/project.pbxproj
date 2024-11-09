@@ -306,10 +306,10 @@
 				5BA8097B2C99712A00CC1B25 /* NumberView.swift */,
 				5B0F7FCD2CA5A85D00EE7380 /* NumberPadView.swift */,
 				5B0D82442C63C72700F84180 /* SYKeyboardButton.swift */,
-				5B7885932CDCB04A007A801A /* ChevronButton.swift */,
 				5B2B40142C6CD2A4007CA762 /* NextKeyboardButton.swift */,
-				5B6B1B362CD210CD00636AC4 /* OneHandSelectOverlayView.swift */,
+				5B7885932CDCB04A007A801A /* ChevronButton.swift */,
 				5B7885992CDF3473007A801A /* InputTypeSelectOverlayView.swift */,
+				5B6B1B362CD210CD00636AC4 /* OneHandSelectOverlayView.swift */,
 			);
 			path = KeyboardLayout;
 			sourceTree = "<group>";

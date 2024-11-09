@@ -86,13 +86,10 @@ struct SYKeyboardButton: View {
                                 state.isSelectingInputType = true
                             }
                             if state.isSelectingInputType {
-                                if state.selectedInputType != .number && dragXLocation < state.inputTypeButtonMaxXPosition[0] {
+                                if state.selectedInputType != .number && dragXLocation <= state.inputTypeButtonMaxXPosition[0] {
                                     state.selectedInputType = .number
                                     Feedback.shared.playHapticByForce(style: .medium)
-                                } else if state.selectedInputType != .symbol && dragXLocation > state.inputTypeButtonMaxXPosition[0] && dragXLocation < state.inputTypeButtonMinXPosition[2] {
-                                    state.selectedInputType = .symbol
-                                    Feedback.shared.playHapticByForce(style: .medium)
-                                } else if state.selectedInputType != .hangeul && dragXLocation > state.inputTypeButtonMinXPosition[2] {
+                                } else if state.selectedInputType != .hangeul && dragXLocation >= state.inputTypeButtonMinXPosition[1] {
                                     state.selectedInputType = .hangeul
                                     Feedback.shared.playHapticByForce(style: .medium)
                                 }
@@ -108,13 +105,10 @@ struct SYKeyboardButton: View {
                             state.isSelectingInputType = true
                         }
                         if state.isSelectingInputType {
-                            if state.selectedInputType != .symbol && dragXLocation < state.inputTypeButtonMaxXPosition[0] {
+                            if state.selectedInputType != .symbol && dragXLocation <= state.inputTypeButtonMaxXPosition[0] {
                                 state.selectedInputType = .symbol
                                 Feedback.shared.playHapticByForce(style: .medium)
-                            } else if state.selectedInputType != .hangeul && dragXLocation > state.inputTypeButtonMaxXPosition[0] && dragXLocation < state.inputTypeButtonMinXPosition[2] {
-                                state.selectedInputType = .hangeul
-                                Feedback.shared.playHapticByForce(style: .medium)
-                            } else if state.selectedInputType != .number && dragXLocation > state.inputTypeButtonMinXPosition[2] {
+                            } else if state.selectedInputType != .number && dragXLocation >= state.inputTypeButtonMinXPosition[1] {
                                 state.selectedInputType = .number
                                 Feedback.shared.playHapticByForce(style: .medium)
                             }
@@ -128,13 +122,10 @@ struct SYKeyboardButton: View {
                                 state.isSelectingInputType = true
                             }
                             if state.isSelectingInputType {
-                                if state.selectedInputType != .number && dragXLocation > state.inputTypeButtonMinXPosition[2] {
+                                if state.selectedInputType != .number && dragXLocation >= state.inputTypeButtonMinXPosition[1] {
                                     state.selectedInputType = .number
                                     Feedback.shared.playHapticByForce(style: .medium)
-                                } else if state.selectedInputType != .hangeul && dragXLocation > state.inputTypeButtonMaxXPosition[0] && dragXLocation < state.inputTypeButtonMinXPosition[2] {
-                                    state.selectedInputType = .hangeul
-                                    Feedback.shared.playHapticByForce(style: .medium)
-                                } else if state.selectedInputType != .symbol && dragXLocation < state.inputTypeButtonMaxXPosition[0] {
+                                } else if state.selectedInputType != .symbol && dragXLocation <= state.inputTypeButtonMaxXPosition[0] {
                                     state.selectedInputType = .symbol
                                     Feedback.shared.playHapticByForce(style: .medium)
                                 }
@@ -431,7 +422,6 @@ struct SYKeyboardButton: View {
                         longPressOnEnded()
                     }
                 })
-            
             
                 .sequenced(before: DragGesture(minimumDistance: 0, coordinateSpace: .global))
             // 버튼 길게 누르고 드래그시 호출

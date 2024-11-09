@@ -10,7 +10,7 @@ import SwiftUI
 struct OneHandSelectOverlayView: View {
     @EnvironmentObject var state: NaratgeulState
     
-    let frameWidth: CGFloat = 140
+    let frameWidth: CGFloat = 180
     let interItemSpacing: CGFloat = 5
     let fontSize: Double = 20
     
