@@ -13,11 +13,13 @@ struct ChevronButton: View {
     @State var isPressing: Bool = false
     
     let isLeftHandMode: Bool
+    let widthDivider: CGFloat = 6
+    
     var geometry: GeometryProxy
     
     var body: some View {
         Image(systemName: isLeftHandMode ? "chevron.compact.right" : "chevron.compact.left")
-            .frame(width: geometry.size.width / 5.5, height: geometry.size.height)
+            .frame(width: geometry.size.width / 6, height: geometry.size.height)
             .font(.system(size: 36))
             .foregroundStyle(isPressing ? Color("PrimaryKeyboardButton") : Color("SecondaryKeyboardButton"))
             .background(Color.white.opacity(0.001))
@@ -25,13 +27,13 @@ struct ChevronButton: View {
                 DragGesture(minimumDistance: 0, coordinateSpace: .global)
                     .onChanged({ value in
                         if isLeftHandMode {  // 오른쪽에 화살표 표시됨
-                            if value.location.x < geometry.size.width - geometry.size.width / 5.5 {
+                            if value.location.x < geometry.size.width - geometry.size.width / widthDivider {
                                 isPressing = false
                             } else {
                                 isPressing = true
                             }
                         } else {  // 왼쪽에 화살표 표시됨
-                            if value.location.x > geometry.size.width / 5.5 {
+                            if value.location.x > geometry.size.width / widthDivider {
                                 isPressing = false
                             } else {
                                 isPressing = true
@@ -40,7 +42,7 @@ struct ChevronButton: View {
                     })
                     .onEnded({ value in
                         if isLeftHandMode {  // 오른쪽에 화살표 표시됨
-                            if value.location.x < geometry.size.width - geometry.size.width / 5.5 {
+                            if value.location.x < geometry.size.width - geometry.size.width / widthDivider {
                                 isPressing = false
                             } else {
                                 state.currentOneHandType = .center
@@ -48,7 +50,7 @@ struct ChevronButton: View {
                                 isPressing = false
                             }
                         } else {  // 왼쪽에 화살표 표시됨
-                            if value.location.x > geometry.size.width / 5.5 {
+                            if value.location.x > geometry.size.width / widthDivider {
                                 isPressing = false
                             } else {
                                 state.currentOneHandType = .center

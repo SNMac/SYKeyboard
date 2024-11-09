@@ -23,7 +23,7 @@ struct NumberPadView: View {
                 // MARK: - 1, 2, 3
                 HStack(spacing: 0) {
                     SYKeyboardButton(
-                        text: "1", primary: true,
+                        text: "1", primary: true, geometry: geometry,
                         onPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
@@ -50,7 +50,7 @@ struct NumberPadView: View {
                     .contentShape(Rectangle())
                     
                     SYKeyboardButton(
-                        text: "2", primary: true,
+                        text: "2", primary: true, geometry: geometry,
                         onPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
@@ -77,7 +77,7 @@ struct NumberPadView: View {
                     .contentShape(Rectangle())
                     
                     SYKeyboardButton(
-                        text: "3", primary: true,
+                        text: "3", primary: true, geometry: geometry,
                         onPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
@@ -108,7 +108,7 @@ struct NumberPadView: View {
                 // MARK: - 4, 5, 6
                 HStack(spacing: 0) {
                     SYKeyboardButton(
-                        text: "4", primary: true,
+                        text: "4", primary: true, geometry: geometry,
                         onPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
@@ -135,7 +135,7 @@ struct NumberPadView: View {
                     .contentShape(Rectangle())
                     
                     SYKeyboardButton(
-                        text: "5", primary: true,
+                        text: "5", primary: true, geometry: geometry,
                         onPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
@@ -162,7 +162,7 @@ struct NumberPadView: View {
                     .contentShape(Rectangle())
                     
                     SYKeyboardButton(
-                        text: "6", primary: true,
+                        text: "6", primary: true, geometry: geometry,
                         onPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
@@ -192,7 +192,7 @@ struct NumberPadView: View {
                 // MARK: - 7, 8, 9
                 HStack(spacing: 0) {
                     SYKeyboardButton(
-                        text: "7", primary: true,
+                        text: "7", primary: true, geometry: geometry,
                         onPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
@@ -219,7 +219,7 @@ struct NumberPadView: View {
                     .contentShape(Rectangle())
                     
                     SYKeyboardButton(
-                        text: "8", primary: true,
+                        text: "8", primary: true, geometry: geometry,
                         onPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
@@ -246,7 +246,7 @@ struct NumberPadView: View {
                     .contentShape(Rectangle())
                     
                     SYKeyboardButton(
-                        text: "9", primary: true,
+                        text: "9", primary: true, geometry: geometry,
                         onPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
@@ -288,7 +288,7 @@ struct NumberPadView: View {
                     }
                     
                     SYKeyboardButton(
-                        text: "0", primary: true,
+                        text: "0", primary: true, geometry: geometry,
                         onPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
@@ -315,7 +315,7 @@ struct NumberPadView: View {
                     .contentShape(Rectangle())
                     
                     SYKeyboardButton(
-                        systemName: "delete.left", primary: false,
+                        systemName: "delete.left", primary: false, geometry: geometry,
                         onPress: {
                             Feedback.shared.playDeleteSound()
                             Feedback.shared.playHaptic(style: .light)

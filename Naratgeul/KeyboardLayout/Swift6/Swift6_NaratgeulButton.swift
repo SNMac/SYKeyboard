@@ -20,6 +20,8 @@ struct Swift6_NaratgeulButton: View {
     var systemName: String?
     let primary: Bool
     
+    var geometry: GeometryProxy
+    
     let imageSize: CGFloat = 20
     let textSize: CGFloat = 18
     let keyTextSize: CGFloat = 22

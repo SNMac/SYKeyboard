@@ -60,16 +60,6 @@ struct NaratgeulView: View {
                     }
                 }
             }
-            
-            if state.isSelectingInputType {
-                NaratgeulInputTypeSelectView()
-                    .offset(x: state.currentInputType == .symbol ? 3 : -3, y: 30)
-            }
-            
-            if state.isSelectingOneHandType {
-                NaratgeulOneHandSelectView()
-                    .offset(x: state.currentInputType == .symbol ? 3 : -3, y: 30)
-            }
         }.onAppear {
             if isOneHandTypeEnabled {
                 state.currentOneHandType = OneHandType(rawValue: currentOneHandType) ?? .center

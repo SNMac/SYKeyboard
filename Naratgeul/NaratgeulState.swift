@@ -50,7 +50,7 @@ final class NaratgeulState: ObservableObject {
     @Published var selectedInputType: InputType?
     @Published var currentOneHandType: OneHandType = .center
     @Published var isSelectingOneHandType: Bool = false
-    @Published var selectedOneHandType: OneHandType?
+    @Published var selectedOneHandType: OneHandType = .center
     @Published var currentKeyboardType: KeyboardType = ._default
     @Published var returnButtonType: ReturnButtonType = ._default
     @Published var isHoegSsangAvailable: Bool = false
@@ -66,6 +66,13 @@ final class NaratgeulState: ObservableObject {
     var repeatTimerCycle: Double
     var needsInputModeSwitchKey: Bool
     var nextKeyboardAction: Selector
+    
+    var inputTypeButtonMinXPosition = [CGFloat](repeating: 0.0, count: 3)
+    var inputTypeButtonMaxXPosition = [CGFloat](repeating: 0.0, count: 3)
+    var oneHandButtonMinXPosition = [CGFloat](repeating: 0.0, count: 3)
+    var oneHandButtonMaxXPosition = [CGFloat](repeating: 0.0, count: 3)
+    var oneHandButtonMinYPosition = [CGFloat](repeating: 0.0, count: 3)
+    var oneHandButtonMaxYPosition = [CGFloat](repeating: 0.0, count: 3)
     
     init(
         delegate: NaratgeulDelegate,
