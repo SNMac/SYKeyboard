@@ -1,5 +1,5 @@
 //
-//  SymbolView.swift
+//  Symbol_WebSearchSymbolView.swift
 //  Naratgeul
 //
 //  Created by 서동환 on 8/14/24.
@@ -8,9 +8,10 @@
 import SwiftUI
 import Combine
 
-struct SymbolView: View {
+struct Symbol_WebSearchSymbolView: View {
     @EnvironmentObject var state: NaratgeulState
     @AppStorage("isAutoChangeToHangeulEnabled", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var isAutoChangeToHangeulEnabled = true
+    @AppStorage("isOneHandTypeEnabled", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var isOneHandTypeEnabled = true
     @State var timer: AnyCancellable?
     @State var isSymbolInput: Bool = false
     
@@ -37,6 +38,9 @@ struct SymbolView: View {
                         },
                         onRelease: {
                             state.delegate?.otherKeypadTap(letter: symbols[state.nowSymbolPage][0])
+                            if state.currentKeyboardType == .webSearch {
+                                
+                            }
                             isSymbolInput = true
                         },
                         onLongPress: {
