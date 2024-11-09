@@ -42,6 +42,7 @@ struct SpecificLanguageTextFieldView: UIViewRepresentable {
         let textField = SpecificLanguageTextField(frame: .zero)
         textField.placeholder = self.placeHolder
         textField.text = self.text
+//        textField.keyboardType = .twitter
         textField.language = self.language
         return textField
     }

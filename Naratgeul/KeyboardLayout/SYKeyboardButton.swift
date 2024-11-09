@@ -39,6 +39,32 @@ struct SYKeyboardButton: View {
     var onLongPress: (() -> Void)?
     var onLongPressFinished: (() -> Void)?
     
+    private func sequencedDragOnChanged(value: DragGesture.Value) {
+        if text == "123" || text == "!#1" || text == "한글" {  // 자판 전환 버튼
+            if nowGesture != .dragging {  // 드래그 시작
+                dragStartWidth = value.translation.width
+                nowGesture = .dragging
+            } else {  // 드래그 중
+                if !isCursorMovable {
+                    let dragWidthDiff = value.translation.width - dragStartWidth
+                    // 특정 방향으로 일정 거리 초과 드래그 -> 한손 키보드 변경
+                    if state.isSelectingOneHandType {  // 한글 자판
+                        if dragWidthDiff < -30 {
+                            state.selectedOneHandType = .left
+                            Feedback.shared.playHapticByForce(style: .medium)
+                        } else if dragWidthDiff > -25 && dragWidthDiff < -5 {
+                            state.selectedOneHandType = .center
+                            Feedback.shared.playHapticByForce(style: .medium)
+                        } else if dragWidthDiff > 0 {
+                            state.selectedOneHandType = .right
+                            Feedback.shared.playHapticByForce(style: .medium)
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
     private func dragOnChanged(value: DragGesture.Value) {  // 버튼 드래그 할 때 호출
         if text == "123" || text == "!#1" || text == "한글" {  // 자판 전환 버튼
             if nowGesture != .dragging {  // 드래그 시작
@@ -160,8 +186,8 @@ struct SYKeyboardButton: View {
     }
     
     private func seqDragOnEnded() {  // 버튼 길게 눌렀다가 뗐을 때 호출
-        onLongPressFinished?()
         nowGesture = .released
+        onLongPressFinished?()
         state.nowPressedButton = nil
     }
     
@@ -217,6 +243,13 @@ struct SYKeyboardButton: View {
                         .font(.system(size: imageSize))
                         .foregroundStyle(Color(uiColor: UIColor.label))
                         .background(nowGesture == .pressing || nowGesture == .longPressing ? Color("PrimaryKeyboardButton") : Color("SecondaryKeyboardButton"))
+                        .clipShape(.rect(cornerRadius: 5))
+                } else {
+                    Image(systemName: systemName!)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+                        .font(.system(size: imageSize))
+                        .foregroundStyle(Color(uiColor: UIColor.label))
+                        .background(nowGesture == .pressing || nowGesture == .longPressing ? Color("PrimaryKeyboardButton") : Color("SecondaryKeyboardButton") )
                         .clipShape(.rect(cornerRadius: 5))
                 }
                 
@@ -375,8 +408,22 @@ struct SYKeyboardButton: View {
                     }
                 })
             
-            // 버튼 길게 눌렀다가 뗐을 때 호출
+            
                 .sequenced(before: DragGesture(minimumDistance: 0))
+            // 버튼 길게 누르고 드래그시 호출
+                .onChanged({ value in
+                    print("LongPressGesture()->DragGesture() onChanged")
+                    switch value {
+                    case .first(_):
+                        break
+                    case .second(_, let dragValue):
+                        if let value = dragValue {
+                            sequencedDragOnChanged(value: value)
+                        }
+                    }
+                })
+            
+            // 버튼 길게 눌렀다가 뗐을 때 호출
                 .onEnded({ _ in
                     print("LongPressGesture()->DragGesture() onEnded")
                     if nowGesture != .released {

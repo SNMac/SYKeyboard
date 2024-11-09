@@ -11,7 +11,9 @@ import Combine
 struct Swift6_WebSearchSymbolView: View {
     @EnvironmentObject var state: NaratgeulState
     @AppStorage("isAutoChangeToHangeulEnabled", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var isAutoChangeToHangeulEnabled = true
+    @AppStorage("isOneHandTypeEnabled", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var isOneHandTypeEnabled = true
     @State var timer: AnyCancellable?
+    @State var isChevronButtonPress: Bool = false
     
     let vPadding: CGFloat = 4
     let interItemVPadding: CGFloat = 4.5

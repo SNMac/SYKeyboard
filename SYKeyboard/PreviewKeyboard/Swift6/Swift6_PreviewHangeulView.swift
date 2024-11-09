@@ -10,6 +10,7 @@ import Combine
 
 struct Swift6_PreviewHangeulView: View {
     @EnvironmentObject var state: PreviewNaratgeulState
+    @AppStorage("isOneHandTypeEnabled", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var isOneHandTypeEnabled = true
     @AppStorage("repeatTimerSpeed", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var repeatTimerSpeed = 0.06
     @AppStorage("keyboardHeight", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var keyboardHeight = 240.0
     @AppStorage("needsInputModeSwitchKey", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var needsInputModeSwitchKey = false
@@ -360,12 +361,6 @@ struct Swift6_PreviewHangeulView: View {
                                 onPress: {
                                     Feedback.shared.playModifierSound()
                                     Feedback.shared.playHaptic(style: .light)
-                                },
-                                onRelease: {
-                                    state.currentInputType = .symbol
-                                },
-                                onLongPressFinished: {
-                                    state.currentInputType = .symbol
                                 })
                             .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: vPadding, trailing: interItemHPadding))
                             .contentShape(Rectangle())
@@ -386,12 +381,6 @@ struct Swift6_PreviewHangeulView: View {
                             onPress: {
                                 Feedback.shared.playModifierSound()
                                 Feedback.shared.playHaptic(style: .light)
-                            },
-                            onRelease: {
-                                state.currentInputType = .symbol
-                            },
-                            onLongPressFinished: {
-                                state.currentInputType = .symbol
                             })
                         .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: vPadding, trailing: hPadding))
                         .contentShape(Rectangle())

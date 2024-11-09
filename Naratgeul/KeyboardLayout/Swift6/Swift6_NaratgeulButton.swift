@@ -202,7 +202,7 @@ struct Swift6_NaratgeulButton: View {
         }
     }
     
-    // MARK: - SYKeyboardButton
+    // MARK: - Swift6_NaratgeulButton
     var body: some View {
         let dragGesture = DragGesture(minimumDistance: 10)
         // 버튼 드래그 할 때 호출
@@ -373,12 +373,36 @@ struct Swift6_NaratgeulButton: View {
                         }
                     }
                     .gesture(dragGesture)
+            } else {
+                Image(systemName: systemName!)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+                    .font(.system(size: imageSize))
+                    .foregroundStyle(Color(uiColor: UIColor.label))
+                    .background(nowGesture == .pressing || nowGesture == .longPressing ? Color("PrimaryKeyboardButton") : Color("SecondaryKeyboardButton") )
+                    .clipShape(.rect(cornerRadius: 5))
+                    .shadow(color: Color("KeyboardButtonShadow"), radius: 0, x: 0, y: 1)
+                    .onLongPressGesture(minimumDuration: state.longPressTime) {
+                        // 버튼 길게 누르면(누른 상태에서 일정시간이 지나면) 호출
+                        print("onLongPressGesture()->perform: longPressing")
+                        onLongPressGesturePerform()
+                    } onPressingChanged: { isPressing in
+                        if isPressing {
+                            // 버튼 눌렀을 때 호출(버튼 누르면 무조건 첫번째로 호출)
+                            print("onLongPressGesture()->onPressingChanged: pressing")
+                            onLongPressGestureOnPressingTrue()
+                        } else {
+                            // 버튼 뗐을 때
+                            print("onLongPressGesture()->onPressingChanged: released")
+                            onLongPressGestureOnPressingFalse()
+                        }
+                    }
+                    .gesture(dragGesture)
             }
             
             // Text 버튼들
         } else if text != nil {
+            // 한글 자판
             if text == "!#1" {
-                // 한글 자판
                 Text("!#1")
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
                     .monospaced()
@@ -417,8 +441,8 @@ struct Swift6_NaratgeulButton: View {
                     }
                     .gesture(dragGesture)
             } else if text == "한글" {
-                // 기호 자판
                 if state.currentInputType == .symbol {
+                    // 기호 자판
                     Text("한글")
                         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
                         .font(.system(size: state.needsInputModeSwitchKey ? textSize - 2 : textSize))
@@ -500,6 +524,78 @@ struct Swift6_NaratgeulButton: View {
                     .font(.system(size: textSize - 2))
                     .foregroundStyle(Color(uiColor: UIColor.label))
                     .background(Color("SecondaryKeyboardButton"))
+                    .clipShape(.rect(cornerRadius: 5))
+                    .shadow(color: Color("KeyboardButtonShadow"), radius: 0, x: 0, y: 1)
+                    .onLongPressGesture(minimumDuration: state.longPressTime) {
+                        // 버튼 길게 누르면(누른 상태에서 일정시간이 지나면) 호출
+                        print("onLongPressGesture()->perform: longPressing")
+                        onLongPressGesturePerform()
+                    } onPressingChanged: { isPressing in
+                        if isPressing {
+                            // 버튼 눌렀을 때 호출(버튼 누르면 무조건 첫번째로 호출)
+                            print("onLongPressGesture()->onPressingChanged: pressing")
+                            onLongPressGestureOnPressingTrue()
+                        } else {
+                            // 버튼 뗐을 때
+                            print("onLongPressGesture()->onPressingChanged: released")
+                            onLongPressGestureOnPressingFalse()
+                        }
+                    }
+                    .gesture(dragGesture)
+            } else if text == ".com" {
+                Text(".com")
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+                    .font(.system(size: textSize))
+                    .foregroundStyle(Color(uiColor: UIColor.label))
+                    .background(nowGesture == .pressing || nowGesture == .longPressing ? Color("SecondaryKeyboardButton") : Color("PrimaryKeyboardButton"))
+                    .clipShape(.rect(cornerRadius: 5))
+                    .shadow(color: Color("KeyboardButtonShadow"), radius: 0, x: 0, y: 1)
+                    .onLongPressGesture(minimumDuration: state.longPressTime) {
+                        // 버튼 길게 누르면(누른 상태에서 일정시간이 지나면) 호출
+                        print("onLongPressGesture()->perform: longPressing")
+                        onLongPressGesturePerform()
+                    } onPressingChanged: { isPressing in
+                        if isPressing {
+                            // 버튼 눌렀을 때 호출(버튼 누르면 무조건 첫번째로 호출)
+                            print("onLongPressGesture()->onPressingChanged: pressing")
+                            onLongPressGestureOnPressingTrue()
+                        } else {
+                            // 버튼 뗐을 때
+                            print("onLongPressGesture()->onPressingChanged: released")
+                            onLongPressGestureOnPressingFalse()
+                        }
+                    }
+                    .gesture(dragGesture)
+            } else if text == "@_twitter" {
+                Text("@")
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+                    .font(.system(size: textSize))
+                    .foregroundStyle(Color(uiColor: UIColor.label))
+                    .background(nowGesture == .pressing || nowGesture == .longPressing ? Color("PrimaryKeyboardButton") : Color("SecondaryKeyboardButton"))
+                    .clipShape(.rect(cornerRadius: 5))
+                    .shadow(color: Color("KeyboardButtonShadow"), radius: 0, x: 0, y: 1)
+                    .onLongPressGesture(minimumDuration: state.longPressTime) {
+                        // 버튼 길게 누르면(누른 상태에서 일정시간이 지나면) 호출
+                        print("onLongPressGesture()->perform: longPressing")
+                        onLongPressGesturePerform()
+                    } onPressingChanged: { isPressing in
+                        if isPressing {
+                            // 버튼 눌렀을 때 호출(버튼 누르면 무조건 첫번째로 호출)
+                            print("onLongPressGesture()->onPressingChanged: pressing")
+                            onLongPressGestureOnPressingTrue()
+                        } else {
+                            // 버튼 뗐을 때
+                            print("onLongPressGesture()->onPressingChanged: released")
+                            onLongPressGestureOnPressingFalse()
+                        }
+                    }
+                    .gesture(dragGesture)
+            } else if text == "#_twitter" {
+                Text("#")
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+                    .font(.system(size: textSize))
+                    .foregroundStyle(Color(uiColor: UIColor.label))
+                    .background(nowGesture == .pressing || nowGesture == .longPressing ? Color("PrimaryKeyboardButton") : Color("SecondaryKeyboardButton"))
                     .clipShape(.rect(cornerRadius: 5))
                     .shadow(color: Color("KeyboardButtonShadow"), radius: 0, x: 0, y: 1)
                     .onLongPressGesture(minimumDuration: state.longPressTime) {

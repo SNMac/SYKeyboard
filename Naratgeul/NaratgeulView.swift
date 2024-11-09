@@ -10,17 +10,15 @@ import SwiftUI
 struct NaratgeulView: View {
     @EnvironmentObject var state: NaratgeulState
     @AppStorage("isNumberKeyboardTypeEnabled", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var isNumberKeyboardTypeEnabled = true
+    @AppStorage("isOneHandTypeEnabled", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var isOneHandTypeEnabled = true
+    @AppStorage("currentOneHandType", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var currentOneHandType = 1
     
     var body: some View {
-        ZStack {
+        ZStack(alignment: state.currentInputType == .symbol ? .leading : .trailing) {
             if #available(iOS 18, *) {
                 switch state.currentInputType {
                 case .hangeul:
-                    if state.currentKeyboardType == .twitter {
-                        Swift6_TwitterHangeulView()
-                    } else {
-                        Swift6_HangeulView()
-                    }
+                    Swift6_HangeulView()
                 case .symbol:
                     if state.currentKeyboardType == .URL {
                         Swift6_URLSymbolView()
@@ -41,11 +39,7 @@ struct NaratgeulView: View {
             } else {
                 switch state.currentInputType {
                 case .hangeul:
-                    if state.currentKeyboardType == .twitter {
-                        TwitterHangeulView()
-                    } else {
-                        HangeulView()
-                    }
+                    HangeulView()
                 case .symbol:
                     if state.currentKeyboardType == .URL {
                         URLSymbolView()
@@ -67,8 +61,20 @@ struct NaratgeulView: View {
                 }
             }
             
-            if isNumberKeyboardTypeEnabled && state.isSelectingInputType {
+            if state.isSelectingInputType {
                 NaratgeulInputTypeSelectView()
+                    .offset(x: state.currentInputType == .symbol ? 3 : -3, y: 30)
+            }
+            
+            if state.isSelectingOneHandType {
+                NaratgeulOneHandSelectView()
+                    .offset(x: state.currentInputType == .symbol ? 3 : -3, y: 30)
+            }
+        }.onAppear {
+            if isOneHandTypeEnabled {
+                state.currentOneHandType = OneHandType(rawValue: currentOneHandType) ?? .center
+            } else {
+                currentOneHandType = 1
             }
         }
     }

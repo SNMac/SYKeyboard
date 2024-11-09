@@ -8,247 +8,79 @@
 import SwiftUI
 
 struct NaratgeulInputTypeSelectView: View {
+    @Environment(\.colorScheme) var colorScheme
     @EnvironmentObject var state: NaratgeulState
     
-    let activeFontSize: Double = 28
-    let otherFontSize: Double = 12
+    let fontSize: Double = 16
     
     var body: some View {
-        HStack(spacing: 1) {
+        HStack(spacing: 5) {
             if state.currentInputType == .hangeul {
-                if state.selectedInputType == .number {
-                    Group {
-                        Image(systemName: "arrowtriangle.left.fill")
-                            .padding(EdgeInsets(top: 0, leading: 2, bottom: 0, trailing: 0))
-                        Text("123")
-                            .monospaced()
-                            .padding(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 4))
-                    }
-                    .font(.system(size: activeFontSize, weight: .semibold))
-                    .foregroundStyle(.primary)
-                    
-                    Group {
-                        Text("!#1")
-                            .monospaced()
-                            .padding(EdgeInsets(top: 0, leading: 4, bottom: 0, trailing: 0))
-                        Image(systemName: "arrowtriangle.right")
-                            .padding(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 4))
-                    }
-                    .font(.system(size: otherFontSize))
-                    .foregroundStyle(.secondary)
-                    
-                    Image(systemName: "x.square")
-                        .font(.system(size: otherFontSize))
-                        .foregroundStyle(.secondary)
-                        .padding(EdgeInsets(top: 0, leading: 4, bottom: 0, trailing: 2))
-                } else if state.selectedInputType == .symbol {
-                    Group {
-                        Image(systemName: "arrowtriangle.left")
-                            .padding(EdgeInsets(top: 0, leading: 2, bottom: 0, trailing: 0))
-                        Text("123")
-                            .monospaced()
-                            .padding(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 4))
-                    }
-                    .font(.system(size: otherFontSize))
-                    .foregroundStyle(.secondary)
-                    
-                    Group {
-                        Text("!#1")
-                            .monospaced()
-                            .padding(EdgeInsets(top: 0, leading: 4, bottom: 0, trailing: 0))
-                        Image(systemName: "arrowtriangle.right.fill")
-                            .padding(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 4))
-                    }
-                    .font(.system(size: activeFontSize, weight: .semibold))
-                    .foregroundStyle(.primary)
-                    
-                    Image(systemName: "x.square")
-                        .font(.system(size: otherFontSize))
-                        .foregroundStyle(.secondary)
-                        .padding(EdgeInsets(top: 0, leading: 4, bottom: 0, trailing: 2))
-                } else if state.selectedInputType == .hangeul {
-                    Group {
-                        Image(systemName: "arrowtriangle.left")
-                            .padding(EdgeInsets(top: 0, leading: 2, bottom: 0, trailing: 0))
-                        Text("123")
-                            .monospaced()
-                            .padding(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 4))
-                    }
-                    .font(.system(size: otherFontSize))
-                    .foregroundStyle(.secondary)
-                    
-                    Group {
-                        Text("!#1")
-                            .monospaced()
-                            .padding(EdgeInsets(top: 0, leading: 4, bottom: 0, trailing: 0))
-                        Image(systemName: "arrowtriangle.right")
-                            .padding(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 4))
-                    }
-                    .font(.system(size: otherFontSize))
-                    .foregroundStyle(.secondary)
-                    
-                    Image(systemName: "x.square.fill")
-                        .font(.system(size: activeFontSize, weight: .semibold))
-                        .foregroundStyle(.primary)
-                        .padding(EdgeInsets(top: 0, leading: 4, bottom: 0, trailing: 2))
-                }
+                Text("123")
+                    .monospaced()
+                    .font(.system(size: fontSize))
+                    .frame(width: 50, height: 50)
+                    .foregroundStyle(state.selectedInputType == .number ? Color.white : Color(uiColor: .label))
+                    .background(RoundedRectangle(cornerRadius: 10).fill(state.selectedInputType == .number ? Color.blue : Color.clear))
+                
+                Text("!#1")
+                    .monospaced()
+                    .font(.system(size: fontSize))
+                    .frame(width: 50, height: 50)
+                    .foregroundStyle(state.selectedInputType == .symbol ? Color.white : Color(uiColor: .label))
+                    .background(RoundedRectangle(cornerRadius: 10).fill(state.selectedInputType == .symbol ? Color.blue : Color.clear))
+                
+                Image(systemName: "x.square")
+                    .font(.system(size: fontSize))
+                    .frame(width: 50, height: 50)
+                    .foregroundStyle(state.selectedInputType == .hangeul ? Color.white : Color(uiColor: .label))
+                    .background(RoundedRectangle(cornerRadius: 10).fill(state.selectedInputType == .hangeul ? Color.blue : Color.clear))
                 
                 
             } else if state.currentInputType == .number {
-                if state.selectedInputType == .symbol {
-                    Group {
-                        Image(systemName: "arrowtriangle.left.fill")
-                            .padding(EdgeInsets(top: 0, leading: 2, bottom: 0, trailing: 0))
-                        Text("!#1")
-                            .monospaced()
-                            .padding(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 4))
-                    }
-                    .font(.system(size: activeFontSize, weight: .semibold))
-                    .foregroundStyle(.primary)
-                    
-                    Group {
-                        Text("한글")
-                            .padding(EdgeInsets(top: 0, leading: 4, bottom: 0, trailing: 0))
-                        Image(systemName: "arrowtriangle.right")
-                            .padding(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 4))
-                    }
-                    .font(.system(size: otherFontSize))
-                    .foregroundStyle(.secondary)
-                    
-                    Image(systemName: "x.square")
-                        .font(.system(size: otherFontSize))
-                        .foregroundStyle(.secondary)
-                        .padding(EdgeInsets(top: 0, leading: 4, bottom: 0, trailing: 2))
-                    
-                } else if state.selectedInputType == .hangeul {
-                    Group {
-                        Image(systemName: "arrowtriangle.left")
-                            .padding(EdgeInsets(top: 0, leading: 2, bottom: 0, trailing: 0))
-                        Text("!#1")
-                            .monospaced()
-                            .padding(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 4))
-                    }
-                    .font(.system(size: otherFontSize))
-                    .foregroundStyle(.secondary)
-                    
-                    Group {
-                        Text("한글")
-                            .padding(EdgeInsets(top: 0, leading: 4, bottom: 0, trailing: 0))
-                        Image(systemName: "arrowtriangle.right.fill")
-                            .padding(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 4))
-                    }
-                    .font(.system(size: activeFontSize, weight: .semibold))
-                    .foregroundStyle(.primary)
-                    
-                    Image(systemName: "x.square")
-                        .font(.system(size: otherFontSize))
-                        .foregroundStyle(.secondary)
-                        .padding(EdgeInsets(top: 0, leading: 4, bottom: 0, trailing: 2))
-                } else if state.selectedInputType == .number {
-                    Group {
-                        Image(systemName: "arrowtriangle.left")
-                            .padding(EdgeInsets(top: 0, leading: 2, bottom: 0, trailing: 0))
-                        Text("!#1")
-                            .monospaced()
-                            .padding(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 4))
-                    }
-                    .font(.system(size: otherFontSize))
-                    .foregroundStyle(.secondary)
-                    
-                    Group {
-                        Text("한글")
-                            .padding(EdgeInsets(top: 0, leading: 4, bottom: 0, trailing: 0))
-                        Image(systemName: "arrowtriangle.right")
-                            .padding(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 4))
-                    }
-                    .font(.system(size: otherFontSize))
-                    .foregroundStyle(.secondary)
-                    
-                    Image(systemName: "x.square.fill")
-                        .font(.system(size: activeFontSize, weight: .semibold))
-                        .foregroundStyle(.primary)
-                        .padding(EdgeInsets(top: 0, leading: 4, bottom: 0, trailing: 2))
-                }
+                Text("!#1")
+                    .monospaced()
+                    .font(.system(size: fontSize))
+                    .frame(width: 50, height: 50)
+                    .foregroundStyle(state.selectedInputType == .symbol ? Color.white : Color(uiColor: .label))
+                    .background(RoundedRectangle(cornerRadius: 10).fill(state.selectedInputType == .symbol ? Color.blue : Color.clear))
+                
+                Text("한글")
+                    .font(.system(size: fontSize))
+                    .frame(width: 50, height: 50)
+                    .foregroundStyle(state.selectedInputType == .hangeul ? Color.white : Color(uiColor: .label))
+                    .background(RoundedRectangle(cornerRadius: 10).fill(state.selectedInputType == .hangeul ? Color.blue : Color.clear))
+                
+                Image(systemName: "x.square")
+                    .font(.system(size: fontSize))
+                    .frame(width: 50, height: 50)
+                    .foregroundStyle(state.selectedInputType == .number ? Color.white : Color(uiColor: .label))
+                    .background(RoundedRectangle(cornerRadius: 10).fill(state.selectedInputType == .number ? Color.blue : Color.clear))
                 
                 
             } else if state.currentInputType == .symbol {
-                if state.selectedInputType == .number {
-                    Image(systemName: "x.square")
-                        .font(.system(size: otherFontSize))
-                        .foregroundStyle(.secondary)
-                        .padding(EdgeInsets(top: 0, leading: 2, bottom: 0, trailing: 4))
-                    
-                    Group {
-                        Image(systemName: "arrowtriangle.left")
-                            .padding(EdgeInsets(top: 0, leading: 4, bottom: 0, trailing: 0))
-                        Text("한글")
-                            .padding(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 4))
-                    }
-                    .font(.system(size: otherFontSize))
-                    .foregroundStyle(.secondary)
-                    
-                    Group {
-                        Text("123")
-                            .monospaced()
-                            .padding(EdgeInsets(top: 0, leading: 4, bottom: 0, trailing: 0))
-                        Image(systemName: "arrowtriangle.right.fill")
-                            .padding(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 2))
-                    }
-                    .font(.system(size: activeFontSize, weight: .semibold))
-                    .foregroundStyle(.primary)
-                } else if state.selectedInputType == .hangeul {
-                    Image(systemName: "x.square")
-                        .font(.system(size: otherFontSize))
-                        .foregroundStyle(.secondary)
-                        .padding(EdgeInsets(top: 0, leading: 2, bottom: 0, trailing: 4))
-                    
-                    Group {
-                        Image(systemName: "arrowtriangle.left.fill")
-                            .padding(EdgeInsets(top: 0, leading: 4, bottom: 0, trailing: 0))
-                        Text("한글")
-                            .padding(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 4))
-                    }
-                    .font(.system(size: activeFontSize, weight: .semibold))
-                    .foregroundStyle(.primary)
-                    
-                    Group {
-                        Text("123")
-                            .monospaced()
-                            .padding(EdgeInsets(top: 0, leading: 4, bottom: 0, trailing: 0))
-                        Image(systemName: "arrowtriangle.right")
-                            .padding(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 2))
-                    }
-                    .font(.system(size: otherFontSize))
-                    .foregroundStyle(.secondary)
-                } else if state.selectedInputType == .symbol {
-                    Image(systemName: "x.square.fill")
-                        .font(.system(size: activeFontSize, weight: .semibold))
-                        .foregroundStyle(.primary)
-                        .padding(EdgeInsets(top: 0, leading: 2, bottom: 0, trailing: 4))
-                    
-                    Group {
-                        Image(systemName: "arrowtriangle.left")
-                            .padding(EdgeInsets(top: 0, leading: 4, bottom: 0, trailing: 0))
-                        Text("한글")
-                            .padding(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 4))
-                    }
-                    .font(.system(size: otherFontSize))
-                    .foregroundStyle(.secondary)
-
-                    Group {
-                        Text("123")
-                            .monospaced()
-                            .padding(EdgeInsets(top: 0, leading: 4, bottom: 0, trailing: 0))
-                        Image(systemName: "arrowtriangle.right")
-                            .padding(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 2))
-                    }
-                    .font(.system(size: otherFontSize))
-                    .foregroundStyle(.secondary)
-                }
+                Image(systemName: "x.square")
+                    .font(.system(size: fontSize))
+                    .frame(width: 50, height: 50)
+                    .foregroundStyle(state.selectedInputType == .symbol ? Color.white : Color(uiColor: .label))
+                    .background(RoundedRectangle(cornerRadius: 10).fill(state.selectedInputType == .symbol ? Color.blue : Color.clear))
+                
+                Text("한글")
+                    .font(.system(size: fontSize))
+                    .frame(width: 50, height: 50)
+                    .foregroundStyle(state.selectedInputType == .hangeul ? Color.white : Color(uiColor: .label))
+                    .background(RoundedRectangle(cornerRadius: 10).fill(state.selectedInputType == .hangeul ? Color.blue : Color.clear))
+                
+                Text("123")
+                    .monospaced()
+                    .font(.system(size: fontSize))
+                    .frame(width: 50, height: 50)
+                    .foregroundStyle(state.selectedInputType == .number ? Color.white : Color(uiColor: .label))
+                    .background(RoundedRectangle(cornerRadius: 10).fill(state.selectedInputType == .number ? Color.blue : Color.clear))
             }
         }
-        .frame(width: 160, height: 80)
-        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 10))
+        .frame(width: 170, height: 60)
+        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 10))
     }
 }
 

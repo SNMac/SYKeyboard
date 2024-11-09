@@ -10,6 +10,8 @@ import Combine
 
 struct HangeulView: View {
     @EnvironmentObject var state: NaratgeulState
+    @AppStorage("isOneHandTypeEnabled", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var isOneHandTypeEnabled = true
+    @AppStorage("currentOneHandType", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var currentOneHandType = 1
     @State var timer: AnyCancellable?
     
     let vPadding: CGFloat = 4
@@ -19,343 +21,409 @@ struct HangeulView: View {
     
     var body: some View {
         GeometryReader { geometry in
-            VStack(spacing: 0) {
-                // MARK: - ㄱ, ㄴ, ㅏㅓ, 􀆛
-                HStack(spacing: 0) {
-                    SYKeyboardButton(
-                        text: "ㄱ", primary: true,
-                        onPress: {
-                            Feedback.shared.playTypingSound()
-                            Feedback.shared.playHaptic(style: .light)
-                        },
-                        onRelease: {
-                            state.delegate?.hangulKeypadTap(letter: "ㄱ")
-                        },
-                        onLongPress: {
-                            Feedback.shared.playTypingSound()
-                            Feedback.shared.playHaptic(style: .light)
-                            state.delegate?.hangulKeypadTap(letter: "ㄱ")
-                            timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
-                                .autoconnect()
-                                .sink { _ in
-                                    Feedback.shared.playTypingSound()
-                                    Feedback.shared.playHaptic(style: .light)
-                                    state.delegate?.inputLastHangeul()
-                                }
-                        },
-                        onLongPressFinished: {
-                            timer?.cancel()
-                        })
-                    .padding(EdgeInsets(top: vPadding, leading: hPadding, bottom: interItemVPadding, trailing: interItemHPadding))
-                    .contentShape(Rectangle())
-                    
-                    SYKeyboardButton(
-                        text: "ㄴ", primary: true,
-                        onPress: {
-                            Feedback.shared.playTypingSound()
-                            Feedback.shared.playHaptic(style: .light)
-                        },
-                        onRelease: {
-                            state.delegate?.hangulKeypadTap(letter: "ㄴ")
-                        },
-                        onLongPress: {
-                            Feedback.shared.playTypingSound()
-                            Feedback.shared.playHaptic(style: .light)
-                            state.delegate?.hangulKeypadTap(letter: "ㄴ")
-                            timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
-                                .autoconnect()
-                                .sink { _ in
-                                    Feedback.shared.playTypingSound()
-                                    Feedback.shared.playHaptic(style: .light)
-                                    state.delegate?.inputLastHangeul()
-                                }
-                        },
-                        onLongPressFinished: {
-                            timer?.cancel()
-                        })
-                    .padding(EdgeInsets(top: vPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
-                    .contentShape(Rectangle())
-                    
-                    SYKeyboardButton(
-                        text: "ㅏㅓ", primary: true,
-                        onPress: {
-                            Feedback.shared.playTypingSound()
-                            Feedback.shared.playHaptic(style: .light)
-                        },
-                        onRelease: {
-                            state.delegate?.hangulKeypadTap(letter: "ㅏ")
-                        },
-                        onLongPress: {
-                            Feedback.shared.playTypingSound()
-                            Feedback.shared.playHaptic(style: .light)
-                            state.delegate?.hangulKeypadTap(letter: "ㅏ")
-                            timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
-                                .autoconnect()
-                                .sink { _ in
-                                    Feedback.shared.playTypingSound()
-                                    Feedback.shared.playHaptic(style: .light)
-                                    state.delegate?.inputLastHangeul()
-                                }
-                        },
-                        onLongPressFinished: {
-                            timer?.cancel()
-                        })
-                    .padding(EdgeInsets(top: vPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
-                    .contentShape(Rectangle())
-                    
-                    SYKeyboardButton(
-                        systemName: "delete.left", primary: false,
-                        onPress: {
-                            Feedback.shared.playDeleteSound()
-                            Feedback.shared.playHaptic(style: .light)
-                            let _ = state.delegate?.removeKeypadTap(isLongPress: false)
-                        },
-                        onLongPress: {
-                            timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
-                                .autoconnect()
-                                .sink { _ in
-                                    if let isDeleted = state.delegate?.removeKeypadTap(isLongPress: true) {
-                                        if isDeleted {
-                                            Feedback.shared.playDeleteSound()
-                                            Feedback.shared.playHaptic(style: .light)
+            HStack(spacing: 0) {
+                if isOneHandTypeEnabled && state.currentOneHandType == .right {
+                    ChevronButton(isLeftHandMode: false, geometry: geometry)
+                }
+                VStack(spacing: 0) {
+                    // MARK: - ㄱ, ㄴ, ㅏㅓ, 􀆛
+                    HStack(spacing: 0) {
+                        SYKeyboardButton(
+                            text: "ㄱ", primary: true,
+                            onPress: {
+                                Feedback.shared.playTypingSound()
+                                Feedback.shared.playHaptic(style: .light)
+                            },
+                            onRelease: {
+                                state.delegate?.hangulKeypadTap(letter: "ㄱ")
+                            },
+                            onLongPress: {
+                                Feedback.shared.playTypingSound()
+                                Feedback.shared.playHaptic(style: .light)
+                                state.delegate?.hangulKeypadTap(letter: "ㄱ")
+                                timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
+                                    .autoconnect()
+                                    .sink { _ in
+                                        Feedback.shared.playTypingSound()
+                                        Feedback.shared.playHaptic(style: .light)
+                                        state.delegate?.inputLastHangeul()
+                                    }
+                            },
+                            onLongPressFinished: {
+                                timer?.cancel()
+                            })
+                        .padding(EdgeInsets(top: vPadding, leading: hPadding, bottom: interItemVPadding, trailing: interItemHPadding))
+                        .contentShape(Rectangle())
+                        
+                        SYKeyboardButton(
+                            text: "ㄴ", primary: true,
+                            onPress: {
+                                Feedback.shared.playTypingSound()
+                                Feedback.shared.playHaptic(style: .light)
+                            },
+                            onRelease: {
+                                state.delegate?.hangulKeypadTap(letter: "ㄴ")
+                            },
+                            onLongPress: {
+                                Feedback.shared.playTypingSound()
+                                Feedback.shared.playHaptic(style: .light)
+                                state.delegate?.hangulKeypadTap(letter: "ㄴ")
+                                timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
+                                    .autoconnect()
+                                    .sink { _ in
+                                        Feedback.shared.playTypingSound()
+                                        Feedback.shared.playHaptic(style: .light)
+                                        state.delegate?.inputLastHangeul()
+                                    }
+                            },
+                            onLongPressFinished: {
+                                timer?.cancel()
+                            })
+                        .padding(EdgeInsets(top: vPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
+                        .contentShape(Rectangle())
+                        
+                        SYKeyboardButton(
+                            text: "ㅏㅓ", primary: true,
+                            onPress: {
+                                Feedback.shared.playTypingSound()
+                                Feedback.shared.playHaptic(style: .light)
+                            },
+                            onRelease: {
+                                state.delegate?.hangulKeypadTap(letter: "ㅏ")
+                            },
+                            onLongPress: {
+                                Feedback.shared.playTypingSound()
+                                Feedback.shared.playHaptic(style: .light)
+                                state.delegate?.hangulKeypadTap(letter: "ㅏ")
+                                timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
+                                    .autoconnect()
+                                    .sink { _ in
+                                        Feedback.shared.playTypingSound()
+                                        Feedback.shared.playHaptic(style: .light)
+                                        state.delegate?.inputLastHangeul()
+                                    }
+                            },
+                            onLongPressFinished: {
+                                timer?.cancel()
+                            })
+                        .padding(EdgeInsets(top: vPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
+                        .contentShape(Rectangle())
+                        
+                        SYKeyboardButton(
+                            systemName: "delete.left", primary: false,
+                            onPress: {
+                                Feedback.shared.playDeleteSound()
+                                Feedback.shared.playHaptic(style: .light)
+                                let _ = state.delegate?.removeKeypadTap(isLongPress: false)
+                            },
+                            onLongPress: {
+                                timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
+                                    .autoconnect()
+                                    .sink { _ in
+                                        if let isDeleted = state.delegate?.removeKeypadTap(isLongPress: true) {
+                                            if isDeleted {
+                                                Feedback.shared.playDeleteSound()
+                                                Feedback.shared.playHaptic(style: .light)
+                                            }
                                         }
                                     }
-                                }
-                        },
-                        onLongPressFinished: {
-                            timer?.cancel()
-                        })
-                    .padding(EdgeInsets(top: vPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: hPadding))
-                    .contentShape(Rectangle())
-                }
-                
-                
-                // MARK: - ㄹ, ㅁ, ㅗㅜ, 􁁺
-                HStack(spacing: 0) {
-                    SYKeyboardButton(
-                        text: "ㄹ", primary: true,
-                        onPress: {
-                            Feedback.shared.playTypingSound()
-                            Feedback.shared.playHaptic(style: .light)
-                        },
-                        onRelease: {
-                            state.delegate?.hangulKeypadTap(letter: "ㄹ")
-                        },
-                        onLongPress: {
-                            Feedback.shared.playTypingSound()
-                            Feedback.shared.playHaptic(style: .light)
-                            state.delegate?.hangulKeypadTap(letter: "ㄹ")
-                            timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
-                                .autoconnect()
-                                .sink { _ in
-                                    Feedback.shared.playTypingSound()
-                                    Feedback.shared.playHaptic(style: .light)
-                                    state.delegate?.inputLastHangeul()
-                                }
-                        },
-                        onLongPressFinished: {
-                            timer?.cancel()
-                        })
-                    .padding(EdgeInsets(top: interItemVPadding, leading: hPadding, bottom: interItemVPadding, trailing: interItemHPadding))
-                    .contentShape(Rectangle())
+                            },
+                            onLongPressFinished: {
+                                timer?.cancel()
+                            })
+                        .padding(EdgeInsets(top: vPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: hPadding))
+                        .contentShape(Rectangle())
+                    }
                     
-                    SYKeyboardButton(
-                        text: "ㅁ", primary: true,
-                        onPress: {
-                            Feedback.shared.playTypingSound()
-                            Feedback.shared.playHaptic(style: .light)
-                        },
-                        onRelease: {
-                            state.delegate?.hangulKeypadTap(letter: "ㅁ")
-                        },
-                        onLongPress: {
-                            Feedback.shared.playTypingSound()
-                            Feedback.shared.playHaptic(style: .light)
-                            state.delegate?.hangulKeypadTap(letter: "ㅁ")
-                            timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
-                                .autoconnect()
-                                .sink { _ in
-                                    Feedback.shared.playTypingSound()
-                                    Feedback.shared.playHaptic(style: .light)
-                                    state.delegate?.inputLastHangeul()
-                                }
-                        },
-                        onLongPressFinished: {
-                            timer?.cancel()
-                        })
-                    .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
-                    .contentShape(Rectangle())
                     
-                    SYKeyboardButton(
-                        text: "ㅗㅜ", primary: true,
-                        onPress: {
-                            Feedback.shared.playTypingSound()
-                            Feedback.shared.playHaptic(style: .light)
-                        },
-                        onRelease: {
-                            state.delegate?.hangulKeypadTap(letter: "ㅗ")
-                        },
-                        onLongPress: {
-                            Feedback.shared.playTypingSound()
-                            Feedback.shared.playHaptic(style: .light)
-                            state.delegate?.hangulKeypadTap(letter: "ㅗ")
-                            timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
-                                .autoconnect()
-                                .sink { _ in
-                                    Feedback.shared.playTypingSound()
-                                    Feedback.shared.playHaptic(style: .light)
-                                    state.delegate?.inputLastHangeul()
-                                }
-                        },
-                        onLongPressFinished: {
-                            timer?.cancel()
-                        })
-                    .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
-                    .contentShape(Rectangle())
+                    // MARK: - ㄹ, ㅁ, ㅗㅜ, 􁁺
+                    HStack(spacing: 0) {
+                        SYKeyboardButton(
+                            text: "ㄹ", primary: true,
+                            onPress: {
+                                Feedback.shared.playTypingSound()
+                                Feedback.shared.playHaptic(style: .light)
+                            },
+                            onRelease: {
+                                state.delegate?.hangulKeypadTap(letter: "ㄹ")
+                            },
+                            onLongPress: {
+                                Feedback.shared.playTypingSound()
+                                Feedback.shared.playHaptic(style: .light)
+                                state.delegate?.hangulKeypadTap(letter: "ㄹ")
+                                timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
+                                    .autoconnect()
+                                    .sink { _ in
+                                        Feedback.shared.playTypingSound()
+                                        Feedback.shared.playHaptic(style: .light)
+                                        state.delegate?.inputLastHangeul()
+                                    }
+                            },
+                            onLongPressFinished: {
+                                timer?.cancel()
+                            })
+                        .padding(EdgeInsets(top: interItemVPadding, leading: hPadding, bottom: interItemVPadding, trailing: interItemHPadding))
+                        .contentShape(Rectangle())
+                        
+                        SYKeyboardButton(
+                            text: "ㅁ", primary: true,
+                            onPress: {
+                                Feedback.shared.playTypingSound()
+                                Feedback.shared.playHaptic(style: .light)
+                            },
+                            onRelease: {
+                                state.delegate?.hangulKeypadTap(letter: "ㅁ")
+                            },
+                            onLongPress: {
+                                Feedback.shared.playTypingSound()
+                                Feedback.shared.playHaptic(style: .light)
+                                state.delegate?.hangulKeypadTap(letter: "ㅁ")
+                                timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
+                                    .autoconnect()
+                                    .sink { _ in
+                                        Feedback.shared.playTypingSound()
+                                        Feedback.shared.playHaptic(style: .light)
+                                        state.delegate?.inputLastHangeul()
+                                    }
+                            },
+                            onLongPressFinished: {
+                                timer?.cancel()
+                            })
+                        .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
+                        .contentShape(Rectangle())
+                        
+                        SYKeyboardButton(
+                            text: "ㅗㅜ", primary: true,
+                            onPress: {
+                                Feedback.shared.playTypingSound()
+                                Feedback.shared.playHaptic(style: .light)
+                            },
+                            onRelease: {
+                                state.delegate?.hangulKeypadTap(letter: "ㅗ")
+                            },
+                            onLongPress: {
+                                Feedback.shared.playTypingSound()
+                                Feedback.shared.playHaptic(style: .light)
+                                state.delegate?.hangulKeypadTap(letter: "ㅗ")
+                                timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
+                                    .autoconnect()
+                                    .sink { _ in
+                                        Feedback.shared.playTypingSound()
+                                        Feedback.shared.playHaptic(style: .light)
+                                        state.delegate?.inputLastHangeul()
+                                    }
+                            },
+                            onLongPressFinished: {
+                                timer?.cancel()
+                            })
+                        .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
+                        .contentShape(Rectangle())
+                        
+                        SYKeyboardButton(
+                            systemName: "space", primary: true,
+                            onPress: {
+                                Feedback.shared.playModifierSound()
+                                Feedback.shared.playHaptic(style: .light)
+                            },
+                            onRelease: {
+                                state.delegate?.spaceKeypadTap()
+                            },
+                            onLongPress: {
+                                Feedback.shared.playModifierSound()
+                                Feedback.shared.playHaptic(style: .light)
+                                state.delegate?.spaceKeypadTap()
+                                timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
+                                    .autoconnect()
+                                    .sink { _ in
+                                        Feedback.shared.playModifierSound()
+                                        Feedback.shared.playHaptic(style: .light)
+                                        state.delegate?.spaceKeypadTap()
+                                    }
+                            },
+                            onLongPressFinished: {
+                                timer?.cancel()
+                            })
+                        .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: hPadding))
+                        .contentShape(Rectangle())
+                    }
                     
-                    SYKeyboardButton(
-                        systemName: "space", primary: true,
-                        onPress: {
-                            Feedback.shared.playModifierSound()
-                            Feedback.shared.playHaptic(style: .light)
-                        },
-                        onRelease: {
-                            state.delegate?.spaceKeypadTap()
-                        },
-                        onLongPress: {
-                            Feedback.shared.playModifierSound()
-                            Feedback.shared.playHaptic(style: .light)
-                            state.delegate?.spaceKeypadTap()
-                            timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
-                                .autoconnect()
-                                .sink { _ in
+                    // MARK: - ㅅ, ㅇ, ㅣ, 􁂆
+                    HStack(spacing: 0) {
+                        SYKeyboardButton(
+                            text: "ㅅ", primary: true,
+                            onPress: {
+                                Feedback.shared.playTypingSound()
+                                Feedback.shared.playHaptic(style: .light)
+                            },
+                            onRelease: {
+                                state.delegate?.hangulKeypadTap(letter: "ㅅ")
+                            },
+                            onLongPress: {
+                                Feedback.shared.playTypingSound()
+                                Feedback.shared.playHaptic(style: .light)
+                                state.delegate?.hangulKeypadTap(letter: "ㅅ")
+                                timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
+                                    .autoconnect()
+                                    .sink { _ in
+                                        Feedback.shared.playTypingSound()
+                                        Feedback.shared.playHaptic(style: .light)
+                                        state.delegate?.inputLastHangeul()
+                                    }
+                            },
+                            onLongPressFinished: {
+                                timer?.cancel()
+                            })
+                        .padding(EdgeInsets(top: interItemVPadding, leading: hPadding, bottom: interItemVPadding, trailing: interItemHPadding))
+                        .contentShape(Rectangle())
+                        
+                        SYKeyboardButton(
+                            text: "ㅇ", primary: true,
+                            onPress: {
+                                Feedback.shared.playTypingSound()
+                                Feedback.shared.playHaptic(style: .light)
+                            },
+                            onRelease: {
+                                state.delegate?.hangulKeypadTap(letter: "ㅇ")
+                            },
+                            onLongPress: {
+                                Feedback.shared.playTypingSound()
+                                Feedback.shared.playHaptic(style: .light)
+                                state.delegate?.hangulKeypadTap(letter: "ㅇ")
+                                timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
+                                    .autoconnect()
+                                    .sink { _ in
+                                        Feedback.shared.playTypingSound()
+                                        Feedback.shared.playHaptic(style: .light)
+                                        state.delegate?.inputLastHangeul()
+                                    }
+                            },
+                            onLongPressFinished: {
+                                timer?.cancel()
+                            })
+                        .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
+                        .contentShape(Rectangle())
+                        
+                        SYKeyboardButton(
+                            text: "ㅣ", primary: true,
+                            onPress: {
+                                Feedback.shared.playTypingSound()
+                                Feedback.shared.playHaptic(style: .light)
+                            },
+                            onRelease: {
+                                state.delegate?.hangulKeypadTap(letter: "ㅣ")
+                            },
+                            onLongPress: {
+                                Feedback.shared.playTypingSound()
+                                Feedback.shared.playHaptic(style: .light)
+                                state.delegate?.hangulKeypadTap(letter: "ㅣ")
+                                timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
+                                    .autoconnect()
+                                    .sink { _ in
+                                        Feedback.shared.playTypingSound()
+                                        Feedback.shared.playHaptic(style: .light)
+                                        state.delegate?.inputLastHangeul()
+                                    }
+                            },
+                            onLongPressFinished: {
+                                timer?.cancel()
+                            })
+                        .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
+                        .contentShape(Rectangle())
+                        
+                        if state.currentKeyboardType == .twitter {
+                            HStack(spacing: 0) {
+                                SYKeyboardButton(
+                                    text: "@_twitter", primary: false,
+                                    onPress: {
+                                        Feedback.shared.playModifierSound()
+                                        Feedback.shared.playHaptic(style: .light)
+                                    },
+                                    onRelease: {
+                                        state.delegate?.otherKeypadTap(letter: "@")
+                                    },
+                                    onLongPressFinished: {
+                                        state.delegate?.otherKeypadTap(letter: "@")
+                                    })
+                                .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
+                                .contentShape(Rectangle())
+                                
+                                SYKeyboardButton(
+                                    text: "#_twitter", primary: false,
+                                    onPress: {
+                                        Feedback.shared.playModifierSound()
+                                        Feedback.shared.playHaptic(style: .light)
+                                    },
+                                    onRelease: {
+                                        state.delegate?.otherKeypadTap(letter: "#")
+                                    },
+                                    onLongPressFinished: {
+                                        state.delegate?.otherKeypadTap(letter: "#")
+                                    })
+                                .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: hPadding))
+                                .contentShape(Rectangle())
+                            }
+                        } else {
+                            SYKeyboardButton(
+                                systemName: "return.left", primary: false,
+                                onPress: {
                                     Feedback.shared.playModifierSound()
                                     Feedback.shared.playHaptic(style: .light)
-                                    state.delegate?.spaceKeypadTap()
-                                }
-                        },
-                        onLongPressFinished: {
-                            timer?.cancel()
-                        })
-                    .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: hPadding))
-                    .contentShape(Rectangle())
-                }
-                
-                // MARK: - ㅅ, ㅇ, ㅣ, 􁂆
-                HStack(spacing: 0) {
-                    SYKeyboardButton(
-                        text: "ㅅ", primary: true,
-                        onPress: {
-                            Feedback.shared.playTypingSound()
-                            Feedback.shared.playHaptic(style: .light)
-                        },
-                        onRelease: {
-                            state.delegate?.hangulKeypadTap(letter: "ㅅ")
-                        },
-                        onLongPress: {
-                            Feedback.shared.playTypingSound()
-                            Feedback.shared.playHaptic(style: .light)
-                            state.delegate?.hangulKeypadTap(letter: "ㅅ")
-                            timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
-                                .autoconnect()
-                                .sink { _ in
-                                    Feedback.shared.playTypingSound()
-                                    Feedback.shared.playHaptic(style: .light)
-                                    state.delegate?.inputLastHangeul()
-                                }
-                        },
-                        onLongPressFinished: {
-                            timer?.cancel()
-                        })
-                    .padding(EdgeInsets(top: interItemVPadding, leading: hPadding, bottom: interItemVPadding, trailing: interItemHPadding))
-                    .contentShape(Rectangle())
+                                },
+                                onRelease: {
+                                    state.delegate?.enterKeypadTap()
+                                },
+                                onLongPressFinished: {
+                                    state.delegate?.enterKeypadTap()
+                                })
+                            .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: hPadding))
+                            .contentShape(Rectangle())
+                        }
+                    }
                     
-                    SYKeyboardButton(
-                        text: "ㅇ", primary: true,
-                        onPress: {
-                            Feedback.shared.playTypingSound()
-                            Feedback.shared.playHaptic(style: .light)
-                        },
-                        onRelease: {
-                            state.delegate?.hangulKeypadTap(letter: "ㅇ")
-                        },
-                        onLongPress: {
-                            Feedback.shared.playTypingSound()
-                            Feedback.shared.playHaptic(style: .light)
-                            state.delegate?.hangulKeypadTap(letter: "ㅇ")
-                            timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
-                                .autoconnect()
-                                .sink { _ in
-                                    Feedback.shared.playTypingSound()
-                                    Feedback.shared.playHaptic(style: .light)
-                                    state.delegate?.inputLastHangeul()
+                    // MARK: - 획, ㅡ, 쌍, (!#1, 􀆪)
+                    HStack(spacing: 0) {
+                        SYKeyboardButton(
+                            text: "획", primary: true,
+                            onPress: {
+                                Feedback.shared.playTypingSound()
+                                Feedback.shared.playHaptic(style: .light)
+                            },
+                            onRelease: {
+                                state.delegate?.hoegKeypadTap()
+                            },
+                            onLongPress: {
+                                Feedback.shared.playTypingSound()
+                                Feedback.shared.playHaptic(style: .light)
+                                state.delegate?.hoegKeypadTap()
+                                if state.isHoegSsangAvailable {
+                                    timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
+                                        .autoconnect()
+                                        .sink { _ in
+                                            Feedback.shared.playTypingSound()
+                                            Feedback.shared.playHaptic(style: .light)
+                                            state.delegate?.inputLastHangeul()
+                                        }
                                 }
-                        },
-                        onLongPressFinished: {
-                            timer?.cancel()
-                        })
-                    .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
-                    .contentShape(Rectangle())
-                    
-                    SYKeyboardButton(
-                        text: "ㅣ", primary: true,
-                        onPress: {
-                            Feedback.shared.playTypingSound()
-                            Feedback.shared.playHaptic(style: .light)
-                        },
-                        onRelease: {
-                            state.delegate?.hangulKeypadTap(letter: "ㅣ")
-                        },
-                        onLongPress: {
-                            Feedback.shared.playTypingSound()
-                            Feedback.shared.playHaptic(style: .light)
-                            state.delegate?.hangulKeypadTap(letter: "ㅣ")
-                            timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
-                                .autoconnect()
-                                .sink { _ in
-                                    Feedback.shared.playTypingSound()
-                                    Feedback.shared.playHaptic(style: .light)
-                                    state.delegate?.inputLastHangeul()
-                                }
-                        },
-                        onLongPressFinished: {
-                            timer?.cancel()
-                        })
-                    .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
-                    .contentShape(Rectangle())
-                    
-                    SYKeyboardButton(
-                        systemName: "return.left", primary: false,
-                        onPress: {
-                            Feedback.shared.playModifierSound()
-                            Feedback.shared.playHaptic(style: .light)
-                        },
-                        onRelease: {
-                            state.delegate?.enterKeypadTap()
-                        },
-                        onLongPressFinished: {
-                            state.delegate?.enterKeypadTap()
-                        })
-                    .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: hPadding))
-                    .contentShape(Rectangle())
-                }
-                
-                // MARK: - 획, ㅡ, 쌍, (!#1, 􀆪)
-                HStack(spacing: 0) {
-                    SYKeyboardButton(
-                        text: "획", primary: true,
-                        onPress: {
-                            Feedback.shared.playTypingSound()
-                            Feedback.shared.playHaptic(style: .light)
-                        },
-                        onRelease: {
-                            state.delegate?.hoegKeypadTap()
-                        },
-                        onLongPress: {
-                            Feedback.shared.playTypingSound()
-                            Feedback.shared.playHaptic(style: .light)
-                            state.delegate?.hoegKeypadTap()
-                            if state.isHoegSsangAvailable {
+                            },
+                            onLongPressFinished: {
+                                timer?.cancel()
+                            })
+                        .padding(EdgeInsets(top: interItemVPadding, leading: hPadding, bottom: vPadding, trailing: interItemHPadding))
+                        .contentShape(Rectangle())
+                        
+                        SYKeyboardButton(
+                            text: "ㅡ", primary: true,
+                            onPress: {
+                                Feedback.shared.playTypingSound()
+                                Feedback.shared.playHaptic(style: .light)
+                            },
+                            onRelease: {
+                                state.delegate?.hangulKeypadTap(letter: "ㅡ")
+                            },
+                            onLongPress: {
+                                Feedback.shared.playTypingSound()
+                                Feedback.shared.playHaptic(style: .light)
+                                state.delegate?.hangulKeypadTap(letter: "ㅡ")
                                 timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
                                     .autoconnect()
                                     .sink { _ in
@@ -363,72 +431,79 @@ struct HangeulView: View {
                                         Feedback.shared.playHaptic(style: .light)
                                         state.delegate?.inputLastHangeul()
                                     }
-                            }
-                        },
-                        onLongPressFinished: {
-                            timer?.cancel()
-                        })
-                    .padding(EdgeInsets(top: interItemVPadding, leading: hPadding, bottom: vPadding, trailing: interItemHPadding))
-                    .contentShape(Rectangle())
-                    
-                    SYKeyboardButton(
-                        text: "ㅡ", primary: true,
-                        onPress: {
-                            Feedback.shared.playTypingSound()
-                            Feedback.shared.playHaptic(style: .light)
-                        },
-                        onRelease: {
-                            state.delegate?.hangulKeypadTap(letter: "ㅡ")
-                        },
-                        onLongPress: {
-                            Feedback.shared.playTypingSound()
-                            Feedback.shared.playHaptic(style: .light)
-                            state.delegate?.hangulKeypadTap(letter: "ㅡ")
-                            timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
-                                .autoconnect()
-                                .sink { _ in
-                                    Feedback.shared.playTypingSound()
-                                    Feedback.shared.playHaptic(style: .light)
-                                    state.delegate?.inputLastHangeul()
+                            },
+                            onLongPressFinished: {
+                                timer?.cancel()
+                            })
+                        .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: vPadding, trailing: interItemHPadding))
+                        .contentShape(Rectangle())
+                        
+                        SYKeyboardButton(
+                            text: "쌍", primary: true,
+                            onPress: {
+                                Feedback.shared.playTypingSound()
+                                Feedback.shared.playHaptic(style: .light)
+                            },
+                            onRelease: {
+                                state.delegate?.ssangKeypadTap()
+                            },
+                            onLongPress: {
+                                Feedback.shared.playTypingSound()
+                                Feedback.shared.playHaptic(style: .light)
+                                state.delegate?.ssangKeypadTap()
+                                if state.isHoegSsangAvailable {
+                                    timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
+                                        .autoconnect()
+                                        .sink { _ in
+                                            Feedback.shared.playTypingSound()
+                                            Feedback.shared.playHaptic(style: .light)
+                                            state.delegate?.inputLastHangeul()
+                                        }
                                 }
-                        },
-                        onLongPressFinished: {
-                            timer?.cancel()
-                        })
-                    .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: vPadding, trailing: interItemHPadding))
-                    .contentShape(Rectangle())
-                    
-                    SYKeyboardButton(
-                        text: "쌍", primary: true,
-                        onPress: {
-                            Feedback.shared.playTypingSound()
-                            Feedback.shared.playHaptic(style: .light)
-                        },
-                        onRelease: {
-                            state.delegate?.ssangKeypadTap()
-                        },
-                        onLongPress: {
-                            Feedback.shared.playTypingSound()
-                            Feedback.shared.playHaptic(style: .light)
-                            state.delegate?.ssangKeypadTap()
-                            if state.isHoegSsangAvailable {
-                                timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
-                                    .autoconnect()
-                                    .sink { _ in
-                                        Feedback.shared.playTypingSound()
+                            },
+                            onLongPressFinished: {
+                                timer?.cancel()
+                            })
+                        .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: vPadding, trailing: interItemHPadding))
+                        .contentShape(Rectangle())
+                        
+                        if state.needsInputModeSwitchKey {
+                            HStack(spacing: 0) {
+                                SYKeyboardButton(
+                                    text: "!#1", primary: false,
+                                    onPress: {
+                                        Feedback.shared.playModifierSound()
                                         Feedback.shared.playHaptic(style: .light)
-                                        state.delegate?.inputLastHangeul()
-                                    }
+                                    },
+                                    onRelease: {
+                                        state.currentInputType = .symbol
+                                    },
+                                    onLongPress: {
+                                        if isOneHandTypeEnabled {
+                                            state.selectedOneHandType = state.currentOneHandType
+                                            state.isSelectingOneHandType = true
+                                        }
+                                    },
+                                    onLongPressFinished: {
+                                        if state.isSelectingOneHandType {
+                                            state.currentOneHandType = state.selectedOneHandType!
+                                            currentOneHandType = state.selectedOneHandType!.rawValue
+                                            state.isSelectingOneHandType = false
+                                        } else {
+                                            state.currentInputType = .symbol
+                                        }
+                                    })
+                                .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: vPadding, trailing: interItemHPadding))
+                                .contentShape(Rectangle())
+                                
+                                NextKeyboardButton(
+                                    systemName: "globe",
+                                    action: state.nextKeyboardAction
+                                )
+                                .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: vPadding, trailing: hPadding))
+                                .contentShape(Rectangle())
                             }
-                        },
-                        onLongPressFinished: {
-                            timer?.cancel()
-                        })
-                    .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: vPadding, trailing: interItemHPadding))
-                    .contentShape(Rectangle())
-                    
-                    if state.needsInputModeSwitchKey {
-                        HStack(spacing: 0) {
+                        } else {
                             SYKeyboardButton(
                                 text: "!#1", primary: false,
                                 onPress: {
@@ -438,35 +513,28 @@ struct HangeulView: View {
                                 onRelease: {
                                     state.currentInputType = .symbol
                                 },
+                                onLongPress: {
+                                    if isOneHandTypeEnabled {
+                                        state.selectedOneHandType = state.currentOneHandType
+                                        state.isSelectingOneHandType = true
+                                    }
+                                },
                                 onLongPressFinished: {
-                                    state.currentInputType = .symbol
+                                    if state.isSelectingOneHandType {
+                                        state.currentOneHandType = state.selectedOneHandType!
+                                        currentOneHandType = state.selectedOneHandType!.rawValue
+                                        state.isSelectingOneHandType = false
+                                    } else {
+                                        state.currentInputType = .symbol
+                                    }
                                 })
-                            .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: vPadding, trailing: interItemHPadding))
-                            .contentShape(Rectangle())
-                            
-                            NextKeyboardButton(
-                                systemName: "globe",
-                                action: state.nextKeyboardAction
-                            )
                             .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: vPadding, trailing: hPadding))
                             .contentShape(Rectangle())
                         }
-                    } else {
-                        SYKeyboardButton(
-                            text: "!#1", primary: false,
-                            onPress: {
-                                Feedback.shared.playModifierSound()
-                                Feedback.shared.playHaptic(style: .light)
-                            },
-                            onRelease: {
-                                state.currentInputType = .symbol
-                            },
-                            onLongPressFinished: {
-                                state.currentInputType = .symbol
-                            })
-                        .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: vPadding, trailing: hPadding))
-                        .contentShape(Rectangle())
                     }
+                }
+                if isOneHandTypeEnabled && state.currentOneHandType == .left {
+                    ChevronButton(isLeftHandMode: true, geometry: geometry)
                 }
             }
         }

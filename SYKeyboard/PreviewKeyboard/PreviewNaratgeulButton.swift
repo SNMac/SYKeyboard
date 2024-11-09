@@ -39,63 +39,7 @@ struct PreviewNaratgeulButton: View {
     var onLongPressFinished: (() -> Void)?
     
     private func dragOnChanged(value: DragGesture.Value) {  // 버튼 드래그 할 때 호출
-        if text == "123" || text == "!#1" || text == "한글" {  // 자판 전환 버튼
-            if nowGesture != .dragging {  // 드래그 시작
-                dragStartWidth = value.translation.width
-                nowGesture = .dragging
-            } else {  // 드래그 중
-                if !isCursorMovable {
-                    let dragWidthDiff = value.translation.width - dragStartWidth
-                    // 특정 방향으로 일정 거리 초과 드래그 -> 다른 자판으로 변경
-                    if state.currentInputType == .hangeul {  // 한글 자판
-                        if isNumberKeyboardTypeEnabled {
-                            if dragWidthDiff < -30 && state.selectedInputType != .number {
-                                state.isSelectingInputType = true
-                                state.selectedInputType = .number
-                                Feedback.shared.playHapticByForce(style: .medium)
-                            } else if state.isSelectingInputType && state.selectedInputType != .symbol && (dragWidthDiff > -25 && dragWidthDiff < -5) {
-                                state.selectedInputType = .symbol
-                                Feedback.shared.playHapticByForce(style: .medium)
-                            } else if state.isSelectingInputType && state.selectedInputType != .hangeul && dragWidthDiff > 0 {
-                                state.selectedInputType = .hangeul
-                                Feedback.shared.playHapticByForce(style: .medium)
-                            }
-                        } else {
-                            isCursorMovable = true
-                        }
-                    } else if state.currentInputType == .number {  // 숫자 자판
-                        if dragWidthDiff < -30 && state.selectedInputType != .symbol {
-                            state.isSelectingInputType = true
-                            state.selectedInputType = .symbol
-                            Feedback.shared.playHapticByForce(style: .medium)
-                        } else if state.isSelectingInputType && state.selectedInputType != .hangeul && (dragWidthDiff > -25 && dragWidthDiff < -5) {
-                            state.selectedInputType = .hangeul
-                            Feedback.shared.playHapticByForce(style: .medium)
-                        } else if state.isSelectingInputType && state.selectedInputType != .number && dragWidthDiff > 0 {
-                            state.selectedInputType = .number
-                            Feedback.shared.playHapticByForce(style: .medium)
-                        }
-                    } else if state.currentInputType == .symbol {  // 기호 자판
-                        if isNumberKeyboardTypeEnabled {
-                            if dragWidthDiff > 30 && state.selectedInputType != .number {
-                                state.isSelectingInputType = true
-                                state.selectedInputType = .number
-                                Feedback.shared.playHapticByForce(style: .medium)
-                            } else if state.isSelectingInputType && state.selectedInputType != .hangeul && (dragWidthDiff < 25 && dragWidthDiff > 5) {
-                                state.selectedInputType = .hangeul
-                                Feedback.shared.playHapticByForce(style: .medium)
-                            } else if state.selectedInputType != .symbol && dragWidthDiff < 0 {
-                                state.selectedInputType = .symbol
-                                Feedback.shared.playHapticByForce(style: .medium)
-                            }
-                        } else {
-                            isCursorMovable = true
-                        }
-                    }
-                }
-            }
-            
-        } else if primary {  // 글자 버튼에서만 드래그 가능
+        if primary {  // 글자 버튼에서만 드래그 가능
             if nowGesture != .dragging {  // 드래그 시작
                 dragStartWidth = value.translation.width
                 nowGesture = .dragging
@@ -131,11 +75,6 @@ struct PreviewNaratgeulButton: View {
         isCursorMovable = false
         nowGesture = .released
         state.nowPressedButton = nil
-        state.isSelectingInputType = false
-        if let targetInputType = state.selectedInputType {
-            state.selectedInputType = nil
-            state.currentInputType = targetInputType
-        }
     }
     
     private func longPressOnChanged() {  // 버튼 눌렀을 때 호출(버튼 누르면 무조건 첫번째로 호출)
@@ -178,12 +117,19 @@ struct PreviewNaratgeulButton: View {
                         .clipShape(.rect(cornerRadius: 5))
                     
                     // 그 외 버튼
-                } else {
-                    Image(systemName: nowGesture == .pressing || nowGesture == .longPressing ? systemName! + ".fill" : systemName!)
+                } else if systemName == "delete.left" {
+                    Image(systemName: nowGesture == .pressing || nowGesture == .longPressing ? "delete.left.fill" : "delete.left")
                         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
                         .font(.system(size: imageSize))
                         .foregroundStyle(Color(uiColor: UIColor.label))
                         .background(nowGesture == .pressing || nowGesture == .longPressing ? Color("PrimaryKeyboardButton") : Color("SecondaryKeyboardButton"))
+                        .clipShape(.rect(cornerRadius: 5))
+                } else {
+                    Image(systemName: systemName!)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+                        .font(.system(size: imageSize))
+                        .foregroundStyle(Color(uiColor: UIColor.label))
+                        .background(nowGesture == .pressing || nowGesture == .longPressing ? Color("PrimaryKeyboardButton") : Color("SecondaryKeyboardButton") )
                         .clipShape(.rect(cornerRadius: 5))
                 }
                 
@@ -211,59 +157,6 @@ struct PreviewNaratgeulButton: View {
                             .backgroundStyle(Color(uiColor: .clear))
                             .padding(EdgeInsets(top: 0, leading: 2, bottom: 2, trailing: 0))
                         })
-                } else if text == "한글" {
-                    // 기호 자판
-                    if state.currentInputType == .symbol {
-                        Text("한글")
-                            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
-                            .font(.system(size: needsInputModeSwitchKey ? textSize - 2 : textSize))
-                            .foregroundStyle(Color(uiColor: UIColor.label))
-                            .background(nowGesture == .pressing || nowGesture == .longPressing ? Color("PrimaryKeyboardButton") : Color("SecondaryKeyboardButton"))
-                            .clipShape(.rect(cornerRadius: 5))
-                            .overlay(alignment: .bottomTrailing, content: {
-                                HStack(spacing: 1) {
-                                    if isNumberKeyboardTypeEnabled {
-                                        Text("123")
-                                        Image(systemName: "arrowtriangle.right.fill")
-                                    }
-                                }
-                                .monospaced()
-                                .font(.system(size: 10))
-                                .foregroundStyle(Color(uiColor: .label))
-                                .backgroundStyle(Color(uiColor: .clear))
-                                .padding(EdgeInsets(top: 0, leading: 0, bottom: 2, trailing: 2))
-                            })
-                    } else if state.currentInputType == .number {
-                        // 숫자 자판
-                        Text("한글")
-                            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
-                            .font(.system(size: needsInputModeSwitchKey ? textSize - 2 : textSize))
-                            .foregroundStyle(Color(uiColor: UIColor.label))
-                            .background(nowGesture == .pressing || nowGesture == .longPressing ? Color("PrimaryKeyboardButton") : Color("SecondaryKeyboardButton"))
-                            .clipShape(.rect(cornerRadius: 5))
-                            .overlay(alignment: .bottomLeading, content: {
-                                HStack(spacing: 1) {
-                                    if isNumberKeyboardTypeEnabled {
-                                        Image(systemName: "arrowtriangle.left.fill")
-                                        Text("!#1")
-                                    }
-                                }
-                                .monospaced()
-                                .font(.system(size: 10))
-                                .foregroundStyle(Color(uiColor: .label))
-                                .backgroundStyle(Color(uiColor: .clear))
-                                .padding(EdgeInsets(top: 0, leading: 2, bottom: 2, trailing: 0))
-                            })
-                    }
-                    
-                } else if text == "\(state.nowSymbolPage + 1)/\(state.totalSymbolPage)" {
-                    Text("\(state.nowSymbolPage + 1)/\(state.totalSymbolPage)")
-                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
-                        .monospaced()
-                        .font(.system(size: textSize - 2))
-                        .foregroundStyle(Color(uiColor: UIColor.label))
-                        .background(Color("SecondaryKeyboardButton"))
-                        .clipShape(.rect(cornerRadius: 5))
                 } else {
                     Text(text!)
                         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)

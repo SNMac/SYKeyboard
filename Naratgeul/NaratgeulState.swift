@@ -8,6 +8,12 @@
 import Foundation
 import SwiftUI
 
+enum OneHandType: Int {
+    case left
+    case center
+    case right
+}
+
 enum InputType {
     case hangeul
     case symbol
@@ -40,13 +46,16 @@ enum ReturnButtonType: String {
 
 final class NaratgeulState: ObservableObject {
     @Published var currentInputType: InputType = .hangeul
+    @Published var isSelectingInputType: Bool = false
+    @Published var selectedInputType: InputType?
+    @Published var currentOneHandType: OneHandType = .center
+    @Published var isSelectingOneHandType: Bool = false
+    @Published var selectedOneHandType: OneHandType?
     @Published var currentKeyboardType: KeyboardType = ._default
     @Published var returnButtonType: ReturnButtonType = ._default
     @Published var isHoegSsangAvailable: Bool = false
     @Published var nowSymbolPage: Int = 0
     @Published var totalSymbolPage: Int = 0
-    @Published var isSelectingInputType: Bool = false
-    @Published var selectedInputType: InputType?
     
     var nowPressedButton: SYKeyboardButton?
     var swift6_nowPressedButton: Swift6_NaratgeulButton?

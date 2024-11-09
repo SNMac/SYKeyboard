@@ -60,31 +60,13 @@ struct HeightSettingsView: View {
             
             ZStack {
                 if #available(iOS 18, *) {
-                    if state.currentInputType == .hangeul {
-                        Swift6_PreviewHangeulView(tempKeyboardHeight: $tempKeyboardHeight)
-                    } else if state.currentInputType == .number {
-                        Swift6_PreviewNumberView(tempKeyboardHeight: $tempKeyboardHeight)
-                    } else {
-                        Swift6_PreviewSymbolView(tempKeyboardHeight: $tempKeyboardHeight)
-                    }
-                    
+                    Swift6_PreviewHangeulView(tempKeyboardHeight: $tempKeyboardHeight)
                 } else {
-                    if state.currentInputType == .hangeul {
-                        PreviewHangeulView(tempKeyboardHeight: $tempKeyboardHeight)
-                    } else if state.currentInputType == .number {
-                        PreviewNumberView(tempKeyboardHeight: $tempKeyboardHeight)
-                    } else {
-                        PreviewSymbolView(tempKeyboardHeight: $tempKeyboardHeight)
-                    }
-                }
-                
-                if isNumberKeyboardTypeEnabled && state.isSelectingInputType {
-                    PreviewInputTypeSelectView()
+                    PreviewHangeulView(tempKeyboardHeight: $tempKeyboardHeight)
                 }
             }
         }.onAppear {
             tempKeyboardHeight = keyboardHeight
-            state.currentInputType = .hangeul
         }
     }
 }
