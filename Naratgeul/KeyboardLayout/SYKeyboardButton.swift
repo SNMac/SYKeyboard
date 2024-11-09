@@ -51,19 +51,20 @@ struct SYKeyboardButton: View {
                     let dragYLocation = value.location.y
                     // 특정 방향으로 일정 거리 초과 드래그 -> 한손 키보드 변경
                     if state.isSelectingOneHandType {
-                        if dragXLocation > state.oneHandButtonMinXPosition[0] && dragXLocation < state.oneHandButtonMaxXPosition[0]
-                            && dragYLocation > state.oneHandButtonMinYPosition[0] && dragYLocation < state.oneHandButtonMaxYPosition[0] {
+                        if state.selectedOneHandType != .left && (dragXLocation > state.oneHandButtonMinXPosition[0] && dragXLocation < state.oneHandButtonMaxXPosition[0]
+                                                                  && dragYLocation > state.oneHandButtonMinYPosition[0] && dragYLocation < state.oneHandButtonMaxYPosition[0]) {
                             state.selectedOneHandType = .left
                             Feedback.shared.playHapticByForce(style: .medium)
-                        } else if dragXLocation > state.oneHandButtonMaxXPosition[0] && dragXLocation < state.oneHandButtonMinXPosition[2]
-                                    && dragYLocation > state.oneHandButtonMinYPosition[1] && dragYLocation < state.oneHandButtonMaxYPosition[1] {
+                        } else if state.selectedOneHandType != .center && (dragXLocation >= state.oneHandButtonMaxXPosition[0] && dragXLocation <= state.oneHandButtonMinXPosition[2]
+                                                                           && dragYLocation >= state.oneHandButtonMinYPosition[1] && dragYLocation <= state.oneHandButtonMaxYPosition[1]) {
                             state.selectedOneHandType = .center
                             Feedback.shared.playHapticByForce(style: .medium)
-                        } else if dragXLocation > state.oneHandButtonMinXPosition[2] && dragXLocation < state.oneHandButtonMaxXPosition[2]
-                                    && dragYLocation > state.oneHandButtonMinYPosition[2] && dragYLocation < state.oneHandButtonMaxYPosition[2] {
+                        } else if state.selectedOneHandType != .right && (dragXLocation > state.oneHandButtonMinXPosition[2] && dragXLocation < state.oneHandButtonMaxXPosition[2]
+                                                                          && dragYLocation > state.oneHandButtonMinYPosition[2] && dragYLocation < state.oneHandButtonMaxYPosition[2]) {
                             state.selectedOneHandType = .right
                             Feedback.shared.playHapticByForce(style: .medium)
-                        } else {
+                        } else if dragXLocation < state.oneHandButtonMinXPosition[0] || dragXLocation > state.oneHandButtonMaxXPosition[2]
+                                    || dragYLocation < state.oneHandButtonMinYPosition[0] || dragYLocation > state.oneHandButtonMaxYPosition[2] {
                             state.selectedOneHandType = state.currentOneHandType
                         }
                     }
@@ -114,7 +115,7 @@ struct SYKeyboardButton: View {
                             }
                         }
                         
-                       
+                        
                     } else if state.currentInputType == .symbol {  // 기호 자판
                         if isNumberKeyboardTypeEnabled {
                             // 오른쪽으로 화면 너비 1/4 초과 드래그 -> 다른 자판으로 변경
