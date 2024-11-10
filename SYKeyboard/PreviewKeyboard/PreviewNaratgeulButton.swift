@@ -17,12 +17,11 @@ enum Gestures {
 struct PreviewNaratgeulButton: View {
     @EnvironmentObject var state: PreviewNaratgeulState
     @AppStorage("longPressSpeed", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var longPressSpeed = 0.6
-    @AppStorage("cursorActiveWidth", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var cursorActiveWidth = 20.0
+    @AppStorage("cursorActiveWidth", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var cursorActiveWidth = 30.0
     @AppStorage("cursorMoveWidth", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var cursorMoveWidth = 20.0
     @AppStorage("needsInputModeSwitchKey", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var needsInputModeSwitchKey = false
     @AppStorage("isNumberKeyboardTypeEnabled", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var isNumberKeyboardTypeEnabled = true
     @State private var nowGesture: Gestures = .released
-    @State private var isCursorMovable: Bool = false
     @State private var dragStartWidth: Double = 0.0
     
     var text: String?
@@ -43,36 +42,29 @@ struct PreviewNaratgeulButton: View {
             if nowGesture != .dragging {  // 드래그 시작
                 dragStartWidth = value.translation.width
                 nowGesture = .dragging
-            } else {  // 드래그 중
-                if !isCursorMovable {
-                    // 일정 거리 초과/미만 드래그 -> 커서 이동 활성화
-                    let dragWidthDiff = value.translation.width - dragStartWidth
-                    if dragWidthDiff < -cursorActiveWidth || dragWidthDiff > cursorActiveWidth {
-                        isCursorMovable = true
-                        dragStartWidth = value.translation.width
-                    }
-                }
+            }
+            // 일정 거리 초과/미만 드래그 -> 커서 이동 활성화
+            let dragWidthDiff = value.translation.width - dragStartWidth
+            if dragWidthDiff < -cursorActiveWidth || dragWidthDiff > cursorActiveWidth {
+                dragStartWidth = value.translation.width
             }
         }
-        if isCursorMovable {  // 커서 이동 활성화 됐을 때
-            // 일정 거리 초과/미만 드래그 -> 커서를 한칸씩 드래그한 방향으로 이동
-            let dragDiff = value.translation.width - dragStartWidth
-            if dragDiff < -cursorMoveWidth {
-                dragStartWidth = value.translation.width
-                Feedback.shared.playHapticByForce(style: .light)
-            } else if dragDiff > cursorMoveWidth {
-                dragStartWidth = value.translation.width
-                Feedback.shared.playHapticByForce(style: .light)
-            }
+        // 일정 거리 초과/미만 드래그 -> 커서를 한칸씩 드래그한 방향으로 이동
+        let dragDiff = value.translation.width - dragStartWidth
+        if dragDiff < -cursorMoveWidth {
+            dragStartWidth = value.translation.width
+            Feedback.shared.playHapticByForce(style: .light)
+        } else if dragDiff > cursorMoveWidth {
+            dragStartWidth = value.translation.width
+            Feedback.shared.playHapticByForce(style: .light)
         }
     }
     
     private func dragOnEnded() {  // 버튼 뗐을 때
-        if !isCursorMovable {
-            // 드래그를 일정 거리에 못미치게 했을 경우(터치 오차) 무시하고 글자가 입력되도록 함
+        if nowGesture != .dragging {
+            // 드래그 했을 경우 onRelease 실행 X
             onRelease?()
         }
-        isCursorMovable = false
         nowGesture = .released
         state.nowPressedButton = nil
     }
@@ -144,19 +136,6 @@ struct PreviewNaratgeulButton: View {
                         .foregroundStyle(Color(uiColor: UIColor.label))
                         .background(nowGesture == .pressing || nowGesture == .longPressing ? Color("PrimaryKeyboardButton") : Color("SecondaryKeyboardButton"))
                         .clipShape(.rect(cornerRadius: 5))
-                        .overlay(alignment: .bottomLeading, content: {
-                            HStack(spacing: 1) {
-                                if isNumberKeyboardTypeEnabled {
-                                    Image(systemName: "arrowtriangle.left.fill")
-                                    Text("123")
-                                }
-                            }
-                            .monospaced()
-                            .font(.system(size: 10))
-                            .foregroundStyle(Color(uiColor: .label))
-                            .backgroundStyle(Color(uiColor: .clear))
-                            .padding(EdgeInsets(top: 0, leading: 2, bottom: 2, trailing: 0))
-                        })
                 } else {
                     Text(text!)
                         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
@@ -170,7 +149,7 @@ struct PreviewNaratgeulButton: View {
         .compositingGroup()
         .shadow(color: Color("KeyboardButtonShadow"), radius: 0, x: 0, y: 1)
         .gesture(
-            DragGesture(minimumDistance: 0)
+            DragGesture(minimumDistance: cursorActiveWidth)
             // 버튼 드래그 할 때 호출
                 .onChanged { value in
                     print("DragGesture() onChanged")
@@ -188,7 +167,7 @@ struct PreviewNaratgeulButton: View {
                 }
         )
         .highPriorityGesture(
-            LongPressGesture(minimumDuration: longPressTime)
+            LongPressGesture(minimumDuration: longPressTime, maximumDistance: cursorActiveWidth)
             // 버튼 눌렀을 때 호출(버튼 누르면 무조건 첫번째로 호출)
                 .onChanged { _ in
                     print("LongPressGesture() onChanged")

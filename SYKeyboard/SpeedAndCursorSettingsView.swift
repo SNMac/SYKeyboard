@@ -10,7 +10,7 @@ import SwiftUI
 struct SpeedAndCursorSettingsView: View {
     @AppStorage("longPressSpeed", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var longPressSpeed = 0.5
     @AppStorage("repeatTimerSpeed", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var repeatTimerSpeed = 0.05
-    @AppStorage("cursorActiveWidth", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var cursorActiveWidth = 20.0
+    @AppStorage("cursorActiveWidth", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var cursorActiveWidth = 30.0
     @AppStorage("cursorMoveWidth", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var cursorMoveWidth = 5.0
     
     var longPressSpeedSetting: some View {
@@ -61,7 +61,7 @@ struct SpeedAndCursorSettingsView: View {
                 .frame(alignment: .leading)
             Spacer()
             Text("\(cursorActiveWidth, specifier: "%.1f")")
-            Slider(value: $cursorActiveWidth, in: 5.0...35.0, step: 1.0) { _ in
+            Slider(value: $cursorActiveWidth, in: 10.0...50.0, step: 2.0) { _ in
                 hideKeyboard()
             }.frame(width: 140)
             

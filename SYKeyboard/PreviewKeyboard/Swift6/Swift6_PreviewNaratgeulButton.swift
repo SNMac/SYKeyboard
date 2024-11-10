@@ -10,12 +10,11 @@ import SwiftUI
 struct Swift6_PreviewNaratgeulButton: View {
     @EnvironmentObject var state: PreviewNaratgeulState
     @AppStorage("longPressSpeed", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var longPressSpeed = 0.6
-    @AppStorage("cursorActiveWidth", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var cursorActiveWidth = 20.0
+    @AppStorage("cursorActiveWidth", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var cursorActiveWidth = 30.0
     @AppStorage("cursorMoveWidth", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var cursorMoveWidth = 5.0
     @AppStorage("needsInputModeSwitchKey", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var needsInputModeSwitchKey = false
     @AppStorage("isNumberKeyboardTypeEnabled", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var isNumberKeyboardTypeEnabled = true
     @State var nowGesture: Gestures = .released
-    @State private var isCursorMovable: Bool = false
     @State private var dragStartWidth: Double = 0.0
     
     var text: String?
@@ -37,36 +36,30 @@ struct Swift6_PreviewNaratgeulButton: View {
             if nowGesture != .dragging {  // 드래그 시작
                 dragStartWidth = value.translation.width
                 nowGesture = .dragging
-            } else {  // 드래그 중
-                if !isCursorMovable {
-                    // 일정 거리 초과 드래그 -> 커서 이동 활성화
-                    let dragWidthDiff = value.translation.width - dragStartWidth
-                    if dragWidthDiff < -cursorActiveWidth || dragWidthDiff > cursorActiveWidth {
-                        isCursorMovable = true
-                        dragStartWidth = value.translation.width
-                    }
-                }
             }
-            if isCursorMovable {  // 커서 이동 활성화 됐을 때
-                // 일정 거리 초과 드래그 -> 커서를 한칸씩 드래그한 방향으로 이동
-                let dragDiff = value.translation.width - dragStartWidth
-                if dragDiff < -cursorMoveWidth {
-                    dragStartWidth = value.translation.width
-                    Feedback.shared.playHapticByForce(style: .light)
-                } else if dragDiff > cursorMoveWidth {
-                    dragStartWidth = value.translation.width
-                    Feedback.shared.playHapticByForce(style: .light)
-                }
+            
+            // 일정 거리 초과 드래그 -> 커서 이동 활성화
+            let dragWidthDiff = value.translation.width - dragStartWidth
+            if dragWidthDiff < -cursorActiveWidth || dragWidthDiff > cursorActiveWidth {
+                dragStartWidth = value.translation.width
+            }
+            // 일정 거리 초과 드래그 -> 커서를 한칸씩 드래그한 방향으로 이동
+            let dragDiff = value.translation.width - dragStartWidth
+            if dragDiff < -cursorMoveWidth {
+                dragStartWidth = value.translation.width
+                Feedback.shared.playHapticByForce(style: .light)
+            } else if dragDiff > cursorMoveWidth {
+                dragStartWidth = value.translation.width
+                Feedback.shared.playHapticByForce(style: .light)
             }
         }
     }
     
     private func onReleased() {  // 버튼 뗐을 때
-        if !isCursorMovable {
-            // 드래그를 일정 거리에 못미치게 했을 경우(터치 오차) 무시하고 글자가 입력되도록 함
+        if nowGesture != .dragging {
+            // 드래그 했을 경우 onRelease 실행 X
             onRelease?()
         }
-        isCursorMovable = false
         nowGesture = .released
         state.swift6_nowPressedButton = nil
     }
@@ -135,7 +128,7 @@ struct Swift6_PreviewNaratgeulButton: View {
     var body: some View {
         let longPressTime = 1.0 - longPressSpeed
         
-        let dragGesture = DragGesture(minimumDistance: 10)
+        let dragGesture = DragGesture(minimumDistance: cursorActiveWidth)
         // 버튼 드래그 할 때 호출
             .onChanged { value in
                 print("DragGesture() onChanged")
@@ -159,7 +152,7 @@ struct Swift6_PreviewNaratgeulButton: View {
                     .background(nowGesture == .pressing || nowGesture == .longPressing ? Color("PrimaryKeyboardButton") : Color("SecondaryKeyboardButton"))
                     .clipShape(.rect(cornerRadius: 5))
                     .shadow(color: Color("KeyboardButtonShadow"), radius: 0, x: 0, y: 1)
-                    .onLongPressGesture(minimumDuration: longPressTime) {
+                    .onLongPressGesture(minimumDuration: longPressTime, maximumDistance: cursorActiveWidth) {
                         // 버튼 길게 누르면(누른 상태에서 일정시간이 지나면) 호출
                         print("onLongPressGesture()->perform: longPressing")
                         onLongPressGesturePerform()
@@ -185,7 +178,7 @@ struct Swift6_PreviewNaratgeulButton: View {
                     .background(nowGesture == .pressing || nowGesture == .longPressing ? Color("SecondaryKeyboardButton") : Color("PrimaryKeyboardButton") )
                     .clipShape(.rect(cornerRadius: 5))
                     .shadow(color: Color("KeyboardButtonShadow"), radius: 0, x: 0, y: 1)
-                    .onLongPressGesture(minimumDuration: longPressTime) {
+                    .onLongPressGesture(minimumDuration: longPressTime, maximumDistance: cursorActiveWidth) {
                         // 버튼 길게 누르면(누른 상태에서 일정시간이 지나면) 호출
                         print("onLongPressGesture()->perform: longPressing")
                         onLongPressGesturePerform()
@@ -211,7 +204,7 @@ struct Swift6_PreviewNaratgeulButton: View {
                     .background(nowGesture == .pressing || nowGesture == .longPressing ? Color("PrimaryKeyboardButton") : Color("SecondaryKeyboardButton"))
                     .clipShape(.rect(cornerRadius: 5))
                     .shadow(color: Color("KeyboardButtonShadow"), radius: 0, x: 0, y: 1)
-                    .onLongPressGesture(minimumDuration: longPressTime) {
+                    .onLongPressGesture(minimumDuration: longPressTime, maximumDistance: cursorActiveWidth) {
                         // 버튼 길게 누르면(누른 상태에서 일정시간이 지나면) 호출
                         print("onLongPressGesture()->perform: longPressing")
                         onLongPressGesturePerform()
@@ -235,7 +228,7 @@ struct Swift6_PreviewNaratgeulButton: View {
                     .background(nowGesture == .pressing || nowGesture == .longPressing ? Color("PrimaryKeyboardButton") : Color("SecondaryKeyboardButton") )
                     .clipShape(.rect(cornerRadius: 5))
                     .shadow(color: Color("KeyboardButtonShadow"), radius: 0, x: 0, y: 1)
-                    .onLongPressGesture(minimumDuration: longPressTime) {
+                    .onLongPressGesture(minimumDuration: longPressTime, maximumDistance: cursorActiveWidth) {
                         // 버튼 길게 누르면(누른 상태에서 일정시간이 지나면) 호출
                         print("onLongPressGesture()->perform: longPressing")
                         onLongPressGesturePerform()
@@ -265,20 +258,7 @@ struct Swift6_PreviewNaratgeulButton: View {
                     .background(nowGesture == .pressing || nowGesture == .longPressing ? Color("PrimaryKeyboardButton") : Color("SecondaryKeyboardButton"))
                     .clipShape(.rect(cornerRadius: 5))
                     .shadow(color: Color("KeyboardButtonShadow"), radius: 0, x: 0, y: 1)
-                    .overlay(alignment: .bottomLeading, content: {
-                        HStack(spacing: 1) {
-                            if isNumberKeyboardTypeEnabled {
-                                Image(systemName: "arrowtriangle.left.fill")
-                                Text("123")
-                            }
-                        }
-                        .monospaced()
-                        .font(.system(size: 10))
-                        .foregroundStyle(Color(uiColor: .label))
-                        .backgroundStyle(Color(uiColor: .clear))
-                        .padding(EdgeInsets(top: 0, leading: 2, bottom: 2, trailing: 0))
-                    })
-                    .onLongPressGesture(minimumDuration: longPressTime) {
+                    .onLongPressGesture(minimumDuration: longPressTime, maximumDistance: cursorActiveWidth) {
                         // 버튼 길게 누르면(누른 상태에서 일정시간이 지나면) 호출
                         print("onLongPressGesture()->perform: longPressing")
                         onLongPressGesturePerform()
@@ -302,7 +282,7 @@ struct Swift6_PreviewNaratgeulButton: View {
                     .background(nowGesture == .pressing || nowGesture == .longPressing ? Color("SecondaryKeyboardButton") : Color("PrimaryKeyboardButton"))
                     .clipShape(.rect(cornerRadius: 5))
                     .shadow(color: Color("KeyboardButtonShadow"), radius: 0, x: 0, y: 1)
-                    .onLongPressGesture(minimumDuration: longPressTime) {
+                    .onLongPressGesture(minimumDuration: longPressTime, maximumDistance: cursorActiveWidth) {
                         // 버튼 길게 누르면(누른 상태에서 일정시간이 지나면) 호출
                         print("onLongPressGesture()->perform: longPressing")
                         onLongPressGesturePerform()
