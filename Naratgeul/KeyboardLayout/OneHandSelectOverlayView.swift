@@ -10,14 +10,14 @@ import SwiftUI
 struct OneHandSelectOverlayView: View {
     @EnvironmentObject var state: NaratgeulState
     
-    let frameWidth: CGFloat = 180
-    let interItemSpacing: CGFloat = 5
-    let fontSize: Double = 20
+    let frameWidth: CGFloat = 240
+    let interItemSpacing: CGFloat = 10
+    let fontSize: Double = 28
     
     var body: some View {
-        let overlayWidth = state.currentOneHandType == .center ? frameWidth : frameWidth - frameWidth / 6
+        let overlayWidth: CGFloat = state.currentOneHandType == .center ? frameWidth : frameWidth / 5 * 4
         HStack(spacing: interItemSpacing) {
-            Image(systemName: state.selectedOneHandType == .left ? "keyboard.onehanded.left.fill" : "keyboard.onehanded.left")
+            Image(systemName: "keyboard.onehanded.left")
                 .font(.system(size: fontSize))
                 .frame(width: (overlayWidth - interItemSpacing * 4) / 3, height: state.keyboardHeight / 4 - 20)
                 .foregroundStyle(state.selectedOneHandType == .left ? Color.white : Color(uiColor: .label))
@@ -34,7 +34,7 @@ struct OneHandSelectOverlayView: View {
                     }
                 }
             
-            Image(systemName: state.selectedOneHandType == .center ? "keyboard.fill" : "keyboard")
+            Image(systemName: "keyboard")
                 .font(.system(size: fontSize))
                 .frame(width: (overlayWidth - interItemSpacing * 4) / 3, height: state.keyboardHeight / 4 - 20)
                 .foregroundStyle(state.selectedOneHandType == .center ? Color.white : Color(uiColor: .label))
@@ -51,7 +51,7 @@ struct OneHandSelectOverlayView: View {
                     }
                 }
             
-            Image(systemName: state.selectedOneHandType == .right ? "keyboard.onehanded.right.fill" : "keyboard.onehanded.right")
+            Image(systemName: "keyboard.onehanded.right")
                 .font(.system(size: fontSize))
                 .frame(width: (overlayWidth - interItemSpacing * 4) / 3, height: state.keyboardHeight / 4 - 20)
                 .foregroundStyle(state.selectedOneHandType == .right ? Color.white : Color(uiColor: .label))

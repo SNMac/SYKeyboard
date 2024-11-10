@@ -773,8 +773,21 @@ struct Swift6_WebSearchSymbolView: View {
                                             onRelease: {
                                                 state.currentInputType = .hangeul
                                             },
+                                            onLongPress: {
+                                                if isOneHandTypeEnabled {
+                                                    state.selectedOneHandType = state.currentOneHandType
+                                                    state.isSelectingOneHandType = true
+                                                    Feedback.shared.playHaptic(style: .light)
+                                                }
+                                            },
                                             onLongPressFinished: {
-                                                state.currentInputType = .hangeul
+                                                if state.isSelectingOneHandType {
+                                                    state.currentOneHandType = state.selectedOneHandType
+                                                    currentOneHandType = state.selectedOneHandType.rawValue
+                                                    state.isSelectingOneHandType = false
+                                                } else {
+                                                    state.currentInputType = .hangeul
+                                                }
                                             })
                                         .padding(EdgeInsets(top: interItemVPadding, leading: hPadding, bottom: vPadding, trailing: interItemHPadding))
                                         .contentShape(Rectangle())
@@ -796,8 +809,21 @@ struct Swift6_WebSearchSymbolView: View {
                                         onRelease: {
                                             state.currentInputType = .hangeul
                                         },
+                                        onLongPress: {
+                                            if isOneHandTypeEnabled {
+                                                state.selectedOneHandType = state.currentOneHandType
+                                                state.isSelectingOneHandType = true
+                                                Feedback.shared.playHaptic(style: .light)
+                                            }
+                                        },
                                         onLongPressFinished: {
-                                            state.currentInputType = .hangeul
+                                            if state.isSelectingOneHandType {
+                                                state.currentOneHandType = state.selectedOneHandType
+                                                currentOneHandType = state.selectedOneHandType.rawValue
+                                                state.isSelectingOneHandType = false
+                                            } else {
+                                                state.currentInputType = .hangeul
+                                            }
                                         })
                                     .padding(EdgeInsets(top: interItemVPadding, leading: hPadding, bottom: vPadding, trailing: interItemHPadding))
                                     .contentShape(Rectangle())
@@ -879,12 +905,12 @@ struct Swift6_WebSearchSymbolView: View {
                         
                         if state.isSelectingInputType {
                             InputTypeSelectOverlayView()
-                                .offset(x: geometry.size.width / 16, y: state.keyboardHeight / 8)
+                                .offset(x: interItemHPadding, y: state.keyboardHeight / 8)
                         }
                         
                         if state.isSelectingOneHandType {
                             OneHandSelectOverlayView()
-                                .offset(x: geometry.size.width / 40, y: state.keyboardHeight / 8)
+                                .offset(x: interItemHPadding, y: state.keyboardHeight / 8)
                         }
                     }
                 }

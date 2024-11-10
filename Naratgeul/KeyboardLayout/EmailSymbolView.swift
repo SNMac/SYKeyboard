@@ -688,6 +688,7 @@ struct EmailSymbolView: View {
                                                 if isOneHandTypeEnabled {
                                                     state.selectedOneHandType = state.currentOneHandType
                                                     state.isSelectingOneHandType = true
+                                                    Feedback.shared.playHaptic(style: .light)
                                                 }
                                             },
                                             onLongPressFinished: {
@@ -723,6 +724,7 @@ struct EmailSymbolView: View {
                                             if isOneHandTypeEnabled {
                                                 state.selectedOneHandType = state.currentOneHandType
                                                 state.isSelectingOneHandType = true
+                                                Feedback.shared.playHaptic(style: .light)
                                             }
                                         },
                                         onLongPressFinished: {
@@ -828,12 +830,12 @@ struct EmailSymbolView: View {
                         }
                         if state.isSelectingInputType {
                             InputTypeSelectOverlayView()
-                                .offset(x: geometry.size.width / 16, y: state.keyboardHeight / 8)
+                                .offset(x: interItemHPadding, y: state.keyboardHeight / 8)
                         }
                         
                         if state.isSelectingOneHandType {
                             OneHandSelectOverlayView()
-                                .offset(x: geometry.size.width / 40, y: state.keyboardHeight / 8)
+                                .offset(x: interItemHPadding, y: state.keyboardHeight / 8)
                         }
                     }
                 }
