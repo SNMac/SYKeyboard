@@ -22,6 +22,7 @@ struct SYKeyboardButton: View {
     @AppStorage("cursorActiveWidth", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var cursorActiveWidth = 20.0
     @AppStorage("cursorMoveWidth", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var cursorMoveWidth = 5.0
     @AppStorage("isNumberKeyboardTypeEnabled", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var isNumberKeyboardTypeEnabled = true
+    @AppStorage("isOneHandTypeEnabled", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var isOneHandTypeEnabled = true
     @State var nowGesture: Gestures = .released
     @State private var isCursorMovable: Bool = false
     @State private var dragStartWidth: Double = 0.0
@@ -86,13 +87,25 @@ struct SYKeyboardButton: View {
                     let dragXLocation = value.location.x
                     let dragYLocation = value.location.y
                     if state.currentInputType == .hangeul {  // 한글 자판
-                        if isNumberKeyboardTypeEnabled {
-                            // 왼쪽으로 키보드 너비 3/4 초과 드래그 -> 다른 자판으로 변경
+                        if isOneHandTypeEnabled {
                             if !state.isSelectingInputType && !state.isSelectingOneHandType {
+                                // 위쪽으로 키보드 높이 1/4 초과 드래그 -> 한손 키보드 변경
+                                if dragYLocation < oneHandActiveDragYPos {
+                                    state.isSelectingOneHandType = true
+                                }
+                            }
+                            if state.isSelectingOneHandType {
+                                if state.isSelectingOneHandType {
+                                    sequencedDragOnChanged(value: value)
+                                }
+                            }
+                        }
+                        
+                        if isNumberKeyboardTypeEnabled {
+                            if !state.isSelectingInputType && !state.isSelectingOneHandType {
+                                // 왼쪽으로 키보드 너비 3/4 초과 드래그 -> 다른 자판으로 변경
                                 if dragXLocation < inputTypeActiveDragXPos_hanNum {
                                     state.isSelectingInputType = true
-                                } else if dragYLocation < oneHandActiveDragYPos {
-                                    state.isSelectingOneHandType = true
                                 }
                             }
                             if state.isSelectingInputType {
@@ -104,17 +117,28 @@ struct SYKeyboardButton: View {
                                     Feedback.shared.playHapticByForce(style: .light)
                                 }
                             }
-                            if state.isSelectingOneHandType {
-                                sequencedDragOnChanged(value: value)
-                            }
                         } else {
                             isCursorMovable = true
                         }
                         
                         
                     } else if state.currentInputType == .number {  // 숫자 자판
-                        // 왼쪽으로 키보드 너비 3/4 초과 드래그 -> 다른 자판으로 변경
+                        if isOneHandTypeEnabled {
+                            if !state.isSelectingInputType && !state.isSelectingOneHandType {
+                                // 위쪽으로 키보드 높이 1/4 초과 드래그 -> 한손 키보드 변경
+                                if dragYLocation < oneHandActiveDragYPos {
+                                    state.isSelectingOneHandType = true
+                                }
+                            }
+                            if state.isSelectingOneHandType {
+                                if state.isSelectingOneHandType {
+                                    sequencedDragOnChanged(value: value)
+                                }
+                            }
+                        }
+                        
                         if !state.isSelectingInputType && !state.isSelectingOneHandType {
+                            // 왼쪽으로 키보드 너비 3/4 초과 드래그 -> 다른 자판으로 변경
                             if dragXLocation < inputTypeActiveDragXPos_hanNum {
                                 state.isSelectingInputType = true
                             } else if dragYLocation < oneHandActiveDragYPos {
@@ -130,15 +154,26 @@ struct SYKeyboardButton: View {
                                 Feedback.shared.playHapticByForce(style: .light)
                             }
                         }
-                        if state.isSelectingOneHandType {
-                            sequencedDragOnChanged(value: value)
-                        }
                         
                         
                     } else if state.currentInputType == .symbol {  // 기호 자판
-                        if isNumberKeyboardTypeEnabled {
-                            // 오른쪽으로 키보드 너비 1/4 초과 드래그 -> 다른 자판으로 변경
+                        if isOneHandTypeEnabled {
                             if !state.isSelectingInputType && !state.isSelectingOneHandType {
+                                // 위쪽으로 키보드 높이 1/4 초과 드래그 -> 한손 키보드 변경
+                                if dragYLocation < oneHandActiveDragYPos {
+                                    state.isSelectingOneHandType = true
+                                }
+                            }
+                            if state.isSelectingOneHandType {
+                                if state.isSelectingOneHandType {
+                                    sequencedDragOnChanged(value: value)
+                                }
+                            }
+                        }
+                        
+                        if isNumberKeyboardTypeEnabled {
+                            if !state.isSelectingInputType && !state.isSelectingOneHandType {
+                                // 오른쪽으로 키보드 너비 1/4 초과 드래그 -> 다른 자판으로 변경
                                 if dragXLocation > inputTypeActiveDragXPos_sym {
                                     state.isSelectingInputType = true
                                 } else if dragYLocation < oneHandActiveDragYPos {
@@ -153,9 +188,6 @@ struct SYKeyboardButton: View {
                                     state.selectedInputType = .symbol
                                     Feedback.shared.playHapticByForce(style: .light)
                                 }
-                            }
-                            if state.isSelectingOneHandType {
-                                sequencedDragOnChanged(value: value)
                             }
                         } else {
                             isCursorMovable = true
