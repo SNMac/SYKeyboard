@@ -497,7 +497,13 @@ struct Swift6_NumberView: View {
                                                 Feedback.shared.playHaptic(style: .light)
                                             },
                                             onRelease: {
-                                                state.currentInputType = .hangeul
+                                                if state.isSelectingOneHandType {
+                                                    state.currentOneHandType = state.selectedOneHandType
+                                                    currentOneHandType = state.selectedOneHandType.rawValue
+                                                    state.isSelectingOneHandType = false
+                                                } else {
+                                                    state.currentInputType = .hangeul
+                                                }
                                             },
                                             onLongPress: {
                                                 if isOneHandTypeEnabled {
@@ -533,7 +539,13 @@ struct Swift6_NumberView: View {
                                             Feedback.shared.playHaptic(style: .light)
                                         },
                                         onRelease: {
-                                            state.currentInputType = .hangeul
+                                            if state.isSelectingOneHandType {
+                                                state.currentOneHandType = state.selectedOneHandType
+                                                currentOneHandType = state.selectedOneHandType.rawValue
+                                                state.isSelectingOneHandType = false
+                                            } else {
+                                                state.currentInputType = .hangeul
+                                            }
                                         },
                                         onLongPress: {
                                             if isOneHandTypeEnabled {

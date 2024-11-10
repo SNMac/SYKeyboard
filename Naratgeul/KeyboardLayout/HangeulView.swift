@@ -478,7 +478,13 @@ struct HangeulView: View {
                                                 Feedback.shared.playHaptic(style: .light)
                                             },
                                             onRelease: {
-                                                state.currentInputType = .symbol
+                                                if state.isSelectingOneHandType {
+                                                    state.currentOneHandType = state.selectedOneHandType
+                                                    currentOneHandType = state.selectedOneHandType.rawValue
+                                                    state.isSelectingOneHandType = false
+                                                } else {
+                                                    state.currentInputType = .symbol
+                                                }
                                             },
                                             onLongPress: {
                                                 if isOneHandTypeEnabled {
@@ -514,7 +520,13 @@ struct HangeulView: View {
                                             Feedback.shared.playHaptic(style: .light)
                                         },
                                         onRelease: {
-                                            state.currentInputType = .symbol
+                                            if state.isSelectingOneHandType {
+                                                state.currentOneHandType = state.selectedOneHandType
+                                                currentOneHandType = state.selectedOneHandType.rawValue
+                                                state.isSelectingOneHandType = false
+                                            } else {
+                                                state.currentInputType = .symbol
+                                            }
                                         },
                                         onLongPress: {
                                             if isOneHandTypeEnabled {

@@ -10,9 +10,9 @@ import SwiftUI
 struct InputTypeSelectOverlayView: View {
     @EnvironmentObject var state: NaratgeulState
     
-    let frameWidth: CGFloat = 160
+    let frameWidth: CGFloat = 180
     let interItemSpacing: CGFloat = 10
-    let fontSize: Double = 16
+    let fontSize: Double = 20
     
     var body: some View {
         let overlayWidth: CGFloat = state.currentOneHandType == .center ? frameWidth : frameWidth / 5 * 4
