@@ -11,13 +11,7 @@
 		5B0D82362C5962A500F84180 /* NaratgeulIOManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B0D82352C5962A500F84180 /* NaratgeulIOManager.swift */; };
 		5B0D823D2C5F355900F84180 /* HangeulAutomata.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B0D823C2C5F355900F84180 /* HangeulAutomata.swift */; };
 		5B0D82432C63C16F00F84180 /* Feedback.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B0D82422C63C16F00F84180 /* Feedback.swift */; };
-		5B0D82452C63C72700F84180 /* SYKeyboardButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B0D82442C63C72700F84180 /* SYKeyboardButton.swift */; };
-		5B0D824C2C63CDE700F84180 /* HangeulView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B7B3F772C569CC900F7C093 /* HangeulView.swift */; };
 		5B0D824F2C63D66600F84180 /* FeedbackSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B0D824E2C63D66600F84180 /* FeedbackSettingsView.swift */; };
-		5B0F7FC62CA596C200EE7380 /* URLSymbolView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B0F7FC52CA596C200EE7380 /* URLSymbolView.swift */; };
-		5B0F7FC82CA5A1B100EE7380 /* EmailSymbolView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B0F7FC72CA5A1B100EE7380 /* EmailSymbolView.swift */; };
-		5B0F7FCC2CA5A35C00EE7380 /* WebSearchSymbolView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B0F7FCB2CA5A35C00EE7380 /* WebSearchSymbolView.swift */; };
-		5B0F7FCE2CA5A85D00EE7380 /* NumberPadView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B0F7FCD2CA5A85D00EE7380 /* NumberPadView.swift */; };
 		5B0F7FD62CA69CCA00EE7380 /* Swift6_URLSymbolView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B0F7FD52CA69CCA00EE7380 /* Swift6_URLSymbolView.swift */; };
 		5B0F7FD82CA69CD900EE7380 /* Swift6_EmailSymbolView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B0F7FD72CA69CD900EE7380 /* Swift6_EmailSymbolView.swift */; };
 		5B0F7FDA2CA69CEE00EE7380 /* Swift6_WebSearchSymbolView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B0F7FD92CA69CEE00EE7380 /* Swift6_WebSearchSymbolView.swift */; };
@@ -28,7 +22,14 @@
 		5B18F5142C97DC1D000548D4 /* PreviewNaratgeulState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B18F5132C97DC1D000548D4 /* PreviewNaratgeulState.swift */; };
 		5B18F5172C97DC7C000548D4 /* PreviewNaratgeulButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B18F5162C97DC7C000548D4 /* PreviewNaratgeulButton.swift */; };
 		5B18F5192C97DCE3000548D4 /* PreviewHangeulView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B18F5182C97DCE3000548D4 /* PreviewHangeulView.swift */; };
-		5B2B40002C6C8994007CA762 /* SymbolView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B2B3FFF2C6C8994007CA762 /* SymbolView.swift */; };
+		5B21DCFF2CE3234E007616E2 /* NaratgeulButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B21DCF82CE3234E007616E2 /* NaratgeulButton.swift */; };
+		5B21DD002CE3234E007616E2 /* WebSearchSymbolView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B21DCFD2CE3234E007616E2 /* WebSearchSymbolView.swift */; };
+		5B21DD012CE3234E007616E2 /* SymbolView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B21DCFB2CE3234E007616E2 /* SymbolView.swift */; };
+		5B21DD022CE3234E007616E2 /* EmailSymbolView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B21DCF62CE3234E007616E2 /* EmailSymbolView.swift */; };
+		5B21DD032CE3234E007616E2 /* HangeulView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B21DCF72CE3234E007616E2 /* HangeulView.swift */; };
+		5B21DD042CE3234E007616E2 /* URLSymbolView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B21DCFC2CE3234E007616E2 /* URLSymbolView.swift */; };
+		5B21DD052CE3234E007616E2 /* NumberView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B21DCFA2CE3234E007616E2 /* NumberView.swift */; };
+		5B21DD062CE3234E007616E2 /* NumberPadView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B21DCF92CE3234E007616E2 /* NumberPadView.swift */; };
 		5B2B40072C6CAB2F007CA762 /* NaratgeulView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B2B40062C6CAB2F007CA762 /* NaratgeulView.swift */; };
 		5B2B40122C6CC1D1007CA762 /* NaratgeulState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B2B40112C6CC1D1007CA762 /* NaratgeulState.swift */; };
 		5B2B40152C6CD2A4007CA762 /* NextKeyboardButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B2B40142C6CD2A4007CA762 /* NextKeyboardButton.swift */; };
@@ -55,7 +56,6 @@
 		5B9472302C8989C100B8B154 /* SpeedAndCursorSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B94722F2C8989C100B8B154 /* SpeedAndCursorSettingsView.swift */; };
 		5B9472332C8AD76000B8B154 /* Feedback.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B0D82422C63C16F00F84180 /* Feedback.swift */; };
 		5BA419D82CB98532005E7C86 /* InitialSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BA419D72CB98532005E7C86 /* InitialSettingsView.swift */; };
-		5BA8097C2C99712A00CC1B25 /* NumberView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BA8097B2C99712A00CC1B25 /* NumberView.swift */; };
 		5BACCE552C915423006DCFB7 /* NaratgeulDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BACCE542C915423006DCFB7 /* NaratgeulDelegate.swift */; };
 		5BB0D2642C86FF3B00CE7AF5 /* HeightSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BB0D2632C86FF3B00CE7AF5 /* HeightSettingsView.swift */; };
 		5BB0D26D2C883B8700CE7AF5 /* InputSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BB0D26C2C883B8700CE7AF5 /* InputSettingsView.swift */; };
@@ -91,14 +91,9 @@
 		5B0D82352C5962A500F84180 /* NaratgeulIOManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NaratgeulIOManager.swift; sourceTree = "<group>"; };
 		5B0D823C2C5F355900F84180 /* HangeulAutomata.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HangeulAutomata.swift; sourceTree = "<group>"; };
 		5B0D82422C63C16F00F84180 /* Feedback.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Feedback.swift; sourceTree = "<group>"; };
-		5B0D82442C63C72700F84180 /* SYKeyboardButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SYKeyboardButton.swift; sourceTree = "<group>"; };
 		5B0D824E2C63D66600F84180 /* FeedbackSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedbackSettingsView.swift; sourceTree = "<group>"; };
 		5B0D82502C63F75900F84180 /* SYKeyboard.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = SYKeyboard.entitlements; sourceTree = "<group>"; };
 		5B0D82512C63FDC300F84180 /* Naratgeul.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Naratgeul.entitlements; sourceTree = "<group>"; };
-		5B0F7FC52CA596C200EE7380 /* URLSymbolView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URLSymbolView.swift; sourceTree = "<group>"; };
-		5B0F7FC72CA5A1B100EE7380 /* EmailSymbolView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmailSymbolView.swift; sourceTree = "<group>"; };
-		5B0F7FCB2CA5A35C00EE7380 /* WebSearchSymbolView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebSearchSymbolView.swift; sourceTree = "<group>"; };
-		5B0F7FCD2CA5A85D00EE7380 /* NumberPadView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NumberPadView.swift; sourceTree = "<group>"; };
 		5B0F7FD52CA69CCA00EE7380 /* Swift6_URLSymbolView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Swift6_URLSymbolView.swift; sourceTree = "<group>"; };
 		5B0F7FD72CA69CD900EE7380 /* Swift6_EmailSymbolView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Swift6_EmailSymbolView.swift; sourceTree = "<group>"; };
 		5B0F7FD92CA69CEE00EE7380 /* Swift6_WebSearchSymbolView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Swift6_WebSearchSymbolView.swift; sourceTree = "<group>"; };
@@ -109,7 +104,14 @@
 		5B18F5132C97DC1D000548D4 /* PreviewNaratgeulState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewNaratgeulState.swift; sourceTree = "<group>"; };
 		5B18F5162C97DC7C000548D4 /* PreviewNaratgeulButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewNaratgeulButton.swift; sourceTree = "<group>"; };
 		5B18F5182C97DCE3000548D4 /* PreviewHangeulView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewHangeulView.swift; sourceTree = "<group>"; };
-		5B2B3FFF2C6C8994007CA762 /* SymbolView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SymbolView.swift; sourceTree = "<group>"; };
+		5B21DCF62CE3234E007616E2 /* EmailSymbolView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmailSymbolView.swift; sourceTree = "<group>"; };
+		5B21DCF72CE3234E007616E2 /* HangeulView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HangeulView.swift; sourceTree = "<group>"; };
+		5B21DCF82CE3234E007616E2 /* NaratgeulButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NaratgeulButton.swift; sourceTree = "<group>"; };
+		5B21DCF92CE3234E007616E2 /* NumberPadView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NumberPadView.swift; sourceTree = "<group>"; };
+		5B21DCFA2CE3234E007616E2 /* NumberView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NumberView.swift; sourceTree = "<group>"; };
+		5B21DCFB2CE3234E007616E2 /* SymbolView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SymbolView.swift; sourceTree = "<group>"; };
+		5B21DCFC2CE3234E007616E2 /* URLSymbolView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URLSymbolView.swift; sourceTree = "<group>"; };
+		5B21DCFD2CE3234E007616E2 /* WebSearchSymbolView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebSearchSymbolView.swift; sourceTree = "<group>"; };
 		5B2B40062C6CAB2F007CA762 /* NaratgeulView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NaratgeulView.swift; sourceTree = "<group>"; };
 		5B2B40112C6CC1D1007CA762 /* NaratgeulState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NaratgeulState.swift; sourceTree = "<group>"; };
 		5B2B40142C6CD2A4007CA762 /* NextKeyboardButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NextKeyboardButton.swift; sourceTree = "<group>"; };
@@ -130,7 +132,6 @@
 		5B7B3F6B2C569B8200F7C093 /* Naratgeul.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = Naratgeul.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		5B7B3F6D2C569B8200F7C093 /* NaratgeulViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NaratgeulViewController.swift; sourceTree = "<group>"; };
 		5B7B3F6F2C569B8200F7C093 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		5B7B3F772C569CC900F7C093 /* HangeulView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HangeulView.swift; sourceTree = "<group>"; };
 		5B7BDD3E2C91D24D0065C944 /* DEP_SYKeyboardIOManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DEP_SYKeyboardIOManager.swift; sourceTree = "<group>"; };
 		5B7BDD3F2C91D24D0065C944 /* DEP_SYKeyboardDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DEP_SYKeyboardDelegate.swift; sourceTree = "<group>"; };
 		5B7BDD462C91E8860065C944 /* InfoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InfoView.swift; sourceTree = "<group>"; };
@@ -138,7 +139,6 @@
 		5B94722F2C8989C100B8B154 /* SpeedAndCursorSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpeedAndCursorSettingsView.swift; sourceTree = "<group>"; };
 		5BA419D72CB98532005E7C86 /* InitialSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InitialSettingsView.swift; sourceTree = "<group>"; };
 		5BA419DE2CB99238005E7C86 /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
-		5BA8097B2C99712A00CC1B25 /* NumberView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NumberView.swift; sourceTree = "<group>"; };
 		5BACCE422C9094AB006DCFB7 /* version.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = version.sh; sourceTree = "<group>"; };
 		5BACCE442C9096DE006DCFB7 /* Config.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config.xcconfig; sourceTree = "<group>"; };
 		5BACCE542C915423006DCFB7 /* NaratgeulDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NaratgeulDelegate.swift; sourceTree = "<group>"; };
@@ -180,6 +180,22 @@
 			);
 			path = PreviewKeyboard;
 			sourceTree = "<group>";
+		};
+		5B21DCFE2CE3234E007616E2 /* Swift5 */ = {
+			isa = PBXGroup;
+			children = (
+				5B21DCF72CE3234E007616E2 /* HangeulView.swift */,
+				5B21DCFB2CE3234E007616E2 /* SymbolView.swift */,
+				5B21DCFC2CE3234E007616E2 /* URLSymbolView.swift */,
+				5B21DCF62CE3234E007616E2 /* EmailSymbolView.swift */,
+				5B21DCFD2CE3234E007616E2 /* WebSearchSymbolView.swift */,
+				5B21DCFA2CE3234E007616E2 /* NumberView.swift */,
+				5B21DCF92CE3234E007616E2 /* NumberPadView.swift */,
+				5B21DCF82CE3234E007616E2 /* NaratgeulButton.swift */,
+			);
+			name = Swift5;
+			path = Naratgeul/KeyboardLayout/Swift5;
+			sourceTree = SOURCE_ROOT;
 		};
 		5B7557092CA071F70038BA9C /* Swift6 */ = {
 			isa = PBXGroup;
@@ -298,14 +314,7 @@
 			isa = PBXGroup;
 			children = (
 				5B7557092CA071F70038BA9C /* Swift6 */,
-				5B7B3F772C569CC900F7C093 /* HangeulView.swift */,
-				5B2B3FFF2C6C8994007CA762 /* SymbolView.swift */,
-				5B0F7FC52CA596C200EE7380 /* URLSymbolView.swift */,
-				5B0F7FC72CA5A1B100EE7380 /* EmailSymbolView.swift */,
-				5B0F7FCB2CA5A35C00EE7380 /* WebSearchSymbolView.swift */,
-				5BA8097B2C99712A00CC1B25 /* NumberView.swift */,
-				5B0F7FCD2CA5A85D00EE7380 /* NumberPadView.swift */,
-				5B0D82442C63C72700F84180 /* SYKeyboardButton.swift */,
+				5B21DCFE2CE3234E007616E2 /* Swift5 */,
 				5B2B40142C6CD2A4007CA762 /* NextKeyboardButton.swift */,
 				5B7885932CDCB04A007A801A /* ChevronButton.swift */,
 				5B7885992CDF3473007A801A /* InputTypeSelectOverlayView.swift */,
@@ -471,30 +480,30 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5B21DCFF2CE3234E007616E2 /* NaratgeulButton.swift in Sources */,
+				5B21DD002CE3234E007616E2 /* WebSearchSymbolView.swift in Sources */,
+				5B21DD012CE3234E007616E2 /* SymbolView.swift in Sources */,
+				5B21DD022CE3234E007616E2 /* EmailSymbolView.swift in Sources */,
+				5B21DD032CE3234E007616E2 /* HangeulView.swift in Sources */,
+				5B21DD042CE3234E007616E2 /* URLSymbolView.swift in Sources */,
+				5B21DD052CE3234E007616E2 /* NumberView.swift in Sources */,
+				5B21DD062CE3234E007616E2 /* NumberPadView.swift in Sources */,
 				5B7BDD432C91E37C0065C944 /* DEP_SYKeyboardIOManager.swift in Sources */,
-				5B0F7FCE2CA5A85D00EE7380 /* NumberPadView.swift in Sources */,
 				5B7885942CDCB04A007A801A /* ChevronButton.swift in Sources */,
 				5B7BDD442C91E3820065C944 /* DEP_SYKeyboardDelegate.swift in Sources */,
 				5B7BDD452C91E3850065C944 /* DEP_HangeulInputMethod.swift in Sources */,
-				5B0D82452C63C72700F84180 /* SYKeyboardButton.swift in Sources */,
 				5B7B3F6E2C569B8200F7C093 /* NaratgeulViewController.swift in Sources */,
-				5B0F7FC82CA5A1B100EE7380 /* EmailSymbolView.swift in Sources */,
 				5B0F7FDA2CA69CEE00EE7380 /* Swift6_WebSearchSymbolView.swift in Sources */,
 				5B7557082CA0717B0038BA9C /* Swift6_HangeulView.swift in Sources */,
 				5B6B1B372CD210CD00636AC4 /* OneHandSelectOverlayView.swift in Sources */,
 				5B0D82432C63C16F00F84180 /* Feedback.swift in Sources */,
-				5B0F7FCC2CA5A35C00EE7380 /* WebSearchSymbolView.swift in Sources */,
-				5BA8097C2C99712A00CC1B25 /* NumberView.swift in Sources */,
 				5B2B40152C6CD2A4007CA762 /* NextKeyboardButton.swift in Sources */,
-				5B0D824C2C63CDE700F84180 /* HangeulView.swift in Sources */,
-				5B0F7FC62CA596C200EE7380 /* URLSymbolView.swift in Sources */,
 				5B0F7FD62CA69CCA00EE7380 /* Swift6_URLSymbolView.swift in Sources */,
 				5B0D823D2C5F355900F84180 /* HangeulAutomata.swift in Sources */,
 				5B78859A2CDF3473007A801A /* InputTypeSelectOverlayView.swift in Sources */,
 				5B75570C2CA072280038BA9C /* Swift6_NumberView.swift in Sources */,
 				5B0F7FDC2CA69D1100EE7380 /* Swift6_NumberPadView.swift in Sources */,
 				5BACCE552C915423006DCFB7 /* NaratgeulDelegate.swift in Sources */,
-				5B2B40002C6C8994007CA762 /* SymbolView.swift in Sources */,
 				5B7556FF2CA0077A0038BA9C /* Swift6_NaratgeulButton.swift in Sources */,
 				5B0F7FD82CA69CD900EE7380 /* Swift6_EmailSymbolView.swift in Sources */,
 				5B2B40122C6CC1D1007CA762 /* NaratgeulState.swift in Sources */,

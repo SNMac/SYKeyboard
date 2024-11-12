@@ -1,5 +1,5 @@
 //
-//  WebSearchSymbolView.swift
+//  URLSymbolView.swift
 //  Naratgeul
 //
 //  Created by 서동환 on 9/26/24.
@@ -8,9 +8,8 @@
 import SwiftUI
 import Combine
 
-struct WebSearchSymbolView: View {
+struct URLSymbolView: View {
     @EnvironmentObject var state: NaratgeulState
-    @AppStorage("isAutoChangeToHangeulEnabled", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var isAutoChangeToHangeulEnabled = true
     @AppStorage("isOneHandTypeEnabled", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var isOneHandTypeEnabled = true
     @AppStorage("currentOneHandType", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var currentOneHandType = 1
     @State var timer: AnyCancellable?
@@ -21,8 +20,8 @@ struct WebSearchSymbolView: View {
     let interItemHPadding: CGFloat = 2.5
     
     let symbols = [
-        ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "-", "/", ":", ";", "(", ")", "₩", "&", "@", "“", ".", ",", "?", "!", "’"],
-        ["[", "]", "{", "}", "#", "%", "^", "*", "+", "=", "_", "\\", "|", "~", "<", ">", "$", "£", "¥", "•", ".", ",", "?", "!", "’"]
+        ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "@", "&", "%", "?", ",", "=", "[", "]", "_", ":", "-", "+"],
+        ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "*", "$", "#", "!", "’", "^", "[", "]", "~", ";", "(", ")"]
     ]
     
     var body: some View {
@@ -34,9 +33,9 @@ struct WebSearchSymbolView: View {
                 GeometryReader { geometry in
                     ZStack(alignment: .leading) {
                         VStack(spacing: 0) {
-                            // MARK: - 1st row of Web Search Symbol Keyboard
+                            // MARK: - 1st row of URL Symbol Keyboard
                             HStack(spacing: 0) {
-                                SYKeyboardButton(
+                                NaratgeulButton(
                                     text: symbols[state.nowSymbolPage][0], primary: true, geometry: geometry,
                                     onPress: {
                                         Feedback.shared.playTypingSound()
@@ -63,7 +62,7 @@ struct WebSearchSymbolView: View {
                                 .padding(EdgeInsets(top: vPadding, leading: hPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                                 .contentShape(Rectangle())
                                 
-                                SYKeyboardButton(
+                                NaratgeulButton(
                                     text: symbols[state.nowSymbolPage][1], primary: true, geometry: geometry,
                                     onPress: {
                                         Feedback.shared.playTypingSound()
@@ -90,7 +89,7 @@ struct WebSearchSymbolView: View {
                                 .padding(EdgeInsets(top: vPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                                 .contentShape(Rectangle())
                                 
-                                SYKeyboardButton(
+                                NaratgeulButton(
                                     text: symbols[state.nowSymbolPage][2], primary: true, geometry: geometry,
                                     onPress: {
                                         Feedback.shared.playTypingSound()
@@ -117,7 +116,7 @@ struct WebSearchSymbolView: View {
                                 .padding(EdgeInsets(top: vPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                                 .contentShape(Rectangle())
                                 
-                                SYKeyboardButton(
+                                NaratgeulButton(
                                     text: symbols[state.nowSymbolPage][3], primary: true, geometry: geometry,
                                     onPress: {
                                         Feedback.shared.playTypingSound()
@@ -144,7 +143,7 @@ struct WebSearchSymbolView: View {
                                 .padding(EdgeInsets(top: vPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                                 .contentShape(Rectangle())
                                 
-                                SYKeyboardButton(
+                                NaratgeulButton(
                                     text: symbols[state.nowSymbolPage][4], primary: true, geometry: geometry,
                                     onPress: {
                                         Feedback.shared.playTypingSound()
@@ -171,7 +170,7 @@ struct WebSearchSymbolView: View {
                                 .padding(EdgeInsets(top: vPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                                 .contentShape(Rectangle())
                                 
-                                SYKeyboardButton(
+                                NaratgeulButton(
                                     text: symbols[state.nowSymbolPage][5], primary: true, geometry: geometry,
                                     onPress: {
                                         Feedback.shared.playTypingSound()
@@ -198,7 +197,7 @@ struct WebSearchSymbolView: View {
                                 .padding(EdgeInsets(top: vPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                                 .contentShape(Rectangle())
                                 
-                                SYKeyboardButton(
+                                NaratgeulButton(
                                     text: symbols[state.nowSymbolPage][6], primary: true, geometry: geometry,
                                     onPress: {
                                         Feedback.shared.playTypingSound()
@@ -225,7 +224,7 @@ struct WebSearchSymbolView: View {
                                 .padding(EdgeInsets(top: vPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                                 .contentShape(Rectangle())
                                 
-                                SYKeyboardButton(
+                                NaratgeulButton(
                                     text: symbols[state.nowSymbolPage][7], primary: true, geometry: geometry,
                                     onPress: {
                                         Feedback.shared.playTypingSound()
@@ -252,7 +251,7 @@ struct WebSearchSymbolView: View {
                                 .padding(EdgeInsets(top: vPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                                 .contentShape(Rectangle())
                                 
-                                SYKeyboardButton(
+                                NaratgeulButton(
                                     text: symbols[state.nowSymbolPage][8], primary: true, geometry: geometry,
                                     onPress: {
                                         Feedback.shared.playTypingSound()
@@ -279,7 +278,7 @@ struct WebSearchSymbolView: View {
                                 .padding(EdgeInsets(top: vPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                                 .contentShape(Rectangle())
                                 
-                                SYKeyboardButton(
+                                NaratgeulButton(
                                     text: symbols[state.nowSymbolPage][9], primary: true, geometry: geometry,
                                     onPress: {
                                         Feedback.shared.playTypingSound()
@@ -307,9 +306,9 @@ struct WebSearchSymbolView: View {
                                 .contentShape(Rectangle())
                             }
                             
-                            // MARK: - 2nd row of Symbol Keyboard
+                            // MARK: - 2nd row of URL Symbol Keyboard
                             HStack(spacing: 0) {
-                                SYKeyboardButton(
+                                NaratgeulButton(
                                     text: symbols[state.nowSymbolPage][10], primary: true, geometry: geometry,
                                     onPress: {
                                         Feedback.shared.playTypingSound()
@@ -336,7 +335,7 @@ struct WebSearchSymbolView: View {
                                 .padding(EdgeInsets(top: interItemVPadding, leading: hPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                                 .contentShape(Rectangle())
                                 
-                                SYKeyboardButton(
+                                NaratgeulButton(
                                     text: symbols[state.nowSymbolPage][11], primary: true, geometry: geometry,
                                     onPress: {
                                         Feedback.shared.playTypingSound()
@@ -363,7 +362,7 @@ struct WebSearchSymbolView: View {
                                 .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                                 .contentShape(Rectangle())
                                 
-                                SYKeyboardButton(
+                                NaratgeulButton(
                                     text: symbols[state.nowSymbolPage][12], primary: true, geometry: geometry,
                                     onPress: {
                                         Feedback.shared.playTypingSound()
@@ -390,7 +389,7 @@ struct WebSearchSymbolView: View {
                                 .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                                 .contentShape(Rectangle())
                                 
-                                SYKeyboardButton(
+                                NaratgeulButton(
                                     text: symbols[state.nowSymbolPage][13], primary: true, geometry: geometry,
                                     onPress: {
                                         Feedback.shared.playTypingSound()
@@ -417,7 +416,7 @@ struct WebSearchSymbolView: View {
                                 .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                                 .contentShape(Rectangle())
                                 
-                                SYKeyboardButton(
+                                NaratgeulButton(
                                     text: symbols[state.nowSymbolPage][14], primary: true, geometry: geometry,
                                     onPress: {
                                         Feedback.shared.playTypingSound()
@@ -444,7 +443,7 @@ struct WebSearchSymbolView: View {
                                 .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                                 .contentShape(Rectangle())
                                 
-                                SYKeyboardButton(
+                                NaratgeulButton(
                                     text: symbols[state.nowSymbolPage][15], primary: true, geometry: geometry,
                                     onPress: {
                                         Feedback.shared.playTypingSound()
@@ -471,7 +470,7 @@ struct WebSearchSymbolView: View {
                                 .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                                 .contentShape(Rectangle())
                                 
-                                SYKeyboardButton(
+                                NaratgeulButton(
                                     text: symbols[state.nowSymbolPage][16], primary: true, geometry: geometry,
                                     onPress: {
                                         Feedback.shared.playTypingSound()
@@ -498,7 +497,7 @@ struct WebSearchSymbolView: View {
                                 .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                                 .contentShape(Rectangle())
                                 
-                                SYKeyboardButton(
+                                NaratgeulButton(
                                     text: symbols[state.nowSymbolPage][17], primary: true, geometry: geometry,
                                     onPress: {
                                         Feedback.shared.playTypingSound()
@@ -524,8 +523,21 @@ struct WebSearchSymbolView: View {
                                     })
                                 .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                                 .contentShape(Rectangle())
+                            }
+                            
+                            // MARK: - 3rd row of URL Symbol Keyboard
+                            HStack(spacing: 0) {
+                                NaratgeulButton(
+                                    text: "\(state.nowSymbolPage + 1)/\(state.totalSymbolPage)", primary: false, geometry: geometry,
+                                    onPress: {
+                                        Feedback.shared.playModifierSound()
+                                        Feedback.shared.playHaptic(style: .light)
+                                        state.nowSymbolPage = (state.nowSymbolPage + 1) % state.totalSymbolPage
+                                    })
+                                .padding(EdgeInsets(top: interItemVPadding, leading: hPadding, bottom: interItemVPadding, trailing: interItemHPadding))
+                                .contentShape(Rectangle())
                                 
-                                SYKeyboardButton(
+                                NaratgeulButton(
                                     text: symbols[state.nowSymbolPage][18], primary: true, geometry: geometry,
                                     onPress: {
                                         Feedback.shared.playTypingSound()
@@ -552,7 +564,7 @@ struct WebSearchSymbolView: View {
                                 .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                                 .contentShape(Rectangle())
                                 
-                                SYKeyboardButton(
+                                NaratgeulButton(
                                     text: symbols[state.nowSymbolPage][19], primary: true, geometry: geometry,
                                     onPress: {
                                         Feedback.shared.playTypingSound()
@@ -576,23 +588,10 @@ struct WebSearchSymbolView: View {
                                     onLongPressFinished: {
                                         timer?.cancel()
                                     })
-                                .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: hPadding))
-                                .contentShape(Rectangle())
-                            }
-                            
-                            // MARK: - 3rd row of Symbol Keyboard
-                            HStack(spacing: 0) {
-                                SYKeyboardButton(
-                                    text: "\(state.nowSymbolPage + 1)/\(state.totalSymbolPage)", primary: false, geometry: geometry,
-                                    onPress: {
-                                        Feedback.shared.playModifierSound()
-                                        Feedback.shared.playHaptic(style: .light)
-                                        state.nowSymbolPage = (state.nowSymbolPage + 1) % state.totalSymbolPage
-                                    })
-                                .padding(EdgeInsets(top: interItemVPadding, leading: hPadding, bottom: interItemVPadding, trailing: interItemHPadding))
+                                .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                                 .contentShape(Rectangle())
                                 
-                                SYKeyboardButton(
+                                NaratgeulButton(
                                     text: symbols[state.nowSymbolPage][20], primary: true, geometry: geometry,
                                     onPress: {
                                         Feedback.shared.playTypingSound()
@@ -619,7 +618,7 @@ struct WebSearchSymbolView: View {
                                 .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                                 .contentShape(Rectangle())
                                 
-                                SYKeyboardButton(
+                                NaratgeulButton(
                                     text: symbols[state.nowSymbolPage][21], primary: true, geometry: geometry,
                                     onPress: {
                                         Feedback.shared.playTypingSound()
@@ -646,95 +645,7 @@ struct WebSearchSymbolView: View {
                                 .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                                 .contentShape(Rectangle())
                                 
-                                SYKeyboardButton(
-                                    text: symbols[state.nowSymbolPage][22], primary: true, geometry: geometry,
-                                    onPress: {
-                                        Feedback.shared.playTypingSound()
-                                        Feedback.shared.playHaptic(style: .light)
-                                    },
-                                    onRelease: {
-                                        state.delegate?.otherKeypadTap(letter: symbols[state.nowSymbolPage][22])
-                                    },
-                                    onLongPress: {
-                                        Feedback.shared.playTypingSound()
-                                        Feedback.shared.playHaptic(style: .light)
-                                        state.delegate?.otherKeypadTap(letter: symbols[state.nowSymbolPage][22])
-                                        timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
-                                            .autoconnect()
-                                            .sink { _ in
-                                                Feedback.shared.playTypingSound()
-                                                Feedback.shared.playHaptic(style: .light)
-                                                state.delegate?.inputLastSymbol()
-                                            }
-                                    },
-                                    onLongPressFinished: {
-                                        timer?.cancel()
-                                    })
-                                .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
-                                .contentShape(Rectangle())
-                                
-                                SYKeyboardButton(
-                                    text: symbols[state.nowSymbolPage][23], primary: true, geometry: geometry,
-                                    onPress: {
-                                        Feedback.shared.playTypingSound()
-                                        Feedback.shared.playHaptic(style: .light)
-                                    },
-                                    onRelease: {
-                                        state.delegate?.otherKeypadTap(letter: symbols[state.nowSymbolPage][23])
-                                    },
-                                    onLongPress: {
-                                        Feedback.shared.playTypingSound()
-                                        Feedback.shared.playHaptic(style: .light)
-                                        state.delegate?.otherKeypadTap(letter: symbols[state.nowSymbolPage][23])
-                                        timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
-                                            .autoconnect()
-                                            .sink { _ in
-                                                Feedback.shared.playTypingSound()
-                                                Feedback.shared.playHaptic(style: .light)
-                                                state.delegate?.inputLastSymbol()
-                                            }
-                                    },
-                                    onLongPressFinished: {
-                                        timer?.cancel()
-                                    })
-                                .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
-                                .contentShape(Rectangle())
-                                
-                                SYKeyboardButton(
-                                    text: symbols[state.nowSymbolPage][24], primary: true, geometry: geometry,
-                                    onPress: {
-                                        Feedback.shared.playTypingSound()
-                                        Feedback.shared.playHaptic(style: .light)
-                                    },
-                                    onRelease: {
-                                        state.delegate?.otherKeypadTap(letter: symbols[state.nowSymbolPage][24])
-                                        if isAutoChangeToHangeulEnabled {
-                                            state.currentInputType = .hangeul
-                                        }
-                                    },
-                                    onLongPress: {
-                                        Feedback.shared.playTypingSound()
-                                        Feedback.shared.playHaptic(style: .light)
-                                        state.delegate?.otherKeypadTap(letter: symbols[state.nowSymbolPage][24])
-                                        if isAutoChangeToHangeulEnabled {
-                                            state.currentInputType = .hangeul
-                                        } else {
-                                            timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
-                                                .autoconnect()
-                                                .sink { _ in
-                                                    Feedback.shared.playTypingSound()
-                                                    Feedback.shared.playHaptic(style: .light)
-                                                    state.delegate?.inputLastSymbol()
-                                                }
-                                        }
-                                    },
-                                    onLongPressFinished: {
-                                        timer?.cancel()
-                                    })
-                                .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
-                                .contentShape(Rectangle())
-                                
-                                SYKeyboardButton(
+                                NaratgeulButton(
                                     systemName: "delete.left", primary: false, geometry: geometry,
                                     onPress: {
                                         Feedback.shared.playDeleteSound()
@@ -760,11 +671,11 @@ struct WebSearchSymbolView: View {
                                 .contentShape(Rectangle())
                             }
                             
-                            // MARK: - (한글, 􀆪), 􁁺, ., 􁂆
+                            // MARK: - (한글, 􀆪), ., /, .com, 􁂆
                             HStack(spacing: 0) {
                                 if state.needsInputModeSwitchKey {
                                     HStack(spacing: 0) {
-                                        SYKeyboardButton(
+                                        NaratgeulButton(
                                             text: "한글", primary: false, geometry: geometry,
                                             onPress: {
                                                 Feedback.shared.playModifierSound()
@@ -772,8 +683,8 @@ struct WebSearchSymbolView: View {
                                             },
                                             onRelease: {
                                                 if state.isSelectingOneHandType {
-                                                    state.currentOneHandType = state.selectedOneHandType
-                                                    currentOneHandType = state.selectedOneHandType.rawValue
+                                                    state.currentOneHandType = state.selectedOneHandType ?? .center
+                                                    currentOneHandType = state.selectedOneHandType?.rawValue ?? 1
                                                     state.isSelectingOneHandType = false
                                                 } else {
                                                     state.currentInputType = .hangeul
@@ -788,8 +699,8 @@ struct WebSearchSymbolView: View {
                                             },
                                             onLongPressFinished: {
                                                 if state.isSelectingOneHandType {
-                                                    state.currentOneHandType = state.selectedOneHandType
-                                                    currentOneHandType = state.selectedOneHandType.rawValue
+                                                    state.currentOneHandType = state.selectedOneHandType ?? .center
+                                                    currentOneHandType = state.selectedOneHandType?.rawValue ?? 1
                                                     state.isSelectingOneHandType = false
                                                 } else {
                                                     state.currentInputType = .hangeul
@@ -806,7 +717,7 @@ struct WebSearchSymbolView: View {
                                         .contentShape(Rectangle())
                                     }
                                 } else {
-                                    SYKeyboardButton(
+                                    NaratgeulButton(
                                         text: "한글", primary: false, geometry: geometry,
                                         onPress: {
                                             Feedback.shared.playModifierSound()
@@ -814,8 +725,8 @@ struct WebSearchSymbolView: View {
                                         },
                                         onRelease: {
                                             if state.isSelectingOneHandType {
-                                                state.currentOneHandType = state.selectedOneHandType
-                                                currentOneHandType = state.selectedOneHandType.rawValue
+                                                state.currentOneHandType = state.selectedOneHandType ?? .center
+                                                currentOneHandType = state.selectedOneHandType?.rawValue ?? 1
                                                 state.isSelectingOneHandType = false
                                             } else {
                                                 state.currentInputType = .hangeul
@@ -830,8 +741,8 @@ struct WebSearchSymbolView: View {
                                         },
                                         onLongPressFinished: {
                                             if state.isSelectingOneHandType {
-                                                state.currentOneHandType = state.selectedOneHandType
-                                                currentOneHandType = state.selectedOneHandType.rawValue
+                                                state.currentOneHandType = state.selectedOneHandType ?? .center
+                                                currentOneHandType = state.selectedOneHandType?.rawValue ?? 1
                                                 state.isSelectingOneHandType = false
                                             } else {
                                                 state.currentInputType = .hangeul
@@ -841,35 +752,7 @@ struct WebSearchSymbolView: View {
                                     .contentShape(Rectangle())
                                 }
                                 
-                                SYKeyboardButton(
-                                    systemName: "space", primary: true, geometry: geometry,
-                                    onPress: {
-                                        Feedback.shared.playModifierSound()
-                                        Feedback.shared.playHaptic(style: .light)
-                                    },
-                                    onRelease: {
-                                        state.delegate?.spaceKeypadTap()
-                                    },
-                                    onLongPress: {
-                                        Feedback.shared.playModifierSound()
-                                        Feedback.shared.playHaptic(style: .light)
-                                        state.delegate?.spaceKeypadTap()
-                                        timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
-                                            .autoconnect()
-                                            .sink { _ in
-                                                Feedback.shared.playModifierSound()
-                                                Feedback.shared.playHaptic(style: .light)
-                                                state.delegate?.spaceKeypadTap()
-                                            }
-                                    },
-                                    onLongPressFinished: {
-                                        timer?.cancel()
-                                    })
-                                .frame(width: geometry.size.width / 2)
-                                .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: vPadding, trailing: interItemHPadding))
-                                .contentShape(Rectangle())
-                                
-                                SYKeyboardButton(
+                                NaratgeulButton(
                                     text: ".", primary: true, geometry: geometry,
                                     onPress: {
                                         Feedback.shared.playTypingSound()
@@ -893,11 +776,61 @@ struct WebSearchSymbolView: View {
                                     onLongPressFinished: {
                                         timer?.cancel()
                                     })
-                                .frame(width: geometry.size.width / 4 / 3)
+                                .frame(width: geometry.size.width / 2 / 3)
                                 .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: vPadding, trailing: interItemHPadding))
                                 .contentShape(Rectangle())
                                 
-                                SYKeyboardButton(
+                                NaratgeulButton(
+                                    text: "/", primary: true, geometry: geometry,
+                                    onPress: {
+                                        Feedback.shared.playTypingSound()
+                                        Feedback.shared.playHaptic(style: .light)
+                                    },
+                                    onRelease: {
+                                        state.delegate?.otherKeypadTap(letter: "/")
+                                    },
+                                    onLongPress: {
+                                        Feedback.shared.playTypingSound()
+                                        Feedback.shared.playHaptic(style: .light)
+                                        state.delegate?.otherKeypadTap(letter: "/")
+                                        timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
+                                            .autoconnect()
+                                            .sink { _ in
+                                                Feedback.shared.playTypingSound()
+                                                Feedback.shared.playHaptic(style: .light)
+                                                state.delegate?.inputLastSymbol()
+                                            }
+                                    },
+                                    onLongPressFinished: {
+                                        timer?.cancel()
+                                    })
+                                .frame(width: geometry.size.width / 2 / 3)
+                                .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: vPadding, trailing: interItemHPadding))
+                                .contentShape(Rectangle())
+                                
+                                NaratgeulButton(
+                                    text: ".com", primary: true, geometry: geometry,
+                                    onPress: {
+                                        Feedback.shared.playTypingSound()
+                                        Feedback.shared.playHaptic(style: .light)
+                                    },
+                                    onRelease: {
+                                        state.delegate?.otherKeypadTap(letter: ".")
+                                        state.delegate?.otherKeypadTap(letter: "c")
+                                        state.delegate?.otherKeypadTap(letter: "o")
+                                        state.delegate?.otherKeypadTap(letter: "m")
+                                    },
+                                    onLongPressFinished: {
+                                        state.delegate?.otherKeypadTap(letter: ".")
+                                        state.delegate?.otherKeypadTap(letter: "c")
+                                        state.delegate?.otherKeypadTap(letter: "o")
+                                        state.delegate?.otherKeypadTap(letter: "m")
+                                    })
+                                .frame(width: geometry.size.width / 2 / 3)
+                                .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: vPadding, trailing: interItemHPadding))
+                                .contentShape(Rectangle())
+                                
+                                NaratgeulButton(
                                     systemName: "return.left", primary: false, geometry: geometry,
                                     onPress: {
                                         Feedback.shared.playModifierSound()
@@ -909,7 +842,6 @@ struct WebSearchSymbolView: View {
                                     onLongPressFinished: {
                                         state.delegate?.enterKeypadTap()
                                     })
-                                .frame(width: geometry.size.width / 4 / 3 * 2)
                                 .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: vPadding, trailing: hPadding))
                                 .contentShape(Rectangle())
                             }

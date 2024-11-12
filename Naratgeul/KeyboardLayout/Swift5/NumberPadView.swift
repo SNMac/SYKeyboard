@@ -22,7 +22,7 @@ struct NumberPadView: View {
             VStack(spacing: 0) {
                 // MARK: - 1, 2, 3
                 HStack(spacing: 0) {
-                    SYKeyboardButton(
+                    NaratgeulButton(
                         text: "1", primary: true, geometry: geometry,
                         onPress: {
                             Feedback.shared.playTypingSound()
@@ -49,7 +49,7 @@ struct NumberPadView: View {
                     .padding(EdgeInsets(top: vPadding, leading: hPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    SYKeyboardButton(
+                    NaratgeulButton(
                         text: "2", primary: true, geometry: geometry,
                         onPress: {
                             Feedback.shared.playTypingSound()
@@ -76,7 +76,7 @@ struct NumberPadView: View {
                     .padding(EdgeInsets(top: vPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    SYKeyboardButton(
+                    NaratgeulButton(
                         text: "3", primary: true, geometry: geometry,
                         onPress: {
                             Feedback.shared.playTypingSound()
@@ -107,7 +107,7 @@ struct NumberPadView: View {
                 
                 // MARK: - 4, 5, 6
                 HStack(spacing: 0) {
-                    SYKeyboardButton(
+                    NaratgeulButton(
                         text: "4", primary: true, geometry: geometry,
                         onPress: {
                             Feedback.shared.playTypingSound()
@@ -134,7 +134,7 @@ struct NumberPadView: View {
                     .padding(EdgeInsets(top: interItemVPadding, leading: hPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    SYKeyboardButton(
+                    NaratgeulButton(
                         text: "5", primary: true, geometry: geometry,
                         onPress: {
                             Feedback.shared.playTypingSound()
@@ -161,7 +161,7 @@ struct NumberPadView: View {
                     .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    SYKeyboardButton(
+                    NaratgeulButton(
                         text: "6", primary: true, geometry: geometry,
                         onPress: {
                             Feedback.shared.playTypingSound()
@@ -191,7 +191,7 @@ struct NumberPadView: View {
                 
                 // MARK: - 7, 8, 9
                 HStack(spacing: 0) {
-                    SYKeyboardButton(
+                    NaratgeulButton(
                         text: "7", primary: true, geometry: geometry,
                         onPress: {
                             Feedback.shared.playTypingSound()
@@ -218,7 +218,7 @@ struct NumberPadView: View {
                     .padding(EdgeInsets(top: interItemVPadding, leading: hPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    SYKeyboardButton(
+                    NaratgeulButton(
                         text: "8", primary: true, geometry: geometry,
                         onPress: {
                             Feedback.shared.playTypingSound()
@@ -245,7 +245,7 @@ struct NumberPadView: View {
                     .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    SYKeyboardButton(
+                    NaratgeulButton(
                         text: "9", primary: true, geometry: geometry,
                         onPress: {
                             Feedback.shared.playTypingSound()
@@ -287,7 +287,7 @@ struct NumberPadView: View {
                             .frame(width: geometry.size.width / 3)
                     }
                     
-                    SYKeyboardButton(
+                    NaratgeulButton(
                         text: "0", primary: true, geometry: geometry,
                         onPress: {
                             Feedback.shared.playTypingSound()
@@ -314,7 +314,7 @@ struct NumberPadView: View {
                     .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: vPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    SYKeyboardButton(
+                    NaratgeulButton(
                         systemName: "delete.left", primary: false, geometry: geometry,
                         onPress: {
                             Feedback.shared.playDeleteSound()

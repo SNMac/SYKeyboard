@@ -222,7 +222,7 @@ struct Swift6_NumberView: View {
                                 .contentShape(Rectangle())
                                 
                                 Swift6_NaratgeulButton(
-                                    systemName: "space", primary: false, geometry: geometry,
+                                    systemName: "space", primary: true, geometry: geometry,
                                     onPress: {
                                         Feedback.shared.playModifierSound()
                                         Feedback.shared.playHaptic(style: .light)
@@ -498,8 +498,8 @@ struct Swift6_NumberView: View {
                                             },
                                             onRelease: {
                                                 if state.isSelectingOneHandType {
-                                                    state.currentOneHandType = state.selectedOneHandType
-                                                    currentOneHandType = state.selectedOneHandType.rawValue
+                                                    state.currentOneHandType = state.selectedOneHandType ?? .center
+                                                    currentOneHandType = state.selectedOneHandType?.rawValue ?? 1
                                                     state.isSelectingOneHandType = false
                                                 } else {
                                                     state.currentInputType = .hangeul
@@ -514,8 +514,8 @@ struct Swift6_NumberView: View {
                                             },
                                             onLongPressFinished: {
                                                 if state.isSelectingOneHandType {
-                                                    state.currentOneHandType = state.selectedOneHandType
-                                                    currentOneHandType = state.selectedOneHandType.rawValue
+                                                    state.currentOneHandType = state.selectedOneHandType ?? .center
+                                                    currentOneHandType = state.selectedOneHandType?.rawValue ?? 1
                                                     state.isSelectingOneHandType = false
                                                 } else {
                                                     state.currentInputType = .hangeul
@@ -540,8 +540,8 @@ struct Swift6_NumberView: View {
                                         },
                                         onRelease: {
                                             if state.isSelectingOneHandType {
-                                                state.currentOneHandType = state.selectedOneHandType
-                                                currentOneHandType = state.selectedOneHandType.rawValue
+                                                state.currentOneHandType = state.selectedOneHandType ?? .center
+                                                currentOneHandType = state.selectedOneHandType?.rawValue ?? 1
                                                 state.isSelectingOneHandType = false
                                             } else {
                                                 state.currentInputType = .hangeul
@@ -556,8 +556,8 @@ struct Swift6_NumberView: View {
                                         },
                                         onLongPressFinished: {
                                             if state.isSelectingOneHandType {
-                                                state.currentOneHandType = state.selectedOneHandType
-                                                currentOneHandType = state.selectedOneHandType.rawValue
+                                                state.currentOneHandType = state.selectedOneHandType ?? .center
+                                                currentOneHandType = state.selectedOneHandType?.rawValue ?? 1
                                                 state.isSelectingOneHandType = false
                                             } else {
                                                 state.currentInputType = .hangeul

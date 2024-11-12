@@ -65,6 +65,7 @@ struct NaratgeulView: View {
                 state.currentOneHandType = OneHandType(rawValue: currentOneHandType) ?? .center
             } else {
                 currentOneHandType = 1
+                state.currentOneHandType = .center
             }
         }
     }

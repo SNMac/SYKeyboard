@@ -478,8 +478,8 @@ struct Swift6_HangeulView: View {
                                             },
                                             onRelease: {
                                                 if state.isSelectingOneHandType {
-                                                    state.currentOneHandType = state.selectedOneHandType
-                                                    currentOneHandType = state.selectedOneHandType.rawValue
+                                                    state.currentOneHandType = state.selectedOneHandType ?? .center
+                                                    currentOneHandType = state.selectedOneHandType?.rawValue ?? 1
                                                     state.isSelectingOneHandType = false
                                                 } else {
                                                     state.currentInputType = .symbol
@@ -494,8 +494,8 @@ struct Swift6_HangeulView: View {
                                             },
                                             onLongPressFinished: {
                                                 if state.isSelectingOneHandType {
-                                                    state.currentOneHandType = state.selectedOneHandType
-                                                    currentOneHandType = state.selectedOneHandType.rawValue
+                                                    state.currentOneHandType = state.selectedOneHandType ?? .center
+                                                    currentOneHandType = state.selectedOneHandType?.rawValue ?? 1
                                                     state.isSelectingOneHandType = false
                                                 } else {
                                                     state.currentInputType = .symbol
@@ -520,8 +520,8 @@ struct Swift6_HangeulView: View {
                                         },
                                         onRelease: {
                                             if state.isSelectingOneHandType {
-                                                state.currentOneHandType = state.selectedOneHandType
-                                                currentOneHandType = state.selectedOneHandType.rawValue
+                                                state.currentOneHandType = state.selectedOneHandType ?? .center
+                                                currentOneHandType = state.selectedOneHandType?.rawValue ?? 1
                                                 state.isSelectingOneHandType = false
                                             } else {
                                                 state.currentInputType = .symbol
@@ -536,8 +536,8 @@ struct Swift6_HangeulView: View {
                                         },
                                         onLongPressFinished: {
                                             if state.isSelectingOneHandType {
-                                                state.currentOneHandType = state.selectedOneHandType
-                                                currentOneHandType = state.selectedOneHandType.rawValue
+                                                state.currentOneHandType = state.selectedOneHandType ?? .center
+                                                currentOneHandType = state.selectedOneHandType?.rawValue ?? 1
                                                 state.isSelectingOneHandType = false
                                             } else {
                                                 state.currentInputType = .symbol

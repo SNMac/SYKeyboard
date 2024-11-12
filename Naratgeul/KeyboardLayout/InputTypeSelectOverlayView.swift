@@ -20,7 +20,7 @@ struct InputTypeSelectOverlayView: View {
             if state.currentInputType == .hangeul {
                 Text("123")
                     .monospaced()
-                    .font(.system(size: fontSize, weight: state.selectedInputType == .number ? .semibold : .regular))
+                    .font(.system(size: fontSize, weight: state.selectedInputType == .number ? .bold : .regular))
                     .frame(width: (overlayWidth - interItemSpacing * 3) / 2, height: state.keyboardHeight / 4 - 20)
                     .foregroundStyle(state.selectedInputType == .number ? Color.white : Color(uiColor: .label))
                     .background(RoundedRectangle(cornerRadius: 10).fill(state.selectedInputType == .number ? Color.blue : Color.clear))
@@ -35,7 +35,7 @@ struct InputTypeSelectOverlayView: View {
                     }
                 
                 Image(systemName: state.selectedInputType == .hangeul ? "x.square.fill" : "x.square")
-                    .font(.system(size: fontSize, weight: state.selectedInputType == .hangeul ? .semibold : .regular))
+                    .font(.system(size: fontSize, weight: state.selectedInputType == .hangeul ? .bold : .regular))
                     .frame(width: (overlayWidth - interItemSpacing * 3) / 2, height: state.keyboardHeight / 4 - 20)
                     .foregroundStyle(state.selectedInputType == .hangeul ? Color.white : Color(uiColor: .label))
                     .background(RoundedRectangle(cornerRadius: 10).fill(state.selectedInputType == .hangeul ? Color.blue : Color.clear))
@@ -53,7 +53,7 @@ struct InputTypeSelectOverlayView: View {
             } else if state.currentInputType == .number {
                 Text("!#1")
                     .monospaced()
-                    .font(.system(size: fontSize, weight: state.selectedInputType == .symbol ? .semibold : .regular))
+                    .font(.system(size: fontSize, weight: state.selectedInputType == .symbol ? .bold : .regular))
                     .frame(width: (overlayWidth - interItemSpacing * 3) / 2, height: state.keyboardHeight / 4 - 20)
                     .foregroundStyle(state.selectedInputType == .symbol ? Color.white : Color(uiColor: .label))
                     .background(RoundedRectangle(cornerRadius: 10).fill(state.selectedInputType == .symbol ? Color.blue : Color.clear))
@@ -68,7 +68,7 @@ struct InputTypeSelectOverlayView: View {
                     }
                 
                 Image(systemName: state.selectedInputType == .number ? "x.square.fill" : "x.square")
-                    .font(.system(size: fontSize, weight: state.selectedInputType == .number ? .semibold : .regular))
+                    .font(.system(size: fontSize, weight: state.selectedInputType == .number ? .bold : .regular))
                     .frame(width: (overlayWidth - interItemSpacing * 3) / 2, height: state.keyboardHeight / 4 - 20)
                     .foregroundStyle(state.selectedInputType == .number ? Color.white : Color(uiColor: .label))
                     .background(RoundedRectangle(cornerRadius: 10).fill(state.selectedInputType == .number ? Color.blue : Color.clear))
@@ -85,7 +85,7 @@ struct InputTypeSelectOverlayView: View {
                 
             } else if state.currentInputType == .symbol {
                 Image(systemName: state.selectedInputType == .symbol ? "x.square.fill" : "x.square")
-                    .font(.system(size: fontSize, weight: state.selectedInputType == .symbol ? .semibold : .regular))
+                    .font(.system(size: fontSize, weight: state.selectedInputType == .symbol ? .bold : .regular))
                     .frame(width: (overlayWidth - interItemSpacing * 3) / 2, height: state.keyboardHeight / 4 - 20)
                     .foregroundStyle(state.selectedInputType == .symbol ? Color.white : Color(uiColor: .label))
                     .background(RoundedRectangle(cornerRadius: 10).fill(state.selectedInputType == .symbol ? Color.blue : Color.clear))
@@ -101,7 +101,7 @@ struct InputTypeSelectOverlayView: View {
                 
                 Text("123")
                     .monospaced()
-                    .font(.system(size: fontSize, weight: state.selectedInputType == .number ? .semibold : .regular))
+                    .font(.system(size: fontSize, weight: state.selectedInputType == .number ? .bold : .regular))
                     .frame(width: (overlayWidth - interItemSpacing * 3) / 2, height: state.keyboardHeight / 4 - 20)
                     .foregroundStyle(state.selectedInputType == .number ? Color.white : Color(uiColor: .label))
                     .background(RoundedRectangle(cornerRadius: 10).fill(state.selectedInputType == .number ? Color.blue : Color.clear))

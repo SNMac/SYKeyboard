@@ -1,14 +1,14 @@
 //
-//  HangeulView.swift
+//  NumberView.swift
 //  Naratgeul
 //
-//  Created by 서동환 on 7/29/24.
+//  Created by 서동환 on 9/17/24.
 //
 
 import SwiftUI
 import Combine
 
-struct HangeulView: View {
+struct NumberView: View {
     @EnvironmentObject var state: NaratgeulState
     @AppStorage("isOneHandTypeEnabled", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var isOneHandTypeEnabled = true
     @AppStorage("currentOneHandType", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var currentOneHandType = 1
@@ -28,27 +28,27 @@ struct HangeulView: View {
                 GeometryReader { geometry in
                     ZStack(alignment: .trailing) {
                         VStack(spacing: 0) {
-                            // MARK: - ㄱ, ㄴ, ㅏㅓ, 􀆛
+                            // MARK: - 1, 2, 3, 􀆛
                             HStack(spacing: 0) {
-                                SYKeyboardButton(
-                                    text: "ㄱ", primary: true, geometry: geometry,
+                                NaratgeulButton(
+                                    text: "1", primary: true, geometry: geometry,
                                     onPress: {
                                         Feedback.shared.playTypingSound()
                                         Feedback.shared.playHaptic(style: .light)
                                     },
                                     onRelease: {
-                                        state.delegate?.hangulKeypadTap(letter: "ㄱ")
+                                        state.delegate?.otherKeypadTap(letter: "1")
                                     },
                                     onLongPress: {
                                         Feedback.shared.playTypingSound()
                                         Feedback.shared.playHaptic(style: .light)
-                                        state.delegate?.hangulKeypadTap(letter: "ㄱ")
+                                        state.delegate?.otherKeypadTap(letter: "1")
                                         timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
                                             .autoconnect()
                                             .sink { _ in
                                                 Feedback.shared.playTypingSound()
                                                 Feedback.shared.playHaptic(style: .light)
-                                                state.delegate?.inputLastHangeul()
+                                                state.delegate?.inputLastSymbol()
                                             }
                                     },
                                     onLongPressFinished: {
@@ -57,25 +57,25 @@ struct HangeulView: View {
                                 .padding(EdgeInsets(top: vPadding, leading: hPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                                 .contentShape(Rectangle())
                                 
-                                SYKeyboardButton(
-                                    text: "ㄴ", primary: true, geometry: geometry,
+                                NaratgeulButton(
+                                    text: "2", primary: true, geometry: geometry,
                                     onPress: {
                                         Feedback.shared.playTypingSound()
                                         Feedback.shared.playHaptic(style: .light)
                                     },
                                     onRelease: {
-                                        state.delegate?.hangulKeypadTap(letter: "ㄴ")
+                                        state.delegate?.otherKeypadTap(letter: "2")
                                     },
                                     onLongPress: {
                                         Feedback.shared.playTypingSound()
                                         Feedback.shared.playHaptic(style: .light)
-                                        state.delegate?.hangulKeypadTap(letter: "ㄴ")
+                                        state.delegate?.otherKeypadTap(letter: "2")
                                         timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
                                             .autoconnect()
                                             .sink { _ in
                                                 Feedback.shared.playTypingSound()
                                                 Feedback.shared.playHaptic(style: .light)
-                                                state.delegate?.inputLastHangeul()
+                                                state.delegate?.inputLastSymbol()
                                             }
                                     },
                                     onLongPressFinished: {
@@ -84,25 +84,25 @@ struct HangeulView: View {
                                 .padding(EdgeInsets(top: vPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                                 .contentShape(Rectangle())
                                 
-                                SYKeyboardButton(
-                                    text: "ㅏㅓ", primary: true, geometry: geometry,
+                                NaratgeulButton(
+                                    text: "3", primary: true, geometry: geometry,
                                     onPress: {
                                         Feedback.shared.playTypingSound()
                                         Feedback.shared.playHaptic(style: .light)
                                     },
                                     onRelease: {
-                                        state.delegate?.hangulKeypadTap(letter: "ㅏ")
+                                        state.delegate?.otherKeypadTap(letter: "3")
                                     },
                                     onLongPress: {
                                         Feedback.shared.playTypingSound()
                                         Feedback.shared.playHaptic(style: .light)
-                                        state.delegate?.hangulKeypadTap(letter: "ㅏ")
+                                        state.delegate?.otherKeypadTap(letter: "3")
                                         timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
                                             .autoconnect()
                                             .sink { _ in
                                                 Feedback.shared.playTypingSound()
                                                 Feedback.shared.playHaptic(style: .light)
-                                                state.delegate?.inputLastHangeul()
+                                                state.delegate?.inputLastSymbol()
                                             }
                                     },
                                     onLongPressFinished: {
@@ -111,7 +111,7 @@ struct HangeulView: View {
                                 .padding(EdgeInsets(top: vPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                                 .contentShape(Rectangle())
                                 
-                                SYKeyboardButton(
+                                NaratgeulButton(
                                     systemName: "delete.left", primary: false, geometry: geometry,
                                     onPress: {
                                         Feedback.shared.playDeleteSound()
@@ -138,27 +138,27 @@ struct HangeulView: View {
                             }
                             
                             
-                            // MARK: - ㄹ, ㅁ, ㅗㅜ, 􁁺
+                            // MARK: - 4, 5, 6, 􁁺
                             HStack(spacing: 0) {
-                                SYKeyboardButton(
-                                    text: "ㄹ", primary: true, geometry: geometry,
+                                NaratgeulButton(
+                                    text: "4", primary: true, geometry: geometry,
                                     onPress: {
                                         Feedback.shared.playTypingSound()
                                         Feedback.shared.playHaptic(style: .light)
                                     },
                                     onRelease: {
-                                        state.delegate?.hangulKeypadTap(letter: "ㄹ")
+                                        state.delegate?.otherKeypadTap(letter: "4")
                                     },
                                     onLongPress: {
                                         Feedback.shared.playTypingSound()
                                         Feedback.shared.playHaptic(style: .light)
-                                        state.delegate?.hangulKeypadTap(letter: "ㄹ")
+                                        state.delegate?.otherKeypadTap(letter: "4")
                                         timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
                                             .autoconnect()
                                             .sink { _ in
                                                 Feedback.shared.playTypingSound()
                                                 Feedback.shared.playHaptic(style: .light)
-                                                state.delegate?.inputLastHangeul()
+                                                state.delegate?.inputLastSymbol()
                                             }
                                     },
                                     onLongPressFinished: {
@@ -167,25 +167,25 @@ struct HangeulView: View {
                                 .padding(EdgeInsets(top: interItemVPadding, leading: hPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                                 .contentShape(Rectangle())
                                 
-                                SYKeyboardButton(
-                                    text: "ㅁ", primary: true, geometry: geometry,
+                                NaratgeulButton(
+                                    text: "5", primary: true, geometry: geometry,
                                     onPress: {
                                         Feedback.shared.playTypingSound()
                                         Feedback.shared.playHaptic(style: .light)
                                     },
                                     onRelease: {
-                                        state.delegate?.hangulKeypadTap(letter: "ㅁ")
+                                        state.delegate?.otherKeypadTap(letter: "5")
                                     },
                                     onLongPress: {
                                         Feedback.shared.playTypingSound()
                                         Feedback.shared.playHaptic(style: .light)
-                                        state.delegate?.hangulKeypadTap(letter: "ㅁ")
+                                        state.delegate?.otherKeypadTap(letter: "5")
                                         timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
                                             .autoconnect()
                                             .sink { _ in
                                                 Feedback.shared.playTypingSound()
                                                 Feedback.shared.playHaptic(style: .light)
-                                                state.delegate?.inputLastHangeul()
+                                                state.delegate?.inputLastSymbol()
                                             }
                                     },
                                     onLongPressFinished: {
@@ -194,25 +194,25 @@ struct HangeulView: View {
                                 .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                                 .contentShape(Rectangle())
                                 
-                                SYKeyboardButton(
-                                    text: "ㅗㅜ", primary: true, geometry: geometry,
+                                NaratgeulButton(
+                                    text: "6", primary: true, geometry: geometry,
                                     onPress: {
                                         Feedback.shared.playTypingSound()
                                         Feedback.shared.playHaptic(style: .light)
                                     },
                                     onRelease: {
-                                        state.delegate?.hangulKeypadTap(letter: "ㅗ")
+                                        state.delegate?.otherKeypadTap(letter: "6")
                                     },
                                     onLongPress: {
                                         Feedback.shared.playTypingSound()
                                         Feedback.shared.playHaptic(style: .light)
-                                        state.delegate?.hangulKeypadTap(letter: "ㅗ")
+                                        state.delegate?.otherKeypadTap(letter: "6")
                                         timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
                                             .autoconnect()
                                             .sink { _ in
                                                 Feedback.shared.playTypingSound()
                                                 Feedback.shared.playHaptic(style: .light)
-                                                state.delegate?.inputLastHangeul()
+                                                state.delegate?.inputLastSymbol()
                                             }
                                     },
                                     onLongPressFinished: {
@@ -221,7 +221,7 @@ struct HangeulView: View {
                                 .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                                 .contentShape(Rectangle())
                                 
-                                SYKeyboardButton(
+                                NaratgeulButton(
                                     systemName: "space", primary: true, geometry: geometry,
                                     onPress: {
                                         Feedback.shared.playModifierSound()
@@ -249,27 +249,27 @@ struct HangeulView: View {
                                 .contentShape(Rectangle())
                             }
                             
-                            // MARK: - ㅅ, ㅇ, ㅣ, 􁂆
+                            // MARK: - 7, 8, 9, 􁂆
                             HStack(spacing: 0) {
-                                SYKeyboardButton(
-                                    text: "ㅅ", primary: true, geometry: geometry,
+                                NaratgeulButton(
+                                    text: "7", primary: true, geometry: geometry,
                                     onPress: {
                                         Feedback.shared.playTypingSound()
                                         Feedback.shared.playHaptic(style: .light)
                                     },
                                     onRelease: {
-                                        state.delegate?.hangulKeypadTap(letter: "ㅅ")
+                                        state.delegate?.otherKeypadTap(letter: "7")
                                     },
                                     onLongPress: {
                                         Feedback.shared.playTypingSound()
                                         Feedback.shared.playHaptic(style: .light)
-                                        state.delegate?.hangulKeypadTap(letter: "ㅅ")
+                                        state.delegate?.otherKeypadTap(letter: "7")
                                         timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
                                             .autoconnect()
                                             .sink { _ in
                                                 Feedback.shared.playTypingSound()
                                                 Feedback.shared.playHaptic(style: .light)
-                                                state.delegate?.inputLastHangeul()
+                                                state.delegate?.inputLastSymbol()
                                             }
                                     },
                                     onLongPressFinished: {
@@ -278,25 +278,25 @@ struct HangeulView: View {
                                 .padding(EdgeInsets(top: interItemVPadding, leading: hPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                                 .contentShape(Rectangle())
                                 
-                                SYKeyboardButton(
-                                    text: "ㅇ", primary: true, geometry: geometry,
+                                NaratgeulButton(
+                                    text: "8", primary: true, geometry: geometry,
                                     onPress: {
                                         Feedback.shared.playTypingSound()
                                         Feedback.shared.playHaptic(style: .light)
                                     },
                                     onRelease: {
-                                        state.delegate?.hangulKeypadTap(letter: "ㅇ")
+                                        state.delegate?.otherKeypadTap(letter: "8")
                                     },
                                     onLongPress: {
                                         Feedback.shared.playTypingSound()
                                         Feedback.shared.playHaptic(style: .light)
-                                        state.delegate?.hangulKeypadTap(letter: "ㅇ")
+                                        state.delegate?.otherKeypadTap(letter: "8")
                                         timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
                                             .autoconnect()
                                             .sink { _ in
                                                 Feedback.shared.playTypingSound()
                                                 Feedback.shared.playHaptic(style: .light)
-                                                state.delegate?.inputLastHangeul()
+                                                state.delegate?.inputLastSymbol()
                                             }
                                     },
                                     onLongPressFinished: {
@@ -305,25 +305,25 @@ struct HangeulView: View {
                                 .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                                 .contentShape(Rectangle())
                                 
-                                SYKeyboardButton(
-                                    text: "ㅣ", primary: true, geometry: geometry,
+                                NaratgeulButton(
+                                    text: "9", primary: true, geometry: geometry,
                                     onPress: {
                                         Feedback.shared.playTypingSound()
                                         Feedback.shared.playHaptic(style: .light)
                                     },
                                     onRelease: {
-                                        state.delegate?.hangulKeypadTap(letter: "ㅣ")
+                                        state.delegate?.otherKeypadTap(letter: "9")
                                     },
                                     onLongPress: {
                                         Feedback.shared.playTypingSound()
                                         Feedback.shared.playHaptic(style: .light)
-                                        state.delegate?.hangulKeypadTap(letter: "ㅣ")
+                                        state.delegate?.otherKeypadTap(letter: "9")
                                         timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
                                             .autoconnect()
                                             .sink { _ in
                                                 Feedback.shared.playTypingSound()
                                                 Feedback.shared.playHaptic(style: .light)
-                                                state.delegate?.inputLastHangeul()
+                                                state.delegate?.inputLastSymbol()
                                             }
                                     },
                                     onLongPressFinished: {
@@ -332,106 +332,99 @@ struct HangeulView: View {
                                 .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                                 .contentShape(Rectangle())
                                 
-                                if state.currentKeyboardType == .twitter {
-                                    HStack(spacing: 0) {
-                                        SYKeyboardButton(
-                                            text: "@_twitter", primary: false, geometry: geometry,
-                                            onPress: {
-                                                Feedback.shared.playModifierSound()
-                                                Feedback.shared.playHaptic(style: .light)
-                                            },
-                                            onRelease: {
-                                                state.delegate?.otherKeypadTap(letter: "@")
-                                            },
-                                            onLongPressFinished: {
-                                                state.delegate?.otherKeypadTap(letter: "@")
-                                            })
-                                        .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
-                                        .contentShape(Rectangle())
-                                        
-                                        SYKeyboardButton(
-                                            text: "#_twitter", primary: false, geometry: geometry,
-                                            onPress: {
-                                                Feedback.shared.playModifierSound()
-                                                Feedback.shared.playHaptic(style: .light)
-                                            },
-                                            onRelease: {
-                                                state.delegate?.otherKeypadTap(letter: "#")
-                                            },
-                                            onLongPressFinished: {
-                                                state.delegate?.otherKeypadTap(letter: "#")
-                                            })
-                                        .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: hPadding))
-                                        .contentShape(Rectangle())
-                                    }
-                                } else {
-                                    SYKeyboardButton(
-                                        systemName: "return.left", primary: false, geometry: geometry,
+                                NaratgeulButton(
+                                    systemName: "return.left", primary: false, geometry: geometry,
+                                    onPress: {
+                                        Feedback.shared.playModifierSound()
+                                        Feedback.shared.playHaptic(style: .light)
+                                    },
+                                    onRelease: {
+                                        state.delegate?.enterKeypadTap()
+                                    },
+                                    onLongPressFinished: {
+                                        state.delegate?.enterKeypadTap()
+                                    })
+                                .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: hPadding))
+                                .contentShape(Rectangle())
+                            }
+                            
+                            // MARK: - "-", ",", 0, ".", "/", (한글, 􀆪)
+                            HStack(spacing: 0) {
+                                HStack(spacing: 0) {
+                                    NaratgeulButton(
+                                        text: "-", primary: true, geometry: geometry,
                                         onPress: {
-                                            Feedback.shared.playModifierSound()
+                                            Feedback.shared.playTypingSound()
                                             Feedback.shared.playHaptic(style: .light)
                                         },
                                         onRelease: {
-                                            state.delegate?.enterKeypadTap()
+                                            state.delegate?.otherKeypadTap(letter: "-")
                                         },
-                                        onLongPressFinished: {
-                                            state.delegate?.enterKeypadTap()
-                                        })
-                                    .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: hPadding))
-                                    .contentShape(Rectangle())
-                                }
-                            }
-                            
-                            // MARK: - 획, ㅡ, 쌍, (!#1, 􀆪)
-                            HStack(spacing: 0) {
-                                SYKeyboardButton(
-                                    text: "획", primary: true, geometry: geometry,
-                                    onPress: {
-                                        Feedback.shared.playTypingSound()
-                                        Feedback.shared.playHaptic(style: .light)
-                                    },
-                                    onRelease: {
-                                        state.delegate?.hoegKeypadTap()
-                                    },
-                                    onLongPress: {
-                                        Feedback.shared.playTypingSound()
-                                        Feedback.shared.playHaptic(style: .light)
-                                        state.delegate?.hoegKeypadTap()
-                                        if state.isHoegSsangAvailable {
+                                        onLongPress: {
+                                            Feedback.shared.playTypingSound()
+                                            Feedback.shared.playHaptic(style: .light)
+                                            state.delegate?.otherKeypadTap(letter: "-")
                                             timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
                                                 .autoconnect()
                                                 .sink { _ in
                                                     Feedback.shared.playTypingSound()
                                                     Feedback.shared.playHaptic(style: .light)
-                                                    state.delegate?.inputLastHangeul()
+                                                    state.delegate?.inputLastSymbol()
                                                 }
-                                        }
-                                    },
-                                    onLongPressFinished: {
-                                        timer?.cancel()
-                                    })
-                                .padding(EdgeInsets(top: interItemVPadding, leading: hPadding, bottom: vPadding, trailing: interItemHPadding))
-                                .contentShape(Rectangle())
+                                        },
+                                        onLongPressFinished: {
+                                            timer?.cancel()
+                                        })
+                                    .padding(EdgeInsets(top: interItemVPadding, leading: hPadding, bottom: vPadding, trailing: interItemHPadding))
+                                    .contentShape(Rectangle())
+                                    
+                                    NaratgeulButton(
+                                        text: ",", primary: true, geometry: geometry,
+                                        onPress: {
+                                            Feedback.shared.playTypingSound()
+                                            Feedback.shared.playHaptic(style: .light)
+                                        },
+                                        onRelease: {
+                                            state.delegate?.otherKeypadTap(letter: ",")
+                                        },
+                                        onLongPress: {
+                                            Feedback.shared.playTypingSound()
+                                            Feedback.shared.playHaptic(style: .light)
+                                            state.delegate?.otherKeypadTap(letter: ",")
+                                            timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
+                                                .autoconnect()
+                                                .sink { _ in
+                                                    Feedback.shared.playTypingSound()
+                                                    Feedback.shared.playHaptic(style: .light)
+                                                    state.delegate?.inputLastSymbol()
+                                                }
+                                        },
+                                        onLongPressFinished: {
+                                            timer?.cancel()
+                                        })
+                                    .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: vPadding, trailing: interItemHPadding))
+                                    .contentShape(Rectangle())
+                                }
                                 
-                                SYKeyboardButton(
-                                    text: "ㅡ", primary: true, geometry: geometry,
+                                NaratgeulButton(
+                                    text: "0", primary: true, geometry: geometry,
                                     onPress: {
                                         Feedback.shared.playTypingSound()
                                         Feedback.shared.playHaptic(style: .light)
                                     },
                                     onRelease: {
-                                        state.delegate?.hangulKeypadTap(letter: "ㅡ")
+                                        state.delegate?.otherKeypadTap(letter: "0")
                                     },
                                     onLongPress: {
                                         Feedback.shared.playTypingSound()
                                         Feedback.shared.playHaptic(style: .light)
-                                        state.delegate?.hangulKeypadTap(letter: "ㅡ")
+                                        state.delegate?.otherKeypadTap(letter: "0")
                                         timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
                                             .autoconnect()
                                             .sink { _ in
                                                 Feedback.shared.playTypingSound()
                                                 Feedback.shared.playHaptic(style: .light)
-                                                state.delegate?.inputLastHangeul()
+                                                state.delegate?.inputLastSymbol()
                                             }
                                     },
                                     onLongPressFinished: {
@@ -440,50 +433,77 @@ struct HangeulView: View {
                                 .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: vPadding, trailing: interItemHPadding))
                                 .contentShape(Rectangle())
                                 
-                                SYKeyboardButton(
-                                    text: "쌍", primary: true, geometry: geometry,
-                                    onPress: {
-                                        Feedback.shared.playTypingSound()
-                                        Feedback.shared.playHaptic(style: .light)
-                                    },
-                                    onRelease: {
-                                        state.delegate?.ssangKeypadTap()
-                                    },
-                                    onLongPress: {
-                                        Feedback.shared.playTypingSound()
-                                        Feedback.shared.playHaptic(style: .light)
-                                        state.delegate?.ssangKeypadTap()
-                                        if state.isHoegSsangAvailable {
+                                HStack(spacing: 0) {
+                                    NaratgeulButton(
+                                        text: ".", primary: true, geometry: geometry,
+                                        onPress: {
+                                            Feedback.shared.playTypingSound()
+                                            Feedback.shared.playHaptic(style: .light)
+                                        },
+                                        onRelease: {
+                                            state.delegate?.otherKeypadTap(letter: ".")
+                                        },
+                                        onLongPress: {
+                                            Feedback.shared.playTypingSound()
+                                            Feedback.shared.playHaptic(style: .light)
+                                            state.delegate?.otherKeypadTap(letter: ".")
                                             timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
                                                 .autoconnect()
                                                 .sink { _ in
                                                     Feedback.shared.playTypingSound()
                                                     Feedback.shared.playHaptic(style: .light)
-                                                    state.delegate?.inputLastHangeul()
+                                                    state.delegate?.inputLastSymbol()
                                                 }
-                                        }
-                                    },
-                                    onLongPressFinished: {
-                                        timer?.cancel()
-                                    })
-                                .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: vPadding, trailing: interItemHPadding))
-                                .contentShape(Rectangle())
+                                        },
+                                        onLongPressFinished: {
+                                            timer?.cancel()
+                                        })
+                                    .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: vPadding, trailing: interItemHPadding))
+                                    .contentShape(Rectangle())
+                                    
+                                    NaratgeulButton(
+                                        text: "/", primary: true, geometry: geometry,
+                                        onPress: {
+                                            Feedback.shared.playTypingSound()
+                                            Feedback.shared.playHaptic(style: .light)
+                                        },
+                                        onRelease: {
+                                            state.delegate?.otherKeypadTap(letter: "/")
+                                        },
+                                        onLongPress: {
+                                            Feedback.shared.playTypingSound()
+                                            Feedback.shared.playHaptic(style: .light)
+                                            state.delegate?.otherKeypadTap(letter: "/")
+                                            timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
+                                                .autoconnect()
+                                                .sink { _ in
+                                                    Feedback.shared.playTypingSound()
+                                                    Feedback.shared.playHaptic(style: .light)
+                                                    state.delegate?.inputLastSymbol()
+                                                }
+                                        },
+                                        onLongPressFinished: {
+                                            timer?.cancel()
+                                        })
+                                    .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: vPadding, trailing: interItemHPadding))
+                                    .contentShape(Rectangle())
+                                }
                                 
                                 if state.needsInputModeSwitchKey {
                                     HStack(spacing: 0) {
-                                        SYKeyboardButton(
-                                            text: "!#1", primary: false, geometry: geometry,
+                                        NaratgeulButton(
+                                            text: "한글", primary: false, geometry: geometry,
                                             onPress: {
                                                 Feedback.shared.playModifierSound()
                                                 Feedback.shared.playHaptic(style: .light)
                                             },
                                             onRelease: {
                                                 if state.isSelectingOneHandType {
-                                                    state.currentOneHandType = state.selectedOneHandType
-                                                    currentOneHandType = state.selectedOneHandType.rawValue
+                                                    state.currentOneHandType = state.selectedOneHandType ?? .center
+                                                    currentOneHandType = state.selectedOneHandType?.rawValue ?? 1
                                                     state.isSelectingOneHandType = false
                                                 } else {
-                                                    state.currentInputType = .symbol
+                                                    state.currentInputType = .hangeul
                                                 }
                                             },
                                             onLongPress: {
@@ -495,11 +515,11 @@ struct HangeulView: View {
                                             },
                                             onLongPressFinished: {
                                                 if state.isSelectingOneHandType {
-                                                    state.currentOneHandType = state.selectedOneHandType
-                                                    currentOneHandType = state.selectedOneHandType.rawValue
+                                                    state.currentOneHandType = state.selectedOneHandType ?? .center
+                                                    currentOneHandType = state.selectedOneHandType?.rawValue ?? 1
                                                     state.isSelectingOneHandType = false
                                                 } else {
-                                                    state.currentInputType = .symbol
+                                                    state.currentInputType = .hangeul
                                                 }
                                             })
                                         .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: vPadding, trailing: interItemHPadding))
@@ -513,19 +533,19 @@ struct HangeulView: View {
                                         .contentShape(Rectangle())
                                     }
                                 } else {
-                                    SYKeyboardButton(
-                                        text: "!#1", primary: false, geometry: geometry,
+                                    NaratgeulButton(
+                                        text: "한글", primary: false, geometry: geometry,
                                         onPress: {
                                             Feedback.shared.playModifierSound()
                                             Feedback.shared.playHaptic(style: .light)
                                         },
                                         onRelease: {
                                             if state.isSelectingOneHandType {
-                                                state.currentOneHandType = state.selectedOneHandType
-                                                currentOneHandType = state.selectedOneHandType.rawValue
+                                                state.currentOneHandType = state.selectedOneHandType ?? .center
+                                                currentOneHandType = state.selectedOneHandType?.rawValue ?? 1
                                                 state.isSelectingOneHandType = false
                                             } else {
-                                                state.currentInputType = .symbol
+                                                state.currentInputType = .hangeul
                                             }
                                         },
                                         onLongPress: {
@@ -537,11 +557,11 @@ struct HangeulView: View {
                                         },
                                         onLongPressFinished: {
                                             if state.isSelectingOneHandType {
-                                                state.currentOneHandType = state.selectedOneHandType
-                                                currentOneHandType = state.selectedOneHandType.rawValue
+                                                state.currentOneHandType = state.selectedOneHandType ?? .center
+                                                currentOneHandType = state.selectedOneHandType?.rawValue ?? 1
                                                 state.isSelectingOneHandType = false
                                             } else {
-                                                state.currentInputType = .symbol
+                                                state.currentInputType = .hangeul
                                             }
                                         })
                                     .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: vPadding, trailing: hPadding))
