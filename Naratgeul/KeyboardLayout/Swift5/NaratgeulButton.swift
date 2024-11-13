@@ -139,8 +139,6 @@ struct NaratgeulButton: View {
                     // 왼쪽으로 키보드 너비 3/4 초과 드래그 -> 다른 자판으로 변경
                     if dragXLocation < inputTypeActiveDragXPos_hanNum {
                         state.isSelectingInputType = true
-                    } else if dragYLocation < oneHandActiveDragYPos {
-                        state.isSelectingOneHandType = true
                     }
                 }
                 if state.isSelectingInputType {
@@ -174,8 +172,6 @@ struct NaratgeulButton: View {
                         // 오른쪽으로 키보드 너비 1/4 초과 드래그 -> 다른 자판으로 변경
                         if dragXLocation > inputTypeActiveDragXPos_sym {
                             state.isSelectingInputType = true
-                        } else if dragYLocation < oneHandActiveDragYPos {
-                            state.isSelectingOneHandType = true
                         }
                     }
                     if state.isSelectingInputType {
@@ -270,7 +266,6 @@ struct NaratgeulButton: View {
             onDragging(value: value)
         }
     }
-    
     
     private func dragGestureOnEnded() {
         if nowGesture == .longPressing || nowGesture == .sequencedDragging {
@@ -548,7 +543,7 @@ struct NaratgeulButton: View {
                     longPressGestureOnEnded()
                 })
             
-                .sequenced(before: DragGesture(minimumDistance: 0, coordinateSpace: .global))
+                .sequenced(before: DragGesture(minimumDistance: cursorActiveWidth, coordinateSpace: .global))
             // 버튼 길게 누르고 드래그시 호출
                 .onChanged({ value in
                     switch value {

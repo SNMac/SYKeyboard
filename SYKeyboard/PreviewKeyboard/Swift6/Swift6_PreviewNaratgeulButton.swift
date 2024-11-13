@@ -38,21 +38,23 @@ struct Swift6_PreviewNaratgeulButton: View {
                 nowGesture = .dragging
             }
             
-            // 일정 거리 초과 드래그 -> 커서 이동 활성화
-            let dragWidthDiff = value.translation.width - dragStartWidth
-            if dragWidthDiff < -cursorActiveWidth || dragWidthDiff > cursorActiveWidth {
-                dragStartWidth = value.translation.width
-            }
-            // 일정 거리 초과 드래그 -> 커서를 한칸씩 드래그한 방향으로 이동
+            // 일정 거리 초과 드래그 -> 커서를 한칸씩 드래그한 방향으로 이동(햅틱 피드백)
             let dragDiff = value.translation.width - dragStartWidth
             if dragDiff < -cursorMoveWidth {
+                print("Drag to left")
                 dragStartWidth = value.translation.width
                 Feedback.shared.playHapticByForce(style: .light)
             } else if dragDiff > cursorMoveWidth {
+                print("Drag to right")
                 dragStartWidth = value.translation.width
                 Feedback.shared.playHapticByForce(style: .light)
             }
         }
+    }
+    
+    private func onPressing() {  // 버튼 눌렀을 때 호출(버튼 누르면 무조건 첫번째로 호출)
+        nowGesture = .pressing
+        onPress()
     }
     
     private func onReleased() {  // 버튼 뗐을 때
@@ -62,11 +64,6 @@ struct Swift6_PreviewNaratgeulButton: View {
         }
         nowGesture = .released
         state.swift6_nowPressedButton = nil
-    }
-    
-    private func onPressing() {  // 버튼 눌렀을 때 호출(버튼 누르면 무조건 첫번째로 호출)
-        nowGesture = .pressing
-        onPress()
     }
     
     private func onLongPressing() {  // 버튼 길게 누르면(누른 상태에서 일정시간이 지나면) 호출
@@ -79,6 +76,7 @@ struct Swift6_PreviewNaratgeulButton: View {
         nowGesture = .released
         state.swift6_nowPressedButton = nil
     }
+    
     
     // MARK: - Snippet of Gesture Method
     private func dragGestureOnChange(value: DragGesture.Value) {
@@ -124,7 +122,8 @@ struct Swift6_PreviewNaratgeulButton: View {
         }
     }
     
-    // MARK: - SYKeyboardButton
+    
+    // MARK: - Swift6_PreviewNaratgeulButton
     var body: some View {
         let longPressTime = 1.0 - longPressSpeed
         

@@ -37,30 +37,35 @@ struct PreviewNaratgeulButton: View {
     var onLongPress: (() -> Void)?
     var onLongPressFinished: (() -> Void)?
     
-    private func dragOnChanged(value: DragGesture.Value) {  // 버튼 드래그 할 때 호출
-        if primary {  // 글자 버튼에서만 드래그 가능
+    
+    // MARK: - Basic of Gesture Method
+    private func onDragging(value: DragGesture.Value) {  // 버튼 드래그 할 때 호출
+        if primary {  // 글자 버튼
             if nowGesture != .dragging {  // 드래그 시작
                 dragStartWidth = value.translation.width
                 nowGesture = .dragging
             }
-            // 일정 거리 초과/미만 드래그 -> 커서 이동 활성화
-            let dragWidthDiff = value.translation.width - dragStartWidth
-            if dragWidthDiff < -cursorActiveWidth || dragWidthDiff > cursorActiveWidth {
+            
+            // 일정 거리 초과 드래그 -> 커서를 한칸씩 드래그한 방향으로 이동(햅틱 피드백)
+            let dragDiff = value.translation.width - dragStartWidth
+            if dragDiff < -cursorMoveWidth {
+                print("Drag to left")
                 dragStartWidth = value.translation.width
+                Feedback.shared.playHapticByForce(style: .light)
+            } else if dragDiff > cursorMoveWidth {
+                print("Drag to right")
+                dragStartWidth = value.translation.width
+                Feedback.shared.playHapticByForce(style: .light)
             }
-        }
-        // 일정 거리 초과/미만 드래그 -> 커서를 한칸씩 드래그한 방향으로 이동
-        let dragDiff = value.translation.width - dragStartWidth
-        if dragDiff < -cursorMoveWidth {
-            dragStartWidth = value.translation.width
-            Feedback.shared.playHapticByForce(style: .light)
-        } else if dragDiff > cursorMoveWidth {
-            dragStartWidth = value.translation.width
-            Feedback.shared.playHapticByForce(style: .light)
         }
     }
     
-    private func dragOnEnded() {  // 버튼 뗐을 때
+    private func onPressing() {  // 버튼 눌렀을 때 호출(버튼 누르면 무조건 첫번째로 호출)
+        nowGesture = .pressing
+        onPress()
+    }
+    
+    private func onReleased() {  // 버튼 뗐을 때
         if nowGesture != .dragging {
             // 드래그 했을 경우 onRelease 실행 X
             onRelease?()
@@ -69,22 +74,65 @@ struct PreviewNaratgeulButton: View {
         state.nowPressedButton = nil
     }
     
-    private func longPressOnChanged() {  // 버튼 눌렀을 때 호출(버튼 누르면 무조건 첫번째로 호출)
-        nowGesture = .pressing
-        onPress()
-    }
-    
-    private func longPressOnEnded() {  // 버튼 길게 누르면(누른 상태에서 일정시간이 지나면) 호출
+    private func onLongPressing() {  // 버튼 길게 누르면(누른 상태에서 일정시간이 지나면) 호출
         nowGesture = .longPressing
         onLongPress?()
     }
     
-    private func seqDragOnEnded() {  // 버튼 길게 눌렀다가 뗐을 때 호출
-        onLongPressFinished?()
+    private func onLongPressReleased() {  // 버튼 길게 눌렀다가 뗐을 때 호출
         nowGesture = .released
+        onLongPressFinished?()
         state.nowPressedButton = nil
     }
     
+    // MARK: - Snippet of Gesture Method
+    private func sequencedDragOnEnded() {
+        if nowGesture == .longPressing {
+            onLongPressReleased()
+        } else if nowGesture != .released {
+            onReleased()
+        }
+    }
+    
+    private func dragGestureOnChange(value: DragGesture.Value) {
+        if nowGesture != .released {
+            onDragging(value: value)
+        }
+    }
+    
+    private func dragGestureOnEnded() {
+        if nowGesture == .longPressing {
+            onLongPressReleased()
+        } else if nowGesture != .released {
+            onReleased()
+        }
+    }
+    
+    private func longPressGestureOnChanged() {
+        if state.swift6_nowPressedButton != nil {  // 이미 다른 버튼이 눌려있는 상태
+            switch state.nowPressedButton?.nowGesture {
+            case .pressing:
+                state.nowPressedButton?.onReleased()
+            case .longPressing:
+                state.nowPressedButton?.onLongPressReleased()
+            case .dragging:
+                state.nowPressedButton?.onReleased()
+            default:
+                break
+            }
+        }
+        state.nowPressedButton = self
+        onPressing()
+    }
+    
+    private func longPressGestureOnEnded() {
+        if nowGesture != .released {
+            onLongPressing()
+        }
+    }
+    
+    
+    // MARK: - PreviewNaratgeulButton
     var body: some View {
         let longPressTime = 1.0 - longPressSpeed
         
@@ -149,60 +197,58 @@ struct PreviewNaratgeulButton: View {
         .compositingGroup()
         .shadow(color: Color("KeyboardButtonShadow"), radius: 0, x: 0, y: 1)
         .gesture(
-            DragGesture(minimumDistance: cursorActiveWidth)
+            DragGesture(minimumDistance: cursorActiveWidth, coordinateSpace: .global)
             // 버튼 드래그 할 때 호출
                 .onChanged { value in
-                    print("DragGesture() onChanged")
-                    if nowGesture != .released {
-                        dragOnChanged(value: value)
-                    }
+                    print("DragGesture() onChanged: dragging")
+                    dragGestureOnChange(value: value)
                 }
             
             // 버튼 뗐을 때
-                .onEnded { _ in
-                    print("DragGesture() onEnded")
-                    if nowGesture != .released {
-                        dragOnEnded()
-                    }
-                }
+                .onEnded({ _ in
+                    print("DragGesture() onEnded: dragging")
+                    dragGestureOnEnded()
+                })
+        )
+        .gesture(
+            DragGesture(minimumDistance: 0)
+                .onEnded({ _ in
+                    print("DragGesture() onChanged: released")
+                    dragGestureOnEnded()
+                })
         )
         .highPriorityGesture(
             LongPressGesture(minimumDuration: longPressTime, maximumDistance: cursorActiveWidth)
             // 버튼 눌렀을 때 호출(버튼 누르면 무조건 첫번째로 호출)
-                .onChanged { _ in
-                    print("LongPressGesture() onChanged")
-                    if state.nowPressedButton != nil {  // 이미 다른 버튼이 눌려있는 상태
-                        switch state.nowPressedButton?.nowGesture {
-                        case .pressing:
-                            state.nowPressedButton?.dragOnEnded()
-                        case .longPressing:
-                            state.nowPressedButton?.seqDragOnEnded()
-                        case .dragging:
-                            state.nowPressedButton?.dragOnEnded()
-                        default:
-                            break
-                        }
-                    }
-                    state.nowPressedButton = self
-                    longPressOnChanged()
-                }
+                .onChanged({ _ in
+                    print("LongPressGesture() onChanged: pressing")
+                    longPressGestureOnChanged()
+                })
             
             // 버튼 길게 누르면(누른 상태에서 일정시간이 지나면) 호출
-                .onEnded { _ in
-                    print("LongPressGesture() onEnded")
-                    if nowGesture != .released {
-                        longPressOnEnded()
+                .onEnded({ _ in
+                    print("LongPressGesture() onEnded: longPressing")
+                    longPressGestureOnEnded()
+                })
+            
+                .sequenced(before: DragGesture(minimumDistance: cursorActiveWidth, coordinateSpace: .global))
+            // 버튼 길게 누르고 드래그시 호출
+                .onChanged({ value in
+                    switch value {
+                    case .first(_):
+                        break
+                    case .second(_, let dragValue):
+                        if let value = dragValue {
+                            print("LongPressGesture()->DragGesture() onChanged: sequencedDragging")
+                        }
                     }
-                }
+                })
             
             // 버튼 길게 눌렀다가 뗐을 때 호출
-                .sequenced(before: DragGesture(minimumDistance: 0))
-                .onEnded { _ in
-                    print("LongPressGesture()->DragGesture() onEnded")
-                    if nowGesture != .released {
-                        seqDragOnEnded()
-                    }
-                }
+                .onEnded({ _ in
+                    print("LongPressGesture()->DragGesture() onEnded: sequencedDragging released")
+                    sequencedDragOnEnded()
+                })
         )
     }
 }
