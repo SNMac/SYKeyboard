@@ -27,9 +27,6 @@ struct Swift6_EmailSymbolView: View {
     var body: some View {
         GeometryReader { geometry in
             HStack(spacing: 0) {
-                if isOneHandTypeEnabled && state.currentOneHandType == .right {
-                    ChevronButton(isLeftHandMode: false, geometry: geometry)
-                }
                 GeometryReader { geometry in
                     ZStack(alignment: .leading) {
                         VStack(spacing: 0) {
@@ -845,15 +842,7 @@ struct Swift6_EmailSymbolView: View {
                             InputTypeSelectOverlayView()
                                 .offset(x: interItemHPadding, y: state.keyboardHeight / 8)
                         }
-                        
-                        if state.isSelectingOneHandType {
-                            OneHandSelectOverlayView()
-                                .offset(x: interItemHPadding, y: state.keyboardHeight / 8)
-                        }
                     }
-                }
-                if isOneHandTypeEnabled && state.currentOneHandType == .left {
-                    ChevronButton(isLeftHandMode: true, geometry: geometry)
                 }
             }
         }.onAppear {

@@ -285,6 +285,7 @@
 				5BACCE542C915423006DCFB7 /* NaratgeulDelegate.swift */,
 				5B0D82352C5962A500F84180 /* NaratgeulIOManager.swift */,
 				5B2B40062C6CAB2F007CA762 /* NaratgeulView.swift */,
+				5B6B1B362CD210CD00636AC4 /* OneHandSelectOverlayView.swift */,
 				5B2B40112C6CC1D1007CA762 /* NaratgeulState.swift */,
 				5B7BDD4B2C92C0170065C944 /* KeyboardLayout */,
 				5B7B3F6F2C569B8200F7C093 /* Info.plist */,
@@ -318,7 +319,6 @@
 				5B2B40142C6CD2A4007CA762 /* NextKeyboardButton.swift */,
 				5B7885932CDCB04A007A801A /* ChevronButton.swift */,
 				5B7885992CDF3473007A801A /* InputTypeSelectOverlayView.swift */,
-				5B6B1B362CD210CD00636AC4 /* OneHandSelectOverlayView.swift */,
 			);
 			path = KeyboardLayout;
 			sourceTree = "<group>";

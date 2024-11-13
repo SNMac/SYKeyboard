@@ -13,50 +13,31 @@ struct ChevronButton: View {
     @State var isPressing: Bool = false
     
     let isLeftHandMode: Bool
-    let widthDivider: CGFloat = 5
-    
-    var geometry: GeometryProxy
+    let frameWidth: CGFloat = 80
     
     var body: some View {
         Image(systemName: isLeftHandMode ? "chevron.compact.right" : "chevron.compact.left")
-            .frame(width: geometry.size.width / widthDivider, height: state.keyboardHeight)
+            .frame(width: 80, height: state.keyboardHeight)
             .font(.system(size: 36))
             .foregroundStyle(isPressing ? Color("PrimaryKeyboardButton") : Color("SecondaryKeyboardButton"))
             .background(Color.white.opacity(0.001))
             .gesture(
-                DragGesture(minimumDistance: 0, coordinateSpace: .global)
+                DragGesture(minimumDistance: 0, coordinateSpace: .local)
                     .onChanged({ value in
-                        if isLeftHandMode {  // 오른쪽에 화살표 표시됨
-                            if value.location.x < geometry.size.width / widthDivider * (widthDivider - 1) {
-                                isPressing = false
-                            } else {
-                                isPressing = true
-                            }
-                        } else {  // 왼쪽에 화살표 표시됨
-                            if value.location.x > geometry.size.width / widthDivider {
-                                isPressing = false
-                            } else {
-                                isPressing = true
-                            }
+                        print(value.location.x)
+                        if 0 < value.location.x && value.location.x < frameWidth {
+                            isPressing = true
+                        } else {
+                            isPressing = false
                         }
                     })
                     .onEnded({ value in
-                        if isLeftHandMode {  // 오른쪽에 화살표 표시됨
-                            if value.location.x < geometry.size.width / widthDivider * (widthDivider - 1) {
-                                isPressing = false
-                            } else {
-                                state.currentOneHandType = .center
-                                currentOneHandType = OneHandType.center.rawValue
-                                isPressing = false
-                            }
-                        } else {  // 왼쪽에 화살표 표시됨
-                            if value.location.x > geometry.size.width / widthDivider {
-                                isPressing = false
-                            } else {
-                                state.currentOneHandType = .center
-                                currentOneHandType = OneHandType.center.rawValue
-                                isPressing = false
-                            }
+                        if value.location.x <= 0 || value.location.x >= frameWidth {
+                            isPressing = false
+                        } else {
+                            state.currentOneHandType = .center
+                            currentOneHandType = OneHandType.center.rawValue
+                            isPressing = false
                         }
                     })
             )

@@ -15,11 +15,10 @@ struct OneHandSelectOverlayView: View {
     let fontSize: Double = 28
     
     var body: some View {
-        let overlayWidth: CGFloat = state.currentOneHandType == .center ? frameWidth : frameWidth / 5 * 4
         HStack(spacing: interItemSpacing) {
             Image(systemName: "keyboard.onehanded.left")
                 .font(.system(size: fontSize))
-                .frame(width: (overlayWidth - interItemSpacing * 4) / 3, height: state.keyboardHeight / 4 - 20)
+                .frame(width: (frameWidth - interItemSpacing * 4) / 3, height: state.keyboardHeight / 4 - 20)
                 .foregroundStyle(state.selectedOneHandType == .left ? Color.white : Color(uiColor: .label))
                 .background(RoundedRectangle(cornerRadius: 10).fill(state.selectedOneHandType == .left ? Color.blue : Color.clear))
                 .overlay {
@@ -36,7 +35,7 @@ struct OneHandSelectOverlayView: View {
             
             Image(systemName: "keyboard")
                 .font(.system(size: fontSize))
-                .frame(width: (overlayWidth - interItemSpacing * 4) / 3, height: state.keyboardHeight / 4 - 20)
+                .frame(width: (frameWidth - interItemSpacing * 4) / 3, height: state.keyboardHeight / 4 - 20)
                 .foregroundStyle(state.selectedOneHandType == .center ? Color.white : Color(uiColor: .label))
                 .background(RoundedRectangle(cornerRadius: 10).fill(state.selectedOneHandType == .center ? Color.blue : Color.clear))
                 .overlay {
@@ -53,7 +52,7 @@ struct OneHandSelectOverlayView: View {
             
             Image(systemName: "keyboard.onehanded.right")
                 .font(.system(size: fontSize))
-                .frame(width: (overlayWidth - interItemSpacing * 4) / 3, height: state.keyboardHeight / 4 - 20)
+                .frame(width: (frameWidth - interItemSpacing * 4) / 3, height: state.keyboardHeight / 4 - 20)
                 .foregroundStyle(state.selectedOneHandType == .right ? Color.white : Color(uiColor: .label))
                 .background(RoundedRectangle(cornerRadius: 10).fill(state.selectedOneHandType == .right ? Color.blue : Color.clear))
                 .overlay {
@@ -69,7 +68,7 @@ struct OneHandSelectOverlayView: View {
                 }
             
         }
-        .frame(width: overlayWidth, height: state.keyboardHeight / 4)
+        .frame(width: frameWidth, height: state.keyboardHeight / 4)
         .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 10))
     }
 }
