@@ -57,7 +57,7 @@ struct SymbolView: View {
                                                 state.delegate?.inputLastSymbol()
                                             }
                                     },
-                                    onLongPressFinished: {
+                                    onLongPressRelease: {
                                         timer?.cancel()
                                     })
                                 .padding(EdgeInsets(top: vPadding, leading: hPadding, bottom: interItemVPadding, trailing: interItemHPadding))
@@ -86,7 +86,7 @@ struct SymbolView: View {
                                                 state.delegate?.inputLastSymbol()
                                             }
                                     },
-                                    onLongPressFinished: {
+                                    onLongPressRelease: {
                                         timer?.cancel()
                                     })
                                 .padding(EdgeInsets(top: vPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
@@ -115,7 +115,7 @@ struct SymbolView: View {
                                                 state.delegate?.inputLastSymbol()
                                             }
                                     },
-                                    onLongPressFinished: {
+                                    onLongPressRelease: {
                                         timer?.cancel()
                                     })
                                 .padding(EdgeInsets(top: vPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
@@ -144,7 +144,7 @@ struct SymbolView: View {
                                                 state.delegate?.inputLastSymbol()
                                             }
                                     },
-                                    onLongPressFinished: {
+                                    onLongPressRelease: {
                                         timer?.cancel()
                                     })
                                 .padding(EdgeInsets(top: vPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
@@ -173,7 +173,7 @@ struct SymbolView: View {
                                                 state.delegate?.inputLastSymbol()
                                             }
                                     },
-                                    onLongPressFinished: {
+                                    onLongPressRelease: {
                                         timer?.cancel()
                                     })
                                 .padding(EdgeInsets(top: vPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
@@ -202,7 +202,7 @@ struct SymbolView: View {
                                                 state.delegate?.inputLastSymbol()
                                             }
                                     },
-                                    onLongPressFinished: {
+                                    onLongPressRelease: {
                                         timer?.cancel()
                                     })
                                 .padding(EdgeInsets(top: vPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
@@ -231,7 +231,7 @@ struct SymbolView: View {
                                                 state.delegate?.inputLastSymbol()
                                             }
                                     },
-                                    onLongPressFinished: {
+                                    onLongPressRelease: {
                                         timer?.cancel()
                                     })
                                 .padding(EdgeInsets(top: vPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
@@ -260,7 +260,7 @@ struct SymbolView: View {
                                                 state.delegate?.inputLastSymbol()
                                             }
                                     },
-                                    onLongPressFinished: {
+                                    onLongPressRelease: {
                                         timer?.cancel()
                                     })
                                 .padding(EdgeInsets(top: vPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
@@ -289,7 +289,7 @@ struct SymbolView: View {
                                                 state.delegate?.inputLastSymbol()
                                             }
                                     },
-                                    onLongPressFinished: {
+                                    onLongPressRelease: {
                                         timer?.cancel()
                                     })
                                 .padding(EdgeInsets(top: vPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
@@ -318,7 +318,7 @@ struct SymbolView: View {
                                                 state.delegate?.inputLastSymbol()
                                             }
                                     },
-                                    onLongPressFinished: {
+                                    onLongPressRelease: {
                                         timer?.cancel()
                                     })
                                 .padding(EdgeInsets(top: vPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: hPadding))
@@ -350,7 +350,7 @@ struct SymbolView: View {
                                                 state.delegate?.inputLastSymbol()
                                             }
                                     },
-                                    onLongPressFinished: {
+                                    onLongPressRelease: {
                                         timer?.cancel()
                                     })
                                 .padding(EdgeInsets(top: interItemVPadding, leading: hPadding, bottom: interItemVPadding, trailing: interItemHPadding))
@@ -379,7 +379,7 @@ struct SymbolView: View {
                                                 state.delegate?.inputLastSymbol()
                                             }
                                     },
-                                    onLongPressFinished: {
+                                    onLongPressRelease: {
                                         timer?.cancel()
                                     })
                                 .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
@@ -408,7 +408,7 @@ struct SymbolView: View {
                                                 state.delegate?.inputLastSymbol()
                                             }
                                     },
-                                    onLongPressFinished: {
+                                    onLongPressRelease: {
                                         timer?.cancel()
                                     })
                                 .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
@@ -437,7 +437,7 @@ struct SymbolView: View {
                                                 state.delegate?.inputLastSymbol()
                                             }
                                     },
-                                    onLongPressFinished: {
+                                    onLongPressRelease: {
                                         timer?.cancel()
                                     })
                                 .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
@@ -466,7 +466,7 @@ struct SymbolView: View {
                                                 state.delegate?.inputLastSymbol()
                                             }
                                     },
-                                    onLongPressFinished: {
+                                    onLongPressRelease: {
                                         timer?.cancel()
                                     })
                                 .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
@@ -495,7 +495,7 @@ struct SymbolView: View {
                                                 state.delegate?.inputLastSymbol()
                                             }
                                     },
-                                    onLongPressFinished: {
+                                    onLongPressRelease: {
                                         timer?.cancel()
                                     })
                                 .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
@@ -524,7 +524,7 @@ struct SymbolView: View {
                                                 state.delegate?.inputLastSymbol()
                                             }
                                     },
-                                    onLongPressFinished: {
+                                    onLongPressRelease: {
                                         timer?.cancel()
                                     })
                                 .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
@@ -553,7 +553,7 @@ struct SymbolView: View {
                                                 state.delegate?.inputLastSymbol()
                                             }
                                     },
-                                    onLongPressFinished: {
+                                    onLongPressRelease: {
                                         timer?.cancel()
                                     })
                                 .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
@@ -582,7 +582,7 @@ struct SymbolView: View {
                                                 state.delegate?.inputLastSymbol()
                                             }
                                     },
-                                    onLongPressFinished: {
+                                    onLongPressRelease: {
                                         timer?.cancel()
                                     })
                                 .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
@@ -611,7 +611,7 @@ struct SymbolView: View {
                                                 state.delegate?.inputLastSymbol()
                                             }
                                     },
-                                    onLongPressFinished: {
+                                    onLongPressRelease: {
                                         timer?.cancel()
                                     })
                                 .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: hPadding))
@@ -651,7 +651,7 @@ struct SymbolView: View {
                                                 state.delegate?.inputLastSymbol()
                                             }
                                     },
-                                    onLongPressFinished: {
+                                    onLongPressRelease: {
                                         timer?.cancel()
                                     })
                                 .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
@@ -680,7 +680,7 @@ struct SymbolView: View {
                                                 state.delegate?.inputLastSymbol()
                                             }
                                     },
-                                    onLongPressFinished: {
+                                    onLongPressRelease: {
                                         timer?.cancel()
                                     })
                                 .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
@@ -709,7 +709,7 @@ struct SymbolView: View {
                                                 state.delegate?.inputLastSymbol()
                                             }
                                     },
-                                    onLongPressFinished: {
+                                    onLongPressRelease: {
                                         timer?.cancel()
                                     })
                                 .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
@@ -738,7 +738,7 @@ struct SymbolView: View {
                                                 state.delegate?.inputLastSymbol()
                                             }
                                     },
-                                    onLongPressFinished: {
+                                    onLongPressRelease: {
                                         timer?.cancel()
                                     })
                                 .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
@@ -767,7 +767,7 @@ struct SymbolView: View {
                                                 state.delegate?.inputLastSymbol()
                                             }
                                     },
-                                    onLongPressFinished: {
+                                    onLongPressRelease: {
                                         timer?.cancel()
                                     })
                                 .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
@@ -792,7 +792,7 @@ struct SymbolView: View {
                                                 }
                                             }
                                     },
-                                    onLongPressFinished: {
+                                    onLongPressRelease: {
                                         timer?.cancel()
                                     })
                                 .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: hPadding))
@@ -810,28 +810,13 @@ struct SymbolView: View {
                                                 Feedback.shared.playHaptic(style: .light)
                                             },
                                             onRelease: {
-                                                if state.isSelectingOneHandType {
-                                                    state.currentOneHandType = state.selectedOneHandType ?? .center
-                                                    currentOneHandType = state.selectedOneHandType?.rawValue ?? 1
-                                                    state.isSelectingOneHandType = false
-                                                } else {
-                                                    state.currentInputType = .hangeul
-                                                }
+                                                state.currentInputType = .hangeul
                                             },
                                             onLongPress: {
                                                 if isOneHandTypeEnabled {
                                                     state.selectedOneHandType = state.currentOneHandType
                                                     state.isSelectingOneHandType = true
                                                     Feedback.shared.playHaptic(style: .light)
-                                                }
-                                            },
-                                            onLongPressFinished: {
-                                                if state.isSelectingOneHandType {
-                                                    state.currentOneHandType = state.selectedOneHandType ?? .center
-                                                    currentOneHandType = state.selectedOneHandType?.rawValue ?? 1
-                                                    state.isSelectingOneHandType = false
-                                                } else {
-                                                    state.currentInputType = .hangeul
                                                 }
                                             })
                                         .padding(EdgeInsets(top: interItemVPadding, leading: hPadding, bottom: vPadding, trailing: interItemHPadding))
@@ -852,28 +837,13 @@ struct SymbolView: View {
                                             Feedback.shared.playHaptic(style: .light)
                                         },
                                         onRelease: {
-                                            if state.isSelectingOneHandType {
-                                                state.currentOneHandType = state.selectedOneHandType ?? .center
-                                                currentOneHandType = state.selectedOneHandType?.rawValue ?? 1
-                                                state.isSelectingOneHandType = false
-                                            } else {
-                                                state.currentInputType = .hangeul
-                                            }
+                                            state.currentInputType = .hangeul
                                         },
                                         onLongPress: {
                                             if isOneHandTypeEnabled {
                                                 state.selectedOneHandType = state.currentOneHandType
                                                 state.isSelectingOneHandType = true
                                                 Feedback.shared.playHaptic(style: .light)
-                                            }
-                                        },
-                                        onLongPressFinished: {
-                                            if state.isSelectingOneHandType {
-                                                state.currentOneHandType = state.selectedOneHandType ?? .center
-                                                currentOneHandType = state.selectedOneHandType?.rawValue ?? 1
-                                                state.isSelectingOneHandType = false
-                                            } else {
-                                                state.currentInputType = .hangeul
                                             }
                                         })
                                     .padding(EdgeInsets(top: interItemVPadding, leading: hPadding, bottom: vPadding, trailing: interItemHPadding))
@@ -908,7 +878,7 @@ struct SymbolView: View {
                                                 }
                                         }
                                     },
-                                    onLongPressFinished: {
+                                    onLongPressRelease: {
                                         timer?.cancel()
                                     })
                                 .frame(width: geometry.size.width / 2)
@@ -927,7 +897,7 @@ struct SymbolView: View {
                                             state.currentInputType = .hangeul
                                         }
                                     },
-                                    onLongPressFinished: {
+                                    onLongPressRelease: {
                                         state.delegate?.enterKeypadTap()
                                         if state.currentKeyboardType != .numbersAndPunctuation && isAutoChangeToHangeulEnabled && isSymbolInput {
                                             state.currentInputType = .hangeul

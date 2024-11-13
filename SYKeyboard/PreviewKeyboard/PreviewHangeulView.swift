@@ -45,7 +45,7 @@ struct PreviewHangeulView: View {
                                     Feedback.shared.playHaptic(style: .light)
                                 }
                         },
-                        onLongPressFinished: {
+                        onLongPressRelease: {
                             timer?.cancel()
                         })
                     .padding(EdgeInsets(top: vPadding, leading: hPadding, bottom: interItemVPadding, trailing: interItemHPadding))
@@ -66,7 +66,7 @@ struct PreviewHangeulView: View {
                                     Feedback.shared.playHaptic(style: .light)
                                 }
                         },
-                        onLongPressFinished: {
+                        onLongPressRelease: {
                             timer?.cancel()
                         })
                     .padding(EdgeInsets(top: vPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
@@ -88,7 +88,7 @@ struct PreviewHangeulView: View {
                                     Feedback.shared.playHaptic(style: .light)
                                 }
                         },
-                        onLongPressFinished: {
+                        onLongPressRelease: {
                             timer?.cancel()
                         })
                     .padding(EdgeInsets(top: vPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
@@ -108,7 +108,7 @@ struct PreviewHangeulView: View {
                                     Feedback.shared.playHaptic(style: .light)
                                 }
                         },
-                        onLongPressFinished: {
+                        onLongPressRelease: {
                             timer?.cancel()
                         })
                     .padding(EdgeInsets(top: vPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: hPadding))
@@ -134,7 +134,7 @@ struct PreviewHangeulView: View {
                                     Feedback.shared.playHaptic(style: .light)
                                 }
                         },
-                        onLongPressFinished: {
+                        onLongPressRelease: {
                             timer?.cancel()
                         })
                     .padding(EdgeInsets(top: interItemVPadding, leading: hPadding, bottom: interItemVPadding, trailing: interItemHPadding))
@@ -156,7 +156,7 @@ struct PreviewHangeulView: View {
                                     Feedback.shared.playHaptic(style: .light)
                                 }
                         },
-                        onLongPressFinished: {
+                        onLongPressRelease: {
                             timer?.cancel()
                         })
                     .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
@@ -178,7 +178,7 @@ struct PreviewHangeulView: View {
                                     Feedback.shared.playHaptic(style: .light)
                                 }
                         },
-                        onLongPressFinished: {
+                        onLongPressRelease: {
                             timer?.cancel()
                         })
                     .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
@@ -200,7 +200,7 @@ struct PreviewHangeulView: View {
                                     Feedback.shared.playHaptic(style: .light)
                                 }
                         },
-                        onLongPressFinished: {
+                        onLongPressRelease: {
                             timer?.cancel()
                         })
                     .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: hPadding))
@@ -225,7 +225,7 @@ struct PreviewHangeulView: View {
                                     Feedback.shared.playHaptic(style: .light)
                                 }
                         },
-                        onLongPressFinished: {
+                        onLongPressRelease: {
                             timer?.cancel()
                         })
                     .padding(EdgeInsets(top: interItemVPadding, leading: hPadding, bottom: interItemVPadding, trailing: interItemHPadding))
@@ -247,7 +247,7 @@ struct PreviewHangeulView: View {
                                     Feedback.shared.playHaptic(style: .light)
                                 }
                         },
-                        onLongPressFinished: {
+                        onLongPressRelease: {
                             timer?.cancel()
                         })
                     .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
@@ -269,7 +269,7 @@ struct PreviewHangeulView: View {
                                     Feedback.shared.playHaptic(style: .light)
                                 }
                         },
-                        onLongPressFinished: {
+                        onLongPressRelease: {
                             timer?.cancel()
                         })
                     .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
@@ -303,7 +303,7 @@ struct PreviewHangeulView: View {
                                     Feedback.shared.playHaptic(style: .light)
                                 }
                         },
-                        onLongPressFinished: {
+                        onLongPressRelease: {
                             timer?.cancel()
                         })
                     .padding(EdgeInsets(top: interItemVPadding, leading: hPadding, bottom: vPadding, trailing: interItemHPadding))
@@ -325,7 +325,7 @@ struct PreviewHangeulView: View {
                                     Feedback.shared.playHaptic(style: .light)
                                 }
                         },
-                        onLongPressFinished: {
+                        onLongPressRelease: {
                             timer?.cancel()
                         })
                     .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: vPadding, trailing: interItemHPadding))
@@ -347,7 +347,7 @@ struct PreviewHangeulView: View {
                                     Feedback.shared.playHaptic(style: .light)
                                 }
                         },
-                        onLongPressFinished: {
+                        onLongPressRelease: {
                             timer?.cancel()
                         })
                     .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: vPadding, trailing: interItemHPadding))

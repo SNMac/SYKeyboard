@@ -43,7 +43,7 @@ struct NumberPadView: View {
                                     state.delegate?.inputLastSymbol()
                                 }
                         },
-                        onLongPressFinished: {
+                        onLongPressRelease: {
                             timer?.cancel()
                         })
                     .padding(EdgeInsets(top: vPadding, leading: hPadding, bottom: interItemVPadding, trailing: interItemHPadding))
@@ -70,7 +70,7 @@ struct NumberPadView: View {
                                     state.delegate?.inputLastSymbol()
                                 }
                         },
-                        onLongPressFinished: {
+                        onLongPressRelease: {
                             timer?.cancel()
                         })
                     .padding(EdgeInsets(top: vPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
@@ -97,7 +97,7 @@ struct NumberPadView: View {
                                     state.delegate?.inputLastSymbol()
                                 }
                         },
-                        onLongPressFinished: {
+                        onLongPressRelease: {
                             timer?.cancel()
                         })
                     .padding(EdgeInsets(top: vPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: hPadding))
@@ -128,7 +128,7 @@ struct NumberPadView: View {
                                     state.delegate?.inputLastSymbol()
                                 }
                         },
-                        onLongPressFinished: {
+                        onLongPressRelease: {
                             timer?.cancel()
                         })
                     .padding(EdgeInsets(top: interItemVPadding, leading: hPadding, bottom: interItemVPadding, trailing: interItemHPadding))
@@ -155,7 +155,7 @@ struct NumberPadView: View {
                                     state.delegate?.inputLastSymbol()
                                 }
                         },
-                        onLongPressFinished: {
+                        onLongPressRelease: {
                             timer?.cancel()
                         })
                     .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
@@ -182,7 +182,7 @@ struct NumberPadView: View {
                                     state.delegate?.inputLastSymbol()
                                 }
                         },
-                        onLongPressFinished: {
+                        onLongPressRelease: {
                             timer?.cancel()
                         })
                     .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: hPadding))
@@ -212,7 +212,7 @@ struct NumberPadView: View {
                                     state.delegate?.inputLastSymbol()
                                 }
                         },
-                        onLongPressFinished: {
+                        onLongPressRelease: {
                             timer?.cancel()
                         })
                     .padding(EdgeInsets(top: interItemVPadding, leading: hPadding, bottom: interItemVPadding, trailing: interItemHPadding))
@@ -239,7 +239,7 @@ struct NumberPadView: View {
                                     state.delegate?.inputLastSymbol()
                                 }
                         },
-                        onLongPressFinished: {
+                        onLongPressRelease: {
                             timer?.cancel()
                         })
                     .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
@@ -266,7 +266,7 @@ struct NumberPadView: View {
                                     state.delegate?.inputLastSymbol()
                                 }
                         },
-                        onLongPressFinished: {
+                        onLongPressRelease: {
                             timer?.cancel()
                         })
                     .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: hPadding))
@@ -308,7 +308,7 @@ struct NumberPadView: View {
                                     state.delegate?.inputLastSymbol()
                                 }
                         },
-                        onLongPressFinished: {
+                        onLongPressRelease: {
                             timer?.cancel()
                         })
                     .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: vPadding, trailing: interItemHPadding))
@@ -333,7 +333,7 @@ struct NumberPadView: View {
                                     }
                                 }
                         },
-                        onLongPressFinished: {
+                        onLongPressRelease: {
                             timer?.cancel()
                         })
                     .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: vPadding, trailing: hPadding))

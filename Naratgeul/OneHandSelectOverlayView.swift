@@ -14,6 +14,53 @@ struct OneHandSelectOverlayView: View {
     let interItemSpacing: CGFloat = 10
     let fontSize: Double = 28
     
+    
+    // MARK: - Basic of Gesture Method
+    private func onReleased() {
+        if state.isSelectingOneHandType {
+            if let selectedOneHandType = state.selectedOneHandType {
+                state.selectedOneHandType = nil
+                state.currentOneHandType = selectedOneHandType
+            }
+            state.isSelectingOneHandType = false
+        }
+    }
+    
+    private func onDragging(value: DragGesture.Value) {
+        let dragXLocation = value.location.x
+        let dragYLocation = value.location.y
+        
+        if state.isSelectingOneHandType {
+            // 특정 방향으로 일정 거리 초과 드래그 -> 한손 키보드 변경
+            if dragYLocation >= 0 && dragYLocation <= state.keyboardHeight / 4 {
+                if state.selectedOneHandType != .left && (dragXLocation > 0 && dragXLocation < frameWidth / 3) {
+                    state.selectedOneHandType = .left
+                    Feedback.shared.playHapticByForce(style: .light)
+                } else if state.selectedOneHandType != .center && (dragXLocation >= frameWidth / 3 && dragXLocation <= frameWidth / 3 * 2) {
+                    state.selectedOneHandType = .center
+                    Feedback.shared.playHapticByForce(style: .light)
+                } else if state.selectedOneHandType != .right && (dragXLocation > frameWidth / 3 * 2 && dragXLocation < frameWidth) {
+                    state.selectedOneHandType = .right
+                    Feedback.shared.playHapticByForce(style: .light)
+                } else if dragXLocation <= 0 || dragXLocation >= frameWidth {
+                    state.selectedOneHandType = state.currentOneHandType
+                }
+            } else {
+                state.selectedOneHandType = state.currentOneHandType
+            }
+        }
+    }
+    
+    
+    // MARK: - Snippet of Gesture Method
+    private func dragGestureOnChange(value: DragGesture.Value) {
+        onDragging(value: value)
+    }
+    
+    private func dragGestureOnEnded() {
+        onReleased()
+    }
+    
     var body: some View {
         HStack(spacing: interItemSpacing) {
             Image(systemName: "keyboard.onehanded.left")
@@ -66,10 +113,20 @@ struct OneHandSelectOverlayView: View {
                             }
                     }
                 }
-            
         }
         .frame(width: frameWidth, height: state.keyboardHeight / 4)
         .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 10))
+        .gesture(
+            DragGesture(minimumDistance: 0)
+                .onChanged({ value in
+                    print("OneHandSelectOverlayView) DragGesture() onChanged")
+                    dragGestureOnChange(value: value)
+                })
+                .onEnded({ _ in
+                    print("OneHandSelectOverlayView) DragGesture() onEnded")
+                    dragGestureOnEnded()
+                })
+        )
     }
 }
 

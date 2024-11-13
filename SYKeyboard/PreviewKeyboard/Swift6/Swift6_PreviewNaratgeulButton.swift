@@ -28,9 +28,34 @@ struct Swift6_PreviewNaratgeulButton: View {
     var onPress: () -> Void
     var onRelease: (() -> Void)?
     var onLongPress: (() -> Void)?
-    var onLongPressFinished: (() -> Void)?
+    var onLongPressRelease: (() -> Void)?
     
     // MARK: - Basic of Gesture Method
+    private func onReleased() {  // 버튼 뗐을 때
+        if nowGesture != .dragging {
+            // 드래그 했을 경우 onRelease 실행 X
+            onRelease?()
+        }
+        nowGesture = .released
+        state.swift6_nowPressedButton = nil
+    }
+    
+    private func onLongPressReleased() {  // 버튼 길게 눌렀다가 뗐을 때 호출
+        onLongPressRelease?()
+        nowGesture = .released
+        state.swift6_nowPressedButton = nil
+    }
+    
+    private func onPressing() {  // 버튼 눌렀을 때 호출(버튼 누르면 무조건 첫번째로 호출)
+        nowGesture = .pressing
+        onPress()
+    }
+    
+    private func onLongPressing() {  // 버튼 길게 누르면(누른 상태에서 일정시간이 지나면) 호출
+        nowGesture = .longPressing
+        onLongPress?()
+    }
+    
     private func onDragging(value: DragGesture.Value) {  // 버튼 드래그 할 때 호출
         if primary {  // 글자 버튼
             if nowGesture != .dragging {  // 드래그 시작
@@ -41,40 +66,15 @@ struct Swift6_PreviewNaratgeulButton: View {
             // 일정 거리 초과 드래그 -> 커서를 한칸씩 드래그한 방향으로 이동(햅틱 피드백)
             let dragDiff = value.translation.width - dragStartWidth
             if dragDiff < -cursorMoveWidth {
-                print("Drag to left")
+                print("Swift6_PreviewNaratgeulButton) Drag to left")
                 dragStartWidth = value.translation.width
                 Feedback.shared.playHapticByForce(style: .light)
             } else if dragDiff > cursorMoveWidth {
-                print("Drag to right")
+                print("Swift6_PreviewNaratgeulButton) Drag to right")
                 dragStartWidth = value.translation.width
                 Feedback.shared.playHapticByForce(style: .light)
             }
         }
-    }
-    
-    private func onPressing() {  // 버튼 눌렀을 때 호출(버튼 누르면 무조건 첫번째로 호출)
-        nowGesture = .pressing
-        onPress()
-    }
-    
-    private func onReleased() {  // 버튼 뗐을 때
-        if nowGesture != .dragging {
-            // 드래그 했을 경우 onRelease 실행 X
-            onRelease?()
-        }
-        nowGesture = .released
-        state.swift6_nowPressedButton = nil
-    }
-    
-    private func onLongPressing() {  // 버튼 길게 누르면(누른 상태에서 일정시간이 지나면) 호출
-        nowGesture = .longPressing
-        onLongPress?()
-    }
-    
-    private func onLongPressReleased() {  // 버튼 길게 눌렀다가 뗐을 때 호출
-        onLongPressFinished?()
-        nowGesture = .released
-        state.swift6_nowPressedButton = nil
     }
     
     
@@ -130,13 +130,13 @@ struct Swift6_PreviewNaratgeulButton: View {
         let dragGesture = DragGesture(minimumDistance: cursorActiveWidth)
         // 버튼 드래그 할 때 호출
             .onChanged { value in
-                print("DragGesture() onChanged")
+                print("Swift6_PreviewNaratgeulButton) DragGesture() onChanged")
                 dragGestureOnChange(value: value)
             }
         
         // 드래그 뗐을 때
             .onEnded({ _ in
-                print("DragGesture() onEnded")
+                print("Swift6_PreviewNaratgeulButton) DragGesture() onEnded")
                 dragGestureOnEnded()
             })
         
@@ -153,16 +153,16 @@ struct Swift6_PreviewNaratgeulButton: View {
                     .shadow(color: Color("KeyboardButtonShadow"), radius: 0, x: 0, y: 1)
                     .onLongPressGesture(minimumDuration: longPressTime, maximumDistance: cursorActiveWidth) {
                         // 버튼 길게 누르면(누른 상태에서 일정시간이 지나면) 호출
-                        print("onLongPressGesture()->perform: longPressing")
+                        print("Swift6_PreviewNaratgeulButton) onLongPressGesture()->perform: longPressing")
                         onLongPressGesturePerform()
                     } onPressingChanged: { isPressing in
                         if isPressing {
                             // 버튼 눌렀을 때 호출(버튼 누르면 무조건 첫번째로 호출)
-                            print("onLongPressGesture()->onPressingChanged: pressing")
+                            print("Swift6_PreviewNaratgeulButton) onLongPressGesture()->onPressingChanged: pressing")
                             onLongPressGestureOnPressingTrue()
                         } else {
                             // 버튼 뗐을 때
-                            print("onLongPressGesture()->onPressingChanged: released")
+                            print("Swift6_PreviewNaratgeulButton) onLongPressGesture()->onPressingChanged: released")
                             onLongPressGestureOnPressingFalse()
                         }
                     }
@@ -179,16 +179,16 @@ struct Swift6_PreviewNaratgeulButton: View {
                     .shadow(color: Color("KeyboardButtonShadow"), radius: 0, x: 0, y: 1)
                     .onLongPressGesture(minimumDuration: longPressTime, maximumDistance: cursorActiveWidth) {
                         // 버튼 길게 누르면(누른 상태에서 일정시간이 지나면) 호출
-                        print("onLongPressGesture()->perform: longPressing")
+                        print("Swift6_PreviewNaratgeulButton) onLongPressGesture()->perform: longPressing")
                         onLongPressGesturePerform()
                     } onPressingChanged: { isPressing in
                         if isPressing {
                             // 버튼 눌렀을 때 호출(버튼 누르면 무조건 첫번째로 호출)
-                            print("onLongPressGesture()->onPressingChanged: pressing")
+                            print("Swift6_PreviewNaratgeulButton) onLongPressGesture()->onPressingChanged: pressing")
                             onLongPressGestureOnPressingTrue()
                         } else {
                             // 버튼 뗐을 때
-                            print("onLongPressGesture()->onPressingChanged: released")
+                            print("Swift6_PreviewNaratgeulButton) onLongPressGesture()->onPressingChanged: released")
                             onLongPressGestureOnPressingFalse()
                         }
                     }
@@ -205,16 +205,16 @@ struct Swift6_PreviewNaratgeulButton: View {
                     .shadow(color: Color("KeyboardButtonShadow"), radius: 0, x: 0, y: 1)
                     .onLongPressGesture(minimumDuration: longPressTime, maximumDistance: cursorActiveWidth) {
                         // 버튼 길게 누르면(누른 상태에서 일정시간이 지나면) 호출
-                        print("onLongPressGesture()->perform: longPressing")
+                        print("Swift6_PreviewNaratgeulButton) onLongPressGesture()->perform: longPressing")
                         onLongPressGesturePerform()
                     } onPressingChanged: { isPressing in
                         if isPressing {
                             // 버튼 눌렀을 때 호출(버튼 누르면 무조건 첫번째로 호출)
-                            print("onLongPressGesture()->onPressingChanged: pressing")
+                            print("Swift6_PreviewNaratgeulButton) onLongPressGesture()->onPressingChanged: pressing")
                             onLongPressGestureOnPressingTrue()
                         } else {
                             // 버튼 뗐을 때
-                            print("onLongPressGesture()->onPressingChanged: released")
+                            print("Swift6_PreviewNaratgeulButton) onLongPressGesture()->onPressingChanged: released")
                             onLongPressGestureOnPressingFalse()
                         }
                     }
@@ -229,16 +229,16 @@ struct Swift6_PreviewNaratgeulButton: View {
                     .shadow(color: Color("KeyboardButtonShadow"), radius: 0, x: 0, y: 1)
                     .onLongPressGesture(minimumDuration: longPressTime, maximumDistance: cursorActiveWidth) {
                         // 버튼 길게 누르면(누른 상태에서 일정시간이 지나면) 호출
-                        print("onLongPressGesture()->perform: longPressing")
+                        print("Swift6_PreviewNaratgeulButton) onLongPressGesture()->perform: longPressing")
                         onLongPressGesturePerform()
                     } onPressingChanged: { isPressing in
                         if isPressing {
                             // 버튼 눌렀을 때 호출(버튼 누르면 무조건 첫번째로 호출)
-                            print("onLongPressGesture()->onPressingChanged: pressing")
+                            print("Swift6_PreviewNaratgeulButton) onLongPressGesture()->onPressingChanged: pressing")
                             onLongPressGestureOnPressingTrue()
                         } else {
                             // 버튼 뗐을 때
-                            print("onLongPressGesture()->onPressingChanged: released")
+                            print("Swift6_PreviewNaratgeulButton) onLongPressGesture()->onPressingChanged: released")
                             onLongPressGestureOnPressingFalse()
                         }
                     }
@@ -259,16 +259,16 @@ struct Swift6_PreviewNaratgeulButton: View {
                     .shadow(color: Color("KeyboardButtonShadow"), radius: 0, x: 0, y: 1)
                     .onLongPressGesture(minimumDuration: longPressTime, maximumDistance: cursorActiveWidth) {
                         // 버튼 길게 누르면(누른 상태에서 일정시간이 지나면) 호출
-                        print("onLongPressGesture()->perform: longPressing")
+                        print("Swift6_PreviewNaratgeulButton) onLongPressGesture()->perform: longPressing")
                         onLongPressGesturePerform()
                     } onPressingChanged: { isPressing in
                         if isPressing {
                             // 버튼 눌렀을 때 호출(버튼 누르면 무조건 첫번째로 호출)
-                            print("onLongPressGesture()->onPressingChanged: pressing")
+                            print("Swift6_PreviewNaratgeulButton) onLongPressGesture()->onPressingChanged: pressing")
                             onLongPressGestureOnPressingTrue()
                         } else {
                             // 버튼 뗐을 때
-                            print("onLongPressGesture()->onPressingChanged: released")
+                            print("Swift6_PreviewNaratgeulButton) onLongPressGesture()->onPressingChanged: released")
                             onLongPressGestureOnPressingFalse()
                         }
                     }
@@ -283,16 +283,16 @@ struct Swift6_PreviewNaratgeulButton: View {
                     .shadow(color: Color("KeyboardButtonShadow"), radius: 0, x: 0, y: 1)
                     .onLongPressGesture(minimumDuration: longPressTime, maximumDistance: cursorActiveWidth) {
                         // 버튼 길게 누르면(누른 상태에서 일정시간이 지나면) 호출
-                        print("onLongPressGesture()->perform: longPressing")
+                        print("Swift6_PreviewNaratgeulButton) onLongPressGesture()->perform: longPressing")
                         onLongPressGesturePerform()
                     } onPressingChanged: { isPressing in
                         if isPressing {
                             // 버튼 눌렀을 때 호출(버튼 누르면 무조건 첫번째로 호출)
-                            print("onLongPressGesture()->onPressingChanged: pressing")
+                            print("Swift6_PreviewNaratgeulButton) onLongPressGesture()->onPressingChanged: pressing")
                             onLongPressGestureOnPressingTrue()
                         } else {
                             // 버튼 뗐을 때
-                            print("onLongPressGesture()->onPressingChanged: released")
+                            print("Swift6_PreviewNaratgeulButton) onLongPressGesture()->onPressingChanged: released")
                             onLongPressGestureOnPressingFalse()
                         }
                     }

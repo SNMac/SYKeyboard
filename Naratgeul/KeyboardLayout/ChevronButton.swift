@@ -22,10 +22,9 @@ struct ChevronButton: View {
             .foregroundStyle(isPressing ? Color("PrimaryKeyboardButton") : Color("SecondaryKeyboardButton"))
             .background(Color.white.opacity(0.001))
             .gesture(
-                DragGesture(minimumDistance: 0, coordinateSpace: .local)
+                DragGesture(minimumDistance: 0)
                     .onChanged({ value in
-                        print(value.location.x)
-                        if 0 < value.location.x && value.location.x < frameWidth {
+                        if value.location.x > 0 && value.location.x < frameWidth {
                             isPressing = true
                         } else {
                             isPressing = false

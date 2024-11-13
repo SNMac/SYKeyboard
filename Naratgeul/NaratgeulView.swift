@@ -16,7 +16,8 @@ struct NaratgeulView: View {
     var body: some View {
         ZStack(alignment: state.currentInputType == .symbol ? .leading : .trailing) {
             HStack(spacing: 0) {
-                if isOneHandTypeEnabled && state.currentOneHandType == .right {
+                if state.currentKeyboardType != .numberPad && state.currentKeyboardType != .asciiCapableNumberPad
+                    && isOneHandTypeEnabled && state.currentOneHandType == .right {
                     ChevronButton(isLeftHandMode: false)
                 }
                 if #available(iOS 18, *) {
@@ -35,6 +36,8 @@ struct NaratgeulView: View {
                         }
                     case .number:
                         if state.currentKeyboardType == .numberPad {
+                            Swift6_NumberPadView()
+                        } else if state.currentKeyboardType == .asciiCapableNumberPad {
                             Swift6_NumberPadView()
                         } else {
                             Swift6_NumberView()
@@ -64,7 +67,8 @@ struct NaratgeulView: View {
                         }
                     }
                 }
-                if isOneHandTypeEnabled && state.currentOneHandType == .left {
+                if state.currentKeyboardType != .numberPad && state.currentKeyboardType != .asciiCapableNumberPad
+                    && isOneHandTypeEnabled && state.currentOneHandType == .left {
                     ChevronButton(isLeftHandMode: true)
                 }
             }
