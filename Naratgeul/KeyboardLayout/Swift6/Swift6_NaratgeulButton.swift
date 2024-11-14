@@ -289,7 +289,7 @@ struct Swift6_NaratgeulButton: View {
             if dragXLocation < position.minX || dragXLocation > position.maxX
                 || dragYLocation < position.minY || dragYLocation > position.maxY {
                 nowGesture = .released
-                state.nowPressedButton = nil
+                state.swift6_nowPressedButton = nil
             }
         }
     }
