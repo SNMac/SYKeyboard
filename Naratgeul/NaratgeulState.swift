@@ -48,14 +48,18 @@ final class NaratgeulState: ObservableObject {
     @Published var currentInputType: InputType = .hangeul
     @Published var isSelectingInputType: Bool = false
     @Published var selectedInputType: InputType?
+    
     @Published var currentOneHandType: OneHandType = .center
     @Published var isSelectingOneHandType: Bool = false
     @Published var selectedOneHandType: OneHandType?
+    
     @Published var currentKeyboardType: KeyboardType = ._default
     @Published var returnButtonType: ReturnButtonType = ._default
-    @Published var isHoegSsangAvailable: Bool = false
+
     @Published var nowSymbolPage: Int = 0
     @Published var totalSymbolPage: Int = 0
+    
+    @Published var isHoegSsangAvailable: Bool = false
     
     var nowPressedButton: NaratgeulButton?
     var swift6_nowPressedButton: Swift6_NaratgeulButton?
@@ -67,12 +71,8 @@ final class NaratgeulState: ObservableObject {
     var needsInputModeSwitchKey: Bool
     var nextKeyboardAction: Selector
     
-    var inputTypeButtonMinXPosition = [CGFloat](repeating: 0.0, count: 2)
-    var inputTypeButtonMaxXPosition = [CGFloat](repeating: 0.0, count: 2)
-    var oneHandButtonMinXPosition = [CGFloat](repeating: 0.0, count: 3)
-    var oneHandButtonMaxXPosition = [CGFloat](repeating: 0.0, count: 3)
-    var oneHandButtonMinYPosition = [CGFloat](repeating: 0.0, count: 3)
-    var oneHandButtonMaxYPosition = [CGFloat](repeating: 0.0, count: 3)
+    var inputTypeButtonPosition = [CGRect](repeating: .zero, count: 2)
+    var oneHandButtonPosition = [CGRect](repeating: .zero, count: 3)
     
     init(
         delegate: NaratgeulDelegate,

@@ -32,20 +32,23 @@ struct OneHandSelectOverlayView: View {
         
         if state.isSelectingOneHandType {
             // 특정 방향으로 일정 거리 초과 드래그 -> 한손 키보드 변경
-            if dragYLocation >= 0 && dragYLocation <= state.keyboardHeight / 4 {
-                if state.selectedOneHandType != .left && (dragXLocation > 0 && dragXLocation < frameWidth / 3) {
-                    state.selectedOneHandType = .left
-                    Feedback.shared.playHapticByForce(style: .light)
-                } else if state.selectedOneHandType != .center && (dragXLocation >= frameWidth / 3 && dragXLocation <= frameWidth / 3 * 2) {
-                    state.selectedOneHandType = .center
-                    Feedback.shared.playHapticByForce(style: .light)
-                } else if state.selectedOneHandType != .right && (dragXLocation > frameWidth / 3 * 2 && dragXLocation < frameWidth) {
-                    state.selectedOneHandType = .right
-                    Feedback.shared.playHapticByForce(style: .light)
-                } else if dragXLocation <= 0 || dragXLocation >= frameWidth {
-                    state.selectedOneHandType = state.currentOneHandType
-                }
-            } else {
+            if state.selectedOneHandType != .left
+                && dragXLocation >= state.oneHandButtonPosition[0].minX && dragXLocation < state.oneHandButtonPosition[1].minX
+                && dragYLocation >= state.oneHandButtonPosition[0].minY && dragYLocation <= state.oneHandButtonPosition[0].maxY {
+                state.selectedOneHandType = .left
+                Feedback.shared.playHapticByForce(style: .light)
+            } else if state.selectedOneHandType != .center
+                        && dragXLocation >= state.oneHandButtonPosition[1].minX && dragXLocation <= state.oneHandButtonPosition[1].maxX
+                        && dragYLocation >= state.oneHandButtonPosition[1].minY && dragYLocation <= state.oneHandButtonPosition[1].maxY {
+                state.selectedOneHandType = .center
+                Feedback.shared.playHapticByForce(style: .light)
+            } else if state.selectedOneHandType != .right
+                        && dragXLocation > state.oneHandButtonPosition[1].maxX && dragXLocation <= state.oneHandButtonPosition[2].maxX
+                        && dragYLocation >= state.oneHandButtonPosition[2].minY && dragYLocation <= state.oneHandButtonPosition[2].maxY {
+                state.selectedOneHandType = .right
+                Feedback.shared.playHapticByForce(style: .light)
+            } else if dragXLocation < state.oneHandButtonPosition[0].minX || dragXLocation > state.oneHandButtonPosition[2].maxX
+                        || dragYLocation < state.oneHandButtonPosition[0].minY || dragYLocation > state.oneHandButtonPosition[2].maxY {
                 state.selectedOneHandType = state.currentOneHandType
             }
         }
@@ -72,10 +75,7 @@ struct OneHandSelectOverlayView: View {
                     GeometryReader { geometry in
                         Color.clear
                             .onAppear {
-                                state.oneHandButtonMinXPosition[0] = geometry.frame(in: .global).minX
-                                state.oneHandButtonMaxXPosition[0] = geometry.frame(in: .global).maxX
-                                state.oneHandButtonMinYPosition[0] = geometry.frame(in: .global).minY
-                                state.oneHandButtonMaxYPosition[0] = geometry.frame(in: .global).maxY
+                                state.oneHandButtonPosition[0] = geometry.frame(in: .global)
                             }
                     }
                 }
@@ -89,10 +89,7 @@ struct OneHandSelectOverlayView: View {
                     GeometryReader { geometry in
                         Color.clear
                             .onAppear {
-                                state.oneHandButtonMinXPosition[1] = geometry.frame(in: .global).minX
-                                state.oneHandButtonMaxXPosition[1] = geometry.frame(in: .global).maxX
-                                state.oneHandButtonMinYPosition[1] = geometry.frame(in: .global).minY
-                                state.oneHandButtonMaxYPosition[1] = geometry.frame(in: .global).maxY
+                                state.oneHandButtonPosition[1] = geometry.frame(in: .global)
                             }
                     }
                 }
@@ -106,10 +103,7 @@ struct OneHandSelectOverlayView: View {
                     GeometryReader { geometry in
                         Color.clear
                             .onAppear {
-                                state.oneHandButtonMinXPosition[2] = geometry.frame(in: .global).minX
-                                state.oneHandButtonMaxXPosition[2] = geometry.frame(in: .global).maxX
-                                state.oneHandButtonMinYPosition[2] = geometry.frame(in: .global).minY
-                                state.oneHandButtonMaxYPosition[2] = geometry.frame(in: .global).maxY
+                                state.oneHandButtonPosition[2] = geometry.frame(in: .global)
                             }
                     }
                 }
@@ -117,7 +111,7 @@ struct OneHandSelectOverlayView: View {
         .frame(width: frameWidth, height: state.keyboardHeight / 4)
         .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 10))
         .gesture(
-            DragGesture(minimumDistance: 0)
+            DragGesture(minimumDistance: 0, coordinateSpace: .global)
                 .onChanged({ value in
                     print("OneHandSelectOverlayView) DragGesture() onChanged")
                     dragGestureOnChange(value: value)

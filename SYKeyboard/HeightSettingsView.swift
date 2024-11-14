@@ -7,14 +7,12 @@
 
 import SwiftUI
 
-
-
 struct HeightSettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject var state: PreviewNaratgeulState
-    @AppStorage("keyboardHeight", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var keyboardHeight = 240.0
+    @AppStorage("keyboardHeight", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var keyboardHeight = GlobalValues.defaultKeyboardHeight
     @AppStorage("isNumberKeyboardTypeEnabled", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var isNumberKeyboardTypeEnabled = true
-    @State var tempKeyboardHeight: Double = 240.0
+    @State var tempKeyboardHeight: Double = GlobalValues.defaultKeyboardHeight
     
     private var heightSettings: some View {
         VStack {

@@ -11,6 +11,7 @@ struct GlobalValues {
     private init() {}
     
     static let defaultKeyboardHeight: Double = 240.0
+    static let defaultOneHandWidth: Double = 80.0
     static let defaultLongPressSpeed: Double = 0.5
     static let defaultRepeatTimerSpeed: Double = 0.05
     static let defaultCursorActiveWidth: Double = 30.0
@@ -69,6 +70,10 @@ struct GlobalValues {
         // 한손 키보드 활성화
         if defaults?.object(forKey: "isOneHandTypeEnabled") == nil {
             defaults?.setValue(true, forKey: "isOneHandTypeEnabled")
+        }
+        // 한손 키보드 너비
+        if defaults?.object(forKey: "oneHandWidth") == nil {
+            defaults?.setValue(GlobalValues.defaultOneHandWidth, forKey: "oneHandWidth")
         }
         
         /* 키보드 전환 버튼 표시 설정용 */

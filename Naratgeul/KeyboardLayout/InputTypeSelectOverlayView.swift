@@ -28,8 +28,7 @@ struct InputTypeSelectOverlayView: View {
                         GeometryReader { geometry in
                             Color.clear
                                 .onAppear {
-                                    state.inputTypeButtonMinXPosition[0] = geometry.frame(in: .global).minX
-                                    state.inputTypeButtonMaxXPosition[0] = geometry.frame(in: .global).maxX
+                                    state.inputTypeButtonPosition[0] = geometry.frame(in: .global)
                                 }
                         }
                     }
@@ -43,8 +42,7 @@ struct InputTypeSelectOverlayView: View {
                         GeometryReader { geometry in
                             Color.clear
                                 .onAppear {
-                                    state.inputTypeButtonMinXPosition[1] = geometry.frame(in: .global).minX
-                                    state.inputTypeButtonMaxXPosition[1] = geometry.frame(in: .global).maxX
+                                    state.inputTypeButtonPosition[1] = geometry.frame(in: .global)
                                 }
                         }
                     }
@@ -61,8 +59,7 @@ struct InputTypeSelectOverlayView: View {
                         GeometryReader { geometry in
                             Color.clear
                                 .onAppear {
-                                    state.inputTypeButtonMinXPosition[0] = geometry.frame(in: .global).minX
-                                    state.inputTypeButtonMaxXPosition[0] = geometry.frame(in: .global).maxX
+                                    state.inputTypeButtonPosition[0] = geometry.frame(in: .global)
                                 }
                         }
                     }
@@ -76,8 +73,7 @@ struct InputTypeSelectOverlayView: View {
                         GeometryReader { geometry in
                             Color.clear
                                 .onAppear {
-                                    state.inputTypeButtonMinXPosition[1] = geometry.frame(in: .global).minX
-                                    state.inputTypeButtonMaxXPosition[1] = geometry.frame(in: .global).maxX
+                                    state.inputTypeButtonPosition[1] = geometry.frame(in: .global)
                                 }
                         }
                     }
@@ -93,8 +89,7 @@ struct InputTypeSelectOverlayView: View {
                         GeometryReader { geometry in
                             Color.clear
                                 .onAppear {
-                                    state.inputTypeButtonMinXPosition[0] = geometry.frame(in: .global).minX
-                                    state.inputTypeButtonMaxXPosition[0] = geometry.frame(in: .global).maxX
+                                    state.inputTypeButtonPosition[0] = geometry.frame(in: .global)
                                 }
                         }
                     }
@@ -109,8 +104,7 @@ struct InputTypeSelectOverlayView: View {
                         GeometryReader { geometry in
                             Color.clear
                                 .onAppear {
-                                    state.inputTypeButtonMinXPosition[1] = geometry.frame(in: .global).minX
-                                    state.inputTypeButtonMaxXPosition[1] = geometry.frame(in: .global).maxX
+                                    state.inputTypeButtonPosition[1] = geometry.frame(in: .global)
                                 }
                         }
                     }

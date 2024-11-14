@@ -9,18 +9,18 @@ import SwiftUI
 
 struct Swift6_NaratgeulButton: View {
     @EnvironmentObject var state: NaratgeulState
-    @AppStorage("cursorActiveWidth", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var cursorActiveWidth = 30.0
-    @AppStorage("cursorMoveWidth", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var cursorMoveWidth = 5.0
+    @AppStorage("cursorActiveWidth", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var cursorActiveWidth = GlobalValues.defaultCursorActiveWidth
+    @AppStorage("cursorMoveWidth", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var cursorMoveWidth = GlobalValues.defaultCursorMoveWidth
     @AppStorage("isNumberKeyboardTypeEnabled", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var isNumberKeyboardTypeEnabled = true
     @AppStorage("isOneHandTypeEnabled", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var isOneHandTypeEnabled = true
+    
     @State var nowGesture: Gestures = .released
     @State private var dragStartWidth: Double = 0.0
+    @State private var position: CGRect = .zero
     
     var text: String?
     var systemName: String?
     let primary: Bool
-    
-    var geometry: GeometryProxy
     
     let imageSize: CGFloat = 20
     let textSize: CGFloat = 18
@@ -73,118 +73,12 @@ struct Swift6_NaratgeulButton: View {
     }
     
     private func onDragging(value: DragGesture.Value) {  // 버튼 드래그 할 때 호출
-        let rawInputTypeActiveDragXPos = geometry.size.width / 4
-        let inputTypeActiveDragXPos_hanNum = geometry.frame(in: .global).minX + rawInputTypeActiveDragXPos * 3
-        let inputTypeActiveDragXPos_sym = geometry.frame(in: .global).minX + rawInputTypeActiveDragXPos
-        let oneHandActiveDragYPos = state.keyboardHeight / 4 * 3
-        if text == "!#1" || text == "한글" {  // 자판 전환 버튼
-            if nowGesture != .dragging {  // 드래그 시작
-                nowGesture = .dragging
-            }
-            
-            let dragXLocation = value.location.x
-            let dragYLocation = value.location.y
-            if state.currentInputType == .hangeul {  // 한글 자판
-                if isOneHandTypeEnabled {
-                    if !state.isSelectingInputType && !state.isSelectingOneHandType {
-                        // 위쪽으로 키보드 높이 1/4 초과 드래그 -> 한손 키보드 변경
-                        if dragYLocation < oneHandActiveDragYPos {
-                            state.isSelectingOneHandType = true
-                        }
-                    }
-                    if state.isSelectingOneHandType {
-                        sequencedDragOnChanged(value: value)
-                    }
-                }
-                
-                if isNumberKeyboardTypeEnabled {
-                    if !state.isSelectingInputType && !state.isSelectingOneHandType {
-                        // 왼쪽으로 키보드 너비 3/4 초과 드래그 -> 다른 자판으로 변경
-                        if dragXLocation < inputTypeActiveDragXPos_hanNum {
-                            state.isSelectingInputType = true
-                        }
-                    }
-                    if state.isSelectingInputType {
-                        if state.selectedInputType != .number && dragXLocation <= state.inputTypeButtonMinXPosition[1] {
-                            state.selectedInputType = .number
-                            Feedback.shared.playHapticByForce(style: .light)
-                        } else if state.selectedInputType != .hangeul && dragXLocation > state.inputTypeButtonMinXPosition[1] {
-                            state.selectedInputType = .hangeul
-                            Feedback.shared.playHapticByForce(style: .light)
-                        }
-                    }
-                }
-                
-                
-            } else if state.currentInputType == .number {  // 숫자 자판
-                if isOneHandTypeEnabled {
-                    if !state.isSelectingInputType && !state.isSelectingOneHandType {
-                        // 위쪽으로 키보드 높이 1/4 초과 드래그 -> 한손 키보드 변경
-                        if dragYLocation < oneHandActiveDragYPos {
-                            state.isSelectingOneHandType = true
-                        }
-                    }
-                    if state.isSelectingOneHandType {
-                        sequencedDragOnChanged(value: value)
-                    }
-                }
-                
-                if !state.isSelectingInputType && !state.isSelectingOneHandType {
-                    // 왼쪽으로 키보드 너비 3/4 초과 드래그 -> 다른 자판으로 변경
-                    if dragXLocation < inputTypeActiveDragXPos_hanNum {
-                        state.isSelectingInputType = true
-                    }
-                }
-                if state.isSelectingInputType {
-                    if state.selectedInputType != .symbol && dragXLocation <= state.inputTypeButtonMinXPosition[1] {
-                        state.selectedInputType = .symbol
-                        Feedback.shared.playHapticByForce(style: .light)
-                    } else if state.selectedInputType != .number && dragXLocation > state.inputTypeButtonMinXPosition[1] {
-                        state.selectedInputType = .number
-                        Feedback.shared.playHapticByForce(style: .light)
-                    }
-                }
-                
-                
-            } else if state.currentInputType == .symbol {  // 기호 자판
-                if isOneHandTypeEnabled {
-                    if !state.isSelectingInputType && !state.isSelectingOneHandType {
-                        // 위쪽으로 키보드 높이 1/4 초과 드래그 -> 한손 키보드 변경
-                        if dragYLocation < oneHandActiveDragYPos {
-                            state.isSelectingOneHandType = true
-                        }
-                    }
-                    if state.isSelectingOneHandType {
-                        sequencedDragOnChanged(value: value)
-                    }
-                }
-                
-                if isNumberKeyboardTypeEnabled {
-                    if !state.isSelectingInputType && !state.isSelectingOneHandType {
-                        // 오른쪽으로 키보드 너비 1/4 초과 드래그 -> 다른 자판으로 변경
-                        if dragXLocation > inputTypeActiveDragXPos_sym {
-                            state.isSelectingInputType = true
-                        }
-                    }
-                    if state.isSelectingInputType {
-                        if state.selectedInputType != .number && dragXLocation >= state.inputTypeButtonMaxXPosition[0] {
-                            state.selectedInputType = .number
-                            Feedback.shared.playHapticByForce(style: .light)
-                        } else if state.selectedInputType != .symbol && dragXLocation < state.inputTypeButtonMaxXPosition[0] {
-                            state.selectedInputType = .symbol
-                            Feedback.shared.playHapticByForce(style: .light)
-                        }
-                    }
-                }
-            }
-            
-            
-        } else if primary {  // 글자 버튼
-            if nowGesture != .dragging {  // 드래그 시작
-                dragStartWidth = value.translation.width
-                nowGesture = .dragging
-            }
-            
+        if nowGesture != .dragging {  // 드래그 시작
+            dragStartWidth = value.translation.width
+            nowGesture = .dragging
+        }
+        
+        if primary {  // 글자 버튼
             // 일정 거리 초과 드래그 -> 커서를 한칸씩 드래그한 방향으로 이동
             let dragDiff = value.translation.width - dragStartWidth
             if dragDiff < -cursorMoveWidth {
@@ -204,6 +98,99 @@ struct Swift6_NaratgeulButton: View {
                     }
                 }
             }
+            
+        } else if text == "!#1" || text == "한글" {  // 자판 전환 버튼
+            let dragXLocation = value.location.x
+            let dragYLocation = value.location.y
+            
+            if state.currentInputType == .hangeul {  // 한글 자판
+                if isOneHandTypeEnabled {
+                    if !state.isSelectingInputType && !state.isSelectingOneHandType {
+                        // 버튼 위쪽으로 드래그 -> 한손 키보드 변경
+                        if dragXLocation >= position.minX && dragXLocation <= position.maxX && dragYLocation < position.minY {
+                            state.isSelectingOneHandType = true
+                        }
+                    }
+                    if state.isSelectingOneHandType {
+                        sequencedDragOnChanged(value: value)
+                    }
+                }
+                if isNumberKeyboardTypeEnabled {
+                    if !state.isSelectingInputType && !state.isSelectingOneHandType {
+                        // 버튼 왼쪽으로 드래그 -> 다른 자판으로 변경
+                        if dragYLocation >= position.minY && dragYLocation <= position.maxY && dragXLocation < position.minX {
+                            state.isSelectingInputType = true
+                        }
+                    }
+                    if state.isSelectingInputType {
+                        if state.selectedInputType != .number && dragXLocation <= state.inputTypeButtonPosition[1].minX {
+                            state.selectedInputType = .number
+                            Feedback.shared.playHapticByForce(style: .light)
+                        } else if state.selectedInputType != .hangeul && dragXLocation > state.inputTypeButtonPosition[1].minX {
+                            state.selectedInputType = .hangeul
+                            Feedback.shared.playHapticByForce(style: .light)
+                        }
+                    }
+                }
+                
+            } else if state.currentInputType == .number {  // 숫자 자판
+                if isOneHandTypeEnabled {
+                    if !state.isSelectingInputType && !state.isSelectingOneHandType {
+                        // 버튼 위쪽으로 드래그 -> 한손 키보드 변경
+                        if dragXLocation >= position.minX && dragXLocation <= position.maxX && dragYLocation < position.minY {
+                            state.isSelectingOneHandType = true
+                        }
+                    }
+                    if state.isSelectingOneHandType {
+                        sequencedDragOnChanged(value: value)
+                    }
+                }
+                if !state.isSelectingInputType && !state.isSelectingOneHandType {
+                    // 버튼 왼쪽으로 드래그 -> 다른 자판으로 변경
+                    if dragYLocation >= position.minY && dragYLocation <= position.maxY && dragXLocation < position.minX {
+                        state.isSelectingInputType = true
+                    }
+                }
+                if state.isSelectingInputType {
+                    if state.selectedInputType != .symbol && dragXLocation <= state.inputTypeButtonPosition[1].minX {
+                        state.selectedInputType = .symbol
+                        Feedback.shared.playHapticByForce(style: .light)
+                    } else if state.selectedInputType != .number && dragXLocation > state.inputTypeButtonPosition[1].minX {
+                        state.selectedInputType = .number
+                        Feedback.shared.playHapticByForce(style: .light)
+                    }
+                }
+                
+            } else if state.currentInputType == .symbol {  // 기호 자판
+                if isOneHandTypeEnabled {
+                    if !state.isSelectingInputType && !state.isSelectingOneHandType {
+                        // 버튼 위쪽으로 드래그 -> 한손 키보드 변경
+                        if dragXLocation >= position.minX && dragXLocation <= position.maxX && dragYLocation < position.minY {
+                            state.isSelectingOneHandType = true
+                        }
+                    }
+                    if state.isSelectingOneHandType {
+                        sequencedDragOnChanged(value: value)
+                    }
+                }
+                if isNumberKeyboardTypeEnabled {
+                    if !state.isSelectingInputType && !state.isSelectingOneHandType {
+                        // 버튼 오른쪽으로 드래그 -> 다른 자판으로 변경
+                        if dragYLocation >= position.minY && dragYLocation <= position.maxY && dragXLocation > position.maxX {
+                            state.isSelectingInputType = true
+                        }
+                    }
+                    if state.isSelectingInputType {
+                        if state.selectedInputType != .number && dragXLocation >= state.inputTypeButtonPosition[0].maxX {
+                            state.selectedInputType = .number
+                            Feedback.shared.playHapticByForce(style: .light)
+                        } else if state.selectedInputType != .symbol && dragXLocation < state.inputTypeButtonPosition[0].maxX {
+                            state.selectedInputType = .symbol
+                            Feedback.shared.playHapticByForce(style: .light)
+                        }
+                    }
+                }
+            }
         }
     }
     
@@ -218,22 +205,91 @@ struct Swift6_NaratgeulButton: View {
             
             if state.isSelectingOneHandType {
                 // 특정 방향으로 일정 거리 초과 드래그 -> 한손 키보드 변경
-                if state.selectedOneHandType != .left && (dragXLocation > state.oneHandButtonMinXPosition[0] && dragXLocation < state.oneHandButtonMinXPosition[1]
-                                                          && dragYLocation > state.oneHandButtonMinYPosition[0] && dragYLocation < state.oneHandButtonMaxYPosition[0]) {
+                if state.selectedOneHandType != .left
+                    && dragXLocation >= state.oneHandButtonPosition[0].minX && dragXLocation < state.oneHandButtonPosition[1].minX
+                    && dragYLocation >= state.oneHandButtonPosition[0].minY && dragYLocation <= state.oneHandButtonPosition[0].maxY {
                     state.selectedOneHandType = .left
                     Feedback.shared.playHapticByForce(style: .light)
-                } else if state.selectedOneHandType != .center && (dragXLocation >= state.oneHandButtonMinXPosition[1] && dragXLocation <= state.oneHandButtonMaxXPosition[1]
-                                                                   && dragYLocation >= state.oneHandButtonMinYPosition[1] && dragYLocation <= state.oneHandButtonMaxYPosition[1]) {
+                } else if state.selectedOneHandType != .center
+                            && dragXLocation >= state.oneHandButtonPosition[1].minX && dragXLocation <= state.oneHandButtonPosition[1].maxX
+                            && dragYLocation >= state.oneHandButtonPosition[1].minY && dragYLocation <= state.oneHandButtonPosition[1].maxY {
                     state.selectedOneHandType = .center
                     Feedback.shared.playHapticByForce(style: .light)
-                } else if state.selectedOneHandType != .right && (dragXLocation > state.oneHandButtonMaxXPosition[1] && dragXLocation < state.oneHandButtonMaxXPosition[2]
-                                                                  && dragYLocation > state.oneHandButtonMinYPosition[2] && dragYLocation < state.oneHandButtonMaxYPosition[2]) {
+                } else if state.selectedOneHandType != .right
+                            && dragXLocation > state.oneHandButtonPosition[1].maxX && dragXLocation <= state.oneHandButtonPosition[2].maxX
+                            && dragYLocation >= state.oneHandButtonPosition[2].minY && dragYLocation <= state.oneHandButtonPosition[2].maxY {
                     state.selectedOneHandType = .right
                     Feedback.shared.playHapticByForce(style: .light)
-                } else if dragXLocation <= state.oneHandButtonMinXPosition[0] || dragXLocation >= state.oneHandButtonMaxXPosition[2]
-                            || dragYLocation <= state.oneHandButtonMinYPosition[0] || dragYLocation >= state.oneHandButtonMaxYPosition[2] {
+                } else if dragXLocation < state.oneHandButtonPosition[0].minX || dragXLocation > state.oneHandButtonPosition[2].maxX
+                            || dragYLocation < state.oneHandButtonPosition[0].minY || dragYLocation > state.oneHandButtonPosition[2].maxY {
                     state.selectedOneHandType = state.currentOneHandType
                 }
+            } else {
+                if state.currentInputType == .hangeul {  // 한글 자판
+                    if isNumberKeyboardTypeEnabled {
+                        if !state.isSelectingInputType && !state.isSelectingOneHandType {
+                            // 버튼 왼쪽으로 드래그 -> 다른 자판으로 변경
+                            if dragYLocation >= position.minY && dragYLocation <= position.maxY && dragXLocation < position.minX {
+                                state.isSelectingInputType = true
+                            }
+                        }
+                        if state.isSelectingInputType {
+                            if state.selectedInputType != .number && dragXLocation <= state.inputTypeButtonPosition[1].minX {
+                                state.selectedInputType = .number
+                                Feedback.shared.playHapticByForce(style: .light)
+                            } else if state.selectedInputType != .hangeul && dragXLocation > state.inputTypeButtonPosition[1].minX {
+                                state.selectedInputType = .hangeul
+                                Feedback.shared.playHapticByForce(style: .light)
+                            }
+                        }
+                    }
+                    
+                } else if state.currentInputType == .number {  // 숫자 자판
+                    if !state.isSelectingInputType && !state.isSelectingOneHandType {
+                        // 버튼 왼쪽으로 드래그 -> 다른 자판으로 변경
+                        if dragYLocation >= position.minY && dragYLocation <= position.maxY && dragXLocation < position.minX {
+                            state.isSelectingInputType = true
+                        }
+                    }
+                    if state.isSelectingInputType {
+                        if state.selectedInputType != .symbol && dragXLocation <= state.inputTypeButtonPosition[1].minX {
+                            state.selectedInputType = .symbol
+                            Feedback.shared.playHapticByForce(style: .light)
+                        } else if state.selectedInputType != .number && dragXLocation > state.inputTypeButtonPosition[1].minX {
+                            state.selectedInputType = .number
+                            Feedback.shared.playHapticByForce(style: .light)
+                        }
+                    }
+                    
+                } else if state.currentInputType == .symbol {  // 기호 자판
+                    if isNumberKeyboardTypeEnabled {
+                        if !state.isSelectingInputType && !state.isSelectingOneHandType {
+                            // 버튼 오른쪽으로 드래그 -> 다른 자판으로 변경
+                            if dragYLocation >= position.minY && dragYLocation <= position.maxY && dragXLocation > position.maxX {
+                                state.isSelectingInputType = true
+                            }
+                        }
+                        if state.isSelectingInputType {
+                            if state.selectedInputType != .number && dragXLocation >= state.inputTypeButtonPosition[0].maxX {
+                                state.selectedInputType = .number
+                                Feedback.shared.playHapticByForce(style: .light)
+                            } else if state.selectedInputType != .symbol && dragXLocation < state.inputTypeButtonPosition[0].maxX {
+                                state.selectedInputType = .symbol
+                                Feedback.shared.playHapticByForce(style: .light)
+                            }
+                        }
+                    }
+                }
+            }
+            
+        } else if systemName == "return.left" {  // 리턴 버튼
+            let dragXLocation = value.location.x
+            let dragYLocation = value.location.y
+            
+            if dragXLocation < position.minX || dragXLocation > position.maxX
+                || dragYLocation < position.minY || dragYLocation > position.maxY {
+                nowGesture = .released
+                state.nowPressedButton = nil
             }
         }
     }
@@ -281,7 +337,7 @@ struct Swift6_NaratgeulButton: View {
             case .dragging:
                 state.swift6_nowPressedButton?.onReleased()
             case .sequencedDragging:
-                state.swift6_nowPressedButton?.onLongPressReleased()
+                state.swift6_nowPressedButton?.onReleased()
             default:
                 break
             }
@@ -346,8 +402,7 @@ struct Swift6_NaratgeulButton: View {
         
         // Image 버튼들
         if systemName != nil {
-            // 리턴 버튼
-            if systemName == "return.left" {
+            if systemName == "return.left" {  // 리턴 버튼
                 if state.returnButtonType == ._default {
                     Image(systemName: "return.left")
                         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
@@ -356,10 +411,17 @@ struct Swift6_NaratgeulButton: View {
                         .background(nowGesture == .pressing || nowGesture == .longPressing ? Color("PrimaryKeyboardButton") : Color("SecondaryKeyboardButton"))
                         .clipShape(.rect(cornerRadius: 5))
                         .shadow(color: Color("KeyboardButtonShadow"), radius: 0, x: 0, y: 1)
+                        .overlay(content: {
+                            Color.clear
+                                .onGeometryChange(for: CGRect.self) { geometry in
+                                    return geometry.frame(in: .global)
+                                } action: { newValue in
+                                    position = newValue
+                                }
+                        })
                         .onLongPressGesture(minimumDuration: state.longPressTime, maximumDistance: cursorActiveWidth) {
                             // 버튼 길게 누르면(누른 상태에서 일정시간이 지나면) 호출
-                            print("Swift6_NaratgeulButton) onLongPressGesture()->perform: longPressing")
-                            onLongPressGesturePerform()
+                            print("Swift6_NaratgeulButton) onLongPressGesture()->perform: longPressing released")
                         } onPressingChanged: { isPressing in
                             if isPressing {
                                 // 버튼 눌렀을 때 호출(버튼 누르면 무조건 첫번째로 호출)
@@ -371,6 +433,7 @@ struct Swift6_NaratgeulButton: View {
                                 onLongPressGestureOnPressingFalse()
                             }
                         }
+                        .highPriorityGesture(sequencedDragGesture)
                         .gesture(dragGesture)
                     
                 } else if state.returnButtonType == ._continue || state.returnButtonType == .next {
@@ -381,10 +444,17 @@ struct Swift6_NaratgeulButton: View {
                         .background(nowGesture == .pressing || nowGesture == .longPressing ? Color("PrimaryKeyboardButton") : Color("SecondaryKeyboardButton"))
                         .clipShape(.rect(cornerRadius: 5))
                         .shadow(color: Color("KeyboardButtonShadow"), radius: 0, x: 0, y: 1)
+                        .overlay(content: {
+                            Color.clear
+                                .onGeometryChange(for: CGRect.self) { geometry in
+                                    return geometry.frame(in: .global)
+                                } action: { newValue in
+                                    position = newValue
+                                }
+                        })
                         .onLongPressGesture(minimumDuration: state.longPressTime, maximumDistance: cursorActiveWidth) {
                             // 버튼 길게 누르면(누른 상태에서 일정시간이 지나면) 호출
-                            print("Swift6_NaratgeulButton) onLongPressGesture()->perform: longPressing")
-                            onLongPressGesturePerform()
+                            print("Swift6_NaratgeulButton) onLongPressGesture()->perform: longPressing released")
                         } onPressingChanged: { isPressing in
                             if isPressing {
                                 // 버튼 눌렀을 때 호출(버튼 누르면 무조건 첫번째로 호출)
@@ -396,6 +466,7 @@ struct Swift6_NaratgeulButton: View {
                                 onLongPressGestureOnPressingFalse()
                             }
                         }
+                        .highPriorityGesture(sequencedDragGesture)
                         .gesture(dragGesture)
                     
                 } else if state.returnButtonType == .go || state.returnButtonType == .send {
@@ -406,10 +477,17 @@ struct Swift6_NaratgeulButton: View {
                         .background(nowGesture == .pressing || nowGesture == .longPressing ? Color("PrimaryKeyboardButton") : Color(.tintColor))
                         .clipShape(.rect(cornerRadius: 5))
                         .shadow(color: Color("KeyboardButtonShadow"), radius: 0, x: 0, y: 1)
+                        .overlay(content: {
+                            Color.clear
+                                .onGeometryChange(for: CGRect.self) { geometry in
+                                    return geometry.frame(in: .global)
+                                } action: { newValue in
+                                    position = newValue
+                                }
+                        })
                         .onLongPressGesture(minimumDuration: state.longPressTime, maximumDistance: cursorActiveWidth) {
                             // 버튼 길게 누르면(누른 상태에서 일정시간이 지나면) 호출
-                            print("Swift6_NaratgeulButton) onLongPressGesture()->perform: longPressing")
-                            onLongPressGesturePerform()
+                            print("Swift6_NaratgeulButton) onLongPressGesture()->perform: longPressing released")
                         } onPressingChanged: { isPressing in
                             if isPressing {
                                 // 버튼 눌렀을 때 호출(버튼 누르면 무조건 첫번째로 호출)
@@ -421,6 +499,7 @@ struct Swift6_NaratgeulButton: View {
                                 onLongPressGestureOnPressingFalse()
                             }
                         }
+                        .highPriorityGesture(sequencedDragGesture)
                         .gesture(dragGesture)
                     
                 } else {
@@ -431,10 +510,17 @@ struct Swift6_NaratgeulButton: View {
                         .background(nowGesture == .pressing || nowGesture == .longPressing ? Color("PrimaryKeyboardButton") : Color(.tintColor))
                         .clipShape(.rect(cornerRadius: 5))
                         .shadow(color: Color("KeyboardButtonShadow"), radius: 0, x: 0, y: 1)
+                        .overlay(content: {
+                            Color.clear
+                                .onGeometryChange(for: CGRect.self) { geometry in
+                                    return geometry.frame(in: .global)
+                                } action: { newValue in
+                                    position = newValue
+                                }
+                        })
                         .onLongPressGesture(minimumDuration: state.longPressTime, maximumDistance: cursorActiveWidth) {
                             // 버튼 길게 누르면(누른 상태에서 일정시간이 지나면) 호출
-                            print("Swift6_NaratgeulButton) onLongPressGesture()->perform: longPressing")
-                            onLongPressGesturePerform()
+                            print("Swift6_NaratgeulButton) onLongPressGesture()->perform: longPressing released")
                         } onPressingChanged: { isPressing in
                             if isPressing {
                                 // 버튼 눌렀을 때 호출(버튼 누르면 무조건 첫번째로 호출)
@@ -446,11 +532,11 @@ struct Swift6_NaratgeulButton: View {
                                 onLongPressGestureOnPressingFalse()
                             }
                         }
+                        .highPriorityGesture(sequencedDragGesture)
                         .gesture(dragGesture)
                 }
                 
-                // 스페이스 버튼
-            } else if systemName == "space" {
+            } else if systemName == "space" {  // 스페이스 버튼
                 Image(systemName: "space")
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
                     .font(.system(size: imageSize))
@@ -458,9 +544,17 @@ struct Swift6_NaratgeulButton: View {
                     .background(nowGesture == .pressing || nowGesture == .longPressing ? Color("SecondaryKeyboardButton") : Color("PrimaryKeyboardButton") )
                     .clipShape(.rect(cornerRadius: 5))
                     .shadow(color: Color("KeyboardButtonShadow"), radius: 0, x: 0, y: 1)
+                    .overlay(content: {
+                        Color.clear
+                            .onGeometryChange(for: CGRect.self) { geometry in
+                                return geometry.frame(in: .global)
+                            } action: { newValue in
+                                position = newValue
+                            }
+                    })
                     .onLongPressGesture(minimumDuration: state.longPressTime, maximumDistance: cursorActiveWidth) {
                         // 버튼 길게 누르면(누른 상태에서 일정시간이 지나면) 호출
-                        print("Swift6_NaratgeulButton) onLongPressGesture()->perform: longPressing")
+                        print("Swift6_NaratgeulButton) onLongPressGesture()->perform: longPressing released")
                         onLongPressGesturePerform()
                     } onPressingChanged: { isPressing in
                         if isPressing {
@@ -475,7 +569,6 @@ struct Swift6_NaratgeulButton: View {
                     }
                     .gesture(dragGesture)
                 
-                // 그 외 버튼
             } else if systemName == "delete.left" {
                 Image(systemName: nowGesture == .pressing || nowGesture == .longPressing ? "delete.left.fill" : "delete.left")
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
@@ -484,9 +577,17 @@ struct Swift6_NaratgeulButton: View {
                     .background(nowGesture == .pressing || nowGesture == .longPressing ? Color("PrimaryKeyboardButton") : Color("SecondaryKeyboardButton"))
                     .clipShape(.rect(cornerRadius: 5))
                     .shadow(color: Color("KeyboardButtonShadow"), radius: 0, x: 0, y: 1)
+                    .overlay(content: {
+                        Color.clear
+                            .onGeometryChange(for: CGRect.self) { geometry in
+                                return geometry.frame(in: .global)
+                            } action: { newValue in
+                                position = newValue
+                            }
+                    })
                     .onLongPressGesture(minimumDuration: state.longPressTime, maximumDistance: cursorActiveWidth) {
                         // 버튼 길게 누르면(누른 상태에서 일정시간이 지나면) 호출
-                        print("Swift6_NaratgeulButton) onLongPressGesture()->perform: longPressing")
+                        print("Swift6_NaratgeulButton) onLongPressGesture()->perform: longPressing released")
                         onLongPressGesturePerform()
                     } onPressingChanged: { isPressing in
                         if isPressing {
@@ -500,7 +601,8 @@ struct Swift6_NaratgeulButton: View {
                         }
                     }
                     .gesture(dragGesture)
-            } else {
+                
+            } else {  // 그 외 버튼
                 Image(systemName: systemName!)
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
                     .font(.system(size: imageSize))
@@ -508,9 +610,17 @@ struct Swift6_NaratgeulButton: View {
                     .background(nowGesture == .pressing || nowGesture == .longPressing ? Color("PrimaryKeyboardButton") : Color("SecondaryKeyboardButton") )
                     .clipShape(.rect(cornerRadius: 5))
                     .shadow(color: Color("KeyboardButtonShadow"), radius: 0, x: 0, y: 1)
+                    .overlay(content: {
+                        Color.clear
+                            .onGeometryChange(for: CGRect.self) { geometry in
+                                return geometry.frame(in: .global)
+                            } action: { newValue in
+                                position = newValue
+                            }
+                    })
                     .onLongPressGesture(minimumDuration: state.longPressTime, maximumDistance: cursorActiveWidth) {
                         // 버튼 길게 누르면(누른 상태에서 일정시간이 지나면) 호출
-                        print("Swift6_NaratgeulButton) onLongPressGesture()->perform: longPressing")
+                        print("Swift6_NaratgeulButton) onLongPressGesture()->perform: longPressing released")
                         onLongPressGesturePerform()
                     } onPressingChanged: { isPressing in
                         if isPressing {
@@ -528,16 +638,23 @@ struct Swift6_NaratgeulButton: View {
             
             // Text 버튼들
         } else if text != nil {
-            // 한글 자판
-            if text == "!#1" {
+            if text == "!#1" {  // 한글 자판
                 Text("!#1")
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
                     .monospaced()
                     .font(.system(size: state.needsInputModeSwitchKey ? textSize - 2 : textSize))
                     .foregroundStyle(Color(uiColor: UIColor.label))
-                    .background(nowGesture != .released ? Color("PrimaryKeyboardButton") : Color("SecondaryKeyboardButton"))
+                    .background(nowGesture == .pressing || nowGesture == .longPressing ? Color("PrimaryKeyboardButton") : Color("SecondaryKeyboardButton"))
                     .clipShape(.rect(cornerRadius: 5))
                     .shadow(color: Color("KeyboardButtonShadow"), radius: 0, x: 0, y: 1)
+                    .overlay(content: {
+                        Color.clear
+                            .onGeometryChange(for: CGRect.self) { geometry in
+                                return geometry.frame(in: .global)
+                            } action: { newValue in
+                                position = newValue
+                            }
+                    })
                     .overlay(alignment: .bottomLeading, content: {
                         HStack(spacing: 1) {
                             if isNumberKeyboardTypeEnabled {
@@ -564,7 +681,7 @@ struct Swift6_NaratgeulButton: View {
                         .padding(EdgeInsets(top: 1, leading: 0, bottom: 0, trailing: 1))
                     })
                     .onLongPressGesture(minimumDuration: state.longPressTime, maximumDistance: cursorActiveWidth) {
-                        print("Swift6_NaratgeulButton) onLongPressGesture()->perform: longPressing")
+                        print("Swift6_NaratgeulButton) onLongPressGesture()->perform: longPressing released")
                     } onPressingChanged: { isPressing in
                         if isPressing {
                             // 버튼 눌렀을 때 호출(버튼 누르면 무조건 첫번째로 호출)
@@ -579,15 +696,22 @@ struct Swift6_NaratgeulButton: View {
                     .highPriorityGesture(sequencedDragGesture)
                     .gesture(dragGesture)
             } else if text == "한글" {
-                if state.currentInputType == .symbol {
-                    // 기호 자판
+                if state.currentInputType == .symbol {  // 기호 자판
                     Text("한글")
                         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
                         .font(.system(size: state.needsInputModeSwitchKey ? textSize - 2 : textSize))
                         .foregroundStyle(Color(uiColor: UIColor.label))
-                        .background(nowGesture != .released ? Color("PrimaryKeyboardButton") : Color("SecondaryKeyboardButton"))
+                        .background(nowGesture == .pressing || nowGesture == .longPressing ? Color("PrimaryKeyboardButton") : Color("SecondaryKeyboardButton"))
                         .clipShape(.rect(cornerRadius: 5))
                         .shadow(color: Color("KeyboardButtonShadow"), radius: 0, x: 0, y: 1)
+                        .overlay(content: {
+                            Color.clear
+                                .onGeometryChange(for: CGRect.self) { geometry in
+                                    return geometry.frame(in: .global)
+                                } action: { newValue in
+                                    position = newValue
+                                }
+                        })
                         .overlay(alignment: .bottomTrailing, content: {
                             HStack(spacing: 1) {
                                 if isNumberKeyboardTypeEnabled {
@@ -614,7 +738,7 @@ struct Swift6_NaratgeulButton: View {
                             .padding(EdgeInsets(top: 1, leading: 1, bottom: 0, trailing: 0))
                         })
                         .onLongPressGesture(minimumDuration: state.longPressTime, maximumDistance: cursorActiveWidth) {
-                            print("Swift6_NaratgeulButton) onLongPressGesture()->perform: longPressing")
+                            print("Swift6_NaratgeulButton) onLongPressGesture()->perform: longPressing released")
                         } onPressingChanged: { isPressing in
                             if isPressing {
                                 // 버튼 눌렀을 때 호출(버튼 누르면 무조건 첫번째로 호출)
@@ -628,15 +752,22 @@ struct Swift6_NaratgeulButton: View {
                         }
                         .highPriorityGesture(sequencedDragGesture)
                         .gesture(dragGesture)
-                } else if state.currentInputType == .number {
-                    // 숫자 자판
+                } else if state.currentInputType == .number {  // 숫자 자판
                     Text("한글")
                         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
                         .font(.system(size: state.needsInputModeSwitchKey ? textSize - 2 : textSize))
                         .foregroundStyle(Color(uiColor: UIColor.label))
-                        .background(nowGesture != .released ? Color("PrimaryKeyboardButton") : Color("SecondaryKeyboardButton"))
+                        .background(nowGesture == .pressing || nowGesture == .longPressing ? Color("PrimaryKeyboardButton") : Color("SecondaryKeyboardButton"))
                         .clipShape(.rect(cornerRadius: 5))
                         .shadow(color: Color("KeyboardButtonShadow"), radius: 0, x: 0, y: 1)
+                        .overlay(content: {
+                            Color.clear
+                                .onGeometryChange(for: CGRect.self) { geometry in
+                                    return geometry.frame(in: .global)
+                                } action: { newValue in
+                                    position = newValue
+                                }
+                        })
                         .overlay(alignment: .bottomLeading, content: {
                             HStack(spacing: 1) {
                                 Image(systemName: state.isSelectingInputType ? "arrowtriangle.left.fill" : "arrowtriangle.left")
@@ -661,7 +792,7 @@ struct Swift6_NaratgeulButton: View {
                             .padding(EdgeInsets(top: 1, leading: 0, bottom: 0, trailing: 1))
                         })
                         .onLongPressGesture(minimumDuration: state.longPressTime, maximumDistance: cursorActiveWidth) {
-                            print("Swift6_NaratgeulButton) onLongPressGesture()->perform: longPressing")
+                            print("Swift6_NaratgeulButton) onLongPressGesture()->perform: longPressing released")
                         } onPressingChanged: { isPressing in
                             if isPressing {
                                 // 버튼 눌렀을 때 호출(버튼 누르면 무조건 첫번째로 호출)
@@ -686,9 +817,17 @@ struct Swift6_NaratgeulButton: View {
                     .background(Color("SecondaryKeyboardButton"))
                     .clipShape(.rect(cornerRadius: 5))
                     .shadow(color: Color("KeyboardButtonShadow"), radius: 0, x: 0, y: 1)
+                    .overlay(content: {
+                        Color.clear
+                            .onGeometryChange(for: CGRect.self) { geometry in
+                                return geometry.frame(in: .global)
+                            } action: { newValue in
+                                position = newValue
+                            }
+                    })
                     .onLongPressGesture(minimumDuration: state.longPressTime, maximumDistance: cursorActiveWidth) {
                         // 버튼 길게 누르면(누른 상태에서 일정시간이 지나면) 호출
-                        print("Swift6_NaratgeulButton) onLongPressGesture()->perform: longPressing")
+                        print("Swift6_NaratgeulButton) onLongPressGesture()->perform: longPressing released")
                         onLongPressGesturePerform()
                     } onPressingChanged: { isPressing in
                         if isPressing {
@@ -710,9 +849,17 @@ struct Swift6_NaratgeulButton: View {
                     .background(nowGesture == .pressing || nowGesture == .longPressing ? Color("SecondaryKeyboardButton") : Color("PrimaryKeyboardButton"))
                     .clipShape(.rect(cornerRadius: 5))
                     .shadow(color: Color("KeyboardButtonShadow"), radius: 0, x: 0, y: 1)
+                    .overlay(content: {
+                        Color.clear
+                            .onGeometryChange(for: CGRect.self) { geometry in
+                                return geometry.frame(in: .global)
+                            } action: { newValue in
+                                position = newValue
+                            }
+                    })
                     .onLongPressGesture(minimumDuration: state.longPressTime, maximumDistance: cursorActiveWidth) {
                         // 버튼 길게 누르면(누른 상태에서 일정시간이 지나면) 호출
-                        print("Swift6_NaratgeulButton) onLongPressGesture()->perform: longPressing")
+                        print("Swift6_NaratgeulButton) onLongPressGesture()->perform: longPressing released")
                         onLongPressGesturePerform()
                     } onPressingChanged: { isPressing in
                         if isPressing {
@@ -734,9 +881,17 @@ struct Swift6_NaratgeulButton: View {
                     .background(nowGesture == .pressing || nowGesture == .longPressing ? Color("PrimaryKeyboardButton") : Color("SecondaryKeyboardButton"))
                     .clipShape(.rect(cornerRadius: 5))
                     .shadow(color: Color("KeyboardButtonShadow"), radius: 0, x: 0, y: 1)
+                    .overlay(content: {
+                        Color.clear
+                            .onGeometryChange(for: CGRect.self) { geometry in
+                                return geometry.frame(in: .global)
+                            } action: { newValue in
+                                position = newValue
+                            }
+                    })
                     .onLongPressGesture(minimumDuration: state.longPressTime, maximumDistance: cursorActiveWidth) {
                         // 버튼 길게 누르면(누른 상태에서 일정시간이 지나면) 호출
-                        print("Swift6_NaratgeulButton) onLongPressGesture()->perform: longPressing")
+                        print("Swift6_NaratgeulButton) onLongPressGesture()->perform: longPressing released")
                         onLongPressGesturePerform()
                     } onPressingChanged: { isPressing in
                         if isPressing {
@@ -758,9 +913,17 @@ struct Swift6_NaratgeulButton: View {
                     .background(nowGesture == .pressing || nowGesture == .longPressing ? Color("PrimaryKeyboardButton") : Color("SecondaryKeyboardButton"))
                     .clipShape(.rect(cornerRadius: 5))
                     .shadow(color: Color("KeyboardButtonShadow"), radius: 0, x: 0, y: 1)
+                    .overlay(content: {
+                        Color.clear
+                            .onGeometryChange(for: CGRect.self) { geometry in
+                                return geometry.frame(in: .global)
+                            } action: { newValue in
+                                position = newValue
+                            }
+                    })
                     .onLongPressGesture(minimumDuration: state.longPressTime, maximumDistance: cursorActiveWidth) {
                         // 버튼 길게 누르면(누른 상태에서 일정시간이 지나면) 호출
-                        print("Swift6_NaratgeulButton) onLongPressGesture()->perform: longPressing")
+                        print("Swift6_NaratgeulButton) onLongPressGesture()->perform: longPressing released")
                         onLongPressGesturePerform()
                     } onPressingChanged: { isPressing in
                         if isPressing {
@@ -782,9 +945,17 @@ struct Swift6_NaratgeulButton: View {
                     .background(nowGesture == .pressing || nowGesture == .longPressing ? Color("SecondaryKeyboardButton") : Color("PrimaryKeyboardButton"))
                     .clipShape(.rect(cornerRadius: 5))
                     .shadow(color: Color("KeyboardButtonShadow"), radius: 0, x: 0, y: 1)
+                    .overlay(content: {
+                        Color.clear
+                            .onGeometryChange(for: CGRect.self) { geometry in
+                                return geometry.frame(in: .global)
+                            } action: { newValue in
+                                position = newValue
+                            }
+                    })
                     .onLongPressGesture(minimumDuration: state.longPressTime, maximumDistance: cursorActiveWidth) {
                         // 버튼 길게 누르면(누른 상태에서 일정시간이 지나면) 호출
-                        print("Swift6_NaratgeulButton) onLongPressGesture()->perform: longPressing")
+                        print("Swift6_NaratgeulButton) onLongPressGesture()->perform: longPressing released")
                         onLongPressGesturePerform()
                     } onPressingChanged: { isPressing in
                         if isPressing {

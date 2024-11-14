@@ -11,6 +11,7 @@ struct NaratgeulView: View {
     @EnvironmentObject var state: NaratgeulState
     @AppStorage("isNumberKeyboardTypeEnabled", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var isNumberKeyboardTypeEnabled = true
     @AppStorage("isOneHandTypeEnabled", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var isOneHandTypeEnabled = true
+    @AppStorage("oneHandWidth", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var oneHandWidth = GlobalValues.defaultOneHandWidth
     @AppStorage("currentOneHandType", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var currentOneHandType = 1
     
     var body: some View {
@@ -20,53 +21,61 @@ struct NaratgeulView: View {
                     && isOneHandTypeEnabled && state.currentOneHandType == .right {
                     ChevronButton(isLeftHandMode: false)
                 }
-                if #available(iOS 18, *) {
-                    switch state.currentInputType {
-                    case .hangeul:
-                        Swift6_HangeulView()
-                    case .symbol:
-                        if state.currentKeyboardType == .URL {
-                            Swift6_URLSymbolView()
-                        } else if state.currentKeyboardType == .emailAddress {
-                            Swift6_EmailSymbolView()
-                        } else if state.currentKeyboardType == .webSearch {
-                            Swift6_WebSearchSymbolView()
-                        } else {
-                            Swift6_SymbolView()
+                ZStack(alignment: state.currentInputType == .symbol ? .leading : .trailing) {
+                    if #available(iOS 18, *) {
+                        switch state.currentInputType {
+                        case .hangeul:
+                            Swift6_HangeulView()
+                        case .symbol:
+                            if state.currentKeyboardType == .URL {
+                                Swift6_URLSymbolView()
+                            } else if state.currentKeyboardType == .emailAddress {
+                                Swift6_EmailSymbolView()
+                            } else if state.currentKeyboardType == .webSearch {
+                                Swift6_WebSearchSymbolView()
+                            } else {
+                                Swift6_SymbolView()
+                            }
+                        case .number:
+                            if state.currentKeyboardType == .numberPad {
+                                Swift6_NumberPadView()
+                            } else if state.currentKeyboardType == .asciiCapableNumberPad {
+                                Swift6_NumberPadView()
+                            } else {
+                                Swift6_NumberView()
+                            }
                         }
-                    case .number:
-                        if state.currentKeyboardType == .numberPad {
-                            Swift6_NumberPadView()
-                        } else if state.currentKeyboardType == .asciiCapableNumberPad {
-                            Swift6_NumberPadView()
-                        } else {
-                            Swift6_NumberView()
+                    } else {
+                        switch state.currentInputType {
+                        case .hangeul:
+                            HangeulView()
+                        case .symbol:
+                            if state.currentKeyboardType == .URL {
+                                URLSymbolView()
+                            } else if state.currentKeyboardType == .emailAddress {
+                                EmailSymbolView()
+                            } else if state.currentKeyboardType == .webSearch {
+                                WebSearchSymbolView()
+                            } else {
+                                SymbolView()
+                            }
+                        case .number:
+                            if state.currentKeyboardType == .numberPad {
+                                NumberPadView()
+                            } else if state.currentKeyboardType == .asciiCapableNumberPad {
+                                NumberPadView()
+                            } else {
+                                NumberView()
+                            }
                         }
                     }
-                } else {
-                    switch state.currentInputType {
-                    case .hangeul:
-                        HangeulView()
-                    case .symbol:
-                        if state.currentKeyboardType == .URL {
-                            URLSymbolView()
-                        } else if state.currentKeyboardType == .emailAddress {
-                            EmailSymbolView()
-                        } else if state.currentKeyboardType == .webSearch {
-                            WebSearchSymbolView()
-                        } else {
-                            SymbolView()
-                        }
-                    case .number:
-                        if state.currentKeyboardType == .numberPad {
-                            NumberPadView()
-                        } else if state.currentKeyboardType == .asciiCapableNumberPad {
-                            NumberPadView()
-                        } else {
-                            NumberView()
-                        }
+                    
+                    if state.isSelectingInputType {
+                        InputTypeSelectOverlayView()
+                            .offset(x: state.currentInputType == .symbol ? 2.5 : -2.5, y: state.keyboardHeight / 8)
                     }
                 }
+                
                 if state.currentKeyboardType != .numberPad && state.currentKeyboardType != .asciiCapableNumberPad
                     && isOneHandTypeEnabled && state.currentOneHandType == .left {
                     ChevronButton(isLeftHandMode: true)
