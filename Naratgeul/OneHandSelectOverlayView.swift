@@ -9,18 +9,20 @@ import SwiftUI
 
 struct OneHandSelectOverlayView: View {
     @EnvironmentObject var state: NaratgeulState
+    @AppStorage("currentOneHandType", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var currentOneHandType = 1
     
-    let frameWidth: CGFloat = 240
-    let interItemSpacing: CGFloat = 10
-    let fontSize: Double = 28
+    let frameWidth: CGFloat = 230
+    let interItemSpacing: CGFloat = 8
+    let fontSize: Double = 26
     
     
     // MARK: - Basic of Gesture Method
     private func onReleased() {
         if state.isSelectingOneHandType {
             if let selectedOneHandType = state.selectedOneHandType {
-                state.selectedOneHandType = nil
                 state.currentOneHandType = selectedOneHandType
+                currentOneHandType = selectedOneHandType.rawValue
+                state.selectedOneHandType = nil
             }
             state.isSelectingOneHandType = false
         }

@@ -11,7 +11,7 @@ struct GlobalValues {
     private init() {}
     
     static let defaultKeyboardHeight: Double = 240.0
-    static let defaultOneHandWidth: Double = 80.0
+    static let defaultOneHandWidth: Double = 70.0
     static let defaultLongPressSpeed: Double = 0.5
     static let defaultRepeatTimerSpeed: Double = 0.05
     static let defaultCursorActiveWidth: Double = 30.0

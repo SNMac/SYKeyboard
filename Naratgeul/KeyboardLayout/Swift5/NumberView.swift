@@ -11,7 +11,6 @@ import Combine
 struct NumberView: View {
     @EnvironmentObject var state: NaratgeulState
     @AppStorage("isOneHandTypeEnabled", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var isOneHandTypeEnabled = true
-    @AppStorage("currentOneHandType", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var currentOneHandType = 1
     @State var timer: AnyCancellable?
     
     let vPadding: CGFloat = 4

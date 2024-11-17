@@ -15,8 +15,8 @@ class SpecificLanguageTextField: UITextField {
     var language: String? {
         didSet {
             if self.isFirstResponder{
-                self.resignFirstResponder();
-                self.becomeFirstResponder();
+                self.resignFirstResponder()
+                self.becomeFirstResponder()
             }
         }
     }

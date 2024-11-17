@@ -24,6 +24,7 @@ struct NaratgeulButton: View {
     @AppStorage("cursorMoveWidth", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var cursorMoveWidth = GlobalValues.defaultCursorMoveWidth
     @AppStorage("isNumberKeyboardTypeEnabled", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var isNumberKeyboardTypeEnabled = true
     @AppStorage("isOneHandTypeEnabled", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var isOneHandTypeEnabled = true
+    @AppStorage("currentOneHandType", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var currentOneHandType = 1
     
     @State var nowGesture: Gestures = .released
     @State private var dragStartWidth: Double = 0.0
@@ -59,8 +60,9 @@ struct NaratgeulButton: View {
         }
         if state.isSelectingOneHandType {
             if let selectedOneHandType = state.selectedOneHandType {
-                state.selectedOneHandType = nil
                 state.currentOneHandType = selectedOneHandType
+                currentOneHandType = selectedOneHandType.rawValue
+                state.selectedOneHandType = nil
             }
             state.isSelectingOneHandType = false
         }

@@ -11,7 +11,6 @@ struct NaratgeulView: View {
     @EnvironmentObject var state: NaratgeulState
     @AppStorage("isNumberKeyboardTypeEnabled", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var isNumberKeyboardTypeEnabled = true
     @AppStorage("isOneHandTypeEnabled", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var isOneHandTypeEnabled = true
-    @AppStorage("oneHandWidth", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var oneHandWidth = GlobalValues.defaultOneHandWidth
     @AppStorage("currentOneHandType", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var currentOneHandType = 1
     
     var body: some View {
@@ -72,7 +71,7 @@ struct NaratgeulView: View {
                     
                     if state.isSelectingInputType {
                         InputTypeSelectOverlayView()
-                            .offset(x: state.currentInputType == .symbol ? 2.5 : -2.5, y: state.keyboardHeight / 8)
+                            .offset(x: state.currentInputType == .symbol ? 5 : -5, y: state.keyboardHeight / 8)
                     }
                 }
                 
@@ -84,7 +83,7 @@ struct NaratgeulView: View {
             
             if state.isSelectingOneHandType {
                 OneHandSelectOverlayView()
-                    .offset(x: state.currentInputType == .symbol ? 2.5 : -2.5, y: state.keyboardHeight / 8)
+                    .offset(x: state.currentInputType == .symbol ? 5 : -5, y: state.keyboardHeight / 8)
             }
         }.onAppear {
             if isOneHandTypeEnabled {
