@@ -42,9 +42,6 @@ struct ContentView: View {
             }
             
             Section {
-                NavigationLink("키보드 높이") {
-                    HeightSettingsView()
-                }
                 AppearanceSettingsView()
             } header: {
                 Text("외형 설정")

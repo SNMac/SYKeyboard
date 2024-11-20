@@ -158,6 +158,7 @@ class NaratgeulViewController: UIInputViewController {
         let options = NaratgeulState(
             delegate: ioManager,
             keyboardHeight: CGFloat(defaults?.double(forKey: "keyboardHeight") ?? GlobalValues.defaultKeyboardHeight),
+            oneHandWidth: CGFloat(defaults?.double(forKey: "oneHandWidth") ?? GlobalValues.defaultOneHandWidth),
             longPressTime: 1.0 - (defaults?.double(forKey: "longPressSpeed") ?? GlobalValues.defaultLongPressSpeed),
             repeatTimerCycle: 0.10 - (defaults?.double(forKey: "repeatTimerSpeed") ?? GlobalValues.defaultRepeatTimerSpeed),
             needsInputModeSwitchKey: needsInputModeSwitchKey,

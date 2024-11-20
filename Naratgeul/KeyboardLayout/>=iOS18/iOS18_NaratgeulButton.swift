@@ -1,5 +1,5 @@
 //
-//  Swift6_NaratgeulButton.swift
+//  iOS18_NaratgeulButton.swift
 //  Naratgeul
 //
 //  Created by 서동환 on 9/22/24.
@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct Swift6_NaratgeulButton: View {
+struct iOS18_NaratgeulButton: View {
     @EnvironmentObject var state: NaratgeulState
     @AppStorage("cursorActiveWidth", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var cursorActiveWidth = GlobalValues.defaultCursorActiveWidth
     @AppStorage("cursorMoveWidth", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var cursorMoveWidth = GlobalValues.defaultCursorMoveWidth
@@ -39,7 +39,7 @@ struct Swift6_NaratgeulButton: View {
             onRelease?()
         }
         nowGesture = .released
-        state.swift6_nowPressedButton = nil
+        state.ios18_nowPressedButton = nil
         
         if state.isSelectingInputType {
             if let selectedInputType = state.selectedInputType {
@@ -61,7 +61,7 @@ struct Swift6_NaratgeulButton: View {
     private func onLongPressReleased() {  // 버튼 길게 눌렀다가 뗐을 때 호출
         nowGesture = .released
         onLongPressRelease?()
-        state.swift6_nowPressedButton = nil
+        state.ios18_nowPressedButton = nil
     }
     
     private func onPressing() {  // 버튼 눌렀을 때 호출(버튼 누르면 무조건 첫번째로 호출)
@@ -291,7 +291,7 @@ struct Swift6_NaratgeulButton: View {
             if dragXLocation < position.minX || dragXLocation > position.maxX
                 || dragYLocation < position.minY || dragYLocation > position.maxY {
                 nowGesture = .released
-                state.swift6_nowPressedButton = nil
+                state.ios18_nowPressedButton = nil
             }
         }
     }
@@ -330,23 +330,23 @@ struct Swift6_NaratgeulButton: View {
             isOnPressingAvailable = false
         }
         
-        if state.swift6_nowPressedButton != nil {  // 이미 다른 버튼이 눌려있는 상태
-            switch state.swift6_nowPressedButton?.nowGesture {
+        if state.ios18_nowPressedButton != nil {  // 이미 다른 버튼이 눌려있는 상태
+            switch state.ios18_nowPressedButton?.nowGesture {
             case .pressing:
-                state.swift6_nowPressedButton?.onReleased()
+                state.ios18_nowPressedButton?.onReleased()
             case .longPressing:
-                state.swift6_nowPressedButton?.onLongPressReleased()
+                state.ios18_nowPressedButton?.onLongPressReleased()
             case .dragging:
-                state.swift6_nowPressedButton?.onReleased()
+                state.ios18_nowPressedButton?.onReleased()
             case .sequencedDragging:
-                state.swift6_nowPressedButton?.onReleased()
+                state.ios18_nowPressedButton?.onReleased()
             default:
                 break
             }
         }
         
         if isOnPressingAvailable {
-            state.swift6_nowPressedButton = self
+            state.ios18_nowPressedButton = self
             onPressing()
         }
     }
@@ -366,7 +366,7 @@ struct Swift6_NaratgeulButton: View {
     }
     
     
-    // MARK: - Swift6_NaratgeulButton
+    // MARK: - iOS18_NaratgeulButton
     var body: some View {
         let dragGesture = DragGesture(minimumDistance: cursorActiveWidth, coordinateSpace: .global)
         // 버튼 드래그 할 때 호출

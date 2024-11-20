@@ -9,5 +9,5 @@ import Foundation
 
 final class PreviewNaratgeulState: ObservableObject {
     var nowPressedButton: PreviewNaratgeulButton?
-    var swift6_nowPressedButton: Swift6_PreviewNaratgeulButton?
+    var ios18_nowPressedButton: iOS18_PreviewNaratgeulButton?
 }

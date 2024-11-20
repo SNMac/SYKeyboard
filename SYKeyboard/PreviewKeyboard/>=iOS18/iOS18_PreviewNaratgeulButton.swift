@@ -1,5 +1,5 @@
 //
-//  Swift6_PreviewNaratgeulButton.swift
+//  iOS18_PreviewNaratgeulButton.swift
 //  SYKeyboard
 //
 //  Created by 서동환 on 9/23/24.
@@ -7,12 +7,12 @@
 
 import SwiftUI
 
-struct Swift6_PreviewNaratgeulButton: View {
+struct iOS18_PreviewNaratgeulButton: View {
     @EnvironmentObject var state: PreviewNaratgeulState
     @AppStorage("longPressSpeed", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var longPressSpeed = GlobalValues.defaultLongPressSpeed
     @AppStorage("cursorActiveWidth", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var cursorActiveWidth = GlobalValues.defaultCursorActiveWidth
     @AppStorage("cursorMoveWidth", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var cursorMoveWidth = GlobalValues.defaultCursorMoveWidth
-    @AppStorage("needsInputModeSwitchKey", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var needsInputModeSwitchKey = false
+    @AppStorage("needsInputModeSwitchKey", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var needsInputModeSwitchKey = true
     @AppStorage("isNumberKeyboardTypeEnabled", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var isNumberKeyboardTypeEnabled = true
     
     @State var nowGesture: Gestures = .released
@@ -38,13 +38,13 @@ struct Swift6_PreviewNaratgeulButton: View {
             onRelease?()
         }
         nowGesture = .released
-        state.swift6_nowPressedButton = nil
+        state.ios18_nowPressedButton = nil
     }
     
     private func onLongPressReleased() {  // 버튼 길게 눌렀다가 뗐을 때 호출
         onLongPressRelease?()
         nowGesture = .released
-        state.swift6_nowPressedButton = nil
+        state.ios18_nowPressedButton = nil
     }
     
     private func onPressing() {  // 버튼 눌렀을 때 호출(버튼 누르면 무조건 첫번째로 호출)
@@ -99,19 +99,19 @@ struct Swift6_PreviewNaratgeulButton: View {
     }
     
     private func onLongPressGestureOnPressingTrue() {
-        if state.swift6_nowPressedButton != nil {  // 이미 다른 버튼이 눌려있는 상태
-            switch state.swift6_nowPressedButton?.nowGesture {
+        if state.ios18_nowPressedButton != nil {  // 이미 다른 버튼이 눌려있는 상태
+            switch state.ios18_nowPressedButton?.nowGesture {
             case .pressing:
-                state.swift6_nowPressedButton?.onReleased()
+                state.ios18_nowPressedButton?.onReleased()
             case .longPressing:
-                state.swift6_nowPressedButton?.onLongPressReleased()
+                state.ios18_nowPressedButton?.onLongPressReleased()
             case .dragging:
-                state.swift6_nowPressedButton?.onReleased()
+                state.ios18_nowPressedButton?.onReleased()
             default:
                 break
             }
         }
-        state.swift6_nowPressedButton = self
+        state.ios18_nowPressedButton = self
         onPressing()
     }
     

@@ -12,12 +12,12 @@
 		5B0D823D2C5F355900F84180 /* HangeulAutomata.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B0D823C2C5F355900F84180 /* HangeulAutomata.swift */; };
 		5B0D82432C63C16F00F84180 /* Feedback.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B0D82422C63C16F00F84180 /* Feedback.swift */; };
 		5B0D824F2C63D66600F84180 /* FeedbackSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B0D824E2C63D66600F84180 /* FeedbackSettingsView.swift */; };
-		5B0F7FD62CA69CCA00EE7380 /* Swift6_URLSymbolView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B0F7FD52CA69CCA00EE7380 /* Swift6_URLSymbolView.swift */; };
-		5B0F7FD82CA69CD900EE7380 /* Swift6_EmailSymbolView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B0F7FD72CA69CD900EE7380 /* Swift6_EmailSymbolView.swift */; };
-		5B0F7FDA2CA69CEE00EE7380 /* Swift6_WebSearchSymbolView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B0F7FD92CA69CEE00EE7380 /* Swift6_WebSearchSymbolView.swift */; };
-		5B0F7FDC2CA69D1100EE7380 /* Swift6_NumberPadView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B0F7FDB2CA69D1100EE7380 /* Swift6_NumberPadView.swift */; };
-		5B13A2E72CA0779F004B7986 /* Swift6_PreviewNaratgeulButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B13A2E62CA0779F004B7986 /* Swift6_PreviewNaratgeulButton.swift */; };
-		5B13A2ED2CA08083004B7986 /* Swift6_PreviewHangeulView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B13A2EC2CA08083004B7986 /* Swift6_PreviewHangeulView.swift */; };
+		5B0F7FD62CA69CCA00EE7380 /* iOS18_URLSymbolView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B0F7FD52CA69CCA00EE7380 /* iOS18_URLSymbolView.swift */; };
+		5B0F7FD82CA69CD900EE7380 /* iOS18_EmailSymbolView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B0F7FD72CA69CD900EE7380 /* iOS18_EmailSymbolView.swift */; };
+		5B0F7FDA2CA69CEE00EE7380 /* iOS18_WebSearchSymbolView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B0F7FD92CA69CEE00EE7380 /* iOS18_WebSearchSymbolView.swift */; };
+		5B0F7FDC2CA69D1100EE7380 /* iOS18_NumberPadView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B0F7FDB2CA69D1100EE7380 /* iOS18_NumberPadView.swift */; };
+		5B13A2E72CA0779F004B7986 /* iOS18_PreviewNaratgeulButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B13A2E62CA0779F004B7986 /* iOS18_PreviewNaratgeulButton.swift */; };
+		5B13A2ED2CA08083004B7986 /* iOS18_PreviewHangeulView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B13A2EC2CA08083004B7986 /* iOS18_PreviewHangeulView.swift */; };
 		5B13A2EF2CA0F24B004B7986 /* AppearanceSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B13A2EE2CA0F24B004B7986 /* AppearanceSettingsView.swift */; };
 		5B18F5142C97DC1D000548D4 /* PreviewNaratgeulState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B18F5132C97DC1D000548D4 /* PreviewNaratgeulState.swift */; };
 		5B18F5172C97DC7C000548D4 /* PreviewNaratgeulButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B18F5162C97DC7C000548D4 /* PreviewNaratgeulButton.swift */; };
@@ -36,10 +36,10 @@
 		5B6B1B372CD210CD00636AC4 /* OneHandSelectOverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B6B1B362CD210CD00636AC4 /* OneHandSelectOverlayView.swift */; };
 		5B7556EB2C9DD3B00038BA9C /* GlobalValues.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B7556EA2C9DD3B00038BA9C /* GlobalValues.swift */; };
 		5B7556EC2C9DD3B00038BA9C /* GlobalValues.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B7556EA2C9DD3B00038BA9C /* GlobalValues.swift */; };
-		5B7556FF2CA0077A0038BA9C /* Swift6_NaratgeulButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B7556FE2CA0077A0038BA9C /* Swift6_NaratgeulButton.swift */; };
-		5B7557082CA0717B0038BA9C /* Swift6_HangeulView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B7557072CA0717B0038BA9C /* Swift6_HangeulView.swift */; };
-		5B75570C2CA072280038BA9C /* Swift6_NumberView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B75570B2CA072280038BA9C /* Swift6_NumberView.swift */; };
-		5B75570E2CA072320038BA9C /* Swift6_SymbolView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B75570D2CA072320038BA9C /* Swift6_SymbolView.swift */; };
+		5B7556FF2CA0077A0038BA9C /* iOS18_NaratgeulButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B7556FE2CA0077A0038BA9C /* iOS18_NaratgeulButton.swift */; };
+		5B7557082CA0717B0038BA9C /* iOS18_HangeulView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B7557072CA0717B0038BA9C /* iOS18_HangeulView.swift */; };
+		5B75570C2CA072280038BA9C /* iOS18_NumberView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B75570B2CA072280038BA9C /* iOS18_NumberView.swift */; };
+		5B75570E2CA072320038BA9C /* iOS18_SymbolView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B75570D2CA072320038BA9C /* iOS18_SymbolView.swift */; };
 		5B7885942CDCB04A007A801A /* ChevronButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B7885932CDCB04A007A801A /* ChevronButton.swift */; };
 		5B78859A2CDF3473007A801A /* InputTypeSelectOverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B7885992CDF3473007A801A /* InputTypeSelectOverlayView.swift */; };
 		5B7B3F5A2C569B7800F7C093 /* SYKeyboardApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B7B3F592C569B7800F7C093 /* SYKeyboardApp.swift */; };
@@ -57,9 +57,10 @@
 		5B9472332C8AD76000B8B154 /* Feedback.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B0D82422C63C16F00F84180 /* Feedback.swift */; };
 		5BA419D82CB98532005E7C86 /* InitialSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BA419D72CB98532005E7C86 /* InitialSettingsView.swift */; };
 		5BACCE552C915423006DCFB7 /* NaratgeulDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BACCE542C915423006DCFB7 /* NaratgeulDelegate.swift */; };
-		5BB0D2642C86FF3B00CE7AF5 /* HeightSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BB0D2632C86FF3B00CE7AF5 /* HeightSettingsView.swift */; };
+		5BB0D2642C86FF3B00CE7AF5 /* KeyboardHeightSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BB0D2632C86FF3B00CE7AF5 /* KeyboardHeightSettingsView.swift */; };
 		5BB0D26D2C883B8700CE7AF5 /* InputSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BB0D26C2C883B8700CE7AF5 /* InputSettingsView.swift */; };
 		5BB0D2722C88481500CE7AF5 /* View+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BB0D2712C88481500CE7AF5 /* View+Extension.swift */; };
+		5BB257952CEDA709005C3F10 /* OneHandWidthSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BB257942CEDA709005C3F10 /* OneHandWidthSettingsView.swift */; };
 		5BDCDED72C67458600035B01 /* KeyboardTestView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BDCDED62C67458600035B01 /* KeyboardTestView.swift */; };
 /* End PBXBuildFile section */
 
@@ -94,12 +95,12 @@
 		5B0D824E2C63D66600F84180 /* FeedbackSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedbackSettingsView.swift; sourceTree = "<group>"; };
 		5B0D82502C63F75900F84180 /* SYKeyboard.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = SYKeyboard.entitlements; sourceTree = "<group>"; };
 		5B0D82512C63FDC300F84180 /* Naratgeul.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Naratgeul.entitlements; sourceTree = "<group>"; };
-		5B0F7FD52CA69CCA00EE7380 /* Swift6_URLSymbolView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Swift6_URLSymbolView.swift; sourceTree = "<group>"; };
-		5B0F7FD72CA69CD900EE7380 /* Swift6_EmailSymbolView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Swift6_EmailSymbolView.swift; sourceTree = "<group>"; };
-		5B0F7FD92CA69CEE00EE7380 /* Swift6_WebSearchSymbolView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Swift6_WebSearchSymbolView.swift; sourceTree = "<group>"; };
-		5B0F7FDB2CA69D1100EE7380 /* Swift6_NumberPadView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Swift6_NumberPadView.swift; sourceTree = "<group>"; };
-		5B13A2E62CA0779F004B7986 /* Swift6_PreviewNaratgeulButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Swift6_PreviewNaratgeulButton.swift; sourceTree = "<group>"; };
-		5B13A2EC2CA08083004B7986 /* Swift6_PreviewHangeulView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Swift6_PreviewHangeulView.swift; sourceTree = "<group>"; };
+		5B0F7FD52CA69CCA00EE7380 /* iOS18_URLSymbolView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iOS18_URLSymbolView.swift; sourceTree = "<group>"; };
+		5B0F7FD72CA69CD900EE7380 /* iOS18_EmailSymbolView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iOS18_EmailSymbolView.swift; sourceTree = "<group>"; };
+		5B0F7FD92CA69CEE00EE7380 /* iOS18_WebSearchSymbolView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iOS18_WebSearchSymbolView.swift; sourceTree = "<group>"; };
+		5B0F7FDB2CA69D1100EE7380 /* iOS18_NumberPadView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iOS18_NumberPadView.swift; sourceTree = "<group>"; };
+		5B13A2E62CA0779F004B7986 /* iOS18_PreviewNaratgeulButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iOS18_PreviewNaratgeulButton.swift; sourceTree = "<group>"; };
+		5B13A2EC2CA08083004B7986 /* iOS18_PreviewHangeulView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iOS18_PreviewHangeulView.swift; sourceTree = "<group>"; };
 		5B13A2EE2CA0F24B004B7986 /* AppearanceSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppearanceSettingsView.swift; sourceTree = "<group>"; };
 		5B18F5132C97DC1D000548D4 /* PreviewNaratgeulState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewNaratgeulState.swift; sourceTree = "<group>"; };
 		5B18F5162C97DC7C000548D4 /* PreviewNaratgeulButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewNaratgeulButton.swift; sourceTree = "<group>"; };
@@ -118,10 +119,10 @@
 		5B5274A52C8E91A4004C155E /* DEP_HangeulInputMethod.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DEP_HangeulInputMethod.swift; sourceTree = "<group>"; };
 		5B6B1B362CD210CD00636AC4 /* OneHandSelectOverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OneHandSelectOverlayView.swift; sourceTree = "<group>"; };
 		5B7556EA2C9DD3B00038BA9C /* GlobalValues.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlobalValues.swift; sourceTree = "<group>"; };
-		5B7556FE2CA0077A0038BA9C /* Swift6_NaratgeulButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Swift6_NaratgeulButton.swift; sourceTree = "<group>"; };
-		5B7557072CA0717B0038BA9C /* Swift6_HangeulView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Swift6_HangeulView.swift; sourceTree = "<group>"; };
-		5B75570B2CA072280038BA9C /* Swift6_NumberView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Swift6_NumberView.swift; sourceTree = "<group>"; };
-		5B75570D2CA072320038BA9C /* Swift6_SymbolView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Swift6_SymbolView.swift; sourceTree = "<group>"; };
+		5B7556FE2CA0077A0038BA9C /* iOS18_NaratgeulButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iOS18_NaratgeulButton.swift; sourceTree = "<group>"; };
+		5B7557072CA0717B0038BA9C /* iOS18_HangeulView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iOS18_HangeulView.swift; sourceTree = "<group>"; };
+		5B75570B2CA072280038BA9C /* iOS18_NumberView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iOS18_NumberView.swift; sourceTree = "<group>"; };
+		5B75570D2CA072320038BA9C /* iOS18_SymbolView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iOS18_SymbolView.swift; sourceTree = "<group>"; };
 		5B7885932CDCB04A007A801A /* ChevronButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChevronButton.swift; sourceTree = "<group>"; };
 		5B7885992CDF3473007A801A /* InputTypeSelectOverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputTypeSelectOverlayView.swift; sourceTree = "<group>"; };
 		5B7B3F562C569B7800F7C093 /* SYKeyboard.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SYKeyboard.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -142,9 +143,10 @@
 		5BACCE422C9094AB006DCFB7 /* version.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = version.sh; sourceTree = "<group>"; };
 		5BACCE442C9096DE006DCFB7 /* Config.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config.xcconfig; sourceTree = "<group>"; };
 		5BACCE542C915423006DCFB7 /* NaratgeulDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NaratgeulDelegate.swift; sourceTree = "<group>"; };
-		5BB0D2632C86FF3B00CE7AF5 /* HeightSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeightSettingsView.swift; sourceTree = "<group>"; };
+		5BB0D2632C86FF3B00CE7AF5 /* KeyboardHeightSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardHeightSettingsView.swift; sourceTree = "<group>"; };
 		5BB0D26C2C883B8700CE7AF5 /* InputSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputSettingsView.swift; sourceTree = "<group>"; };
 		5BB0D2712C88481500CE7AF5 /* View+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "View+Extension.swift"; sourceTree = "<group>"; };
+		5BB257942CEDA709005C3F10 /* OneHandWidthSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OneHandWidthSettingsView.swift; sourceTree = "<group>"; };
 		5BDCDED62C67458600035B01 /* KeyboardTestView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardTestView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -173,15 +175,14 @@
 		5B18F5152C97DC63000548D4 /* PreviewKeyboard */ = {
 			isa = PBXGroup;
 			children = (
-				5B75570F2CA074020038BA9C /* Swift6 */,
-				5B18F5182C97DCE3000548D4 /* PreviewHangeulView.swift */,
-				5B18F5162C97DC7C000548D4 /* PreviewNaratgeulButton.swift */,
 				5B18F5132C97DC1D000548D4 /* PreviewNaratgeulState.swift */,
+				5B75570F2CA074020038BA9C /* >=iOS18 */,
+				5B6253D22CEC4A7F000689CD /* <=iOS17 */,
 			);
 			path = PreviewKeyboard;
 			sourceTree = "<group>";
 		};
-		5B21DCFE2CE3234E007616E2 /* Swift5 */ = {
+		5B21DCFE2CE3234E007616E2 /* <=iOS17 */ = {
 			isa = PBXGroup;
 			children = (
 				5B21DCF72CE3234E007616E2 /* HangeulView.swift */,
@@ -193,32 +194,41 @@
 				5B21DCF92CE3234E007616E2 /* NumberPadView.swift */,
 				5B21DCF82CE3234E007616E2 /* NaratgeulButton.swift */,
 			);
-			name = Swift5;
-			path = Naratgeul/KeyboardLayout/Swift5;
+			name = "<=iOS17";
+			path = "Naratgeul/KeyboardLayout/<=iOS17";
 			sourceTree = SOURCE_ROOT;
 		};
-		5B7557092CA071F70038BA9C /* Swift6 */ = {
+		5B6253D22CEC4A7F000689CD /* <=iOS17 */ = {
 			isa = PBXGroup;
 			children = (
-				5B7557072CA0717B0038BA9C /* Swift6_HangeulView.swift */,
-				5B75570D2CA072320038BA9C /* Swift6_SymbolView.swift */,
-				5B0F7FD52CA69CCA00EE7380 /* Swift6_URLSymbolView.swift */,
-				5B0F7FD72CA69CD900EE7380 /* Swift6_EmailSymbolView.swift */,
-				5B0F7FD92CA69CEE00EE7380 /* Swift6_WebSearchSymbolView.swift */,
-				5B75570B2CA072280038BA9C /* Swift6_NumberView.swift */,
-				5B0F7FDB2CA69D1100EE7380 /* Swift6_NumberPadView.swift */,
-				5B7556FE2CA0077A0038BA9C /* Swift6_NaratgeulButton.swift */,
+				5B18F5182C97DCE3000548D4 /* PreviewHangeulView.swift */,
+				5B18F5162C97DC7C000548D4 /* PreviewNaratgeulButton.swift */,
 			);
-			path = Swift6;
+			path = "<=iOS17";
 			sourceTree = "<group>";
 		};
-		5B75570F2CA074020038BA9C /* Swift6 */ = {
+		5B7557092CA071F70038BA9C /* >=iOS18 */ = {
 			isa = PBXGroup;
 			children = (
-				5B13A2EC2CA08083004B7986 /* Swift6_PreviewHangeulView.swift */,
-				5B13A2E62CA0779F004B7986 /* Swift6_PreviewNaratgeulButton.swift */,
+				5B7557072CA0717B0038BA9C /* iOS18_HangeulView.swift */,
+				5B75570D2CA072320038BA9C /* iOS18_SymbolView.swift */,
+				5B0F7FD52CA69CCA00EE7380 /* iOS18_URLSymbolView.swift */,
+				5B0F7FD72CA69CD900EE7380 /* iOS18_EmailSymbolView.swift */,
+				5B0F7FD92CA69CEE00EE7380 /* iOS18_WebSearchSymbolView.swift */,
+				5B75570B2CA072280038BA9C /* iOS18_NumberView.swift */,
+				5B0F7FDB2CA69D1100EE7380 /* iOS18_NumberPadView.swift */,
+				5B7556FE2CA0077A0038BA9C /* iOS18_NaratgeulButton.swift */,
 			);
-			path = Swift6;
+			path = ">=iOS18";
+			sourceTree = "<group>";
+		};
+		5B75570F2CA074020038BA9C /* >=iOS18 */ = {
+			isa = PBXGroup;
+			children = (
+				5B13A2EC2CA08083004B7986 /* iOS18_PreviewHangeulView.swift */,
+				5B13A2E62CA0779F004B7986 /* iOS18_PreviewNaratgeulButton.swift */,
+			);
+			path = ">=iOS18";
 			sourceTree = "<group>";
 		};
 		5B7B3F4D2C569B7800F7C093 = {
@@ -255,8 +265,9 @@
 				5B0D824E2C63D66600F84180 /* FeedbackSettingsView.swift */,
 				5BB0D26C2C883B8700CE7AF5 /* InputSettingsView.swift */,
 				5B94722F2C8989C100B8B154 /* SpeedAndCursorSettingsView.swift */,
-				5BB0D2632C86FF3B00CE7AF5 /* HeightSettingsView.swift */,
 				5B13A2EE2CA0F24B004B7986 /* AppearanceSettingsView.swift */,
+				5BB0D2632C86FF3B00CE7AF5 /* KeyboardHeightSettingsView.swift */,
+				5BB257942CEDA709005C3F10 /* OneHandWidthSettingsView.swift */,
 				5B7BDD462C91E8860065C944 /* InfoView.swift */,
 				5B18F5152C97DC63000548D4 /* PreviewKeyboard */,
 				5BB0D2702C88470A00CE7AF5 /* Extension */,
@@ -316,8 +327,8 @@
 		5B7BDD4B2C92C0170065C944 /* KeyboardLayout */ = {
 			isa = PBXGroup;
 			children = (
-				5B7557092CA071F70038BA9C /* Swift6 */,
-				5B21DCFE2CE3234E007616E2 /* Swift5 */,
+				5B7557092CA071F70038BA9C /* >=iOS18 */,
+				5B21DCFE2CE3234E007616E2 /* <=iOS17 */,
 				5B2B40142C6CD2A4007CA762 /* NextKeyboardButton.swift */,
 			);
 			path = KeyboardLayout;
@@ -458,16 +469,17 @@
 				5B0D824F2C63D66600F84180 /* FeedbackSettingsView.swift in Sources */,
 				5BA419D82CB98532005E7C86 /* InitialSettingsView.swift in Sources */,
 				5BB0D2722C88481500CE7AF5 /* View+Extension.swift in Sources */,
-				5B13A2E72CA0779F004B7986 /* Swift6_PreviewNaratgeulButton.swift in Sources */,
+				5B13A2E72CA0779F004B7986 /* iOS18_PreviewNaratgeulButton.swift in Sources */,
 				5B18F5172C97DC7C000548D4 /* PreviewNaratgeulButton.swift in Sources */,
-				5BB0D2642C86FF3B00CE7AF5 /* HeightSettingsView.swift in Sources */,
+				5BB257952CEDA709005C3F10 /* OneHandWidthSettingsView.swift in Sources */,
+				5BB0D2642C86FF3B00CE7AF5 /* KeyboardHeightSettingsView.swift in Sources */,
 				5B18F5192C97DCE3000548D4 /* PreviewHangeulView.swift in Sources */,
 				5B7BDD472C91E8860065C944 /* InfoView.swift in Sources */,
 				5B7BDD492C9204290065C944 /* SpecificLanguageTextField.swift in Sources */,
 				5B18F5142C97DC1D000548D4 /* PreviewNaratgeulState.swift in Sources */,
 				5B9472332C8AD76000B8B154 /* Feedback.swift in Sources */,
 				5BB0D26D2C883B8700CE7AF5 /* InputSettingsView.swift in Sources */,
-				5B13A2ED2CA08083004B7986 /* Swift6_PreviewHangeulView.swift in Sources */,
+				5B13A2ED2CA08083004B7986 /* iOS18_PreviewHangeulView.swift in Sources */,
 				5BDCDED72C67458600035B01 /* KeyboardTestView.swift in Sources */,
 				5B13A2EF2CA0F24B004B7986 /* AppearanceSettingsView.swift in Sources */,
 				5B7B3F5C2C569B7800F7C093 /* ContentView.swift in Sources */,
@@ -493,21 +505,21 @@
 				5B7BDD442C91E3820065C944 /* DEP_SYKeyboardDelegate.swift in Sources */,
 				5B7BDD452C91E3850065C944 /* DEP_HangeulInputMethod.swift in Sources */,
 				5B7B3F6E2C569B8200F7C093 /* NaratgeulViewController.swift in Sources */,
-				5B0F7FDA2CA69CEE00EE7380 /* Swift6_WebSearchSymbolView.swift in Sources */,
-				5B7557082CA0717B0038BA9C /* Swift6_HangeulView.swift in Sources */,
+				5B0F7FDA2CA69CEE00EE7380 /* iOS18_WebSearchSymbolView.swift in Sources */,
+				5B7557082CA0717B0038BA9C /* iOS18_HangeulView.swift in Sources */,
 				5B6B1B372CD210CD00636AC4 /* OneHandSelectOverlayView.swift in Sources */,
 				5B0D82432C63C16F00F84180 /* Feedback.swift in Sources */,
 				5B2B40152C6CD2A4007CA762 /* NextKeyboardButton.swift in Sources */,
-				5B0F7FD62CA69CCA00EE7380 /* Swift6_URLSymbolView.swift in Sources */,
+				5B0F7FD62CA69CCA00EE7380 /* iOS18_URLSymbolView.swift in Sources */,
 				5B0D823D2C5F355900F84180 /* HangeulAutomata.swift in Sources */,
 				5B78859A2CDF3473007A801A /* InputTypeSelectOverlayView.swift in Sources */,
-				5B75570C2CA072280038BA9C /* Swift6_NumberView.swift in Sources */,
-				5B0F7FDC2CA69D1100EE7380 /* Swift6_NumberPadView.swift in Sources */,
+				5B75570C2CA072280038BA9C /* iOS18_NumberView.swift in Sources */,
+				5B0F7FDC2CA69D1100EE7380 /* iOS18_NumberPadView.swift in Sources */,
 				5BACCE552C915423006DCFB7 /* NaratgeulDelegate.swift in Sources */,
-				5B7556FF2CA0077A0038BA9C /* Swift6_NaratgeulButton.swift in Sources */,
-				5B0F7FD82CA69CD900EE7380 /* Swift6_EmailSymbolView.swift in Sources */,
+				5B7556FF2CA0077A0038BA9C /* iOS18_NaratgeulButton.swift in Sources */,
+				5B0F7FD82CA69CD900EE7380 /* iOS18_EmailSymbolView.swift in Sources */,
 				5B2B40122C6CC1D1007CA762 /* NaratgeulState.swift in Sources */,
-				5B75570E2CA072320038BA9C /* Swift6_SymbolView.swift in Sources */,
+				5B75570E2CA072320038BA9C /* iOS18_SymbolView.swift in Sources */,
 				5B0D82362C5962A500F84180 /* NaratgeulIOManager.swift in Sources */,
 				5B7556EB2C9DD3B00038BA9C /* GlobalValues.swift in Sources */,
 				5B2B40072C6CAB2F007CA762 /* NaratgeulView.swift in Sources */,

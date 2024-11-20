@@ -19,7 +19,7 @@ struct PreviewNaratgeulButton: View {
     @AppStorage("longPressSpeed", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var longPressSpeed = GlobalValues.defaultLongPressSpeed
     @AppStorage("cursorActiveWidth", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var cursorActiveWidth = GlobalValues.defaultCursorActiveWidth
     @AppStorage("cursorMoveWidth", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var cursorMoveWidth = GlobalValues.defaultCursorMoveWidth
-    @AppStorage("needsInputModeSwitchKey", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var needsInputModeSwitchKey = false
+    @AppStorage("needsInputModeSwitchKey", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var needsInputModeSwitchKey = true
     @AppStorage("isNumberKeyboardTypeEnabled", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var isNumberKeyboardTypeEnabled = true
     
     @State private var nowGesture: Gestures = .released
@@ -111,7 +111,7 @@ struct PreviewNaratgeulButton: View {
     }
     
     private func longPressGestureOnChanged() {
-        if state.swift6_nowPressedButton != nil {  // 이미 다른 버튼이 눌려있는 상태
+        if state.ios18_nowPressedButton != nil {  // 이미 다른 버튼이 눌려있는 상태
             switch state.nowPressedButton?.nowGesture {
             case .pressing:
                 state.nowPressedButton?.onReleased()

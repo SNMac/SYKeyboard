@@ -14,76 +14,73 @@ struct NaratgeulView: View {
     @AppStorage("currentOneHandType", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var currentOneHandType = 1
     
     var body: some View {
-        ZStack(alignment: state.currentInputType == .symbol ? .leading : .trailing) {
-            HStack(spacing: 0) {
-                if state.currentKeyboardType != .numberPad && state.currentKeyboardType != .asciiCapableNumberPad
-                    && isOneHandTypeEnabled && state.currentOneHandType == .right {
-                    ChevronButton(isLeftHandMode: false)
-                }
-                ZStack(alignment: state.currentInputType == .symbol ? .leading : .trailing) {
-                    if #available(iOS 18, *) {
-                        switch state.currentInputType {
-                        case .hangeul:
-                            Swift6_HangeulView()
-                        case .symbol:
-                            if state.currentKeyboardType == .URL {
-                                Swift6_URLSymbolView()
-                            } else if state.currentKeyboardType == .emailAddress {
-                                Swift6_EmailSymbolView()
-                            } else if state.currentKeyboardType == .webSearch {
-                                Swift6_WebSearchSymbolView()
-                            } else {
-                                Swift6_SymbolView()
-                            }
-                        case .number:
-                            if state.currentKeyboardType == .numberPad {
-                                Swift6_NumberPadView()
-                            } else if state.currentKeyboardType == .asciiCapableNumberPad {
-                                Swift6_NumberPadView()
-                            } else {
-                                Swift6_NumberView()
-                            }
+        HStack(spacing: 0) {
+            if state.currentKeyboardType != .numberPad && state.currentKeyboardType != .asciiCapableNumberPad
+                && isOneHandTypeEnabled && state.currentOneHandType == .right {
+                ChevronButton(isLeftHandMode: false)
+            }
+            ZStack(alignment: state.currentInputType == .symbol ? .leading : .trailing) {
+                if #available(iOS 18, *) {
+                    switch state.currentInputType {
+                    case .hangeul:
+                        iOS18_HangeulView()
+                    case .symbol:
+                        if state.currentKeyboardType == .URL {
+                            iOS18_URLSymbolView()
+                        } else if state.currentKeyboardType == .emailAddress {
+                            iOS18_EmailSymbolView()
+                        } else if state.currentKeyboardType == .webSearch {
+                            iOS18_WebSearchSymbolView()
+                        } else {
+                            iOS18_SymbolView()
                         }
-                    } else {
-                        switch state.currentInputType {
-                        case .hangeul:
-                            HangeulView()
-                        case .symbol:
-                            if state.currentKeyboardType == .URL {
-                                URLSymbolView()
-                            } else if state.currentKeyboardType == .emailAddress {
-                                EmailSymbolView()
-                            } else if state.currentKeyboardType == .webSearch {
-                                WebSearchSymbolView()
-                            } else {
-                                SymbolView()
-                            }
-                        case .number:
-                            if state.currentKeyboardType == .numberPad {
-                                NumberPadView()
-                            } else if state.currentKeyboardType == .asciiCapableNumberPad {
-                                NumberPadView()
-                            } else {
-                                NumberView()
-                            }
+                    case .number:
+                        if state.currentKeyboardType == .numberPad {
+                            iOS18_NumberPadView()
+                        } else if state.currentKeyboardType == .asciiCapableNumberPad {
+                            iOS18_NumberPadView()
+                        } else {
+                            iOS18_NumberView()
                         }
                     }
-                    
-                    if state.isSelectingInputType {
-                        InputTypeSelectOverlayView()
-                            .offset(x: state.currentInputType == .symbol ? 5 : -5, y: state.keyboardHeight / 8)
+                } else {
+                    switch state.currentInputType {
+                    case .hangeul:
+                        HangeulView()
+                    case .symbol:
+                        if state.currentKeyboardType == .URL {
+                            URLSymbolView()
+                        } else if state.currentKeyboardType == .emailAddress {
+                            EmailSymbolView()
+                        } else if state.currentKeyboardType == .webSearch {
+                            WebSearchSymbolView()
+                        } else {
+                            SymbolView()
+                        }
+                    case .number:
+                        if state.currentKeyboardType == .numberPad {
+                            NumberPadView()
+                        } else if state.currentKeyboardType == .asciiCapableNumberPad {
+                            NumberPadView()
+                        } else {
+                            NumberView()
+                        }
                     }
                 }
                 
-                if state.currentKeyboardType != .numberPad && state.currentKeyboardType != .asciiCapableNumberPad
-                    && isOneHandTypeEnabled && state.currentOneHandType == .left {
-                    ChevronButton(isLeftHandMode: true)
+                if state.isSelectingInputType {
+                    InputTypeSelectOverlayView()
+                        .offset(x: state.currentInputType == .symbol ? 5 : -5, y: state.keyboardHeight / 8)
+                }
+                
+                if state.isSelectingOneHandType {
+                    OneHandSelectOverlayView()
+                        .offset(x: state.currentInputType == .symbol ? 5 : -5, y: state.keyboardHeight / 8)
                 }
             }
-            
-            if state.isSelectingOneHandType {
-                OneHandSelectOverlayView()
-                    .offset(x: state.currentInputType == .symbol ? 5 : -5, y: state.keyboardHeight / 8)
+            if state.currentKeyboardType != .numberPad && state.currentKeyboardType != .asciiCapableNumberPad
+                && isOneHandTypeEnabled && state.currentOneHandType == .left {
+                ChevronButton(isLeftHandMode: true)
             }
         }.onAppear {
             if isOneHandTypeEnabled {

@@ -7,16 +7,14 @@
 
 import SwiftUI
 
-struct HeightSettingsView: View {
+struct KeyboardHeightSettingsView: View {
     @Environment(\.dismiss) private var dismiss
-    @EnvironmentObject var state: PreviewNaratgeulState
     @AppStorage("keyboardHeight", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var keyboardHeight = GlobalValues.defaultKeyboardHeight
-    @AppStorage("isNumberKeyboardTypeEnabled", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var isNumberKeyboardTypeEnabled = true
-    @State var tempKeyboardHeight: Double = GlobalValues.defaultKeyboardHeight
+    @State private var tempKeyboardHeight: Double = GlobalValues.defaultKeyboardHeight
     
-    private var heightSettings: some View {
+    private var keyboardHeightSettings: some View {
         VStack {
-            Text("\(Int(tempKeyboardHeight) - 140)")
+            Text("\(Int(tempKeyboardHeight) - (Int(GlobalValues.defaultKeyboardHeight) - 100))")
                 .padding(EdgeInsets(top: 10, leading: 0, bottom: 0, trailing: 0))
             Slider(value: $tempKeyboardHeight, in: 190...290, step: 1)
                 .padding(EdgeInsets(top: 0, leading: 30, bottom: 0, trailing: 30))
@@ -54,13 +52,13 @@ struct HeightSettingsView: View {
     
     var body: some View {
         NavigationStack {
-            heightSettings
+            keyboardHeightSettings
             
             ZStack {
                 if #available(iOS 18, *) {
-                    Swift6_PreviewHangeulView(tempKeyboardHeight: $tempKeyboardHeight)
+                    iOS18_PreviewHangeulView(keyboardHeight: $tempKeyboardHeight)
                 } else {
-                    PreviewHangeulView(tempKeyboardHeight: $tempKeyboardHeight)
+                    PreviewHangeulView(keyboardHeight: $tempKeyboardHeight)
                 }
             }
         }.onAppear {
@@ -70,6 +68,6 @@ struct HeightSettingsView: View {
 }
 
 #Preview {
-    HeightSettingsView()
+    KeyboardHeightSettingsView()
         .environmentObject(PreviewNaratgeulState())
 }

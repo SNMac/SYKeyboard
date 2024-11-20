@@ -8,16 +8,16 @@
 import Foundation
 import SwiftUI
 
-enum OneHandType: Int {
-    case left
-    case center
-    case right
-}
-
 enum InputType {
     case hangeul
     case symbol
     case number
+}
+
+enum OneHandType: Int {
+    case left
+    case center
+    case right
 }
 
 enum KeyboardType {
@@ -62,10 +62,11 @@ final class NaratgeulState: ObservableObject {
     @Published var isHoegSsangAvailable: Bool = false
     
     var nowPressedButton: NaratgeulButton?
-    var swift6_nowPressedButton: Swift6_NaratgeulButton?
+    var ios18_nowPressedButton: iOS18_NaratgeulButton?
     
     weak var delegate: NaratgeulDelegate?
     var keyboardHeight: CGFloat
+    var oneHandWidth: CGFloat
     var longPressTime: Double
     var repeatTimerCycle: Double
     var needsInputModeSwitchKey: Bool
@@ -77,6 +78,7 @@ final class NaratgeulState: ObservableObject {
     init(
         delegate: NaratgeulDelegate,
         keyboardHeight: CGFloat,
+        oneHandWidth: CGFloat,
         longPressTime: Double,
         repeatTimerCycle: Double,
         needsInputModeSwitchKey: Bool,
@@ -84,6 +86,7 @@ final class NaratgeulState: ObservableObject {
     ) {
         self.delegate = delegate
         self.keyboardHeight = keyboardHeight
+        self.oneHandWidth = oneHandWidth
         self.longPressTime = longPressTime
         self.repeatTimerCycle = repeatTimerCycle
         self.needsInputModeSwitchKey = needsInputModeSwitchKey
