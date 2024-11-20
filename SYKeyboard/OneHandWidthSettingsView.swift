@@ -9,6 +9,7 @@ import SwiftUI
 
 struct OneHandWidthSettingsView: View {
     @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject var state: PreviewNaratgeulState
     @AppStorage("keyboardHeight", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var keyboardHeight = GlobalValues.defaultKeyboardHeight
     @AppStorage("oneHandWidth", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var oneHandWidth = GlobalValues.defaultOneHandWidth
     @AppStorage("needsInputModeSwitchKey", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var needsInputModeSwitchKey = true
@@ -25,21 +26,26 @@ struct OneHandWidthSettingsView: View {
             Spacer()
             
             HStack {
+                Spacer()
+                
                 Button {
-                    
+                    state.currentOneHandType = .left
                 } label: {
                     Image(systemName: "keyboard.onehanded.left")
                         .font(.system(size: fontSize))
                 }.buttonStyle(.bordered)
                 
+                Spacer()
+                
                 Button {
-                    
+                    state.currentOneHandType = .right
                 } label: {
                     Image(systemName: "keyboard.onehanded.right")
                         .font(.system(size: fontSize))
                 }.buttonStyle(.bordered)
+                
+                Spacer()
             }
-            Spacer()
         }
         .navigationTitle("한손 키보드 너비")
         .navigationBarTitleDisplayMode(.inline)
@@ -75,17 +81,23 @@ struct OneHandWidthSettingsView: View {
         NavigationStack {
             oneHandWidthSettings
             
-            ZStack {
-                if #available(iOS 18, *) {
-                    iOS18_PreviewHangeulView(keyboardHeight: $keyboardHeight)
-                } else {
-                    PreviewHangeulView(keyboardHeight: $keyboardHeight)
+            HStack(spacing: 0) {
+                if state.currentOneHandType == .right {
+                    PreviewChevronButton(keyboardHeight: $keyboardHeight, isLeftHandMode: false)
                 }
-            }
+                if #available(iOS 18, *) {
+                    iOS18_PreviewHangeulView(keyboardHeight: $keyboardHeight, oneHandWidth: $tempOneHandWidth)
+                } else {
+                    PreviewHangeulView(keyboardHeight: $keyboardHeight, oneHandWidth: $tempOneHandWidth)
+                }
+                if state.currentOneHandType == .left {
+                    PreviewChevronButton(keyboardHeight: $keyboardHeight, isLeftHandMode: true)
+                }
+            }.frame(height: needsInputModeSwitchKey ? keyboardHeight : keyboardHeight + 40)
         }.onAppear {
             tempOneHandWidth = oneHandWidth
+            state.currentOneHandType = .right
         }
-        
     }
 }
 

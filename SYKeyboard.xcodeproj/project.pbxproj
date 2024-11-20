@@ -61,6 +61,7 @@
 		5BB0D26D2C883B8700CE7AF5 /* InputSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BB0D26C2C883B8700CE7AF5 /* InputSettingsView.swift */; };
 		5BB0D2722C88481500CE7AF5 /* View+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BB0D2712C88481500CE7AF5 /* View+Extension.swift */; };
 		5BB257952CEDA709005C3F10 /* OneHandWidthSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BB257942CEDA709005C3F10 /* OneHandWidthSettingsView.swift */; };
+		5BB257972CEDBABB005C3F10 /* PreviewChevronButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BB257962CEDBABB005C3F10 /* PreviewChevronButton.swift */; };
 		5BDCDED72C67458600035B01 /* KeyboardTestView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BDCDED62C67458600035B01 /* KeyboardTestView.swift */; };
 /* End PBXBuildFile section */
 
@@ -147,6 +148,7 @@
 		5BB0D26C2C883B8700CE7AF5 /* InputSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputSettingsView.swift; sourceTree = "<group>"; };
 		5BB0D2712C88481500CE7AF5 /* View+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "View+Extension.swift"; sourceTree = "<group>"; };
 		5BB257942CEDA709005C3F10 /* OneHandWidthSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OneHandWidthSettingsView.swift; sourceTree = "<group>"; };
+		5BB257962CEDBABB005C3F10 /* PreviewChevronButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewChevronButton.swift; sourceTree = "<group>"; };
 		5BDCDED62C67458600035B01 /* KeyboardTestView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardTestView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -178,6 +180,7 @@
 				5B18F5132C97DC1D000548D4 /* PreviewNaratgeulState.swift */,
 				5B75570F2CA074020038BA9C /* >=iOS18 */,
 				5B6253D22CEC4A7F000689CD /* <=iOS17 */,
+				5BB257962CEDBABB005C3F10 /* PreviewChevronButton.swift */,
 			);
 			path = PreviewKeyboard;
 			sourceTree = "<group>";
@@ -474,6 +477,7 @@
 				5BB257952CEDA709005C3F10 /* OneHandWidthSettingsView.swift in Sources */,
 				5BB0D2642C86FF3B00CE7AF5 /* KeyboardHeightSettingsView.swift in Sources */,
 				5B18F5192C97DCE3000548D4 /* PreviewHangeulView.swift in Sources */,
+				5BB257972CEDBABB005C3F10 /* PreviewChevronButton.swift in Sources */,
 				5B7BDD472C91E8860065C944 /* InfoView.swift in Sources */,
 				5B7BDD492C9204290065C944 /* SpecificLanguageTextField.swift in Sources */,
 				5B18F5142C97DC1D000548D4 /* PreviewNaratgeulState.swift in Sources */,

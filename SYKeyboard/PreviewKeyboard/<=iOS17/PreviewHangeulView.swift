@@ -14,6 +14,7 @@ struct PreviewHangeulView: View {
     @AppStorage("repeatTimerSpeed", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var repeatTimerSpeed = GlobalValues.defaultRepeatTimerSpeed
     @AppStorage("needsInputModeSwitchKey", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var needsInputModeSwitchKey = true
     @Binding var keyboardHeight: Double
+    @Binding var oneHandWidth: Double
     @State var timer: AnyCancellable?
     
     let vPadding: CGFloat = 4
@@ -384,8 +385,8 @@ struct PreviewHangeulView: View {
                 }
             }
         }
-        .frame(height: keyboardHeight)
+        .frame(width: state.currentOneHandType == .center ? nil : oneHandWidth, height: keyboardHeight)
         .background(Color("KeyboardBackground"))
-        .padding(.bottom, needsInputModeSwitchKey ? 0 : 45)
+        .padding(.bottom, needsInputModeSwitchKey ? 0 : 40)
     }
 }
