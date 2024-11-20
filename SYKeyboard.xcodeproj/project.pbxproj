@@ -744,6 +744,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 5BACCE442C9096DE006DCFB7 /* Config.xcconfig */;
 			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
 				CODE_SIGN_ENTITLEMENTS = Naratgeul/Naratgeul.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = "$(BUILD_NUMBER)";
@@ -776,6 +777,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 5BACCE442C9096DE006DCFB7 /* Config.xcconfig */;
 			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
 				CODE_SIGN_ENTITLEMENTS = Naratgeul/Naratgeul.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = "$(BUILD_NUMBER)";

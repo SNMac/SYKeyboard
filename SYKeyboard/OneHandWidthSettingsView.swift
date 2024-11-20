@@ -15,7 +15,7 @@ struct OneHandWidthSettingsView: View {
     @AppStorage("needsInputModeSwitchKey", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var needsInputModeSwitchKey = true
     @State private var tempOneHandWidth: Double = GlobalValues.defaultOneHandWidth
     
-    let fontSize: CGFloat = 36
+    let fontSize: CGFloat = 40
     
     private var oneHandWidthSettings: some View {
         VStack {

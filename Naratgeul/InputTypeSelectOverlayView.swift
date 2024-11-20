@@ -9,13 +9,14 @@ import SwiftUI
 
 struct InputTypeSelectOverlayView: View {
     @EnvironmentObject var state: NaratgeulState
+    @AppStorage("screenWidth", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var screenWidth = 1.0
     
     let frameWidth: CGFloat = 180
-    let interItemSpacing: CGFloat = 10
+    let interItemSpacing: CGFloat = 8
     let fontSize: Double = 20
     
     var body: some View {
-        let overlayWidth: CGFloat = state.currentOneHandType == .center ? frameWidth : frameWidth / 5 * 4
+        let overlayWidth: CGFloat = state.currentOneHandType == .center ? frameWidth : frameWidth * (state.oneHandWidth / screenWidth)
         HStack(spacing: interItemSpacing) {
             if state.currentInputType == .hangeul {
                 Text("123")

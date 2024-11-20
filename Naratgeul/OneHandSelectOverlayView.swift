@@ -10,6 +10,7 @@ import SwiftUI
 struct OneHandSelectOverlayView: View {
     @EnvironmentObject var state: NaratgeulState
     @AppStorage("currentOneHandType", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var currentOneHandType = 1
+    @AppStorage("screenWidth", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var screenWidth = 1.0
     
     let frameWidth: CGFloat = 230
     let interItemSpacing: CGFloat = 8
@@ -67,10 +68,11 @@ struct OneHandSelectOverlayView: View {
     }
     
     var body: some View {
+        let overlayWidth: CGFloat = state.currentOneHandType == .center ? frameWidth : frameWidth * (state.oneHandWidth / screenWidth)
         HStack(spacing: interItemSpacing) {
             Image(systemName: "keyboard.onehanded.left")
                 .font(.system(size: fontSize))
-                .frame(width: (frameWidth - interItemSpacing * 4) / 3, height: state.keyboardHeight / 4 - 20)
+                .frame(width: (overlayWidth - interItemSpacing * 4) / 3, height: state.keyboardHeight / 4 - 20)
                 .foregroundStyle(state.selectedOneHandType == .left ? Color.white : Color(uiColor: .label))
                 .background(RoundedRectangle(cornerRadius: 10).fill(state.selectedOneHandType == .left ? Color.blue : Color.clear))
                 .overlay {
@@ -84,7 +86,7 @@ struct OneHandSelectOverlayView: View {
             
             Image(systemName: "keyboard")
                 .font(.system(size: fontSize))
-                .frame(width: (frameWidth - interItemSpacing * 4) / 3, height: state.keyboardHeight / 4 - 20)
+                .frame(width: (overlayWidth - interItemSpacing * 4) / 3, height: state.keyboardHeight / 4 - 20)
                 .foregroundStyle(state.selectedOneHandType == .center ? Color.white : Color(uiColor: .label))
                 .background(RoundedRectangle(cornerRadius: 10).fill(state.selectedOneHandType == .center ? Color.blue : Color.clear))
                 .overlay {
@@ -98,7 +100,7 @@ struct OneHandSelectOverlayView: View {
             
             Image(systemName: "keyboard.onehanded.right")
                 .font(.system(size: fontSize))
-                .frame(width: (frameWidth - interItemSpacing * 4) / 3, height: state.keyboardHeight / 4 - 20)
+                .frame(width: (overlayWidth - interItemSpacing * 4) / 3, height: state.keyboardHeight / 4 - 20)
                 .foregroundStyle(state.selectedOneHandType == .right ? Color.white : Color(uiColor: .label))
                 .background(RoundedRectangle(cornerRadius: 10).fill(state.selectedOneHandType == .right ? Color.blue : Color.clear))
                 .overlay {
@@ -110,7 +112,7 @@ struct OneHandSelectOverlayView: View {
                     }
                 }
         }
-        .frame(width: frameWidth, height: state.keyboardHeight / 4)
+        .frame(width: overlayWidth, height: state.keyboardHeight / 4)
         .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 10))
         .gesture(
             DragGesture(minimumDistance: 0, coordinateSpace: .global)

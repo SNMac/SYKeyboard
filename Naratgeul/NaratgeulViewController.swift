@@ -18,6 +18,7 @@ class NaratgeulViewController: UIInputViewController {
     private var userLexicon: UILexicon?
     private var textReplacementHistory: [String] = []
     
+    
     // MARK: - LifeCycle
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -33,10 +34,14 @@ class NaratgeulViewController: UIInputViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         
+        let screenWidth = view.window?.windowScene?.screen.bounds.width
+        defaults?.set(screenWidth, forKey: "screenWidth")
+        
         updateCursorPos()
         updateHoegSsangAvailiableToOptions()
         Feedback.shared.prepareHaptic()
     }
+    
     
     // MARK: - Method
     private func setupDefaults() {
@@ -170,7 +175,7 @@ class NaratgeulViewController: UIInputViewController {
         
         self.state = options
         
-        defaults?.setValue(needsInputModeSwitchKey, forKey: "needsInputModeSwitchKey")
+        defaults?.set(needsInputModeSwitchKey, forKey: "needsInputModeSwitchKey")
         
         view.addSubview(SYKeyboard.view)
         SYKeyboard.view.translatesAutoresizingMaskIntoConstraints = false
@@ -293,6 +298,7 @@ class NaratgeulViewController: UIInputViewController {
         state?.returnButtonType = returnButtonType
     }
 }
+
 
 // MARK: - Extension
 extension NaratgeulViewController {
