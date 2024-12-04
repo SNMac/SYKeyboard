@@ -372,7 +372,6 @@ struct iOS18_NaratgeulButton: View {
         // 버튼 드래그 할 때 호출
             .onChanged { value in
                 print("iOS18_NaratgeulButton) DragGesture() onChanged")
-                print(value.velocity.width)
                 dragGestureOnChange(value: value)
             }
         
