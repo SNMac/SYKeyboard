@@ -67,11 +67,11 @@ struct iOS18_PreviewNaratgeulButton: View {
             // 일정 거리 초과 드래그 -> 커서를 한칸씩 드래그한 방향으로 이동(햅틱 피드백)
             let dragDiff = value.translation.width - dragStartWidth
             if dragDiff < -cursorMoveWidth {
-                print("Swift6_PreviewNaratgeulButton) Drag to left")
+                print("iOS18_PreviewNaratgeulButton) Drag to left")
                 dragStartWidth = value.translation.width
                 Feedback.shared.playHapticByForce(style: .light)
             } else if dragDiff > cursorMoveWidth {
-                print("Swift6_PreviewNaratgeulButton) Drag to right")
+                print("iOS18_PreviewNaratgeulButton) Drag to right")
                 dragStartWidth = value.translation.width
                 Feedback.shared.playHapticByForce(style: .light)
             }
@@ -124,20 +124,20 @@ struct iOS18_PreviewNaratgeulButton: View {
     }
     
     
-    // MARK: - Swift6_PreviewNaratgeulButton
+    // MARK: - iOS18_PreviewNaratgeulButton
     var body: some View {
         let longPressTime = 1.0 - longPressSpeed
         
         let dragGesture = DragGesture(minimumDistance: cursorActiveWidth)
         // 버튼 드래그 할 때 호출
             .onChanged { value in
-                print("Swift6_PreviewNaratgeulButton) DragGesture() onChanged")
+                print("iOS18_PreviewNaratgeulButton) DragGesture() onChanged")
                 dragGestureOnChange(value: value)
             }
         
         // 드래그 뗐을 때
             .onEnded({ _ in
-                print("Swift6_PreviewNaratgeulButton) DragGesture() onEnded")
+                print("iOS18_PreviewNaratgeulButton) DragGesture() onEnded")
                 dragGestureOnEnded()
             })
         
@@ -154,16 +154,16 @@ struct iOS18_PreviewNaratgeulButton: View {
                     .shadow(color: Color("KeyboardButtonShadow"), radius: 0, x: 0, y: 1)
                     .onLongPressGesture(minimumDuration: longPressTime, maximumDistance: cursorActiveWidth) {
                         // 버튼 길게 누르면(누른 상태에서 일정시간이 지나면) 호출
-                        print("Swift6_PreviewNaratgeulButton) onLongPressGesture()->perform: longPressing")
+                        print("iOS18_PreviewNaratgeulButton) onLongPressGesture()->perform: longPressing")
                         onLongPressGesturePerform()
                     } onPressingChanged: { isPressing in
                         if isPressing {
                             // 버튼 눌렀을 때 호출(버튼 누르면 무조건 첫번째로 호출)
-                            print("Swift6_PreviewNaratgeulButton) onLongPressGesture()->onPressingChanged: pressing")
+                            print("iOS18_PreviewNaratgeulButton) onLongPressGesture()->onPressingChanged: pressing")
                             onLongPressGestureOnPressingTrue()
                         } else {
                             // 버튼 뗐을 때
-                            print("Swift6_PreviewNaratgeulButton) onLongPressGesture()->onPressingChanged: released")
+                            print("iOS18_PreviewNaratgeulButton) onLongPressGesture()->onPressingChanged: released")
                             onLongPressGestureOnPressingFalse()
                         }
                     }
@@ -180,16 +180,16 @@ struct iOS18_PreviewNaratgeulButton: View {
                     .shadow(color: Color("KeyboardButtonShadow"), radius: 0, x: 0, y: 1)
                     .onLongPressGesture(minimumDuration: longPressTime, maximumDistance: cursorActiveWidth) {
                         // 버튼 길게 누르면(누른 상태에서 일정시간이 지나면) 호출
-                        print("Swift6_PreviewNaratgeulButton) onLongPressGesture()->perform: longPressing")
+                        print("iOS18_PreviewNaratgeulButton) onLongPressGesture()->perform: longPressing")
                         onLongPressGesturePerform()
                     } onPressingChanged: { isPressing in
                         if isPressing {
                             // 버튼 눌렀을 때 호출(버튼 누르면 무조건 첫번째로 호출)
-                            print("Swift6_PreviewNaratgeulButton) onLongPressGesture()->onPressingChanged: pressing")
+                            print("iOS18_PreviewNaratgeulButton) onLongPressGesture()->onPressingChanged: pressing")
                             onLongPressGestureOnPressingTrue()
                         } else {
                             // 버튼 뗐을 때
-                            print("Swift6_PreviewNaratgeulButton) onLongPressGesture()->onPressingChanged: released")
+                            print("iOS18_PreviewNaratgeulButton) onLongPressGesture()->onPressingChanged: released")
                             onLongPressGestureOnPressingFalse()
                         }
                     }
@@ -206,16 +206,16 @@ struct iOS18_PreviewNaratgeulButton: View {
                     .shadow(color: Color("KeyboardButtonShadow"), radius: 0, x: 0, y: 1)
                     .onLongPressGesture(minimumDuration: longPressTime, maximumDistance: cursorActiveWidth) {
                         // 버튼 길게 누르면(누른 상태에서 일정시간이 지나면) 호출
-                        print("Swift6_PreviewNaratgeulButton) onLongPressGesture()->perform: longPressing")
+                        print("iOS18_PreviewNaratgeulButton) onLongPressGesture()->perform: longPressing")
                         onLongPressGesturePerform()
                     } onPressingChanged: { isPressing in
                         if isPressing {
                             // 버튼 눌렀을 때 호출(버튼 누르면 무조건 첫번째로 호출)
-                            print("Swift6_PreviewNaratgeulButton) onLongPressGesture()->onPressingChanged: pressing")
+                            print("iOS18_PreviewNaratgeulButton) onLongPressGesture()->onPressingChanged: pressing")
                             onLongPressGestureOnPressingTrue()
                         } else {
                             // 버튼 뗐을 때
-                            print("Swift6_PreviewNaratgeulButton) onLongPressGesture()->onPressingChanged: released")
+                            print("iOS18_PreviewNaratgeulButton) onLongPressGesture()->onPressingChanged: released")
                             onLongPressGestureOnPressingFalse()
                         }
                     }
@@ -230,16 +230,16 @@ struct iOS18_PreviewNaratgeulButton: View {
                     .shadow(color: Color("KeyboardButtonShadow"), radius: 0, x: 0, y: 1)
                     .onLongPressGesture(minimumDuration: longPressTime, maximumDistance: cursorActiveWidth) {
                         // 버튼 길게 누르면(누른 상태에서 일정시간이 지나면) 호출
-                        print("Swift6_PreviewNaratgeulButton) onLongPressGesture()->perform: longPressing")
+                        print("iOS18_PreviewNaratgeulButton) onLongPressGesture()->perform: longPressing")
                         onLongPressGesturePerform()
                     } onPressingChanged: { isPressing in
                         if isPressing {
                             // 버튼 눌렀을 때 호출(버튼 누르면 무조건 첫번째로 호출)
-                            print("Swift6_PreviewNaratgeulButton) onLongPressGesture()->onPressingChanged: pressing")
+                            print("iOS18_PreviewNaratgeulButton) onLongPressGesture()->onPressingChanged: pressing")
                             onLongPressGestureOnPressingTrue()
                         } else {
                             // 버튼 뗐을 때
-                            print("Swift6_PreviewNaratgeulButton) onLongPressGesture()->onPressingChanged: released")
+                            print("iOS18_PreviewNaratgeulButton) onLongPressGesture()->onPressingChanged: released")
                             onLongPressGestureOnPressingFalse()
                         }
                     }
@@ -260,16 +260,16 @@ struct iOS18_PreviewNaratgeulButton: View {
                     .shadow(color: Color("KeyboardButtonShadow"), radius: 0, x: 0, y: 1)
                     .onLongPressGesture(minimumDuration: longPressTime, maximumDistance: cursorActiveWidth) {
                         // 버튼 길게 누르면(누른 상태에서 일정시간이 지나면) 호출
-                        print("Swift6_PreviewNaratgeulButton) onLongPressGesture()->perform: longPressing")
+                        print("iOS18_PreviewNaratgeulButton) onLongPressGesture()->perform: longPressing")
                         onLongPressGesturePerform()
                     } onPressingChanged: { isPressing in
                         if isPressing {
                             // 버튼 눌렀을 때 호출(버튼 누르면 무조건 첫번째로 호출)
-                            print("Swift6_PreviewNaratgeulButton) onLongPressGesture()->onPressingChanged: pressing")
+                            print("iOS18_PreviewNaratgeulButton) onLongPressGesture()->onPressingChanged: pressing")
                             onLongPressGestureOnPressingTrue()
                         } else {
                             // 버튼 뗐을 때
-                            print("Swift6_PreviewNaratgeulButton) onLongPressGesture()->onPressingChanged: released")
+                            print("iOS18_PreviewNaratgeulButton) onLongPressGesture()->onPressingChanged: released")
                             onLongPressGestureOnPressingFalse()
                         }
                     }
@@ -284,16 +284,16 @@ struct iOS18_PreviewNaratgeulButton: View {
                     .shadow(color: Color("KeyboardButtonShadow"), radius: 0, x: 0, y: 1)
                     .onLongPressGesture(minimumDuration: longPressTime, maximumDistance: cursorActiveWidth) {
                         // 버튼 길게 누르면(누른 상태에서 일정시간이 지나면) 호출
-                        print("Swift6_PreviewNaratgeulButton) onLongPressGesture()->perform: longPressing")
+                        print("iOS18_PreviewNaratgeulButton) onLongPressGesture()->perform: longPressing")
                         onLongPressGesturePerform()
                     } onPressingChanged: { isPressing in
                         if isPressing {
                             // 버튼 눌렀을 때 호출(버튼 누르면 무조건 첫번째로 호출)
-                            print("Swift6_PreviewNaratgeulButton) onLongPressGesture()->onPressingChanged: pressing")
+                            print("iOS18_PreviewNaratgeulButton) onLongPressGesture()->onPressingChanged: pressing")
                             onLongPressGestureOnPressingTrue()
                         } else {
                             // 버튼 뗐을 때
-                            print("Swift6_PreviewNaratgeulButton) onLongPressGesture()->onPressingChanged: released")
+                            print("iOS18_PreviewNaratgeulButton) onLongPressGesture()->onPressingChanged: released")
                             onLongPressGestureOnPressingFalse()
                         }
                     }

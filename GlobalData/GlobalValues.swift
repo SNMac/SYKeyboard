@@ -14,7 +14,7 @@ struct GlobalValues {
     static let defaultOneHandWidth: Double = 320.0
     static let defaultLongPressSpeed: Double = 0.5
     static let defaultRepeatTimerSpeed: Double = 0.05
-    static let defaultCursorActiveWidth: Double = 30.0
+    static let defaultCursorActiveWidth: Double = 50.0
     static let defaultCursorMoveWidth: Double = 5.0
     
     static func setupDefaults(_ defaults: UserDefaults?) {

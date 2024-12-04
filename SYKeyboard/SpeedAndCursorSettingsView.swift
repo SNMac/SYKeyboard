@@ -61,7 +61,7 @@ struct SpeedAndCursorSettingsView: View {
                 .frame(alignment: .leading)
             Spacer()
             Text("\(cursorActiveWidth, specifier: "%.1f")")
-            Slider(value: $cursorActiveWidth, in: 10.0...50.0, step: 2.0) { _ in
+            Slider(value: $cursorActiveWidth, in: 40.0...60.0, step: 1.0) { _ in
                 hideKeyboard()
             }.frame(width: 140)
             

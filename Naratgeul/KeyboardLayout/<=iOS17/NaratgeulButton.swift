@@ -53,8 +53,8 @@ struct NaratgeulButton: View {
         state.nowPressedButton = nil
         if state.isSelectingInputType {
             if let selectedInputType = state.selectedInputType {
-                state.selectedInputType = nil
                 state.currentInputType = selectedInputType
+                state.selectedInputType = nil
             }
             state.isSelectingInputType = false
         }
