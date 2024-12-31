@@ -42,6 +42,7 @@ struct SpecificLanguageTextFieldView: UIViewRepresentable {
         let textField = SpecificLanguageTextField(frame: .zero)
         textField.placeholder = self.placeHolder
         textField.text = self.text
+//        textField.keyboardType = .numbersAndPunctuation  // 테스트용
         textField.language = self.language
         return textField
     }
