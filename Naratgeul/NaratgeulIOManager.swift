@@ -8,6 +8,7 @@
 //
 
 import Foundation
+import OSLog
 
 final class NaratgeulIOManager {
     private let hangeulAutomata = HangeulAutomata()
@@ -98,7 +99,6 @@ extension NaratgeulIOManager: NaratgeulDelegate {
     }
 
     func flushBuffer() {
-        print("flushBuffer()")
         hangeulAutomata.buffer.removeAll()
         hangeulAutomata.bufferTypingCount.removeAll()
         hangeulAutomata.inpStack.removeAll()

@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import OSLog
 
 enum Gestures {
     case released
@@ -15,6 +16,8 @@ enum Gestures {
 }
 
 struct PreviewNaratgeulButton: View {
+    let log = OSLog(subsystem: "github.com-SNMac.SYKeyboard", category: "Preview")
+    
     @EnvironmentObject var state: PreviewNaratgeulState
     @AppStorage("longPressSpeed", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var longPressSpeed = GlobalValues.defaultLongPressSpeed
     @AppStorage("cursorActiveWidth", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var cursorActiveWidth = GlobalValues.defaultCursorActiveWidth
@@ -75,11 +78,11 @@ struct PreviewNaratgeulButton: View {
             // 일정 거리 초과 드래그 -> 커서를 한칸씩 드래그한 방향으로 이동(햅틱 피드백)
             let dragDiff = value.translation.width - dragStartWidth
             if dragDiff < -cursorMoveWidth {
-                print("PreviewNaratgeulButton) Drag to left")
+                os_log("PreviewNaratgeulButton) Drag to left", log: log, type: .debug)
                 dragStartWidth = value.translation.width
                 Feedback.shared.playHapticByForce(style: .light)
             } else if dragDiff > cursorMoveWidth {
-                print("PreviewNaratgeulButton) Drag to right")
+                os_log("PreviewNaratgeulButton) Drag to right", log: log, type: .debug)
                 dragStartWidth = value.translation.width
                 Feedback.shared.playHapticByForce(style: .light)
             }
@@ -202,20 +205,20 @@ struct PreviewNaratgeulButton: View {
             DragGesture(minimumDistance: cursorActiveWidth, coordinateSpace: .global)
             // 버튼 드래그 할 때 호출
                 .onChanged { value in
-                    print("PreviewNaratgeulButton) DragGesture() onChanged: dragging")
+                    os_log("PreviewNaratgeulButton) DragGesture() onChanged: dragging", log: log, type: .debug)
                     dragGestureOnChange(value: value)
                 }
             
             // 버튼 뗐을 때
                 .onEnded({ _ in
-                    print("PreviewNaratgeulButton) DragGesture() onEnded: dragging")
+                    os_log("PreviewNaratgeulButton) DragGesture() onEnded: dragging", log: log, type: .debug)
                     dragGestureOnEnded()
                 })
         )
         .gesture(
             DragGesture(minimumDistance: 0)
                 .onEnded({ _ in
-                    print("PreviewNaratgeulButton) DragGesture() onChanged: released")
+                    os_log("PreviewNaratgeulButton) DragGesture() onChanged: released", log: log, type: .debug)
                     dragGestureOnEnded()
                 })
         )
@@ -223,13 +226,13 @@ struct PreviewNaratgeulButton: View {
             LongPressGesture(minimumDuration: longPressTime, maximumDistance: cursorActiveWidth)
             // 버튼 눌렀을 때 호출(버튼 누르면 무조건 첫번째로 호출)
                 .onChanged({ _ in
-                    print("PreviewNaratgeulButton) LongPressGesture() onChanged: pressing")
+                    os_log("PreviewNaratgeulButton) LongPressGesture() onChanged: pressing", log: log, type: .debug)
                     longPressGestureOnChanged()
                 })
             
             // 버튼 길게 누르면(누른 상태에서 일정시간이 지나면) 호출
                 .onEnded({ _ in
-                    print("PreviewNaratgeulButton) LongPressGesture() onEnded: longPressing")
+                    os_log("PreviewNaratgeulButton) LongPressGesture() onEnded: longPressing", log: log, type: .debug)
                     longPressGestureOnEnded()
                 })
             
@@ -241,14 +244,14 @@ struct PreviewNaratgeulButton: View {
                         break
                     case .second(_, let dragValue):
                         if let _ = dragValue {
-                            print("PreviewNaratgeulButton) LongPressGesture()->DragGesture() onChanged: sequencedDragging")
+                            os_log("PreviewNaratgeulButton) LongPressGesture()->DragGesture() onChanged: sequencedDragging", log: log, type: .debug)
                         }
                     }
                 })
             
             // 버튼 길게 눌렀다가 뗐을 때 호출
                 .onEnded({ _ in
-                    print("PreviewNaratgeulButton) LongPressGesture()->DragGesture() onEnded: sequencedDragging released")
+                    os_log("PreviewNaratgeulButton) LongPressGesture()->DragGesture() onEnded: sequencedDragging released", log: log, type: .debug)
                     sequencedDragOnEnded()
                 })
         )

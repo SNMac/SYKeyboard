@@ -6,8 +6,11 @@
 //
 
 import SwiftUI
+import OSLog
 
 struct iOS18_NaratgeulButton: View {
+    let log = OSLog(subsystem: "github.com-SNMac.SYKeyboard", category: "NaratgeulButton")
+    
     @EnvironmentObject var state: NaratgeulState
     @AppStorage("cursorActiveWidth", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var cursorActiveWidth = GlobalValues.defaultCursorActiveWidth
     @AppStorage("cursorMoveWidth", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var cursorMoveWidth = GlobalValues.defaultCursorMoveWidth
@@ -41,21 +44,18 @@ struct iOS18_NaratgeulButton: View {
         nowGesture = .released
         state.ios18_nowPressedButton = nil
         
-        if state.isSelectingInputType {
-            if let selectedInputType = state.selectedInputType {
-                state.currentInputType = selectedInputType
-                state.selectedInputType = nil
-            }
-            state.isSelectingInputType = false
+        if let selectedInputType = state.selectedInputType {
+            state.currentInputType = selectedInputType
+            state.selectedInputType = nil
         }
-        if state.isSelectingOneHandType {
-            if let selectedOneHandType = state.selectedOneHandType {
-                state.currentOneHandType = selectedOneHandType
-                currentOneHandType = selectedOneHandType.rawValue
-                state.selectedOneHandType = nil
-            }
-            state.isSelectingOneHandType = false
+        state.isSelectingInputType = false
+        
+        if let selectedOneHandType = state.selectedOneHandType {
+            state.currentOneHandType = selectedOneHandType
+            currentOneHandType = selectedOneHandType.rawValue
+            state.selectedOneHandType = nil
         }
+        state.isSelectingOneHandType = false
     }
     
     private func onLongPressReleased() {  // 버튼 길게 눌렀다가 뗐을 때 호출
@@ -84,7 +84,7 @@ struct iOS18_NaratgeulButton: View {
             // 일정 거리 초과 드래그 -> 커서를 한칸씩 드래그한 방향으로 이동
             let dragDiff = value.translation.width - dragStartWidth
             if dragDiff < -cursorMoveWidth {
-                print("iOS18_NaratgeulButton) Drag to left")
+                os_log("iOS18_NaratgeulButton) Drag to left", log: log, type: .debug)
                 dragStartWidth = value.translation.width
                 if let isMoved = state.delegate?.dragToLeft() {
                     if isMoved {
@@ -92,7 +92,7 @@ struct iOS18_NaratgeulButton: View {
                     }
                 }
             } else if dragDiff > cursorMoveWidth {
-                print("iOS18_NaratgeulButton) Drag to right")
+                os_log("iOS18_NaratgeulButton) Drag to right", log: log, type: .debug)
                 dragStartWidth = value.translation.width
                 if let isMoved = state.delegate?.dragToRight() {
                     if isMoved {
@@ -371,20 +371,20 @@ struct iOS18_NaratgeulButton: View {
         let dragGesture = DragGesture(minimumDistance: cursorActiveWidth, coordinateSpace: .global)
         // 버튼 드래그 할 때 호출
             .onChanged { value in
-                print("iOS18_NaratgeulButton) DragGesture() onChanged")
+                os_log("iOS18_NaratgeulButton) DragGesture() onChanged", log: log, type: .debug)
                 dragGestureOnChange(value: value)
             }
         
         // 드래그 뗐을 때
             .onEnded({ _ in
-                print("iOS18_NaratgeulButton) DragGesture() onEnded")
+                os_log("iOS18_NaratgeulButton) DragGesture() onEnded", log: log, type: .debug)
                 dragGestureOnEnded()
             })
         
         let sequencedDragGesture = LongPressGesture(minimumDuration: state.longPressTime, maximumDistance: cursorActiveWidth)
         // 버튼 길게 누르면(누른 상태에서 일정시간이 지나면) 호출
             .onEnded({ _ in
-                print("iOS18_NaratgeulButton) LongPressGesture() onEnded")
+                os_log("iOS18_NaratgeulButton) LongPressGesture() onEnded", log: log, type: .debug)
                 onLongPressGesturePerform()
             })
         
@@ -396,7 +396,7 @@ struct iOS18_NaratgeulButton: View {
                     break
                 case .second(_, let dragValue):
                     if let value = dragValue {
-                        print("iOS18_NaratgeulButton) LongPressGesture()->DragGesture() onChanged")
+                        os_log("iOS18_NaratgeulButton) LongPressGesture()->DragGesture() onChanged", log: log, type: .debug)
                         sequencedDragOnChanged(value: value)
                     }
                 }
@@ -423,15 +423,15 @@ struct iOS18_NaratgeulButton: View {
                         })
                         .onLongPressGesture(minimumDuration: state.longPressTime, maximumDistance: cursorActiveWidth) {
                             // 버튼 길게 누르면(누른 상태에서 일정시간이 지나면) 호출
-                            print("iOS18_NaratgeulButton) onLongPressGesture()->perform: longPressing released")
+                            os_log("iOS18_NaratgeulButton) onLongPressGesture()->perform: longPressing released", log: log, type: .debug)
                         } onPressingChanged: { isPressing in
                             if isPressing {
                                 // 버튼 눌렀을 때 호출(버튼 누르면 무조건 첫번째로 호출)
-                                print("iOS18_NaratgeulButton) onLongPressGesture()->onPressingChanged: pressing")
+                                os_log("iOS18_NaratgeulButton) onLongPressGesture()->onPressingChanged: pressing", log: log, type: .debug)
                                 onLongPressGestureOnPressingTrue()
                             } else {
                                 // 버튼 뗐을 때
-                                print("iOS18_NaratgeulButton) onLongPressGesture()->onPressingChanged: released")
+                                os_log("iOS18_NaratgeulButton) onLongPressGesture()->onPressingChanged: released", log: log, type: .debug)
                                 onLongPressGestureOnPressingFalse()
                             }
                         }
@@ -456,15 +456,15 @@ struct iOS18_NaratgeulButton: View {
                         })
                         .onLongPressGesture(minimumDuration: state.longPressTime, maximumDistance: cursorActiveWidth) {
                             // 버튼 길게 누르면(누른 상태에서 일정시간이 지나면) 호출
-                            print("iOS18_NaratgeulButton) onLongPressGesture()->perform: longPressing released")
+                            os_log("iOS18_NaratgeulButton) onLongPressGesture()->perform: longPressing released", log: log, type: .debug)
                         } onPressingChanged: { isPressing in
                             if isPressing {
                                 // 버튼 눌렀을 때 호출(버튼 누르면 무조건 첫번째로 호출)
-                                print("iOS18_NaratgeulButton) onLongPressGesture()->onPressingChanged: pressing")
+                                os_log("iOS18_NaratgeulButton) onLongPressGesture()->onPressingChanged: pressing", log: log, type: .debug)
                                 onLongPressGestureOnPressingTrue()
                             } else {
                                 // 버튼 뗐을 때
-                                print("iOS18_NaratgeulButton) onLongPressGesture()->onPressingChanged: released")
+                                os_log("iOS18_NaratgeulButton) onLongPressGesture()->onPressingChanged: released", log: log, type: .debug)
                                 onLongPressGestureOnPressingFalse()
                             }
                         }
@@ -489,15 +489,15 @@ struct iOS18_NaratgeulButton: View {
                         })
                         .onLongPressGesture(minimumDuration: state.longPressTime, maximumDistance: cursorActiveWidth) {
                             // 버튼 길게 누르면(누른 상태에서 일정시간이 지나면) 호출
-                            print("iOS18_NaratgeulButton) onLongPressGesture()->perform: longPressing released")
+                            os_log("iOS18_NaratgeulButton) onLongPressGesture()->perform: longPressing released", log: log, type: .debug)
                         } onPressingChanged: { isPressing in
                             if isPressing {
                                 // 버튼 눌렀을 때 호출(버튼 누르면 무조건 첫번째로 호출)
-                                print("iOS18_NaratgeulButton) onLongPressGesture()->onPressingChanged: pressing")
+                                os_log("iOS18_NaratgeulButton) onLongPressGesture()->onPressingChanged: pressing", log: log, type: .debug)
                                 onLongPressGestureOnPressingTrue()
                             } else {
                                 // 버튼 뗐을 때
-                                print("iOS18_NaratgeulButton) onLongPressGesture()->onPressingChanged: released")
+                                os_log("iOS18_NaratgeulButton) onLongPressGesture()->onPressingChanged: released", log: log, type: .debug)
                                 onLongPressGestureOnPressingFalse()
                             }
                         }
@@ -522,15 +522,15 @@ struct iOS18_NaratgeulButton: View {
                         })
                         .onLongPressGesture(minimumDuration: state.longPressTime, maximumDistance: cursorActiveWidth) {
                             // 버튼 길게 누르면(누른 상태에서 일정시간이 지나면) 호출
-                            print("iOS18_NaratgeulButton) onLongPressGesture()->perform: longPressing released")
+                            os_log("iOS18_NaratgeulButton) onLongPressGesture()->perform: longPressing released", log: log, type: .debug)
                         } onPressingChanged: { isPressing in
                             if isPressing {
                                 // 버튼 눌렀을 때 호출(버튼 누르면 무조건 첫번째로 호출)
-                                print("iOS18_NaratgeulButton) onLongPressGesture()->onPressingChanged: pressing")
+                                os_log("iOS18_NaratgeulButton) onLongPressGesture()->onPressingChanged: pressing", log: log, type: .debug)
                                 onLongPressGestureOnPressingTrue()
                             } else {
                                 // 버튼 뗐을 때
-                                print("iOS18_NaratgeulButton) onLongPressGesture()->onPressingChanged: released")
+                                os_log("iOS18_NaratgeulButton) onLongPressGesture()->onPressingChanged: released", log: log, type: .debug)
                                 onLongPressGestureOnPressingFalse()
                             }
                         }
@@ -556,16 +556,16 @@ struct iOS18_NaratgeulButton: View {
                     })
                     .onLongPressGesture(minimumDuration: state.longPressTime, maximumDistance: cursorActiveWidth) {
                         // 버튼 길게 누르면(누른 상태에서 일정시간이 지나면) 호출
-                        print("iOS18_NaratgeulButton) onLongPressGesture()->perform: longPressing released")
+                        os_log("iOS18_NaratgeulButton) onLongPressGesture()->perform: longPressing released", log: log, type: .debug)
                         onLongPressGesturePerform()
                     } onPressingChanged: { isPressing in
                         if isPressing {
                             // 버튼 눌렀을 때 호출(버튼 누르면 무조건 첫번째로 호출)
-                            print("iOS18_NaratgeulButton) onLongPressGesture()->onPressingChanged: pressing")
+                            os_log("iOS18_NaratgeulButton) onLongPressGesture()->onPressingChanged: pressing", log: log, type: .debug)
                             onLongPressGestureOnPressingTrue()
                         } else {
                             // 버튼 뗐을 때
-                            print("iOS18_NaratgeulButton) onLongPressGesture()->onPressingChanged: released")
+                            os_log("iOS18_NaratgeulButton) onLongPressGesture()->onPressingChanged: released", log: log, type: .debug)
                             onLongPressGestureOnPressingFalse()
                         }
                     }
@@ -589,16 +589,16 @@ struct iOS18_NaratgeulButton: View {
                     })
                     .onLongPressGesture(minimumDuration: state.longPressTime, maximumDistance: cursorActiveWidth) {
                         // 버튼 길게 누르면(누른 상태에서 일정시간이 지나면) 호출
-                        print("iOS18_NaratgeulButton) onLongPressGesture()->perform: longPressing released")
+                        os_log("iOS18_NaratgeulButton) onLongPressGesture()->perform: longPressing released", log: log, type: .debug)
                         onLongPressGesturePerform()
                     } onPressingChanged: { isPressing in
                         if isPressing {
                             // 버튼 눌렀을 때 호출(버튼 누르면 무조건 첫번째로 호출)
-                            print("iOS18_NaratgeulButton) onLongPressGesture()->onPressingChanged: pressing")
+                            os_log("iOS18_NaratgeulButton) onLongPressGesture()->onPressingChanged: pressing", log: log, type: .debug)
                             onLongPressGestureOnPressingTrue()
                         } else {
                             // 버튼 뗐을 때
-                            print("iOS18_NaratgeulButton) onLongPressGesture()->onPressingChanged: released")
+                            os_log("iOS18_NaratgeulButton) onLongPressGesture()->onPressingChanged: released", log: log, type: .debug)
                             onLongPressGestureOnPressingFalse()
                         }
                     }
@@ -622,16 +622,16 @@ struct iOS18_NaratgeulButton: View {
                     })
                     .onLongPressGesture(minimumDuration: state.longPressTime, maximumDistance: cursorActiveWidth) {
                         // 버튼 길게 누르면(누른 상태에서 일정시간이 지나면) 호출
-                        print("iOS18_NaratgeulButton) onLongPressGesture()->perform: longPressing released")
+                        os_log("iOS18_NaratgeulButton) onLongPressGesture()->perform: longPressing released", log: log, type: .debug)
                         onLongPressGesturePerform()
                     } onPressingChanged: { isPressing in
                         if isPressing {
                             // 버튼 눌렀을 때 호출(버튼 누르면 무조건 첫번째로 호출)
-                            print("iOS18_NaratgeulButton) onLongPressGesture()->onPressingChanged: pressing")
+                            os_log("iOS18_NaratgeulButton) onLongPressGesture()->onPressingChanged: pressing", log: log, type: .debug)
                             onLongPressGestureOnPressingTrue()
                         } else {
                             // 버튼 뗐을 때
-                            print("iOS18_NaratgeulButton) onLongPressGesture()->onPressingChanged: released")
+                            os_log("iOS18_NaratgeulButton) onLongPressGesture()->onPressingChanged: released", log: log, type: .debug)
                             onLongPressGestureOnPressingFalse()
                         }
                     }
@@ -683,15 +683,15 @@ struct iOS18_NaratgeulButton: View {
                         .padding(EdgeInsets(top: 1, leading: 0, bottom: 0, trailing: 1))
                     })
                     .onLongPressGesture(minimumDuration: state.longPressTime, maximumDistance: cursorActiveWidth) {
-                        print("iOS18_NaratgeulButton) onLongPressGesture()->perform: longPressing released")
+                        os_log("iOS18_NaratgeulButton) onLongPressGesture()->perform: longPressing released", log: log, type: .debug)
                     } onPressingChanged: { isPressing in
                         if isPressing {
                             // 버튼 눌렀을 때 호출(버튼 누르면 무조건 첫번째로 호출)
-                            print("iOS18_NaratgeulButton) onLongPressGesture()->onPressingChanged: pressing")
+                            os_log("iOS18_NaratgeulButton) onLongPressGesture()->onPressingChanged: pressing", log: log, type: .debug)
                             onLongPressGestureOnPressingTrue()
                         } else {
                             // 버튼 뗐을 때
-                            print("iOS18_NaratgeulButton) onLongPressGesture()->onPressingChanged: released")
+                            os_log("iOS18_NaratgeulButton) onLongPressGesture()->onPressingChanged: released", log: log, type: .debug)
                             onLongPressGestureOnPressingFalse()
                         }
                     }
@@ -740,15 +740,15 @@ struct iOS18_NaratgeulButton: View {
                             .padding(EdgeInsets(top: 1, leading: 1, bottom: 0, trailing: 0))
                         })
                         .onLongPressGesture(minimumDuration: state.longPressTime, maximumDistance: cursorActiveWidth) {
-                            print("iOS18_NaratgeulButton) onLongPressGesture()->perform: longPressing released")
+                            os_log("iOS18_NaratgeulButton) onLongPressGesture()->perform: longPressing released", log: log, type: .debug)
                         } onPressingChanged: { isPressing in
                             if isPressing {
                                 // 버튼 눌렀을 때 호출(버튼 누르면 무조건 첫번째로 호출)
-                                print("iOS18_NaratgeulButton) onLongPressGesture()->onPressingChanged: pressing")
+                                os_log("iOS18_NaratgeulButton) onLongPressGesture()->onPressingChanged: pressing", log: log, type: .debug)
                                 onLongPressGestureOnPressingTrue()
                             } else {
                                 // 버튼 뗐을 때
-                                print("iOS18_NaratgeulButton) onLongPressGesture()->onPressingChanged: released")
+                                os_log("iOS18_NaratgeulButton) onLongPressGesture()->onPressingChanged: released", log: log, type: .debug)
                                 onLongPressGestureOnPressingFalse()
                             }
                         }
@@ -794,15 +794,15 @@ struct iOS18_NaratgeulButton: View {
                             .padding(EdgeInsets(top: 1, leading: 0, bottom: 0, trailing: 1))
                         })
                         .onLongPressGesture(minimumDuration: state.longPressTime, maximumDistance: cursorActiveWidth) {
-                            print("iOS18_NaratgeulButton) onLongPressGesture()->perform: longPressing released")
+                            os_log("iOS18_NaratgeulButton) onLongPressGesture()->perform: longPressing released", log: log, type: .debug)
                         } onPressingChanged: { isPressing in
                             if isPressing {
                                 // 버튼 눌렀을 때 호출(버튼 누르면 무조건 첫번째로 호출)
-                                print("iOS18_NaratgeulButton) onLongPressGesture()->onPressingChanged: pressing")
+                                os_log("iOS18_NaratgeulButton) onLongPressGesture()->onPressingChanged: pressing", log: log, type: .debug)
                                 onLongPressGestureOnPressingTrue()
                             } else {
                                 // 버튼 뗐을 때
-                                print("iOS18_NaratgeulButton) onLongPressGesture()->onPressingChanged: released")
+                                os_log("iOS18_NaratgeulButton) onLongPressGesture()->onPressingChanged: released", log: log, type: .debug)
                                 onLongPressGestureOnPressingFalse()
                             }
                         }
@@ -829,16 +829,16 @@ struct iOS18_NaratgeulButton: View {
                     })
                     .onLongPressGesture(minimumDuration: state.longPressTime, maximumDistance: cursorActiveWidth) {
                         // 버튼 길게 누르면(누른 상태에서 일정시간이 지나면) 호출
-                        print("iOS18_NaratgeulButton) onLongPressGesture()->perform: longPressing released")
+                        os_log("iOS18_NaratgeulButton) onLongPressGesture()->perform: longPressing released", log: log, type: .debug)
                         onLongPressGesturePerform()
                     } onPressingChanged: { isPressing in
                         if isPressing {
                             // 버튼 눌렀을 때 호출(버튼 누르면 무조건 첫번째로 호출)
-                            print("iOS18_NaratgeulButton) onLongPressGesture()->onPressingChanged: pressing")
+                            os_log("iOS18_NaratgeulButton) onLongPressGesture()->onPressingChanged: pressing", log: log, type: .debug)
                             onLongPressGestureOnPressingTrue()
                         } else {
                             // 버튼 뗐을 때
-                            print("iOS18_NaratgeulButton) onLongPressGesture()->onPressingChanged: released")
+                            os_log("iOS18_NaratgeulButton) onLongPressGesture()->onPressingChanged: released", log: log, type: .debug)
                             onLongPressGestureOnPressingFalse()
                         }
                     }
@@ -861,16 +861,16 @@ struct iOS18_NaratgeulButton: View {
                     })
                     .onLongPressGesture(minimumDuration: state.longPressTime, maximumDistance: cursorActiveWidth) {
                         // 버튼 길게 누르면(누른 상태에서 일정시간이 지나면) 호출
-                        print("iOS18_NaratgeulButton) onLongPressGesture()->perform: longPressing released")
+                        os_log("iOS18_NaratgeulButton) onLongPressGesture()->perform: longPressing released", log: log, type: .debug)
                         onLongPressGesturePerform()
                     } onPressingChanged: { isPressing in
                         if isPressing {
                             // 버튼 눌렀을 때 호출(버튼 누르면 무조건 첫번째로 호출)
-                            print("iOS18_NaratgeulButton) onLongPressGesture()->onPressingChanged: pressing")
+                            os_log("iOS18_NaratgeulButton) onLongPressGesture()->onPressingChanged: pressing", log: log, type: .debug)
                             onLongPressGestureOnPressingTrue()
                         } else {
                             // 버튼 뗐을 때
-                            print("iOS18_NaratgeulButton) onLongPressGesture()->onPressingChanged: released")
+                            os_log("iOS18_NaratgeulButton) onLongPressGesture()->onPressingChanged: released", log: log, type: .debug)
                             onLongPressGestureOnPressingFalse()
                         }
                     }
@@ -893,16 +893,16 @@ struct iOS18_NaratgeulButton: View {
                     })
                     .onLongPressGesture(minimumDuration: state.longPressTime, maximumDistance: cursorActiveWidth) {
                         // 버튼 길게 누르면(누른 상태에서 일정시간이 지나면) 호출
-                        print("iOS18_NaratgeulButton) onLongPressGesture()->perform: longPressing released")
+                        os_log("iOS18_NaratgeulButton) onLongPressGesture()->perform: longPressing released", log: log, type: .debug)
                         onLongPressGesturePerform()
                     } onPressingChanged: { isPressing in
                         if isPressing {
                             // 버튼 눌렀을 때 호출(버튼 누르면 무조건 첫번째로 호출)
-                            print("iOS18_NaratgeulButton) onLongPressGesture()->onPressingChanged: pressing")
+                            os_log("iOS18_NaratgeulButton) onLongPressGesture()->onPressingChanged: pressing", log: log, type: .debug)
                             onLongPressGestureOnPressingTrue()
                         } else {
                             // 버튼 뗐을 때
-                            print("iOS18_NaratgeulButton) onLongPressGesture()->onPressingChanged: released")
+                            os_log("iOS18_NaratgeulButton) onLongPressGesture()->onPressingChanged: released", log: log, type: .debug)
                             onLongPressGestureOnPressingFalse()
                         }
                     }
@@ -925,16 +925,16 @@ struct iOS18_NaratgeulButton: View {
                     })
                     .onLongPressGesture(minimumDuration: state.longPressTime, maximumDistance: cursorActiveWidth) {
                         // 버튼 길게 누르면(누른 상태에서 일정시간이 지나면) 호출
-                        print("iOS18_NaratgeulButton) onLongPressGesture()->perform: longPressing released")
+                        os_log("iOS18_NaratgeulButton) onLongPressGesture()->perform: longPressing released", log: log, type: .debug)
                         onLongPressGesturePerform()
                     } onPressingChanged: { isPressing in
                         if isPressing {
                             // 버튼 눌렀을 때 호출(버튼 누르면 무조건 첫번째로 호출)
-                            print("iOS18_NaratgeulButton) onLongPressGesture()->onPressingChanged: pressing")
+                            os_log("iOS18_NaratgeulButton) onLongPressGesture()->onPressingChanged: pressing", log: log, type: .debug)
                             onLongPressGestureOnPressingTrue()
                         } else {
                             // 버튼 뗐을 때
-                            print("iOS18_NaratgeulButton) onLongPressGesture()->onPressingChanged: released")
+                            os_log("iOS18_NaratgeulButton) onLongPressGesture()->onPressingChanged: released", log: log, type: .debug)
                             onLongPressGestureOnPressingFalse()
                         }
                     }
@@ -957,16 +957,16 @@ struct iOS18_NaratgeulButton: View {
                     })
                     .onLongPressGesture(minimumDuration: state.longPressTime, maximumDistance: cursorActiveWidth) {
                         // 버튼 길게 누르면(누른 상태에서 일정시간이 지나면) 호출
-                        print("iOS18_NaratgeulButton) onLongPressGesture()->perform: longPressing released")
+                        os_log("iOS18_NaratgeulButton) onLongPressGesture()->perform: longPressing released", log: log, type: .debug)
                         onLongPressGesturePerform()
                     } onPressingChanged: { isPressing in
                         if isPressing {
                             // 버튼 눌렀을 때 호출(버튼 누르면 무조건 첫번째로 호출)
-                            print("iOS18_NaratgeulButton) onLongPressGesture()->onPressingChanged: pressing")
+                            os_log("iOS18_NaratgeulButton) onLongPressGesture()->onPressingChanged: pressing", log: log, type: .debug)
                             onLongPressGestureOnPressingTrue()
                         } else {
                             // 버튼 뗐을 때
-                            print("iOS18_NaratgeulButton) onLongPressGesture()->onPressingChanged: released")
+                            os_log("iOS18_NaratgeulButton) onLongPressGesture()->onPressingChanged: released", log: log, type: .debug)
                             onLongPressGestureOnPressingFalse()
                         }
                     }

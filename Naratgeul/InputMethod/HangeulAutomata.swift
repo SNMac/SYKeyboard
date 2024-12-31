@@ -8,6 +8,7 @@
 //
 
 import Foundation
+import OSLog
 
 // 오토마타의 상태를 정의
 enum AutomataStatus {
@@ -35,6 +36,7 @@ struct InpStack {
 }
 
 final class HangeulAutomata {
+    let log = OSLog(subsystem: "github.com-SNMac.SYKeyboard.Naratgeul", category: "automata")
     
     var buffer: [String] = []
     var bufferTypingCount: [Int] = []
@@ -246,9 +248,8 @@ final class HangeulAutomata {
             }
         }
         
-        print("deleteBufferLastInput()->buffer =", buffer)
-        print("deleteBufferLastInput()->bufferTypingCount =", bufferTypingCount)
-        print("lastLetter =", lastLetter)
+        os_log("deleteBufferLastInput()->buffer = %@", log: log, type: .debug, buffer)
+        os_log("lastLetter = %@", log: log, type: .debug, lastLetter)
         return lastLetter
     }
 }
@@ -430,7 +431,6 @@ extension HangeulAutomata {
                                 ))
         buffer[buffer.count - 1] = curGeulja
         bufferTypingCount[bufferTypingCount.count - 1] += 1
-        print("storeStackAndBuffer()->buffer =", buffer)
-        print("storeStackAndBuffer()->bufferTypingCount =", bufferTypingCount)
+        os_log("storeStackAndBuffer()->buffer = %@", log: log, type: .debug, buffer)
     }
 }

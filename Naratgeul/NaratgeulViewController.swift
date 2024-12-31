@@ -39,6 +39,8 @@ class NaratgeulViewController: UIInputViewController {
         
         updateCursorPos()
         updateHoegSsangAvailiableToOptions()
+        updateKeyboardTypeToOptions()
+        updateReturnButtonLabelToOptions()
         Feedback.shared.prepareHaptic()
     }
     
@@ -118,7 +120,6 @@ class NaratgeulViewController: UIInputViewController {
         
         ioManager.moveCursorToLeft = { [weak self] in
             guard let self = self else { return false }
-            print("moveCursorToLeft()")
             
             let prevCurPos = cursorPos
             
@@ -138,7 +139,6 @@ class NaratgeulViewController: UIInputViewController {
         
         ioManager.moveCursorToRight = { [weak self] in
             guard let self = self else { return false }
-            print("moveCursorToRight()")
             
             let prevCurPos = cursorPos
             
@@ -193,17 +193,8 @@ class NaratgeulViewController: UIInputViewController {
         userLexicon = await requestSupplementaryLexicon()
     }
     
-    override func textWillChange(_ textInput: (any UITextInput)?) {
-        super.textWillChange(textInput)
-        print("textWillChange()")
-        
-        updateKeyboardTypeToOptions()
-        updateReturnButtonLabelToOptions()
-    }
-    
     override func textDidChange(_ textInput: (any UITextInput)?) {
         super.textDidChange(textInput)
-        print("textDidChange()")
         
         updateCursorPos()
         ioManager.flushBuffer()
@@ -212,14 +203,12 @@ class NaratgeulViewController: UIInputViewController {
     
     override func selectionWillChange(_ textInput: (any UITextInput)?) {
         super.selectionWillChange(textInput)
-        print("selectionWillChange()")
         
         updateCursorPos()
     }
     
     override func selectionDidChange(_ textInput: (any UITextInput)?) {
         super.selectionDidChange(textInput)
-        print("selectionDidChange()")
         
         updateCursorPos()
     }

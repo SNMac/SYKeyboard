@@ -117,11 +117,9 @@ struct OneHandSelectOverlayView: View {
         .gesture(
             DragGesture(minimumDistance: 0, coordinateSpace: .global)
                 .onChanged({ value in
-                    print("OneHandSelectOverlayView) DragGesture() onChanged")
                     dragGestureOnChange(value: value)
                 })
                 .onEnded({ _ in
-                    print("OneHandSelectOverlayView) DragGesture() onEnded")
                     dragGestureOnEnded()
                 })
         )

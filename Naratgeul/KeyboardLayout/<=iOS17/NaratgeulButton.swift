@@ -8,7 +8,7 @@
 //
 
 import SwiftUI
-import Combine
+import OSLog
 
 enum Gestures {
     case released
@@ -19,6 +19,8 @@ enum Gestures {
 }
 
 struct NaratgeulButton: View {
+    let log = OSLog(subsystem: "github.com-SNMac.SYKeyboard", category: "NaratgeulButton")
+    
     @EnvironmentObject var state: NaratgeulState
     @AppStorage("cursorActiveWidth", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var cursorActiveWidth = GlobalValues.defaultCursorActiveWidth
     @AppStorage("cursorMoveWidth", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var cursorMoveWidth = GlobalValues.defaultCursorMoveWidth
@@ -51,21 +53,19 @@ struct NaratgeulButton: View {
         }
         nowGesture = .released
         state.nowPressedButton = nil
-        if state.isSelectingInputType {
-            if let selectedInputType = state.selectedInputType {
-                state.currentInputType = selectedInputType
-                state.selectedInputType = nil
-            }
-            state.isSelectingInputType = false
+        
+        if let selectedInputType = state.selectedInputType {
+            state.currentInputType = selectedInputType
+            state.selectedInputType = nil
         }
-        if state.isSelectingOneHandType {
-            if let selectedOneHandType = state.selectedOneHandType {
-                state.currentOneHandType = selectedOneHandType
-                currentOneHandType = selectedOneHandType.rawValue
-                state.selectedOneHandType = nil
-            }
-            state.isSelectingOneHandType = false
+        state.isSelectingInputType = false
+        
+        if let selectedOneHandType = state.selectedOneHandType {
+            state.currentOneHandType = selectedOneHandType
+            currentOneHandType = selectedOneHandType.rawValue
+            state.selectedOneHandType = nil
         }
+        state.isSelectingOneHandType = false
     }
     
     private func onLongPressReleased() {  // 버튼 길게 눌렀다가 뗐을 때 호출
@@ -94,7 +94,7 @@ struct NaratgeulButton: View {
             // 일정 거리 초과 드래그 -> 커서를 한칸씩 드래그한 방향으로 이동
             let dragDiff = value.translation.width - dragStartWidth
             if dragDiff < -cursorMoveWidth {
-                print("NaratgeulButton) Drag to left")
+                os_log("NaratgeulButton) Drag to left", log: log, type: .debug)
                 dragStartWidth = value.translation.width
                 if let isMoved = state.delegate?.dragToLeft() {
                     if isMoved {
@@ -102,7 +102,7 @@ struct NaratgeulButton: View {
                     }
                 }
             } else if dragDiff > cursorMoveWidth {
-                print("NaratgeulButton) Drag to right")
+                os_log("NaratgeulButton) Drag to right", log: log, type: .debug)
                 dragStartWidth = value.translation.width
                 if let isMoved = state.delegate?.dragToRight() {
                     if isMoved {
@@ -592,20 +592,20 @@ struct NaratgeulButton: View {
             DragGesture(minimumDistance: cursorActiveWidth, coordinateSpace: .global)
             // 버튼 드래그 할 때 호출
                 .onChanged { value in
-                    print("NaratgeulButton) DragGesture() onChanged: dragging")
+                    os_log("NaratgeulButton) DragGesture() onChanged: dragging", log: log, type: .debug)
                     dragGestureOnChange(value: value)
                 }
             
             // 버튼 뗐을 때
                 .onEnded({ _ in
-                    print("NaratgeulButton) DragGesture() onEnded: dragging")
+                    os_log("NaratgeulButton) DragGesture() onEnded: dragging", log: log, type: .debug)
                     dragGestureOnEnded()
                 })
         )
         .gesture(
             DragGesture(minimumDistance: 0)
                 .onEnded({ _ in
-                    print("NaratgeulButton) DragGesture() onChanged: released")
+                    os_log("NaratgeulButton) DragGesture() onChanged: released", log: log, type: .debug)
                     dragGestureOnEnded()
                 })
         )
@@ -613,13 +613,13 @@ struct NaratgeulButton: View {
             LongPressGesture(minimumDuration: state.longPressTime, maximumDistance: cursorActiveWidth)
             // 버튼 눌렀을 때 호출(버튼 누르면 무조건 첫번째로 호출)
                 .onChanged({ _ in
-                    print("NaratgeulButton) LongPressGesture() onChanged: pressing")
+                    os_log("NaratgeulButton) LongPressGesture() onChanged: pressing", log: log, type: .debug)
                     longPressGestureOnChanged()
                 })
             
             // 버튼 길게 누르면(누른 상태에서 일정시간이 지나면) 호출
                 .onEnded({ _ in
-                    print("NaratgeulButton) LongPressGesture() onEnded: longPressing")
+                    os_log("NaratgeulButton) LongPressGesture() onEnded: longPressing", log: log, type: .debug)
                     longPressGestureOnEnded()
                 })
             
@@ -631,7 +631,7 @@ struct NaratgeulButton: View {
                         break
                     case .second(_, let dragValue):
                         if let value = dragValue {
-                            print("NaratgeulButton) LongPressGesture()->DragGesture() onChanged: sequencedDragging")
+                            os_log("NaratgeulButton) LongPressGesture()->DragGesture() onChanged: sequencedDragging", log: log, type: .debug)
                             sequencedDragOnChanged(value: value)
                         }
                     }
@@ -639,7 +639,7 @@ struct NaratgeulButton: View {
             
             // 버튼 길게 눌렀다가 뗐을 때 호출
                 .onEnded({ _ in
-                    print("NaratgeulButton) LongPressGesture()->DragGesture() onEnded: sequencedDragging released")
+                    os_log("NaratgeulButton) LongPressGesture()->DragGesture() onEnded: sequencedDragging released", log: log, type: .debug)
                     sequencedDragOnEnded()
                 })
         )
