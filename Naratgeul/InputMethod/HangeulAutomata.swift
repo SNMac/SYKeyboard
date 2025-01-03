@@ -248,8 +248,8 @@ final class HangeulAutomata {
             }
         }
         
-        os_log("deleteBufferLastInput()->buffer = %@", log: log, type: .debug, buffer)
-        os_log("lastLetter = %@", log: log, type: .debug, lastLetter)
+//        os_log("deleteBufferLastInput()->buffer = %@", log: log, type: .debug, buffer)
+//        os_log("lastLetter = %@", log: log, type: .debug, lastLetter)
         return lastLetter
     }
 }
@@ -431,6 +431,6 @@ extension HangeulAutomata {
                                 ))
         buffer[buffer.count - 1] = curGeulja
         bufferTypingCount[bufferTypingCount.count - 1] += 1
-        os_log("storeStackAndBuffer()->buffer = %@", log: log, type: .debug, buffer)
+//        os_log("storeStackAndBuffer()->buffer = %@", log: log, type: .debug, buffer)
     }
 }
