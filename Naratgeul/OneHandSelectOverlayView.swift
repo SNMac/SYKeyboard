@@ -8,16 +8,15 @@
 import SwiftUI
 
 struct OneHandSelectOverlayView: View {
-    @EnvironmentObject var state: NaratgeulState
+    @EnvironmentObject private var state: NaratgeulState
     @AppStorage("currentOneHandType", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var currentOneHandType = 1
     @AppStorage("screenWidth", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var screenWidth = 1.0
     
-    let frameWidth: CGFloat = 230
-    let interItemSpacing: CGFloat = 8
-    let fontSize: Double = 26
+    private let frameWidth: CGFloat = 230
+    private let interItemSpacing: CGFloat = 8
+    private let fontSize: Double = 26
     
-    
-    // MARK: - Basic of Gesture Method
+    // MARK: - Gesture Execution Methods
     private func onReleased() {
         if state.isSelectingOneHandType {
             if let selectedOneHandType = state.selectedOneHandType {
@@ -29,9 +28,24 @@ struct OneHandSelectOverlayView: View {
         }
     }
     
-    private func onDragging(value: DragGesture.Value) {
-        let dragXLocation = value.location.x
-        let dragYLocation = value.location.y
+    private func onDrag(DragGestureValue: DragGesture.Value) {
+        selectOneHandType(DragGestureValue: DragGestureValue)
+    }
+    
+    
+    // MARK: - Gesture Recognization Methods
+    private func gestureDrag(DragGestureValue: DragGesture.Value) {
+        onDrag(DragGestureValue: DragGestureValue)
+    }
+    
+    private func gestureReleased() {
+        onReleased()
+    }
+    
+    // MARK: - Gesture UI Interaction Methods
+    private func selectOneHandType(DragGestureValue: DragGesture.Value) {
+        let dragXLocation = DragGestureValue.location.x
+        let dragYLocation = DragGestureValue.location.y
         
         if state.isSelectingOneHandType {
             // 특정 방향으로 일정 거리 초과 드래그 -> 한손 키보드 변경
@@ -55,16 +69,6 @@ struct OneHandSelectOverlayView: View {
                 state.selectedOneHandType = state.currentOneHandType
             }
         }
-    }
-    
-    
-    // MARK: - Snippet of Gesture Method
-    private func dragGestureOnChange(value: DragGesture.Value) {
-        onDragging(value: value)
-    }
-    
-    private func dragGestureOnEnded() {
-        onReleased()
     }
     
     var body: some View {
@@ -117,10 +121,10 @@ struct OneHandSelectOverlayView: View {
         .gesture(
             DragGesture(minimumDistance: 0, coordinateSpace: .global)
                 .onChanged({ value in
-                    dragGestureOnChange(value: value)
+                    gestureDrag(DragGestureValue: value)
                 })
                 .onEnded({ _ in
-                    dragGestureOnEnded()
+                    gestureReleased()
                 })
         )
     }

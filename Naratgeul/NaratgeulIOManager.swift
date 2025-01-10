@@ -19,7 +19,6 @@ final class NaratgeulIOManager {
     
     var isHoegSsangAvailiable: Bool = false
     var isEditingLastCharacter: Bool = false
-    var isSymbolInput: Bool = false
     
     private var inputHangeul: String = "" {
         didSet {
@@ -78,7 +77,7 @@ final class NaratgeulIOManager {
         prevAutomataBufferSize = curAutomataBufferSize
     }
     
-    func deleteOneWholeLetter() {
+    private func deleteOneWholeLetter() {
         if hangeulAutomata.bufferTypingCount.count > 0 {
             let count = hangeulAutomata.bufferTypingCount[hangeulAutomata.bufferTypingCount.count - 1]
             for _ in 0..<count {

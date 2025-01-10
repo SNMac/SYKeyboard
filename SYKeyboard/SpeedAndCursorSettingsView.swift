@@ -13,7 +13,7 @@ struct SpeedAndCursorSettingsView: View {
     @AppStorage("cursorActiveWidth", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var cursorActiveWidth = GlobalValues.defaultCursorActiveWidth
     @AppStorage("cursorMoveWidth", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var cursorMoveWidth = GlobalValues.defaultCursorMoveWidth
     
-    var longPressSpeedSetting: some View {
+    private var longPressSpeedSetting: some View {
         HStack {
             Text("길게 누르기")
                 .frame(alignment: .leading)
@@ -34,7 +34,7 @@ struct SpeedAndCursorSettingsView: View {
         }
     }
     
-    var repeatTimerSpeedSetting: some View {
+    private var repeatTimerSpeedSetting: some View {
         HStack {
             Text("반복 입력")
                 .frame(alignment: .leading)
@@ -55,7 +55,7 @@ struct SpeedAndCursorSettingsView: View {
         }
     }
     
-    var cursorActiveWidthSetting: some View {
+    private var cursorActiveWidthSetting: some View {
         HStack {
             Text("활성화 거리")
                 .frame(alignment: .leading)
@@ -76,7 +76,7 @@ struct SpeedAndCursorSettingsView: View {
         }
     }
     
-    var cursorMoveWidthSetting: some View {
+    private var cursorMoveWidthSetting: some View {
         HStack {
             Text("이동 간격")
                 .frame(alignment: .leading)

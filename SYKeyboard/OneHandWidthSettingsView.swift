@@ -9,13 +9,13 @@ import SwiftUI
 
 struct OneHandWidthSettingsView: View {
     @Environment(\.dismiss) private var dismiss
-    @EnvironmentObject var state: PreviewNaratgeulState
+    @EnvironmentObject private var state: PreviewNaratgeulState
     @AppStorage("keyboardHeight", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var keyboardHeight = GlobalValues.defaultKeyboardHeight
     @AppStorage("oneHandWidth", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var oneHandWidth = GlobalValues.defaultOneHandWidth
     @AppStorage("needsInputModeSwitchKey", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var needsInputModeSwitchKey = true
     @State private var tempOneHandWidth: Double = GlobalValues.defaultOneHandWidth
     
-    let fontSize: CGFloat = 40
+    private let fontSize: CGFloat = 40
     
     private var oneHandWidthSettings: some View {
         VStack {
@@ -85,11 +85,8 @@ struct OneHandWidthSettingsView: View {
                 if state.currentOneHandType == .right {
                     PreviewChevronButton(keyboardHeight: $keyboardHeight, isLeftHandMode: false)
                 }
-                if #available(iOS 18, *) {
-                    iOS18_PreviewHangeulView(keyboardHeight: $keyboardHeight, oneHandWidth: $tempOneHandWidth)
-                } else {
-                    PreviewHangeulView(keyboardHeight: $keyboardHeight, oneHandWidth: $tempOneHandWidth)
-                }
+                
+                PreviewHangeulView(keyboardHeight: $keyboardHeight, oneHandWidth: $tempOneHandWidth)
                 if state.currentOneHandType == .left {
                     PreviewChevronButton(keyboardHeight: $keyboardHeight, isLeftHandMode: true)
                 }
@@ -103,4 +100,5 @@ struct OneHandWidthSettingsView: View {
 
 #Preview {
     OneHandWidthSettingsView()
+        .environmentObject(PreviewNaratgeulState())
 }

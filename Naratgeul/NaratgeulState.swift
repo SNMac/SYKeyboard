@@ -21,7 +21,7 @@ enum OneHandType: Int {
 }
 
 enum KeyboardType {
-    case _default
+    case `default`
     case numbersAndPunctuation
     case URL
     case numberPad
@@ -53,8 +53,8 @@ final class NaratgeulState: ObservableObject {
     @Published var isSelectingOneHandType: Bool = false
     @Published var selectedOneHandType: OneHandType?
     
-    @Published var currentKeyboardType: KeyboardType = ._default
-    @Published var returnButtonType: ReturnButtonType = .`default`
+    @Published var currentKeyboardType: KeyboardType = .default
+    @Published var returnButtonType: ReturnButtonType = .default
 
     @Published var nowSymbolPage: Int = 0
     @Published var totalSymbolPage: Int = 0

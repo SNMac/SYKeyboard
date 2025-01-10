@@ -36,7 +36,7 @@ struct InpStack {
 }
 
 final class HangeulAutomata {
-    let log = OSLog(subsystem: "github.com-SNMac.SYKeyboard.Naratgeul", category: "automata")
+    private let log = OSLog(subsystem: "github.com-SNMac.SYKeyboard.Naratgeul", category: "automata")
     
     var buffer: [String] = []
     var bufferTypingCount: [Int] = []

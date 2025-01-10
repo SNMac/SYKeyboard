@@ -9,13 +9,13 @@ import SwiftUI
 import Combine
 
 struct NumberPadView: View {
-    @EnvironmentObject var state: NaratgeulState
-    @State var timer: AnyCancellable?
+    @EnvironmentObject private var state: NaratgeulState
+    @State private var timer: AnyCancellable?
     
-    let vPadding: CGFloat = 4
-    let interItemVPadding: CGFloat = 2
-    let hPadding: CGFloat = 4
-    let interItemHPadding: CGFloat = 2.5
+    private let vPadding: CGFloat = 4
+    private let interItemVPadding: CGFloat = 2
+    private let hPadding: CGFloat = 4
+    private let interItemHPadding: CGFloat = 2.5
     
     var body: some View {
         GeometryReader { geometry in

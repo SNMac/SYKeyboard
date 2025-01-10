@@ -11,10 +11,10 @@ import SwiftUI
 import OSLog
 
 enum Gestures {
-    case pressing
-    case longPressing
-    case dragging
-    case longPressedDragging
+    case pressed
+    case longPressed
+    case drag
+    case longPressedDrag
     case released
 }
 
@@ -26,9 +26,9 @@ enum DragDirection {
 }
 
 struct NaratgeulButton: View {
-    let log = OSLog(subsystem: "github.com-SNMac.SYKeyboard", category: "NaratgeulButton")
+    private let log = OSLog(subsystem: "github.com-SNMac.SYKeyboard", category: "NaratgeulButton")
     
-    @EnvironmentObject var state: NaratgeulState
+    @EnvironmentObject private var state: NaratgeulState
     @AppStorage("cursorActiveWidth", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var cursorActiveWidth = GlobalValues.defaultCursorActiveWidth
     @AppStorage("cursorMoveWidth", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var cursorMoveWidth = GlobalValues.defaultCursorMoveWidth
     @AppStorage("isNumberKeyboardTypeEnabled", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var isNumberKeyboardTypeEnabled = true
@@ -43,9 +43,9 @@ struct NaratgeulButton: View {
     var systemName: String?
     let primary: Bool
     
-    let imageSize: CGFloat = 20
-    let textSize: CGFloat = 18
-    let keyTextSize: CGFloat = 22
+    private let imageSize: CGFloat = 20
+    private let textSize: CGFloat = 18
+    private let keyTextSize: CGFloat = 22
     
     var onPress: () -> Void
     var onRelease: (() -> Void)?
@@ -53,20 +53,20 @@ struct NaratgeulButton: View {
     var onLongPressRelease: (() -> Void)?
     
     // MARK: - Gesture Execution Methods
-    private func onPressing() {  // 버튼 눌렀을 때 호출(버튼 누르면 무조건 첫번째로 호출)
-        nowGesture = .pressing
+    private func onPressed() {  // 버튼 눌렀을 때 호출(버튼 누르면 무조건 첫번째로 호출)
+        nowGesture = .pressed
         onPress()
     }
     
-    private func onLongPressing() {  // 버튼 길게 누르면(누른 상태에서 일정시간이 지나면) 호출
-        nowGesture = .longPressing
+    private func onLongPressed() {  // 버튼 길게 누르면(누른 상태에서 일정시간이 지나면) 호출
+        nowGesture = .longPressed
         onLongPress?()
     }
     
-    private func onDragging(DragGestureValue: DragGesture.Value) {  // 버튼 드래그 할 때 호출
-        if nowGesture != .dragging {  // 드래그 시작
+    private func onDrag(DragGestureValue: DragGesture.Value) {  // 버튼 드래그 할 때 호출
+        if nowGesture != .drag {  // 드래그 시작
             dragStartWidth = DragGestureValue.translation.width
-            nowGesture = .dragging
+            nowGesture = .drag
         }
         
         if primary {  // 글자 입력 버튼 드래그 -> 커서 이동
@@ -127,18 +127,18 @@ struct NaratgeulButton: View {
             }
             
             if state.isSelectingOneHandType {
-                selectingOneHandType(DragGestureValue: DragGestureValue)
+                selectOneHandType(DragGestureValue: DragGestureValue)
             }
             
             if state.isSelectingInputType {
-                selectingInputType(DragGestureValue: DragGestureValue)
+                selectInputType(DragGestureValue: DragGestureValue)
             }
         }
     }
     
-    private func onLongPressedDragging(DragGestureValue: DragGesture.Value) {
-        if nowGesture != .longPressedDragging {  // 드래그 시작
-            nowGesture = .longPressedDragging
+    private func onLongPressedDrag(DragGestureValue: DragGesture.Value) {
+        if nowGesture != .longPressedDrag {  // 드래그 시작
+            nowGesture = .longPressedDrag
         }
         
         if systemName == "return.left" {  // 리턴 버튼
@@ -149,16 +149,16 @@ struct NaratgeulButton: View {
         }
         
         if state.isSelectingOneHandType {
-            selectingOneHandType(DragGestureValue: DragGestureValue)
+            selectOneHandType(DragGestureValue: DragGestureValue)
         }
         
         if state.isSelectingInputType {
-            selectingInputType(DragGestureValue: DragGestureValue)
+            selectInputType(DragGestureValue: DragGestureValue)
         }
     }
     
-    private func onReleasing() {  // 버튼 뗐을 때
-        if nowGesture == .pressing {
+    private func onReleased() {  // 버튼 뗐을 때
+        if nowGesture == .pressed {
             onRelease?()
         }
         nowGesture = .released
@@ -178,7 +178,7 @@ struct NaratgeulButton: View {
         state.isSelectingOneHandType = false
     }
     
-    private func onLongPressReleased() {  // 버튼 길게 눌렀다가 뗐을 때 호출
+    private func onLongPressedReleased() {  // 버튼 길게 눌렀다가 뗐을 때 호출
         nowGesture = .released
         if let onLongPressRelease {
             onLongPressRelease()
@@ -189,7 +189,7 @@ struct NaratgeulButton: View {
     }
     
     // MARK: - Gesture Recognization Methods
-    private func gesturePressing() {
+    private func gesturePressed() {
         var isOnPressingAvailable: Bool = true
         
         if state.isSelectingInputType {
@@ -203,12 +203,12 @@ struct NaratgeulButton: View {
         
         if state.nowPressedButton != nil {  // 이미 다른 버튼이 눌려있는 상태
             switch state.nowPressedButton?.nowGesture {
-            case .pressing:
-                state.nowPressedButton?.onReleasing()
-            case .longPressing:
-                state.nowPressedButton?.onLongPressReleased()
-            case .dragging:
-                state.nowPressedButton?.onReleasing()
+            case .pressed:
+                state.nowPressedButton?.onReleased()
+            case .longPressed:
+                state.nowPressedButton?.onLongPressedReleased()
+            case .drag:
+                state.nowPressedButton?.onReleased()
             default:
                 break
             }
@@ -216,39 +216,39 @@ struct NaratgeulButton: View {
         
         if isOnPressingAvailable {
             state.nowPressedButton = self
-            onPressing()
+            onPressed()
         }
     }
     
-    private func gestureLongPressing() {
-        if nowGesture == .pressing {
-            onLongPressing()
+    private func gestureLongPressed() {
+        if nowGesture == .pressed {
+            onLongPressed()
         }
     }
     
-    private func gestureDragging(DragGestureValue: DragGesture.Value) {
-        if nowGesture == .pressing || nowGesture == .dragging {
-            onDragging(DragGestureValue: DragGestureValue)
+    private func gestureDrag(DragGestureValue: DragGesture.Value) {
+        if nowGesture == .pressed || nowGesture == .drag {
+            onDrag(DragGestureValue: DragGestureValue)
         }
     }
     
-    private func gestureLongPressedDragging(DragGestureValue: DragGesture.Value) {
-        if nowGesture == .longPressing || nowGesture == .longPressedDragging {
-            onLongPressedDragging(DragGestureValue: DragGestureValue)
+    private func gestureLongPressedDrag(DragGestureValue: DragGesture.Value) {
+        if nowGesture == .longPressed || nowGesture == .longPressedDrag {
+            onLongPressedDrag(DragGestureValue: DragGestureValue)
         }
     }
     
-    private func gestureReleasing() {
-        if nowGesture == .longPressing || nowGesture == .longPressedDragging {
-            onLongPressReleased()
+    private func gestureReleased() {
+        if nowGesture == .longPressed || nowGesture == .longPressedDrag {
+            onLongPressedReleased()
         } else if nowGesture != .released {
-            onReleasing()
+            onReleased()
         }
     }
     
     // MARK: - Gesture UI Interaction Methods
-    private func checkPressing() -> Bool {
-        return nowGesture == .pressing || nowGesture == .longPressing || nowGesture == .longPressedDragging ? true : false
+    private func checkPressed() -> Bool {
+        return nowGesture == .pressed || nowGesture == .longPressed || nowGesture == .longPressedDrag ? true : false
     }
     
     private func checkDraggingInsideButton(DragGestureValue: DragGesture.Value) -> Bool {
@@ -299,7 +299,7 @@ struct NaratgeulButton: View {
         }
     }
     
-    private func selectingOneHandType(DragGestureValue: DragGesture.Value) {
+    private func selectOneHandType(DragGestureValue: DragGesture.Value) {
         if text == "!#1" || text == "한글" {  // 자판 전환 버튼
             let dragXLocation = DragGestureValue.location.x
             let dragYLocation = DragGestureValue.location.y
@@ -327,7 +327,7 @@ struct NaratgeulButton: View {
         }
     }
     
-    private func selectingInputType(DragGestureValue: DragGesture.Value) {
+    private func selectInputType(DragGestureValue: DragGesture.Value) {
         let dragXLocation = DragGestureValue.location.x
         
         if state.currentInputType == .hangeul {
@@ -370,28 +370,28 @@ struct NaratgeulButton: View {
                             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
                             .font(.system(size: imageSize))
                             .foregroundStyle(Color(uiColor: UIColor.label))
-                            .background(checkPressing() ? Color("PrimaryKeyboardButton") : Color("SecondaryKeyboardButton"))
+                            .background(checkPressed() ? Color("PrimaryKeyboardButton") : Color("SecondaryKeyboardButton"))
                             .clipShape(.rect(cornerRadius: 5))
                     } else if state.returnButtonType == .continue || state.returnButtonType == .next {
                         Text(state.returnButtonType.rawValue)
                             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
                             .font(.system(size: textSize))
                             .foregroundStyle(Color(uiColor: UIColor.label))
-                            .background(checkPressing() ? Color("PrimaryKeyboardButton") : Color("SecondaryKeyboardButton"))
+                            .background(checkPressed() ? Color("PrimaryKeyboardButton") : Color("SecondaryKeyboardButton"))
                             .clipShape(.rect(cornerRadius: 5))
                     } else if state.returnButtonType == .go || state.returnButtonType == .send {
                         Text(state.returnButtonType.rawValue)
                             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
                             .font(.system(size: textSize))
-                            .foregroundStyle(checkPressing() ? Color(uiColor: UIColor.label) : Color.white)
-                            .background(checkPressing() ? Color("PrimaryKeyboardButton") : Color(.tintColor))
+                            .foregroundStyle(checkPressed() ? Color(uiColor: UIColor.label) : Color.white)
+                            .background(checkPressed() ? Color("PrimaryKeyboardButton") : Color(.tintColor))
                             .clipShape(.rect(cornerRadius: 5))
                     } else {
                         Text(state.returnButtonType.rawValue)
                             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
                             .font(.system(size: textSize))
-                            .foregroundStyle(checkPressing() ? Color(uiColor: UIColor.label) : Color.white)
-                            .background(checkPressing() ? Color("PrimaryKeyboardButton") : Color(.tintColor))
+                            .foregroundStyle(checkPressed() ? Color(uiColor: UIColor.label) : Color.white)
+                            .background(checkPressed() ? Color("PrimaryKeyboardButton") : Color(.tintColor))
                             .clipShape(.rect(cornerRadius: 5))
                     }
                     
@@ -401,27 +401,26 @@ struct NaratgeulButton: View {
                         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
                         .font(.system(size: imageSize))
                         .foregroundStyle(Color(uiColor: UIColor.label))
-                        .background(checkPressing() ? Color("SecondaryKeyboardButton") : Color("PrimaryKeyboardButton") )
+                        .background(checkPressed() ? Color("SecondaryKeyboardButton") : Color("PrimaryKeyboardButton") )
                         .clipShape(.rect(cornerRadius: 5))
                     
-                    
                 } else if systemName == "delete.left" {  // 삭제 버튼
-                    Image(systemName: checkPressing() ? "delete.left.fill" : "delete.left")
+                    Image(systemName: checkPressed() ? "delete.left.fill" : "delete.left")
                         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
                         .font(.system(size: imageSize))
                         .foregroundStyle(Color(uiColor: UIColor.label))
-                        .background(checkPressing() ? Color("PrimaryKeyboardButton") : Color("SecondaryKeyboardButton"))
+                        .background(checkPressed() ? Color("PrimaryKeyboardButton") : Color("SecondaryKeyboardButton"))
                         .clipShape(.rect(cornerRadius: 5))
-                    
                     
                 } else {
                     Image(systemName: systemName!)  // 그 외 버튼
                         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
                         .font(.system(size: imageSize))
                         .foregroundStyle(Color(uiColor: UIColor.label))
-                        .background(checkPressing() ? Color("PrimaryKeyboardButton") : Color("SecondaryKeyboardButton") )
+                        .background(checkPressed() ? Color("PrimaryKeyboardButton") : Color("SecondaryKeyboardButton") )
                         .clipShape(.rect(cornerRadius: 5))
                 }
+                
                 
                 // Text 버튼들
             } else if text != nil {
@@ -431,7 +430,7 @@ struct NaratgeulButton: View {
                         .monospaced()
                         .font(.system(size: state.needsInputModeSwitchKey ? textSize - 2 : textSize))
                         .foregroundStyle(Color(uiColor: UIColor.label))
-                        .background(checkPressing() || state.isSelectingOneHandType || state.isSelectingInputType ? Color("PrimaryKeyboardButton") : Color("SecondaryKeyboardButton"))
+                        .background(checkPressed() || state.isSelectingOneHandType || state.isSelectingInputType ? Color("PrimaryKeyboardButton") : Color("SecondaryKeyboardButton"))
                         .clipShape(.rect(cornerRadius: 5))
                         .overlay(alignment: .bottomLeading, content: {
                             HStack(spacing: 1) {
@@ -465,7 +464,7 @@ struct NaratgeulButton: View {
                             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
                             .font(.system(size: state.needsInputModeSwitchKey ? textSize - 2 : textSize))
                             .foregroundStyle(Color(uiColor: UIColor.label))
-                            .background(checkPressing() || state.isSelectingOneHandType || state.isSelectingInputType ? Color("PrimaryKeyboardButton") : Color("SecondaryKeyboardButton"))
+                            .background(checkPressed() || state.isSelectingOneHandType || state.isSelectingInputType ? Color("PrimaryKeyboardButton") : Color("SecondaryKeyboardButton"))
                             .clipShape(.rect(cornerRadius: 5))
                             .overlay(alignment: .bottomTrailing, content: {
                                 HStack(spacing: 1) {
@@ -498,7 +497,7 @@ struct NaratgeulButton: View {
                             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
                             .font(.system(size: state.needsInputModeSwitchKey ? textSize - 2 : textSize))
                             .foregroundStyle(Color(uiColor: UIColor.label))
-                            .background(checkPressing() || state.isSelectingOneHandType || state.isSelectingInputType ? Color("PrimaryKeyboardButton") : Color("SecondaryKeyboardButton"))
+                            .background(checkPressed() || state.isSelectingOneHandType || state.isSelectingInputType ? Color("PrimaryKeyboardButton") : Color("SecondaryKeyboardButton"))
                             .clipShape(.rect(cornerRadius: 5))
                             .overlay(alignment: .bottomLeading, content: {
                                 HStack(spacing: 1) {
@@ -539,7 +538,7 @@ struct NaratgeulButton: View {
                         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
                         .font(.system(size: textSize))
                         .foregroundStyle(Color(uiColor: UIColor.label))
-                        .background(checkPressing() ? Color("SecondaryKeyboardButton") : Color("PrimaryKeyboardButton"))
+                        .background(checkPressed() ? Color("SecondaryKeyboardButton") : Color("PrimaryKeyboardButton"))
                         .clipShape(.rect(cornerRadius: 5))
                     
                 } else if text == "@_twitter" {
@@ -547,7 +546,7 @@ struct NaratgeulButton: View {
                         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
                         .font(.system(size: textSize))
                         .foregroundStyle(Color(uiColor: UIColor.label))
-                        .background(checkPressing() ? Color("PrimaryKeyboardButton") : Color("SecondaryKeyboardButton"))
+                        .background(checkPressed() ? Color("PrimaryKeyboardButton") : Color("SecondaryKeyboardButton"))
                         .clipShape(.rect(cornerRadius: 5))
                     
                 } else if text == "#_twitter" {
@@ -555,15 +554,17 @@ struct NaratgeulButton: View {
                         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
                         .font(.system(size: textSize))
                         .foregroundStyle(Color(uiColor: UIColor.label))
-                        .background(checkPressing() ? Color("PrimaryKeyboardButton") : Color("SecondaryKeyboardButton"))
+                        .background(checkPressed() ? Color("PrimaryKeyboardButton") : Color("SecondaryKeyboardButton"))
                         .clipShape(.rect(cornerRadius: 5))
                     
+                    
+                    // 글자 자판
                 } else {
                     Text(text!)
                         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
                         .font(.system(size: keyTextSize))
                         .foregroundStyle(Color(uiColor: UIColor.label))
-                        .background(checkPressing() ? Color("SecondaryKeyboardButton") : Color("PrimaryKeyboardButton"))
+                        .background(checkPressed() ? Color("SecondaryKeyboardButton") : Color("PrimaryKeyboardButton"))
                         .clipShape(.rect(cornerRadius: 5))
                 }
             }
@@ -583,7 +584,7 @@ struct NaratgeulButton: View {
                 .onEnded({ _ in
                     // 버튼 눌렀을 때
                     os_log("NaratgeulButton) LongPressGesture() onEnded: pressing", log: log, type: .debug)
-                    gesturePressing()
+                    gesturePressed()
                 })
         )
         .simultaneousGesture(
@@ -591,7 +592,7 @@ struct NaratgeulButton: View {
             // 버튼 길게 눌렀을 때
                 .onEnded({ _ in
                     os_log("NaratgeulButton) simultaneously_LongPressGesture() onEnded: longPressing", log: log, type: .debug)
-                    gestureLongPressing()
+                    gestureLongPressed()
                 })
                 .sequenced(before: DragGesture(minimumDistance: 10, coordinateSpace: .global))
             // 버튼 길게 누르고 드래그시 호출
@@ -602,7 +603,7 @@ struct NaratgeulButton: View {
                     case .second(_, let dragValue):
                         if let value = dragValue {
                             os_log("NaratgeulButton) LongPressGesture()->DragGesture() onChanged: longPressedDragging", log: log, type: .debug)
-                            gestureLongPressedDragging(DragGestureValue: value)
+                            gestureLongPressedDrag(DragGestureValue: value)
                         }
                     }
                 })
@@ -610,12 +611,12 @@ struct NaratgeulButton: View {
                              // 버튼 드래그 할 때
                     .onChanged({ value in
                         os_log("NaratgeulButton) exclusively_DragGesture() onChanged: dragging", log: log, type: .debug)
-                        gestureDragging(DragGestureValue: value)
+                        gestureDrag(DragGestureValue: value)
                     })
                              // 버튼 드래그 한 뒤 뗐을 때
                     .onEnded({ _ in
                         os_log("NaratgeulButton) exclusively_DragGesture() onEnded: dragging", log: log, type: .debug)
-                        gestureReleasing()
+                        gestureReleased()
                     })
                             )
         )
@@ -624,7 +625,7 @@ struct NaratgeulButton: View {
             // 버튼 뗐을 때
                 .onEnded({ _ in
                     os_log("NaratgeulButton) DragGesture() onEnded: released", log: log, type: .debug)
-                    gestureReleasing()
+                    gestureReleased()
                 })
         )
     }

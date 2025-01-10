@@ -9,7 +9,7 @@ import SwiftUI
 
 struct KeyboardHeightSettingsView: View {
     @Environment(\.dismiss) private var dismiss
-    @EnvironmentObject var state: PreviewNaratgeulState
+    @EnvironmentObject private var state: PreviewNaratgeulState
     @AppStorage("keyboardHeight", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var keyboardHeight = GlobalValues.defaultKeyboardHeight
     @AppStorage("oneHandWidth", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var oneHandWidth = GlobalValues.defaultOneHandWidth
     @State private var tempKeyboardHeight: Double = GlobalValues.defaultKeyboardHeight
@@ -56,11 +56,7 @@ struct KeyboardHeightSettingsView: View {
         NavigationStack {
             keyboardHeightSettings
             
-            if #available(iOS 18, *) {
-                iOS18_PreviewHangeulView(keyboardHeight: $tempKeyboardHeight, oneHandWidth: $oneHandWidth)
-            } else {
-                PreviewHangeulView(keyboardHeight: $tempKeyboardHeight, oneHandWidth: $oneHandWidth)
-            }
+            PreviewHangeulView(keyboardHeight: $tempKeyboardHeight, oneHandWidth: $oneHandWidth)
         }.onAppear {
             tempKeyboardHeight = keyboardHeight
             state.currentOneHandType = .center

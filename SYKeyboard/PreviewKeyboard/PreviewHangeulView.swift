@@ -1,26 +1,28 @@
 //
-//  iOS18_PreviewHangeulView.swift
+//  PreviewHangeulView.swift
 //  SYKeyboard
 //
-//  Created by 서동환 on 9/23/24.
+//  Created by 서동환 on 9/16/24.
 //
 
 import SwiftUI
 import Combine
 
-struct iOS18_PreviewHangeulView: View {
+struct PreviewHangeulView: View {
     @EnvironmentObject var state: PreviewNaratgeulState
     @AppStorage("isOneHandTypeEnabled", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var isOneHandTypeEnabled = true
     @AppStorage("repeatTimerSpeed", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var repeatTimerSpeed = GlobalValues.defaultRepeatTimerSpeed
     @AppStorage("needsInputModeSwitchKey", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var needsInputModeSwitchKey = true
+    
     @Binding var keyboardHeight: Double
     @Binding var oneHandWidth: Double
-    @State var timer: AnyCancellable?
     
-    let vPadding: CGFloat = 4
-    let interItemVPadding: CGFloat = 2
-    let hPadding: CGFloat = 4
-    let interItemHPadding: CGFloat = 2.5
+    @State private var timer: AnyCancellable?
+    
+    private let vPadding: CGFloat = 4
+    private let interItemVPadding: CGFloat = 2
+    private let hPadding: CGFloat = 4
+    private let interItemHPadding: CGFloat = 2.5
     
     var body: some View {
         let repeatTimerCycle = 0.10 - repeatTimerSpeed
@@ -28,7 +30,7 @@ struct iOS18_PreviewHangeulView: View {
         VStack(spacing: 0) {
             // MARK: - ㄱ, ㄴ, ㅏㅓ, 􀆛
             HStack(spacing: 0) {
-                iOS18_PreviewNaratgeulButton(
+                PreviewNaratgeulButton(
                     text: "ㄱ", primary: true,
                     onPress: {
                         Feedback.shared.playTypingSound()
@@ -48,9 +50,8 @@ struct iOS18_PreviewHangeulView: View {
                         timer?.cancel()
                     })
                 .padding(EdgeInsets(top: vPadding, leading: hPadding, bottom: interItemVPadding, trailing: interItemHPadding))
-                .contentShape(Rectangle())
                 
-                iOS18_PreviewNaratgeulButton(
+                PreviewNaratgeulButton(
                     text: "ㄴ", primary: true,
                     onPress: {
                         Feedback.shared.playTypingSound()
@@ -72,7 +73,7 @@ struct iOS18_PreviewHangeulView: View {
                 .padding(EdgeInsets(top: vPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                 .contentShape(Rectangle())
                 
-                iOS18_PreviewNaratgeulButton(
+                PreviewNaratgeulButton(
                     text: "ㅏㅓ", primary: true,
                     onPress: {
                         Feedback.shared.playTypingSound()
@@ -94,7 +95,7 @@ struct iOS18_PreviewHangeulView: View {
                 .padding(EdgeInsets(top: vPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                 .contentShape(Rectangle())
                 
-                iOS18_PreviewNaratgeulButton(
+                PreviewNaratgeulButton(
                     systemName: "delete.left", primary: false,
                     onPress: {
                         Feedback.shared.playDeleteSound()
@@ -118,7 +119,7 @@ struct iOS18_PreviewHangeulView: View {
             
             // MARK: - ㄹ, ㅁ, ㅗㅜ, 􁁺
             HStack(spacing: 0) {
-                iOS18_PreviewNaratgeulButton(
+                PreviewNaratgeulButton(
                     text: "ㄹ", primary: true,
                     onPress: {
                         Feedback.shared.playTypingSound()
@@ -140,7 +141,7 @@ struct iOS18_PreviewHangeulView: View {
                 .padding(EdgeInsets(top: interItemVPadding, leading: hPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                 .contentShape(Rectangle())
                 
-                iOS18_PreviewNaratgeulButton(
+                PreviewNaratgeulButton(
                     text: "ㅁ", primary: true,
                     onPress: {
                         Feedback.shared.playTypingSound()
@@ -162,7 +163,7 @@ struct iOS18_PreviewHangeulView: View {
                 .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                 .contentShape(Rectangle())
                 
-                iOS18_PreviewNaratgeulButton(
+                PreviewNaratgeulButton(
                     text: "ㅗㅜ", primary: true,
                     onPress: {
                         Feedback.shared.playTypingSound()
@@ -184,7 +185,7 @@ struct iOS18_PreviewHangeulView: View {
                 .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                 .contentShape(Rectangle())
                 
-                iOS18_PreviewNaratgeulButton(
+                PreviewNaratgeulButton(
                     systemName: "space", primary: true,
                     onPress: {
                         Feedback.shared.playModifierSound()
@@ -209,7 +210,7 @@ struct iOS18_PreviewHangeulView: View {
             
             // MARK: - ㅅ, ㅇ, ㅣ, 􁂆
             HStack(spacing: 0) {
-                iOS18_PreviewNaratgeulButton(
+                PreviewNaratgeulButton(
                     text: "ㅅ", primary: true,
                     onPress: {
                         Feedback.shared.playTypingSound()
@@ -231,7 +232,7 @@ struct iOS18_PreviewHangeulView: View {
                 .padding(EdgeInsets(top: interItemVPadding, leading: hPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                 .contentShape(Rectangle())
                 
-                iOS18_PreviewNaratgeulButton(
+                PreviewNaratgeulButton(
                     text: "ㅇ", primary: true,
                     onPress: {
                         Feedback.shared.playTypingSound()
@@ -253,7 +254,7 @@ struct iOS18_PreviewHangeulView: View {
                 .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                 .contentShape(Rectangle())
                 
-                iOS18_PreviewNaratgeulButton(
+                PreviewNaratgeulButton(
                     text: "ㅣ", primary: true,
                     onPress: {
                         Feedback.shared.playTypingSound()
@@ -275,7 +276,7 @@ struct iOS18_PreviewHangeulView: View {
                 .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                 .contentShape(Rectangle())
                 
-                iOS18_PreviewNaratgeulButton(
+                PreviewNaratgeulButton(
                     systemName: "return.left", primary: false,
                     onPress: {
                         Feedback.shared.playModifierSound()
@@ -287,7 +288,7 @@ struct iOS18_PreviewHangeulView: View {
             
             // MARK: - 획, ㅡ, 쌍, (!#1, 􀆪)
             HStack(spacing: 0) {
-                iOS18_PreviewNaratgeulButton(
+                PreviewNaratgeulButton(
                     text: "획", primary: true,
                     onPress: {
                         Feedback.shared.playTypingSound()
@@ -309,7 +310,7 @@ struct iOS18_PreviewHangeulView: View {
                 .padding(EdgeInsets(top: interItemVPadding, leading: hPadding, bottom: vPadding, trailing: interItemHPadding))
                 .contentShape(Rectangle())
                 
-                iOS18_PreviewNaratgeulButton(
+                PreviewNaratgeulButton(
                     text: "ㅡ", primary: true,
                     onPress: {
                         Feedback.shared.playTypingSound()
@@ -331,7 +332,7 @@ struct iOS18_PreviewHangeulView: View {
                 .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: vPadding, trailing: interItemHPadding))
                 .contentShape(Rectangle())
                 
-                iOS18_PreviewNaratgeulButton(
+                PreviewNaratgeulButton(
                     text: "쌍", primary: true,
                     onPress: {
                         Feedback.shared.playTypingSound()
@@ -355,7 +356,7 @@ struct iOS18_PreviewHangeulView: View {
                 
                 if needsInputModeSwitchKey {
                     HStack(spacing: 0) {
-                        iOS18_PreviewNaratgeulButton(
+                        PreviewNaratgeulButton(
                             text: "!#1", primary: false,
                             onPress: {
                                 Feedback.shared.playModifierSound()
@@ -364,7 +365,7 @@ struct iOS18_PreviewHangeulView: View {
                         .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: vPadding, trailing: interItemHPadding))
                         .contentShape(Rectangle())
                         
-                        iOS18_PreviewNaratgeulButton(
+                        PreviewNaratgeulButton(
                             systemName: "globe", primary: false,
                             onPress: {
                                 Feedback.shared.playModifierSound()
@@ -375,7 +376,7 @@ struct iOS18_PreviewHangeulView: View {
                         .contentShape(Rectangle())
                     }
                 } else {
-                    iOS18_PreviewNaratgeulButton(
+                    PreviewNaratgeulButton(
                         text: "!#1", primary: false,
                         onPress: {
                             Feedback.shared.playModifierSound()

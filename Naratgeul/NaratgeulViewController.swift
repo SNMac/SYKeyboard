@@ -18,7 +18,6 @@ class NaratgeulViewController: UIInputViewController {
     private var userLexicon: UILexicon?
     private var textReplacementHistory: [String] = []
     
-    
     // MARK: - LifeCycle
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -231,7 +230,7 @@ class NaratgeulViewController: UIInputViewController {
         let keyboardType = proxy.keyboardType
         switch keyboardType {
         case .default:
-            state?.currentKeyboardType = ._default
+            state?.currentKeyboardType = .default
         case .numbersAndPunctuation:
             state?.currentKeyboardType = .numbersAndPunctuation
             state?.currentInputType = .symbol
@@ -250,7 +249,7 @@ class NaratgeulViewController: UIInputViewController {
             state?.currentKeyboardType = .asciiCapableNumberPad
             state?.currentInputType = .number
         default:
-            state?.currentKeyboardType = ._default
+            state?.currentKeyboardType = .default
         }
     }
     
@@ -280,9 +279,9 @@ class NaratgeulViewController: UIInputViewController {
         case .emergencyCall:
             returnButtonType = .emergencyCall
         case .continue:
-            returnButtonType = .`continue`
+            returnButtonType = .continue
         default:
-            returnButtonType = .`default`
+            returnButtonType = .default
         }
         state?.returnButtonType = returnButtonType
     }
@@ -290,7 +289,7 @@ class NaratgeulViewController: UIInputViewController {
 
 
 // MARK: - Extension
-extension NaratgeulViewController {
+private extension NaratgeulViewController {
     // 텍스트 대치
     func attemptToReplaceCurrentWord() -> Bool {  // 글자 입력할때 호출
         let proxy = textDocumentProxy

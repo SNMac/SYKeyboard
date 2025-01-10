@@ -9,16 +9,16 @@ import SwiftUI
 import Combine
 
 struct EmailSymbolView: View {
-    @EnvironmentObject var state: NaratgeulState
+    @EnvironmentObject private var state: NaratgeulState
     @AppStorage("isOneHandTypeEnabled", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var isOneHandTypeEnabled = true
-    @State var timer: AnyCancellable?
+    @State private var timer: AnyCancellable?
     
-    let vPadding: CGFloat = 4
-    let interItemVPadding: CGFloat = 4.5
-    let hPadding: CGFloat = 4
-    let interItemHPadding: CGFloat = 2.5
+    private let vPadding: CGFloat = 4
+    private let interItemVPadding: CGFloat = 4.5
+    private let hPadding: CGFloat = 4
+    private let interItemHPadding: CGFloat = 2.5
     
-    let symbols = [
+    private let symbols = [
         ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "$", "!", "~", "&", "=", "#", "[", "]", ".", "_", "-", "+"],
         ["`", "|", "{", "}", "?", "%", "^", "*", "/", "’", "$", "!", "~", "&", "=", "#", "[", "]", ".", "_", "-", "+"]
     ]
