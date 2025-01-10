@@ -106,8 +106,6 @@ struct PreviewNaratgeulButton: View {
     
     // MARK: - Gesture Recognization Methods
     private func gesturePressed() {
-        var isOnPressingAvailable: Bool = true
-        
         if state.nowPressedButton != nil {  // 이미 다른 버튼이 눌려있는 상태
             switch state.nowPressedButton?.nowGesture {
             case .pressed:
@@ -121,10 +119,8 @@ struct PreviewNaratgeulButton: View {
             }
         }
         
-        if isOnPressingAvailable {
-            state.nowPressedButton = self
-            onPressed()
-        }
+        state.nowPressedButton = self
+        onPressed()
     }
     
     private func gestureLongPressed() {
@@ -262,6 +258,8 @@ struct PreviewNaratgeulButton: View {
                             .padding(EdgeInsets(top: 1, leading: 0, bottom: 0, trailing: 1))
                         })
                     
+                    
+                    // 글자 버튼
                 } else {
                     Text(text!)
                         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)

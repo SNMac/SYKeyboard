@@ -558,7 +558,7 @@ struct NaratgeulButton: View {
                         .clipShape(.rect(cornerRadius: 5))
                     
                     
-                    // 글자 자판
+                    // 글자 버튼
                 } else {
                     Text(text!)
                         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)

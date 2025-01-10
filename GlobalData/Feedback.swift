@@ -10,7 +10,7 @@
 import AVFoundation
 import UIKit
 
-final class Feedback: Sendable {
+final class Feedback {
     static let shared = Feedback()
     private init() {}
     
@@ -24,20 +24,17 @@ final class Feedback: Sendable {
         return defaults?.bool(forKey: "isHapticFeedbackEnabled") ?? true
     }
     
-    @MainActor
     func prepareHaptic() {
         let generator = UIImpactFeedbackGenerator(style: .light)
         generator.prepare()
     }
         
-    @MainActor
     func playHapticByForce(style: UIImpactFeedbackGenerator.FeedbackStyle) {
         let generator = UIImpactFeedbackGenerator(style: style)
         generator.impactOccurred()
         generator.prepare()
     }
     
-    @MainActor
     func playHaptic(style: UIImpactFeedbackGenerator.FeedbackStyle) {
         if !haptic { return }
         let generator = UIImpactFeedbackGenerator(style: style)

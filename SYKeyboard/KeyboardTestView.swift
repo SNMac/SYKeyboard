@@ -15,7 +15,7 @@ struct KeyboardTestView: View {
             .padding(EdgeInsets(top: 5, leading: 10, bottom: 5, trailing: 10))
             .background(Color(UIColor.systemGray6).clipShape(RoundedRectangle(cornerRadius: 8)))
             .padding(EdgeInsets(top: 0, leading: 20, bottom: 0, trailing: 20))
-            .frame(height: 30)
+            .frame(height: 36)
     }
 }
 
