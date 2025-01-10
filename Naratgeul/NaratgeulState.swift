@@ -32,13 +32,13 @@ enum KeyboardType {
 }
 
 enum ReturnButtonType: String {
-    case _default = "return.left"
+    case `default` = "return.left"
     case go = "이동"
     case join = "연결"
     case next = "다음"
     case route = "경로"
     case send = "전송"
-    case _continue = "계속"
+    case `continue` = "계속"
     case search = "검색"
     case done = "완료"
     case emergencyCall = "긴급통화"
@@ -54,7 +54,7 @@ final class NaratgeulState: ObservableObject {
     @Published var selectedOneHandType: OneHandType?
     
     @Published var currentKeyboardType: KeyboardType = ._default
-    @Published var returnButtonType: ReturnButtonType = ._default
+    @Published var returnButtonType: ReturnButtonType = .`default`
 
     @Published var nowSymbolPage: Int = 0
     @Published var totalSymbolPage: Int = 0
@@ -62,7 +62,6 @@ final class NaratgeulState: ObservableObject {
     @Published var isHoegSsangAvailable: Bool = false
     
     var nowPressedButton: NaratgeulButton?
-    var ios18_nowPressedButton: iOS18_NaratgeulButton?
     
     weak var delegate: NaratgeulDelegate?
     var keyboardHeight: CGFloat

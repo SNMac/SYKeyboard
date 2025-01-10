@@ -1,14 +1,14 @@
 //
-//  iOS18_HangeulView.swift
+//  HangeulView.swift
 //  Naratgeul
 //
-//  Created by 서동환 on 9/23/24.
+//  Created by 서동환 on 7/29/24.
 //
 
 import SwiftUI
 import Combine
 
-struct iOS18_HangeulView: View {
+struct HangeulView: View {
     @EnvironmentObject var state: NaratgeulState
     @AppStorage("isOneHandTypeEnabled", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var isOneHandTypeEnabled = true
     @State var timer: AnyCancellable?
@@ -22,7 +22,7 @@ struct iOS18_HangeulView: View {
         VStack(spacing: 0) {
             // MARK: - ㄱ, ㄴ, ㅏㅓ, 􀆛
             HStack(spacing: 0) {
-                iOS18_NaratgeulButton(
+                NaratgeulButton(
                     text: "ㄱ", primary: true,
                     onPress: {
                         Feedback.shared.playTypingSound()
@@ -49,7 +49,7 @@ struct iOS18_HangeulView: View {
                 .padding(EdgeInsets(top: vPadding, leading: hPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                 .contentShape(Rectangle())
                 
-                iOS18_NaratgeulButton(
+                NaratgeulButton(
                     text: "ㄴ", primary: true,
                     onPress: {
                         Feedback.shared.playTypingSound()
@@ -76,7 +76,7 @@ struct iOS18_HangeulView: View {
                 .padding(EdgeInsets(top: vPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                 .contentShape(Rectangle())
                 
-                iOS18_NaratgeulButton(
+                NaratgeulButton(
                     text: "ㅏㅓ", primary: true,
                     onPress: {
                         Feedback.shared.playTypingSound()
@@ -103,7 +103,7 @@ struct iOS18_HangeulView: View {
                 .padding(EdgeInsets(top: vPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                 .contentShape(Rectangle())
                 
-                iOS18_NaratgeulButton(
+                NaratgeulButton(
                     systemName: "delete.left", primary: false,
                     onPress: {
                         Feedback.shared.playDeleteSound()
@@ -129,9 +129,10 @@ struct iOS18_HangeulView: View {
                 .contentShape(Rectangle())
             }
             
+            
             // MARK: - ㄹ, ㅁ, ㅗㅜ, 􁁺
             HStack(spacing: 0) {
-                iOS18_NaratgeulButton(
+                NaratgeulButton(
                     text: "ㄹ", primary: true,
                     onPress: {
                         Feedback.shared.playTypingSound()
@@ -158,7 +159,7 @@ struct iOS18_HangeulView: View {
                 .padding(EdgeInsets(top: interItemVPadding, leading: hPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                 .contentShape(Rectangle())
                 
-                iOS18_NaratgeulButton(
+                NaratgeulButton(
                     text: "ㅁ", primary: true,
                     onPress: {
                         Feedback.shared.playTypingSound()
@@ -185,7 +186,7 @@ struct iOS18_HangeulView: View {
                 .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                 .contentShape(Rectangle())
                 
-                iOS18_NaratgeulButton(
+                NaratgeulButton(
                     text: "ㅗㅜ", primary: true,
                     onPress: {
                         Feedback.shared.playTypingSound()
@@ -212,7 +213,7 @@ struct iOS18_HangeulView: View {
                 .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                 .contentShape(Rectangle())
                 
-                iOS18_NaratgeulButton(
+                NaratgeulButton(
                     systemName: "space", primary: true,
                     onPress: {
                         Feedback.shared.playModifierSound()
@@ -242,7 +243,7 @@ struct iOS18_HangeulView: View {
             
             // MARK: - ㅅ, ㅇ, ㅣ, 􁂆
             HStack(spacing: 0) {
-                iOS18_NaratgeulButton(
+                NaratgeulButton(
                     text: "ㅅ", primary: true,
                     onPress: {
                         Feedback.shared.playTypingSound()
@@ -269,7 +270,7 @@ struct iOS18_HangeulView: View {
                 .padding(EdgeInsets(top: interItemVPadding, leading: hPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                 .contentShape(Rectangle())
                 
-                iOS18_NaratgeulButton(
+                NaratgeulButton(
                     text: "ㅇ", primary: true,
                     onPress: {
                         Feedback.shared.playTypingSound()
@@ -296,7 +297,7 @@ struct iOS18_HangeulView: View {
                 .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                 .contentShape(Rectangle())
                 
-                iOS18_NaratgeulButton(
+                NaratgeulButton(
                     text: "ㅣ", primary: true,
                     onPress: {
                         Feedback.shared.playTypingSound()
@@ -325,7 +326,7 @@ struct iOS18_HangeulView: View {
                 
                 if state.currentKeyboardType == .twitter {
                     HStack(spacing: 0) {
-                        iOS18_NaratgeulButton(
+                        NaratgeulButton(
                             text: "@_twitter", primary: true,
                             onPress: {
                                 Feedback.shared.playModifierSound()
@@ -333,14 +334,11 @@ struct iOS18_HangeulView: View {
                             },
                             onRelease: {
                                 state.delegate?.otherKeypadTap(letter: "@")
-                            },
-                            onLongPressRelease: {
-                                state.delegate?.otherKeypadTap(letter: "@")
                             })
                         .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                         .contentShape(Rectangle())
                         
-                        iOS18_NaratgeulButton(
+                        NaratgeulButton(
                             text: "#_twitter", primary: true,
                             onPress: {
                                 Feedback.shared.playModifierSound()
@@ -348,24 +346,18 @@ struct iOS18_HangeulView: View {
                             },
                             onRelease: {
                                 state.delegate?.otherKeypadTap(letter: "#")
-                            },
-                            onLongPressRelease: {
-                                state.delegate?.otherKeypadTap(letter: "#")
                             })
                         .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: hPadding))
                         .contentShape(Rectangle())
                     }
                 } else {
-                    iOS18_NaratgeulButton(
+                    NaratgeulButton(
                         systemName: "return.left", primary: false,
                         onPress: {
                             Feedback.shared.playModifierSound()
                             Feedback.shared.playHaptic(style: .light)
                         },
                         onRelease: {
-                            state.delegate?.enterKeypadTap()
-                        },
-                        onLongPressRelease: {
                             state.delegate?.enterKeypadTap()
                         })
                     .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: hPadding))
@@ -375,7 +367,7 @@ struct iOS18_HangeulView: View {
             
             // MARK: - 획, ㅡ, 쌍, (!#1, 􀆪)
             HStack(spacing: 0) {
-                iOS18_NaratgeulButton(
+                NaratgeulButton(
                     text: "획", primary: true,
                     onPress: {
                         Feedback.shared.playTypingSound()
@@ -404,7 +396,7 @@ struct iOS18_HangeulView: View {
                 .padding(EdgeInsets(top: interItemVPadding, leading: hPadding, bottom: vPadding, trailing: interItemHPadding))
                 .contentShape(Rectangle())
                 
-                iOS18_NaratgeulButton(
+                NaratgeulButton(
                     text: "ㅡ", primary: true,
                     onPress: {
                         Feedback.shared.playTypingSound()
@@ -431,7 +423,7 @@ struct iOS18_HangeulView: View {
                 .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: vPadding, trailing: interItemHPadding))
                 .contentShape(Rectangle())
                 
-                iOS18_NaratgeulButton(
+                NaratgeulButton(
                     text: "쌍", primary: true,
                     onPress: {
                         Feedback.shared.playTypingSound()
@@ -462,7 +454,7 @@ struct iOS18_HangeulView: View {
                 
                 if state.needsInputModeSwitchKey {
                     HStack(spacing: 0) {
-                        iOS18_NaratgeulButton(
+                        NaratgeulButton(
                             text: "!#1", primary: false,
                             onPress: {
                                 Feedback.shared.playModifierSound()
@@ -494,7 +486,7 @@ struct iOS18_HangeulView: View {
                         .contentShape(Rectangle())
                     }
                 } else {
-                    iOS18_NaratgeulButton(
+                    NaratgeulButton(
                         text: "!#1", primary: false,
                         onPress: {
                             Feedback.shared.playModifierSound()

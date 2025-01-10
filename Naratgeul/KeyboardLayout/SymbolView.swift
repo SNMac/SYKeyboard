@@ -1,17 +1,19 @@
 //
-//  URLSymbolView.swift
+//  SymbolView.swift
 //  Naratgeul
 //
-//  Created by 서동환 on 9/26/24.
+//  Created by 서동환 on 8/14/24.
 //
 
 import SwiftUI
 import Combine
 
-struct URLSymbolView: View {
+struct SymbolView: View {
     @EnvironmentObject var state: NaratgeulState
+    @AppStorage("isAutoChangeToHangeulEnabled", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var isAutoChangeToHangeulEnabled = true
     @AppStorage("isOneHandTypeEnabled", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var isOneHandTypeEnabled = true
     @State var timer: AnyCancellable?
+    @State var isSymbolInput: Bool = false
     
     let vPadding: CGFloat = 4
     let interItemVPadding: CGFloat = 4.5
@@ -19,14 +21,14 @@ struct URLSymbolView: View {
     let interItemHPadding: CGFloat = 2.5
     
     let symbols = [
-        ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "@", "&", "%", "?", ",", "=", "[", "]", "_", ":", "-", "+"],
-        ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "*", "$", "#", "!", "’", "^", "[", "]", "~", ";", "(", ")"]
+        ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "-", "/", ":", ";", "(", ")", "₩", "&", "@", "“", ".", ",", "?", "!", "’"],
+        ["[", "]", "{", "}", "#", "%", "^", "*", "+", "=", "_", "\\", "|", "~", "<", ">", "$", "£", "¥", "•", ".", ",", "?", "!", "’"]
     ]
     
     var body: some View {
         GeometryReader { geometry in
             VStack(spacing: 0) {
-                // MARK: - 1st row of URL Symbol Keyboard
+                // MARK: - 1st row of Symbol Keyboard
                 HStack(spacing: 0) {
                     NaratgeulButton(
                         text: symbols[state.nowSymbolPage][0], primary: true,
@@ -36,11 +38,13 @@ struct URLSymbolView: View {
                         },
                         onRelease: {
                             state.delegate?.otherKeypadTap(letter: symbols[state.nowSymbolPage][0])
+                            isSymbolInput = true
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
                             state.delegate?.otherKeypadTap(letter: symbols[state.nowSymbolPage][0])
+                            isSymbolInput = true
                             timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
@@ -63,11 +67,13 @@ struct URLSymbolView: View {
                         },
                         onRelease: {
                             state.delegate?.otherKeypadTap(letter: symbols[state.nowSymbolPage][1])
+                            isSymbolInput = true
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
                             state.delegate?.otherKeypadTap(letter: symbols[state.nowSymbolPage][1])
+                            isSymbolInput = true
                             timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
@@ -90,11 +96,13 @@ struct URLSymbolView: View {
                         },
                         onRelease: {
                             state.delegate?.otherKeypadTap(letter: symbols[state.nowSymbolPage][2])
+                            isSymbolInput = true
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
                             state.delegate?.otherKeypadTap(letter: symbols[state.nowSymbolPage][2])
+                            isSymbolInput = true
                             timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
@@ -117,11 +125,13 @@ struct URLSymbolView: View {
                         },
                         onRelease: {
                             state.delegate?.otherKeypadTap(letter: symbols[state.nowSymbolPage][3])
+                            isSymbolInput = true
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
                             state.delegate?.otherKeypadTap(letter: symbols[state.nowSymbolPage][3])
+                            isSymbolInput = true
                             timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
@@ -144,11 +154,13 @@ struct URLSymbolView: View {
                         },
                         onRelease: {
                             state.delegate?.otherKeypadTap(letter: symbols[state.nowSymbolPage][4])
+                            isSymbolInput = true
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
                             state.delegate?.otherKeypadTap(letter: symbols[state.nowSymbolPage][4])
+                            isSymbolInput = true
                             timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
@@ -171,11 +183,13 @@ struct URLSymbolView: View {
                         },
                         onRelease: {
                             state.delegate?.otherKeypadTap(letter: symbols[state.nowSymbolPage][5])
+                            isSymbolInput = true
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
                             state.delegate?.otherKeypadTap(letter: symbols[state.nowSymbolPage][5])
+                            isSymbolInput = true
                             timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
@@ -198,11 +212,13 @@ struct URLSymbolView: View {
                         },
                         onRelease: {
                             state.delegate?.otherKeypadTap(letter: symbols[state.nowSymbolPage][6])
+                            isSymbolInput = true
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
                             state.delegate?.otherKeypadTap(letter: symbols[state.nowSymbolPage][6])
+                            isSymbolInput = true
                             timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
@@ -225,11 +241,13 @@ struct URLSymbolView: View {
                         },
                         onRelease: {
                             state.delegate?.otherKeypadTap(letter: symbols[state.nowSymbolPage][7])
+                            isSymbolInput = true
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
                             state.delegate?.otherKeypadTap(letter: symbols[state.nowSymbolPage][7])
+                            isSymbolInput = true
                             timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
@@ -252,11 +270,13 @@ struct URLSymbolView: View {
                         },
                         onRelease: {
                             state.delegate?.otherKeypadTap(letter: symbols[state.nowSymbolPage][8])
+                            isSymbolInput = true
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
                             state.delegate?.otherKeypadTap(letter: symbols[state.nowSymbolPage][8])
+                            isSymbolInput = true
                             timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
@@ -279,11 +299,13 @@ struct URLSymbolView: View {
                         },
                         onRelease: {
                             state.delegate?.otherKeypadTap(letter: symbols[state.nowSymbolPage][9])
+                            isSymbolInput = true
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
                             state.delegate?.otherKeypadTap(letter: symbols[state.nowSymbolPage][9])
+                            isSymbolInput = true
                             timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
@@ -299,7 +321,7 @@ struct URLSymbolView: View {
                     .contentShape(Rectangle())
                 }
                 
-                // MARK: - 2nd row of URL Symbol Keyboard
+                // MARK: - 2nd row of Symbol Keyboard
                 HStack(spacing: 0) {
                     NaratgeulButton(
                         text: symbols[state.nowSymbolPage][10], primary: true,
@@ -309,11 +331,13 @@ struct URLSymbolView: View {
                         },
                         onRelease: {
                             state.delegate?.otherKeypadTap(letter: symbols[state.nowSymbolPage][10])
+                            isSymbolInput = true
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
                             state.delegate?.otherKeypadTap(letter: symbols[state.nowSymbolPage][10])
+                            isSymbolInput = true
                             timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
@@ -336,11 +360,13 @@ struct URLSymbolView: View {
                         },
                         onRelease: {
                             state.delegate?.otherKeypadTap(letter: symbols[state.nowSymbolPage][11])
+                            isSymbolInput = true
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
                             state.delegate?.otherKeypadTap(letter: symbols[state.nowSymbolPage][11])
+                            isSymbolInput = true
                             timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
@@ -363,11 +389,13 @@ struct URLSymbolView: View {
                         },
                         onRelease: {
                             state.delegate?.otherKeypadTap(letter: symbols[state.nowSymbolPage][12])
+                            isSymbolInput = true
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
                             state.delegate?.otherKeypadTap(letter: symbols[state.nowSymbolPage][12])
+                            isSymbolInput = true
                             timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
@@ -390,11 +418,13 @@ struct URLSymbolView: View {
                         },
                         onRelease: {
                             state.delegate?.otherKeypadTap(letter: symbols[state.nowSymbolPage][13])
+                            isSymbolInput = true
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
                             state.delegate?.otherKeypadTap(letter: symbols[state.nowSymbolPage][13])
+                            isSymbolInput = true
                             timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
@@ -417,11 +447,13 @@ struct URLSymbolView: View {
                         },
                         onRelease: {
                             state.delegate?.otherKeypadTap(letter: symbols[state.nowSymbolPage][14])
+                            isSymbolInput = true
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
                             state.delegate?.otherKeypadTap(letter: symbols[state.nowSymbolPage][14])
+                            isSymbolInput = true
                             timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
@@ -444,11 +476,13 @@ struct URLSymbolView: View {
                         },
                         onRelease: {
                             state.delegate?.otherKeypadTap(letter: symbols[state.nowSymbolPage][15])
+                            isSymbolInput = true
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
                             state.delegate?.otherKeypadTap(letter: symbols[state.nowSymbolPage][15])
+                            isSymbolInput = true
                             timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
@@ -471,11 +505,13 @@ struct URLSymbolView: View {
                         },
                         onRelease: {
                             state.delegate?.otherKeypadTap(letter: symbols[state.nowSymbolPage][16])
+                            isSymbolInput = true
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
                             state.delegate?.otherKeypadTap(letter: symbols[state.nowSymbolPage][16])
+                            isSymbolInput = true
                             timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
@@ -498,11 +534,13 @@ struct URLSymbolView: View {
                         },
                         onRelease: {
                             state.delegate?.otherKeypadTap(letter: symbols[state.nowSymbolPage][17])
+                            isSymbolInput = true
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
                             state.delegate?.otherKeypadTap(letter: symbols[state.nowSymbolPage][17])
+                            isSymbolInput = true
                             timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
@@ -516,19 +554,6 @@ struct URLSymbolView: View {
                         })
                     .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
-                }
-                
-                // MARK: - 3rd row of URL Symbol Keyboard
-                HStack(spacing: 0) {
-                    NaratgeulButton(
-                        text: "\(state.nowSymbolPage + 1)/\(state.totalSymbolPage)", primary: false,
-                        onPress: {
-                            Feedback.shared.playModifierSound()
-                            Feedback.shared.playHaptic(style: .light)
-                            state.nowSymbolPage = (state.nowSymbolPage + 1) % state.totalSymbolPage
-                        })
-                    .padding(EdgeInsets(top: interItemVPadding, leading: hPadding, bottom: interItemVPadding, trailing: interItemHPadding))
-                    .contentShape(Rectangle())
                     
                     NaratgeulButton(
                         text: symbols[state.nowSymbolPage][18], primary: true,
@@ -538,11 +563,13 @@ struct URLSymbolView: View {
                         },
                         onRelease: {
                             state.delegate?.otherKeypadTap(letter: symbols[state.nowSymbolPage][18])
+                            isSymbolInput = true
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
                             state.delegate?.otherKeypadTap(letter: symbols[state.nowSymbolPage][18])
+                            isSymbolInput = true
                             timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
@@ -565,11 +592,13 @@ struct URLSymbolView: View {
                         },
                         onRelease: {
                             state.delegate?.otherKeypadTap(letter: symbols[state.nowSymbolPage][19])
+                            isSymbolInput = true
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
                             state.delegate?.otherKeypadTap(letter: symbols[state.nowSymbolPage][19])
+                            isSymbolInput = true
                             timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
@@ -581,7 +610,20 @@ struct URLSymbolView: View {
                         onLongPressRelease: {
                             timer?.cancel()
                         })
-                    .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
+                    .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: hPadding))
+                    .contentShape(Rectangle())
+                }
+                
+                // MARK: - 3rd row of Symbol Keyboard
+                HStack(spacing: 0) {
+                    NaratgeulButton(
+                        text: "\(state.nowSymbolPage + 1)/\(state.totalSymbolPage)", primary: false,
+                        onPress: {
+                            Feedback.shared.playModifierSound()
+                            Feedback.shared.playHaptic(style: .light)
+                            state.nowSymbolPage = (state.nowSymbolPage + 1) % state.totalSymbolPage
+                        })
+                    .padding(EdgeInsets(top: interItemVPadding, leading: hPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
                     NaratgeulButton(
@@ -619,11 +661,100 @@ struct URLSymbolView: View {
                         },
                         onRelease: {
                             state.delegate?.otherKeypadTap(letter: symbols[state.nowSymbolPage][21])
+                            isSymbolInput = true
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
                             state.delegate?.otherKeypadTap(letter: symbols[state.nowSymbolPage][21])
+                            isSymbolInput = true
+                            timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
+                                .autoconnect()
+                                .sink { _ in
+                                    Feedback.shared.playTypingSound()
+                                    Feedback.shared.playHaptic(style: .light)
+                                    state.delegate?.inputLastSymbol()
+                                }
+                        },
+                        onLongPressRelease: {
+                            timer?.cancel()
+                        })
+                    .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
+                    .contentShape(Rectangle())
+                    
+                    NaratgeulButton(
+                        text: symbols[state.nowSymbolPage][22], primary: true,
+                        onPress: {
+                            Feedback.shared.playTypingSound()
+                            Feedback.shared.playHaptic(style: .light)
+                        },
+                        onRelease: {
+                            state.delegate?.otherKeypadTap(letter: symbols[state.nowSymbolPage][22])
+                            isSymbolInput = true
+                        },
+                        onLongPress: {
+                            Feedback.shared.playTypingSound()
+                            Feedback.shared.playHaptic(style: .light)
+                            state.delegate?.otherKeypadTap(letter: symbols[state.nowSymbolPage][22])
+                            isSymbolInput = true
+                            timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
+                                .autoconnect()
+                                .sink { _ in
+                                    Feedback.shared.playTypingSound()
+                                    Feedback.shared.playHaptic(style: .light)
+                                    state.delegate?.inputLastSymbol()
+                                }
+                        },
+                        onLongPressRelease: {
+                            timer?.cancel()
+                        })
+                    .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
+                    .contentShape(Rectangle())
+                    
+                    NaratgeulButton(
+                        text: symbols[state.nowSymbolPage][23], primary: true,
+                        onPress: {
+                            Feedback.shared.playTypingSound()
+                            Feedback.shared.playHaptic(style: .light)
+                        },
+                        onRelease: {
+                            state.delegate?.otherKeypadTap(letter: symbols[state.nowSymbolPage][23])
+                            isSymbolInput = true
+                        },
+                        onLongPress: {
+                            Feedback.shared.playTypingSound()
+                            Feedback.shared.playHaptic(style: .light)
+                            state.delegate?.otherKeypadTap(letter: symbols[state.nowSymbolPage][23])
+                            isSymbolInput = true
+                            timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
+                                .autoconnect()
+                                .sink { _ in
+                                    Feedback.shared.playTypingSound()
+                                    Feedback.shared.playHaptic(style: .light)
+                                    state.delegate?.inputLastSymbol()
+                                }
+                        },
+                        onLongPressRelease: {
+                            timer?.cancel()
+                        })
+                    .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
+                    .contentShape(Rectangle())
+                    
+                    NaratgeulButton(
+                        text: symbols[state.nowSymbolPage][24], primary: true,
+                        onPress: {
+                            Feedback.shared.playTypingSound()
+                            Feedback.shared.playHaptic(style: .light)
+                        },
+                        onRelease: {
+                            state.delegate?.otherKeypadTap(letter: symbols[state.nowSymbolPage][24])
+                            isSymbolInput = true
+                        },
+                        onLongPress: {
+                            Feedback.shared.playTypingSound()
+                            Feedback.shared.playHaptic(style: .light)
+                            state.delegate?.otherKeypadTap(letter: symbols[state.nowSymbolPage][24])
+                            isSymbolInput = true
                             timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
@@ -664,7 +795,7 @@ struct URLSymbolView: View {
                     .contentShape(Rectangle())
                 }
                 
-                // MARK: - (한글, 􀆪), ., /, .com, 􁂆
+                // MARK: - (한글, 􀆪), 􁁺, 􁂆
                 HStack(spacing: 0) {
                     if state.needsInputModeSwitchKey {
                         HStack(spacing: 0) {
@@ -726,80 +857,37 @@ struct URLSymbolView: View {
                     }
                     
                     NaratgeulButton(
-                        text: ".", primary: true,
+                        systemName: "space", primary: true,
                         onPress: {
-                            Feedback.shared.playTypingSound()
+                            Feedback.shared.playModifierSound()
                             Feedback.shared.playHaptic(style: .light)
                         },
                         onRelease: {
-                            state.delegate?.otherKeypadTap(letter: ".")
+                            state.delegate?.spaceKeypadTap()
+                            if state.currentKeyboardType != .numbersAndPunctuation && isAutoChangeToHangeulEnabled && isSymbolInput {
+                                state.currentInputType = .hangeul
+                            }
                         },
                         onLongPress: {
-                            Feedback.shared.playTypingSound()
+                            Feedback.shared.playModifierSound()
                             Feedback.shared.playHaptic(style: .light)
-                            state.delegate?.otherKeypadTap(letter: ".")
-                            timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
-                                .autoconnect()
-                                .sink { _ in
-                                    Feedback.shared.playTypingSound()
-                                    Feedback.shared.playHaptic(style: .light)
-                                    state.delegate?.inputLastSymbol()
-                                }
+                            state.delegate?.spaceKeypadTap()
+                            if state.currentKeyboardType != .numbersAndPunctuation && isAutoChangeToHangeulEnabled && isSymbolInput {
+                                state.currentInputType = .hangeul
+                            } else {
+                                timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
+                                    .autoconnect()
+                                    .sink { _ in
+                                        Feedback.shared.playModifierSound()
+                                        Feedback.shared.playHaptic(style: .light)
+                                        state.delegate?.spaceKeypadTap()
+                                    }
+                            }
                         },
                         onLongPressRelease: {
                             timer?.cancel()
                         })
-                    .frame(width: geometry.size.width / 2 / 3)
-                    .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: vPadding, trailing: interItemHPadding))
-                    .contentShape(Rectangle())
-                    
-                    NaratgeulButton(
-                        text: "/", primary: true,
-                        onPress: {
-                            Feedback.shared.playTypingSound()
-                            Feedback.shared.playHaptic(style: .light)
-                        },
-                        onRelease: {
-                            state.delegate?.otherKeypadTap(letter: "/")
-                        },
-                        onLongPress: {
-                            Feedback.shared.playTypingSound()
-                            Feedback.shared.playHaptic(style: .light)
-                            state.delegate?.otherKeypadTap(letter: "/")
-                            timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
-                                .autoconnect()
-                                .sink { _ in
-                                    Feedback.shared.playTypingSound()
-                                    Feedback.shared.playHaptic(style: .light)
-                                    state.delegate?.inputLastSymbol()
-                                }
-                        },
-                        onLongPressRelease: {
-                            timer?.cancel()
-                        })
-                    .frame(width: geometry.size.width / 2 / 3)
-                    .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: vPadding, trailing: interItemHPadding))
-                    .contentShape(Rectangle())
-                    
-                    NaratgeulButton(
-                        text: ".com", primary: true,
-                        onPress: {
-                            Feedback.shared.playTypingSound()
-                            Feedback.shared.playHaptic(style: .light)
-                        },
-                        onRelease: {
-                            state.delegate?.otherKeypadTap(letter: ".")
-                            state.delegate?.otherKeypadTap(letter: "c")
-                            state.delegate?.otherKeypadTap(letter: "o")
-                            state.delegate?.otherKeypadTap(letter: "m")
-                        },
-                        onLongPressRelease: {
-                            state.delegate?.otherKeypadTap(letter: ".")
-                            state.delegate?.otherKeypadTap(letter: "c")
-                            state.delegate?.otherKeypadTap(letter: "o")
-                            state.delegate?.otherKeypadTap(letter: "m")
-                        })
-                    .frame(width: geometry.size.width / 2 / 3)
+                    .frame(width: geometry.size.width / 2)
                     .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: vPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
@@ -811,9 +899,9 @@ struct URLSymbolView: View {
                         },
                         onRelease: {
                             state.delegate?.enterKeypadTap()
-                        },
-                        onLongPressRelease: {
-                            state.delegate?.enterKeypadTap()
+                            if state.currentKeyboardType != .numbersAndPunctuation && isAutoChangeToHangeulEnabled && isSymbolInput {
+                                state.currentInputType = .hangeul
+                            }
                         })
                     .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: vPadding, trailing: hPadding))
                     .contentShape(Rectangle())

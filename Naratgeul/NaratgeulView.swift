@@ -20,30 +20,6 @@ struct NaratgeulView: View {
                 ChevronButton(isLeftHandMode: false)
             }
             ZStack(alignment: state.currentInputType == .symbol ? .leading : .trailing) {
-                if #available(iOS 18, *) {
-                    switch state.currentInputType {
-                    case .hangeul:
-                        iOS18_HangeulView()
-                    case .symbol:
-                        if state.currentKeyboardType == .URL {
-                            iOS18_URLSymbolView()
-                        } else if state.currentKeyboardType == .emailAddress {
-                            iOS18_EmailSymbolView()
-                        } else if state.currentKeyboardType == .webSearch {
-                            iOS18_WebSearchSymbolView()
-                        } else {
-                            iOS18_SymbolView()
-                        }
-                    case .number:
-                        if state.currentKeyboardType == .numberPad {
-                            iOS18_NumberPadView()
-                        } else if state.currentKeyboardType == .asciiCapableNumberPad {
-                            iOS18_NumberPadView()
-                        } else {
-                            iOS18_NumberView()
-                        }
-                    }
-                } else {
                     switch state.currentInputType {
                     case .hangeul:
                         HangeulView()
@@ -66,7 +42,6 @@ struct NaratgeulView: View {
                             NumberView()
                         }
                     }
-                }
                 
                 if state.isSelectingInputType {
                     InputTypeSelectOverlayView()

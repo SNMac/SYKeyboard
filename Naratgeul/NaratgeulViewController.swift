@@ -280,9 +280,9 @@ class NaratgeulViewController: UIInputViewController {
         case .emergencyCall:
             returnButtonType = .emergencyCall
         case .continue:
-            returnButtonType = ._continue
+            returnButtonType = .`continue`
         default:
-            returnButtonType = ._default
+            returnButtonType = .`default`
         }
         state?.returnButtonType = returnButtonType
     }
