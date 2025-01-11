@@ -851,20 +851,19 @@ struct SymbolView: View {
                             Feedback.shared.playModifierSound()
                             Feedback.shared.playHaptic(style: .light)
                             state.delegate?.spaceKeypadTap()
-                            if state.currentKeyboardType != .numbersAndPunctuation && isAutoChangeToHangeulEnabled && isSymbolInput {
-                                state.currentInputType = .hangeul
-                            } else {
-                                timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
-                                    .autoconnect()
-                                    .sink { _ in
-                                        Feedback.shared.playModifierSound()
-                                        Feedback.shared.playHaptic(style: .light)
-                                        state.delegate?.spaceKeypadTap()
-                                    }
-                            }
+                            timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
+                                .autoconnect()
+                                .sink { _ in
+                                    Feedback.shared.playModifierSound()
+                                    Feedback.shared.playHaptic(style: .light)
+                                    state.delegate?.spaceKeypadTap()
+                                }
                         },
                         onLongPressRelease: {
                             timer?.cancel()
+                            if state.currentKeyboardType != .numbersAndPunctuation && isAutoChangeToHangeulEnabled && isSymbolInput {
+                                state.currentInputType = .hangeul
+                            }
                         })
                     .frame(width: geometry.size.width / 2)
                     .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: vPadding, trailing: interItemHPadding))
