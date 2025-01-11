@@ -32,7 +32,6 @@ struct OneHandSelectOverlayView: View {
         selectOneHandType(DragGestureValue: DragGestureValue)
     }
     
-    
     // MARK: - Gesture Recognization Methods
     private func gestureDrag(DragGestureValue: DragGesture.Value) {
         onDrag(DragGestureValue: DragGestureValue)
