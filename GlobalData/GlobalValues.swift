@@ -81,8 +81,8 @@ struct GlobalValues {
             defaults?.set(true, forKey: "needsInputModeSwitchKey")
         }
         /* 키보드 한손 모드 저장용 (0 = 왼쪽, 1 = 가운데, 2 = 오른쪽) */
-        if defaults?.object(forKey: "currentOneHandType") == nil {
-            defaults?.set(1, forKey: "currentOneHandType")
+        if defaults?.object(forKey: "currentOneHandMode") == nil {
+            defaults?.set(1, forKey: "currentOneHandMode")
         }
         /* 화면 너비 저장용 */
         if defaults?.object(forKey: "screenWidth") == nil {

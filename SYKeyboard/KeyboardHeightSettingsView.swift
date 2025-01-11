@@ -59,7 +59,7 @@ struct KeyboardHeightSettingsView: View {
             PreviewHangeulView(keyboardHeight: $tempKeyboardHeight, oneHandWidth: $oneHandWidth)
         }.onAppear {
             tempKeyboardHeight = keyboardHeight
-            state.currentOneHandType = .center
+            state.currentOneHandMode = .center
         }
     }
 }

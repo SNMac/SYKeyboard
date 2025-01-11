@@ -386,7 +386,7 @@ struct PreviewHangeulView: View {
                 }
             }
         }
-        .frame(width: state.currentOneHandType == .center ? nil : oneHandWidth, height: keyboardHeight)
+        .frame(width: state.currentOneHandMode == .center ? nil : oneHandWidth, height: keyboardHeight)
         .background(Color("KeyboardBackground"))
         .padding(.bottom, needsInputModeSwitchKey ? 0 : 40)
     }

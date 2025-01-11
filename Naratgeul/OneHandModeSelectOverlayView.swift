@@ -9,28 +9,12 @@ import SwiftUI
 
 struct OneHandModeSelectOverlayView: View {
     @EnvironmentObject private var state: NaratgeulState
-    @AppStorage("currentOneHandType", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var currentOneHandType = 1
+    @AppStorage("currentOneHandMode", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var currentOneHandMode = 1
     @AppStorage("screenWidth", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var screenWidth = 1.0
     
     private let frameWidth: CGFloat = 230
     private let interItemSpacing: CGFloat = 8
     private let fontSize: Double = 26
-    
-    // MARK: - Gesture Execution Methods
-    private func onReleased() {
-        if state.activeOneHandModeSelectOverlay {
-            if let selectedOneHandMode = state.selectedOneHandMode {
-                state.currentOneHandMode = selectedOneHandMode
-                currentOneHandType = selectedOneHandMode.rawValue
-                state.selectedOneHandMode = nil
-            }
-            state.activeOneHandModeSelectOverlay = false
-        }
-    }
-    
-    private func onDrag(DragGestureValue: DragGesture.Value) {
-        selectOneHandType(DragGestureValue: DragGestureValue)
-    }
     
     // MARK: - Gesture Recognization Methods
     private func gestureDrag(DragGestureValue: DragGesture.Value) {
@@ -41,8 +25,24 @@ struct OneHandModeSelectOverlayView: View {
         onReleased()
     }
     
-    // MARK: - Gesture UI Interaction Methods
-    private func selectOneHandType(DragGestureValue: DragGesture.Value) {
+    // MARK: - Gesture Execution Methods
+    private func onReleased() {
+        if state.activeOneHandModeSelectOverlay {
+            if let selectedOneHandMode = state.selectedOneHandMode {
+                state.currentOneHandMode = selectedOneHandMode
+                currentOneHandMode = selectedOneHandMode.rawValue
+                state.selectedOneHandMode = nil
+            }
+            state.activeOneHandModeSelectOverlay = false
+        }
+    }
+    
+    private func onDrag(DragGestureValue: DragGesture.Value) {
+        selectOneHandMode(DragGestureValue: DragGestureValue)
+    }
+    
+    // MARK: - One Hand Mode Select Methods
+    private func selectOneHandMode(DragGestureValue: DragGesture.Value) {
         let dragXLocation = DragGestureValue.location.x
         let dragYLocation = DragGestureValue.location.y
         

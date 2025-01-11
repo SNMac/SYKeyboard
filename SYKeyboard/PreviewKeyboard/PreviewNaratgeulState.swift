@@ -7,14 +7,14 @@
 
 import Foundation
 
-enum PreviewOneHandType: Int {
+enum PreviewOneHandMode: Int {
     case left
     case center
     case right
 }
 
 final class PreviewNaratgeulState: ObservableObject {
-    @Published var currentOneHandType: PreviewOneHandType = .center
+    @Published var currentOneHandMode: PreviewOneHandMode = .center
     
     var nowPressedButton: PreviewNaratgeulButton?
 }

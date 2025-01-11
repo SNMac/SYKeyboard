@@ -11,7 +11,7 @@ struct NaratgeulView: View {
     @EnvironmentObject private var state: NaratgeulState
     @AppStorage("isNumberKeyboardTypeEnabled", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var isNumberKeyboardTypeEnabled = true
     @AppStorage("isOneHandModeEnabled", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var isOneHandModeEnabled = true
-    @AppStorage("currentOneHandType", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var currentOneHandType = 1
+    @AppStorage("currentOneHandMode", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var currentOneHandMode = 1
     
     var body: some View {
         HStack(spacing: 0) {
@@ -59,9 +59,9 @@ struct NaratgeulView: View {
             }
         }.onAppear {
             if isOneHandModeEnabled {
-                state.currentOneHandMode = OneHandMode(rawValue: currentOneHandType) ?? .center
+                state.currentOneHandMode = OneHandMode(rawValue: currentOneHandMode) ?? .center
             } else {
-                currentOneHandType = 1
+                currentOneHandMode = 1
                 state.currentOneHandMode = .center
             }
         }
