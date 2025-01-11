@@ -747,7 +747,9 @@ struct SymbolView: View {
                         },
                         onRelease: {
                             state.delegate?.otherKeypadTap(letter: symbols[state.nowSymbolPage][24])
-                            isSymbolInput = true
+                            if state.currentKeyboardType != .numbersAndPunctuation {
+                                state.currentInputType = .hangeul
+                            }
                         },
                         onLongPress: {
                             Feedback.shared.playTypingSound()

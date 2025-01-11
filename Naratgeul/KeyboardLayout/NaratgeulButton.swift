@@ -19,6 +19,7 @@ enum ButtonState {
 }
 
 enum DragDirection {
+    case inside
     case up
     case left
     case right
@@ -35,9 +36,9 @@ struct NaratgeulButton: View {
     @AppStorage("isOneHandModeEnabled", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var isOneHandModeEnabled = true
     @AppStorage("currentOneHandMode", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var currentOneHandMode = 1
     
-    @State var nowState: ButtonState = .released
-    @State var dragStartWidth: Double = 0.0
-    @State var position: CGRect = .zero
+    @State private var nowState: ButtonState = .released
+    @State private var dragStartWidth: Double = 0.0
+    @State private var position: CGRect = .zero
     
     private let imageSize: CGFloat = 20
     private let textSize: CGFloat = 18
@@ -52,106 +53,7 @@ struct NaratgeulButton: View {
     var onLongPress: (() -> Void)?
     var onLongPressRelease: (() -> Void)?
     
-    // MARK: - Gesture Execution Methods
-    private func onPressed() {  // 버튼 눌렀을 때 호출(버튼 누르면 무조건 첫번째로 호출)
-        nowState = .pressed
-        onPress()
-    }
-    
-    private func onLongPressed() {  // 버튼 길게 누르면(누른 상태에서 일정시간이 지나면) 호출
-        nowState = .longPressed
-        if text == "!#1" || text == "한글" {
-            if isOneHandModeEnabled {
-                activateOneHandModeSelect()
-            }
-        } else {
-            onLongPress?()
-        }
-    }
-    
-    private func onDrag(dragGestureValue: DragGesture.Value) {  // 버튼 드래그 할 때 호출
-        if nowState != .drag {  // 드래그 시작
-            nowState = .drag
-            dragStartWidth = dragGestureValue.translation.width
-        }
-        
-        if primary {  // 글자 입력 버튼 드래그 -> 커서 이동
-            moveCursor(dragGestureValue: dragGestureValue)
-            
-        } else if text == "!#1" || text == "한글" {  // 자판 전환 버튼 드래그 -> 자판 or 한손 모드 변경
-            if state.activeInputTypeSelectOverlay {
-                selectInputType(dragGestureValue: dragGestureValue)
-            } else if isNumberKeyboardTypeEnabled {
-                checkDraggingForInputTypeOverlayActivation(dragGestureValue: dragGestureValue)
-            }
-            
-            if state.activeOneHandModeSelectOverlay {
-                selectOneHandMode(dragGestureValue: dragGestureValue)
-            } else if isOneHandModeEnabled {
-                checkDraggingForOneHandModeSelectActivation(dragGestureValue: dragGestureValue, position: position)
-            }
-        }
-    }
-    
-    private func onLongPressedDrag(dragGestureValue: DragGesture.Value) {
-        if nowState != .longPressedDrag {  // 드래그 시작
-            nowState = .longPressedDrag
-        }
-        
-        if systemName == "return.left" {  // 리턴 버튼
-            if !checkDraggingInsideButton(dragGestureValue: dragGestureValue) {
-                nowState = .released
-                state.nowPressedButton = nil
-            }
-        } else if text == "!#1" || text == "한글" {
-            if isOneHandModeEnabled && !state.activeOneHandModeSelectOverlay {
-                activateOneHandModeSelect()
-            } else if isNumberKeyboardTypeEnabled {
-                checkDraggingForInputTypeOverlayActivation(dragGestureValue: dragGestureValue)
-            }
-        }
-        
-        if state.activeInputTypeSelectOverlay {
-            selectInputType(dragGestureValue: dragGestureValue)
-        }
-        
-        if state.activeOneHandModeSelectOverlay {
-            selectOneHandMode(dragGestureValue: dragGestureValue)
-        }
-    }
-    
-    private func onReleased() {  // 버튼 뗐을 때
-        if nowState == .pressed || nowState == .drag {
-            if !checkOverlayActive() {
-                onRelease?()
-            }
-        }
-        state.nowPressedButton = nil
-        nowState = .released
-        
-        applyInputType()
-        applyOneHandMode()
-    }
-    
-    private func onLongPressedReleased() {  // 버튼 길게 눌렀다가 뗐을 때 호출
-        if nowState == .longPressed || nowState == .longPressedDrag {
-            if !checkOverlayActive() {
-                if let onLongPressRelease {
-                    onLongPressRelease()
-                } else {
-                    onRelease?()
-                }
-            }
-        }
-        state.nowPressedButton = nil
-        nowState = .released
-    }
-    
     // MARK: - Gesture Recognization Methods
-    private func checkPressed() -> Bool {
-        return nowState == .pressed || nowState == .longPressed || nowState == .longPressedDrag ? true : false
-    }
-    
     private func gesturePressed() {
         var executeOnPressed: Bool = true
         
@@ -173,6 +75,8 @@ struct NaratgeulButton: View {
                 state.nowPressedButton?.onLongPressedReleased()
             case .drag:
                 state.nowPressedButton?.onReleased()
+            case .longPressedDrag:
+                state.nowPressedButton?.onLongPressedReleased()
             default:
                 break
             }
@@ -210,62 +114,104 @@ struct NaratgeulButton: View {
         }
     }
     
-    // MARK: - Basic Gestures
-    func checkDraggingInsideButton(dragGestureValue: DragGesture.Value) -> Bool {
-        let dragXLocation = dragGestureValue.location.x
-        let dragYLocation = dragGestureValue.location.y
-        
-        if dragXLocation >= position.minX && dragXLocation <= position.maxX
-            && dragYLocation >= position.minY && dragYLocation <= position.maxY {
-            return true
-        }
-        return false
+    // MARK: - Gesture Execution Methods
+    private func onPressed() {  // 버튼 눌렀을 때 호출(버튼 누르면 무조건 첫번째로 호출)
+        nowState = .pressed
+        onPress()
     }
     
-    func checkDraggingDirection(dragGestureValue: DragGesture.Value) -> DragDirection {
-        let dragXLocation = dragGestureValue.location.x
-        let dragYLocation = dragGestureValue.location.y
-        
-        if dragXLocation >= position.minX && dragXLocation <= position.maxX && dragYLocation < position.minY {
-            return .up
-        } else if dragYLocation >= position.minY && dragYLocation <= position.maxY && dragXLocation < position.minX {
-            return .left
-        } else if dragYLocation >= position.minY && dragYLocation <= position.maxY && dragXLocation > position.maxX {
-            return .right
+    private func onLongPressed() {  // 버튼 길게 누르면(누른 상태에서 일정시간이 지나면) 호출
+        nowState = .longPressed
+        if text == "!#1" || text == "한글" {
+            if isOneHandModeEnabled {
+                activateOneHandModeSelect()
+            }
         } else {
-            return .down
+            onLongPress?()
         }
     }
     
-    // MARK: - Input Type Select Method
-    func checkDraggingForInputTypeOverlayActivation(dragGestureValue: DragGesture.Value) {
-        if !checkOverlayActive() {
-            if state.currentInputType == .hangeul {  // 한글 자판
-                // 버튼 왼쪽으로 드래그 -> 다른 자판으로 변경
-                if checkDraggingDirection(dragGestureValue: dragGestureValue) == .left {
-                    activateInputTypeSelect()
-                }
-                
-            } else if state.currentInputType == .number {  // 숫자 자판
-                // 버튼 왼쪽으로 드래그 -> 다른 자판으로 변경
-                if checkDraggingDirection(dragGestureValue: dragGestureValue) == .left {
-                    activateInputTypeSelect()
-                }
-                
-            } else if state.currentInputType == .symbol {  // 기호 자판
-                // 버튼 오른쪽으로 드래그 -> 다른 자판으로 변경
-                if checkDraggingDirection(dragGestureValue: dragGestureValue) == .right {
-                    activateInputTypeSelect()
-                }
+    private func onDrag(dragGestureValue: DragGesture.Value) {  // 버튼 드래그 할 때 호출
+        if nowState != .drag {
+            nowState = .drag  // 드래그 시작
+            dragStartWidth = dragGestureValue.translation.width
+        }
+        
+        if primary {  // 글자 입력 버튼 드래그 -> 커서 이동
+            moveCursor(dragGestureValue: dragGestureValue)
+            
+        } else if systemName == "return.left" {  // 리턴 버튼
+            if checkDraggingDirection(dragGestureValue: dragGestureValue) != .inside {
+                initButtonState()
+            }
+            
+        } else if text == "!#1" || text == "한글" {  // 자판 전환 버튼 드래그 -> 자판 or 한손 모드 변경
+            if state.activeInputTypeSelectOverlay {
+                selectInputType(dragGestureValue: dragGestureValue)
+            } else if state.activeOneHandModeSelectOverlay {
+                selectOneHandMode(dragGestureValue: dragGestureValue)
+            } else {
+                checkDraggingForOverlayActivation(dragGestureValue: dragGestureValue)
             }
         }
     }
     
-    func activateInputTypeSelect() {
+    private func onLongPressedDrag(dragGestureValue: DragGesture.Value) {
+        if nowState != .longPressedDrag {
+            nowState = .longPressedDrag  // 드래그 시작
+        }
+        
+        if systemName == "return.left" {  // 리턴 버튼
+            if checkDraggingDirection(dragGestureValue: dragGestureValue) != .inside {
+                initButtonState()
+            }
+        } else if text == "!#1" || text == "한글" {
+            if state.activeInputTypeSelectOverlay {
+                selectInputType(dragGestureValue: dragGestureValue)
+            } else if state.activeOneHandModeSelectOverlay {
+                selectOneHandMode(dragGestureValue: dragGestureValue)
+            } else {
+                checkDraggingForOverlayActivation(dragGestureValue: dragGestureValue)
+            }
+        }
+    }
+    
+    private func onReleased() {  // 버튼 뗐을 때
+        if nowState == .pressed {
+            if !checkOverlayActive() {
+                onRelease?()
+            }
+        }
+        applyInputType()
+        applyOneHandMode()
+        
+        initButtonState()
+    }
+    
+    private func onLongPressedReleased() {  // 버튼 길게 눌렀다가 뗐을 때 호출
+        if nowState == .longPressed || nowState == .longPressedDrag {
+            if !checkOverlayActive() {
+                if let onLongPressRelease {
+                    onLongPressRelease()
+                } else {
+                    onRelease?()
+                }
+            }
+        }
+        applyInputType()
+        if nowState == .longPressedDrag {
+            applyOneHandMode()
+        }
+        
+        initButtonState()
+    }
+    
+    // MARK: - Input Type Select Methods
+    private func activateInputTypeSelect() {
         state.activeInputTypeSelectOverlay = true
     }
     
-    func selectInputType(dragGestureValue: DragGesture.Value) {
+    private func selectInputType(dragGestureValue: DragGesture.Value) {
         let dragXLocation = dragGestureValue.location.x
         
         if state.currentInputType == .hangeul {
@@ -297,7 +243,7 @@ struct NaratgeulButton: View {
         }
     }
     
-    func applyInputType() {
+    private func applyInputType() {
         if let selectedInputType = state.selectedInputType {
             state.currentInputType = selectedInputType
             state.activeInputTypeSelectOverlay = false
@@ -305,42 +251,19 @@ struct NaratgeulButton: View {
         }
     }
     
-    func forceExitInputTypeSelect() {
+    private func forceExitInputTypeSelect() {
         state.activeInputTypeSelectOverlay = false
         state.selectedInputType = nil
     }
     
-    // MARK: - One Hand Mode Select Method
-    func checkDraggingForOneHandModeSelectActivation(dragGestureValue: DragGesture.Value, position: CGRect) {
-        if !checkOverlayActive() {
-            if state.currentInputType == .hangeul {  // 한글 자판
-                // 버튼 위쪽으로 드래그 -> 한손 키보드 변경
-                if checkDraggingDirection(dragGestureValue: dragGestureValue) == .up {
-                    activateOneHandModeSelect()
-                }
-                
-            } else if state.currentInputType == .number {  // 숫자 자판
-                // 버튼 위쪽으로 드래그 -> 한손 키보드 변경
-                if checkDraggingDirection(dragGestureValue: dragGestureValue) == .up {
-                    activateOneHandModeSelect()
-                }
-                
-            } else if state.currentInputType == .symbol {  // 기호 자판
-                // 버튼 위쪽으로 드래그 -> 한손 키보드 변경
-                if checkDraggingDirection(dragGestureValue: dragGestureValue) == .up {
-                    activateOneHandModeSelect()
-                }
-            }
-        }
-    }
-    
-    func activateOneHandModeSelect() {
+    // MARK: - One Hand Mode Select Methods
+    private func activateOneHandModeSelect() {
         state.selectedOneHandMode = state.currentOneHandMode
         state.activeOneHandModeSelectOverlay = true
         Feedback.shared.playHaptic(style: .light)
     }
     
-    func selectOneHandMode(dragGestureValue: DragGesture.Value) {
+    private func selectOneHandMode(dragGestureValue: DragGesture.Value) {
         let dragXLocation = dragGestureValue.location.x
         let dragYLocation = dragGestureValue.location.y
         
@@ -366,7 +289,7 @@ struct NaratgeulButton: View {
         }
     }
     
-    func applyOneHandMode() {
+    private func applyOneHandMode() {
         if let selectedOneHandMode = state.selectedOneHandMode {
             state.currentOneHandMode = selectedOneHandMode
             currentOneHandMode = selectedOneHandMode.rawValue
@@ -375,21 +298,17 @@ struct NaratgeulButton: View {
         }
     }
     
-    func forceExitOneHandModeSelect() {
+    private func forceExitOneHandModeSelect() {
         state.activeOneHandModeSelectOverlay = false
         state.selectedOneHandMode = nil
     }
     
-    // MARK: - Other Methods
-    private func checkOverlayActive() -> Bool {
-        return state.activeInputTypeSelectOverlay || state.activeOneHandModeSelectOverlay
-    }
-    
-    func moveCursor(dragGestureValue: DragGesture.Value) {
+    // MARK: - Basic Methods
+    private func moveCursor(dragGestureValue: DragGesture.Value) {
         // 일정 거리 초과 드래그 -> 커서를 한칸씩 드래그한 방향으로 이동
         let dragDiff = dragGestureValue.translation.width - dragStartWidth
         if dragDiff < -cursorMoveWidth {
-            os_log("Gestures) Drag to left", log: log, type: .debug)
+            os_log("NaratgeulButton) Drag to left", log: log, type: .debug)
             dragStartWidth = dragGestureValue.translation.width
             if let isMoved = state.delegate?.dragToLeft() {
                 if isMoved {
@@ -397,12 +316,77 @@ struct NaratgeulButton: View {
                 }
             }
         } else if dragDiff > cursorMoveWidth {
-            os_log("Gestures) Drag to right", log: log, type: .debug)
+            os_log("NaratgeulButton) Drag to right", log: log, type: .debug)
             dragStartWidth = dragGestureValue.translation.width
             if let isMoved = state.delegate?.dragToRight() {
                 if isMoved {
                     Feedback.shared.playHapticByForce(style: .light)
                 }
+            }
+        }
+    }
+    
+    private func checkDraggingDirection(dragGestureValue: DragGesture.Value) -> DragDirection {
+        let dragXLocation = dragGestureValue.location.x
+        let dragYLocation = dragGestureValue.location.y
+        
+        if dragXLocation >= position.minX && dragXLocation <= position.maxX
+            && dragYLocation >= position.minY && dragYLocation <= position.maxY {
+            return .inside
+        } else if dragXLocation >= position.minX && dragXLocation <= position.maxX && dragYLocation < position.minY {
+            return .up
+        } else if dragYLocation >= position.minY && dragYLocation <= position.maxY && dragXLocation < position.minX {
+            return .left
+        } else if dragYLocation >= position.minY && dragYLocation <= position.maxY && dragXLocation > position.maxX {
+            return .right
+        } else {
+            return .down
+        }
+    }
+    
+    // MARK: - Other Methods
+    private func initButtonState() {
+        nowState = .released
+        state.nowPressedButton = nil
+    }
+    
+    private func checkPressed() -> Bool {
+        return nowState == .pressed || nowState == .longPressed || nowState == .longPressedDrag ? true : false
+    }
+    
+    private func checkOverlayActive() -> Bool {
+        return state.activeInputTypeSelectOverlay || state.activeOneHandModeSelectOverlay
+    }
+    
+    private func checkDraggingForOverlayActivation(dragGestureValue: DragGesture.Value) {
+        if !checkOverlayActive() {
+            switch checkDraggingDirection(dragGestureValue: dragGestureValue) {
+            case .inside:
+                break
+            case .up:  // 버튼 위쪽으로 드래그
+                if isOneHandModeEnabled {
+                    activateOneHandModeSelect()
+                } else {
+                    initButtonState()
+                }
+            case .left:  // 버튼 왼쪽으로 드래그
+                if state.currentInputType == .hangeul || state.currentInputType == .number {  // 한글 or 숫자 자판
+                    if isNumberKeyboardTypeEnabled {
+                        activateInputTypeSelect()  // 다른 자판으로 변경
+                    } else {
+                        initButtonState()
+                    }
+                }
+            case .right:  // 버튼 오른쪽으로 드래그
+                if state.currentInputType == .symbol {  // 기호 자판
+                    if isNumberKeyboardTypeEnabled {
+                        activateInputTypeSelect()  // 다른 자판으로 변경
+                    } else {
+                        initButtonState()
+                    }
+                }
+            case .down:  // 버튼 아래쪽으로 드래그
+                initButtonState()
             }
         }
     }
@@ -478,7 +462,7 @@ struct NaratgeulButton: View {
                         .monospaced()
                         .font(.system(size: state.needsInputModeSwitchKey ? textSize - 2 : textSize))
                         .foregroundStyle(Color(uiColor: UIColor.label))
-                        .background(checkPressed() || state.activeOneHandModeSelectOverlay || state.activeInputTypeSelectOverlay ? Color("PrimaryKeyboardButton") : Color("SecondaryKeyboardButton"))
+                        .background(checkPressed() ? Color("PrimaryKeyboardButton") : Color("SecondaryKeyboardButton"))
                         .clipShape(.rect(cornerRadius: 5))
                         .overlay(alignment: .bottomLeading, content: {
                             HStack(spacing: 1) {
@@ -512,7 +496,7 @@ struct NaratgeulButton: View {
                             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
                             .font(.system(size: state.needsInputModeSwitchKey ? textSize - 2 : textSize))
                             .foregroundStyle(Color(uiColor: UIColor.label))
-                            .background(checkPressed() || state.activeOneHandModeSelectOverlay || state.activeInputTypeSelectOverlay ? Color("PrimaryKeyboardButton") : Color("SecondaryKeyboardButton"))
+                            .background(checkPressed() ? Color("PrimaryKeyboardButton") : Color("SecondaryKeyboardButton"))
                             .clipShape(.rect(cornerRadius: 5))
                             .overlay(alignment: .bottomTrailing, content: {
                                 HStack(spacing: 1) {
@@ -545,7 +529,7 @@ struct NaratgeulButton: View {
                             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
                             .font(.system(size: state.needsInputModeSwitchKey ? textSize - 2 : textSize))
                             .foregroundStyle(Color(uiColor: UIColor.label))
-                            .background(checkPressed() || state.activeOneHandModeSelectOverlay || state.activeInputTypeSelectOverlay ? Color("PrimaryKeyboardButton") : Color("SecondaryKeyboardButton"))
+                            .background(checkPressed() ? Color("PrimaryKeyboardButton") : Color("SecondaryKeyboardButton"))
                             .clipShape(.rect(cornerRadius: 5))
                             .overlay(alignment: .bottomLeading, content: {
                                 HStack(spacing: 1) {
@@ -631,7 +615,7 @@ struct NaratgeulButton: View {
             LongPressGesture(minimumDuration: 0)
                 .onEnded({ _ in
                     // 버튼 눌렀을 때
-                    os_log("NaratgeulButton) LongPressGesture() onEnded: pressing", log: log, type: .debug)
+                    os_log("NaratgeulButton) LongPressGesture() onEnded: pressed", log: log, type: .debug)
                     gesturePressed()
                 })
         )
@@ -639,7 +623,7 @@ struct NaratgeulButton: View {
             LongPressGesture(minimumDuration: state.longPressTime, maximumDistance: cursorActiveWidth)
             // 버튼 길게 눌렀을 때
                 .onEnded({ _ in
-                    os_log("NaratgeulButton) simultaneously_LongPressGesture() onEnded: longPressing", log: log, type: .debug)
+                    os_log("NaratgeulButton) simultaneous_LongPressGesture() onEnded: longPressed", log: log, type: .debug)
                     gestureLongPressed()
                 })
                 .sequenced(before: DragGesture(minimumDistance: 10, coordinateSpace: .global))
@@ -650,7 +634,7 @@ struct NaratgeulButton: View {
                         break
                     case .second(_, let dragValue):
                         if let value = dragValue {
-                            os_log("NaratgeulButton) LongPressGesture()->DragGesture() onChanged: longPressedDragging", log: log, type: .debug)
+                            os_log("NaratgeulButton) LongPressGesture()->DragGesture() onChanged: longPressedDrag", log: log, type: .debug)
                             gestureLongPressedDrag(dragGestureValue: value)
                         }
                     }
@@ -658,13 +642,8 @@ struct NaratgeulButton: View {
                 .exclusively(before: DragGesture(minimumDistance: cursorActiveWidth, coordinateSpace: .global)
                              // 버튼 드래그 할 때
                     .onChanged({ value in
-                        os_log("NaratgeulButton) exclusively_DragGesture() onChanged: dragging", log: log, type: .debug)
+                        os_log("NaratgeulButton) exclusively_DragGesture() onChanged: drag", log: log, type: .debug)
                         gestureDrag(dragGestureValue: value)
-                    })
-                             // 버튼 드래그 한 뒤 뗐을 때
-                    .onEnded({ _ in
-                        os_log("NaratgeulButton) exclusively_DragGesture() onEnded: dragging", log: log, type: .debug)
-                        gestureReleased()
                     })
                             )
         )
@@ -677,8 +656,4 @@ struct NaratgeulButton: View {
                 })
         )
     }
-}
-
-extension NaratgeulButton {
-    
 }
