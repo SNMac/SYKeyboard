@@ -36,7 +36,8 @@ struct NaratgeulButton: View {
     @AppStorage("isOneHandModeEnabled", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var isOneHandModeEnabled = true
     @AppStorage("currentOneHandMode", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var currentOneHandMode = 1
     
-    @State private var nowState: ButtonState = .released
+    @State var nowState: ButtonState = .released
+    
     @State private var dragStartWidth: Double = 0.0
     @State private var position: CGRect = .zero
     

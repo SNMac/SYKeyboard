@@ -35,7 +35,8 @@ struct PreviewNaratgeulButton: View {
     @AppStorage("isNumberKeyboardTypeEnabled", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var isNumberKeyboardTypeEnabled = true
     @AppStorage("isOneHandModeEnabled", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var isOneHandModeEnabled = true
     
-    @State private var nowState: ButtonState = .released
+    @State var nowState: ButtonState = .released
+    
     @State private var dragStartWidth: Double = 0.0
     @State private var position: CGRect = .zero
     
