@@ -33,8 +33,8 @@ struct ChevronButton: View {
                         })
                         .onEnded({ _ in
                             if isPressed {
-                                state.currentOneHandType = .center
                                 state.isSelectingOneHandType = false
+                                state.currentOneHandType = .center
                                 currentOneHandType = OneHandType.center.rawValue
                                 isPressed = false
                             }
