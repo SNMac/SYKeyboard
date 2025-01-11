@@ -747,7 +747,7 @@ struct SymbolView: View {
                         },
                         onRelease: {
                             state.delegate?.otherKeypadTap(letter: symbols[state.nowSymbolPage][24])
-                            if state.currentKeyboardType != .numbersAndPunctuation {
+                            if state.currentKeyboardType != .numbersAndPunctuation && isAutoChangeToHangeulEnabled {
                                 state.currentInputType = .hangeul
                             }
                         },
@@ -755,7 +755,6 @@ struct SymbolView: View {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
                             state.delegate?.otherKeypadTap(letter: symbols[state.nowSymbolPage][24])
-                            isSymbolInput = true
                             timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
@@ -766,6 +765,9 @@ struct SymbolView: View {
                         },
                         onLongPressRelease: {
                             timer?.cancel()
+                            if state.currentKeyboardType != .numbersAndPunctuation && isAutoChangeToHangeulEnabled {
+                                state.currentInputType = .hangeul
+                            }
                         })
                     .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
