@@ -708,20 +708,19 @@ struct WebSearchSymbolView: View {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
                             state.delegate?.otherKeypadTap(letter: symbols[state.nowSymbolPage][24])
-                            if isAutoChangeToHangeulEnabled {
-                                state.currentInputType = .hangeul
-                            } else {
-                                timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
-                                    .autoconnect()
-                                    .sink { _ in
-                                        Feedback.shared.playTypingSound()
-                                        Feedback.shared.playHaptic(style: .light)
-                                        state.delegate?.inputLastSymbol()
-                                    }
-                            }
+                            timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
+                                .autoconnect()
+                                .sink { _ in
+                                    Feedback.shared.playTypingSound()
+                                    Feedback.shared.playHaptic(style: .light)
+                                    state.delegate?.inputLastSymbol()
+                                }
                         },
                         onLongPressRelease: {
                             timer?.cancel()
+                            if isAutoChangeToHangeulEnabled {
+                                state.currentInputType = .hangeul
+                            }
                         })
                     .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
