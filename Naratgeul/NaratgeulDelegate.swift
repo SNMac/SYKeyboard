@@ -5,8 +5,6 @@
 //  Created by 서동환 on 9/11/24.
 //
 
-import Foundation
-
 protocol NaratgeulDelegate: AnyObject {
     func getBufferSize() -> Int
     func flushBuffer()

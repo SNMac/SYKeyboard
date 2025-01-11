@@ -16,7 +16,7 @@ struct InputTypeSelectOverlayView: View {
     private let fontSize: Double = 20
     
     var body: some View {
-        let overlayWidth: CGFloat = state.currentOneHandType == .center ? frameWidth : frameWidth * (state.oneHandWidth / screenWidth)
+        let overlayWidth: CGFloat = state.currentOneHandMode == .center ? frameWidth : frameWidth * (state.oneHandWidth / screenWidth)
         HStack(spacing: interItemSpacing) {
             if state.currentInputType == .hangeul {
                 Text("123")

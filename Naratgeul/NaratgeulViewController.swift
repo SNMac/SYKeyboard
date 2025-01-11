@@ -159,7 +159,7 @@ class NaratgeulViewController: UIInputViewController {
     private func setupUI() {
         let nextKeyboardAction = #selector(handleInputModeList(from:with:))
         
-        let options = NaratgeulState(
+        let state = NaratgeulState(
             delegate: ioManager,
             keyboardHeight: CGFloat(defaults?.double(forKey: "keyboardHeight") ?? GlobalValues.defaultKeyboardHeight),
             oneHandWidth: CGFloat(defaults?.double(forKey: "oneHandWidth") ?? GlobalValues.defaultOneHandWidth),
@@ -169,10 +169,10 @@ class NaratgeulViewController: UIInputViewController {
             nextKeyboardAction: nextKeyboardAction
         )
         
-        let SYKeyboard = UIHostingController(rootView: NaratgeulView().environmentObject(options))
+        let SYKeyboard = UIHostingController(rootView: NaratgeulView().environmentObject(state))
         SYKeyboard.view.backgroundColor = .clear
         
-        self.state = options
+        self.state = state
         
         defaults?.set(needsInputModeSwitchKey, forKey: "needsInputModeSwitchKey")
         

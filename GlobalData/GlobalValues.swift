@@ -68,8 +68,8 @@ struct GlobalValues {
             defaults?.set(true, forKey: "isNumberKeyboardTypeEnabled")
         }
         // 한손 키보드 활성화
-        if defaults?.object(forKey: "isOneHandTypeEnabled") == nil {
-            defaults?.set(true, forKey: "isOneHandTypeEnabled")
+        if defaults?.object(forKey: "isOneHandModeEnabled") == nil {
+            defaults?.set(true, forKey: "isOneHandModeEnabled")
         }
         // 한손 키보드 너비
         if defaults?.object(forKey: "oneHandWidth") == nil {

@@ -5,7 +5,6 @@
 //  Created by 서동환 on 8/14/24.
 //
 
-import Foundation
 import SwiftUI
 
 enum InputType {
@@ -14,7 +13,7 @@ enum InputType {
     case number
 }
 
-enum OneHandType: Int {
+enum OneHandMode: Int {
     case left
     case center
     case right
@@ -46,12 +45,12 @@ enum ReturnButtonType: String {
 
 final class NaratgeulState: ObservableObject {
     @Published var currentInputType: InputType = .hangeul
-    @Published var isSelectingInputType: Bool = false
+    @Published var activeInputTypeSelectOverlay: Bool = false
     @Published var selectedInputType: InputType?
     
-    @Published var currentOneHandType: OneHandType = .center
-    @Published var isSelectingOneHandType: Bool = false
-    @Published var selectedOneHandType: OneHandType?
+    @Published var currentOneHandMode: OneHandMode = .center
+    @Published var activeOneHandModeSelectOverlay: Bool = false
+    @Published var selectedOneHandMode: OneHandMode?
     
     @Published var currentKeyboardType: KeyboardType = .default
     @Published var returnButtonType: ReturnButtonType = .default

@@ -28,7 +28,7 @@
 		5B57EBC22D31364600901C37 /* HangeulAutomata.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B0D823C2C5F355900F84180 /* HangeulAutomata.swift */; };
 		5B57EBD52D313BA500901C37 /* PreviewNaratgeulState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B57EBD42D313BA500901C37 /* PreviewNaratgeulState.swift */; };
 		5B57EBD72D313BC100901C37 /* PreviewNaratgeulButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B57EBD62D313BC100901C37 /* PreviewNaratgeulButton.swift */; };
-		5B6B1B372CD210CD00636AC4 /* OneHandSelectOverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B6B1B362CD210CD00636AC4 /* OneHandSelectOverlayView.swift */; };
+		5B6B1B372CD210CD00636AC4 /* OneHandModeSelectOverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B6B1B362CD210CD00636AC4 /* OneHandModeSelectOverlayView.swift */; };
 		5B7556EB2C9DD3B00038BA9C /* GlobalValues.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B7556EA2C9DD3B00038BA9C /* GlobalValues.swift */; };
 		5B7556EC2C9DD3B00038BA9C /* GlobalValues.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B7556EA2C9DD3B00038BA9C /* GlobalValues.swift */; };
 		5B7885942CDCB04A007A801A /* ChevronButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B7885932CDCB04A007A801A /* ChevronButton.swift */; };
@@ -103,7 +103,7 @@
 		5B5274A52C8E91A4004C155E /* DEP_HangeulInputMethod.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DEP_HangeulInputMethod.swift; sourceTree = "<group>"; };
 		5B57EBD42D313BA500901C37 /* PreviewNaratgeulState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewNaratgeulState.swift; sourceTree = "<group>"; };
 		5B57EBD62D313BC100901C37 /* PreviewNaratgeulButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewNaratgeulButton.swift; sourceTree = "<group>"; };
-		5B6B1B362CD210CD00636AC4 /* OneHandSelectOverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OneHandSelectOverlayView.swift; sourceTree = "<group>"; };
+		5B6B1B362CD210CD00636AC4 /* OneHandModeSelectOverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OneHandModeSelectOverlayView.swift; sourceTree = "<group>"; };
 		5B7556EA2C9DD3B00038BA9C /* GlobalValues.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlobalValues.swift; sourceTree = "<group>"; };
 		5B7885932CDCB04A007A801A /* ChevronButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChevronButton.swift; sourceTree = "<group>"; };
 		5B7885992CDF3473007A801A /* InputTypeSelectOverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputTypeSelectOverlayView.swift; sourceTree = "<group>"; };
@@ -232,7 +232,7 @@
 				5B0D82352C5962A500F84180 /* NaratgeulIOManager.swift */,
 				5B2B40062C6CAB2F007CA762 /* NaratgeulView.swift */,
 				5B7885992CDF3473007A801A /* InputTypeSelectOverlayView.swift */,
-				5B6B1B362CD210CD00636AC4 /* OneHandSelectOverlayView.swift */,
+				5B6B1B362CD210CD00636AC4 /* OneHandModeSelectOverlayView.swift */,
 				5B7885932CDCB04A007A801A /* ChevronButton.swift */,
 				5B2B40112C6CC1D1007CA762 /* NaratgeulState.swift */,
 				5B7BDD4B2C92C0170065C944 /* KeyboardLayout */,
@@ -446,7 +446,7 @@
 				5B7BDD442C91E3820065C944 /* DEP_SYKeyboardDelegate.swift in Sources */,
 				5B7BDD452C91E3850065C944 /* DEP_HangeulInputMethod.swift in Sources */,
 				5B7B3F6E2C569B8200F7C093 /* NaratgeulViewController.swift in Sources */,
-				5B6B1B372CD210CD00636AC4 /* OneHandSelectOverlayView.swift in Sources */,
+				5B6B1B372CD210CD00636AC4 /* OneHandModeSelectOverlayView.swift in Sources */,
 				5B0D82432C63C16F00F84180 /* Feedback.swift in Sources */,
 				5B2B40152C6CD2A4007CA762 /* NextKeyboardButton.swift in Sources */,
 				5B0D823D2C5F355900F84180 /* HangeulAutomata.swift in Sources */,

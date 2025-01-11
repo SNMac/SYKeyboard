@@ -7,7 +7,6 @@
 //  - Downloaded from https://github.com/Kim-Junhwan/IOS-CustomKeyboard - KeyboardIOManager.swift
 //
 
-import Foundation
 import OSLog
 
 final class NaratgeulIOManager {

@@ -10,7 +10,6 @@ import Combine
 
 struct URLSymbolView: View {
     @EnvironmentObject private var state: NaratgeulState
-    @AppStorage("isOneHandTypeEnabled", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var isOneHandTypeEnabled = true
     @State private var timer: AnyCancellable?
     
     private let vPadding: CGFloat = 4
@@ -676,18 +675,6 @@ struct URLSymbolView: View {
                                 },
                                 onRelease: {
                                     state.currentInputType = .hangeul
-                                },
-                                onLongPress: {
-                                    if isOneHandTypeEnabled {
-                                        state.selectedOneHandType = state.currentOneHandType
-                                        state.isSelectingOneHandType = true
-                                        Feedback.shared.playHaptic(style: .light)
-                                    }
-                                },
-                                onLongPressRelease: {
-                                    if !state.isSelectingOneHandType {
-                                        state.currentInputType = .hangeul
-                                    }
                                 })
                             .padding(EdgeInsets(top: interItemVPadding, leading: hPadding, bottom: vPadding, trailing: interItemHPadding))
                             .contentShape(Rectangle())
@@ -708,18 +695,6 @@ struct URLSymbolView: View {
                             },
                             onRelease: {
                                 state.currentInputType = .hangeul
-                            },
-                            onLongPress: {
-                                if isOneHandTypeEnabled {
-                                    state.selectedOneHandType = state.currentOneHandType
-                                    state.isSelectingOneHandType = true
-                                    Feedback.shared.playHaptic(style: .light)
-                                }
-                            },
-                            onLongPressRelease: {
-                                if !state.isSelectingOneHandType {
-                                    state.currentInputType = .hangeul
-                                }
                             })
                         .padding(EdgeInsets(top: interItemVPadding, leading: hPadding, bottom: vPadding, trailing: interItemHPadding))
                         .contentShape(Rectangle())
@@ -814,7 +789,7 @@ struct URLSymbolView: View {
             state.nowSymbolPage = 0
             state.totalSymbolPage = symbols.count
         }
-        .frame(width: state.currentOneHandType == .center ? nil : state.oneHandWidth, height: state.keyboardHeight)
+        .frame(width: state.currentOneHandMode == .center ? nil : state.oneHandWidth, height: state.keyboardHeight)
         .background(Color.white.opacity(0.001))
     }
 }

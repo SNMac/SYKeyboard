@@ -9,7 +9,7 @@ import SwiftUI
 
 struct AppearanceSettingsView: View {
     @AppStorage("isNumberKeyboardTypeEnabled", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var isNumberKeyboardTypeEnabled = true
-    @AppStorage("isOneHandTypeEnabled", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var isOneHandTypeEnabled = true
+    @AppStorage("isOneHandModeEnabled", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var isOneHandModeEnabled = true
     
     var body: some View {
         NavigationLink("키보드 높이") {
@@ -22,13 +22,13 @@ struct AppearanceSettingsView: View {
                 .font(.system(.caption))
         })
         
-        Toggle(isOn: $isOneHandTypeEnabled, label: {
+        Toggle(isOn: $isOneHandModeEnabled, label: {
             Text("한손 키보드 활성화")
             Text("자판 변경 버튼을 위로 드래그하여 선택")
                 .font(.system(.caption))
         })
         
-        if isOneHandTypeEnabled {
+        if isOneHandModeEnabled {
             NavigationLink("한손 키보드 너비") {
                 OneHandWidthSettingsView()
             }

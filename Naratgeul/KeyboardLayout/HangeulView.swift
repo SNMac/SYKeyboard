@@ -10,7 +10,6 @@ import Combine
 
 struct HangeulView: View {
     @EnvironmentObject private var state: NaratgeulState
-    @AppStorage("isOneHandTypeEnabled", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var isOneHandTypeEnabled = true
     @State private var timer: AnyCancellable?
     
     private let vPadding: CGFloat = 4
@@ -462,18 +461,6 @@ struct HangeulView: View {
                             },
                             onRelease: {
                                 state.currentInputType = .symbol
-                            },
-                            onLongPress: {
-                                if isOneHandTypeEnabled {
-                                    state.selectedOneHandType = state.currentOneHandType
-                                    state.isSelectingOneHandType = true
-                                    Feedback.shared.playHaptic(style: .light)
-                                }
-                            },
-                            onLongPressRelease: {
-                                if !state.isSelectingOneHandType {
-                                    state.currentInputType = .symbol
-                                }
                             })
                         .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: vPadding, trailing: interItemHPadding))
                         .contentShape(Rectangle())
@@ -494,25 +481,13 @@ struct HangeulView: View {
                         },
                         onRelease: {
                             state.currentInputType = .symbol
-                        },
-                        onLongPress: {
-                            if isOneHandTypeEnabled {
-                                state.selectedOneHandType = state.currentOneHandType
-                                state.isSelectingOneHandType = true
-                                Feedback.shared.playHaptic(style: .light)
-                            }
-                        },
-                        onLongPressRelease: {
-                            if !state.isSelectingOneHandType {
-                                state.currentInputType = .symbol
-                            }
                         })
                     .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: vPadding, trailing: hPadding))
                     .contentShape(Rectangle())
                 }
             }
         }
-        .frame(width: state.currentOneHandType == .center ? nil : state.oneHandWidth, height: state.keyboardHeight)
+        .frame(width: state.currentOneHandMode == .center ? nil : state.oneHandWidth, height: state.keyboardHeight)
         .background(Color.white.opacity(0.001))
     }
 }

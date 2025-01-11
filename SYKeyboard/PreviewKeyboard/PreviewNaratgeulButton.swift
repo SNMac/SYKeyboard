@@ -32,7 +32,7 @@ struct PreviewNaratgeulButton: View {
     @AppStorage("cursorMoveWidth", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var cursorMoveWidth = GlobalValues.defaultCursorMoveWidth
     @AppStorage("needsInputModeSwitchKey", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var needsInputModeSwitchKey = true
     @AppStorage("isNumberKeyboardTypeEnabled", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var isNumberKeyboardTypeEnabled = true
-    @AppStorage("isOneHandTypeEnabled", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var isOneHandTypeEnabled = true
+    @AppStorage("isOneHandModeEnabled", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var isOneHandModeEnabled = true
     
     @State private var nowGesture: Gestures = .released
     @State private var dragStartWidth: Double = 0.0
@@ -247,7 +247,7 @@ struct PreviewNaratgeulButton: View {
                         })
                         .overlay(alignment: .topTrailing, content: {
                             HStack(spacing: 0) {
-                                if isOneHandTypeEnabled {
+                                if isOneHandModeEnabled {
                                     Image(systemName: "keyboard")
                                     Image(systemName: "arrowtriangle.up")
                                 }

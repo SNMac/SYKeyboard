@@ -10,13 +10,13 @@ import SwiftUI
 struct NaratgeulView: View {
     @EnvironmentObject private var state: NaratgeulState
     @AppStorage("isNumberKeyboardTypeEnabled", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var isNumberKeyboardTypeEnabled = true
-    @AppStorage("isOneHandTypeEnabled", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var isOneHandTypeEnabled = true
+    @AppStorage("isOneHandModeEnabled", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var isOneHandModeEnabled = true
     @AppStorage("currentOneHandType", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var currentOneHandType = 1
     
     var body: some View {
         HStack(spacing: 0) {
             if state.currentKeyboardType != .numberPad && state.currentKeyboardType != .asciiCapableNumberPad
-                && isOneHandTypeEnabled && state.currentOneHandType == .right {
+                && isOneHandModeEnabled && state.currentOneHandMode == .right {
                 ChevronButton(isLeftHandMode: false)
             }
             ZStack(alignment: state.currentInputType == .symbol ? .leading : .trailing) {
@@ -43,26 +43,26 @@ struct NaratgeulView: View {
                         }
                     }
                 
-                if state.isSelectingInputType {
+                if state.activeInputTypeSelectOverlay {
                     InputTypeSelectOverlayView()
                         .offset(x: state.currentInputType == .symbol ? 5 : -5, y: state.keyboardHeight / 8)
                 }
                 
-                if state.isSelectingOneHandType {
-                    OneHandSelectOverlayView()
+                if state.activeOneHandModeSelectOverlay {
+                    OneHandModeSelectOverlayView()
                         .offset(x: state.currentInputType == .symbol ? 5 : -5, y: state.keyboardHeight / 8)
                 }
             }
             if state.currentKeyboardType != .numberPad && state.currentKeyboardType != .asciiCapableNumberPad
-                && isOneHandTypeEnabled && state.currentOneHandType == .left {
+                && isOneHandModeEnabled && state.currentOneHandMode == .left {
                 ChevronButton(isLeftHandMode: true)
             }
         }.onAppear {
-            if isOneHandTypeEnabled {
-                state.currentOneHandType = OneHandType(rawValue: currentOneHandType) ?? .center
+            if isOneHandModeEnabled {
+                state.currentOneHandMode = OneHandMode(rawValue: currentOneHandType) ?? .center
             } else {
                 currentOneHandType = 1
-                state.currentOneHandType = .center
+                state.currentOneHandMode = .center
             }
         }
     }
