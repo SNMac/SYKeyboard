@@ -72,7 +72,7 @@ struct ContentView: View {
                 }
             } else {
                 Section {
-                    Text("‼️ 초기 설정 필요 ‼️")
+                    Text("‼️ 키보드 추가 필요 ‼️")
                 } footer: {
                     Text("키보드를 추가하시면 키보드 세부 설정이 가능합니다.")
                 }
