@@ -10,9 +10,9 @@ import SwiftUI
 struct OneHandWidthSettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject private var state: PreviewNaratgeulState
-    @AppStorage("keyboardHeight", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var keyboardHeight = GlobalValues.defaultKeyboardHeight
-    @AppStorage("oneHandWidth", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var oneHandWidth = GlobalValues.defaultOneHandWidth
-    @AppStorage("needsInputModeSwitchKey", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var needsInputModeSwitchKey = true
+    @AppStorage("keyboardHeight", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var keyboardHeight = GlobalValues.defaultKeyboardHeight
+    @AppStorage("oneHandWidth", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var oneHandWidth = GlobalValues.defaultOneHandWidth
+    @AppStorage("needsInputModeSwitchKey", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var needsInputModeSwitchKey = true
     @State private var tempOneHandWidth: Double = GlobalValues.defaultOneHandWidth
     
     private let fontSize: CGFloat = 40

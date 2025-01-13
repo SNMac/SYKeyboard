@@ -28,12 +28,12 @@ struct PreviewNaratgeulButton: View {
     private let log = OSLog(subsystem: "github.com-SNMac.SYKeyboard", category: "PreviewNaratgeulButton")
     
     @EnvironmentObject private var state: PreviewNaratgeulState
-    @AppStorage("longPressSpeed", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var longPressSpeed = GlobalValues.defaultLongPressSpeed
-    @AppStorage("cursorActiveWidth", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var cursorActiveWidth = GlobalValues.defaultCursorActiveWidth
-    @AppStorage("cursorMoveWidth", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var cursorMoveWidth = GlobalValues.defaultCursorMoveWidth
-    @AppStorage("needsInputModeSwitchKey", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var needsInputModeSwitchKey = true
-    @AppStorage("isNumberKeyboardTypeEnabled", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var isNumberKeyboardTypeEnabled = true
-    @AppStorage("isOneHandModeEnabled", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var isOneHandModeEnabled = true
+    @AppStorage("longPressSpeed", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var longPressSpeed = GlobalValues.defaultLongPressSpeed
+    @AppStorage("cursorActiveWidth", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var cursorActiveWidth = GlobalValues.defaultCursorActiveWidth
+    @AppStorage("cursorMoveWidth", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var cursorMoveWidth = GlobalValues.defaultCursorMoveWidth
+    @AppStorage("needsInputModeSwitchKey", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var needsInputModeSwitchKey = true
+    @AppStorage("isNumberKeyboardTypeEnabled", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var isNumberKeyboardTypeEnabled = true
+    @AppStorage("isOneHandModeEnabled", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var isOneHandModeEnabled = true
     
     @State var nowState: ButtonState = .released
     

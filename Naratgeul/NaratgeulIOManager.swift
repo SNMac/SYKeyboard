@@ -7,8 +7,6 @@
 //  - Downloaded from https://github.com/Kim-Junhwan/IOS-CustomKeyboard - KeyboardIOManager.swift
 //
 
-import OSLog
-
 final class NaratgeulIOManager {
     private let hangeulAutomata = HangeulAutomata()
     private var lastLetter: String = ""

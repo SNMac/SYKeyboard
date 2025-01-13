@@ -27,15 +27,24 @@ class RequestFullAccessOverlayView: UIView {
     
     private let warningLabel: UILabel = {
         let label = UILabel()
-        label.text = "‼️ 전체 접근 허용 활성화 필요 ‼️"
+        label.text = "‼️ 전체 접근 허용 ON 필요 ‼️"
         label.font = .systemFont(ofSize: 18, weight: .bold)
         
         return label
     }()
     
-    private let descriptionLabel: UILabel = {
+    private let descriptionLabel1: UILabel = {
         let label = UILabel()
-        label.text = "전체 접근 허용이 비활성화되어 있는 경우 일부 기능이 작동하지 않을 수 있습니다."
+        label.text = "전체 접근 허용이 OFF 되어 있는 경우 일부 기능이 작동하지 않을 수 있습니다."
+        label.font = .systemFont(ofSize: 15)
+        label.numberOfLines = 0
+        
+        return label
+    }()
+    
+    private let descriptionLabel2: UILabel = {
+        let label = UILabel()
+        label.text = "활성화 방법: 키보드 ➡️ 전체 접근 허용 ON"
         label.font = .systemFont(ofSize: 15)
         label.numberOfLines = 0
         
@@ -75,7 +84,8 @@ private extension RequestFullAccessOverlayView {
         addSubview(blurEffectView)
         blurEffectView.contentView.addSubview(vibrancyEffectView)
         addSubview(warningLabel)
-        addSubview(descriptionLabel)
+        addSubview(descriptionLabel1)
+        addSubview(descriptionLabel2)
         addSubview(goToSettingsButton)
     }
     
@@ -90,16 +100,19 @@ private extension RequestFullAccessOverlayView {
         
         warningLabel.snp.makeConstraints { make in
             make.centerX.equalToSuperview()
-            make.top.equalToSuperview().offset(40)
+            make.top.equalToSuperview().inset(20)
         }
-        descriptionLabel.snp.makeConstraints { make in
-            make.top.equalTo(warningLabel.snp.bottom).offset(30)
-            make.left.equalToSuperview().offset(30)
-            make.right.equalToSuperview().offset(-30)
+        descriptionLabel1.snp.makeConstraints { make in
+            make.top.equalTo(warningLabel.snp.bottom).offset(20)
+            make.left.right.equalToSuperview().inset(20)
+        }
+        descriptionLabel2.snp.makeConstraints { make in
+            make.left.right.equalToSuperview().inset(20)
+            make.bottom.equalTo(goToSettingsButton.snp.top).offset(-10)
         }
         goToSettingsButton.snp.makeConstraints { make in
             make.centerX.equalToSuperview()
-            make.bottom.equalToSuperview().offset(-30)
+            make.bottom.equalToSuperview().inset(20)
         }
     }
 }

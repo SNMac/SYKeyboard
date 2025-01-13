@@ -9,9 +9,9 @@ import SwiftUI
 
 struct NaratgeulView: View {
     @EnvironmentObject private var state: NaratgeulState
-    @AppStorage("isNumberKeyboardTypeEnabled", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var isNumberKeyboardTypeEnabled = true
-    @AppStorage("isOneHandModeEnabled", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var isOneHandModeEnabled = true
-    @AppStorage("currentOneHandMode", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var currentOneHandMode = 1
+    @AppStorage("isNumberKeyboardTypeEnabled", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var isNumberKeyboardTypeEnabled = true
+    @AppStorage("isOneHandModeEnabled", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var isOneHandModeEnabled = true
+    @AppStorage("currentOneHandMode", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var currentOneHandMode = 1
     
     var body: some View {
         HStack(spacing: 0) {

@@ -10,8 +10,8 @@ import SwiftUI
 struct KeyboardHeightSettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject private var state: PreviewNaratgeulState
-    @AppStorage("keyboardHeight", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var keyboardHeight = GlobalValues.defaultKeyboardHeight
-    @AppStorage("oneHandWidth", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var oneHandWidth = GlobalValues.defaultOneHandWidth
+    @AppStorage("keyboardHeight", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var keyboardHeight = GlobalValues.defaultKeyboardHeight
+    @AppStorage("oneHandWidth", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var oneHandWidth = GlobalValues.defaultOneHandWidth
     @State private var tempKeyboardHeight: Double = GlobalValues.defaultKeyboardHeight
     
     private var keyboardHeightSettings: some View {

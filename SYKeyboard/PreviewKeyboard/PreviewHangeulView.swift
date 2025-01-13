@@ -10,8 +10,8 @@ import Combine
 
 struct PreviewHangeulView: View {
     @EnvironmentObject var state: PreviewNaratgeulState
-    @AppStorage("repeatTimerSpeed", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var repeatTimerSpeed = GlobalValues.defaultRepeatTimerSpeed
-    @AppStorage("needsInputModeSwitchKey", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var needsInputModeSwitchKey = true
+    @AppStorage("repeatTimerSpeed", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var repeatTimerSpeed = GlobalValues.defaultRepeatTimerSpeed
+    @AppStorage("needsInputModeSwitchKey", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var needsInputModeSwitchKey = true
     
     @Binding var keyboardHeight: Double
     @Binding var oneHandWidth: Double

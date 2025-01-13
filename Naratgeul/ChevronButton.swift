@@ -9,7 +9,7 @@ import SwiftUI
 
 struct ChevronButton: View {
     @EnvironmentObject private var state: NaratgeulState
-    @AppStorage("currentOneHandMode", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var currentOneHandMode = 1
+    @AppStorage("currentOneHandMode", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var currentOneHandMode = 1
     @State private var isPressed: Bool = false
     
     let isLeftHandMode: Bool

@@ -227,7 +227,8 @@ class NaratgeulViewController: UIInputViewController {
         
     // MARK: - UserDefaults Update Methods
     private func setupDefaults() {
-        defaults = UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")
+        print(Bundle.main.bundleIdentifier!)
+        defaults = UserDefaults(suiteName: GlobalValues.groupBundleID)
         GlobalValues.setupDefaults(defaults)
         defaults?.set(needsInputModeSwitchKey, forKey: "needsInputModeSwitchKey")
     }
@@ -375,10 +376,10 @@ private extension NaratgeulViewController {
     }
     
     func redirectToSettings() {
-        guard let url = URL(string: UIApplication.openSettingsURLString) else {
+        guard let settingsURL = URL(string: "github.com-SNMac.SYKeyboard://") else {
             return
         }
-        openURL(url)
+        openURL(settingsURL)
     }
     
     @discardableResult

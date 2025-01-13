@@ -9,7 +9,7 @@ import SwiftUI
 
 struct InputTypeSelectOverlayView: View {
     @EnvironmentObject private var state: NaratgeulState
-    @AppStorage("screenWidth", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var screenWidth = 1.0
+    @AppStorage("screenWidth", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var screenWidth = 1.0
     
     private let frameWidth: CGFloat = 180
     private let interItemSpacing: CGFloat = 8

@@ -9,8 +9,8 @@ import SwiftUI
 
 struct OneHandModeSelectOverlayView: View {
     @EnvironmentObject private var state: NaratgeulState
-    @AppStorage("currentOneHandMode", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var currentOneHandMode = 1
-    @AppStorage("screenWidth", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var screenWidth = 1.0
+    @AppStorage("currentOneHandMode", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var currentOneHandMode = 1
+    @AppStorage("screenWidth", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var screenWidth = 1.0
     
     private let frameWidth: CGFloat = 230
     private let interItemSpacing: CGFloat = 8

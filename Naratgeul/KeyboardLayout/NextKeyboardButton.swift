@@ -20,7 +20,9 @@ struct NextKeyboardButton: View {
                 .foregroundColor(Color(uiColor: UIColor.label))
                 .background(Color("SecondaryKeyboardButton"))
                 .clipShape(.rect(cornerRadius: 5))
-        }.overlay {
+        }
+        .shadow(color: Color("KeyboardButtonShadow"), radius: 0, x: 0, y: 1)
+        .overlay {
             NextKeyboardButtonOverlay(action: action)
         }
     }

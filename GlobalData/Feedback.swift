@@ -15,12 +15,12 @@ final class Feedback {
     private init() {}
     
     var sounds: Bool {
-        let defaults = UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")
+        let defaults = UserDefaults(suiteName: GlobalValues.groupBundleID)
         return defaults?.bool(forKey: "isSoundFeedbackEnabled") ?? true
     }
     
     var haptic: Bool {
-        let defaults = UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")
+        let defaults = UserDefaults(suiteName: GlobalValues.groupBundleID)
         return defaults?.bool(forKey: "isHapticFeedbackEnabled") ?? true
     }
     

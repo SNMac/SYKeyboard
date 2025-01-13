@@ -10,7 +10,7 @@ import Combine
 
 struct SymbolView: View {
     @EnvironmentObject private var state: NaratgeulState
-    @AppStorage("isAutoChangeToHangeulEnabled", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var isAutoChangeToHangeulEnabled = true
+    @AppStorage("isAutoChangeToHangeulEnabled", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var isAutoChangeToHangeulEnabled = true
     @State private var timer: AnyCancellable?
     @State private var isSymbolInput: Bool = false
     

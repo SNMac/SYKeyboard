@@ -8,10 +8,10 @@
 import SwiftUI
 
 struct SpeedAndCursorSettingsView: View {
-    @AppStorage("longPressSpeed", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var longPressSpeed = GlobalValues.defaultLongPressSpeed
-    @AppStorage("repeatTimerSpeed", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var repeatTimerSpeed = GlobalValues.defaultRepeatTimerSpeed
-    @AppStorage("cursorActiveWidth", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var cursorActiveWidth = GlobalValues.defaultCursorActiveWidth
-    @AppStorage("cursorMoveWidth", store: UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")) private var cursorMoveWidth = GlobalValues.defaultCursorMoveWidth
+    @AppStorage("longPressSpeed", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var longPressSpeed = GlobalValues.defaultLongPressSpeed
+    @AppStorage("repeatTimerSpeed", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var repeatTimerSpeed = GlobalValues.defaultRepeatTimerSpeed
+    @AppStorage("cursorActiveWidth", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var cursorActiveWidth = GlobalValues.defaultCursorActiveWidth
+    @AppStorage("cursorMoveWidth", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var cursorMoveWidth = GlobalValues.defaultCursorMoveWidth
     
     private var longPressSpeedSetting: some View {
         HStack {

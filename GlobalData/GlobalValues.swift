@@ -10,6 +10,8 @@ import Foundation
 struct GlobalValues {
     private init() {}
     
+    static let groupBundleID = "group.github.com-SNMac.SYKeyboard"
+    
     static let defaultKeyboardHeight: Double = 240.0
     static let defaultOneHandWidth: Double = 320.0
     static let defaultLongPressSpeed: Double = 0.5

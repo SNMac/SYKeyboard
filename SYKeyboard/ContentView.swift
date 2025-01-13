@@ -35,7 +35,7 @@ struct ContentView: View {
     }
     
     init() {
-        defaults = UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")
+        defaults = UserDefaults(suiteName: GlobalValues.groupBundleID)
         GlobalValues.setupDefaults(defaults)
         
         state = PreviewNaratgeulState()
@@ -48,7 +48,7 @@ struct ContentView: View {
             } header: {
                 Text("키보드 추가 및 권한 설정")
             } footer: {
-                Text("키보드 ➡️ 나랏글, 전체 접근 허용 활성화")
+                Text("키보드 ➡️ 나랏글 ON, 전체 접근 허용 ON")
                     .font(.system(.caption))
             }
             
