@@ -88,6 +88,9 @@ struct ContentView: View {
         NavigationStack {
             KeyboardTestView()
             keyboardSettings
+                .onAppear(perform: {
+                    isKeyboardExtensionEnabled = checkKeyboardExtensionEnabled()
+                })
                 .onChange(of: scenePhase) { newPhase in
                     switch newPhase {
                     case .active:
