@@ -368,7 +368,6 @@ private extension NaratgeulViewController {
             self.redirectToApp()
         }), for: .touchUpInside)
         self.view.addSubview(requestFullAccessView)
-        
         requestFullAccessView.snp.makeConstraints { make in
             make.edges.equalToSuperview()
         }

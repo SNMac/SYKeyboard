@@ -10,11 +10,25 @@ import SnapKit
 
 class RequestFullAccessOverlayView: UIView {
     // MARK: - UI Components
+    private let blurEffectView: UIVisualEffectView = {
+        let blurEffect = UIBlurEffect(style: .systemUltraThinMaterial)
+        let visualEffectView = UIVisualEffectView(effect: blurEffect)
+        
+        return visualEffectView
+    }()
+    
+    private let vibrancyEffectView: UIVisualEffectView = {
+        let blurEffect = UIBlurEffect(style: .systemUltraThinMaterial)
+        let vibrancyEffect = UIVibrancyEffect(blurEffect: blurEffect, style: .fill)
+        let visualEffectView = UIVisualEffectView(effect: vibrancyEffect)
+        
+        return visualEffectView
+    }()
+    
     private let warningLabel: UILabel = {
         let label = UILabel()
         label.text = "‼️ 전체 접근 허용 활성화 필요 ‼️"
-        label.textColor = .white
-        label.font = .systemFont(ofSize: 18, weight: .semibold)
+        label.font = .systemFont(ofSize: 18, weight: .bold)
         
         return label
     }()
@@ -22,7 +36,6 @@ class RequestFullAccessOverlayView: UIView {
     private let descriptionLabel: UILabel = {
         let label = UILabel()
         label.text = "전체 접근 허용이 비활성화되어 있는 경우 일부 기능이 작동하지 않을 수 있습니다."
-        label.textColor = .white
         label.font = .systemFont(ofSize: 15)
         label.numberOfLines = 0
         
@@ -54,18 +67,27 @@ class RequestFullAccessOverlayView: UIView {
 // MARK: - UI Methods
 private extension RequestFullAccessOverlayView {
     func setupUI() {
-        backgroundColor = UIColor(red: 0, green: 0, blue: 0, alpha: 0.7)
         setViewHierarchy()
         setConstraints()
     }
     
     func setViewHierarchy() {
+        addSubview(blurEffectView)
+        blurEffectView.contentView.addSubview(vibrancyEffectView)
         addSubview(warningLabel)
         addSubview(descriptionLabel)
         addSubview(goToSettingsButton)
     }
     
     func setConstraints() {
+        blurEffectView.snp.makeConstraints { make in
+            make.edges.equalToSuperview()
+        }
+        
+        vibrancyEffectView.snp.makeConstraints { make in
+            make.edges.equalToSuperview()
+        }
+        
         warningLabel.snp.makeConstraints { make in
             make.centerX.equalToSuperview()
             make.top.equalToSuperview().offset(40)
