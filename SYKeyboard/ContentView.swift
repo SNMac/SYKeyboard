@@ -25,10 +25,11 @@ struct ContentView: View {
             } header: {
                 Text("초기 설정")
             } footer: {
-                Text("키보드 ➡️ 나랏글, 전체 접근 허용 ON")
+                Text("키보드 ➡️ 나랏글, 전체 접근 허용 활성화")
                     .font(.system(.caption))
             }
             
+            // TODO: 키보드 설정에 추가됐는지 확인하는 기능 추가
             Section {
                 FeedbackSettingsView()
             } header: {

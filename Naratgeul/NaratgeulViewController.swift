@@ -6,51 +6,103 @@
 //
 
 import SwiftUI
+import SnapKit
 
 class NaratgeulViewController: UIInputViewController {
-    // MARK: - Properties
     private var defaults: UserDefaults?
     private let ioManager = NaratgeulIOManager()
     private var state: NaratgeulState?
-    private var keyboardType: UIKeyboardType = .default
     private var cursorPos: Int = 0
     
     private var userLexicon: UILexicon?
     private var textReplacementHistory: [String] = []
     
+    private let requestFullAccessView = RequestFullAccessOverlayView()
+    
     // MARK: - LifeCycle
     override func viewDidLoad() {
         super.viewDidLoad()
-        
         setupDefaults()
-        setupIOManager()
+        setupKeyboard()
         setupUI()
-        Task {
-            await setupUserLexicon()
+        if !hasFullAccess {
+            setupRequestFullAccessUI()
         }
+        loadTextReplacement()
     }
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        
-        let screenWidth = view.window?.windowScene?.screen.bounds.width
-        defaults?.set(screenWidth, forKey: "screenWidth")
-        
+        updateScreenWidthToDefaults()
         updateCursorPos()
         updateHoegSsangAvailiableToOptions()
         updateKeyboardTypeToOptions()
         updateReturnButtonLabelToOptions()
         Feedback.shared.prepareHaptic()
+        
     }
     
-    
-    // MARK: - Method
-    private func setupDefaults() {
-        defaults = UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")
-        GlobalValues.setupDefaults(defaults)
+    override func textDidChange(_ textInput: (any UITextInput)?) {
+        super.textDidChange(textInput)
+        updateCursorPos()
+        ioManager.flushBuffer()
+        updateHoegSsangAvailiableToOptions()
     }
     
-    private func setupIOManager() {
+    override func selectionWillChange(_ textInput: (any UITextInput)?) {
+        super.selectionWillChange(textInput)
+        updateCursorPos()
+    }
+    
+    override func selectionDidChange(_ textInput: (any UITextInput)?) {
+        super.selectionDidChange(textInput)
+        updateCursorPos()
+    }
+    
+    // MARK: - Keyboard UI Methods
+    private func setupUI() {
+        let nextKeyboardAction = #selector(handleInputModeList(from:with:))
+        let state = NaratgeulState(
+            delegate: ioManager,
+            keyboardHeight: CGFloat(defaults?.double(forKey: "keyboardHeight") ?? GlobalValues.defaultKeyboardHeight),
+            oneHandWidth: CGFloat(defaults?.double(forKey: "oneHandWidth") ?? GlobalValues.defaultOneHandWidth),
+            longPressTime: 1.0 - (defaults?.double(forKey: "longPressSpeed") ?? GlobalValues.defaultLongPressSpeed),
+            repeatTimerCycle: 0.10 - (defaults?.double(forKey: "repeatTimerSpeed") ?? GlobalValues.defaultRepeatTimerSpeed),
+            needsInputModeSwitchKey: needsInputModeSwitchKey,
+            nextKeyboardAction: nextKeyboardAction
+        )
+        self.state = state
+        
+        let keyboard = UIHostingController(rootView: NaratgeulView().environmentObject(state))
+        keyboard.view.backgroundColor = .clear
+        if hasFullAccess {
+            keyboard.view.isUserInteractionEnabled = true
+        } else {
+            keyboard.view.isUserInteractionEnabled = false
+        }
+        
+        setViewHierarchy(keyboardView: keyboard.view)
+        setConstraints(keyboardView: keyboard.view)
+        addChild(keyboard)
+        keyboard.didMove(toParent: self)
+    }
+    
+    private func setViewHierarchy(keyboardView: UIView) {
+        self.view.addSubview(keyboardView)
+    }
+    
+    private func setConstraints(keyboardView: UIView) {
+        keyboardView.snp.makeConstraints { make in
+            make.edges.equalToSuperview()
+        }
+    }
+    
+    // MARK: - Keyboard Setup Methods
+    private func setupKeyboard() {
+        configureIOManager()
+        loadTextReplacement()
+    }
+    private func configureIOManager() {
         ioManager.inputText = { [weak self] in
             guard let self = self else { return }
             let proxy = textDocumentProxy
@@ -156,62 +208,13 @@ class NaratgeulViewController: UIInputViewController {
         }
     }
     
-    private func setupUI() {
-        let nextKeyboardAction = #selector(handleInputModeList(from:with:))
-        
-        let state = NaratgeulState(
-            delegate: ioManager,
-            keyboardHeight: CGFloat(defaults?.double(forKey: "keyboardHeight") ?? GlobalValues.defaultKeyboardHeight),
-            oneHandWidth: CGFloat(defaults?.double(forKey: "oneHandWidth") ?? GlobalValues.defaultOneHandWidth),
-            longPressTime: 1.0 - (defaults?.double(forKey: "longPressSpeed") ?? GlobalValues.defaultLongPressSpeed),
-            repeatTimerCycle: 0.10 - (defaults?.double(forKey: "repeatTimerSpeed") ?? GlobalValues.defaultRepeatTimerSpeed),
-            needsInputModeSwitchKey: needsInputModeSwitchKey,
-            nextKeyboardAction: nextKeyboardAction
-        )
-        
-        let SYKeyboard = UIHostingController(rootView: NaratgeulView().environmentObject(state))
-        SYKeyboard.view.backgroundColor = .clear
-        
-        self.state = state
-        
-        defaults?.set(needsInputModeSwitchKey, forKey: "needsInputModeSwitchKey")
-        
-        view.addSubview(SYKeyboard.view)
-        SYKeyboard.view.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([
-            SYKeyboard.view.leftAnchor.constraint(equalTo: view.leftAnchor),
-            SYKeyboard.view.topAnchor.constraint(equalTo: view.topAnchor),
-            SYKeyboard.view.rightAnchor.constraint(equalTo: view.rightAnchor),
-            SYKeyboard.view.bottomAnchor.constraint(equalTo: view.bottomAnchor)
-        ])
-        addChild(SYKeyboard)
-        SYKeyboard.didMove(toParent: self)
-    }
-        
-    private func setupUserLexicon() async {
-        userLexicon = await requestSupplementaryLexicon()
+    private func loadTextReplacement() {
+        Task {
+            await userLexicon = requestSupplementaryLexicon()
+        }
     }
     
-    override func textDidChange(_ textInput: (any UITextInput)?) {
-        super.textDidChange(textInput)
-        
-        updateCursorPos()
-        ioManager.flushBuffer()
-        updateHoegSsangAvailiableToOptions()
-    }
-    
-    override func selectionWillChange(_ textInput: (any UITextInput)?) {
-        super.selectionWillChange(textInput)
-        
-        updateCursorPos()
-    }
-    
-    override func selectionDidChange(_ textInput: (any UITextInput)?) {
-        super.selectionDidChange(textInput)
-        
-        updateCursorPos()
-    }
-    
+    // MARK: - Property Update Methods
     private func updateCursorPos() {
         let proxy = textDocumentProxy
         if let beforeInput = proxy.documentContextBeforeInput {
@@ -220,7 +223,20 @@ class NaratgeulViewController: UIInputViewController {
             cursorPos = 0
         }
     }
+        
+    // MARK: - UserDefaults Update Methods
+    private func setupDefaults() {
+        defaults = UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")
+        GlobalValues.setupDefaults(defaults)
+        defaults?.set(needsInputModeSwitchKey, forKey: "needsInputModeSwitchKey")
+    }
     
+    private func updateScreenWidthToDefaults() {
+        let screenWidth = view.window?.windowScene?.screen.bounds.width
+        defaults?.set(screenWidth, forKey: "screenWidth")
+    }
+    
+    // MARK: - NaratgeulState Update Methods
     private func updateHoegSsangAvailiableToOptions() {
         state?.isHoegSsangAvailable = ioManager.isHoegSsangAvailiable
     }
@@ -285,10 +301,10 @@ class NaratgeulViewController: UIInputViewController {
         }
         state?.returnButtonType = returnButtonType
     }
+    
 }
 
-
-// MARK: - Extension
+// MARK: - Text Replacement Methods
 private extension NaratgeulViewController {
     // 텍스트 대치
     func attemptToReplaceCurrentWord() -> Bool {  // 글자 입력할때 호출
@@ -337,8 +353,47 @@ private extension NaratgeulViewController {
                         textReplacementHistory.remove(at: historyIndex)
                         return true
                     }
+                    
                 }
             }
+        }
+        return false
+    }
+}
+
+// MARK: - Request Full Access Methods
+private extension NaratgeulViewController {
+    func setupRequestFullAccessUI() {
+        requestFullAccessView.goToSettingsButton.addAction(UIAction(handler: { _ in
+            self.redirectToApp()
+        }), for: .touchUpInside)
+        self.view.addSubview(requestFullAccessView)
+        
+        requestFullAccessView.snp.makeConstraints { make in
+            make.edges.equalToSuperview()
+        }
+    }
+    
+    func redirectToApp() {
+        guard let redirectionURL = URL(string: UIApplication.openSettingsURLString) else {
+            return
+        }
+        openURL(redirectionURL)
+    }
+    
+    @discardableResult
+    @objc func openURL(_ url: URL) -> Bool {
+        var responder: UIResponder? = self
+        while responder != nil {
+            if let application = responder as? UIApplication {
+                if #available(iOS 18.0, *) {
+                    application.open(url, options: [:], completionHandler: nil)
+                    return true
+                } else {
+                    return application.perform(#selector(openURL(_:)), with: url) != nil
+                }
+            }
+            responder = responder?.next
         }
         return false
     }
