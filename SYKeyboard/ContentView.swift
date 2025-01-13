@@ -46,14 +46,13 @@ struct ContentView: View {
             Section {
                 InitialSettingsView()
             } header: {
-                Text("초기 설정")
+                Text("키보드 추가 및 권한 설정")
             } footer: {
                 Text("키보드 ➡️ 나랏글, 전체 접근 허용 활성화")
                     .font(.system(.caption))
             }
             
             if isKeyboardExtensionEnabled {
-                // TODO: 키보드 설정에 추가됐는지 확인하는 기능 추가
                 Section {
                     FeedbackSettingsView()
                 } header: {
@@ -70,6 +69,12 @@ struct ContentView: View {
                     AppearanceSettingsView()
                 } header: {
                     Text("외형 설정")
+                }
+            } else {
+                Section {
+                    Text("‼️ 초기 설정 필요 ‼️")
+                } footer: {
+                    Text("키보드를 추가하시면 키보드 세부 설정이 가능합니다.")
                 }
             }
             
