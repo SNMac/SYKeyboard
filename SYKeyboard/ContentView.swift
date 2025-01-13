@@ -8,8 +8,31 @@
 import SwiftUI
 
 struct ContentView: View {
+    @Environment(\.scenePhase) private var scenePhase
+    
     private var defaults: UserDefaults?
     private var state: PreviewNaratgeulState
+    @State private var isKeyboardExtensionEnabled: Bool = false
+    
+    private func checkKeyboardExtensionEnabled() -> Bool {
+        guard let appBundleIdentifier = Bundle.main.bundleIdentifier else {
+            fatalError("isKeyboardExtensionEnabled(): Cannot retrieve bundle identifier.")
+        }
+        
+        guard let keyboards = UserDefaults.standard.dictionaryRepresentation()["AppleKeyboards"] as? [String] else {
+            // There is no key `AppleKeyboards` in NSUserDefaults. That happens sometimes.
+            return false
+        }
+        
+        let keyboardExtensionBundleIdentifierPrefix = appBundleIdentifier + "."
+        for keyboard in keyboards {
+            if keyboard.hasPrefix(keyboardExtensionBundleIdentifierPrefix) {
+                return true
+            }
+        }
+        
+        return false
+    }
     
     init() {
         defaults = UserDefaults(suiteName: "group.github.com-SNMac.SYKeyboard")
@@ -29,23 +52,25 @@ struct ContentView: View {
                     .font(.system(.caption))
             }
             
-            // TODO: 키보드 설정에 추가됐는지 확인하는 기능 추가
-            Section {
-                FeedbackSettingsView()
-            } header: {
-                Text("피드백 설정")
-            }
-            
-            Section {
-                InputSettingsView()
-            } header: {
-                Text("입력 설정")
-            }
-            
-            Section {
-                AppearanceSettingsView()
-            } header: {
-                Text("외형 설정")
+            if isKeyboardExtensionEnabled {
+                // TODO: 키보드 설정에 추가됐는지 확인하는 기능 추가
+                Section {
+                    FeedbackSettingsView()
+                } header: {
+                    Text("피드백 설정")
+                }
+                
+                Section {
+                    InputSettingsView()
+                } header: {
+                    Text("입력 설정")
+                }
+                
+                Section {
+                    AppearanceSettingsView()
+                } header: {
+                    Text("외형 설정")
+                }
             }
             
             Section {
@@ -63,6 +88,16 @@ struct ContentView: View {
         NavigationStack {
             KeyboardTestView()
             keyboardSettings
+                .onChange(of: scenePhase) { newPhase in
+                    switch newPhase {
+                    case .active:
+                        isKeyboardExtensionEnabled = checkKeyboardExtensionEnabled()
+                    case .inactive:
+                        isKeyboardExtensionEnabled = checkKeyboardExtensionEnabled()
+                    default:
+                        break
+                    }
+                }
         }
         .environmentObject(state)
     }

@@ -10,10 +10,10 @@ import SnapKit
 
 class NaratgeulViewController: UIInputViewController {
     private var defaults: UserDefaults?
+    
     private let ioManager = NaratgeulIOManager()
     private var state: NaratgeulState?
     private var cursorPos: Int = 0
-    
     private var userLexicon: UILexicon?
     private var textReplacementHistory: [String] = []
     
@@ -102,6 +102,7 @@ class NaratgeulViewController: UIInputViewController {
         configureIOManager()
         loadTextReplacement()
     }
+    
     private func configureIOManager() {
         ioManager.inputText = { [weak self] in
             guard let self = self else { return }
@@ -365,7 +366,7 @@ private extension NaratgeulViewController {
 private extension NaratgeulViewController {
     func setupRequestFullAccessUI() {
         requestFullAccessView.goToSettingsButton.addAction(UIAction(handler: { _ in
-            self.redirectToApp()
+            self.redirectToSettings()
         }), for: .touchUpInside)
         self.view.addSubview(requestFullAccessView)
         requestFullAccessView.snp.makeConstraints { make in
@@ -373,11 +374,11 @@ private extension NaratgeulViewController {
         }
     }
     
-    func redirectToApp() {
-        guard let redirectionURL = URL(string: UIApplication.openSettingsURLString) else {
+    func redirectToSettings() {
+        guard let url = URL(string: UIApplication.openSettingsURLString) else {
             return
         }
-        openURL(redirectionURL)
+        openURL(url)
     }
     
     @discardableResult
