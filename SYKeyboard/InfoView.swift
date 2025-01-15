@@ -15,6 +15,17 @@ struct InfoView: View {
             Text((Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String)!)
                 .foregroundStyle(.gray)
         }
+        Button {
+            if let writeReviewURL = URL(string: "https://apps.apple.com/app/sy키보드/id6670792957?action=write-review") {
+                UIApplication.shared.open(writeReviewURL)
+            }
+        } label: {
+            HStack {
+                Image(systemName: "pencil.line")
+                Text("리뷰 및 별점 주기")
+            }
+        }
+
     }
 }
 

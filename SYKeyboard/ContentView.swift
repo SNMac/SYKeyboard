@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import StoreKit
 
 struct ContentView: View {
     @Environment(\.scenePhase) private var scenePhase
@@ -106,6 +107,7 @@ struct ContentView: View {
                         break
                     }
                 }
+            // TODO: 인앱 리뷰 기능
             // TODO: 인앱 광고 넣기
         }
         .environmentObject(state)

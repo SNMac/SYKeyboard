@@ -375,10 +375,10 @@ private extension NaratgeulViewController {
     }
     
     func redirectToSettings() {
-        guard let settingsURL = URL(string: "github.com-SNMac.SYKeyboard://") else {
+        guard let urlScheme = URL(string: "sykeyboard://") else {
             return
         }
-        openURL(settingsURL)
+        openURL(urlScheme)
     }
     
     @discardableResult
