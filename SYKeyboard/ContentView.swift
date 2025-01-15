@@ -106,6 +106,7 @@ struct ContentView: View {
                         break
                     }
                 }
+            // TODO: 인앱 광고 넣기
         }
         .environmentObject(state)
     }

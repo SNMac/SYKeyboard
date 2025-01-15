@@ -463,7 +463,7 @@ struct NaratgeulButton: View {
                         .monospaced()
                         .font(.system(size: state.needsInputModeSwitchKey ? textSize - 2 : textSize))
                         .foregroundStyle(Color(uiColor: UIColor.label))
-                        .background(checkPressed() ? Color("PrimaryKeyboardButton") : Color("SecondaryKeyboardButton"))
+                        .background(checkPressed() || checkOverlayActive() ? Color("PrimaryKeyboardButton") : Color("SecondaryKeyboardButton"))
                         .clipShape(.rect(cornerRadius: 5))
                         .overlay(alignment: .bottomLeading, content: {
                             HStack(spacing: 1) {
@@ -497,7 +497,7 @@ struct NaratgeulButton: View {
                             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
                             .font(.system(size: state.needsInputModeSwitchKey ? textSize - 2 : textSize))
                             .foregroundStyle(Color(uiColor: UIColor.label))
-                            .background(checkPressed() ? Color("PrimaryKeyboardButton") : Color("SecondaryKeyboardButton"))
+                            .background(checkPressed() || checkOverlayActive() ? Color("PrimaryKeyboardButton") : Color("SecondaryKeyboardButton"))
                             .clipShape(.rect(cornerRadius: 5))
                             .overlay(alignment: .bottomTrailing, content: {
                                 HStack(spacing: 1) {
@@ -530,7 +530,7 @@ struct NaratgeulButton: View {
                             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
                             .font(.system(size: state.needsInputModeSwitchKey ? textSize - 2 : textSize))
                             .foregroundStyle(Color(uiColor: UIColor.label))
-                            .background(checkPressed() ? Color("PrimaryKeyboardButton") : Color("SecondaryKeyboardButton"))
+                            .background(checkPressed() || checkOverlayActive() ? Color("PrimaryKeyboardButton") : Color("SecondaryKeyboardButton"))
                             .clipShape(.rect(cornerRadius: 5))
                             .overlay(alignment: .bottomLeading, content: {
                                 HStack(spacing: 1) {

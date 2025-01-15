@@ -227,7 +227,6 @@ class NaratgeulViewController: UIInputViewController {
         
     // MARK: - UserDefaults Update Methods
     private func setupDefaults() {
-        print(Bundle.main.bundleIdentifier!)
         defaults = UserDefaults(suiteName: GlobalValues.groupBundleID)
         GlobalValues.setupDefaults(defaults)
         defaults?.set(needsInputModeSwitchKey, forKey: "needsInputModeSwitchKey")

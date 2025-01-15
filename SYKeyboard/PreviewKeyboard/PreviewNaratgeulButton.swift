@@ -259,6 +259,31 @@ struct PreviewNaratgeulButton: View {
                         .foregroundStyle(Color(uiColor: UIColor.label))
                         .background(checkPressed() ? Color("PrimaryKeyboardButton") : Color("SecondaryKeyboardButton"))
                         .clipShape(.rect(cornerRadius: 5))
+                        .overlay(alignment: .bottomLeading, content: {
+                            HStack(spacing: 1) {
+                                if isNumberKeyboardTypeEnabled {
+                                    Image(systemName: "arrowtriangle.left")
+                                    Text("123")
+                                }
+                            }
+                            .monospaced()
+                            .font(.system(size: 9, weight: .regular))
+                            .foregroundStyle(Color(uiColor: .label))
+                            .backgroundStyle(Color(uiColor: .clear))
+                            .padding(EdgeInsets(top: 0, leading: 1, bottom: 1, trailing: 0))
+                        })
+                        .overlay(alignment: .topTrailing, content: {
+                            HStack(spacing: 0) {
+                                if isOneHandModeEnabled {
+                                    Image(systemName: "keyboard")
+                                    Image(systemName: "arrowtriangle.up")
+                                }
+                            }
+                            .font(.system(size: 9, weight: .regular))
+                            .foregroundStyle(Color(uiColor: .label))
+                            .backgroundStyle(Color(uiColor: .clear))
+                            .padding(EdgeInsets(top: 1, leading: 0, bottom: 0, trailing: 1))
+                        })
                     
                     
                     // 글자 버튼
