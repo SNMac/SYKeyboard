@@ -10,14 +10,17 @@ import StoreKit
 
 struct ContentView: View {
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.requestReview) private var requestReview
+    @AppStorage("executionCounter", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) var executionCounter = 0
+    @AppStorage("lastVersionPromptedForReview", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) var lastVersionPromptedForReview = ""
+    @State private var isKeyboardExtensionEnabled: Bool = false
     
     private var defaults: UserDefaults?
     private var state: PreviewNaratgeulState
-    @State private var isKeyboardExtensionEnabled: Bool = false
     
     private func checkKeyboardExtensionEnabled() -> Bool {
         guard let appBundleIdentifier = Bundle.main.bundleIdentifier else {
-            fatalError("isKeyboardExtensionEnabled(): Cannot retrieve bundle identifier.")
+            fatalError("checkKeyboardExtensionEnabled(): Cannot retrieve bundle identifier.")
         }
         
         guard let keyboards = UserDefaults.standard.dictionaryRepresentation()["AppleKeyboards"] as? [String] else {
@@ -33,6 +36,13 @@ struct ContentView: View {
         }
         
         return false
+    }
+    
+    private func presentReview() {
+        Task {
+            try await Task.sleep(for: .seconds(2))
+            await requestReview()
+        }
     }
     
     init() {
@@ -94,9 +104,10 @@ struct ContentView: View {
         NavigationStack {
             KeyboardTestView()
             keyboardSettings
-                .onAppear(perform: {
+                .onAppear {
                     isKeyboardExtensionEnabled = checkKeyboardExtensionEnabled()
-                })
+                    executionCounter += 1
+                }
                 .onChange(of: scenePhase) { newPhase in
                     switch newPhase {
                     case .active:
@@ -107,7 +118,19 @@ struct ContentView: View {
                         break
                     }
                 }
-            // TODO: 인앱 리뷰 기능
+                .onChange(of: executionCounter) { _ in
+                    guard let currentAppVersion = Bundle.currentAppVersion else {
+                        return
+                    }
+                    
+                    if executionCounter >= 50, currentAppVersion != lastVersionPromptedForReview {
+                        executionCounter = 0
+                        presentReview()
+                            
+                        lastVersionPromptedForReview = currentAppVersion
+                    }
+                }
+            
             // TODO: 인앱 광고 넣기
         }
         .environmentObject(state)

@@ -54,6 +54,7 @@
 		5BDD2F672D34E5D0003F87C0 /* SnapKit in Frameworks */ = {isa = PBXBuildFile; productRef = 5BDD2F662D34E5D0003F87C0 /* SnapKit */; };
 		5BDD2F6E2D34E682003F87C0 /* SnapKit in Frameworks */ = {isa = PBXBuildFile; productRef = 5BDD2F6D2D34E682003F87C0 /* SnapKit */; };
 		5BDD2F702D34FD45003F87C0 /* RequestFullAccessOverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BDD2F6F2D34FD45003F87C0 /* RequestFullAccessOverlayView.swift */; };
+		5BFFC5DD2D3812D5000BC603 /* Bundle+AppVersion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BFFC5DC2D3812D5000BC603 /* Bundle+AppVersion.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -140,6 +141,7 @@
 		5BDCDED62C67458600035B01 /* KeyboardTestView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardTestView.swift; sourceTree = "<group>"; };
 		5BDD2F5E2D34BA97003F87C0 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		5BDD2F6F2D34FD45003F87C0 /* RequestFullAccessOverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RequestFullAccessOverlayView.swift; sourceTree = "<group>"; };
+		5BFFC5DC2D3812D5000BC603 /* Bundle+AppVersion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Bundle+AppVersion.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -298,6 +300,7 @@
 			isa = PBXGroup;
 			children = (
 				5BB0D2712C88481500CE7AF5 /* View+Extension.swift */,
+				5BFFC5DC2D3812D5000BC603 /* Bundle+AppVersion.swift */,
 			);
 			path = Extension;
 			sourceTree = "<group>";
@@ -428,6 +431,7 @@
 				5BDCDED72C67458600035B01 /* KeyboardTestView.swift in Sources */,
 				5B13A2EF2CA0F24B004B7986 /* AppearanceSettingsView.swift in Sources */,
 				5B7B3F5C2C569B7800F7C093 /* ContentView.swift in Sources */,
+				5BFFC5DD2D3812D5000BC603 /* Bundle+AppVersion.swift in Sources */,
 				5B9472302C8989C100B8B154 /* SpeedAndCursorSettingsView.swift in Sources */,
 				5B7B3F5A2C569B7800F7C093 /* SYKeyboardApp.swift in Sources */,
 			);

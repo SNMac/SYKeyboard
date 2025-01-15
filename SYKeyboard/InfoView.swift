@@ -8,6 +8,8 @@
 import SwiftUI
 
 struct InfoView: View {
+    @Environment(\.openURL) private var openURL
+    
     var body: some View {
         HStack {
             Text("버전")
@@ -16,9 +18,13 @@ struct InfoView: View {
                 .foregroundStyle(.gray)
         }
         Button {
-            if let writeReviewURL = URL(string: "https://apps.apple.com/app/sy키보드/id6670792957?action=write-review") {
-                UIApplication.shared.open(writeReviewURL)
+            let url = "https://apps.apple.com/app/id6670792957?action=write-review"
+            
+            guard let writeReviewURL = URL(string: url) else {
+                fatalError("Expected a valid URL")
             }
+            
+            openURL(writeReviewURL)
         } label: {
             HStack {
                 Image(systemName: "pencil.line")

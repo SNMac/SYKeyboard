@@ -22,6 +22,16 @@ struct GlobalValues {
     static func setupDefaults(_ defaults: UserDefaults?) {
         // UserDefaults 값이 존재하는지 확인하고, 없으면 새로 만듬
         
+        // 앱 또는 키보드를 실행한 횟수
+        if defaults?.object(forKey: "executionCounter") == nil {
+            defaults?.set(0, forKey: "executionCounter")
+        }
+        
+        // 마지막으로 리뷰를 요청한 버전
+        if defaults?.object(forKey: "lastVersionPromptedForReview") == nil {
+            defaults?.set("", forKey: "lastVersionPromptedForReview")
+        }
+        
         /* 피드백 설정 */
         // 소리 피드백
         if defaults?.object(forKey: "isSoundFeedbackEnabled") == nil {

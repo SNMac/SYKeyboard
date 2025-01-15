@@ -39,7 +39,6 @@ class NaratgeulViewController: UIInputViewController {
         updateKeyboardTypeToOptions()
         updateReturnButtonLabelToOptions()
         Feedback.shared.prepareHaptic()
-        
     }
     
     override func textDidChange(_ textInput: (any UITextInput)?) {
