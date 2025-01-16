@@ -117,6 +117,7 @@ struct SpeedAndCursorSettingsView: View {
             }
             .navigationTitle("속도/커서 설정")
             .navigationBarTitleDisplayMode(.inline)
+            .requestReviewViewModifier()
         }
     }
 }

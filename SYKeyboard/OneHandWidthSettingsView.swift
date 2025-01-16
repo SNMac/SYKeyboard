@@ -91,10 +91,12 @@ struct OneHandWidthSettingsView: View {
                     PreviewChevronButton(keyboardHeight: $keyboardHeight, isLeftHandMode: true)
                 }
             }.frame(height: needsInputModeSwitchKey ? keyboardHeight : keyboardHeight + 40)
-        }.onAppear {
+        }
+        .onAppear {
             tempOneHandWidth = oneHandWidth
             state.currentOneHandMode = .right
         }
+        .requestReviewViewModifier()
     }
 }
 

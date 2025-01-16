@@ -5,7 +5,7 @@
 //  Created by 서동환 on 1/10/25.
 //
 
-import Foundation
+import SwiftUI
 
 enum PreviewOneHandMode: Int {
     case left

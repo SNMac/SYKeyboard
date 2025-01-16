@@ -6,13 +6,9 @@
 //
 
 import SwiftUI
-import StoreKit
 
 struct ContentView: View {
     @Environment(\.scenePhase) private var scenePhase
-    @Environment(\.requestReview) private var requestReview
-    @AppStorage("executionCounter", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) var executionCounter = 0
-    @AppStorage("lastVersionPromptedForReview", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) var lastVersionPromptedForReview = ""
     @State private var isKeyboardExtensionEnabled: Bool = false
     
     private var defaults: UserDefaults?
@@ -36,13 +32,6 @@ struct ContentView: View {
         }
         
         return false
-    }
-    
-    private func presentReview() {
-        Task {
-            try await Task.sleep(for: .seconds(2))
-            await requestReview()
-        }
     }
     
     init() {
@@ -106,7 +95,6 @@ struct ContentView: View {
             keyboardSettings
                 .onAppear {
                     isKeyboardExtensionEnabled = checkKeyboardExtensionEnabled()
-                    executionCounter += 1
                 }
                 .onChange(of: scenePhase) { newPhase in
                     switch newPhase {
@@ -116,18 +104,6 @@ struct ContentView: View {
                         isKeyboardExtensionEnabled = checkKeyboardExtensionEnabled()
                     default:
                         break
-                    }
-                }
-                .onChange(of: executionCounter) { _ in
-                    guard let currentAppVersion = Bundle.currentAppVersion else {
-                        return
-                    }
-                    
-                    if executionCounter >= 50, currentAppVersion != lastVersionPromptedForReview {
-                        executionCounter = 0
-                        presentReview()
-                            
-                        lastVersionPromptedForReview = currentAppVersion
                     }
                 }
             

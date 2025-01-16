@@ -12,7 +12,7 @@ struct NaratgeulView: View {
     @AppStorage("isNumberKeyboardTypeEnabled", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var isNumberKeyboardTypeEnabled = true
     @AppStorage("isOneHandModeEnabled", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var isOneHandModeEnabled = true
     @AppStorage("currentOneHandMode", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var currentOneHandMode = 1
-    @AppStorage("executionCounter", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) var executionCounter = 0
+    @AppStorage("reviewCounter", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) var reviewCounter = 0
     
     var body: some View {
         HStack(spacing: 0) {
@@ -59,7 +59,7 @@ struct NaratgeulView: View {
                 ChevronButton(isLeftHandMode: true)
             }
         }.onAppear {
-            executionCounter += 1
+            reviewCounter += 1
             
             if isOneHandModeEnabled {
                 state.currentOneHandMode = OneHandMode(rawValue: currentOneHandMode) ?? .center
