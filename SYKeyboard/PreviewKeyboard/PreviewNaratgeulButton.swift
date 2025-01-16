@@ -168,11 +168,11 @@ struct PreviewNaratgeulButton: View {
         // 일정 거리 초과 드래그 -> 커서를 한칸씩 드래그한 방향으로 이동
         let dragDiff = dragGestureValue.translation.width - dragStartWidth
         if dragDiff < -cursorMoveWidth {
-            os_log("NaratgeulButton) Drag to left", log: log, type: .debug)
+            os_log("Move cursor to left", log: log, type: .debug)
             dragStartWidth = dragGestureValue.translation.width
             Feedback.shared.playHapticByForce(style: .light)
         } else if dragDiff > cursorMoveWidth {
-            os_log("NaratgeulButton) Drag to right", log: log, type: .debug)
+            os_log("Move cursor to right", log: log, type: .debug)
             dragStartWidth = dragGestureValue.translation.width
             Feedback.shared.playHapticByForce(style: .light)
         }
@@ -311,7 +311,7 @@ struct PreviewNaratgeulButton: View {
             LongPressGesture(minimumDuration: 0)
                 .onEnded({ _ in
                     // 버튼 눌렀을 때
-                    os_log("NaratgeulButton) LongPressGesture() onEnded: pressed", log: log, type: .debug)
+                    os_log("LongPressGesture() onEnded: pressed", log: log, type: .debug)
                     gesturePressed()
                 })
         )
@@ -319,7 +319,7 @@ struct PreviewNaratgeulButton: View {
             LongPressGesture(minimumDuration: longPressTime, maximumDistance: cursorActiveWidth)
             // 버튼 길게 눌렀을 때
                 .onEnded({ _ in
-                    os_log("NaratgeulButton) simultaneous_LongPressGesture() onEnded: longPressed", log: log, type: .debug)
+                    os_log("simultaneous_LongPressGesture() onEnded: longPressed", log: log, type: .debug)
                     gestureLongPressed()
                 })
                 .sequenced(before: DragGesture(minimumDistance: 10, coordinateSpace: .global))
@@ -330,7 +330,7 @@ struct PreviewNaratgeulButton: View {
                         break
                     case .second(_, let dragValue):
                         if let value = dragValue {
-                            os_log("NaratgeulButton) LongPressGesture()->DragGesture() onChanged: longPressedDrag", log: log, type: .debug)
+                            os_log("LongPressGesture()->DragGesture() onChanged: longPressedDrag", log: log, type: .debug)
                             gestureLongPressedDrag(dragGestureValue: value)
                         }
                     }
@@ -338,7 +338,7 @@ struct PreviewNaratgeulButton: View {
                 .exclusively(before: DragGesture(minimumDistance: cursorActiveWidth, coordinateSpace: .global)
                              // 버튼 드래그 할 때
                     .onChanged({ value in
-                        os_log("NaratgeulButton) exclusively_DragGesture() onChanged: drag", log: log, type: .debug)
+                        os_log("exclusively_DragGesture() onChanged: drag", log: log, type: .debug)
                         gestureDrag(dragGestureValue: value)
                     })
                             )
@@ -347,7 +347,7 @@ struct PreviewNaratgeulButton: View {
             DragGesture(minimumDistance: 0)
             // 버튼 뗐을 때
                 .onEnded({ _ in
-                    os_log("NaratgeulButton) DragGesture() onEnded: released", log: log, type: .debug)
+                    os_log("DragGesture() onEnded: released", log: log, type: .debug)
                     gestureReleased()
                 })
         )

@@ -7,8 +7,11 @@
 
 import SwiftUI
 import StoreKit
+import OSLog
 
 struct RequestReviewViewModifier: ViewModifier {
+    private let log = OSLog(subsystem: "github.com-SNMac.SYKeyboard", category: "RequestReviewViewModifier")
+    
     @Environment(\.requestReview) private var requestReview
     @AppStorage("reviewCounter", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) var reviewCounter = 0
     @AppStorage("lastVersionPromptedForReview", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) var lastVersionPromptedForReview = ""
@@ -24,7 +27,7 @@ struct RequestReviewViewModifier: ViewModifier {
         content
             .onAppear {
                 reviewCounter += 1
-                print(reviewCounter)
+                os_log("reviewCounter = %d", log: log, type: .debug, reviewCounter)
             }
             .onDisappear {
                 guard let currentAppVersion = Bundle.currentAppVersion else {
