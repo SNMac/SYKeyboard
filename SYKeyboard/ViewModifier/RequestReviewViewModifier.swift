@@ -34,7 +34,7 @@ struct RequestReviewViewModifier: ViewModifier {
                     return
                 }
                 
-                if reviewCounter >= 40, currentAppVersion != lastVersionPromptedForReview {
+                if reviewCounter >= 50, currentAppVersion != lastVersionPromptedForReview {
                     reviewCounter = 0
                     presentReview()
                         

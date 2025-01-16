@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import GoogleMobileAds
 
 struct ContentView: View {
     @Environment(\.scenePhase) private var scenePhase
@@ -90,26 +91,32 @@ struct ContentView: View {
     }
     
     var body: some View {
-        NavigationStack {
-            KeyboardTestView()
-            keyboardSettings
-                .onAppear {
-                    isKeyboardExtensionEnabled = checkKeyboardExtensionEnabled()
-                }
-                .onChange(of: scenePhase) { newPhase in
-                    switch newPhase {
-                    case .active:
-                        isKeyboardExtensionEnabled = checkKeyboardExtensionEnabled()
-                    case .inactive:
-                        isKeyboardExtensionEnabled = checkKeyboardExtensionEnabled()
-                    default:
-                        break
-                    }
-                }
+        GeometryReader { geometry in
+            let adSize = GADCurrentOrientationAnchoredAdaptiveBannerAdSizeWithWidth(geometry.size.width)
             
-            // TODO: 인앱 광고 넣기
+            NavigationStack {
+                KeyboardTestView()
+                
+                keyboardSettings
+                    .onAppear {
+                        isKeyboardExtensionEnabled = checkKeyboardExtensionEnabled()
+                    }
+                    .onChange(of: scenePhase) { newPhase in
+                        switch newPhase {
+                        case .active:
+                            isKeyboardExtensionEnabled = checkKeyboardExtensionEnabled()
+                        case .inactive:
+                            isKeyboardExtensionEnabled = checkKeyboardExtensionEnabled()
+                        default:
+                            break
+                        }
+                    }
+                
+                BannerView(adSize)
+                  .frame(height: adSize.size.height)
+            }
+            .environmentObject(state)
         }
-        .environmentObject(state)
     }
 }
 
