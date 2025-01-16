@@ -57,7 +57,8 @@
 		5BFFC5DD2D3812D5000BC603 /* Bundle+AppVersion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BFFC5DC2D3812D5000BC603 /* Bundle+AppVersion.swift */; };
 		5BFFC5E92D394620000BC603 /* RequestReviewViewModifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BFFC5E82D394620000BC603 /* RequestReviewViewModifier.swift */; };
 		5BFFC65C2D395DFA000BC603 /* GoogleMobileAds in Frameworks */ = {isa = PBXBuildFile; productRef = 5BFFC65B2D395DFA000BC603 /* GoogleMobileAds */; };
-		5BFFC66A2D3965FC000BC603 /* BannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BFFC6692D3965FC000BC603 /* BannerView.swift */; };
+		5BFFC66A2D3965FC000BC603 /* BannerAdView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BFFC6692D3965FC000BC603 /* BannerAdView.swift */; };
+		5BFFC66C2D396C5F000BC603 /* KeyboardSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BFFC66B2D396C5F000BC603 /* KeyboardSettingsView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -146,7 +147,8 @@
 		5BDD2F6F2D34FD45003F87C0 /* RequestFullAccessOverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RequestFullAccessOverlayView.swift; sourceTree = "<group>"; };
 		5BFFC5DC2D3812D5000BC603 /* Bundle+AppVersion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Bundle+AppVersion.swift"; sourceTree = "<group>"; };
 		5BFFC5E82D394620000BC603 /* RequestReviewViewModifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RequestReviewViewModifier.swift; sourceTree = "<group>"; };
-		5BFFC6692D3965FC000BC603 /* BannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BannerView.swift; sourceTree = "<group>"; };
+		5BFFC6692D3965FC000BC603 /* BannerAdView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BannerAdView.swift; sourceTree = "<group>"; };
+		5BFFC66B2D396C5F000BC603 /* KeyboardSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardSettingsView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -215,16 +217,10 @@
 				5B0D82502C63F75900F84180 /* SYKeyboard.entitlements */,
 				5B7B3F592C569B7800F7C093 /* SYKeyboardApp.swift */,
 				5B7B3F5B2C569B7800F7C093 /* ContentView.swift */,
-				5BFFC6692D3965FC000BC603 /* BannerView.swift */,
-				5BA419D72CB98532005E7C86 /* InitialSettingsView.swift */,
 				5BDCDED62C67458600035B01 /* KeyboardTestView.swift */,
-				5B0D824E2C63D66600F84180 /* FeedbackSettingsView.swift */,
-				5BB0D26C2C883B8700CE7AF5 /* InputSettingsView.swift */,
-				5B94722F2C8989C100B8B154 /* SpeedAndCursorSettingsView.swift */,
-				5B13A2EE2CA0F24B004B7986 /* AppearanceSettingsView.swift */,
-				5BB0D2632C86FF3B00CE7AF5 /* KeyboardHeightSettingsView.swift */,
-				5BB257942CEDA709005C3F10 /* OneHandWidthSettingsView.swift */,
-				5B7BDD462C91E8860065C944 /* InfoView.swift */,
+				5BFFC66B2D396C5F000BC603 /* KeyboardSettingsView.swift */,
+				5BFFC66D2D396D20000BC603 /* KeyboardSettings */,
+				5BFFC6692D3965FC000BC603 /* BannerAdView.swift */,
 				5B18F5152C97DC63000548D4 /* PreviewKeyboard */,
 				5BFFC5EA2D3947DC000BC603 /* ViewModifier */,
 				5BB0D2702C88470A00CE7AF5 /* Extension */,
@@ -319,6 +315,21 @@
 				5BFFC5E82D394620000BC603 /* RequestReviewViewModifier.swift */,
 			);
 			path = ViewModifier;
+			sourceTree = "<group>";
+		};
+		5BFFC66D2D396D20000BC603 /* KeyboardSettings */ = {
+			isa = PBXGroup;
+			children = (
+				5BA419D72CB98532005E7C86 /* InitialSettingsView.swift */,
+				5B0D824E2C63D66600F84180 /* FeedbackSettingsView.swift */,
+				5BB0D26C2C883B8700CE7AF5 /* InputSettingsView.swift */,
+				5B94722F2C8989C100B8B154 /* SpeedAndCursorSettingsView.swift */,
+				5B13A2EE2CA0F24B004B7986 /* AppearanceSettingsView.swift */,
+				5BB0D2632C86FF3B00CE7AF5 /* KeyboardHeightSettingsView.swift */,
+				5BB257942CEDA709005C3F10 /* OneHandWidthSettingsView.swift */,
+				5B7BDD462C91E8860065C944 /* InfoView.swift */,
+			);
+			path = KeyboardSettings;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -440,6 +451,7 @@
 				5BB0D2642C86FF3B00CE7AF5 /* KeyboardHeightSettingsView.swift in Sources */,
 				5B18F5192C97DCE3000548D4 /* PreviewHangeulView.swift in Sources */,
 				5BB257972CEDBABB005C3F10 /* PreviewChevronButton.swift in Sources */,
+				5BFFC66C2D396C5F000BC603 /* KeyboardSettingsView.swift in Sources */,
 				5B7BDD472C91E8860065C944 /* InfoView.swift in Sources */,
 				5B57EBD52D313BA500901C37 /* PreviewNaratgeulState.swift in Sources */,
 				5B7BDD492C9204290065C944 /* SpecificLanguageTextField.swift in Sources */,
@@ -449,7 +461,7 @@
 				5B13A2EF2CA0F24B004B7986 /* AppearanceSettingsView.swift in Sources */,
 				5BFFC5E92D394620000BC603 /* RequestReviewViewModifier.swift in Sources */,
 				5B7B3F5C2C569B7800F7C093 /* ContentView.swift in Sources */,
-				5BFFC66A2D3965FC000BC603 /* BannerView.swift in Sources */,
+				5BFFC66A2D3965FC000BC603 /* BannerAdView.swift in Sources */,
 				5BFFC5DD2D3812D5000BC603 /* Bundle+AppVersion.swift in Sources */,
 				5B9472302C8989C100B8B154 /* SpeedAndCursorSettingsView.swift in Sources */,
 				5B7B3F5A2C569B7800F7C093 /* SYKeyboardApp.swift in Sources */,
