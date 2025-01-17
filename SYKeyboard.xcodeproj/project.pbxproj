@@ -25,6 +25,8 @@
 		5B2B40072C6CAB2F007CA762 /* NaratgeulView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B2B40062C6CAB2F007CA762 /* NaratgeulView.swift */; };
 		5B2B40122C6CC1D1007CA762 /* NaratgeulState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B2B40112C6CC1D1007CA762 /* NaratgeulState.swift */; };
 		5B2B40152C6CD2A4007CA762 /* NextKeyboardButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B2B40142C6CD2A4007CA762 /* NextKeyboardButton.swift */; };
+		5B3C37A62D39F66300A7AABE /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = 5B3C37A52D39F66300A7AABE /* FirebaseAnalytics */; };
+		5B3C37A82D39F88900A7AABE /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 5B3C37A72D39F88900A7AABE /* GoogleService-Info.plist */; };
 		5B57EBC22D31364600901C37 /* HangeulAutomata.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B0D823C2C5F355900F84180 /* HangeulAutomata.swift */; };
 		5B57EBD52D313BA500901C37 /* PreviewNaratgeulState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B57EBD42D313BA500901C37 /* PreviewNaratgeulState.swift */; };
 		5B57EBD72D313BC100901C37 /* PreviewNaratgeulButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B57EBD62D313BC100901C37 /* PreviewNaratgeulButton.swift */; };
@@ -115,6 +117,7 @@
 		5B2B40062C6CAB2F007CA762 /* NaratgeulView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NaratgeulView.swift; sourceTree = "<group>"; };
 		5B2B40112C6CC1D1007CA762 /* NaratgeulState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NaratgeulState.swift; sourceTree = "<group>"; };
 		5B2B40142C6CD2A4007CA762 /* NextKeyboardButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NextKeyboardButton.swift; sourceTree = "<group>"; };
+		5B3C37A72D39F88900A7AABE /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		5B57EBD42D313BA500901C37 /* PreviewNaratgeulState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewNaratgeulState.swift; sourceTree = "<group>"; };
 		5B57EBD62D313BC100901C37 /* PreviewNaratgeulButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewNaratgeulButton.swift; sourceTree = "<group>"; };
 		5B6B1B362CD210CD00636AC4 /* OneHandModeSelectOverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OneHandModeSelectOverlayView.swift; sourceTree = "<group>"; };
@@ -160,6 +163,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5B3C37A62D39F66300A7AABE /* FirebaseAnalytics in Frameworks */,
 				5BFFC65C2D395DFA000BC603 /* GoogleMobileAds in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -191,6 +195,7 @@
 			isa = PBXGroup;
 			children = (
 				5BA419DE2CB99238005E7C86 /* .gitignore */,
+				5B3C37A72D39F88900A7AABE /* GoogleService-Info.plist */,
 				5B9472312C8AD6DD00B8B154 /* GlobalData */,
 				5B7B3F582C569B7800F7C093 /* SYKeyboard */,
 				5B7B3F6C2C569B8200F7C093 /* Naratgeul */,
@@ -405,6 +410,7 @@
 			packageReferences = (
 				5BDD2F6C2D34E682003F87C0 /* XCRemoteSwiftPackageReference "SnapKit" */,
 				5BFFC65A2D395DFA000BC603 /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */,
+				5B3C37A42D39F66300A7AABE /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 			);
 			productRefGroup = 5B7B3F572C569B7800F7C093 /* Products */;
 			projectDirPath = "";
@@ -421,6 +427,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5B3C37A82D39F88900A7AABE /* GoogleService-Info.plist in Resources */,
 				5B7B3F612C569B7800F7C093 /* Preview Assets.xcassets in Resources */,
 				5B7B3F5E2C569B7800F7C093 /* Assets.xcassets in Resources */,
 			);
@@ -807,6 +814,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		5B3C37A42D39F66300A7AABE /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 11.7.0;
+			};
+		};
 		5BDD2F652D34E5D0003F87C0 /* XCRemoteSwiftPackageReference "SnapKit" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/SnapKit/SnapKit.git";
@@ -834,6 +849,11 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		5B3C37A52D39F66300A7AABE /* FirebaseAnalytics */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 5B3C37A42D39F66300A7AABE /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAnalytics;
+		};
 		5BDD2F662D34E5D0003F87C0 /* SnapKit */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 5BDD2F652D34E5D0003F87C0 /* XCRemoteSwiftPackageReference "SnapKit" */;
