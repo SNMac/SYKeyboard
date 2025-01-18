@@ -195,7 +195,6 @@
 			isa = PBXGroup;
 			children = (
 				5BA419DE2CB99238005E7C86 /* .gitignore */,
-				5B3C37A72D39F88900A7AABE /* GoogleService-Info.plist */,
 				5B9472312C8AD6DD00B8B154 /* GlobalData */,
 				5B7B3F582C569B7800F7C093 /* SYKeyboard */,
 				5B7B3F6C2C569B8200F7C093 /* Naratgeul */,
@@ -216,6 +215,7 @@
 			isa = PBXGroup;
 			children = (
 				5BDD2F5E2D34BA97003F87C0 /* Info.plist */,
+				5B3C37A72D39F88900A7AABE /* GoogleService-Info.plist */,
 				5BA419DB2CB98F2E005E7C86 /* gitShellScript */,
 				5BACCE422C9094AB006DCFB7 /* version.sh */,
 				5BACCE442C9096DE006DCFB7 /* Config.xcconfig */,
