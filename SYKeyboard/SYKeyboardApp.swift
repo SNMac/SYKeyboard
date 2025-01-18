@@ -19,21 +19,19 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         
         // 앱 추적 권한 요청
         DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-            if #available(iOS 14, *) {
-                ATTrackingManager.requestTrackingAuthorization { status in
-                    switch status {
-                    case .authorized:  // 허용됨
-                        let idfa: String = "\(ASIdentifierManager.shared().advertisingIdentifier)"
-                        os_log("Tracking Authorized, IDFA = %{private}@", log: log, type: .debug, idfa)
-                    case .denied:  // 거부됨
-                        os_log("Tracking Denied", log: log, type: .debug)
-                    case .notDetermined:  // 결정되지 않음
-                        os_log("Tracking Not Determined", log: log, type: .debug)
-                    case .restricted:  // 제한됨
-                        os_log("Tracking Restricted", log: log, type: .debug)
-                    @unknown default:  // 알려지지 않음
-                        os_log("Tracking Unknow", log: log, type: .debug)
-                    }
+            ATTrackingManager.requestTrackingAuthorization { status in
+                switch status {
+                case .authorized:  // 허용됨
+                    let idfa: String = "\(ASIdentifierManager.shared().advertisingIdentifier)"
+                    os_log("Tracking Authorized, IDFA = %{private}@", log: log, type: .debug, idfa)
+                case .denied:  // 거부됨
+                    os_log("Tracking Denied", log: log, type: .debug)
+                case .notDetermined:  // 결정되지 않음
+                    os_log("Tracking Not Determined", log: log, type: .debug)
+                case .restricted:  // 제한됨
+                    os_log("Tracking Restricted", log: log, type: .debug)
+                @unknown default:  // 알려지지 않음
+                    os_log("Tracking Unknow", log: log, type: .debug)
                 }
             }
         }
