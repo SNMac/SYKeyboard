@@ -19,11 +19,9 @@ struct InfoView: View {
         }
         Button {
             let url = "https://apps.apple.com/app/id6670792957?action=write-review"
-            
             guard let writeReviewURL = URL(string: url) else {
                 fatalError("Expected a valid URL")
             }
-            
             openURL(writeReviewURL)
         } label: {
             HStack {

@@ -663,6 +663,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = "$(VERSION)";
+				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_BUNDLE_IDENTIFIER = "github.com-SNMac.SYKeyboard";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -703,6 +704,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = "$(VERSION)";
+				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_BUNDLE_IDENTIFIER = "github.com-SNMac.SYKeyboard";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";

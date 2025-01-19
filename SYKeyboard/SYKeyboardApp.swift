@@ -9,8 +9,8 @@ import SwiftUI
 import AdSupport
 import AppTrackingTransparency
 import OSLog
-import GoogleMobileAds
 import Firebase
+import GoogleMobileAds
 
 class AppDelegate: UIResponder, UIApplicationDelegate {
     

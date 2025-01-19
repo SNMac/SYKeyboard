@@ -20,7 +20,7 @@ enum Configuration: String  {
         return Configuration(rawValue: rawValue.lowercased())
     }
     
-    static var admobId: String {
+    static var admobID: String {
         switch current {
         case .debug:
             return "ca-app-pub-3940256099942544/2435281174"  // 테스트 전용 광고 단위 ID
@@ -67,7 +67,7 @@ struct BannerAdView: UIViewRepresentable {
             let banner = GADBannerView(adSize: parent.adSize)
             
             // [START load_ad]
-            banner.adUnitID = Configuration.admobId
+            banner.adUnitID = Configuration.admobID
             banner.load(GADRequest())
             // [END load_ad]
             

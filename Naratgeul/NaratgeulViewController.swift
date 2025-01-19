@@ -374,7 +374,8 @@ private extension NaratgeulViewController {
     }
     
     func redirectToSettings() {
-        guard let urlScheme = URL(string: "sykeyboard://") else {
+        let url = "sykeyboard://"
+        guard let urlScheme = URL(string: url) else {
             return
         }
         openURL(urlScheme)
