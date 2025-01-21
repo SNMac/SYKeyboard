@@ -16,6 +16,7 @@ struct InstructionsPageView: View {
         VStack {
             Text(title)
                 .font(.title3)
+                .lineLimit(2, reservesSpace: true)
                 .multilineTextAlignment(.center)
             Image(imageName)
                 .resizable()
@@ -23,11 +24,12 @@ struct InstructionsPageView: View {
                 .clipShape(RoundedRectangle(cornerRadius: 5))
                 .padding()
             Text(subtitle)
+                .lineLimit(2, reservesSpace: true)
                 .multilineTextAlignment(.center)
         }
     }
 }
 
 #Preview {
-    InstructionsPageView(title: "한 손 키보드 변경 방법", imageName: "instruction_change_one_hand", subtitle: "자판 변경 버튼을 화살표 방향으로 드래그\nor 길게 누르기")
+    InstructionsPageView(title: "한 손 키보드 변경 방법", imageName: "instruction_change_one_hand", subtitle: "자판 변경 버튼을 화살표 방향으로 드래그 or 길게 누르기")
 }
