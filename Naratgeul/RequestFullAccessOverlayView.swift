@@ -1,6 +1,6 @@
 //
 //  RequestFullAccessOverlayView.swift
-//  Naratgeul
+//  Keyboard
 //
 //  Created by 서동환 on 1/13/25.
 //
@@ -27,7 +27,8 @@ class RequestFullAccessOverlayView: UIView {
     
     private let warningLabel: UILabel = {
         let label = UILabel()
-        label.text = "‼️ 전체 접근 허용 ON 필요 ‼️"
+        let str = String(localized: "‼️ 전체 접근 허용 ON 필요 ‼️")
+        label.text = str
         label.font = .systemFont(ofSize: 18, weight: .bold)
         
         return label
@@ -35,7 +36,8 @@ class RequestFullAccessOverlayView: UIView {
     
     private let descriptionLabel1: UILabel = {
         let label = UILabel()
-        label.text = "전체 접근 허용이 OFF 되어 있는 경우 일부 기능이 작동하지 않을 수 있습니다."
+        let str = String(localized: "전체 접근 허용이 OFF 되어 있는 경우 일부 기능이 작동하지 않을 수 있습니다.")
+        label.text = str
         label.font = .systemFont(ofSize: 15)
         label.numberOfLines = 0
         
@@ -44,7 +46,8 @@ class RequestFullAccessOverlayView: UIView {
     
     private let descriptionLabel2: UILabel = {
         let label = UILabel()
-        label.text = "활성화 방법: 키보드 ➡️ 전체 접근 허용 ON"
+        let str = String(localized: "활성화 방법: 키보드 ➡️ 전체 접근 허용 ON")
+        label.text = str
         label.font = .systemFont(ofSize: 15)
         label.numberOfLines = 0
         
@@ -54,7 +57,8 @@ class RequestFullAccessOverlayView: UIView {
     let goToSettingsButton: UIButton = {
         var buttonConfig = UIButton.Configuration.plain()
         buttonConfig.image = UIImage(systemName: "gear")
-        buttonConfig.title = "시스템 설정 이동"
+        let str = String(localized: "시스템 설정 이동")
+        buttonConfig.title = str
         buttonConfig.imagePadding = 5
         let button = UIButton(configuration: buttonConfig)
         

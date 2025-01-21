@@ -1,13 +1,13 @@
 //
-//  NaratgeulIOManager.swift
-//  Naratgeul
+//  KeyboardIOManager.swift
+//  Keyboard
 //
 //  Created by CHUBBY on 7/13/22.
 //  Edited by 서동환 on 7/31/24.
 //  - Downloaded from https://github.com/Kim-Junhwan/IOS-CustomKeyboard - KeyboardIOManager.swift
 //
 
-final class NaratgeulIOManager {
+final class KeyboardIOManager {
     private let hangeulAutomata = HangeulAutomata()
     private var lastLetter: String = ""
     private var prevAutomataBufferSize = 0
@@ -89,7 +89,7 @@ final class NaratgeulIOManager {
     }
 }
 
-extension NaratgeulIOManager: NaratgeulDelegate {
+extension KeyboardIOManager: KeyboardDelegate {
     func getBufferSize() -> Int {
         return hangeulAutomata.buffer.count
     }

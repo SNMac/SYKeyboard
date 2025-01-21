@@ -1,6 +1,6 @@
 //
-//  NaratgeulButton.swift
-//  Naratgeul
+//  KeyboardButton.swift
+//  Keyboard
 //
 //  Created by Sunghyun Cho on 12/20/22.
 //  Edited by 서동환 on 8/8/24.
@@ -26,10 +26,10 @@ enum DragDirection {
     case down
 }
 
-struct NaratgeulButton: View {
-    private let log = OSLog(subsystem: "github.com-SNMac.SYKeyboard.Naratgeul", category: "NaratgeulButton")
+struct KeyboardButton: View {
+    private let log = OSLog(subsystem: "github.com-SNMac.SYKeyboard.Keyboard", category: "KeyboardButton")
     
-    @EnvironmentObject private var state: NaratgeulState
+    @EnvironmentObject private var state: KeyboardState
     @AppStorage("cursorActiveWidth", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var cursorActiveWidth = GlobalValues.defaultCursorActiveWidth
     @AppStorage("cursorMoveWidth", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var cursorMoveWidth = GlobalValues.defaultCursorMoveWidth
     @AppStorage("isNumberKeyboardTypeEnabled", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var isNumberKeyboardTypeEnabled = true
@@ -146,7 +146,7 @@ struct NaratgeulButton: View {
                 initButtonState()
             }
             
-        } else if text == "!#1" || text == "한글" {  // 자판 전환 버튼 드래그 -> 자판 or 한손 모드 변경
+        } else if text == "!#1" || text == "한글" {  // 자판 전환 버튼 드래그 -> 자판 or 한손 키보드 변경
             if state.activeInputTypeSelectOverlay {
                 selectInputType(dragGestureValue: dragGestureValue)
             } else if state.activeOneHandModeSelectOverlay {
@@ -268,7 +268,7 @@ struct NaratgeulButton: View {
         let dragXLocation = dragGestureValue.location.x
         let dragYLocation = dragGestureValue.location.y
         
-        // 특정 방향으로 일정 거리 초과 드래그 -> 한손 키보드 변경
+        // 특정 방향으로 일정 거리 초과 드래그 -> 한 손 키보드 변경
         if state.selectedOneHandMode != .left
             && dragXLocation >= state.oneHandButtonPosition[0].minX && dragXLocation < state.oneHandButtonPosition[1].minX
             && dragYLocation >= state.oneHandButtonPosition[0].minY && dragYLocation <= state.oneHandButtonPosition[0].maxY {
@@ -392,7 +392,7 @@ struct NaratgeulButton: View {
         }
     }
     
-    // MARK: - NaratgeulButton
+    // MARK: - KeyboardButton
     var body: some View {
         Button(action: {}) {
             // Image 버튼들

@@ -9,7 +9,7 @@ import SwiftUI
 
 struct OneHandWidthSettingsView: View {
     @Environment(\.dismiss) private var dismiss
-    @EnvironmentObject private var state: PreviewNaratgeulState
+    @EnvironmentObject private var state: PreviewKeyboardState
     @AppStorage("keyboardHeight", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var keyboardHeight = GlobalValues.defaultKeyboardHeight
     @AppStorage("oneHandWidth", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var oneHandWidth = GlobalValues.defaultOneHandWidth
     @AppStorage("needsInputModeSwitchKey", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var needsInputModeSwitchKey = true
@@ -47,7 +47,7 @@ struct OneHandWidthSettingsView: View {
                 Spacer()
             }
         }
-        .navigationTitle("한손 키보드 너비")
+        .navigationTitle("한 손 키보드 너비")
         .navigationBarTitleDisplayMode(.inline)
         .navigationBarBackButtonHidden()
         .toolbar {
@@ -102,5 +102,5 @@ struct OneHandWidthSettingsView: View {
 
 #Preview {
     OneHandWidthSettingsView()
-        .environmentObject(PreviewNaratgeulState())
+        .environmentObject(PreviewKeyboardState())
 }

@@ -1,5 +1,5 @@
 //
-//  PreviewNaratgeulButton.swift
+//  PreviewKeyboardButton.swift
 //  SYKeyboard
 //
 //  Created by 서동환 on 9/16/24.
@@ -24,10 +24,10 @@ enum DragDirection {
     case down
 }
 
-struct PreviewNaratgeulButton: View {
-    private let log = OSLog(subsystem: "github.com-SNMac.SYKeyboard", category: "PreviewNaratgeulButton")
+struct PreviewKeyboardButton: View {
+    private let log = OSLog(subsystem: "github.com-SNMac.SYKeyboard", category: "PreviewKeyboardButton")
     
-    @EnvironmentObject private var state: PreviewNaratgeulState
+    @EnvironmentObject private var state: PreviewKeyboardState
     @AppStorage("longPressSpeed", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var longPressSpeed = GlobalValues.defaultLongPressSpeed
     @AppStorage("cursorActiveWidth", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var cursorActiveWidth = GlobalValues.defaultCursorActiveWidth
     @AppStorage("cursorMoveWidth", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var cursorMoveWidth = GlobalValues.defaultCursorMoveWidth
@@ -206,7 +206,7 @@ struct PreviewNaratgeulButton: View {
         return nowState == .pressed || nowState == .longPressed || nowState == .longPressedDrag ? true : false
     }
     
-    // MARK: - PreviewNaratgeulButton
+    // MARK: - PreviewKeyboardButton
     var body: some View {
         let longPressTime = 1.0 - longPressSpeed
         

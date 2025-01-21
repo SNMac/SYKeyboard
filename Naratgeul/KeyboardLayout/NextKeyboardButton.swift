@@ -1,6 +1,6 @@
 //
 //  NextKeyboardButton.swift
-//  Naratgeul
+//  Keyboard
 //
 //  Created by 서동환 on 8/14/24.
 //

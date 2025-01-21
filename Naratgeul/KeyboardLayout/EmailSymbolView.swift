@@ -1,6 +1,6 @@
 //
 //  EmailSymbolView.swift
-//  Naratgeul
+//  Keyboard
 //
 //  Created by 서동환 on 9/26/24.
 //
@@ -9,7 +9,7 @@ import SwiftUI
 import Combine
 
 struct EmailSymbolView: View {
-    @EnvironmentObject private var state: NaratgeulState
+    @EnvironmentObject private var state: KeyboardState
     @State private var timer: AnyCancellable?
     
     private let vPadding: CGFloat = 4
@@ -27,7 +27,7 @@ struct EmailSymbolView: View {
             VStack(spacing: 0) {
                 // MARK: - 1st row of Email Address Symbol Keyboard
                 HStack(spacing: 0) {
-                    NaratgeulButton(
+                    KeyboardButton(
                         text: symbols[state.nowSymbolPage][0], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
@@ -54,7 +54,7 @@ struct EmailSymbolView: View {
                     .padding(EdgeInsets(top: vPadding, leading: hPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    NaratgeulButton(
+                    KeyboardButton(
                         text: symbols[state.nowSymbolPage][1], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
@@ -81,7 +81,7 @@ struct EmailSymbolView: View {
                     .padding(EdgeInsets(top: vPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    NaratgeulButton(
+                    KeyboardButton(
                         text: symbols[state.nowSymbolPage][2], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
@@ -108,7 +108,7 @@ struct EmailSymbolView: View {
                     .padding(EdgeInsets(top: vPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    NaratgeulButton(
+                    KeyboardButton(
                         text: symbols[state.nowSymbolPage][3], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
@@ -135,7 +135,7 @@ struct EmailSymbolView: View {
                     .padding(EdgeInsets(top: vPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    NaratgeulButton(
+                    KeyboardButton(
                         text: symbols[state.nowSymbolPage][4], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
@@ -162,7 +162,7 @@ struct EmailSymbolView: View {
                     .padding(EdgeInsets(top: vPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    NaratgeulButton(
+                    KeyboardButton(
                         text: symbols[state.nowSymbolPage][5], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
@@ -189,7 +189,7 @@ struct EmailSymbolView: View {
                     .padding(EdgeInsets(top: vPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    NaratgeulButton(
+                    KeyboardButton(
                         text: symbols[state.nowSymbolPage][6], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
@@ -216,7 +216,7 @@ struct EmailSymbolView: View {
                     .padding(EdgeInsets(top: vPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    NaratgeulButton(
+                    KeyboardButton(
                         text: symbols[state.nowSymbolPage][7], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
@@ -243,7 +243,7 @@ struct EmailSymbolView: View {
                     .padding(EdgeInsets(top: vPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    NaratgeulButton(
+                    KeyboardButton(
                         text: symbols[state.nowSymbolPage][8], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
@@ -270,7 +270,7 @@ struct EmailSymbolView: View {
                     .padding(EdgeInsets(top: vPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    NaratgeulButton(
+                    KeyboardButton(
                         text: symbols[state.nowSymbolPage][9], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
@@ -300,7 +300,7 @@ struct EmailSymbolView: View {
                 
                 // MARK: - 2nd row of Email Address Symbol Keyboard
                 HStack(spacing: 0) {
-                    NaratgeulButton(
+                    KeyboardButton(
                         text: symbols[state.nowSymbolPage][10], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
@@ -327,7 +327,7 @@ struct EmailSymbolView: View {
                     .padding(EdgeInsets(top: interItemVPadding, leading: hPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    NaratgeulButton(
+                    KeyboardButton(
                         text: symbols[state.nowSymbolPage][11], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
@@ -354,7 +354,7 @@ struct EmailSymbolView: View {
                     .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    NaratgeulButton(
+                    KeyboardButton(
                         text: symbols[state.nowSymbolPage][12], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
@@ -381,7 +381,7 @@ struct EmailSymbolView: View {
                     .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    NaratgeulButton(
+                    KeyboardButton(
                         text: symbols[state.nowSymbolPage][13], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
@@ -408,7 +408,7 @@ struct EmailSymbolView: View {
                     .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    NaratgeulButton(
+                    KeyboardButton(
                         text: symbols[state.nowSymbolPage][14], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
@@ -435,7 +435,7 @@ struct EmailSymbolView: View {
                     .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    NaratgeulButton(
+                    KeyboardButton(
                         text: symbols[state.nowSymbolPage][15], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
@@ -462,7 +462,7 @@ struct EmailSymbolView: View {
                     .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    NaratgeulButton(
+                    KeyboardButton(
                         text: symbols[state.nowSymbolPage][16], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
@@ -489,7 +489,7 @@ struct EmailSymbolView: View {
                     .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    NaratgeulButton(
+                    KeyboardButton(
                         text: symbols[state.nowSymbolPage][17], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
@@ -519,7 +519,7 @@ struct EmailSymbolView: View {
                 
                 // MARK: - 3rd row of Email Address Symbol Keyboard
                 HStack(spacing: 0) {
-                    NaratgeulButton(
+                    KeyboardButton(
                         text: "\(state.nowSymbolPage + 1)/\(state.totalSymbolPage)", primary: false,
                         onPress: {
                             Feedback.shared.playModifierSound()
@@ -529,7 +529,7 @@ struct EmailSymbolView: View {
                     .padding(EdgeInsets(top: interItemVPadding, leading: hPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    NaratgeulButton(
+                    KeyboardButton(
                         text: symbols[state.nowSymbolPage][18], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
@@ -556,7 +556,7 @@ struct EmailSymbolView: View {
                     .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    NaratgeulButton(
+                    KeyboardButton(
                         text: symbols[state.nowSymbolPage][19], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
@@ -583,7 +583,7 @@ struct EmailSymbolView: View {
                     .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    NaratgeulButton(
+                    KeyboardButton(
                         text: symbols[state.nowSymbolPage][20], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
@@ -610,7 +610,7 @@ struct EmailSymbolView: View {
                     .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    NaratgeulButton(
+                    KeyboardButton(
                         text: symbols[state.nowSymbolPage][21], primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
@@ -637,7 +637,7 @@ struct EmailSymbolView: View {
                     .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    NaratgeulButton(
+                    KeyboardButton(
                         systemName: "delete.left", primary: false,
                         onPress: {
                             Feedback.shared.playDeleteSound()
@@ -667,7 +667,7 @@ struct EmailSymbolView: View {
                 HStack(spacing: 0) {
                     if state.needsInputModeSwitchKey {
                         HStack(spacing: 0) {
-                            NaratgeulButton(
+                            KeyboardButton(
                                 text: "한글", primary: false,
                                 onPress: {
                                     Feedback.shared.playModifierSound()
@@ -687,7 +687,7 @@ struct EmailSymbolView: View {
                             .contentShape(Rectangle())
                         }
                     } else {
-                        NaratgeulButton(
+                        KeyboardButton(
                             text: "한글", primary: false,
                             onPress: {
                                 Feedback.shared.playModifierSound()
@@ -700,7 +700,7 @@ struct EmailSymbolView: View {
                         .contentShape(Rectangle())
                     }
                     
-                    NaratgeulButton(
+                    KeyboardButton(
                         systemName: "space", primary: true,
                         onPress: {
                             Feedback.shared.playModifierSound()
@@ -728,7 +728,7 @@ struct EmailSymbolView: View {
                     .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: vPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    NaratgeulButton(
+                    KeyboardButton(
                         text: "@", primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
@@ -756,7 +756,7 @@ struct EmailSymbolView: View {
                     .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: vPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    NaratgeulButton(
+                    KeyboardButton(
                         text: ".", primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
@@ -769,7 +769,7 @@ struct EmailSymbolView: View {
                     .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: vPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    NaratgeulButton(
+                    KeyboardButton(
                         systemName: "return.left", primary: false,
                         onPress: {
                             Feedback.shared.playModifierSound()

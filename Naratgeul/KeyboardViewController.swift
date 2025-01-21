@@ -1,6 +1,6 @@
 //
-//  NaratgeulViewController.swift
-//  Naratgeul
+//  KeyboardViewController.swift
+//  Keyboard
 //
 //  Created by 서동환 on 7/29/24.
 //
@@ -8,11 +8,11 @@
 import SwiftUI
 import SnapKit
 
-class NaratgeulViewController: UIInputViewController {
+class KeyboardViewController: UIInputViewController {
     private var defaults: UserDefaults?
     
-    private let ioManager = NaratgeulIOManager()
-    private var state: NaratgeulState?
+    private let ioManager = KeyboardIOManager()
+    private var state: KeyboardState?
     private var cursorPos: Int = 0
     private var userLexicon: UILexicon?
     private var textReplacementHistory: [String] = []
@@ -61,7 +61,7 @@ class NaratgeulViewController: UIInputViewController {
     // MARK: - Keyboard UI Methods
     private func setupUI() {
         let nextKeyboardAction = #selector(handleInputModeList(from:with:))
-        let state = NaratgeulState(
+        let state = KeyboardState(
             delegate: ioManager,
             keyboardHeight: CGFloat(defaults?.double(forKey: "keyboardHeight") ?? GlobalValues.defaultKeyboardHeight),
             oneHandWidth: CGFloat(defaults?.double(forKey: "oneHandWidth") ?? GlobalValues.defaultOneHandWidth),
@@ -72,7 +72,7 @@ class NaratgeulViewController: UIInputViewController {
         )
         self.state = state
         
-        let keyboard = UIHostingController(rootView: NaratgeulView().environmentObject(state))
+        let keyboard = UIHostingController(rootView: KeyboardView().environmentObject(state))
         keyboard.view.backgroundColor = .clear
         if hasFullAccess {
             keyboard.view.isUserInteractionEnabled = true
@@ -236,7 +236,7 @@ class NaratgeulViewController: UIInputViewController {
         defaults?.set(screenWidth, forKey: "screenWidth")
     }
     
-    // MARK: - NaratgeulState Update Methods
+    // MARK: - KeyboardState Update Methods
     private func updateHoegSsangAvailiableToOptions() {
         state?.isHoegSsangAvailable = ioManager.isHoegSsangAvailiable
     }
@@ -305,7 +305,7 @@ class NaratgeulViewController: UIInputViewController {
 }
 
 // MARK: - Text Replacement Methods
-private extension NaratgeulViewController {
+private extension KeyboardViewController {
     // 텍스트 대치
     func attemptToReplaceCurrentWord() -> Bool {  // 글자 입력할때 호출
         let proxy = textDocumentProxy
@@ -362,7 +362,7 @@ private extension NaratgeulViewController {
 }
 
 // MARK: - Request Full Access Methods
-private extension NaratgeulViewController {
+private extension KeyboardViewController {
     func setupRequestFullAccessUI() {
         requestFullAccessView.goToSettingsButton.addAction(UIAction(handler: { _ in
             self.redirectToSettings()

@@ -1,6 +1,6 @@
 //
 //  ChevronButton.swift
-//  Naratgeul
+//  Keyboard
 //
 //  Created by 서동환 on 11/7/24.
 //
@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct ChevronButton: View {
-    @EnvironmentObject private var state: NaratgeulState
+    @EnvironmentObject private var state: KeyboardState
     @AppStorage("currentOneHandMode", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var currentOneHandMode = 1
     @State private var isPressed: Bool = false
     

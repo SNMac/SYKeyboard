@@ -1,6 +1,6 @@
 //
-//  NaratgeulState.swift
-//  Naratgeul
+//  KeyboardState.swift
+//  Keyboard
 //
 //  Created by 서동환 on 8/14/24.
 //
@@ -43,7 +43,7 @@ enum ReturnButtonType: String {
     case emergencyCall = "긴급통화"
 }
 
-final class NaratgeulState: ObservableObject {
+final class KeyboardState: ObservableObject {
     @Published var currentInputType: InputType = .hangeul
     @Published var activeInputTypeSelectOverlay: Bool = false
     @Published var selectedInputType: InputType?
@@ -60,9 +60,9 @@ final class NaratgeulState: ObservableObject {
     
     @Published var isHoegSsangAvailable: Bool = false
     
-    var nowPressedButton: NaratgeulButton?
+    var nowPressedButton: KeyboardButton?
     
-    weak var delegate: NaratgeulDelegate?
+    weak var delegate: KeyboardDelegate?
     var keyboardHeight: CGFloat
     var oneHandWidth: CGFloat
     var longPressTime: Double
@@ -74,7 +74,7 @@ final class NaratgeulState: ObservableObject {
     var oneHandButtonPosition = [CGRect](repeating: .zero, count: 3)
     
     init(
-        delegate: NaratgeulDelegate,
+        delegate: KeyboardDelegate,
         keyboardHeight: CGFloat,
         oneHandWidth: CGFloat,
         longPressTime: Double,

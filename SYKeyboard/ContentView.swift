@@ -12,13 +12,13 @@ struct ContentView: View {
     @AppStorage("isOnboarding", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var isOnboarding = true
     
     private var defaults: UserDefaults?
-    private var state: PreviewNaratgeulState
+    private var state: PreviewKeyboardState
     
     init() {
         defaults = UserDefaults(suiteName: GlobalValues.groupBundleID)
         GlobalValues.setupDefaults(defaults)
         
-        state = PreviewNaratgeulState()
+        state = PreviewKeyboardState()
     }
     
     var body: some View {

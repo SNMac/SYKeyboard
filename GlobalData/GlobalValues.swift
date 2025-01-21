@@ -1,6 +1,6 @@
 //
 //  GlobalValues.swift
-//  SYKeyboard, Naratgeul
+//  SYKeyboard, Keyboard
 //
 //  Created by 서동환 on 9/4/24.
 //
@@ -84,11 +84,11 @@ struct GlobalValues {
         if defaults?.object(forKey: "isNumberKeyboardTypeEnabled") == nil {
             defaults?.set(true, forKey: "isNumberKeyboardTypeEnabled")
         }
-        // 한손 키보드 활성화
+        // 한 손 키보드 활성화
         if defaults?.object(forKey: "isOneHandModeEnabled") == nil {
             defaults?.set(true, forKey: "isOneHandModeEnabled")
         }
-        // 한손 키보드 너비
+        // 한 손 키보드 너비
         if defaults?.object(forKey: "oneHandWidth") == nil {
             defaults?.set(GlobalValues.defaultOneHandWidth, forKey: "oneHandWidth")
         }
@@ -97,7 +97,7 @@ struct GlobalValues {
         if defaults?.object(forKey: "needsInputModeSwitchKey") == nil {
             defaults?.set(true, forKey: "needsInputModeSwitchKey")
         }
-        /* 키보드 한손 모드 저장용 (0 = 왼쪽, 1 = 가운데, 2 = 오른쪽) */
+        /* 한 손 키보드 저장용 (0 = 왼쪽, 1 = 가운데, 2 = 오른쪽) */
         if defaults?.object(forKey: "currentOneHandMode") == nil {
             defaults?.set(1, forKey: "currentOneHandMode")
         }

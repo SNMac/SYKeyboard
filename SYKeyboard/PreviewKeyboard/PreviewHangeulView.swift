@@ -9,7 +9,7 @@ import SwiftUI
 import Combine
 
 struct PreviewHangeulView: View {
-    @EnvironmentObject private var state: PreviewNaratgeulState
+    @EnvironmentObject private var state: PreviewKeyboardState
     @AppStorage("repeatTimerSpeed", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var repeatTimerSpeed = GlobalValues.defaultRepeatTimerSpeed
     @AppStorage("needsInputModeSwitchKey", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var needsInputModeSwitchKey = true
     
@@ -29,7 +29,7 @@ struct PreviewHangeulView: View {
         VStack(spacing: 0) {
             // MARK: - ㄱ, ㄴ, ㅏㅓ, 􀆛
             HStack(spacing: 0) {
-                PreviewNaratgeulButton(
+                PreviewKeyboardButton(
                     text: "ㄱ", primary: true,
                     onPress: {
                         Feedback.shared.playTypingSound()
@@ -50,7 +50,7 @@ struct PreviewHangeulView: View {
                     })
                 .padding(EdgeInsets(top: vPadding, leading: hPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                 
-                PreviewNaratgeulButton(
+                PreviewKeyboardButton(
                     text: "ㄴ", primary: true,
                     onPress: {
                         Feedback.shared.playTypingSound()
@@ -72,7 +72,7 @@ struct PreviewHangeulView: View {
                 .padding(EdgeInsets(top: vPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                 .contentShape(Rectangle())
                 
-                PreviewNaratgeulButton(
+                PreviewKeyboardButton(
                     text: "ㅏㅓ", primary: true,
                     onPress: {
                         Feedback.shared.playTypingSound()
@@ -94,7 +94,7 @@ struct PreviewHangeulView: View {
                 .padding(EdgeInsets(top: vPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                 .contentShape(Rectangle())
                 
-                PreviewNaratgeulButton(
+                PreviewKeyboardButton(
                     systemName: "delete.left", primary: false,
                     onPress: {
                         Feedback.shared.playDeleteSound()
@@ -118,7 +118,7 @@ struct PreviewHangeulView: View {
             
             // MARK: - ㄹ, ㅁ, ㅗㅜ, 􁁺
             HStack(spacing: 0) {
-                PreviewNaratgeulButton(
+                PreviewKeyboardButton(
                     text: "ㄹ", primary: true,
                     onPress: {
                         Feedback.shared.playTypingSound()
@@ -140,7 +140,7 @@ struct PreviewHangeulView: View {
                 .padding(EdgeInsets(top: interItemVPadding, leading: hPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                 .contentShape(Rectangle())
                 
-                PreviewNaratgeulButton(
+                PreviewKeyboardButton(
                     text: "ㅁ", primary: true,
                     onPress: {
                         Feedback.shared.playTypingSound()
@@ -162,7 +162,7 @@ struct PreviewHangeulView: View {
                 .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                 .contentShape(Rectangle())
                 
-                PreviewNaratgeulButton(
+                PreviewKeyboardButton(
                     text: "ㅗㅜ", primary: true,
                     onPress: {
                         Feedback.shared.playTypingSound()
@@ -184,7 +184,7 @@ struct PreviewHangeulView: View {
                 .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                 .contentShape(Rectangle())
                 
-                PreviewNaratgeulButton(
+                PreviewKeyboardButton(
                     systemName: "space", primary: true,
                     onPress: {
                         Feedback.shared.playModifierSound()
@@ -209,7 +209,7 @@ struct PreviewHangeulView: View {
             
             // MARK: - ㅅ, ㅇ, ㅣ, 􁂆
             HStack(spacing: 0) {
-                PreviewNaratgeulButton(
+                PreviewKeyboardButton(
                     text: "ㅅ", primary: true,
                     onPress: {
                         Feedback.shared.playTypingSound()
@@ -231,7 +231,7 @@ struct PreviewHangeulView: View {
                 .padding(EdgeInsets(top: interItemVPadding, leading: hPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                 .contentShape(Rectangle())
                 
-                PreviewNaratgeulButton(
+                PreviewKeyboardButton(
                     text: "ㅇ", primary: true,
                     onPress: {
                         Feedback.shared.playTypingSound()
@@ -253,7 +253,7 @@ struct PreviewHangeulView: View {
                 .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                 .contentShape(Rectangle())
                 
-                PreviewNaratgeulButton(
+                PreviewKeyboardButton(
                     text: "ㅣ", primary: true,
                     onPress: {
                         Feedback.shared.playTypingSound()
@@ -275,7 +275,7 @@ struct PreviewHangeulView: View {
                 .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                 .contentShape(Rectangle())
                 
-                PreviewNaratgeulButton(
+                PreviewKeyboardButton(
                     systemName: "return.left", primary: false,
                     onPress: {
                         Feedback.shared.playModifierSound()
@@ -287,7 +287,7 @@ struct PreviewHangeulView: View {
             
             // MARK: - 획, ㅡ, 쌍, (!#1, 􀆪)
             HStack(spacing: 0) {
-                PreviewNaratgeulButton(
+                PreviewKeyboardButton(
                     text: "획", primary: true,
                     onPress: {
                         Feedback.shared.playTypingSound()
@@ -309,7 +309,7 @@ struct PreviewHangeulView: View {
                 .padding(EdgeInsets(top: interItemVPadding, leading: hPadding, bottom: vPadding, trailing: interItemHPadding))
                 .contentShape(Rectangle())
                 
-                PreviewNaratgeulButton(
+                PreviewKeyboardButton(
                     text: "ㅡ", primary: true,
                     onPress: {
                         Feedback.shared.playTypingSound()
@@ -331,7 +331,7 @@ struct PreviewHangeulView: View {
                 .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: vPadding, trailing: interItemHPadding))
                 .contentShape(Rectangle())
                 
-                PreviewNaratgeulButton(
+                PreviewKeyboardButton(
                     text: "쌍", primary: true,
                     onPress: {
                         Feedback.shared.playTypingSound()
@@ -355,7 +355,7 @@ struct PreviewHangeulView: View {
                 
                 if needsInputModeSwitchKey {
                     HStack(spacing: 0) {
-                        PreviewNaratgeulButton(
+                        PreviewKeyboardButton(
                             text: "!#1", primary: false,
                             onPress: {
                                 Feedback.shared.playModifierSound()
@@ -364,7 +364,7 @@ struct PreviewHangeulView: View {
                         .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: vPadding, trailing: interItemHPadding))
                         .contentShape(Rectangle())
                         
-                        PreviewNaratgeulButton(
+                        PreviewKeyboardButton(
                             systemName: "globe", primary: false,
                             onPress: {
                                 Feedback.shared.playModifierSound()
@@ -375,7 +375,7 @@ struct PreviewHangeulView: View {
                         .contentShape(Rectangle())
                     }
                 } else {
-                    PreviewNaratgeulButton(
+                    PreviewKeyboardButton(
                         text: "!#1", primary: false,
                         onPress: {
                             Feedback.shared.playModifierSound()

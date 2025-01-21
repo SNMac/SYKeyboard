@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct PreviewChevronButton: View {
-    @EnvironmentObject private var state: PreviewNaratgeulState
+    @EnvironmentObject private var state: PreviewKeyboardState
     @State private var isPressed: Bool = false
     @Binding var keyboardHeight: Double
     

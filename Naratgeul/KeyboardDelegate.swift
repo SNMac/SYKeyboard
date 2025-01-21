@@ -1,11 +1,11 @@
 //
-//  NaratgeulDelegate.swift
-//  Naratgeul
+//  KeyboardDelegate.swift
+//  Keyboard
 //
 //  Created by 서동환 on 9/11/24.
 //
 
-protocol NaratgeulDelegate: AnyObject {
+protocol KeyboardDelegate: AnyObject {
     func getBufferSize() -> Int
     func flushBuffer()
     func inputLastHangeul()

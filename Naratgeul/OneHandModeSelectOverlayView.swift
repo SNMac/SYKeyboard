@@ -1,6 +1,6 @@
 //
 //  OneHandModeSelectOverlayView.swift
-//  Naratgeul
+//  Keyboard
 //
 //  Created by 서동환 on 10/30/24.
 //
@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct OneHandModeSelectOverlayView: View {
-    @EnvironmentObject private var state: NaratgeulState
+    @EnvironmentObject private var state: KeyboardState
     @AppStorage("currentOneHandMode", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var currentOneHandMode = 1
     @AppStorage("screenWidth", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var screenWidth = 1.0
     
@@ -47,7 +47,7 @@ struct OneHandModeSelectOverlayView: View {
         let dragYLocation = DragGestureValue.location.y
         
         if state.activeOneHandModeSelectOverlay {
-            // 특정 방향으로 일정 거리 초과 드래그 -> 한손 키보드 변경
+            // 특정 방향으로 일정 거리 초과 드래그 -> 한 손 키보드 변경
             if state.selectedOneHandMode != .left
                 && dragXLocation >= state.oneHandButtonPosition[0].minX && dragXLocation < state.oneHandButtonPosition[1].minX
                 && dragYLocation >= state.oneHandButtonPosition[0].minY && dragYLocation <= state.oneHandButtonPosition[0].maxY {

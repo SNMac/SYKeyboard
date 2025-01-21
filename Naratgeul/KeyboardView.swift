@@ -1,14 +1,14 @@
 //
-//  NaratgeulView.swift
-//  Naratgeul
+//  KeyboardView.swift
+//  Keyboard
 //
 //  Created by 서동환 on 8/14/24.
 //
 
 import SwiftUI
 
-struct NaratgeulView: View {
-    @EnvironmentObject private var state: NaratgeulState
+struct KeyboardView: View {
+    @EnvironmentObject private var state: KeyboardState
     @AppStorage("isNumberKeyboardTypeEnabled", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var isNumberKeyboardTypeEnabled = true
     @AppStorage("isOneHandModeEnabled", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var isOneHandModeEnabled = true
     @AppStorage("currentOneHandMode", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var currentOneHandMode = 1
@@ -36,11 +36,11 @@ struct NaratgeulView: View {
                         }
                     case .number:
                         if state.currentKeyboardType == .numberPad {
-                            NumberPadView()
+                            TenKeyView()
                         } else if state.currentKeyboardType == .asciiCapableNumberPad {
-                            NumberPadView()
+                            TenKeyView()
                         } else {
-                            NumberView()
+                            NumericView()
                         }
                     }
                 

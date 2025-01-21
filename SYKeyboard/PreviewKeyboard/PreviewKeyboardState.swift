@@ -1,5 +1,5 @@
 //
-//  PreviewNaratgeulState.swift
+//  PreviewKeyboardState.swift
 //  SYKeyboard
 //
 //  Created by 서동환 on 1/10/25.
@@ -13,8 +13,8 @@ enum PreviewOneHandMode: Int {
     case right
 }
 
-final class PreviewNaratgeulState: ObservableObject {
+final class PreviewKeyboardState: ObservableObject {
     @Published var currentOneHandMode: PreviewOneHandMode = .center
     
-    var nowPressedButton: PreviewNaratgeulButton?
+    var nowPressedButton: PreviewKeyboardButton?
 }

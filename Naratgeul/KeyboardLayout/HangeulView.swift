@@ -1,6 +1,6 @@
 //
 //  HangeulView.swift
-//  Naratgeul
+//  Keyboard
 //
 //  Created by 서동환 on 7/29/24.
 //
@@ -9,7 +9,7 @@ import SwiftUI
 import Combine
 
 struct HangeulView: View {
-    @EnvironmentObject private var state: NaratgeulState
+    @EnvironmentObject private var state: KeyboardState
     @State private var timer: AnyCancellable?
     
     private let vPadding: CGFloat = 4
@@ -21,7 +21,7 @@ struct HangeulView: View {
         VStack(spacing: 0) {
             // MARK: - ㄱ, ㄴ, ㅏㅓ, 􀆛
             HStack(spacing: 0) {
-                NaratgeulButton(
+                KeyboardButton(
                     text: "ㄱ", primary: true,
                     onPress: {
                         Feedback.shared.playTypingSound()
@@ -48,7 +48,7 @@ struct HangeulView: View {
                 .padding(EdgeInsets(top: vPadding, leading: hPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                 .contentShape(Rectangle())
                 
-                NaratgeulButton(
+                KeyboardButton(
                     text: "ㄴ", primary: true,
                     onPress: {
                         Feedback.shared.playTypingSound()
@@ -75,7 +75,7 @@ struct HangeulView: View {
                 .padding(EdgeInsets(top: vPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                 .contentShape(Rectangle())
                 
-                NaratgeulButton(
+                KeyboardButton(
                     text: "ㅏㅓ", primary: true,
                     onPress: {
                         Feedback.shared.playTypingSound()
@@ -102,7 +102,7 @@ struct HangeulView: View {
                 .padding(EdgeInsets(top: vPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                 .contentShape(Rectangle())
                 
-                NaratgeulButton(
+                KeyboardButton(
                     systemName: "delete.left", primary: false,
                     onPress: {
                         Feedback.shared.playDeleteSound()
@@ -131,7 +131,7 @@ struct HangeulView: View {
             
             // MARK: - ㄹ, ㅁ, ㅗㅜ, 􁁺
             HStack(spacing: 0) {
-                NaratgeulButton(
+                KeyboardButton(
                     text: "ㄹ", primary: true,
                     onPress: {
                         Feedback.shared.playTypingSound()
@@ -158,7 +158,7 @@ struct HangeulView: View {
                 .padding(EdgeInsets(top: interItemVPadding, leading: hPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                 .contentShape(Rectangle())
                 
-                NaratgeulButton(
+                KeyboardButton(
                     text: "ㅁ", primary: true,
                     onPress: {
                         Feedback.shared.playTypingSound()
@@ -185,7 +185,7 @@ struct HangeulView: View {
                 .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                 .contentShape(Rectangle())
                 
-                NaratgeulButton(
+                KeyboardButton(
                     text: "ㅗㅜ", primary: true,
                     onPress: {
                         Feedback.shared.playTypingSound()
@@ -212,7 +212,7 @@ struct HangeulView: View {
                 .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                 .contentShape(Rectangle())
                 
-                NaratgeulButton(
+                KeyboardButton(
                     systemName: "space", primary: true,
                     onPress: {
                         Feedback.shared.playModifierSound()
@@ -242,7 +242,7 @@ struct HangeulView: View {
             
             // MARK: - ㅅ, ㅇ, ㅣ, 􁂆
             HStack(spacing: 0) {
-                NaratgeulButton(
+                KeyboardButton(
                     text: "ㅅ", primary: true,
                     onPress: {
                         Feedback.shared.playTypingSound()
@@ -269,7 +269,7 @@ struct HangeulView: View {
                 .padding(EdgeInsets(top: interItemVPadding, leading: hPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                 .contentShape(Rectangle())
                 
-                NaratgeulButton(
+                KeyboardButton(
                     text: "ㅇ", primary: true,
                     onPress: {
                         Feedback.shared.playTypingSound()
@@ -296,7 +296,7 @@ struct HangeulView: View {
                 .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                 .contentShape(Rectangle())
                 
-                NaratgeulButton(
+                KeyboardButton(
                     text: "ㅣ", primary: true,
                     onPress: {
                         Feedback.shared.playTypingSound()
@@ -325,7 +325,7 @@ struct HangeulView: View {
                 
                 if state.currentKeyboardType == .twitter {
                     HStack(spacing: 0) {
-                        NaratgeulButton(
+                        KeyboardButton(
                             text: "@_twitter", primary: true,
                             onPress: {
                                 Feedback.shared.playModifierSound()
@@ -337,7 +337,7 @@ struct HangeulView: View {
                         .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                         .contentShape(Rectangle())
                         
-                        NaratgeulButton(
+                        KeyboardButton(
                             text: "#_twitter", primary: true,
                             onPress: {
                                 Feedback.shared.playModifierSound()
@@ -350,7 +350,7 @@ struct HangeulView: View {
                         .contentShape(Rectangle())
                     }
                 } else {
-                    NaratgeulButton(
+                    KeyboardButton(
                         systemName: "return.left", primary: false,
                         onPress: {
                             Feedback.shared.playModifierSound()
@@ -366,7 +366,7 @@ struct HangeulView: View {
             
             // MARK: - 획, ㅡ, 쌍, (!#1, 􀆪)
             HStack(spacing: 0) {
-                NaratgeulButton(
+                KeyboardButton(
                     text: "획", primary: true,
                     onPress: {
                         Feedback.shared.playTypingSound()
@@ -395,7 +395,7 @@ struct HangeulView: View {
                 .padding(EdgeInsets(top: interItemVPadding, leading: hPadding, bottom: vPadding, trailing: interItemHPadding))
                 .contentShape(Rectangle())
                 
-                NaratgeulButton(
+                KeyboardButton(
                     text: "ㅡ", primary: true,
                     onPress: {
                         Feedback.shared.playTypingSound()
@@ -422,7 +422,7 @@ struct HangeulView: View {
                 .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: vPadding, trailing: interItemHPadding))
                 .contentShape(Rectangle())
                 
-                NaratgeulButton(
+                KeyboardButton(
                     text: "쌍", primary: true,
                     onPress: {
                         Feedback.shared.playTypingSound()
@@ -453,7 +453,7 @@ struct HangeulView: View {
                 
                 if state.needsInputModeSwitchKey {
                     HStack(spacing: 0) {
-                        NaratgeulButton(
+                        KeyboardButton(
                             text: "!#1", primary: false,
                             onPress: {
                                 Feedback.shared.playModifierSound()
@@ -473,7 +473,7 @@ struct HangeulView: View {
                         .contentShape(Rectangle())
                     }
                 } else {
-                    NaratgeulButton(
+                    KeyboardButton(
                         text: "!#1", primary: false,
                         onPress: {
                             Feedback.shared.playModifierSound()

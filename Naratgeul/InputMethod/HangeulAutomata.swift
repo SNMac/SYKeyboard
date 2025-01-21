@@ -1,6 +1,6 @@
 //
 //  HangulAutomata.swift
-//  Naratgeul
+//  Keyboard
 //
 //  Created by JunHwan Kim on 8/14/22.
 //  Edited by 서동환 on 7/31/24.
@@ -36,7 +36,7 @@ struct InpStack {
 }
 
 final class HangeulAutomata {
-    private let log = OSLog(subsystem: "github.com-SNMac.SYKeyboard.Naratgeul", category: "HangeulAutomata")
+    private let log = OSLog(subsystem: "github.com-SNMac.SYKeyboard.Keyboard", category: "HangeulAutomata")
     
     var buffer: [String] = []
     var bufferTypingCount: [Int] = []

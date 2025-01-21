@@ -1,6 +1,6 @@
 //
-//  NumberView.swift
-//  Naratgeul
+//  NumericView.swift
+//  Keyboard
 //
 //  Created by 서동환 on 9/17/24.
 //
@@ -8,8 +8,8 @@
 import SwiftUI
 import Combine
 
-struct NumberView: View {
-    @EnvironmentObject private var state: NaratgeulState
+struct NumericView: View {
+    @EnvironmentObject private var state: KeyboardState
     @State private var timer: AnyCancellable?
     
     private let vPadding: CGFloat = 4
@@ -21,7 +21,7 @@ struct NumberView: View {
         VStack(spacing: 0) {
             // MARK: - 1, 2, 3, 􀆛
             HStack(spacing: 0) {
-                NaratgeulButton(
+                KeyboardButton(
                     text: "1", primary: true,
                     onPress: {
                         Feedback.shared.playTypingSound()
@@ -48,7 +48,7 @@ struct NumberView: View {
                 .padding(EdgeInsets(top: vPadding, leading: hPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                 .contentShape(Rectangle())
                 
-                NaratgeulButton(
+                KeyboardButton(
                     text: "2", primary: true,
                     onPress: {
                         Feedback.shared.playTypingSound()
@@ -75,7 +75,7 @@ struct NumberView: View {
                 .padding(EdgeInsets(top: vPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                 .contentShape(Rectangle())
                 
-                NaratgeulButton(
+                KeyboardButton(
                     text: "3", primary: true,
                     onPress: {
                         Feedback.shared.playTypingSound()
@@ -102,7 +102,7 @@ struct NumberView: View {
                 .padding(EdgeInsets(top: vPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                 .contentShape(Rectangle())
                 
-                NaratgeulButton(
+                KeyboardButton(
                     systemName: "delete.left", primary: false,
                     onPress: {
                         Feedback.shared.playDeleteSound()
@@ -131,7 +131,7 @@ struct NumberView: View {
             
             // MARK: - 4, 5, 6, 􁁺
             HStack(spacing: 0) {
-                NaratgeulButton(
+                KeyboardButton(
                     text: "4", primary: true,
                     onPress: {
                         Feedback.shared.playTypingSound()
@@ -158,7 +158,7 @@ struct NumberView: View {
                 .padding(EdgeInsets(top: interItemVPadding, leading: hPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                 .contentShape(Rectangle())
                 
-                NaratgeulButton(
+                KeyboardButton(
                     text: "5", primary: true,
                     onPress: {
                         Feedback.shared.playTypingSound()
@@ -185,7 +185,7 @@ struct NumberView: View {
                 .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                 .contentShape(Rectangle())
                 
-                NaratgeulButton(
+                KeyboardButton(
                     text: "6", primary: true,
                     onPress: {
                         Feedback.shared.playTypingSound()
@@ -212,7 +212,7 @@ struct NumberView: View {
                 .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                 .contentShape(Rectangle())
                 
-                NaratgeulButton(
+                KeyboardButton(
                     systemName: "space", primary: true,
                     onPress: {
                         Feedback.shared.playModifierSound()
@@ -242,7 +242,7 @@ struct NumberView: View {
             
             // MARK: - 7, 8, 9, 􁂆
             HStack(spacing: 0) {
-                NaratgeulButton(
+                KeyboardButton(
                     text: "7", primary: true,
                     onPress: {
                         Feedback.shared.playTypingSound()
@@ -269,7 +269,7 @@ struct NumberView: View {
                 .padding(EdgeInsets(top: interItemVPadding, leading: hPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                 .contentShape(Rectangle())
                 
-                NaratgeulButton(
+                KeyboardButton(
                     text: "8", primary: true,
                     onPress: {
                         Feedback.shared.playTypingSound()
@@ -296,7 +296,7 @@ struct NumberView: View {
                 .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                 .contentShape(Rectangle())
                 
-                NaratgeulButton(
+                KeyboardButton(
                     text: "9", primary: true,
                     onPress: {
                         Feedback.shared.playTypingSound()
@@ -323,7 +323,7 @@ struct NumberView: View {
                 .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
                 .contentShape(Rectangle())
                 
-                NaratgeulButton(
+                KeyboardButton(
                     systemName: "return.left", primary: false,
                     onPress: {
                         Feedback.shared.playModifierSound()
@@ -339,7 +339,7 @@ struct NumberView: View {
             // MARK: - "-", ",", 0, ".", "/", (한글, 􀆪)
             HStack(spacing: 0) {
                 HStack(spacing: 0) {
-                    NaratgeulButton(
+                    KeyboardButton(
                         text: "-", primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
@@ -366,7 +366,7 @@ struct NumberView: View {
                     .padding(EdgeInsets(top: interItemVPadding, leading: hPadding, bottom: vPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    NaratgeulButton(
+                    KeyboardButton(
                         text: ",", primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
@@ -394,7 +394,7 @@ struct NumberView: View {
                     .contentShape(Rectangle())
                 }
                 
-                NaratgeulButton(
+                KeyboardButton(
                     text: "0", primary: true,
                     onPress: {
                         Feedback.shared.playTypingSound()
@@ -422,7 +422,7 @@ struct NumberView: View {
                 .contentShape(Rectangle())
                 
                 HStack(spacing: 0) {
-                    NaratgeulButton(
+                    KeyboardButton(
                         text: ".", primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
@@ -449,7 +449,7 @@ struct NumberView: View {
                     .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: vPadding, trailing: interItemHPadding))
                     .contentShape(Rectangle())
                     
-                    NaratgeulButton(
+                    KeyboardButton(
                         text: "/", primary: true,
                         onPress: {
                             Feedback.shared.playTypingSound()
@@ -479,7 +479,7 @@ struct NumberView: View {
                 
                 if state.needsInputModeSwitchKey {
                     HStack(spacing: 0) {
-                        NaratgeulButton(
+                        KeyboardButton(
                             text: "한글", primary: false,
                             onPress: {
                                 Feedback.shared.playModifierSound()
@@ -499,7 +499,7 @@ struct NumberView: View {
                         .contentShape(Rectangle())
                     }
                 } else {
-                    NaratgeulButton(
+                    KeyboardButton(
                         text: "한글", primary: false,
                         onPress: {
                             Feedback.shared.playModifierSound()

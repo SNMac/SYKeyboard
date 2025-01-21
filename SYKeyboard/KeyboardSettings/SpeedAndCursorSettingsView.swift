@@ -30,7 +30,6 @@ struct SpeedAndCursorSettingsView: View {
                 Text("리셋")
             }
             .buttonStyle(BorderlessButtonStyle())
-            .frame(width: 30)
         }
     }
     
@@ -51,7 +50,6 @@ struct SpeedAndCursorSettingsView: View {
                 Text("리셋")
             }
             .buttonStyle(BorderlessButtonStyle())
-            .frame(width: 30)
         }
     }
     
@@ -72,7 +70,6 @@ struct SpeedAndCursorSettingsView: View {
                 Text("리셋")
             }
             .buttonStyle(BorderlessButtonStyle())
-            .frame(width: 30)
         }
     }
     
@@ -93,7 +90,6 @@ struct SpeedAndCursorSettingsView: View {
                 Text("리셋")
             }
             .buttonStyle(BorderlessButtonStyle())
-            .frame(width: 30)
         }
     }
     

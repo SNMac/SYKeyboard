@@ -15,7 +15,8 @@ struct InstructionsPageView: View {
     var body: some View {
         VStack {
             Text(title)
-                .font(.title2)
+                .font(.title3)
+                .multilineTextAlignment(.center)
             Image(imageName)
                 .resizable()
                 .scaledToFit()
@@ -28,5 +29,5 @@ struct InstructionsPageView: View {
 }
 
 #Preview {
-    InstructionsPageView(title: "한손 모드 변경 방법", imageName: "instruction_change_one_hand", subtitle: "자판 변경 버튼을 화살표 방향으로 드래그\nor 길게 누르기")
+    InstructionsPageView(title: "한 손 키보드 변경 방법", imageName: "instruction_change_one_hand", subtitle: "자판 변경 버튼을 화살표 방향으로 드래그\nor 길게 누르기")
 }

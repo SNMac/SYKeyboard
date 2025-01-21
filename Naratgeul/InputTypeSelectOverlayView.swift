@@ -1,6 +1,6 @@
 //
 //  InputTypeSelectOverlayView.swift
-//  Naratgeul
+//  Keyboard
 //
 //  Created by 서동환 on 11/9/24.
 //
@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct InputTypeSelectOverlayView: View {
-    @EnvironmentObject private var state: NaratgeulState
+    @EnvironmentObject private var state: KeyboardState
     @AppStorage("screenWidth", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var screenWidth = 1.0
     
     private let frameWidth: CGFloat = 180

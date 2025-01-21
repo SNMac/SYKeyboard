@@ -12,13 +12,21 @@ struct InstructionsTabView: View {
     
     var body: some View {
         TabView {
-            InstructionsPageView(title: "커서 이동 방법", imageName: "instruction_move_cursor", subtitle: "강조된 버튼(흰색 버튼) 영역을 좌/우로 드래그")
+            let title1 = String(localized: "커서 이동 방법")
+            let subtitle1 = String(localized: "테두리가 강조된 버튼(흰색 버튼) 영역을\n좌/우로 드래그")
+            InstructionsPageView(title: title1, imageName: "instruction_move_cursor", subtitle: subtitle1)
             
-            InstructionsPageView(title: "반복 입력 방법", imageName: "instruction_press_and_hold", subtitle: "강조된 버튼을 길게 누르기")
+            let title2 = String(localized: "반복 입력 방법")
+            let subtitle2 = String(localized: "테두리가 강조된 버튼을 길게 누르기\n")
+            InstructionsPageView(title: title2, imageName: "instruction_press_and_hold", subtitle: subtitle2)
             
-            InstructionsPageView(title: "한손 모드 변경 방법", imageName: "instruction_change_one_hand", subtitle: "자판 변경 버튼을 화살표 방향으로 드래그\nor 길게 누르기")
+            let title3 = String(localized: "한 손 키보드 변경 방법")
+            let subtitle3 = String(localized: "'!#1' 또는 '한글' 또는 '123' 버튼을\n위로 드래그 or 길게 누르기")
+            InstructionsPageView(title: title3, imageName: "instruction_change_one_hand", subtitle: subtitle3)
             
-            InstructionsPageView(title: "숫자 자판 변경 방법", imageName: "instruction_change_number_view", subtitle: "자판 변경 버튼을 화살표 방향으로 드래그\n")
+            let title4 = String(localized: "숫자 키보드 전환 방법")
+            let subtitle4 = String(localized: "'!#1' 또는 '한글' 버튼을\n화살표 방향으로 드래그")
+            InstructionsPageView(title: title4, imageName: "instruction_change_number_view", subtitle: subtitle4)
         }
         .tabViewStyle(PageTabViewStyle())
         .indexViewStyle(PageIndexViewStyle(backgroundDisplayMode: .always))
@@ -28,8 +36,7 @@ struct InstructionsTabView: View {
         } label: {
             Text("닫기")
         }
-        .frame(width: 40, height: 40)
-        .padding(EdgeInsets(top: 0, leading: 0, bottom: 10, trailing: 0))
+        .padding(EdgeInsets(top: 0, leading: 0, bottom: 20, trailing: 0))
     }
 }
 

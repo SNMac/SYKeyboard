@@ -2,10 +2,57 @@
   "sourceLanguage" : "ko",
   "strings" : {
     "‼️ 키보드 추가 필요 ‼️" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "‼️ Need to Add Keyboard ‼️"
+          }
+        }
+      }
     },
     "!#1" : {
       "shouldTranslate" : false
+    },
+    "'!#1' 또는 '한글' 또는 '123' 버튼을\n위로 드래그 or 길게 누르기" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Drag ‘!#1’ or ‘한글’ or ‘123’ button\nup or long press"
+          }
+        }
+      }
+    },
+    "'!#1' 또는 '한글' 또는 '123' 버튼을 위로 드래그하거나 길게 눌러 선택" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Drag ‘!#1’ or ‘한글’ or ‘123’ button up or long press to select"
+          }
+        }
+      }
+    },
+    "'!#1' 또는 '한글' 버튼을\n화살표 방향으로 드래그" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Drag ‘!#1’ or ‘한글’ button\nin the direction of the arrow"
+          }
+        }
+      }
+    },
+    "'!#1' 또는 '한글' 버튼을 화살표 방향으로 드래그하여 전환" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Drag ‘!#1’ or ‘한글’ button in the direction of the arrow to switch"
+          }
+        }
+      }
     },
     "%.1f" : {
       "shouldTranslate" : false
@@ -37,10 +84,24 @@
       }
     },
     "기호 자판 입력 후 스페이스/리턴 ➡️ 한글 자판" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Space/return after typing symbols ➡️ Hangeul Keyboard"
+          }
+        }
+      }
     },
     "길게 누르기" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Long Press"
+          }
+        }
+      }
     },
     "단말기 모델" : {
       "localizations" : {
@@ -93,7 +154,24 @@
       }
     },
     "반복 입력" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Key Repeat"
+          }
+        }
+      }
+    },
+    "반복 입력 방법" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "How to Key Repeat\n"
+          }
+        }
+      }
     },
     "버전" : {
       "localizations" : {
@@ -116,16 +194,54 @@
       }
     },
     "속도/커서 설정" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Speed/Cursor Settings"
+          }
+        }
+      }
     },
-    "숫자 자판 활성화" : {
-
+    "숫자 키보드 전환 방법" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "How to Change to\nNumeric Keyboard"
+          }
+        }
+      }
+    },
+    "숫자 키보드 활성화" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Numeric Keyboard"
+          }
+        }
+      }
     },
     "시스템 설정 이동" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Go to Settings"
+          }
+        }
+      }
     },
     "시스템 설정의 단축키 사용" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Use shortcut keys in settings"
+          }
+        }
+      }
     },
     "앱 버전" : {
       "localizations" : {
@@ -168,7 +284,14 @@
       }
     },
     "이동 간격" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Movement Interval"
+          }
+        }
+      }
     },
     "입력 설정" : {
       "localizations" : {
@@ -181,13 +304,14 @@
       }
     },
     "입력 속도" : {
-
-    },
-    "자판 변경 버튼을 위로 드래그하여 선택" : {
-
-    },
-    "자판 변경 버튼을 화살표 방향으로 드래그하여 전환" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Repeat Rate"
+          }
+        }
+      }
     },
     "저장" : {
       "localizations" : {
@@ -230,25 +354,114 @@
       }
     },
     "커서 이동" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cursor Movement"
+          }
+        }
+      }
     },
-    "키보드 ➡️ 나랏글 ON, 전체 접근 허용 ON" : {
-
+    "커서 이동 방법" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "How to Move Cursor\n"
+          }
+        }
+      }
+    },
+    "키보드 ➡️ SY키보드 ON, 전체 접근 허용 ON" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keyboard ➡️ Enable ‘SYKeyboard’ and Allow Full Access’"
+          }
+        }
+      }
     },
     "키보드 높이" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keyboard Height"
+          }
+        }
+      }
     },
     "키보드 사용 안내" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keyboard User Guide"
+          }
+        }
+      }
     },
     "키보드 추가 및 권한 설정" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add Keyboard and Set Permission"
+          }
+        }
+      }
     },
     "키보드를 추가하시면 세부 설정이 가능합니다." : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add keyboard for more detailed settings"
+          }
+        }
+      }
+    },
+    "터치하여 키보드 테스트" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Touch to test keyboard"
+          }
+        }
+      }
+    },
+    "테두리가 강조된 버튼(흰색 버튼) 영역을\n좌/우로 드래그" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Press the button with a highlighted border\n(white button)"
+          }
+        }
+      }
+    },
+    "테두리가 강조된 버튼을 길게 누르기\n" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Press the button with a highlighted border\n"
+          }
+        }
+      }
     },
     "텍스트 대치" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Text Replacement"
+          }
+        }
+      }
     },
     "피드백 설정" : {
       "localizations" : {
@@ -260,14 +473,45 @@
         }
       }
     },
+    "한 손 키보드 너비" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "One-Handed Keyboard Width"
+          }
+        }
+      }
+    },
+    "한 손 키보드 변경 방법" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "How to Change to\nOne-Handed Keyboard"
+          }
+        }
+      }
+    },
+    "한 손 키보드 활성화" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "One-Handed Keyboard"
+          }
+        }
+      }
+    },
     "한글 자판 자동 변경" : {
-
-    },
-    "한손 키보드 너비" : {
-
-    },
-    "한손 키보드 활성화" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Auto-Change to Hangeul Keyboard"
+          }
+        }
+      }
     },
     "햅틱 피드백" : {
       "localizations" : {
@@ -280,7 +524,14 @@
       }
     },
     "활성화 거리" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Activation Distance"
+          }
+        }
+      }
     }
   },
   "version" : "1.0"
