@@ -32,9 +32,9 @@ struct GlobalValues {
             defaults?.set(0, forKey: "reviewCounter")
         }
         
-        // 마지막으로 리뷰를 요청한 버전
-        if defaults?.object(forKey: "lastVersionPromptedForReview") == nil {
-            defaults?.set("", forKey: "lastVersionPromptedForReview")
+        // 마지막으로 리뷰를 요청한 빌드
+        if defaults?.object(forKey: "lastBuildPromptedForReview") == nil {
+            defaults?.set("", forKey: "lastBuildPromptedForReview")
         }
         
         /* 피드백 설정 */

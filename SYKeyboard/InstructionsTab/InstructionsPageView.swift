@@ -18,6 +18,7 @@ struct InstructionsPageView: View {
             Image(imageName)
                 .resizable()
                 .scaledToFit()
+                .clipShape(RoundedRectangle(cornerRadius: 5))
                 .padding()
         }
     }

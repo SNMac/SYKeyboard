@@ -58,7 +58,7 @@ struct BannerAdView: UIViewRepresentable {
     }
     // [END create_banner_view]
     
-
+    
     // [START create_banner]
     class BannerAdCoordinator: NSObject, GADBannerViewDelegate {
         private let log = OSLog(subsystem: "github.com-SNMac.SYKeyboard", category: "BannerAdView")

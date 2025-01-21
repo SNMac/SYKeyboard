@@ -9,7 +9,7 @@ import SwiftUI
 import Combine
 
 struct PreviewHangeulView: View {
-    @EnvironmentObject var state: PreviewNaratgeulState
+    @EnvironmentObject private var state: PreviewNaratgeulState
     @AppStorage("repeatTimerSpeed", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var repeatTimerSpeed = GlobalValues.defaultRepeatTimerSpeed
     @AppStorage("needsInputModeSwitchKey", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var needsInputModeSwitchKey = true
     

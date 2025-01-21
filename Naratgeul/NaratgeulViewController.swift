@@ -378,7 +378,6 @@ private extension NaratgeulViewController {
         guard let urlScheme = URL(string: url) else {
             return
         }
-        
         openURL(urlScheme)
     }
     

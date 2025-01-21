@@ -1,0 +1,287 @@
+{
+  "sourceLanguage" : "ko",
+  "strings" : {
+    "‼️ 키보드 추가 필요 ‼️" : {
+
+    },
+    "!#1" : {
+      "shouldTranslate" : false
+    },
+    "%.1f" : {
+      "shouldTranslate" : false
+    },
+    "%lld" : {
+      "shouldTranslate" : false
+    },
+    "123" : {
+      "shouldTranslate" : false
+    },
+    "iOS 버전" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iOS Version"
+          }
+        }
+      }
+    },
+    "SY키보드 문의사항" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "SYKeyboard Inquiry"
+          }
+        }
+      }
+    },
+    "기호 자판 입력 후 스페이스/리턴 ➡️ 한글 자판" : {
+
+    },
+    "길게 누르기" : {
+
+    },
+    "단말기 모델" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Device Model"
+          }
+        }
+      }
+    },
+    "닫기" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Close"
+          }
+        }
+      }
+    },
+    "리뷰 및 별점 주기" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Write a Review"
+          }
+        }
+      }
+    },
+    "리셋" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reset"
+          }
+        }
+      }
+    },
+    "문의하기" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Inquiry"
+          }
+        }
+      }
+    },
+    "반복 입력" : {
+
+    },
+    "버전" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Version"
+          }
+        }
+      }
+    },
+    "소리 피드백" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sound Feedback"
+          }
+        }
+      }
+    },
+    "속도/커서 설정" : {
+
+    },
+    "숫자 자판 활성화" : {
+
+    },
+    "시스템 설정 이동" : {
+
+    },
+    "시스템 설정의 단축키 사용" : {
+
+    },
+    "앱 버전" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "App Version"
+          }
+        }
+      }
+    },
+    "앱 빌드" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "App Build"
+          }
+        }
+      }
+    },
+    "앱 이름" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Application Name"
+          }
+        }
+      }
+    },
+    "외형 설정" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Appearance Settings"
+          }
+        }
+      }
+    },
+    "이동 간격" : {
+
+    },
+    "입력 설정" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Input Settings"
+          }
+        }
+      }
+    },
+    "입력 속도" : {
+
+    },
+    "자판 변경 버튼을 위로 드래그하여 선택" : {
+
+    },
+    "자판 변경 버튼을 화살표 방향으로 드래그하여 전환" : {
+
+    },
+    "저장" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Save"
+          }
+        }
+      }
+    },
+    "점선 아래에 내용을 입력해주세요. (상기된 정보가 정확하지 않을 경우 수정해 주세요!)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Please enter the information below the dotted line. (If any of the above is wrong, please correct it!)"
+          }
+        }
+      }
+    },
+    "정보" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Info"
+          }
+        }
+      }
+    },
+    "취소" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cancel"
+          }
+        }
+      }
+    },
+    "커서 이동" : {
+
+    },
+    "키보드 ➡️ 나랏글 ON, 전체 접근 허용 ON" : {
+
+    },
+    "키보드 높이" : {
+
+    },
+    "키보드 사용 안내" : {
+
+    },
+    "키보드 추가 및 권한 설정" : {
+
+    },
+    "키보드를 추가하시면 세부 설정이 가능합니다." : {
+
+    },
+    "텍스트 대치" : {
+
+    },
+    "피드백 설정" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Feedback Settings"
+          }
+        }
+      }
+    },
+    "한글 자판 자동 변경" : {
+
+    },
+    "한손 키보드 너비" : {
+
+    },
+    "한손 키보드 활성화" : {
+
+    },
+    "햅틱 피드백" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Haptic Feedback"
+          }
+        }
+      }
+    },
+    "활성화 거리" : {
+
+    }
+  },
+  "version" : "1.0"
+}

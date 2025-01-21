@@ -14,7 +14,7 @@ struct RequestReviewViewModifier: ViewModifier {
     
     @Environment(\.requestReview) private var requestReview
     @AppStorage("reviewCounter", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) var reviewCounter = 0
-    @AppStorage("lastVersionPromptedForReview", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) var lastVersionPromptedForReview = ""
+    @AppStorage("lastBuildPromptedForReview", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) var lastBuildPromptedForReview = ""
     
     private func presentReview() {
         Task {
@@ -30,15 +30,15 @@ struct RequestReviewViewModifier: ViewModifier {
                 os_log("reviewCounter = %d", log: log, type: .debug, reviewCounter)
             }
             .onDisappear {
-                guard let currentAppVersion = Bundle.currentAppVersion else {
+                guard let currentAppBuild = Bundle.appBuild else {
                     return
                 }
                 
-                if reviewCounter >= 50, currentAppVersion != lastVersionPromptedForReview {
+                if reviewCounter >= 50, currentAppBuild != lastBuildPromptedForReview {
                     reviewCounter = 0
                     presentReview()
-                        
-                    lastVersionPromptedForReview = currentAppVersion
+                    
+                    lastBuildPromptedForReview = currentAppBuild
                 }
             }
     }

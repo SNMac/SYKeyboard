@@ -41,6 +41,9 @@ struct KeyboardSettingsView: View {
                 Text("키보드 ➡️ 나랏글 ON, 전체 접근 허용 ON")
                     .font(.system(.caption))
             }
+            .alignmentGuide(.listRowSeparatorLeading) { dimensions in
+                dimensions[.leading]
+            }
             
             if isKeyboardExtensionEnabled {
                 Section {
@@ -73,9 +76,12 @@ struct KeyboardSettingsView: View {
             } header: {
                 Text("정보")
             }
+            .alignmentGuide(.listRowSeparatorLeading) { dimensions in
+                dimensions[.leading]
+            }
         }
         .scrollDismissesKeyboard(.immediately).ignoresSafeArea(.keyboard, edges: .all)
-        .navigationTitle((Bundle.main.infoDictionary?["CFBundleDisplayName"] as? String)!)
+        .navigationTitle(Bundle.displayName ?? "SY키보드")
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
             isKeyboardExtensionEnabled = checkKeyboardExtensionEnabled()

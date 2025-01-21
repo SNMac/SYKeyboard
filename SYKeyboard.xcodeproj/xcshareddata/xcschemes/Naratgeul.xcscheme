@@ -17,8 +17,8 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "5B7B3F6A2C569B8200F7C093"
-               BuildableName = "Naratgeul.appex"
-               BlueprintName = "Naratgeul"
+               BuildableName = "Keyboard.appex"
+               BlueprintName = "Keyboard"
                ReferencedContainer = "container:SYKeyboard.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
