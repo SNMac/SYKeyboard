@@ -328,7 +328,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Please enter the information below the line (if any of the above is wrong, please correct it!)."
+            "value" : "Please enter the information below the line (if any of the above is wrong, please correct it.)."
           }
         }
       }
@@ -378,7 +378,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Keyboard ➡️ Enable ‘SYKeyboard’ and Allow Full Access’"
+            "value" : "Keyboard ➡️ Enable ‘SYKeyboard’ and ‘Allow Full Access’"
           }
         }
       }
