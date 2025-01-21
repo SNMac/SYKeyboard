@@ -231,7 +231,7 @@
 				5BA419DE2CB99238005E7C86 /* .gitignore */,
 				5B9472312C8AD6DD00B8B154 /* GlobalData */,
 				5B7B3F582C569B7800F7C093 /* SYKeyboard */,
-				5B7B3F6C2C569B8200F7C093 /* Naratgeul */,
+				5B7B3F6C2C569B8200F7C093 /* Keyboard */,
 				5B7B3F572C569B7800F7C093 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -283,7 +283,7 @@
 			path = "Preview Content";
 			sourceTree = "<group>";
 		};
-		5B7B3F6C2C569B8200F7C093 /* Naratgeul */ = {
+		5B7B3F6C2C569B8200F7C093 /* Keyboard */ = {
 			isa = PBXGroup;
 			children = (
 				5B1857052D402EB800895400 /* InfoPlist.xcstrings */,
@@ -302,7 +302,7 @@
 				5B2B40112C6CC1D1007CA762 /* KeyboardState.swift */,
 				5B7BDD4B2C92C0170065C944 /* KeyboardLayout */,
 			);
-			path = Naratgeul;
+			path = Keyboard;
 			sourceTree = "<group>";
 		};
 		5B7BDD4A2C9205830065C944 /* Custom */ = {
