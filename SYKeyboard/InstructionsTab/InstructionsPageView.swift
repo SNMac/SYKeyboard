@@ -28,5 +28,5 @@ struct InstructionsPageView: View {
 }
 
 #Preview {
-    InstructionsPageView(title: "커서 이동 방법", imageName: "instruction_move_cursor", subtitle: "흰색 버튼 영역 드래그 ➡️ 커서 이동")
+    InstructionsPageView(title: "한손 모드 변경 방법", imageName: "instruction_change_one_hand", subtitle: "자판 변경 버튼을 화살표 방향으로 드래그\nor 길게 누르기")
 }
