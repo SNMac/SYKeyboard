@@ -22,6 +22,11 @@ struct GlobalValues {
     static func setupDefaults(_ defaults: UserDefaults?) {
         // UserDefaults 값이 존재하는지 확인하고, 없으면 새로 만듬
         
+        // 온보딩 여부
+        if defaults?.object(forKey: "isOnboarding") == nil {
+            defaults?.set(true, forKey: "isOnboarding")
+        }
+        
         // 앱의 특정 기능 또는 키보드를 실행한 횟수
         if defaults?.object(forKey: "reviewCounter") == nil {
             defaults?.set(0, forKey: "reviewCounter")

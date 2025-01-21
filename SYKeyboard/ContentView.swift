@@ -9,6 +9,8 @@ import SwiftUI
 import GoogleMobileAds
 
 struct ContentView: View {
+    @AppStorage("isOnboarding", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var isOnboarding = true
+    
     private var defaults: UserDefaults?
     private var state: PreviewNaratgeulState
     
@@ -32,6 +34,11 @@ struct ContentView: View {
                   .frame(height: adSize.size.height)
             }
             .environmentObject(state)
+            .sheet(isPresented: $isOnboarding) {
+                InstructionsTabView()
+                    .presentationDragIndicator(.visible)
+                    .presentationDetents([.medium])
+            }
         }
     }
 }
