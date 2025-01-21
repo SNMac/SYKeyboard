@@ -204,7 +204,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Please enter the information below the dotted line. (If any of the above is wrong, please correct it!)"
+            "value" : "Please enter the information below the line (if any of the above is wrong, please correct it!)."
           }
         }
       }

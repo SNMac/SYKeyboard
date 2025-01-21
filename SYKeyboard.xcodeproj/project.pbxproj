@@ -249,6 +249,7 @@
 				5B1857012D4001AC00895400 /* InfoPlist.xcstrings */,
 				5B1856FF2D40005300895400 /* Localizable.xcstrings */,
 				5BDD2F5E2D34BA97003F87C0 /* Info.plist */,
+				5B7B3F5D2C569B7800F7C093 /* Assets.xcassets */,
 				5B3C37A72D39F88900A7AABE /* GoogleService-Info.plist */,
 				5BA419DB2CB98F2E005E7C86 /* GitShellScript */,
 				5BACCE422C9094AB006DCFB7 /* version.sh */,
@@ -267,7 +268,6 @@
 				5BFFC5EA2D3947DC000BC603 /* ViewModifier */,
 				5BB0D2702C88470A00CE7AF5 /* Extensions */,
 				5B7BDD4A2C9205830065C944 /* Custom */,
-				5B7B3F5D2C569B7800F7C093 /* Assets.xcassets */,
 				5B7B3F5F2C569B7800F7C093 /* Preview Content */,
 			);
 			path = SYKeyboard;

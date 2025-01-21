@@ -37,7 +37,7 @@ struct ContentView: View {
             .sheet(isPresented: $isOnboarding) {
                 InstructionsTabView()
                     .presentationDragIndicator(.visible)
-                    .presentationDetents([.medium])
+                    .presentationDetents([.fraction(0.8)])
             }
         }
     }

@@ -10,6 +10,7 @@ import SwiftUI
 struct InstructionsPageView: View {
     let title: String
     let imageName: String
+    let subtitle: String
     
     var body: some View {
         VStack {
@@ -20,10 +21,12 @@ struct InstructionsPageView: View {
                 .scaledToFit()
                 .clipShape(RoundedRectangle(cornerRadius: 5))
                 .padding()
+            Text(subtitle)
+                .multilineTextAlignment(.center)
         }
     }
 }
 
 #Preview {
-    InstructionsPageView(title: "커서 이동 방법", imageName: "instruction_moveCursor")
+    InstructionsPageView(title: "커서 이동 방법", imageName: "instruction_move_cursor", subtitle: "흰색 버튼 영역 드래그 ➡️ 커서 이동")
 }
