@@ -15,7 +15,7 @@ struct InstructionsPageView: View {
     var body: some View {
         VStack {
             Text(title)
-                .font(.title3)
+                .font(.title2)
                 .lineLimit(2, reservesSpace: true)
                 .multilineTextAlignment(.center)
             Image(imageName)
