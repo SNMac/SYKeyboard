@@ -153,6 +153,16 @@
         }
       }
     },
+    "반복 속도" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Repeat Rate"
+          }
+        }
+      }
+    },
     "반복 입력" : {
       "localizations" : {
         "en" : {
@@ -173,6 +183,16 @@
         }
       }
     },
+    "반복/커서 설정" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Repeat/Cursor Settings"
+          }
+        }
+      }
+    },
     "버전" : {
       "localizations" : {
         "en" : {
@@ -189,16 +209,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Sound Feedback"
-          }
-        }
-      }
-    },
-    "속도/커서 설정" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Speed/Cursor Settings"
           }
         }
       }
@@ -299,16 +309,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Input Settings"
-          }
-        }
-      }
-    },
-    "입력 속도" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Repeat Rate"
           }
         }
       }

@@ -12,7 +12,7 @@ struct InputSettingsView: View {
     @AppStorage("isAutoChangeToHangeulEnabled", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var isAutoChangeToHangeulEnabled = true
     
     var body: some View {
-        NavigationLink("속도/커서 설정") {
+        NavigationLink("반복/커서 설정") {
             SpeedAndCursorSettingsView()
         }
         

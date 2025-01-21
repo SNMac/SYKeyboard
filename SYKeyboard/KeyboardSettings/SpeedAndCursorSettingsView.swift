@@ -101,7 +101,7 @@ struct SpeedAndCursorSettingsView: View {
                     longPressSpeedSetting
                     repeatTimerSpeedSetting
                 } header: {
-                    Text("입력 속도")
+                    Text("반복 속도")
                 }
                 
                 Section {
@@ -111,7 +111,7 @@ struct SpeedAndCursorSettingsView: View {
                     Text("커서 이동")
                 }
             }
-            .navigationTitle("속도/커서 설정")
+            .navigationTitle("반복/커서 설정")
             .navigationBarTitleDisplayMode(.inline)
             .requestReviewViewModifier()
         }
