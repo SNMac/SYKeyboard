@@ -20,7 +20,7 @@ struct InfoView: View {
             isShowingInstructions = true
         } label: {
             HStack {
-                Image(systemName: "questionmark.text.page")
+                Image(systemName: "text.page")
                     .background(GeometryReader {
                         Color.clear.preference(key: ItemSize.self,
                                                value: $0.frame(in: .local).size)
