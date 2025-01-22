@@ -223,22 +223,22 @@
         }
       }
     },
+    "숫자 키패드 전환 방법" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "How to Change to Numeric Keypad"
+          }
+        }
+      }
+    },
     "숫자 키패드 활성화" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Numeric Keypad"
-          }
-        }
-      }
-    },
-    "숫자 패드 전환 방법" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "How to Change to Numeric Keypad"
           }
         }
       }
