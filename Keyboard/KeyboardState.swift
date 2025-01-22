@@ -56,6 +56,7 @@ final class KeyboardState: ObservableObject {
     var oneHandedKeyboardWidth: CGFloat
     var longPressTime: Double
     var repeatTimerCycle: Double
+    var hasFullAccess: Bool
     var needsInputModeSwitchKey: Bool
     var nextKeyboardAction: Selector
     
@@ -68,6 +69,7 @@ final class KeyboardState: ObservableObject {
         oneHandedKeyboardWidth: CGFloat,
         longPressTime: Double,
         repeatTimerCycle: Double,
+        hasFullAccess: Bool,
         needsInputModeSwitchKey: Bool,
         nextKeyboardAction: Selector
     ) {
@@ -76,6 +78,7 @@ final class KeyboardState: ObservableObject {
         self.oneHandedKeyboardWidth = oneHandedKeyboardWidth
         self.longPressTime = longPressTime
         self.repeatTimerCycle = repeatTimerCycle
+        self.hasFullAccess = hasFullAccess
         self.needsInputModeSwitchKey = needsInputModeSwitchKey
         self.nextKeyboardAction = nextKeyboardAction
     }
