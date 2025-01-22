@@ -33,8 +33,8 @@ struct KeyboardButton: View {
     @AppStorage("cursorActiveWidth", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var cursorActiveWidth = GlobalValues.defaultCursorActiveWidth
     @AppStorage("cursorMoveWidth", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var cursorMoveWidth = GlobalValues.defaultCursorMoveWidth
     @AppStorage("isNumericKeyboardTypeEnabled", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var isNumericKeyboardTypeEnabled = true
-    @AppStorage("isOneHandKeyboardEnabled", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var isOneHandKeyboardEnabled = true
-    @AppStorage("currentOneHandKeyboard", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var currentOneHandKeyboard = 1
+    @AppStorage("isOneHandedKeyboardEnabled", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var isOneHandedKeyboardEnabled = true
+    @AppStorage("currentOneHandedKeyboard", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var currentOneHandedKeyboard = 1
     
     @State var nowState: ButtonState = .released
     
@@ -59,12 +59,12 @@ struct KeyboardButton: View {
         var executeOnPressed: Bool = true
         
         if state.activeKeyboardSelectOverlay {
-            forceExitInputTypeSelect()
+            forceExitKeyboardSelect()
             executeOnPressed = false
         }
         
-        if state.activeOneHandKeyboardSelectOverlay {
-            forceExitOneHandKeyboardSelect()
+        if state.activeOneHandedKeyboardSelectOverlay {
+            forceExitOneHandedKeyboardSelect()
             executeOnPressed = false
         }
         
@@ -124,8 +124,8 @@ struct KeyboardButton: View {
     private func onLongPressed() {  // 버튼 길게 누르면(누른 상태에서 일정시간이 지나면) 호출
         nowState = .longPressed
         if text == "!#1" || text == "한글" {
-            if isOneHandKeyboardEnabled {
-                activateOneHandKeyboardSelect()
+            if isOneHandedKeyboardEnabled {
+                activateOneHandedKeyboardSelect()
             }
         } else {
             onLongPress?()
@@ -146,11 +146,11 @@ struct KeyboardButton: View {
                 initButtonState()
             }
             
-        } else if text == "!#1" || text == "한글" {  // 자판 전환 버튼 드래그 -> 자판 or 한손 키보드 변경
+        } else if text == "!#1" || text == "한글" {  // "!#1" 또는 "한글" 버튼 드래그 -> 숫자 키보드 or 한 손 키보드 변경
             if state.activeKeyboardSelectOverlay {
-                selectInputType(dragGestureValue: dragGestureValue)
-            } else if state.activeOneHandKeyboardSelectOverlay {
-                selectOneHandKeyboard(dragGestureValue: dragGestureValue)
+                selectKeyboard(dragGestureValue: dragGestureValue)
+            } else if state.activeOneHandedKeyboardSelectOverlay {
+                selectOneHandedKeyboard(dragGestureValue: dragGestureValue)
             } else {
                 checkDraggingForOverlayActivation(dragGestureValue: dragGestureValue)
             }
@@ -168,9 +168,9 @@ struct KeyboardButton: View {
             }
         } else if text == "!#1" || text == "한글" {
             if state.activeKeyboardSelectOverlay {
-                selectInputType(dragGestureValue: dragGestureValue)
-            } else if state.activeOneHandKeyboardSelectOverlay {
-                selectOneHandKeyboard(dragGestureValue: dragGestureValue)
+                selectKeyboard(dragGestureValue: dragGestureValue)
+            } else if state.activeOneHandedKeyboardSelectOverlay {
+                selectOneHandedKeyboard(dragGestureValue: dragGestureValue)
             } else {
                 checkDraggingForOverlayActivation(dragGestureValue: dragGestureValue)
             }
@@ -183,8 +183,8 @@ struct KeyboardButton: View {
                 onRelease?()
             }
         }
-        applyInputType()
-        applyOneHandKeyboard()
+        applySelectedKeyboard()
+        applySelectedOneHandedKeyboard()
         
         initButtonState()
     }
@@ -199,52 +199,52 @@ struct KeyboardButton: View {
                 }
             }
         }
-        applyInputType()
+        applySelectedKeyboard()
         if nowState == .longPressedDrag {
-            applyOneHandKeyboard()
+            applySelectedOneHandedKeyboard()
         }
         
         initButtonState()
     }
     
     // MARK: - Input Type Select Methods
-    private func activateInputTypeSelect() {
+    private func activateKeyboardSelect() {
         state.activeKeyboardSelectOverlay = true
     }
     
-    private func selectInputType(dragGestureValue: DragGesture.Value) {
+    private func selectKeyboard(dragGestureValue: DragGesture.Value) {
         let dragXLocation = dragGestureValue.location.x
         
         if state.currentKeyboard == .hangeul {
-            if state.selectedKeyboard != .numeric && dragXLocation <= state.inputTypeButtonPosition[1].minX {
+            if state.selectedKeyboard != .numeric && dragXLocation <= state.keyboardSelectButtonPosition[1].minX {
                 state.selectedKeyboard = .numeric
                 Feedback.shared.playHapticByForce(style: .light)
-            } else if state.selectedKeyboard != .hangeul && dragXLocation > state.inputTypeButtonPosition[1].minX {
+            } else if state.selectedKeyboard != .hangeul && dragXLocation > state.keyboardSelectButtonPosition[1].minX {
                 state.selectedKeyboard = .hangeul
                 Feedback.shared.playHapticByForce(style: .light)
             }
             
         } else if state.currentKeyboard == .numeric {
-            if state.selectedKeyboard != .symbol && dragXLocation <= state.inputTypeButtonPosition[1].minX {
+            if state.selectedKeyboard != .symbol && dragXLocation <= state.keyboardSelectButtonPosition[1].minX {
                 state.selectedKeyboard = .symbol
                 Feedback.shared.playHapticByForce(style: .light)
-            } else if state.selectedKeyboard != .numeric && dragXLocation > state.inputTypeButtonPosition[1].minX {
+            } else if state.selectedKeyboard != .numeric && dragXLocation > state.keyboardSelectButtonPosition[1].minX {
                 state.selectedKeyboard = .numeric
                 Feedback.shared.playHapticByForce(style: .light)
             }
             
         } else if state.currentKeyboard == .symbol {
-            if state.selectedKeyboard != .numeric && dragXLocation >= state.inputTypeButtonPosition[0].maxX {
+            if state.selectedKeyboard != .numeric && dragXLocation >= state.keyboardSelectButtonPosition[0].maxX {
                 state.selectedKeyboard = .numeric
                 Feedback.shared.playHapticByForce(style: .light)
-            } else if state.selectedKeyboard != .symbol && dragXLocation < state.inputTypeButtonPosition[0].maxX {
+            } else if state.selectedKeyboard != .symbol && dragXLocation < state.keyboardSelectButtonPosition[0].maxX {
                 state.selectedKeyboard = .symbol
                 Feedback.shared.playHapticByForce(style: .light)
             }
         }
     }
     
-    private func applyInputType() {
+    private func applySelectedKeyboard() {
         if let selectedKeyboard = state.selectedKeyboard {
             state.currentKeyboard = selectedKeyboard
             state.activeKeyboardSelectOverlay = false
@@ -252,56 +252,56 @@ struct KeyboardButton: View {
         }
     }
     
-    private func forceExitInputTypeSelect() {
+    private func forceExitKeyboardSelect() {
         state.activeKeyboardSelectOverlay = false
         state.selectedKeyboard = nil
     }
     
     // MARK: - One Hand Mode Select Methods
-    private func activateOneHandKeyboardSelect() {
-        state.selectedOneHandKeyboard = state.currentOneHandKeyboard
-        state.activeOneHandKeyboardSelectOverlay = true
+    private func activateOneHandedKeyboardSelect() {
+        state.selectedOneHandedKeyboard = state.currentOneHandedKeyboard
+        state.activeOneHandedKeyboardSelectOverlay = true
         Feedback.shared.playHaptic(style: .light)
     }
     
-    private func selectOneHandKeyboard(dragGestureValue: DragGesture.Value) {
+    private func selectOneHandedKeyboard(dragGestureValue: DragGesture.Value) {
         let dragXLocation = dragGestureValue.location.x
         let dragYLocation = dragGestureValue.location.y
         
         // 특정 방향으로 일정 거리 초과 드래그 -> 한 손 키보드 변경
-        if state.selectedOneHandKeyboard != .left
-            && dragXLocation >= state.oneHandButtonPosition[0].minX && dragXLocation < state.oneHandButtonPosition[1].minX
-            && dragYLocation >= state.oneHandButtonPosition[0].minY && dragYLocation <= state.oneHandButtonPosition[0].maxY {
-            state.selectedOneHandKeyboard = .left
+        if state.selectedOneHandedKeyboard != .left
+            && dragXLocation >= state.oneHandedKeyboardSelectButtonPosition[0].minX && dragXLocation < state.oneHandedKeyboardSelectButtonPosition[1].minX
+            && dragYLocation >= state.oneHandedKeyboardSelectButtonPosition[0].minY && dragYLocation <= state.oneHandedKeyboardSelectButtonPosition[0].maxY {
+            state.selectedOneHandedKeyboard = .left
             Feedback.shared.playHapticByForce(style: .light)
-        } else if state.selectedOneHandKeyboard != .center
-                    && dragXLocation >= state.oneHandButtonPosition[1].minX && dragXLocation <= state.oneHandButtonPosition[1].maxX
-                    && dragYLocation >= state.oneHandButtonPosition[1].minY && dragYLocation <= state.oneHandButtonPosition[1].maxY {
-            state.selectedOneHandKeyboard = .center
+        } else if state.selectedOneHandedKeyboard != .center
+                    && dragXLocation >= state.oneHandedKeyboardSelectButtonPosition[1].minX && dragXLocation <= state.oneHandedKeyboardSelectButtonPosition[1].maxX
+                    && dragYLocation >= state.oneHandedKeyboardSelectButtonPosition[1].minY && dragYLocation <= state.oneHandedKeyboardSelectButtonPosition[1].maxY {
+            state.selectedOneHandedKeyboard = .center
             Feedback.shared.playHapticByForce(style: .light)
-        } else if state.selectedOneHandKeyboard != .right
-                    && dragXLocation > state.oneHandButtonPosition[1].maxX && dragXLocation <= state.oneHandButtonPosition[2].maxX
-                    && dragYLocation >= state.oneHandButtonPosition[2].minY && dragYLocation <= state.oneHandButtonPosition[2].maxY {
-            state.selectedOneHandKeyboard = .right
+        } else if state.selectedOneHandedKeyboard != .right
+                    && dragXLocation > state.oneHandedKeyboardSelectButtonPosition[1].maxX && dragXLocation <= state.oneHandedKeyboardSelectButtonPosition[2].maxX
+                    && dragYLocation >= state.oneHandedKeyboardSelectButtonPosition[2].minY && dragYLocation <= state.oneHandedKeyboardSelectButtonPosition[2].maxY {
+            state.selectedOneHandedKeyboard = .right
             Feedback.shared.playHapticByForce(style: .light)
-        } else if dragXLocation < state.oneHandButtonPosition[0].minX || dragXLocation > state.oneHandButtonPosition[2].maxX
-                    || dragYLocation < state.oneHandButtonPosition[0].minY || dragYLocation > state.oneHandButtonPosition[2].maxY {
-            state.selectedOneHandKeyboard = state.currentOneHandKeyboard
+        } else if dragXLocation < state.oneHandedKeyboardSelectButtonPosition[0].minX || dragXLocation > state.oneHandedKeyboardSelectButtonPosition[2].maxX
+                    || dragYLocation < state.oneHandedKeyboardSelectButtonPosition[0].minY || dragYLocation > state.oneHandedKeyboardSelectButtonPosition[2].maxY {
+            state.selectedOneHandedKeyboard = state.currentOneHandedKeyboard
         }
     }
     
-    private func applyOneHandKeyboard() {
-        if let selectedOneHandKeyboard = state.selectedOneHandKeyboard {
-            state.currentOneHandKeyboard = selectedOneHandKeyboard
-            currentOneHandKeyboard = selectedOneHandKeyboard.rawValue
-            state.activeOneHandKeyboardSelectOverlay = false
-            state.selectedOneHandKeyboard = nil
+    private func applySelectedOneHandedKeyboard() {
+        if let selectedOneHandedKeyboard = state.selectedOneHandedKeyboard {
+            state.currentOneHandedKeyboard = selectedOneHandedKeyboard
+            currentOneHandedKeyboard = selectedOneHandedKeyboard.rawValue
+            state.activeOneHandedKeyboardSelectOverlay = false
+            state.selectedOneHandedKeyboard = nil
         }
     }
     
-    private func forceExitOneHandKeyboardSelect() {
-        state.activeOneHandKeyboardSelectOverlay = false
-        state.selectedOneHandKeyboard = nil
+    private func forceExitOneHandedKeyboardSelect() {
+        state.activeOneHandedKeyboardSelectOverlay = false
+        state.selectedOneHandedKeyboard = nil
     }
     
     // MARK: - Basic Methods
@@ -356,7 +356,7 @@ struct KeyboardButton: View {
     }
     
     private func checkOverlayActive() -> Bool {
-        return state.activeKeyboardSelectOverlay || state.activeOneHandKeyboardSelectOverlay
+        return state.activeKeyboardSelectOverlay || state.activeOneHandedKeyboardSelectOverlay
     }
     
     private func checkDraggingForOverlayActivation(dragGestureValue: DragGesture.Value) {
@@ -365,23 +365,23 @@ struct KeyboardButton: View {
             case .inside:
                 break
             case .up:  // 버튼 위쪽으로 드래그
-                if isOneHandKeyboardEnabled {
-                    activateOneHandKeyboardSelect()
+                if isOneHandedKeyboardEnabled {
+                    activateOneHandedKeyboardSelect()
                 } else {
                     initButtonState()
                 }
             case .left:  // 버튼 왼쪽으로 드래그
-                if state.currentKeyboard == .hangeul || state.currentKeyboard == .numeric {  // 한글 or 숫자 자판
+                if state.currentKeyboard == .hangeul || state.currentKeyboard == .numeric {  // 한글 or 숫자 키보드
                     if isNumericKeyboardTypeEnabled {
-                        activateInputTypeSelect()  // 다른 자판으로 변경
+                        activateKeyboardSelect()  // 다른 키보드로 변경
                     } else {
                         initButtonState()
                     }
                 }
             case .right:  // 버튼 오른쪽으로 드래그
-                if state.currentKeyboard == .symbol {  // 기호 자판
+                if state.currentKeyboard == .symbol {  // 기호 키보드
                     if isNumericKeyboardTypeEnabled {
-                        activateInputTypeSelect()  // 다른 자판으로 변경
+                        activateKeyboardSelect()  // 다른 키보드로 변경
                     } else {
                         initButtonState()
                     }
@@ -457,7 +457,7 @@ struct KeyboardButton: View {
                 
                 // Text 버튼들
             } else if text != nil {
-                if text == "!#1" {  // 한글 자판
+                if text == "!#1" {  // 한글 키보드
                     Text("!#1")
                         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
                         .monospaced()
@@ -480,19 +480,19 @@ struct KeyboardButton: View {
                         })
                         .overlay(alignment: .topTrailing, content: {
                             HStack(spacing: 0) {
-                                if isOneHandKeyboardEnabled {
-                                    Image(systemName: state.activeOneHandKeyboardSelectOverlay ? "keyboard.fill" : "keyboard")
-                                    Image(systemName: state.activeOneHandKeyboardSelectOverlay ? "arrowtriangle.up.fill" : "arrowtriangle.up")
+                                if isOneHandedKeyboardEnabled {
+                                    Image(systemName: state.activeOneHandedKeyboardSelectOverlay ? "keyboard.fill" : "keyboard")
+                                    Image(systemName: state.activeOneHandedKeyboardSelectOverlay ? "arrowtriangle.up.fill" : "arrowtriangle.up")
                                 }
                             }
-                            .font(.system(size: 9, weight: state.activeOneHandKeyboardSelectOverlay ? .bold : .regular))
+                            .font(.system(size: 9, weight: state.activeOneHandedKeyboardSelectOverlay ? .bold : .regular))
                             .foregroundStyle(Color(uiColor: .label))
                             .backgroundStyle(Color(uiColor: .clear))
                             .padding(EdgeInsets(top: 1, leading: 0, bottom: 0, trailing: 1))
                         })
                     
                 } else if text == "한글" {
-                    if state.currentKeyboard == .symbol {  // 기호 자판
+                    if state.currentKeyboard == .symbol {  // 기호 키보드
                         Text("한글")
                             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
                             .font(.system(size: state.needsInputModeSwitchKey ? textSize - 2 : textSize))
@@ -514,18 +514,18 @@ struct KeyboardButton: View {
                             })
                             .overlay(alignment: .topLeading, content: {
                                 HStack(spacing: 0) {
-                                    if isOneHandKeyboardEnabled {
-                                        Image(systemName: state.activeOneHandKeyboardSelectOverlay ? "arrowtriangle.up.fill" : "arrowtriangle.up")
-                                        Image(systemName: state.activeOneHandKeyboardSelectOverlay ? "keyboard.fill" : "keyboard")
+                                    if isOneHandedKeyboardEnabled {
+                                        Image(systemName: state.activeOneHandedKeyboardSelectOverlay ? "arrowtriangle.up.fill" : "arrowtriangle.up")
+                                        Image(systemName: state.activeOneHandedKeyboardSelectOverlay ? "keyboard.fill" : "keyboard")
                                     }
                                 }
-                                .font(.system(size: 9, weight: state.activeOneHandKeyboardSelectOverlay ? .bold : .regular))
+                                .font(.system(size: 9, weight: state.activeOneHandedKeyboardSelectOverlay ? .bold : .regular))
                                 .foregroundStyle(Color(uiColor: .label))
                                 .backgroundStyle(Color(uiColor: .clear))
                                 .padding(EdgeInsets(top: 1, leading: 1, bottom: 0, trailing: 0))
                             })
                         
-                    } else if state.currentKeyboard == .numeric {  // 숫자 자판
+                    } else if state.currentKeyboard == .numeric {  // 숫자 키보드
                         Text("한글")
                             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
                             .font(.system(size: state.needsInputModeSwitchKey ? textSize - 2 : textSize))
@@ -545,12 +545,12 @@ struct KeyboardButton: View {
                             })
                             .overlay(alignment: .topTrailing, content: {
                                 HStack(spacing: 0) {
-                                    if isOneHandKeyboardEnabled {
-                                        Image(systemName: state.activeOneHandKeyboardSelectOverlay ? "keyboard.fill" : "keyboard")
-                                        Image(systemName: state.activeOneHandKeyboardSelectOverlay ? "arrowtriangle.up.fill" : "arrowtriangle.up")
+                                    if isOneHandedKeyboardEnabled {
+                                        Image(systemName: state.activeOneHandedKeyboardSelectOverlay ? "keyboard.fill" : "keyboard")
+                                        Image(systemName: state.activeOneHandedKeyboardSelectOverlay ? "arrowtriangle.up.fill" : "arrowtriangle.up")
                                     }
                                 }
-                                .font(.system(size: 9, weight: state.activeOneHandKeyboardSelectOverlay ? .bold : .regular))
+                                .font(.system(size: 9, weight: state.activeOneHandedKeyboardSelectOverlay ? .bold : .regular))
                                 .foregroundStyle(Color(uiColor: .label))
                                 .backgroundStyle(Color(uiColor: .clear))
                                 .padding(EdgeInsets(top: 1, leading: 0, bottom: 0, trailing: 1))

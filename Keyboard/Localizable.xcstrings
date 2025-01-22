@@ -1,12 +1,12 @@
 {
   "sourceLanguage" : "ko",
   "strings" : {
-    "‼️ 전체 접근 허용 ON 필요 ‼️" : {
+    "‼️ 전체 접근 허용 활성화 필요 ‼️" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "‼️ Need to Enable ‘Allow Full Access’ ‼️"
+            "value" : "‼️ Requires full access to be Enabled ‼️"
           }
         }
       }
@@ -47,12 +47,12 @@
         }
       }
     },
-    "전체 접근 허용이 OFF 되어 있는 경우 일부 기능이 작동하지 않을 수 있습니다." : {
+    "전체 접근 허용이 비활성화 되어있는 경우 일부 기능이 작동하지 않을 수 있습니다." : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "If 'Allow Full Access' is disabled, some features may not work."
+            "value" : "If 'Allow Full Access' is disabled, some features might not work."
           }
         }
       }
@@ -60,7 +60,7 @@
     "한글" : {
       "shouldTranslate" : false
     },
-    "활성화 방법: 키보드 ➡️ 전체 접근 허용 ON" : {
+    "활성화 방법: 키보드 ➡️ 전체 접근 허용 활성화" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {

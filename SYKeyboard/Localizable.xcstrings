@@ -1,12 +1,12 @@
 {
   "sourceLanguage" : "ko",
   "strings" : {
-    "‼️ 키보드 추가 필요 ‼️" : {
+    "‼️ SY키보드 추가 필요 ‼️" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "‼️ Need to Add Keyboard ‼️"
+            "value" : "‼️ Requires adding SYKeyboard ‼️"
           }
         }
       }
@@ -83,7 +83,17 @@
         }
       }
     },
-    "기호 자판 입력 후 스페이스/리턴 ➡️ 한글 자판" : {
+    "SY키보드를 추가하시면 세부 설정이 가능합니다." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Adding SYKeyboard allows for more customization."
+          }
+        }
+      }
+    },
+    "기호 키보드 입력 후 스페이스/리턴 ➡️ 한글 키보드" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -243,12 +253,12 @@
         }
       }
     },
-    "시스템 설정의 단축키 사용" : {
+    "시스템 설정의 텍스트 대치 단축키 사용" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Use shortcut keys in settings"
+            "value" : "Use Text Replacement shortcuts in Settings."
           }
         }
       }
@@ -328,7 +338,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Please enter the information below the line (if any of the above is wrong, please correct it.)."
+            "value" : "Please enter the information below the dashed line (if any of the above is wrong, please correct it.)."
           }
         }
       }
@@ -373,7 +383,7 @@
         }
       }
     },
-    "키보드 ➡️ SY키보드 ON, 전체 접근 허용 ON" : {
+    "키보드 ➡️ SY키보드 및 전체 접근 허용 활성화" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -409,16 +419,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Add Keyboard and Set Permission"
-          }
-        }
-      }
-    },
-    "키보드를 추가하시면 세부 설정이 가능합니다." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Add keyboard for more detailed settings"
           }
         }
       }
@@ -503,7 +503,7 @@
         }
       }
     },
-    "한글 자판 자동 변경" : {
+    "한글 키보드 자동 변경" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {

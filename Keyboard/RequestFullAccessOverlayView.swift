@@ -27,7 +27,7 @@ class RequestFullAccessOverlayView: UIView {
     
     private let warningLabel: UILabel = {
         let label = UILabel()
-        let localStr = String(localized: "‼️ 전체 접근 허용 ON 필요 ‼️")
+        let localStr = String(localized: "‼️ 전체 접근 허용 활성화 필요 ‼️")
         label.text = localStr
         label.font = .systemFont(ofSize: 18, weight: .bold)
         
@@ -36,20 +36,20 @@ class RequestFullAccessOverlayView: UIView {
     
     private let descriptionLabel1: UILabel = {
         let label = UILabel()
-        let localStr = String(localized: "전체 접근 허용이 OFF 되어 있는 경우 일부 기능이 작동하지 않을 수 있습니다.")
+        let localStr = String(localized: "전체 접근 허용이 비활성화 되어있는 경우 일부 기능이 작동하지 않을 수 있습니다.")
         label.text = localStr
         label.font = .systemFont(ofSize: 15)
-        label.numberOfLines = 0
+        label.numberOfLines = 2
         
         return label
     }()
     
     private let descriptionLabel2: UILabel = {
         let label = UILabel()
-        let localStr = String(localized: "활성화 방법: 키보드 ➡️ 전체 접근 허용 ON")
+        let localStr = String(localized: "활성화 방법: 키보드 ➡️ 전체 접근 허용 활성화")
         label.text = localStr
         label.font = .systemFont(ofSize: 15)
-        label.numberOfLines = 0
+        label.numberOfLines = 2
         
         return label
     }()
@@ -107,11 +107,12 @@ private extension RequestFullAccessOverlayView {
             make.top.equalToSuperview().inset(20)
         }
         descriptionLabel1.snp.makeConstraints { make in
-            make.top.equalTo(warningLabel.snp.bottom).offset(20)
-            make.left.right.equalToSuperview().inset(20)
+            make.top.lessThanOrEqualTo(warningLabel.snp.bottom).offset(20).priority(.low)
+            make.leading.trailing.equalToSuperview().inset(20)
         }
         descriptionLabel2.snp.makeConstraints { make in
-            make.left.right.equalToSuperview().inset(20)
+            make.top.greaterThanOrEqualTo(descriptionLabel1.snp.bottom).priority(.high)
+            make.leading.trailing.equalToSuperview().inset(20)
             make.bottom.equalTo(goToSettingsButton.snp.top).offset(-10)
         }
         goToSettingsButton.snp.makeConstraints { make in

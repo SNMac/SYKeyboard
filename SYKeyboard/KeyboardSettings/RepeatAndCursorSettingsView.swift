@@ -1,5 +1,5 @@
 //
-//  SpeedAndCursorSettingsView.swift
+//  RepeatAndCursorSettingsView.swift
 //  SYKeyboard
 //
 //  Created by 서동환 on 9/5/24.
@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct SpeedAndCursorSettingsView: View {
+struct RepeatAndCursorSettingsView: View {
     @AppStorage("longPressSpeed", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var longPressSpeed = GlobalValues.defaultLongPressSpeed
     @AppStorage("repeatTimerSpeed", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var repeatTimerSpeed = GlobalValues.defaultRepeatTimerSpeed
     @AppStorage("cursorActiveWidth", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var cursorActiveWidth = GlobalValues.defaultCursorActiveWidth
@@ -119,5 +119,5 @@ struct SpeedAndCursorSettingsView: View {
 }
 
 #Preview {
-    SpeedAndCursorSettingsView()
+    RepeatAndCursorSettingsView()
 }

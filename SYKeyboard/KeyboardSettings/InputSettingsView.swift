@@ -13,18 +13,18 @@ struct InputSettingsView: View {
     
     var body: some View {
         NavigationLink("반복/커서 설정") {
-            SpeedAndCursorSettingsView()
+            RepeatAndCursorSettingsView()
         }
         
         Toggle(isOn: $isTextReplacementEnabled, label: {
             Text("텍스트 대치")
-            Text("시스템 설정의 단축키 사용")
+            Text("시스템 설정의 텍스트 대치 단축키 사용")
                 .font(.system(.caption))
         })
         
         Toggle(isOn: $isAutoChangeToHangeulEnabled, label: {
-            Text("한글 자판 자동 변경")
-            Text("기호 자판 입력 후 스페이스/리턴 ➡️ 한글 자판")
+            Text("한글 키보드 자동 변경")
+            Text("기호 키보드 입력 후 스페이스/리턴 ➡️ 한글 키보드")
                 .font(.system(.caption))
         })
     }

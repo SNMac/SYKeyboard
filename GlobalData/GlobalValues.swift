@@ -13,7 +13,7 @@ struct GlobalValues {
     static let groupBundleID = "group.github.com-SNMac.SYKeyboard"
     
     static let defaultKeyboardHeight: Double = 240.0
-    static let defaultOneHandKeyboardWidth: Double = 320.0
+    static let defaultOneHandedKeyboardWidth: Double = 320.0
     static let defaultLongPressSpeed: Double = 0.5
     static let defaultRepeatTimerSpeed: Double = 0.05
     static let defaultCursorActiveWidth: Double = 50.0
@@ -52,7 +52,7 @@ struct GlobalValues {
         if defaults?.object(forKey: "isTextReplacementEnabled") == nil {
             defaults?.set(true, forKey: "isTextReplacementEnabled")
         }
-        // 스페이스 후 한글 자판으로 변경
+        // 스페이스 후 한글 키보드로 변경
         if defaults?.object(forKey: "isAutoChangeToHangeulEnabled") == nil {
             defaults?.set(true, forKey: "isAutoChangeToHangeulEnabled")
         }
@@ -85,12 +85,12 @@ struct GlobalValues {
             defaults?.set(true, forKey: "isNumericKeyboardEnabled")
         }
         // 한 손 키보드 활성화
-        if defaults?.object(forKey: "isOneHandKeyboardEnabled") == nil {
-            defaults?.set(true, forKey: "isOneHandKeyboardEnabled")
+        if defaults?.object(forKey: "isOneHandedKeyboardEnabled") == nil {
+            defaults?.set(true, forKey: "isOneHandedKeyboardEnabled")
         }
         // 한 손 키보드 너비
-        if defaults?.object(forKey: "oneHandKeyboardWidth") == nil {
-            defaults?.set(GlobalValues.defaultOneHandKeyboardWidth, forKey: "oneHandKeyboardWidth")
+        if defaults?.object(forKey: "oneHandedKeyboardWidth") == nil {
+            defaults?.set(GlobalValues.defaultOneHandedKeyboardWidth, forKey: "oneHandedKeyboardWidth")
         }
         
         /* 키보드 전환 버튼 표시 설정용 */
@@ -98,8 +98,8 @@ struct GlobalValues {
             defaults?.set(true, forKey: "needsInputModeSwitchKey")
         }
         /* 한 손 키보드 저장용 (0 = 왼쪽, 1 = 가운데, 2 = 오른쪽) */
-        if defaults?.object(forKey: "currentOneHandKeyboard") == nil {
-            defaults?.set(1, forKey: "currentOneHandKeyboard")
+        if defaults?.object(forKey: "currentOneHandedKeyboard") == nil {
+            defaults?.set(1, forKey: "currentOneHandedKeyboard")
         }
         /* 화면 너비 저장용 */
         if defaults?.object(forKey: "screenWidth") == nil {

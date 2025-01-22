@@ -64,7 +64,7 @@ class KeyboardViewController: UIInputViewController {
         let state = KeyboardState(
             delegate: ioManager,
             keyboardHeight: CGFloat(defaults?.double(forKey: "keyboardHeight") ?? GlobalValues.defaultKeyboardHeight),
-            oneHandKeyboardWidth: CGFloat(defaults?.double(forKey: "oneHandKeyboardWidth") ?? GlobalValues.defaultOneHandKeyboardWidth),
+            oneHandedKeyboardWidth: CGFloat(defaults?.double(forKey: "oneHandedKeyboardWidth") ?? GlobalValues.defaultOneHandedKeyboardWidth),
             longPressTime: 1.0 - (defaults?.double(forKey: "longPressSpeed") ?? GlobalValues.defaultLongPressSpeed),
             repeatTimerCycle: 0.10 - (defaults?.double(forKey: "repeatTimerSpeed") ?? GlobalValues.defaultRepeatTimerSpeed),
             needsInputModeSwitchKey: needsInputModeSwitchKey,

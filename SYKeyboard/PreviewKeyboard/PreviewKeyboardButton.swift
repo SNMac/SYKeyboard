@@ -33,7 +33,7 @@ struct PreviewKeyboardButton: View {
     @AppStorage("cursorMoveWidth", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var cursorMoveWidth = GlobalValues.defaultCursorMoveWidth
     @AppStorage("needsInputModeSwitchKey", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var needsInputModeSwitchKey = true
     @AppStorage("isNumericKeyboardTypeEnabled", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var isNumericKeyboardTypeEnabled = true
-    @AppStorage("isOneHandKeyboardEnabled", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var isOneHandKeyboardEnabled = true
+    @AppStorage("isOneHandedKeyboardEnabled", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var isOneHandedKeyboardEnabled = true
     
     @State var nowState: ButtonState = .released
     
@@ -251,7 +251,7 @@ struct PreviewKeyboardButton: View {
                 
                 // Text 버튼들
             } else if text != nil {
-                if text == "!#1" {  // 한글 자판
+                if text == "!#1" {  // 한글 키보드
                     Text("!#1")
                         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
                         .monospaced()
@@ -274,7 +274,7 @@ struct PreviewKeyboardButton: View {
                         })
                         .overlay(alignment: .topTrailing, content: {
                             HStack(spacing: 0) {
-                                if isOneHandKeyboardEnabled {
+                                if isOneHandedKeyboardEnabled {
                                     Image(systemName: "keyboard")
                                     Image(systemName: "arrowtriangle.up")
                                 }

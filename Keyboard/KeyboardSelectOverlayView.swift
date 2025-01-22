@@ -16,7 +16,7 @@ struct KeyboardSelectOverlayView: View {
     private let fontSize: Double = 20
     
     var body: some View {
-        let overlayWidth: CGFloat = state.currentOneHandKeyboard == .center ? frameWidth : frameWidth * (state.oneHandKeyboardWidth / screenWidth)
+        let overlayWidth: CGFloat = state.currentOneHandedKeyboard == .center ? frameWidth : frameWidth * (state.oneHandedKeyboardWidth / screenWidth)
         
         HStack(spacing: interItemSpacing) {
             if state.currentKeyboard == .hangeul {
@@ -30,7 +30,7 @@ struct KeyboardSelectOverlayView: View {
                         GeometryReader { geometry in
                             Color.clear
                                 .onAppear {
-                                    state.inputTypeButtonPosition[0] = geometry.frame(in: .global)
+                                    state.keyboardSelectButtonPosition[0] = geometry.frame(in: .global)
                                 }
                         }
                     }
@@ -44,7 +44,7 @@ struct KeyboardSelectOverlayView: View {
                         GeometryReader { geometry in
                             Color.clear
                                 .onAppear {
-                                    state.inputTypeButtonPosition[1] = geometry.frame(in: .global)
+                                    state.keyboardSelectButtonPosition[1] = geometry.frame(in: .global)
                                 }
                         }
                     }
@@ -61,7 +61,7 @@ struct KeyboardSelectOverlayView: View {
                         GeometryReader { geometry in
                             Color.clear
                                 .onAppear {
-                                    state.inputTypeButtonPosition[0] = geometry.frame(in: .global)
+                                    state.keyboardSelectButtonPosition[0] = geometry.frame(in: .global)
                                 }
                         }
                     }
@@ -75,7 +75,7 @@ struct KeyboardSelectOverlayView: View {
                         GeometryReader { geometry in
                             Color.clear
                                 .onAppear {
-                                    state.inputTypeButtonPosition[1] = geometry.frame(in: .global)
+                                    state.keyboardSelectButtonPosition[1] = geometry.frame(in: .global)
                                 }
                         }
                     }
@@ -91,7 +91,7 @@ struct KeyboardSelectOverlayView: View {
                         GeometryReader { geometry in
                             Color.clear
                                 .onAppear {
-                                    state.inputTypeButtonPosition[0] = geometry.frame(in: .global)
+                                    state.keyboardSelectButtonPosition[0] = geometry.frame(in: .global)
                                 }
                         }
                     }
@@ -106,7 +106,7 @@ struct KeyboardSelectOverlayView: View {
                         GeometryReader { geometry in
                             Color.clear
                                 .onAppear {
-                                    state.inputTypeButtonPosition[1] = geometry.frame(in: .global)
+                                    state.keyboardSelectButtonPosition[1] = geometry.frame(in: .global)
                                 }
                         }
                     }

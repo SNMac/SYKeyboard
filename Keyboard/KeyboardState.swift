@@ -13,7 +13,7 @@ enum Keyboard {
     case numeric
 }
 
-enum OneHandKeyboard: Int {
+enum OneHandedKeyboard: Int {
     case left
     case center
     case right
@@ -37,9 +37,9 @@ final class KeyboardState: ObservableObject {
     @Published var activeKeyboardSelectOverlay: Bool = false
     @Published var selectedKeyboard: Keyboard?
     
-    @Published var currentOneHandKeyboard: OneHandKeyboard = .center
-    @Published var activeOneHandKeyboardSelectOverlay: Bool = false
-    @Published var selectedOneHandKeyboard: OneHandKeyboard?
+    @Published var currentOneHandedKeyboard: OneHandedKeyboard = .center
+    @Published var activeOneHandedKeyboardSelectOverlay: Bool = false
+    @Published var selectedOneHandedKeyboard: OneHandedKeyboard?
     
     @Published var currentUIKeyboardType: UIKeyboardType = .default
     @Published var returnButtonType: ReturnButtonType = .default
@@ -53,19 +53,19 @@ final class KeyboardState: ObservableObject {
     
     weak var delegate: KeyboardDelegate?
     var keyboardHeight: CGFloat
-    var oneHandKeyboardWidth: CGFloat
+    var oneHandedKeyboardWidth: CGFloat
     var longPressTime: Double
     var repeatTimerCycle: Double
     var needsInputModeSwitchKey: Bool
     var nextKeyboardAction: Selector
     
-    var inputTypeButtonPosition = [CGRect](repeating: .zero, count: 2)
-    var oneHandButtonPosition = [CGRect](repeating: .zero, count: 3)
+    var keyboardSelectButtonPosition = [CGRect](repeating: .zero, count: 2)
+    var oneHandedKeyboardSelectButtonPosition = [CGRect](repeating: .zero, count: 3)
     
     init(
         delegate: KeyboardDelegate,
         keyboardHeight: CGFloat,
-        oneHandKeyboardWidth: CGFloat,
+        oneHandedKeyboardWidth: CGFloat,
         longPressTime: Double,
         repeatTimerCycle: Double,
         needsInputModeSwitchKey: Bool,
@@ -73,7 +73,7 @@ final class KeyboardState: ObservableObject {
     ) {
         self.delegate = delegate
         self.keyboardHeight = keyboardHeight
-        self.oneHandKeyboardWidth = oneHandKeyboardWidth
+        self.oneHandedKeyboardWidth = oneHandedKeyboardWidth
         self.longPressTime = longPressTime
         self.repeatTimerCycle = repeatTimerCycle
         self.needsInputModeSwitchKey = needsInputModeSwitchKey

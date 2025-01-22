@@ -862,7 +862,7 @@ struct WebSearchSymbolView: View {
             state.nowSymbolPage = 0
             state.totalSymbolPage = symbols.count
         }
-        .frame(width: state.currentOneHandKeyboard == .center ? nil : state.oneHandKeyboardWidth, height: state.keyboardHeight)
+        .frame(width: state.currentOneHandedKeyboard == .center ? nil : state.oneHandedKeyboardWidth, height: state.keyboardHeight)
         .background(Color.white.opacity(0.001))
     }
 }

@@ -9,7 +9,7 @@ import SwiftUI
 
 struct AppearanceSettingsView: View {
     @AppStorage("isNumericKeyboardTypeEnabled", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var isNumericKeyboardTypeEnabled = true
-    @AppStorage("isOneHandKeyboardEnabled", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var isOneHandKeyboardEnabled = true
+    @AppStorage("isOneHandedKeyboardEnabled", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var isOneHandedKeyboardEnabled = true
     
     var body: some View {
         NavigationLink("키보드 높이") {
@@ -22,15 +22,15 @@ struct AppearanceSettingsView: View {
                 .font(.system(.caption))
         })
         
-        Toggle(isOn: $isOneHandKeyboardEnabled, label: {
+        Toggle(isOn: $isOneHandedKeyboardEnabled, label: {
             Text("한 손 키보드 활성화")
             Text("'!#1' 또는 '한글' 또는 '123' 버튼을 위로 드래그하거나 길게 눌러 선택")
                 .font(.system(.caption))
         })
         
-        if isOneHandKeyboardEnabled {
+        if isOneHandedKeyboardEnabled {
             NavigationLink("한 손 키보드 너비") {
-                OneHandKeyboardWidthSettingsView()
+                OneHandedKeyboardWidthSettingsView()
             }
         }
     }

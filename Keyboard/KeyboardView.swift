@@ -10,14 +10,14 @@ import SwiftUI
 struct KeyboardView: View {
     @EnvironmentObject private var state: KeyboardState
     @AppStorage("isNumericKeyboardEnabled", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var isNumericKeyboardEnabled = true
-    @AppStorage("isOneHandKeyboardEnabled", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var isOneHandKeyboardEnabled = true
-    @AppStorage("currentOneHandKeyboard", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var currentOneHandKeyboard = 1
+    @AppStorage("isOneHandedKeyboardEnabled", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var isOneHandedKeyboardEnabled = true
+    @AppStorage("currentOneHandedKeyboard", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var currentOneHandedKeyboard = 1
     @AppStorage("reviewCounter", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) var reviewCounter = 0
     
     var body: some View {
         HStack(spacing: 0) {
             if state.currentUIKeyboardType != .numberPad && state.currentUIKeyboardType != .asciiCapableNumberPad
-                && isOneHandKeyboardEnabled && state.currentOneHandKeyboard == .right {
+                && isOneHandedKeyboardEnabled && state.currentOneHandedKeyboard == .right {
                 ChevronButton(isLeftHandMode: false)
             }
             ZStack(alignment: state.currentKeyboard == .symbol ? .leading : .trailing) {
@@ -49,23 +49,23 @@ struct KeyboardView: View {
                         .offset(x: state.currentKeyboard == .symbol ? 5 : -5, y: state.keyboardHeight / 8)
                 }
                 
-                if state.activeOneHandKeyboardSelectOverlay {
-                    OneHandKeyboardSelectOverlayView()
+                if state.activeOneHandedKeyboardSelectOverlay {
+                    OneHandedKeyboardSelectOverlayView()
                         .offset(x: state.currentKeyboard == .symbol ? 5 : -5, y: state.keyboardHeight / 8)
                 }
             }
             if state.currentUIKeyboardType != .numberPad && state.currentUIKeyboardType != .asciiCapableNumberPad
-                && isOneHandKeyboardEnabled && state.currentOneHandKeyboard == .left {
+                && isOneHandedKeyboardEnabled && state.currentOneHandedKeyboard == .left {
                 ChevronButton(isLeftHandMode: true)
             }
         }.onAppear {
             reviewCounter += 1
             
-            if isOneHandKeyboardEnabled {
-                state.currentOneHandKeyboard = OneHandKeyboard(rawValue: currentOneHandKeyboard) ?? .center
+            if isOneHandedKeyboardEnabled {
+                state.currentOneHandedKeyboard = OneHandedKeyboard(rawValue: currentOneHandedKeyboard) ?? .center
             } else {
-                currentOneHandKeyboard = 1
-                state.currentOneHandKeyboard = .center
+                currentOneHandedKeyboard = 1
+                state.currentOneHandedKeyboard = .center
             }
         }
     }
