@@ -30,7 +30,10 @@ struct SupportEmail {
     \(deviceModelStr): \(UIDevice.current.modelName)
     
     \(messageHeader)
-    -------------------------------------------
+    --------------------------------------
+    
+    
+    
     """
     }
     
@@ -41,8 +44,10 @@ struct SupportEmail {
         }
         openURL(url) { accepted in
             if !accepted {
-                os_log("""
+                os_log(
+                """
                 This device does not support email
+                --------------------------------------
                 %@
                 """, log: log, type: .debug, body)
             }
