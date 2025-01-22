@@ -12,21 +12,21 @@ struct InstructionsTabView: View {
     
     var body: some View {
         TabView {
-            let firstPageTitleLocalStr = String(localized: "커서 이동 방법")
-            let firstPageSubtitleLocalStr = String(localized: "테두리가 강조된 버튼(흰색 버튼) 영역을 좌/우로 드래그")
-            InstructionsPageView(title: firstPageTitleLocalStr, imageName: "instruction_move_cursor", subtitle: firstPageSubtitleLocalStr)
+            let keyRepeatPageTitleLocalStr = String(localized: "반복 입력 방법")
+            let keyRepeatPageSubtitleLocalStr = String(localized: "테두리가 강조된 버튼을 길게 누르기")
+            InstructionsPageView(title: keyRepeatPageTitleLocalStr, imageName: "instruction_key_repeat", subtitle: keyRepeatPageSubtitleLocalStr)
             
-            let secondPageTitleLocalStr = String(localized: "반복 입력 방법")
-            let secondPageSubtitleLocalStr = String(localized: "테두리가 강조된 버튼을 길게 누르기")
-            InstructionsPageView(title: secondPageTitleLocalStr, imageName: "instruction_press_and_hold", subtitle: secondPageSubtitleLocalStr)
+            let moveCursorPageTitleLocalStr = String(localized: "커서 이동 방법")
+            let moveCursorPageSubtitleLocalStr = String(localized: "테두리가 강조된 버튼(흰색 버튼) 영역을 좌/우로 드래그")
+            InstructionsPageView(title: moveCursorPageTitleLocalStr, imageName: "instruction_move_cursor", subtitle: moveCursorPageSubtitleLocalStr)
             
-            let thirdPageTitleLocalStr = String(localized: "한 손 키보드 변경 방법")
-            let thirdPageSubtitleLocalStr = String(localized: "'!#1' 또는 '한글' 또는 '123' 버튼을 위로 드래그 or 길게 누르기")
-            InstructionsPageView(title: thirdPageTitleLocalStr, imageName: "instruction_change_one_hand", subtitle: thirdPageSubtitleLocalStr)
+            let numericPageTitleLocalStr = String(localized: "숫자 키패드 전환 방법")
+            let numericPageSubtitleLocalStr = String(localized: "'!#1' 또는 '한글' 버튼을 화살표 방향으로 드래그")
+            InstructionsPageView(title: numericPageTitleLocalStr, imageName: "instruction_change_numeric", subtitle: numericPageSubtitleLocalStr)
             
-            let fourthPageTitleLocalStr = String(localized: "숫자 키패드 전환 방법")
-            let fourthPageSubtitleLocalStr = String(localized: "'!#1' 또는 '한글' 버튼을 화살표 방향으로 드래그")
-            InstructionsPageView(title: fourthPageTitleLocalStr, imageName: "instruction_change_number_view", subtitle: fourthPageSubtitleLocalStr)
+            let oneHandedPageTitleLocalStr = String(localized: "한 손 키보드 변경 방법")
+            let oneHandedPageSubtitleLocalStr = String(localized: "'!#1' 또는 '한글' 또는 '123' 버튼을 위로 드래그 or 길게 누르기")
+            InstructionsPageView(title: oneHandedPageTitleLocalStr, imageName: "instruction_change_one_handed", subtitle: oneHandedPageSubtitleLocalStr)
         }
         .tabViewStyle(PageTabViewStyle())
         .indexViewStyle(PageIndexViewStyle(backgroundDisplayMode: .always))

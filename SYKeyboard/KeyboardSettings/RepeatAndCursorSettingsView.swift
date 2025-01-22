@@ -35,7 +35,7 @@ struct RepeatAndCursorSettingsView: View {
     
     private var repeatTimerSpeedSetting: some View {
         HStack {
-            Text("반복 입력")
+            Text("반복 속도")
                 .frame(alignment: .leading)
             Spacer()
             Text("\(repeatTimerSpeed * 100, specifier: "%.1f")")
@@ -101,7 +101,7 @@ struct RepeatAndCursorSettingsView: View {
                     longPressSpeedSetting
                     repeatTimerSpeedSetting
                 } header: {
-                    Text("반복 속도")
+                    Text("반복 입력")
                 }
                 
                 Section {

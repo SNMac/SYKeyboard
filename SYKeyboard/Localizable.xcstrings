@@ -24,12 +24,12 @@
         }
       }
     },
-    "'!#1' 또는 '한글' 또는 '123' 버튼을 위로 드래그하거나 길게 눌러 선택" : {
+    "'!#1' 또는 '한글' 또는 '123' 버튼을 위로 드래그하거나 길게 눌러 변경" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Drag ‘!#1’ or ‘한글’ or ‘123’ button up or long press to select"
+            "value" : "Drag ‘!#1’ or ‘한글’ or ‘123’ button up or long press to change"
           }
         }
       }
