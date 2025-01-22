@@ -17,7 +17,7 @@ struct AppearanceSettingsView: View {
         }
         
         Toggle(isOn: $isNumericKeyboardTypeEnabled, label: {
-            Text("숫자 키보드 활성화")
+            Text("숫자 키패드 활성화")
             Text("'!#1' 또는 '한글' 버튼을 화살표 방향으로 드래그하여 전환")
                 .font(.system(.caption))
         })

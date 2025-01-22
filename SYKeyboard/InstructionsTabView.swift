@@ -24,7 +24,7 @@ struct InstructionsTabView: View {
             let thirdPageSubtitleLocalStr = String(localized: "'!#1' 또는 '한글' 또는 '123' 버튼을 위로 드래그 or 길게 누르기")
             InstructionsPageView(title: thirdPageTitleLocalStr, imageName: "instruction_change_one_hand", subtitle: thirdPageSubtitleLocalStr)
             
-            let fourthPageTitleLocalStr = String(localized: "숫자 키보드 전환 방법")
+            let fourthPageTitleLocalStr = String(localized: "숫자 패드 전환 방법")
             let fourthPageSubtitleLocalStr = String(localized: "'!#1' 또는 '한글' 버튼을 화살표 방향으로 드래그")
             InstructionsPageView(title: fourthPageTitleLocalStr, imageName: "instruction_change_number_view", subtitle: fourthPageSubtitleLocalStr)
         }

@@ -146,7 +146,7 @@ struct KeyboardButton: View {
                 initButtonState()
             }
             
-        } else if text == "!#1" || text == "한글" {  // "!#1" 또는 "한글" 버튼 드래그 -> 숫자 키보드 or 한 손 키보드 변경
+        } else if text == "!#1" || text == "한글" {  // "!#1" 또는 "한글" 버튼 드래그 -> 숫자 키패드 or 한 손 키보드 변경
             if state.activeKeyboardSelectOverlay {
                 selectKeyboard(dragGestureValue: dragGestureValue)
             } else if state.activeOneHandedKeyboardSelectOverlay {
@@ -371,7 +371,7 @@ struct KeyboardButton: View {
                     initButtonState()
                 }
             case .left:  // 버튼 왼쪽으로 드래그
-                if state.currentKeyboard == .hangeul || state.currentKeyboard == .numeric {  // 한글 or 숫자 키보드
+                if state.currentKeyboard == .hangeul || state.currentKeyboard == .numeric {  // 한글 or 숫자 키패드
                     if isNumericKeyboardTypeEnabled {
                         activateKeyboardSelect()  // 다른 키보드로 변경
                     } else {
@@ -525,7 +525,7 @@ struct KeyboardButton: View {
                                 .padding(EdgeInsets(top: 1, leading: 1, bottom: 0, trailing: 0))
                             })
                         
-                    } else if state.currentKeyboard == .numeric {  // 숫자 키보드
+                    } else if state.currentKeyboard == .numeric {  // 숫자 키패드
                         Text("한글")
                             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
                             .font(.system(size: state.needsInputModeSwitchKey ? textSize - 2 : textSize))

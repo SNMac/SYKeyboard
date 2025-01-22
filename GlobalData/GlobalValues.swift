@@ -80,9 +80,9 @@ struct GlobalValues {
         if defaults?.object(forKey: "keyboardHeight") == nil {
             defaults?.set(GlobalValues.defaultKeyboardHeight, forKey: "keyboardHeight")
         }
-        // 숫자 패드 활성화
-        if defaults?.object(forKey: "isNumericKeyboardEnabled") == nil {
-            defaults?.set(true, forKey: "isNumericKeyboardEnabled")
+        // 숫자 키패드 활성화
+        if defaults?.object(forKey: "isNumericKeypadEnabled") == nil {
+            defaults?.set(true, forKey: "isNumericKeypadEnabled")
         }
         // 한 손 키보드 활성화
         if defaults?.object(forKey: "isOneHandedKeyboardEnabled") == nil {

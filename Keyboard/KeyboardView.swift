@@ -9,7 +9,7 @@ import SwiftUI
 
 struct KeyboardView: View {
     @EnvironmentObject private var state: KeyboardState
-    @AppStorage("isNumericKeyboardEnabled", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var isNumericKeyboardEnabled = true
+    @AppStorage("isNumericKeypadEnabled", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var isNumericKeypadEnabled = true
     @AppStorage("isOneHandedKeyboardEnabled", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var isOneHandedKeyboardEnabled = true
     @AppStorage("currentOneHandedKeyboard", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var currentOneHandedKeyboard = 1
     @AppStorage("reviewCounter", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) var reviewCounter = 0
