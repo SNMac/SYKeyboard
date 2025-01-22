@@ -67,7 +67,6 @@ class KeyboardViewController: UIInputViewController {
             oneHandedKeyboardWidth: CGFloat(defaults?.double(forKey: "oneHandedKeyboardWidth") ?? GlobalValues.defaultOneHandedKeyboardWidth),
             longPressTime: 1.0 - (defaults?.double(forKey: "longPressSpeed") ?? GlobalValues.defaultLongPressSpeed),
             repeatTimerCycle: 0.10 - (defaults?.double(forKey: "repeatTimerSpeed") ?? GlobalValues.defaultRepeatTimerSpeed),
-            hasFullAccess: hasFullAccess,
             needsInputModeSwitchKey: needsInputModeSwitchKey,
             nextKeyboardAction: nextKeyboardAction
         )
