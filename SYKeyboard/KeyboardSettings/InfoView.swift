@@ -12,8 +12,8 @@ struct InfoView: View {
     @State private var isShowingInstructions = false
     @State private var itemSize = CGSize.zero
     
-    private let subject = String(localized: "SY키보드 문의사항")
-    private let messageHeaderStr = String(localized: "점선 아래에 내용을 입력해주세요. (상기된 정보가 정확하지 않을 경우 수정해 주세요!)")
+    private let subjectLocalStr = String(localized: "SY키보드 문의 사항")
+    private let messageHeaderLocalStr = String(localized: "점선 아래에 내용을 입력해 주세요. (상기된 정보가 정확하지 않을 경우 수정해 주세요!)")
     
     var body: some View {
         Button {
@@ -34,7 +34,7 @@ struct InfoView: View {
         }
         
         Button {
-            let email = SupportEmail(toAddress: "seosdh4@gmail.com", subject: self.subject, messageHeader: self.messageHeaderStr)
+            let email = SupportEmail(toAddress: "seosdh4@gmail.com", subject: self.subjectLocalStr, messageHeader: self.messageHeaderLocalStr)
             email.send(openURL: self.openURL)
         } label: {
             HStack {

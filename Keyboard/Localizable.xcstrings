@@ -52,7 +52,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "If 'Allow Full Access' is disabled, some features might not work."
+            "value" : "If 'Allow Full Access' is disabled, some features may not work."
           }
         }
       }
@@ -65,7 +65,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "How to enable: Keyboard ➡️ Enable ‘Allow Full Access’"
+            "value" : "How to Enable: Keyboard ➡️ Enable ‘Allow Full Access’"
           }
         }
       }

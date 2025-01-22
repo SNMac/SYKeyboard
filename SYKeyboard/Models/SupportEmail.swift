@@ -15,19 +15,19 @@ struct SupportEmail {
     let subject: String
     let messageHeader: String
     
-    let applicationNameStr = String(localized: "앱 이름")
-    let appVersionStr = String(localized: "앱 버전")
-    let appBuildStr = String(localized: "앱 빌드")
-    let iosVersion = String(localized: "iOS 버전")
-    let deviceModelStr = String(localized: "단말기 모델")
+    let applicationNameLocalStr = String(localized: "앱 이름")
+    let appVersionLocalStr = String(localized: "앱 버전")
+    let appBuildLocalStr = String(localized: "앱 빌드")
+    let iosVersionLocalStr = String(localized: "iOS 버전")
+    let deviceModelLocalStr = String(localized: "단말기 모델")
     
     var body: String {
     """
-    \(applicationNameStr): \(Bundle.displayName ?? "Unknown")
-    \(appVersionStr): \(Bundle.appVersion ?? "Unknown")
-    \(appBuildStr): \(Bundle.appBuild ?? "Unknown")
-    \(iosVersion): \(UIDevice.current.systemVersion)
-    \(deviceModelStr): \(UIDevice.current.modelName)
+    \(applicationNameLocalStr): \(Bundle.displayName ?? "Unknown")
+    \(appVersionLocalStr): \(Bundle.appVersion ?? "Unknown")
+    \(appBuildLocalStr): \(Bundle.appBuild ?? "Unknown")
+    \(iosVersionLocalStr): \(UIDevice.current.systemVersion)
+    \(deviceModelLocalStr): \(UIDevice.current.modelName)
     
     \(messageHeader)
     --------------------------------------
