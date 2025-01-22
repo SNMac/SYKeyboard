@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct AppearanceSettingsView: View {
-    @AppStorage("isNumericKeyboardTypeEnabled", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var isNumericKeyboardTypeEnabled = true
+    @AppStorage("isNumericKeypadEnabled", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var isNumericKeypadEnabled = true
     @AppStorage("isOneHandedKeyboardEnabled", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var isOneHandedKeyboardEnabled = true
     
     var body: some View {
@@ -16,7 +16,7 @@ struct AppearanceSettingsView: View {
             KeyboardHeightSettingsView()
         }
         
-        Toggle(isOn: $isNumericKeyboardTypeEnabled, label: {
+        Toggle(isOn: $isNumericKeypadEnabled, label: {
             Text("숫자 키패드 활성화")
             Text("'!#1' 또는 '한글' 버튼을 화살표 방향으로 드래그하여 전환")
                 .font(.system(.caption))

@@ -32,7 +32,7 @@ struct KeyboardButton: View {
     @EnvironmentObject private var state: KeyboardState
     @AppStorage("cursorActiveWidth", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var cursorActiveWidth = GlobalValues.defaultCursorActiveWidth
     @AppStorage("cursorMoveWidth", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var cursorMoveWidth = GlobalValues.defaultCursorMoveWidth
-    @AppStorage("isNumericKeyboardTypeEnabled", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var isNumericKeyboardTypeEnabled = true
+    @AppStorage("isNumericKeypadEnabled", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var isNumericKeypadEnabled = true
     @AppStorage("isOneHandedKeyboardEnabled", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var isOneHandedKeyboardEnabled = true
     @AppStorage("currentOneHandedKeyboard", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var currentOneHandedKeyboard = 1
     
@@ -372,7 +372,7 @@ struct KeyboardButton: View {
                 }
             case .left:  // 버튼 왼쪽으로 드래그
                 if state.currentKeyboard == .hangeul || state.currentKeyboard == .numeric {  // 한글 or 숫자 키패드
-                    if isNumericKeyboardTypeEnabled {
+                    if isNumericKeypadEnabled {
                         activateKeyboardSelect()  // 다른 키보드로 변경
                     } else {
                         initButtonState()
@@ -380,7 +380,7 @@ struct KeyboardButton: View {
                 }
             case .right:  // 버튼 오른쪽으로 드래그
                 if state.currentKeyboard == .symbol {  // 기호 키보드
-                    if isNumericKeyboardTypeEnabled {
+                    if isNumericKeypadEnabled {
                         activateKeyboardSelect()  // 다른 키보드로 변경
                     } else {
                         initButtonState()
@@ -467,7 +467,7 @@ struct KeyboardButton: View {
                         .clipShape(.rect(cornerRadius: 5))
                         .overlay(alignment: .bottomLeading, content: {
                             HStack(spacing: 1) {
-                                if isNumericKeyboardTypeEnabled {
+                                if isNumericKeypadEnabled {
                                     Image(systemName: state.activeKeyboardSelectOverlay ? "arrowtriangle.left.fill" : "arrowtriangle.left")
                                     Text("123")
                                 }
@@ -501,7 +501,7 @@ struct KeyboardButton: View {
                             .clipShape(.rect(cornerRadius: 5))
                             .overlay(alignment: .bottomTrailing, content: {
                                 HStack(spacing: 1) {
-                                    if isNumericKeyboardTypeEnabled {
+                                    if isNumericKeypadEnabled {
                                         Text("123")
                                         Image(systemName: state.activeKeyboardSelectOverlay ? "arrowtriangle.right.fill" : "arrowtriangle.right")
                                     }

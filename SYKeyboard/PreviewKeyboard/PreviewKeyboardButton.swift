@@ -32,7 +32,7 @@ struct PreviewKeyboardButton: View {
     @AppStorage("cursorActiveWidth", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var cursorActiveWidth = GlobalValues.defaultCursorActiveWidth
     @AppStorage("cursorMoveWidth", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var cursorMoveWidth = GlobalValues.defaultCursorMoveWidth
     @AppStorage("needsInputModeSwitchKey", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var needsInputModeSwitchKey = true
-    @AppStorage("isNumericKeyboardTypeEnabled", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var isNumericKeyboardTypeEnabled = true
+    @AppStorage("isNumericKeypadEnabled", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var isNumericKeypadEnabled = true
     @AppStorage("isOneHandedKeyboardEnabled", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var isOneHandedKeyboardEnabled = true
     
     @State var nowState: ButtonState = .released
@@ -261,7 +261,7 @@ struct PreviewKeyboardButton: View {
                         .clipShape(.rect(cornerRadius: 5))
                         .overlay(alignment: .bottomLeading, content: {
                             HStack(spacing: 1) {
-                                if isNumericKeyboardTypeEnabled {
+                                if isNumericKeypadEnabled {
                                     Image(systemName: "arrowtriangle.left")
                                     Text("123")
                                 }
