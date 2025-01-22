@@ -56,6 +56,7 @@ struct InfoView: View {
             guard let writeReviewURL = URL(string: url) else {
                 fatalError("Expected a valid URL")
             }
+            
             openURL(writeReviewURL)
         } label: {
             HStack {

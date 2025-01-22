@@ -362,7 +362,9 @@ private extension KeyboardViewController {
         requestFullAccessView.goToSettingsButton.addAction(UIAction(handler: { _ in
             self.redirectToSettings()
         }), for: .touchUpInside)
+        
         self.view.addSubview(requestFullAccessView)
+        
         requestFullAccessView.snp.makeConstraints { make in
             make.edges.equalToSuperview()
         }
@@ -373,6 +375,7 @@ private extension KeyboardViewController {
         guard let urlScheme = URL(string: url) else {
             return
         }
+        
         openURL(urlScheme)
     }
     
