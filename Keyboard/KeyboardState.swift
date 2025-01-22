@@ -7,27 +7,16 @@
 
 import SwiftUI
 
-enum InputType {
+enum Keyboard {
     case hangeul
     case symbol
-    case number
+    case numeric
 }
 
-enum OneHandMode: Int {
+enum OneHandKeyboard: Int {
     case left
     case center
     case right
-}
-
-enum KeyboardType {
-    case `default`
-    case numbersAndPunctuation
-    case URL
-    case numberPad
-    case emailAddress
-    case twitter
-    case webSearch
-    case asciiCapableNumberPad
 }
 
 enum ReturnButtonType: String {
@@ -44,15 +33,15 @@ enum ReturnButtonType: String {
 }
 
 final class KeyboardState: ObservableObject {
-    @Published var currentInputType: InputType = .hangeul
-    @Published var activeInputTypeSelectOverlay: Bool = false
-    @Published var selectedInputType: InputType?
+    @Published var currentKeyboard: Keyboard = .hangeul
+    @Published var activeKeyboardSelectOverlay: Bool = false
+    @Published var selectedKeyboard: Keyboard?
     
-    @Published var currentOneHandMode: OneHandMode = .center
-    @Published var activeOneHandModeSelectOverlay: Bool = false
-    @Published var selectedOneHandMode: OneHandMode?
+    @Published var currentOneHandKeyboard: OneHandKeyboard = .center
+    @Published var activeOneHandKeyboardSelectOverlay: Bool = false
+    @Published var selectedOneHandKeyboard: OneHandKeyboard?
     
-    @Published var currentKeyboardType: KeyboardType = .default
+    @Published var currentUIKeyboardType: UIKeyboardType = .default
     @Published var returnButtonType: ReturnButtonType = .default
 
     @Published var nowSymbolPage: Int = 0
@@ -64,7 +53,7 @@ final class KeyboardState: ObservableObject {
     
     weak var delegate: KeyboardDelegate?
     var keyboardHeight: CGFloat
-    var oneHandWidth: CGFloat
+    var oneHandKeyboardWidth: CGFloat
     var longPressTime: Double
     var repeatTimerCycle: Double
     var needsInputModeSwitchKey: Bool
@@ -76,7 +65,7 @@ final class KeyboardState: ObservableObject {
     init(
         delegate: KeyboardDelegate,
         keyboardHeight: CGFloat,
-        oneHandWidth: CGFloat,
+        oneHandKeyboardWidth: CGFloat,
         longPressTime: Double,
         repeatTimerCycle: Double,
         needsInputModeSwitchKey: Bool,
@@ -84,7 +73,7 @@ final class KeyboardState: ObservableObject {
     ) {
         self.delegate = delegate
         self.keyboardHeight = keyboardHeight
-        self.oneHandWidth = oneHandWidth
+        self.oneHandKeyboardWidth = oneHandKeyboardWidth
         self.longPressTime = longPressTime
         self.repeatTimerCycle = repeatTimerCycle
         self.needsInputModeSwitchKey = needsInputModeSwitchKey

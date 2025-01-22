@@ -10,7 +10,7 @@ protocol KeyboardDelegate: AnyObject {
     func flushBuffer()
     func inputLastHangeul()
     func inputLastSymbol()
-    func hangulKeypadTap(letter: String)
+    func hangeulKeypadTap(letter: String)
     func otherKeypadTap(letter: String)
     func hoegKeypadTap()
     func ssangKeypadTap()

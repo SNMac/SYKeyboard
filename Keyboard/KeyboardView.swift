@@ -9,63 +9,63 @@ import SwiftUI
 
 struct KeyboardView: View {
     @EnvironmentObject private var state: KeyboardState
-    @AppStorage("isNumberKeyboardTypeEnabled", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var isNumberKeyboardTypeEnabled = true
-    @AppStorage("isOneHandModeEnabled", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var isOneHandModeEnabled = true
-    @AppStorage("currentOneHandMode", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var currentOneHandMode = 1
+    @AppStorage("isNumericKeyboardEnabled", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var isNumericKeyboardEnabled = true
+    @AppStorage("isOneHandKeyboardEnabled", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var isOneHandKeyboardEnabled = true
+    @AppStorage("currentOneHandKeyboard", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var currentOneHandKeyboard = 1
     @AppStorage("reviewCounter", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) var reviewCounter = 0
     
     var body: some View {
         HStack(spacing: 0) {
-            if state.currentKeyboardType != .numberPad && state.currentKeyboardType != .asciiCapableNumberPad
-                && isOneHandModeEnabled && state.currentOneHandMode == .right {
+            if state.currentUIKeyboardType != .numberPad && state.currentUIKeyboardType != .asciiCapableNumberPad
+                && isOneHandKeyboardEnabled && state.currentOneHandKeyboard == .right {
                 ChevronButton(isLeftHandMode: false)
             }
-            ZStack(alignment: state.currentInputType == .symbol ? .leading : .trailing) {
-                    switch state.currentInputType {
+            ZStack(alignment: state.currentKeyboard == .symbol ? .leading : .trailing) {
+                    switch state.currentKeyboard {
                     case .hangeul:
                         HangeulView()
                     case .symbol:
-                        if state.currentKeyboardType == .URL {
+                        if state.currentUIKeyboardType == .URL {
                             URLSymbolView()
-                        } else if state.currentKeyboardType == .emailAddress {
+                        } else if state.currentUIKeyboardType == .emailAddress {
                             EmailSymbolView()
-                        } else if state.currentKeyboardType == .webSearch {
+                        } else if state.currentUIKeyboardType == .webSearch {
                             WebSearchSymbolView()
                         } else {
                             SymbolView()
                         }
-                    case .number:
-                        if state.currentKeyboardType == .numberPad {
+                    case .numeric:
+                        if state.currentUIKeyboardType == .numberPad {
                             TenKeyView()
-                        } else if state.currentKeyboardType == .asciiCapableNumberPad {
+                        } else if state.currentUIKeyboardType == .asciiCapableNumberPad {
                             TenKeyView()
                         } else {
                             NumericView()
                         }
                     }
                 
-                if state.activeInputTypeSelectOverlay {
-                    InputTypeSelectOverlayView()
-                        .offset(x: state.currentInputType == .symbol ? 5 : -5, y: state.keyboardHeight / 8)
+                if state.activeKeyboardSelectOverlay {
+                    KeyboardSelectOverlayView()
+                        .offset(x: state.currentKeyboard == .symbol ? 5 : -5, y: state.keyboardHeight / 8)
                 }
                 
-                if state.activeOneHandModeSelectOverlay {
-                    OneHandModeSelectOverlayView()
-                        .offset(x: state.currentInputType == .symbol ? 5 : -5, y: state.keyboardHeight / 8)
+                if state.activeOneHandKeyboardSelectOverlay {
+                    OneHandKeyboardSelectOverlayView()
+                        .offset(x: state.currentKeyboard == .symbol ? 5 : -5, y: state.keyboardHeight / 8)
                 }
             }
-            if state.currentKeyboardType != .numberPad && state.currentKeyboardType != .asciiCapableNumberPad
-                && isOneHandModeEnabled && state.currentOneHandMode == .left {
+            if state.currentUIKeyboardType != .numberPad && state.currentUIKeyboardType != .asciiCapableNumberPad
+                && isOneHandKeyboardEnabled && state.currentOneHandKeyboard == .left {
                 ChevronButton(isLeftHandMode: true)
             }
         }.onAppear {
             reviewCounter += 1
             
-            if isOneHandModeEnabled {
-                state.currentOneHandMode = OneHandMode(rawValue: currentOneHandMode) ?? .center
+            if isOneHandKeyboardEnabled {
+                state.currentOneHandKeyboard = OneHandKeyboard(rawValue: currentOneHandKeyboard) ?? .center
             } else {
-                currentOneHandMode = 1
-                state.currentOneHandMode = .center
+                currentOneHandKeyboard = 1
+                state.currentOneHandKeyboard = .center
             }
         }
     }

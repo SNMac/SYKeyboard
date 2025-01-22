@@ -11,7 +11,7 @@ struct KeyboardHeightSettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject private var state: PreviewKeyboardState
     @AppStorage("keyboardHeight", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var keyboardHeight = GlobalValues.defaultKeyboardHeight
-    @AppStorage("oneHandWidth", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var oneHandWidth = GlobalValues.defaultOneHandWidth
+    @AppStorage("oneHandKeyboardWidth", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var oneHandKeyboardWidth = GlobalValues.defaultOneHandKeyboardWidth
     @State private var tempKeyboardHeight: Double = GlobalValues.defaultKeyboardHeight
     
     private var keyboardHeightSettings: some View {
@@ -56,11 +56,11 @@ struct KeyboardHeightSettingsView: View {
         NavigationStack {
             keyboardHeightSettings
             
-            PreviewHangeulView(keyboardHeight: $tempKeyboardHeight, oneHandWidth: $oneHandWidth)
+            PreviewHangeulView(keyboardHeight: $tempKeyboardHeight, oneHandKeyboardWidth: $oneHandKeyboardWidth)
         }
         .onAppear {
             tempKeyboardHeight = keyboardHeight
-            state.currentOneHandMode = .center
+            state.currentOneHandKeyboard = .center
         }
         .requestReviewViewModifier()
     }

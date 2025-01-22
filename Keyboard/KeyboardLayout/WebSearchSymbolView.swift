@@ -701,7 +701,7 @@ struct WebSearchSymbolView: View {
                         onRelease: {
                             state.delegate?.otherKeypadTap(letter: symbols[state.nowSymbolPage][24])
                             if isAutoChangeToHangeulEnabled {
-                                state.currentInputType = .hangeul
+                                state.currentKeyboard = .hangeul
                             }
                         },
                         onLongPress: {
@@ -719,7 +719,7 @@ struct WebSearchSymbolView: View {
                         onLongPressRelease: {
                             timer?.cancel()
                             if isAutoChangeToHangeulEnabled {
-                                state.currentInputType = .hangeul
+                                state.currentKeyboard = .hangeul
                             }
                         })
                     .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
@@ -762,7 +762,7 @@ struct WebSearchSymbolView: View {
                                     Feedback.shared.playHaptic(style: .light)
                                 },
                                 onRelease: {
-                                    state.currentInputType = .hangeul
+                                    state.currentKeyboard = .hangeul
                                 })
                             .padding(EdgeInsets(top: interItemVPadding, leading: hPadding, bottom: vPadding, trailing: interItemHPadding))
                             .contentShape(Rectangle())
@@ -782,7 +782,7 @@ struct WebSearchSymbolView: View {
                                 Feedback.shared.playHaptic(style: .light)
                             },
                             onRelease: {
-                                state.currentInputType = .hangeul
+                                state.currentKeyboard = .hangeul
                             })
                         .padding(EdgeInsets(top: interItemVPadding, leading: hPadding, bottom: vPadding, trailing: interItemHPadding))
                         .contentShape(Rectangle())
@@ -862,7 +862,7 @@ struct WebSearchSymbolView: View {
             state.nowSymbolPage = 0
             state.totalSymbolPage = symbols.count
         }
-        .frame(width: state.currentOneHandMode == .center ? nil : state.oneHandWidth, height: state.keyboardHeight)
+        .frame(width: state.currentOneHandKeyboard == .center ? nil : state.oneHandKeyboardWidth, height: state.keyboardHeight)
         .background(Color.white.opacity(0.001))
     }
 }

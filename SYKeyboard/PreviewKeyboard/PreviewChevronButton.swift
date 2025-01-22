@@ -33,7 +33,7 @@ struct PreviewChevronButton: View {
                         })
                         .onEnded({ _ in
                             if isPressed {
-                                state.currentOneHandMode = .center
+                                state.currentOneHandKeyboard = .center
                                 isPressed = false
                             }
                         })

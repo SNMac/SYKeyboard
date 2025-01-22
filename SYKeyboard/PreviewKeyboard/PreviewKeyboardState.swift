@@ -7,14 +7,14 @@
 
 import SwiftUI
 
-enum PreviewOneHandMode: Int {
+enum PreviewOneHandKeyboard: Int {
     case left
     case center
     case right
 }
 
 final class PreviewKeyboardState: ObservableObject {
-    @Published var currentOneHandMode: PreviewOneHandMode = .center
+    @Published var currentOneHandKeyboard: PreviewOneHandKeyboard = .center
     
     var nowPressedButton: PreviewKeyboardButton?
 }

@@ -747,8 +747,8 @@ struct SymbolView: View {
                         },
                         onRelease: {
                             state.delegate?.otherKeypadTap(letter: symbols[state.nowSymbolPage][24])
-                            if state.currentKeyboardType != .numbersAndPunctuation && isAutoChangeToHangeulEnabled {
-                                state.currentInputType = .hangeul
+                            if state.currentUIKeyboardType != .numbersAndPunctuation && isAutoChangeToHangeulEnabled {
+                                state.currentKeyboard = .hangeul
                             }
                         },
                         onLongPress: {
@@ -765,8 +765,8 @@ struct SymbolView: View {
                         },
                         onLongPressRelease: {
                             timer?.cancel()
-                            if state.currentKeyboardType != .numbersAndPunctuation && isAutoChangeToHangeulEnabled {
-                                state.currentInputType = .hangeul
+                            if state.currentUIKeyboardType != .numbersAndPunctuation && isAutoChangeToHangeulEnabled {
+                                state.currentKeyboard = .hangeul
                             }
                         })
                     .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: interItemHPadding))
@@ -809,7 +809,7 @@ struct SymbolView: View {
                                     Feedback.shared.playHaptic(style: .light)
                                 },
                                 onRelease: {
-                                    state.currentInputType = .hangeul
+                                    state.currentKeyboard = .hangeul
                                 })
                             .padding(EdgeInsets(top: interItemVPadding, leading: hPadding, bottom: vPadding, trailing: interItemHPadding))
                             .contentShape(Rectangle())
@@ -829,7 +829,7 @@ struct SymbolView: View {
                                 Feedback.shared.playHaptic(style: .light)
                             },
                             onRelease: {
-                                state.currentInputType = .hangeul
+                                state.currentKeyboard = .hangeul
                             })
                         .padding(EdgeInsets(top: interItemVPadding, leading: hPadding, bottom: vPadding, trailing: interItemHPadding))
                         .contentShape(Rectangle())
@@ -843,8 +843,8 @@ struct SymbolView: View {
                         },
                         onRelease: {
                             state.delegate?.spaceKeypadTap()
-                            if state.currentKeyboardType != .numbersAndPunctuation && isAutoChangeToHangeulEnabled && isSymbolInput {
-                                state.currentInputType = .hangeul
+                            if state.currentUIKeyboardType != .numbersAndPunctuation && isAutoChangeToHangeulEnabled && isSymbolInput {
+                                state.currentKeyboard = .hangeul
                             }
                         },
                         onLongPress: {
@@ -861,8 +861,8 @@ struct SymbolView: View {
                         },
                         onLongPressRelease: {
                             timer?.cancel()
-                            if state.currentKeyboardType != .numbersAndPunctuation && isAutoChangeToHangeulEnabled && isSymbolInput {
-                                state.currentInputType = .hangeul
+                            if state.currentUIKeyboardType != .numbersAndPunctuation && isAutoChangeToHangeulEnabled && isSymbolInput {
+                                state.currentKeyboard = .hangeul
                             }
                         })
                     .frame(width: geometry.size.width / 2)
@@ -877,8 +877,8 @@ struct SymbolView: View {
                         },
                         onRelease: {
                             state.delegate?.enterKeypadTap()
-                            if state.currentKeyboardType != .numbersAndPunctuation && isAutoChangeToHangeulEnabled && isSymbolInput {
-                                state.currentInputType = .hangeul
+                            if state.currentUIKeyboardType != .numbersAndPunctuation && isAutoChangeToHangeulEnabled && isSymbolInput {
+                                state.currentKeyboard = .hangeul
                             }
                         })
                     .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: vPadding, trailing: hPadding))
@@ -889,7 +889,7 @@ struct SymbolView: View {
             state.nowSymbolPage = 0
             state.totalSymbolPage = symbols.count
         }
-        .frame(width: state.currentOneHandMode == .center ? nil : state.oneHandWidth, height: state.keyboardHeight)
+        .frame(width: state.currentOneHandKeyboard == .center ? nil : state.oneHandKeyboardWidth, height: state.keyboardHeight)
         .background(Color.white.opacity(0.001))
     }
 }

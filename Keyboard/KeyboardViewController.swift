@@ -64,7 +64,7 @@ class KeyboardViewController: UIInputViewController {
         let state = KeyboardState(
             delegate: ioManager,
             keyboardHeight: CGFloat(defaults?.double(forKey: "keyboardHeight") ?? GlobalValues.defaultKeyboardHeight),
-            oneHandWidth: CGFloat(defaults?.double(forKey: "oneHandWidth") ?? GlobalValues.defaultOneHandWidth),
+            oneHandKeyboardWidth: CGFloat(defaults?.double(forKey: "oneHandKeyboardWidth") ?? GlobalValues.defaultOneHandKeyboardWidth),
             longPressTime: 1.0 - (defaults?.double(forKey: "longPressSpeed") ?? GlobalValues.defaultLongPressSpeed),
             repeatTimerCycle: 0.10 - (defaults?.double(forKey: "repeatTimerSpeed") ?? GlobalValues.defaultRepeatTimerSpeed),
             needsInputModeSwitchKey: needsInputModeSwitchKey,
@@ -243,65 +243,60 @@ class KeyboardViewController: UIInputViewController {
     
     private func updateKeyboardTypeToOptions() {
         let proxy = textDocumentProxy
-        let keyboardType = proxy.keyboardType
-        switch keyboardType {
+        switch proxy.keyboardType {
         case .default:
-            state?.currentKeyboardType = .default
+            state?.currentUIKeyboardType = .default
         case .numbersAndPunctuation:
-            state?.currentKeyboardType = .numbersAndPunctuation
-            state?.currentInputType = .symbol
+            state?.currentUIKeyboardType = .numbersAndPunctuation
+            state?.currentKeyboard = .symbol
         case .URL:
-            state?.currentKeyboardType = .URL
+            state?.currentUIKeyboardType = .URL
         case .numberPad:
-            state?.currentKeyboardType = .numberPad
-            state?.currentInputType = .number
+            state?.currentUIKeyboardType = .numberPad
+            state?.currentKeyboard = .numeric
         case .emailAddress:
-            state?.currentKeyboardType = .emailAddress
+            state?.currentUIKeyboardType = .emailAddress
         case .twitter:
-            state?.currentKeyboardType = .twitter
+            state?.currentUIKeyboardType = .twitter
         case .webSearch:
-            state?.currentKeyboardType = .webSearch
+            state?.currentUIKeyboardType = .webSearch
         case .asciiCapableNumberPad:
-            state?.currentKeyboardType = .asciiCapableNumberPad
-            state?.currentInputType = .number
+            state?.currentUIKeyboardType = .asciiCapableNumberPad
+            state?.currentKeyboard = .numeric
         default:
-            state?.currentKeyboardType = .default
+            state?.currentUIKeyboardType = .default
         }
     }
     
     private func updateReturnButtonLabelToOptions() {
         let proxy = textDocumentProxy
-        let returnKeyType = proxy.returnKeyType
-        let returnButtonType: ReturnButtonType
-        switch returnKeyType {
+        switch proxy.returnKeyType {
         case .go:
-            returnButtonType = .go
+            state?.returnButtonType = .go
         case .google:
-            returnButtonType = .search
+            state?.returnButtonType = .search
         case .join:
-            returnButtonType = .join
+            state?.returnButtonType = .join
         case .next:
-            returnButtonType = .next
+            state?.returnButtonType = .next
         case .route:
-            returnButtonType = .route
+            state?.returnButtonType = .route
         case .search:
-            returnButtonType = .search
+            state?.returnButtonType = .search
         case .send:
-            returnButtonType = .send
+            state?.returnButtonType = .send
         case .yahoo:
-            returnButtonType = .search
+            state?.returnButtonType = .search
         case .done:
-            returnButtonType = .done
+            state?.returnButtonType = .done
         case .emergencyCall:
-            returnButtonType = .emergencyCall
+            state?.returnButtonType = .emergencyCall
         case .continue:
-            returnButtonType = .continue
+            state?.returnButtonType = .continue
         default:
-            returnButtonType = .default
+            state?.returnButtonType = .default
         }
-        state?.returnButtonType = returnButtonType
     }
-    
 }
 
 // MARK: - Text Replacement Methods

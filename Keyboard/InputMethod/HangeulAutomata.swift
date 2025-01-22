@@ -1,5 +1,5 @@
 //
-//  HangulAutomata.swift
+//  HangeulAutomata.swift
 //  Keyboard
 //
 //  Created by JunHwan Kim on 8/14/22.
@@ -118,18 +118,18 @@ final class HangeulAutomata {
     }
     
     private func decompositionChosung(charCode: UInt32) -> UInt32 {
-        let unicodeHangul = charCode - 0xAC00
-        let jongsung = (unicodeHangul) % 28
-        let jungsung = ((unicodeHangul - jongsung) / 28) % 21
-        let chosung = (((unicodeHangul - jongsung) / 28) - jungsung) / 21
+        let unicodeHangeul = charCode - 0xAC00
+        let jongsung = (unicodeHangeul) % 28
+        let jungsung = ((unicodeHangeul - jongsung) / 28) % 21
+        let chosung = (((unicodeHangeul - jongsung) / 28) - jungsung) / 21
         return chosung
     }
     
     private func decompositionChosungJungsung(charCode: UInt32) -> UInt32 {
-        let unicodeHangul = charCode - 0xAC00
-        let jongsung = (unicodeHangul) % 28
-        let jungsung = ((unicodeHangul - jongsung) / 28) % 21
-        let chosung = (((unicodeHangul - jongsung) / 28) - jungsung) / 21
+        let unicodeHangeul = charCode - 0xAC00
+        let jongsung = (unicodeHangeul) % 28
+        let jungsung = ((unicodeHangeul - jongsung) / 28) % 21
+        let chosung = (((unicodeHangeul - jongsung) / 28) - jungsung) / 21
         return combinationHangeul(chosungIndex: chosung, jungsungIndex: jungsung, jongsungIndex: curKeyIndex)
     }
     
@@ -201,10 +201,10 @@ final class HangeulAutomata {
         var lastLetter: String = ""
         
         if buffer.count > 0 {
-            if let popHangul = inpStack.popLast() {
-                if popHangul.hangeulStatus == .chosung {
+            if let popHangeul = inpStack.popLast() {
+                if popHangeul.hangeulStatus == .chosung {
                     bufferRemoveLast()
-                } else if popHangul.hangeulStatus == .jungsung || popHangul.hangeulStatus == .dJungsung {
+                } else if popHangeul.hangeulStatus == .jungsung || popHangeul.hangeulStatus == .dJungsung {
                     var isRemoved: Bool = false
                     if inpStack[inpStack.count - 1].hangeulStatus == .jongsung || inpStack[inpStack.count - 1].hangeulStatus == .dJongsung {
                         bufferRemoveLast()
@@ -218,12 +218,12 @@ final class HangeulAutomata {
                 } else {
                     if inpStack.isEmpty {
                         bufferRemoveLast()
-                    } else if popHangul.keyKind == .moeum {
+                    } else if popHangeul.keyKind == .moeum {
                         if inpStack[inpStack.count - 1].hangeulStatus == .jongsung {
                             if inpStack[inpStack.count - 1].keyKind == .moeum {
                                 if isJungsungPair(
                                     first: jungsungTable[Int(inpStack[inpStack.count - 1].keyIndex)],
-                                    result: jungsungTable[Int(popHangul.keyIndex)]) {
+                                    result: jungsungTable[Int(popHangeul.keyIndex)]) {
                                     buffer[buffer.count - 1] = inpStack[inpStack.count - 1].geulja
                                     bufferTypingCount[bufferTypingCount.count - 1] -= 1
                                 } else {
@@ -233,7 +233,7 @@ final class HangeulAutomata {
                         } else {
                             bufferRemoveLast()
                         }
-                    } else if popHangul.keyKind == .jaeum {
+                    } else if popHangeul.keyKind == .jaeum {
                         buffer[buffer.count - 1] = inpStack[inpStack.count - 1].geulja
                         bufferTypingCount[bufferTypingCount.count - 1] -= 1
                     } else {  // popHanguel.keyKind == .symbol

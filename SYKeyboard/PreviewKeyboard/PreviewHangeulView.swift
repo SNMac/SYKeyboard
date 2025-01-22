@@ -14,7 +14,7 @@ struct PreviewHangeulView: View {
     @AppStorage("needsInputModeSwitchKey", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var needsInputModeSwitchKey = true
     
     @Binding var keyboardHeight: Double
-    @Binding var oneHandWidth: Double
+    @Binding var oneHandKeyboardWidth: Double
     
     @State private var timer: AnyCancellable?
     
@@ -386,7 +386,7 @@ struct PreviewHangeulView: View {
                 }
             }
         }
-        .frame(width: state.currentOneHandMode == .center ? nil : oneHandWidth, height: keyboardHeight)
+        .frame(width: state.currentOneHandKeyboard == .center ? nil : oneHandKeyboardWidth, height: keyboardHeight)
         .background(Color("KeyboardBackground"))
         .padding(.bottom, needsInputModeSwitchKey ? 0 : 40)
     }

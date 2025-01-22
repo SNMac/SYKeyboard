@@ -32,8 +32,8 @@ struct PreviewKeyboardButton: View {
     @AppStorage("cursorActiveWidth", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var cursorActiveWidth = GlobalValues.defaultCursorActiveWidth
     @AppStorage("cursorMoveWidth", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var cursorMoveWidth = GlobalValues.defaultCursorMoveWidth
     @AppStorage("needsInputModeSwitchKey", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var needsInputModeSwitchKey = true
-    @AppStorage("isNumberKeyboardTypeEnabled", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var isNumberKeyboardTypeEnabled = true
-    @AppStorage("isOneHandModeEnabled", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var isOneHandModeEnabled = true
+    @AppStorage("isNumericKeyboardTypeEnabled", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var isNumericKeyboardTypeEnabled = true
+    @AppStorage("isOneHandKeyboardEnabled", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var isOneHandKeyboardEnabled = true
     
     @State var nowState: ButtonState = .released
     
@@ -261,7 +261,7 @@ struct PreviewKeyboardButton: View {
                         .clipShape(.rect(cornerRadius: 5))
                         .overlay(alignment: .bottomLeading, content: {
                             HStack(spacing: 1) {
-                                if isNumberKeyboardTypeEnabled {
+                                if isNumericKeyboardTypeEnabled {
                                     Image(systemName: "arrowtriangle.left")
                                     Text("123")
                                 }
@@ -274,7 +274,7 @@ struct PreviewKeyboardButton: View {
                         })
                         .overlay(alignment: .topTrailing, content: {
                             HStack(spacing: 0) {
-                                if isOneHandModeEnabled {
+                                if isOneHandKeyboardEnabled {
                                     Image(systemName: "keyboard")
                                     Image(systemName: "arrowtriangle.up")
                                 }

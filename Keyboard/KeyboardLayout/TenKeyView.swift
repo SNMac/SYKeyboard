@@ -341,7 +341,7 @@ struct TenKeyView: View {
                 }
             }
         }
-        .frame(width: state.currentOneHandMode == .center ? nil : state.oneHandWidth, height: state.keyboardHeight)
+        .frame(width: state.currentOneHandKeyboard == .center ? nil : state.oneHandKeyboardWidth, height: state.keyboardHeight)
         .background(Color.white.opacity(0.001))
     }
 }

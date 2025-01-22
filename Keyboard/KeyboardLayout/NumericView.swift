@@ -486,7 +486,7 @@ struct NumericView: View {
                                 Feedback.shared.playHaptic(style: .light)
                             },
                             onRelease: {
-                                state.currentInputType = .hangeul
+                                state.currentKeyboard = .hangeul
                             })
                         .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: vPadding, trailing: interItemHPadding))
                         .contentShape(Rectangle())
@@ -506,14 +506,14 @@ struct NumericView: View {
                             Feedback.shared.playHaptic(style: .light)
                         },
                         onRelease: {
-                            state.currentInputType = .hangeul
+                            state.currentKeyboard = .hangeul
                         })
                     .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: vPadding, trailing: hPadding))
                     .contentShape(Rectangle())
                 }
             }
         }
-        .frame(width: state.currentOneHandMode == .center ? nil : state.oneHandWidth, height: state.keyboardHeight)
+        .frame(width: state.currentOneHandKeyboard == .center ? nil : state.oneHandKeyboardWidth, height: state.keyboardHeight)
         .background(Color.white.opacity(0.001))
     }
 }

@@ -1,5 +1,5 @@
 //
-//  OneHandModeSelectOverlayView.swift
+//  OneHandKeyboardSelectOverlayView.swift
 //  Keyboard
 //
 //  Created by 서동환 on 10/30/24.
@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct OneHandModeSelectOverlayView: View {
+struct OneHandSelectOverlayView: View {
     @EnvironmentObject private var state: KeyboardState
     @AppStorage("currentOneHandMode", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var currentOneHandMode = 1
     @AppStorage("screenWidth", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var screenWidth = 1.0
@@ -27,13 +27,13 @@ struct OneHandModeSelectOverlayView: View {
     
     // MARK: - Gesture Execution Methods
     private func onReleased() {
-        if state.activeOneHandModeSelectOverlay {
+        if state.activeOneHandSelectOverlay {
             if let selectedOneHandMode = state.selectedOneHandMode {
-                state.currentOneHandMode = selectedOneHandMode
+                state.currentOneHandKeyboard = selectedOneHandMode
                 currentOneHandMode = selectedOneHandMode.rawValue
                 state.selectedOneHandMode = nil
             }
-            state.activeOneHandModeSelectOverlay = false
+            state.activeOneHandSelectOverlay = false
         }
     }
     
@@ -46,7 +46,7 @@ struct OneHandModeSelectOverlayView: View {
         let dragXLocation = DragGestureValue.location.x
         let dragYLocation = DragGestureValue.location.y
         
-        if state.activeOneHandModeSelectOverlay {
+        if state.activeOneHandSelectOverlay {
             // 특정 방향으로 일정 거리 초과 드래그 -> 한 손 키보드 변경
             if state.selectedOneHandMode != .left
                 && dragXLocation >= state.oneHandButtonPosition[0].minX && dragXLocation < state.oneHandButtonPosition[1].minX
@@ -65,13 +65,13 @@ struct OneHandModeSelectOverlayView: View {
                 Feedback.shared.playHapticByForce(style: .light)
             } else if dragXLocation < state.oneHandButtonPosition[0].minX || dragXLocation > state.oneHandButtonPosition[2].maxX
                         || dragYLocation < state.oneHandButtonPosition[0].minY || dragYLocation > state.oneHandButtonPosition[2].maxY {
-                state.selectedOneHandMode = state.currentOneHandMode
+                state.selectedOneHandMode = state.currentOneHandKeyboard
             }
         }
     }
     
     var body: some View {
-        let overlayWidth: CGFloat = state.currentOneHandMode == .center ? frameWidth : frameWidth * (state.oneHandWidth / screenWidth)
+        let overlayWidth: CGFloat = state.currentOneHandKeyboard == .center ? frameWidth : frameWidth * (state.oneHandWidth / screenWidth)
         
         HStack(spacing: interItemSpacing) {
             Image(systemName: "keyboard.onehanded.left")
@@ -131,5 +131,5 @@ struct OneHandModeSelectOverlayView: View {
 }
 
 #Preview {
-    OneHandModeSelectOverlayView()
+    OneHandSelectOverlayView()
 }

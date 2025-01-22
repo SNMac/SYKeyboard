@@ -13,7 +13,7 @@ struct GlobalValues {
     static let groupBundleID = "group.github.com-SNMac.SYKeyboard"
     
     static let defaultKeyboardHeight: Double = 240.0
-    static let defaultOneHandWidth: Double = 320.0
+    static let defaultOneHandKeyboardWidth: Double = 320.0
     static let defaultLongPressSpeed: Double = 0.5
     static let defaultRepeatTimerSpeed: Double = 0.05
     static let defaultCursorActiveWidth: Double = 50.0
@@ -81,16 +81,16 @@ struct GlobalValues {
             defaults?.set(GlobalValues.defaultKeyboardHeight, forKey: "keyboardHeight")
         }
         // 숫자 패드 활성화
-        if defaults?.object(forKey: "isNumberKeyboardTypeEnabled") == nil {
-            defaults?.set(true, forKey: "isNumberKeyboardTypeEnabled")
+        if defaults?.object(forKey: "isNumericKeyboardEnabled") == nil {
+            defaults?.set(true, forKey: "isNumericKeyboardEnabled")
         }
         // 한 손 키보드 활성화
-        if defaults?.object(forKey: "isOneHandModeEnabled") == nil {
-            defaults?.set(true, forKey: "isOneHandModeEnabled")
+        if defaults?.object(forKey: "isOneHandKeyboardEnabled") == nil {
+            defaults?.set(true, forKey: "isOneHandKeyboardEnabled")
         }
         // 한 손 키보드 너비
-        if defaults?.object(forKey: "oneHandWidth") == nil {
-            defaults?.set(GlobalValues.defaultOneHandWidth, forKey: "oneHandWidth")
+        if defaults?.object(forKey: "oneHandKeyboardWidth") == nil {
+            defaults?.set(GlobalValues.defaultOneHandKeyboardWidth, forKey: "oneHandKeyboardWidth")
         }
         
         /* 키보드 전환 버튼 표시 설정용 */
@@ -98,8 +98,8 @@ struct GlobalValues {
             defaults?.set(true, forKey: "needsInputModeSwitchKey")
         }
         /* 한 손 키보드 저장용 (0 = 왼쪽, 1 = 가운데, 2 = 오른쪽) */
-        if defaults?.object(forKey: "currentOneHandMode") == nil {
-            defaults?.set(1, forKey: "currentOneHandMode")
+        if defaults?.object(forKey: "currentOneHandKeyboard") == nil {
+            defaults?.set(1, forKey: "currentOneHandKeyboard")
         }
         /* 화면 너비 저장용 */
         if defaults?.object(forKey: "screenWidth") == nil {

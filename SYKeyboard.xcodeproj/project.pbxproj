@@ -36,14 +36,13 @@
 		5B2B40152C6CD2A4007CA762 /* NextKeyboardButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B2B40142C6CD2A4007CA762 /* NextKeyboardButton.swift */; };
 		5B3C37A62D39F66300A7AABE /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = 5B3C37A52D39F66300A7AABE /* FirebaseAnalytics */; };
 		5B3C37A82D39F88900A7AABE /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 5B3C37A72D39F88900A7AABE /* GoogleService-Info.plist */; };
-		5B57EBC22D31364600901C37 /* HangeulAutomata.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B0D823C2C5F355900F84180 /* HangeulAutomata.swift */; };
 		5B57EBD52D313BA500901C37 /* PreviewKeyboardState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B57EBD42D313BA500901C37 /* PreviewKeyboardState.swift */; };
 		5B57EBD72D313BC100901C37 /* PreviewKeyboardButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B57EBD62D313BC100901C37 /* PreviewKeyboardButton.swift */; };
-		5B6B1B372CD210CD00636AC4 /* OneHandModeSelectOverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B6B1B362CD210CD00636AC4 /* OneHandModeSelectOverlayView.swift */; };
+		5B6B1B372CD210CD00636AC4 /* OneHandSelectOverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B6B1B362CD210CD00636AC4 /* OneHandSelectOverlayView.swift */; };
 		5B7556EB2C9DD3B00038BA9C /* GlobalValues.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B7556EA2C9DD3B00038BA9C /* GlobalValues.swift */; };
 		5B7556EC2C9DD3B00038BA9C /* GlobalValues.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B7556EA2C9DD3B00038BA9C /* GlobalValues.swift */; };
 		5B7885942CDCB04A007A801A /* ChevronButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B7885932CDCB04A007A801A /* ChevronButton.swift */; };
-		5B78859A2CDF3473007A801A /* InputTypeSelectOverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B7885992CDF3473007A801A /* InputTypeSelectOverlayView.swift */; };
+		5B78859A2CDF3473007A801A /* KeyboardSelectOverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B7885992CDF3473007A801A /* KeyboardSelectOverlayView.swift */; };
 		5B7B3F5A2C569B7800F7C093 /* SYKeyboardApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B7B3F592C569B7800F7C093 /* SYKeyboardApp.swift */; };
 		5B7B3F5C2C569B7800F7C093 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B7B3F5B2C569B7800F7C093 /* ContentView.swift */; };
 		5B7B3F5E2C569B7800F7C093 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 5B7B3F5D2C569B7800F7C093 /* Assets.xcassets */; };
@@ -138,10 +137,10 @@
 		5B3C37A72D39F88900A7AABE /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		5B57EBD42D313BA500901C37 /* PreviewKeyboardState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewKeyboardState.swift; sourceTree = "<group>"; };
 		5B57EBD62D313BC100901C37 /* PreviewKeyboardButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewKeyboardButton.swift; sourceTree = "<group>"; };
-		5B6B1B362CD210CD00636AC4 /* OneHandModeSelectOverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OneHandModeSelectOverlayView.swift; sourceTree = "<group>"; };
+		5B6B1B362CD210CD00636AC4 /* OneHandSelectOverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OneHandSelectOverlayView.swift; sourceTree = "<group>"; };
 		5B7556EA2C9DD3B00038BA9C /* GlobalValues.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlobalValues.swift; sourceTree = "<group>"; };
 		5B7885932CDCB04A007A801A /* ChevronButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChevronButton.swift; sourceTree = "<group>"; };
-		5B7885992CDF3473007A801A /* InputTypeSelectOverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputTypeSelectOverlayView.swift; sourceTree = "<group>"; };
+		5B7885992CDF3473007A801A /* KeyboardSelectOverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardSelectOverlayView.swift; sourceTree = "<group>"; };
 		5B7B3F562C569B7800F7C093 /* SYKeyboard.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SYKeyboard.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		5B7B3F592C569B7800F7C093 /* SYKeyboardApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SYKeyboardApp.swift; sourceTree = "<group>"; };
 		5B7B3F5B2C569B7800F7C093 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -296,8 +295,8 @@
 				5B0D82352C5962A500F84180 /* KeyboardIOManager.swift */,
 				5BDD2F6F2D34FD45003F87C0 /* RequestFullAccessOverlayView.swift */,
 				5B2B40062C6CAB2F007CA762 /* KeyboardView.swift */,
-				5B7885992CDF3473007A801A /* InputTypeSelectOverlayView.swift */,
-				5B6B1B362CD210CD00636AC4 /* OneHandModeSelectOverlayView.swift */,
+				5B7885992CDF3473007A801A /* KeyboardSelectOverlayView.swift */,
+				5B6B1B362CD210CD00636AC4 /* OneHandSelectOverlayView.swift */,
 				5B7885932CDCB04A007A801A /* ChevronButton.swift */,
 				5B2B40112C6CC1D1007CA762 /* KeyboardState.swift */,
 				5B7BDD4B2C92C0170065C944 /* KeyboardLayout */,
@@ -498,7 +497,6 @@
 			files = (
 				5B7556EC2C9DD3B00038BA9C /* GlobalValues.swift in Sources */,
 				5B1856FE2D3FF86B00895400 /* UIDevice+Extension.swift in Sources */,
-				5B57EBC22D31364600901C37 /* HangeulAutomata.swift in Sources */,
 				5B0D824F2C63D66600F84180 /* FeedbackSettingsView.swift in Sources */,
 				5BA419D82CB98532005E7C86 /* InitialSettingsView.swift in Sources */,
 				5BB0D2722C88481500CE7AF5 /* View+Extension.swift in Sources */,
@@ -542,11 +540,11 @@
 				5B21DD062CE3234E007616E2 /* TenKeyView.swift in Sources */,
 				5B7885942CDCB04A007A801A /* ChevronButton.swift in Sources */,
 				5B7B3F6E2C569B8200F7C093 /* KeyboardViewController.swift in Sources */,
-				5B6B1B372CD210CD00636AC4 /* OneHandModeSelectOverlayView.swift in Sources */,
+				5B6B1B372CD210CD00636AC4 /* OneHandSelectOverlayView.swift in Sources */,
 				5B0D82432C63C16F00F84180 /* Feedback.swift in Sources */,
 				5B2B40152C6CD2A4007CA762 /* NextKeyboardButton.swift in Sources */,
 				5B0D823D2C5F355900F84180 /* HangeulAutomata.swift in Sources */,
-				5B78859A2CDF3473007A801A /* InputTypeSelectOverlayView.swift in Sources */,
+				5B78859A2CDF3473007A801A /* KeyboardSelectOverlayView.swift in Sources */,
 				5BDD2F702D34FD45003F87C0 /* RequestFullAccessOverlayView.swift in Sources */,
 				5BACCE552C915423006DCFB7 /* KeyboardDelegate.swift in Sources */,
 				5B2B40122C6CC1D1007CA762 /* KeyboardState.swift in Sources */,

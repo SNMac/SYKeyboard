@@ -1,5 +1,5 @@
 //
-//  InputTypeSelectOverlayView.swift
+//  KeyboardTypeSelectOverlayView.swift
 //  Keyboard
 //
 //  Created by 서동환 on 11/9/24.
@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct InputTypeSelectOverlayView: View {
+struct KeyboardSelectOverlayView: View {
     @EnvironmentObject private var state: KeyboardState
     @AppStorage("screenWidth", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var screenWidth = 1.0
     
@@ -16,16 +16,16 @@ struct InputTypeSelectOverlayView: View {
     private let fontSize: Double = 20
     
     var body: some View {
-        let overlayWidth: CGFloat = state.currentOneHandMode == .center ? frameWidth : frameWidth * (state.oneHandWidth / screenWidth)
+        let overlayWidth: CGFloat = state.currentOneHandKeyboard == .center ? frameWidth : frameWidth * (state.oneHandWidth / screenWidth)
         
         HStack(spacing: interItemSpacing) {
-            if state.currentInputType == .hangeul {
+            if state.currentKeyboardType == .hangeul {
                 Text("123")
                     .monospaced()
-                    .font(.system(size: fontSize, weight: state.selectedInputType == .number ? .bold : .regular))
+                    .font(.system(size: fontSize, weight: state.selectedKeyboardType == .number ? .bold : .regular))
                     .frame(width: (overlayWidth - interItemSpacing * 3) / 2, height: state.keyboardHeight / 4 - 20)
-                    .foregroundStyle(state.selectedInputType == .number ? Color.white : Color(uiColor: .label))
-                    .background(RoundedRectangle(cornerRadius: 10).fill(state.selectedInputType == .number ? Color.blue : Color.clear))
+                    .foregroundStyle(state.selectedKeyboardType == .number ? Color.white : Color(uiColor: .label))
+                    .background(RoundedRectangle(cornerRadius: 10).fill(state.selectedKeyboardType == .number ? Color.blue : Color.clear))
                     .overlay {
                         GeometryReader { geometry in
                             Color.clear
@@ -35,11 +35,11 @@ struct InputTypeSelectOverlayView: View {
                         }
                     }
                 
-                Image(systemName: state.selectedInputType == .hangeul ? "x.square.fill" : "x.square")
-                    .font(.system(size: fontSize, weight: state.selectedInputType == .hangeul ? .bold : .regular))
+                Image(systemName: state.selectedKeyboardType == .hangeul ? "x.square.fill" : "x.square")
+                    .font(.system(size: fontSize, weight: state.selectedKeyboardType == .hangeul ? .bold : .regular))
                     .frame(width: (overlayWidth - interItemSpacing * 3) / 2, height: state.keyboardHeight / 4 - 20)
-                    .foregroundStyle(state.selectedInputType == .hangeul ? Color.white : Color(uiColor: .label))
-                    .background(RoundedRectangle(cornerRadius: 10).fill(state.selectedInputType == .hangeul ? Color.blue : Color.clear))
+                    .foregroundStyle(state.selectedKeyboardType == .hangeul ? Color.white : Color(uiColor: .label))
+                    .background(RoundedRectangle(cornerRadius: 10).fill(state.selectedKeyboardType == .hangeul ? Color.blue : Color.clear))
                     .overlay {
                         GeometryReader { geometry in
                             Color.clear
@@ -50,13 +50,13 @@ struct InputTypeSelectOverlayView: View {
                     }
                 
                 
-            } else if state.currentInputType == .number {
+            } else if state.currentKeyboardType == .number {
                 Text("!#1")
                     .monospaced()
-                    .font(.system(size: fontSize, weight: state.selectedInputType == .symbol ? .bold : .regular))
+                    .font(.system(size: fontSize, weight: state.selectedKeyboardType == .symbol ? .bold : .regular))
                     .frame(width: (overlayWidth - interItemSpacing * 3) / 2, height: state.keyboardHeight / 4 - 20)
-                    .foregroundStyle(state.selectedInputType == .symbol ? Color.white : Color(uiColor: .label))
-                    .background(RoundedRectangle(cornerRadius: 10).fill(state.selectedInputType == .symbol ? Color.blue : Color.clear))
+                    .foregroundStyle(state.selectedKeyboardType == .symbol ? Color.white : Color(uiColor: .label))
+                    .background(RoundedRectangle(cornerRadius: 10).fill(state.selectedKeyboardType == .symbol ? Color.blue : Color.clear))
                     .overlay {
                         GeometryReader { geometry in
                             Color.clear
@@ -66,11 +66,11 @@ struct InputTypeSelectOverlayView: View {
                         }
                     }
                 
-                Image(systemName: state.selectedInputType == .number ? "x.square.fill" : "x.square")
-                    .font(.system(size: fontSize, weight: state.selectedInputType == .number ? .bold : .regular))
+                Image(systemName: state.selectedKeyboardType == .number ? "x.square.fill" : "x.square")
+                    .font(.system(size: fontSize, weight: state.selectedKeyboardType == .number ? .bold : .regular))
                     .frame(width: (overlayWidth - interItemSpacing * 3) / 2, height: state.keyboardHeight / 4 - 20)
-                    .foregroundStyle(state.selectedInputType == .number ? Color.white : Color(uiColor: .label))
-                    .background(RoundedRectangle(cornerRadius: 10).fill(state.selectedInputType == .number ? Color.blue : Color.clear))
+                    .foregroundStyle(state.selectedKeyboardType == .number ? Color.white : Color(uiColor: .label))
+                    .background(RoundedRectangle(cornerRadius: 10).fill(state.selectedKeyboardType == .number ? Color.blue : Color.clear))
                     .overlay {
                         GeometryReader { geometry in
                             Color.clear
@@ -81,12 +81,12 @@ struct InputTypeSelectOverlayView: View {
                     }
                 
                 
-            } else if state.currentInputType == .symbol {
-                Image(systemName: state.selectedInputType == .symbol ? "x.square.fill" : "x.square")
-                    .font(.system(size: fontSize, weight: state.selectedInputType == .symbol ? .bold : .regular))
+            } else if state.currentKeyboardType == .symbol {
+                Image(systemName: state.selectedKeyboardType == .symbol ? "x.square.fill" : "x.square")
+                    .font(.system(size: fontSize, weight: state.selectedKeyboardType == .symbol ? .bold : .regular))
                     .frame(width: (overlayWidth - interItemSpacing * 3) / 2, height: state.keyboardHeight / 4 - 20)
-                    .foregroundStyle(state.selectedInputType == .symbol ? Color.white : Color(uiColor: .label))
-                    .background(RoundedRectangle(cornerRadius: 10).fill(state.selectedInputType == .symbol ? Color.blue : Color.clear))
+                    .foregroundStyle(state.selectedKeyboardType == .symbol ? Color.white : Color(uiColor: .label))
+                    .background(RoundedRectangle(cornerRadius: 10).fill(state.selectedKeyboardType == .symbol ? Color.blue : Color.clear))
                     .overlay {
                         GeometryReader { geometry in
                             Color.clear
@@ -98,10 +98,10 @@ struct InputTypeSelectOverlayView: View {
                 
                 Text("123")
                     .monospaced()
-                    .font(.system(size: fontSize, weight: state.selectedInputType == .number ? .bold : .regular))
+                    .font(.system(size: fontSize, weight: state.selectedKeyboardType == .number ? .bold : .regular))
                     .frame(width: (overlayWidth - interItemSpacing * 3) / 2, height: state.keyboardHeight / 4 - 20)
-                    .foregroundStyle(state.selectedInputType == .number ? Color.white : Color(uiColor: .label))
-                    .background(RoundedRectangle(cornerRadius: 10).fill(state.selectedInputType == .number ? Color.blue : Color.clear))
+                    .foregroundStyle(state.selectedKeyboardType == .number ? Color.white : Color(uiColor: .label))
+                    .background(RoundedRectangle(cornerRadius: 10).fill(state.selectedKeyboardType == .number ? Color.blue : Color.clear))
                     .overlay {
                         GeometryReader { geometry in
                             Color.clear
@@ -119,5 +119,5 @@ struct InputTypeSelectOverlayView: View {
 
 
 #Preview {
-    InputTypeSelectOverlayView()
+    KeyboardSelectOverlayView()
 }

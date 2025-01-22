@@ -114,7 +114,7 @@ extension KeyboardIOManager: KeyboardDelegate {
         inputOther = lastLetter
     }
     
-    func hangulKeypadTap(letter: String) {
+    func hangeulKeypadTap(letter: String) {
         let curLetter: String
         
         switch letter {

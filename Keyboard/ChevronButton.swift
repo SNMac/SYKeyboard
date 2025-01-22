@@ -9,7 +9,7 @@ import SwiftUI
 
 struct ChevronButton: View {
     @EnvironmentObject private var state: KeyboardState
-    @AppStorage("currentOneHandMode", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var currentOneHandMode = 1
+    @AppStorage("currentOneHandKeyboard", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var currentOneHandKeyboard = 1
     @State private var isPressed: Bool = false
     
     let isLeftHandMode: Bool
@@ -33,9 +33,9 @@ struct ChevronButton: View {
                         })
                         .onEnded({ _ in
                             if isPressed {
-                                state.activeOneHandModeSelectOverlay = false
-                                state.currentOneHandMode = .center
-                                currentOneHandMode = OneHandMode.center.rawValue
+                                state.activeOneHandKeyboardSelectOverlay = false
+                                state.currentOneHandKeyboard = .center
+                                currentOneHandKeyboard = OneHandKeyboard.center.rawValue
                                 isPressed = false
                             }
                         })
