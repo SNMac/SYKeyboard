@@ -18,6 +18,7 @@ struct InstructionsPageView: View {
                 .font(.title2)
                 .lineLimit(2, reservesSpace: true)
                 .multilineTextAlignment(.center)
+                .padding(EdgeInsets(top: 0, leading: 15, bottom: 0, trailing: 15))
             Image(imageName)
                 .resizable()
                 .scaledToFit()
@@ -26,6 +27,7 @@ struct InstructionsPageView: View {
             Text(subtitle)
                 .lineLimit(2, reservesSpace: true)
                 .multilineTextAlignment(.center)
+                .padding(EdgeInsets(top: 0, leading: 15, bottom: 0, trailing: 15))
         }
     }
 }

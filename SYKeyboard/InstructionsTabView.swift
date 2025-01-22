@@ -36,7 +36,7 @@ struct InstructionsTabView: View {
         } label: {
             Text("닫기")
         }
-        .padding(EdgeInsets(top: 0, leading: 0, bottom: 20, trailing: 0))
+        .padding(EdgeInsets(top: 0, leading: 0, bottom: 15, trailing: 0))
     }
 }
 

@@ -164,7 +164,7 @@
 		5BB257942CEDA709005C3F10 /* OneHandWidthSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OneHandWidthSettingsView.swift; sourceTree = "<group>"; };
 		5BB257962CEDBABB005C3F10 /* PreviewChevronButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewChevronButton.swift; sourceTree = "<group>"; };
 		5BDCDED62C67458600035B01 /* KeyboardTestView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardTestView.swift; sourceTree = "<group>"; };
-		5BDD2F5E2D34BA97003F87C0 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		5BDD2F5E2D34BA97003F87C0 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		5BDD2F6F2D34FD45003F87C0 /* RequestFullAccessOverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RequestFullAccessOverlayView.swift; sourceTree = "<group>"; };
 		5BFFC5DC2D3812D5000BC603 /* Bundle+AppVersion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Bundle+AppVersion.swift"; sourceTree = "<group>"; };
 		5BFFC5E82D394620000BC603 /* RequestReviewViewModifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RequestReviewViewModifier.swift; sourceTree = "<group>"; };
@@ -248,14 +248,14 @@
 		5B7B3F582C569B7800F7C093 /* SYKeyboard */ = {
 			isa = PBXGroup;
 			children = (
+				5BACCE442C9096DE006DCFB7 /* Config.xcconfig */,
+				5BACCE422C9094AB006DCFB7 /* version.sh */,
+				5BDD2F5E2D34BA97003F87C0 /* Info.plist */,
+				5B3C37A72D39F88900A7AABE /* GoogleService-Info.plist */,
 				5B1857012D4001AC00895400 /* InfoPlist.xcstrings */,
 				5B1856FF2D40005300895400 /* Localizable.xcstrings */,
-				5BDD2F5E2D34BA97003F87C0 /* Info.plist */,
 				5B7B3F5D2C569B7800F7C093 /* Assets.xcassets */,
-				5B3C37A72D39F88900A7AABE /* GoogleService-Info.plist */,
 				5BA419DB2CB98F2E005E7C86 /* GitShellScript */,
-				5BACCE422C9094AB006DCFB7 /* version.sh */,
-				5BACCE442C9096DE006DCFB7 /* Config.xcconfig */,
 				5B0D82502C63F75900F84180 /* SYKeyboard.entitlements */,
 				5B7B3F592C569B7800F7C093 /* SYKeyboardApp.swift */,
 				5B7B3F5B2C569B7800F7C093 /* ContentView.swift */,
@@ -286,9 +286,9 @@
 		5B7B3F6C2C569B8200F7C093 /* Keyboard */ = {
 			isa = PBXGroup;
 			children = (
+				5B7B3F6F2C569B8200F7C093 /* Info.plist */,
 				5B1857052D402EB800895400 /* InfoPlist.xcstrings */,
 				5B1857072D4046D600895400 /* Localizable.xcstrings */,
-				5B7B3F6F2C569B8200F7C093 /* Info.plist */,
 				5B9472322C8AD70900B8B154 /* InputMethod */,
 				5B0D82512C63FDC300F84180 /* Keyboard.entitlements */,
 				5B7B3F6D2C569B8200F7C093 /* KeyboardViewController.swift */,
