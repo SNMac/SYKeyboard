@@ -6,7 +6,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "‼️ Requires ‘Allow Full Access’ Enabled ‼️"
+            "value" : "‼️ Requires Allow Full Access Enabled ‼️"
           }
         }
       }
@@ -52,7 +52,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "If 'Allow Full Access' is disabled, some features might not work."
+            "value" : "If Allow Full Access is disabled, some features might not work."
           }
         }
       }
@@ -60,7 +60,7 @@
     "한글" : {
       "shouldTranslate" : false
     },
-    "활성화 방법: 키보드 ➡️ 전체 접근 허용 활성화" : {
+    "활성화 방법: 키보드 ➡️ '전체 접근 허용' 활성화" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {

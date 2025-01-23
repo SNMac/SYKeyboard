@@ -38,7 +38,7 @@ struct KeyboardSettingsView: View {
             } header: {
                 Text("키보드 추가 및 권한 설정")
             } footer: {
-                Text("키보드 ➡️ SY키보드 및 전체 접근 허용 활성화")
+                Text("키보드 ➡️ 'SY키보드' 및 '전체 접근 허용' 활성화")
                     .font(.system(.caption))
             }
             .alignmentGuide(.listRowSeparatorLeading) { dimensions in

@@ -46,7 +46,7 @@ class RequestFullAccessOverlayView: UIView {
     
     private let descriptionLabel2: UILabel = {
         let label = UILabel()
-        let localStr = String(localized: "활성화 방법: 키보드 ➡️ 전체 접근 허용 활성화")
+        let localStr = String(localized: "활성화 방법: 키보드 ➡️ '전체 접근 허용' 활성화")
         label.text = localStr
         label.font = .systemFont(ofSize: 15)
         label.numberOfLines = 2
