@@ -54,13 +54,13 @@ struct CursorMovementSettingsView: View {
                 Section {
                     cursorActiveWidthSetting
                 } header: {
-                    Text("활성화 거리")
+                    Text("활성화 드래그 거리")
                 }
                 
                 Section {
                     cursorMoveWidthSetting
                 } header: {
-                    Text("이동 간격")
+                    Text("이동 드래그 간격")
                 }
             }
             .navigationTitle("커서 이동")

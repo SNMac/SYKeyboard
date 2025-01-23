@@ -57,6 +57,9 @@
     "%.1f" : {
       "shouldTranslate" : false
     },
+    "%.2f" : {
+      "shouldTranslate" : false
+    },
     "%lld" : {
       "shouldTranslate" : false
     },
@@ -99,16 +102,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Space/return after typing symbols ➡️ Hangeul Keyboard"
-          }
-        }
-      }
-    },
-    "길게 누르기" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Long Press"
           }
         }
       }
@@ -163,16 +156,6 @@
         }
       }
     },
-    "반복 속도" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Repeat Rate"
-          }
-        }
-      }
-    },
     "반복 입력" : {
       "localizations" : {
         "en" : {
@@ -189,6 +172,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "How to Key Repeat"
+          }
+        }
+      }
+    },
+    "반복 지연 시간" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delay until Repeat"
           }
         }
       }
@@ -293,12 +286,12 @@
         }
       }
     },
-    "이동 간격" : {
+    "이동 드래그 간격" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Movement Interval"
+            "value" : "Movement Drag Interval"
           }
         }
       }
@@ -369,6 +362,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "How to Move Cursor"
+          }
+        }
+      }
+    },
+    "키 반복 속도" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Key Repeat Rate"
           }
         }
       }
@@ -513,12 +516,12 @@
         }
       }
     },
-    "활성화 거리" : {
+    "활성화 드래그 거리" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Activation Distance"
+            "value" : "Activation Drag Distance"
           }
         }
       }

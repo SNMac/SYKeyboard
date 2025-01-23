@@ -52,25 +52,25 @@ struct GlobalValues {
         if defaults?.object(forKey: "isTextReplacementEnabled") == nil {
             defaults?.set(true, forKey: "isTextReplacementEnabled")
         }
-        // 스페이스 후 한글 키보드로 변경
+        // 스페이스/리턴 입력 후 한글 키보드로 변경
         if defaults?.object(forKey: "isAutoChangeToHangeulEnabled") == nil {
             defaults?.set(true, forKey: "isAutoChangeToHangeulEnabled")
         }
         
         /* 입력 설정 -> 속도/커서 설정 */
-        // 길게 누르기 속도
+        // 반복 지연 시간
         if defaults?.object(forKey: "longPressDuration") == nil {
             defaults?.set(GlobalValues.defaultLongPressDuration, forKey: "longPressDuration")
         }
-        // 반복 입력 속도
+        // 키 반복 속도
         if defaults?.object(forKey: "repeatRate") == nil {
             defaults?.set(GlobalValues.defaultRepeatRate, forKey: "repeatRate")
         }
-        // 커서 이동 활성화 거리
+        // 활성화 드래그 거리
         if defaults?.object(forKey: "cursorActiveWidth") == nil {
             defaults?.set(GlobalValues.defaultCursorActiveWidth, forKey: "cursorActiveWidth")
         }
-        // 커서 이동 간격
+        // 이동 드래그 간격
         if defaults?.object(forKey: "cursorMoveWidth") == nil {
             defaults?.set(GlobalValues.defaultCursorMoveWidth, forKey: "cursorMoveWidth")
         }
@@ -93,7 +93,7 @@ struct GlobalValues {
             defaults?.set(GlobalValues.defaultOneHandedKeyboardWidth, forKey: "oneHandedKeyboardWidth")
         }
         
-        /* 키보드 전환 버튼 표시 설정용 */
+        /* 키보드 전환 버튼(􀆪) 표시 설정용 */
         if defaults?.object(forKey: "needsInputModeSwitchKey") == nil {
             defaults?.set(true, forKey: "needsInputModeSwitchKey")
         }

@@ -13,7 +13,7 @@ struct KeyRepeatSettingsView: View {
     
     private var longPressDurationSetting: some View {
         HStack {
-            Text("\(longPressDuration * 10, specifier: "%.1f")")
+            Text("\(longPressDuration, specifier: "%.2f")")
                 .frame(width: 40)
                 .monospacedDigit()
             Slider(value: $longPressDuration, in: 0.1...0.9, step: 0.05) { _ in
@@ -54,13 +54,13 @@ struct KeyRepeatSettingsView: View {
                 Section {
                     longPressDurationSetting
                 } header: {
-                    Text("길게 누르기")
+                    Text("반복 지연 시간")
                 }
                 
                 Section {
                     repeatRateSetting
                 } header: {
-                    Text("반복 속도")
+                    Text("키 반복 속도")
                 }
             }
             .navigationTitle("반복 입력")
