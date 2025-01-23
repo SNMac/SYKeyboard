@@ -14,22 +14,22 @@
     "!#1" : {
       "shouldTranslate" : false
     },
-    "'!#1' 또는 '한글' 또는 '123' 버튼을 위로 드래그 or 길게 누르기" : {
+    "'!#1' 또는 '한글' 버튼을 위로 드래그 or 길게 누르기" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Drag ‘!#1’ or ‘한글’ or ‘123’ button up or long press"
+            "value" : "Drag ‘!#1’ or ‘한글’ button up or long press"
           }
         }
       }
     },
-    "'!#1' 또는 '한글' 또는 '123' 버튼을 위로 드래그하거나 길게 눌러 변경" : {
+    "'!#1' 또는 '한글' 버튼을 위로 드래그하거나 길게 눌러 변경" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Drag ‘!#1’ or ‘한글’ or ‘123’ button up or long press to change"
+            "value" : "Drag ‘!#1’ or ‘한글’ button up or long press to change"
           }
         }
       }

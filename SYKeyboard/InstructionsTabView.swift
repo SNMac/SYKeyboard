@@ -25,7 +25,7 @@ struct InstructionsTabView: View {
             InstructionsPageView(title: numericPageTitleLocalStr, imageName: "instruction_change_numeric", subtitle: numericPageSubtitleLocalStr)
             
             let oneHandedPageTitleLocalStr = String(localized: "한 손 키보드 변경 방법")
-            let oneHandedPageSubtitleLocalStr = String(localized: "'!#1' 또는 '한글' 또는 '123' 버튼을 위로 드래그 or 길게 누르기")
+            let oneHandedPageSubtitleLocalStr = String(localized: "'!#1' 또는 '한글' 버튼을 위로 드래그 or 길게 누르기")
             InstructionsPageView(title: oneHandedPageTitleLocalStr, imageName: "instruction_change_one_handed", subtitle: oneHandedPageSubtitleLocalStr)
         }
         .tabViewStyle(PageTabViewStyle())
