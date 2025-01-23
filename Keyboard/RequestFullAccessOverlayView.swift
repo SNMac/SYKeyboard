@@ -29,7 +29,7 @@ class RequestFullAccessOverlayView: UIView {
         let label = UILabel()
         let localStr = String(localized: "‼️ 전체 접근 허용 활성화 필요 ‼️")
         label.text = localStr
-        label.font = .systemFont(ofSize: 18, weight: .bold)
+        label.font = .systemFont(ofSize: 17, weight: .bold)
         
         return label
     }()
