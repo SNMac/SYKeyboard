@@ -14,8 +14,8 @@ struct GlobalValues {
     
     static let defaultKeyboardHeight: Double = 240.0
     static let defaultOneHandedKeyboardWidth: Double = 320.0
-    static let defaultLongPressSpeed: Double = 0.5
-    static let defaultRepeatTimerSpeed: Double = 0.05
+    static let defaultLongPressDuration: Double = 0.5
+    static let defaultRepeatRate: Double = 0.05
     static let defaultCursorActiveWidth: Double = 50.0
     static let defaultCursorMoveWidth: Double = 5.0
     
@@ -59,12 +59,12 @@ struct GlobalValues {
         
         /* 입력 설정 -> 속도/커서 설정 */
         // 길게 누르기 속도
-        if defaults?.object(forKey: "longPressSpeed") == nil {
-            defaults?.set(GlobalValues.defaultLongPressSpeed, forKey: "longPressSpeed")
+        if defaults?.object(forKey: "longPressDuration") == nil {
+            defaults?.set(GlobalValues.defaultLongPressDuration, forKey: "longPressDuration")
         }
         // 반복 입력 속도
-        if defaults?.object(forKey: "repeatTimerSpeed") == nil {
-            defaults?.set(GlobalValues.defaultRepeatTimerSpeed, forKey: "repeatTimerSpeed")
+        if defaults?.object(forKey: "repeatRate") == nil {
+            defaults?.set(GlobalValues.defaultRepeatRate, forKey: "repeatRate")
         }
         // 커서 이동 활성화 거리
         if defaults?.object(forKey: "cursorActiveWidth") == nil {

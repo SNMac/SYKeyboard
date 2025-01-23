@@ -54,8 +54,8 @@ final class KeyboardState: ObservableObject {
     weak var delegate: KeyboardDelegate?
     var keyboardHeight: CGFloat
     var oneHandedKeyboardWidth: CGFloat
-    var longPressTime: Double
-    var repeatTimerCycle: Double
+    var longPressDuration: Double
+    var repeatTimerInterval: Double
     var needsInputModeSwitchKey: Bool
     var nextKeyboardAction: Selector
     
@@ -66,16 +66,16 @@ final class KeyboardState: ObservableObject {
         delegate: KeyboardDelegate,
         keyboardHeight: CGFloat,
         oneHandedKeyboardWidth: CGFloat,
-        longPressTime: Double,
-        repeatTimerCycle: Double,
+        longPressDuration: Double,
+        repeatTimerInterval: Double,
         needsInputModeSwitchKey: Bool,
         nextKeyboardAction: Selector
     ) {
         self.delegate = delegate
         self.keyboardHeight = keyboardHeight
         self.oneHandedKeyboardWidth = oneHandedKeyboardWidth
-        self.longPressTime = longPressTime
-        self.repeatTimerCycle = repeatTimerCycle
+        self.longPressDuration = longPressDuration
+        self.repeatTimerInterval = repeatTimerInterval
         self.needsInputModeSwitchKey = needsInputModeSwitchKey
         self.nextKeyboardAction = nextKeyboardAction
     }

@@ -28,7 +28,7 @@ struct PreviewKeyboardButton: View {
     private let log = OSLog(subsystem: "github.com-SNMac.SYKeyboard", category: "PreviewKeyboardButton")
     
     @EnvironmentObject private var state: PreviewKeyboardState
-    @AppStorage("longPressSpeed", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var longPressSpeed = GlobalValues.defaultLongPressSpeed
+    @AppStorage("longPressDuration", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var longPressDuration = GlobalValues.defaultLongPressDuration
     @AppStorage("cursorActiveWidth", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var cursorActiveWidth = GlobalValues.defaultCursorActiveWidth
     @AppStorage("cursorMoveWidth", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var cursorMoveWidth = GlobalValues.defaultCursorMoveWidth
     @AppStorage("needsInputModeSwitchKey", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var needsInputModeSwitchKey = true
@@ -208,7 +208,7 @@ struct PreviewKeyboardButton: View {
     
     // MARK: - PreviewKeyboardButton
     var body: some View {
-        let longPressTime = 1.0 - longPressSpeed
+        let longPressDuration = 1.0 - longPressDuration
         
         Button(action: {}) {
             // Image 버튼들
@@ -316,7 +316,7 @@ struct PreviewKeyboardButton: View {
                 })
         )
         .simultaneousGesture(
-            LongPressGesture(minimumDuration: longPressTime, maximumDistance: cursorActiveWidth)
+            LongPressGesture(minimumDuration: longPressDuration, maximumDistance: cursorActiveWidth)
             // 버튼 길게 눌렀을 때
                 .onEnded({ _ in
                     os_log("simultaneous_LongPressGesture() onEnded: longPressed", log: log, type: .debug)

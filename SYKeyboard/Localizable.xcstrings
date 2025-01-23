@@ -193,16 +193,6 @@
         }
       }
     },
-    "반복/커서 설정" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Repeat/Cursor Settings"
-          }
-        }
-      }
-    },
     "버전" : {
       "localizations" : {
         "en" : {

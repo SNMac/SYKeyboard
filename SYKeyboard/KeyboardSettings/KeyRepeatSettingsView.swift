@@ -1,0 +1,75 @@
+//
+//  KeyRepeatSettingsView.swift
+//  SYKeyboard
+//
+//  Created by 서동환 on 9/5/24.
+//
+
+import SwiftUI
+
+struct KeyRepeatSettingsView: View {
+    @AppStorage("longPressDuration", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var longPressDuration = GlobalValues.defaultLongPressDuration
+    @AppStorage("repeatRate", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var repeatRate = GlobalValues.defaultRepeatRate
+    
+    private var longPressDurationSetting: some View {
+        HStack {
+            Text("\(longPressDuration * 10, specifier: "%.1f")")
+                .frame(width: 40)
+                .monospacedDigit()
+            Slider(value: $longPressDuration, in: 0.1...0.9, step: 0.05) { _ in
+                hideKeyboard()
+            }
+            Button {
+                longPressDuration = GlobalValues.defaultLongPressDuration
+                hideKeyboard()
+            } label: {
+                Text("리셋")
+            }
+            .buttonStyle(BorderlessButtonStyle())
+        }
+    }
+    
+    private var repeatRateSetting: some View {
+        HStack {
+            Text("\(repeatRate * 100, specifier: "%.1f")")
+                .frame(width: 40)
+                .monospacedDigit()
+            Slider(value: $repeatRate, in: 0.01...0.09, step: 0.005) { _ in
+                hideKeyboard()
+            }
+            Button {
+                repeatRate = GlobalValues.defaultRepeatRate
+                hideKeyboard()
+            } label: {
+                Text("리셋")
+            }
+            .buttonStyle(BorderlessButtonStyle())
+        }
+    }
+    
+    var body: some View {
+        NavigationStack {
+            KeyboardTestView()
+            List {
+                Section {
+                    longPressDurationSetting
+                } header: {
+                    Text("길게 누르기")
+                }
+                
+                Section {
+                    repeatRateSetting
+                } header: {
+                    Text("반복 속도")
+                }
+            }
+            .navigationTitle("반복 입력")
+            .navigationBarTitleDisplayMode(.inline)
+            .requestReviewViewModifier()
+        }
+    }
+}
+
+#Preview {
+    KeyRepeatSettingsView()
+}

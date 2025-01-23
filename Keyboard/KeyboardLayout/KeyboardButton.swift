@@ -621,7 +621,7 @@ struct KeyboardButton: View {
                 })
         )
         .simultaneousGesture(
-            LongPressGesture(minimumDuration: state.longPressTime, maximumDistance: cursorActiveWidth)
+            LongPressGesture(minimumDuration: state.longPressDuration, maximumDistance: cursorActiveWidth)
             // 버튼 길게 눌렀을 때
                 .onEnded({ _ in
                     os_log("simultaneous_LongPressGesture() onEnded: longPressed", log: log, type: .debug)

@@ -40,7 +40,7 @@ struct EmailSymbolView: View {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
                             state.delegate?.otherKeypadTap(letter: symbols[state.nowSymbolPage][0])
-                            timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
+                            timer = Timer.publish(every: state.repeatTimerInterval, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
@@ -67,7 +67,7 @@ struct EmailSymbolView: View {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
                             state.delegate?.otherKeypadTap(letter: symbols[state.nowSymbolPage][1])
-                            timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
+                            timer = Timer.publish(every: state.repeatTimerInterval, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
@@ -94,7 +94,7 @@ struct EmailSymbolView: View {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
                             state.delegate?.otherKeypadTap(letter: symbols[state.nowSymbolPage][2])
-                            timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
+                            timer = Timer.publish(every: state.repeatTimerInterval, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
@@ -121,7 +121,7 @@ struct EmailSymbolView: View {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
                             state.delegate?.otherKeypadTap(letter: symbols[state.nowSymbolPage][3])
-                            timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
+                            timer = Timer.publish(every: state.repeatTimerInterval, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
@@ -148,7 +148,7 @@ struct EmailSymbolView: View {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
                             state.delegate?.otherKeypadTap(letter: symbols[state.nowSymbolPage][4])
-                            timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
+                            timer = Timer.publish(every: state.repeatTimerInterval, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
@@ -175,7 +175,7 @@ struct EmailSymbolView: View {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
                             state.delegate?.otherKeypadTap(letter: symbols[state.nowSymbolPage][5])
-                            timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
+                            timer = Timer.publish(every: state.repeatTimerInterval, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
@@ -202,7 +202,7 @@ struct EmailSymbolView: View {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
                             state.delegate?.otherKeypadTap(letter: symbols[state.nowSymbolPage][6])
-                            timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
+                            timer = Timer.publish(every: state.repeatTimerInterval, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
@@ -229,7 +229,7 @@ struct EmailSymbolView: View {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
                             state.delegate?.otherKeypadTap(letter: symbols[state.nowSymbolPage][7])
-                            timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
+                            timer = Timer.publish(every: state.repeatTimerInterval, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
@@ -256,7 +256,7 @@ struct EmailSymbolView: View {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
                             state.delegate?.otherKeypadTap(letter: symbols[state.nowSymbolPage][8])
-                            timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
+                            timer = Timer.publish(every: state.repeatTimerInterval, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
@@ -283,7 +283,7 @@ struct EmailSymbolView: View {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
                             state.delegate?.otherKeypadTap(letter: symbols[state.nowSymbolPage][9])
-                            timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
+                            timer = Timer.publish(every: state.repeatTimerInterval, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
@@ -313,7 +313,7 @@ struct EmailSymbolView: View {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
                             state.delegate?.otherKeypadTap(letter: symbols[state.nowSymbolPage][10])
-                            timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
+                            timer = Timer.publish(every: state.repeatTimerInterval, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
@@ -340,7 +340,7 @@ struct EmailSymbolView: View {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
                             state.delegate?.otherKeypadTap(letter: symbols[state.nowSymbolPage][11])
-                            timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
+                            timer = Timer.publish(every: state.repeatTimerInterval, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
@@ -367,7 +367,7 @@ struct EmailSymbolView: View {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
                             state.delegate?.otherKeypadTap(letter: symbols[state.nowSymbolPage][12])
-                            timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
+                            timer = Timer.publish(every: state.repeatTimerInterval, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
@@ -394,7 +394,7 @@ struct EmailSymbolView: View {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
                             state.delegate?.otherKeypadTap(letter: symbols[state.nowSymbolPage][13])
-                            timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
+                            timer = Timer.publish(every: state.repeatTimerInterval, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
@@ -421,7 +421,7 @@ struct EmailSymbolView: View {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
                             state.delegate?.otherKeypadTap(letter: symbols[state.nowSymbolPage][14])
-                            timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
+                            timer = Timer.publish(every: state.repeatTimerInterval, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
@@ -448,7 +448,7 @@ struct EmailSymbolView: View {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
                             state.delegate?.otherKeypadTap(letter: symbols[state.nowSymbolPage][15])
-                            timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
+                            timer = Timer.publish(every: state.repeatTimerInterval, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
@@ -475,7 +475,7 @@ struct EmailSymbolView: View {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
                             state.delegate?.otherKeypadTap(letter: symbols[state.nowSymbolPage][16])
-                            timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
+                            timer = Timer.publish(every: state.repeatTimerInterval, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
@@ -502,7 +502,7 @@ struct EmailSymbolView: View {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
                             state.delegate?.otherKeypadTap(letter: symbols[state.nowSymbolPage][17])
-                            timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
+                            timer = Timer.publish(every: state.repeatTimerInterval, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
@@ -542,7 +542,7 @@ struct EmailSymbolView: View {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
                             state.delegate?.otherKeypadTap(letter: symbols[state.nowSymbolPage][18])
-                            timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
+                            timer = Timer.publish(every: state.repeatTimerInterval, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
@@ -569,7 +569,7 @@ struct EmailSymbolView: View {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
                             state.delegate?.otherKeypadTap(letter: symbols[state.nowSymbolPage][19])
-                            timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
+                            timer = Timer.publish(every: state.repeatTimerInterval, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
@@ -596,7 +596,7 @@ struct EmailSymbolView: View {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
                             state.delegate?.otherKeypadTap(letter: symbols[state.nowSymbolPage][20])
-                            timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
+                            timer = Timer.publish(every: state.repeatTimerInterval, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
@@ -623,7 +623,7 @@ struct EmailSymbolView: View {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
                             state.delegate?.otherKeypadTap(letter: symbols[state.nowSymbolPage][21])
-                            timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
+                            timer = Timer.publish(every: state.repeatTimerInterval, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
@@ -645,7 +645,7 @@ struct EmailSymbolView: View {
                             let _ = state.delegate?.removeKeypadTap(isLongPress: false)
                         },
                         onLongPress: {
-                            timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
+                            timer = Timer.publish(every: state.repeatTimerInterval, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     if let isDeleted = state.delegate?.removeKeypadTap(isLongPress: true) {
@@ -713,7 +713,7 @@ struct EmailSymbolView: View {
                             Feedback.shared.playModifierSound()
                             Feedback.shared.playHaptic(style: .light)
                             state.delegate?.spaceKeypadTap()
-                            timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
+                            timer = Timer.publish(every: state.repeatTimerInterval, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playModifierSound()
@@ -741,7 +741,7 @@ struct EmailSymbolView: View {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
                             state.delegate?.otherKeypadTap(letter: "@")
-                            timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
+                            timer = Timer.publish(every: state.repeatTimerInterval, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()

@@ -35,7 +35,7 @@ struct TenKeyView: View {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
                             state.delegate?.otherKeypadTap(letter: "1")
-                            timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
+                            timer = Timer.publish(every: state.repeatTimerInterval, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
@@ -62,7 +62,7 @@ struct TenKeyView: View {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
                             state.delegate?.otherKeypadTap(letter: "2")
-                            timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
+                            timer = Timer.publish(every: state.repeatTimerInterval, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
@@ -89,7 +89,7 @@ struct TenKeyView: View {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
                             state.delegate?.otherKeypadTap(letter: "3")
-                            timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
+                            timer = Timer.publish(every: state.repeatTimerInterval, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
@@ -120,7 +120,7 @@ struct TenKeyView: View {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
                             state.delegate?.otherKeypadTap(letter: "4")
-                            timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
+                            timer = Timer.publish(every: state.repeatTimerInterval, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
@@ -147,7 +147,7 @@ struct TenKeyView: View {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
                             state.delegate?.otherKeypadTap(letter: "5")
-                            timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
+                            timer = Timer.publish(every: state.repeatTimerInterval, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
@@ -174,7 +174,7 @@ struct TenKeyView: View {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
                             state.delegate?.otherKeypadTap(letter: "6")
-                            timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
+                            timer = Timer.publish(every: state.repeatTimerInterval, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
@@ -204,7 +204,7 @@ struct TenKeyView: View {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
                             state.delegate?.otherKeypadTap(letter: "7")
-                            timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
+                            timer = Timer.publish(every: state.repeatTimerInterval, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
@@ -231,7 +231,7 @@ struct TenKeyView: View {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
                             state.delegate?.otherKeypadTap(letter: "8")
-                            timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
+                            timer = Timer.publish(every: state.repeatTimerInterval, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
@@ -258,7 +258,7 @@ struct TenKeyView: View {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
                             state.delegate?.otherKeypadTap(letter: "9")
-                            timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
+                            timer = Timer.publish(every: state.repeatTimerInterval, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
@@ -300,7 +300,7 @@ struct TenKeyView: View {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
                             state.delegate?.otherKeypadTap(letter: "0")
-                            timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
+                            timer = Timer.publish(every: state.repeatTimerInterval, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
@@ -322,7 +322,7 @@ struct TenKeyView: View {
                             let _ = state.delegate?.removeKeypadTap(isLongPress: false)
                         },
                         onLongPress: {
-                            timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
+                            timer = Timer.publish(every: state.repeatTimerInterval, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     if let isDeleted = state.delegate?.removeKeypadTap(isLongPress: true) {

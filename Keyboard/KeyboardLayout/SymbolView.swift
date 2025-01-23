@@ -44,7 +44,7 @@ struct SymbolView: View {
                             Feedback.shared.playHaptic(style: .light)
                             state.delegate?.otherKeypadTap(letter: symbols[state.nowSymbolPage][0])
                             isSymbolInput = true
-                            timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
+                            timer = Timer.publish(every: state.repeatTimerInterval, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
@@ -73,7 +73,7 @@ struct SymbolView: View {
                             Feedback.shared.playHaptic(style: .light)
                             state.delegate?.otherKeypadTap(letter: symbols[state.nowSymbolPage][1])
                             isSymbolInput = true
-                            timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
+                            timer = Timer.publish(every: state.repeatTimerInterval, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
@@ -102,7 +102,7 @@ struct SymbolView: View {
                             Feedback.shared.playHaptic(style: .light)
                             state.delegate?.otherKeypadTap(letter: symbols[state.nowSymbolPage][2])
                             isSymbolInput = true
-                            timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
+                            timer = Timer.publish(every: state.repeatTimerInterval, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
@@ -131,7 +131,7 @@ struct SymbolView: View {
                             Feedback.shared.playHaptic(style: .light)
                             state.delegate?.otherKeypadTap(letter: symbols[state.nowSymbolPage][3])
                             isSymbolInput = true
-                            timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
+                            timer = Timer.publish(every: state.repeatTimerInterval, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
@@ -160,7 +160,7 @@ struct SymbolView: View {
                             Feedback.shared.playHaptic(style: .light)
                             state.delegate?.otherKeypadTap(letter: symbols[state.nowSymbolPage][4])
                             isSymbolInput = true
-                            timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
+                            timer = Timer.publish(every: state.repeatTimerInterval, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
@@ -189,7 +189,7 @@ struct SymbolView: View {
                             Feedback.shared.playHaptic(style: .light)
                             state.delegate?.otherKeypadTap(letter: symbols[state.nowSymbolPage][5])
                             isSymbolInput = true
-                            timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
+                            timer = Timer.publish(every: state.repeatTimerInterval, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
@@ -218,7 +218,7 @@ struct SymbolView: View {
                             Feedback.shared.playHaptic(style: .light)
                             state.delegate?.otherKeypadTap(letter: symbols[state.nowSymbolPage][6])
                             isSymbolInput = true
-                            timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
+                            timer = Timer.publish(every: state.repeatTimerInterval, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
@@ -247,7 +247,7 @@ struct SymbolView: View {
                             Feedback.shared.playHaptic(style: .light)
                             state.delegate?.otherKeypadTap(letter: symbols[state.nowSymbolPage][7])
                             isSymbolInput = true
-                            timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
+                            timer = Timer.publish(every: state.repeatTimerInterval, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
@@ -276,7 +276,7 @@ struct SymbolView: View {
                             Feedback.shared.playHaptic(style: .light)
                             state.delegate?.otherKeypadTap(letter: symbols[state.nowSymbolPage][8])
                             isSymbolInput = true
-                            timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
+                            timer = Timer.publish(every: state.repeatTimerInterval, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
@@ -305,7 +305,7 @@ struct SymbolView: View {
                             Feedback.shared.playHaptic(style: .light)
                             state.delegate?.otherKeypadTap(letter: symbols[state.nowSymbolPage][9])
                             isSymbolInput = true
-                            timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
+                            timer = Timer.publish(every: state.repeatTimerInterval, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
@@ -337,7 +337,7 @@ struct SymbolView: View {
                             Feedback.shared.playHaptic(style: .light)
                             state.delegate?.otherKeypadTap(letter: symbols[state.nowSymbolPage][10])
                             isSymbolInput = true
-                            timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
+                            timer = Timer.publish(every: state.repeatTimerInterval, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
@@ -366,7 +366,7 @@ struct SymbolView: View {
                             Feedback.shared.playHaptic(style: .light)
                             state.delegate?.otherKeypadTap(letter: symbols[state.nowSymbolPage][11])
                             isSymbolInput = true
-                            timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
+                            timer = Timer.publish(every: state.repeatTimerInterval, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
@@ -395,7 +395,7 @@ struct SymbolView: View {
                             Feedback.shared.playHaptic(style: .light)
                             state.delegate?.otherKeypadTap(letter: symbols[state.nowSymbolPage][12])
                             isSymbolInput = true
-                            timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
+                            timer = Timer.publish(every: state.repeatTimerInterval, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
@@ -424,7 +424,7 @@ struct SymbolView: View {
                             Feedback.shared.playHaptic(style: .light)
                             state.delegate?.otherKeypadTap(letter: symbols[state.nowSymbolPage][13])
                             isSymbolInput = true
-                            timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
+                            timer = Timer.publish(every: state.repeatTimerInterval, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
@@ -453,7 +453,7 @@ struct SymbolView: View {
                             Feedback.shared.playHaptic(style: .light)
                             state.delegate?.otherKeypadTap(letter: symbols[state.nowSymbolPage][14])
                             isSymbolInput = true
-                            timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
+                            timer = Timer.publish(every: state.repeatTimerInterval, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
@@ -482,7 +482,7 @@ struct SymbolView: View {
                             Feedback.shared.playHaptic(style: .light)
                             state.delegate?.otherKeypadTap(letter: symbols[state.nowSymbolPage][15])
                             isSymbolInput = true
-                            timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
+                            timer = Timer.publish(every: state.repeatTimerInterval, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
@@ -511,7 +511,7 @@ struct SymbolView: View {
                             Feedback.shared.playHaptic(style: .light)
                             state.delegate?.otherKeypadTap(letter: symbols[state.nowSymbolPage][16])
                             isSymbolInput = true
-                            timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
+                            timer = Timer.publish(every: state.repeatTimerInterval, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
@@ -540,7 +540,7 @@ struct SymbolView: View {
                             Feedback.shared.playHaptic(style: .light)
                             state.delegate?.otherKeypadTap(letter: symbols[state.nowSymbolPage][17])
                             isSymbolInput = true
-                            timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
+                            timer = Timer.publish(every: state.repeatTimerInterval, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
@@ -569,7 +569,7 @@ struct SymbolView: View {
                             Feedback.shared.playHaptic(style: .light)
                             state.delegate?.otherKeypadTap(letter: symbols[state.nowSymbolPage][18])
                             isSymbolInput = true
-                            timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
+                            timer = Timer.publish(every: state.repeatTimerInterval, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
@@ -598,7 +598,7 @@ struct SymbolView: View {
                             Feedback.shared.playHaptic(style: .light)
                             state.delegate?.otherKeypadTap(letter: symbols[state.nowSymbolPage][19])
                             isSymbolInput = true
-                            timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
+                            timer = Timer.publish(every: state.repeatTimerInterval, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
@@ -638,7 +638,7 @@ struct SymbolView: View {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
                             state.delegate?.otherKeypadTap(letter: symbols[state.nowSymbolPage][20])
-                            timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
+                            timer = Timer.publish(every: state.repeatTimerInterval, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
@@ -667,7 +667,7 @@ struct SymbolView: View {
                             Feedback.shared.playHaptic(style: .light)
                             state.delegate?.otherKeypadTap(letter: symbols[state.nowSymbolPage][21])
                             isSymbolInput = true
-                            timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
+                            timer = Timer.publish(every: state.repeatTimerInterval, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
@@ -696,7 +696,7 @@ struct SymbolView: View {
                             Feedback.shared.playHaptic(style: .light)
                             state.delegate?.otherKeypadTap(letter: symbols[state.nowSymbolPage][22])
                             isSymbolInput = true
-                            timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
+                            timer = Timer.publish(every: state.repeatTimerInterval, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
@@ -725,7 +725,7 @@ struct SymbolView: View {
                             Feedback.shared.playHaptic(style: .light)
                             state.delegate?.otherKeypadTap(letter: symbols[state.nowSymbolPage][23])
                             isSymbolInput = true
-                            timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
+                            timer = Timer.publish(every: state.repeatTimerInterval, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
@@ -755,7 +755,7 @@ struct SymbolView: View {
                             Feedback.shared.playTypingSound()
                             Feedback.shared.playHaptic(style: .light)
                             state.delegate?.otherKeypadTap(letter: symbols[state.nowSymbolPage][24])
-                            timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
+                            timer = Timer.publish(every: state.repeatTimerInterval, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
@@ -780,7 +780,7 @@ struct SymbolView: View {
                             let _ = state.delegate?.removeKeypadTap(isLongPress: false)
                         },
                         onLongPress: {
-                            timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
+                            timer = Timer.publish(every: state.repeatTimerInterval, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     if let isDeleted = state.delegate?.removeKeypadTap(isLongPress: true) {
@@ -851,7 +851,7 @@ struct SymbolView: View {
                             Feedback.shared.playModifierSound()
                             Feedback.shared.playHaptic(style: .light)
                             state.delegate?.spaceKeypadTap()
-                            timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
+                            timer = Timer.publish(every: state.repeatTimerInterval, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playModifierSound()

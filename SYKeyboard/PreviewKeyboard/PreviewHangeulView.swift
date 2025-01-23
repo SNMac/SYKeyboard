@@ -10,7 +10,7 @@ import Combine
 
 struct PreviewHangeulView: View {
     @EnvironmentObject private var state: PreviewKeyboardState
-    @AppStorage("repeatTimerSpeed", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var repeatTimerSpeed = GlobalValues.defaultRepeatTimerSpeed
+    @AppStorage("repeatRate", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var repeatRate = GlobalValues.defaultRepeatRate
     @AppStorage("needsInputModeSwitchKey", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var needsInputModeSwitchKey = true
     
     @Binding var keyboardHeight: Double
@@ -24,7 +24,7 @@ struct PreviewHangeulView: View {
     private let interItemHPadding: CGFloat = 2.5
     
     var body: some View {
-        let repeatTimerCycle = 0.10 - repeatTimerSpeed
+        let repeatTimerInterval = 0.10 - repeatRate
         
         VStack(spacing: 0) {
             // MARK: - ㄱ, ㄴ, ㅏㅓ, 􀆛
@@ -38,7 +38,7 @@ struct PreviewHangeulView: View {
                     onLongPress: {
                         Feedback.shared.playTypingSound()
                         Feedback.shared.playHaptic(style: .light)
-                        timer = Timer.publish(every: repeatTimerCycle, on: .main, in: .common)
+                        timer = Timer.publish(every: repeatTimerInterval, on: .main, in: .common)
                             .autoconnect()
                             .sink { _ in
                                 Feedback.shared.playTypingSound()
@@ -59,7 +59,7 @@ struct PreviewHangeulView: View {
                     onLongPress: {
                         Feedback.shared.playTypingSound()
                         Feedback.shared.playHaptic(style: .light)
-                        timer = Timer.publish(every: repeatTimerCycle, on: .main, in: .common)
+                        timer = Timer.publish(every: repeatTimerInterval, on: .main, in: .common)
                             .autoconnect()
                             .sink { _ in
                                 Feedback.shared.playTypingSound()
@@ -81,7 +81,7 @@ struct PreviewHangeulView: View {
                     onLongPress: {
                         Feedback.shared.playTypingSound()
                         Feedback.shared.playHaptic(style: .light)
-                        timer = Timer.publish(every: repeatTimerCycle, on: .main, in: .common)
+                        timer = Timer.publish(every: repeatTimerInterval, on: .main, in: .common)
                             .autoconnect()
                             .sink { _ in
                                 Feedback.shared.playTypingSound()
@@ -101,7 +101,7 @@ struct PreviewHangeulView: View {
                         Feedback.shared.playHaptic(style: .light)
                     },
                     onLongPress: {
-                        timer = Timer.publish(every: repeatTimerCycle, on: .main, in: .common)
+                        timer = Timer.publish(every: repeatTimerInterval, on: .main, in: .common)
                             .autoconnect()
                             .sink { _ in
                                 Feedback.shared.playDeleteSound()
@@ -127,7 +127,7 @@ struct PreviewHangeulView: View {
                     onLongPress: {
                         Feedback.shared.playTypingSound()
                         Feedback.shared.playHaptic(style: .light)
-                        timer = Timer.publish(every: repeatTimerCycle, on: .main, in: .common)
+                        timer = Timer.publish(every: repeatTimerInterval, on: .main, in: .common)
                             .autoconnect()
                             .sink { _ in
                                 Feedback.shared.playTypingSound()
@@ -149,7 +149,7 @@ struct PreviewHangeulView: View {
                     onLongPress: {
                         Feedback.shared.playTypingSound()
                         Feedback.shared.playHaptic(style: .light)
-                        timer = Timer.publish(every: repeatTimerCycle, on: .main, in: .common)
+                        timer = Timer.publish(every: repeatTimerInterval, on: .main, in: .common)
                             .autoconnect()
                             .sink { _ in
                                 Feedback.shared.playTypingSound()
@@ -171,7 +171,7 @@ struct PreviewHangeulView: View {
                     onLongPress: {
                         Feedback.shared.playTypingSound()
                         Feedback.shared.playHaptic(style: .light)
-                        timer = Timer.publish(every: repeatTimerCycle, on: .main, in: .common)
+                        timer = Timer.publish(every: repeatTimerInterval, on: .main, in: .common)
                             .autoconnect()
                             .sink { _ in
                                 Feedback.shared.playTypingSound()
@@ -193,7 +193,7 @@ struct PreviewHangeulView: View {
                     onLongPress: {
                         Feedback.shared.playModifierSound()
                         Feedback.shared.playHaptic(style: .light)
-                        timer = Timer.publish(every: repeatTimerCycle, on: .main, in: .common)
+                        timer = Timer.publish(every: repeatTimerInterval, on: .main, in: .common)
                             .autoconnect()
                             .sink { _ in
                                 Feedback.shared.playModifierSound()
@@ -218,7 +218,7 @@ struct PreviewHangeulView: View {
                     onLongPress: {
                         Feedback.shared.playTypingSound()
                         Feedback.shared.playHaptic(style: .light)
-                        timer = Timer.publish(every: repeatTimerCycle, on: .main, in: .common)
+                        timer = Timer.publish(every: repeatTimerInterval, on: .main, in: .common)
                             .autoconnect()
                             .sink { _ in
                                 Feedback.shared.playTypingSound()
@@ -240,7 +240,7 @@ struct PreviewHangeulView: View {
                     onLongPress: {
                         Feedback.shared.playTypingSound()
                         Feedback.shared.playHaptic(style: .light)
-                        timer = Timer.publish(every: repeatTimerCycle, on: .main, in: .common)
+                        timer = Timer.publish(every: repeatTimerInterval, on: .main, in: .common)
                             .autoconnect()
                             .sink { _ in
                                 Feedback.shared.playTypingSound()
@@ -262,7 +262,7 @@ struct PreviewHangeulView: View {
                     onLongPress: {
                         Feedback.shared.playTypingSound()
                         Feedback.shared.playHaptic(style: .light)
-                        timer = Timer.publish(every: repeatTimerCycle, on: .main, in: .common)
+                        timer = Timer.publish(every: repeatTimerInterval, on: .main, in: .common)
                             .autoconnect()
                             .sink { _ in
                                 Feedback.shared.playTypingSound()
@@ -296,7 +296,7 @@ struct PreviewHangeulView: View {
                     onLongPress: {
                         Feedback.shared.playTypingSound()
                         Feedback.shared.playHaptic(style: .light)
-                        timer = Timer.publish(every: repeatTimerCycle, on: .main, in: .common)
+                        timer = Timer.publish(every: repeatTimerInterval, on: .main, in: .common)
                             .autoconnect()
                             .sink { _ in
                                 Feedback.shared.playTypingSound()
@@ -318,7 +318,7 @@ struct PreviewHangeulView: View {
                     onLongPress: {
                         Feedback.shared.playTypingSound()
                         Feedback.shared.playHaptic(style: .light)
-                        timer = Timer.publish(every: repeatTimerCycle, on: .main, in: .common)
+                        timer = Timer.publish(every: repeatTimerInterval, on: .main, in: .common)
                             .autoconnect()
                             .sink { _ in
                                 Feedback.shared.playTypingSound()
@@ -340,7 +340,7 @@ struct PreviewHangeulView: View {
                     onLongPress: {
                         Feedback.shared.playTypingSound()
                         Feedback.shared.playHaptic(style: .light)
-                        timer = Timer.publish(every: repeatTimerCycle, on: .main, in: .common)
+                        timer = Timer.publish(every: repeatTimerInterval, on: .main, in: .common)
                             .autoconnect()
                             .sink { _ in
                                 Feedback.shared.playTypingSound()

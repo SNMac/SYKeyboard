@@ -34,7 +34,7 @@ struct HangeulView: View {
                         Feedback.shared.playTypingSound()
                         Feedback.shared.playHaptic(style: .light)
                         state.delegate?.hangeulKeypadTap(letter: "ㄱ")
-                        timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
+                        timer = Timer.publish(every: state.repeatTimerInterval, on: .main, in: .common)
                             .autoconnect()
                             .sink { _ in
                                 Feedback.shared.playTypingSound()
@@ -61,7 +61,7 @@ struct HangeulView: View {
                         Feedback.shared.playTypingSound()
                         Feedback.shared.playHaptic(style: .light)
                         state.delegate?.hangeulKeypadTap(letter: "ㄴ")
-                        timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
+                        timer = Timer.publish(every: state.repeatTimerInterval, on: .main, in: .common)
                             .autoconnect()
                             .sink { _ in
                                 Feedback.shared.playTypingSound()
@@ -88,7 +88,7 @@ struct HangeulView: View {
                         Feedback.shared.playTypingSound()
                         Feedback.shared.playHaptic(style: .light)
                         state.delegate?.hangeulKeypadTap(letter: "ㅏ")
-                        timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
+                        timer = Timer.publish(every: state.repeatTimerInterval, on: .main, in: .common)
                             .autoconnect()
                             .sink { _ in
                                 Feedback.shared.playTypingSound()
@@ -110,7 +110,7 @@ struct HangeulView: View {
                         let _ = state.delegate?.removeKeypadTap(isLongPress: false)
                     },
                     onLongPress: {
-                        timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
+                        timer = Timer.publish(every: state.repeatTimerInterval, on: .main, in: .common)
                             .autoconnect()
                             .sink { _ in
                                 if let isDeleted = state.delegate?.removeKeypadTap(isLongPress: true) {
@@ -144,7 +144,7 @@ struct HangeulView: View {
                         Feedback.shared.playTypingSound()
                         Feedback.shared.playHaptic(style: .light)
                         state.delegate?.hangeulKeypadTap(letter: "ㄹ")
-                        timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
+                        timer = Timer.publish(every: state.repeatTimerInterval, on: .main, in: .common)
                             .autoconnect()
                             .sink { _ in
                                 Feedback.shared.playTypingSound()
@@ -171,7 +171,7 @@ struct HangeulView: View {
                         Feedback.shared.playTypingSound()
                         Feedback.shared.playHaptic(style: .light)
                         state.delegate?.hangeulKeypadTap(letter: "ㅁ")
-                        timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
+                        timer = Timer.publish(every: state.repeatTimerInterval, on: .main, in: .common)
                             .autoconnect()
                             .sink { _ in
                                 Feedback.shared.playTypingSound()
@@ -198,7 +198,7 @@ struct HangeulView: View {
                         Feedback.shared.playTypingSound()
                         Feedback.shared.playHaptic(style: .light)
                         state.delegate?.hangeulKeypadTap(letter: "ㅗ")
-                        timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
+                        timer = Timer.publish(every: state.repeatTimerInterval, on: .main, in: .common)
                             .autoconnect()
                             .sink { _ in
                                 Feedback.shared.playTypingSound()
@@ -225,7 +225,7 @@ struct HangeulView: View {
                         Feedback.shared.playModifierSound()
                         Feedback.shared.playHaptic(style: .light)
                         state.delegate?.spaceKeypadTap()
-                        timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
+                        timer = Timer.publish(every: state.repeatTimerInterval, on: .main, in: .common)
                             .autoconnect()
                             .sink { _ in
                                 Feedback.shared.playModifierSound()
@@ -255,7 +255,7 @@ struct HangeulView: View {
                         Feedback.shared.playTypingSound()
                         Feedback.shared.playHaptic(style: .light)
                         state.delegate?.hangeulKeypadTap(letter: "ㅅ")
-                        timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
+                        timer = Timer.publish(every: state.repeatTimerInterval, on: .main, in: .common)
                             .autoconnect()
                             .sink { _ in
                                 Feedback.shared.playTypingSound()
@@ -282,7 +282,7 @@ struct HangeulView: View {
                         Feedback.shared.playTypingSound()
                         Feedback.shared.playHaptic(style: .light)
                         state.delegate?.hangeulKeypadTap(letter: "ㅇ")
-                        timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
+                        timer = Timer.publish(every: state.repeatTimerInterval, on: .main, in: .common)
                             .autoconnect()
                             .sink { _ in
                                 Feedback.shared.playTypingSound()
@@ -309,7 +309,7 @@ struct HangeulView: View {
                         Feedback.shared.playTypingSound()
                         Feedback.shared.playHaptic(style: .light)
                         state.delegate?.hangeulKeypadTap(letter: "ㅣ")
-                        timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
+                        timer = Timer.publish(every: state.repeatTimerInterval, on: .main, in: .common)
                             .autoconnect()
                             .sink { _ in
                                 Feedback.shared.playTypingSound()
@@ -380,7 +380,7 @@ struct HangeulView: View {
                         Feedback.shared.playHaptic(style: .light)
                         state.delegate?.hoegKeypadTap()
                         if state.isHoegSsangAvailable {
-                            timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
+                            timer = Timer.publish(every: state.repeatTimerInterval, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()
@@ -408,7 +408,7 @@ struct HangeulView: View {
                         Feedback.shared.playTypingSound()
                         Feedback.shared.playHaptic(style: .light)
                         state.delegate?.hangeulKeypadTap(letter: "ㅡ")
-                        timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
+                        timer = Timer.publish(every: state.repeatTimerInterval, on: .main, in: .common)
                             .autoconnect()
                             .sink { _ in
                                 Feedback.shared.playTypingSound()
@@ -436,7 +436,7 @@ struct HangeulView: View {
                         Feedback.shared.playHaptic(style: .light)
                         state.delegate?.ssangKeypadTap()
                         if state.isHoegSsangAvailable {
-                            timer = Timer.publish(every: state.repeatTimerCycle, on: .main, in: .common)
+                            timer = Timer.publish(every: state.repeatTimerInterval, on: .main, in: .common)
                                 .autoconnect()
                                 .sink { _ in
                                     Feedback.shared.playTypingSound()

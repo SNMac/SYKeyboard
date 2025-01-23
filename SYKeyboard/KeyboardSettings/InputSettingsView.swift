@@ -12,8 +12,12 @@ struct InputSettingsView: View {
     @AppStorage("isAutoChangeToHangeulEnabled", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var isAutoChangeToHangeulEnabled = true
     
     var body: some View {
-        NavigationLink("반복/커서 설정") {
-            RepeatAndCursorSettingsView()
+        NavigationLink("반복 입력") {
+            KeyRepeatSettingsView()
+        }
+        
+        NavigationLink("커서 이동") {
+            CursorMovementSettingsView()
         }
         
         Toggle(isOn: $isTextReplacementEnabled, label: {
