@@ -16,8 +16,8 @@ struct GlobalValues {
     static let defaultOneHandedKeyboardWidth: Double = 320.0
     static let defaultLongPressDuration: Double = 0.5
     static let defaultRepeatRate: Double = 0.05
-    static let defaultCursorActiveWidth: Double = 50.0
-    static let defaultCursorMoveWidth: Double = 5.0
+    static let defaultCursorActiveDistance: Double = 50.0
+    static let defaultCursorMoveInterval: Double = 5.0
     
     static func setupDefaults(_ defaults: UserDefaults?) {
         // UserDefaults 값이 존재하는지 확인하고, 없으면 새로 만듬
@@ -67,12 +67,12 @@ struct GlobalValues {
             defaults?.set(GlobalValues.defaultRepeatRate, forKey: "repeatRate")
         }
         // 활성화 드래그 거리
-        if defaults?.object(forKey: "cursorActiveWidth") == nil {
-            defaults?.set(GlobalValues.defaultCursorActiveWidth, forKey: "cursorActiveWidth")
+        if defaults?.object(forKey: "cursorActiveDistance") == nil {
+            defaults?.set(GlobalValues.defaultCursorActiveDistance, forKey: "cursorActiveDistance")
         }
         // 이동 드래그 간격
-        if defaults?.object(forKey: "cursorMoveWidth") == nil {
-            defaults?.set(GlobalValues.defaultCursorMoveWidth, forKey: "cursorMoveWidth")
+        if defaults?.object(forKey: "cursorMoveInterval") == nil {
+            defaults?.set(GlobalValues.defaultCursorMoveInterval, forKey: "cursorMoveInterval")
         }
         
         /* 외형 설정 */

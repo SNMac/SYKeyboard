@@ -8,19 +8,19 @@
 import SwiftUI
 
 struct CursorMovementSettingsView: View {
-    @AppStorage("cursorActiveWidth", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var cursorActiveWidth = GlobalValues.defaultCursorActiveWidth
-    @AppStorage("cursorMoveWidth", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var cursorMoveWidth = GlobalValues.defaultCursorMoveWidth
+    @AppStorage("cursorActiveDistance", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var cursorActiveDistance = GlobalValues.defaultCursorActiveDistance
+    @AppStorage("cursorMoveInterval", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var cursorMoveInterval = GlobalValues.defaultCursorMoveInterval
     
-    private var cursorActiveWidthSetting: some View {
+    private var cursorActiveDistanceSetting: some View {
         HStack {
-            Text("\(cursorActiveWidth, specifier: "%.1f")")
+            Text("\(cursorActiveDistance, specifier: "%.1f")")
                 .frame(width: 40)
                 .monospacedDigit()
-            Slider(value: $cursorActiveWidth, in: 40.0...60.0, step: 1.0) { _ in
+            Slider(value: $cursorActiveDistance, in: 40.0...60.0, step: 1.0) { _ in
                 hideKeyboard()
             }
             Button {
-                cursorActiveWidth = GlobalValues.defaultCursorActiveWidth
+                cursorActiveDistance = GlobalValues.defaultCursorActiveDistance
                 hideKeyboard()
             } label: {
                 Text("리셋")
@@ -29,16 +29,16 @@ struct CursorMovementSettingsView: View {
         }
     }
     
-    private var cursorMoveWidthSetting: some View {
+    private var cursorMoveIntervalSetting: some View {
         HStack {
-            Text("\(cursorMoveWidth, specifier: "%.1f")")
+            Text("\(cursorMoveInterval, specifier: "%.1f")")
                 .frame(width: 40)
                 .monospacedDigit()
-            Slider(value: $cursorMoveWidth, in: 1.0...9.0, step: 0.5) { _ in
+            Slider(value: $cursorMoveInterval, in: 1.0...9.0, step: 0.5) { _ in
                 hideKeyboard()
             }
             Button {
-                cursorMoveWidth = GlobalValues.defaultCursorMoveWidth
+                cursorMoveInterval = GlobalValues.defaultCursorMoveInterval
                 hideKeyboard()
             } label: {
                 Text("리셋")
@@ -52,13 +52,13 @@ struct CursorMovementSettingsView: View {
             KeyboardTestView()
             List {
                 Section {
-                    cursorActiveWidthSetting
+                    cursorActiveDistanceSetting
                 } header: {
                     Text("활성화 드래그 거리")
                 }
                 
                 Section {
-                    cursorMoveWidthSetting
+                    cursorMoveIntervalSetting
                 } header: {
                     Text("이동 드래그 간격")
                 }

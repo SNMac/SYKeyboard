@@ -30,8 +30,8 @@ struct KeyboardButton: View {
     private let log = OSLog(subsystem: "github.com-SNMac.SYKeyboard.Keyboard", category: "KeyboardButton")
     
     @EnvironmentObject private var state: KeyboardState
-    @AppStorage("cursorActiveWidth", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var cursorActiveWidth = GlobalValues.defaultCursorActiveWidth
-    @AppStorage("cursorMoveWidth", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var cursorMoveWidth = GlobalValues.defaultCursorMoveWidth
+    @AppStorage("cursorActiveDistance", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var cursorActiveDistance = GlobalValues.defaultCursorActiveDistance
+    @AppStorage("cursorMoveInterval", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var cursorMoveInterval = GlobalValues.defaultCursorMoveInterval
     @AppStorage("isNumericKeypadEnabled", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var isNumericKeypadEnabled = true
     @AppStorage("isOneHandedKeyboardEnabled", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var isOneHandedKeyboardEnabled = true
     @AppStorage("currentOneHandedKeyboard", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var currentOneHandedKeyboard = 1
@@ -308,7 +308,7 @@ struct KeyboardButton: View {
     private func moveCursor(dragGestureValue: DragGesture.Value) {
         // 일정 거리 초과 드래그 -> 커서를 한칸씩 드래그한 방향으로 이동
         let dragDiff = dragGestureValue.translation.width - dragStartWidth
-        if dragDiff < -cursorMoveWidth {
+        if dragDiff < -cursorMoveInterval {
             os_log("Move cursor to left", log: log, type: .debug)
             dragStartWidth = dragGestureValue.translation.width
             if let isMoved = state.delegate?.dragToLeft() {
@@ -316,7 +316,7 @@ struct KeyboardButton: View {
                     Feedback.shared.playHapticByForce(style: .light)
                 }
             }
-        } else if dragDiff > cursorMoveWidth {
+        } else if dragDiff > cursorMoveInterval {
             os_log("Move cursor to right", log: log, type: .debug)
             dragStartWidth = dragGestureValue.translation.width
             if let isMoved = state.delegate?.dragToRight() {
@@ -621,7 +621,7 @@ struct KeyboardButton: View {
                 })
         )
         .simultaneousGesture(
-            LongPressGesture(minimumDuration: state.longPressDuration, maximumDistance: cursorActiveWidth)
+            LongPressGesture(minimumDuration: state.longPressDuration, maximumDistance: cursorActiveDistance)
             // 버튼 길게 눌렀을 때
                 .onEnded({ _ in
                     os_log("simultaneous_LongPressGesture() onEnded: longPressed", log: log, type: .debug)
@@ -640,7 +640,7 @@ struct KeyboardButton: View {
                         }
                     }
                 })
-                .exclusively(before: DragGesture(minimumDistance: cursorActiveWidth, coordinateSpace: .global)
+                .exclusively(before: DragGesture(minimumDistance: cursorActiveDistance, coordinateSpace: .global)
                              // 버튼 드래그 할 때
                     .onChanged({ value in
                         os_log("exclusively_DragGesture() onChanged: drag", log: log, type: .debug)
