@@ -78,7 +78,7 @@ struct OneHandedKeyboardSelectOverlayView: View {
                 .font(.system(size: fontSize))
                 .frame(width: (overlayWidth - interItemSpacing * 4) / 3, height: state.keyboardHeight / 4 - 20)
                 .foregroundStyle(state.selectedOneHandedKeyboard == .left ? Color.white : Color(uiColor: .label))
-                .background(RoundedRectangle(cornerRadius: 10).fill(state.selectedOneHandedKeyboard == .left ? Color.blue : Color.clear))
+                .background(RoundedRectangle(cornerRadius: 8).fill(state.selectedOneHandedKeyboard == .left ? Color.blue : Color.clear))
                 .overlay {
                     GeometryReader { geometry in
                         Color.clear
@@ -92,7 +92,7 @@ struct OneHandedKeyboardSelectOverlayView: View {
                 .font(.system(size: fontSize))
                 .frame(width: (overlayWidth - interItemSpacing * 4) / 3, height: state.keyboardHeight / 4 - 20)
                 .foregroundStyle(state.selectedOneHandedKeyboard == .center ? Color.white : Color(uiColor: .label))
-                .background(RoundedRectangle(cornerRadius: 10).fill(state.selectedOneHandedKeyboard == .center ? Color.blue : Color.clear))
+                .background(RoundedRectangle(cornerRadius: 8).fill(state.selectedOneHandedKeyboard == .center ? Color.blue : Color.clear))
                 .overlay {
                     GeometryReader { geometry in
                         Color.clear
@@ -106,7 +106,7 @@ struct OneHandedKeyboardSelectOverlayView: View {
                 .font(.system(size: fontSize))
                 .frame(width: (overlayWidth - interItemSpacing * 4) / 3, height: state.keyboardHeight / 4 - 20)
                 .foregroundStyle(state.selectedOneHandedKeyboard == .right ? Color.white : Color(uiColor: .label))
-                .background(RoundedRectangle(cornerRadius: 10).fill(state.selectedOneHandedKeyboard == .right ? Color.blue : Color.clear))
+                .background(RoundedRectangle(cornerRadius: 8).fill(state.selectedOneHandedKeyboard == .right ? Color.blue : Color.clear))
                 .overlay {
                     GeometryReader { geometry in
                         Color.clear
@@ -117,7 +117,7 @@ struct OneHandedKeyboardSelectOverlayView: View {
                 }
         }
         .frame(width: overlayWidth, height: state.keyboardHeight / 4)
-        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 10))
+        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 8))
         .gesture(
             DragGesture(minimumDistance: 0, coordinateSpace: .global)
                 .onChanged({ value in
@@ -128,8 +128,4 @@ struct OneHandedKeyboardSelectOverlayView: View {
                 })
         )
     }
-}
-
-#Preview {
-    OneHandedKeyboardSelectOverlayView()
 }

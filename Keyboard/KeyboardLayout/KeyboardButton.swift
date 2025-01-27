@@ -404,28 +404,24 @@ struct KeyboardButton: View {
                             .font(.system(size: imageSize))
                             .foregroundStyle(Color(uiColor: UIColor.label))
                             .background(checkPressed() ? Color("PrimaryKeyboardButton") : Color("SecondaryKeyboardButton"))
-                            .clipShape(.rect(cornerRadius: 5))
                     } else if state.returnButtonType == .continue || state.returnButtonType == .next {
                         Text(state.returnButtonType.rawValue)
                             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
                             .font(.system(size: textSize))
                             .foregroundStyle(Color(uiColor: UIColor.label))
                             .background(checkPressed() ? Color("PrimaryKeyboardButton") : Color("SecondaryKeyboardButton"))
-                            .clipShape(.rect(cornerRadius: 5))
                     } else if state.returnButtonType == .go || state.returnButtonType == .send {
                         Text(state.returnButtonType.rawValue)
                             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
                             .font(.system(size: textSize))
                             .foregroundStyle(checkPressed() ? Color(uiColor: UIColor.label) : Color.white)
                             .background(checkPressed() ? Color("PrimaryKeyboardButton") : Color(.tintColor))
-                            .clipShape(.rect(cornerRadius: 5))
                     } else {
                         Text(state.returnButtonType.rawValue)
                             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
                             .font(.system(size: textSize))
                             .foregroundStyle(checkPressed() ? Color(uiColor: UIColor.label) : Color.white)
                             .background(checkPressed() ? Color("PrimaryKeyboardButton") : Color(.tintColor))
-                            .clipShape(.rect(cornerRadius: 5))
                     }
                     
                     
@@ -435,7 +431,6 @@ struct KeyboardButton: View {
                         .font(.system(size: imageSize))
                         .foregroundStyle(Color(uiColor: UIColor.label))
                         .background(checkPressed() ? Color("SecondaryKeyboardButton") : Color("PrimaryKeyboardButton") )
-                        .clipShape(.rect(cornerRadius: 5))
                     
                 } else if systemName == "delete.left" {  // 삭제 버튼
                     Image(systemName: checkPressed() ? "delete.left.fill" : "delete.left")
@@ -443,7 +438,6 @@ struct KeyboardButton: View {
                         .font(.system(size: imageSize))
                         .foregroundStyle(Color(uiColor: UIColor.label))
                         .background(checkPressed() ? Color("PrimaryKeyboardButton") : Color("SecondaryKeyboardButton"))
-                        .clipShape(.rect(cornerRadius: 5))
                     
                 } else {
                     Image(systemName: systemName!)  // 그 외 버튼
@@ -451,7 +445,6 @@ struct KeyboardButton: View {
                         .font(.system(size: imageSize))
                         .foregroundStyle(Color(uiColor: UIColor.label))
                         .background(checkPressed() ? Color("PrimaryKeyboardButton") : Color("SecondaryKeyboardButton") )
-                        .clipShape(.rect(cornerRadius: 5))
                 }
                 
                 
@@ -460,11 +453,9 @@ struct KeyboardButton: View {
                 if text == "!#1" {  // 한글 키보드
                     Text("!#1")
                         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
-                        .monospaced()
                         .font(.system(size: state.needsInputModeSwitchKey ? textSize - 2 : textSize))
                         .foregroundStyle(Color(uiColor: UIColor.label))
                         .background(checkPressed() || checkOverlayActive() ? Color("PrimaryKeyboardButton") : Color("SecondaryKeyboardButton"))
-                        .clipShape(.rect(cornerRadius: 5))
                         .overlay(alignment: .bottomLeading, content: {
                             HStack(spacing: 1) {
                                 if isNumericKeypadEnabled {
@@ -472,7 +463,6 @@ struct KeyboardButton: View {
                                     Text("123")
                                 }
                             }
-                            .monospaced()
                             .font(.system(size: 9, weight: state.activeKeyboardSelectOverlay ? .bold : .regular))
                             .foregroundStyle(Color(uiColor: .label))
                             .backgroundStyle(Color(uiColor: .clear))
@@ -498,7 +488,6 @@ struct KeyboardButton: View {
                             .font(.system(size: state.needsInputModeSwitchKey ? textSize - 2 : textSize))
                             .foregroundStyle(Color(uiColor: UIColor.label))
                             .background(checkPressed() || checkOverlayActive() ? Color("PrimaryKeyboardButton") : Color("SecondaryKeyboardButton"))
-                            .clipShape(.rect(cornerRadius: 5))
                             .overlay(alignment: .bottomTrailing, content: {
                                 HStack(spacing: 1) {
                                     if isNumericKeypadEnabled {
@@ -506,7 +495,6 @@ struct KeyboardButton: View {
                                         Image(systemName: state.activeKeyboardSelectOverlay ? "arrowtriangle.right.fill" : "arrowtriangle.right")
                                     }
                                 }
-                                .monospaced()
                                 .font(.system(size: 9, weight: state.activeKeyboardSelectOverlay ? .bold : .regular))
                                 .foregroundStyle(Color(uiColor: .label))
                                 .backgroundStyle(Color(uiColor: .clear))
@@ -531,13 +519,11 @@ struct KeyboardButton: View {
                             .font(.system(size: state.needsInputModeSwitchKey ? textSize - 2 : textSize))
                             .foregroundStyle(Color(uiColor: UIColor.label))
                             .background(checkPressed() || checkOverlayActive() ? Color("PrimaryKeyboardButton") : Color("SecondaryKeyboardButton"))
-                            .clipShape(.rect(cornerRadius: 5))
                             .overlay(alignment: .bottomLeading, content: {
                                 HStack(spacing: 1) {
                                     Image(systemName: state.activeKeyboardSelectOverlay ? "arrowtriangle.left.fill" : "arrowtriangle.left")
                                     Text("!#1")
                                 }
-                                .monospaced()
                                 .font(.system(size: 9, weight: state.activeKeyboardSelectOverlay ? .bold : .regular))
                                 .foregroundStyle(Color(uiColor: .label))
                                 .backgroundStyle(Color(uiColor: .clear))
@@ -557,14 +543,13 @@ struct KeyboardButton: View {
                             })
                     }
                     
-                } else if text == "\(state.nowSymbolPage + 1)/\(state.totalSymbolPage)" {
+                } else if text == "shift_symbol" {
                     Text("\(state.nowSymbolPage + 1)/\(state.totalSymbolPage)")
                         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
-                        .monospaced()
                         .font(.system(size: textSize - 2))
+                        .monospaced()
                         .foregroundStyle(Color(uiColor: UIColor.label))
                         .background(Color("SecondaryKeyboardButton"))
-                        .clipShape(.rect(cornerRadius: 5))
                     
                 } else if text == ".com" {
                     Text(".com")
@@ -572,7 +557,6 @@ struct KeyboardButton: View {
                         .font(.system(size: textSize))
                         .foregroundStyle(Color(uiColor: UIColor.label))
                         .background(checkPressed() ? Color("SecondaryKeyboardButton") : Color("PrimaryKeyboardButton"))
-                        .clipShape(.rect(cornerRadius: 5))
                     
                 } else if text == "@_twitter" {
                     Text("@")
@@ -580,7 +564,6 @@ struct KeyboardButton: View {
                         .font(.system(size: textSize))
                         .foregroundStyle(Color(uiColor: UIColor.label))
                         .background(checkPressed() ? Color("PrimaryKeyboardButton") : Color("SecondaryKeyboardButton"))
-                        .clipShape(.rect(cornerRadius: 5))
                     
                 } else if text == "#_twitter" {
                     Text("#")
@@ -588,7 +571,6 @@ struct KeyboardButton: View {
                         .font(.system(size: textSize))
                         .foregroundStyle(Color(uiColor: UIColor.label))
                         .background(checkPressed() ? Color("PrimaryKeyboardButton") : Color("SecondaryKeyboardButton"))
-                        .clipShape(.rect(cornerRadius: 5))
                     
                     
                     // 글자 버튼
@@ -598,11 +580,11 @@ struct KeyboardButton: View {
                         .font(.system(size: keyTextSize))
                         .foregroundStyle(Color(uiColor: UIColor.label))
                         .background(checkPressed() ? Color("SecondaryKeyboardButton") : Color("PrimaryKeyboardButton"))
-                        .clipShape(.rect(cornerRadius: 5))
                 }
             }
         }
         .compositingGroup()
+        .clipShape(RoundedRectangle(cornerRadius: 5))
         .shadow(color: Color("KeyboardButtonShadow"), radius: 0, x: 0, y: 1)
         .overlay(content: {
             Color.clear

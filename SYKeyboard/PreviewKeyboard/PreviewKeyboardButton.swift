@@ -254,7 +254,6 @@ struct PreviewKeyboardButton: View {
                 if text == "!#1" {  // 한글 키보드
                     Text("!#1")
                         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
-                        .monospaced()
                         .font(.system(size: needsInputModeSwitchKey ? textSize - 2 : textSize))
                         .foregroundStyle(Color(uiColor: UIColor.label))
                         .background(checkPressed() ? Color("PrimaryKeyboardButton") : Color("SecondaryKeyboardButton"))
@@ -266,8 +265,7 @@ struct PreviewKeyboardButton: View {
                                     Text("123")
                                 }
                             }
-                            .monospaced()
-                            .font(.system(size: 9, weight: .regular))
+                            .font(.system(size: 9))
                             .foregroundStyle(Color(uiColor: .label))
                             .backgroundStyle(Color(uiColor: .clear))
                             .padding(EdgeInsets(top: 0, leading: 1, bottom: 1, trailing: 0))
@@ -279,7 +277,7 @@ struct PreviewKeyboardButton: View {
                                     Image(systemName: "arrowtriangle.up")
                                 }
                             }
-                            .font(.system(size: 9, weight: .regular))
+                            .font(.system(size: 9))
                             .foregroundStyle(Color(uiColor: .label))
                             .backgroundStyle(Color(uiColor: .clear))
                             .padding(EdgeInsets(top: 1, leading: 0, bottom: 0, trailing: 1))

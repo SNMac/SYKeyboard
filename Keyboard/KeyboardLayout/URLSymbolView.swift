@@ -520,7 +520,7 @@ struct URLSymbolView: View {
                 // MARK: - 3rd row of URL Symbol Keyboard
                 HStack(spacing: 0) {
                     KeyboardButton(
-                        text: "\(state.nowSymbolPage + 1)/\(state.totalSymbolPage)", primary: false,
+                        text: "shift_symbol", primary: false,
                         onPress: {
                             Feedback.shared.playModifierSound()
                             Feedback.shared.playHaptic(style: .light)
