@@ -1,0 +1,12 @@
+//
+//  Debug-SYKeyboard.xcconfig
+//  SYKeyboard
+//
+//  Created by 서동환 on 9/11/24.
+//
+
+// Configuration settings file format documentation can be found at:
+// https://help.apple.com/xcode/#/dev745c5c974
+
+#include "XCConfig/Shared.xcconfig"
+#include "Pods/Target Support Files/Pods-SYKeyboard/Pods-SYKeyboard.debug.xcconfig"

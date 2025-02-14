@@ -23,7 +23,7 @@ struct ContentView: View {
     
     var body: some View {
         GeometryReader { geometry in
-            let adSize = GADCurrentOrientationAnchoredAdaptiveBannerAdSizeWithWidth(geometry.size.width)
+            let adSize = currentOrientationAnchoredAdaptiveBanner(width: geometry.size.width)
             
             NavigationStack {
                 KeyboardTestView()

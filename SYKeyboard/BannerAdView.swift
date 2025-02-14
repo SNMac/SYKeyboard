@@ -7,6 +7,7 @@
 
 import SwiftUI
 import GoogleMobileAds
+import FirebaseAnalytics
 import OSLog
 
 enum Configuration: String  {
@@ -34,9 +35,9 @@ enum Configuration: String  {
 
 // [START create_banner_view]
 struct BannerAdView: UIViewRepresentable {
-    let adSize: GADAdSize
+    let adSize: AdSize
     
-    init(_ adSize: GADAdSize) {
+    init(_ adSize: AdSize) {
         self.adSize = adSize
     }
     
@@ -60,15 +61,15 @@ struct BannerAdView: UIViewRepresentable {
     
     
     // [START create_banner]
-    class BannerAdCoordinator: NSObject, GADBannerViewDelegate {
+    class BannerAdCoordinator: NSObject, BannerViewDelegate {
         private let log = OSLog(subsystem: "github.com-SNMac.SYKeyboard", category: "BannerAdView")
         
-        private(set) lazy var bannerView: GADBannerView = {
-            let banner = GADBannerView(adSize: parent.adSize)
+        private(set) lazy var bannerView: BannerView = {
+            let banner = BannerView(adSize: parent.adSize)
             
             // [START load_ad]
             banner.adUnitID = Configuration.admobID
-            banner.load(GADRequest())
+            banner.load(Request())
             // [END load_ad]
             
             // [START set_delegate]
@@ -86,12 +87,23 @@ struct BannerAdView: UIViewRepresentable {
         // [END create_banner]
         
         // MARK: - GADBannerViewDelegate methods
-        func bannerViewDidReceiveAd(_ bannerView: GADBannerView) {
-            os_log("DID RECEIVE AD.", log: log, type: .debug)
+        func bannerViewDidReceiveAd(_ bannerView: BannerView) {
+            let responseInfo = bannerView.responseInfo
+            let responseInfoStr = String(describing: responseInfo)
+            let adNetworkClassName = responseInfo?.loadedAdNetworkResponseInfo?.adNetworkClassName
+            os_log("DID RECEIVE AD.\n%@", log: log, type: .debug, responseInfoStr)
+            Analytics.logEvent("receive_ad_success", parameters: [
+                "adNetworkClassName": "\(String(describing: adNetworkClassName))"
+            ])
         }
         
-        func bannerView(_ bannerView: GADBannerView, didFailToReceiveAdWithError error: Error) {
-            os_log("FAILED TO RECEIVE AD: %@", log: log, type: .debug, error.localizedDescription)
+        func bannerView(_ bannerView: BannerView, didFailToReceiveAdWithError error: Error) {
+            let responseInfo = (error as NSError).userInfo[GADErrorUserInfoKeyResponseInfo] as? ResponseInfo
+            let responseInfoStr = String(describing: responseInfo)
+            os_log("FAILED TO RECEIVE AD: %@\n%@", log: log, type: .debug, error.localizedDescription, responseInfoStr)
+            Analytics.logEvent("receive_ad_failed", parameters: [
+                "error": "\(error.localizedDescription)"
+            ])
         }
     }
 }

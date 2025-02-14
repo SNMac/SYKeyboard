@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 70;
+	objectVersion = 77;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -34,8 +34,10 @@
 		5B2B40072C6CAB2F007CA762 /* KeyboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B2B40062C6CAB2F007CA762 /* KeyboardView.swift */; };
 		5B2B40122C6CC1D1007CA762 /* KeyboardState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B2B40112C6CC1D1007CA762 /* KeyboardState.swift */; };
 		5B2B40152C6CD2A4007CA762 /* NextKeyboardButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B2B40142C6CD2A4007CA762 /* NextKeyboardButton.swift */; };
-		5B3C37A62D39F66300A7AABE /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = 5B3C37A52D39F66300A7AABE /* FirebaseAnalytics */; };
 		5B3C37A82D39F88900A7AABE /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 5B3C37A72D39F88900A7AABE /* GoogleService-Info.plist */; };
+		5B52CC372D5E407C005CB1C7 /* Pods_SYKeyboard.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D4636DF2647C79BB2219C71E /* Pods_SYKeyboard.framework */; };
+		5B52CC3A2D5E408C005CB1C7 /* Pods_Keyboard.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B759D601A4777EF2A0956994 /* Pods_Keyboard.framework */; };
+		5B52CC3D2D5E423D005CB1C7 /* Shared.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = 5B52CC3C2D5E423C005CB1C7 /* Shared.xcconfig */; };
 		5B57EBD52D313BA500901C37 /* PreviewKeyboardState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B57EBD42D313BA500901C37 /* PreviewKeyboardState.swift */; };
 		5B57EBD72D313BC100901C37 /* PreviewKeyboardButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B57EBD62D313BC100901C37 /* PreviewKeyboardButton.swift */; };
 		5B6B1B372CD210CD00636AC4 /* OneHandedKeyboardSelectOverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B6B1B362CD210CD00636AC4 /* OneHandedKeyboardSelectOverlayView.swift */; };
@@ -62,12 +64,9 @@
 		5BB257952CEDA709005C3F10 /* OneHandedKeyboardWidthSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BB257942CEDA709005C3F10 /* OneHandedKeyboardWidthSettingsView.swift */; };
 		5BB257972CEDBABB005C3F10 /* PreviewChevronButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BB257962CEDBABB005C3F10 /* PreviewChevronButton.swift */; };
 		5BDCDED72C67458600035B01 /* KeyboardTestView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BDCDED62C67458600035B01 /* KeyboardTestView.swift */; };
-		5BDD2F672D34E5D0003F87C0 /* SnapKit in Frameworks */ = {isa = PBXBuildFile; productRef = 5BDD2F662D34E5D0003F87C0 /* SnapKit */; };
-		5BDD2F6E2D34E682003F87C0 /* SnapKit in Frameworks */ = {isa = PBXBuildFile; productRef = 5BDD2F6D2D34E682003F87C0 /* SnapKit */; };
 		5BDD2F702D34FD45003F87C0 /* RequestFullAccessOverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BDD2F6F2D34FD45003F87C0 /* RequestFullAccessOverlayView.swift */; };
 		5BFFC5DD2D3812D5000BC603 /* Bundle+AppVersion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BFFC5DC2D3812D5000BC603 /* Bundle+AppVersion.swift */; };
 		5BFFC5E92D394620000BC603 /* RequestReviewViewModifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BFFC5E82D394620000BC603 /* RequestReviewViewModifier.swift */; };
-		5BFFC65C2D395DFA000BC603 /* GoogleMobileAds in Frameworks */ = {isa = PBXBuildFile; productRef = 5BFFC65B2D395DFA000BC603 /* GoogleMobileAds */; };
 		5BFFC66A2D3965FC000BC603 /* BannerAdView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BFFC6692D3965FC000BC603 /* BannerAdView.swift */; };
 		5BFFC66C2D396C5F000BC603 /* KeyboardSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BFFC66B2D396C5F000BC603 /* KeyboardSettingsView.swift */; };
 /* End PBXBuildFile section */
@@ -94,19 +93,12 @@
 			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		5BDD2F6B2D34E648003F87C0 /* Embed Frameworks */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "";
-			dstSubfolderSpec = 10;
-			files = (
-			);
-			name = "Embed Frameworks";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		079E614D6FC05DCAB5AEA949 /* Pods-SYKeyboard.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-SYKeyboard.debug.xcconfig"; path = "Target Support Files/Pods-SYKeyboard/Pods-SYKeyboard.debug.xcconfig"; sourceTree = "<group>"; };
+		45DC8CEE55D6E0E9BC6ABA3D /* Pods-Keyboard.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Keyboard.release.xcconfig"; path = "Target Support Files/Pods-Keyboard/Pods-Keyboard.release.xcconfig"; sourceTree = "<group>"; };
+		4A4E2BB4F6407C7B65CA2AA7 /* Pods-Keyboard.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Keyboard.debug.xcconfig"; path = "Target Support Files/Pods-Keyboard/Pods-Keyboard.debug.xcconfig"; sourceTree = "<group>"; };
 		5B0D82352C5962A500F84180 /* KeyboardIOManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = KeyboardIOManager.swift; sourceTree = "<group>"; };
 		5B0D823C2C5F355900F84180 /* HangeulAutomata.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HangeulAutomata.swift; sourceTree = "<group>"; };
 		5B0D82422C63C16F00F84180 /* Feedback.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Feedback.swift; sourceTree = "<group>"; };
@@ -136,6 +128,10 @@
 		5B2B40112C6CC1D1007CA762 /* KeyboardState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardState.swift; sourceTree = "<group>"; };
 		5B2B40142C6CD2A4007CA762 /* NextKeyboardButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NextKeyboardButton.swift; sourceTree = "<group>"; };
 		5B3C37A72D39F88900A7AABE /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
+		5B52CC3C2D5E423C005CB1C7 /* Shared.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Shared.xcconfig; sourceTree = "<group>"; };
+		5B52CC3E2D5E42A9005CB1C7 /* Release-SYKeyboard.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "Release-SYKeyboard.xcconfig"; sourceTree = "<group>"; };
+		5B52CC3F2D5E42D8005CB1C7 /* Debug-Keyboard.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "Debug-Keyboard.xcconfig"; sourceTree = "<group>"; };
+		5B52CC402D5E4308005CB1C7 /* Release-Keyboard.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "Release-Keyboard.xcconfig"; sourceTree = "<group>"; };
 		5B57EBD42D313BA500901C37 /* PreviewKeyboardState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewKeyboardState.swift; sourceTree = "<group>"; };
 		5B57EBD62D313BC100901C37 /* PreviewKeyboardButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewKeyboardButton.swift; sourceTree = "<group>"; };
 		5B6B1B362CD210CD00636AC4 /* OneHandedKeyboardSelectOverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OneHandedKeyboardSelectOverlayView.swift; sourceTree = "<group>"; };
@@ -157,7 +153,7 @@
 		5BA419D72CB98532005E7C86 /* InitialSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InitialSettingsView.swift; sourceTree = "<group>"; };
 		5BA419DE2CB99238005E7C86 /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
 		5BACCE422C9094AB006DCFB7 /* version.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = version.sh; sourceTree = "<group>"; };
-		5BACCE442C9096DE006DCFB7 /* Config.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config.xcconfig; sourceTree = "<group>"; };
+		5BACCE442C9096DE006DCFB7 /* Debug-SYKeyboard.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "Debug-SYKeyboard.xcconfig"; sourceTree = "<group>"; };
 		5BACCE542C915423006DCFB7 /* KeyboardDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardDelegate.swift; sourceTree = "<group>"; };
 		5BB0D2632C86FF3B00CE7AF5 /* KeyboardHeightSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardHeightSettingsView.swift; sourceTree = "<group>"; };
 		5BB0D26C2C883B8700CE7AF5 /* InputSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputSettingsView.swift; sourceTree = "<group>"; };
@@ -171,10 +167,17 @@
 		5BFFC5E82D394620000BC603 /* RequestReviewViewModifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RequestReviewViewModifier.swift; sourceTree = "<group>"; };
 		5BFFC6692D3965FC000BC603 /* BannerAdView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BannerAdView.swift; sourceTree = "<group>"; };
 		5BFFC66B2D396C5F000BC603 /* KeyboardSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardSettingsView.swift; sourceTree = "<group>"; };
+		B759D601A4777EF2A0956994 /* Pods_Keyboard.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Keyboard.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		D4636DF2647C79BB2219C71E /* Pods_SYKeyboard.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_SYKeyboard.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		EE3310BD609B91E370D4F6D4 /* Pods-SYKeyboard.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-SYKeyboard.release.xcconfig"; path = "Target Support Files/Pods-SYKeyboard/Pods-SYKeyboard.release.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		5BA419DB2CB98F2E005E7C86 /* GitShellScript */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = GitShellScript; sourceTree = "<group>"; };
+		5BA419DB2CB98F2E005E7C86 /* GitShellScript */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = GitShellScript;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -182,8 +185,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				5B3C37A62D39F66300A7AABE /* FirebaseAnalytics in Frameworks */,
-				5BFFC65C2D395DFA000BC603 /* GoogleMobileAds in Frameworks */,
+				5B52CC372D5E407C005CB1C7 /* Pods_SYKeyboard.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -191,8 +193,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				5BDD2F672D34E5D0003F87C0 /* SnapKit in Frameworks */,
-				5BDD2F6E2D34E682003F87C0 /* SnapKit in Frameworks */,
+				5B52CC3A2D5E408C005CB1C7 /* Pods_Keyboard.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -226,14 +227,43 @@
 			path = PreviewKeyboard;
 			sourceTree = "<group>";
 		};
+		5B52CC412D5E43B7005CB1C7 /* XCConfig */ = {
+			isa = PBXGroup;
+			children = (
+				5BACCE442C9096DE006DCFB7 /* Debug-SYKeyboard.xcconfig */,
+				5B52CC3E2D5E42A9005CB1C7 /* Release-SYKeyboard.xcconfig */,
+			);
+			path = XCConfig;
+			sourceTree = "<group>";
+		};
+		5B52CC422D5E43C0005CB1C7 /* XCConfig */ = {
+			isa = PBXGroup;
+			children = (
+				5B52CC3F2D5E42D8005CB1C7 /* Debug-Keyboard.xcconfig */,
+				5B52CC402D5E4308005CB1C7 /* Release-Keyboard.xcconfig */,
+			);
+			path = XCConfig;
+			sourceTree = "<group>";
+		};
+		5B52CC472D5E496E005CB1C7 /* XCConfig */ = {
+			isa = PBXGroup;
+			children = (
+				5B52CC3C2D5E423C005CB1C7 /* Shared.xcconfig */,
+			);
+			path = XCConfig;
+			sourceTree = "<group>";
+		};
 		5B7B3F4D2C569B7800F7C093 = {
 			isa = PBXGroup;
 			children = (
 				5BA419DE2CB99238005E7C86 /* .gitignore */,
+				5B52CC472D5E496E005CB1C7 /* XCConfig */,
 				5B9472312C8AD6DD00B8B154 /* GlobalData */,
 				5B7B3F582C569B7800F7C093 /* SYKeyboard */,
 				5B7B3F6C2C569B8200F7C093 /* Keyboard */,
 				5B7B3F572C569B7800F7C093 /* Products */,
+				FA22193DEDE47B1CB6A82C36 /* Pods */,
+				BA31F1B1C87603EB81AF8A97 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -249,7 +279,7 @@
 		5B7B3F582C569B7800F7C093 /* SYKeyboard */ = {
 			isa = PBXGroup;
 			children = (
-				5BACCE442C9096DE006DCFB7 /* Config.xcconfig */,
+				5B52CC412D5E43B7005CB1C7 /* XCConfig */,
 				5BACCE422C9094AB006DCFB7 /* version.sh */,
 				5BDD2F5E2D34BA97003F87C0 /* Info.plist */,
 				5B3C37A72D39F88900A7AABE /* GoogleService-Info.plist */,
@@ -292,6 +322,7 @@
 				5B1857072D4046D600895400 /* Localizable.xcstrings */,
 				5B9472322C8AD70900B8B154 /* InputMethod */,
 				5B0D82512C63FDC300F84180 /* Keyboard.entitlements */,
+				5B52CC422D5E43C0005CB1C7 /* XCConfig */,
 				5B7B3F6D2C569B8200F7C093 /* KeyboardViewController.swift */,
 				5BDD2F6F2D34FD45003F87C0 /* RequestFullAccessOverlayView.swift */,
 				5B0D82352C5962A500F84180 /* KeyboardIOManager.swift */,
@@ -382,6 +413,26 @@
 			path = KeyboardSettings;
 			sourceTree = "<group>";
 		};
+		BA31F1B1C87603EB81AF8A97 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				B759D601A4777EF2A0956994 /* Pods_Keyboard.framework */,
+				D4636DF2647C79BB2219C71E /* Pods_SYKeyboard.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		FA22193DEDE47B1CB6A82C36 /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				4A4E2BB4F6407C7B65CA2AA7 /* Pods-Keyboard.debug.xcconfig */,
+				45DC8CEE55D6E0E9BC6ABA3D /* Pods-Keyboard.release.xcconfig */,
+				079E614D6FC05DCAB5AEA949 /* Pods-SYKeyboard.debug.xcconfig */,
+				EE3310BD609B91E370D4F6D4 /* Pods-SYKeyboard.release.xcconfig */,
+			);
+			path = Pods;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -389,10 +440,13 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 5B7B3F642C569B7800F7C093 /* Build configuration list for PBXNativeTarget "SYKeyboard" */;
 			buildPhases = (
+				E6935368C6C5B48C813A5D6B /* [CP] Check Pods Manifest.lock */,
 				5B7B3F522C569B7800F7C093 /* Sources */,
 				5B7B3F532C569B7800F7C093 /* Frameworks */,
 				5B7B3F542C569B7800F7C093 /* Resources */,
 				5B7B3F762C569B8200F7C093 /* Embed Foundation Extensions */,
+				59DE5BC0A3BFAB654B32EBE9 /* [CP] Embed Pods Frameworks */,
+				375456215881E1DC600453EF /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -411,10 +465,10 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 5B7B3F732C569B8200F7C093 /* Build configuration list for PBXNativeTarget "Keyboard" */;
 			buildPhases = (
+				E8CFACEC2FC4A78C2CDF2038 /* [CP] Check Pods Manifest.lock */,
 				5B7B3F672C569B8200F7C093 /* Sources */,
 				5B7B3F682C569B8200F7C093 /* Frameworks */,
 				5B7B3F692C569B8200F7C093 /* Resources */,
-				5BDD2F6B2D34E648003F87C0 /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
@@ -444,7 +498,6 @@
 				};
 			};
 			buildConfigurationList = 5B7B3F512C569B7800F7C093 /* Build configuration list for PBXProject "SYKeyboard" */;
-			compatibilityVersion = "Xcode 15.3";
 			developmentRegion = ko;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -453,11 +506,7 @@
 				en,
 			);
 			mainGroup = 5B7B3F4D2C569B7800F7C093;
-			packageReferences = (
-				5BDD2F6C2D34E682003F87C0 /* XCRemoteSwiftPackageReference "SnapKit" */,
-				5BFFC65A2D395DFA000BC603 /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */,
-				5B3C37A42D39F66300A7AABE /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
-			);
+			preferredProjectObjectVersion = 77;
 			productRefGroup = 5B7B3F572C569B7800F7C093 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -476,6 +525,7 @@
 				5B3C37A82D39F88900A7AABE /* GoogleService-Info.plist in Resources */,
 				5B1857022D4001AC00895400 /* InfoPlist.xcstrings in Resources */,
 				5B7B3F612C569B7800F7C093 /* Preview Assets.xcassets in Resources */,
+				5B52CC3D2D5E423D005CB1C7 /* Shared.xcconfig in Resources */,
 				5B1857002D40005300895400 /* Localizable.xcstrings in Resources */,
 				5B7B3F5E2C569B7800F7C093 /* Assets.xcassets in Resources */,
 			);
@@ -492,6 +542,87 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		375456215881E1DC600453EF /* [CP] Copy Pods Resources */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-SYKeyboard/Pods-SYKeyboard-resources-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			name = "[CP] Copy Pods Resources";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-SYKeyboard/Pods-SYKeyboard-resources-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-SYKeyboard/Pods-SYKeyboard-resources.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		59DE5BC0A3BFAB654B32EBE9 /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-SYKeyboard/Pods-SYKeyboard-frameworks-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-SYKeyboard/Pods-SYKeyboard-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-SYKeyboard/Pods-SYKeyboard-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		E6935368C6C5B48C813A5D6B /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-SYKeyboard-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+		E8CFACEC2FC4A78C2CDF2038 /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-Keyboard-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		5B7B3F522C569B7800F7C093 /* Sources */ = {
@@ -698,7 +829,7 @@
 		};
 		5B7B3F652C569B7800F7C093 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 5BACCE442C9096DE006DCFB7 /* Config.xcconfig */;
+			baseConfigurationReference = 5BACCE442C9096DE006DCFB7 /* Debug-SYKeyboard.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -724,8 +855,12 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				LIBRARY_SEARCH_PATHS = "";
 				MARKETING_VERSION = "$(VERSION)";
-				OTHER_LDFLAGS = "-ObjC";
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-ObjC",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = "github.com-SNMac.SYKeyboard";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -740,7 +875,7 @@
 		};
 		5B7B3F662C569B7800F7C093 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 5BACCE442C9096DE006DCFB7 /* Config.xcconfig */;
+			baseConfigurationReference = 5B52CC3E2D5E42A9005CB1C7 /* Release-SYKeyboard.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -766,8 +901,12 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				LIBRARY_SEARCH_PATHS = "";
 				MARKETING_VERSION = "$(VERSION)";
-				OTHER_LDFLAGS = "-ObjC";
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-ObjC",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = "github.com-SNMac.SYKeyboard";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -782,7 +921,7 @@
 		};
 		5B7B3F742C569B8200F7C093 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 5BACCE442C9096DE006DCFB7 /* Config.xcconfig */;
+			baseConfigurationReference = 5B52CC3F2D5E42D8005CB1C7 /* Debug-Keyboard.xcconfig */;
 			buildSettings = {
 				APPLICATION_EXTENSION_API_ONLY = YES;
 				CODE_SIGN_ENTITLEMENTS = Keyboard/Keyboard.entitlements;
@@ -815,7 +954,7 @@
 		};
 		5B7B3F752C569B8200F7C093 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 5BACCE442C9096DE006DCFB7 /* Config.xcconfig */;
+			baseConfigurationReference = 5B52CC402D5E4308005CB1C7 /* Release-Keyboard.xcconfig */;
 			buildSettings = {
 				APPLICATION_EXTENSION_API_ONLY = YES;
 				CODE_SIGN_ENTITLEMENTS = Keyboard/Keyboard.entitlements;
@@ -877,64 +1016,6 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
-
-/* Begin XCRemoteSwiftPackageReference section */
-		5B3C37A42D39F66300A7AABE /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/firebase/firebase-ios-sdk.git";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 11.7.0;
-			};
-		};
-		5BDD2F652D34E5D0003F87C0 /* XCRemoteSwiftPackageReference "SnapKit" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/SnapKit/SnapKit.git";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 5.7.1;
-			};
-		};
-		5BDD2F6C2D34E682003F87C0 /* XCRemoteSwiftPackageReference "SnapKit" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/SnapKit/SnapKit.git";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 5.7.1;
-			};
-		};
-		5BFFC65A2D395DFA000BC603 /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/googleads/swift-package-manager-google-mobile-ads";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 11.13.0;
-			};
-		};
-/* End XCRemoteSwiftPackageReference section */
-
-/* Begin XCSwiftPackageProductDependency section */
-		5B3C37A52D39F66300A7AABE /* FirebaseAnalytics */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 5B3C37A42D39F66300A7AABE /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
-			productName = FirebaseAnalytics;
-		};
-		5BDD2F662D34E5D0003F87C0 /* SnapKit */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 5BDD2F652D34E5D0003F87C0 /* XCRemoteSwiftPackageReference "SnapKit" */;
-			productName = SnapKit;
-		};
-		5BDD2F6D2D34E682003F87C0 /* SnapKit */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 5BDD2F6C2D34E682003F87C0 /* XCRemoteSwiftPackageReference "SnapKit" */;
-			productName = SnapKit;
-		};
-		5BFFC65B2D395DFA000BC603 /* GoogleMobileAds */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 5BFFC65A2D395DFA000BC603 /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */;
-			productName = GoogleMobileAds;
-		};
-/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 5B7B3F4E2C569B7800F7C093 /* Project object */;
 }

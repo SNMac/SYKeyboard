@@ -9,8 +9,10 @@ import SwiftUI
 import AdSupport
 import AppTrackingTransparency
 import OSLog
-import Firebase
 import GoogleMobileAds
+import FirebaseCore
+import FirebaseAnalytics
+import FBAudienceNetwork
 
 class AppDelegate: UIResponder, UIApplicationDelegate {
     
@@ -31,7 +33,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
                 case .restricted:  // 제한됨
                     os_log("Tracking Restricted", log: log, type: .debug)
                 @unknown default:  // 알려지지 않음
-                    os_log("Tracking Unknow", log: log, type: .debug)
+                    os_log("Tracking Unknown", log: log, type: .debug)
                 }
             }
         }
@@ -39,8 +41,23 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // Use Firebase library to configure APIs.
         FirebaseApp.configure()
         
+        // Pass user's consent after acquiring it.
+        FBAdSettings.setAdvertiserTrackingEnabled(true)
+        
         // Initialize the Google Mobile Ads SDK.
-        GADMobileAds.sharedInstance().start(completionHandler: nil)
+        let ads = MobileAds.shared
+        ads.start { status in
+            // Optional: Log each adapter's initialization latency.
+            let adapterStatuses = status.adapterStatusesByClassName
+            for adapter in adapterStatuses {
+                let adapterStatus = adapter.value
+                os_log("Adapter Name: %@, Description: %@, Latency: %f", log: log, type: .debug, adapter.key,
+                       adapterStatus.description, adapterStatus.latency)
+            }
+            
+            // Start loading ads here...
+            
+        }
         
         return true
     }
