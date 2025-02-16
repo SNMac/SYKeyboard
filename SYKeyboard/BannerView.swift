@@ -24,8 +24,7 @@ enum Configuration: String  {
     static var admobID: String {
         switch current {
         case .debug:
-//            return "ca-app-pub-3940256099942544/2435281174"  // 테스트 전용 광고 단위 ID
-            return "ca-app-pub-9204044817130515/6474193447"  // 실제 광고 단위 ID
+            return "ca-app-pub-3940256099942544/2435281174"  // 테스트 전용 광고 단위 ID
         case .release:
             return "ca-app-pub-9204044817130515/6474193447"  // 실제 광고 단위 ID
         default:
