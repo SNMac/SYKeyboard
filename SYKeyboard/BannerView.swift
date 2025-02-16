@@ -1,5 +1,5 @@
 //
-//  BannerAdView.swift
+//  BannerView.swift
 //  SYKeyboard
 //
 //  Created by 서동환 on 1/17/25.
@@ -24,7 +24,8 @@ enum Configuration: String  {
     static var admobID: String {
         switch current {
         case .debug:
-            return "ca-app-pub-3940256099942544/2435281174"  // 테스트 전용 광고 단위 ID
+//            return "ca-app-pub-3940256099942544/2435281174"  // 테스트 전용 광고 단위 ID
+            return "ca-app-pub-9204044817130515/6474193447"  // 실제 광고 단위 ID
         case .release:
             return "ca-app-pub-9204044817130515/6474193447"  // 실제 광고 단위 ID
         default:
@@ -34,10 +35,10 @@ enum Configuration: String  {
 }
 
 // [START create_banner_view]
-struct BannerAdView: UIViewRepresentable {
-    let adSize: AdSize
+struct BannerView: UIViewRepresentable {
+    let adSize: GADAdSize
     
-    init(_ adSize: AdSize) {
+    init(_ adSize: GADAdSize) {
         self.adSize = adSize
     }
     
@@ -54,22 +55,22 @@ struct BannerAdView: UIViewRepresentable {
         context.coordinator.bannerView.adSize = adSize
     }
     
-    func makeCoordinator() -> BannerAdCoordinator {
-        return BannerAdCoordinator(self)
+    func makeCoordinator() -> BannerCoordinator {
+        return BannerCoordinator(self)
     }
     // [END create_banner_view]
     
     
     // [START create_banner]
-    class BannerAdCoordinator: NSObject, BannerViewDelegate {
-        private let log = OSLog(subsystem: "github.com-SNMac.SYKeyboard", category: "BannerAdView")
+    class BannerCoordinator: NSObject, GADBannerViewDelegate {
+        private let log = OSLog(subsystem: "github.com-SNMac.SYKeyboard", category: "BannerView")
         
-        private(set) lazy var bannerView: BannerView = {
-            let banner = BannerView(adSize: parent.adSize)
+        private(set) lazy var bannerView: GADBannerView = {
+            let banner = GADBannerView(adSize: parent.adSize)
             
             // [START load_ad]
             banner.adUnitID = Configuration.admobID
-            banner.load(Request())
+            banner.load(GADRequest())
             // [END load_ad]
             
             // [START set_delegate]
@@ -79,15 +80,15 @@ struct BannerAdView: UIViewRepresentable {
             return banner
         }()
         
-        let parent: BannerAdView
+        let parent: BannerView
         
-        init(_ parent: BannerAdView) {
+        init(_ parent: BannerView) {
             self.parent = parent
         }
         // [END create_banner]
         
         // MARK: - GADBannerViewDelegate methods
-        func bannerViewDidReceiveAd(_ bannerView: BannerView) {
+        func bannerViewDidReceiveAd(_ bannerView: GADBannerView) {
             let responseInfo = bannerView.responseInfo
             let responseInfoStr = String(describing: responseInfo)
             let adNetworkClassName = responseInfo?.loadedAdNetworkResponseInfo?.adNetworkClassName
@@ -97,8 +98,8 @@ struct BannerAdView: UIViewRepresentable {
             ])
         }
         
-        func bannerView(_ bannerView: BannerView, didFailToReceiveAdWithError error: Error) {
-            let responseInfo = (error as NSError).userInfo[GADErrorUserInfoKeyResponseInfo] as? ResponseInfo
+        func bannerView(_ bannerView: GADBannerView, didFailToReceiveAdWithError error: Error) {
+            let responseInfo = (error as NSError).userInfo[GADErrorUserInfoKeyResponseInfo] as? GADResponseInfo
             let responseInfoStr = String(describing: responseInfo)
             os_log("FAILED TO RECEIVE AD: %@\n%@", log: log, type: .debug, error.localizedDescription, responseInfoStr)
             Analytics.logEvent("receive_ad_failed", parameters: [

@@ -45,7 +45,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         FBAdSettings.setAdvertiserTrackingEnabled(true)
         
         // Initialize the Google Mobile Ads SDK.
-        let ads = MobileAds.shared
+        let ads = GADMobileAds.sharedInstance()
         ads.start { status in
             // Optional: Log each adapter's initialization latency.
             let adapterStatuses = status.adapterStatusesByClassName
@@ -65,6 +65,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
 @main
 struct SYKeyboardApp: App {
+    // To handle app delegate callbacks in an app that uses the SwiftUI lifecycle,
+    // you must create an application delegate and attach it to your `App` struct
+    // using `UIApplicationDelegateAdaptor`.
     @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     
     var body: some Scene {

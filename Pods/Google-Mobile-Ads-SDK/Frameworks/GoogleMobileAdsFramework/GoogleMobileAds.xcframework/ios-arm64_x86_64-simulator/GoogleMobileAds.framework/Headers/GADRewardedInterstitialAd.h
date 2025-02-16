@@ -26,7 +26,6 @@ typedef void (^GADRewardedInterstitialAdLoadCompletionHandler)(
 
 /// A rewarded interstitial ad. Rewarded Interstitial ads are full screen ads that can be presented
 /// without user-opt in and allow you to reward the user with in-app items.
-NS_SWIFT_NAME(RewardedInterstitialAd)
 @interface GADRewardedInterstitialAd : NSObject <GADAdMetadataProvider, GADFullScreenPresentingAd>
 
 /// The ad unit ID.
@@ -56,8 +55,7 @@ NS_SWIFT_NAME(RewardedInterstitialAd)
 /// @param completionHandler A handler to execute when the load operation finishes or times out.
 + (void)loadWithAdUnitID:(nonnull NSString *)adUnitID
                  request:(nullable GADRequest *)request
-       completionHandler:(nonnull GADRewardedInterstitialAdLoadCompletionHandler)completionHandler
-    NS_SWIFT_NAME(load(with:request:completionHandler:));
+       completionHandler:(nonnull GADRewardedInterstitialAdLoadCompletionHandler)completionHandler;
 
 /// Loads a rewarded interstitial ad.
 ///
@@ -65,8 +63,7 @@ NS_SWIFT_NAME(RewardedInterstitialAd)
 /// @param completionHandler A handler to execute when the load operation finishes or times out.
 + (void)loadWithAdResponseString:(nonnull NSString *)adResponseString
                completionHandler:
-                   (nonnull GADRewardedInterstitialAdLoadCompletionHandler)completionHandler
-    NS_SWIFT_NAME(load(with:completionHandler:));
+                   (nonnull GADRewardedInterstitialAdLoadCompletionHandler)completionHandler;
 
 /// Indicates whether the rewarded interstitial ad can be presented from the provided root view
 /// controller. Must be called on the main thread.
@@ -78,8 +75,7 @@ NS_SWIFT_NAME(RewardedInterstitialAd)
 /// - Returns: `YES` if the rewarded interstitial ad can be presented from the provided root view
 /// controller, `NO` otherwise.
 - (BOOL)canPresentFromRootViewController:(nullable UIViewController *)rootViewController
-                                   error:(NSError *_Nullable __autoreleasing *_Nullable)error
-    NS_SWIFT_NAME(canPresent(from:)) NS_SWIFT_UI_ACTOR;
+                                   error:(NSError *_Nullable __autoreleasing *_Nullable)error;
 
 /// Presents the rewarded interstitial ad. Must be called on the main thread.
 ///
@@ -88,7 +84,6 @@ NS_SWIFT_NAME(RewardedInterstitialAd)
 /// @param userDidEarnRewardHandler A handler to execute when the user earns a reward. adReward
 /// contains the reward information.
 - (void)presentFromRootViewController:(nullable UIViewController *)viewController
-             userDidEarnRewardHandler:(nonnull GADUserDidEarnRewardHandler)userDidEarnRewardHandler
-    NS_SWIFT_NAME(present(from:userDidEarnRewardHandler:)) NS_SWIFT_UI_ACTOR;
+             userDidEarnRewardHandler:(nonnull GADUserDidEarnRewardHandler)userDidEarnRewardHandler;
 
 @end

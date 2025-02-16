@@ -17,6 +17,6 @@ target 'SYKeyboard' do
   # Pods for SYKeyboard
   pod 'Google-Mobile-Ads-SDK'
   pod 'FirebaseAnalytics'
-  pod 'FBAudienceNetwork'
+  pod 'GoogleMobileAdsMediationFacebook'
 
 end

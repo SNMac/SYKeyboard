@@ -67,7 +67,7 @@
 		5BDD2F702D34FD45003F87C0 /* RequestFullAccessOverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BDD2F6F2D34FD45003F87C0 /* RequestFullAccessOverlayView.swift */; };
 		5BFFC5DD2D3812D5000BC603 /* Bundle+AppVersion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BFFC5DC2D3812D5000BC603 /* Bundle+AppVersion.swift */; };
 		5BFFC5E92D394620000BC603 /* RequestReviewViewModifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BFFC5E82D394620000BC603 /* RequestReviewViewModifier.swift */; };
-		5BFFC66A2D3965FC000BC603 /* BannerAdView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BFFC6692D3965FC000BC603 /* BannerAdView.swift */; };
+		5BFFC66A2D3965FC000BC603 /* BannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BFFC6692D3965FC000BC603 /* BannerView.swift */; };
 		5BFFC66C2D396C5F000BC603 /* KeyboardSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BFFC66B2D396C5F000BC603 /* KeyboardSettingsView.swift */; };
 /* End PBXBuildFile section */
 
@@ -165,7 +165,7 @@
 		5BDD2F6F2D34FD45003F87C0 /* RequestFullAccessOverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RequestFullAccessOverlayView.swift; sourceTree = "<group>"; };
 		5BFFC5DC2D3812D5000BC603 /* Bundle+AppVersion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Bundle+AppVersion.swift"; sourceTree = "<group>"; };
 		5BFFC5E82D394620000BC603 /* RequestReviewViewModifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RequestReviewViewModifier.swift; sourceTree = "<group>"; };
-		5BFFC6692D3965FC000BC603 /* BannerAdView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BannerAdView.swift; sourceTree = "<group>"; };
+		5BFFC6692D3965FC000BC603 /* BannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BannerView.swift; sourceTree = "<group>"; };
 		5BFFC66B2D396C5F000BC603 /* KeyboardSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardSettingsView.swift; sourceTree = "<group>"; };
 		B759D601A4777EF2A0956994 /* Pods_Keyboard.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Keyboard.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		D4636DF2647C79BB2219C71E /* Pods_SYKeyboard.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_SYKeyboard.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -245,19 +245,11 @@
 			path = XCConfig;
 			sourceTree = "<group>";
 		};
-		5B52CC472D5E496E005CB1C7 /* XCConfig */ = {
-			isa = PBXGroup;
-			children = (
-				5B52CC3C2D5E423C005CB1C7 /* Shared.xcconfig */,
-			);
-			path = XCConfig;
-			sourceTree = "<group>";
-		};
 		5B7B3F4D2C569B7800F7C093 = {
 			isa = PBXGroup;
 			children = (
 				5BA419DE2CB99238005E7C86 /* .gitignore */,
-				5B52CC472D5E496E005CB1C7 /* XCConfig */,
+				5B52CC3C2D5E423C005CB1C7 /* Shared.xcconfig */,
 				5B9472312C8AD6DD00B8B154 /* GlobalData */,
 				5B7B3F582C569B7800F7C093 /* SYKeyboard */,
 				5B7B3F6C2C569B8200F7C093 /* Keyboard */,
@@ -293,7 +285,7 @@
 				5BDCDED62C67458600035B01 /* KeyboardTestView.swift */,
 				5BFFC66B2D396C5F000BC603 /* KeyboardSettingsView.swift */,
 				5BFFC66D2D396D20000BC603 /* KeyboardSettings */,
-				5BFFC6692D3965FC000BC603 /* BannerAdView.swift */,
+				5BFFC6692D3965FC000BC603 /* BannerView.swift */,
 				5B1856ED2D3FB15600895400 /* InstructionsTabView.swift */,
 				5B1856F32D3FCD1C00895400 /* InstructionsTab */,
 				5B1856FA2D3FEA2800895400 /* Models */,
@@ -653,7 +645,7 @@
 				5BFFC5E92D394620000BC603 /* RequestReviewViewModifier.swift in Sources */,
 				5B1857042D40288200895400 /* ItemSize.swift in Sources */,
 				5B7B3F5C2C569B7800F7C093 /* ContentView.swift in Sources */,
-				5BFFC66A2D3965FC000BC603 /* BannerAdView.swift in Sources */,
+				5BFFC66A2D3965FC000BC603 /* BannerView.swift in Sources */,
 				5B1856F02D3FB21400895400 /* InstructionsPageView.swift in Sources */,
 				5BFFC5DD2D3812D5000BC603 /* Bundle+AppVersion.swift in Sources */,
 				5B9472302C8989C100B8B154 /* KeyRepeatSettingsView.swift in Sources */,

@@ -9,7 +9,6 @@
 
 /// A rewarded interstitial signal request that can be used as input in server-to-server signal
 /// generation.
-NS_SWIFT_NAME(RewardedInterstitialSignalRequest)
 @interface GADRewardedInterstitialSignalRequest : GADSignalRequest
 
 /// Returns an initialized rewarded interstitial signal request.

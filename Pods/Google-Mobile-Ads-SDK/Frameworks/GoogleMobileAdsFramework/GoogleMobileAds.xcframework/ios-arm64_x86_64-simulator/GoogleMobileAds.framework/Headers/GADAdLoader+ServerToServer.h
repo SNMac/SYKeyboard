@@ -16,6 +16,6 @@
 - (nonnull instancetype)initWithRootViewController:(nullable UIViewController *)rootViewController;
 
 /// Loads the ad and informs the delegate of the outcome.
-- (void)loadWithAdResponseString:(nonnull NSString *)adResponseString NS_SWIFT_NAME(load(with:));
+- (void)loadWithAdResponseString:(nonnull NSString *)adResponseString;
 
 @end

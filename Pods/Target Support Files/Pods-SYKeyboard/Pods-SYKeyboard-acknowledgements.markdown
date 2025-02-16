@@ -646,11 +646,15 @@ Copyright 2022 Google
 
 ## Google-Mobile-Ads-SDK
 
-Copyright 2025 Google LLC
+Copyright 2024 Google LLC
 
 ## GoogleAppMeasurement
 
 Copyright 2022 Google
+
+## GoogleMobileAdsMediationFacebook
+
+Copyright 2016 Google LLC
 
 ## GoogleUserMessagingPlatform
 

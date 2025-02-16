@@ -11,7 +11,7 @@
 # This script is designed to increment the build number consistently across all targets.
 
 # Navigating to the 'SYKeyboard' directory inside the source root.
-cd "$SRCROOT/XCConfig"
+cd "$SRCROOT"
 
 # Get the current date in the format "YYYYMMDD".
 current_date=$(date "+%Y%m%d")

@@ -11,7 +11,6 @@
 #import <GoogleMobileAds/Request/GADSignalRequest.h>
 
 /// A native signal request that can be used as input in server-to-server signal generation.
-NS_SWIFT_NAME(NativeSignalRequest)
 @interface GADNativeSignalRequest : GADSignalRequest
 
 /// Number of ads to request. By default, numberOfAds
@@ -22,8 +21,7 @@ NS_SWIFT_NAME(NativeSignalRequest)
 /// Indicates whether image asset content should be loaded by the SDK. If set to YES, the SDK will
 /// disable image asset loading and native ad image URLs can be used to fetch content. Defaults to
 /// NO, image assets are loaded by the SDK.
-@property(nonatomic, assign, getter=isImageLoadingDisabled)
-    BOOL disableImageLoading NS_SWIFT_NAME(isImageLoadingDisabled);
+@property(nonatomic, assign) BOOL disableImageLoading;
 
 /// Indicates whether multiple images should be loaded for each asset. Defaults to NO.
 @property(nonatomic, assign) BOOL shouldRequestMultipleImages;
@@ -37,8 +35,7 @@ NS_SWIFT_NAME(NativeSignalRequest)
 @property(nonatomic, assign) GADAdChoicesPosition preferredAdChoicesPosition;
 
 /// Indicates whether the custom Mute This Ad feature is requested. Defaults to NO.
-@property(nonatomic, assign, getter=isCustomMuteThisAdRequested)
-    BOOL customMuteThisAdRequested NS_SWIFT_NAME(isCustomMuteThisAdRequested);
+@property(nonatomic, assign) BOOL customMuteThisAdRequested;
 
 /// Indicates whether the publisher will record impressions manually when the ad becomes visible to
 /// the user. Defaults to NO.
