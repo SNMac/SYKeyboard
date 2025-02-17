@@ -35,10 +35,12 @@ enum Configuration: String  {
 
 // [START create_banner_view]
 struct BannerView: UIViewRepresentable {
+    @Binding var isAdReceived: Bool
     let adSize: GADAdSize
     
-    init(_ adSize: GADAdSize) {
+    init(_ adSize: GADAdSize, isAdReceived: Binding<Bool>) {
         self.adSize = adSize
+        self._isAdReceived = isAdReceived
     }
     
     func makeUIView(context: Context) -> UIView {
@@ -88,6 +90,12 @@ struct BannerView: UIViewRepresentable {
         
         // MARK: - GADBannerViewDelegate methods
         func bannerViewDidReceiveAd(_ bannerView: GADBannerView) {
+            parent.isAdReceived = true
+            bannerView.alpha = 0
+            UIView.animate(withDuration: 1, animations: {
+                bannerView.alpha = 1
+            })
+            
             let responseInfo = bannerView.responseInfo
             let responseInfoStr = String(describing: responseInfo)
             let adNetworkClassName = responseInfo?.loadedAdNetworkResponseInfo?.adNetworkClassName
@@ -98,6 +106,8 @@ struct BannerView: UIViewRepresentable {
         }
         
         func bannerView(_ bannerView: GADBannerView, didFailToReceiveAdWithError error: Error) {
+            parent.isAdReceived = false
+            
             let responseInfo = (error as NSError).userInfo[GADErrorUserInfoKeyResponseInfo] as? GADResponseInfo
             let responseInfoStr = String(describing: responseInfo)
             os_log("FAILED TO RECEIVE AD: %@\n%@", log: log, type: .debug, error.localizedDescription, responseInfoStr)

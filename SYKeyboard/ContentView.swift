@@ -10,6 +10,7 @@ import GoogleMobileAds
 
 struct ContentView: View {
     @AppStorage("isOnboarding", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var isOnboarding = true
+    @State private var isAdReceived: Bool = false
     
     private var defaults: UserDefaults?
     private var state: PreviewKeyboardState
@@ -24,15 +25,24 @@ struct ContentView: View {
     var body: some View {
         GeometryReader { geometry in
             let adSize = GADCurrentOrientationAnchoredAdaptiveBannerAdSizeWithWidth(geometry.size.width)
-            
             NavigationStack {
                 KeyboardTestView()
                 
                 KeyboardSettingsView()
                 
-                BannerView(adSize)
-                  .frame(height: adSize.size.height)
+                if isAdReceived {
+                    ZStack(alignment: .bottom) {
+                        Rectangle()
+                            .foregroundStyle(.clear)
+                            .frame(width: geometry.size.width, height: adSize.size.height)
+                    }
+                }
+                
             }
+            .overlay(alignment: .bottom, content: {
+                BannerView(adSize, isAdReceived: $isAdReceived)
+                    .frame(height: isAdReceived ? adSize.size.height : 0)
+            })
             .environmentObject(state)
             .sheet(isPresented: $isOnboarding) {
                 InstructionsTabView()
