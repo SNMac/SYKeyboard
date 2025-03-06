@@ -91,3 +91,5 @@ iOSInjectionProject/
 # Start of SNMac custom gitignore
 GoogleService-Info.plist
 GitShellScript/
+.DS_Store
+.xcuserstate
