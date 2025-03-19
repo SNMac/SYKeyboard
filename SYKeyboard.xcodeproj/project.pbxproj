@@ -63,6 +63,7 @@
 		5BB0D2722C88481500CE7AF5 /* View+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BB0D2712C88481500CE7AF5 /* View+Extension.swift */; };
 		5BB257952CEDA709005C3F10 /* OneHandedKeyboardWidthSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BB257942CEDA709005C3F10 /* OneHandedKeyboardWidthSettingsView.swift */; };
 		5BB257972CEDBABB005C3F10 /* PreviewChevronButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BB257962CEDBABB005C3F10 /* PreviewChevronButton.swift */; };
+		5BC38F1C2D8AE2FE00E6B44E /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = 5BC38F1B2D8AE2FE00E6B44E /* README.md */; };
 		5BDCDED72C67458600035B01 /* KeyboardTestView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BDCDED62C67458600035B01 /* KeyboardTestView.swift */; };
 		5BDD2F702D34FD45003F87C0 /* RequestFullAccessOverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BDD2F6F2D34FD45003F87C0 /* RequestFullAccessOverlayView.swift */; };
 		5BFFC5DD2D3812D5000BC603 /* Bundle+AppVersion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BFFC5DC2D3812D5000BC603 /* Bundle+AppVersion.swift */; };
@@ -160,6 +161,12 @@
 		5BB0D2712C88481500CE7AF5 /* View+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "View+Extension.swift"; sourceTree = "<group>"; };
 		5BB257942CEDA709005C3F10 /* OneHandedKeyboardWidthSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OneHandedKeyboardWidthSettingsView.swift; sourceTree = "<group>"; };
 		5BB257962CEDBABB005C3F10 /* PreviewChevronButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewChevronButton.swift; sourceTree = "<group>"; };
+		5BC38F1B2D8AE2FE00E6B44E /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		5BC38F1E2D8AE41500E6B44E /* 앱_아이콘.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "앱_아이콘.png"; sourceTree = "<group>"; };
+		5BC38F482D8AE8A600E6B44E /* 나랏글_키보드.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "나랏글_키보드.png"; sourceTree = "<group>"; };
+		5BC38F492D8AE8A600E6B44E /* 숫자_키패드.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "숫자_키패드.png"; sourceTree = "<group>"; };
+		5BC38F4A2D8AE8A600E6B44E /* 앱_화면.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "앱_화면.png"; sourceTree = "<group>"; };
+		5BC38F4B2D8AE8A600E6B44E /* 한_손_키보드.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "한_손_키보드.png"; sourceTree = "<group>"; };
 		5BDCDED62C67458600035B01 /* KeyboardTestView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardTestView.swift; sourceTree = "<group>"; };
 		5BDD2F5E2D34BA97003F87C0 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		5BDD2F6F2D34FD45003F87C0 /* RequestFullAccessOverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RequestFullAccessOverlayView.swift; sourceTree = "<group>"; };
@@ -248,6 +255,8 @@
 		5B7B3F4D2C569B7800F7C093 = {
 			isa = PBXGroup;
 			children = (
+				5BC38F1D2D8AE3E300E6B44E /* Resources */,
+				5BC38F1B2D8AE2FE00E6B44E /* README.md */,
 				5BA419DE2CB99238005E7C86 /* .gitignore */,
 				5B52CC3C2D5E423C005CB1C7 /* Shared.xcconfig */,
 				5B9472312C8AD6DD00B8B154 /* GlobalData */,
@@ -379,6 +388,18 @@
 				5B1856FD2D3FF86B00895400 /* UIDevice+Extension.swift */,
 			);
 			path = Extensions;
+			sourceTree = "<group>";
+		};
+		5BC38F1D2D8AE3E300E6B44E /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				5BC38F1E2D8AE41500E6B44E /* 앱_아이콘.png */,
+				5BC38F482D8AE8A600E6B44E /* 나랏글_키보드.png */,
+				5BC38F492D8AE8A600E6B44E /* 숫자_키패드.png */,
+				5BC38F4B2D8AE8A600E6B44E /* 한_손_키보드.png */,
+				5BC38F4A2D8AE8A600E6B44E /* 앱_화면.png */,
+			);
+			path = Resources;
 			sourceTree = "<group>";
 		};
 		5BFFC5EA2D3947DC000BC603 /* ViewModifier */ = {
@@ -518,6 +539,7 @@
 				5B1857022D4001AC00895400 /* InfoPlist.xcstrings in Resources */,
 				5B7B3F612C569B7800F7C093 /* Preview Assets.xcassets in Resources */,
 				5B52CC3D2D5E423D005CB1C7 /* Shared.xcconfig in Resources */,
+				5BC38F1C2D8AE2FE00E6B44E /* README.md in Resources */,
 				5B1857002D40005300895400 /* Localizable.xcstrings in Resources */,
 				5B7B3F5E2C569B7800F7C093 /* Assets.xcassets in Resources */,
 			);
