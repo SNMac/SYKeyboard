@@ -24,8 +24,8 @@ final class Feedback {
         return defaults?.bool(forKey: "isHapticFeedbackEnabled") ?? true
     }
     
-    func prepareHaptic() {
-        let generator = UIImpactFeedbackGenerator(style: .light)
+    func prepareHaptic(style: UIImpactFeedbackGenerator.FeedbackStyle) {
+        let generator = UIImpactFeedbackGenerator(style: style)
         generator.prepare()
     }
         

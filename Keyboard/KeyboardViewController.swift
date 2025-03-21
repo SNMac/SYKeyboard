@@ -39,7 +39,7 @@ class KeyboardViewController: UIInputViewController {
         updateHoegSsangAvailiableToOptions()
         updateKeyboardTypeToOptions()
         updateReturnButtonLabelToOptions()
-        Feedback.shared.prepareHaptic()
+        Feedback.shared.prepareHaptic(style: .light)
     }
     
     override func textDidChange(_ textInput: (any UITextInput)?) {
