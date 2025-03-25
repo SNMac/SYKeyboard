@@ -55,6 +55,7 @@ struct KeyboardButton: View {
     var onLongPressRelease: (() -> Void)?
     
     // MARK: - Gesture Recognization Methods
+    
     private func gesturePressed() {
         var executeOnPressed: Bool = true
         
@@ -116,6 +117,7 @@ struct KeyboardButton: View {
     }
     
     // MARK: - Gesture Execution Methods
+    
     private func onPressed() {  // 버튼 눌렀을 때 호출(버튼 누르면 무조건 첫번째로 호출)
         nowState = .pressed
         onPress()
@@ -208,6 +210,7 @@ struct KeyboardButton: View {
     }
     
     // MARK: - Input Type Select Methods
+    
     private func activateKeyboardSelect() {
         state.activeKeyboardSelectOverlay = true
     }
@@ -258,6 +261,7 @@ struct KeyboardButton: View {
     }
     
     // MARK: - One Hand Mode Select Methods
+    
     private func activateOneHandedKeyboardSelect() {
         state.selectedOneHandedKeyboard = state.currentOneHandedKeyboard
         state.activeOneHandedKeyboardSelectOverlay = true
@@ -305,6 +309,7 @@ struct KeyboardButton: View {
     }
     
     // MARK: - Basic Methods
+    
     private func moveCursor(dragGestureValue: DragGesture.Value) {
         // 일정 거리 초과 드래그 -> 커서를 한칸씩 드래그한 방향으로 이동
         let dragDiff = dragGestureValue.translation.width - dragStartWidth
@@ -346,6 +351,7 @@ struct KeyboardButton: View {
     }
     
     // MARK: - Other Methods
+    
     private func initButtonState() {
         nowState = .released
         state.nowPressedButton = nil
@@ -393,6 +399,7 @@ struct KeyboardButton: View {
     }
     
     // MARK: - KeyboardButton
+    
     var body: some View {
         Button(action: {}) {
             // Image 버튼들

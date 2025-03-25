@@ -45,7 +45,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         FBAdSettings.setAdvertiserTrackingEnabled(true)
         
         // Initialize the Google Mobile Ads SDK.
-        let ads = GADMobileAds.sharedInstance()
+        let ads = MobileAds.shared
         ads.start { status in
             // Optional: Log each adapter's initialization latency.
             let adapterStatuses = status.adapterStatusesByClassName

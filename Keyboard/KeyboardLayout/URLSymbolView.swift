@@ -25,7 +25,9 @@ struct URLSymbolView: View {
     var body: some View {
         GeometryReader { geometry in
             VStack(spacing: 0) {
+                
                 // MARK: - 1st row of URL Symbol Keyboard
+                
                 HStack(spacing: 0) {
                     KeyboardButton(
                         text: symbols[state.nowSymbolPage][0], primary: true,
@@ -299,6 +301,7 @@ struct URLSymbolView: View {
                 }
                 
                 // MARK: - 2nd row of URL Symbol Keyboard
+                
                 HStack(spacing: 0) {
                     KeyboardButton(
                         text: symbols[state.nowSymbolPage][10], primary: true,
@@ -518,6 +521,7 @@ struct URLSymbolView: View {
                 }
                 
                 // MARK: - 3rd row of URL Symbol Keyboard
+                
                 HStack(spacing: 0) {
                     KeyboardButton(
                         text: "shift_symbol", primary: false,
@@ -664,6 +668,7 @@ struct URLSymbolView: View {
                 }
                 
                 // MARK: - (한글, 􀆪), ., /, .com, 􁂆
+                
                 HStack(spacing: 0) {
                     if state.needsInputModeSwitchKey {
                         HStack(spacing: 0) {

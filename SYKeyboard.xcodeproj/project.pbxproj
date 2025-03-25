@@ -50,12 +50,12 @@
 		5B7B3F5E2C569B7800F7C093 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 5B7B3F5D2C569B7800F7C093 /* Assets.xcassets */; };
 		5B7B3F612C569B7800F7C093 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 5B7B3F602C569B7800F7C093 /* Preview Assets.xcassets */; };
 		5B7B3F6E2C569B8200F7C093 /* KeyboardViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B7B3F6D2C569B8200F7C093 /* KeyboardViewController.swift */; };
-		5B7B3F722C569B8200F7C093 /* Keyboard.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 5B7B3F6B2C569B8200F7C093 /* Keyboard.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		5B7BDD472C91E8860065C944 /* InfoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B7BDD462C91E8860065C944 /* InfoView.swift */; };
 		5B7BDD492C9204290065C944 /* SpecificLanguageTextField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B7BDD482C9204290065C944 /* SpecificLanguageTextField.swift */; };
 		5B80E2752D42975D006F2056 /* CursorMovementSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B80E2742D42975D006F2056 /* CursorMovementSettingsView.swift */; };
 		5B9472302C8989C100B8B154 /* KeyRepeatSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B94722F2C8989C100B8B154 /* KeyRepeatSettingsView.swift */; };
 		5B9472332C8AD76000B8B154 /* Feedback.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B0D82422C63C16F00F84180 /* Feedback.swift */; };
+		5B9D004C2D92C38200DA108E /* Keyboard.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 5B7B3F6B2C569B8200F7C093 /* Keyboard.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		5BA419D82CB98532005E7C86 /* InitialSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BA419D72CB98532005E7C86 /* InitialSettingsView.swift */; };
 		5BACCE552C915423006DCFB7 /* KeyboardDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BACCE542C915423006DCFB7 /* KeyboardDelegate.swift */; };
 		5BB0D2642C86FF3B00CE7AF5 /* KeyboardHeightSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BB0D2632C86FF3B00CE7AF5 /* KeyboardHeightSettingsView.swift */; };
@@ -73,23 +73,23 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		5B7B3F702C569B8200F7C093 /* PBXContainerItemProxy */ = {
+		5B9D004D2D92C38200DA108E /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 5B7B3F4E2C569B7800F7C093 /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = 5B7B3F6A2C569B8200F7C093;
-			remoteInfo = Naratgeul;
+			remoteInfo = Keyboard;
 		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
-		5B7B3F762C569B8200F7C093 /* Embed Foundation Extensions */ = {
+		5B9D004F2D92C38200DA108E /* Embed Foundation Extensions */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
 			dstPath = "";
 			dstSubfolderSpec = 13;
 			files = (
-				5B7B3F722C569B8200F7C093 /* Keyboard.appex in Embed Foundation Extensions */,
+				5B9D004C2D92C38200DA108E /* Keyboard.appex in Embed Foundation Extensions */,
 			);
 			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -182,6 +182,8 @@
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		5BA419DB2CB98F2E005E7C86 /* GitShellScript */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+			);
 			path = GitShellScript;
 			sourceTree = "<group>";
 		};
@@ -457,14 +459,13 @@
 				5B7B3F522C569B7800F7C093 /* Sources */,
 				5B7B3F532C569B7800F7C093 /* Frameworks */,
 				5B7B3F542C569B7800F7C093 /* Resources */,
-				5B7B3F762C569B8200F7C093 /* Embed Foundation Extensions */,
-				59DE5BC0A3BFAB654B32EBE9 /* [CP] Embed Pods Frameworks */,
 				375456215881E1DC600453EF /* [CP] Copy Pods Resources */,
+				5B9D004F2D92C38200DA108E /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
-				5B7B3F712C569B8200F7C093 /* PBXTargetDependency */,
+				5B9D004E2D92C38200DA108E /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				5BA419DB2CB98F2E005E7C86 /* GitShellScript */,
@@ -482,6 +483,7 @@
 				5B7B3F672C569B8200F7C093 /* Sources */,
 				5B7B3F682C569B8200F7C093 /* Frameworks */,
 				5B7B3F692C569B8200F7C093 /* Resources */,
+				931B5DBD5D75E0A8C1BD7851 /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -575,21 +577,21 @@
 			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-SYKeyboard/Pods-SYKeyboard-resources.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
-		59DE5BC0A3BFAB654B32EBE9 /* [CP] Embed Pods Frameworks */ = {
+		931B5DBD5D75E0A8C1BD7851 /* [CP] Copy Pods Resources */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			inputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-SYKeyboard/Pods-SYKeyboard-frameworks-${CONFIGURATION}-input-files.xcfilelist",
+				"${PODS_ROOT}/Target Support Files/Pods-Keyboard/Pods-Keyboard-resources-${CONFIGURATION}-input-files.xcfilelist",
 			);
-			name = "[CP] Embed Pods Frameworks";
+			name = "[CP] Copy Pods Resources";
 			outputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-SYKeyboard/Pods-SYKeyboard-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+				"${PODS_ROOT}/Target Support Files/Pods-Keyboard/Pods-Keyboard-resources-${CONFIGURATION}-output-files.xcfilelist",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-SYKeyboard/Pods-SYKeyboard-frameworks.sh\"\n";
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Keyboard/Pods-Keyboard-resources.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 		E6935368C6C5B48C813A5D6B /* [CP] Check Pods Manifest.lock */ = {
@@ -706,10 +708,10 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		5B7B3F712C569B8200F7C093 /* PBXTargetDependency */ = {
+		5B9D004E2D92C38200DA108E /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 5B7B3F6A2C569B8200F7C093 /* Keyboard */;
-			targetProxy = 5B7B3F702C569B8200F7C093 /* PBXContainerItemProxy */;
+			targetProxy = 5B9D004D2D92C38200DA108E /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 

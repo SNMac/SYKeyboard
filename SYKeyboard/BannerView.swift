@@ -34,11 +34,11 @@ enum Configuration: String  {
 }
 
 // [START create_banner_view]
-struct BannerView: UIViewRepresentable {
+struct BannerViewContainer: UIViewRepresentable {
     @Binding var isAdReceived: Bool
-    let adSize: GADAdSize
+    let adSize: AdSize
     
-    init(_ adSize: GADAdSize, isAdReceived: Binding<Bool>) {
+    init(_ adSize: AdSize, isAdReceived: Binding<Bool>) {
         self.adSize = adSize
         self._isAdReceived = isAdReceived
     }
@@ -63,15 +63,15 @@ struct BannerView: UIViewRepresentable {
     
     
     // [START create_banner]
-    class BannerCoordinator: NSObject, GADBannerViewDelegate {
+    class BannerCoordinator: NSObject, BannerViewDelegate {
         private let log = OSLog(subsystem: "github.com-SNMac.SYKeyboard", category: "BannerView")
         
-        private(set) lazy var bannerView: GADBannerView = {
-            let banner = GADBannerView(adSize: parent.adSize)
+        private(set) lazy var bannerView: BannerView = {
+            let banner = BannerView(adSize: parent.adSize)
             
             // [START load_ad]
             banner.adUnitID = Configuration.admobID
-            banner.load(GADRequest())
+            banner.load(Request())
             // [END load_ad]
             
             // [START set_delegate]
@@ -81,15 +81,16 @@ struct BannerView: UIViewRepresentable {
             return banner
         }()
         
-        let parent: BannerView
+        let parent: BannerViewContainer
         
-        init(_ parent: BannerView) {
+        init(_ parent: BannerViewContainer) {
             self.parent = parent
         }
         // [END create_banner]
         
         // MARK: - GADBannerViewDelegate methods
-        func bannerViewDidReceiveAd(_ bannerView: GADBannerView) {
+        
+        func bannerViewDidReceiveAd(_ bannerView: BannerView) {
             parent.isAdReceived = true
             bannerView.alpha = 0
             UIView.animate(withDuration: 1, animations: {
@@ -105,10 +106,10 @@ struct BannerView: UIViewRepresentable {
             ])
         }
         
-        func bannerView(_ bannerView: GADBannerView, didFailToReceiveAdWithError error: Error) {
+        func bannerView(_ bannerView: BannerView, didFailToReceiveAdWithError error: Error) {
             parent.isAdReceived = false
             
-            let responseInfo = (error as NSError).userInfo[GADErrorUserInfoKeyResponseInfo] as? GADResponseInfo
+            let responseInfo = (error as NSError).userInfo[GADErrorUserInfoKeyResponseInfo] as? ResponseInfo
             let responseInfoStr = String(describing: responseInfo)
             os_log("FAILED TO RECEIVE AD: %@\n%@", log: log, type: .debug, error.localizedDescription, responseInfoStr)
             Analytics.logEvent("receive_ad_failed", parameters: [

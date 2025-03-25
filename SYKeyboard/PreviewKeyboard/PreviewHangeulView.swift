@@ -27,7 +27,9 @@ struct PreviewHangeulView: View {
         let repeatTimerInterval = 0.10 - repeatRate
         
         VStack(spacing: 0) {
+            
             // MARK: - ㄱ, ㄴ, ㅏㅓ, 􀆛
+            
             HStack(spacing: 0) {
                 PreviewKeyboardButton(
                     text: "ㄱ", primary: true,
@@ -117,6 +119,7 @@ struct PreviewHangeulView: View {
             
             
             // MARK: - ㄹ, ㅁ, ㅗㅜ, 􁁺
+            
             HStack(spacing: 0) {
                 PreviewKeyboardButton(
                     text: "ㄹ", primary: true,
@@ -208,6 +211,7 @@ struct PreviewHangeulView: View {
             }
             
             // MARK: - ㅅ, ㅇ, ㅣ, 􁂆
+            
             HStack(spacing: 0) {
                 PreviewKeyboardButton(
                     text: "ㅅ", primary: true,
@@ -286,6 +290,7 @@ struct PreviewHangeulView: View {
             }
             
             // MARK: - 획, ㅡ, 쌍, (!#1, 􀆪)
+            
             HStack(spacing: 0) {
                 PreviewKeyboardButton(
                     text: "획", primary: true,

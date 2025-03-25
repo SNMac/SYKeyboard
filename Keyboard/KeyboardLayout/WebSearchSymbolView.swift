@@ -26,7 +26,9 @@ struct WebSearchSymbolView: View {
     var body: some View {
         GeometryReader { geometry in
             VStack(spacing: 0) {
+                
                 // MARK: - 1st row of Web Search Symbol Keyboard
+                
                 HStack(spacing: 0) {
                     KeyboardButton(
                         text: symbols[state.nowSymbolPage][0], primary: true,
@@ -300,6 +302,7 @@ struct WebSearchSymbolView: View {
                 }
                 
                 // MARK: - 2nd row of Symbol Keyboard
+                
                 HStack(spacing: 0) {
                     KeyboardButton(
                         text: symbols[state.nowSymbolPage][10], primary: true,
@@ -573,6 +576,7 @@ struct WebSearchSymbolView: View {
                 }
                 
                 // MARK: - 3rd row of Symbol Keyboard
+                
                 HStack(spacing: 0) {
                     KeyboardButton(
                         text: "shift_symbol", primary: false,
@@ -752,6 +756,7 @@ struct WebSearchSymbolView: View {
                 }
                 
                 // MARK: - (한글, 􀆪), 􁁺, ., 􁂆
+                
                 HStack(spacing: 0) {
                     if state.needsInputModeSwitchKey {
                         HStack(spacing: 0) {

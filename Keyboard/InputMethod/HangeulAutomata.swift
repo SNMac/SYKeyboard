@@ -272,6 +272,7 @@ extension HangeulAutomata {
         checkCurHanState(isSymbol: false)
         
         // MARK: - 오토마타 전이 알고리즘
+        
         switch curHanStatus {
         case .start:
             appendingBuffer()
@@ -327,6 +328,7 @@ extension HangeulAutomata {
         }
         
         // MARK: - 오토마타 작업 알고리즘
+        
         switch curHanStatus {
         case .chosung:
             curGeulja = chosungTable[Int(curKeyIndex)]

@@ -20,7 +20,9 @@ struct TenKeyView: View {
     var body: some View {
         GeometryReader { geometry in
             VStack(spacing: 0) {
+                
                 // MARK: - 1, 2, 3
+                
                 HStack(spacing: 0) {
                     KeyboardButton(
                         text: "1", primary: true,
@@ -104,8 +106,8 @@ struct TenKeyView: View {
                     .contentShape(Rectangle())
                 }
                 
-                
                 // MARK: - 4, 5, 6
+                
                 HStack(spacing: 0) {
                     KeyboardButton(
                         text: "4", primary: true,
@@ -190,6 +192,7 @@ struct TenKeyView: View {
                 }
                 
                 // MARK: - 7, 8, 9
+                
                 HStack(spacing: 0) {
                     KeyboardButton(
                         text: "7", primary: true,
@@ -274,6 +277,7 @@ struct TenKeyView: View {
                 }
                 
                 // MARK: - (􀆪), 0, 􀆛
+                
                 HStack(spacing: 0) {
                     if state.needsInputModeSwitchKey {
                         NextKeyboardButton(

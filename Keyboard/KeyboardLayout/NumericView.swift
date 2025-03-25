@@ -19,7 +19,9 @@ struct NumericView: View {
     
     var body: some View {
         VStack(spacing: 0) {
+            
             // MARK: - 1, 2, 3, 􀆛
+            
             HStack(spacing: 0) {
                 KeyboardButton(
                     text: "1", primary: true,
@@ -130,6 +132,7 @@ struct NumericView: View {
             
             
             // MARK: - 4, 5, 6, 􁁺
+            
             HStack(spacing: 0) {
                 KeyboardButton(
                     text: "4", primary: true,
@@ -241,6 +244,7 @@ struct NumericView: View {
             }
             
             // MARK: - 7, 8, 9, 􁂆
+            
             HStack(spacing: 0) {
                 KeyboardButton(
                     text: "7", primary: true,
@@ -337,6 +341,7 @@ struct NumericView: View {
             }
             
             // MARK: - "-", ",", 0, ".", "/", (한글, 􀆪)
+            
             HStack(spacing: 0) {
                 HStack(spacing: 0) {
                     KeyboardButton(

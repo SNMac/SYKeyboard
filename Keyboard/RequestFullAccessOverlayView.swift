@@ -9,7 +9,9 @@ import UIKit
 import SnapKit
 
 class RequestFullAccessOverlayView: UIView {
+    
     // MARK: - UI Components
+    
     private let blurEffectView: UIVisualEffectView = {
         let blurEffect = UIBlurEffect(style: .systemUltraThinMaterial)
         let visualEffectView = UIVisualEffectView(effect: blurEffect)
@@ -66,6 +68,7 @@ class RequestFullAccessOverlayView: UIView {
     }()
 
     // MARK: - initializers
+    
     init() {
         super.init(frame: .zero)
         
@@ -78,6 +81,7 @@ class RequestFullAccessOverlayView: UIView {
 }
 
 // MARK: - UI Methods
+
 private extension RequestFullAccessOverlayView {
     func setupUI() {
         setViewHierarchy()

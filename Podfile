@@ -3,7 +3,7 @@
 
 target 'Keyboard' do
   # Comment the next line if you don't want to use dynamic frameworks
-  use_frameworks!
+  use_frameworks! :linkage => :static
 
   # Pods for Keyboard
   pod 'SnapKit', '~> 5.7.0'
@@ -12,7 +12,7 @@ end
 
 target 'SYKeyboard' do
   # Comment the next line if you don't want to use dynamic frameworks
-  use_frameworks!
+  use_frameworks! :linkage => :static
 
   # Pods for SYKeyboard
   pod 'Google-Mobile-Ads-SDK'

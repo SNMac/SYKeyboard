@@ -19,7 +19,9 @@ struct HangeulView: View {
     
     var body: some View {
         VStack(spacing: 0) {
+            
             // MARK: - ㄱ, ㄴ, ㅏㅓ, 􀆛
+            
             HStack(spacing: 0) {
                 KeyboardButton(
                     text: "ㄱ", primary: true,
@@ -128,8 +130,8 @@ struct HangeulView: View {
                 .contentShape(Rectangle())
             }
             
-            
             // MARK: - ㄹ, ㅁ, ㅗㅜ, 􁁺
+            
             HStack(spacing: 0) {
                 KeyboardButton(
                     text: "ㄹ", primary: true,
@@ -241,6 +243,7 @@ struct HangeulView: View {
             }
             
             // MARK: - ㅅ, ㅇ, ㅣ, 􁂆
+            
             HStack(spacing: 0) {
                 KeyboardButton(
                     text: "ㅅ", primary: true,
@@ -365,6 +368,7 @@ struct HangeulView: View {
             }
             
             // MARK: - 획, ㅡ, 쌍, (!#1, 􀆪)
+            
             HStack(spacing: 0) {
                 KeyboardButton(
                     text: "획", primary: true,

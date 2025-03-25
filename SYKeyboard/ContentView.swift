@@ -24,7 +24,7 @@ struct ContentView: View {
     
     var body: some View {
         GeometryReader { geometry in
-            let adSize = GADCurrentOrientationAnchoredAdaptiveBannerAdSizeWithWidth(geometry.size.width)
+            let adSize = currentOrientationAnchoredAdaptiveBanner(width: geometry.size.width)
             NavigationStack {
                 KeyboardTestView()
                 
@@ -40,7 +40,7 @@ struct ContentView: View {
                 
             }
             .overlay(alignment: .bottom, content: {
-                BannerView(adSize, isAdReceived: $isAdReceived)
+                BannerViewContainer(adSize, isAdReceived: $isAdReceived)
                     .frame(height: isAdReceived ? adSize.size.height : 0)
             })
             .environmentObject(state)

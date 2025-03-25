@@ -17,6 +17,7 @@ struct OneHandedKeyboardSelectOverlayView: View {
     private let fontSize: Double = 26
     
     // MARK: - Gesture Recognization Methods
+    
     private func gestureDrag(DragGestureValue: DragGesture.Value) {
         onDrag(DragGestureValue: DragGestureValue)
     }
@@ -26,6 +27,7 @@ struct OneHandedKeyboardSelectOverlayView: View {
     }
     
     // MARK: - Gesture Execution Methods
+    
     private func onReleased() {
         if state.activeOneHandedKeyboardSelectOverlay {
             if let selectedOneHandedKeyboard = state.selectedOneHandedKeyboard {
@@ -42,6 +44,7 @@ struct OneHandedKeyboardSelectOverlayView: View {
     }
     
     // MARK: - One Hand Mode Select Methods
+    
     private func selectOneHandedKeyboard(DragGestureValue: DragGesture.Value) {
         let dragXLocation = DragGestureValue.location.x
         let dragYLocation = DragGestureValue.location.y

@@ -54,6 +54,7 @@ struct PreviewKeyboardButton: View {
     var onLongPressRelease: (() -> Void)?
     
     // MARK: - Gesture Recognization Methods
+    
     private func gesturePressed() {
         if state.nowPressedButton != nil {  // 이미 다른 버튼이 눌려있는 상태
             switch state.nowPressedButton?.nowState {
@@ -101,6 +102,7 @@ struct PreviewKeyboardButton: View {
     }
     
     // MARK: - Gesture Execution Methods
+    
     private func onPressed() {  // 버튼 눌렀을 때 호출(버튼 누르면 무조건 첫번째로 호출)
         nowState = .pressed
         onPress()
@@ -164,6 +166,7 @@ struct PreviewKeyboardButton: View {
     }
     
     // MARK: - Basic Methods
+    
     private func moveCursor(dragGestureValue: DragGesture.Value) {
         // 일정 거리 초과 드래그 -> 커서를 한칸씩 드래그한 방향으로 이동
         let dragDiff = dragGestureValue.translation.width - dragStartWidth
@@ -197,6 +200,7 @@ struct PreviewKeyboardButton: View {
     }
     
     // MARK: - Other Methods
+    
     private func initButtonState() {
         nowState = .released
         state.nowPressedButton = nil
@@ -207,6 +211,7 @@ struct PreviewKeyboardButton: View {
     }
     
     // MARK: - PreviewKeyboardButton
+    
     var body: some View {
         let longPressDuration = 1.0 - longPressDuration
         

@@ -20,7 +20,8 @@ class KeyboardViewController: UIInputViewController {
     
     private let requestFullAccessView = RequestFullAccessOverlayView()
     
-    // MARK: - LifeCycle
+    // MARK: - UIInputViewController
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         setupDefaults()
@@ -60,6 +61,7 @@ class KeyboardViewController: UIInputViewController {
     }
     
     // MARK: - Keyboard UI Methods
+    
     private func setupUI() {
         let nextKeyboardAction = #selector(handleInputModeList(from:with:))
         let state = KeyboardState(
@@ -98,6 +100,7 @@ class KeyboardViewController: UIInputViewController {
     }
     
     // MARK: - Keyboard Setup Methods
+    
     private func setupKeyboard() {
         configureIOManager()
         loadTextReplacement()
@@ -216,6 +219,7 @@ class KeyboardViewController: UIInputViewController {
     }
     
     // MARK: - Property Update Methods
+    
     private func updateCursorPos() {
         let proxy = textDocumentProxy
         if let beforeInput = proxy.documentContextBeforeInput {
@@ -226,6 +230,7 @@ class KeyboardViewController: UIInputViewController {
     }
         
     // MARK: - UserDefaults Update Methods
+    
     private func setupDefaults() {
         defaults = UserDefaults(suiteName: GlobalValues.groupBundleID)
         GlobalValues.setupDefaults(defaults)
@@ -238,6 +243,7 @@ class KeyboardViewController: UIInputViewController {
     }
     
     // MARK: - KeyboardState Update Methods
+    
     private func updateHoegSsangAvailiableToOptions() {
         state?.isHoegSsangAvailable = ioManager.isHoegSsangAvailiable
     }
@@ -301,6 +307,7 @@ class KeyboardViewController: UIInputViewController {
 }
 
 // MARK: - Text Replacement Methods
+
 private extension KeyboardViewController {
     // 텍스트 대치
     func attemptToReplaceCurrentWord() -> Bool {  // 글자 입력할때 호출
@@ -358,6 +365,7 @@ private extension KeyboardViewController {
 }
 
 // MARK: - Request Full Access Methods
+
 private extension KeyboardViewController {
     func setupRequestFullAccessUI() {
         requestFullAccessView.goToSettingsButton.addAction(UIAction(handler: { _ in
@@ -372,7 +380,7 @@ private extension KeyboardViewController {
     }
     
     func redirectToSettings() {
-        let url = "sykeyboard://"
+        let url = "sykeyboard://"  // 커스텀한 URL Scheme
         guard let urlScheme = URL(string: url) else {
             return
         }
@@ -383,7 +391,11 @@ private extension KeyboardViewController {
     @discardableResult
     @objc func openURL(_ url: URL) -> Bool {
         var responder: UIResponder? = self
+        
+        // UIResponder 체인을 순회하며 UIApplication을 찾음
         while responder != nil {
+            
+            // UIApplication 인스턴스를 찾으면 URL을 실행할 준비
             if let application = responder as? UIApplication {
                 if #available(iOS 18.0, *) {
                     application.open(url, options: [:], completionHandler: nil)
@@ -392,6 +404,8 @@ private extension KeyboardViewController {
                     return application.perform(#selector(openURL(_:)), with: url) != nil
                 }
             }
+            
+            // 현재 responder에서 responder.next로 이동하여 다음 UIResponder 객체를 찾음
             responder = responder?.next
         }
         return false
