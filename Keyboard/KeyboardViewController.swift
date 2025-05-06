@@ -20,7 +20,7 @@ class KeyboardViewController: UIInputViewController {
     
     private let requestFullAccessView = RequestFullAccessOverlayView()
     
-    // MARK: - UIInputViewController
+    // MARK: - Lifecycle
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -108,7 +108,7 @@ class KeyboardViewController: UIInputViewController {
     
     private func configureIOManager() {
         ioManager.inputText = { [weak self] in
-            guard let self = self else { return }
+            guard let self else { return }
             let proxy = textDocumentProxy
             
             if defaults?.bool(forKey: "isTextReplacementEnabled") ?? true {
@@ -127,7 +127,7 @@ class KeyboardViewController: UIInputViewController {
         }
         
         ioManager.deleteForInput = { [weak self] in
-            guard let self = self else { return }
+            guard let self else { return }
             let proxy = textDocumentProxy
             if let beforeInput = proxy.documentContextBeforeInput {
                 if !beforeInput.isEmpty && ioManager.isEditingLastCharacter {
@@ -137,7 +137,7 @@ class KeyboardViewController: UIInputViewController {
         }
         
         ioManager.deleteText = { [weak self] in
-            guard let self = self else { return false }
+            guard let self else { return false }
             var isDeleted = false
             
             let proxy = textDocumentProxy
@@ -155,7 +155,7 @@ class KeyboardViewController: UIInputViewController {
         }
         
         ioManager.inputForDelete = { [weak self] in
-            guard let self = self else { return }
+            guard let self else { return }
             let proxy = textDocumentProxy
             proxy.insertText($0)
             
@@ -164,17 +164,17 @@ class KeyboardViewController: UIInputViewController {
         }
         
         ioManager.attemptRestoreWord = { [weak self] in
-            guard let self = self else { return false }
+            guard let self else { return false }
             return attemptToRestoreReplacementWord()
         }
         
         ioManager.onlyUpdateHoegSsang = { [weak self] in
-            guard let self = self else { return }
+            guard let self else { return }
             updateHoegSsangAvailiableToOptions()
         }
         
         ioManager.moveCursorToLeft = { [weak self] in
-            guard let self = self else { return false }
+            guard let self else { return false }
             
             let prevCurPos = cursorPos
             
@@ -193,7 +193,7 @@ class KeyboardViewController: UIInputViewController {
         }
         
         ioManager.moveCursorToRight = { [weak self] in
-            guard let self = self else { return false }
+            guard let self else { return false }
             
             let prevCurPos = cursorPos
             
