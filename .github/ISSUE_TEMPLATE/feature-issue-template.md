@@ -1,9 +1,9 @@
 ---
-name: Custom Issue Template
-about: 이슈 템플릿
+name: Feature Issue Template
+about: 기본적인 Issue Template 입니다.
 title: ''
-labels: ''
-assignees: ''
+labels: enhancement
+assignees: SNMac
 
 ---
 
