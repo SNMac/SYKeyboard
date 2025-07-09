@@ -84,9 +84,7 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				ChevronButton.swift,
-				InputMethod/HangeulAutomata.swift,
 				KeyboardDelegate.swift,
-				KeyboardIOManager.swift,
 				KeyboardLayout/EmailSymbolView.swift,
 				KeyboardLayout/HangeulView.swift,
 				KeyboardLayout/KeyboardButton.swift,
@@ -98,7 +96,6 @@
 				KeyboardLayout/WebSearchSymbolView.swift,
 				KeyboardSelectOverlayView.swift,
 				KeyboardState.swift,
-				KeyboardView.swift,
 				OneHandedKeyboardSelectOverlayView.swift,
 				RequestFullAccessOverlayView.swift,
 				"Resources/Configs/DebugConfig-Keyboard.xcconfig",
@@ -106,6 +103,9 @@
 				Resources/Info.plist,
 				Resources/InfoPlist.xcstrings,
 				Resources/Localizable.xcstrings,
+				UseCases/HangeulAutomata.swift,
+				UseCases/KeyboardIOManager.swift,
+				View/KeyboardView.swift,
 				ViewController/KeyboardViewController.swift,
 			);
 			target = 5B7B3F552C569B7800F7C093 /* SYKeyboard */;
@@ -114,9 +114,7 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				ChevronButton.swift,
-				InputMethod/HangeulAutomata.swift,
 				KeyboardDelegate.swift,
-				KeyboardIOManager.swift,
 				KeyboardLayout/EmailSymbolView.swift,
 				KeyboardLayout/HangeulView.swift,
 				KeyboardLayout/KeyboardButton.swift,
@@ -128,11 +126,13 @@
 				KeyboardLayout/WebSearchSymbolView.swift,
 				KeyboardSelectOverlayView.swift,
 				KeyboardState.swift,
-				KeyboardView.swift,
 				OneHandedKeyboardSelectOverlayView.swift,
 				RequestFullAccessOverlayView.swift,
 				Resources/InfoPlist.xcstrings,
 				Resources/Localizable.xcstrings,
+				UseCases/HangeulAutomata.swift,
+				UseCases/KeyboardIOManager.swift,
+				View/KeyboardView.swift,
 				ViewController/KeyboardViewController.swift,
 			);
 			target = 5B7B3F6A2C569B8200F7C093 /* Keyboard */;
