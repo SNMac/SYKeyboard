@@ -9,7 +9,6 @@
 /* Begin PBXBuildFile section */
 		5B52CC372D5E407C005CB1C7 /* Pods_SYKeyboard.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D4636DF2647C79BB2219C71E /* Pods_SYKeyboard.framework */; };
 		5B52CC3A2D5E408C005CB1C7 /* Pods_Keyboard.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B759D601A4777EF2A0956994 /* Pods_Keyboard.framework */; };
-		5B52CC3D2D5E423D005CB1C7 /* Version.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = 5B52CC3C2D5E423C005CB1C7 /* Version.xcconfig */; };
 		5B8E6E0E2E1E426400657BF4 /* GoogleMobileAds in Frameworks */ = {isa = PBXBuildFile; productRef = 5B8E6E0D2E1E426400657BF4 /* GoogleMobileAds */; };
 		5B8E6E112E1E42D800657BF4 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = 5B8E6E102E1E42D800657BF4 /* FirebaseAnalytics */; };
 		5B8E6E132E1E42D800657BF4 /* FirebaseAnalyticsCore in Frameworks */ = {isa = PBXBuildFile; productRef = 5B8E6E122E1E42D800657BF4 /* FirebaseAnalyticsCore */; };
@@ -47,10 +46,8 @@
 		079E614D6FC05DCAB5AEA949 /* Pods-SYKeyboard.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-SYKeyboard.debug.xcconfig"; path = "Target Support Files/Pods-SYKeyboard/Pods-SYKeyboard.debug.xcconfig"; sourceTree = "<group>"; };
 		45DC8CEE55D6E0E9BC6ABA3D /* Pods-Keyboard.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Keyboard.release.xcconfig"; path = "Target Support Files/Pods-Keyboard/Pods-Keyboard.release.xcconfig"; sourceTree = "<group>"; };
 		4A4E2BB4F6407C7B65CA2AA7 /* Pods-Keyboard.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Keyboard.debug.xcconfig"; path = "Target Support Files/Pods-Keyboard/Pods-Keyboard.debug.xcconfig"; sourceTree = "<group>"; };
-		5B52CC3C2D5E423C005CB1C7 /* Version.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Version.xcconfig; sourceTree = "<group>"; };
 		5B7B3F562C569B7800F7C093 /* SYKeyboard.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SYKeyboard.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		5B7B3F6B2C569B8200F7C093 /* Keyboard.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = Keyboard.appex; sourceTree = BUILT_PRODUCTS_DIR; };
-		5B9FEF3C2DCA7B2100A78B4E /* Secrets.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Secrets.xcconfig; sourceTree = "<group>"; };
 		5BA419DE2CB99238005E7C86 /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
 		5BC38F1B2D8AE2FE00E6B44E /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		B759D601A4777EF2A0956994 /* Pods_Keyboard.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Keyboard.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -59,59 +56,114 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		5BC07E6C2DAD0BDA005796AB /* Exceptions for "SYKeyboard" folder in "SYKeyboard" target */ = {
+		5B53F7A32E1E517F0083F7CA /* Exceptions for "SYKeyboard" folder in "SYKeyboard" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				Info.plist,
-				"XCConfig/Debug-SYKeyboard.xcconfig",
-				"XCConfig/Release-SYKeyboard.xcconfig",
+				"Resources/Configs/DebugConfig-SYKeyboard.xcconfig",
+				"Resources/Configs/ReleaseConfig-SYKeyboard.xcconfig",
+				Resources/Configs/Secrets.xcconfig,
+				Resources/Info.plist,
 			);
 			target = 5B7B3F552C569B7800F7C093 /* SYKeyboard */;
 		};
-		5BC07E6D2DAD0BDA005796AB /* Exceptions for "SYKeyboard" folder in "Keyboard" target */ = {
+		5B53F7A42E1E517F0083F7CA /* Exceptions for "SYKeyboard" folder in "Keyboard" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				Assets.xcassets,
+				Resources/Assets.xcassets,
 			);
 			target = 5B7B3F6A2C569B8200F7C093 /* Keyboard */;
 		};
-		5BC07EBC2DAD0CFB005796AB /* Exceptions for "Keyboard" folder in "Keyboard" target */ = {
+		5B53F7A62E1E51A30083F7CA /* Exceptions for "Shared" folder in "Keyboard" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				Info.plist,
-				"XCConfig/Debug-Keyboard.xcconfig",
-				"XCConfig/Release-Keyboard.xcconfig",
+				Configs/Version.xcconfig,
+			);
+			target = 5B7B3F6A2C569B8200F7C093 /* Keyboard */;
+		};
+		5B53F8172E1E56BD0083F7CA /* Exceptions for "Keyboard" folder in "SYKeyboard" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				ChevronButton.swift,
+				KeyboardDelegate.swift,
+				KeyboardLayout/EmailSymbolView.swift,
+				KeyboardLayout/HangeulView.swift,
+				KeyboardLayout/KeyboardButton.swift,
+				KeyboardLayout/NextKeyboardButton.swift,
+				KeyboardLayout/NumericView.swift,
+				KeyboardLayout/SymbolView.swift,
+				KeyboardLayout/TenKeyView.swift,
+				KeyboardLayout/URLSymbolView.swift,
+				KeyboardLayout/WebSearchSymbolView.swift,
+				KeyboardSelectOverlayView.swift,
+				KeyboardState.swift,
+				OneHandedKeyboardSelectOverlayView.swift,
+				RequestFullAccessOverlayView.swift,
+				"Resources/Configs/DebugConfig-Keyboard.xcconfig",
+				"Resources/Configs/ReleaseConfig-Keyboard.xcconfig",
+				Resources/Info.plist,
+				Resources/InfoPlist.xcstrings,
+				Resources/Localizable.xcstrings,
+				UseCases/HangeulAutomata.swift,
+				UseCases/KeyboardIOManager.swift,
+				View/KeyboardView.swift,
+				ViewController/KeyboardViewController.swift,
+			);
+			target = 5B7B3F552C569B7800F7C093 /* SYKeyboard */;
+		};
+		5B53F8182E1E56BD0083F7CA /* Exceptions for "Keyboard" folder in "Keyboard" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				ChevronButton.swift,
+				KeyboardDelegate.swift,
+				KeyboardLayout/EmailSymbolView.swift,
+				KeyboardLayout/HangeulView.swift,
+				KeyboardLayout/KeyboardButton.swift,
+				KeyboardLayout/NextKeyboardButton.swift,
+				KeyboardLayout/NumericView.swift,
+				KeyboardLayout/SymbolView.swift,
+				KeyboardLayout/TenKeyView.swift,
+				KeyboardLayout/URLSymbolView.swift,
+				KeyboardLayout/WebSearchSymbolView.swift,
+				KeyboardSelectOverlayView.swift,
+				KeyboardState.swift,
+				OneHandedKeyboardSelectOverlayView.swift,
+				RequestFullAccessOverlayView.swift,
+				Resources/InfoPlist.xcstrings,
+				Resources/Localizable.xcstrings,
+				UseCases/HangeulAutomata.swift,
+				UseCases/KeyboardIOManager.swift,
+				View/KeyboardView.swift,
+				ViewController/KeyboardViewController.swift,
 			);
 			target = 5B7B3F6A2C569B8200F7C093 /* Keyboard */;
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		5BC07E102DAD0BD4005796AB /* Resources */ = {
+		5B53F8012E1E56BD0083F7CA /* Keyboard */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = Resources;
+			exceptions = (
+				5B53F8172E1E56BD0083F7CA /* Exceptions for "Keyboard" folder in "SYKeyboard" target */,
+				5B53F8182E1E56BD0083F7CA /* Exceptions for "Keyboard" folder in "Keyboard" target */,
+			);
+			path = Keyboard;
 			sourceTree = "<group>";
 		};
-		5BC07E132DAD0BD8005796AB /* Global */ = {
+		5BC07E132DAD0BD8005796AB /* Shared */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = Global;
+			exceptions = (
+				5B53F7A62E1E51A30083F7CA /* Exceptions for "Shared" folder in "Keyboard" target */,
+			);
+			path = Shared;
 			sourceTree = "<group>";
 		};
 		5BC07E462DAD0BDA005796AB /* SYKeyboard */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				5BC07E6C2DAD0BDA005796AB /* Exceptions for "SYKeyboard" folder in "SYKeyboard" target */,
-				5BC07E6D2DAD0BDA005796AB /* Exceptions for "SYKeyboard" folder in "Keyboard" target */,
+				5B53F7A32E1E517F0083F7CA /* Exceptions for "SYKeyboard" folder in "SYKeyboard" target */,
+				5B53F7A42E1E517F0083F7CA /* Exceptions for "SYKeyboard" folder in "Keyboard" target */,
 			);
 			path = SYKeyboard;
-			sourceTree = "<group>";
-		};
-		5BC07EA32DAD0CFB005796AB /* Keyboard */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				5BC07EBC2DAD0CFB005796AB /* Exceptions for "Keyboard" folder in "Keyboard" target */,
-			);
-			path = Keyboard;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -144,14 +196,11 @@
 		5B7B3F4D2C569B7800F7C093 = {
 			isa = PBXGroup;
 			children = (
-				5BC07E102DAD0BD4005796AB /* Resources */,
 				5BC38F1B2D8AE2FE00E6B44E /* README.md */,
-				5B9FEF3C2DCA7B2100A78B4E /* Secrets.xcconfig */,
 				5BA419DE2CB99238005E7C86 /* .gitignore */,
-				5B52CC3C2D5E423C005CB1C7 /* Version.xcconfig */,
-				5BC07E132DAD0BD8005796AB /* Global */,
+				5BC07E132DAD0BD8005796AB /* Shared */,
 				5BC07E462DAD0BDA005796AB /* SYKeyboard */,
-				5BC07EA32DAD0CFB005796AB /* Keyboard */,
+				5B53F8012E1E56BD0083F7CA /* Keyboard */,
 				5B7B3F572C569B7800F7C093 /* Products */,
 				FA22193DEDE47B1CB6A82C36 /* Pods */,
 				BA31F1B1C87603EB81AF8A97 /* Frameworks */,
@@ -207,7 +256,8 @@
 				5B9D004E2D92C38200DA108E /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
-				5BC07E132DAD0BD8005796AB /* Global */,
+				5B53F8012E1E56BD0083F7CA /* Keyboard */,
+				5BC07E132DAD0BD8005796AB /* Shared */,
 				5BC07E462DAD0BDA005796AB /* SYKeyboard */,
 			);
 			name = SYKeyboard;
@@ -229,8 +279,7 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				5BC07E132DAD0BD8005796AB /* Global */,
-				5BC07EA32DAD0CFB005796AB /* Keyboard */,
+				5BC07E132DAD0BD8005796AB /* Shared */,
 			);
 			name = Keyboard;
 			productName = Naratgeul;
@@ -286,7 +335,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				5B52CC3D2D5E423D005CB1C7 /* Version.xcconfig in Resources */,
 				5BC38F1C2D8AE2FE00E6B44E /* README.md in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -524,19 +572,19 @@
 		5B7B3F652C569B7800F7C093 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			baseConfigurationReferenceAnchor = 5BC07E462DAD0BDA005796AB /* SYKeyboard */;
-			baseConfigurationReferenceRelativePath = "XCConfig/Debug-SYKeyboard.xcconfig";
+			baseConfigurationReferenceRelativePath = "Resources/Configs/DebugConfig-SYKeyboard.xcconfig";
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = SYKeyboard/SYKeyboard.entitlements;
+				CODE_SIGN_ENTITLEMENTS = SYKeyboard/Resources/SYKeyboard.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = "$(BUILD_NUMBER)";
-				DEVELOPMENT_ASSET_PATHS = "\"SYKeyboard/Preview Content\"";
+				DEVELOPMENT_ASSET_PATHS = "\"SYKeyboard/Resources/Preview Content\"";
 				DEVELOPMENT_TEAM = NCJMGH8Z64;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = SYKeyboard/Info.plist;
+				INFOPLIST_FILE = SYKeyboard/Resources/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "SY키보드";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_NSUserTrackingUsageDescription = "사용자 맞춤 광고 제공을 위해 권한을 허용해 주세요. 애플 정책 기반 개인화된 광고 제공 목적으로만 사용됩니다.";
@@ -571,19 +619,19 @@
 		5B7B3F662C569B7800F7C093 /* Release */ = {
 			isa = XCBuildConfiguration;
 			baseConfigurationReferenceAnchor = 5BC07E462DAD0BDA005796AB /* SYKeyboard */;
-			baseConfigurationReferenceRelativePath = "XCConfig/Release-SYKeyboard.xcconfig";
+			baseConfigurationReferenceRelativePath = "Resources/Configs/ReleaseConfig-SYKeyboard.xcconfig";
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = SYKeyboard/SYKeyboard.entitlements;
+				CODE_SIGN_ENTITLEMENTS = SYKeyboard/Resources/SYKeyboard.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = "$(BUILD_NUMBER)";
-				DEVELOPMENT_ASSET_PATHS = "\"SYKeyboard/Preview Content\"";
+				DEVELOPMENT_ASSET_PATHS = "\"SYKeyboard/Resources/Preview Content\"";
 				DEVELOPMENT_TEAM = NCJMGH8Z64;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = SYKeyboard/Info.plist;
+				INFOPLIST_FILE = SYKeyboard/Resources/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "SY키보드";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_NSUserTrackingUsageDescription = "사용자 맞춤 광고 제공을 위해 권한을 허용해 주세요. 애플 정책 기반 개인화된 광고 제공 목적으로만 사용됩니다.";
@@ -617,17 +665,17 @@
 		};
 		5B7B3F742C569B8200F7C093 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReferenceAnchor = 5BC07EA32DAD0CFB005796AB /* Keyboard */;
-			baseConfigurationReferenceRelativePath = "XCConfig/Debug-Keyboard.xcconfig";
+			baseConfigurationReferenceAnchor = 5B53F8012E1E56BD0083F7CA /* Keyboard */;
+			baseConfigurationReferenceRelativePath = "Resources/Configs/DebugConfig-Keyboard.xcconfig";
 			buildSettings = {
 				APPLICATION_EXTENSION_API_ONLY = YES;
-				CODE_SIGN_ENTITLEMENTS = Keyboard/Keyboard.entitlements;
+				CODE_SIGN_ENTITLEMENTS = Keyboard/Resources/Keyboard.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = "$(BUILD_NUMBER)";
 				DEVELOPMENT_TEAM = NCJMGH8Z64;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = Keyboard/Info.plist;
+				INFOPLIST_FILE = Keyboard/Resources/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "SY키보드";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -651,17 +699,17 @@
 		};
 		5B7B3F752C569B8200F7C093 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReferenceAnchor = 5BC07EA32DAD0CFB005796AB /* Keyboard */;
-			baseConfigurationReferenceRelativePath = "XCConfig/Release-Keyboard.xcconfig";
+			baseConfigurationReferenceAnchor = 5B53F8012E1E56BD0083F7CA /* Keyboard */;
+			baseConfigurationReferenceRelativePath = "Resources/Configs/ReleaseConfig-Keyboard.xcconfig";
 			buildSettings = {
 				APPLICATION_EXTENSION_API_ONLY = YES;
-				CODE_SIGN_ENTITLEMENTS = Keyboard/Keyboard.entitlements;
+				CODE_SIGN_ENTITLEMENTS = Keyboard/Resources/Keyboard.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = "$(BUILD_NUMBER)";
 				DEVELOPMENT_TEAM = NCJMGH8Z64;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = Keyboard/Info.plist;
+				INFOPLIST_FILE = Keyboard/Resources/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "SY키보드";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
