@@ -1,5 +1,5 @@
 //
-//  HangeulView.swift
+//  OLD_HangeulView.swift
 //  Keyboard
 //
 //  Created by 서동환 on 7/29/24.
@@ -8,7 +8,7 @@
 import SwiftUI
 import Combine
 
-struct HangeulView: View {
+struct OLD_HangeulView: View {
     @EnvironmentObject private var state: KeyboardState
     @State private var timer: AnyCancellable?
     

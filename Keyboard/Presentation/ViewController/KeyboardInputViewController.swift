@@ -1,5 +1,5 @@
 //
-//  KeyboardViewController.swift
+//  KeyboardInputViewController.swift
 //  Keyboard
 //
 //  Created by 서동환 on 7/29/24.
@@ -9,7 +9,11 @@ import UIKit
 import SwiftUI
 import SnapKit
 
-class KeyboardViewController: UIInputViewController {
+/// 키보드 `UIInputViewController`
+final class KeyboardInputViewController: UIInputViewController {
+    
+    // MARK: - Properties
+    
     private var defaults: UserDefaults?
     
     private let ioManager = KeyboardIOManager()
@@ -17,6 +21,10 @@ class KeyboardViewController: UIInputViewController {
     private var cursorPos: Int = 0
     private var userLexicon: UILexicon?
     private var textReplacementHistory: [String] = []
+        
+    // MARK: - UI Components
+    
+    private let keyboardView = KeyboardView()
     
     private let requestFullAccessView = RequestFullAccessOverlayView()
     
@@ -58,45 +66,6 @@ class KeyboardViewController: UIInputViewController {
     override func selectionDidChange(_ textInput: (any UITextInput)?) {
         super.selectionDidChange(textInput)
         updateCursorPos()
-    }
-    
-    // MARK: - Keyboard UI Methods
-    
-    private func setupUI() {
-        let nextKeyboardAction = #selector(handleInputModeList(from:with:))
-        let state = KeyboardState(
-            delegate: ioManager,
-            keyboardHeight: CGFloat(defaults?.double(forKey: "keyboardHeight") ?? GlobalValues.defaultKeyboardHeight),
-            oneHandedKeyboardWidth: CGFloat(defaults?.double(forKey: "oneHandedKeyboardWidth") ?? GlobalValues.defaultOneHandedKeyboardWidth),
-            longPressDuration: (defaults?.double(forKey: "longPressDuration") ?? GlobalValues.defaultLongPressDuration),
-            repeatTimerInterval: 0.10 - (defaults?.double(forKey: "repeatRate") ?? GlobalValues.defaultRepeatRate),
-            needsInputModeSwitchKey: needsInputModeSwitchKey,
-            nextKeyboardAction: nextKeyboardAction
-        )
-        self.state = state
-        
-        let keyboard = UIHostingController(rootView: KeyboardView().environmentObject(state))
-        keyboard.view.backgroundColor = .clear
-        if hasFullAccess {
-            keyboard.view.isUserInteractionEnabled = true
-        } else {
-            keyboard.view.isUserInteractionEnabled = false
-        }
-        
-        setViewHierarchy(keyboardView: keyboard.view)
-        setConstraints(keyboardView: keyboard.view)
-        addChild(keyboard)
-        keyboard.didMove(toParent: self)
-    }
-    
-    private func setViewHierarchy(keyboardView: UIView) {
-        self.view.addSubview(keyboardView)
-    }
-    
-    private func setConstraints(keyboardView: UIView) {
-        keyboardView.snp.makeConstraints { make in
-            make.edges.equalToSuperview()
-        }
     }
     
     // MARK: - Keyboard Setup Methods
@@ -306,9 +275,45 @@ class KeyboardViewController: UIInputViewController {
     }
 }
 
+// MARK: - UI Methods
+
+private extension KeyboardInputViewController {
+    func setupUI() {
+        setStyles()
+        setViewHierarchy()
+        setConstraints()
+        
+//        let nextKeyboardAction = #selector(handleInputModeList(from:with:))
+//        let state = KeyboardState(
+//            delegate: ioManager,
+//            keyboardHeight: CGFloat(defaults?.double(forKey: "keyboardHeight") ?? GlobalValues.defaultKeyboardHeight),
+//            oneHandedKeyboardWidth: CGFloat(defaults?.double(forKey: "oneHandedKeyboardWidth") ?? GlobalValues.defaultOneHandedKeyboardWidth),
+//            longPressDuration: (defaults?.double(forKey: "longPressDuration") ?? GlobalValues.defaultLongPressDuration),
+//            repeatTimerInterval: 0.10 - (defaults?.double(forKey: "repeatRate") ?? GlobalValues.defaultRepeatRate),
+//            needsInputModeSwitchKey: needsInputModeSwitchKey,
+//            nextKeyboardAction: nextKeyboardAction
+//        )
+//        self.state = state
+    }
+    
+    func setStyles() {
+        self.view.backgroundColor = .clear
+    }
+    
+    func setViewHierarchy() {
+        self.view.addSubview(keyboardView)
+    }
+    
+    func setConstraints() {
+        keyboardView.snp.makeConstraints {
+            $0.edges.equalToSuperview()
+        }
+    }
+}
+
 // MARK: - Text Replacement Methods
 
-private extension KeyboardViewController {
+private extension KeyboardInputViewController {
     // 텍스트 대치
     func attemptToReplaceCurrentWord() -> Bool {  // 글자 입력할때 호출
         let proxy = textDocumentProxy
@@ -366,7 +371,7 @@ private extension KeyboardViewController {
 
 // MARK: - Request Full Access Methods
 
-private extension KeyboardViewController {
+private extension KeyboardInputViewController {
     func setupRequestFullAccessUI() {
         requestFullAccessView.goToSettingsButton.addAction(UIAction(handler: { _ in
             self.redirectToSettings()

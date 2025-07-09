@@ -1,5 +1,5 @@
 //
-//  KeyboardView.swift
+//  OLD_KeyboardView.swift
 //  Keyboard
 //
 //  Created by 서동환 on 8/14/24.
@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct KeyboardView: View {
+struct OLD_KeyboardView: View {
     @EnvironmentObject private var state: KeyboardState
     @AppStorage("isNumericKeypadEnabled", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var isNumericKeypadEnabled = true
     @AppStorage("isOneHandedKeyboardEnabled", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var isOneHandedKeyboardEnabled = true
@@ -23,7 +23,7 @@ struct KeyboardView: View {
             ZStack(alignment: state.currentKeyboard == .symbol ? .leading : .trailing) {
                     switch state.currentKeyboard {
                     case .hangeul:
-                        HangeulView()
+                        OLD_HangeulView()
                     case .symbol:
                         if state.currentUIKeyboardType == .URL {
                             URLSymbolView()
