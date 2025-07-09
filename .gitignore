@@ -89,7 +89,7 @@ iOSInjectionProject/
 
 
 # Start of SNMac custom gitignore
-APIKey.xcconfig
+Secrets.xcconfig
 GoogleService-Info.plist
 .DS_Store
 .xcuserstate

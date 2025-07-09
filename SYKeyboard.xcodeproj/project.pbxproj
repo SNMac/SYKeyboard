@@ -45,6 +45,7 @@
 		5B52CC3C2D5E423C005CB1C7 /* Version.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Version.xcconfig; sourceTree = "<group>"; };
 		5B7B3F562C569B7800F7C093 /* SYKeyboard.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SYKeyboard.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		5B7B3F6B2C569B8200F7C093 /* Keyboard.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = Keyboard.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		5B9FEF3C2DCA7B2100A78B4E /* Secrets.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Secrets.xcconfig; sourceTree = "<group>"; };
 		5BA419DE2CB99238005E7C86 /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
 		5BC38F1B2D8AE2FE00E6B44E /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		B759D601A4777EF2A0956994 /* Pods_Keyboard.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Keyboard.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -135,6 +136,7 @@
 			children = (
 				5BC07E102DAD0BD4005796AB /* Resources */,
 				5BC38F1B2D8AE2FE00E6B44E /* README.md */,
+				5B9FEF3C2DCA7B2100A78B4E /* Secrets.xcconfig */,
 				5BA419DE2CB99238005E7C86 /* .gitignore */,
 				5B52CC3C2D5E423C005CB1C7 /* Version.xcconfig */,
 				5BC07E132DAD0BD8005796AB /* Global */,

@@ -19,7 +19,7 @@ struct RequestReviewViewModifier: ViewModifier {
     private func presentReview() {
         Task {
             try await Task.sleep(for: .seconds(1))
-            await requestReview()
+            requestReview()
         }
     }
     
