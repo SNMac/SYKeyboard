@@ -1,79 +1,86 @@
+<img src="https://github.com/user-attachments/assets/fb7e719e-7353-4649-8ecc-a11058a6c3d6" width="200">
+
 # SY키보드
 
 > 편리한 나랏글 키보드, SY키보드
 
-<p align="center">
-    <img src="https://github.com/SNMac/SYKeyboard/blob/main/Resources/앱_아이콘.png" alt="앱 아이콘" width="150">
-</p>
-<br/>
+<br>
+
+<a href="https://apps.apple.com/kr/app/sy키보드/id6670792957">
+    <img src="https://github.com/user-attachments/assets/dbf89ce7-436b-452f-8319-e411f65a589e">
+</a>
+
+<br><br>
+
 
 ## 📋 프로젝트 개요
 
 SY키보드는 가벼우면서 사용하기 간편한 나랏글 키보드입니다.  
 (추후 천지인 키보드 추가 예정)
-> 앱스토어 링크: https://bit.ly/3Wj7G3o
-<br/>
+
+<br>
 
 ### 대상 사용자
 
 - 나랏글 키보드/천지인 키보드(예정)를 계속 사용해 왔던 사람
 - 나랏글 키보드/천지인 키보드(예정)에 입문하는 사람
 - 필수적인 기능들을 포함하되 가벼운 키보드 앱을 찾는 사람
-<br/>
+
+<br><br>
+
 
 ## ⏰ 프로젝트 일정
 
 - **시작일**: 24/07/30  
 - **종료일**: ~ ing ~
-<br/>
 
-## 🛠️ 기술 스택
+<br><br>
 
-### 비동기 처리
-- Combine
-
-### 데이터 처리
-- UserDefaults
-
-### Firebase
-- Analytics
-
-### 활용 API
-- Google AdMob
-- Meta Audience
-
-### UI Frameworks
-- SwiftUI
-- UIKit
-- SnapKit
-<br/>
 
 ## 📱 주요 기능
 
 1. **나랏글 키보드**  
 기본에 충실한 나랏글 키보드입니다.
-<p align="center">
-    <img src="https://github.com/SNMac/SYKeyboard/blob/main/Resources/나랏글_키보드.png" alt="나랏글 키보드" width="300">
-</p>
-<br/>
+
+<img src = "https://github.com/user-attachments/assets/4c27c194-2ae4-4489-bd39-d927ce6563bf" width ="250">
+
+<br><br>
 
 2. **숫자 키패드 탑재**  
 숫자를 입력할 때 큰 버튼으로 편하게 입력할 수 있는 숫자 전용 키패드를 탑재했습니다.
-<p align="center">
-    <img src="https://github.com/SNMac/SYKeyboard/blob/main/Resources/숫자_키패드.png" alt="숫자 키패드" width="300">
-</p>
-<br/>
+
+<img src="https://github.com/user-attachments/assets/195133c7-a7d9-44a8-af03-b409efd88788" width="250">
+    
+<br><br>
 
 3. **한 손 키보드 모드**  
 한 손으로 폰을 들고 있는 상태에서도 입력하기 수월하도록 한 손 키보드 모드를 제공합니다.
-<p align="center">
-    <img src="https://github.com/SNMac/SYKeyboard/blob/main/Resources/한_손_키보드.png" alt="한 손 키보드" width="300">
-</p>
-<br/>
+
+<img src="https://github.com/user-attachments/assets/45a6282e-9438-4bdd-af69-eec1541a53b4" width="250">
+
+<br><br>
 
 4. **다양하고 디테일한 키보드 설정**  
 반복 입력, 커서 이동, 키보드 높이 및 한 손 키보드 너비 조절 등 사용자의 편의에 맞게 키보드 설정이 가능합니다.
-<p align="center">
-    <img src="https://github.com/SNMac/SYKeyboard/blob/main/Resources/앱_화면.png" alt="앱 화면" width="300">
-</p>
-<br/>
+
+<img src="https://github.com/user-attachments/assets/a27ee88f-75db-4b3f-82d8-99543718bb71" width="250">
+
+<br><br>
+
+
+## 🛠️ 기술 스택
+
+| 범위 | 기술 이름 |
+|:---------:|:----------|
+| 의존성 관리 도구 | `SPM`, `CocoaPods` |
+| 형상 관리 도구 | `GitHub`, `Git` |
+| 아키텍처 | `MVVM` |
+| 디자인 패턴 | `Singleton`, `Delegate` |
+| 인터페이스 | `UIKit`, `SwiftUI` |
+| 활용 API | `Firebase Analytics`, `Google AdMob`, `Meta Audience` |
+| 비동기 처리 | `Combine` |
+| 레이아웃 구성 | `SnapKit`, `Then` |
+| 내부 저장소 | `UserDefaults` |
+
+<br><br>
+
