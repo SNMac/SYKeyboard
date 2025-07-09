@@ -1,17 +1,17 @@
 {
   "images" : [
     {
-      "filename" : "instruction_change_numeric.png",
+      "filename" : "Instruction_ChangeOneHanded.png",
       "idiom" : "universal",
       "scale" : "1x"
     },
     {
-      "filename" : "instruction_change_numeric@2x.png",
+      "filename" : "Instruction_ChangeOneHanded@2x.png",
       "idiom" : "universal",
       "scale" : "2x"
     },
     {
-      "filename" : "instruction_change_numeric@3x.png",
+      "filename" : "Instruction_ChangeOneHanded@3x.png",
       "idiom" : "universal",
       "scale" : "3x"
     }
