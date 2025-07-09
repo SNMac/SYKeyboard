@@ -10,6 +10,11 @@
 		5B52CC372D5E407C005CB1C7 /* Pods_SYKeyboard.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D4636DF2647C79BB2219C71E /* Pods_SYKeyboard.framework */; };
 		5B52CC3A2D5E408C005CB1C7 /* Pods_Keyboard.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B759D601A4777EF2A0956994 /* Pods_Keyboard.framework */; };
 		5B52CC3D2D5E423D005CB1C7 /* Version.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = 5B52CC3C2D5E423C005CB1C7 /* Version.xcconfig */; };
+		5B8E6E0E2E1E426400657BF4 /* GoogleMobileAds in Frameworks */ = {isa = PBXBuildFile; productRef = 5B8E6E0D2E1E426400657BF4 /* GoogleMobileAds */; };
+		5B8E6E112E1E42D800657BF4 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = 5B8E6E102E1E42D800657BF4 /* FirebaseAnalytics */; };
+		5B8E6E132E1E42D800657BF4 /* FirebaseAnalyticsCore in Frameworks */ = {isa = PBXBuildFile; productRef = 5B8E6E122E1E42D800657BF4 /* FirebaseAnalyticsCore */; };
+		5B8E6EA62E1E435100657BF4 /* SnapKit in Frameworks */ = {isa = PBXBuildFile; productRef = 5B8E6EA52E1E435100657BF4 /* SnapKit */; };
+		5B8E6EA92E1E435F00657BF4 /* Then in Frameworks */ = {isa = PBXBuildFile; productRef = 5B8E6EA82E1E435F00657BF4 /* Then */; };
 		5B9D004C2D92C38200DA108E /* Keyboard.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 5B7B3F6B2C569B8200F7C093 /* Keyboard.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		5BC38F1C2D8AE2FE00E6B44E /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = 5BC38F1B2D8AE2FE00E6B44E /* README.md */; };
 /* End PBXBuildFile section */
@@ -116,7 +121,10 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5B8E6E0E2E1E426400657BF4 /* GoogleMobileAds in Frameworks */,
 				5B52CC372D5E407C005CB1C7 /* Pods_SYKeyboard.framework in Frameworks */,
+				5B8E6E112E1E42D800657BF4 /* FirebaseAnalytics in Frameworks */,
+				5B8E6E132E1E42D800657BF4 /* FirebaseAnalyticsCore in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -125,6 +133,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				5B52CC3A2D5E408C005CB1C7 /* Pods_Keyboard.framework in Frameworks */,
+				5B8E6EA92E1E435F00657BF4 /* Then in Frameworks */,
+				5B8E6EA62E1E435100657BF4 /* SnapKit in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -213,7 +223,6 @@
 				5B7B3F672C569B8200F7C093 /* Sources */,
 				5B7B3F682C569B8200F7C093 /* Frameworks */,
 				5B7B3F692C569B8200F7C093 /* Resources */,
-				931B5DBD5D75E0A8C1BD7851 /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -255,6 +264,12 @@
 				en,
 			);
 			mainGroup = 5B7B3F4D2C569B7800F7C093;
+			packageReferences = (
+				5B8E6E0C2E1E426400657BF4 /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */,
+				5B8E6E0F2E1E42D800657BF4 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+				5B8E6EA42E1E435100657BF4 /* XCRemoteSwiftPackageReference "SnapKit" */,
+				5B8E6EA72E1E435F00657BF4 /* XCRemoteSwiftPackageReference "Then" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 5B7B3F572C569B7800F7C093 /* Products */;
 			projectDirPath = "";
@@ -305,27 +320,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-SYKeyboard/Pods-SYKeyboard-resources.sh\"\n";
-			showEnvVarsInLog = 0;
-		};
-		931B5DBD5D75E0A8C1BD7851 /* [CP] Copy Pods Resources */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-Keyboard/Pods-Keyboard-resources-${CONFIGURATION}-input-files.xcfilelist",
-			);
-			inputPaths = (
-			);
-			name = "[CP] Copy Pods Resources";
-			outputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-Keyboard/Pods-Keyboard-resources-${CONFIGURATION}-output-files.xcfilelist",
-			);
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Keyboard/Pods-Keyboard-resources.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 		E6935368C6C5B48C813A5D6B /* [CP] Check Pods Manifest.lock */ = {
@@ -529,8 +523,7 @@
 		};
 		5B7B3F652C569B7800F7C093 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReferenceAnchor = 5BC07E462DAD0BDA005796AB /* SYKeyboard */;
-			baseConfigurationReferenceRelativePath = "XCConfig/Debug-SYKeyboard.xcconfig";
+			baseConfigurationReference = 079E614D6FC05DCAB5AEA949 /* Pods-SYKeyboard.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -576,8 +569,7 @@
 		};
 		5B7B3F662C569B7800F7C093 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReferenceAnchor = 5BC07E462DAD0BDA005796AB /* SYKeyboard */;
-			baseConfigurationReferenceRelativePath = "XCConfig/Release-SYKeyboard.xcconfig";
+			baseConfigurationReference = EE3310BD609B91E370D4F6D4 /* Pods-SYKeyboard.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -623,8 +615,7 @@
 		};
 		5B7B3F742C569B8200F7C093 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReferenceAnchor = 5BC07EA32DAD0CFB005796AB /* Keyboard */;
-			baseConfigurationReferenceRelativePath = "XCConfig/Debug-Keyboard.xcconfig";
+			baseConfigurationReference = 4A4E2BB4F6407C7B65CA2AA7 /* Pods-Keyboard.debug.xcconfig */;
 			buildSettings = {
 				APPLICATION_EXTENSION_API_ONLY = YES;
 				CODE_SIGN_ENTITLEMENTS = Keyboard/Keyboard.entitlements;
@@ -657,8 +648,7 @@
 		};
 		5B7B3F752C569B8200F7C093 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReferenceAnchor = 5BC07EA32DAD0CFB005796AB /* Keyboard */;
-			baseConfigurationReferenceRelativePath = "XCConfig/Release-Keyboard.xcconfig";
+			baseConfigurationReference = 45DC8CEE55D6E0E9BC6ABA3D /* Pods-Keyboard.release.xcconfig */;
 			buildSettings = {
 				APPLICATION_EXTENSION_API_ONLY = YES;
 				CODE_SIGN_ENTITLEMENTS = Keyboard/Keyboard.entitlements;
@@ -720,6 +710,69 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		5B8E6E0C2E1E426400657BF4 /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/googleads/swift-package-manager-google-mobile-ads.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 12.7.0;
+			};
+		};
+		5B8E6E0F2E1E42D800657BF4 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 11.15.0;
+			};
+		};
+		5B8E6EA42E1E435100657BF4 /* XCRemoteSwiftPackageReference "SnapKit" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/SnapKit/SnapKit.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.7.1;
+			};
+		};
+		5B8E6EA72E1E435F00657BF4 /* XCRemoteSwiftPackageReference "Then" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/devxoul/Then";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 3.0.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		5B8E6E0D2E1E426400657BF4 /* GoogleMobileAds */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 5B8E6E0C2E1E426400657BF4 /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */;
+			productName = GoogleMobileAds;
+		};
+		5B8E6E102E1E42D800657BF4 /* FirebaseAnalytics */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 5B8E6E0F2E1E42D800657BF4 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAnalytics;
+		};
+		5B8E6E122E1E42D800657BF4 /* FirebaseAnalyticsCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 5B8E6E0F2E1E42D800657BF4 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAnalyticsCore;
+		};
+		5B8E6EA52E1E435100657BF4 /* SnapKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 5B8E6EA42E1E435100657BF4 /* XCRemoteSwiftPackageReference "SnapKit" */;
+			productName = SnapKit;
+		};
+		5B8E6EA82E1E435F00657BF4 /* Then */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 5B8E6EA72E1E435F00657BF4 /* XCRemoteSwiftPackageReference "Then" */;
+			productName = Then;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 5B7B3F4E2C569B7800F7C093 /* Project object */;
 }

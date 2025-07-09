@@ -6,7 +6,6 @@ target 'Keyboard' do
   use_frameworks! :linkage => :static
 
   # Pods for Keyboard
-  pod 'SnapKit', '~> 5.7.0'
 
 end
 
@@ -15,8 +14,6 @@ target 'SYKeyboard' do
   use_frameworks! :linkage => :static
 
   # Pods for SYKeyboard
-  pod 'Google-Mobile-Ads-SDK'
-  pod 'FirebaseAnalytics'
-  pod 'GoogleMobileAdsMediationFacebook'
+  pod 'FBAudienceNetwork'
 
 end
