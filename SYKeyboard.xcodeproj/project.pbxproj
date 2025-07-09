@@ -59,9 +59,9 @@
 		5B53F7A32E1E517F0083F7CA /* Exceptions for "SYKeyboard" folder in "SYKeyboard" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				"Resources/Config/Debug-SYKeyboard.xcconfig",
-				"Resources/Config/Release-SYKeyboard.xcconfig",
-				Resources/Config/Secrets.xcconfig,
+				"Resources/Configs/DebugConfig-SYKeyboard.xcconfig",
+				"Resources/Configs/ReleaseConfig-SYKeyboard.xcconfig",
+				Resources/Configs/Secrets.xcconfig,
 				Resources/Info.plist,
 			);
 			target = 5B7B3F552C569B7800F7C093 /* SYKeyboard */;
@@ -76,22 +76,79 @@
 		5B53F7A62E1E51A30083F7CA /* Exceptions for "Shared" folder in "Keyboard" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				Version.xcconfig,
+				Configs/Version.xcconfig,
 			);
 			target = 5B7B3F6A2C569B8200F7C093 /* Keyboard */;
 		};
-		5BC07EBC2DAD0CFB005796AB /* Exceptions for "Keyboard" folder in "Keyboard" target */ = {
+		5B53F8172E1E56BD0083F7CA /* Exceptions for "Keyboard" folder in "SYKeyboard" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				"Resources/Config/Debug-Keyboard.xcconfig",
-				"Resources/Config/Release-Keyboard.xcconfig",
+				ChevronButton.swift,
+				InputMethod/HangeulAutomata.swift,
+				KeyboardDelegate.swift,
+				KeyboardIOManager.swift,
+				KeyboardLayout/EmailSymbolView.swift,
+				KeyboardLayout/HangeulView.swift,
+				KeyboardLayout/KeyboardButton.swift,
+				KeyboardLayout/NextKeyboardButton.swift,
+				KeyboardLayout/NumericView.swift,
+				KeyboardLayout/SymbolView.swift,
+				KeyboardLayout/TenKeyView.swift,
+				KeyboardLayout/URLSymbolView.swift,
+				KeyboardLayout/WebSearchSymbolView.swift,
+				KeyboardSelectOverlayView.swift,
+				KeyboardState.swift,
+				KeyboardView.swift,
+				OneHandedKeyboardSelectOverlayView.swift,
+				RequestFullAccessOverlayView.swift,
+				"Resources/Configs/DebugConfig-Keyboard.xcconfig",
+				"Resources/Configs/ReleaseConfig-Keyboard.xcconfig",
 				Resources/Info.plist,
+				Resources/InfoPlist.xcstrings,
+				Resources/Localizable.xcstrings,
+				ViewController/KeyboardViewController.swift,
+			);
+			target = 5B7B3F552C569B7800F7C093 /* SYKeyboard */;
+		};
+		5B53F8182E1E56BD0083F7CA /* Exceptions for "Keyboard" folder in "Keyboard" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				ChevronButton.swift,
+				InputMethod/HangeulAutomata.swift,
+				KeyboardDelegate.swift,
+				KeyboardIOManager.swift,
+				KeyboardLayout/EmailSymbolView.swift,
+				KeyboardLayout/HangeulView.swift,
+				KeyboardLayout/KeyboardButton.swift,
+				KeyboardLayout/NextKeyboardButton.swift,
+				KeyboardLayout/NumericView.swift,
+				KeyboardLayout/SymbolView.swift,
+				KeyboardLayout/TenKeyView.swift,
+				KeyboardLayout/URLSymbolView.swift,
+				KeyboardLayout/WebSearchSymbolView.swift,
+				KeyboardSelectOverlayView.swift,
+				KeyboardState.swift,
+				KeyboardView.swift,
+				OneHandedKeyboardSelectOverlayView.swift,
+				RequestFullAccessOverlayView.swift,
+				Resources/InfoPlist.xcstrings,
+				Resources/Localizable.xcstrings,
+				ViewController/KeyboardViewController.swift,
 			);
 			target = 5B7B3F6A2C569B8200F7C093 /* Keyboard */;
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		5B53F8012E1E56BD0083F7CA /* Keyboard */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				5B53F8172E1E56BD0083F7CA /* Exceptions for "Keyboard" folder in "SYKeyboard" target */,
+				5B53F8182E1E56BD0083F7CA /* Exceptions for "Keyboard" folder in "Keyboard" target */,
+			);
+			path = Keyboard;
+			sourceTree = "<group>";
+		};
 		5BC07E132DAD0BD8005796AB /* Shared */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
@@ -107,14 +164,6 @@
 				5B53F7A42E1E517F0083F7CA /* Exceptions for "SYKeyboard" folder in "Keyboard" target */,
 			);
 			path = SYKeyboard;
-			sourceTree = "<group>";
-		};
-		5BC07EA32DAD0CFB005796AB /* Keyboard */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				5BC07EBC2DAD0CFB005796AB /* Exceptions for "Keyboard" folder in "Keyboard" target */,
-			);
-			path = Keyboard;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -151,7 +200,7 @@
 				5BA419DE2CB99238005E7C86 /* .gitignore */,
 				5BC07E132DAD0BD8005796AB /* Shared */,
 				5BC07E462DAD0BDA005796AB /* SYKeyboard */,
-				5BC07EA32DAD0CFB005796AB /* Keyboard */,
+				5B53F8012E1E56BD0083F7CA /* Keyboard */,
 				5B7B3F572C569B7800F7C093 /* Products */,
 				FA22193DEDE47B1CB6A82C36 /* Pods */,
 				BA31F1B1C87603EB81AF8A97 /* Frameworks */,
@@ -207,6 +256,7 @@
 				5B9D004E2D92C38200DA108E /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
+				5B53F8012E1E56BD0083F7CA /* Keyboard */,
 				5BC07E132DAD0BD8005796AB /* Shared */,
 				5BC07E462DAD0BDA005796AB /* SYKeyboard */,
 			);
@@ -230,7 +280,6 @@
 			);
 			fileSystemSynchronizedGroups = (
 				5BC07E132DAD0BD8005796AB /* Shared */,
-				5BC07EA32DAD0CFB005796AB /* Keyboard */,
 			);
 			name = Keyboard;
 			productName = Naratgeul;
@@ -523,7 +572,7 @@
 		5B7B3F652C569B7800F7C093 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			baseConfigurationReferenceAnchor = 5BC07E462DAD0BDA005796AB /* SYKeyboard */;
-			baseConfigurationReferenceRelativePath = "Resources/New Folder/Debug-SYKeyboard.xcconfig";
+			baseConfigurationReferenceRelativePath = "Resources/Configs/DebugConfig-SYKeyboard.xcconfig";
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -570,7 +619,7 @@
 		5B7B3F662C569B7800F7C093 /* Release */ = {
 			isa = XCBuildConfiguration;
 			baseConfigurationReferenceAnchor = 5BC07E462DAD0BDA005796AB /* SYKeyboard */;
-			baseConfigurationReferenceRelativePath = "Resources/New Folder/Release-SYKeyboard.xcconfig";
+			baseConfigurationReferenceRelativePath = "Resources/Configs/ReleaseConfig-SYKeyboard.xcconfig";
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -616,8 +665,8 @@
 		};
 		5B7B3F742C569B8200F7C093 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReferenceAnchor = 5BC07EA32DAD0CFB005796AB /* Keyboard */;
-			baseConfigurationReferenceRelativePath = "Resources/New Folder/Debug-Keyboard.xcconfig";
+			baseConfigurationReferenceAnchor = 5B53F8012E1E56BD0083F7CA /* Keyboard */;
+			baseConfigurationReferenceRelativePath = "Resources/Configs/DebugConfig-Keyboard.xcconfig";
 			buildSettings = {
 				APPLICATION_EXTENSION_API_ONLY = YES;
 				CODE_SIGN_ENTITLEMENTS = Keyboard/Resources/Keyboard.entitlements;
@@ -650,8 +699,8 @@
 		};
 		5B7B3F752C569B8200F7C093 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReferenceAnchor = 5BC07EA32DAD0CFB005796AB /* Keyboard */;
-			baseConfigurationReferenceRelativePath = "Resources/New Folder/Release-Keyboard.xcconfig";
+			baseConfigurationReferenceAnchor = 5B53F8012E1E56BD0083F7CA /* Keyboard */;
+			baseConfigurationReferenceRelativePath = "Resources/Configs/ReleaseConfig-Keyboard.xcconfig";
 			buildSettings = {
 				APPLICATION_EXTENSION_API_ONLY = YES;
 				CODE_SIGN_ENTITLEMENTS = Keyboard/Resources/Keyboard.entitlements;
