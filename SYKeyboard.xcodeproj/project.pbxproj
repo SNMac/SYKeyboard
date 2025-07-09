@@ -523,7 +523,8 @@
 		};
 		5B7B3F652C569B7800F7C093 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 079E614D6FC05DCAB5AEA949 /* Pods-SYKeyboard.debug.xcconfig */;
+			baseConfigurationReferenceAnchor = 5BC07E462DAD0BDA005796AB /* SYKeyboard */;
+			baseConfigurationReferenceRelativePath = "XCConfig/Debug-SYKeyboard.xcconfig";
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -569,7 +570,8 @@
 		};
 		5B7B3F662C569B7800F7C093 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = EE3310BD609B91E370D4F6D4 /* Pods-SYKeyboard.release.xcconfig */;
+			baseConfigurationReferenceAnchor = 5BC07E462DAD0BDA005796AB /* SYKeyboard */;
+			baseConfigurationReferenceRelativePath = "XCConfig/Release-SYKeyboard.xcconfig";
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -615,7 +617,8 @@
 		};
 		5B7B3F742C569B8200F7C093 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 4A4E2BB4F6407C7B65CA2AA7 /* Pods-Keyboard.debug.xcconfig */;
+			baseConfigurationReferenceAnchor = 5BC07EA32DAD0CFB005796AB /* Keyboard */;
+			baseConfigurationReferenceRelativePath = "XCConfig/Debug-Keyboard.xcconfig";
 			buildSettings = {
 				APPLICATION_EXTENSION_API_ONLY = YES;
 				CODE_SIGN_ENTITLEMENTS = Keyboard/Keyboard.entitlements;
@@ -648,7 +651,8 @@
 		};
 		5B7B3F752C569B8200F7C093 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 45DC8CEE55D6E0E9BC6ABA3D /* Pods-Keyboard.release.xcconfig */;
+			baseConfigurationReferenceAnchor = 5BC07EA32DAD0CFB005796AB /* Keyboard */;
+			baseConfigurationReferenceRelativePath = "XCConfig/Release-Keyboard.xcconfig";
 			buildSettings = {
 				APPLICATION_EXTENSION_API_ONLY = YES;
 				CODE_SIGN_ENTITLEMENTS = Keyboard/Keyboard.entitlements;
