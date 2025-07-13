@@ -7,13 +7,15 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		5B3750552E24516400B13805 /* Then in Frameworks */ = {isa = PBXBuildFile; productRef = 5B3750542E24516400B13805 /* Then */; };
+		5B3750572E24517500B13805 /* Then in Frameworks */ = {isa = PBXBuildFile; productRef = 5B3750562E24517500B13805 /* Then */; };
+		5B3750592E24528E00B13805 /* SnapKit in Frameworks */ = {isa = PBXBuildFile; productRef = 5B3750582E24528E00B13805 /* SnapKit */; };
 		5B52CC372D5E407C005CB1C7 /* Pods_SYKeyboard.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D4636DF2647C79BB2219C71E /* Pods_SYKeyboard.framework */; };
 		5B52CC3A2D5E408C005CB1C7 /* Pods_Keyboard.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B759D601A4777EF2A0956994 /* Pods_Keyboard.framework */; };
 		5B8E6E0E2E1E426400657BF4 /* GoogleMobileAds in Frameworks */ = {isa = PBXBuildFile; productRef = 5B8E6E0D2E1E426400657BF4 /* GoogleMobileAds */; };
 		5B8E6E112E1E42D800657BF4 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = 5B8E6E102E1E42D800657BF4 /* FirebaseAnalytics */; };
 		5B8E6E132E1E42D800657BF4 /* FirebaseAnalyticsCore in Frameworks */ = {isa = PBXBuildFile; productRef = 5B8E6E122E1E42D800657BF4 /* FirebaseAnalyticsCore */; };
 		5B8E6EA62E1E435100657BF4 /* SnapKit in Frameworks */ = {isa = PBXBuildFile; productRef = 5B8E6EA52E1E435100657BF4 /* SnapKit */; };
-		5B8E6EA92E1E435F00657BF4 /* Then in Frameworks */ = {isa = PBXBuildFile; productRef = 5B8E6EA82E1E435F00657BF4 /* Then */; };
 		5B9D004C2D92C38200DA108E /* Keyboard.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 5B7B3F6B2C569B8200F7C093 /* Keyboard.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		5BC38F1C2D8AE2FE00E6B44E /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = 5BC38F1B2D8AE2FE00E6B44E /* README.md */; };
 /* End PBXBuildFile section */
@@ -83,65 +85,41 @@
 		5B53F8172E1E56BD0083F7CA /* Exceptions for "Keyboard" folder in "SYKeyboard" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				ChevronButton.swift,
-				KeyboardDelegate.swift,
-				KeyboardLayout/EmailSymbolView.swift,
-				KeyboardLayout/KeyboardButton.swift,
-				KeyboardLayout/NextKeyboardButton.swift,
-				KeyboardLayout/NumericView.swift,
-				KeyboardLayout/OLD_HangeulView.swift,
-				KeyboardLayout/SymbolView.swift,
-				KeyboardLayout/TenKeyView.swift,
-				KeyboardLayout/URLSymbolView.swift,
-				KeyboardLayout/WebSearchSymbolView.swift,
-				KeyboardSelectOverlayView.swift,
-				KeyboardState.swift,
-				OneHandedKeyboardSelectOverlayView.swift,
-				Presentation/View/KeyboardView.swift,
-				Presentation/View/OLD_KeyboardView.swift,
+				Presentation/View/KeyboardLayout/HangeulView.swift,
 				Presentation/ViewController/KeyboardInputViewController.swift,
-				RequestFullAccessOverlayView.swift,
 				"Resources/Configs/DebugConfig-Keyboard.xcconfig",
 				"Resources/Configs/ReleaseConfig-Keyboard.xcconfig",
 				Resources/Info.plist,
 				Resources/InfoPlist.xcstrings,
 				Resources/Localizable.xcstrings,
-				UseCases/HangeulAutomata.swift,
-				UseCases/KeyboardIOManager.swift,
 			);
 			target = 5B7B3F552C569B7800F7C093 /* SYKeyboard */;
 		};
 		5B53F8182E1E56BD0083F7CA /* Exceptions for "Keyboard" folder in "Keyboard" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				ChevronButton.swift,
-				KeyboardDelegate.swift,
-				KeyboardLayout/EmailSymbolView.swift,
-				KeyboardLayout/KeyboardButton.swift,
-				KeyboardLayout/NextKeyboardButton.swift,
-				KeyboardLayout/NumericView.swift,
-				KeyboardLayout/OLD_HangeulView.swift,
-				KeyboardLayout/SymbolView.swift,
-				KeyboardLayout/TenKeyView.swift,
-				KeyboardLayout/URLSymbolView.swift,
-				KeyboardLayout/WebSearchSymbolView.swift,
-				KeyboardSelectOverlayView.swift,
-				KeyboardState.swift,
-				OneHandedKeyboardSelectOverlayView.swift,
 				"Presentation/Utils/Extensions/CALayer+Extension.swift",
 				"Presentation/Utils/Extensions/UIStackView+Extension.swift",
 				"Presentation/Utils/Extensions/UIView+Extension.swift",
 				Presentation/Utils/KeyboardLayout.swift,
-				Presentation/View/Components/PrimaryButton.swift,
-				Presentation/View/Components/SecondaryButton.swift,
-				Presentation/View/KeyboardView.swift,
-				Presentation/View/OLD_KeyboardView.swift,
+				Presentation/Utils/OneHandedMode.swift,
+				Presentation/Utils/ReturnButtonMode.swift,
+				Presentation/View/Components/Bases/BaseKeyboardButton.swift,
+				Presentation/View/Components/Bases/PrimaryButton.swift,
+				Presentation/View/Components/Bases/SecondaryButton.swift,
+				Presentation/View/Components/DeleteButton.swift,
+				Presentation/View/Components/KeyboardFrameStackView.swift,
+				Presentation/View/Components/KeyboardRowStackView.swift,
+				Presentation/View/Components/KeyboardSpacer.swift,
+				Presentation/View/Components/KeyButton.swift,
+				Presentation/View/Components/ReturnButton.swift,
+				Presentation/View/Components/SpaceButton.swift,
+				Presentation/View/Components/SwitchButton.swift,
+				Presentation/View/Components/SymbolShiftButton.swift,
+				Presentation/View/KeyboardLayout/HangeulView.swift,
 				Presentation/ViewController/KeyboardInputViewController.swift,
-				RequestFullAccessOverlayView.swift,
 				Resources/InfoPlist.xcstrings,
 				Resources/Localizable.xcstrings,
-				UseCases/HangeulAutomata.swift,
-				UseCases/KeyboardIOManager.swift,
 			);
 			target = 5B7B3F6A2C569B8200F7C093 /* Keyboard */;
 		};
@@ -181,8 +159,10 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5B3750552E24516400B13805 /* Then in Frameworks */,
 				5B8E6E0E2E1E426400657BF4 /* GoogleMobileAds in Frameworks */,
 				5B52CC372D5E407C005CB1C7 /* Pods_SYKeyboard.framework in Frameworks */,
+				5B3750592E24528E00B13805 /* SnapKit in Frameworks */,
 				5B8E6E112E1E42D800657BF4 /* FirebaseAnalytics in Frameworks */,
 				5B8E6E132E1E42D800657BF4 /* FirebaseAnalyticsCore in Frameworks */,
 			);
@@ -193,7 +173,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				5B52CC3A2D5E408C005CB1C7 /* Pods_Keyboard.framework in Frameworks */,
-				5B8E6EA92E1E435F00657BF4 /* Then in Frameworks */,
+				5B3750572E24517500B13805 /* Then in Frameworks */,
 				5B8E6EA62E1E435100657BF4 /* SnapKit in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -325,7 +305,7 @@
 				5B8E6E0C2E1E426400657BF4 /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */,
 				5B8E6E0F2E1E42D800657BF4 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 				5B8E6EA42E1E435100657BF4 /* XCRemoteSwiftPackageReference "SnapKit" */,
-				5B8E6EA72E1E435F00657BF4 /* XCRemoteSwiftPackageReference "Then" */,
+				5B3750532E24516400B13805 /* XCRemoteSwiftPackageReference "Then" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 5B7B3F572C569B7800F7C093 /* Products */;
@@ -772,6 +752,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		5B3750532E24516400B13805 /* XCRemoteSwiftPackageReference "Then" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/devxoul/Then";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 3.0.0;
+			};
+		};
 		5B8E6E0C2E1E426400657BF4 /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/googleads/swift-package-manager-google-mobile-ads.git";
@@ -796,17 +784,24 @@
 				minimumVersion = 5.7.1;
 			};
 		};
-		5B8E6EA72E1E435F00657BF4 /* XCRemoteSwiftPackageReference "Then" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/devxoul/Then";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 3.0.0;
-			};
-		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		5B3750542E24516400B13805 /* Then */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 5B3750532E24516400B13805 /* XCRemoteSwiftPackageReference "Then" */;
+			productName = Then;
+		};
+		5B3750562E24517500B13805 /* Then */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 5B3750532E24516400B13805 /* XCRemoteSwiftPackageReference "Then" */;
+			productName = Then;
+		};
+		5B3750582E24528E00B13805 /* SnapKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 5B8E6EA42E1E435100657BF4 /* XCRemoteSwiftPackageReference "SnapKit" */;
+			productName = SnapKit;
+		};
 		5B8E6E0D2E1E426400657BF4 /* GoogleMobileAds */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 5B8E6E0C2E1E426400657BF4 /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */;
@@ -826,11 +821,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 5B8E6EA42E1E435100657BF4 /* XCRemoteSwiftPackageReference "SnapKit" */;
 			productName = SnapKit;
-		};
-		5B8E6EA82E1E435F00657BF4 /* Then */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 5B8E6EA72E1E435F00657BF4 /* XCRemoteSwiftPackageReference "Then" */;
-			productName = Then;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

@@ -1,5 +1,5 @@
 //
-//  SecondaryButton.swift
+//  KeyboardRowStackView.swift
 //  Keyboard
 //
 //  Created by 서동환 on 7/10/25.
@@ -7,7 +7,7 @@
 
 import UIKit
 
-final class SecondaryButton: UIButton {
+final class KeyboardRowStackView: UIStackView {
     
     // MARK: - Initializer
     
@@ -16,17 +16,24 @@ final class SecondaryButton: UIButton {
         setupUI()
     }
     
-    required init?(coder: NSCoder) {
+    required init(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
 }
 
-private extension SecondaryButton {
+// MARK: - UI Methods
+
+private extension KeyboardRowStackView {
     func setupUI() {
         setStyles()
     }
     
     func setStyles() {
+        self.backgroundColor = .clear
         
+        self.axis = .horizontal
+        self.spacing = 0
+        self.alignment = .fill
+        self.distribution = .fillEqually
     }
 }
