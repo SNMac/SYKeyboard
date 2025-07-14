@@ -55,11 +55,6 @@ final class SymbolView: UIView {
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
-    override func layoutSubviews() {
-        super.layoutSubviews()
-//        spaceButton.frame.size.width = self.frame.width / 2
-    }
 }
 
 // MARK: - UI Methods
@@ -73,8 +68,6 @@ private extension SymbolView {
     
     func setStyles() {
         self.backgroundColor = .clear
-        
-        fourthRowStackView.distribution = .fill
     }
     
     func setViewHierarchy() {
@@ -121,6 +114,10 @@ private extension SymbolView {
         
         switchButton.snp.makeConstraints {
             $0.width.equalToSuperview().dividedBy(4)
+        }
+        
+        spaceButton.snp.makeConstraints {
+            $0.width.equalToSuperview().dividedBy(2)
         }
         
         returnButton.snp.makeConstraints {

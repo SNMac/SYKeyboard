@@ -118,5 +118,11 @@ private extension HangeulView {
                 $0.width.equalToSuperview().dividedBy(thirdRowStackView.arrangedSubviews.count)
             }
         }
+        
+        fourthRowStackView.arrangedSubviews.forEach { subview in
+            subview.snp.makeConstraints {
+                $0.width.equalToSuperview().dividedBy(fourthRowStackView.arrangedSubviews.count)
+            }
+        }
     }
 }

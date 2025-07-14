@@ -29,7 +29,9 @@ final class NumericView: UIView {
     private let firstRowStackView = KeyboardRowStackView()
     private let secondRowStackView = KeyboardRowStackView()
     private let thirdRowStackView = KeyboardRowStackView()
+    private let fourthRowLeftStackView = KeyboardRowStackView()
     private let fourthRowStackView = KeyboardRowStackView()
+    private let fourthRowRightStackView = KeyboardRowStackView()
     
     private lazy var firstRowKeyButtonList = numericKeyList[0].map { KeyButton(layout: .numeric, keys: $0) }
     private lazy var secondRowKeyButtonList = numericKeyList[1].map { KeyButton(layout: .numeric, keys: $0) }
@@ -84,8 +86,9 @@ private extension NumericView {
         thirdRowKeyButtonList.forEach { thirdRowStackView.addArrangedSubview($0) }
         thirdRowStackView.addArrangedSubview(returnButton)
         
-        fourthRowKeyButtonList.forEach { fourthRowStackView.addArrangedSubview($0) }
-        fourthRowStackView.addArrangedSubview(switchButton)
+        fourthRowStackView.addArrangedSubviews(fourthRowLeftStackView, fourthRowKeyButtonList[2], fourthRowRightStackView, switchButton)
+        fourthRowLeftStackView.addArrangedSubviews(fourthRowKeyButtonList[0], fourthRowKeyButtonList[1])
+        fourthRowRightStackView.addArrangedSubviews(fourthRowKeyButtonList[3], fourthRowKeyButtonList[4])
     }
     
     func setConstraints() {
@@ -116,6 +119,24 @@ private extension NumericView {
         thirdRowStackView.arrangedSubviews.forEach { subview in
             subview.snp.makeConstraints {
                 $0.width.equalToSuperview().dividedBy(thirdRowStackView.arrangedSubviews.count)
+            }
+        }
+        
+        fourthRowStackView.arrangedSubviews.forEach { subview in
+            subview.snp.makeConstraints {
+                $0.width.equalToSuperview().dividedBy(fourthRowStackView.arrangedSubviews.count)
+            }
+        }
+        
+        fourthRowLeftStackView.arrangedSubviews.forEach { subview in
+            subview.snp.makeConstraints {
+                $0.width.equalToSuperview().dividedBy(fourthRowLeftStackView.arrangedSubviews.count)
+            }
+        }
+        
+        fourthRowRightStackView.arrangedSubviews.forEach { subview in
+            subview.snp.makeConstraints {
+                $0.width.equalToSuperview().dividedBy(fourthRowRightStackView.arrangedSubviews.count)
             }
         }
     }

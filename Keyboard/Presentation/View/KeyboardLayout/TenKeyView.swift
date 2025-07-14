@@ -22,21 +22,32 @@ final class TenKeyView: UIView {
     
     // MARK: - UI Components
     
+    /// 상단 여백 `KeyboardSpacer`
     private let spacer = KeyboardSpacer()
-    
+    /// 키보드 프레임 `KeyboardFrameStackView`
     private let frameStackView = KeyboardFrameStackView()
     
+    /// 키보드 첫번째 행 `KeyboardRowStackView`
     private let firstRowStackView = KeyboardRowStackView()
+    /// 키보드 두번째 행 `KeyboardRowStackView`
     private let secondRowStackView = KeyboardRowStackView()
+    /// 키보드 세번째 행 `KeyboardRowStackView`
     private let thirdRowStackView = KeyboardRowStackView()
+    /// 키보드 네번째 행 `KeyboardRowStackView`
     private let fourthRowStackView = KeyboardRowStackView()
     
+    /// 키보드 첫번째 행 `KeyButton` 배열
     private lazy var firstRowKeyButtonList = tenKeyList[0].map { KeyButton(layout: .tenKey, keys: $0) }
+    /// 키보드 두번째 행 `KeyButton` 배열
     private lazy var secondRowKeyButtonList = tenKeyList[1].map { KeyButton(layout: .tenKey, keys: $0) }
+    /// 키보드 세번째 행 `KeyButton` 배열
     private lazy var thirdRowKeyButtonList = tenKeyList[2].map { KeyButton(layout: .tenKey, keys: $0) }
+    /// 키보드 네번째 행 `KeyButton` 배열
     private lazy var fourthRowKeyButtonList = tenKeyList[3].map { KeyButton(layout: .tenKey, keys: $0) }
     
+    /// 키보드 네번째 행 좌측 여백 `KeyboardSpacer`
     private let buttonSpacer = KeyboardSpacer()
+    /// 삭제 버튼 `DeleteButton`
     private let deleteButton = DeleteButton(layout: .hangeul)
     
     // MARK: - Initializer
@@ -112,6 +123,12 @@ private extension TenKeyView {
         thirdRowStackView.arrangedSubviews.forEach { subview in
             subview.snp.makeConstraints {
                 $0.width.equalToSuperview().dividedBy(thirdRowStackView.arrangedSubviews.count)
+            }
+        }
+        
+        fourthRowStackView.arrangedSubviews.forEach { subview in
+            subview.snp.makeConstraints {
+                $0.width.equalToSuperview().dividedBy(fourthRowStackView.arrangedSubviews.count)
             }
         }
     }
