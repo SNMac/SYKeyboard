@@ -9,10 +9,12 @@ import UIKit
 
 import SnapKit
 
+/// 기호 자판 `UIView`
 final class SymbolView: UIView {
     
     // MARK: - Properties
     
+    /// 기호 자판 키 배열
     private let symbolKeyList = [
         [
             [ ["1"], ["2"], ["3"], ["4"], ["5"], ["6"], ["7"], ["8"], ["9"], ["0"] ],
@@ -28,21 +30,34 @@ final class SymbolView: UIView {
     
     // MARK: - UI Components
     
+    /// 키보드 전체 프레임 `KeyboardFrameStackView`
     private let frameStackView = KeyboardFrameStackView()
     
+    /// 키보드 첫번째 행 `KeyboardRowStackView`
     private let firstRowStackView = KeyboardRowStackView()
+    /// 키보드 두번째 행 `KeyboardRowStackView`
     private let secondRowStackView = KeyboardRowStackView()
+    /// 키보드 세번째 행 `KeyboardRowStackView`
     private let thirdRowStackView = KeyboardRowStackView()
+    /// 키보드 네번째 행 `KeyboardRowStackView`
     private let fourthRowStackView = KeyboardRowStackView()
     
+    /// 키보드 첫번째 행 `KeyButton` 배열
     private lazy var firstRowkeyButtonList = symbolKeyList[0][0].map { KeyButton(layout: .symbol, keys: $0) }
+    /// 키보드 두번째 행 `KeyButton` 배열
     private lazy var secondRowkeyButtonList = symbolKeyList[0][1].map { KeyButton(layout: .symbol, keys: $0) }
+    /// 키보드 세번째 행 `KeyButton` 배열
     private lazy var thirdRowkeyButtonList = symbolKeyList[0][2].map { KeyButton(layout: .symbol, keys: $0) }
     
+    /// 기호 전환 버튼 `SymbolShiftButton`
     private let symbolShiftButton = SymbolShiftButton(layout: .symbol)
+    /// 삭제 버튼 `DeleteButton`
     private let deleteButton = DeleteButton(layout: .symbol)
+    /// 자판 전환 버튼 `SwitchButton`
     private let switchButton = SwitchButton(layout: .symbol)
+    /// 스페이스 버튼 `SpaceButton`
     private let spaceButton = SpaceButton(layout: .symbol)
+    /// 리턴 버튼 `ReturnButton`
     private let returnButton = ReturnButton(layout: .symbol)
     
     // MARK: - Initializer

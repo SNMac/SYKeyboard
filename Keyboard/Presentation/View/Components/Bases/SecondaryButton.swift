@@ -7,6 +7,7 @@
 
 import UIKit
 
+/// 기능 관련 버튼 `BaseKeyboardButton`
 class SecondaryButton: BaseKeyboardButton {
     
     // MARK: - Initializer

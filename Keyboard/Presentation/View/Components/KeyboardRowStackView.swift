@@ -7,6 +7,7 @@
 
 import UIKit
 
+/// 키보드 행 `UIStackView`
 final class KeyboardRowStackView: UIStackView {
     
     // MARK: - Initializer

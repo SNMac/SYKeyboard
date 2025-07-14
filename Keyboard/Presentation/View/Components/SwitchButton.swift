@@ -10,6 +10,7 @@ import UIKit
 import SnapKit
 import Then
 
+/// 자판 전환 버튼 `SecondaryButton`
 final class SwitchButton: SecondaryButton {
     
     // MARK: - Properties

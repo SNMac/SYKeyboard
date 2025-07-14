@@ -7,6 +7,7 @@
 
 import UIKit
 
+/// 스페이스 버튼 `PrimaryButton`
 final class SpaceButton: PrimaryButton {
     
     // MARK: - Initializer

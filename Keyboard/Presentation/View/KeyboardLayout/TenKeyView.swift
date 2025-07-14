@@ -9,10 +9,12 @@ import UIKit
 
 import SnapKit
 
+/// 텐키 자판 `UIView`
 final class TenKeyView: UIView {
     
     // MARK: - Properties
     
+    /// 텐키 자판 키 배열
     private let tenKeyList = [
         [ ["1"], ["2"], ["3"] ],
         [ ["4"], ["5"], ["6"] ],
@@ -24,7 +26,7 @@ final class TenKeyView: UIView {
     
     /// 상단 여백 `KeyboardSpacer`
     private let spacer = KeyboardSpacer()
-    /// 키보드 프레임 `KeyboardFrameStackView`
+    /// 키보드 전체 프레임 `KeyboardFrameStackView`
     private let frameStackView = KeyboardFrameStackView()
     
     /// 키보드 첫번째 행 `KeyboardRowStackView`
@@ -48,7 +50,7 @@ final class TenKeyView: UIView {
     /// 키보드 네번째 행 좌측 여백 `KeyboardSpacer`
     private let buttonSpacer = KeyboardSpacer()
     /// 삭제 버튼 `DeleteButton`
-    private let deleteButton = DeleteButton(layout: .hangeul)
+    private let deleteButton = DeleteButton(layout: .tenKey)
     
     // MARK: - Initializer
     

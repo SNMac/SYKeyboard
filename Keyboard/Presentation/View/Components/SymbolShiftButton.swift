@@ -7,6 +7,7 @@
 
 import UIKit
 
+/// 기호 전환 버튼 `SecondaryButton`
 final class SymbolShiftButton: SecondaryButton {
     
     // MARK: - Properties

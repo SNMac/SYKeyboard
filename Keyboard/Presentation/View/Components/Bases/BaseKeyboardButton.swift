@@ -7,6 +7,7 @@
 
 import UIKit
 
+/// 키보드 버튼 베이스 `UIButton`
 class BaseKeyboardButton: UIButton {
     
     // MARK: - Properties

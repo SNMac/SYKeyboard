@@ -7,6 +7,7 @@
 
 import UIKit
 
+/// 입력 관련 버튼 `BaseKeyboardButton`
 class PrimaryButton: BaseKeyboardButton {
     
     // MARK: - Initializer

@@ -7,6 +7,7 @@
 
 import UIKit
 
+/// 여백 확보용 `UIView`
 final class KeyboardSpacer: UIView {
     
     // MARK: - Initializer

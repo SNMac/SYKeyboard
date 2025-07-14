@@ -7,6 +7,7 @@
 
 import UIKit
 
+/// 키보드 전체 프레임 `UIStackView`
 final class KeyboardFrameStackView: UIStackView {
     
     // MARK: - Initializer

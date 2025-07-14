@@ -7,6 +7,7 @@
 
 import UIKit
 
+/// 키 버튼 `PrimaryButton`
 final class KeyButton: PrimaryButton {
     
     // MARK: - Properties

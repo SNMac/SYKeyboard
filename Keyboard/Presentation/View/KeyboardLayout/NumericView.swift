@@ -9,10 +9,12 @@ import UIKit
 
 import SnapKit
 
+/// 숫자 자판 `UIView`
 final class NumericView: UIView {
     
     // MARK: - Properties
     
+    /// 숫자 자판 키 배열
     private let numericKeyList = [
         [ ["1"], ["2"], ["3"] ],
         [ ["4"], ["5"], ["6"] ],
@@ -22,25 +24,40 @@ final class NumericView: UIView {
     
     // MARK: - UI Components
     
+    /// 상단 여백 `KeyboardSpacer`
     private let spacer = KeyboardSpacer()
-    
+    /// 키보드 전체 프레임 `KeyboardFrameStackView`
     private let frameStackView = KeyboardFrameStackView()
     
+    /// 키보드 첫번째 행 `KeyboardRowStackView`
     private let firstRowStackView = KeyboardRowStackView()
+    /// 키보드 두번째 행 `KeyboardRowStackView`
     private let secondRowStackView = KeyboardRowStackView()
+    /// 키보드 세번째 행 `KeyboardRowStackView`
     private let thirdRowStackView = KeyboardRowStackView()
-    private let fourthRowLeftStackView = KeyboardRowStackView()
+    /// 키보드 네번째 행 `KeyboardRowStackView`
     private let fourthRowStackView = KeyboardRowStackView()
+    /// 키보드 네번째 좌측 행 `KeyboardRowStackView`
+    private let fourthRowLeftStackView = KeyboardRowStackView()
+    /// 키보드 네번째 우측 행 `KeyboardRowStackView`
     private let fourthRowRightStackView = KeyboardRowStackView()
     
+    /// 키보드 첫번째 행 `KeyButton` 배열
     private lazy var firstRowKeyButtonList = numericKeyList[0].map { KeyButton(layout: .numeric, keys: $0) }
+    /// 키보드 두번째 행 `KeyButton` 배열
     private lazy var secondRowKeyButtonList = numericKeyList[1].map { KeyButton(layout: .numeric, keys: $0) }
+    /// 키보드 세번째 행 `KeyButton` 배열
     private lazy var thirdRowKeyButtonList = numericKeyList[2].map { KeyButton(layout: .numeric, keys: $0) }
+    /// 키보드 네번째 행 `KeyButton` 배열
     private lazy var fourthRowKeyButtonList = numericKeyList[3].map { KeyButton(layout: .numeric, keys: $0) }
     
+    /// 삭제 버튼 `DeleteButton`
     private let deleteButton = DeleteButton(layout: .numeric)
+    /// 스페이스 버튼 `SpaceButton`
     private let spaceButton = SpaceButton(layout: .numeric)
+    /// 리턴 버튼 `ReturnButton`
     private let returnButton = ReturnButton(layout: .numeric)
+    /// 자판 전환 버튼 `SwitchButton`
     private let switchButton = SwitchButton(layout: .numeric)
     
     // MARK: - Initializer

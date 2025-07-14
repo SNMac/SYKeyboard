@@ -7,6 +7,7 @@
 
 import UIKit
 
+/// 삭제 버튼 `SecondaryButton`
 final class DeleteButton: SecondaryButton {
     
     // MARK: - Properties
