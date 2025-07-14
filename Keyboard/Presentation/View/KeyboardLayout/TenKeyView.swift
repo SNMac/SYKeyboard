@@ -1,23 +1,23 @@
 //
-//  HangeulView.swift
+//  TenKeyView.swift
 //  Keyboard
 //
-//  Created by 서동환 on 7/13/25.
+//  Created by 서동환 on 7/14/25.
 //
 
 import UIKit
 
 import SnapKit
 
-final class HangeulView: UIView {
+final class TenKeyView: UIView {
     
     // MARK: - Properties
     
-    private let naratgeulKeyList = [
-        [ ["ㄱ"], ["ㄴ"], ["ㅏ", "ㅓ"] ],
-        [ ["ㄹ"], ["ㅁ"], ["ㅗ", "ㅜ"] ],
-        [ ["ㅅ"], ["ㅇ"], ["ㅣ"] ],
-        [ ["획"], ["ㅡ"], ["쌍"] ]
+    private let tenKeyList = [
+        [ ["1"], ["2"], ["3"] ],
+        [ ["4"], ["5"], ["6"] ],
+        [ ["7"], ["8"], ["9"] ],
+        [ ["0"] ]
     ]
     
     // MARK: - UI Components
@@ -31,15 +31,13 @@ final class HangeulView: UIView {
     private let thirdRowStackView = KeyboardRowStackView()
     private let fourthRowStackView = KeyboardRowStackView()
     
-    private lazy var firstRowKeyButtonList = naratgeulKeyList[0].map { KeyButton(layout: .hangeul, keys: $0) }
-    private lazy var secondRowKeyButtonList = naratgeulKeyList[1].map { KeyButton(layout: .hangeul, keys: $0) }
-    private lazy var thirdRowKeyButtonList = naratgeulKeyList[2].map { KeyButton(layout: .hangeul, keys: $0) }
-    private lazy var fourthRowKeyButtonList = naratgeulKeyList[3].map { KeyButton(layout: .hangeul, keys: $0) }
+    private lazy var firstRowKeyButtonList = tenKeyList[0].map { KeyButton(layout: .tenKey, keys: $0) }
+    private lazy var secondRowKeyButtonList = tenKeyList[1].map { KeyButton(layout: .tenKey, keys: $0) }
+    private lazy var thirdRowKeyButtonList = tenKeyList[2].map { KeyButton(layout: .tenKey, keys: $0) }
+    private lazy var fourthRowKeyButtonList = tenKeyList[3].map { KeyButton(layout: .tenKey, keys: $0) }
     
+    private let buttonSpacer = KeyboardSpacer()
     private let deleteButton = DeleteButton(layout: .hangeul)
-    private let spaceButton = SpaceButton(layout: .hangeul)
-    private let returnButton = ReturnButton(layout: .hangeul)
-    private let switchButton = SwitchButton(layout: .hangeul)
     
     // MARK: - Initializer
     
@@ -55,7 +53,7 @@ final class HangeulView: UIView {
 
 // MARK: - UI Methods
 
-private extension HangeulView {
+private extension TenKeyView {
     func setupUI() {
         setStyles()
         setViewHierarchy()
@@ -76,16 +74,14 @@ private extension HangeulView {
                                            fourthRowStackView)
         
         firstRowKeyButtonList.forEach { firstRowStackView.addArrangedSubview($0) }
-        firstRowStackView.addArrangedSubview(deleteButton)
         
         secondRowKeyButtonList.forEach { secondRowStackView.addArrangedSubview($0) }
-        secondRowStackView.addArrangedSubview(spaceButton)
         
         thirdRowKeyButtonList.forEach { thirdRowStackView.addArrangedSubview($0) }
-        thirdRowStackView.addArrangedSubview(returnButton)
         
+        fourthRowStackView.addArrangedSubview(buttonSpacer)
         fourthRowKeyButtonList.forEach { fourthRowStackView.addArrangedSubview($0) }
-        fourthRowStackView.addArrangedSubview(switchButton)
+        fourthRowStackView.addArrangedSubview(deleteButton)
     }
     
     func setConstraints() {

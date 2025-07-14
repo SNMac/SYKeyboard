@@ -29,9 +29,7 @@ private extension SpaceButton {
     }
     
     func setStyles() {
-        guard var buttonConfig = self.configuration else { return }
-        let imageConfig = UIImage.SymbolConfiguration(pointSize: 16, weight: .regular)
-        buttonConfig.image = UIImage(systemName: "space")?.withConfiguration(imageConfig).withTintColor(.label, renderingMode: .alwaysOriginal)
-        self.configuration = buttonConfig
+        let imageConfig = UIImage.SymbolConfiguration(pointSize: 16, weight: .medium)
+        self.configuration?.image = UIImage(systemName: "space")?.withConfiguration(imageConfig).withTintColor(.label, renderingMode: .alwaysOriginal)
     }
 }

@@ -19,12 +19,12 @@ class BaseKeyboardButton: UIButton {
     
     init(layout: KeyboardLayout) {
         switch layout {
-        case .hangeul, .numeric:
+        case .hangeul, .numeric, .tenKey:
             self.insetDx = 3
             self.insetDy = 2
         case .symbol:
             self.insetDx = 3
-            self.insetDy = 3
+            self.insetDy = 4
         }
         super.init(frame: .zero)
         setupUI()
@@ -53,7 +53,10 @@ private extension BaseKeyboardButton {
         self.backgroundColor = .systemBackground.withAlphaComponent(0.001)  // 터치 영역 확보용
         
         var buttonConfig = UIButton.Configuration.plain()
-        buttonConfig.background.backgroundInsets = NSDirectionalEdgeInsets(top: 2, leading: 3, bottom: 2, trailing: 3)
+        buttonConfig.contentInsets = .zero
+        buttonConfig.titleAlignment = .center
+        buttonConfig.background = .clear()
+        buttonConfig.background.backgroundInsets = NSDirectionalEdgeInsets(top: insetDy, leading: insetDx, bottom: insetDy, trailing: insetDx)
         buttonConfig.background.cornerRadius = cornerRadius
         self.configuration = buttonConfig
     }

@@ -30,20 +30,16 @@ final class KeyButton: PrimaryButton {
 
 private extension KeyButton {
     func configure(keys: [String]) {
-        guard var buttonConfig = self.configuration else { return }
-        
         if keys.count == 1 {
             guard let key = keys.first else { return }
             if Character(key).isLowercase {
-                buttonConfig.attributedTitle = AttributedString(key, attributes: AttributeContainer([.font: UIFont.systemFont(ofSize: 25, weight: .regular), .foregroundColor: UIColor.label]))
+                self.configuration?.attributedTitle = AttributedString(key, attributes: AttributeContainer([.font: UIFont.systemFont(ofSize: 25, weight: .regular), .foregroundColor: UIColor.label]))
             } else {
-                buttonConfig.attributedTitle = AttributedString(key, attributes: AttributeContainer([.font: UIFont.systemFont(ofSize: 22, weight: .regular), .foregroundColor: UIColor.label]))
+                self.configuration?.attributedTitle = AttributedString(key, attributes: AttributeContainer([.font: UIFont.systemFont(ofSize: 22, weight: .regular), .foregroundColor: UIColor.label]))
             }
         } else {
             let joined = keys.joined(separator: "")
-            buttonConfig.attributedTitle = AttributedString(joined, attributes: AttributeContainer([.font: UIFont.systemFont(ofSize: 22, weight: .regular), .foregroundColor: UIColor.label]))
+            self.configuration?.attributedTitle = AttributedString(joined, attributes: AttributeContainer([.font: UIFont.systemFont(ofSize: 22, weight: .regular), .foregroundColor: UIColor.label]))
         }
-        
-        self.configuration = buttonConfig
     }
 }

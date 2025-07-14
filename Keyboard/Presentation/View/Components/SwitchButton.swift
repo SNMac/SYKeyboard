@@ -12,9 +12,13 @@ import Then
 
 final class SwitchButton: SecondaryButton {
     
+    // MARK: - Properties
+    
+    private let layout: KeyboardLayout
+    
     // MARK: - UI Components
     
-    private let oneHandedLabel = UILabel().then {
+    private lazy var oneHandedLabel = UILabel().then {
         let imageConfig = UIImage.SymbolConfiguration(pointSize: 9, weight: .regular)
         
         let arrowtriangleUp = NSTextAttachment()
@@ -22,20 +26,52 @@ final class SwitchButton: SecondaryButton {
         let keyboard = NSTextAttachment()
         keyboard.image = UIImage(systemName: "keyboard")?.withConfiguration(imageConfig)
         
-        let fullString = NSMutableAttributedString(attachment: arrowtriangleUp)
-        fullString.append(NSMutableAttributedString(attachment: keyboard))
+        let fullString: NSMutableAttributedString?
+        switch layout {
+        case .hangeul:
+            fullString = NSMutableAttributedString(attachment: keyboard)
+            fullString?.append(NSMutableAttributedString(attachment: arrowtriangleUp))
+        case .symbol:
+            fullString = NSMutableAttributedString(attachment: arrowtriangleUp)
+            fullString?.append(NSMutableAttributedString(attachment: keyboard))
+        case .numeric:
+            fullString = NSMutableAttributedString(attachment: keyboard)
+            fullString?.append(NSMutableAttributedString(attachment: arrowtriangleUp))
+        default:
+            fullString = nil
+        }
+        
         $0.attributedText = fullString
         $0.font = .systemFont(ofSize: 9)
     }
     
-    private let swipeModeLabel = UILabel().then {
+    private lazy var swipeModeLabel = UILabel().then {
         let imageConfig = UIImage.SymbolConfiguration(pointSize: 9, weight: .regular)
         
-        let arrowtriangleLeft = NSTextAttachment()
-        arrowtriangleLeft.image = UIImage(systemName: "arrowtriangle.left")?.withConfiguration(imageConfig)
+        let text: String
+        let arrowtriangle = NSTextAttachment()
+        let fullString: NSMutableAttributedString?
+        switch layout {
+        case .hangeul:
+            text = "123"
+            arrowtriangle.image = UIImage(systemName: "arrowtriangle.left")?.withConfiguration(imageConfig)
+            fullString = NSMutableAttributedString(attachment: arrowtriangle)
+            fullString?.append(NSMutableAttributedString(string: text))
+        case .symbol:
+            text = "123"
+            arrowtriangle.image = UIImage(systemName: "arrowtriangle.right")?.withConfiguration(imageConfig)
+            fullString = NSMutableAttributedString(string: text)
+            fullString?.append(NSMutableAttributedString(attachment: arrowtriangle))
+        case .numeric:
+            text = "!#1"
+            arrowtriangle.image = UIImage(systemName: "arrowtriangle.left")?.withConfiguration(imageConfig)
+            fullString = NSMutableAttributedString(attachment: arrowtriangle)
+            fullString?.append(NSMutableAttributedString(string: text))
+        default:
+            text = ""
+            fullString = nil
+        }
         
-        let fullString = NSMutableAttributedString(attachment: arrowtriangleLeft)
-        fullString.append(NSMutableAttributedString(string: "123"))
         $0.attributedText = fullString
         $0.font = .systemFont(ofSize: 9)
     }
@@ -43,7 +79,9 @@ final class SwitchButton: SecondaryButton {
     // MARK: - Initializer
     
     override init(layout: KeyboardLayout) {
+        self.layout = layout
         super.init(layout: layout)
+        
         setupUI()
     }
     
@@ -68,10 +106,19 @@ private extension SwitchButton {
     }
     
     func setStyles() {
-        guard var buttonConfig = self.configuration else { return }
+        let title: String
+        switch layout {
+        case .hangeul:
+            title = "!#1"
+        case .symbol:
+            title = "한글"
+        case .numeric:
+            title = "한글"
+        default:
+            title = ""
+        }
         let attributes = AttributeContainer([.font: UIFont.monospacedDigitSystemFont(ofSize: 18, weight: .regular), .foregroundColor: UIColor.label])
-        buttonConfig.attributedTitle = AttributedString("!#1", attributes: attributes)
-        self.configuration = buttonConfig
+        self.configuration?.attributedTitle = AttributedString(title, attributes: attributes)
     }
     
     func setViewHierarchy() {
@@ -79,14 +126,28 @@ private extension SwitchButton {
     }
     
     func setConstraints() {
-        oneHandedLabel.snp.makeConstraints {
-            $0.top.equalToSuperview().inset(super.insetDy + 1)
-            $0.trailing.equalToSuperview().inset(super.insetDx + 1)
+        switch layout {
+        case .symbol:
+            oneHandedLabel.snp.makeConstraints {
+                $0.top.equalToSuperview().inset(super.insetDy + 1)
+                $0.leading.equalToSuperview().inset(super.insetDx + 1)
+            }
+            
+            swipeModeLabel.snp.makeConstraints {
+                $0.trailing.equalToSuperview().inset(super.insetDx + 1)
+                $0.bottom.equalToSuperview().inset(super.insetDy + 1)
+            }
+        default:
+            oneHandedLabel.snp.makeConstraints {
+                $0.top.equalToSuperview().inset(super.insetDy + 1)
+                $0.trailing.equalToSuperview().inset(super.insetDx + 1)
+            }
+            
+            swipeModeLabel.snp.makeConstraints {
+                $0.leading.equalToSuperview().inset(super.insetDx + 1)
+                $0.bottom.equalToSuperview().inset(super.insetDy + 1)
+            }
         }
         
-        swipeModeLabel.snp.makeConstraints {
-            $0.leading.equalToSuperview().inset(super.insetDx + 1)
-            $0.bottom.equalToSuperview().inset(super.insetDy + 1)
-        }
     }
 }

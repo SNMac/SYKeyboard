@@ -34,6 +34,6 @@ private extension KeyboardRowStackView {
         self.axis = .horizontal
         self.spacing = 0
         self.alignment = .fill
-        self.distribution = .fillEqually
+        self.distribution = .fill
     }
 }

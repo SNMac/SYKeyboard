@@ -1,23 +1,23 @@
 //
-//  HangeulView.swift
+//  NumericView.swift
 //  Keyboard
 //
-//  Created by 서동환 on 7/13/25.
+//  Created by 서동환 on 7/14/25.
 //
 
 import UIKit
 
 import SnapKit
 
-final class HangeulView: UIView {
+final class NumericView: UIView {
     
     // MARK: - Properties
     
-    private let naratgeulKeyList = [
-        [ ["ㄱ"], ["ㄴ"], ["ㅏ", "ㅓ"] ],
-        [ ["ㄹ"], ["ㅁ"], ["ㅗ", "ㅜ"] ],
-        [ ["ㅅ"], ["ㅇ"], ["ㅣ"] ],
-        [ ["획"], ["ㅡ"], ["쌍"] ]
+    private let numericKeyList = [
+        [ ["1"], ["2"], ["3"] ],
+        [ ["4"], ["5"], ["6"] ],
+        [ ["7"], ["8"], ["9"] ],
+        [ ["-"], [","], ["0"], ["."], ["/"] ]
     ]
     
     // MARK: - UI Components
@@ -31,15 +31,15 @@ final class HangeulView: UIView {
     private let thirdRowStackView = KeyboardRowStackView()
     private let fourthRowStackView = KeyboardRowStackView()
     
-    private lazy var firstRowKeyButtonList = naratgeulKeyList[0].map { KeyButton(layout: .hangeul, keys: $0) }
-    private lazy var secondRowKeyButtonList = naratgeulKeyList[1].map { KeyButton(layout: .hangeul, keys: $0) }
-    private lazy var thirdRowKeyButtonList = naratgeulKeyList[2].map { KeyButton(layout: .hangeul, keys: $0) }
-    private lazy var fourthRowKeyButtonList = naratgeulKeyList[3].map { KeyButton(layout: .hangeul, keys: $0) }
+    private lazy var firstRowKeyButtonList = numericKeyList[0].map { KeyButton(layout: .numeric, keys: $0) }
+    private lazy var secondRowKeyButtonList = numericKeyList[1].map { KeyButton(layout: .numeric, keys: $0) }
+    private lazy var thirdRowKeyButtonList = numericKeyList[2].map { KeyButton(layout: .numeric, keys: $0) }
+    private lazy var fourthRowKeyButtonList = numericKeyList[3].map { KeyButton(layout: .numeric, keys: $0) }
     
-    private let deleteButton = DeleteButton(layout: .hangeul)
-    private let spaceButton = SpaceButton(layout: .hangeul)
-    private let returnButton = ReturnButton(layout: .hangeul)
-    private let switchButton = SwitchButton(layout: .hangeul)
+    private let deleteButton = DeleteButton(layout: .numeric)
+    private let spaceButton = SpaceButton(layout: .numeric)
+    private let returnButton = ReturnButton(layout: .numeric)
+    private let switchButton = SwitchButton(layout: .numeric)
     
     // MARK: - Initializer
     
@@ -55,7 +55,7 @@ final class HangeulView: UIView {
 
 // MARK: - UI Methods
 
-private extension HangeulView {
+private extension NumericView {
     func setupUI() {
         setStyles()
         setViewHierarchy()

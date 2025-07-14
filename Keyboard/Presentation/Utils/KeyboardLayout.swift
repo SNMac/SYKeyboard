@@ -11,4 +11,5 @@ enum KeyboardLayout {
     case hangeul
     case symbol
     case numeric
+    case tenKey
 }

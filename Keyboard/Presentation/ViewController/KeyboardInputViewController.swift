@@ -6,20 +6,19 @@
 //
 
 import UIKit
-import SwiftUI
+
 import SnapKit
+import Then
 
 /// 키보드 `UIInputViewController`
 final class KeyboardInputViewController: UIInputViewController {
     
     // MARK: - UI Components
     
-    private let spacer = KeyboardSpacer()
-    
-    private lazy var hangeulView = HangeulView()
-//    private lazy var symbolView = HangeulView()
-//    private lazy var numericView = HangeulView()
-//    private lazy var tenKeyView = HangeulView()
+    private let hangeulView = HangeulView().then { $0.isHidden = true }
+    private let symbolView = SymbolView().then { $0.isHidden = true }
+    private let numericView = NumericView().then { $0.isHidden = false }
+    private let tenKeyView = TenKeyView().then { $0.isHidden = true }
     
     // MARK: - Lifecycle
     
@@ -43,22 +42,28 @@ private extension KeyboardInputViewController {
     }
     
     func setViewHierarchy() {
-        self.view.addSubviews(spacer,
-                              hangeulView)
+        self.view.addSubviews(hangeulView,
+                              symbolView,
+                              numericView,
+                              tenKeyView)
     }
     
     func setConstraints() {
-        spacer.snp.makeConstraints {
-            $0.top.equalToSuperview()
-            $0.leading.trailing.equalToSuperview()
-            $0.height.equalTo(2)
+        hangeulView.snp.makeConstraints {
+            $0.edges.equalToSuperview()
+            $0.height.equalTo(240).priority(.high)
         }
         
-        hangeulView.snp.makeConstraints {
-            $0.top.equalTo(spacer.snp.bottom)
-            $0.leading.trailing.equalToSuperview()
-            $0.bottom.equalToSuperview()
-            $0.height.equalTo(240).priority(.high)
+        symbolView.snp.makeConstraints {
+            $0.edges.equalTo(hangeulView)
+        }
+        
+        numericView.snp.makeConstraints {
+            $0.edges.equalTo(hangeulView)
+        }
+        
+        tenKeyView.snp.makeConstraints {
+            $0.edges.equalTo(hangeulView)
         }
     }
 }

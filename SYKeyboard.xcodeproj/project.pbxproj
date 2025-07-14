@@ -86,6 +86,9 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Presentation/View/KeyboardLayout/HangeulView.swift,
+				Presentation/View/KeyboardLayout/NumericView.swift,
+				Presentation/View/KeyboardLayout/SymbolView.swift,
+				Presentation/View/KeyboardLayout/TenKeyView.swift,
 				Presentation/ViewController/KeyboardInputViewController.swift,
 				"Resources/Configs/DebugConfig-Keyboard.xcconfig",
 				"Resources/Configs/ReleaseConfig-Keyboard.xcconfig",
@@ -117,6 +120,9 @@
 				Presentation/View/Components/SwitchButton.swift,
 				Presentation/View/Components/SymbolShiftButton.swift,
 				Presentation/View/KeyboardLayout/HangeulView.swift,
+				Presentation/View/KeyboardLayout/NumericView.swift,
+				Presentation/View/KeyboardLayout/SymbolView.swift,
+				Presentation/View/KeyboardLayout/TenKeyView.swift,
 				Presentation/ViewController/KeyboardInputViewController.swift,
 				Resources/InfoPlist.xcstrings,
 				Resources/Localizable.xcstrings,
