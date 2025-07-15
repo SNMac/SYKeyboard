@@ -37,6 +37,8 @@ final class HangeulView: UIView {
     private let thirdRowStackView = KeyboardRowStackView()
     /// 키보드 네번째 행 `KeyboardRowStackView`
     private let fourthRowStackView = KeyboardRowStackView()
+    /// 키보드 네번째 우측 행 `KeyboardRowStackView`
+    private let fourthRowRightStackView = KeyboardRowStackView()
     
     /// 키보드 첫번째 행 `KeyButton` 배열
     private lazy var firstRowKeyButtonList = naratgeulKeyList[0].map { KeyButton(layout: .hangeul, keys: $0) }
@@ -55,11 +57,15 @@ final class HangeulView: UIView {
     private let returnButton = ReturnButton(layout: .hangeul)
     /// 자판 전환 버튼 `SwitchButton`
     private let switchButton = SwitchButton(layout: .hangeul)
+    /// iPhone SE용 키보드 전환 버튼
+    private lazy var nextKeyboardButton: NextKeyboardButton? = nil
     
     // MARK: - Initializer
     
-    override init(frame: CGRect) {
-        super.init(frame: frame)
+    init(nextKeyboardAction: Selector?) {
+        super.init(frame: .zero)
+        
+        if let nextKeyboardAction { setNextKeyboardButtonTarget(action: nextKeyboardAction) }
         setupUI()
     }
     
@@ -100,7 +106,12 @@ private extension HangeulView {
         thirdRowStackView.addArrangedSubview(returnButton)
         
         fourthRowKeyButtonList.forEach { fourthRowStackView.addArrangedSubview($0) }
-        fourthRowStackView.addArrangedSubview(switchButton)
+        fourthRowStackView.addArrangedSubview(fourthRowRightStackView)
+        // iPhone SE일 때 키보드 전환 버튼 추가
+        if let nextKeyboardButton {
+            fourthRowRightStackView.addArrangedSubview(nextKeyboardButton)
+        }
+        fourthRowRightStackView.addArrangedSubview(switchButton)
     }
     
     func setConstraints() {
@@ -139,5 +150,20 @@ private extension HangeulView {
                 $0.width.equalToSuperview().dividedBy(fourthRowStackView.arrangedSubviews.count)
             }
         }
+        
+        fourthRowRightStackView.arrangedSubviews.forEach { subview in
+            subview.snp.makeConstraints {
+                $0.width.equalToSuperview().dividedBy(fourthRowRightStackView.arrangedSubviews.count)
+            }
+        }
+    }
+}
+
+// MARK: - Action Methods
+
+private extension HangeulView {
+    func setNextKeyboardButtonTarget(action: Selector) {
+        nextKeyboardButton = NextKeyboardButton(layout: .hangeul)
+        nextKeyboardButton?.addTarget(nil, action: action, for: .allTouchEvents)
     }
 }

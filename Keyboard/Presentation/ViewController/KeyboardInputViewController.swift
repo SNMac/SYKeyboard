@@ -15,10 +15,13 @@ final class KeyboardInputViewController: UIInputViewController {
     
     // MARK: - UI Components
     
-    private let hangeulView = HangeulView().then { $0.isHidden = false }
-    private let symbolView = SymbolView().then { $0.isHidden = true }
-    private let numericView = NumericView().then { $0.isHidden = true }
-    private let tenKeyView = TenKeyView().then { $0.isHidden = true }
+    private lazy var hangeulView = HangeulView(nextKeyboardAction: self.needsInputModeSwitchKey ?
+                                               #selector(self.handleInputModeList(from:with:)) : nil).then { $0.isHidden = false }
+    private lazy var symbolView = SymbolView(nextKeyboardAction: self.needsInputModeSwitchKey ?
+                                             #selector(self.handleInputModeList(from:with:)) : nil).then { $0.isHidden = true }
+    private lazy var numericView = NumericView(nextKeyboardAction: self.needsInputModeSwitchKey ?
+                                               #selector(self.handleInputModeList(from:with:)) : nil).then { $0.isHidden = true }
+    private lazy var tenKeyView = TenKeyView().then { $0.isHidden = true }
     
     // MARK: - Lifecycle
     

@@ -114,6 +114,7 @@
 				Presentation/View/Components/KeyboardRowStackView.swift,
 				Presentation/View/Components/KeyboardSpacer.swift,
 				Presentation/View/Components/KeyButton.swift,
+				Presentation/View/Components/NextKeyboardButton.swift,
 				Presentation/View/Components/ReturnButton.swift,
 				Presentation/View/Components/SpaceButton.swift,
 				Presentation/View/Components/SwitchButton.swift,

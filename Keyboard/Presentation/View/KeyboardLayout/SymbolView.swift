@@ -59,11 +59,15 @@ final class SymbolView: UIView {
     private let spaceButton = SpaceButton(layout: .symbol)
     /// 리턴 버튼 `ReturnButton`
     private let returnButton = ReturnButton(layout: .symbol)
+    /// iPhone SE용 키보드 전환 버튼
+    private lazy var nextKeyboardButton: NextKeyboardButton? = nil
     
     // MARK: - Initializer
     
-    override init(frame: CGRect) {
-        super.init(frame: frame)
+    init(nextKeyboardAction: Selector?) {
+        super.init(frame: .zero)
+        
+        if let nextKeyboardAction { setNextKeyboardButtonTarget(action: nextKeyboardAction) }
         setupUI()
     }
     
@@ -138,5 +142,14 @@ private extension SymbolView {
         returnButton.snp.makeConstraints {
             $0.width.equalToSuperview().dividedBy(4)
         }
+    }
+}
+
+// MARK: - Action Methods
+
+private extension SymbolView {
+    func setNextKeyboardButtonTarget(action: Selector) {
+        nextKeyboardButton = NextKeyboardButton(layout: .symbol)
+        nextKeyboardButton?.addTarget(nil, action: action, for: .allTouchEvents)
     }
 }

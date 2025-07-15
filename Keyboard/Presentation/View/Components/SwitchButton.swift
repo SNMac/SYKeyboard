@@ -149,6 +149,5 @@ private extension SwitchButton {
                 $0.bottom.equalToSuperview().inset(super.insetDy + 1)
             }
         }
-        
     }
 }

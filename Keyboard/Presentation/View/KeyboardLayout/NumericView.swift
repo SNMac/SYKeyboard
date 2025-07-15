@@ -59,11 +59,15 @@ final class NumericView: UIView {
     private let returnButton = ReturnButton(layout: .numeric)
     /// 자판 전환 버튼 `SwitchButton`
     private let switchButton = SwitchButton(layout: .numeric)
+    /// iPhone SE용 키보드 전환 버튼
+    private lazy var nextKeyboardButton: NextKeyboardButton? = nil
     
     // MARK: - Initializer
     
-    override init(frame: CGRect) {
-        super.init(frame: frame)
+    init(nextKeyboardAction: Selector?) {
+        super.init(frame: .zero)
+        
+        if let nextKeyboardAction { setNextKeyboardButtonTarget(action: nextKeyboardAction) }
         setupUI()
     }
     
@@ -156,5 +160,14 @@ private extension NumericView {
                 $0.width.equalToSuperview().dividedBy(fourthRowRightStackView.arrangedSubviews.count)
             }
         }
+    }
+}
+
+// MARK: - Action Methods
+
+private extension NumericView {
+    func setNextKeyboardButtonTarget(action: Selector) {
+        nextKeyboardButton = NextKeyboardButton(layout: .numeric)
+        nextKeyboardButton?.addTarget(nil, action: action, for: .allTouchEvents)
     }
 }
