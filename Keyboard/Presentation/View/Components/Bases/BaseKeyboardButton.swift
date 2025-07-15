@@ -57,6 +57,7 @@ private extension BaseKeyboardButton {
         buttonConfig.contentInsets = .zero
         buttonConfig.titleAlignment = .center
         buttonConfig.background = .clear()
+        // TODO: iOS 16.0 버전에서 동작하지 않는 현상 수정
         buttonConfig.background.backgroundInsets = NSDirectionalEdgeInsets(top: insetDy, leading: insetDx, bottom: insetDy, trailing: insetDx)
         buttonConfig.background.cornerRadius = cornerRadius
         self.configuration = buttonConfig

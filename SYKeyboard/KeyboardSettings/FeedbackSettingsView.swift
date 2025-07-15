@@ -10,8 +10,8 @@
 import SwiftUI
 
 struct FeedbackSettingsView: View {
-    @AppStorage("isSoundFeedbackEnabled", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var isSoundFeedbackEnabled = true
-    @AppStorage("isHapticFeedbackEnabled", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var isHapticFeedbackEnabled = true
+    @AppStorage("isSoundFeedbackEnabled", store: UserDefaults(suiteName: UserDefaultsManager.groupBundleID)) private var isSoundFeedbackEnabled = true
+    @AppStorage("isHapticFeedbackEnabled", store: UserDefaults(suiteName: UserDefaultsManager.groupBundleID)) private var isHapticFeedbackEnabled = true
     
     var body: some View {
         Toggle("소리 피드백", isOn: $isSoundFeedbackEnabled)

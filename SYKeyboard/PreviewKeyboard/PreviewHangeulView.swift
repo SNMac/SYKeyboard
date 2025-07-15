@@ -10,8 +10,8 @@ import Combine
 
 struct PreviewHangeulView: View {
     @EnvironmentObject private var state: PreviewKeyboardState
-    @AppStorage("repeatRate", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var repeatRate = GlobalValues.defaultRepeatRate
-    @AppStorage("needsInputModeSwitchKey", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var needsInputModeSwitchKey = true
+    @AppStorage("repeatRate", store: UserDefaults(suiteName: UserDefaultsManager.groupBundleID)) private var repeatRate = UserDefaultsManager.defaultRepeatRate
+    @AppStorage("needsInputModeSwitchKey", store: UserDefaults(suiteName: UserDefaultsManager.groupBundleID)) private var needsInputModeSwitchKey = true
     
     @Binding var keyboardHeight: Double
     @Binding var oneHandedKeyboardWidth: Double

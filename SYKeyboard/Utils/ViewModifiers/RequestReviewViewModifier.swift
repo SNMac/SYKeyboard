@@ -13,8 +13,8 @@ struct RequestReviewViewModifier: ViewModifier {
     private let log = OSLog(subsystem: "github.com-SNMac.SYKeyboard", category: "RequestReviewViewModifier")
     
     @Environment(\.requestReview) private var requestReview
-    @AppStorage("reviewCounter", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) var reviewCounter = 0
-    @AppStorage("lastBuildPromptedForReview", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) var lastBuildPromptedForReview = ""
+    @AppStorage("reviewCounter", store: UserDefaults(suiteName: UserDefaultsManager.groupBundleID)) var reviewCounter = 0
+    @AppStorage("lastBuildPromptedForReview", store: UserDefaults(suiteName: UserDefaultsManager.groupBundleID)) var lastBuildPromptedForReview = ""
     
     private func presentReview() {
         Task {

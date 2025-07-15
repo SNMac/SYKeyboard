@@ -101,7 +101,6 @@
 		5B53F8182E1E56BD0083F7CA /* Exceptions for "Keyboard" folder in "Keyboard" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				"Presentation/Utils/Extensions/CALayer+Extension.swift",
 				"Presentation/Utils/Extensions/UIStackView+Extension.swift",
 				"Presentation/Utils/Extensions/UIView+Extension.swift",
 				Presentation/Utils/KeyboardLayout.swift,

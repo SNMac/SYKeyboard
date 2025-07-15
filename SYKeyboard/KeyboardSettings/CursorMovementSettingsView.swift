@@ -8,8 +8,8 @@
 import SwiftUI
 
 struct CursorMovementSettingsView: View {
-    @AppStorage("cursorActiveDistance", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var cursorActiveDistance = GlobalValues.defaultCursorActiveDistance
-    @AppStorage("cursorMoveInterval", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var cursorMoveInterval = GlobalValues.defaultCursorMoveInterval
+    @AppStorage("cursorActiveDistance", store: UserDefaults(suiteName: UserDefaultsManager.groupBundleID)) private var cursorActiveDistance = UserDefaultsManager.defaultCursorActiveDistance
+    @AppStorage("cursorMoveInterval", store: UserDefaults(suiteName: UserDefaultsManager.groupBundleID)) private var cursorMoveInterval = UserDefaultsManager.defaultCursorMoveInterval
     
     private var cursorActiveDistanceSetting: some View {
         HStack {
@@ -20,7 +20,7 @@ struct CursorMovementSettingsView: View {
                 hideKeyboard()
             }
             Button {
-                cursorActiveDistance = GlobalValues.defaultCursorActiveDistance
+                cursorActiveDistance = UserDefaultsManager.defaultCursorActiveDistance
                 hideKeyboard()
             } label: {
                 Text("리셋")
@@ -38,7 +38,7 @@ struct CursorMovementSettingsView: View {
                 hideKeyboard()
             }
             Button {
-                cursorMoveInterval = GlobalValues.defaultCursorMoveInterval
+                cursorMoveInterval = UserDefaultsManager.defaultCursorMoveInterval
                 hideKeyboard()
             } label: {
                 Text("리셋")

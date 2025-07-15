@@ -15,10 +15,10 @@ final class KeyboardInputViewController: UIInputViewController {
     
     // MARK: - UI Components
     
-    private let hangeulView = HangeulView().then { $0.isHidden = true }
+    private let hangeulView = HangeulView().then { $0.isHidden = false }
     private let symbolView = SymbolView().then { $0.isHidden = true }
     private let numericView = NumericView().then { $0.isHidden = true }
-    private let tenKeyView = TenKeyView().then { $0.isHidden = false }
+    private let tenKeyView = TenKeyView().then { $0.isHidden = true }
     
     // MARK: - Lifecycle
     

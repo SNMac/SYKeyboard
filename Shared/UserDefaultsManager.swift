@@ -1,5 +1,5 @@
 //
-//  GlobalValues.swift
+//  UserDefaultsManager.swift
 //  SYKeyboard, Keyboard
 //
 //  Created by 서동환 on 9/4/24.
@@ -7,10 +7,10 @@
 
 import Foundation
 
-struct GlobalValues {
+class UserDefaultsManager {
     private init() {}
     
-    static let groupBundleID = "group.github.com-SNMac.SYKeyboard"
+    static let groupBundleID = "group.\(Bundle.main.bundleIdentifier!)"
     
     static let defaultKeyboardHeight: Double = 240.0
     static let defaultOneHandedKeyboardWidth: Double = 320.0
@@ -60,25 +60,25 @@ struct GlobalValues {
         /* 입력 설정 -> 속도/커서 설정 */
         // 반복 지연 시간
         if defaults?.object(forKey: "longPressDuration") == nil {
-            defaults?.set(GlobalValues.defaultLongPressDuration, forKey: "longPressDuration")
+            defaults?.set(UserDefaultsManager.defaultLongPressDuration, forKey: "longPressDuration")
         }
         // 키 반복 속도
         if defaults?.object(forKey: "repeatRate") == nil {
-            defaults?.set(GlobalValues.defaultRepeatRate, forKey: "repeatRate")
+            defaults?.set(UserDefaultsManager.defaultRepeatRate, forKey: "repeatRate")
         }
         // 활성화 드래그 거리
         if defaults?.object(forKey: "cursorActiveDistance") == nil {
-            defaults?.set(GlobalValues.defaultCursorActiveDistance, forKey: "cursorActiveDistance")
+            defaults?.set(UserDefaultsManager.defaultCursorActiveDistance, forKey: "cursorActiveDistance")
         }
         // 이동 드래그 간격
         if defaults?.object(forKey: "cursorMoveInterval") == nil {
-            defaults?.set(GlobalValues.defaultCursorMoveInterval, forKey: "cursorMoveInterval")
+            defaults?.set(UserDefaultsManager.defaultCursorMoveInterval, forKey: "cursorMoveInterval")
         }
         
         /* 외형 설정 */
         // 키보드 높이
         if defaults?.object(forKey: "keyboardHeight") == nil {
-            defaults?.set(GlobalValues.defaultKeyboardHeight, forKey: "keyboardHeight")
+            defaults?.set(UserDefaultsManager.defaultKeyboardHeight, forKey: "keyboardHeight")
         }
         // 숫자 키패드 활성화
         if defaults?.object(forKey: "isNumericKeypadEnabled") == nil {
@@ -90,7 +90,7 @@ struct GlobalValues {
         }
         // 한 손 키보드 너비
         if defaults?.object(forKey: "oneHandedKeyboardWidth") == nil {
-            defaults?.set(GlobalValues.defaultOneHandedKeyboardWidth, forKey: "oneHandedKeyboardWidth")
+            defaults?.set(UserDefaultsManager.defaultOneHandedKeyboardWidth, forKey: "oneHandedKeyboardWidth")
         }
         
         /* 키보드 전환 버튼(􀆪) 표시 설정용 */

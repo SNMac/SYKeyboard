@@ -10,13 +10,13 @@ import SwiftUI
 struct KeyboardHeightSettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject private var state: PreviewKeyboardState
-    @AppStorage("keyboardHeight", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var keyboardHeight = GlobalValues.defaultKeyboardHeight
-    @AppStorage("oneHandedKeyboardWidth", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var oneHandedKeyboardWidth = GlobalValues.defaultOneHandedKeyboardWidth
-    @State private var tempKeyboardHeight: Double = GlobalValues.defaultKeyboardHeight
+    @AppStorage("keyboardHeight", store: UserDefaults(suiteName: UserDefaultsManager.groupBundleID)) private var keyboardHeight = UserDefaultsManager.defaultKeyboardHeight
+    @AppStorage("oneHandedKeyboardWidth", store: UserDefaults(suiteName: UserDefaultsManager.groupBundleID)) private var oneHandedKeyboardWidth = UserDefaultsManager.defaultOneHandedKeyboardWidth
+    @State private var tempKeyboardHeight: Double = UserDefaultsManager.defaultKeyboardHeight
     
     private var keyboardHeightSettings: some View {
         VStack {
-            Text("\(Int(tempKeyboardHeight) - (Int(GlobalValues.defaultKeyboardHeight) - 100))")
+            Text("\(Int(tempKeyboardHeight) - (Int(UserDefaultsManager.defaultKeyboardHeight) - 100))")
                 .padding(EdgeInsets(top: 10, leading: 0, bottom: 0, trailing: 0))
             Slider(value: $tempKeyboardHeight, in: 190...290, step: 1)
                 .padding(EdgeInsets(top: 0, leading: 30, bottom: 0, trailing: 30))
@@ -35,7 +35,7 @@ struct KeyboardHeightSettingsView: View {
             }
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
-                    tempKeyboardHeight = GlobalValues.defaultKeyboardHeight
+                    tempKeyboardHeight = UserDefaultsManager.defaultKeyboardHeight
                 } label: {
                     Text("리셋")
                 }

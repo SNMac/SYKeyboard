@@ -8,8 +8,8 @@
 import SwiftUI
 
 struct AppearanceSettingsView: View {
-    @AppStorage("isNumericKeypadEnabled", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var isNumericKeypadEnabled = true
-    @AppStorage("isOneHandedKeyboardEnabled", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var isOneHandedKeyboardEnabled = true
+    @AppStorage("isNumericKeypadEnabled", store: UserDefaults(suiteName: UserDefaultsManager.groupBundleID)) private var isNumericKeypadEnabled = true
+    @AppStorage("isOneHandedKeyboardEnabled", store: UserDefaults(suiteName: UserDefaultsManager.groupBundleID)) private var isOneHandedKeyboardEnabled = true
     
     var body: some View {
         NavigationLink("키보드 높이") {
