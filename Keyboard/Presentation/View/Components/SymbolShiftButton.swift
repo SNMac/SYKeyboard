@@ -41,12 +41,6 @@ final class SymbolShiftButton: SecondaryButton {
             break
         }
     }
-    
-    // MARK: - Methods
-    
-    func configure() {
-        
-    }
 }
 
 // MARK: - UI Methods

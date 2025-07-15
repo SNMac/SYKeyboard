@@ -173,11 +173,11 @@ struct PreviewKeyboardButton: View {
         if dragDiff < -cursorMoveInterval {
             os_log("Move cursor to left", log: log, type: .debug)
             dragStartWidth = dragGestureValue.translation.width
-            Feedback.shared.playHapticByForce(style: .light)
+            FeedbackManager.shared.playHapticByForce(style: .light)
         } else if dragDiff > cursorMoveInterval {
             os_log("Move cursor to right", log: log, type: .debug)
             dragStartWidth = dragGestureValue.translation.width
-            Feedback.shared.playHapticByForce(style: .light)
+            FeedbackManager.shared.playHapticByForce(style: .light)
         }
     }
     

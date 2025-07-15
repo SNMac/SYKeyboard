@@ -54,6 +54,7 @@ private extension BaseKeyboardButton {
         self.backgroundColor = .systemBackground.withAlphaComponent(0.001)  // 터치 영역 확보용
         
         var buttonConfig = UIButton.Configuration.plain()
+        buttonConfig.automaticallyUpdateForSelection = false
         buttonConfig.contentInsets = .zero
         buttonConfig.titleAlignment = .center
         buttonConfig.background = .clear()
