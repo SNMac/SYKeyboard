@@ -7,7 +7,7 @@
 
 import UIKit
 
-/// 리턴 버튼 `SecondaryButton`
+/// 리턴 버튼
 final class ReturnButton: SecondaryButton {
     
     // MARK: - Initializer

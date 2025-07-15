@@ -7,7 +7,7 @@
 
 import Foundation
 
-/// `UserDefaults` 매니저 `class`
+/// `UserDefaults`를 관리하는 싱글톤 매니저
 final class UserDefaultsManager {
     
     // MARK: - Properties

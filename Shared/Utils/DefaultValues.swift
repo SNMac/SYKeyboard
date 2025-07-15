@@ -7,7 +7,7 @@
 
 import Foundation
 
-/// `UserDefaultsManager`의 기본값 `enum`
+/// `UserDefaultsManager`의 기본값 관리
 enum DefaultValues {
     
     /// 그룹 번들 ID

@@ -7,7 +7,9 @@
 
 import UIKit
 
-/// 기호 전환 버튼 `SecondaryButton`
+import SnapKit
+
+/// 기호 전환 버튼
 final class SymbolShiftButton: SecondaryButton {
     
     // MARK: - Properties
@@ -26,21 +28,6 @@ final class SymbolShiftButton: SecondaryButton {
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
-    // MARK: - Lifecycle
-    
-    override func layoutSubviews() {
-        super.layoutSubviews()
-        switch layout {
-        case .symbol:
-            self.layer.shadowPath = UIBezierPath(roundedRect: self.bounds.inset(by: UIEdgeInsets(top: super.insetDy,
-                                                                                                 left: super.insetDx,
-                                                                                                 bottom: super.insetDy,
-                                                                                                 right: super.insetDx + 3)), cornerRadius: cornerRadius).cgPath
-        default:
-            break
-        }
-    }
 }
 
 // MARK: - UI Methods
@@ -54,7 +41,8 @@ private extension SymbolShiftButton {
         switch layout {
         case .symbol:
             self.configuration?.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 3)
-            self.configuration?.background.backgroundInsets.trailing = super.insetDx + 3
+            self.shadowView.snp.updateConstraints { $0.trailing.equalToSuperview().inset(super.insetDx + 3) }
+            self.backgroundView.snp.updateConstraints { $0.trailing.equalToSuperview().inset(super.insetDx + 3) }
         default:
             break
         }
@@ -63,3 +51,4 @@ private extension SymbolShiftButton {
         self.configuration?.attributedTitle = AttributedString("1/2", attributes: attributes)
     }
 }
+

@@ -10,12 +10,13 @@ import UIKit
 import SnapKit
 import Then
 
-/// 자판 전환 버튼 `SecondaryButton`
+/// 자판 전환 버튼
 final class SwitchButton: SecondaryButton {
     
     // MARK: - Properties
     
     private let layout: KeyboardLayout
+    private let title: String
     
     // MARK: - UI Components
     
@@ -81,6 +82,16 @@ final class SwitchButton: SecondaryButton {
     
     override init(layout: KeyboardLayout) {
         self.layout = layout
+        switch layout {
+        case .hangeul:
+            self.title = "!#1"
+        case .symbol:
+            self.title = "한글"
+        case .numeric:
+            self.title = "한글"
+        default:
+            self.title = ""
+        }
         super.init(layout: layout)
         
         setupUI()
@@ -111,6 +122,14 @@ final class SwitchButton: SecondaryButton {
         super.touchesCancelled(touches, with: event)
         self.isHighlighted = false
     }
+    
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        if self.backgroundView.bounds.width < 44 {
+            let attributes = AttributeContainer([.font: UIFont.monospacedDigitSystemFont(ofSize: 16, weight: .regular), .foregroundColor: UIColor.label])
+            self.configuration?.attributedTitle = AttributedString(title, attributes: attributes)
+        }
+    }
 }
 
 // MARK: - UI Methods
@@ -123,17 +142,6 @@ private extension SwitchButton {
     }
     
     func setStyles() {
-        let title: String
-        switch layout {
-        case .hangeul:
-            title = "!#1"
-        case .symbol:
-            title = "한글"
-        case .numeric:
-            title = "한글"
-        default:
-            title = ""
-        }
         let attributes = AttributeContainer([.font: UIFont.monospacedDigitSystemFont(ofSize: 18, weight: .regular), .foregroundColor: UIColor.label])
         self.configuration?.attributedTitle = AttributedString(title, attributes: attributes)
     }

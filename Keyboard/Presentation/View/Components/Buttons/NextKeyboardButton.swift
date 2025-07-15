@@ -10,7 +10,7 @@ import UIKit
 import SnapKit
 import Then
 
-/// iPhone SE용 키보드 전환 버튼 `SecondaryButton`
+/// iPhone SE용 키보드 전환 버튼
 final class NextKeyboardButton: SecondaryButton {
     
     // MARK: - Properties
@@ -63,16 +63,5 @@ private extension NextKeyboardButton {
     func setStyles() {
         let imageConfig = UIImage.SymbolConfiguration(pointSize: 16, weight: .medium)
         self.configuration?.image = UIImage(systemName: "globe")?.withConfiguration(imageConfig).withTintColor(.label, renderingMode: .alwaysOriginal)
-        
-        self.configurationUpdateHandler = { button in
-            switch button.state {
-            case .normal:
-                button.configuration?.background.backgroundColor = .secondaryButton
-            case .highlighted:
-                button.configuration?.background.backgroundColor = .secondaryButtonPressed
-            default:
-                break
-            }
-        }
     }
 }

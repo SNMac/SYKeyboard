@@ -7,8 +7,17 @@
 
 import UIKit
 
-/// 입력 관련 버튼 `BaseKeyboardButton`
+import SnapKit
+
+/// 입력 관련 키보드 버튼
 class PrimaryButton: BaseKeyboardButton {
+    
+    // MARK: - UI Components
+    
+    /// 배경 UI
+    lazy var backgroundView = ButtonBackgroundView(cornerRadius: self.cornerRadius)
+    /// 그림자 UI
+    lazy var shadowView = ButtonShadowView(cornerRadius: self.cornerRadius)
     
     // MARK: - Initializer
     
@@ -49,20 +58,39 @@ class PrimaryButton: BaseKeyboardButton {
 private extension PrimaryButton {
     func setupUI() {
         setStyles()
+        setViewHierarchy()
+        setConstraints()
     }
     
     func setStyles() {
-        self.configurationUpdateHandler = { button in
+        self.configurationUpdateHandler = { [weak self] button in
             switch button.state {
             case .normal:
-                button.configuration?.background.backgroundColor = .primaryButton
+                self?.backgroundView.backgroundColor = .primaryButton
             case .highlighted:
-                button.configuration?.background.backgroundColor = .primaryButtonPressed
+                self?.backgroundView.backgroundColor = .primaryButtonPressed
                 FeedbackManager.shared.playTypingSound()
                 FeedbackManager.shared.playHaptic()
             default:
                 break
             }
+        }
+    }
+    
+    func setViewHierarchy() {
+        self.addSubviews(shadowView,
+                         backgroundView)
+    }
+    
+    func setConstraints() {
+        shadowView.snp.makeConstraints {
+            $0.top.bottom.equalToSuperview().inset(super.insetDy)
+            $0.leading.trailing.equalToSuperview().inset(super.insetDx)
+        }
+        
+        backgroundView.snp.makeConstraints {
+            $0.top.bottom.equalToSuperview().inset(super.insetDy)
+            $0.leading.trailing.equalToSuperview().inset(super.insetDx)
         }
     }
 }

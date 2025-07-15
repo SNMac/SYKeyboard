@@ -9,7 +9,7 @@ import UIKit
 
 import SnapKit
 
-/// 텐키 자판 `UIView`
+/// 텐키 자판
 final class TenKeyView: UIView {
     
     // MARK: - Properties
@@ -24,18 +24,20 @@ final class TenKeyView: UIView {
     
     // MARK: - UI Components
     
-    /// 상단 여백 `KeyboardSpacer`
-    private let spacer = KeyboardSpacer()
-    /// 키보드 전체 프레임 `KeyboardFrameStackView`
+    /// 상단 여백
+    private let topSpacer = KeyboardSpacer()
+    /// 키보드 전체 프레임
     private let frameStackView = KeyboardFrameStackView()
+    /// 하단 여백
+    private let bottomSpacer = KeyboardSpacer()
     
-    /// 키보드 첫번째 행 `KeyboardRowStackView`
+    /// 키보드 첫번째 행
     private let firstRowStackView = KeyboardRowStackView()
-    /// 키보드 두번째 행 `KeyboardRowStackView`
+    /// 키보드 두번째 행
     private let secondRowStackView = KeyboardRowStackView()
-    /// 키보드 세번째 행 `KeyboardRowStackView`
+    /// 키보드 세번째 행
     private let thirdRowStackView = KeyboardRowStackView()
-    /// 키보드 네번째 행 `KeyboardRowStackView`
+    /// 키보드 네번째 행
     private let fourthRowStackView = KeyboardRowStackView()
     
     /// 키보드 첫번째 행 `KeyButton` 배열
@@ -47,9 +49,9 @@ final class TenKeyView: UIView {
     /// 키보드 네번째 행 `KeyButton` 배열
     private lazy var fourthRowKeyButtonList = tenKeyList[3].map { KeyButton(layout: .tenKey, keys: $0) }
     
-    /// 키보드 네번째 행 좌측 여백 `KeyboardSpacer`
+    /// 키보드 네번째 행 좌측 여백
     private let buttonSpacer = KeyboardSpacer()
-    /// 삭제 버튼 `DeleteButton`
+    /// 삭제 버튼
     private let deleteButton = DeleteButton(layout: .tenKey)
     
     // MARK: - Initializer
@@ -78,8 +80,9 @@ private extension TenKeyView {
     }
     
     func setViewHierarchy() {
-        self.addSubviews(spacer,
-                         frameStackView)
+        self.addSubviews(topSpacer,
+                         frameStackView,
+                         bottomSpacer)
         
         frameStackView.addArrangedSubviews(firstRowStackView,
                                            secondRowStackView,
@@ -98,16 +101,22 @@ private extension TenKeyView {
     }
     
     func setConstraints() {
-        spacer.snp.makeConstraints {
+        topSpacer.snp.makeConstraints {
             $0.top.equalToSuperview()
             $0.leading.trailing.equalToSuperview()
             $0.height.equalTo(2)
         }
         
         frameStackView.snp.makeConstraints {
-            $0.top.equalTo(spacer.snp.bottom)
+            $0.top.equalTo(topSpacer.snp.bottom)
+            $0.leading.trailing.equalToSuperview()
+            $0.bottom.equalTo(bottomSpacer.snp.top)
+        }
+        
+        bottomSpacer.snp.makeConstraints {
             $0.leading.trailing.equalToSuperview()
             $0.bottom.equalToSuperview()
+            $0.height.equalTo(2)
         }
         
         firstRowStackView.arrangedSubviews.forEach { subview in

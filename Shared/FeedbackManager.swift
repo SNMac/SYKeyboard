@@ -10,7 +10,7 @@
 import UIKit
 import AVFoundation
 
-/// 햅틱, 사운드 피드백 매니저 `class`
+/// 햅틱, 사운드 피드백을 관리하는 싱글톤 매니저
 final class FeedbackManager {
     
     // MARK: - Properties

@@ -9,7 +9,7 @@ import UIKit
 
 import SnapKit
 
-/// 한글 자판 `UIView`
+/// 한글 자판
 final class HangeulView: UIView {
     
     // MARK: - Properties
@@ -24,10 +24,12 @@ final class HangeulView: UIView {
     
     // MARK: - UI Components
     
-    /// 상단 여백 `KeyboardSpacer`
-    private let spacer = KeyboardSpacer()
-    /// 키보드 전체 프레임 `KeyboardFrameStackView`
+    /// 상단 여백
+    private let topSpacer = KeyboardSpacer()
+    /// 키보드 전체 프레임
     private let frameStackView = KeyboardFrameStackView()
+    /// 하단 여백 `KeyboardSpacer`
+    private let bottomSpacer = KeyboardSpacer()
     
     /// 키보드 첫번째 행 `KeyboardRowStackView`
     private let firstRowStackView = KeyboardRowStackView()
@@ -49,13 +51,13 @@ final class HangeulView: UIView {
     /// 키보드 네번째 행 `KeyButton` 배열
     private lazy var fourthRowKeyButtonList = naratgeulKeyList[3].map { KeyButton(layout: .hangeul, keys: $0) }
     
-    /// 삭제 버튼 `DeleteButton`
+    /// 삭제 버튼
     private let deleteButton = DeleteButton(layout: .hangeul)
-    /// 스페이스 버튼 `SpaceButton`
+    /// 스페이스 버튼
     private let spaceButton = SpaceButton(layout: .hangeul)
-    /// 리턴 버튼 `ReturnButton`
+    /// 리턴 버튼
     private let returnButton = ReturnButton(layout: .hangeul)
-    /// 자판 전환 버튼 `SwitchButton`
+    /// 자판 전환 버튼
     private let switchButton = SwitchButton(layout: .hangeul)
     /// iPhone SE용 키보드 전환 버튼
     private lazy var nextKeyboardButton: NextKeyboardButton? = nil
@@ -88,8 +90,9 @@ private extension HangeulView {
     }
     
     func setViewHierarchy() {
-        self.addSubviews(spacer,
-                         frameStackView)
+        self.addSubviews(topSpacer,
+                         frameStackView,
+                         bottomSpacer)
         
         frameStackView.addArrangedSubviews(firstRowStackView,
                                            secondRowStackView,
@@ -107,24 +110,30 @@ private extension HangeulView {
         
         fourthRowKeyButtonList.forEach { fourthRowStackView.addArrangedSubview($0) }
         fourthRowStackView.addArrangedSubview(fourthRowRightStackView)
+        fourthRowRightStackView.addArrangedSubview(switchButton)
         // iPhone SE일 때 키보드 전환 버튼 추가
         if let nextKeyboardButton {
             fourthRowRightStackView.addArrangedSubview(nextKeyboardButton)
         }
-        fourthRowRightStackView.addArrangedSubview(switchButton)
     }
     
     func setConstraints() {
-        spacer.snp.makeConstraints {
+        topSpacer.snp.makeConstraints {
             $0.top.equalToSuperview()
             $0.leading.trailing.equalToSuperview()
             $0.height.equalTo(2)
         }
         
         frameStackView.snp.makeConstraints {
-            $0.top.equalTo(spacer.snp.bottom)
+            $0.top.equalTo(topSpacer.snp.bottom)
+            $0.leading.trailing.equalToSuperview()
+            $0.bottom.equalTo(bottomSpacer.snp.top)
+        }
+        
+        bottomSpacer.snp.makeConstraints {
             $0.leading.trailing.equalToSuperview()
             $0.bottom.equalToSuperview()
+            $0.height.equalTo(2)
         }
         
         firstRowStackView.arrangedSubviews.forEach { subview in

@@ -9,7 +9,7 @@ import UIKit
 
 import SnapKit
 
-/// 숫자 자판 `UIView`
+/// 숫자 자판
 final class NumericView: UIView {
     
     // MARK: - Properties
@@ -24,23 +24,27 @@ final class NumericView: UIView {
     
     // MARK: - UI Components
     
-    /// 상단 여백 `KeyboardSpacer`
-    private let spacer = KeyboardSpacer()
-    /// 키보드 전체 프레임 `KeyboardFrameStackView`
+    /// 상단 여백
+    private let topSpacer = KeyboardSpacer()
+    /// 키보드 전체 프레임
     private let frameStackView = KeyboardFrameStackView()
+    /// 하단 여백
+    private let bottomSpacer = KeyboardSpacer()
     
-    /// 키보드 첫번째 행 `KeyboardRowStackView`
+    /// 키보드 첫번째 행
     private let firstRowStackView = KeyboardRowStackView()
-    /// 키보드 두번째 행 `KeyboardRowStackView`
+    /// 키보드 두번째 행
     private let secondRowStackView = KeyboardRowStackView()
-    /// 키보드 세번째 행 `KeyboardRowStackView`
+    /// 키보드 세번째 행
     private let thirdRowStackView = KeyboardRowStackView()
-    /// 키보드 네번째 행 `KeyboardRowStackView`
+    /// 키보드 네번째 행
     private let fourthRowStackView = KeyboardRowStackView()
-    /// 키보드 네번째 좌측 행 `KeyboardRowStackView`
-    private let fourthRowLeftStackView = KeyboardRowStackView()
-    /// 키보드 네번째 우측 행 `KeyboardRowStackView`
-    private let fourthRowRightStackView = KeyboardRowStackView()
+    /// 키보드 네번째 `KeyButton` 좌측 행
+    private let fourthRowPrimaryLeftStackView = KeyboardRowStackView()
+    /// 키보드 네번째 `KeyButton` 우측 행
+    private let fourthRowPrimaryRightStackView = KeyboardRowStackView()
+    /// 키보드 네번째 우측 `SecondaryButton` 행
+    private let fourthRowSecondaryRightStackView = KeyboardRowStackView()
     
     /// 키보드 첫번째 행 `KeyButton` 배열
     private lazy var firstRowKeyButtonList = numericKeyList[0].map { KeyButton(layout: .numeric, keys: $0) }
@@ -51,13 +55,13 @@ final class NumericView: UIView {
     /// 키보드 네번째 행 `KeyButton` 배열
     private lazy var fourthRowKeyButtonList = numericKeyList[3].map { KeyButton(layout: .numeric, keys: $0) }
     
-    /// 삭제 버튼 `DeleteButton`
+    /// 삭제 버튼
     private let deleteButton = DeleteButton(layout: .numeric)
-    /// 스페이스 버튼 `SpaceButton`
+    /// 스페이스 버튼
     private let spaceButton = SpaceButton(layout: .numeric)
-    /// 리턴 버튼 `ReturnButton`
+    /// 리턴 버튼
     private let returnButton = ReturnButton(layout: .numeric)
-    /// 자판 전환 버튼 `SwitchButton`
+    /// 자판 전환 버튼
     private let switchButton = SwitchButton(layout: .numeric)
     /// iPhone SE용 키보드 전환 버튼
     private lazy var nextKeyboardButton: NextKeyboardButton? = nil
@@ -90,8 +94,9 @@ private extension NumericView {
     }
     
     func setViewHierarchy() {
-        self.addSubviews(spacer,
-                         frameStackView)
+        self.addSubviews(topSpacer,
+                         frameStackView,
+                         bottomSpacer)
         
         frameStackView.addArrangedSubviews(firstRowStackView,
                                            secondRowStackView,
@@ -107,22 +112,33 @@ private extension NumericView {
         thirdRowKeyButtonList.forEach { thirdRowStackView.addArrangedSubview($0) }
         thirdRowStackView.addArrangedSubview(returnButton)
         
-        fourthRowStackView.addArrangedSubviews(fourthRowLeftStackView, fourthRowKeyButtonList[2], fourthRowRightStackView, switchButton)
-        fourthRowLeftStackView.addArrangedSubviews(fourthRowKeyButtonList[0], fourthRowKeyButtonList[1])
-        fourthRowRightStackView.addArrangedSubviews(fourthRowKeyButtonList[3], fourthRowKeyButtonList[4])
+        fourthRowStackView.addArrangedSubviews(fourthRowPrimaryLeftStackView, fourthRowKeyButtonList[2], fourthRowPrimaryRightStackView, fourthRowSecondaryRightStackView)
+        fourthRowPrimaryLeftStackView.addArrangedSubviews(fourthRowKeyButtonList[0], fourthRowKeyButtonList[1])
+        fourthRowPrimaryRightStackView.addArrangedSubviews(fourthRowKeyButtonList[3], fourthRowKeyButtonList[4])
+        fourthRowSecondaryRightStackView.addArrangedSubview(switchButton)
+        // iPhone SE일 때 키보드 전환 버튼 추가
+        if let nextKeyboardButton {
+            fourthRowSecondaryRightStackView.addArrangedSubview(nextKeyboardButton)
+        }
     }
     
     func setConstraints() {
-        spacer.snp.makeConstraints {
+        topSpacer.snp.makeConstraints {
             $0.top.equalToSuperview()
             $0.leading.trailing.equalToSuperview()
             $0.height.equalTo(2)
         }
         
         frameStackView.snp.makeConstraints {
-            $0.top.equalTo(spacer.snp.bottom)
+            $0.top.equalTo(topSpacer.snp.bottom)
+            $0.leading.trailing.equalToSuperview()
+            $0.bottom.equalTo(bottomSpacer.snp.top)
+        }
+        
+        bottomSpacer.snp.makeConstraints {
             $0.leading.trailing.equalToSuperview()
             $0.bottom.equalToSuperview()
+            $0.height.equalTo(2)
         }
         
         firstRowStackView.arrangedSubviews.forEach { subview in
@@ -149,15 +165,21 @@ private extension NumericView {
             }
         }
         
-        fourthRowLeftStackView.arrangedSubviews.forEach { subview in
+        fourthRowPrimaryLeftStackView.arrangedSubviews.forEach { subview in
             subview.snp.makeConstraints {
-                $0.width.equalToSuperview().dividedBy(fourthRowLeftStackView.arrangedSubviews.count)
+                $0.width.equalToSuperview().dividedBy(fourthRowPrimaryLeftStackView.arrangedSubviews.count)
             }
         }
         
-        fourthRowRightStackView.arrangedSubviews.forEach { subview in
+        fourthRowPrimaryRightStackView.arrangedSubviews.forEach { subview in
             subview.snp.makeConstraints {
-                $0.width.equalToSuperview().dividedBy(fourthRowRightStackView.arrangedSubviews.count)
+                $0.width.equalToSuperview().dividedBy(fourthRowPrimaryRightStackView.arrangedSubviews.count)
+            }
+        }
+        
+        fourthRowSecondaryRightStackView.arrangedSubviews.forEach { subview in
+            subview.snp.makeConstraints {
+                $0.width.equalToSuperview().dividedBy(fourthRowSecondaryRightStackView.arrangedSubviews.count)
             }
         }
     }
@@ -167,6 +189,7 @@ private extension NumericView {
 
 private extension NumericView {
     func setNextKeyboardButtonTarget(action: Selector) {
+        switchButton.configuration?.attributedTitle?.font = .system(size: 16)
         nextKeyboardButton = NextKeyboardButton(layout: .numeric)
         nextKeyboardButton?.addTarget(nil, action: action, for: .allTouchEvents)
     }

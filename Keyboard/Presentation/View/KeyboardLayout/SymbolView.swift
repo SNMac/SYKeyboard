@@ -9,7 +9,7 @@ import UIKit
 
 import SnapKit
 
-/// 기호 자판 `UIView`
+/// 기호 자판
 final class SymbolView: UIView {
     
     // MARK: - Properties
@@ -30,34 +30,36 @@ final class SymbolView: UIView {
     
     // MARK: - UI Components
     
-    /// 키보드 전체 프레임 `KeyboardFrameStackView`
+    /// 키보드 전체 프레임
     private let frameStackView = KeyboardFrameStackView()
     
-    /// 키보드 첫번째 행 `KeyboardRowStackView`
+    /// 키보드 첫번째 행
     private let firstRowStackView = KeyboardRowStackView()
-    /// 키보드 두번째 행 `KeyboardRowStackView`
+    /// 키보드 두번째 행
     private let secondRowStackView = KeyboardRowStackView()
-    /// 키보드 세번째 행 `KeyboardRowStackView`
+    /// 키보드 세번째 행
     private let thirdRowStackView = KeyboardRowStackView()
-    /// 키보드 네번째 행 `KeyboardRowStackView`
+    /// 키보드 네번째 행
     private let fourthRowStackView = KeyboardRowStackView()
+    /// 키보드 네번째 좌측 행
+    private let fourthRowLeftStackView = KeyboardRowStackView()
     
-    /// 키보드 첫번째 행 `KeyButton` 배열
+    /// 키보드 첫번째 행
     private lazy var firstRowkeyButtonList = symbolKeyList[0][0].map { KeyButton(layout: .symbol, keys: $0) }
-    /// 키보드 두번째 행 `KeyButton` 배열
+    /// 키보드 두번째 행
     private lazy var secondRowkeyButtonList = symbolKeyList[0][1].map { KeyButton(layout: .symbol, keys: $0) }
-    /// 키보드 세번째 행 `KeyButton` 배열
+    /// 키보드 세번째 행
     private lazy var thirdRowkeyButtonList = symbolKeyList[0][2].map { KeyButton(layout: .symbol, keys: $0) }
     
-    /// 기호 전환 버튼 `SymbolShiftButton`
+    /// 기호 전환 버튼
     private let symbolShiftButton = SymbolShiftButton(layout: .symbol)
-    /// 삭제 버튼 `DeleteButton`
+    /// 삭제 버튼
     private let deleteButton = DeleteButton(layout: .symbol)
-    /// 자판 전환 버튼 `SwitchButton`
+    /// 자판 전환 버튼
     private let switchButton = SwitchButton(layout: .symbol)
-    /// 스페이스 버튼 `SpaceButton`
+    /// 스페이스 버튼
     private let spaceButton = SpaceButton(layout: .symbol)
-    /// 리턴 버튼 `ReturnButton`
+    /// 리턴 버튼
     private let returnButton = ReturnButton(layout: .symbol)
     /// iPhone SE용 키보드 전환 버튼
     private lazy var nextKeyboardButton: NextKeyboardButton? = nil
@@ -105,7 +107,12 @@ private extension SymbolView {
         thirdRowkeyButtonList.forEach { thirdRowStackView.addArrangedSubview($0) }
         thirdRowStackView.addArrangedSubview(deleteButton)
         
-        fourthRowStackView.addArrangedSubviews(switchButton, spaceButton, returnButton)
+        fourthRowStackView.addArrangedSubviews(fourthRowLeftStackView, spaceButton, returnButton)
+        fourthRowLeftStackView.addArrangedSubview(switchButton)
+        // iPhone SE일 때 키보드 전환 버튼 추가
+        if let nextKeyboardButton {
+            fourthRowLeftStackView.addArrangedSubview(nextKeyboardButton)
+        }
     }
     
     func setConstraints() {
@@ -131,8 +138,14 @@ private extension SymbolView {
             }
         }
         
-        switchButton.snp.makeConstraints {
+        fourthRowLeftStackView.snp.makeConstraints {
             $0.width.equalToSuperview().dividedBy(4)
+        }
+        
+        fourthRowLeftStackView.arrangedSubviews.forEach { subview in
+            subview.snp.makeConstraints {
+                $0.width.equalToSuperview().dividedBy(fourthRowLeftStackView.arrangedSubviews.count)
+            }
         }
         
         spaceButton.snp.makeConstraints {

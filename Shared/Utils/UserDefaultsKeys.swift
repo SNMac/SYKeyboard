@@ -7,7 +7,7 @@
 
 import Foundation
 
-/// `UserDefaults` 키값 `enum`
+/// `UserDefaults`의 키값 관리
 enum UserDefaultsKeys {
     /* 피드백 설정 */
     /// 소리 피드백

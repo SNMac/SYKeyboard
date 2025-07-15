@@ -7,7 +7,7 @@
 
 import UIKit
 
-/// 스페이스 버튼 `PrimaryButton`
+/// 스페이스 버튼
 final class SpaceButton: PrimaryButton {
     
     // MARK: - Initializer
@@ -36,9 +36,9 @@ private extension SpaceButton {
         self.configurationUpdateHandler = { button in
             switch button.state {
             case .normal:
-                button.configuration?.background.backgroundColor = .primaryButton
+                super.backgroundView.backgroundColor = .primaryButton
             case .highlighted:
-                button.configuration?.background.backgroundColor = .primaryButtonPressed
+                super.backgroundView.backgroundColor = .primaryButtonPressed
                 FeedbackManager.shared.playModifierSound()
                 FeedbackManager.shared.playHaptic()
             default:

@@ -1,14 +1,14 @@
 //
-//  KeyboardRowStackView.swift
+//  KeyboardSpacer.swift
 //  Keyboard
 //
-//  Created by 서동환 on 7/10/25.
+//  Created by 서동환 on 7/13/25.
 //
 
 import UIKit
 
-/// 키보드 행 `UIStackView`
-final class KeyboardRowStackView: UIStackView {
+/// 여백 확보용
+final class KeyboardSpacer: UIView {
     
     // MARK: - Initializer
     
@@ -17,24 +17,19 @@ final class KeyboardRowStackView: UIStackView {
         setupUI()
     }
     
-    required init(coder: NSCoder) {
+    required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
 }
 
 // MARK: - UI Methods
 
-private extension KeyboardRowStackView {
+private extension KeyboardSpacer {
     func setupUI() {
         setStyles()
     }
     
     func setStyles() {
         self.backgroundColor = .clear
-        
-        self.axis = .horizontal
-        self.spacing = 0
-        self.alignment = .fill
-        self.distribution = .fill
     }
 }
