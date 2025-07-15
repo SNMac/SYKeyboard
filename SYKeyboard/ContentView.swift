@@ -9,15 +9,15 @@ import SwiftUI
 import GoogleMobileAds
 
 struct ContentView: View {
-    @AppStorage("isOnboarding", store: UserDefaults(suiteName: UserDefaultsManager.groupBundleID)) private var isOnboarding = true
+    @AppStorage(UserDefaultsKeys.isOnboarding, store: UserDefaults(suiteName: UserDefaultsManager.shared.groupBundleID)) private var isOnboarding = DefaultValues.isOnboarding
     @State private var isAdReceived: Bool = false
     
     private var defaults: UserDefaults?
     private var state: PreviewKeyboardState
     
     init() {
-        defaults = UserDefaults(suiteName: UserDefaultsManager.groupBundleID)
-        UserDefaultsManager.setupDefaults(defaults)
+        defaults = UserDefaults(suiteName: UserDefaultsManager.shared.groupBundleID)
+        UserDefaultsManager.shared.setupDefaults(defaults)
         
         state = PreviewKeyboardState()
     }

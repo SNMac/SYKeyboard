@@ -10,16 +10,16 @@ import SwiftUI
 struct OneHandedKeyboardWidthSettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject private var state: PreviewKeyboardState
-    @AppStorage("keyboardHeight", store: UserDefaults(suiteName: UserDefaultsManager.groupBundleID)) private var keyboardHeight = UserDefaultsManager.defaultKeyboardHeight
-    @AppStorage("oneHandedKeyboardWidth", store: UserDefaults(suiteName: UserDefaultsManager.groupBundleID)) private var oneHandedKeyboardWidth = UserDefaultsManager.defaultOneHandedKeyboardWidth
-    @AppStorage("needsInputModeSwitchKey", store: UserDefaults(suiteName: UserDefaultsManager.groupBundleID)) private var needsInputModeSwitchKey = true
-    @State private var tempOneHandedKeyboardWidth: Double = UserDefaultsManager.defaultOneHandedKeyboardWidth
+    @AppStorage(UserDefaultsKeys.keyboardHeight, store: UserDefaults(suiteName: UserDefaultsManager.shared.groupBundleID)) private var keyboardHeight = DefaultValues.keyboardHeight
+    @AppStorage(UserDefaultsKeys.oneHandedKeyboardWidth, store: UserDefaults(suiteName: UserDefaultsManager.shared.groupBundleID)) private var oneHandedKeyboardWidth = DefaultValues.oneHandedKeyboardWidth
+    @AppStorage(UserDefaultsKeys.needsInputModeSwitchKey, store: UserDefaults(suiteName: UserDefaultsManager.shared.groupBundleID)) private var needsInputModeSwitchKey = DefaultValues.needsInputModeSwitchKey
+    @State private var tempOneHandedKeyboardWidth: Double = DefaultValues.oneHandedKeyboardWidth
     
     private let fontSize: CGFloat = 40
     
     private var oneHandedKeyboardWidthSettings: some View {
         VStack {
-            Text("\(Int(tempOneHandedKeyboardWidth) - (Int(UserDefaultsManager.defaultOneHandedKeyboardWidth) - 100))")
+            Text("\(Int(tempOneHandedKeyboardWidth) - (Int(DefaultValues.oneHandedKeyboardWidth) - 100))")
                 .padding(EdgeInsets(top: 10, leading: 0, bottom: 0, trailing: 0))
             Slider(value: $tempOneHandedKeyboardWidth, in: 300...340, step: 1)
                 .padding(EdgeInsets(top: 0, leading: 30, bottom: 0, trailing: 30))
@@ -60,7 +60,7 @@ struct OneHandedKeyboardWidthSettingsView: View {
             }
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
-                    tempOneHandedKeyboardWidth = UserDefaultsManager.defaultOneHandedKeyboardWidth
+                    tempOneHandedKeyboardWidth = DefaultValues.oneHandedKeyboardWidth
                 } label: {
                     Text("리셋")
                 }

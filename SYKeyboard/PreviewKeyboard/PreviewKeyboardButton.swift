@@ -28,12 +28,12 @@ struct PreviewKeyboardButton: View {
     private let log = OSLog(subsystem: "github.com-SNMac.SYKeyboard", category: "PreviewKeyboardButton")
     
     @EnvironmentObject private var state: PreviewKeyboardState
-    @AppStorage("longPressDuration", store: UserDefaults(suiteName: UserDefaultsManager.groupBundleID)) private var longPressDuration = UserDefaultsManager.defaultLongPressDuration
-    @AppStorage("cursorActiveDistance", store: UserDefaults(suiteName: UserDefaultsManager.groupBundleID)) private var cursorActiveDistance = UserDefaultsManager.defaultCursorActiveDistance
-    @AppStorage("cursorMoveInterval", store: UserDefaults(suiteName: UserDefaultsManager.groupBundleID)) private var cursorMoveInterval = UserDefaultsManager.defaultCursorMoveInterval
-    @AppStorage("needsInputModeSwitchKey", store: UserDefaults(suiteName: UserDefaultsManager.groupBundleID)) private var needsInputModeSwitchKey = true
-    @AppStorage("isNumericKeypadEnabled", store: UserDefaults(suiteName: UserDefaultsManager.groupBundleID)) private var isNumericKeypadEnabled = true
-    @AppStorage("isOneHandedKeyboardEnabled", store: UserDefaults(suiteName: UserDefaultsManager.groupBundleID)) private var isOneHandedKeyboardEnabled = true
+    @AppStorage(UserDefaultsKeys.longPressDuration, store: UserDefaults(suiteName: UserDefaultsManager.shared.groupBundleID)) private var longPressDuration = DefaultValues.longPressDuration
+    @AppStorage(UserDefaultsKeys.cursorActiveDistance, store: UserDefaults(suiteName: UserDefaultsManager.shared.groupBundleID)) private var cursorActiveDistance = DefaultValues.cursorActiveDistance
+    @AppStorage(UserDefaultsKeys.cursorMoveInterval, store: UserDefaults(suiteName: UserDefaultsManager.shared.groupBundleID)) private var cursorMoveInterval = DefaultValues.cursorMoveInterval
+    @AppStorage(UserDefaultsKeys.needsInputModeSwitchKey, store: UserDefaults(suiteName: UserDefaultsManager.shared.groupBundleID)) private var needsInputModeSwitchKey = DefaultValues.needsInputModeSwitchKey
+    @AppStorage(UserDefaultsKeys.isNumericKeypadEnabled, store: UserDefaults(suiteName: UserDefaultsManager.shared.groupBundleID)) private var isNumericKeypadEnabled = DefaultValues.isNumericKeypadEnabled
+    @AppStorage(UserDefaultsKeys.isOneHandedKeyboardEnabled, store: UserDefaults(suiteName: UserDefaultsManager.shared.groupBundleID)) private var isOneHandedKeyboardEnabled = DefaultValues.isOneHandedKeyboardEnabled
     
     @State var nowState: ButtonState = .released
     

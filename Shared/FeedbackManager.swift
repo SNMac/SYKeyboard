@@ -10,20 +10,20 @@
 import UIKit
 import AVFoundation
 
-/// 햅틱, 사운드 피드백 매니저
+/// 햅틱, 사운드 피드백 매니저 `class`
 final class FeedbackManager {
     
     // MARK: - Properties
     
     /// 햅틱 ON/OFF 여부
     var haptic: Bool {
-        let defaults = UserDefaults(suiteName: UserDefaultsManager.groupBundleID)
+        let defaults = UserDefaults(suiteName: UserDefaultsManager.shared.groupBundleID)
         return defaults?.bool(forKey: UserDefaultsKeys.isHapticFeedbackEnabled) ?? true
     }
     
     /// 사운드 ON/OFF 여부
     var sounds: Bool {
-        let defaults = UserDefaults(suiteName: UserDefaultsManager.groupBundleID)
+        let defaults = UserDefaults(suiteName: UserDefaultsManager.shared.groupBundleID)
         return defaults?.bool(forKey: UserDefaultsKeys.isSoundFeedbackEnabled) ?? true
     }
     

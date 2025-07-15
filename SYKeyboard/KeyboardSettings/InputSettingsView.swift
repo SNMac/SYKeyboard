@@ -8,8 +8,8 @@
 import SwiftUI
 
 struct InputSettingsView: View {
-    @AppStorage("isTextReplacementEnabled", store: UserDefaults(suiteName: UserDefaultsManager.groupBundleID)) private var isTextReplacementEnabled = true
-    @AppStorage("isAutoChangeToHangeulEnabled", store: UserDefaults(suiteName: UserDefaultsManager.groupBundleID)) private var isAutoChangeToHangeulEnabled = true
+    @AppStorage(UserDefaultsKeys.isTextReplacementEnabled, store: UserDefaults(suiteName: UserDefaultsManager.shared.groupBundleID)) private var isTextReplacementEnabled = DefaultValues.isTextReplacementEnabled
+    @AppStorage(UserDefaultsKeys.isAutoChangeToHangeulEnabled, store: UserDefaults(suiteName: UserDefaultsManager.shared.groupBundleID)) private var isAutoChangeToHangeulEnabled = DefaultValues.isAutoChangeToHangeulEnabled
     
     var body: some View {
         NavigationLink("반복 입력") {

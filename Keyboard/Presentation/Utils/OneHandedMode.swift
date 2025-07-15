@@ -7,7 +7,7 @@
 
 import Foundation
 
-enum OneHandedMode: Int {
+enum OneHandedMode {
     case left
     case center
     case right
