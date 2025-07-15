@@ -20,6 +20,28 @@ class PrimaryButton: BaseKeyboardButton {
     @MainActor required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
+    
+    // MARK: - Lifecycle
+    
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        super.touchesBegan(touches, with: event)
+        self.isHighlighted = true
+    }
+    
+    override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
+        super.touchesMoved(touches, with: event)
+        self.isHighlighted = true
+    }
+    
+    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
+        super.touchesEnded(touches, with: event)
+        self.isHighlighted = false
+    }
+    
+    override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
+        super.touchesCancelled(touches, with: event)
+        self.isHighlighted = false
+    }
 }
 
 // MARK: - UI Methods
@@ -36,6 +58,8 @@ private extension PrimaryButton {
                 button.configuration?.background.backgroundColor = .primaryButton
             case .highlighted:
                 button.configuration?.background.backgroundColor = .primaryButtonPressed
+                FeedbackManager.shared.playTypingSound()
+                FeedbackManager.shared.playHaptic()
             default:
                 break
             }

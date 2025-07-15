@@ -36,6 +36,8 @@ private extension SecondaryButton {
                 button.configuration?.background.backgroundColor = .secondaryButton
             case .highlighted:
                 button.configuration?.background.backgroundColor = .secondaryButtonPressed
+                FeedbackManager.shared.playModifierSound()
+                FeedbackManager.shared.playHaptic()
             default:
                 break
             }

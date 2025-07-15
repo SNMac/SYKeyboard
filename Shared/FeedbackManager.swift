@@ -49,7 +49,7 @@ final class FeedbackManager {
     }
     
     /// 햅틱 피드백 강제 재생
-    func playHapticByForce(style: UIImpactFeedbackGenerator.FeedbackStyle) {
+    func playHapticByForce(style: UIImpactFeedbackGenerator.FeedbackStyle = .light) {
         if style != .light {
             let generator = UIImpactFeedbackGenerator(style: style)
             generator.impactOccurred()
@@ -61,7 +61,7 @@ final class FeedbackManager {
     }
     
     /// 햅틱 피드백 재생
-    func playHaptic(style: UIImpactFeedbackGenerator.FeedbackStyle) {
+    func playHaptic(style: UIImpactFeedbackGenerator.FeedbackStyle = .light) {
         if haptic {
             if style != .light {
                 let generator = UIImpactFeedbackGenerator(style: style)

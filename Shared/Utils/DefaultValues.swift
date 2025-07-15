@@ -7,8 +7,12 @@
 
 import Foundation
 
-/// `UserDefaults` 기본값 `enum`
+/// `UserDefaultsManager`의 기본값 `enum`
 enum DefaultValues {
+    
+    /// 그룹 번들 ID
+    static let groupBundleID = "group.github.com-SNMac.SYKeyboard"
+    
     /* 피드백 설정 */
     /// 소리 피드백 기본값
     static let isSoundFeedbackEnabled: Bool = true

@@ -29,6 +29,28 @@ final class NextKeyboardButton: SecondaryButton {
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
+    
+    // MARK: - Lifecycle
+    
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        super.touchesBegan(touches, with: event)
+        self.isHighlighted = true
+    }
+    
+    override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
+        super.touchesMoved(touches, with: event)
+        self.isHighlighted = true
+    }
+    
+    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
+        super.touchesEnded(touches, with: event)
+        self.isHighlighted = false
+    }
+    
+    override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
+        super.touchesCancelled(touches, with: event)
+        self.isHighlighted = false
+    }
 }
 
 // MARK: - UI Methods
@@ -41,5 +63,16 @@ private extension NextKeyboardButton {
     func setStyles() {
         let imageConfig = UIImage.SymbolConfiguration(pointSize: 16, weight: .medium)
         self.configuration?.image = UIImage(systemName: "globe")?.withConfiguration(imageConfig).withTintColor(.label, renderingMode: .alwaysOriginal)
+        
+        self.configurationUpdateHandler = { button in
+            switch button.state {
+            case .normal:
+                button.configuration?.background.backgroundColor = .secondaryButton
+            case .highlighted:
+                button.configuration?.background.backgroundColor = .secondaryButtonPressed
+            default:
+                break
+            }
+        }
     }
 }

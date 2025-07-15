@@ -8,11 +8,11 @@
 import Foundation
 
 /// `UserDefaults` 매니저 `class`
-class UserDefaultsManager {
+final class UserDefaultsManager {
     
     // MARK: - Properties
     
-    let groupBundleID = "group.\(Bundle.main.bundleIdentifier!)"
+    let groupBundleID = DefaultValues.groupBundleID
     
     // MARK: - Initializer
     

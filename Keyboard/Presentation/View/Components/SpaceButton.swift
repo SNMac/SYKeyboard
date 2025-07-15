@@ -32,5 +32,18 @@ private extension SpaceButton {
     func setStyles() {
         let imageConfig = UIImage.SymbolConfiguration(pointSize: 16, weight: .medium)
         self.configuration?.image = UIImage(systemName: "space")?.withConfiguration(imageConfig).withTintColor(.label, renderingMode: .alwaysOriginal)
+        
+        self.configurationUpdateHandler = { button in
+            switch button.state {
+            case .normal:
+                button.configuration?.background.backgroundColor = .primaryButton
+            case .highlighted:
+                button.configuration?.background.backgroundColor = .primaryButtonPressed
+                FeedbackManager.shared.playModifierSound()
+                FeedbackManager.shared.playHaptic()
+            default:
+                break
+            }
+        }
     }
 }
