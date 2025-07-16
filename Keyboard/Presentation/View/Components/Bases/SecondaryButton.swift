@@ -36,6 +36,7 @@ class SecondaryButton: BaseKeyboardButton {
 private extension SecondaryButton {
     func setupUI() {
         setStyles()
+        setActions()
         setViewHierarchy()
         setConstraints()
     }
@@ -45,14 +46,17 @@ private extension SecondaryButton {
             switch button.state {
             case .normal:
                 self?.backgroundView.backgroundColor = .secondaryButton
-            case .highlighted:
-                self?.backgroundView.backgroundColor = .secondaryButtonPressed
-                if UserDefaultsManager.shared.isSoundFeedbackEnabled { FeedbackManager.shared.playModifierSound() }
-                if UserDefaultsManager.shared.isHapticFeedbackEnabled { FeedbackManager.shared.playHaptic() }
             default:
                 break
             }
         }
+    }
+    
+    func setActions() {
+        let changeBackgroundColor = UIAction { [weak self] _ in
+            self?.backgroundView.backgroundColor = .secondaryButtonPressed
+        }
+        self.addAction(changeBackgroundColor, for: .touchDown)
     }
     
     func setViewHierarchy() {

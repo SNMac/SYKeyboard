@@ -27,6 +27,7 @@ final class SpaceButton: PrimaryButton {
 private extension SpaceButton {
     func setupUI() {
         setStyles()
+        setActions()
     }
     
     func setStyles() {
@@ -37,13 +38,17 @@ private extension SpaceButton {
             switch button.state {
             case .normal:
                 self.backgroundView.backgroundColor = .primaryButton
-            case .highlighted:
-                self.backgroundView.backgroundColor = .primaryButtonPressed
-                if UserDefaultsManager.shared.isSoundFeedbackEnabled { FeedbackManager.shared.playModifierSound() }
-                if UserDefaultsManager.shared.isHapticFeedbackEnabled { FeedbackManager.shared.playHaptic() }
             default:
                 break
             }
         }
+    }
+    
+    func setActions() {
+        let playFeedback = UIAction { _ in
+            if UserDefaultsManager.shared.isSoundFeedbackEnabled { FeedbackManager.shared.playModifierSound() }
+            if UserDefaultsManager.shared.isHapticFeedbackEnabled { FeedbackManager.shared.playHaptic() }
+        }
+        self.addAction(playFeedback, for: .touchDown)
     }
 }

@@ -29,28 +29,6 @@ final class NextKeyboardButton: SecondaryButton {
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
-    // MARK: - Lifecycle
-    
-    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-        super.touchesBegan(touches, with: event)
-        self.isHighlighted = true
-    }
-    
-    override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
-        super.touchesMoved(touches, with: event)
-        self.isHighlighted = true
-    }
-    
-    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
-        super.touchesEnded(touches, with: event)
-        self.isHighlighted = false
-    }
-    
-    override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
-        super.touchesCancelled(touches, with: event)
-        self.isHighlighted = false
-    }
 }
 
 // MARK: - UI Methods
@@ -58,10 +36,19 @@ final class NextKeyboardButton: SecondaryButton {
 private extension NextKeyboardButton {
     func setupUI() {
         setStyles()
+        setActions()
     }
     
     func setStyles() {
         let imageConfig = UIImage.SymbolConfiguration(pointSize: 16, weight: .medium)
         self.configuration?.image = UIImage(systemName: "globe")?.withConfiguration(imageConfig).withTintColor(.label, renderingMode: .alwaysOriginal)
+    }
+    
+    func setActions() {
+        let playFeedback = UIAction { _ in
+            if UserDefaultsManager.shared.isSoundFeedbackEnabled { FeedbackManager.shared.playModifierSound() }
+            if UserDefaultsManager.shared.isHapticFeedbackEnabled { FeedbackManager.shared.playHaptic() }
+        }
+        self.addAction(playFeedback, for: .touchDown)
     }
 }

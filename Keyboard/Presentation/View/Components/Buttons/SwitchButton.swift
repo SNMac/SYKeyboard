@@ -101,28 +101,6 @@ final class SwitchButton: SecondaryButton {
         fatalError("init(coder:) has not been implemented")
     }
     
-    // MARK: - Lifecycle
-    
-    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-        super.touchesBegan(touches, with: event)
-        self.isHighlighted = true
-    }
-    
-    override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
-        super.touchesMoved(touches, with: event)
-        self.isHighlighted = true
-    }
-    
-    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
-        super.touchesEnded(touches, with: event)
-        self.isHighlighted = false
-    }
-    
-    override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
-        super.touchesCancelled(touches, with: event)
-        self.isHighlighted = false
-    }
-    
     override func layoutSubviews() {
         super.layoutSubviews()
         if self.backgroundView.bounds.width < 44 {
@@ -137,6 +115,7 @@ final class SwitchButton: SecondaryButton {
 private extension SwitchButton {
     func setupUI() {
         setStyles()
+        setActions()
         setViewHierarchy()
         setConstraints()
     }
@@ -147,6 +126,14 @@ private extension SwitchButton {
         
         let attributes = AttributeContainer([.font: UIFont.monospacedDigitSystemFont(ofSize: 18, weight: .regular), .foregroundColor: UIColor.label])
         self.configuration?.attributedTitle = AttributedString(title, attributes: attributes)
+    }
+    
+    func setActions() {
+        let playFeedback = UIAction { _ in
+            if UserDefaultsManager.shared.isSoundFeedbackEnabled { FeedbackManager.shared.playModifierSound() }
+            if UserDefaultsManager.shared.isHapticFeedbackEnabled { FeedbackManager.shared.playHaptic() }
+        }
+        self.addAction(playFeedback, for: .touchDown)
     }
     
     func setViewHierarchy() {

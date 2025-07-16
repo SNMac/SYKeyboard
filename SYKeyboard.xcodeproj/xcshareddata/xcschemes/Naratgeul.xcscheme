@@ -58,19 +58,26 @@
       allowLocationSimulation = "YES"
       launchAutomaticallySubstyle = "2">
       <RemoteRunnable
-         runnableDebuggingMode = "0"
+         runnableDebuggingMode = "1"
          BundleIdentifier = "com.apple.MobileSMS"
          RemotePath = "/Library/Developer/CoreSimulator/Volumes/iOS_21F79/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 17.5.simruntime/Contents/Resources/RuntimeRoot/Applications/MobileSMS.app">
       </RemoteRunnable>
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "5B7B3F552C569B7800F7C093"
-            BuildableName = "SYKeyboard.app"
-            BlueprintName = "SYKeyboard"
+            BlueprintIdentifier = "5B7B3F6A2C569B8200F7C093"
+            BuildableName = "Keyboard.appex"
+            BlueprintName = "Keyboard"
             ReferencedContainer = "container:SYKeyboard.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
+      <EnvironmentVariables>
+         <EnvironmentVariable
+            key = "IDEPreferLogStreaming"
+            value = "YES"
+            isEnabled = "YES">
+         </EnvironmentVariable>
+      </EnvironmentVariables>
    </LaunchAction>
    <ProfileAction
       buildConfiguration = "Release"

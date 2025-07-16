@@ -32,6 +32,7 @@ final class KeyButton: PrimaryButton {
 private extension KeyButton {
     func setupUI(keys: [String]) {
         setStyles(keys: keys)
+        setActions()
     }
     
     func setStyles(keys: [String]) {
@@ -46,5 +47,13 @@ private extension KeyButton {
             let joined = keys.joined(separator: "")
             self.configuration?.attributedTitle = AttributedString(joined, attributes: AttributeContainer([.font: UIFont.systemFont(ofSize: 22, weight: .regular), .foregroundColor: UIColor.label]))
         }
+    }
+    
+    func setActions() {
+        let playFeedback = UIAction { _ in
+            if UserDefaultsManager.shared.isSoundFeedbackEnabled { FeedbackManager.shared.playKeyTypingSound() }
+            if UserDefaultsManager.shared.isHapticFeedbackEnabled { FeedbackManager.shared.playHaptic() }
+        }
+        self.addAction(playFeedback, for: .touchDown)
     }
 }

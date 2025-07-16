@@ -27,10 +27,19 @@ final class ReturnButton: SecondaryButton {
 private extension ReturnButton {
     func setupUI() {
         setStyles()
+        setActions()
     }
     
     func setStyles() {
         let imageConfig = UIImage.SymbolConfiguration(pointSize: 16, weight: .medium)
         self.configuration?.image = UIImage(systemName: "return")?.withConfiguration(imageConfig).withTintColor(.label, renderingMode: .alwaysOriginal)
+    }
+    
+    func setActions() {
+        let playFeedback = UIAction { _ in
+            if UserDefaultsManager.shared.isSoundFeedbackEnabled { FeedbackManager.shared.playModifierSound() }
+            if UserDefaultsManager.shared.isHapticFeedbackEnabled { FeedbackManager.shared.playHaptic() }
+        }
+        self.addAction(playFeedback, for: .touchDown)
     }
 }

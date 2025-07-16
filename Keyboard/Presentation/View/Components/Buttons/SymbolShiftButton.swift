@@ -35,6 +35,7 @@ final class SymbolShiftButton: SecondaryButton {
 private extension SymbolShiftButton {
     func setupUI() {
         setStyles()
+        setActions()
     }
     
     func setStyles() {
@@ -49,6 +50,14 @@ private extension SymbolShiftButton {
         
         let attributes = AttributeContainer([.font: UIFont.monospacedSystemFont(ofSize: 18, weight: .regular), .foregroundColor: UIColor.label])
         self.configuration?.attributedTitle = AttributedString("1/2", attributes: attributes)
+    }
+    
+    func setActions() {
+        let playFeedback = UIAction { _ in
+            if UserDefaultsManager.shared.isSoundFeedbackEnabled { FeedbackManager.shared.playModifierSound() }
+            if UserDefaultsManager.shared.isHapticFeedbackEnabled { FeedbackManager.shared.playHaptic() }
+        }
+        self.addAction(playFeedback, for: .touchDown)
     }
 }
 

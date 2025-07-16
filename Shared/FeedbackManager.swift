@@ -23,7 +23,7 @@ final class FeedbackManager {
     /// 햅틱 피드백 생성기
     private let generator = UIImpactFeedbackGenerator(style: .light)
     /// 키 입력 버튼 사운드
-    private let keySoundID: SystemSoundID = 1104
+    private let keyTypingSoundID: SystemSoundID = 1104
     /// 삭제 버튼 사운드
     private let deleteSoundID: SystemSoundID = 1155
     /// 스페이스, 리턴, 키보드 변경 버튼 사운드
@@ -51,8 +51,8 @@ final class FeedbackManager {
     // MARK: - Sound Feedback Methods
     
     /// 키 입력 버튼 사운드 재생
-    func playTypingSound() {
-        AudioServicesPlaySystemSound(keySoundID)
+    func playKeyTypingSound() {
+        AudioServicesPlaySystemSound(keyTypingSoundID)
     }
     
     /// 삭제 버튼 사운드 재생

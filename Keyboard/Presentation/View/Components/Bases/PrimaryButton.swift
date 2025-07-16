@@ -58,6 +58,7 @@ class PrimaryButton: BaseKeyboardButton {
 private extension PrimaryButton {
     func setupUI() {
         setStyles()
+        setActions()
         setViewHierarchy()
         setConstraints()
     }
@@ -67,14 +68,17 @@ private extension PrimaryButton {
             switch button.state {
             case .normal:
                 self?.backgroundView.backgroundColor = .primaryButton
-            case .highlighted:
-                self?.backgroundView.backgroundColor = .primaryButtonPressed
-                if UserDefaultsManager.shared.isSoundFeedbackEnabled { FeedbackManager.shared.playTypingSound() }
-                if UserDefaultsManager.shared.isHapticFeedbackEnabled { FeedbackManager.shared.playHaptic() }
             default:
                 break
             }
         }
+    }
+    
+    func setActions() {
+        let changeBackgroundColor = UIAction { [weak self] _ in
+            self?.backgroundView.backgroundColor = .primaryButtonPressed
+        }
+        self.addAction(changeBackgroundColor, for: .touchDown)
     }
     
     func setViewHierarchy() {

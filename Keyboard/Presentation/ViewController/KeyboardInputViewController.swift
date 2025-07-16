@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import OSLog
 
 import SnapKit
 import Then
@@ -14,6 +15,8 @@ import Then
 final class KeyboardInputViewController: UIInputViewController {
     
     // MARK: - Properties
+    
+    private lazy var logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: String(describing: self))
     
     private var currentKeyboardLayout: KeyboardLayout = .hangeul {
         didSet {
@@ -71,7 +74,7 @@ private extension KeyboardInputViewController {
     func setConstraints(inputView: UIInputView) {
         hangeulView.snp.makeConstraints {
             $0.edges.equalToSuperview()
-            $0.height.equalTo(240).priority(.high)
+            $0.height.equalTo(UserDefaultsManager.shared.keyboardHeight).priority(.high)
         }
         
         symbolView.snp.makeConstraints {
@@ -92,15 +95,15 @@ private extension KeyboardInputViewController {
 
 private extension KeyboardInputViewController {
     func setSwitchButtonAction() {
-        let hangeulSwithButtonTapped = UIAction { [weak self] _ in
+        let hangeulSwithButtonTouchUpInside = UIAction { [weak self] _ in
             self?.currentKeyboardLayout = .symbol
         }
-        hangeulView.switchButton.addAction(hangeulSwithButtonTapped, for: .touchUpInside)
+        hangeulView.switchButton.addAction(hangeulSwithButtonTouchUpInside, for: .touchUpInside)
         
         let symbolSwitchButtonTapped = UIAction { [weak self] _ in
             self?.currentKeyboardLayout = .hangeul
         }
-        symbolView.switchButton.addAction(symbolSwitchButtonTapped, for: .touchUpInside)
+        symbolView.switchButton.addAction(symbolSwitchButtonTapped, for: [.touchUpInside, .touchUpOutside])
         let symbolSwitchButtonPanGesture = UIPanGestureRecognizer(target: self, action: #selector(handleSymbolSwitchButtonPanGesture(_:)))
         symbolView.switchButton.addGestureRecognizer(symbolSwitchButtonPanGesture)
         
@@ -118,10 +121,13 @@ private extension KeyboardInputViewController {
     }
 }
 
-// MARK: - Button Gesture Methods
+// MARK: - @objc Button Gesture Methods
 
 @objc private extension KeyboardInputViewController {
     func handleSymbolSwitchButtonPanGesture(_ gesture: UIPanGestureRecognizer) {
-//        if gesture.state == .
+        if gesture.state == .changed {
+            let translation = gesture.translation(in: gesture.view)
+            dump(translation)
+        }
     }
 }
