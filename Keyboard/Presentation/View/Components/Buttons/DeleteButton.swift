@@ -56,8 +56,8 @@ private extension DeleteButton {
             case .highlighted:
                 super.backgroundView.backgroundColor = .secondaryButtonPressed
                 button.configuration?.image = UIImage(systemName: "delete.backward.fill")?.withConfiguration(imageConfig).withTintColor(.label, renderingMode: .alwaysOriginal)
-                FeedbackManager.shared.playDeleteSound()
-                FeedbackManager.shared.playHaptic()
+                if UserDefaultsManager.shared.getIsSoundFeedbackEnabled { FeedbackManager.shared.playDeleteSound() }
+                if UserDefaultsManager.shared.getIsHapticFeedbackEnabled { FeedbackManager.shared.playHaptic() }
             default:
                 break
             }

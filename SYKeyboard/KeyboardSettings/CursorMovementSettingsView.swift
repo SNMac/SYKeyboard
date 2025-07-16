@@ -8,8 +8,8 @@
 import SwiftUI
 
 struct CursorMovementSettingsView: View {
-    @AppStorage(UserDefaultsKeys.cursorActiveDistance, store: UserDefaults(suiteName: UserDefaultsManager.shared.groupBundleID)) private var cursorActiveDistance = DefaultValues.cursorActiveDistance
-    @AppStorage(UserDefaultsKeys.cursorMoveInterval, store: UserDefaults(suiteName: UserDefaultsManager.shared.groupBundleID)) private var cursorMoveInterval = DefaultValues.cursorMoveInterval
+    @AppStorage(UserDefaultsKeys.cursorActiveDistance, store: UserDefaults(suiteName: DefaultValues.groupBundleID)) private var cursorActiveDistance = DefaultValues.cursorActiveDistance
+    @AppStorage(UserDefaultsKeys.cursorMoveInterval, store: UserDefaults(suiteName: DefaultValues.groupBundleID)) private var cursorMoveInterval = DefaultValues.cursorMoveInterval
     
     private var cursorActiveDistanceSetting: some View {
         HStack {

@@ -16,14 +16,14 @@ final class KeyboardInputViewController: UIInputViewController {
     // MARK: - UI Components
     
     /// 한글 자판
-    private lazy var hangeulView = HangeulView(nextKeyboardAction: self.needsInputModeSwitchKey ?
-                                               #selector(self.handleInputModeList(from:with:)) : nil).then { $0.isHidden = true }
+    private lazy var hangeulView = HangeulView(nextKeyboardAction: needsInputModeSwitchKey ?
+                                               #selector(handleInputModeList(from:with:)) : nil).then { $0.isHidden = false }
     /// 기호 자판
-    private lazy var symbolView = SymbolView(nextKeyboardAction: self.needsInputModeSwitchKey ?
-                                             #selector(self.handleInputModeList(from:with:)) : nil).then { $0.isHidden = false }
+    private lazy var symbolView = SymbolView(nextKeyboardAction: needsInputModeSwitchKey ?
+                                             #selector(handleInputModeList(from:with:)) : nil).then { $0.isHidden = true }
     /// 숫자 자판
-    private lazy var numericView = NumericView(nextKeyboardAction: self.needsInputModeSwitchKey ?
-                                               #selector(self.handleInputModeList(from:with:)) : nil).then { $0.isHidden = true }
+    private lazy var numericView = NumericView(nextKeyboardAction: needsInputModeSwitchKey ?
+                                               #selector(handleInputModeList(from:with:)) : nil).then { $0.isHidden = true }
     /// 텐키 자판
     private lazy var tenKeyView = TenKeyView().then { $0.isHidden = true }
     

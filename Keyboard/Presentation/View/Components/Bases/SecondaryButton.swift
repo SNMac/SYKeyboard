@@ -47,8 +47,8 @@ private extension SecondaryButton {
                 self?.backgroundView.backgroundColor = .secondaryButton
             case .highlighted:
                 self?.backgroundView.backgroundColor = .secondaryButtonPressed
-                FeedbackManager.shared.playModifierSound()
-                FeedbackManager.shared.playHaptic()
+                if UserDefaultsManager.shared.getIsSoundFeedbackEnabled { FeedbackManager.shared.playModifierSound() }
+                if UserDefaultsManager.shared.getIsHapticFeedbackEnabled { FeedbackManager.shared.playHaptic() }
             default:
                 break
             }

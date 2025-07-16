@@ -10,8 +10,8 @@ import Combine
 
 struct PreviewHangeulView: View {
     @EnvironmentObject private var state: PreviewKeyboardState
-    @AppStorage(UserDefaultsKeys.repeatRate, store: UserDefaults(suiteName: UserDefaultsManager.shared.groupBundleID)) private var repeatRate = DefaultValues.repeatRate
-    @AppStorage(UserDefaultsKeys.needsInputModeSwitchKey, store: UserDefaults(suiteName: UserDefaultsManager.shared.groupBundleID)) private var needsInputModeSwitchKey = DefaultValues.needsInputModeSwitchKey
+    @AppStorage(UserDefaultsKeys.repeatRate, store: UserDefaults(suiteName: DefaultValues.groupBundleID)) private var repeatRate = DefaultValues.repeatRate
+    @AppStorage(UserDefaultsKeys.needsInputModeSwitchKey, store: UserDefaults(suiteName: DefaultValues.groupBundleID)) private var needsInputModeSwitchKey = DefaultValues.needsInputModeSwitchKey
     
     @Binding var keyboardHeight: Double
     @Binding var oneHandedKeyboardWidth: Double
@@ -35,16 +35,16 @@ struct PreviewHangeulView: View {
                     text: "ㄱ", primary: true,
                     onPress: {
                         FeedbackManager.shared.playTypingSound()
-                        FeedbackManager.shared.playHaptic(style: .light)
+                        FeedbackManager.shared.playHaptic()
                     },
                     onLongPress: {
                         FeedbackManager.shared.playTypingSound()
-                        FeedbackManager.shared.playHaptic(style: .light)
+                        FeedbackManager.shared.playHaptic()
                         timer = Timer.publish(every: repeatTimerInterval, on: .main, in: .common)
                             .autoconnect()
                             .sink { _ in
                                 FeedbackManager.shared.playTypingSound()
-                                FeedbackManager.shared.playHaptic(style: .light)
+                                FeedbackManager.shared.playHaptic()
                             }
                     },
                     onLongPressRelease: {
@@ -56,16 +56,16 @@ struct PreviewHangeulView: View {
                     text: "ㄴ", primary: true,
                     onPress: {
                         FeedbackManager.shared.playTypingSound()
-                        FeedbackManager.shared.playHaptic(style: .light)
+                        FeedbackManager.shared.playHaptic()
                     },
                     onLongPress: {
                         FeedbackManager.shared.playTypingSound()
-                        FeedbackManager.shared.playHaptic(style: .light)
+                        FeedbackManager.shared.playHaptic()
                         timer = Timer.publish(every: repeatTimerInterval, on: .main, in: .common)
                             .autoconnect()
                             .sink { _ in
                                 FeedbackManager.shared.playTypingSound()
-                                FeedbackManager.shared.playHaptic(style: .light)
+                                FeedbackManager.shared.playHaptic()
                             }
                     },
                     onLongPressRelease: {
@@ -78,16 +78,16 @@ struct PreviewHangeulView: View {
                     text: "ㅏㅓ", primary: true,
                     onPress: {
                         FeedbackManager.shared.playTypingSound()
-                        FeedbackManager.shared.playHaptic(style: .light)
+                        FeedbackManager.shared.playHaptic()
                     },
                     onLongPress: {
                         FeedbackManager.shared.playTypingSound()
-                        FeedbackManager.shared.playHaptic(style: .light)
+                        FeedbackManager.shared.playHaptic()
                         timer = Timer.publish(every: repeatTimerInterval, on: .main, in: .common)
                             .autoconnect()
                             .sink { _ in
                                 FeedbackManager.shared.playTypingSound()
-                                FeedbackManager.shared.playHaptic(style: .light)
+                                FeedbackManager.shared.playHaptic()
                             }
                     },
                     onLongPressRelease: {
@@ -100,14 +100,14 @@ struct PreviewHangeulView: View {
                     systemName: "delete.left", primary: false,
                     onPress: {
                         FeedbackManager.shared.playDeleteSound()
-                        FeedbackManager.shared.playHaptic(style: .light)
+                        FeedbackManager.shared.playHaptic()
                     },
                     onLongPress: {
                         timer = Timer.publish(every: repeatTimerInterval, on: .main, in: .common)
                             .autoconnect()
                             .sink { _ in
                                 FeedbackManager.shared.playDeleteSound()
-                                FeedbackManager.shared.playHaptic(style: .light)
+                                FeedbackManager.shared.playHaptic()
                             }
                     },
                     onLongPressRelease: {
@@ -125,16 +125,16 @@ struct PreviewHangeulView: View {
                     text: "ㄹ", primary: true,
                     onPress: {
                         FeedbackManager.shared.playTypingSound()
-                        FeedbackManager.shared.playHaptic(style: .light)
+                        FeedbackManager.shared.playHaptic()
                     },
                     onLongPress: {
                         FeedbackManager.shared.playTypingSound()
-                        FeedbackManager.shared.playHaptic(style: .light)
+                        FeedbackManager.shared.playHaptic()
                         timer = Timer.publish(every: repeatTimerInterval, on: .main, in: .common)
                             .autoconnect()
                             .sink { _ in
                                 FeedbackManager.shared.playTypingSound()
-                                FeedbackManager.shared.playHaptic(style: .light)
+                                FeedbackManager.shared.playHaptic()
                             }
                     },
                     onLongPressRelease: {
@@ -147,16 +147,16 @@ struct PreviewHangeulView: View {
                     text: "ㅁ", primary: true,
                     onPress: {
                         FeedbackManager.shared.playTypingSound()
-                        FeedbackManager.shared.playHaptic(style: .light)
+                        FeedbackManager.shared.playHaptic()
                     },
                     onLongPress: {
                         FeedbackManager.shared.playTypingSound()
-                        FeedbackManager.shared.playHaptic(style: .light)
+                        FeedbackManager.shared.playHaptic()
                         timer = Timer.publish(every: repeatTimerInterval, on: .main, in: .common)
                             .autoconnect()
                             .sink { _ in
                                 FeedbackManager.shared.playTypingSound()
-                                FeedbackManager.shared.playHaptic(style: .light)
+                                FeedbackManager.shared.playHaptic()
                             }
                     },
                     onLongPressRelease: {
@@ -169,16 +169,16 @@ struct PreviewHangeulView: View {
                     text: "ㅗㅜ", primary: true,
                     onPress: {
                         FeedbackManager.shared.playTypingSound()
-                        FeedbackManager.shared.playHaptic(style: .light)
+                        FeedbackManager.shared.playHaptic()
                     },
                     onLongPress: {
                         FeedbackManager.shared.playTypingSound()
-                        FeedbackManager.shared.playHaptic(style: .light)
+                        FeedbackManager.shared.playHaptic()
                         timer = Timer.publish(every: repeatTimerInterval, on: .main, in: .common)
                             .autoconnect()
                             .sink { _ in
                                 FeedbackManager.shared.playTypingSound()
-                                FeedbackManager.shared.playHaptic(style: .light)
+                                FeedbackManager.shared.playHaptic()
                             }
                     },
                     onLongPressRelease: {
@@ -191,16 +191,16 @@ struct PreviewHangeulView: View {
                     systemName: "space", primary: true,
                     onPress: {
                         FeedbackManager.shared.playModifierSound()
-                        FeedbackManager.shared.playHaptic(style: .light)
+                        FeedbackManager.shared.playHaptic()
                     },
                     onLongPress: {
                         FeedbackManager.shared.playModifierSound()
-                        FeedbackManager.shared.playHaptic(style: .light)
+                        FeedbackManager.shared.playHaptic()
                         timer = Timer.publish(every: repeatTimerInterval, on: .main, in: .common)
                             .autoconnect()
                             .sink { _ in
                                 FeedbackManager.shared.playModifierSound()
-                                FeedbackManager.shared.playHaptic(style: .light)
+                                FeedbackManager.shared.playHaptic()
                             }
                     },
                     onLongPressRelease: {
@@ -217,16 +217,16 @@ struct PreviewHangeulView: View {
                     text: "ㅅ", primary: true,
                     onPress: {
                         FeedbackManager.shared.playTypingSound()
-                        FeedbackManager.shared.playHaptic(style: .light)
+                        FeedbackManager.shared.playHaptic()
                     },
                     onLongPress: {
                         FeedbackManager.shared.playTypingSound()
-                        FeedbackManager.shared.playHaptic(style: .light)
+                        FeedbackManager.shared.playHaptic()
                         timer = Timer.publish(every: repeatTimerInterval, on: .main, in: .common)
                             .autoconnect()
                             .sink { _ in
                                 FeedbackManager.shared.playTypingSound()
-                                FeedbackManager.shared.playHaptic(style: .light)
+                                FeedbackManager.shared.playHaptic()
                             }
                     },
                     onLongPressRelease: {
@@ -239,16 +239,16 @@ struct PreviewHangeulView: View {
                     text: "ㅇ", primary: true,
                     onPress: {
                         FeedbackManager.shared.playTypingSound()
-                        FeedbackManager.shared.playHaptic(style: .light)
+                        FeedbackManager.shared.playHaptic()
                     },
                     onLongPress: {
                         FeedbackManager.shared.playTypingSound()
-                        FeedbackManager.shared.playHaptic(style: .light)
+                        FeedbackManager.shared.playHaptic()
                         timer = Timer.publish(every: repeatTimerInterval, on: .main, in: .common)
                             .autoconnect()
                             .sink { _ in
                                 FeedbackManager.shared.playTypingSound()
-                                FeedbackManager.shared.playHaptic(style: .light)
+                                FeedbackManager.shared.playHaptic()
                             }
                     },
                     onLongPressRelease: {
@@ -261,16 +261,16 @@ struct PreviewHangeulView: View {
                     text: "ㅣ", primary: true,
                     onPress: {
                         FeedbackManager.shared.playTypingSound()
-                        FeedbackManager.shared.playHaptic(style: .light)
+                        FeedbackManager.shared.playHaptic()
                     },
                     onLongPress: {
                         FeedbackManager.shared.playTypingSound()
-                        FeedbackManager.shared.playHaptic(style: .light)
+                        FeedbackManager.shared.playHaptic()
                         timer = Timer.publish(every: repeatTimerInterval, on: .main, in: .common)
                             .autoconnect()
                             .sink { _ in
                                 FeedbackManager.shared.playTypingSound()
-                                FeedbackManager.shared.playHaptic(style: .light)
+                                FeedbackManager.shared.playHaptic()
                             }
                     },
                     onLongPressRelease: {
@@ -283,7 +283,7 @@ struct PreviewHangeulView: View {
                     systemName: "return.left", primary: false,
                     onPress: {
                         FeedbackManager.shared.playModifierSound()
-                        FeedbackManager.shared.playHaptic(style: .light)
+                        FeedbackManager.shared.playHaptic()
                     })
                 .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: interItemVPadding, trailing: hPadding))
                 .contentShape(Rectangle())
@@ -296,16 +296,16 @@ struct PreviewHangeulView: View {
                     text: "획", primary: true,
                     onPress: {
                         FeedbackManager.shared.playTypingSound()
-                        FeedbackManager.shared.playHaptic(style: .light)
+                        FeedbackManager.shared.playHaptic()
                     },
                     onLongPress: {
                         FeedbackManager.shared.playTypingSound()
-                        FeedbackManager.shared.playHaptic(style: .light)
+                        FeedbackManager.shared.playHaptic()
                         timer = Timer.publish(every: repeatTimerInterval, on: .main, in: .common)
                             .autoconnect()
                             .sink { _ in
                                 FeedbackManager.shared.playTypingSound()
-                                FeedbackManager.shared.playHaptic(style: .light)
+                                FeedbackManager.shared.playHaptic()
                             }
                     },
                     onLongPressRelease: {
@@ -318,16 +318,16 @@ struct PreviewHangeulView: View {
                     text: "ㅡ", primary: true,
                     onPress: {
                         FeedbackManager.shared.playTypingSound()
-                        FeedbackManager.shared.playHaptic(style: .light)
+                        FeedbackManager.shared.playHaptic()
                     },
                     onLongPress: {
                         FeedbackManager.shared.playTypingSound()
-                        FeedbackManager.shared.playHaptic(style: .light)
+                        FeedbackManager.shared.playHaptic()
                         timer = Timer.publish(every: repeatTimerInterval, on: .main, in: .common)
                             .autoconnect()
                             .sink { _ in
                                 FeedbackManager.shared.playTypingSound()
-                                FeedbackManager.shared.playHaptic(style: .light)
+                                FeedbackManager.shared.playHaptic()
                             }
                     },
                     onLongPressRelease: {
@@ -340,16 +340,16 @@ struct PreviewHangeulView: View {
                     text: "쌍", primary: true,
                     onPress: {
                         FeedbackManager.shared.playTypingSound()
-                        FeedbackManager.shared.playHaptic(style: .light)
+                        FeedbackManager.shared.playHaptic()
                     },
                     onLongPress: {
                         FeedbackManager.shared.playTypingSound()
-                        FeedbackManager.shared.playHaptic(style: .light)
+                        FeedbackManager.shared.playHaptic()
                         timer = Timer.publish(every: repeatTimerInterval, on: .main, in: .common)
                             .autoconnect()
                             .sink { _ in
                                 FeedbackManager.shared.playTypingSound()
-                                FeedbackManager.shared.playHaptic(style: .light)
+                                FeedbackManager.shared.playHaptic()
                             }
                     },
                     onLongPressRelease: {
@@ -364,7 +364,7 @@ struct PreviewHangeulView: View {
                             text: "!#1", primary: false,
                             onPress: {
                                 FeedbackManager.shared.playModifierSound()
-                                FeedbackManager.shared.playHaptic(style: .light)
+                                FeedbackManager.shared.playHaptic()
                             })
                         .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: vPadding, trailing: interItemHPadding))
                         .contentShape(Rectangle())
@@ -373,7 +373,7 @@ struct PreviewHangeulView: View {
                             systemName: "globe", primary: false,
                             onPress: {
                                 FeedbackManager.shared.playModifierSound()
-                                FeedbackManager.shared.playHaptic(style: .light)
+                                FeedbackManager.shared.playHaptic()
                             }
                         )
                         .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: vPadding, trailing: hPadding))
@@ -384,7 +384,7 @@ struct PreviewHangeulView: View {
                         text: "!#1", primary: false,
                         onPress: {
                             FeedbackManager.shared.playModifierSound()
-                            FeedbackManager.shared.playHaptic(style: .light)
+                            FeedbackManager.shared.playHaptic()
                         })
                     .padding(EdgeInsets(top: interItemVPadding, leading: interItemHPadding, bottom: vPadding, trailing: hPadding))
                     .contentShape(Rectangle())

@@ -13,19 +13,12 @@ import AVFoundation
 /// 햅틱, 사운드 피드백을 관리하는 싱글톤 매니저
 final class FeedbackManager {
     
+    // MARK: - Singleton Initializer
+    
+    static let shared = FeedbackManager()
+    private init() {}
+    
     // MARK: - Properties
-    
-    /// 햅틱 ON/OFF 여부
-    var haptic: Bool {
-        let defaults = UserDefaults(suiteName: UserDefaultsManager.shared.groupBundleID)
-        return defaults?.bool(forKey: UserDefaultsKeys.isHapticFeedbackEnabled) ?? true
-    }
-    
-    /// 사운드 ON/OFF 여부
-    var sounds: Bool {
-        let defaults = UserDefaults(suiteName: UserDefaultsManager.shared.groupBundleID)
-        return defaults?.bool(forKey: UserDefaultsKeys.isSoundFeedbackEnabled) ?? true
-    }
     
     /// 햅틱 피드백 생성기
     let generator = UIImpactFeedbackGenerator(style: .light)
@@ -36,11 +29,6 @@ final class FeedbackManager {
     /// 스페이스, 리턴, 자판/키보드 변경 버튼 사운드
     let modifierSoundID: SystemSoundID = 1156
     
-    // MARK: - Initializer
-    
-    static let shared = FeedbackManager()
-    private init() {}
-    
     // MARK: - Methods
     
     /// 탭틱 엔진 준비
@@ -48,44 +36,30 @@ final class FeedbackManager {
         generator.prepare()
     }
     
-    /// 햅틱 피드백 강제 재생
-    func playHapticByForce(style: UIImpactFeedbackGenerator.FeedbackStyle = .light) {
+    /// 햅틱 피드백 재생
+    func playHaptic(_ style: UIImpactFeedbackGenerator.FeedbackStyle = .light) {
         if style != .light {
-            let generator = UIImpactFeedbackGenerator(style: style)
-            generator.impactOccurred()
-            generator.prepare()
+            let tempGenerator = UIImpactFeedbackGenerator(style: style)
+            tempGenerator.impactOccurred()
+            tempGenerator.prepare()
         } else {
             generator.impactOccurred()
             generator.prepare()
         }
     }
     
-    /// 햅틱 피드백 재생
-    func playHaptic(style: UIImpactFeedbackGenerator.FeedbackStyle = .light) {
-        if haptic {
-            if style != .light {
-                let generator = UIImpactFeedbackGenerator(style: style)
-                generator.impactOccurred()
-                generator.prepare()
-            } else {
-                generator.impactOccurred()
-                generator.prepare()
-            }
-        }
-    }
-    
     /// 키 입력 버튼 사운드 재생
     func playTypingSound() {
-        if sounds { AudioServicesPlaySystemSound(keySoundID) }
+        AudioServicesPlaySystemSound(keySoundID)
     }
     
     /// 삭제 버튼 사운드 재생
     func playDeleteSound() {
-        if sounds { AudioServicesPlaySystemSound(deleteSoundID) }
+        AudioServicesPlaySystemSound(deleteSoundID)
     }
     
     /// 스페이스, 리턴, 자판/키보드 변경 버튼 사운드 재생
     func playModifierSound() {
-        if sounds { AudioServicesPlaySystemSound(modifierSoundID) }
+        AudioServicesPlaySystemSound(modifierSoundID)
     }
 }

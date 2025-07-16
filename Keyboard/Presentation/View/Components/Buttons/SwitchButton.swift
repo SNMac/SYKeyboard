@@ -142,6 +142,9 @@ private extension SwitchButton {
     }
     
     func setStyles() {
+        oneHandedLabel.isHidden = !UserDefaultsManager.shared.getIsOneHandedKeyboardEnabled
+        swipeModeLabel.isHidden = !UserDefaultsManager.shared.getIsNumericKeypadEnabled
+        
         let attributes = AttributeContainer([.font: UIFont.monospacedDigitSystemFont(ofSize: 18, weight: .regular), .foregroundColor: UIColor.label])
         self.configuration?.attributedTitle = AttributedString(title, attributes: attributes)
     }

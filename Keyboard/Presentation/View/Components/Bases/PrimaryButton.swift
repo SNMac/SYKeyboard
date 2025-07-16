@@ -69,8 +69,8 @@ private extension PrimaryButton {
                 self?.backgroundView.backgroundColor = .primaryButton
             case .highlighted:
                 self?.backgroundView.backgroundColor = .primaryButtonPressed
-                FeedbackManager.shared.playTypingSound()
-                FeedbackManager.shared.playHaptic()
+                if UserDefaultsManager.shared.getIsSoundFeedbackEnabled { FeedbackManager.shared.playTypingSound() }
+                if UserDefaultsManager.shared.getIsHapticFeedbackEnabled { FeedbackManager.shared.playHaptic() }
             default:
                 break
             }

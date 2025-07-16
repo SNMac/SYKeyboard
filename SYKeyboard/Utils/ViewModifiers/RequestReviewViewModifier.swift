@@ -13,8 +13,8 @@ struct RequestReviewViewModifier: ViewModifier {
     private let log = OSLog(subsystem: Bundle.main.bundleIdentifier!, category: "RequestReviewViewModifier")
     
     @Environment(\.requestReview) private var requestReview
-    @AppStorage(UserDefaultsKeys.reviewCounter, store: UserDefaults(suiteName: UserDefaultsManager.shared.groupBundleID)) var reviewCounter = DefaultValues.reviewCounter
-    @AppStorage(UserDefaultsKeys.lastBuildPromptedForReview, store: UserDefaults(suiteName: UserDefaultsManager.shared.groupBundleID)) var lastBuildPromptedForReview = DefaultValues.lastBuildPromptedForReview
+    @AppStorage(UserDefaultsKeys.reviewCounter, store: UserDefaults(suiteName: DefaultValues.groupBundleID)) var reviewCounter = DefaultValues.reviewCounter
+    @AppStorage(UserDefaultsKeys.lastBuildPromptedForReview, store: UserDefaults(suiteName: DefaultValues.groupBundleID)) var lastBuildPromptedForReview = DefaultValues.lastBuildPromptedForReview
     
     private func presentReview() {
         Task {

@@ -39,8 +39,8 @@ private extension SpaceButton {
                 super.backgroundView.backgroundColor = .primaryButton
             case .highlighted:
                 super.backgroundView.backgroundColor = .primaryButtonPressed
-                FeedbackManager.shared.playModifierSound()
-                FeedbackManager.shared.playHaptic()
+                if UserDefaultsManager.shared.getIsSoundFeedbackEnabled { FeedbackManager.shared.playModifierSound() }
+                if UserDefaultsManager.shared.getIsHapticFeedbackEnabled { FeedbackManager.shared.playHaptic() }
             default:
                 break
             }
