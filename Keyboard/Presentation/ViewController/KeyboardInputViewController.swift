@@ -13,18 +13,26 @@ import Then
 /// 키보드 컨트롤러
 final class KeyboardInputViewController: UIInputViewController {
     
+    // MARK: - Properties
+    
+    private var currentKeyboardLayout: KeyboardLayout = .hangeul {
+        didSet {
+            updateKeyboardLayout()
+        }
+    }
+    
     // MARK: - UI Components
     
-    /// 한글 자판
+    /// 한글 키보드
     private lazy var hangeulView = HangeulView(nextKeyboardAction: needsInputModeSwitchKey ?
                                                #selector(handleInputModeList(from:with:)) : nil).then { $0.isHidden = false }
-    /// 기호 자판
+    /// 기호 키보드
     private lazy var symbolView = SymbolView(nextKeyboardAction: needsInputModeSwitchKey ?
                                              #selector(handleInputModeList(from:with:)) : nil).then { $0.isHidden = true }
-    /// 숫자 자판
+    /// 숫자 키보드
     private lazy var numericView = NumericView(nextKeyboardAction: needsInputModeSwitchKey ?
                                                #selector(handleInputModeList(from:with:)) : nil).then { $0.isHidden = true }
-    /// 텐키 자판
+    /// 텐키 키보드
     private lazy var tenKeyView = TenKeyView().then { $0.isHidden = true }
     
     // MARK: - Lifecycle
@@ -42,12 +50,15 @@ final class KeyboardInputViewController: UIInputViewController {
 private extension KeyboardInputViewController {
     func setupUI(inputView: UIInputView) {
         setStyles()
+        setActions()
         setViewHierarchy(inputView: inputView)
         setConstraints(inputView: inputView)
     }
     
-    func setStyles() {
-        
+    func setStyles() {}
+    
+    func setActions() {
+        setSwitchButtonAction()
     }
     
     func setViewHierarchy(inputView: UIInputView) {
@@ -74,5 +85,43 @@ private extension KeyboardInputViewController {
         tenKeyView.snp.makeConstraints {
             $0.edges.equalTo(hangeulView)
         }
+    }
+}
+
+// MARK: - Button Action Methods
+
+private extension KeyboardInputViewController {
+    func setSwitchButtonAction() {
+        let hangeulSwithButtonTapped = UIAction { [weak self] _ in
+            self?.currentKeyboardLayout = .symbol
+        }
+        hangeulView.switchButton.addAction(hangeulSwithButtonTapped, for: .touchUpInside)
+        
+        let symbolSwitchButtonTapped = UIAction { [weak self] _ in
+            self?.currentKeyboardLayout = .hangeul
+        }
+        symbolView.switchButton.addAction(symbolSwitchButtonTapped, for: .touchUpInside)
+        let symbolSwitchButtonPanGesture = UIPanGestureRecognizer(target: self, action: #selector(handleSymbolSwitchButtonPanGesture(_:)))
+        symbolView.switchButton.addGestureRecognizer(symbolSwitchButtonPanGesture)
+        
+        let numericSwitchButtonTapped = UIAction { [weak self] _ in
+            self?.currentKeyboardLayout = .hangeul
+        }
+        numericView.switchButton.addAction(numericSwitchButtonTapped, for: .touchUpInside)
+    }
+    
+    func updateKeyboardLayout() {
+        hangeulView.isHidden = (currentKeyboardLayout != .hangeul)
+        symbolView.isHidden = (currentKeyboardLayout != .symbol)
+        numericView.isHidden = (currentKeyboardLayout != .numeric)
+        tenKeyView.isHidden = (currentKeyboardLayout != .tenKey)
+    }
+}
+
+// MARK: - Button Gesture Methods
+
+@objc private extension KeyboardInputViewController {
+    func handleSymbolSwitchButtonPanGesture(_ gesture: UIPanGestureRecognizer) {
+//        if gesture.state == .
     }
 }

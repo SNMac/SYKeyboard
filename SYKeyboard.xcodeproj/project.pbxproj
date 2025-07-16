@@ -121,6 +121,7 @@
 				Presentation/View/Components/Frames/KeyboardFrameStackView.swift,
 				Presentation/View/Components/Frames/KeyboardRowStackView.swift,
 				Presentation/View/Components/Frames/KeyboardSpacer.swift,
+				Presentation/View/Components/Frames/SymbolKeyboardFourthRowStackView.swift,
 				Presentation/View/KeyboardLayout/HangeulView.swift,
 				Presentation/View/KeyboardLayout/NumericView.swift,
 				Presentation/View/KeyboardLayout/SymbolView.swift,

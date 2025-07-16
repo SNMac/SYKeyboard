@@ -36,11 +36,11 @@ private extension SpaceButton {
         self.configurationUpdateHandler = { button in
             switch button.state {
             case .normal:
-                super.backgroundView.backgroundColor = .primaryButton
+                self.backgroundView.backgroundColor = .primaryButton
             case .highlighted:
-                super.backgroundView.backgroundColor = .primaryButtonPressed
-                if UserDefaultsManager.shared.getIsSoundFeedbackEnabled { FeedbackManager.shared.playModifierSound() }
-                if UserDefaultsManager.shared.getIsHapticFeedbackEnabled { FeedbackManager.shared.playHaptic() }
+                self.backgroundView.backgroundColor = .primaryButtonPressed
+                if UserDefaultsManager.shared.isSoundFeedbackEnabled { FeedbackManager.shared.playModifierSound() }
+                if UserDefaultsManager.shared.isHapticFeedbackEnabled { FeedbackManager.shared.playHaptic() }
             default:
                 break
             }

@@ -9,12 +9,12 @@ import UIKit
 
 import SnapKit
 
-/// 숫자 자판
+/// 숫자 키보드
 final class NumericView: UIView {
     
     // MARK: - Properties
     
-    /// 숫자 자판 키 배열
+    /// 숫자 키보드 키 배열
     private let numericKeyList = [
         [ ["1"], ["2"], ["3"] ],
         [ ["4"], ["5"], ["6"] ],
@@ -39,12 +39,12 @@ final class NumericView: UIView {
     private let thirdRowStackView = KeyboardRowStackView()
     /// 키보드 네번째 행
     private let fourthRowStackView = KeyboardRowStackView()
-    /// 키보드 네번째 `KeyButton` 좌측 행
-    private let fourthRowPrimaryLeftStackView = KeyboardRowStackView()
-    /// 키보드 네번째 `KeyButton` 우측 행
-    private let fourthRowPrimaryRightStackView = KeyboardRowStackView()
+    /// 키보드 네번째 좌측 `PrimaryButton` 행
+    private let fourthRowLeftPrimaryButtonStackView = KeyboardRowStackView()
+    /// 키보드 네번째 우측 `PrimaryButton` 행
+    private let fourthRowRightPrimaryButtonStackView = KeyboardRowStackView()
     /// 키보드 네번째 우측 `SecondaryButton` 행
-    private let fourthRowSecondaryRightStackView = KeyboardRowStackView()
+    private let fourthRowRightSecondaryButtonStackView = KeyboardRowStackView()
     
     /// 키보드 첫번째 행 `KeyButton` 배열
     private lazy var firstRowKeyButtonList = numericKeyList[0].map { KeyButton(layout: .numeric, keys: $0) }
@@ -61,8 +61,8 @@ final class NumericView: UIView {
     private let spaceButton = SpaceButton(layout: .numeric)
     /// 리턴 버튼
     private let returnButton = ReturnButton(layout: .numeric)
-    /// 자판 전환 버튼
-    private let switchButton = SwitchButton(layout: .numeric)
+    /// 키보드 전환 버튼
+    private(set) var switchButton = SwitchButton(layout: .numeric)
     /// iPhone SE용 키보드 전환 버튼
     private lazy var nextKeyboardButton: NextKeyboardButton? = nil
     
@@ -112,13 +112,13 @@ private extension NumericView {
         thirdRowKeyButtonList.forEach { thirdRowStackView.addArrangedSubview($0) }
         thirdRowStackView.addArrangedSubview(returnButton)
         
-        fourthRowStackView.addArrangedSubviews(fourthRowPrimaryLeftStackView, fourthRowKeyButtonList[2], fourthRowPrimaryRightStackView, fourthRowSecondaryRightStackView)
-        fourthRowPrimaryLeftStackView.addArrangedSubviews(fourthRowKeyButtonList[0], fourthRowKeyButtonList[1])
-        fourthRowPrimaryRightStackView.addArrangedSubviews(fourthRowKeyButtonList[3], fourthRowKeyButtonList[4])
-        fourthRowSecondaryRightStackView.addArrangedSubview(switchButton)
+        fourthRowStackView.addArrangedSubviews(fourthRowLeftPrimaryButtonStackView, fourthRowKeyButtonList[2], fourthRowRightPrimaryButtonStackView, fourthRowRightSecondaryButtonStackView)
+        fourthRowLeftPrimaryButtonStackView.addArrangedSubviews(fourthRowKeyButtonList[0], fourthRowKeyButtonList[1])
+        fourthRowRightPrimaryButtonStackView.addArrangedSubviews(fourthRowKeyButtonList[3], fourthRowKeyButtonList[4])
+        fourthRowRightSecondaryButtonStackView.addArrangedSubview(switchButton)
         // iPhone SE일 때 키보드 전환 버튼 추가
         if let nextKeyboardButton {
-            fourthRowSecondaryRightStackView.addArrangedSubview(nextKeyboardButton)
+            fourthRowRightSecondaryButtonStackView.addArrangedSubview(nextKeyboardButton)
         }
     }
     
@@ -139,48 +139,6 @@ private extension NumericView {
             $0.leading.trailing.equalToSuperview()
             $0.bottom.equalToSuperview()
             $0.height.equalTo(2)
-        }
-        
-        firstRowStackView.arrangedSubviews.forEach { subview in
-            subview.snp.makeConstraints {
-                $0.width.equalToSuperview().dividedBy(firstRowStackView.arrangedSubviews.count)
-            }
-        }
-        
-        secondRowStackView.arrangedSubviews.forEach { subview in
-            subview.snp.makeConstraints {
-                $0.width.equalToSuperview().dividedBy(secondRowStackView.arrangedSubviews.count)
-            }
-        }
-        
-        thirdRowStackView.arrangedSubviews.forEach { subview in
-            subview.snp.makeConstraints {
-                $0.width.equalToSuperview().dividedBy(thirdRowStackView.arrangedSubviews.count)
-            }
-        }
-        
-        fourthRowStackView.arrangedSubviews.forEach { subview in
-            subview.snp.makeConstraints {
-                $0.width.equalToSuperview().dividedBy(fourthRowStackView.arrangedSubviews.count)
-            }
-        }
-        
-        fourthRowPrimaryLeftStackView.arrangedSubviews.forEach { subview in
-            subview.snp.makeConstraints {
-                $0.width.equalToSuperview().dividedBy(fourthRowPrimaryLeftStackView.arrangedSubviews.count)
-            }
-        }
-        
-        fourthRowPrimaryRightStackView.arrangedSubviews.forEach { subview in
-            subview.snp.makeConstraints {
-                $0.width.equalToSuperview().dividedBy(fourthRowPrimaryRightStackView.arrangedSubviews.count)
-            }
-        }
-        
-        fourthRowSecondaryRightStackView.arrangedSubviews.forEach { subview in
-            subview.snp.makeConstraints {
-                $0.width.equalToSuperview().dividedBy(fourthRowSecondaryRightStackView.arrangedSubviews.count)
-            }
         }
     }
 }

@@ -1,14 +1,14 @@
 //
-//  KeyboardRowStackView.swift
+//  SymbolKeyboardFourthRowStackView.swift
 //  Keyboard
 //
-//  Created by 서동환 on 7/10/25.
+//  Created by 서동환 on 7/17/25.
 //
 
 import UIKit
 
-/// 키보드 행
-final class KeyboardRowStackView: UIStackView {
+/// 기호 키보드 네번째 행
+final class SymbolKeyboardFourthRowStackView: UIStackView {
     
     // MARK: - Initializer
     
@@ -24,7 +24,7 @@ final class KeyboardRowStackView: UIStackView {
 
 // MARK: - UI Methods
 
-private extension KeyboardRowStackView {
+private extension SymbolKeyboardFourthRowStackView {
     func setupUI() {
         setStyles()
     }
@@ -35,6 +35,6 @@ private extension KeyboardRowStackView {
         self.axis = .horizontal
         self.spacing = 0
         self.alignment = .fill
-        self.distribution = .fillEqually
+        self.distribution = .fill
     }
 }

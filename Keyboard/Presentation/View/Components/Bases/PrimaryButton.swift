@@ -69,8 +69,8 @@ private extension PrimaryButton {
                 self?.backgroundView.backgroundColor = .primaryButton
             case .highlighted:
                 self?.backgroundView.backgroundColor = .primaryButtonPressed
-                if UserDefaultsManager.shared.getIsSoundFeedbackEnabled { FeedbackManager.shared.playTypingSound() }
-                if UserDefaultsManager.shared.getIsHapticFeedbackEnabled { FeedbackManager.shared.playHaptic() }
+                if UserDefaultsManager.shared.isSoundFeedbackEnabled { FeedbackManager.shared.playTypingSound() }
+                if UserDefaultsManager.shared.isHapticFeedbackEnabled { FeedbackManager.shared.playHaptic() }
             default:
                 break
             }
@@ -84,13 +84,13 @@ private extension PrimaryButton {
     
     func setConstraints() {
         shadowView.snp.makeConstraints {
-            $0.top.bottom.equalToSuperview().inset(super.insetDy)
-            $0.leading.trailing.equalToSuperview().inset(super.insetDx)
+            $0.top.bottom.equalToSuperview().inset(self.insetDy)
+            $0.leading.trailing.equalToSuperview().inset(self.insetDx)
         }
         
         backgroundView.snp.makeConstraints {
-            $0.top.bottom.equalToSuperview().inset(super.insetDy)
-            $0.leading.trailing.equalToSuperview().inset(super.insetDx)
+            $0.top.bottom.equalToSuperview().inset(self.insetDy)
+            $0.leading.trailing.equalToSuperview().inset(self.insetDx)
         }
     }
 }

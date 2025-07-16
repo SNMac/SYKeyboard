@@ -10,7 +10,7 @@ import UIKit
 import SnapKit
 import Then
 
-/// 자판 전환 버튼
+/// 키보드 전환 버튼
 final class SwitchButton: SecondaryButton {
     
     // MARK: - Properties
@@ -142,8 +142,8 @@ private extension SwitchButton {
     }
     
     func setStyles() {
-        oneHandedLabel.isHidden = !UserDefaultsManager.shared.getIsOneHandedKeyboardEnabled
-        swipeModeLabel.isHidden = !UserDefaultsManager.shared.getIsNumericKeypadEnabled
+        oneHandedLabel.isHidden = !UserDefaultsManager.shared.isOneHandedKeyboardEnabled
+        swipeModeLabel.isHidden = !UserDefaultsManager.shared.isNumericKeypadEnabled
         
         let attributes = AttributeContainer([.font: UIFont.monospacedDigitSystemFont(ofSize: 18, weight: .regular), .foregroundColor: UIColor.label])
         self.configuration?.attributedTitle = AttributedString(title, attributes: attributes)
@@ -157,23 +157,23 @@ private extension SwitchButton {
         switch layout {
         case .symbol:
             oneHandedLabel.snp.makeConstraints {
-                $0.top.equalToSuperview().inset(super.insetDy + 1)
-                $0.leading.equalToSuperview().inset(super.insetDx + 1)
+                $0.top.equalToSuperview().inset(self.insetDy + 1)
+                $0.leading.equalToSuperview().inset(self.insetDx + 1)
             }
             
             swipeModeLabel.snp.makeConstraints {
-                $0.trailing.equalToSuperview().inset(super.insetDx + 1)
-                $0.bottom.equalToSuperview().inset(super.insetDy + 1)
+                $0.trailing.equalToSuperview().inset(self.insetDx + 1)
+                $0.bottom.equalToSuperview().inset(self.insetDy + 1)
             }
         default:
             oneHandedLabel.snp.makeConstraints {
-                $0.top.equalToSuperview().inset(super.insetDy + 1)
-                $0.trailing.equalToSuperview().inset(super.insetDx + 1)
+                $0.top.equalToSuperview().inset(self.insetDy + 1)
+                $0.trailing.equalToSuperview().inset(self.insetDx + 1)
             }
             
             swipeModeLabel.snp.makeConstraints {
-                $0.leading.equalToSuperview().inset(super.insetDx + 1)
-                $0.bottom.equalToSuperview().inset(super.insetDy + 1)
+                $0.leading.equalToSuperview().inset(self.insetDx + 1)
+                $0.bottom.equalToSuperview().inset(self.insetDy + 1)
             }
         }
     }

@@ -9,12 +9,12 @@ import UIKit
 
 import SnapKit
 
-/// 기호 자판
+/// 기호 키보드
 final class SymbolView: UIView {
     
     // MARK: - Properties
     
-    /// 기호 자판 키 배열
+    /// 기호 키보드 키 배열
     private let symbolKeyList = [
         [
             [ ["1"], ["2"], ["3"], ["4"], ["5"], ["6"], ["7"], ["8"], ["9"], ["0"] ],
@@ -40,9 +40,9 @@ final class SymbolView: UIView {
     /// 키보드 세번째 행
     private let thirdRowStackView = KeyboardRowStackView()
     /// 키보드 네번째 행
-    private let fourthRowStackView = KeyboardRowStackView()
-    /// 키보드 네번째 좌측 행
-    private let fourthRowLeftStackView = KeyboardRowStackView()
+    private let fourthRowStackView = SymbolKeyboardFourthRowStackView()
+    /// 키보드 네번째 좌측 `SecondaryButton` 행
+    private let fourthRowLeftSecondaryButtonStackView = KeyboardRowStackView()
     
     /// 키보드 첫번째 행
     private lazy var firstRowkeyButtonList = symbolKeyList[0][0].map { KeyButton(layout: .symbol, keys: $0) }
@@ -55,8 +55,8 @@ final class SymbolView: UIView {
     private let symbolShiftButton = SymbolShiftButton(layout: .symbol)
     /// 삭제 버튼
     private let deleteButton = DeleteButton(layout: .symbol)
-    /// 자판 전환 버튼
-    private let switchButton = SwitchButton(layout: .symbol)
+    /// 키보드 전환 버튼
+    private(set) var switchButton = SwitchButton(layout: .symbol)
     /// 스페이스 버튼
     private let spaceButton = SpaceButton(layout: .symbol)
     /// 리턴 버튼
@@ -107,11 +107,11 @@ private extension SymbolView {
         thirdRowkeyButtonList.forEach { thirdRowStackView.addArrangedSubview($0) }
         thirdRowStackView.addArrangedSubview(deleteButton)
         
-        fourthRowStackView.addArrangedSubviews(fourthRowLeftStackView, spaceButton, returnButton)
-        fourthRowLeftStackView.addArrangedSubview(switchButton)
+        fourthRowStackView.addArrangedSubviews(fourthRowLeftSecondaryButtonStackView, spaceButton, returnButton)
+        fourthRowLeftSecondaryButtonStackView.addArrangedSubview(switchButton)
         // iPhone SE일 때 키보드 전환 버튼 추가
         if let nextKeyboardButton {
-            fourthRowLeftStackView.addArrangedSubview(nextKeyboardButton)
+            fourthRowLeftSecondaryButtonStackView.addArrangedSubview(nextKeyboardButton)
         }
     }
     
@@ -120,32 +120,8 @@ private extension SymbolView {
             $0.edges.equalToSuperview()
         }
         
-        firstRowStackView.arrangedSubviews.forEach { subview in
-            subview.snp.makeConstraints {
-                $0.width.equalToSuperview().dividedBy(firstRowStackView.arrangedSubviews.count)
-            }
-        }
-        
-        secondRowStackView.arrangedSubviews.forEach { subview in
-            subview.snp.makeConstraints {
-                $0.width.equalToSuperview().dividedBy(secondRowStackView.arrangedSubviews.count)
-            }
-        }
-        
-        thirdRowStackView.arrangedSubviews.forEach { subview in
-            subview.snp.makeConstraints {
-                $0.width.equalToSuperview().dividedBy(thirdRowStackView.arrangedSubviews.count)
-            }
-        }
-        
-        fourthRowLeftStackView.snp.makeConstraints {
+        fourthRowLeftSecondaryButtonStackView.snp.makeConstraints {
             $0.width.equalToSuperview().dividedBy(4)
-        }
-        
-        fourthRowLeftStackView.arrangedSubviews.forEach { subview in
-            subview.snp.makeConstraints {
-                $0.width.equalToSuperview().dividedBy(fourthRowLeftStackView.arrangedSubviews.count)
-            }
         }
         
         spaceButton.snp.makeConstraints {

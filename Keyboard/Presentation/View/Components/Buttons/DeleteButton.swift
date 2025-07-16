@@ -41,8 +41,8 @@ private extension DeleteButton {
         switch layout {
         case .symbol:
             self.configuration?.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 3, bottom: 0, trailing: 0)
-            self.shadowView.snp.updateConstraints { $0.leading.equalToSuperview().inset(super.insetDx + 3) }
-            self.backgroundView.snp.updateConstraints { $0.leading.equalToSuperview().inset(super.insetDx + 3) }
+            self.shadowView.snp.updateConstraints { $0.leading.equalToSuperview().inset(self.insetDx + 3) }
+            self.backgroundView.snp.updateConstraints { $0.leading.equalToSuperview().inset(self.insetDx + 3) }
         default:
             break
         }
@@ -51,13 +51,13 @@ private extension DeleteButton {
         self.configurationUpdateHandler = { button in
             switch button.state {
             case .normal:
-                super.backgroundView.backgroundColor = .secondaryButton
+                self.backgroundView.backgroundColor = .secondaryButton
                 button.configuration?.image = UIImage(systemName: "delete.backward")?.withConfiguration(imageConfig).withTintColor(.label, renderingMode: .alwaysOriginal)
             case .highlighted:
-                super.backgroundView.backgroundColor = .secondaryButtonPressed
+                self.backgroundView.backgroundColor = .secondaryButtonPressed
                 button.configuration?.image = UIImage(systemName: "delete.backward.fill")?.withConfiguration(imageConfig).withTintColor(.label, renderingMode: .alwaysOriginal)
-                if UserDefaultsManager.shared.getIsSoundFeedbackEnabled { FeedbackManager.shared.playDeleteSound() }
-                if UserDefaultsManager.shared.getIsHapticFeedbackEnabled { FeedbackManager.shared.playHaptic() }
+                if UserDefaultsManager.shared.isSoundFeedbackEnabled { FeedbackManager.shared.playDeleteSound() }
+                if UserDefaultsManager.shared.isHapticFeedbackEnabled { FeedbackManager.shared.playHaptic() }
             default:
                 break
             }

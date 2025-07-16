@@ -9,12 +9,12 @@ import UIKit
 
 import SnapKit
 
-/// 텐키 자판
+/// 텐키 키보드
 final class TenKeyView: UIView {
     
     // MARK: - Properties
     
-    /// 텐키 자판 키 배열
+    /// 텐키 키보드 키 배열
     private let tenKeyList = [
         [ ["1"], ["2"], ["3"] ],
         [ ["4"], ["5"], ["6"] ],

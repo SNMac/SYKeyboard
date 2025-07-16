@@ -24,47 +24,47 @@ final class UserDefaultsManager {
     
     /* 피드백 설정 */
     /// 소리 피드백
-    var getIsSoundFeedbackEnabled: Bool { defaults.bool(forKey: UserDefaultsKeys.isSoundFeedbackEnabled) }
+    var isSoundFeedbackEnabled: Bool { defaults.bool(forKey: UserDefaultsKeys.isSoundFeedbackEnabled) }
     /// 햅틱 피드백
-    var getIsHapticFeedbackEnabled: Bool { defaults.bool(forKey: UserDefaultsKeys.isHapticFeedbackEnabled) }
+    var isHapticFeedbackEnabled: Bool { defaults.bool(forKey: UserDefaultsKeys.isHapticFeedbackEnabled) }
     
     /* 입력 설정 */
     /// 텍스트 대치
-    var getIsTextReplacementEnabled: Bool { defaults.bool(forKey: UserDefaultsKeys.isTextReplacementEnabled) }
+    var isTextReplacementEnabled: Bool { defaults.bool(forKey: UserDefaultsKeys.isTextReplacementEnabled) }
     /// 스페이스/리턴 입력 후 한글 키보드로 변경
-    var getIsAutoChangeToHangeulEnabled: Bool { defaults.bool(forKey: UserDefaultsKeys.isAutoChangeToHangeulEnabled) }
+    var isAutoChangeToHangeulEnabled: Bool { defaults.bool(forKey: UserDefaultsKeys.isAutoChangeToHangeulEnabled) }
     
     /* 입력 설정 -> 속도/커서 설정 */
     /// 반복 지연 시간
-    var getLongPressDuration: Double { defaults.double(forKey: UserDefaultsKeys.longPressDuration) }
+    var longPressDuration: Double { defaults.double(forKey: UserDefaultsKeys.longPressDuration) }
     /// 키 반복 속도
-    var getRepeatRate: Double { defaults.double(forKey: UserDefaultsKeys.repeatRate) }
+    var repeatRate: Double { defaults.double(forKey: UserDefaultsKeys.repeatRate) }
     /// 활성화 드래그 거리
-    var getCursorActiveDistance: Double { defaults.double(forKey: UserDefaultsKeys.cursorActiveDistance) }
+    var cursorActiveDistance: Double { defaults.double(forKey: UserDefaultsKeys.cursorActiveDistance) }
     /// 이동 드래그 간격
-    var getCursorMoveInterval: Double { defaults.double(forKey: UserDefaultsKeys.cursorMoveInterval) }
+    var cursorMoveInterval: Double { defaults.double(forKey: UserDefaultsKeys.cursorMoveInterval) }
     
     /* 외형 설정 */
     /// 키보드 높이
-    var getKeyboardHeight: Double { defaults.double(forKey: UserDefaultsKeys.keyboardHeight) }
+    var keyboardHeight: Double { defaults.double(forKey: UserDefaultsKeys.keyboardHeight) }
     /// 숫자 키패드 활성화
-    var getIsNumericKeypadEnabled: Bool { defaults.bool(forKey: UserDefaultsKeys.isNumericKeypadEnabled) }
+    var isNumericKeypadEnabled: Bool { defaults.bool(forKey: UserDefaultsKeys.isNumericKeypadEnabled) }
     /// 한 손 키보드 활성화
-    var getIsOneHandedKeyboardEnabled: Bool { defaults.bool(forKey: UserDefaultsKeys.isOneHandedKeyboardEnabled) }
+    var isOneHandedKeyboardEnabled: Bool { defaults.bool(forKey: UserDefaultsKeys.isOneHandedKeyboardEnabled) }
     /// 한 손 키보드 너비
-    var getOneHandedKeyboardWidth: Double { defaults.double(forKey: UserDefaultsKeys.oneHandedKeyboardWidth) }
+    var oneHandedKeyboardWidth: Double { defaults.double(forKey: UserDefaultsKeys.oneHandedKeyboardWidth) }
     
     /* 기타 설정 */
     /// 키보드 전환 버튼(􀆪) 표시 설정용
-    var getNeedsInputModeSwitchKey: Bool { defaults.bool(forKey: UserDefaultsKeys.needsInputModeSwitchKey) }
+    var needsInputModeSwitchKey: Bool { defaults.bool(forKey: UserDefaultsKeys.needsInputModeSwitchKey) }
     /// 한 손 키보드 저장용
-    var getCurrentOneHandedKeyboard: OneHandedMode { defaults.value(forKey: UserDefaultsKeys.currentOneHandedKeyboard) as? OneHandedMode ?? DefaultValues.currentOneHandedKeyboard }
+    var currentOneHandedKeyboard: OneHandedMode { defaults.value(forKey: UserDefaultsKeys.currentOneHandedKeyboard) as? OneHandedMode ?? DefaultValues.currentOneHandedKeyboard }
     /// 온보딩 여부
-    var getIsOnboarding: Bool { defaults.bool(forKey: UserDefaultsKeys.isOnboarding) }
+    var isOnboarding: Bool { defaults.bool(forKey: UserDefaultsKeys.isOnboarding) }
     /// 앱의 특정 기능 또는 키보드를 실행한 횟수
-    var getReviewCounter: Int { defaults.integer(forKey: UserDefaultsKeys.reviewCounter) }
+    var rReviewCounter: Int { defaults.integer(forKey: UserDefaultsKeys.reviewCounter) }
     /// 마지막으로 리뷰를 요청한 빌드
-    var getLastBuildPromptedForReview: String { defaults.string(forKey: UserDefaultsKeys.lastBuildPromptedForReview) ?? DefaultValues.lastBuildPromptedForReview }
+    var lastBuildPromptedForReview: String { defaults.string(forKey: UserDefaultsKeys.lastBuildPromptedForReview) ?? DefaultValues.lastBuildPromptedForReview }
     
     
     // MARK: - Methods

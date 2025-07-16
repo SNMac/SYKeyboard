@@ -9,12 +9,12 @@ import UIKit
 
 import SnapKit
 
-/// 한글 자판
+/// 한글 키보드
 final class HangeulView: UIView {
     
     // MARK: - Properties
     
-    /// 나랏글 자판 키 배열
+    /// 나랏글 키보드 키 배열
     private let naratgeulKeyList = [
         [ ["ㄱ"], ["ㄴ"], ["ㅏ", "ㅓ"] ],
         [ ["ㄹ"], ["ㅁ"], ["ㅗ", "ㅜ"] ],
@@ -31,16 +31,16 @@ final class HangeulView: UIView {
     /// 하단 여백 `KeyboardSpacer`
     private let bottomSpacer = KeyboardSpacer()
     
-    /// 키보드 첫번째 행 `KeyboardRowStackView`
+    /// 키보드 첫번째 행
     private let firstRowStackView = KeyboardRowStackView()
-    /// 키보드 두번째 행 `KeyboardRowStackView`
+    /// 키보드 두번째 행
     private let secondRowStackView = KeyboardRowStackView()
-    /// 키보드 세번째 행 `KeyboardRowStackView`
+    /// 키보드 세번째 행
     private let thirdRowStackView = KeyboardRowStackView()
-    /// 키보드 네번째 행 `KeyboardRowStackView`
+    /// 키보드 네번째 행
     private let fourthRowStackView = KeyboardRowStackView()
-    /// 키보드 네번째 우측 행 `KeyboardRowStackView`
-    private let fourthRowRightStackView = KeyboardRowStackView()
+    /// 키보드 네번째 우측 `SecondaryButton` 행
+    private let fourthRowRightSecondaryButtonStackView = KeyboardRowStackView()
     
     /// 키보드 첫번째 행 `KeyButton` 배열
     private lazy var firstRowKeyButtonList = naratgeulKeyList[0].map { KeyButton(layout: .hangeul, keys: $0) }
@@ -57,8 +57,8 @@ final class HangeulView: UIView {
     private let spaceButton = SpaceButton(layout: .hangeul)
     /// 리턴 버튼
     private let returnButton = ReturnButton(layout: .hangeul)
-    /// 자판 전환 버튼
-    private let switchButton = SwitchButton(layout: .hangeul)
+    /// 키보드 전환 버튼
+    private(set) var switchButton = SwitchButton(layout: .hangeul)
     /// iPhone SE용 키보드 전환 버튼
     private lazy var nextKeyboardButton: NextKeyboardButton? = nil
     
@@ -109,11 +109,11 @@ private extension HangeulView {
         thirdRowStackView.addArrangedSubview(returnButton)
         
         fourthRowKeyButtonList.forEach { fourthRowStackView.addArrangedSubview($0) }
-        fourthRowStackView.addArrangedSubview(fourthRowRightStackView)
-        fourthRowRightStackView.addArrangedSubview(switchButton)
+        fourthRowStackView.addArrangedSubview(fourthRowRightSecondaryButtonStackView)
+        fourthRowRightSecondaryButtonStackView.addArrangedSubview(switchButton)
         // iPhone SE일 때 키보드 전환 버튼 추가
         if let nextKeyboardButton {
-            fourthRowRightStackView.addArrangedSubview(nextKeyboardButton)
+            fourthRowRightSecondaryButtonStackView.addArrangedSubview(nextKeyboardButton)
         }
     }
     
@@ -134,36 +134,6 @@ private extension HangeulView {
             $0.leading.trailing.equalToSuperview()
             $0.bottom.equalToSuperview()
             $0.height.equalTo(2)
-        }
-        
-        firstRowStackView.arrangedSubviews.forEach { subview in
-            subview.snp.makeConstraints {
-                $0.width.equalToSuperview().dividedBy(firstRowStackView.arrangedSubviews.count)
-            }
-        }
-        
-        secondRowStackView.arrangedSubviews.forEach { subview in
-            subview.snp.makeConstraints {
-                $0.width.equalToSuperview().dividedBy(secondRowStackView.arrangedSubviews.count)
-            }
-        }
-        
-        thirdRowStackView.arrangedSubviews.forEach { subview in
-            subview.snp.makeConstraints {
-                $0.width.equalToSuperview().dividedBy(thirdRowStackView.arrangedSubviews.count)
-            }
-        }
-        
-        fourthRowStackView.arrangedSubviews.forEach { subview in
-            subview.snp.makeConstraints {
-                $0.width.equalToSuperview().dividedBy(fourthRowStackView.arrangedSubviews.count)
-            }
-        }
-        
-        fourthRowRightStackView.arrangedSubviews.forEach { subview in
-            subview.snp.makeConstraints {
-                $0.width.equalToSuperview().dividedBy(fourthRowRightStackView.arrangedSubviews.count)
-            }
         }
     }
 }

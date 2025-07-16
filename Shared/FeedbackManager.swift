@@ -21,15 +21,15 @@ final class FeedbackManager {
     // MARK: - Properties
     
     /// 햅틱 피드백 생성기
-    let generator = UIImpactFeedbackGenerator(style: .light)
+    private let generator = UIImpactFeedbackGenerator(style: .light)
     /// 키 입력 버튼 사운드
-    let keySoundID: SystemSoundID = 1104
+    private let keySoundID: SystemSoundID = 1104
     /// 삭제 버튼 사운드
-    let deleteSoundID: SystemSoundID = 1155
-    /// 스페이스, 리턴, 자판/키보드 변경 버튼 사운드
-    let modifierSoundID: SystemSoundID = 1156
+    private let deleteSoundID: SystemSoundID = 1155
+    /// 스페이스, 리턴, 키보드 변경 버튼 사운드
+    private let modifierSoundID: SystemSoundID = 1156
     
-    // MARK: - Methods
+    // MARK: - Haptic Feedback Methods
     
     /// 탭틱 엔진 준비
     func prepareHaptic() {
@@ -48,6 +48,8 @@ final class FeedbackManager {
         }
     }
     
+    // MARK: - Sound Feedback Methods
+    
     /// 키 입력 버튼 사운드 재생
     func playTypingSound() {
         AudioServicesPlaySystemSound(keySoundID)
@@ -58,7 +60,7 @@ final class FeedbackManager {
         AudioServicesPlaySystemSound(deleteSoundID)
     }
     
-    /// 스페이스, 리턴, 자판/키보드 변경 버튼 사운드 재생
+    /// 스페이스, 리턴, 키보드 변경 버튼 사운드 재생
     func playModifierSound() {
         AudioServicesPlaySystemSound(modifierSoundID)
     }
