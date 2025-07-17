@@ -75,9 +75,7 @@ private extension TenKeyView {
         setConstraints()
     }
     
-    func setStyles() {
-        self.backgroundColor = .clear
-    }
+    func setStyles() {}
     
     func setViewHierarchy() {
         self.addSubviews(topSpacer,
@@ -117,30 +115,6 @@ private extension TenKeyView {
             $0.leading.trailing.equalToSuperview()
             $0.bottom.equalToSuperview()
             $0.height.equalTo(2)
-        }
-        
-        firstRowStackView.arrangedSubviews.forEach { subview in
-            subview.snp.makeConstraints {
-                $0.width.equalToSuperview().dividedBy(firstRowStackView.arrangedSubviews.count)
-            }
-        }
-        
-        secondRowStackView.arrangedSubviews.forEach { subview in
-            subview.snp.makeConstraints {
-                $0.width.equalToSuperview().dividedBy(secondRowStackView.arrangedSubviews.count)
-            }
-        }
-        
-        thirdRowStackView.arrangedSubviews.forEach { subview in
-            subview.snp.makeConstraints {
-                $0.width.equalToSuperview().dividedBy(thirdRowStackView.arrangedSubviews.count)
-            }
-        }
-        
-        fourthRowStackView.arrangedSubviews.forEach { subview in
-            subview.snp.makeConstraints {
-                $0.width.equalToSuperview().dividedBy(fourthRowStackView.arrangedSubviews.count)
-            }
         }
     }
 }

@@ -68,13 +68,6 @@
 			);
 			target = 5B7B3F552C569B7800F7C093 /* SYKeyboard */;
 		};
-		5B53F7A42E1E517F0083F7CA /* Exceptions for "SYKeyboard" folder in "Keyboard" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				Resources/Assets.xcassets,
-			);
-			target = 5B7B3F6A2C569B8200F7C093 /* Keyboard */;
-		};
 		5B53F7A62E1E51A30083F7CA /* Exceptions for "Shared" folder in "Keyboard" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
@@ -156,7 +149,6 @@
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
 				5B53F7A32E1E517F0083F7CA /* Exceptions for "SYKeyboard" folder in "SYKeyboard" target */,
-				5B53F7A42E1E517F0083F7CA /* Exceptions for "SYKeyboard" folder in "Keyboard" target */,
 			);
 			path = SYKeyboard;
 			sourceTree = "<group>";

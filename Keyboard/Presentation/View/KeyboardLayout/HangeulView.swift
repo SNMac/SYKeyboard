@@ -6,6 +6,8 @@
 //
 
 import UIKit
+import CoreImage
+import CoreImage.CIFilterBuiltins
 
 import SnapKit
 
@@ -85,9 +87,7 @@ private extension HangeulView {
         setConstraints()
     }
     
-    func setStyles() {
-        self.backgroundColor = .clear
-    }
+    func setStyles() {}
     
     func setViewHierarchy() {
         self.addSubviews(topSpacer,
