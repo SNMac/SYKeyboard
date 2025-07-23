@@ -81,13 +81,13 @@ final class HangeulView: UIView {
 private extension HangeulView {
     func setupUI() {
         setStyles()
-        setViewHierarchy()
+        setHierarchy()
         setConstraints()
     }
     
     func setStyles() {}
     
-    func setViewHierarchy() {
+    func setHierarchy() {
         self.addSubviews(topSpacer,
                          frameStackView,
                          bottomSpacer)

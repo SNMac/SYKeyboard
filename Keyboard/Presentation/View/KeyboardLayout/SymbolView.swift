@@ -83,7 +83,7 @@ final class SymbolView: UIView {
 private extension SymbolView {
     func setupUI() {
         setStyles()
-        setViewHierarchy()
+        setHierarchy()
         setConstraints()
     }
     
@@ -91,7 +91,7 @@ private extension SymbolView {
         self.backgroundColor = .clear
     }
     
-    func setViewHierarchy() {
+    func setHierarchy() {
         self.addSubview(frameStackView)
         
         frameStackView.addArrangedSubviews(firstRowStackView,

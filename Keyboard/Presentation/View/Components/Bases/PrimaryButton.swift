@@ -59,7 +59,7 @@ private extension PrimaryButton {
     func setupUI() {
         setStyles()
         setActions()
-        setViewHierarchy()
+        setHierarchy()
         setConstraints()
     }
     
@@ -81,7 +81,7 @@ private extension PrimaryButton {
         self.addAction(changeBackgroundColor, for: .touchDown)
     }
     
-    func setViewHierarchy() {
+    func setHierarchy() {
         self.addSubviews(shadowView,
                          backgroundView)
     }

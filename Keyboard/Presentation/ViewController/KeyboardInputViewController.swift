@@ -54,7 +54,7 @@ private extension KeyboardInputViewController {
     func setupUI(inputView: UIInputView) {
         setStyles()
         setActions()
-        setViewHierarchy(inputView: inputView)
+        setHierarchy(inputView: inputView)
         setConstraints(inputView: inputView)
     }
     
@@ -64,7 +64,7 @@ private extension KeyboardInputViewController {
         setSwitchButtonAction()
     }
     
-    func setViewHierarchy(inputView: UIInputView) {
+    func setHierarchy(inputView: UIInputView) {
         inputView.addSubviews(hangeulView,
                               symbolView,
                               numericView,

@@ -116,7 +116,7 @@ private extension SwitchButton {
     func setupUI() {
         setStyles()
         setActions()
-        setViewHierarchy()
+        setHierarchy()
         setConstraints()
     }
     
@@ -136,7 +136,7 @@ private extension SwitchButton {
         self.addAction(playFeedback, for: .touchDown)
     }
     
-    func setViewHierarchy() {
+    func setHierarchy() {
         self.addSubviews(oneHandedLabel, swipeModeLabel)
     }
     

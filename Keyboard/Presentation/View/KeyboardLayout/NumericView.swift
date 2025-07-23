@@ -85,7 +85,7 @@ final class NumericView: UIView {
 private extension NumericView {
     func setupUI() {
         setStyles()
-        setViewHierarchy()
+        setHierarchy()
         setConstraints()
     }
     
@@ -93,7 +93,7 @@ private extension NumericView {
         self.backgroundColor = .clear
     }
     
-    func setViewHierarchy() {
+    func setHierarchy() {
         self.addSubviews(topSpacer,
                          frameStackView,
                          bottomSpacer)

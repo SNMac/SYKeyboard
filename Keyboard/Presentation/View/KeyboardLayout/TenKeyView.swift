@@ -71,13 +71,13 @@ final class TenKeyView: UIView {
 private extension TenKeyView {
     func setupUI() {
         setStyles()
-        setViewHierarchy()
+        setHierarchy()
         setConstraints()
     }
     
     func setStyles() {}
     
-    func setViewHierarchy() {
+    func setHierarchy() {
         self.addSubviews(topSpacer,
                          frameStackView,
                          bottomSpacer)
