@@ -19,7 +19,7 @@ final class KeyButton: PrimaryButton {
     init(layout: KeyboardLayout, keys: [String]) {
         self.keys = keys
         super.init(layout: layout)
-        setupUI(keys: keys)
+        setupUI()
     }
     
     @MainActor required init?(coder: NSCoder) {
@@ -30,12 +30,12 @@ final class KeyButton: PrimaryButton {
 // MARK: - UI Methods
 
 private extension KeyButton {
-    func setupUI(keys: [String]) {
-        setStyles(keys: keys)
+    func setupUI() {
+        setStyles()
         setActions()
     }
     
-    func setStyles(keys: [String]) {
+    func setStyles() {
         if keys.count == 1 {
             guard let key = keys.first else { return }
             if Character(key).isLowercase {

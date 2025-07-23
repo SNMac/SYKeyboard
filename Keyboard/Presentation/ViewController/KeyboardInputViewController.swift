@@ -24,8 +24,22 @@ final class KeyboardInputViewController: UIInputViewController {
         }
     }
     
+    private var currentOneHandMode: OneHandedMode = .center {
+        didSet {
+            updateOneHandMode()
+        }
+    }
+    
     // MARK: - UI Components
     
+    /// 키보드 전체 프레임
+    private let keyboardFrameHStackView = UIStackView().then {
+        $0.axis = .horizontal
+        $0.spacing = 0
+        $0.backgroundColor = .clear
+    }
+    /// 한 손 키보드 해제 버튼(오른손 모드)
+    private let leftChevronButton = ChevronButton(direction: .left).then { $0.isHidden = true }
     /// 한글 키보드
     private lazy var hangeulView = HangeulView(nextKeyboardAction: needsInputModeSwitchKey ?
                                                #selector(handleInputModeList(from:with:)) : nil).then { $0.isHidden = false }
@@ -37,56 +51,48 @@ final class KeyboardInputViewController: UIInputViewController {
                                                #selector(handleInputModeList(from:with:)) : nil).then { $0.isHidden = true }
     /// 텐키 키보드
     private lazy var tenKeyView = TenKeyView().then { $0.isHidden = true }
+    /// 한 손 키보드 해제 버튼(왼손 모드)
+    private let rightChevronButton = ChevronButton(direction: .right).then { $0.isHidden = true }
     
     // MARK: - Lifecycle
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
-        guard let inputView = self.inputView else { return }
-        setupUI(inputView: inputView)
+        setupUI()
     }
 }
     
 // MARK: - UI Methods
 
 private extension KeyboardInputViewController {
-    func setupUI(inputView: UIInputView) {
+    func setupUI() {
         setStyles()
         setActions()
-        setHierarchy(inputView: inputView)
-        setConstraints(inputView: inputView)
+        setHierarchy()
+        setConstraints()
     }
     
-    func setStyles() {}
+    func setStyles() {
+    }
     
     func setActions() {
         setSwitchButtonAction()
     }
     
-    func setHierarchy(inputView: UIInputView) {
-        inputView.addSubviews(hangeulView,
-                              symbolView,
-                              numericView,
-                              tenKeyView)
+    func setHierarchy() {
+        guard let inputView = self.inputView else { return }
+        inputView.addSubview(keyboardFrameHStackView)
+        
+        keyboardFrameHStackView.addArrangedSubviews(leftChevronButton, hangeulView,
+                                                    symbolView,
+                                                    numericView,
+                                                    tenKeyView, rightChevronButton)
     }
     
-    func setConstraints(inputView: UIInputView) {
-        hangeulView.snp.makeConstraints {
+    func setConstraints() {
+        keyboardFrameHStackView.snp.makeConstraints {
             $0.edges.equalToSuperview()
             $0.height.equalTo(UserDefaultsManager.shared.keyboardHeight).priority(.high)
-        }
-        
-        symbolView.snp.makeConstraints {
-            $0.edges.equalTo(hangeulView)
-        }
-        
-        numericView.snp.makeConstraints {
-            $0.edges.equalTo(hangeulView)
-        }
-        
-        tenKeyView.snp.makeConstraints {
-            $0.edges.equalTo(hangeulView)
         }
     }
 }
@@ -118,6 +124,20 @@ private extension KeyboardInputViewController {
         symbolView.isHidden = (currentKeyboardLayout != .symbol)
         numericView.isHidden = (currentKeyboardLayout != .numeric)
         tenKeyView.isHidden = (currentKeyboardLayout != .tenKey)
+    }
+    
+    func updateOneHandMode() {
+        switch currentOneHandMode {
+        case .left:
+            leftChevronButton.isHidden = true
+            rightChevronButton.isHidden = false
+        case .right:
+            leftChevronButton.isHidden = false
+            rightChevronButton.isHidden = true
+        default:
+            leftChevronButton.isHidden = true
+            rightChevronButton.isHidden = true
+        }
     }
 }
 

@@ -26,19 +26,19 @@ final class TenKeyView: UIView {
     
     /// 상단 여백
     private let topSpacer = KeyboardSpacer()
-    /// 키보드 전체 프레임
-    private let frameStackView = KeyboardFrameStackView()
+    /// 키보드 레이아웃 프레임
+    private let layoutVStackView = KeyboardLayoutVStackView()
     /// 하단 여백
     private let bottomSpacer = KeyboardSpacer()
     
     /// 키보드 첫번째 행
-    private let firstRowStackView = KeyboardRowStackView()
+    private let firstRowHStackView = KeyboardRowHStackView()
     /// 키보드 두번째 행
-    private let secondRowStackView = KeyboardRowStackView()
+    private let secondRowHStackView = KeyboardRowHStackView()
     /// 키보드 세번째 행
-    private let thirdRowStackView = KeyboardRowStackView()
+    private let thirdRowHStackView = KeyboardRowHStackView()
     /// 키보드 네번째 행
-    private let fourthRowStackView = KeyboardRowStackView()
+    private let fourthRowHStackView = KeyboardRowHStackView()
     
     /// 키보드 첫번째 행 `KeyButton` 배열
     private lazy var firstRowKeyButtonList = tenKeyList[0].map { KeyButton(layout: .tenKey, keys: $0) }
@@ -79,23 +79,23 @@ private extension TenKeyView {
     
     func setHierarchy() {
         self.addSubviews(topSpacer,
-                         frameStackView,
+                         layoutVStackView,
                          bottomSpacer)
         
-        frameStackView.addArrangedSubviews(firstRowStackView,
-                                           secondRowStackView,
-                                           thirdRowStackView,
-                                           fourthRowStackView)
+        layoutVStackView.addArrangedSubviews(firstRowHStackView,
+                                           secondRowHStackView,
+                                           thirdRowHStackView,
+                                           fourthRowHStackView)
         
-        firstRowKeyButtonList.forEach { firstRowStackView.addArrangedSubview($0) }
+        firstRowKeyButtonList.forEach { firstRowHStackView.addArrangedSubview($0) }
         
-        secondRowKeyButtonList.forEach { secondRowStackView.addArrangedSubview($0) }
+        secondRowKeyButtonList.forEach { secondRowHStackView.addArrangedSubview($0) }
         
-        thirdRowKeyButtonList.forEach { thirdRowStackView.addArrangedSubview($0) }
+        thirdRowKeyButtonList.forEach { thirdRowHStackView.addArrangedSubview($0) }
         
-        fourthRowStackView.addArrangedSubview(buttonSpacer)
-        fourthRowKeyButtonList.forEach { fourthRowStackView.addArrangedSubview($0) }
-        fourthRowStackView.addArrangedSubview(deleteButton)
+        fourthRowHStackView.addArrangedSubview(buttonSpacer)
+        fourthRowKeyButtonList.forEach { fourthRowHStackView.addArrangedSubview($0) }
+        fourthRowHStackView.addArrangedSubview(deleteButton)
     }
     
     func setConstraints() {
@@ -105,7 +105,7 @@ private extension TenKeyView {
             $0.height.equalTo(2)
         }
         
-        frameStackView.snp.makeConstraints {
+        layoutVStackView.snp.makeConstraints {
             $0.top.equalTo(topSpacer.snp.bottom)
             $0.leading.trailing.equalToSuperview()
             $0.bottom.equalTo(bottomSpacer.snp.top)

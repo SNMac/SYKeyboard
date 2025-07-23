@@ -1,14 +1,14 @@
 //
-//  KeyboardFrameStackView.swift
+//  KeyboardRowHStackView.swift
 //  Keyboard
 //
-//  Created by 서동환 on 7/13/25.
+//  Created by 서동환 on 7/10/25.
 //
 
 import UIKit
 
-/// 키보드 전체 프레임
-final class KeyboardFrameStackView: UIStackView {
+/// 키보드 행
+final class KeyboardRowHStackView: UIStackView {
     
     // MARK: - Initializer
     
@@ -24,7 +24,7 @@ final class KeyboardFrameStackView: UIStackView {
 
 // MARK: - UI Methods
 
-private extension KeyboardFrameStackView {
+private extension KeyboardRowHStackView {
     func setupUI() {
         setStyles()
     }
@@ -32,7 +32,7 @@ private extension KeyboardFrameStackView {
     func setStyles() {
         self.backgroundColor = .clear
         
-        self.axis = .vertical
+        self.axis = .horizontal
         self.spacing = 0
         self.alignment = .fill
         self.distribution = .fillEqually

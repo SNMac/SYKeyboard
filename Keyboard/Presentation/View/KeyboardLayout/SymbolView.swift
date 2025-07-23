@@ -8,6 +8,7 @@
 import UIKit
 
 import SnapKit
+import Then
 
 /// 기호 키보드
 final class SymbolView: UIView {
@@ -30,19 +31,21 @@ final class SymbolView: UIView {
     
     // MARK: - UI Components
     
-    /// 키보드 전체 프레임
-    private let frameStackView = KeyboardFrameStackView()
+    /// 키보드 레이아웃 프레임
+    private let layoutVStackView = KeyboardLayoutVStackView()
     
     /// 키보드 첫번째 행
-    private let firstRowStackView = KeyboardRowStackView()
+    private let firstRowHStackView = KeyboardRowHStackView()
     /// 키보드 두번째 행
-    private let secondRowStackView = KeyboardRowStackView()
+    private let secondRowHStackView = KeyboardRowHStackView()
     /// 키보드 세번째 행
-    private let thirdRowStackView = KeyboardRowStackView()
+    private let thirdRowHStackView = KeyboardRowHStackView()
     /// 키보드 네번째 행
-    private let fourthRowStackView = SymbolKeyboardFourthRowStackView()
+    private let fourthRowHStackView = KeyboardRowHStackView().then {
+        $0.distribution = .fill
+    }
     /// 키보드 네번째 좌측 `SecondaryButton` 행
-    private let fourthRowLeftSecondaryButtonStackView = KeyboardRowStackView()
+    private let fourthRowLeftSecondaryButtonHStackView = KeyboardRowHStackView()
     
     /// 키보드 첫번째 행
     private lazy var firstRowkeyButtonList = symbolKeyList[0][0].map { KeyButton(layout: .symbol, keys: $0) }
@@ -92,35 +95,35 @@ private extension SymbolView {
     }
     
     func setHierarchy() {
-        self.addSubview(frameStackView)
+        self.addSubview(layoutVStackView)
         
-        frameStackView.addArrangedSubviews(firstRowStackView,
-                                           secondRowStackView,
-                                           thirdRowStackView,
-                                           fourthRowStackView)
+        layoutVStackView.addArrangedSubviews(firstRowHStackView,
+                                           secondRowHStackView,
+                                           thirdRowHStackView,
+                                           fourthRowHStackView)
         
-        firstRowkeyButtonList.forEach { firstRowStackView.addArrangedSubview($0) }
+        firstRowkeyButtonList.forEach { firstRowHStackView.addArrangedSubview($0) }
         
-        secondRowkeyButtonList.forEach { secondRowStackView.addArrangedSubview($0) }
+        secondRowkeyButtonList.forEach { secondRowHStackView.addArrangedSubview($0) }
         
-        thirdRowStackView.addArrangedSubview(symbolShiftButton)
-        thirdRowkeyButtonList.forEach { thirdRowStackView.addArrangedSubview($0) }
-        thirdRowStackView.addArrangedSubview(deleteButton)
+        thirdRowHStackView.addArrangedSubview(symbolShiftButton)
+        thirdRowkeyButtonList.forEach { thirdRowHStackView.addArrangedSubview($0) }
+        thirdRowHStackView.addArrangedSubview(deleteButton)
         
-        fourthRowStackView.addArrangedSubviews(fourthRowLeftSecondaryButtonStackView, spaceButton, returnButton)
-        fourthRowLeftSecondaryButtonStackView.addArrangedSubview(switchButton)
+        fourthRowHStackView.addArrangedSubviews(fourthRowLeftSecondaryButtonHStackView, spaceButton, returnButton)
+        fourthRowLeftSecondaryButtonHStackView.addArrangedSubview(switchButton)
         // iPhone SE일 때 키보드 전환 버튼 추가
         if let nextKeyboardButton {
-            fourthRowLeftSecondaryButtonStackView.addArrangedSubview(nextKeyboardButton)
+            fourthRowLeftSecondaryButtonHStackView.addArrangedSubview(nextKeyboardButton)
         }
     }
     
     func setConstraints() {
-        frameStackView.snp.makeConstraints {
+        layoutVStackView.snp.makeConstraints {
             $0.edges.equalToSuperview()
         }
         
-        fourthRowLeftSecondaryButtonStackView.snp.makeConstraints {
+        fourthRowLeftSecondaryButtonHStackView.snp.makeConstraints {
             $0.width.equalToSuperview().dividedBy(4)
         }
         

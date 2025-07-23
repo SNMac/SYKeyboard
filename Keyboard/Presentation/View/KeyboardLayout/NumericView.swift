@@ -26,25 +26,25 @@ final class NumericView: UIView {
     
     /// 상단 여백
     private let topSpacer = KeyboardSpacer()
-    /// 키보드 전체 프레임
-    private let frameStackView = KeyboardFrameStackView()
+    /// 키보드 레이아웃 프레임
+    private let layoutVStackView = KeyboardLayoutVStackView()
     /// 하단 여백
     private let bottomSpacer = KeyboardSpacer()
     
     /// 키보드 첫번째 행
-    private let firstRowStackView = KeyboardRowStackView()
+    private let firstRowHStackView = KeyboardRowHStackView()
     /// 키보드 두번째 행
-    private let secondRowStackView = KeyboardRowStackView()
+    private let secondRowHStackView = KeyboardRowHStackView()
     /// 키보드 세번째 행
-    private let thirdRowStackView = KeyboardRowStackView()
+    private let thirdRowHStackView = KeyboardRowHStackView()
     /// 키보드 네번째 행
-    private let fourthRowStackView = KeyboardRowStackView()
+    private let fourthRowHStackView = KeyboardRowHStackView()
     /// 키보드 네번째 좌측 `PrimaryButton` 행
-    private let fourthRowLeftPrimaryButtonStackView = KeyboardRowStackView()
+    private let fourthRowLeftPrimaryButtonHStackView = KeyboardRowHStackView()
     /// 키보드 네번째 우측 `PrimaryButton` 행
-    private let fourthRowRightPrimaryButtonStackView = KeyboardRowStackView()
+    private let fourthRowRightPrimaryButtonHStackView = KeyboardRowHStackView()
     /// 키보드 네번째 우측 `SecondaryButton` 행
-    private let fourthRowRightSecondaryButtonStackView = KeyboardRowStackView()
+    private let fourthRowRightSecondaryButtonHStackView = KeyboardRowHStackView()
     
     /// 키보드 첫번째 행 `KeyButton` 배열
     private lazy var firstRowKeyButtonList = numericKeyList[0].map { KeyButton(layout: .numeric, keys: $0) }
@@ -95,30 +95,30 @@ private extension NumericView {
     
     func setHierarchy() {
         self.addSubviews(topSpacer,
-                         frameStackView,
+                         layoutVStackView,
                          bottomSpacer)
         
-        frameStackView.addArrangedSubviews(firstRowStackView,
-                                           secondRowStackView,
-                                           thirdRowStackView,
-                                           fourthRowStackView)
+        layoutVStackView.addArrangedSubviews(firstRowHStackView,
+                                           secondRowHStackView,
+                                           thirdRowHStackView,
+                                           fourthRowHStackView)
         
-        firstRowKeyButtonList.forEach { firstRowStackView.addArrangedSubview($0) }
-        firstRowStackView.addArrangedSubview(deleteButton)
+        firstRowKeyButtonList.forEach { firstRowHStackView.addArrangedSubview($0) }
+        firstRowHStackView.addArrangedSubview(deleteButton)
         
-        secondRowKeyButtonList.forEach { secondRowStackView.addArrangedSubview($0) }
-        secondRowStackView.addArrangedSubview(spaceButton)
+        secondRowKeyButtonList.forEach { secondRowHStackView.addArrangedSubview($0) }
+        secondRowHStackView.addArrangedSubview(spaceButton)
         
-        thirdRowKeyButtonList.forEach { thirdRowStackView.addArrangedSubview($0) }
-        thirdRowStackView.addArrangedSubview(returnButton)
+        thirdRowKeyButtonList.forEach { thirdRowHStackView.addArrangedSubview($0) }
+        thirdRowHStackView.addArrangedSubview(returnButton)
         
-        fourthRowStackView.addArrangedSubviews(fourthRowLeftPrimaryButtonStackView, fourthRowKeyButtonList[2], fourthRowRightPrimaryButtonStackView, fourthRowRightSecondaryButtonStackView)
-        fourthRowLeftPrimaryButtonStackView.addArrangedSubviews(fourthRowKeyButtonList[0], fourthRowKeyButtonList[1])
-        fourthRowRightPrimaryButtonStackView.addArrangedSubviews(fourthRowKeyButtonList[3], fourthRowKeyButtonList[4])
-        fourthRowRightSecondaryButtonStackView.addArrangedSubview(switchButton)
+        fourthRowHStackView.addArrangedSubviews(fourthRowLeftPrimaryButtonHStackView, fourthRowKeyButtonList[2], fourthRowRightPrimaryButtonHStackView, fourthRowRightSecondaryButtonHStackView)
+        fourthRowLeftPrimaryButtonHStackView.addArrangedSubviews(fourthRowKeyButtonList[0], fourthRowKeyButtonList[1])
+        fourthRowRightPrimaryButtonHStackView.addArrangedSubviews(fourthRowKeyButtonList[3], fourthRowKeyButtonList[4])
+        fourthRowRightSecondaryButtonHStackView.addArrangedSubview(switchButton)
         // iPhone SE일 때 키보드 전환 버튼 추가
         if let nextKeyboardButton {
-            fourthRowRightSecondaryButtonStackView.addArrangedSubview(nextKeyboardButton)
+            fourthRowRightSecondaryButtonHStackView.addArrangedSubview(nextKeyboardButton)
         }
     }
     
@@ -129,7 +129,7 @@ private extension NumericView {
             $0.height.equalTo(2)
         }
         
-        frameStackView.snp.makeConstraints {
+        layoutVStackView.snp.makeConstraints {
             $0.top.equalTo(topSpacer.snp.bottom)
             $0.leading.trailing.equalToSuperview()
             $0.bottom.equalTo(bottomSpacer.snp.top)
