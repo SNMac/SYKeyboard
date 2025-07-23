@@ -84,6 +84,7 @@ private extension KeyboardInputViewController {
     
     func setActions() {
         setSwitchButtonAction()
+        setChevronButtonAction()
     }
     
     func setHierarchy() {
@@ -144,6 +145,18 @@ private extension KeyboardInputViewController {
         numericView.switchButton.addAction(numericSwitchButtonTapped, for: .touchUpInside)
     }
     
+    func setChevronButtonAction() {
+        let chevronButtonTouchUpInside = UIAction { [weak self] _ in
+            self?.currentOneHandMode = .center
+        }
+        leftChevronButton.addAction(chevronButtonTouchUpInside, for: .touchUpInside)
+        rightChevronButton.addAction(chevronButtonTouchUpInside, for: .touchUpInside)
+    }
+}
+
+// MARK: - Update Methods
+
+private extension KeyboardInputViewController {
     func updateKeyboardLayout() {
         hangeulView.isHidden = (currentKeyboardLayout != .hangeul)
         symbolView.isHidden = (currentKeyboardLayout != .symbol)
