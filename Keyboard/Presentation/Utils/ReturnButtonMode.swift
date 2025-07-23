@@ -5,8 +5,6 @@
 //  Created by 서동환 on 7/13/25.
 //
 
-import Foundation
-
 enum ReturnButtonType: String {
     case `default` = "return.left"
     case go = "이동"

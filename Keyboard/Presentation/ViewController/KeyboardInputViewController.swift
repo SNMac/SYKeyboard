@@ -103,7 +103,7 @@ private extension KeyboardInputViewController {
         let symbolSwitchButtonTapped = UIAction { [weak self] _ in
             self?.currentKeyboardLayout = .hangeul
         }
-        symbolView.switchButton.addAction(symbolSwitchButtonTapped, for: [.touchUpInside, .touchUpOutside])
+        symbolView.switchButton.addAction(symbolSwitchButtonTapped, for: .touchUpInside)
         let symbolSwitchButtonPanGesture = UIPanGestureRecognizer(target: self, action: #selector(handleSymbolSwitchButtonPanGesture(_:)))
         symbolView.switchButton.addGestureRecognizer(symbolSwitchButtonPanGesture)
         
@@ -126,8 +126,10 @@ private extension KeyboardInputViewController {
 @objc private extension KeyboardInputViewController {
     func handleSymbolSwitchButtonPanGesture(_ gesture: UIPanGestureRecognizer) {
         if gesture.state == .changed {
-            let translation = gesture.translation(in: gesture.view)
-            dump(translation)
+            let location = gesture.location(in: symbolView.switchButton)
+            if location.x > symbolView.switchButton.bounds.maxX {
+                currentKeyboardLayout = .numeric
+            }
         }
     }
 }

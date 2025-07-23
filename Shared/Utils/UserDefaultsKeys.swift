@@ -1,11 +1,9 @@
 //
 //  UserDefaultsKeys.swift
-//  SYKeyboard
+//  SYKeyboard, Keyboard
 //
 //  Created by 서동환 on 7/15/25.
 //
-
-import Foundation
 
 /// `UserDefaults`의 키값 관리
 enum UserDefaultsKeys {
