@@ -36,6 +36,15 @@ final class ChevronButton: UIButton {
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
+    
+    // MARK: - Lifecycle
+    
+    override func point(inside point: CGPoint, with event: UIEvent?) -> Bool {
+        super.point(inside: point, with: event)
+        
+        let touchArea = self.bounds.insetBy(dx: 12, dy: 24)
+        return touchArea.contains(point)
+    }
 }
 
 private extension ChevronButton {
@@ -52,7 +61,7 @@ private extension ChevronButton {
         buttonConfig.titleAlignment = .center
         self.configuration = buttonConfig
         
-        let imageConfig = UIImage.SymbolConfiguration(pointSize: 40, weight: .medium)
+        let imageConfig = UIImage.SymbolConfiguration(pointSize: 32, weight: .medium)
         self.configurationUpdateHandler = { [weak self] button in
             switch button.state {
             case .normal:
