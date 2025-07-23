@@ -29,6 +29,8 @@ final class ChevronButton: UIButton {
             chevronImage = UIImage(systemName: "chevron.compact.right")
         }
         super.init(frame: .zero)
+        
+        setupUI()
     }
     
     required init?(coder: NSCoder) {

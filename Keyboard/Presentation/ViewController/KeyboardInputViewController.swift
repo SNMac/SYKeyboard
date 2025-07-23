@@ -27,6 +27,7 @@ final class KeyboardInputViewController: UIInputViewController {
     private var currentOneHandMode: OneHandedMode = .center {
         didSet {
             updateOneHandMode()
+            updateKeyboardConstraints()
         }
     }
     
@@ -36,6 +37,10 @@ final class KeyboardInputViewController: UIInputViewController {
     private let keyboardFrameHStackView = UIStackView().then {
         $0.axis = .horizontal
         $0.spacing = 0
+        $0.backgroundColor = .clear
+    }
+    /// 키보드 레이아웃 컨테이너 뷰
+    private let keyboardLayoutView = UIView().then {
         $0.backgroundColor = .clear
     }
     /// 한 손 키보드 해제 버튼(오른손 모드)
@@ -85,19 +90,34 @@ private extension KeyboardInputViewController {
         guard let inputView = self.inputView else { return }
         inputView.addSubview(keyboardFrameHStackView)
         
-        keyboardFrameHStackView.addArrangedSubviews(leftChevronButton, hangeulView,
-                                                    symbolView,
-                                                    numericView,
-                                                    tenKeyView, rightChevronButton)
+        keyboardFrameHStackView.addArrangedSubviews(leftChevronButton, keyboardLayoutView, rightChevronButton)
+        
+        keyboardLayoutView.addSubviews(hangeulView,
+                                       symbolView,
+                                       numericView,
+                                       tenKeyView)
     }
     
     func setConstraints() {
         keyboardFrameHStackView.snp.makeConstraints {
             $0.edges.equalToSuperview()
-            if currentOneHandMode != .center {
-                $0.width.equalTo(UserDefaultsManager.shared.oneHandedKeyboardWidth)
-            }
             $0.height.equalTo(UserDefaultsManager.shared.keyboardHeight).priority(.high)
+        }
+        
+        hangeulView.snp.makeConstraints {
+            $0.edges.equalToSuperview()
+        }
+        
+        symbolView.snp.makeConstraints {
+            $0.edges.equalToSuperview()
+        }
+        
+        numericView.snp.makeConstraints {
+            $0.edges.equalToSuperview()
+        }
+        
+        tenKeyView.snp.makeConstraints {
+            $0.edges.equalToSuperview()
         }
     }
 }
@@ -132,8 +152,8 @@ private extension KeyboardInputViewController {
     }
     
     func updateOneHandMode() {
-        
-        switch UserDefaultsManager.shared.lastOneHandedMode {
+        UserDefaultsManager.shared.lastOneHandedMode = currentOneHandMode
+        switch currentOneHandMode {
         case .left:
             leftChevronButton.isHidden = true
             rightChevronButton.isHidden = false
@@ -143,6 +163,12 @@ private extension KeyboardInputViewController {
         default:
             leftChevronButton.isHidden = true
             rightChevronButton.isHidden = true
+        }
+    }
+    
+    func updateKeyboardConstraints() {
+        keyboardLayoutView.snp.remakeConstraints {
+            $0.width.equalTo(UserDefaultsManager.shared.oneHandedKeyboardWidth)
         }
     }
 }

@@ -85,7 +85,9 @@ private extension HangeulView {
         setConstraints()
     }
     
-    func setStyles() {}
+    func setStyles() {
+        self.backgroundColor = .clear
+    }
     
     func setHierarchy() {
         self.addSubviews(topSpacer,
