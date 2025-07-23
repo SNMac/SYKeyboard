@@ -29,7 +29,7 @@ struct OneHandedKeyboardWidthSettingsView: View {
                 Spacer()
                 
                 Button {
-                    state.currentOneHandedKeyboard = .left
+                    state.lastOneHandedMode = .left
                 } label: {
                     Image(systemName: "keyboard.onehanded.left")
                         .font(.system(size: fontSize))
@@ -38,7 +38,7 @@ struct OneHandedKeyboardWidthSettingsView: View {
                 Spacer()
                 
                 Button {
-                    state.currentOneHandedKeyboard = .right
+                    state.lastOneHandedMode = .right
                 } label: {
                     Image(systemName: "keyboard.onehanded.right")
                         .font(.system(size: fontSize))
@@ -82,19 +82,19 @@ struct OneHandedKeyboardWidthSettingsView: View {
             oneHandedKeyboardWidthSettings
             
             HStack(spacing: 0) {
-                if state.currentOneHandedKeyboard == .right {
+                if state.lastOneHandedMode == .right {
                     PreviewChevronButton(keyboardHeight: $keyboardHeight, isLeftHandMode: false)
                 }
                 
                 PreviewHangeulView(keyboardHeight: $keyboardHeight, oneHandedKeyboardWidth: $tempOneHandedKeyboardWidth)
-                if state.currentOneHandedKeyboard == .left {
+                if state.lastOneHandedMode == .left {
                     PreviewChevronButton(keyboardHeight: $keyboardHeight, isLeftHandMode: true)
                 }
             }.frame(height: needsInputModeSwitchKey ? keyboardHeight : keyboardHeight + 40)
         }
         .onAppear {
             tempOneHandedKeyboardWidth = oneHandedKeyboardWidth
-            state.currentOneHandedKeyboard = .right
+            state.lastOneHandedMode = .right
         }
         .requestReviewViewModifier()
     }

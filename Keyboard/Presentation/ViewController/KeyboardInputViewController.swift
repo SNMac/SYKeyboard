@@ -59,6 +59,7 @@ final class KeyboardInputViewController: UIInputViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
+        currentOneHandMode = .left
     }
 }
     
@@ -73,6 +74,7 @@ private extension KeyboardInputViewController {
     }
     
     func setStyles() {
+        self.inputView?.backgroundColor = .clear
     }
     
     func setActions() {
@@ -92,6 +94,9 @@ private extension KeyboardInputViewController {
     func setConstraints() {
         keyboardFrameHStackView.snp.makeConstraints {
             $0.edges.equalToSuperview()
+            if currentOneHandMode != .center {
+                $0.width.equalTo(UserDefaultsManager.shared.oneHandedKeyboardWidth)
+            }
             $0.height.equalTo(UserDefaultsManager.shared.keyboardHeight).priority(.high)
         }
     }
@@ -127,7 +132,8 @@ private extension KeyboardInputViewController {
     }
     
     func updateOneHandMode() {
-        switch currentOneHandMode {
+        
+        switch UserDefaultsManager.shared.lastOneHandedMode {
         case .left:
             leftChevronButton.isHidden = true
             rightChevronButton.isHidden = false

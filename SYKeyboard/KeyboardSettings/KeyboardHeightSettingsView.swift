@@ -60,7 +60,7 @@ struct KeyboardHeightSettingsView: View {
         }
         .onAppear {
             tempKeyboardHeight = keyboardHeight
-            state.currentOneHandedKeyboard = .center
+            state.lastOneHandedMode = .center
         }
         .requestReviewViewModifier()
     }

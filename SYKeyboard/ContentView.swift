@@ -15,8 +15,6 @@ struct ContentView: View {
     private var state: PreviewKeyboardState
     
     init() {
-        UserDefaultsManager.shared.setupUserDefaults()
-        
         state = PreviewKeyboardState()
     }
     

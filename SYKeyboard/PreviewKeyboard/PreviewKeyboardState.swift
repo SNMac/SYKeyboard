@@ -14,7 +14,7 @@ enum PreviewOneHandedKeyboard: Int {
 }
 
 final class PreviewKeyboardState: ObservableObject {
-    @Published var currentOneHandedKeyboard: PreviewOneHandedKeyboard = .center
+    @Published var lastOneHandedMode: PreviewOneHandedKeyboard = .center
     
     var nowPressedButton: PreviewKeyboardButton?
 }

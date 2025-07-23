@@ -43,7 +43,7 @@ enum UserDefaultsKeys {
     /// 키보드 전환 버튼(􀆪) 표시 설정용
     static let needsInputModeSwitchKey = "needsInputModeSwitchKey"
     /// 한 손 키보드 저장용
-    static let currentOneHandedKeyboard = "currentOneHandedKeyboard"
+    static let lastOneHandedMode = "lastOneHandedMode"
     /// 온보딩 여부
     static let isOnboarding = "isOnboarding"
     /// 앱의 특정 기능 또는 키보드를 실행한 횟수
