@@ -15,6 +15,11 @@ final class SymbolShiftButton: SecondaryButton {
     // MARK: - Properties
     
     private let layout: KeyboardLayout
+    private var isShifted: Bool = false {
+        didSet {
+            updateTitle()
+        }
+    }
     
     // MARK: - Initializer
     
@@ -27,6 +32,12 @@ final class SymbolShiftButton: SecondaryButton {
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+    
+    // MARK: - Methods
+    
+    func update(isShifted: Bool) {
+        self.isShifted = isShifted
     }
 }
 
@@ -48,7 +59,7 @@ private extension SymbolShiftButton {
             break
         }
         
-        let attributes = AttributeContainer([.font: UIFont.monospacedSystemFont(ofSize: 18, weight: .regular), .foregroundColor: UIColor.label])
+        let attributes = AttributeContainer([.font: UIFont.monospacedSystemFont(ofSize: 16, weight: .regular), .foregroundColor: UIColor.label])
         self.configuration?.attributedTitle = AttributedString("1/2", attributes: attributes)
     }
     
@@ -61,3 +72,14 @@ private extension SymbolShiftButton {
     }
 }
 
+// MARK: - Update Methods
+
+private extension SymbolShiftButton {
+    func updateTitle() {
+        if isShifted {
+            self.configuration?.attributedTitle?.characters = .init("2/2")
+        } else {
+            self.configuration?.attributedTitle?.characters = .init("1/2")
+        }
+    }
+}

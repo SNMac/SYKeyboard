@@ -12,7 +12,11 @@ final class KeyButton: PrimaryButton {
     
     // MARK: - Properties
     
-    private let keys: [String]
+    private var keys: [String] {
+        didSet {
+            updateTitle()
+        }
+    }
     
     // MARK: - Initializer
     
@@ -25,6 +29,12 @@ final class KeyButton: PrimaryButton {
     @MainActor required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
+    
+    // MARK: - Methods
+    
+    func update(keys: [String]) {
+        self.keys = keys
+    }
 }
 
 // MARK: - UI Methods
@@ -36,6 +46,22 @@ private extension KeyButton {
     }
     
     func setStyles() {
+        updateTitle()
+    }
+    
+    func setActions() {
+        let playFeedback = UIAction { _ in
+            if UserDefaultsManager.shared.isSoundFeedbackEnabled { FeedbackManager.shared.playKeyTypingSound() }
+            if UserDefaultsManager.shared.isHapticFeedbackEnabled { FeedbackManager.shared.playHaptic() }
+        }
+        self.addAction(playFeedback, for: .touchDown)
+    }
+}
+
+// MARK: - Update Methods
+
+private extension KeyButton {
+    func updateTitle() {
         if keys.count == 1 {
             guard let key = keys.first else { return }
             if Character(key).isLowercase {
@@ -47,13 +73,5 @@ private extension KeyButton {
             let joined = keys.joined(separator: "")
             self.configuration?.attributedTitle = AttributedString(joined, attributes: AttributeContainer([.font: UIFont.systemFont(ofSize: 22, weight: .regular), .foregroundColor: UIColor.label]))
         }
-    }
-    
-    func setActions() {
-        let playFeedback = UIAction { _ in
-            if UserDefaultsManager.shared.isSoundFeedbackEnabled { FeedbackManager.shared.playKeyTypingSound() }
-            if UserDefaultsManager.shared.isHapticFeedbackEnabled { FeedbackManager.shared.playHaptic() }
-        }
-        self.addAction(playFeedback, for: .touchDown)
     }
 }

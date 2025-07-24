@@ -101,6 +101,8 @@ final class SwitchButton: SecondaryButton {
         fatalError("init(coder:) has not been implemented")
     }
     
+    // MARK: - Lifecycle
+    
     override func layoutSubviews() {
         super.layoutSubviews()
         if self.backgroundView.bounds.width < 44 {

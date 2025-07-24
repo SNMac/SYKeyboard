@@ -1,25 +1,25 @@
 //
-//  TenKeyView.swift
+//  NaratgeulKeyboardView.swift
 //  Keyboard
 //
-//  Created by 서동환 on 7/14/25.
+//  Created by 서동환 on 7/13/25.
 //
 
 import UIKit
 
 import SnapKit
 
-/// 텐키 키보드
-final class TenKeyView: UIView {
+/// 나랏글 키보드
+final class NaratgeulKeyboardView: UIView {
     
     // MARK: - Properties
     
-    /// 텐키 키보드 키 배열
-    private let tenKeyList = [
-        [ ["1"], ["2"], ["3"] ],
-        [ ["4"], ["5"], ["6"] ],
-        [ ["7"], ["8"], ["9"] ],
-        [ ["0"] ]
+    /// 나랏글 키보드 키 배열
+    private let naratgeulKeyList = [
+        [ ["ㄱ"], ["ㄴ"], ["ㅏ", "ㅓ"] ],
+        [ ["ㄹ"], ["ㅁ"], ["ㅗ", "ㅜ"] ],
+        [ ["ㅅ"], ["ㅇ"], ["ㅣ"] ],
+        [ ["획"], ["ㅡ"], ["쌍"] ]
     ]
     
     // MARK: - UI Components
@@ -28,7 +28,7 @@ final class TenKeyView: UIView {
     private let topSpacer = KeyboardSpacer()
     /// 키보드 레이아웃 프레임
     private let layoutVStackView = KeyboardLayoutVStackView()
-    /// 하단 여백
+    /// 하단 여백 `KeyboardSpacer`
     private let bottomSpacer = KeyboardSpacer()
     
     /// 키보드 첫번째 행
@@ -39,25 +39,35 @@ final class TenKeyView: UIView {
     private let thirdRowHStackView = KeyboardRowHStackView()
     /// 키보드 네번째 행
     private let fourthRowHStackView = KeyboardRowHStackView()
+    /// 키보드 네번째 우측 `SecondaryButton` 행
+    private let fourthRowRightSecondaryButtonHStackView = KeyboardRowHStackView()
     
     /// 키보드 첫번째 행 `KeyButton` 배열
-    private lazy var firstRowKeyButtonList = tenKeyList[0].map { KeyButton(layout: .tenKey, keys: $0) }
+    private lazy var firstRowKeyButtonList = naratgeulKeyList[0].map { KeyButton(layout: .hangeul, keys: $0) }
     /// 키보드 두번째 행 `KeyButton` 배열
-    private lazy var secondRowKeyButtonList = tenKeyList[1].map { KeyButton(layout: .tenKey, keys: $0) }
+    private lazy var secondRowKeyButtonList = naratgeulKeyList[1].map { KeyButton(layout: .hangeul, keys: $0) }
     /// 키보드 세번째 행 `KeyButton` 배열
-    private lazy var thirdRowKeyButtonList = tenKeyList[2].map { KeyButton(layout: .tenKey, keys: $0) }
+    private lazy var thirdRowKeyButtonList = naratgeulKeyList[2].map { KeyButton(layout: .hangeul, keys: $0) }
     /// 키보드 네번째 행 `KeyButton` 배열
-    private lazy var fourthRowKeyButtonList = tenKeyList[3].map { KeyButton(layout: .tenKey, keys: $0) }
+    private lazy var fourthRowKeyButtonList = naratgeulKeyList[3].map { KeyButton(layout: .hangeul, keys: $0) }
     
-    /// 키보드 네번째 행 좌측 여백
-    private let buttonSpacer = KeyboardSpacer()
     /// 삭제 버튼
-    private let deleteButton = DeleteButton(layout: .tenKey)
+    private let deleteButton = DeleteButton(layout: .hangeul)
+    /// 스페이스 버튼
+    private let spaceButton = SpaceButton(layout: .hangeul)
+    /// 리턴 버튼
+    private let returnButton = ReturnButton(layout: .hangeul)
+    /// 키보드 전환 버튼
+    private(set) var switchButton = SwitchButton(layout: .hangeul)
+    /// iPhone SE용 키보드 전환 버튼
+    private lazy var nextKeyboardButton: NextKeyboardButton? = nil
     
     // MARK: - Initializer
     
-    init() {
+    init(nextKeyboardAction: Selector?) {
         super.init(frame: .zero)
+        
+        if let nextKeyboardAction { setNextKeyboardButtonTarget(action: nextKeyboardAction) }
         setupUI()
     }
     
@@ -68,7 +78,7 @@ final class TenKeyView: UIView {
 
 // MARK: - UI Methods
 
-private extension TenKeyView {
+private extension NaratgeulKeyboardView {
     func setupUI() {
         setStyles()
         setHierarchy()
@@ -90,14 +100,21 @@ private extension TenKeyView {
                                            fourthRowHStackView)
         
         firstRowKeyButtonList.forEach { firstRowHStackView.addArrangedSubview($0) }
+        firstRowHStackView.addArrangedSubview(deleteButton)
         
         secondRowKeyButtonList.forEach { secondRowHStackView.addArrangedSubview($0) }
+        secondRowHStackView.addArrangedSubview(spaceButton)
         
         thirdRowKeyButtonList.forEach { thirdRowHStackView.addArrangedSubview($0) }
+        thirdRowHStackView.addArrangedSubview(returnButton)
         
-        fourthRowHStackView.addArrangedSubview(buttonSpacer)
         fourthRowKeyButtonList.forEach { fourthRowHStackView.addArrangedSubview($0) }
-        fourthRowHStackView.addArrangedSubview(deleteButton)
+        fourthRowHStackView.addArrangedSubview(fourthRowRightSecondaryButtonHStackView)
+        fourthRowRightSecondaryButtonHStackView.addArrangedSubview(switchButton)
+        // iPhone SE일 때 키보드 전환 버튼 추가
+        if let nextKeyboardButton {
+            fourthRowRightSecondaryButtonHStackView.addArrangedSubview(nextKeyboardButton)
+        }
     }
     
     func setConstraints() {
@@ -118,5 +135,14 @@ private extension TenKeyView {
             $0.bottom.equalToSuperview()
             $0.height.equalTo(2)
         }
+    }
+}
+
+// MARK: - Action Methods
+
+private extension NaratgeulKeyboardView {
+    func setNextKeyboardButtonTarget(action: Selector) {
+        nextKeyboardButton = NextKeyboardButton(layout: .hangeul)
+        nextKeyboardButton?.addTarget(nil, action: action, for: .allTouchEvents)
     }
 }

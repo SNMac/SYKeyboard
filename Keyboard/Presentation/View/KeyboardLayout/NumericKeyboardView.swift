@@ -1,5 +1,5 @@
 //
-//  NumericView.swift
+//  NumericKeyboardView.swift
 //  Keyboard
 //
 //  Created by 서동환 on 7/14/25.
@@ -10,7 +10,7 @@ import UIKit
 import SnapKit
 
 /// 숫자 키보드
-final class NumericView: UIView {
+final class NumericKeyboardView: UIView {
     
     // MARK: - Properties
     
@@ -82,7 +82,7 @@ final class NumericView: UIView {
 
 // MARK: - UI Methods
 
-private extension NumericView {
+private extension NumericKeyboardView {
     func setupUI() {
         setStyles()
         setHierarchy()
@@ -145,7 +145,7 @@ private extension NumericView {
 
 // MARK: - Action Methods
 
-private extension NumericView {
+private extension NumericKeyboardView {
     func setNextKeyboardButtonTarget(action: Selector) {
         switchButton.configuration?.attributedTitle?.font = .system(size: 16)
         nextKeyboardButton = NextKeyboardButton(layout: .numeric)
