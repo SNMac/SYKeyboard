@@ -174,22 +174,18 @@ private extension KeyboardInputViewController {
     func updateKeyboardConstraints() {
         switch currentOneHandMode {
         case .left:
-            leftChevronButton.isHidden = true
-            rightChevronButton.isHidden = false
             keyboardLayoutView.snp.remakeConstraints {
                 $0.width.equalTo(UserDefaultsManager.shared.oneHandedKeyboardWidth)
             }
         case .right:
-            leftChevronButton.isHidden = false
-            rightChevronButton.isHidden = true
             keyboardLayoutView.snp.remakeConstraints {
                 $0.width.equalTo(UserDefaultsManager.shared.oneHandedKeyboardWidth)
             }
         case .center:
-            leftChevronButton.isHidden = true
-            rightChevronButton.isHidden = true
             keyboardLayoutView.snp.removeConstraints()
         }
+        leftChevronButton.isHidden = !(currentOneHandMode == .right)
+        rightChevronButton.isHidden = !(currentOneHandMode == .left)
     }
 }
 
