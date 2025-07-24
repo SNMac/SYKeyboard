@@ -7,6 +7,7 @@
 
 import UIKit
 
+/// 한 손 키보드 해제 버튼
 final class ChevronButton: UIButton {
     
     // MARK: - Properties
@@ -15,19 +16,23 @@ final class ChevronButton: UIButton {
     enum Direction {
         case left
         case right
+        
+        var image: UIImage? {
+            switch self {
+            case .left:
+                return UIImage(systemName: "chevron.compact.left")
+            case .right:
+                return UIImage(systemName: "chevron.compact.right")
+            }
+        }
     }
-    /// 방향에 따른 chevron.compact 이미지
-    private let chevronImage: UIImage?
+    
+    private let direction: Direction
     
     // MARK: - Initializer
     
     init(direction: Direction) {
-        switch direction {
-        case .left:
-            chevronImage = UIImage(systemName: "chevron.compact.left")
-        case .right:
-            chevronImage = UIImage(systemName: "chevron.compact.right")
-        }
+        self.direction = direction
         super.init(frame: .zero)
         
         setupUI()
@@ -42,7 +47,13 @@ final class ChevronButton: UIButton {
     override func point(inside point: CGPoint, with event: UIEvent?) -> Bool {
         super.point(inside: point, with: event)
         
-        let touchArea = self.bounds.insetBy(dx: 12, dy: 24)
+        let touchArea: CGRect
+        switch direction {
+        case .left:
+            touchArea = self.bounds.inset(by: UIEdgeInsets(top: 12, left: 0, bottom: 12, right: 4))
+        case .right:
+            touchArea = self.bounds.inset(by: UIEdgeInsets(top: 12, left: 4, bottom: 12, right: 0))
+        }
         return touchArea.contains(point)
     }
 }
@@ -58,16 +69,15 @@ private extension ChevronButton {
         var buttonConfig = UIButton.Configuration.plain()
         buttonConfig.automaticallyUpdateForSelection = false
         buttonConfig.contentInsets = .zero
-        buttonConfig.titleAlignment = .center
         self.configuration = buttonConfig
         
         let imageConfig = UIImage.SymbolConfiguration(pointSize: 32, weight: .medium)
         self.configurationUpdateHandler = { [weak self] button in
             switch button.state {
             case .normal:
-                button.configuration?.image = self?.chevronImage?.withConfiguration(imageConfig).withTintColor(.chevronButton, renderingMode: .alwaysOriginal)
+                button.configuration?.image = self?.direction.image?.withConfiguration(imageConfig).withTintColor(.chevronButton, renderingMode: .alwaysOriginal)
             case .highlighted:
-                button.configuration?.image = self?.chevronImage?.withConfiguration(imageConfig).withTintColor(.chevronButtonPressed, renderingMode: .alwaysOriginal)
+                button.configuration?.image = self?.direction.image?.withConfiguration(imageConfig).withTintColor(.chevronButtonPressed, renderingMode: .alwaysOriginal)
             default:
                 break
             }
