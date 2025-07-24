@@ -24,9 +24,9 @@ final class SwitchButton: SecondaryButton {
         let imageConfig = UIImage.SymbolConfiguration(pointSize: 9, weight: .regular)
         
         let arrowtriangleUp = NSTextAttachment()
-        arrowtriangleUp.image = UIImage(systemName: "arrowtriangle.up")?.withConfiguration(imageConfig)
+        arrowtriangleUp.image = UIImage(systemName: "arrowtriangle.up")?.withConfiguration(imageConfig).withTintColor(.label, renderingMode: .alwaysOriginal)
         let keyboard = NSTextAttachment()
-        keyboard.image = UIImage(systemName: "keyboard")?.withConfiguration(imageConfig)
+        keyboard.image = UIImage(systemName: "keyboard")?.withConfiguration(imageConfig).withTintColor(.label, renderingMode: .alwaysOriginal)
         
         let fullString: NSMutableAttributedString?
         switch layout {
@@ -56,17 +56,17 @@ final class SwitchButton: SecondaryButton {
         switch layout {
         case .hangeul:
             text = "123"
-            arrowtriangle.image = UIImage(systemName: "arrowtriangle.left")?.withConfiguration(imageConfig)
+            arrowtriangle.image = UIImage(systemName: "arrowtriangle.left")?.withConfiguration(imageConfig).withTintColor(.label, renderingMode: .alwaysOriginal)
             fullString = NSMutableAttributedString(attachment: arrowtriangle)
             fullString?.append(NSMutableAttributedString(string: text))
         case .symbol:
             text = "123"
-            arrowtriangle.image = UIImage(systemName: "arrowtriangle.right")?.withConfiguration(imageConfig)
+            arrowtriangle.image = UIImage(systemName: "arrowtriangle.right")?.withConfiguration(imageConfig).withTintColor(.label, renderingMode: .alwaysOriginal)
             fullString = NSMutableAttributedString(string: text)
             fullString?.append(NSMutableAttributedString(attachment: arrowtriangle))
         case .numeric:
             text = "!#1"
-            arrowtriangle.image = UIImage(systemName: "arrowtriangle.left")?.withConfiguration(imageConfig)
+            arrowtriangle.image = UIImage(systemName: "arrowtriangle.left")?.withConfiguration(imageConfig).withTintColor(.label, renderingMode: .alwaysOriginal)
             fullString = NSMutableAttributedString(attachment: arrowtriangle)
             fullString?.append(NSMutableAttributedString(string: text))
         default:
