@@ -69,7 +69,7 @@ final class NumericKeyboardView: UIView {
     // MARK: - Initializer
     
     init(needsInputModeSwitchKey: Bool, nextKeyboardAction: Selector) {
-        self.nextKeyboardButton = NextKeyboardButton(layout: .hangeul, nextKeyboardAction: nextKeyboardAction)
+        self.nextKeyboardButton = NextKeyboardButton(layout: .numeric, nextKeyboardAction: nextKeyboardAction)
         super.init(frame: .zero)
         
         nextKeyboardButton.isHidden = !needsInputModeSwitchKey

@@ -77,7 +77,7 @@ final class SymbolKeyboardView: UIView {
     // MARK: - Initializer
     
     init(needsInputModeSwitchKey: Bool, nextKeyboardAction: Selector) {
-        self.nextKeyboardButton = NextKeyboardButton(layout: .hangeul, nextKeyboardAction: nextKeyboardAction)
+        self.nextKeyboardButton = NextKeyboardButton(layout: .symbol, nextKeyboardAction: nextKeyboardAction)
         super.init(frame: .zero)
         
         nextKeyboardButton.isHidden = !needsInputModeSwitchKey
