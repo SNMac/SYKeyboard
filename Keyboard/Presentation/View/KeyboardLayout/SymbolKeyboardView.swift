@@ -72,14 +72,15 @@ final class SymbolKeyboardView: UIView {
     /// 리턴 버튼
     private let returnButton = ReturnButton(layout: .symbol)
     /// iPhone SE용 키보드 전환 버튼
-    private lazy var nextKeyboardButton: NextKeyboardButton? = nil
+    private let nextKeyboardButton: NextKeyboardButton
     
     // MARK: - Initializer
     
-    init(nextKeyboardAction: Selector?) {
+    init(needsInputModeSwitchKey: Bool, nextKeyboardAction: Selector) {
+        self.nextKeyboardButton = NextKeyboardButton(layout: .hangeul, nextKeyboardAction: nextKeyboardAction)
         super.init(frame: .zero)
         
-        if let nextKeyboardAction { setNextKeyboardButtonTarget(action: nextKeyboardAction) }
+        nextKeyboardButton.isHidden = !needsInputModeSwitchKey
         setupUI()
     }
     
@@ -124,10 +125,7 @@ private extension SymbolKeyboardView {
         
         fourthRowHStackView.addArrangedSubviews(fourthRowLeftSecondaryButtonHStackView, spaceButton, returnButton)
         fourthRowLeftSecondaryButtonHStackView.addArrangedSubview(switchButton)
-        // iPhone SE일 때 키보드 전환 버튼 추가
-        if let nextKeyboardButton {
-            fourthRowLeftSecondaryButtonHStackView.addArrangedSubview(nextKeyboardButton)
-        }
+        fourthRowLeftSecondaryButtonHStackView.addArrangedSubview(nextKeyboardButton)
     }
     
     func setConstraints() {
@@ -157,11 +155,6 @@ private extension SymbolKeyboardView {
             self?.isShifted.toggle()
         }
         symbolShiftButton.addAction(symbolShiftButtonTouchUpInside, for: .touchUpInside)
-    }
-    
-    func setNextKeyboardButtonTarget(action: Selector) {
-        nextKeyboardButton = NextKeyboardButton(layout: .symbol)
-        nextKeyboardButton?.addTarget(nil, action: action, for: .allTouchEvents)
     }
 }
 

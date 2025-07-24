@@ -64,14 +64,15 @@ final class NumericKeyboardView: UIView {
     /// 키보드 전환 버튼
     private(set) var switchButton = SwitchButton(layout: .numeric)
     /// iPhone SE용 키보드 전환 버튼
-    private lazy var nextKeyboardButton: NextKeyboardButton? = nil
+    private let nextKeyboardButton: NextKeyboardButton
     
     // MARK: - Initializer
     
-    init(nextKeyboardAction: Selector?) {
+    init(needsInputModeSwitchKey: Bool, nextKeyboardAction: Selector) {
+        self.nextKeyboardButton = NextKeyboardButton(layout: .hangeul, nextKeyboardAction: nextKeyboardAction)
         super.init(frame: .zero)
         
-        if let nextKeyboardAction { setNextKeyboardButtonTarget(action: nextKeyboardAction) }
+        nextKeyboardButton.isHidden = !needsInputModeSwitchKey
         setupUI()
     }
     
@@ -116,10 +117,7 @@ private extension NumericKeyboardView {
         fourthRowLeftPrimaryButtonHStackView.addArrangedSubviews(fourthRowKeyButtonList[0], fourthRowKeyButtonList[1])
         fourthRowRightPrimaryButtonHStackView.addArrangedSubviews(fourthRowKeyButtonList[3], fourthRowKeyButtonList[4])
         fourthRowRightSecondaryButtonHStackView.addArrangedSubview(switchButton)
-        // iPhone SE일 때 키보드 전환 버튼 추가
-        if let nextKeyboardButton {
-            fourthRowRightSecondaryButtonHStackView.addArrangedSubview(nextKeyboardButton)
-        }
+        fourthRowRightSecondaryButtonHStackView.addArrangedSubview(nextKeyboardButton)
     }
     
     func setConstraints() {
@@ -140,15 +138,5 @@ private extension NumericKeyboardView {
             $0.bottom.equalToSuperview()
             $0.height.equalTo(2)
         }
-    }
-}
-
-// MARK: - Action Methods
-
-private extension NumericKeyboardView {
-    func setNextKeyboardButtonTarget(action: Selector) {
-        switchButton.configuration?.attributedTitle?.font = .system(size: 16)
-        nextKeyboardButton = NextKeyboardButton(layout: .numeric)
-        nextKeyboardButton?.addTarget(nil, action: action, for: .allTouchEvents)
     }
 }

@@ -32,7 +32,7 @@ final class KeyboardInputViewController: UIInputViewController {
         }
     }
     /// iPhone SE용 키보드 전환 버튼 액션
-    private lazy var nextKeyboardAction: Selector? = (needsInputModeSwitchKey ? #selector(handleInputModeList(from:with:)) : nil)
+    private let nextKeyboardAction: Selector = #selector(handleInputModeList(from:with:))
     
     // MARK: - UI Components
     
@@ -49,11 +49,14 @@ final class KeyboardInputViewController: UIInputViewController {
     /// 한 손 키보드 해제 버튼(오른손 모드)
     private let leftChevronButton = ChevronButton(direction: .left).then { $0.isHidden = true }
     /// 나랏글 키보드
-    private lazy var naratgeulKeyboardView = NaratgeulKeyboardView(nextKeyboardAction: nextKeyboardAction).then { $0.isHidden = false }
+    private lazy var naratgeulKeyboardView = NaratgeulKeyboardView(needsInputModeSwitchKey: needsInputModeSwitchKey,
+                                                                   nextKeyboardAction: nextKeyboardAction).then { $0.isHidden = false }
     /// 기호 키보드
-    private lazy var symbolKeyboardView = SymbolKeyboardView(nextKeyboardAction: nextKeyboardAction).then { $0.isHidden = true }
+    private lazy var symbolKeyboardView = SymbolKeyboardView(needsInputModeSwitchKey: needsInputModeSwitchKey,
+                                                             nextKeyboardAction: nextKeyboardAction).then { $0.isHidden = true }
     /// 숫자 키보드
-    private lazy var numericKeyboardView = NumericKeyboardView(nextKeyboardAction: nextKeyboardAction).then { $0.isHidden = true }
+    private lazy var numericKeyboardView = NumericKeyboardView(needsInputModeSwitchKey: needsInputModeSwitchKey,
+                                                               nextKeyboardAction: nextKeyboardAction).then { $0.isHidden = true }
     /// 텐키 키보드
     private lazy var tenkeyKeyboardView = TenkeyKeyboardView().then { $0.isHidden = true }
     /// 한 손 키보드 해제 버튼(왼손 모드)

@@ -60,14 +60,15 @@ final class NaratgeulKeyboardView: UIView {
     /// 키보드 전환 버튼
     private(set) var switchButton = SwitchButton(layout: .hangeul)
     /// iPhone SE용 키보드 전환 버튼
-    private lazy var nextKeyboardButton: NextKeyboardButton? = nil
+    private let nextKeyboardButton: NextKeyboardButton
     
     // MARK: - Initializer
     
-    init(nextKeyboardAction: Selector?) {
+    init(needsInputModeSwitchKey: Bool, nextKeyboardAction: Selector) {
+        self.nextKeyboardButton = NextKeyboardButton(layout: .hangeul, nextKeyboardAction: nextKeyboardAction)
         super.init(frame: .zero)
         
-        if let nextKeyboardAction { setNextKeyboardButtonTarget(action: nextKeyboardAction) }
+        nextKeyboardButton.isHidden = !needsInputModeSwitchKey
         setupUI()
     }
     
@@ -111,10 +112,7 @@ private extension NaratgeulKeyboardView {
         fourthRowKeyButtonList.forEach { fourthRowHStackView.addArrangedSubview($0) }
         fourthRowHStackView.addArrangedSubview(fourthRowRightSecondaryButtonHStackView)
         fourthRowRightSecondaryButtonHStackView.addArrangedSubview(switchButton)
-        // iPhone SE일 때 키보드 전환 버튼 추가
-        if let nextKeyboardButton {
-            fourthRowRightSecondaryButtonHStackView.addArrangedSubview(nextKeyboardButton)
-        }
+        fourthRowRightSecondaryButtonHStackView.addArrangedSubview(nextKeyboardButton)
     }
     
     func setConstraints() {
@@ -135,14 +133,5 @@ private extension NaratgeulKeyboardView {
             $0.bottom.equalToSuperview()
             $0.height.equalTo(2)
         }
-    }
-}
-
-// MARK: - Action Methods
-
-private extension NaratgeulKeyboardView {
-    func setNextKeyboardButtonTarget(action: Selector) {
-        nextKeyboardButton = NextKeyboardButton(layout: .hangeul)
-        nextKeyboardButton?.addTarget(nil, action: action, for: .allTouchEvents)
     }
 }
