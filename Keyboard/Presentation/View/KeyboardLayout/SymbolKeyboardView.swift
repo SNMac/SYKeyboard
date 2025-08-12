@@ -154,14 +154,14 @@ private extension SymbolKeyboardView {
         keyboardSelectOverlayView.snp.makeConstraints {
             $0.leading.equalToSuperview().inset(4)
             $0.centerY.equalTo(symbolShiftButton)
-            $0.width.equalTo(180)
+            $0.width.equalToSuperview().multipliedBy(0.42)
             $0.height.equalTo(symbolShiftButton)
         }
         
         oneHandedModeSelectOverlayView.snp.makeConstraints {
             $0.leading.equalToSuperview().inset(4)
             $0.centerY.equalTo(symbolShiftButton)
-            $0.width.equalTo(230)
+            $0.width.equalToSuperview().multipliedBy(0.5)
             $0.height.equalTo(symbolShiftButton)
         }
     }

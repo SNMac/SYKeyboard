@@ -151,14 +151,14 @@ private extension NumericKeyboardView {
         keyboardSelectOverlayView.snp.makeConstraints {
             $0.trailing.equalToSuperview().inset(4)
             $0.centerY.equalTo(returnButton)
-            $0.width.equalTo(180)
+            $0.width.equalToSuperview().multipliedBy(0.42)
             $0.height.equalTo(returnButton)
         }
         
         oneHandedModeSelectOverlayView.snp.makeConstraints {
             $0.trailing.equalToSuperview().inset(4)
             $0.centerY.equalTo(returnButton)
-            $0.width.equalTo(230)
+            $0.width.equalToSuperview().multipliedBy(0.5)
             $0.height.equalTo(returnButton)
         }
     }
