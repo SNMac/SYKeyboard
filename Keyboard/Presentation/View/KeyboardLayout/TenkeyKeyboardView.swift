@@ -85,9 +85,9 @@ private extension TenkeyKeyboardView {
                          bottomSpacer)
         
         layoutVStackView.addArrangedSubviews(firstRowHStackView,
-                                           secondRowHStackView,
-                                           thirdRowHStackView,
-                                           fourthRowHStackView)
+                                             secondRowHStackView,
+                                             thirdRowHStackView,
+                                             fourthRowHStackView)
         
         firstRowKeyButtonList.forEach { firstRowHStackView.addArrangedSubview($0) }
         

@@ -25,9 +25,9 @@ final class KeyboardInputViewController: UIInputViewController {
         }
     }
     /// 현재 한 손 키보드
-    private var currentOneHandMode: OneHandedMode = .center {
+    private var currentOneHandedMode: OneHandedMode = .center {
         didSet {
-            UserDefaultsManager.shared.lastOneHandedMode = currentOneHandMode
+            UserDefaultsManager.shared.lastOneHandedMode = currentOneHandedMode
             updateKeyboardConstraints()
         }
     }
@@ -67,10 +67,10 @@ final class KeyboardInputViewController: UIInputViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
-        currentOneHandMode = .left
+        currentOneHandedMode = .left
     }
 }
-    
+
 // MARK: - UI Methods
 
 private extension KeyboardInputViewController {
@@ -154,7 +154,7 @@ private extension KeyboardInputViewController {
     
     func setChevronButtonAction() {
         let chevronButtonTouchUpInside = UIAction { [weak self] _ in
-            self?.currentOneHandMode = .center
+            self?.currentOneHandedMode = .center
         }
         leftChevronButton.addAction(chevronButtonTouchUpInside, for: .touchUpInside)
         rightChevronButton.addAction(chevronButtonTouchUpInside, for: .touchUpInside)
@@ -172,7 +172,7 @@ private extension KeyboardInputViewController {
     }
     
     func updateKeyboardConstraints() {
-        switch currentOneHandMode {
+        switch currentOneHandedMode {
         case .left:
             keyboardLayoutView.snp.remakeConstraints {
                 $0.width.equalTo(UserDefaultsManager.shared.oneHandedKeyboardWidth)
@@ -184,8 +184,8 @@ private extension KeyboardInputViewController {
         case .center:
             keyboardLayoutView.snp.removeConstraints()
         }
-        leftChevronButton.isHidden = !(currentOneHandMode == .right)
-        rightChevronButton.isHidden = !(currentOneHandMode == .left)
+        leftChevronButton.isHidden = !(currentOneHandedMode == .right)
+        rightChevronButton.isHidden = !(currentOneHandedMode == .left)
     }
 }
 

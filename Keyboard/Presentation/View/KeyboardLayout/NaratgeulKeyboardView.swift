@@ -8,6 +8,7 @@
 import UIKit
 
 import SnapKit
+import Then
 
 /// 나랏글 키보드
 final class NaratgeulKeyboardView: UIView {
@@ -61,6 +62,10 @@ final class NaratgeulKeyboardView: UIView {
     private(set) var switchButton = SwitchButton(layout: .hangeul)
     /// iPhone SE용 키보드 전환 버튼
     private let nextKeyboardButton: NextKeyboardButton
+    /// 키보드 레이아웃 선택 UI
+    private let keyboardSelectOverlayView = KeyboardSelectOverlayView(layout: .hangeul).then { $0.isHidden = true }
+    /// 한 손 키보드 선택 UI
+    private let oneHandedModeSelectOverlayView = OneHandedModeSelectOverlayView().then { $0.isHidden = true }
     
     // MARK: - Initializer
     
@@ -93,12 +98,14 @@ private extension NaratgeulKeyboardView {
     func setHierarchy() {
         self.addSubviews(topSpacer,
                          layoutVStackView,
-                         bottomSpacer)
+                         bottomSpacer,
+                         keyboardSelectOverlayView,
+                         oneHandedModeSelectOverlayView)
         
         layoutVStackView.addArrangedSubviews(firstRowHStackView,
-                                           secondRowHStackView,
-                                           thirdRowHStackView,
-                                           fourthRowHStackView)
+                                             secondRowHStackView,
+                                             thirdRowHStackView,
+                                             fourthRowHStackView)
         
         firstRowKeyButtonList.forEach { firstRowHStackView.addArrangedSubview($0) }
         firstRowHStackView.addArrangedSubview(deleteButton)
@@ -111,8 +118,8 @@ private extension NaratgeulKeyboardView {
         
         fourthRowKeyButtonList.forEach { fourthRowHStackView.addArrangedSubview($0) }
         fourthRowHStackView.addArrangedSubview(fourthRowRightSecondaryButtonHStackView)
-        fourthRowRightSecondaryButtonHStackView.addArrangedSubview(switchButton)
         fourthRowRightSecondaryButtonHStackView.addArrangedSubview(nextKeyboardButton)
+        fourthRowRightSecondaryButtonHStackView.addArrangedSubview(switchButton)
     }
     
     func setConstraints() {
@@ -132,6 +139,20 @@ private extension NaratgeulKeyboardView {
             $0.leading.trailing.equalToSuperview()
             $0.bottom.equalToSuperview()
             $0.height.equalTo(2)
+        }
+        
+        keyboardSelectOverlayView.snp.makeConstraints {
+            $0.trailing.equalToSuperview().inset(4)
+            $0.centerY.equalTo(returnButton)
+            $0.width.equalTo(180)
+            $0.height.equalTo(returnButton)
+        }
+        
+        oneHandedModeSelectOverlayView.snp.makeConstraints {
+            $0.trailing.equalToSuperview().inset(4)
+            $0.centerY.equalTo(returnButton)
+            $0.width.equalTo(230)
+            $0.height.equalTo(returnButton)
         }
     }
 }

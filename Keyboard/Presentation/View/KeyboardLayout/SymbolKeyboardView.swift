@@ -73,6 +73,10 @@ final class SymbolKeyboardView: UIView {
     private let returnButton = ReturnButton(layout: .symbol)
     /// iPhone SE용 키보드 전환 버튼
     private let nextKeyboardButton: NextKeyboardButton
+    /// 키보드 레이아웃 선택 UI
+    private let keyboardSelectOverlayView = KeyboardSelectOverlayView(layout: .hangeul).then { $0.isHidden = true }
+    /// 한 손 키보드 선택 UI
+    private let oneHandedModeSelectOverlayView = OneHandedModeSelectOverlayView().then { $0.isHidden = true }
     
     // MARK: - Initializer
     
@@ -108,12 +112,14 @@ private extension SymbolKeyboardView {
     }
     
     func setHierarchy() {
-        self.addSubview(layoutVStackView)
+        self.addSubviews(layoutVStackView,
+                         keyboardSelectOverlayView,
+                         oneHandedModeSelectOverlayView)
         
         layoutVStackView.addArrangedSubviews(firstRowHStackView,
-                                           secondRowHStackView,
-                                           thirdRowHStackView,
-                                           fourthRowHStackView)
+                                             secondRowHStackView,
+                                             thirdRowHStackView,
+                                             fourthRowHStackView)
         
         firstRowkeyButtonList.forEach { firstRowHStackView.addArrangedSubview($0) }
         
@@ -143,6 +149,20 @@ private extension SymbolKeyboardView {
         
         returnButton.snp.makeConstraints {
             $0.width.equalToSuperview().dividedBy(4)
+        }
+        
+        keyboardSelectOverlayView.snp.makeConstraints {
+            $0.leading.equalToSuperview().inset(4)
+            $0.centerY.equalTo(symbolShiftButton)
+            $0.width.equalTo(180)
+            $0.height.equalTo(symbolShiftButton)
+        }
+        
+        oneHandedModeSelectOverlayView.snp.makeConstraints {
+            $0.leading.equalToSuperview().inset(4)
+            $0.centerY.equalTo(symbolShiftButton)
+            $0.width.equalTo(230)
+            $0.height.equalTo(symbolShiftButton)
         }
     }
 }
