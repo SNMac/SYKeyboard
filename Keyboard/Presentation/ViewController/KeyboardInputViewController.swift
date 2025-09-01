@@ -25,7 +25,6 @@ final class KeyboardInputViewController: UIInputViewController {
         case center
     }
     
-    /// 로깅용
     private lazy var logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: String(describing: self))
     /// 현재 키보드
     private var currentKeyboardLayout: KeyboardLayout = .hangeul {

@@ -16,6 +16,7 @@ final class KeyboardSelectOverlayView: UIStackView {
     // MARK: - Properties
     
     private let layout: KeyboardLayout
+    private var isEmphasizingTarget: Bool?
     
     // MARK: - UI Components
     
@@ -70,6 +71,14 @@ final class KeyboardSelectOverlayView: UIStackView {
     // MARK: - Internal Methods
     
     func configure(needToEmphasizeTarget: Bool) {
+        if let isEmphasizingTarget = self.isEmphasizingTarget {
+            if isEmphasizingTarget != needToEmphasizeTarget {
+                FeedbackManager.shared.playHaptic()
+            }
+        } else {
+            FeedbackManager.shared.playHaptic()
+        }
+        
         if needToEmphasizeTarget {
             switch layout {
             case .hangeul, .symbol:
@@ -80,7 +89,6 @@ final class KeyboardSelectOverlayView: UIStackView {
                 symbolLabel.backgroundColor = .tintColor
             default:
                 fatalError("구현되지 않은 case입니다.")
-                break
             }
             xmarkImageView.image = xmarkImageView.image?.withTintColor(.label, renderingMode: .alwaysOriginal)
             xmarkImageContainerView.backgroundColor = .clear
@@ -94,11 +102,16 @@ final class KeyboardSelectOverlayView: UIStackView {
                 symbolLabel.backgroundColor = .clear
             default:
                 fatalError("구현되지 않은 case입니다.")
-                break
             }
             xmarkImageView.image = xmarkImageView.image?.withTintColor(.white, renderingMode: .alwaysOriginal)
             xmarkImageContainerView.backgroundColor = .tintColor
         }
+        
+        self.isEmphasizingTarget = needToEmphasizeTarget
+    }
+    
+    func resetIsEmphasizingTarget() {
+        self.isEmphasizingTarget = nil
     }
 }
 

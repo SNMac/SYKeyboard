@@ -105,7 +105,7 @@ final class SymbolKeyboardView: UIView, SwitchButtonGestureHandler {
     
     func showOneHandedModeSelectOverlay(of mode: OneHandedMode) {
         oneHandedModeSelectOverlayView.isHidden = false
-        oneHandedModeSelectOverlayView.configure(of: mode)
+        oneHandedModeSelectOverlayView.configure(emphasizeOf: mode)
     }
     
     func hideOneHandedModeSelectOverlay() {

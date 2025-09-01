@@ -2,13 +2,12 @@
 //  FeedbackManager.swift
 //  SYKeyboard, Keyboard
 //
-//  Created by Sunghyun Cho on 1/21/23.
-//  Edited by 서동환 on 8/7/24.
-//  - Downloaded from https://github.com/anaclumos/sky-earth-human - Feedback.swift
+//  Created by 서동환 on 7/16/25.
 //
 
 import UIKit
 import AVFoundation
+import OSLog
 
 /// 햅틱, 사운드 피드백을 관리하는 싱글톤 매니저
 final class FeedbackManager {
@@ -19,6 +18,7 @@ final class FeedbackManager {
     private init() {}
     
     // MARK: - Properties
+    private lazy var logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: String(describing: self))
     
     /// 햅틱 피드백 생성기
     private let generator = UIImpactFeedbackGenerator(style: .light)
@@ -46,6 +46,7 @@ final class FeedbackManager {
             generator.impactOccurred()
             generator.prepare()
         }
+        logger.debug("햅틱 피드백 재생")
     }
     
     // MARK: - Sound Feedback Methods
@@ -53,15 +54,18 @@ final class FeedbackManager {
     /// 키 입력 버튼 사운드 재생
     func playKeyTypingSound() {
         AudioServicesPlaySystemSound(keyTypingSoundID)
+        logger.debug("키 입력 버튼 사운드 재생")
     }
     
     /// 삭제 버튼 사운드 재생
     func playDeleteSound() {
         AudioServicesPlaySystemSound(deleteSoundID)
+        logger.debug("삭제 버튼 사운드 재생")
     }
     
     /// 스페이스, 리턴, 키보드 변경 버튼 사운드 재생
     func playModifierSound() {
         AudioServicesPlaySystemSound(modifierSoundID)
+        logger.debug("스페이스, 리턴, 키보드 변경 버튼 사운드 재생")
     }
 }

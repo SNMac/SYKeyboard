@@ -84,21 +84,23 @@ final class NaratgeulKeyboardView: UIView, SwitchButtonGestureHandler {
     // MARK: - Internal Methods
     
     func showKeyboardSelectOverlay(needToEmphasizeTarget: Bool) {
-        keyboardSelectOverlayView.isHidden = false
         keyboardSelectOverlayView.configure(needToEmphasizeTarget: needToEmphasizeTarget)
+        keyboardSelectOverlayView.isHidden = false
     }
     
     func hideKeyboardSelectOverlay() {
         keyboardSelectOverlayView.isHidden = true
+        keyboardSelectOverlayView.resetIsEmphasizingTarget()
     }
     
     func showOneHandedModeSelectOverlay(of mode: OneHandedMode) {
+        oneHandedModeSelectOverlayView.configure(emphasizeOf: mode)
         oneHandedModeSelectOverlayView.isHidden = false
-        oneHandedModeSelectOverlayView.configure(of: mode)
     }
     
     func hideOneHandedModeSelectOverlay() {
         oneHandedModeSelectOverlayView.isHidden = true
+        oneHandedModeSelectOverlayView.resetLastEmphasizeMode()
     }
 }
 

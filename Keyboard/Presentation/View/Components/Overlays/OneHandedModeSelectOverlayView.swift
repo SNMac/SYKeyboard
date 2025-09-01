@@ -13,6 +13,10 @@ import Then
 /// 한 손 키보드 선택 UI
 final class OneHandedModeSelectOverlayView: UIStackView {
     
+    // MARK: - Properties
+    
+    private var lastEmphasizeMode: OneHandedMode?
+    
     // MARK: - UI Components
     
     /// Material 블러 효과
@@ -67,7 +71,15 @@ final class OneHandedModeSelectOverlayView: UIStackView {
     
     // MARK: - Internal Methods
     
-    func configure(of mode: OneHandedMode) {
+    func configure(emphasizeOf mode: OneHandedMode) {
+        if let lastEmphasizeMode {
+            if lastEmphasizeMode != mode {
+                FeedbackManager.shared.playHaptic()
+            }
+        } else {
+            FeedbackManager.shared.playHaptic()
+        }
+        
         switch mode {
         case .left:
             leftKeyboardImageView.image = leftKeyboardImageView.image?.withTintColor(.white, renderingMode: .alwaysOriginal)
@@ -91,6 +103,12 @@ final class OneHandedModeSelectOverlayView: UIStackView {
             rightKeyboardImageView.image = rightKeyboardImageView.image?.withTintColor(.white, renderingMode: .alwaysOriginal)
             rightKeyboardImageContainerView.backgroundColor = .tintColor
         }
+        
+        self.lastEmphasizeMode = mode
+    }
+    
+    func resetLastEmphasizeMode() {
+        self.lastEmphasizeMode = nil
     }
 }
 
