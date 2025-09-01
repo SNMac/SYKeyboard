@@ -15,11 +15,6 @@ final class SymbolShiftButton: SecondaryButton {
     // MARK: - Properties
     
     private let layout: KeyboardLayout
-    private var isShifted: Bool = false {
-        didSet {
-            updateTitle()
-        }
-    }
     
     // MARK: - Initializer
     
@@ -37,7 +32,11 @@ final class SymbolShiftButton: SecondaryButton {
     // MARK: - Methods
     
     func update(isShifted: Bool) {
-        self.isShifted = isShifted
+        if isShifted {
+            self.configuration?.attributedTitle?.characters = .init("2/2")
+        } else {
+            self.configuration?.attributedTitle?.characters = .init("1/2")
+        }
     }
 }
 
@@ -69,17 +68,5 @@ private extension SymbolShiftButton {
             if UserDefaultsManager.shared.isHapticFeedbackEnabled { FeedbackManager.shared.playHaptic() }
         }
         self.addAction(playFeedback, for: .touchDown)
-    }
-}
-
-// MARK: - Update Methods
-
-private extension SymbolShiftButton {
-    func updateTitle() {
-        if isShifted {
-            self.configuration?.attributedTitle?.characters = .init("2/2")
-        } else {
-            self.configuration?.attributedTitle?.characters = .init("1/2")
-        }
     }
 }

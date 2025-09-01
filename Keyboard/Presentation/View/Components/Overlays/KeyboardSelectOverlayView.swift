@@ -25,7 +25,7 @@ final class KeyboardSelectOverlayView: UIStackView {
     private lazy var blurView = UIVisualEffectView(effect: blurEffect)
     
     /// 숫자 키보드를 나타내는 라벨
-    private let numericLabel = UILabel().then {
+    private(set) lazy var numericLabel = UILabel().then {
         $0.text = "123"
         $0.font = .systemFont(ofSize: 20, weight: .regular)
         $0.textAlignment = .center
@@ -34,9 +34,10 @@ final class KeyboardSelectOverlayView: UIStackView {
         $0.layer.cornerRadius = 8
     }
     /// 기호 키보드를 나타내는 라벨
-    private let symbolLabel = UILabel().then {
+    private(set) lazy var symbolLabel = UILabel().then {
         $0.text = "!#1"
         $0.font = .systemFont(ofSize: 20, weight: .regular)
+        $0.textAlignment = .center
         
         $0.clipsToBounds = true
         $0.layer.cornerRadius = 8
@@ -46,7 +47,9 @@ final class KeyboardSelectOverlayView: UIStackView {
         let imageConfig = UIImage.SymbolConfiguration(pointSize: 20, weight: .regular)
         $0.image = UIImage(systemName: "xmark.square")?.withConfiguration(imageConfig).withTintColor(.label, renderingMode: .alwaysOriginal)
         $0.contentMode = .center
-        
+    }
+    /// 키보드 선택 취소 이미지 컨테이너
+    private(set) var xmarkImageContainerView = UIView().then {
         $0.clipsToBounds = true
         $0.layer.cornerRadius = 8
     }
@@ -56,11 +59,46 @@ final class KeyboardSelectOverlayView: UIStackView {
     init(layout: KeyboardLayout) {
         self.layout = layout
         super.init(frame: .zero)
+        
         setupUI()
     }
     
     required init(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+    
+    // MARK: - Internal Methods
+    
+    func configure(needToEmphasizeTarget: Bool) {
+        if needToEmphasizeTarget {
+            switch layout {
+            case .hangeul, .symbol:
+                numericLabel.textColor = .white
+                numericLabel.backgroundColor = .tintColor
+            case .numeric:
+                symbolLabel.textColor = .white
+                symbolLabel.backgroundColor = .tintColor
+            default:
+                fatalError("구현되지 않은 case입니다.")
+                break
+            }
+            xmarkImageView.image = xmarkImageView.image?.withTintColor(.label, renderingMode: .alwaysOriginal)
+            xmarkImageContainerView.backgroundColor = .clear
+        } else {
+            switch layout {
+            case .hangeul, .symbol:
+                numericLabel.textColor = .label
+                numericLabel.backgroundColor = .clear
+            case .numeric:
+                symbolLabel.textColor = .label
+                symbolLabel.backgroundColor = .clear
+            default:
+                fatalError("구현되지 않은 case입니다.")
+                break
+            }
+            xmarkImageView.image = xmarkImageView.image?.withTintColor(.white, renderingMode: .alwaysOriginal)
+            xmarkImageContainerView.backgroundColor = .tintColor
+        }
     }
 }
 
@@ -79,6 +117,9 @@ private extension KeyboardSelectOverlayView {
         self.distribution = .fillEqually
         self.backgroundColor = .clear
         
+        self.isLayoutMarginsRelativeArrangement = true
+        self.directionalLayoutMargins = NSDirectionalEdgeInsets(top: 8, leading: 8, bottom: 8, trailing: 8)
+        
         self.clipsToBounds = true
         self.layer.cornerRadius = 8
     }
@@ -86,15 +127,20 @@ private extension KeyboardSelectOverlayView {
     func setHierarchy() {
         self.addSubview(blurView)
         
+        xmarkImageContainerView.addSubview(xmarkImageView)
+        
         switch layout {
         case .hangeul:
-            self.addArrangedSubviews(numericLabel, xmarkImageView)
+            self.addArrangedSubviews(numericLabel, xmarkImageContainerView)
+            xmarkImageView.snp.makeConstraints {
+                $0.height.equalTo(numericLabel)
+            }
         case .symbol:
-            self.addArrangedSubviews(xmarkImageView, numericLabel)
+            self.addArrangedSubviews(xmarkImageContainerView, numericLabel)
         case .numeric:
-            self.addArrangedSubviews(symbolLabel, xmarkImageView)
+            self.addArrangedSubviews(symbolLabel, xmarkImageContainerView)
         default:
-            break
+            fatalError("구현되지 않은 case입니다.")
         }
     }
     
@@ -102,6 +148,9 @@ private extension KeyboardSelectOverlayView {
         blurView.snp.makeConstraints {
             $0.edges.equalToSuperview()
         }
+        
+        xmarkImageView.snp.makeConstraints {
+            $0.edges.equalToSuperview()
+        }
     }
 }
-

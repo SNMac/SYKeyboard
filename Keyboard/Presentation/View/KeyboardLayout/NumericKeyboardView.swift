@@ -10,7 +10,7 @@ import UIKit
 import SnapKit
 
 /// 숫자 키보드
-final class NumericKeyboardView: UIView {
+final class NumericKeyboardView: UIView, SwitchButtonGestureHandler {
     
     // MARK: - Properties
     
@@ -66,9 +66,9 @@ final class NumericKeyboardView: UIView {
     /// iPhone SE용 키보드 전환 버튼
     private let nextKeyboardButton: NextKeyboardButton
     /// 키보드 레이아웃 선택 UI
-    private let keyboardSelectOverlayView = KeyboardSelectOverlayView(layout: .hangeul).then { $0.isHidden = true }
+    private(set) var keyboardSelectOverlayView = KeyboardSelectOverlayView(layout: .numeric).then { $0.isHidden = true }
     /// 한 손 키보드 선택 UI
-    private let oneHandedModeSelectOverlayView = OneHandedModeSelectOverlayView().then { $0.isHidden = true }
+    private(set) var oneHandedModeSelectOverlayView = OneHandedModeSelectOverlayView().then { $0.isHidden = true }
     
     // MARK: - Initializer
     
@@ -82,6 +82,26 @@ final class NumericKeyboardView: UIView {
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+    
+    // MARK: - Internal Methods
+    
+    func showKeyboardSelectOverlay(needToEmphasizeTarget: Bool) {
+        keyboardSelectOverlayView.isHidden = false
+        keyboardSelectOverlayView.configure(needToEmphasizeTarget: needToEmphasizeTarget)
+    }
+    
+    func hideKeyboardSelectOverlay() {
+        keyboardSelectOverlayView.isHidden = true
+    }
+    
+    func showOneHandedModeSelectOverlay(of mode: OneHandedMode) {
+        oneHandedModeSelectOverlayView.isHidden = false
+        oneHandedModeSelectOverlayView.configure(of: mode)
+    }
+    
+    func hideOneHandedModeSelectOverlay() {
+        oneHandedModeSelectOverlayView.isHidden = true
     }
 }
 
@@ -151,14 +171,14 @@ private extension NumericKeyboardView {
         keyboardSelectOverlayView.snp.makeConstraints {
             $0.trailing.equalToSuperview().inset(4)
             $0.centerY.equalTo(returnButton)
-            $0.width.equalToSuperview().multipliedBy(0.42)
+            $0.width.equalToSuperview().multipliedBy(KeyboardSize.keyboardSelectOverlayWidthMultiplier)
             $0.height.equalTo(returnButton)
         }
         
         oneHandedModeSelectOverlayView.snp.makeConstraints {
             $0.trailing.equalToSuperview().inset(4)
             $0.centerY.equalTo(returnButton)
-            $0.width.equalToSuperview().multipliedBy(0.5)
+            $0.width.equalToSuperview().multipliedBy(KeyboardSize.oneHandedModeSelectOverlayWidthMultiplier)
             $0.height.equalTo(returnButton)
         }
     }
