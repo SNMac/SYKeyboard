@@ -86,9 +86,11 @@ final class NaratgeulKeyboardView: UIView, SwitchButtonGestureHandler {
     func showKeyboardSelectOverlay(needToEmphasizeTarget: Bool) {
         keyboardSelectOverlayView.configure(needToEmphasizeTarget: needToEmphasizeTarget)
         keyboardSelectOverlayView.isHidden = false
+        switchButton.isHighlighted = true
     }
     
     func hideKeyboardSelectOverlay() {
+        switchButton.isHighlighted = false
         keyboardSelectOverlayView.isHidden = true
         keyboardSelectOverlayView.resetIsEmphasizingTarget()
     }
@@ -96,9 +98,11 @@ final class NaratgeulKeyboardView: UIView, SwitchButtonGestureHandler {
     func showOneHandedModeSelectOverlay(of mode: OneHandedMode) {
         oneHandedModeSelectOverlayView.configure(emphasizeOf: mode)
         oneHandedModeSelectOverlayView.isHidden = false
+        switchButton.isHighlighted = true
     }
     
     func hideOneHandedModeSelectOverlay() {
+        switchButton.isHighlighted = false
         oneHandedModeSelectOverlayView.isHidden = true
         oneHandedModeSelectOverlayView.resetLastEmphasizeMode()
     }

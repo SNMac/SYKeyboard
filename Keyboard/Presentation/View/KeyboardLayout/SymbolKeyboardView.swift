@@ -95,21 +95,27 @@ final class SymbolKeyboardView: UIView, SwitchButtonGestureHandler {
     // MARK: - Internal Methods
     
     func showKeyboardSelectOverlay(needToEmphasizeTarget: Bool) {
-        keyboardSelectOverlayView.isHidden = false
         keyboardSelectOverlayView.configure(needToEmphasizeTarget: needToEmphasizeTarget)
+        keyboardSelectOverlayView.isHidden = false
+        switchButton.isHighlighted = true
     }
     
     func hideKeyboardSelectOverlay() {
+        switchButton.isHighlighted = false
         keyboardSelectOverlayView.isHidden = true
+        keyboardSelectOverlayView.resetIsEmphasizingTarget()
     }
     
     func showOneHandedModeSelectOverlay(of mode: OneHandedMode) {
-        oneHandedModeSelectOverlayView.isHidden = false
         oneHandedModeSelectOverlayView.configure(emphasizeOf: mode)
+        oneHandedModeSelectOverlayView.isHidden = false
+        switchButton.isHighlighted = true
     }
     
     func hideOneHandedModeSelectOverlay() {
+        switchButton.isHighlighted = false
         oneHandedModeSelectOverlayView.isHidden = true
+        oneHandedModeSelectOverlayView.resetLastEmphasizeMode()
     }
 }
 

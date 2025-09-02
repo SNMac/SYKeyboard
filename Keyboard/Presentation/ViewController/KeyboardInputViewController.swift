@@ -6,7 +6,6 @@
 //
 
 import UIKit
-import OSLog
 
 import SnapKit
 import Then
@@ -15,8 +14,6 @@ import Then
 final class KeyboardInputViewController: UIInputViewController {
     
     // MARK: - Properties
-    
-    private lazy var logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: String(describing: self))
     /// 현재 키보드
     private var currentKeyboardLayout: KeyboardLayout = .hangeul {
         didSet {
@@ -159,11 +156,11 @@ private extension KeyboardInputViewController {
     }
     
     func addGesturesToSwitchButton(_ button: SwitchButton) {
-        // 팬 제스쳐
+        // 팬(드래그) 제스쳐
         let panGesture = UIPanGestureRecognizer(target: gestureController, action: #selector(gestureController.handleSwitchButtonPanGesture(_:)))
         button.addGestureRecognizer(panGesture)
         
-        // 롱 탭 제스쳐
+        // 길게 누르기 제스쳐
         let longPressGesture = UILongPressGestureRecognizer(target: gestureController, action: #selector(gestureController.handleSwitchButtonLongPressGesture(_:)))
         longPressGesture.minimumPressDuration = UserDefaultsManager.shared.longPressDuration
         longPressGesture.allowableMovement = UserDefaultsManager.shared.cursorActiveDistance

@@ -42,30 +42,31 @@ final class FeedbackManager {
             let tempGenerator = UIImpactFeedbackGenerator(style: style)
             tempGenerator.impactOccurred()
             tempGenerator.prepare()
+            logger.debug("커스텀 햅틱 피드백 재생")
         } else {
             generator.impactOccurred()
             generator.prepare()
+            logger.debug("light 햅틱 피드백 재생")
         }
-        logger.debug("햅틱 피드백 재생")
     }
     
     // MARK: - Sound Feedback Methods
     
-    /// 키 입력 버튼 사운드 재생
+    /// 키 입력 사운드 재생
     func playKeyTypingSound() {
         AudioServicesPlaySystemSound(keyTypingSoundID)
-        logger.debug("키 입력 버튼 사운드 재생")
+        logger.debug("키 입력 사운드 재생")
     }
     
-    /// 삭제 버튼 사운드 재생
+    /// 삭제 사운드 재생
     func playDeleteSound() {
         AudioServicesPlaySystemSound(deleteSoundID)
-        logger.debug("삭제 버튼 사운드 재생")
+        logger.debug("삭제 사운드 재생")
     }
     
-    /// 스페이스, 리턴, 키보드 변경 버튼 사운드 재생
+    /// 모디파이어 사운드 재생
     func playModifierSound() {
         AudioServicesPlaySystemSound(modifierSoundID)
-        logger.debug("스페이스, 리턴, 키보드 변경 버튼 사운드 재생")
+        logger.debug("모디파이어 사운드 재생")
     }
 }

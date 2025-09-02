@@ -54,6 +54,9 @@ private extension DeleteButton {
             case .normal:
                 self.backgroundView.backgroundColor = .secondaryButton
                 button.configuration?.image = UIImage(systemName: "delete.backward")?.withConfiguration(imageConfig).withTintColor(.label, renderingMode: .alwaysOriginal)
+            case .highlighted:
+                self.backgroundView.backgroundColor = .secondaryButtonPressed
+                button.configuration?.image = UIImage(systemName: "delete.backward.fill")?.withConfiguration(imageConfig).withTintColor(.label, renderingMode: .alwaysOriginal)
             default:
                 break
             }
@@ -61,15 +64,10 @@ private extension DeleteButton {
     }
     
     func setActions() {
-        let imageConfig = UIImage.SymbolConfiguration(pointSize: 16, weight: .medium)
-        let changeImage = UIAction { [weak self] _ in
-            self?.configuration?.image = UIImage(systemName: "delete.backward.fill")?.withConfiguration(imageConfig).withTintColor(.label, renderingMode: .alwaysOriginal)
-        }
         let playFeedback = UIAction { _ in
             if UserDefaultsManager.shared.isSoundFeedbackEnabled { FeedbackManager.shared.playDeleteSound() }
             if UserDefaultsManager.shared.isHapticFeedbackEnabled { FeedbackManager.shared.playHaptic() }
         }
-        self.addAction(changeImage, for: .touchDown)
         self.addAction(playFeedback, for: .touchDown)
     }
 }

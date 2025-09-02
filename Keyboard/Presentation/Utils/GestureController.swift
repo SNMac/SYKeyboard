@@ -87,23 +87,17 @@ private extension GestureController {
         let currentKeyboardLayout = getCurrentKeyboardLayout()
         switch currentKeyboardLayout {
         case .hangeul:
-            config = (
-                gestureHandler: naratgeulKeyboardView,
-                targetLayout: .numeric,
-                targetDirection: .left
-            )
+            config = (gestureHandler: naratgeulKeyboardView,
+                      targetLayout: .numeric,
+                      targetDirection: .left)
         case .symbol:
-            config = (
-                gestureHandler: symbolKeyboardView,
-                targetLayout: .numeric,
-                targetDirection: .right
-            )
+            config = (gestureHandler: symbolKeyboardView,
+                      targetLayout: .numeric,
+                      targetDirection: .right)
         case .numeric:
-            config = (
-                gestureHandler: numericKeyboardView,
-                targetLayout: .symbol,
-                targetDirection: .left
-            )
+            config = (gestureHandler: numericKeyboardView,
+                      targetLayout: .symbol,
+                      targetDirection: .left)
         default:
             fatalError("구현되지 않은 case입니다.")
         }
