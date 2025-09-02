@@ -80,6 +80,7 @@
 			membershipExceptions = (
 				"Presentation/Utils/Extensions/UIStackView+Extension.swift",
 				"Presentation/Utils/Extensions/UIView+Extension.swift",
+				Presentation/Utils/GestureController.swift,
 				Presentation/Utils/KeyboardLayout.swift,
 				Presentation/Utils/KeyboardSize.swift,
 				Presentation/Utils/PanDirection.swift,
@@ -121,6 +122,7 @@
 			membershipExceptions = (
 				"Presentation/Utils/Extensions/UIStackView+Extension.swift",
 				"Presentation/Utils/Extensions/UIView+Extension.swift",
+				Presentation/Utils/GestureController.swift,
 				Presentation/Utils/KeyboardLayout.swift,
 				Presentation/Utils/KeyboardSize.swift,
 				Presentation/Utils/PanDirection.swift,
