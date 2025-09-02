@@ -45,7 +45,7 @@ private extension SecondaryButton {
             switch button.state {
             case .normal:
                 self?.backgroundView.backgroundColor = .secondaryButton
-            case .highlighted:
+            case .highlighted, .selected:
                 self?.backgroundView.backgroundColor = .secondaryButtonPressed
             default:
                 break

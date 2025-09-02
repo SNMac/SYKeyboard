@@ -14,6 +14,8 @@ final class SpaceButton: PrimaryButton {
     
     override init(layout: KeyboardLayout) {
         super.init(layout: layout)
+        self.keys = [" "]
+        
         setupUI()
     }
     

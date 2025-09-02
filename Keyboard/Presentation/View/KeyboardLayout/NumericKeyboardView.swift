@@ -10,9 +10,11 @@ import UIKit
 import SnapKit
 
 /// 숫자 키보드
-final class NumericKeyboardView: UIView, SwitchButtonGestureHandler {
+final class NumericKeyboardView: UIView, SwitchButtonGestureHandler, TextInteractionButtonGestureHandler {
     
     // MARK: - Properties
+    
+    private(set) lazy var totalTextInteractionButtonList: [TextInteractionButton] = firstRowKeyButtonList + secondRowKeyButtonList + thirdRowKeyButtonList + fourthRowKeyButtonList + [spaceButton, deleteButton]
     
     /// 숫자 키보드 키 배열
     private let numericKeyList = [
@@ -61,13 +63,10 @@ final class NumericKeyboardView: UIView, SwitchButtonGestureHandler {
     private let spaceButton = SpaceButton(layout: .numeric)
     /// 리턴 버튼
     private let returnButton = ReturnButton(layout: .numeric)
-    /// 키보드 전환 버튼
     private(set) var switchButton = SwitchButton(layout: .numeric)
     /// iPhone SE용 키보드 전환 버튼
     private let nextKeyboardButton: NextKeyboardButton
-    /// 키보드 레이아웃 선택 UI
     private(set) var keyboardSelectOverlayView = KeyboardSelectOverlayView(layout: .numeric).then { $0.isHidden = true }
-    /// 한 손 키보드 선택 UI
     private(set) var oneHandedModeSelectOverlayView = OneHandedModeSelectOverlayView().then { $0.isHidden = true }
     
     // MARK: - Initializer
@@ -89,11 +88,9 @@ final class NumericKeyboardView: UIView, SwitchButtonGestureHandler {
     func showKeyboardSelectOverlay(needToEmphasizeTarget: Bool) {
         keyboardSelectOverlayView.configure(needToEmphasizeTarget: needToEmphasizeTarget)
         keyboardSelectOverlayView.isHidden = false
-        switchButton.isHighlighted = true
     }
     
     func hideKeyboardSelectOverlay() {
-        switchButton.isHighlighted = false
         keyboardSelectOverlayView.isHidden = true
         keyboardSelectOverlayView.resetIsEmphasizingTarget()
     }
@@ -101,11 +98,9 @@ final class NumericKeyboardView: UIView, SwitchButtonGestureHandler {
     func showOneHandedModeSelectOverlay(of mode: OneHandedMode) {
         oneHandedModeSelectOverlayView.configure(emphasizeOf: mode)
         oneHandedModeSelectOverlayView.isHidden = false
-        switchButton.isHighlighted = true
     }
     
     func hideOneHandedModeSelectOverlay() {
-        switchButton.isHighlighted = false
         oneHandedModeSelectOverlayView.isHidden = true
         oneHandedModeSelectOverlayView.resetLastEmphasizeMode()
     }

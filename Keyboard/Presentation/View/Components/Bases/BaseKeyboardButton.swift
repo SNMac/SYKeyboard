@@ -30,6 +30,7 @@ class BaseKeyboardButton: UIButton {
             self.insetDy = 4
         }
         super.init(frame: .zero)
+        
         setupUI()
     }
     
@@ -46,6 +47,7 @@ private extension BaseKeyboardButton {
     }
     
     func setStyles() {
+        self.tintColor = .clear
         self.backgroundColor = .systemBackground.withAlphaComponent(0.001)  // 터치 영역 확보용
         
         var buttonConfig = UIButton.Configuration.plain()

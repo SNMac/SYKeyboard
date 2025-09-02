@@ -10,10 +10,11 @@ import UIKit
 import SnapKit
 
 /// 삭제 버튼
-final class DeleteButton: SecondaryButton {
+final class DeleteButton: SecondaryButton, TextInteractionButton {
     
     // MARK: - Properties
     
+    var keys: [String] = []
     private let layout: KeyboardLayout
     
     // MARK: - Initializer
@@ -54,7 +55,7 @@ private extension DeleteButton {
             case .normal:
                 self.backgroundView.backgroundColor = .secondaryButton
                 button.configuration?.image = UIImage(systemName: "delete.backward")?.withConfiguration(imageConfig).withTintColor(.label, renderingMode: .alwaysOriginal)
-            case .highlighted:
+            case .highlighted, .selected:
                 self.backgroundView.backgroundColor = .secondaryButtonPressed
                 button.configuration?.image = UIImage(systemName: "delete.backward.fill")?.withConfiguration(imageConfig).withTintColor(.label, renderingMode: .alwaysOriginal)
             default:

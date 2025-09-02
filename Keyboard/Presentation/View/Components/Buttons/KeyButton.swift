@@ -12,7 +12,7 @@ final class KeyButton: PrimaryButton {
     
     // MARK: - Properties
     
-    private var keys: [String] {
+    override var keys: [String] {
         didSet {
             updateTitle()
         }
@@ -21,19 +21,14 @@ final class KeyButton: PrimaryButton {
     // MARK: - Initializer
     
     init(layout: KeyboardLayout, keys: [String]) {
-        self.keys = keys
         super.init(layout: layout)
+        self.keys = keys
+        
         setupUI()
     }
     
     @MainActor required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
-    }
-    
-    // MARK: - Methods
-    
-    func update(keys: [String]) {
-        self.keys = keys
     }
 }
 
@@ -41,12 +36,7 @@ final class KeyButton: PrimaryButton {
 
 private extension KeyButton {
     func setupUI() {
-        setStyles()
         setActions()
-    }
-    
-    func setStyles() {
-        updateTitle()
     }
     
     func setActions() {

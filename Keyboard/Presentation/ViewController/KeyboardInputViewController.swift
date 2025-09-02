@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import OSLog
 
 import SnapKit
 import Then
@@ -14,6 +15,9 @@ import Then
 final class KeyboardInputViewController: UIInputViewController {
     
     // MARK: - Properties
+    
+    private lazy var logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: String(describing: self))
+    
     /// 현재 키보드
     private var currentKeyboardLayout: KeyboardLayout = .hangeul {
         didSet {
@@ -29,12 +33,17 @@ final class KeyboardInputViewController: UIInputViewController {
     }
     /// iPhone SE용 키보드 전환 버튼 액션
     private let nextKeyboardAction: Selector = #selector(handleInputModeList(from:with:))
-    /// 키보드 제스처 컨트롤러
-    private lazy var gestureController = GestureController(naratgeulKeyboardView: naratgeulKeyboardView,
-                                                           symbolKeyboardView: symbolKeyboardView,
-                                                           numericKeyboardView: numericKeyboardView,
-                                                           getCurrentKeyboardLayout: { [weak self] in return self?.currentKeyboardLayout ?? .hangeul },
-                                                           getCurrentOneHandedMode: { [weak self] in self?.currentOneHandedMode ?? .center })
+    /// 키보드 전환 버튼 제스처 컨트롤러
+    private lazy var switchButtonGestureController = SwitchButtonGestureController(naratgeulKeyboardView: naratgeulKeyboardView,
+                                                                                   symbolKeyboardView: symbolKeyboardView,
+                                                                                   numericKeyboardView: numericKeyboardView,
+                                                                                   getCurrentKeyboardLayout: { [weak self] in return self?.currentKeyboardLayout ?? .hangeul },
+                                                                                   getCurrentOneHandedMode: { [weak self] in self?.currentOneHandedMode ?? .center })
+    /// 키 입력 버튼, 스페이스 버튼, 삭제 버튼 제스처 컨트롤러
+    private lazy var primaryDeleteButtonGestureController = TextInteractionButtonGestureController(naratgeulKeyboardView: naratgeulKeyboardView,
+                                                                                                 symbolKeyboardView: symbolKeyboardView,
+                                                                                                 numericKeyboardView: numericKeyboardView,
+                                                                                                 getCurrentKeyboardLayout: { [weak self] in return self?.currentKeyboardLayout ?? .hangeul })
     
     // MARK: - UI Components
     
@@ -88,10 +97,12 @@ private extension KeyboardInputViewController {
     }
     
     func setDelegates() {
-        gestureController.delegate = self
+        primaryDeleteButtonGestureController.delegate = self
+        switchButtonGestureController.delegate = self
     }
     
     func setActions() {
+        setTextInteractionButtonAction()
         setSwitchButtonAction()
         setChevronButtonAction()
     }
@@ -135,6 +146,14 @@ private extension KeyboardInputViewController {
 // MARK: - Button Action Methods
 
 private extension KeyboardInputViewController {
+    func setTextInteractionButtonAction() {
+        [naratgeulKeyboardView.totalTextInteractionButtonList,
+         numericKeyboardView.totalTextInteractionButtonList,
+         symbolKeyboardView.totalTextInteractionButtonList].forEach { buttonList in
+            buttonList.forEach { addGesturesToPrimaryButton($0) }
+        }
+    }
+    
     func setSwitchButtonAction() {
         // 기호 키보드 전환
         let switchToSymbolKeyboard = UIAction { [weak self] _ in
@@ -155,18 +174,6 @@ private extension KeyboardInputViewController {
          numericKeyboardView.switchButton].forEach { addGesturesToSwitchButton($0) }
     }
     
-    func addGesturesToSwitchButton(_ button: SwitchButton) {
-        // 팬(드래그) 제스쳐
-        let panGesture = UIPanGestureRecognizer(target: gestureController, action: #selector(gestureController.handleSwitchButtonPanGesture(_:)))
-        button.addGestureRecognizer(panGesture)
-        
-        // 길게 누르기 제스쳐
-        let longPressGesture = UILongPressGestureRecognizer(target: gestureController, action: #selector(gestureController.handleSwitchButtonLongPressGesture(_:)))
-        longPressGesture.minimumPressDuration = UserDefaultsManager.shared.longPressDuration
-        longPressGesture.allowableMovement = UserDefaultsManager.shared.cursorActiveDistance
-        button.addGestureRecognizer(longPressGesture)
-    }
-    
     func setChevronButtonAction() {
         let resetOneHandMode = UIAction { [weak self] _ in
             self?.currentOneHandedMode = .center
@@ -174,17 +181,29 @@ private extension KeyboardInputViewController {
         leftChevronButton.addAction(resetOneHandMode, for: .touchUpInside)
         rightChevronButton.addAction(resetOneHandMode, for: .touchUpInside)
     }
-}
-
-// MARK: - GestureControllerDelegate
-
-extension KeyboardInputViewController: GestureControllerDelegate {
-    func changeKeyboardLayout(_ controller: GestureController, to newLayout: KeyboardLayout) {
-        self.currentKeyboardLayout = newLayout
+    
+    func addGesturesToPrimaryButton(_ button: TextInteractionButton) {
+        // 팬(드래그) 제스쳐
+        let panGesture = UIPanGestureRecognizer(target: primaryDeleteButtonGestureController, action: #selector(primaryDeleteButtonGestureController.panGestureHandler(_:)))
+        button.addGestureRecognizer(panGesture)
+        
+        // 길게 누르기 제스쳐
+        let longPressGesture = UILongPressGestureRecognizer(target: primaryDeleteButtonGestureController, action: #selector(primaryDeleteButtonGestureController.longPressGestureHandler(_:)))
+        longPressGesture.minimumPressDuration = UserDefaultsManager.shared.longPressDuration
+        longPressGesture.allowableMovement = UserDefaultsManager.shared.cursorActiveDistance
+        button.addGestureRecognizer(longPressGesture)
     }
     
-    func changeOneHandedMode(_ controller: GestureController, to newMode: OneHandedMode) {
-        self.currentOneHandedMode = newMode
+    func addGesturesToSwitchButton(_ button: SwitchButton) {
+        // 팬(드래그) 제스쳐
+        let panGesture = UIPanGestureRecognizer(target: switchButtonGestureController, action: #selector(switchButtonGestureController.panGestureHandler(_:)))
+        button.addGestureRecognizer(panGesture)
+        
+        // 길게 누르기 제스쳐
+        let longPressGesture = UILongPressGestureRecognizer(target: switchButtonGestureController, action: #selector(switchButtonGestureController.longPressGestureHandler(_:)))
+        longPressGesture.minimumPressDuration = UserDefaultsManager.shared.longPressDuration
+        longPressGesture.allowableMovement = UserDefaultsManager.shared.cursorActiveDistance
+        button.addGestureRecognizer(longPressGesture)
     }
 }
 
@@ -209,5 +228,26 @@ private extension KeyboardInputViewController {
         }
         leftChevronButton.isHidden = !(currentOneHandedMode == .right)
         rightChevronButton.isHidden = !(currentOneHandedMode == .left)
+    }
+}
+
+// MARK: - SwitchButtonGestureControllerDelegate
+
+extension KeyboardInputViewController: SwitchButtonGestureControllerDelegate {
+    func changeKeyboardLayout(_ controller: SwitchButtonGestureController, to newLayout: KeyboardLayout) {
+        self.currentKeyboardLayout = newLayout
+    }
+    
+    func changeOneHandedMode(_ controller: SwitchButtonGestureController, to newMode: OneHandedMode) {
+        self.currentOneHandedMode = newMode
+    }
+}
+
+// MARK: - TextInteractionButtonGestureControllerDelegate
+
+extension KeyboardInputViewController: TextInteractionButtonGestureControllerDelegate {
+    func moveCursor(_ controller: TextInteractionButtonGestureController, to direction: PanDirection) {
+        logger.debug("커서 이동 방향: \(String(describing: direction))")
+        FeedbackManager.shared.playHaptic()
     }
 }

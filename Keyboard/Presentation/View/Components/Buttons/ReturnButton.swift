@@ -8,12 +8,18 @@
 import UIKit
 
 /// 리턴 버튼
-final class ReturnButton: SecondaryButton {
+final class ReturnButton: SecondaryButton, TextInteractionButton {
+    
+    // MARK: - Properties
+    
+    var keys: [String] = []
     
     // MARK: - Initializer
     
     override init(layout: KeyboardLayout) {
         super.init(layout: layout)
+        self.keys = ["\n"]
+        
         setupUI()
     }
     

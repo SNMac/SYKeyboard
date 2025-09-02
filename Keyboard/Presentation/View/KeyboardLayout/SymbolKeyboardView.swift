@@ -11,9 +11,11 @@ import SnapKit
 import Then
 
 /// 기호 키보드
-final class SymbolKeyboardView: UIView, SwitchButtonGestureHandler {
+final class SymbolKeyboardView: UIView, SwitchButtonGestureHandler, TextInteractionButtonGestureHandler {
     
     // MARK: - Properties
+    
+    private(set) lazy var totalTextInteractionButtonList: [TextInteractionButton] = firstRowKeyButtonList + secondRowKeyButtonList + thirdRowKeyButtonList + [spaceButton, deleteButton]
     
     /// 기호 키보드 키 배열
     private let symbolKeyList = [
@@ -55,16 +57,16 @@ final class SymbolKeyboardView: UIView, SwitchButtonGestureHandler {
     private let fourthRowLeftSecondaryButtonHStackView = KeyboardRowHStackView()
     
     /// 키보드 첫번째 행 `KeyButton` 배열
-    private lazy var firstRowkeyButtonList = symbolKeyList[0][0].map { KeyButton(layout: .symbol, keys: $0) }
+    private lazy var firstRowKeyButtonList = symbolKeyList[0][0].map { KeyButton(layout: .symbol, keys: $0) }
     /// 키보드 두번째 행 `KeyButton` 배열
-    private lazy var secondRowkeyButtonList = symbolKeyList[0][1].map { KeyButton(layout: .symbol, keys: $0) }
+    private lazy var secondRowKeyButtonList = symbolKeyList[0][1].map { KeyButton(layout: .symbol, keys: $0) }
     /// 키보드 세번째 행 `KeyButton` 배열
-    private lazy var thirdRowkeyButtonList = symbolKeyList[0][2].map { KeyButton(layout: .symbol, keys: $0) }
+    private lazy var thirdRowKeyButtonList = symbolKeyList[0][2].map { KeyButton(layout: .symbol, keys: $0) }
     
     /// 기호 전환 버튼
     private let symbolShiftButton = SymbolShiftButton(layout: .symbol)
     /// 삭제 버튼
-    private let deleteButton = DeleteButton(layout: .symbol)
+    private(set) var deleteButton = DeleteButton(layout: .symbol)
     /// 키보드 전환 버튼
     private(set) var switchButton = SwitchButton(layout: .symbol)
     /// 스페이스 버튼
@@ -97,11 +99,9 @@ final class SymbolKeyboardView: UIView, SwitchButtonGestureHandler {
     func showKeyboardSelectOverlay(needToEmphasizeTarget: Bool) {
         keyboardSelectOverlayView.configure(needToEmphasizeTarget: needToEmphasizeTarget)
         keyboardSelectOverlayView.isHidden = false
-        switchButton.isHighlighted = true
     }
     
     func hideKeyboardSelectOverlay() {
-        switchButton.isHighlighted = false
         keyboardSelectOverlayView.isHidden = true
         keyboardSelectOverlayView.resetIsEmphasizingTarget()
     }
@@ -109,11 +109,9 @@ final class SymbolKeyboardView: UIView, SwitchButtonGestureHandler {
     func showOneHandedModeSelectOverlay(of mode: OneHandedMode) {
         oneHandedModeSelectOverlayView.configure(emphasizeOf: mode)
         oneHandedModeSelectOverlayView.isHidden = false
-        switchButton.isHighlighted = true
     }
     
     func hideOneHandedModeSelectOverlay() {
-        switchButton.isHighlighted = false
         oneHandedModeSelectOverlayView.isHidden = true
         oneHandedModeSelectOverlayView.resetLastEmphasizeMode()
     }
@@ -147,12 +145,12 @@ private extension SymbolKeyboardView {
                                              thirdRowHStackView,
                                              fourthRowHStackView)
         
-        firstRowkeyButtonList.forEach { firstRowHStackView.addArrangedSubview($0) }
+        firstRowKeyButtonList.forEach { firstRowHStackView.addArrangedSubview($0) }
         
-        secondRowkeyButtonList.forEach { secondRowHStackView.addArrangedSubview($0) }
+        secondRowKeyButtonList.forEach { secondRowHStackView.addArrangedSubview($0) }
         
         thirdRowHStackView.addArrangedSubview(symbolShiftButton)
-        thirdRowkeyButtonList.forEach { thirdRowHStackView.addArrangedSubview($0) }
+        thirdRowKeyButtonList.forEach { thirdRowHStackView.addArrangedSubview($0) }
         thirdRowHStackView.addArrangedSubview(deleteButton)
         
         fourthRowHStackView.addArrangedSubviews(fourthRowLeftSecondaryButtonHStackView, spaceButton, returnButton)
@@ -209,7 +207,7 @@ private extension SymbolKeyboardView {
 private extension SymbolKeyboardView {
     func updateKeyButtonList() {
         let symbolKeyListIndex = (isShifted ? 1 : 0)
-        let rowList = [firstRowkeyButtonList, secondRowkeyButtonList, thirdRowkeyButtonList]
+        let rowList = [firstRowKeyButtonList, secondRowKeyButtonList, thirdRowKeyButtonList]
         for (rowIndex, buttonList) in rowList.enumerated() {
             for (buttonIndex, button) in buttonList.enumerated() {
                 button.update(keys: symbolKeyList[symbolKeyListIndex][rowIndex][buttonIndex])

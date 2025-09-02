@@ -11,9 +11,11 @@ import SnapKit
 import Then
 
 /// 나랏글 키보드
-final class NaratgeulKeyboardView: UIView, SwitchButtonGestureHandler {
+final class NaratgeulKeyboardView: UIView, SwitchButtonGestureHandler, TextInteractionButtonGestureHandler {
     
     // MARK: - Properties
+    
+    private(set) lazy var totalTextInteractionButtonList: [TextInteractionButton] = firstRowKeyButtonList + secondRowKeyButtonList + thirdRowKeyButtonList + fourthRowKeyButtonList + [spaceButton, deleteButton]
     
     /// 나랏글 키보드 키 배열
     private let naratgeulKeyList = [
@@ -86,11 +88,9 @@ final class NaratgeulKeyboardView: UIView, SwitchButtonGestureHandler {
     func showKeyboardSelectOverlay(needToEmphasizeTarget: Bool) {
         keyboardSelectOverlayView.configure(needToEmphasizeTarget: needToEmphasizeTarget)
         keyboardSelectOverlayView.isHidden = false
-        switchButton.isHighlighted = true
     }
     
     func hideKeyboardSelectOverlay() {
-        switchButton.isHighlighted = false
         keyboardSelectOverlayView.isHidden = true
         keyboardSelectOverlayView.resetIsEmphasizingTarget()
     }
@@ -98,11 +98,9 @@ final class NaratgeulKeyboardView: UIView, SwitchButtonGestureHandler {
     func showOneHandedModeSelectOverlay(of mode: OneHandedMode) {
         oneHandedModeSelectOverlayView.configure(emphasizeOf: mode)
         oneHandedModeSelectOverlayView.isHidden = false
-        switchButton.isHighlighted = true
     }
     
     func hideOneHandedModeSelectOverlay() {
-        switchButton.isHighlighted = false
         oneHandedModeSelectOverlayView.isHidden = true
         oneHandedModeSelectOverlayView.resetLastEmphasizeMode()
     }

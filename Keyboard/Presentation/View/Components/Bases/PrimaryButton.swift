@@ -10,7 +10,11 @@ import UIKit
 import SnapKit
 
 /// 입력 관련 키보드 버튼
-class PrimaryButton: BaseKeyboardButton {
+class PrimaryButton: BaseKeyboardButton, TextInteractionButton {
+    
+    // MARK: - Properties
+    
+    var keys: [String] = []
     
     // MARK: - UI Components
     
@@ -29,6 +33,12 @@ class PrimaryButton: BaseKeyboardButton {
     @MainActor required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
+    
+    // MARK: - Override Methods
+    
+    func update(keys: [String]) {
+        self.keys = keys
+    }
 }
 
 // MARK: - UI Methods
@@ -46,7 +56,7 @@ private extension PrimaryButton {
             switch button.state {
             case .normal:
                 self?.backgroundView.backgroundColor = .primaryButton
-            case .highlighted:
+            case .highlighted, .selected:
                 self?.backgroundView.backgroundColor = .primaryButtonPressed
             default:
                 break
