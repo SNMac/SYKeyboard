@@ -73,10 +73,10 @@ final class KeyboardSelectOverlayView: UIStackView {
     func configure(needToEmphasizeTarget: Bool) {
         if let isEmphasizingTarget = self.isEmphasizingTarget {
             if isEmphasizingTarget != needToEmphasizeTarget {
-                FeedbackManager.shared.playHaptic()
+                FeedbackManager.shared.playHaptic(isForcing: true)
             }
         } else {
-            FeedbackManager.shared.playHaptic()
+            FeedbackManager.shared.playHaptic(isForcing: true)
         }
         
         if needToEmphasizeTarget {

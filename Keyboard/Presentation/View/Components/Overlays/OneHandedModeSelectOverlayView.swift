@@ -74,10 +74,10 @@ final class OneHandedModeSelectOverlayView: UIStackView {
     func configure(emphasizeOf mode: OneHandedMode) {
         if let lastEmphasizeMode {
             if lastEmphasizeMode != mode {
-                FeedbackManager.shared.playHaptic()
+                FeedbackManager.shared.playHaptic(isForcing: true)
             }
         } else {
-            FeedbackManager.shared.playHaptic()
+            FeedbackManager.shared.playHaptic(isForcing: true)
         }
         
         switch mode {

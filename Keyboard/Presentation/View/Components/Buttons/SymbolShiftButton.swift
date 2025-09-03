@@ -64,8 +64,8 @@ private extension SymbolShiftButton {
     
     func setActions() {
         let playFeedback = UIAction { _ in
-            if UserDefaultsManager.shared.isSoundFeedbackEnabled { FeedbackManager.shared.playModifierSound() }
-            if UserDefaultsManager.shared.isHapticFeedbackEnabled { FeedbackManager.shared.playHaptic() }
+            FeedbackManager.shared.playModifierSound()
+            FeedbackManager.shared.playHaptic()
         }
         self.addAction(playFeedback, for: .touchDown)
     }

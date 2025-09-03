@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import Combine
 import OSLog
 
 import SnapKit
@@ -17,6 +18,8 @@ final class KeyboardInputViewController: UIInputViewController {
     // MARK: - Properties
     
     private lazy var logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: String(describing: self))
+    
+    private var timer: AnyCancellable?
     
     /// 현재 키보드
     private var currentKeyboardLayout: KeyboardLayout = .hangeul {
@@ -41,9 +44,9 @@ final class KeyboardInputViewController: UIInputViewController {
                                                                                    getCurrentOneHandedMode: { [weak self] in self?.currentOneHandedMode ?? .center })
     /// 키 입력 버튼, 스페이스 버튼, 삭제 버튼 제스처 컨트롤러
     private lazy var primaryDeleteButtonGestureController = TextInteractionButtonGestureController(naratgeulKeyboardView: naratgeulKeyboardView,
-                                                                                                 symbolKeyboardView: symbolKeyboardView,
-                                                                                                 numericKeyboardView: numericKeyboardView,
-                                                                                                 getCurrentKeyboardLayout: { [weak self] in return self?.currentKeyboardLayout ?? .hangeul })
+                                                                                                   symbolKeyboardView: symbolKeyboardView,
+                                                                                                   numericKeyboardView: numericKeyboardView,
+                                                                                                   getCurrentKeyboardLayout: { [weak self] in return self?.currentKeyboardLayout ?? .hangeul })
     
     // MARK: - UI Components
     
@@ -182,7 +185,7 @@ private extension KeyboardInputViewController {
         rightChevronButton.addAction(resetOneHandMode, for: .touchUpInside)
     }
     
-    func addGesturesToPrimaryButton(_ button: TextInteractionButton) {
+    func addGesturesToPrimaryButton(_ button: TextInteractionButtonProtocol) {
         // 팬(드래그) 제스쳐
         let panGesture = UIPanGestureRecognizer(target: primaryDeleteButtonGestureController, action: #selector(primaryDeleteButtonGestureController.panGestureHandler(_:)))
         button.addGestureRecognizer(panGesture)
@@ -231,6 +234,30 @@ private extension KeyboardInputViewController {
     }
 }
 
+// MARK: - Text Interaction Methods
+
+private extension KeyboardInputViewController {
+    func performTextInteraction(for button: TextInteractionButton) {
+        switch button {
+        case .keyButton(let keys):
+            // TODO: 오토마타 연결
+            FeedbackManager.shared.playKeyTypingSound()
+        case .deleteButton:
+            textDocumentProxy.deleteBackward()
+            FeedbackManager.shared.playDeleteSound()
+        case .spaceButton:
+            guard let key = button.keys.first else { fatalError("옵셔널 언래핑 실패") }
+            textDocumentProxy.insertText(key)
+            FeedbackManager.shared.playModifierSound()
+        case .returnButton:
+            guard let key = button.keys.first else { fatalError("옵셔널 언래핑 실패") }
+            textDocumentProxy.insertText(key)
+            FeedbackManager.shared.playModifierSound()
+        }
+        FeedbackManager.shared.playHaptic()
+    }
+}
+
 // MARK: - SwitchButtonGestureControllerDelegate
 
 extension KeyboardInputViewController: SwitchButtonGestureControllerDelegate {
@@ -248,10 +275,22 @@ extension KeyboardInputViewController: SwitchButtonGestureControllerDelegate {
 extension KeyboardInputViewController: TextInteractionButtonGestureControllerDelegate {
     func moveCursor(_ controller: TextInteractionButtonGestureController, to direction: PanDirection) {
         logger.debug("커서 이동 방향: \(String(describing: direction))")
-        FeedbackManager.shared.playHaptic()
+        FeedbackManager.shared.playHaptic(isForcing: true)
     }
     
-    func repeatInput(_ controller: TextInteractionButtonGestureController) {
+    func startRepeat(_ controller: TextInteractionButtonGestureController, button: TextInteractionButton) {
+        stopRepeat(controller)
         
+        let repeatTimerInterval = 0.10 - UserDefaultsManager.shared.repeatRate
+        timer = Timer.publish(every: repeatTimerInterval, on: .main, in: .common)
+            .autoconnect()
+            .sink { [weak self] _ in
+                self?.performTextInteraction(for: button)
+            }
+    }
+    
+    func stopRepeat(_ controller: TextInteractionButtonGestureController) {
+        timer?.cancel()
+        timer = nil
     }
 }

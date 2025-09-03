@@ -15,7 +15,7 @@ final class NaratgeulKeyboardView: UIView, SwitchButtonGestureHandler, TextInter
     
     // MARK: - Properties
     
-    private(set) lazy var totalTextInteractionButtonList: [TextInteractionButton] = firstRowKeyButtonList + secondRowKeyButtonList + thirdRowKeyButtonList + fourthRowKeyButtonList + [spaceButton, deleteButton]
+    private(set) lazy var totalTextInteractionButtonList: [TextInteractionButtonProtocol] = firstRowKeyButtonList + secondRowKeyButtonList + thirdRowKeyButtonList + fourthRowKeyButtonList + [deleteButton, spaceButton]
     
     /// 나랏글 키보드 키 배열
     private let naratgeulKeyList = [
@@ -46,13 +46,13 @@ final class NaratgeulKeyboardView: UIView, SwitchButtonGestureHandler, TextInter
     private let fourthRowRightSecondaryButtonHStackView = KeyboardRowHStackView()
     
     /// 키보드 첫번째 행 `KeyButton` 배열
-    private lazy var firstRowKeyButtonList = naratgeulKeyList[0].map { KeyButton(layout: .hangeul, keys: $0) }
+    private lazy var firstRowKeyButtonList = naratgeulKeyList[0].map { KeyButton(layout: .hangeul, button: .keyButton(keys: $0)) }
     /// 키보드 두번째 행 `KeyButton` 배열
-    private lazy var secondRowKeyButtonList = naratgeulKeyList[1].map { KeyButton(layout: .hangeul, keys: $0) }
+    private lazy var secondRowKeyButtonList = naratgeulKeyList[1].map { KeyButton(layout: .hangeul, button: .keyButton(keys: $0)) }
     /// 키보드 세번째 행 `KeyButton` 배열
-    private lazy var thirdRowKeyButtonList = naratgeulKeyList[2].map { KeyButton(layout: .hangeul, keys: $0) }
+    private lazy var thirdRowKeyButtonList = naratgeulKeyList[2].map { KeyButton(layout: .hangeul, button: .keyButton(keys: $0)) }
     /// 키보드 네번째 행 `KeyButton` 배열
-    private lazy var fourthRowKeyButtonList = naratgeulKeyList[3].map { KeyButton(layout: .hangeul, keys: $0) }
+    private lazy var fourthRowKeyButtonList = naratgeulKeyList[3].map { KeyButton(layout: .hangeul, button: .keyButton(keys: $0)) }
     
     /// 삭제 버튼
     private let deleteButton = DeleteButton(layout: .hangeul)

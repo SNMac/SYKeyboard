@@ -10,9 +10,11 @@ import OSLog
 
 protocol TextInteractionButtonGestureControllerDelegate: AnyObject {
     func moveCursor(_ controller: TextInteractionButtonGestureController, to direction: PanDirection)
-    func repeatInput(_ controller: TextInteractionButtonGestureController)
+    func startRepeat(_ controller: TextInteractionButtonGestureController, button: TextInteractionButton)
+    func stopRepeat(_ controller: TextInteractionButtonGestureController)
 }
 
+/// 입력 상호작용 버튼(리턴 버튼 제외) 제스처 컨트롤러
 final class TextInteractionButtonGestureController {
     
     // MARK: - Properties
@@ -21,7 +23,6 @@ final class TextInteractionButtonGestureController {
     
     private var initialPanPoint: CGPoint = .zero
     private var intervalReferPanPoint: CGPoint = .zero
-    private var isPanGestureHandlerActive: Bool = false
     
     // Initializer Injection
     private let naratgeulKeyboardView: TextInteractionButtonGestureHandler
@@ -48,13 +49,13 @@ final class TextInteractionButtonGestureController {
     
     @objc func panGestureHandler(_ gesture: UIPanGestureRecognizer) {
         let currentPoint = gesture.location(in: gesture.view)
-        let currentButton = gesture.view as? TextInteractionButton
+        let currentButton = gesture.view as? TextInteractionButtonProtocol
         
         switch gesture.state {
         case .began:
-            logger.debug("팬 제스처 활성화")
             currentButton?.isSelected = true
             initialPanPoint = currentPoint
+            logger.debug("팬 제스처 활성화")
         case .changed:
             let distance = calcDistance(point1: initialPanPoint, point2: currentPoint)
             if distance >= UserDefaultsManager.shared.cursorActiveDistance {
@@ -71,17 +72,17 @@ final class TextInteractionButtonGestureController {
     }
     
     @objc func longPressGestureHandler(_ gesture: UILongPressGestureRecognizer) {
-        let currentButton = gesture.view as? TextInteractionButton
-        let gestureHandler = setGestureHandler()
+        let currentButton = gesture.view as? TextInteractionButtonProtocol
         
         switch gesture.state {
         case .began:
             currentButton?.isSelected = true
-        case .changed:
-            onLongPressGestureChanged(gesture, gestureHandler: gestureHandler)
+            onLongPressGestureBegan(gesture)
+            logger.debug("길게 누르기 제스처 활성화")
         case .ended, .cancelled, .failed:
-            onLongPressGestureEnded(gesture, gestureHandler: gestureHandler)
+            onLongPressGestureEnded()
             currentButton?.isSelected = false
+            logger.debug("길게 누르기 제스처 비활성화")
         default:
             break
         }
@@ -105,36 +106,20 @@ private extension TextInteractionButtonGestureController {
         }
     }
     
-    func onLongPressGestureChanged(_ gesture: UILongPressGestureRecognizer, gestureHandler: TextInteractionButtonGestureHandler) {
-        let currentButton = gesture.view as? TextInteractionButton
-        
+    func onLongPressGestureBegan(_ gesture: UILongPressGestureRecognizer) {
+        let currentButton = gesture.view as? TextInteractionButtonProtocol
+        guard let button = currentButton?.button else { fatalError("입력 상호작용 버튼이 아닙니다.") }
+        delegate?.startRepeat(self, button: button)
     }
     
-    func onLongPressGestureEnded(_ gesture: UILongPressGestureRecognizer, gestureHandler: TextInteractionButtonGestureHandler) {
-        
+    func onLongPressGestureEnded() {
+        delegate?.stopRepeat(self)
     }
 }
 
 // MARK: - Gesture Helper Methods
 
 private extension TextInteractionButtonGestureController {
-    func setGestureHandler() -> TextInteractionButtonGestureHandler {
-        let gestureHandler: TextInteractionButtonGestureHandler
-        
-        let currentKeyboardLayout = getCurrentKeyboardLayout()
-        switch currentKeyboardLayout {
-        case .hangeul:
-            gestureHandler = naratgeulKeyboardView
-        case .symbol:
-            gestureHandler = symbolKeyboardView
-        case .numeric:
-            gestureHandler = numericKeyboardView
-        default:
-            fatalError("구현되지 않은 case입니다.")
-        }
-        return gestureHandler
-    }
-    
     func calcDistance(point1: CGPoint, point2: CGPoint) -> CGFloat {
         let dx = point2.x - point1.x
         let dy = point2.y - point1.y

@@ -14,7 +14,7 @@ final class NumericKeyboardView: UIView, SwitchButtonGestureHandler, TextInterac
     
     // MARK: - Properties
     
-    private(set) lazy var totalTextInteractionButtonList: [TextInteractionButton] = firstRowKeyButtonList + secondRowKeyButtonList + thirdRowKeyButtonList + fourthRowKeyButtonList + [spaceButton, deleteButton]
+    private(set) lazy var totalTextInteractionButtonList: [TextInteractionButtonProtocol] = firstRowKeyButtonList + secondRowKeyButtonList + thirdRowKeyButtonList + fourthRowKeyButtonList + [deleteButton, spaceButton]
     
     /// 숫자 키보드 키 배열
     private let numericKeyList = [
@@ -49,13 +49,13 @@ final class NumericKeyboardView: UIView, SwitchButtonGestureHandler, TextInterac
     private let fourthRowRightSecondaryButtonHStackView = KeyboardRowHStackView()
     
     /// 키보드 첫번째 행 `KeyButton` 배열
-    private lazy var firstRowKeyButtonList = numericKeyList[0].map { KeyButton(layout: .numeric, keys: $0) }
+    private lazy var firstRowKeyButtonList = numericKeyList[0].map { KeyButton(layout: .numeric, button: .keyButton(keys: $0)) }
     /// 키보드 두번째 행 `KeyButton` 배열
-    private lazy var secondRowKeyButtonList = numericKeyList[1].map { KeyButton(layout: .numeric, keys: $0) }
+    private lazy var secondRowKeyButtonList = numericKeyList[1].map { KeyButton(layout: .numeric, button: .keyButton(keys: $0)) }
     /// 키보드 세번째 행 `KeyButton` 배열
-    private lazy var thirdRowKeyButtonList = numericKeyList[2].map { KeyButton(layout: .numeric, keys: $0) }
+    private lazy var thirdRowKeyButtonList = numericKeyList[2].map { KeyButton(layout: .numeric, button: .keyButton(keys: $0)) }
     /// 키보드 네번째 행 `KeyButton` 배열
-    private lazy var fourthRowKeyButtonList = numericKeyList[3].map { KeyButton(layout: .numeric, keys: $0) }
+    private lazy var fourthRowKeyButtonList = numericKeyList[3].map { KeyButton(layout: .numeric, button: .keyButton(keys: $0)) }
     
     /// 삭제 버튼
     private let deleteButton = DeleteButton(layout: .numeric)

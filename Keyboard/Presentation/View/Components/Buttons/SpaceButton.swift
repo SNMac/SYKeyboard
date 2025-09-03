@@ -14,7 +14,7 @@ final class SpaceButton: PrimaryButton {
     
     override init(layout: KeyboardLayout) {
         super.init(layout: layout)
-        self.keys = [" "]
+        self.button = .spaceButton
         
         setupUI()
     }
@@ -39,8 +39,8 @@ private extension SpaceButton {
     
     func setActions() {
         let playFeedback = UIAction { _ in
-            if UserDefaultsManager.shared.isSoundFeedbackEnabled { FeedbackManager.shared.playModifierSound() }
-            if UserDefaultsManager.shared.isHapticFeedbackEnabled { FeedbackManager.shared.playHaptic() }
+            FeedbackManager.shared.playModifierSound()
+            FeedbackManager.shared.playHaptic()
         }
         self.addAction(playFeedback, for: .touchDown)
     }

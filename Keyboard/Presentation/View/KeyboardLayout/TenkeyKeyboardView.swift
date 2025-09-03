@@ -41,13 +41,13 @@ final class TenkeyKeyboardView: UIView {
     private let fourthRowHStackView = KeyboardRowHStackView()
     
     /// 키보드 첫번째 행 `KeyButton` 배열
-    private lazy var firstRowKeyButtonList = tenKeyList[0].map { KeyButton(layout: .tenKey, keys: $0) }
+    private lazy var firstRowKeyButtonList = tenKeyList[0].map { KeyButton(layout: .tenKey, button: .keyButton(keys: $0)) }
     /// 키보드 두번째 행 `KeyButton` 배열
-    private lazy var secondRowKeyButtonList = tenKeyList[1].map { KeyButton(layout: .tenKey, keys: $0) }
+    private lazy var secondRowKeyButtonList = tenKeyList[1].map { KeyButton(layout: .tenKey, button: .keyButton(keys: $0)) }
     /// 키보드 세번째 행 `KeyButton` 배열
-    private lazy var thirdRowKeyButtonList = tenKeyList[2].map { KeyButton(layout: .tenKey, keys: $0) }
+    private lazy var thirdRowKeyButtonList = tenKeyList[2].map { KeyButton(layout: .tenKey, button: .keyButton(keys: $0)) }
     /// 키보드 네번째 행 `KeyButton` 배열
-    private lazy var fourthRowKeyButtonList = tenKeyList[3].map { KeyButton(layout: .tenKey, keys: $0) }
+    private lazy var fourthRowKeyButtonList = tenKeyList[3].map { KeyButton(layout: .tenKey, button: .keyButton(keys: $0)) }
     
     /// 키보드 네번째 행 좌측 여백
     private let buttonSpacer = KeyboardSpacer()

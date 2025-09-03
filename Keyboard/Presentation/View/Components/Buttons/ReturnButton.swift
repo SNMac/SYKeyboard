@@ -8,18 +8,16 @@
 import UIKit
 
 /// 리턴 버튼
-final class ReturnButton: SecondaryButton, TextInteractionButton {
+final class ReturnButton: SecondaryButton, TextInteractionButtonProtocol {
     
     // MARK: - Properties
     
-    var keys: [String] = []
+    var button: TextInteractionButton = .returnButton
     
     // MARK: - Initializer
     
     override init(layout: KeyboardLayout) {
         super.init(layout: layout)
-        self.keys = ["\n"]
-        
         setupUI()
     }
     
@@ -43,8 +41,8 @@ private extension ReturnButton {
     
     func setActions() {
         let playFeedback = UIAction { _ in
-            if UserDefaultsManager.shared.isSoundFeedbackEnabled { FeedbackManager.shared.playModifierSound() }
-            if UserDefaultsManager.shared.isHapticFeedbackEnabled { FeedbackManager.shared.playHaptic() }
+            FeedbackManager.shared.playModifierSound()
+            FeedbackManager.shared.playHaptic()
         }
         self.addAction(playFeedback, for: .touchDown)
     }

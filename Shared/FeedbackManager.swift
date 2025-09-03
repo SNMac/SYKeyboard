@@ -37,16 +37,18 @@ final class FeedbackManager {
     }
     
     /// 햅틱 피드백 재생
-    func playHaptic(_ style: UIImpactFeedbackGenerator.FeedbackStyle = .light) {
-        if style != .light {
-            let tempGenerator = UIImpactFeedbackGenerator(style: style)
-            tempGenerator.impactOccurred()
-            tempGenerator.prepare()
-            logger.debug("커스텀 햅틱 피드백 재생")
-        } else {
-            generator.impactOccurred()
-            generator.prepare()
-            logger.debug("light 햅틱 피드백 재생")
+    func playHaptic(_ style: UIImpactFeedbackGenerator.FeedbackStyle = .light, isForcing: Bool = false) {
+        if UserDefaultsManager.shared.isHapticFeedbackEnabled || isForcing {
+            if style != .light {
+                let tempGenerator = UIImpactFeedbackGenerator(style: style)
+                tempGenerator.impactOccurred()
+                tempGenerator.prepare()
+                logger.debug("커스텀 햅틱 피드백 재생")
+            } else {
+                generator.impactOccurred()
+                generator.prepare()
+                logger.debug("light 햅틱 피드백 재생")
+            }
         }
     }
     
@@ -54,19 +56,25 @@ final class FeedbackManager {
     
     /// 키 입력 사운드 재생
     func playKeyTypingSound() {
-        AudioServicesPlaySystemSound(keyTypingSoundID)
-        logger.debug("키 입력 사운드 재생")
+        if UserDefaultsManager.shared.isSoundFeedbackEnabled {
+            AudioServicesPlaySystemSound(keyTypingSoundID)
+            logger.debug("키 입력 사운드 재생")
+        }
     }
     
     /// 삭제 사운드 재생
     func playDeleteSound() {
-        AudioServicesPlaySystemSound(deleteSoundID)
-        logger.debug("삭제 사운드 재생")
+        if UserDefaultsManager.shared.isSoundFeedbackEnabled {
+            AudioServicesPlaySystemSound(deleteSoundID)
+            logger.debug("삭제 사운드 재생")
+        }
     }
     
     /// 모디파이어 사운드 재생
     func playModifierSound() {
-        AudioServicesPlaySystemSound(modifierSoundID)
-        logger.debug("모디파이어 사운드 재생")
+        if UserDefaultsManager.shared.isSoundFeedbackEnabled {
+            AudioServicesPlaySystemSound(modifierSoundID)
+            logger.debug("모디파이어 사운드 재생")
+        }
     }
 }

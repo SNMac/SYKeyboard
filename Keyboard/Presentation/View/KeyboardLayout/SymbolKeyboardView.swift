@@ -15,7 +15,7 @@ final class SymbolKeyboardView: UIView, SwitchButtonGestureHandler, TextInteract
     
     // MARK: - Properties
     
-    private(set) lazy var totalTextInteractionButtonList: [TextInteractionButton] = firstRowKeyButtonList + secondRowKeyButtonList + thirdRowKeyButtonList + [spaceButton, deleteButton]
+    private(set) lazy var totalTextInteractionButtonList: [TextInteractionButtonProtocol] = firstRowKeyButtonList + secondRowKeyButtonList + thirdRowKeyButtonList + [deleteButton, spaceButton]
     
     /// 기호 키보드 키 배열
     private let symbolKeyList = [
@@ -57,11 +57,11 @@ final class SymbolKeyboardView: UIView, SwitchButtonGestureHandler, TextInteract
     private let fourthRowLeftSecondaryButtonHStackView = KeyboardRowHStackView()
     
     /// 키보드 첫번째 행 `KeyButton` 배열
-    private lazy var firstRowKeyButtonList = symbolKeyList[0][0].map { KeyButton(layout: .symbol, keys: $0) }
+    private lazy var firstRowKeyButtonList = symbolKeyList[0][0].map { KeyButton(layout: .symbol, button: .keyButton(keys: $0)) }
     /// 키보드 두번째 행 `KeyButton` 배열
-    private lazy var secondRowKeyButtonList = symbolKeyList[0][1].map { KeyButton(layout: .symbol, keys: $0) }
+    private lazy var secondRowKeyButtonList = symbolKeyList[0][1].map { KeyButton(layout: .symbol, button: .keyButton(keys: $0)) }
     /// 키보드 세번째 행 `KeyButton` 배열
-    private lazy var thirdRowKeyButtonList = symbolKeyList[0][2].map { KeyButton(layout: .symbol, keys: $0) }
+    private lazy var thirdRowKeyButtonList = symbolKeyList[0][2].map { KeyButton(layout: .symbol, button: .keyButton(keys: $0)) }
     
     /// 기호 전환 버튼
     private let symbolShiftButton = SymbolShiftButton(layout: .symbol)
@@ -210,7 +210,8 @@ private extension SymbolKeyboardView {
         let rowList = [firstRowKeyButtonList, secondRowKeyButtonList, thirdRowKeyButtonList]
         for (rowIndex, buttonList) in rowList.enumerated() {
             for (buttonIndex, button) in buttonList.enumerated() {
-                button.update(keys: symbolKeyList[symbolKeyListIndex][rowIndex][buttonIndex])
+                let keys = symbolKeyList[symbolKeyListIndex][rowIndex][buttonIndex]
+                button.update(button: TextInteractionButton.keyButton(keys: keys))
             }
         }
     }

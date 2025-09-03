@@ -12,7 +12,7 @@ final class KeyButton: PrimaryButton {
     
     // MARK: - Properties
     
-    override var keys: [String] {
+    override var button: TextInteractionButton {
         didSet {
             updateTitle()
         }
@@ -20,15 +20,19 @@ final class KeyButton: PrimaryButton {
     
     // MARK: - Initializer
     
-    init(layout: KeyboardLayout, keys: [String]) {
+    init(layout: KeyboardLayout, button: TextInteractionButton) {
         super.init(layout: layout)
-        self.keys = keys
+        self.button = button
         
         setupUI()
     }
     
     @MainActor required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+    
+    func update(button: TextInteractionButton) {
+        self.button = button
     }
 }
 
@@ -41,8 +45,8 @@ private extension KeyButton {
     
     func setActions() {
         let playFeedback = UIAction { _ in
-            if UserDefaultsManager.shared.isSoundFeedbackEnabled { FeedbackManager.shared.playKeyTypingSound() }
-            if UserDefaultsManager.shared.isHapticFeedbackEnabled { FeedbackManager.shared.playHaptic() }
+            FeedbackManager.shared.playKeyTypingSound()
+            FeedbackManager.shared.playHaptic()
         }
         self.addAction(playFeedback, for: .touchDown)
     }
@@ -52,6 +56,7 @@ private extension KeyButton {
 
 private extension KeyButton {
     func updateTitle() {
+        let keys = button.keys
         if keys.count == 1 {
             guard let key = keys.first else { return }
             if Character(key).isLowercase {

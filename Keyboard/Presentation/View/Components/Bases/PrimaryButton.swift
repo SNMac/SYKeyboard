@@ -10,11 +10,11 @@ import UIKit
 import SnapKit
 
 /// 입력 관련 키보드 버튼
-class PrimaryButton: BaseKeyboardButton, TextInteractionButton {
+class PrimaryButton: BaseKeyboardButton, TextInteractionButtonProtocol {
     
     // MARK: - Properties
     
-    var keys: [String] = []
+    var button: TextInteractionButton = .keyButton(keys: [])
     
     // MARK: - UI Components
     
@@ -32,12 +32,6 @@ class PrimaryButton: BaseKeyboardButton, TextInteractionButton {
     
     @MainActor required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
-    }
-    
-    // MARK: - Override Methods
-    
-    func update(keys: [String]) {
-        self.keys = keys
     }
 }
 

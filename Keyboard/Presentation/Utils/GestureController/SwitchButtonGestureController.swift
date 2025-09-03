@@ -13,7 +13,7 @@ protocol SwitchButtonGestureControllerDelegate: AnyObject {
     func changeOneHandedMode(_ controller: SwitchButtonGestureController, to newMode: OneHandedMode)
 }
 
-/// 키보드 제스처 컨트롤러
+/// 키보드 전환 버튼 제스처 컨트롤러
 final class SwitchButtonGestureController {
     
     // MARK: - Properties
@@ -21,7 +21,6 @@ final class SwitchButtonGestureController {
     private lazy var logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: String(describing: self))
     
     private var initialPanPoint: CGPoint = .zero
-    private var isPanGestureHandlerActive: Bool = false
     
     typealias PanConfig = (gestureHandler: SwitchButtonGestureHandler,
                            targetLayout: KeyboardLayout,
@@ -65,8 +64,8 @@ final class SwitchButtonGestureController {
             onPanGestureChanged(gesture, config: config)
         case .ended, .cancelled, .failed:
             onPanGestureEnded(gesture, config: config)
-            logger.debug("팬 제스처 비활성화")
             currentButton?.isSelected = false
+            logger.debug("팬 제스처 비활성화")
         default:
             break
         }
@@ -80,11 +79,13 @@ final class SwitchButtonGestureController {
         case .began:
             currentButton?.isSelected = true
             onLongPressGestureBegan(gestureHandler: gestureHandler)
+            logger.debug("길게 누르기 제스처 활성화")
         case .changed:
             onLongPressGestureChanged(gesture, gestureHandler: gestureHandler)
         case .ended, .cancelled, .failed:
             onLongPressGestureEnded(gesture, gestureHandler: gestureHandler)
             currentButton?.isSelected = false
+            logger.debug("길게 누르기 제스처 비활성화")
         default:
             break
         }

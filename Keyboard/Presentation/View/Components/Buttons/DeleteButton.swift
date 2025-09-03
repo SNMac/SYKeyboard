@@ -10,11 +10,11 @@ import UIKit
 import SnapKit
 
 /// 삭제 버튼
-final class DeleteButton: SecondaryButton, TextInteractionButton {
+final class DeleteButton: SecondaryButton, TextInteractionButtonProtocol {
     
     // MARK: - Properties
     
-    var keys: [String] = []
+    var button: TextInteractionButton = .deleteButton
     private let layout: KeyboardLayout
     
     // MARK: - Initializer
@@ -66,8 +66,8 @@ private extension DeleteButton {
     
     func setActions() {
         let playFeedback = UIAction { _ in
-            if UserDefaultsManager.shared.isSoundFeedbackEnabled { FeedbackManager.shared.playDeleteSound() }
-            if UserDefaultsManager.shared.isHapticFeedbackEnabled { FeedbackManager.shared.playHaptic() }
+            FeedbackManager.shared.playDeleteSound()
+            FeedbackManager.shared.playHaptic()
         }
         self.addAction(playFeedback, for: .touchDown)
     }
