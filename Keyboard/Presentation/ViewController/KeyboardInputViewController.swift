@@ -250,4 +250,8 @@ extension KeyboardInputViewController: TextInteractionButtonGestureControllerDel
         logger.debug("커서 이동 방향: \(String(describing: direction))")
         FeedbackManager.shared.playHaptic()
     }
+    
+    func repeatInput(_ controller: TextInteractionButtonGestureController) {
+        
+    }
 }

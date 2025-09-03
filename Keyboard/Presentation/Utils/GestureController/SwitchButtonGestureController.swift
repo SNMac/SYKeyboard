@@ -21,16 +21,7 @@ final class SwitchButtonGestureController {
     private lazy var logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: String(describing: self))
     
     private var initialPanPoint: CGPoint = .zero
-    private var intervalReferPanPoint: CGPoint = .zero
-    private var isPanGestureHandlerActive: Bool = false {
-        didSet {
-            if isPanGestureHandlerActive {
-                logger.debug("팬 제스처 활성화 중")
-            } else {
-                logger.debug("팬 제스처 비활성화됨")
-            }
-        }
-    }
+    private var isPanGestureHandlerActive: Bool = false
     
     typealias PanConfig = (gestureHandler: SwitchButtonGestureHandler,
                            targetLayout: KeyboardLayout,
@@ -63,24 +54,18 @@ final class SwitchButtonGestureController {
     // MARK: - @objc Gesture Methods
     
     @objc func panGestureHandler(_ gesture: UIPanGestureRecognizer) {
-        let currentPoint = gesture.location(in: gesture.view)
         let currentButton = gesture.view as? SwitchButton
         let config = setPanConfig()
         
         switch gesture.state {
         case .began:
             currentButton?.isSelected = true
-            initialPanPoint = currentPoint
+            logger.debug("팬 제스처 활성화")
         case .changed:
-            let distance = calcDistance(point1: initialPanPoint, point2: currentPoint)
-            if isPanGestureHandlerActive || distance >= UserDefaultsManager.shared.cursorActiveDistance {
-                isPanGestureHandlerActive = true
-                onPanGestureChanged(gesture, config: config)
-            }
+            onPanGestureChanged(gesture, config: config)
         case .ended, .cancelled, .failed:
             onPanGestureEnded(gesture, config: config)
-            initialPanPoint = .zero
-            isPanGestureHandlerActive = false
+            logger.debug("팬 제스처 비활성화")
             currentButton?.isSelected = false
         default:
             break
@@ -238,12 +223,6 @@ private extension SwitchButtonGestureController {
             fatalError("구현되지 않은 case입니다.")
         }
         return gestureHandler
-    }
-    
-    func calcDistance(point1: CGPoint, point2: CGPoint) -> CGFloat {
-        let dx = point2.x - point1.x
-        let dy = point2.y - point1.y
-        return sqrt(dx * dx + dy * dy)
     }
     
     func setPanConfig() -> PanConfig {

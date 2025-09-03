@@ -10,7 +10,7 @@ import OSLog
 
 protocol TextInteractionButtonGestureControllerDelegate: AnyObject {
     func moveCursor(_ controller: TextInteractionButtonGestureController, to direction: PanDirection)
-//    func repeatInput()
+    func repeatInput(_ controller: TextInteractionButtonGestureController)
 }
 
 final class TextInteractionButtonGestureController {
@@ -21,15 +21,7 @@ final class TextInteractionButtonGestureController {
     
     private var initialPanPoint: CGPoint = .zero
     private var intervalReferPanPoint: CGPoint = .zero
-    private var isPanGestureHandlerActive: Bool = false {
-        didSet {
-            if isPanGestureHandlerActive {
-                logger.debug("팬 제스처 활성화 중")
-            } else {
-                logger.debug("팬 제스처 비활성화됨")
-            }
-        }
-    }
+    private var isPanGestureHandlerActive: Bool = false
     
     // Initializer Injection
     private let naratgeulKeyboardView: TextInteractionButtonGestureHandler
@@ -60,19 +52,19 @@ final class TextInteractionButtonGestureController {
         
         switch gesture.state {
         case .began:
+            logger.debug("팬 제스처 활성화")
             currentButton?.isSelected = true
             initialPanPoint = currentPoint
         case .changed:
             let distance = calcDistance(point1: initialPanPoint, point2: currentPoint)
-            if isPanGestureHandlerActive || distance >= UserDefaultsManager.shared.cursorActiveDistance {
+            if distance >= UserDefaultsManager.shared.cursorActiveDistance {
                 currentButton?.isSelected = false
-                isPanGestureHandlerActive = true
                 onPanGestureChanged(gesture)
             }
         case .ended, .cancelled, .failed:
             initialPanPoint = .zero
-            isPanGestureHandlerActive = false
             currentButton?.isSelected = false
+            logger.debug("팬 제스처 비활성화")
         default:
             break
         }
@@ -102,9 +94,9 @@ private extension TextInteractionButtonGestureController {
     func onPanGestureChanged(_ gesture: UIPanGestureRecognizer) {
         let currentPoint = gesture.location(in: gesture.view)
         
-        let distance = calcDistance(point1: intervalReferPanPoint, point2: currentPoint)
-        if distance >= UserDefaultsManager.shared.cursorMoveInterval {
-            if currentPoint.x - intervalReferPanPoint.x > 0 {
+        let distance = currentPoint.x - intervalReferPanPoint.x
+        if abs(distance) >= UserDefaultsManager.shared.cursorMoveInterval {
+            if distance > 0 {
                 delegate?.moveCursor(self, to: .right)
             } else {
                 delegate?.moveCursor(self, to: .left)
@@ -114,6 +106,7 @@ private extension TextInteractionButtonGestureController {
     }
     
     func onLongPressGestureChanged(_ gesture: UILongPressGestureRecognizer, gestureHandler: TextInteractionButtonGestureHandler) {
+        let currentButton = gesture.view as? TextInteractionButton
         
     }
     
