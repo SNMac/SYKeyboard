@@ -14,7 +14,7 @@ protocol SwitchButtonGestureControllerDelegate: AnyObject {
 }
 
 /// 키보드 전환 버튼 제스처 컨트롤러
-final class SwitchButtonGestureController {
+final class SwitchButtonGestureController: NSObject {
     
     // MARK: - Properties
     
@@ -310,5 +310,16 @@ private extension SwitchButtonGestureController {
         default:
             return getCurrentOneHandedMode()
         }
+    }
+}
+
+// MARK: - UIGestureRecognizerDelegate
+
+extension SwitchButtonGestureController: UIGestureRecognizerDelegate {
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldBeRequiredToFailBy otherGestureRecognizer: UIGestureRecognizer) -> Bool {
+        if gestureRecognizer is UILongPressGestureRecognizer && otherGestureRecognizer is UIPanGestureRecognizer {
+            return true
+        }
+        return false
     }
 }

@@ -57,10 +57,10 @@ final class KeyboardInputViewController: UIInputViewController {
                                                                                    getCurrentKeyboardLayout: { [weak self] in return self?.currentKeyboardLayout ?? .hangeul },
                                                                                    getCurrentOneHandedMode: { [weak self] in self?.currentOneHandedMode ?? .center })
     /// 키 입력 버튼, 스페이스 버튼, 삭제 버튼 제스처 컨트롤러
-    private lazy var primaryDeleteButtonGestureController = TextInteractionButtonGestureController(naratgeulKeyboardView: naratgeulKeyboardView,
-                                                                                                   symbolKeyboardView: symbolKeyboardView,
-                                                                                                   numericKeyboardView: numericKeyboardView,
-                                                                                                   getCurrentKeyboardLayout: { [weak self] in return self?.currentKeyboardLayout ?? .hangeul })
+    private lazy var textInteractionButtonGestureController = TextInteractionButtonGestureController(naratgeulKeyboardView: naratgeulKeyboardView,
+                                                                                                     symbolKeyboardView: symbolKeyboardView,
+                                                                                                     numericKeyboardView: numericKeyboardView,
+                                                                                                     getCurrentKeyboardLayout: { [weak self] in return self?.currentKeyboardLayout ?? .hangeul })
     /// 삭제 버튼 팬 제스처로 인해 임식로 삭제된 내용을 저장하는 변수
     private var tempDeletedCharacters: [Character] = []
     
@@ -122,7 +122,7 @@ private extension KeyboardInputViewController {
     }
     
     func setDelegates() {
-        primaryDeleteButtonGestureController.delegate = self
+        textInteractionButtonGestureController.delegate = self
         switchButtonGestureController.delegate = self
     }
     
@@ -175,8 +175,22 @@ private extension KeyboardInputViewController {
         [naratgeulKeyboardView.totalTextInteractionButtonList,
          numericKeyboardView.totalTextInteractionButtonList,
          symbolKeyboardView.totalTextInteractionButtonList].forEach { buttonList in
-            buttonList.forEach { addGesturesToPrimaryButton($0) }
+            buttonList.forEach { addGesturesToTextInteractionButton($0) }
         }
+    }
+    
+    func addGesturesToTextInteractionButton(_ button: TextInteractionButtonProtocol) {
+        // 팬(드래그) 제스쳐
+        let panGesture = UIPanGestureRecognizer(target: textInteractionButtonGestureController, action: #selector(textInteractionButtonGestureController.panGestureHandler(_:)))
+        panGesture.delegate = textInteractionButtonGestureController
+        button.addGestureRecognizer(panGesture)
+        
+        // 길게 누르기 제스쳐
+        let longPressGesture = UILongPressGestureRecognizer(target: textInteractionButtonGestureController, action: #selector(textInteractionButtonGestureController.longPressGestureHandler(_:)))
+        longPressGesture.delegate = textInteractionButtonGestureController
+        longPressGesture.minimumPressDuration = UserDefaultsManager.shared.longPressDuration
+        longPressGesture.allowableMovement = UserDefaultsManager.shared.cursorActiveDistance
+        button.addGestureRecognizer(longPressGesture)
     }
     
     func setSwitchButtonAction() {
@@ -199,36 +213,26 @@ private extension KeyboardInputViewController {
          numericKeyboardView.switchButton].forEach { addGesturesToSwitchButton($0) }
     }
     
+    func addGesturesToSwitchButton(_ button: SwitchButton) {
+        // 팬(드래그) 제스쳐
+        let panGesture = UIPanGestureRecognizer(target: switchButtonGestureController, action: #selector(switchButtonGestureController.panGestureHandler(_:)))
+        panGesture.delegate = textInteractionButtonGestureController
+        button.addGestureRecognizer(panGesture)
+        
+        // 길게 누르기 제스쳐
+        let longPressGesture = UILongPressGestureRecognizer(target: switchButtonGestureController, action: #selector(switchButtonGestureController.longPressGestureHandler(_:)))
+        longPressGesture.delegate = textInteractionButtonGestureController
+        longPressGesture.minimumPressDuration = UserDefaultsManager.shared.longPressDuration
+        longPressGesture.allowableMovement = UserDefaultsManager.shared.cursorActiveDistance
+        button.addGestureRecognizer(longPressGesture)
+    }
+    
     func setChevronButtonAction() {
         let resetOneHandMode = UIAction { [weak self] _ in
             self?.currentOneHandedMode = .center
         }
         leftChevronButton.addAction(resetOneHandMode, for: .touchUpInside)
         rightChevronButton.addAction(resetOneHandMode, for: .touchUpInside)
-    }
-    
-    func addGesturesToPrimaryButton(_ button: TextInteractionButtonProtocol) {
-        // 팬(드래그) 제스쳐
-        let panGesture = UIPanGestureRecognizer(target: primaryDeleteButtonGestureController, action: #selector(primaryDeleteButtonGestureController.panGestureHandler(_:)))
-        button.addGestureRecognizer(panGesture)
-        
-        // 길게 누르기 제스쳐
-        let longPressGesture = UILongPressGestureRecognizer(target: primaryDeleteButtonGestureController, action: #selector(primaryDeleteButtonGestureController.longPressGestureHandler(_:)))
-        longPressGesture.minimumPressDuration = UserDefaultsManager.shared.longPressDuration
-        longPressGesture.allowableMovement = UserDefaultsManager.shared.cursorActiveDistance
-        button.addGestureRecognizer(longPressGesture)
-    }
-    
-    func addGesturesToSwitchButton(_ button: SwitchButton) {
-        // 팬(드래그) 제스쳐
-        let panGesture = UIPanGestureRecognizer(target: switchButtonGestureController, action: #selector(switchButtonGestureController.panGestureHandler(_:)))
-        button.addGestureRecognizer(panGesture)
-        
-        // 길게 누르기 제스쳐
-        let longPressGesture = UILongPressGestureRecognizer(target: switchButtonGestureController, action: #selector(switchButtonGestureController.longPressGestureHandler(_:)))
-        longPressGesture.minimumPressDuration = UserDefaultsManager.shared.longPressDuration
-        longPressGesture.allowableMovement = UserDefaultsManager.shared.cursorActiveDistance
-        button.addGestureRecognizer(longPressGesture)
     }
 }
 
@@ -281,6 +285,7 @@ private extension KeyboardInputViewController {
         switch button {
         case .keyButton(let keys):
             // TODO: 오토마타 연결
+            FeedbackManager.shared.playHaptic()
             FeedbackManager.shared.playKeyTypingSound()
         case .deleteButton:
             if let beforeCursor = textDocumentProxy.documentContextBeforeInput, !beforeCursor.isEmpty {
@@ -345,14 +350,14 @@ extension KeyboardInputViewController: TextInteractionButtonGestureControllerDel
                 textDocumentProxy.deleteBackward()
                 FeedbackManager.shared.playHaptic()
                 FeedbackManager.shared.playDeleteSound()
-                logger.debug("글자 삭제")
+                logger.debug("커서 앞 글자 삭제")
             }
         case .right:
             if let lastDeleted = tempDeletedCharacters.popLast() {
                 textDocumentProxy.insertText(String(lastDeleted))
                 FeedbackManager.shared.playHaptic()
                 FeedbackManager.shared.playDeleteSound()
-                logger.debug("글자 복구")
+                logger.debug("삭제된 글자 복구")
             }
         default:
             assertionFailure("도달할 수 없는 case 입니다.")

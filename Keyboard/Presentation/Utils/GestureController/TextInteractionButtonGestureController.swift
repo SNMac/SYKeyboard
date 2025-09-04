@@ -17,7 +17,7 @@ protocol TextInteractionButtonGestureControllerDelegate: AnyObject {
 }
 
 /// 입력 상호작용 버튼(리턴 버튼 제외) 제스처 컨트롤러
-final class TextInteractionButtonGestureController {
+final class TextInteractionButtonGestureController: NSObject {
     
     // MARK: - Properties
     
@@ -146,5 +146,16 @@ private extension TextInteractionButtonGestureController {
         let dx = point2.x - point1.x
         let dy = point2.y - point1.y
         return sqrt(dx * dx + dy * dy)
+    }
+}
+
+// MARK: - UIGestureRecognizerDelegate
+
+extension TextInteractionButtonGestureController: UIGestureRecognizerDelegate {
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldBeRequiredToFailBy otherGestureRecognizer: UIGestureRecognizer) -> Bool {
+        if gestureRecognizer is UILongPressGestureRecognizer && otherGestureRecognizer is UIPanGestureRecognizer {
+            return true
+        }
+        return false
     }
 }
