@@ -19,8 +19,8 @@ final class KeyboardInputViewController: UIInputViewController {
     
     private lazy var logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: String(describing: self))
     
+    /// 반복 입력용 타이머
     private var timer: AnyCancellable?
-    
     /// 현재 키보드
     private var currentKeyboardLayout: KeyboardLayout = .hangeul {
         didSet {
@@ -61,6 +61,8 @@ final class KeyboardInputViewController: UIInputViewController {
                                                                                                    symbolKeyboardView: symbolKeyboardView,
                                                                                                    numericKeyboardView: numericKeyboardView,
                                                                                                    getCurrentKeyboardLayout: { [weak self] in return self?.currentKeyboardLayout ?? .hangeul })
+    /// 삭제 버튼 팬 제스처로 인해 임식로 삭제된 내용을 저장하는 변수
+    private var tempDeletedCharacters: [Character] = []
     
     // MARK: - UI Components
     
@@ -254,7 +256,7 @@ private extension KeyboardInputViewController {
     }
     
     func updateReturnButtonType() {
-        let type = ReturnButton.ReturnButtonType(type: textDocumentProxy.returnKeyType)
+        let type = ReturnButton.ReturnKeyType(type: textDocumentProxy.returnKeyType)
         currentReturnButton.update(for: type)
     }
 }
@@ -281,16 +283,19 @@ private extension KeyboardInputViewController {
             // TODO: 오토마타 연결
             FeedbackManager.shared.playKeyTypingSound()
         case .deleteButton:
-            textDocumentProxy.deleteBackward()
-            FeedbackManager.shared.playDeleteSound()
+            if let beforeCursor = textDocumentProxy.documentContextBeforeInput, !beforeCursor.isEmpty {
+                textDocumentProxy.deleteBackward()
+                FeedbackManager.shared.playHaptic()
+                FeedbackManager.shared.playDeleteSound()
+            }
         case .spaceButton:
             guard let key = button.keys.first else { fatalError("옵셔널 언래핑 실패") }
             textDocumentProxy.insertText(key)
+            FeedbackManager.shared.playHaptic()
             FeedbackManager.shared.playModifierSound()
         default:
             assertionFailure("도달할 수 없는 case 입니다.")
         }
-        FeedbackManager.shared.playHaptic()
     }
 }
 
@@ -309,21 +314,58 @@ extension KeyboardInputViewController: SwitchButtonGestureControllerDelegate {
 // MARK: - TextInteractionButtonGestureControllerDelegate
 
 extension KeyboardInputViewController: TextInteractionButtonGestureControllerDelegate {
-    func moveCursor(_ controller: TextInteractionButtonGestureController, to direction: PanDirection) {
+    func primaryButtonPanning(_ controller: TextInteractionButtonGestureController, to direction: PanDirection) {
+        logger.debug("Primary Button 팬 제스처 방향: \(String(describing: direction))")
+        
         switch direction {
         case .left:
-            textDocumentProxy.adjustTextPosition(byCharacterOffset: -1)
+            if textDocumentProxy.documentContextBeforeInput != nil {
+                textDocumentProxy.adjustTextPosition(byCharacterOffset: -1)
+                FeedbackManager.shared.playHaptic(isForcing: true)
+                logger.debug("커서 왼쪽 이동")
+            }
         case .right:
-            textDocumentProxy.adjustTextPosition(byCharacterOffset: 1)
+            if textDocumentProxy.documentContextAfterInput != nil {
+                textDocumentProxy.adjustTextPosition(byCharacterOffset: 1)
+                FeedbackManager.shared.playHaptic(isForcing: true)
+                logger.debug("커서 오른쪽 이동")
+            }
         default:
             assertionFailure("도달할 수 없는 case 입니다.")
         }
-        logger.debug("커서 이동 방향: \(String(describing: direction))")
-        FeedbackManager.shared.playHaptic(isForcing: true)
     }
     
-    func startRepeat(_ controller: TextInteractionButtonGestureController, button: TextInteractionButton) {
-        stopRepeat(controller)
+    func deleteButtonPanning(_ controller: TextInteractionButtonGestureController, to direction: PanDirection) {
+        logger.debug("DeleteButton 팬 제스처 방향: \(String(describing: direction))")
+        
+        switch direction {
+        case .left:
+            if let lastBeforeCursor = textDocumentProxy.documentContextBeforeInput?.last {
+                tempDeletedCharacters.append(lastBeforeCursor)
+                textDocumentProxy.deleteBackward()
+                FeedbackManager.shared.playHaptic()
+                FeedbackManager.shared.playDeleteSound()
+                logger.debug("글자 삭제")
+            }
+        case .right:
+            if let lastDeleted = tempDeletedCharacters.popLast() {
+                textDocumentProxy.insertText(String(lastDeleted))
+                FeedbackManager.shared.playHaptic()
+                FeedbackManager.shared.playDeleteSound()
+                logger.debug("글자 복구")
+            }
+        default:
+            assertionFailure("도달할 수 없는 case 입니다.")
+        }
+    }
+    
+    func deleteButtonPanStopped(_ controller: TextInteractionButtonGestureController) {
+        tempDeletedCharacters.removeAll()
+        logger.debug("임시 삭제 내용 저장 변수 초기화")
+    }
+    
+    func textInteractionButtonLongPressing(_ controller: TextInteractionButtonGestureController, button: TextInteractionButton) {
+        textInteractionButtonLongPressStopped(controller)
         
         let repeatTimerInterval = 0.10 - UserDefaultsManager.shared.repeatRate
         timer = Timer.publish(every: repeatTimerInterval, on: .main, in: .common)
@@ -331,12 +373,12 @@ extension KeyboardInputViewController: TextInteractionButtonGestureControllerDel
             .sink { [weak self] _ in
                 self?.performRepeatTextInteraction(for: button)
             }
-        logger.debug("반복 입력 시작")
+        logger.debug("반복 타이머 생성")
     }
     
-    func stopRepeat(_ controller: TextInteractionButtonGestureController) {
+    func textInteractionButtonLongPressStopped(_ controller: TextInteractionButtonGestureController) {
         timer?.cancel()
         timer = nil
-        logger.debug("반복 입력 종료")
+        logger.debug("반복 타이머 초기화")
     }
 }

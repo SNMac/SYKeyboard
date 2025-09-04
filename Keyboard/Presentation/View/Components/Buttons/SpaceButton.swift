@@ -39,8 +39,8 @@ private extension SpaceButton {
     
     func setActions() {
         let playFeedback = UIAction { _ in
-            FeedbackManager.shared.playModifierSound()
             FeedbackManager.shared.playHaptic()
+            FeedbackManager.shared.playModifierSound()
         }
         self.addAction(playFeedback, for: .touchDown)
     }

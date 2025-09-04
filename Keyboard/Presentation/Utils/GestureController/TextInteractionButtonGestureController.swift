@@ -9,9 +9,11 @@ import UIKit
 import OSLog
 
 protocol TextInteractionButtonGestureControllerDelegate: AnyObject {
-    func moveCursor(_ controller: TextInteractionButtonGestureController, to direction: PanDirection)
-    func startRepeat(_ controller: TextInteractionButtonGestureController, button: TextInteractionButton)
-    func stopRepeat(_ controller: TextInteractionButtonGestureController)
+    func primaryButtonPanning(_ controller: TextInteractionButtonGestureController, to direction: PanDirection)
+    func deleteButtonPanning(_ controller: TextInteractionButtonGestureController, to direction: PanDirection)
+    func deleteButtonPanStopped(_ controller: TextInteractionButtonGestureController)
+    func textInteractionButtonLongPressing(_ controller: TextInteractionButtonGestureController, button: TextInteractionButton)
+    func textInteractionButtonLongPressStopped(_ controller: TextInteractionButtonGestureController)
 }
 
 /// 입력 상호작용 버튼(리턴 버튼 제외) 제스처 컨트롤러
@@ -23,6 +25,7 @@ final class TextInteractionButtonGestureController {
     
     private var initialPanPoint: CGPoint = .zero
     private var intervalReferPanPoint: CGPoint = .zero
+    private var isCursorActive: Bool = false
     
     // Initializer Injection
     private let naratgeulKeyboardView: TextInteractionButtonGestureHandler
@@ -58,12 +61,15 @@ final class TextInteractionButtonGestureController {
             logger.debug("팬 제스처 활성화")
         case .changed:
             let distance = calcDistance(point1: initialPanPoint, point2: currentPoint)
-            if distance >= UserDefaultsManager.shared.cursorActiveDistance {
+            if isCursorActive || distance >= UserDefaultsManager.shared.cursorActiveDistance {
+                isCursorActive = true
                 currentButton?.isSelected = false
                 onPanGestureChanged(gesture)
             }
         case .ended, .cancelled, .failed:
+            onPanGestureEnded(gesture)
             initialPanPoint = .zero
+            isCursorActive = false
             currentButton?.isSelected = false
             logger.debug("팬 제스처 비활성화")
         default:
@@ -97,23 +103,39 @@ private extension TextInteractionButtonGestureController {
         
         let distance = currentPoint.x - intervalReferPanPoint.x
         if abs(distance) >= UserDefaultsManager.shared.cursorMoveInterval {
-            if distance > 0 {
-                delegate?.moveCursor(self, to: .right)
+            if gesture.view is DeleteButton {
+                if distance > 0 {
+                    delegate?.deleteButtonPanning(self, to: .right)
+                } else {
+                    delegate?.deleteButtonPanning(self, to: .left)
+                }
+            } else if gesture.view is TextInteractionButtonProtocol {
+                if distance > 0 {
+                    delegate?.primaryButtonPanning(self, to: .right)
+                } else {
+                    delegate?.primaryButtonPanning(self, to: .left)
+                }
             } else {
-                delegate?.moveCursor(self, to: .left)
+                fatalError("입력 상호작용 버튼이 아닙니다.")
             }
             intervalReferPanPoint = currentPoint
+        }
+    }
+    
+    func onPanGestureEnded(_ gesture: UIPanGestureRecognizer) {
+        if gesture.view is DeleteButton {
+            delegate?.deleteButtonPanStopped(self)
         }
     }
     
     func onLongPressGestureBegan(_ gesture: UILongPressGestureRecognizer) {
         let currentButton = gesture.view as? TextInteractionButtonProtocol
         guard let button = currentButton?.button else { fatalError("입력 상호작용 버튼이 아닙니다.") }
-        delegate?.startRepeat(self, button: button)
+        delegate?.textInteractionButtonLongPressing(self, button: button)
     }
     
     func onLongPressGestureEnded() {
-        delegate?.stopRepeat(self)
+        delegate?.textInteractionButtonLongPressStopped(self)
     }
 }
 

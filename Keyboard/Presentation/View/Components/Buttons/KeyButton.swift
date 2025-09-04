@@ -45,8 +45,8 @@ private extension KeyButton {
     
     func setActions() {
         let playFeedback = UIAction { _ in
-            FeedbackManager.shared.playKeyTypingSound()
             FeedbackManager.shared.playHaptic()
+            FeedbackManager.shared.playKeyTypingSound()
         }
         self.addAction(playFeedback, for: .touchDown)
     }

@@ -66,8 +66,8 @@ private extension DeleteButton {
     
     func setActions() {
         let playFeedback = UIAction { _ in
-            FeedbackManager.shared.playDeleteSound()
             FeedbackManager.shared.playHaptic()
+            FeedbackManager.shared.playDeleteSound()
         }
         self.addAction(playFeedback, for: .touchDown)
     }

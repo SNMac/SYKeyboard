@@ -27,7 +27,7 @@ final class ReturnButton: SecondaryButton, TextInteractionButtonProtocol {
     
     // MARK: - Internal Methods
     
-    func update(for type: ReturnButtonType) {
+    func update(for type: ReturnKeyType) {
         self.configuration?.image = type.image
         self.configurationUpdateHandler = { [weak self] button in
             switch button.state {
@@ -53,8 +53,8 @@ private extension ReturnButton {
     
     func setActions() {
         let playFeedback = UIAction { _ in
-            FeedbackManager.shared.playModifierSound()
             FeedbackManager.shared.playHaptic()
+            FeedbackManager.shared.playModifierSound()
         }
         self.addAction(playFeedback, for: .touchDown)
     }
@@ -63,7 +63,7 @@ private extension ReturnButton {
 // MARK: - Custom Enum
 
 extension ReturnButton {
-    enum ReturnButtonType {
+    enum ReturnKeyType {
         case `default`
         case go
         case google
