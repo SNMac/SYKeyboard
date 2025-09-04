@@ -102,6 +102,11 @@ final class KeyboardInputViewController: UIInputViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         FeedbackManager.shared.prepareHaptic()
+    }
+    
+    override func textWillChange(_ textInput: (any UITextInput)?) {
+        super.textWillChange(textInput)
+        updateKeyboardType()
         updateReturnButtonType()
     }
 }
@@ -257,6 +262,10 @@ private extension KeyboardInputViewController {
         }
         leftChevronButton.isHidden = !(currentOneHandedMode == .right)
         rightChevronButton.isHidden = !(currentOneHandedMode == .left)
+    }
+    
+    func updateKeyboardType() {
+        
     }
     
     func updateReturnButtonType() {

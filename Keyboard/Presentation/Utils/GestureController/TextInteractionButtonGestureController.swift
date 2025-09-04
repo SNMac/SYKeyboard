@@ -58,6 +58,7 @@ final class TextInteractionButtonGestureController: NSObject {
         case .began:
             currentButton?.isSelected = true
             initialPanPoint = currentPoint
+            intervalReferPanPoint = currentPoint
             logger.debug("팬 제스처 활성화")
         case .changed:
             let distance = calcDistance(point1: initialPanPoint, point2: currentPoint)
@@ -69,6 +70,7 @@ final class TextInteractionButtonGestureController: NSObject {
         case .ended, .cancelled, .failed:
             onPanGestureEnded(gesture)
             initialPanPoint = .zero
+            intervalReferPanPoint = .zero
             isCursorActive = false
             currentButton?.isSelected = false
             logger.debug("팬 제스처 비활성화")
