@@ -180,12 +180,12 @@ private extension KeyboardInputViewController {
     }
     
     func addGesturesToTextInteractionButton(_ button: TextInteractionButtonProtocol) {
-        // 팬(드래그) 제스쳐
+        // 팬(드래그) 제스처
         let panGesture = UIPanGestureRecognizer(target: textInteractionButtonGestureController, action: #selector(textInteractionButtonGestureController.panGestureHandler(_:)))
         panGesture.delegate = textInteractionButtonGestureController
         button.addGestureRecognizer(panGesture)
         
-        // 길게 누르기 제스쳐
+        // 길게 누르기 제스처
         let longPressGesture = UILongPressGestureRecognizer(target: textInteractionButtonGestureController, action: #selector(textInteractionButtonGestureController.longPressGestureHandler(_:)))
         longPressGesture.delegate = textInteractionButtonGestureController
         longPressGesture.minimumPressDuration = UserDefaultsManager.shared.longPressDuration
@@ -207,19 +207,19 @@ private extension KeyboardInputViewController {
         symbolKeyboardView.switchButton.addAction(switchToHangeulKeyboard, for: .touchUpInside)
         numericKeyboardView.switchButton.addAction(switchToHangeulKeyboard, for: .touchUpInside)
         
-        // 키보드 전환 버튼 제스쳐
+        // 키보드 전환 버튼 제스처
         [naratgeulKeyboardView.switchButton,
          symbolKeyboardView.switchButton,
          numericKeyboardView.switchButton].forEach { addGesturesToSwitchButton($0) }
     }
     
     func addGesturesToSwitchButton(_ button: SwitchButton) {
-        // 팬(드래그) 제스쳐
+        // 팬(드래그) 제스처
         let panGesture = UIPanGestureRecognizer(target: switchButtonGestureController, action: #selector(switchButtonGestureController.panGestureHandler(_:)))
         panGesture.delegate = textInteractionButtonGestureController
         button.addGestureRecognizer(panGesture)
         
-        // 길게 누르기 제스쳐
+        // 길게 누르기 제스처
         let longPressGesture = UILongPressGestureRecognizer(target: switchButtonGestureController, action: #selector(switchButtonGestureController.longPressGestureHandler(_:)))
         longPressGesture.delegate = textInteractionButtonGestureController
         longPressGesture.minimumPressDuration = UserDefaultsManager.shared.longPressDuration
