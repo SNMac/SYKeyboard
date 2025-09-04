@@ -10,7 +10,7 @@ import UIKit
 import SnapKit
 
 /// 숫자 키보드
-final class NumericKeyboardView: UIView, SwitchButtonGestureHandler, TextInteractionButtonGestureHandler {
+final class NumericKeyboardView: UIView, BaseKeyboardLayoutProtocol, TextInteractionButtonGestureHandler, SwitchButtonGestureHandler {
     
     // MARK: - Properties
     
@@ -57,12 +57,9 @@ final class NumericKeyboardView: UIView, SwitchButtonGestureHandler, TextInterac
     /// 키보드 네번째 행 `KeyButton` 배열
     private lazy var fourthRowKeyButtonList = numericKeyList[3].map { KeyButton(layout: .numeric, button: .keyButton(keys: $0)) }
     
-    /// 삭제 버튼
-    private let deleteButton = DeleteButton(layout: .numeric)
-    /// 스페이스 버튼
-    private let spaceButton = SpaceButton(layout: .numeric)
-    /// 리턴 버튼
-    private let returnButton = ReturnButton(layout: .numeric)
+    private(set) var deleteButton = DeleteButton(layout: .numeric)
+    private(set) var spaceButton = SpaceButton(layout: .numeric)
+    private(set) var returnButton = ReturnButton(layout: .numeric)
     private(set) var switchButton = SwitchButton(layout: .numeric)
     /// iPhone SE용 키보드 전환 버튼
     private let nextKeyboardButton: NextKeyboardButton

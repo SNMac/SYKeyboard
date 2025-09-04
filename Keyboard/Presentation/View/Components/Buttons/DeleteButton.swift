@@ -14,7 +14,7 @@ final class DeleteButton: SecondaryButton, TextInteractionButtonProtocol {
     
     // MARK: - Properties
     
-    var button: TextInteractionButton = .deleteButton
+    private(set) var button: TextInteractionButton = .deleteButton
     private let layout: KeyboardLayout
     
     // MARK: - Initializer

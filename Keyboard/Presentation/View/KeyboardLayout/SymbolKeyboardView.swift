@@ -11,7 +11,7 @@ import SnapKit
 import Then
 
 /// 기호 키보드
-final class SymbolKeyboardView: UIView, SwitchButtonGestureHandler, TextInteractionButtonGestureHandler {
+final class SymbolKeyboardView: UIView, TextInteractionButtonGestureHandler, SwitchButtonGestureHandler {
     
     // MARK: - Properties
     
@@ -72,7 +72,7 @@ final class SymbolKeyboardView: UIView, SwitchButtonGestureHandler, TextInteract
     /// 스페이스 버튼
     private let spaceButton = SpaceButton(layout: .symbol)
     /// 리턴 버튼
-    private let returnButton = ReturnButton(layout: .symbol)
+    private(set) var returnButton = ReturnButton(layout: .symbol)
     /// iPhone SE용 키보드 전환 버튼
     private let nextKeyboardButton: NextKeyboardButton
     /// 키보드 레이아웃 선택 UI

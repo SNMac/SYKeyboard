@@ -5,7 +5,7 @@
 //  Created by 서동환 on 7/16/25.
 //
 
-/// `UserDefaultsManager`의 기본값 관리
+/// `UserDefaultsManager`의 기본값 관리용
 enum DefaultValues {
     
     /// 그룹 번들 ID

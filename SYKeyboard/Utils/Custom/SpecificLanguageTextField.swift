@@ -35,14 +35,15 @@ class SpecificLanguageTextField: UITextField {
 
 struct SpecificLanguageTextFieldView: UIViewRepresentable {
     let placeHolder: String
-    @Binding var text: String
     var language: String = "ko-KR"
+    @Binding var text: String
 
     func makeUIView(context: Context) -> UITextField {
         let textField = SpecificLanguageTextField(frame: .zero)
         textField.placeholder = self.placeHolder
         textField.text = self.text
 //        textField.keyboardType = .numbersAndPunctuation  // 테스트용
+//        textField.returnKeyType = .continue  // 테스트용
         textField.language = self.language
         return textField
     }

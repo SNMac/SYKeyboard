@@ -5,7 +5,7 @@
 //  Created by 서동환 on 7/15/25.
 //
 
-/// `UserDefaults`의 키값 관리
+/// `UserDefaults`의 키값 관리용
 enum UserDefaultsKeys {
     /* 피드백 설정 */
     /// 소리 피드백

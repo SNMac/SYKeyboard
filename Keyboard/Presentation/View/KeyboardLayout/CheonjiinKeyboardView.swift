@@ -1,5 +1,5 @@
 //
-//  NaratgeulKeyboardView.swift
+//  CheonjiinKeyboardView.swift
 //  Keyboard
 //
 //  Created by 서동환 on 7/13/25.
@@ -10,19 +10,19 @@ import UIKit
 import SnapKit
 import Then
 
-/// 나랏글 키보드
-final class NaratgeulKeyboardView: UIView, BaseKeyboardLayoutProtocol, TextInteractionButtonGestureHandler, SwitchButtonGestureHandler {
+/// 천지인 키보드
+final class CheonjiinKeyboardView: UIView, BaseKeyboardLayoutProtocol, TextInteractionButtonGestureHandler, SwitchButtonGestureHandler {
     
     // MARK: - Properties
     
     private(set) lazy var totalTextInteractionButtonList: [TextInteractionButtonProtocol] = firstRowKeyButtonList + secondRowKeyButtonList + thirdRowKeyButtonList + fourthRowKeyButtonList + [deleteButton, spaceButton]
     
     /// 나랏글 키보드 키 배열
-    private let naratgeulKeyList = [
-        [ ["ㄱ"], ["ㄴ"], ["ㅏ", "ㅓ"] ],
-        [ ["ㄹ"], ["ㅁ"], ["ㅗ", "ㅜ"] ],
-        [ ["ㅅ"], ["ㅇ"], ["ㅣ"] ],
-        [ ["획"], ["ㅡ"], ["쌍"] ]
+    private let cheonjiinKeyList = [
+        [ ["ㅣ"], ["ㆍ"], ["ㅡ"] ],
+        [ ["ㄱ", "ㅋ"], ["ㄴ", "ㄹ"], ["ㄷ", "ㅌ"] ],
+        [ ["ㅂ", "ㅍ"], ["ㅅ", "ㅎ"], ["ㅈ", "ㅊ"] ],
+        [ [".", ","], ["ㅇ", "ㅁ"], ["?", "!"] ]
     ]
     
     // MARK: - UI Components
@@ -46,13 +46,13 @@ final class NaratgeulKeyboardView: UIView, BaseKeyboardLayoutProtocol, TextInter
     private let fourthRowRightSecondaryButtonHStackView = KeyboardRowHStackView()
     
     /// 키보드 첫번째 행 `KeyButton` 배열
-    private lazy var firstRowKeyButtonList = naratgeulKeyList[0].map { KeyButton(layout: .hangeul, button: .keyButton(keys: $0)) }
+    private lazy var firstRowKeyButtonList = cheonjiinKeyList[0].map { KeyButton(layout: .hangeul, button: .keyButton(keys: $0)) }
     /// 키보드 두번째 행 `KeyButton` 배열
-    private lazy var secondRowKeyButtonList = naratgeulKeyList[1].map { KeyButton(layout: .hangeul, button: .keyButton(keys: $0)) }
+    private lazy var secondRowKeyButtonList = cheonjiinKeyList[1].map { KeyButton(layout: .hangeul, button: .keyButton(keys: $0)) }
     /// 키보드 세번째 행 `KeyButton` 배열
-    private lazy var thirdRowKeyButtonList = naratgeulKeyList[2].map { KeyButton(layout: .hangeul, button: .keyButton(keys: $0)) }
+    private lazy var thirdRowKeyButtonList = cheonjiinKeyList[2].map { KeyButton(layout: .hangeul, button: .keyButton(keys: $0)) }
     /// 키보드 네번째 행 `KeyButton` 배열
-    private lazy var fourthRowKeyButtonList = naratgeulKeyList[3].map { KeyButton(layout: .hangeul, button: .keyButton(keys: $0)) }
+    private lazy var fourthRowKeyButtonList = cheonjiinKeyList[3].map { KeyButton(layout: .hangeul, button: .keyButton(keys: $0)) }
     
     private(set) var deleteButton = DeleteButton(layout: .hangeul)
     private(set) var spaceButton = SpaceButton(layout: .hangeul)
@@ -104,7 +104,7 @@ final class NaratgeulKeyboardView: UIView, BaseKeyboardLayoutProtocol, TextInter
 
 // MARK: - UI Methods
 
-private extension NaratgeulKeyboardView {
+private extension CheonjiinKeyboardView {
     func setupUI() {
         setStyles()
         setHierarchy()

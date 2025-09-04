@@ -25,6 +25,7 @@ final class KeyboardInputViewController: UIInputViewController {
     private var currentKeyboardLayout: KeyboardLayout = .hangeul {
         didSet {
             updateKeyboardLayout()
+            updateReturnButtonType()
         }
     }
     /// 현재 한 손 키보드
@@ -32,6 +33,19 @@ final class KeyboardInputViewController: UIInputViewController {
         didSet {
             UserDefaultsManager.shared.lastOneHandedMode = currentOneHandedMode
             updateKeyboardConstraints()
+        }
+    }
+    /// 현재 키보드의 리턴 버튼
+    private var currentReturnButton: ReturnButton {
+        switch currentKeyboardLayout {
+        case .hangeul:
+            return naratgeulKeyboardView.returnButton
+        case .symbol:
+            return symbolKeyboardView.returnButton
+        case .numeric:
+            return numericKeyboardView.returnButton
+        default:
+            fatalError("도달할 수 없는 case 입니다.")
         }
     }
     /// iPhone SE용 키보드 전환 버튼 액션
@@ -81,6 +95,12 @@ final class KeyboardInputViewController: UIInputViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        FeedbackManager.shared.prepareHaptic()
+        updateReturnButtonType()
     }
 }
 
@@ -232,12 +252,30 @@ private extension KeyboardInputViewController {
         leftChevronButton.isHidden = !(currentOneHandedMode == .right)
         rightChevronButton.isHidden = !(currentOneHandedMode == .left)
     }
+    
+    func updateReturnButtonType() {
+        let type = ReturnButton.ReturnButtonType(type: textDocumentProxy.returnKeyType)
+        currentReturnButton.update(for: type)
+    }
 }
 
 // MARK: - Text Interaction Methods
 
 private extension KeyboardInputViewController {
     func performTextInteraction(for button: TextInteractionButton) {
+        switch button {
+        case .keyButton(let keys):
+            // TODO: 오토마타 연결
+            textDocumentProxy.insertText("")
+        case .deleteButton:
+            textDocumentProxy.deleteBackward()
+        case .spaceButton, .returnButton:
+            guard let key = button.keys.first else { fatalError("옵셔널 언래핑 실패") }
+            textDocumentProxy.insertText(key)
+        }
+    }
+    
+    func performRepeatTextInteraction(for button: TextInteractionButton) {
         switch button {
         case .keyButton(let keys):
             // TODO: 오토마타 연결
@@ -249,10 +287,8 @@ private extension KeyboardInputViewController {
             guard let key = button.keys.first else { fatalError("옵셔널 언래핑 실패") }
             textDocumentProxy.insertText(key)
             FeedbackManager.shared.playModifierSound()
-        case .returnButton:
-            guard let key = button.keys.first else { fatalError("옵셔널 언래핑 실패") }
-            textDocumentProxy.insertText(key)
-            FeedbackManager.shared.playModifierSound()
+        default:
+            assertionFailure("도달할 수 없는 case 입니다.")
         }
         FeedbackManager.shared.playHaptic()
     }
@@ -274,6 +310,14 @@ extension KeyboardInputViewController: SwitchButtonGestureControllerDelegate {
 
 extension KeyboardInputViewController: TextInteractionButtonGestureControllerDelegate {
     func moveCursor(_ controller: TextInteractionButtonGestureController, to direction: PanDirection) {
+        switch direction {
+        case .left:
+            textDocumentProxy.adjustTextPosition(byCharacterOffset: -1)
+        case .right:
+            textDocumentProxy.adjustTextPosition(byCharacterOffset: 1)
+        default:
+            assertionFailure("도달할 수 없는 case 입니다.")
+        }
         logger.debug("커서 이동 방향: \(String(describing: direction))")
         FeedbackManager.shared.playHaptic(isForcing: true)
     }
@@ -285,12 +329,14 @@ extension KeyboardInputViewController: TextInteractionButtonGestureControllerDel
         timer = Timer.publish(every: repeatTimerInterval, on: .main, in: .common)
             .autoconnect()
             .sink { [weak self] _ in
-                self?.performTextInteraction(for: button)
+                self?.performRepeatTextInteraction(for: button)
             }
+        logger.debug("반복 입력 시작")
     }
     
     func stopRepeat(_ controller: TextInteractionButtonGestureController) {
         timer?.cancel()
         timer = nil
+        logger.debug("반복 입력 종료")
     }
 }
