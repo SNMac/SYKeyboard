@@ -59,7 +59,7 @@ private extension KeyButton {
         let keys = button.keys
         if keys.count == 1 {
             guard let key = keys.first else { return }
-            if Character(key).isLowercase {
+            if key.count == 1 && Character(key).isLowercase {
                 self.configuration?.attributedTitle = AttributedString(key, attributes: AttributeContainer([.font: UIFont.systemFont(ofSize: 25, weight: .regular), .foregroundColor: UIColor.label]))
             } else {
                 self.configuration?.attributedTitle = AttributedString(key, attributes: AttributeContainer([.font: UIFont.systemFont(ofSize: 22, weight: .regular), .foregroundColor: UIColor.label]))
