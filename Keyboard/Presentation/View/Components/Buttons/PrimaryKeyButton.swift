@@ -1,5 +1,5 @@
 //
-//  KeyButton.swift
+//  PrimaryKeyButton.swift
 //  Keyboard
 //
 //  Created by 서동환 on 7/13/25.
@@ -7,14 +7,19 @@
 
 import UIKit
 
-/// 키 버튼
-final class KeyButton: PrimaryButton {
+/// 주 키 버튼
+final class PrimaryKeyButton: PrimaryButton {
     
     // MARK: - Properties
     
     override var button: TextInteractionButton {
         didSet {
-            updateTitle()
+            if button.keys.isEmpty {
+                self.isHidden = true
+            } else {
+                updateTitle()
+                self.isHidden = false
+            }
         }
     }
     
@@ -38,7 +43,7 @@ final class KeyButton: PrimaryButton {
 
 // MARK: - UI Methods
 
-private extension KeyButton {
+private extension PrimaryKeyButton {
     func setupUI() {
         setActions()
     }
@@ -54,13 +59,15 @@ private extension KeyButton {
 
 // MARK: - Update Methods
 
-private extension KeyButton {
+private extension PrimaryKeyButton {
     func updateTitle() {
         let keys = button.keys
         if keys.count == 1 {
             guard let key = keys.first else { return }
             if key.count == 1 && Character(key).isLowercase {
-                self.configuration?.attributedTitle = AttributedString(key, attributes: AttributeContainer([.font: UIFont.systemFont(ofSize: 25, weight: .regular), .foregroundColor: UIColor.label]))
+                self.configuration?.attributedTitle = AttributedString(key, attributes: AttributeContainer([.font: UIFont.systemFont(ofSize: 24, weight: .regular), .foregroundColor: UIColor.label]))
+            } else if key.count > 1 {
+                self.configuration?.attributedTitle = AttributedString(key, attributes: AttributeContainer([.font: UIFont.systemFont(ofSize: 18, weight: .regular), .foregroundColor: UIColor.label]))
             } else {
                 self.configuration?.attributedTitle = AttributedString(key, attributes: AttributeContainer([.font: UIFont.systemFont(ofSize: 22, weight: .regular), .foregroundColor: UIColor.label]))
             }

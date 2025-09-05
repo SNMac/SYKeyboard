@@ -84,7 +84,7 @@ extension ReturnButton {
             case .go:
                 self = .go
             case .google:
-                self = .search
+                self = .google
             case .join:
                 self = .join
             case .next:

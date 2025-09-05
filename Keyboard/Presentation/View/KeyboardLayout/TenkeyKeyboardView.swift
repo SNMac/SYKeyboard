@@ -16,6 +16,8 @@ final class TenkeyKeyboardView: UIView, TenkeyKeyboardLayout {
     
     private(set) lazy var totalTextInteractionButtonList: [TextInteractionButtonProtocol] = firstRowKeyButtonList + secondRowKeyButtonList + thirdRowKeyButtonList + fourthRowKeyButtonList
     
+    var currentTenkeyKeyboardMode: TenkeyKeyboardMode = .default
+    
     /// 텐키 키보드 키 배열
     private let tenKeyList = [
         [ ["1"], ["2"], ["3"] ],
@@ -42,14 +44,14 @@ final class TenkeyKeyboardView: UIView, TenkeyKeyboardLayout {
     /// 키보드 네번째 행
     private let fourthRowHStackView = KeyboardRowHStackView()
     
-    /// 키보드 첫번째 행 `KeyButton` 배열
-    private lazy var firstRowKeyButtonList = tenKeyList[0].map { KeyButton(layout: .tenKey, button: .keyButton(keys: $0)) }
-    /// 키보드 두번째 행 `KeyButton` 배열
-    private lazy var secondRowKeyButtonList = tenKeyList[1].map { KeyButton(layout: .tenKey, button: .keyButton(keys: $0)) }
-    /// 키보드 세번째 행 `KeyButton` 배열
-    private lazy var thirdRowKeyButtonList = tenKeyList[2].map { KeyButton(layout: .tenKey, button: .keyButton(keys: $0)) }
-    /// 키보드 네번째 행 `KeyButton` 배열
-    private lazy var fourthRowKeyButtonList = tenKeyList[3].map { KeyButton(layout: .tenKey, button: .keyButton(keys: $0)) }
+    /// 키보드 첫번째 행 `PrimaryKeyButton` 배열
+    private lazy var firstRowKeyButtonList = tenKeyList[0].map { PrimaryKeyButton(layout: .tenKey, button: .keyButton(keys: $0)) }
+    /// 키보드 두번째 행 `PrimaryKeyButton` 배열
+    private lazy var secondRowKeyButtonList = tenKeyList[1].map { PrimaryKeyButton(layout: .tenKey, button: .keyButton(keys: $0)) }
+    /// 키보드 세번째 행 `PrimaryKeyButton` 배열
+    private lazy var thirdRowKeyButtonList = tenKeyList[2].map { PrimaryKeyButton(layout: .tenKey, button: .keyButton(keys: $0)) }
+    /// 키보드 네번째 행 `PrimaryKeyButton` 배열
+    private lazy var fourthRowKeyButtonList = tenKeyList[3].map { PrimaryKeyButton(layout: .tenKey, button: .keyButton(keys: $0)) }
     
     /// 키보드 네번째 행 좌측 여백
     private let buttonSpacer = KeyboardSpacer()
@@ -119,5 +121,20 @@ private extension TenkeyKeyboardView {
             $0.bottom.equalToSuperview()
             $0.height.equalTo(2)
         }
+    }
+}
+
+// MARK: - TenkeyKeyboardLayout
+extension TenkeyKeyboardView {
+    func updateLayoutToDefault() {
+        
+    }
+    
+    func updateLayoutToNumberPad() {
+        
+    }
+    
+    func updateLayoutToDecimalPad(){
+        
     }
 }

@@ -17,6 +17,8 @@ final class NaratgeulKeyboardView: UIView, HangeulKeyboardLayout {
     
     private(set) lazy var totalTextInteractionButtonList: [TextInteractionButtonProtocol] = firstRowKeyButtonList + secondRowKeyButtonList + thirdRowKeyButtonList + fourthRowKeyButtonList + [deleteButton, spaceButton]
     
+    var currentHangeulKeyboardMode: HangeulKeyboardMode = .default
+    
     /// 나랏글 키보드 키 배열
     private let naratgeulKeyList = [
         [ ["ㄱ"], ["ㄴ"], ["ㅏ", "ㅓ"] ],
@@ -40,28 +42,32 @@ final class NaratgeulKeyboardView: UIView, HangeulKeyboardLayout {
     private let secondRowHStackView = KeyboardRowHStackView()
     /// 키보드 세번째 행
     private let thirdRowHStackView = KeyboardRowHStackView()
+    private(set) var returnButtonHStackView = KeyboardRowHStackView()
     /// 키보드 네번째 행
     private let fourthRowHStackView = KeyboardRowHStackView()
     /// 키보드 네번째 우측 `SecondaryButton` 행
     private let fourthRowRightSecondaryButtonHStackView = KeyboardRowHStackView()
     
-    /// 키보드 첫번째 행 `KeyButton` 배열
-    private lazy var firstRowKeyButtonList = naratgeulKeyList[0].map { KeyButton(layout: .hangeul, button: .keyButton(keys: $0)) }
-    /// 키보드 두번째 행 `KeyButton` 배열
-    private lazy var secondRowKeyButtonList = naratgeulKeyList[1].map { KeyButton(layout: .hangeul, button: .keyButton(keys: $0)) }
-    /// 키보드 세번째 행 `KeyButton` 배열
-    private lazy var thirdRowKeyButtonList = naratgeulKeyList[2].map { KeyButton(layout: .hangeul, button: .keyButton(keys: $0)) }
-    /// 키보드 네번째 행 `KeyButton` 배열
-    private lazy var fourthRowKeyButtonList = naratgeulKeyList[3].map { KeyButton(layout: .hangeul, button: .keyButton(keys: $0)) }
+    /// 키보드 첫번째 행 `PrimaryKeyButton` 배열
+    private lazy var firstRowKeyButtonList = naratgeulKeyList[0].map { PrimaryKeyButton(layout: .hangeul, button: .keyButton(keys: $0)) }
+    /// 키보드 두번째 행 `PrimaryKeyButton` 배열
+    private lazy var secondRowKeyButtonList = naratgeulKeyList[1].map { PrimaryKeyButton(layout: .hangeul, button: .keyButton(keys: $0)) }
+    /// 키보드 세번째 행 `PrimaryKeyButton` 배열
+    private lazy var thirdRowKeyButtonList = naratgeulKeyList[2].map { PrimaryKeyButton(layout: .hangeul, button: .keyButton(keys: $0)) }
+    /// 키보드 네번째 행 `PrimaryKeyButton` 배열
+    private lazy var fourthRowKeyButtonList = naratgeulKeyList[3].map { PrimaryKeyButton(layout: .hangeul, button: .keyButton(keys: $0)) }
     
     private(set) var deleteButton = DeleteButton(layout: .hangeul)
     private(set) var spaceButton = SpaceButton(layout: .hangeul)
+    
     private(set) var returnButton = ReturnButton(layout: .hangeul)
+    private(set) var secondaryAtButton = SecondaryKeyButton(layout: .hangeul, button: .keyButton(keys: ["@"])).then { $0.isHidden = true }
+    private(set) var secondarySharpButton = SecondaryKeyButton(layout: .hangeul, button: .keyButton(keys: ["#"])).then { $0.isHidden = true }
+    
     private(set) var switchButton = SwitchButton(layout: .hangeul)
     private(set) var nextKeyboardButton: NextKeyboardButton
-    /// 키보드 레이아웃 선택 UI
+    
     private(set) var keyboardSelectOverlayView = KeyboardSelectOverlayView(layout: .hangeul).then { $0.isHidden = true }
-    /// 한 손 키보드 선택 UI
     private(set) var oneHandedModeSelectOverlayView = OneHandedModeSelectOverlayView().then { $0.isHidden = true }
     
     // MARK: - Initializer
@@ -133,12 +139,12 @@ private extension NaratgeulKeyboardView {
         secondRowHStackView.addArrangedSubview(spaceButton)
         
         thirdRowKeyButtonList.forEach { thirdRowHStackView.addArrangedSubview($0) }
-        thirdRowHStackView.addArrangedSubview(returnButton)
+        returnButtonHStackView.addArrangedSubviews(returnButton, secondaryAtButton, secondarySharpButton)
+        thirdRowHStackView.addArrangedSubview(returnButtonHStackView)
         
         fourthRowKeyButtonList.forEach { fourthRowHStackView.addArrangedSubview($0) }
         fourthRowHStackView.addArrangedSubview(fourthRowRightSecondaryButtonHStackView)
-        fourthRowRightSecondaryButtonHStackView.addArrangedSubview(nextKeyboardButton)
-        fourthRowRightSecondaryButtonHStackView.addArrangedSubview(switchButton)
+        fourthRowRightSecondaryButtonHStackView.addArrangedSubviews(nextKeyboardButton, switchButton)
     }
     
     func setConstraints() {

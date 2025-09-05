@@ -24,7 +24,7 @@ final class KeyboardInputViewController: UIInputViewController {
     /// 현재 키보드
     private var currentKeyboardLayout: KeyboardLayout = .hangeul {
         didSet {
-            updateKeyboardLayout()
+            updateShowingKeyboard()
             updateReturnButtonType()
         }
     }
@@ -48,6 +48,7 @@ final class KeyboardInputViewController: UIInputViewController {
             fatalError("도달할 수 없는 case 입니다.")
         }
     }
+    private var enablesReturnKeyAutomatically: Bool = false
     /// iPhone SE용 키보드 전환 버튼 액션
     private let nextKeyboardAction: Selector = #selector(handleInputModeList(from:with:))
     /// 키보드 전환 버튼 제스처 컨트롤러
@@ -84,6 +85,7 @@ final class KeyboardInputViewController: UIInputViewController {
     /// 천지인 키보드
     private lazy var cheonjiinKeyboardView: HangeulKeyboardLayout = CheonjiinKeyboardView(needsInputModeSwitchKey: needsInputModeSwitchKey,
                                                                                           nextKeyboardAction: nextKeyboardAction).then { $0.isHidden = false }
+    private lazy var hangeulKeyboardView: HangeulKeyboardLayout = naratgeulKeyboardView  // TODO: 사용자가 선택한 한글 키보드를 저장
     /// 기호 키보드
     private lazy var symbolKeyboardView: SymbolKeyboardLayout = SymbolKeyboardView(needsInputModeSwitchKey: needsInputModeSwitchKey,
                                                                                    nextKeyboardAction: nextKeyboardAction).then { $0.isHidden = true }
@@ -109,6 +111,8 @@ final class KeyboardInputViewController: UIInputViewController {
     
     override func textWillChange(_ textInput: (any UITextInput)?) {
         super.textWillChange(textInput)
+        print("textWillChange")
+        updateKeyboardAppearance()
         updateKeyboardType()
         updateReturnButtonType()
     }
@@ -242,8 +246,8 @@ private extension KeyboardInputViewController {
 // MARK: - Update Methods
 
 private extension KeyboardInputViewController {
-    func updateKeyboardLayout() {
-        naratgeulKeyboardView.isHidden = (currentKeyboardLayout != .hangeul)
+    func updateShowingKeyboard() {
+        hangeulKeyboardView.isHidden = (currentKeyboardLayout != .hangeul)
         symbolKeyboardView.isHidden = (currentKeyboardLayout != .symbol)
         numericKeyboardView.isHidden = (currentKeyboardLayout != .numeric)
         tenkeyKeyboardView.isHidden = (currentKeyboardLayout != .tenKey)
@@ -262,9 +266,47 @@ private extension KeyboardInputViewController {
         rightChevronButton.isHidden = !(currentOneHandedMode == .left)
     }
     
-    func updateKeyboardType() {
-        //        self.primaryLanguage
+    func updateKeyboardAppearance() {
         
+    }
+    
+    func updateKeyboardType() {
+        switch textDocumentProxy.keyboardType {
+        case .default, .none:
+            hangeulKeyboardView.updateLayoutToDefault()
+            symbolKeyboardView.updateLayoutToDefault()
+        case .asciiCapable:
+            // TODO: - 영어 키보드
+//        self.primaryLanguage
+            symbolKeyboardView.updateLayoutToDefault()
+        case .numbersAndPunctuation:
+            hangeulKeyboardView.updateLayoutToDefault()
+            symbolKeyboardView.updateLayoutToDefault()
+            currentKeyboardLayout = .symbol
+        case .URL:
+            hangeulKeyboardView.updateLayoutToDefault()
+            symbolKeyboardView.updateLayoutToURL()
+        case .numberPad:
+            tenkeyKeyboardView.updateLayoutToNumberPad()
+        case .phonePad, .namePhonePad:
+            break
+        case .emailAddress:
+            hangeulKeyboardView.updateLayoutToDefault()
+            symbolKeyboardView.updateLayoutToEmailAddress()
+        case .decimalPad:
+            tenkeyKeyboardView.updateLayoutToDecimalPad()
+        case .twitter:
+            hangeulKeyboardView.updateLayoutToTwitter()
+            symbolKeyboardView.updateLayoutToDefault()
+        case .webSearch:
+            hangeulKeyboardView.updateLayoutToDefault()
+            symbolKeyboardView.updateLayoutToWebSearch()
+        case .asciiCapableNumberPad:
+            tenkeyKeyboardView.updateLayoutToDefault()
+        @unknown default:
+            assertionFailure("구현이 필요한 case 입니다.")
+            break
+        }
     }
     
     func updateReturnButtonType() {

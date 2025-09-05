@@ -1,5 +1,5 @@
 //
-//  KeyboardLayoutProtocols.swift
+//  BaseKeyboardLayoutProtocols.swift
 //  Keyboard
 //
 //  Created by 서동환 on 9/4/25.
@@ -25,24 +25,4 @@ protocol DefaultKeyboardLayout: BaseKeyboardLayout {
     var switchButton: SwitchButton { get }
     /// iPhone SE용 키보드 전환 버튼
     var nextKeyboardButton: NextKeyboardButton { get }
-}
-
-/// 한글 키보드 레이아웃 프로토콜
-protocol HangeulKeyboardLayout: DefaultKeyboardLayout, TextInteractionButtonGestureHandler, SwitchButtonGestureHandler {
-    
-}
-
-/// 기호 키보드 레이아웃 프로토콜
-protocol SymbolKeyboardLayout: DefaultKeyboardLayout, TextInteractionButtonGestureHandler, SwitchButtonGestureHandler {
-    var symbolShiftButton: SymbolShiftButton { get }
-}
-
-/// 숫자 키보드 레이아웃 프로토콜
-protocol NumericKeyboardLayout: DefaultKeyboardLayout, TextInteractionButtonGestureHandler, SwitchButtonGestureHandler {
-    
-}
-
-/// 텐키 키보드 레이아웃 프로토콜
-protocol TenkeyKeyboardLayout: BaseKeyboardLayout {
-    
 }
