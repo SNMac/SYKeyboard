@@ -11,7 +11,7 @@ import SnapKit
 import Then
 
 /// 기호 키보드
-final class SymbolKeyboardView: UIView, TextInteractionButtonGestureHandler, SwitchButtonGestureHandler {
+final class SymbolKeyboardView: UIView, SymbolKeyboardLayout {
     
     // MARK: - Properties
     
@@ -63,18 +63,12 @@ final class SymbolKeyboardView: UIView, TextInteractionButtonGestureHandler, Swi
     /// 키보드 세번째 행 `KeyButton` 배열
     private lazy var thirdRowKeyButtonList = symbolKeyList[0][2].map { KeyButton(layout: .symbol, button: .keyButton(keys: $0)) }
     
-    /// 기호 전환 버튼
-    private let symbolShiftButton = SymbolShiftButton(layout: .symbol)
-    /// 삭제 버튼
+    private(set) var symbolShiftButton = SymbolShiftButton(layout: .symbol)
     private(set) var deleteButton = DeleteButton(layout: .symbol)
-    /// 키보드 전환 버튼
     private(set) var switchButton = SwitchButton(layout: .symbol)
-    /// 스페이스 버튼
-    private let spaceButton = SpaceButton(layout: .symbol)
-    /// 리턴 버튼
+    private(set) var spaceButton = SpaceButton(layout: .symbol)
     private(set) var returnButton = ReturnButton(layout: .symbol)
-    /// iPhone SE용 키보드 전환 버튼
-    private let nextKeyboardButton: NextKeyboardButton
+    private(set) var nextKeyboardButton: NextKeyboardButton
     /// 키보드 레이아웃 선택 UI
     private(set) var keyboardSelectOverlayView = KeyboardSelectOverlayView(layout: .symbol).then { $0.isHidden = true }
     /// 한 손 키보드 선택 UI

@@ -10,9 +10,11 @@ import UIKit
 import SnapKit
 
 /// 텐키 키보드
-final class TenkeyKeyboardView: UIView {
+final class TenkeyKeyboardView: UIView, TenkeyKeyboardLayout {
     
     // MARK: - Properties
+    
+    private(set) lazy var totalTextInteractionButtonList: [TextInteractionButtonProtocol] = firstRowKeyButtonList + secondRowKeyButtonList + thirdRowKeyButtonList + fourthRowKeyButtonList
     
     /// 텐키 키보드 키 배열
     private let tenKeyList = [
@@ -51,13 +53,12 @@ final class TenkeyKeyboardView: UIView {
     
     /// 키보드 네번째 행 좌측 여백
     private let buttonSpacer = KeyboardSpacer()
-    /// 삭제 버튼
-    private let deleteButton = DeleteButton(layout: .tenKey)
+    private(set) var deleteButton = DeleteButton(layout: .tenKey)
     
     // MARK: - Initializer
     
-    init() {
-        super.init(frame: .zero)
+    override init(frame: CGRect) {
+        super.init(frame: frame)
         setupUI()
     }
     

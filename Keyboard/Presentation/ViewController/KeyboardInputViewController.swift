@@ -79,16 +79,19 @@ final class KeyboardInputViewController: UIInputViewController {
     /// 한 손 키보드 해제 버튼(오른손 모드)
     private let leftChevronButton = ChevronButton(direction: .left).then { $0.isHidden = true }
     /// 나랏글 키보드
-    private lazy var naratgeulKeyboardView = NaratgeulKeyboardView(needsInputModeSwitchKey: needsInputModeSwitchKey,
-                                                                   nextKeyboardAction: nextKeyboardAction).then { $0.isHidden = false }
+    private lazy var naratgeulKeyboardView: HangeulKeyboardLayout = NaratgeulKeyboardView(needsInputModeSwitchKey: needsInputModeSwitchKey,
+                                                                                          nextKeyboardAction: nextKeyboardAction).then { $0.isHidden = false }
+    /// 천지인 키보드
+    private lazy var cheonjiinKeyboardView: HangeulKeyboardLayout = CheonjiinKeyboardView(needsInputModeSwitchKey: needsInputModeSwitchKey,
+                                                                                          nextKeyboardAction: nextKeyboardAction).then { $0.isHidden = false }
     /// 기호 키보드
-    private lazy var symbolKeyboardView = SymbolKeyboardView(needsInputModeSwitchKey: needsInputModeSwitchKey,
-                                                             nextKeyboardAction: nextKeyboardAction).then { $0.isHidden = true }
+    private lazy var symbolKeyboardView: SymbolKeyboardLayout = SymbolKeyboardView(needsInputModeSwitchKey: needsInputModeSwitchKey,
+                                                                                   nextKeyboardAction: nextKeyboardAction).then { $0.isHidden = true }
     /// 숫자 키보드
-    private lazy var numericKeyboardView = NumericKeyboardView(needsInputModeSwitchKey: needsInputModeSwitchKey,
-                                                               nextKeyboardAction: nextKeyboardAction).then { $0.isHidden = true }
+    private lazy var numericKeyboardView: NumericKeyboardLayout = NumericKeyboardView(needsInputModeSwitchKey: needsInputModeSwitchKey,
+                                                                                      nextKeyboardAction: nextKeyboardAction).then { $0.isHidden = true }
     /// 텐키 키보드
-    private lazy var tenkeyKeyboardView = TenkeyKeyboardView().then { $0.isHidden = true }
+    private lazy var tenkeyKeyboardView: TenkeyKeyboardLayout = TenkeyKeyboardView().then { $0.isHidden = true }
     /// 한 손 키보드 해제 버튼(왼손 모드)
     private let rightChevronButton = ChevronButton(direction: .right).then { $0.isHidden = true }
     
@@ -115,15 +118,10 @@ final class KeyboardInputViewController: UIInputViewController {
 
 private extension KeyboardInputViewController {
     func setupUI() {
-        setStyles()
         setDelegates()
         setActions()
         setHierarchy()
         setConstraints()
-    }
-    
-    func setStyles() {
-        self.inputView?.backgroundColor = .clear
     }
     
     func setDelegates() {
@@ -265,6 +263,7 @@ private extension KeyboardInputViewController {
     }
     
     func updateKeyboardType() {
+        //        self.primaryLanguage
         
     }
     

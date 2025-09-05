@@ -8,6 +8,6 @@
 import UIKit
 
 /// 입력 상호작용 버튼 프로토콜
-protocol TextInteractionButtonProtocol: UIButton {
+protocol TextInteractionButtonProtocol: BaseKeyboardButton {
     var button: TextInteractionButton { get }
 }

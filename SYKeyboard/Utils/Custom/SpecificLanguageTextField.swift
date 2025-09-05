@@ -42,12 +42,11 @@ struct SpecificLanguageTextFieldView: UIViewRepresentable {
         let textField = SpecificLanguageTextField(frame: .zero)
         textField.placeholder = self.placeHolder
         textField.text = self.text
-//        textField.keyboardType = .numbersAndPunctuation  // 테스트용
+//        textField.keyboardType = .asciiCapableNumberPad  // 테스트용
 //        textField.returnKeyType = .continue  // 테스트용
         textField.language = self.language
         return textField
     }
 
-    func updateUIView(_ uiView: UITextField, context: Context) {
-    }
+    func updateUIView(_ uiView: UITextField, context: Context) {}
 }
