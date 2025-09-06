@@ -80,28 +80,6 @@ final class NumericKeyboardView: UIView, NumericKeyboardLayout {
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
-    // MARK: - Internal Methods
-    
-    func showKeyboardSelectOverlay(needToEmphasizeTarget: Bool) {
-        keyboardSelectOverlayView.configure(needToEmphasizeTarget: needToEmphasizeTarget)
-        keyboardSelectOverlayView.isHidden = false
-    }
-    
-    func hideKeyboardSelectOverlay() {
-        keyboardSelectOverlayView.isHidden = true
-        keyboardSelectOverlayView.resetIsEmphasizingTarget()
-    }
-    
-    func showOneHandedModeSelectOverlay(of mode: OneHandedMode) {
-        oneHandedModeSelectOverlayView.configure(emphasizeOf: mode)
-        oneHandedModeSelectOverlayView.isHidden = false
-    }
-    
-    func hideOneHandedModeSelectOverlay() {
-        oneHandedModeSelectOverlayView.isHidden = true
-        oneHandedModeSelectOverlayView.resetLastEmphasizeMode()
-    }
 }
 
 // MARK: - UI Methods

@@ -60,6 +60,9 @@ final class SwitchButton: SecondaryButton {
         if self.backgroundView.bounds.width < 44 {
             let attributes = AttributeContainer([.font: UIFont.monospacedDigitSystemFont(ofSize: 16, weight: .regular), .foregroundColor: UIColor.label])
             self.configuration?.attributedTitle = AttributedString(title, attributes: attributes)
+        } else {
+            let attributes = AttributeContainer([.font: UIFont.monospacedDigitSystemFont(ofSize: 18, weight: .regular), .foregroundColor: UIColor.label])
+            self.configuration?.attributedTitle = AttributedString(title, attributes: attributes)
         }
     }
     

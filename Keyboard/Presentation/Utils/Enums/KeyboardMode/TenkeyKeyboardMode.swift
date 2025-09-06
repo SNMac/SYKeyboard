@@ -6,7 +6,6 @@
 //
 
 enum TenkeyKeyboardMode {
-    case `default`
     case numberPad
     case decimalPad
 }

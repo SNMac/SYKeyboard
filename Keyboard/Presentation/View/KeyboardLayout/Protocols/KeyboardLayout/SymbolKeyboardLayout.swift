@@ -23,6 +23,10 @@ protocol SymbolKeyboardLayout: DefaultKeyboardLayout, TextInteractionButtonGestu
     var slashButton: PrimaryKeyButton { get }
     /// `.com` 키 버튼
     var dotComButton: PrimaryKeyButton { get }
+    /// 기호 키보드 레이아웃 모드 변경이 이루어졌을 때 호출되는 메서드
+    /// - Parameters:
+    ///   - oldMode: 이전 기호 키보드 레이아웃 모드
+    func updateLayoutForCurrentSymbolKeyboardMode(oldMode: SymbolKeyboardMode)
     /// `UIKeyboardType`이 `.default` 일 때의 레이아웃 설정
     func updateLayoutToDefault()
     /// `UIKeyboardType`이 `.URL` 일 때의 레이아웃 설정
@@ -49,8 +53,6 @@ extension SymbolKeyboardLayout {
     }
     
     func updateLayoutToDefault() {
-        currentSymbolKeyboardMode = .default
-        
         spaceButton.isHidden = false
         atButton.isHidden = true
         periodButton.isHidden = true
@@ -61,8 +63,6 @@ extension SymbolKeyboardLayout {
     }
     
     func updateLayoutToURL() {
-        currentSymbolKeyboardMode = .URL
-        
         spaceButton.isHidden = true
         atButton.isHidden = true
         periodButton.isHidden = false
@@ -75,9 +75,6 @@ extension SymbolKeyboardLayout {
     }
     
     func updateLayoutToEmailAddress() {
-        guard currentSymbolKeyboardMode != .emailAddress else { return }
-        currentSymbolKeyboardMode = .emailAddress
-        
         spaceButton.isHidden = false
         atButton.isHidden = false
         periodButton.isHidden = false
@@ -90,9 +87,6 @@ extension SymbolKeyboardLayout {
     }
     
     func updateLayoutToWebSearch() {
-        guard currentSymbolKeyboardMode != .webSearch else { return }
-        currentSymbolKeyboardMode = .webSearch
-        
         spaceButton.isHidden = false
         atButton.isHidden = true
         periodButton.isHidden = false

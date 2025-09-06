@@ -1,17 +1,11 @@
 //
-//  GestureHandlerProtocols.swift
+//  SwitchButtonGestureHandler.swift
 //  Keyboard
 //
 //  Created by 서동환 on 9/2/25.
 //
 
 import UIKit
-
-/// 입력 상호작용 버튼 제스처 핸들러 프로토콜
-protocol TextInteractionButtonGestureHandler: UIView {
-    /// `TextInteractionButton` 프로토콜을 채택한 버튼들의 배열(리턴 버튼 제외)
-    var totalTextInteractionButtonList: [TextInteractionButtonProtocol] { get }
-}
 
 /// 키보드 전환 버튼 제스처 핸들러 프로토콜
 protocol SwitchButtonGestureHandler: UIView {
@@ -36,4 +30,26 @@ protocol SwitchButtonGestureHandler: UIView {
     func showOneHandedModeSelectOverlay(of mode: OneHandedMode)
     /// `OneHandedModeSelectOverlayView`를 숨기는 메서드
     func hideOneHandedModeSelectOverlay()
+}
+
+extension SwitchButtonGestureHandler {
+    func showKeyboardSelectOverlay(needToEmphasizeTarget: Bool) {
+        keyboardSelectOverlayView.configure(needToEmphasizeTarget: needToEmphasizeTarget)
+        keyboardSelectOverlayView.isHidden = false
+    }
+    
+    func hideKeyboardSelectOverlay() {
+        keyboardSelectOverlayView.isHidden = true
+        keyboardSelectOverlayView.resetIsEmphasizingTarget()
+    }
+    
+    func showOneHandedModeSelectOverlay(of mode: OneHandedMode) {
+        oneHandedModeSelectOverlayView.configure(emphasizeOf: mode)
+        oneHandedModeSelectOverlayView.isHidden = false
+    }
+    
+    func hideOneHandedModeSelectOverlay() {
+        oneHandedModeSelectOverlayView.isHidden = true
+        oneHandedModeSelectOverlayView.resetLastEmphasizeMode()
+    }
 }

@@ -29,14 +29,14 @@ final class KeyboardInputViewController: UIInputViewController {
         }
     }
     /// 현재 한 손 키보드
-    private var currentOneHandedMode: OneHandedMode = .center {
+    private var currentOneHandedMode: OneHandedMode = UserDefaultsManager.shared.lastOneHandedMode {
         didSet {
             UserDefaultsManager.shared.lastOneHandedMode = currentOneHandedMode
-            updateKeyboardConstraints()
+            updateOneHandModeLayout()
         }
     }
     /// 현재 키보드의 리턴 버튼
-    private var currentReturnButton: ReturnButton {
+    private var currentReturnButton: ReturnButton? {
         switch currentKeyboardLayout {
         case .hangeul:
             return naratgeulKeyboardView.returnButton
@@ -45,28 +45,16 @@ final class KeyboardInputViewController: UIInputViewController {
         case .numeric:
             return numericKeyboardView.returnButton
         default:
-            fatalError("도달할 수 없는 case 입니다.")
+            return nil
         }
     }
-    private var enablesReturnKeyAutomatically: Bool = false
-    /// iPhone SE용 키보드 전환 버튼 액션
-    private let nextKeyboardAction: Selector = #selector(handleInputModeList(from:with:))
-    /// 키보드 전환 버튼 제스처 컨트롤러
-    private lazy var switchButtonGestureController = SwitchButtonGestureController(naratgeulKeyboardView: naratgeulKeyboardView,
-                                                                                   symbolKeyboardView: symbolKeyboardView,
-                                                                                   numericKeyboardView: numericKeyboardView,
-                                                                                   getCurrentKeyboardLayout: { [weak self] in return self?.currentKeyboardLayout ?? .hangeul },
-                                                                                   getCurrentOneHandedMode: { [weak self] in self?.currentOneHandedMode ?? .center })
-    /// 키 입력 버튼, 스페이스 버튼, 삭제 버튼 제스처 컨트롤러
-    private lazy var textInteractionButtonGestureController = TextInteractionButtonGestureController(naratgeulKeyboardView: naratgeulKeyboardView,
-                                                                                                     symbolKeyboardView: symbolKeyboardView,
-                                                                                                     numericKeyboardView: numericKeyboardView,
-                                                                                                     getCurrentKeyboardLayout: { [weak self] in return self?.currentKeyboardLayout ?? .hangeul })
     /// 삭제 버튼 팬 제스처로 인해 임식로 삭제된 내용을 저장하는 변수
     private var tempDeletedCharacters: [Character] = []
     
     // MARK: - UI Components
     
+    /// iPhone SE용 키보드 전환 버튼 액션
+    private let nextKeyboardAction: Selector = #selector(handleInputModeList(from:with:))
     /// 키보드 전체 프레임
     private let keyboardFrameHStackView = UIStackView().then {
         $0.axis = .horizontal
@@ -74,9 +62,7 @@ final class KeyboardInputViewController: UIInputViewController {
         $0.backgroundColor = .clear
     }
     /// 키보드 뷰
-    private let keyboardLayoutView = UIView().then {
-        $0.backgroundColor = .clear
-    }
+    private let keyboardLayoutView = UIView()
     /// 한 손 키보드 해제 버튼(오른손 모드)
     private let leftChevronButton = ChevronButton(direction: .left).then { $0.isHidden = true }
     /// 나랏글 키보드
@@ -97,11 +83,24 @@ final class KeyboardInputViewController: UIInputViewController {
     /// 한 손 키보드 해제 버튼(왼손 모드)
     private let rightChevronButton = ChevronButton(direction: .right).then { $0.isHidden = true }
     
+    /// 키보드 전환 버튼 제스처 컨트롤러
+    private lazy var switchButtonGestureController = SwitchButtonGestureController(naratgeulKeyboardView: naratgeulKeyboardView,
+                                                                                   symbolKeyboardView: symbolKeyboardView,
+                                                                                   numericKeyboardView: numericKeyboardView,
+                                                                                   getCurrentKeyboardLayout: { [weak self] in return self?.currentKeyboardLayout ?? .hangeul },
+                                                                                   getCurrentOneHandedMode: { [weak self] in self?.currentOneHandedMode ?? .center })
+    /// 키 입력 버튼, 스페이스 버튼, 삭제 버튼 제스처 컨트롤러
+    private lazy var textInteractionButtonGestureController = TextInteractionButtonGestureController(naratgeulKeyboardView: naratgeulKeyboardView,
+                                                                                                     symbolKeyboardView: symbolKeyboardView,
+                                                                                                     numericKeyboardView: numericKeyboardView,
+                                                                                                     getCurrentKeyboardLayout: { [weak self] in return self?.currentKeyboardLayout ?? .hangeul })
+    
     // MARK: - Lifecycle
     
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
+        updateOneHandModeLayout()
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -111,10 +110,17 @@ final class KeyboardInputViewController: UIInputViewController {
     
     override func textWillChange(_ textInput: (any UITextInput)?) {
         super.textWillChange(textInput)
-        print("textWillChange")
         updateKeyboardAppearance()
         updateKeyboardType()
         updateReturnButtonType()
+    }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        #if DEBUG
+        guard let inputView = self.inputView else { return }
+        checkForAmbiguity(in: inputView)
+        #endif
     }
 }
 
@@ -152,9 +158,14 @@ private extension KeyboardInputViewController {
     }
     
     func setConstraints() {
+        // TODO: 가로모드
         keyboardFrameHStackView.snp.makeConstraints {
             $0.edges.equalToSuperview()
             $0.height.equalTo(UserDefaultsManager.shared.keyboardHeight).priority(.high)
+        }
+        
+        keyboardLayoutView.snp.makeConstraints {
+            $0.width.greaterThanOrEqualTo(UserDefaultsManager.shared.oneHandedKeyboardWidth)
         }
         
         naratgeulKeyboardView.snp.makeConstraints {
@@ -171,6 +182,19 @@ private extension KeyboardInputViewController {
         
         tenkeyKeyboardView.snp.makeConstraints {
             $0.edges.equalToSuperview()
+        }
+    }
+    
+    func checkForAmbiguity(in view: UIView) {
+        if view.hasAmbiguousLayout {
+            let message = "모호한 레이아웃이 존재합니다. - View: \(view), Identifier: \(view.accessibilityIdentifier ?? "없음")"
+            logger.error("\(message)")
+            view.exerciseAmbiguityInLayout()
+        }
+        
+        // 모든 자식 뷰에 대해 재귀적으로 확인
+        for subview in view.subviews {
+            checkForAmbiguity(in: subview)
         }
     }
 }
@@ -253,65 +277,72 @@ private extension KeyboardInputViewController {
         tenkeyKeyboardView.isHidden = (currentKeyboardLayout != .tenKey)
     }
     
-    func updateKeyboardConstraints() {
-        switch currentOneHandedMode {
-        case .left, .right:
-            keyboardLayoutView.snp.remakeConstraints {
-                $0.width.equalTo(UserDefaultsManager.shared.oneHandedKeyboardWidth).priority(.high)
-            }
-        case .center:
-            keyboardLayoutView.snp.removeConstraints()
-        }
+    func updateOneHandModeLayout() {
         leftChevronButton.isHidden = !(currentOneHandedMode == .right)
         rightChevronButton.isHidden = !(currentOneHandedMode == .left)
     }
     
     func updateKeyboardAppearance() {
-        
+        // TODO: 키보드 라이트모드, 다크모드 전환 구현
     }
     
     func updateKeyboardType() {
         switch textDocumentProxy.keyboardType {
         case .default, .none:
             hangeulKeyboardView.currentHangeulKeyboardMode = .default
-            symbolKeyboardView.updateLayoutToDefault()
+            symbolKeyboardView.currentSymbolKeyboardMode = .default
+            currentKeyboardLayout = .hangeul
         case .asciiCapable:
-            // TODO: - 영어 키보드
-//        self.primaryLanguage
-            symbolKeyboardView.updateLayoutToDefault()
+            //        self.primaryLanguage
+            symbolKeyboardView.currentSymbolKeyboardMode = .default
+            // TODO: - 영어 키보드 설정
+            currentKeyboardLayout = .hangeul
         case .numbersAndPunctuation:
             hangeulKeyboardView.currentHangeulKeyboardMode = .default
-            symbolKeyboardView.updateLayoutToDefault()
+            symbolKeyboardView.currentSymbolKeyboardMode = .default
             currentKeyboardLayout = .symbol
         case .URL:
             hangeulKeyboardView.currentHangeulKeyboardMode = .default
-            symbolKeyboardView.updateLayoutToURL()
+            symbolKeyboardView.currentSymbolKeyboardMode = .URL
+            // TODO: - 영어 키보드 설정
+            currentKeyboardLayout = .hangeul
         case .numberPad:
-            tenkeyKeyboardView.updateLayoutToNumberPad()
+            tenkeyKeyboardView.currentTenkeyKeyboardMode = .numberPad
+            currentKeyboardLayout = .tenKey
         case .phonePad, .namePhonePad:
-            break
+            // 항상 iOS 시스템 키보드 표시됨
+            tenkeyKeyboardView.currentTenkeyKeyboardMode = .numberPad
+            currentKeyboardLayout = .tenKey
         case .emailAddress:
             hangeulKeyboardView.currentHangeulKeyboardMode = .default
-            symbolKeyboardView.updateLayoutToEmailAddress()
+            symbolKeyboardView.currentSymbolKeyboardMode = .emailAddress
+            // TODO: - 영어 키보드 설정
+            currentKeyboardLayout = .hangeul
         case .decimalPad:
-            tenkeyKeyboardView.updateLayoutToDecimalPad()
+            tenkeyKeyboardView.currentTenkeyKeyboardMode = .decimalPad
+            currentKeyboardLayout = .tenKey
         case .twitter:
             hangeulKeyboardView.currentHangeulKeyboardMode = .twitter
-            symbolKeyboardView.updateLayoutToDefault()
+            symbolKeyboardView.currentSymbolKeyboardMode = .default
+            currentKeyboardLayout = .hangeul
         case .webSearch:
             hangeulKeyboardView.currentHangeulKeyboardMode = .default
-            symbolKeyboardView.updateLayoutToWebSearch()
+            symbolKeyboardView.currentSymbolKeyboardMode = .webSearch
+            currentKeyboardLayout = .hangeul
         case .asciiCapableNumberPad:
-            tenkeyKeyboardView.updateLayoutToDefault()
+            tenkeyKeyboardView.currentTenkeyKeyboardMode = .numberPad
+            currentKeyboardLayout = .tenKey
         @unknown default:
             assertionFailure("구현이 필요한 case 입니다.")
-            break
+            hangeulKeyboardView.currentHangeulKeyboardMode = .default
+            symbolKeyboardView.currentSymbolKeyboardMode = .default
+            currentKeyboardLayout = .hangeul
         }
     }
     
     func updateReturnButtonType() {
         let type = ReturnButton.ReturnKeyType(type: textDocumentProxy.returnKeyType)
-        currentReturnButton.update(for: type)
+        currentReturnButton?.update(for: type)
     }
 }
 

@@ -60,14 +60,12 @@ final class CheonjiinKeyboardView: UIView, HangeulKeyboardLayout {
     private lazy var fourthRowKeyButtonList = cheonjiinKeyList[3].map { PrimaryKeyButton(layout: .hangeul, button: .keyButton(keys: $0)) }
     
     private(set) var deleteButton = DeleteButton(layout: .hangeul)
-    
-    // 스페이스 버튼 위치
     private(set) var spaceButton = SpaceButton(layout: .hangeul)
     
     // 리턴 버튼 위치
     private(set) var returnButton = ReturnButton(layout: .hangeul)
-    private(set) var secondaryAtButton = SecondaryKeyButton(layout: .hangeul, button: .keyButton(keys: ["@"])).then { $0.isHidden = true }
-    private(set) var secondarySharpButton = SecondaryKeyButton(layout: .hangeul, button: .keyButton(keys: ["#"])).then { $0.isHidden = true }
+    private(set) var secondaryAtButton = SecondaryKeyButton(layout: .hangeul, button: .keyButton(keys: ["@"]))
+    private(set) var secondarySharpButton = SecondaryKeyButton(layout: .hangeul, button: .keyButton(keys: ["#"]))
     
     private(set) var switchButton = SwitchButton(layout: .hangeul)
     private(set) var nextKeyboardButton: NextKeyboardButton
@@ -83,32 +81,11 @@ final class CheonjiinKeyboardView: UIView, HangeulKeyboardLayout {
         
         nextKeyboardButton.isHidden = !needsInputModeSwitchKey
         setupUI()
+        updateLayoutToDefault()
     }
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
-    }
-    
-    // MARK: - Internal Methods
-    
-    func showKeyboardSelectOverlay(needToEmphasizeTarget: Bool) {
-        keyboardSelectOverlayView.configure(needToEmphasizeTarget: needToEmphasizeTarget)
-        keyboardSelectOverlayView.isHidden = false
-    }
-    
-    func hideKeyboardSelectOverlay() {
-        keyboardSelectOverlayView.isHidden = true
-        keyboardSelectOverlayView.resetIsEmphasizingTarget()
-    }
-    
-    func showOneHandedModeSelectOverlay(of mode: OneHandedMode) {
-        oneHandedModeSelectOverlayView.configure(emphasizeOf: mode)
-        oneHandedModeSelectOverlayView.isHidden = false
-    }
-    
-    func hideOneHandedModeSelectOverlay() {
-        oneHandedModeSelectOverlayView.isHidden = true
-        oneHandedModeSelectOverlayView.resetLastEmphasizeMode()
     }
 }
 

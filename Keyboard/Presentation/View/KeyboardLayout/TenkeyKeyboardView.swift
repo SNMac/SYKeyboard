@@ -8,15 +8,18 @@
 import UIKit
 
 import SnapKit
+import Then
 
 /// 텐키 키보드
 final class TenkeyKeyboardView: UIView, TenkeyKeyboardLayout {
     
     // MARK: - Properties
     
-    private(set) lazy var totalTextInteractionButtonList: [TextInteractionButtonProtocol] = firstRowKeyButtonList + secondRowKeyButtonList + thirdRowKeyButtonList + fourthRowKeyButtonList
+    private(set) lazy var totalTextInteractionButtonList: [TextInteractionButtonProtocol] = firstRowKeyButtonList + secondRowKeyButtonList + thirdRowKeyButtonList + fourthRowKeyButtonList + [periodButton, deleteButton]
     
-    var currentTenkeyKeyboardMode: TenkeyKeyboardMode = .default
+    var currentTenkeyKeyboardMode: TenkeyKeyboardMode = .numberPad {
+        didSet(oldMode) { updateLayoutForCurrentTenkeyKeyboardMode(oldMode: oldMode) }
+    }
     
     /// 텐키 키보드 키 배열
     private let tenKeyList = [
@@ -53,8 +56,8 @@ final class TenkeyKeyboardView: UIView, TenkeyKeyboardLayout {
     /// 키보드 네번째 행 `PrimaryKeyButton` 배열
     private lazy var fourthRowKeyButtonList = tenKeyList[3].map { PrimaryKeyButton(layout: .tenKey, button: .keyButton(keys: $0)) }
     
-    /// 키보드 네번째 행 좌측 여백
-    private let buttonSpacer = KeyboardSpacer()
+    private(set) var bottomLeftButtonSpacer = KeyboardSpacer()
+    private(set) var periodButton = SecondaryKeyButton(layout: .tenKey, button: .keyButton(keys: ["."]))
     private(set) var deleteButton = DeleteButton(layout: .tenKey)
     
     // MARK: - Initializer
@@ -62,6 +65,7 @@ final class TenkeyKeyboardView: UIView, TenkeyKeyboardLayout {
     override init(frame: CGRect) {
         super.init(frame: frame)
         setupUI()
+        updateLayoutToNumberPad()
     }
     
     required init?(coder: NSCoder) {
@@ -98,7 +102,7 @@ private extension TenkeyKeyboardView {
         
         thirdRowKeyButtonList.forEach { thirdRowHStackView.addArrangedSubview($0) }
         
-        fourthRowHStackView.addArrangedSubview(buttonSpacer)
+        fourthRowHStackView.addArrangedSubviews(bottomLeftButtonSpacer, periodButton)
         fourthRowKeyButtonList.forEach { fourthRowHStackView.addArrangedSubview($0) }
         fourthRowHStackView.addArrangedSubview(deleteButton)
     }
@@ -121,20 +125,5 @@ private extension TenkeyKeyboardView {
             $0.bottom.equalToSuperview()
             $0.height.equalTo(2)
         }
-    }
-}
-
-// MARK: - TenkeyKeyboardLayout
-extension TenkeyKeyboardView {
-    func updateLayoutToDefault() {
-        
-    }
-    
-    func updateLayoutToNumberPad() {
-        
-    }
-    
-    func updateLayoutToDecimalPad(){
-        
     }
 }

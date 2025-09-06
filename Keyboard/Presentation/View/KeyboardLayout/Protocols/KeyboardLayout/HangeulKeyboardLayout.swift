@@ -11,10 +11,14 @@ protocol HangeulKeyboardLayout: DefaultKeyboardLayout, TextInteractionButtonGest
     var currentHangeulKeyboardMode: HangeulKeyboardMode { get set }
     /// 리턴 버튼 수평 스택
     var returnButtonHStackView: KeyboardRowHStackView { get }
-    /// `@` 기능 버튼
+    /// `@` 보조 키 버튼
     var secondaryAtButton: SecondaryKeyButton { get }
-    /// `#` 기능 버튼
+    /// `#` 보조 키 버튼
     var secondarySharpButton: SecondaryKeyButton { get }
+    /// 한글 키보드 레이아웃 모드 변경이 이루어졌을 때 호출되는 메서드
+    /// - Parameters:
+    ///   - oldMode: 이전 한글 키보드 레이아웃 모드
+    func updateLayoutForCurrentHangeulMode(oldMode: HangeulKeyboardMode)
     /// `UIKeyboardType`이 `.default` 일 때의 레이아웃 설정
     func updateLayoutToDefault()
     /// `UIKeyboardType`이 `.twitter` 일 때의 레이아웃 설정

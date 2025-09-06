@@ -12,7 +12,7 @@ final class ChevronButton: UIButton {
     
     // MARK: - Properties
     
-    /// chevron.compact 이미지 방향
+    /// `chevron.compact` 이미지 방향
     enum Direction {
         case left
         case right
