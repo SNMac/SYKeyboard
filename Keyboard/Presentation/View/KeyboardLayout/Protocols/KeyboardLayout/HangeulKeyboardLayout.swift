@@ -22,15 +22,23 @@ protocol HangeulKeyboardLayout: DefaultKeyboardLayout, TextInteractionButtonGest
 }
 
 extension HangeulKeyboardLayout {
+    func updateLayoutForCurrentHangeulMode(oldMode: HangeulKeyboardMode) {
+        guard oldMode != currentHangeulKeyboardMode else { return }
+        switch currentHangeulKeyboardMode {
+        case .default:
+            updateLayoutToDefault()
+        case .twitter:
+            updateLayoutToTwitter()
+        }
+    }
+    
     func updateLayoutToDefault() {
-        guard currentHangeulKeyboardMode != .default else { return }
         returnButton.isHidden = false
         secondaryAtButton.isHidden = true
         secondarySharpButton.isHidden = true
     }
     
     func updateLayoutToTwitter() {
-        guard currentHangeulKeyboardMode != .twitter else { return }
         returnButton.isHidden = true
         secondaryAtButton.isHidden = false
         secondarySharpButton.isHidden = false

@@ -5,6 +5,7 @@
 //  Created by 서동환 on 9/6/25.
 //
 
+import SnapKit
 
 /// 기호 키보드 레이아웃 프로토콜
 protocol SymbolKeyboardLayout: DefaultKeyboardLayout, TextInteractionButtonGestureHandler, SwitchButtonGestureHandler {
@@ -33,8 +34,21 @@ protocol SymbolKeyboardLayout: DefaultKeyboardLayout, TextInteractionButtonGestu
 }
 
 extension SymbolKeyboardLayout {
+    func updateLayoutForCurrentSymbolKeyboardMode(oldMode: SymbolKeyboardMode) {
+        guard oldMode != currentSymbolKeyboardMode else { return }
+        switch currentSymbolKeyboardMode {
+        case .default:
+            updateLayoutToDefault()
+        case .URL:
+            updateLayoutToURL()
+        case .emailAddress:
+            updateLayoutToEmailAddress()
+        case .webSearch:
+            updateLayoutToWebSearch()
+        }
+    }
+    
     func updateLayoutToDefault() {
-        guard currentSymbolKeyboardMode != .default else { return }
         currentSymbolKeyboardMode = .default
         
         spaceButton.isHidden = false
@@ -47,7 +61,6 @@ extension SymbolKeyboardLayout {
     }
     
     func updateLayoutToURL() {
-        guard currentSymbolKeyboardMode != .URL else { return }
         currentSymbolKeyboardMode = .URL
         
         spaceButton.isHidden = true

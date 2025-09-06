@@ -17,7 +17,9 @@ final class CheonjiinKeyboardView: UIView, HangeulKeyboardLayout {
     
     private(set) lazy var totalTextInteractionButtonList: [TextInteractionButtonProtocol] = firstRowKeyButtonList + secondRowKeyButtonList + thirdRowKeyButtonList + fourthRowKeyButtonList + [deleteButton, spaceButton]
     
-    var currentHangeulKeyboardMode: HangeulKeyboardMode = .default
+    var currentHangeulKeyboardMode: HangeulKeyboardMode = .default {
+        didSet(oldMode) { updateLayoutForCurrentHangeulMode(oldMode: oldMode) }
+    }
     
     /// 나랏글 키보드 키 배열
     private let cheonjiinKeyList = [

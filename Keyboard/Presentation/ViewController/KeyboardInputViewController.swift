@@ -273,33 +273,33 @@ private extension KeyboardInputViewController {
     func updateKeyboardType() {
         switch textDocumentProxy.keyboardType {
         case .default, .none:
-            hangeulKeyboardView.updateLayoutToDefault()
+            hangeulKeyboardView.currentHangeulKeyboardMode = .default
             symbolKeyboardView.updateLayoutToDefault()
         case .asciiCapable:
             // TODO: - 영어 키보드
 //        self.primaryLanguage
             symbolKeyboardView.updateLayoutToDefault()
         case .numbersAndPunctuation:
-            hangeulKeyboardView.updateLayoutToDefault()
+            hangeulKeyboardView.currentHangeulKeyboardMode = .default
             symbolKeyboardView.updateLayoutToDefault()
             currentKeyboardLayout = .symbol
         case .URL:
-            hangeulKeyboardView.updateLayoutToDefault()
+            hangeulKeyboardView.currentHangeulKeyboardMode = .default
             symbolKeyboardView.updateLayoutToURL()
         case .numberPad:
             tenkeyKeyboardView.updateLayoutToNumberPad()
         case .phonePad, .namePhonePad:
             break
         case .emailAddress:
-            hangeulKeyboardView.updateLayoutToDefault()
+            hangeulKeyboardView.currentHangeulKeyboardMode = .default
             symbolKeyboardView.updateLayoutToEmailAddress()
         case .decimalPad:
             tenkeyKeyboardView.updateLayoutToDecimalPad()
         case .twitter:
-            hangeulKeyboardView.updateLayoutToTwitter()
+            hangeulKeyboardView.currentHangeulKeyboardMode = .twitter
             symbolKeyboardView.updateLayoutToDefault()
         case .webSearch:
-            hangeulKeyboardView.updateLayoutToDefault()
+            hangeulKeyboardView.currentHangeulKeyboardMode = .default
             symbolKeyboardView.updateLayoutToWebSearch()
         case .asciiCapableNumberPad:
             tenkeyKeyboardView.updateLayoutToDefault()

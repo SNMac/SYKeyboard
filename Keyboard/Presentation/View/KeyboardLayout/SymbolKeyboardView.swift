@@ -18,15 +18,16 @@ final class SymbolKeyboardView: UIView, SymbolKeyboardLayout {
     private(set) lazy var totalTextInteractionButtonList: [TextInteractionButtonProtocol] = firstRowKeyButtonList + secondRowKeyButtonList + thirdRowKeyButtonList + [deleteButton, spaceButton]
     
     var currentSymbolKeyboardMode: SymbolKeyboardMode = .default {
-        didSet {
+        didSet(oldMode) {
+            updateLayoutForCurrentSymbolKeyboardMode(oldMode: oldMode)
             isShifted = false
-            updateKeyButtonList()
         }
     }
 
     private var isShifted: Bool = false {
         didSet {
             updateSymbolShiftButton()
+            updateKeyButtonList()
         }
     }
     
@@ -193,7 +194,6 @@ private extension SymbolKeyboardView {
     func setSymbolShiftButtonAction() {
         let symbolShiftButtonTouchUpInside = UIAction { [weak self] _ in
             self?.isShifted.toggle()
-            self?.updateKeyButtonList()
         }
         symbolShiftButton.addAction(symbolShiftButtonTouchUpInside, for: .touchUpInside)
     }
@@ -216,10 +216,4 @@ private extension SymbolKeyboardView {
     func updateSymbolShiftButton() {
         symbolShiftButton.update(isShifted: isShifted)
     }
-}
-
-// MARK: - SymbolKeyboardLayout
-
-extension SymbolKeyboardView {
-    
 }
