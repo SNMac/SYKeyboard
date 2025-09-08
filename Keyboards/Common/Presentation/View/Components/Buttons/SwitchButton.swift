@@ -1,6 +1,6 @@
 //
 //  SwitchButton.swift
-//  Keyboard
+//  HangeulKeyboard, EnglishKeyboard
 //
 //  Created by 서동환 on 7/13/25.
 //
@@ -109,7 +109,7 @@ private extension SwitchButton {
     
     func setConstraints() {
         switch layout {
-        case .symbol:
+        case .english, .symbol:
             oneHandedLabel.snp.makeConstraints {
                 $0.top.equalToSuperview().inset(self.insetDy + 1)
                 $0.leading.equalToSuperview().inset(self.insetDx + 1)
@@ -149,7 +149,7 @@ private extension SwitchButton {
         case .hangeul, .numeric:
             fullString = NSMutableAttributedString(attachment: keyboard)
             fullString?.append(NSAttributedString(attachment: arrowtriangleUp))
-        case .symbol:
+        case .english, .symbol:
             fullString = NSMutableAttributedString(attachment: arrowtriangleUp)
             fullString?.append(NSAttributedString(attachment: keyboard))
         default:
@@ -175,7 +175,7 @@ private extension SwitchButton {
             let textAttributedString = NSAttributedString(string: text, attributes: attributes)
             fullString = NSMutableAttributedString(attachment: arrowtriangle)
             fullString?.append(textAttributedString)
-        case .symbol:
+        case .english, .symbol:
             text = "123"
             arrowtriangle.image = UIImage(systemName: needToEmphasize ? "arrowtriangle.right.fill" : "arrowtriangle.right")?.withConfiguration(imageConfig).withTintColor(.label, renderingMode: .alwaysOriginal)
             

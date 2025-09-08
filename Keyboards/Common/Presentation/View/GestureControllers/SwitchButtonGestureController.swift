@@ -1,6 +1,6 @@
 //
 //  SwitchButtonGestureController.swift
-//  Keyboard
+//  HangeulKeyboard, EnglishKeyboard
 //
 //  Created by 서동환 on 9/2/25.
 //
@@ -27,7 +27,8 @@ final class SwitchButtonGestureController: NSObject {
                            targetDirection: PanDirection)
     
     // Initializer Injection
-    private let naratgeulKeyboardView: SwitchButtonGestureHandler
+    private let hangeulKeyboardView: SwitchButtonGestureHandler?
+    private let englishKeyboardView: SwitchButtonGestureHandler?
     private let symbolKeyboardView: SwitchButtonGestureHandler
     private let numericKeyboardView: SwitchButtonGestureHandler
     private let getCurrentKeyboardLayout: () -> KeyboardLayout
@@ -38,12 +39,14 @@ final class SwitchButtonGestureController: NSObject {
     
     // MARK: - Initializer
     
-    init(naratgeulKeyboardView: SwitchButtonGestureHandler,
+    init(hangeulKeyboardView: SwitchButtonGestureHandler?,
+         englishKeyboardView: SwitchButtonGestureHandler?,
          symbolKeyboardView: SwitchButtonGestureHandler,
          numericKeyboardView: SwitchButtonGestureHandler,
          getCurrentKeyboardLayout: @escaping () -> KeyboardLayout,
          getCurrentOneHandedMode: @escaping () -> OneHandedMode) {
-        self.naratgeulKeyboardView = naratgeulKeyboardView
+        self.hangeulKeyboardView = hangeulKeyboardView
+        self.englishKeyboardView = englishKeyboardView
         self.symbolKeyboardView = symbolKeyboardView
         self.numericKeyboardView = numericKeyboardView
         self.getCurrentKeyboardLayout = getCurrentKeyboardLayout
@@ -215,7 +218,11 @@ private extension SwitchButtonGestureController {
         let currentKeyboardLayout = getCurrentKeyboardLayout()
         switch currentKeyboardLayout {
         case .hangeul:
-            gestureHandler = naratgeulKeyboardView
+            guard let hangeulKeyboardView else { fatalError("옵셔널 바인딩 실패 - hangeulKeyboardView가 nil입니다.") }
+            gestureHandler = hangeulKeyboardView
+        case .english:
+            guard let englishKeyboardView else { fatalError("옵셔널 바인딩 실패 - hangeulKeyboardView가 nil입니다.") }
+            gestureHandler = englishKeyboardView
         case .symbol:
             gestureHandler = symbolKeyboardView
         case .numeric:
@@ -232,9 +239,15 @@ private extension SwitchButtonGestureController {
         let currentKeyboardLayout = getCurrentKeyboardLayout()
         switch currentKeyboardLayout {
         case .hangeul:
-            config = (gestureHandler: naratgeulKeyboardView,
+            guard let hangeulKeyboardView else { fatalError("옵셔널 바인딩 실패 - hangeulKeyboardView가 nil입니다.") }
+            config = (gestureHandler: hangeulKeyboardView,
                       targetLayout: .numeric,
                       targetDirection: .left)
+        case .english:
+            guard let englishKeyboardView else { fatalError("옵셔널 바인딩 실패 - hangeulKeyboardView가 nil입니다.") }
+            config = (gestureHandler: englishKeyboardView,
+                      targetLayout: .numeric,
+                      targetDirection: .right)
         case .symbol:
             config = (gestureHandler: symbolKeyboardView,
                       targetLayout: .numeric,

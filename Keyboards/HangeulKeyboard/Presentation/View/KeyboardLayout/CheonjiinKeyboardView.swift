@@ -1,6 +1,6 @@
 //
 //  CheonjiinKeyboardView.swift
-//  Keyboard
+//  HangeulKeyboard
 //
 //  Created by 서동환 on 7/13/25.
 //

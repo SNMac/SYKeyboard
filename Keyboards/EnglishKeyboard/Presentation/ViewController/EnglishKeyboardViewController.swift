@@ -1,8 +1,8 @@
 //
-//  KeyboardViewController.swift
-//  Keyboard
+//  EnglishKeyboardViewController.swift
+//  EnglishKeyboard
 //
-//  Created by 서동환 on 7/29/24.
+//  Created by 서동환 on 9/8/25.
 //
 
 import UIKit
@@ -12,8 +12,8 @@ import OSLog
 import SnapKit
 import Then
 
-/// 키보드 입력/UI 컨트롤러
-final class KeyboardViewController: UIInputViewController {
+/// 영어 키보드 입력/UI 컨트롤러
+final class EnglishKeyboardViewController: UIInputViewController {
     
     // MARK: - Properties
     
@@ -38,8 +38,8 @@ final class KeyboardViewController: UIInputViewController {
     /// 현재 키보드의 리턴 버튼
     private var currentReturnButton: ReturnButton? {
         switch currentKeyboardLayout {
-        case .hangeul:
-            return naratgeulKeyboardView.returnButton
+        case .english:
+            return englishKeyboardView.returnButton
         case .symbol:
             return symbolKeyboardView.returnButton
         case .numeric:
@@ -48,7 +48,7 @@ final class KeyboardViewController: UIInputViewController {
             return nil
         }
     }
-    /// 삭제 버튼 팬 제스처로 인해 임식로 삭제된 내용을 저장하는 변수
+    /// 삭제 버튼 팬 제스처로 인해 임시로 삭제된 내용을 저장하는 변수
     private var tempDeletedCharacters: [Character] = []
     
     // MARK: - UI Components
@@ -63,12 +63,8 @@ final class KeyboardViewController: UIInputViewController {
     private let keyboardLayoutView = UIView()
     /// 한 손 키보드 해제 버튼(오른손 모드)
     private let leftChevronButton = ChevronButton(direction: .left).then { $0.isHidden = true }
-    /// 나랏글 키보드
-    private lazy var naratgeulKeyboardView: HangeulKeyboardLayout = NaratgeulKeyboardView().then { $0.isHidden = false }
-    /// 천지인 키보드
-    private lazy var cheonjiinKeyboardView: HangeulKeyboardLayout = CheonjiinKeyboardView().then { $0.isHidden = false }
-    /// 사용자가 선택한 한글 키보드
-    private lazy var hangeulKeyboardView: HangeulKeyboardLayout = naratgeulKeyboardView  // TODO: 사용자가 선택한 한글 키보드를 저장
+    /// 영어 키보드
+    private lazy var englishKeyboardView: EnglishKeyboardLayout = EnglishKeyboardView().then { $0.isHidden = true }
     /// 기호 키보드
     private lazy var symbolKeyboardView: SymbolKeyboardLayout = SymbolKeyboardView().then { $0.isHidden = true }
     /// 숫자 키보드
@@ -79,13 +75,15 @@ final class KeyboardViewController: UIInputViewController {
     private let rightChevronButton = ChevronButton(direction: .right).then { $0.isHidden = true }
     
     /// 키보드 전환 버튼 제스처 컨트롤러
-    private lazy var switchButtonGestureController = SwitchButtonGestureController(naratgeulKeyboardView: naratgeulKeyboardView,
+    private lazy var switchButtonGestureController = SwitchButtonGestureController(hangeulKeyboardView: nil,
+                                                                                   englishKeyboardView: englishKeyboardView,
                                                                                    symbolKeyboardView: symbolKeyboardView,
                                                                                    numericKeyboardView: numericKeyboardView,
                                                                                    getCurrentKeyboardLayout: { [weak self] in return self?.currentKeyboardLayout ?? .hangeul },
                                                                                    getCurrentOneHandedMode: { [weak self] in self?.currentOneHandedMode ?? .center })
     /// 키 입력 버튼, 스페이스 버튼, 삭제 버튼 제스처 컨트롤러
-    private lazy var textInteractionButtonGestureController = TextInteractionButtonGestureController(naratgeulKeyboardView: naratgeulKeyboardView,
+    private lazy var textInteractionButtonGestureController = TextInteractionButtonGestureController(hangeulKeyboardView: nil,
+                                                                                                     englishKeyboardView: englishKeyboardView,
                                                                                                      symbolKeyboardView: symbolKeyboardView,
                                                                                                      numericKeyboardView: numericKeyboardView,
                                                                                                      getCurrentKeyboardLayout: { [weak self] in return self?.currentKeyboardLayout ?? .hangeul })
@@ -122,7 +120,7 @@ final class KeyboardViewController: UIInputViewController {
 
 // MARK: - UI Methods
 
-private extension KeyboardViewController {
+private extension EnglishKeyboardViewController {
     func setupUI() {
         setDelegates()
         setActions()
@@ -146,7 +144,7 @@ private extension KeyboardViewController {
         
         keyboardFrameHStackView.addArrangedSubviews(leftChevronButton, keyboardLayoutView, rightChevronButton)
         
-        keyboardLayoutView.addSubviews(hangeulKeyboardView, symbolKeyboardView, numericKeyboardView, tenkeyKeyboardView)
+        keyboardLayoutView.addSubviews(englishKeyboardView, symbolKeyboardView, numericKeyboardView, tenkeyKeyboardView)
     }
     
     func setConstraints() {
@@ -159,7 +157,7 @@ private extension KeyboardViewController {
             $0.width.greaterThanOrEqualTo(UserDefaultsManager.shared.oneHandedKeyboardWidth)
         }
         
-        hangeulKeyboardView.snp.makeConstraints {
+        englishKeyboardView.snp.makeConstraints {
             $0.edges.equalToSuperview()
         }
         
@@ -183,7 +181,7 @@ private extension KeyboardViewController {
     }
     
     func setNextKeyboardButton() {
-        hangeulKeyboardView.updateNextKeyboardButton(needsInputModeSwitchKey: self.needsInputModeSwitchKey,
+        englishKeyboardView.updateNextKeyboardButton(needsInputModeSwitchKey: self.needsInputModeSwitchKey,
                                                      nextKeyboardAction: #selector(self.handleInputModeList(from:with:)))
         symbolKeyboardView.updateNextKeyboardButton(needsInputModeSwitchKey: self.needsInputModeSwitchKey,
                                                     nextKeyboardAction: #selector(self.handleInputModeList(from:with:)))
@@ -207,9 +205,9 @@ private extension KeyboardViewController {
 
 // MARK: - Button Action Methods
 
-private extension KeyboardViewController {
+private extension EnglishKeyboardViewController {
     func setTextInteractionButtonAction() {
-        [naratgeulKeyboardView.totalTextInteractionButtonList,
+        [englishKeyboardView.totalTextInteractionButtonList,
          numericKeyboardView.totalTextInteractionButtonList,
          symbolKeyboardView.totalTextInteractionButtonList].forEach { buttonList in
             buttonList.forEach { addGesturesToTextInteractionButton($0) }
@@ -235,17 +233,17 @@ private extension KeyboardViewController {
         let switchToSymbolKeyboard = UIAction { [weak self] _ in
             self?.currentKeyboardLayout = .symbol
         }
-        naratgeulKeyboardView.switchButton.addAction(switchToSymbolKeyboard, for: .touchUpInside)
+        englishKeyboardView.switchButton.addAction(switchToSymbolKeyboard, for: .touchUpInside)
         
         // 한글 키보드 전환
         let switchToHangeulKeyboard = UIAction { [weak self] _ in
-            self?.currentKeyboardLayout = .hangeul
+            self?.currentKeyboardLayout = .english
         }
         symbolKeyboardView.switchButton.addAction(switchToHangeulKeyboard, for: .touchUpInside)
         numericKeyboardView.switchButton.addAction(switchToHangeulKeyboard, for: .touchUpInside)
         
         // 키보드 전환 버튼 제스처
-        [naratgeulKeyboardView.switchButton,
+        [englishKeyboardView.switchButton,
          symbolKeyboardView.switchButton,
          numericKeyboardView.switchButton].forEach { addGesturesToSwitchButton($0) }
     }
@@ -275,9 +273,9 @@ private extension KeyboardViewController {
 
 // MARK: - Update Methods
 
-private extension KeyboardViewController {
+private extension EnglishKeyboardViewController {
     func updateShowingKeyboard() {
-        hangeulKeyboardView.isHidden = (currentKeyboardLayout != .hangeul)
+        englishKeyboardView.isHidden = (currentKeyboardLayout != .english)
         symbolKeyboardView.isHidden = (currentKeyboardLayout != .symbol)
         numericKeyboardView.isHidden = (currentKeyboardLayout != .numeric)
         tenkeyKeyboardView.isHidden = (currentKeyboardLayout != .tenKey)
@@ -295,23 +293,22 @@ private extension KeyboardViewController {
     func updateKeyboardType() {
         switch textDocumentProxy.keyboardType {
         case .default, .none:
-            hangeulKeyboardView.currentHangeulKeyboardMode = .default
+            englishKeyboardView.currentEnglishKeyboardMode = .default
             symbolKeyboardView.currentSymbolKeyboardMode = .default
-            currentKeyboardLayout = .hangeul
+            currentKeyboardLayout = .english
         case .asciiCapable:
-//            self.primaryLanguage
+            englishKeyboardView.currentEnglishKeyboardMode = .default
             symbolKeyboardView.currentSymbolKeyboardMode = .default
-            // TODO: - 영어 키보드 설정
-            currentKeyboardLayout = .hangeul
+            currentKeyboardLayout = .english
         case .numbersAndPunctuation:
-            hangeulKeyboardView.currentHangeulKeyboardMode = .default
+            englishKeyboardView.currentEnglishKeyboardMode = .default
             symbolKeyboardView.currentSymbolKeyboardMode = .default
             currentKeyboardLayout = .symbol
         case .URL:
-            hangeulKeyboardView.currentHangeulKeyboardMode = .default
+            englishKeyboardView.currentEnglishKeyboardMode = .URL
             symbolKeyboardView.currentSymbolKeyboardMode = .URL
             // TODO: - 영어 키보드 설정
-            currentKeyboardLayout = .hangeul
+            currentKeyboardLayout = .english
         case .numberPad:
             tenkeyKeyboardView.currentTenkeyKeyboardMode = .numberPad
             currentKeyboardLayout = .tenKey
@@ -320,29 +317,29 @@ private extension KeyboardViewController {
             tenkeyKeyboardView.currentTenkeyKeyboardMode = .numberPad
             currentKeyboardLayout = .tenKey
         case .emailAddress:
-            hangeulKeyboardView.currentHangeulKeyboardMode = .default
+            englishKeyboardView.currentEnglishKeyboardMode = .emailAddress
             symbolKeyboardView.currentSymbolKeyboardMode = .emailAddress
             // TODO: - 영어 키보드 설정
-            currentKeyboardLayout = .hangeul
+            currentKeyboardLayout = .english
         case .decimalPad:
             tenkeyKeyboardView.currentTenkeyKeyboardMode = .decimalPad
             currentKeyboardLayout = .tenKey
         case .twitter:
-            hangeulKeyboardView.currentHangeulKeyboardMode = .twitter
+            englishKeyboardView.currentEnglishKeyboardMode = .twitter
             symbolKeyboardView.currentSymbolKeyboardMode = .default
-            currentKeyboardLayout = .hangeul
+            currentKeyboardLayout = .english
         case .webSearch:
-            hangeulKeyboardView.currentHangeulKeyboardMode = .default
+            englishKeyboardView.currentEnglishKeyboardMode = .webSearch
             symbolKeyboardView.currentSymbolKeyboardMode = .webSearch
-            currentKeyboardLayout = .hangeul
+            currentKeyboardLayout = .english
         case .asciiCapableNumberPad:
             tenkeyKeyboardView.currentTenkeyKeyboardMode = .numberPad
             currentKeyboardLayout = .tenKey
         @unknown default:
             assertionFailure("구현이 필요한 case 입니다.")
-            hangeulKeyboardView.currentHangeulKeyboardMode = .default
+            englishKeyboardView.currentEnglishKeyboardMode = .default
             symbolKeyboardView.currentSymbolKeyboardMode = .default
-            currentKeyboardLayout = .hangeul
+            currentKeyboardLayout = .english
         }
     }
     
@@ -354,7 +351,7 @@ private extension KeyboardViewController {
 
 // MARK: - Text Interaction Methods
 
-private extension KeyboardViewController {
+private extension EnglishKeyboardViewController {
     func performTextInteraction(for button: TextInteractionButton) {
         switch button {
         case .keyButton(let keys):
@@ -393,7 +390,7 @@ private extension KeyboardViewController {
 
 // MARK: - SwitchButtonGestureControllerDelegate
 
-extension KeyboardViewController: SwitchButtonGestureControllerDelegate {
+extension EnglishKeyboardViewController: SwitchButtonGestureControllerDelegate {
     func changeKeyboardLayout(_ controller: SwitchButtonGestureController, to newLayout: KeyboardLayout) {
         self.currentKeyboardLayout = newLayout
     }
@@ -405,7 +402,7 @@ extension KeyboardViewController: SwitchButtonGestureControllerDelegate {
 
 // MARK: - TextInteractionButtonGestureControllerDelegate
 
-extension KeyboardViewController: TextInteractionButtonGestureControllerDelegate {
+extension EnglishKeyboardViewController: TextInteractionButtonGestureControllerDelegate {
     func primaryButtonPanning(_ controller: TextInteractionButtonGestureController, to direction: PanDirection) {
         logger.debug("Primary Button 팬 제스처 방향: \(String(describing: direction))")
         

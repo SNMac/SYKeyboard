@@ -1,6 +1,6 @@
 //
 //  DeleteButton.swift
-//  Keyboard
+//  HangeulKeyboard, EnglishKeyboard
 //
 //  Created by 서동환 on 7/13/25.
 //
@@ -41,7 +41,7 @@ private extension DeleteButton {
     
     func setStyles() {
         switch layout {
-        case .symbol:
+        case .english, .symbol:
             self.configuration?.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 3, bottom: 0, trailing: 0)
             self.shadowView.snp.updateConstraints { $0.leading.equalToSuperview().inset(self.insetDx + 3) }
             self.backgroundView.snp.updateConstraints { $0.leading.equalToSuperview().inset(self.insetDx + 3) }
@@ -50,13 +50,13 @@ private extension DeleteButton {
         }
         
         let imageConfig = UIImage.SymbolConfiguration(pointSize: 16, weight: .medium)
-        self.configurationUpdateHandler = { button in
+        self.configurationUpdateHandler = { [weak self] button in
             switch button.state {
             case .normal:
-                self.backgroundView.backgroundColor = .secondaryButton
+                self?.backgroundView.backgroundColor = .secondaryButton
                 button.configuration?.image = UIImage(systemName: "delete.backward")?.withConfiguration(imageConfig).withTintColor(.label, renderingMode: .alwaysOriginal)
             case .highlighted, .selected:
-                self.backgroundView.backgroundColor = .secondaryButtonPressed
+                self?.backgroundView.backgroundColor = .secondaryButtonPressed
                 button.configuration?.image = UIImage(systemName: "delete.backward.fill")?.withConfiguration(imageConfig).withTintColor(.label, renderingMode: .alwaysOriginal)
             default:
                 break

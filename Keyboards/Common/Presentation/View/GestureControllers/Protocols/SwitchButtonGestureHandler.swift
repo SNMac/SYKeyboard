@@ -1,6 +1,6 @@
 //
 //  SwitchButtonGestureHandler.swift
-//  Keyboard
+//  HangeulKeyboard, EnglishKeyboard
 //
 //  Created by 서동환 on 9/2/25.
 //

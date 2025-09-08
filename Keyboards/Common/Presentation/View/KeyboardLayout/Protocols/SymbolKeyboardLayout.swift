@@ -1,6 +1,6 @@
 //
 //  SymbolKeyboardLayout.swift
-//  SYKeyboard
+//  HangeulKeyboard, EnglishKeyboard
 //
 //  Created by 서동환 on 9/6/25.
 //
@@ -13,8 +13,10 @@ import SnapKit
 protocol SymbolKeyboardLayout: DefaultKeyboardLayout, TextInteractionButtonGestureHandler, SwitchButtonGestureHandler {
     /// 현재 기호 키보드 레이아웃 모드
     var currentSymbolKeyboardMode: SymbolKeyboardMode { get set }
+    /// 키보드 네번째 좌측 `SecondaryButton` 행
+    var fourthRowLeftSecondaryButtonHStackView: KeyboardRowHStackView { get }
     /// 기호 전환 버튼
-    var symbolShiftButton: SymbolShiftButton { get }
+    var shiftButton: ShiftButton { get }
     /// 스페이스 버튼 수평 스택
     var spaceButtonHStackView: KeyboardRowHStackView { get }
     /// `@` 키 버튼
@@ -60,8 +62,6 @@ extension SymbolKeyboardLayout {
         periodButton.isHidden = true
         slashButton.isHidden = true
         dotComButton.isHidden = true
-        
-        spaceButton.snp.removeConstraints()
     }
     
     func updateLayoutToURL() {
@@ -71,7 +71,7 @@ extension SymbolKeyboardLayout {
         slashButton.isHidden = false
         dotComButton.isHidden = false
         
-        periodButton.snp.remakeConstraints {
+        periodButton.snp.updateConstraints {
             $0.width.equalToSuperview().dividedBy(3)
         }
     }
@@ -83,7 +83,7 @@ extension SymbolKeyboardLayout {
         slashButton.isHidden = true
         dotComButton.isHidden = true
         
-        periodButton.snp.remakeConstraints {
+        periodButton.snp.updateConstraints {
             $0.width.equalToSuperview().dividedBy(4)
         }
     }
@@ -95,7 +95,7 @@ extension SymbolKeyboardLayout {
         slashButton.isHidden = true
         dotComButton.isHidden = true
         
-        periodButton.snp.remakeConstraints {
+        periodButton.snp.updateConstraints {
             $0.width.equalToSuperview().dividedBy(5)
         }
     }

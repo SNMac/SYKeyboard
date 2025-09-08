@@ -1,6 +1,6 @@
 //
 //  TextInteractionButtonGestureController.swift
-//  Keyboard
+//  HangeulKeyboard, EnglishKeyboard
 //
 //  Created by 서동환 on 9/3/25.
 //
@@ -28,7 +28,8 @@ final class TextInteractionButtonGestureController: NSObject {
     private var isCursorActive: Bool = false
     
     // Initializer Injection
-    private let naratgeulKeyboardView: TextInteractionButtonGestureHandler
+    private let hangeulKeyboardView: TextInteractionButtonGestureHandler?
+    private let englishKeyboardView: TextInteractionButtonGestureHandler?
     private let symbolKeyboardView: TextInteractionButtonGestureHandler
     private let numericKeyboardView: TextInteractionButtonGestureHandler
     private let getCurrentKeyboardLayout: () -> KeyboardLayout
@@ -38,11 +39,13 @@ final class TextInteractionButtonGestureController: NSObject {
     
     // MARK: - Initializer
     
-    init(naratgeulKeyboardView: TextInteractionButtonGestureHandler,
+    init(hangeulKeyboardView: TextInteractionButtonGestureHandler?,
+         englishKeyboardView: TextInteractionButtonGestureHandler?,
          symbolKeyboardView: TextInteractionButtonGestureHandler,
          numericKeyboardView: TextInteractionButtonGestureHandler,
          getCurrentKeyboardLayout: @escaping () -> KeyboardLayout) {
-        self.naratgeulKeyboardView = naratgeulKeyboardView
+        self.hangeulKeyboardView = hangeulKeyboardView
+        self.englishKeyboardView = englishKeyboardView
         self.symbolKeyboardView = symbolKeyboardView
         self.numericKeyboardView = numericKeyboardView
         self.getCurrentKeyboardLayout = getCurrentKeyboardLayout

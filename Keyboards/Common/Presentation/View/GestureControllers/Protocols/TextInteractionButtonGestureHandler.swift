@@ -1,6 +1,6 @@
 //
 //  TextInteractionButtonGestureHandler.swift
-//  SYKeyboard
+//  HangeulKeyboard, EnglishKeyboard
 //
 //  Created by 서동환 on 9/7/25.
 //
