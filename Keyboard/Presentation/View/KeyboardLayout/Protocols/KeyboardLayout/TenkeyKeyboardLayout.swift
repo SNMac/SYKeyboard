@@ -5,6 +5,7 @@
 //  Created by 서동환 on 9/6/25.
 //
 
+import UIKit
 
 /// 텐키 키보드 레이아웃 프로토콜
 protocol TenkeyKeyboardLayout: BaseKeyboardLayout {

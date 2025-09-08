@@ -59,7 +59,7 @@ final class KeyboardInputViewController: UIInputViewController {
         $0.spacing = 0
         $0.backgroundColor = .clear
     }
-    /// 키보드 뷰
+    /// 키보드 레이아웃 뷰
     private let keyboardLayoutView = UIView()
     /// 한 손 키보드 해제 버튼(오른손 모드)
     private let leftChevronButton = ChevronButton(direction: .left).then { $0.isHidden = true }
@@ -101,7 +101,15 @@ final class KeyboardInputViewController: UIInputViewController {
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
+        setKeyboardHeight()
         FeedbackManager.shared.prepareHaptic()
+    }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        #if DEBUG
+        checkForAmbiguity(in: self.view)
+        #endif
     }
     
     override func textWillChange(_ textInput: (any UITextInput)?) {
@@ -109,14 +117,6 @@ final class KeyboardInputViewController: UIInputViewController {
         updateKeyboardAppearance()
         updateKeyboardType()
         updateReturnButtonType()
-    }
-    
-    override func viewDidAppear(_ animated: Bool) {
-        super.viewDidAppear(animated)
-        #if DEBUG
-        guard let inputView = self.inputView else { return }
-        checkForAmbiguity(in: inputView)
-        #endif
     }
 }
 
@@ -142,29 +142,24 @@ private extension KeyboardInputViewController {
     }
     
     func setHierarchy() {
-        guard let inputView = self.inputView else { return }
-        inputView.addSubview(keyboardFrameHStackView)
+        self.view.addSubview(keyboardFrameHStackView)
         
         keyboardFrameHStackView.addArrangedSubviews(leftChevronButton, keyboardLayoutView, rightChevronButton)
         
-        keyboardLayoutView.addSubviews(naratgeulKeyboardView,
-                                       symbolKeyboardView,
-                                       numericKeyboardView,
-                                       tenkeyKeyboardView)
+        keyboardLayoutView.addSubviews(hangeulKeyboardView, symbolKeyboardView, numericKeyboardView, tenkeyKeyboardView)
     }
     
     func setConstraints() {
         // TODO: 가로모드
         keyboardFrameHStackView.snp.makeConstraints {
             $0.edges.equalToSuperview()
-            $0.height.equalTo(UserDefaultsManager.shared.keyboardHeight).priority(.high)
         }
         
         keyboardLayoutView.snp.makeConstraints {
             $0.width.greaterThanOrEqualTo(UserDefaultsManager.shared.oneHandedKeyboardWidth)
         }
         
-        naratgeulKeyboardView.snp.makeConstraints {
+        hangeulKeyboardView.snp.makeConstraints {
             $0.edges.equalToSuperview()
         }
         
@@ -181,6 +176,12 @@ private extension KeyboardInputViewController {
         }
     }
     
+    func setKeyboardHeight() {
+        let heightConstraint = self.view.heightAnchor.constraint(equalToConstant: UserDefaultsManager.shared.keyboardHeight)
+        heightConstraint.priority = .init(999)
+        heightConstraint.isActive = true
+    }
+    
     func checkForAmbiguity(in view: UIView) {
         if view.hasAmbiguousLayout {
             let message = "모호한 레이아웃이 존재합니다. - View: \(view), Identifier: \(view.accessibilityIdentifier ?? "없음")"
@@ -188,7 +189,7 @@ private extension KeyboardInputViewController {
             view.exerciseAmbiguityInLayout()
         }
         
-        // 모든 자식 뷰에 대해 재귀적으로 확인
+        // 모든 서브 뷰에 대해 재귀적으로 확인
         for subview in view.subviews {
             checkForAmbiguity(in: subview)
         }
@@ -269,6 +270,10 @@ private extension KeyboardInputViewController {
     func updateNextKeyboardButton() {
         hangeulKeyboardView.updateNextKeyboardButton(needsInputModeSwitchKey: self.needsInputModeSwitchKey,
                                                      nextKeyboardAction: #selector(self.handleInputModeList(from:with:)))
+        symbolKeyboardView.updateNextKeyboardButton(needsInputModeSwitchKey: self.needsInputModeSwitchKey,
+                                                    nextKeyboardAction: #selector(self.handleInputModeList(from:with:)))
+        numericKeyboardView.updateNextKeyboardButton(needsInputModeSwitchKey: self.needsInputModeSwitchKey,
+                                                     nextKeyboardAction: #selector(self.handleInputModeList(from:with:)))
     }
     
     func updateShowingKeyboard() {
@@ -294,7 +299,7 @@ private extension KeyboardInputViewController {
             symbolKeyboardView.currentSymbolKeyboardMode = .default
             currentKeyboardLayout = .hangeul
         case .asciiCapable:
-            //        self.primaryLanguage
+//            self.primaryLanguage
             symbolKeyboardView.currentSymbolKeyboardMode = .default
             // TODO: - 영어 키보드 설정
             currentKeyboardLayout = .hangeul

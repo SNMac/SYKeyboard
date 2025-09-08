@@ -5,6 +5,8 @@
 //  Created by 서동환 on 9/6/25.
 //
 
+import UIKit
+
 /// 한글 키보드 레이아웃 프로토콜
 protocol HangeulKeyboardLayout: DefaultKeyboardLayout, TextInteractionButtonGestureHandler, SwitchButtonGestureHandler {
     /// 현재 한글 키보드 레이아웃 모드
