@@ -95,8 +95,8 @@ final class KeyboardInputViewController: UIInputViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
+        setNextKeyboardButton()
         updateOneHandModeLayout()
-        updateNextKeyboardButton()
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -180,6 +180,15 @@ private extension KeyboardInputViewController {
         let heightConstraint = self.view.heightAnchor.constraint(equalToConstant: UserDefaultsManager.shared.keyboardHeight)
         heightConstraint.priority = .init(999)
         heightConstraint.isActive = true
+    }
+    
+    func setNextKeyboardButton() {
+        hangeulKeyboardView.updateNextKeyboardButton(needsInputModeSwitchKey: self.needsInputModeSwitchKey,
+                                                     nextKeyboardAction: #selector(self.handleInputModeList(from:with:)))
+        symbolKeyboardView.updateNextKeyboardButton(needsInputModeSwitchKey: self.needsInputModeSwitchKey,
+                                                    nextKeyboardAction: #selector(self.handleInputModeList(from:with:)))
+        numericKeyboardView.updateNextKeyboardButton(needsInputModeSwitchKey: self.needsInputModeSwitchKey,
+                                                     nextKeyboardAction: #selector(self.handleInputModeList(from:with:)))
     }
     
     func checkForAmbiguity(in view: UIView) {
@@ -267,15 +276,6 @@ private extension KeyboardInputViewController {
 // MARK: - Update Methods
 
 private extension KeyboardInputViewController {
-    func updateNextKeyboardButton() {
-        hangeulKeyboardView.updateNextKeyboardButton(needsInputModeSwitchKey: self.needsInputModeSwitchKey,
-                                                     nextKeyboardAction: #selector(self.handleInputModeList(from:with:)))
-        symbolKeyboardView.updateNextKeyboardButton(needsInputModeSwitchKey: self.needsInputModeSwitchKey,
-                                                    nextKeyboardAction: #selector(self.handleInputModeList(from:with:)))
-        numericKeyboardView.updateNextKeyboardButton(needsInputModeSwitchKey: self.needsInputModeSwitchKey,
-                                                     nextKeyboardAction: #selector(self.handleInputModeList(from:with:)))
-    }
-    
     func updateShowingKeyboard() {
         hangeulKeyboardView.isHidden = (currentKeyboardLayout != .hangeul)
         symbolKeyboardView.isHidden = (currentKeyboardLayout != .symbol)
