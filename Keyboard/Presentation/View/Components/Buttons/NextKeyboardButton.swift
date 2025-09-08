@@ -16,13 +16,11 @@ final class NextKeyboardButton: SecondaryButton {
     // MARK: - Properties
     
     private let layout: KeyboardLayout
-    private let nextKeyboardAction: Selector
     
     // MARK: - Initializer
     
-    init(layout: KeyboardLayout, nextKeyboardAction: Selector) {
+    override init(layout: KeyboardLayout) {
         self.layout = layout
-        self.nextKeyboardAction = nextKeyboardAction
         super.init(layout: layout)
         
         setupUI()
@@ -47,12 +45,19 @@ private extension NextKeyboardButton {
     }
     
     func setActions() {
-        self.addTarget(nil, action: nextKeyboardAction, for: .allTouchEvents)
-        
         let playFeedback = UIAction { _ in
             FeedbackManager.shared.playHaptic()
             FeedbackManager.shared.playModifierSound()
         }
         self.addAction(playFeedback, for: .touchDown)
+        
+        let setSelected = UIAction { [weak self] _ in
+            self?.isSelected = true
+        }
+        self.addAction(setSelected, for: [.touchDragInside, .touchDragOutside])
+        let setDeselected = UIAction { [weak self] _ in
+            self?.isSelected = false
+        }
+        self.addAction(setDeselected, for: [.touchUpInside, .touchUpOutside])
     }
 }

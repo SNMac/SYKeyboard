@@ -26,3 +26,10 @@ protocol DefaultKeyboardLayout: BaseKeyboardLayout {
     /// iPhone SE용 키보드 전환 버튼
     var nextKeyboardButton: NextKeyboardButton { get }
 }
+
+extension DefaultKeyboardLayout {
+    func updateNextKeyboardButton(needsInputModeSwitchKey: Bool, nextKeyboardAction: Selector) {
+        nextKeyboardButton.addTarget(nil, action: nextKeyboardAction, for: .allTouchEvents)
+        nextKeyboardButton.isHidden = !needsInputModeSwitchKey
+    }
+}

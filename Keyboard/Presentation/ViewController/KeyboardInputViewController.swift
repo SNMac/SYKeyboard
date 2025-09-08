@@ -28,7 +28,7 @@ final class KeyboardInputViewController: UIInputViewController {
             updateReturnButtonType()
         }
     }
-    /// 현재 한 손 키보드
+    /// 현재 한 손 키보드 모드
     private var currentOneHandedMode: OneHandedMode = UserDefaultsManager.shared.lastOneHandedMode {
         didSet {
             UserDefaultsManager.shared.lastOneHandedMode = currentOneHandedMode
@@ -53,8 +53,6 @@ final class KeyboardInputViewController: UIInputViewController {
     
     // MARK: - UI Components
     
-    /// iPhone SE용 키보드 전환 버튼 액션
-    private let nextKeyboardAction: Selector = #selector(handleInputModeList(from:with:))
     /// 키보드 전체 프레임
     private let keyboardFrameHStackView = UIStackView().then {
         $0.axis = .horizontal
@@ -66,18 +64,15 @@ final class KeyboardInputViewController: UIInputViewController {
     /// 한 손 키보드 해제 버튼(오른손 모드)
     private let leftChevronButton = ChevronButton(direction: .left).then { $0.isHidden = true }
     /// 나랏글 키보드
-    private lazy var naratgeulKeyboardView: HangeulKeyboardLayout = NaratgeulKeyboardView(needsInputModeSwitchKey: needsInputModeSwitchKey,
-                                                                                          nextKeyboardAction: nextKeyboardAction).then { $0.isHidden = false }
+    private lazy var naratgeulKeyboardView: HangeulKeyboardLayout = NaratgeulKeyboardView().then { $0.isHidden = false }
     /// 천지인 키보드
-    private lazy var cheonjiinKeyboardView: HangeulKeyboardLayout = CheonjiinKeyboardView(needsInputModeSwitchKey: needsInputModeSwitchKey,
-                                                                                          nextKeyboardAction: nextKeyboardAction).then { $0.isHidden = false }
+    private lazy var cheonjiinKeyboardView: HangeulKeyboardLayout = CheonjiinKeyboardView().then { $0.isHidden = false }
+    /// 사용자가 선택한 한글 키보드
     private lazy var hangeulKeyboardView: HangeulKeyboardLayout = naratgeulKeyboardView  // TODO: 사용자가 선택한 한글 키보드를 저장
     /// 기호 키보드
-    private lazy var symbolKeyboardView: SymbolKeyboardLayout = SymbolKeyboardView(needsInputModeSwitchKey: needsInputModeSwitchKey,
-                                                                                   nextKeyboardAction: nextKeyboardAction).then { $0.isHidden = true }
+    private lazy var symbolKeyboardView: SymbolKeyboardLayout = SymbolKeyboardView().then { $0.isHidden = true }
     /// 숫자 키보드
-    private lazy var numericKeyboardView: NumericKeyboardLayout = NumericKeyboardView(needsInputModeSwitchKey: needsInputModeSwitchKey,
-                                                                                      nextKeyboardAction: nextKeyboardAction).then { $0.isHidden = true }
+    private lazy var numericKeyboardView: NumericKeyboardLayout = NumericKeyboardView().then { $0.isHidden = true }
     /// 텐키 키보드
     private lazy var tenkeyKeyboardView: TenkeyKeyboardLayout = TenkeyKeyboardView().then { $0.isHidden = true }
     /// 한 손 키보드 해제 버튼(왼손 모드)
@@ -101,6 +96,7 @@ final class KeyboardInputViewController: UIInputViewController {
         super.viewDidLoad()
         setupUI()
         updateOneHandModeLayout()
+        updateNextKeyboardButton()
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -270,6 +266,11 @@ private extension KeyboardInputViewController {
 // MARK: - Update Methods
 
 private extension KeyboardInputViewController {
+    func updateNextKeyboardButton() {
+        hangeulKeyboardView.updateNextKeyboardButton(needsInputModeSwitchKey: self.needsInputModeSwitchKey,
+                                                     nextKeyboardAction: #selector(self.handleInputModeList(from:with:)))
+    }
+    
     func updateShowingKeyboard() {
         hangeulKeyboardView.isHidden = (currentKeyboardLayout != .hangeul)
         symbolKeyboardView.isHidden = (currentKeyboardLayout != .symbol)

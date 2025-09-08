@@ -75,11 +75,11 @@ final class NaratgeulKeyboardView: UIView, HangeulKeyboardLayout {
     
     // MARK: - Initializer
     
-    init(needsInputModeSwitchKey: Bool, nextKeyboardAction: Selector) {
-        self.nextKeyboardButton = NextKeyboardButton(layout: .hangeul, nextKeyboardAction: nextKeyboardAction)
-        super.init(frame: .zero)
+    override init(frame: CGRect) {
+        self.nextKeyboardButton = NextKeyboardButton(layout: .hangeul)
+        self.nextKeyboardButton.isHidden = true
+        super.init(frame: frame)
         
-        nextKeyboardButton.isHidden = !needsInputModeSwitchKey
         setupUI()
         updateLayoutToDefault()
     }
