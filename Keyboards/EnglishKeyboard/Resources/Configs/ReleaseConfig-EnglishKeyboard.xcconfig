@@ -1,5 +1,5 @@
 //
-//  ReleaseConfig-SYKeyboard.xcconfig
+//  ReleaseConfig-EnglishKeyboard.xcconfig
 //  SYKeyboard
 //
 //  Created by 서동환 on 2/14/25.
@@ -9,5 +9,4 @@
 // https://help.apple.com/xcode/#/dev745c5c974
 
 #include "Common/Configs/Version.xcconfig"
-#include "Secrets.xcconfig"
-#include "Pods/Target Support Files/Pods-SYKeyboard/Pods-SYKeyboard.release.xcconfig"
+#include "Pods/Target Support Files/Pods-EnglishKeyboard/Pods-EnglishKeyboard.release.xcconfig"

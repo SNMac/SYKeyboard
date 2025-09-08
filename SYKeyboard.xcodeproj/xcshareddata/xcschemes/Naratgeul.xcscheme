@@ -17,8 +17,8 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "5B7B3F6A2C569B8200F7C093"
-               BuildableName = "Keyboard.appex"
-               BlueprintName = "Keyboard"
+               BuildableName = "HangeulKeyboard.appex"
+               BlueprintName = "HangeulKeyboard"
                ReferencedContainer = "container:SYKeyboard.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -58,16 +58,16 @@
       allowLocationSimulation = "YES"
       launchAutomaticallySubstyle = "2">
       <RemoteRunnable
-         runnableDebuggingMode = "1"
+         runnableDebuggingMode = "0"
          BundleIdentifier = "com.apple.MobileSMS"
-         RemotePath = "/Library/Developer/CoreSimulator/Volumes/iOS_21F79/Library/Developer/CoreSimulator/Profiles/Runtimes/iOS 17.5.simruntime/Contents/Resources/RuntimeRoot/Applications/MobileSMS.app">
+         RemotePath = "/Applications/MobileSMS.app">
       </RemoteRunnable>
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "5B7B3F6A2C569B8200F7C093"
-            BuildableName = "Keyboard.appex"
-            BlueprintName = "Keyboard"
+            BuildableName = "HangeulKeyboard.appex"
+            BlueprintName = "HangeulKeyboard"
             ReferencedContainer = "container:SYKeyboard.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
