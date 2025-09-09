@@ -37,12 +37,18 @@ final class SwitchButton: SecondaryButton {
         switch layout {
         case .hangeul, .english:
             self.title = "!#1"
-        case .symbol:
-            self.title = "한글"
-        case .numeric:
-            self.title = "한글"
+        case .symbol, .numeric:
+            guard let primaryLanguage = Bundle.primaryLanguage else { fatalError("Info.plist에서 PrimaryLanguage 값을 찾을 수 없습니다.") }
+            if primaryLanguage == "ko-KR" {
+                self.title = "한글"
+            } else if primaryLanguage == "en-US" {
+                self.title = "ABC"
+            } else {
+                assertionFailure("구현이 필요한 키보드입니다.")
+                self.title = "한글"
+            }
         default:
-            self.title = ""
+            fatalError("구현되지 않은 case입니다.")
         }
         super.init(layout: layout)
         
@@ -57,7 +63,10 @@ final class SwitchButton: SecondaryButton {
     
     override func layoutSubviews() {
         super.layoutSubviews()
-        if self.backgroundView.bounds.width < 44 {
+        if self.backgroundView.bounds.width < 40 {
+            let attributes = AttributeContainer([.font: UIFont.monospacedDigitSystemFont(ofSize: 14, weight: .regular), .foregroundColor: UIColor.label])
+            self.configuration?.attributedTitle = AttributedString(title, attributes: attributes)
+        } else if self.backgroundView.bounds.width < 44 {
             let attributes = AttributeContainer([.font: UIFont.monospacedDigitSystemFont(ofSize: 16, weight: .regular), .foregroundColor: UIColor.label])
             self.configuration?.attributedTitle = AttributedString(title, attributes: attributes)
         } else {

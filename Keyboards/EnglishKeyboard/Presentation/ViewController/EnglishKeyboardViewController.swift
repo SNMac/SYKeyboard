@@ -22,7 +22,7 @@ final class EnglishKeyboardViewController: UIInputViewController {
     /// 반복 입력용 타이머
     private var timer: AnyCancellable?
     /// 현재 키보드
-    private var currentKeyboardLayout: KeyboardLayout = .hangeul {
+    private var currentKeyboardLayout: KeyboardLayout = .english {
         didSet {
             updateShowingKeyboard()
             updateReturnButtonType()
@@ -79,14 +79,14 @@ final class EnglishKeyboardViewController: UIInputViewController {
                                                                                    englishKeyboardView: englishKeyboardView,
                                                                                    symbolKeyboardView: symbolKeyboardView,
                                                                                    numericKeyboardView: numericKeyboardView,
-                                                                                   getCurrentKeyboardLayout: { [weak self] in return self?.currentKeyboardLayout ?? .hangeul },
+                                                                                   getCurrentKeyboardLayout: { [weak self] in return self?.currentKeyboardLayout ?? .english },
                                                                                    getCurrentOneHandedMode: { [weak self] in self?.currentOneHandedMode ?? .center })
     /// 키 입력 버튼, 스페이스 버튼, 삭제 버튼 제스처 컨트롤러
     private lazy var textInteractionButtonGestureController = TextInteractionButtonGestureController(hangeulKeyboardView: nil,
                                                                                                      englishKeyboardView: englishKeyboardView,
                                                                                                      symbolKeyboardView: symbolKeyboardView,
                                                                                                      numericKeyboardView: numericKeyboardView,
-                                                                                                     getCurrentKeyboardLayout: { [weak self] in return self?.currentKeyboardLayout ?? .hangeul })
+                                                                                                     getCurrentKeyboardLayout: { [weak self] in return self?.currentKeyboardLayout ?? .english })
     
     // MARK: - Lifecycle
     
@@ -236,11 +236,11 @@ private extension EnglishKeyboardViewController {
         englishKeyboardView.switchButton.addAction(switchToSymbolKeyboard, for: .touchUpInside)
         
         // 한글 키보드 전환
-        let switchToHangeulKeyboard = UIAction { [weak self] _ in
+        let switchToEnglishKeyboard = UIAction { [weak self] _ in
             self?.currentKeyboardLayout = .english
         }
-        symbolKeyboardView.switchButton.addAction(switchToHangeulKeyboard, for: .touchUpInside)
-        numericKeyboardView.switchButton.addAction(switchToHangeulKeyboard, for: .touchUpInside)
+        symbolKeyboardView.switchButton.addAction(switchToEnglishKeyboard, for: .touchUpInside)
+        numericKeyboardView.switchButton.addAction(switchToEnglishKeyboard, for: .touchUpInside)
         
         // 키보드 전환 버튼 제스처
         [englishKeyboardView.switchButton,

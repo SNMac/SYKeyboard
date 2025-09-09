@@ -9,14 +9,14 @@ import Foundation
 
 extension Bundle {
     static var displayName: String? {
-        return Bundle.main.object(forInfoDictionaryKey: "CFBundleDisplayName") as? String
+        return main.object(forInfoDictionaryKey: "CFBundleDisplayName") as? String
     }
     
     static var appVersion: String? {
-        return Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String
+        return main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String
     }
     
     static var appBuild: String? {
-        return Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String
+        return main.object(forInfoDictionaryKey: "CFBundleVersion") as? String
     }
 }
