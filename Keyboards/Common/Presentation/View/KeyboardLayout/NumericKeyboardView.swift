@@ -29,7 +29,7 @@ final class NumericKeyboardView: UIView, NumericKeyboardLayout {
     
     /// 상단 여백
     private let topSpacer = KeyboardSpacer()
-    /// 키보드 레이아웃 프레임
+    /// 키보드 레이아웃 수직 스택
     private let layoutVStackView = KeyboardLayoutVStackView()
     /// 하단 여백
     private let bottomSpacer = KeyboardSpacer()

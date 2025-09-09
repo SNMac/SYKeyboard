@@ -21,24 +21,25 @@ final class EnglishKeyboardView: UIView, EnglishKeyboardLayout {
         didSet(oldMode) { updateLayoutForCurrentEnglishMode(oldMode: oldMode) }
     }
     
-    private var isShifted: Bool = false {
+    var isShifted: Bool = false {
         didSet {
             updateShiftButton()
             updateKeyButtonList()
         }
     }
+    var wasShiftEnabledOnTouchDown: Bool = false
     
     // MARK: - UI Components
     
-    /// 키보드 레이아웃 프레임
+    /// 키보드 레이아웃 수직 스택
     private let layoutVStackView = KeyboardLayoutVStackView()
     
     /// 키보드 첫번째 행
     private let firstRowHStackView = KeyboardRowHStackView()
     /// 키보드 두번째 행
-    private let secondRowHStackView = KeyboardRowHStackView()
+    private let secondRowHStackView = KeyboardRowHStackView().then { $0.distribution = .fill }
     /// 키보드 세번째 행
-    private let thirdRowHStackView = KeyboardRowHStackView()
+    private let thirdRowHStackView = KeyboardRowHStackView().then { $0.distribution = .fill }
     /// 키보드 네번째 행
     private let fourthRowHStackView = KeyboardRowHStackView().then { $0.distribution = .fill }
     private(set) var fourthRowLeftSecondaryButtonHStackView = KeyboardRowHStackView()
@@ -58,10 +59,10 @@ final class EnglishKeyboardView: UIView, EnglishKeyboardLayout {
     
     // 스페이스 버튼 위치
     private(set) var spaceButton = SpaceButton(layout: .english)
-    private(set) var atButton = PrimaryKeyButton(layout: .symbol, button: .keyButton(keys: ["@"]))
-    private(set) var periodButton = PrimaryKeyButton(layout: .symbol, button: .keyButton(keys: ["."]))
-    private(set) var slashButton = PrimaryKeyButton(layout: .symbol, button: .keyButton(keys: ["/"]))
-    private(set) var dotComButton = PrimaryKeyButton(layout: .symbol, button: .keyButton(keys: [".com"]))
+    private(set) var atButton = PrimaryKeyButton(layout: .english, button: .keyButton(keys: ["@"]))
+    private(set) var periodButton = PrimaryKeyButton(layout: .english, button: .keyButton(keys: ["."]))
+    private(set) var slashButton = PrimaryKeyButton(layout: .english, button: .keyButton(keys: ["/"]))
+    private(set) var dotComButton = PrimaryKeyButton(layout: .english, button: .keyButton(keys: [".com"]))
     
     // 리턴 버튼 위치
     private(set) var returnButton = ReturnButton(layout: .english)
@@ -136,6 +137,32 @@ private extension EnglishKeyboardView {
             $0.edges.equalToSuperview()
         }
         
+        for (index, button) in secondRowKeyButtonList.enumerated() {
+            if index == 0 {
+                if let lastButton = secondRowKeyButtonList.last {
+                    button.snp.makeConstraints {
+                        $0.width.equalTo(lastButton)
+                    }
+                }
+            } else if index == secondRowKeyButtonList.count - 1 {
+                continue
+            } else {
+                button.snp.makeConstraints {
+                    $0.width.equalToSuperview().dividedBy(firstRowKeyButtonList.count)
+                }
+            }
+        }
+        
+        shiftButton.snp.makeConstraints {
+            $0.width.equalTo(deleteButton)
+        }
+        
+        thirdRowKeyButtonList.forEach { button in
+            button.snp.makeConstraints {
+                $0.width.equalToSuperview().dividedBy(firstRowKeyButtonList.count)
+            }
+        }
+        
         fourthRowLeftSecondaryButtonHStackView.snp.makeConstraints {
             $0.width.equalToSuperview().dividedBy(4)
         }
@@ -177,10 +204,22 @@ private extension EnglishKeyboardView {
 
 private extension EnglishKeyboardView {
     func setShiftButtonAction() {
-        let shiftButtonTouchUpInside = UIAction { [weak self] _ in
-            self?.isShifted.toggle()
+        let shiftButtonEnabled = UIAction { [weak self] _ in
+            guard let self else { return }
+            wasShiftEnabledOnTouchDown = isShifted
+            if !wasShiftEnabledOnTouchDown {
+                isShifted = true
+            }
         }
-        shiftButton.addAction(shiftButtonTouchUpInside, for: .touchUpInside)
+        shiftButton.addAction(shiftButtonEnabled, for: .touchDown)
+        
+        let shiftButtonDisabled = UIAction { [weak self] _ in
+            guard let self else { return }
+            if wasShiftEnabledOnTouchDown {
+                isShifted = false
+            }
+        }
+        shiftButton.addAction(shiftButtonDisabled, for: .touchUpInside)
     }
 }
 
@@ -188,11 +227,11 @@ private extension EnglishKeyboardView {
 
 private extension EnglishKeyboardView {
     func updateKeyButtonList() {
-        let symbolKeyListIndex = (isShifted ? 1 : 0)
+        let englishKeyListIndex = (isShifted ? 1 : 0)
         let rowList = [firstRowKeyButtonList, secondRowKeyButtonList, thirdRowKeyButtonList]
         for (rowIndex, buttonList) in rowList.enumerated() {
             for (buttonIndex, button) in buttonList.enumerated() {
-                let keys = currentEnglishKeyboardMode.keyList[symbolKeyListIndex][rowIndex][buttonIndex]
+                let keys = currentEnglishKeyboardMode.keyList[englishKeyListIndex][rowIndex][buttonIndex]
                 button.update(button: TextInteractionButton.keyButton(keys: keys))
             }
         }

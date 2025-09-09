@@ -38,6 +38,7 @@ final class ShiftButton: SecondaryButton {
             if isShifted {
                 self.isSelected = true
                 self.configuration?.image = UIImage(systemName: "shift.fill")?.withConfiguration(imageConfig).withTintColor(.label, renderingMode: .alwaysOriginal)
+                self.backgroundView.backgroundColor = .secondaryButtonPressed
             } else {
                 self.isSelected = false
                 self.configuration?.image = UIImage(systemName: "shift")?.withConfiguration(imageConfig).withTintColor(.label, renderingMode: .alwaysOriginal)
@@ -64,9 +65,9 @@ private extension ShiftButton {
     }
     
     func setStyles() {
-        self.shadowView.snp.updateConstraints { $0.trailing.equalToSuperview().inset(self.insetDx + 3) }
-        self.backgroundView.snp.updateConstraints { $0.trailing.equalToSuperview().inset(self.insetDx + 3) }
-        self.configuration?.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 3)
+        self.configuration?.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 6)
+        self.shadowView.snp.updateConstraints { $0.trailing.equalToSuperview().inset(self.insetDx + 6) }
+        self.backgroundView.snp.updateConstraints { $0.trailing.equalToSuperview().inset(self.insetDx + 6) }
         
         switch layout {
         case .english:
@@ -75,6 +76,15 @@ private extension ShiftButton {
         case .symbol:
             let attributes = AttributeContainer([.font: UIFont.monospacedSystemFont(ofSize: 16, weight: .regular), .foregroundColor: UIColor.label])
             self.configuration?.attributedTitle = AttributedString("1/2", attributes: attributes)
+            
+            self.configurationUpdateHandler = { [weak self] button in
+                switch button.state {
+                case .normal, .highlighted, .selected:
+                    self?.backgroundView.backgroundColor = .secondaryButton
+                default:
+                    break
+                }
+            }
         default:
             fatalError("도달할 수 없는 case 입니다.")
         }

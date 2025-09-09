@@ -53,7 +53,7 @@ final class HangeulKeyboardViewController: UIInputViewController {
     
     // MARK: - UI Components
     
-    /// 키보드 전체 프레임
+    /// 키보드 전체 수직 스택
     private let keyboardFrameHStackView = UIStackView().then {
         $0.axis = .horizontal
         $0.spacing = 0
@@ -281,6 +281,7 @@ private extension HangeulKeyboardViewController {
     func updateShowingKeyboard() {
         hangeulKeyboardView.isHidden = (currentKeyboardLayout != .hangeul)
         symbolKeyboardView.isHidden = (currentKeyboardLayout != .symbol)
+        symbolKeyboardView.updateShiftButton(to: false)
         numericKeyboardView.isHidden = (currentKeyboardLayout != .numeric)
         tenkeyKeyboardView.isHidden = (currentKeyboardLayout != .tenKey)
     }

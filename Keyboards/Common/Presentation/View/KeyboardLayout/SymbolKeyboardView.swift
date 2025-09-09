@@ -24,16 +24,17 @@ final class SymbolKeyboardView: UIView, SymbolKeyboardLayout {
         }
     }
     
-    private var isShifted: Bool = false {
+    var isShifted: Bool = false {
         didSet {
             updateShiftButton()
             updateKeyButtonList()
         }
     }
+    var wasShiftEnabledOnTouchDown: Bool = false
     
     // MARK: - UI Components
     
-    /// 키보드 레이아웃 프레임
+    /// 키보드 레이아웃 수직 스택
     private let layoutVStackView = KeyboardLayoutVStackView()
     
     /// 키보드 첫번째 행
@@ -41,7 +42,7 @@ final class SymbolKeyboardView: UIView, SymbolKeyboardLayout {
     /// 키보드 두번째 행
     private let secondRowHStackView = KeyboardRowHStackView()
     /// 키보드 세번째 행
-    private let thirdRowHStackView = KeyboardRowHStackView()
+    private let thirdRowHStackView = KeyboardRowHStackView().then { $0.distribution = .fill }
     /// 키보드 네번째 행
     private let fourthRowHStackView = KeyboardRowHStackView().then { $0.distribution = .fill }
     private(set) var fourthRowLeftSecondaryButtonHStackView = KeyboardRowHStackView()
@@ -133,6 +134,18 @@ private extension SymbolKeyboardView {
             $0.edges.equalToSuperview()
         }
         
+        shiftButton.snp.makeConstraints {
+            $0.width.equalTo(deleteButton)
+        }
+        
+        thirdRowKeyButtonList.forEach { button in
+            button.snp.makeConstraints {
+                // 영어 키보드와 Shift, Delete 버튼 크기 같게 하기 위함
+                let widthRatio = 7 / Double(firstRowKeyButtonList.count) / Double(thirdRowKeyButtonList.count)
+                $0.width.equalToSuperview().multipliedBy(widthRatio)
+            }
+        }
+        
         fourthRowLeftSecondaryButtonHStackView.snp.makeConstraints {
             $0.width.equalToSuperview().dividedBy(4)
         }
@@ -174,10 +187,22 @@ private extension SymbolKeyboardView {
 
 private extension SymbolKeyboardView {
     func setShiftButtonAction() {
-        let shiftButtonTouchUpInside = UIAction { [weak self] _ in
-            self?.isShifted.toggle()
+        let shiftButtonEnabled = UIAction { [weak self] _ in
+            guard let self else { return }
+            wasShiftEnabledOnTouchDown = isShifted
+            if !wasShiftEnabledOnTouchDown {
+                isShifted = true
+            }
         }
-        shiftButton.addAction(shiftButtonTouchUpInside, for: .touchUpInside)
+        shiftButton.addAction(shiftButtonEnabled, for: .touchDown)
+        
+        let shiftButtonDisabled = UIAction { [weak self] _ in
+            guard let self else { return }
+            if wasShiftEnabledOnTouchDown {
+                isShifted = false
+            }
+        }
+        shiftButton.addAction(shiftButtonDisabled, for: .touchUpInside)
     }
 }
 

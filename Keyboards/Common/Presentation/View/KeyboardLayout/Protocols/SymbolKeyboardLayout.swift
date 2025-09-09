@@ -13,6 +13,10 @@ import SnapKit
 protocol SymbolKeyboardLayout: DefaultKeyboardLayout, TextInteractionButtonGestureHandler, SwitchButtonGestureHandler {
     /// 현재 기호 키보드 레이아웃 모드
     var currentSymbolKeyboardMode: SymbolKeyboardMode { get set }
+    /// Shift 상태
+    var isShifted: Bool { get set }
+    /// 이전 Shift 상태
+    var wasShiftEnabledOnTouchDown: Bool { get set }
     /// 키보드 네번째 좌측 `SecondaryButton` 행
     var fourthRowLeftSecondaryButtonHStackView: KeyboardRowHStackView { get }
     /// 기호 전환 버튼
@@ -62,6 +66,8 @@ extension SymbolKeyboardLayout {
         periodButton.isHidden = true
         slashButton.isHidden = true
         dotComButton.isHidden = true
+        
+        updateShiftButton(to: false)
     }
     
     func updateLayoutToURL() {
@@ -74,6 +80,8 @@ extension SymbolKeyboardLayout {
         periodButton.snp.updateConstraints {
             $0.width.equalToSuperview().dividedBy(3)
         }
+        
+        updateShiftButton(to: false)
     }
     
     func updateLayoutToEmailAddress() {
@@ -86,6 +94,8 @@ extension SymbolKeyboardLayout {
         periodButton.snp.updateConstraints {
             $0.width.equalToSuperview().dividedBy(4)
         }
+        
+        updateShiftButton(to: false)
     }
     
     func updateLayoutToWebSearch() {
@@ -98,5 +108,12 @@ extension SymbolKeyboardLayout {
         periodButton.snp.updateConstraints {
             $0.width.equalToSuperview().dividedBy(5)
         }
+        
+        updateShiftButton(to: false)
+    }
+    
+    func updateShiftButton(to isShifted: Bool) {
+        self.isShifted = isShifted
+        wasShiftEnabledOnTouchDown = isShifted
     }
 }

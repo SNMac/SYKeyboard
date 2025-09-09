@@ -13,9 +13,13 @@ import SnapKit
 protocol EnglishKeyboardLayout: DefaultKeyboardLayout, TextInteractionButtonGestureHandler, SwitchButtonGestureHandler {
     /// 현재 영어 키보드 레이아웃 모드
     var currentEnglishKeyboardMode: EnglishKeyboardMode { get set }
+    /// Shift 상태
+    var isShifted: Bool { get set }
+    /// 이전 Shift 상태
+    var wasShiftEnabledOnTouchDown: Bool { get set }
     /// 키보드 네번째 좌측 `SecondaryButton` 행
     var fourthRowLeftSecondaryButtonHStackView: KeyboardRowHStackView { get }
-    /// 기호 전환 버튼
+    /// 대문자 전환 버튼
     var shiftButton: ShiftButton { get }
     /// 스페이스 버튼 수평 스택
     var spaceButtonHStackView: KeyboardRowHStackView { get }
@@ -76,6 +80,8 @@ extension EnglishKeyboardLayout {
         returnButton.isHidden = false
         secondaryAtButton.isHidden = true
         secondarySharpButton.isHidden = true
+        
+        updateShiftButton(to: false)
     }
     
     func updateLayoutToURL() {
@@ -92,6 +98,8 @@ extension EnglishKeyboardLayout {
         returnButton.isHidden = false
         secondaryAtButton.isHidden = true
         secondarySharpButton.isHidden = true
+        
+        updateShiftButton(to: false)
     }
     
     func updateLayoutToEmailAddress() {
@@ -108,6 +116,8 @@ extension EnglishKeyboardLayout {
         returnButton.isHidden = false
         secondaryAtButton.isHidden = true
         secondarySharpButton.isHidden = true
+        
+        updateShiftButton(to: false)
     }
     
     func updateLayoutToTwitter() {
@@ -118,6 +128,8 @@ extension EnglishKeyboardLayout {
         returnButton.isHidden = false
         secondaryAtButton.isHidden = true
         secondarySharpButton.isHidden = true
+        
+        updateShiftButton(to: false)
     }
     
     func updateLayoutToWebSearch() {
@@ -134,5 +146,12 @@ extension EnglishKeyboardLayout {
         returnButton.isHidden = false
         secondaryAtButton.isHidden = true
         secondarySharpButton.isHidden = true
+        
+        updateShiftButton(to: false)
+    }
+    
+    func updateShiftButton(to isShifted: Bool) {
+        self.isShifted = isShifted
+        wasShiftEnabledOnTouchDown = isShifted
     }
 }
