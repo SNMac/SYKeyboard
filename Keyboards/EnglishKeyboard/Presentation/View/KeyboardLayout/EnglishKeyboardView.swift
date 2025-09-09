@@ -133,16 +133,17 @@ private extension EnglishKeyboardView {
         layoutVStackView.snp.makeConstraints {
             $0.edges.equalToSuperview()
         }
-        
+
+        guard let referenceKey = firstRowKeyButtonList.first else { fatalError("firstRowKeyButtonList가 비어있습니다.") }
         for (index, button) in secondRowKeyButtonList.enumerated() {
             if index == 0 {
-                if let lastButton = secondRowKeyButtonList.last {
-                    button.snp.makeConstraints {
-                        $0.width.equalTo(lastButton)
-                    }
+                guard let lastButton = secondRowKeyButtonList.last else { fatalError("secondRowKeyButtonList가 비어있습니다.") }
+                button.snp.makeConstraints {
+                    $0.width.equalTo(lastButton)
                 }
+                button.updateKeyAlignment(.right, referenceKey: referenceKey)
             } else if index == secondRowKeyButtonList.count - 1 {
-                continue
+                button.updateKeyAlignment(.left, referenceKey: referenceKey)
             } else {
                 button.snp.makeConstraints {
                     $0.width.equalToSuperview().dividedBy(firstRowKeyButtonList.count)
@@ -151,13 +152,27 @@ private extension EnglishKeyboardView {
         }
         
         shiftButton.snp.makeConstraints {
-            $0.width.equalTo(deleteButton)
+            $0.width.equalToSuperview().dividedBy(7.2)
         }
         
-        thirdRowKeyButtonList.forEach { button in
-            button.snp.makeConstraints {
-                $0.width.equalToSuperview().dividedBy(firstRowKeyButtonList.count)
+        for (index, button) in thirdRowKeyButtonList.enumerated() {
+            if index == 0 {
+                guard let lastButton = thirdRowKeyButtonList.last else { fatalError("thirdRowKeyButtonList가 비어있습니다.") }
+                button.snp.makeConstraints {
+                    $0.width.equalTo(lastButton)
+                }
+                button.updateKeyAlignment(.right, referenceKey: referenceKey)
+            } else if index == thirdRowKeyButtonList.count - 1 {
+                button.updateKeyAlignment(.left, referenceKey: referenceKey)
+            } else {
+                button.snp.makeConstraints {
+                    $0.width.equalToSuperview().dividedBy(firstRowKeyButtonList.count)
+                }
             }
+        }
+        
+        deleteButton.snp.makeConstraints {
+            $0.width.equalTo(shiftButton)
         }
         
         fourthRowLeftSecondaryButtonHStackView.snp.makeConstraints {

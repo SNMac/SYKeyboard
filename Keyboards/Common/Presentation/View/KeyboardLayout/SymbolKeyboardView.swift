@@ -132,15 +132,36 @@ private extension SymbolKeyboardView {
         }
         
         shiftButton.snp.makeConstraints {
-            $0.width.equalTo(deleteButton)
+            $0.width.equalToSuperview().dividedBy(7.2)
         }
         
-        thirdRowKeyButtonList.forEach { button in
-            button.snp.makeConstraints {
-                // 영어 키보드와 Shift, Delete 버튼 크기 같게 하기 위함
+        let referenceKey = thirdRowKeyButtonList[1]
+        for (index, button) in thirdRowKeyButtonList.enumerated() {
+            if index == 0 {
+                guard let lastButton = thirdRowKeyButtonList.last else { fatalError("thirdRowKeyButtonList가 비어있습니다.") }
+                button.snp.makeConstraints {
+                    $0.width.equalTo(lastButton)
+                }
+                button.updateKeyAlignment(.right, referenceKey: referenceKey)
+            } else if index == thirdRowKeyButtonList.count - 1 {
+                button.updateKeyAlignment(.left, referenceKey: referenceKey)
+            } else {
                 let widthRatio = 7 / Double(firstRowKeyButtonList.count) / Double(thirdRowKeyButtonList.count)
-                $0.width.equalToSuperview().multipliedBy(widthRatio)
+                button.snp.makeConstraints {
+                    $0.width.equalToSuperview().multipliedBy(widthRatio)
+                }
             }
+        }
+//        thirdRowKeyButtonList.forEach { button in
+//            let widthRatio = 7 / Double(firstRowKeyButtonList.count) / Double(thirdRowKeyButtonList.count)
+//            button.snp.makeConstraints {
+//                // 영어 키보드와 Shift, Delete 버튼 크기 같게 하기 위함
+//                $0.width.equalToSuperview().multipliedBy(widthRatio)
+//            }
+//        }
+        
+        deleteButton.snp.makeConstraints {
+            $0.width.equalTo(shiftButton)
         }
         
         fourthRowLeftSecondaryButtonHStackView.snp.makeConstraints {

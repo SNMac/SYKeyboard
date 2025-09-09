@@ -9,7 +9,7 @@ import UIKit
 
 import SnapKit
 
-/// 기능 버튼
+/// 보조 키보드 버튼
 class SecondaryButton: BaseKeyboardButton {
     
     // MARK: - UI Components

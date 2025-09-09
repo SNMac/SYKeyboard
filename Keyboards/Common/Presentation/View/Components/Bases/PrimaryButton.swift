@@ -9,7 +9,7 @@ import UIKit
 
 import SnapKit
 
-/// 입력 관련 키보드 버튼
+/// 주 키보드 버튼
 class PrimaryButton: BaseKeyboardButton, TextInteractionButtonProtocol {
     
     // MARK: - Properties
