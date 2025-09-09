@@ -68,7 +68,7 @@ final class CheonjiinKeyboardView: UIView, HangeulKeyboardLayout {
     private(set) var secondarySharpButton = SecondaryKeyButton(layout: .hangeul, button: .keyButton(keys: ["#"]))
     
     private(set) var switchButton = SwitchButton(layout: .hangeul)
-    private(set) var nextKeyboardButton: NextKeyboardButton
+    private(set) var nextKeyboardButton = NextKeyboardButton(layout: .hangeul)
     
     private(set) var keyboardSelectOverlayView = KeyboardSelectOverlayView(layout: .hangeul).then { $0.isHidden = true }
     private(set) var oneHandedModeSelectOverlayView = OneHandedModeSelectOverlayView().then { $0.isHidden = true }
@@ -76,10 +76,7 @@ final class CheonjiinKeyboardView: UIView, HangeulKeyboardLayout {
     // MARK: - Initializer
     
     override init(frame: CGRect) {
-        self.nextKeyboardButton = NextKeyboardButton(layout: .hangeul)
-        self.nextKeyboardButton.isHidden = true
         super.init(frame: frame)
-        
         setupUI()
         updateLayoutToDefault()
     }

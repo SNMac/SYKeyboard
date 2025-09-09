@@ -62,7 +62,7 @@ final class NumericKeyboardView: UIView, NumericKeyboardLayout {
     private(set) var spaceButton = SpaceButton(layout: .numeric)
     private(set) var returnButton = ReturnButton(layout: .numeric)
     private(set) var switchButton = SwitchButton(layout: .numeric)
-    private(set) var nextKeyboardButton: NextKeyboardButton
+    private(set) var nextKeyboardButton = NextKeyboardButton(layout: .numeric)
     
     private(set) var keyboardSelectOverlayView = KeyboardSelectOverlayView(layout: .numeric).then { $0.isHidden = true }
     private(set) var oneHandedModeSelectOverlayView = OneHandedModeSelectOverlayView().then { $0.isHidden = true }
@@ -70,10 +70,7 @@ final class NumericKeyboardView: UIView, NumericKeyboardLayout {
     // MARK: - Initializer
     
     override init(frame: CGRect) {
-        self.nextKeyboardButton = NextKeyboardButton(layout: .numeric)
-        self.nextKeyboardButton.isHidden = true
         super.init(frame: frame)
-        
         setupUI()
     }
     

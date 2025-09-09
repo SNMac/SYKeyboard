@@ -69,7 +69,7 @@ final class EnglishKeyboardView: UIView, EnglishKeyboardLayout {
     private(set) var secondaryAtButton = SecondaryKeyButton(layout: .english, button: .keyButton(keys: ["@"]))
     private(set) var secondarySharpButton = SecondaryKeyButton(layout: .english, button: .keyButton(keys: ["#"]))
     
-    private(set) var nextKeyboardButton: NextKeyboardButton
+    private(set) var nextKeyboardButton = NextKeyboardButton(layout: .english)
     
     private(set) var keyboardSelectOverlayView = KeyboardSelectOverlayView(layout: .english).then { $0.isHidden = true }
     private(set) var oneHandedModeSelectOverlayView = OneHandedModeSelectOverlayView().then { $0.isHidden = true }
@@ -77,10 +77,7 @@ final class EnglishKeyboardView: UIView, EnglishKeyboardLayout {
     // MARK: - Initializer
     
     override init(frame: CGRect) {
-        self.nextKeyboardButton = NextKeyboardButton(layout: .english)
-        self.nextKeyboardButton.isHidden = true
         super.init(frame: frame)
-        
         setupUI()
         updateLayoutToDefault()
     }
