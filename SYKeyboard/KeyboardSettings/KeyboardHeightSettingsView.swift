@@ -10,13 +10,13 @@ import SwiftUI
 struct KeyboardHeightSettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject private var state: PreviewKeyboardState
-    @AppStorage("keyboardHeight", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var keyboardHeight = GlobalValues.defaultKeyboardHeight
-    @AppStorage("oneHandedKeyboardWidth", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var oneHandedKeyboardWidth = GlobalValues.defaultOneHandedKeyboardWidth
-    @State private var tempKeyboardHeight: Double = GlobalValues.defaultKeyboardHeight
+    @AppStorage(UserDefaultsKeys.keyboardHeight, store: UserDefaults(suiteName: DefaultValues.groupBundleID)) private var keyboardHeight = DefaultValues.keyboardHeight
+    @AppStorage(UserDefaultsKeys.oneHandedKeyboardWidth, store: UserDefaults(suiteName: DefaultValues.groupBundleID)) private var oneHandedKeyboardWidth = DefaultValues.oneHandedKeyboardWidth
+    @State private var tempKeyboardHeight: Double = DefaultValues.keyboardHeight
     
     private var keyboardHeightSettings: some View {
         VStack {
-            Text("\(Int(tempKeyboardHeight) - (Int(GlobalValues.defaultKeyboardHeight) - 100))")
+            Text("\(Int(tempKeyboardHeight) - (Int(DefaultValues.keyboardHeight) - 100))")
                 .padding(EdgeInsets(top: 10, leading: 0, bottom: 0, trailing: 0))
             Slider(value: $tempKeyboardHeight, in: 190...290, step: 1)
                 .padding(EdgeInsets(top: 0, leading: 30, bottom: 0, trailing: 30))
@@ -35,7 +35,7 @@ struct KeyboardHeightSettingsView: View {
             }
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
-                    tempKeyboardHeight = GlobalValues.defaultKeyboardHeight
+                    tempKeyboardHeight = DefaultValues.keyboardHeight
                 } label: {
                     Text("리셋")
                 }
@@ -60,7 +60,7 @@ struct KeyboardHeightSettingsView: View {
         }
         .onAppear {
             tempKeyboardHeight = keyboardHeight
-            state.currentOneHandedKeyboard = .center
+            state.lastOneHandedMode = .center
         }
         .requestReviewViewModifier()
     }

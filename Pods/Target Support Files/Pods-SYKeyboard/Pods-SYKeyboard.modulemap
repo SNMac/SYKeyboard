@@ -1,4 +1,4 @@
-framework module Pods_SYKeyboard {
+module Pods_SYKeyboard {
   umbrella header "Pods-SYKeyboard-umbrella.h"
 
   export *

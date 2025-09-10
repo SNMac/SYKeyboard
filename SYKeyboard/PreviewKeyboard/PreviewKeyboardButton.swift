@@ -28,12 +28,12 @@ struct PreviewKeyboardButton: View {
     private let log = OSLog(subsystem: "github.com-SNMac.SYKeyboard", category: "PreviewKeyboardButton")
     
     @EnvironmentObject private var state: PreviewKeyboardState
-    @AppStorage("longPressDuration", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var longPressDuration = GlobalValues.defaultLongPressDuration
-    @AppStorage("cursorActiveDistance", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var cursorActiveDistance = GlobalValues.defaultCursorActiveDistance
-    @AppStorage("cursorMoveInterval", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var cursorMoveInterval = GlobalValues.defaultCursorMoveInterval
-    @AppStorage("needsInputModeSwitchKey", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var needsInputModeSwitchKey = true
-    @AppStorage("isNumericKeypadEnabled", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var isNumericKeypadEnabled = true
-    @AppStorage("isOneHandedKeyboardEnabled", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var isOneHandedKeyboardEnabled = true
+    @AppStorage(UserDefaultsKeys.longPressDuration, store: UserDefaults(suiteName: DefaultValues.groupBundleID)) private var longPressDuration = DefaultValues.longPressDuration
+    @AppStorage(UserDefaultsKeys.cursorActiveDistance, store: UserDefaults(suiteName: DefaultValues.groupBundleID)) private var cursorActiveDistance = DefaultValues.cursorActiveDistance
+    @AppStorage(UserDefaultsKeys.cursorMoveInterval, store: UserDefaults(suiteName: DefaultValues.groupBundleID)) private var cursorMoveInterval = DefaultValues.cursorMoveInterval
+    @AppStorage(UserDefaultsKeys.needsInputModeSwitchKey, store: UserDefaults(suiteName: DefaultValues.groupBundleID)) private var needsInputModeSwitchKey = DefaultValues.needsInputModeSwitchKey
+    @AppStorage(UserDefaultsKeys.isNumericKeypadEnabled, store: UserDefaults(suiteName: DefaultValues.groupBundleID)) private var isNumericKeypadEnabled = DefaultValues.isNumericKeypadEnabled
+    @AppStorage(UserDefaultsKeys.isOneHandedKeyboardEnabled, store: UserDefaults(suiteName: DefaultValues.groupBundleID)) private var isOneHandedKeyboardEnabled = DefaultValues.isOneHandedKeyboardEnabled
     
     @State var nowState: ButtonState = .released
     
@@ -173,11 +173,11 @@ struct PreviewKeyboardButton: View {
         if dragDiff < -cursorMoveInterval {
             os_log("Move cursor to left", log: log, type: .debug)
             dragStartWidth = dragGestureValue.translation.width
-            Feedback.shared.playHapticByForce(style: .light)
+            FeedbackManager.shared.playHaptic()
         } else if dragDiff > cursorMoveInterval {
             os_log("Move cursor to right", log: log, type: .debug)
             dragStartWidth = dragGestureValue.translation.width
-            Feedback.shared.playHapticByForce(style: .light)
+            FeedbackManager.shared.playHaptic()
         }
     }
     

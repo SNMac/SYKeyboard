@@ -8,8 +8,8 @@
 import SwiftUI
 
 struct KeyRepeatSettingsView: View {
-    @AppStorage("longPressDuration", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var longPressDuration = GlobalValues.defaultLongPressDuration
-    @AppStorage("repeatRate", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) private var repeatRate = GlobalValues.defaultRepeatRate
+    @AppStorage(UserDefaultsKeys.longPressDuration, store: UserDefaults(suiteName: DefaultValues.groupBundleID)) private var longPressDuration = DefaultValues.longPressDuration
+    @AppStorage(UserDefaultsKeys.repeatRate, store: UserDefaults(suiteName: DefaultValues.groupBundleID)) private var repeatRate = DefaultValues.repeatRate
     
     private var longPressDurationSetting: some View {
         HStack {
@@ -20,7 +20,7 @@ struct KeyRepeatSettingsView: View {
                 hideKeyboard()
             }
             Button {
-                longPressDuration = GlobalValues.defaultLongPressDuration
+                longPressDuration = DefaultValues.longPressDuration
                 hideKeyboard()
             } label: {
                 Text("리셋")
@@ -38,7 +38,7 @@ struct KeyRepeatSettingsView: View {
                 hideKeyboard()
             }
             Button {
-                repeatRate = GlobalValues.defaultRepeatRate
+                repeatRate = DefaultValues.repeatRate
                 hideKeyboard()
             } label: {
                 Text("리셋")

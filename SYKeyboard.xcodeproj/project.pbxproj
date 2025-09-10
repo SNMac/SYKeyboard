@@ -7,18 +7,31 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		5B52CC372D5E407C005CB1C7 /* Pods_SYKeyboard.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D4636DF2647C79BB2219C71E /* Pods_SYKeyboard.framework */; };
-		5B52CC3A2D5E408C005CB1C7 /* Pods_Keyboard.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B759D601A4777EF2A0956994 /* Pods_Keyboard.framework */; };
+		07F3FEEAF9D11BFC6D43AD90 /* libPods-EnglishKeyboard.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D15C0B7D624B9A6D5042293F /* libPods-EnglishKeyboard.a */; };
+		5B3750552E24516400B13805 /* Then in Frameworks */ = {isa = PBXBuildFile; productRef = 5B3750542E24516400B13805 /* Then */; };
+		5B3750572E24517500B13805 /* Then in Frameworks */ = {isa = PBXBuildFile; productRef = 5B3750562E24517500B13805 /* Then */; };
+		5B3750592E24528E00B13805 /* SnapKit in Frameworks */ = {isa = PBXBuildFile; productRef = 5B3750582E24528E00B13805 /* SnapKit */; };
+		5B8284742E6EEE04006425C7 /* EnglishKeyboard.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 5B82846D2E6EEE04006425C7 /* EnglishKeyboard.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		5B82847A2E6EEE8E006425C7 /* SnapKit in Frameworks */ = {isa = PBXBuildFile; productRef = 5B8284792E6EEE8E006425C7 /* SnapKit */; };
+		5B82847C2E6EEE93006425C7 /* Then in Frameworks */ = {isa = PBXBuildFile; productRef = 5B82847B2E6EEE93006425C7 /* Then */; };
 		5B8E6E0E2E1E426400657BF4 /* GoogleMobileAds in Frameworks */ = {isa = PBXBuildFile; productRef = 5B8E6E0D2E1E426400657BF4 /* GoogleMobileAds */; };
 		5B8E6E112E1E42D800657BF4 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = 5B8E6E102E1E42D800657BF4 /* FirebaseAnalytics */; };
 		5B8E6E132E1E42D800657BF4 /* FirebaseAnalyticsCore in Frameworks */ = {isa = PBXBuildFile; productRef = 5B8E6E122E1E42D800657BF4 /* FirebaseAnalyticsCore */; };
 		5B8E6EA62E1E435100657BF4 /* SnapKit in Frameworks */ = {isa = PBXBuildFile; productRef = 5B8E6EA52E1E435100657BF4 /* SnapKit */; };
-		5B8E6EA92E1E435F00657BF4 /* Then in Frameworks */ = {isa = PBXBuildFile; productRef = 5B8E6EA82E1E435F00657BF4 /* Then */; };
-		5B9D004C2D92C38200DA108E /* Keyboard.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 5B7B3F6B2C569B8200F7C093 /* Keyboard.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		5B9D004C2D92C38200DA108E /* HangeulKeyboard.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 5B7B3F6B2C569B8200F7C093 /* HangeulKeyboard.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		5BC38F1C2D8AE2FE00E6B44E /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = 5BC38F1B2D8AE2FE00E6B44E /* README.md */; };
+		CFBBB4760A027381012C99A3 /* libPods-HangeulKeyboard.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 010E9ADFD463152A42FCE1E2 /* libPods-HangeulKeyboard.a */; };
+		E1E70658F675EA8FFBC353F0 /* libPods-SYKeyboard.a in Frameworks */ = {isa = PBXBuildFile; fileRef = BEB55EC1F7BC40511D0E8145 /* libPods-SYKeyboard.a */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		5B8284722E6EEE04006425C7 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 5B7B3F4E2C569B7800F7C093 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 5B82846C2E6EEE04006425C7;
+			remoteInfo = EnglishKeyboard;
+		};
 		5B9D004D2D92C38200DA108E /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 5B7B3F4E2C569B7800F7C093 /* Project object */;
@@ -35,7 +48,8 @@
 			dstPath = "";
 			dstSubfolderSpec = 13;
 			files = (
-				5B9D004C2D92C38200DA108E /* Keyboard.appex in Embed Foundation Extensions */,
+				5B8284742E6EEE04006425C7 /* EnglishKeyboard.appex in Embed Foundation Extensions */,
+				5B9D004C2D92C38200DA108E /* HangeulKeyboard.appex in Embed Foundation Extensions */,
 			);
 			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -43,16 +57,20 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		010E9ADFD463152A42FCE1E2 /* libPods-HangeulKeyboard.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-HangeulKeyboard.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		079E614D6FC05DCAB5AEA949 /* Pods-SYKeyboard.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-SYKeyboard.debug.xcconfig"; path = "Target Support Files/Pods-SYKeyboard/Pods-SYKeyboard.debug.xcconfig"; sourceTree = "<group>"; };
-		45DC8CEE55D6E0E9BC6ABA3D /* Pods-Keyboard.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Keyboard.release.xcconfig"; path = "Target Support Files/Pods-Keyboard/Pods-Keyboard.release.xcconfig"; sourceTree = "<group>"; };
-		4A4E2BB4F6407C7B65CA2AA7 /* Pods-Keyboard.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Keyboard.debug.xcconfig"; path = "Target Support Files/Pods-Keyboard/Pods-Keyboard.debug.xcconfig"; sourceTree = "<group>"; };
+		508732ED07011B87EC525F0F /* Pods-HangeulKeyboard.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-HangeulKeyboard.release.xcconfig"; path = "Target Support Files/Pods-HangeulKeyboard/Pods-HangeulKeyboard.release.xcconfig"; sourceTree = "<group>"; };
 		5B7B3F562C569B7800F7C093 /* SYKeyboard.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SYKeyboard.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		5B7B3F6B2C569B8200F7C093 /* Keyboard.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = Keyboard.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		5B7B3F6B2C569B8200F7C093 /* HangeulKeyboard.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = HangeulKeyboard.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		5B82846D2E6EEE04006425C7 /* EnglishKeyboard.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = EnglishKeyboard.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		5BA419DE2CB99238005E7C86 /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
 		5BC38F1B2D8AE2FE00E6B44E /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
-		B759D601A4777EF2A0956994 /* Pods_Keyboard.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Keyboard.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		D4636DF2647C79BB2219C71E /* Pods_SYKeyboard.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_SYKeyboard.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		BEB55EC1F7BC40511D0E8145 /* libPods-SYKeyboard.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-SYKeyboard.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		D15C0B7D624B9A6D5042293F /* libPods-EnglishKeyboard.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-EnglishKeyboard.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		D3EC136386CF4C22A0A3C57E /* Pods-EnglishKeyboard.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-EnglishKeyboard.debug.xcconfig"; path = "Target Support Files/Pods-EnglishKeyboard/Pods-EnglishKeyboard.debug.xcconfig"; sourceTree = "<group>"; };
+		E3AF89A077E7FCF5ED48499D /* Pods-HangeulKeyboard.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-HangeulKeyboard.debug.xcconfig"; path = "Target Support Files/Pods-HangeulKeyboard/Pods-HangeulKeyboard.debug.xcconfig"; sourceTree = "<group>"; };
 		EE3310BD609B91E370D4F6D4 /* Pods-SYKeyboard.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-SYKeyboard.release.xcconfig"; path = "Target Support Files/Pods-SYKeyboard/Pods-SYKeyboard.release.xcconfig"; sourceTree = "<group>"; };
+		F057594A64940DB6B2F10D5D /* Pods-EnglishKeyboard.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-EnglishKeyboard.release.xcconfig"; path = "Target Support Files/Pods-EnglishKeyboard/Pods-EnglishKeyboard.release.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -66,102 +84,217 @@
 			);
 			target = 5B7B3F552C569B7800F7C093 /* SYKeyboard */;
 		};
-		5B53F7A42E1E517F0083F7CA /* Exceptions for "SYKeyboard" folder in "Keyboard" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				Resources/Assets.xcassets,
-			);
-			target = 5B7B3F6A2C569B8200F7C093 /* Keyboard */;
-		};
-		5B53F7A62E1E51A30083F7CA /* Exceptions for "Shared" folder in "Keyboard" target */ = {
+		5B53F7A62E1E51A30083F7CA /* Exceptions for "Common" folder in "HangeulKeyboard" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Configs/Version.xcconfig,
 			);
-			target = 5B7B3F6A2C569B8200F7C093 /* Keyboard */;
+			target = 5B7B3F6A2C569B8200F7C093 /* HangeulKeyboard */;
 		};
-		5B53F8172E1E56BD0083F7CA /* Exceptions for "Keyboard" folder in "SYKeyboard" target */ = {
+		5B53F8172E1E56BD0083F7CA /* Exceptions for "Keyboards" folder in "SYKeyboard" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				ChevronButton.swift,
-				KeyboardDelegate.swift,
-				KeyboardLayout/EmailSymbolView.swift,
-				KeyboardLayout/HangeulView.swift,
-				KeyboardLayout/KeyboardButton.swift,
-				KeyboardLayout/NextKeyboardButton.swift,
-				KeyboardLayout/NumericView.swift,
-				KeyboardLayout/SymbolView.swift,
-				KeyboardLayout/TenKeyView.swift,
-				KeyboardLayout/URLSymbolView.swift,
-				KeyboardLayout/WebSearchSymbolView.swift,
-				KeyboardSelectOverlayView.swift,
-				KeyboardState.swift,
-				OneHandedKeyboardSelectOverlayView.swift,
-				RequestFullAccessOverlayView.swift,
-				"Resources/Configs/DebugConfig-Keyboard.xcconfig",
-				"Resources/Configs/ReleaseConfig-Keyboard.xcconfig",
-				Resources/Info.plist,
-				Resources/InfoPlist.xcstrings,
-				Resources/Localizable.xcstrings,
-				UseCases/HangeulAutomata.swift,
-				UseCases/KeyboardIOManager.swift,
-				View/KeyboardView.swift,
-				ViewController/KeyboardViewController.swift,
+				Common/Presentation/Utils/Enums/KeyboardLayout.swift,
+				Common/Presentation/Utils/Enums/KeyboardMode/SymbolKeyboardMode.swift,
+				Common/Presentation/Utils/Enums/KeyboardMode/TenkeyKeyboardMode.swift,
+				Common/Presentation/Utils/Enums/KeyboardSize.swift,
+				Common/Presentation/Utils/Enums/PanDirection.swift,
+				Common/Presentation/Utils/Enums/TextInteractionButton.swift,
+				"Common/Presentation/Utils/Extensions/Bundle+Extension.swift",
+				"Common/Presentation/Utils/Extensions/UIStackView+Extension.swift",
+				"Common/Presentation/Utils/Extensions/UIView+Extension.swift",
+				Common/Presentation/View/Components/Bases/BaseKeyboardButton.swift,
+				Common/Presentation/View/Components/Bases/ButtonBackgroundView.swift,
+				Common/Presentation/View/Components/Bases/ButtonShadowView.swift,
+				Common/Presentation/View/Components/Bases/PrimaryButton.swift,
+				Common/Presentation/View/Components/Bases/SecondaryButton.swift,
+				Common/Presentation/View/Components/Buttons/ChevronButton.swift,
+				Common/Presentation/View/Components/Buttons/DeleteButton.swift,
+				Common/Presentation/View/Components/Buttons/NextKeyboardButton.swift,
+				Common/Presentation/View/Components/Buttons/PrimaryKeyButton.swift,
+				Common/Presentation/View/Components/Buttons/Protocols/TextInteractionButtonProtocol.swift,
+				Common/Presentation/View/Components/Buttons/ReturnButton.swift,
+				Common/Presentation/View/Components/Buttons/SecondaryKeyButton.swift,
+				Common/Presentation/View/Components/Buttons/ShiftButton.swift,
+				Common/Presentation/View/Components/Buttons/SpaceButton.swift,
+				Common/Presentation/View/Components/Buttons/SwitchButton.swift,
+				Common/Presentation/View/Components/Frames/KeyboardLayoutVStackView.swift,
+				Common/Presentation/View/Components/Frames/KeyboardRowHStackView.swift,
+				Common/Presentation/View/Components/Frames/KeyboardSpacer.swift,
+				Common/Presentation/View/Components/Overlays/KeyboardSelectOverlayView.swift,
+				Common/Presentation/View/Components/Overlays/OneHandedModeSelectOverlayView.swift,
+				Common/Presentation/View/GestureControllers/Protocols/SwitchButtonGestureHandler.swift,
+				Common/Presentation/View/GestureControllers/Protocols/TextInteractionButtonGestureHandler.swift,
+				Common/Presentation/View/GestureControllers/SwitchButtonGestureController.swift,
+				Common/Presentation/View/GestureControllers/TextInteractionButtonGestureController.swift,
+				Common/Presentation/View/KeyboardLayout/NumericKeyboardView.swift,
+				Common/Presentation/View/KeyboardLayout/Protocols/Base/BaseKeyboardLayoutProtocols.swift,
+				Common/Presentation/View/KeyboardLayout/Protocols/NumericKeyboardLayout.swift,
+				Common/Presentation/View/KeyboardLayout/Protocols/SymbolKeyboardLayout.swift,
+				Common/Presentation/View/KeyboardLayout/Protocols/TenkeyKeyboardLayout.swift,
+				Common/Presentation/View/KeyboardLayout/SymbolKeyboardView.swift,
+				Common/Presentation/View/KeyboardLayout/TenkeyKeyboardView.swift,
+				EnglishKeyboard/Presentation/Utils/Enums/EnglishKeyboardMode.swift,
+				EnglishKeyboard/Presentation/View/KeyboardLayout/EnglishKeyboardView.swift,
+				EnglishKeyboard/Presentation/View/KeyboardLayout/Protocols/EnglishKeyboardLayout.swift,
+				EnglishKeyboard/Presentation/ViewController/EnglishKeyboardViewController.swift,
+				"EnglishKeyboard/Resources/Configs/DebugConfig-EnglishKeyboard.xcconfig",
+				"EnglishKeyboard/Resources/Configs/ReleaseConfig-EnglishKeyboard.xcconfig",
+				EnglishKeyboard/Resources/Info.plist,
+				HangeulKeyboard/Presentation/Utils/Enums/HangeulKeyboardMode.swift,
+				HangeulKeyboard/Presentation/View/KeyboardLayout/CheonjiinKeyboardView.swift,
+				HangeulKeyboard/Presentation/View/KeyboardLayout/NaratgeulKeyboardView.swift,
+				HangeulKeyboard/Presentation/View/KeyboardLayout/Protocols/HangeulKeyboardLayout.swift,
+				HangeulKeyboard/Presentation/ViewController/HangeulKeyboardViewController.swift,
+				"HangeulKeyboard/Resources/Configs/DebugConfig-HangeulKeyboard.xcconfig",
+				"HangeulKeyboard/Resources/Configs/ReleaseConfig-HangeulKeyboard.xcconfig",
+				HangeulKeyboard/Resources/Info.plist,
+				HangeulKeyboard/Resources/InfoPlist.xcstrings,
+				HangeulKeyboard/Resources/Localizable.xcstrings,
 			);
 			target = 5B7B3F552C569B7800F7C093 /* SYKeyboard */;
 		};
-		5B53F8182E1E56BD0083F7CA /* Exceptions for "Keyboard" folder in "Keyboard" target */ = {
+		5B53F8182E1E56BD0083F7CA /* Exceptions for "Keyboards" folder in "HangeulKeyboard" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				ChevronButton.swift,
-				KeyboardDelegate.swift,
-				KeyboardLayout/EmailSymbolView.swift,
-				KeyboardLayout/HangeulView.swift,
-				KeyboardLayout/KeyboardButton.swift,
-				KeyboardLayout/NextKeyboardButton.swift,
-				KeyboardLayout/NumericView.swift,
-				KeyboardLayout/SymbolView.swift,
-				KeyboardLayout/TenKeyView.swift,
-				KeyboardLayout/URLSymbolView.swift,
-				KeyboardLayout/WebSearchSymbolView.swift,
-				KeyboardSelectOverlayView.swift,
-				KeyboardState.swift,
-				OneHandedKeyboardSelectOverlayView.swift,
-				RequestFullAccessOverlayView.swift,
-				Resources/InfoPlist.xcstrings,
-				Resources/Localizable.xcstrings,
-				UseCases/HangeulAutomata.swift,
-				UseCases/KeyboardIOManager.swift,
-				View/KeyboardView.swift,
-				ViewController/KeyboardViewController.swift,
+				Common/Presentation/Utils/Enums/KeyboardLayout.swift,
+				Common/Presentation/Utils/Enums/KeyboardMode/SymbolKeyboardMode.swift,
+				Common/Presentation/Utils/Enums/KeyboardMode/TenkeyKeyboardMode.swift,
+				Common/Presentation/Utils/Enums/KeyboardSize.swift,
+				Common/Presentation/Utils/Enums/PanDirection.swift,
+				Common/Presentation/Utils/Enums/TextInteractionButton.swift,
+				"Common/Presentation/Utils/Extensions/Bundle+Extension.swift",
+				"Common/Presentation/Utils/Extensions/UIStackView+Extension.swift",
+				"Common/Presentation/Utils/Extensions/UIView+Extension.swift",
+				Common/Presentation/View/Components/Bases/BaseKeyboardButton.swift,
+				Common/Presentation/View/Components/Bases/ButtonBackgroundView.swift,
+				Common/Presentation/View/Components/Bases/ButtonShadowView.swift,
+				Common/Presentation/View/Components/Bases/PrimaryButton.swift,
+				Common/Presentation/View/Components/Bases/SecondaryButton.swift,
+				Common/Presentation/View/Components/Buttons/ChevronButton.swift,
+				Common/Presentation/View/Components/Buttons/DeleteButton.swift,
+				Common/Presentation/View/Components/Buttons/NextKeyboardButton.swift,
+				Common/Presentation/View/Components/Buttons/PrimaryKeyButton.swift,
+				Common/Presentation/View/Components/Buttons/Protocols/TextInteractionButtonProtocol.swift,
+				Common/Presentation/View/Components/Buttons/ReturnButton.swift,
+				Common/Presentation/View/Components/Buttons/SecondaryKeyButton.swift,
+				Common/Presentation/View/Components/Buttons/ShiftButton.swift,
+				Common/Presentation/View/Components/Buttons/SpaceButton.swift,
+				Common/Presentation/View/Components/Buttons/SwitchButton.swift,
+				Common/Presentation/View/Components/Frames/KeyboardLayoutVStackView.swift,
+				Common/Presentation/View/Components/Frames/KeyboardRowHStackView.swift,
+				Common/Presentation/View/Components/Frames/KeyboardSpacer.swift,
+				Common/Presentation/View/Components/Overlays/KeyboardSelectOverlayView.swift,
+				Common/Presentation/View/Components/Overlays/OneHandedModeSelectOverlayView.swift,
+				Common/Presentation/View/GestureControllers/Protocols/SwitchButtonGestureHandler.swift,
+				Common/Presentation/View/GestureControllers/Protocols/TextInteractionButtonGestureHandler.swift,
+				Common/Presentation/View/GestureControllers/SwitchButtonGestureController.swift,
+				Common/Presentation/View/GestureControllers/TextInteractionButtonGestureController.swift,
+				Common/Presentation/View/KeyboardLayout/NumericKeyboardView.swift,
+				Common/Presentation/View/KeyboardLayout/Protocols/Base/BaseKeyboardLayoutProtocols.swift,
+				Common/Presentation/View/KeyboardLayout/Protocols/NumericKeyboardLayout.swift,
+				Common/Presentation/View/KeyboardLayout/Protocols/SymbolKeyboardLayout.swift,
+				Common/Presentation/View/KeyboardLayout/Protocols/TenkeyKeyboardLayout.swift,
+				Common/Presentation/View/KeyboardLayout/SymbolKeyboardView.swift,
+				Common/Presentation/View/KeyboardLayout/TenkeyKeyboardView.swift,
+				HangeulKeyboard/Presentation/Utils/Enums/HangeulKeyboardMode.swift,
+				HangeulKeyboard/Presentation/View/KeyboardLayout/CheonjiinKeyboardView.swift,
+				HangeulKeyboard/Presentation/View/KeyboardLayout/NaratgeulKeyboardView.swift,
+				HangeulKeyboard/Presentation/View/KeyboardLayout/Protocols/HangeulKeyboardLayout.swift,
+				HangeulKeyboard/Presentation/ViewController/HangeulKeyboardViewController.swift,
+				HangeulKeyboard/Resources/InfoPlist.xcstrings,
+				HangeulKeyboard/Resources/Localizable.xcstrings,
 			);
-			target = 5B7B3F6A2C569B8200F7C093 /* Keyboard */;
+			target = 5B7B3F6A2C569B8200F7C093 /* HangeulKeyboard */;
+		};
+		5B8284822E6EEED8006425C7 /* Exceptions for "Keyboards" folder in "EnglishKeyboard" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Common/Presentation/Utils/Enums/KeyboardLayout.swift,
+				Common/Presentation/Utils/Enums/KeyboardMode/SymbolKeyboardMode.swift,
+				Common/Presentation/Utils/Enums/KeyboardMode/TenkeyKeyboardMode.swift,
+				Common/Presentation/Utils/Enums/KeyboardSize.swift,
+				Common/Presentation/Utils/Enums/PanDirection.swift,
+				Common/Presentation/Utils/Enums/TextInteractionButton.swift,
+				"Common/Presentation/Utils/Extensions/Bundle+Extension.swift",
+				"Common/Presentation/Utils/Extensions/UIStackView+Extension.swift",
+				"Common/Presentation/Utils/Extensions/UIView+Extension.swift",
+				Common/Presentation/View/Components/Bases/BaseKeyboardButton.swift,
+				Common/Presentation/View/Components/Bases/ButtonBackgroundView.swift,
+				Common/Presentation/View/Components/Bases/ButtonShadowView.swift,
+				Common/Presentation/View/Components/Bases/PrimaryButton.swift,
+				Common/Presentation/View/Components/Bases/SecondaryButton.swift,
+				Common/Presentation/View/Components/Buttons/ChevronButton.swift,
+				Common/Presentation/View/Components/Buttons/DeleteButton.swift,
+				Common/Presentation/View/Components/Buttons/NextKeyboardButton.swift,
+				Common/Presentation/View/Components/Buttons/PrimaryKeyButton.swift,
+				Common/Presentation/View/Components/Buttons/Protocols/TextInteractionButtonProtocol.swift,
+				Common/Presentation/View/Components/Buttons/ReturnButton.swift,
+				Common/Presentation/View/Components/Buttons/SecondaryKeyButton.swift,
+				Common/Presentation/View/Components/Buttons/ShiftButton.swift,
+				Common/Presentation/View/Components/Buttons/SpaceButton.swift,
+				Common/Presentation/View/Components/Buttons/SwitchButton.swift,
+				Common/Presentation/View/Components/Frames/KeyboardLayoutVStackView.swift,
+				Common/Presentation/View/Components/Frames/KeyboardRowHStackView.swift,
+				Common/Presentation/View/Components/Frames/KeyboardSpacer.swift,
+				Common/Presentation/View/Components/Overlays/KeyboardSelectOverlayView.swift,
+				Common/Presentation/View/Components/Overlays/OneHandedModeSelectOverlayView.swift,
+				Common/Presentation/View/GestureControllers/Protocols/SwitchButtonGestureHandler.swift,
+				Common/Presentation/View/GestureControllers/Protocols/TextInteractionButtonGestureHandler.swift,
+				Common/Presentation/View/GestureControllers/SwitchButtonGestureController.swift,
+				Common/Presentation/View/GestureControllers/TextInteractionButtonGestureController.swift,
+				Common/Presentation/View/KeyboardLayout/NumericKeyboardView.swift,
+				Common/Presentation/View/KeyboardLayout/Protocols/Base/BaseKeyboardLayoutProtocols.swift,
+				Common/Presentation/View/KeyboardLayout/Protocols/NumericKeyboardLayout.swift,
+				Common/Presentation/View/KeyboardLayout/Protocols/SymbolKeyboardLayout.swift,
+				Common/Presentation/View/KeyboardLayout/Protocols/TenkeyKeyboardLayout.swift,
+				Common/Presentation/View/KeyboardLayout/SymbolKeyboardView.swift,
+				Common/Presentation/View/KeyboardLayout/TenkeyKeyboardView.swift,
+				EnglishKeyboard/Presentation/Utils/Enums/EnglishKeyboardMode.swift,
+				EnglishKeyboard/Presentation/View/KeyboardLayout/EnglishKeyboardView.swift,
+				EnglishKeyboard/Presentation/View/KeyboardLayout/Protocols/EnglishKeyboardLayout.swift,
+				EnglishKeyboard/Presentation/ViewController/EnglishKeyboardViewController.swift,
+			);
+			target = 5B82846C2E6EEE04006425C7 /* EnglishKeyboard */;
+		};
+		5B8285A72E6EF47A006425C7 /* Exceptions for "Common" folder in "EnglishKeyboard" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				FeedbackManager.swift,
+				Resources/Assets.xcassets,
+				UserDefaultsManager.swift,
+				Utils/DefaultValues.swift,
+				Utils/OneHandedMode.swift,
+				Utils/UserDefaultsKeys.swift,
+			);
+			target = 5B82846C2E6EEE04006425C7 /* EnglishKeyboard */;
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		5B53F8012E1E56BD0083F7CA /* Keyboard */ = {
+		5B53F8012E1E56BD0083F7CA /* Keyboards */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				5B53F8172E1E56BD0083F7CA /* Exceptions for "Keyboard" folder in "SYKeyboard" target */,
-				5B53F8182E1E56BD0083F7CA /* Exceptions for "Keyboard" folder in "Keyboard" target */,
+				5B53F8172E1E56BD0083F7CA /* Exceptions for "Keyboards" folder in "SYKeyboard" target */,
+				5B53F8182E1E56BD0083F7CA /* Exceptions for "Keyboards" folder in "HangeulKeyboard" target */,
+				5B8284822E6EEED8006425C7 /* Exceptions for "Keyboards" folder in "EnglishKeyboard" target */,
 			);
-			path = Keyboard;
+			path = Keyboards;
 			sourceTree = "<group>";
 		};
-		5BC07E132DAD0BD8005796AB /* Shared */ = {
+		5BC07E132DAD0BD8005796AB /* Common */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				5B53F7A62E1E51A30083F7CA /* Exceptions for "Shared" folder in "Keyboard" target */,
+				5B53F7A62E1E51A30083F7CA /* Exceptions for "Common" folder in "HangeulKeyboard" target */,
+				5B8285A72E6EF47A006425C7 /* Exceptions for "Common" folder in "EnglishKeyboard" target */,
 			);
-			path = Shared;
+			path = Common;
 			sourceTree = "<group>";
 		};
 		5BC07E462DAD0BDA005796AB /* SYKeyboard */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
 				5B53F7A32E1E517F0083F7CA /* Exceptions for "SYKeyboard" folder in "SYKeyboard" target */,
-				5B53F7A42E1E517F0083F7CA /* Exceptions for "SYKeyboard" folder in "Keyboard" target */,
 			);
 			path = SYKeyboard;
 			sourceTree = "<group>";
@@ -173,10 +306,12 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5B3750552E24516400B13805 /* Then in Frameworks */,
 				5B8E6E0E2E1E426400657BF4 /* GoogleMobileAds in Frameworks */,
-				5B52CC372D5E407C005CB1C7 /* Pods_SYKeyboard.framework in Frameworks */,
+				5B3750592E24528E00B13805 /* SnapKit in Frameworks */,
 				5B8E6E112E1E42D800657BF4 /* FirebaseAnalytics in Frameworks */,
 				5B8E6E132E1E42D800657BF4 /* FirebaseAnalyticsCore in Frameworks */,
+				E1E70658F675EA8FFBC353F0 /* libPods-SYKeyboard.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -184,9 +319,19 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				5B52CC3A2D5E408C005CB1C7 /* Pods_Keyboard.framework in Frameworks */,
-				5B8E6EA92E1E435F00657BF4 /* Then in Frameworks */,
+				5B3750572E24517500B13805 /* Then in Frameworks */,
 				5B8E6EA62E1E435100657BF4 /* SnapKit in Frameworks */,
+				CFBBB4760A027381012C99A3 /* libPods-HangeulKeyboard.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		5B82846A2E6EEE04006425C7 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5B82847A2E6EEE8E006425C7 /* SnapKit in Frameworks */,
+				5B82847C2E6EEE93006425C7 /* Then in Frameworks */,
+				07F3FEEAF9D11BFC6D43AD90 /* libPods-EnglishKeyboard.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -198,9 +343,9 @@
 			children = (
 				5BC38F1B2D8AE2FE00E6B44E /* README.md */,
 				5BA419DE2CB99238005E7C86 /* .gitignore */,
-				5BC07E132DAD0BD8005796AB /* Shared */,
+				5BC07E132DAD0BD8005796AB /* Common */,
 				5BC07E462DAD0BDA005796AB /* SYKeyboard */,
-				5B53F8012E1E56BD0083F7CA /* Keyboard */,
+				5B53F8012E1E56BD0083F7CA /* Keyboards */,
 				5B7B3F572C569B7800F7C093 /* Products */,
 				FA22193DEDE47B1CB6A82C36 /* Pods */,
 				BA31F1B1C87603EB81AF8A97 /* Frameworks */,
@@ -211,7 +356,8 @@
 			isa = PBXGroup;
 			children = (
 				5B7B3F562C569B7800F7C093 /* SYKeyboard.app */,
-				5B7B3F6B2C569B8200F7C093 /* Keyboard.appex */,
+				5B7B3F6B2C569B8200F7C093 /* HangeulKeyboard.appex */,
+				5B82846D2E6EEE04006425C7 /* EnglishKeyboard.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -219,8 +365,9 @@
 		BA31F1B1C87603EB81AF8A97 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				B759D601A4777EF2A0956994 /* Pods_Keyboard.framework */,
-				D4636DF2647C79BB2219C71E /* Pods_SYKeyboard.framework */,
+				D15C0B7D624B9A6D5042293F /* libPods-EnglishKeyboard.a */,
+				010E9ADFD463152A42FCE1E2 /* libPods-HangeulKeyboard.a */,
+				BEB55EC1F7BC40511D0E8145 /* libPods-SYKeyboard.a */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -228,10 +375,12 @@
 		FA22193DEDE47B1CB6A82C36 /* Pods */ = {
 			isa = PBXGroup;
 			children = (
-				4A4E2BB4F6407C7B65CA2AA7 /* Pods-Keyboard.debug.xcconfig */,
-				45DC8CEE55D6E0E9BC6ABA3D /* Pods-Keyboard.release.xcconfig */,
 				079E614D6FC05DCAB5AEA949 /* Pods-SYKeyboard.debug.xcconfig */,
 				EE3310BD609B91E370D4F6D4 /* Pods-SYKeyboard.release.xcconfig */,
+				D3EC136386CF4C22A0A3C57E /* Pods-EnglishKeyboard.debug.xcconfig */,
+				F057594A64940DB6B2F10D5D /* Pods-EnglishKeyboard.release.xcconfig */,
+				E3AF89A077E7FCF5ED48499D /* Pods-HangeulKeyboard.debug.xcconfig */,
+				508732ED07011B87EC525F0F /* Pods-HangeulKeyboard.release.xcconfig */,
 			);
 			path = Pods;
 			sourceTree = "<group>";
@@ -254,10 +403,11 @@
 			);
 			dependencies = (
 				5B9D004E2D92C38200DA108E /* PBXTargetDependency */,
+				5B8284732E6EEE04006425C7 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
-				5B53F8012E1E56BD0083F7CA /* Keyboard */,
-				5BC07E132DAD0BD8005796AB /* Shared */,
+				5B53F8012E1E56BD0083F7CA /* Keyboards */,
+				5BC07E132DAD0BD8005796AB /* Common */,
 				5BC07E462DAD0BDA005796AB /* SYKeyboard */,
 			);
 			name = SYKeyboard;
@@ -265,9 +415,9 @@
 			productReference = 5B7B3F562C569B7800F7C093 /* SYKeyboard.app */;
 			productType = "com.apple.product-type.application";
 		};
-		5B7B3F6A2C569B8200F7C093 /* Keyboard */ = {
+		5B7B3F6A2C569B8200F7C093 /* HangeulKeyboard */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 5B7B3F732C569B8200F7C093 /* Build configuration list for PBXNativeTarget "Keyboard" */;
+			buildConfigurationList = 5B7B3F732C569B8200F7C093 /* Build configuration list for PBXNativeTarget "HangeulKeyboard" */;
 			buildPhases = (
 				E8CFACEC2FC4A78C2CDF2038 /* [CP] Check Pods Manifest.lock */,
 				5B7B3F672C569B8200F7C093 /* Sources */,
@@ -279,11 +429,33 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				5BC07E132DAD0BD8005796AB /* Shared */,
+				5BC07E132DAD0BD8005796AB /* Common */,
 			);
-			name = Keyboard;
+			name = HangeulKeyboard;
 			productName = Naratgeul;
-			productReference = 5B7B3F6B2C569B8200F7C093 /* Keyboard.appex */;
+			productReference = 5B7B3F6B2C569B8200F7C093 /* HangeulKeyboard.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+		5B82846C2E6EEE04006425C7 /* EnglishKeyboard */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 5B8284752E6EEE04006425C7 /* Build configuration list for PBXNativeTarget "EnglishKeyboard" */;
+			buildPhases = (
+				9C1171D488576A0C03594D58 /* [CP] Check Pods Manifest.lock */,
+				5B8284692E6EEE04006425C7 /* Sources */,
+				5B82846A2E6EEE04006425C7 /* Frameworks */,
+				5B82846B2E6EEE04006425C7 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = EnglishKeyboard;
+			packageProductDependencies = (
+				5B8284792E6EEE8E006425C7 /* SnapKit */,
+				5B82847B2E6EEE93006425C7 /* Then */,
+			);
+			productName = EnglishKeyboard;
+			productReference = 5B82846D2E6EEE04006425C7 /* EnglishKeyboard.appex */;
 			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
@@ -293,7 +465,7 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
-				LastSwiftUpdateCheck = 1530;
+				LastSwiftUpdateCheck = 1640;
 				LastUpgradeCheck = 1620;
 				TargetAttributes = {
 					5B7B3F552C569B7800F7C093 = {
@@ -301,6 +473,9 @@
 					};
 					5B7B3F6A2C569B8200F7C093 = {
 						CreatedOnToolsVersion = 15.3;
+					};
+					5B82846C2E6EEE04006425C7 = {
+						CreatedOnToolsVersion = 16.4;
 					};
 				};
 			};
@@ -317,7 +492,7 @@
 				5B8E6E0C2E1E426400657BF4 /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */,
 				5B8E6E0F2E1E42D800657BF4 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 				5B8E6EA42E1E435100657BF4 /* XCRemoteSwiftPackageReference "SnapKit" */,
-				5B8E6EA72E1E435F00657BF4 /* XCRemoteSwiftPackageReference "Then" */,
+				5B3750532E24516400B13805 /* XCRemoteSwiftPackageReference "Then" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 5B7B3F572C569B7800F7C093 /* Products */;
@@ -325,7 +500,8 @@
 			projectRoot = "";
 			targets = (
 				5B7B3F552C569B7800F7C093 /* SYKeyboard */,
-				5B7B3F6A2C569B8200F7C093 /* Keyboard */,
+				5B7B3F6A2C569B8200F7C093 /* HangeulKeyboard */,
+				5B82846C2E6EEE04006425C7 /* EnglishKeyboard */,
 			);
 		};
 /* End PBXProject section */
@@ -340,6 +516,13 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		5B7B3F692C569B8200F7C093 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		5B82846B2E6EEE04006425C7 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -368,6 +551,28 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-SYKeyboard/Pods-SYKeyboard-resources.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		9C1171D488576A0C03594D58 /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-EnglishKeyboard-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
 			showEnvVarsInLog = 0;
 		};
 		E6935368C6C5B48C813A5D6B /* [CP] Check Pods Manifest.lock */ = {
@@ -407,7 +612,7 @@
 			outputFileListPaths = (
 			);
 			outputPaths = (
-				"$(DERIVED_FILE_DIR)/Pods-Keyboard-checkManifestLockResult.txt",
+				"$(DERIVED_FILE_DIR)/Pods-HangeulKeyboard-checkManifestLockResult.txt",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -431,12 +636,24 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		5B8284692E6EEE04006425C7 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		5B8284732E6EEE04006425C7 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 5B82846C2E6EEE04006425C7 /* EnglishKeyboard */;
+			targetProxy = 5B8284722E6EEE04006425C7 /* PBXContainerItemProxy */;
+		};
 		5B9D004E2D92C38200DA108E /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 5B7B3F6A2C569B8200F7C093 /* Keyboard */;
+			target = 5B7B3F6A2C569B8200F7C093 /* HangeulKeyboard */;
 			targetProxy = 5B9D004D2D92C38200DA108E /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
@@ -665,18 +882,18 @@
 		};
 		5B7B3F742C569B8200F7C093 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReferenceAnchor = 5B53F8012E1E56BD0083F7CA /* Keyboard */;
-			baseConfigurationReferenceRelativePath = "Resources/Configs/DebugConfig-Keyboard.xcconfig";
+			baseConfigurationReferenceAnchor = 5B53F8012E1E56BD0083F7CA /* Keyboards */;
+			baseConfigurationReferenceRelativePath = "HangeulKeyboard/Resources/Configs/DebugConfig-HangeulKeyboard.xcconfig";
 			buildSettings = {
 				APPLICATION_EXTENSION_API_ONLY = YES;
-				CODE_SIGN_ENTITLEMENTS = Keyboard/Resources/Keyboard.entitlements;
+				CODE_SIGN_ENTITLEMENTS = Keyboards/HangeulKeyboard/Resources/HangeulKeyboard.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = "$(BUILD_NUMBER)";
 				DEVELOPMENT_TEAM = NCJMGH8Z64;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = Keyboard/Resources/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "SY키보드";
+				INFOPLIST_FILE = Keyboards/HangeulKeyboard/Resources/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "한글 키보드";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -684,7 +901,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				MARKETING_VERSION = "$(VERSION)";
-				PRODUCT_BUNDLE_IDENTIFIER = "github.com-SNMac.SYKeyboard.Keyboard";
+				PRODUCT_BUNDLE_IDENTIFIER = "github.com-SNMac.SYKeyboard.HangeulKeyboard";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -699,18 +916,18 @@
 		};
 		5B7B3F752C569B8200F7C093 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReferenceAnchor = 5B53F8012E1E56BD0083F7CA /* Keyboard */;
-			baseConfigurationReferenceRelativePath = "Resources/Configs/ReleaseConfig-Keyboard.xcconfig";
+			baseConfigurationReferenceAnchor = 5B53F8012E1E56BD0083F7CA /* Keyboards */;
+			baseConfigurationReferenceRelativePath = "HangeulKeyboard/Resources/Configs/ReleaseConfig-HangeulKeyboard.xcconfig";
 			buildSettings = {
 				APPLICATION_EXTENSION_API_ONLY = YES;
-				CODE_SIGN_ENTITLEMENTS = Keyboard/Resources/Keyboard.entitlements;
+				CODE_SIGN_ENTITLEMENTS = Keyboards/HangeulKeyboard/Resources/HangeulKeyboard.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = "$(BUILD_NUMBER)";
 				DEVELOPMENT_TEAM = NCJMGH8Z64;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = Keyboard/Resources/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = "SY키보드";
+				INFOPLIST_FILE = Keyboards/HangeulKeyboard/Resources/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "한글 키보드";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -718,7 +935,75 @@
 					"@executable_path/../../Frameworks",
 				);
 				MARKETING_VERSION = "$(VERSION)";
-				PRODUCT_BUNDLE_IDENTIFIER = "github.com-SNMac.SYKeyboard.Keyboard";
+				PRODUCT_BUNDLE_IDENTIFIER = "github.com-SNMac.SYKeyboard.HangeulKeyboard";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+		5B8284762E6EEE04006425C7 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReferenceAnchor = 5B53F8012E1E56BD0083F7CA /* Keyboards */;
+			baseConfigurationReferenceRelativePath = "EnglishKeyboard/Resources/Configs/DebugConfig-EnglishKeyboard.xcconfig";
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = Keyboards/EnglishKeyboard/Resources/EnglishKeyboard.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = "$(BUILD_NUMBER)";
+				DEVELOPMENT_TEAM = NCJMGH8Z64;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Keyboards/EnglishKeyboard/Resources/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "영어 키보드";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = "$(VERSION)";
+				PRODUCT_BUNDLE_IDENTIFIER = "github.com-SNMac.SYKeyboard.EnglishKeyboard";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		5B8284772E6EEE04006425C7 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReferenceAnchor = 5B53F8012E1E56BD0083F7CA /* Keyboards */;
+			baseConfigurationReferenceRelativePath = "EnglishKeyboard/Resources/Configs/ReleaseConfig-EnglishKeyboard.xcconfig";
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = Keyboards/EnglishKeyboard/Resources/EnglishKeyboard.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = "$(BUILD_NUMBER)";
+				DEVELOPMENT_TEAM = NCJMGH8Z64;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Keyboards/EnglishKeyboard/Resources/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "영어 키보드";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = "$(VERSION)";
+				PRODUCT_BUNDLE_IDENTIFIER = "github.com-SNMac.SYKeyboard.EnglishKeyboard";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -752,7 +1037,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		5B7B3F732C569B8200F7C093 /* Build configuration list for PBXNativeTarget "Keyboard" */ = {
+		5B7B3F732C569B8200F7C093 /* Build configuration list for PBXNativeTarget "HangeulKeyboard" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				5B7B3F742C569B8200F7C093 /* Debug */,
@@ -761,9 +1046,26 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
+		5B8284752E6EEE04006425C7 /* Build configuration list for PBXNativeTarget "EnglishKeyboard" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				5B8284762E6EEE04006425C7 /* Debug */,
+				5B8284772E6EEE04006425C7 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		5B3750532E24516400B13805 /* XCRemoteSwiftPackageReference "Then" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/devxoul/Then";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 3.0.0;
+			};
+		};
 		5B8E6E0C2E1E426400657BF4 /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/googleads/swift-package-manager-google-mobile-ads.git";
@@ -788,17 +1090,34 @@
 				minimumVersion = 5.7.1;
 			};
 		};
-		5B8E6EA72E1E435F00657BF4 /* XCRemoteSwiftPackageReference "Then" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/devxoul/Then";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 3.0.0;
-			};
-		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		5B3750542E24516400B13805 /* Then */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 5B3750532E24516400B13805 /* XCRemoteSwiftPackageReference "Then" */;
+			productName = Then;
+		};
+		5B3750562E24517500B13805 /* Then */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 5B3750532E24516400B13805 /* XCRemoteSwiftPackageReference "Then" */;
+			productName = Then;
+		};
+		5B3750582E24528E00B13805 /* SnapKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 5B8E6EA42E1E435100657BF4 /* XCRemoteSwiftPackageReference "SnapKit" */;
+			productName = SnapKit;
+		};
+		5B8284792E6EEE8E006425C7 /* SnapKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 5B8E6EA42E1E435100657BF4 /* XCRemoteSwiftPackageReference "SnapKit" */;
+			productName = SnapKit;
+		};
+		5B82847B2E6EEE93006425C7 /* Then */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 5B3750532E24516400B13805 /* XCRemoteSwiftPackageReference "Then" */;
+			productName = Then;
+		};
 		5B8E6E0D2E1E426400657BF4 /* GoogleMobileAds */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 5B8E6E0C2E1E426400657BF4 /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */;
@@ -818,11 +1137,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 5B8E6EA42E1E435100657BF4 /* XCRemoteSwiftPackageReference "SnapKit" */;
 			productName = SnapKit;
-		};
-		5B8E6EA82E1E435F00657BF4 /* Then */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 5B8E6EA72E1E435F00657BF4 /* XCRemoteSwiftPackageReference "Then" */;
-			productName = Then;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

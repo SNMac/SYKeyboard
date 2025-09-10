@@ -1,5 +1,5 @@
 //
-//  RequestReview.swift
+//  RequestReviewViewModifier.swift
 //  SYKeyboard
 //
 //  Created by 서동환 on 1/16/25.
@@ -10,11 +10,11 @@ import StoreKit
 import OSLog
 
 struct RequestReviewViewModifier: ViewModifier {
-    private let log = OSLog(subsystem: "github.com-SNMac.SYKeyboard", category: "RequestReviewViewModifier")
+    private let log = OSLog(subsystem: Bundle.main.bundleIdentifier!, category: "RequestReviewViewModifier")
     
     @Environment(\.requestReview) private var requestReview
-    @AppStorage("reviewCounter", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) var reviewCounter = 0
-    @AppStorage("lastBuildPromptedForReview", store: UserDefaults(suiteName: GlobalValues.groupBundleID)) var lastBuildPromptedForReview = ""
+    @AppStorage(UserDefaultsKeys.reviewCounter, store: UserDefaults(suiteName: DefaultValues.groupBundleID)) var reviewCounter = DefaultValues.reviewCounter
+    @AppStorage(UserDefaultsKeys.lastBuildPromptedForReview, store: UserDefaults(suiteName: DefaultValues.groupBundleID)) var lastBuildPromptedForReview = DefaultValues.lastBuildPromptedForReview
     
     private func presentReview() {
         Task {
