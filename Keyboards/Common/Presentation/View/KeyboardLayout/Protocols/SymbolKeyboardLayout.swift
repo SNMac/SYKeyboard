@@ -43,10 +43,10 @@ protocol SymbolKeyboardLayout: DefaultKeyboardLayout, TextInteractionButtonGestu
     func updateLayoutToEmailAddress()
     /// `UIKeyboardType`이 `.webSearch` 일 때의 레이아웃 설정
     func updateLayoutToWebSearch()
-    /// `ShiftButton`의 Shift 상태 변경
-    func updateShiftButton(isShifted: Bool)
     /// `ShiftButton`의 Shift 상태 초기화
     func initShiftButton()
+    /// `ShiftButton`의 Shift 상태 변경
+    func updateShiftButton(isShifted: Bool)
 }
 
 // MARK: - Protocol Methods
@@ -118,13 +118,13 @@ extension SymbolKeyboardLayout {
         updateShiftButton(isShifted: false)
     }
     
-    func updateShiftButton(isShifted: Bool) {
-        self.isShifted = isShifted
+    func initShiftButton() {
+        self.isShifted = false
         wasShifted = false
     }
     
-    func initShiftButton() {
-        self.isShifted = false
+    func updateShiftButton(isShifted: Bool) {
+        self.isShifted = isShifted
         wasShifted = false
     }
 }

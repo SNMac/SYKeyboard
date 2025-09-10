@@ -97,7 +97,9 @@ final class EnglishKeyboardViewController: UIInputViewController {
         super.viewDidLoad()
         setupUI()
         setNextKeyboardButton()
-        updateOneHandModeLayout()
+        if UserDefaultsManager.shared.isOneHandedKeyboardEnabled {
+            updateOneHandModeLayout()
+        }
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -249,7 +251,7 @@ private extension EnglishKeyboardViewController {
         symbolKeyboardView.switchButton.addAction(switchToEnglishKeyboard, for: .touchUpInside)
         numericKeyboardView.switchButton.addAction(switchToEnglishKeyboard, for: .touchUpInside)
         
-        // 키보드 전환 버튼 제스처
+        // 숫자 키보드, 한 손 키보드 전환
         [englishKeyboardView.switchButton,
          symbolKeyboardView.switchButton,
          numericKeyboardView.switchButton].forEach { addGesturesToSwitchButton($0) }

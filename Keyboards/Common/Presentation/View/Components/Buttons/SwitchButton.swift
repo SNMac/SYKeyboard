@@ -23,11 +23,13 @@ final class SwitchButton: SecondaryButton {
     private lazy var oneHandedLabel = UILabel().then {
         $0.attributedText = createOneHandedAttributedText(needToEmphasize: false)
         $0.font = .systemFont(ofSize: 9)
+        $0.isHidden = !UserDefaultsManager.shared.isOneHandedKeyboardEnabled
     }
     
     private lazy var keyboardSelectLabel = UILabel().then {
         $0.attributedText = createKeyboardSelectAttributedText(needToEmphasize: false)
         $0.font = .systemFont(ofSize: 9)
+        $0.isHidden = !UserDefaultsManager.shared.isNumericKeypadEnabled
     }
     
     // MARK: - Initializer

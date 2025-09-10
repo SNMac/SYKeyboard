@@ -53,12 +53,12 @@ protocol EnglishKeyboardLayout: DefaultKeyboardLayout, TextInteractionButtonGest
     func updateLayoutToTwitter()
     /// `UIKeyboardType`이 `.webSearch` 일 때의 레이아웃 설정
     func updateLayoutToWebSearch()
+    /// `ShiftButton`의 Shift 상태 초기화
+    func initShiftButton()
     /// `ShiftButton`의 Shift 상태 변경
     func updateShiftButton(isShifted: Bool)
     /// `ShiftButton`의 Caps Lock 상태 변경
     func updateShiftButton(isCapsLocked: Bool)
-    /// `ShiftButton`의 Shift 상태 초기화
-    func initShiftButton()
 }
 
 // MARK: - Protocol Methods
@@ -165,6 +165,12 @@ extension EnglishKeyboardLayout {
         updateShiftButton(isCapsLocked: false)
     }
     
+    func initShiftButton() {
+        self.isShifted = false
+        self.isCapsLocked = false
+        wasShifted = false
+    }
+    
     func updateShiftButton(isShifted: Bool) {
         self.isShifted = isShifted
         wasShifted = false
@@ -172,12 +178,6 @@ extension EnglishKeyboardLayout {
     
     func updateShiftButton(isCapsLocked: Bool) {
         self.isCapsLocked = isCapsLocked
-        wasShifted = false
-    }
-    
-    func initShiftButton() {
-        self.isShifted = false
-        self.isCapsLocked = false
         wasShifted = false
     }
 }

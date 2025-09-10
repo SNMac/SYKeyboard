@@ -107,10 +107,12 @@ private extension SwitchButtonGestureController {
             let panLocation = gesture.location(in: switchButton)
             let panDirection = checkPanGestureDirection(panLocation: panLocation, targetRect: switchButton.bounds)
             
-            if panDirection == config.targetDirection {
+            if UserDefaultsManager.shared.isNumericKeypadEnabled && panDirection == config.targetDirection {
+                // 숫자 키보드 선택 오버레이
                 config.gestureHandler.showKeyboardSelectOverlay(needToEmphasizeTarget: true)
                 switchButton.configureKeyboardSelectComponent(needToEmphasize: true)
-            } else if panDirection == .up {
+            } else if UserDefaultsManager.shared.isOneHandedKeyboardEnabled && panDirection == .up {
+                // 한 손 키보드 선택 오버레이
                 let currentOneHandedMode = getCurrentOneHandedMode()
                 config.gestureHandler.showOneHandedModeSelectOverlay(of: currentOneHandedMode)
                 switchButton.configureOneHandedComponent(needToEmphasize: true)
@@ -169,7 +171,8 @@ private extension SwitchButtonGestureController {
         let keyboardSelectOverlayView = gestureHandler.keyboardSelectOverlayView
         let oneHandedModeSelectOverlayView = gestureHandler.oneHandedModeSelectOverlayView
         
-        if keyboardSelectOverlayView.isHidden && oneHandedModeSelectOverlayView.isHidden {
+        if UserDefaultsManager.shared.isOneHandedKeyboardEnabled
+            && keyboardSelectOverlayView.isHidden && oneHandedModeSelectOverlayView.isHidden {
             let currentOneHandedMode = getCurrentOneHandedMode()
             gestureHandler.showOneHandedModeSelectOverlay(of: currentOneHandedMode)
             switchButton.configureOneHandedComponent(needToEmphasize: true)

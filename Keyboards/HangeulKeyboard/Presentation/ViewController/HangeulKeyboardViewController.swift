@@ -42,7 +42,7 @@ final class HangeulKeyboardViewController: UIInputViewController {
     private var currentReturnButton: ReturnButton? {
         switch currentKeyboardLayout {
         case .hangeul:
-            return naratgeulKeyboardView.returnButton
+            return hangeulKeyboardView.returnButton
         case .symbol:
             return symbolKeyboardView.returnButton
         case .numeric:
@@ -101,7 +101,9 @@ final class HangeulKeyboardViewController: UIInputViewController {
         super.viewDidLoad()
         setupUI()
         setNextKeyboardButton()
-        updateOneHandModeLayout()
+        if UserDefaultsManager.shared.isOneHandedKeyboardEnabled {
+            updateOneHandModeLayout()
+        }
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -218,7 +220,7 @@ private extension HangeulKeyboardViewController {
 
 private extension HangeulKeyboardViewController {
     func setTextInteractionButtonAction() {
-        [naratgeulKeyboardView.totalTextInteractionButtonList,
+        [hangeulKeyboardView.totalTextInteractionButtonList,
          numericKeyboardView.totalTextInteractionButtonList,
          symbolKeyboardView.totalTextInteractionButtonList].forEach { buttonList in
             buttonList.forEach { addGesturesToTextInteractionButton($0) }
@@ -244,7 +246,7 @@ private extension HangeulKeyboardViewController {
         let switchToSymbolKeyboard = UIAction { [weak self] _ in
             self?.currentKeyboardLayout = .symbol
         }
-        naratgeulKeyboardView.switchButton.addAction(switchToSymbolKeyboard, for: .touchUpInside)
+        hangeulKeyboardView.switchButton.addAction(switchToSymbolKeyboard, for: .touchUpInside)
         
         // 한글 키보드 전환
         let switchToHangeulKeyboard = UIAction { [weak self] _ in
@@ -253,8 +255,8 @@ private extension HangeulKeyboardViewController {
         symbolKeyboardView.switchButton.addAction(switchToHangeulKeyboard, for: .touchUpInside)
         numericKeyboardView.switchButton.addAction(switchToHangeulKeyboard, for: .touchUpInside)
         
-        // 키보드 전환 버튼 제스처
-        [naratgeulKeyboardView.switchButton,
+        // 숫자 키보드, 한 손 키보드 전환
+        [hangeulKeyboardView.switchButton,
          symbolKeyboardView.switchButton,
          numericKeyboardView.switchButton].forEach { addGesturesToSwitchButton($0) }
     }
