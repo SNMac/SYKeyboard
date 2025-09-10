@@ -26,11 +26,11 @@ final class SymbolKeyboardView: UIView, SymbolKeyboardLayout {
     
     var isShifted: Bool = false {
         didSet {
-            updateShiftButton()
+            shiftButton.updateShiftState(to: isShifted)
             updateKeyButtonList()
         }
     }
-    var wasShiftEnabledOnTouchDown: Bool = false
+    var wasShifted: Bool = false
     
     // MARK: - UI Components
     
@@ -152,13 +152,6 @@ private extension SymbolKeyboardView {
                 }
             }
         }
-//        thirdRowKeyButtonList.forEach { button in
-//            let widthRatio = 7 / Double(firstRowKeyButtonList.count) / Double(thirdRowKeyButtonList.count)
-//            button.snp.makeConstraints {
-//                // 영어 키보드와 Shift, Delete 버튼 크기 같게 하기 위함
-//                $0.width.equalToSuperview().multipliedBy(widthRatio)
-//            }
-//        }
         
         deleteButton.snp.makeConstraints {
             $0.width.equalTo(shiftButton)
@@ -205,22 +198,20 @@ private extension SymbolKeyboardView {
 
 private extension SymbolKeyboardView {
     func setShiftButtonAction() {
-        let shiftButtonEnabled = UIAction { [weak self] _ in
+        let enableShift = UIAction { [weak self] _ in
             guard let self else { return }
-            wasShiftEnabledOnTouchDown = isShifted
-            if !wasShiftEnabledOnTouchDown {
-                isShifted = true
-            }
+            wasShifted = isShifted
+            isShifted = true
         }
-        shiftButton.addAction(shiftButtonEnabled, for: .touchDown)
+        shiftButton.addAction(enableShift, for: .touchDown)
         
-        let shiftButtonDisabled = UIAction { [weak self] _ in
+        let disableShift = UIAction { [weak self] _ in
             guard let self else { return }
-            if wasShiftEnabledOnTouchDown {
+            if wasShifted {
                 isShifted = false
             }
         }
-        shiftButton.addAction(shiftButtonDisabled, for: .touchUpInside)
+        shiftButton.addAction(disableShift, for: .touchUpInside)
     }
 }
 
@@ -236,9 +227,5 @@ private extension SymbolKeyboardView {
                 button.update(button: TextInteractionButton.keyButton(keys: keys))
             }
         }
-    }
-    
-    func updateShiftButton() {
-        shiftButton.update(isShifted: isShifted)
     }
 }

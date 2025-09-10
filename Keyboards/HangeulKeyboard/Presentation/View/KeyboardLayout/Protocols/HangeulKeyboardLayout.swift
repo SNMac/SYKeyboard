@@ -27,6 +27,8 @@ protocol HangeulKeyboardLayout: DefaultKeyboardLayout, TextInteractionButtonGest
     func updateLayoutToTwitter()
 }
 
+// MARK: - Protocol Methods
+
 extension HangeulKeyboardLayout {
     func updateLayoutForCurrentHangeulMode(oldMode: HangeulKeyboardMode) {
         guard oldMode != currentHangeulKeyboardMode else { return }

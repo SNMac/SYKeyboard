@@ -276,9 +276,9 @@ private extension EnglishKeyboardViewController {
 private extension EnglishKeyboardViewController {
     func updateShowingKeyboard() {
         englishKeyboardView.isHidden = (currentKeyboardLayout != .english)
-        englishKeyboardView.updateShiftButton(to: false)  // TODO: - 자동 대문자 설정
+        englishKeyboardView.initShiftButton()  // TODO: - 자동 대문자 설정
         symbolKeyboardView.isHidden = (currentKeyboardLayout != .symbol)
-        symbolKeyboardView.updateShiftButton(to: false)
+        symbolKeyboardView.initShiftButton()
         numericKeyboardView.isHidden = (currentKeyboardLayout != .numeric)
         tenkeyKeyboardView.isHidden = (currentKeyboardLayout != .tenKey)
     }

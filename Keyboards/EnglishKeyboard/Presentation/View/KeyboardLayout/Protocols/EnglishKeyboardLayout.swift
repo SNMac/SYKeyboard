@@ -16,7 +16,9 @@ protocol EnglishKeyboardLayout: DefaultKeyboardLayout, TextInteractionButtonGest
     /// Shift 상태
     var isShifted: Bool { get set }
     /// 이전 Shift 상태
-    var wasShiftEnabledOnTouchDown: Bool { get set }
+    var wasShifted: Bool { get set }
+    /// CapsLock 상태
+    var isCapsLocked: Bool { get set }
     /// 키보드 네번째 좌측 `SecondaryButton` 행
     var fourthRowLeftSecondaryButtonHStackView: KeyboardRowHStackView { get }
     /// 대문자 전환 버튼
@@ -51,7 +53,15 @@ protocol EnglishKeyboardLayout: DefaultKeyboardLayout, TextInteractionButtonGest
     func updateLayoutToTwitter()
     /// `UIKeyboardType`이 `.webSearch` 일 때의 레이아웃 설정
     func updateLayoutToWebSearch()
+    /// `ShiftButton`의 Shift 상태 변경
+    func updateShiftButton(isShifted: Bool)
+    /// `ShiftButton`의 Caps Lock 상태 변경
+    func updateShiftButton(isCapsLocked: Bool)
+    /// `ShiftButton`의 Shift 상태 초기화
+    func initShiftButton()
 }
+
+// MARK: - Protocol Methods
 
 extension EnglishKeyboardLayout {
     func updateLayoutForCurrentEnglishMode(oldMode: EnglishKeyboardMode) {
@@ -81,7 +91,8 @@ extension EnglishKeyboardLayout {
         secondaryAtButton.isHidden = true
         secondarySharpButton.isHidden = true
         
-        updateShiftButton(to: false)
+        updateShiftButton(isShifted: false)
+        updateShiftButton(isCapsLocked: false)
     }
     
     func updateLayoutToURL() {
@@ -99,7 +110,8 @@ extension EnglishKeyboardLayout {
         secondaryAtButton.isHidden = true
         secondarySharpButton.isHidden = true
         
-        updateShiftButton(to: false)
+        updateShiftButton(isShifted: false)
+        updateShiftButton(isCapsLocked: false)
     }
     
     func updateLayoutToEmailAddress() {
@@ -117,7 +129,8 @@ extension EnglishKeyboardLayout {
         secondaryAtButton.isHidden = true
         secondarySharpButton.isHidden = true
         
-        updateShiftButton(to: false)
+        updateShiftButton(isShifted: false)
+        updateShiftButton(isCapsLocked: false)
     }
     
     func updateLayoutToTwitter() {
@@ -129,7 +142,8 @@ extension EnglishKeyboardLayout {
         secondaryAtButton.isHidden = true
         secondarySharpButton.isHidden = true
         
-        updateShiftButton(to: false)
+        updateShiftButton(isShifted: false)
+        updateShiftButton(isCapsLocked: false)
     }
     
     func updateLayoutToWebSearch() {
@@ -147,11 +161,23 @@ extension EnglishKeyboardLayout {
         secondaryAtButton.isHidden = true
         secondarySharpButton.isHidden = true
         
-        updateShiftButton(to: false)
+        updateShiftButton(isShifted: false)
+        updateShiftButton(isCapsLocked: false)
     }
     
-    func updateShiftButton(to isShifted: Bool) {
+    func updateShiftButton(isShifted: Bool) {
         self.isShifted = isShifted
-        wasShiftEnabledOnTouchDown = isShifted
+        wasShifted = false
+    }
+    
+    func updateShiftButton(isCapsLocked: Bool) {
+        self.isCapsLocked = isCapsLocked
+        wasShifted = false
+    }
+    
+    func initShiftButton() {
+        self.isShifted = false
+        self.isCapsLocked = false
+        wasShifted = false
     }
 }

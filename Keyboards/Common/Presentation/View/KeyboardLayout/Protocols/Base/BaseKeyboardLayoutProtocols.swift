@@ -27,6 +27,8 @@ protocol DefaultKeyboardLayout: BaseKeyboardLayout {
     var nextKeyboardButton: NextKeyboardButton { get }
 }
 
+// MARK: - Protocol Methods
+
 extension DefaultKeyboardLayout {
     func updateNextKeyboardButton(needsInputModeSwitchKey: Bool, nextKeyboardAction: Selector) {
         nextKeyboardButton.addTarget(nil, action: nextKeyboardAction, for: .allTouchEvents)

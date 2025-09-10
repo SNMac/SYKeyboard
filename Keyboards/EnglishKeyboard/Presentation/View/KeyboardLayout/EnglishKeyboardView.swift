@@ -23,11 +23,17 @@ final class EnglishKeyboardView: UIView, EnglishKeyboardLayout {
     
     var isShifted: Bool = false {
         didSet {
-            updateShiftButton()
+            shiftButton.updateShiftState(to: isShifted)
             updateKeyButtonList()
         }
     }
-    var wasShiftEnabledOnTouchDown: Bool = false
+    var wasShifted: Bool = false
+    var isCapsLocked: Bool = false {
+        didSet {
+            shiftButton.updateCapsLockState(to: isCapsLocked)
+            updateKeyButtonList()
+        }
+    }
     
     // MARK: - UI Components
     
@@ -216,22 +222,29 @@ private extension EnglishKeyboardView {
 
 private extension EnglishKeyboardView {
     func setShiftButtonAction() {
-        let shiftButtonEnabled = UIAction { [weak self] _ in
+        let enableShift = UIAction { [weak self] _ in
             guard let self else { return }
-            wasShiftEnabledOnTouchDown = isShifted
-            if !wasShiftEnabledOnTouchDown {
-                isShifted = true
+            if isCapsLocked {
+                isCapsLocked = false
             }
+            wasShifted = isShifted
+            isShifted = true
         }
-        shiftButton.addAction(shiftButtonEnabled, for: .touchDown)
+        shiftButton.addAction(enableShift, for: .touchDown)
         
-        let shiftButtonDisabled = UIAction { [weak self] _ in
+        let toggleCapsLock = UIAction { [weak self] action in
             guard let self else { return }
-            if wasShiftEnabledOnTouchDown {
+            isCapsLocked.toggle()
+        }
+        shiftButton.addAction(toggleCapsLock, for: .touchDownRepeat)
+        
+        let disableShift = UIAction { [weak self] _ in
+            guard let self else { return }
+            if !isCapsLocked && wasShifted {
                 isShifted = false
             }
         }
-        shiftButton.addAction(shiftButtonDisabled, for: .touchUpInside)
+        shiftButton.addAction(disableShift, for: .touchUpInside)
     }
 }
 
@@ -247,9 +260,5 @@ private extension EnglishKeyboardView {
                 button.update(button: TextInteractionButton.keyButton(keys: keys))
             }
         }
-    }
-    
-    func updateShiftButton() {
-        shiftButton.update(isShifted: isShifted)
     }
 }

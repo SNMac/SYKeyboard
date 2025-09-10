@@ -16,6 +16,8 @@ final class ShiftButton: SecondaryButton {
     
     private let layout: KeyboardLayout
     
+    private let imageConfig = UIImage.SymbolConfiguration(pointSize: 16, weight: .medium)
+    
     // MARK: - Initializer
     
     override init(layout: KeyboardLayout) {
@@ -29,12 +31,11 @@ final class ShiftButton: SecondaryButton {
         fatalError("init(coder:) has not been implemented")
     }
     
-    // MARK: - Methods
+    // MARK: - Internal Methods
     
-    func update(isShifted: Bool) {
+    func updateShiftState(to isShifted: Bool) {
         switch layout {
-        case .english:
-            let imageConfig = UIImage.SymbolConfiguration(pointSize: 16, weight: .medium)
+        case .hangeul, .english:
             if isShifted {
                 self.isSelected = true
                 self.configuration?.image = UIImage(systemName: "shift.fill")?.withConfiguration(imageConfig).withTintColor(.label, renderingMode: .alwaysOriginal)
@@ -52,7 +53,22 @@ final class ShiftButton: SecondaryButton {
         default:
             fatalError("도달할 수 없는 case 입니다.")
         }
-
+    }
+    
+    func updateCapsLockState(to isCapsLocked: Bool) {
+        switch layout {
+        case .hangeul, .english:
+            if isCapsLocked {
+                self.isSelected = true
+                self.configuration?.image = UIImage(systemName: "capslock.fill")?.withConfiguration(imageConfig).withTintColor(.label, renderingMode: .alwaysOriginal)
+                self.backgroundView.backgroundColor = .secondaryButtonPressed
+            } else {
+                self.isSelected = false
+                self.configuration?.image = UIImage(systemName: "shift")?.withConfiguration(imageConfig).withTintColor(.label, renderingMode: .alwaysOriginal)
+            }
+        default:
+            fatalError("도달할 수 없는 case 입니다.")
+        }
     }
 }
 
@@ -71,7 +87,6 @@ private extension ShiftButton {
         
         switch layout {
         case .english:
-            let imageConfig = UIImage.SymbolConfiguration(pointSize: 16, weight: .medium)
             self.configuration?.image = UIImage(systemName: "shift")?.withConfiguration(imageConfig).withTintColor(.label, renderingMode: .alwaysOriginal)
         case .symbol:
             let attributes = AttributeContainer([.font: UIFont.monospacedSystemFont(ofSize: 16, weight: .regular), .foregroundColor: UIColor.label])

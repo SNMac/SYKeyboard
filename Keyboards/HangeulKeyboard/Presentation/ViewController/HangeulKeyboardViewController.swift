@@ -281,7 +281,7 @@ private extension HangeulKeyboardViewController {
     func updateShowingKeyboard() {
         hangeulKeyboardView.isHidden = (currentKeyboardLayout != .hangeul)
         symbolKeyboardView.isHidden = (currentKeyboardLayout != .symbol)
-        symbolKeyboardView.updateShiftButton(to: false)
+        symbolKeyboardView.initShiftButton()
         numericKeyboardView.isHidden = (currentKeyboardLayout != .numeric)
         tenkeyKeyboardView.isHidden = (currentKeyboardLayout != .tenKey)
     }

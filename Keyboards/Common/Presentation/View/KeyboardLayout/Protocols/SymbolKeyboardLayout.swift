@@ -16,7 +16,7 @@ protocol SymbolKeyboardLayout: DefaultKeyboardLayout, TextInteractionButtonGestu
     /// Shift 상태
     var isShifted: Bool { get set }
     /// 이전 Shift 상태
-    var wasShiftEnabledOnTouchDown: Bool { get set }
+    var wasShifted: Bool { get set }
     /// 키보드 네번째 좌측 `SecondaryButton` 행
     var fourthRowLeftSecondaryButtonHStackView: KeyboardRowHStackView { get }
     /// 기호 전환 버튼
@@ -43,7 +43,13 @@ protocol SymbolKeyboardLayout: DefaultKeyboardLayout, TextInteractionButtonGestu
     func updateLayoutToEmailAddress()
     /// `UIKeyboardType`이 `.webSearch` 일 때의 레이아웃 설정
     func updateLayoutToWebSearch()
+    /// `ShiftButton`의 Shift 상태 변경
+    func updateShiftButton(isShifted: Bool)
+    /// `ShiftButton`의 Shift 상태 초기화
+    func initShiftButton()
 }
+
+// MARK: - Protocol Methods
 
 extension SymbolKeyboardLayout {
     func updateLayoutForCurrentSymbolKeyboardMode(oldMode: SymbolKeyboardMode) {
@@ -67,7 +73,7 @@ extension SymbolKeyboardLayout {
         slashButton.isHidden = true
         dotComButton.isHidden = true
         
-        updateShiftButton(to: false)
+        updateShiftButton(isShifted: false)
     }
     
     func updateLayoutToURL() {
@@ -81,7 +87,7 @@ extension SymbolKeyboardLayout {
             $0.width.equalToSuperview().dividedBy(3)
         }
         
-        updateShiftButton(to: false)
+        updateShiftButton(isShifted: false)
     }
     
     func updateLayoutToEmailAddress() {
@@ -95,7 +101,7 @@ extension SymbolKeyboardLayout {
             $0.width.equalToSuperview().dividedBy(4)
         }
         
-        updateShiftButton(to: false)
+        updateShiftButton(isShifted: false)
     }
     
     func updateLayoutToWebSearch() {
@@ -109,11 +115,16 @@ extension SymbolKeyboardLayout {
             $0.width.equalToSuperview().dividedBy(5)
         }
         
-        updateShiftButton(to: false)
+        updateShiftButton(isShifted: false)
     }
     
-    func updateShiftButton(to isShifted: Bool) {
+    func updateShiftButton(isShifted: Bool) {
         self.isShifted = isShifted
-        wasShiftEnabledOnTouchDown = isShifted
+        wasShifted = false
+    }
+    
+    func initShiftButton() {
+        self.isShifted = false
+        wasShifted = false
     }
 }

@@ -25,6 +25,8 @@ protocol TenkeyKeyboardLayout: BaseKeyboardLayout {
     func updateLayoutToDecimalPad()
 }
 
+// MARK: - Protocol Methods
+
 extension TenkeyKeyboardLayout {
     func updateLayoutForCurrentTenkeyKeyboardMode(oldMode: TenkeyKeyboardMode) {
         guard oldMode != currentTenkeyKeyboardMode else { return }
