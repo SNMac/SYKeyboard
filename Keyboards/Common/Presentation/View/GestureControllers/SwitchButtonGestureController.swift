@@ -224,7 +224,7 @@ private extension SwitchButtonGestureController {
             guard let hangeulKeyboardView else { fatalError("옵셔널 바인딩 실패 - hangeulKeyboardView가 nil입니다.") }
             gestureHandler = hangeulKeyboardView
         case .english:
-            guard let englishKeyboardView else { fatalError("옵셔널 바인딩 실패 - hangeulKeyboardView가 nil입니다.") }
+            guard let englishKeyboardView else { fatalError("옵셔널 바인딩 실패 - englishKeyboardView가 nil입니다.") }
             gestureHandler = englishKeyboardView
         case .symbol:
             gestureHandler = symbolKeyboardView
@@ -247,7 +247,7 @@ private extension SwitchButtonGestureController {
                       targetLayout: .numeric,
                       targetDirection: .left)
         case .english:
-            guard let englishKeyboardView else { fatalError("옵셔널 바인딩 실패 - hangeulKeyboardView가 nil입니다.") }
+            guard let englishKeyboardView else { fatalError("옵셔널 바인딩 실패 - englishKeyboardView가 nil입니다.") }
             config = (gestureHandler: englishKeyboardView,
                       targetLayout: .numeric,
                       targetDirection: .right)
@@ -298,7 +298,8 @@ private extension SwitchButtonGestureController {
                 return .none
             }
         default:
-            fatalError("사용되지 않는 targetDirection 입니다.")
+            assertionFailure("사용되지 않는 targetDirection 입니다.")
+            return .none
         }
     }
     

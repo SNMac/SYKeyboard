@@ -121,7 +121,7 @@ private extension TextInteractionButtonGestureController {
                     delegate?.primaryButtonPanning(self, to: .left)
                 }
             } else {
-                fatalError("입력 상호작용 버튼이 아닙니다.")
+                assertionFailure("입력 상호작용 버튼이 아닙니다.")
             }
             intervalReferPanPoint = currentPoint
         }
@@ -135,7 +135,10 @@ private extension TextInteractionButtonGestureController {
     
     func onLongPressGestureBegan(_ gesture: UILongPressGestureRecognizer) {
         let currentButton = gesture.view as? TextInteractionButtonProtocol
-        guard let button = currentButton?.button else { fatalError("입력 상호작용 버튼이 아닙니다.") }
+        guard let button = currentButton?.button else {
+            assertionFailure("입력 상호작용 버튼이 아닙니다.")
+            return
+        }
         delegate?.textInteractionButtonLongPressing(self, button: button)
     }
     
