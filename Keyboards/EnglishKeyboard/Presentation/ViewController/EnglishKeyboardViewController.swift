@@ -19,6 +19,9 @@ final class EnglishKeyboardViewController: UIInputViewController {
     
     private lazy var logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: String(describing: self))
     
+    /// 키보드 높이 제약 조건 할당 여부
+    private var isHeightConstraintAdded: Bool = false
+    
     /// 반복 입력용 타이머
     private var timer: AnyCancellable?
     /// 현재 키보드
@@ -175,9 +178,13 @@ private extension EnglishKeyboardViewController {
     }
     
     func setKeyboardHeight() {
-        let heightConstraint = self.view.heightAnchor.constraint(equalToConstant: UserDefaultsManager.shared.keyboardHeight)
-        heightConstraint.priority = .init(999)
-        heightConstraint.isActive = true
+        if !isHeightConstraintAdded, self.view.superview != nil {
+            self.view.snp.makeConstraints {
+                $0.edges.equalToSuperview()
+                $0.height.equalTo(UserDefaultsManager.shared.keyboardHeight).priority(999)
+            }
+            isHeightConstraintAdded = true
+        }
     }
     
     func setNextKeyboardButton() {
