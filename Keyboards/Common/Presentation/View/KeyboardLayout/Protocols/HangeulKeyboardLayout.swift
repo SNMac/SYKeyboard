@@ -8,8 +8,8 @@
 import UIKit
 
 /// 한글 키보드 레이아웃 프로토콜
-protocol HangeulKeyboardLayout: DefaultKeyboardLayout, TextInteractionButtonGestureHandler, SwitchButtonGestureHandler {
-    /// 현재 한글 키보드 레이아웃 모드
+protocol HangeulKeyboardLayout: DefaultKeyboardLayout, PrimaryKeyboard, TextInteractionButtonGestureHandler, SwitchButtonGestureHandler {
+    /// 현재 한글 키보드 모드
     var currentHangeulKeyboardMode: HangeulKeyboardMode { get set }
     /// Shift 상태
     var isShifted: Bool? { get set }
@@ -37,9 +37,10 @@ protocol HangeulKeyboardLayout: DefaultKeyboardLayout, TextInteractionButtonGest
     func updateShiftButton(isShifted: Bool)
 }
 
-// MARK: - Protocol Methods
+// MARK: - Protocol Properties & Methods
 
 extension HangeulKeyboardLayout {
+    var keyboardLayout: KeyboardLayout { .hangeul }
     var isShifted: Bool? {
         get { nil } set {}
     }

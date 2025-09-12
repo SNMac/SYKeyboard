@@ -11,7 +11,7 @@ import SnapKit
 
 /// 기호 키보드 레이아웃 프로토콜
 protocol SymbolKeyboardLayout: DefaultKeyboardLayout, TextInteractionButtonGestureHandler, SwitchButtonGestureHandler {
-    /// 현재 기호 키보드 레이아웃 모드
+    /// 현재 기호 키보드 모드
     var currentSymbolKeyboardMode: SymbolKeyboardMode { get set }
     /// Shift 상태
     var isShifted: Bool { get set }
@@ -49,7 +49,7 @@ protocol SymbolKeyboardLayout: DefaultKeyboardLayout, TextInteractionButtonGestu
     func updateShiftButton(isShifted: Bool)
 }
 
-// MARK: - Protocol Methods
+// MARK: - Protocol Properties & Methods
 
 extension SymbolKeyboardLayout {
     func updateLayoutForCurrentSymbolKeyboardMode(oldMode: SymbolKeyboardMode) {

@@ -9,7 +9,7 @@ import UIKit
 
 /// 텐키 키보드 레이아웃 프로토콜
 protocol TenkeyKeyboardLayout: BaseKeyboardLayout {
-    /// 현재 텐키 키보드 레이아웃 모드
+    /// 현재 텐키 키보드 모드
     var currentTenkeyKeyboardMode: TenkeyKeyboardMode { get set }
     /// 키보드 네번째 행 좌측 여백
     var bottomLeftButtonSpacer: KeyboardSpacer { get }
@@ -25,7 +25,7 @@ protocol TenkeyKeyboardLayout: BaseKeyboardLayout {
     func updateLayoutToDecimalPad()
 }
 
-// MARK: - Protocol Methods
+// MARK: - Protocol Properties & Methods
 
 extension TenkeyKeyboardLayout {
     func updateLayoutForCurrentTenkeyKeyboardMode(oldMode: TenkeyKeyboardMode) {

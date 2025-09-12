@@ -10,8 +10,8 @@ import UIKit
 import SnapKit
 
 /// 영어 키보드 레이아웃 프로토콜
-protocol EnglishKeyboardLayout: DefaultKeyboardLayout, TextInteractionButtonGestureHandler, SwitchButtonGestureHandler {
-    /// 현재 영어 키보드 레이아웃 모드
+protocol EnglishKeyboardLayout: DefaultKeyboardLayout, PrimaryKeyboard, TextInteractionButtonGestureHandler, SwitchButtonGestureHandler {
+    /// 현재 영어 키보드 모드
     var currentEnglishKeyboardMode: EnglishKeyboardMode { get set }
     /// Shift 상태
     var isShifted: Bool { get set }
@@ -61,9 +61,11 @@ protocol EnglishKeyboardLayout: DefaultKeyboardLayout, TextInteractionButtonGest
     func updateShiftButton(isCapsLocked: Bool)
 }
 
-// MARK: - Protocol Methods
+// MARK: - Protocol Properties & Methods
 
 extension EnglishKeyboardLayout {
+    var keyboardLayout: KeyboardLayout { .english }
+    
     func updateLayoutForCurrentEnglishMode(oldMode: EnglishKeyboardMode) {
         guard oldMode != currentEnglishKeyboardMode else { return }
         switch currentEnglishKeyboardMode {

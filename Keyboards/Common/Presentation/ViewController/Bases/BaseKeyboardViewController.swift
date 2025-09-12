@@ -23,8 +23,9 @@ public class BaseKeyboardViewController: UIInputViewController {
     
     /// 반복 입력용 타이머
     private var timer: AnyCancellable?
-    /// 현재 키보드
-    var currentKeyboardLayout: KeyboardLayout = .hangeul {
+    
+    /// 현재 표시되는 키보드
+    lazy var currentKeyboardLayout: KeyboardLayout = primaryKeyboardView.keyboardLayout {
         didSet {
             updateShowingKeyboard()
             updateReturnButtonType()
@@ -65,19 +66,14 @@ public class BaseKeyboardViewController: UIInputViewController {
     private let keyboardLayoutView = UIView()
     /// 한 손 키보드 해제 버튼(오른손 모드)
     private let leftChevronButton = ChevronButton(direction: .left).then { $0.isHidden = true }
-    var primaryKeyboardView: PrimaryKeyboardView! {
-        fatalError("프로퍼티가 오버라이딩 되지 않았습니다.")
-    }
-    /// 자식 클래스에서 반환해야 하는 기본 키보드 레이아웃 타입
-    var primaryKeyboardLayout: KeyboardLayout {
-        fatalError("프로퍼티가 오버라이딩 되지 않았습니다.")
-    }
+    /// 주 키보드(오버라이딩 필요)
+    var primaryKeyboardView: PrimaryKeyboard! { fatalError("프로퍼티가 오버라이딩 되지 않았습니다.") }
     /// 기호 키보드
-    private lazy var symbolKeyboardView: SymbolKeyboardLayout = SymbolKeyboardView().then { $0.isHidden = true }
+    final lazy var symbolKeyboardView: SymbolKeyboardLayout = SymbolKeyboardView().then { $0.isHidden = true }
     /// 숫자 키보드
-    private lazy var numericKeyboardView: NumericKeyboardLayout = NumericKeyboardView().then { $0.isHidden = true }
+    final lazy var numericKeyboardView: NumericKeyboardLayout = NumericKeyboardView().then { $0.isHidden = true }
     /// 텐키 키보드
-    private lazy var tenkeyKeyboardView: TenkeyKeyboardLayout = TenkeyKeyboardView().then { $0.isHidden = true }
+    final lazy var tenkeyKeyboardView: TenkeyKeyboardLayout = TenkeyKeyboardView().then { $0.isHidden = true }
     /// 한 손 키보드 해제 버튼(왼손 모드)
     private let rightChevronButton = ChevronButton(direction: .right).then { $0.isHidden = true }
     
@@ -97,9 +93,8 @@ public class BaseKeyboardViewController: UIInputViewController {
     
     // MARK: - Lifecycle
     
-    open override func viewDidLoad() {
+    public override func viewDidLoad() {
         super.viewDidLoad()
-        self.currentKeyboardLayout = primaryKeyboardLayout
         setupUI()
         setNextKeyboardButton()
         if UserDefaultsManager.shared.isOneHandedKeyboardEnabled {
@@ -107,24 +102,30 @@ public class BaseKeyboardViewController: UIInputViewController {
         }
     }
     
-    open override func viewWillAppear(_ animated: Bool) {
+    public override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         setKeyboardHeight()
         FeedbackManager.shared.prepareHaptic()
     }
     
-    open override func viewDidAppear(_ animated: Bool) {
+    public override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         #if DEBUG
         checkForAmbiguity(in: self.view)
         #endif
     }
     
-    open override func textWillChange(_ textInput: (any UITextInput)?) {
+    public override func textWillChange(_ textInput: (any UITextInput)?) {
         super.textWillChange(textInput)
         updateKeyboardAppearance()
         updateKeyboardType()
         updateReturnButtonType()
+    }
+    
+    // MARK: - Override Methods
+    
+    func updateKeyboardType() {
+        fatalError("메서드가 오버라이딩 되지 않았습니다.")
     }
 }
 
@@ -252,7 +253,7 @@ private extension BaseKeyboardViewController {
         // 주 키보드 전환
         let switchToPrimaryKeyboard = UIAction { [weak self] _ in
             guard let self else { return }
-            currentKeyboardLayout = primaryKeyboardLayout
+            currentKeyboardLayout = primaryKeyboardView.keyboardLayout
         }
         symbolKeyboardView.switchButton.addAction(switchToPrimaryKeyboard, for: .touchUpInside)
         numericKeyboardView.switchButton.addAction(switchToPrimaryKeyboard, for: .touchUpInside)
@@ -288,25 +289,26 @@ private extension BaseKeyboardViewController {
 
 // MARK: - Update Methods
 
-extension BaseKeyboardViewController {
+private extension BaseKeyboardViewController {
     func updateShowingKeyboard() {
-        fatalError("메서드가 오버라이딩 되지 않았습니다.")
+        primaryKeyboardView.isHidden = (currentKeyboardLayout != primaryKeyboardView.keyboardLayout)
+        primaryKeyboardView.initShiftButton()  // TODO: - 자동 대문자 설정
+        symbolKeyboardView.isHidden = (currentKeyboardLayout != .symbol)
+        symbolKeyboardView.initShiftButton()
+        numericKeyboardView.isHidden = (currentKeyboardLayout != .numeric)
+        tenkeyKeyboardView.isHidden = (currentKeyboardLayout != .tenKey)
     }
     
-    private func updateOneHandModeLayout() {
+    func updateOneHandModeLayout() {
         leftChevronButton.isHidden = !(currentOneHandedMode == .right)
         rightChevronButton.isHidden = !(currentOneHandedMode == .left)
     }
     
-    private func updateKeyboardAppearance() {
+    func updateKeyboardAppearance() {
         // TODO: 키보드 라이트모드, 다크모드 전환 구현
     }
     
-    func updateKeyboardType() {
-        fatalError("메서드가 오버라이딩 되지 않았습니다.")
-    }
-    
-    private func updateReturnButtonType() {
+    func updateReturnButtonType() {
         let type = ReturnButton.ReturnKeyType(type: textDocumentProxy.returnKeyType)
         currentReturnButton?.update(for: type)
     }
