@@ -15,13 +15,13 @@ final class NextKeyboardButton: SecondaryButton {
     
     // MARK: - Properties
     
-    private let layout: KeyboardLayout
+    private let keyboard: Keyboard
     
     // MARK: - Initializer
     
-    override init(layout: KeyboardLayout) {
-        self.layout = layout
-        super.init(layout: layout)
+    override init(keyboard: Keyboard) {
+        self.keyboard = keyboard
+        super.init(keyboard: keyboard)
         
         setupUI()
     }

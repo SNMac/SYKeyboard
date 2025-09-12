@@ -15,13 +15,13 @@ final class DeleteButton: SecondaryButton, TextInteractionButtonProtocol {
     // MARK: - Properties
     
     private(set) var button: TextInteractionButton = .deleteButton
-    private let layout: KeyboardLayout
+    private let keyboard: Keyboard
     
     // MARK: - Initializer
     
-    override init(layout: KeyboardLayout) {
-        self.layout = layout
-        super.init(layout: layout)
+    override init(keyboard: Keyboard) {
+        self.keyboard = keyboard
+        super.init(keyboard: keyboard)
         
         setupUI()
     }
@@ -40,7 +40,7 @@ private extension DeleteButton {
     }
     
     func setStyles() {
-        switch layout {
+        switch keyboard {
         case .english, .symbol:
             self.configuration?.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 3, bottom: 0, trailing: 0)
             self.shadowView.snp.updateConstraints { $0.leading.equalToSuperview().inset(self.insetDx + 3) }

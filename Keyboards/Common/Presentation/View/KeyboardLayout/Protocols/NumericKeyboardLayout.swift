@@ -7,3 +7,7 @@
 
 /// 숫자 키보드 레이아웃 프로토콜
 protocol NumericKeyboardLayout: DefaultKeyboardLayout, TextInteractionButtonGestureHandler, SwitchButtonGestureHandler {}
+
+extension NumericKeyboardLayout {
+    var keyboard: Keyboard { .numeric }
+}

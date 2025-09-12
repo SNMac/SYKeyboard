@@ -14,15 +14,15 @@ final class ShiftButton: SecondaryButton {
     
     // MARK: - Properties
     
-    private let layout: KeyboardLayout
+    private let keyboard: Keyboard
     
     private let imageConfig = UIImage.SymbolConfiguration(pointSize: 16, weight: .medium)
     
     // MARK: - Initializer
     
-    override init(layout: KeyboardLayout) {
-        self.layout = layout
-        super.init(layout: layout)
+    override init(keyboard: Keyboard) {
+        self.keyboard = keyboard
+        super.init(keyboard: keyboard)
         
         setupUI()
     }
@@ -34,7 +34,7 @@ final class ShiftButton: SecondaryButton {
     // MARK: - Internal Methods
     
     func updateShiftState(to isShifted: Bool) {
-        switch layout {
+        switch keyboard {
         case .hangeul, .english:
             if isShifted {
                 self.isSelected = true
@@ -56,7 +56,7 @@ final class ShiftButton: SecondaryButton {
     }
     
     func updateCapsLockState(to isCapsLocked: Bool) {
-        switch layout {
+        switch keyboard {
         case .hangeul, .english:
             if isCapsLocked {
                 self.isSelected = true
@@ -85,7 +85,7 @@ private extension ShiftButton {
         self.shadowView.snp.updateConstraints { $0.trailing.equalToSuperview().inset(self.insetDx + 3) }
         self.backgroundView.snp.updateConstraints { $0.trailing.equalToSuperview().inset(self.insetDx + 3) }
         
-        switch layout {
+        switch keyboard {
         case .english:
             self.configuration?.image = UIImage(systemName: "shift")?.withConfiguration(imageConfig).withTintColor(.label, renderingMode: .alwaysOriginal)
         case .symbol:

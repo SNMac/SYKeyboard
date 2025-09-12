@@ -1,6 +1,6 @@
 //
 //  EnglishKeyboardMode.swift
-//  EnglishKeyboard, EnglishKeyboard
+//  EnglishKeyboard
 //
 //  Created by 서동환 on 9/6/25.
 //

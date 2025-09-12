@@ -16,8 +16,8 @@ final class ReturnButton: SecondaryButton, TextInteractionButtonProtocol {
     
     // MARK: - Initializer
     
-    override init(layout: KeyboardLayout) {
-        super.init(layout: layout)
+    override init(keyboard: Keyboard) {
+        super.init(keyboard: keyboard)
         setupUI()
     }
     

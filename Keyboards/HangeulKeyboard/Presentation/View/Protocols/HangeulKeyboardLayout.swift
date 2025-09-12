@@ -1,6 +1,6 @@
 //
 //  HangeulKeyboardLayout.swift
-//  HangeulKeyboard, EnglishKeyboard
+//  HangeulKeyboard
 //
 //  Created by 서동환 on 9/6/25.
 //
@@ -40,7 +40,7 @@ protocol HangeulKeyboardLayout: DefaultKeyboardLayout, PrimaryKeyboard, TextInte
 // MARK: - Protocol Properties & Methods
 
 extension HangeulKeyboardLayout {
-    var keyboardLayout: KeyboardLayout { .hangeul }
+    var keyboard: Keyboard { .hangeul }
     var isShifted: Bool? {
         get { nil } set {}
     }
@@ -63,12 +63,16 @@ extension HangeulKeyboardLayout {
         returnButton.isHidden = false
         secondaryAtButton.isHidden = true
         secondarySharpButton.isHidden = true
+        
+        initShiftButton()
     }
     
     func updateLayoutToTwitter() {
         returnButton.isHidden = true
         secondaryAtButton.isHidden = false
         secondarySharpButton.isHidden = false
+        
+        initShiftButton()
     }
     
     func initShiftButton() {

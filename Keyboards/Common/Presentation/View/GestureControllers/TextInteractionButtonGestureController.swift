@@ -32,7 +32,7 @@ final class TextInteractionButtonGestureController: NSObject {
     private let englishKeyboardView: TextInteractionButtonGestureHandler?
     private let symbolKeyboardView: TextInteractionButtonGestureHandler
     private let numericKeyboardView: TextInteractionButtonGestureHandler
-    private let getCurrentKeyboardLayout: () -> KeyboardLayout
+    private let getCurrentKeyboard: () -> Keyboard
     
     // Property Injection
     weak var delegate: TextInteractionButtonGestureControllerDelegate?
@@ -43,12 +43,12 @@ final class TextInteractionButtonGestureController: NSObject {
          englishKeyboardView: TextInteractionButtonGestureHandler?,
          symbolKeyboardView: TextInteractionButtonGestureHandler,
          numericKeyboardView: TextInteractionButtonGestureHandler,
-         getCurrentKeyboardLayout: @escaping () -> KeyboardLayout) {
+         getCurrentKeyboard: @escaping () -> Keyboard) {
         self.hangeulKeyboardView = hangeulKeyboardView
         self.englishKeyboardView = englishKeyboardView
         self.symbolKeyboardView = symbolKeyboardView
         self.numericKeyboardView = numericKeyboardView
-        self.getCurrentKeyboardLayout = getCurrentKeyboardLayout
+        self.getCurrentKeyboard = getCurrentKeyboard
     }
     
     // MARK: - @objc Gesture Methods

@@ -1,8 +1,8 @@
 //
-//  NumericKeyboardView.swift
-//  HangeulKeyboard, EnglishKeyboard
+//  FourByFourKeyboard.swift
+//  HangeulKeyboard
 //
-//  Created by 서동환 on 7/14/25.
+//  Created by 서동환 on 9/12/25.
 //
 
 import UIKit
@@ -10,20 +10,18 @@ import UIKit
 import SnapKit
 import Then
 
-/// 숫자 키보드
-final class NumericKeyboardView: UIView, NumericKeyboardLayout {
+class FourByFourKeyboard: UIView, HangeulKeyboardLayout {
     
     // MARK: - Properties
     
     private(set) lazy var totalTextInteractionButtonList: [TextInteractionButtonProtocol] = firstRowKeyButtonList + secondRowKeyButtonList + thirdRowKeyButtonList + fourthRowKeyButtonList + [deleteButton, spaceButton]
     
-    /// 숫자 키보드 키 배열
-    private let numericKeyList = [
-        [ ["1"], ["2"], ["3"] ],
-        [ ["4"], ["5"], ["6"] ],
-        [ ["7"], ["8"], ["9"] ],
-        [ ["-"], [","], ["0"], ["."], ["/"] ]
-    ]
+    var currentHangeulKeyboardMode: HangeulKeyboardMode = .default {
+        didSet(oldMode) { updateLayoutForCurrentHangeulMode(oldMode: oldMode) }
+    }
+    
+    /// 한글 키 배열
+    var hangeulKeyList: [[[String]]] { fatalError("프로퍼티가 오버라이딩 되지 않았습니다.") }
     
     // MARK: - UI Components
     
@@ -31,7 +29,7 @@ final class NumericKeyboardView: UIView, NumericKeyboardLayout {
     private let topSpacer = KeyboardSpacer()
     /// 키보드 레이아웃 수직 스택
     private let layoutVStackView = KeyboardLayoutVStackView()
-    /// 하단 여백
+    /// 하단 여백 `KeyboardSpacer`
     private let bottomSpacer = KeyboardSpacer()
     
     /// 키보드 첫번째 행
@@ -40,31 +38,33 @@ final class NumericKeyboardView: UIView, NumericKeyboardLayout {
     private let secondRowHStackView = KeyboardRowHStackView()
     /// 키보드 세번째 행
     private let thirdRowHStackView = KeyboardRowHStackView()
+    private(set) var returnButtonHStackView = KeyboardRowHStackView()
     /// 키보드 네번째 행
     private let fourthRowHStackView = KeyboardRowHStackView()
-    /// 키보드 네번째 좌측 `PrimaryButton` 행
-    private let fourthRowLeftPrimaryButtonHStackView = KeyboardRowHStackView()
-    /// 키보드 네번째 우측 `PrimaryButton` 행
-    private let fourthRowRightPrimaryButtonHStackView = KeyboardRowHStackView()
     /// 키보드 네번째 우측 `SecondaryButton` 행
     private let fourthRowRightSecondaryButtonHStackView = KeyboardRowHStackView()
     
     /// 키보드 첫번째 행 `PrimaryKeyButton` 배열
-    private lazy var firstRowKeyButtonList = numericKeyList[0].map { PrimaryKeyButton(keyboard: .numeric, button: .keyButton(keys: $0)) }
+    private lazy var firstRowKeyButtonList = hangeulKeyList[0].map { PrimaryKeyButton(keyboard: .hangeul, button: .keyButton(keys: $0)) }
     /// 키보드 두번째 행 `PrimaryKeyButton` 배열
-    private lazy var secondRowKeyButtonList = numericKeyList[1].map { PrimaryKeyButton(keyboard: .numeric, button: .keyButton(keys: $0)) }
+    private lazy var secondRowKeyButtonList = hangeulKeyList[1].map { PrimaryKeyButton(keyboard: .hangeul, button: .keyButton(keys: $0)) }
     /// 키보드 세번째 행 `PrimaryKeyButton` 배열
-    private lazy var thirdRowKeyButtonList = numericKeyList[2].map { PrimaryKeyButton(keyboard: .numeric, button: .keyButton(keys: $0)) }
+    private lazy var thirdRowKeyButtonList = hangeulKeyList[2].map { PrimaryKeyButton(keyboard: .hangeul, button: .keyButton(keys: $0)) }
     /// 키보드 네번째 행 `PrimaryKeyButton` 배열
-    private lazy var fourthRowKeyButtonList = numericKeyList[3].map { PrimaryKeyButton(keyboard: .numeric, button: .keyButton(keys: $0)) }
+    private lazy var fourthRowKeyButtonList = hangeulKeyList[3].map { PrimaryKeyButton(keyboard: .hangeul, button: .keyButton(keys: $0)) }
     
-    private(set) var deleteButton = DeleteButton(keyboard: .numeric)
-    private(set) var spaceButton = SpaceButton(keyboard: .numeric)
-    private(set) var returnButton = ReturnButton(keyboard: .numeric)
-    private(set) var switchButton = SwitchButton(keyboard: .numeric)
-    private(set) var nextKeyboardButton = NextKeyboardButton(keyboard: .numeric)
+    private(set) var deleteButton = DeleteButton(keyboard: .hangeul)
+    private(set) var spaceButton = SpaceButton(keyboard: .hangeul)
     
-    private(set) var keyboardSelectOverlayView = KeyboardSelectOverlayView(keyboard: .numeric).then { $0.isHidden = true }
+    // 리턴 버튼 위치
+    private(set) var returnButton = ReturnButton(keyboard: .hangeul)
+    private(set) var secondaryAtButton = SecondaryKeyButton(keyboard: .hangeul, button: .keyButton(keys: ["@"]))
+    private(set) var secondarySharpButton = SecondaryKeyButton(keyboard: .hangeul, button: .keyButton(keys: ["#"]))
+    
+    private(set) var switchButton = SwitchButton(keyboard: .hangeul)
+    private(set) var nextKeyboardButton = NextKeyboardButton(keyboard: .hangeul)
+    
+    private(set) var keyboardSelectOverlayView = KeyboardSelectOverlayView(keyboard: .hangeul).then { $0.isHidden = true }
     private(set) var oneHandedModeSelectOverlayView = OneHandedModeSelectOverlayView().then { $0.isHidden = true }
     
     // MARK: - Initializer
@@ -72,6 +72,7 @@ final class NumericKeyboardView: UIView, NumericKeyboardLayout {
     override init(frame: CGRect) {
         super.init(frame: frame)
         setupUI()
+        updateLayoutToDefault()
     }
     
     required init?(coder: NSCoder) {
@@ -81,7 +82,7 @@ final class NumericKeyboardView: UIView, NumericKeyboardLayout {
 
 // MARK: - UI Methods
 
-private extension NumericKeyboardView {
+private extension FourByFourKeyboard {
     func setupUI() {
         setStyles()
         setHierarchy()
@@ -111,16 +112,12 @@ private extension NumericKeyboardView {
         secondRowHStackView.addArrangedSubview(spaceButton)
         
         thirdRowKeyButtonList.forEach { thirdRowHStackView.addArrangedSubview($0) }
-        thirdRowHStackView.addArrangedSubview(returnButton)
+        returnButtonHStackView.addArrangedSubviews(returnButton, secondaryAtButton, secondarySharpButton)
+        thirdRowHStackView.addArrangedSubview(returnButtonHStackView)
         
-        fourthRowHStackView.addArrangedSubviews(fourthRowLeftPrimaryButtonHStackView,
-                                                fourthRowKeyButtonList[2],
-                                                fourthRowRightPrimaryButtonHStackView,
-                                                fourthRowRightSecondaryButtonHStackView)
-        fourthRowLeftPrimaryButtonHStackView.addArrangedSubviews(fourthRowKeyButtonList[0], fourthRowKeyButtonList[1])
-        fourthRowRightPrimaryButtonHStackView.addArrangedSubviews(fourthRowKeyButtonList[3], fourthRowKeyButtonList[4])
-        fourthRowRightSecondaryButtonHStackView.addArrangedSubview(nextKeyboardButton)
-        fourthRowRightSecondaryButtonHStackView.addArrangedSubview(switchButton)
+        fourthRowKeyButtonList.forEach { fourthRowHStackView.addArrangedSubview($0) }
+        fourthRowHStackView.addArrangedSubview(fourthRowRightSecondaryButtonHStackView)
+        fourthRowRightSecondaryButtonHStackView.addArrangedSubviews(nextKeyboardButton, switchButton)
     }
     
     func setConstraints() {

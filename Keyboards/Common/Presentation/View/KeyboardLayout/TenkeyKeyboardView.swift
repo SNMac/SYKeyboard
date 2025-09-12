@@ -48,17 +48,17 @@ final class TenkeyKeyboardView: UIView, TenkeyKeyboardLayout {
     private let fourthRowHStackView = KeyboardRowHStackView()
     
     /// 키보드 첫번째 행 `PrimaryKeyButton` 배열
-    private lazy var firstRowKeyButtonList = tenKeyList[0].map { PrimaryKeyButton(layout: .tenKey, button: .keyButton(keys: $0)) }
+    private lazy var firstRowKeyButtonList = tenKeyList[0].map { PrimaryKeyButton(keyboard: .tenKey, button: .keyButton(keys: $0)) }
     /// 키보드 두번째 행 `PrimaryKeyButton` 배열
-    private lazy var secondRowKeyButtonList = tenKeyList[1].map { PrimaryKeyButton(layout: .tenKey, button: .keyButton(keys: $0)) }
+    private lazy var secondRowKeyButtonList = tenKeyList[1].map { PrimaryKeyButton(keyboard: .tenKey, button: .keyButton(keys: $0)) }
     /// 키보드 세번째 행 `PrimaryKeyButton` 배열
-    private lazy var thirdRowKeyButtonList = tenKeyList[2].map { PrimaryKeyButton(layout: .tenKey, button: .keyButton(keys: $0)) }
+    private lazy var thirdRowKeyButtonList = tenKeyList[2].map { PrimaryKeyButton(keyboard: .tenKey, button: .keyButton(keys: $0)) }
     /// 키보드 네번째 행 `PrimaryKeyButton` 배열
-    private lazy var fourthRowKeyButtonList = tenKeyList[3].map { PrimaryKeyButton(layout: .tenKey, button: .keyButton(keys: $0)) }
+    private lazy var fourthRowKeyButtonList = tenKeyList[3].map { PrimaryKeyButton(keyboard: .tenKey, button: .keyButton(keys: $0)) }
     
     private(set) var bottomLeftButtonSpacer = KeyboardSpacer()
-    private(set) var periodButton = SecondaryKeyButton(layout: .tenKey, button: .keyButton(keys: ["."]))
-    private(set) var deleteButton = DeleteButton(layout: .tenKey)
+    private(set) var periodButton = SecondaryKeyButton(keyboard: .tenKey, button: .keyButton(keys: ["."]))
+    private(set) var deleteButton = DeleteButton(keyboard: .tenKey)
     
     // MARK: - Initializer
     

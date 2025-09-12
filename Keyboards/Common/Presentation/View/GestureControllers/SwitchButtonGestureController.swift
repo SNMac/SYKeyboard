@@ -9,7 +9,7 @@ import UIKit
 import OSLog
 
 protocol SwitchButtonGestureControllerDelegate: AnyObject {
-    func changeKeyboardLayout(_ controller: SwitchButtonGestureController, to newLayout: KeyboardLayout)
+    func changeKeyboard(_ controller: SwitchButtonGestureController, to newKeyboard: Keyboard)
     func changeOneHandedMode(_ controller: SwitchButtonGestureController, to newMode: OneHandedMode)
 }
 
@@ -23,7 +23,7 @@ final class SwitchButtonGestureController: NSObject {
     private var initialPanPoint: CGPoint = .zero
     
     typealias PanConfig = (gestureHandler: SwitchButtonGestureHandler,
-                           targetLayout: KeyboardLayout,
+                           targetkeyboard: Keyboard,
                            targetDirection: PanDirection)
     
     // Initializer Injection
@@ -31,7 +31,7 @@ final class SwitchButtonGestureController: NSObject {
     private let englishKeyboardView: SwitchButtonGestureHandler?
     private let symbolKeyboardView: SwitchButtonGestureHandler
     private let numericKeyboardView: SwitchButtonGestureHandler
-    private let getCurrentKeyboardLayout: () -> KeyboardLayout
+    private let getCurrentKeyboard: () -> Keyboard
     private let getCurrentOneHandedMode: () -> OneHandedMode
     
     // Property Injection
@@ -43,13 +43,13 @@ final class SwitchButtonGestureController: NSObject {
          englishKeyboardView: SwitchButtonGestureHandler?,
          symbolKeyboardView: SwitchButtonGestureHandler,
          numericKeyboardView: SwitchButtonGestureHandler,
-         getCurrentKeyboardLayout: @escaping () -> KeyboardLayout,
+         getCurrentKeyboard: @escaping () -> Keyboard,
          getCurrentOneHandedMode: @escaping () -> OneHandedMode) {
         self.hangeulKeyboardView = hangeulKeyboardView
         self.englishKeyboardView = englishKeyboardView
         self.symbolKeyboardView = symbolKeyboardView
         self.numericKeyboardView = numericKeyboardView
-        self.getCurrentKeyboardLayout = getCurrentKeyboardLayout
+        self.getCurrentKeyboard = getCurrentKeyboard
         self.getCurrentOneHandedMode = getCurrentOneHandedMode
     }
     
@@ -148,7 +148,7 @@ private extension SwitchButtonGestureController {
             let panDirection = checkKeyboardSelectPanDirection(panLocation: panLocation, targetRect: panTarget.frame, targetDirection: config.targetDirection)
             
             if panDirection == config.targetDirection {
-                delegate?.changeKeyboardLayout(self, to: config.targetLayout)
+                delegate?.changeKeyboard(self, to: config.targetkeyboard)
             }
             config.gestureHandler.hideKeyboardSelectOverlay()
             switchButton.configureKeyboardSelectComponent(needToEmphasize: false)
@@ -218,8 +218,8 @@ private extension SwitchButtonGestureController {
     func setGestureHandler() -> SwitchButtonGestureHandler {
         let gestureHandler: SwitchButtonGestureHandler
         
-        let currentKeyboardLayout = getCurrentKeyboardLayout()
-        switch currentKeyboardLayout {
+        let currentKeyboard = getCurrentKeyboard()
+        switch currentKeyboard {
         case .hangeul:
             guard let hangeulKeyboardView else { fatalError("옵셔널 바인딩 실패 - hangeulKeyboardView가 nil입니다.") }
             gestureHandler = hangeulKeyboardView
@@ -239,25 +239,25 @@ private extension SwitchButtonGestureController {
     func setPanConfig() -> PanConfig {
         let config: PanConfig
         
-        let currentKeyboardLayout = getCurrentKeyboardLayout()
-        switch currentKeyboardLayout {
+        let currentKeyboard = getCurrentKeyboard()
+        switch currentKeyboard {
         case .hangeul:
             guard let hangeulKeyboardView else { fatalError("옵셔널 바인딩 실패 - hangeulKeyboardView가 nil입니다.") }
             config = (gestureHandler: hangeulKeyboardView,
-                      targetLayout: .numeric,
+                      targetkeyboard: .numeric,
                       targetDirection: .left)
         case .english:
             guard let englishKeyboardView else { fatalError("옵셔널 바인딩 실패 - englishKeyboardView가 nil입니다.") }
             config = (gestureHandler: englishKeyboardView,
-                      targetLayout: .numeric,
+                      targetkeyboard: .numeric,
                       targetDirection: .right)
         case .symbol:
             config = (gestureHandler: symbolKeyboardView,
-                      targetLayout: .numeric,
+                      targetkeyboard: .numeric,
                       targetDirection: .right)
         case .numeric:
             config = (gestureHandler: numericKeyboardView,
-                      targetLayout: .symbol,
+                      targetkeyboard: .symbol,
                       targetDirection: .left)
         default:
             fatalError("구현되지 않은 case입니다.")

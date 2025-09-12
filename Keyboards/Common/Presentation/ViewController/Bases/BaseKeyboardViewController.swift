@@ -25,7 +25,7 @@ public class BaseKeyboardViewController: UIInputViewController {
     private var timer: AnyCancellable?
     
     /// 현재 표시되는 키보드
-    lazy var currentKeyboardLayout: KeyboardLayout = primaryKeyboardView.keyboardLayout {
+    lazy var currentKeyboard: Keyboard = primaryKeyboardView.keyboard {
         didSet {
             updateShowingKeyboard()
             updateReturnButtonType()
@@ -35,12 +35,12 @@ public class BaseKeyboardViewController: UIInputViewController {
     private var currentOneHandedMode: OneHandedMode = UserDefaultsManager.shared.lastOneHandedMode {
         didSet {
             UserDefaultsManager.shared.lastOneHandedMode = currentOneHandedMode
-            updateOneHandModeLayout()
+            updateOneHandModekeyboard()
         }
     }
     /// 현재 키보드의 리턴 버튼
     private var currentReturnButton: ReturnButton? {
-        switch currentKeyboardLayout {
+        switch currentKeyboard {
         case .hangeul, .english:
             return primaryKeyboardView.returnButton
         case .symbol:
@@ -67,7 +67,7 @@ public class BaseKeyboardViewController: UIInputViewController {
     /// 한 손 키보드 해제 버튼(오른손 모드)
     private let leftChevronButton = ChevronButton(direction: .left).then { $0.isHidden = true }
     /// 주 키보드(오버라이딩 필요)
-    var primaryKeyboardView: PrimaryKeyboard! { fatalError("프로퍼티가 오버라이딩 되지 않았습니다.") }
+    var primaryKeyboardView: PrimaryKeyboard { fatalError("프로퍼티가 오버라이딩 되지 않았습니다.") }
     /// 기호 키보드
     final lazy var symbolKeyboardView: SymbolKeyboardLayout = SymbolKeyboardView().then { $0.isHidden = true }
     /// 숫자 키보드
@@ -82,14 +82,14 @@ public class BaseKeyboardViewController: UIInputViewController {
                                                                                    englishKeyboardView: primaryKeyboardView as? SwitchButtonGestureHandler,
                                                                                    symbolKeyboardView: symbolKeyboardView,
                                                                                    numericKeyboardView: numericKeyboardView,
-                                                                                   getCurrentKeyboardLayout: { [weak self] in return (self?.currentKeyboardLayout)! },
+                                                                                   getCurrentKeyboard: { [weak self] in return (self?.currentKeyboard)! },
                                                                                    getCurrentOneHandedMode: { [weak self] in self?.currentOneHandedMode ?? .center })
     /// 키 입력 버튼, 스페이스 버튼, 삭제 버튼 제스처 컨트롤러
     private lazy var textInteractionButtonGestureController = TextInteractionButtonGestureController(hangeulKeyboardView: primaryKeyboardView as? TextInteractionButtonGestureHandler,
                                                                                                      englishKeyboardView: primaryKeyboardView as? TextInteractionButtonGestureHandler,
                                                                                                      symbolKeyboardView: symbolKeyboardView,
                                                                                                      numericKeyboardView: numericKeyboardView,
-                                                                                                     getCurrentKeyboardLayout: { [weak self] in return (self?.currentKeyboardLayout)! })
+                                                                                                     getCurrentKeyboard: { [weak self] in return (self?.currentKeyboard)! })
     
     // MARK: - Lifecycle
     
@@ -98,7 +98,7 @@ public class BaseKeyboardViewController: UIInputViewController {
         setupUI()
         setNextKeyboardButton()
         if UserDefaultsManager.shared.isOneHandedKeyboardEnabled {
-            updateOneHandModeLayout()
+            updateOneHandModekeyboard()
         }
     }
     
@@ -122,7 +122,7 @@ public class BaseKeyboardViewController: UIInputViewController {
         updateReturnButtonType()
     }
     
-    // MARK: - Override Methods
+    // MARK: - Overriable Methods
     
     func updateKeyboardType() {
         fatalError("메서드가 오버라이딩 되지 않았습니다.")
@@ -246,14 +246,14 @@ private extension BaseKeyboardViewController {
     func setSwitchButtonAction() {
         // 기호 키보드 전환
         let switchToSymbolKeyboard = UIAction { [weak self] _ in
-            self?.currentKeyboardLayout = .symbol
+            self?.currentKeyboard = .symbol
         }
         primaryKeyboardView.switchButton.addAction(switchToSymbolKeyboard, for: .touchUpInside)
         
         // 주 키보드 전환
         let switchToPrimaryKeyboard = UIAction { [weak self] _ in
             guard let self else { return }
-            currentKeyboardLayout = primaryKeyboardView.keyboardLayout
+            currentKeyboard = primaryKeyboardView.keyboard
         }
         symbolKeyboardView.switchButton.addAction(switchToPrimaryKeyboard, for: .touchUpInside)
         numericKeyboardView.switchButton.addAction(switchToPrimaryKeyboard, for: .touchUpInside)
@@ -291,15 +291,15 @@ private extension BaseKeyboardViewController {
 
 private extension BaseKeyboardViewController {
     func updateShowingKeyboard() {
-        primaryKeyboardView.isHidden = (currentKeyboardLayout != primaryKeyboardView.keyboardLayout)
+        primaryKeyboardView.isHidden = (currentKeyboard != primaryKeyboardView.keyboard)
         primaryKeyboardView.initShiftButton()  // TODO: - 자동 대문자 설정
-        symbolKeyboardView.isHidden = (currentKeyboardLayout != .symbol)
+        symbolKeyboardView.isHidden = (currentKeyboard != .symbol)
         symbolKeyboardView.initShiftButton()
-        numericKeyboardView.isHidden = (currentKeyboardLayout != .numeric)
-        tenkeyKeyboardView.isHidden = (currentKeyboardLayout != .tenKey)
+        numericKeyboardView.isHidden = (currentKeyboard != .numeric)
+        tenkeyKeyboardView.isHidden = (currentKeyboard != .tenKey)
     }
     
-    func updateOneHandModeLayout() {
+    func updateOneHandModekeyboard() {
         leftChevronButton.isHidden = !(currentOneHandedMode == .right)
         rightChevronButton.isHidden = !(currentOneHandedMode == .left)
     }
@@ -354,8 +354,8 @@ private extension BaseKeyboardViewController {
 // MARK: - SwitchButtonGestureControllerDelegate
 
 extension BaseKeyboardViewController: SwitchButtonGestureControllerDelegate {
-    final func changeKeyboardLayout(_ controller: SwitchButtonGestureController, to newLayout: KeyboardLayout) {
-        self.currentKeyboardLayout = newLayout
+    final func changeKeyboard(_ controller: SwitchButtonGestureController, to newKeyboard: Keyboard) {
+        self.currentKeyboard = newKeyboard
     }
     
     final func changeOneHandedMode(_ controller: SwitchButtonGestureController, to newMode: OneHandedMode) {

@@ -37,9 +37,9 @@ final class PrimaryKeyButton: PrimaryButton, TextInteractionButtonProtocol {
     
     // MARK: - Initializer
     
-    init(layout: KeyboardLayout, button: TextInteractionButton) {
+    init(keyboard: Keyboard, button: TextInteractionButton) {
         self.button = button
-        super.init(layout: layout)
+        super.init(keyboard: keyboard)
         
         setupUI()
         updateTitle()

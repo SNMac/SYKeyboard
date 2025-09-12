@@ -9,8 +9,7 @@ import UIKit
 
 /// 주 키보드가 채택해야 하는 프로토콜
 protocol PrimaryKeyboard: UIView {
-    /// 키보드 레이아웃
-    var keyboardLayout: KeyboardLayout { get }
+    var keyboard: Keyboard { get }
     var switchButton: SwitchButton { get }
     var returnButton: ReturnButton { get }
     var totalTextInteractionButtonList: [TextInteractionButtonProtocol] { get }

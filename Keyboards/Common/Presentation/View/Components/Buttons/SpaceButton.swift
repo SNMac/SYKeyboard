@@ -14,9 +14,9 @@ final class SpaceButton: PrimaryButton, TextInteractionButtonProtocol {
     
     // MARK: - Initializer
     
-    override init(layout: KeyboardLayout) {
+    override init(keyboard: Keyboard) {
         self.button = .spaceButton
-        super.init(layout: layout)
+        super.init(keyboard: keyboard)
         
         setupUI()
     }

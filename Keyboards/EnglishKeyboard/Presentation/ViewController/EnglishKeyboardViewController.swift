@@ -23,49 +23,49 @@ final class EnglishKeyboardViewController: BaseKeyboardViewController {
         case .default, .none:
             englishKeyboardView.currentEnglishKeyboardMode = .default
             symbolKeyboardView.currentSymbolKeyboardMode = .default
-            currentKeyboardLayout = .english
+            currentKeyboard = .english
         case .asciiCapable:
             englishKeyboardView.currentEnglishKeyboardMode = .default
             symbolKeyboardView.currentSymbolKeyboardMode = .default
-            currentKeyboardLayout = .english
+            currentKeyboard = .english
         case .numbersAndPunctuation:
             englishKeyboardView.currentEnglishKeyboardMode = .default
             symbolKeyboardView.currentSymbolKeyboardMode = .default
-            currentKeyboardLayout = .symbol
+            currentKeyboard = .symbol
         case .URL:
             englishKeyboardView.currentEnglishKeyboardMode = .URL
             symbolKeyboardView.currentSymbolKeyboardMode = .URL
-            currentKeyboardLayout = .english
+            currentKeyboard = .english
         case .numberPad:
             tenkeyKeyboardView.currentTenkeyKeyboardMode = .numberPad
-            currentKeyboardLayout = .tenKey
+            currentKeyboard = .tenKey
         case .phonePad, .namePhonePad:
             // 항상 iOS 시스템 키보드 표시됨
             tenkeyKeyboardView.currentTenkeyKeyboardMode = .numberPad
-            currentKeyboardLayout = .tenKey
+            currentKeyboard = .tenKey
         case .emailAddress:
             englishKeyboardView.currentEnglishKeyboardMode = .emailAddress
             symbolKeyboardView.currentSymbolKeyboardMode = .emailAddress
-            currentKeyboardLayout = .english
+            currentKeyboard = .english
         case .decimalPad:
             tenkeyKeyboardView.currentTenkeyKeyboardMode = .decimalPad
-            currentKeyboardLayout = .tenKey
+            currentKeyboard = .tenKey
         case .twitter:
             englishKeyboardView.currentEnglishKeyboardMode = .twitter
             symbolKeyboardView.currentSymbolKeyboardMode = .default
-            currentKeyboardLayout = .english
+            currentKeyboard = .english
         case .webSearch:
             englishKeyboardView.currentEnglishKeyboardMode = .webSearch
             symbolKeyboardView.currentSymbolKeyboardMode = .webSearch
-            currentKeyboardLayout = .english
+            currentKeyboard = .english
         case .asciiCapableNumberPad:
             tenkeyKeyboardView.currentTenkeyKeyboardMode = .numberPad
-            currentKeyboardLayout = .tenKey
+            currentKeyboard = .tenKey
         @unknown default:
             assertionFailure("구현이 필요한 case 입니다.")
             englishKeyboardView.currentEnglishKeyboardMode = .default
             symbolKeyboardView.currentSymbolKeyboardMode = .default
-            currentKeyboardLayout = .english
+            currentKeyboard = .english
         }
     }
 }

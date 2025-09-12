@@ -27,50 +27,50 @@ final class HangeulKeyboardViewController: BaseKeyboardViewController {
         case .default, .none:
             hangeulKeyboardView.currentHangeulKeyboardMode = .default
             symbolKeyboardView.currentSymbolKeyboardMode = .default
-            currentKeyboardLayout = .hangeul
+            currentKeyboard = .hangeul
         case .asciiCapable:
             // 지원 안함
             hangeulKeyboardView.currentHangeulKeyboardMode = .default
             symbolKeyboardView.currentSymbolKeyboardMode = .default
-            currentKeyboardLayout = .hangeul
+            currentKeyboard = .hangeul
         case .numbersAndPunctuation:
             hangeulKeyboardView.currentHangeulKeyboardMode = .default
             symbolKeyboardView.currentSymbolKeyboardMode = .default
-            currentKeyboardLayout = .symbol
+            currentKeyboard = .symbol
         case .URL:
             hangeulKeyboardView.currentHangeulKeyboardMode = .default
             symbolKeyboardView.currentSymbolKeyboardMode = .URL
-            currentKeyboardLayout = .hangeul
+            currentKeyboard = .hangeul
         case .numberPad:
             tenkeyKeyboardView.currentTenkeyKeyboardMode = .numberPad
-            currentKeyboardLayout = .tenKey
+            currentKeyboard = .tenKey
         case .phonePad, .namePhonePad:
             // 항상 iOS 시스템 키보드 표시됨
             tenkeyKeyboardView.currentTenkeyKeyboardMode = .numberPad
-            currentKeyboardLayout = .tenKey
+            currentKeyboard = .tenKey
         case .emailAddress:
             hangeulKeyboardView.currentHangeulKeyboardMode = .default
             symbolKeyboardView.currentSymbolKeyboardMode = .emailAddress
-            currentKeyboardLayout = .hangeul
+            currentKeyboard = .hangeul
         case .decimalPad:
             tenkeyKeyboardView.currentTenkeyKeyboardMode = .decimalPad
-            currentKeyboardLayout = .tenKey
+            currentKeyboard = .tenKey
         case .twitter:
             hangeulKeyboardView.currentHangeulKeyboardMode = .twitter
             symbolKeyboardView.currentSymbolKeyboardMode = .default
-            currentKeyboardLayout = .hangeul
+            currentKeyboard = .hangeul
         case .webSearch:
             hangeulKeyboardView.currentHangeulKeyboardMode = .default
             symbolKeyboardView.currentSymbolKeyboardMode = .webSearch
-            currentKeyboardLayout = .hangeul
+            currentKeyboard = .hangeul
         case .asciiCapableNumberPad:
             tenkeyKeyboardView.currentTenkeyKeyboardMode = .numberPad
-            currentKeyboardLayout = .tenKey
+            currentKeyboard = .tenKey
         @unknown default:
             assertionFailure("구현이 필요한 case 입니다.")
             hangeulKeyboardView.currentHangeulKeyboardMode = .default
             symbolKeyboardView.currentSymbolKeyboardMode = .default
-            currentKeyboardLayout = .hangeul
+            currentKeyboard = .hangeul
         }
     }
 }

@@ -52,6 +52,8 @@ protocol SymbolKeyboardLayout: DefaultKeyboardLayout, TextInteractionButtonGestu
 // MARK: - Protocol Properties & Methods
 
 extension SymbolKeyboardLayout {
+    var keyboard: Keyboard { .symbol }
+    
     func updateLayoutForCurrentSymbolKeyboardMode(oldMode: SymbolKeyboardMode) {
         guard oldMode != currentSymbolKeyboardMode else { return }
         switch currentSymbolKeyboardMode {
@@ -73,7 +75,7 @@ extension SymbolKeyboardLayout {
         slashButton.isHidden = true
         dotComButton.isHidden = true
         
-        updateShiftButton(isShifted: false)
+        initShiftButton()
     }
     
     func updateLayoutToURL() {
@@ -87,7 +89,7 @@ extension SymbolKeyboardLayout {
             $0.width.equalToSuperview().dividedBy(3)
         }
         
-        updateShiftButton(isShifted: false)
+        initShiftButton()
     }
     
     func updateLayoutToEmailAddress() {
@@ -101,7 +103,7 @@ extension SymbolKeyboardLayout {
             $0.width.equalToSuperview().dividedBy(4)
         }
         
-        updateShiftButton(isShifted: false)
+        initShiftButton()
     }
     
     func updateLayoutToWebSearch() {
@@ -115,7 +117,7 @@ extension SymbolKeyboardLayout {
             $0.width.equalToSuperview().dividedBy(5)
         }
         
-        updateShiftButton(isShifted: false)
+        initShiftButton()
     }
     
     func initShiftButton() {
