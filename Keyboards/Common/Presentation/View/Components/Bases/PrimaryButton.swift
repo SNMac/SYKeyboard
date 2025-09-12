@@ -10,18 +10,14 @@ import UIKit
 import SnapKit
 
 /// 주 키보드 버튼
-class PrimaryButton: BaseKeyboardButton, TextInteractionButtonProtocol {
-    
-    // MARK: - Properties
-    
-    var button: TextInteractionButton = .keyButton(keys: [])
+class PrimaryButton: BaseKeyboardButton {
     
     // MARK: - UI Components
     
     /// 배경 UI
-    lazy var backgroundView = ButtonBackgroundView(cornerRadius: self.cornerRadius)
+    final lazy var backgroundView = ButtonBackgroundView(cornerRadius: self.cornerRadius)
     /// 그림자 UI
-    lazy var shadowView = ButtonShadowView(cornerRadius: self.cornerRadius)
+    final lazy var shadowView = ButtonShadowView(cornerRadius: self.cornerRadius)
     
     // MARK: - Initializer
     

@@ -8,13 +8,15 @@
 import UIKit
 
 /// 스페이스 버튼
-final class SpaceButton: PrimaryButton {
+final class SpaceButton: PrimaryButton, TextInteractionButtonProtocol {
+    
+    private(set) var button: TextInteractionButton
     
     // MARK: - Initializer
     
     override init(layout: KeyboardLayout) {
-        super.init(layout: layout)
         self.button = .spaceButton
+        super.init(layout: layout)
         
         setupUI()
     }

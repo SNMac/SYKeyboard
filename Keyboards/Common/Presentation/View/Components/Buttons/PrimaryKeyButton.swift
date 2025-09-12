@@ -10,7 +10,7 @@ import UIKit
 import SnapKit
 
 /// 주 키 버튼
-final class PrimaryKeyButton: PrimaryButton {
+final class PrimaryKeyButton: PrimaryButton, TextInteractionButtonProtocol {
     
     // MARK: - Properties
     
@@ -24,7 +24,7 @@ final class PrimaryKeyButton: PrimaryButton {
     private var keyAlignment: KeyAlignment = .center
     private var referenceKey: PrimaryButton?  // 너비의 기준이 될 키
     
-    override var button: TextInteractionButton {
+    private(set) var button: TextInteractionButton {
         didSet {
             if button.keys.isEmpty {
                 self.isHidden = true
@@ -38,9 +38,11 @@ final class PrimaryKeyButton: PrimaryButton {
     // MARK: - Initializer
     
     init(layout: KeyboardLayout, button: TextInteractionButton) {
-        super.init(layout: layout)
         self.button = button
+        super.init(layout: layout)
+        
         setupUI()
+        updateTitle()
     }
     
     @MainActor required init?(coder: NSCoder) {
@@ -56,6 +58,10 @@ final class PrimaryKeyButton: PrimaryButton {
     
     // MARK: - Internal Methods
     
+    func update(button: TextInteractionButton) {
+        self.button = button
+    }
+    
     /// 키의 시각적 정렬을 업데이트합니다.
      /// - Parameters:
      ///   - alignment: 정렬 방향 (`.left`, `.right`, `.center`)
@@ -66,10 +72,6 @@ final class PrimaryKeyButton: PrimaryButton {
          
          updateConstraintsForVisuals()
      }
-    
-    func update(button: TextInteractionButton) {
-        self.button = button
-    }
 }
 
 // MARK: - UI Methods

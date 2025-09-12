@@ -14,9 +14,9 @@ class BaseKeyboardButton: UIButton {
     
     // MARK: - Properties
     
-    let insetDx: CGFloat
-    let insetDy: CGFloat
-    let cornerRadius: CGFloat = 4.6
+    final let insetDx: CGFloat
+    final let insetDy: CGFloat
+    final let cornerRadius: CGFloat = 4.6
     
     // MARK: - Initializer
     
