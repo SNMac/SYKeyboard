@@ -15,7 +15,7 @@ final class KeyboardSelectOverlayView: UIStackView {
     
     // MARK: - Properties
     
-    private let keyboard: Keyboard
+    private let keyboard: SYKeyboardType
     private var isEmphasizingTarget: Bool?
     
     // MARK: - UI Components
@@ -57,7 +57,7 @@ final class KeyboardSelectOverlayView: UIStackView {
     
     // MARK: - Initializer
     
-    init(keyboard: Keyboard) {
+    init(keyboard: SYKeyboardType) {
         self.keyboard = keyboard
         super.init(frame: .zero)
         

@@ -94,12 +94,12 @@
 		5B53F8172E1E56BD0083F7CA /* Exceptions for "Keyboards" folder in "SYKeyboard" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				Common/Presentation/Utils/Enums/Keyboard.swift,
 				Common/Presentation/Utils/Enums/KeyboardMode/SymbolKeyboardMode.swift,
 				Common/Presentation/Utils/Enums/KeyboardMode/TenkeyKeyboardMode.swift,
 				Common/Presentation/Utils/Enums/KeyboardSize.swift,
 				Common/Presentation/Utils/Enums/PanDirection.swift,
-				Common/Presentation/Utils/Enums/TextInteractionButton.swift,
+				Common/Presentation/Utils/Enums/SYKeyboardType.swift,
+				Common/Presentation/Utils/Enums/TextInteractionType.swift,
 				"Common/Presentation/Utils/Extensions/Bundle+Extension.swift",
 				"Common/Presentation/Utils/Extensions/UIStackView+Extension.swift",
 				"Common/Presentation/Utils/Extensions/UIView+Extension.swift",
@@ -112,7 +112,7 @@
 				Common/Presentation/View/Components/Buttons/DeleteButton.swift,
 				Common/Presentation/View/Components/Buttons/NextKeyboardButton.swift,
 				Common/Presentation/View/Components/Buttons/PrimaryKeyButton.swift,
-				Common/Presentation/View/Components/Buttons/Protocols/TextInteractionButtonProtocol.swift,
+				Common/Presentation/View/Components/Buttons/Protocols/TextInteractionButton.swift,
 				Common/Presentation/View/Components/Buttons/ReturnButton.swift,
 				Common/Presentation/View/Components/Buttons/SecondaryKeyButton.swift,
 				Common/Presentation/View/Components/Buttons/ShiftButton.swift,
@@ -162,12 +162,12 @@
 		5B53F8182E1E56BD0083F7CA /* Exceptions for "Keyboards" folder in "HangeulKeyboard" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				Common/Presentation/Utils/Enums/Keyboard.swift,
 				Common/Presentation/Utils/Enums/KeyboardMode/SymbolKeyboardMode.swift,
 				Common/Presentation/Utils/Enums/KeyboardMode/TenkeyKeyboardMode.swift,
 				Common/Presentation/Utils/Enums/KeyboardSize.swift,
 				Common/Presentation/Utils/Enums/PanDirection.swift,
-				Common/Presentation/Utils/Enums/TextInteractionButton.swift,
+				Common/Presentation/Utils/Enums/SYKeyboardType.swift,
+				Common/Presentation/Utils/Enums/TextInteractionType.swift,
 				"Common/Presentation/Utils/Extensions/Bundle+Extension.swift",
 				"Common/Presentation/Utils/Extensions/UIStackView+Extension.swift",
 				"Common/Presentation/Utils/Extensions/UIView+Extension.swift",
@@ -180,7 +180,7 @@
 				Common/Presentation/View/Components/Buttons/DeleteButton.swift,
 				Common/Presentation/View/Components/Buttons/NextKeyboardButton.swift,
 				Common/Presentation/View/Components/Buttons/PrimaryKeyButton.swift,
-				Common/Presentation/View/Components/Buttons/Protocols/TextInteractionButtonProtocol.swift,
+				Common/Presentation/View/Components/Buttons/Protocols/TextInteractionButton.swift,
 				Common/Presentation/View/Components/Buttons/ReturnButton.swift,
 				Common/Presentation/View/Components/Buttons/SecondaryKeyButton.swift,
 				Common/Presentation/View/Components/Buttons/ShiftButton.swift,
@@ -220,12 +220,12 @@
 		5B8284822E6EEED8006425C7 /* Exceptions for "Keyboards" folder in "EnglishKeyboard" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				Common/Presentation/Utils/Enums/Keyboard.swift,
 				Common/Presentation/Utils/Enums/KeyboardMode/SymbolKeyboardMode.swift,
 				Common/Presentation/Utils/Enums/KeyboardMode/TenkeyKeyboardMode.swift,
 				Common/Presentation/Utils/Enums/KeyboardSize.swift,
 				Common/Presentation/Utils/Enums/PanDirection.swift,
-				Common/Presentation/Utils/Enums/TextInteractionButton.swift,
+				Common/Presentation/Utils/Enums/SYKeyboardType.swift,
+				Common/Presentation/Utils/Enums/TextInteractionType.swift,
 				"Common/Presentation/Utils/Extensions/Bundle+Extension.swift",
 				"Common/Presentation/Utils/Extensions/UIStackView+Extension.swift",
 				"Common/Presentation/Utils/Extensions/UIView+Extension.swift",
@@ -238,7 +238,7 @@
 				Common/Presentation/View/Components/Buttons/DeleteButton.swift,
 				Common/Presentation/View/Components/Buttons/NextKeyboardButton.swift,
 				Common/Presentation/View/Components/Buttons/PrimaryKeyButton.swift,
-				Common/Presentation/View/Components/Buttons/Protocols/TextInteractionButtonProtocol.swift,
+				Common/Presentation/View/Components/Buttons/Protocols/TextInteractionButton.swift,
 				Common/Presentation/View/Components/Buttons/ReturnButton.swift,
 				Common/Presentation/View/Components/Buttons/SecondaryKeyButton.swift,
 				Common/Presentation/View/Components/Buttons/ShiftButton.swift,

@@ -10,9 +10,9 @@ import UIKit
 /// 키보드 레이아웃 원형 프로토콜
 protocol BaseKeyboardLayout: UIView {
     /// 키보드 종류
-    var keyboard: Keyboard { get }
-    /// `TextInteractionButton` 프로토콜을 채택한 버튼들의 배열(리턴 버튼 제외)
-    var totalTextInteractionButtonList: [TextInteractionButtonProtocol] { get }
+    var keyboard: SYKeyboardType { get }
+    /// `TextInteractionButton` 프로토콜을 채택한(입력 상호작용이 있는) 버튼들의 배열
+    var totalTextInteractionButtonList: [TextInteractionButton] { get }
     /// 삭제 버튼
     var deleteButton: DeleteButton { get }
 }

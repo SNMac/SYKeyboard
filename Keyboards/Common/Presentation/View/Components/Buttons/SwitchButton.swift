@@ -15,7 +15,7 @@ final class SwitchButton: SecondaryButton {
     
     // MARK: - Properties
     
-    private let keyboard: Keyboard
+    private let keyboard: SYKeyboardType
     private let title: String
     
     // MARK: - UI Components
@@ -34,7 +34,7 @@ final class SwitchButton: SecondaryButton {
     
     // MARK: - Initializer
     
-    override init(keyboard: Keyboard) {
+    override init(keyboard: SYKeyboardType) {
         self.keyboard = keyboard
         switch keyboard {
         case .hangeul, .english:

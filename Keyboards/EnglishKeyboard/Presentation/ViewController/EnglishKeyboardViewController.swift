@@ -68,4 +68,8 @@ final class EnglishKeyboardViewController: BaseKeyboardViewController {
             currentKeyboard = .english
         }
     }
+    
+    override func inputKeyButton(keys: [String]) {
+        textDocumentProxy.insertText(keys[0])
+    }
 }

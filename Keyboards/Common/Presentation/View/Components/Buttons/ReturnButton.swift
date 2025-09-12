@@ -8,15 +8,15 @@
 import UIKit
 
 /// 리턴 버튼
-final class ReturnButton: SecondaryButton, TextInteractionButtonProtocol {
+final class ReturnButton: SecondaryButton, TextInteractionButton {
     
     // MARK: - Properties
     
-    private(set) var button: TextInteractionButton = .returnButton
+    private(set) var button: TextInteractionType = .returnButton
     
     // MARK: - Initializer
     
-    override init(keyboard: Keyboard) {
+    override init(keyboard: SYKeyboardType) {
         super.init(keyboard: keyboard)
         setupUI()
     }

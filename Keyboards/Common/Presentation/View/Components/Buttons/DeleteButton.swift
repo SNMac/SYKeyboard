@@ -10,16 +10,16 @@ import UIKit
 import SnapKit
 
 /// 삭제 버튼
-final class DeleteButton: SecondaryButton, TextInteractionButtonProtocol {
+final class DeleteButton: SecondaryButton, TextInteractionButton {
     
     // MARK: - Properties
     
-    private(set) var button: TextInteractionButton = .deleteButton
-    private let keyboard: Keyboard
+    private(set) var button: TextInteractionType = .deleteButton
+    private let keyboard: SYKeyboardType
     
     // MARK: - Initializer
     
-    override init(keyboard: Keyboard) {
+    override init(keyboard: SYKeyboardType) {
         self.keyboard = keyboard
         super.init(keyboard: keyboard)
         

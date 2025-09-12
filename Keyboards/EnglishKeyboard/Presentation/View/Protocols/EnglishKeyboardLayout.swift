@@ -64,7 +64,7 @@ protocol EnglishKeyboardLayout: DefaultKeyboardLayout, PrimaryKeyboard, TextInte
 // MARK: - Protocol Properties & Methods
 
 extension EnglishKeyboardLayout {
-    var keyboard: Keyboard { .english }
+    var keyboard: SYKeyboardType { .english }
     
     func updateLayoutForCurrentEnglishMode(oldMode: EnglishKeyboardMode) {
         guard oldMode != currentEnglishKeyboardMode else { return }

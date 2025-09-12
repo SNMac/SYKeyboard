@@ -52,7 +52,7 @@ protocol SymbolKeyboardLayout: DefaultKeyboardLayout, TextInteractionButtonGestu
 // MARK: - Protocol Properties & Methods
 
 extension SymbolKeyboardLayout {
-    var keyboard: Keyboard { .symbol }
+    var keyboard: SYKeyboardType { .symbol }
     
     func updateLayoutForCurrentSymbolKeyboardMode(oldMode: SymbolKeyboardMode) {
         guard oldMode != currentSymbolKeyboardMode else { return }

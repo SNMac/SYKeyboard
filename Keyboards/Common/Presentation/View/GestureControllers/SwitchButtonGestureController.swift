@@ -11,7 +11,7 @@ import OSLog
 import Then
 
 protocol SwitchButtonGestureControllerDelegate: AnyObject {
-    func changeKeyboard(_ controller: SwitchButtonGestureController, to newKeyboard: Keyboard)
+    func changeKeyboard(_ controller: SwitchButtonGestureController, to newKeyboard: SYKeyboardType)
     func changeOneHandedMode(_ controller: SwitchButtonGestureController, to newMode: OneHandedMode)
 }
 
@@ -23,7 +23,7 @@ final class SwitchButtonGestureController: NSObject {
     private lazy var logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: String(describing: self))
     
     typealias PanConfig = (gestureHandler: SwitchButtonGestureHandler,
-                           targetkeyboard: Keyboard,
+                           targetkeyboard: SYKeyboardType,
                            targetDirection: PanDirection)
     
     private var isDragOutside: Bool = false
@@ -38,7 +38,7 @@ final class SwitchButtonGestureController: NSObject {
     private let englishKeyboardView: SwitchButtonGestureHandler?
     private let symbolKeyboardView: SwitchButtonGestureHandler
     private let numericKeyboardView: SwitchButtonGestureHandler
-    private let getCurrentKeyboard: () -> Keyboard
+    private let getCurrentKeyboard: () -> SYKeyboardType
     private let getCurrentOneHandedMode: () -> OneHandedMode
     
     // Property Injection
@@ -51,7 +51,7 @@ final class SwitchButtonGestureController: NSObject {
          englishKeyboardView: SwitchButtonGestureHandler?,
          symbolKeyboardView: SwitchButtonGestureHandler,
          numericKeyboardView: SwitchButtonGestureHandler,
-         getCurrentKeyboard: @escaping () -> Keyboard,
+         getCurrentKeyboard: @escaping () -> SYKeyboardType,
          getCurrentOneHandedMode: @escaping () -> OneHandedMode) {
         self.keyboardFrameView = keyboardFrameView
         self.hangeulKeyboardView = hangeulKeyboardView

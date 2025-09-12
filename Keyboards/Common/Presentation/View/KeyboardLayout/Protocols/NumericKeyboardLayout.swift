@@ -9,5 +9,5 @@
 protocol NumericKeyboardLayout: DefaultKeyboardLayout, TextInteractionButtonGestureHandler, SwitchButtonGestureHandler {}
 
 extension NumericKeyboardLayout {
-    var keyboard: Keyboard { .numeric }
+    var keyboard: SYKeyboardType { .numeric }
 }

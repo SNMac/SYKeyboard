@@ -21,7 +21,7 @@ class SecondaryButton: BaseKeyboardButton {
     
     // MARK: - Initializer
     
-    override init(keyboard: Keyboard) {
+    override init(keyboard: SYKeyboardType) {
         super.init(keyboard: keyboard)
         setupUI()
     }

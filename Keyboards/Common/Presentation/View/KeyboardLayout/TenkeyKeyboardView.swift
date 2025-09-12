@@ -15,7 +15,7 @@ final class TenkeyKeyboardView: UIView, TenkeyKeyboardLayout {
     
     // MARK: - Properties
     
-    private(set) lazy var totalTextInteractionButtonList: [TextInteractionButtonProtocol] = firstRowKeyButtonList + secondRowKeyButtonList + thirdRowKeyButtonList + fourthRowKeyButtonList + [periodButton, deleteButton]
+    private(set) lazy var totalTextInteractionButtonList: [TextInteractionButton] = firstRowKeyButtonList + secondRowKeyButtonList + thirdRowKeyButtonList + fourthRowKeyButtonList + [periodButton, deleteButton]
     
     var currentTenkeyKeyboardMode: TenkeyKeyboardMode = .numberPad {
         didSet(oldMode) { updateLayoutForCurrentTenkeyKeyboardMode(oldMode: oldMode) }

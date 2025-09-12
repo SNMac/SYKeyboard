@@ -20,7 +20,7 @@ class BaseKeyboardButton: UIButton {
     
     // MARK: - Initializer
     
-    init(keyboard: Keyboard) {
+    init(keyboard: SYKeyboardType) {
         switch keyboard {
         case .hangeul, .numeric, .tenKey:
             self.insetDx = 3

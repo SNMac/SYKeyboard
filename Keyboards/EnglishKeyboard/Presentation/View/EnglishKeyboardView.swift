@@ -15,7 +15,7 @@ final class EnglishKeyboardView: QwertyKeyboard, EnglishKeyboardLayout {
     
     // MARK: - Properties
     
-    override var keyboard: Keyboard { .english }
+    override var keyboard: SYKeyboardType { .english }
     override var keyList: [[[[String]]]] { currentEnglishKeyboardMode.keyList }
     
     var currentEnglishKeyboardMode: EnglishKeyboardMode = .default {

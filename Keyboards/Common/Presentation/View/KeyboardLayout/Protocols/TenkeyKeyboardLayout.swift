@@ -28,7 +28,7 @@ protocol TenkeyKeyboardLayout: BaseKeyboardLayout {
 // MARK: - Protocol Properties & Methods
 
 extension TenkeyKeyboardLayout {
-    var keyboard: Keyboard { .tenKey }
+    var keyboard: SYKeyboardType { .tenKey }
     
     func updateLayoutForCurrentTenkeyKeyboardMode(oldMode: TenkeyKeyboardMode) {
         guard oldMode != currentTenkeyKeyboardMode else { return }

@@ -25,7 +25,7 @@ public class BaseKeyboardViewController: UIInputViewController {
     private var timer: AnyCancellable?
     
     /// 현재 표시되는 키보드
-    lazy var currentKeyboard: Keyboard = primaryKeyboardView.keyboard {
+    lazy var currentKeyboard: SYKeyboardType = primaryKeyboardView.keyboard {
         didSet {
             updateShowingKeyboard()
             updateReturnButtonType()
@@ -86,11 +86,7 @@ public class BaseKeyboardViewController: UIInputViewController {
                                                                                    getCurrentKeyboard: { [weak self] in return (self?.currentKeyboard)! },
                                                                                    getCurrentOneHandedMode: { [weak self] in self?.currentOneHandedMode ?? .center })
     /// 키 입력 버튼, 스페이스 버튼, 삭제 버튼 제스처 컨트롤러
-    private lazy var textInteractionButtonGestureController = TextInteractionButtonGestureController(hangeulKeyboardView: primaryKeyboardView as? TextInteractionButtonGestureHandler,
-                                                                                                     englishKeyboardView: primaryKeyboardView as? TextInteractionButtonGestureHandler,
-                                                                                                     symbolKeyboardView: symbolKeyboardView,
-                                                                                                     numericKeyboardView: numericKeyboardView,
-                                                                                                     getCurrentKeyboard: { [weak self] in return (self?.currentKeyboard)! })
+    private lazy var textInteractionButtonGestureController = TextInteractionButtonGestureController()
     
     // MARK: - Lifecycle
     
@@ -125,7 +121,16 @@ public class BaseKeyboardViewController: UIInputViewController {
     
     // MARK: - Overriable Methods
     
+    /// `UIKeyboardType`에 맞는 키보드 레이아웃으로 업데이트하는 메서드
     func updateKeyboardType() {
+        fatalError("메서드가 오버라이딩 되지 않았습니다.")
+    }
+    
+    /// 사용자가 탭한 `TextInteractionButton`의 `keys` 중 상황에 맞는 문자를 입력하는 메서드
+    ///
+    /// - Parameters:
+    ///   - keys: `TextInteractionButton`에 입력할 수 있는 문자 배열
+    func inputKeyButton(keys: [String]) {
         fatalError("메서드가 오버라이딩 되지 않았습니다.")
     }
 }
@@ -226,11 +231,24 @@ private extension BaseKeyboardViewController {
         [primaryKeyboardView.totalTextInteractionButtonList,
          numericKeyboardView.totalTextInteractionButtonList,
          symbolKeyboardView.totalTextInteractionButtonList].forEach { buttonList in
-            buttonList.forEach { addGesturesToTextInteractionButton($0) }
+            buttonList.forEach {
+                addInputActionToTextInteractionButton($0)
+                addGesturesToTextInteractionButton($0)
+            }
         }
     }
     
-    func addGesturesToTextInteractionButton(_ button: TextInteractionButtonProtocol) {
+    func addInputActionToTextInteractionButton(_ button: TextInteractionButton) {
+        let inputAction = UIAction { [weak self] _ in self?.performTextInteraction(for: button.button) }
+        if button is DeleteButton {
+            button.addAction(inputAction, for: .touchDown)
+        } else {
+            button.addAction(inputAction, for: .touchUpInside)
+        }
+    }
+    
+    func addGesturesToTextInteractionButton(_ button: TextInteractionButton) {
+        guard !(button is ReturnButton) else { return }
         // 팬(드래그) 제스처
         let panGesture = UIPanGestureRecognizer(target: textInteractionButtonGestureController, action: #selector(textInteractionButtonGestureController.panGestureHandler(_:)))
         panGesture.delegate = textInteractionButtonGestureController
@@ -246,9 +264,7 @@ private extension BaseKeyboardViewController {
     
     func setSwitchButtonAction() {
         // 기호 키보드 전환
-        let switchToSymbolKeyboard = UIAction { [weak self] _ in
-            self?.currentKeyboard = .symbol
-        }
+        let switchToSymbolKeyboard = UIAction { [weak self] _ in self?.currentKeyboard = .symbol }
         primaryKeyboardView.switchButton.addAction(switchToSymbolKeyboard, for: .touchUpInside)
         
         // 주 키보드 전환
@@ -280,9 +296,7 @@ private extension BaseKeyboardViewController {
     }
     
     func setChevronButtonAction() {
-        let resetOneHandMode = UIAction { [weak self] _ in
-            self?.currentOneHandedMode = .center
-        }
+        let resetOneHandMode = UIAction { [weak self] _ in self?.currentOneHandedMode = .center }
         leftChevronButton.addAction(resetOneHandMode, for: .touchUpInside)
         rightChevronButton.addAction(resetOneHandMode, for: .touchUpInside)
     }
@@ -318,10 +332,10 @@ private extension BaseKeyboardViewController {
 // MARK: - Text Interaction Methods
 
 private extension BaseKeyboardViewController {
-    func performTextInteraction(for button: TextInteractionButton) {
+    func performTextInteraction(for button: TextInteractionType) {
         switch button {
         case .keyButton(let keys):
-            textDocumentProxy.insertText("")
+            inputKeyButton(keys: keys)
         case .deleteButton:
             textDocumentProxy.deleteBackward()
         case .spaceButton, .returnButton:
@@ -330,9 +344,10 @@ private extension BaseKeyboardViewController {
         }
     }
     
-    func performRepeatTextInteraction(for button: TextInteractionButton) {
+    func performRepeatTextInteraction(for button: TextInteractionType) {
         switch button {
         case .keyButton(let keys):
+            inputKeyButton(keys: keys)
             FeedbackManager.shared.playHaptic()
             FeedbackManager.shared.playKeyTypingSound()
         case .deleteButton:
@@ -355,7 +370,7 @@ private extension BaseKeyboardViewController {
 // MARK: - SwitchButtonGestureControllerDelegate
 
 extension BaseKeyboardViewController: SwitchButtonGestureControllerDelegate {
-    final func changeKeyboard(_ controller: SwitchButtonGestureController, to newKeyboard: Keyboard) {
+    final func changeKeyboard(_ controller: SwitchButtonGestureController, to newKeyboard: SYKeyboardType) {
         self.currentKeyboard = newKeyboard
     }
     
@@ -417,7 +432,7 @@ extension BaseKeyboardViewController: TextInteractionButtonGestureControllerDele
         logger.debug("임시 삭제 내용 저장 변수 초기화")
     }
     
-    final func textInteractionButtonLongPressing(_ controller: TextInteractionButtonGestureController, button: TextInteractionButton) {
+    final func textInteractionButtonLongPressing(_ controller: TextInteractionButtonGestureController, button: TextInteractionType) {
         textInteractionButtonLongPressStopped(controller)
         
         let repeatTimerInterval = 0.10 - UserDefaultsManager.shared.repeatRate

@@ -40,7 +40,7 @@ protocol HangeulKeyboardLayout: DefaultKeyboardLayout, PrimaryKeyboard, TextInte
 // MARK: - Protocol Properties & Methods
 
 extension HangeulKeyboardLayout {
-    var keyboard: Keyboard { .hangeul }
+    var keyboard: SYKeyboardType { .hangeul }
     var isShifted: Bool? {
         get { nil } set {}
     }

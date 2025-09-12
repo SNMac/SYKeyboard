@@ -15,7 +15,7 @@ final class SymbolKeyboardView: UIView, SymbolKeyboardLayout {
     
     // MARK: - Properties
     
-    private(set) lazy var totalTextInteractionButtonList: [TextInteractionButtonProtocol] = firstRowKeyButtonList + secondRowKeyButtonList + thirdRowKeyButtonList + [deleteButton, spaceButton]
+    private(set) lazy var totalTextInteractionButtonList: [TextInteractionButton] = firstRowKeyButtonList + secondRowKeyButtonList + thirdRowKeyButtonList + [deleteButton, spaceButton, returnButton]
     
     var currentSymbolKeyboardMode: SymbolKeyboardMode = .default {
         didSet(oldMode) {
@@ -224,7 +224,7 @@ private extension SymbolKeyboardView {
         for (rowIndex, buttonList) in rowList.enumerated() {
             for (buttonIndex, button) in buttonList.enumerated() {
                 let keys = currentSymbolKeyboardMode.keyList[symbolKeyListIndex][rowIndex][buttonIndex]
-                button.update(button: TextInteractionButton.keyButton(keys: keys))
+                button.update(button: TextInteractionType.keyButton(keys: keys))
             }
         }
     }

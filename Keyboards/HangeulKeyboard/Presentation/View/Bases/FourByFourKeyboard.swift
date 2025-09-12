@@ -14,7 +14,7 @@ class FourByFourKeyboard: UIView, HangeulKeyboardLayout {
     
     // MARK: - Properties
     
-    private(set) lazy var totalTextInteractionButtonList: [TextInteractionButtonProtocol] = firstRowKeyButtonList + secondRowKeyButtonList + thirdRowKeyButtonList + fourthRowKeyButtonList + [deleteButton, spaceButton]
+    private(set) lazy var totalTextInteractionButtonList: [TextInteractionButton] = firstRowKeyButtonList + secondRowKeyButtonList + thirdRowKeyButtonList + fourthRowKeyButtonList + [deleteButton, spaceButton, returnButton]
     
     var currentHangeulKeyboardMode: HangeulKeyboardMode = .default {
         didSet(oldMode) { updateLayoutForCurrentHangeulMode(oldMode: oldMode) }

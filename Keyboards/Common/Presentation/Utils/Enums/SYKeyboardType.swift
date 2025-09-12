@@ -1,11 +1,11 @@
 //
-//  Keyboard.swift
+//  SYKeyboardType.swift
 //  HangeulKeyboard, EnglishKeyboard
 //
 //  Created by 서동환 on 7/10/25.
 //
 
-enum Keyboard {
+enum SYKeyboardType {
     case hangeul
     case english
     case symbol

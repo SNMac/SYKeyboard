@@ -12,7 +12,7 @@ protocol TextInteractionButtonGestureControllerDelegate: AnyObject {
     func primaryButtonPanning(_ controller: TextInteractionButtonGestureController, to direction: PanDirection)
     func deleteButtonPanning(_ controller: TextInteractionButtonGestureController, to direction: PanDirection)
     func deleteButtonPanStopped(_ controller: TextInteractionButtonGestureController)
-    func textInteractionButtonLongPressing(_ controller: TextInteractionButtonGestureController, button: TextInteractionButton)
+    func textInteractionButtonLongPressing(_ controller: TextInteractionButtonGestureController, button: TextInteractionType)
     func textInteractionButtonLongPressStopped(_ controller: TextInteractionButtonGestureController)
 }
 
@@ -27,35 +27,14 @@ final class TextInteractionButtonGestureController: NSObject {
     private var intervalReferPanPoint: CGPoint = .zero
     private var isCursorActive: Bool = false
     
-    // Initializer Injection
-    private let hangeulKeyboardView: TextInteractionButtonGestureHandler?
-    private let englishKeyboardView: TextInteractionButtonGestureHandler?
-    private let symbolKeyboardView: TextInteractionButtonGestureHandler
-    private let numericKeyboardView: TextInteractionButtonGestureHandler
-    private let getCurrentKeyboard: () -> Keyboard
-    
     // Property Injection
     weak var delegate: TextInteractionButtonGestureControllerDelegate?
-    
-    // MARK: - Initializer
-    
-    init(hangeulKeyboardView: TextInteractionButtonGestureHandler?,
-         englishKeyboardView: TextInteractionButtonGestureHandler?,
-         symbolKeyboardView: TextInteractionButtonGestureHandler,
-         numericKeyboardView: TextInteractionButtonGestureHandler,
-         getCurrentKeyboard: @escaping () -> Keyboard) {
-        self.hangeulKeyboardView = hangeulKeyboardView
-        self.englishKeyboardView = englishKeyboardView
-        self.symbolKeyboardView = symbolKeyboardView
-        self.numericKeyboardView = numericKeyboardView
-        self.getCurrentKeyboard = getCurrentKeyboard
-    }
     
     // MARK: - @objc Gesture Methods
     
     @objc func panGestureHandler(_ gesture: UIPanGestureRecognizer) {
         let currentPoint = gesture.location(in: gesture.view)
-        let currentButton = gesture.view as? TextInteractionButtonProtocol
+        let currentButton = gesture.view as? TextInteractionButton
         
         switch gesture.state {
         case .began:
@@ -83,7 +62,7 @@ final class TextInteractionButtonGestureController: NSObject {
     }
     
     @objc func longPressGestureHandler(_ gesture: UILongPressGestureRecognizer) {
-        let currentButton = gesture.view as? TextInteractionButtonProtocol
+        let currentButton = gesture.view as? TextInteractionButton
         
         switch gesture.state {
         case .began:
@@ -114,7 +93,7 @@ private extension TextInteractionButtonGestureController {
                 } else {
                     delegate?.deleteButtonPanning(self, to: .left)
                 }
-            } else if gesture.view is TextInteractionButtonProtocol {
+            } else if gesture.view is TextInteractionButton {
                 if distance > 0 {
                     delegate?.primaryButtonPanning(self, to: .right)
                 } else {
@@ -134,7 +113,7 @@ private extension TextInteractionButtonGestureController {
     }
     
     func onLongPressGestureBegan(_ gesture: UILongPressGestureRecognizer) {
-        let currentButton = gesture.view as? TextInteractionButtonProtocol
+        let currentButton = gesture.view as? TextInteractionButton
         guard let button = currentButton?.button else {
             assertionFailure("입력 상호작용 버튼이 아닙니다.")
             return
