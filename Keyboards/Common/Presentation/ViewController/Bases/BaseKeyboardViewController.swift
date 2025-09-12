@@ -53,6 +53,7 @@ public class BaseKeyboardViewController: UIInputViewController {
     }
     /// 삭제 버튼 팬 제스처로 인해 임시로 삭제된 내용을 저장하는 변수
     private var tempDeletedCharacters: [Character] = []
+    private var isSymbolInput: Bool = false
     
     // MARK: - UI Components
     
@@ -119,7 +120,7 @@ public class BaseKeyboardViewController: UIInputViewController {
         updateReturnButtonType()
     }
     
-    // MARK: - Overriable Methods
+    // MARK: - Overridable Methods
     
     /// `UIKeyboardType`에 맞는 키보드 레이아웃으로 업데이트하는 메서드
     func updateKeyboardType() {
@@ -228,14 +229,17 @@ private extension BaseKeyboardViewController {
 
 private extension BaseKeyboardViewController {
     func setTextInteractionButtonAction() {
-        [primaryKeyboardView.totalTextInteractionButtonList,
-         numericKeyboardView.totalTextInteractionButtonList,
-         symbolKeyboardView.totalTextInteractionButtonList].forEach { buttonList in
-            buttonList.forEach {
-                addInputActionToTextInteractionButton($0)
-                addGesturesToTextInteractionButton($0)
-            }
+        (primaryKeyboardView.totalTextInteractionButtonList + numericKeyboardView.totalTextInteractionButtonList).forEach {
+            addInputActionToTextInteractionButton($0)
+            addGesturesToTextInteractionButton($0)
         }
+        
+        symbolKeyboardView.totalTextInteractionButtonList.forEach {
+            addInputActionToSymbolTextInteractionButton($0)
+            addGesturesToTextInteractionButton($0)
+        }
+        
+        tenkeyKeyboardView.totalTextInteractionButtonList.forEach { addInputActionToTextInteractionButton($0) }
     }
     
     func addInputActionToTextInteractionButton(_ button: TextInteractionButton) {
@@ -244,6 +248,40 @@ private extension BaseKeyboardViewController {
             button.addAction(inputAction, for: .touchDown)
         } else {
             button.addAction(inputAction, for: .touchUpInside)
+        }
+    }
+    
+    func addInputActionToSymbolTextInteractionButton(_ button: TextInteractionButton) {
+        addInputActionToTextInteractionButton(button)
+        
+        switch button.button {
+        case .keyButton(keys: ["‘"]):
+            // touchUpInside 되었을 때 ➡️ 주 키보드 전환
+            let switchToPrimaryKeyboard = UIAction { [weak self] _ in
+                guard let self else { return }
+                if textDocumentProxy.keyboardType != .numbersAndPunctuation && UserDefaultsManager.shared.isAutoChangeToHangeulEnabled {
+                    currentKeyboard = primaryKeyboardView.keyboard
+                }
+            }
+            button.addAction(switchToPrimaryKeyboard, for: .touchUpInside)
+            
+        case .spaceButton, .returnButton:
+            // 이전에 기호가 입력되고 난 후 touchUpInside 되었을 때 ➡️ 주 키보드 전환
+            let switchToPrimaryKeyboard = UIAction { [weak self] _ in
+                guard let self else { return }
+                if textDocumentProxy.keyboardType != .numbersAndPunctuation && UserDefaultsManager.shared.isAutoChangeToHangeulEnabled && isSymbolInput {
+                    currentKeyboard = primaryKeyboardView.keyboard
+                }
+            }
+            button.addAction(switchToPrimaryKeyboard, for: .touchUpInside)
+            
+        case .deleteButton:
+            let additionalInputAction = UIAction { [weak self] _ in self?.isSymbolInput = true }
+            button.addAction(additionalInputAction, for: .touchDown)
+            
+        default:
+            let additionalInputAction = UIAction { [weak self] _ in self?.isSymbolInput = true }
+            button.addAction(additionalInputAction, for: .touchUpInside)
         }
     }
     
@@ -259,6 +297,7 @@ private extension BaseKeyboardViewController {
         longPressGesture.delegate = textInteractionButtonGestureController
         longPressGesture.minimumPressDuration = UserDefaultsManager.shared.longPressDuration
         longPressGesture.allowableMovement = UserDefaultsManager.shared.cursorActiveDistance
+        longPressGesture.cancelsTouchesInView = false
         button.addGestureRecognizer(longPressGesture)
     }
     
@@ -310,6 +349,7 @@ private extension BaseKeyboardViewController {
         primaryKeyboardView.initShiftButton()  // TODO: - 자동 대문자 설정
         symbolKeyboardView.isHidden = (currentKeyboard != .symbol)
         symbolKeyboardView.initShiftButton()
+        isSymbolInput = false
         numericKeyboardView.isHidden = (currentKeyboard != .numeric)
         tenkeyKeyboardView.isHidden = (currentKeyboard != .tenKey)
     }
@@ -432,14 +472,14 @@ extension BaseKeyboardViewController: TextInteractionButtonGestureControllerDele
         logger.debug("임시 삭제 내용 저장 변수 초기화")
     }
     
-    final func textInteractionButtonLongPressing(_ controller: TextInteractionButtonGestureController, button: TextInteractionType) {
+    final func textInteractionButtonLongPressing(_ controller: TextInteractionButtonGestureController, button: TextInteractionButton) {
         textInteractionButtonLongPressStopped(controller)
         
         let repeatTimerInterval = 0.10 - UserDefaultsManager.shared.repeatRate
         timer = Timer.publish(every: repeatTimerInterval, on: .main, in: .common)
             .autoconnect()
             .sink { [weak self] _ in
-                self?.performRepeatTextInteraction(for: button)
+                self?.performRepeatTextInteraction(for: button.button)
             }
         logger.debug("반복 타이머 생성")
     }

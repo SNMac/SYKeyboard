@@ -84,7 +84,7 @@ class QwertyKeyboard: UIView, DefaultKeyboardLayout, TextInteractionButtonGestur
         fatalError("init(coder:) has not been implemented")
     }
     
-    // MARK: - Overriable Methods
+    // MARK: - Overridable Methods
     
     func setShiftButtonAction() {
         let enableShift = UIAction { [weak self] _ in

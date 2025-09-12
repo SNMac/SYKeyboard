@@ -12,7 +12,7 @@ protocol TextInteractionButtonGestureControllerDelegate: AnyObject {
     func primaryButtonPanning(_ controller: TextInteractionButtonGestureController, to direction: PanDirection)
     func deleteButtonPanning(_ controller: TextInteractionButtonGestureController, to direction: PanDirection)
     func deleteButtonPanStopped(_ controller: TextInteractionButtonGestureController)
-    func textInteractionButtonLongPressing(_ controller: TextInteractionButtonGestureController, button: TextInteractionType)
+    func textInteractionButtonLongPressing(_ controller: TextInteractionButtonGestureController, button: TextInteractionButton)
     func textInteractionButtonLongPressStopped(_ controller: TextInteractionButtonGestureController)
 }
 
@@ -114,7 +114,7 @@ private extension TextInteractionButtonGestureController {
     
     func onLongPressGestureBegan(_ gesture: UILongPressGestureRecognizer) {
         let currentButton = gesture.view as? TextInteractionButton
-        guard let button = currentButton?.button else {
+        guard let button = currentButton else {
             assertionFailure("입력 상호작용 버튼이 아닙니다.")
             return
         }
