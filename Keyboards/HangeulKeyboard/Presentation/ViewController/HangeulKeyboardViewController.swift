@@ -24,7 +24,7 @@ final class HangeulKeyboardViewController: BaseKeyboardViewController {
     
     override func updateKeyboardType() {
         switch textDocumentProxy.keyboardType {
-        case .default, .none:
+        case .default, nil:
             hangeulKeyboardView.currentHangeulKeyboardMode = .default
             symbolKeyboardView.currentSymbolKeyboardMode = .default
             currentKeyboard = .hangeul

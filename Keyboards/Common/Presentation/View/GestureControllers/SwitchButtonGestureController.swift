@@ -8,6 +8,8 @@
 import UIKit
 import OSLog
 
+import Then
+
 protocol SwitchButtonGestureControllerDelegate: AnyObject {
     func changeKeyboard(_ controller: SwitchButtonGestureController, to newKeyboard: Keyboard)
     func changeOneHandedMode(_ controller: SwitchButtonGestureController, to newMode: OneHandedMode)
@@ -20,13 +22,18 @@ final class SwitchButtonGestureController: NSObject {
     
     private lazy var logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: String(describing: self))
     
-    private var initialPanPoint: CGPoint = .zero
-    
     typealias PanConfig = (gestureHandler: SwitchButtonGestureHandler,
                            targetkeyboard: Keyboard,
                            targetDirection: PanDirection)
     
+    private var isDragOutside: Bool = false
+    
+    private lazy var keyboardFrameViewPressGestureRecognizer = UILongPressGestureRecognizer(target: self, action: #selector(keyboardFrameViewPressGestureHandler(_:))).then {
+        $0.minimumPressDuration = 0
+    }
+    
     // Initializer Injection
+    private let keyboardFrameView: UIView
     private let hangeulKeyboardView: SwitchButtonGestureHandler?
     private let englishKeyboardView: SwitchButtonGestureHandler?
     private let symbolKeyboardView: SwitchButtonGestureHandler
@@ -39,12 +46,14 @@ final class SwitchButtonGestureController: NSObject {
     
     // MARK: - Initializer
     
-    init(hangeulKeyboardView: SwitchButtonGestureHandler?,
+    init(keyboardFrameView: UIView,
+         hangeulKeyboardView: SwitchButtonGestureHandler?,
          englishKeyboardView: SwitchButtonGestureHandler?,
          symbolKeyboardView: SwitchButtonGestureHandler,
          numericKeyboardView: SwitchButtonGestureHandler,
          getCurrentKeyboard: @escaping () -> Keyboard,
          getCurrentOneHandedMode: @escaping () -> OneHandedMode) {
+        self.keyboardFrameView = keyboardFrameView
         self.hangeulKeyboardView = hangeulKeyboardView
         self.englishKeyboardView = englishKeyboardView
         self.symbolKeyboardView = symbolKeyboardView
@@ -86,16 +95,35 @@ final class SwitchButtonGestureController: NSObject {
         case .changed:
             onLongPressGestureChanged(gesture, gestureHandler: gestureHandler)
         case .ended, .cancelled, .failed:
-            onLongPressGestureEnded(gesture, gestureHandler: gestureHandler)
-            currentButton?.isSelected = false
+            let keepSelected = onLongPressGestureEnded(gesture, gestureHandler: gestureHandler)
+            currentButton?.isSelected = keepSelected
             logger.debug("길게 누르기 제스처 비활성화")
+        default:
+            break
+        }
+    }
+    
+    @objc func keyboardFrameViewPressGestureHandler(_ gesture: UILongPressGestureRecognizer) {
+        let gestureHandler = setGestureHandler()
+        let currentButton = gestureHandler.switchButton
+        
+        switch gesture.state {
+        case .began:
+            logger.debug("키보드 길게 누르기 제스처 활성화")
+            fallthrough
+        case .changed:
+            onKeyboardFrameViewPressGestureChanged(gesture, gestureHandler: gestureHandler)
+        case .ended, .cancelled, .failed:
+            onKeyboardFrameViewPressGestureEnded(gesture, gestureHandler: gestureHandler)
+            currentButton.isSelected = false
+            logger.debug("키보드 길게 누르기 제스처 비활성화")
         default:
             break
         }
     }
 }
 
-// MARK: - Gesture Methods
+// MARK: - Pan Gesture Methods
 
 private extension SwitchButtonGestureController {
     func onPanGestureChanged(_ gesture: UIPanGestureRecognizer, config: PanConfig) {
@@ -165,7 +193,11 @@ private extension SwitchButtonGestureController {
             switchButton.configureOneHandedComponent(needToEmphasize: false)
         }
     }
-    
+}
+
+// MARK: - Long Press Gesture Methods
+
+private extension SwitchButtonGestureController {
     func onLongPressGestureBegan(gestureHandler: SwitchButtonGestureHandler) {
         let switchButton = gestureHandler.switchButton
         let keyboardSelectOverlayView = gestureHandler.keyboardSelectOverlayView
@@ -189,12 +221,57 @@ private extension SwitchButtonGestureController {
                                                             targetMaxX: oneHandedModeSelectOverlayView.rightKeyboardImageContainerView.frame.minX,
                                                             targetRect: oneHandedModeSelectOverlayView.bounds)
             
+            if panDirection == nil { isDragOutside = true }
             let targetOneHandedMode = selectOneHandedModeOverlay(panDirection: panDirection)
             gestureHandler.showOneHandedModeSelectOverlay(of: targetOneHandedMode)
         }
     }
     
-    func onLongPressGestureEnded(_ gesture: UILongPressGestureRecognizer, gestureHandler: SwitchButtonGestureHandler) {
+    func onLongPressGestureEnded(_ gesture: UILongPressGestureRecognizer, gestureHandler: SwitchButtonGestureHandler) -> Bool {
+        let switchButton = gestureHandler.switchButton
+        let oneHandedModeSelectOverlayView = gestureHandler.oneHandedModeSelectOverlayView
+        
+        if !oneHandedModeSelectOverlayView.isHidden {
+            let panLocation = gesture.location(in: oneHandedModeSelectOverlayView)
+            let panDirection = checkOneHandModePanDirection(panLocation: panLocation,
+                                                            targetMinX: oneHandedModeSelectOverlayView.leftKeyboardImageContainerView.frame.maxX,
+                                                            targetMaxX: oneHandedModeSelectOverlayView.rightKeyboardImageContainerView.frame.minX,
+                                                            targetRect: oneHandedModeSelectOverlayView.bounds)
+            
+            if panDirection != nil || isDragOutside {
+                delegate?.changeOneHandedMode(self, to: selectOneHandedModeOverlay(panDirection: panDirection))
+                gestureHandler.hideOneHandedModeSelectOverlay()
+                switchButton.configureOneHandedComponent(needToEmphasize: false)
+            } else {
+                keyboardFrameView.addGestureRecognizer(keyboardFrameViewPressGestureRecognizer)
+                return true
+            }
+        }
+        
+        isDragOutside = false
+        return false
+    }
+}
+
+// MARK: - KeyboardView Pan Gesture Methods
+
+private extension SwitchButtonGestureController {
+    func onKeyboardFrameViewPressGestureChanged(_ gesture: UILongPressGestureRecognizer, gestureHandler: SwitchButtonGestureHandler) {
+        let oneHandedModeSelectOverlayView = gestureHandler.oneHandedModeSelectOverlayView
+        
+        if !oneHandedModeSelectOverlayView.isHidden {
+            let panLocation = gesture.location(in: oneHandedModeSelectOverlayView)
+            let panDirection = checkOneHandModePanDirection(panLocation: panLocation,
+                                                            targetMinX: oneHandedModeSelectOverlayView.leftKeyboardImageContainerView.frame.maxX,
+                                                            targetMaxX: oneHandedModeSelectOverlayView.rightKeyboardImageContainerView.frame.minX,
+                                                            targetRect: oneHandedModeSelectOverlayView.bounds)
+            
+            let targetOneHandedMode = selectOneHandedModeOverlay(panDirection: panDirection)
+            gestureHandler.showOneHandedModeSelectOverlay(of: targetOneHandedMode)
+        }
+    }
+    
+    func onKeyboardFrameViewPressGestureEnded(_ gesture: UILongPressGestureRecognizer, gestureHandler: SwitchButtonGestureHandler) {
         let switchButton = gestureHandler.switchButton
         let oneHandedModeSelectOverlayView = gestureHandler.oneHandedModeSelectOverlayView
         
@@ -208,6 +285,8 @@ private extension SwitchButtonGestureController {
             delegate?.changeOneHandedMode(self, to: selectOneHandedModeOverlay(panDirection: panDirection))
             gestureHandler.hideOneHandedModeSelectOverlay()
             switchButton.configureOneHandedComponent(needToEmphasize: false)
+            
+            keyboardFrameView.removeGestureRecognizer(keyboardFrameViewPressGestureRecognizer)
         }
     }
 }
@@ -275,7 +354,7 @@ private extension SwitchButtonGestureController {
         } else if panLocation.y > targetRect.maxY {
             return .down
         } else {
-            return .none
+            return nil
         }
     }
     
@@ -287,7 +366,7 @@ private extension SwitchButtonGestureController {
             } else if panLocation.x > targetRect.minX {
                 return .right
             } else {
-                return .none
+                return nil
             }
         case .right:
             if panLocation.x < targetRect.maxX {
@@ -295,11 +374,11 @@ private extension SwitchButtonGestureController {
             } else if panLocation.x >= targetRect.maxX {
                 return .right
             } else {
-                return .none
+                return nil
             }
         default:
             assertionFailure("사용되지 않는 targetDirection 입니다.")
-            return .none
+            return nil
         }
     }
     
@@ -313,7 +392,7 @@ private extension SwitchButtonGestureController {
                 return .center
             }
         }
-        return .none
+        return nil
     }
     
     func selectOneHandedModeOverlay(panDirection: PanDirection?) -> OneHandedMode {

@@ -78,7 +78,8 @@ public class BaseKeyboardViewController: UIInputViewController {
     private let rightChevronButton = ChevronButton(direction: .right).then { $0.isHidden = true }
     
     /// 키보드 전환 버튼 제스처 컨트롤러
-    private lazy var switchButtonGestureController = SwitchButtonGestureController(hangeulKeyboardView: primaryKeyboardView as? SwitchButtonGestureHandler,
+    private lazy var switchButtonGestureController = SwitchButtonGestureController(keyboardFrameView: keyboardFrameHStackView,
+                                                                                   hangeulKeyboardView: primaryKeyboardView as? SwitchButtonGestureHandler,
                                                                                    englishKeyboardView: primaryKeyboardView as? SwitchButtonGestureHandler,
                                                                                    symbolKeyboardView: symbolKeyboardView,
                                                                                    numericKeyboardView: numericKeyboardView,

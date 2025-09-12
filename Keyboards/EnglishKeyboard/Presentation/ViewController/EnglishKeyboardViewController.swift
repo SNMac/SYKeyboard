@@ -20,7 +20,7 @@ final class EnglishKeyboardViewController: BaseKeyboardViewController {
     
     override func updateKeyboardType() {
         switch textDocumentProxy.keyboardType {
-        case .default, .none:
+        case .default, nil:
             englishKeyboardView.currentEnglishKeyboardMode = .default
             symbolKeyboardView.currentSymbolKeyboardMode = .default
             currentKeyboard = .english
