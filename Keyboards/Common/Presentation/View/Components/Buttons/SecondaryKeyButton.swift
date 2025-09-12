@@ -12,7 +12,7 @@ final class SecondaryKeyButton: SecondaryButton, TextInteractionButtonProtocol {
     
     // MARK: - Properties
     
-    var button: TextInteractionButton {
+    private(set) var button: TextInteractionButton {
         didSet {
             if button.keys.isEmpty {
                 self.isHidden = true
@@ -36,6 +36,8 @@ final class SecondaryKeyButton: SecondaryButton, TextInteractionButtonProtocol {
     @MainActor required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
+    
+    // MARK: - Internal Methods
     
     func update(button: TextInteractionButton) {
         self.button = button
