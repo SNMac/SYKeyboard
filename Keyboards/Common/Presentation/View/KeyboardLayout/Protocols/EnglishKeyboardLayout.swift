@@ -1,6 +1,6 @@
 //
 //  EnglishKeyboardLayout.swift
-//  EnglishKeyboard
+//  EnglishKeyboard, EnglishKeyboard
 //
 //  Created by 서동환 on 9/8/25.
 //
@@ -166,8 +166,8 @@ extension EnglishKeyboardLayout {
     }
     
     func initShiftButton() {
-        self.isShifted = false
-        self.isCapsLocked = false
+        isShifted = false
+        isCapsLocked = false
         wasShifted = false
     }
     

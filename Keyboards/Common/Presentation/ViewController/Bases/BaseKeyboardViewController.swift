@@ -1,8 +1,8 @@
 //
-//  EnglishKeyboardViewController.swift
-//  EnglishKeyboard
+//  BaseKeyboardViewController.swift
+//  HangeulKeyboard, EnglishKeyboard
 //
-//  Created by 서동환 on 9/8/25.
+//  Created by 서동환 on 9/12/25.
 //
 
 import UIKit
@@ -12,8 +12,7 @@ import OSLog
 import SnapKit
 import Then
 
-/// 영어 키보드 입력/UI 컨트롤러
-final class EnglishKeyboardViewController: UIInputViewController {
+public class BaseKeyboardViewController: UIInputViewController {
     
     // MARK: - Properties
     
@@ -25,7 +24,7 @@ final class EnglishKeyboardViewController: UIInputViewController {
     /// 반복 입력용 타이머
     private var timer: AnyCancellable?
     /// 현재 키보드
-    private var currentKeyboardLayout: KeyboardLayout = .english {
+    var currentKeyboardLayout: KeyboardLayout = .hangeul {
         didSet {
             updateShowingKeyboard()
             updateReturnButtonType()
@@ -41,8 +40,8 @@ final class EnglishKeyboardViewController: UIInputViewController {
     /// 현재 키보드의 리턴 버튼
     private var currentReturnButton: ReturnButton? {
         switch currentKeyboardLayout {
-        case .english:
-            return englishKeyboardView.returnButton
+        case .hangeul, .english:
+            return primaryKeyboardView.returnButton
         case .symbol:
             return symbolKeyboardView.returnButton
         case .numeric:
@@ -56,7 +55,7 @@ final class EnglishKeyboardViewController: UIInputViewController {
     
     // MARK: - UI Components
     
-    /// 키보드 전체 프레임
+    /// 키보드 전체 수직 스택
     private let keyboardFrameHStackView = UIStackView().then {
         $0.axis = .horizontal
         $0.spacing = 0
@@ -66,8 +65,13 @@ final class EnglishKeyboardViewController: UIInputViewController {
     private let keyboardLayoutView = UIView()
     /// 한 손 키보드 해제 버튼(오른손 모드)
     private let leftChevronButton = ChevronButton(direction: .left).then { $0.isHidden = true }
-    /// 영어 키보드
-    private lazy var englishKeyboardView: EnglishKeyboardLayout = EnglishKeyboardView().then { $0.isHidden = true }
+    var primaryKeyboardView: PrimaryKeyboardView! {
+        fatalError("프로퍼티가 오버라이딩 되지 않았습니다.")
+    }
+    /// 자식 클래스에서 반환해야 하는 기본 키보드 레이아웃 타입
+    var primaryKeyboardLayout: KeyboardLayout {
+        fatalError("프로퍼티가 오버라이딩 되지 않았습니다.")
+    }
     /// 기호 키보드
     private lazy var symbolKeyboardView: SymbolKeyboardLayout = SymbolKeyboardView().then { $0.isHidden = true }
     /// 숫자 키보드
@@ -78,23 +82,24 @@ final class EnglishKeyboardViewController: UIInputViewController {
     private let rightChevronButton = ChevronButton(direction: .right).then { $0.isHidden = true }
     
     /// 키보드 전환 버튼 제스처 컨트롤러
-    private lazy var switchButtonGestureController = SwitchButtonGestureController(hangeulKeyboardView: nil,
-                                                                                   englishKeyboardView: englishKeyboardView,
+    private lazy var switchButtonGestureController = SwitchButtonGestureController(hangeulKeyboardView: primaryKeyboardView as? HangeulKeyboardLayout,
+                                                                                   englishKeyboardView: primaryKeyboardView as? EnglishKeyboardLayout,
                                                                                    symbolKeyboardView: symbolKeyboardView,
                                                                                    numericKeyboardView: numericKeyboardView,
-                                                                                   getCurrentKeyboardLayout: { [weak self] in return self?.currentKeyboardLayout ?? .english },
+                                                                                   getCurrentKeyboardLayout: { [weak self] in return (self?.currentKeyboardLayout)! },
                                                                                    getCurrentOneHandedMode: { [weak self] in self?.currentOneHandedMode ?? .center })
     /// 키 입력 버튼, 스페이스 버튼, 삭제 버튼 제스처 컨트롤러
-    private lazy var textInteractionButtonGestureController = TextInteractionButtonGestureController(hangeulKeyboardView: nil,
-                                                                                                     englishKeyboardView: englishKeyboardView,
+    private lazy var textInteractionButtonGestureController = TextInteractionButtonGestureController(hangeulKeyboardView: primaryKeyboardView as? TextInteractionButtonGestureHandler,
+                                                                                                     englishKeyboardView: primaryKeyboardView as? TextInteractionButtonGestureHandler,
                                                                                                      symbolKeyboardView: symbolKeyboardView,
                                                                                                      numericKeyboardView: numericKeyboardView,
-                                                                                                     getCurrentKeyboardLayout: { [weak self] in return self?.currentKeyboardLayout ?? .english })
+                                                                                                     getCurrentKeyboardLayout: { [weak self] in return (self?.currentKeyboardLayout)! })
     
     // MARK: - Lifecycle
     
-    override func viewDidLoad() {
+    open override func viewDidLoad() {
         super.viewDidLoad()
+        self.currentKeyboardLayout = primaryKeyboardLayout
         setupUI()
         setNextKeyboardButton()
         if UserDefaultsManager.shared.isOneHandedKeyboardEnabled {
@@ -102,20 +107,20 @@ final class EnglishKeyboardViewController: UIInputViewController {
         }
     }
     
-    override func viewWillAppear(_ animated: Bool) {
+    open override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         setKeyboardHeight()
         FeedbackManager.shared.prepareHaptic()
     }
     
-    override func viewDidAppear(_ animated: Bool) {
+    open override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         #if DEBUG
         checkForAmbiguity(in: self.view)
         #endif
     }
     
-    override func textWillChange(_ textInput: (any UITextInput)?) {
+    open override func textWillChange(_ textInput: (any UITextInput)?) {
         super.textWillChange(textInput)
         updateKeyboardAppearance()
         updateKeyboardType()
@@ -125,7 +130,7 @@ final class EnglishKeyboardViewController: UIInputViewController {
 
 // MARK: - UI Methods
 
-private extension EnglishKeyboardViewController {
+private extension BaseKeyboardViewController {
     func setupUI() {
         setDelegates()
         setActions()
@@ -149,7 +154,7 @@ private extension EnglishKeyboardViewController {
         
         keyboardFrameHStackView.addArrangedSubviews(leftChevronButton, keyboardLayoutView, rightChevronButton)
         
-        keyboardLayoutView.addSubviews(englishKeyboardView, symbolKeyboardView, numericKeyboardView, tenkeyKeyboardView)
+        keyboardLayoutView.addSubviews(primaryKeyboardView, symbolKeyboardView, numericKeyboardView, tenkeyKeyboardView)
     }
     
     func setConstraints() {
@@ -162,7 +167,7 @@ private extension EnglishKeyboardViewController {
             $0.width.greaterThanOrEqualTo(UserDefaultsManager.shared.oneHandedKeyboardWidth)
         }
         
-        englishKeyboardView.snp.makeConstraints {
+        primaryKeyboardView.snp.makeConstraints {
             $0.edges.equalToSuperview()
         }
         
@@ -190,7 +195,7 @@ private extension EnglishKeyboardViewController {
     }
     
     func setNextKeyboardButton() {
-        englishKeyboardView.updateNextKeyboardButton(needsInputModeSwitchKey: self.needsInputModeSwitchKey,
+        primaryKeyboardView.updateNextKeyboardButton(needsInputModeSwitchKey: self.needsInputModeSwitchKey,
                                                      nextKeyboardAction: #selector(self.handleInputModeList(from:with:)))
         symbolKeyboardView.updateNextKeyboardButton(needsInputModeSwitchKey: self.needsInputModeSwitchKey,
                                                     nextKeyboardAction: #selector(self.handleInputModeList(from:with:)))
@@ -214,9 +219,9 @@ private extension EnglishKeyboardViewController {
 
 // MARK: - Button Action Methods
 
-private extension EnglishKeyboardViewController {
+private extension BaseKeyboardViewController {
     func setTextInteractionButtonAction() {
-        [englishKeyboardView.totalTextInteractionButtonList,
+        [primaryKeyboardView.totalTextInteractionButtonList,
          numericKeyboardView.totalTextInteractionButtonList,
          symbolKeyboardView.totalTextInteractionButtonList].forEach { buttonList in
             buttonList.forEach { addGesturesToTextInteractionButton($0) }
@@ -242,17 +247,18 @@ private extension EnglishKeyboardViewController {
         let switchToSymbolKeyboard = UIAction { [weak self] _ in
             self?.currentKeyboardLayout = .symbol
         }
-        englishKeyboardView.switchButton.addAction(switchToSymbolKeyboard, for: .touchUpInside)
+        primaryKeyboardView.switchButton.addAction(switchToSymbolKeyboard, for: .touchUpInside)
         
-        // 한글 키보드 전환
-        let switchToEnglishKeyboard = UIAction { [weak self] _ in
-            self?.currentKeyboardLayout = .english
+        // 주 키보드 전환
+        let switchToPrimaryKeyboard = UIAction { [weak self] _ in
+            guard let self else { return }
+            currentKeyboardLayout = primaryKeyboardLayout
         }
-        symbolKeyboardView.switchButton.addAction(switchToEnglishKeyboard, for: .touchUpInside)
-        numericKeyboardView.switchButton.addAction(switchToEnglishKeyboard, for: .touchUpInside)
+        symbolKeyboardView.switchButton.addAction(switchToPrimaryKeyboard, for: .touchUpInside)
+        numericKeyboardView.switchButton.addAction(switchToPrimaryKeyboard, for: .touchUpInside)
         
         // 숫자 키보드, 한 손 키보드 전환
-        [englishKeyboardView.switchButton,
+        [primaryKeyboardView.switchButton,
          symbolKeyboardView.switchButton,
          numericKeyboardView.switchButton].forEach { addGesturesToSwitchButton($0) }
     }
@@ -282,79 +288,25 @@ private extension EnglishKeyboardViewController {
 
 // MARK: - Update Methods
 
-private extension EnglishKeyboardViewController {
+extension BaseKeyboardViewController {
     func updateShowingKeyboard() {
-        englishKeyboardView.isHidden = (currentKeyboardLayout != .english)
-        englishKeyboardView.initShiftButton()  // TODO: - 자동 대문자 설정
-        symbolKeyboardView.isHidden = (currentKeyboardLayout != .symbol)
-        symbolKeyboardView.initShiftButton()
-        numericKeyboardView.isHidden = (currentKeyboardLayout != .numeric)
-        tenkeyKeyboardView.isHidden = (currentKeyboardLayout != .tenKey)
+        fatalError("메서드가 오버라이딩 되지 않았습니다.")
     }
     
-    func updateOneHandModeLayout() {
+    private func updateOneHandModeLayout() {
         leftChevronButton.isHidden = !(currentOneHandedMode == .right)
         rightChevronButton.isHidden = !(currentOneHandedMode == .left)
     }
     
-    func updateKeyboardAppearance() {
+    private func updateKeyboardAppearance() {
         // TODO: 키보드 라이트모드, 다크모드 전환 구현
     }
     
     func updateKeyboardType() {
-        switch textDocumentProxy.keyboardType {
-        case .default, .none:
-            englishKeyboardView.currentEnglishKeyboardMode = .default
-            symbolKeyboardView.currentSymbolKeyboardMode = .default
-            currentKeyboardLayout = .english
-        case .asciiCapable:
-            englishKeyboardView.currentEnglishKeyboardMode = .default
-            symbolKeyboardView.currentSymbolKeyboardMode = .default
-            currentKeyboardLayout = .english
-        case .numbersAndPunctuation:
-            englishKeyboardView.currentEnglishKeyboardMode = .default
-            symbolKeyboardView.currentSymbolKeyboardMode = .default
-            currentKeyboardLayout = .symbol
-        case .URL:
-            englishKeyboardView.currentEnglishKeyboardMode = .URL
-            symbolKeyboardView.currentSymbolKeyboardMode = .URL
-            // TODO: - 영어 키보드 설정
-            currentKeyboardLayout = .english
-        case .numberPad:
-            tenkeyKeyboardView.currentTenkeyKeyboardMode = .numberPad
-            currentKeyboardLayout = .tenKey
-        case .phonePad, .namePhonePad:
-            // 항상 iOS 시스템 키보드 표시됨
-            tenkeyKeyboardView.currentTenkeyKeyboardMode = .numberPad
-            currentKeyboardLayout = .tenKey
-        case .emailAddress:
-            englishKeyboardView.currentEnglishKeyboardMode = .emailAddress
-            symbolKeyboardView.currentSymbolKeyboardMode = .emailAddress
-            // TODO: - 영어 키보드 설정
-            currentKeyboardLayout = .english
-        case .decimalPad:
-            tenkeyKeyboardView.currentTenkeyKeyboardMode = .decimalPad
-            currentKeyboardLayout = .tenKey
-        case .twitter:
-            englishKeyboardView.currentEnglishKeyboardMode = .twitter
-            symbolKeyboardView.currentSymbolKeyboardMode = .default
-            currentKeyboardLayout = .english
-        case .webSearch:
-            englishKeyboardView.currentEnglishKeyboardMode = .webSearch
-            symbolKeyboardView.currentSymbolKeyboardMode = .webSearch
-            currentKeyboardLayout = .english
-        case .asciiCapableNumberPad:
-            tenkeyKeyboardView.currentTenkeyKeyboardMode = .numberPad
-            currentKeyboardLayout = .tenKey
-        @unknown default:
-            assertionFailure("구현이 필요한 case 입니다.")
-            englishKeyboardView.currentEnglishKeyboardMode = .default
-            symbolKeyboardView.currentSymbolKeyboardMode = .default
-            currentKeyboardLayout = .english
-        }
+        fatalError("메서드가 오버라이딩 되지 않았습니다.")
     }
     
-    func updateReturnButtonType() {
+    private func updateReturnButtonType() {
         let type = ReturnButton.ReturnKeyType(type: textDocumentProxy.returnKeyType)
         currentReturnButton?.update(for: type)
     }
@@ -362,7 +314,7 @@ private extension EnglishKeyboardViewController {
 
 // MARK: - Text Interaction Methods
 
-private extension EnglishKeyboardViewController {
+private extension BaseKeyboardViewController {
     func performTextInteraction(for button: TextInteractionButton) {
         switch button {
         case .keyButton(let keys):
@@ -399,20 +351,20 @@ private extension EnglishKeyboardViewController {
 
 // MARK: - SwitchButtonGestureControllerDelegate
 
-extension EnglishKeyboardViewController: SwitchButtonGestureControllerDelegate {
-    func changeKeyboardLayout(_ controller: SwitchButtonGestureController, to newLayout: KeyboardLayout) {
+extension BaseKeyboardViewController: SwitchButtonGestureControllerDelegate {
+    final func changeKeyboardLayout(_ controller: SwitchButtonGestureController, to newLayout: KeyboardLayout) {
         self.currentKeyboardLayout = newLayout
     }
     
-    func changeOneHandedMode(_ controller: SwitchButtonGestureController, to newMode: OneHandedMode) {
+    final func changeOneHandedMode(_ controller: SwitchButtonGestureController, to newMode: OneHandedMode) {
         self.currentOneHandedMode = newMode
     }
 }
 
 // MARK: - TextInteractionButtonGestureControllerDelegate
 
-extension EnglishKeyboardViewController: TextInteractionButtonGestureControllerDelegate {
-    func primaryButtonPanning(_ controller: TextInteractionButtonGestureController, to direction: PanDirection) {
+extension BaseKeyboardViewController: TextInteractionButtonGestureControllerDelegate {
+    final func primaryButtonPanning(_ controller: TextInteractionButtonGestureController, to direction: PanDirection) {
         logger.debug("Primary Button 팬 제스처 방향: \(String(describing: direction))")
         
         switch direction {
@@ -433,7 +385,7 @@ extension EnglishKeyboardViewController: TextInteractionButtonGestureControllerD
         }
     }
     
-    func deleteButtonPanning(_ controller: TextInteractionButtonGestureController, to direction: PanDirection) {
+    final func deleteButtonPanning(_ controller: TextInteractionButtonGestureController, to direction: PanDirection) {
         logger.debug("DeleteButton 팬 제스처 방향: \(String(describing: direction))")
         
         switch direction {
@@ -457,12 +409,12 @@ extension EnglishKeyboardViewController: TextInteractionButtonGestureControllerD
         }
     }
     
-    func deleteButtonPanStopped(_ controller: TextInteractionButtonGestureController) {
+    final func deleteButtonPanStopped(_ controller: TextInteractionButtonGestureController) {
         tempDeletedCharacters.removeAll()
         logger.debug("임시 삭제 내용 저장 변수 초기화")
     }
     
-    func textInteractionButtonLongPressing(_ controller: TextInteractionButtonGestureController, button: TextInteractionButton) {
+    final func textInteractionButtonLongPressing(_ controller: TextInteractionButtonGestureController, button: TextInteractionButton) {
         textInteractionButtonLongPressStopped(controller)
         
         let repeatTimerInterval = 0.10 - UserDefaultsManager.shared.repeatRate
@@ -474,7 +426,7 @@ extension EnglishKeyboardViewController: TextInteractionButtonGestureControllerD
         logger.debug("반복 타이머 생성")
     }
     
-    func textInteractionButtonLongPressStopped(_ controller: TextInteractionButtonGestureController) {
+    final func textInteractionButtonLongPressStopped(_ controller: TextInteractionButtonGestureController) {
         timer?.cancel()
         timer = nil
         logger.debug("반복 타이머 초기화")
