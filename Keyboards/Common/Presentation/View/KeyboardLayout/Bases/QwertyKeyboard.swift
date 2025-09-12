@@ -17,7 +17,8 @@ class QwertyKeyboard: UIView, DefaultKeyboardLayout, TextInteractionButtonGestur
     var keyboard: SYKeyboardType { fatalError("프로퍼티가 오버라이딩 되지 않았습니다.") }
     var keyList: [[[[String]]]] { fatalError("프로퍼티가 오버라이딩 되지 않았습니다.") }
     
-    private(set) lazy var totalTextInteractionButtonList: [TextInteractionButton] = firstRowKeyButtonList + secondRowKeyButtonList + thirdRowKeyButtonList + [deleteButton, spaceButton, returnButton]
+    private(set) lazy var totalTextInteractionButtonList: [TextInteractionButton] = firstRowKeyButtonList + secondRowKeyButtonList + thirdRowKeyButtonList
+    + [deleteButton, spaceButton, atButton, periodButton, slashButton, dotComButton, returnButton, secondaryAtButton, secondarySharpButton]
     
     var isShifted: Bool = false {
         didSet {
@@ -44,11 +45,11 @@ class QwertyKeyboard: UIView, DefaultKeyboardLayout, TextInteractionButtonGestur
     private(set) var spaceButtonHStackView = KeyboardRowHStackView().then { $0.distribution = .fill }
     private(set) var returnButtonHStackView = KeyboardRowHStackView()
     
-    /// 키보드 첫번째 행 `PrimaryKeyButton` 배열
+    /// 키보드 첫번째 행 `PrimaryButton` 배열
     private lazy var firstRowKeyButtonList = keyList[0][0].map { PrimaryKeyButton(keyboard: keyboard, button: .keyButton(keys: $0)) }
-    /// 키보드 두번째 행 `PrimaryKeyButton` 배열
+    /// 키보드 두번째 행 `PrimaryButton` 배열
     private lazy var secondRowKeyButtonList = keyList[0][1].map { PrimaryKeyButton(keyboard: keyboard, button: .keyButton(keys: $0)) }
-    /// 키보드 세번째 행 `PrimaryKeyButton` 배열
+    /// 키보드 세번째 행 `PrimaryButton` 배열
     private lazy var thirdRowKeyButtonList = keyList[0][2].map { PrimaryKeyButton(keyboard: keyboard, button: .keyButton(keys: $0)) }
     
     private(set) lazy var shiftButton = ShiftButton(keyboard: keyboard)

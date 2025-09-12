@@ -15,7 +15,8 @@ final class SymbolKeyboardView: UIView, SymbolKeyboardLayout {
     
     // MARK: - Properties
     
-    private(set) lazy var totalTextInteractionButtonList: [TextInteractionButton] = firstRowKeyButtonList + secondRowKeyButtonList + thirdRowKeyButtonList + [deleteButton, spaceButton, returnButton]
+    private(set) lazy var totalTextInteractionButtonList: [TextInteractionButton] = firstRowKeyButtonList + secondRowKeyButtonList + thirdRowKeyButtonList
+    + [deleteButton, spaceButton, atButton, periodButton, slashButton, dotComButton, returnButton]
     
     var currentSymbolKeyboardMode: SymbolKeyboardMode = .default {
         didSet(oldMode) {
@@ -48,11 +49,11 @@ final class SymbolKeyboardView: UIView, SymbolKeyboardLayout {
     private(set) var fourthRowLeftSecondaryButtonHStackView = KeyboardRowHStackView()
     private(set) var spaceButtonHStackView = KeyboardRowHStackView().then { $0.distribution = .fill }
     
-    /// 키보드 첫번째 행 `PrimaryKeyButton` 배열
+    /// 키보드 첫번째 행 `PrimaryButton` 배열
     private lazy var firstRowKeyButtonList = currentSymbolKeyboardMode.keyList[0][0].map { PrimaryKeyButton(keyboard: .symbol, button: .keyButton(keys: $0)) }
-    /// 키보드 두번째 행 `PrimaryKeyButton` 배열
+    /// 키보드 두번째 행 `PrimaryButton` 배열
     private lazy var secondRowKeyButtonList = currentSymbolKeyboardMode.keyList[0][1].map { PrimaryKeyButton(keyboard: .symbol, button: .keyButton(keys: $0)) }
-    /// 키보드 세번째 행 `PrimaryKeyButton` 배열
+    /// 키보드 세번째 행 `PrimaryButton` 배열
     private lazy var thirdRowKeyButtonList = currentSymbolKeyboardMode.keyList[0][2].map { PrimaryKeyButton(keyboard: .symbol, button: .keyButton(keys: $0)) }
     
     private(set) var shiftButton = ShiftButton(keyboard: .symbol)

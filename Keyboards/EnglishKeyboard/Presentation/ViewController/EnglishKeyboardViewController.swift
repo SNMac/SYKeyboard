@@ -70,6 +70,10 @@ final class EnglishKeyboardViewController: BaseKeyboardViewController {
     }
     
     override func inputKeyButton(keys: [String]) {
-        textDocumentProxy.insertText(keys[0])
+        guard let key = keys.first else {
+            assertionFailure("keys 배열이 비어있습니다.")
+            return
+        }
+        textDocumentProxy.insertText(key)
     }
 }

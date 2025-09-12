@@ -248,7 +248,7 @@ private extension BaseKeyboardViewController {
     }
     
     func addGesturesToTextInteractionButton(_ button: TextInteractionButton) {
-        guard !(button is ReturnButton) else { return }
+        guard !(button is ReturnButton), !(button is SecondaryKeyButton) else { return }
         // 팬(드래그) 제스처
         let panGesture = UIPanGestureRecognizer(target: textInteractionButtonGestureController, action: #selector(textInteractionButtonGestureController.panGestureHandler(_:)))
         panGesture.delegate = textInteractionButtonGestureController
