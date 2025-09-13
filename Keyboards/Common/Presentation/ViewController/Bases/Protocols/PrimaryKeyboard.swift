@@ -16,4 +16,5 @@ protocol PrimaryKeyboard: UIView {
     
     func updateNextKeyboardButton(needsInputModeSwitchKey: Bool, nextKeyboardAction: Selector)
     func initShiftButton()
+    func updateShiftButton(isShifted: Bool)
 }

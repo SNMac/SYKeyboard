@@ -16,6 +16,8 @@ enum UserDefaultsKeys {
     /* 입력 설정 */
     /// 텍스트 대치
     static let isTextReplacementEnabled = "isTextReplacementEnabled"
+    /// 자동 대문자
+    static let isAutoCapitalizationEnabled = "isAutoCapitalizationEnabled"
     /// 스페이스/리턴 입력 후 한글 키보드로 변경
     static let isAutoChangeToHangeulEnabled = "isAutoChangeToHangeulEnabled"
     

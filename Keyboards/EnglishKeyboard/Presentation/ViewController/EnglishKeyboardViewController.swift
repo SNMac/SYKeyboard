@@ -10,13 +10,33 @@ import UIKit
 /// 영어 키보드 입력/UI 컨트롤러
 final class EnglishKeyboardViewController: BaseKeyboardViewController {
     
+    // MARK: - Properties
+    
+    private(set) var isUppercaseInput: Bool = false
+    
     // MARK: - UI Components
     
     /// 영어 키보드
-    private lazy var englishKeyboardView: EnglishKeyboardLayout = EnglishKeyboardView()
+    private lazy var englishKeyboardView: EnglishKeyboardLayout = EnglishKeyboardView(getIsUppercaseInput: { [weak self] in return (self?.isUppercaseInput)! },
+                                                                                      resetIsUppercaseInput: { [weak self] in self?.isUppercaseInput = false })
     override var primaryKeyboardView: PrimaryKeyboard { englishKeyboardView }
     
+    // MARK: - Lifecycle
+    override func textWillChange(_ textInput: (any UITextInput)?) {
+        super.textWillChange(textInput)
+        if let lastBeforeCursor = textDocumentProxy.documentContextBeforeInput {
+            englishKeyboardView.updateShiftButton(isShifted: lastBeforeCursor.isEmpty)
+        } else {
+            englishKeyboardView.updateShiftButton(isShifted: true)
+        }
+    }
+    
     // MARK: - Override Methods
+    
+    override func updateShowingKeyboard() {
+        super.updateShowingKeyboard()
+        isUppercaseInput = false
+    }
     
     override func updateKeyboardType() {
         switch textDocumentProxy.keyboardType {
@@ -74,6 +94,7 @@ final class EnglishKeyboardViewController: BaseKeyboardViewController {
             assertionFailure("keys 배열이 비어있습니다.")
             return
         }
+        if Character(key).isUppercase { isUppercaseInput = true }
         textDocumentProxy.insertText(key)
     }
 }

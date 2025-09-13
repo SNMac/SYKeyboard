@@ -170,7 +170,9 @@ extension EnglishKeyboardLayout {
     }
     
     func updateShiftButton(isShifted: Bool) {
-        self.isShifted = isShifted
-        wasShifted = false
+        if !isCapsLocked {
+            self.isShifted = isShifted
+            wasShifted = false
+        }
     }
 }

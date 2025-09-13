@@ -10,7 +10,7 @@ import UIKit
 /// 스페이스 버튼
 final class SpaceButton: PrimaryButton, TextInteractionButton {
     
-    private(set) var button: TextInteractionType
+    private(set) var button: TextInteractionButtonType
     
     // MARK: - Initializer
     

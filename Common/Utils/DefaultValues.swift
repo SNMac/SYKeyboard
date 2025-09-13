@@ -20,6 +20,7 @@ enum DefaultValues {
     /* 입력 설정 */
     /// 텍스트 대치 기본값
     static let isTextReplacementEnabled: Bool = true
+    static let isAutoCapitalizationEnabled: Bool = true
     /// 스페이스/리턴 입력 후 한글 키보드로 변경 기본값
     static let isAutoChangeToHangeulEnabled: Bool = true
     

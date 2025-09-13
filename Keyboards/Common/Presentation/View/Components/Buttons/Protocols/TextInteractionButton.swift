@@ -9,5 +9,5 @@ import UIKit
 
 /// 입력 상호작용 버튼 프로토콜
 protocol TextInteractionButton: BaseKeyboardButton {
-    var button: TextInteractionType { get }
+    var button: TextInteractionButtonType { get }
 }

@@ -12,7 +12,7 @@ final class ReturnButton: SecondaryButton, TextInteractionButton {
     
     // MARK: - Properties
     
-    private(set) var button: TextInteractionType = .returnButton
+    private(set) var button: TextInteractionButtonType = .returnButton
     
     // MARK: - Initializer
     

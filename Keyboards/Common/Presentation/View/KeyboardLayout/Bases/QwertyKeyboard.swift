@@ -14,7 +14,9 @@ class QwertyKeyboard: UIView, DefaultKeyboardLayout, TextInteractionButtonGestur
     
     // MARK: - Properties
     
+    /// 키보드 종류
     var keyboard: SYKeyboardType { fatalError("프로퍼티가 오버라이딩 되지 않았습니다.") }
+    /// 키 배열
     var keyList: [[[[String]]]] { fatalError("프로퍼티가 오버라이딩 되지 않았습니다.") }
     
     private(set) lazy var totalTextInteractionButtonList: [TextInteractionButton] = firstRowKeyButtonList + secondRowKeyButtonList + thirdRowKeyButtonList
@@ -238,7 +240,7 @@ extension QwertyKeyboard {
         for (rowIndex, buttonList) in rowList.enumerated() {
             for (buttonIndex, button) in buttonList.enumerated() {
                 let keys = keyList[englishKeyListIndex][rowIndex][buttonIndex]
-                button.update(button: TextInteractionType.keyButton(keys: keys))
+                button.update(button: TextInteractionButtonType.keyButton(keys: keys))
             }
         }
     }

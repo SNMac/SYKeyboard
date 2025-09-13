@@ -50,6 +50,9 @@ final class UserDefaultsManager {
     /// 텍스트 대치
     @UserDefaultsWrapper(key: UserDefaultsKeys.isTextReplacementEnabled, defaultValue: DefaultValues.isTextReplacementEnabled)
     var isTextReplacementEnabled: Bool
+    /// 자동 대문자
+    @UserDefaultsWrapper(key: UserDefaultsKeys.isAutoCapitalizationEnabled, defaultValue: DefaultValues.isAutoCapitalizationEnabled)
+    var isAutoCapitalizationEnabled: Bool
     /// 스페이스/리턴 입력 후 한글 키보드로 변경
     @UserDefaultsWrapper(key: UserDefaultsKeys.isAutoChangeToHangeulEnabled, defaultValue: DefaultValues.isAutoChangeToHangeulEnabled)
     var isAutoChangeToHangeulEnabled: Bool

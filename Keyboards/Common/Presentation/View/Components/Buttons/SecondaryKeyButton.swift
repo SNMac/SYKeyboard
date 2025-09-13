@@ -12,7 +12,7 @@ final class SecondaryKeyButton: SecondaryButton, TextInteractionButton {
     
     // MARK: - Properties
     
-    private(set) var button: TextInteractionType {
+    private(set) var button: TextInteractionButtonType {
         didSet {
             if button.keys.isEmpty {
                 self.isHidden = true
@@ -25,7 +25,7 @@ final class SecondaryKeyButton: SecondaryButton, TextInteractionButton {
     
     // MARK: - Initializer
     
-    init(keyboard: SYKeyboardType, button: TextInteractionType) {
+    init(keyboard: SYKeyboardType, button: TextInteractionButtonType) {
         self.button = button
         super.init(keyboard: keyboard)
         
@@ -39,7 +39,7 @@ final class SecondaryKeyButton: SecondaryButton, TextInteractionButton {
     
     // MARK: - Internal Methods
     
-    func update(button: TextInteractionType) {
+    func update(button: TextInteractionButtonType) {
         self.button = button
     }
 }

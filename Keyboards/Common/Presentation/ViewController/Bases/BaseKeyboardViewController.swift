@@ -53,6 +53,7 @@ public class BaseKeyboardViewController: UIInputViewController {
     }
     /// 삭제 버튼 팬 제스처로 인해 임시로 삭제된 내용을 저장하는 변수
     private var tempDeletedCharacters: [Character] = []
+    /// 기호 키보드에서 기호 입력 여부를 저장하는 변수
     private var isSymbolInput: Bool = false
     
     // MARK: - UI Components
@@ -85,7 +86,7 @@ public class BaseKeyboardViewController: UIInputViewController {
                                                                                    symbolKeyboardView: symbolKeyboardView,
                                                                                    numericKeyboardView: numericKeyboardView,
                                                                                    getCurrentKeyboard: { [weak self] in return (self?.currentKeyboard)! },
-                                                                                   getCurrentOneHandedMode: { [weak self] in self?.currentOneHandedMode ?? .center })
+                                                                                   getCurrentOneHandedMode: { [weak self] in return (self?.currentOneHandedMode)! })
     /// 키 입력 버튼, 스페이스 버튼, 삭제 버튼 제스처 컨트롤러
     private lazy var textInteractionButtonGestureController = TextInteractionButtonGestureController()
     
@@ -115,12 +116,25 @@ public class BaseKeyboardViewController: UIInputViewController {
     
     public override func textWillChange(_ textInput: (any UITextInput)?) {
         super.textWillChange(textInput)
+        print("textWillChange")
         updateKeyboardAppearance()
         updateKeyboardType()
         updateReturnButtonType()
+        updateShiftButton()
     }
-    
+
     // MARK: - Overridable Methods
+    
+    /// 현재 보이는 키보드를  `currentKeyboard`에 맞게 변경하는 메서드
+    func updateShowingKeyboard() {
+        primaryKeyboardView.isHidden = (currentKeyboard != primaryKeyboardView.keyboard)
+        primaryKeyboardView.initShiftButton()
+        symbolKeyboardView.isHidden = (currentKeyboard != .symbol)
+        symbolKeyboardView.initShiftButton()
+        isSymbolInput = false
+        numericKeyboardView.isHidden = (currentKeyboard != .numeric)
+        tenkeyKeyboardView.isHidden = (currentKeyboard != .tenKey)
+    }
     
     /// `UIKeyboardType`에 맞는 키보드 레이아웃으로 업데이트하는 메서드
     func updateKeyboardType() {
@@ -286,7 +300,7 @@ private extension BaseKeyboardViewController {
     }
     
     func addGesturesToTextInteractionButton(_ button: TextInteractionButton) {
-        guard !(button is ReturnButton), !(button is SecondaryKeyButton) else { return }
+        guard !(button is ReturnButton) && !(button is SecondaryKeyButton) else { return }
         // 팬(드래그) 제스처
         let panGesture = UIPanGestureRecognizer(target: textInteractionButtonGestureController, action: #selector(textInteractionButtonGestureController.panGestureHandler(_:)))
         panGesture.delegate = textInteractionButtonGestureController
@@ -344,16 +358,6 @@ private extension BaseKeyboardViewController {
 // MARK: - Update Methods
 
 private extension BaseKeyboardViewController {
-    func updateShowingKeyboard() {
-        primaryKeyboardView.isHidden = (currentKeyboard != primaryKeyboardView.keyboard)
-        primaryKeyboardView.initShiftButton()  // TODO: - 자동 대문자 설정
-        symbolKeyboardView.isHidden = (currentKeyboard != .symbol)
-        symbolKeyboardView.initShiftButton()
-        isSymbolInput = false
-        numericKeyboardView.isHidden = (currentKeyboard != .numeric)
-        tenkeyKeyboardView.isHidden = (currentKeyboard != .tenKey)
-    }
-    
     func updateOneHandModekeyboard() {
         leftChevronButton.isHidden = !(currentOneHandedMode == .right)
         rightChevronButton.isHidden = !(currentOneHandedMode == .left)
@@ -367,12 +371,20 @@ private extension BaseKeyboardViewController {
         let type = ReturnButton.ReturnKeyType(type: textDocumentProxy.returnKeyType)
         currentReturnButton?.update(for: type)
     }
+    
+    func updateShiftButton() {
+        if textDocumentProxy.documentContextBeforeInput == nil && UserDefaultsManager.shared.isAutoCapitalizationEnabled {
+            primaryKeyboardView.updateShiftButton(isShifted: true)
+        } else {
+            primaryKeyboardView.updateShiftButton(isShifted: false)
+        }
+    }
 }
 
 // MARK: - Text Interaction Methods
 
 private extension BaseKeyboardViewController {
-    func performTextInteraction(for button: TextInteractionType) {
+    func performTextInteraction(for button: TextInteractionButtonType) {
         switch button {
         case .keyButton(let keys):
             inputKeyButton(keys: keys)
@@ -382,9 +394,11 @@ private extension BaseKeyboardViewController {
             guard let key = button.keys.first else { fatalError("옵셔널 언래핑 실패") }
             textDocumentProxy.insertText(key)
         }
+        
+        updateShiftButton()
     }
     
-    func performRepeatTextInteraction(for button: TextInteractionType) {
+    func performRepeatTextInteraction(for button: TextInteractionButtonType) {
         switch button {
         case .keyButton(let keys):
             inputKeyButton(keys: keys)
@@ -488,5 +502,6 @@ extension BaseKeyboardViewController: TextInteractionButtonGestureControllerDele
         timer?.cancel()
         timer = nil
         logger.debug("반복 타이머 초기화")
+        updateShiftButton()
     }
 }

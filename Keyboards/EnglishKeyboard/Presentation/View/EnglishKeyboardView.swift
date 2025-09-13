@@ -29,11 +29,18 @@ final class EnglishKeyboardView: QwertyKeyboard, EnglishKeyboardLayout {
         }
     }
     var willCapsLock: Bool = false
+    
+    private let getIsUppercaseInput: () -> Bool
+    private let resetIsUppercaseInput: () -> Void
 
     // MARK: - Initializer
     
-    override init(frame: CGRect) {
-        super.init(frame: frame)
+    init(getIsUppercaseInput: @escaping () -> Bool,
+         resetIsUppercaseInput: @escaping () -> Void) {
+        self.getIsUppercaseInput = getIsUppercaseInput
+        self.resetIsUppercaseInput = resetIsUppercaseInput
+        super.init(frame: .zero)
+        
         updateLayoutToDefault()
     }
     
@@ -67,8 +74,9 @@ final class EnglishKeyboardView: QwertyKeyboard, EnglishKeyboardLayout {
         
         let disableShift = UIAction { [weak self] _ in
             guard let self else { return }
-            if !isCapsLocked && wasShifted {
+            if (!isCapsLocked && wasShifted) || getIsUppercaseInput() {
                 isShifted = false
+                resetIsUppercaseInput()
             }
         }
         shiftButton.addAction(disableShift, for: .touchUpInside)
