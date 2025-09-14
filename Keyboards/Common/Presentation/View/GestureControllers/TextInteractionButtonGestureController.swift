@@ -113,12 +113,11 @@ private extension TextInteractionButtonGestureController {
     }
     
     func onLongPressGestureBegan(_ gesture: UILongPressGestureRecognizer) {
-        let currentButton = gesture.view as? TextInteractionButton
-        guard let button = currentButton else {
+        guard let currentButton = gesture.view as? TextInteractionButton else {
             assertionFailure("입력 상호작용 버튼이 아닙니다.")
             return
         }
-        delegate?.textInteractionButtonLongPressing(self, button: button)
+        delegate?.textInteractionButtonLongPressing(self, button: currentButton)
     }
     
     func onLongPressGestureEnded() {

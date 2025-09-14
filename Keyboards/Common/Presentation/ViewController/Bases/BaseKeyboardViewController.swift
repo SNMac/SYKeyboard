@@ -290,8 +290,7 @@ private extension BaseKeyboardViewController {
             button.addAction(switchToPrimaryKeyboard, for: .touchUpInside)
             
         case .deleteButton:
-            let additionalInputAction = UIAction { [weak self] _ in self?.isSymbolInput = true }
-            button.addAction(additionalInputAction, for: .touchDown)
+            break
             
         default:
             let additionalInputAction = UIAction { [weak self] _ in self?.isSymbolInput = true }
@@ -389,7 +388,9 @@ private extension BaseKeyboardViewController {
         case .keyButton(let keys):
             inputKeyButton(keys: keys)
         case .deleteButton:
-            textDocumentProxy.deleteBackward()
+            if textDocumentProxy.documentContextBeforeInput != nil {
+                textDocumentProxy.deleteBackward()
+            }
         case .spaceButton, .returnButton:
             guard let key = button.keys.first else { fatalError("옵셔널 언래핑 실패") }
             textDocumentProxy.insertText(key)
@@ -405,7 +406,7 @@ private extension BaseKeyboardViewController {
             FeedbackManager.shared.playHaptic()
             FeedbackManager.shared.playKeyTypingSound()
         case .deleteButton:
-            if let beforeCursor = textDocumentProxy.documentContextBeforeInput, !beforeCursor.isEmpty {
+            if textDocumentProxy.documentContextBeforeInput != nil {
                 textDocumentProxy.deleteBackward()
                 FeedbackManager.shared.playHaptic()
                 FeedbackManager.shared.playDeleteSound()
@@ -418,6 +419,8 @@ private extension BaseKeyboardViewController {
         default:
             assertionFailure("도달할 수 없는 case 입니다.")
         }
+        
+        updateShiftButton()
     }
 }
 
