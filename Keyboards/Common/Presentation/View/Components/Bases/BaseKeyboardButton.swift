@@ -16,7 +16,7 @@ class BaseKeyboardButton: UIButton {
     
     final let insetDx: CGFloat
     final let insetDy: CGFloat
-    final let cornerRadius: CGFloat = 4.6
+    final let cornerRadius: CGFloat
     
     // MARK: - Initializer
     
@@ -28,6 +28,11 @@ class BaseKeyboardButton: UIButton {
         case .english, .symbol:
             self.insetDx = 3
             self.insetDy = 4
+        }
+        if #available(iOS 26, *) {
+            self.cornerRadius = 8.5
+        } else {
+            self.cornerRadius = 4.6
         }
         super.init(frame: .zero)
         

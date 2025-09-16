@@ -54,8 +54,8 @@ private extension SecondaryButton {
     }
     
     func setHierarchy() {
-        self.addSubviews(shadowView,
-                         backgroundView)
+        self.insertSubview(shadowView, at: 0)
+        self.insertSubview(backgroundView, at: 1)
     }
     
     func setConstraints() {
