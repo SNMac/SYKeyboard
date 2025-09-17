@@ -21,24 +21,48 @@ final class EnglishKeyboardViewController: BaseKeyboardViewController {
                                                                                       resetIsUppercaseInput: { [weak self] in self?.isUppercaseInput = false })
     override var primaryKeyboardView: PrimaryKeyboard { englishKeyboardView }
     
-    // MARK: - Lifecycle
-    override func textWillChange(_ textInput: (any UITextInput)?) {
-        super.textWillChange(textInput)
-        if let lastBeforeCursor = textDocumentProxy.documentContextBeforeInput {
-            englishKeyboardView.updateShiftButton(isShifted: lastBeforeCursor.isEmpty)
+    // MARK: - Override Methods
+    
+    override func updateShiftButton() {
+        if UserDefaultsManager.shared.isAutoCapitalizationEnabled {
+            switch textDocumentProxy.autocapitalizationType {
+            case .words:
+                if let beforeCursor = textDocumentProxy.documentContextBeforeInput {
+                    if beforeCursor.endsWithWhitespace() {
+                        primaryKeyboardView.updateShiftButton(isShifted: true)
+                    } else {
+                        primaryKeyboardView.updateShiftButton(isShifted: false)
+                    }
+                } else {
+                    primaryKeyboardView.updateShiftButton(isShifted: true)
+                }
+            case .sentences:
+                if let beforeCursor = textDocumentProxy.documentContextBeforeInput {
+                    if beforeCursor.hasOnlyWhitespaceFromLastDot() {
+                        primaryKeyboardView.updateShiftButton(isShifted: true)
+                    } else {
+                        primaryKeyboardView.updateShiftButton(isShifted: false)
+                    }
+                } else {
+                    primaryKeyboardView.updateShiftButton(isShifted: true)
+                }
+            case .allCharacters:
+                primaryKeyboardView.updateShiftButton(isShifted: true)
+            default:
+                primaryKeyboardView.updateShiftButton(isShifted: false)
+            }
         } else {
-            englishKeyboardView.updateShiftButton(isShifted: true)
+            primaryKeyboardView.updateShiftButton(isShifted: false)
         }
     }
-    
-    // MARK: - Override Methods
     
     override func updateShowingKeyboard() {
         super.updateShowingKeyboard()
         isUppercaseInput = false
     }
     
-    override func updateKeyboardType() {
+    override func updateKeyboardType(oldKeyboardType: UIKeyboardType?) {
+        guard textDocumentProxy.keyboardType != oldKeyboardType else { return }
         switch textDocumentProxy.keyboardType {
         case .default, nil:
             englishKeyboardView.currentEnglishKeyboardMode = .default

@@ -41,7 +41,6 @@ final class PrimaryKeyButton: PrimaryButton, TextInteractionButton {
         self.button = button
         super.init(keyboard: keyboard)
         
-        setupUI()
         updateTitle()
     }
     
@@ -54,6 +53,13 @@ final class PrimaryKeyButton: PrimaryButton, TextInteractionButton {
     override func layoutSubviews() {
         super.layoutSubviews()
         updateTitleInsets()
+    }
+    
+    // MARK: - Override Methods
+    
+    override func playFeedback() {
+        FeedbackManager.shared.playHaptic()
+        FeedbackManager.shared.playKeyTypingSound()
     }
     
     // MARK: - Internal Methods
@@ -70,33 +76,17 @@ final class PrimaryKeyButton: PrimaryButton, TextInteractionButton {
          self.keyAlignment = alignment
          self.referenceKey = referenceKey
          
-         updateConstraintsForVisuals()
+         remakeConstraintsForVisuals()
      }
-}
-
-// MARK: - UI Methods
-
-private extension PrimaryKeyButton {
-    func setupUI() {
-        setActions()
-    }
-    
-    func setActions() {
-        let playFeedback = UIAction { _ in
-            FeedbackManager.shared.playHaptic()
-            FeedbackManager.shared.playKeyTypingSound()
-        }
-        self.addAction(playFeedback, for: .touchDown)
-    }
 }
 
 // MARK: - Update Methods
 
 private extension PrimaryKeyButton {
-    func updateConstraintsForVisuals() {
+    func remakeConstraintsForVisuals() {
         guard let referenceKey = referenceKey else { return }
         
-        // 1. Shadow View 제약 조건 재설정
+        // ShadowView 제약 조건 재설정
         shadowView.snp.remakeConstraints {
             $0.top.bottom.equalToSuperview().inset(self.insetDy)
             $0.width.equalTo(referenceKey).inset(self.insetDx) // 기준 키의 너비와 동일하게
@@ -111,7 +101,7 @@ private extension PrimaryKeyButton {
             }
         }
         
-        // 2. Background View 제약 조건 재설정
+        // BackgroundView 제약 조건 재설정
         backgroundView.snp.remakeConstraints {
             $0.top.bottom.equalToSuperview().inset(self.insetDy)
             $0.width.equalTo(referenceKey).inset(self.insetDx)  // 기준 키의 너비와 동일하게

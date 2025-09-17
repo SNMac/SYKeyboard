@@ -18,6 +18,7 @@ final class FeedbackManager {
     private init() {}
     
     // MARK: - Properties
+    
     private lazy var logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: String(describing: self))
     
     /// 햅틱 피드백 생성기

@@ -42,11 +42,14 @@ private extension SecondaryButton {
     
     func setStyles() {
         self.configurationUpdateHandler = { [weak self] button in
+            guard let self else { return }
             switch button.state {
             case .normal:
-                self?.backgroundView.backgroundColor = .secondaryButton
-            case .highlighted, .selected:
-                self?.backgroundView.backgroundColor = .secondaryButtonPressed
+                backgroundView.backgroundColor = .secondaryButton
+            case .highlighted:
+                backgroundView.backgroundColor = isPressed ? .secondaryButtonPressed : .secondaryButton
+            case .selected:
+                backgroundView.backgroundColor = .secondaryButtonPressed
             default:
                 break
             }

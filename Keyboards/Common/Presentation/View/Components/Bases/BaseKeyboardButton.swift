@@ -18,6 +18,14 @@ class BaseKeyboardButton: UIButton {
     final let insetDy: CGFloat
     final let cornerRadius: CGFloat
     
+    final var isPressed: Bool = false {
+        didSet {
+            if oldValue != isPressed {
+                setNeedsUpdateConfiguration()
+            }
+        }
+    }
+    
     // MARK: - Initializer
     
     init(keyboard: SYKeyboardType) {
@@ -41,6 +49,12 @@ class BaseKeyboardButton: UIButton {
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+    
+    // MARK: - Overridable Methods
+    
+    func playFeedback() {
+        assertionFailure("메서드가 오버라이딩 되지 않았습니다.")
     }
 }
 

@@ -27,34 +27,55 @@ final class TextInteractionButtonGestureController: NSObject {
     private var intervalReferPanPoint: CGPoint = .zero
     private var isCursorActive: Bool = false
     
+    // Initializer Injection
+    private let keyboardFrameView: UIView
+    private let getCurrentPressedButton: () -> BaseKeyboardButton?
+    private let setCurrentPressedButton: (BaseKeyboardButton?) -> ()
+    
     // Property Injection
     weak var delegate: TextInteractionButtonGestureControllerDelegate?
+    
+    // MARK: - Initializer
+    
+    init(keyboardFrameView: UIView,
+         getCurrentPressedButton: @escaping () -> BaseKeyboardButton?,
+         setCurrentPressedButton: @escaping (BaseKeyboardButton?) -> ()) {
+        self.keyboardFrameView = keyboardFrameView
+        self.getCurrentPressedButton = getCurrentPressedButton
+        self.setCurrentPressedButton = setCurrentPressedButton
+    }
     
     // MARK: - @objc Gesture Methods
     
     @objc func panGestureHandler(_ gesture: UIPanGestureRecognizer) {
+        let gestureButton = gesture.view as? TextInteractionButton
         let currentPoint = gesture.location(in: gesture.view)
-        let currentButton = gesture.view as? TextInteractionButton
         
         switch gesture.state {
         case .began:
-            currentButton?.isSelected = true
+            gestureButton?.isSelected = true
             initialPanPoint = currentPoint
             intervalReferPanPoint = currentPoint
             logger.debug("팬 제스처 활성화")
         case .changed:
             let distance = calcDistance(point1: initialPanPoint, point2: currentPoint)
             if isCursorActive || distance >= UserDefaultsManager.shared.cursorActiveDistance {
+                setCurrentPressedButton(nil)
+                keyboardFrameView.isUserInteractionEnabled = false
+                
                 isCursorActive = true
-                currentButton?.isSelected = false
+                gestureButton?.isSelected = false
                 onPanGestureChanged(gesture)
             }
         case .ended, .cancelled, .failed:
             onPanGestureEnded(gesture)
             initialPanPoint = .zero
             intervalReferPanPoint = .zero
+            if !isCursorActive { gestureButton?.sendActions(for: .touchUpInside) }
             isCursorActive = false
-            currentButton?.isSelected = false
+            gestureButton?.isSelected = false
+            
+            keyboardFrameView.isUserInteractionEnabled = true
             logger.debug("팬 제스처 비활성화")
         default:
             break
@@ -62,16 +83,26 @@ final class TextInteractionButtonGestureController: NSObject {
     }
     
     @objc func longPressGestureHandler(_ gesture: UILongPressGestureRecognizer) {
-        let currentButton = gesture.view as? TextInteractionButton
+        let gestureButton = gesture.view as? TextInteractionButton
         
         switch gesture.state {
         case .began:
-            currentButton?.isSelected = true
+            guard getCurrentPressedButton() == gestureButton else {
+                logger.notice("현재 눌려있는 버튼으로 인해 제스처 무시")
+                gesture.state = .failed
+                return
+            }
+            setCurrentPressedButton(nil)
+            keyboardFrameView.isUserInteractionEnabled = false
+            
+            gestureButton?.isSelected = true
             onLongPressGestureBegan(gesture)
             logger.debug("길게 누르기 제스처 활성화")
         case .ended, .cancelled, .failed:
             onLongPressGestureEnded()
-            currentButton?.isSelected = false
+            gestureButton?.isSelected = false
+            
+            keyboardFrameView.isUserInteractionEnabled = true
             logger.debug("길게 누르기 제스처 비활성화")
         default:
             break
@@ -113,11 +144,11 @@ private extension TextInteractionButtonGestureController {
     }
     
     func onLongPressGestureBegan(_ gesture: UILongPressGestureRecognizer) {
-        guard let currentButton = gesture.view as? TextInteractionButton else {
+        guard let gestureButton = gesture.view as? TextInteractionButton else {
             assertionFailure("입력 상호작용 버튼이 아닙니다.")
             return
         }
-        delegate?.textInteractionButtonLongPressing(self, button: currentButton)
+        delegate?.textInteractionButtonLongPressing(self, button: gestureButton)
     }
     
     func onLongPressGestureEnded() {

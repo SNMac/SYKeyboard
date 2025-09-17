@@ -11,6 +11,12 @@ import UIKit
 protocol BaseKeyboardLayout: UIView {
     /// 키보드 종류
     var keyboard: SYKeyboardType { get }
+    /// 모든 버튼 배열
+    var allButtonList: [BaseKeyboardButton] { get }
+    /// 주 키보드 버튼 배열
+    var primaryButtonList: [PrimaryButton] { get }
+    /// 보조 키보드 버튼 배열
+    var secondaryButtonList: [SecondaryButton] { get }
     /// `TextInteractionButton` 프로토콜을 채택한(입력 상호작용이 있는) 버튼들의 배열
     var totalTextInteractionButtonList: [TextInteractionButton] { get }
     /// 삭제 버튼

@@ -29,6 +29,13 @@ final class DeleteButton: SecondaryButton, TextInteractionButton {
     @MainActor required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
+    
+    // MARK: - Override Methods
+    
+    override func playFeedback() {
+        FeedbackManager.shared.playHaptic()
+        FeedbackManager.shared.playDeleteSound()
+    }
 }
 
 // MARK: - UI Methods
@@ -36,7 +43,6 @@ final class DeleteButton: SecondaryButton, TextInteractionButton {
 private extension DeleteButton {
     func setupUI() {
         setStyles()
-        setActions()
     }
     
     func setStyles() {
@@ -51,24 +57,25 @@ private extension DeleteButton {
         
         let imageConfig = UIImage.SymbolConfiguration(pointSize: 16, weight: .medium)
         self.configurationUpdateHandler = { [weak self] button in
+            guard let self else { return }
             switch button.state {
             case .normal:
-                self?.backgroundView.backgroundColor = .secondaryButton
+                backgroundView.backgroundColor = .secondaryButton
                 button.configuration?.image = UIImage(systemName: "delete.backward")?.withConfiguration(imageConfig).withTintColor(.label, renderingMode: .alwaysOriginal)
-            case .highlighted, .selected:
-                self?.backgroundView.backgroundColor = .secondaryButtonPressed
+            case .highlighted:
+                if isPressed {
+                    backgroundView.backgroundColor = .secondaryButtonPressed
+                    button.configuration?.image = UIImage(systemName: "delete.backward.fill")?.withConfiguration(imageConfig).withTintColor(.label, renderingMode: .alwaysOriginal)
+                } else {
+                    backgroundView.backgroundColor = .secondaryButton
+                    button.configuration?.image = UIImage(systemName: "delete.backward")?.withConfiguration(imageConfig).withTintColor(.label, renderingMode: .alwaysOriginal)
+                }
+            case .selected:
+                backgroundView.backgroundColor = .secondaryButtonPressed
                 button.configuration?.image = UIImage(systemName: "delete.backward.fill")?.withConfiguration(imageConfig).withTintColor(.label, renderingMode: .alwaysOriginal)
             default:
                 break
             }
         }
-    }
-    
-    func setActions() {
-        let playFeedback = UIAction { _ in
-            FeedbackManager.shared.playHaptic()
-            FeedbackManager.shared.playDeleteSound()
-        }
-        self.addAction(playFeedback, for: .touchDown)
     }
 }

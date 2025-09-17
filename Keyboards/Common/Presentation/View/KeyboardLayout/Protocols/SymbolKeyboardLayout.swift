@@ -85,7 +85,7 @@ extension SymbolKeyboardLayout {
         slashButton.isHidden = false
         dotComButton.isHidden = false
         
-        periodButton.snp.updateConstraints {
+        periodButton.snp.remakeConstraints {
             $0.width.equalToSuperview().dividedBy(3)
         }
         
@@ -99,7 +99,7 @@ extension SymbolKeyboardLayout {
         slashButton.isHidden = true
         dotComButton.isHidden = true
         
-        periodButton.snp.updateConstraints {
+        periodButton.snp.remakeConstraints {
             $0.width.equalToSuperview().dividedBy(4)
         }
         
@@ -113,7 +113,7 @@ extension SymbolKeyboardLayout {
         slashButton.isHidden = true
         dotComButton.isHidden = true
         
-        periodButton.snp.updateConstraints {
+        periodButton.snp.remakeConstraints {
             $0.width.equalToSuperview().dividedBy(5)
         }
         

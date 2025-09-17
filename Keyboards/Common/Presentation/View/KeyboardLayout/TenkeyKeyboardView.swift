@@ -15,6 +15,9 @@ final class TenkeyKeyboardView: UIView, TenkeyKeyboardLayout {
     
     // MARK: - Properties
     
+    private(set) lazy var allButtonList: [BaseKeyboardButton] = primaryButtonList + secondaryButtonList
+    private(set) lazy var primaryButtonList: [PrimaryButton] = firstRowKeyButtonList + secondRowKeyButtonList + thirdRowKeyButtonList + fourthRowKeyButtonList
+    private(set) lazy var secondaryButtonList: [SecondaryButton] = [periodButton, deleteButton]
     private(set) lazy var totalTextInteractionButtonList: [TextInteractionButton] = firstRowKeyButtonList + secondRowKeyButtonList + thirdRowKeyButtonList + fourthRowKeyButtonList
     + [periodButton, deleteButton]
     

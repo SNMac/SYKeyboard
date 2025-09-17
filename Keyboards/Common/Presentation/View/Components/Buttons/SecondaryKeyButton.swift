@@ -29,7 +29,6 @@ final class SecondaryKeyButton: SecondaryButton, TextInteractionButton {
         self.button = button
         super.init(keyboard: keyboard)
         
-        setupUI()
         updateTitle()
     }
     
@@ -37,26 +36,17 @@ final class SecondaryKeyButton: SecondaryButton, TextInteractionButton {
         fatalError("init(coder:) has not been implemented")
     }
     
+    // MARK: - Override Methods
+    
+    override func playFeedback() {
+        FeedbackManager.shared.playHaptic()
+        FeedbackManager.shared.playModifierSound()
+    }
+    
     // MARK: - Internal Methods
     
     func update(button: TextInteractionButtonType) {
         self.button = button
-    }
-}
-
-// MARK: - UI Methods
-
-private extension SecondaryKeyButton {
-    func setupUI() {
-        setActions()
-    }
-    
-    func setActions() {
-        let playFeedback = UIAction { _ in
-            FeedbackManager.shared.playHaptic()
-            FeedbackManager.shared.playKeyTypingSound()
-        }
-        self.addAction(playFeedback, for: .touchDown)
     }
 }
 

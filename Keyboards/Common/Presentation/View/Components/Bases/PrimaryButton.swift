@@ -36,26 +36,24 @@ class PrimaryButton: BaseKeyboardButton {
 private extension PrimaryButton {
     func setupUI() {
         setStyles()
-        setActions()
         setHierarchy()
         setConstraints()
     }
     
     func setStyles() {
         self.configurationUpdateHandler = { [weak self] button in
+            guard let self else { return }
             switch button.state {
             case .normal:
-                self?.backgroundView.backgroundColor = .primaryButton
-            case .highlighted, .selected:
-                self?.backgroundView.backgroundColor = .primaryButtonPressed
+                backgroundView.backgroundColor = .primaryButton
+            case .highlighted:
+                backgroundView.backgroundColor = isPressed ? .primaryButtonPressed : .primaryButton
+            case .selected:
+                backgroundView.backgroundColor = .primaryButtonPressed
             default:
                 break
             }
         }
-    }
-    
-    func setActions() {
-        // TODO: - 키 입력 로직
     }
     
     func setHierarchy() {

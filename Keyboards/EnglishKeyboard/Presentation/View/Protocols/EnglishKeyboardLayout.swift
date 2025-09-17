@@ -10,7 +10,7 @@ import UIKit
 import SnapKit
 
 /// 영어 키보드 레이아웃 프로토콜
-protocol EnglishKeyboardLayout: DefaultKeyboardLayout, PrimaryKeyboard, TextInteractionButtonGestureHandler, SwitchButtonGestureHandler {
+protocol EnglishKeyboardLayout: PrimaryKeyboard, TextInteractionButtonGestureHandler, SwitchButtonGestureHandler {
     /// 현재 영어 키보드 모드
     var currentEnglishKeyboardMode: EnglishKeyboardMode { get set }
     /// Shift 상태
@@ -103,7 +103,7 @@ extension EnglishKeyboardLayout {
         slashButton.isHidden = false
         dotComButton.isHidden = false
         
-        periodButton.snp.updateConstraints {
+        periodButton.snp.remakeConstraints {
             $0.width.equalToSuperview().dividedBy(3)
         }
         
@@ -121,7 +121,7 @@ extension EnglishKeyboardLayout {
         slashButton.isHidden = true
         dotComButton.isHidden = true
         
-        periodButton.snp.updateConstraints {
+        periodButton.snp.remakeConstraints {
             $0.width.equalToSuperview().dividedBy(4)
         }
         
@@ -151,7 +151,7 @@ extension EnglishKeyboardLayout {
         slashButton.isHidden = true
         dotComButton.isHidden = true
         
-        periodButton.snp.updateConstraints {
+        periodButton.snp.remakeConstraints {
             $0.width.equalToSuperview().dividedBy(5)
         }
         

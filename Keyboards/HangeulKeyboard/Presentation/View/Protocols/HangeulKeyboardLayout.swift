@@ -8,7 +8,7 @@
 import UIKit
 
 /// 한글 키보드 레이아웃 프로토콜
-protocol HangeulKeyboardLayout: DefaultKeyboardLayout, PrimaryKeyboard, TextInteractionButtonGestureHandler, SwitchButtonGestureHandler {
+protocol HangeulKeyboardLayout: PrimaryKeyboard, TextInteractionButtonGestureHandler, SwitchButtonGestureHandler {
     /// 현재 한글 키보드 모드
     var currentHangeulKeyboardMode: HangeulKeyboardMode { get set }
     /// Shift 상태

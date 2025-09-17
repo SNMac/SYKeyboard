@@ -26,6 +26,9 @@ final class SwitchButtonGestureController: NSObject {
                            targetkeyboard: SYKeyboardType,
                            targetDirection: PanDirection)
     
+    private var initialPanPoint: CGPoint = .zero
+    private var intervalReferPanPoint: CGPoint = .zero
+    private var isCursorActive: Bool = false
     private var isDragOutside: Bool = false
     
     private lazy var keyboardFrameViewPressGestureRecognizer = UILongPressGestureRecognizer(target: self, action: #selector(keyboardFrameViewPressGestureHandler(_:))).then {
@@ -40,6 +43,8 @@ final class SwitchButtonGestureController: NSObject {
     private let numericKeyboardView: SwitchButtonGestureHandler
     private let getCurrentKeyboard: () -> SYKeyboardType
     private let getCurrentOneHandedMode: () -> OneHandedMode
+    private let getCurrentPressedButton: () -> BaseKeyboardButton?
+    private let setCurrentPressedButton: (BaseKeyboardButton?) -> ()
     
     // Property Injection
     weak var delegate: SwitchButtonGestureControllerDelegate?
@@ -52,7 +57,9 @@ final class SwitchButtonGestureController: NSObject {
          symbolKeyboardView: SwitchButtonGestureHandler,
          numericKeyboardView: SwitchButtonGestureHandler,
          getCurrentKeyboard: @escaping () -> SYKeyboardType,
-         getCurrentOneHandedMode: @escaping () -> OneHandedMode) {
+         getCurrentOneHandedMode: @escaping () -> OneHandedMode,
+         getCurrentPressedButton: @escaping () -> BaseKeyboardButton?,
+         setCurrentPressedButton: @escaping (BaseKeyboardButton?) -> ()) {
         self.keyboardFrameView = keyboardFrameView
         self.hangeulKeyboardView = hangeulKeyboardView
         self.englishKeyboardView = englishKeyboardView
@@ -60,23 +67,38 @@ final class SwitchButtonGestureController: NSObject {
         self.numericKeyboardView = numericKeyboardView
         self.getCurrentKeyboard = getCurrentKeyboard
         self.getCurrentOneHandedMode = getCurrentOneHandedMode
+        self.getCurrentPressedButton = getCurrentPressedButton
+        self.setCurrentPressedButton = setCurrentPressedButton
     }
     
     // MARK: - @objc Gesture Methods
     
     @objc func panGestureHandler(_ gesture: UIPanGestureRecognizer) {
-        let currentButton = gesture.view as? SwitchButton
+        let gestureButton = gesture.view as? SwitchButton
+        let currentPoint = gesture.location(in: gesture.view)
         let config = setPanConfig()
         
         switch gesture.state {
         case .began:
-            currentButton?.isSelected = true
+            gestureButton?.isSelected = true
             logger.debug("팬 제스처 활성화")
         case .changed:
-            onPanGestureChanged(gesture, config: config)
+            let distance = calcDistance(point1: initialPanPoint, point2: currentPoint)
+            if isCursorActive || distance >= UserDefaultsManager.shared.cursorActiveDistance {
+                setCurrentPressedButton(nil)
+                keyboardFrameView.isUserInteractionEnabled = false
+                
+                onPanGestureChanged(gesture, config: config)
+            }
         case .ended, .cancelled, .failed:
             onPanGestureEnded(gesture, config: config)
-            currentButton?.isSelected = false
+            initialPanPoint = .zero
+            intervalReferPanPoint = .zero
+            if !isCursorActive { gestureButton?.sendActions(for: .touchUpInside) }
+            isCursorActive = false
+            gestureButton?.isSelected = false
+            
+            keyboardFrameView.isUserInteractionEnabled = true
             logger.debug("팬 제스처 비활성화")
         default:
             break
@@ -84,19 +106,28 @@ final class SwitchButtonGestureController: NSObject {
     }
     
     @objc func longPressGestureHandler(_ gesture: UILongPressGestureRecognizer) {
-        let currentButton = gesture.view as? SwitchButton
+        let gestureButton = gesture.view as? SwitchButton
         let gestureHandler = setGestureHandler()
         
         switch gesture.state {
         case .began:
-            currentButton?.isSelected = true
+            guard getCurrentPressedButton() == gestureButton else {
+                logger.notice("현재 눌려있는 버튼으로 인해 제스처 무시")
+                gesture.state = .failed
+                return
+            }
+            keyboardFrameView.isUserInteractionEnabled = false
+            setCurrentPressedButton(nil)
+            
+            gestureButton?.isSelected = true
             onLongPressGestureBegan(gestureHandler: gestureHandler)
             logger.debug("길게 누르기 제스처 활성화")
         case .changed:
             onLongPressGestureChanged(gesture, gestureHandler: gestureHandler)
         case .ended, .cancelled, .failed:
             let keepSelected = onLongPressGestureEnded(gesture, gestureHandler: gestureHandler)
-            currentButton?.isSelected = keepSelected
+            gestureButton?.isSelected = keepSelected
+            keyboardFrameView.isUserInteractionEnabled = true
             logger.debug("길게 누르기 제스처 비활성화")
         default:
             break
@@ -105,7 +136,7 @@ final class SwitchButtonGestureController: NSObject {
     
     @objc func keyboardFrameViewPressGestureHandler(_ gesture: UILongPressGestureRecognizer) {
         let gestureHandler = setGestureHandler()
-        let currentButton = gestureHandler.switchButton
+        let gestureButton = gestureHandler.switchButton
         
         switch gesture.state {
         case .began:
@@ -115,7 +146,7 @@ final class SwitchButtonGestureController: NSObject {
             onKeyboardFrameViewPressGestureChanged(gesture, gestureHandler: gestureHandler)
         case .ended, .cancelled, .failed:
             onKeyboardFrameViewPressGestureEnded(gesture, gestureHandler: gestureHandler)
-            currentButton.isSelected = false
+            gestureButton.isSelected = false
             logger.debug("키보드 길게 누르기 제스처 비활성화")
         default:
             break
@@ -406,6 +437,12 @@ private extension SwitchButtonGestureController {
         default:
             return getCurrentOneHandedMode()
         }
+    }
+    
+    func calcDistance(point1: CGPoint, point2: CGPoint) -> CGFloat {
+        let dx = point2.x - point1.x
+        let dy = point2.y - point1.y
+        return sqrt(dx * dx + dy * dy)
     }
 }
 

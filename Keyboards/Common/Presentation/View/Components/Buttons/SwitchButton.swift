@@ -77,6 +77,13 @@ final class SwitchButton: SecondaryButton {
         }
     }
     
+    // MARK: - Override Methods
+    
+    override func playFeedback() {
+        FeedbackManager.shared.playHaptic()
+        FeedbackManager.shared.playModifierSound()
+    }
+    
     // MARK: - Internal Methods
     
     func configureOneHandedComponent(needToEmphasize: Bool) {
@@ -93,7 +100,6 @@ final class SwitchButton: SecondaryButton {
 private extension SwitchButton {
     func setupUI() {
         setStyles()
-        setActions()
         setHierarchy()
         setConstraints()
     }
@@ -104,14 +110,6 @@ private extension SwitchButton {
         
         let attributes = AttributeContainer([.font: UIFont.monospacedDigitSystemFont(ofSize: 18, weight: .regular), .foregroundColor: UIColor.label])
         self.configuration?.attributedTitle = AttributedString(title, attributes: attributes)
-    }
-    
-    func setActions() {
-        let playFeedback = UIAction { _ in
-            FeedbackManager.shared.playHaptic()
-            FeedbackManager.shared.playModifierSound()
-        }
-        self.addAction(playFeedback, for: .touchDown)
     }
     
     func setHierarchy() {

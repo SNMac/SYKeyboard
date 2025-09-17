@@ -31,6 +31,13 @@ final class ShiftButton: SecondaryButton {
         fatalError("init(coder:) has not been implemented")
     }
     
+    // MARK: - Override Methods
+    
+    override func playFeedback() {
+        FeedbackManager.shared.playHaptic()
+        FeedbackManager.shared.playModifierSound()
+    }
+    
     // MARK: - Internal Methods
     
     func updateShiftState(to isShifted: Bool) {
@@ -59,10 +66,12 @@ final class ShiftButton: SecondaryButton {
         switch keyboard {
         case .hangeul, .english:
             if isCapsLocked {
+                self.isPressed = true
                 self.isSelected = true
                 self.configuration?.image = UIImage(systemName: "capslock.fill")?.withConfiguration(imageConfig).withTintColor(.label, renderingMode: .alwaysOriginal)
                 self.backgroundView.backgroundColor = .secondaryButtonPressed
             } else {
+                self.isPressed = false
                 self.isSelected = false
                 self.configuration?.image = UIImage(systemName: "shift")?.withConfiguration(imageConfig).withTintColor(.label, renderingMode: .alwaysOriginal)
             }
@@ -77,7 +86,6 @@ final class ShiftButton: SecondaryButton {
 private extension ShiftButton {
     func setupUI() {
         setStyles()
-        setActions()
     }
     
     func setStyles() {
@@ -103,13 +111,5 @@ private extension ShiftButton {
         default:
             fatalError("도달할 수 없는 case 입니다.")
         }
-    }
-    
-    func setActions() {
-        let playFeedback = UIAction { _ in
-            FeedbackManager.shared.playHaptic()
-            FeedbackManager.shared.playModifierSound()
-        }
-        self.addAction(playFeedback, for: .touchDown)
     }
 }
