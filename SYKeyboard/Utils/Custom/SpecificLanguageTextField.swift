@@ -42,7 +42,7 @@ struct SpecificLanguageTextFieldView: UIViewRepresentable {
         let textField = SpecificLanguageTextField(frame: .zero)
         textField.placeholder = self.placeHolder
         textField.text = self.text
-//        textField.keyboardType = .default  // 테스트용
+//        textField.keyboardType = .emailAddress  // 테스트용
 //        textField.returnKeyType = .continue  // 테스트용
         textField.language = self.language
         return textField

@@ -85,9 +85,7 @@ extension SymbolKeyboardLayout {
         slashButton.isHidden = false
         dotComButton.isHidden = false
         
-        periodButton.snp.remakeConstraints {
-            $0.width.equalToSuperview().dividedBy(3)
-        }
+        periodButton.snp.removeConstraints()
         
         initShiftButton()
     }

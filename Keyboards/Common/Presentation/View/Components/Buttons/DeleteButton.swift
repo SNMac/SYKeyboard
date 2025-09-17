@@ -48,9 +48,9 @@ private extension DeleteButton {
     func setStyles() {
         switch keyboard {
         case .english, .symbol:
-            self.configuration?.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 3, bottom: 0, trailing: 0)
-            self.shadowView.snp.updateConstraints { $0.leading.equalToSuperview().inset(self.insetDx + 3) }
-            self.backgroundView.snp.updateConstraints { $0.leading.equalToSuperview().inset(self.insetDx + 3) }
+            self.configuration?.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 6, bottom: 0, trailing: 0)
+            self.shadowView.snp.updateConstraints { $0.leading.equalToSuperview().inset(self.insetDx + 6) }
+            self.backgroundView.snp.updateConstraints { $0.leading.equalToSuperview().inset(self.insetDx + 6) }
         default:
             break
         }

@@ -12,6 +12,7 @@ enum SymbolKeyboardMode {
     case webSearch
     
     var keyList: [[[[String]]]] {
+        // TODO: iOS 26에서 기호 키보드 하나로 통합?
         switch self {
         case .default, .webSearch:
             return [

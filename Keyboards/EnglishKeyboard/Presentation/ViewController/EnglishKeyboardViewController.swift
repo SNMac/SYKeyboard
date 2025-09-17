@@ -118,7 +118,9 @@ final class EnglishKeyboardViewController: BaseKeyboardViewController {
             assertionFailure("keys 배열이 비어있습니다.")
             return
         }
-        if Character(key).isUppercase { isUppercaseInput = true }
+        if key.count == 1 {
+            if Character(key).isUppercase { isUppercaseInput = true }
+        }
         textDocumentProxy.insertText(key)
     }
 }

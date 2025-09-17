@@ -44,6 +44,8 @@ class QwertyKeyboard: UIView, DefaultKeyboardLayout, TextInteractionButtonGestur
     private let secondRowHStackView = KeyboardRowHStackView().then { $0.distribution = .fill }
     /// 키보드 세번째 행
     private let thirdRowHStackView = KeyboardRowHStackView().then { $0.distribution = .fill }
+    /// 키보드 세번째 내부 행
+    private let thirdRowInsideHStackView = KeyboardRowHStackView()
     /// 키보드 네번째 행
     private let fourthRowHStackView = KeyboardRowHStackView().then { $0.distribution = .fill }
     private(set) var fourthRowLeftSecondaryButtonHStackView = KeyboardRowHStackView()
@@ -133,17 +135,16 @@ private extension QwertyKeyboard {
                          oneHandedModeSelectOverlayView)
         
         keyboardVStackView.addArrangedSubviews(firstRowHStackView,
-                                             secondRowHStackView,
-                                             thirdRowHStackView,
-                                             fourthRowHStackView)
+                                               secondRowHStackView,
+                                               thirdRowHStackView,
+                                               fourthRowHStackView)
         
         firstRowKeyButtonList.forEach { firstRowHStackView.addArrangedSubview($0) }
         
         secondRowKeyButtonList.forEach { secondRowHStackView.addArrangedSubview($0) }
         
-        thirdRowHStackView.addArrangedSubview(shiftButton)
-        thirdRowKeyButtonList.forEach { thirdRowHStackView.addArrangedSubview($0) }
-        thirdRowHStackView.addArrangedSubview(deleteButton)
+        thirdRowHStackView.addArrangedSubviews(shiftButton, thirdRowInsideHStackView, deleteButton)
+        thirdRowKeyButtonList.forEach { thirdRowInsideHStackView.addArrangedSubview($0) }
         
         fourthRowHStackView.addArrangedSubviews(fourthRowLeftSecondaryButtonHStackView, spaceButtonHStackView, returnButtonHStackView)
         fourthRowLeftSecondaryButtonHStackView.addArrangedSubviews(switchButton, nextKeyboardButton)
@@ -174,23 +175,7 @@ private extension QwertyKeyboard {
         }
         
         shiftButton.snp.makeConstraints {
-            $0.width.equalToSuperview().dividedBy(7.2)
-        }
-        
-        for (index, button) in thirdRowKeyButtonList.enumerated() {
-            if index == 0 {
-                guard let lastButton = thirdRowKeyButtonList.last else { fatalError("thirdRowKeyButtonList가 비어있습니다.") }
-                button.snp.makeConstraints {
-                    $0.width.equalTo(lastButton)
-                }
-                button.updateKeyAlignment(.right, referenceKey: referenceKey)
-            } else if index == thirdRowKeyButtonList.count - 1 {
-                button.updateKeyAlignment(.left, referenceKey: referenceKey)
-            } else {
-                button.snp.makeConstraints {
-                    $0.width.equalToSuperview().dividedBy(firstRowKeyButtonList.count)
-                }
-            }
+            $0.width.equalToSuperview().dividedBy(6.65)
         }
         
         deleteButton.snp.makeConstraints {

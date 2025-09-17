@@ -89,9 +89,9 @@ private extension ShiftButton {
     }
     
     func setStyles() {
-        self.configuration?.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 3)
-        self.shadowView.snp.updateConstraints { $0.trailing.equalToSuperview().inset(self.insetDx + 3) }
-        self.backgroundView.snp.updateConstraints { $0.trailing.equalToSuperview().inset(self.insetDx + 3) }
+        self.configuration?.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 6)
+        self.shadowView.snp.updateConstraints { $0.trailing.equalToSuperview().inset(self.insetDx + 6) }
+        self.backgroundView.snp.updateConstraints { $0.trailing.equalToSuperview().inset(self.insetDx + 6) }
         
         switch keyboard {
         case .english:
