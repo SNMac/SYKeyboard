@@ -25,13 +25,13 @@ class QwertyKeyboard: UIView, DefaultKeyboardLayout, TextInteractionButtonGestur
     private(set) lazy var totalTextInteractionButtonList: [TextInteractionButton] = firstRowKeyButtonList + secondRowKeyButtonList + thirdRowKeyButtonList
     + [deleteButton, spaceButton, atButton, periodButton, slashButton, dotComButton, returnButton, secondaryAtButton, secondarySharpButton]
     
-    var isShifted: Bool = false {
+    final var isShifted: Bool = false {
         didSet {
             shiftButton.updateShiftState(to: isShifted)
             updateKeyButtonList()
         }
     }
-    var wasShifted: Bool = false
+    final var wasShifted: Bool = false
     
     // MARK: - UI Components
     
@@ -222,12 +222,12 @@ private extension QwertyKeyboard {
 // MARK: - Update Methods
 
 extension QwertyKeyboard {
-    func updateKeyButtonList() {
-        let englishKeyListIndex = (isShifted ? 1 : 0)
+    final func updateKeyButtonList() {
+        let keyListIndex = (isShifted ? 1 : 0)
         let rowList = [firstRowKeyButtonList, secondRowKeyButtonList, thirdRowKeyButtonList]
         for (rowIndex, buttonList) in rowList.enumerated() {
             for (buttonIndex, button) in buttonList.enumerated() {
-                let keys = keyList[englishKeyListIndex][rowIndex][buttonIndex]
+                let keys = keyList[keyListIndex][rowIndex][buttonIndex]
                 button.update(button: TextInteractionButtonType.keyButton(keys: keys))
             }
         }

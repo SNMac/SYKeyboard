@@ -53,9 +53,7 @@ class BaseKeyboardButton: UIButton {
     
     // MARK: - Overridable Methods
     
-    func playFeedback() {
-        assertionFailure("메서드가 오버라이딩 되지 않았습니다.")
-    }
+    func playFeedback() { assertionFailure("메서드가 오버라이딩 되지 않았습니다.") }
 }
 
 // MARK: - UI Methods

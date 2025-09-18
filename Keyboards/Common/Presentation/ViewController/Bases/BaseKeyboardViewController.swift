@@ -24,10 +24,10 @@ public class BaseKeyboardViewController: UIInputViewController {
     /// 반복 입력용 타이머
     private var timer: AnyCancellable?
     
-    lazy var oldKeyboardType: UIKeyboardType? = textDocumentProxy.keyboardType
+    final lazy var oldKeyboardType: UIKeyboardType? = textDocumentProxy.keyboardType
     
     /// 현재 표시되는 키보드
-    lazy var currentKeyboard: SYKeyboardType = primaryKeyboardView.keyboard {
+    final lazy var currentKeyboard: SYKeyboardType = primaryKeyboardView.keyboard {
         didSet {
             updateShowingKeyboard()
             updateReturnButtonType()
@@ -150,9 +150,7 @@ public class BaseKeyboardViewController: UIInputViewController {
     ///
     /// - Parameters:
     ///   - oldKeyboardType: 이전 `UIKeyboardType`
-    func updateKeyboardType(oldKeyboardType: UIKeyboardType?) {
-        fatalError("메서드가 오버라이딩 되지 않았습니다.")
-    }
+    func updateKeyboardType(oldKeyboardType: UIKeyboardType?) { fatalError("메서드가 오버라이딩 되지 않았습니다.") }
     
     /// Shift 버튼을 상황에 맞게 업데이트하는 메서드
     func updateShiftButton() {}
@@ -161,9 +159,7 @@ public class BaseKeyboardViewController: UIInputViewController {
     ///
     /// - Parameters:
     ///   - keys: `TextInteractionButton`에 입력할 수 있는 문자 배열
-    func inputKeyButton(keys: [String]) {
-        fatalError("메서드가 오버라이딩 되지 않았습니다.")
-    }
+    func inputKeyButton(keys: [String]) { fatalError("메서드가 오버라이딩 되지 않았습니다.") }
 }
 
 // MARK: - UI Methods
@@ -484,14 +480,6 @@ extension BaseKeyboardViewController: SwitchButtonGestureControllerDelegate {
     final func changeOneHandedMode(_ controller: SwitchButtonGestureController, to newMode: OneHandedMode) {
         self.currentOneHandedMode = newMode
     }
-    
-    final func gestureDidBegin(_ controller: SwitchButtonGestureController) {
-        buttonStateController.isGestureActive = true
-    }
-    
-    final func gestureDidEnd(_ controller: SwitchButtonGestureController) {
-        buttonStateController.isGestureActive = false
-    }
 }
 
 // MARK: - TextInteractionButtonGestureControllerDelegate
@@ -564,13 +552,5 @@ extension BaseKeyboardViewController: TextInteractionButtonGestureControllerDele
         logger.debug("반복 타이머 초기화")
         tempDeletedCharacters.removeAll()
         updateShiftButton()
-    }
-    
-    final func gestureDidBegin(_ controller: TextInteractionButtonGestureController) {
-        buttonStateController.isGestureActive = true
-    }
-    
-    final func gestureDidEnd(_ controller: TextInteractionButtonGestureController) {
-        buttonStateController.isGestureActive = false
     }
 }
