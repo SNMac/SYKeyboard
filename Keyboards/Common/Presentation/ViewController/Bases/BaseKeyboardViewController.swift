@@ -18,12 +18,6 @@ public class BaseKeyboardViewController: UIInputViewController {
     
     private(set) lazy var logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: String(describing: self))
     
-    /// 키보드 높이 제약 조건 할당 여부
-    private var isHeightConstraintAdded: Bool = false
-    
-    /// 반복 입력용 타이머
-    private var timer: AnyCancellable?
-    
     final lazy var oldKeyboardType: UIKeyboardType? = textDocumentProxy.keyboardType
     
     /// 현재 표시되는 키보드
@@ -72,6 +66,10 @@ public class BaseKeyboardViewController: UIInputViewController {
     /// 버튼 상태 컨트롤러
     private(set) lazy var buttonStateController = ButtonStateController()
     
+    /// 키보드 높이 제약 조건 할당 여부
+    private var isHeightConstraintAdded: Bool = false
+    /// 반복 입력용 타이머
+    private var timer: AnyCancellable?
     /// 삭제 버튼 팬 제스처로 인해 임시로 삭제된 내용을 저장하는 변수
     private var tempDeletedCharacters: [Character] = []
     /// 기호 키보드에서 기호 입력 여부를 저장하는 변수
@@ -119,6 +117,11 @@ public class BaseKeyboardViewController: UIInputViewController {
     
     public override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
+        let window = view.window!
+        let systemGestureRecognizer0 = window.gestureRecognizers?[0] as? UIGestureRecognizer
+        let systemGestureRecognizer1 = window.gestureRecognizers?[1] as? UIGestureRecognizer
+        systemGestureRecognizer0?.delaysTouchesBegan = false
+        systemGestureRecognizer1?.delaysTouchesBegan = false
 //        #if DEBUG
 //        checkForAmbiguity(in: self.view)
 //        #endif
@@ -126,7 +129,7 @@ public class BaseKeyboardViewController: UIInputViewController {
     
     public override func textWillChange(_ textInput: (any UITextInput)?) {
         super.textWillChange(textInput)
-        print("textWillChange")
+        logger.debug(#function)
         updateKeyboardAppearance()
         updateKeyboardType(oldKeyboardType: oldKeyboardType)
         oldKeyboardType = textDocumentProxy.keyboardType
@@ -282,7 +285,7 @@ private extension BaseKeyboardViewController {
         let inputAction = UIAction { [weak self] _ in
             guard let self,
                   let currentPressedButton = buttonStateController.currentPressedButton,
-                  currentPressedButton == button else { return }
+                  currentPressedButton === button else { return }
             performTextInteraction(for: button.button)
         }
         if button is DeleteButton {
@@ -337,7 +340,6 @@ private extension BaseKeyboardViewController {
         longPressGesture.delegate = textInteractionButtonGestureController
         longPressGesture.minimumPressDuration = UserDefaultsManager.shared.longPressDuration
         longPressGesture.allowableMovement = UserDefaultsManager.shared.cursorActiveDistance
-        longPressGesture.cancelsTouchesInView = false
         button.addGestureRecognizer(longPressGesture)
     }
     
@@ -346,7 +348,7 @@ private extension BaseKeyboardViewController {
         let switchToSymbolKeyboard = UIAction { [weak self] action in
             guard let self else { return }
             guard let currentPressedButton = buttonStateController.currentPressedButton,
-                  currentPressedButton == primaryKeyboardView.switchButton else { return }
+                  currentPressedButton === primaryKeyboardView.switchButton else { return }
             currentKeyboard = .symbol
         }
         primaryKeyboardView.switchButton.addAction(switchToSymbolKeyboard, for: .touchUpInside)
@@ -355,7 +357,7 @@ private extension BaseKeyboardViewController {
         let switchToPrimaryKeyboardForSymbol = UIAction { [weak self] _ in
             guard let self else { return }
             guard let currentPressedButton = buttonStateController.currentPressedButton,
-                  currentPressedButton == symbolKeyboardView.switchButton else { return }
+                  currentPressedButton === symbolKeyboardView.switchButton else { return }
             currentKeyboard = primaryKeyboardView.keyboard
         }
         symbolKeyboardView.switchButton.addAction(switchToPrimaryKeyboardForSymbol, for: .touchUpInside)
@@ -363,7 +365,7 @@ private extension BaseKeyboardViewController {
         let switchToPrimaryKeyboardForNumeric = UIAction { [weak self] _ in
             guard let self else { return }
             guard let currentPressedButton = buttonStateController.currentPressedButton,
-                  currentPressedButton == numericKeyboardView.switchButton else { return }
+                  currentPressedButton === numericKeyboardView.switchButton else { return }
             currentKeyboard = primaryKeyboardView.keyboard
         }
         numericKeyboardView.switchButton.addAction(switchToPrimaryKeyboardForNumeric, for: .touchUpInside)
@@ -518,7 +520,6 @@ extension BaseKeyboardViewController: TextInteractionButtonGestureControllerDele
                 FeedbackManager.shared.playDeleteSound()
                 logger.debug("커서 앞 글자 삭제")
             }
-            print(tempDeletedCharacters)
         case .right:
             if let lastDeleted = tempDeletedCharacters.popLast() {
                 textDocumentProxy.insertText(String(lastDeleted))
@@ -551,6 +552,5 @@ extension BaseKeyboardViewController: TextInteractionButtonGestureControllerDele
         timer = nil
         logger.debug("반복 타이머 초기화")
         tempDeletedCharacters.removeAll()
-        updateShiftButton()
     }
 }

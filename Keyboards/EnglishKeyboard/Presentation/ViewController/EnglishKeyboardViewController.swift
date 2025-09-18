@@ -17,8 +17,7 @@ final class EnglishKeyboardViewController: BaseKeyboardViewController {
     // MARK: - UI Components
     
     /// 영어 키보드
-    private lazy var englishKeyboardView: EnglishKeyboardLayout = EnglishKeyboardView(getIsUppercaseInput: { [weak self] in return (self?.isUppercaseInput)! },
-                                                                                      resetIsUppercaseInput: { [weak self] in self?.isUppercaseInput = false })
+    private lazy var englishKeyboardView: EnglishKeyboardLayout = EnglishKeyboardView(getIsUppercaseInput: { [weak self] in return (self?.isUppercaseInput)! })
     override var primaryKeyboardView: PrimaryKeyboard { englishKeyboardView }
     
     // MARK: - Override Methods
@@ -57,6 +56,8 @@ final class EnglishKeyboardViewController: BaseKeyboardViewController {
         } else {
             primaryKeyboardView.updateShiftButton(isShifted: false)
         }
+        
+        isUppercaseInput = false
     }
     
     override func updateShowingKeyboard() {

@@ -26,9 +26,7 @@ final class SwitchButtonGestureController: NSObject {
                            targetkeyboard: SYKeyboardType,
                            targetDirection: PanDirection)
     
-    private var initialPanPoint: CGPoint = .zero
-    private var intervalReferPanPoint: CGPoint = .zero
-    private var isCursorActive: Bool = false
+    private var isOverlayActive: Bool = false
     private var isDragOutside: Bool = false
     
     private lazy var keyboardFrameViewPressGestureRecognizer = UILongPressGestureRecognizer(target: self, action: #selector(keyboardFrameViewPressGestureHandler(_:))).then {
@@ -75,27 +73,25 @@ final class SwitchButtonGestureController: NSObject {
     
     @objc func panGestureHandler(_ gesture: UIPanGestureRecognizer) {
         let gestureButton = gesture.view as? SwitchButton
-        let currentPoint = gesture.location(in: gesture.view)
         let config = setPanConfig()
+        let keyboardSelectOverlayView = config.gestureHandler.keyboardSelectOverlayView
+        let oneHandedModeSelectOverlayView = config.gestureHandler.oneHandedModeSelectOverlayView
         
         switch gesture.state {
         case .began:
             gestureButton?.isSelected = true
             logger.debug("팬 제스처 활성화")
         case .changed:
-            let distance = calcDistance(point1: initialPanPoint, point2: currentPoint)
-            if isCursorActive || distance >= UserDefaultsManager.shared.cursorActiveDistance {
-                setCurrentPressedButton(nil)
-                keyboardFrameView.isUserInteractionEnabled = false
-                
-                onPanGestureChanged(gesture, config: config)
-            }
+            isOverlayActive = !keyboardSelectOverlayView.isHidden || !oneHandedModeSelectOverlayView.isHidden
+            if isOverlayActive { keyboardFrameView.isUserInteractionEnabled = false }
+            onPanGestureChanged(gesture, config: config)
         case .ended, .cancelled, .failed:
+            // 순서 중요
+            if !isOverlayActive { gestureButton?.sendActions(for: .touchUpInside) }
+            setCurrentPressedButton(nil)
+            
             onPanGestureEnded(gesture, config: config)
-            initialPanPoint = .zero
-            intervalReferPanPoint = .zero
-            if !isCursorActive { gestureButton?.sendActions(for: .touchUpInside) }
-            isCursorActive = false
+            isOverlayActive = false
             gestureButton?.isSelected = false
             
             keyboardFrameView.isUserInteractionEnabled = true
@@ -111,13 +107,12 @@ final class SwitchButtonGestureController: NSObject {
         
         switch gesture.state {
         case .began:
-            guard getCurrentPressedButton() == gestureButton else {
+            guard getCurrentPressedButton() === gestureButton else {
                 logger.notice("현재 눌려있는 버튼으로 인해 제스처 무시")
-                gesture.state = .failed
+                gesture.state = .cancelled
                 return
             }
             keyboardFrameView.isUserInteractionEnabled = false
-            setCurrentPressedButton(nil)
             
             gestureButton?.isSelected = true
             onLongPressGestureBegan(gestureHandler: gestureHandler)
@@ -125,10 +120,17 @@ final class SwitchButtonGestureController: NSObject {
         case .changed:
             onLongPressGestureChanged(gesture, gestureHandler: gestureHandler)
         case .ended, .cancelled, .failed:
-            let keepSelected = onLongPressGestureEnded(gesture, gestureHandler: gestureHandler)
-            gestureButton?.isSelected = keepSelected
+            // 순서 중요
+            if gesture.state == .cancelled {
+                logger.debug("길게 누르기 제스처 취소")
+            } else {
+                setCurrentPressedButton(nil)
+                logger.debug("길게 누르기 제스처 비활성화")
+            }
+            let isKeepSelected = onLongPressGestureEnded(gesture, gestureHandler: gestureHandler)
+            gestureButton?.isSelected = isKeepSelected
+            
             keyboardFrameView.isUserInteractionEnabled = true
-            logger.debug("길게 누르기 제스처 비활성화")
         default:
             break
         }
@@ -178,9 +180,12 @@ private extension SwitchButtonGestureController {
             }
             
         } else if !keyboardSelectOverlayView.isHidden {
-            let panTarget = keyboardSelectOverlayView.xmarkImageContainerView
+            let xmarkRect = keyboardSelectOverlayView.xmarkImageContainerView.frame
             let panLocation = gesture.location(in: keyboardSelectOverlayView)
-            let panDirection = checkKeyboardSelectPanDirection(panLocation: panLocation, targetRect: panTarget.frame, targetDirection: config.targetDirection)
+            print("panLocation: \(panLocation.x)")
+            print(keyboardSelectOverlayView.xmarkImageContainerView.frame.minX)
+            print(keyboardSelectOverlayView.xmarkImageContainerView.frame.maxX)
+            let panDirection = checkKeyboardSelectPanDirection(panLocation: panLocation, xmarkRect: xmarkRect, targetDirection: config.targetDirection)
             
             config.gestureHandler.showKeyboardSelectOverlay(needToEmphasizeTarget: panDirection == config.targetDirection)
             
@@ -202,9 +207,9 @@ private extension SwitchButtonGestureController {
         let oneHandedModeSelectOverlayView = config.gestureHandler.oneHandedModeSelectOverlayView
         
         if !keyboardSelectOverlayView.isHidden {
-            let panTarget = keyboardSelectOverlayView.xmarkImageContainerView
+            let xmarkRect = keyboardSelectOverlayView.xmarkImageContainerView.frame
             let panLocation = gesture.location(in: keyboardSelectOverlayView)
-            let panDirection = checkKeyboardSelectPanDirection(panLocation: panLocation, targetRect: panTarget.frame, targetDirection: config.targetDirection)
+            let panDirection = checkKeyboardSelectPanDirection(panLocation: panLocation, xmarkRect: xmarkRect, targetDirection: config.targetDirection)
             
             if panDirection == config.targetDirection {
                 delegate?.changeKeyboard(self, to: config.targetkeyboard)
@@ -389,20 +394,20 @@ private extension SwitchButtonGestureController {
         }
     }
     
-    func checkKeyboardSelectPanDirection(panLocation: CGPoint, targetRect: CGRect, targetDirection: PanDirection) -> PanDirection? {
+    func checkKeyboardSelectPanDirection(panLocation: CGPoint, xmarkRect: CGRect, targetDirection: PanDirection) -> PanDirection? {
         switch targetDirection {
         case .left:
-            if panLocation.x <= targetRect.minX {
+            if panLocation.x <= xmarkRect.minX {
                 return .left
-            } else if panLocation.x > targetRect.minX {
+            } else if panLocation.x > xmarkRect.minX {
                 return .right
             } else {
                 return nil
             }
         case .right:
-            if panLocation.x < targetRect.maxX {
+            if panLocation.x < xmarkRect.maxX {
                 return .left
-            } else if panLocation.x >= targetRect.maxX {
+            } else if panLocation.x >= xmarkRect.maxX {
                 return .right
             } else {
                 return nil

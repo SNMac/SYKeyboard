@@ -23,9 +23,9 @@ final class TextInteractionButtonGestureController: NSObject {
     
     private lazy var logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: String(describing: self))
     
+    private var isCursorActive: Bool = false
     private var initialPanPoint: CGPoint = .zero
     private var intervalReferPanPoint: CGPoint = .zero
-    private var isCursorActive: Bool = false
     
     // Initializer Injection
     private let keyboardFrameView: UIView
@@ -60,7 +60,6 @@ final class TextInteractionButtonGestureController: NSObject {
         case .changed:
             let distance = calcDistance(point1: initialPanPoint, point2: currentPoint)
             if isCursorActive || distance >= UserDefaultsManager.shared.cursorActiveDistance {
-                setCurrentPressedButton(nil)
                 keyboardFrameView.isUserInteractionEnabled = false
                 
                 isCursorActive = true
@@ -68,11 +67,14 @@ final class TextInteractionButtonGestureController: NSObject {
                 onPanGestureChanged(gesture)
             }
         case .ended, .cancelled, .failed:
+            // 순서 중요
+            if !isCursorActive { gestureButton?.sendActions(for: .touchUpInside) }
+            setCurrentPressedButton(nil)
+            
             onPanGestureEnded(gesture)
+            isCursorActive = false
             initialPanPoint = .zero
             intervalReferPanPoint = .zero
-            if !isCursorActive { gestureButton?.sendActions(for: .touchUpInside) }
-            isCursorActive = false
             gestureButton?.isSelected = false
             
             keyboardFrameView.isUserInteractionEnabled = true
@@ -87,23 +89,28 @@ final class TextInteractionButtonGestureController: NSObject {
         
         switch gesture.state {
         case .began:
-            guard getCurrentPressedButton() == gestureButton else {
+            guard getCurrentPressedButton() === gestureButton else {
                 logger.notice("현재 눌려있는 버튼으로 인해 제스처 무시")
-                gesture.state = .failed
+                gesture.state = .cancelled
                 return
             }
-            setCurrentPressedButton(nil)
             keyboardFrameView.isUserInteractionEnabled = false
             
             gestureButton?.isSelected = true
             onLongPressGestureBegan(gesture)
             logger.debug("길게 누르기 제스처 활성화")
         case .ended, .cancelled, .failed:
+            // 순서 중요
+            if gesture.state == .cancelled {
+                logger.debug("길게 누르기 제스처 취소")
+            } else {
+                setCurrentPressedButton(nil)
+                logger.debug("길게 누르기 제스처 비활성화")
+            }
+            
             onLongPressGestureEnded()
             gestureButton?.isSelected = false
-            
             keyboardFrameView.isUserInteractionEnabled = true
-            logger.debug("길게 누르기 제스처 비활성화")
         default:
             break
         }
