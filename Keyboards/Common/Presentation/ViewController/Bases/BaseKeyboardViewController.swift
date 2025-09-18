@@ -16,7 +16,7 @@ public class BaseKeyboardViewController: UIInputViewController {
     
     // MARK: - Properties
     
-    private lazy var logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: String(describing: self))
+    private(set) lazy var logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: String(describing: self))
     
     /// 키보드 높이 제약 조건 할당 여부
     private var isHeightConstraintAdded: Bool = false
@@ -70,7 +70,7 @@ public class BaseKeyboardViewController: UIInputViewController {
                                                                                                      getCurrentPressedButton: { [weak self] in self?.buttonStateController.currentPressedButton },
                                                                                                      setCurrentPressedButton: { [weak self] button in self?.buttonStateController.currentPressedButton = button })
     /// 버튼 상태 컨트롤러
-    private lazy var buttonStateController = ButtonStateController()
+    private(set) lazy var buttonStateController = ButtonStateController()
     
     /// 삭제 버튼 팬 제스처로 인해 임시로 삭제된 내용을 저장하는 변수
     private var tempDeletedCharacters: [Character] = []
@@ -119,9 +119,9 @@ public class BaseKeyboardViewController: UIInputViewController {
     
     public override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        #if DEBUG
-        checkForAmbiguity(in: self.view)
-        #endif
+//        #if DEBUG
+//        checkForAmbiguity(in: self.view)
+//        #endif
     }
     
     public override func textWillChange(_ textInput: (any UITextInput)?) {

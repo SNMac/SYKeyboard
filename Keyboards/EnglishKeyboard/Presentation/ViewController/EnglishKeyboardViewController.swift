@@ -24,6 +24,9 @@ final class EnglishKeyboardViewController: BaseKeyboardViewController {
     // MARK: - Override Methods
     
     override func updateShiftButton() {
+        // Shift 버튼이 눌려있는 경우 실행 X
+        guard !buttonStateController.isShiftButtonPressed else { return }
+        
         if UserDefaultsManager.shared.isAutoCapitalizationEnabled {
             switch textDocumentProxy.autocapitalizationType {
             case .words:

@@ -94,7 +94,7 @@
 		5B53F8172E1E56BD0083F7CA /* Exceptions for "Keyboards" folder in "SYKeyboard" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				Common/Presentation/Utils/ButtonInteractionController.swift,
+				Common/Presentation/Utils/ButtonStateController.swift,
 				Common/Presentation/Utils/Enums/KeyboardMode/SymbolKeyboardMode.swift,
 				Common/Presentation/Utils/Enums/KeyboardMode/TenkeyKeyboardMode.swift,
 				Common/Presentation/Utils/Enums/KeyboardSize.swift,
@@ -164,7 +164,7 @@
 		5B53F8182E1E56BD0083F7CA /* Exceptions for "Keyboards" folder in "HangeulKeyboard" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				Common/Presentation/Utils/ButtonInteractionController.swift,
+				Common/Presentation/Utils/ButtonStateController.swift,
 				Common/Presentation/Utils/Enums/KeyboardMode/SymbolKeyboardMode.swift,
 				Common/Presentation/Utils/Enums/KeyboardMode/TenkeyKeyboardMode.swift,
 				Common/Presentation/Utils/Enums/KeyboardSize.swift,
@@ -224,7 +224,7 @@
 		5B8284822E6EEED8006425C7 /* Exceptions for "Keyboards" folder in "EnglishKeyboard" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				Common/Presentation/Utils/ButtonInteractionController.swift,
+				Common/Presentation/Utils/ButtonStateController.swift,
 				Common/Presentation/Utils/Enums/KeyboardMode/SymbolKeyboardMode.swift,
 				Common/Presentation/Utils/Enums/KeyboardMode/TenkeyKeyboardMode.swift,
 				Common/Presentation/Utils/Enums/KeyboardSize.swift,
