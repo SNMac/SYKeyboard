@@ -1,6 +1,6 @@
 //
 //  HangeulKeyboardType.swift
-//  SYKeyboard, HangeulKeyboard
+//  SYKeyboard, HangeulKeyboard, EnglishKeyboard
 //
 //  Created by 서동환 on 9/13/25.
 //

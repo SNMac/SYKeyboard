@@ -303,7 +303,7 @@ private extension BaseKeyboardViewController {
             // touchUpInside 되었을 때 ➡️ 주 키보드 전환
             let switchToPrimaryKeyboard = UIAction { [weak self] _ in
                 guard let self else { return }
-                if textDocumentProxy.keyboardType != .numbersAndPunctuation && UserDefaultsManager.shared.isAutoChangeToHangeulEnabled {
+                if textDocumentProxy.keyboardType != .numbersAndPunctuation && UserDefaultsManager.shared.isAutoChangeToPrimaryEnabled {
                     currentKeyboard = primaryKeyboardView.keyboard
                 }
             }
@@ -313,7 +313,7 @@ private extension BaseKeyboardViewController {
             // 이전에 기호가 입력되고 난 후 touchUpInside 되었을 때 ➡️ 주 키보드 전환
             let switchToPrimaryKeyboard = UIAction { [weak self] _ in
                 guard let self else { return }
-                if textDocumentProxy.keyboardType != .numbersAndPunctuation && UserDefaultsManager.shared.isAutoChangeToHangeulEnabled && isSymbolInput {
+                if textDocumentProxy.keyboardType != .numbersAndPunctuation && UserDefaultsManager.shared.isAutoChangeToPrimaryEnabled && isSymbolInput {
                     currentKeyboard = primaryKeyboardView.keyboard
                 }
             }

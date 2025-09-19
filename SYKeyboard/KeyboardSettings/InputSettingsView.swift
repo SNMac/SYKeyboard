@@ -9,7 +9,7 @@ import SwiftUI
 
 struct InputSettingsView: View {
     @AppStorage(UserDefaultsKeys.isTextReplacementEnabled, store: UserDefaults(suiteName: DefaultValues.groupBundleID)) private var isTextReplacementEnabled = DefaultValues.isTextReplacementEnabled
-    @AppStorage(UserDefaultsKeys.isAutoChangeToHangeulEnabled, store: UserDefaults(suiteName: DefaultValues.groupBundleID)) private var isAutoChangeToHangeulEnabled = DefaultValues.isAutoChangeToHangeulEnabled
+    @AppStorage(UserDefaultsKeys.isAutoChangeToPrimaryEnabled, store: UserDefaults(suiteName: DefaultValues.groupBundleID)) private var isAutoChangeToPrimaryEnabled = DefaultValues.isAutoChangeToPrimaryEnabled
     
     var body: some View {
         NavigationLink("반복 입력") {
@@ -26,7 +26,7 @@ struct InputSettingsView: View {
                 .font(.system(.caption))
         })
         
-        Toggle(isOn: $isAutoChangeToHangeulEnabled, label: {
+        Toggle(isOn: $isAutoChangeToPrimaryEnabled, label: {
             Text("한글 키보드 자동 변경")
             Text("기호 키보드 입력 후 스페이스/리턴 ➡️ 한글 키보드")
                 .font(.system(.caption))

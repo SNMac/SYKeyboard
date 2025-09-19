@@ -47,15 +47,26 @@ final class UserDefaultsManager {
     var isHapticFeedbackEnabled: Bool
     
     /* 입력 설정 */
+    /// 선택한 한글 키보드
+    var selectedHangeulKeyboard: HangeulKeyboardType {
+        get {
+            let storage: UserDefaults = UserDefaults(suiteName: DefaultValues.groupBundleID)!
+            return HangeulKeyboardType(rawValue: storage.integer(forKey: UserDefaultsKeys.selectedHangeulKeyboard)) ?? DefaultValues.selectedHangeulKeyboard
+        }
+        set {
+            let storage: UserDefaults = UserDefaults(suiteName: DefaultValues.groupBundleID)!
+            storage.set(newValue.rawValue, forKey: UserDefaultsKeys.selectedHangeulKeyboard)
+        }
+    }
     /// 텍스트 대치
     @UserDefaultsWrapper(key: UserDefaultsKeys.isTextReplacementEnabled, defaultValue: DefaultValues.isTextReplacementEnabled)
     var isTextReplacementEnabled: Bool
     /// 자동 대문자
     @UserDefaultsWrapper(key: UserDefaultsKeys.isAutoCapitalizationEnabled, defaultValue: DefaultValues.isAutoCapitalizationEnabled)
     var isAutoCapitalizationEnabled: Bool
-    /// 스페이스/리턴 입력 후 한글 키보드로 변경
-    @UserDefaultsWrapper(key: UserDefaultsKeys.isAutoChangeToHangeulEnabled, defaultValue: DefaultValues.isAutoChangeToHangeulEnabled)
-    var isAutoChangeToHangeulEnabled: Bool
+    /// 스페이스/리턴 입력 후 주 키보드로 변경
+    @UserDefaultsWrapper(key: UserDefaultsKeys.isAutoChangeToPrimaryEnabled, defaultValue: DefaultValues.isAutoChangeToPrimaryEnabled)
+    var isAutoChangeToPrimaryEnabled: Bool
     
     /* 입력 설정 -> 속도/커서 설정 */
     /// 반복 지연 시간

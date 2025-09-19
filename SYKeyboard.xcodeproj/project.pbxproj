@@ -292,6 +292,7 @@
 				Resources/Assets.xcassets,
 				UserDefaultsManager.swift,
 				Utils/DefaultValues.swift,
+				Utils/HangeulKeyboardType.swift,
 				Utils/OneHandedMode.swift,
 				Utils/UserDefaultsKeys.swift,
 			);
