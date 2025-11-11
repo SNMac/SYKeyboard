@@ -21,7 +21,7 @@
 | 범위 | 기술 이름 |
 |:---------:|:----------|
 | 의존성 관리 도구 | `SPM`, `CocoaPods` |
-| 형상 관리 도구 | `GitHub`, `Git` |
+| 형상 관리 도구 | `Git`, `GitHub` |
 | 디자인 패턴 | `Delegate`, `Singleton` |
 | 인터페이스 | `UIKit`, `SwiftUI` |
 | 활용 API | `Firebase Analytics`, `Google AdMob`, `Meta Audience` |
