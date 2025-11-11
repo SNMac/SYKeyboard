@@ -1,11 +1,10 @@
 <img src="https://github.com/user-attachments/assets/fb7e719e-7353-4649-8ecc-a11058a6c3d6" width="200">
 
 # SY키보드
-
-> SY키보드는 가벼우면서 사용하기 간편한 나랏글 키보드입니다. (추후 천지인 키보드 추가 예정)  
+> SY키보드는 가볍고, 사용하기 간편한 나랏글 키보드입니다. (추후 천지인 키보드 추가 예정)  
 > 
 > 개발 기간: 2024.07.30 ~ 2025.01.15  
-> 리팩토랑 기간: 2025.07.09 ~ 2025.11.30
+> 리팩토링 기간: 2025.07.09 ~ 2025.11.30
 
 <br>
 
@@ -16,8 +15,35 @@
 <br><br>
 
 
-## 🛠️ 기술 스택
+## 👥 대상 사용자
+- 나랏글 키보드/천지인 키보드(예정)를 계속 사용해 왔던 사람
+- 나랏글 키보드/천지인 키보드(예정)에 입문하는 사람
+- 필수적인 기능들을 포함하되 가벼운 키보드 앱을 찾는 사람
 
+<br><br>
+
+
+## 👨‍💻 트러블 슈팅
+### SwiftUI -> UIKit 리팩토링 이유
+
+<br><br>
+
+### KeyboardInputViewController에서 높이 지정 시 키보드 표시 애니메이션 글리칭 현상
+|    설명    |   스크린샷   |    설명    |   스크린샷   |
+| :-------------: | :----------: | :-------------: | :----------: |
+| 문제 상황 | <img src = "https://github.com/user-attachments/assets/4a33c68c-40f8-43d7-a968-d539f51a7ccf" width ="250"> | 해결 이후 | <img src = "https://github.com/user-attachments/assets/be7f5279-7b22-4dcd-830e-85a98ad7141a" width ="250"> |
+
+<br><br>
+
+### 키보드 가장자리 터치 딜레이
+|    설명    |   스크린샷   |
+| :-------------: | :----------: |
+| 문제 상황 | <img src = "https://github.com/user-attachments/assets/31aed9f1-ac3b-4839-aa42-b7a21e0693ab" width ="250"> |
+
+<br><br>
+
+
+## 🛠️ 기술 스택
 | 범위 | 기술 이름 |
 |:---------:|:----------|
 | 의존성 관리 도구 | `SPM`, `CocoaPods` |
@@ -35,11 +61,13 @@
 ![Static Badge](https://img.shields.io/badge/Xcode%2016.3-147EFB?logo=xcode&logoColor=white&logoSize=auto)
 ![Static Badge](https://img.shields.io/badge/16.0-000000?logo=ios&logoColor=white&logoSize=auto)
 
+
+
+
 <br><br>
 
 
 ## 📱 주요 기능
-
 1. **나랏글 키보드**  
 기본에 충실한 나랏글 키보드입니다.
 
@@ -68,15 +96,6 @@
 반복 입력, 커서 이동, 키보드 높이 및 한 손 키보드 너비 조절 등 사용자의 편의에 맞게 키보드 설정이 가능합니다.
 
 <img src="https://github.com/user-attachments/assets/a27ee88f-75db-4b3f-82d8-99543718bb71" width="250">
-
-<br><br>
-
-
-## 👥 대상 사용자
-
-- 나랏글 키보드/천지인 키보드(예정)를 계속 사용해 왔던 사람
-- 나랏글 키보드/천지인 키보드(예정)에 입문하는 사람
-- 필수적인 기능들을 포함하되 가벼운 키보드 앱을 찾는 사람
 
 <br><br>
 
