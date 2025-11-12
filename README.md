@@ -18,13 +18,13 @@
 ## 👥 대상 사용자
 - 나랏글 키보드/천지인 키보드(예정)를 계속 사용해 왔던 사람
 - 나랏글 키보드/천지인 키보드(예정)에 입문하는 사람
-- 필수적인 기능들을 포함하되 가벼운 키보드 앱을 찾는 사람
+- 필수적인 기능들을 포함하되, 가벼운 키보드 앱을 찾는 사람
 
 <br><br>
 
 
 ## 👨‍💻 트러블 슈팅
-### SwiftUI -> UIKit 리팩토링 이유
+### SwiftUI ➡️ UIKit 리팩토링 이유
 
 <br><br>
 
@@ -32,8 +32,8 @@
 #### 문제 상황
 |    설명    |   스크린샷   |
 | :-------------: | :----------: |
-| 애니메이션 글리칭 | <img src = "https://github.com/user-attachments/assets/4a33c68c-40f8-43d7-a968-d539f51a7ccf" width ="250"> |
-- 애플 공식 문서([레거시](https://developer.apple.com/library/archive/documentation/General/Conceptual/ExtensibilityPG/CustomKeyboard.html), [최신](https://developer.apple.com/documentation/uikit/configuring-a-custom-keyboard-interface#Adapt-to-different-layouts)) 기반으로 키보드 높이 조절 코드를 구현했을 때 왼쪽 GIF처럼 키보드가 잠깐동안 높이 튀어오르는 현상 발생
+| 애니메이션<br>글리칭 | <img src = "https://github.com/user-attachments/assets/4a33c68c-40f8-43d7-a968-d539f51a7ccf" width ="250"> |
+- 애플 공식 문서([레거시](https://developer.apple.com/library/archive/documentation/General/Conceptual/ExtensibilityPG/CustomKeyboard.html), [최신](https://developer.apple.com/documentation/uikit/configuring-a-custom-keyboard-interface#Adapt-to-different-layouts)) 기반으로 키보드 높이 조절 코드를 구현했을 때 위 GIF처럼 키보드가 잠깐동안 높이 튀어오르는 현상 발생
     - view를 위한 애니메이션이 구성되기 직전인 `viewWillAppear` 메서드에 높이 제약조건 코드 구현
 ``` swift
 override func viewWillAppear(_ animated: Bool) {
@@ -83,7 +83,7 @@ private func initKeyboardConstraints() {
 >   
 > |    설명    |   스크린샷   |
 > | :-------------: | :----------: |
-> | UI 치우침 현상 | <img src = "https://github.com/user-attachments/assets/5198d906-e813-4e79-b537-300e96bb52c2" width ="250"> |
+> | UI 치우침 | <img src = "https://github.com/user-attachments/assets/5198d906-e813-4e79-b537-300e96bb52c2" width ="250"> |
 
 <br>
 
@@ -113,7 +113,7 @@ func setKeyboardHeight() {
 #### 문제 상황
 |    설명    |   스크린샷   |
 | :-------------: | :----------: |
-| 터치 딜레이 영역 | <img src = "https://github.com/user-attachments/assets/31aed9f1-ac3b-4839-aa42-b7a21e0693ab" width ="250"> |
+| 터치 딜레이<br>영역 | <img src = "https://github.com/user-attachments/assets/31aed9f1-ac3b-4839-aa42-b7a21e0693ab" width ="250"> |
 
 #### 원인 분석
 
