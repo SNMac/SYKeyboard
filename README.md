@@ -34,8 +34,8 @@
 |    설명    |   스크린샷   |
 | :-------------: | :----------: |
 | 애니메이션<br>글리칭 | <img src = "https://github.com/user-attachments/assets/4a33c68c-40f8-43d7-a968-d539f51a7ccf" width ="250"> |
-- 애플 공식 문서([레거시](https://developer.apple.com/library/archive/documentation/General/Conceptual/ExtensibilityPG/CustomKeyboard.html), [최신](https://developer.apple.com/documentation/uikit/configuring-a-custom-keyboard-interface#Adapt-to-different-layouts)) 기반으로 키보드 높이 조절 코드를 구현했을 때 위 GIF처럼 키보드가 잠깐동안 높이 튀어오르는 현상 발생
-    - view를 위한 애니메이션이 구성되기 직전인 `viewWillAppear` 메서드에 높이 제약조건 코드 구현
+
+애플 공식 문서([레거시](https://developer.apple.com/library/archive/documentation/General/Conceptual/ExtensibilityPG/CustomKeyboard.html), [최신](https://developer.apple.com/documentation/uikit/configuring-a-custom-keyboard-interface#Adapt-to-different-layouts)) 기반으로 키보드 높이 조절 코드를 구현했을 때, 위 GIF처럼 키보드가 잠깐동안 높이 튀어오르는 현상이 발생하였다.
 ``` swift
 override func viewWillAppear(_ animated: Bool) {
     super.viewWillAppear(animated)
@@ -49,11 +49,12 @@ func setKeyboardHeight() {
     heightConstraint.isActive = true
 }
 ```
+- view를 위한 애니메이션이 구성되기 직전인 `viewWillAppear` 메서드에 높이 제약조건 코드 구현
 
 <br>
 
 #### 원인 분석
-- 문제 해결을 위해 찾아보던 중 Stack Overflow의 한 [질문글의 답변](https://stackoverflow.com/a/62114742)에서 힌트를 얻음
+문제 해결을 위해 찾아보던 중 Stack Overflow의 한 [질문글의 답변](https://stackoverflow.com/a/62114742)에서 힌트를 얻을 수 있었다.
 ``` swift
 private var constraintsHaveBeenAdded = false
 
@@ -73,23 +74,23 @@ private func initKeyboardConstraints() {
     constraintsHaveBeenAdded = true
 }
 ```
-1. 제약조건이 설정되었는지를 판단하는 플래그 변수 `constraintsHaveBeenAdded` 설정
-2. 제약조건이 이미 설정되었거나, 상위 view가 설정되지 않은 경우 실행 X (방어 코드)
-3. **view의 모든 edge에 대해 상위 view와 같도록 제약조건 설정**
-4. `constraintsHaveBeenAdded`를 true로 설정
+> 1. 제약조건이 설정되었는지를 판단하는 플래그 변수 `constraintsHaveBeenAdded` 설정
+> 2. 제약조건이 이미 설정되었거나, 상위 view가 설정되지 않은 경우 실행 X (방어 코드)
+> 3. **view의 모든 edge에 대해 상위 view와 같도록 제약조건 설정**
+> 4. `constraintsHaveBeenAdded`를 true로 설정  
 
-> - 이전 코드에선 view의 모든 edge에 대해 상위 view와 같도록 제약조건을 설정하는 코드(`$0.edges.equalToSuperview()`)와 `translatesAutoresizingMaskIntoConstraints`를 `false`로 설정하는 코드가 없었음
-> - 이로 인해 Autoresizing Mask로 view의 크기와 위치를 정하려 하는 과정에서 Auto Layout의 높이 제약조건이 충돌을 일으켜 애니메이션에 글리칭이 발생한 것으로 추측
-> - `translatesAutoresizingMaskIntoConstraints`만 `false`로 설정하는 경우 아래 사진처럼 UI가 치우치는 현상이 발생함
->   
-> |    설명    |   스크린샷   |
-> | :-------------: | :----------: |
-> | UI 치우침 | <img src = "https://github.com/user-attachments/assets/5198d906-e813-4e79-b537-300e96bb52c2" width ="250"> |
+- 이전 코드에선 view의 모든 edge에 대해 상위 view와 같도록 제약조건을 설정하는 코드(`$0.edges.equalToSuperview()`)와 `translatesAutoresizingMaskIntoConstraints`를 `false`로 설정하는 코드가 없었음
+- 이로 인해 Autoresizing Mask로 view의 크기와 위치를 정하려 하는 과정에서 Auto Layout의 높이 제약조건이 충돌을 일으켜 애니메이션에 글리칭이 발생한 것으로 추측
+- `translatesAutoresizingMaskIntoConstraints`만 `false`로 설정하는 경우 아래 사진처럼 UI가 치우치는 현상이 발생함
+  
+|    설명    |   스크린샷   |
+| :-------------: | :----------: |
+| UI 치우침 | <img src = "https://github.com/user-attachments/assets/5198d906-e813-4e79-b537-300e96bb52c2" width ="250"> |
 
 <br>
 
 #### 해결 과정
-위 답변을 토대로 높이 제약조건 코드 수정 및 방어코드 추가
+위 답변을 토대로 높이 제약조건 코드를 수정하고 방어코드를 추가하였다.
 ``` swift
 func setKeyboardHeight() {
     if !isHeightConstraintAdded, self.view.superview != nil {
@@ -107,6 +108,11 @@ func setKeyboardHeight() {
 | :-------------: | :----------: |
 | 해결 이후 | <img src = "https://github.com/user-attachments/assets/be7f5279-7b22-4dcd-830e-85a98ad7141a" width ="250"> |
 
+정말 오랫동안 고민하던 문제였고, 글리칭이 없는 다른 키보드 어플에선 어떻게 해결했는지 개발자에게 여쭤보고 싶을 정도로 해결 방법이 궁금했었다.  
+해결하고 나니 속이 시원하다...
+
+출처: [Stack Overflow - iOS 8 Custom Keyboard: Changing the height without warning 'Unable to simultaneously satisfy constraints...'](https://stackoverflow.com/questions/26569476/ios-8-custom-keyboard-changing-the-height-without-warning-unable-to-simultaneo)
+
 <br><br>
 
 
@@ -116,10 +122,45 @@ func setKeyboardHeight() {
 | :-------------: | :----------: |
 | 터치 딜레이<br>영역 | <img src = "https://github.com/user-attachments/assets/31aed9f1-ac3b-4839-aa42-b7a21e0693ab" width ="250"> |
 
+실 기기에서 키보드 테스트 도중 위 사진의 빨간색 네모 영역을 터치할 때 딜레이가 존재하는 것을 발견했다.
+- 단일 터치 시 인식까지 딜레이 존재, 반복 터치 시 손가락을 뗄 때만 반응
+
+<br>
+
 #### 원인 분석
+<img width="785" height="159" alt="image" src="https://github.com/user-attachments/assets/7581e20e-d7e7-4fa4-a486-180576543ea4" />
+
+> 1. 키보드 앱이 실행되면 `viewWillAppear` 단계에서 `self.view.window`를 포함한 모든 `UIView`에 앱의 `UIWindow`가 할당됨
+> 2. 이때 `UIWindow`에 있는 2개의 `UISystemGestureGateGestureRecognizer`가 화면 하단의 제스처 바 혹은 화면 왼쪽, 오른쪽 모서리의 시스템 제스처 인식을 담당함
+> - 예: 홈 화면으로 가기, 뒤로 가기 등
+> 3. 사용자가 사진의 빨간색 네모 영역을 터치
+> 4. `UISystemGestureGateGestureRecognizer`가 사진의 빨간색 네모 영역의 터치를 키보드의 `UIButton`보다 먼저 인식
+> 5. 시스템 제스처가 아닌 경우, 터치 이벤트를 소비하지 않고 키보드 버튼으로 넘겨줌
+> 6. `UIButton`의 `UIControl`에서 터치 이벤트 소비
+
+`UISystemGestureGateGestureRecognizer`가 사용자의 터치 이벤트를 시스템 제스처인지 판단하는 과정(4, 5)을 거치면서 딜레이가 생기게 된다.
+
+<br>
 
 #### 해결 과정
+처음에는 iOS 11부터 지원하는 `preferredScreenEdgesDeferringSystemGestures` 프로퍼티를 사용하여 해결하려 했지만, `UIInputViewController`에선 지원하지 않는듯 했다.  
+그래서 `UISystemGestureGateGestureRecognizer`의 `delaysTouchesBegan`를 `false`로 설정하는 것으로 해결하였다.
+``` swift
+override func viewDidAppear(_ animated: Bool) {
+    super.viewDidAppear(animated)
+    let window = self.view.window!
+    let systemGestureRecognizer0 = window.gestureRecognizers?[0] as? UIGestureRecognizer
+    let systemGestureRecognizer1 = window.gestureRecognizers?[1] as? UIGestureRecognizer
+    systemGestureRecognizer0?.delaysTouchesBegan = false
+    systemGestureRecognizer1?.delaysTouchesBegan = false
+}
+```
 
+<img width="881" height="67" alt="image" src="https://github.com/user-attachments/assets/2306bfa1-1788-428a-8755-6817e464e48c" />
+
+설정 이후 side effect가 생길 수 있다는 경고 메세지가 콘솔창에 뜨지만, 애플에서 `preferredScreenEdgesDeferringSystemGestures`를 `UIInputViewController`에 지원해주지 않는 이상 해결 방법이 없어보인다 🙄
+
+출처: [Stack Overflow - UISystemGateGestureRecognizer and delayed taps near bottom of screen](https://stackoverflow.com/questions/19799961/uisystemgategesturerecognizer-and-delayed-taps-near-bottom-of-screen)
 
 <br><br>
 
