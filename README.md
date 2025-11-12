@@ -24,6 +24,27 @@
 <br><br>
 
 
+## 🛠️ 기술 스택
+| 범위 | 기술 이름 |
+|:---------:|:----------|
+| 의존성 관리 도구 | `SPM`, `CocoaPods` |
+| 형상 관리 도구 | `Git`, `GitHub` |
+| 디자인 패턴 | `Delegate`, `Singleton` |
+| 인터페이스 | `UIKit`, `SwiftUI` |
+| 활용 API | `Firebase Analytics`, `Google AdMob`, `Meta Audience` |
+| 레이아웃 구성 | `SnapKit`, `Then` |
+| 내부 저장소 | `UserDefaults` |
+
+<br><br>
+
+
+## 🔨 개발 환경
+![Static Badge](https://img.shields.io/badge/Xcode%2016.3-147EFB?logo=xcode&logoColor=white&logoSize=auto)
+![Static Badge](https://img.shields.io/badge/16.0-000000?logo=ios&logoColor=white&logoSize=auto)
+
+<br><br>
+
+
 ## 👨‍💻 트러블 슈팅
 ### SwiftUI ➡️ UIKit 리팩토링 이유
 
@@ -161,27 +182,6 @@ override func viewDidAppear(_ animated: Bool) {
 설정 이후 side effect가 생길 수 있다는 경고 메세지가 콘솔창에 뜨지만, 애플에서 `preferredScreenEdgesDeferringSystemGestures`를 `UIInputViewController`에 지원해주지 않는 이상 해결 방법이 없어보인다 🙄
 
 출처: [Stack Overflow - UISystemGateGestureRecognizer and delayed taps near bottom of screen](https://stackoverflow.com/questions/19799961/uisystemgategesturerecognizer-and-delayed-taps-near-bottom-of-screen)
-
-<br><br>
-
-
-## 🛠️ 기술 스택
-| 범위 | 기술 이름 |
-|:---------:|:----------|
-| 의존성 관리 도구 | `SPM`, `CocoaPods` |
-| 형상 관리 도구 | `Git`, `GitHub` |
-| 디자인 패턴 | `Delegate`, `Singleton` |
-| 인터페이스 | `UIKit`, `SwiftUI` |
-| 활용 API | `Firebase Analytics`, `Google AdMob`, `Meta Audience` |
-| 레이아웃 구성 | `SnapKit`, `Then` |
-| 내부 저장소 | `UserDefaults` |
-
-<br><br>
-
-
-## 🔨 개발 환경
-![Static Badge](https://img.shields.io/badge/Xcode%2016.3-147EFB?logo=xcode&logoColor=white&logoSize=auto)
-![Static Badge](https://img.shields.io/badge/16.0-000000?logo=ios&logoColor=white&logoSize=auto)
 
 <br><br>
 
