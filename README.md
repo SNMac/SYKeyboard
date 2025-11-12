@@ -2,6 +2,7 @@
 
 # SY키보드
 > SY키보드는 가볍고, 사용하기 간편한 나랏글 키보드입니다. (추후 천지인 키보드 추가 예정)  
+> [Figma](https://www.figma.com/design/0i3sNlaez0LG0QMfw80yJ4/SY%ED%82%A4%EB%B3%B4%EB%93%9C?node-id=0-1&t=L8rArjkBX9MJ3UJD-1)
 > 
 > 개발 기간: 2024.07.30 ~ 2025.01.15  
 > 리팩토링 기간: 2025.07.09 ~ 2025.11.30
@@ -141,8 +142,148 @@ func setKeyboardHeight() {
 ![Static Badge](https://img.shields.io/badge/Xcode%2016.3-147EFB?logo=xcode&logoColor=white&logoSize=auto)
 ![Static Badge](https://img.shields.io/badge/16.0-000000?logo=ios&logoColor=white&logoSize=auto)
 
+<br><br>
 
 
+## 📊 다이어그램
+### 키보드 종류 구조
+``` mermaid
+%%{
+  init: {
+    "theme": "default",
+    "fontFamily": "JetBrainsMono NFP",
+    "elk": {
+        "mergeEdges": false,
+        "nodePlacementStrategy": "BRANDES_KOEPF",
+        "forceNodeModelOrder": false,
+        "considerModelOrder": "NODES_AND_EDGES"
+    },
+    "class": {
+        "hideEmptyMembersBox": true
+    }
+  }
+}%%
+classDiagram
+direction LR
+    %% Keyboard Type
+    BaseKeyboardViewController <|-- HangeulKeyboardViewController: Inheritance
+    BaseKeyboardViewController <|-- EnglishKeyboardViewController: Inheritance
+```
+
+### 키보드 레이아웃 구조
+``` mermaid
+%%{
+  init: {
+    "theme": "default",
+    "fontFamily": "JetBrainsMono NFP",
+    "elk": {
+        "mergeEdges": false,
+        "nodePlacementStrategy": "BRANDES_KOEPF",
+        "forceNodeModelOrder": false,
+        "considerModelOrder": "NODES_AND_EDGES"
+    },
+    "class": {
+        "hideEmptyMembersBox": true
+    }
+  }
+}%%
+classDiagram
+direction LR
+    %% Keyboard Layout
+    class BaseKeyboardLayout:::SYKeyboard_primary { <<protocol>> }
+    class DefaultKeyboardLayout:::SYKeyboard_primary { <<protocol>> }
+    class TextInteractionButtonGestureHandler:::SYKeyboard_primary { <<protocol>> }
+    class SwitchButtonGestureHandler:::SYKeyboard_primary { <<protocol>> }
+    class PrimaryKeyboard:::SYKeyboard_primary { <<protocol>> }
+    class HangeulKeyboardLayout:::SYKeyboard_primary { <<protocol>> }
+    class EnglishKeyboardLayout:::SYKeyboard_primary { <<protocol>> }
+    class SymbolKeyboardLayout:::SYKeyboard_primary { <<protocol>> }
+    class NumericKeyboardLayout:::SYKeyboard_primary { <<protocol>> }
+    class TenkeyKeyboardLayout:::SYKeyboard_primary { <<protocol>> }
+
+    BaseKeyboardLayout <|-- DefaultKeyboardLayout: Inheritance
+    BaseKeyboardLayout <|-- TenkeyKeyboardLayout: Inheritance
+
+    DefaultKeyboardLayout <|-- PrimaryKeyboard: Inheritance
+    DefaultKeyboardLayout <|-- PrimaryKeyboard: Inheritance
+    DefaultKeyboardLayout ..|> QwertyKeyboardView: Implementation
+
+    TenkeyKeyboardLayout ..|>TenkeyKeyboardView: Implementation
+
+    PrimaryKeyboard <|-- HangeulKeyboardLayout: Inheritance
+    TextInteractionButtonGestureHandler <|-- HangeulKeyboardLayout: Inheritance
+    SwitchButtonGestureHandler <|-- HangeulKeyboardLayout: Inheritance
+    HangeulKeyboardLayout ..|> FourByFourKeyboardView: Implementation
+
+    FourByFourKeyboardView <|-- NaratgeulKeyboardView: Inheritance
+    FourByFourKeyboardView <|-- CheonjiinKeyboardView: Inheritance
+
+    PrimaryKeyboard <|-- EnglishKeyboardLayout: Inheritance
+
+    TextInteractionButtonGestureHandler <|-- EnglishKeyboardLayout: Inheritance
+    SwitchButtonGestureHandler <|-- EnglishKeyboardLayout: Inheritance
+    EnglishKeyboardLayout ..|> EnglishKeyboardView: Implementation
+    QwertyKeyboardView <|-- EnglishKeyboardView: Inheritance
+
+    DefaultKeyboardLayout <|-- SymbolKeyboardLayout: Inheritance
+    TextInteractionButtonGestureHandler <|-- SymbolKeyboardLayout: Inheritance
+    SwitchButtonGestureHandler <|-- SymbolKeyboardLayout: Inheritance
+    SymbolKeyboardLayout ..|> SymbolKeyboardView: Implementation
+
+    DefaultKeyboardLayout <|-- NumericKeyboardLayout: Inheritance
+    TextInteractionButtonGestureHandler <|-- NumericKeyboardLayout: Inheritance
+    SwitchButtonGestureHandler <|-- NumericKeyboardLayout: Inheritance
+    NumericKeyboardLayout ..|> NumericKeyboardView: Implementation
+    
+    classDef SYKeyboard_primary fill:#ffa6ed
+```
+
+### 키보드 버튼 구조
+``` mermaid
+%%{
+  init: {
+    "theme": "default",
+    "fontFamily": "JetBrainsMono NFP",
+    "elk": {
+        "mergeEdges": false,
+        "nodePlacementStrategy": "BRANDES_KOEPF",
+        "forceNodeModelOrder": false,
+        "considerModelOrder": "NODES_AND_EDGES"
+    },
+    "class": {
+        "hideEmptyMembersBox": true
+    }
+  }
+}%%
+classDiagram
+direction LR
+    %% Keyboard Button
+    class TextInteractionButton:::SYKeyboard_primary { <<protocol>> }
+
+    BaseKeyboardButton <|-- PrimaryButton: Inheritance
+    BaseKeyboardButton <|-- SecondaryButton: Inheritance
+    BaseKeyboardButton <|-- TextInteractionButton: Inheritance
+
+    PrimaryButton <|-- PrimaryKeyButton: Inheritance
+    PrimaryButton <|-- SpaceButton: Inheritance
+
+    PrimaryKeyButton ..|> TextInteractionButton: Implementation
+
+    SecondaryButton <|-- DeleteButton: Inheritance
+    SecondaryButton <|-- NextKeyboardButton: Inheritance
+    SecondaryButton <|-- ReturnButton: Inheritance
+    SecondaryButton <|-- SecondaryKeyButton: Inheritance
+    SecondaryButton <|-- ShiftButton: Inheritance
+    SecondaryButton <|-- SwitchButton: Inheritance
+
+    SecondaryKeyButton ..|> TextInteractionButton: Implementation
+
+    DeleteButton ..|> TextInteractionButton: Implementation
+    ReturnButton ..|> TextInteractionButton: Implementation
+    SpaceButton ..|> TextInteractionButton: Implementation
+
+    classDef SYKeyboard_primary fill:#ffa6ed
+```
 
 <br><br>
 
