@@ -262,7 +262,7 @@ direction LR
 
     BaseKeyboardButton <|-- PrimaryButton: Inheritance
     BaseKeyboardButton <|-- SecondaryButton: Inheritance
-    BaseKeyboardButton <|-- TextInteractionButton: Inheritance
+    BaseKeyboardButton <|-- TextInteractionButton: Constraint
 
     PrimaryButton <|-- PrimaryKeyButton: Inheritance
     PrimaryButton <|-- SpaceButton: Inheritance
