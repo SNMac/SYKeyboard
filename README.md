@@ -207,6 +207,24 @@ override func viewDidAppear(_ animated: Bool) {
 classDiagram
 direction LR
     %% Keyboard Type
+    namespace KeyboardGestureController {
+      class TextInteractionGestureController
+      class SwitchGestureController
+    }
+
+    namespace KeyboardGestureProtocol {
+      class TextInteractionGestureHandling
+      class SwitchGestureHandling
+    }
+
+    namespace KeyboardTypeLayoutProtocol {
+      class HangeulKeyboardLayoutProvider
+      class EnglishKeyboardLayoutProvider
+      class SymbolKeyboardLayoutProvider
+      class NumericKeyboardLayoutProvider
+      class TenkeyKeyboardLayoutProvider
+    }
+
     namespace ParentKeyboardViewController {
       class BaseKeyboardViewController
     }
@@ -216,8 +234,36 @@ direction LR
       class EnglishKeyboardViewController
     }
 
+    class TextInteractionGestureHandling:::SYKeyboard_primary { <<protocol>> }
+    class SwitchGestureHandling:::SYKeyboard_primary { <<protocol>> }
+    class PrimaryKeyboardRepresentable:::SYKeyboard_primary { <<protocol>> }
+    class HangeulKeyboardLayoutProvider:::SYKeyboard_primary { <<protocol>> }
+    class EnglishKeyboardLayoutProvider:::SYKeyboard_primary { <<protocol>> }
+    class SymbolKeyboardLayoutProvider:::SYKeyboard_primary { <<protocol>> }
+    class NumericKeyboardLayoutProvider:::SYKeyboard_primary { <<protocol>> }
+    class TenkeyKeyboardLayoutProvider:::SYKeyboard_primary { <<protocol>> }
+
+    BaseKeyboardViewController --> PrimaryKeyboardRepresentable: Association
+    BaseKeyboardViewController *-- SymbolKeyboardLayoutProvider: Composition
+    BaseKeyboardViewController *-- NumericKeyboardLayoutProvider: Composition
+    BaseKeyboardViewController *-- TenkeyKeyboardLayoutProvider: Composition
+
+    BaseKeyboardViewController *-- TextInteractionGestureController: Composition
+    BaseKeyboardViewController *-- SwitchGestureController: Composition
+
+    TextInteractionGestureController ..> TextInteractionGestureHandling: Dependency
+    SwitchGestureController --> SwitchGestureHandling: Association
+
     BaseKeyboardViewController <|-- HangeulKeyboardViewController: Inheritance
     BaseKeyboardViewController <|-- EnglishKeyboardViewController: Inheritance
+
+    HangeulKeyboardViewController *-- HangeulKeyboardLayoutProvider: Composition
+    PrimaryKeyboardRepresentable <|-- HangeulKeyboardLayoutProvider: Inheritance
+
+    EnglishKeyboardViewController *-- EnglishKeyboardLayoutProvider: Composition
+    PrimaryKeyboardRepresentable <|-- EnglishKeyboardLayoutProvider: Inheritance
+
+    classDef SYKeyboard_primary fill:#ffa6ed
 ```
 
 ### 키보드 레이아웃 구조
