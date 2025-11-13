@@ -207,6 +207,15 @@ override func viewDidAppear(_ animated: Bool) {
 classDiagram
 direction LR
     %% Keyboard Type
+    namespace ParentKeyboardViewController {
+      class BaseKeyboardViewController
+    }
+
+    namespace FinalKeyboardViewController {
+      class HangeulKeyboardViewController
+      class EnglishKeyboardViewController
+    }
+
     BaseKeyboardViewController <|-- HangeulKeyboardViewController: Inheritance
     BaseKeyboardViewController <|-- EnglishKeyboardViewController: Inheritance
 ```
@@ -231,50 +240,76 @@ direction LR
 classDiagram
 direction LR
     %% Keyboard Layout
-    class BaseKeyboardLayout:::SYKeyboard_primary { <<protocol>> }
-    class DefaultKeyboardLayout:::SYKeyboard_primary { <<protocol>> }
-    class TextInteractionButtonGestureHandler:::SYKeyboard_primary { <<protocol>> }
-    class SwitchButtonGestureHandler:::SYKeyboard_primary { <<protocol>> }
-    class PrimaryKeyboard:::SYKeyboard_primary { <<protocol>> }
-    class HangeulKeyboardLayout:::SYKeyboard_primary { <<protocol>> }
-    class EnglishKeyboardLayout:::SYKeyboard_primary { <<protocol>> }
-    class SymbolKeyboardLayout:::SYKeyboard_primary { <<protocol>> }
-    class NumericKeyboardLayout:::SYKeyboard_primary { <<protocol>> }
-    class TenkeyKeyboardLayout:::SYKeyboard_primary { <<protocol>> }
+    namespace KeyboardGestureProtocol {
+      class TextInteractionGestureHandling
+      class SwitchGestureHandling
+    }
 
-    BaseKeyboardLayout <|-- DefaultKeyboardLayout: Inheritance
-    BaseKeyboardLayout <|-- TenkeyKeyboardLayout: Inheritance
+    namespace KeyboardTypeLayoutProtocol {
+      class HangeulKeyboardLayoutProvider
+      class EnglishKeyboardLayoutProvider
+      class SymbolKeyboardLayoutProvider
+      class NumericKeyboardLayoutProvider
+      class TenkeyKeyboardLayoutProvider
+    }
 
-    DefaultKeyboardLayout <|-- PrimaryKeyboard: Inheritance
-    DefaultKeyboardLayout <|-- PrimaryKeyboard: Inheritance
-    DefaultKeyboardLayout ..|> QwertyKeyboardView: Implementation
+    namespace ParentKeyboardView {
+      class FourByFourKeyboardView
+      class QwertyKeyboardView
+    }
 
-    TenkeyKeyboardLayout ..|>TenkeyKeyboardView: Implementation
+    namespace FinalKeyboardView {
+      class NaratgeulKeyboardView
+      class CheonjiinKeyboardView
+      class EnglishKeyboardView
+      class SymbolKeyboardView
+      class NumericKeyboardView
+      class TenkeyKeyboardView
+    }
 
-    PrimaryKeyboard <|-- HangeulKeyboardLayout: Inheritance
-    TextInteractionButtonGestureHandler <|-- HangeulKeyboardLayout: Inheritance
-    SwitchButtonGestureHandler <|-- HangeulKeyboardLayout: Inheritance
-    HangeulKeyboardLayout ..|> FourByFourKeyboardView: Implementation
+    class BaseKeyboardLayoutProvider:::SYKeyboard_primary { <<protocol>> }
+    class NormalKeyboardLayoutProvider:::SYKeyboard_primary { <<protocol>> }
+    class TextInteractionGestureHandling:::SYKeyboard_primary { <<protocol>> }
+    class SwitchGestureHandling:::SYKeyboard_primary { <<protocol>> }
+    class PrimaryKeyboardRepresentable:::SYKeyboard_primary { <<protocol>> }
+    class HangeulKeyboardLayoutProvider:::SYKeyboard_primary { <<protocol>> }
+    class EnglishKeyboardLayoutProvider:::SYKeyboard_primary { <<protocol>> }
+    class SymbolKeyboardLayoutProvider:::SYKeyboard_primary { <<protocol>> }
+    class NumericKeyboardLayoutProvider:::SYKeyboard_primary { <<protocol>> }
+    class TenkeyKeyboardLayoutProvider:::SYKeyboard_primary { <<protocol>> }
+
+    BaseKeyboardLayoutProvider <|-- NormalKeyboardLayoutProvider: Inheritance
+    BaseKeyboardLayoutProvider <|-- TenkeyKeyboardLayoutProvider: Inheritance
+
+    NormalKeyboardLayoutProvider <|-- PrimaryKeyboardRepresentable: Inheritance
+    NormalKeyboardLayoutProvider <|-- PrimaryKeyboardRepresentable: Inheritance
+
+    TenkeyKeyboardLayoutProvider ..|> TenkeyKeyboardView: Implementation
+
+    PrimaryKeyboardRepresentable <|-- HangeulKeyboardLayoutProvider: Inheritance
+    TextInteractionGestureHandling <|-- HangeulKeyboardLayoutProvider: Inheritance
+    SwitchGestureHandling <|-- HangeulKeyboardLayoutProvider: Inheritance
+    HangeulKeyboardLayoutProvider ..|> FourByFourKeyboardView: Implementation
 
     FourByFourKeyboardView <|-- NaratgeulKeyboardView: Inheritance
     FourByFourKeyboardView <|-- CheonjiinKeyboardView: Inheritance
 
-    PrimaryKeyboard <|-- EnglishKeyboardLayout: Inheritance
+    PrimaryKeyboardRepresentable <|-- EnglishKeyboardLayoutProvider: Inheritance
 
-    TextInteractionButtonGestureHandler <|-- EnglishKeyboardLayout: Inheritance
-    SwitchButtonGestureHandler <|-- EnglishKeyboardLayout: Inheritance
-    EnglishKeyboardLayout ..|> EnglishKeyboardView: Implementation
+    TextInteractionGestureHandling <|-- EnglishKeyboardLayoutProvider: Inheritance
+    SwitchGestureHandling <|-- EnglishKeyboardLayoutProvider: Inheritance
+    EnglishKeyboardLayoutProvider ..|> EnglishKeyboardView: Implementation
     QwertyKeyboardView <|-- EnglishKeyboardView: Inheritance
 
-    DefaultKeyboardLayout <|-- SymbolKeyboardLayout: Inheritance
-    TextInteractionButtonGestureHandler <|-- SymbolKeyboardLayout: Inheritance
-    SwitchButtonGestureHandler <|-- SymbolKeyboardLayout: Inheritance
-    SymbolKeyboardLayout ..|> SymbolKeyboardView: Implementation
+    NormalKeyboardLayoutProvider <|-- SymbolKeyboardLayoutProvider: Inheritance
+    TextInteractionGestureHandling <|-- SymbolKeyboardLayoutProvider: Inheritance
+    SwitchGestureHandling <|-- SymbolKeyboardLayoutProvider: Inheritance
+    SymbolKeyboardLayoutProvider ..|> SymbolKeyboardView: Implementation
 
-    DefaultKeyboardLayout <|-- NumericKeyboardLayout: Inheritance
-    TextInteractionButtonGestureHandler <|-- NumericKeyboardLayout: Inheritance
-    SwitchButtonGestureHandler <|-- NumericKeyboardLayout: Inheritance
-    NumericKeyboardLayout ..|> NumericKeyboardView: Implementation
+    NormalKeyboardLayoutProvider <|-- NumericKeyboardLayoutProvider: Inheritance
+    TextInteractionGestureHandling <|-- NumericKeyboardLayoutProvider: Inheritance
+    SwitchGestureHandling <|-- NumericKeyboardLayoutProvider: Inheritance
+    NumericKeyboardLayoutProvider ..|> NumericKeyboardView: Implementation
     
     classDef SYKeyboard_primary fill:#ffa6ed
 ```
@@ -299,16 +334,37 @@ direction LR
 classDiagram
 direction LR
     %% Keyboard Button
-    class TextInteractionButton:::SYKeyboard_primary { <<protocol>> }
+    namespace TextInteractionProtocol {
+      class TextInteractable
+    }
+
+    namespace ParentKeyboardButton {
+      class BaseKeyboardButton
+      class PrimaryButton
+      class SecondaryButton
+    }
+
+    namespace FinalKeyboardButton {
+      class PrimaryKeyButton
+      class SpaceButton
+      class SecondaryKeyButton
+      class ShiftButton
+      class DeleteButton
+      class SwitchButton
+      class NextKeyboardButton
+      class ReturnButton
+    }
+
+    class TextInteractable:::SYKeyboard_primary { <<protocol>> }
 
     BaseKeyboardButton <|-- PrimaryButton: Inheritance
     BaseKeyboardButton <|-- SecondaryButton: Inheritance
-    BaseKeyboardButton <|-- TextInteractionButton: Constraint
+    BaseKeyboardButton <|-- TextInteractable: Constraint
 
     PrimaryButton <|-- PrimaryKeyButton: Inheritance
     PrimaryButton <|-- SpaceButton: Inheritance
 
-    PrimaryKeyButton ..|> TextInteractionButton: Implementation
+    PrimaryKeyButton ..|> TextInteractable: Implementation
 
     SecondaryButton <|-- DeleteButton: Inheritance
     SecondaryButton <|-- NextKeyboardButton: Inheritance
@@ -317,11 +373,11 @@ direction LR
     SecondaryButton <|-- ShiftButton: Inheritance
     SecondaryButton <|-- SwitchButton: Inheritance
 
-    SecondaryKeyButton ..|> TextInteractionButton: Implementation
+    SecondaryKeyButton ..|> TextInteractable: Implementation
 
-    DeleteButton ..|> TextInteractionButton: Implementation
-    ReturnButton ..|> TextInteractionButton: Implementation
-    SpaceButton ..|> TextInteractionButton: Implementation
+    DeleteButton ..|> TextInteractable: Implementation
+    ReturnButton ..|> TextInteractable: Implementation
+    SpaceButton ..|> TextInteractable: Implementation
 
     classDef SYKeyboard_primary fill:#ffa6ed
 ```
