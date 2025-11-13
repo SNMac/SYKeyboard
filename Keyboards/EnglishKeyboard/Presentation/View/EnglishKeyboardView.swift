@@ -11,7 +11,7 @@ import SnapKit
 import Then
 
 /// 영어 키보드
-final class EnglishKeyboardView: QwertyKeyboard, EnglishKeyboardLayout {
+final class EnglishKeyboardView: QwertyKeyboardView, EnglishKeyboardLayoutProvider {
     
     // MARK: - Properties
     

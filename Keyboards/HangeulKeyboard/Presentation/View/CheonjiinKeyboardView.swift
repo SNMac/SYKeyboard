@@ -8,7 +8,7 @@
 import UIKit
 
 /// 천지인 키보드
-final class CheonjiinKeyboardView: FourByFourKeyboard {
+final class CheonjiinKeyboardView: FourByFourKeyboardView {
     
     // MARK: - Properties
     

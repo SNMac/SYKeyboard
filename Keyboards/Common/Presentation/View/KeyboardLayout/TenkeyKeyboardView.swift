@@ -11,14 +11,14 @@ import SnapKit
 import Then
 
 /// 텐키 키보드
-final class TenkeyKeyboardView: UIView, TenkeyKeyboardLayout {
+final class TenkeyKeyboardView: UIView, TenkeyKeyboardLayoutProvider {
     
     // MARK: - Properties
     
     private(set) lazy var allButtonList: [BaseKeyboardButton] = primaryButtonList + secondaryButtonList
     private(set) lazy var primaryButtonList: [PrimaryButton] = firstRowKeyButtonList + secondRowKeyButtonList + thirdRowKeyButtonList + fourthRowKeyButtonList
     private(set) lazy var secondaryButtonList: [SecondaryButton] = [periodButton, deleteButton]
-    private(set) lazy var totalTextInteractionButtonList: [TextInteractionButton] = firstRowKeyButtonList + secondRowKeyButtonList + thirdRowKeyButtonList + fourthRowKeyButtonList
+    private(set) lazy var totalTextInterableButtonList: [TextInteractable] = firstRowKeyButtonList + secondRowKeyButtonList + thirdRowKeyButtonList + fourthRowKeyButtonList
     + [periodButton, deleteButton]
     
     var currentTenkeyKeyboardMode: TenkeyKeyboardMode = .numberPad {

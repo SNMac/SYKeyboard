@@ -1,5 +1,5 @@
 //
-//  SymbolKeyboardLayout.swift
+//  SymbolKeyboardLayoutProvider.swift
 //  HangeulKeyboard, EnglishKeyboard
 //
 //  Created by 서동환 on 9/6/25.
@@ -10,7 +10,7 @@ import UIKit
 import SnapKit
 
 /// 기호 키보드 레이아웃 프로토콜
-protocol SymbolKeyboardLayout: DefaultKeyboardLayout, TextInteractionButtonGestureHandler, SwitchButtonGestureHandler {
+protocol SymbolKeyboardLayoutProvider: NormalKeyboardLayoutProvider, TextInteractionGestureHandling, SwitchGestureHandling {
     /// 현재 기호 키보드 모드
     var currentSymbolKeyboardMode: SymbolKeyboardMode { get set }
     /// Shift 상태
@@ -51,7 +51,7 @@ protocol SymbolKeyboardLayout: DefaultKeyboardLayout, TextInteractionButtonGestu
 
 // MARK: - Protocol Properties & Methods
 
-extension SymbolKeyboardLayout {
+extension SymbolKeyboardLayoutProvider {
     var keyboard: SYKeyboardType { .symbol }
     
     func updateLayoutForCurrentSymbolKeyboardMode(oldMode: SymbolKeyboardMode) {

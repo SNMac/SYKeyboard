@@ -11,14 +11,14 @@ import SnapKit
 import Then
 
 /// 기호 키보드
-final class SymbolKeyboardView: UIView, SymbolKeyboardLayout {
+final class SymbolKeyboardView: UIView, SymbolKeyboardLayoutProvider {
     
     // MARK: - Properties
     
     private(set) lazy var allButtonList: [BaseKeyboardButton] = primaryButtonList + secondaryButtonList
     private(set) lazy var primaryButtonList: [PrimaryButton] = firstRowKeyButtonList + secondRowKeyButtonList + thirdRowKeyButtonList + [spaceButton, atButton, periodButton, slashButton, dotComButton]
     private(set) lazy var secondaryButtonList: [SecondaryButton] = [shiftButton, deleteButton, switchButton, returnButton, nextKeyboardButton]
-    private(set) lazy var totalTextInteractionButtonList: [TextInteractionButton] = firstRowKeyButtonList + secondRowKeyButtonList + thirdRowKeyButtonList
+    private(set) lazy var totalTextInterableButtonList: [TextInteractable] = firstRowKeyButtonList + secondRowKeyButtonList + thirdRowKeyButtonList
     + [deleteButton, spaceButton, atButton, periodButton, slashButton, dotComButton, returnButton]
     
     var currentSymbolKeyboardMode: SymbolKeyboardMode = .default {
@@ -137,7 +137,7 @@ private extension SymbolKeyboardView {
         }
         
         shiftButton.snp.makeConstraints {
-            $0.width.equalToSuperview().dividedBy(6.65)
+            $0.width.equalToSuperview().dividedBy(KeyboardSize.shiftAndDeleteButtonDivider)
         }
         
         deleteButton.snp.makeConstraints {
@@ -211,7 +211,7 @@ private extension SymbolKeyboardView {
         for (rowIndex, buttonList) in rowList.enumerated() {
             for (buttonIndex, button) in buttonList.enumerated() {
                 let keys = currentSymbolKeyboardMode.keyList[symbolKeyListIndex][rowIndex][buttonIndex]
-                button.update(button: TextInteractionButtonType.keyButton(keys: keys))
+                button.update(button: TextInteractableType.keyButton(keys: keys))
             }
         }
     }

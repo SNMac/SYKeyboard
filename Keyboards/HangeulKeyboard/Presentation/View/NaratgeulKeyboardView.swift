@@ -8,7 +8,7 @@
 import UIKit
 
 /// 나랏글 키보드
-final class NaratgeulKeyboardView: FourByFourKeyboard {
+final class NaratgeulKeyboardView: FourByFourKeyboardView {
     
     // MARK: - Properties
 

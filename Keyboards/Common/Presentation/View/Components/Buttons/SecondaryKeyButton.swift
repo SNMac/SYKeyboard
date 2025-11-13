@@ -8,11 +8,11 @@
 import UIKit
 
 /// 보조 키 버튼
-final class SecondaryKeyButton: SecondaryButton, TextInteractionButton {
+final class SecondaryKeyButton: SecondaryButton, TextInteractable {
     
     // MARK: - Properties
     
-    private(set) var button: TextInteractionButtonType {
+    private(set) var button: TextInteractableType {
         didSet {
             if button.keys.isEmpty {
                 self.isHidden = true
@@ -25,7 +25,7 @@ final class SecondaryKeyButton: SecondaryButton, TextInteractionButton {
     
     // MARK: - Initializer
     
-    init(keyboard: SYKeyboardType, button: TextInteractionButtonType) {
+    init(keyboard: SYKeyboardType, button: TextInteractableType) {
         self.button = button
         super.init(keyboard: keyboard)
         
@@ -45,7 +45,7 @@ final class SecondaryKeyButton: SecondaryButton, TextInteractionButton {
     
     // MARK: - Internal Methods
     
-    func update(button: TextInteractionButtonType) {
+    func update(button: TextInteractableType) {
         self.button = button
     }
 }

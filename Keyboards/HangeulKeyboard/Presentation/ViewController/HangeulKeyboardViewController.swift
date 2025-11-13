@@ -13,12 +13,19 @@ final class HangeulKeyboardViewController: BaseKeyboardViewController {
     // MARK: - UI Components
     
     /// 나랏글 키보드
-    private lazy var naratgeulKeyboardView: HangeulKeyboardLayout = NaratgeulKeyboardView()
+    private lazy var naratgeulKeyboardView: HangeulKeyboardLayoutProvider = NaratgeulKeyboardView()
     /// 천지인 키보드
-    private lazy var cheonjiinKeyboardView: HangeulKeyboardLayout = CheonjiinKeyboardView()
+    private lazy var cheonjiinKeyboardView: HangeulKeyboardLayoutProvider = CheonjiinKeyboardView()
     /// 사용자가 선택한 한글 키보드
-    private lazy var hangeulKeyboardView: HangeulKeyboardLayout = naratgeulKeyboardView  // TODO: 사용자가 선택한 한글 키보드를 저장
-    override var primaryKeyboardView: PrimaryKeyboard { hangeulKeyboardView }
+    private var hangeulKeyboardView: HangeulKeyboardLayoutProvider {
+        switch UserDefaultsManager.shared.selectedHangeulKeyboard {
+        case .naratgeul:
+            return naratgeulKeyboardView
+        case .cheonjiin:
+            return cheonjiinKeyboardView
+        }
+    }
+    override var primaryKeyboardView: PrimaryKeyboardRepresentable { hangeulKeyboardView }
     
     // MARK: - Override Methods
     

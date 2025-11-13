@@ -10,11 +10,11 @@ import UIKit
 import SnapKit
 
 /// 삭제 버튼
-final class DeleteButton: SecondaryButton, TextInteractionButton {
+final class DeleteButton: SecondaryButton, TextInteractable {
     
     // MARK: - Properties
     
-    private(set) var button: TextInteractionButtonType = .deleteButton
+    private(set) var button: TextInteractableType = .deleteButton
     private let keyboard: SYKeyboardType
     
     // MARK: - Initializer

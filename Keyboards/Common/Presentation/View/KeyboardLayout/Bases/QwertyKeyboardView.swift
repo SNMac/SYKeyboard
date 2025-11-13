@@ -1,5 +1,5 @@
 //
-//  QwertyKeyboard.swift
+//  QwertyKeyboardView.swift
 //  HangeulKeyboard, EnglishKeyboard
 //
 //  Created by 서동환 on 9/12/25.
@@ -10,7 +10,7 @@ import UIKit
 import SnapKit
 import Then
 
-class QwertyKeyboard: UIView, DefaultKeyboardLayout, TextInteractionButtonGestureHandler, SwitchButtonGestureHandler {
+class QwertyKeyboardView: UIView {
     
     // MARK: - Properties
     
@@ -22,7 +22,7 @@ class QwertyKeyboard: UIView, DefaultKeyboardLayout, TextInteractionButtonGestur
     private(set) lazy var allButtonList: [BaseKeyboardButton] = primaryButtonList + secondaryButtonList
     private(set) lazy var primaryButtonList: [PrimaryButton] = firstRowKeyButtonList + secondRowKeyButtonList + thirdRowKeyButtonList + [spaceButton, atButton, periodButton, slashButton, dotComButton]
     private(set) lazy var secondaryButtonList: [SecondaryButton] = [shiftButton, deleteButton, switchButton, returnButton, secondaryAtButton, secondarySharpButton, nextKeyboardButton]
-    private(set) lazy var totalTextInteractionButtonList: [TextInteractionButton] = firstRowKeyButtonList + secondRowKeyButtonList + thirdRowKeyButtonList
+    private(set) lazy var totalTextInterableButtonList: [TextInteractable] = firstRowKeyButtonList + secondRowKeyButtonList + thirdRowKeyButtonList
     + [deleteButton, spaceButton, atButton, periodButton, slashButton, dotComButton, returnButton, secondaryAtButton, secondarySharpButton]
     
     final var isShifted: Bool = false {
@@ -113,7 +113,7 @@ class QwertyKeyboard: UIView, DefaultKeyboardLayout, TextInteractionButtonGestur
 
 // MARK: - UI Methods
 
-private extension QwertyKeyboard {
+private extension QwertyKeyboardView {
     func setupUI() {
         setStyles()
         setActions()
@@ -175,7 +175,7 @@ private extension QwertyKeyboard {
         }
         
         shiftButton.snp.makeConstraints {
-            $0.width.equalToSuperview().dividedBy(6.65)
+            $0.width.equalToSuperview().dividedBy(KeyboardSize.shiftAndDeleteButtonDivider)
         }
         
         deleteButton.snp.makeConstraints {
@@ -221,14 +221,14 @@ private extension QwertyKeyboard {
 
 // MARK: - Update Methods
 
-extension QwertyKeyboard {
+extension QwertyKeyboardView {
     final func updateKeyButtonList() {
         let keyListIndex = (isShifted ? 1 : 0)
         let rowList = [firstRowKeyButtonList, secondRowKeyButtonList, thirdRowKeyButtonList]
         for (rowIndex, buttonList) in rowList.enumerated() {
             for (buttonIndex, button) in buttonList.enumerated() {
                 let keys = keyList[keyListIndex][rowIndex][buttonIndex]
-                button.update(button: TextInteractionButtonType.keyButton(keys: keys))
+                button.update(button: TextInteractableType.keyButton(keys: keys))
             }
         }
     }

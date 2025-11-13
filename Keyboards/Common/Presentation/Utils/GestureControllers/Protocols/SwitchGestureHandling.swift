@@ -1,5 +1,5 @@
 //
-//  SwitchButtonGestureHandler.swift
+//  SwitchGestureHandling.swift
 //  HangeulKeyboard, EnglishKeyboard
 //
 //  Created by 서동환 on 9/2/25.
@@ -8,7 +8,7 @@
 import UIKit
 
 /// 키보드 전환 버튼 제스처 핸들러 프로토콜
-protocol SwitchButtonGestureHandler: UIView {
+protocol SwitchGestureHandling: UIView {
     /// 키보드 전환 버튼
     var switchButton: SwitchButton { get }
     /// 키보드 레이아웃 선택 UI
@@ -32,7 +32,7 @@ protocol SwitchButtonGestureHandler: UIView {
     func hideOneHandedModeSelectOverlay()
 }
 
-extension SwitchButtonGestureHandler {
+extension SwitchGestureHandling {
     func showKeyboardSelectOverlay(needToEmphasizeTarget: Bool) {
         keyboardSelectOverlayView.configure(needToEmphasizeTarget: needToEmphasizeTarget)
         keyboardSelectOverlayView.isHidden = false

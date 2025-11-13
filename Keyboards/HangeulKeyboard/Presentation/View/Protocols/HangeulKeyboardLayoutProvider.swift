@@ -1,5 +1,5 @@
 //
-//  HangeulKeyboardLayout.swift
+//  HangeulKeyboardLayoutProvider.swift
 //  HangeulKeyboard
 //
 //  Created by 서동환 on 9/6/25.
@@ -8,7 +8,7 @@
 import UIKit
 
 /// 한글 키보드 레이아웃 프로토콜
-protocol HangeulKeyboardLayout: PrimaryKeyboard, TextInteractionButtonGestureHandler, SwitchButtonGestureHandler {
+protocol HangeulKeyboardLayoutProvider: PrimaryKeyboardRepresentable, TextInteractionGestureHandling, SwitchGestureHandling {
     /// 현재 한글 키보드 모드
     var currentHangeulKeyboardMode: HangeulKeyboardMode { get set }
     /// Shift 상태
@@ -39,7 +39,7 @@ protocol HangeulKeyboardLayout: PrimaryKeyboard, TextInteractionButtonGestureHan
 
 // MARK: - Protocol Properties & Methods
 
-extension HangeulKeyboardLayout {
+extension HangeulKeyboardLayoutProvider {
     var keyboard: SYKeyboardType { .hangeul }
     var isShifted: Bool? {
         get { nil } set {}

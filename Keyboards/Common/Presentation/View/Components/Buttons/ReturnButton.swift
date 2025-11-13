@@ -8,11 +8,11 @@
 import UIKit
 
 /// 리턴 버튼
-final class ReturnButton: SecondaryButton, TextInteractionButton {
+final class ReturnButton: SecondaryButton, TextInteractable {
     
     // MARK: - Properties
     
-    private(set) var button: TextInteractionButtonType = .returnButton
+    private(set) var button: TextInteractableType = .returnButton
     
     // MARK: - Override Methods
     

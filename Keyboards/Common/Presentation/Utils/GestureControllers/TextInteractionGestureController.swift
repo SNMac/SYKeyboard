@@ -1,5 +1,5 @@
 //
-//  TextInteractionButtonGestureController.swift
+//  TextInteractionGestureController.swift
 //  HangeulKeyboard, EnglishKeyboard
 //
 //  Created by 서동환 on 9/3/25.
@@ -8,16 +8,16 @@
 import UIKit
 import OSLog
 
-protocol TextInteractionButtonGestureControllerDelegate: AnyObject {
-    func primaryButtonPanning(_ controller: TextInteractionButtonGestureController, to direction: PanDirection)
-    func deleteButtonPanning(_ controller: TextInteractionButtonGestureController, to direction: PanDirection)
-    func deleteButtonPanStopped(_ controller: TextInteractionButtonGestureController)
-    func textInteractionButtonLongPressing(_ controller: TextInteractionButtonGestureController, button: TextInteractionButton)
-    func textInteractionButtonLongPressStopped(_ controller: TextInteractionButtonGestureController)
+protocol TextInteractionGestureControllerDelegate: AnyObject {
+    func primaryButtonPanning(_ controller: TextInteractionGestureController, to direction: PanDirection)
+    func deleteButtonPanning(_ controller: TextInteractionGestureController, to direction: PanDirection)
+    func deleteButtonPanStopped(_ controller: TextInteractionGestureController)
+    func textInteractableButtonLongPressing(_ controller: TextInteractionGestureController, button: TextInteractable)
+    func textInteractableButtonLongPressStopped(_ controller: TextInteractionGestureController)
 }
 
 /// 입력 상호작용 버튼(리턴 버튼 제외) 제스처 컨트롤러
-final class TextInteractionButtonGestureController: NSObject {
+final class TextInteractionGestureController: NSObject {
     
     // MARK: - Properties
     
@@ -33,7 +33,7 @@ final class TextInteractionButtonGestureController: NSObject {
     private let setCurrentPressedButton: (BaseKeyboardButton?) -> ()
     
     // Property Injection
-    weak var delegate: TextInteractionButtonGestureControllerDelegate?
+    weak var delegate: TextInteractionGestureControllerDelegate?
     
     // MARK: - Initializer
     
@@ -48,7 +48,7 @@ final class TextInteractionButtonGestureController: NSObject {
     // MARK: - @objc Gesture Methods
     
     @objc func panGestureHandler(_ gesture: UIPanGestureRecognizer) {
-        let gestureButton = gesture.view as? TextInteractionButton
+        let gestureButton = gesture.view as? TextInteractable
         let currentPoint = gesture.location(in: gesture.view)
         
         switch gesture.state {
@@ -85,7 +85,7 @@ final class TextInteractionButtonGestureController: NSObject {
     }
     
     @objc func longPressGestureHandler(_ gesture: UILongPressGestureRecognizer) {
-        let gestureButton = gesture.view as? TextInteractionButton
+        let gestureButton = gesture.view as? TextInteractable
         
         switch gesture.state {
         case .began:
@@ -119,7 +119,7 @@ final class TextInteractionButtonGestureController: NSObject {
 
 // MARK: - Gesture Methods
 
-private extension TextInteractionButtonGestureController {
+private extension TextInteractionGestureController {
     func onPanGestureChanged(_ gesture: UIPanGestureRecognizer) {
         let currentPoint = gesture.location(in: gesture.view)
         
@@ -131,7 +131,7 @@ private extension TextInteractionButtonGestureController {
                 } else {
                     delegate?.deleteButtonPanning(self, to: .left)
                 }
-            } else if gesture.view is TextInteractionButton {
+            } else if gesture.view is TextInteractable {
                 if distance > 0 {
                     delegate?.primaryButtonPanning(self, to: .right)
                 } else {
@@ -151,21 +151,21 @@ private extension TextInteractionButtonGestureController {
     }
     
     func onLongPressGestureBegan(_ gesture: UILongPressGestureRecognizer) {
-        guard let gestureButton = gesture.view as? TextInteractionButton else {
+        guard let gestureButton = gesture.view as? TextInteractable else {
             assertionFailure("입력 상호작용 버튼이 아닙니다.")
             return
         }
-        delegate?.textInteractionButtonLongPressing(self, button: gestureButton)
+        delegate?.textInteractableButtonLongPressing(self, button: gestureButton)
     }
     
     func onLongPressGestureEnded() {
-        delegate?.textInteractionButtonLongPressStopped(self)
+        delegate?.textInteractableButtonLongPressStopped(self)
     }
 }
 
 // MARK: - Gesture Helper Methods
 
-private extension TextInteractionButtonGestureController {
+private extension TextInteractionGestureController {
     func calcDistance(point1: CGPoint, point2: CGPoint) -> CGFloat {
         let dx = point2.x - point1.x
         let dy = point2.y - point1.y
@@ -175,7 +175,7 @@ private extension TextInteractionButtonGestureController {
 
 // MARK: - UIGestureRecognizerDelegate
 
-extension TextInteractionButtonGestureController: UIGestureRecognizerDelegate {
+extension TextInteractionGestureController: UIGestureRecognizerDelegate {
     func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldBeRequiredToFailBy otherGestureRecognizer: UIGestureRecognizer) -> Bool {
         if gestureRecognizer is UILongPressGestureRecognizer && otherGestureRecognizer is UIPanGestureRecognizer {
             return true

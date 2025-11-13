@@ -1,5 +1,5 @@
 //
-//  DefaultKeyboardLayout.swift
+//  NormalKeyboardLayoutProvider.swift
 //  SYKeyboard
 //
 //  Created by 서동환 on 9/12/25.
@@ -8,7 +8,7 @@
 import UIKit
 
 /// 일반적인 상황에 나타나는 키보드의 레이아웃 프로토콜
-protocol DefaultKeyboardLayout: BaseKeyboardLayout {
+protocol NormalKeyboardLayoutProvider: BaseKeyboardLayoutProvider {
     /// 스페이스 버튼
     var spaceButton: SpaceButton { get }
     /// 리턴 버튼
@@ -21,7 +21,7 @@ protocol DefaultKeyboardLayout: BaseKeyboardLayout {
 
 // MARK: - Protocol Properties & Methods
 
-extension DefaultKeyboardLayout {
+extension NormalKeyboardLayoutProvider {
     func updateNextKeyboardButton(needsInputModeSwitchKey: Bool, nextKeyboardAction: Selector) {
         nextKeyboardButton.addTarget(nil, action: nextKeyboardAction, for: .allTouchEvents)
         nextKeyboardButton.isHidden = !needsInputModeSwitchKey

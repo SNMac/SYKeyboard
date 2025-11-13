@@ -1,5 +1,5 @@
 //
-//  EnglishKeyboardLayout.swift
+//  EnglishKeyboardLayoutProvider.swift
 //  EnglishKeyboard
 //
 //  Created by 서동환 on 9/8/25.
@@ -10,7 +10,7 @@ import UIKit
 import SnapKit
 
 /// 영어 키보드 레이아웃 프로토콜
-protocol EnglishKeyboardLayout: PrimaryKeyboard, TextInteractionButtonGestureHandler, SwitchButtonGestureHandler {
+protocol EnglishKeyboardLayoutProvider: PrimaryKeyboardRepresentable, TextInteractionGestureHandling, SwitchGestureHandling {
     /// 현재 영어 키보드 모드
     var currentEnglishKeyboardMode: EnglishKeyboardMode { get set }
     /// Shift 상태
@@ -63,7 +63,7 @@ protocol EnglishKeyboardLayout: PrimaryKeyboard, TextInteractionButtonGestureHan
 
 // MARK: - Protocol Properties & Methods
 
-extension EnglishKeyboardLayout {
+extension EnglishKeyboardLayoutProvider {
     var keyboard: SYKeyboardType { .english }
     
     func updateLayoutForCurrentEnglishMode(oldMode: EnglishKeyboardMode) {

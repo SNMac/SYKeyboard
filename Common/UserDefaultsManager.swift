@@ -28,6 +28,35 @@ struct UserDefaultsWrapper<T: Codable> {
     }
 }
 
+/// `RawRepresentable` 타입을 위한 프로퍼티 래퍼
+@propertyWrapper
+struct UserDefaultsRawRepresentableWrapper<T: RawRepresentable> {
+    /// 데이터를 저장할 `UserDefaults`
+    private let storage: UserDefaults = UserDefaults(suiteName: DefaultValues.groupBundleID)!
+    /// 값을 저장할 키값
+    private let key: String
+    /// 기본값
+    private let defaultValue: T
+    
+    var wrappedValue: T {
+        get {
+            guard let rawValue = storage.object(forKey: key) as? T.RawValue,
+                  let value = T(rawValue: rawValue) else {
+                return defaultValue
+            }
+            return value
+        }
+        set {
+            storage.set(newValue.rawValue, forKey: key)
+        }
+    }
+    
+    init(key: String, defaultValue: T) {
+        self.key = key
+        self.defaultValue = defaultValue
+    }
+}
+
 /// `UserDefaults`를 관리하는 싱글톤 매니저
 final class UserDefaultsManager {
     
@@ -48,16 +77,8 @@ final class UserDefaultsManager {
     
     /* 입력 설정 */
     /// 선택한 한글 키보드
-    var selectedHangeulKeyboard: HangeulKeyboardType {
-        get {
-            let storage: UserDefaults = UserDefaults(suiteName: DefaultValues.groupBundleID)!
-            return HangeulKeyboardType(rawValue: storage.integer(forKey: UserDefaultsKeys.selectedHangeulKeyboard)) ?? DefaultValues.selectedHangeulKeyboard
-        }
-        set {
-            let storage: UserDefaults = UserDefaults(suiteName: DefaultValues.groupBundleID)!
-            storage.set(newValue.rawValue, forKey: UserDefaultsKeys.selectedHangeulKeyboard)
-        }
-    }
+    @UserDefaultsRawRepresentableWrapper(key: UserDefaultsKeys.selectedHangeulKeyboard, defaultValue: DefaultValues.selectedHangeulKeyboard)
+    var selectedHangeulKeyboard: HangeulKeyboardType
     /// 텍스트 대치
     @UserDefaultsWrapper(key: UserDefaultsKeys.isTextReplacementEnabled, defaultValue: DefaultValues.isTextReplacementEnabled)
     var isTextReplacementEnabled: Bool
@@ -101,16 +122,8 @@ final class UserDefaultsManager {
     @UserDefaultsWrapper(key: UserDefaultsKeys.needsInputModeSwitchKey, defaultValue: DefaultValues.needsInputModeSwitchKey)
     var needsInputModeSwitchKey: Bool
     /// 한 손 키보드 저장용
-    var lastOneHandedMode: OneHandedMode {
-        get {
-            let storage: UserDefaults = UserDefaults(suiteName: DefaultValues.groupBundleID)!
-            return OneHandedMode(rawValue: storage.integer(forKey: UserDefaultsKeys.lastOneHandedMode)) ?? DefaultValues.lastOneHandedMode
-        }
-        set {
-            let storage: UserDefaults = UserDefaults(suiteName: DefaultValues.groupBundleID)!
-            storage.set(newValue.rawValue, forKey: UserDefaultsKeys.lastOneHandedMode)
-        }
-    }
+    @UserDefaultsRawRepresentableWrapper(key: UserDefaultsKeys.lastOneHandedMode, defaultValue: DefaultValues.lastOneHandedMode)
+    var lastOneHandedMode: OneHandedMode
     /// 온보딩 여부
     @UserDefaultsWrapper(key: UserDefaultsKeys.isOnboarding, defaultValue: DefaultValues.isOnboarding)
     var isOnboarding: Bool

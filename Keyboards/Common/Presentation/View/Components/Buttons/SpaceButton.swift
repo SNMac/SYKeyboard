@@ -8,9 +8,9 @@
 import UIKit
 
 /// 스페이스 버튼
-final class SpaceButton: PrimaryButton, TextInteractionButton {
+final class SpaceButton: PrimaryButton, TextInteractable {
     
-    private(set) var button: TextInteractionButtonType
+    private(set) var button: TextInteractableType
     
     // MARK: - Initializer
     

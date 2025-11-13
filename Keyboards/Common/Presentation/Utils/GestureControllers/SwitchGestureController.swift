@@ -1,5 +1,5 @@
 //
-//  SwitchButtonGestureController.swift
+//  SwitchGestureController.swift
 //  HangeulKeyboard, EnglishKeyboard
 //
 //  Created by 서동환 on 9/2/25.
@@ -10,19 +10,19 @@ import OSLog
 
 import Then
 
-protocol SwitchButtonGestureControllerDelegate: AnyObject {
-    func changeKeyboard(_ controller: SwitchButtonGestureController, to newKeyboard: SYKeyboardType)
-    func changeOneHandedMode(_ controller: SwitchButtonGestureController, to newMode: OneHandedMode)
+protocol SwitchGestureControllerDelegate: AnyObject {
+    func changeKeyboard(_ controller: SwitchGestureController, to newKeyboard: SYKeyboardType)
+    func changeOneHandedMode(_ controller: SwitchGestureController, to newMode: OneHandedMode)
 }
 
 /// 키보드 전환 버튼 제스처 컨트롤러
-final class SwitchButtonGestureController: NSObject {
+final class SwitchGestureController: NSObject {
     
     // MARK: - Properties
     
     private lazy var logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: String(describing: self))
     
-    typealias PanConfig = (gestureHandler: SwitchButtonGestureHandler,
+    typealias PanConfig = (gestureHandler: SwitchGestureHandling,
                            targetkeyboard: SYKeyboardType,
                            targetDirection: PanDirection)
     
@@ -35,25 +35,25 @@ final class SwitchButtonGestureController: NSObject {
     
     // Initializer Injection
     private let keyboardFrameView: UIView
-    private let hangeulKeyboardView: SwitchButtonGestureHandler?
-    private let englishKeyboardView: SwitchButtonGestureHandler?
-    private let symbolKeyboardView: SwitchButtonGestureHandler
-    private let numericKeyboardView: SwitchButtonGestureHandler
+    private let hangeulKeyboardView: SwitchGestureHandling?
+    private let englishKeyboardView: SwitchGestureHandling?
+    private let symbolKeyboardView: SwitchGestureHandling
+    private let numericKeyboardView: SwitchGestureHandling
     private let getCurrentKeyboard: () -> SYKeyboardType
     private let getCurrentOneHandedMode: () -> OneHandedMode
     private let getCurrentPressedButton: () -> BaseKeyboardButton?
     private let setCurrentPressedButton: (BaseKeyboardButton?) -> ()
     
     // Property Injection
-    weak var delegate: SwitchButtonGestureControllerDelegate?
+    weak var delegate: SwitchGestureControllerDelegate?
     
     // MARK: - Initializer
     
     init(keyboardFrameView: UIView,
-         hangeulKeyboardView: SwitchButtonGestureHandler?,
-         englishKeyboardView: SwitchButtonGestureHandler?,
-         symbolKeyboardView: SwitchButtonGestureHandler,
-         numericKeyboardView: SwitchButtonGestureHandler,
+         hangeulKeyboardView: SwitchGestureHandling?,
+         englishKeyboardView: SwitchGestureHandling?,
+         symbolKeyboardView: SwitchGestureHandling,
+         numericKeyboardView: SwitchGestureHandling,
          getCurrentKeyboard: @escaping () -> SYKeyboardType,
          getCurrentOneHandedMode: @escaping () -> OneHandedMode,
          getCurrentPressedButton: @escaping () -> BaseKeyboardButton?,
@@ -158,7 +158,7 @@ final class SwitchButtonGestureController: NSObject {
 
 // MARK: - Pan Gesture Methods
 
-private extension SwitchButtonGestureController {
+private extension SwitchGestureController {
     func onPanGestureChanged(_ gesture: UIPanGestureRecognizer, config: PanConfig) {
         let switchButton = config.gestureHandler.switchButton
         let keyboardSelectOverlayView = config.gestureHandler.keyboardSelectOverlayView
@@ -233,8 +233,8 @@ private extension SwitchButtonGestureController {
 
 // MARK: - Long Press Gesture Methods
 
-private extension SwitchButtonGestureController {
-    func onLongPressGestureBegan(gestureHandler: SwitchButtonGestureHandler) {
+private extension SwitchGestureController {
+    func onLongPressGestureBegan(gestureHandler: SwitchGestureHandling) {
         let switchButton = gestureHandler.switchButton
         let keyboardSelectOverlayView = gestureHandler.keyboardSelectOverlayView
         let oneHandedModeSelectOverlayView = gestureHandler.oneHandedModeSelectOverlayView
@@ -247,7 +247,7 @@ private extension SwitchButtonGestureController {
         }
     }
     
-    func onLongPressGestureChanged(_ gesture: UILongPressGestureRecognizer, gestureHandler: SwitchButtonGestureHandler) {
+    func onLongPressGestureChanged(_ gesture: UILongPressGestureRecognizer, gestureHandler: SwitchGestureHandling) {
         let oneHandedModeSelectOverlayView = gestureHandler.oneHandedModeSelectOverlayView
         
         if !oneHandedModeSelectOverlayView.isHidden {
@@ -263,7 +263,7 @@ private extension SwitchButtonGestureController {
         }
     }
     
-    func onLongPressGestureEnded(_ gesture: UILongPressGestureRecognizer, gestureHandler: SwitchButtonGestureHandler) -> Bool {
+    func onLongPressGestureEnded(_ gesture: UILongPressGestureRecognizer, gestureHandler: SwitchGestureHandling) -> Bool {
         let switchButton = gestureHandler.switchButton
         let oneHandedModeSelectOverlayView = gestureHandler.oneHandedModeSelectOverlayView
         
@@ -291,8 +291,8 @@ private extension SwitchButtonGestureController {
 
 // MARK: - KeyboardView Pan Gesture Methods
 
-private extension SwitchButtonGestureController {
-    func onKeyboardFrameViewPressGestureChanged(_ gesture: UILongPressGestureRecognizer, gestureHandler: SwitchButtonGestureHandler) {
+private extension SwitchGestureController {
+    func onKeyboardFrameViewPressGestureChanged(_ gesture: UILongPressGestureRecognizer, gestureHandler: SwitchGestureHandling) {
         let oneHandedModeSelectOverlayView = gestureHandler.oneHandedModeSelectOverlayView
         
         if !oneHandedModeSelectOverlayView.isHidden {
@@ -307,7 +307,7 @@ private extension SwitchButtonGestureController {
         }
     }
     
-    func onKeyboardFrameViewPressGestureEnded(_ gesture: UILongPressGestureRecognizer, gestureHandler: SwitchButtonGestureHandler) {
+    func onKeyboardFrameViewPressGestureEnded(_ gesture: UILongPressGestureRecognizer, gestureHandler: SwitchGestureHandling) {
         let switchButton = gestureHandler.switchButton
         let oneHandedModeSelectOverlayView = gestureHandler.oneHandedModeSelectOverlayView
         
@@ -329,9 +329,9 @@ private extension SwitchButtonGestureController {
 
 // MARK: - Gesture Helper Methods
 
-private extension SwitchButtonGestureController {
-    func setGestureHandler() -> SwitchButtonGestureHandler {
-        let gestureHandler: SwitchButtonGestureHandler
+private extension SwitchGestureController {
+    func setGestureHandler() -> SwitchGestureHandling {
+        let gestureHandler: SwitchGestureHandling
         
         let currentKeyboard = getCurrentKeyboard()
         switch currentKeyboard {
@@ -453,7 +453,7 @@ private extension SwitchButtonGestureController {
 
 // MARK: - UIGestureRecognizerDelegate
 
-extension SwitchButtonGestureController: UIGestureRecognizerDelegate {
+extension SwitchGestureController: UIGestureRecognizerDelegate {
     func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldBeRequiredToFailBy otherGestureRecognizer: UIGestureRecognizer) -> Bool {
         if gestureRecognizer is UILongPressGestureRecognizer && otherGestureRecognizer is UIPanGestureRecognizer {
             return true

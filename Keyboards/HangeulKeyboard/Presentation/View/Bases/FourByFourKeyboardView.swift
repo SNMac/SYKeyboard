@@ -1,5 +1,5 @@
 //
-//  FourByFourKeyboard.swift
+//  FourByFourKeyboardView.swift
 //  HangeulKeyboard
 //
 //  Created by 서동환 on 9/12/25.
@@ -10,14 +10,14 @@ import UIKit
 import SnapKit
 import Then
 
-class FourByFourKeyboard: UIView, HangeulKeyboardLayout {
+class FourByFourKeyboardView: UIView, HangeulKeyboardLayoutProvider {
     
     // MARK: - Properties
     
     private(set) lazy var allButtonList: [BaseKeyboardButton] = primaryButtonList + secondaryButtonList
     private(set) lazy var primaryButtonList: [PrimaryButton] = firstRowKeyButtonList + secondRowKeyButtonList + thirdRowKeyButtonList + fourthRowKeyButtonList + [spaceButton]
     private(set) lazy var secondaryButtonList: [SecondaryButton] = [deleteButton, returnButton, secondaryAtButton, secondarySharpButton, switchButton, nextKeyboardButton]
-    private(set) lazy var totalTextInteractionButtonList: [TextInteractionButton] = firstRowKeyButtonList + secondRowKeyButtonList + thirdRowKeyButtonList + fourthRowKeyButtonList
+    private(set) lazy var totalTextInterableButtonList: [TextInteractable] = firstRowKeyButtonList + secondRowKeyButtonList + thirdRowKeyButtonList + fourthRowKeyButtonList
     + [deleteButton, spaceButton, returnButton, secondaryAtButton, secondarySharpButton]
     
     final var currentHangeulKeyboardMode: HangeulKeyboardMode = .default {
@@ -86,7 +86,7 @@ class FourByFourKeyboard: UIView, HangeulKeyboardLayout {
 
 // MARK: - UI Methods
 
-private extension FourByFourKeyboard {
+private extension FourByFourKeyboardView {
     func setupUI() {
         setStyles()
         setHierarchy()
