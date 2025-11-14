@@ -71,8 +71,6 @@ Keyboard Extension 부분은 SwiftUI에서 UIKit으로 리팩토링하는 작업
 <br>
 
 #### UIKit 리팩토링 작업
-확실히 버튼 자체에 대한 코드는 길어졌지만, SY키보드의 커서 이동, 반복 입력, 숫자 키보드 전환 등 복잡한 제스처 구현에는 SwiftUI보다 효율적이었다.  
-
 SwiftUI에서는 `Button`의 `action`이 `touchUpInside` 기준으로 고정되어 있어서, Gesture를 사용하여 우회적으로 다른 이벤트들을 구현해야 했다.  
 하지만 UIKit에서는 `addTarget` 혹은 `addAction`의 `UIControlEvents`를 통해 `touchDown`, `touchUpInside`, `touchDownRepeat`로 세밀하게 제어할 수 있었다.  
 또한 버튼이 눌렸을 때(`highlighted`, `selected`)에 대한 상태 변경도 더 직관적이었다.  
@@ -363,7 +361,7 @@ override func viewDidAppear(_ animated: Bool) {
 %%{
   init: {
     "theme": "default",
-    "fontFamily": "JetBrainsMono NFP",
+    "fontFamily": "monospace",
     "elk": {
         "mergeEdges": false,
         "nodePlacementStrategy": "BRANDES_KOEPF",
@@ -442,7 +440,7 @@ direction LR
 %%{
   init: {
     "theme": "default",
-    "fontFamily": "JetBrainsMono NFP",
+    "fontFamily": "monospace",
     "elk": {
         "mergeEdges": false,
         "nodePlacementStrategy": "BRANDES_KOEPF",
@@ -536,7 +534,7 @@ direction LR
 %%{
   init: {
     "theme": "default",
-    "fontFamily": "JetBrainsMono NFP",
+    "fontFamily": "monospace",
     "elk": {
         "mergeEdges": false,
         "nodePlacementStrategy": "BRANDES_KOEPF",
