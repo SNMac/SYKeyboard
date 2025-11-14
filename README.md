@@ -46,7 +46,178 @@
 
 
 ## 👨‍💻 트러블 슈팅
-### SwiftUI ➡️ UIKit 리팩토링 이유
+### 복잡했던 버튼 코드
+#### SwiftUI로 최초 개발
+첫 iOS 프로젝트인 SY키보드를 SwiftUI로 개발하여 1월에 출시하였다.  
+하지만 Swift 언어를 다루는 데에 미숙했던 것과 UIKit에 비해 부족한 터치 이벤트 및 상태 관리로 인해 키보드 버튼 코드가 매우 길어졌다.  
+이후 4개월간의 UIKit 부트캠프를 수강하며 어느 정도 iOS 앱 개발에 익숙해지면서, 복잡한 상태 관리에는 SwiftUI보다 UIKit이 적합함을 알게 되었다.  
+미숙했던 개발 실력과 SwiftUI의 특징이 맞물려 유지보수하기 어려웠던 SY키보드의 UIKit 리팩토링을 생각하게 되었고, 부트캠프 수료 이후 진행하였다.
+
+<br>
+
+#### SwiftUI ➡️ UIKit 리팩토링
+##### 메인 앱
+SY키보드의 메인 앱은 키보드 설정 위주의 단순한 구조이므로 기존 SwiftUI를 유지하면서 개선에 목적을 두었다.  
+
+##### Keyboard Extension
+Keyboard Extension 부분은 SwiftUI에서 UIKit으로 리팩토링하는 작업을 진행했다.  
+리팩토링을 거치며 영어 키보드를 추가하였고, 천지인 키보드도 다음 업데이트를 위해 기본적인 UI를 만들어 두었다.  
+또한, 다른 프로젝트에서 가져와 수정해서 사용했던 한글 오토마타 코드도 처음부터 다시 만들기로 결정했다.  
+
+2025.11.14 기준 남은 작업은 아래와 같다.
+- 한글 오토마타
+- 메인 앱 SwiftUI 코드 유지보수
+
+<br>
+
+#### UIKit 리팩토링 작업
+확실히 버튼 자체에 대한 코드는 길어졌지만, SY키보드의 커서 이동, 반복 입력, 숫자 키보드 전환 등 복잡한 제스처 구현에는 SwiftUI보다 효율적이었다.  
+
+SwiftUI에서는 `Button`의 `action`이 `touchUpInside` 기준으로 고정되어 있어서, Gesture를 사용하여 우회적으로 다른 이벤트들을 구현해야 했다.  
+하지만 UIKit에서는 `addTarget` 혹은 `addAction`의 `UIControlEvents`를 통해 `touchDown`, `touchUpInside`, `touchDownRepeat`로 세밀하게 제어할 수 있었다.  
+또한 버튼이 눌렸을 때(`highlighted`, `selected`)에 대한 상태 변경도 더 직관적이었다.  
+
+<details>
+    <summary>기존 SwiftUI</summary>
+    <div markdown="1">
+        
+``` swift
+// KeyboardButton 구조체의 일부
+Button(action: {}) {
+            // Image 버튼들
+            if systemName != nil {
+                if systemName == "return.left" {  // 리턴 버튼
+                    if state.returnButtonType == .default {
+                        Image(systemName: "return.left")
+                            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+                            .font(.system(size: imageSize))
+                            .foregroundStyle(Color(uiColor: UIColor.label))
+                            .background(checkPressed() ? Color("PrimaryKeyboardButton") : Color("SecondaryKeyboardButton"))
+            // ...(중략)...
+        .highPriorityGesture(
+            LongPressGesture(minimumDuration: 0)
+                .onEnded({ _ in
+                    // 버튼 눌렀을 때
+                    os_log("LongPressGesture() onEnded: pressed", log: log, type: .debug)
+                    gesturePressed()
+                })
+        )
+        .simultaneousGesture(
+            LongPressGesture(minimumDuration: state.longPressDuration, maximumDistance: cursorActiveDistance)
+            // 버튼 길게 눌렀을 때
+                .onEnded({ _ in
+                    os_log("simultaneous_LongPressGesture() onEnded: longPressed", log: log, type: .debug)
+                    gestureLongPressed()
+                })
+                .sequenced(before: DragGesture(minimumDistance: 10, coordinateSpace: .global))
+            // 버튼 길게 누르고 드래그시 호출
+                .onChanged({ value in
+                    switch value {
+                    case .first(_):
+                        break
+                    case .second(_, let dragValue):
+                        if let value = dragValue {
+                            os_log("LongPressGesture()->DragGesture() onChanged: longPressedDrag", log: log, type: .debug)
+                            gestureLongPressedDrag(dragGestureValue: value)
+                        }
+                    }
+                })
+                .exclusively(before: DragGesture(minimumDistance: cursorActiveDistance, coordinateSpace: .global)
+                             // 버튼 드래그 할 때
+                    .onChanged({ value in
+                        os_log("exclusively_DragGesture() onChanged: drag", log: log, type: .debug)
+                        gestureDrag(dragGestureValue: value)
+                    })
+                            )
+        )
+        .simultaneousGesture(
+            DragGesture(minimumDistance: 0)
+            // 버튼 뗐을 때
+                .onEnded({ _ in
+                    os_log("DragGesture() onEnded: released", log: log, type: .debug)
+                    gestureReleased()
+                })
+        )
+```
+</details>
+
+<details>
+    <summary>UIKit 리팩토링 이후</summary>
+    <div markdown="1">
+
+``` swift
+// BaseKeyboardViewController 클래스의 일부
+func addInputActionToTextInterableButton(_ button: TextInteractable) {
+    let inputAction = UIAction { [weak self] _ in
+        guard let self,
+              let currentPressedButton = buttonStateController.currentPressedButton,
+              currentPressedButton === button else { return }
+        performTextInteraction(for: button.button)
+    }
+    if button is DeleteButton {
+        button.addAction(inputAction, for: .touchDown)
+    } else {
+        button.addAction(inputAction, for: .touchUpInside)
+    }
+}
+
+// ButtonStateController 클래스의 일부
+func setFeedbackActionToButtons(_ buttonList: [BaseKeyboardButton]) {
+    buttonList.forEach { button in
+        let playFeedbackAndSetPressed: UIAction
+        if button is ShiftButton {
+            playFeedbackAndSetPressed = UIAction { [weak self] _ in
+                guard let self else { return }
+                
+                if let previousButton = currentPressedButton, previousButton != button {
+                    previousButton.sendActions(for: .touchUpInside)
+                }
+                
+                isShiftButtonPressed = true
+                button.playFeedback()
+            }
+        } else {
+            playFeedbackAndSetPressed = UIAction { [weak self] _ in
+                guard let self else { return }
+                
+                if let previousButton = currentPressedButton, previousButton != button {
+                    previousButton.sendActions(for: .touchUpInside)
+                }
+                
+                currentPressedButton = button
+                button.playFeedback()
+            }
+        }
+        button.addAction(playFeedbackAndSetPressed, for: .touchDown)
+    }
+}
+
+// PrimaryButton 클래스의 일부
+func setStyles() {
+        self.configurationUpdateHandler = { [weak self] button in
+            guard let self else { return }
+            switch button.state {
+            case .normal:
+                backgroundView.backgroundColor = .primaryButton
+            case .highlighted:
+                backgroundView.backgroundColor = isPressed ? .primaryButtonPressed : .primaryButton
+            case .selected:
+                backgroundView.backgroundColor = .primaryButtonPressed
+            default:
+                break
+            }
+        }
+    }
+```
+</details>
+
+<br>
+
+#### 결론 및 회고
+명령형 프레임워크인 UIKit으로 리팩토링하면서 복잡한 버튼, 제스처 로직을 효율적으로 처리할 수 있었지만, 선언형 프레임워크인 SwiftUI보다 UI 구현 코드는 더 길어지게 되었다.  
+현재로선 UIKit이 SwiftUI보다 세밀한 커스텀이 가능한 장점이 있어 SY키보드에는 UIKit이 좀더 적합하다고 생각된다.  
+최근 WWDC에서 SwiftUI 위주의 업데이트가 계속 발표되고 있으니, 나중에는 더 커스텀하기 편하게 SwiftUI가 업데이트되지 않을까 싶다!  
+그렇게 된다면 다시 UIKit에서 SwiftUI로 리팩토링을 하여 지금보다도 더 가독성, 유지보수에 좋은 코드를 만들 수 있을 것 같다.
 
 <br><br>
 
@@ -100,7 +271,7 @@ private func initKeyboardConstraints() {
 > 3. **view의 모든 edge에 대해 상위 view와 같도록 제약조건 설정**
 > 4. `constraintsHaveBeenAdded`를 true로 설정  
 
-- 이전 코드에선 view의 모든 edge에 대해 상위 view와 같도록 제약조건을 설정하는 코드(`$0.edges.equalToSuperview()`)와 `translatesAutoresizingMaskIntoConstraints`를 `false`로 설정하는 코드가 없었음
+- 이전 코드에서는 view의 모든 edge에 대해 상위 view와 같도록 제약조건을 설정하는 코드(`$0.edges.equalToSuperview()`)와 `translatesAutoresizingMaskIntoConstraints`를 `false`로 설정하는 코드가 없었음
 - 이로 인해 Autoresizing Mask로 view의 크기와 위치를 정하려 하는 과정에서 Auto Layout의 높이 제약조건이 충돌을 일으켜 애니메이션에 글리칭이 발생한 것으로 추측
 - `translatesAutoresizingMaskIntoConstraints`만 `false`로 설정하는 경우 아래 사진처럼 UI가 치우치는 현상이 발생함
   
@@ -129,7 +300,7 @@ func setKeyboardHeight() {
 | :-------------: | :----------: |
 | 해결 이후 | <img src = "https://github.com/user-attachments/assets/be7f5279-7b22-4dcd-830e-85a98ad7141a" width ="250"> |
 
-정말 오랫동안 고민하던 문제였고, 글리칭이 없는 다른 키보드 어플에선 어떻게 해결했는지 개발자에게 여쭤보고 싶을 정도로 해결 방법이 궁금했었다.  
+정말 오랫동안 고민하던 문제였고, 글리칭이 없는 다른 키보드 어플에서는 어떻게 해결했는지 개발자에게 여쭤보고 싶을 정도로 해결 방법이 궁금했었다.  
 해결하고 나니 속이 시원하다...
 
 출처: [Stack Overflow - iOS 8 Custom Keyboard: Changing the height without warning 'Unable to simultaneously satisfy constraints...'](https://stackoverflow.com/questions/26569476/ios-8-custom-keyboard-changing-the-height-without-warning-unable-to-simultaneo)
@@ -164,7 +335,7 @@ func setKeyboardHeight() {
 <br>
 
 #### 해결 과정
-처음에는 iOS 11부터 지원하는 `preferredScreenEdgesDeferringSystemGestures` 프로퍼티를 사용하여 해결하려 했지만, `UIInputViewController`에선 지원하지 않는듯 했다.  
+처음에는 iOS 11부터 지원하는 `preferredScreenEdgesDeferringSystemGestures` 프로퍼티를 사용하여 해결하려 했지만, `UIInputViewController`에서는 지원하지 않는듯 했다.  
 그래서 `UISystemGestureGateGestureRecognizer`의 `delaysTouchesBegan`를 `false`로 설정하는 것으로 해결하였다.
 ``` swift
 override func viewDidAppear(_ animated: Bool) {
