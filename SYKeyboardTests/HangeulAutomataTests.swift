@@ -56,7 +56,7 @@ struct HangeulAutomataTests {
     // MARK: - Test Methods
     
     @Test("한글 11,172자 전체 생성 및 삭제 로직 검증")
-    func validateAllHangeulCharacters() {
+    func validateAll한글글자() {
         let 한글UnicodeStart = 0xAC00 // '가'
         let 한글UnicodeEnd = 0xD7A3   // '힣'
         
@@ -120,7 +120,7 @@ struct HangeulAutomataTests {
     }
     
     @Test("자모 단독 입력 및 겹모음/겹받침 조합 테스트")
-    func validateJamoCombinations() {
+    func validate자모Combinations() {
         Self.logger.info("[Swift Testing - \(#function)] 자모 조합/분해 테스트 시작...")
         
         // Case 1: 겹모음 조합 (ㅗ + ㅏ -> ㅘ)
