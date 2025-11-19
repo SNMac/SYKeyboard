@@ -175,6 +175,53 @@ struct HangeulAutomataTests {
         
         Self.logger.info("[Swift Testing - \(#function)] 자모 조합 테스트 완료.")
     }
+    
+    @Test("특수문자, 숫자, 영어 입력 및 한글 조합 끊김 테스트")
+    func validateNon한글Inputs() {
+        Self.logger.info("[Swift Testing - \(#function)] 비한글 문자 테스트 시작...")
+        
+        var text = ""
+        
+        // Case 1: 숫자와 특수문자 단순 입력 및 삭제
+        text = automata.add글자(beforeText: text, 글자Input: "1")
+        text = automata.add글자(beforeText: text, 글자Input: ".")
+        text = automata.add글자(beforeText: text, 글자Input: "A")
+        #expect(text == "1.A", "기대값: 1.A, 실제값: \(text)")
+        
+        text = automata.delete글자(beforeText: text) // 'A' 삭제
+        #expect(text == "1.", "기대값: 1., 실제값: \(text)")
+        
+        // Case 2: 한글 입력 도중 비한글 문자가 들어오면 조합이 끊겨야 함
+        // 'ㄱ' + 'a' + 'ㅏ' -> '가'가 되면 안 되고 'ㄱaㅏ'가 되어야 함
+        text = ""
+        text = automata.add글자(beforeText: text, 글자Input: "ㄱ")
+        #expect(text == "ㄱ")
+        
+        text = automata.add글자(beforeText: text, 글자Input: "a") // 조합 중단됨
+        #expect(text == "ㄱa")
+        
+        text = automata.add글자(beforeText: text, 글자Input: "ㅏ") // 새로운 글자로 시작
+        #expect(text == "ㄱaㅏ", "비한글 문자가 한글 조합을 끊어야 함")
+        
+        // Case 3: 완성된 한글 뒤에 특수문자 입력
+        // '한' + '!' -> '한!'
+        text = ""
+        text = automata.add글자(beforeText: text, 글자Input: "ㅎ")
+        text = automata.add글자(beforeText: text, 글자Input: "ㅏ")
+        text = automata.add글자(beforeText: text, 글자Input: "ㄴ")
+        #expect(text == "한")
+        
+        text = automata.add글자(beforeText: text, 글자Input: "!")
+        #expect(text == "한!", "완성된 한글 뒤에 특수문자가 붙어야 함")
+        
+        text = automata.delete글자(beforeText: text) // '!' 삭제
+        #expect(text == "한", "특수문자만 삭제되고 한글은 유지되어야 함")
+        
+        text = automata.delete글자(beforeText: text) // '한' -> '하' (종성 삭제)
+        #expect(text == "하", "한글 분해 로직이 다시 동작해야 함")
+        
+        Self.logger.info("[Swift Testing - \(#function)] 비한글 문자 테스트 완료.")
+    }
 }
 
 // MARK: - Private Methods
