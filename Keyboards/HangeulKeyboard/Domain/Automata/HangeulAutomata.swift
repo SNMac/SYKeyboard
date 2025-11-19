@@ -7,9 +7,10 @@
 
 import OSLog
 
-/// 한글 오토마타 (유한 상태 머신)
+/// 한글 오토마타
 final class HangeulAutomata {
     
+    // MARK: - Properties
     private let 한글UnicodeStart: UInt32 = 0xAC00
     private let 한글UnicodeEnd: UInt32 = 0xD7A3
     
@@ -51,6 +52,8 @@ final class HangeulAutomata {
         ["ㄹ","ㅎ","ㅀ"],
         ["ㅂ","ㅅ","ㅄ"]
     ]
+    
+    // MARK: - Internal Methods
     
     /// 새로운 글자를 입력받아 처리된 전체 문자열을 반환합니다.
     /// - Parameters:
