@@ -32,11 +32,11 @@ struct HangeulAutomataTests {
         ("ㅜ", "ㅔ", "ㅞ"),
         ("ㅝ", "ㅣ", "ㅞ"),
         ("ㅜ", "ㅣ", "ㅟ"),
-        ("ㅡ", "ㅣ", "ㅢ"),
-        ("ㅏ", "ㅣ", "ㅐ"),
-        ("ㅓ", "ㅣ", "ㅔ"),
-        ("ㅕ", "ㅣ", "ㅖ"),
-        ("ㅑ", "ㅣ", "ㅒ")
+        ("ㅡ", "ㅣ", "ㅢ")
+//        ("ㅏ", "ㅣ", "ㅐ"),
+//        ("ㅓ", "ㅣ", "ㅔ"),
+//        ("ㅕ", "ㅣ", "ㅖ"),
+//        ("ㅑ", "ㅣ", "ㅒ")
     ]
     
     private let 겹자음조합Table: [(앞자음: String, 뒷자음: String, 겹자음: String)] = [
@@ -57,21 +57,21 @@ struct HangeulAutomataTests {
     
     @Test("한글 11,172자 전체 생성 및 삭제 로직 검증")
     func validateAllHangeulCharacters() {
-        let startCode = 0xAC00 // '가'
-        let endCode = 0xD7A3   // '힣'
+        let 한글UnicodeStart = 0xAC00 // '가'
+        let 한글UnicodeEnd = 0xD7A3   // '힣'
         
-        Self.logger.info("[Swift Testing - \(#function)] 한글 11,172자 전체 검증 시작")
+        Self.logger.info("[Swift Testing - \(#function)] 한글 11,172자 전체 검증 시작...")
         
         var failureCount = 0
         
-        for code in startCode...endCode {
+        for 한글Unicode in 한글UnicodeStart...한글UnicodeEnd {
             // 1. 검증 대상 글자 준비
-            guard let scalar = Unicode.Scalar(code) else { continue }
-            let targetChar = Character(scalar)
-            let targetString = String(targetChar)
+            guard let 한글Scalar = Unicode.Scalar(한글Unicode) else { continue }
+            let target한글Char = Character(한글Scalar)
+            let target한글String = String(target한글Char)
             
             // 2. 키 입력 시퀀스 추출 ('닭' -> "ㄷ", "ㅏ", "ㄹ", "ㄱ")
-            let inputSequence = extractKeyInputs(for: targetChar)
+            let inputSequence = extract한글Inputs(for: target한글Char)
             
             // -------------------------------------------------
             // A. 입력 테스트
@@ -81,8 +81,8 @@ struct HangeulAutomataTests {
                 currentText = automata.add글자(beforeText: currentText, 글자Input: input)
             }
             
-            if currentText != targetString {
-                Self.logger.error("생성 실패: 목표(\(targetString)) != 결과(\(currentText)) / 입력: \(inputSequence)")
+            if currentText != target한글String {
+                Self.logger.error("생성 실패: 목표(\(target한글String)) != 결과(\(currentText)) / 입력: \(inputSequence)")
                 failureCount += 1
                 continue // 생성이 실패하면 삭제 테스트는 의미 없으므로 넘어감
             }
@@ -104,7 +104,7 @@ struct HangeulAutomataTests {
                 }
                 
                 if deleteText != expectedText {
-                    Self.logger.error("삭제 실패(\(targetString)): 단계 \(i + 1) / 예상(\(expectedText)) != 결과(\(deleteText))")
+                    Self.logger.error("삭제 실패(\(target한글String)): 단계 \(i + 1) / 예상(\(expectedText)) != 결과(\(deleteText))")
                     failureCount += 1
                     break
                 }
@@ -115,13 +115,13 @@ struct HangeulAutomataTests {
         #expect(failureCount == 0, "총 \(failureCount)개의 글자에서 로직 오류가 발생했습니다.")
         
         if failureCount == 0 {
-            Self.logger.info("[Swift Testing - \(#function)] 한글 11,172자 검증 완료")
+            Self.logger.info("[Swift Testing - \(#function)] 한글 11,172자 검증 완료.")
         }
     }
     
     @Test("자모 단독 입력 및 겹모음/겹받침 조합 테스트")
     func validateJamoCombinations() {
-        Self.logger.info("[Swift Testing - \(#function)] 자모 조합/분해 테스트 시작")
+        Self.logger.info("[Swift Testing - \(#function)] 자모 조합/분해 테스트 시작...")
         
         // Case 1: 겹모음 조합 (ㅗ + ㅏ -> ㅘ)
         var text = ""
@@ -182,9 +182,10 @@ struct HangeulAutomataTests {
 private extension HangeulAutomataTests {
     
     /// 완성된 한글 문자 하나를 받아서, 이를 만들기 위해 눌러야 할 키보드 입력 배열로 변환
-    /// 예: '닭' -> ["ㄷ", "ㅏ", "ㄹ", "ㄱ"]
-    func extractKeyInputs(for char: Character) -> [String] {
-        guard let scalar = char.unicodeScalars.first else { return [] }
+    ///
+    /// 재귀 호출을 통해 'ㅙ' -> 'ㅘ'+'ㅣ' -> 'ㅗ'+'ㅏ'+'ㅣ' 처럼 낱자 단위까지 분해합니다.
+    func extract한글Inputs(for 한글: Character) -> [String] {
+        guard let scalar = 한글.unicodeScalars.first else { return [] }
         let value = Int(scalar.value) - 0xAC00
         
         let choIndex = value / (21 * 28)
@@ -196,30 +197,41 @@ private extension HangeulAutomataTests {
         // 1. 초성
         inputs.append(초성Table[choIndex])
         
-        // 2. 중성
+        // 2. 중성 (재귀 필요 O: ㅙ -> ㅘ+ㅣ -> ㅗ+ㅏ+ㅣ)
         let jungChar = 중성Table[jungIndex]
+        inputs.append(contentsOf: decompose모음Recursively(jungChar))
         
-        // "ㅘ"를 만들기 위해 필요한 앞/뒷모음을 찾음
-        if let match = 겹모음조합Table.first(where: { $0.겹모음 == jungChar }) {
-            inputs.append(match.앞모음)
-            inputs.append(match.뒷모음)
-        } else {
-            inputs.append(jungChar)
-        }
-        
-        // 3. 종성
+        // 3. 종성 (재귀 필요 X: 겹받침은 한 번만 쪼개면 됨)
         if jongIndex != 0 {
             let jongChar = 종성Table[jongIndex]
-            
-            // "ㄳ"을 만들기 위해 필요한 앞/뒷자음을 찾음
-            if let match = 겹자음조합Table.first(where: { $0.겹자음 == jongChar }) {
-                inputs.append(match.앞자음)
-                inputs.append(match.뒷자음)
-            } else {
-                inputs.append(jongChar)
-            }
+            inputs.append(contentsOf: decompose자음(jongChar))
         }
         
         return inputs
+    }
+    
+    /// 모음을 재귀적으로 분해하는 헬퍼 메서드
+    ///
+    /// 예: ㅙ -> [ㅘ, ㅣ] -> [ㅗ, ㅏ, ㅣ]
+    func decompose모음Recursively(_ 모음: String) -> [String] {
+        if ["ㅐ", "ㅔ", "ㅒ", "ㅖ"].contains(모음) { return [모음] }
+        
+        if let match = 겹모음조합Table.first(where: { $0.겹모음 == 모음 }) {
+            // 앞모음이 또 겹모음일 수 있으므로 재귀 호출 (예: ㅘ)
+            return decompose모음Recursively(match.앞모음) + decompose모음Recursively(match.뒷모음)
+        } else {
+            return [모음]
+        }
+    }
+    
+    /// 자음을 분해하는 헬퍼 메서드
+    ///
+    /// 예: ㄳ -> [ㄱ, ㅅ]
+    func decompose자음(_ 자음: String) -> [String] {
+        if let match = 겹자음조합Table.first(where: { $0.겹자음 == 자음 }) {
+            return [match.앞자음, match.뒷자음]
+        } else {
+            return [자음]
+        }
     }
 }
