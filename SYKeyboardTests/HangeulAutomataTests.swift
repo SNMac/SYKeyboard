@@ -1,6 +1,6 @@
 //
 //  HangeulAutomataTests.swift
-//  HangeulAutomataTests
+//  SYKeyboardTests
 //
 //  Created by 서동환 on 9/18/25.
 //
@@ -10,7 +10,7 @@ import OSLog
 
 @testable import HangeulKeyboard
 
-@Suite("한글 키보드 입력 검증")
+@Suite("한글 오토마타 검증")
 struct HangeulAutomataTests {
     
     // MARK: - Properties

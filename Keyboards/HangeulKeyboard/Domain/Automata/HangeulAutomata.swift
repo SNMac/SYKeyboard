@@ -33,7 +33,7 @@ protocol HangeulAutomataProtocol {
     func combine(초성Index: Int, 중성Index: Int, 종성Index: Int) -> Character?
     /// 완성된 한글 문자를 초성, 중성, 종성 인덱스로 분해합니다.
     ///
-    /// 입력된 문자가 '가'(0xAC00) ~ '힣'(0xD7A3) 범위 내의 완성형 한글일 때만 동작합니다.
+    /// 입력된 문자가 '가'(0xAC00) ~ '힣'(0xD7A3) 범위 내의 완성형 한글 글자일 때만 동작합니다.
     /// 자음이나 모음 단독(예: 'ㄱ', 'ㅏ')일 경우 `nil`을 반환합니다.
     ///
     /// - Parameter 한글Char: 분해할 한글 문자 (Character)
@@ -88,14 +88,14 @@ final class HangeulAutomata: HangeulAutomataProtocol {
     
     func add글자(글자Input: String, beforeText: String) -> String {
         guard !글자Input.isEmpty else { return beforeText }
-        guard let beforeTextLast글자 = beforeText.last else { return beforeText + 글자Input }
+        guard let beforeTextLast글자Char = beforeText.last else { return beforeText + 글자Input }
         
         var newText = beforeText
         
         // 1. 입력이 모음인 경우
         if 중성Table.contains(글자Input) {
             // 마지막 글자가 완성된 한글인 경우
-            if let (초성Index, 중성Index, 종성Index) = decompose(한글Char: beforeTextLast글자) {
+            if let (초성Index, 중성Index, 종성Index) = decompose(한글Char: beforeTextLast글자Char) {
                 // 1-1. 종성이 있는 경우 (예: '각' + 'ㅏ')
                 if 종성Index != 0 {
                     let 종성글자 = 종성Table[종성Index]
@@ -152,7 +152,7 @@ final class HangeulAutomata: HangeulAutomataProtocol {
                 }
             }
             // 마지막 글자가 낱자 자음인 경우 (예: 'ㄱ' + 'ㅏ' -> '가')
-            else if let last글자초성Index = 초성Table.firstIndex(of: String(beforeTextLast글자)) {
+            else if let last글자초성Index = 초성Table.firstIndex(of: String(beforeTextLast글자Char)) {
                 guard let 중성Index = 중성Table.firstIndex(of: 글자Input),
                       let new글자 = combine(초성Index: last글자초성Index, 중성Index: 중성Index, 종성Index: 0) else {
                     
@@ -165,8 +165,8 @@ final class HangeulAutomata: HangeulAutomataProtocol {
                 return newText
             }
             // 마지막 글자가 낱자 모음인 경우 (예: 'ㅜ' + 'ㅓ' -> 'ㅝ')
-            else if 중성Table.contains(String(beforeTextLast글자)) {
-                if let combined중성 = find겹모음(앞모음: String(beforeTextLast글자), 뒷모음: 글자Input) {
+            else if 중성Table.contains(String(beforeTextLast글자Char)) {
+                if let combined중성 = find겹모음(앞모음: String(beforeTextLast글자Char), 뒷모음: 글자Input) {
                     newText.removeLast()
                     newText.append(combined중성)
                     return newText
@@ -177,7 +177,7 @@ final class HangeulAutomata: HangeulAutomataProtocol {
         // 2. 입력이 자음인 경우
         else if 초성Table.contains(글자Input) {
             // 마지막 글자가 완성된 한글인 경우
-            if let (초성Index, 중성Index, 종성Index) = decompose(한글Char: beforeTextLast글자) {
+            if let (초성Index, 중성Index, 종성Index) = decompose(한글Char: beforeTextLast글자Char) {
                 // 2-1. 종성이 없는 경우 (예: '가' + 'ㄱ' -> '각')
                 if 종성Index == 0 {
                     // 입력된 자음이 종성으로 쓰일 수 있는지 확인
@@ -216,12 +216,12 @@ final class HangeulAutomata: HangeulAutomataProtocol {
     }
     
     func delete글자(beforeText: String) -> String {
-        guard let beforeTextLast글자 = beforeText.last else { return beforeText }
+        guard let beforeTextLast글자Char = beforeText.last else { return beforeText }
         
         var newText = beforeText
         
         // 1. 완성된 한글인 경우 분해 시도
-        if let (초성Index, 중성Index, 종성Index) = decompose(한글Char: beforeTextLast글자) {
+        if let (초성Index, 중성Index, 종성Index) = decompose(한글Char: beforeTextLast글자Char) {
             newText.removeLast()
             
             // 1-1. 종성이 있는 경우
@@ -269,7 +269,7 @@ final class HangeulAutomata: HangeulAutomataProtocol {
         else {
             newText.removeLast()
             
-            let last글자String = String(beforeTextLast글자)
+            let last글자String = String(beforeTextLast글자Char)
             
             // 겹모음 낱자 분해 (예: 'ㅘ' -> 'ㅗ')
             if 중성Table.contains(last글자String),
