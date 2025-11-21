@@ -182,9 +182,6 @@ private extension SwitchGestureController {
         } else if !keyboardSelectOverlayView.isHidden {
             let xmarkRect = keyboardSelectOverlayView.xmarkImageContainerView.frame
             let panLocation = gesture.location(in: keyboardSelectOverlayView)
-            print("panLocation: \(panLocation.x)")
-            print(keyboardSelectOverlayView.xmarkImageContainerView.frame.minX)
-            print(keyboardSelectOverlayView.xmarkImageContainerView.frame.maxX)
             let panDirection = checkKeyboardSelectPanDirection(panLocation: panLocation, xmarkRect: xmarkRect, targetDirection: config.targetDirection)
             
             config.gestureHandler.showKeyboardSelectOverlay(needToEmphasizeTarget: panDirection == config.targetDirection)

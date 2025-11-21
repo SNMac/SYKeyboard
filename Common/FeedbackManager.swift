@@ -10,6 +10,7 @@ import AVFoundation
 import OSLog
 
 /// 햅틱, 사운드 피드백을 관리하는 싱글톤 매니저
+@MainActor
 final class FeedbackManager {
     
     // MARK: - Singleton Initializer

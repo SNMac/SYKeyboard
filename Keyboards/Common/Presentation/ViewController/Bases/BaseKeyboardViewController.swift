@@ -58,8 +58,8 @@ public class BaseKeyboardViewController: UIInputViewController {
                                                                        englishKeyboardView: primaryKeyboardView as? SwitchGestureHandling,
                                                                        symbolKeyboardView: symbolKeyboardView,
                                                                        numericKeyboardView: numericKeyboardView,
-                                                                       getCurrentKeyboard: { [weak self] in return (self?.currentKeyboard)! },
-                                                                       getCurrentOneHandedMode: { [weak self] in return (self?.currentOneHandedMode)! },
+                                                                       getCurrentKeyboard: { [weak self] in return self?.currentKeyboard ?? .hangeul },
+                                                                       getCurrentOneHandedMode: { [weak self] in return self?.currentOneHandedMode ?? .center },
                                                                        getCurrentPressedButton: { [weak self] in self?.buttonStateController.currentPressedButton },
                                                                        setCurrentPressedButton: { [weak self] button in self?.buttonStateController.currentPressedButton = button })
     /// 버튼 상태 컨트롤러

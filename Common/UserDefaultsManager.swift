@@ -11,7 +11,13 @@ import Foundation
 @propertyWrapper
 struct UserDefaultsWrapper<T: Codable> {
     /// 데이터를 저장할 `UserDefaults`
-    private let storage: UserDefaults = UserDefaults(suiteName: DefaultValues.groupBundleID)!
+    private let storage: UserDefaults = {
+        guard let userDefaults = UserDefaults(suiteName: DefaultValues.groupBundleID) else {
+            fatalError("UserDefaults를 suiteName으로 불러오는 데 실패했습니다.")
+        }
+        return userDefaults
+    }()
+    
     /// 값을 저장할 키값
     private let key: String
     /// 기본값
