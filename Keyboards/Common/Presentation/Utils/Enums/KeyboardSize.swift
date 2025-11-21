@@ -7,6 +7,7 @@
 
 /// 키보드 세부 사이즈 관리용
 enum KeyboardSize {
+    static let landscapeKeyboardHeight = 188.0
     /// Shift 버튼과 삭제 버튼 나누기 계수
     static let shiftAndDeleteButtonDivider = 6.65
     /// 키보드 레이아웃 선택 오버레이 너비 곱하기 계수

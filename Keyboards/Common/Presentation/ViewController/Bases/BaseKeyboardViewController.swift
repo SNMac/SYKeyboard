@@ -280,7 +280,7 @@ private extension BaseKeyboardViewController {
     func setKeyboardHeight() {
         let keyboardHeight: CGFloat
         if let orientation = self.view.window?.windowScene?.effectiveGeometry.interfaceOrientation {
-            keyboardHeight = orientation == .portrait ? UserDefaultsManager.shared.keyboardHeight : 188
+            keyboardHeight = orientation == .portrait ? UserDefaultsManager.shared.keyboardHeight : KeyboardSize.landscapeKeyboardHeight
         } else {
             assertionFailure("View가 window 계층에 없습니다.")
             keyboardHeight = UserDefaultsManager.shared.keyboardHeight
