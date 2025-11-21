@@ -211,7 +211,7 @@ private extension SymbolKeyboardView {
         for (rowIndex, buttonList) in rowList.enumerated() {
             for (buttonIndex, button) in buttonList.enumerated() {
                 let keys = currentSymbolKeyboardMode.keyList[symbolKeyListIndex][rowIndex][buttonIndex]
-                button.update(button: TextInteractableType.keyButton(keys: keys))
+                button.update(buttonType: TextInteractableType.keyButton(keys: keys))
             }
         }
     }
