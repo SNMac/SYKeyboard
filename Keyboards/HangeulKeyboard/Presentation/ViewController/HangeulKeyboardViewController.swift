@@ -121,14 +121,17 @@ final class HangeulKeyboardViewController: BaseKeyboardViewController {
         let (processedText, input글자) = processor.input(글자Input: key, beforeText: beforeText)
         
         for _ in 0..<beforeText.count { self.textDocumentProxy.deleteBackward() }
+        self.textDocumentProxy.insertText(processedText)
+        
         buffer = processedText
         self.lastInputText = input글자
-        self.textDocumentProxy.insertText(processedText)
     }
     
     override func repeatInsertKeyText(from keys: [String]) {
         guard let lastInputText else { return }
         textDocumentProxy.insertText(lastInputText)
+        
+        buffer.append(lastInputText)
     }
     
     override func insertSpaceText() {
@@ -153,6 +156,13 @@ final class HangeulKeyboardViewController: BaseKeyboardViewController {
         } else {
             self.textDocumentProxy.deleteBackward()
         }
+        
         self.lastInputText = nil
+    }
+    
+    override func repeatDeleteBackward() {
+        super.repeatDeleteBackward()
+        buffer.removeAll()
+        lastInputText = nil
     }
 }

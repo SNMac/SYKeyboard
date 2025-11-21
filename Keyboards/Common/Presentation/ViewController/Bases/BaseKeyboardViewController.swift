@@ -65,6 +65,11 @@ public class BaseKeyboardViewController: UIInputViewController {
     /// 버튼 상태 컨트롤러
     private(set) lazy var buttonStateController = ButtonStateController()
     
+    /// 텍스트 대치 데이터
+    private var userLexicon: UILexicon?
+    /// 텍스트 대치 기록
+    private var textReplacementHistory: [String] = []
+    
     /// 키보드 높이 제약 조건 할당 여부
     private var isHeightConstraintAdded: Bool = false
     
@@ -104,8 +109,9 @@ public class BaseKeyboardViewController: UIInputViewController {
         super.viewDidLoad()
         setupUI()
         setNextKeyboardButton()
-        if UserDefaultsManager.shared.isOneHandedKeyboardEnabled {
-            updateOneHandModekeyboard()
+        if UserDefaultsManager.shared.isOneHandedKeyboardEnabled { updateOneHandModekeyboard() }
+        if UserDefaultsManager.shared.isTextReplacementEnabled {
+            Task { userLexicon = await requestSupplementaryLexicon() }
         }
     }
     
@@ -188,7 +194,6 @@ public class BaseKeyboardViewController: UIInputViewController {
             assertionFailure("keys 배열이 비어있습니다.")
             return
         }
-        
         textDocumentProxy.insertText(key)
     }
     /// 사용자가 탭한 `TextInteractable` 버튼의 `keys` 중 상황에 맞는 문자를 입력하는 메서드 (반복 호출)
@@ -200,7 +205,6 @@ public class BaseKeyboardViewController: UIInputViewController {
             assertionFailure("keys 배열이 비어있습니다.")
             return
         }
-        
         textDocumentProxy.insertText(key)
     }
     
@@ -209,8 +213,10 @@ public class BaseKeyboardViewController: UIInputViewController {
     /// 개행 문자를 입력하는 메서드
     func insertReturnText() { textDocumentProxy.insertText("\n") }
     
-    /// 문자열 입력 UI의 텍스트를 삭제하는 메서드
+    /// 문자열 입력 UI의 텍스트를 삭제하는 메서드 (단일 호출)
     func deleteBackward() { textDocumentProxy.deleteBackward() }
+    /// 문자열 입력 UI의 텍스트를 삭제하는 메서드 (반복 호출)
+    func repeatDeleteBackward() { textDocumentProxy.deleteBackward() }
 }
 
 // MARK: - UI Methods
@@ -288,19 +294,6 @@ private extension BaseKeyboardViewController {
                                                     nextKeyboardAction: #selector(self.handleInputModeList(from:with:)))
         numericKeyboardView.updateNextKeyboardButton(needsInputModeSwitchKey: self.needsInputModeSwitchKey,
                                                      nextKeyboardAction: #selector(self.handleInputModeList(from:with:)))
-    }
-    
-    func checkForAmbiguity(in view: UIView) {
-        if view.hasAmbiguousLayout {
-            let message = "모호한 레이아웃이 존재합니다. - View: \(view), Identifier: \(view.accessibilityIdentifier ?? "없음")"
-            logger.error("\(message)")
-            view.exerciseAmbiguityInLayout()
-        }
-        
-        // 모든 서브 뷰에 대해 재귀적으로 확인
-        for subview in view.subviews {
-            checkForAmbiguity(in: subview)
-        }
     }
 }
 
@@ -482,14 +475,17 @@ extension BaseKeyboardViewController {
         case .keyButton(let keys):
             insertKeyText(from: keys)
         case .deleteButton:
-            if let selectedText = textDocumentProxy.selectedText {
-                tempDeletedCharacters.append(contentsOf: selectedText.reversed())
-                deleteBackward()
-            } else if let lastBeforeCursor = textDocumentProxy.documentContextBeforeInput?.last {
-                tempDeletedCharacters.append(lastBeforeCursor)
-                deleteBackward()
+            if !attemptToRestoreReplacementWord() {
+                if let selectedText = textDocumentProxy.selectedText {
+                    tempDeletedCharacters.append(contentsOf: selectedText.reversed())
+                    deleteBackward()
+                } else if let lastBeforeCursor = textDocumentProxy.documentContextBeforeInput?.last {
+                    tempDeletedCharacters.append(lastBeforeCursor)
+                    deleteBackward()
+                }
             }
         case .spaceButton:
+            attemptToReplaceCurrentWord()
             insertSpaceText()
         case .returnButton:
             insertReturnText()
@@ -505,7 +501,7 @@ extension BaseKeyboardViewController {
             repeatInsertKeyText(from: keys)
         case .deleteButton:
             if textDocumentProxy.documentContextBeforeInput != nil || textDocumentProxy.selectedText != nil {
-                deleteBackward()
+                repeatDeleteBackward()
             }
         case .spaceButton:
             insertSpaceText()
@@ -513,6 +509,42 @@ extension BaseKeyboardViewController {
         case .returnButton:
             insertReturnText()
         }
+    }
+    
+    private func attemptToReplaceCurrentWord() {
+        guard let entries = userLexicon?.entries,
+              let beforeText = textDocumentProxy.documentContextBeforeInput else { return }
+        
+        let replacementEntries = entries.filter { beforeText.lowercased().hasSuffix($0.userInput.lowercased()) }
+        
+        guard let replacement = replacementEntries.max(by: { $0.userInput.count < $1.userInput.count }) else { return }
+        
+        for _ in 0..<replacement.userInput.count { textDocumentProxy.deleteBackward() }
+        textDocumentProxy.insertText(replacement.documentText)
+        
+        textReplacementHistory.append(replacement.documentText)
+    }
+    
+    private func attemptToRestoreReplacementWord() -> Bool {
+        guard let entries = userLexicon?.entries,
+              let beforeText = textDocumentProxy.documentContextBeforeInput,
+              !textReplacementHistory.isEmpty else { return false }
+        
+        for replacedText in textReplacementHistory.reversed() {
+            if beforeText.hasSuffix(replacedText) {
+                if let entry = entries.first(where: { $0.documentText == replacedText }) {
+                    for _ in 0..<entry.documentText.count { textDocumentProxy.deleteBackward() }
+                    textDocumentProxy.insertText(entry.userInput)
+                    
+                    if let historyIndex = textReplacementHistory.firstIndex(of: entry.documentText) {
+                        textReplacementHistory.remove(at: historyIndex)
+                    }
+                    return true
+                }
+            }
+        }
+        
+        return false
     }
 }
 

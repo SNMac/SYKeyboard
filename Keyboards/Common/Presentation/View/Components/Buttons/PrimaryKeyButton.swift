@@ -64,8 +64,8 @@ final class PrimaryKeyButton: PrimaryButton, TextInteractable {
     
     // MARK: - Internal Methods
     
-    func update(button: TextInteractableType) {
-        self.type = button
+    func update(buttonType: TextInteractableType) {
+        self.type = buttonType
     }
     
     /// 키의 시각적 정렬을 업데이트합니다.
