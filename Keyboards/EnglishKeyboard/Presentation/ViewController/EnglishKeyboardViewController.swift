@@ -38,8 +38,8 @@ final class EnglishKeyboardViewController: BaseKeyboardViewController {
         isUppercaseInput = false
     }
     
-    override func updateKeyboardType(oldKeyboardType: UIKeyboardType?) {
-        guard self.textDocumentProxy.keyboardType != oldKeyboardType else { return }
+    override func updateKeyboardType() {
+        guard self.textDocumentProxy.keyboardType != self.oldKeyboardType else { return }
         switch self.textDocumentProxy.keyboardType {
         case .default, nil:
             englishKeyboardView.currentEnglishKeyboardMode = .default

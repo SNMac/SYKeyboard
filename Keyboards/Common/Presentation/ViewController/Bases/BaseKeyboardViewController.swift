@@ -123,7 +123,7 @@ public class BaseKeyboardViewController: UIInputViewController {
     
     public override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        let window = self.view.window!
+        guard let window = self.view.window else { fatalError("View is not in a window hierarchy") }
         let systemGestureRecognizer0 = window.gestureRecognizers?[0] as? UIGestureRecognizer
         let systemGestureRecognizer1 = window.gestureRecognizers?[1] as? UIGestureRecognizer
         systemGestureRecognizer0?.delaysTouchesBegan = false
@@ -132,9 +132,7 @@ public class BaseKeyboardViewController: UIInputViewController {
     
     public override func textWillChange(_ textInput: (any UITextInput)?) {
         super.textWillChange(textInput)
-        logger.debug(#function)
-        updateKeyboardAppearance()
-        updateKeyboardType(oldKeyboardType: oldKeyboardType)
+        updateKeyboardType()
         oldKeyboardType = textDocumentProxy.keyboardType
         updateReturnButtonType()
     }
@@ -157,10 +155,7 @@ public class BaseKeyboardViewController: UIInputViewController {
     }
     
     /// `UIKeyboardType`에 맞는 키보드 레이아웃으로 업데이트하는 메서드
-    ///
-    /// - Parameters:
-    ///   - oldKeyboardType: 이전 `UIKeyboardType`
-    func updateKeyboardType(oldKeyboardType: UIKeyboardType?) { fatalError("메서드가 오버라이딩 되지 않았습니다.") }
+    func updateKeyboardType() { fatalError("메서드가 오버라이딩 되지 않았습니다.") }
     
     /// 텍스트 상호작용이 일어나기 전 실행되는 메서드
     func textInteractionWillPerform() {
@@ -452,10 +447,6 @@ private extension BaseKeyboardViewController {
     func updateOneHandModekeyboard() {
         leftChevronButton.isHidden = !(currentOneHandedMode == .right)
         rightChevronButton.isHidden = !(currentOneHandedMode == .left)
-    }
-    
-    func updateKeyboardAppearance() {
-        // TODO: 키보드 라이트모드, 다크모드 전환 구현
     }
     
     func updateReturnButtonType() {
