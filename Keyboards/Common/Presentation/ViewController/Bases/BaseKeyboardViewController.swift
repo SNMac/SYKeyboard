@@ -67,6 +67,8 @@ public class BaseKeyboardViewController: UIInputViewController {
     
     /// 텍스트 대치 데이터
     private var userLexicon: UILexicon?
+    /// 텍스트 대치 기록
+    private var textReplacementHistory: [String] = []
     
     /// 키보드 높이 제약 조건 할당 여부
     private var isHeightConstraintAdded: Bool = false
@@ -213,8 +215,10 @@ public class BaseKeyboardViewController: UIInputViewController {
     /// 개행 문자를 입력하는 메서드
     func insertReturnText() { textDocumentProxy.insertText("\n") }
     
-    /// 문자열 입력 UI의 텍스트를 삭제하는 메서드
+    /// 문자열 입력 UI의 텍스트를 삭제하는 메서드 (단일 호출)
     func deleteBackward() { textDocumentProxy.deleteBackward() }
+    /// 문자열 입력 UI의 텍스트를 삭제하는 메서드 (반복 호출)
+    func repeatDeleteBackward() { textDocumentProxy.deleteBackward() }
 }
 
 // MARK: - UI Methods
@@ -292,19 +296,6 @@ private extension BaseKeyboardViewController {
                                                     nextKeyboardAction: #selector(self.handleInputModeList(from:with:)))
         numericKeyboardView.updateNextKeyboardButton(needsInputModeSwitchKey: self.needsInputModeSwitchKey,
                                                      nextKeyboardAction: #selector(self.handleInputModeList(from:with:)))
-    }
-    
-    func checkForAmbiguity(in view: UIView) {
-        if view.hasAmbiguousLayout {
-            let message = "모호한 레이아웃이 존재합니다. - View: \(view), Identifier: \(view.accessibilityIdentifier ?? "없음")"
-            logger.error("\(message)")
-            view.exerciseAmbiguityInLayout()
-        }
-        
-        // 모든 서브 뷰에 대해 재귀적으로 확인
-        for subview in view.subviews {
-            checkForAmbiguity(in: subview)
-        }
     }
 }
 
@@ -486,14 +477,17 @@ extension BaseKeyboardViewController {
         case .keyButton(let keys):
             insertKeyText(from: keys)
         case .deleteButton:
-            if let selectedText = textDocumentProxy.selectedText {
-                tempDeletedCharacters.append(contentsOf: selectedText.reversed())
-                deleteBackward()
-            } else if let lastBeforeCursor = textDocumentProxy.documentContextBeforeInput?.last {
-                tempDeletedCharacters.append(lastBeforeCursor)
-                deleteBackward()
+            if !attemptToRestoreReplacementWord() {
+                if let selectedText = textDocumentProxy.selectedText {
+                    tempDeletedCharacters.append(contentsOf: selectedText.reversed())
+                    deleteBackward()
+                } else if let lastBeforeCursor = textDocumentProxy.documentContextBeforeInput?.last {
+                    tempDeletedCharacters.append(lastBeforeCursor)
+                    deleteBackward()
+                }
             }
         case .spaceButton:
+            attemptToReplaceCurrentWord()
             insertSpaceText()
         case .returnButton:
             insertReturnText()
@@ -509,7 +503,7 @@ extension BaseKeyboardViewController {
             repeatInsertKeyText(from: keys)
         case .deleteButton:
             if textDocumentProxy.documentContextBeforeInput != nil || textDocumentProxy.selectedText != nil {
-                deleteBackward()
+                repeatDeleteBackward()
             }
         case .spaceButton:
             insertSpaceText()
@@ -517,6 +511,43 @@ extension BaseKeyboardViewController {
         case .returnButton:
             insertReturnText()
         }
+    }
+    
+    private func attemptToReplaceCurrentWord() {
+        guard let entries = userLexicon?.entries,
+              let beforeText = textDocumentProxy.documentContextBeforeInput else { return }
+        
+        let replacementEntries = entries.filter { beforeText.lowercased().contains($0.userInput.lowercased()) }
+        
+        guard let replacement = replacementEntries.first else { return }
+        
+        if replacement.userInput == beforeText.suffix(replacement.userInput.count) {
+            for _ in 0..<replacement.userInput.count { textDocumentProxy.deleteBackward() }
+            textDocumentProxy.insertText(replacement.documentText)
+            
+            textReplacementHistory.append(replacement.documentText)
+        }
+    }
+    
+    private func attemptToRestoreReplacementWord() -> Bool {
+        guard let entries = userLexicon?.entries,
+              let beforeText = textDocumentProxy.documentContextBeforeInput else { return false }
+        
+        let replacementEntries = entries.filter { textReplacementHistory.contains($0.documentText) }
+        
+        guard let replacement = replacementEntries.first else { return false }
+        
+        if replacement.documentText == beforeText.suffix(replacement.documentText.count) {
+            for _ in 0..<replacement.documentText.count { textDocumentProxy.deleteBackward() }
+            textDocumentProxy.insertText(replacement.userInput)
+            
+            if let historyIndex = textReplacementHistory.firstIndex(of: replacement.documentText) {
+                textReplacementHistory.remove(at: historyIndex)
+                return true
+            }
+        }
+        
+        return false
     }
 }
 
