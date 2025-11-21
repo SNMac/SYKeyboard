@@ -515,33 +515,32 @@ extension BaseKeyboardViewController {
         guard let entries = userLexicon?.entries,
               let beforeText = textDocumentProxy.documentContextBeforeInput else { return }
         
-        let replacementEntries = entries.filter { beforeText.lowercased().contains($0.userInput.lowercased()) }
+        let replacementEntries = entries.filter { beforeText.lowercased().hasSuffix($0.userInput.lowercased()) }
         
-        guard let replacement = replacementEntries.first else { return }
+        guard let replacement = replacementEntries.max(by: { $0.userInput.count < $1.userInput.count }) else { return }
         
-        if replacement.userInput == beforeText.suffix(replacement.userInput.count) {
-            for _ in 0..<replacement.userInput.count { textDocumentProxy.deleteBackward() }
-            textDocumentProxy.insertText(replacement.documentText)
-            
-            textReplacementHistory.append(replacement.documentText)
-        }
+        for _ in 0..<replacement.userInput.count { textDocumentProxy.deleteBackward() }
+        textDocumentProxy.insertText(replacement.documentText)
+        
+        textReplacementHistory.append(replacement.documentText)
     }
     
     private func attemptToRestoreReplacementWord() -> Bool {
         guard let entries = userLexicon?.entries,
-              let beforeText = textDocumentProxy.documentContextBeforeInput else { return false }
+              let beforeText = textDocumentProxy.documentContextBeforeInput,
+              !textReplacementHistory.isEmpty else { return false }
         
-        let replacementEntries = entries.filter { textReplacementHistory.contains($0.documentText) }
-        
-        guard let replacement = replacementEntries.first else { return false }
-        
-        if replacement.documentText == beforeText.suffix(replacement.documentText.count) {
-            for _ in 0..<replacement.documentText.count { textDocumentProxy.deleteBackward() }
-            textDocumentProxy.insertText(replacement.userInput)
-            
-            if let historyIndex = textReplacementHistory.firstIndex(of: replacement.documentText) {
-                textReplacementHistory.remove(at: historyIndex)
-                return true
+        for replacedText in textReplacementHistory.reversed() {
+            if beforeText.hasSuffix(replacedText) {
+                if let entry = entries.first(where: { $0.documentText == replacedText }) {
+                    for _ in 0..<entry.documentText.count { textDocumentProxy.deleteBackward() }
+                    textDocumentProxy.insertText(entry.userInput)
+                    
+                    if let historyIndex = textReplacementHistory.firstIndex(of: entry.documentText) {
+                        textReplacementHistory.remove(at: historyIndex)
+                    }
+                    return true
+                }
             }
         }
         
