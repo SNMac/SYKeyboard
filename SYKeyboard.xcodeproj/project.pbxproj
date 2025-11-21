@@ -158,6 +158,7 @@
 				EnglishKeyboard/Resources/Info.plist,
 				EnglishKeyboard/Resources/InfoPlist.xcstrings,
 				HangeulKeyboard/Domain/Automata/HangeulAutomata.swift,
+				HangeulKeyboard/Domain/Processor/NaratgeulProcessor.swift,
 				HangeulKeyboard/Presentation/Utils/Enums/HangeulKeyboardMode.swift,
 				HangeulKeyboard/Presentation/View/Bases/FourByFourKeyboardView.swift,
 				HangeulKeyboard/Presentation/View/CheonjiinKeyboardView.swift,
@@ -222,6 +223,7 @@
 				Common/Presentation/ViewController/Bases/BaseKeyboardViewController.swift,
 				Common/Resources/Localizable.xcstrings,
 				HangeulKeyboard/Domain/Automata/HangeulAutomata.swift,
+				HangeulKeyboard/Domain/Processor/NaratgeulProcessor.swift,
 				HangeulKeyboard/Presentation/Utils/Enums/HangeulKeyboardMode.swift,
 				HangeulKeyboard/Presentation/View/Bases/FourByFourKeyboardView.swift,
 				HangeulKeyboard/Presentation/View/CheonjiinKeyboardView.swift,
@@ -307,6 +309,7 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				HangeulKeyboard/Domain/Automata/HangeulAutomata.swift,
+				HangeulKeyboard/Domain/Processor/NaratgeulProcessor.swift,
 			);
 			target = 5B48C0712E7C141900973C00 /* SYKeyboardTests */;
 		};
