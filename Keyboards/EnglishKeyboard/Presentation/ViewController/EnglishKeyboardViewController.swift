@@ -23,42 +23,14 @@ final class EnglishKeyboardViewController: BaseKeyboardViewController {
     
     // MARK: - Override Methods
     
-    override func updateShiftButton() {
-        // Shift 버튼이 눌려있는 경우 실행 X
-        guard !self.buttonStateController.isShiftButtonPressed else { return }
-        
-        if UserDefaultsManager.shared.isAutoCapitalizationEnabled {
-            switch self.textDocumentProxy.autocapitalizationType {
-            case .words:
-                if let beforeCursor = self.textDocumentProxy.documentContextBeforeInput {
-                    if beforeCursor.endsWithWhitespace() {
-                        primaryKeyboardView.updateShiftButton(isShifted: true)
-                    } else {
-                        primaryKeyboardView.updateShiftButton(isShifted: false)
-                    }
-                } else {
-                    primaryKeyboardView.updateShiftButton(isShifted: true)
-                }
-            case .sentences:
-                if let beforeCursor = self.textDocumentProxy.documentContextBeforeInput {
-                    if beforeCursor.hasOnlyWhitespaceFromLastDot() {
-                        primaryKeyboardView.updateShiftButton(isShifted: true)
-                    } else {
-                        primaryKeyboardView.updateShiftButton(isShifted: false)
-                    }
-                } else {
-                    primaryKeyboardView.updateShiftButton(isShifted: true)
-                }
-            case .allCharacters:
-                primaryKeyboardView.updateShiftButton(isShifted: true)
-            default:
-                primaryKeyboardView.updateShiftButton(isShifted: false)
-            }
-        } else {
-            primaryKeyboardView.updateShiftButton(isShifted: false)
-        }
-        
-        isUppercaseInput = false
+    override func textWillChange(_ textInput: (any UITextInput)?) {
+        super.textWillChange(textInput)
+        updateShiftButton()
+    }
+    
+    override func didSetCurrentKeyboard() {
+        super.didSetCurrentKeyboard()
+        updateShiftButton()
     }
     
     override func updateShowingKeyboard() {
@@ -118,15 +90,76 @@ final class EnglishKeyboardViewController: BaseKeyboardViewController {
         }
     }
     
-    override func getInputText(from keys: [String]) -> String {
+    override func textInteractionDidPerform() {
+        super.textInteractionDidPerform()
+        updateShiftButton()
+    }
+    
+    override func repeatTextInteractionDidPerform() {
+        super.repeatTextInteractionDidPerform()
+        updateShiftButton()
+    }
+    
+    override func insertKeyText(from keys: [String]) {
         guard let key = keys.first else {
             assertionFailure("keys 배열이 비어있습니다.")
-            self.logger.error("keys 배열이 비어있습니다.")
-            return ""
+            return
         }
         
         if key.count == 1 && Character(key).isUppercase { isUppercaseInput = true }
-        self.lastInputText = key
-        return key
+        self.textDocumentProxy.insertText(key)
+    }
+    
+    override func repeatInsertKeyText(from keys: [String]) {
+        guard let key = keys.first else {
+            assertionFailure("keys 배열이 비어있습니다.")
+            return
+        }
+        
+        if key.count == 1 && Character(key).isUppercase { isUppercaseInput = true }
+        self.textDocumentProxy.insertText(key)
+    }
+}
+
+// MARK: - Private Methods
+
+private extension EnglishKeyboardViewController {
+    /// Shift 버튼을 상황에 맞게 업데이트하는 메서드
+    func updateShiftButton() {
+        // Shift 버튼이 눌려있는 경우 실행 X
+        guard !self.buttonStateController.isShiftButtonPressed else { return }
+        
+        if UserDefaultsManager.shared.isAutoCapitalizationEnabled {
+            switch self.textDocumentProxy.autocapitalizationType {
+            case .words:
+                if let beforeCursor = self.textDocumentProxy.documentContextBeforeInput {
+                    if beforeCursor.endsWithWhitespace() {
+                        primaryKeyboardView.updateShiftButton(isShifted: true)
+                    } else {
+                        primaryKeyboardView.updateShiftButton(isShifted: false)
+                    }
+                } else {
+                    primaryKeyboardView.updateShiftButton(isShifted: true)
+                }
+            case .sentences:
+                if let beforeCursor = self.textDocumentProxy.documentContextBeforeInput {
+                    if beforeCursor.hasOnlyWhitespaceFromLastDot() {
+                        primaryKeyboardView.updateShiftButton(isShifted: true)
+                    } else {
+                        primaryKeyboardView.updateShiftButton(isShifted: false)
+                    }
+                } else {
+                    primaryKeyboardView.updateShiftButton(isShifted: true)
+                }
+            case .allCharacters:
+                primaryKeyboardView.updateShiftButton(isShifted: true)
+            default:
+                primaryKeyboardView.updateShiftButton(isShifted: false)
+            }
+        } else {
+            primaryKeyboardView.updateShiftButton(isShifted: false)
+        }
+        
+        isUppercaseInput = false
     }
 }

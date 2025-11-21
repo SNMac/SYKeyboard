@@ -21,11 +21,9 @@ public class BaseKeyboardViewController: UIInputViewController {
     final lazy var oldKeyboardType: UIKeyboardType? = textDocumentProxy.keyboardType
     
     /// 현재 표시되는 키보드
-    final lazy var currentKeyboard: SYKeyboardType = primaryKeyboardView.keyboard {
+    lazy var currentKeyboard: SYKeyboardType = primaryKeyboardView.keyboard {
         didSet {
-            updateShowingKeyboard()
-            updateReturnButtonType()
-            updateShiftButton()
+            didSetCurrentKeyboard()
         }
     }
     /// 현재 한 손 키보드 모드
@@ -70,8 +68,6 @@ public class BaseKeyboardViewController: UIInputViewController {
     /// 키보드 높이 제약 조건 할당 여부
     private var isHeightConstraintAdded: Bool = false
     
-    /// 마지막으로 입력한 문자
-    var lastInputText: String?
     /// 반복 입력용 타이머
     private var timer: AnyCancellable?
     /// 삭제 버튼 팬 제스처로 인해 임시로 삭제된 내용을 저장하는 변수
@@ -135,10 +131,14 @@ public class BaseKeyboardViewController: UIInputViewController {
         updateKeyboardType(oldKeyboardType: oldKeyboardType)
         oldKeyboardType = textDocumentProxy.keyboardType
         updateReturnButtonType()
-        updateShiftButton()
     }
     
     // MARK: - Overridable Methods
+    
+    func didSetCurrentKeyboard() {
+        updateShowingKeyboard()
+        updateReturnButtonType()
+    }
     
     /// 현재 보이는 키보드를  `currentKeyboard`에 맞게 변경하는 메서드
     func updateShowingKeyboard() {
@@ -156,15 +156,58 @@ public class BaseKeyboardViewController: UIInputViewController {
     ///   - oldKeyboardType: 이전 `UIKeyboardType`
     func updateKeyboardType(oldKeyboardType: UIKeyboardType?) { fatalError("메서드가 오버라이딩 되지 않았습니다.") }
     
-    /// Shift 버튼을 상황에 맞게 업데이트하는 메서드
-    func updateShiftButton() {}
+    /// 텍스트 상호작용이 일어나기 전 실행되는 메서드
+    func textInteractionWillPerform() {
+        tempDeletedCharacters.removeAll()
+    }
+    /// 텍스트 상호작용이 일어난 후 실행되는 메서드
+    func textInteractionDidPerform() {}
     
-    /// 사용자가 탭한 `TextInteractable` 버튼의 `keys` 중 상황에 맞는 문자를 반환하는 메서드
+    /// 반복 텍스트 상호작용이 일어나기 전 실행되는 메서드
+    func repeatTextInteractionWillPerform(button: TextInteractable) {
+        // 방어 코드
+        timer?.cancel()
+        timer = nil
+        logger.debug("반복 타이머 초기화")
+    }
+    /// 반복 텍스트 상호작용이 일어난 후 실행되는 메서드
+    func repeatTextInteractionDidPerform() {
+        timer?.cancel()
+        timer = nil
+        logger.debug("반복 타이머 초기화")
+        
+        tempDeletedCharacters.removeAll()
+    }
+    
+    /// 사용자가 탭한 `TextInteractable` 버튼의 `keys` 중 상황에 맞는 문자를 입력하는 메서드 (단일 호출)
     ///
     /// - Parameters:
     ///   - keys: `TextInteractable` 버튼에 입력할 수 있는 문자 배열
-    /// - Returns: 입력할 문자
-    func getInputText(from keys: [String]) -> String { fatalError("메서드가 오버라이딩 되지 않았습니다.") }
+    func insertKeyText(from keys: [String]) {
+        guard let key = keys.first else {
+            assertionFailure("keys 배열이 비어있습니다.")
+            return
+        }
+        
+        textDocumentProxy.insertText(key)
+    }
+    /// 사용자가 탭한 `TextInteractable` 버튼의 `keys` 중 상황에 맞는 문자를 입력하는 메서드 (반복 호출)
+    ///
+    /// - Parameters:
+    ///   - keys: `TextInteractable` 버튼에 입력할 수 있는 문자 배열
+    func repeatInsertKeyText(from keys: [String]) {
+        guard let key = keys.first else {
+            assertionFailure("keys 배열이 비어있습니다.")
+            return
+        }
+        
+        textDocumentProxy.insertText(key)
+    }
+    
+    /// 공백 문자를 입력하는 메서드
+    func insertSpaceText() { textDocumentProxy.insertText(" ") }
+    /// 개행 문자를 입력하는 메서드
+    func insertReturnText() { textDocumentProxy.insertText("\n") }
     
     /// 문자열 입력 UI의 텍스트를 삭제하는 메서드
     func deleteBackward() { textDocumentProxy.deleteBackward() }
@@ -430,13 +473,14 @@ private extension BaseKeyboardViewController {
 
 // MARK: - Text Interaction Methods
 
-private extension BaseKeyboardViewController {
-    func performTextInteraction(for button: TextInteractable) {
-        tempDeletedCharacters.removeAll()
+extension BaseKeyboardViewController {
+    final func performTextInteraction(for button: TextInteractable) {
+        textInteractionWillPerform()
+        defer { textInteractionDidPerform() }
         
         switch button.type {
         case .keyButton(let keys):
-            textDocumentProxy.insertText(getInputText(from: keys))
+            insertKeyText(from: keys)
         case .deleteButton:
             if let selectedText = textDocumentProxy.selectedText {
                 tempDeletedCharacters.append(contentsOf: selectedText.reversed())
@@ -445,35 +489,30 @@ private extension BaseKeyboardViewController {
                 tempDeletedCharacters.append(lastBeforeCursor)
                 deleteBackward()
             }
-        case .spaceButton, .returnButton:
-            guard let key = button.type.keys.first else { fatalError("옵셔널 언래핑 실패") }
-            textDocumentProxy.insertText(key)
+        case .spaceButton:
+            insertSpaceText()
+        case .returnButton:
+            insertReturnText()
         }
-        
-        updateShiftButton()
     }
     
-    func performRepeatTextInteraction(for button: TextInteractable) {
+    final func performRepeatTextInteraction(for button: TextInteractable) {
+        textInteractionWillPerform()
+        defer { textInteractionDidPerform() }
+        
         switch button.type {
-        case .keyButton:
-            guard let lastInputText else { return }
-            textDocumentProxy.insertText(lastInputText)
-            button.playFeedback()
+        case .keyButton(let keys):
+            repeatInsertKeyText(from: keys)
         case .deleteButton:
             if textDocumentProxy.documentContextBeforeInput != nil || textDocumentProxy.selectedText != nil {
                 deleteBackward()
-                button.playFeedback()
             }
         case .spaceButton:
-            guard let key = button.type.keys.first else { fatalError("옵셔널 언래핑 실패") }
-            textDocumentProxy.insertText(key)
-            button.playFeedback()
-        default:
-            assertionFailure("도달할 수 없는 case 입니다.")
-            logger.error("도달할 수 없는 case 입니다.")
+            insertSpaceText()
+            
+        case .returnButton:
+            insertReturnText()
         }
-        
-        updateShiftButton()
     }
 }
 
@@ -510,7 +549,6 @@ extension BaseKeyboardViewController: TextInteractionGestureControllerDelegate {
             }
         default:
             assertionFailure("도달할 수 없는 case 입니다.")
-            logger.error("도달할 수 없는 case 입니다.")
         }
     }
     
@@ -535,7 +573,6 @@ extension BaseKeyboardViewController: TextInteractionGestureControllerDelegate {
             }
         default:
             assertionFailure("도달할 수 없는 case 입니다.")
-            logger.error("도달할 수 없는 case 입니다.")
         }
     }
     
@@ -545,24 +582,19 @@ extension BaseKeyboardViewController: TextInteractionGestureControllerDelegate {
     }
     
     final func textInteractableButtonLongPressing(_ controller: TextInteractionGestureController, button: TextInteractable) {
-        textInteractableButtonLongPressStopped(controller)
-        
-        performTextInteraction(for: button)
-        if lastInputText != nil { button.playFeedback() }
+        repeatTextInteractionWillPerform(button: button)
         
         let repeatTimerInterval = 0.10 - UserDefaultsManager.shared.repeatRate
         timer = Timer.publish(every: repeatTimerInterval, on: .main, in: .common)
             .autoconnect()
-            .sink { [weak self] _ in self?.performRepeatTextInteraction(for: button) }
+            .sink { [weak self] _ in
+                self?.performRepeatTextInteraction(for: button)
+                button.playFeedback()
+            }
         logger.debug("반복 타이머 생성")
     }
     
     final func textInteractableButtonLongPressStopped(_ controller: TextInteractionGestureController) {
-        timer?.cancel()
-        timer = nil
-        logger.debug("반복 타이머 초기화")
-        
-        tempDeletedCharacters.removeAll()
-        lastInputText = nil
+        repeatTextInteractionDidPerform()
     }
 }
