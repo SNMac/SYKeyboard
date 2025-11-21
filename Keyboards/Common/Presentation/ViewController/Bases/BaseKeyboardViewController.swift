@@ -69,6 +69,9 @@ public class BaseKeyboardViewController: UIInputViewController {
     
     /// 키보드 높이 제약 조건 할당 여부
     private var isHeightConstraintAdded: Bool = false
+    
+    /// 마지막으로 입력한 문자
+    private var lastInputText: String?
     /// 반복 입력용 타이머
     private var timer: AnyCancellable?
     /// 삭제 버튼 팬 제스처로 인해 임시로 삭제된 내용을 저장하는 변수
@@ -123,9 +126,6 @@ public class BaseKeyboardViewController: UIInputViewController {
         let systemGestureRecognizer1 = window.gestureRecognizers?[1] as? UIGestureRecognizer
         systemGestureRecognizer0?.delaysTouchesBegan = false
         systemGestureRecognizer1?.delaysTouchesBegan = false
-        //        #if DEBUG
-        //        checkForAmbiguity(in: self.view)
-        //        #endif
     }
     
     public override func textWillChange(_ textInput: (any UITextInput)?) {
@@ -159,11 +159,12 @@ public class BaseKeyboardViewController: UIInputViewController {
     /// Shift 버튼을 상황에 맞게 업데이트하는 메서드
     func updateShiftButton() {}
     
-    /// 사용자가 탭한 `TextInteractable` 버튼의 `keys` 중 상황에 맞는 문자를 입력하는 메서드
+    /// 사용자가 탭한 `TextInteractable` 버튼의 `keys` 중 상황에 맞는 문자를 반환하는 메서드
     ///
     /// - Parameters:
     ///   - keys: `TextInteractable` 버튼에 입력할 수 있는 문자 배열
-    func inputKeyButton(keys: [String]) { fatalError("메서드가 오버라이딩 되지 않았습니다.") }
+    /// - Returns: 입력할 문자
+    func getInputText(from keys: [String]) -> String { fatalError("메서드가 오버라이딩 되지 않았습니다.") }
 }
 
 // MARK: - UI Methods
@@ -429,9 +430,12 @@ private extension BaseKeyboardViewController {
 private extension BaseKeyboardViewController {
     func performTextInteraction(for button: TextInteractableType) {
         tempDeletedCharacters.removeAll()
+        
         switch button {
         case .keyButton(let keys):
-            inputKeyButton(keys: keys)
+            let inputText = getInputText(from: keys)
+            textDocumentProxy.insertText(inputText)
+            lastInputText = inputText
         case .deleteButton:
             if let selectedText = textDocumentProxy.selectedText {
                 tempDeletedCharacters.append(contentsOf: selectedText.reversed())
@@ -451,7 +455,7 @@ private extension BaseKeyboardViewController {
     func performRepeatTextInteraction(for button: TextInteractableType) {
         switch button {
         case .keyButton(let keys):
-            inputKeyButton(keys: keys)
+            textDocumentProxy.insertText(lastInputText ?? "")
             FeedbackManager.shared.playHaptic()
             FeedbackManager.shared.playKeyTypingSound()
         case .deleteButton:
@@ -467,6 +471,7 @@ private extension BaseKeyboardViewController {
             FeedbackManager.shared.playModifierSound()
         default:
             assertionFailure("도달할 수 없는 case 입니다.")
+            logger.error("도달할 수 없는 case 입니다.")
         }
         
         updateShiftButton()
@@ -506,6 +511,7 @@ extension BaseKeyboardViewController: TextInteractionGestureControllerDelegate {
             }
         default:
             assertionFailure("도달할 수 없는 case 입니다.")
+            logger.error("도달할 수 없는 case 입니다.")
         }
     }
     
@@ -530,6 +536,7 @@ extension BaseKeyboardViewController: TextInteractionGestureControllerDelegate {
             }
         default:
             assertionFailure("도달할 수 없는 case 입니다.")
+            logger.error("도달할 수 없는 case 입니다.")
         }
     }
     
@@ -553,5 +560,6 @@ extension BaseKeyboardViewController: TextInteractionGestureControllerDelegate {
         timer = nil
         logger.debug("반복 타이머 초기화")
         tempDeletedCharacters.removeAll()
+        lastInputText = nil
     }
 }

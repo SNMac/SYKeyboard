@@ -18,6 +18,7 @@ final class EnglishKeyboardViewController: BaseKeyboardViewController {
     
     /// 영어 키보드
     private lazy var englishKeyboardView: EnglishKeyboardLayoutProvider = EnglishKeyboardView(getIsUppercaseInput: { [weak self] in return (self?.isUppercaseInput)! })
+    
     override var primaryKeyboardView: PrimaryKeyboardRepresentable { englishKeyboardView }
     
     // MARK: - Override Methods
@@ -117,14 +118,13 @@ final class EnglishKeyboardViewController: BaseKeyboardViewController {
         }
     }
     
-    override func inputKeyButton(keys: [String]) {
+    override func getInputText(from keys: [String]) -> String {
         guard let key = keys.first else {
             assertionFailure("keys 배열이 비어있습니다.")
-            return
+            logger.error("keys 배열이 비어있습니다.")
+            return ""
         }
-        if key.count == 1 && Character(key).isUppercase {
-            isUppercaseInput = true
-        }
-        textDocumentProxy.insertText(key)
+        if key.count == 1 && Character(key).isUppercase { isUppercaseInput = true }
+        return key
     }
 }
