@@ -65,6 +65,9 @@ public class BaseKeyboardViewController: UIInputViewController {
     /// 버튼 상태 컨트롤러
     private(set) lazy var buttonStateController = ButtonStateController()
     
+    /// 텍스트 대치 데이터
+    private var userLexicon: UILexicon?
+    
     /// 키보드 높이 제약 조건 할당 여부
     private var isHeightConstraintAdded: Bool = false
     
@@ -104,8 +107,11 @@ public class BaseKeyboardViewController: UIInputViewController {
         super.viewDidLoad()
         setupUI()
         setNextKeyboardButton()
-        if UserDefaultsManager.shared.isOneHandedKeyboardEnabled {
-            updateOneHandModekeyboard()
+        if UserDefaultsManager.shared.isOneHandedKeyboardEnabled { updateOneHandModekeyboard() }
+        if UserDefaultsManager.shared.isTextReplacementEnabled {
+            requestSupplementaryLexicon { [weak self] lexicon in
+                self?.userLexicon = lexicon
+            }
         }
     }
     
@@ -188,7 +194,6 @@ public class BaseKeyboardViewController: UIInputViewController {
             assertionFailure("keys 배열이 비어있습니다.")
             return
         }
-        
         textDocumentProxy.insertText(key)
     }
     /// 사용자가 탭한 `TextInteractable` 버튼의 `keys` 중 상황에 맞는 문자를 입력하는 메서드 (반복 호출)
@@ -200,7 +205,6 @@ public class BaseKeyboardViewController: UIInputViewController {
             assertionFailure("keys 배열이 비어있습니다.")
             return
         }
-        
         textDocumentProxy.insertText(key)
     }
     
