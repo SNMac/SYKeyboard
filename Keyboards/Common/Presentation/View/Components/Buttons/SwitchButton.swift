@@ -49,8 +49,9 @@ final class SwitchButton: SecondaryButton {
                 assertionFailure("구현이 필요한 키보드입니다.")
                 self.title = "한글"
             }
-        default:
-            fatalError("구현되지 않은 case입니다.")
+        case .tenKey:
+            assertionFailure("도달할 수 없는 case입니다.")
+            self.title = ""
         }
         super.init(keyboard: keyboard)
         
