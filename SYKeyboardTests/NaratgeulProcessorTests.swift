@@ -14,7 +14,7 @@ struct NaratgeulProcessorTests {
     
     // MARK: - Properties
     
-    private let processor: NaratgeulProcessorProtocol = NaratgeulProcessor()
+    private let processor: HangeulKeyboardProcessable = NaratgeulProcessor()
     
     // MARK: - Helper Method (테스트 편의성을 위해 추가)
     

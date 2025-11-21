@@ -5,18 +5,8 @@
 //  Created by 서동환 on 9/19/25.
 //
 
-/// 나랏글 입력기 프로토콜
-protocol NaratgeulProcessorProtocol {
-    /// 나랏글 자판 입력을 처리합니다.
-    /// - Parameters:
-    ///   - 글자Input: 새로 입력된 글자 (`String` 타입)
-    ///   - beforeText: 입력 전의 전체 문자열
-    /// - Returns: (처리된 전체 텍스트, 반복 입력을 위한 실제 입력 글자)
-    func input(글자Input: String, beforeText: String) -> (processedText: String, input글자: String?)
-}
-
 /// 나랏글 입력기
-final class NaratgeulProcessor: NaratgeulProcessorProtocol {
+final class NaratgeulProcessor: HangeulKeyboardProcessable {
     
     // MARK: - Properties
     

@@ -15,12 +15,12 @@ final class HangeulKeyboardViewController: BaseKeyboardViewController {
     /// 나랏글 키보드
     private lazy var naratgeulKeyboardView: HangeulKeyboardLayoutProvider = NaratgeulKeyboardView()
     /// 나랏글 입력기
-    private lazy var naratgeulProcessor: NaratgeulProcessorProtocol = NaratgeulProcessor()
+    private lazy var naratgeulProcessor: HangeulKeyboardProcessable = NaratgeulProcessor()
     
     /// 천지인 키보드
     private lazy var cheonjiinKeyboardView: HangeulKeyboardLayoutProvider = CheonjiinKeyboardView()
 //    /// 천지인 입력기
-//    private lazy var cheonjiinProcessor: CheonjiinProcessorProtocol = CheonjiinProcessor()
+//    private lazy var cheonjiinProcessor: HangeulKeyboardProcessable = CheonjiinProcessor()
     
     /// 사용자가 선택한 한글 키보드
     private var hangeulKeyboardView: HangeulKeyboardLayoutProvider {
