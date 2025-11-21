@@ -111,9 +111,7 @@ public class BaseKeyboardViewController: UIInputViewController {
         setNextKeyboardButton()
         if UserDefaultsManager.shared.isOneHandedKeyboardEnabled { updateOneHandModekeyboard() }
         if UserDefaultsManager.shared.isTextReplacementEnabled {
-            requestSupplementaryLexicon { [weak self] lexicon in
-                self?.userLexicon = lexicon
-            }
+            Task { userLexicon = await requestSupplementaryLexicon() }
         }
     }
     
