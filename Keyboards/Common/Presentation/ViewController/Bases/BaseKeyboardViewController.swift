@@ -165,6 +165,9 @@ public class BaseKeyboardViewController: UIInputViewController {
     ///   - keys: `TextInteractable` 버튼에 입력할 수 있는 문자 배열
     /// - Returns: 입력할 문자
     func getInputText(from keys: [String]) -> String { fatalError("메서드가 오버라이딩 되지 않았습니다.") }
+    
+    /// 문자열 입력 UI의 텍스트를 삭제하는 메서드
+    func deleteBackward() { textDocumentProxy.deleteBackward() }
 }
 
 // MARK: - UI Methods
@@ -437,10 +440,10 @@ private extension BaseKeyboardViewController {
         case .deleteButton:
             if let selectedText = textDocumentProxy.selectedText {
                 tempDeletedCharacters.append(contentsOf: selectedText.reversed())
-                textDocumentProxy.deleteBackward()
+                deleteBackward()
             } else if let lastBeforeCursor = textDocumentProxy.documentContextBeforeInput?.last {
                 tempDeletedCharacters.append(lastBeforeCursor)
-                textDocumentProxy.deleteBackward()
+                deleteBackward()
             }
         case .spaceButton, .returnButton:
             guard let key = button.type.keys.first else { fatalError("옵셔널 언래핑 실패") }
@@ -458,7 +461,7 @@ private extension BaseKeyboardViewController {
             button.playFeedback()
         case .deleteButton:
             if textDocumentProxy.documentContextBeforeInput != nil || textDocumentProxy.selectedText != nil {
-                textDocumentProxy.deleteBackward()
+                deleteBackward()
                 button.playFeedback()
             }
         case .spaceButton:
@@ -518,7 +521,7 @@ extension BaseKeyboardViewController: TextInteractionGestureControllerDelegate {
         case .left:
             if let lastBeforeCursor = textDocumentProxy.documentContextBeforeInput?.last {
                 tempDeletedCharacters.append(lastBeforeCursor)
-                textDocumentProxy.deleteBackward()
+                deleteBackward()
                 FeedbackManager.shared.playHaptic()
                 FeedbackManager.shared.playDeleteSound()
                 logger.debug("커서 앞 글자 삭제")
