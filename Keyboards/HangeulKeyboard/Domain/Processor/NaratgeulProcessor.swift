@@ -5,10 +5,17 @@
 //  Created by 서동환 on 9/19/25.
 //
 
-import Foundation
+/// 나랏글 입력기 프로토콜
+protocol NaratgeulProcessorProtocol {
+    /// 나랏글 자판 입력을 처리합니다.
+    /// - Parameters:
+    ///   - 글자Input: 새로 입력된 글자 (`String` 타입)
+    ///   - beforeText: 입력 전의 전체 문자열
+    func input(글자Input: String, beforeText: String) -> String
+}
 
 /// 나랏글 입력기
-final class NaratgeulProcessor {
+final class NaratgeulProcessor: NaratgeulProcessorProtocol {
     
     // MARK: - Properties
     
@@ -59,9 +66,8 @@ final class NaratgeulProcessor {
         "ㅣ": "ㅣ", "ㅡ": "ㅡ"
     ]
     
-    // MARK: - Main Input Method
+    // MARK: - Internal Methods
     
-    /// 나랏글 자판 입력을 처리합니다.
     func input(글자Input: String, beforeText: String) -> String {
         // 1. 특수 기능 키 처리 (획추가, 쌍자음)
         if 글자Input == "획" {
@@ -74,6 +80,8 @@ final class NaratgeulProcessor {
         return automata.add글자(글자Input: 글자Input, beforeText: beforeText)
     }
 }
+
+// MARK: - Private Methods
 
 private extension NaratgeulProcessor {
     /// 획추가: 종성 -> [중성] 순서
