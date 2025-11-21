@@ -11,11 +11,14 @@ import SnapKit
 import Then
 
 /// 숫자 키보드
-final class NumericKeyboardView: UIView, NumericKeyboardLayout {
+final class NumericKeyboardView: UIView, NumericKeyboardLayoutProvider {
     
     // MARK: - Properties
     
-    private(set) lazy var totalTextInteractionButtonList: [TextInteractionButtonProtocol] = firstRowKeyButtonList + secondRowKeyButtonList + thirdRowKeyButtonList + fourthRowKeyButtonList + [deleteButton, spaceButton]
+    private(set) lazy var allButtonList: [BaseKeyboardButton] = primaryButtonList + secondaryButtonList
+    private(set) lazy var primaryButtonList: [PrimaryButton] = firstRowKeyButtonList + secondRowKeyButtonList + thirdRowKeyButtonList + fourthRowKeyButtonList + [spaceButton]
+    private(set) lazy var secondaryButtonList: [SecondaryButton] = [deleteButton, returnButton, switchButton, nextKeyboardButton]
+    private(set) lazy var totalTextInterableButtonList: [TextInteractable] = firstRowKeyButtonList + secondRowKeyButtonList + thirdRowKeyButtonList + fourthRowKeyButtonList + [deleteButton, spaceButton, returnButton]
     
     /// 숫자 키보드 키 배열
     private let numericKeyList = [
@@ -49,22 +52,22 @@ final class NumericKeyboardView: UIView, NumericKeyboardLayout {
     /// 키보드 네번째 우측 `SecondaryButton` 행
     private let fourthRowRightSecondaryButtonHStackView = KeyboardRowHStackView()
     
-    /// 키보드 첫번째 행 `PrimaryKeyButton` 배열
-    private lazy var firstRowKeyButtonList = numericKeyList[0].map { PrimaryKeyButton(layout: .numeric, button: .keyButton(keys: $0)) }
-    /// 키보드 두번째 행 `PrimaryKeyButton` 배열
-    private lazy var secondRowKeyButtonList = numericKeyList[1].map { PrimaryKeyButton(layout: .numeric, button: .keyButton(keys: $0)) }
-    /// 키보드 세번째 행 `PrimaryKeyButton` 배열
-    private lazy var thirdRowKeyButtonList = numericKeyList[2].map { PrimaryKeyButton(layout: .numeric, button: .keyButton(keys: $0)) }
-    /// 키보드 네번째 행 `PrimaryKeyButton` 배열
-    private lazy var fourthRowKeyButtonList = numericKeyList[3].map { PrimaryKeyButton(layout: .numeric, button: .keyButton(keys: $0)) }
+    /// 키보드 첫번째 행 `PrimaryButton` 배열
+    private lazy var firstRowKeyButtonList = numericKeyList[0].map { PrimaryKeyButton(keyboard: .numeric, button: .keyButton(keys: $0)) }
+    /// 키보드 두번째 행 `PrimaryButton` 배열
+    private lazy var secondRowKeyButtonList = numericKeyList[1].map { PrimaryKeyButton(keyboard: .numeric, button: .keyButton(keys: $0)) }
+    /// 키보드 세번째 행 `PrimaryButton` 배열
+    private lazy var thirdRowKeyButtonList = numericKeyList[2].map { PrimaryKeyButton(keyboard: .numeric, button: .keyButton(keys: $0)) }
+    /// 키보드 네번째 행 `PrimaryButton` 배열
+    private lazy var fourthRowKeyButtonList = numericKeyList[3].map { PrimaryKeyButton(keyboard: .numeric, button: .keyButton(keys: $0)) }
     
-    private(set) var deleteButton = DeleteButton(layout: .numeric)
-    private(set) var spaceButton = SpaceButton(layout: .numeric)
-    private(set) var returnButton = ReturnButton(layout: .numeric)
-    private(set) var switchButton = SwitchButton(layout: .numeric)
-    private(set) var nextKeyboardButton = NextKeyboardButton(layout: .numeric)
+    private(set) var deleteButton = DeleteButton(keyboard: .numeric)
+    private(set) var spaceButton = SpaceButton(keyboard: .numeric)
+    private(set) var returnButton = ReturnButton(keyboard: .numeric)
+    private(set) var switchButton = SwitchButton(keyboard: .numeric)
+    private(set) var nextKeyboardButton = NextKeyboardButton(keyboard: .numeric)
     
-    private(set) var keyboardSelectOverlayView = KeyboardSelectOverlayView(layout: .numeric).then { $0.isHidden = true }
+    private(set) var keyboardSelectOverlayView = KeyboardSelectOverlayView(keyboard: .numeric).then { $0.isHidden = true }
     private(set) var oneHandedModeSelectOverlayView = OneHandedModeSelectOverlayView().then { $0.isHidden = true }
     
     // MARK: - Initializer

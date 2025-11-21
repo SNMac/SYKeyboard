@@ -8,13 +8,13 @@
 import UIKit
 
 /// 보조 키 버튼
-final class SecondaryKeyButton: SecondaryButton, TextInteractionButtonProtocol {
+final class SecondaryKeyButton: SecondaryButton, TextInteractable {
     
     // MARK: - Properties
     
-    var button: TextInteractionButton {
+    private(set) var type: TextInteractableType {
         didSet {
-            if button.keys.isEmpty {
+            if type.keys.isEmpty {
                 self.isHidden = true
             } else {
                 updateTitle()
@@ -25,11 +25,10 @@ final class SecondaryKeyButton: SecondaryButton, TextInteractionButtonProtocol {
     
     // MARK: - Initializer
     
-    init(layout: KeyboardLayout, button: TextInteractionButton) {
-        self.button = button
-        super.init(layout: layout)
+    init(keyboard: SYKeyboardType, button: TextInteractableType) {
+        self.type = button
+        super.init(keyboard: keyboard)
         
-        setupUI()
         updateTitle()
     }
     
@@ -37,24 +36,17 @@ final class SecondaryKeyButton: SecondaryButton, TextInteractionButtonProtocol {
         fatalError("init(coder:) has not been implemented")
     }
     
-    func update(button: TextInteractionButton) {
-        self.button = button
-    }
-}
-
-// MARK: - UI Methods
-
-private extension SecondaryKeyButton {
-    func setupUI() {
-        setActions()
+    // MARK: - Override Methods
+    
+    override func playFeedback() {
+        FeedbackManager.shared.playHaptic()
+        FeedbackManager.shared.playModifierSound()
     }
     
-    func setActions() {
-        let playFeedback = UIAction { _ in
-            FeedbackManager.shared.playHaptic()
-            FeedbackManager.shared.playKeyTypingSound()
-        }
-        self.addAction(playFeedback, for: .touchDown)
+    // MARK: - Internal Methods
+    
+    func update(button: TextInteractableType) {
+        self.type = button
     }
 }
 
@@ -62,7 +54,7 @@ private extension SecondaryKeyButton {
 
 private extension SecondaryKeyButton {
     func updateTitle() {
-        let keys = button.keys
+        let keys = type.keys
         if keys.count == 1 {
             guard let key = keys.first else { return }
             if key.count == 1 && Character(key).isLowercase {

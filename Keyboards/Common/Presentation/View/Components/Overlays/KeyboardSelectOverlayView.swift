@@ -15,7 +15,7 @@ final class KeyboardSelectOverlayView: UIStackView {
     
     // MARK: - Properties
     
-    private let layout: KeyboardLayout
+    private let keyboard: SYKeyboardType
     private var isEmphasizingTarget: Bool?
     
     // MARK: - UI Components
@@ -57,8 +57,8 @@ final class KeyboardSelectOverlayView: UIStackView {
     
     // MARK: - Initializer
     
-    init(layout: KeyboardLayout) {
-        self.layout = layout
+    init(keyboard: SYKeyboardType) {
+        self.keyboard = keyboard
         super.init(frame: .zero)
         
         setupUI()
@@ -80,7 +80,7 @@ final class KeyboardSelectOverlayView: UIStackView {
         }
         
         if needToEmphasizeTarget {
-            switch layout {
+            switch keyboard {
             case .hangeul, .english, .symbol:
                 numericLabel.textColor = .white
                 numericLabel.backgroundColor = .tintColor
@@ -93,7 +93,7 @@ final class KeyboardSelectOverlayView: UIStackView {
             xmarkImageView.image = xmarkImageView.image?.withTintColor(.label, renderingMode: .alwaysOriginal)
             xmarkImageContainerView.backgroundColor = .clear
         } else {
-            switch layout {
+            switch keyboard {
             case .hangeul, .english, .symbol:
                 numericLabel.textColor = .label
                 numericLabel.backgroundColor = .clear
@@ -142,7 +142,7 @@ private extension KeyboardSelectOverlayView {
         
         xmarkImageContainerView.addSubview(xmarkImageView)
         
-        switch layout {
+        switch keyboard {
         case .hangeul:
             self.addArrangedSubviews(numericLabel, xmarkImageContainerView)
             xmarkImageView.snp.makeConstraints {

@@ -18,10 +18,14 @@ enum DefaultValues {
     static let isHapticFeedbackEnabled: Bool = true
     
     /* 입력 설정 */
+    /// 한글 키보드 기본값
+    static let selectedHangeulKeyboard: HangeulKeyboardType = .naratgeul
     /// 텍스트 대치 기본값
     static let isTextReplacementEnabled: Bool = true
-    /// 스페이스/리턴 입력 후 한글 키보드로 변경 기본값
-    static let isAutoChangeToHangeulEnabled: Bool = true
+    /// 자동 대문자
+    static let isAutoCapitalizationEnabled: Bool = true
+    /// 스페이스/리턴 입력 후 주 키보드로 변경 기본값
+    static let isAutoChangeToPrimaryEnabled: Bool = true
     
     static let keyboardHeight: Double = 240.0
     static let isNumericKeypadEnabled: Bool = true

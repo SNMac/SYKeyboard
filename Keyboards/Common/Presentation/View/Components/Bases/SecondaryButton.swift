@@ -15,14 +15,14 @@ class SecondaryButton: BaseKeyboardButton {
     // MARK: - UI Components
     
     /// 배경 UI
-    lazy var backgroundView = ButtonBackgroundView(cornerRadius: self.cornerRadius)
+    final lazy var backgroundView = ButtonBackgroundView(cornerRadius: self.cornerRadius)
     /// 그림자 UI
-    lazy var shadowView = ButtonShadowView(cornerRadius: self.cornerRadius)
+    final lazy var shadowView = ButtonShadowView(cornerRadius: self.cornerRadius)
     
     // MARK: - Initializer
     
-    override init(layout: KeyboardLayout) {
-        super.init(layout: layout)
+    override init(keyboard: SYKeyboardType) {
+        super.init(keyboard: keyboard)
         setupUI()
     }
     
@@ -42,11 +42,14 @@ private extension SecondaryButton {
     
     func setStyles() {
         self.configurationUpdateHandler = { [weak self] button in
+            guard let self else { return }
             switch button.state {
             case .normal:
-                self?.backgroundView.backgroundColor = .secondaryButton
-            case .highlighted, .selected:
-                self?.backgroundView.backgroundColor = .secondaryButtonPressed
+                backgroundView.backgroundColor = .secondaryButton
+            case .highlighted:
+                backgroundView.backgroundColor = isPressed ? .secondaryButtonPressed : .secondaryButton
+            case .selected:
+                backgroundView.backgroundColor = .secondaryButtonPressed
             default:
                 break
             }
@@ -54,8 +57,8 @@ private extension SecondaryButton {
     }
     
     func setHierarchy() {
-        self.addSubviews(shadowView,
-                         backgroundView)
+        self.insertSubview(shadowView, at: 0)
+        self.insertSubview(backgroundView, at: 1)
     }
     
     func setConstraints() {

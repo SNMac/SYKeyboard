@@ -14,20 +14,33 @@ class BaseKeyboardButton: UIButton {
     
     // MARK: - Properties
     
-    let insetDx: CGFloat
-    let insetDy: CGFloat
-    let cornerRadius: CGFloat = 4.6
+    final let insetDx: CGFloat
+    final let insetDy: CGFloat
+    final let cornerRadius: CGFloat
+    
+    final var isPressed: Bool = false {
+        didSet {
+            if oldValue != isPressed {
+                setNeedsUpdateConfiguration()
+            }
+        }
+    }
     
     // MARK: - Initializer
     
-    init(layout: KeyboardLayout) {
-        switch layout {
+    init(keyboard: SYKeyboardType) {
+        switch keyboard {
         case .hangeul, .numeric, .tenKey:
             self.insetDx = 3
             self.insetDy = 2
         case .english, .symbol:
             self.insetDx = 3
             self.insetDy = 4
+        }
+        if #available(iOS 26, *) {
+            self.cornerRadius = 8.5
+        } else {
+            self.cornerRadius = 4.6
         }
         super.init(frame: .zero)
         
@@ -37,6 +50,10 @@ class BaseKeyboardButton: UIButton {
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
+    
+    // MARK: - Overridable Methods
+    
+    func playFeedback() { assertionFailure("메서드가 오버라이딩 되지 않았습니다.") }
 }
 
 // MARK: - UI Methods

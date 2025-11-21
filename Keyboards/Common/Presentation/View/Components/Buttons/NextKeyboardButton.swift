@@ -15,19 +15,26 @@ final class NextKeyboardButton: SecondaryButton {
     
     // MARK: - Properties
     
-    private let layout: KeyboardLayout
+    private let keyboard: SYKeyboardType
     
     // MARK: - Initializer
     
-    override init(layout: KeyboardLayout) {
-        self.layout = layout
-        super.init(layout: layout)
+    override init(keyboard: SYKeyboardType) {
+        self.keyboard = keyboard
+        super.init(keyboard: keyboard)
         
         setupUI()
     }
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+    
+    // MARK: - Override Methods
+    
+    override func playFeedback() {
+        FeedbackManager.shared.playHaptic()
+        FeedbackManager.shared.playModifierSound()
     }
 }
 
@@ -45,19 +52,10 @@ private extension NextKeyboardButton {
     }
     
     func setActions() {
-        let playFeedback = UIAction { _ in
-            FeedbackManager.shared.playHaptic()
-            FeedbackManager.shared.playModifierSound()
-        }
-        self.addAction(playFeedback, for: .touchDown)
-        
-        let setSelected = UIAction { [weak self] _ in
-            self?.isSelected = true
-        }
+        let setSelected = UIAction { [weak self] _ in self?.isSelected = true }
         self.addAction(setSelected, for: [.touchDragInside, .touchDragOutside])
-        let setDeselected = UIAction { [weak self] _ in
-            self?.isSelected = false
-        }
+        
+        let setDeselected = UIAction { [weak self] _ in self?.isSelected = false }
         self.addAction(setDeselected, for: [.touchUpInside, .touchUpOutside])
     }
 }

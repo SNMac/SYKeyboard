@@ -1,11 +1,12 @@
 //
-//  TextInteractionButton.swift
+//  TextInteractableType.swift
 //  HangeulKeyboard, EnglishKeyboard
 //
 //  Created by 서동환 on 9/3/25.
 //
 
-enum TextInteractionButton {
+/// 입력 상호작용 버튼 관리용
+enum TextInteractableType {
     case keyButton(keys: [String])
     case deleteButton
     case spaceButton

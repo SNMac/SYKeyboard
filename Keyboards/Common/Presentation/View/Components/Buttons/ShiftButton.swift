@@ -14,15 +14,15 @@ final class ShiftButton: SecondaryButton {
     
     // MARK: - Properties
     
-    private let layout: KeyboardLayout
+    private let keyboard: SYKeyboardType
     
     private let imageConfig = UIImage.SymbolConfiguration(pointSize: 16, weight: .medium)
     
     // MARK: - Initializer
     
-    override init(layout: KeyboardLayout) {
-        self.layout = layout
-        super.init(layout: layout)
+    override init(keyboard: SYKeyboardType) {
+        self.keyboard = keyboard
+        super.init(keyboard: keyboard)
         
         setupUI()
     }
@@ -31,10 +31,17 @@ final class ShiftButton: SecondaryButton {
         fatalError("init(coder:) has not been implemented")
     }
     
+    // MARK: - Override Methods
+    
+    override func playFeedback() {
+        FeedbackManager.shared.playHaptic()
+        FeedbackManager.shared.playModifierSound()
+    }
+    
     // MARK: - Internal Methods
     
     func updateShiftState(to isShifted: Bool) {
-        switch layout {
+        switch keyboard {
         case .hangeul, .english:
             if isShifted {
                 self.isSelected = true
@@ -56,13 +63,15 @@ final class ShiftButton: SecondaryButton {
     }
     
     func updateCapsLockState(to isCapsLocked: Bool) {
-        switch layout {
+        switch keyboard {
         case .hangeul, .english:
             if isCapsLocked {
+                self.isPressed = true
                 self.isSelected = true
                 self.configuration?.image = UIImage(systemName: "capslock.fill")?.withConfiguration(imageConfig).withTintColor(.label, renderingMode: .alwaysOriginal)
                 self.backgroundView.backgroundColor = .secondaryButtonPressed
             } else {
+                self.isPressed = false
                 self.isSelected = false
                 self.configuration?.image = UIImage(systemName: "shift")?.withConfiguration(imageConfig).withTintColor(.label, renderingMode: .alwaysOriginal)
             }
@@ -77,15 +86,14 @@ final class ShiftButton: SecondaryButton {
 private extension ShiftButton {
     func setupUI() {
         setStyles()
-        setActions()
     }
     
     func setStyles() {
-        self.configuration?.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 3)
-        self.shadowView.snp.updateConstraints { $0.trailing.equalToSuperview().inset(self.insetDx + 3) }
-        self.backgroundView.snp.updateConstraints { $0.trailing.equalToSuperview().inset(self.insetDx + 3) }
+        self.configuration?.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 6)
+        self.shadowView.snp.updateConstraints { $0.trailing.equalToSuperview().inset(self.insetDx + 6) }
+        self.backgroundView.snp.updateConstraints { $0.trailing.equalToSuperview().inset(self.insetDx + 6) }
         
-        switch layout {
+        switch keyboard {
         case .english:
             self.configuration?.image = UIImage(systemName: "shift")?.withConfiguration(imageConfig).withTintColor(.label, renderingMode: .alwaysOriginal)
         case .symbol:
@@ -103,13 +111,5 @@ private extension ShiftButton {
         default:
             fatalError("도달할 수 없는 case 입니다.")
         }
-    }
-    
-    func setActions() {
-        let playFeedback = UIAction { _ in
-            FeedbackManager.shared.playHaptic()
-            FeedbackManager.shared.playModifierSound()
-        }
-        self.addAction(playFeedback, for: .touchDown)
     }
 }

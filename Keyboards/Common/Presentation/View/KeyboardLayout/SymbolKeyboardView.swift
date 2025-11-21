@@ -11,11 +11,15 @@ import SnapKit
 import Then
 
 /// 기호 키보드
-final class SymbolKeyboardView: UIView, SymbolKeyboardLayout {
+final class SymbolKeyboardView: UIView, SymbolKeyboardLayoutProvider {
     
     // MARK: - Properties
     
-    private(set) lazy var totalTextInteractionButtonList: [TextInteractionButtonProtocol] = firstRowKeyButtonList + secondRowKeyButtonList + thirdRowKeyButtonList + [deleteButton, spaceButton]
+    private(set) lazy var allButtonList: [BaseKeyboardButton] = primaryButtonList + secondaryButtonList
+    private(set) lazy var primaryButtonList: [PrimaryButton] = firstRowKeyButtonList + secondRowKeyButtonList + thirdRowKeyButtonList + [spaceButton, atButton, periodButton, slashButton, dotComButton]
+    private(set) lazy var secondaryButtonList: [SecondaryButton] = [shiftButton, deleteButton, switchButton, returnButton, nextKeyboardButton]
+    private(set) lazy var totalTextInterableButtonList: [TextInteractable] = firstRowKeyButtonList + secondRowKeyButtonList + thirdRowKeyButtonList
+    + [deleteButton, spaceButton, atButton, periodButton, slashButton, dotComButton, returnButton]
     
     var currentSymbolKeyboardMode: SymbolKeyboardMode = .default {
         didSet(oldMode) {
@@ -43,33 +47,35 @@ final class SymbolKeyboardView: UIView, SymbolKeyboardLayout {
     private let secondRowHStackView = KeyboardRowHStackView()
     /// 키보드 세번째 행
     private let thirdRowHStackView = KeyboardRowHStackView().then { $0.distribution = .fill }
+    /// 키보드 세번째 내부 행
+    private let thirdRowInsideHStackView = KeyboardRowHStackView()
     /// 키보드 네번째 행
     private let fourthRowHStackView = KeyboardRowHStackView().then { $0.distribution = .fill }
     private(set) var fourthRowLeftSecondaryButtonHStackView = KeyboardRowHStackView()
     private(set) var spaceButtonHStackView = KeyboardRowHStackView().then { $0.distribution = .fill }
     
-    /// 키보드 첫번째 행 `PrimaryKeyButton` 배열
-    private lazy var firstRowKeyButtonList = currentSymbolKeyboardMode.keyList[0][0].map { PrimaryKeyButton(layout: .symbol, button: .keyButton(keys: $0)) }
-    /// 키보드 두번째 행 `PrimaryKeyButton` 배열
-    private lazy var secondRowKeyButtonList = currentSymbolKeyboardMode.keyList[0][1].map { PrimaryKeyButton(layout: .symbol, button: .keyButton(keys: $0)) }
-    /// 키보드 세번째 행 `PrimaryKeyButton` 배열
-    private lazy var thirdRowKeyButtonList = currentSymbolKeyboardMode.keyList[0][2].map { PrimaryKeyButton(layout: .symbol, button: .keyButton(keys: $0)) }
+    /// 키보드 첫번째 행 `PrimaryButton` 배열
+    private lazy var firstRowKeyButtonList = currentSymbolKeyboardMode.keyList[0][0].map { PrimaryKeyButton(keyboard: .symbol, button: .keyButton(keys: $0)) }
+    /// 키보드 두번째 행 `PrimaryButton` 배열
+    private lazy var secondRowKeyButtonList = currentSymbolKeyboardMode.keyList[0][1].map { PrimaryKeyButton(keyboard: .symbol, button: .keyButton(keys: $0)) }
+    /// 키보드 세번째 행 `PrimaryButton` 배열
+    private lazy var thirdRowKeyButtonList = currentSymbolKeyboardMode.keyList[0][2].map { PrimaryKeyButton(keyboard: .symbol, button: .keyButton(keys: $0)) }
     
-    private(set) var shiftButton = ShiftButton(layout: .symbol)
-    private(set) var deleteButton = DeleteButton(layout: .symbol)
-    private(set) var switchButton = SwitchButton(layout: .symbol)
+    private(set) var shiftButton = ShiftButton(keyboard: .symbol)
+    private(set) var deleteButton = DeleteButton(keyboard: .symbol)
+    private(set) var switchButton = SwitchButton(keyboard: .symbol)
     
     // 스페이스 버튼 위치
-    private(set) var spaceButton = SpaceButton(layout: .symbol)
-    private(set) var atButton = PrimaryKeyButton(layout: .symbol, button: .keyButton(keys: ["@"]))
-    private(set) var periodButton = PrimaryKeyButton(layout: .symbol, button: .keyButton(keys: ["."]))
-    private(set) var slashButton = PrimaryKeyButton(layout: .symbol, button: .keyButton(keys: ["/"]))
-    private(set) var dotComButton = PrimaryKeyButton(layout: .symbol, button: .keyButton(keys: [".com"]))
+    private(set) var spaceButton = SpaceButton(keyboard: .symbol)
+    private(set) var atButton = PrimaryKeyButton(keyboard: .symbol, button: .keyButton(keys: ["@"]))
+    private(set) var periodButton = PrimaryKeyButton(keyboard: .symbol, button: .keyButton(keys: ["."]))
+    private(set) var slashButton = PrimaryKeyButton(keyboard: .symbol, button: .keyButton(keys: ["/"]))
+    private(set) var dotComButton = PrimaryKeyButton(keyboard: .symbol, button: .keyButton(keys: [".com"]))
     
-    private(set) var returnButton = ReturnButton(layout: .symbol)
-    private(set) var nextKeyboardButton = NextKeyboardButton(layout: .symbol)
+    private(set) var returnButton = ReturnButton(keyboard: .symbol)
+    private(set) var nextKeyboardButton = NextKeyboardButton(keyboard: .symbol)
     
-    private(set) var keyboardSelectOverlayView = KeyboardSelectOverlayView(layout: .symbol).then { $0.isHidden = true }
+    private(set) var keyboardSelectOverlayView = KeyboardSelectOverlayView(keyboard: .symbol).then { $0.isHidden = true }
     private(set) var oneHandedModeSelectOverlayView = OneHandedModeSelectOverlayView().then { $0.isHidden = true }
     
     // MARK: - Initializer
@@ -117,9 +123,8 @@ private extension SymbolKeyboardView {
         
         secondRowKeyButtonList.forEach { secondRowHStackView.addArrangedSubview($0) }
         
-        thirdRowHStackView.addArrangedSubview(shiftButton)
-        thirdRowKeyButtonList.forEach { thirdRowHStackView.addArrangedSubview($0) }
-        thirdRowHStackView.addArrangedSubview(deleteButton)
+        thirdRowHStackView.addArrangedSubviews(shiftButton, thirdRowInsideHStackView, deleteButton)
+        thirdRowKeyButtonList.forEach { thirdRowInsideHStackView.addArrangedSubview($0) }
         
         fourthRowHStackView.addArrangedSubviews(fourthRowLeftSecondaryButtonHStackView, spaceButtonHStackView, returnButton)
         fourthRowLeftSecondaryButtonHStackView.addArrangedSubviews(switchButton, nextKeyboardButton)
@@ -132,25 +137,7 @@ private extension SymbolKeyboardView {
         }
         
         shiftButton.snp.makeConstraints {
-            $0.width.equalToSuperview().dividedBy(7.2)
-        }
-        
-        let referenceKey = thirdRowKeyButtonList[1]
-        for (index, button) in thirdRowKeyButtonList.enumerated() {
-            if index == 0 {
-                guard let lastButton = thirdRowKeyButtonList.last else { fatalError("thirdRowKeyButtonList가 비어있습니다.") }
-                button.snp.makeConstraints {
-                    $0.width.equalTo(lastButton)
-                }
-                button.updateKeyAlignment(.right, referenceKey: referenceKey)
-            } else if index == thirdRowKeyButtonList.count - 1 {
-                button.updateKeyAlignment(.left, referenceKey: referenceKey)
-            } else {
-                let widthRatio = 7 / Double(firstRowKeyButtonList.count) / Double(thirdRowKeyButtonList.count)
-                button.snp.makeConstraints {
-                    $0.width.equalToSuperview().multipliedBy(widthRatio)
-                }
-            }
+            $0.width.equalToSuperview().dividedBy(KeyboardSize.shiftAndDeleteButtonDivider)
         }
         
         deleteButton.snp.makeConstraints {
@@ -224,7 +211,7 @@ private extension SymbolKeyboardView {
         for (rowIndex, buttonList) in rowList.enumerated() {
             for (buttonIndex, button) in buttonList.enumerated() {
                 let keys = currentSymbolKeyboardMode.keyList[symbolKeyListIndex][rowIndex][buttonIndex]
-                button.update(button: TextInteractionButton.keyButton(keys: keys))
+                button.update(button: TextInteractableType.keyButton(keys: keys))
             }
         }
     }

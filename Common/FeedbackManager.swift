@@ -10,6 +10,7 @@ import AVFoundation
 import OSLog
 
 /// 햅틱, 사운드 피드백을 관리하는 싱글톤 매니저
+@MainActor
 final class FeedbackManager {
     
     // MARK: - Singleton Initializer
@@ -18,6 +19,7 @@ final class FeedbackManager {
     private init() {}
     
     // MARK: - Properties
+    
     private lazy var logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: String(describing: self))
     
     /// 햅틱 피드백 생성기

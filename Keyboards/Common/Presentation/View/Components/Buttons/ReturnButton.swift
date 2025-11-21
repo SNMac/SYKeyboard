@@ -8,21 +8,17 @@
 import UIKit
 
 /// 리턴 버튼
-final class ReturnButton: SecondaryButton, TextInteractionButtonProtocol {
+final class ReturnButton: SecondaryButton, TextInteractable {
     
     // MARK: - Properties
     
-    private(set) var button: TextInteractionButton = .returnButton
+    private(set) var type: TextInteractableType = .returnButton
     
-    // MARK: - Initializer
+    // MARK: - Override Methods
     
-    override init(layout: KeyboardLayout) {
-        super.init(layout: layout)
-        setupUI()
-    }
-    
-    @MainActor required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
+    override func playFeedback() {
+        FeedbackManager.shared.playHaptic()
+        FeedbackManager.shared.playModifierSound()
     }
     
     // MARK: - Internal Methods
@@ -30,33 +26,26 @@ final class ReturnButton: SecondaryButton, TextInteractionButtonProtocol {
     func update(for type: ReturnKeyType) {
         self.configuration?.image = type.image
         self.configurationUpdateHandler = { [weak self] button in
+            guard let self else { return }
             switch button.state {
             case .normal:
-                self?.configuration?.attributedTitle = type.normalAttributedTitle
-                self?.backgroundView.backgroundColor = type.backgroundColor
-            case .highlighted, .selected:
-                self?.configuration?.attributedTitle = type.highlightedAttributedTitle
-                self?.backgroundView.backgroundColor = .secondaryButtonPressed
+                configuration?.attributedTitle = type.normalAttributedTitle
+                backgroundView.backgroundColor = type.backgroundColor
+            case .highlighted:
+                if isPressed {
+                    configuration?.attributedTitle = type.highlightedAttributedTitle
+                    backgroundView.backgroundColor = .secondaryButtonPressed
+                } else {
+                    configuration?.attributedTitle = type.normalAttributedTitle
+                    backgroundView.backgroundColor = type.backgroundColor
+                }
+            case .selected:
+                configuration?.attributedTitle = type.highlightedAttributedTitle
+                backgroundView.backgroundColor = .secondaryButtonPressed
             default:
                 break
             }
         }
-    }
-}
-
-// MARK: - UI Methods
-
-private extension ReturnButton {
-    func setupUI() {
-        setActions()
-    }
-    
-    func setActions() {
-        let playFeedback = UIAction { _ in
-            FeedbackManager.shared.playHaptic()
-            FeedbackManager.shared.playModifierSound()
-        }
-        self.addAction(playFeedback, for: .touchDown)
     }
 }
 

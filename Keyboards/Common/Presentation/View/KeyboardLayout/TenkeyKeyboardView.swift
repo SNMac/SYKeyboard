@@ -11,11 +11,15 @@ import SnapKit
 import Then
 
 /// 텐키 키보드
-final class TenkeyKeyboardView: UIView, TenkeyKeyboardLayout {
+final class TenkeyKeyboardView: UIView, TenkeyKeyboardLayoutProvider {
     
     // MARK: - Properties
     
-    private(set) lazy var totalTextInteractionButtonList: [TextInteractionButtonProtocol] = firstRowKeyButtonList + secondRowKeyButtonList + thirdRowKeyButtonList + fourthRowKeyButtonList + [periodButton, deleteButton]
+    private(set) lazy var allButtonList: [BaseKeyboardButton] = primaryButtonList + secondaryButtonList
+    private(set) lazy var primaryButtonList: [PrimaryButton] = firstRowKeyButtonList + secondRowKeyButtonList + thirdRowKeyButtonList + fourthRowKeyButtonList
+    private(set) lazy var secondaryButtonList: [SecondaryButton] = [periodButton, deleteButton]
+    private(set) lazy var totalTextInterableButtonList: [TextInteractable] = firstRowKeyButtonList + secondRowKeyButtonList + thirdRowKeyButtonList + fourthRowKeyButtonList
+    + [periodButton, deleteButton]
     
     var currentTenkeyKeyboardMode: TenkeyKeyboardMode = .numberPad {
         didSet(oldMode) { updateLayoutForCurrentTenkeyKeyboardMode(oldMode: oldMode) }
@@ -47,18 +51,18 @@ final class TenkeyKeyboardView: UIView, TenkeyKeyboardLayout {
     /// 키보드 네번째 행
     private let fourthRowHStackView = KeyboardRowHStackView()
     
-    /// 키보드 첫번째 행 `PrimaryKeyButton` 배열
-    private lazy var firstRowKeyButtonList = tenKeyList[0].map { PrimaryKeyButton(layout: .tenKey, button: .keyButton(keys: $0)) }
-    /// 키보드 두번째 행 `PrimaryKeyButton` 배열
-    private lazy var secondRowKeyButtonList = tenKeyList[1].map { PrimaryKeyButton(layout: .tenKey, button: .keyButton(keys: $0)) }
-    /// 키보드 세번째 행 `PrimaryKeyButton` 배열
-    private lazy var thirdRowKeyButtonList = tenKeyList[2].map { PrimaryKeyButton(layout: .tenKey, button: .keyButton(keys: $0)) }
-    /// 키보드 네번째 행 `PrimaryKeyButton` 배열
-    private lazy var fourthRowKeyButtonList = tenKeyList[3].map { PrimaryKeyButton(layout: .tenKey, button: .keyButton(keys: $0)) }
+    /// 키보드 첫번째 행 `PrimaryButton` 배열
+    private lazy var firstRowKeyButtonList = tenKeyList[0].map { PrimaryKeyButton(keyboard: .tenKey, button: .keyButton(keys: $0)) }
+    /// 키보드 두번째 행 `PrimaryButton` 배열
+    private lazy var secondRowKeyButtonList = tenKeyList[1].map { PrimaryKeyButton(keyboard: .tenKey, button: .keyButton(keys: $0)) }
+    /// 키보드 세번째 행 `PrimaryButton` 배열
+    private lazy var thirdRowKeyButtonList = tenKeyList[2].map { PrimaryKeyButton(keyboard: .tenKey, button: .keyButton(keys: $0)) }
+    /// 키보드 네번째 행 `PrimaryButton` 배열
+    private lazy var fourthRowKeyButtonList = tenKeyList[3].map { PrimaryKeyButton(keyboard: .tenKey, button: .keyButton(keys: $0)) }
     
     private(set) var bottomLeftButtonSpacer = KeyboardSpacer()
-    private(set) var periodButton = SecondaryKeyButton(layout: .tenKey, button: .keyButton(keys: ["."]))
-    private(set) var deleteButton = DeleteButton(layout: .tenKey)
+    private(set) var periodButton = SecondaryKeyButton(keyboard: .tenKey, button: .keyButton(keys: ["."]))
+    private(set) var deleteButton = DeleteButton(keyboard: .tenKey)
     
     // MARK: - Initializer
     

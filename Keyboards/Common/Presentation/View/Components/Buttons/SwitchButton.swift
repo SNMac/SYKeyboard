@@ -15,7 +15,7 @@ final class SwitchButton: SecondaryButton {
     
     // MARK: - Properties
     
-    private let layout: KeyboardLayout
+    private let keyboard: SYKeyboardType
     private let title: String
     
     // MARK: - UI Components
@@ -23,18 +23,20 @@ final class SwitchButton: SecondaryButton {
     private lazy var oneHandedLabel = UILabel().then {
         $0.attributedText = createOneHandedAttributedText(needToEmphasize: false)
         $0.font = .systemFont(ofSize: 9)
+        $0.isHidden = !UserDefaultsManager.shared.isOneHandedKeyboardEnabled
     }
     
     private lazy var keyboardSelectLabel = UILabel().then {
         $0.attributedText = createKeyboardSelectAttributedText(needToEmphasize: false)
         $0.font = .systemFont(ofSize: 9)
+        $0.isHidden = !UserDefaultsManager.shared.isNumericKeypadEnabled
     }
     
     // MARK: - Initializer
     
-    override init(layout: KeyboardLayout) {
-        self.layout = layout
-        switch layout {
+    override init(keyboard: SYKeyboardType) {
+        self.keyboard = keyboard
+        switch keyboard {
         case .hangeul, .english:
             self.title = "!#1"
         case .symbol, .numeric:
@@ -50,7 +52,7 @@ final class SwitchButton: SecondaryButton {
         default:
             fatalError("구현되지 않은 case입니다.")
         }
-        super.init(layout: layout)
+        super.init(keyboard: keyboard)
         
         setupUI()
     }
@@ -75,6 +77,13 @@ final class SwitchButton: SecondaryButton {
         }
     }
     
+    // MARK: - Override Methods
+    
+    override func playFeedback() {
+        FeedbackManager.shared.playHaptic()
+        FeedbackManager.shared.playModifierSound()
+    }
+    
     // MARK: - Internal Methods
     
     func configureOneHandedComponent(needToEmphasize: Bool) {
@@ -91,7 +100,6 @@ final class SwitchButton: SecondaryButton {
 private extension SwitchButton {
     func setupUI() {
         setStyles()
-        setActions()
         setHierarchy()
         setConstraints()
     }
@@ -104,20 +112,12 @@ private extension SwitchButton {
         self.configuration?.attributedTitle = AttributedString(title, attributes: attributes)
     }
     
-    func setActions() {
-        let playFeedback = UIAction { _ in
-            FeedbackManager.shared.playHaptic()
-            FeedbackManager.shared.playModifierSound()
-        }
-        self.addAction(playFeedback, for: .touchDown)
-    }
-    
     func setHierarchy() {
         self.addSubviews(oneHandedLabel, keyboardSelectLabel)
     }
     
     func setConstraints() {
-        switch layout {
+        switch keyboard {
         case .english, .symbol:
             oneHandedLabel.snp.makeConstraints {
                 $0.top.equalToSuperview().inset(self.insetDy + 1)
@@ -150,17 +150,17 @@ private extension SwitchButton {
         
         let arrowtriangleUp = NSTextAttachment()
         arrowtriangleUp.image = UIImage(systemName: needToEmphasize ? "arrowtriangle.up.fill" : "arrowtriangle.up")?.withConfiguration(imageConfig).withTintColor(.label, renderingMode: .alwaysOriginal)
-        let keyboard = NSTextAttachment()
-        keyboard.image = UIImage(systemName: "keyboard")?.withConfiguration(imageConfig).withTintColor(.label, renderingMode: .alwaysOriginal)
+        let attachment = NSTextAttachment()
+        attachment.image = UIImage(systemName: "keyboard")?.withConfiguration(imageConfig).withTintColor(.label, renderingMode: .alwaysOriginal)
         
         let fullString: NSMutableAttributedString?
-        switch layout {
+        switch keyboard {
         case .hangeul, .numeric:
-            fullString = NSMutableAttributedString(attachment: keyboard)
+            fullString = NSMutableAttributedString(attachment: attachment)
             fullString?.append(NSAttributedString(attachment: arrowtriangleUp))
         case .english, .symbol:
             fullString = NSMutableAttributedString(attachment: arrowtriangleUp)
-            fullString?.append(NSAttributedString(attachment: keyboard))
+            fullString?.append(NSAttributedString(attachment: attachment))
         default:
             fullString = nil
         }
@@ -176,7 +176,7 @@ private extension SwitchButton {
         let arrowtriangle = NSTextAttachment()
         let fullString: NSMutableAttributedString?
         
-        switch layout {
+        switch keyboard {
         case .hangeul:
             text = "123"
             arrowtriangle.image = UIImage(systemName: needToEmphasize ? "arrowtriangle.left.fill" : "arrowtriangle.left")?.withConfiguration(imageConfig).withTintColor(.label, renderingMode: .alwaysOriginal)

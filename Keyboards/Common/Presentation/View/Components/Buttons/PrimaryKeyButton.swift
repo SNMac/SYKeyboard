@@ -10,7 +10,7 @@ import UIKit
 import SnapKit
 
 /// 주 키 버튼
-final class PrimaryKeyButton: PrimaryButton {
+final class PrimaryKeyButton: PrimaryButton, TextInteractable {
     
     // MARK: - Properties
     
@@ -24,9 +24,9 @@ final class PrimaryKeyButton: PrimaryButton {
     private var keyAlignment: KeyAlignment = .center
     private var referenceKey: PrimaryButton?  // 너비의 기준이 될 키
     
-    override var button: TextInteractionButton {
+    private(set) var type: TextInteractableType {
         didSet {
-            if button.keys.isEmpty {
+            if type.keys.isEmpty {
                 self.isHidden = true
             } else {
                 updateTitle()
@@ -37,10 +37,11 @@ final class PrimaryKeyButton: PrimaryButton {
     
     // MARK: - Initializer
     
-    init(layout: KeyboardLayout, button: TextInteractionButton) {
-        super.init(layout: layout)
-        self.button = button
-        setupUI()
+    init(keyboard: SYKeyboardType, button: TextInteractableType) {
+        self.type = button
+        super.init(keyboard: keyboard)
+        
+        updateTitle()
     }
     
     @MainActor required init?(coder: NSCoder) {
@@ -54,7 +55,18 @@ final class PrimaryKeyButton: PrimaryButton {
         updateTitleInsets()
     }
     
+    // MARK: - Override Methods
+    
+    override func playFeedback() {
+        FeedbackManager.shared.playHaptic()
+        FeedbackManager.shared.playKeyTypingSound()
+    }
+    
     // MARK: - Internal Methods
+    
+    func update(button: TextInteractableType) {
+        self.type = button
+    }
     
     /// 키의 시각적 정렬을 업데이트합니다.
      /// - Parameters:
@@ -64,37 +76,17 @@ final class PrimaryKeyButton: PrimaryButton {
          self.keyAlignment = alignment
          self.referenceKey = referenceKey
          
-         updateConstraintsForVisuals()
+         remakeConstraintsForVisuals()
      }
-    
-    func update(button: TextInteractionButton) {
-        self.button = button
-    }
-}
-
-// MARK: - UI Methods
-
-private extension PrimaryKeyButton {
-    func setupUI() {
-        setActions()
-    }
-    
-    func setActions() {
-        let playFeedback = UIAction { _ in
-            FeedbackManager.shared.playHaptic()
-            FeedbackManager.shared.playKeyTypingSound()
-        }
-        self.addAction(playFeedback, for: .touchDown)
-    }
 }
 
 // MARK: - Update Methods
 
 private extension PrimaryKeyButton {
-    func updateConstraintsForVisuals() {
+    func remakeConstraintsForVisuals() {
         guard let referenceKey = referenceKey else { return }
         
-        // 1. Shadow View 제약 조건 재설정
+        // ShadowView 제약 조건 재설정
         shadowView.snp.remakeConstraints {
             $0.top.bottom.equalToSuperview().inset(self.insetDy)
             $0.width.equalTo(referenceKey).inset(self.insetDx) // 기준 키의 너비와 동일하게
@@ -109,7 +101,7 @@ private extension PrimaryKeyButton {
             }
         }
         
-        // 2. Background View 제약 조건 재설정
+        // BackgroundView 제약 조건 재설정
         backgroundView.snp.remakeConstraints {
             $0.top.bottom.equalToSuperview().inset(self.insetDy)
             $0.width.equalTo(referenceKey).inset(self.insetDx)  // 기준 키의 너비와 동일하게
@@ -157,7 +149,7 @@ private extension PrimaryKeyButton {
     }
     
     func updateTitle() {
-        let keys = button.keys
+        let keys = type.keys
         if keys.count == 1 {
             guard let key = keys.first else { return }
             if key.count == 1 {

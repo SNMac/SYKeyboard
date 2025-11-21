@@ -1,5 +1,5 @@
 //
-//  SymbolKeyboardLayout.swift
+//  SymbolKeyboardLayoutProvider.swift
 //  HangeulKeyboard, EnglishKeyboard
 //
 //  Created by 서동환 on 9/6/25.
@@ -10,8 +10,8 @@ import UIKit
 import SnapKit
 
 /// 기호 키보드 레이아웃 프로토콜
-protocol SymbolKeyboardLayout: DefaultKeyboardLayout, TextInteractionButtonGestureHandler, SwitchButtonGestureHandler {
-    /// 현재 기호 키보드 레이아웃 모드
+protocol SymbolKeyboardLayoutProvider: NormalKeyboardLayoutProvider, TextInteractionGestureHandling, SwitchGestureHandling {
+    /// 현재 기호 키보드 모드
     var currentSymbolKeyboardMode: SymbolKeyboardMode { get set }
     /// Shift 상태
     var isShifted: Bool { get set }
@@ -43,15 +43,17 @@ protocol SymbolKeyboardLayout: DefaultKeyboardLayout, TextInteractionButtonGestu
     func updateLayoutToEmailAddress()
     /// `UIKeyboardType`이 `.webSearch` 일 때의 레이아웃 설정
     func updateLayoutToWebSearch()
-    /// `ShiftButton`의 Shift 상태 변경
-    func updateShiftButton(isShifted: Bool)
     /// `ShiftButton`의 Shift 상태 초기화
     func initShiftButton()
+    /// `ShiftButton`의 Shift 상태 변경
+    func updateShiftButton(isShifted: Bool)
 }
 
-// MARK: - Protocol Methods
+// MARK: - Protocol Properties & Methods
 
-extension SymbolKeyboardLayout {
+extension SymbolKeyboardLayoutProvider {
+    var keyboard: SYKeyboardType { .symbol }
+    
     func updateLayoutForCurrentSymbolKeyboardMode(oldMode: SymbolKeyboardMode) {
         guard oldMode != currentSymbolKeyboardMode else { return }
         switch currentSymbolKeyboardMode {
@@ -73,7 +75,7 @@ extension SymbolKeyboardLayout {
         slashButton.isHidden = true
         dotComButton.isHidden = true
         
-        updateShiftButton(isShifted: false)
+        initShiftButton()
     }
     
     func updateLayoutToURL() {
@@ -83,11 +85,9 @@ extension SymbolKeyboardLayout {
         slashButton.isHidden = false
         dotComButton.isHidden = false
         
-        periodButton.snp.updateConstraints {
-            $0.width.equalToSuperview().dividedBy(3)
-        }
+        periodButton.snp.removeConstraints()
         
-        updateShiftButton(isShifted: false)
+        initShiftButton()
     }
     
     func updateLayoutToEmailAddress() {
@@ -97,11 +97,11 @@ extension SymbolKeyboardLayout {
         slashButton.isHidden = true
         dotComButton.isHidden = true
         
-        periodButton.snp.updateConstraints {
+        periodButton.snp.remakeConstraints {
             $0.width.equalToSuperview().dividedBy(4)
         }
         
-        updateShiftButton(isShifted: false)
+        initShiftButton()
     }
     
     func updateLayoutToWebSearch() {
@@ -111,20 +111,20 @@ extension SymbolKeyboardLayout {
         slashButton.isHidden = true
         dotComButton.isHidden = true
         
-        periodButton.snp.updateConstraints {
+        periodButton.snp.remakeConstraints {
             $0.width.equalToSuperview().dividedBy(5)
         }
         
-        updateShiftButton(isShifted: false)
-    }
-    
-    func updateShiftButton(isShifted: Bool) {
-        self.isShifted = isShifted
-        wasShifted = false
+        initShiftButton()
     }
     
     func initShiftButton() {
         self.isShifted = false
+        wasShifted = false
+    }
+    
+    func updateShiftButton(isShifted: Bool) {
+        self.isShifted = isShifted
         wasShifted = false
     }
 }

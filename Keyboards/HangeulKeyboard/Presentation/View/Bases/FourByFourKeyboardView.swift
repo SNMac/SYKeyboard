@@ -1,8 +1,8 @@
 //
-//  NaratgeulKeyboardView.swift
+//  FourByFourKeyboardView.swift
 //  HangeulKeyboard
 //
-//  Created by 서동환 on 7/13/25.
+//  Created by 서동환 on 9/12/25.
 //
 
 import UIKit
@@ -10,24 +10,22 @@ import UIKit
 import SnapKit
 import Then
 
-/// 나랏글 키보드
-final class NaratgeulKeyboardView: UIView, HangeulKeyboardLayout {
+class FourByFourKeyboardView: UIView, HangeulKeyboardLayoutProvider {
     
     // MARK: - Properties
     
-    private(set) lazy var totalTextInteractionButtonList: [TextInteractionButtonProtocol] = firstRowKeyButtonList + secondRowKeyButtonList + thirdRowKeyButtonList + fourthRowKeyButtonList + [deleteButton, spaceButton]
+    private(set) lazy var allButtonList: [BaseKeyboardButton] = primaryButtonList + secondaryButtonList
+    private(set) lazy var primaryButtonList: [PrimaryButton] = firstRowKeyButtonList + secondRowKeyButtonList + thirdRowKeyButtonList + fourthRowKeyButtonList + [spaceButton]
+    private(set) lazy var secondaryButtonList: [SecondaryButton] = [deleteButton, returnButton, secondaryAtButton, secondarySharpButton, switchButton, nextKeyboardButton]
+    private(set) lazy var totalTextInterableButtonList: [TextInteractable] = firstRowKeyButtonList + secondRowKeyButtonList + thirdRowKeyButtonList + fourthRowKeyButtonList
+    + [deleteButton, spaceButton, returnButton, secondaryAtButton, secondarySharpButton]
     
-    var currentHangeulKeyboardMode: HangeulKeyboardMode = .default {
+    final var currentHangeulKeyboardMode: HangeulKeyboardMode = .default {
         didSet(oldMode) { updateLayoutForCurrentHangeulMode(oldMode: oldMode) }
     }
     
-    /// 나랏글 키보드 키 배열
-    private let naratgeulKeyList = [
-        [ ["ㄱ"], ["ㄴ"], ["ㅏ", "ㅓ"] ],
-        [ ["ㄹ"], ["ㅁ"], ["ㅗ", "ㅜ"] ],
-        [ ["ㅅ"], ["ㅇ"], ["ㅣ"] ],
-        [ ["획"], ["ㅡ"], ["쌍"] ]
-    ]
+    /// 한글 키 배열
+    var hangeulKeyList: [[[String]]] { fatalError("프로퍼티가 오버라이딩 되지 않았습니다.") }
     
     // MARK: - UI Components
     
@@ -50,27 +48,27 @@ final class NaratgeulKeyboardView: UIView, HangeulKeyboardLayout {
     /// 키보드 네번째 우측 `SecondaryButton` 행
     private let fourthRowRightSecondaryButtonHStackView = KeyboardRowHStackView()
     
-    /// 키보드 첫번째 행 `PrimaryKeyButton` 배열
-    private lazy var firstRowKeyButtonList = naratgeulKeyList[0].map { PrimaryKeyButton(layout: .hangeul, button: .keyButton(keys: $0)) }
-    /// 키보드 두번째 행 `PrimaryKeyButton` 배열
-    private lazy var secondRowKeyButtonList = naratgeulKeyList[1].map { PrimaryKeyButton(layout: .hangeul, button: .keyButton(keys: $0)) }
-    /// 키보드 세번째 행 `PrimaryKeyButton` 배열
-    private lazy var thirdRowKeyButtonList = naratgeulKeyList[2].map { PrimaryKeyButton(layout: .hangeul, button: .keyButton(keys: $0)) }
-    /// 키보드 네번째 행 `PrimaryKeyButton` 배열
-    private lazy var fourthRowKeyButtonList = naratgeulKeyList[3].map { PrimaryKeyButton(layout: .hangeul, button: .keyButton(keys: $0)) }
+    /// 키보드 첫번째 행 `PrimaryButton` 배열
+    private lazy var firstRowKeyButtonList = hangeulKeyList[0].map { PrimaryKeyButton(keyboard: .hangeul, button: .keyButton(keys: $0)) }
+    /// 키보드 두번째 행 `PrimaryButton` 배열
+    private lazy var secondRowKeyButtonList = hangeulKeyList[1].map { PrimaryKeyButton(keyboard: .hangeul, button: .keyButton(keys: $0)) }
+    /// 키보드 세번째 행 `PrimaryButton` 배열
+    private lazy var thirdRowKeyButtonList = hangeulKeyList[2].map { PrimaryKeyButton(keyboard: .hangeul, button: .keyButton(keys: $0)) }
+    /// 키보드 네번째 행 `PrimaryButton` 배열
+    private lazy var fourthRowKeyButtonList = hangeulKeyList[3].map { PrimaryKeyButton(keyboard: .hangeul, button: .keyButton(keys: $0)) }
     
-    private(set) var deleteButton = DeleteButton(layout: .hangeul)
-    private(set) var spaceButton = SpaceButton(layout: .hangeul)
+    private(set) var deleteButton = DeleteButton(keyboard: .hangeul)
+    private(set) var spaceButton = SpaceButton(keyboard: .hangeul)
     
     // 리턴 버튼 위치
-    private(set) var returnButton = ReturnButton(layout: .hangeul)
-    private(set) var secondaryAtButton = SecondaryKeyButton(layout: .hangeul, button: .keyButton(keys: ["@"]))
-    private(set) var secondarySharpButton = SecondaryKeyButton(layout: .hangeul, button: .keyButton(keys: ["#"]))
+    private(set) var returnButton = ReturnButton(keyboard: .hangeul)
+    private(set) var secondaryAtButton = SecondaryKeyButton(keyboard: .hangeul, button: .keyButton(keys: ["@"]))
+    private(set) var secondarySharpButton = SecondaryKeyButton(keyboard: .hangeul, button: .keyButton(keys: ["#"]))
     
-    private(set) var switchButton = SwitchButton(layout: .hangeul)
-    private(set) var nextKeyboardButton = NextKeyboardButton(layout: .hangeul)
+    private(set) var switchButton = SwitchButton(keyboard: .hangeul)
+    private(set) var nextKeyboardButton = NextKeyboardButton(keyboard: .hangeul)
     
-    private(set) var keyboardSelectOverlayView = KeyboardSelectOverlayView(layout: .hangeul).then { $0.isHidden = true }
+    private(set) var keyboardSelectOverlayView = KeyboardSelectOverlayView(keyboard: .hangeul).then { $0.isHidden = true }
     private(set) var oneHandedModeSelectOverlayView = OneHandedModeSelectOverlayView().then { $0.isHidden = true }
     
     // MARK: - Initializer
@@ -88,7 +86,7 @@ final class NaratgeulKeyboardView: UIView, HangeulKeyboardLayout {
 
 // MARK: - UI Methods
 
-private extension NaratgeulKeyboardView {
+private extension FourByFourKeyboardView {
     func setupUI() {
         setStyles()
         setHierarchy()

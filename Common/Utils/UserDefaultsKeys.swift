@@ -14,10 +14,14 @@ enum UserDefaultsKeys {
     static let isHapticFeedbackEnabled = "isHapticFeedbackEnabled"
     
     /* 입력 설정 */
+    /// 선택한 한글 키보드
+    static let selectedHangeulKeyboard = "selectedHangeulKeyboard"
     /// 텍스트 대치
     static let isTextReplacementEnabled = "isTextReplacementEnabled"
-    /// 스페이스/리턴 입력 후 한글 키보드로 변경
-    static let isAutoChangeToHangeulEnabled = "isAutoChangeToHangeulEnabled"
+    /// 자동 대문자
+    static let isAutoCapitalizationEnabled = "isAutoCapitalizationEnabled"
+    /// 스페이스/리턴 입력 후 주 키보드로 변경
+    static let isAutoChangeToPrimaryEnabled = "isAutoChangeToPrimaryEnabled"
     
     /* 입력 설정 -> 속도/커서 설정 */
     /// 반복 지연 시간
