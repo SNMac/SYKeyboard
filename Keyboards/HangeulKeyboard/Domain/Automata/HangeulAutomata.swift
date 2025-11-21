@@ -5,15 +5,39 @@
 //  Created by 서동환 on 9/19/25.
 //
 
+/// 한글 오토마타 프로토콜
 protocol HangeulAutomataProtocol {
     var 초성Table: [String] { get }
     var 중성Table: [String] { get }
     var 종성Table: [String] { get }
     
+    /// 새로운 글자를 입력받아 처리된 전체 문자열을 반환합니다.
+    /// - Parameters:
+    ///   - 글자Input: 새로 입력된 글자 (`String` 타입)
+    ///   - beforeText: 입력 전의 전체 문자열
     func add글자(글자Input: String, beforeText: String) -> String
+    /// 마지막 글자를 지우거나 분해합니다.
+    /// - Parameters:
+    ///   - beforeText: 삭제 전의 전체 문자열
     func delete글자(beforeText: String) -> String
     
+    /// 초성, 중성, 종성 인덱스를 조합하여 완성된 한글 문자 하나를 생성합니다.
+    ///
+    /// 유니코드 공식: `0xAC00 + (초성 * 21 * 28) + (중성 * 28) + 종성`
+    ///
+    /// - Parameters:
+    ///   - 초성Index: 초성 테이블의 인덱스 (0 ~ 18)
+    ///   - 중성Index: 중성 테이블의 인덱스 (0 ~ 20)
+    ///   - 종성Index: 종성 테이블의 인덱스 (0 ~ 27). 종성이 없는 경우 0입니다.
+    /// - Returns: 조합된 한글 `Character`. 인덱스가 범위를 벗어나거나 유효하지 않은 유니코드인 경우 `nil`을 반환합니다.
     func combine(초성Index: Int, 중성Index: Int, 종성Index: Int) -> Character?
+    /// 완성된 한글 문자를 초성, 중성, 종성 인덱스로 분해합니다.
+    ///
+    /// 입력된 문자가 '가'(0xAC00) ~ '힣'(0xD7A3) 범위 내의 완성형 한글일 때만 동작합니다.
+    /// 자음이나 모음 단독(예: 'ㄱ', 'ㅏ')일 경우 `nil`을 반환합니다.
+    ///
+    /// - Parameter 한글Char: 분해할 한글 문자 (Character)
+    /// - Returns: (초성Index, 중성Index, 종성Index) 형태의 튜플. 분해 실패 시 `nil`을 반환합니다.
     func decompose(한글Char: Character) -> (초성Index: Int, 중성Index: Int, 종성Index: Int)?
 }
 
@@ -62,10 +86,6 @@ final class HangeulAutomata: HangeulAutomataProtocol {
     
     // MARK: - Internal Methods
     
-    /// 새로운 글자를 입력받아 처리된 전체 문자열을 반환합니다.
-    /// - Parameters:
-    ///   - 글자Input: 새로 입력된 글자 (`String` 타입)
-    ///   - beforeText: 입력 전의 전체 문자열
     func add글자(글자Input: String, beforeText: String) -> String {
         guard !글자Input.isEmpty else { return beforeText }
         guard let beforeTextLast글자 = beforeText.last else { return beforeText + 글자Input }
@@ -195,9 +215,6 @@ final class HangeulAutomata: HangeulAutomataProtocol {
         return newText + 글자Input
     }
     
-    /// 마지막 글자를 지우거나 분해합니다.
-    /// - Parameters:
-    ///   - beforeText: 삭제 전의 전체 문자열
     func delete글자(beforeText: String) -> String {
         guard let beforeTextLast글자 = beforeText.last else { return beforeText }
         
