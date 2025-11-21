@@ -49,7 +49,7 @@ struct HangeulAutomataTests {
         ("ㅂ", "ㅅ", "ㅄ")
     ]
     
-    // MARK: - Test Methods
+    // MARK: - 한글 글자 생성 및 삭제 테스트
     
     @Test("한글 11,172자 전체 생성 및 삭제 로직 검증")
     func validateAll한글글자() {
