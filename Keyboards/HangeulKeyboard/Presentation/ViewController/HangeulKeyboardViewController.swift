@@ -14,8 +14,14 @@ final class HangeulKeyboardViewController: BaseKeyboardViewController {
     
     /// 나랏글 키보드
     private lazy var naratgeulKeyboardView: HangeulKeyboardLayoutProvider = NaratgeulKeyboardView()
+    /// 나랏글 입력기
+    private lazy var naratgeulProcessor: NaratgeulProcessorProtocol = NaratgeulProcessor()
+    
     /// 천지인 키보드
     private lazy var cheonjiinKeyboardView: HangeulKeyboardLayoutProvider = CheonjiinKeyboardView()
+//    /// 천지인 입력기
+//    private lazy var cheonjiinProcessor: CheonjiinProcessorProtocol = CheonjiinProcessor()
+    
     /// 사용자가 선택한 한글 키보드
     private var hangeulKeyboardView: HangeulKeyboardLayoutProvider {
         switch UserDefaultsManager.shared.selectedHangeulKeyboard {
@@ -25,6 +31,7 @@ final class HangeulKeyboardViewController: BaseKeyboardViewController {
             return cheonjiinKeyboardView
         }
     }
+    
     override var primaryKeyboardView: PrimaryKeyboardRepresentable { hangeulKeyboardView }
     
     // MARK: - Override Methods
@@ -80,5 +87,20 @@ final class HangeulKeyboardViewController: BaseKeyboardViewController {
             symbolKeyboardView.currentSymbolKeyboardMode = .default
             currentKeyboard = .hangeul
         }
+    }
+    
+    override func getInputText(from keys: [String]) -> String {
+        guard let key = keys.first else {
+            assertionFailure("keys 배열이 비어있습니다.")
+            logger.error("keys 배열이 비어있습니다.")
+            return ""
+        }
+        
+        let beforeText: String = String(textDocumentProxy.documentContextBeforeInput?.split(separator: " ").last ?? "")
+        let (processedText, input글자) = naratgeulProcessor.input(글자Input: key, beforeText: beforeText)
+        
+        for _ in 0..<beforeText.count { textDocumentProxy.deleteBackward() }
+        lastInputText = input글자
+        return processedText
     }
 }

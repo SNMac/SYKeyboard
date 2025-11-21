@@ -14,7 +14,7 @@ final class DeleteButton: SecondaryButton, TextInteractable {
     
     // MARK: - Properties
     
-    private(set) var button: TextInteractableType = .deleteButton
+    private(set) var type: TextInteractableType = .deleteButton
     private let keyboard: SYKeyboardType
     
     // MARK: - Initializer

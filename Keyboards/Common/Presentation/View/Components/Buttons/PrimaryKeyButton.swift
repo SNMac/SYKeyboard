@@ -24,9 +24,9 @@ final class PrimaryKeyButton: PrimaryButton, TextInteractable {
     private var keyAlignment: KeyAlignment = .center
     private var referenceKey: PrimaryButton?  // 너비의 기준이 될 키
     
-    private(set) var button: TextInteractableType {
+    private(set) var type: TextInteractableType {
         didSet {
-            if button.keys.isEmpty {
+            if type.keys.isEmpty {
                 self.isHidden = true
             } else {
                 updateTitle()
@@ -38,7 +38,7 @@ final class PrimaryKeyButton: PrimaryButton, TextInteractable {
     // MARK: - Initializer
     
     init(keyboard: SYKeyboardType, button: TextInteractableType) {
-        self.button = button
+        self.type = button
         super.init(keyboard: keyboard)
         
         updateTitle()
@@ -65,7 +65,7 @@ final class PrimaryKeyButton: PrimaryButton, TextInteractable {
     // MARK: - Internal Methods
     
     func update(button: TextInteractableType) {
-        self.button = button
+        self.type = button
     }
     
     /// 키의 시각적 정렬을 업데이트합니다.
@@ -149,7 +149,7 @@ private extension PrimaryKeyButton {
     }
     
     func updateTitle() {
-        let keys = button.keys
+        let keys = type.keys
         if keys.count == 1 {
             guard let key = keys.first else { return }
             if key.count == 1 {

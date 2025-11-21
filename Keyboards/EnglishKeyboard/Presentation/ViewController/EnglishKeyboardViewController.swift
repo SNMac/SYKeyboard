@@ -125,6 +125,7 @@ final class EnglishKeyboardViewController: BaseKeyboardViewController {
             return ""
         }
         if key.count == 1 && Character(key).isUppercase { isUppercaseInput = true }
+        lastInputText = key
         return key
     }
 }

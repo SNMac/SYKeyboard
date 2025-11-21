@@ -10,12 +10,12 @@ import UIKit
 /// 스페이스 버튼
 final class SpaceButton: PrimaryButton, TextInteractable {
     
-    private(set) var button: TextInteractableType
+    private(set) var type: TextInteractableType
     
     // MARK: - Initializer
     
     override init(keyboard: SYKeyboardType) {
-        self.button = .spaceButton
+        self.type = .spaceButton
         super.init(keyboard: keyboard)
         
         setupUI()

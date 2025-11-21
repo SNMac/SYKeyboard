@@ -12,9 +12,9 @@ final class SecondaryKeyButton: SecondaryButton, TextInteractable {
     
     // MARK: - Properties
     
-    private(set) var button: TextInteractableType {
+    private(set) var type: TextInteractableType {
         didSet {
-            if button.keys.isEmpty {
+            if type.keys.isEmpty {
                 self.isHidden = true
             } else {
                 updateTitle()
@@ -26,7 +26,7 @@ final class SecondaryKeyButton: SecondaryButton, TextInteractable {
     // MARK: - Initializer
     
     init(keyboard: SYKeyboardType, button: TextInteractableType) {
-        self.button = button
+        self.type = button
         super.init(keyboard: keyboard)
         
         updateTitle()
@@ -46,7 +46,7 @@ final class SecondaryKeyButton: SecondaryButton, TextInteractable {
     // MARK: - Internal Methods
     
     func update(button: TextInteractableType) {
-        self.button = button
+        self.type = button
     }
 }
 
@@ -54,7 +54,7 @@ final class SecondaryKeyButton: SecondaryButton, TextInteractable {
 
 private extension SecondaryKeyButton {
     func updateTitle() {
-        let keys = button.keys
+        let keys = type.keys
         if keys.count == 1 {
             guard let key = keys.first else { return }
             if key.count == 1 && Character(key).isLowercase {

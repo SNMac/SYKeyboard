@@ -39,6 +39,15 @@ protocol HangeulAutomataProtocol {
     /// - Parameter 한글Char: 분해할 한글 문자 (Character)
     /// - Returns: (초성Index, 중성Index, 종성Index) 형태의 튜플. 분해 실패 시 `nil`을 반환합니다.
     func decompose(한글Char: Character) -> (초성Index: Int, 중성Index: Int, 종성Index: Int)?
+    
+    /// 겹받침을 구성하는 두 개의 낱자 자음으로 분해합니다.
+    ///
+    /// 입력된 종성이 겹받침(예: 'ㄳ', 'ㄺ')인 경우, 이를 앞받침과 뒷받침으로 나누어 반환합니다.
+    /// 겹받침이 아니거나 분해할 수 없는 경우 `nil`을 반환합니다.
+    ///
+    /// - Parameter 종성: 분해할 종성 문자열 (예: "ㄳ")
+    /// - Returns: (앞받침, 뒷받침) 형태의 튜플 (예: ("ㄱ", "ㅅ")). 분해 실패 시 `nil`.
+    func decompose겹받침(종성: String) -> (String, String)?
 }
 
 /// 표준 두벌식 한글 오토마타
@@ -298,6 +307,14 @@ final class HangeulAutomata: HangeulAutomataProtocol {
         
         return (초성Index, 중성Index, 종성Index)
     }
+    
+    // "ㄳ" -> ("ㄱ", "ㅅ")
+    func decompose겹받침(종성: String) -> (String, String)? {
+        for 조합 in 겹자음조합Table {
+            if 조합.결과 == 종성 { return (조합.앞자음, 조합.뒷자음) }
+        }
+        return nil
+    }
 }
 
 // MARK: - Private Methods
@@ -323,14 +340,6 @@ private extension HangeulAutomata {
     func find겹자음(앞자음: String, 뒷자음: String) -> String? {
         for 조합 in 겹자음조합Table {
             if 조합.앞자음 == 앞자음 && 조합.뒷자음 == 뒷자음 { return 조합.결과 }
-        }
-        return nil
-    }
-    
-    // "ㄳ" -> ("ㄱ", "ㅅ")
-    func decompose겹받침(종성: String) -> (String, String)? {
-        for 조합 in 겹자음조합Table {
-            if 조합.결과 == 종성 { return (조합.앞자음, 조합.뒷자음) }
         }
         return nil
     }

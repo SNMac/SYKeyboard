@@ -71,7 +71,7 @@ public class BaseKeyboardViewController: UIInputViewController {
     private var isHeightConstraintAdded: Bool = false
     
     /// 마지막으로 입력한 문자
-    private var lastInputText: String?
+    var lastInputText: String?
     /// 반복 입력용 타이머
     private var timer: AnyCancellable?
     /// 삭제 버튼 팬 제스처로 인해 임시로 삭제된 내용을 저장하는 변수
@@ -288,7 +288,7 @@ private extension BaseKeyboardViewController {
             guard let self,
                   let currentPressedButton = buttonStateController.currentPressedButton,
                   currentPressedButton === button else { return }
-            performTextInteraction(for: button.button)
+            performTextInteraction(for: button)
         }
         if button is DeleteButton {
             button.addAction(inputAction, for: .touchDown)
@@ -300,7 +300,7 @@ private extension BaseKeyboardViewController {
     func addInputActionToSymbolTextInterableButton(_ button: TextInteractable) {
         addInputActionToTextInterableButton(button)
         
-        switch button.button {
+        switch button.type {
         case .keyButton(keys: ["‘"]):
             // touchUpInside 되었을 때 ➡️ 주 키보드 전환
             let switchToPrimaryKeyboard = UIAction { [weak self] _ in
@@ -331,7 +331,7 @@ private extension BaseKeyboardViewController {
     }
     
     func addGesturesToTextInterableButton(_ button: TextInteractable) {
-        guard !(button is ReturnButton) && !(button is SecondaryKeyButton) && !(button.button.keys == [".com"]) else { return }
+        guard !(button is ReturnButton) && !(button is SecondaryKeyButton) && !(button.type.keys == [".com"]) else { return }
         // 팬(드래그) 제스처
         let panGesture = UIPanGestureRecognizer(target: textInteractionGestureController, action: #selector(textInteractionGestureController.panGestureHandler(_:)))
         panGesture.delegate = textInteractionGestureController
@@ -428,14 +428,12 @@ private extension BaseKeyboardViewController {
 // MARK: - Text Interaction Methods
 
 private extension BaseKeyboardViewController {
-    func performTextInteraction(for button: TextInteractableType) {
+    func performTextInteraction(for button: TextInteractable) {
         tempDeletedCharacters.removeAll()
         
-        switch button {
+        switch button.type {
         case .keyButton(let keys):
-            let inputText = getInputText(from: keys)
-            textDocumentProxy.insertText(inputText)
-            lastInputText = inputText
+            textDocumentProxy.insertText(getInputText(from: keys))
         case .deleteButton:
             if let selectedText = textDocumentProxy.selectedText {
                 tempDeletedCharacters.append(contentsOf: selectedText.reversed())
@@ -445,30 +443,28 @@ private extension BaseKeyboardViewController {
                 textDocumentProxy.deleteBackward()
             }
         case .spaceButton, .returnButton:
-            guard let key = button.keys.first else { fatalError("옵셔널 언래핑 실패") }
+            guard let key = button.type.keys.first else { fatalError("옵셔널 언래핑 실패") }
             textDocumentProxy.insertText(key)
         }
         
         updateShiftButton()
     }
     
-    func performRepeatTextInteraction(for button: TextInteractableType) {
-        switch button {
-        case .keyButton(let keys):
-            textDocumentProxy.insertText(lastInputText ?? "")
-            FeedbackManager.shared.playHaptic()
-            FeedbackManager.shared.playKeyTypingSound()
+    func performRepeatTextInteraction(for button: TextInteractable) {
+        switch button.type {
+        case .keyButton:
+            guard let lastInputText else { return }
+            textDocumentProxy.insertText(lastInputText)
+            button.playFeedback()
         case .deleteButton:
             if textDocumentProxy.documentContextBeforeInput != nil || textDocumentProxy.selectedText != nil {
                 textDocumentProxy.deleteBackward()
-                FeedbackManager.shared.playHaptic()
-                FeedbackManager.shared.playDeleteSound()
+                button.playFeedback()
             }
         case .spaceButton:
-            guard let key = button.keys.first else { fatalError("옵셔널 언래핑 실패") }
+            guard let key = button.type.keys.first else { fatalError("옵셔널 언래핑 실패") }
             textDocumentProxy.insertText(key)
-            FeedbackManager.shared.playHaptic()
-            FeedbackManager.shared.playModifierSound()
+            button.playFeedback()
         default:
             assertionFailure("도달할 수 없는 case 입니다.")
             logger.error("도달할 수 없는 case 입니다.")
@@ -548,10 +544,13 @@ extension BaseKeyboardViewController: TextInteractionGestureControllerDelegate {
     final func textInteractableButtonLongPressing(_ controller: TextInteractionGestureController, button: TextInteractable) {
         textInteractableButtonLongPressStopped(controller)
         
+        performTextInteraction(for: button)
+        if lastInputText != nil { button.playFeedback() }
+        
         let repeatTimerInterval = 0.10 - UserDefaultsManager.shared.repeatRate
         timer = Timer.publish(every: repeatTimerInterval, on: .main, in: .common)
             .autoconnect()
-            .sink { [weak self] _ in self?.performRepeatTextInteraction(for: button.button) }
+            .sink { [weak self] _ in self?.performRepeatTextInteraction(for: button) }
         logger.debug("반복 타이머 생성")
     }
     
@@ -559,6 +558,7 @@ extension BaseKeyboardViewController: TextInteractionGestureControllerDelegate {
         timer?.cancel()
         timer = nil
         logger.debug("반복 타이머 초기화")
+        
         tempDeletedCharacters.removeAll()
         lastInputText = nil
     }

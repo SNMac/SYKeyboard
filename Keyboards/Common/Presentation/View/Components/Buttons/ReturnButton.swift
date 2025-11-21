@@ -12,7 +12,7 @@ final class ReturnButton: SecondaryButton, TextInteractable {
     
     // MARK: - Properties
     
-    private(set) var button: TextInteractableType = .returnButton
+    private(set) var type: TextInteractableType = .returnButton
     
     // MARK: - Override Methods
     
