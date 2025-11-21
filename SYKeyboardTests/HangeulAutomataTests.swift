@@ -33,10 +33,6 @@ struct HangeulAutomataTests {
         ("ㅝ", "ㅣ", "ㅞ"),
         ("ㅜ", "ㅣ", "ㅟ"),
         ("ㅡ", "ㅣ", "ㅢ")
-//        ("ㅏ", "ㅣ", "ㅐ"),
-//        ("ㅓ", "ㅣ", "ㅔ"),
-//        ("ㅕ", "ㅣ", "ㅖ"),
-//        ("ㅑ", "ㅣ", "ㅒ")
     ]
     
     private let 겹자음조합Table: [(앞자음: String, 뒷자음: String, 겹자음: String)] = [
@@ -78,7 +74,7 @@ struct HangeulAutomataTests {
             // -------------------------------------------------
             var currentText = ""
             for input in inputSequence {
-                currentText = automata.add글자(beforeText: currentText, 글자Input: input)
+                currentText = automata.add글자(글자Input: input, beforeText: currentText)
             }
             
             if currentText != target한글String {
@@ -100,7 +96,7 @@ struct HangeulAutomataTests {
                 let remainingInputs = inputSequence.dropLast(i + 1)
                 var expectedText = ""
                 for input in remainingInputs {
-                    expectedText = automata.add글자(beforeText: expectedText, 글자Input: input)
+                    expectedText = automata.add글자(글자Input: input, beforeText: expectedText)
                 }
                 
                 if deleteText != expectedText {
@@ -127,11 +123,11 @@ struct HangeulAutomataTests {
         var text = ""
         
         // 1-1. 'ㅗ' 입력
-        text = automata.add글자(beforeText: text, 글자Input: "ㅗ")
+        text = automata.add글자(글자Input: "ㅗ", beforeText: text)
         #expect(text == "ㅗ", "기대값: ㅗ, 실제값: \(text)")
         
         // 1-2. 'ㅏ' 입력 (조합 발생)
-        text = automata.add글자(beforeText: text, 글자Input: "ㅏ")
+        text = automata.add글자(글자Input: "ㅏ", beforeText: text)
         #expect(text == "ㅘ", "기대값: ㅘ, 실제값: \(text)")
         
         // 1-3. 삭제 (분해 발생: ㅘ -> ㅗ)
@@ -146,27 +142,27 @@ struct HangeulAutomataTests {
         // Case 2: 3중 모음 방지 및 분리 (ㅗ + ㅏ + ㅣ -> ㅘ + ㅣ -> 왜?)
         // 설명: ㅗ+ㅏ=ㅘ 상태에서 ㅣ를 누르면 '왜'가 됩니다. (ㅙ)
         text = ""
-        text = automata.add글자(beforeText: text, 글자Input: "ㅗ")
-        text = automata.add글자(beforeText: text, 글자Input: "ㅏ") // ㅘ
+        text = automata.add글자(글자Input: "ㅗ", beforeText: text)
+        text = automata.add글자(글자Input: "ㅏ", beforeText: text) // ㅘ
         
-        text = automata.add글자(beforeText: text, 글자Input: "ㅣ") // ㅘ + ㅣ -> ㅙ
+        text = automata.add글자(글자Input: "ㅣ", beforeText: text) // ㅘ + ㅣ -> ㅙ
         #expect(text == "ㅙ", "기대값: ㅙ, 실제값: \(text)")
         
         
         // Case 3: 겹모음이 불가능한 조합 (ㅜ + ㅏ -> ㅜ + ㅏ)
         // 오토마타 로직상 단순히 옆에 붙습니다.
         text = ""
-        text = automata.add글자(beforeText: text, 글자Input: "ㅜ")
-        text = automata.add글자(beforeText: text, 글자Input: "ㅏ")
+        text = automata.add글자(글자Input: "ㅜ", beforeText: text)
+        text = automata.add글자(글자Input: "ㅏ", beforeText: text)
         #expect(text == "ㅜㅏ", "기대값: ㅜㅏ (조합불가), 실제값: \(text)")
         
         
         // Case 4: 초성 입력 후 모음 입력 (ㄱ + ㅏ -> 가)
         text = ""
-        text = automata.add글자(beforeText: text, 글자Input: "ㄱ")
+        text = automata.add글자(글자Input: "ㄱ", beforeText: text)
         #expect(text == "ㄱ", "기대값: ㄱ, 실제값: \(text)")
         
-        text = automata.add글자(beforeText: text, 글자Input: "ㅏ")
+        text = automata.add글자(글자Input: "ㅏ", beforeText: text)
         #expect(text == "가", "기대값: 가, 실제값: \(text)")
         
         // 4-1. 삭제 (가 -> ㄱ)
@@ -183,9 +179,9 @@ struct HangeulAutomataTests {
         var text = ""
         
         // Case 1: 숫자와 특수문자 단순 입력 및 삭제
-        text = automata.add글자(beforeText: text, 글자Input: "1")
-        text = automata.add글자(beforeText: text, 글자Input: ".")
-        text = automata.add글자(beforeText: text, 글자Input: "A")
+        text = automata.add글자(글자Input: "1", beforeText: text)
+        text = automata.add글자(글자Input: ".", beforeText: text)
+        text = automata.add글자(글자Input: "A", beforeText: text)
         #expect(text == "1.A", "기대값: 1.A, 실제값: \(text)")
         
         text = automata.delete글자(beforeText: text) // 'A' 삭제
@@ -194,24 +190,24 @@ struct HangeulAutomataTests {
         // Case 2: 한글 입력 도중 비한글 문자가 들어오면 조합이 끊겨야 함
         // 'ㄱ' + 'a' + 'ㅏ' -> '가'가 되면 안 되고 'ㄱaㅏ'가 되어야 함
         text = ""
-        text = automata.add글자(beforeText: text, 글자Input: "ㄱ")
+        text = automata.add글자(글자Input: "ㄱ", beforeText: text)
         #expect(text == "ㄱ")
         
-        text = automata.add글자(beforeText: text, 글자Input: "a") // 조합 중단됨
+        text = automata.add글자(글자Input: "a", beforeText: text) // 조합 중단됨
         #expect(text == "ㄱa")
         
-        text = automata.add글자(beforeText: text, 글자Input: "ㅏ") // 새로운 글자로 시작
+        text = automata.add글자(글자Input: "ㅏ", beforeText: text) // 새로운 글자로 시작
         #expect(text == "ㄱaㅏ", "비한글 문자가 한글 조합을 끊어야 함")
         
         // Case 3: 완성된 한글 뒤에 특수문자 입력
         // '한' + '!' -> '한!'
         text = ""
-        text = automata.add글자(beforeText: text, 글자Input: "ㅎ")
-        text = automata.add글자(beforeText: text, 글자Input: "ㅏ")
-        text = automata.add글자(beforeText: text, 글자Input: "ㄴ")
+        text = automata.add글자(글자Input: "ㅎ", beforeText: text)
+        text = automata.add글자(글자Input: "ㅏ", beforeText: text)
+        text = automata.add글자(글자Input: "ㄴ", beforeText: text)
         #expect(text == "한")
         
-        text = automata.add글자(beforeText: text, 글자Input: "!")
+        text = automata.add글자(글자Input: "!", beforeText: text)
         #expect(text == "한!", "완성된 한글 뒤에 특수문자가 붙어야 함")
         
         text = automata.delete글자(beforeText: text) // '!' 삭제

@@ -5,22 +5,33 @@
 //  Created by 서동환 on 9/19/25.
 //
 
-import OSLog
+protocol HangeulAutomataProtocol {
+    var 초성Table: [String] { get }
+    var 중성Table: [String] { get }
+    var 종성Table: [String] { get }
+    
+    func add글자(글자Input: String, beforeText: String) -> String
+    func delete글자(beforeText: String) -> String
+    
+    func combine(초성Index: Int, 중성Index: Int, 종성Index: Int) -> Character?
+    func decompose(한글Char: Character) -> (초성Index: Int, 중성Index: Int, 종성Index: Int)?
+}
 
 /// 표준 두벌식 한글 오토마타
-final class HangeulAutomata {
+final class HangeulAutomata: HangeulAutomataProtocol {
     
     // MARK: - Properties
+    
     private let 한글UnicodeStart: UInt32 = 0xAC00
     private let 한글UnicodeEnd: UInt32 = 0xD7A3
     
-    private let 초성Table: [String] = ["ㄱ", "ㄲ", "ㄴ", "ㄷ", "ㄸ", "ㄹ", "ㅁ", "ㅂ", "ㅃ", "ㅅ", "ㅆ", "ㅇ",
+    let 초성Table: [String] = ["ㄱ", "ㄲ", "ㄴ", "ㄷ", "ㄸ", "ㄹ", "ㅁ", "ㅂ", "ㅃ", "ㅅ", "ㅆ", "ㅇ",
                                      "ㅈ", "ㅉ", "ㅊ", "ㅋ", "ㅌ", "ㅍ", "ㅎ"]
     
-    private let 중성Table: [String] = ["ㅏ", "ㅐ", "ㅑ", "ㅒ", "ㅓ", "ㅔ", "ㅕ", "ㅖ", "ㅗ", "ㅘ", "ㅙ", "ㅚ",
+    let 중성Table: [String] = ["ㅏ", "ㅐ", "ㅑ", "ㅒ", "ㅓ", "ㅔ", "ㅕ", "ㅖ", "ㅗ", "ㅘ", "ㅙ", "ㅚ",
                                      "ㅛ", "ㅜ", "ㅝ", "ㅞ", "ㅟ", "ㅠ", "ㅡ", "ㅢ", "ㅣ"]
     
-    private let 종성Table: [String] = [" ", "ㄱ", "ㄲ", "ㄳ", "ㄴ", "ㄵ", "ㄶ","ㄷ", "ㄹ", "ㄺ", "ㄻ", "ㄼ", "ㄽ", "ㄾ", "ㄿ", "ㅀ",
+    let 종성Table: [String] = [" ", "ㄱ", "ㄲ", "ㄳ", "ㄴ", "ㄵ", "ㄶ","ㄷ", "ㄹ", "ㄺ", "ㄻ", "ㄼ", "ㄽ", "ㄾ", "ㄿ", "ㅀ",
                                      "ㅁ", "ㅂ", "ㅄ", "ㅅ", "ㅆ", "ㅇ", "ㅈ", "ㅊ", "ㅋ", "ㅌ", "ㅍ", "ㅎ"]
     
     private let 겹모음조합Table: [(앞모음: String, 뒷모음: String, 결과: String)] = [
@@ -33,10 +44,6 @@ final class HangeulAutomata {
         ("ㅝ", "ㅣ", "ㅞ"),
         ("ㅜ", "ㅣ", "ㅟ"),
         ("ㅡ", "ㅣ", "ㅢ")
-//        ("ㅏ", "ㅣ", "ㅐ"),
-//        ("ㅓ", "ㅣ", "ㅔ"),
-//        ("ㅕ", "ㅣ", "ㅖ"),
-//        ("ㅑ", "ㅣ", "ㅒ")
     ]
     
     private let 겹자음조합Table: [(앞자음: String, 뒷자음: String, 결과: String)] = [
@@ -57,9 +64,9 @@ final class HangeulAutomata {
     
     /// 새로운 글자를 입력받아 처리된 전체 문자열을 반환합니다.
     /// - Parameters:
-    ///   - beforeText: 입력 전의 전체 문자열
     ///   - 글자Input: 새로 입력된 글자 (`String` 타입)
-    func add글자(beforeText: String, 글자Input: String) -> String {
+    ///   - beforeText: 입력 전의 전체 문자열
+    func add글자(글자Input: String, beforeText: String) -> String {
         guard !글자Input.isEmpty else { return beforeText }
         guard let beforeTextLast글자 = beforeText.last else { return beforeText + 글자Input }
         
@@ -256,11 +263,7 @@ final class HangeulAutomata {
         
         return text
     }
-}
-
-// MARK: - Private Methods
-
-private extension HangeulAutomata {
+    
     func combine(초성Index: Int, 중성Index: Int, 종성Index: Int) -> Character? {
         let 한글Unicode = 한글UnicodeStart + UInt32(초성Index * 21 * 28) + UInt32(중성Index * 28) + UInt32(종성Index)
         guard let 한글Scalar = Unicode.Scalar(한글Unicode) else { return nil }
@@ -278,7 +281,11 @@ private extension HangeulAutomata {
         
         return (초성Index, 중성Index, 종성Index)
     }
-    
+}
+
+// MARK: - Private Methods
+
+private extension HangeulAutomata {
     // ["ㅗ","ㅏ","ㅘ"] 형식의 테이블에서 조합 찾기
     func find겹모음(앞모음: String, 뒷모음: String) -> String? {
         for 조합 in 겹모음조합Table {
