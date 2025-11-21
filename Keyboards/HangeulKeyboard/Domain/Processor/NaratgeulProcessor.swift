@@ -98,6 +98,14 @@ final class NaratgeulProcessor: HangeulProcessable {
         // 4. 일반 자모 입력 (표준 오토마타 위임)
         return (automata.add글자(글자Input: 글자Input, beforeText: beforeText), 글자Input)
     }
+    
+    func delete(beforeText: String) -> String {
+        // 1. 'ㅣ' 결합 분해 시도 (예: '애' -> '아')
+        if let decomposedText = decompose모음(beforeText: beforeText) { return decomposedText }
+        
+        // 2. 일반 삭제는 오토마타에게 위임 (예: '가' -> 'ㄱ')
+        return automata.delete글자(beforeText: beforeText)
+    }
 }
 
 // MARK: - Private Methods
@@ -153,7 +161,8 @@ private extension NaratgeulProcessor {
         else {
             let last글자String = String(beforeTextLast글자Char)
             if let converted글자 = 획추가Table[last글자String] {
-                return (newText + converted글자, converted글자)
+                let processedText = automata.add글자(글자Input: converted글자, beforeText: newText)
+                return (processedText, converted글자)
             }
             return (beforeText, nil)
         }
@@ -209,7 +218,8 @@ private extension NaratgeulProcessor {
         else {
             let last글자String = String(beforeTextLast글자Char)
             if let converted글자 = 쌍자음Table[last글자String] {
-                return (newText + converted글자, converted글자)
+                let processedText = automata.add글자(글자Input: converted글자, beforeText: newText)
+                return (processedText, converted글자)
             }
             return (beforeText, nil)
         }
@@ -280,6 +290,41 @@ private extension NaratgeulProcessor {
                 newText.removeLast()
                 newText.append(combined중성)
                 return (newText, combined중성)
+            }
+        }
+        
+        return nil
+    }
+    
+    /// 'ㅣ' 결합된 모음을 분해 (예: '애' -> '아', 'ㅐ' -> 'ㅏ')
+    func decompose모음(beforeText: String) -> String? {
+        guard let beforeTextLast글자Char = beforeText.last else { return nil }
+        
+        // 1. 완성형 한글 글자 분해 (예: '애', '게')
+        if let (초성Index, 중성Index, 종성Index) = automata.decompose(한글Char: beforeTextLast글자Char) {
+            if 종성Index == 0 {
+                let 중성글자 = automata.중성Table[중성Index]
+                
+                if let originalJungChar = 모음결합Table.first(where: { $0.value == 중성글자 })?.key,
+                   let originalJungIndex = automata.중성Table.firstIndex(of: originalJungChar),
+                   let newChar = automata.combine(초성Index: 초성Index, 중성Index: originalJungIndex, 종성Index: 0) {
+                    
+                    var newText = beforeText
+                    newText.removeLast()
+                    newText.append(newChar)
+                    return newText
+                }
+            }
+        }
+        
+        // 2. 낱자 모음 분해 (예: 'ㅐ')
+        else {
+            let last글자String = String(beforeTextLast글자Char)
+            if let originalChar = 모음결합Table.first(where: { $0.value == last글자String })?.key {
+                var newText = beforeText
+                newText.removeLast()
+                newText.append(originalChar)
+                return newText
             }
         }
         

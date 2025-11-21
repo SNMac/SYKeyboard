@@ -14,7 +14,7 @@ struct NaratgeulProcessorTests {
     
     // MARK: - Properties
     
-    private let processor: HangeulKeyboardProcessable = NaratgeulProcessor()
+    private let processor: HangeulProcessable = NaratgeulProcessor()
     
     // MARK: - Helper Method (테스트 편의성을 위해 추가)
     
@@ -253,5 +253,27 @@ struct NaratgeulProcessorTests {
         let res4 = processor.input(글자Input: "ㅣ", beforeText: "ㅗ")
         #expect(res4.0 == "ㅚ")
         #expect(res4.1 == "ㅣ")
+    }
+    
+    // MARK: - 7. 겹받침 분해 및 복원 테스트
+    
+    @Test("겹받침 분해 및 복원: 닭 <-> 달ㅋ")
+    func test겹받침분해_복원() {
+        var text = ""
+        
+        // 1. '닭' 만들기 (ㄹ + ㄱ -> 닭)
+        text = input("ㄷ", to: text)
+        text = input("ㅏ", to: text)
+        text = input("ㄹ", to: text) // 달
+        text = input("ㄱ", to: text) // 닭
+        #expect(text == "닭")
+        
+        // 2. 닭 + 획 -> 달ㅋ (분해)
+        text = input("획", to: text)
+        #expect(text == "달ㅋ")
+        
+        // 3. 달ㅋ + 획 -> 닭 (복원: ㅋ -> ㄱ, 달+ㄱ -> 닭)
+        text = input("획", to: text)
+        #expect(text == "닭")
     }
 }
