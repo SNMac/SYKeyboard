@@ -123,11 +123,16 @@ public class BaseKeyboardViewController: UIInputViewController {
     
     public override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        guard let window = self.view.window else { fatalError("View is not in a window hierarchy") }
+        guard let window = self.view.window else { fatalError("View가 window 계층에 없습니다.") }
         let systemGestureRecognizer0 = window.gestureRecognizers?[0] as? UIGestureRecognizer
         let systemGestureRecognizer1 = window.gestureRecognizers?[1] as? UIGestureRecognizer
         systemGestureRecognizer0?.delaysTouchesBegan = false
         systemGestureRecognizer1?.delaysTouchesBegan = false
+    }
+    
+    public override func viewWillTransition(to size: CGSize, with coordinator: any UIViewControllerTransitionCoordinator) {
+        super.viewWillTransition(to: size, with: coordinator)
+        coordinator.animate { _ in self.setKeyboardHeight() }
     }
     
     public override func textWillChange(_ textInput: (any UITextInput)?) {
@@ -273,12 +278,24 @@ private extension BaseKeyboardViewController {
     }
     
     func setKeyboardHeight() {
-        if !isHeightConstraintAdded, self.view.superview != nil {
+        let keyboardHeight: CGFloat
+        if let orientation = self.view.window?.windowScene?.effectiveGeometry.interfaceOrientation {
+            keyboardHeight = orientation == .portrait ? UserDefaultsManager.shared.keyboardHeight : 188
+        } else {
+            assertionFailure("View가 window 계층에 없습니다.")
+            keyboardHeight = UserDefaultsManager.shared.keyboardHeight
+        }
+        
+        if !isHeightConstraintAdded {
             self.view.snp.makeConstraints {
                 $0.edges.equalToSuperview()
-                $0.height.equalTo(UserDefaultsManager.shared.keyboardHeight).priority(999)
+                $0.height.equalTo(keyboardHeight).priority(999)
             }
             isHeightConstraintAdded = true
+        } else {
+            self.view.snp.updateConstraints {
+                $0.height.equalTo(keyboardHeight).priority(999)
+            }
         }
     }
     

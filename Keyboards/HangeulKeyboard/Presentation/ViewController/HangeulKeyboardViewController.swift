@@ -54,55 +54,55 @@ final class HangeulKeyboardViewController: BaseKeyboardViewController {
     }
     
     override func updateKeyboardType() {
-        guard self.textDocumentProxy.keyboardType != self.oldKeyboardType else { return }
-        switch self.textDocumentProxy.keyboardType {
+        guard textDocumentProxy.keyboardType != oldKeyboardType else { return }
+        switch textDocumentProxy.keyboardType {
         case .default, nil:
             hangeulKeyboardView.currentHangeulKeyboardMode = .default
-            self.symbolKeyboardView.currentSymbolKeyboardMode = .default
-            self.currentKeyboard = .hangeul
+            symbolKeyboardView.currentSymbolKeyboardMode = .default
+            currentKeyboard = .hangeul
         case .asciiCapable:
             // 지원 안함
             hangeulKeyboardView.currentHangeulKeyboardMode = .default
-            self.symbolKeyboardView.currentSymbolKeyboardMode = .default
-            self.currentKeyboard = .hangeul
+            symbolKeyboardView.currentSymbolKeyboardMode = .default
+            currentKeyboard = .hangeul
         case .numbersAndPunctuation:
             hangeulKeyboardView.currentHangeulKeyboardMode = .default
-            self.symbolKeyboardView.currentSymbolKeyboardMode = .default
-            self.currentKeyboard = .symbol
+            symbolKeyboardView.currentSymbolKeyboardMode = .default
+            currentKeyboard = .symbol
         case .URL:
             hangeulKeyboardView.currentHangeulKeyboardMode = .default
-            self.symbolKeyboardView.currentSymbolKeyboardMode = .URL
-            self.currentKeyboard = .hangeul
+            symbolKeyboardView.currentSymbolKeyboardMode = .URL
+            currentKeyboard = .hangeul
         case .numberPad:
-            self.tenkeyKeyboardView.currentTenkeyKeyboardMode = .numberPad
-            self.currentKeyboard = .tenKey
+            tenkeyKeyboardView.currentTenkeyKeyboardMode = .numberPad
+            currentKeyboard = .tenKey
         case .phonePad, .namePhonePad:
             // 항상 iOS 시스템 키보드 표시됨
-            self.tenkeyKeyboardView.currentTenkeyKeyboardMode = .numberPad
-            self.currentKeyboard = .tenKey
+            tenkeyKeyboardView.currentTenkeyKeyboardMode = .numberPad
+            currentKeyboard = .tenKey
         case .emailAddress:
             hangeulKeyboardView.currentHangeulKeyboardMode = .default
-            self.symbolKeyboardView.currentSymbolKeyboardMode = .emailAddress
-            self.currentKeyboard = .hangeul
+            symbolKeyboardView.currentSymbolKeyboardMode = .emailAddress
+            currentKeyboard = .hangeul
         case .decimalPad:
-            self.tenkeyKeyboardView.currentTenkeyKeyboardMode = .decimalPad
-            self.currentKeyboard = .tenKey
+            tenkeyKeyboardView.currentTenkeyKeyboardMode = .decimalPad
+            currentKeyboard = .tenKey
         case .twitter:
             hangeulKeyboardView.currentHangeulKeyboardMode = .twitter
-            self.symbolKeyboardView.currentSymbolKeyboardMode = .default
-            self.currentKeyboard = .hangeul
+            symbolKeyboardView.currentSymbolKeyboardMode = .default
+            currentKeyboard = .hangeul
         case .webSearch:
             hangeulKeyboardView.currentHangeulKeyboardMode = .default
-            self.symbolKeyboardView.currentSymbolKeyboardMode = .webSearch
-            self.currentKeyboard = .hangeul
+            symbolKeyboardView.currentSymbolKeyboardMode = .webSearch
+            currentKeyboard = .hangeul
         case .asciiCapableNumberPad:
-            self.tenkeyKeyboardView.currentTenkeyKeyboardMode = .numberPad
-            self.currentKeyboard = .tenKey
+            tenkeyKeyboardView.currentTenkeyKeyboardMode = .numberPad
+            currentKeyboard = .tenKey
         @unknown default:
             assertionFailure("구현이 필요한 case 입니다.")
             hangeulKeyboardView.currentHangeulKeyboardMode = .default
-            self.symbolKeyboardView.currentSymbolKeyboardMode = .default
-            self.currentKeyboard = .hangeul
+            symbolKeyboardView.currentSymbolKeyboardMode = .default
+            currentKeyboard = .hangeul
         }
     }
     
@@ -112,19 +112,16 @@ final class HangeulKeyboardViewController: BaseKeyboardViewController {
     }
     
     override func insertKeyText(from keys: [String]) {
-        guard let key = keys.first else {
-            assertionFailure("keys 배열이 비어있습니다.")
-            return
-        }
+        guard let key = keys.first else { fatalError("keys 배열이 비어있습니다.") }
         
         let beforeText = String(buffer.reversed().prefix(while: { !$0.isWhitespace }).reversed())
         let (processedText, input글자) = processor.input(글자Input: key, beforeText: beforeText)
         
-        for _ in 0..<beforeText.count { self.textDocumentProxy.deleteBackward() }
-        self.textDocumentProxy.insertText(processedText)
+        for _ in 0..<beforeText.count { textDocumentProxy.deleteBackward() }
+        textDocumentProxy.insertText(processedText)
         
         buffer = processedText
-        self.lastInputText = input글자
+        lastInputText = input글자
     }
     
     override func repeatInsertKeyText(from keys: [String]) {
@@ -148,16 +145,16 @@ final class HangeulKeyboardViewController: BaseKeyboardViewController {
     
     override func deleteBackward() {
         if !buffer.isEmpty {
-            for _ in 0..<buffer.count { self.textDocumentProxy.deleteBackward() }
+            for _ in 0..<buffer.count { textDocumentProxy.deleteBackward() }
             let text = processor.delete(beforeText: buffer)
-            self.textDocumentProxy.insertText(text)
+            textDocumentProxy.insertText(text)
             
             buffer = text
         } else {
-            self.textDocumentProxy.deleteBackward()
+            textDocumentProxy.deleteBackward()
         }
         
-        self.lastInputText = nil
+        lastInputText = nil
     }
     
     override func repeatDeleteBackward() {

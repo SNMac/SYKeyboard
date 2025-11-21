@@ -39,54 +39,54 @@ final class EnglishKeyboardViewController: BaseKeyboardViewController {
     }
     
     override func updateKeyboardType() {
-        guard self.textDocumentProxy.keyboardType != self.oldKeyboardType else { return }
-        switch self.textDocumentProxy.keyboardType {
+        guard textDocumentProxy.keyboardType != oldKeyboardType else { return }
+        switch textDocumentProxy.keyboardType {
         case .default, nil:
             englishKeyboardView.currentEnglishKeyboardMode = .default
-            self.symbolKeyboardView.currentSymbolKeyboardMode = .default
-            self.currentKeyboard = .english
+            symbolKeyboardView.currentSymbolKeyboardMode = .default
+            currentKeyboard = .english
         case .asciiCapable:
             englishKeyboardView.currentEnglishKeyboardMode = .default
-            self.symbolKeyboardView.currentSymbolKeyboardMode = .default
-            self.currentKeyboard = .english
+            symbolKeyboardView.currentSymbolKeyboardMode = .default
+            currentKeyboard = .english
         case .numbersAndPunctuation:
             englishKeyboardView.currentEnglishKeyboardMode = .default
-            self.symbolKeyboardView.currentSymbolKeyboardMode = .default
-            self.currentKeyboard = .symbol
+            symbolKeyboardView.currentSymbolKeyboardMode = .default
+            currentKeyboard = .symbol
         case .URL:
             englishKeyboardView.currentEnglishKeyboardMode = .URL
-            self.symbolKeyboardView.currentSymbolKeyboardMode = .URL
-            self.currentKeyboard = .english
+            symbolKeyboardView.currentSymbolKeyboardMode = .URL
+            currentKeyboard = .english
         case .numberPad:
-            self.tenkeyKeyboardView.currentTenkeyKeyboardMode = .numberPad
-            self.currentKeyboard = .tenKey
+            tenkeyKeyboardView.currentTenkeyKeyboardMode = .numberPad
+            currentKeyboard = .tenKey
         case .phonePad, .namePhonePad:
             // 항상 iOS 시스템 키보드 표시됨
-            self.tenkeyKeyboardView.currentTenkeyKeyboardMode = .numberPad
-            self.currentKeyboard = .tenKey
+            tenkeyKeyboardView.currentTenkeyKeyboardMode = .numberPad
+            currentKeyboard = .tenKey
         case .emailAddress:
             englishKeyboardView.currentEnglishKeyboardMode = .emailAddress
-            self.symbolKeyboardView.currentSymbolKeyboardMode = .emailAddress
-            self.currentKeyboard = .english
+            symbolKeyboardView.currentSymbolKeyboardMode = .emailAddress
+            currentKeyboard = .english
         case .decimalPad:
-            self.tenkeyKeyboardView.currentTenkeyKeyboardMode = .decimalPad
-            self.currentKeyboard = .tenKey
+            tenkeyKeyboardView.currentTenkeyKeyboardMode = .decimalPad
+            currentKeyboard = .tenKey
         case .twitter:
             englishKeyboardView.currentEnglishKeyboardMode = .twitter
-            self.symbolKeyboardView.currentSymbolKeyboardMode = .default
-            self.currentKeyboard = .english
+            symbolKeyboardView.currentSymbolKeyboardMode = .default
+            currentKeyboard = .english
         case .webSearch:
             englishKeyboardView.currentEnglishKeyboardMode = .webSearch
-            self.symbolKeyboardView.currentSymbolKeyboardMode = .webSearch
-            self.currentKeyboard = .english
+            symbolKeyboardView.currentSymbolKeyboardMode = .webSearch
+            currentKeyboard = .english
         case .asciiCapableNumberPad:
-            self.tenkeyKeyboardView.currentTenkeyKeyboardMode = .numberPad
-            self.currentKeyboard = .tenKey
+            tenkeyKeyboardView.currentTenkeyKeyboardMode = .numberPad
+            currentKeyboard = .tenKey
         @unknown default:
             assertionFailure("구현이 필요한 case 입니다.")
             englishKeyboardView.currentEnglishKeyboardMode = .default
-            self.symbolKeyboardView.currentSymbolKeyboardMode = .default
-            self.currentKeyboard = .english
+            symbolKeyboardView.currentSymbolKeyboardMode = .default
+            currentKeyboard = .english
         }
     }
     
@@ -107,7 +107,7 @@ final class EnglishKeyboardViewController: BaseKeyboardViewController {
         }
         
         if key.count == 1 && Character(key).isUppercase { isUppercaseInput = true }
-        self.textDocumentProxy.insertText(key)
+        textDocumentProxy.insertText(key)
     }
     
     override func repeatInsertKeyText(from keys: [String]) {
@@ -117,7 +117,7 @@ final class EnglishKeyboardViewController: BaseKeyboardViewController {
         }
         
         if key.count == 1 && Character(key).isUppercase { isUppercaseInput = true }
-        self.textDocumentProxy.insertText(key)
+        textDocumentProxy.insertText(key)
     }
 }
 
@@ -127,12 +127,12 @@ private extension EnglishKeyboardViewController {
     /// Shift 버튼을 상황에 맞게 업데이트하는 메서드
     func updateShiftButton() {
         // Shift 버튼이 눌려있는 경우 실행 X
-        guard !self.buttonStateController.isShiftButtonPressed else { return }
+        guard !buttonStateController.isShiftButtonPressed else { return }
         
         if UserDefaultsManager.shared.isAutoCapitalizationEnabled {
-            switch self.textDocumentProxy.autocapitalizationType {
+            switch textDocumentProxy.autocapitalizationType {
             case .words:
-                if let beforeCursor = self.textDocumentProxy.documentContextBeforeInput {
+                if let beforeCursor = textDocumentProxy.documentContextBeforeInput {
                     if beforeCursor.endsWithWhitespace() {
                         primaryKeyboardView.updateShiftButton(isShifted: true)
                     } else {
@@ -142,7 +142,7 @@ private extension EnglishKeyboardViewController {
                     primaryKeyboardView.updateShiftButton(isShifted: true)
                 }
             case .sentences:
-                if let beforeCursor = self.textDocumentProxy.documentContextBeforeInput {
+                if let beforeCursor = textDocumentProxy.documentContextBeforeInput {
                     if beforeCursor.hasOnlyWhitespaceFromLastDot() {
                         primaryKeyboardView.updateShiftButton(isShifted: true)
                     } else {

@@ -342,8 +342,8 @@ private extension SwitchGestureController {
             gestureHandler = symbolKeyboardView
         case .numeric:
             gestureHandler = numericKeyboardView
-        default:
-            fatalError("구현되지 않은 case입니다.")
+        case .tenKey:
+            fatalError("도달할 수 없는 case입니다.")
         }
         return gestureHandler
     }
@@ -371,8 +371,8 @@ private extension SwitchGestureController {
             config = (gestureHandler: numericKeyboardView,
                       targetkeyboard: .symbol,
                       targetDirection: .left)
-        default:
-            fatalError("구현되지 않은 case입니다.")
+        case .tenKey:
+            fatalError("도달할 수 없는 case입니다.")
         }
         return config
     }

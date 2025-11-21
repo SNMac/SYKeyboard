@@ -58,7 +58,7 @@ final class ShiftButton: SecondaryButton {
                 self.configuration?.attributedTitle?.characters = .init("1/2")
             }
         default:
-            fatalError("도달할 수 없는 case 입니다.")
+            assertionFailure("도달할 수 없는 case 입니다.")
         }
     }
     
@@ -76,7 +76,7 @@ final class ShiftButton: SecondaryButton {
                 self.configuration?.image = UIImage(systemName: "shift")?.withConfiguration(imageConfig).withTintColor(.label, renderingMode: .alwaysOriginal)
             }
         default:
-            fatalError("도달할 수 없는 case 입니다.")
+            assertionFailure("도달할 수 없는 case 입니다.")
         }
     }
 }
@@ -109,7 +109,7 @@ private extension ShiftButton {
                 }
             }
         default:
-            fatalError("도달할 수 없는 case 입니다.")
+            assertionFailure("도달할 수 없는 case 입니다.")
         }
     }
 }

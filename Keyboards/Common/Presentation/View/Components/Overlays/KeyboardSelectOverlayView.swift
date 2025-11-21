@@ -88,7 +88,7 @@ final class KeyboardSelectOverlayView: UIStackView {
                 symbolLabel.textColor = .white
                 symbolLabel.backgroundColor = .tintColor
             default:
-                fatalError("구현되지 않은 case입니다.")
+                assertionFailure("구현되지 않은 case입니다.")
             }
             xmarkImageView.image = xmarkImageView.image?.withTintColor(.label, renderingMode: .alwaysOriginal)
             xmarkImageContainerView.backgroundColor = .clear
@@ -101,7 +101,7 @@ final class KeyboardSelectOverlayView: UIStackView {
                 symbolLabel.textColor = .label
                 symbolLabel.backgroundColor = .clear
             default:
-                fatalError("구현되지 않은 case입니다.")
+                assertionFailure("구현되지 않은 case입니다.")
             }
             xmarkImageView.image = xmarkImageView.image?.withTintColor(.white, renderingMode: .alwaysOriginal)
             xmarkImageContainerView.backgroundColor = .tintColor
@@ -153,7 +153,7 @@ private extension KeyboardSelectOverlayView {
         case .numeric:
             self.addArrangedSubviews(symbolLabel, xmarkImageContainerView)
         default:
-            fatalError("구현되지 않은 case입니다.")
+            assertionFailure("구현되지 않은 case입니다.")
         }
     }
     
