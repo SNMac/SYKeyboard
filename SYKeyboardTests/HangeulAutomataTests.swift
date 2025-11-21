@@ -17,7 +17,7 @@ struct HangeulAutomataTests {
     
     private static let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: String(describing: "HangeulAutomataTests"))
     
-    private let automata = HangeulAutomata()
+    private let automata: HangeulAutomataProtocol = HangeulAutomata()
     
     private let 초성Table = ["ㄱ", "ㄲ", "ㄴ", "ㄷ", "ㄸ", "ㄹ", "ㅁ", "ㅂ", "ㅃ", "ㅅ", "ㅆ", "ㅇ", "ㅈ", "ㅉ", "ㅊ", "ㅋ", "ㅌ", "ㅍ", "ㅎ"]
     private let 중성Table = ["ㅏ", "ㅐ", "ㅑ", "ㅒ", "ㅓ", "ㅔ", "ㅕ", "ㅖ", "ㅗ", "ㅘ", "ㅙ", "ㅚ", "ㅛ", "ㅜ", "ㅝ", "ㅞ", "ㅟ", "ㅠ", "ㅡ", "ㅢ", "ㅣ"]
