@@ -6,7 +6,7 @@
 //
 
 /// 나랏글 입력기
-final class NaratgeulProcessor: HangeulKeyboardProcessable {
+final class NaratgeulProcessor: HangeulProcessable {
     
     // MARK: - Properties
     

@@ -1,13 +1,13 @@
 //
-//  HangeulKeyboardProcessable.swift
-//  SYKeyboard
+//  HangeulProcessable.swift
+//  HangeulKeyboard
 //
 //  Created by 서동환 on 11/21/25.
 //
 
-/// 한글 키보드 입력기 프로토콜
-protocol HangeulKeyboardProcessable {
-    /// 한글 키보드 입력을 처리합니다.
+/// 한글 입력기 프로토콜
+protocol HangeulProcessable {
+    /// 한글 입력을 처리합니다.
     /// - Parameters:
     ///   - 글자Input: 새로 입력된 글자 (`String` 타입)
     ///   - beforeText: 입력 전의 전체 문자열
