@@ -6,7 +6,7 @@
 	<dict>
 		<key>ios-arm64/FBAudienceNetwork.framework/FBAudienceNetwork</key>
 		<data>
-		pRStDW10rSAmWV1Jfkug/8S1qP0=
+		dI72Kn8Nf1Rx8vXu4UI762l1z2I=
 		</data>
 		<key>ios-arm64/FBAudienceNetwork.framework/Headers/FBAdBridgeCommon.h</key>
 		<data>
@@ -26,7 +26,7 @@
 		</data>
 		<key>ios-arm64/FBAudienceNetwork.framework/Headers/FBAdDefines.h</key>
 		<data>
-		eF5YA2yTwZ/qymrHCLrHNXxCcks=
+		cbNsMFe1LCnmJoPZpjzlGWK9DHY=
 		</data>
 		<key>ios-arm64/FBAudienceNetwork.framework/Headers/FBAdExperienceConfig.h</key>
 		<data>
@@ -38,7 +38,7 @@
 		</data>
 		<key>ios-arm64/FBAudienceNetwork.framework/Headers/FBAdIconView.h</key>
 		<data>
-		/+v97NF+Zx/+IjwDIHYDs4Tghe0=
+		PYhHevgPMClCmfxBDuOtgdbBSC4=
 		</data>
 		<key>ios-arm64/FBAudienceNetwork.framework/Headers/FBAdImage.h</key>
 		<data>
@@ -46,7 +46,7 @@
 		</data>
 		<key>ios-arm64/FBAudienceNetwork.framework/Headers/FBAdOptionsView.h</key>
 		<data>
-		Id+HrpoYLEEmgxgEUQhvGfap6bU=
+		YVYY2IShDtM6mxq0NLTFDN9IrTk=
 		</data>
 		<key>ios-arm64/FBAudienceNetwork.framework/Headers/FBAdSDKNotificationManager.h</key>
 		<data>
@@ -54,7 +54,7 @@
 		</data>
 		<key>ios-arm64/FBAudienceNetwork.framework/Headers/FBAdSettings.h</key>
 		<data>
-		XuAcKrNNIPYQNIRDb/xbZcY385k=
+		DkDTJ350eVRektGp8FKqd3f6C08=
 		</data>
 		<key>ios-arm64/FBAudienceNetwork.framework/Headers/FBAdSettingsBridge.h</key>
 		<data>
@@ -76,13 +76,9 @@
 		<data>
 		OodJ7CV+yZ7t4qMfaw+Kf28t8b8=
 		</data>
-		<key>ios-arm64/FBAudienceNetwork.framework/Headers/FBAudienceNetwork-Swift.h</key>
-		<data>
-		4GMo9A/NhExIPcHAAWuOQpYFA10=
-		</data>
 		<key>ios-arm64/FBAudienceNetwork.framework/Headers/FBAudienceNetwork.h</key>
 		<data>
-		WxG6F/4sOO3MOjnJaJ3mClxnBXM=
+		q9lC5dhhagRRfLRr1k+/7z1zCmA=
 		</data>
 		<key>ios-arm64/FBAudienceNetwork.framework/Headers/FBAudienceNetworkAds.h</key>
 		<data>
@@ -102,11 +98,11 @@
 		</data>
 		<key>ios-arm64/FBAudienceNetwork.framework/Headers/FBMediaView.h</key>
 		<data>
-		3fvdTi/3Zr9psjqLhl3U2e223Jc=
+		0MjRxmQwSKDVPEOuLJ2tgO5Mmn4=
 		</data>
 		<key>ios-arm64/FBAudienceNetwork.framework/Headers/FBMediaViewVideoRenderer.h</key>
 		<data>
-		FV86XsUoSK2Eo92AMNF8kLYqXbE=
+		FrQ5CPUdz8eh+S/SUFGJbSRav9I=
 		</data>
 		<key>ios-arm64/FBAudienceNetwork.framework/Headers/FBNativeAd.h</key>
 		<data>
@@ -178,23 +174,11 @@
 		</data>
 		<key>ios-arm64/FBAudienceNetwork.framework/Info.plist</key>
 		<data>
-		TYCAns7l73ZCiNVjjaSCdy9fC1w=
-		</data>
-		<key>ios-arm64/FBAudienceNetwork.framework/Modules/FBAudienceNetwork.swiftmodule/arm64-apple-ios.private.swiftinterface</key>
-		<data>
-		V6u8k5SmVgNYFqewJLf+34t1Uyg=
-		</data>
-		<key>ios-arm64/FBAudienceNetwork.framework/Modules/FBAudienceNetwork.swiftmodule/arm64-apple-ios.swiftdoc</key>
-		<data>
-		hmsVTpBiNuAmYWFKFFz3iZdbZJM=
-		</data>
-		<key>ios-arm64/FBAudienceNetwork.framework/Modules/FBAudienceNetwork.swiftmodule/arm64-apple-ios.swiftinterface</key>
-		<data>
-		V6u8k5SmVgNYFqewJLf+34t1Uyg=
+		61U3+3oi04sxqvra30/BTI9347w=
 		</data>
 		<key>ios-arm64/FBAudienceNetwork.framework/Modules/module.modulemap</key>
 		<data>
-		yIIfKxWPq7YurueD2Q35Q0H1ZWs=
+		WaJ32wSq8P8bmPo/S3nxgGaxAjs=
 		</data>
 		<key>ios-arm64/FBAudienceNetwork.framework/PkgInfo</key>
 		<data>
@@ -202,31 +186,31 @@
 		</data>
 		<key>ios-arm64/FBAudienceNetwork.framework/PrivacyInfo.xcprivacy</key>
 		<data>
-		iJf6SpfSfy71MDcGI+K9k1a78DU=
+		/IoNSvpjCTLQociq6B9xAKSP5JU=
 		</data>
 		<key>ios-arm64/FBAudienceNetwork.framework/_CodeSignature/CodeDirectory</key>
 		<data>
-		iFoEhDIqYjXLB/sjU4fQb2xvOxA=
+		rgJx11WtsHMJI/UydDZXp3ugbCM=
 		</data>
 		<key>ios-arm64/FBAudienceNetwork.framework/_CodeSignature/CodeRequirements</key>
 		<data>
-		CQACt8eie/4PY4ITTASLl7fgxac=
+		OAsgpaYJs8ndOSn083O0522aV4A=
 		</data>
 		<key>ios-arm64/FBAudienceNetwork.framework/_CodeSignature/CodeRequirements-1</key>
 		<data>
-		dXvWTgiuLMkcCh0ZgcorTEb/HVw=
+		yEuRoEdfe4nOauPm8xABerNwRFo=
 		</data>
 		<key>ios-arm64/FBAudienceNetwork.framework/_CodeSignature/CodeResources</key>
 		<data>
-		Tx+CYfL4BJRTxKo2+thmQGgSNhU=
+		JAN4o6pm2S6ABPeTQ74dlTrGNJ4=
 		</data>
 		<key>ios-arm64/FBAudienceNetwork.framework/_CodeSignature/CodeSignature</key>
 		<data>
-		Gy/FASbbGhPXbtblWDhcrRXWADM=
+		GlqX9eJRAlyMLHIBugFegBAuGto=
 		</data>
 		<key>ios-arm64_x86_64-simulator/FBAudienceNetwork.framework/FBAudienceNetwork</key>
 		<data>
-		MnS/lPdbaQmqNyBT3sx1ERO1Flg=
+		ic+AD0Zb2mK82KGDhwklDhAUD+k=
 		</data>
 		<key>ios-arm64_x86_64-simulator/FBAudienceNetwork.framework/Headers/FBAdBridgeCommon.h</key>
 		<data>
@@ -246,7 +230,7 @@
 		</data>
 		<key>ios-arm64_x86_64-simulator/FBAudienceNetwork.framework/Headers/FBAdDefines.h</key>
 		<data>
-		eF5YA2yTwZ/qymrHCLrHNXxCcks=
+		cbNsMFe1LCnmJoPZpjzlGWK9DHY=
 		</data>
 		<key>ios-arm64_x86_64-simulator/FBAudienceNetwork.framework/Headers/FBAdExperienceConfig.h</key>
 		<data>
@@ -258,7 +242,7 @@
 		</data>
 		<key>ios-arm64_x86_64-simulator/FBAudienceNetwork.framework/Headers/FBAdIconView.h</key>
 		<data>
-		/+v97NF+Zx/+IjwDIHYDs4Tghe0=
+		PYhHevgPMClCmfxBDuOtgdbBSC4=
 		</data>
 		<key>ios-arm64_x86_64-simulator/FBAudienceNetwork.framework/Headers/FBAdImage.h</key>
 		<data>
@@ -266,7 +250,7 @@
 		</data>
 		<key>ios-arm64_x86_64-simulator/FBAudienceNetwork.framework/Headers/FBAdOptionsView.h</key>
 		<data>
-		Id+HrpoYLEEmgxgEUQhvGfap6bU=
+		YVYY2IShDtM6mxq0NLTFDN9IrTk=
 		</data>
 		<key>ios-arm64_x86_64-simulator/FBAudienceNetwork.framework/Headers/FBAdSDKNotificationManager.h</key>
 		<data>
@@ -274,7 +258,7 @@
 		</data>
 		<key>ios-arm64_x86_64-simulator/FBAudienceNetwork.framework/Headers/FBAdSettings.h</key>
 		<data>
-		XuAcKrNNIPYQNIRDb/xbZcY385k=
+		DkDTJ350eVRektGp8FKqd3f6C08=
 		</data>
 		<key>ios-arm64_x86_64-simulator/FBAudienceNetwork.framework/Headers/FBAdSettingsBridge.h</key>
 		<data>
@@ -296,13 +280,9 @@
 		<data>
 		OodJ7CV+yZ7t4qMfaw+Kf28t8b8=
 		</data>
-		<key>ios-arm64_x86_64-simulator/FBAudienceNetwork.framework/Headers/FBAudienceNetwork-Swift.h</key>
-		<data>
-		4GMo9A/NhExIPcHAAWuOQpYFA10=
-		</data>
 		<key>ios-arm64_x86_64-simulator/FBAudienceNetwork.framework/Headers/FBAudienceNetwork.h</key>
 		<data>
-		WxG6F/4sOO3MOjnJaJ3mClxnBXM=
+		q9lC5dhhagRRfLRr1k+/7z1zCmA=
 		</data>
 		<key>ios-arm64_x86_64-simulator/FBAudienceNetwork.framework/Headers/FBAudienceNetworkAds.h</key>
 		<data>
@@ -322,11 +302,11 @@
 		</data>
 		<key>ios-arm64_x86_64-simulator/FBAudienceNetwork.framework/Headers/FBMediaView.h</key>
 		<data>
-		3fvdTi/3Zr9psjqLhl3U2e223Jc=
+		0MjRxmQwSKDVPEOuLJ2tgO5Mmn4=
 		</data>
 		<key>ios-arm64_x86_64-simulator/FBAudienceNetwork.framework/Headers/FBMediaViewVideoRenderer.h</key>
 		<data>
-		FV86XsUoSK2Eo92AMNF8kLYqXbE=
+		FrQ5CPUdz8eh+S/SUFGJbSRav9I=
 		</data>
 		<key>ios-arm64_x86_64-simulator/FBAudienceNetwork.framework/Headers/FBNativeAd.h</key>
 		<data>
@@ -398,35 +378,11 @@
 		</data>
 		<key>ios-arm64_x86_64-simulator/FBAudienceNetwork.framework/Info.plist</key>
 		<data>
-		RTDMXCArD1R8Aa5jv6HycznUAt0=
-		</data>
-		<key>ios-arm64_x86_64-simulator/FBAudienceNetwork.framework/Modules/FBAudienceNetwork.swiftmodule/arm64-apple-ios-simulator.private.swiftinterface</key>
-		<data>
-		Eaix7CMjlNA8E5hsSI2txVVnSPY=
-		</data>
-		<key>ios-arm64_x86_64-simulator/FBAudienceNetwork.framework/Modules/FBAudienceNetwork.swiftmodule/arm64-apple-ios-simulator.swiftdoc</key>
-		<data>
-		GrKyqHg4YQpFFwk2b7PxxtrvX7w=
-		</data>
-		<key>ios-arm64_x86_64-simulator/FBAudienceNetwork.framework/Modules/FBAudienceNetwork.swiftmodule/arm64-apple-ios-simulator.swiftinterface</key>
-		<data>
-		Eaix7CMjlNA8E5hsSI2txVVnSPY=
-		</data>
-		<key>ios-arm64_x86_64-simulator/FBAudienceNetwork.framework/Modules/FBAudienceNetwork.swiftmodule/x86_64-apple-ios-simulator.private.swiftinterface</key>
-		<data>
-		8pbzX5KpBzhwpudEDROkvh+QIGc=
-		</data>
-		<key>ios-arm64_x86_64-simulator/FBAudienceNetwork.framework/Modules/FBAudienceNetwork.swiftmodule/x86_64-apple-ios-simulator.swiftdoc</key>
-		<data>
-		bQAaKR6StuU/sDVvw99z8mhQZJs=
-		</data>
-		<key>ios-arm64_x86_64-simulator/FBAudienceNetwork.framework/Modules/FBAudienceNetwork.swiftmodule/x86_64-apple-ios-simulator.swiftinterface</key>
-		<data>
-		8pbzX5KpBzhwpudEDROkvh+QIGc=
+		97jlD4gruAIK7fBKaAC49p+Sx48=
 		</data>
 		<key>ios-arm64_x86_64-simulator/FBAudienceNetwork.framework/Modules/module.modulemap</key>
 		<data>
-		yIIfKxWPq7YurueD2Q35Q0H1ZWs=
+		WaJ32wSq8P8bmPo/S3nxgGaxAjs=
 		</data>
 		<key>ios-arm64_x86_64-simulator/FBAudienceNetwork.framework/PkgInfo</key>
 		<data>
@@ -434,27 +390,27 @@
 		</data>
 		<key>ios-arm64_x86_64-simulator/FBAudienceNetwork.framework/PrivacyInfo.xcprivacy</key>
 		<data>
-		iJf6SpfSfy71MDcGI+K9k1a78DU=
+		/IoNSvpjCTLQociq6B9xAKSP5JU=
 		</data>
 		<key>ios-arm64_x86_64-simulator/FBAudienceNetwork.framework/_CodeSignature/CodeDirectory</key>
 		<data>
-		IF8rNpmPZixKftJS3Yy8PhNbyF4=
+		DCEE7UCYDoR82e3Cdx3BI6zg5JM=
 		</data>
 		<key>ios-arm64_x86_64-simulator/FBAudienceNetwork.framework/_CodeSignature/CodeRequirements</key>
 		<data>
-		CQACt8eie/4PY4ITTASLl7fgxac=
+		OAsgpaYJs8ndOSn083O0522aV4A=
 		</data>
 		<key>ios-arm64_x86_64-simulator/FBAudienceNetwork.framework/_CodeSignature/CodeRequirements-1</key>
 		<data>
-		UMZmjMh3VXG7Y8WMDzcAu2w16VI=
+		Doz1wa/LrhTkHcnRNOZRkeb3Y9U=
 		</data>
 		<key>ios-arm64_x86_64-simulator/FBAudienceNetwork.framework/_CodeSignature/CodeResources</key>
 		<data>
-		FP+YakU6fD2dxdJBVUuZQGopYx4=
+		o+4ndV2DY9zrMc1PkAG6E4/sNrU=
 		</data>
 		<key>ios-arm64_x86_64-simulator/FBAudienceNetwork.framework/_CodeSignature/CodeSignature</key>
 		<data>
-		SUg6NwT5OAwRj/MqD8xYFoAUoKI=
+		hZMIky69Mz4KhznLM2KGSPWDeEA=
 		</data>
 	</dict>
 	<key>files2</key>
@@ -463,11 +419,11 @@
 		<dict>
 			<key>hash</key>
 			<data>
-			pRStDW10rSAmWV1Jfkug/8S1qP0=
+			dI72Kn8Nf1Rx8vXu4UI762l1z2I=
 			</data>
 			<key>hash2</key>
 			<data>
-			OjHfBYtYbGUbkAoqI/irDQRy90xRLxKRWYubDimssro=
+			tUc4zofC3q0AIojZe6MUDinz1/kO9cV5iNMjaP8kSh4=
 			</data>
 		</dict>
 		<key>ios-arm64/FBAudienceNetwork.framework/Headers/FBAdBridgeCommon.h</key>
@@ -518,11 +474,11 @@
 		<dict>
 			<key>hash</key>
 			<data>
-			eF5YA2yTwZ/qymrHCLrHNXxCcks=
+			cbNsMFe1LCnmJoPZpjzlGWK9DHY=
 			</data>
 			<key>hash2</key>
 			<data>
-			3CWJcYm2XCY646OOi0BxVi+RoONw3thuDzAEq0MLJ1Y=
+			kivM5THW/yPt6dGSuJ+a46mxuBYXO9TuR+OfIn+2LII=
 			</data>
 		</dict>
 		<key>ios-arm64/FBAudienceNetwork.framework/Headers/FBAdExperienceConfig.h</key>
@@ -551,11 +507,11 @@
 		<dict>
 			<key>hash</key>
 			<data>
-			/+v97NF+Zx/+IjwDIHYDs4Tghe0=
+			PYhHevgPMClCmfxBDuOtgdbBSC4=
 			</data>
 			<key>hash2</key>
 			<data>
-			Reix6LYciGMI8sR2MZORQIUT9iiaFknlfnutC6DisqE=
+			pOfr5CjQiYg9oQE8Q1+kZrPyeCtP0Ri25shDNA+rGG0=
 			</data>
 		</dict>
 		<key>ios-arm64/FBAudienceNetwork.framework/Headers/FBAdImage.h</key>
@@ -573,11 +529,11 @@
 		<dict>
 			<key>hash</key>
 			<data>
-			Id+HrpoYLEEmgxgEUQhvGfap6bU=
+			YVYY2IShDtM6mxq0NLTFDN9IrTk=
 			</data>
 			<key>hash2</key>
 			<data>
-			AyTv7l1bIkP5CvBa+LUKGvktSdUX6xevDJRsJuinLd0=
+			Wka7ErrMXCjP9jHuLhdX2qUUgklTG46XYcvEFh8y7uI=
 			</data>
 		</dict>
 		<key>ios-arm64/FBAudienceNetwork.framework/Headers/FBAdSDKNotificationManager.h</key>
@@ -595,11 +551,11 @@
 		<dict>
 			<key>hash</key>
 			<data>
-			XuAcKrNNIPYQNIRDb/xbZcY385k=
+			DkDTJ350eVRektGp8FKqd3f6C08=
 			</data>
 			<key>hash2</key>
 			<data>
-			6IO3gvzpTxywJLFJ/VPaqvlVRzG5B0oaNNCcjcLpEnA=
+			793pgggmT0CEv9SnN7TLnRpA6+QxoYmJwQCW19LHeXc=
 			</data>
 		</dict>
 		<key>ios-arm64/FBAudienceNetwork.framework/Headers/FBAdSettingsBridge.h</key>
@@ -657,26 +613,15 @@
 			6af6A0ZYL2djXooZTlBkHbvifK1+LfujFaneIDf12qM=
 			</data>
 		</dict>
-		<key>ios-arm64/FBAudienceNetwork.framework/Headers/FBAudienceNetwork-Swift.h</key>
-		<dict>
-			<key>hash</key>
-			<data>
-			4GMo9A/NhExIPcHAAWuOQpYFA10=
-			</data>
-			<key>hash2</key>
-			<data>
-			P/asykVX2jlIxEJO/+okp0gb9Rl91n2GgixVq2f9YQE=
-			</data>
-		</dict>
 		<key>ios-arm64/FBAudienceNetwork.framework/Headers/FBAudienceNetwork.h</key>
 		<dict>
 			<key>hash</key>
 			<data>
-			WxG6F/4sOO3MOjnJaJ3mClxnBXM=
+			q9lC5dhhagRRfLRr1k+/7z1zCmA=
 			</data>
 			<key>hash2</key>
 			<data>
-			c0+ZbpsoQuGUx6Z8DrWEO4bCARQYSK+cud+tSJVroLk=
+			yuWXyD9YYAceARdszCiXn6aKGRtXKDwtqV6+Pp0Pkgs=
 			</data>
 		</dict>
 		<key>ios-arm64/FBAudienceNetwork.framework/Headers/FBAudienceNetworkAds.h</key>
@@ -727,22 +672,22 @@
 		<dict>
 			<key>hash</key>
 			<data>
-			3fvdTi/3Zr9psjqLhl3U2e223Jc=
+			0MjRxmQwSKDVPEOuLJ2tgO5Mmn4=
 			</data>
 			<key>hash2</key>
 			<data>
-			SLiqZeM7KgciDL9akIVar8wYZl5LJRBlxjhl3/aRx38=
+			UY/Ug1qAttzR3B45FHyY0gXKYVW7Fto/hb5AN/OUNnI=
 			</data>
 		</dict>
 		<key>ios-arm64/FBAudienceNetwork.framework/Headers/FBMediaViewVideoRenderer.h</key>
 		<dict>
 			<key>hash</key>
 			<data>
-			FV86XsUoSK2Eo92AMNF8kLYqXbE=
+			FrQ5CPUdz8eh+S/SUFGJbSRav9I=
 			</data>
 			<key>hash2</key>
 			<data>
-			+6z2Ct1Zsm3exwpM++76PjX+Q4vkZoxKnYuIzewIl80=
+			tUpeTSWtY5yOB/F2n9uxgwLYR8NkrpNaelMPuoJUkPw=
 			</data>
 		</dict>
 		<key>ios-arm64/FBAudienceNetwork.framework/Headers/FBNativeAd.h</key>
@@ -936,55 +881,22 @@
 		<dict>
 			<key>hash</key>
 			<data>
-			TYCAns7l73ZCiNVjjaSCdy9fC1w=
+			61U3+3oi04sxqvra30/BTI9347w=
 			</data>
 			<key>hash2</key>
 			<data>
-			PWaB9kA/VALkPBovakk34ca9rb5RoOBsH2i9Hmi8mBQ=
-			</data>
-		</dict>
-		<key>ios-arm64/FBAudienceNetwork.framework/Modules/FBAudienceNetwork.swiftmodule/arm64-apple-ios.private.swiftinterface</key>
-		<dict>
-			<key>hash</key>
-			<data>
-			V6u8k5SmVgNYFqewJLf+34t1Uyg=
-			</data>
-			<key>hash2</key>
-			<data>
-			vGxew36oliGplgf86VpkD+L8uhvB7vVKE2NHSHd+EI4=
-			</data>
-		</dict>
-		<key>ios-arm64/FBAudienceNetwork.framework/Modules/FBAudienceNetwork.swiftmodule/arm64-apple-ios.swiftdoc</key>
-		<dict>
-			<key>hash</key>
-			<data>
-			hmsVTpBiNuAmYWFKFFz3iZdbZJM=
-			</data>
-			<key>hash2</key>
-			<data>
-			YRt8EF1te+N4jry3iQeVruRaW91uqDWI5cAPqqKZma0=
-			</data>
-		</dict>
-		<key>ios-arm64/FBAudienceNetwork.framework/Modules/FBAudienceNetwork.swiftmodule/arm64-apple-ios.swiftinterface</key>
-		<dict>
-			<key>hash</key>
-			<data>
-			V6u8k5SmVgNYFqewJLf+34t1Uyg=
-			</data>
-			<key>hash2</key>
-			<data>
-			vGxew36oliGplgf86VpkD+L8uhvB7vVKE2NHSHd+EI4=
+			clNSzXZaulAHW80LzZT+lhZ8FcuBYWDeCBZZE0aicLY=
 			</data>
 		</dict>
 		<key>ios-arm64/FBAudienceNetwork.framework/Modules/module.modulemap</key>
 		<dict>
 			<key>hash</key>
 			<data>
-			yIIfKxWPq7YurueD2Q35Q0H1ZWs=
+			WaJ32wSq8P8bmPo/S3nxgGaxAjs=
 			</data>
 			<key>hash2</key>
 			<data>
-			/tNWSi/Z7K4C04elb75ZMJeG3KYR2GqqOopnvt6th2s=
+			LtX4WzBZFOuVp84/dEBc5lQjF6qtP8hSD/vLU/AMmEc=
 			</data>
 		</dict>
 		<key>ios-arm64/FBAudienceNetwork.framework/PkgInfo</key>
@@ -1002,77 +914,77 @@
 		<dict>
 			<key>hash</key>
 			<data>
-			iJf6SpfSfy71MDcGI+K9k1a78DU=
+			/IoNSvpjCTLQociq6B9xAKSP5JU=
 			</data>
 			<key>hash2</key>
 			<data>
-			cSw93xWtIPxdaMlNpIyJu23eaMe/V5QkksYayESwhlc=
+			uNoQPhS2jLhZ8mPCOzVTVxgIljmsBkk0EtXDAuPX4Zc=
 			</data>
 		</dict>
 		<key>ios-arm64/FBAudienceNetwork.framework/_CodeSignature/CodeDirectory</key>
 		<dict>
 			<key>hash</key>
 			<data>
-			iFoEhDIqYjXLB/sjU4fQb2xvOxA=
+			rgJx11WtsHMJI/UydDZXp3ugbCM=
 			</data>
 			<key>hash2</key>
 			<data>
-			NrOsg4EgGVWAKmM7sS+UJWWz7+eEKAj4Zc5jhU8JRB4=
+			Z4pQHIl8cwhTQcob1WYNWQfdEBzyyOUCIEsnpi8qAGY=
 			</data>
 		</dict>
 		<key>ios-arm64/FBAudienceNetwork.framework/_CodeSignature/CodeRequirements</key>
 		<dict>
 			<key>hash</key>
 			<data>
-			CQACt8eie/4PY4ITTASLl7fgxac=
+			OAsgpaYJs8ndOSn083O0522aV4A=
 			</data>
 			<key>hash2</key>
 			<data>
-			AYyOLfnTWckododswySBjnouVM7sOgex0YglTCB3Cso=
+			MHz/rr9Q3TeBOZ8L2svkG1gvA6Y1U0wQJkNISI7BSrc=
 			</data>
 		</dict>
 		<key>ios-arm64/FBAudienceNetwork.framework/_CodeSignature/CodeRequirements-1</key>
 		<dict>
 			<key>hash</key>
 			<data>
-			dXvWTgiuLMkcCh0ZgcorTEb/HVw=
+			yEuRoEdfe4nOauPm8xABerNwRFo=
 			</data>
 			<key>hash2</key>
 			<data>
-			maG5D++J5ARQnRy1ThqcMTzViWKnETrfFiAPWKSAwu0=
+			LU4f/2KU+i281C5vCLhV9IPlceaQIj6TfeSfnUy5iMU=
 			</data>
 		</dict>
 		<key>ios-arm64/FBAudienceNetwork.framework/_CodeSignature/CodeResources</key>
 		<dict>
 			<key>hash</key>
 			<data>
-			Tx+CYfL4BJRTxKo2+thmQGgSNhU=
+			JAN4o6pm2S6ABPeTQ74dlTrGNJ4=
 			</data>
 			<key>hash2</key>
 			<data>
-			deJF93N6Z4mygjMVmbzgOmkquwzqep9y/x10LWm491A=
+			O9vpcUF/5a+D9vq3QtAjcCQOY+OQ45F2FDCt1XU9j2w=
 			</data>
 		</dict>
 		<key>ios-arm64/FBAudienceNetwork.framework/_CodeSignature/CodeSignature</key>
 		<dict>
 			<key>hash</key>
 			<data>
-			Gy/FASbbGhPXbtblWDhcrRXWADM=
+			GlqX9eJRAlyMLHIBugFegBAuGto=
 			</data>
 			<key>hash2</key>
 			<data>
-			wPPFWzSaHZ3GtUUBLAaw0dqjXdCRov1KqabteLw5LKA=
+			l2gtGdxU2c/CKMSZDfgNddchWe529fdx+ai0m0Qilg0=
 			</data>
 		</dict>
 		<key>ios-arm64_x86_64-simulator/FBAudienceNetwork.framework/FBAudienceNetwork</key>
 		<dict>
 			<key>hash</key>
 			<data>
-			MnS/lPdbaQmqNyBT3sx1ERO1Flg=
+			ic+AD0Zb2mK82KGDhwklDhAUD+k=
 			</data>
 			<key>hash2</key>
 			<data>
-			zJau93cfKdHWJuIulY93cuQXdYQ57Kj1DZ9i48O9hvk=
+			ZjIaX0/kC3EaWhqtrc/GU6o/UvmuvGeFOPOqI2VKnUs=
 			</data>
 		</dict>
 		<key>ios-arm64_x86_64-simulator/FBAudienceNetwork.framework/Headers/FBAdBridgeCommon.h</key>
@@ -1123,11 +1035,11 @@
 		<dict>
 			<key>hash</key>
 			<data>
-			eF5YA2yTwZ/qymrHCLrHNXxCcks=
+			cbNsMFe1LCnmJoPZpjzlGWK9DHY=
 			</data>
 			<key>hash2</key>
 			<data>
-			3CWJcYm2XCY646OOi0BxVi+RoONw3thuDzAEq0MLJ1Y=
+			kivM5THW/yPt6dGSuJ+a46mxuBYXO9TuR+OfIn+2LII=
 			</data>
 		</dict>
 		<key>ios-arm64_x86_64-simulator/FBAudienceNetwork.framework/Headers/FBAdExperienceConfig.h</key>
@@ -1156,11 +1068,11 @@
 		<dict>
 			<key>hash</key>
 			<data>
-			/+v97NF+Zx/+IjwDIHYDs4Tghe0=
+			PYhHevgPMClCmfxBDuOtgdbBSC4=
 			</data>
 			<key>hash2</key>
 			<data>
-			Reix6LYciGMI8sR2MZORQIUT9iiaFknlfnutC6DisqE=
+			pOfr5CjQiYg9oQE8Q1+kZrPyeCtP0Ri25shDNA+rGG0=
 			</data>
 		</dict>
 		<key>ios-arm64_x86_64-simulator/FBAudienceNetwork.framework/Headers/FBAdImage.h</key>
@@ -1178,11 +1090,11 @@
 		<dict>
 			<key>hash</key>
 			<data>
-			Id+HrpoYLEEmgxgEUQhvGfap6bU=
+			YVYY2IShDtM6mxq0NLTFDN9IrTk=
 			</data>
 			<key>hash2</key>
 			<data>
-			AyTv7l1bIkP5CvBa+LUKGvktSdUX6xevDJRsJuinLd0=
+			Wka7ErrMXCjP9jHuLhdX2qUUgklTG46XYcvEFh8y7uI=
 			</data>
 		</dict>
 		<key>ios-arm64_x86_64-simulator/FBAudienceNetwork.framework/Headers/FBAdSDKNotificationManager.h</key>
@@ -1200,11 +1112,11 @@
 		<dict>
 			<key>hash</key>
 			<data>
-			XuAcKrNNIPYQNIRDb/xbZcY385k=
+			DkDTJ350eVRektGp8FKqd3f6C08=
 			</data>
 			<key>hash2</key>
 			<data>
-			6IO3gvzpTxywJLFJ/VPaqvlVRzG5B0oaNNCcjcLpEnA=
+			793pgggmT0CEv9SnN7TLnRpA6+QxoYmJwQCW19LHeXc=
 			</data>
 		</dict>
 		<key>ios-arm64_x86_64-simulator/FBAudienceNetwork.framework/Headers/FBAdSettingsBridge.h</key>
@@ -1262,26 +1174,15 @@
 			6af6A0ZYL2djXooZTlBkHbvifK1+LfujFaneIDf12qM=
 			</data>
 		</dict>
-		<key>ios-arm64_x86_64-simulator/FBAudienceNetwork.framework/Headers/FBAudienceNetwork-Swift.h</key>
-		<dict>
-			<key>hash</key>
-			<data>
-			4GMo9A/NhExIPcHAAWuOQpYFA10=
-			</data>
-			<key>hash2</key>
-			<data>
-			P/asykVX2jlIxEJO/+okp0gb9Rl91n2GgixVq2f9YQE=
-			</data>
-		</dict>
 		<key>ios-arm64_x86_64-simulator/FBAudienceNetwork.framework/Headers/FBAudienceNetwork.h</key>
 		<dict>
 			<key>hash</key>
 			<data>
-			WxG6F/4sOO3MOjnJaJ3mClxnBXM=
+			q9lC5dhhagRRfLRr1k+/7z1zCmA=
 			</data>
 			<key>hash2</key>
 			<data>
-			c0+ZbpsoQuGUx6Z8DrWEO4bCARQYSK+cud+tSJVroLk=
+			yuWXyD9YYAceARdszCiXn6aKGRtXKDwtqV6+Pp0Pkgs=
 			</data>
 		</dict>
 		<key>ios-arm64_x86_64-simulator/FBAudienceNetwork.framework/Headers/FBAudienceNetworkAds.h</key>
@@ -1332,22 +1233,22 @@
 		<dict>
 			<key>hash</key>
 			<data>
-			3fvdTi/3Zr9psjqLhl3U2e223Jc=
+			0MjRxmQwSKDVPEOuLJ2tgO5Mmn4=
 			</data>
 			<key>hash2</key>
 			<data>
-			SLiqZeM7KgciDL9akIVar8wYZl5LJRBlxjhl3/aRx38=
+			UY/Ug1qAttzR3B45FHyY0gXKYVW7Fto/hb5AN/OUNnI=
 			</data>
 		</dict>
 		<key>ios-arm64_x86_64-simulator/FBAudienceNetwork.framework/Headers/FBMediaViewVideoRenderer.h</key>
 		<dict>
 			<key>hash</key>
 			<data>
-			FV86XsUoSK2Eo92AMNF8kLYqXbE=
+			FrQ5CPUdz8eh+S/SUFGJbSRav9I=
 			</data>
 			<key>hash2</key>
 			<data>
-			+6z2Ct1Zsm3exwpM++76PjX+Q4vkZoxKnYuIzewIl80=
+			tUpeTSWtY5yOB/F2n9uxgwLYR8NkrpNaelMPuoJUkPw=
 			</data>
 		</dict>
 		<key>ios-arm64_x86_64-simulator/FBAudienceNetwork.framework/Headers/FBNativeAd.h</key>
@@ -1541,88 +1442,22 @@
 		<dict>
 			<key>hash</key>
 			<data>
-			RTDMXCArD1R8Aa5jv6HycznUAt0=
+			97jlD4gruAIK7fBKaAC49p+Sx48=
 			</data>
 			<key>hash2</key>
 			<data>
-			fZraReM+PPqs2nLozNXzjSh+/dBtGlS6DNAotK+ZE4M=
-			</data>
-		</dict>
-		<key>ios-arm64_x86_64-simulator/FBAudienceNetwork.framework/Modules/FBAudienceNetwork.swiftmodule/arm64-apple-ios-simulator.private.swiftinterface</key>
-		<dict>
-			<key>hash</key>
-			<data>
-			Eaix7CMjlNA8E5hsSI2txVVnSPY=
-			</data>
-			<key>hash2</key>
-			<data>
-			AIeW1qMI1LjN2LMBkn2WkdyZXlrBSqpz2FdDt/iqXeY=
-			</data>
-		</dict>
-		<key>ios-arm64_x86_64-simulator/FBAudienceNetwork.framework/Modules/FBAudienceNetwork.swiftmodule/arm64-apple-ios-simulator.swiftdoc</key>
-		<dict>
-			<key>hash</key>
-			<data>
-			GrKyqHg4YQpFFwk2b7PxxtrvX7w=
-			</data>
-			<key>hash2</key>
-			<data>
-			5LLRy3TprhmZinWEuGED9brHcU7nHEcJoFnWxgIgObE=
-			</data>
-		</dict>
-		<key>ios-arm64_x86_64-simulator/FBAudienceNetwork.framework/Modules/FBAudienceNetwork.swiftmodule/arm64-apple-ios-simulator.swiftinterface</key>
-		<dict>
-			<key>hash</key>
-			<data>
-			Eaix7CMjlNA8E5hsSI2txVVnSPY=
-			</data>
-			<key>hash2</key>
-			<data>
-			AIeW1qMI1LjN2LMBkn2WkdyZXlrBSqpz2FdDt/iqXeY=
-			</data>
-		</dict>
-		<key>ios-arm64_x86_64-simulator/FBAudienceNetwork.framework/Modules/FBAudienceNetwork.swiftmodule/x86_64-apple-ios-simulator.private.swiftinterface</key>
-		<dict>
-			<key>hash</key>
-			<data>
-			8pbzX5KpBzhwpudEDROkvh+QIGc=
-			</data>
-			<key>hash2</key>
-			<data>
-			lLOLAmS3P4cboFP7ShOj+63DVAxmoIBr8byJKhqskH0=
-			</data>
-		</dict>
-		<key>ios-arm64_x86_64-simulator/FBAudienceNetwork.framework/Modules/FBAudienceNetwork.swiftmodule/x86_64-apple-ios-simulator.swiftdoc</key>
-		<dict>
-			<key>hash</key>
-			<data>
-			bQAaKR6StuU/sDVvw99z8mhQZJs=
-			</data>
-			<key>hash2</key>
-			<data>
-			iDuqs/+q5kFSmNOQfqfBQHjP8gmpPjWa68Gq6VzzMXk=
-			</data>
-		</dict>
-		<key>ios-arm64_x86_64-simulator/FBAudienceNetwork.framework/Modules/FBAudienceNetwork.swiftmodule/x86_64-apple-ios-simulator.swiftinterface</key>
-		<dict>
-			<key>hash</key>
-			<data>
-			8pbzX5KpBzhwpudEDROkvh+QIGc=
-			</data>
-			<key>hash2</key>
-			<data>
-			lLOLAmS3P4cboFP7ShOj+63DVAxmoIBr8byJKhqskH0=
+			iohxKG8r/HzVcs8pqQe2dzVHWgmP0B+SNgPHSIWa9Co=
 			</data>
 		</dict>
 		<key>ios-arm64_x86_64-simulator/FBAudienceNetwork.framework/Modules/module.modulemap</key>
 		<dict>
 			<key>hash</key>
 			<data>
-			yIIfKxWPq7YurueD2Q35Q0H1ZWs=
+			WaJ32wSq8P8bmPo/S3nxgGaxAjs=
 			</data>
 			<key>hash2</key>
 			<data>
-			/tNWSi/Z7K4C04elb75ZMJeG3KYR2GqqOopnvt6th2s=
+			LtX4WzBZFOuVp84/dEBc5lQjF6qtP8hSD/vLU/AMmEc=
 			</data>
 		</dict>
 		<key>ios-arm64_x86_64-simulator/FBAudienceNetwork.framework/PkgInfo</key>
@@ -1640,66 +1475,66 @@
 		<dict>
 			<key>hash</key>
 			<data>
-			iJf6SpfSfy71MDcGI+K9k1a78DU=
+			/IoNSvpjCTLQociq6B9xAKSP5JU=
 			</data>
 			<key>hash2</key>
 			<data>
-			cSw93xWtIPxdaMlNpIyJu23eaMe/V5QkksYayESwhlc=
+			uNoQPhS2jLhZ8mPCOzVTVxgIljmsBkk0EtXDAuPX4Zc=
 			</data>
 		</dict>
 		<key>ios-arm64_x86_64-simulator/FBAudienceNetwork.framework/_CodeSignature/CodeDirectory</key>
 		<dict>
 			<key>hash</key>
 			<data>
-			IF8rNpmPZixKftJS3Yy8PhNbyF4=
+			DCEE7UCYDoR82e3Cdx3BI6zg5JM=
 			</data>
 			<key>hash2</key>
 			<data>
-			YSDaFJ8DO+OQ47fwZrypfpwiywzEe5zgPgayKGlHOus=
+			vtggJuMlPsbkkwJKFfx5cdk6vaeoOAPcwyYkeYstNe4=
 			</data>
 		</dict>
 		<key>ios-arm64_x86_64-simulator/FBAudienceNetwork.framework/_CodeSignature/CodeRequirements</key>
 		<dict>
 			<key>hash</key>
 			<data>
-			CQACt8eie/4PY4ITTASLl7fgxac=
+			OAsgpaYJs8ndOSn083O0522aV4A=
 			</data>
 			<key>hash2</key>
 			<data>
-			AYyOLfnTWckododswySBjnouVM7sOgex0YglTCB3Cso=
+			MHz/rr9Q3TeBOZ8L2svkG1gvA6Y1U0wQJkNISI7BSrc=
 			</data>
 		</dict>
 		<key>ios-arm64_x86_64-simulator/FBAudienceNetwork.framework/_CodeSignature/CodeRequirements-1</key>
 		<dict>
 			<key>hash</key>
 			<data>
-			UMZmjMh3VXG7Y8WMDzcAu2w16VI=
+			Doz1wa/LrhTkHcnRNOZRkeb3Y9U=
 			</data>
 			<key>hash2</key>
 			<data>
-			FQ6cahzBiwGYq3HhMlYJW8Ug8pGe8ttuKNbHpESFZrU=
+			n61haag0EkmHGTCg+uUQ3nVWXMXnxm5MnwWQM/+tE5c=
 			</data>
 		</dict>
 		<key>ios-arm64_x86_64-simulator/FBAudienceNetwork.framework/_CodeSignature/CodeResources</key>
 		<dict>
 			<key>hash</key>
 			<data>
-			FP+YakU6fD2dxdJBVUuZQGopYx4=
+			o+4ndV2DY9zrMc1PkAG6E4/sNrU=
 			</data>
 			<key>hash2</key>
 			<data>
-			CusswWLwkquoJCAV3l5o81pUD+a1T5FkandrNb1I1sg=
+			M+/4YLP4l3Pv2e+QG62BIdioZYf5Y4hffC1J6CkRwqo=
 			</data>
 		</dict>
 		<key>ios-arm64_x86_64-simulator/FBAudienceNetwork.framework/_CodeSignature/CodeSignature</key>
 		<dict>
 			<key>hash</key>
 			<data>
-			SUg6NwT5OAwRj/MqD8xYFoAUoKI=
+			hZMIky69Mz4KhznLM2KGSPWDeEA=
 			</data>
 			<key>hash2</key>
 			<data>
-			JEM5gN8LwEmA9Tu+Ppw5FSklyHjf4Ps/v8qOGJfrDIA=
+			XHdbQcFActtdxhmn+LKdNusR39s1m8cL7Y2IxXgzmOQ=
 			</data>
 		</dict>
 	</dict>

@@ -22,7 +22,7 @@
 		</data>
 		<key>Headers/FBAdDefines.h</key>
 		<data>
-		eF5YA2yTwZ/qymrHCLrHNXxCcks=
+		cbNsMFe1LCnmJoPZpjzlGWK9DHY=
 		</data>
 		<key>Headers/FBAdExperienceConfig.h</key>
 		<data>
@@ -34,7 +34,7 @@
 		</data>
 		<key>Headers/FBAdIconView.h</key>
 		<data>
-		/+v97NF+Zx/+IjwDIHYDs4Tghe0=
+		PYhHevgPMClCmfxBDuOtgdbBSC4=
 		</data>
 		<key>Headers/FBAdImage.h</key>
 		<data>
@@ -42,7 +42,7 @@
 		</data>
 		<key>Headers/FBAdOptionsView.h</key>
 		<data>
-		Id+HrpoYLEEmgxgEUQhvGfap6bU=
+		YVYY2IShDtM6mxq0NLTFDN9IrTk=
 		</data>
 		<key>Headers/FBAdSDKNotificationManager.h</key>
 		<data>
@@ -50,7 +50,7 @@
 		</data>
 		<key>Headers/FBAdSettings.h</key>
 		<data>
-		XuAcKrNNIPYQNIRDb/xbZcY385k=
+		DkDTJ350eVRektGp8FKqd3f6C08=
 		</data>
 		<key>Headers/FBAdSettingsBridge.h</key>
 		<data>
@@ -72,13 +72,9 @@
 		<data>
 		OodJ7CV+yZ7t4qMfaw+Kf28t8b8=
 		</data>
-		<key>Headers/FBAudienceNetwork-Swift.h</key>
-		<data>
-		4GMo9A/NhExIPcHAAWuOQpYFA10=
-		</data>
 		<key>Headers/FBAudienceNetwork.h</key>
 		<data>
-		WxG6F/4sOO3MOjnJaJ3mClxnBXM=
+		q9lC5dhhagRRfLRr1k+/7z1zCmA=
 		</data>
 		<key>Headers/FBAudienceNetworkAds.h</key>
 		<data>
@@ -98,11 +94,11 @@
 		</data>
 		<key>Headers/FBMediaView.h</key>
 		<data>
-		3fvdTi/3Zr9psjqLhl3U2e223Jc=
+		0MjRxmQwSKDVPEOuLJ2tgO5Mmn4=
 		</data>
 		<key>Headers/FBMediaViewVideoRenderer.h</key>
 		<data>
-		FV86XsUoSK2Eo92AMNF8kLYqXbE=
+		FrQ5CPUdz8eh+S/SUFGJbSRav9I=
 		</data>
 		<key>Headers/FBNativeAd.h</key>
 		<data>
@@ -174,23 +170,11 @@
 		</data>
 		<key>Info.plist</key>
 		<data>
-		TYCAns7l73ZCiNVjjaSCdy9fC1w=
-		</data>
-		<key>Modules/FBAudienceNetwork.swiftmodule/arm64-apple-ios.private.swiftinterface</key>
-		<data>
-		V6u8k5SmVgNYFqewJLf+34t1Uyg=
-		</data>
-		<key>Modules/FBAudienceNetwork.swiftmodule/arm64-apple-ios.swiftdoc</key>
-		<data>
-		hmsVTpBiNuAmYWFKFFz3iZdbZJM=
-		</data>
-		<key>Modules/FBAudienceNetwork.swiftmodule/arm64-apple-ios.swiftinterface</key>
-		<data>
-		V6u8k5SmVgNYFqewJLf+34t1Uyg=
+		61U3+3oi04sxqvra30/BTI9347w=
 		</data>
 		<key>Modules/module.modulemap</key>
 		<data>
-		yIIfKxWPq7YurueD2Q35Q0H1ZWs=
+		WaJ32wSq8P8bmPo/S3nxgGaxAjs=
 		</data>
 		<key>PkgInfo</key>
 		<data>
@@ -198,7 +182,7 @@
 		</data>
 		<key>PrivacyInfo.xcprivacy</key>
 		<data>
-		iJf6SpfSfy71MDcGI+K9k1a78DU=
+		/IoNSvpjCTLQociq6B9xAKSP5JU=
 		</data>
 	</dict>
 	<key>files2</key>
@@ -251,11 +235,11 @@
 		<dict>
 			<key>hash</key>
 			<data>
-			eF5YA2yTwZ/qymrHCLrHNXxCcks=
+			cbNsMFe1LCnmJoPZpjzlGWK9DHY=
 			</data>
 			<key>hash2</key>
 			<data>
-			3CWJcYm2XCY646OOi0BxVi+RoONw3thuDzAEq0MLJ1Y=
+			kivM5THW/yPt6dGSuJ+a46mxuBYXO9TuR+OfIn+2LII=
 			</data>
 		</dict>
 		<key>Headers/FBAdExperienceConfig.h</key>
@@ -284,11 +268,11 @@
 		<dict>
 			<key>hash</key>
 			<data>
-			/+v97NF+Zx/+IjwDIHYDs4Tghe0=
+			PYhHevgPMClCmfxBDuOtgdbBSC4=
 			</data>
 			<key>hash2</key>
 			<data>
-			Reix6LYciGMI8sR2MZORQIUT9iiaFknlfnutC6DisqE=
+			pOfr5CjQiYg9oQE8Q1+kZrPyeCtP0Ri25shDNA+rGG0=
 			</data>
 		</dict>
 		<key>Headers/FBAdImage.h</key>
@@ -306,11 +290,11 @@
 		<dict>
 			<key>hash</key>
 			<data>
-			Id+HrpoYLEEmgxgEUQhvGfap6bU=
+			YVYY2IShDtM6mxq0NLTFDN9IrTk=
 			</data>
 			<key>hash2</key>
 			<data>
-			AyTv7l1bIkP5CvBa+LUKGvktSdUX6xevDJRsJuinLd0=
+			Wka7ErrMXCjP9jHuLhdX2qUUgklTG46XYcvEFh8y7uI=
 			</data>
 		</dict>
 		<key>Headers/FBAdSDKNotificationManager.h</key>
@@ -328,11 +312,11 @@
 		<dict>
 			<key>hash</key>
 			<data>
-			XuAcKrNNIPYQNIRDb/xbZcY385k=
+			DkDTJ350eVRektGp8FKqd3f6C08=
 			</data>
 			<key>hash2</key>
 			<data>
-			6IO3gvzpTxywJLFJ/VPaqvlVRzG5B0oaNNCcjcLpEnA=
+			793pgggmT0CEv9SnN7TLnRpA6+QxoYmJwQCW19LHeXc=
 			</data>
 		</dict>
 		<key>Headers/FBAdSettingsBridge.h</key>
@@ -390,26 +374,15 @@
 			6af6A0ZYL2djXooZTlBkHbvifK1+LfujFaneIDf12qM=
 			</data>
 		</dict>
-		<key>Headers/FBAudienceNetwork-Swift.h</key>
-		<dict>
-			<key>hash</key>
-			<data>
-			4GMo9A/NhExIPcHAAWuOQpYFA10=
-			</data>
-			<key>hash2</key>
-			<data>
-			P/asykVX2jlIxEJO/+okp0gb9Rl91n2GgixVq2f9YQE=
-			</data>
-		</dict>
 		<key>Headers/FBAudienceNetwork.h</key>
 		<dict>
 			<key>hash</key>
 			<data>
-			WxG6F/4sOO3MOjnJaJ3mClxnBXM=
+			q9lC5dhhagRRfLRr1k+/7z1zCmA=
 			</data>
 			<key>hash2</key>
 			<data>
-			c0+ZbpsoQuGUx6Z8DrWEO4bCARQYSK+cud+tSJVroLk=
+			yuWXyD9YYAceARdszCiXn6aKGRtXKDwtqV6+Pp0Pkgs=
 			</data>
 		</dict>
 		<key>Headers/FBAudienceNetworkAds.h</key>
@@ -460,22 +433,22 @@
 		<dict>
 			<key>hash</key>
 			<data>
-			3fvdTi/3Zr9psjqLhl3U2e223Jc=
+			0MjRxmQwSKDVPEOuLJ2tgO5Mmn4=
 			</data>
 			<key>hash2</key>
 			<data>
-			SLiqZeM7KgciDL9akIVar8wYZl5LJRBlxjhl3/aRx38=
+			UY/Ug1qAttzR3B45FHyY0gXKYVW7Fto/hb5AN/OUNnI=
 			</data>
 		</dict>
 		<key>Headers/FBMediaViewVideoRenderer.h</key>
 		<dict>
 			<key>hash</key>
 			<data>
-			FV86XsUoSK2Eo92AMNF8kLYqXbE=
+			FrQ5CPUdz8eh+S/SUFGJbSRav9I=
 			</data>
 			<key>hash2</key>
 			<data>
-			+6z2Ct1Zsm3exwpM++76PjX+Q4vkZoxKnYuIzewIl80=
+			tUpeTSWtY5yOB/F2n9uxgwLYR8NkrpNaelMPuoJUkPw=
 			</data>
 		</dict>
 		<key>Headers/FBNativeAd.h</key>
@@ -665,59 +638,26 @@
 			+MnUlXhK83jI9ajQxYZoLkV1ou3hSilb1idDllCkq6E=
 			</data>
 		</dict>
-		<key>Modules/FBAudienceNetwork.swiftmodule/arm64-apple-ios.private.swiftinterface</key>
-		<dict>
-			<key>hash</key>
-			<data>
-			V6u8k5SmVgNYFqewJLf+34t1Uyg=
-			</data>
-			<key>hash2</key>
-			<data>
-			vGxew36oliGplgf86VpkD+L8uhvB7vVKE2NHSHd+EI4=
-			</data>
-		</dict>
-		<key>Modules/FBAudienceNetwork.swiftmodule/arm64-apple-ios.swiftdoc</key>
-		<dict>
-			<key>hash</key>
-			<data>
-			hmsVTpBiNuAmYWFKFFz3iZdbZJM=
-			</data>
-			<key>hash2</key>
-			<data>
-			YRt8EF1te+N4jry3iQeVruRaW91uqDWI5cAPqqKZma0=
-			</data>
-		</dict>
-		<key>Modules/FBAudienceNetwork.swiftmodule/arm64-apple-ios.swiftinterface</key>
-		<dict>
-			<key>hash</key>
-			<data>
-			V6u8k5SmVgNYFqewJLf+34t1Uyg=
-			</data>
-			<key>hash2</key>
-			<data>
-			vGxew36oliGplgf86VpkD+L8uhvB7vVKE2NHSHd+EI4=
-			</data>
-		</dict>
 		<key>Modules/module.modulemap</key>
 		<dict>
 			<key>hash</key>
 			<data>
-			yIIfKxWPq7YurueD2Q35Q0H1ZWs=
+			WaJ32wSq8P8bmPo/S3nxgGaxAjs=
 			</data>
 			<key>hash2</key>
 			<data>
-			/tNWSi/Z7K4C04elb75ZMJeG3KYR2GqqOopnvt6th2s=
+			LtX4WzBZFOuVp84/dEBc5lQjF6qtP8hSD/vLU/AMmEc=
 			</data>
 		</dict>
 		<key>PrivacyInfo.xcprivacy</key>
 		<dict>
 			<key>hash</key>
 			<data>
-			iJf6SpfSfy71MDcGI+K9k1a78DU=
+			/IoNSvpjCTLQociq6B9xAKSP5JU=
 			</data>
 			<key>hash2</key>
 			<data>
-			cSw93xWtIPxdaMlNpIyJu23eaMe/V5QkksYayESwhlc=
+			uNoQPhS2jLhZ8mPCOzVTVxgIljmsBkk0EtXDAuPX4Zc=
 			</data>
 		</dict>
 	</dict>

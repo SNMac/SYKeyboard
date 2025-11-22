@@ -26,6 +26,7 @@ framework module FBAudienceNetwork {
     link framework "UIKit"
     link framework "WebKit"
     link framework "VideoToolbox"
+    link framework "AppTrackingTransparency"
 
     link "c++"
     link "xml2"
@@ -55,5 +56,4 @@ framework module FBAudienceNetwork {
     header "FBAdViewBridge.h"
     header "FBInterstitialAdBridge.h"
     header "FBRewardedVideoAdBridge.h"
-    header "FBAudienceNetwork-Swift.h"
 }

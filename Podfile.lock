@@ -1,5 +1,5 @@
 PODS:
-  - FBAudienceNetwork (6.17.1)
+  - FBAudienceNetwork (6.21.0)
 
 DEPENDENCIES:
   - FBAudienceNetwork
@@ -9,7 +9,7 @@ SPEC REPOS:
     - FBAudienceNetwork
 
 SPEC CHECKSUMS:
-  FBAudienceNetwork: eb3ffbf2b35df25e21e163657044ffef66616a40
+  FBAudienceNetwork: f4ab9e073ab98c884dbdb5ffe7c861272b380bc2
 
 PODFILE CHECKSUM: 6786c3fb6b0287c259c1556153023b0a304aa694
 
