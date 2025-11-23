@@ -58,7 +58,7 @@ private extension SecondaryKeyButton {
             guard let key = type.keys.first else { return }
             _titleLabel.text = key
             
-            if key.count == 1 && Character(key).isLowercase {
+            if key.count == 1 {
                 if Character(key).isLowercase {
                     _titleLabel.font = .systemFont(ofSize: FontSize.lowercaseKeySize)
                 } else {
