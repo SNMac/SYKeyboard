@@ -507,7 +507,7 @@ extension BaseKeyboardViewController {
             repeatInsertKeyText(from: keys)
             button.playFeedback()
         case .deleteButton:
-            if textDocumentProxy.documentContextBeforeInput != nil {
+            if textDocumentProxy.documentContextBeforeInput != nil || textDocumentProxy.selectedText != nil {
                 repeatDeleteBackward()
                 button.playFeedback()
             }
