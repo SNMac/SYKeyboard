@@ -77,7 +77,6 @@ private extension BaseKeyboardButton {
         var buttonConfig = UIButton.Configuration.plain()
         buttonConfig.contentInsets = .zero
         buttonConfig.titleAlignment = .center
-        buttonConfig.baseForegroundColor = .label
         buttonConfig.automaticallyUpdateForSelection = false
         self.configuration = buttonConfig
     }

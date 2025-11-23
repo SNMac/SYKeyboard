@@ -97,7 +97,7 @@ private extension ShiftButton {
         case .english:
             self.configuration?.image = UIImage(systemName: "shift")?.withConfiguration(imageConfig).withTintColor(.label, renderingMode: .alwaysOriginal)
         case .symbol:
-            let attributes = AttributeContainer([.font: UIFont.monospacedSystemFont(ofSize: 16, weight: .regular)])
+            let attributes = AttributeContainer([.font: UIFont.monospacedSystemFont(ofSize: 16, weight: .regular), .foregroundColor: UIColor.label])
             self.configuration?.attributedTitle = AttributedString("1/2", attributes: attributes)
             
             self.configurationUpdateHandler = { [weak self] button in

@@ -66,14 +66,15 @@ final class SwitchButton: SecondaryButton {
     
     override func layoutSubviews() {
         super.layoutSubviews()
+        
         if self.backgroundView.bounds.width < 40 {
-            let attributes = AttributeContainer([.font: UIFont.monospacedDigitSystemFont(ofSize: 14, weight: .regular)])
+            let attributes = AttributeContainer([.font: UIFont.monospacedDigitSystemFont(ofSize: 14, weight: .regular), .foregroundColor: UIColor.label])
             self.configuration?.attributedTitle = AttributedString(title, attributes: attributes)
         } else if self.backgroundView.bounds.width < 44 {
-            let attributes = AttributeContainer([.font: UIFont.monospacedDigitSystemFont(ofSize: 16, weight: .regular)])
+            let attributes = AttributeContainer([.font: UIFont.monospacedDigitSystemFont(ofSize: 16, weight: .regular), .foregroundColor: UIColor.label])
             self.configuration?.attributedTitle = AttributedString(title, attributes: attributes)
         } else {
-            let attributes = AttributeContainer([.font: UIFont.monospacedDigitSystemFont(ofSize: 18, weight: .regular)])
+            let attributes = AttributeContainer([.font: UIFont.monospacedDigitSystemFont(ofSize: 18, weight: .regular), .foregroundColor: UIColor.label])
             self.configuration?.attributedTitle = AttributedString(title, attributes: attributes)
         }
     }
@@ -109,7 +110,7 @@ private extension SwitchButton {
         oneHandedLabel.isHidden = !UserDefaultsManager.shared.isOneHandedKeyboardEnabled
         keyboardSelectLabel.isHidden = !UserDefaultsManager.shared.isNumericKeypadEnabled
         
-        let attributes = AttributeContainer([.font: UIFont.monospacedDigitSystemFont(ofSize: 18, weight: .regular)])
+        let attributes = AttributeContainer([.font: UIFont.monospacedDigitSystemFont(ofSize: 18, weight: .regular), .foregroundColor: UIColor.label])
         self.configuration?.attributedTitle = AttributedString(title, attributes: attributes)
     }
     
@@ -170,8 +171,8 @@ private extension SwitchButton {
     
     func createKeyboardSelectAttributedText(needToEmphasize: Bool) -> NSAttributedString? {
         let imageConfig = UIImage.SymbolConfiguration(pointSize: 9, weight: needToEmphasize ? .bold : .regular)
-        let font = UIFont.systemFont(ofSize: 9, weight: needToEmphasize ? .bold : .regular)
-        let attributes: [NSAttributedString.Key: Any] = [.font: font]
+        let attributes: [NSAttributedString.Key: Any] = [.font: UIFont.systemFont(ofSize: 9, weight: needToEmphasize ? .bold : .regular),
+                                                         .foregroundColor: UIColor.label]
         
         let text: String
         let arrowtriangle = NSTextAttachment()
