@@ -20,11 +20,16 @@ class BaseKeyboardButton: UIButton {
     
     final var isPressed: Bool = false {
         didSet {
-            if oldValue != isPressed {
-                setNeedsUpdateConfiguration()
-            }
+            self.setNeedsUpdateConfiguration()
         }
     }
+    
+    // MARK: - UI Components
+    
+    /// 배경 UI
+    final lazy var backgroundView = ButtonBackgroundView(cornerRadius: self.cornerRadius)
+    /// 그림자 UI
+    final lazy var shadowView = ButtonShadowView(cornerRadius: self.cornerRadius)
     
     // MARK: - Initializer
     
@@ -61,6 +66,8 @@ class BaseKeyboardButton: UIButton {
 private extension BaseKeyboardButton {
     func setupUI() {
         setStyles()
+        setHierarchy()
+        setConstraints()
     }
     
     func setStyles() {
@@ -68,9 +75,27 @@ private extension BaseKeyboardButton {
         self.backgroundColor = .systemBackground.withAlphaComponent(0.001)  // 터치 영역 확보용
         
         var buttonConfig = UIButton.Configuration.plain()
-        buttonConfig.automaticallyUpdateForSelection = false
         buttonConfig.contentInsets = .zero
         buttonConfig.titleAlignment = .center
+        buttonConfig.baseForegroundColor = .label
+        buttonConfig.automaticallyUpdateForSelection = false
         self.configuration = buttonConfig
+    }
+    
+    func setHierarchy() {
+        self.insertSubview(shadowView, at: 0)
+        self.insertSubview(backgroundView, at: 1)
+    }
+    
+    func setConstraints() {
+        shadowView.snp.makeConstraints {
+            $0.top.bottom.equalToSuperview().inset(self.insetDy)
+            $0.leading.trailing.equalToSuperview().inset(self.insetDx)
+        }
+        
+        backgroundView.snp.makeConstraints {
+            $0.top.bottom.equalToSuperview().inset(self.insetDy)
+            $0.leading.trailing.equalToSuperview().inset(self.insetDx)
+        }
     }
 }

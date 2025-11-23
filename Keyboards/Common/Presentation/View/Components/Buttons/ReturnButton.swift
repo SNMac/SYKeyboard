@@ -123,16 +123,16 @@ extension ReturnButton {
         }
         
         var normalAttributedTitle: AttributedString? {
-            guard let string = self.title else { return nil }
+            guard let title else { return nil }
             let foregroundColor = self.backgroundColor == UIColor.systemBlue ? UIColor.white : UIColor.label
             let attributes = AttributeContainer([.font: UIFont.systemFont(ofSize: 18, weight: .regular), .foregroundColor: foregroundColor])
-            return AttributedString(string, attributes: attributes)
+            return AttributedString(title, attributes: attributes)
         }
         
         var highlightedAttributedTitle: AttributedString? {
-            guard let string = self.title else { return nil }
+            guard let title else { return nil }
             let attributes = AttributeContainer([.font: UIFont.systemFont(ofSize: 18, weight: .regular), .foregroundColor: UIColor.label])
-            return AttributedString(string, attributes: attributes)
+            return AttributedString(title, attributes: attributes)
         }
         
         var image: UIImage? {

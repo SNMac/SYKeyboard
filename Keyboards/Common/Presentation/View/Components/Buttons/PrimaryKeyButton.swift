@@ -69,22 +69,22 @@ final class PrimaryKeyButton: PrimaryButton, TextInteractable {
     }
     
     /// 키의 시각적 정렬을 업데이트합니다.
-     /// - Parameters:
-     ///   - alignment: 정렬 방향 (`.left`, `.right`, `.center`)
-     ///   - referenceKey: 시각적 너비의 기준이 될 뷰 (예: `'s'` 키)
-     func updateKeyAlignment(_ alignment: KeyAlignment, referenceKey: PrimaryButton) {
-         self.keyAlignment = alignment
-         self.referenceKey = referenceKey
-         
-         remakeConstraintsForVisuals()
-     }
+    /// - Parameters:
+    ///   - alignment: 정렬 방향 (`.left`, `.right`, `.center`)
+    ///   - referenceKey: 시각적 너비의 기준이 될 뷰 (예: `'s'` 키)
+    func updateKeyAlignment(_ alignment: KeyAlignment, referenceKey: PrimaryButton) {
+        self.keyAlignment = alignment
+        self.referenceKey = referenceKey
+        
+        remakeConstraintsForVisuals()
+    }
 }
 
 // MARK: - Update Methods
 
 private extension PrimaryKeyButton {
     func remakeConstraintsForVisuals() {
-        guard let referenceKey = referenceKey else { return }
+        guard let referenceKey else { return }
         
         // ShadowView 제약 조건 재설정
         shadowView.snp.remakeConstraints {
@@ -119,7 +119,7 @@ private extension PrimaryKeyButton {
     
     func updateTitleInsets() {
         // referenceKey가 존재하는 경우에만 수행
-        guard let referenceKey = referenceKey else {
+        guard let referenceKey else {
             self.configuration?.contentInsets = .zero
             return
         }
@@ -154,19 +154,19 @@ private extension PrimaryKeyButton {
             guard let key = keys.first else { return }
             if key.count == 1 {
                 if Character(key).isLowercase {
-                    self.configuration?.attributedTitle = AttributedString(key, attributes: AttributeContainer([.font: UIFont.systemFont(ofSize: 24, weight: .regular), .foregroundColor: UIColor.label]))
+                    self.configuration?.attributedTitle = AttributedString(key, attributes: AttributeContainer([.font: UIFont.systemFont(ofSize: 24, weight: .regular)]))
                 } else if Character(key).isUppercase {
-                    self.configuration?.attributedTitle = AttributedString(key, attributes: AttributeContainer([.font: UIFont.systemFont(ofSize: 22, weight: .regular), .foregroundColor: UIColor.label]))
+                    self.configuration?.attributedTitle = AttributedString(key, attributes: AttributeContainer([.font: UIFont.systemFont(ofSize: 22, weight: .regular)]))
                 } else {
-                    self.configuration?.attributedTitle = AttributedString(key, attributes: AttributeContainer([.font: UIFont.systemFont(ofSize: 22, weight: .regular), .foregroundColor: UIColor.label]))
+                    self.configuration?.attributedTitle = AttributedString(key, attributes: AttributeContainer([.font: UIFont.systemFont(ofSize: 22, weight: .regular)]))
                 }
             } else {
-                self.configuration?.attributedTitle = AttributedString(key, attributes: AttributeContainer([.font: UIFont.systemFont(ofSize: 18, weight: .regular), .foregroundColor: UIColor.label]))
+                self.configuration?.attributedTitle = AttributedString(key, attributes: AttributeContainer([.font: UIFont.systemFont(ofSize: 18, weight: .regular)]))
             }
             
         } else {
             let joined = keys.joined(separator: "")
-            self.configuration?.attributedTitle = AttributedString(joined, attributes: AttributeContainer([.font: UIFont.systemFont(ofSize: 22, weight: .regular), .foregroundColor: UIColor.label]))
+            self.configuration?.attributedTitle = AttributedString(joined, attributes: AttributeContainer([.font: UIFont.systemFont(ofSize: 22, weight: .regular)]))
         }
     }
 }
