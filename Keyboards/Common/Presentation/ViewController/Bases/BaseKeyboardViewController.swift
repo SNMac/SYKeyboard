@@ -251,7 +251,6 @@ private extension BaseKeyboardViewController {
     }
     
     func setConstraints() {
-        // TODO: 가로모드
         keyboardFrameHStackView.snp.makeConstraints {
             $0.edges.equalToSuperview()
         }
@@ -280,7 +279,7 @@ private extension BaseKeyboardViewController {
     func setKeyboardHeight() {
         let keyboardHeight: CGFloat
         if let orientation = self.view.window?.windowScene?.effectiveGeometry.interfaceOrientation {
-            keyboardHeight = orientation == .portrait ? UserDefaultsManager.shared.keyboardHeight : KeyboardSize.landscapeKeyboardHeight
+            keyboardHeight = orientation == .portrait ? UserDefaultsManager.shared.keyboardHeight : KeyboardLayoutFigure.landscapeKeyboardHeight
         } else {
             assertionFailure("View가 window 계층에 없습니다.")
             keyboardHeight = UserDefaultsManager.shared.keyboardHeight
@@ -486,11 +485,10 @@ extension BaseKeyboardViewController {
             if !attemptToRestoreReplacementWord() {
                 if let selectedText = textDocumentProxy.selectedText {
                     tempDeletedCharacters.append(contentsOf: selectedText.reversed())
-                    deleteBackward()
                 } else if let lastBeforeCursor = textDocumentProxy.documentContextBeforeInput?.last {
                     tempDeletedCharacters.append(lastBeforeCursor)
-                    deleteBackward()
                 }
+                deleteBackward()
             }
         case .spaceButton:
             attemptToReplaceCurrentWord()
@@ -507,15 +505,18 @@ extension BaseKeyboardViewController {
         switch button.type {
         case .keyButton(let keys):
             repeatInsertKeyText(from: keys)
+            button.playFeedback()
         case .deleteButton:
             if textDocumentProxy.documentContextBeforeInput != nil || textDocumentProxy.selectedText != nil {
                 repeatDeleteBackward()
+                button.playFeedback()
             }
         case .spaceButton:
             insertSpaceText()
-            
+            button.playFeedback()
         case .returnButton:
             insertReturnText()
+            button.playFeedback()
         }
     }
     
@@ -599,7 +600,7 @@ extension BaseKeyboardViewController: TextInteractionGestureControllerDelegate {
         case .left:
             if let lastBeforeCursor = textDocumentProxy.documentContextBeforeInput?.last {
                 tempDeletedCharacters.append(lastBeforeCursor)
-                deleteBackward()
+                textDocumentProxy.deleteBackward()
                 FeedbackManager.shared.playHaptic()
                 FeedbackManager.shared.playDeleteSound()
                 logger.debug("커서 앞 글자 삭제")
@@ -629,7 +630,6 @@ extension BaseKeyboardViewController: TextInteractionGestureControllerDelegate {
             .autoconnect()
             .sink { [weak self] _ in
                 self?.performRepeatTextInteraction(for: button)
-                button.playFeedback()
             }
         logger.debug("반복 타이머 생성")
     }

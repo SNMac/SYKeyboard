@@ -16,7 +16,7 @@ final class ShiftButton: SecondaryButton {
     
     private let keyboard: SYKeyboardType
     
-    private let imageConfig = UIImage.SymbolConfiguration(pointSize: 16, weight: .medium)
+    private let imageConfig = UIImage.SymbolConfiguration(pointSize: FontSize.imageSize, weight: .medium)
     
     // MARK: - Initializer
     
@@ -44,18 +44,18 @@ final class ShiftButton: SecondaryButton {
         switch keyboard {
         case .hangeul, .english:
             if isShifted {
-                self.isSelected = true
+                self.isGesturing = true
                 self.configuration?.image = UIImage(systemName: "shift.fill")?.withConfiguration(imageConfig).withTintColor(.label, renderingMode: .alwaysOriginal)
                 self.backgroundView.backgroundColor = .secondaryButtonPressed
             } else {
-                self.isSelected = false
+                self.isGesturing = false
                 self.configuration?.image = UIImage(systemName: "shift")?.withConfiguration(imageConfig).withTintColor(.label, renderingMode: .alwaysOriginal)
             }
         case .symbol:
             if isShifted {
-                self.configuration?.attributedTitle?.characters = .init("2/2")
+                _titleLabel.text = "2/2"
             } else {
-                self.configuration?.attributedTitle?.characters = .init("1/2")
+                _titleLabel.text = "1/2"
             }
         default:
             assertionFailure("도달할 수 없는 case 입니다.")
@@ -67,12 +67,12 @@ final class ShiftButton: SecondaryButton {
         case .hangeul, .english:
             if isCapsLocked {
                 self.isPressed = true
-                self.isSelected = true
+                self.isGesturing = true
                 self.configuration?.image = UIImage(systemName: "capslock.fill")?.withConfiguration(imageConfig).withTintColor(.label, renderingMode: .alwaysOriginal)
                 self.backgroundView.backgroundColor = .secondaryButtonPressed
             } else {
                 self.isPressed = false
-                self.isSelected = false
+                self.isGesturing = false
                 self.configuration?.image = UIImage(systemName: "shift")?.withConfiguration(imageConfig).withTintColor(.label, renderingMode: .alwaysOriginal)
             }
         default:
@@ -89,26 +89,33 @@ private extension ShiftButton {
     }
     
     func setStyles() {
-        self.configuration?.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 6)
-        self.shadowView.snp.updateConstraints { $0.trailing.equalToSuperview().inset(self.insetDx + 6) }
-        self.backgroundView.snp.updateConstraints { $0.trailing.equalToSuperview().inset(self.insetDx + 6) }
+        shadowView.snp.updateConstraints {
+            $0.trailing.equalToSuperview().inset(insetDx + KeyboardLayoutFigure.buttonHorizontalInset)
+        }
+        backgroundView.snp.updateConstraints {
+            $0.trailing.equalToSuperview().inset(insetDx + KeyboardLayoutFigure.buttonHorizontalInset)
+        }
         
         switch keyboard {
-        case .english:
+        case .hangeul, .english:
+            self.configuration?.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 0, bottom: 0, trailing: KeyboardLayoutFigure.buttonHorizontalInset)
             self.configuration?.image = UIImage(systemName: "shift")?.withConfiguration(imageConfig).withTintColor(.label, renderingMode: .alwaysOriginal)
         case .symbol:
-            let attributes = AttributeContainer([.font: UIFont.monospacedSystemFont(ofSize: 16, weight: .regular), .foregroundColor: UIColor.label])
-            self.configuration?.attributedTitle = AttributedString("1/2", attributes: attributes)
+            _titleLabel.snp.updateConstraints {
+                $0.trailing.equalToSuperview().inset(insetDx + KeyboardLayoutFigure.buttonHorizontalInset)
+            }
+            _titleLabel.text = "1/2"
+            _titleLabel.font = .monospacedSystemFont(ofSize: 16, weight: .regular)
             
             self.configurationUpdateHandler = { [weak self] button in
                 switch button.state {
-                case .normal, .highlighted, .selected:
+                case .normal, .highlighted:
                     self?.backgroundView.backgroundColor = .secondaryButton
                 default:
                     break
                 }
             }
-        default:
+        case .numeric, .tenKey:
             assertionFailure("도달할 수 없는 case 입니다.")
         }
     }

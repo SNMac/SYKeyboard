@@ -146,14 +146,14 @@ private extension FourByFourKeyboardView {
         keyboardSelectOverlayView.snp.makeConstraints {
             $0.trailing.equalToSuperview().inset(4)
             $0.centerY.equalTo(returnButton)
-            $0.width.equalToSuperview().multipliedBy(KeyboardSize.keyboardSelectOverlayWidthMultiplier)
+            $0.width.equalToSuperview().multipliedBy(KeyboardLayoutFigure.keyboardSelectOverlayWidthMultiplier)
             $0.height.equalTo(returnButton)
         }
         
         oneHandedModeSelectOverlayView.snp.makeConstraints {
             $0.trailing.equalToSuperview().inset(4)
             $0.centerY.equalTo(returnButton)
-            $0.width.equalToSuperview().multipliedBy(KeyboardSize.oneHandedModeSelectOverlayWidthMultiplier)
+            $0.width.equalToSuperview().multipliedBy(KeyboardLayoutFigure.oneHandedModeSelectOverlayWidthMultiplier)
             $0.height.equalTo(returnButton)
         }
     }

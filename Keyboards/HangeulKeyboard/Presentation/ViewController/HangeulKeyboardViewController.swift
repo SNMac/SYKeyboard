@@ -158,8 +158,8 @@ final class HangeulKeyboardViewController: BaseKeyboardViewController {
     }
     
     override func repeatDeleteBackward() {
-        super.repeatDeleteBackward()
-        buffer.removeAll()
+        textDocumentProxy.deleteBackward()
+        buffer.removeLast()
         lastInputText = nil
     }
 }
