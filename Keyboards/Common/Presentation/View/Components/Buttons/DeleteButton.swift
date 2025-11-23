@@ -48,20 +48,25 @@ private extension DeleteButton {
     func setStyles() {
         switch keyboard {
         case .english, .symbol:
-            self.configuration?.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 6, bottom: 0, trailing: 0)
-            self.shadowView.snp.updateConstraints { $0.leading.equalToSuperview().inset(self.insetDx + 6) }
-            self.backgroundView.snp.updateConstraints { $0.leading.equalToSuperview().inset(self.insetDx + 6) }
+            self.configuration?.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: KeyboardLayoutFigure.buttonHorizontalInset, bottom: 0, trailing: 0)
+            shadowView.snp.updateConstraints { $0.leading.equalToSuperview().inset(insetDx + KeyboardLayoutFigure.buttonHorizontalInset) }
+            backgroundView.snp.updateConstraints { $0.leading.equalToSuperview().inset(insetDx + KeyboardLayoutFigure.buttonHorizontalInset) }
         default:
             break
         }
         
-        let imageConfig = UIImage.SymbolConfiguration(pointSize: 16, weight: .medium)
+        let imageConfig = UIImage.SymbolConfiguration(pointSize: FontSize.imageSize, weight: .medium)
         self.configurationUpdateHandler = { [weak self] button in
             guard let self else { return }
             switch button.state {
             case .normal:
-                backgroundView.backgroundColor = .secondaryButton
-                button.configuration?.image = UIImage(systemName: "delete.backward")?.withConfiguration(imageConfig).withTintColor(.label, renderingMode: .alwaysOriginal)
+                if isGesturing {
+                    backgroundView.backgroundColor = .secondaryButtonPressed
+                    button.configuration?.image = UIImage(systemName: "delete.backward.fill")?.withConfiguration(imageConfig).withTintColor(.label, renderingMode: .alwaysOriginal)
+                } else {
+                    backgroundView.backgroundColor = .secondaryButton
+                    button.configuration?.image = UIImage(systemName: "delete.backward")?.withConfiguration(imageConfig).withTintColor(.label, renderingMode: .alwaysOriginal)
+                }
             case .highlighted:
                 if isPressed {
                     backgroundView.backgroundColor = .secondaryButtonPressed
@@ -70,9 +75,6 @@ private extension DeleteButton {
                     backgroundView.backgroundColor = .secondaryButton
                     button.configuration?.image = UIImage(systemName: "delete.backward")?.withConfiguration(imageConfig).withTintColor(.label, renderingMode: .alwaysOriginal)
                 }
-            case .selected:
-                backgroundView.backgroundColor = .secondaryButtonPressed
-                button.configuration?.image = UIImage(systemName: "delete.backward.fill")?.withConfiguration(imageConfig).withTintColor(.label, renderingMode: .alwaysOriginal)
             default:
                 break
             }

@@ -10,8 +10,6 @@ import UIKit
 /// 보조 키보드 버튼
 class SecondaryButton: BaseKeyboardButton {
     
-    // MARK: - UI Components
-    
     // MARK: - Initializer
     
     override init(keyboard: SYKeyboardType) {
@@ -36,11 +34,9 @@ private extension SecondaryButton {
             guard let self else { return }
             switch button.state {
             case .normal:
-                backgroundView.backgroundColor = .secondaryButton
+                backgroundView.backgroundColor = isGesturing ? .secondaryButtonPressed : .secondaryButton
             case .highlighted:
                 backgroundView.backgroundColor = isPressed ? .secondaryButtonPressed : .secondaryButton
-            case .selected:
-                backgroundView.backgroundColor = .secondaryButtonPressed
             default:
                 break
             }

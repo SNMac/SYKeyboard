@@ -23,25 +23,30 @@ final class ReturnButton: SecondaryButton, TextInteractable {
     
     // MARK: - Internal Methods
     
-    func update(for type: ReturnKeyType) {
-        self.configuration?.image = type.image
+    func update(for returnKeyType: ReturnKeyType) {
+        self.configuration?.image = returnKeyType.image
         self.configurationUpdateHandler = { [weak self] button in
             guard let self else { return }
+            
+            _titleLabel.text = returnKeyType.title
+            _titleLabel.font = .systemFont(ofSize: 18)
             switch button.state {
             case .normal:
-                configuration?.attributedTitle = type.normalAttributedTitle
-                backgroundView.backgroundColor = type.backgroundColor
-            case .highlighted:
-                if isPressed {
-                    configuration?.attributedTitle = type.highlightedAttributedTitle
+                if isGesturing {
+                    _titleLabel.textColor = returnKeyType.highlightedColor
                     backgroundView.backgroundColor = .secondaryButtonPressed
                 } else {
-                    configuration?.attributedTitle = type.normalAttributedTitle
-                    backgroundView.backgroundColor = type.backgroundColor
+                    _titleLabel.textColor = returnKeyType.normalColor
+                    backgroundView.backgroundColor = returnKeyType.backgroundColor
                 }
-            case .selected:
-                configuration?.attributedTitle = type.highlightedAttributedTitle
-                backgroundView.backgroundColor = .secondaryButtonPressed
+            case .highlighted:
+                if isPressed {
+                    _titleLabel.textColor = returnKeyType.highlightedColor
+                    backgroundView.backgroundColor = .secondaryButtonPressed
+                } else {
+                    _titleLabel.textColor = returnKeyType.normalColor
+                    backgroundView.backgroundColor = returnKeyType.backgroundColor
+                }
             default:
                 break
             }
@@ -122,23 +127,18 @@ extension ReturnButton {
             }
         }
         
-        var normalAttributedTitle: AttributedString? {
-            guard let title else { return nil }
-            let foregroundColor = self.backgroundColor == UIColor.systemBlue ? UIColor.white : UIColor.label
-            let attributes = AttributeContainer([.font: UIFont.systemFont(ofSize: 18, weight: .regular), .foregroundColor: foregroundColor])
-            return AttributedString(title, attributes: attributes)
+        var normalColor: UIColor? {
+            return self.backgroundColor == UIColor.systemBlue ? UIColor.white : UIColor.label
         }
         
-        var highlightedAttributedTitle: AttributedString? {
-            guard let title else { return nil }
-            let attributes = AttributeContainer([.font: UIFont.systemFont(ofSize: 18, weight: .regular), .foregroundColor: UIColor.label])
-            return AttributedString(title, attributes: attributes)
+        var highlightedColor: UIColor? {
+            return .label
         }
         
         var image: UIImage? {
             switch self {
             case .default:
-                let imageConfig = UIImage.SymbolConfiguration(pointSize: 16, weight: .medium)
+                let imageConfig = UIImage.SymbolConfiguration(pointSize: FontSize.imageSize, weight: .medium)
                 return UIImage(systemName: "return")?.withConfiguration(imageConfig).withTintColor(.label, renderingMode: .alwaysOriginal)
             case .go, .google, .join, .next, .route, .search, .send, .yahoo, .done, .emergencyCall, .continue:
                 return nil

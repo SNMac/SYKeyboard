@@ -34,11 +34,9 @@ private extension PrimaryButton {
             guard let self else { return }
             switch button.state {
             case .normal:
-                backgroundView.backgroundColor = .primaryButton
+                backgroundView.backgroundColor = isGesturing ? .primaryButtonPressed : .primaryButton
             case .highlighted:
                 backgroundView.backgroundColor = isPressed ? .primaryButtonPressed : .primaryButton
-            case .selected:
-                backgroundView.backgroundColor = .primaryButtonPressed
             default:
                 break
             }

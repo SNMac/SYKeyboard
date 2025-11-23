@@ -103,9 +103,9 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Common/Presentation/Utils/ButtonStateController.swift,
+				Common/Presentation/Utils/Enums/KeyboardFigure.swift,
 				Common/Presentation/Utils/Enums/KeyboardMode/SymbolKeyboardMode.swift,
 				Common/Presentation/Utils/Enums/KeyboardMode/TenkeyKeyboardMode.swift,
-				Common/Presentation/Utils/Enums/KeyboardSize.swift,
 				Common/Presentation/Utils/Enums/PanDirection.swift,
 				Common/Presentation/Utils/Enums/SYKeyboardType.swift,
 				Common/Presentation/Utils/Enums/TextInteractableType.swift,
@@ -177,9 +177,9 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Common/Presentation/Utils/ButtonStateController.swift,
+				Common/Presentation/Utils/Enums/KeyboardFigure.swift,
 				Common/Presentation/Utils/Enums/KeyboardMode/SymbolKeyboardMode.swift,
 				Common/Presentation/Utils/Enums/KeyboardMode/TenkeyKeyboardMode.swift,
-				Common/Presentation/Utils/Enums/KeyboardSize.swift,
 				Common/Presentation/Utils/Enums/PanDirection.swift,
 				Common/Presentation/Utils/Enums/SYKeyboardType.swift,
 				Common/Presentation/Utils/Enums/TextInteractableType.swift,
@@ -240,9 +240,9 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Common/Presentation/Utils/ButtonStateController.swift,
+				Common/Presentation/Utils/Enums/KeyboardFigure.swift,
 				Common/Presentation/Utils/Enums/KeyboardMode/SymbolKeyboardMode.swift,
 				Common/Presentation/Utils/Enums/KeyboardMode/TenkeyKeyboardMode.swift,
-				Common/Presentation/Utils/Enums/KeyboardSize.swift,
 				Common/Presentation/Utils/Enums/PanDirection.swift,
 				Common/Presentation/Utils/Enums/SYKeyboardType.swift,
 				Common/Presentation/Utils/Enums/TextInteractableType.swift,

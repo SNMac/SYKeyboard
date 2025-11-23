@@ -83,36 +83,71 @@ final class PrimaryKeyButton: PrimaryButton, TextInteractable {
 // MARK: - Update Methods
 
 private extension PrimaryKeyButton {
+    func updateTitle() {
+        if type.keys.count == 1 {
+            guard let key = type.keys.first else { return }
+            _titleLabel.text = key
+            
+            if key.count == 1 {
+                if Character(key).isLowercase {
+                    _titleLabel.font = .systemFont(ofSize: FontSize.lowercaseKeySize)
+                } else {
+                    _titleLabel.font = .systemFont(ofSize: FontSize.defaultKeySize)
+                }
+            } else {
+                _titleLabel.font = .systemFont(ofSize: FontSize.stringKeySize)
+            }
+        } else {
+            _titleLabel.text = type.keys.joined(separator: "")
+            _titleLabel.font = .systemFont(ofSize: FontSize.defaultKeySize)
+        }
+    }
+    
     func remakeConstraintsForVisuals() {
         guard let referenceKey else { return }
         
-        // ShadowView 제약 조건 재설정
+        // shadowView 제약 조건 재설정
         shadowView.snp.remakeConstraints {
-            $0.top.bottom.equalToSuperview().inset(self.insetDy)
-            $0.width.equalTo(referenceKey).inset(self.insetDx) // 기준 키의 너비와 동일하게
+            $0.top.bottom.equalToSuperview().inset(insetDy)
+            $0.width.equalTo(referenceKey).inset(insetDx) // 기준 키의 너비와 동일하게
             
             switch keyAlignment {
             case .left:
-                $0.leading.equalToSuperview().inset(self.insetDx)
+                $0.leading.equalToSuperview().inset(insetDx)
             case .right:
-                $0.trailing.equalToSuperview().inset(self.insetDx)
+                $0.trailing.equalToSuperview().inset(insetDx)
             case .center:
-                $0.leading.trailing.equalToSuperview().inset(self.insetDx)
+                $0.leading.trailing.equalToSuperview().inset(insetDx)
             }
         }
         
-        // BackgroundView 제약 조건 재설정
+        // backgroundView 제약 조건 재설정
         backgroundView.snp.remakeConstraints {
-            $0.top.bottom.equalToSuperview().inset(self.insetDy)
-            $0.width.equalTo(referenceKey).inset(self.insetDx)  // 기준 키의 너비와 동일하게
+            $0.top.bottom.equalToSuperview().inset(insetDy)
+            $0.width.equalTo(referenceKey).inset(insetDx)  // 기준 키의 너비와 동일하게
             
             switch keyAlignment {
             case .left:
-                $0.leading.equalToSuperview().inset(self.insetDx)
+                $0.leading.equalToSuperview().inset(insetDx)
             case .right:
-                $0.trailing.equalToSuperview().inset(self.insetDx)
+                $0.trailing.equalToSuperview().inset(insetDx)
             case .center:
-                $0.leading.trailing.equalToSuperview().inset(self.insetDx)
+                $0.leading.trailing.equalToSuperview().inset(insetDx)
+            }
+        }
+        
+        // _titleLabel 제약 조건 재설정
+        _titleLabel.snp.remakeConstraints {
+            $0.top.bottom.equalToSuperview().inset(insetDy)
+            $0.width.equalTo(referenceKey).inset(insetDx)
+            
+            switch keyAlignment {
+            case .left:
+                $0.leading.equalToSuperview().inset(insetDx)
+            case .right:
+                $0.trailing.equalToSuperview().inset(insetDx)
+            case .center:
+                $0.leading.trailing.equalToSuperview().inset(insetDx)
             }
         }
     }
@@ -145,28 +180,6 @@ private extension PrimaryKeyButton {
             }
             
             self.configuration?.contentInsets = insets
-        }
-    }
-    
-    func updateTitle() {
-        let keys = type.keys
-        if keys.count == 1 {
-            guard let key = keys.first else { return }
-            if key.count == 1 {
-                if Character(key).isLowercase {
-                    self.configuration?.attributedTitle = AttributedString(key, attributes: AttributeContainer([.font: UIFont.systemFont(ofSize: 24, weight: .regular), .foregroundColor: UIColor.label]))
-                } else if Character(key).isUppercase {
-                    self.configuration?.attributedTitle = AttributedString(key, attributes: AttributeContainer([.font: UIFont.systemFont(ofSize: 22, weight: .regular), .foregroundColor: UIColor.label]))
-                } else {
-                    self.configuration?.attributedTitle = AttributedString(key, attributes: AttributeContainer([.font: UIFont.systemFont(ofSize: 22, weight: .regular), .foregroundColor: UIColor.label]))
-                }
-            } else {
-                self.configuration?.attributedTitle = AttributedString(key, attributes: AttributeContainer([.font: UIFont.systemFont(ofSize: 18, weight: .regular), .foregroundColor: UIColor.label]))
-            }
-            
-        } else {
-            let joined = keys.joined(separator: "")
-            self.configuration?.attributedTitle = AttributedString(joined, attributes: AttributeContainer([.font: UIFont.systemFont(ofSize: 22, weight: .regular), .foregroundColor: UIColor.label]))
         }
     }
 }

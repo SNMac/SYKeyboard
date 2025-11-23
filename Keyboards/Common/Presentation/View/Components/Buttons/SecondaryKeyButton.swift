@@ -54,19 +54,22 @@ final class SecondaryKeyButton: SecondaryButton, TextInteractable {
 
 private extension SecondaryKeyButton {
     func updateTitle() {
-        let keys = type.keys
-        if keys.count == 1 {
-            guard let key = keys.first else { return }
+        if type.keys.count == 1 {
+            guard let key = type.keys.first else { return }
+            _titleLabel.text = key
+            
             if key.count == 1 && Character(key).isLowercase {
-                self.configuration?.attributedTitle = AttributedString(key, attributes: AttributeContainer([.font: UIFont.systemFont(ofSize: 24, weight: .regular), .foregroundColor: UIColor.label]))
-            } else if key.count > 1 {
-                self.configuration?.attributedTitle = AttributedString(key, attributes: AttributeContainer([.font: UIFont.systemFont(ofSize: 18, weight: .regular), .foregroundColor: UIColor.label]))
+                if Character(key).isLowercase {
+                    _titleLabel.font = .systemFont(ofSize: FontSize.lowercaseKeySize)
+                } else {
+                    _titleLabel.font = .systemFont(ofSize: FontSize.defaultKeySize)
+                }
             } else {
-                self.configuration?.attributedTitle = AttributedString(key, attributes: AttributeContainer([.font: UIFont.systemFont(ofSize: 22, weight: .regular), .foregroundColor: UIColor.label]))
+                _titleLabel.font = .systemFont(ofSize: FontSize.stringKeySize)
             }
         } else {
-            let joined = keys.joined(separator: "")
-            self.configuration?.attributedTitle = AttributedString(joined, attributes: AttributeContainer([.font: UIFont.systemFont(ofSize: 22, weight: .regular), .foregroundColor: UIColor.label]))
+            _titleLabel.text = type.keys.joined(separator: "")
+            _titleLabel.font = .systemFont(ofSize: FontSize.defaultKeySize)
         }
     }
 }

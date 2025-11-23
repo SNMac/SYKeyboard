@@ -79,7 +79,7 @@ final class SwitchGestureController: NSObject {
         
         switch gesture.state {
         case .began:
-            gestureButton?.isSelected = true
+            gestureButton?.isGesturing = true
             logger.debug("팬 제스처 활성화")
         case .changed:
             isOverlayActive = !keyboardSelectOverlayView.isHidden || !oneHandedModeSelectOverlayView.isHidden
@@ -92,7 +92,7 @@ final class SwitchGestureController: NSObject {
             
             onPanGestureEnded(gesture, config: config)
             isOverlayActive = false
-            gestureButton?.isSelected = false
+            gestureButton?.isGesturing = false
             
             keyboardFrameView.isUserInteractionEnabled = true
             logger.debug("팬 제스처 비활성화")
@@ -114,7 +114,7 @@ final class SwitchGestureController: NSObject {
             }
             keyboardFrameView.isUserInteractionEnabled = false
             
-            gestureButton?.isSelected = true
+            gestureButton?.isGesturing = true
             onLongPressGestureBegan(gestureHandler: gestureHandler)
             logger.debug("길게 누르기 제스처 활성화")
         case .changed:
@@ -127,8 +127,8 @@ final class SwitchGestureController: NSObject {
                 setCurrentPressedButton(nil)
                 logger.debug("길게 누르기 제스처 비활성화")
             }
-            let isKeepSelected = onLongPressGestureEnded(gesture, gestureHandler: gestureHandler)
-            gestureButton?.isSelected = isKeepSelected
+            let isKeepGesturing = onLongPressGestureEnded(gesture, gestureHandler: gestureHandler)
+            gestureButton?.isGesturing = isKeepGesturing
             
             keyboardFrameView.isUserInteractionEnabled = true
         default:
@@ -148,7 +148,7 @@ final class SwitchGestureController: NSObject {
             onKeyboardFrameViewPressGestureChanged(gesture, gestureHandler: gestureHandler)
         case .ended, .cancelled, .failed:
             onKeyboardFrameViewPressGestureEnded(gesture, gestureHandler: gestureHandler)
-            gestureButton.isSelected = false
+            gestureButton.isGesturing = false
             logger.debug("키보드 길게 누르기 제스처 비활성화")
         default:
             break

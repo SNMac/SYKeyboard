@@ -47,15 +47,15 @@ private extension NextKeyboardButton {
     }
     
     func setStyles() {
-        let imageConfig = UIImage.SymbolConfiguration(pointSize: 16, weight: .medium)
+        let imageConfig = UIImage.SymbolConfiguration(pointSize: FontSize.imageSize, weight: .medium)
         self.configuration?.image = UIImage(systemName: "globe")?.withConfiguration(imageConfig).withTintColor(.label, renderingMode: .alwaysOriginal)
     }
     
     func setActions() {
-        let setSelected = UIAction { [weak self] _ in self?.isSelected = true }
+        let setSelected = UIAction { [weak self] _ in self?.isGesturing = true }
         self.addAction(setSelected, for: [.touchDragInside, .touchDragOutside])
         
-        let setDeselected = UIAction { [weak self] _ in self?.isSelected = false }
+        let setDeselected = UIAction { [weak self] _ in self?.isGesturing = false }
         self.addAction(setDeselected, for: [.touchUpInside, .touchUpOutside])
     }
 }

@@ -53,7 +53,7 @@ final class TextInteractionGestureController: NSObject {
         
         switch gesture.state {
         case .began:
-            gestureButton?.isSelected = true
+            gestureButton?.isGesturing = true
             initialPanPoint = currentPoint
             intervalReferPanPoint = currentPoint
             logger.debug("팬 제스처 활성화")
@@ -63,7 +63,7 @@ final class TextInteractionGestureController: NSObject {
                 keyboardFrameView.isUserInteractionEnabled = false
                 
                 isCursorActive = true
-                gestureButton?.isSelected = false
+                gestureButton?.isGesturing = false
                 onPanGestureChanged(gesture)
             }
         case .ended, .cancelled, .failed:
@@ -75,7 +75,7 @@ final class TextInteractionGestureController: NSObject {
             isCursorActive = false
             initialPanPoint = .zero
             intervalReferPanPoint = .zero
-            gestureButton?.isSelected = false
+            gestureButton?.isGesturing = false
             
             keyboardFrameView.isUserInteractionEnabled = true
             logger.debug("팬 제스처 비활성화")
@@ -96,7 +96,7 @@ final class TextInteractionGestureController: NSObject {
             }
             keyboardFrameView.isUserInteractionEnabled = false
             
-            gestureButton?.isSelected = true
+            gestureButton?.isGesturing = true
             onLongPressGestureBegan(gesture)
             logger.debug("길게 누르기 제스처 활성화")
         case .ended, .cancelled, .failed:
@@ -109,7 +109,7 @@ final class TextInteractionGestureController: NSObject {
             }
             
             onLongPressGestureEnded()
-            gestureButton?.isSelected = false
+            gestureButton?.isGesturing = false
             keyboardFrameView.isUserInteractionEnabled = true
         default:
             break

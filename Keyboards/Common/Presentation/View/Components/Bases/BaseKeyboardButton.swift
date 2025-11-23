@@ -8,6 +8,7 @@
 import UIKit
 
 import SnapKit
+import Then
 
 /// 키보드 버튼 베이스
 class BaseKeyboardButton: UIButton {
@@ -24,12 +25,23 @@ class BaseKeyboardButton: UIButton {
         }
     }
     
+    final var isGesturing: Bool = false {
+        didSet {
+            self.setNeedsUpdateConfiguration()
+        }
+    }
+    
     // MARK: - UI Components
     
     /// 배경 UI
     final lazy var backgroundView = ButtonBackgroundView(cornerRadius: self.cornerRadius)
     /// 그림자 UI
     final lazy var shadowView = ButtonShadowView(cornerRadius: self.cornerRadius)
+    /// iOS 26 `UIButton.Configuration.attributedTitle` 애니메이션 해결용
+    final let _titleLabel = UILabel().then {
+        $0.textColor = .label
+        $0.textAlignment = .center
+    }
     
     // MARK: - Initializer
     
@@ -58,6 +70,7 @@ class BaseKeyboardButton: UIButton {
     
     // MARK: - Overridable Methods
     
+    /// 햅틱 피드백, 사운드 피드백을 재생하는 메서드
     func playFeedback() { assertionFailure("메서드가 오버라이딩 되지 않았습니다.") }
 }
 
@@ -84,17 +97,24 @@ private extension BaseKeyboardButton {
     func setHierarchy() {
         self.insertSubview(shadowView, at: 0)
         self.insertSubview(backgroundView, at: 1)
+        
+        self.addSubview(_titleLabel)
     }
     
     func setConstraints() {
         shadowView.snp.makeConstraints {
-            $0.top.bottom.equalToSuperview().inset(self.insetDy)
-            $0.leading.trailing.equalToSuperview().inset(self.insetDx)
+            $0.top.bottom.equalToSuperview().inset(insetDy)
+            $0.leading.trailing.equalToSuperview().inset(insetDx)
         }
         
         backgroundView.snp.makeConstraints {
-            $0.top.bottom.equalToSuperview().inset(self.insetDy)
-            $0.leading.trailing.equalToSuperview().inset(self.insetDx)
+            $0.top.bottom.equalToSuperview().inset(insetDy)
+            $0.leading.trailing.equalToSuperview().inset(insetDx)
+        }
+        
+        _titleLabel.snp.makeConstraints {
+            $0.top.bottom.equalToSuperview().inset(insetDy)
+            $0.leading.trailing.equalToSuperview().inset(insetDx)
         }
     }
 }

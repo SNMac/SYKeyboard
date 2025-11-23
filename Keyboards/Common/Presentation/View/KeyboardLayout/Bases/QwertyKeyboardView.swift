@@ -175,7 +175,7 @@ private extension QwertyKeyboardView {
         }
         
         shiftButton.snp.makeConstraints {
-            $0.width.equalToSuperview().dividedBy(KeyboardSize.shiftAndDeleteButtonDivider)
+            $0.width.equalToSuperview().dividedBy(KeyboardLayoutFigure.shiftAndDeleteButtonDivider)
         }
         
         deleteButton.snp.makeConstraints {
@@ -206,14 +206,14 @@ private extension QwertyKeyboardView {
         keyboardSelectOverlayView.snp.makeConstraints {
             $0.leading.equalToSuperview().inset(4)
             $0.centerY.equalTo(shiftButton)
-            $0.width.equalToSuperview().multipliedBy(KeyboardSize.keyboardSelectOverlayWidthMultiplier)
+            $0.width.equalToSuperview().multipliedBy(KeyboardLayoutFigure.keyboardSelectOverlayWidthMultiplier)
             $0.height.equalTo(shiftButton)
         }
         
         oneHandedModeSelectOverlayView.snp.makeConstraints {
             $0.leading.equalToSuperview().inset(4)
             $0.centerY.equalTo(shiftButton)
-            $0.width.equalToSuperview().multipliedBy(KeyboardSize.oneHandedModeSelectOverlayWidthMultiplier)
+            $0.width.equalToSuperview().multipliedBy(KeyboardLayoutFigure.oneHandedModeSelectOverlayWidthMultiplier)
             $0.height.equalTo(shiftButton)
         }
     }
