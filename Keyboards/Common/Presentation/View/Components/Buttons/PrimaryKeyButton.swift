@@ -106,50 +106,23 @@ private extension PrimaryKeyButton {
     func remakeConstraintsForVisuals() {
         guard let referenceKey else { return }
         
-        // shadowView 제약 조건 재설정
-        shadowView.snp.remakeConstraints {
-            $0.top.bottom.equalToSuperview().inset(insetDy)
-            $0.width.equalTo(referenceKey).inset(insetDx) // 기준 키의 너비와 동일하게
-            
-            switch keyAlignment {
-            case .left:
-                $0.leading.equalToSuperview().inset(insetDx)
-            case .right:
-                $0.trailing.equalToSuperview().inset(insetDx)
-            case .center:
-                $0.leading.trailing.equalToSuperview().inset(insetDx)
+        func remakeConstraints(for view: UIView, referenceKey: PrimaryButton) {
+            view.snp.remakeConstraints {
+                $0.top.bottom.equalToSuperview().inset(insetDy)
+                $0.width.equalTo(referenceKey).inset(insetDx)  // 기준 키의 너비와 동일하게
+                
+                switch keyAlignment {
+                case .left:
+                    $0.leading.equalToSuperview().inset(insetDx)
+                case .right:
+                    $0.trailing.equalToSuperview().inset(insetDx)
+                case .center:
+                    $0.leading.trailing.equalToSuperview().inset(insetDx)
+                }
             }
         }
         
-        // backgroundView 제약 조건 재설정
-        backgroundView.snp.remakeConstraints {
-            $0.top.bottom.equalToSuperview().inset(insetDy)
-            $0.width.equalTo(referenceKey).inset(insetDx)  // 기준 키의 너비와 동일하게
-            
-            switch keyAlignment {
-            case .left:
-                $0.leading.equalToSuperview().inset(insetDx)
-            case .right:
-                $0.trailing.equalToSuperview().inset(insetDx)
-            case .center:
-                $0.leading.trailing.equalToSuperview().inset(insetDx)
-            }
-        }
-        
-        // _titleLabel 제약 조건 재설정
-        _titleLabel.snp.remakeConstraints {
-            $0.top.bottom.equalToSuperview().inset(insetDy)
-            $0.width.equalTo(referenceKey).inset(insetDx)
-            
-            switch keyAlignment {
-            case .left:
-                $0.leading.equalToSuperview().inset(insetDx)
-            case .right:
-                $0.trailing.equalToSuperview().inset(insetDx)
-            case .center:
-                $0.leading.trailing.equalToSuperview().inset(insetDx)
-            }
-        }
+        [shadowView, backgroundView, _titleLabel].forEach { remakeConstraints(for: $0, referenceKey: referenceKey) }
     }
     
     func updateTitleInsets() {
