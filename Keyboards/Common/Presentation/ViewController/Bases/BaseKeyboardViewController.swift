@@ -112,7 +112,7 @@ public class BaseKeyboardViewController: UIInputViewController {
         super.viewDidLoad()
         setupUI()
         setNextKeyboardButton()
-        if !hasFullAccess { setupRequestFullAccessOverlayView() }
+        if !hasFullAccess && !UserDefaultsManager.shared.isRequestFullAccessOverlayClosed { setupRequestFullAccessOverlayView() }
         if UserDefaultsManager.shared.isOneHandedKeyboardEnabled { updateOneHandModekeyboard() }
         if UserDefaultsManager.shared.isTextReplacementEnabled {
             Task { userLexicon = await requestSupplementaryLexicon() }

@@ -133,6 +133,9 @@ final class UserDefaultsManager {
     /// 온보딩 여부
     @UserDefaultsWrapper(key: UserDefaultsKeys.isOnboarding, defaultValue: DefaultValues.isOnboarding)
     var isOnboarding: Bool
+    /// 전체 접근 허용 안내 오버레이 닫음 여부
+    @UserDefaultsWrapper(key: UserDefaultsKeys.isRequestFullAccessOverlayClosed, defaultValue: DefaultValues.isRequestFullAccessOverlayClosed)
+    var isRequestFullAccessOverlayClosed
     /// 앱의 특정 기능 또는 키보드를 실행한 횟수
     @UserDefaultsWrapper(key: UserDefaultsKeys.reviewCounter, defaultValue: DefaultValues.reviewCounter)
     var reviewCounter: Int

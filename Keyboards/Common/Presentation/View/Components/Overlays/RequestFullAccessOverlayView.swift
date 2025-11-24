@@ -20,7 +20,7 @@ final class RequestFullAccessOverlayView: UIView {
     }
     
     private let warningLabel = UILabel().then {
-        $0.text = String(localized: "‼️ 전체 접근 허용 활성화 필요 ‼️")
+        $0.text = String(localized: "전체 접근 허용 활성화 필요")
         $0.font = .systemFont(ofSize: 17, weight: .bold)
     }
     
@@ -36,12 +36,29 @@ final class RequestFullAccessOverlayView: UIView {
         $0.numberOfLines = 0
     }
     
-    private(set) var goToSettingsButton = UIButton().then {
-        var buttonConfig = UIButton.Configuration.plain()
-        buttonConfig.image = UIImage(systemName: "gear")
-        buttonConfig.title = String(localized: "시스템 설정 이동")
+    private let buttonHStackView = UIStackView().then {
+        $0.axis = .horizontal
+        $0.distribution = .fill
+        $0.spacing = 16
+    }
+    
+    private let closeButton = UIButton().then {
+        var buttonConfig = UIButton.Configuration.gray()
+        buttonConfig.attributedTitle = AttributedString(String(localized: "닫기"), attributes: .init([.font: UIFont.systemFont(ofSize: 15)]))
+        $0.configuration = buttonConfig
+        
+        $0.layer.cornerRadius = 4.6
+    }
+    
+    private let goToSettingsButton = UIButton().then {
+        var buttonConfig = UIButton.Configuration.filled()
+        let imageConfig = UIImage.SymbolConfiguration(pointSize: 15, weight: .regular)
+        buttonConfig.image = UIImage(systemName: "gear")?.withConfiguration(imageConfig)
+        buttonConfig.attributedTitle = AttributedString(String(localized: "시스템 설정 이동"), attributes: .init([.font: UIFont.systemFont(ofSize: 15)]))
         buttonConfig.imagePadding = 4
         $0.configuration = buttonConfig
+        
+        $0.layer.cornerRadius = 4.6
     }
     
     // MARK: - Initializer
@@ -70,6 +87,9 @@ private extension RequestFullAccessOverlayView {
         if #available(iOS 26, *) {
             self.clipsToBounds = true
             self.layer.cornerRadius = 12
+            
+            closeButton.layer.cornerRadius = 8.5
+            goToSettingsButton.isHidden = true
         }
     }
     
@@ -78,7 +98,9 @@ private extension RequestFullAccessOverlayView {
                          warningLabel,
                          descriptionLabel,
                          guideLabel,
-                         goToSettingsButton)
+                         buttonHStackView)
+        
+        buttonHStackView.addArrangedSubviews(closeButton, goToSettingsButton)
     }
     
     func setConstraints() {
@@ -88,27 +110,33 @@ private extension RequestFullAccessOverlayView {
         
         warningLabel.snp.makeConstraints {
             $0.centerX.equalToSuperview()
-            $0.top.equalToSuperview().inset(20)
+            $0.top.equalToSuperview().inset(16)
         }
         
         descriptionLabel.snp.makeConstraints {
-            $0.top.lessThanOrEqualTo(warningLabel.snp.bottom).offset(20).priority(.low)
+            $0.top.equalTo(warningLabel.snp.bottom).offset(10)
             $0.leading.trailing.equalToSuperview().inset(20)
         }
         
         guideLabel.snp.makeConstraints {
-            $0.top.greaterThanOrEqualTo(descriptionLabel.snp.bottom).priority(.high)
             $0.leading.trailing.equalToSuperview().inset(20)
             $0.bottom.equalTo(goToSettingsButton.snp.top).offset(-10)
         }
         
-        goToSettingsButton.snp.makeConstraints {
-            $0.centerX.equalToSuperview()
-            $0.bottom.equalToSuperview().inset(20)
-        }
+        buttonHStackView.snp.makeConstraints {
+            $0.leading.trailing.equalToSuperview().inset(20)
+            $0.bottom.equalToSuperview().inset(16)
+            $0.height.equalTo(44)
+        }        
     }
     
     func setActions() {
+        let closeOverlayAction = UIAction { [weak self] _ in
+            UserDefaultsManager.shared.isRequestFullAccessOverlayClosed = true
+            self?.isHidden = true
+        }
+        closeButton.addAction(closeOverlayAction, for: .touchUpInside)
+        
         let redirectToSettingsAction = UIAction { [weak self] _ in
             guard let url = URL(string: "sykeyboard://") else {
                 assertionFailure("올바르지 않은 URL 형식입니다.")
@@ -121,20 +149,14 @@ private extension RequestFullAccessOverlayView {
 }
 
 @objc private extension RequestFullAccessOverlayView {
-    @discardableResult
-    func openURL(_ url: URL) -> Bool {
+    func openURL(_ url: URL) {
         var responder: UIResponder? = self
         while responder != nil {
             if let application = responder as? UIApplication {
-                if #available(iOS 18.0, *) {
-                    application.open(url, options: [:], completionHandler: nil)
-                    return true
-                } else {
-                    return application.perform(#selector(openURL(_:)), with: url) != nil
-                }
+                application.open(url)
+                return
             }
             responder = responder?.next
         }
-        return false
     }
 }

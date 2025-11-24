@@ -1,12 +1,12 @@
 {
   "sourceLanguage" : "ko",
   "strings" : {
-    "‼️ 전체 접근 허용 활성화 필요 ‼️" : {
+    "닫기" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "‼️ Requires Allow Full Access Enabled ‼️"
+            "value" : "Close"
           }
         }
       }
@@ -17,6 +17,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Go to Settings"
+          }
+        }
+      }
+    },
+    "전체 접근 허용 활성화 필요" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Requires Allow Full Access Enabled"
           }
         }
       }
