@@ -49,7 +49,7 @@ struct HangeulAutomataTests {
         ("ㅂ", "ㅅ", "ㅄ")
     ]
     
-    // MARK: - 한글 글자 생성 및 삭제 테스트
+    // MARK: - 1. 한글 11,172자 전체 검증
     
     @Test("한글 11,172자 전체 생성 및 삭제 로직 검증")
     func validateAll한글글자() {
@@ -115,6 +115,8 @@ struct HangeulAutomataTests {
         }
     }
     
+    // MARK: - 2. 자모 조합/분해 검증
+    
     @Test("자모 단독 입력 및 겹모음/겹받침 조합 테스트")
     func validate자모Combinations() {
         Self.logger.info("[Swift Testing - \(#function)] 자모 조합/분해 테스트 시작...")
@@ -172,6 +174,8 @@ struct HangeulAutomataTests {
         Self.logger.info("[Swift Testing - \(#function)] 자모 조합 테스트 완료.")
     }
     
+    // MARK: - 3. 비한글 문자 검증
+    
     @Test("특수문자, 숫자, 영어 입력 및 한글 조합 끊김 테스트")
     func validateNon한글Inputs() {
         Self.logger.info("[Swift Testing - \(#function)] 비한글 문자 테스트 시작...")
@@ -220,7 +224,7 @@ struct HangeulAutomataTests {
     }
 }
 
-// MARK: - Private Methods
+// MARK: - Test Helper Methods
 
 private extension HangeulAutomataTests {
     
