@@ -42,7 +42,7 @@ final class RequestFullAccessOverlayView: UIView {
         $0.spacing = 16
     }
     
-    private let closeButton = UIButton().then {
+    private(set) var closeButton = UIButton().then {
         var buttonConfig = UIButton.Configuration.gray()
         buttonConfig.attributedTitle = AttributedString(String(localized: "닫기"), attributes: .init([.font: UIFont.systemFont(ofSize: 15)]))
         $0.configuration = buttonConfig
@@ -50,7 +50,7 @@ final class RequestFullAccessOverlayView: UIView {
         $0.layer.cornerRadius = 4.6
     }
     
-    private let goToSettingsButton = UIButton().then {
+    private(set) var goToSettingsButton = UIButton().then {
         var buttonConfig = UIButton.Configuration.filled()
         let imageConfig = UIImage.SymbolConfiguration(pointSize: 15, weight: .regular)
         buttonConfig.image = UIImage(systemName: "gear")?.withConfiguration(imageConfig)
@@ -80,7 +80,6 @@ private extension RequestFullAccessOverlayView {
         setStyles()
         setHierarchy()
         setConstraints()
-        setActions()
     }
     
     func setStyles() {
@@ -128,35 +127,5 @@ private extension RequestFullAccessOverlayView {
             $0.bottom.equalToSuperview().inset(16)
             $0.height.equalTo(44)
         }        
-    }
-    
-    func setActions() {
-        let closeOverlayAction = UIAction { [weak self] _ in
-            UserDefaultsManager.shared.isRequestFullAccessOverlayClosed = true
-            self?.isHidden = true
-        }
-        closeButton.addAction(closeOverlayAction, for: .touchUpInside)
-        
-        let redirectToSettingsAction = UIAction { [weak self] _ in
-            guard let url = URL(string: "sykeyboard://") else {
-                assertionFailure("올바르지 않은 URL 형식입니다.")
-                return
-            }
-            self?.openURL(url)
-        }
-        goToSettingsButton.addAction(redirectToSettingsAction, for: .touchUpInside)
-    }
-}
-
-@objc private extension RequestFullAccessOverlayView {
-    func openURL(_ url: URL) {
-        var responder: UIResponder? = self
-        while responder != nil {
-            if let application = responder as? UIApplication {
-                application.open(url)
-                return
-            }
-            responder = responder?.next
-        }
     }
 }

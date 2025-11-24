@@ -317,6 +317,21 @@ private extension BaseKeyboardViewController {
         requestFullAccessOverlayView.snp.makeConstraints {
             $0.edges.equalToSuperview()
         }
+        
+        let closeOverlayAction = UIAction { [weak self] _ in
+            UserDefaultsManager.shared.isRequestFullAccessOverlayClosed = true
+            self?.requestFullAccessOverlayView.isHidden = true
+        }
+        requestFullAccessOverlayView.closeButton.addAction(closeOverlayAction, for: .touchUpInside)
+        
+        let redirectToSettingsAction = UIAction { [weak self] _ in
+            guard let url = URL(string: "sykeyboard://") else {
+                assertionFailure("올바르지 않은 URL 형식입니다.")
+                return
+            }
+            self?.openURL(url)
+        }
+        requestFullAccessOverlayView.goToSettingsButton.addAction(redirectToSettingsAction, for: .touchUpInside)
     }
 }
 
@@ -480,6 +495,21 @@ private extension BaseKeyboardViewController {
     func updateReturnButtonType() {
         let type = ReturnButton.ReturnKeyType(type: textDocumentProxy.returnKeyType)
         currentReturnButton?.update(for: type)
+    }
+}
+
+// MARK: - Private Methods
+
+private extension BaseKeyboardViewController {
+    func openURL(_ url: URL) {
+        var responder: UIResponder? = self
+        while responder != nil {
+            if let application = responder as? UIApplication {
+                application.open(url)
+                return
+            }
+            responder = responder?.next
+        }
     }
 }
 
