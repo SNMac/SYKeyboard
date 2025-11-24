@@ -21,18 +21,18 @@ final class RequestFullAccessOverlayView: UIView {
     
     private let warningLabel = UILabel().then {
         $0.text = String(localized: "전체 접근 허용 활성화 필요")
-        $0.font = .systemFont(ofSize: 17, weight: .bold)
+        $0.font = .systemFont(ofSize: 15, weight: .bold)
     }
     
     private let descriptionLabel = UILabel().then {
         $0.text = String(localized: "전체 접근 허용이 비활성화 되어있는 경우 일부 기능이 작동하지 않을 수 있습니다.")
-        $0.font = .systemFont(ofSize: 15)
+        $0.font = .systemFont(ofSize: 13)
         $0.numberOfLines = 0
     }
     
     private let guideLabel = UILabel().then {
-        $0.text = String(localized: "활성화 방법: 키보드 ➡️ '전체 접근 허용' 활성화")
-        $0.font = .systemFont(ofSize: 15)
+        $0.text = String(localized: "활성화 방법: 설정 ➡️ 일반 ➡️ 키보드 ➡️ 키보드 ➡️ SY키보드 ➡️ '전체 접근 허용' 활성화")
+        $0.font = .systemFont(ofSize: 13)
         $0.numberOfLines = 0
     }
     
@@ -114,17 +114,17 @@ private extension RequestFullAccessOverlayView {
         }
         
         descriptionLabel.snp.makeConstraints {
-            $0.top.equalTo(warningLabel.snp.bottom).offset(10)
-            $0.leading.trailing.equalToSuperview().inset(20)
+            $0.top.equalTo(warningLabel.snp.bottom).offset(8)
+            $0.leading.trailing.equalToSuperview().inset(16)
         }
         
         guideLabel.snp.makeConstraints {
-            $0.leading.trailing.equalToSuperview().inset(20)
-            $0.bottom.equalTo(goToSettingsButton.snp.top).offset(-10)
+            $0.leading.trailing.equalToSuperview().inset(16)
+            $0.bottom.equalTo(goToSettingsButton.snp.top).offset(-8)
         }
         
         buttonHStackView.snp.makeConstraints {
-            $0.leading.trailing.equalToSuperview().inset(20)
+            $0.leading.trailing.equalToSuperview().inset(16)
             $0.bottom.equalToSuperview().inset(16)
             $0.height.equalTo(44)
         }        

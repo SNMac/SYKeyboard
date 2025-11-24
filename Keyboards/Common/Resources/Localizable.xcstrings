@@ -41,12 +41,12 @@
         }
       }
     },
-    "활성화 방법: 키보드 ➡️ '전체 접근 허용' 활성화" : {
+    "활성화 방법: 설정 ➡️ 일반 ➡️ 키보드 ➡️ 키보드 ➡️ SY키보드 ➡️ '전체 접근 허용' 활성화" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "How to Enable: Keyboard ➡️ Enable ‘Allow Full Access’"
+            "value" : "How to Enable: Settings ➡️ General ➡️ Keyboard ➡️ Keyboards ➡️ SYKeyboard ➡️ Enable ‘Allow Full Access’"
           }
         }
       }
