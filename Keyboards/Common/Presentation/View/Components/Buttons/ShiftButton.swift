@@ -42,11 +42,10 @@ final class ShiftButton: SecondaryButton {
     
     func updateShiftState(to isShifted: Bool) {
         switch keyboard {
-        case .hangeul, .english:
+        case .dubeolsik, .qwerty:
             if isShifted {
                 self.isGesturing = true
                 self.configuration?.image = UIImage(systemName: "shift.fill")?.withConfiguration(imageConfig).withTintColor(.label, renderingMode: .alwaysOriginal)
-                self.backgroundView.backgroundColor = .secondaryButtonPressed
             } else {
                 self.isGesturing = false
                 self.configuration?.image = UIImage(systemName: "shift")?.withConfiguration(imageConfig).withTintColor(.label, renderingMode: .alwaysOriginal)
@@ -64,12 +63,11 @@ final class ShiftButton: SecondaryButton {
     
     func updateCapsLockState(to isCapsLocked: Bool) {
         switch keyboard {
-        case .hangeul, .english:
+        case .dubeolsik, .qwerty:
             if isCapsLocked {
                 self.isPressed = true
                 self.isGesturing = true
                 self.configuration?.image = UIImage(systemName: "capslock.fill")?.withConfiguration(imageConfig).withTintColor(.label, renderingMode: .alwaysOriginal)
-                self.backgroundView.backgroundColor = .secondaryButtonPressed
             } else {
                 self.isPressed = false
                 self.isGesturing = false
@@ -97,7 +95,7 @@ private extension ShiftButton {
         }
         
         switch keyboard {
-        case .hangeul, .english:
+        case .dubeolsik, .qwerty:
             self.configuration?.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 0, bottom: 0, trailing: KeyboardLayoutFigure.buttonHorizontalInset)
             self.configuration?.image = UIImage(systemName: "shift")?.withConfiguration(imageConfig).withTintColor(.label, renderingMode: .alwaysOriginal)
         case .symbol:
@@ -115,7 +113,7 @@ private extension ShiftButton {
                     break
                 }
             }
-        case .numeric, .tenKey:
+        case .naratgeul, .cheonjiin, .numeric, .tenKey:
             assertionFailure("도달할 수 없는 case 입니다.")
         }
     }

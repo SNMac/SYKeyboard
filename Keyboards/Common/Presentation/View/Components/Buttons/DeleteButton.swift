@@ -47,7 +47,7 @@ private extension DeleteButton {
     
     func setStyles() {
         switch keyboard {
-        case .english, .symbol:
+        case .dubeolsik, .qwerty, .symbol:
             self.configuration?.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: KeyboardLayoutFigure.buttonHorizontalInset, bottom: 0, trailing: 0)
             shadowView.snp.updateConstraints { $0.leading.equalToSuperview().inset(insetDx + KeyboardLayoutFigure.buttonHorizontalInset) }
             backgroundView.snp.updateConstraints { $0.leading.equalToSuperview().inset(insetDx + KeyboardLayoutFigure.buttonHorizontalInset) }
@@ -68,7 +68,7 @@ private extension DeleteButton {
                     button.configuration?.image = UIImage(systemName: "delete.backward")?.withConfiguration(imageConfig).withTintColor(.label, renderingMode: .alwaysOriginal)
                 }
             case .highlighted:
-                if isPressed {
+                if isPressed || isGesturing {
                     backgroundView.backgroundColor = .secondaryButtonPressed
                     button.configuration?.image = UIImage(systemName: "delete.backward.fill")?.withConfiguration(imageConfig).withTintColor(.label, renderingMode: .alwaysOriginal)
                 } else {

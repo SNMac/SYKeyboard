@@ -1,5 +1,5 @@
 //
-//  QwertyKeyboardView.swift
+//  StandardKeyboardView.swift
 //  HangeulKeyboard, EnglishKeyboard
 //
 //  Created by 서동환 on 9/12/25.
@@ -10,7 +10,7 @@ import UIKit
 import SnapKit
 import Then
 
-class QwertyKeyboardView: UIView {
+class StandardKeyboardView: UIView {
     
     // MARK: - Properties
     
@@ -113,7 +113,7 @@ class QwertyKeyboardView: UIView {
 
 // MARK: - UI Methods
 
-private extension QwertyKeyboardView {
+private extension StandardKeyboardView {
     func setupUI() {
         setStyles()
         setActions()
@@ -221,7 +221,7 @@ private extension QwertyKeyboardView {
 
 // MARK: - Update Methods
 
-extension QwertyKeyboardView {
+extension StandardKeyboardView {
     final func updateKeyButtonList() {
         let keyListIndex = (isShifted ? 1 : 0)
         let rowList = [firstRowKeyButtonList, secondRowKeyButtonList, thirdRowKeyButtonList]

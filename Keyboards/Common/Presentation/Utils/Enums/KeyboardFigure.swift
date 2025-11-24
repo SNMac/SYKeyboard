@@ -17,6 +17,7 @@ enum KeyboardLayoutFigure {
     static let keyboardSelectOverlayWidthMultiplier: CGFloat = 0.42
     /// 한 손 키보드 선택 오버레이 너비 곱하기 계수
     static let oneHandedModeSelectOverlayWidthMultiplier: CGFloat = 0.55
+    /// `DeleteButton`, `ShiftButton` 수평 여백
     static let buttonHorizontalInset: CGFloat = 6
 }
 

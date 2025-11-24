@@ -11,11 +11,11 @@ import SnapKit
 import Then
 
 /// 영어 키보드
-final class EnglishKeyboardView: QwertyKeyboardView, EnglishKeyboardLayoutProvider {
+final class EnglishKeyboardView: StandardKeyboardView, EnglishKeyboardLayoutProvider {
     
     // MARK: - Properties
     
-    override var keyboard: SYKeyboardType { .english }
+    override var keyboard: SYKeyboardType { .qwerty }
     override var keyList: [[[[String]]]] { currentEnglishKeyboardMode.keyList }
     
     var currentEnglishKeyboardMode: EnglishKeyboardMode = .default {

@@ -40,7 +40,7 @@ final class ReturnButton: SecondaryButton, TextInteractable {
                     backgroundView.backgroundColor = returnKeyType.backgroundColor
                 }
             case .highlighted:
-                if isPressed {
+                if isPressed || isGesturing {
                     _titleLabel.textColor = returnKeyType.highlightedColor
                     backgroundView.backgroundColor = .secondaryButtonPressed
                 } else {

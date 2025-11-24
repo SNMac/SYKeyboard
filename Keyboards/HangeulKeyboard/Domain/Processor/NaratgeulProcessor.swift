@@ -71,6 +71,11 @@ final class NaratgeulProcessor: HangeulProcessable {
         "ㅑ": "ㅒ"
     ]
     
+    private let 이중모음결합Table: [String: String] = [
+        "ㅗ": "ㅘ",
+        "ㅜ": "ㅝ"
+    ]
+    
     // MARK: - Internal Methods
     
     func input(글자Input: String, beforeText: String) -> (processedText: String, input글자: String?) {
@@ -88,14 +93,22 @@ final class NaratgeulProcessor: HangeulProcessable {
             }
         }
         
-        // 3. 모음 토글 처리 (ㅏ<->ㅓ, ㅗ<->ㅜ)
+        // 3. 이중모음 결합 처리 (예: 무 + ㅏ/ㅓ -> 뭐, 보 + ㅏ/ㅓ -> 봐)
+        // 'ㅏ'나 'ㅓ'가 입력되었을 때 앞 글자가 'ㅗ'나 'ㅜ'라면 결합을 시도
+        if 글자Input == "ㅏ" || 글자Input == "ㅓ" {
+            if let (combinedText, combined글자) = combine이중모음(글자Input: 글자Input, beforeText: beforeText) {
+                return (combinedText, combined글자)
+            }
+        }
+        
+        // 4. 모음 토글 처리 (ㅏ<->ㅓ, ㅗ<->ㅜ)
         if 모음ToggleTable.keys.contains(글자Input) {
             if let (toggledText, toggled글자) = toggle모음(글자Input: 글자Input, beforeText: beforeText) {
                 return (toggledText, toggled글자)
             }
         }
         
-        // 4. 일반 자모 입력 (표준 오토마타 위임)
+        // 5. 일반 자모 입력 (표준 오토마타 위임)
         return (automata.add글자(글자Input: 글자Input, beforeText: beforeText), 글자Input)
     }
     
@@ -103,7 +116,10 @@ final class NaratgeulProcessor: HangeulProcessable {
         // 1. 'ㅣ' 결합 분해 시도 (예: '애' -> '아')
         if let decomposedText = decompose모음(beforeText: beforeText) { return decomposedText }
         
-        // 2. 일반 삭제는 오토마타에게 위임 (예: '가' -> 'ㄱ')
+        // 2. 이중모음 분해 시도 (예: '뭐' 지우기 -> '무')
+        if let decomposed이중모음 = decompose이중모음(beforeText: beforeText) { return decomposed이중모음 }
+        
+        // 3. 일반 삭제는 오토마타에게 위임 (예: '가' -> 'ㄱ')
         return automata.delete글자(beforeText: beforeText)
     }
 }
@@ -123,22 +139,27 @@ private extension NaratgeulProcessor {
         if let (초성Index, 중성Index, 종성Index) = automata.decompose(한글Char: beforeTextLast글자Char) {
             
             // [1순위] 종성 변환
-            // A. 단순 종성 변환 (예: '각' -> '갘')
             if 종성Index != 0 {
                 let 종성글자 = automata.종성Table[종성Index]
+                
+                // A. 단순 종성 변환 (예: '각' -> '갘')
                 if let converted종성 = 획추가Table[종성글자],
                    let converted종성Index = automata.종성Table.firstIndex(of: converted종성),
                    let new글자 = automata.combine(초성Index: 초성Index, 중성Index: 중성Index, 종성Index: converted종성Index) {
                     return (newText + String(new글자), converted종성)
                 }
                 
-                // B. 겹받침 분해 후 변환 (예: '닭' + 획 -> '달' + 'ㅋ')
+                // B. 겹받침 분해 후 변환
+                // 예: '갊'(ㄹㅁ) + 획 -> '갈' + 'ㅂ' -> '갋'(ㄹㅂ)
                 if let (앞받침, 뒷받침) = automata.decompose겹받침(종성: 종성글자) {
                     if let converted뒷받침 = 획추가Table[뒷받침],
                        let 앞받침Index = automata.종성Table.firstIndex(of: 앞받침) {
                         
+                        // 1. 앞받침만 있는 글자를 만듭니다 (예: '갈')
                         if let prevChar = automata.combine(초성Index: 초성Index, 중성Index: 중성Index, 종성Index: 앞받침Index) {
-                            return (newText + String(prevChar) + converted뒷받침, converted뒷받침)
+                            // 2. 오토마타에게 합치기를 위임
+                            let combinedText = automata.add글자(글자Input: converted뒷받침, beforeText: newText + String(prevChar))
+                            return (combinedText, converted뒷받침)
                         }
                     }
                 }
@@ -146,7 +167,7 @@ private extension NaratgeulProcessor {
                 return (beforeText, nil)
             }
             
-            // [2순위] 중성(모음) 변환 (예: '가' + 획 -> '갸', '그' + 획 -> '그')
+            // [2순위] 중성(모음) 변환
             let 중성글자 = automata.중성Table[중성Index]
             if let converted중성 = 획추가Table[중성글자],
                let converted중성Index = automata.중성Table.firstIndex(of: converted중성),
@@ -157,7 +178,7 @@ private extension NaratgeulProcessor {
             return (beforeText, nil)
         }
         
-        // 2. 낱자 변환 (예: 'ㄱ' -> 'ㅋ')
+        // 2. 낱자 변환
         else {
             let last글자String = String(beforeTextLast글자Char)
             if let converted글자 = 획추가Table[last글자String] {
@@ -180,22 +201,26 @@ private extension NaratgeulProcessor {
         if let (초성Index, 중성Index, 종성Index) = automata.decompose(한글Char: beforeTextLast글자Char) {
             
             // [1순위] 종성 변환
-            // A. 단순 종성 변환 (예: '각' -> '깎')
             if 종성Index != 0 {
                 let 종성글자 = automata.종성Table[종성Index]
+                
+                // A. 단순 종성 변환
                 if let converted종성 = 쌍자음Table[종성글자],
                    let converted종성Index = automata.종성Table.firstIndex(of: converted종성),
                    let new글자 = automata.combine(초성Index: 초성Index, 중성Index: 중성Index, 종성Index: converted종성Index) {
                     return (newText + String(new글자), converted종성)
                 }
                 
-                // B. 겹받침 분해 후 변환 (예: '닭' + 쌍 -> '달' + 'ㄲ')
+                // B. 겹받침 분해 후 변환
+                // 예: '닭'(ㄹㄱ) + 쌍 -> '달' + 'ㄲ' -> '닭'(ㄹㄱ) (변화 없음 or ㄺ 유지)
                 if let (앞받침, 뒷받침) = automata.decompose겹받침(종성: 종성글자) {
                     if let converted뒷받침 = 쌍자음Table[뒷받침],
                        let 앞받침Index = automata.종성Table.firstIndex(of: 앞받침) {
                         
                         if let prevChar = automata.combine(초성Index: 초성Index, 중성Index: 중성Index, 종성Index: 앞받침Index) {
-                            return (newText + String(prevChar) + converted뒷받침, converted뒷받침)
+                            // 오토마타에게 재결합 위임
+                            let combinedText = automata.add글자(글자Input: converted뒷받침, beforeText: newText + String(prevChar))
+                            return (combinedText, converted뒷받침)
                         }
                     }
                 }
@@ -203,7 +228,7 @@ private extension NaratgeulProcessor {
                 return (beforeText, nil)
             }
             
-            // [2순위] 중성 변환 (예: '가' + 쌍 -> '갸')
+            // [2순위] 중성 변환
             let 중성글자 = automata.중성Table[중성Index]
             if let converted중성 = 쌍자음Table[중성글자],
                let converted중성Index = automata.중성Table.firstIndex(of: converted중성),
@@ -214,7 +239,7 @@ private extension NaratgeulProcessor {
             return (beforeText, nil)
         }
         
-        // 2. 낱자 변환 (예: 'ㄱ' -> 'ㄲ')
+        // 2. 낱자 변환
         else {
             let last글자String = String(beforeTextLast글자Char)
             if let converted글자 = 쌍자음Table[last글자String] {
@@ -305,13 +330,13 @@ private extension NaratgeulProcessor {
             if 종성Index == 0 {
                 let 중성글자 = automata.중성Table[중성Index]
                 
-                if let originalJungChar = 모음결합Table.first(where: { $0.value == 중성글자 })?.key,
-                   let originalJungIndex = automata.중성Table.firstIndex(of: originalJungChar),
-                   let newChar = automata.combine(초성Index: 초성Index, 중성Index: originalJungIndex, 종성Index: 0) {
+                if let original중성글자 = 모음결합Table.first(where: { $0.value == 중성글자 })?.key,
+                   let original중성Index = automata.중성Table.firstIndex(of: original중성글자),
+                   let new글자 = automata.combine(초성Index: 초성Index, 중성Index: original중성Index, 종성Index: 0) {
                     
                     var newText = beforeText
                     newText.removeLast()
-                    newText.append(newChar)
+                    newText.append(new글자)
                     return newText
                 }
             }
@@ -320,10 +345,83 @@ private extension NaratgeulProcessor {
         // 2. 낱자 모음 분해 (예: 'ㅐ')
         else {
             let last글자String = String(beforeTextLast글자Char)
-            if let originalChar = 모음결합Table.first(where: { $0.value == last글자String })?.key {
+            if let original글자 = 모음결합Table.first(where: { $0.value == last글자String })?.key {
                 var newText = beforeText
                 newText.removeLast()
-                newText.append(originalChar)
+                newText.append(original글자)
+                return newText
+            }
+        }
+        
+        return nil
+    }
+    
+    /// 이중모음 결합 (ㅏ/ㅓ 입력 시, ㅗ->ㅘ, ㅜ->ㅝ)
+    func combine이중모음(글자Input: String, beforeText: String) -> (String, String)? {
+        guard let beforeTextLast글자Char = beforeText.last else { return nil }
+        
+        // 1. 완성형 글자에서 결합 (예: 무 -> 뭐)
+        if let (초성Index, 중성Index, 종성Index) = automata.decompose(한글Char: beforeTextLast글자Char) {
+            // 받침이 없을 때만 결합 가능
+            if 종성Index == 0 {
+                let 중성글자 = automata.중성Table[중성Index]
+                
+                // 현재 중성이 테이블에 있는지 확인 (ㅗ 또는 ㅜ)
+                if let target이중모음 = 이중모음결합Table[중성글자],
+                   let targetIndex = automata.중성Table.firstIndex(of: target이중모음),
+                   let new글자 = automata.combine(초성Index: 초성Index, 중성Index: targetIndex, 종성Index: 0) {
+                    
+                    var newText = beforeText
+                    newText.removeLast()
+                    newText.append(new글자)
+                    return (newText, target이중모음)
+                }
+            }
+        }
+        
+        // 2. 낱자 결합 (예: ㅜ -> ㅝ)
+        else {
+            let last글자String = String(beforeTextLast글자Char)
+            if let target이중모음 = 이중모음결합Table[last글자String] {
+                var newText = beforeText
+                newText.removeLast()
+                newText.append(target이중모음)
+                return (newText, target이중모음)
+            }
+        }
+        
+        return nil
+    }
+    
+    /// 이중모음 분해 (예: 뭐 -> 무)
+    func decompose이중모음(beforeText: String) -> String? {
+        guard let beforeTextLast글자Char = beforeText.last else { return nil }
+        
+        // 1. 완성형 분해
+        if let (초성Index, 중성Index, 종성Index) = automata.decompose(한글Char: beforeTextLast글자Char) {
+            if 종성Index == 0 {
+                let 중성글자 = automata.중성Table[중성Index]
+                
+                // 현재 중성이 결과값(value)에 있는지 확인 (ㅘ, ㅝ)
+                if let original중성글자 = 이중모음결합Table.first(where: { $0.value == 중성글자 })?.key,
+                   let original중성Index = automata.중성Table.firstIndex(of: original중성글자),
+                   let new글자 = automata.combine(초성Index: 초성Index, 중성Index: original중성Index, 종성Index: 0) {
+                    
+                    var newText = beforeText
+                    newText.removeLast()
+                    newText.append(new글자)
+                    return newText
+                }
+            }
+        }
+        
+        // 2. 낱자 분해
+        else {
+            let last글자String = String(beforeTextLast글자Char)
+            if let original글자 = 이중모음결합Table.first(where: { $0.value == last글자String })?.key {
+                var newText = beforeText
+                newText.removeLast()
+                newText.append(original글자)
                 return newText
             }
         }

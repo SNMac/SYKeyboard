@@ -36,7 +36,7 @@ public class BaseKeyboardViewController: UIInputViewController {
     /// 현재 키보드의 리턴 버튼
     private var currentReturnButton: ReturnButton? {
         switch currentKeyboard {
-        case .hangeul, .english:
+        case .naratgeul, .cheonjiin, .dubeolsik, .qwerty:
             return primaryKeyboardView.returnButton
         case .symbol:
             return symbolKeyboardView.returnButton
@@ -58,7 +58,7 @@ public class BaseKeyboardViewController: UIInputViewController {
                                                                        englishKeyboardView: primaryKeyboardView as? SwitchGestureHandling,
                                                                        symbolKeyboardView: symbolKeyboardView,
                                                                        numericKeyboardView: numericKeyboardView,
-                                                                       getCurrentKeyboard: { [weak self] in return self?.currentKeyboard ?? .hangeul },
+                                                                       getCurrentKeyboard: { [weak self] in return self?.currentKeyboard ?? .naratgeul },
                                                                        getCurrentOneHandedMode: { [weak self] in return self?.currentOneHandedMode ?? .center },
                                                                        getCurrentPressedButton: { [weak self] in self?.buttonStateController.currentPressedButton },
                                                                        setCurrentPressedButton: { [weak self] button in self?.buttonStateController.currentPressedButton = button })
@@ -103,12 +103,16 @@ public class BaseKeyboardViewController: UIInputViewController {
     /// 한 손 키보드 해제 버튼(왼손 모드)
     private let rightChevronButton = ChevronButton(direction: .right).then { $0.isHidden = true }
     
+    /// 전체 접근 허용 안내 오버레이
+    private lazy var requestFullAccessOverlayView = RequestFullAccessOverlayView()
+    
     // MARK: - Lifecycle
     
     public override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
         setNextKeyboardButton()
+        if !hasFullAccess && !UserDefaultsManager.shared.isRequestFullAccessOverlayClosed { setupRequestFullAccessOverlayView() }
         if UserDefaultsManager.shared.isOneHandedKeyboardEnabled { updateOneHandModekeyboard() }
         if UserDefaultsManager.shared.isTextReplacementEnabled {
             Task { userLexicon = await requestSupplementaryLexicon() }
@@ -306,6 +310,29 @@ private extension BaseKeyboardViewController {
         numericKeyboardView.updateNextKeyboardButton(needsInputModeSwitchKey: self.needsInputModeSwitchKey,
                                                      nextKeyboardAction: #selector(self.handleInputModeList(from:with:)))
     }
+    
+    func setupRequestFullAccessOverlayView() {
+        self.view.addSubview(requestFullAccessOverlayView)
+        
+        requestFullAccessOverlayView.snp.makeConstraints {
+            $0.edges.equalToSuperview()
+        }
+        
+        let closeOverlayAction = UIAction { [weak self] _ in
+            UserDefaultsManager.shared.isRequestFullAccessOverlayClosed = true
+            self?.requestFullAccessOverlayView.isHidden = true
+        }
+        requestFullAccessOverlayView.closeButton.addAction(closeOverlayAction, for: .touchUpInside)
+        
+        let redirectToSettingsAction = UIAction { [weak self] _ in
+            guard let url = URL(string: "sykeyboard://") else {
+                assertionFailure("올바르지 않은 URL 형식입니다.")
+                return
+            }
+            self?.openURL(url)
+        }
+        requestFullAccessOverlayView.goToSettingsButton.addAction(redirectToSettingsAction, for: .touchUpInside)
+    }
 }
 
 // MARK: - Button Action Methods
@@ -471,6 +498,21 @@ private extension BaseKeyboardViewController {
     }
 }
 
+// MARK: - Private Methods
+
+private extension BaseKeyboardViewController {
+    func openURL(_ url: URL) {
+        var responder: UIResponder? = self
+        while responder != nil {
+            if let application = responder as? UIApplication {
+                application.open(url)
+                return
+            }
+            responder = responder?.next
+        }
+    }
+}
+
 // MARK: - Text Interaction Methods
 
 extension BaseKeyboardViewController {
@@ -510,6 +552,8 @@ extension BaseKeyboardViewController {
             if textDocumentProxy.documentContextBeforeInput != nil || textDocumentProxy.selectedText != nil {
                 repeatDeleteBackward()
                 button.playFeedback()
+            } else {
+                button.isGesturing = false
             }
         case .spaceButton:
             insertSpaceText()

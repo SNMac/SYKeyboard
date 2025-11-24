@@ -36,7 +36,7 @@ private extension PrimaryButton {
             case .normal:
                 backgroundView.backgroundColor = isGesturing ? .primaryButtonPressed : .primaryButton
             case .highlighted:
-                backgroundView.backgroundColor = isPressed ? .primaryButtonPressed : .primaryButton
+                backgroundView.backgroundColor = isPressed || isGesturing ? .primaryButtonPressed : .primaryButton
             default:
                 break
             }

@@ -12,12 +12,12 @@ final class EnglishKeyboardViewController: BaseKeyboardViewController {
     
     // MARK: - Properties
     
-    private(set) var isUppercaseInput: Bool = false
+    private var isUppercaseInput: Bool = false
     
     // MARK: - UI Components
     
     /// 영어 키보드
-    private lazy var englishKeyboardView: EnglishKeyboardLayoutProvider = EnglishKeyboardView(getIsUppercaseInput: { [weak self] in return (self?.isUppercaseInput)! })
+    private lazy var englishKeyboardView: EnglishKeyboardLayoutProvider = EnglishKeyboardView(getIsUppercaseInput: { [weak self] in return self?.isUppercaseInput ?? false })
     
     override var primaryKeyboardView: PrimaryKeyboardRepresentable { englishKeyboardView }
     
@@ -44,11 +44,11 @@ final class EnglishKeyboardViewController: BaseKeyboardViewController {
         case .default, nil:
             englishKeyboardView.currentEnglishKeyboardMode = .default
             symbolKeyboardView.currentSymbolKeyboardMode = .default
-            currentKeyboard = .english
+            currentKeyboard = .qwerty
         case .asciiCapable:
             englishKeyboardView.currentEnglishKeyboardMode = .default
             symbolKeyboardView.currentSymbolKeyboardMode = .default
-            currentKeyboard = .english
+            currentKeyboard = .qwerty
         case .numbersAndPunctuation:
             englishKeyboardView.currentEnglishKeyboardMode = .default
             symbolKeyboardView.currentSymbolKeyboardMode = .default
@@ -56,7 +56,7 @@ final class EnglishKeyboardViewController: BaseKeyboardViewController {
         case .URL:
             englishKeyboardView.currentEnglishKeyboardMode = .URL
             symbolKeyboardView.currentSymbolKeyboardMode = .URL
-            currentKeyboard = .english
+            currentKeyboard = .qwerty
         case .numberPad:
             tenkeyKeyboardView.currentTenkeyKeyboardMode = .numberPad
             currentKeyboard = .tenKey
@@ -67,18 +67,18 @@ final class EnglishKeyboardViewController: BaseKeyboardViewController {
         case .emailAddress:
             englishKeyboardView.currentEnglishKeyboardMode = .emailAddress
             symbolKeyboardView.currentSymbolKeyboardMode = .emailAddress
-            currentKeyboard = .english
+            currentKeyboard = .qwerty
         case .decimalPad:
             tenkeyKeyboardView.currentTenkeyKeyboardMode = .decimalPad
             currentKeyboard = .tenKey
         case .twitter:
             englishKeyboardView.currentEnglishKeyboardMode = .twitter
             symbolKeyboardView.currentSymbolKeyboardMode = .default
-            currentKeyboard = .english
+            currentKeyboard = .qwerty
         case .webSearch:
             englishKeyboardView.currentEnglishKeyboardMode = .webSearch
             symbolKeyboardView.currentSymbolKeyboardMode = .webSearch
-            currentKeyboard = .english
+            currentKeyboard = .qwerty
         case .asciiCapableNumberPad:
             tenkeyKeyboardView.currentTenkeyKeyboardMode = .numberPad
             currentKeyboard = .tenKey
@@ -86,7 +86,7 @@ final class EnglishKeyboardViewController: BaseKeyboardViewController {
             assertionFailure("구현이 필요한 case 입니다.")
             englishKeyboardView.currentEnglishKeyboardMode = .default
             symbolKeyboardView.currentSymbolKeyboardMode = .default
-            currentKeyboard = .english
+            currentKeyboard = .qwerty
         }
     }
     
@@ -143,7 +143,7 @@ private extension EnglishKeyboardViewController {
                 }
             case .sentences:
                 if let beforeCursor = textDocumentProxy.documentContextBeforeInput {
-                    if beforeCursor.hasOnlyWhitespaceFromLastDot() {
+                    if beforeCursor.hasOnlyWhitespaceAfterLastDot() {
                         primaryKeyboardView.updateShiftButton(isShifted: true)
                     } else {
                         primaryKeyboardView.updateShiftButton(isShifted: false)
