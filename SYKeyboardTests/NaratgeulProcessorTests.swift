@@ -6,6 +6,7 @@
 //
 
 import Testing
+import OSLog
 
 @testable import HangeulKeyboard
 
@@ -14,14 +15,52 @@ struct NaratgeulProcessorTests {
     
     // MARK: - Properties
     
+    private static let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: String(describing: "NaratgeulProcessorTests"))
+    
     private let processor: HangeulProcessable = NaratgeulProcessor()
     
-    // MARK: - Helper Method (테스트 편의성을 위해 추가)
+    var 나랏글자음Map: [String: [String]] {
+        [
+            "ㄱ": ["ㄱ"], "ㅋ": ["ㄱ", "획"], "ㄲ": ["ㄱ", "쌍"],
+            "ㄴ": ["ㄴ"], "ㄷ": ["ㄴ", "획"], "ㅌ": ["ㄴ", "획", "획"], "ㄸ": ["ㄴ", "쌍"], // ㄸ은 ㄴ+쌍 (또는 ㄷ+쌍)
+            "ㄹ": ["ㄹ"],
+            "ㅁ": ["ㅁ"], "ㅂ": ["ㅁ", "획"], "ㅍ": ["ㅁ", "획", "획"], "ㅃ": ["ㅁ", "쌍"],
+            "ㅅ": ["ㅅ"], "ㅈ": ["ㅅ", "획"], "ㅊ": ["ㅅ", "획", "획"], "ㅉ": ["ㅅ", "획", "획", "획"], "ㅆ": ["ㅅ", "쌍"], // ㅉ은 ㅅ 계열 4번째
+            "ㅇ": ["ㅇ"], "ㅎ": ["ㅇ", "획"]
+        ]
+    }
     
-    /// Processor의 input 결과를 텍스트만 반환하도록 감싸는 헬퍼
-    private func input(_ char: String, to text: String) -> String {
-        let result = processor.input(글자Input: char, beforeText: text)
-        return result.0 // (String, String?) 중 앞의 String(전체 텍스트)만 반환
+    // 중성용 모음 맵
+    var 나랏글모음Map: [String: [String]] {
+        [
+            "ㅏ": ["ㅏ"], "ㅑ": ["ㅏ", "획"],
+            "ㅓ": ["ㅓ"], "ㅕ": ["ㅓ", "획"],
+            "ㅗ": ["ㅗ"], "ㅛ": ["ㅗ", "획"],
+            "ㅜ": ["ㅜ"], "ㅠ": ["ㅜ", "획"],
+            "ㅡ": ["ㅡ"], "ㅣ": ["ㅣ"],
+            
+            // 복합 모음 (ㅏ/ㅓ, ㅗ/ㅜ, ㅣ 키 조합)
+            "ㅐ": ["ㅏ", "ㅣ"], "ㅒ": ["ㅏ", "획", "ㅣ"], // ㅑ + ㅣ
+            "ㅔ": ["ㅓ", "ㅣ"], "ㅖ": ["ㅓ", "획", "ㅣ"], // ㅕ + ㅣ
+            
+            "ㅘ": ["ㅗ", "ㅏ"], "ㅙ": ["ㅗ", "ㅏ", "ㅣ"], // ㅘ + ㅣ
+            "ㅚ": ["ㅗ", "ㅣ"],
+            
+            "ㅝ": ["ㅜ", "ㅓ"], "ㅞ": ["ㅜ", "ㅓ", "ㅣ"], // ㅝ + ㅣ
+            "ㅟ": ["ㅜ", "ㅣ"],
+            
+            "ㅢ": ["ㅡ", "ㅣ"]
+        ]
+    }
+    
+    // 종성 겹받침 맵
+    var 종성겹받침Map: [String: [String]] {
+        [
+            "ㄳ": ["ㄱ", "ㅅ"], "ㄵ": ["ㄴ", "ㅈ"], "ㄶ": ["ㄴ", "ㅎ"],
+            "ㄺ": ["ㄹ", "ㄱ"], "ㄻ": ["ㄹ", "ㅁ"], "ㄼ": ["ㄹ", "ㅂ"],
+            "ㄽ": ["ㄹ", "ㅅ"], "ㄾ": ["ㄹ", "ㅌ"], "ㄿ": ["ㄹ", "ㅍ"],
+            "ㅀ": ["ㄹ", "ㅎ"], "ㅄ": ["ㅂ", "ㅅ"]
+        ]
     }
     
     // MARK: - 1. 획추가 테스트
@@ -275,5 +314,172 @@ struct NaratgeulProcessorTests {
         // 3. 달ㅋ + 획 -> 닭 (복원: ㅋ -> ㄱ, 달+ㄱ -> 닭)
         text = input("획", to: text)
         #expect(text == "닭")
+    }
+    
+    // MARK: - 8. 나랏글 11,172자 전체 검증 (Heavy Test)
+    
+    @Test("나랏글 11,172자 전체 생성 및 삭제 검증")
+    func validateAll나랏글한글글자() {
+        let 한글UnicodeStart = 0xAC00 // '가'
+        let 한글UnicodeEnd = 0xD7A3   // '힣'
+        
+        Self.logger.info("[Swift Testing - \(#function)] 11,172자 전체 검증 시작...")
+        
+        var failureCount = 0
+        
+        for 한글Unicode in 한글UnicodeStart...한글UnicodeEnd {
+            // 1. 타겟 글자 준비
+            guard let 한글Scalar = Unicode.Scalar(한글Unicode) else { continue }
+            let targetChar = Character(한글Scalar)
+            let targetString = String(targetChar)
+            
+            // 2. 나랏글 입력 시퀀스로 변환
+            let inputSequence = convertTo나랏글입력(for: targetChar)
+            
+            // 3. 입력 테스트
+            var currentText = ""
+            for inputKey in inputSequence {
+                currentText = processor.input(글자Input: inputKey, beforeText: currentText).processedText
+            }
+            
+            if currentText != targetString {
+                Self.logger.error("생성 실패: 목표(\(targetString)) != 결과(\(currentText)) / 입력: \(inputSequence)")
+                failureCount += 1
+                continue
+            }
+            
+            // 4. 삭제 테스트
+            // '획', '쌍' 입력 횟수와 무관하게, 글자의 논리적 깊이만큼만 삭제를 수행해야 함.
+            let expectedDeleteCount = calculateExpectedDeleteCount(for: targetChar)
+            var deleteText = currentText
+            
+            for _ in 0..<expectedDeleteCount {
+                deleteText = processor.delete(beforeText: deleteText)
+            }
+            
+            // 검증: 예상된 횟수만큼 지웠을 때 빈 문자열이 되어야 함
+            if !deleteText.isEmpty {
+                Self.logger.error("삭제 실패: \(targetString) -> 예상 삭제 횟수(\(expectedDeleteCount)) 실행 후 잔여물: '\(deleteText)'")
+                failureCount += 1
+            }
+        }
+        
+        #expect(failureCount == 0, "총 \(failureCount)개의 글자에서 오류(생성 또는 삭제)가 발생했습니다.")
+        
+        if failureCount == 0 {
+            Self.logger.info("[Swift Testing - \(#function)] 11,172자 생성 및 삭제 검증 완료.")
+        }
+    }
+}
+
+// MARK: - Test Helper Methods
+
+private extension NaratgeulProcessorTests {
+    /// Processor의 input 결과를 텍스트만 반환하도록 감싸는 헬퍼
+    func input(_ char: String, to text: String) -> String {
+        let result = processor.input(글자Input: char, beforeText: text)
+        return result.0 // (String, String?) 중 앞의 String(전체 텍스트)만 반환
+    }
+    
+    /// 완성형 한글 1자를 나랏글 입력 시퀀스로 변환
+    func convertTo나랏글입력(for char: Character) -> [String] {
+        guard let scalar = char.unicodeScalars.first else { return [] }
+        let value = Int(scalar.value) - 0xAC00
+        
+        let 초성Index = value / (21 * 28)
+        let 중성Index = (value % (21 * 28)) / 28
+        let 종성Index = value % 28
+        
+        let 초성Table = ["ㄱ", "ㄲ", "ㄴ", "ㄷ", "ㄸ", "ㄹ", "ㅁ", "ㅂ", "ㅃ", "ㅅ", "ㅆ", "ㅇ", "ㅈ", "ㅉ", "ㅊ", "ㅋ", "ㅌ", "ㅍ", "ㅎ"]
+        let 중성Table = ["ㅏ", "ㅐ", "ㅑ", "ㅒ", "ㅓ", "ㅔ", "ㅕ", "ㅖ", "ㅗ", "ㅘ", "ㅙ", "ㅚ", "ㅛ", "ㅜ", "ㅝ", "ㅞ", "ㅟ", "ㅠ", "ㅡ", "ㅢ", "ㅣ"]
+        let 종성Table = [" ", "ㄱ", "ㄲ", "ㄳ", "ㄴ", "ㄵ", "ㄶ", "ㄷ", "ㄹ", "ㄺ", "ㄻ", "ㄼ", "ㄽ", "ㄾ", "ㄿ", "ㅀ", "ㅁ", "ㅂ", "ㅄ", "ㅅ", "ㅆ", "ㅇ", "ㅈ", "ㅊ", "ㅋ", "ㅌ", "ㅍ", "ㅎ"]
+        
+        var inputs: [String] = []
+        
+        // 1. 초성 변환
+        let 초성글자 = 초성Table[초성Index]
+        if let mapped = 나랏글자음Map[초성글자] {
+            inputs.append(contentsOf: mapped)
+        }
+        
+        // 2. 중성 변환
+        let 중성글자 = 중성Table[중성Index]
+        if let mapped = 나랏글모음Map[중성글자] {
+            inputs.append(contentsOf: mapped)
+        }
+        
+        // 3. 종성 변환
+        if 종성Index != 0 {
+            let 종성글자 = 종성Table[종성Index]
+            
+            // 3-1. 겹받침인 경우 (예: 닭 -> ㄹ, ㄱ 순서로 입력)
+            if let components = 종성겹받침Map[종성글자] {
+                for component in components {
+                    if let mapped = 나랏글자음Map[component] {
+                        inputs.append(contentsOf: mapped)
+                    }
+                }
+            } else {
+                // 3-2. 홑받침인 경우
+                if let mapped = 나랏글자음Map[종성글자] {
+                    inputs.append(contentsOf: mapped)
+                }
+            }
+        }
+        
+        return inputs
+    }
+    
+    /// 글자를 지우기 위해 필요한 백스페이스 횟수를 계산
+    /// 규칙: 단일 자모(획/쌍 포함)는 1회, 복합 모음/겹받침은 구성 요소 수만큼
+    func calculateExpectedDeleteCount(for char: Character) -> Int {
+        guard let scalar = char.unicodeScalars.first else { return 0 }
+        let value = Int(scalar.value) - 0xAC00
+        
+        let 중성Index = (value % (21 * 28)) / 28
+        let 종성Index = value % 28
+        
+        // 1. 초성: 무조건 1회 삭제 (ㅋ, ㄲ 등도 단일 자음 취급)
+        var count = 1
+        
+        // 2. 중성: 복합 모음 여부에 따라 횟수 추가
+        // 나랏글 기준 복합 모음(결합으로 생성되는 모음)의 깊이 계산
+        let 중성Deletes: [Int] = [
+            1, // ㅏ
+            2, // ㅐ (ㅏ+ㅣ)
+            1, // ㅑ (ㅏ+획 -> 단일)
+            2, // ㅒ (ㅑ+ㅣ -> 단일+결합 -> 2회)
+            1, // ㅓ
+            2, // ㅔ (ㅓ+ㅣ)
+            1, // ㅕ (ㅓ+획 -> 단일)
+            2, // ㅖ (ㅕ+ㅣ -> 단일+결합 -> 2회)
+            1, // ㅗ
+            2, // ㅘ (ㅗ+ㅏ)
+            3, // ㅙ (ㅗ+ㅏ+ㅣ)
+            2, // ㅚ (ㅗ+ㅣ)
+            1, // ㅛ (ㅗ+획 -> 단일)
+            1, // ㅜ
+            2, // ㅝ (ㅜ+ㅓ)
+            3, // ㅞ (ㅜ+ㅓ+ㅣ)
+            2, // ㅟ (ㅜ+ㅣ)
+            1, // ㅠ (ㅜ+획 -> 단일)
+            1, // ㅡ
+            2, // ㅢ (ㅡ+ㅣ)
+            1  // ㅣ
+        ]
+        count += 중성Deletes[중성Index]
+        
+        // 3. 종성: 겹받침 여부에 따라 횟수 추가
+        if 종성Index != 0 {
+            // 겹받침 인덱스: 3(ㄳ), 5(ㄵ), 6(ㄶ), 9(ㄺ), 10(ㄻ), 11(ㄼ), 12(ㄽ), 13(ㄾ), 14(ㄿ), 15(ㅀ), 18(ㅄ)
+            let 겹받침List = [3, 5, 6, 9, 10, 11, 12, 13, 14, 15, 18]
+            if 겹받침List.contains(종성Index) {
+                count += 2 // 겹받침은 2회
+            } else {
+                count += 1 // 홑받침(ㅋ, ㄲ 포함)은 1회
+            }
+        }
+        
+        return count
     }
 }
