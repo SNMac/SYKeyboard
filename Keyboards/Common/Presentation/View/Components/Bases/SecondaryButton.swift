@@ -36,7 +36,7 @@ private extension SecondaryButton {
             case .normal:
                 backgroundView.backgroundColor = isGesturing ? .secondaryButtonPressed : .secondaryButton
             case .highlighted:
-                backgroundView.backgroundColor = isPressed ? .secondaryButtonPressed : .secondaryButton
+                backgroundView.backgroundColor = isPressed || isGesturing ? .secondaryButtonPressed : .secondaryButton
             default:
                 break
             }

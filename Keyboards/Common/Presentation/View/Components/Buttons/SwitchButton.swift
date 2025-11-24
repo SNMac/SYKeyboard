@@ -37,7 +37,7 @@ final class SwitchButton: SecondaryButton {
     override init(keyboard: SYKeyboardType) {
         self.keyboard = keyboard
         switch keyboard {
-        case .hangeul, .english:
+        case .naratgeul, .cheonjiin, .dubeolsik, .qwerty:
             self.title = "!#1"
         case .symbol, .numeric:
             guard let primaryLanguage = Bundle.primaryLanguage else { fatalError("Info.plist에서 PrimaryLanguage 값을 찾을 수 없습니다.") }
@@ -118,7 +118,7 @@ private extension SwitchButton {
     
     func setConstraints() {
         switch keyboard {
-        case .english, .symbol:
+        case .dubeolsik, .qwerty, .symbol:
             oneHandedLabel.snp.makeConstraints {
                 $0.top.equalToSuperview().inset(insetDy + 1)
                 $0.leading.equalToSuperview().inset(insetDx + 1)
@@ -155,10 +155,10 @@ private extension SwitchButton {
         
         let fullString: NSMutableAttributedString?
         switch keyboard {
-        case .hangeul, .numeric:
+        case .naratgeul, .cheonjiin, .numeric:
             fullString = NSMutableAttributedString(attachment: attachment)
             fullString?.append(NSAttributedString(attachment: arrowtriangleUp))
-        case .english, .symbol:
+        case .dubeolsik, .qwerty, .symbol:
             fullString = NSMutableAttributedString(attachment: arrowtriangleUp)
             fullString?.append(NSAttributedString(attachment: attachment))
         default:
@@ -177,14 +177,14 @@ private extension SwitchButton {
         let fullString: NSMutableAttributedString?
         
         switch keyboard {
-        case .hangeul:
+        case .naratgeul, .cheonjiin:
             text = "123"
             arrowtriangle.image = UIImage(systemName: needToEmphasize ? "arrowtriangle.left.fill" : "arrowtriangle.left")?.withConfiguration(imageConfig).withTintColor(.label, renderingMode: .alwaysOriginal)
             
             let textAttributedString = NSAttributedString(string: text, attributes: attributes)
             fullString = NSMutableAttributedString(attachment: arrowtriangle)
             fullString?.append(textAttributedString)
-        case .english, .symbol:
+        case .dubeolsik, .qwerty, .symbol:
             text = "123"
             arrowtriangle.image = UIImage(systemName: needToEmphasize ? "arrowtriangle.right.fill" : "arrowtriangle.right")?.withConfiguration(imageConfig).withTintColor(.label, renderingMode: .alwaysOriginal)
             

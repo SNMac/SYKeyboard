@@ -24,6 +24,7 @@ class FourByFourKeyboardView: UIView, HangeulKeyboardLayoutProvider {
         didSet(oldMode) { updateLayoutForCurrentHangeulMode(oldMode: oldMode) }
     }
     
+    let keyboard: SYKeyboardType
     /// 한글 키 배열
     var hangeulKeyList: [[[String]]] { fatalError("프로퍼티가 오버라이딩 되지 않았습니다.") }
     
@@ -42,6 +43,7 @@ class FourByFourKeyboardView: UIView, HangeulKeyboardLayoutProvider {
     private let secondRowHStackView = KeyboardRowHStackView()
     /// 키보드 세번째 행
     private let thirdRowHStackView = KeyboardRowHStackView()
+    /// 리턴 버튼 행
     private(set) var returnButtonHStackView = KeyboardRowHStackView()
     /// 키보드 네번째 행
     private let fourthRowHStackView = KeyboardRowHStackView()
@@ -49,32 +51,34 @@ class FourByFourKeyboardView: UIView, HangeulKeyboardLayoutProvider {
     private let fourthRowRightSecondaryButtonHStackView = KeyboardRowHStackView()
     
     /// 키보드 첫번째 행 `PrimaryButton` 배열
-    private lazy var firstRowKeyButtonList = hangeulKeyList[0].map { PrimaryKeyButton(keyboard: .hangeul, button: .keyButton(keys: $0)) }
+    private lazy var firstRowKeyButtonList = hangeulKeyList[0].map { PrimaryKeyButton(keyboard: keyboard, button: .keyButton(keys: $0)) }
     /// 키보드 두번째 행 `PrimaryButton` 배열
-    private lazy var secondRowKeyButtonList = hangeulKeyList[1].map { PrimaryKeyButton(keyboard: .hangeul, button: .keyButton(keys: $0)) }
+    private lazy var secondRowKeyButtonList = hangeulKeyList[1].map { PrimaryKeyButton(keyboard: keyboard, button: .keyButton(keys: $0)) }
     /// 키보드 세번째 행 `PrimaryButton` 배열
-    private lazy var thirdRowKeyButtonList = hangeulKeyList[2].map { PrimaryKeyButton(keyboard: .hangeul, button: .keyButton(keys: $0)) }
+    private lazy var thirdRowKeyButtonList = hangeulKeyList[2].map { PrimaryKeyButton(keyboard: keyboard, button: .keyButton(keys: $0)) }
     /// 키보드 네번째 행 `PrimaryButton` 배열
-    private lazy var fourthRowKeyButtonList = hangeulKeyList[3].map { PrimaryKeyButton(keyboard: .hangeul, button: .keyButton(keys: $0)) }
+    private lazy var fourthRowKeyButtonList = hangeulKeyList[3].map { PrimaryKeyButton(keyboard: keyboard, button: .keyButton(keys: $0)) }
     
-    private(set) var deleteButton = DeleteButton(keyboard: .hangeul)
-    private(set) var spaceButton = SpaceButton(keyboard: .hangeul)
+    private(set) lazy var deleteButton = DeleteButton(keyboard: keyboard)
+    private(set) lazy var spaceButton = SpaceButton(keyboard: keyboard)
     
     // 리턴 버튼 위치
-    private(set) var returnButton = ReturnButton(keyboard: .hangeul)
-    private(set) var secondaryAtButton = SecondaryKeyButton(keyboard: .hangeul, button: .keyButton(keys: ["@"]))
-    private(set) var secondarySharpButton = SecondaryKeyButton(keyboard: .hangeul, button: .keyButton(keys: ["#"]))
+    private(set) lazy var returnButton = ReturnButton(keyboard: keyboard)
+    private(set) lazy var secondaryAtButton = SecondaryKeyButton(keyboard: keyboard, button: .keyButton(keys: ["@"]))
+    private(set) lazy var secondarySharpButton = SecondaryKeyButton(keyboard: keyboard, button: .keyButton(keys: ["#"]))
     
-    private(set) var switchButton = SwitchButton(keyboard: .hangeul)
-    private(set) var nextKeyboardButton = NextKeyboardButton(keyboard: .hangeul)
+    private(set) lazy var switchButton = SwitchButton(keyboard: keyboard)
+    private(set) lazy var nextKeyboardButton = NextKeyboardButton(keyboard: keyboard)
     
-    private(set) var keyboardSelectOverlayView = KeyboardSelectOverlayView(keyboard: .hangeul).then { $0.isHidden = true }
-    private(set) var oneHandedModeSelectOverlayView = OneHandedModeSelectOverlayView().then { $0.isHidden = true }
+    private(set) lazy var keyboardSelectOverlayView = KeyboardSelectOverlayView(keyboard: keyboard).then { $0.isHidden = true }
+    private(set) lazy var oneHandedModeSelectOverlayView = OneHandedModeSelectOverlayView().then { $0.isHidden = true }
     
     // MARK: - Initializer
     
-    override init(frame: CGRect) {
-        super.init(frame: frame)
+    init(keyboard: SYKeyboardType) {
+        self.keyboard = keyboard
+        super.init(frame: .zero)
+        
         setupUI()
         updateLayoutToDefault()
     }

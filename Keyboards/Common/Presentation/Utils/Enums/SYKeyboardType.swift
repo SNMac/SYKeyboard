@@ -6,8 +6,10 @@
 //
 
 enum SYKeyboardType {
-    case hangeul
-    case english
+    case naratgeul
+    case cheonjiin
+    case dubeolsik
+    case qwerty
     case symbol
     case numeric
     case tenKey

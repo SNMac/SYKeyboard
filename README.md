@@ -470,7 +470,7 @@ direction LR
 
     namespace ParentKeyboardView {
       class FourByFourKeyboardView
-      class QwertyKeyboardView
+      class StandardKeyboardView
     }
 
     namespace FinalKeyboardView {
@@ -514,7 +514,7 @@ direction LR
     TextInteractionGestureHandling <|-- EnglishKeyboardLayoutProvider: Inheritance
     SwitchGestureHandling <|-- EnglishKeyboardLayoutProvider: Inheritance
     EnglishKeyboardLayoutProvider ..|> EnglishKeyboardView: Implementation
-    QwertyKeyboardView <|-- EnglishKeyboardView: Inheritance
+    StandardKeyboardView <|-- EnglishKeyboardView: Inheritance
 
     NormalKeyboardLayoutProvider <|-- SymbolKeyboardLayoutProvider: Inheritance
     TextInteractionGestureHandling <|-- SymbolKeyboardLayoutProvider: Inheritance

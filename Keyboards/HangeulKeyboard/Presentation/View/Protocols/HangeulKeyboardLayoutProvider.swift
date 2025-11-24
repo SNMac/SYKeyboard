@@ -40,7 +40,6 @@ protocol HangeulKeyboardLayoutProvider: PrimaryKeyboardRepresentable, TextIntera
 // MARK: - Protocol Properties & Methods
 
 extension HangeulKeyboardLayoutProvider {
-    var keyboard: SYKeyboardType { .hangeul }
     var isShifted: Bool? {
         get { nil } set {}
     }

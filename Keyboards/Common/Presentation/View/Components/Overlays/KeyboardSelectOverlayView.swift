@@ -81,7 +81,7 @@ final class KeyboardSelectOverlayView: UIStackView {
         
         if needToEmphasizeTarget {
             switch keyboard {
-            case .hangeul, .english, .symbol:
+            case .naratgeul, .cheonjiin, .dubeolsik, .qwerty, .symbol:
                 numericLabel.textColor = .white
                 numericLabel.backgroundColor = .tintColor
             case .numeric:
@@ -94,7 +94,7 @@ final class KeyboardSelectOverlayView: UIStackView {
             xmarkImageContainerView.backgroundColor = .clear
         } else {
             switch keyboard {
-            case .hangeul, .english, .symbol:
+            case .naratgeul, .cheonjiin, .dubeolsik, .qwerty, .symbol:
                 numericLabel.textColor = .label
                 numericLabel.backgroundColor = .clear
             case .numeric:
@@ -143,12 +143,12 @@ private extension KeyboardSelectOverlayView {
         xmarkImageContainerView.addSubview(xmarkImageView)
         
         switch keyboard {
-        case .hangeul:
+        case .naratgeul, .cheonjiin, .dubeolsik:
             self.addArrangedSubviews(numericLabel, xmarkImageContainerView)
             xmarkImageView.snp.makeConstraints {
                 $0.height.equalTo(numericLabel)
             }
-        case .english, .symbol:
+        case .qwerty, .symbol:
             self.addArrangedSubviews(xmarkImageContainerView, numericLabel)
         case .numeric:
             self.addArrangedSubviews(symbolLabel, xmarkImageContainerView)

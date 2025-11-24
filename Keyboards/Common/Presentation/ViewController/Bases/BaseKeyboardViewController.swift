@@ -36,7 +36,7 @@ public class BaseKeyboardViewController: UIInputViewController {
     /// 현재 키보드의 리턴 버튼
     private var currentReturnButton: ReturnButton? {
         switch currentKeyboard {
-        case .hangeul, .english:
+        case .naratgeul, .cheonjiin, .dubeolsik, .qwerty:
             return primaryKeyboardView.returnButton
         case .symbol:
             return symbolKeyboardView.returnButton
@@ -58,7 +58,7 @@ public class BaseKeyboardViewController: UIInputViewController {
                                                                        englishKeyboardView: primaryKeyboardView as? SwitchGestureHandling,
                                                                        symbolKeyboardView: symbolKeyboardView,
                                                                        numericKeyboardView: numericKeyboardView,
-                                                                       getCurrentKeyboard: { [weak self] in return self?.currentKeyboard ?? .hangeul },
+                                                                       getCurrentKeyboard: { [weak self] in return self?.currentKeyboard ?? .naratgeul },
                                                                        getCurrentOneHandedMode: { [weak self] in return self?.currentOneHandedMode ?? .center },
                                                                        getCurrentPressedButton: { [weak self] in self?.buttonStateController.currentPressedButton },
                                                                        setCurrentPressedButton: { [weak self] button in self?.buttonStateController.currentPressedButton = button })

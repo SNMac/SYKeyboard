@@ -332,10 +332,10 @@ private extension SwitchGestureController {
         
         let currentKeyboard = getCurrentKeyboard()
         switch currentKeyboard {
-        case .hangeul:
+        case .naratgeul, .cheonjiin, .dubeolsik:
             guard let hangeulKeyboardView else { fatalError("옵셔널 바인딩 실패 - hangeulKeyboardView가 nil입니다.") }
             gestureHandler = hangeulKeyboardView
-        case .english:
+        case .qwerty:
             guard let englishKeyboardView else { fatalError("옵셔널 바인딩 실패 - englishKeyboardView가 nil입니다.") }
             gestureHandler = englishKeyboardView
         case .symbol:
@@ -353,12 +353,12 @@ private extension SwitchGestureController {
         
         let currentKeyboard = getCurrentKeyboard()
         switch currentKeyboard {
-        case .hangeul:
+        case .naratgeul, .cheonjiin, .dubeolsik:
             guard let hangeulKeyboardView else { fatalError("옵셔널 바인딩 실패 - hangeulKeyboardView가 nil입니다.") }
             config = (gestureHandler: hangeulKeyboardView,
                       targetkeyboard: .numeric,
                       targetDirection: .left)
-        case .english:
+        case .qwerty:
             guard let englishKeyboardView else { fatalError("옵셔널 바인딩 실패 - englishKeyboardView가 nil입니다.") }
             config = (gestureHandler: englishKeyboardView,
                       targetkeyboard: .numeric,

@@ -64,7 +64,7 @@ protocol EnglishKeyboardLayoutProvider: PrimaryKeyboardRepresentable, TextIntera
 // MARK: - Protocol Properties & Methods
 
 extension EnglishKeyboardLayoutProvider {
-    var keyboard: SYKeyboardType { .english }
+    var keyboard: SYKeyboardType { .qwerty }
     
     func updateLayoutForCurrentEnglishMode(oldMode: EnglishKeyboardMode) {
         guard oldMode != currentEnglishKeyboardMode else { return }

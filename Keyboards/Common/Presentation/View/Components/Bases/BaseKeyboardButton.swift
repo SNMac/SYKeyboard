@@ -47,10 +47,10 @@ class BaseKeyboardButton: UIButton {
     
     init(keyboard: SYKeyboardType) {
         switch keyboard {
-        case .hangeul, .numeric, .tenKey:
+        case .naratgeul, .cheonjiin, .numeric, .tenKey:
             self.insetDx = 3
             self.insetDy = 2
-        case .english, .symbol:
+        case .dubeolsik, .qwerty, .symbol:
             self.insetDx = 3
             self.insetDy = 4
         }
