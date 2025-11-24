@@ -12,12 +12,12 @@ final class EnglishKeyboardViewController: BaseKeyboardViewController {
     
     // MARK: - Properties
     
-    private(set) var isUppercaseInput: Bool = false
+    private var isUppercaseInput: Bool = false
     
     // MARK: - UI Components
     
     /// 영어 키보드
-    private lazy var englishKeyboardView: EnglishKeyboardLayoutProvider = EnglishKeyboardView(getIsUppercaseInput: { [weak self] in return (self?.isUppercaseInput)! })
+    private lazy var englishKeyboardView: EnglishKeyboardLayoutProvider = EnglishKeyboardView(getIsUppercaseInput: { [weak self] in return self?.isUppercaseInput ?? false })
     
     override var primaryKeyboardView: PrimaryKeyboardRepresentable { englishKeyboardView }
     
@@ -143,7 +143,7 @@ private extension EnglishKeyboardViewController {
                 }
             case .sentences:
                 if let beforeCursor = textDocumentProxy.documentContextBeforeInput {
-                    if beforeCursor.hasOnlyWhitespaceFromLastDot() {
+                    if beforeCursor.hasOnlyWhitespaceAfterLastDot() {
                         primaryKeyboardView.updateShiftButton(isShifted: true)
                     } else {
                         primaryKeyboardView.updateShiftButton(isShifted: false)
