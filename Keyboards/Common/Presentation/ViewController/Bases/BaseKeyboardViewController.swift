@@ -510,6 +510,8 @@ extension BaseKeyboardViewController {
             if textDocumentProxy.documentContextBeforeInput != nil || textDocumentProxy.selectedText != nil {
                 repeatDeleteBackward()
                 button.playFeedback()
+            } else {
+                button.isGesturing = false
             }
         case .spaceButton:
             insertSpaceText()
