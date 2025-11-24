@@ -109,30 +109,32 @@ private extension RequestFullAccessOverlayView {
     }
     
     func setActions() {
-        let url = "sykeyboard://"
-        guard let urlScheme = URL(string: url) else {
-            assertionFailure("올바르지 않은 URL 형식입니다.")
-            return
-        }
-        
         let redirectToSettingsAction = UIAction { [weak self] _ in
-            self?.openURLThroughResponder(urlScheme)
+            guard let url = URL(string: "sykeyboard://") else {
+                assertionFailure("올바르지 않은 URL 형식입니다.")
+                return
+            }
+            self?.openURL(url)
         }
         goToSettingsButton.addAction(redirectToSettingsAction, for: .touchUpInside)
     }
 }
 
-// MARK: - Private Methods
-
-private extension RequestFullAccessOverlayView {
-    func openURLThroughResponder(_ url: URL) {
+@objc private extension RequestFullAccessOverlayView {
+    @discardableResult
+    func openURL(_ url: URL) -> Bool {
         var responder: UIResponder? = self
-        
         while responder != nil {
             if let application = responder as? UIApplication {
-                application.open(url)
+                if #available(iOS 18.0, *) {
+                    application.open(url, options: [:], completionHandler: nil)
+                    return true
+                } else {
+                    return application.perform(#selector(openURL(_:)), with: url) != nil
+                }
             }
             responder = responder?.next
         }
+        return false
     }
 }
