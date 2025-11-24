@@ -103,12 +103,16 @@ public class BaseKeyboardViewController: UIInputViewController {
     /// 한 손 키보드 해제 버튼(왼손 모드)
     private let rightChevronButton = ChevronButton(direction: .right).then { $0.isHidden = true }
     
+    /// 전체 접근 허용 안내 오버레이
+    private lazy var requestFullAccessOverlayView = RequestFullAccessOverlayView()
+    
     // MARK: - Lifecycle
     
     public override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
         setNextKeyboardButton()
+        if !hasFullAccess { setupRequestFullAccessOverlayView() }
         if UserDefaultsManager.shared.isOneHandedKeyboardEnabled { updateOneHandModekeyboard() }
         if UserDefaultsManager.shared.isTextReplacementEnabled {
             Task { userLexicon = await requestSupplementaryLexicon() }
@@ -305,6 +309,14 @@ private extension BaseKeyboardViewController {
                                                     nextKeyboardAction: #selector(self.handleInputModeList(from:with:)))
         numericKeyboardView.updateNextKeyboardButton(needsInputModeSwitchKey: self.needsInputModeSwitchKey,
                                                      nextKeyboardAction: #selector(self.handleInputModeList(from:with:)))
+    }
+    
+    func setupRequestFullAccessOverlayView() {
+        self.view.addSubview(requestFullAccessOverlayView)
+        
+        requestFullAccessOverlayView.snp.makeConstraints {
+            $0.edges.equalToSuperview()
+        }
     }
 }
 

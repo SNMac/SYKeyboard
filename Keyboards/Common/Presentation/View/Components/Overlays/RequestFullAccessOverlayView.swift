@@ -36,7 +36,7 @@ final class RequestFullAccessOverlayView: UIView {
         $0.numberOfLines = 0
     }
     
-    private let goToSettingsButton = UIButton().then {
+    private(set) var goToSettingsButton = UIButton().then {
         var buttonConfig = UIButton.Configuration.plain()
         buttonConfig.image = UIImage(systemName: "gear")
         buttonConfig.title = String(localized: "시스템 설정 이동")
@@ -56,10 +56,21 @@ final class RequestFullAccessOverlayView: UIView {
     }
 }
 
+// MARK: - UI Methods
+
 private extension RequestFullAccessOverlayView {
     func setupUI() {
+        setStyles()
         setHierarchy()
         setConstraints()
+        setActions()
+    }
+    
+    func setStyles() {
+        if #available(iOS 26, *) {
+            self.clipsToBounds = true
+            self.layer.cornerRadius = 12
+        }
     }
     
     func setHierarchy() {
@@ -94,6 +105,34 @@ private extension RequestFullAccessOverlayView {
         goToSettingsButton.snp.makeConstraints {
             $0.centerX.equalToSuperview()
             $0.bottom.equalToSuperview().inset(20)
+        }
+    }
+    
+    func setActions() {
+        let url = "sykeyboard://"
+        guard let urlScheme = URL(string: url) else {
+            assertionFailure("올바르지 않은 URL 형식입니다.")
+            return
+        }
+        
+        let redirectToSettingsAction = UIAction { [weak self] _ in
+            self?.openURLThroughResponder(urlScheme)
+        }
+        goToSettingsButton.addAction(redirectToSettingsAction, for: .touchUpInside)
+    }
+}
+
+// MARK: - Private Methods
+
+private extension RequestFullAccessOverlayView {
+    func openURLThroughResponder(_ url: URL) {
+        var responder: UIResponder? = self
+        
+        while responder != nil {
+            if let application = responder as? UIApplication {
+                application.open(url)
+            }
+            responder = responder?.next
         }
     }
 }
