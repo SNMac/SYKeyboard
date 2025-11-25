@@ -7,10 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		1C2046AFF9E6DF3A208DD16B /* libPods-SYKeyboard.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D6B9FB62A675FA3347660847 /* libPods-SYKeyboard.a */; };
-		5217F6DDD8B87EFD42BAEF37 /* libPods-HangeulKeyboard.a in Frameworks */ = {isa = PBXBuildFile; fileRef = BB0E134BB14F31FE512EE733 /* libPods-HangeulKeyboard.a */; };
 		5B8284742E6EEE04006425C7 /* EnglishKeyboard.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 5B82846D2E6EEE04006425C7 /* EnglishKeyboard.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
-		5B8E6E0E2E1E426400657BF4 /* GoogleMobileAds in Frameworks */ = {isa = PBXBuildFile; productRef = 5B8E6E0D2E1E426400657BF4 /* GoogleMobileAds */; };
 		5B8E6E112E1E42D800657BF4 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = 5B8E6E102E1E42D800657BF4 /* FirebaseAnalytics */; };
 		5B8E6E132E1E42D800657BF4 /* FirebaseAnalyticsCore in Frameworks */ = {isa = PBXBuildFile; productRef = 5B8E6E122E1E42D800657BF4 /* FirebaseAnalyticsCore */; };
 		5B9D004C2D92C38200DA108E /* HangeulKeyboard.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 5B7B3F6B2C569B8200F7C093 /* HangeulKeyboard.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
@@ -30,8 +27,9 @@
 		5BB377E02ED62457006AB083 /* HangeulKeyboardCore.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 5BB373DA2ED5DADC006AB083 /* HangeulKeyboardCore.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		5BB377E42ED628E9006AB083 /* SYKeyboardAssets in Frameworks */ = {isa = PBXBuildFile; productRef = 5BB377E32ED628E9006AB083 /* SYKeyboardAssets */; };
 		5BB377E72ED62AE5006AB083 /* SYKeyboardAssets in Frameworks */ = {isa = PBXBuildFile; productRef = 5BB377E62ED62AE5006AB083 /* SYKeyboardAssets */; };
+		5BB37A5E2ED643B9006AB083 /* MetaAdapterTarget in Frameworks */ = {isa = PBXBuildFile; productRef = 5BB37A5D2ED643B9006AB083 /* MetaAdapterTarget */; };
+		5BB37A612ED644B5006AB083 /* GoogleMobileAds in Frameworks */ = {isa = PBXBuildFile; productRef = 5BB37A602ED644B5006AB083 /* GoogleMobileAds */; };
 		5BC38F1C2D8AE2FE00E6B44E /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = 5BC38F1B2D8AE2FE00E6B44E /* README.md */; };
-		F286AE25C4EC886E9AC21FF7 /* libPods-EnglishKeyboard.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E9ECB0DA1A0C6B7873FCA0DF /* libPods-EnglishKeyboard.a */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -145,7 +143,6 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		55344F57D20D7ED59D5641EE /* Pods-EnglishKeyboard.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-EnglishKeyboard.release.xcconfig"; path = "Target Support Files/Pods-EnglishKeyboard/Pods-EnglishKeyboard.release.xcconfig"; sourceTree = "<group>"; };
 		5B48C0722E7C141900973C00 /* SYKeyboardTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SYKeyboardTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		5B7B3F562C569B7800F7C093 /* SYKeyboard.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SYKeyboard.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		5B7B3F6B2C569B8200F7C093 /* HangeulKeyboard.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = HangeulKeyboard.appex; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -155,14 +152,6 @@
 		5BB373AA2ED5D937006AB083 /* EnglishKeyboardCore.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = EnglishKeyboardCore.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		5BB373DA2ED5DADC006AB083 /* HangeulKeyboardCore.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = HangeulKeyboardCore.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		5BC38F1B2D8AE2FE00E6B44E /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
-		6247589EDA54993CCC93EA70 /* Pods-EnglishKeyboard.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-EnglishKeyboard.debug.xcconfig"; path = "Target Support Files/Pods-EnglishKeyboard/Pods-EnglishKeyboard.debug.xcconfig"; sourceTree = "<group>"; };
-		6D81D2EA423E4A7C97755F43 /* Pods-HangeulKeyboard.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-HangeulKeyboard.release.xcconfig"; path = "Target Support Files/Pods-HangeulKeyboard/Pods-HangeulKeyboard.release.xcconfig"; sourceTree = "<group>"; };
-		BA833AEA15B52DE252CBA0D6 /* Pods-SYKeyboard.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-SYKeyboard.debug.xcconfig"; path = "Target Support Files/Pods-SYKeyboard/Pods-SYKeyboard.debug.xcconfig"; sourceTree = "<group>"; };
-		BB0E134BB14F31FE512EE733 /* libPods-HangeulKeyboard.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-HangeulKeyboard.a"; sourceTree = BUILT_PRODUCTS_DIR; };
-		D6B9FB62A675FA3347660847 /* libPods-SYKeyboard.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-SYKeyboard.a"; sourceTree = BUILT_PRODUCTS_DIR; };
-		E7F97CAAE60D7782E257CF6B /* Pods-SYKeyboard.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-SYKeyboard.release.xcconfig"; path = "Target Support Files/Pods-SYKeyboard/Pods-SYKeyboard.release.xcconfig"; sourceTree = "<group>"; };
-		E9ECB0DA1A0C6B7873FCA0DF /* libPods-EnglishKeyboard.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-EnglishKeyboard.a"; sourceTree = BUILT_PRODUCTS_DIR; };
-		F1927FED975E55F4FE3C6BD2 /* Pods-HangeulKeyboard.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-HangeulKeyboard.debug.xcconfig"; path = "Target Support Files/Pods-HangeulKeyboard/Pods-HangeulKeyboard.debug.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -296,10 +285,10 @@
 			buildActionMask = 2147483647;
 			files = (
 				5BB373592ED5AA18006AB083 /* SYKeyboardCore.framework in Frameworks */,
-				5B8E6E0E2E1E426400657BF4 /* GoogleMobileAds in Frameworks */,
+				5BB37A5E2ED643B9006AB083 /* MetaAdapterTarget in Frameworks */,
 				5B8E6E112E1E42D800657BF4 /* FirebaseAnalytics in Frameworks */,
 				5B8E6E132E1E42D800657BF4 /* FirebaseAnalyticsCore in Frameworks */,
-				1C2046AFF9E6DF3A208DD16B /* libPods-SYKeyboard.a in Frameworks */,
+				5BB37A612ED644B5006AB083 /* GoogleMobileAds in Frameworks */,
 				5BB377A42ED600AC006AB083 /* FirebaseCrashlytics in Frameworks */,
 				5BB373B22ED5D937006AB083 /* EnglishKeyboardCore.framework in Frameworks */,
 				5BB373E22ED5DADC006AB083 /* HangeulKeyboardCore.framework in Frameworks */,
@@ -312,7 +301,6 @@
 			files = (
 				5BB377C62ED61250006AB083 /* FirebaseCrashlytics in Frameworks */,
 				5BB377C82ED612AE006AB083 /* FirebaseCore in Frameworks */,
-				5217F6DDD8B87EFD42BAEF37 /* libPods-HangeulKeyboard.a in Frameworks */,
 				5BB377DF2ED62457006AB083 /* HangeulKeyboardCore.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -323,7 +311,6 @@
 			files = (
 				5BB377C42ED61248006AB083 /* FirebaseCrashlytics in Frameworks */,
 				5BB377DC2ED62454006AB083 /* EnglishKeyboardCore.framework in Frameworks */,
-				F286AE25C4EC886E9AC21FF7 /* libPods-EnglishKeyboard.a in Frameworks */,
 				5BB377CA2ED612B5006AB083 /* FirebaseCore in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -369,8 +356,6 @@
 				5BB373AB2ED5D937006AB083 /* EnglishKeyboardCore */,
 				5BB373DB2ED5DADC006AB083 /* HangeulKeyboardCore */,
 				5B7B3F572C569B7800F7C093 /* Products */,
-				FA22193DEDE47B1CB6A82C36 /* Pods */,
-				A0252FEF72B1EB2FD5A22A97 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -386,29 +371,6 @@
 				5BB373DA2ED5DADC006AB083 /* HangeulKeyboardCore.framework */,
 			);
 			name = Products;
-			sourceTree = "<group>";
-		};
-		A0252FEF72B1EB2FD5A22A97 /* Frameworks */ = {
-			isa = PBXGroup;
-			children = (
-				E9ECB0DA1A0C6B7873FCA0DF /* libPods-EnglishKeyboard.a */,
-				BB0E134BB14F31FE512EE733 /* libPods-HangeulKeyboard.a */,
-				D6B9FB62A675FA3347660847 /* libPods-SYKeyboard.a */,
-			);
-			name = Frameworks;
-			sourceTree = "<group>";
-		};
-		FA22193DEDE47B1CB6A82C36 /* Pods */ = {
-			isa = PBXGroup;
-			children = (
-				6247589EDA54993CCC93EA70 /* Pods-EnglishKeyboard.debug.xcconfig */,
-				55344F57D20D7ED59D5641EE /* Pods-EnglishKeyboard.release.xcconfig */,
-				F1927FED975E55F4FE3C6BD2 /* Pods-HangeulKeyboard.debug.xcconfig */,
-				6D81D2EA423E4A7C97755F43 /* Pods-HangeulKeyboard.release.xcconfig */,
-				BA833AEA15B52DE252CBA0D6 /* Pods-SYKeyboard.debug.xcconfig */,
-				E7F97CAAE60D7782E257CF6B /* Pods-SYKeyboard.release.xcconfig */,
-			);
-			path = Pods;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -463,12 +425,10 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 5B7B3F642C569B7800F7C093 /* Build configuration list for PBXNativeTarget "SYKeyboard" */;
 			buildPhases = (
-				B0CD2BF78451014088B26D14 /* [CP] Check Pods Manifest.lock */,
 				5B7B3F522C569B7800F7C093 /* Sources */,
 				5B7B3F532C569B7800F7C093 /* Frameworks */,
 				5B7B3F542C569B7800F7C093 /* Resources */,
 				5B9D004F2D92C38200DA108E /* Embed Foundation Extensions */,
-				97E9DF9FDA5476DED9F80D79 /* [CP] Copy Pods Resources */,
 				5BB377B32ED61023006AB083 /* Setup Firebase Environment */,
 				5BB377A52ED6016D006AB083 /* Setup Crashlytics */,
 			);
@@ -495,7 +455,6 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 5B7B3F732C569B8200F7C093 /* Build configuration list for PBXNativeTarget "HangeulKeyboard" */;
 			buildPhases = (
-				7E30A7C5D286EA711F16C90D /* [CP] Check Pods Manifest.lock */,
 				5B7B3F672C569B8200F7C093 /* Sources */,
 				5B7B3F682C569B8200F7C093 /* Frameworks */,
 				5B7B3F692C569B8200F7C093 /* Resources */,
@@ -520,7 +479,6 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 5B8284752E6EEE04006425C7 /* Build configuration list for PBXNativeTarget "EnglishKeyboard" */;
 			buildPhases = (
-				0653B5421A8C3D5F5E06694D /* [CP] Check Pods Manifest.lock */,
 				5B8284692E6EEE04006425C7 /* Sources */,
 				5B82846A2E6EEE04006425C7 /* Frameworks */,
 				5B82846B2E6EEE04006425C7 /* Resources */,
@@ -585,8 +543,6 @@
 				5BB373AB2ED5D937006AB083 /* EnglishKeyboardCore */,
 			);
 			name = EnglishKeyboardCore;
-			packageProductDependencies = (
-			);
 			productName = EnglishKeyboardCore;
 			productReference = 5BB373AA2ED5D937006AB083 /* EnglishKeyboardCore.framework */;
 			productType = "com.apple.product-type.framework";
@@ -609,8 +565,6 @@
 				5BB373DB2ED5DADC006AB083 /* HangeulKeyboardCore */,
 			);
 			name = HangeulKeyboardCore;
-			packageProductDependencies = (
-			);
 			productName = HangeulKeyboardCore;
 			productReference = 5BB373DA2ED5DADC006AB083 /* HangeulKeyboardCore.framework */;
 			productType = "com.apple.product-type.framework";
@@ -659,9 +613,10 @@
 			);
 			mainGroup = 5B7B3F4D2C569B7800F7C093;
 			packageReferences = (
-				5B8E6E0C2E1E426400657BF4 /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */,
 				5B8E6E0F2E1E42D800657BF4 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 				5BB377E52ED62AE5006AB083 /* XCLocalSwiftPackageReference "SYKeyboardAssets" */,
+				5BB37A5C2ED643B9006AB083 /* XCRemoteSwiftPackageReference "googleads-mobile-ios-mediation-meta" */,
+				5BB37A5F2ED644B5006AB083 /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 5B7B3F572C569B7800F7C093 /* Products */;
@@ -733,28 +688,6 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
-		0653B5421A8C3D5F5E06694D /* [CP] Check Pods Manifest.lock */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
-				"${PODS_ROOT}/Manifest.lock",
-			);
-			name = "[CP] Check Pods Manifest.lock";
-			outputFileListPaths = (
-			);
-			outputPaths = (
-				"$(DERIVED_FILE_DIR)/Pods-EnglishKeyboard-checkManifestLockResult.txt",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
-			showEnvVarsInLog = 0;
-		};
 		5BB377A52ED6016D006AB083 /* Setup Crashlytics */ = {
 			isa = PBXShellScriptBuildPhase;
 			alwaysOutOfDate = 1;
@@ -884,71 +817,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "# 1. 환경 설정 (Debug 또는 Release) 확인\nENVIRONMENT_TYPE=\"Release\"\nif [ \"${CONFIGURATION}\" = \"Debug\" ]; then\n    ENVIRONMENT_TYPE=\"Debug\"\nfi\n\n# 2. 가져올 plist 경로 수정\nGOOGLE_SERVICE_INFO_PLIST_FROM=\"${PROJECT_DIR}/Common/Firebase/${ENVIRONMENT_TYPE}/GoogleService-Info.plist\"\n\n# 3. 복사될 경로 (앱 번들 또는 익스텐션 번들 내부)\nGOOGLE_SERVICE_INFO_PLIST_TO=\"${BUILT_PRODUCTS_DIR}/${WRAPPER_NAME}/GoogleService-Info.plist\"\n\n# --- 디버깅용 로그 (빌드 리포트에서 경로 확인 가능) ---\necho \"Copying from: ${GOOGLE_SERVICE_INFO_PLIST_FROM}\"\necho \"Copying to:   ${GOOGLE_SERVICE_INFO_PLIST_TO}\"\n\n# 4. 파일 복사 실행\nif [ -f \"${GOOGLE_SERVICE_INFO_PLIST_FROM}\" ]; then\n    cp \"${GOOGLE_SERVICE_INFO_PLIST_FROM}\" \"${GOOGLE_SERVICE_INFO_PLIST_TO}\"\n    echo \"SUCCESS: GoogleService-Info.plist copied.\"\nelse\n    echo \"ERROR: GoogleService-Info.plist not found at path!\"\n    echo \"Check this path: ${GOOGLE_SERVICE_INFO_PLIST_FROM}\"\n    exit 1\nfi\n";
-		};
-		7E30A7C5D286EA711F16C90D /* [CP] Check Pods Manifest.lock */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
-				"${PODS_ROOT}/Manifest.lock",
-			);
-			name = "[CP] Check Pods Manifest.lock";
-			outputFileListPaths = (
-			);
-			outputPaths = (
-				"$(DERIVED_FILE_DIR)/Pods-HangeulKeyboard-checkManifestLockResult.txt",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
-			showEnvVarsInLog = 0;
-		};
-		97E9DF9FDA5476DED9F80D79 /* [CP] Copy Pods Resources */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-SYKeyboard/Pods-SYKeyboard-resources-${CONFIGURATION}-input-files.xcfilelist",
-			);
-			inputPaths = (
-			);
-			name = "[CP] Copy Pods Resources";
-			outputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-SYKeyboard/Pods-SYKeyboard-resources-${CONFIGURATION}-output-files.xcfilelist",
-			);
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-SYKeyboard/Pods-SYKeyboard-resources.sh\"\n";
-			showEnvVarsInLog = 0;
-		};
-		B0CD2BF78451014088B26D14 /* [CP] Check Pods Manifest.lock */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
-				"${PODS_ROOT}/Manifest.lock",
-			);
-			name = "[CP] Check Pods Manifest.lock";
-			outputFileListPaths = (
-			);
-			outputPaths = (
-				"$(DERIVED_FILE_DIR)/Pods-SYKeyboard-checkManifestLockResult.txt",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
-			showEnvVarsInLog = 0;
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -1838,14 +1706,6 @@
 /* End XCLocalSwiftPackageReference section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		5B8E6E0C2E1E426400657BF4 /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/googleads/swift-package-manager-google-mobile-ads.git";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 12.7.0;
-			};
-		};
 		5B8E6E0F2E1E42D800657BF4 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/firebase/firebase-ios-sdk.git";
@@ -1854,14 +1714,25 @@
 				minimumVersion = 11.15.0;
 			};
 		};
+		5BB37A5C2ED643B9006AB083 /* XCRemoteSwiftPackageReference "googleads-mobile-ios-mediation-meta" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/googleads/googleads-mobile-ios-mediation-meta.git";
+			requirement = {
+				branch = main;
+				kind = branch;
+			};
+		};
+		5BB37A5F2ED644B5006AB083 /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/googleads/swift-package-manager-google-mobile-ads.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 12.14.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		5B8E6E0D2E1E426400657BF4 /* GoogleMobileAds */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 5B8E6E0C2E1E426400657BF4 /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */;
-			productName = GoogleMobileAds;
-		};
 		5B8E6E102E1E42D800657BF4 /* FirebaseAnalytics */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 5B8E6E0F2E1E42D800657BF4 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
@@ -1904,6 +1775,16 @@
 		5BB377E62ED62AE5006AB083 /* SYKeyboardAssets */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = SYKeyboardAssets;
+		};
+		5BB37A5D2ED643B9006AB083 /* MetaAdapterTarget */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 5BB37A5C2ED643B9006AB083 /* XCRemoteSwiftPackageReference "googleads-mobile-ios-mediation-meta" */;
+			productName = MetaAdapterTarget;
+		};
+		5BB37A602ED644B5006AB083 /* GoogleMobileAds */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 5BB37A5F2ED644B5006AB083 /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */;
+			productName = GoogleMobileAds;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

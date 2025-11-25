@@ -7,6 +7,7 @@
 
 import SwiftUI
 import AppTrackingTransparency
+import OSLog
 
 import FBAudienceNetwork
 import Firebase
@@ -16,11 +17,17 @@ import GoogleMobileAds
 
 final class AppDelegate: UIResponder, UIApplicationDelegate {
     
+    private lazy var logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: String(describing: self))
+    
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        FBAdSettings.setAdvertiserTrackingEnabled(true)
-        
         FirebaseApp.configure()
-        MobileAds.shared.start()
+        
+        Task {
+            let initializationStatus = await MobileAds.shared.start()
+            for (adapterName, status) in initializationStatus.adapterStatusesByClassName {
+                logger.info("Adapter: \(adapterName), Description: \(status.description), Latency: \(status.latency)")
+            }
+        }
         
         return true
     }
