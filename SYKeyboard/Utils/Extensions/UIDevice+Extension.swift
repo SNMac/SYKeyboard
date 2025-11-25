@@ -11,13 +11,11 @@ extension UIDevice {
     var modelName: String {
         var systemInfo = utsname()
         uname(&systemInfo)
-        let machineMirror = Mirror(reflecting: systemInfo.machine)
-        let model = machineMirror.children.reduce("") { identifier, element in
-            guard let value = element.value as? Int8, value != 0 else { return identifier }
-            return identifier + String(UnicodeScalar(UInt8(value)))
+        let modelCode = withUnsafePointer(to: &systemInfo.machine) { ptr in
+            return String(cString: UnsafeRawPointer(ptr).assumingMemoryBound(to: CChar.self))
         }
         
-        switch model {
+        switch modelCode {
             
             // Simulator
         case "i386", "x86_64", "arm64": return "Simulator"
@@ -235,7 +233,7 @@ extension UIDevice {
         case "Watch7,11":               return "Apple Watch Series 10 46mm case (GPS+Cellular)"
             
             // Others
-        default:                        return model
+        default:                        return modelCode
         }
     }
 }

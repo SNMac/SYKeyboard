@@ -10,44 +10,16 @@ import SwiftUI
 import SYKeyboardCore
 
 struct CursorMovementSettingsView: View {
-    @AppStorage(UserDefaultsKeys.cursorActiveDistance, store: UserDefaults(suiteName: DefaultValues.groupBundleID)) private var cursorActiveDistance = DefaultValues.cursorActiveDistance
-    @AppStorage(UserDefaultsKeys.cursorMoveInterval, store: UserDefaults(suiteName: DefaultValues.groupBundleID)) private var cursorMoveInterval = DefaultValues.cursorMoveInterval
     
-    private var cursorActiveDistanceSetting: some View {
-        HStack {
-            Text("\(cursorActiveDistance, specifier: "%.1f")")
-                .frame(width: 40)
-                .monospacedDigit()
-            Slider(value: $cursorActiveDistance, in: 40.0...60.0, step: 1.0) { _ in
-                hideKeyboard()
-            }
-            Button {
-                cursorActiveDistance = DefaultValues.cursorActiveDistance
-                hideKeyboard()
-            } label: {
-                Text("리셋")
-            }
-            .buttonStyle(BorderlessButtonStyle())
-        }
-    }
+    // MARK: - Properteis
     
-    private var cursorMoveIntervalSetting: some View {
-        HStack {
-            Text("\(cursorMoveInterval, specifier: "%.1f")")
-                .frame(width: 40)
-                .monospacedDigit()
-            Slider(value: $cursorMoveInterval, in: 1.0...9.0, step: 0.5) { _ in
-                hideKeyboard()
-            }
-            Button {
-                cursorMoveInterval = DefaultValues.cursorMoveInterval
-                hideKeyboard()
-            } label: {
-                Text("리셋")
-            }
-            .buttonStyle(BorderlessButtonStyle())
-        }
-    }
+    @AppStorage(UserDefaultsKeys.cursorActiveDistance, store: UserDefaults(suiteName: DefaultValues.groupBundleID))
+    private var cursorActiveDistance = DefaultValues.cursorActiveDistance
+    
+    @AppStorage(UserDefaultsKeys.cursorMoveInterval, store: UserDefaults(suiteName: DefaultValues.groupBundleID))
+    private var cursorMoveInterval = DefaultValues.cursorMoveInterval
+    
+    // MARK: - Content
     
     var body: some View {
         NavigationStack {
@@ -68,6 +40,46 @@ struct CursorMovementSettingsView: View {
             .navigationTitle("커서 이동")
             .navigationBarTitleDisplayMode(.inline)
             .requestReviewViewModifier()
+        }
+    }
+}
+
+// MARK: - UI Components
+
+private extension CursorMovementSettingsView {
+    var cursorActiveDistanceSetting: some View {
+        HStack {
+            Text("\(cursorActiveDistance, specifier: "%.1f")")
+                .monospacedDigit()
+                .frame(width: 40)
+            Slider(value: $cursorActiveDistance, in: 40.0...60.0, step: 1.0) { _ in
+                hideKeyboard()
+            }
+            Button {
+                cursorActiveDistance = DefaultValues.cursorActiveDistance
+                hideKeyboard()
+            } label: {
+                Text("리셋")
+            }
+            .buttonStyle(BorderlessButtonStyle())
+        }
+    }
+    
+    var cursorMoveIntervalSetting: some View {
+        HStack {
+            Text("\(cursorMoveInterval, specifier: "%.1f")")
+                .monospacedDigit()
+                .frame(width: 40)
+            Slider(value: $cursorMoveInterval, in: 1.0...9.0, step: 0.5) { _ in
+                hideKeyboard()
+            }
+            Button {
+                cursorMoveInterval = DefaultValues.cursorMoveInterval
+                hideKeyboard()
+            } label: {
+                Text("리셋")
+            }
+            .buttonStyle(BorderlessButtonStyle())
         }
     }
 }

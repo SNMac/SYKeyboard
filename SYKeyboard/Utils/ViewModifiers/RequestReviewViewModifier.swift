@@ -12,42 +12,41 @@ import OSLog
 import SYKeyboardCore
 
 struct RequestReviewViewModifier: ViewModifier {
-    private let log = OSLog(subsystem: Bundle.main.bundleIdentifier!, category: "RequestReviewViewModifier")
+    
+    // MARK: - Properties
     
     @Environment(\.requestReview) private var requestReview
     @AppStorage(UserDefaultsKeys.reviewCounter, store: UserDefaults(suiteName: DefaultValues.groupBundleID)) var reviewCounter = DefaultValues.reviewCounter
     @AppStorage(UserDefaultsKeys.lastBuildPromptedForReview, store: UserDefaults(suiteName: DefaultValues.groupBundleID)) var lastBuildPromptedForReview = DefaultValues.lastBuildPromptedForReview
     
-    private func presentReview() {
-        Task {
-            try await Task.sleep(for: .seconds(1))
-            requestReview()
-        }
-    }
+    // MARK: - Content
     
     func body(content: Content) -> some View {
+        let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: String(describing: self))
+        
         content
             .onAppear {
                 reviewCounter += 1
-                os_log("reviewCounter = %d", log: log, type: .debug, reviewCounter)
+                logger.debug("reviewCounter = \(reviewCounter)")
             }
             .onDisappear {
-                guard let currentAppBuild = Bundle.appBuild else {
-                    return
-                }
-                
+                guard let currentAppBuild = Bundle.appBuild else { return }
                 if reviewCounter >= 50, currentAppBuild != lastBuildPromptedForReview {
                     reviewCounter = 0
                     presentReview()
-                    
                     lastBuildPromptedForReview = currentAppBuild
                 }
             }
     }
 }
 
-extension View {
-    func requestReviewViewModifier() -> some View {
-        modifier(RequestReviewViewModifier())
+// MARK: - Private Methods
+
+private extension RequestReviewViewModifier {
+    func presentReview() {
+        Task {
+            try await Task.sleep(for: .seconds(1))
+            requestReview()
+        }
     }
 }

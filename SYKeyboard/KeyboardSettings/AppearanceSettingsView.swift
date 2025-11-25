@@ -10,8 +10,16 @@ import SwiftUI
 import SYKeyboardCore
 
 struct AppearanceSettingsView: View {
-    @AppStorage(UserDefaultsKeys.isNumericKeypadEnabled, store: UserDefaults(suiteName: DefaultValues.groupBundleID)) private var isNumericKeypadEnabled = DefaultValues.isNumericKeypadEnabled
-    @AppStorage(UserDefaultsKeys.isOneHandedKeyboardEnabled, store: UserDefaults(suiteName: DefaultValues.groupBundleID)) private var isOneHandedKeyboardEnabled = DefaultValues.isOneHandedKeyboardEnabled
+    
+    // MARK: - Properties
+    
+    @AppStorage(UserDefaultsKeys.isNumericKeypadEnabled, store: UserDefaults(suiteName: DefaultValues.groupBundleID))
+    private var isNumericKeypadEnabled = DefaultValues.isNumericKeypadEnabled
+    
+    @AppStorage(UserDefaultsKeys.isOneHandedKeyboardEnabled, store: UserDefaults(suiteName: DefaultValues.groupBundleID))
+    private var isOneHandedKeyboardEnabled = DefaultValues.isOneHandedKeyboardEnabled
+    
+    // MARK: - Content
     
     var body: some View {
         NavigationLink("키보드 높이") {
