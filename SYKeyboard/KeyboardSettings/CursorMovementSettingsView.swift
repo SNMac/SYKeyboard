@@ -7,6 +7,8 @@
 
 import SwiftUI
 
+import SYKeyboardCore
+
 struct CursorMovementSettingsView: View {
     @AppStorage(UserDefaultsKeys.cursorActiveDistance, store: UserDefaults(suiteName: DefaultValues.groupBundleID)) private var cursorActiveDistance = DefaultValues.cursorActiveDistance
     @AppStorage(UserDefaultsKeys.cursorMoveInterval, store: UserDefaults(suiteName: DefaultValues.groupBundleID)) private var cursorMoveInterval = DefaultValues.cursorMoveInterval

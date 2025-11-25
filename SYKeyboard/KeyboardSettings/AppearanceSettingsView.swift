@@ -7,6 +7,8 @@
 
 import SwiftUI
 
+import SYKeyboardCore
+
 struct AppearanceSettingsView: View {
     @AppStorage(UserDefaultsKeys.isNumericKeypadEnabled, store: UserDefaults(suiteName: DefaultValues.groupBundleID)) private var isNumericKeypadEnabled = DefaultValues.isNumericKeypadEnabled
     @AppStorage(UserDefaultsKeys.isOneHandedKeyboardEnabled, store: UserDefaults(suiteName: DefaultValues.groupBundleID)) private var isOneHandedKeyboardEnabled = DefaultValues.isOneHandedKeyboardEnabled

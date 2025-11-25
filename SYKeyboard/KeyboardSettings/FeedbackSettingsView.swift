@@ -9,6 +9,8 @@
 
 import SwiftUI
 
+import SYKeyboardCore
+
 struct FeedbackSettingsView: View {
     @AppStorage(UserDefaultsKeys.isSoundFeedbackEnabled, store: UserDefaults(suiteName: DefaultValues.groupBundleID)) private var isSoundFeedbackEnabled = DefaultValues.isSoundFeedbackEnabled
     @AppStorage(UserDefaultsKeys.isHapticFeedbackEnabled, store: UserDefaults(suiteName: DefaultValues.groupBundleID)) private var isHapticFeedbackEnabled = DefaultValues.isHapticFeedbackEnabled

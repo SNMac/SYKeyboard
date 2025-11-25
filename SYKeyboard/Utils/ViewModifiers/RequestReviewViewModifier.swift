@@ -9,6 +9,8 @@ import SwiftUI
 import StoreKit
 import OSLog
 
+import SYKeyboardCore
+
 struct RequestReviewViewModifier: ViewModifier {
     private let log = OSLog(subsystem: Bundle.main.bundleIdentifier!, category: "RequestReviewViewModifier")
     

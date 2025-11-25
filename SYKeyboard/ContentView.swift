@@ -8,6 +8,8 @@
 import SwiftUI
 import GoogleMobileAds
 
+import SYKeyboardCore
+
 struct ContentView: View {
     @AppStorage(UserDefaultsKeys.isOnboarding, store: UserDefaults(suiteName: DefaultValues.groupBundleID)) private var isOnboarding = DefaultValues.isOnboarding
     @State private var isAdReceived: Bool = false

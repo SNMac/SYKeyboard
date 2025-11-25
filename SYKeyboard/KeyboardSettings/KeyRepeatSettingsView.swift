@@ -7,6 +7,8 @@
 
 import SwiftUI
 
+import SYKeyboardCore
+
 struct KeyRepeatSettingsView: View {
     @AppStorage(UserDefaultsKeys.longPressDuration, store: UserDefaults(suiteName: DefaultValues.groupBundleID)) private var longPressDuration = DefaultValues.longPressDuration
     @AppStorage(UserDefaultsKeys.repeatRate, store: UserDefaults(suiteName: DefaultValues.groupBundleID)) private var repeatRate = DefaultValues.repeatRate
