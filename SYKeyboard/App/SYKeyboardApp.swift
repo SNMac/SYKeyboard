@@ -9,6 +9,7 @@ import SwiftUI
 import AppTrackingTransparency
 
 import FBAudienceNetwork
+import Firebase
 import FirebaseAnalytics
 import FirebaseCore
 import GoogleMobileAds

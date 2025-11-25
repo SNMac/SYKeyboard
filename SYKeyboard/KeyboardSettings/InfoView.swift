@@ -6,14 +6,16 @@
 //
 
 import SwiftUI
+import OSLog
 
 struct InfoView: View {
+    
+    // MARK: - Properties
+    
+    private static let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: String(describing: "SupportEmail"))
+    
     @Environment(\.openURL) private var openURL
     @State private var isShowingInstructions = false
-    @State private var itemSize = CGSize.zero
-    
-    private let subjectLocalStr = String(localized: "SY키보드 문의 사항")
-    private let messageHeaderLocalStr = String(localized: "점선 아래에 내용을 입력해 주세요. (상기된 정보가 정확하지 않을 경우 수정해 주세요!)")
     
     var body: some View {
         Button {
@@ -21,54 +23,44 @@ struct InfoView: View {
         } label: {
             HStack {
                 Image(systemName: "text.page")
-                    .background(GeometryReader {
-                        Color.clear.preference(key: ItemSize.self,
-                                               value: $0.frame(in: .local).size)
-                    })
-                    .frame(width: itemSize.width, height: itemSize.height)
-                    .onPreferenceChange(ItemSize.self) {
-                        itemSize = $0
-                    }
                 Text("키보드 사용 안내")
             }
         }
         
         Button {
-            let email = SupportEmail(toAddress: "seosdh4@gmail.com", subject: self.subjectLocalStr, messageHeader: self.messageHeaderLocalStr)
-            email.send(openURL: self.openURL)
+            let address = Bundle.main.infoDictionary?["DeveloperEmail"] as! String
+            let subjectLocalStr = String(localized: "SY키보드 문의 사항")
+            let messageHeaderLocalStr = String(localized: "점선 아래에 내용을 입력해 주세요. (상기된 정보가 정확하지 않을 경우 수정해 주세요!)")
+            
+            let emailModel = SupportEmailModel(toAddress: address, subject: subjectLocalStr, messageHeader: messageHeaderLocalStr)
+            guard let url = emailModel.makeURL() else { return }
+            openURL(url) { accepted in
+                if !accepted {
+                    Self.logger.debug(
+                    """
+                    This device does not support email
+                    --------------------------------------
+                    \(emailModel.body)
+                    """)
+                }
+            }
         } label: {
             HStack {
                 Image(systemName: "questionmark.bubble")
-                    .background(GeometryReader {
-                        Color.clear.preference(key: ItemSize.self,
-                                               value: $0.frame(in: .local).size)
-                    })
-                    .frame(width: itemSize.width, height: itemSize.height)
-                    .onPreferenceChange(ItemSize.self) {
-                        itemSize = $0
-                    }
                 Text("문의하기")
             }
         }
         
         Button {
-            let url = "https://apps.apple.com/app/id6670792957?action=write-review"
-            guard let writeReviewURL = URL(string: url) else {
-                fatalError("Expected a valid URL")
+            let reviewURLString = "https://apps.apple.com/app/id6670792957?action=write-review"
+            guard let url = URL(string: reviewURLString) else {
+                assertionFailure("Expected a valid URL")
+                return
             }
-            
-            openURL(writeReviewURL)
+            openURL(url)
         } label: {
             HStack {
                 Image(systemName: "pencil.line")
-                    .background(GeometryReader {
-                        Color.clear.preference(key: ItemSize.self,
-                                               value: $0.frame(in: .local).size)
-                    })
-                    .frame(width: itemSize.width, height: itemSize.height)
-                    .onPreferenceChange(ItemSize.self) {
-                        itemSize = $0
-                    }
                 Text("리뷰 및 별점 주기")
             }
         }

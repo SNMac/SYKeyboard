@@ -7,6 +7,8 @@
 
 import UIKit
 
+import Firebase
+
 import EnglishKeyboardCore
 
 /// 영어 키보드 입력/UI 컨트롤러
@@ -16,5 +18,9 @@ final class EnglishKeyboardViewController: EnglishKeyboardCoreViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        if FirebaseApp.app() == nil {
+            FirebaseApp.configure()
+        }
     }
 }
