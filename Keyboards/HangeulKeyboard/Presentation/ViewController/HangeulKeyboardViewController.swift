@@ -6,10 +6,9 @@
 //
 
 import UIKit
-
-import Firebase
-
 import HangeulKeyboardCore
+
+import FirebaseCore
 
 /// 한글 키보드 입력/UI 컨트롤러
 final class HangeulKeyboardViewController: HangeulKeyboardCoreViewController {

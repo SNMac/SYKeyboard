@@ -10,8 +10,6 @@ import AppTrackingTransparency
 import OSLog
 
 import FBAudienceNetwork
-import Firebase
-import FirebaseAnalytics
 import FirebaseCore
 import GoogleMobileAds
 
@@ -20,6 +18,8 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
     private lazy var logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: String(describing: self))
     
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+        FBAudienceNetworkAds.initialize(with: nil, completionHandler: nil)
+        
         FirebaseApp.configure()
         
         Task {
