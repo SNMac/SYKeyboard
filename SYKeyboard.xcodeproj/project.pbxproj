@@ -255,15 +255,6 @@
 			);
 			target = 5B82846C2E6EEE04006425C7 /* EnglishKeyboard */;
 		};
-		5BADDA572ECE3915005EE17F /* Exceptions for "Keyboards" folder in "SYKeyboardTests" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				HangeulKeyboard/Domain/Automata/HangeulAutomata.swift,
-				HangeulKeyboard/Domain/Processor/NaratgeulProcessor.swift,
-				HangeulKeyboard/Domain/Processor/Protocol/HangeulProcessable.swift,
-			);
-			target = 5B48C0712E7C141900973C00 /* SYKeyboardTests */;
-		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -278,7 +269,6 @@
 				5B53F8172E1E56BD0083F7CA /* Exceptions for "Keyboards" folder in "SYKeyboard" target */,
 				5B53F8182E1E56BD0083F7CA /* Exceptions for "Keyboards" folder in "HangeulKeyboard" target */,
 				5B8284822E6EEED8006425C7 /* Exceptions for "Keyboards" folder in "EnglishKeyboard" target */,
-				5BADDA572ECE3915005EE17F /* Exceptions for "Keyboards" folder in "SYKeyboardTests" target */,
 			);
 			path = Keyboards;
 			sourceTree = "<group>";
