@@ -1,0 +1,121 @@
+//
+//  BannerViewContainer.swift
+//  SYKeyboard
+//
+//  Created by 서동환 on 1/17/25.
+//
+
+import SwiftUI
+import GoogleMobileAds
+import FirebaseAnalytics
+import OSLog
+
+struct BannerViewContainer: UIViewRepresentable {
+    
+    // MARK: - Properties
+    
+    @Binding var isAdReceived: Bool
+    let adSize: AdSize
+    
+    // MARK: - Initializer
+    
+    init(_ adSize: AdSize, isAdReceived: Binding<Bool>) {
+        self.adSize = adSize
+        self._isAdReceived = isAdReceived
+    }
+    
+    // MARK: - Internal Methods
+    
+    func makeUIView(context: Context) -> UIView {
+        let view = UIView()
+        
+        view.addSubview(context.coordinator.bannerView)
+        return view
+    }
+    
+    func updateUIView(_ uiView: UIView, context: Context) {
+        context.coordinator.bannerView.adSize = adSize
+    }
+    
+    func makeCoordinator() -> BannerCoordinator {
+        return BannerCoordinator(self)
+    }
+}
+
+final class BannerCoordinator: NSObject, BannerViewDelegate {
+    
+    // MARK: - Properties
+    
+    private lazy var logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: String(describing: self))
+    
+    private(set) lazy var bannerView: BannerView = {
+        let banner = BannerView(adSize: parent.adSize)
+        banner.adUnitID = Configuration.admobID
+        banner.load(Request())
+        banner.delegate = self
+        
+        return banner
+    }()
+    
+    private let parent: BannerViewContainer
+    
+    // MARK: - Initializer
+    
+    init(_ parent: BannerViewContainer) {
+        self.parent = parent
+    }
+}
+
+// MARK: - BannerViewDelegate Methods
+
+extension BannerCoordinator {
+    func bannerViewDidReceiveAd(_ bannerView: BannerView) {
+        parent.isAdReceived = true
+        
+        let responseInfo = bannerView.responseInfo
+        let responseInfoStr = String(describing: responseInfo)
+        let adNetworkClassName = responseInfo?.loadedAdNetworkResponseInfo?.adNetworkClassName
+        logger.debug("DID RECEIVE AD.\n\(responseInfoStr)")
+        
+        Analytics.logEvent("receive_ad_success", parameters: [
+            "adNetworkClassName": "\(String(describing: adNetworkClassName))"
+        ])
+    }
+    
+    func bannerView(_ bannerView: BannerView, didFailToReceiveAdWithError error: Error) {
+        parent.isAdReceived = false
+        
+        let responseInfo = (error as NSError).userInfo[GADErrorUserInfoKeyResponseInfo] as? ResponseInfo
+        let responseInfoStr = String(describing: responseInfo)
+        logger.debug("FAILED TO RECEIVE AD: \(error.localizedDescription)\n\(responseInfoStr)")
+        
+        Analytics.logEvent("receive_ad_failed", parameters: [
+            "error": "\(error.localizedDescription)"
+        ])
+    }
+}
+
+// MARK: - AdMob ID Configuration
+
+private extension BannerCoordinator {
+    enum Configuration: String  {
+        case debug
+        case release
+        
+        static var current: Configuration? {
+            guard let rawValue = Bundle.main.infoDictionary?["Configuration"] as? String else { return nil }
+            return Configuration(rawValue: rawValue.lowercased())
+        }
+        
+        static var admobID: String {
+            switch current {
+            case .debug:
+                return "ca-app-pub-3940256099942544/2435281174"  // 테스트 전용 광고 단위 ID
+            case .release:
+                return "ca-app-pub-9204044817130515/6474193447"  // 실제 광고 단위 ID
+            default:
+                return ""
+            }
+        }
+    }
+}

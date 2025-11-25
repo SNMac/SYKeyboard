@@ -6,9 +6,10 @@
 //
 
 import SwiftUI
-import GoogleMobileAds
 
 import SYKeyboardCore
+
+import GoogleMobileAds
 
 struct ContentView: View {
     @AppStorage(UserDefaultsKeys.isOnboarding, store: UserDefaults(suiteName: DefaultValues.groupBundleID))
@@ -17,26 +18,31 @@ struct ContentView: View {
     @State private var isAdReceived: Bool = false
     
     var body: some View {
-        GeometryReader { geometry in
-            let adSize = currentOrientationAnchoredAdaptiveBanner(width: geometry.size.width)
-            NavigationStack {
-                KeyboardTestView()
+        NavigationStack {
+            GeometryReader { geometry in
+                let adSize = currentOrientationAnchoredAdaptiveBanner(width: geometry.size.width)
                 
-                KeyboardSettingsView()
-                
-                if isAdReceived {
-                    ZStack(alignment: .bottom) {
-                        Rectangle()
-                            .foregroundStyle(.clear)
-                            .frame(width: geometry.size.width, height: adSize.size.height)
+                ZStack(alignment: .bottom) {
+                    VStack(spacing: 0) {
+                        KeyboardTestView()
+                        
+                        KeyboardSettingsView()
                     }
+                    .safeAreaInset(edge: .bottom) {
+                        if isAdReceived {
+                            Color.clear
+                                .frame(height: adSize.size.height)
+                        }
+                    }
+                    
+                    BannerViewContainer(adSize, isAdReceived: $isAdReceived)
+                        .frame(maxWidth: .infinity, maxHeight: adSize.size.height)
+                        .background(isAdReceived ? Color(uiColor: .systemBackground).edgesIgnoringSafeArea(.bottom) : nil)
+                        .opacity(isAdReceived ? 1 : 0)
+                        .allowsHitTesting(isAdReceived)
+                        .animation(.easeInOut(duration: 1), value: isAdReceived)
                 }
-                
             }
-            .overlay(alignment: .bottom, content: {
-                BannerViewContainer(adSize, isAdReceived: $isAdReceived)
-                    .frame(height: isAdReceived ? adSize.size.height : 0)
-            })
             .sheet(isPresented: $isOnboarding) {
                 InstructionsTabView()
                     .presentationDragIndicator(.visible)
