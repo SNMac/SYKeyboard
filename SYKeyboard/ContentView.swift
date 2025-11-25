@@ -12,12 +12,6 @@ struct ContentView: View {
     @AppStorage(UserDefaultsKeys.isOnboarding, store: UserDefaults(suiteName: DefaultValues.groupBundleID)) private var isOnboarding = DefaultValues.isOnboarding
     @State private var isAdReceived: Bool = false
     
-    private var state: PreviewKeyboardState
-    
-    init() {
-        state = PreviewKeyboardState()
-    }
-    
     var body: some View {
         GeometryReader { geometry in
             let adSize = currentOrientationAnchoredAdaptiveBanner(width: geometry.size.width)
@@ -39,7 +33,6 @@ struct ContentView: View {
                 BannerViewContainer(adSize, isAdReceived: $isAdReceived)
                     .frame(height: isAdReceived ? adSize.size.height : 0)
             })
-            .environmentObject(state)
             .sheet(isPresented: $isOnboarding) {
                 InstructionsTabView()
                     .presentationDragIndicator(.visible)

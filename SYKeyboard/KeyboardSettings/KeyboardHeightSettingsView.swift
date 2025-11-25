@@ -9,7 +9,6 @@ import SwiftUI
 
 struct KeyboardHeightSettingsView: View {
     @Environment(\.dismiss) private var dismiss
-    @EnvironmentObject private var state: PreviewKeyboardState
     @AppStorage(UserDefaultsKeys.keyboardHeight, store: UserDefaults(suiteName: DefaultValues.groupBundleID)) private var keyboardHeight = DefaultValues.keyboardHeight
     @AppStorage(UserDefaultsKeys.oneHandedKeyboardWidth, store: UserDefaults(suiteName: DefaultValues.groupBundleID)) private var oneHandedKeyboardWidth = DefaultValues.oneHandedKeyboardWidth
     @State private var tempKeyboardHeight: Double = DefaultValues.keyboardHeight
@@ -55,12 +54,6 @@ struct KeyboardHeightSettingsView: View {
     var body: some View {
         NavigationStack {
             keyboardHeightSettings
-            
-            PreviewHangeulView(keyboardHeight: $tempKeyboardHeight, oneHandedKeyboardWidth: $oneHandedKeyboardWidth)
-        }
-        .onAppear {
-            tempKeyboardHeight = keyboardHeight
-            state.lastOneHandedMode = .center
         }
         .requestReviewViewModifier()
     }
@@ -68,5 +61,4 @@ struct KeyboardHeightSettingsView: View {
 
 #Preview {
     KeyboardHeightSettingsView()
-        .environmentObject(PreviewKeyboardState())
 }

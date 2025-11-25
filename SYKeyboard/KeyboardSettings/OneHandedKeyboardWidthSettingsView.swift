@@ -9,7 +9,6 @@ import SwiftUI
 
 struct OneHandedKeyboardWidthSettingsView: View {
     @Environment(\.dismiss) private var dismiss
-    @EnvironmentObject private var state: PreviewKeyboardState
     @AppStorage(UserDefaultsKeys.keyboardHeight, store: UserDefaults(suiteName: DefaultValues.groupBundleID)) private var keyboardHeight = DefaultValues.keyboardHeight
     @AppStorage(UserDefaultsKeys.oneHandedKeyboardWidth, store: UserDefaults(suiteName: DefaultValues.groupBundleID)) private var oneHandedKeyboardWidth = DefaultValues.oneHandedKeyboardWidth
     @AppStorage(UserDefaultsKeys.needsInputModeSwitchKey, store: UserDefaults(suiteName: DefaultValues.groupBundleID)) private var needsInputModeSwitchKey = DefaultValues.needsInputModeSwitchKey
@@ -24,28 +23,6 @@ struct OneHandedKeyboardWidthSettingsView: View {
             Slider(value: $tempOneHandedKeyboardWidth, in: 300...340, step: 1)
                 .padding(EdgeInsets(top: 0, leading: 30, bottom: 0, trailing: 30))
             Spacer()
-            
-            HStack {
-                Spacer()
-                
-                Button {
-                    state.lastOneHandedMode = .left
-                } label: {
-                    Image(systemName: "keyboard.onehanded.left")
-                        .font(.system(size: fontSize))
-                }.buttonStyle(.bordered)
-                
-                Spacer()
-                
-                Button {
-                    state.lastOneHandedMode = .right
-                } label: {
-                    Image(systemName: "keyboard.onehanded.right")
-                        .font(.system(size: fontSize))
-                }.buttonStyle(.bordered)
-                
-                Spacer()
-            }
         }
         .navigationTitle("한 손 키보드 너비")
         .navigationBarTitleDisplayMode(.inline)
@@ -80,21 +57,6 @@ struct OneHandedKeyboardWidthSettingsView: View {
     var body: some View {
         NavigationStack {
             oneHandedKeyboardWidthSettings
-            
-            HStack(spacing: 0) {
-                if state.lastOneHandedMode == .right {
-                    PreviewChevronButton(keyboardHeight: $keyboardHeight, isLeftHandMode: false)
-                }
-                
-                PreviewHangeulView(keyboardHeight: $keyboardHeight, oneHandedKeyboardWidth: $tempOneHandedKeyboardWidth)
-                if state.lastOneHandedMode == .left {
-                    PreviewChevronButton(keyboardHeight: $keyboardHeight, isLeftHandMode: true)
-                }
-            }.frame(height: needsInputModeSwitchKey ? keyboardHeight : keyboardHeight + 40)
-        }
-        .onAppear {
-            tempOneHandedKeyboardWidth = oneHandedKeyboardWidth
-            state.lastOneHandedMode = .right
         }
         .requestReviewViewModifier()
     }
@@ -102,5 +64,4 @@ struct OneHandedKeyboardWidthSettingsView: View {
 
 #Preview {
     OneHandedKeyboardWidthSettingsView()
-        .environmentObject(PreviewKeyboardState())
 }
