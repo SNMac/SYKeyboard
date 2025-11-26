@@ -24,7 +24,7 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
         Task {
             let initializationStatus = await MobileAds.shared.start()
             for (adapterName, status) in initializationStatus.adapterStatusesByClassName {
-                logger.info("Adapter: \(adapterName), Description: \(status.description), Latency: \(status.latency)")
+                logger.debug("Adapter: \(adapterName), Description: \(status.description), Latency: \(status.latency)")
             }
         }
         

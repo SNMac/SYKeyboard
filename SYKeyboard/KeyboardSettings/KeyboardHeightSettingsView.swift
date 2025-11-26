@@ -6,13 +6,22 @@
 //
 
 import SwiftUI
-
 import SYKeyboardCore
 
+import FirebaseAnalytics
+
 struct KeyboardHeightSettingsView: View {
+    
+    // MARK: - Properties
+    
     @Environment(\.dismiss) private var dismiss
-    @AppStorage(UserDefaultsKeys.keyboardHeight, store: UserDefaults(suiteName: DefaultValues.groupBundleID)) private var keyboardHeight = DefaultValues.keyboardHeight
-    @AppStorage(UserDefaultsKeys.oneHandedKeyboardWidth, store: UserDefaults(suiteName: DefaultValues.groupBundleID)) private var oneHandedKeyboardWidth = DefaultValues.oneHandedKeyboardWidth
+    
+    @AppStorage(UserDefaultsKeys.keyboardHeight, store: UserDefaults(suiteName: DefaultValues.groupBundleID))
+    private var keyboardHeight = DefaultValues.keyboardHeight
+    
+    @AppStorage(UserDefaultsKeys.oneHandedKeyboardWidth, store: UserDefaults(suiteName: DefaultValues.groupBundleID))
+    private var oneHandedKeyboardWidth = DefaultValues.oneHandedKeyboardWidth
+    
     @State private var tempKeyboardHeight: Double = DefaultValues.keyboardHeight
     
     private var keyboardHeightSettings: some View {
@@ -44,6 +53,10 @@ struct KeyboardHeightSettingsView: View {
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
                     keyboardHeight = tempKeyboardHeight
+                    Analytics.logEvent("update_keyboard_height", parameters: [
+                        "value": tempKeyboardHeight
+                    ])
+                    
                     dismiss()
                 } label: {
                     Text("저장")
@@ -53,9 +66,16 @@ struct KeyboardHeightSettingsView: View {
         }
     }
     
+    // MARK: - Content
+    
     var body: some View {
         NavigationStack {
             keyboardHeightSettings
+            
+            
+        }
+        .onAppear {
+            tempKeyboardHeight = keyboardHeight
         }
         .requestReviewViewModifier()
     }

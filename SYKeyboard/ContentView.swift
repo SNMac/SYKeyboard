@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-
 import SYKeyboardCore
 
 import GoogleMobileAds
@@ -23,26 +22,26 @@ struct ContentView: View {
                 let adSize = currentOrientationAnchoredAdaptiveBanner(width: geometry.size.width)
                 
                 ZStack(alignment: .bottom) {
-                    VStack {
+                    VStack(spacing: 8) {
                         KeyboardTestView()
                         
                         KeyboardSettingsView()
                     }
                     .safeAreaInset(edge: .bottom) {
-                        if isAdReceived {
-                            Color.clear
-                                .frame(height: adSize.size.height)
-                        }
+                        BannerAdView(adSize, isAdReceived: $isAdReceived)
+                            .frame(maxWidth: .infinity, maxHeight: adSize.size.height)
+                            .background(isAdReceived ? Color(uiColor: .systemBackground).edgesIgnoringSafeArea(.bottom) : nil)
+                            .opacity(isAdReceived ? 1 : 0)
+                            .allowsHitTesting(isAdReceived)
+                            .animation(.easeInOut(duration: 1), value: isAdReceived)
                     }
-                    
-                    BannerViewContainer(adSize, isAdReceived: $isAdReceived)
-                        .frame(maxWidth: .infinity, maxHeight: adSize.size.height)
-                        .background(isAdReceived ? Color(uiColor: .systemBackground).edgesIgnoringSafeArea(.bottom) : nil)
-                        .opacity(isAdReceived ? 1 : 0)
-                        .allowsHitTesting(isAdReceived)
-                        .animation(.easeInOut(duration: 1), value: isAdReceived)
                 }
             }
+            .onAppear {
+                hideKeyboard()
+            }
+            .navigationTitle(Bundle.displayName ?? "SY키보드")
+            .navigationBarTitleDisplayMode(.inline)
             .sheet(isPresented: $isOnboarding) {
                 InstructionsTabView()
                     .presentationDragIndicator(.visible)

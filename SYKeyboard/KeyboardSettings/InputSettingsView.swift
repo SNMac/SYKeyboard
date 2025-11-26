@@ -10,8 +10,16 @@ import SwiftUI
 import SYKeyboardCore
 
 struct InputSettingsView: View {
-    @AppStorage(UserDefaultsKeys.isTextReplacementEnabled, store: UserDefaults(suiteName: DefaultValues.groupBundleID)) private var isTextReplacementEnabled = DefaultValues.isTextReplacementEnabled
-    @AppStorage(UserDefaultsKeys.isAutoChangeToPrimaryEnabled, store: UserDefaults(suiteName: DefaultValues.groupBundleID)) private var isAutoChangeToPrimaryEnabled = DefaultValues.isAutoChangeToPrimaryEnabled
+    
+    // MARK: - Properties
+    
+    @AppStorage(UserDefaultsKeys.isTextReplacementEnabled, store: UserDefaults(suiteName: DefaultValues.groupBundleID))
+    private var isTextReplacementEnabled = DefaultValues.isTextReplacementEnabled
+    
+    @AppStorage(UserDefaultsKeys.isAutoChangeToPrimaryEnabled, store: UserDefaults(suiteName: DefaultValues.groupBundleID))
+    private var isAutoChangeToPrimaryEnabled = DefaultValues.isAutoChangeToPrimaryEnabled
+    
+    // MARK: - Content
     
     var body: some View {
         NavigationLink("반복 입력") {
@@ -35,6 +43,8 @@ struct InputSettingsView: View {
         })
     }
 }
+
+// MARK: - Preview
 
 #Preview {
     InputSettingsView()

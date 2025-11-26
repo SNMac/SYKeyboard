@@ -1,5 +1,5 @@
 //
-//  BannerViewContainer.swift
+//  BannerAdView.swift
 //  SYKeyboard
 //
 //  Created by 서동환 on 1/17/25.
@@ -10,7 +10,7 @@ import GoogleMobileAds
 import FirebaseAnalytics
 import OSLog
 
-struct BannerViewContainer: UIViewRepresentable {
+struct BannerAdView: UIViewRepresentable {
     
     // MARK: - Properties
     
@@ -37,12 +37,12 @@ struct BannerViewContainer: UIViewRepresentable {
         context.coordinator.bannerView.adSize = adSize
     }
     
-    func makeCoordinator() -> BannerCoordinator {
-        return BannerCoordinator(self)
+    func makeCoordinator() -> BannerAdCoordinator {
+        return BannerAdCoordinator(self)
     }
 }
 
-final class BannerCoordinator: NSObject, BannerViewDelegate {
+final class BannerAdCoordinator: NSObject, BannerViewDelegate {
     
     // MARK: - Properties
     
@@ -57,18 +57,18 @@ final class BannerCoordinator: NSObject, BannerViewDelegate {
         return banner
     }()
     
-    private let parent: BannerViewContainer
+    private let parent: BannerAdView
     
     // MARK: - Initializer
     
-    init(_ parent: BannerViewContainer) {
+    init(_ parent: BannerAdView) {
         self.parent = parent
     }
 }
 
 // MARK: - BannerViewDelegate Methods
 
-extension BannerCoordinator {
+extension BannerAdCoordinator {
     func bannerViewDidReceiveAd(_ bannerView: BannerView) {
         parent.isAdReceived = true
         
@@ -76,15 +76,17 @@ extension BannerCoordinator {
         logger.debug("DID RECEIVE AD:\n\(responseInfo)")
         
         let adNetworkClassName = responseInfo?.loadedAdNetworkResponseInfo?.adNetworkClassName
+        let latency = responseInfo?.loadedAdNetworkResponseInfo?.latency
         Analytics.logEvent("receive_ad_success", parameters: [
-            "adNetworkClassName": "\(String(describing: adNetworkClassName))"
+            "adNetworkClassName": "\(String(describing: adNetworkClassName))",
+            "latency": "\(String(describing: latency))"
         ])
     }
     
     func bannerView(_ bannerView: BannerView, didFailToReceiveAdWithError error: Error) {
         parent.isAdReceived = false
         
-        let responseInfo = (error as NSError).userInfo[GADErrorUserInfoKeyResponseInfo] as? ResponseInfo
+        let responseInfo = bannerView.responseInfo
         logger.error("FAILED TO RECEIVE AD: \(error.localizedDescription)\n\(responseInfo)")
         
         Analytics.logEvent("receive_ad_failed", parameters: [
@@ -95,7 +97,7 @@ extension BannerCoordinator {
 
 // MARK: - AdMob ID Configuration
 
-private extension BannerCoordinator {
+private extension BannerAdCoordinator {
     enum Configuration: String  {
         case debug
         case release

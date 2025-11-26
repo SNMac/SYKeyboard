@@ -24,6 +24,7 @@ struct CursorMovementSettingsView: View {
     var body: some View {
         NavigationStack {
             KeyboardTestView()
+            
             List {
                 Section {
                     cursorActiveDistanceSetting
