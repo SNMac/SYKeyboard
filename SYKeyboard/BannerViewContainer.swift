@@ -73,10 +73,9 @@ extension BannerCoordinator {
         parent.isAdReceived = true
         
         let responseInfo = bannerView.responseInfo
-        let responseInfoStr = String(describing: responseInfo)
-        let adNetworkClassName = responseInfo?.loadedAdNetworkResponseInfo?.adNetworkClassName
-        logger.debug("DID RECEIVE AD.\n\(responseInfoStr)")
+        logger.debug("DID RECEIVE AD:\n\(responseInfo)")
         
+        let adNetworkClassName = responseInfo?.loadedAdNetworkResponseInfo?.adNetworkClassName
         Analytics.logEvent("receive_ad_success", parameters: [
             "adNetworkClassName": "\(String(describing: adNetworkClassName))"
         ])
@@ -86,8 +85,7 @@ extension BannerCoordinator {
         parent.isAdReceived = false
         
         let responseInfo = (error as NSError).userInfo[GADErrorUserInfoKeyResponseInfo] as? ResponseInfo
-        let responseInfoStr = String(describing: responseInfo)
-        logger.debug("FAILED TO RECEIVE AD: \(error.localizedDescription)\n\(responseInfoStr)")
+        logger.error("FAILED TO RECEIVE AD: \(error.localizedDescription)\n\(responseInfo)")
         
         Analytics.logEvent("receive_ad_failed", parameters: [
             "error": "\(error.localizedDescription)"
@@ -103,8 +101,8 @@ private extension BannerCoordinator {
         case release
         
         static var current: Configuration? {
-            guard let rawValue = Bundle.main.infoDictionary?["Configuration"] as? String else { return nil }
-            return Configuration(rawValue: rawValue.lowercased())
+            guard let buildConfigString = Bundle.main.infoDictionary?["Configuration"] as? String else { return nil }
+            return Configuration(rawValue: buildConfigString.lowercased())
         }
         
         static var admobID: String {

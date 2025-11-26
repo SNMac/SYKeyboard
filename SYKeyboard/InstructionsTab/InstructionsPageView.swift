@@ -8,9 +8,22 @@
 import SwiftUI
 
 struct InstructionsPageView: View {
-    let title: String
-    let imageName: String
-    let subtitle: String
+    
+    // MARK: - Properties
+    
+    private let title: String
+    private let image: UIImage
+    private let subtitle: String
+    
+    // MARK: - Initializer
+    
+    init(title: String, image: UIImage, subtitle: String) {
+        self.title = title
+        self.image = image
+        self.subtitle = subtitle
+    }
+    
+    // MARK: - Content
     
     var body: some View {
         VStack {
@@ -19,7 +32,7 @@ struct InstructionsPageView: View {
                 .lineLimit(2, reservesSpace: true)
                 .multilineTextAlignment(.center)
                 .padding(EdgeInsets(top: 0, leading: 15, bottom: 0, trailing: 15))
-            Image(imageName)
+            Image(uiImage: image)
                 .resizable()
                 .scaledToFit()
                 .clipShape(RoundedRectangle(cornerRadius: 5))
@@ -33,5 +46,5 @@ struct InstructionsPageView: View {
 }
 
 #Preview {
-    InstructionsPageView(title: "한 손 키보드 변경 방법", imageName: "instruction_change_one_hand", subtitle: "'!#1' 또는 '한글' 버튼을 위로 드래그 or 길게 누르기")
+    InstructionsPageView(title: "한 손 키보드 변경 방법", image: .instructionChangeOneHanded, subtitle: "'!#1' 또는 '한글' 버튼을 위로 드래그 or 길게 누르기")
 }

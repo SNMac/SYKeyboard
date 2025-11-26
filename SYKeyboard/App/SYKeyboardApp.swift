@@ -34,14 +34,21 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
 
 @main
 struct SYKeyboardApp: App {
+    
+    // MARK: - Properties
+    
     @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+    
+    @Environment(\.openURL) var openURL
+    
+    // MARK: - Content
     
     var body: some Scene {
         WindowGroup {
             ContentView()
                 .onOpenURL { url in
                     if let settingsURL = URL(string: UIApplication.openSettingsURLString) {
-                        UIApplication.shared.open(settingsURL)
+                        openURL(settingsURL)
                     }
                 }
                 .onReceive(NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)) { _ in
