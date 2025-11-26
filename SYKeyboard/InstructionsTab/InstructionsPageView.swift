@@ -12,12 +12,12 @@ struct InstructionsPageView: View {
     // MARK: - Properties
     
     private let title: String
-    private let image: UIImage
+    private let image: ImageResource
     private let subtitle: String
     
     // MARK: - Initializer
     
-    init(title: String, image: UIImage, subtitle: String) {
+    init(title: String, image: ImageResource, subtitle: String) {
         self.title = title
         self.image = image
         self.subtitle = subtitle
@@ -32,7 +32,7 @@ struct InstructionsPageView: View {
                 .lineLimit(2, reservesSpace: true)
                 .multilineTextAlignment(.center)
                 .padding(EdgeInsets(top: 0, leading: 15, bottom: 0, trailing: 15))
-            Image(uiImage: image)
+            Image(image)
                 .resizable()
                 .scaledToFit()
                 .clipShape(RoundedRectangle(cornerRadius: 5))

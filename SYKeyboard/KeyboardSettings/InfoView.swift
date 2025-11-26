@@ -22,7 +22,7 @@ struct InfoView: View {
             isShowingInstructions = true
         } label: {
             HStack {
-                Image(systemName: "text.page")
+                Image(.textPage)
                 Text("키보드 사용 안내")
             }
         }
@@ -46,7 +46,7 @@ struct InfoView: View {
             }
         } label: {
             HStack {
-                Image(systemName: "questionmark.bubble")
+                Image(.questionmarkBubble)
                 Text("문의하기")
             }
         }
@@ -60,7 +60,7 @@ struct InfoView: View {
             openURL(url)
         } label: {
             HStack {
-                Image(systemName: "pencil.line")
+                Image(.pencilLine)
                 Text("리뷰 및 별점 주기")
             }
         }

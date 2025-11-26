@@ -16,7 +16,7 @@ struct InitialSettingsView: View {
             }
         } label: {
             HStack {
-                Image(systemName: "gear")
+                Image(.gear)
                 Text("시스템 설정 이동")
             }
         }
