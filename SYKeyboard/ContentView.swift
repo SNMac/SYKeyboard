@@ -30,7 +30,7 @@ struct ContentView: View {
                     .safeAreaInset(edge: .bottom) {
                         BannerAdView(adSize, isAdReceived: $isAdReceived)
                             .frame(maxWidth: .infinity, maxHeight: adSize.size.height)
-                            .background(isAdReceived ? Color(uiColor: .systemBackground).edgesIgnoringSafeArea(.bottom) : nil)
+                            .background(isAdReceived ? Color(.systemBackground) : .clear, ignoresSafeAreaEdges: .bottom)
                             .opacity(isAdReceived ? 1 : 0)
                             .allowsHitTesting(isAdReceived)
                             .animation(.easeInOut(duration: 1), value: isAdReceived)
