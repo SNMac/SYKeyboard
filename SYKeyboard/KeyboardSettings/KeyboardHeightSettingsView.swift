@@ -22,6 +22,9 @@ struct KeyboardHeightSettingsView: View {
     @AppStorage(UserDefaultsKeys.oneHandedKeyboardWidth, store: UserDefaults(suiteName: DefaultValues.groupBundleID))
     private var oneHandedKeyboardWidth = DefaultValues.oneHandedKeyboardWidth
     
+    @AppStorage(UserDefaultsKeys.needsInputModeSwitchKey, store: UserDefaults(suiteName: DefaultValues.groupBundleID))
+    private var needsInputModeSwitchKey = true
+    
     @State private var tempKeyboardHeight: Double = DefaultValues.keyboardHeight
     
     private var keyboardHeightSettings: some View {
@@ -72,7 +75,10 @@ struct KeyboardHeightSettingsView: View {
         NavigationStack {
             keyboardHeightSettings
             
-            
+            PreviewKeyboardView(keyboardHeight: $tempKeyboardHeight, oneHandedKeyboardWidth: $oneHandedKeyboardWidth)
+                .background(.keyboardBackground)
+                .frame(height: tempKeyboardHeight)
+                .padding(.bottom, needsInputModeSwitchKey ? 0 : 40)
         }
         .onAppear {
             tempKeyboardHeight = keyboardHeight
