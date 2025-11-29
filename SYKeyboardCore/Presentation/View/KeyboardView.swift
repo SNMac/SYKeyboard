@@ -16,7 +16,7 @@ final public class KeyboardView: UIView {
     // MARK: - UI Components
     
     /// 키보드 전체 수직 스택
-    private let keyboardFrameHStackView: UIStackView = {
+    let keyboardFrameHStackView: UIStackView = {
         let stackView = UIStackView()
         stackView.axis = .horizontal
         stackView.spacing = 0

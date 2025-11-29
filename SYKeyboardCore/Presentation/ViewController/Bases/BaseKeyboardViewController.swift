@@ -82,16 +82,9 @@ open class BaseKeyboardViewController: UIInputViewController {
     
     // MARK: - UI Components
     
-    /// 키보드 전체 수직 스택
-    private let keyboardFrameHStackView: UIStackView = {
-        let stackView = UIStackView()
-        stackView.axis = .horizontal
-        stackView.spacing = 0
-        stackView.backgroundColor = .clear
-        
-        return stackView
-    }()
     private lazy var keyboardView = KeyboardView(primaryKeyboardView: primaryKeyboardView)
+    /// 키보드 전체 수직 스택
+    private lazy var keyboardFrameHStackView = keyboardView.keyboardFrameHStackView
     /// 한 손 키보드 해제 버튼(오른손 모드)
     private lazy var leftChevronButton = keyboardView.leftChevronButton
     /// 주 키보드(오버라이딩 필요)

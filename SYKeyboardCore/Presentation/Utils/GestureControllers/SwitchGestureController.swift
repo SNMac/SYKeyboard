@@ -109,7 +109,7 @@ final class SwitchGestureController: NSObject {
         switch gesture.state {
         case .began:
             guard getCurrentPressedButton() === gestureButton else {
-                logger.notice("현재 눌려있는 버튼으로 인해 제스처 무시")
+                logger.info("현재 눌려있는 버튼으로 인해 제스처 무시")
                 gesture.state = .cancelled
                 return
             }
@@ -130,6 +130,7 @@ final class SwitchGestureController: NSObject {
             }
             let isKeepGesturing = onLongPressGestureEnded(gesture, gestureHandler: gestureHandler)
             gestureButton?.isGesturing = isKeepGesturing
+            if isKeepGesturing { gestureHandler.disableAllButtonUserInteraction() }
             
             keyboardFrameView.isUserInteractionEnabled = true
         default:
@@ -150,6 +151,7 @@ final class SwitchGestureController: NSObject {
         case .ended, .cancelled, .failed:
             onKeyboardFrameViewPressGestureEnded(gesture, gestureHandler: gestureHandler)
             gestureButton.isGesturing = false
+            gestureHandler.enableAllButtonUserInteraction()
             logger.debug("키보드 길게 누르기 제스처 비활성화")
         default:
             break
