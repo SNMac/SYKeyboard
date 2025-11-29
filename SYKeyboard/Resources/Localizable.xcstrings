@@ -90,6 +90,16 @@
         }
       }
     },
+    "가로 모드에선 iOS 기본 키보드와 동일한 높이로 표시됩니다." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "In landscape mode, it displays at the same height as the iOS default keyboard."
+          }
+        }
+      }
+    },
     "기호 키보드 입력 후 스페이스/리턴 ➡️ 한글 키보드" : {
       "localizations" : {
         "en" : {

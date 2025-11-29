@@ -52,6 +52,10 @@ private extension KeyboardHeightSettingsView {
                 .padding(EdgeInsets(top: 10, leading: 0, bottom: 0, trailing: 0))
             Slider(value: $tempKeyboardHeight, in: 190...290, step: 1)
                 .padding(EdgeInsets(top: 0, leading: 30, bottom: 0, trailing: 30))
+            Text("가로 모드에선 iOS 기본 키보드와 동일한 높이로 표시됩니다.")
+                .font(.footnote)
+                .multilineTextAlignment(.center)
+                .padding(EdgeInsets(top: 0, leading: 15, bottom: 0, trailing: 15))
             Spacer()
         }
         .navigationTitle("키보드 높이")
