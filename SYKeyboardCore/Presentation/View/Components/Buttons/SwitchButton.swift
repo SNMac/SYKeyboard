@@ -6,11 +6,16 @@
 //
 
 import UIKit
+import OSLog
 
 /// 키보드 전환 버튼
 final public class SwitchButton: SecondaryButton {
     
     // MARK: - Properties
+    
+    private let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: "SwitchButton")
+    
+    public static var debugPrimaryLanguage: String = "ko-KR"
     
     private let keyboard: SYKeyboardType
     private let title: String
@@ -43,7 +48,14 @@ final public class SwitchButton: SecondaryButton {
         case .naratgeul, .cheonjiin, .dubeolsik, .qwerty:
             self.title = "!#1"
         case .symbol, .numeric:
-            guard let primaryLanguage = Bundle.primaryLanguage else { fatalError("Info.plist에서 PrimaryLanguage 값을 찾을 수 없습니다.") }
+            let primaryLanguage: String
+            if Bundle.primaryLanguage != nil {
+                primaryLanguage = Bundle.primaryLanguage!
+            } else {
+                logger.critical("Info.plist에서 PrimaryLanguage 값을 찾을 수 없습니다.")
+                primaryLanguage = Self.debugPrimaryLanguage
+            }
+            
             if primaryLanguage == "ko-KR" {
                 self.title = "한글"
             } else if primaryLanguage == "en-US" {
