@@ -21,6 +21,8 @@
 	</array>
 	<key>Configuration</key>
 	<string>$(CONFIGURATION)</string>
+	<key>DeveloperEmail</key>
+	<string>$(DeveloperEmail)</string>
 	<key>GADApplicationIdentifier</key>
 	<string>$(GADApplicationIdentifier)</string>
 	<key>SKAdNetworkItems</key>

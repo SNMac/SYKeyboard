@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-import SYKeyboardCore
 import HangeulKeyboardCore
 
 /// 키보드 Preview
@@ -21,7 +20,7 @@ struct PreviewHangeulKeyboardViewController: UIViewControllerRepresentable {
     
     // MARK: - Internal Methods
     
-    func makeUIViewController(context: Context) -> BaseKeyboardViewController {
+    func makeUIViewController(context: Context) -> HangeulKeyboardCoreViewController {
         let keyboard = HangeulKeyboardCoreViewController()
         keyboard.isPreview = true
         
@@ -34,7 +33,7 @@ struct PreviewHangeulKeyboardViewController: UIViewControllerRepresentable {
         return keyboard
     }
     
-    func updateUIViewController(_ uiViewController: BaseKeyboardViewController, context: Context) {
+    func updateUIViewController(_ uiViewController: HangeulKeyboardCoreViewController, context: Context) {
         uiViewController.updateOneHandedWidthForPreview(to: oneHandedKeyboardWidth)
     }
 }

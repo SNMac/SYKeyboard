@@ -32,7 +32,7 @@ struct OneHandedKeyboardWidthSettingsView: View {
         NavigationStack {
             oneHandedKeyboardWidthSettings
             
-            PreviewHangeulKeyboardViewController(keyboardHeight: $keyboardHeight, oneHandedKeyboardWidth: $tempOneHandedKeyboardWidth)
+            PreviewEnglishKeyboardViewController(keyboardHeight: $keyboardHeight, oneHandedKeyboardWidth: $tempOneHandedKeyboardWidth)
                 .frame(height: keyboardHeight)
                 .background(.keyboardBackground)
                 .padding(.bottom, needsInputModeSwitchKey ? 0 : 40)

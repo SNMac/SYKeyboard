@@ -23,6 +23,17 @@ open class EnglishKeyboardCoreViewController: BaseKeyboardViewController {
     
     open override var primaryKeyboardView: PrimaryKeyboardRepresentable { englishKeyboardView }
     
+    // MARK: - Initializer
+    
+    public override init(nibName nibNameOrNil: String?, bundle nibBundleOrNil: Bundle?) {
+        SwitchButton.debugPrimaryLanguage = "en-US"
+        super.init(nibName: nibNameOrNil, bundle: nibBundleOrNil)
+    }
+    
+    @MainActor required public init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
     // MARK: - Override Methods
     
     open override func textWillChange(_ textInput: (any UITextInput)?) {
