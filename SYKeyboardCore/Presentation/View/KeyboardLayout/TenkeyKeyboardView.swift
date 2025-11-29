@@ -110,13 +110,11 @@ private extension TenkeyKeyboardView {
     
     func setConstraints() {
         topSpacer.translatesAutoresizingMaskIntoConstraints = false
-        let topSpacerHeight = topSpacer.heightAnchor.constraint(equalToConstant: 2)
-        topSpacerHeight.priority = .init(999)
         NSLayoutConstraint.activate([
             topSpacer.topAnchor.constraint(equalTo: self.topAnchor),
             topSpacer.leadingAnchor.constraint(equalTo: self.leadingAnchor),
             topSpacer.trailingAnchor.constraint(equalTo: self.trailingAnchor),
-            topSpacerHeight
+            topSpacer.heightAnchor.constraint(equalToConstant: 2)
         ])
         
         layoutVStackView.translatesAutoresizingMaskIntoConstraints = false
@@ -128,13 +126,11 @@ private extension TenkeyKeyboardView {
         ])
         
         bottomSpacer.translatesAutoresizingMaskIntoConstraints = false
-        let bottomSpacerHeight = bottomSpacer.heightAnchor.constraint(equalToConstant: 2)
-        bottomSpacerHeight.priority = .init(999)
         NSLayoutConstraint.activate([
             bottomSpacer.leadingAnchor.constraint(equalTo: self.leadingAnchor),
             bottomSpacer.trailingAnchor.constraint(equalTo: self.trailingAnchor),
             bottomSpacer.bottomAnchor.constraint(equalTo: self.bottomAnchor),
-            bottomSpacerHeight
+            bottomSpacer.heightAnchor.constraint(equalToConstant: 2)
         ])
     }
 }

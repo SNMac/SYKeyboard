@@ -202,27 +202,19 @@ private extension SymbolKeyboardView {
         }
         
         keyboardSelectOverlayView.translatesAutoresizingMaskIntoConstraints = false
-        let keyboardSelectOverlayWidth = keyboardSelectOverlayView.widthAnchor.constraint(equalTo: self.widthAnchor, multiplier: KeyboardLayoutFigure.keyboardSelectOverlayWidthMultiplier)
-        keyboardSelectOverlayWidth.priority = .init(999)
-        let keyboardSelectOverlayHeight = keyboardSelectOverlayView.heightAnchor.constraint(equalTo: returnButton.heightAnchor)
-        keyboardSelectOverlayHeight.priority = .init(999)
         NSLayoutConstraint.activate([
             keyboardSelectOverlayView.leadingAnchor.constraint(equalTo: self.leadingAnchor, constant: 4),
             keyboardSelectOverlayView.centerYAnchor.constraint(equalTo: shiftButton.centerYAnchor),
-            keyboardSelectOverlayWidth,
-            keyboardSelectOverlayHeight
+            keyboardSelectOverlayView.widthAnchor.constraint(equalTo: self.widthAnchor, multiplier: KeyboardLayoutFigure.keyboardSelectOverlayWidthMultiplier),
+            keyboardSelectOverlayView.heightAnchor.constraint(equalTo: shiftButton.heightAnchor)
         ])
         
         oneHandedModeSelectOverlayView.translatesAutoresizingMaskIntoConstraints = false
-        let oneHandedOverlayWidth = oneHandedModeSelectOverlayView.widthAnchor.constraint(equalTo: self.widthAnchor, multiplier: KeyboardLayoutFigure.oneHandedModeSelectOverlayWidthMultiplier)
-        oneHandedOverlayWidth.priority = .init(999)
-        let oneHandedOverlayHeight = oneHandedModeSelectOverlayView.heightAnchor.constraint(equalTo: returnButton.heightAnchor)
-        oneHandedOverlayHeight.priority = .init(999)
         NSLayoutConstraint.activate([
             oneHandedModeSelectOverlayView.leadingAnchor.constraint(equalTo: self.leadingAnchor, constant: 4),
             oneHandedModeSelectOverlayView.centerYAnchor.constraint(equalTo: shiftButton.centerYAnchor),
-            oneHandedOverlayWidth,
-            oneHandedOverlayHeight
+            oneHandedModeSelectOverlayView.widthAnchor.constraint(equalTo: self.widthAnchor, multiplier: KeyboardLayoutFigure.oneHandedModeSelectOverlayWidthMultiplier),
+            oneHandedModeSelectOverlayView.heightAnchor.constraint(equalTo: shiftButton.heightAnchor)
         ])
     }
 }

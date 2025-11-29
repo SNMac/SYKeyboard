@@ -9,10 +9,6 @@ import UIKit
 
 final class KeyboardView: UIView {
     
-    // MARK: - Properties
-    
-    private var keyboardLayoutWidthConstraint: NSLayoutConstraint?
-    
     // MARK: - UI Components
     
     /// 키보드 전체 수직 스택
@@ -76,12 +72,6 @@ final class KeyboardView: UIView {
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
-    /// 한 손 키보드 너비 업데이트를 업데이트하는 메서드
-    public func updateOneHandedWidth(_ width: Double) {
-        keyboardLayoutWidthConstraint?.constant = width
-        self.layoutIfNeeded()
-    }
 }
 
 // MARK: - UI Methods
@@ -111,9 +101,7 @@ private extension KeyboardView {
         
         keyboardLayoutView.translatesAutoresizingMaskIntoConstraints = false
         let minWidth = UserDefaultsManager.shared.oneHandedKeyboardWidth
-        keyboardLayoutWidthConstraint = keyboardLayoutView.widthAnchor.constraint(greaterThanOrEqualToConstant: minWidth)
-        keyboardLayoutWidthConstraint?.priority = .init(999)
-        keyboardLayoutWidthConstraint?.isActive = true
+        keyboardLayoutView.widthAnchor.constraint(greaterThanOrEqualToConstant: minWidth).isActive = true
         
         [primaryKeyboardView, symbolKeyboardView, numericKeyboardView, tenkeyKeyboardView].forEach {
             $0.translatesAutoresizingMaskIntoConstraints = false

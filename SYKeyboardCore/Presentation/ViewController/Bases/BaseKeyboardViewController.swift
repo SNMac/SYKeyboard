@@ -15,9 +15,6 @@ open class BaseKeyboardViewController: UIInputViewController {
     
     private lazy var logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: String(describing: self))
     
-    /// Preview 모드 플래그 변수
-    public var isPreview: Bool = false
-    
     final public lazy var oldKeyboardType: UIKeyboardType? = textDocumentProxy.keyboardType
     
     /// 현재 표시되는 키보드
@@ -124,7 +121,6 @@ open class BaseKeyboardViewController: UIInputViewController {
     open override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         setKeyboardHeight()
-        if isPreview { updateReturnButtonType() }
         FeedbackManager.shared.prepareHaptic()
     }
     
@@ -193,12 +189,10 @@ open class BaseKeyboardViewController: UIInputViewController {
     }
     
     /// 사용자가 탭한 `TextInteractable` 버튼의 `keys` 중 상황에 맞는 문자를 입력하는 메서드 (단일 호출)
-    /// - `isPreview == true`이면 즉시 리턴
     ///
     /// - Parameters:
     ///   - keys: `TextInteractable` 버튼에 입력할 수 있는 문자 배열
     open func insertKeyText(from keys: [String]) {
-        if isPreview { return }
         guard let key = keys.first else {
             assertionFailure("keys 배열이 비어있습니다.")
             return
@@ -206,12 +200,10 @@ open class BaseKeyboardViewController: UIInputViewController {
         textDocumentProxy.insertText(key)
     }
     /// 사용자가 탭한 `TextInteractable` 버튼의 `keys` 중 상황에 맞는 문자를 입력하는 메서드 (반복 호출)
-    /// - `isPreview == true`이면 즉시 리턴
     ///
     /// - Parameters:
     ///   - keys: `TextInteractable` 버튼에 입력할 수 있는 문자 배열
     open func repeatInsertKeyText(from keys: [String]) {
-        if isPreview { return }
         guard let key = keys.first else {
             assertionFailure("keys 배열이 비어있습니다.")
             return
@@ -220,41 +212,14 @@ open class BaseKeyboardViewController: UIInputViewController {
     }
     
     /// 공백 문자를 입력하는 메서드
-    /// - `isPreview == true`이면 즉시 리턴
-    open func insertSpaceText() {
-        if isPreview { return }
-        textDocumentProxy.insertText(" ")
-    }
+    open func insertSpaceText() { textDocumentProxy.insertText(" ") }
     /// 개행 문자를 입력하는 메서드
-    /// - `isPreview == true`이면 즉시 리턴
-    open func insertReturnText() {
-        if isPreview { return }
-        textDocumentProxy.insertText("\n")
-    }
+    open func insertReturnText() { textDocumentProxy.insertText("\n") }
     
     /// 문자열 입력 UI의 텍스트를 삭제하는 메서드 (단일 호출)
-    /// - `isPreview == true`이면 즉시 리턴
-    open func deleteBackward() {
-        if isPreview { return }
-        textDocumentProxy.deleteBackward()
-    }
+    open func deleteBackward() { textDocumentProxy.deleteBackward() }
     /// 문자열 입력 UI의 텍스트를 삭제하는 메서드 (반복 호출)
-    /// - `isPreview == true`이면 즉시 리턴
-    open func repeatDeleteBackward() {
-        if isPreview { return }
-        textDocumentProxy.deleteBackward()
-    }
-    
-    // MARK: - Public Methods
-    
-    public func updateSettings(height: Double, oneHandedWidth: Double) {
-        if let keyboardHeightConstraint {
-            keyboardHeightConstraint.constant = height
-        }
-        keyboardView.updateOneHandedWidth(oneHandedWidth)
-        
-        self.view.layoutIfNeeded()
-    }
+    open func repeatDeleteBackward() { textDocumentProxy.deleteBackward() }
 }
 
 // MARK: - UI Methods
@@ -299,9 +264,7 @@ private extension BaseKeyboardViewController {
         if let orientation = self.view.window?.windowScene?.effectiveGeometry.interfaceOrientation {
             keyboardHeight = orientation == .portrait ? UserDefaultsManager.shared.keyboardHeight : KeyboardLayoutFigure.landscapeKeyboardHeight
         } else {
-            if !isPreview {
-                assertionFailure("View가 window 계층에 없습니다.")
-            }
+            assertionFailure("View가 window 계층에 없습니다.")
             keyboardHeight = UserDefaultsManager.shared.keyboardHeight
         }
         
@@ -309,7 +272,7 @@ private extension BaseKeyboardViewController {
             keyboardHeightConstraint.constant = keyboardHeight
         } else {
             let constraint = self.view.heightAnchor.constraint(equalToConstant: keyboardHeight)
-            constraint.priority = .init(999)
+            constraint.priority = UILayoutPriority(999)
             constraint.isActive = true
             
             keyboardHeightConstraint = constraint
@@ -321,8 +284,6 @@ private extension BaseKeyboardViewController {
             $0.updateNextKeyboardButton(needsInputModeSwitchKey: self.needsInputModeSwitchKey,
                                         nextKeyboardAction: #selector(self.handleInputModeList(from:with:)))
         }
-        
-        UserDefaultsManager.shared.needsInputModeSwitchKey = self.needsInputModeSwitchKey
     }
     
     func setupRequestFullAccessOverlayView() {

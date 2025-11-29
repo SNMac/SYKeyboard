@@ -107,17 +107,12 @@ private extension BaseKeyboardButton {
     
     func setConstraints() {
         shadowView.translatesAutoresizingMaskIntoConstraints = false
-        
         let top = shadowView.topAnchor.constraint(equalTo: self.topAnchor, constant: insetDy)
         let leading = shadowView.leadingAnchor.constraint(equalTo: self.leadingAnchor, constant: insetDx)
-        leading.priority = .init(999)
         leadingConstraint = leading
         let trailing = shadowView.trailingAnchor.constraint(equalTo: self.trailingAnchor, constant: -insetDx)
-        trailing.priority = .init(999)
         trailingConstraint = trailing
         let bottom = shadowView.bottomAnchor.constraint(equalTo: self.bottomAnchor, constant: -insetDy)
-        bottom.priority = .init(999)
-        
         visualConstraints = [top, leading, trailing, bottom]
         NSLayoutConstraint.activate(visualConstraints)
         
