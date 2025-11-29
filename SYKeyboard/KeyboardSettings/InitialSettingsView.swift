@@ -8,6 +8,8 @@
 import SwiftUI
 
 struct InitialSettingsView: View {
+    
+    // MARK: - Contents
 
     var body: some View {
         Button {
@@ -22,6 +24,8 @@ struct InitialSettingsView: View {
         }
     }
 }
+
+// MARK: - Preview
 
 #Preview {
     InitialSettingsView()

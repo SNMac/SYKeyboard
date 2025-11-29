@@ -10,47 +10,16 @@ import SwiftUI
 import SYKeyboardCore
 
 struct KeyRepeatSettingsView: View {
+    
+    // MARK: - Properties
+    
     @AppStorage(UserDefaultsKeys.longPressDuration, store: UserDefaults(suiteName: DefaultValues.groupBundleID))
     private var longPressDuration = DefaultValues.longPressDuration
     
     @AppStorage(UserDefaultsKeys.repeatRate, store: UserDefaults(suiteName: DefaultValues.groupBundleID))
     private var repeatRate = DefaultValues.repeatRate
     
-    private var longPressDurationSetting: some View {
-        HStack {
-            Text("\(longPressDuration, specifier: "%.2f")")
-                .frame(width: 40)
-                .monospacedDigit()
-            Slider(value: $longPressDuration, in: 0.1...0.9, step: 0.05) { _ in
-                hideKeyboard()
-            }
-            Button {
-                longPressDuration = DefaultValues.longPressDuration
-                hideKeyboard()
-            } label: {
-                Text("리셋")
-            }
-            .buttonStyle(BorderlessButtonStyle())
-        }
-    }
-    
-    private var repeatRateSetting: some View {
-        HStack {
-            Text("\(repeatRate * 100, specifier: "%.1f")")
-                .frame(width: 40)
-                .monospacedDigit()
-            Slider(value: $repeatRate, in: 0.01...0.09, step: 0.005) { _ in
-                hideKeyboard()
-            }
-            Button {
-                repeatRate = DefaultValues.repeatRate
-                hideKeyboard()
-            } label: {
-                Text("리셋")
-            }
-            .buttonStyle(BorderlessButtonStyle())
-        }
-    }
+    // MARK: - Contents
     
     var body: some View {
         NavigationStack {
@@ -74,6 +43,48 @@ struct KeyRepeatSettingsView: View {
         }
     }
 }
+
+// MARK: - UI Components
+
+private extension KeyRepeatSettingsView {
+    var longPressDurationSetting: some View {
+        HStack {
+            Text("\(longPressDuration, specifier: "%.2f")")
+                .frame(width: 40)
+                .monospacedDigit()
+            Slider(value: $longPressDuration, in: 0.1...0.9, step: 0.05) { _ in
+                hideKeyboard()
+            }
+            Button {
+                longPressDuration = DefaultValues.longPressDuration
+                hideKeyboard()
+            } label: {
+                Text("리셋")
+            }
+            .buttonStyle(BorderlessButtonStyle())
+        }
+    }
+    
+    var repeatRateSetting: some View {
+        HStack {
+            Text("\(repeatRate * 100, specifier: "%.1f")")
+                .frame(width: 40)
+                .monospacedDigit()
+            Slider(value: $repeatRate, in: 0.01...0.09, step: 0.005) { _ in
+                hideKeyboard()
+            }
+            Button {
+                repeatRate = DefaultValues.repeatRate
+                hideKeyboard()
+            } label: {
+                Text("리셋")
+            }
+            .buttonStyle(BorderlessButtonStyle())
+        }
+    }
+}
+
+// MARK: - Preview
 
 #Preview {
     KeyRepeatSettingsView()

@@ -13,7 +13,7 @@ struct KeyboardTestView: View {
     
     @State private var text = ""
     
-    // MARK: - Content
+    // MARK: - Contents
     
     var body: some View {
         TextField("터치하여 키보드 테스트", text: $text, axis: .vertical)

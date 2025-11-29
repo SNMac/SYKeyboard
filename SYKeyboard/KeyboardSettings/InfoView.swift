@@ -17,6 +17,8 @@ struct InfoView: View {
     @Environment(\.openURL) private var openURL
     @State private var isShowingInstructions = false
     
+    // MARK: - Contents
+    
     var body: some View {
         Button {
             isShowingInstructions = true
@@ -78,6 +80,8 @@ struct InfoView: View {
         }
     }
 }
+
+// MARK: - Preview
 
 #Preview {
     InfoView()

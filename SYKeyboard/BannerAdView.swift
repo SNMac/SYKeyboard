@@ -42,7 +42,7 @@ struct BannerAdView: UIViewRepresentable {
     }
 }
 
-final class BannerAdCoordinator: NSObject, BannerViewDelegate {
+final class BannerAdCoordinator: NSObject {
     
     // MARK: - Properties
     
@@ -66,9 +66,9 @@ final class BannerAdCoordinator: NSObject, BannerViewDelegate {
     }
 }
 
-// MARK: - BannerViewDelegate Methods
+// MARK: - BannerViewDelegate
 
-extension BannerAdCoordinator {
+extension BannerAdCoordinator: BannerViewDelegate {
     func bannerViewDidReceiveAd(_ bannerView: BannerView) {
         parent.isAdReceived = true
         
@@ -109,12 +109,10 @@ private extension BannerAdCoordinator {
         
         static var admobID: String {
             switch current {
-            case .debug:
-                return "ca-app-pub-3940256099942544/2435281174"  // 테스트 전용 광고 단위 ID
             case .release:
                 return "ca-app-pub-9204044817130515/6474193447"  // 실제 광고 단위 ID
             default:
-                return ""
+                return "ca-app-pub-3940256099942544/2435281174"  // 테스트 전용 광고 단위 ID
             }
         }
     }

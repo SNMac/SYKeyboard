@@ -23,7 +23,7 @@ struct InstructionsPageView: View {
         self.subtitle = subtitle
     }
     
-    // MARK: - Content
+    // MARK: - Contents
     
     var body: some View {
         VStack {
@@ -44,6 +44,8 @@ struct InstructionsPageView: View {
         }
     }
 }
+
+// MARK: - Preview
 
 #Preview {
     InstructionsPageView(title: "한 손 키보드 변경 방법", image: .instructionChangeOneHanded, subtitle: "'!#1' 또는 '한글' 버튼을 위로 드래그 or 길게 누르기")

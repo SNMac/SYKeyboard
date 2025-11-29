@@ -11,7 +11,7 @@ import SYKeyboardCore
 
 struct CursorMovementSettingsView: View {
     
-    // MARK: - Properteis
+    // MARK: - Properties
     
     @AppStorage(UserDefaultsKeys.cursorActiveDistance, store: UserDefaults(suiteName: DefaultValues.groupBundleID))
     private var cursorActiveDistance = DefaultValues.cursorActiveDistance
@@ -19,7 +19,7 @@ struct CursorMovementSettingsView: View {
     @AppStorage(UserDefaultsKeys.cursorMoveInterval, store: UserDefaults(suiteName: DefaultValues.groupBundleID))
     private var cursorMoveInterval = DefaultValues.cursorMoveInterval
     
-    // MARK: - Content
+    // MARK: - Contents
     
     var body: some View {
         NavigationStack {
@@ -84,6 +84,8 @@ private extension CursorMovementSettingsView {
         }
     }
 }
+
+// MARK: - Preview
 
 #Preview {
     CursorMovementSettingsView()

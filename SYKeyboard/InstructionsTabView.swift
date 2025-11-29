@@ -13,7 +13,7 @@ struct InstructionsTabView: View {
     
     @Environment(\.dismiss) private var dismiss
     
-    // MARK: - Content
+    // MARK: - Contents
     
     var body: some View {
         TabView {
@@ -44,6 +44,8 @@ struct InstructionsTabView: View {
         .padding(EdgeInsets(top: 0, leading: 0, bottom: 16, trailing: 0))
     }
 }
+
+// MARK: - Preview
 
 #Preview {
     InstructionsTabView()

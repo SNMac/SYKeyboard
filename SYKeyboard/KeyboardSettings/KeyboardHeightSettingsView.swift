@@ -66,7 +66,7 @@ struct KeyboardHeightSettingsView: View {
         }
     }
     
-    // MARK: - Content
+    // MARK: - Contents
     
     var body: some View {
         NavigationStack {
@@ -80,6 +80,8 @@ struct KeyboardHeightSettingsView: View {
         .requestReviewViewModifier()
     }
 }
+
+// MARK: - Preview
 
 #Preview {
     KeyboardHeightSettingsView()

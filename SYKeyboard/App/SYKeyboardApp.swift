@@ -14,9 +14,13 @@ import GoogleMobileAds
 
 final class AppDelegate: UIResponder, UIApplicationDelegate {
     
+    // MARK: - Properties
+    
     private lazy var logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: String(describing: self))
     
     var window: UIWindow?  // FBAudienceNetwork 크래시 방지
+    
+    // MARK: - didFinishLaunchingWithOptions
     
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         FirebaseApp.configure()
@@ -41,7 +45,7 @@ struct SYKeyboardApp: App {
     
     @Environment(\.openURL) var openURL
     
-    // MARK: - Content
+    // MARK: - Contents
     
     var body: some Scene {
         WindowGroup {

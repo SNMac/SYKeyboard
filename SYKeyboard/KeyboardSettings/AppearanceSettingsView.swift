@@ -19,7 +19,7 @@ struct AppearanceSettingsView: View {
     @AppStorage(UserDefaultsKeys.isOneHandedKeyboardEnabled, store: UserDefaults(suiteName: DefaultValues.groupBundleID))
     private var isOneHandedKeyboardEnabled = DefaultValues.isOneHandedKeyboardEnabled
     
-    // MARK: - Content
+    // MARK: - Contents
     
     var body: some View {
         NavigationLink("키보드 높이") {
@@ -45,6 +45,8 @@ struct AppearanceSettingsView: View {
         }
     }
 }
+
+// MARK: - Contents
 
 #Preview {
     AppearanceSettingsView()

@@ -10,6 +10,9 @@ import SwiftUI
 import SYKeyboardCore
 
 struct OneHandedKeyboardWidthSettingsView: View {
+    
+    // MARK: - Properties
+    
     @Environment(\.dismiss) private var dismiss
     @AppStorage(UserDefaultsKeys.keyboardHeight, store: UserDefaults(suiteName: DefaultValues.groupBundleID)) private var keyboardHeight = DefaultValues.keyboardHeight
     @AppStorage(UserDefaultsKeys.oneHandedKeyboardWidth, store: UserDefaults(suiteName: DefaultValues.groupBundleID)) private var oneHandedKeyboardWidth = DefaultValues.oneHandedKeyboardWidth
@@ -18,7 +21,20 @@ struct OneHandedKeyboardWidthSettingsView: View {
     
     private let fontSize: CGFloat = 40
     
-    private var oneHandedKeyboardWidthSettings: some View {
+    // MARK: - Contents
+    
+    var body: some View {
+        NavigationStack {
+            oneHandedKeyboardWidthSettings
+        }
+        .requestReviewViewModifier()
+    }
+}
+
+// MARK: - UI Components
+
+private extension OneHandedKeyboardWidthSettingsView {
+    var oneHandedKeyboardWidthSettings: some View {
         VStack {
             Text("\(Int(tempOneHandedKeyboardWidth) - (Int(DefaultValues.oneHandedKeyboardWidth) - 100))")
                 .padding(EdgeInsets(top: 10, leading: 0, bottom: 0, trailing: 0))
@@ -55,14 +71,9 @@ struct OneHandedKeyboardWidthSettingsView: View {
             }
         }
     }
-    
-    var body: some View {
-        NavigationStack {
-            oneHandedKeyboardWidthSettings
-        }
-        .requestReviewViewModifier()
-    }
 }
+
+// MARK: - Preview
 
 #Preview {
     OneHandedKeyboardWidthSettingsView()

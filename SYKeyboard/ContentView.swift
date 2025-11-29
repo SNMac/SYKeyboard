@@ -11,10 +11,15 @@ import SYKeyboardCore
 import GoogleMobileAds
 
 struct ContentView: View {
+    
+    // MARK: - Properties
+    
     @AppStorage(UserDefaultsKeys.isOnboarding, store: UserDefaults(suiteName: DefaultValues.groupBundleID))
     private var isOnboarding = DefaultValues.isOnboarding
     
     @State private var isAdReceived: Bool = false
+    
+    // MARK: - Contents
     
     var body: some View {
         NavigationStack {
@@ -37,9 +42,7 @@ struct ContentView: View {
                     }
                 }
             }
-            .onAppear {
-                hideKeyboard()
-            }
+            .onAppear { hideKeyboard() }
             .navigationTitle(Bundle.displayName ?? "SY키보드")
             .navigationBarTitleDisplayMode(.inline)
             .sheet(isPresented: $isOnboarding) {
@@ -50,6 +53,8 @@ struct ContentView: View {
         }
     }
 }
+
+// MARK: - Preview
 
 #Preview {
     ContentView()

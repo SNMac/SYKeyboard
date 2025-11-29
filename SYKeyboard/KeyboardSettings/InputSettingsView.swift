@@ -19,7 +19,7 @@ struct InputSettingsView: View {
     @AppStorage(UserDefaultsKeys.isAutoChangeToPrimaryEnabled, store: UserDefaults(suiteName: DefaultValues.groupBundleID))
     private var isAutoChangeToPrimaryEnabled = DefaultValues.isAutoChangeToPrimaryEnabled
     
-    // MARK: - Content
+    // MARK: - Contents
     
     var body: some View {
         NavigationLink("반복 입력") {
