@@ -80,7 +80,7 @@ private extension KeyboardHeightSettingsView {
                 Button {
                     keyboardHeight = tempKeyboardHeight
                     Analytics.logEvent("update_keyboard_height", parameters: [
-                        "value": tempKeyboardHeight
+                        "value": keyboardHeight
                     ])
                     
                     dismiss()

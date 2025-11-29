@@ -6,8 +6,9 @@
 //
 
 import SwiftUI
-
 import SYKeyboardCore
+
+import FirebaseAnalytics
 
 struct OneHandedKeyboardWidthSettingsView: View {
     
@@ -74,6 +75,9 @@ private extension OneHandedKeyboardWidthSettingsView {
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
                     oneHandedKeyboardWidth = tempOneHandedKeyboardWidth
+                    Analytics.logEvent("update_one_handed_keyboard_width", parameters: [
+                        "value": oneHandedKeyboardWidth
+                    ])
                     dismiss()
                 } label: {
                     Text("저장")
