@@ -14,20 +14,31 @@ struct OneHandedKeyboardWidthSettingsView: View {
     // MARK: - Properties
     
     @Environment(\.dismiss) private var dismiss
-    @AppStorage(UserDefaultsKeys.keyboardHeight, store: UserDefaults(suiteName: DefaultValues.groupBundleID)) private var keyboardHeight = DefaultValues.keyboardHeight
-    @AppStorage(UserDefaultsKeys.oneHandedKeyboardWidth, store: UserDefaults(suiteName: DefaultValues.groupBundleID)) private var oneHandedKeyboardWidth = DefaultValues.oneHandedKeyboardWidth
-    @AppStorage(UserDefaultsKeys.needsInputModeSwitchKey, store: UserDefaults(suiteName: DefaultValues.groupBundleID)) private var needsInputModeSwitchKey = DefaultValues.needsInputModeSwitchKey
-    @State private var tempOneHandedKeyboardWidth: Double = DefaultValues.oneHandedKeyboardWidth
     
-    private let fontSize: CGFloat = 40
+    @AppStorage(UserDefaultsKeys.keyboardHeight, store: UserDefaults(suiteName: DefaultValues.groupBundleID))
+    private var keyboardHeight = DefaultValues.keyboardHeight
+    
+    @AppStorage(UserDefaultsKeys.oneHandedKeyboardWidth, store: UserDefaults(suiteName: DefaultValues.groupBundleID))
+    private var oneHandedKeyboardWidth = DefaultValues.oneHandedKeyboardWidth
+    
+    @AppStorage(UserDefaultsKeys.needsInputModeSwitchKey, store: UserDefaults(suiteName: DefaultValues.groupBundleID))
+    private var needsInputModeSwitchKey = DefaultValues.needsInputModeSwitchKey
+    
+    @State private var tempOneHandedKeyboardWidth: Double = DefaultValues.oneHandedKeyboardWidth
     
     // MARK: - Contents
     
     var body: some View {
         NavigationStack {
             oneHandedKeyboardWidthSettings
-        }
-        .requestReviewViewModifier()
+            
+            PreviewHangeulKeyboardViewController(keyboardHeight: $keyboardHeight, oneHandedKeyboardWidth: $tempOneHandedKeyboardWidth)
+                .frame(height: keyboardHeight)
+                .background(.keyboardBackground)
+                .padding(.bottom, needsInputModeSwitchKey ? 0 : 40)
+        }.onAppear {
+            tempOneHandedKeyboardWidth = oneHandedKeyboardWidth
+        }.requestReviewViewModifier()
     }
 }
 

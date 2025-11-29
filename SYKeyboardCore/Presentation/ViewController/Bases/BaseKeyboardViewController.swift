@@ -114,6 +114,7 @@ open class BaseKeyboardViewController: UIInputViewController {
         super.viewDidLoad()
         setupUI()
         setNextKeyboardButton()
+        if isPreview { updateReturnButtonType() }
         if !hasFullAccess && !UserDefaultsManager.shared.isRequestFullAccessOverlayClosed { setupRequestFullAccessOverlayView() }
         if UserDefaultsManager.shared.isOneHandedKeyboardEnabled { updateOneHandModekeyboard() }
         if UserDefaultsManager.shared.isTextReplacementEnabled {
@@ -123,8 +124,7 @@ open class BaseKeyboardViewController: UIInputViewController {
     
     open override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        if isPreview { updateReturnButtonType() }
-        setKeyboardHeight()
+        if !isPreview { setKeyboardHeight() }
         FeedbackManager.shared.prepareHaptic()
     }
     
@@ -247,12 +247,8 @@ open class BaseKeyboardViewController: UIInputViewController {
     
     // MARK: - Public Methods
     
-    public func updateSettings(height: Double, oneHandedWidth: Double) {
-        if let keyboardHeightConstraint {
-            keyboardHeightConstraint.constant = height
-        }
+    public func updateOneHandedWidthForPreview(to oneHandedWidth: Double) {
         keyboardView.updateOneHandedWidth(oneHandedWidth)
-        
         self.view.layoutIfNeeded()
     }
 }

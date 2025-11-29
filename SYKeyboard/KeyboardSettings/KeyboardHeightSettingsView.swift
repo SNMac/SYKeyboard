@@ -27,7 +27,26 @@ struct KeyboardHeightSettingsView: View {
     
     @State private var tempKeyboardHeight: Double = DefaultValues.keyboardHeight
     
-    private var keyboardHeightSettings: some View {
+    // MARK: - Contents
+    
+    var body: some View {
+        NavigationStack {
+            keyboardHeightSettings
+            
+            PreviewHangeulKeyboardViewController(keyboardHeight: $tempKeyboardHeight, oneHandedKeyboardWidth: $oneHandedKeyboardWidth)
+                .frame(height: tempKeyboardHeight)
+                .background(.keyboardBackground)
+                .padding(.bottom, needsInputModeSwitchKey ? 0 : 40)
+        }.onAppear {
+            tempKeyboardHeight = keyboardHeight
+        }.requestReviewViewModifier()
+    }
+}
+
+// MARK: - UI Components
+
+private extension KeyboardHeightSettingsView {
+    var keyboardHeightSettings: some View {
         VStack {
             Text("\(Int(tempKeyboardHeight) - (Int(DefaultValues.keyboardHeight) - 100))")
                 .padding(EdgeInsets(top: 10, leading: 0, bottom: 0, trailing: 0))
@@ -67,23 +86,6 @@ struct KeyboardHeightSettingsView: View {
                 }
             }
         }
-    }
-    
-    // MARK: - Contents
-    
-    var body: some View {
-        NavigationStack {
-            keyboardHeightSettings
-            
-            PreviewKeyboardView(keyboardHeight: $tempKeyboardHeight, oneHandedKeyboardWidth: $oneHandedKeyboardWidth)
-                .background(.keyboardBackground)
-                .frame(height: tempKeyboardHeight)
-                .padding(.bottom, needsInputModeSwitchKey ? 0 : 40)
-        }
-        .onAppear {
-            tempKeyboardHeight = keyboardHeight
-        }
-        .requestReviewViewModifier()
     }
 }
 

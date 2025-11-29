@@ -7,7 +7,7 @@
 
 import UIKit
 
-final class KeyboardView: UIView {
+final public class KeyboardView: UIView {
     
     // MARK: - Properties
     

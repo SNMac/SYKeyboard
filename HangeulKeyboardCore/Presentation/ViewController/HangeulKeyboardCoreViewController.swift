@@ -117,6 +117,7 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
     }
     
     open override func insertKeyText(from keys: [String]) {
+        if isPreview { return }
         guard let key = keys.first else { fatalError("keys 배열이 비어있습니다.") }
         
         let beforeText = String(buffer.reversed().prefix(while: { !$0.isWhitespace }).reversed())
@@ -130,6 +131,8 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
     }
     
     open override func repeatInsertKeyText(from keys: [String]) {
+        if isPreview { return }
+        
         guard let lastInputText else { return }
         textDocumentProxy.insertText(lastInputText)
         
@@ -137,18 +140,24 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
     }
     
     open override func insertSpaceText() {
+        if isPreview { return }
+        
         super.insertSpaceText()
         buffer.removeAll()
         lastInputText = nil
     }
     
     open override func insertReturnText() {
+        if isPreview { return }
+        
         super.insertReturnText()
         buffer.removeAll()
         lastInputText = nil
     }
     
     open override func deleteBackward() {
+        if isPreview { return }
+        
         if !buffer.isEmpty {
             for _ in 0..<buffer.count { textDocumentProxy.deleteBackward() }
             let text = processor.delete(beforeText: buffer)
@@ -163,6 +172,8 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
     }
     
     open override func repeatDeleteBackward() {
+        if isPreview { return }
+        
         textDocumentProxy.deleteBackward()
         if !buffer.isEmpty { buffer.removeLast() }
         lastInputText = nil

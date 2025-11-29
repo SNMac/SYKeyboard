@@ -103,6 +103,7 @@ open class EnglishKeyboardCoreViewController: BaseKeyboardViewController {
     }
     
     open override func insertKeyText(from keys: [String]) {
+        if isPreview { return }
         guard let key = keys.first else {
             assertionFailure("keys 배열이 비어있습니다.")
             return
@@ -113,6 +114,7 @@ open class EnglishKeyboardCoreViewController: BaseKeyboardViewController {
     }
     
     open override func repeatInsertKeyText(from keys: [String]) {
+        if isPreview { return }
         guard let key = keys.first else {
             assertionFailure("keys 배열이 비어있습니다.")
             return
