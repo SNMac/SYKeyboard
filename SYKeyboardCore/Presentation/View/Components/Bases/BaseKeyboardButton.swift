@@ -22,7 +22,7 @@ public class BaseKeyboardButton: UIButton {
         }
     }
     
-    final var isGesturing: Bool = false {
+    final public var isGesturing: Bool = false {
         didSet {
             self.setNeedsUpdateConfiguration()
         }

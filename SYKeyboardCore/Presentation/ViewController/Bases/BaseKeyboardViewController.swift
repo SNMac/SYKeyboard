@@ -177,7 +177,7 @@ open class BaseKeyboardViewController: UIInputViewController {
         logger.debug("반복 타이머 초기화")
     }
     /// 반복 텍스트 상호작용이 일어난 후 실행되는 메서드
-    open func repeatTextInteractionDidPerform() {
+    open func repeatTextInteractionDidPerform(button: TextInteractable) {
         timer?.cancel()
         timer = nil
         logger.debug("반복 타이머 초기화")
@@ -189,10 +189,10 @@ open class BaseKeyboardViewController: UIInputViewController {
     /// - `isPreview == true`이면 즉시 리턴
     ///
     /// - Parameters:
-    ///   - keys: `TextInteractable` 버튼에 입력할 수 있는 문자 배열
-    open func insertKeyText(from keys: [String]) {
+    ///   - button: `TextInteractable` 버튼
+    open func insertKeyText(from button: TextInteractable) {
         if isPreview { return }
-        guard let key = keys.first else {
+        guard let key = button.type.keys.first else {
             assertionFailure("keys 배열이 비어있습니다.")
             return
         }
@@ -202,10 +202,10 @@ open class BaseKeyboardViewController: UIInputViewController {
     /// - `isPreview == true`이면 즉시 리턴
     ///
     /// - Parameters:
-    ///   - keys: `TextInteractable` 버튼에 입력할 수 있는 문자 배열
-    open func repeatInsertKeyText(from keys: [String]) {
+    ///   - button: `TextInteractable` 버튼
+    open func repeatInsertKeyText(from button: TextInteractable) {
         if isPreview { return }
-        guard let key = keys.first else {
+        guard let key = button.type.keys.first else {
             assertionFailure("keys 배열이 비어있습니다.")
             return
         }
@@ -529,8 +529,8 @@ extension BaseKeyboardViewController {
         defer { textInteractionDidPerform() }
         
         switch button.type {
-        case .keyButton(let keys):
-            insertKeyText(from: keys)
+        case .keyButton:
+            insertKeyText(from: button)
         case .deleteButton:
             if !attemptToRestoreReplacementWord() {
                 if let selectedText = textDocumentProxy.selectedText {
@@ -553,8 +553,8 @@ extension BaseKeyboardViewController {
         defer { textInteractionDidPerform() }
         
         switch button.type {
-        case .keyButton(let keys):
-            repeatInsertKeyText(from: keys)
+        case .keyButton:
+            repeatInsertKeyText(from: button)
             button.playFeedback()
         case .deleteButton:
             if textDocumentProxy.documentContextBeforeInput != nil || textDocumentProxy.selectedText != nil {
@@ -686,7 +686,7 @@ extension BaseKeyboardViewController: TextInteractionGestureControllerDelegate {
         logger.debug("반복 타이머 생성")
     }
     
-    final func textInteractableButtonLongPressStopped(_ controller: TextInteractionGestureController) {
-        repeatTextInteractionDidPerform()
+    final func textInteractableButtonLongPressStopped(_ controller: TextInteractionGestureController, button: TextInteractable) {
+        repeatTextInteractionDidPerform(button: button)
     }
 }

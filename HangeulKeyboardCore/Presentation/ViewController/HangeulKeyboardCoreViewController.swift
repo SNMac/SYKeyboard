@@ -127,9 +127,9 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
         if lastInputText != nil { button.playFeedback() }
     }
     
-    open override func insertKeyText(from keys: [String]) {
+    open override func insertKeyText(from button: TextInteractable) {
         if isPreview { return }
-        guard let key = keys.first else { fatalError("keys 배열이 비어있습니다.") }
+        guard let key = button.type.keys.first else { fatalError("keys 배열이 비어있습니다.") }
         
         let beforeText = String(buffer.reversed().prefix(while: { !$0.isWhitespace }).reversed())
         let (processedText, input글자) = processor.input(글자Input: key, beforeText: beforeText)
@@ -141,12 +141,15 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
         lastInputText = input글자
     }
     
-    open override func repeatInsertKeyText(from keys: [String]) {
+    open override func repeatInsertKeyText(from button: TextInteractable) {
         if isPreview { return }
+        guard let lastInputText else {
+            super.repeatTextInteractionDidPerform(button: button)
+            button.isGesturing = false
+            return
+        }
         
-        guard let lastInputText else { return }
         textDocumentProxy.insertText(lastInputText)
-        
         buffer.append(lastInputText)
     }
     

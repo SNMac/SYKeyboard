@@ -12,7 +12,7 @@ public enum TextInteractableType {
     case spaceButton
     case returnButton
     
-    var keys: [String] {
+    public var keys: [String] {
         switch self {
         case .keyButton(let keys):
             return keys

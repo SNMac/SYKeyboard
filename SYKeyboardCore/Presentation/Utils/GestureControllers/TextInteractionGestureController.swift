@@ -13,7 +13,7 @@ protocol TextInteractionGestureControllerDelegate: AnyObject {
     func deleteButtonPanning(_ controller: TextInteractionGestureController, to direction: PanDirection)
     func deleteButtonPanStopped(_ controller: TextInteractionGestureController)
     func textInteractableButtonLongPressing(_ controller: TextInteractionGestureController, button: TextInteractable)
-    func textInteractableButtonLongPressStopped(_ controller: TextInteractionGestureController)
+    func textInteractableButtonLongPressStopped(_ controller: TextInteractionGestureController, button: TextInteractable)
 }
 
 /// 입력 상호작용 버튼(리턴 버튼 제외) 제스처 컨트롤러
@@ -108,7 +108,7 @@ final class TextInteractionGestureController: NSObject {
                 logger.debug("길게 누르기 제스처 비활성화")
             }
             
-            onLongPressGestureEnded()
+            onLongPressGestureEnded(gesture)
             gestureButton?.isGesturing = false
             keyboardFrameView.isUserInteractionEnabled = true
         default:
@@ -158,8 +158,12 @@ private extension TextInteractionGestureController {
         delegate?.textInteractableButtonLongPressing(self, button: gestureButton)
     }
     
-    func onLongPressGestureEnded() {
-        delegate?.textInteractableButtonLongPressStopped(self)
+    func onLongPressGestureEnded(_ gesture: UILongPressGestureRecognizer) {
+        guard let gestureButton = gesture.view as? TextInteractable else {
+            assertionFailure("입력 상호작용 버튼이 아닙니다.")
+            return
+        }
+        delegate?.textInteractableButtonLongPressStopped(self, button: gestureButton)
     }
 }
 

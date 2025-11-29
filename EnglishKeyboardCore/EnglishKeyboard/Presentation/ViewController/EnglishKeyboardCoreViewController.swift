@@ -108,15 +108,15 @@ open class EnglishKeyboardCoreViewController: BaseKeyboardViewController {
         updateShiftButton()
     }
     
-    open override func repeatTextInteractionDidPerform() {
-        super.repeatTextInteractionDidPerform()
+    open override func repeatTextInteractionDidPerform(button: TextInteractable) {
+        super.repeatTextInteractionDidPerform(button: button)
         updateShiftButton()
     }
     
-    open override func insertKeyText(from keys: [String]) {
+    open override func insertKeyText(from button: TextInteractable) {
         if isPreview { return }
         
-        guard let key = keys.first else {
+        guard let key = button.type.keys.first else {
             assertionFailure("keys 배열이 비어있습니다.")
             return
         }
@@ -125,10 +125,10 @@ open class EnglishKeyboardCoreViewController: BaseKeyboardViewController {
         textDocumentProxy.insertText(key)
     }
     
-    open override func repeatInsertKeyText(from keys: [String]) {
+    open override func repeatInsertKeyText(from button: TextInteractable) {
         if isPreview { return }
         
-        guard let key = keys.first else {
+        guard let key = button.type.keys.first else {
             assertionFailure("keys 배열이 비어있습니다.")
             return
         }
