@@ -25,18 +25,23 @@ struct KeyboardHeightSettingsView: View {
     @AppStorage(UserDefaultsKeys.needsInputModeSwitchKey, store: UserDefaults(suiteName: DefaultValues.groupBundleID))
     private var needsInputModeSwitchKey = true
     
+    @AppStorage("previewKeyboardLanguage") private var previewKeyboardLanguage: PreviewKeyboardLanguage = .hangeul
+    
     @State private var tempKeyboardHeight: Double = DefaultValues.keyboardHeight
     
     // MARK: - Contents
     
     var body: some View {
         NavigationStack {
+            // TODO: 한글/영어 키보드 선택
             keyboardHeightSettings
             
-            PreviewHangeulKeyboardViewController(keyboardHeight: $tempKeyboardHeight, oneHandedKeyboardWidth: $oneHandedKeyboardWidth)
-                .frame(height: tempKeyboardHeight)
-                .background(.keyboardBackground)
-                .padding(.bottom, needsInputModeSwitchKey ? 0 : 40)
+            Spacer()
+            
+            PreviewKeyboardView(keyboardHeight: $tempKeyboardHeight,
+                                oneHandedKeyboardWidth: $oneHandedKeyboardWidth,
+                                needsInputModeSwitchKey: $needsInputModeSwitchKey,
+                                previewKeyboardLanguage: $previewKeyboardLanguage)
         }.onAppear {
             tempKeyboardHeight = keyboardHeight
         }.requestReviewViewModifier()
@@ -49,14 +54,14 @@ private extension KeyboardHeightSettingsView {
     var keyboardHeightSettings: some View {
         VStack {
             Text("\(Int(tempKeyboardHeight) - (Int(DefaultValues.keyboardHeight) - 100))")
-                .padding(EdgeInsets(top: 10, leading: 0, bottom: 0, trailing: 0))
+                .padding(.top)
+                .padding(.horizontal)
             Slider(value: $tempKeyboardHeight, in: 190...290, step: 1)
                 .padding(EdgeInsets(top: 0, leading: 30, bottom: 0, trailing: 30))
             Text("가로 모드에선 iOS 기본 키보드와 동일한 높이로 표시됩니다.")
                 .font(.footnote)
                 .multilineTextAlignment(.center)
-                .padding(EdgeInsets(top: 0, leading: 15, bottom: 0, trailing: 15))
-            Spacer()
+                .padding()
         }
         .navigationTitle("키보드 높이")
         .navigationBarTitleDisplayMode(.inline)

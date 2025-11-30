@@ -25,18 +25,24 @@ struct OneHandedKeyboardWidthSettingsView: View {
     @AppStorage(UserDefaultsKeys.needsInputModeSwitchKey, store: UserDefaults(suiteName: DefaultValues.groupBundleID))
     private var needsInputModeSwitchKey = DefaultValues.needsInputModeSwitchKey
     
+    @AppStorage("previewKeyboardLanguage") private var previewKeyboardLanguage: PreviewKeyboardLanguage = .hangeul
+    
     @State private var tempOneHandedKeyboardWidth: Double = DefaultValues.oneHandedKeyboardWidth
     
     // MARK: - Contents
     
     var body: some View {
         NavigationStack {
+            // TODO: 한글/영어 키보드 선택
+            // TODO: 한 손 키보드 임시 변경 (UseDefaults 변경시키지 않도록)
             oneHandedKeyboardWidthSettings
             
-            PreviewEnglishKeyboardViewController(keyboardHeight: $keyboardHeight, oneHandedKeyboardWidth: $tempOneHandedKeyboardWidth)
-                .frame(height: keyboardHeight)
-                .background(.keyboardBackground)
-                .padding(.bottom, needsInputModeSwitchKey ? 0 : 40)
+            Spacer()
+            
+            PreviewKeyboardView(keyboardHeight: $keyboardHeight,
+                                oneHandedKeyboardWidth: $tempOneHandedKeyboardWidth,
+                                needsInputModeSwitchKey: $needsInputModeSwitchKey,
+                                previewKeyboardLanguage: $previewKeyboardLanguage)
         }.onAppear {
             tempOneHandedKeyboardWidth = oneHandedKeyboardWidth
         }.requestReviewViewModifier()
@@ -52,7 +58,6 @@ private extension OneHandedKeyboardWidthSettingsView {
                 .padding(EdgeInsets(top: 10, leading: 0, bottom: 0, trailing: 0))
             Slider(value: $tempOneHandedKeyboardWidth, in: 300...340, step: 1)
                 .padding(EdgeInsets(top: 0, leading: 30, bottom: 0, trailing: 30))
-            Spacer()
         }
         .navigationTitle("한 손 키보드 너비")
         .navigationBarTitleDisplayMode(.inline)

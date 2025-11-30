@@ -410,6 +410,16 @@
         }
       }
     },
+    "키보드 언어" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keyboard Language"
+          }
+        }
+      }
+    },
     "키보드 추가 및 권한 설정" : {
       "localizations" : {
         "en" : {

@@ -27,11 +27,11 @@
 ## 🛠️ 기술 스택
 | 범위 | 기술 이름 |
 |:---------:|:----------|
-| 의존성 관리 도구 | `SPM`, `CocoaPods` |
+| 의존성 관리 도구 | `SPM` |
 | 형상 관리 도구 | `Git`, `GitHub` |
 | 디자인 패턴 | `Delegate`, `Singleton` |
 | 인터페이스 | `UIKit`, `SwiftUI` |
-| 활용 API | `Firebase Analytics`, `Firebase Crashlytics`, `Google AdMob`, `Meta Audience` |
+| 활용 API | `Firebase Analytics`, `Firebase Crashlytics`, `Google AdMob` |
 | 내부 저장소 | `UserDefaults` |
 | 테스트 | `Swift Testing` |
 
