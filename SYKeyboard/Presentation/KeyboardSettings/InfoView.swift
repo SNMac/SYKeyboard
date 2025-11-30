@@ -25,6 +25,9 @@ struct InfoView: View {
         } label: {
             HStack {
                 Image(.textPage)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 20, height: 20)
                 Text("키보드 사용 안내")
             }
         }
@@ -49,6 +52,9 @@ struct InfoView: View {
         } label: {
             HStack {
                 Image(.questionmarkBubble)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 20, height: 20)
                 Text("문의하기")
             }
         }
@@ -63,13 +69,18 @@ struct InfoView: View {
         } label: {
             HStack {
                 Image(.pencilLine)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 20, height: 20)
                 Text("리뷰 및 별점 주기")
             }
         }
         
         HStack {
             Text("버전")
+            
             Spacer()
+            
             Text(Bundle.appVersion ?? "Unknown")
                 .foregroundStyle(.gray)
         }
