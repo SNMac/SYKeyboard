@@ -180,6 +180,7 @@
 				"EnglishKeyboard/Resources/Configs/ReleaseConfig-EnglishKeyboard.xcconfig",
 				EnglishKeyboard/Resources/Info.plist,
 				EnglishKeyboard/Resources/InfoPlist.xcstrings,
+				EnglishKeyboard/Resources/Localizable.xcstrings,
 				HangeulKeyboard/Domain/Automata/HangeulAutomata.swift,
 				HangeulKeyboard/Domain/Processor/NaratgeulProcessor.swift,
 				HangeulKeyboard/Domain/Processor/Protocol/HangeulProcessable.swift,
@@ -189,6 +190,7 @@
 				"HangeulKeyboard/Resources/Configs/ReleaseConfig-HangeulKeyboard.xcconfig",
 				HangeulKeyboard/Resources/Info.plist,
 				HangeulKeyboard/Resources/InfoPlist.xcstrings,
+				HangeulKeyboard/Resources/Localizable.xcstrings,
 			);
 			target = 5B7B3F552C569B7800F7C093 /* SYKeyboard */;
 		};
@@ -201,6 +203,7 @@
 				HangeulKeyboard/Presentation/View/RequestFullAccessOverlayView.swift,
 				HangeulKeyboard/Presentation/ViewController/HangeulKeyboardViewController.swift,
 				HangeulKeyboard/Resources/InfoPlist.xcstrings,
+				HangeulKeyboard/Resources/Localizable.xcstrings,
 			);
 			target = 5B7B3F6A2C569B8200F7C093 /* HangeulKeyboard */;
 		};
@@ -210,6 +213,7 @@
 				EnglishKeyboard/Presentation/View/RequestFullAccessOverlayView.swift,
 				EnglishKeyboard/Presentation/ViewController/EnglishKeyboardViewController.swift,
 				EnglishKeyboard/Resources/InfoPlist.xcstrings,
+				EnglishKeyboard/Resources/Localizable.xcstrings,
 			);
 			target = 5B82846C2E6EEE04006425C7 /* EnglishKeyboard */;
 		};
