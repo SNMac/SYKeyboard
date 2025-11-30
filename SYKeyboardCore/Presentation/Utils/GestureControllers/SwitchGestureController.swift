@@ -74,14 +74,17 @@ final class SwitchGestureController: NSObject {
     // MARK: - @objc Gesture Methods
     
     @objc func keyboardSelectPanGestureHandler(_ gesture: UIPanGestureRecognizer) {
-        let gestureButton = gesture.view as? SwitchButton
+        guard let switchButton = gesture.view as? SwitchButton else {
+            assertionFailure("SwitchButton이 아닙니다.")
+            return
+        }
         let config = setPanConfig()
         let keyboardSelectOverlayView = config.gestureHandler.keyboardSelectOverlayView
         let oneHandedModeSelectOverlayView = config.gestureHandler.oneHandedModeSelectOverlayView
         
         switch gesture.state {
         case .began:
-            gestureButton?.isGesturing = true
+            switchButton.isGesturing = true
             logger.debug("키보드 선택 팬 제스처 활성화")
         case .changed:
             isOverlayActive = !keyboardSelectOverlayView.isHidden || !oneHandedModeSelectOverlayView.isHidden
@@ -94,7 +97,7 @@ final class SwitchGestureController: NSObject {
             
             onkeyboardSelectPanGestureEnded(gesture, config: config)
             isOverlayActive = false
-            gestureButton?.isGesturing = false
+            switchButton.isGesturing = false
             
             keyboardFrameView.isUserInteractionEnabled = true
             logger.debug("키보드 선택 팬 제스처 비활성화")
@@ -104,14 +107,17 @@ final class SwitchGestureController: NSObject {
     }
     
     @objc func oneHandedModeSelectPanGestureHandler(_ gesture: UIPanGestureRecognizer) {
-        let gestureButton = gesture.view as? SwitchButton
+        guard let switchButton = gesture.view as? SwitchButton else {
+            assertionFailure("SwitchButton이 아닙니다.")
+            return
+        }
         let config = setPanConfig()
         let keyboardSelectOverlayView = config.gestureHandler.keyboardSelectOverlayView
         let oneHandedModeSelectOverlayView = config.gestureHandler.oneHandedModeSelectOverlayView
         
         switch gesture.state {
         case .began:
-            gestureButton?.isGesturing = true
+            switchButton.isGesturing = true
             logger.debug("팬 제스처 활성화")
         case .changed:
             isOverlayActive = !keyboardSelectOverlayView.isHidden || !oneHandedModeSelectOverlayView.isHidden
@@ -124,7 +130,7 @@ final class SwitchGestureController: NSObject {
             
             onOneHandedModeSelectPanGestureEnded(gesture, config: config)
             isOverlayActive = false
-            gestureButton?.isGesturing = false
+            switchButton.isGesturing = false
             
             keyboardFrameView.isUserInteractionEnabled = true
             logger.debug("팬 제스처 비활성화")
@@ -134,19 +140,22 @@ final class SwitchGestureController: NSObject {
     }
     
     @objc func oneHandedModeLongPressGestureHandler(_ gesture: UILongPressGestureRecognizer) {
-        let gestureButton = gesture.view as? SwitchButton
+        guard let switchButton = gesture.view as? SwitchButton else {
+            assertionFailure("SwitchButton이 아닙니다.")
+            return
+        }
         let config = setPanConfig()
         
         switch gesture.state {
         case .began:
-            guard getCurrentPressedButton() === gestureButton else {
+            guard getCurrentPressedButton() === switchButton else {
                 logger.info("현재 눌려있는 버튼으로 인해 제스처 무시")
                 gesture.state = .cancelled
                 return
             }
             keyboardFrameView.isUserInteractionEnabled = false
             
-            gestureButton?.isGesturing = true
+            switchButton.isGesturing = true
             onLongPressGestureBegan(config: config)
             logger.debug("길게 누르기 제스처 활성화")
         case .changed:
@@ -160,7 +169,7 @@ final class SwitchGestureController: NSObject {
                 logger.debug("길게 누르기 제스처 비활성화")
             }
             onLongPressGestureEnded(gesture, config: config)
-            gestureButton?.isGesturing = isKeepGesturing
+            switchButton.isGesturing = isKeepGesturing
             if isKeepGesturing { config.gestureHandler.disableAllButtonUserInteraction() }
             
             keyboardFrameView.isUserInteractionEnabled = true
@@ -171,7 +180,7 @@ final class SwitchGestureController: NSObject {
     
     @objc func keyboardFrameViewPressGestureHandler(_ gesture: UILongPressGestureRecognizer) {
         let gestureHandler = setGestureHandler()
-        let gestureButton = gestureHandler.switchButton
+        let switchButton = gestureHandler.switchButton
         
         switch gesture.state {
         case .began:
@@ -181,7 +190,7 @@ final class SwitchGestureController: NSObject {
             onKeyboardFrameViewPressGestureChanged(gesture, gestureHandler: gestureHandler)
         case .ended, .cancelled, .failed:
             onKeyboardFrameViewPressGestureEnded(gesture, gestureHandler: gestureHandler)
-            gestureButton.isGesturing = false
+            switchButton.isGesturing = false
             gestureHandler.enableAllButtonUserInteraction()
             logger.debug("키보드 길게 누르기 제스처 비활성화")
         default:
