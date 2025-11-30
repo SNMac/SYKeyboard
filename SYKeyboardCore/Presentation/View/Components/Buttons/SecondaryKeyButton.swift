@@ -14,7 +14,7 @@ final public class SecondaryKeyButton: SecondaryButton, TextInteractable {
     
     public private(set) var type: TextInteractableType {
         didSet {
-            if type.keys.isEmpty {
+            if type.primaryKeyList.isEmpty {
                 self.isHidden = true
             } else {
                 updateTitle()
@@ -54,8 +54,8 @@ final public class SecondaryKeyButton: SecondaryButton, TextInteractable {
 
 private extension SecondaryKeyButton {
     func updateTitle() {
-        if type.keys.count == 1 {
-            guard let key = type.keys.first else { return }
+        if type.primaryKeyList.count == 1 {
+            guard let key = type.primaryKeyList.first else { return }
             _titleLabel.text = key
             
             if key.count == 1 {
@@ -68,7 +68,7 @@ private extension SecondaryKeyButton {
                 _titleLabel.font = .systemFont(ofSize: FontSize.stringKeySize)
             }
         } else {
-            _titleLabel.text = type.keys.joined(separator: "")
+            _titleLabel.text = type.primaryKeyList.joined(separator: "")
             _titleLabel.font = .systemFont(ofSize: FontSize.defaultKeySize)
         }
     }

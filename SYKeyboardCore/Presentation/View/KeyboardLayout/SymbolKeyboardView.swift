@@ -67,11 +67,11 @@ final class SymbolKeyboardView: UIView, SymbolKeyboardLayoutProvider {
     }()
     
     /// 키보드 첫번째 행 `PrimaryButton` 배열
-    private lazy var firstRowKeyButtonList = currentSymbolKeyboardMode.keyList[0][0].map { PrimaryKeyButton(keyboard: .symbol, button: .keyButton(keys: $0)) }
+    private lazy var firstRowKeyButtonList = currentSymbolKeyboardMode.keyList[0][0].map { PrimaryKeyButton(keyboard: .symbol, button: .keyButton(primary: $0, secondary: nil)) }
     /// 키보드 두번째 행 `PrimaryButton` 배열
-    private lazy var secondRowKeyButtonList = currentSymbolKeyboardMode.keyList[0][1].map { PrimaryKeyButton(keyboard: .symbol, button: .keyButton(keys: $0)) }
+    private lazy var secondRowKeyButtonList = currentSymbolKeyboardMode.keyList[0][1].map { PrimaryKeyButton(keyboard: .symbol, button: .keyButton(primary: $0, secondary: nil)) }
     /// 키보드 세번째 행 `PrimaryButton` 배열
-    private lazy var thirdRowKeyButtonList = currentSymbolKeyboardMode.keyList[0][2].map { PrimaryKeyButton(keyboard: .symbol, button: .keyButton(keys: $0)) }
+    private lazy var thirdRowKeyButtonList = currentSymbolKeyboardMode.keyList[0][2].map { PrimaryKeyButton(keyboard: .symbol, button: .keyButton(primary: $0, secondary: nil)) }
     
     public private(set) var shiftButton = ShiftButton(keyboard: .symbol)
     public private(set) var deleteButton = DeleteButton(keyboard: .symbol)
@@ -79,10 +79,10 @@ final class SymbolKeyboardView: UIView, SymbolKeyboardLayoutProvider {
     
     // 스페이스 버튼 위치
     public private(set) var spaceButton = SpaceButton(keyboard: .symbol)
-    public private(set) var atButton = PrimaryKeyButton(keyboard: .symbol, button: .keyButton(keys: ["@"]))
-    public private(set) var periodButton = PrimaryKeyButton(keyboard: .symbol, button: .keyButton(keys: ["."]))
-    public private(set) var slashButton = PrimaryKeyButton(keyboard: .symbol, button: .keyButton(keys: ["/"]))
-    public private(set) var dotComButton = PrimaryKeyButton(keyboard: .symbol, button: .keyButton(keys: [".com"]))
+    public private(set) var atButton = PrimaryKeyButton(keyboard: .symbol, button: .keyButton(primary: ["@"], secondary: nil))
+    public private(set) var periodButton = PrimaryKeyButton(keyboard: .symbol, button: .keyButton(primary: ["."], secondary: nil))
+    public private(set) var slashButton = PrimaryKeyButton(keyboard: .symbol, button: .keyButton(primary: ["/"], secondary: nil))
+    public private(set) var dotComButton = PrimaryKeyButton(keyboard: .symbol, button: .keyButton(primary: [".com"], secondary: nil))
     
     public private(set) var returnButton = ReturnButton(keyboard: .symbol)
     public private(set) var nextKeyboardButton = NextKeyboardButton(keyboard: .symbol)
@@ -248,8 +248,8 @@ private extension SymbolKeyboardView {
         let rowList = [firstRowKeyButtonList, secondRowKeyButtonList, thirdRowKeyButtonList]
         for (rowIndex, buttonList) in rowList.enumerated() {
             for (buttonIndex, button) in buttonList.enumerated() {
-                let keys = currentSymbolKeyboardMode.keyList[symbolKeyListIndex][rowIndex][buttonIndex]
-                button.update(buttonType: TextInteractableType.keyButton(keys: keys))
+                let primaryKeyList = currentSymbolKeyboardMode.keyList[symbolKeyListIndex][rowIndex][buttonIndex]
+                button.update(buttonType: TextInteractableType.keyButton(primary: primaryKeyList, secondary: nil))
             }
         }
     }

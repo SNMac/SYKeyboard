@@ -116,7 +116,7 @@ open class EnglishKeyboardCoreViewController: BaseKeyboardViewController {
     open override func insertKeyText(from button: TextInteractable) {
         if isPreview { return }
         
-        guard let key = button.type.keys.first else {
+        guard let key = button.type.primaryKeyList.first else {
             assertionFailure("keys 배열이 비어있습니다.")
             return
         }
@@ -128,7 +128,7 @@ open class EnglishKeyboardCoreViewController: BaseKeyboardViewController {
     open override func repeatInsertKeyText(from button: TextInteractable) {
         if isPreview { return }
         
-        guard let key = button.type.keys.first else {
+        guard let key = button.type.primaryKeyList.first else {
             assertionFailure("keys 배열이 비어있습니다.")
             return
         }

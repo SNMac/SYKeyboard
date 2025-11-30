@@ -70,11 +70,11 @@ open class StandardKeyboardView: UIView {
     public private(set) var returnButtonHStackView = KeyboardRowHStackView()
     
     /// 키보드 첫번째 행 `PrimaryButton` 배열
-    private lazy var firstRowKeyButtonList = keyList[0][0].map { PrimaryKeyButton(keyboard: keyboard, button: .keyButton(keys: $0)) }
+    private lazy var firstRowKeyButtonList = keyList[0][0].map { PrimaryKeyButton(keyboard: keyboard, button: .keyButton(primary: $0, secondary: nil)) }
     /// 키보드 두번째 행 `PrimaryButton` 배열
-    private lazy var secondRowKeyButtonList = keyList[0][1].map { PrimaryKeyButton(keyboard: keyboard, button: .keyButton(keys: $0)) }
+    private lazy var secondRowKeyButtonList = keyList[0][1].map { PrimaryKeyButton(keyboard: keyboard, button: .keyButton(primary: $0, secondary: nil)) }
     /// 키보드 세번째 행 `PrimaryButton` 배열
-    private lazy var thirdRowKeyButtonList = keyList[0][2].map { PrimaryKeyButton(keyboard: keyboard, button: .keyButton(keys: $0)) }
+    private lazy var thirdRowKeyButtonList = keyList[0][2].map { PrimaryKeyButton(keyboard: keyboard, button: .keyButton(primary: $0, secondary: nil)) }
     
     public lazy var shiftButton = ShiftButton(keyboard: keyboard)
     public private(set) lazy var deleteButton = DeleteButton(keyboard: keyboard)
@@ -82,15 +82,15 @@ open class StandardKeyboardView: UIView {
     
     // 스페이스 버튼 위치
     public private(set) lazy var spaceButton = SpaceButton(keyboard: keyboard)
-    public private(set) lazy var atButton = PrimaryKeyButton(keyboard: keyboard, button: .keyButton(keys: ["@"]))
-    public private(set) lazy var periodButton = PrimaryKeyButton(keyboard: keyboard, button: .keyButton(keys: ["."]))
-    public private(set) lazy var slashButton = PrimaryKeyButton(keyboard: keyboard, button: .keyButton(keys: ["/"]))
-    public private(set) lazy var dotComButton = PrimaryKeyButton(keyboard: keyboard, button: .keyButton(keys: [".com"]))
+    public private(set) lazy var atButton = PrimaryKeyButton(keyboard: keyboard, button: .keyButton(primary: ["@"], secondary: nil))
+    public private(set) lazy var periodButton = PrimaryKeyButton(keyboard: keyboard, button: .keyButton(primary: ["."], secondary: nil))
+    public private(set) lazy var slashButton = PrimaryKeyButton(keyboard: keyboard, button: .keyButton(primary: ["/"], secondary: nil))
+    public private(set) lazy var dotComButton = PrimaryKeyButton(keyboard: keyboard, button: .keyButton(primary: [".com"], secondary: nil))
     
     // 리턴 버튼 위치
     public private(set) lazy var returnButton = ReturnButton(keyboard: keyboard)
-    public private(set) lazy var secondaryAtButton = SecondaryKeyButton(keyboard: keyboard, button: .keyButton(keys: ["@"]))
-    public private(set) lazy var secondarySharpButton = SecondaryKeyButton(keyboard: keyboard, button: .keyButton(keys: ["#"]))
+    public private(set) lazy var secondaryAtButton = SecondaryKeyButton(keyboard: keyboard, button: .keyButton(primary: ["@"], secondary: nil))
+    public private(set) lazy var secondarySharpButton = SecondaryKeyButton(keyboard: keyboard, button: .keyButton(primary: ["#"], secondary: nil))
     
     public private(set) lazy var nextKeyboardButton = NextKeyboardButton(keyboard: keyboard)
     
@@ -272,8 +272,8 @@ extension StandardKeyboardView {
         let rowList = [firstRowKeyButtonList, secondRowKeyButtonList, thirdRowKeyButtonList]
         for (rowIndex, buttonList) in rowList.enumerated() {
             for (buttonIndex, button) in buttonList.enumerated() {
-                let keys = keyList[keyListIndex][rowIndex][buttonIndex]
-                button.update(buttonType: TextInteractableType.keyButton(keys: keys))
+                let primaryKeyList = keyList[keyListIndex][rowIndex][buttonIndex]
+                button.update(buttonType: TextInteractableType.keyButton(primary: primaryKeyList, secondary: nil))
             }
         }
     }

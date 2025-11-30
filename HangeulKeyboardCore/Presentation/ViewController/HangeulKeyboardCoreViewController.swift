@@ -129,7 +129,7 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
     
     open override func insertKeyText(from button: TextInteractable) {
         if isPreview { return }
-        guard let key = button.type.keys.first else { fatalError("keys 배열이 비어있습니다.") }
+        guard let key = button.type.primaryKeyList.first else { fatalError("keys 배열이 비어있습니다.") }
         
         let beforeText = String(buffer.reversed().prefix(while: { !$0.isWhitespace }).reversed())
         let (processedText, input글자) = processor.input(글자Input: key, beforeText: beforeText)

@@ -210,7 +210,7 @@ open class BaseKeyboardViewController: UIInputViewController {
     ///   - button: `TextInteractable` 버튼
     open func insertKeyText(from button: TextInteractable) {
         if isPreview { return }
-        guard let key = button.type.keys.first else {
+        guard let key = button.type.primaryKeyList.first else {
             assertionFailure("keys 배열이 비어있습니다.")
             return
         }
@@ -223,7 +223,7 @@ open class BaseKeyboardViewController: UIInputViewController {
     ///   - button: `TextInteractable` 버튼
     open func repeatInsertKeyText(from button: TextInteractable) {
         if isPreview { return }
-        guard let key = button.type.keys.first else {
+        guard let key = button.type.primaryKeyList.first else {
             assertionFailure("keys 배열이 비어있습니다.")
             return
         }
@@ -377,7 +377,7 @@ private extension BaseKeyboardViewController {
         addInputActionToTextInterableButton(button)
         
         switch button.type {
-        case .keyButton(keys: ["‘"]):
+        case .keyButton(primary: ["’"], secondary: nil):
             // touchUpInside 되었을 때 ➡️ 주 키보드 전환
             let switchToPrimaryKeyboard = UIAction { [weak self] _ in
                 guard let self else { return }
@@ -407,7 +407,7 @@ private extension BaseKeyboardViewController {
     }
     
     func addGesturesToTextInterableButton(_ button: TextInteractable) {
-        guard !(button is ReturnButton) && !(button is SecondaryKeyButton) && !(button.type.keys == [".com"]) else { return }
+        guard !(button is ReturnButton) && !(button is SecondaryKeyButton) && !(button.type.primaryKeyList == [".com"]) else { return }
         // 팬(드래그) 제스처
         let panGesture = UIPanGestureRecognizer(target: textInteractionGestureController, action: #selector(textInteractionGestureController.panGestureHandler(_:)))
         panGesture.delegate = textInteractionGestureController

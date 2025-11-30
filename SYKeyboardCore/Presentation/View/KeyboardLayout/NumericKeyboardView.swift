@@ -50,13 +50,13 @@ final class NumericKeyboardView: UIView, NumericKeyboardLayoutProvider {
     private let fourthRowRightSecondaryButtonHStackView = KeyboardRowHStackView()
     
     /// 키보드 첫번째 행 `PrimaryButton` 배열
-    private lazy var firstRowKeyButtonList = numericKeyList[0].map { PrimaryKeyButton(keyboard: .numeric, button: .keyButton(keys: $0)) }
+    private lazy var firstRowKeyButtonList = numericKeyList[0].map { PrimaryKeyButton(keyboard: .numeric, button: .keyButton(primary: $0, secondary: nil)) }
     /// 키보드 두번째 행 `PrimaryButton` 배열
-    private lazy var secondRowKeyButtonList = numericKeyList[1].map { PrimaryKeyButton(keyboard: .numeric, button: .keyButton(keys: $0)) }
+    private lazy var secondRowKeyButtonList = numericKeyList[1].map { PrimaryKeyButton(keyboard: .numeric, button: .keyButton(primary: $0, secondary: nil)) }
     /// 키보드 세번째 행 `PrimaryButton` 배열
-    private lazy var thirdRowKeyButtonList = numericKeyList[2].map { PrimaryKeyButton(keyboard: .numeric, button: .keyButton(keys: $0)) }
+    private lazy var thirdRowKeyButtonList = numericKeyList[2].map { PrimaryKeyButton(keyboard: .numeric, button: .keyButton(primary: $0, secondary: nil)) }
     /// 키보드 네번째 행 `PrimaryButton` 배열
-    private lazy var fourthRowKeyButtonList = numericKeyList[3].map { PrimaryKeyButton(keyboard: .numeric, button: .keyButton(keys: $0)) }
+    private lazy var fourthRowKeyButtonList = numericKeyList[3].map { PrimaryKeyButton(keyboard: .numeric, button: .keyButton(primary: $0, secondary: nil)) }
     
     public private(set) var deleteButton = DeleteButton(keyboard: .numeric)
     public private(set) var spaceButton = SpaceButton(keyboard: .numeric)

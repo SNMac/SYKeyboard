@@ -26,6 +26,15 @@ class FourByFourKeyboardView: UIView, HangeulKeyboardLayoutProvider {
     final let keyboard: SYKeyboardType
     /// 한글 키 배열
     var hangeulKeyList: [[[String]]] { fatalError("프로퍼티가 오버라이딩 되지 않았습니다.") }
+    /// 숫자 키 배열 (한글 키 보조)
+    var numberKeyList: [[[String]]] {
+        [
+            [ ["1"], ["2"], ["3"] ],
+            [ ["4"], ["5"], ["6"] ],
+            [ ["7"], ["8"], ["9"] ],
+            [ [""], ["0"], [""] ]
+        ]
+    }
     
     // MARK: - UI Components
     
@@ -50,21 +59,41 @@ class FourByFourKeyboardView: UIView, HangeulKeyboardLayoutProvider {
     private let fourthRowRightSecondaryButtonHStackView = KeyboardRowHStackView()
     
     /// 키보드 첫번째 행 `PrimaryButton` 배열
-    private lazy var firstRowKeyButtonList = hangeulKeyList[0].map { PrimaryKeyButton(keyboard: keyboard, button: .keyButton(keys: $0)) }
+    private lazy var firstRowKeyButtonList = zip(hangeulKeyList[0], numberKeyList[0]).map { (primary, secondary) in
+        PrimaryKeyButton(
+            keyboard: keyboard,
+            button: .keyButton(primary: primary, secondary: secondary.first)
+        )
+    }
     /// 키보드 두번째 행 `PrimaryButton` 배열
-    private lazy var secondRowKeyButtonList = hangeulKeyList[1].map { PrimaryKeyButton(keyboard: keyboard, button: .keyButton(keys: $0)) }
+    private lazy var secondRowKeyButtonList = zip(hangeulKeyList[1], numberKeyList[1]).map { (primary, secondary) in
+        PrimaryKeyButton(
+            keyboard: keyboard,
+            button: .keyButton(primary: primary, secondary: secondary.first)
+        )
+    }
     /// 키보드 세번째 행 `PrimaryButton` 배열
-    private lazy var thirdRowKeyButtonList = hangeulKeyList[2].map { PrimaryKeyButton(keyboard: keyboard, button: .keyButton(keys: $0)) }
+    private lazy var thirdRowKeyButtonList = zip(hangeulKeyList[2], numberKeyList[2]).map { (primary, secondary) in
+        PrimaryKeyButton(
+            keyboard: keyboard,
+            button: .keyButton(primary: primary, secondary: secondary.first)
+        )
+    }
     /// 키보드 네번째 행 `PrimaryButton` 배열
-    private lazy var fourthRowKeyButtonList = hangeulKeyList[3].map { PrimaryKeyButton(keyboard: keyboard, button: .keyButton(keys: $0)) }
+    private lazy var fourthRowKeyButtonList = zip(hangeulKeyList[3], numberKeyList[3]).map { (primary, secondary) in
+        PrimaryKeyButton(
+            keyboard: keyboard,
+            button: .keyButton(primary: primary, secondary: secondary.first)
+        )
+    }
     
     private(set) lazy var deleteButton = DeleteButton(keyboard: keyboard)
     private(set) lazy var spaceButton = SpaceButton(keyboard: keyboard)
     
     // 리턴 버튼 위치
     private(set) lazy var returnButton = ReturnButton(keyboard: keyboard)
-    private(set) lazy var secondaryAtButton = SecondaryKeyButton(keyboard: keyboard, button: .keyButton(keys: ["@"]))
-    private(set) lazy var secondarySharpButton = SecondaryKeyButton(keyboard: keyboard, button: .keyButton(keys: ["#"]))
+    private(set) lazy var secondaryAtButton = SecondaryKeyButton(keyboard: keyboard, button: .keyButton(primary: ["@"], secondary: nil))
+    private(set) lazy var secondarySharpButton = SecondaryKeyButton(keyboard: keyboard, button: .keyButton(primary: ["#"], secondary: nil))
     
     private(set) lazy var switchButton = SwitchButton(keyboard: keyboard)
     private(set) lazy var nextKeyboardButton = NextKeyboardButton(keyboard: keyboard)
