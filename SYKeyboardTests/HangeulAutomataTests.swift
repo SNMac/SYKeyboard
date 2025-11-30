@@ -8,7 +8,7 @@
 import Testing
 import OSLog
 
-@testable import HangeulKeyboard
+@testable import HangeulKeyboardCore
 
 @Suite("한글 오토마타 검증")
 struct HangeulAutomataTests {

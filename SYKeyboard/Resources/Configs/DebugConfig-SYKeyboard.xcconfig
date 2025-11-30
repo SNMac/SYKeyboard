@@ -10,4 +10,3 @@
 
 #include "Common/Configs/Version.xcconfig"
 #include "Secrets.xcconfig"
-#include "Pods/Target Support Files/Pods-SYKeyboard/Pods-SYKeyboard.debug.xcconfig"

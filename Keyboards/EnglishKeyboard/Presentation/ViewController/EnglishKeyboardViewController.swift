@@ -6,160 +6,71 @@
 //
 
 import UIKit
+import EnglishKeyboardCore
+
+import FirebaseCore
 
 /// 영어 키보드 입력/UI 컨트롤러
-final class EnglishKeyboardViewController: BaseKeyboardViewController {
-    
-    // MARK: - Properties
-    
-    private var isUppercaseInput: Bool = false
+final class EnglishKeyboardViewController: EnglishKeyboardCoreViewController {
     
     // MARK: - UI Components
     
-    /// 영어 키보드
-    private lazy var englishKeyboardView: EnglishKeyboardLayoutProvider = EnglishKeyboardView(getIsUppercaseInput: { [weak self] in return self?.isUppercaseInput ?? false })
+    /// 전체 접근 허용 안내 오버레이
+    private lazy var requestFullAccessOverlayView = RequestFullAccessOverlayView()
     
-    override var primaryKeyboardView: PrimaryKeyboardRepresentable { englishKeyboardView }
+    // MARK: - Lifecycle
     
-    // MARK: - Override Methods
-    
-    override func textWillChange(_ textInput: (any UITextInput)?) {
-        super.textWillChange(textInput)
-        updateShiftButton()
-    }
-    
-    override func didSetCurrentKeyboard() {
-        super.didSetCurrentKeyboard()
-        updateShiftButton()
-    }
-    
-    override func updateShowingKeyboard() {
-        super.updateShowingKeyboard()
-        isUppercaseInput = false
-    }
-    
-    override func updateKeyboardType() {
-        guard textDocumentProxy.keyboardType != oldKeyboardType else { return }
-        switch textDocumentProxy.keyboardType {
-        case .default, nil:
-            englishKeyboardView.currentEnglishKeyboardMode = .default
-            symbolKeyboardView.currentSymbolKeyboardMode = .default
-            currentKeyboard = .qwerty
-        case .asciiCapable:
-            englishKeyboardView.currentEnglishKeyboardMode = .default
-            symbolKeyboardView.currentSymbolKeyboardMode = .default
-            currentKeyboard = .qwerty
-        case .numbersAndPunctuation:
-            englishKeyboardView.currentEnglishKeyboardMode = .default
-            symbolKeyboardView.currentSymbolKeyboardMode = .default
-            currentKeyboard = .symbol
-        case .URL:
-            englishKeyboardView.currentEnglishKeyboardMode = .URL
-            symbolKeyboardView.currentSymbolKeyboardMode = .URL
-            currentKeyboard = .qwerty
-        case .numberPad:
-            tenkeyKeyboardView.currentTenkeyKeyboardMode = .numberPad
-            currentKeyboard = .tenKey
-        case .phonePad, .namePhonePad:
-            // 항상 iOS 시스템 키보드 표시됨
-            tenkeyKeyboardView.currentTenkeyKeyboardMode = .numberPad
-            currentKeyboard = .tenKey
-        case .emailAddress:
-            englishKeyboardView.currentEnglishKeyboardMode = .emailAddress
-            symbolKeyboardView.currentSymbolKeyboardMode = .emailAddress
-            currentKeyboard = .qwerty
-        case .decimalPad:
-            tenkeyKeyboardView.currentTenkeyKeyboardMode = .decimalPad
-            currentKeyboard = .tenKey
-        case .twitter:
-            englishKeyboardView.currentEnglishKeyboardMode = .twitter
-            symbolKeyboardView.currentSymbolKeyboardMode = .default
-            currentKeyboard = .qwerty
-        case .webSearch:
-            englishKeyboardView.currentEnglishKeyboardMode = .webSearch
-            symbolKeyboardView.currentSymbolKeyboardMode = .webSearch
-            currentKeyboard = .qwerty
-        case .asciiCapableNumberPad:
-            tenkeyKeyboardView.currentTenkeyKeyboardMode = .numberPad
-            currentKeyboard = .tenKey
-        @unknown default:
-            assertionFailure("구현이 필요한 case 입니다.")
-            englishKeyboardView.currentEnglishKeyboardMode = .default
-            symbolKeyboardView.currentSymbolKeyboardMode = .default
-            currentKeyboard = .qwerty
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        if needToShowFullAccessGuide { setupRequestFullAccessOverlayView() }
+        if FirebaseApp.app() == nil {
+            FirebaseApp.configure()
         }
     }
-    
-    override func textInteractionDidPerform() {
-        super.textInteractionDidPerform()
-        updateShiftButton()
-    }
-    
-    override func repeatTextInteractionDidPerform() {
-        super.repeatTextInteractionDidPerform()
-        updateShiftButton()
-    }
-    
-    override func insertKeyText(from keys: [String]) {
-        guard let key = keys.first else {
-            assertionFailure("keys 배열이 비어있습니다.")
-            return
-        }
+}
+
+// MARK: - UI Methods
+
+private extension EnglishKeyboardViewController {
+    func setupRequestFullAccessOverlayView() {
+        self.view.addSubview(requestFullAccessOverlayView)
         
-        if key.count == 1 && Character(key).isUppercase { isUppercaseInput = true }
-        textDocumentProxy.insertText(key)
-    }
-    
-    override func repeatInsertKeyText(from keys: [String]) {
-        guard let key = keys.first else {
-            assertionFailure("keys 배열이 비어있습니다.")
-            return
-        }
+        requestFullAccessOverlayView.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            requestFullAccessOverlayView.topAnchor.constraint(equalTo: self.view.topAnchor),
+            requestFullAccessOverlayView.leadingAnchor.constraint(equalTo: self.view.leadingAnchor),
+            requestFullAccessOverlayView.trailingAnchor.constraint(equalTo: self.view.trailingAnchor),
+            requestFullAccessOverlayView.bottomAnchor.constraint(equalTo: self.view.bottomAnchor)
+        ])
         
-        if key.count == 1 && Character(key).isUppercase { isUppercaseInput = true }
-        textDocumentProxy.insertText(key)
+        let closeOverlayAction = UIAction { [weak self] _ in
+            self?.keyboardSettingsManager.isRequestFullAccessOverlayClosed = true
+            self?.requestFullAccessOverlayView.isHidden = true
+        }
+        requestFullAccessOverlayView.closeButton.addAction(closeOverlayAction, for: .touchUpInside)
+        
+        let redirectToSettingsAction = UIAction { [weak self] _ in
+            guard let url = URL(string: "sykeyboard://") else {
+                assertionFailure("올바르지 않은 URL 형식입니다.")
+                return
+            }
+            self?.openURL(url)
+        }
+        requestFullAccessOverlayView.goToSettingsButton.addAction(redirectToSettingsAction, for: .touchUpInside)
     }
 }
 
 // MARK: - Private Methods
 
 private extension EnglishKeyboardViewController {
-    /// Shift 버튼을 상황에 맞게 업데이트하는 메서드
-    func updateShiftButton() {
-        // Shift 버튼이 눌려있는 경우 실행 X
-        guard !buttonStateController.isShiftButtonPressed else { return }
-        
-        if UserDefaultsManager.shared.isAutoCapitalizationEnabled {
-            switch textDocumentProxy.autocapitalizationType {
-            case .words:
-                if let beforeCursor = textDocumentProxy.documentContextBeforeInput {
-                    if beforeCursor.endsWithWhitespace() {
-                        primaryKeyboardView.updateShiftButton(isShifted: true)
-                    } else {
-                        primaryKeyboardView.updateShiftButton(isShifted: false)
-                    }
-                } else {
-                    primaryKeyboardView.updateShiftButton(isShifted: true)
-                }
-            case .sentences:
-                if let beforeCursor = textDocumentProxy.documentContextBeforeInput {
-                    if beforeCursor.hasOnlyWhitespaceAfterLastDot() {
-                        primaryKeyboardView.updateShiftButton(isShifted: true)
-                    } else {
-                        primaryKeyboardView.updateShiftButton(isShifted: false)
-                    }
-                } else {
-                    primaryKeyboardView.updateShiftButton(isShifted: true)
-                }
-            case .allCharacters:
-                primaryKeyboardView.updateShiftButton(isShifted: true)
-            default:
-                primaryKeyboardView.updateShiftButton(isShifted: false)
+    func openURL(_ url: URL) {
+        var responder: UIResponder? = self
+        while responder != nil {
+            if let application = responder as? UIApplication {
+                application.open(url)
+                return
             }
-        } else {
-            primaryKeyboardView.updateShiftButton(isShifted: false)
+            responder = responder?.next
         }
-        
-        isUppercaseInput = false
     }
 }

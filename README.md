@@ -27,13 +27,13 @@
 ## 🛠️ 기술 스택
 | 범위 | 기술 이름 |
 |:---------:|:----------|
-| 의존성 관리 도구 | `SPM`, `CocoaPods` |
+| 의존성 관리 도구 | `SPM` |
 | 형상 관리 도구 | `Git`, `GitHub` |
 | 디자인 패턴 | `Delegate`, `Singleton` |
 | 인터페이스 | `UIKit`, `SwiftUI` |
-| 활용 API | `Firebase Analytics`, `Google AdMob`, `Meta Audience` |
-| 레이아웃 구성 | `SnapKit`, `Then` |
+| 활용 API | `Firebase Analytics`, `Firebase Crashlytics`, `Google AdMob` |
 | 내부 저장소 | `UserDefaults` |
+| 테스트 | `Swift Testing` |
 
 <br><br>
 
@@ -64,8 +64,7 @@ Keyboard Extension 부분은 SwiftUI에서 UIKit으로 리팩토링하는 작업
 리팩토링을 거치며 영어 키보드를 추가하였고, 천지인 키보드도 다음 업데이트를 위해 기본적인 UI를 만들어 두었다.  
 또한, 다른 프로젝트에서 가져와 수정해서 사용했던 한글 오토마타 코드도 처음부터 다시 만들기로 결정했다.  
 
-2025.11.14 기준 남은 작업은 아래와 같다.
-- 한글 오토마타
+2025.11.26 기준 남은 작업은 아래와 같다.
 - 메인 앱 SwiftUI 코드 유지보수
 
 <br>
