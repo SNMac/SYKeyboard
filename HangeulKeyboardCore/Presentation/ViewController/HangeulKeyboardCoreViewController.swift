@@ -30,7 +30,7 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
     private lazy var cheonjiinKeyboardView: HangeulKeyboardLayoutProvider = CheonjiinKeyboardView(keyboard: .cheonjiin)
     
     /// 사용자가 선택한 한글 키보드
-    private var HangeulKeyboardView: HangeulKeyboardLayoutProvider {
+    private var hangeulKeyboardView: HangeulKeyboardLayoutProvider {
         switch UserDefaultsManager.shared.selectedHangeulKeyboard {
         case .naratgeul:
             return naratgeulKeyboardView
@@ -42,7 +42,7 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
         }
     }
     
-    open override var primaryKeyboardView: PrimaryKeyboardRepresentable { HangeulKeyboardView }
+    open override var primaryKeyboardView: PrimaryKeyboardRepresentable { hangeulKeyboardView }
     
     // MARK: - Initializer
     
@@ -73,20 +73,20 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
         guard textDocumentProxy.keyboardType != oldKeyboardType else { return }
         switch textDocumentProxy.keyboardType {
         case .default, nil:
-            HangeulKeyboardView.currentHangeulKeyboardMode = .default
+            hangeulKeyboardView.currentHangeulKeyboardMode = .default
             symbolKeyboardView.currentSymbolKeyboardMode = .default
             currentKeyboard = primaryKeyboardView.keyboard
         case .asciiCapable:
             // 지원 안함
-            HangeulKeyboardView.currentHangeulKeyboardMode = .default
+            hangeulKeyboardView.currentHangeulKeyboardMode = .default
             symbolKeyboardView.currentSymbolKeyboardMode = .default
             currentKeyboard = primaryKeyboardView.keyboard
         case .numbersAndPunctuation:
-            HangeulKeyboardView.currentHangeulKeyboardMode = .default
+            hangeulKeyboardView.currentHangeulKeyboardMode = .default
             symbolKeyboardView.currentSymbolKeyboardMode = .default
             currentKeyboard = .symbol
         case .URL:
-            HangeulKeyboardView.currentHangeulKeyboardMode = .default
+            hangeulKeyboardView.currentHangeulKeyboardMode = .default
             symbolKeyboardView.currentSymbolKeyboardMode = .URL
             currentKeyboard = primaryKeyboardView.keyboard
         case .numberPad:
@@ -97,18 +97,18 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
             tenkeyKeyboardView.currentTenkeyKeyboardMode = .numberPad
             currentKeyboard = .tenKey
         case .emailAddress:
-            HangeulKeyboardView.currentHangeulKeyboardMode = .default
+            hangeulKeyboardView.currentHangeulKeyboardMode = .default
             symbolKeyboardView.currentSymbolKeyboardMode = .emailAddress
             currentKeyboard = primaryKeyboardView.keyboard
         case .decimalPad:
             tenkeyKeyboardView.currentTenkeyKeyboardMode = .decimalPad
             currentKeyboard = .tenKey
         case .twitter:
-            HangeulKeyboardView.currentHangeulKeyboardMode = .twitter
+            hangeulKeyboardView.currentHangeulKeyboardMode = .twitter
             symbolKeyboardView.currentSymbolKeyboardMode = .default
             currentKeyboard = primaryKeyboardView.keyboard
         case .webSearch:
-            HangeulKeyboardView.currentHangeulKeyboardMode = .default
+            hangeulKeyboardView.currentHangeulKeyboardMode = .default
             symbolKeyboardView.currentSymbolKeyboardMode = .webSearch
             currentKeyboard = primaryKeyboardView.keyboard
         case .asciiCapableNumberPad:
@@ -116,7 +116,7 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
             currentKeyboard = .tenKey
         @unknown default:
             assertionFailure("구현이 필요한 case 입니다.")
-            HangeulKeyboardView.currentHangeulKeyboardMode = .default
+            hangeulKeyboardView.currentHangeulKeyboardMode = .default
             symbolKeyboardView.currentSymbolKeyboardMode = .default
             currentKeyboard = primaryKeyboardView.keyboard
         }

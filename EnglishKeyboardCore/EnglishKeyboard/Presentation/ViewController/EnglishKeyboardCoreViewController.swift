@@ -146,37 +146,21 @@ private extension EnglishKeyboardCoreViewController {
         // Shift 버튼이 눌려있는 경우 실행 X
         guard !buttonStateController.isShiftButtonPressed else { return }
         
+        var shouldShift: Bool = false
         if UserDefaultsManager.shared.isAutoCapitalizationEnabled {
             switch textDocumentProxy.autocapitalizationType {
-            case .words:
-                if let beforeCursor = textDocumentProxy.documentContextBeforeInput {
-                    if beforeCursor.endsWithWhitespace() {
-                        primaryKeyboardView.updateShiftButton(isShifted: true)
-                    } else {
-                        primaryKeyboardView.updateShiftButton(isShifted: false)
-                    }
-                } else {
-                    primaryKeyboardView.updateShiftButton(isShifted: true)
-                }
-            case .sentences:
-                if let beforeCursor = textDocumentProxy.documentContextBeforeInput {
-                    if beforeCursor.hasOnlyWhitespaceAfterLastDot() {
-                        primaryKeyboardView.updateShiftButton(isShifted: true)
-                    } else {
-                        primaryKeyboardView.updateShiftButton(isShifted: false)
-                    }
-                } else {
-                    primaryKeyboardView.updateShiftButton(isShifted: true)
-                }
             case .allCharacters:
-                primaryKeyboardView.updateShiftButton(isShifted: true)
+                shouldShift = true
+            case .sentences:
+                shouldShift = textDocumentProxy.documentContextBeforeInput?.hasOnlyWhitespaceAfterLastDot() ?? true
+            case .words:
+                shouldShift = textDocumentProxy.documentContextBeforeInput?.endsWithWhitespace() ?? true
             default:
-                primaryKeyboardView.updateShiftButton(isShifted: false)
+                break
             }
-        } else {
-            primaryKeyboardView.updateShiftButton(isShifted: false)
         }
         
+        primaryKeyboardView.updateShiftButton(isShifted: shouldShift)
         isUppercaseInput = false
     }
 }

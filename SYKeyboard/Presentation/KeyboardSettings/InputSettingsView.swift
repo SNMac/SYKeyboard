@@ -55,8 +55,10 @@ struct InputSettingsView: View {
             hideKeyboard()
         }
         
-        NavigationLink("길게 누르기 입력") {
-            KeyRepeatSettingsView()
+        if isLongPressToRepeatInputEnabled || isLongPressToNumberInputEnabled {
+            NavigationLink("길게 누르기 입력") {
+                KeyRepeatSettingsView()
+            }
         }
         
         Toggle(isOn: $isTextReplacementEnabled, label: {
