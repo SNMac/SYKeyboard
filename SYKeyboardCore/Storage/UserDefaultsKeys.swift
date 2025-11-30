@@ -16,6 +16,10 @@ public enum UserDefaultsKeys {
     /* 입력 설정 */
     /// 선택한 한글 키보드
     public static let selectedHangeulKeyboard = "selectedHangeulKeyboard"
+    /// 길게 터치하여 반복 입력
+    public static let isLongPressToRepeatInputEnabled = "isLongPressToRepeatInputEnabled"
+    /// 길게 터치하여 숫자 입력
+    public static let isLongPressToNumberInputEnabled = "isLongPressToNumberInputEnabled"
     /// 텍스트 대치
     public static let isTextReplacementEnabled = "isTextReplacementEnabled"
     /// 자동 대문자

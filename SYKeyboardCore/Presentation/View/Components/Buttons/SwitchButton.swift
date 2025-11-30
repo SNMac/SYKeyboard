@@ -82,13 +82,13 @@ final public class SwitchButton: SecondaryButton {
     public override func layoutSubviews() {
         super.layoutSubviews()
         
-        _titleLabel.text = title
+        primaryKeyListLabel.text = title
         if backgroundView.bounds.width < 38 {
-            _titleLabel.font = .monospacedDigitSystemFont(ofSize: 14, weight: .regular)
+            primaryKeyListLabel.font = .monospacedDigitSystemFont(ofSize: 14, weight: .regular)
         } else if backgroundView.bounds.width < 44 {
-            _titleLabel.font = .monospacedDigitSystemFont(ofSize: 16, weight: .regular)
+            primaryKeyListLabel.font = .monospacedDigitSystemFont(ofSize: 16, weight: .regular)
         } else {
-            _titleLabel.font = .monospacedDigitSystemFont(ofSize: 18, weight: .regular)
+            primaryKeyListLabel.font = .monospacedDigitSystemFont(ofSize: 18, weight: .regular)
         }
     }
     
@@ -120,11 +120,8 @@ private extension SwitchButton {
     }
     
     func setStyles() {
-        oneHandedLabel.isHidden = !UserDefaultsManager.shared.isOneHandedKeyboardEnabled
-        keyboardSelectLabel.isHidden = !UserDefaultsManager.shared.isNumericKeypadEnabled
-        
-        _titleLabel.text = title
-        _titleLabel.font = .monospacedDigitSystemFont(ofSize: 18, weight: .regular)
+        primaryKeyListLabel.text = title
+        primaryKeyListLabel.font = .monospacedDigitSystemFont(ofSize: 18, weight: .regular)
     }
     
     func setHierarchy() {
@@ -132,12 +129,11 @@ private extension SwitchButton {
     }
     
     func setConstraints() {
-        oneHandedLabel.translatesAutoresizingMaskIntoConstraints = false
-        keyboardSelectLabel.translatesAutoresizingMaskIntoConstraints = false
-        
         let offsetX = insetDx + 1
         let offsetY = insetDy + 1
         
+        oneHandedLabel.translatesAutoresizingMaskIntoConstraints = false
+        keyboardSelectLabel.translatesAutoresizingMaskIntoConstraints = false
         var constraints: [NSLayoutConstraint] = [
             oneHandedLabel.topAnchor.constraint(equalTo: self.topAnchor, constant: offsetY),
             keyboardSelectLabel.bottomAnchor.constraint(equalTo: self.bottomAnchor, constant: -offsetY)

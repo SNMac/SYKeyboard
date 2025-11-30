@@ -13,6 +13,12 @@ struct InputSettingsView: View {
     
     // MARK: - Properties
     
+    @AppStorage(UserDefaultsKeys.isLongPressToRepeatInputEnabled, store: UserDefaults(suiteName: DefaultValues.groupBundleID))
+    private var isLongPressToRepeatInputEnabled = DefaultValues.isLongPressToRepeatInputEnabled
+    
+    @AppStorage(UserDefaultsKeys.isLongPressToNumberInputEnabled, store: UserDefaults(suiteName: DefaultValues.groupBundleID))
+    private var isLongPressToNumberInputEnabled = DefaultValues.isLongPressToNumberInputEnabled
+    
     @AppStorage(UserDefaultsKeys.isTextReplacementEnabled, store: UserDefaults(suiteName: DefaultValues.groupBundleID))
     private var isTextReplacementEnabled = DefaultValues.isTextReplacementEnabled
     
@@ -22,14 +28,6 @@ struct InputSettingsView: View {
     // MARK: - Contents
     
     var body: some View {
-        NavigationLink("반복 입력") {
-            KeyRepeatSettingsView()
-        }
-        
-        NavigationLink("커서 이동") {
-            CursorMovementSettingsView()
-        }
-        
         Toggle(isOn: $isTextReplacementEnabled, label: {
             Text("텍스트 대치")
             Text("시스템 설정의 텍스트 대치 단축키 사용")
@@ -46,6 +44,40 @@ struct InputSettingsView: View {
         })
         .onChange(of: isAutoChangeToPrimaryEnabled) { _ in
             hideKeyboard()
+        }
+        
+        Toggle(isOn: $isLongPressToNumberInputEnabled, label: {
+            Text("길게 터치하여 숫자 입력")
+            Text("'길게 터치하여 반복 입력' 기능 사용 시 비활성화")
+                .font(.caption)
+        })
+        .onChange(of: isLongPressToNumberInputEnabled) { newValue in
+            if newValue {
+                isLongPressToRepeatInputEnabled = false
+            }
+            hideKeyboard()
+        }
+        
+        Toggle(isOn: $isLongPressToRepeatInputEnabled, label: {
+            Text("길게 터치하여 반복 입력")
+            Text("'길게 터치하여 숫자 입력' 기능 사용 시 비활성화")
+                .font(.caption)
+        })
+        .onChange(of: isLongPressToRepeatInputEnabled) { newValue in
+            if newValue {
+                isLongPressToNumberInputEnabled = false
+            }
+            hideKeyboard()
+        }
+        
+        if isLongPressToRepeatInputEnabled {
+            NavigationLink("반복 입력") {
+                KeyRepeatSettingsView()
+            }
+        }
+        
+        NavigationLink("커서 이동") {
+            CursorMovementSettingsView()
         }
     }
 }

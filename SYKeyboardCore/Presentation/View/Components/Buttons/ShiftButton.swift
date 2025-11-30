@@ -52,9 +52,9 @@ final public class ShiftButton: SecondaryButton {
             }
         case .symbol:
             if isShifted {
-                _titleLabel.text = "2/2"
+                primaryKeyListLabel.text = "2/2"
             } else {
-                _titleLabel.text = "1/2"
+                primaryKeyListLabel.text = "1/2"
             }
         default:
             assertionFailure("도달할 수 없는 case 입니다.")
@@ -95,8 +95,8 @@ private extension ShiftButton {
             self.configuration?.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 0, bottom: 0, trailing: KeyboardLayoutFigure.buttonHorizontalInset)
             self.configuration?.image = UIImage(systemName: "shift")?.withConfiguration(imageConfig).withTintColor(.label, renderingMode: .alwaysOriginal)
         case .symbol:
-            _titleLabel.text = "1/2"
-            _titleLabel.font = .monospacedSystemFont(ofSize: 16, weight: .regular)
+            primaryKeyListLabel.text = "1/2"
+            primaryKeyListLabel.font = .monospacedSystemFont(ofSize: 16, weight: .regular)
             
             self.configurationUpdateHandler = { [weak self] button in
                 switch button.state {

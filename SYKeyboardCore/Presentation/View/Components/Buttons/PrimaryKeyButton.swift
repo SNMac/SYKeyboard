@@ -27,11 +27,24 @@ final public class PrimaryKeyButton: PrimaryButton, TextInteractable {
             if type.primaryKeyList.isEmpty {
                 self.isHidden = true
             } else {
-                updateTitle()
+                updatePrimaryKeyListLabel()
                 self.isHidden = false
             }
+            
+            updateSecondaryKeyListLabel()
         }
     }
+    
+    // MARK: - UI Components
+    
+    private let secondaryKeyLabel: UILabel = {
+        let label = UILabel()
+        label.font = .monospacedDigitSystemFont(ofSize: 9, weight: .regular)
+        label.textColor = .secondaryLabel
+        label.isHidden = !UserDefaultsManager.shared.isLongPressToNumberInputEnabled
+        
+        return label
+    }()
     
     // MARK: - Initializer
     
@@ -39,7 +52,9 @@ final public class PrimaryKeyButton: PrimaryButton, TextInteractable {
         self.type = button
         super.init(keyboard: keyboard)
         
-        updateTitle()
+        setupUI()
+        updatePrimaryKeyListLabel()
+        updateSecondaryKeyListLabel()
     }
     
     @MainActor required init?(coder: NSCoder) {
@@ -50,7 +65,7 @@ final public class PrimaryKeyButton: PrimaryButton, TextInteractable {
     
     public override func layoutSubviews() {
         super.layoutSubviews()
-        updateTitleInsets()
+        updatePrimaryKeyListLabelInsets()
     }
     
     // MARK: - Override Methods
@@ -78,27 +93,56 @@ final public class PrimaryKeyButton: PrimaryButton, TextInteractable {
     }
 }
 
+// MARK: - SecondaryKey UI Methods
+
+private extension PrimaryKeyButton {
+    func setupUI() {
+        setHierarchy()
+        setConstraints()
+    }
+    
+    func setHierarchy() {
+        self.addSubview(secondaryKeyLabel)
+    }
+    
+    func setConstraints() {
+        let offsetX = insetDx + 2
+        let offsetY = insetDy + 2
+        
+        secondaryKeyLabel.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            secondaryKeyLabel.topAnchor.constraint(equalTo: self.topAnchor, constant: offsetY),
+            secondaryKeyLabel.trailingAnchor.constraint(equalTo: self.trailingAnchor, constant: -offsetX)
+        ])
+    }
+}
+
 // MARK: - Update Methods
 
 private extension PrimaryKeyButton {
-    func updateTitle() {
+    func updatePrimaryKeyListLabel() {
         if type.primaryKeyList.count == 1 {
-            guard let key = type.primaryKeyList.first else { return }
-            _titleLabel.text = key
+            guard let primaryKey = type.primaryKeyList.first else { return }
+            primaryKeyListLabel.text = primaryKey
             
-            if key.count == 1 {
-                if Character(key).isLowercase {
-                    _titleLabel.font = .systemFont(ofSize: FontSize.lowercaseKeySize)
+            if primaryKey.count == 1 {
+                if Character(primaryKey).isLowercase {
+                    primaryKeyListLabel.font = .systemFont(ofSize: FontSize.lowercaseKeySize)
                 } else {
-                    _titleLabel.font = .systemFont(ofSize: FontSize.defaultKeySize)
+                    primaryKeyListLabel.font = .systemFont(ofSize: FontSize.defaultKeySize)
                 }
             } else {
-                _titleLabel.font = .systemFont(ofSize: FontSize.stringKeySize)
+                primaryKeyListLabel.font = .systemFont(ofSize: FontSize.stringKeySize)
             }
         } else {
-            _titleLabel.text = type.primaryKeyList.joined(separator: "")
-            _titleLabel.font = .systemFont(ofSize: FontSize.defaultKeySize)
+            primaryKeyListLabel.text = type.primaryKeyList.joined(separator: "")
+            primaryKeyListLabel.font = .systemFont(ofSize: FontSize.defaultKeySize)
         }
+    }
+    
+    func updateSecondaryKeyListLabel() {
+        guard let secondaryKey = type.secondaryKey else { return }
+        secondaryKeyLabel.text = secondaryKey
     }
     
     func remakeConstraintsForVisuals() {
@@ -132,7 +176,7 @@ private extension PrimaryKeyButton {
         NSLayoutConstraint.activate(visualConstraints)
     }
     
-    func updateTitleInsets() {
+    func updatePrimaryKeyListLabelInsets() {
         // referenceKey가 존재하는 경우에만 수행
         guard let referenceKey else {
             self.configuration?.contentInsets = .zero

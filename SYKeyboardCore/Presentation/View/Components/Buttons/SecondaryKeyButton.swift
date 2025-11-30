@@ -17,7 +17,7 @@ final public class SecondaryKeyButton: SecondaryButton, TextInteractable {
             if type.primaryKeyList.isEmpty {
                 self.isHidden = true
             } else {
-                updateTitle()
+                updatePrimaryKeyListLabel()
                 self.isHidden = false
             }
         }
@@ -29,7 +29,7 @@ final public class SecondaryKeyButton: SecondaryButton, TextInteractable {
         self.type = button
         super.init(keyboard: keyboard)
         
-        updateTitle()
+        updatePrimaryKeyListLabel()
     }
     
     @MainActor required init?(coder: NSCoder) {
@@ -53,23 +53,23 @@ final public class SecondaryKeyButton: SecondaryButton, TextInteractable {
 // MARK: - Update Methods
 
 private extension SecondaryKeyButton {
-    func updateTitle() {
+    func updatePrimaryKeyListLabel() {
         if type.primaryKeyList.count == 1 {
             guard let key = type.primaryKeyList.first else { return }
-            _titleLabel.text = key
+            primaryKeyListLabel.text = key
             
             if key.count == 1 {
                 if Character(key).isLowercase {
-                    _titleLabel.font = .systemFont(ofSize: FontSize.lowercaseKeySize)
+                    primaryKeyListLabel.font = .systemFont(ofSize: FontSize.lowercaseKeySize)
                 } else {
-                    _titleLabel.font = .systemFont(ofSize: FontSize.defaultKeySize)
+                    primaryKeyListLabel.font = .systemFont(ofSize: FontSize.defaultKeySize)
                 }
             } else {
-                _titleLabel.font = .systemFont(ofSize: FontSize.stringKeySize)
+                primaryKeyListLabel.font = .systemFont(ofSize: FontSize.stringKeySize)
             }
         } else {
-            _titleLabel.text = type.primaryKeyList.joined(separator: "")
-            _titleLabel.font = .systemFont(ofSize: FontSize.defaultKeySize)
+            primaryKeyListLabel.text = type.primaryKeyList.joined(separator: "")
+            primaryKeyListLabel.font = .systemFont(ofSize: FontSize.defaultKeySize)
         }
     }
 }

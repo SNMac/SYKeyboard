@@ -20,6 +20,10 @@ public enum DefaultValues {
     /* 입력 설정 */
     /// 한글 키보드 기본값
     public static let selectedHangeulKeyboard: HangeulKeyboardType = .naratgeul
+    /// 길게 터치하여 반복 입력 기본값
+    public static let isLongPressToRepeatInputEnabled: Bool = true
+    /// 길게 터치하여 숫자 입력 기본값
+    public static let isLongPressToNumberInputEnabled: Bool = false
     /// 텍스트 대치 기본값
     public static let isTextReplacementEnabled: Bool = true
     /// 자동 대문자

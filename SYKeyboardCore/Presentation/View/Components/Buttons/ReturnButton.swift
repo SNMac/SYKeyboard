@@ -30,23 +30,23 @@ final public class ReturnButton: SecondaryButton, TextInteractable {
         self.configurationUpdateHandler = { [weak self] button in
             guard let self else { return }
             
-            _titleLabel.text = returnKeyType.title
-            _titleLabel.font = .systemFont(ofSize: 18)
+            primaryKeyListLabel.text = returnKeyType.title
+            primaryKeyListLabel.font = .systemFont(ofSize: 18)
             switch button.state {
             case .normal:
                 if isGesturing {
-                    _titleLabel.textColor = returnKeyType.highlightedColor
+                    primaryKeyListLabel.textColor = returnKeyType.highlightedColor
                     backgroundView.backgroundColor = .secondaryButtonPressed
                 } else {
-                    _titleLabel.textColor = returnKeyType.normalColor
+                    primaryKeyListLabel.textColor = returnKeyType.normalColor
                     backgroundView.backgroundColor = returnKeyType.backgroundColor
                 }
             case .highlighted:
                 if isPressed || isGesturing {
-                    _titleLabel.textColor = returnKeyType.highlightedColor
+                    primaryKeyListLabel.textColor = returnKeyType.highlightedColor
                     backgroundView.backgroundColor = .secondaryButtonPressed
                 } else {
-                    _titleLabel.textColor = returnKeyType.normalColor
+                    primaryKeyListLabel.textColor = returnKeyType.normalColor
                     backgroundView.backgroundColor = returnKeyType.backgroundColor
                 }
             default:

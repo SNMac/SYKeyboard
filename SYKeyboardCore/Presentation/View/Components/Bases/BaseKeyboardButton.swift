@@ -39,7 +39,7 @@ public class BaseKeyboardButton: UIButton {
     /// 그림자 UI
     final lazy var shadowView = ButtonShadowView(cornerRadius: self.cornerRadius)
     /// iOS 26 `UIButton.Configuration.attributedTitle` 애니메이션 해결용
-    final let _titleLabel: UILabel = {
+    final let primaryKeyListLabel: UILabel = {
         let label = UILabel()
         label.textColor = .label
         label.textAlignment = .center
@@ -102,7 +102,7 @@ private extension BaseKeyboardButton {
         self.insertSubview(shadowView, at: 0)
         self.insertSubview(backgroundView, at: 1)
         
-        self.addSubview(_titleLabel)
+        self.addSubview(primaryKeyListLabel)
     }
     
     func setConstraints() {
@@ -124,12 +124,12 @@ private extension BaseKeyboardButton {
             backgroundView.bottomAnchor.constraint(equalTo: shadowView.bottomAnchor)
         ])
         
-        _titleLabel.translatesAutoresizingMaskIntoConstraints = false
+        primaryKeyListLabel.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
-            _titleLabel.topAnchor.constraint(equalTo: backgroundView.topAnchor),
-            _titleLabel.leadingAnchor.constraint(equalTo: backgroundView.leadingAnchor),
-            _titleLabel.trailingAnchor.constraint(equalTo: backgroundView.trailingAnchor),
-            _titleLabel.bottomAnchor.constraint(equalTo: backgroundView.bottomAnchor)
+            primaryKeyListLabel.topAnchor.constraint(equalTo: backgroundView.topAnchor),
+            primaryKeyListLabel.leadingAnchor.constraint(equalTo: backgroundView.leadingAnchor),
+            primaryKeyListLabel.trailingAnchor.constraint(equalTo: backgroundView.trailingAnchor),
+            primaryKeyListLabel.bottomAnchor.constraint(equalTo: backgroundView.bottomAnchor)
         ])
     }
 }
