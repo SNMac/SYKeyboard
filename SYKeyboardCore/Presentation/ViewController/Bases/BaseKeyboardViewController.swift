@@ -16,7 +16,16 @@ open class BaseKeyboardViewController: UIInputViewController {
     private lazy var logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: String(describing: self))
     
     /// Preview 모드 플래그 변수
-    public var isPreview: Bool = false
+    final public var isPreview: Bool = false
+    
+    /// 전체 접근 허용 안내 필요 여부
+    final public var needToShowFullAccessGuide: Bool {
+        return !hasFullAccess && !keyboardSettingsManager.isRequestFullAccessOverlayClosed
+    }
+    
+    /// 키보드 설정을 관리하는 `UserDefaultsManager`
+    /// - 서브클래스 접근용
+    final public let keyboardSettingsManager: UserDefaultsManager = UserDefaultsManager.shared
     
     final public lazy var oldKeyboardType: UIKeyboardType? = textDocumentProxy.keyboardType
     
@@ -98,9 +107,6 @@ open class BaseKeyboardViewController: UIInputViewController {
     /// 한 손 키보드 해제 버튼(왼손 모드)
     private lazy var rightChevronButton = keyboardView.rightChevronButton
     
-    /// 전체 접근 허용 안내 오버레이
-    private lazy var requestFullAccessOverlayView = RequestFullAccessOverlayView()
-    
     // MARK: - Lifecycle
     
     open override func viewDidLoad() {
@@ -108,7 +114,7 @@ open class BaseKeyboardViewController: UIInputViewController {
         setupUI()
         setNextKeyboardButton()
         if isPreview { updateReturnButtonType() }
-        if !hasFullAccess && !UserDefaultsManager.shared.isRequestFullAccessOverlayClosed { setupRequestFullAccessOverlayView() }
+        
         if UserDefaultsManager.shared.isOneHandedKeyboardEnabled { updateOneHandModekeyboard() }
         if UserDefaultsManager.shared.isTextReplacementEnabled {
             Task { userLexicon = await requestSupplementaryLexicon() }
@@ -314,33 +320,6 @@ private extension BaseKeyboardViewController {
         UserDefaultsManager.shared.needsInputModeSwitchKey = self.needsInputModeSwitchKey
 
     }
-    
-    func setupRequestFullAccessOverlayView() {
-        self.view.addSubview(requestFullAccessOverlayView)
-        
-        requestFullAccessOverlayView.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([
-            requestFullAccessOverlayView.topAnchor.constraint(equalTo: self.view.topAnchor),
-            requestFullAccessOverlayView.leadingAnchor.constraint(equalTo: self.view.leadingAnchor),
-            requestFullAccessOverlayView.trailingAnchor.constraint(equalTo: self.view.trailingAnchor),
-            requestFullAccessOverlayView.bottomAnchor.constraint(equalTo: self.view.bottomAnchor)
-        ])
-        
-        let closeOverlayAction = UIAction { [weak self] _ in
-            UserDefaultsManager.shared.isRequestFullAccessOverlayClosed = true
-            self?.requestFullAccessOverlayView.isHidden = true
-        }
-        requestFullAccessOverlayView.closeButton.addAction(closeOverlayAction, for: .touchUpInside)
-        
-        let redirectToSettingsAction = UIAction { [weak self] _ in
-            guard let url = URL(string: "sykeyboard://") else {
-                assertionFailure("올바르지 않은 URL 형식입니다.")
-                return
-            }
-            self?.openURL(url)
-        }
-        requestFullAccessOverlayView.goToSettingsButton.addAction(redirectToSettingsAction, for: .touchUpInside)
-    }
 }
 
 // MARK: - Button Action Methods
@@ -514,21 +493,6 @@ private extension BaseKeyboardViewController {
     func updateReturnButtonType() {
         let type = ReturnButton.ReturnKeyType(type: textDocumentProxy.returnKeyType)
         currentReturnButton?.update(for: type)
-    }
-}
-
-// MARK: - Private Methods
-
-private extension BaseKeyboardViewController {
-    func openURL(_ url: URL) {
-        var responder: UIResponder? = self
-        while responder != nil {
-            if let application = responder as? UIApplication {
-                application.open(url)
-                return
-            }
-            responder = responder?.next
-        }
     }
 }
 
