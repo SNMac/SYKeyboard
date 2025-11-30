@@ -31,12 +31,18 @@ struct AppearanceSettingsView: View {
             Text("'!#1' 또는 '한글' 버튼을 화살표 방향으로 드래그하여 전환")
                 .font(.system(.caption))
         })
+        .onChange(of: isNumericKeypadEnabled) { _ in
+            hideKeyboard()
+        }
         
         Toggle(isOn: $isOneHandedKeyboardEnabled, label: {
             Text("한 손 키보드 활성화")
             Text("'!#1' 또는 '한글' 버튼을 위로 드래그하거나 길게 눌러 변경")
                 .font(.system(.caption))
         })
+        .onChange(of: isOneHandedKeyboardEnabled) { _ in
+            hideKeyboard()
+        }
         
         if isOneHandedKeyboardEnabled {
             NavigationLink("한 손 키보드 너비") {
