@@ -8,7 +8,7 @@
 import SwiftUI
 import HangeulKeyboardCore
 
-/// 키보드 Preview
+/// 한글 키보드 Preview
 /// - 높이는 SwiftUI에서 `frame`으로 조정
 /// - 한 손 키보드 너비는 `updateOneHandedWidthForPreview` 메서드로 조정
 struct PreviewHangeulKeyboardViewController: UIViewControllerRepresentable {
@@ -18,11 +18,14 @@ struct PreviewHangeulKeyboardViewController: UIViewControllerRepresentable {
     @Binding var keyboardHeight: Double
     @Binding var oneHandedKeyboardWidth: Double
     
+    let displayOneHandedMode: Bool
+    
     // MARK: - Internal Methods
     
     func makeUIViewController(context: Context) -> HangeulKeyboardCoreViewController {
         let keyboard = HangeulKeyboardCoreViewController()
         keyboard.isPreview = true
+        keyboard.previewOneHandedMode = displayOneHandedMode ? .right : .center
         
         let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene
         let screenWidth = windowScene?.screen.bounds.width ?? 0

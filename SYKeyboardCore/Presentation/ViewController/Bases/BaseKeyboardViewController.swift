@@ -17,6 +17,7 @@ open class BaseKeyboardViewController: UIInputViewController {
     
     /// Preview 모드 플래그 변수
     final public var isPreview: Bool = false
+    final public var previewOneHandedMode: OneHandedMode = .center
     
     /// 전체 접근 허용 안내 필요 여부
     final public var needToShowFullAccessGuide: Bool {
@@ -36,9 +37,20 @@ open class BaseKeyboardViewController: UIInputViewController {
         }
     }
     /// 현재 한 손 키보드 모드
-    private var currentOneHandedMode: OneHandedMode = UserDefaultsManager.shared.lastOneHandedMode {
-        didSet {
-            UserDefaultsManager.shared.lastOneHandedMode = currentOneHandedMode
+    private var currentOneHandedMode: OneHandedMode {
+        get {
+            if isPreview {
+                return previewOneHandedMode
+            } else {
+                return UserDefaultsManager.shared.lastOneHandedMode
+            }
+        }
+        set {
+            if isPreview {
+                previewOneHandedMode = newValue
+            } else {
+                UserDefaultsManager.shared.lastOneHandedMode = newValue
+            }
             updateOneHandModekeyboard()
         }
     }

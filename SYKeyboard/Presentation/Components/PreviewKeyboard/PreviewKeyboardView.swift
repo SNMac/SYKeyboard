@@ -16,6 +16,8 @@ struct PreviewKeyboardView: View {
     @Binding var needsInputModeSwitchKey: Bool
     @Binding var previewKeyboardLanguage: PreviewKeyboardLanguage
     
+    let displayOneHandedMode: Bool
+    
     // MARK: - Contents
     
     var body: some View {
@@ -41,14 +43,18 @@ struct PreviewKeyboardView: View {
 
 private extension PreviewKeyboardView {
     var previewHangeulKeyboard: some View {
-        PreviewHangeulKeyboardViewController(keyboardHeight: $keyboardHeight, oneHandedKeyboardWidth: $oneHandedKeyboardWidth)
+        PreviewHangeulKeyboardViewController(keyboardHeight: $keyboardHeight,
+                                             oneHandedKeyboardWidth: $oneHandedKeyboardWidth,
+                                             displayOneHandedMode: displayOneHandedMode)
             .frame(height: keyboardHeight)
             .background(.keyboardBackground)
             .padding(.bottom, needsInputModeSwitchKey ? 0 : 40)
     }
     
     var previewEnglishKeyboard: some View {
-        PreviewEnglishKeyboardViewController(keyboardHeight: $keyboardHeight, oneHandedKeyboardWidth: $oneHandedKeyboardWidth)
+        PreviewEnglishKeyboardViewController(keyboardHeight: $keyboardHeight,
+                                             oneHandedKeyboardWidth: $oneHandedKeyboardWidth,
+                                             displayOneHandedMode: displayOneHandedMode)
             .frame(height: keyboardHeight)
             .background(.keyboardBackground)
             .padding(.bottom, needsInputModeSwitchKey ? 0 : 40)

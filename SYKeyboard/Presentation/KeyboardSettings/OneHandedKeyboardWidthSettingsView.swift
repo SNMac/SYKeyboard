@@ -33,7 +33,6 @@ struct OneHandedKeyboardWidthSettingsView: View {
     
     var body: some View {
         NavigationStack {
-            // TODO: 한 손 키보드 임시 변경 (UseDefaults 변경시키지 않도록)
             oneHandedKeyboardWidthSettings
             
             Spacer()
@@ -41,7 +40,8 @@ struct OneHandedKeyboardWidthSettingsView: View {
             PreviewKeyboardView(keyboardHeight: $keyboardHeight,
                                 oneHandedKeyboardWidth: $tempOneHandedKeyboardWidth,
                                 needsInputModeSwitchKey: $needsInputModeSwitchKey,
-                                previewKeyboardLanguage: $previewKeyboardLanguage)
+                                previewKeyboardLanguage: $previewKeyboardLanguage,
+                                displayOneHandedMode: true)
         }.onAppear {
             tempOneHandedKeyboardWidth = oneHandedKeyboardWidth
         }.requestReviewViewModifier()

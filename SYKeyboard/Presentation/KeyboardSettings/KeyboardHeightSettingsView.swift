@@ -40,7 +40,8 @@ struct KeyboardHeightSettingsView: View {
             PreviewKeyboardView(keyboardHeight: $tempKeyboardHeight,
                                 oneHandedKeyboardWidth: $oneHandedKeyboardWidth,
                                 needsInputModeSwitchKey: $needsInputModeSwitchKey,
-                                previewKeyboardLanguage: $previewKeyboardLanguage)
+                                previewKeyboardLanguage: $previewKeyboardLanguage,
+                                displayOneHandedMode: false)
         }.onAppear {
             tempKeyboardHeight = keyboardHeight
         }.requestReviewViewModifier()
