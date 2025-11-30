@@ -464,17 +464,26 @@ private extension BaseKeyboardViewController {
     }
     
     func addGesturesToSwitchButton(_ button: SwitchButton) {
-        // 팬(드래그) 제스처
-        let panGesture = UIPanGestureRecognizer(target: switchGestureController, action: #selector(switchGestureController.panGestureHandler(_:)))
-        panGesture.delegate = textInteractionGestureController
-        button.addGestureRecognizer(panGesture)
+        if UserDefaultsManager.shared.isNumericKeypadEnabled {
+            // 팬(드래그) 제스처
+            let keyboardSelectPanGesture = UIPanGestureRecognizer(target: switchGestureController, action: #selector(switchGestureController.keyboardSelectPanGestureHandler(_:)))
+            keyboardSelectPanGesture.delegate = switchGestureController
+            button.addGestureRecognizer(keyboardSelectPanGesture)
+        }
         
-        // 길게 누르기 제스처
-        let longPressGesture = UILongPressGestureRecognizer(target: switchGestureController, action: #selector(switchGestureController.longPressGestureHandler(_:)))
-        longPressGesture.delegate = textInteractionGestureController
-        longPressGesture.minimumPressDuration = UserDefaultsManager.shared.longPressDuration
-        longPressGesture.allowableMovement = UserDefaultsManager.shared.cursorActiveDistance
-        button.addGestureRecognizer(longPressGesture)
+        if UserDefaultsManager.shared.isOneHandedKeyboardEnabled {
+            // 팬(드래그) 제스처
+            let oneHandedModeSelectPanGesture = UIPanGestureRecognizer(target: switchGestureController, action: #selector(switchGestureController.oneHandedModeSelectPanGestureHandler(_:)))
+            oneHandedModeSelectPanGesture.delegate = switchGestureController
+            button.addGestureRecognizer(oneHandedModeSelectPanGesture)
+            
+            // 길게 누르기 제스처
+            let oneHandedModeSelectLongPressGesture = UILongPressGestureRecognizer(target: switchGestureController, action: #selector(switchGestureController.oneHandedModeLongPressGestureHandler(_:)))
+            oneHandedModeSelectLongPressGesture.delegate = switchGestureController
+            oneHandedModeSelectLongPressGesture.minimumPressDuration = UserDefaultsManager.shared.longPressDuration
+            oneHandedModeSelectLongPressGesture.allowableMovement = UserDefaultsManager.shared.cursorActiveDistance
+            button.addGestureRecognizer(oneHandedModeSelectLongPressGesture)
+        }
     }
     
     func setExclusiveButtonAction() {

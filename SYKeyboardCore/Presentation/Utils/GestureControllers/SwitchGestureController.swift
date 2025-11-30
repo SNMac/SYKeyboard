@@ -73,7 +73,37 @@ final class SwitchGestureController: NSObject {
     
     // MARK: - @objc Gesture Methods
     
-    @objc func panGestureHandler(_ gesture: UIPanGestureRecognizer) {
+    @objc func keyboardSelectPanGestureHandler(_ gesture: UIPanGestureRecognizer) {
+        let gestureButton = gesture.view as? SwitchButton
+        let config = setPanConfig()
+        let keyboardSelectOverlayView = config.gestureHandler.keyboardSelectOverlayView
+        let oneHandedModeSelectOverlayView = config.gestureHandler.oneHandedModeSelectOverlayView
+        
+        switch gesture.state {
+        case .began:
+            gestureButton?.isGesturing = true
+            logger.debug("키보드 선택 팬 제스처 활성화")
+        case .changed:
+            isOverlayActive = !keyboardSelectOverlayView.isHidden || !oneHandedModeSelectOverlayView.isHidden
+            if isOverlayActive { keyboardFrameView.isUserInteractionEnabled = false }
+            onkeyboardSelectPanGestureChanged(gesture, config: config)
+        case .ended, .cancelled, .failed:
+            // 순서 중요
+            if !isOverlayActive { gestureButton?.sendActions(for: .touchUpInside) }
+            setCurrentPressedButton(nil)
+            
+            onkeyboardSelectPanGestureEnded(gesture, config: config)
+            isOverlayActive = false
+            gestureButton?.isGesturing = false
+            
+            keyboardFrameView.isUserInteractionEnabled = true
+            logger.debug("키보드 선택 팬 제스처 비활성화")
+        default:
+            break
+        }
+    }
+    
+    @objc func oneHandedModeSelectPanGestureHandler(_ gesture: UIPanGestureRecognizer) {
         let gestureButton = gesture.view as? SwitchButton
         let config = setPanConfig()
         let keyboardSelectOverlayView = config.gestureHandler.keyboardSelectOverlayView
@@ -86,13 +116,13 @@ final class SwitchGestureController: NSObject {
         case .changed:
             isOverlayActive = !keyboardSelectOverlayView.isHidden || !oneHandedModeSelectOverlayView.isHidden
             if isOverlayActive { keyboardFrameView.isUserInteractionEnabled = false }
-            onPanGestureChanged(gesture, config: config)
+            onOneHandedModeSelectPanGestureChanged(gesture, config: config)
         case .ended, .cancelled, .failed:
             // 순서 중요
             if !isOverlayActive { gestureButton?.sendActions(for: .touchUpInside) }
             setCurrentPressedButton(nil)
             
-            onPanGestureEnded(gesture, config: config)
+            onOneHandedModeSelectPanGestureEnded(gesture, config: config)
             isOverlayActive = false
             gestureButton?.isGesturing = false
             
@@ -103,7 +133,7 @@ final class SwitchGestureController: NSObject {
         }
     }
     
-    @objc func longPressGestureHandler(_ gesture: UILongPressGestureRecognizer) {
+    @objc func oneHandedModeLongPressGestureHandler(_ gesture: UILongPressGestureRecognizer) {
         let gestureButton = gesture.view as? SwitchButton
         let config = setPanConfig()
         
@@ -160,10 +190,10 @@ final class SwitchGestureController: NSObject {
     }
 }
 
-// MARK: - Pan Gesture Methods
+// MARK: - Keyboard Select Pan Gesture Methods
 
 private extension SwitchGestureController {
-    func onPanGestureChanged(_ gesture: UIPanGestureRecognizer, config: PanConfig) {
+    func onkeyboardSelectPanGestureChanged(_ gesture: UIPanGestureRecognizer, config: PanConfig) {
         let switchButton = config.gestureHandler.switchButton
         let keyboardSelectOverlayView = config.gestureHandler.keyboardSelectOverlayView
         let oneHandedModeSelectOverlayView = config.gestureHandler.oneHandedModeSelectOverlayView
@@ -172,37 +202,61 @@ private extension SwitchGestureController {
             let panLocation = gesture.location(in: switchButton)
             let panDirection = checkSwitchButtonPanGestureDirection(panLocation: panLocation, targetRect: switchButton.bounds)
             
-            if UserDefaultsManager.shared.isNumericKeypadEnabled && panDirection == config.keyboardSelectTargetDirection {
-                // 숫자 키보드 선택 오버레이
+            if panDirection == config.keyboardSelectTargetDirection {
                 startkeyboardSelect(config: config, switchButton: switchButton)
-            } else if UserDefaultsManager.shared.isOneHandedKeyboardEnabled && panDirection == .up {
-                // 한 손 키보드 선택 오버레이
-                startOneHandedModeSelect(config: config, switchButton: switchButton)
             }
             
-        } else if !keyboardSelectOverlayView.isHidden {
+        } else if !keyboardSelectOverlayView.isHidden && oneHandedModeSelectOverlayView.isHidden {
             selectKeyboard(keyboardSelectOverlayView,
                            gesture: gesture,
                            config: config)
-        } else if !oneHandedModeSelectOverlayView.isHidden {
+        }
+    }
+    
+    func onkeyboardSelectPanGestureEnded(_ gesture: UIPanGestureRecognizer, config: PanConfig) {
+        let switchButton = config.gestureHandler.switchButton
+        let keyboardSelectOverlayView = config.gestureHandler.keyboardSelectOverlayView
+        let oneHandedModeSelectOverlayView = config.gestureHandler.oneHandedModeSelectOverlayView
+        
+        if !keyboardSelectOverlayView.isHidden && oneHandedModeSelectOverlayView.isHidden {
+            endKeyboardSelect(keyboardSelectOverlayView,
+                                gesture: gesture,
+                                config: config,
+                                switchButton: switchButton)
+            
+        }
+    }
+}
+
+// MARK: - One Handed Mode Select Pan Gesture Methods
+
+private extension SwitchGestureController {
+    func onOneHandedModeSelectPanGestureChanged(_ gesture: UIPanGestureRecognizer, config: PanConfig) {
+        let switchButton = config.gestureHandler.switchButton
+        let keyboardSelectOverlayView = config.gestureHandler.keyboardSelectOverlayView
+        let oneHandedModeSelectOverlayView = config.gestureHandler.oneHandedModeSelectOverlayView
+        
+        if keyboardSelectOverlayView.isHidden && oneHandedModeSelectOverlayView.isHidden {
+            let panLocation = gesture.location(in: switchButton)
+            let panDirection = checkSwitchButtonPanGestureDirection(panLocation: panLocation, targetRect: switchButton.bounds)
+            
+            if panDirection == .up {
+                startOneHandedModeSelect(config: config, switchButton: switchButton)
+            }
+            
+        } else if keyboardSelectOverlayView.isHidden && !oneHandedModeSelectOverlayView.isHidden {
             selectOneHandedMode(oneHandedModeSelectOverlayView,
                                 gesture: gesture,
                                 config: config)
         }
     }
     
-    func onPanGestureEnded(_ gesture: UIPanGestureRecognizer, config: PanConfig) {
+    func onOneHandedModeSelectPanGestureEnded(_ gesture: UIPanGestureRecognizer, config: PanConfig) {
         let switchButton = config.gestureHandler.switchButton
         let keyboardSelectOverlayView = config.gestureHandler.keyboardSelectOverlayView
         let oneHandedModeSelectOverlayView = config.gestureHandler.oneHandedModeSelectOverlayView
         
-        if !keyboardSelectOverlayView.isHidden {
-            endKeyboardSelect(keyboardSelectOverlayView,
-                                gesture: gesture,
-                                config: config,
-                                switchButton: switchButton)
-            
-        } else if !oneHandedModeSelectOverlayView.isHidden {
+        if keyboardSelectOverlayView.isHidden && !oneHandedModeSelectOverlayView.isHidden {
             endOneHandedModeSelect(oneHandedModeSelectOverlayView,
                                      gesture: gesture,
                                      config: config,
@@ -211,7 +265,7 @@ private extension SwitchGestureController {
     }
 }
 
-// MARK: - Long Press Gesture Methods
+// MARK: - One Handed Mode Select Long Press Gesture Methods
 
 private extension SwitchGestureController {
     func onLongPressGestureBegan(config: PanConfig) {
@@ -219,8 +273,7 @@ private extension SwitchGestureController {
         let keyboardSelectOverlayView = config.gestureHandler.keyboardSelectOverlayView
         let oneHandedModeSelectOverlayView = config.gestureHandler.oneHandedModeSelectOverlayView
         
-        if UserDefaultsManager.shared.isOneHandedKeyboardEnabled
-            && keyboardSelectOverlayView.isHidden && oneHandedModeSelectOverlayView.isHidden {
+        if keyboardSelectOverlayView.isHidden && oneHandedModeSelectOverlayView.isHidden {
             startOneHandedModeSelect(config: config, switchButton: switchButton)
         }
     }
@@ -229,10 +282,8 @@ private extension SwitchGestureController {
         let keyboardSelectOverlayView = config.gestureHandler.keyboardSelectOverlayView
         let oneHandedModeSelectOverlayView = config.gestureHandler.oneHandedModeSelectOverlayView
         
-        if !oneHandedModeSelectOverlayView.isHidden {
+        if !oneHandedModeSelectOverlayView.isHidden && keyboardSelectOverlayView.isHidden {
             selectOneHandedMode(oneHandedModeSelectOverlayView, gesture: gesture, config: config)
-        } else if UserDefaultsManager.shared.isNumericKeypadEnabled && !keyboardSelectOverlayView.isHidden {
-            selectKeyboard(keyboardSelectOverlayView, gesture: gesture, config: config)
         }
     }
     
@@ -241,10 +292,8 @@ private extension SwitchGestureController {
         let keyboardSelectOverlayView = config.gestureHandler.keyboardSelectOverlayView
         let oneHandedModeSelectOverlayView = config.gestureHandler.oneHandedModeSelectOverlayView
         
-        if !oneHandedModeSelectOverlayView.isHidden {
+        if !oneHandedModeSelectOverlayView.isHidden && keyboardSelectOverlayView.isHidden {
             endOneHandedModeSelect(oneHandedModeSelectOverlayView, gesture: gesture, config: config, switchButton: switchButton)
-        } else if !keyboardSelectOverlayView.isHidden {
-            endKeyboardSelect(keyboardSelectOverlayView, gesture: gesture, config: config, switchButton: switchButton)
         }
         
         isDragOutside = false
