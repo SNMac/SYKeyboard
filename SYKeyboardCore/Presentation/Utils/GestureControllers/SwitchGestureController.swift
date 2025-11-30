@@ -20,10 +20,16 @@ final class SwitchGestureController: NSObject {
     
     private lazy var logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: String(describing: self))
     
+    enum PanGestureName: String {
+        case keyboardSelect
+        case oneHandedModeSelect
+    }
+    
     typealias PanConfig = (gestureHandler: SwitchGestureHandling,
                            keyboardSelectTargetkeyboard: SYKeyboardType,
                            keyboardSelectTargetDirection: PanDirection)
     
+    private var lockedPanDirection: PanDirection?
     private var isOverlayActive: Bool = false
     private var isDragOutside: Bool = false
     private var isKeepGesturing: Bool = false
@@ -84,15 +90,22 @@ final class SwitchGestureController: NSObject {
         
         switch gesture.state {
         case .began:
+            lockedPanDirection = nil
             switchButton.isGesturing = true
             logger.debug("키보드 선택 팬 제스처 활성화")
         case .changed:
             isOverlayActive = !keyboardSelectOverlayView.isHidden || !oneHandedModeSelectOverlayView.isHidden
+            if !isOverlayActive && calcDistance(point1: switchButton.bounds.center, point2: gesture.location(in: switchButton)) > 100 {
+                switchButton.isGesturing = false
+            } else {
+                switchButton.isGesturing = true
+            }
             if isOverlayActive { keyboardFrameView.isUserInteractionEnabled = false }
             onkeyboardSelectPanGestureChanged(gesture, config: config)
         case .ended, .cancelled, .failed:
             // 순서 중요
-            if !isOverlayActive { gestureButton?.sendActions(for: .touchUpInside) }
+            lockedPanDirection = nil
+            if !isOverlayActive && switchButton.isGesturing { switchButton.sendActions(for: .touchUpInside) }
             setCurrentPressedButton(nil)
             
             onkeyboardSelectPanGestureEnded(gesture, config: config)
@@ -117,15 +130,22 @@ final class SwitchGestureController: NSObject {
         
         switch gesture.state {
         case .began:
+            lockedPanDirection = nil
             switchButton.isGesturing = true
             logger.debug("팬 제스처 활성화")
         case .changed:
             isOverlayActive = !keyboardSelectOverlayView.isHidden || !oneHandedModeSelectOverlayView.isHidden
+            if !isOverlayActive && calcDistance(point1: switchButton.bounds.center, point2: gesture.location(in: switchButton)) > 100 {
+                switchButton.isGesturing = false
+            } else {
+                switchButton.isGesturing = true
+            }
             if isOverlayActive { keyboardFrameView.isUserInteractionEnabled = false }
             onOneHandedModeSelectPanGestureChanged(gesture, config: config)
         case .ended, .cancelled, .failed:
             // 순서 중요
-            if !isOverlayActive { gestureButton?.sendActions(for: .touchUpInside) }
+            lockedPanDirection = nil
+            if !isOverlayActive && switchButton.isGesturing { switchButton.sendActions(for: .touchUpInside) }
             setCurrentPressedButton(nil)
             
             onOneHandedModeSelectPanGestureEnded(gesture, config: config)
@@ -207,11 +227,24 @@ private extension SwitchGestureController {
         let keyboardSelectOverlayView = config.gestureHandler.keyboardSelectOverlayView
         let oneHandedModeSelectOverlayView = config.gestureHandler.oneHandedModeSelectOverlayView
         
+        let panLocation = gesture.location(in: switchButton)
+        
+        if switchButton.bounds.contains(panLocation) {
+            lockedPanDirection = nil
+            
+            if keyboardSelectOverlayView.isHidden {
+                return
+            }
+        }
+        
         if keyboardSelectOverlayView.isHidden && oneHandedModeSelectOverlayView.isHidden {
-            let panLocation = gesture.location(in: switchButton)
             let panDirection = checkSwitchButtonPanGestureDirection(panLocation: panLocation, targetRect: switchButton.bounds)
             
-            if panDirection == config.keyboardSelectTargetDirection {
+            if lockedPanDirection == nil, let direction = panDirection {
+                lockedPanDirection = direction
+            }
+            
+            if lockedPanDirection == config.keyboardSelectTargetDirection {
                 startkeyboardSelect(config: config, switchButton: switchButton)
             }
             
@@ -245,11 +278,24 @@ private extension SwitchGestureController {
         let keyboardSelectOverlayView = config.gestureHandler.keyboardSelectOverlayView
         let oneHandedModeSelectOverlayView = config.gestureHandler.oneHandedModeSelectOverlayView
         
+        let panLocation = gesture.location(in: switchButton)
+        
+        if switchButton.bounds.contains(panLocation) {
+            lockedPanDirection = nil
+            
+            if oneHandedModeSelectOverlayView.isHidden {
+                return
+            }
+        }
+        
         if keyboardSelectOverlayView.isHidden && oneHandedModeSelectOverlayView.isHidden {
-            let panLocation = gesture.location(in: switchButton)
             let panDirection = checkSwitchButtonPanGestureDirection(panLocation: panLocation, targetRect: switchButton.bounds)
             
-            if panDirection == .up {
+            if lockedPanDirection == nil, let direction = panDirection {
+                lockedPanDirection = direction
+            }
+
+            if lockedPanDirection == .up {
                 startOneHandedModeSelect(config: config, switchButton: switchButton)
             }
             
@@ -547,8 +593,28 @@ private extension SwitchGestureController {
 // MARK: - UIGestureRecognizerDelegate
 
 extension SwitchGestureController: UIGestureRecognizerDelegate {
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
+        if gestureRecognizer is UILongPressGestureRecognizer && otherGestureRecognizer is UIPanGestureRecognizer
+            || gestureRecognizer is UIPanGestureRecognizer && otherGestureRecognizer is UILongPressGestureRecognizer {
+            return true
+        }
+        
+        if let gestureA = gestureRecognizer as? UIPanGestureRecognizer,
+           let gestureB = otherGestureRecognizer as? UIPanGestureRecognizer {
+            let nameA = gestureA.name
+            let nameB = gestureB.name
+            
+            if (nameA == PanGestureName.keyboardSelect.rawValue && nameB == PanGestureName.oneHandedModeSelect.rawValue) ||
+                (nameA == PanGestureName.oneHandedModeSelect.rawValue && nameB == PanGestureName.keyboardSelect.rawValue) {
+                return true
+            }
+        }
+        return false
+    }
+    
     func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldBeRequiredToFailBy otherGestureRecognizer: UIGestureRecognizer) -> Bool {
-        if gestureRecognizer is UILongPressGestureRecognizer && otherGestureRecognizer is UIPanGestureRecognizer {
+        if gestureRecognizer is UILongPressGestureRecognizer && otherGestureRecognizer is UIPanGestureRecognizer
+            || gestureRecognizer is UIPanGestureRecognizer && otherGestureRecognizer is UILongPressGestureRecognizer {
             return true
         }
         return false

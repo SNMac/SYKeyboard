@@ -467,6 +467,7 @@ private extension BaseKeyboardViewController {
         if UserDefaultsManager.shared.isNumericKeypadEnabled {
             // 팬(드래그) 제스처
             let keyboardSelectPanGesture = UIPanGestureRecognizer(target: switchGestureController, action: #selector(switchGestureController.keyboardSelectPanGestureHandler(_:)))
+            keyboardSelectPanGesture.name = SwitchGestureController.PanGestureName.keyboardSelect.rawValue
             keyboardSelectPanGesture.delegate = switchGestureController
             button.addGestureRecognizer(keyboardSelectPanGesture)
         }
@@ -479,6 +480,7 @@ private extension BaseKeyboardViewController {
             
             // 길게 누르기 제스처
             let oneHandedModeSelectLongPressGesture = UILongPressGestureRecognizer(target: switchGestureController, action: #selector(switchGestureController.oneHandedModeLongPressGestureHandler(_:)))
+            oneHandedModeSelectPanGesture.name = SwitchGestureController.PanGestureName.oneHandedModeSelect.rawValue
             oneHandedModeSelectLongPressGesture.delegate = switchGestureController
             oneHandedModeSelectLongPressGesture.minimumPressDuration = UserDefaultsManager.shared.longPressDuration
             oneHandedModeSelectLongPressGesture.allowableMovement = UserDefaultsManager.shared.cursorActiveDistance
