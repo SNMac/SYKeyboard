@@ -91,6 +91,9 @@ final public class UserDefaultsManager {
     /// 길게 터치하여 숫자 입력
     @UserDefaultsWrapper(key: UserDefaultsKeys.isLongPressToNumberInputEnabled, defaultValue: DefaultValues.isLongPressToNumberInputEnabled)
     public var isLongPressToNumberInputEnabled: Bool
+    /// 드래그하여 커서 이동
+    @UserDefaultsWrapper(key: UserDefaultsKeys.isDragToMoveCursorEnabled, defaultValue: DefaultValues.isDragToMoveCursorEnabled)
+    public var isDragToMoveCursorEnabled: Bool
     /// 텍스트 대치
     @UserDefaultsWrapper(key: UserDefaultsKeys.isTextReplacementEnabled, defaultValue: DefaultValues.isTextReplacementEnabled)
     public var isTextReplacementEnabled: Bool

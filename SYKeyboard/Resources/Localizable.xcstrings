@@ -51,11 +51,25 @@
         }
       }
     },
-    "'길게 터치하여 반복 입력' 기능 사용 시 비활성화" : {
-
+    "'길게 눌러서 반복 입력' 기능 사용 시 비활성화" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Disabled when using the ‘Long Press to Repeat Input’"
+          }
+        }
+      }
     },
-    "'길게 터치하여 숫자 입력' 기능 사용 시 비활성화" : {
-
+    "'길게 눌러서 숫자 입력' 기능 사용 시 비활성화" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Disabled when using the ‘Long Press to Number Input’"
+          }
+        }
+      }
     },
     "%.1f" : {
       "shouldTranslate" : false
@@ -116,11 +130,45 @@
         }
       }
     },
-    "길게 터치하여 반복 입력" : {
-
+    "길게 누르기 입력" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Long Press Input"
+          }
+        }
+      }
     },
-    "길게 터치하여 숫자 입력" : {
-
+    "길게 누르기 지연 시간" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delay until Long Press"
+          }
+        }
+      }
+    },
+    "길게 눌러서 반복 입력" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Long Press to Repeat Input"
+          }
+        }
+      }
+    },
+    "길게 눌러서 숫자 입력" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Long Press to Number Input"
+          }
+        }
+      }
     },
     "단말기 모델" : {
       "localizations" : {
@@ -138,6 +186,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Close"
+          }
+        }
+      }
+    },
+    "드래그하여 커서 이동" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Drag to Move Cursor"
           }
         }
       }
@@ -172,32 +230,12 @@
         }
       }
     },
-    "반복 입력" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Key Repeat"
-          }
-        }
-      }
-    },
     "반복 입력 방법" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "How to Key Repeat"
-          }
-        }
-      }
-    },
-    "반복 지연 시간" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Delay until Repeat"
           }
         }
       }
@@ -288,6 +326,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Application Name"
+          }
+        }
+      }
+    },
+    "영어 키보드" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "English Keyboard"
           }
         }
       }
@@ -518,6 +566,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "One-Handed Keyboard"
+          }
+        }
+      }
+    },
+    "한글 키보드" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hangeul Keyboard"
           }
         }
       }

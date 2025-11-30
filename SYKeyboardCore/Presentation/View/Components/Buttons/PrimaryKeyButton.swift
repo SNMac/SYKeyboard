@@ -142,7 +142,11 @@ private extension PrimaryKeyButton {
     
     func updateSecondaryKeyListLabel() {
         guard let secondaryKey = type.secondaryKey else { return }
-        secondaryKeyLabel.text = secondaryKey
+        if primaryKeyListLabel.text == secondaryKey {
+            secondaryKeyLabel.text = ""
+        } else {
+            secondaryKeyLabel.text = secondaryKey
+        }
     }
     
     func remakeConstraintsForVisuals() {

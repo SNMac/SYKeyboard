@@ -203,31 +203,46 @@ open class BaseKeyboardViewController: UIInputViewController {
         tempDeletedCharacters.removeAll()
     }
     
-    /// 사용자가 탭한 `TextInteractable` 버튼의 `keys` 중 상황에 맞는 문자를 입력하는 메서드 (단일 호출)
+    /// 사용자가 탭한 `TextInteractable` 버튼의 `primaryKeyList` 중 상황에 맞는 문자를 입력하는 메서드 (단일 호출)
     /// - `isPreview == true`이면 즉시 리턴
     ///
     /// - Parameters:
     ///   - button: `TextInteractable` 버튼
-    open func insertKeyText(from button: TextInteractable) {
+    open func insertPrimaryKeyText(from button: TextInteractable) {
         if isPreview { return }
-        guard let key = button.type.primaryKeyList.first else {
-            assertionFailure("keys 배열이 비어있습니다.")
+        guard let primaryKey = button.type.primaryKeyList.first else {
+            assertionFailure("primaryKeyList 배열이 비어있습니다.")
             return
         }
-        textDocumentProxy.insertText(key)
+        textDocumentProxy.insertText(primaryKey)
     }
-    /// 사용자가 탭한 `TextInteractable` 버튼의 `keys` 중 상황에 맞는 문자를 입력하는 메서드 (반복 호출)
+    
+    /// 사용자가 탭한 `TextInteractable` 버튼의 `secondaryKey`를 입력하는 메서드 (단일 호출)
+    /// - `isPreview == true`이면 즉시 리턴
+    ///
+    /// - Parameters:
+    ///   - button: `TextInteractable` 버튼
+    open func insertSecondaryKeyText(from button: TextInteractable) {
+        if isPreview { return }
+        guard let secondaryKey = button.type.secondaryKey else {
+            assertionFailure("secondaryKey가 nil입니다.")
+            return
+        }
+        textDocumentProxy.insertText(secondaryKey)
+    }
+    
+    /// 사용자가 탭한 `TextInteractable` 버튼의 `primaryKeyList` 중 상황에 맞는 문자를 입력하는 메서드 (반복 호출)
     /// - `isPreview == true`이면 즉시 리턴
     ///
     /// - Parameters:
     ///   - button: `TextInteractable` 버튼
     open func repeatInsertKeyText(from button: TextInteractable) {
         if isPreview { return }
-        guard let key = button.type.primaryKeyList.first else {
+        guard let primaryKey = button.type.primaryKeyList.first else {
             assertionFailure("keys 배열이 비어있습니다.")
             return
         }
-        textDocumentProxy.insertText(key)
+        textDocumentProxy.insertText(primaryKey)
     }
     
     /// 공백 문자를 입력하는 메서드
@@ -408,17 +423,21 @@ private extension BaseKeyboardViewController {
     
     func addGesturesToTextInterableButton(_ button: TextInteractable) {
         guard !(button is ReturnButton) && !(button is SecondaryKeyButton) && !(button.type.primaryKeyList == [".com"]) else { return }
-        // 팬(드래그) 제스처
-        let panGesture = UIPanGestureRecognizer(target: textInteractionGestureController, action: #selector(textInteractionGestureController.panGestureHandler(_:)))
-        panGesture.delegate = textInteractionGestureController
-        button.addGestureRecognizer(panGesture)
+        if UserDefaultsManager.shared.isDragToMoveCursorEnabled {
+            // 팬(드래그) 제스처
+            let panGesture = UIPanGestureRecognizer(target: textInteractionGestureController, action: #selector(textInteractionGestureController.panGestureHandler(_:)))
+            panGesture.delegate = textInteractionGestureController
+            button.addGestureRecognizer(panGesture)
+        }
         
-        // 길게 누르기 제스처
-        let longPressGesture = UILongPressGestureRecognizer(target: textInteractionGestureController, action: #selector(textInteractionGestureController.longPressGestureHandler(_:)))
-        longPressGesture.delegate = textInteractionGestureController
-        longPressGesture.minimumPressDuration = UserDefaultsManager.shared.longPressDuration
-        longPressGesture.allowableMovement = UserDefaultsManager.shared.cursorActiveDistance
-        button.addGestureRecognizer(longPressGesture)
+        if UserDefaultsManager.shared.isLongPressToRepeatInputEnabled || UserDefaultsManager.shared.isLongPressToNumberInputEnabled {
+            // 길게 누르기 제스처
+            let longPressGesture = UILongPressGestureRecognizer(target: textInteractionGestureController, action: #selector(textInteractionGestureController.longPressGestureHandler(_:)))
+            longPressGesture.delegate = textInteractionGestureController
+            longPressGesture.minimumPressDuration = UserDefaultsManager.shared.longPressDuration
+            longPressGesture.allowableMovement = UserDefaultsManager.shared.cursorActiveDistance
+            button.addGestureRecognizer(longPressGesture)
+        }
     }
     
     func setSwitchButtonAction() {
@@ -511,21 +530,31 @@ private extension BaseKeyboardViewController {
 // MARK: - Text Interaction Methods
 
 extension BaseKeyboardViewController {
-    final public func performTextInteraction(for button: TextInteractable) {
+    final public func performTextInteraction(for button: TextInteractable, insertSecondaryKeyIfAvailable: Bool = false) {
         textInteractionWillPerform()
         defer { textInteractionDidPerform() }
         
         switch button.type {
         case .keyButton:
-            insertKeyText(from: button)
-        case .deleteButton:
-            if !attemptToRestoreReplacementWord() {
-                if let selectedText = textDocumentProxy.selectedText {
-                    tempDeletedCharacters.append(contentsOf: selectedText.reversed())
-                } else if let lastBeforeCursor = textDocumentProxy.documentContextBeforeInput?.last {
-                    tempDeletedCharacters.append(lastBeforeCursor)
+            if insertSecondaryKeyIfAvailable {
+                if button.type.secondaryKey != nil {
+                    insertSecondaryKeyText(from: button)
+                } else {
+                    insertPrimaryKeyText(from: button)
                 }
-                deleteBackward()
+            } else {
+                insertPrimaryKeyText(from: button)
+            }
+        case .deleteButton:
+            if !insertSecondaryKeyIfAvailable {
+                if !attemptToRestoreReplacementWord() {
+                    if let selectedText = textDocumentProxy.selectedText {
+                        tempDeletedCharacters.append(contentsOf: selectedText.reversed())
+                    } else if let lastBeforeCursor = textDocumentProxy.documentContextBeforeInput?.last {
+                        tempDeletedCharacters.append(lastBeforeCursor)
+                    }
+                    deleteBackward()
+                }
             }
         case .spaceButton:
             attemptToReplaceCurrentWord()
@@ -662,18 +691,25 @@ extension BaseKeyboardViewController: TextInteractionGestureControllerDelegate {
     }
     
     final func textInteractableButtonLongPressing(_ controller: TextInteractionGestureController, button: TextInteractable) {
-        repeatTextInteractionWillPerform(button: button)
-        
-        let repeatTimerInterval = 0.10 - UserDefaultsManager.shared.repeatRate
-        timer = Timer.publish(every: repeatTimerInterval, on: .main, in: .common)
-            .autoconnect()
-            .sink { [weak self] _ in
-                self?.performRepeatTextInteraction(for: button)
-            }
-        logger.debug("반복 타이머 생성")
+        if UserDefaultsManager.shared.isLongPressToRepeatInputEnabled {
+            repeatTextInteractionWillPerform(button: button)
+            
+            let repeatTimerInterval = 0.10 - UserDefaultsManager.shared.repeatRate
+            timer = Timer.publish(every: repeatTimerInterval, on: .main, in: .common)
+                .autoconnect()
+                .sink { [weak self] _ in
+                    self?.performRepeatTextInteraction(for: button)
+                }
+            logger.debug("반복 타이머 생성")
+        } else if UserDefaultsManager.shared.isLongPressToNumberInputEnabled {
+            performTextInteraction(for: button, insertSecondaryKeyIfAvailable: true)
+            button.isGesturing = false
+        }
     }
     
     final func textInteractableButtonLongPressStopped(_ controller: TextInteractionGestureController, button: TextInteractable) {
-        repeatTextInteractionDidPerform(button: button)
+        if UserDefaultsManager.shared.isLongPressToRepeatInputEnabled {
+            repeatTextInteractionDidPerform(button: button)
+        }
     }
 }

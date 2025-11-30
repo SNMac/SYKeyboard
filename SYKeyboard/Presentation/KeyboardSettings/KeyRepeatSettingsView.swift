@@ -28,7 +28,7 @@ struct KeyRepeatSettingsView: View {
                 Section {
                     longPressDurationSetting
                 } header: {
-                    Text("반복 지연 시간")
+                    Text("길게 누르기 지연 시간")
                 }
                 
                 Section {
@@ -37,7 +37,7 @@ struct KeyRepeatSettingsView: View {
                     Text("키 반복 속도")
                 }
             }
-            .navigationTitle("반복 입력")
+            .navigationTitle("길게 누르기 입력")
             .navigationBarTitleDisplayMode(.inline)
             .requestReviewViewModifier()
         }

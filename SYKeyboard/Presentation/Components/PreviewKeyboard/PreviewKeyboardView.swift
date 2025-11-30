@@ -23,7 +23,7 @@ struct PreviewKeyboardView: View {
     var body: some View {
         Picker(selection: $previewKeyboardLanguage, label: Text("키보드 언어")) {
             ForEach(PreviewKeyboardLanguage.allCases, id: \.self) {
-                Text($0.rawValue)
+                Text($0.displayStr)
             }
         }
         .pickerStyle(.segmented)

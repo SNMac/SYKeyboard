@@ -113,7 +113,7 @@ open class EnglishKeyboardCoreViewController: BaseKeyboardViewController {
         updateShiftButton()
     }
     
-    open override func insertKeyText(from button: TextInteractable) {
+    open override func insertPrimaryKeyText(from button: TextInteractable) {
         if isPreview { return }
         
         guard let key = button.type.primaryKeyList.first else {

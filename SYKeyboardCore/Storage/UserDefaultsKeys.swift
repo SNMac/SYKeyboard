@@ -20,6 +20,8 @@ public enum UserDefaultsKeys {
     public static let isLongPressToRepeatInputEnabled = "isLongPressToRepeatInputEnabled"
     /// 길게 터치하여 숫자 입력
     public static let isLongPressToNumberInputEnabled = "isLongPressToNumberInputEnabled"
+    /// 드래그하여 커서 이동
+    public static let isDragToMoveCursorEnabled = "isDragToMoveCursorEnabled"
     /// 텍스트 대치
     public static let isTextReplacementEnabled = "isTextReplacementEnabled"
     /// 자동 대문자

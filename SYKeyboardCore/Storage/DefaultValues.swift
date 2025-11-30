@@ -24,6 +24,8 @@ public enum DefaultValues {
     public static let isLongPressToRepeatInputEnabled: Bool = true
     /// 길게 터치하여 숫자 입력 기본값
     public static let isLongPressToNumberInputEnabled: Bool = false
+    /// 드래그하여 커서 이동 기본값
+    public static let isDragToMoveCursorEnabled: Bool = true
     /// 텍스트 대치 기본값
     public static let isTextReplacementEnabled: Bool = true
     /// 자동 대문자
