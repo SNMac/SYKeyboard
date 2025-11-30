@@ -25,8 +25,14 @@ struct FeedbackSettingsView: View {
     
     var body: some View {
         Toggle("소리 피드백", isOn: $isSoundFeedbackEnabled)
+            .onChange(of: isSoundFeedbackEnabled) { _ in
+                hideKeyboard()
+            }
         
         Toggle("햅틱 피드백", isOn: $isHapticFeedbackEnabled)
+            .onChange(of: isHapticFeedbackEnabled) { _ in
+                hideKeyboard()
+            }
     }
 }
 

@@ -33,7 +33,6 @@ struct KeyboardHeightSettingsView: View {
     
     var body: some View {
         NavigationStack {
-            // TODO: 한글/영어 키보드 선택
             keyboardHeightSettings
             
             Spacer()

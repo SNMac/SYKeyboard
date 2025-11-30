@@ -42,7 +42,9 @@ struct ContentView: View {
                     }
                 }
             }
-            .onAppear { hideKeyboard() }
+            .onAppear {
+                hideKeyboard()
+            }
             .navigationTitle(Bundle.displayName ?? "SY키보드")
             .navigationBarTitleDisplayMode(.inline)
             .sheet(isPresented: $isOnboarding) {

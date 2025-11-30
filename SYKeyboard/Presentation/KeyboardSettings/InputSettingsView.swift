@@ -33,14 +33,20 @@ struct InputSettingsView: View {
         Toggle(isOn: $isTextReplacementEnabled, label: {
             Text("텍스트 대치")
             Text("시스템 설정의 텍스트 대치 단축키 사용")
-                .font(.system(.caption))
+                .font(.caption)
         })
+        .onChange(of: isTextReplacementEnabled) { _ in
+            hideKeyboard()
+        }
         
         Toggle(isOn: $isAutoChangeToPrimaryEnabled, label: {
             Text("한글 키보드 자동 변경")
             Text("기호 키보드 입력 후 스페이스/리턴 ➡️ 한글 키보드")
-                .font(.system(.caption))
+                .font(.caption)
         })
+        .onChange(of: isAutoChangeToPrimaryEnabled) { _ in
+            hideKeyboard()
+        }
     }
 }
 

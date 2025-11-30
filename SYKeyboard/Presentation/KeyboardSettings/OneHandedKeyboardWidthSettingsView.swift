@@ -33,7 +33,6 @@ struct OneHandedKeyboardWidthSettingsView: View {
     
     var body: some View {
         NavigationStack {
-            // TODO: 한글/영어 키보드 선택
             // TODO: 한 손 키보드 임시 변경 (UseDefaults 변경시키지 않도록)
             oneHandedKeyboardWidthSettings
             
