@@ -195,7 +195,6 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
         } else {
             textDocumentProxy.deleteBackward()
         }
-        
         lastInputText = nil
     }
     

@@ -13,9 +13,9 @@ final class NumericKeyboardView: UIView, NumericKeyboardLayoutProvider {
     // MARK: - Properties
     
     public private(set) lazy var allButtonList: [BaseKeyboardButton] = primaryButtonList + secondaryButtonList
-    public private(set) lazy var primaryButtonList: [PrimaryButton] = firstRowKeyButtonList + secondRowKeyButtonList + thirdRowKeyButtonList + fourthRowKeyButtonList + [spaceButton]
+    public private(set) lazy var primaryButtonList: [PrimaryButton] = firstRowPrimaryKeyButtonList + secondRowPrimaryKeyButtonList + thirdRowPrimaryKeyButtonList + fourthRowKeyButtonList + [spaceButton]
     public private(set) lazy var secondaryButtonList: [SecondaryButton] = [deleteButton, returnButton, switchButton, nextKeyboardButton]
-    public private(set) lazy var totalTextInterableButtonList: [TextInteractable] = firstRowKeyButtonList + secondRowKeyButtonList + thirdRowKeyButtonList + fourthRowKeyButtonList + [deleteButton, spaceButton, returnButton]
+    public private(set) lazy var totalTextInterableButtonList: [TextInteractable] = firstRowPrimaryKeyButtonList + secondRowPrimaryKeyButtonList + thirdRowPrimaryKeyButtonList + fourthRowKeyButtonList + [deleteButton, spaceButton, returnButton]
     
     /// 숫자 키보드 키 배열
     private let numericKeyList = [
@@ -50,11 +50,11 @@ final class NumericKeyboardView: UIView, NumericKeyboardLayoutProvider {
     private let fourthRowRightSecondaryButtonHStackView = KeyboardRowHStackView()
     
     /// 키보드 첫번째 행 `PrimaryKeyButton` 배열
-    private lazy var firstRowKeyButtonList = numericKeyList[0].map { PrimaryKeyButton(keyboard: .numeric, button: .keyButton(primary: $0, secondary: nil)) }
+    private lazy var firstRowPrimaryKeyButtonList = numericKeyList[0].map { PrimaryKeyButton(keyboard: .numeric, button: .keyButton(primary: $0, secondary: nil)) }
     /// 키보드 두번째 행 `PrimaryKeyButton` 배열
-    private lazy var secondRowKeyButtonList = numericKeyList[1].map { PrimaryKeyButton(keyboard: .numeric, button: .keyButton(primary: $0, secondary: nil)) }
+    private lazy var secondRowPrimaryKeyButtonList = numericKeyList[1].map { PrimaryKeyButton(keyboard: .numeric, button: .keyButton(primary: $0, secondary: nil)) }
     /// 키보드 세번째 행 `PrimaryKeyButton` 배열
-    private lazy var thirdRowKeyButtonList = numericKeyList[2].map { PrimaryKeyButton(keyboard: .numeric, button: .keyButton(primary: $0, secondary: nil)) }
+    private lazy var thirdRowPrimaryKeyButtonList = numericKeyList[2].map { PrimaryKeyButton(keyboard: .numeric, button: .keyButton(primary: $0, secondary: nil)) }
     /// 키보드 네번째 행 `PrimaryKeyButton` 배열
     private lazy var fourthRowKeyButtonList = numericKeyList[3].map { PrimaryKeyButton(keyboard: .numeric, button: .keyButton(primary: $0, secondary: nil)) }
     
@@ -114,13 +114,13 @@ private extension NumericKeyboardView {
          thirdRowHStackView,
          fourthRowHStackView].forEach { layoutVStackView.addArrangedSubview($0) }
         
-        firstRowKeyButtonList.forEach { firstRowHStackView.addArrangedSubview($0) }
+        firstRowPrimaryKeyButtonList.forEach { firstRowHStackView.addArrangedSubview($0) }
         firstRowHStackView.addArrangedSubview(deleteButton)
         
-        secondRowKeyButtonList.forEach { secondRowHStackView.addArrangedSubview($0) }
+        secondRowPrimaryKeyButtonList.forEach { secondRowHStackView.addArrangedSubview($0) }
         secondRowHStackView.addArrangedSubview(spaceButton)
         
-        thirdRowKeyButtonList.forEach { thirdRowHStackView.addArrangedSubview($0) }
+        thirdRowPrimaryKeyButtonList.forEach { thirdRowHStackView.addArrangedSubview($0) }
         thirdRowHStackView.addArrangedSubview(returnButton)
         
         [fourthRowLeftPrimaryButtonHStackView,
