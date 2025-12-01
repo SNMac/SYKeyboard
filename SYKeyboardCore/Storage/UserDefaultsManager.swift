@@ -85,10 +85,10 @@ final public class UserDefaultsManager {
     /// 선택한 한글 키보드
     @UserDefaultsRawRepresentableWrapper(key: UserDefaultsKeys.selectedHangeulKeyboard, defaultValue: DefaultValues.selectedHangeulKeyboard)
     public var selectedHangeulKeyboard: HangeulKeyboardType
-    /// 길게 터치하여 반복 입력
+    /// 길게 누르기 동작 - 반복 입력
     @UserDefaultsWrapper(key: UserDefaultsKeys.isLongPressToRepeatInputEnabled, defaultValue: DefaultValues.isLongPressToRepeatInputEnabled)
     public var isLongPressToRepeatInputEnabled: Bool
-    /// 길게 터치하여 숫자 입력
+    /// 길게 누르기 동작 - 숫자 입력
     @UserDefaultsWrapper(key: UserDefaultsKeys.isLongPressToNumberInputEnabled, defaultValue: DefaultValues.isLongPressToNumberInputEnabled)
     public var isLongPressToNumberInputEnabled: Bool
     /// 드래그하여 커서 이동

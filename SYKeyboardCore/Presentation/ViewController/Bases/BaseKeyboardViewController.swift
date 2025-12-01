@@ -210,6 +210,7 @@ open class BaseKeyboardViewController: UIInputViewController {
     ///   - button: `TextInteractable` 버튼
     open func insertPrimaryKeyText(from button: TextInteractable) {
         if isPreview { return }
+        
         guard let primaryKey = button.type.primaryKeyList.first else {
             assertionFailure("primaryKeyList 배열이 비어있습니다.")
             return
@@ -224,6 +225,7 @@ open class BaseKeyboardViewController: UIInputViewController {
     ///   - button: `TextInteractable` 버튼
     open func insertSecondaryKeyText(from button: TextInteractable) {
         if isPreview { return }
+        
         guard let secondaryKey = button.type.secondaryKey else {
             assertionFailure("secondaryKey가 nil입니다.")
             return
@@ -238,6 +240,7 @@ open class BaseKeyboardViewController: UIInputViewController {
     ///   - button: `TextInteractable` 버튼
     open func repeatInsertKeyText(from button: TextInteractable) {
         if isPreview { return }
+        
         guard let primaryKey = button.type.primaryKeyList.first else {
             assertionFailure("keys 배열이 비어있습니다.")
             return
@@ -376,8 +379,7 @@ private extension BaseKeyboardViewController {
     
     func addInputActionToTextInterableButton(_ button: TextInteractable) {
         let inputAction = UIAction { [weak self] _ in
-            guard let self,
-                  let currentPressedButton = buttonStateController.currentPressedButton,
+            guard let self, let currentPressedButton = buttonStateController.currentPressedButton,
                   currentPressedButton === button else { return }
             performTextInteraction(for: button)
         }

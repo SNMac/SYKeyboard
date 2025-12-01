@@ -6,9 +6,11 @@
 //
 
 import UIKit
+
 import HangeulKeyboardCore
 
 import FirebaseCore
+import FirebaseCrashlytics
 
 /// 한글 키보드 입력/UI 컨트롤러
 final class HangeulKeyboardViewController: HangeulKeyboardCoreViewController {
@@ -23,9 +25,15 @@ final class HangeulKeyboardViewController: HangeulKeyboardCoreViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         if needToShowFullAccessGuide { setupRequestFullAccessOverlayView() }
+        
+        // Firebase 로딩
         if FirebaseApp.app() == nil {
             FirebaseApp.configure()
         }
+        
+        // IDFV를 사용하여 Crashlytics User ID 설정
+        let idfv = UIDevice.current.identifierForVendor?.uuidString
+        Crashlytics.crashlytics().setUserID(idfv)
     }
 }
 

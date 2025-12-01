@@ -14,12 +14,14 @@ open class StandardKeyboardView: UIView {
     /// 키보드 종류
     open var keyboard: SYKeyboardType { fatalError("프로퍼티가 오버라이딩 되지 않았습니다.") }
     /// 키 배열
-    open var keyList: [[[[String]]]] { fatalError("프로퍼티가 오버라이딩 되지 않았습니다.") }
+    open var primaryKeyList: [[[[String]]]] { fatalError("프로퍼티가 오버라이딩 되지 않았습니다.") }
+    /// 보조 키 배열
+    open var secondaryKeyList: [[[[String]]]] { fatalError("프로퍼티가 오버라이딩 되지 않았습니다.") }
     
     public private(set) lazy var allButtonList: [BaseKeyboardButton] = primaryButtonList + secondaryButtonList
-    public private(set) lazy var primaryButtonList: [PrimaryButton] = firstRowKeyButtonList + secondRowKeyButtonList + thirdRowKeyButtonList + [spaceButton, atButton, periodButton, slashButton, dotComButton]
+    public private(set) lazy var primaryButtonList: [PrimaryButton] = firstRowPrimaryKeyButtonList + secondRowPrimaryKeyButtonList + thirdRowPrimaryKeyButtonList + [spaceButton, atButton, periodButton, slashButton, dotComButton]
     public private(set) lazy var secondaryButtonList: [SecondaryButton] = [shiftButton, deleteButton, switchButton, returnButton, secondaryAtButton, secondarySharpButton, nextKeyboardButton]
-    public private(set) lazy var totalTextInterableButtonList: [TextInteractable] = firstRowKeyButtonList + secondRowKeyButtonList + thirdRowKeyButtonList
+    public private(set) lazy var totalTextInterableButtonList: [TextInteractable] = firstRowPrimaryKeyButtonList + secondRowPrimaryKeyButtonList + thirdRowPrimaryKeyButtonList
     + [deleteButton, spaceButton, atButton, periodButton, slashButton, dotComButton, returnButton, secondaryAtButton, secondarySharpButton]
     
     final public var isShifted: Bool = false {
@@ -69,12 +71,27 @@ open class StandardKeyboardView: UIView {
     }()
     public private(set) var returnButtonHStackView = KeyboardRowHStackView()
     
-    /// 키보드 첫번째 행 `PrimaryButton` 배열
-    private lazy var firstRowKeyButtonList = keyList[0][0].map { PrimaryKeyButton(keyboard: keyboard, button: .keyButton(primary: $0, secondary: nil)) }
-    /// 키보드 두번째 행 `PrimaryButton` 배열
-    private lazy var secondRowKeyButtonList = keyList[0][1].map { PrimaryKeyButton(keyboard: keyboard, button: .keyButton(primary: $0, secondary: nil)) }
-    /// 키보드 세번째 행 `PrimaryButton` 배열
-    private lazy var thirdRowKeyButtonList = keyList[0][2].map { PrimaryKeyButton(keyboard: keyboard, button: .keyButton(primary: $0, secondary: nil)) }
+    /// 키보드 첫번째 행 `PrimaryKeyButton` 배열
+    private lazy var firstRowPrimaryKeyButtonList = zip(primaryKeyList[0][0], secondaryKeyList[0][0]).map { (primary, secondary) in
+        PrimaryKeyButton(
+            keyboard: keyboard,
+            button: .keyButton(primary: primary, secondary: secondary.first)
+        )
+    }
+    /// 키보드 두번째 행 `PrimaryKeyButton` 배열
+    private lazy var secondRowPrimaryKeyButtonList = zip(primaryKeyList[0][1], secondaryKeyList[0][1]).map { (primary, secondary) in
+        PrimaryKeyButton(
+            keyboard: keyboard,
+            button: .keyButton(primary: primary, secondary: secondary.first)
+        )
+    }
+    /// 키보드 세번째 행 `PrimaryKeyButton` 배열
+    private lazy var thirdRowPrimaryKeyButtonList = zip(primaryKeyList[0][2], secondaryKeyList[0][2]).map { (primary, secondary) in
+        PrimaryKeyButton(
+            keyboard: keyboard,
+            button: .keyButton(primary: primary, secondary: secondary.first)
+        )
+    }
     
     public lazy var shiftButton = ShiftButton(keyboard: keyboard)
     public private(set) lazy var deleteButton = DeleteButton(keyboard: keyboard)
@@ -166,12 +183,12 @@ private extension StandardKeyboardView {
          thirdRowHStackView,
          fourthRowHStackView].forEach { keyboardVStackView.addArrangedSubview($0) }
         
-        firstRowKeyButtonList.forEach { firstRowHStackView.addArrangedSubview($0) }
+        firstRowPrimaryKeyButtonList.forEach { firstRowHStackView.addArrangedSubview($0) }
         
-        secondRowKeyButtonList.forEach { secondRowHStackView.addArrangedSubview($0) }
+        secondRowPrimaryKeyButtonList.forEach { secondRowHStackView.addArrangedSubview($0) }
         
         [shiftButton, thirdRowInsideHStackView, deleteButton].forEach { thirdRowHStackView.addArrangedSubview($0) }
-        thirdRowKeyButtonList.forEach { thirdRowInsideHStackView.addArrangedSubview($0) }
+        thirdRowPrimaryKeyButtonList.forEach { thirdRowInsideHStackView.addArrangedSubview($0) }
         
         [fourthRowLeftSecondaryButtonHStackView, spaceButtonHStackView, returnButtonHStackView].forEach { fourthRowHStackView.addArrangedSubview($0) }
         [switchButton, nextKeyboardButton].forEach { fourthRowLeftSecondaryButtonHStackView.addArrangedSubview($0) }
@@ -188,21 +205,21 @@ private extension StandardKeyboardView {
             keyboardVStackView.bottomAnchor.constraint(equalTo: self.bottomAnchor)
         ])
         
-        guard let referenceKey = firstRowKeyButtonList.first else { fatalError("firstRowKeyButtonList가 비어있습니다.") }
-        for (index, button) in secondRowKeyButtonList.enumerated() {
+        guard let referenceKey = firstRowPrimaryKeyButtonList.first else { fatalError("firstRowPrimaryKeyButtonList가 비어있습니다.") }
+        for (index, button) in secondRowPrimaryKeyButtonList.enumerated() {
             button.translatesAutoresizingMaskIntoConstraints = false
             guard let superview = button.superview else { continue }
             
             if index == 0 {
-                guard let lastButton = secondRowKeyButtonList.last else { fatalError("secondRowKeyButtonList가 비어있습니다.") }
+                guard let lastButton = secondRowPrimaryKeyButtonList.last else { fatalError("secondRowPrimaryKeyButtonList가 비어있습니다.") }
                 button.widthAnchor.constraint(equalTo: lastButton.widthAnchor).isActive = true
                 button.updateKeyAlignment(.right, referenceKey: referenceKey)
                 
-            } else if index == secondRowKeyButtonList.count - 1 {
+            } else if index == secondRowPrimaryKeyButtonList.count - 1 {
                 button.updateKeyAlignment(.left, referenceKey: referenceKey)
                 
             } else {
-                let multiplier = 1.0 / CGFloat(firstRowKeyButtonList.count)
+                let multiplier = 1.0 / CGFloat(firstRowPrimaryKeyButtonList.count)
                 button.widthAnchor.constraint(equalTo: superview.widthAnchor, multiplier: multiplier).isActive = true
             }
         }
@@ -269,11 +286,12 @@ private extension StandardKeyboardView {
 extension StandardKeyboardView {
     final public func updateKeyButtonList() {
         let keyListIndex = (isShifted ? 1 : 0)
-        let rowList = [firstRowKeyButtonList, secondRowKeyButtonList, thirdRowKeyButtonList]
+        let rowList = [firstRowPrimaryKeyButtonList, secondRowPrimaryKeyButtonList, thirdRowPrimaryKeyButtonList]
         for (rowIndex, buttonList) in rowList.enumerated() {
             for (buttonIndex, button) in buttonList.enumerated() {
-                let primaryKeyList = keyList[keyListIndex][rowIndex][buttonIndex]
-                button.update(buttonType: TextInteractableType.keyButton(primary: primaryKeyList, secondary: nil))
+                let primaryKeyList = primaryKeyList[keyListIndex][rowIndex][buttonIndex]
+                let secondaryKeyList = secondaryKeyList[keyListIndex][rowIndex][buttonIndex]
+                button.update(buttonType: TextInteractableType.keyButton(primary: primaryKeyList, secondary: secondaryKeyList.first))
             }
         }
     }

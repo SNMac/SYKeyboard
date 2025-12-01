@@ -13,9 +13,9 @@ final class TenkeyKeyboardView: UIView, TenkeyKeyboardLayoutProvider {
     // MARK: - Properties
     
     public private(set) lazy var allButtonList: [BaseKeyboardButton] = primaryButtonList + secondaryButtonList
-    public private(set) lazy var primaryButtonList: [PrimaryButton] = firstRowKeyButtonList + secondRowKeyButtonList + thirdRowKeyButtonList + fourthRowKeyButtonList
+    public private(set) lazy var primaryButtonList: [PrimaryButton] = firstRowPrimaryKeyButtonList + secondRowPrimaryKeyButtonList + thirdRowPrimaryKeyButtonList + fourthRowKeyButtonList
     public private(set) lazy var secondaryButtonList: [SecondaryButton] = [periodButton, deleteButton]
-    public private(set) lazy var totalTextInterableButtonList: [TextInteractable] = firstRowKeyButtonList + secondRowKeyButtonList + thirdRowKeyButtonList + fourthRowKeyButtonList
+    public private(set) lazy var totalTextInterableButtonList: [TextInteractable] = firstRowPrimaryKeyButtonList + secondRowPrimaryKeyButtonList + thirdRowPrimaryKeyButtonList + fourthRowKeyButtonList
     + [periodButton, deleteButton]
     
     public var currentTenkeyKeyboardMode: TenkeyKeyboardMode = .numberPad {
@@ -48,13 +48,13 @@ final class TenkeyKeyboardView: UIView, TenkeyKeyboardLayoutProvider {
     /// 키보드 네번째 행
     private let fourthRowHStackView = KeyboardRowHStackView()
     
-    /// 키보드 첫번째 행 `PrimaryButton` 배열
-    private lazy var firstRowKeyButtonList = tenKeyList[0].map { PrimaryKeyButton(keyboard: .tenKey, button: .keyButton(primary: $0, secondary: nil)) }
-    /// 키보드 두번째 행 `PrimaryButton` 배열
-    private lazy var secondRowKeyButtonList = tenKeyList[1].map { PrimaryKeyButton(keyboard: .tenKey, button: .keyButton(primary: $0, secondary: nil)) }
-    /// 키보드 세번째 행 `PrimaryButton` 배열
-    private lazy var thirdRowKeyButtonList = tenKeyList[2].map { PrimaryKeyButton(keyboard: .tenKey, button: .keyButton(primary: $0, secondary: nil)) }
-    /// 키보드 네번째 행 `PrimaryButton` 배열
+    /// 키보드 첫번째 행 `PrimaryKeyButton` 배열
+    private lazy var firstRowPrimaryKeyButtonList = tenKeyList[0].map { PrimaryKeyButton(keyboard: .tenKey, button: .keyButton(primary: $0, secondary: nil)) }
+    /// 키보드 두번째 행 `PrimaryKeyButton` 배열
+    private lazy var secondRowPrimaryKeyButtonList = tenKeyList[1].map { PrimaryKeyButton(keyboard: .tenKey, button: .keyButton(primary: $0, secondary: nil)) }
+    /// 키보드 세번째 행 `PrimaryKeyButton` 배열
+    private lazy var thirdRowPrimaryKeyButtonList = tenKeyList[2].map { PrimaryKeyButton(keyboard: .tenKey, button: .keyButton(primary: $0, secondary: nil)) }
+    /// 키보드 네번째 행 `PrimaryKeyButton` 배열
     private lazy var fourthRowKeyButtonList = tenKeyList[3].map { PrimaryKeyButton(keyboard: .tenKey, button: .keyButton(primary: $0, secondary: nil)) }
     
     public private(set) var bottomLeftButtonSpacer = KeyboardSpacer()
@@ -97,11 +97,11 @@ private extension TenkeyKeyboardView {
          thirdRowHStackView,
          fourthRowHStackView].forEach { layoutVStackView.addArrangedSubview($0) }
         
-        firstRowKeyButtonList.forEach { firstRowHStackView.addArrangedSubview($0) }
+        firstRowPrimaryKeyButtonList.forEach { firstRowHStackView.addArrangedSubview($0) }
         
-        secondRowKeyButtonList.forEach { secondRowHStackView.addArrangedSubview($0) }
+        secondRowPrimaryKeyButtonList.forEach { secondRowHStackView.addArrangedSubview($0) }
         
-        thirdRowKeyButtonList.forEach { thirdRowHStackView.addArrangedSubview($0) }
+        thirdRowPrimaryKeyButtonList.forEach { thirdRowHStackView.addArrangedSubview($0) }
         
         [bottomLeftButtonSpacer, periodButton].forEach { fourthRowHStackView.addArrangedSubview($0) }
         fourthRowKeyButtonList.forEach { fourthRowHStackView.addArrangedSubview($0) }

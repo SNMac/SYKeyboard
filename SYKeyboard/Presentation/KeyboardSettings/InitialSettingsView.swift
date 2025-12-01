@@ -19,6 +19,9 @@ struct InitialSettingsView: View {
         } label: {
             HStack {
                 Image(.gear)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 20, height: 20)
                 Text("시스템 설정 이동")
             }
         }

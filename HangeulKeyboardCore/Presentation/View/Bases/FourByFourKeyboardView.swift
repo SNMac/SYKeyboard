@@ -14,9 +14,9 @@ class FourByFourKeyboardView: UIView, HangeulKeyboardLayoutProvider {
     // MARK: - Properties
     
     private(set) lazy var allButtonList: [BaseKeyboardButton] = primaryButtonList + secondaryButtonList
-    private(set) lazy var primaryButtonList: [PrimaryButton] = firstRowKeyButtonList + secondRowKeyButtonList + thirdRowKeyButtonList + fourthRowKeyButtonList + [spaceButton]
+    private(set) lazy var primaryButtonList: [PrimaryButton] = firstRowPrimaryKeyButtonList + secondRowPrimaryKeyButtonList + thirdRowPrimaryKeyButtonList + fourthRowPrimaryKeyButtonList + [spaceButton]
     private(set) lazy var secondaryButtonList: [SecondaryButton] = [deleteButton, returnButton, secondaryAtButton, secondarySharpButton, switchButton, nextKeyboardButton]
-    private(set) lazy var totalTextInterableButtonList: [TextInteractable] = firstRowKeyButtonList + secondRowKeyButtonList + thirdRowKeyButtonList + fourthRowKeyButtonList
+    private(set) lazy var totalTextInterableButtonList: [TextInteractable] = firstRowPrimaryKeyButtonList + secondRowPrimaryKeyButtonList + thirdRowPrimaryKeyButtonList + fourthRowPrimaryKeyButtonList
     + [deleteButton, spaceButton, returnButton, secondaryAtButton, secondarySharpButton]
     
     final var currentHangeulKeyboardMode: HangeulKeyboardMode = .default {
@@ -26,8 +26,8 @@ class FourByFourKeyboardView: UIView, HangeulKeyboardLayoutProvider {
     final let keyboard: SYKeyboardType
     /// 한글 키 배열
     var hangeulKeyList: [[[String]]] { fatalError("프로퍼티가 오버라이딩 되지 않았습니다.") }
-    /// 숫자 키 배열 (한글 키 보조)
-    var numberKeyList: [[[String]]] {
+    /// 보조 키 배열
+    private var secondaryKeyList: [[[String]]] {
         [
             [ ["1"], ["2"], ["3"] ],
             [ ["4"], ["5"], ["6"] ],
@@ -58,29 +58,29 @@ class FourByFourKeyboardView: UIView, HangeulKeyboardLayoutProvider {
     /// 키보드 네번째 우측 `SecondaryButton` 행
     private let fourthRowRightSecondaryButtonHStackView = KeyboardRowHStackView()
     
-    /// 키보드 첫번째 행 `PrimaryButton` 배열
-    private lazy var firstRowKeyButtonList = zip(hangeulKeyList[0], numberKeyList[0]).map { (primary, secondary) in
+    /// 키보드 첫번째 행 `PrimaryKeyButton` 배열
+    private lazy var firstRowPrimaryKeyButtonList = zip(hangeulKeyList[0], secondaryKeyList[0]).map { (primary, secondary) in
         PrimaryKeyButton(
             keyboard: keyboard,
             button: .keyButton(primary: primary, secondary: secondary.first)
         )
     }
-    /// 키보드 두번째 행 `PrimaryButton` 배열
-    private lazy var secondRowKeyButtonList = zip(hangeulKeyList[1], numberKeyList[1]).map { (primary, secondary) in
+    /// 키보드 두번째 행 `PrimaryKeyButton` 배열
+    private lazy var secondRowPrimaryKeyButtonList = zip(hangeulKeyList[1], secondaryKeyList[1]).map { (primary, secondary) in
         PrimaryKeyButton(
             keyboard: keyboard,
             button: .keyButton(primary: primary, secondary: secondary.first)
         )
     }
-    /// 키보드 세번째 행 `PrimaryButton` 배열
-    private lazy var thirdRowKeyButtonList = zip(hangeulKeyList[2], numberKeyList[2]).map { (primary, secondary) in
+    /// 키보드 세번째 행 `PrimaryKeyButton` 배열
+    private lazy var thirdRowPrimaryKeyButtonList = zip(hangeulKeyList[2], secondaryKeyList[2]).map { (primary, secondary) in
         PrimaryKeyButton(
             keyboard: keyboard,
             button: .keyButton(primary: primary, secondary: secondary.first)
         )
     }
-    /// 키보드 네번째 행 `PrimaryButton` 배열
-    private lazy var fourthRowKeyButtonList = zip(hangeulKeyList[3], numberKeyList[3]).map { (primary, secondary) in
+    /// 키보드 네번째 행 `PrimaryKeyButton` 배열
+    private lazy var fourthRowPrimaryKeyButtonList = zip(hangeulKeyList[3], secondaryKeyList[3]).map { (primary, secondary) in
         PrimaryKeyButton(
             keyboard: keyboard,
             button: .keyButton(primary: primary, secondary: secondary.first)
@@ -151,17 +151,17 @@ private extension FourByFourKeyboardView {
          thirdRowHStackView,
          fourthRowHStackView].forEach { layoutVStackView.addArrangedSubview($0) }
         
-        firstRowKeyButtonList.forEach { firstRowHStackView.addArrangedSubview($0) }
+        firstRowPrimaryKeyButtonList.forEach { firstRowHStackView.addArrangedSubview($0) }
         firstRowHStackView.addArrangedSubview(deleteButton)
         
-        secondRowKeyButtonList.forEach { secondRowHStackView.addArrangedSubview($0) }
+        secondRowPrimaryKeyButtonList.forEach { secondRowHStackView.addArrangedSubview($0) }
         secondRowHStackView.addArrangedSubview(spaceButton)
         
-        thirdRowKeyButtonList.forEach { thirdRowHStackView.addArrangedSubview($0) }
+        thirdRowPrimaryKeyButtonList.forEach { thirdRowHStackView.addArrangedSubview($0) }
         [returnButton, secondaryAtButton, secondarySharpButton].forEach { returnButtonHStackView.addArrangedSubview($0) }
         thirdRowHStackView.addArrangedSubview(returnButtonHStackView)
         
-        fourthRowKeyButtonList.forEach { fourthRowHStackView.addArrangedSubview($0) }
+        fourthRowPrimaryKeyButtonList.forEach { fourthRowHStackView.addArrangedSubview($0) }
         fourthRowHStackView.addArrangedSubview(fourthRowRightSecondaryButtonHStackView)
         [nextKeyboardButton, switchButton].forEach { fourthRowRightSecondaryButtonHStackView.addArrangedSubview($0) }
     }

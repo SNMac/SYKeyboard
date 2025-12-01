@@ -24,7 +24,7 @@ struct KeyboardSettingsView: View {
                 Text("키보드 추가 및 권한 설정")
             } footer: {
                 Text("키보드 ➡️ 'SY키보드' 및 '전체 접근 허용' 활성화")
-                    .font(.system(.caption))
+                    .font(.caption)
             }
             .alignmentGuide(.listRowSeparatorLeading) { dimensions in
                 dimensions[.leading]
@@ -52,7 +52,7 @@ struct KeyboardSettingsView: View {
                 Section {
                     Text("‼️ SY키보드 추가 필요 ‼️")
                 } footer: {
-                    Text("SY키보드를 추가하시면 세부 설정이 가능합니다.")
+                    Text("SY키보드를 설정에서 추가하시면 세부 설정이 가능합니다.")
                 }
             }
             

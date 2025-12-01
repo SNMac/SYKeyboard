@@ -10,6 +10,8 @@ import AppTrackingTransparency
 import OSLog
 
 import FirebaseCore
+import FirebaseAnalytics
+import FirebaseCrashlytics
 import GoogleMobileAds
 
 final class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -23,8 +25,15 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
     // MARK: - didFinishLaunchingWithOptions
     
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+        // Firebase 로딩
         FirebaseApp.configure()
         
+        // IDFV를 사용하여 Analytics, Crashlytics User ID 설정
+        let idfv = UIDevice.current.identifierForVendor?.uuidString
+        Analytics.setUserID(idfv)
+        Crashlytics.crashlytics().setUserID(idfv)
+        
+        // AdMob 로딩
         Task {
             let initializationStatus = await MobileAds.shared.start()
             for (adapterName, status) in initializationStatus.adapterStatusesByClassName {

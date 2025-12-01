@@ -19,6 +19,9 @@ struct InputSettingsView: View {
     @AppStorage(UserDefaultsKeys.isLongPressToRepeatInputEnabled, store: UserDefaults(suiteName: DefaultValues.groupBundleID))
     private var isLongPressToRepeatInputEnabled = DefaultValues.isLongPressToRepeatInputEnabled
     
+    @AppStorage(UserDefaultsKeys.isAutoCapitalizationEnabled, store: UserDefaults(suiteName: DefaultValues.groupBundleID))
+    private var isAutoCapitalizationEnabled = DefaultValues.isAutoCapitalizationEnabled
+    
     @AppStorage(UserDefaultsKeys.isTextReplacementEnabled, store: UserDefaults(suiteName: DefaultValues.groupBundleID))
     private var isTextReplacementEnabled = DefaultValues.isTextReplacementEnabled
     
@@ -28,12 +31,21 @@ struct InputSettingsView: View {
     @AppStorage(UserDefaultsKeys.isDragToMoveCursorEnabled, store: UserDefaults(suiteName: DefaultValues.groupBundleID))
     private var isDragToMoveCursorEnabled = DefaultValues.isDragToMoveCursorEnabled
     
-    enum LongPressMode: String, CaseIterable, Identifiable {
-        case repeatInput = "반복 입력"
-        case numberInput = "숫자 입력"
-        case disabled = "비활성화"
+    enum LongPressMode: Int, CaseIterable {
+        case repeatInput
+        case numberInput
+        case disabled
         
-        var id: String { self.rawValue }
+        var displayStr: String {
+            switch self {
+            case .repeatInput:
+                String(localized: "반복 입력")
+            case .numberInput:
+                String(localized: "숫자 입력")
+            case .disabled:
+                String(localized: "비활성화")
+            }
+        }
     }
     
     private var longPressModeBinding: Binding<LongPressMode> {
@@ -65,13 +77,20 @@ struct InputSettingsView: View {
     
     var body: some View {
         Picker("길게 누르기 동작", selection: longPressModeBinding) {
-            ForEach(LongPressMode.allCases) { mode in
-                Text(mode.rawValue).tag(mode)
+            ForEach(LongPressMode.allCases, id: \.self) {
+                Text($0.displayStr)
             }
         }
         
         NavigationLink("길게 누르기 입력") {
             KeyRepeatSettingsView()
+        }
+        
+        Toggle(isOn: $isAutoCapitalizationEnabled, label: {
+            Text("자동 대문자")
+        })
+        .onChange(of: isAutoCapitalizationEnabled) { _ in
+            hideKeyboard()
         }
         
         Toggle(isOn: $isTextReplacementEnabled, label: {
