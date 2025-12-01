@@ -116,10 +116,7 @@ open class EnglishKeyboardCoreViewController: BaseKeyboardViewController {
     open override func insertPrimaryKeyText(from button: TextInteractable) {
         if isPreview { return }
         
-        guard let primaryKey = button.type.primaryKeyList.first else {
-            assertionFailure("keys 배열이 비어있습니다.")
-            return
-        }
+        guard let primaryKey = button.type.primaryKeyList.first else { fatalError("keys 배열이 비어있습니다.") }
         if primaryKey.count == 1 && Character(primaryKey).isUppercase { isUppercaseInput = true }
         textDocumentProxy.insertText(primaryKey)
     }
@@ -127,7 +124,10 @@ open class EnglishKeyboardCoreViewController: BaseKeyboardViewController {
     open override func insertSecondaryKeyText(from button: TextInteractable) {
         if isPreview { return }
         
-        guard let secondaryKey = button.type.secondaryKey else { fatalError("secondaryKey가 nil입니다.") }
+        guard let secondaryKey = button.type.secondaryKey else {
+            assertionFailure("secondaryKey가 nil입니다.")
+            return
+        }
         textDocumentProxy.insertText(secondaryKey)
     }
     

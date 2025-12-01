@@ -143,7 +143,10 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
     
     open override func insertSecondaryKeyText(from button: any TextInteractable) {
         if isPreview { return }
-        guard let secondaryKey = button.type.secondaryKey else { fatalError("secondaryKey가 nil입니다.") }
+        guard let secondaryKey = button.type.secondaryKey else {
+            assertionFailure("secondaryKey가 nil입니다.")
+            return
+        }
         
         let beforeText = String(buffer.reversed().prefix(while: { !$0.isWhitespace }).reversed())
         let (processedText, input글자) = processor.input(글자Input: secondaryKey, beforeText: beforeText)
