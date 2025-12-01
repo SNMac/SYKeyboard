@@ -52,7 +52,7 @@ struct KeyboardSettingsView: View {
                 Section {
                     Text("‼️ SY키보드 추가 필요 ‼️")
                 } footer: {
-                    Text("SY키보드를 추가하시면 세부 설정이 가능합니다.")
+                    Text("SY키보드를 설정에서 추가하시면 세부 설정이 가능합니다.")
                 }
             }
             

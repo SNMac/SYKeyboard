@@ -12,15 +12,17 @@ struct InstructionsPageView: View {
     // MARK: - Properties
     
     private let title: String
-    private let image: ImageResource
     private let subtitle: String
+    private let image: ImageResource
+    private let description: String
     
     // MARK: - Initializer
     
-    init(title: String, image: ImageResource, subtitle: String) {
+    init(title: String, subtitle: String = "", image: ImageResource, description: String) {
         self.title = title
-        self.image = image
         self.subtitle = subtitle
+        self.image = image
+        self.description = description
     }
     
     // MARK: - Contents
@@ -29,18 +31,21 @@ struct InstructionsPageView: View {
         VStack {
             Text(title)
                 .font(.title2)
-                .lineLimit(2, reservesSpace: true)
                 .multilineTextAlignment(.center)
-                .padding(EdgeInsets(top: 0, leading: 15, bottom: 0, trailing: 15))
+                .padding(.horizontal, 16)
+            Text(subtitle)
+                .font(.subheadline)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 16)
             Image(image)
                 .resizable()
                 .scaledToFit()
                 .clipShape(RoundedRectangle(cornerRadius: 5))
-                .padding()
-            Text(subtitle)
-                .lineLimit(2, reservesSpace: true)
+                .padding(16)
+            Text(description)
+                .font(.body)
                 .multilineTextAlignment(.center)
-                .padding(EdgeInsets(top: 0, leading: 15, bottom: 0, trailing: 15))
+                .padding(.horizontal, 16)
         }
     }
 }
@@ -48,5 +53,5 @@ struct InstructionsPageView: View {
 // MARK: - Preview
 
 #Preview {
-    InstructionsPageView(title: "한 손 키보드 변경 방법", image: .instructionChangeOneHanded, subtitle: "'!#1' 또는 '한글' 버튼을 위로 드래그 or 길게 누르기")
+    InstructionsPageView(title: "한 손 키보드 변경 방법", subtitle: "", image: .instructionChangeOneHanded, description: "'!#1' 또는 '한글' 버튼을 위로 드래그 or 길게 누르기")
 }

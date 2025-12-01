@@ -27,7 +27,7 @@ struct ContentView: View {
                 let adSize = currentOrientationAnchoredAdaptiveBanner(width: geometry.size.width)
                 
                 ZStack(alignment: .bottom) {
-                    VStack(spacing: 8) {
+                    VStack {
                         KeyboardTestView()
                         
                         KeyboardSettingsView()

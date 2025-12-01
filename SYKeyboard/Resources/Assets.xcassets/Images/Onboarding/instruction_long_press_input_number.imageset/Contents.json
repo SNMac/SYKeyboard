@@ -1,17 +1,17 @@
 {
   "images" : [
     {
-      "filename" : "Instruction_KeyRepeat.png",
+      "filename" : "instruction_long_press_input_number.png",
       "idiom" : "universal",
       "scale" : "1x"
     },
     {
-      "filename" : "Instruction_KeyRepeat@2x.png",
+      "filename" : "instruction_long_press_input_number@2x.png",
       "idiom" : "universal",
       "scale" : "2x"
     },
     {
-      "filename" : "Instruction_KeyRepeat@3x.png",
+      "filename" : "instruction_long_press_input_number@3x.png",
       "idiom" : "universal",
       "scale" : "3x"
     }
