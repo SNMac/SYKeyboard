@@ -14,7 +14,9 @@ open class StandardKeyboardView: UIView {
     /// 키보드 종류
     open var keyboard: SYKeyboardType { fatalError("프로퍼티가 오버라이딩 되지 않았습니다.") }
     /// 키 배열
-    open var keyList: [[[[String]]]] { fatalError("프로퍼티가 오버라이딩 되지 않았습니다.") }
+    open var primaryKeyList: [[[[String]]]] { fatalError("프로퍼티가 오버라이딩 되지 않았습니다.") }
+    /// 보조 키 배열
+    open var secondaryKeyList: [[[[String]]]] { fatalError("프로퍼티가 오버라이딩 되지 않았습니다.") }
     
     public private(set) lazy var allButtonList: [BaseKeyboardButton] = primaryButtonList + secondaryButtonList
     public private(set) lazy var primaryButtonList: [PrimaryButton] = firstRowKeyButtonList + secondRowKeyButtonList + thirdRowKeyButtonList + [spaceButton, atButton, periodButton, slashButton, dotComButton]
@@ -69,12 +71,27 @@ open class StandardKeyboardView: UIView {
     }()
     public private(set) var returnButtonHStackView = KeyboardRowHStackView()
     
-    /// 키보드 첫번째 행 `PrimaryButton` 배열
-    private lazy var firstRowKeyButtonList = keyList[0][0].map { PrimaryKeyButton(keyboard: keyboard, button: .keyButton(primary: $0, secondary: nil)) }
-    /// 키보드 두번째 행 `PrimaryButton` 배열
-    private lazy var secondRowKeyButtonList = keyList[0][1].map { PrimaryKeyButton(keyboard: keyboard, button: .keyButton(primary: $0, secondary: nil)) }
-    /// 키보드 세번째 행 `PrimaryButton` 배열
-    private lazy var thirdRowKeyButtonList = keyList[0][2].map { PrimaryKeyButton(keyboard: keyboard, button: .keyButton(primary: $0, secondary: nil)) }
+    /// 키보드 첫번째 행 `PrimaryKeyButton` 배열
+    private lazy var firstRowKeyButtonList = zip(primaryKeyList[0][0], secondaryKeyList[0][0]).map { (primary, secondary) in
+        PrimaryKeyButton(
+            keyboard: keyboard,
+            button: .keyButton(primary: primary, secondary: secondary.first)
+        )
+    }
+    /// 키보드 두번째 행 `PrimaryKeyButton` 배열
+    private lazy var secondRowKeyButtonList = zip(primaryKeyList[0][1], secondaryKeyList[0][1]).map { (primary, secondary) in
+        PrimaryKeyButton(
+            keyboard: keyboard,
+            button: .keyButton(primary: primary, secondary: secondary.first)
+        )
+    }
+    /// 키보드 세번째 행 `PrimaryKeyButton` 배열
+    private lazy var thirdRowKeyButtonList = zip(primaryKeyList[0][2], secondaryKeyList[0][2]).map { (primary, secondary) in
+        PrimaryKeyButton(
+            keyboard: keyboard,
+            button: .keyButton(primary: primary, secondary: secondary.first)
+        )
+    }
     
     public lazy var shiftButton = ShiftButton(keyboard: keyboard)
     public private(set) lazy var deleteButton = DeleteButton(keyboard: keyboard)
@@ -272,7 +289,7 @@ extension StandardKeyboardView {
         let rowList = [firstRowKeyButtonList, secondRowKeyButtonList, thirdRowKeyButtonList]
         for (rowIndex, buttonList) in rowList.enumerated() {
             for (buttonIndex, button) in buttonList.enumerated() {
-                let primaryKeyList = keyList[keyListIndex][rowIndex][buttonIndex]
+                let primaryKeyList = primaryKeyList[keyListIndex][rowIndex][buttonIndex]
                 button.update(buttonType: TextInteractableType.keyButton(primary: primaryKeyList, secondary: nil))
             }
         }

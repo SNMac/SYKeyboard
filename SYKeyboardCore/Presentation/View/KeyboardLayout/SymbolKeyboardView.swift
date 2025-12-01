@@ -66,11 +66,11 @@ final class SymbolKeyboardView: UIView, SymbolKeyboardLayoutProvider {
         return keyboardRowHStackView
     }()
     
-    /// 키보드 첫번째 행 `PrimaryButton` 배열
+    /// 키보드 첫번째 행 `PrimaryKeyButton` 배열
     private lazy var firstRowKeyButtonList = currentSymbolKeyboardMode.keyList[0][0].map { PrimaryKeyButton(keyboard: .symbol, button: .keyButton(primary: $0, secondary: nil)) }
-    /// 키보드 두번째 행 `PrimaryButton` 배열
+    /// 키보드 두번째 행 `PrimaryKeyButton` 배열
     private lazy var secondRowKeyButtonList = currentSymbolKeyboardMode.keyList[0][1].map { PrimaryKeyButton(keyboard: .symbol, button: .keyButton(primary: $0, secondary: nil)) }
-    /// 키보드 세번째 행 `PrimaryButton` 배열
+    /// 키보드 세번째 행 `PrimaryKeyButton` 배열
     private lazy var thirdRowKeyButtonList = currentSymbolKeyboardMode.keyList[0][2].map { PrimaryKeyButton(keyboard: .symbol, button: .keyButton(primary: $0, secondary: nil)) }
     
     public private(set) var shiftButton = ShiftButton(keyboard: .symbol)
