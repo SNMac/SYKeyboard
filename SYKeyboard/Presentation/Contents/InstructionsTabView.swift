@@ -52,7 +52,7 @@ struct InstructionsTabView: View {
                                  description: oneHandedPageDescription)
         }
         .tabViewStyle(.page)
-        .indexViewStyle(PageIndexViewStyle(backgroundDisplayMode: .always))
+        .indexViewStyle(.page(backgroundDisplayMode: .always))
         
         Button {
             dismiss()

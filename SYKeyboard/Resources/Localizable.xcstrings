@@ -11,26 +11,6 @@
         }
       }
     },
-    "'!#1' 또는 '한글' 버튼을 위로 드래그하거나 길게 눌러 변경" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Drag ‘!#1’ or ‘한글’ button up or long press to change"
-          }
-        }
-      }
-    },
-    "'!#1' 또는 '한글' 버튼을 화살표 방향으로 드래그하여 전환" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Drag ‘!#1’ or ‘한글’ button in the direction of the arrow to switch"
-          }
-        }
-      }
-    },
     "'!#1', '한글' 또는 'ABC' 버튼을 위로 드래그 or 길게 누르기" : {
       "localizations" : {
         "en" : {
@@ -41,12 +21,32 @@
         }
       }
     },
+    "'!#1', '한글' 또는 'ABC' 버튼을 위로 드래그하거나 길게 눌러 변경" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Drag ‘!#1’, ‘한글’ or ‘ABC’ button up or long press to change"
+          }
+        }
+      }
+    },
     "'!#1', '한글' 또는 'ABC' 버튼을 화살표 방향으로 드래그" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Drag ‘!#1’, ‘한글’, or ‘ABC’ button in the direction of the arrow"
+          }
+        }
+      }
+    },
+    "'!#1', '한글' 또는 'ABC' 버튼을 화살표 방향으로 드래그하여 전환" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Drag ‘!#1’, ‘한글’ or ‘ABC’ button in the direction of the arrow to switch"
           }
         }
       }

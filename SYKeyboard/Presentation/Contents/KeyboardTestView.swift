@@ -17,7 +17,6 @@ struct KeyboardTestView: View {
     
     var body: some View {
         TextField("터치하여 키보드 테스트", text: $text, axis: .vertical)
-            .font(.system(size: 17))
             .lineLimit(1...4)
             .padding(EdgeInsets(top: 4, leading: 12, bottom: 4, trailing: 12))
             .background {
