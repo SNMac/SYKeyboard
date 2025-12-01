@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		5B2CF1092EDE384D00F4A844 /* AdSupport.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5B2CF1082EDE384D00F4A844 /* AdSupport.framework */; };
 		5B8284742E6EEE04006425C7 /* EnglishKeyboard.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 5B82846D2E6EEE04006425C7 /* EnglishKeyboard.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		5B8E6E112E1E42D800657BF4 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = 5B8E6E102E1E42D800657BF4 /* FirebaseAnalytics */; };
 		5B9D004C2D92C38200DA108E /* HangeulKeyboard.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 5B7B3F6B2C569B8200F7C093 /* HangeulKeyboard.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
@@ -116,6 +117,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		5B2CF1082EDE384D00F4A844 /* AdSupport.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AdSupport.framework; path = System/Library/Frameworks/AdSupport.framework; sourceTree = SDKROOT; };
 		5B48C0722E7C141900973C00 /* SYKeyboardTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SYKeyboardTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		5B7B3F562C569B7800F7C093 /* SYKeyboard.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SYKeyboard.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		5B7B3F6B2C569B8200F7C093 /* HangeulKeyboard.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = HangeulKeyboard.appex; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -267,6 +269,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				5BB373592ED5AA18006AB083 /* SYKeyboardCore.framework in Frameworks */,
+				5B2CF1092EDE384D00F4A844 /* AdSupport.framework in Frameworks */,
 				5BB37A5E2ED643B9006AB083 /* MetaAdapterTarget in Frameworks */,
 				5B8E6E112E1E42D800657BF4 /* FirebaseAnalytics in Frameworks */,
 				5BB37A612ED644B5006AB083 /* GoogleMobileAds in Frameworks */,
@@ -322,6 +325,14 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		5B2CF1072EDE384C00F4A844 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				5B2CF1082EDE384D00F4A844 /* AdSupport.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		5B7B3F4D2C569B7800F7C093 = {
 			isa = PBXGroup;
 			children = (
@@ -334,6 +345,7 @@
 				5BB373522ED5AA18006AB083 /* SYKeyboardCore */,
 				5BB373AB2ED5D937006AB083 /* EnglishKeyboardCore */,
 				5BB373DB2ED5DADC006AB083 /* HangeulKeyboardCore */,
+				5B2CF1072EDE384C00F4A844 /* Frameworks */,
 				5B7B3F572C569B7800F7C093 /* Products */,
 			);
 			sourceTree = "<group>";

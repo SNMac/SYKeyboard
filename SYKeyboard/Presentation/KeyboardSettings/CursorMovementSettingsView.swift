@@ -9,6 +9,8 @@ import SwiftUI
 
 import SYKeyboardCore
 
+import FirebaseAnalytics
+
 struct CursorMovementSettingsView: View {
     
     // MARK: - Properties
@@ -41,6 +43,11 @@ struct CursorMovementSettingsView: View {
             .navigationTitle("커서 이동")
             .navigationBarTitleDisplayMode(.inline)
             .requestReviewViewModifier()
+        }.onDisappear {
+            Analytics.logEvent("cursor_movement_settings", parameters: [
+                "cursor_active_distance": cursorActiveDistance,
+                "cursor_move_interval": cursorMoveInterval
+            ])
         }
     }
 }

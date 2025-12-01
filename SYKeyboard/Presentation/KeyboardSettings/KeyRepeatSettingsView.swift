@@ -9,6 +9,8 @@ import SwiftUI
 
 import SYKeyboardCore
 
+import FirebaseAnalytics
+
 struct KeyRepeatSettingsView: View {
     
     // MARK: - Properties
@@ -40,6 +42,11 @@ struct KeyRepeatSettingsView: View {
             .navigationTitle("길게 누르기 입력")
             .navigationBarTitleDisplayMode(.inline)
             .requestReviewViewModifier()
+        }.onDisappear {
+            Analytics.logEvent("key_repeat_settings", parameters: [
+                "long_press_duration": longPressDuration,
+                "repeat_rate": repeatRate
+            ])
         }
     }
 }

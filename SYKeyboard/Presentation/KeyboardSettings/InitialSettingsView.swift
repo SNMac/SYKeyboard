@@ -7,12 +7,18 @@
 
 import SwiftUI
 
+import FirebaseAnalytics
+
 struct InitialSettingsView: View {
     
     // MARK: - Contents
 
     var body: some View {
         Button {
+            Analytics.logEvent("open_system_settings", parameters: [
+                "view": "initial_settings"
+            ])
+            
             if let settingsURL = URL(string: UIApplication.openSettingsURLString) {
                 UIApplication.shared.open(settingsURL)
             }
