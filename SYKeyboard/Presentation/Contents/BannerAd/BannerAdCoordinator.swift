@@ -56,21 +56,20 @@ extension BannerAdCoordinator: BannerViewDelegate {
         let adNetworkClassName = responseInfo?.loadedAdNetworkResponseInfo?.adNetworkClassName
         let latency = responseInfo?.loadedAdNetworkResponseInfo?.latency
         Analytics.logEvent("receive_ad_success", parameters: [
-            "ad_format": "banner",
-            "adNetworkClassName": adNetworkClassName ?? "unknown",
+            AnalyticsParameterAdFormat: "banner",
+            AnalyticsParameterAdSource: adNetworkClassName ?? "unknown",
             "latency": latency ?? 0
         ])
     }
     
     func bannerView(_ bannerView: BannerView, didFailToReceiveAdWithError error: Error) {
         parent.isAdReceived = false
-        
         let responseInfo = bannerView.responseInfo
         logger.error("FAILED TO RECEIVE AD: \(error.localizedDescription)\n\(responseInfo)")
         
         Analytics.logEvent("receive_ad_failed", parameters: [
-            "ad_format": "banner",
-            "error": "\(error.localizedDescription)"
+            AnalyticsParameterAdFormat: "banner",
+            "error_message": error.localizedDescription
         ])
     }
     
@@ -78,8 +77,8 @@ extension BannerAdCoordinator: BannerViewDelegate {
         logger.debug("BANNER AD CLICKED")
         
         Analytics.logEvent("ad_click", parameters: [
-            "ad_format": "banner",
-            "ad_unit_id": bannerView.adUnitID ?? "unknown"
+            AnalyticsParameterAdFormat: "banner",
+            AnalyticsParameterAdUnitName: bannerView.adUnitID ?? "unknown"
         ])
     }
     

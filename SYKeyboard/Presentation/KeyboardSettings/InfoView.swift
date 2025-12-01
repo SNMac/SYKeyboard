@@ -18,6 +18,7 @@ struct InfoView: View {
     
     @Environment(\.openURL) private var openURL
     @State private var isShowingInstructions = false
+    @State private var isShowingMailErrorAlert = false
     
     // MARK: - Contents
     
@@ -43,12 +44,19 @@ struct InfoView: View {
                 "view": "info"
             ])
             
-            let address = Bundle.main.infoDictionary?["DeveloperEmail"] as! String
+            guard let address = Bundle.main.infoDictionary?["DeveloperEmail"] as? String else {
+                assertionFailure("DeveloperEmail이 Info.plist에 존재하지 않습니다.")
+                isShowingMailErrorAlert = true
+                return
+            }
             let subjectLocalStr = String(localized: "SY키보드 문의 사항")
             let messageHeaderLocalStr = String(localized: "점선 아래에 내용을 입력해 주세요. (상기된 정보가 정확하지 않을 경우 수정해 주세요!)")
             
             let emailModel = SupportEmailModel(toAddress: address, subject: subjectLocalStr, messageHeader: messageHeaderLocalStr)
-            guard let url = emailModel.makeURL() else { return }
+            guard let url = emailModel.makeURL() else {
+                isShowingMailErrorAlert = true
+                return
+            }
             openURL(url) { accepted in
                 if !accepted {
                     Self.logger.debug(
@@ -57,6 +65,7 @@ struct InfoView: View {
                     --------------------------------------
                     \(emailModel.body)
                     """)
+                    isShowingMailErrorAlert = true
                 }
             }
         } label: {
@@ -67,6 +76,10 @@ struct InfoView: View {
                     .frame(width: 20, height: 20)
                 Text("문의하기")
             }
+        }.alert("문의하기 불가", isPresented: $isShowingMailErrorAlert) {
+            Button("확인", role: .cancel) { }
+        } message: {
+            Text("이 기기에서 메일 앱을 열 수 없거나, 개발자 이메일 정보를 불러올 수 없습니다.")
         }
         
         Button {
