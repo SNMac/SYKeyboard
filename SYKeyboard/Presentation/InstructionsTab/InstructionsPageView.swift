@@ -18,7 +18,7 @@ struct InstructionsPageView: View {
     
     // MARK: - Initializer
     
-    init(title: String, subtitle: String = "", image: ImageResource, description: String) {
+    init(title: String, subtitle: String = " ", image: ImageResource, description: String) {
         self.title = title
         self.subtitle = subtitle
         self.image = image
@@ -29,23 +29,27 @@ struct InstructionsPageView: View {
     
     var body: some View {
         VStack {
-            Text(title)
-                .font(.title2)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, 16)
-            Text(subtitle)
-                .font(.subheadline)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, 16)
+            VStack {
+                Text(title)
+                    .font(.title2)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 16)
+                Text(subtitle)
+                    .font(.subheadline)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 16)
+            }.frame(height: 80, alignment: .bottom)
+            
             Image(image)
                 .resizable()
                 .scaledToFit()
-                .clipShape(RoundedRectangle(cornerRadius: 5))
+                .clipShape(RoundedRectangle(cornerRadius: 4))
                 .padding(16)
             Text(description)
                 .font(.body)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 16)
+                .frame(height: 80, alignment: .top)
         }
     }
 }
