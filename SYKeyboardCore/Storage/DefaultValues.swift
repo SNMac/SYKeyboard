@@ -20,9 +20,9 @@ public enum DefaultValues {
     /* 입력 설정 */
     /// 한글 키보드 기본값
     public static let selectedHangeulKeyboard: HangeulKeyboardType = .naratgeul
-    /// 길게 터치하여 반복 입력 기본값
+    /// 길게 누르기 동작 - 반복 입력 기본값
     public static let isLongPressToRepeatInputEnabled: Bool = true
-    /// 길게 터치하여 숫자 입력 기본값
+    /// 길게 누르기 동작 - 숫자 입력 기본값
     public static let isLongPressToNumberInputEnabled: Bool = false
     /// 드래그하여 커서 이동 기본값
     public static let isDragToMoveCursorEnabled: Bool = true
