@@ -6,8 +6,8 @@
 //
 
 import SwiftUI
-import StoreKit
 import OSLog
+import StoreKit
 
 import SYKeyboardCore
 
