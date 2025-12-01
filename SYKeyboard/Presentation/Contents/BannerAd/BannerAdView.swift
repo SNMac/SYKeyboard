@@ -27,7 +27,8 @@ struct BannerAdView: UIViewRepresentable {
         banner.delegate = context.coordinator
         
         let coordinator = context.coordinator
-        banner.paidEventHandler = { [weak coordinator] value in
+        banner.paidEventHandler = { [weak coordinator, weak banner] value in
+            guard let banner else { return }
             coordinator?.handlePaidEvent(value: value, banner: banner)
         }
         
