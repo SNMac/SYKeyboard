@@ -200,6 +200,16 @@
         }
       }
     },
+    "반복 입력" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Repeated Input"
+          }
+        }
+      }
+    },
     "반복 입력 방법" : {
       "localizations" : {
         "en" : {
@@ -220,12 +230,32 @@
         }
       }
     },
+    "비활성화" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Disable"
+          }
+        }
+      }
+    },
     "소리 피드백" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Sound Feedback"
+          }
+        }
+      }
+    },
+    "숫자 입력" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Number Input"
           }
         }
       }
