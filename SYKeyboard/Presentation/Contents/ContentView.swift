@@ -34,7 +34,7 @@ struct ContentView: View {
                         KeyboardSettingsView()
                     }
                     .safeAreaInset(edge: .bottom) {
-                        BannerAdView(adSize, isAdReceived: $isAdReceived)
+                        BannerAdView(adSize: adSize, isAdReceived: $isAdReceived)
                             .frame(maxWidth: .infinity, maxHeight: adSize.size.height)
                             .background(isAdReceived ? Color(.systemBackground) : .clear, ignoresSafeAreaEdges: .bottom)
                             .opacity(isAdReceived ? 1 : 0)

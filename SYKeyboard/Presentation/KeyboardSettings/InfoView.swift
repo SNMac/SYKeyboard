@@ -8,6 +8,8 @@
 import SwiftUI
 import OSLog
 
+import FirebaseAnalytics
+
 struct InfoView: View {
     
     // MARK: - Properties
@@ -21,6 +23,10 @@ struct InfoView: View {
     
     var body: some View {
         Button {
+            Analytics.logEvent("open_keyboard_instructions", parameters: [
+                "view": "info"
+            ])
+            
             isShowingInstructions = true
         } label: {
             HStack {
@@ -33,6 +39,10 @@ struct InfoView: View {
         }
         
         Button {
+            Analytics.logEvent("open_email_inquiry", parameters: [
+                "view": "info"
+            ])
+            
             let address = Bundle.main.infoDictionary?["DeveloperEmail"] as! String
             let subjectLocalStr = String(localized: "SY키보드 문의 사항")
             let messageHeaderLocalStr = String(localized: "점선 아래에 내용을 입력해 주세요. (상기된 정보가 정확하지 않을 경우 수정해 주세요!)")
@@ -60,6 +70,10 @@ struct InfoView: View {
         }
         
         Button {
+            Analytics.logEvent("open_review", parameters: [
+                "view": "info"
+            ])
+            
             let reviewURLString = "https://apps.apple.com/app/id6670792957?action=write-review"
             guard let url = URL(string: reviewURLString) else {
                 assertionFailure("Expected a valid URL")

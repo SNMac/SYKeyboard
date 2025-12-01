@@ -9,6 +9,8 @@ import SwiftUI
 
 import SYKeyboardCore
 
+import FirebaseAnalytics
+
 struct AppearanceSettingsView: View {
     
     // MARK: - Properties
@@ -31,7 +33,12 @@ struct AppearanceSettingsView: View {
             Text("'!#1', '한글' 또는 'ABC' 버튼을 화살표 방향으로 드래그하여 전환")
                 .font(.caption)
         })
-        .onChange(of: isNumericKeypadEnabled) { _ in
+        .onChange(of: isNumericKeypadEnabled) { newValue in
+            Analytics.logEvent("appearance_settings", parameters: [
+                "name": "numeric_keypad",
+                "value": newValue ? "on" : "off"
+            ])
+            
             hideKeyboard()
         }
         
@@ -40,7 +47,12 @@ struct AppearanceSettingsView: View {
             Text("'!#1', '한글' 또는 'ABC' 버튼을 위로 드래그하거나 길게 눌러 변경")
                 .font(.caption)
         })
-        .onChange(of: isOneHandedKeyboardEnabled) { _ in
+        .onChange(of: isOneHandedKeyboardEnabled) { newValue in
+            Analytics.logEvent("appearance_settings", parameters: [
+                "name": "one_handed_keyboard",
+                "value": newValue ? "on" : "off"
+            ])
+            
             hideKeyboard()
         }
         

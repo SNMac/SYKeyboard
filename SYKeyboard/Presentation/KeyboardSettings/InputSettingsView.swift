@@ -9,6 +9,8 @@ import SwiftUI
 
 import SYKeyboardCore
 
+import FirebaseAnalytics
+
 struct InputSettingsView: View {
     
     // MARK: - Properties
@@ -46,6 +48,17 @@ struct InputSettingsView: View {
                 String(localized: "비활성화")
             }
         }
+        
+        var analyticsValue: String {
+            switch self {
+            case .repeatInput:
+                "repeat_input"
+            case .numberInput:
+                "number_input"
+            case .disabled:
+                "disabled"
+            }
+        }
     }
     
     private var longPressModeBinding: Binding<LongPressMode> {
@@ -59,16 +72,21 @@ struct InputSettingsView: View {
             }
         } set: { newValue in
             switch newValue {
-            case .disabled:
-                isLongPressToRepeatInputEnabled = false
-                isLongPressToNumberInputEnabled = false
             case .repeatInput:
                 isLongPressToRepeatInputEnabled = true
                 isLongPressToNumberInputEnabled = false
             case .numberInput:
                 isLongPressToRepeatInputEnabled = false
                 isLongPressToNumberInputEnabled = true
+            case .disabled:
+                isLongPressToRepeatInputEnabled = false
+                isLongPressToNumberInputEnabled = false
             }
+            
+            Analytics.logEvent("select_long_press_action", parameters: [
+                "mode": newValue.analyticsValue
+            ])
+            
             hideKeyboard()
         }
     }
@@ -89,7 +107,12 @@ struct InputSettingsView: View {
         Toggle(isOn: $isAutoCapitalizationEnabled, label: {
             Text("자동 대문자")
         })
-        .onChange(of: isAutoCapitalizationEnabled) { _ in
+        .onChange(of: isAutoCapitalizationEnabled) { newValue in
+            Analytics.logEvent("input_settings", parameters: [
+                "name": "auto_capitalization",
+                "value": newValue ? "on" : "off"
+            ])
+            
             hideKeyboard()
         }
         
@@ -98,7 +121,12 @@ struct InputSettingsView: View {
             Text("시스템 설정의 텍스트 대치 단축키 사용")
                 .font(.caption)
         })
-        .onChange(of: isTextReplacementEnabled) { _ in
+        .onChange(of: isTextReplacementEnabled) { newValue in
+            Analytics.logEvent("input_settings", parameters: [
+                "name": "text_replacement",
+                "value": newValue ? "on" : "off"
+            ])
+            
             hideKeyboard()
         }
         
@@ -107,14 +135,24 @@ struct InputSettingsView: View {
             Text("기호 키보드 입력 후 스페이스/리턴 ➡️ 한글 키보드")
                 .font(.caption)
         })
-        .onChange(of: isAutoChangeToPrimaryEnabled) { _ in
+        .onChange(of: isAutoChangeToPrimaryEnabled) { newValue in
+            Analytics.logEvent("input_settings", parameters: [
+                "name": "auto_change_to_primary",
+                "value": newValue ? "on" : "off"
+            ])
+            
             hideKeyboard()
         }
         
         Toggle(isOn: $isDragToMoveCursorEnabled, label: {
             Text("드래그하여 커서 이동")
         })
-        .onChange(of: isDragToMoveCursorEnabled) { _ in
+        .onChange(of: isDragToMoveCursorEnabled) { newValue in
+            Analytics.logEvent("input_settings", parameters: [
+                "name": "drag_to_move_cursor",
+                "value": newValue ? "on" : "off"
+            ])
+            
             hideKeyboard()
         }
         

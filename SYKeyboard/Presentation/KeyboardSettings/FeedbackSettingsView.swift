@@ -11,6 +11,8 @@ import SwiftUI
 
 import SYKeyboardCore
 
+import FirebaseAnalytics
+
 struct FeedbackSettingsView: View {
     
     // MARK: - Properteis
@@ -25,12 +27,22 @@ struct FeedbackSettingsView: View {
     
     var body: some View {
         Toggle("소리 피드백", isOn: $isSoundFeedbackEnabled)
-            .onChange(of: isSoundFeedbackEnabled) { _ in
+            .onChange(of: isSoundFeedbackEnabled) { newValue in
+                Analytics.logEvent("feedback_settings", parameters: [
+                    "name": "sound_feedback",
+                    "value": newValue ? "on" : "off"
+                ])
+                
                 hideKeyboard()
             }
         
         Toggle("햅틱 피드백", isOn: $isHapticFeedbackEnabled)
-            .onChange(of: isHapticFeedbackEnabled) { _ in
+            .onChange(of: isHapticFeedbackEnabled) { newValue in
+                Analytics.logEvent("feedback_settings", parameters: [
+                    "name": "haptic_feedback",
+                    "value": newValue ? "on" : "off"
+                ])
+                
                 hideKeyboard()
             }
     }
