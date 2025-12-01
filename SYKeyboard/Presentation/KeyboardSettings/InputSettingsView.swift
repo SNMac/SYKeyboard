@@ -19,6 +19,9 @@ struct InputSettingsView: View {
     @AppStorage(UserDefaultsKeys.isLongPressToRepeatInputEnabled, store: UserDefaults(suiteName: DefaultValues.groupBundleID))
     private var isLongPressToRepeatInputEnabled = DefaultValues.isLongPressToRepeatInputEnabled
     
+    @AppStorage(UserDefaultsKeys.isAutoCapitalizationEnabled, store: UserDefaults(suiteName: DefaultValues.groupBundleID))
+    private var isAutoCapitalizationEnabled = DefaultValues.isAutoCapitalizationEnabled
+    
     @AppStorage(UserDefaultsKeys.isTextReplacementEnabled, store: UserDefaults(suiteName: DefaultValues.groupBundleID))
     private var isTextReplacementEnabled = DefaultValues.isTextReplacementEnabled
     
@@ -72,6 +75,13 @@ struct InputSettingsView: View {
         
         NavigationLink("길게 누르기 입력") {
             KeyRepeatSettingsView()
+        }
+        
+        Toggle(isOn: $isAutoCapitalizationEnabled, label: {
+            Text("자동 대문자")
+        })
+        .onChange(of: isAutoCapitalizationEnabled) { _ in
+            hideKeyboard()
         }
         
         Toggle(isOn: $isTextReplacementEnabled, label: {

@@ -350,6 +350,16 @@
         }
       }
     },
+    "자동 대문자" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Auto-Capitalization"
+          }
+        }
+      }
+    },
     "저장" : {
       "localizations" : {
         "en" : {
