@@ -76,10 +76,10 @@ struct InfoView: View {
                     .frame(width: 20, height: 20)
                 Text("문의하기")
             }
-        }.alert("문의하기 불가", isPresented: $isShowingMailErrorAlert) {
-            Button("확인", role: .cancel) { }
+        }.alert("오류가 발생했습니다", isPresented: $isShowingMailErrorAlert) {
+            Button("닫기") {}
         } message: {
-            Text("이 기기에서 메일 앱을 열 수 없거나, 개발자 이메일 정보를 불러올 수 없습니다.")
+            Text("앱스토어 ➡️ SY키보드 ➡️ 앱 지원 ➡️ 개발자 Email로 문의해주세요")
         }
         
         Button {
@@ -89,7 +89,7 @@ struct InfoView: View {
             
             let reviewURLString = "https://apps.apple.com/app/id6670792957?action=write-review"
             guard let url = URL(string: reviewURLString) else {
-                assertionFailure("Expected a valid URL")
+                assertionFailure("올바른 URL 형식이 아닙니다.")
                 return
             }
             openURL(url)

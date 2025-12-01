@@ -340,12 +340,32 @@
         }
       }
     },
+    "앱스토어 ➡️ SY키보드 ➡️ 앱 지원 ➡️ 개발자 Email로 문의해주세요" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Contact us via App Store ➡️ SYKeyboard ➡️ App Support ➡️ Developer Email"
+          }
+        }
+      }
+    },
     "영어 키보드" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "English Keyboard"
+          }
+        }
+      }
+    },
+    "오류가 발생했습니다" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Error occurred"
           }
         }
       }
