@@ -29,7 +29,7 @@ struct InstructionsPageView: View {
     
     var body: some View {
         VStack {
-            VStack {
+            VStack(spacing: 4) {
                 Text(title)
                     .font(.title2)
                     .multilineTextAlignment(.center)
@@ -38,7 +38,7 @@ struct InstructionsPageView: View {
                     .font(.subheadline)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 16)
-            }.frame(height: 76, alignment: .bottom)
+            }.frame(height: 80, alignment: .top)
             
             Image(image)
                 .resizable()
