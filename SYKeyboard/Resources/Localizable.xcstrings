@@ -51,26 +51,6 @@
         }
       }
     },
-    "'길게 눌러서 반복 입력' 기능 사용 시 비활성화" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Disabled when using the ‘Long Press to Repeat Input’"
-          }
-        }
-      }
-    },
-    "'길게 눌러서 숫자 입력' 기능 사용 시 비활성화" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Disabled when using the ‘Long Press to Number Input’"
-          }
-        }
-      }
-    },
     "%.1f" : {
       "shouldTranslate" : false
     },
@@ -130,6 +110,16 @@
         }
       }
     },
+    "길게 누르기 동작" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Long Press Action"
+          }
+        }
+      }
+    },
     "길게 누르기 입력" : {
       "localizations" : {
         "en" : {
@@ -146,26 +136,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Delay until Long Press"
-          }
-        }
-      }
-    },
-    "길게 눌러서 반복 입력" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Long Press to Repeat Input"
-          }
-        }
-      }
-    },
-    "길게 눌러서 숫자 입력" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Long Press to Number Input"
           }
         }
       }

@@ -28,37 +28,50 @@ struct InputSettingsView: View {
     @AppStorage(UserDefaultsKeys.isDragToMoveCursorEnabled, store: UserDefaults(suiteName: DefaultValues.groupBundleID))
     private var isDragToMoveCursorEnabled = DefaultValues.isDragToMoveCursorEnabled
     
+    enum LongPressMode: String, CaseIterable, Identifiable {
+        case repeatInput = "반복 입력"
+        case numberInput = "숫자 입력"
+        case disabled = "비활성화"
+        
+        var id: String { self.rawValue }
+    }
+    
+    private var longPressModeBinding: Binding<LongPressMode> {
+        Binding {
+            if isLongPressToRepeatInputEnabled {
+                return .repeatInput
+            } else if isLongPressToNumberInputEnabled {
+                return .numberInput
+            } else {
+                return .disabled
+            }
+        } set: { newValue in
+            switch newValue {
+            case .disabled:
+                isLongPressToRepeatInputEnabled = false
+                isLongPressToNumberInputEnabled = false
+            case .repeatInput:
+                isLongPressToRepeatInputEnabled = true
+                isLongPressToNumberInputEnabled = false
+            case .numberInput:
+                isLongPressToRepeatInputEnabled = false
+                isLongPressToNumberInputEnabled = true
+            }
+            hideKeyboard()
+        }
+    }
+    
     // MARK: - Contents
     
     var body: some View {
-        Toggle(isOn: $isLongPressToRepeatInputEnabled, label: {
-            Text("길게 눌러서 반복 입력")
-            Text("'길게 눌러서 숫자 입력' 기능 사용 시 비활성화")
-                .font(.caption)
-        })
-        .onChange(of: isLongPressToRepeatInputEnabled) { newValue in
-            if newValue {
-                isLongPressToNumberInputEnabled = false
+        Picker("길게 누르기 동작", selection: longPressModeBinding) {
+            ForEach(LongPressMode.allCases) { mode in
+                Text(mode.rawValue).tag(mode)
             }
-            hideKeyboard()
         }
         
-        Toggle(isOn: $isLongPressToNumberInputEnabled, label: {
-            Text("길게 눌러서 숫자 입력")
-            Text("'길게 눌러서 반복 입력' 기능 사용 시 비활성화")
-                .font(.caption)
-        })
-        .onChange(of: isLongPressToNumberInputEnabled) { newValue in
-            if newValue {
-                isLongPressToRepeatInputEnabled = false
-            }
-            hideKeyboard()
-        }
-        
-        if isLongPressToRepeatInputEnabled || isLongPressToNumberInputEnabled {
-            NavigationLink("길게 누르기 입력") {
-                KeyRepeatSettingsView()
-            }
+        NavigationLink("길게 누르기 입력") {
+            KeyRepeatSettingsView()
         }
         
         Toggle(isOn: $isTextReplacementEnabled, label: {
@@ -86,10 +99,8 @@ struct InputSettingsView: View {
             hideKeyboard()
         }
         
-        if isDragToMoveCursorEnabled {
-            NavigationLink("커서 이동") {
-                CursorMovementSettingsView()
-            }
+        NavigationLink("커서 이동") {
+            CursorMovementSettingsView()
         }
     }
 }
