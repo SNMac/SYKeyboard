@@ -25,7 +25,7 @@ final class CheonjiinProcessor: HangeulProcessable {
     ///
     /// `true`일 경우, 다음 입력은 앞 글자와 결합되지 않고 새로운 글자로 시작됩니다.
     /// 스페이스바를 눌렀을 때 활성화됩니다.
-    private var is한글조합Stopped: Bool = false
+    private var is한글조합Stopped: Bool = true
     
     /// 천지인 'ㆍ' (아래아) 문자
     private let 아래아문자 = "ㆍ"
@@ -138,18 +138,27 @@ final class CheonjiinProcessor: HangeulProcessable {
     /// 스페이스바 입력을 처리합니다.
     ///
     /// - Returns:
-    ///   - `.commitCombination`: 텍스트가 있는 경우, 조합을 확정하고 끊습니다. (실제 공백 입력 안 함)
-    ///   - `.insertSpace`: 텍스트가 없거나 이미 끊긴 경우, 실제 공백을 입력합니다.
+    ///   - `.commitCombination`: 텍스트가 있고 아직 조합이 끊기지 않은 경우 -> 조합 확정 (화면 변화 없음)
+    ///   - `.insertSpace`: 텍스트가 없거나, 이미 조합이 확정된 상태에서 또 스페이스를 누른 경우 -> 실제 공백 입력
     func inputSpace(beforeText: String) -> SpaceInputResult {
-        if !beforeText.isEmpty {
-            // 버퍼에 글자가 있으면 -> 조합 끊기 모드 진입
-            is한글조합Stopped = true
-            return .commitCombination
-        } else {
-            // 버퍼가 없으면 -> 실제 공백 입력
+        
+        // 1. 버퍼가 비어있다면 -> 무조건 공백 입력
+        if beforeText.isEmpty {
             is한글조합Stopped = false
             return .insertSpace
         }
+        
+        // 2. 버퍼가 있지만, 이미 조합이 끊긴 상태라면 ('가' -> Space(확정) -> Space(입력) 시나리오)
+        // -> 공백 입력 처리
+        if is한글조합Stopped {
+            is한글조합Stopped = false // 상태 초기화
+            return .insertSpace
+        }
+        
+        // 3. 버퍼가 있고, 조합 중인 상태라면
+        // -> 조합 끊기 (Commit)
+        is한글조합Stopped = true
+        return .commitCombination
     }
     
     /// 마지막 글자를 삭제하거나 분해합니다.
