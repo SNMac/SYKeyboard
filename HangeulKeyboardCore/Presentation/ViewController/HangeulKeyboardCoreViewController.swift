@@ -25,9 +25,9 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
     // MARK: - UI Components
     
     /// 나랏글 키보드
-    private lazy var naratgeulKeyboardView: HangeulKeyboardLayoutProvider = NaratgeulKeyboardView(keyboard: .naratgeul)
+    private lazy var naratgeulKeyboardView: HangeulKeyboardLayoutProvider = NaratgeulKeyboardView()
     /// 천지인 키보드
-    private lazy var cheonjiinKeyboardView: HangeulKeyboardLayoutProvider = CheonjiinKeyboardView(keyboard: .cheonjiin)
+    private lazy var cheonjiinKeyboardView: HangeulKeyboardLayoutProvider = CheonjiinKeyboardView()
     
     /// 사용자가 선택한 한글 키보드
     private var hangeulKeyboardView: HangeulKeyboardLayoutProvider {
