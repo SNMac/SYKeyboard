@@ -113,20 +113,23 @@ final class CheonjiinProcessor: HangeulProcessable {
         }
         
         // [1] 자음 입력 처리
+        // 전체 글자가 아닌 '마지막 구성 요소(자음)'만 추출
+        // 예: "갘" -> "ㅋ" 반환
         if is자음(글자Input) {
-            // 자음 순환 시도 (예: ㄱ 입력 시 ㄱ->ㅋ->ㄲ)
             if let cycledText = cycle자음(글자input: 글자Input, beforeText: beforeText) {
-                // 순환된 자음이 앞 글자의 받침과 결합 가능한지 확인 (예: 흴+ㅁ -> 흶)
                 let mergedText = try종성결합(text: cycledText)
-                return (mergedText, 글자Input)
+                let lastComponent = extractLast자소(from: mergedText) ?? 글자Input
+                return (mergedText, lastComponent)
             }
         }
         
         // [2] 모음 입력 처리
+        // 전체 글자가 아닌 '마지막 구성 요소(모음)'만 추출
+        // 예: "가" -> "ㅏ" 반환
         if is모음(글자Input) || 글자Input == 아래아문자 {
-            // 천지인 모음 조합 시도 (예: ㆍ+ㅣ -> ㅓ, ᆢ+ㅡ -> ㅛ)
             if let combinedText = combine모음(글자input: 글자Input, beforeText: beforeText) {
-                return (combinedText, 글자Input)
+                let lastComponent = extractLast자소(from: combinedText) ?? 글자Input
+                return (combinedText, lastComponent)
             }
         }
         
@@ -391,25 +394,25 @@ private extension CheonjiinProcessor {
         var next모음: String?
         
         switch (target모음, 글자input) {
-        // [1] 기본 천지인 조합 (ㅣ, ㆍ, ㅡ 기반)
+            // [1] 기본 천지인 조합 (ㅣ, ㆍ, ㅡ 기반)
         case ("ㅣ", 아래아문자): next모음 = "ㅏ"
         case (아래아문자, "ㅣ"): next모음 = "ㅓ"
         case ("ㅡ", 아래아문자): next모음 = "ㅜ"
         case (아래아문자, "ㅡ"): next모음 = "ㅗ"
             
-        // [2] 획 추가 (기본 모음 + ㆍ)
+            // [2] 획 추가 (기본 모음 + ㆍ)
         case ("ㅏ", 아래아문자): next모음 = "ㅑ"
         case ("ㅓ", 아래아문자): next모음 = "ㅕ"
         case ("ㅜ", 아래아문자): next모음 = "ㅠ"
         case ("ㅗ", 아래아문자): next모음 = "ㅛ"
             
-        // [3] 쌍아래아(ᆢ) 기반 조합 (속기)
+            // [3] 쌍아래아(ᆢ) 기반 조합 (속기)
         case (아래아문자, 아래아문자): next모음 = 쌍아래아문자 // ㆍ+ㆍ=ᆢ
         case (쌍아래아문자, "ㅣ"): next모음 = "ㅕ" // ᆢ+ㅣ=ㅕ
         case (쌍아래아문자, "ㅡ"): next모음 = "ㅛ" // ᆢ+ㅡ=ㅛ (교 입력 지원)
         case ("ㅣ", 쌍아래아문자): next모음 = "ㅑ" // ㅣ+ᆢ=ㅑ (대칭)
             
-        // [4] 복합 모음 (ㅏ+ㅣ=ㅐ 등)
+            // [4] 복합 모음 (ㅏ+ㅣ=ㅐ 등)
         case ("ㅏ", "ㅣ"): next모음 = "ㅐ"
         case ("ㅓ", "ㅣ"): next모음 = "ㅔ"
         case ("ㅑ", "ㅣ"): next모음 = "ㅒ"
@@ -420,11 +423,11 @@ private extension CheonjiinProcessor {
         case ("ㅘ", "ㅣ"): next모음 = "ㅙ"
         case ("ㅜ", "ㅣ"): next모음 = "ㅟ"
         case ("ㅗ", "ㅣ"): next모음 = "ㅚ"
-        
+            
         case ("ㅚ", 아래아문자): next모음 = "ㅘ"
         case ("ㅟ", 아래아문자): next모음 = "ㅝ"
             
-        // [5] 기타
+            // [5] 기타
         case ("ㅡ", "ㅣ"): next모음 = "ㅢ"
         case (쌍아래아문자, 아래아문자): next모음 = 아래아문자 // ᆢ+ㆍ=ㆍ (순환)
             
@@ -460,5 +463,26 @@ private extension CheonjiinProcessor {
             // 합칠 자음이 없거나 실패하면 그냥 모음 교체
             return newText + result모음
         }
+    }
+    
+    /// 완성된 글자에서 마지막으로 변경된/추가된 자소만 추출합니다.
+    func extractLast자소(from text: String) -> String? {
+        guard let lastChar = text.last else { return nil }
+        
+        // 1. 완성형 한글인 경우 분해하여 마지막 요소 반환
+        if let (_, 중성Index, 종성Index) = automata.decompose(한글Char: lastChar) {
+            
+            // 1-1. 종성이 있으면 -> 종성 반환 (예: '갘' -> 'ㅋ')
+            if 종성Index != 0 {
+                return automata.종성Table[종성Index]
+            }
+            
+            // 1-2. 종성은 없고 중성만 있으면 -> 중성 반환 (예: '가' -> 'ㅏ', '갸' -> 'ㅑ')
+            // '가' 상태에서 반복 입력 시 '가ㅏㅏㅏ'가 되도록 'ㅏ'를 반환
+            return automata.중성Table[중성Index]
+        }
+        
+        // 2. 완성형 한글이 아닌 낱자(예: 'ㄱ', 'ㅏ')인 경우 그대로 반환
+        return String(lastChar)
     }
 }
