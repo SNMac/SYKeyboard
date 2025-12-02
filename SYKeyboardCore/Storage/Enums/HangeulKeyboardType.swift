@@ -9,13 +9,16 @@
 public enum HangeulKeyboardType: Int {
     case naratgeul
     case cheonjiin
+    case dubeolsik
     
     var title: String {
         switch self {
         case .naratgeul:
-            return "나랏글"
+            "나랏글"
         case .cheonjiin:
-            return "천지인"
+            "천지인"
+        case .dubeolsik:
+            "두벌식"
         }
     }
 }

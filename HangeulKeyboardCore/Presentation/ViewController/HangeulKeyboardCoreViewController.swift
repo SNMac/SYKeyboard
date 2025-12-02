@@ -36,6 +36,8 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
             return naratgeulKeyboardView
         case .cheonjiin:
             return cheonjiinKeyboardView
+        case .dubeolsik:
+            fatalError("구현이 필요한 case 입니다.")
         @unknown default:
             assertionFailure("구현이 필요한 case 입니다.")
             return naratgeulKeyboardView

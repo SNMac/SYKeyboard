@@ -21,6 +21,7 @@ struct HangeulKeyboardSelectView: View {
     enum HangeulKeyboard: Int, CaseIterable {
         case naratgeul
         case cheonjiin
+        // TODO: 두벌식 추가
         
         var displayStr: String {
             switch self {
