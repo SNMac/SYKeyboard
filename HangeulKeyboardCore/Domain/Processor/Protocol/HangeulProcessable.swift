@@ -5,6 +5,12 @@
 //  Created by 서동환 on 11/21/25.
 //
 
+/// 스페이스바 입력 시 동작 결과
+enum SpaceInputResult {
+    case insertSpace     // 실제 공백 텍스트(" ")를 입력
+    case commitCombination // 조합을 끊고 대기 (입력 없음)
+}
+
 /// 한글 입력기 프로토콜
 protocol HangeulProcessable {
     /// 한글 입력을 처리합니다.
@@ -13,6 +19,8 @@ protocol HangeulProcessable {
     ///   - beforeText: 입력 전의 전체 문자열
     /// - Returns: (처리된 전체 텍스트, 반복 입력을 위한 실제 입력 글자)
     func input(글자Input: String, beforeText: String) -> (processedText: String, input글자: String?)
+    /// 스페이스바 입력을 처리합니다.
+    func inputSpace(beforeText: String) -> SpaceInputResult
     /// 마지막 글자를 지우거나 분해합니다.
     /// - Parameters:
     ///   - beforeText: 삭제 전의 전체 문자열

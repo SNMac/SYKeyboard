@@ -112,6 +112,10 @@ final class NaratgeulProcessor: HangeulProcessable {
         return (automata.add글자(글자Input: 글자Input, beforeText: beforeText), 글자Input)
     }
     
+    func inputSpace(beforeText: String) -> SpaceInputResult {
+        return .insertSpace // 나랏글은 항상 띄어쓰기 수행
+    }
+    
     func delete(beforeText: String) -> String {
         // 1. 'ㅣ' 결합 분해 시도 (예: '애' -> '아')
         if let decomposedText = decompose모음(beforeText: beforeText) { return decomposedText }

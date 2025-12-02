@@ -187,9 +187,18 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
     open override func insertSpaceText() {
         if isPreview { return }
         
-        super.insertSpaceText()
-        buffer.removeAll()
-        lastInputText = nil
+        let result = processor.inputSpace(beforeText: buffer)
+        switch result {
+        case .insertSpace:
+            // 실제 공백 입력
+            super.insertSpaceText()
+            buffer.removeAll()
+            lastInputText = nil
+            
+        case .commitCombination:
+            // 조합 끊기 (화면 변화 없음, 버퍼 유지)
+            lastInputText = nil // 반복 입력(ㄱ -> ㅋ) 방지용 초기화
+        }
     }
     
     open override func insertReturnText() {
