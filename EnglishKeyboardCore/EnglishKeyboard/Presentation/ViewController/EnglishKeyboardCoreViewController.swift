@@ -131,7 +131,7 @@ open class EnglishKeyboardCoreViewController: BaseKeyboardViewController {
         textDocumentProxy.insertText(secondaryKey)
     }
     
-    open override func repeatInsertKeyText(from button: TextInteractable) {
+    open override func repeatInsertPrimaryKeyText(from button: TextInteractable) {
         if isPreview { return }
         
         guard let primaryKey = button.type.primaryKeyList.first else {

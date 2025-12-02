@@ -136,8 +136,9 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
     }
     
     open override func repeatTextInteractionWillPerform(button: TextInteractable) {
+        super.repeatTextInteractionWillPerform(button: button)
         super.performTextInteraction(for: button)
-        if lastInputText != nil { button.playFeedback() }
+        if lastInputText != nil || button is DeleteButton || button is SpaceButton { button.playFeedback() }
     }
     
     open override func insertPrimaryKeyText(from button: TextInteractable) {
@@ -154,7 +155,7 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
         lastInputText = input글자
     }
     
-    open override func insertSecondaryKeyText(from button: any TextInteractable) {
+    open override func insertSecondaryKeyText(from button: TextInteractable) {
         if isPreview { return }
         guard let secondaryKey = button.type.secondaryKey else {
             assertionFailure("secondaryKey가 nil입니다.")
@@ -171,7 +172,7 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
         lastInputText = input글자
     }
     
-    open override func repeatInsertKeyText(from button: TextInteractable) {
+    open override func repeatInsertPrimaryKeyText(from button: TextInteractable) {
         if isPreview { return }
         guard let lastInputText else {
             super.repeatTextInteractionDidPerform(button: button)

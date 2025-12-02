@@ -238,7 +238,7 @@ open class BaseKeyboardViewController: UIInputViewController {
     ///
     /// - Parameters:
     ///   - button: `TextInteractable` 버튼
-    open func repeatInsertKeyText(from button: TextInteractable) {
+    open func repeatInsertPrimaryKeyText(from button: TextInteractable) {
         if isPreview { return }
         
         guard let primaryKey = button.type.primaryKeyList.first else {
@@ -539,25 +539,19 @@ extension BaseKeyboardViewController {
         
         switch button.type {
         case .keyButton:
-            if insertSecondaryKeyIfAvailable {
-                if button.type.secondaryKey != nil {
-                    insertSecondaryKeyText(from: button)
-                } else {
-                    insertPrimaryKeyText(from: button)
-                }
+            if insertSecondaryKeyIfAvailable && button.type.secondaryKey != nil {
+                insertSecondaryKeyText(from: button)
             } else {
                 insertPrimaryKeyText(from: button)
             }
         case .deleteButton:
-            if !insertSecondaryKeyIfAvailable {
-                if !attemptToRestoreReplacementWord() {
-                    if let selectedText = textDocumentProxy.selectedText {
-                        tempDeletedCharacters.append(contentsOf: selectedText.reversed())
-                    } else if let lastBeforeCursor = textDocumentProxy.documentContextBeforeInput?.last {
-                        tempDeletedCharacters.append(lastBeforeCursor)
-                    }
-                    deleteBackward()
+            if !attemptToRestoreReplacementWord() {
+                if let selectedText = textDocumentProxy.selectedText {
+                    tempDeletedCharacters.append(contentsOf: selectedText.reversed())
+                } else if let lastBeforeCursor = textDocumentProxy.documentContextBeforeInput?.last {
+                    tempDeletedCharacters.append(lastBeforeCursor)
                 }
+                deleteBackward()
             }
         case .spaceButton:
             attemptToReplaceCurrentWord()
@@ -567,13 +561,13 @@ extension BaseKeyboardViewController {
         }
     }
     
-    final func performRepeatTextInteraction(for button: TextInteractable) {
+    final public func performRepeatTextInteraction(for button: TextInteractable) {
         textInteractionWillPerform()
         defer { textInteractionDidPerform() }
         
         switch button.type {
         case .keyButton:
-            repeatInsertKeyText(from: button)
+            repeatInsertPrimaryKeyText(from: button)
             button.playFeedback()
         case .deleteButton:
             if textDocumentProxy.documentContextBeforeInput != nil || textDocumentProxy.selectedText != nil {
