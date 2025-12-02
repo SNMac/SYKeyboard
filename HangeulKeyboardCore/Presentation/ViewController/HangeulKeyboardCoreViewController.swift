@@ -19,8 +19,22 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
     /// 마지막으로 입력한 문자
     private var lastInputText: String?
     
+    /// 나랏글 입력기
+    private lazy var naratgeulProcessor = NaratgeulProcessor()
+    /// 천지인 입력기
+    private lazy var cheonjiinProcessor = CheonjiinProcessor()
+    
     /// 한글 키보드 입력기
-    private lazy var processor: HangeulProcessable = NaratgeulProcessor()
+    private var processor: HangeulProcessable {
+        switch UserDefaultsManager.shared.selectedHangeulKeyboard {
+        case .naratgeul:
+            return naratgeulProcessor
+        case .cheonjiin:
+            return cheonjiinProcessor
+        case .dubeolsik:
+            fatalError("구현이 필요한 case 입니다.")
+        }
+    }
     
     // MARK: - UI Components
     
@@ -38,9 +52,6 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
             return cheonjiinKeyboardView
         case .dubeolsik:
             fatalError("구현이 필요한 case 입니다.")
-        @unknown default:
-            assertionFailure("구현이 필요한 case 입니다.")
-            return naratgeulKeyboardView
         }
     }
     
