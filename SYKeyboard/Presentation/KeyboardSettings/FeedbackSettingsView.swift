@@ -15,7 +15,7 @@ import FirebaseAnalytics
 
 struct FeedbackSettingsView: View {
     
-    // MARK: - Properteis
+    // MARK: - Properties
     
     @AppStorage(UserDefaultsKeys.isSoundFeedbackEnabled, store: UserDefaults(suiteName: DefaultValues.groupBundleID))
     private var isSoundFeedbackEnabled = DefaultValues.isSoundFeedbackEnabled

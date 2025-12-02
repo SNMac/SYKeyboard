@@ -83,8 +83,8 @@ struct InputSettingsView: View {
                 isLongPressToNumberInputEnabled = false
             }
             
-            Analytics.logEvent("select_long_press_action", parameters: [
-                "mode": newValue.analyticsValue
+            Analytics.logEvent("selected_long_press_action", parameters: [
+                "action": newValue.analyticsValue
             ])
             
             hideKeyboard()
