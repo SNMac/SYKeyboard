@@ -10,7 +10,7 @@ import UIKit
 import SYKeyboardCore
 
 /// 천지인 키보드
-final class CheonjiinKeyboardView: FourByFourKeyboardView, HangeulKeyboardLayoutProvider {
+final class CheonjiinKeyboardView: FourByFourPlusKeyboardView, HangeulKeyboardLayoutProvider {
     
     // MARK: - Properties
     

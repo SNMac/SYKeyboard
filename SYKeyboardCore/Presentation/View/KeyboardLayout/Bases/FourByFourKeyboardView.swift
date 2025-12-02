@@ -30,7 +30,7 @@ open class FourByFourKeyboardView: UIView {
     private let topSpacer = KeyboardSpacer()
     /// 키보드 레이아웃 수직 스택
     private let layoutVStackView = KeyboardLayoutVStackView()
-    /// 하단 여백 `KeyboardSpacer`
+    /// 하단 여백
     private let bottomSpacer = KeyboardSpacer()
     
     /// 키보드 첫번째 행
