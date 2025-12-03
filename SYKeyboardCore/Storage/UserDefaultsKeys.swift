@@ -14,8 +14,6 @@ public enum UserDefaultsKeys {
     public static let isHapticFeedbackEnabled = "isHapticFeedbackEnabled"
     
     /* 입력 설정 */
-    /// 선택한 한글 키보드
-    public static let selectedHangeulKeyboard = "selectedHangeulKeyboard"
     /// 길게 누르기 동작 - 반복 입력
     public static let isLongPressToRepeatInputEnabled = "isLongPressToRepeatInputEnabled"
     /// 길게 누르기 동작 - 숫자 입력
@@ -24,8 +22,6 @@ public enum UserDefaultsKeys {
     public static let isDragToMoveCursorEnabled = "isDragToMoveCursorEnabled"
     /// 텍스트 대치
     public static let isTextReplacementEnabled = "isTextReplacementEnabled"
-    /// 자동 대문자
-    public static let isAutoCapitalizationEnabled = "isAutoCapitalizationEnabled"
     /// 스페이스/리턴 입력 후 주 키보드로 변경
     public static let isAutoChangeToPrimaryEnabled = "isAutoChangeToPrimaryEnabled"
     
