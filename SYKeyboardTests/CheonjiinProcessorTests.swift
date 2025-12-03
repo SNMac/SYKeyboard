@@ -17,6 +17,7 @@ struct CheonjiinProcessorTests {
     
     private static let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: String(describing: "CheonjiinProcessorTests"))
     
+    private let automata: HangeulAutomataProtocol = HangeulAutomata()
     private let processor: HangeulProcessable = CheonjiinProcessor()
     
     private let 아래아문자 = "ㆍ"
@@ -290,11 +291,9 @@ private extension CheonjiinProcessorTests {
     }
     
     func convertTo천지인입력(for char: Character) -> [String] {
-        // (기존 구현 유지: Automata를 이용해 초/중/종 분해 후 Map핑)
         guard let scalar = char.unicodeScalars.first else { return [] }
         let value = Int(scalar.value) - 0xAC00
         let 초 = value / (21 * 28); let 중 = (value % (21 * 28)) / 28; let 종 = value % 28
-        let automata = HangeulAutomata()
         var res: [String] = []
         
         if let keys = 천지인자음Map[automata.초성Table[초]] { res.append(contentsOf: keys) }
