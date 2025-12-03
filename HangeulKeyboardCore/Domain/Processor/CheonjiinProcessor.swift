@@ -38,7 +38,7 @@ final class CheonjiinProcessor: HangeulProcessable {
     /// - 예: `ᆢ` + `ㅡ` = `ㅛ`
     private let 쌍아래아문자 = "ᆢ"
     
-    /// 자음 순환 테이블 (멀티탭)
+    /// 자음 순환 테이블 (멀티 탭)
     ///
     /// 동일한 자음 키를 연속으로 입력했을 때 변환될 순서를 정의합니다.
     /// - Key: 현재 입력된 자음
@@ -165,10 +165,6 @@ final class CheonjiinProcessor: HangeulProcessable {
         // -> 조합 끊기 (Commit)
         is한글조합OnGoing = false // 조합 중지 상태로 변경
         return .commitCombination
-    }
-    
-    func inputReturn() {
-        is한글조합OnGoing = false
     }
     
     /// 마지막 글자를 삭제하거나 분해합니다.

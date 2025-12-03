@@ -215,7 +215,7 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
         
         super.insertReturnText()
         buffer.removeAll()
-        processor.inputReturn()
+        processor.reset한글조합()
         lastInputText = nil
         updateSpaceButtonImage()
     }

@@ -160,8 +160,6 @@ final class NaratgeulProcessor: HangeulProcessable {
         return .insertSpace
     }
     
-    func inputReturn() {}
-    
     /// 마지막 글자를 삭제하거나 분해합니다.
     ///
     /// 1. **결합 분해**: 'ㅣ' 결합(`애` -> `아`)이나 이중모음(`뭐` -> `무`)을 우선적으로 분해합니다.

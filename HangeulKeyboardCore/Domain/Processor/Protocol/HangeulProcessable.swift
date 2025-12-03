@@ -26,8 +26,6 @@ protocol HangeulProcessable: AnyObject {
     func input(글자Input: String, beforeText: String) -> (processedText: String, input글자: String?)
     /// 스페이스바 입력을 처리합니다.
     func inputSpace(beforeText: String) -> SpaceInputResult
-    /// 리턴 버튼 입력을 처리합니다.
-    func inputReturn()
     /// 마지막 글자를 지우거나 분해합니다.
     /// - Parameters:
     ///   - beforeText: 삭제 전의 전체 문자열
