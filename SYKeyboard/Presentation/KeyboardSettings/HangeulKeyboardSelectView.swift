@@ -8,6 +8,7 @@
 import SwiftUI
 
 import SYKeyboardCore
+import HangeulKeyboardCore
 
 import FirebaseAnalytics
 
