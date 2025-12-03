@@ -6,7 +6,7 @@
 //
 
 /// 한글 오토마타 프로토콜
-protocol HangeulAutomataProtocol {
+protocol HangeulAutomataProtocol: AnyObject {
     var 초성Table: [String] { get }
     var 중성Table: [String] { get }
     var 종성Table: [String] { get }

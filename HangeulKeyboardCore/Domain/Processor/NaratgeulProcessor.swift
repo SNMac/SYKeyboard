@@ -17,6 +17,9 @@ final class NaratgeulProcessor: HangeulProcessable {
     
     // MARK: - Properties
     
+    /// 나랏글 입력기는 별도의 '조합 끊기' 단계 없이 스페이스가 항상 공백으로 동작하므로 항상 `false`를 반환합니다.
+    let is한글조합OnGoing: Bool = false
+    
     /// 표준 한글 오토마타 (자소 분해/조합 담당)
     private let automata: HangeulAutomataProtocol = HangeulAutomata()
     
@@ -157,6 +160,8 @@ final class NaratgeulProcessor: HangeulProcessable {
         return .insertSpace
     }
     
+    func inputReturn() {}
+    
     /// 마지막 글자를 삭제하거나 분해합니다.
     ///
     /// 1. **결합 분해**: 'ㅣ' 결합(`애` -> `아`)이나 이중모음(`뭐` -> `무`)을 우선적으로 분해합니다.
@@ -171,11 +176,15 @@ final class NaratgeulProcessor: HangeulProcessable {
         // 3. 일반 삭제는 오토마타에게 위임 (종성 삭제 -> 중성 삭제 -> 초성 삭제)
         return automata.delete글자(beforeText: beforeText)
     }
+    
+    func reset한글조합() {}
 }
 
-// MARK: - Private Methods (Logic Implementation)
+// MARK: - Private Methods
 
 private extension NaratgeulProcessor {
+    
+    // MARK: - Logic Implementation
     
     /// 획추가 기능 구현
     ///

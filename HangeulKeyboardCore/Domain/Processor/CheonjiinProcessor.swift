@@ -21,11 +21,11 @@ final class CheonjiinProcessor: HangeulProcessable {
     /// 천지인 특유의 로직(순환, 특수 조합)을 거친 후, 최종적인 한글 조립은 이 오토마타에게 위임합니다.
     private let automata: HangeulAutomataProtocol = HangeulAutomata()
     
-    /// 조합 끊기 대기 상태 플래그
+    /// 한글 조합 진행 상태 플래그
     ///
-    /// `true`일 경우, 다음 입력은 앞 글자와 결합되지 않고 새로운 글자로 시작됩니다.
-    /// 스페이스바를 눌렀을 때 활성화됩니다.
-    private var is한글조합Stopped: Bool = true
+    /// - `true`: 현재 조합 중입니다. (스페이스 입력 시 조합 확정)
+    /// - `false`: 조합이 끊긴 상태입니다. (스페이스 입력 시 공백 입력)
+    private(set) var is한글조합OnGoing: Bool = false
     
     /// 천지인 'ㆍ' (아래아) 문자
     private let 아래아문자 = "ㆍ"
@@ -93,7 +93,7 @@ final class CheonjiinProcessor: HangeulProcessable {
     
     /// 사용자의 입력을 처리하여 변환된 텍스트를 반환합니다.
     ///
-    /// 1. **조합 끊기 확인**: `is한글조합Stopped`가 참이면 결합 없이 문자를 추가합니다.
+    /// 1. **조합 끊기 확인**: `is한글조합Stopped`가 `true`이면 결합 없이 문자를 추가합니다.
     /// 2. **자음 입력**: 자음 순환(멀티탭) 및 겹받침 결합을 시도합니다.
     /// 3. **모음 입력**: 천지인 모음 조합 규칙(ㆍ, ㅡ, ㅣ)을 적용합니다.
     /// 4. **기타**: 위 로직에 해당하지 않으면 표준 오토마타(`add글자`)를 통해 처리합니다.
@@ -105,10 +105,8 @@ final class CheonjiinProcessor: HangeulProcessable {
     func input(글자Input: String, beforeText: String) -> (processedText: String, input글자: String?) {
         
         // [0] 조합 끊기 상태 처리
-        // 스페이스바 직후에는 오토마타 결합을 하지 않고 단순 추가합니다.
-        // 예: '학' + (Space) + 'ㄱ' -> '학ㄱ' (학교 입력 시나리오)
-        if is한글조합Stopped {
-            is한글조합Stopped = false // 상태 초기화
+        if !is한글조합OnGoing {
+            is한글조합OnGoing = true // 조합 시작 상태로 변경
             return (beforeText + 글자Input, 글자Input)
         }
         
@@ -147,21 +145,24 @@ final class CheonjiinProcessor: HangeulProcessable {
         
         // 1. 버퍼가 비어있다면 -> 무조건 공백 입력
         if beforeText.isEmpty {
-            is한글조합Stopped = false
+            is한글조합OnGoing = false // 다음 입력을 위해 상태 초기화
             return .insertSpace
         }
         
-        // 2. 버퍼가 있지만, 이미 조합이 끊긴 상태라면 ('가' -> Space(확정) -> Space(입력) 시나리오)
+        // 2. 버퍼가 있지만, 이미 조합이 끊긴 상태라면 (OnGoing == false)
         // -> 공백 입력 처리
-        if is한글조합Stopped {
-            is한글조합Stopped = false // 상태 초기화
+        if !is한글조합OnGoing {
             return .insertSpace
         }
         
-        // 3. 버퍼가 있고, 조합 중인 상태라면
+        // 3. 버퍼가 있고, 조합 중인 상태라면 (OnGoing == true)
         // -> 조합 끊기 (Commit)
-        is한글조합Stopped = true
+        is한글조합OnGoing = false // 조합 중지 상태로 변경
         return .commitCombination
+    }
+    
+    func inputReturn() {
+        is한글조합OnGoing = false
     }
     
     /// 마지막 글자를 삭제하거나 분해합니다.
@@ -172,6 +173,7 @@ final class CheonjiinProcessor: HangeulProcessable {
     ///
     func delete(beforeText: String) -> String {
         guard let lastChar = beforeText.last else { return beforeText }
+        
         var newText = beforeText
         
         // 1. 완성형 한글인 경우 분해 시도
@@ -222,6 +224,10 @@ final class CheonjiinProcessor: HangeulProcessable {
         
         // 분해 불가 시 삭제된 상태 반환
         return newText
+    }
+    
+    func reset한글조합() {
+        is한글조합OnGoing = false
     }
 }
 

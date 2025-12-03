@@ -10,7 +10,11 @@ import UIKit
 /// 스페이스 버튼
 final public class SpaceButton: PrimaryButton, TextInteractable {
     
+    // MARK: - Properties
+    
     public let type: TextInteractableType
+
+    private let imageConfig = UIImage.SymbolConfiguration(pointSize: FontSize.imageSize, weight: .medium)
     
     // MARK: - Initializer
     
@@ -31,6 +35,13 @@ final public class SpaceButton: PrimaryButton, TextInteractable {
         FeedbackManager.shared.playHaptic()
         FeedbackManager.shared.playModifierSound()
     }
+    
+    // MARK: - Internal Methods
+    
+    /// 버튼의 시스템 이미지를 업데이트합니다.
+    func updateImage(systemName: String) {
+        self.configuration?.image = UIImage(systemName: systemName)?.withConfiguration(imageConfig).withTintColor(.label, renderingMode: .alwaysOriginal)
+    }
 }
 
 // MARK: - UI Methods
@@ -41,7 +52,6 @@ private extension SpaceButton {
     }
     
     func setStyles() {
-        let imageConfig = UIImage.SymbolConfiguration(pointSize: FontSize.imageSize, weight: .medium)
         self.configuration?.image = UIImage(systemName: "space")?.withConfiguration(imageConfig).withTintColor(.label, renderingMode: .alwaysOriginal)
     }
 }

@@ -14,6 +14,8 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
     
     // MARK: - Properties
     
+    private let selectedHangeulKeyboard = UserDefaultsManager.shared.selectedHangeulKeyboard
+    
     /// 입력한 문자열 임시저장 버퍼
     private var buffer: String = ""
     /// 마지막으로 입력한 문자
@@ -26,7 +28,7 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
     
     /// 한글 키보드 입력기
     private var processor: HangeulProcessable {
-        switch UserDefaultsManager.shared.selectedHangeulKeyboard {
+        switch selectedHangeulKeyboard {
         case .naratgeul:
             return naratgeulProcessor
         case .cheonjiin:
@@ -45,7 +47,7 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
     
     /// 사용자가 선택한 한글 키보드
     private var hangeulKeyboardView: HangeulKeyboardLayoutProvider {
-        switch UserDefaultsManager.shared.selectedHangeulKeyboard {
+        switch selectedHangeulKeyboard {
         case .naratgeul:
             return naratgeulKeyboardView
         case .cheonjiin:
@@ -74,12 +76,16 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
         super.textWillChange(textInput)
         buffer.removeAll()
         lastInputText = nil
+        processor.reset한글조합()
+        updateSpaceButtonImage()
     }
     
     open override func updateShowingKeyboard() {
         super.updateShowingKeyboard()
         buffer.removeAll()
         lastInputText = nil
+        processor.reset한글조합()
+        updateSpaceButtonImage()
     }
     
     open override func updateKeyboardType() {
@@ -153,6 +159,7 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
         
         buffer = processedText
         lastInputText = input글자
+        updateSpaceButtonImage()
     }
     
     open override func insertSecondaryKeyText(from button: TextInteractable) {
@@ -199,6 +206,8 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
             // 조합 끊기 (화면 변화 없음, 버퍼 유지)
             lastInputText = nil // 반복 입력(ㄱ -> ㅋ) 방지용 초기화
         }
+        
+        updateSpaceButtonImage()
     }
     
     open override func insertReturnText() {
@@ -206,7 +215,9 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
         
         super.insertReturnText()
         buffer.removeAll()
+        processor.inputReturn()
         lastInputText = nil
+        updateSpaceButtonImage()
     }
     
     open override func deleteBackward() {
@@ -216,10 +227,16 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
             for _ in 0..<buffer.count { textDocumentProxy.deleteBackward() }
             let text = processor.delete(beforeText: buffer)
             textDocumentProxy.insertText(text)
-            
             buffer = text
+            
+            if buffer.isEmpty {
+                processor.reset한글조합()
+                updateSpaceButtonImage()
+            }
         } else {
             textDocumentProxy.deleteBackward()
+            processor.reset한글조합()
+            updateSpaceButtonImage()
         }
         lastInputText = nil
     }
@@ -228,7 +245,27 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
         if isPreview { return }
         
         textDocumentProxy.deleteBackward()
-        if !buffer.isEmpty { buffer.removeLast() }
+        if !buffer.isEmpty {
+            buffer.removeLast()
+            
+            if buffer.isEmpty {
+                processor.reset한글조합()
+                updateSpaceButtonImage()
+            }
+        } else {
+            processor.reset한글조합()
+            updateSpaceButtonImage()
+        }
         lastInputText = nil
+    }
+}
+
+private extension HangeulKeyboardCoreViewController {
+    func updateSpaceButtonImage() {
+        if processor.is한글조합OnGoing {
+            primaryKeyboardView.updateSpaceButtonImage(systemName: "arrow.right")
+        } else {
+            primaryKeyboardView.updateSpaceButtonImage(systemName: "space")
+        }
     }
 }

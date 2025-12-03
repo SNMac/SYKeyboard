@@ -75,8 +75,8 @@ open class BaseKeyboardViewController: UIInputViewController {
     
     /// 키보드 전환 버튼 제스처 컨트롤러
     private lazy var switchGestureController = SwitchGestureController(keyboardFrameView: keyboardFrameHStackView,
-                                                                       hangeulKeyboardView: primaryKeyboardView as? SwitchGestureHandling,
-                                                                       englishKeyboardView: primaryKeyboardView as? SwitchGestureHandling,
+                                                                       hangeulKeyboardView: primaryKeyboardView as SwitchGestureHandling,
+                                                                       englishKeyboardView: primaryKeyboardView as SwitchGestureHandling,
                                                                        symbolKeyboardView: symbolKeyboardView,
                                                                        numericKeyboardView: numericKeyboardView,
                                                                        getCurrentKeyboard: { [weak self] in return self?.currentKeyboard ?? .naratgeul },
