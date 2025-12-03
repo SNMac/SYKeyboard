@@ -5,7 +5,7 @@
 > [Figma](https://www.figma.com/design/0i3sNlaez0LG0QMfw80yJ4/SY%ED%82%A4%EB%B3%B4%EB%93%9C?node-id=0-1&t=L8rArjkBX9MJ3UJD-1)
 > 
 > 개발 기간: 2024.07.30 ~ 2025.01.15  
-> 리팩토링 기간: 2025.07.09 ~ 2025.11.30
+> 리팩토링 기간: 2025.07.09 ~ 2025.12.07
 
 <br>
 
