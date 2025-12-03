@@ -104,6 +104,12 @@ final class CheonjiinProcessor: HangeulProcessable {
     /// - Returns: (처리된 전체 텍스트, 화면에 표시할 입력 글자)
     func input(글자Input: String, beforeText: String) -> (processedText: String, input글자: String?) {
         
+        // [특수문자 처리] 입력된 글자가 한글이 아니라면(예: '.', ',', '?', '!') 조합을 끊습니다.
+        if !글자Input.isHangeul() {
+            is한글조합OnGoing = false
+            return (beforeText + 글자Input, 글자Input)
+        }
+        
         // [0] 조합 끊기 상태 처리
         if !is한글조합OnGoing {
             is한글조합OnGoing = true // 조합 시작 상태로 변경
