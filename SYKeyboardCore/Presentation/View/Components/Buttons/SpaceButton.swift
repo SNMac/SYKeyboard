@@ -14,7 +14,7 @@ final public class SpaceButton: PrimaryButton, TextInteractable {
     
     public let type: TextInteractableType
 
-    private let imageConfig = UIImage.SymbolConfiguration(pointSize: FontSize.imageSize, weight: .medium)
+    private let imageConfig = UIImage.SymbolConfiguration(pointSize: FontSize.imageSize, weight: .medium, scale: .large)
     
     // MARK: - Initializer
     
@@ -40,7 +40,7 @@ final public class SpaceButton: PrimaryButton, TextInteractable {
     
     /// 버튼의 시스템 이미지를 업데이트합니다.
     func updateImage(systemName: String) {
-        self.configuration?.image = UIImage(systemName: systemName)?.withConfiguration(imageConfig).withTintColor(.label, renderingMode: .alwaysOriginal)
+        primaryKeyListImageView.image = UIImage(systemName: systemName)?.withConfiguration(imageConfig).withTintColor(.label, renderingMode: .alwaysOriginal)
     }
 }
 
@@ -52,6 +52,6 @@ private extension SpaceButton {
     }
     
     func setStyles() {
-        self.configuration?.image = UIImage(systemName: "space")?.withConfiguration(imageConfig).withTintColor(.label, renderingMode: .alwaysOriginal)
+        primaryKeyListImageView.image = UIImage(systemName: "space")?.withConfiguration(imageConfig).withTintColor(.label, renderingMode: .alwaysOriginal)
     }
 }
