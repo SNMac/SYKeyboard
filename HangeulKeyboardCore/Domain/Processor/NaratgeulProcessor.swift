@@ -18,7 +18,7 @@ final class NaratgeulProcessor: HangeulProcessable {
     // MARK: - Properties
     
     /// 나랏글 입력기는 별도의 '조합 끊기' 단계 없이 스페이스가 항상 공백으로 동작하므로 항상 `false`를 반환합니다.
-    let is한글조합OnGoing: Bool = false
+    var is한글조합OnGoing: Bool { false }
     
     /// 표준 한글 오토마타 (자소 분해/조합 담당)
     private let automata: HangeulAutomataProtocol = HangeulAutomata()

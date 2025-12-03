@@ -120,10 +120,8 @@ final class CheonjiinProcessor: HangeulProcessable {
         // 전체 글자가 아닌 '마지막 구성 요소(자음)'만 추출
         // 예: "갘" -> "ㅋ" 반환
         if is자음(글자Input) {
-            if let cycledText = cycle자음(글자input: 글자Input, beforeText: beforeText) {
-                let mergedText = try종성결합(text: cycledText)
-                let lastComponent = extractLast자소(from: mergedText) ?? 글자Input
-                return (mergedText, lastComponent)
+            if let (cycledText, cycledChar) = cycle자음(글자input: 글자Input, beforeText: beforeText) {
+                return try종성결합(text: cycledText, currentCycleChar: cycledChar)
             }
         }
         
@@ -131,9 +129,8 @@ final class CheonjiinProcessor: HangeulProcessable {
         // 전체 글자가 아닌 '마지막 구성 요소(모음)'만 추출
         // 예: "가" -> "ㅏ" 반환
         if is모음(글자Input) || 글자Input == 아래아문자 {
-            if let combinedText = combine모음(글자input: 글자Input, beforeText: beforeText) {
-                let lastComponent = extractLast자소(from: combinedText) ?? 글자Input
-                return (combinedText, lastComponent)
+            if let (combinedText, combinedChar) = combine모음(글자input: 글자Input, beforeText: beforeText) {
+                return (combinedText, combinedChar)
             }
         }
         
@@ -253,8 +250,8 @@ private extension CheonjiinProcessor {
     ///
     /// - 예: '흴'(ㄹ) 상태에서 'ㅁ' 입력 -> '흶'(ㄻ)
     /// - 예: '흷'(ㄼ) 상태에서 'ㅂ' -> 'ㅍ'(순환) -> '흺'(ㄿ) (교체)
-    func try종성결합(text: String) -> String {
-        guard text.count >= 2 else { return text }
+    func try종성결합(text: String, currentCycleChar: String) -> (String, String) {
+        guard text.count >= 2 else { return (text, currentCycleChar) }
         
         let lastIndex = text.index(before: text.endIndex)
         let prevIndex = text.index(before: lastIndex)
@@ -264,12 +261,10 @@ private extension CheonjiinProcessor {
         
         let lastString = String(lastChar)
         
-        // 마지막 글자가 낱자 자음이어야 결합 시도 가능
-        guard automata.초성Table.contains(lastString) else { return text }
-        
-        // 앞 글자가 완성형 한글이고 종성이 있어야 함
+        // 조건 불만족 시 원본 리턴
+        guard automata.초성Table.contains(lastString) else { return (text, currentCycleChar) }
         guard let (초성Idx, 중성Idx, 종성Idx) = automata.decompose(한글Char: prevChar),
-              종성Idx != 0 else { return text }
+              종성Idx != 0 else { return (text, currentCycleChar) }
         
         let current종성 = automata.종성Table[종성Idx]
         
@@ -282,7 +277,7 @@ private extension CheonjiinProcessor {
             newText.removeLast() // 자음 제거
             newText.removeLast() // 앞 글자 제거
             newText.append(newChar)
-            return newText
+            return (newText, combined종성)
         }
         
         // Case B: 겹받침 + 자음 -> 겹받침 교체 (예: 흷(ㄹㅂ) + ㅍ -> 흺(ㄹㅍ))
@@ -296,11 +291,11 @@ private extension CheonjiinProcessor {
                 newText.removeLast()
                 newText.removeLast()
                 newText.append(newChar)
-                return newText
+                return (newText, combined종성)
             }
         }
         
-        return text
+        return (text, currentCycleChar)
     }
     
     /// 두 자음이 겹받침으로 결합될 수 있는지 테이블에서 확인합니다.
@@ -315,7 +310,7 @@ private extension CheonjiinProcessor {
     ///
     /// - 예: 'ㄱ' 입력 시 'ㄱ' -> 'ㅋ' -> 'ㄲ' -> 'ㄱ' 순서로 변환
     /// - 특징: 겹받침의 뒷부분 순환도 처리합니다 (예: ㄼ + ㅂ -> ㄿ).
-    func cycle자음(글자input: String, beforeText: String) -> String? {
+    func cycle자음(글자input: String, beforeText: String) -> (String, String)? {
         guard let beforeTextLast글자Char = beforeText.last else { return nil }
         guard let cycleGroup = 자음CycleTable[글자input] else { return nil }
         
@@ -332,10 +327,10 @@ private extension CheonjiinProcessor {
                     let next종성 = getNextCycle문자(current: current종성, group: cycleGroup)
                     if let next종성Index = automata.종성Table.firstIndex(of: next종성),
                        let newChar = automata.combine(초성Index: 초성Index, 중성Index: 중성Index, 종성Index: next종성Index) {
-                        return newText + String(newChar)
+                        return (newText + String(newChar), next종성)
                     }
                 }
-                // 1-2. 겹받침의 뒷부분이 순환 그룹에 있는 경우 (예: ㄼ + ㅂ -> ㄿ)
+                // 1-2. 겹받침 뒷부분 순환 (예: ㄼ + ㅂ -> ㄿ)
                 else if let (앞받침, 뒷받침) = automata.decompose겹받침(종성: current종성) {
                     if cycleGroup.contains(뒷받침) {
                         let next뒷받침 = getNextCycle문자(current: 뒷받침, group: cycleGroup)
@@ -343,7 +338,7 @@ private extension CheonjiinProcessor {
                         if let newCombined종성 = findCombinable종성(앞받침: 앞받침, 뒷받침: next뒷받침),
                            let new종성Index = automata.종성Table.firstIndex(of: newCombined종성),
                            let newChar = automata.combine(초성Index: 초성Index, 중성Index: 중성Index, 종성Index: new종성Index) {
-                            return newText + String(newChar)
+                            return (newText + String(newChar), newCombined종성)
                         }
                     }
                 }
@@ -354,7 +349,7 @@ private extension CheonjiinProcessor {
             let lastString = String(beforeTextLast글자Char)
             if cycleGroup.contains(lastString) {
                 let nextChar = getNextCycle문자(current: lastString, group: cycleGroup)
-                return newText + nextChar
+                return (newText + nextChar, nextChar)
             }
         }
         return nil
@@ -375,7 +370,7 @@ private extension CheonjiinProcessor {
     /// - 예: `ㆍ`+`ㅣ` -> `ㅓ`
     /// - 예: `ㆍ`+`ㆍ` -> `ᆢ`
     /// - 예: `ᆢ`+`ㅡ` -> `ㅛ` (속기 입력)
-    func combine모음(글자input: String, beforeText: String) -> String? {
+    func combine모음(글자input: String, beforeText: String) -> (String, String)? {
         guard let beforeTextLast글자Char = beforeText.last else { return nil }
         var newText = beforeText
         
@@ -450,11 +445,11 @@ private extension CheonjiinProcessor {
         if let (초성Index, _, _) = decomposed {
             if let new모음Index = automata.중성Table.firstIndex(of: result모음),
                let newChar = automata.combine(초성Index: 초성Index, 중성Index: new모음Index, 종성Index: 0) {
-                return newText + String(newChar)
+                return (newText + String(newChar), result모음)
             } else {
                 // 표준 중성 테이블에 없는 경우 (예: 'ᆢ') 자음+모음으로 분리
                 let 초성 = automata.초성Table[초성Index]
-                return newText + 초성 + result모음
+                return (newText + 초성 + result모음, result모음)
             }
         }
         // 2. 낱자 상태였던 경우 (예: 'ㅏ', 'ㆍ', 'ᆢ')
@@ -466,10 +461,9 @@ private extension CheonjiinProcessor {
                let new모음Index = automata.중성Table.firstIndex(of: result모음),
                let combinedChar = automata.combine(초성Index: 초성Index, 중성Index: new모음Index, 종성Index: 0) {
                 newText.removeLast() // 앞의 자음 제거
-                return newText + String(combinedChar) // 합쳐진 글자 반환 ("교")
+                return (newText + String(combinedChar), result모음) // 합쳐진 글자 반환 ("교")
             }
-            // 합칠 자음이 없거나 실패하면 그냥 모음 교체
-            return newText + result모음
+            return (newText + result모음, result모음)
         }
     }
     
