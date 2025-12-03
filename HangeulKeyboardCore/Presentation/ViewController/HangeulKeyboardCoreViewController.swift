@@ -20,9 +20,9 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
     private var lastInputText: String?
     
     /// 나랏글 입력기
-    private lazy var naratgeulProcessor = NaratgeulProcessor()
+    private lazy var naratgeulProcessor: HangeulProcessable = NaratgeulProcessor()
     /// 천지인 입력기
-    private lazy var cheonjiinProcessor = CheonjiinProcessor()
+    private lazy var cheonjiinProcessor: HangeulProcessable = CheonjiinProcessor()
     
     /// 한글 키보드 입력기
     private var processor: HangeulProcessable {
@@ -60,8 +60,8 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
     // MARK: - Initializer
     
     public override init(nibName nibNameOrNil: String?, bundle nibBundleOrNil: Bundle?) {
-        SwitchButton.debugPrimaryLanguage = "ko-KR"
         super.init(nibName: nibNameOrNil, bundle: nibBundleOrNil)
+        SwitchButton.previewPrimaryLanguage = "ko-KR"
     }
     
     @MainActor required public init?(coder: NSCoder) {

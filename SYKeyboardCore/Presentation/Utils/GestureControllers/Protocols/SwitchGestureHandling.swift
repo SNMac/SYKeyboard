@@ -8,7 +8,7 @@
 import UIKit
 
 /// 키보드 전환 버튼 제스처 핸들러 프로토콜
-public protocol SwitchGestureHandling: NormalKeyboardLayoutProvider {
+public protocol SwitchGestureHandling {
     /// 키보드 전환 버튼
     var switchButton: SwitchButton { get }
     /// 키보드 레이아웃 선택 UI
@@ -55,13 +55,5 @@ public extension SwitchGestureHandling {
     func hideOneHandedModeSelectOverlay() {
         oneHandedModeSelectOverlayView.isHidden = true
         oneHandedModeSelectOverlayView.resetLastEmphasizeMode()
-    }
-    
-    func enableAllButtonUserInteraction() {
-        allButtonList.forEach { $0.isUserInteractionEnabled = true }
-    }
-    
-    func disableAllButtonUserInteraction() {
-        allButtonList.forEach { $0.isUserInteractionEnabled = false }
     }
 }

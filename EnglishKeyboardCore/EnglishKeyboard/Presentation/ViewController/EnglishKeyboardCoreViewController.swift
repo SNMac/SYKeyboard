@@ -26,7 +26,7 @@ open class EnglishKeyboardCoreViewController: BaseKeyboardViewController {
     // MARK: - Initializer
     
     public override init(nibName nibNameOrNil: String?, bundle nibBundleOrNil: Bundle?) {
-        SwitchButton.debugPrimaryLanguage = "en-US"
+        SwitchButton.previewPrimaryLanguage = "en-US"
         super.init(nibName: nibNameOrNil, bundle: nibBundleOrNil)
     }
     
