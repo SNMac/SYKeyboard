@@ -402,22 +402,28 @@ direction LR
       class EnglishKeyboardViewController
     }
 
-    class SwitchGestureHandling:::SYKeyboard_primary { <<protocol>> }
+    class NormalKeyboardLayoutProvider:::SYKeyboard_primary { <<protocol>> }
     class PrimaryKeyboardRepresentable:::SYKeyboard_primary { <<protocol>> }
     class HangeulKeyboardLayoutProvider:::SYKeyboard_primary { <<protocol>> }
     class EnglishKeyboardLayoutProvider:::SYKeyboard_primary { <<protocol>> }
     class SymbolKeyboardLayoutProvider:::SYKeyboard_primary { <<protocol>> }
     class NumericKeyboardLayoutProvider:::SYKeyboard_primary { <<protocol>> }
     class TenkeyKeyboardLayoutProvider:::SYKeyboard_primary { <<protocol>> }
+    class SwitchGestureHandling:::SYKeyboard_primary { <<protocol>> }
 
     BaseKeyboardViewController --> PrimaryKeyboardRepresentable: Association
     BaseKeyboardViewController *-- SymbolKeyboardLayoutProvider: Composition
     BaseKeyboardViewController *-- NumericKeyboardLayoutProvider: Composition
     BaseKeyboardViewController *-- TenkeyKeyboardLayoutProvider: Composition
 
+    NormalKeyboardLayoutProvider <|-- PrimaryKeyboardRepresentable: Inheritance
+    NormalKeyboardLayoutProvider <|-- SymbolKeyboardLayoutProvider: Inheritance
+    NormalKeyboardLayoutProvider <|-- NumericKeyboardLayoutProvider: Inheritance
+
     BaseKeyboardViewController *-- TextInteractionGestureController: Composition
     BaseKeyboardViewController *-- SwitchGestureController: Composition
 
+    SwitchGestureHandling <|-- NormalKeyboardLayoutProvider: Inheritance
     SwitchGestureController --> SwitchGestureHandling: Association
 
     BaseKeyboardViewController <|-- HangeulKeyboardViewController: Inheritance
@@ -498,10 +504,11 @@ direction LR
     TenkeyKeyboardLayoutProvider ..|> TenkeyKeyboardView: Implementation
 
     PrimaryKeyboardRepresentable <|-- HangeulKeyboardLayoutProvider: Inheritance
-    HangeulKeyboardLayoutProvider ..|> FourByFourKeyboardView: Implementation
 
     FourByFourKeyboardView <|-- NaratgeulKeyboardView: Inheritance
+    HangeulKeyboardLayoutProvider <|.. NaratgeulKeyboardView: Implementation
     FourByFourPlusKeyboardView <|-- CheonjiinKeyboardView: Inheritance
+    HangeulKeyboardLayoutProvider <|.. CheonjiinKeyboardView: Implementation
 
     PrimaryKeyboardRepresentable <|-- EnglishKeyboardLayoutProvider: Inheritance
 
