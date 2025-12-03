@@ -15,10 +15,10 @@ struct AppearanceSettingsView: View {
     
     // MARK: - Properties
     
-    @AppStorage(UserDefaultsKeys.isNumericKeypadEnabled, store: UserDefaults(suiteName: DefaultValues.groupBundleID))
+    @AppStorage(UserDefaultsKeys.isNumericKeypadEnabled, store: UserDefaultsManager.shared.storage)
     private var isNumericKeypadEnabled = DefaultValues.isNumericKeypadEnabled
     
-    @AppStorage(UserDefaultsKeys.isOneHandedKeyboardEnabled, store: UserDefaults(suiteName: DefaultValues.groupBundleID))
+    @AppStorage(UserDefaultsKeys.isOneHandedKeyboardEnabled, store: UserDefaultsManager.shared.storage)
     private var isOneHandedKeyboardEnabled = DefaultValues.isOneHandedKeyboardEnabled
     
     // MARK: - Contents

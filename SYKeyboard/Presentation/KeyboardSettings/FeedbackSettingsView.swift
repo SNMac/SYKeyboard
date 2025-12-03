@@ -17,10 +17,10 @@ struct FeedbackSettingsView: View {
     
     // MARK: - Properties
     
-    @AppStorage(UserDefaultsKeys.isSoundFeedbackEnabled, store: UserDefaults(suiteName: DefaultValues.groupBundleID))
+    @AppStorage(UserDefaultsKeys.isSoundFeedbackEnabled, store: UserDefaultsManager.shared.storage)
     private var isSoundFeedbackEnabled = DefaultValues.isSoundFeedbackEnabled
     
-    @AppStorage(UserDefaultsKeys.isHapticFeedbackEnabled, store: UserDefaults(suiteName: DefaultValues.groupBundleID))
+    @AppStorage(UserDefaultsKeys.isHapticFeedbackEnabled, store: UserDefaultsManager.shared.storage)
     private var isHapticFeedbackEnabled = DefaultValues.isHapticFeedbackEnabled
     
     // MARK: - Contents

@@ -15,10 +15,10 @@ struct CursorMovementSettingsView: View {
     
     // MARK: - Properties
     
-    @AppStorage(UserDefaultsKeys.cursorActiveDistance, store: UserDefaults(suiteName: DefaultValues.groupBundleID))
+    @AppStorage(UserDefaultsKeys.cursorActiveDistance, store: UserDefaultsManager.shared.storage)
     private var cursorActiveDistance = DefaultValues.cursorActiveDistance
     
-    @AppStorage(UserDefaultsKeys.cursorMoveInterval, store: UserDefaults(suiteName: DefaultValues.groupBundleID))
+    @AppStorage(UserDefaultsKeys.cursorMoveInterval, store: UserDefaultsManager.shared.storage)
     private var cursorMoveInterval = DefaultValues.cursorMoveInterval
     
     // MARK: - Contents

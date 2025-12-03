@@ -16,7 +16,7 @@ struct HangeulKeyboardSelectView: View {
     
     // MARK: - Properties
     
-    @AppStorage(UserDefaultsKeys.selectedHangeulKeyboard, store: UserDefaults(suiteName: DefaultValues.groupBundleID))
+    @AppStorage(UserDefaultsKeys.selectedHangeulKeyboard, store: UserDefaultsManager.shared.storage)
     private var selectedHangeulKeyboard = DefaultValues.selectedHangeulKeyboard
     
     enum HangeulKeyboard: Int, CaseIterable {
