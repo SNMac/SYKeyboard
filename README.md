@@ -381,7 +381,6 @@ direction LR
     }
 
     namespace KeyboardGestureProtocol {
-      class TextInteractionGestureHandling
       class SwitchGestureHandling
     }
 
@@ -402,7 +401,6 @@ direction LR
       class EnglishKeyboardViewController
     }
 
-    class TextInteractionGestureHandling:::SYKeyboard_primary { <<protocol>> }
     class SwitchGestureHandling:::SYKeyboard_primary { <<protocol>> }
     class PrimaryKeyboardRepresentable:::SYKeyboard_primary { <<protocol>> }
     class HangeulKeyboardLayoutProvider:::SYKeyboard_primary { <<protocol>> }
@@ -419,7 +417,6 @@ direction LR
     BaseKeyboardViewController *-- TextInteractionGestureController: Composition
     BaseKeyboardViewController *-- SwitchGestureController: Composition
 
-    TextInteractionGestureController ..> TextInteractionGestureHandling: Dependency
     SwitchGestureController --> SwitchGestureHandling: Association
 
     BaseKeyboardViewController <|-- HangeulKeyboardViewController: Inheritance
@@ -455,7 +452,6 @@ classDiagram
 direction LR
     %% Keyboard Layout
     namespace KeyboardGestureProtocol {
-      class TextInteractionGestureHandling
       class SwitchGestureHandling
     }
 
@@ -469,6 +465,7 @@ direction LR
 
     namespace ParentKeyboardView {
       class FourByFourKeyboardView
+      class FourByFourPlusKeyboardView
       class StandardKeyboardView
     }
 
@@ -483,7 +480,6 @@ direction LR
 
     class BaseKeyboardLayoutProvider:::SYKeyboard_primary { <<protocol>> }
     class NormalKeyboardLayoutProvider:::SYKeyboard_primary { <<protocol>> }
-    class TextInteractionGestureHandling:::SYKeyboard_primary { <<protocol>> }
     class SwitchGestureHandling:::SYKeyboard_primary { <<protocol>> }
     class PrimaryKeyboardRepresentable:::SYKeyboard_primary { <<protocol>> }
     class HangeulKeyboardLayoutProvider:::SYKeyboard_primary { <<protocol>> }
@@ -493,36 +489,28 @@ direction LR
     class TenkeyKeyboardLayoutProvider:::SYKeyboard_primary { <<protocol>> }
 
     BaseKeyboardLayoutProvider <|-- NormalKeyboardLayoutProvider: Inheritance
+    SwitchGestureHandling <|-- NormalKeyboardLayoutProvider: Inheritance
     BaseKeyboardLayoutProvider <|-- TenkeyKeyboardLayoutProvider: Inheritance
 
-    NormalKeyboardLayoutProvider <|-- PrimaryKeyboardRepresentable: Inheritance
     NormalKeyboardLayoutProvider <|-- PrimaryKeyboardRepresentable: Inheritance
 
     TenkeyKeyboardLayoutProvider ..|> TenkeyKeyboardView: Implementation
 
     PrimaryKeyboardRepresentable <|-- HangeulKeyboardLayoutProvider: Inheritance
-    TextInteractionGestureHandling <|-- HangeulKeyboardLayoutProvider: Inheritance
-    SwitchGestureHandling <|-- HangeulKeyboardLayoutProvider: Inheritance
     HangeulKeyboardLayoutProvider ..|> FourByFourKeyboardView: Implementation
 
     FourByFourKeyboardView <|-- NaratgeulKeyboardView: Inheritance
-    FourByFourKeyboardView <|-- CheonjiinKeyboardView: Inheritance
+    FourByFourPlusKeyboardView <|-- CheonjiinKeyboardView: Inheritance
 
     PrimaryKeyboardRepresentable <|-- EnglishKeyboardLayoutProvider: Inheritance
 
-    TextInteractionGestureHandling <|-- EnglishKeyboardLayoutProvider: Inheritance
-    SwitchGestureHandling <|-- EnglishKeyboardLayoutProvider: Inheritance
     EnglishKeyboardLayoutProvider ..|> EnglishKeyboardView: Implementation
     StandardKeyboardView <|-- EnglishKeyboardView: Inheritance
 
     NormalKeyboardLayoutProvider <|-- SymbolKeyboardLayoutProvider: Inheritance
-    TextInteractionGestureHandling <|-- SymbolKeyboardLayoutProvider: Inheritance
-    SwitchGestureHandling <|-- SymbolKeyboardLayoutProvider: Inheritance
     SymbolKeyboardLayoutProvider ..|> SymbolKeyboardView: Implementation
 
     NormalKeyboardLayoutProvider <|-- NumericKeyboardLayoutProvider: Inheritance
-    TextInteractionGestureHandling <|-- NumericKeyboardLayoutProvider: Inheritance
-    SwitchGestureHandling <|-- NumericKeyboardLayoutProvider: Inheritance
     NumericKeyboardLayoutProvider ..|> NumericKeyboardView: Implementation
     
     classDef SYKeyboard_primary fill:#ffa6ed
@@ -601,33 +589,56 @@ direction LR
 
 ## 📱 주요 기능
 1. **나랏글 키보드**  
-기본에 충실한 나랏글 키보드입니다.
+기본에 충실한 나랏글(EZ한글) 키보드입니다.
 
-<img src = "https://github.com/user-attachments/assets/4c27c194-2ae4-4489-bd39-d927ce6563bf" width ="250">
+<img src = "https://github.com/user-attachments/assets/82f8f17e-821f-4680-be27-fa55c4bd908b" width ="250">
 
 <br><br>
 
 
-2. **숫자 키패드 탑재**  
-숫자를 입력할 때 큰 버튼으로 편하게 입력할 수 있는 숫자 전용 키패드를 탑재했습니다.
+2. **천지인 키보드**  
+입력이 편리한 천지인 키보드입니다.
 
-<img src="https://github.com/user-attachments/assets/195133c7-a7d9-44a8-af03-b409efd88788" width="250">
+<img src = "https://github.com/user-attachments/assets/8f7fb0bf-3e14-4929-b55b-c00884f5ddd7" width ="250">
+
+<br><br>
+
+
+3. **두벌식 키보드**
+대중적인 두벌식(한글 쿼티) 키보드입니다.
+(구현 예정)
+
+<br><br>
+
+
+4. **영어 키보드**
+대중적인 영어(QWERTY) 키보드입니다.
+
+<img src = "https://github.com/user-attachments/assets/b918f869-a23a-4c0c-953d-7a6a1363b654" width ="250">
+
+<br><br>
+
+
+5. **숫자 키패드 탑재**  
+숫자를 입력할 때 큰 버튼으로 편하게 입력할 수 있는 숫자 입력 전용 키패드를 탑재했습니다.
+
+<img src="https://github.com/user-attachments/assets/99b11dac-2761-42d2-a54f-d5e440c421cb" width="250">
     
 <br><br>
 
 
-3. **한 손 키보드 모드**  
+6. **한 손 키보드 모드**  
 한 손으로 폰을 들고 있는 상태에서도 입력하기 수월하도록 한 손 키보드 모드를 제공합니다.
 
-<img src="https://github.com/user-attachments/assets/45a6282e-9438-4bdd-af69-eec1541a53b4" width="250">
+<img src="https://github.com/user-attachments/assets/8854953a-d0bd-4615-ad04-caa5c620e3db" width="250">
 
 <br><br>
 
 
-4. **다양하고 디테일한 키보드 설정**  
-반복 입력, 커서 이동, 키보드 높이 및 한 손 키보드 너비 조절 등 사용자의 편의에 맞게 키보드 설정이 가능합니다.
+7. **다양하고 디테일한 키보드 설정**  
+길게 누르기 동작, 커서 이동, 키보드 높이 및 한 손 키보드 너비 조절 등 사용자의 편의에 맞게 키보드 설정이 가능합니다.
 
-<img src="https://github.com/user-attachments/assets/a27ee88f-75db-4b3f-82d8-99543718bb71" width="250">
+<img src="https://github.com/user-attachments/assets/7163eff8-046c-4c2d-a2d9-1d635dac2cca" width="250">
 
 <br><br>
 
