@@ -23,7 +23,7 @@ final class FeedbackManager {
     private lazy var logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: String(describing: self))
     
     /// 햅틱 피드백 생성기
-    private let generator = UIImpactFeedbackGenerator(style: .light)
+    private let lightFeedbackGenerator = UIImpactFeedbackGenerator(style: .light)
     /// 키 입력 버튼 사운드
     private let keyTypingSoundID: SystemSoundID = 1104
     /// 삭제 버튼 사운드
@@ -35,22 +35,21 @@ final class FeedbackManager {
     
     /// 탭틱 엔진 준비
     func prepareHaptic() {
-        generator.prepare()
+        lightFeedbackGenerator.prepare()
     }
     
     /// 햅틱 피드백 재생
     func playHaptic(_ style: UIImpactFeedbackGenerator.FeedbackStyle = .light, isForcing: Bool = false) {
-        if UserDefaultsManager.shared.isHapticFeedbackEnabled || isForcing {
-            if style != .light {
-                let tempGenerator = UIImpactFeedbackGenerator(style: style)
-                tempGenerator.impactOccurred()
-                tempGenerator.prepare()
-                logger.debug("커스텀 햅틱 피드백 재생")
-            } else {
-                generator.impactOccurred()
-                generator.prepare()
-                logger.debug("light 햅틱 피드백 재생")
-            }
+        guard UserDefaultsManager.shared.isHapticFeedbackEnabled || isForcing else { return }
+        if style != .light {
+            let tempFeedbackGenerator = UIImpactFeedbackGenerator(style: style)
+            tempFeedbackGenerator.impactOccurred()
+            tempFeedbackGenerator.prepare()
+            logger.debug("커스텀 햅틱 피드백 재생")
+        } else {
+            lightFeedbackGenerator.impactOccurred()
+            lightFeedbackGenerator.prepare()
+            logger.debug("light 햅틱 피드백 재생")
         }
     }
     
@@ -58,25 +57,26 @@ final class FeedbackManager {
     
     /// 키 입력 사운드 재생
     func playKeyTypingSound() {
-        if UserDefaultsManager.shared.isSoundFeedbackEnabled {
-            AudioServicesPlaySystemSound(keyTypingSoundID)
-            logger.debug("키 입력 사운드 재생")
-        }
+        playSound(keyTypingSoundID, description: "키 입력")
     }
     
     /// 삭제 사운드 재생
     func playDeleteSound() {
-        if UserDefaultsManager.shared.isSoundFeedbackEnabled {
-            AudioServicesPlaySystemSound(deleteSoundID)
-            logger.debug("삭제 사운드 재생")
-        }
+        playSound(deleteSoundID, description: "삭제")
     }
     
     /// 모디파이어 사운드 재생
     func playModifierSound() {
-        if UserDefaultsManager.shared.isSoundFeedbackEnabled {
-            AudioServicesPlaySystemSound(modifierSoundID)
-            logger.debug("모디파이어 사운드 재생")
-        }
+        playSound(modifierSoundID, description: "모디파이어")
+    }
+}
+
+// MARK: - Private Methods
+
+private extension FeedbackManager {
+    func playSound(_ soundID: SystemSoundID, description: String) {
+        guard UserDefaultsManager.shared.isSoundFeedbackEnabled else { return }
+        AudioServicesPlaySystemSound(soundID)
+        logger.debug("\(description) 사운드 재생")
     }
 }
