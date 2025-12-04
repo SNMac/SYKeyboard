@@ -14,8 +14,6 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
     
     // MARK: - Properties
     
-    private let selectedHangeulKeyboard = UserDefaultsManager.shared.selectedHangeulKeyboard
-    
     /// 입력한 문자열 임시저장 버퍼
     private var buffer: String = ""
     /// 마지막으로 입력한 문자
@@ -28,7 +26,7 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
     
     /// 한글 키보드 입력기
     private var processor: HangeulProcessable {
-        switch selectedHangeulKeyboard {
+        switch UserDefaultsManager.shared.selectedHangeulKeyboard {
         case .naratgeul:
             return naratgeulProcessor
         case .cheonjiin:
@@ -47,7 +45,7 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
     
     /// 사용자가 선택한 한글 키보드
     private var hangeulKeyboardView: HangeulKeyboardLayoutProvider {
-        switch selectedHangeulKeyboard {
+        switch UserDefaultsManager.shared.selectedHangeulKeyboard {
         case .naratgeul:
             return naratgeulKeyboardView
         case .cheonjiin:
