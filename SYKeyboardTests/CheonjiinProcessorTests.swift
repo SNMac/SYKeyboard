@@ -75,7 +75,7 @@ struct CheonjiinProcessorTests {
         ]
     }
     
-    // MARK: - 1. 자음 순환 테스트 (기존 동일)
+    // MARK: - 1. 자음 순환 테스트
     @Test("자음 순환: ㄱ 계열")
     func test자음순환_ㄱ계열() {
         var text = ""
@@ -280,6 +280,101 @@ struct CheonjiinProcessorTests {
         }
         
         #expect(failureCount == 0, "오류 발생: \(failureCount)건")
+    }
+    
+    // MARK: - 7. 연음 법칙 및 특수 조합 테스트
+    
+    @Test("겹받침 연음: 닭 + ㆍ -> 닭ㆍ (지연) -> + ㅣ -> 달거")
+    func test연음_겹받침_닭() {
+        var text = ""
+        // 닭 만들기
+        text = input("ㄷ", to: text)
+        text = input("ㅣ", to: text)
+        text = input("ㆍ", to: text) // 다
+        text = input("ㄹ", to: text) // 달
+        text = input("ㄱ", to: text) // 닭 (ㄺ)
+        #expect(text == "닭")
+        
+        // 닭 + ㆍ -> 닭ㆍ (연음 지연, 단순히 ㆍ 추가)
+        text = input("ㆍ", to: text)
+        #expect(text == "닭ㆍ")
+        
+        // 닭ㆍ + ㅣ -> 달거 (ㆍ + ㅣ = ㅓ 가 되면서 연음 발생)
+        text = input("ㅣ", to: text)
+        #expect(text == "달거")
+    }
+    
+    @Test("홑받침 연음: 안 + ㆍ -> 안ㆍ (지연) -> + ㆍ + ㅡ -> 아뇨")
+    func testScenario_아뇨() {
+        var text = ""
+        // 안
+        text = input("ㅇ", to: text)
+        text = input("ㅣ", to: text)
+        text = input("ㆍ", to: text) // 아
+        text = input("ㄴ", to: text) // 안
+        #expect(text == "안")
+        
+        // 안 + ㆍ -> 안ㆍ (지연)
+        text = input("ㆍ", to: text)
+        #expect(text == "안ㆍ")
+        
+        // 안ㆍ + ㆍ -> 안ᆢ (모음 조합: ㆍ + ㆍ = ᆢ)
+        text = input("ㆍ", to: text)
+        #expect(text == "안ᆢ")
+        
+        // 안ᆢ + ㅡ -> 아뇨 (모음 조합: ᆢ + ㅡ = ㅛ, 이때 연음 발생)
+        text = input("ㅡ", to: text)
+        #expect(text == "아뇨")
+    }
+    
+    @Test("일반 연음: 안 + ㅣ -> 아니")
+    func test연음_일반_아니() {
+        var text = input("ㅇ", to: "")
+        text = input("ㅣ", to: text)
+        text = input("ㆍ", to: text) // 아
+        text = input("ㄴ", to: text) // 안
+        
+        // 안 + ㅣ -> 아니 (바로 연음)
+        text = input("ㅣ", to: text)
+        #expect(text == "아니")
+    }
+    
+    // MARK: - 8. 삭제 시 종성 복원 테스트
+    
+    @Test("종성 복원: 달거 -> (삭제) -> 닭")
+    func test삭제_종성복원_달거_닭() {
+        var text = ""
+        // 1. 달거 입력 (ㄷ ㅏ ㄹ ㄱ ㅓ)
+        // 닭(ㄷㅏㄹㄱ) + ㅓ -> 달거
+        text = input("ㄷ", to: text)
+        text = input("ㅣ", to: text)
+        text = input("ㆍ", to: text) // 다
+        text = input("ㄹ", to: text) // 달
+        text = input("ㄱ", to: text) // 닭
+        text = input("ㅓ", to: text) // 달거
+        #expect(text == "달거")
+        
+        // 2. 삭제 1회: 'ㅓ' 삭제 -> 'ㄱ'이 남음 -> '달'과 결합 -> '닭'
+        text = processor.delete(beforeText: text)
+        #expect(text == "닭")
+        
+        // 3. 삭제 2회: '닭'의 'ㄱ' 삭제 -> '달' (겹받침 분해)
+        text = processor.delete(beforeText: text)
+        #expect(text == "달")
+    }
+    
+    @Test("종성 복원: 가니 -> (삭제) -> 간")
+    func test삭제_종성복원_가니_간() {
+        var text = ""
+        text = input("ㄱ", to: text)
+        text = input("ㅏ", to: text) // 가
+        text = input("ㄴ", to: text) // 간
+        text = input("ㅣ", to: text) // 가니
+        #expect(text == "가니")
+        
+        // 삭제: 'ㅣ' 삭제 -> 'ㄴ' 남음 -> '가'와 결합 -> '간'
+        text = processor.delete(beforeText: text)
+        #expect(text == "간")
     }
 }
 

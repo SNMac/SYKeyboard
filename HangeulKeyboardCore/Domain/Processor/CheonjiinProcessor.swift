@@ -203,11 +203,12 @@ final class CheonjiinProcessor: HangeulProcessable {
                 }
                 return newText
             } else {
-                // [통째 삭제] 테이블에 없는 기본 모음(ㅏ, ㅑ 등)은 중성 자체를 삭제
+                // 테이블에 없는 기본 모음(ㅏ, ㅑ 등)은 중성 자체를 삭제
                 // 예: '가' -> 'ㄱ'
                 newText.removeLast()
-                newText.append(automata.초성Table[초성Index])
-                return newText
+                let 초성 = automata.초성Table[초성Index]
+                // 초성만 남았으므로, 앞 글자의 받침으로 복원 시도
+                return restore종성(beforeText: newText, charToRestore: 초성)
             }
         }
         
@@ -377,8 +378,17 @@ private extension CheonjiinProcessor {
         let decomposed = automata.decompose(한글Char: beforeTextLast글자Char)
         let has종성 = (decomposed?.종성Index ?? 0) != 0
         
-        // 종성이 있으면 모음 조합 불가
-        if has종성 { return nil }
+        // [1] 종성이 있는 경우 (수정된 부분)
+        if has종성 {
+            if 글자input == 아래아문자 {
+                // "닭" + "ㆍ" -> "닭ㆍ" (연음 지연, 단순 추가)
+                return nil
+            } else {
+                // "닭" + "ㅏ"(ㅣ + ㆍ) 등 -> "달가" (연음 처리)
+                newText.removeLast()
+                return move종성AndCombine(lastChar: beforeTextLast글자Char, 글자input: 글자input, beforeText: newText)
+            }
+        }
         
         // 현재 중성(모음) 가져오기
         var current모음: String?
@@ -410,10 +420,10 @@ private extension CheonjiinProcessor {
         case ("ㅗ", 아래아문자): next모음 = "ㅛ"
             
             // [3] 쌍아래아(ᆢ) 기반 조합 (속기)
-        case (아래아문자, 아래아문자): next모음 = 쌍아래아문자 // ㆍ+ㆍ=ᆢ
-        case (쌍아래아문자, "ㅣ"): next모음 = "ㅕ" // ᆢ+ㅣ=ㅕ
-        case (쌍아래아문자, "ㅡ"): next모음 = "ㅛ" // ᆢ+ㅡ=ㅛ (교 입력 지원)
-        case ("ㅣ", 쌍아래아문자): next모음 = "ㅑ" // ㅣ+ᆢ=ㅑ (대칭)
+        case (아래아문자, 아래아문자): next모음 = 쌍아래아문자 // ㆍ + ㆍ = ᆢ
+        case (쌍아래아문자, "ㅣ"): next모음 = "ㅕ" // ᆢ + ㅣ = ㅕ
+        case (쌍아래아문자, "ㅡ"): next모음 = "ㅛ" // ᆢ + ㅡ = ㅛ (교 입력 지원)
+        case ("ㅣ", 쌍아래아문자): next모음 = "ㅑ" // ㅣ + ᆢ = ㅑ (대칭)
             
             // [4] 복합 모음 (ㅏ+ㅣ=ㅐ 등)
         case ("ㅏ", "ㅣ"): next모음 = "ㅐ"
@@ -432,7 +442,7 @@ private extension CheonjiinProcessor {
             
             // [5] 기타
         case ("ㅡ", "ㅣ"): next모음 = "ㅢ"
-        case (쌍아래아문자, 아래아문자): next모음 = 아래아문자 // ᆢ+ㆍ=ㆍ (순환)
+        case (쌍아래아문자, 아래아문자): next모음 = 아래아문자 // ᆢ + ㆍ = ㆍ (순환)
             
         default: return nil
         }
@@ -454,6 +464,19 @@ private extension CheonjiinProcessor {
         }
         // 2. 낱자 상태였던 경우 (예: 'ㅏ', 'ㆍ', 'ᆢ')
         else {
+            // 지연된 연음 처리
+            // 조건: 앞 글자에 받침이 있고 && 만들어진 모음이 '표준 모음'일 때만 연음 수행
+            // (즉, "ㆍ", "ᆢ" 상태에서는 연음하지 않고 그냥 붙임)
+            if let prevChar = newText.last,
+               let (_, _, prev종성) = automata.decompose(한글Char: prevChar),
+               prev종성 != 0,
+               automata.중성Table.contains(result모음) { // <-- 표준 모음인지 확인
+                
+                newText.removeLast()
+                // 앞 글자의 종성을 분리하여 새로운 모음과 결합
+                return move종성AndCombine(lastChar: prevChar, 글자input: result모음, beforeText: newText)
+            }
+            
             // 낱자 모음을 바꾼 뒤, 바로 앞글자가 자음(초성)이라면 합치기 시도
             // 예: "ㄱ" + "ᆢ" 상태에서 "ᆢ"가 "ㅛ"로 바뀌면 -> "ㄱ" + "ㅛ" -> "교"
             if let prevChar = newText.last,
@@ -465,6 +488,40 @@ private extension CheonjiinProcessor {
             }
             return (newText + result모음, result모음)
         }
+    }
+    
+    /// 받침이 있는 글자에 모음 입력 시, 받침을 뒤로 넘겨서 결합합니다.
+    /// 예: "안" + "ㆍ" -> "아" + "ㄴㆍ"
+    /// 예: "닭" + "ㅏ" -> "달" + "가"
+    func move종성AndCombine(lastChar: Character, 글자input: String, beforeText: String) -> (String, String)? {
+        guard let (초성Index, 중성Index, 종성Index) = automata.decompose(한글Char: lastChar) else { return nil }
+        let 종성 = automata.종성Table[종성Index]
+        
+        var prevChar: Character?
+        var movedChar: String = ""
+        
+        // 1. 겹받침인 경우 (예: 닭 -> ㄹ, ㄱ)
+        if let (앞받침, 뒷받침) = automata.decompose겹받침(종성: 종성) {
+            // 앞받침은 남기고(달), 뒷받침은 이동(ㄱ)
+            if let 앞받침Index = automata.종성Table.firstIndex(of: 앞받침) {
+                prevChar = automata.combine(초성Index: 초성Index, 중성Index: 중성Index, 종성Index: 앞받침Index)
+                movedChar = 뒷받침
+            }
+        } else {
+            // 홑받침인 경우 (예: 안 -> 아, ㄴ)
+            // 받침 제거(아), 받침 이동(ㄴ)
+            prevChar = automata.combine(초성Index: 초성Index, 중성Index: 중성Index, 종성Index: 0)
+            movedChar = 종성
+        }
+        
+        guard let prevChar else { return nil }
+        
+        // 2. 이동한 자음과 입력된 모음 결합
+        // automata.add글자를 사용하여 표준 결합(ㄴ+ㅣ=니)과 단순 붙이기(ㄴ+ㆍ=ㄴㆍ)를 모두 처리
+        let newBlock = automata.add글자(글자Input: 글자input, beforeText: movedChar)
+        
+        // 전체 문자열 재조립
+        return (beforeText + String(prevChar) + newBlock, 글자input)
     }
     
     /// 완성된 글자에서 마지막으로 변경된/추가된 자소만 추출합니다.
@@ -486,5 +543,43 @@ private extension CheonjiinProcessor {
         
         // 2. 완성형 한글이 아닌 낱자(예: 'ㄱ', 'ㅏ')인 경우 그대로 반환
         return String(lastChar)
+    }
+    
+    // 초성만 남은 글자를 앞 글자의 받침으로 복원합니다.
+    /// 예: "달" + "ㄱ" -> "닭"
+    /// 예: "가" + "ㄴ" -> "간"
+    func restore종성(beforeText: String, charToRestore: String) -> String {
+        guard let lastChar = beforeText.last else { return beforeText + charToRestore }
+        
+        // 1. 앞 글자가 완성형이고 받침이 없는 경우 (예: "가" + "ㄴ")
+        // 또는 홑받침이 있는데 겹받침이 가능한 경우 (예: "달" + "ㄱ")
+        if let (초성Index, 중성Index, 종성Index) = automata.decompose(한글Char: lastChar) {
+            let current종성 = automata.종성Table[종성Index]
+            
+            // A. 받침 없음 + 자음 -> 홑받침 결합 (가 + ㄴ -> 간)
+            if 종성Index == 0 {
+                if let new종성Index = automata.종성Table.firstIndex(of: charToRestore),
+                   let newChar = automata.combine(초성Index: 초성Index, 중성Index: 중성Index, 종성Index: new종성Index) {
+                    var newText = beforeText
+                    newText.removeLast()
+                    newText.append(newChar)
+                    return newText
+                }
+            }
+            // B. 홑받침 + 자음 -> 겹받침 결합 (달 + ㄱ -> 닭)
+            else {
+                if let combined종성 = findCombinable종성(앞받침: current종성, 뒷받침: charToRestore),
+                   let new종성Index = automata.종성Table.firstIndex(of: combined종성),
+                   let newChar = automata.combine(초성Index: 초성Index, 중성Index: 중성Index, 종성Index: new종성Index) {
+                    var newText = beforeText
+                    newText.removeLast()
+                    newText.append(newChar)
+                    return newText
+                }
+            }
+        }
+        
+        // 복원 불가능하면 그냥 자음 추가 (예: "각" + "ㄱ" -> "각ㄱ")
+        return beforeText + charToRestore
     }
 }
