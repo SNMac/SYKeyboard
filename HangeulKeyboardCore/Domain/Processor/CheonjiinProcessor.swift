@@ -71,7 +71,7 @@ final class CheonjiinProcessor: HangeulProcessable {
         // ㅡ 계열
         "ㅡ": ["ㆍ": "ㅜ", "ㅣ": "ㅢ"],
         "ㅜ": ["ㆍ": "ㅠ", "ㅣ": "ㅟ", "ㅓ": "ㅝ", "ㅔ": "ㅞ"],
-        "ㅠ": ["ㅣ": "ㅝ"], // 천지인 예외 규칙 (ㅠ+ㅣ=ㅝ)
+        "ㅠ": ["ㅣ": "ㅝ"],
         
         // ㅗ 계열
         "ㅗ": ["ㅣ": "ㅚ", "ㅏ": "ㅘ", "ㅐ": "ㅙ", "ㆍ": "ㅛ"],
@@ -182,9 +182,9 @@ final class CheonjiinProcessor: HangeulProcessable {
                 let prefix = String(deletedText.dropLast())
                 
                 // 앞 글자가 확정된 영역이 아닐 때만 합치기 시도
-                let isTouchingCommittedText = (prefix.count < committedLength)
+                let isInsideCommittedArea = (prefix.count <= committedLength)
                 
-                if !isTouchingCommittedText,
+                if !isInsideCommittedArea,
                    let prefixLast = prefix.last,
                    let _ = automata.decompose(한글Char: prefixLast) {
                      
@@ -266,65 +266,72 @@ private extension CheonjiinProcessor {
     func cycle자음(inputKey: String, cycleList: [String], beforeText: String) -> (String, String?) {
         guard !beforeText.isEmpty else { return (beforeText + inputKey, inputKey) }
         
-        // 분해 로직: 순환 대상이 되는 자소를 찾아내고(target), 나머지(base)와 분리합니다.
-        var baseText = beforeText
+        // [Step 1] 영역 분리 (Isolation)
+        // 오토마타가 확정된 글자('달')를 보지 못하게 아예 잘라냅니다.
+        // 예: beforeText="달ㅇ", committedLength=1
+        // -> committedPrefix = "달"
+        // -> editableSuffix = "ㅇ"
+        let splitIndex = beforeText.index(beforeText.startIndex, offsetBy: committedLength)
+        let committedPrefix = String(beforeText[..<splitIndex])
+        let editableSuffix = String(beforeText[splitIndex...])
+        
+        // 편집할 글자가 없으면(방어코드) 그냥 추가
+        if editableSuffix.isEmpty {
+            return (beforeText + inputKey, inputKey)
+        }
+        
+        // [Step 2] 편집 영역(Suffix) 내에서만 순환 로직 수행
+        var baseText = editableSuffix
         var targetCharString = ""
         
         let lastChar = baseText.last!
         let lastCharString = String(lastChar)
         
-        // Case A: 낱자 자음 순환
-        // 예: 화면 "ㄱ" (inputKey "ㄱ") -> "ㅋ"
+        // A. 낱자 순환
         if cycleList.contains(lastCharString) {
             baseText.removeLast()
             targetCharString = lastCharString
         }
-        // Case B: 종성(받침) 순환
-        else if let (초성Index, 중성Index, 종성Index) = automata.decompose(한글Char: lastChar), 종성Index != 0 {
-            let current종성 = automata.종성Table[종성Index]
+        // B. 종성 순환
+        else if let (초, 중, 종) = automata.decompose(한글Char: lastChar), 종 != 0 {
+            let current종성 = automata.종성Table[종]
             
-            // B-1. 홑받침 순환
-            // 예: "각" 상태에서 입력 -> "갘"
             if cycleList.contains(current종성) {
                 baseText.removeLast()
-                // 받침을 제거한 글자를 baseText에 복원
-                if let baseChar = automata.combine(초성Index: 초성Index, 중성Index: 중성Index, 종성Index: 0) {
+                if let baseChar = automata.combine(초성Index: 초, 중성Index: 중, 종성Index: 0) {
                     baseText.append(baseChar)
                 }
                 targetCharString = current종성
             }
-            // B-2. 겹받침 뒷부분 순환
-            // 예: 갋(ㄹ,ㅂ) + ㅂ 입력 -> ㅂ이 ㅍ으로 순환 -> ㄹ+ㅍ=ㄿ -> 갎
             else if let (앞받침, 뒷받침) = automata.decompose겹받침(종성: current종성),
                     cycleList.contains(뒷받침) {
-                
-                // 베이스를 앞받침만 있는 상태(예: '갈')로 되돌림
                 baseText.removeLast()
-                if let 앞받침Index = automata.종성Table.firstIndex(of: 앞받침),
-                   let baseChar = automata.combine(초성Index: 초성Index, 중성Index: 중성Index, 종성Index: 앞받침Index) {
+                if let 앞받침Idx = automata.종성Table.firstIndex(of: 앞받침),
+                   let baseChar = automata.combine(초성Index: 초, 중성Index: 중, 종성Index: 앞받침Idx) {
                     baseText.append(baseChar)
-                    targetCharString = 뒷받침 // 순환할 대상은 뒷받침(예: 'ㅂ')
+                    targetCharString = 뒷받침
                 }
             }
         }
         
-        // 순환할 대상을 찾지 못한 경우 (즉, 다른 키를 눌렀으면) -> 그냥 추가
+        // 순환 대상 없음 -> 그냥 추가
         if targetCharString.isEmpty {
             let newText = automata.add글자(글자Input: inputKey, beforeText: beforeText)
             return (newText, inputKey)
         }
         
-        // 순환할 다음 문자 계산
+        // [Step 3] 다음 글자 계산 및 재결합
         guard let currentIndex = cycleList.firstIndex(of: targetCharString) else {
             return (beforeText, nil)
         }
         let nextIndex = (currentIndex + 1) % cycleList.count
         let nextChar = cycleList[nextIndex]
         
-        // 변경된 자음으로 다시 결합
-        // 예: "갈" + "ㅍ" -> "갎" (automata가 겹받침 처리)
-        let newText = automata.add글자(글자Input: nextChar, beforeText: baseText)
+        // editableSuffix 내부에서만 결합을 시도합니다. (예: "ㅇ" -> "ㅁ")
+        let processedSuffix = automata.add글자(글자Input: nextChar, beforeText: baseText)
         
-        return (newText, nextChar)
+        // 최종적으로 확정된 앞부분과 합칩니다. ("달" + "ㅁ")
+        // 오토마타를 거치지 않고 String 결합을 하므로 절대 섞이지 않습니다.
+        return (committedPrefix + processedSuffix, nextChar)
     }
 }
