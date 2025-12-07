@@ -99,7 +99,9 @@ final class NaratgeulProcessor: HangeulProcessable {
         "ㅏ": "ㅐ",
         "ㅓ": "ㅔ",
         "ㅕ": "ㅖ",
-        "ㅑ": "ㅒ"
+        "ㅑ": "ㅒ",
+        "ㅘ": "ㅙ",
+        "ㅝ": "ㅞ"
     ]
     
     /// 이중모음 결합 테이블
@@ -126,23 +128,32 @@ final class NaratgeulProcessor: HangeulProcessable {
     func input(글자Input: String, beforeText: String) -> (processedText: String, input글자: String?) {
         
         // 1. [특수 기능] 획추가, 쌍자음 처리
-        if 글자Input == "획" {
-            return 획추가(beforeText: beforeText)
-        } else if 글자Input == "쌍" {
-            return 쌍자음(beforeText: beforeText)
-        }
+        if 글자Input == "획" { return 획추가(beforeText: beforeText) }
+        if 글자Input == "쌍" { return 쌍자음(beforeText: beforeText) }
         
         // 2. [모음 결합] 'ㅣ' 키 입력 시 (예: 아 -> 애)
         if 글자Input == "ㅣ" {
             if let (combinedText, combined글자) = combine모음(beforeText: beforeText) {
-                return (combinedText, combined글자)
+                var repeatChar = combined글자
+                if combined글자 == "ㅙ" {
+                    repeatChar = "ㅐ"
+                } else if combined글자 == "ㅞ" {
+                    repeatChar = "ㅔ"
+                }
+                return (combinedText, repeatChar)
             }
         }
         
         // 3. [이중모음] 'ㅏ'/'ㅓ' 입력 시 앞 글자와 결합 (예: 무+ㅓ -> 뭐, 보+ㅏ -> 봐)
         if 글자Input == "ㅏ" || 글자Input == "ㅓ" {
             if let (combinedText, combined글자) = combine이중모음(글자Input: 글자Input, beforeText: beforeText) {
-                return (combinedText, combined글자)
+                var repeatChar = combined글자
+                if combined글자 == "ㅘ" {
+                    repeatChar = "ㅏ"
+                } else if combined글자 == "ㅝ" {
+                    repeatChar = "ㅓ"
+                }
+                return (combinedText, repeatChar)
             }
         }
         
