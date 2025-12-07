@@ -19,10 +19,12 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
     /// 마지막으로 입력한 문자
     private var lastInputText: String?
     
+    /// 한글 오토마타
+    private let automata: HangeulAutomataProtocol = HangeulAutomata()
     /// 나랏글 입력기
-    private lazy var naratgeulProcessor: HangeulProcessable = NaratgeulProcessor()
+    private lazy var naratgeulProcessor: HangeulProcessable = NaratgeulProcessor(automata: automata)
     /// 천지인 입력기
-    private lazy var cheonjiinProcessor: HangeulProcessable = CheonjiinProcessor()
+    private lazy var cheonjiinProcessor: HangeulProcessable = CheonjiinProcessor(automata: automata)
     
     /// 한글 키보드 입력기
     private var processor: HangeulProcessable {
@@ -72,14 +74,6 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
     
     open override func textWillChange(_ textInput: (any UITextInput)?) {
         super.textWillChange(textInput)
-        buffer.removeAll()
-        lastInputText = nil
-        processor.reset한글조합()
-        updateSpaceButtonImage()
-    }
-    
-    open override func updateShowingKeyboard() {
-        super.updateShowingKeyboard()
         buffer.removeAll()
         lastInputText = nil
         processor.reset한글조합()
@@ -147,6 +141,7 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
     
     open override func insertPrimaryKeyText(from button: TextInteractable) {
         if isPreview { return }
+        
         guard let primaryKey = button.type.primaryKeyList.first else { fatalError("primaryKeyList 배열이 비어있습니다.") }
         
         let beforeText = String(buffer.reversed().prefix(while: { !$0.isWhitespace }).reversed())
@@ -162,6 +157,7 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
     
     open override func insertSecondaryKeyText(from button: TextInteractable) {
         if isPreview { return }
+        
         guard let secondaryKey = button.type.secondaryKey else {
             assertionFailure("secondaryKey가 nil입니다.")
             return
@@ -175,10 +171,12 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
         
         buffer = processedText
         lastInputText = input글자
+        updateSpaceButtonImage()
     }
     
     open override func repeatInsertPrimaryKeyText(from button: TextInteractable) {
         if isPreview { return }
+        
         guard let lastInputText else {
             super.repeatTextInteractionDidPerform(button: button)
             button.isGesturing = false

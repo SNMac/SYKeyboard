@@ -17,7 +17,8 @@ struct NaratgeulProcessorTests {
     
     private static let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: String(describing: "NaratgeulProcessorTests"))
     
-    private let processor: HangeulProcessable = NaratgeulProcessor()
+    private let automata: HangeulAutomataProtocol = HangeulAutomata()
+    private let processor: HangeulProcessable
     
     var 나랏글자음Map: [String: [String]] {
         [
@@ -61,6 +62,12 @@ struct NaratgeulProcessorTests {
             "ㄽ": ["ㄹ", "ㅅ"], "ㄾ": ["ㄹ", "ㅌ"], "ㄿ": ["ㄹ", "ㅍ"],
             "ㅀ": ["ㄹ", "ㅎ"], "ㅄ": ["ㅂ", "ㅅ"]
         ]
+    }
+    
+    // MARK: - Initializer
+    
+    init() {
+        self.processor = NaratgeulProcessor(automata: automata)
     }
     
     // MARK: - 1. 획추가 테스트

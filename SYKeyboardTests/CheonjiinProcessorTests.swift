@@ -18,7 +18,7 @@ struct CheonjiinProcessorTests {
     private static let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: String(describing: "CheonjiinProcessorTests"))
     
     private let automata: HangeulAutomataProtocol = HangeulAutomata()
-    private let processor: HangeulProcessable = CheonjiinProcessor()
+    private let processor: HangeulProcessable
     
     private let 아래아문자 = "ㆍ"
     
@@ -75,6 +75,12 @@ struct CheonjiinProcessorTests {
         ]
     }
     
+    // MARK: - Initializer
+    
+    init() {
+        self.processor = CheonjiinProcessor(automata: automata)
+    }
+    
     // MARK: - 1. 자음 순환 테스트
     @Test("자음 순환: ㄱ 계열")
     func test자음순환_ㄱ계열() {
@@ -109,7 +115,7 @@ struct CheonjiinProcessorTests {
         text = input(아래아문자, to: text)
         #expect(text == "ㅠ")
         
-        // 4. ㅠ + ㅣ = ㅝ  (이 부분이 끊기지 않아야 함)
+        // 4. ㅠ + ㅣ = ㅝ
         text = input("ㅣ", to: text)
         #expect(text == "ㅝ")
         
@@ -402,7 +408,7 @@ private extension CheonjiinProcessorTests {
     }
     
     func calculateExpectedDeleteCount(for char: Character) -> Int {
-        let tempProcessor = CheonjiinProcessor()
+        let tempProcessor = CheonjiinProcessor(automata: automata)
         var text = String(char)
         var count = 0
         while !text.isEmpty {

@@ -21,7 +21,7 @@ final class NaratgeulProcessor: HangeulProcessable {
     var is한글조합OnGoing: Bool { false }
     
     /// 표준 한글 오토마타 (자소 분해/조합 담당)
-    private let automata: HangeulAutomataProtocol = HangeulAutomata()
+    private let automata: HangeulAutomataProtocol
     
     /// 획추가 변환 테이블
     ///
@@ -111,7 +111,11 @@ final class NaratgeulProcessor: HangeulProcessable {
         "ㅜ": "ㅝ"
     ]
     
-    // MARK: - Internal Methods
+    init(automata: HangeulAutomataProtocol) {
+        self.automata = automata
+    }
+    
+    // MARK: - Protocol Implementation
     
     /// 사용자의 입력을 처리하여 변환된 텍스트를 반환합니다.
     ///
@@ -181,8 +185,6 @@ final class NaratgeulProcessor: HangeulProcessable {
 // MARK: - Private Methods
 
 private extension NaratgeulProcessor {
-    
-    // MARK: - Logic Implementation
     
     /// 획추가 기능 구현
     ///
