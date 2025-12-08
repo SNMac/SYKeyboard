@@ -32,7 +32,6 @@ struct FeedbackSettingsView: View {
                     "name": "sound_feedback",
                     "value": newValue ? "on" : "off"
                 ])
-                
                 hideKeyboard()
             }
         
@@ -42,7 +41,6 @@ struct FeedbackSettingsView: View {
                     "name": "haptic_feedback",
                     "value": newValue ? "on" : "off"
                 ])
-                
                 hideKeyboard()
             }
     }

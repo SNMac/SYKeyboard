@@ -136,7 +136,9 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
     open override func repeatTextInteractionWillPerform(button: TextInteractable) {
         super.repeatTextInteractionWillPerform(button: button)
         super.performTextInteraction(for: button)
-        if lastInputText != nil || button is DeleteButton || button is SpaceButton { button.playFeedback() }
+        if lastInputText != nil || button is DeleteButton || button is SpaceButton {
+            button.playFeedback()
+        }
     }
     
     open override func insertPrimaryKeyText(from button: TextInteractable) {
@@ -219,6 +221,8 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
     open override func deleteBackward() {
         if isPreview { return }
         
+        deleteBackwardWillPerform()
+        
         if !buffer.isEmpty {
             for _ in 0..<buffer.count { textDocumentProxy.deleteBackward() }
             let text = processor.delete(beforeText: buffer)
@@ -227,18 +231,19 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
             
             if buffer.isEmpty {
                 processor.reset한글조합()
-                updateSpaceButtonImage()
             }
         } else {
             textDocumentProxy.deleteBackward()
             processor.reset한글조합()
-            updateSpaceButtonImage()
         }
+        updateSpaceButtonImage()
         lastInputText = nil
     }
     
     open override func repeatDeleteBackward() {
         if isPreview { return }
+        
+        repeatDeleteBackwardWillPerform()
         
         textDocumentProxy.deleteBackward()
         if !buffer.isEmpty {
@@ -246,15 +251,16 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
             
             if buffer.isEmpty {
                 processor.reset한글조합()
-                updateSpaceButtonImage()
             }
         } else {
             processor.reset한글조합()
-            updateSpaceButtonImage()
         }
+        updateSpaceButtonImage()
         lastInputText = nil
     }
 }
+
+// MARK: - Private Methods
 
 private extension HangeulKeyboardCoreViewController {
     func updateSpaceButtonImage() {

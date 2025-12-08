@@ -38,7 +38,6 @@ struct AppearanceSettingsView: View {
                 "name": "numeric_keypad",
                 "value": newValue ? "on" : "off"
             ])
-            
             hideKeyboard()
         }
         
@@ -52,7 +51,6 @@ struct AppearanceSettingsView: View {
                 "name": "one_handed_keyboard",
                 "value": newValue ? "on" : "off"
             ])
-            
             hideKeyboard()
         }
         
