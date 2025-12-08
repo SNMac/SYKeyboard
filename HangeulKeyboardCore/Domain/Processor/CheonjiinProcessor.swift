@@ -60,7 +60,6 @@ final class CheonjiinProcessor: HangeulProcessable {
         "ㆍ": ["ㆍ": "ᆢ", "ㅣ": "ㅓ", "ㅡ": "ㅗ"],
         
         // ᆢ(쌍아래아) 계열
-        // ᆢ + ㅡ = ㅛ (교, 아뇨 등 입력을 위함)
         "ᆢ": ["ㆍ": "ㆍ", "ㅣ": "ㅕ", "ㅡ": "ㅛ"],
         
         // ㅓ 계열
@@ -77,7 +76,7 @@ final class CheonjiinProcessor: HangeulProcessable {
         "ㅗ": ["ㅣ": "ㅚ", "ㅏ": "ㅘ", "ㅐ": "ㅙ", "ㆍ": "ㅛ"],
         
         // 기타 결합
-        "ㅚ": ["ㆍ": "ㅘ"], // 괴 + ㆍ -> 과
+        "ㅚ": ["ㆍ": "ㅘ"],
         "ㅘ": ["ㅣ": "ㅙ"],
         "ㅝ": ["ㅣ": "ㅞ"]
     ]
@@ -95,8 +94,6 @@ final class CheonjiinProcessor: HangeulProcessable {
     /// 3. **자음 입력**: 이전 키와 동일하면 순환(Cycle)하고, 아니면 새로 추가합니다.
     func input(글자Input: String, beforeText: String) -> (processedText: String, input글자: String?) {
         // [확정 상태 체크]
-        // 조합이 확정(false)된 상태라면, 오토마타 합치기를 시도하지 않고 바로 새 글자로 붙입니다.
-        // 예: "가"(확정) + "ㄴ" -> "간"(X) -> "가ㄴ"(O)
         if !is한글조합OnGoing {
             committedLength = beforeText.count
             is한글조합OnGoing = true
@@ -105,44 +102,44 @@ final class CheonjiinProcessor: HangeulProcessable {
         
         // 1. [모음 입력] (ㆍ, ㅡ, ㅣ)
         if ["ㆍ", "ㅡ", "ㅣ"].contains(글자Input) {
-            // 모음 조합 시도
+            
+            // A. 모음 조합 시도
             if let (prefix, combined모음) = tryCombine모음(input: 글자Input, beforeText: beforeText) {
-                // 조합된 모음을 오토마타에 입력하여 연음 및 자모 결합 처리
-                // 예: "닭" + "ㅓ"(조합됨) -> "달거"
-                let newText = automata.add글자(글자Input: combined모음, beforeText: prefix)
+                
+                // 헬퍼 메서드 사용
+                let newText = separateCommittedText(input: combined모음, to: prefix)
+                
                 is한글조합OnGoing = true
                 
+                // 반복 문자 설정
                 var nextRepeatChar = combined모음
                 switch combined모음 {
-                case "ㅘ":
-                    nextRepeatChar = "ㅏ"
-                case "ㅝ":
-                    nextRepeatChar = "ㅓ"
-                case "ㅙ":
-                    nextRepeatChar = "ㅐ"
-                case "ㅞ":
-                    nextRepeatChar = "ㅔ"
-                default:
-                    break
+                case "ㅘ": nextRepeatChar = "ㅏ"
+                case "ㅝ": nextRepeatChar = "ㅓ"
+                case "ㅙ": nextRepeatChar = "ㅐ"
+                case "ㅞ": nextRepeatChar = "ㅔ"
+                default: break
                 }
                 return (newText, nextRepeatChar)
             }
             
-            // 조합 실패 시 단순 추가
-            let newText = automata.add글자(글자Input: 글자Input, beforeText: beforeText)
+            // B. 모음 단순 추가 (조합 실패)
+            // 헬퍼 메서드 사용: beforeText의 확정 영역을 보호하며 글자Input을 붙임
+            let newText = separateCommittedText(input: 글자Input, to: beforeText)
             is한글조합OnGoing = true
             return (newText, 글자Input)
         }
         
         // 2. [자음 입력]
         else {
-            // 조합 중이고, 순환 가능한 자음이면 순환 시도
+            // 자음 순환 (내부 로직 독자적이므로 유지)
             if let cycleList = 자음순환Table[글자Input] {
                 return cycle자음(inputKey: 글자Input, cycleList: cycleList, beforeText: beforeText)
             }
             
-            // 순환 불가능 -> 새로 추가
-            let newText = automata.add글자(글자Input: 글자Input, beforeText: beforeText)
+            // C. 순환 불가능 자음 추가
+            // 헬퍼 메서드 사용
+            let newText = separateCommittedText(input: 글자Input, to: beforeText)
             is한글조합OnGoing = true
             return (newText, 글자Input)
         }
@@ -174,46 +171,72 @@ final class CheonjiinProcessor: HangeulProcessable {
             return ""
         }
         
+        // 삭제 전, 현재 텍스트 길이가 확정 길이보다 긴지 확인합니다.
+        let isDeletingNewChar = beforeText.count > committedLength
+        
         // 1. 오토마타를 이용한 기본 삭제
         let deletedText = automata.delete글자(beforeText: beforeText)
         
-        // 텍스트가 줄어들면 확정 길이도 그에 맞춰 줄여줌 (Index Out of Bounds 방지)
-        if deletedText.count < committedLength {
-            committedLength = deletedText.count
+        // 2. 상황별 상태 업데이트
+        if isDeletingNewChar {
+            // [상황 A] 확정된 글자 뒤에 붙은 새 글자('ㄴ')만 지우는 경우
+            // 확정된 길이는 건드리지 않아야 합니다.
+            
+            // 다만, 삭제 결과가 확정 길이보다 짧아졌다면(예외 상황) 확정 길이를 맞춥니다.
+            if deletedText.count < committedLength {
+                committedLength = deletedText.count
+            }
+            
+            // 만약 삭제 후 남은 글자가 정확히 확정된 글자라면 ("가"),
+            // 다시 '확정 상태(조합 끊김)'로 돌아가야 합니다.
+            // 그래야 다음 'ㄴ' 입력 시 '간'이 아니라 '가ㄴ'이 됩니다.
+            if deletedText.count == committedLength {
+                is한글조합OnGoing = false
+            } else {
+                // 아직 조합중인 글자가 남아있다면(예: "가낙" -> "가나") 조합 중 유지
+                is한글조합OnGoing = true
+            }
+            
+        } else {
+            // [상황 B] 확정된 글자('가') 자체를 수정하는 경우
+            // 예: "가" -> "ㄱ"
+            
+            // 기존 글자를 깼으므로 확정 길이를 줄여서 '수정 모드'로 진입합니다.
+            // "가"(1) -> "ㄱ"(1) 이라도 수정 모드여야 하므로 committedLength를 강제로 줄입니다.
+            committedLength = max(0, deletedText.count - 1)
+            
+            // 수정 중이므로 무조건 조합 중 상태입니다.
+            is한글조합OnGoing = true
         }
         
-        // 2. 종성 복원 로직 (Jongseong Restoration)
+        // 3. 종성 복원 로직
         if let lastChar = deletedText.last {
             let lastCharString = String(lastChar)
             
-            // 종성 테이블에 있고 공백이 아닌 경우에만 복원 시도
             if automata.종성Table.contains(lastCharString) && lastCharString != " " {
                 let prefix = String(deletedText.dropLast())
                 
-                // 앞 글자가 확정된 영역이 아닐 때만 합치기 시도
-                let isInsideCommittedArea = (prefix.count <= committedLength)
+                // prefix(앞 글자)의 길이가 committedLength(확정 길이)와 같다면,
+                // 이는 앞 글자가 '확정된 블록'이라는 뜻입니다.
+                // 따라서 뒤에 남은 자음을 확정된 앞 글자의 받침으로 붙이면 안 됩니다.
+                // 예: "가"(확정) + "ㄴ"(나머지) -> "간"(X) -> "가ㄴ"(O)
+                if prefix.count == committedLength {
+                    return deletedText
+                }
+                
+                let isInsideCommittedArea = (prefix.count < committedLength)
                 
                 if !isInsideCommittedArea,
                    let prefixLast = prefix.last,
                    let _ = automata.decompose(한글Char: prefixLast) {
-                     
-                     // 예: "가" + "ㄴ" -> "간"
-                     let restoredText = automata.add글자(글자Input: lastCharString, beforeText: prefix)
-                     
-                     // 복원에 성공했으므로 여전히 조합 중인 상태입니다.
-                     is한글조합OnGoing = true
-                     return restoredText
+                    
+                    let restoredText = automata.add글자(글자Input: lastCharString, beforeText: prefix)
+                    
+                    // 복원 성공 시에는 다시 조합 중 상태가 됩니다.
+                    is한글조합OnGoing = true
+                    return restoredText
                 }
             }
-        }
-        
-        // 3. 조합 상태 결정
-        // 삭제 후 남은 글자가 모두 확정된 글자라면 조합 상태를 해제합니다.
-        if deletedText.count == committedLength {
-            is한글조합OnGoing = false
-        } else {
-            // 글자가 남아있고 확정된 영역 밖이라면 조합 중 유지
-            is한글조합OnGoing = true
         }
         
         return deletedText
@@ -229,6 +252,26 @@ final class CheonjiinProcessor: HangeulProcessable {
 // MARK: - Private Methods
 
 private extension CheonjiinProcessor {
+    
+    /// 확정된 영역(`committedLength`)을 보호하면서 오토마타를 통해 글자를 추가합니다.
+    /// - Parameters:
+    ///   - input: 추가할 글자 (자음 또는 모음)
+    ///   - targetText: 대상 텍스트 (`beforeText` 또는 `prefix`)
+    /// - Returns: 처리가 완료된 전체 텍스트
+    func separateCommittedText(input: String, to targetText: String) -> String {
+        // 방어 코드: 혹시 모를 Index Out of Bounds 방지
+        let safeSplitIndex = min(committedLength, targetText.count)
+        
+        let splitIndex = targetText.index(targetText.startIndex, offsetBy: safeSplitIndex)
+        let committedPrefix = String(targetText[..<splitIndex]) // 확정된 앞부분 ("간")
+        let editableSuffix = String(targetText[splitIndex...])   // 수정 가능한 뒷부분 ("")
+        
+        // 오토마타 실행 (뒷부분만 넘김)
+        let processedSuffix = automata.add글자(글자Input: input, beforeText: editableSuffix)
+        
+        // 다시 결합 ("간" + "ㅏ" -> "간ㅏ")
+        return committedPrefix + processedSuffix
+    }
     
     /// 모음 조합 로직
     ///
