@@ -93,6 +93,25 @@ final class CheonjiinProcessor: HangeulProcessable {
     /// 2. **모음 입력**: 천지인 조합 테이블을 확인하여 모음을 합치거나 새로 추가합니다.
     /// 3. **자음 입력**: 이전 키와 동일하면 순환(Cycle)하고, 아니면 새로 추가합니다.
     func input(글자Input: String, beforeText: String) -> (processedText: String, input글자: String?) {
+        // [1. 한글 키 유효성 검사]
+        // 천지인 모음 키이거나, 자음 순환 테이블에 정의된 자음 키인지 확인
+        let is천지인모음 = ["ㆍ", "ㅡ", "ㅣ"].contains(글자Input)
+        let is천지인자음 = 자음순환Table.keys.contains(글자Input)
+        
+        // [2. 비한글(기호, 숫자 등) 입력 처리]
+        // 한글 조합에 참여하지 않는 글자가 들어오면, 무조건 확정 짓고 조합 상태를 끕니다.
+        if !is천지인모음 && !is천지인자음 {
+            // 지금까지의 텍스트를 모두 확정 처리
+            committedLength = beforeText.count
+            // 조합 상태 해제
+            is한글조합OnGoing = false
+            
+            // 단순 추가 후 반환 (오토마타를 거칠 필요 없음)
+            // 예: "가" + "1" -> "가1" (조합 끝)
+            return (beforeText + 글자Input, 글자Input)
+        }
+        
+        // [3. 한글 입력 처리]
         // [확정 상태 체크]
         if !is한글조합OnGoing {
             committedLength = beforeText.count
