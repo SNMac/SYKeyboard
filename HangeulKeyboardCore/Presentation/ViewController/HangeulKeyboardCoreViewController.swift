@@ -219,6 +219,11 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
     open override func deleteBackward() {
         if isPreview { return }
         
+        if performedPeriodShortcut {
+            preventNextPeriodShortcut = true
+            performedPeriodShortcut = false
+        }
+        
         if !buffer.isEmpty {
             for _ in 0..<buffer.count { textDocumentProxy.deleteBackward() }
             let text = processor.delete(beforeText: buffer)
@@ -239,6 +244,11 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
     
     open override func repeatDeleteBackward() {
         if isPreview { return }
+        
+        if performedPeriodShortcut {
+            preventNextPeriodShortcut = true
+            performedPeriodShortcut = false
+        }
         
         textDocumentProxy.deleteBackward()
         if !buffer.isEmpty {
