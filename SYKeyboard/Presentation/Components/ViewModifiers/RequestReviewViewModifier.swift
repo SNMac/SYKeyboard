@@ -19,10 +19,10 @@ struct RequestReviewViewModifier: ViewModifier {
     
     @Environment(\.requestReview) private var requestReview
     
-    @AppStorage(UserDefaultsKeys.reviewCounter, store: UserDefaults(suiteName: DefaultValues.groupBundleID))
+    @AppStorage(UserDefaultsKeys.reviewCounter, store: UserDefaultsManager.shared.storage)
     var reviewCounter = DefaultValues.reviewCounter
     
-    @AppStorage(UserDefaultsKeys.lastBuildPromptedForReview, store: UserDefaults(suiteName: DefaultValues.groupBundleID))
+    @AppStorage(UserDefaultsKeys.lastBuildPromptedForReview, store: UserDefaultsManager.shared.storage)
     var lastBuildPromptedForReview = DefaultValues.lastBuildPromptedForReview
     
     // MARK: - Content

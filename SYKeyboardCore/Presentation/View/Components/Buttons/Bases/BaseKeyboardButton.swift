@@ -46,6 +46,14 @@ public class BaseKeyboardButton: UIButton {
         
         return label
     }()
+    /// iOS 26 `UIButton.Configuration.image` 애니메이션 해결용
+    final let primaryKeyListImageView: UIImageView = {
+        let imageView = UIImageView()
+        imageView.contentMode = .center
+        imageView.backgroundColor = .clear
+        
+        return imageView
+    }()
     
     // MARK: - Initializer
     
@@ -102,7 +110,7 @@ private extension BaseKeyboardButton {
         self.insertSubview(shadowView, at: 0)
         self.insertSubview(backgroundView, at: 1)
         
-        self.addSubview(primaryKeyListLabel)
+        [primaryKeyListLabel, primaryKeyListImageView].forEach { self.addSubview($0) }
     }
     
     func setConstraints() {
@@ -130,6 +138,14 @@ private extension BaseKeyboardButton {
             primaryKeyListLabel.leadingAnchor.constraint(equalTo: backgroundView.leadingAnchor),
             primaryKeyListLabel.trailingAnchor.constraint(equalTo: backgroundView.trailingAnchor),
             primaryKeyListLabel.bottomAnchor.constraint(equalTo: backgroundView.bottomAnchor)
+        ])
+        
+        primaryKeyListImageView.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            primaryKeyListImageView.topAnchor.constraint(equalTo: backgroundView.topAnchor),
+            primaryKeyListImageView.leadingAnchor.constraint(equalTo: backgroundView.leadingAnchor),
+            primaryKeyListImageView.trailingAnchor.constraint(equalTo: backgroundView.trailingAnchor),
+            primaryKeyListImageView.bottomAnchor.constraint(equalTo: backgroundView.bottomAnchor)
         ])
     }
 }

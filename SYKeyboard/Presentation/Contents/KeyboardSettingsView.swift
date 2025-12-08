@@ -30,6 +30,8 @@ struct KeyboardSettingsView: View {
                 dimensions[.leading]
             }
             
+            HangeulKeyboardSelectView()
+            
             if isKeyboardExtensionEnabled {
                 Section {
                     FeedbackSettingsView()

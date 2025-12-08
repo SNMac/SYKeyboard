@@ -18,8 +18,6 @@ public enum DefaultValues {
     public static let isHapticFeedbackEnabled: Bool = true
     
     /* 입력 설정 */
-    /// 한글 키보드 기본값
-    public static let selectedHangeulKeyboard: HangeulKeyboardType = .naratgeul
     /// 길게 누르기 동작 - 반복 입력 기본값
     public static let isLongPressToRepeatInputEnabled: Bool = true
     /// 길게 누르기 동작 - 숫자 입력 기본값
@@ -28,14 +26,18 @@ public enum DefaultValues {
     public static let isDragToMoveCursorEnabled: Bool = true
     /// 텍스트 대치 기본값
     public static let isTextReplacementEnabled: Bool = true
-    /// 자동 대문자
-    public static let isAutoCapitalizationEnabled: Bool = true
+    /// '.' 단축키 여부 기본값
+    public static let isPeriodShortcutEnabled: Bool = true
     /// 스페이스/리턴 입력 후 주 키보드로 변경 기본값
     public static let isAutoChangeToPrimaryEnabled: Bool = true
     
+    /// 키보드 높이 기본값
     public static let keyboardHeight: Double = 240.0
+    /// 숫자 키보드 활성화 여부 기본값
     public static let isNumericKeypadEnabled: Bool = true
+    /// 한 손 키보드 활성화 여부 기본값
     public static let isOneHandedKeyboardEnabled: Bool = true
+    /// 한 손 키보드 너비 기본값
     public static let oneHandedKeyboardWidth: Double = 320.0
     
     /* 입력 설정 -> 속도/커서 설정 */

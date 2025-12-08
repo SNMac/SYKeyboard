@@ -8,6 +8,7 @@
 import SwiftUI
 
 import SYKeyboardCore
+import EnglishKeyboardCore
 
 import FirebaseAnalytics
 
@@ -15,22 +16,25 @@ struct InputSettingsView: View {
     
     // MARK: - Properties
     
-    @AppStorage(UserDefaultsKeys.isLongPressToNumberInputEnabled, store: UserDefaults(suiteName: DefaultValues.groupBundleID))
+    @AppStorage(UserDefaultsKeys.isLongPressToNumberInputEnabled, store: UserDefaultsManager.shared.storage)
     private var isLongPressToNumberInputEnabled = DefaultValues.isLongPressToNumberInputEnabled
     
-    @AppStorage(UserDefaultsKeys.isLongPressToRepeatInputEnabled, store: UserDefaults(suiteName: DefaultValues.groupBundleID))
+    @AppStorage(UserDefaultsKeys.isLongPressToRepeatInputEnabled, store: UserDefaultsManager.shared.storage)
     private var isLongPressToRepeatInputEnabled = DefaultValues.isLongPressToRepeatInputEnabled
     
-    @AppStorage(UserDefaultsKeys.isAutoCapitalizationEnabled, store: UserDefaults(suiteName: DefaultValues.groupBundleID))
+    @AppStorage(UserDefaultsKeys.isAutoCapitalizationEnabled, store: UserDefaultsManager.shared.storage)
     private var isAutoCapitalizationEnabled = DefaultValues.isAutoCapitalizationEnabled
     
-    @AppStorage(UserDefaultsKeys.isTextReplacementEnabled, store: UserDefaults(suiteName: DefaultValues.groupBundleID))
+    @AppStorage(UserDefaultsKeys.isTextReplacementEnabled, store: UserDefaultsManager.shared.storage)
     private var isTextReplacementEnabled = DefaultValues.isTextReplacementEnabled
     
-    @AppStorage(UserDefaultsKeys.isAutoChangeToPrimaryEnabled, store: UserDefaults(suiteName: DefaultValues.groupBundleID))
+    @AppStorage(UserDefaultsKeys.isPeriodShortcutEnabled, store: UserDefaultsManager.shared.storage)
+    private var isPeriodShortcutEnabled = DefaultValues.isPeriodShortcutEnabled
+    
+    @AppStorage(UserDefaultsKeys.isAutoChangeToPrimaryEnabled, store: UserDefaultsManager.shared.storage)
     private var isAutoChangeToPrimaryEnabled = DefaultValues.isAutoChangeToPrimaryEnabled
     
-    @AppStorage(UserDefaultsKeys.isDragToMoveCursorEnabled, store: UserDefaults(suiteName: DefaultValues.groupBundleID))
+    @AppStorage(UserDefaultsKeys.isDragToMoveCursorEnabled, store: UserDefaultsManager.shared.storage)
     private var isDragToMoveCursorEnabled = DefaultValues.isDragToMoveCursorEnabled
     
     enum LongPressMode: Int, CaseIterable {
@@ -83,10 +87,9 @@ struct InputSettingsView: View {
                 isLongPressToNumberInputEnabled = false
             }
             
-            Analytics.logEvent("select_long_press_action", parameters: [
-                "mode": newValue.analyticsValue
+            Analytics.logEvent("selected_long_press_action", parameters: [
+                "action": newValue.analyticsValue
             ])
-            
             hideKeyboard()
         }
     }
@@ -112,7 +115,6 @@ struct InputSettingsView: View {
                 "name": "auto_capitalization",
                 "value": newValue ? "on" : "off"
             ])
-            
             hideKeyboard()
         }
         
@@ -126,7 +128,19 @@ struct InputSettingsView: View {
                 "name": "text_replacement",
                 "value": newValue ? "on" : "off"
             ])
-            
+            hideKeyboard()
+        }
+        
+        Toggle(isOn: $isPeriodShortcutEnabled, label: {
+            Text("'.' 단축키")
+            Text("스페이스 바를 두 번 탭하면 마침표와 간격을 차례로 삽입")
+                .font(.caption)
+        })
+        .onChange(of: isPeriodShortcutEnabled) { newValue in
+            Analytics.logEvent("input_settings", parameters: [
+                "name": "period_shortcut",
+                "value": newValue ? "on" : "off"
+            ])
             hideKeyboard()
         }
         
@@ -140,7 +154,6 @@ struct InputSettingsView: View {
                 "name": "auto_change_to_primary",
                 "value": newValue ? "on" : "off"
             ])
-            
             hideKeyboard()
         }
         
@@ -152,7 +165,6 @@ struct InputSettingsView: View {
                 "name": "drag_to_move_cursor",
                 "value": newValue ? "on" : "off"
             ])
-            
             hideKeyboard()
         }
         

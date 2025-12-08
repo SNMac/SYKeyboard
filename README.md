@@ -5,7 +5,7 @@
 > [Figma](https://www.figma.com/design/0i3sNlaez0LG0QMfw80yJ4/SY%ED%82%A4%EB%B3%B4%EB%93%9C?node-id=0-1&t=L8rArjkBX9MJ3UJD-1)
 > 
 > 개발 기간: 2024.07.30 ~ 2025.01.15  
-> 리팩토링 기간: 2025.07.09 ~ 2025.11.30
+> 리팩토링 기간: 2025.07.09 ~ 2025.12.07
 
 <br>
 
@@ -39,8 +39,9 @@
 
 
 ## 🔨 개발 환경
-![Static Badge](https://img.shields.io/badge/Xcode%2016.3-147EFB?logo=xcode&logoColor=white&logoSize=auto)
-![Static Badge](https://img.shields.io/badge/16.0-000000?logo=ios&logoColor=white&logoSize=auto)
+![Static Badge](https://img.shields.io/badge/Swift%205-%23F05138?logo=swift&logoColor=white)
+![Static Badge](https://img.shields.io/badge/Xcode%2016%20~-%23147EFB?logo=xcode&logoColor=white)
+![Static Badge](https://img.shields.io/badge/16%20~%20-%23000000?logo=ios&logoColor=white)
 
 <br><br>
 
@@ -63,9 +64,6 @@ SY키보드의 메인 앱은 키보드 설정 위주의 단순한 구조이므�
 Keyboard Extension 부분은 SwiftUI에서 UIKit으로 리팩토링하는 작업을 진행했다.  
 리팩토링을 거치며 영어 키보드를 추가하였고, 천지인 키보드도 다음 업데이트를 위해 기본적인 UI를 만들어 두었다.  
 또한, 다른 프로젝트에서 가져와 수정해서 사용했던 한글 오토마타 코드도 처음부터 다시 만들기로 결정했다.  
-
-2025.11.26 기준 남은 작업은 아래와 같다.
-- 메인 앱 SwiftUI 코드 유지보수
 
 <br>
 
@@ -381,7 +379,6 @@ direction LR
     }
 
     namespace KeyboardGestureProtocol {
-      class TextInteractionGestureHandling
       class SwitchGestureHandling
     }
 
@@ -402,24 +399,28 @@ direction LR
       class EnglishKeyboardViewController
     }
 
-    class TextInteractionGestureHandling:::SYKeyboard_primary { <<protocol>> }
-    class SwitchGestureHandling:::SYKeyboard_primary { <<protocol>> }
+    class NormalKeyboardLayoutProvider:::SYKeyboard_primary { <<protocol>> }
     class PrimaryKeyboardRepresentable:::SYKeyboard_primary { <<protocol>> }
     class HangeulKeyboardLayoutProvider:::SYKeyboard_primary { <<protocol>> }
     class EnglishKeyboardLayoutProvider:::SYKeyboard_primary { <<protocol>> }
     class SymbolKeyboardLayoutProvider:::SYKeyboard_primary { <<protocol>> }
     class NumericKeyboardLayoutProvider:::SYKeyboard_primary { <<protocol>> }
     class TenkeyKeyboardLayoutProvider:::SYKeyboard_primary { <<protocol>> }
+    class SwitchGestureHandling:::SYKeyboard_primary { <<protocol>> }
 
     BaseKeyboardViewController --> PrimaryKeyboardRepresentable: Association
     BaseKeyboardViewController *-- SymbolKeyboardLayoutProvider: Composition
     BaseKeyboardViewController *-- NumericKeyboardLayoutProvider: Composition
     BaseKeyboardViewController *-- TenkeyKeyboardLayoutProvider: Composition
 
+    NormalKeyboardLayoutProvider <|-- PrimaryKeyboardRepresentable: Inheritance
+    NormalKeyboardLayoutProvider <|-- SymbolKeyboardLayoutProvider: Inheritance
+    NormalKeyboardLayoutProvider <|-- NumericKeyboardLayoutProvider: Inheritance
+
     BaseKeyboardViewController *-- TextInteractionGestureController: Composition
     BaseKeyboardViewController *-- SwitchGestureController: Composition
 
-    TextInteractionGestureController ..> TextInteractionGestureHandling: Dependency
+    SwitchGestureHandling <|-- NormalKeyboardLayoutProvider: Inheritance
     SwitchGestureController --> SwitchGestureHandling: Association
 
     BaseKeyboardViewController <|-- HangeulKeyboardViewController: Inheritance
@@ -455,7 +456,6 @@ classDiagram
 direction LR
     %% Keyboard Layout
     namespace KeyboardGestureProtocol {
-      class TextInteractionGestureHandling
       class SwitchGestureHandling
     }
 
@@ -469,6 +469,7 @@ direction LR
 
     namespace ParentKeyboardView {
       class FourByFourKeyboardView
+      class FourByFourPlusKeyboardView
       class StandardKeyboardView
     }
 
@@ -483,7 +484,6 @@ direction LR
 
     class BaseKeyboardLayoutProvider:::SYKeyboard_primary { <<protocol>> }
     class NormalKeyboardLayoutProvider:::SYKeyboard_primary { <<protocol>> }
-    class TextInteractionGestureHandling:::SYKeyboard_primary { <<protocol>> }
     class SwitchGestureHandling:::SYKeyboard_primary { <<protocol>> }
     class PrimaryKeyboardRepresentable:::SYKeyboard_primary { <<protocol>> }
     class HangeulKeyboardLayoutProvider:::SYKeyboard_primary { <<protocol>> }
@@ -493,36 +493,29 @@ direction LR
     class TenkeyKeyboardLayoutProvider:::SYKeyboard_primary { <<protocol>> }
 
     BaseKeyboardLayoutProvider <|-- NormalKeyboardLayoutProvider: Inheritance
+    SwitchGestureHandling <|-- NormalKeyboardLayoutProvider: Inheritance
     BaseKeyboardLayoutProvider <|-- TenkeyKeyboardLayoutProvider: Inheritance
 
-    NormalKeyboardLayoutProvider <|-- PrimaryKeyboardRepresentable: Inheritance
     NormalKeyboardLayoutProvider <|-- PrimaryKeyboardRepresentable: Inheritance
 
     TenkeyKeyboardLayoutProvider ..|> TenkeyKeyboardView: Implementation
 
     PrimaryKeyboardRepresentable <|-- HangeulKeyboardLayoutProvider: Inheritance
-    TextInteractionGestureHandling <|-- HangeulKeyboardLayoutProvider: Inheritance
-    SwitchGestureHandling <|-- HangeulKeyboardLayoutProvider: Inheritance
-    HangeulKeyboardLayoutProvider ..|> FourByFourKeyboardView: Implementation
 
     FourByFourKeyboardView <|-- NaratgeulKeyboardView: Inheritance
-    FourByFourKeyboardView <|-- CheonjiinKeyboardView: Inheritance
+    HangeulKeyboardLayoutProvider <|.. NaratgeulKeyboardView: Implementation
+    FourByFourPlusKeyboardView <|-- CheonjiinKeyboardView: Inheritance
+    HangeulKeyboardLayoutProvider <|.. CheonjiinKeyboardView: Implementation
 
     PrimaryKeyboardRepresentable <|-- EnglishKeyboardLayoutProvider: Inheritance
 
-    TextInteractionGestureHandling <|-- EnglishKeyboardLayoutProvider: Inheritance
-    SwitchGestureHandling <|-- EnglishKeyboardLayoutProvider: Inheritance
     EnglishKeyboardLayoutProvider ..|> EnglishKeyboardView: Implementation
     StandardKeyboardView <|-- EnglishKeyboardView: Inheritance
 
     NormalKeyboardLayoutProvider <|-- SymbolKeyboardLayoutProvider: Inheritance
-    TextInteractionGestureHandling <|-- SymbolKeyboardLayoutProvider: Inheritance
-    SwitchGestureHandling <|-- SymbolKeyboardLayoutProvider: Inheritance
     SymbolKeyboardLayoutProvider ..|> SymbolKeyboardView: Implementation
 
     NormalKeyboardLayoutProvider <|-- NumericKeyboardLayoutProvider: Inheritance
-    TextInteractionGestureHandling <|-- NumericKeyboardLayoutProvider: Inheritance
-    SwitchGestureHandling <|-- NumericKeyboardLayoutProvider: Inheritance
     NumericKeyboardLayoutProvider ..|> NumericKeyboardView: Implementation
     
     classDef SYKeyboard_primary fill:#ffa6ed
@@ -601,33 +594,56 @@ direction LR
 
 ## 📱 주요 기능
 1. **나랏글 키보드**  
-기본에 충실한 나랏글 키보드입니다.
+기본에 충실한 나랏글(EZ한글) 키보드입니다.
 
-<img src = "https://github.com/user-attachments/assets/4c27c194-2ae4-4489-bd39-d927ce6563bf" width ="250">
+<img src = "https://github.com/user-attachments/assets/82f8f17e-821f-4680-be27-fa55c4bd908b" width ="250">
 
 <br><br>
 
 
-2. **숫자 키패드 탑재**  
-숫자를 입력할 때 큰 버튼으로 편하게 입력할 수 있는 숫자 전용 키패드를 탑재했습니다.
+2. **천지인 키보드**  
+입력이 편리한 천지인 키보드입니다.
 
-<img src="https://github.com/user-attachments/assets/195133c7-a7d9-44a8-af03-b409efd88788" width="250">
+<img src = "https://github.com/user-attachments/assets/8f7fb0bf-3e14-4929-b55b-c00884f5ddd7" width ="250">
+
+<br><br>
+
+
+3. **두벌식 키보드**
+대중적인 두벌식(한글 쿼티) 키보드입니다.
+(구현 예정)
+
+<br><br>
+
+
+4. **영어 키보드**
+대중적인 영어(QWERTY) 키보드입니다.
+
+<img src = "https://github.com/user-attachments/assets/b918f869-a23a-4c0c-953d-7a6a1363b654" width ="250">
+
+<br><br>
+
+
+5. **숫자 키패드 탑재**  
+숫자를 입력할 때 큰 버튼으로 편하게 입력할 수 있는 숫자 입력 전용 키패드를 탑재했습니다.
+
+<img src="https://github.com/user-attachments/assets/99b11dac-2761-42d2-a54f-d5e440c421cb" width="250">
     
 <br><br>
 
 
-3. **한 손 키보드 모드**  
+6. **한 손 키보드 모드**  
 한 손으로 폰을 들고 있는 상태에서도 입력하기 수월하도록 한 손 키보드 모드를 제공합니다.
 
-<img src="https://github.com/user-attachments/assets/45a6282e-9438-4bdd-af69-eec1541a53b4" width="250">
+<img src="https://github.com/user-attachments/assets/8854953a-d0bd-4615-ad04-caa5c620e3db" width="250">
 
 <br><br>
 
 
-4. **다양하고 디테일한 키보드 설정**  
-반복 입력, 커서 이동, 키보드 높이 및 한 손 키보드 너비 조절 등 사용자의 편의에 맞게 키보드 설정이 가능합니다.
+7. **다양하고 디테일한 키보드 설정**  
+길게 누르기 동작, 커서 이동, 키보드 높이 및 한 손 키보드 너비 조절 등 사용자의 편의에 맞게 키보드 설정이 가능합니다.
 
-<img src="https://github.com/user-attachments/assets/a27ee88f-75db-4b3f-82d8-99543718bb71" width="250">
+<img src="https://github.com/user-attachments/assets/7163eff8-046c-4c2d-a2d9-1d635dac2cca" width="250">
 
 <br><br>
 

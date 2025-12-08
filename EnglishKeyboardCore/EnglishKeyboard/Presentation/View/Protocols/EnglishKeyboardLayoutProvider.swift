@@ -10,7 +10,7 @@ import UIKit
 import SYKeyboardCore
 
 /// 영어 키보드 레이아웃 프로토콜
-protocol EnglishKeyboardLayoutProvider: PrimaryKeyboardRepresentable, TextInteractionGestureHandling, SwitchGestureHandling {
+protocol EnglishKeyboardLayoutProvider: PrimaryKeyboardRepresentable {
     /// 현재 영어 키보드 모드
     var currentEnglishKeyboardMode: EnglishKeyboardMode { get set }
     /// Shift 상태

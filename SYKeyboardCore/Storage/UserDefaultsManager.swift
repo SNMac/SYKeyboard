@@ -7,9 +7,14 @@
 
 import Foundation
 
+// MARK: - UserDefaultsWrapper
+
 /// 반복되는 코드를 줄이기 위한 프로퍼티 관리 코드
 @propertyWrapper
 public struct UserDefaultsWrapper<T: Codable> {
+    
+    // MARK: Properties
+    
     /// 데이터를 저장할 `UserDefaults`
     private let storage: UserDefaults = {
         guard let userDefaults = UserDefaults(suiteName: DefaultValues.groupBundleID) else {
@@ -28,15 +33,22 @@ public struct UserDefaultsWrapper<T: Codable> {
         set { storage.set(newValue, forKey: key) }
     }
     
+    // MARK: Initializer
+    
     init(key: String, defaultValue: T) {
         self.key = key
         self.defaultValue = defaultValue
     }
 }
 
+// MARK: - UserDefaultsRawRepresentableWrapper
+
 /// `RawRepresentable` 타입을 위한 프로퍼티 래퍼
 @propertyWrapper
 public struct UserDefaultsRawRepresentableWrapper<T: RawRepresentable> {
+    
+    // MARK: Properties
+    
     /// 데이터를 저장할 `UserDefaults`
     private let storage: UserDefaults = UserDefaults(suiteName: DefaultValues.groupBundleID)!
     /// 값을 저장할 키값
@@ -57,21 +69,30 @@ public struct UserDefaultsRawRepresentableWrapper<T: RawRepresentable> {
         }
     }
     
+    // MARK: Initializer
+    
     init(key: String, defaultValue: T) {
         self.key = key
         self.defaultValue = defaultValue
     }
 }
 
+// MARK: - UserDefaultsManager
+
 /// `UserDefaults`를 관리하는 싱글톤 매니저
 final public class UserDefaultsManager {
     
-    // MARK: - Singleton Initializer
+    // MARK: Properties
+    
+    /// 데이터를 저장할 `UserDefaults`
+    public let storage: UserDefaults = UserDefaults(suiteName: DefaultValues.groupBundleID)!
+    
+    // MARK: Singleton Initializer
     
     public static let shared = UserDefaultsManager()
     private init() {}
     
-    // MARK: - Getter
+    // MARK: Getter
     
     /* 피드백 설정 */
     /// 소리 피드백
@@ -82,9 +103,6 @@ final public class UserDefaultsManager {
     public var isHapticFeedbackEnabled: Bool
     
     /* 입력 설정 */
-    /// 선택한 한글 키보드
-    @UserDefaultsRawRepresentableWrapper(key: UserDefaultsKeys.selectedHangeulKeyboard, defaultValue: DefaultValues.selectedHangeulKeyboard)
-    public var selectedHangeulKeyboard: HangeulKeyboardType
     /// 길게 누르기 동작 - 반복 입력
     @UserDefaultsWrapper(key: UserDefaultsKeys.isLongPressToRepeatInputEnabled, defaultValue: DefaultValues.isLongPressToRepeatInputEnabled)
     public var isLongPressToRepeatInputEnabled: Bool
@@ -97,9 +115,9 @@ final public class UserDefaultsManager {
     /// 텍스트 대치
     @UserDefaultsWrapper(key: UserDefaultsKeys.isTextReplacementEnabled, defaultValue: DefaultValues.isTextReplacementEnabled)
     public var isTextReplacementEnabled: Bool
-    /// 자동 대문자
-    @UserDefaultsWrapper(key: UserDefaultsKeys.isAutoCapitalizationEnabled, defaultValue: DefaultValues.isAutoCapitalizationEnabled)
-    public var isAutoCapitalizationEnabled: Bool
+    /// '.' 단축키
+    @UserDefaultsWrapper(key: UserDefaultsKeys.isPeriodShortcutEnabled, defaultValue: DefaultValues.isPeriodShortcutEnabled)
+    public var isPeriodShortcutEnabled: Bool
     /// 스페이스/리턴 입력 후 주 키보드로 변경
     @UserDefaultsWrapper(key: UserDefaultsKeys.isAutoChangeToPrimaryEnabled, defaultValue: DefaultValues.isAutoChangeToPrimaryEnabled)
     public var isAutoChangeToPrimaryEnabled: Bool

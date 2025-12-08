@@ -10,7 +10,7 @@ import UIKit
 import SYKeyboardCore
 
 /// 한글 키보드 레이아웃 프로토콜
-protocol HangeulKeyboardLayoutProvider: PrimaryKeyboardRepresentable, TextInteractionGestureHandling, SwitchGestureHandling {
+protocol HangeulKeyboardLayoutProvider: PrimaryKeyboardRepresentable {
     /// 현재 한글 키보드 모드
     var currentHangeulKeyboardMode: HangeulKeyboardMode { get set }
     /// Shift 상태
@@ -43,10 +43,12 @@ protocol HangeulKeyboardLayoutProvider: PrimaryKeyboardRepresentable, TextIntera
 
 extension HangeulKeyboardLayoutProvider {
     var isShifted: Bool? {
-        get { nil } set {}
+        get { nil }
+        set {}
     }
     var wasShifted: Bool? {
-        get { nil } set {}
+        get { nil }
+        set {}
     }
     var shiftButton: ShiftButton? { nil }
     

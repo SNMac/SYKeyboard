@@ -19,15 +19,31 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
     /// 마지막으로 입력한 문자
     private var lastInputText: String?
     
+    /// 한글 오토마타
+    private let automata: HangeulAutomataProtocol = HangeulAutomata()
+    /// 나랏글 입력기
+    private lazy var naratgeulProcessor: HangeulProcessable = NaratgeulProcessor(automata: automata)
+    /// 천지인 입력기
+    private lazy var cheonjiinProcessor: HangeulProcessable = CheonjiinProcessor(automata: automata)
+    
     /// 한글 키보드 입력기
-    private lazy var processor: HangeulProcessable = NaratgeulProcessor()
+    private var processor: HangeulProcessable {
+        switch UserDefaultsManager.shared.selectedHangeulKeyboard {
+        case .naratgeul:
+            return naratgeulProcessor
+        case .cheonjiin:
+            return cheonjiinProcessor
+        case .dubeolsik:
+            fatalError("구현이 필요한 case 입니다.")
+        }
+    }
     
     // MARK: - UI Components
     
     /// 나랏글 키보드
-    private lazy var naratgeulKeyboardView: HangeulKeyboardLayoutProvider = NaratgeulKeyboardView(keyboard: .naratgeul)
+    private lazy var naratgeulKeyboardView: HangeulKeyboardLayoutProvider = NaratgeulKeyboardView()
     /// 천지인 키보드
-    private lazy var cheonjiinKeyboardView: HangeulKeyboardLayoutProvider = CheonjiinKeyboardView(keyboard: .cheonjiin)
+    private lazy var cheonjiinKeyboardView: HangeulKeyboardLayoutProvider = CheonjiinKeyboardView()
     
     /// 사용자가 선택한 한글 키보드
     private var hangeulKeyboardView: HangeulKeyboardLayoutProvider {
@@ -36,9 +52,8 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
             return naratgeulKeyboardView
         case .cheonjiin:
             return cheonjiinKeyboardView
-        @unknown default:
-            assertionFailure("구현이 필요한 case 입니다.")
-            return naratgeulKeyboardView
+        case .dubeolsik:
+            fatalError("구현이 필요한 case 입니다.")
         }
     }
     
@@ -47,8 +62,8 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
     // MARK: - Initializer
     
     public override init(nibName nibNameOrNil: String?, bundle nibBundleOrNil: Bundle?) {
-        SwitchButton.debugPrimaryLanguage = "ko-KR"
         super.init(nibName: nibNameOrNil, bundle: nibBundleOrNil)
+        SwitchButton.previewPrimaryLanguage = "ko-KR"
     }
     
     @MainActor required public init?(coder: NSCoder) {
@@ -61,12 +76,8 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
         super.textWillChange(textInput)
         buffer.removeAll()
         lastInputText = nil
-    }
-    
-    open override func updateShowingKeyboard() {
-        super.updateShowingKeyboard()
-        buffer.removeAll()
-        lastInputText = nil
+        processor.reset한글조합()
+        updateSpaceButtonImage()
     }
     
     open override func updateKeyboardType() {
@@ -123,12 +134,16 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
     }
     
     open override func repeatTextInteractionWillPerform(button: TextInteractable) {
+        super.repeatTextInteractionWillPerform(button: button)
         super.performTextInteraction(for: button)
-        if lastInputText != nil { button.playFeedback() }
+        if lastInputText != nil || button is DeleteButton || button is SpaceButton {
+            button.playFeedback()
+        }
     }
     
     open override func insertPrimaryKeyText(from button: TextInteractable) {
         if isPreview { return }
+        
         guard let primaryKey = button.type.primaryKeyList.first else { fatalError("primaryKeyList 배열이 비어있습니다.") }
         
         let beforeText = String(buffer.reversed().prefix(while: { !$0.isWhitespace }).reversed())
@@ -139,10 +154,12 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
         
         buffer = processedText
         lastInputText = input글자
+        updateSpaceButtonImage()
     }
     
-    open override func insertSecondaryKeyText(from button: any TextInteractable) {
+    open override func insertSecondaryKeyText(from button: TextInteractable) {
         if isPreview { return }
+        
         guard let secondaryKey = button.type.secondaryKey else {
             assertionFailure("secondaryKey가 nil입니다.")
             return
@@ -156,10 +173,12 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
         
         buffer = processedText
         lastInputText = input글자
+        updateSpaceButtonImage()
     }
     
-    open override func repeatInsertKeyText(from button: TextInteractable) {
+    open override func repeatInsertPrimaryKeyText(from button: TextInteractable) {
         if isPreview { return }
+        
         guard let lastInputText else {
             super.repeatTextInteractionDidPerform(button: button)
             button.isGesturing = false
@@ -173,9 +192,20 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
     open override func insertSpaceText() {
         if isPreview { return }
         
-        super.insertSpaceText()
-        buffer.removeAll()
-        lastInputText = nil
+        let result = processor.inputSpace(beforeText: buffer)
+        switch result {
+        case .insertSpace:
+            // 실제 공백 입력
+            super.insertSpaceText()
+            buffer.removeAll()
+            lastInputText = nil
+            
+        case .commitCombination:
+            // 조합 끊기 (화면 변화 없음, 버퍼 유지)
+            lastInputText = nil // 반복 입력(ㄱ -> ㅋ) 방지용 초기화
+        }
+        
+        updateSpaceButtonImage()
     }
     
     open override func insertReturnText() {
@@ -183,29 +213,61 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
         
         super.insertReturnText()
         buffer.removeAll()
+        processor.reset한글조합()
         lastInputText = nil
+        updateSpaceButtonImage()
     }
     
     open override func deleteBackward() {
         if isPreview { return }
         
+        deleteBackwardWillPerform()
+        
         if !buffer.isEmpty {
             for _ in 0..<buffer.count { textDocumentProxy.deleteBackward() }
             let text = processor.delete(beforeText: buffer)
             textDocumentProxy.insertText(text)
-            
             buffer = text
+            
+            if buffer.isEmpty {
+                processor.reset한글조합()
+            }
         } else {
             textDocumentProxy.deleteBackward()
+            processor.reset한글조합()
         }
+        updateSpaceButtonImage()
         lastInputText = nil
     }
     
     open override func repeatDeleteBackward() {
         if isPreview { return }
         
+        repeatDeleteBackwardWillPerform()
+        
         textDocumentProxy.deleteBackward()
-        if !buffer.isEmpty { buffer.removeLast() }
+        if !buffer.isEmpty {
+            buffer.removeLast()
+            
+            if buffer.isEmpty {
+                processor.reset한글조합()
+            }
+        } else {
+            processor.reset한글조합()
+        }
+        updateSpaceButtonImage()
         lastInputText = nil
+    }
+}
+
+// MARK: - Private Methods
+
+private extension HangeulKeyboardCoreViewController {
+    func updateSpaceButtonImage() {
+        if processor.is한글조합OnGoing {
+            primaryKeyboardView.updateSpaceButtonImage(systemName: "arrow.right")
+        } else {
+            primaryKeyboardView.updateSpaceButtonImage(systemName: "space")
+        }
     }
 }

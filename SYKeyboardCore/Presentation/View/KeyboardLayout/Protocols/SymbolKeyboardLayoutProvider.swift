@@ -8,7 +8,7 @@
 import UIKit
 
 /// 기호 키보드 레이아웃 프로토콜
-public protocol SymbolKeyboardLayoutProvider: NormalKeyboardLayoutProvider, TextInteractionGestureHandling, SwitchGestureHandling {
+public protocol SymbolKeyboardLayoutProvider: NormalKeyboardLayoutProvider {
     /// 현재 기호 키보드 모드
     var currentSymbolKeyboardMode: SymbolKeyboardMode { get set }
     /// Shift 상태

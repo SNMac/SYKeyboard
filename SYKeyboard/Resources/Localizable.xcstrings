@@ -16,7 +16,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Drag ‘!#1’, ‘한글’ or ‘ABC’ button up or long press"
+            "value" : "Drag “!#1”, “한글” or “ABC” button up or long press"
           }
         }
       }
@@ -26,7 +26,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Drag ‘!#1’, ‘한글’ or ‘ABC’ button up or long press to change"
+            "value" : "Drag “!#1”, “한글” or “ABC” button up or long press to change"
           }
         }
       }
@@ -36,7 +36,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Drag ‘!#1’, ‘한글’, or ‘ABC’ button in the direction of the arrow"
+            "value" : "Drag “!#1”, “한글”, or “ABC” button in the direction of the arrow"
           }
         }
       }
@@ -46,7 +46,17 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Drag ‘!#1’, ‘한글’ or ‘ABC’ button in the direction of the arrow to switch"
+            "value" : "Drag “!#1”, “한글” or “ABC” button in the direction of the arrow to switch"
+          }
+        }
+      }
+    },
+    "'.' 단축키" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“.” shortcut"
           }
         }
       }
@@ -136,6 +146,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Delay until Long Press"
+          }
+        }
+      }
+    },
+    "나랏글" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Naratgeul"
           }
         }
       }
@@ -290,6 +310,16 @@
         }
       }
     },
+    "스페이스 바를 두 번 탭하면 마침표와 간격을 차례로 삽입" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Double tapping the space bar will insert a period followed by a space"
+          }
+        }
+      }
+    },
     "시스템 설정 이동" : {
       "localizations" : {
         "en" : {
@@ -440,6 +470,16 @@
         }
       }
     },
+    "천지인" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cheonjiin"
+          }
+        }
+      }
+    },
     "취소" : {
       "localizations" : {
         "en" : {
@@ -485,7 +525,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Keyboard ➡️ Enable ‘SYKeyboard’ and ‘Allow Full Access’"
+            "value" : "Keyboard ➡️ Enable “SYKeyboard” and “Allow Full Access”"
           }
         }
       }

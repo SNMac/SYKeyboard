@@ -75,8 +75,8 @@ open class BaseKeyboardViewController: UIInputViewController {
     
     /// 키보드 전환 버튼 제스처 컨트롤러
     private lazy var switchGestureController = SwitchGestureController(keyboardFrameView: keyboardFrameHStackView,
-                                                                       hangeulKeyboardView: primaryKeyboardView as? SwitchGestureHandling,
-                                                                       englishKeyboardView: primaryKeyboardView as? SwitchGestureHandling,
+                                                                       hangeulKeyboardView: primaryKeyboardView as SwitchGestureHandling,
+                                                                       englishKeyboardView: primaryKeyboardView as SwitchGestureHandling,
                                                                        symbolKeyboardView: symbolKeyboardView,
                                                                        numericKeyboardView: numericKeyboardView,
                                                                        getCurrentKeyboard: { [weak self] in return self?.currentKeyboard ?? .naratgeul },
@@ -96,8 +96,15 @@ open class BaseKeyboardViewController: UIInputViewController {
     
     /// 반복 입력용 타이머
     private var timer: AnyCancellable?
+    
     /// 삭제 버튼 팬 제스처로 인해 임시로 삭제된 내용을 저장하는 변수
     private var tempDeletedCharacters: [Character] = []
+    
+    /// '.' 단축키 수행 여부
+    final public var performedPeriodShortcut: Bool = false
+    /// 사용자가 '.' 단축키로 입력된 마침표를 지웠을 때, 다시 '.' 단축키가 실행되는 것을 막는 플래그
+    final public var preventNextPeriodShortcut: Bool = false
+    
     /// 기호 키보드에서 기호 입력 여부를 저장하는 변수
     private var isSymbolInput: Bool = false
     
@@ -181,7 +188,11 @@ open class BaseKeyboardViewController: UIInputViewController {
     open func updateKeyboardType() { fatalError("메서드가 오버라이딩 되지 않았습니다.") }
     
     /// 텍스트 상호작용이 일어나기 전 실행되는 메서드
-    open func textInteractionWillPerform() {
+    open func textInteractionWillPerform(button: TextInteractable) {
+        if !(button is SpaceButton) && !(button is DeleteButton) {
+            preventNextPeriodShortcut = false
+            performedPeriodShortcut = false
+        }
         tempDeletedCharacters.removeAll()
     }
     /// 텍스트 상호작용이 일어난 후 실행되는 메서드
@@ -238,7 +249,7 @@ open class BaseKeyboardViewController: UIInputViewController {
     ///
     /// - Parameters:
     ///   - button: `TextInteractable` 버튼
-    open func repeatInsertKeyText(from button: TextInteractable) {
+    open func repeatInsertPrimaryKeyText(from button: TextInteractable) {
         if isPreview { return }
         
         guard let primaryKey = button.type.primaryKeyList.first else {
@@ -261,16 +272,31 @@ open class BaseKeyboardViewController: UIInputViewController {
         textDocumentProxy.insertText("\n")
     }
     
+    /// 삭제가 일어나기 전 실행되는 메서드
+    open func deleteBackwardWillPerform() {
+        handlePeriodShortcutOnDelete()
+    }
+    
     /// 문자열 입력 UI의 텍스트를 삭제하는 메서드 (단일 호출)
     /// - `isPreview == true`이면 즉시 리턴
     open func deleteBackward() {
         if isPreview { return }
+        
+        deleteBackwardWillPerform()
         textDocumentProxy.deleteBackward()
     }
+    
+    /// 반복 삭제가 일어나기 전 실행되는 메서드
+    open func repeatDeleteBackwardWillPerform() {
+        handlePeriodShortcutOnDelete()
+    }
+    
     /// 문자열 입력 UI의 텍스트를 삭제하는 메서드 (반복 호출)
     /// - `isPreview == true`이면 즉시 리턴
     open func repeatDeleteBackward() {
         if isPreview { return }
+        
+        repeatDeleteBackwardWillPerform()
         textDocumentProxy.deleteBackward()
     }
     
@@ -385,6 +411,9 @@ private extension BaseKeyboardViewController {
         }
         if button is DeleteButton {
             button.addAction(inputAction, for: .touchDown)
+        } else if let spaceButton = button as? SpaceButton {
+            button.addAction(inputAction, for: .touchUpInside)
+            addPeriodShortcutActionToSpaceButton(spaceButton)
         } else {
             button.addAction(inputAction, for: .touchUpInside)
         }
@@ -423,16 +452,45 @@ private extension BaseKeyboardViewController {
         }
     }
     
+    func addPeriodShortcutActionToSpaceButton(_ button: SpaceButton) {
+        if UserDefaultsManager.shared.isPeriodShortcutEnabled {
+            let periodShortcutAction = UIAction { [weak self] _ in
+                guard let self else { return }
+                if isPreview || preventNextPeriodShortcut {
+                    return
+                }
+                
+                guard let beforeText = textDocumentProxy.documentContextBeforeInput else { return }
+                
+                if beforeText.hasSuffix(" ") {
+                    let textWithoutLastSpace = beforeText.dropLast()
+                    
+                    if let lastChar = textWithoutLastSpace.last,
+                       (lastChar.isLetter || lastChar.isNumber) {
+                        
+                        textDocumentProxy.deleteBackward()
+                        textDocumentProxy.insertText(".")
+                        
+                        performedPeriodShortcut = true
+                    }
+                }
+            }
+            button.addAction(periodShortcutAction, for: .touchDownRepeat)
+        }
+    }
+    
     func addGesturesToTextInterableButton(_ button: TextInteractable) {
         guard !(button is ReturnButton) && !(button is SecondaryKeyButton) && !(button.type.primaryKeyList == [".com"]) else { return }
-        if UserDefaultsManager.shared.isDragToMoveCursorEnabled || button is DeleteButton {
+        
+        if UserDefaultsManager.shared.isDragToMoveCursorEnabled
+            || button is DeleteButton {
             // 팬(드래그) 제스처
             let panGesture = UIPanGestureRecognizer(target: textInteractionGestureController, action: #selector(textInteractionGestureController.panGestureHandler(_:)))
             panGesture.delegate = textInteractionGestureController
             button.addGestureRecognizer(panGesture)
         }
         
-        if UserDefaultsManager.shared.isLongPressToRepeatInputEnabled || UserDefaultsManager.shared.isLongPressToNumberInputEnabled
+        if (UserDefaultsManager.shared.isLongPressToRepeatInputEnabled || UserDefaultsManager.shared.isLongPressToNumberInputEnabled)
             || button is DeleteButton {
             // 길게 누르기 제스처
             let longPressGesture = UILongPressGestureRecognizer(target: textInteractionGestureController, action: #selector(textInteractionGestureController.longPressGestureHandler(_:)))
@@ -534,30 +592,24 @@ private extension BaseKeyboardViewController {
 
 extension BaseKeyboardViewController {
     final public func performTextInteraction(for button: TextInteractable, insertSecondaryKeyIfAvailable: Bool = false) {
-        textInteractionWillPerform()
+        textInteractionWillPerform(button: button)
         defer { textInteractionDidPerform() }
         
         switch button.type {
         case .keyButton:
-            if insertSecondaryKeyIfAvailable {
-                if button.type.secondaryKey != nil {
-                    insertSecondaryKeyText(from: button)
-                } else {
-                    insertPrimaryKeyText(from: button)
-                }
+            if insertSecondaryKeyIfAvailable && button.type.secondaryKey != nil {
+                insertSecondaryKeyText(from: button)
             } else {
                 insertPrimaryKeyText(from: button)
             }
         case .deleteButton:
-            if !insertSecondaryKeyIfAvailable {
-                if !attemptToRestoreReplacementWord() {
-                    if let selectedText = textDocumentProxy.selectedText {
-                        tempDeletedCharacters.append(contentsOf: selectedText.reversed())
-                    } else if let lastBeforeCursor = textDocumentProxy.documentContextBeforeInput?.last {
-                        tempDeletedCharacters.append(lastBeforeCursor)
-                    }
-                    deleteBackward()
+            if !attemptToRestoreReplacementWord() {
+                if let selectedText = textDocumentProxy.selectedText {
+                    tempDeletedCharacters.append(contentsOf: selectedText.reversed())
+                } else if let lastBeforeCursor = textDocumentProxy.documentContextBeforeInput?.last {
+                    tempDeletedCharacters.append(lastBeforeCursor)
                 }
+                deleteBackward()
             }
         case .spaceButton:
             attemptToReplaceCurrentWord()
@@ -567,13 +619,13 @@ extension BaseKeyboardViewController {
         }
     }
     
-    final func performRepeatTextInteraction(for button: TextInteractable) {
-        textInteractionWillPerform()
+    final public func performRepeatTextInteraction(for button: TextInteractable) {
+        textInteractionWillPerform(button: button)
         defer { textInteractionDidPerform() }
         
         switch button.type {
         case .keyButton:
-            repeatInsertKeyText(from: button)
+            repeatInsertPrimaryKeyText(from: button)
             button.playFeedback()
         case .deleteButton:
             if textDocumentProxy.documentContextBeforeInput != nil || textDocumentProxy.selectedText != nil {
@@ -624,6 +676,25 @@ extension BaseKeyboardViewController {
         }
         
         return false
+    }
+}
+
+// MARK: - Private Methods
+
+private extension BaseKeyboardViewController {
+    func handlePeriodShortcutOnDelete() {
+        guard UserDefaultsManager.shared.isPeriodShortcutEnabled else { return }
+        
+        if performedPeriodShortcut {
+            preventNextPeriodShortcut = true
+            performedPeriodShortcut = false
+        } else if preventNextPeriodShortcut {
+            if let lastChar = textDocumentProxy.documentContextBeforeInput?.last {
+                if lastChar.isLetter || lastChar.isNumber {
+                    preventNextPeriodShortcut = false
+                }
+            }
+        }
     }
 }
 
@@ -693,7 +764,8 @@ extension BaseKeyboardViewController: TextInteractionGestureControllerDelegate {
     }
     
     final func textInteractableButtonLongPressing(_ controller: TextInteractionGestureController, button: TextInteractable) {
-        if UserDefaultsManager.shared.isLongPressToRepeatInputEnabled || button is DeleteButton {
+        if UserDefaultsManager.shared.isLongPressToRepeatInputEnabled
+            || button is DeleteButton {
             repeatTextInteractionWillPerform(button: button)
             
             let repeatTimerInterval = 0.10 - UserDefaultsManager.shared.repeatRate
@@ -710,7 +782,8 @@ extension BaseKeyboardViewController: TextInteractionGestureControllerDelegate {
     }
     
     final func textInteractableButtonLongPressStopped(_ controller: TextInteractionGestureController, button: TextInteractable) {
-        if UserDefaultsManager.shared.isLongPressToRepeatInputEnabled || button is DeleteButton {
+        if UserDefaultsManager.shared.isLongPressToRepeatInputEnabled
+            || button is DeleteButton {
             repeatTextInteractionDidPerform(button: button)
         }
     }
