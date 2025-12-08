@@ -26,7 +26,7 @@ open class EnglishKeyboardCoreViewController: BaseKeyboardViewController {
     // MARK: - Initializer
     
     public override init(nibName nibNameOrNil: String?, bundle nibBundleOrNil: Bundle?) {
-        SwitchButton.debugPrimaryLanguage = "en-US"
+        SwitchButton.previewPrimaryLanguage = "en-US"
         super.init(nibName: nibNameOrNil, bundle: nibBundleOrNil)
     }
     
@@ -131,7 +131,7 @@ open class EnglishKeyboardCoreViewController: BaseKeyboardViewController {
         textDocumentProxy.insertText(secondaryKey)
     }
     
-    open override func repeatInsertKeyText(from button: TextInteractable) {
+    open override func repeatInsertPrimaryKeyText(from button: TextInteractable) {
         if isPreview { return }
         
         guard let primaryKey = button.type.primaryKeyList.first else {

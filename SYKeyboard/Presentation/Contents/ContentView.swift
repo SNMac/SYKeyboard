@@ -15,7 +15,7 @@ struct ContentView: View {
     
     // MARK: - Properties
     
-    @AppStorage(UserDefaultsKeys.isOnboarding, store: UserDefaults(suiteName: DefaultValues.groupBundleID))
+    @AppStorage(UserDefaultsKeys.isOnboarding, store: UserDefaultsManager.shared.storage)
     private var isOnboarding = DefaultValues.isOnboarding
     
     @State private var isAdReceived: Bool = false

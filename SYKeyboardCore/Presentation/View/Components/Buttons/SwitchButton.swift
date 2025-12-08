@@ -15,7 +15,7 @@ final public class SwitchButton: SecondaryButton {
     
     private let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: "SwitchButton")
     
-    public static var debugPrimaryLanguage: String = "ko-KR"
+    public static var previewPrimaryLanguage: String = "ko-KR"
     
     private let keyboard: SYKeyboardType
     private let title: String
@@ -53,7 +53,7 @@ final public class SwitchButton: SecondaryButton {
                 primaryLanguage = Bundle.primaryLanguage!
             } else {
                 logger.critical("Info.plist에서 PrimaryLanguage 값을 찾을 수 없습니다.")
-                primaryLanguage = Self.debugPrimaryLanguage
+                primaryLanguage = Self.previewPrimaryLanguage
             }
             
             if primaryLanguage == "ko-KR" {

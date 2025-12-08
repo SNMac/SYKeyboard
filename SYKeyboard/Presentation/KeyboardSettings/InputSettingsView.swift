@@ -8,6 +8,7 @@
 import SwiftUI
 
 import SYKeyboardCore
+import EnglishKeyboardCore
 
 import FirebaseAnalytics
 
@@ -15,22 +16,22 @@ struct InputSettingsView: View {
     
     // MARK: - Properties
     
-    @AppStorage(UserDefaultsKeys.isLongPressToNumberInputEnabled, store: UserDefaults(suiteName: DefaultValues.groupBundleID))
+    @AppStorage(UserDefaultsKeys.isLongPressToNumberInputEnabled, store: UserDefaultsManager.shared.storage)
     private var isLongPressToNumberInputEnabled = DefaultValues.isLongPressToNumberInputEnabled
     
-    @AppStorage(UserDefaultsKeys.isLongPressToRepeatInputEnabled, store: UserDefaults(suiteName: DefaultValues.groupBundleID))
+    @AppStorage(UserDefaultsKeys.isLongPressToRepeatInputEnabled, store: UserDefaultsManager.shared.storage)
     private var isLongPressToRepeatInputEnabled = DefaultValues.isLongPressToRepeatInputEnabled
     
-    @AppStorage(UserDefaultsKeys.isAutoCapitalizationEnabled, store: UserDefaults(suiteName: DefaultValues.groupBundleID))
+    @AppStorage(UserDefaultsKeys.isAutoCapitalizationEnabled, store: UserDefaultsManager.shared.storage)
     private var isAutoCapitalizationEnabled = DefaultValues.isAutoCapitalizationEnabled
     
-    @AppStorage(UserDefaultsKeys.isTextReplacementEnabled, store: UserDefaults(suiteName: DefaultValues.groupBundleID))
+    @AppStorage(UserDefaultsKeys.isTextReplacementEnabled, store: UserDefaultsManager.shared.storage)
     private var isTextReplacementEnabled = DefaultValues.isTextReplacementEnabled
     
-    @AppStorage(UserDefaultsKeys.isAutoChangeToPrimaryEnabled, store: UserDefaults(suiteName: DefaultValues.groupBundleID))
+    @AppStorage(UserDefaultsKeys.isAutoChangeToPrimaryEnabled, store: UserDefaultsManager.shared.storage)
     private var isAutoChangeToPrimaryEnabled = DefaultValues.isAutoChangeToPrimaryEnabled
     
-    @AppStorage(UserDefaultsKeys.isDragToMoveCursorEnabled, store: UserDefaults(suiteName: DefaultValues.groupBundleID))
+    @AppStorage(UserDefaultsKeys.isDragToMoveCursorEnabled, store: UserDefaultsManager.shared.storage)
     private var isDragToMoveCursorEnabled = DefaultValues.isDragToMoveCursorEnabled
     
     enum LongPressMode: Int, CaseIterable {
@@ -83,8 +84,8 @@ struct InputSettingsView: View {
                 isLongPressToNumberInputEnabled = false
             }
             
-            Analytics.logEvent("select_long_press_action", parameters: [
-                "mode": newValue.analyticsValue
+            Analytics.logEvent("selected_long_press_action", parameters: [
+                "action": newValue.analyticsValue
             ])
             
             hideKeyboard()

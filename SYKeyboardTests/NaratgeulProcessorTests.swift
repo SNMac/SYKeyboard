@@ -17,12 +17,13 @@ struct NaratgeulProcessorTests {
     
     private static let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: String(describing: "NaratgeulProcessorTests"))
     
-    private let processor: HangeulProcessable = NaratgeulProcessor()
+    private let automata: HangeulAutomataProtocol = HangeulAutomata()
+    private let processor: HangeulProcessable
     
     var 나랏글자음Map: [String: [String]] {
         [
             "ㄱ": ["ㄱ"], "ㅋ": ["ㄱ", "획"], "ㄲ": ["ㄱ", "쌍"],
-            "ㄴ": ["ㄴ"], "ㄷ": ["ㄴ", "획"], "ㅌ": ["ㄴ", "획", "획"], "ㄸ": ["ㄴ", "쌍"], // ㄸ은 ㄴ+쌍 (또는 ㄷ+쌍)
+            "ㄴ": ["ㄴ"], "ㄷ": ["ㄴ", "획"], "ㅌ": ["ㄴ", "획", "획"], "ㄸ": ["ㄴ", "쌍"], // ㄸ은 ㄴ + 쌍 (또는 ㄷ + 쌍)
             "ㄹ": ["ㄹ"],
             "ㅁ": ["ㅁ"], "ㅂ": ["ㅁ", "획"], "ㅍ": ["ㅁ", "획", "획"], "ㅃ": ["ㅁ", "쌍"],
             "ㅅ": ["ㅅ"], "ㅈ": ["ㅅ", "획"], "ㅊ": ["ㅅ", "획", "획"], "ㅉ": ["ㅅ", "획", "획", "획"], "ㅆ": ["ㅅ", "쌍"], // ㅉ은 ㅅ 계열 4번째
@@ -61,6 +62,12 @@ struct NaratgeulProcessorTests {
             "ㄽ": ["ㄹ", "ㅅ"], "ㄾ": ["ㄹ", "ㅌ"], "ㄿ": ["ㄹ", "ㅍ"],
             "ㅀ": ["ㄹ", "ㅎ"], "ㅄ": ["ㅂ", "ㅅ"]
         ]
+    }
+    
+    // MARK: - Initializer
+    
+    init() {
+        self.processor = NaratgeulProcessor(automata: automata)
     }
     
     // MARK: - 1. 획추가 테스트

@@ -15,10 +15,10 @@ struct KeyRepeatSettingsView: View {
     
     // MARK: - Properties
     
-    @AppStorage(UserDefaultsKeys.longPressDuration, store: UserDefaults(suiteName: DefaultValues.groupBundleID))
+    @AppStorage(UserDefaultsKeys.longPressDuration, store: UserDefaultsManager.shared.storage)
     private var longPressDuration = DefaultValues.longPressDuration
     
-    @AppStorage(UserDefaultsKeys.repeatRate, store: UserDefaults(suiteName: DefaultValues.groupBundleID))
+    @AppStorage(UserDefaultsKeys.repeatRate, store: UserDefaultsManager.shared.storage)
     private var repeatRate = DefaultValues.repeatRate
     
     // MARK: - Contents

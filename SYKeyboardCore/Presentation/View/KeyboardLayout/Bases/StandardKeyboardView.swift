@@ -35,7 +35,7 @@ open class StandardKeyboardView: UIView {
     // MARK: - UI Components
     
     /// 키보드 레이아웃 수직 스택
-    private let keyboardVStackView = KeyboardLayoutVStackView()
+    private let layoutVStackView = KeyboardLayoutVStackView()
     
     /// 키보드 첫번째 행
     private let firstRowHStackView = KeyboardRowHStackView()
@@ -174,14 +174,14 @@ private extension StandardKeyboardView {
     }
     
     func setHierarchy() {
-        [keyboardVStackView,
+        [layoutVStackView,
          keyboardSelectOverlayView,
          oneHandedModeSelectOverlayView].forEach { self.addSubview($0) }
         
         [firstRowHStackView,
          secondRowHStackView,
          thirdRowHStackView,
-         fourthRowHStackView].forEach { keyboardVStackView.addArrangedSubview($0) }
+         fourthRowHStackView].forEach { layoutVStackView.addArrangedSubview($0) }
         
         firstRowPrimaryKeyButtonList.forEach { firstRowHStackView.addArrangedSubview($0) }
         
@@ -197,12 +197,12 @@ private extension StandardKeyboardView {
     }
     
     func setConstraints() {
-        keyboardVStackView.translatesAutoresizingMaskIntoConstraints = false
+        layoutVStackView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
-            keyboardVStackView.topAnchor.constraint(equalTo: self.topAnchor),
-            keyboardVStackView.leadingAnchor.constraint(equalTo: self.leadingAnchor),
-            keyboardVStackView.trailingAnchor.constraint(equalTo: self.trailingAnchor),
-            keyboardVStackView.bottomAnchor.constraint(equalTo: self.bottomAnchor)
+            layoutVStackView.topAnchor.constraint(equalTo: self.topAnchor),
+            layoutVStackView.leadingAnchor.constraint(equalTo: self.leadingAnchor),
+            layoutVStackView.trailingAnchor.constraint(equalTo: self.trailingAnchor),
+            layoutVStackView.bottomAnchor.constraint(equalTo: self.bottomAnchor)
         ])
         
         guard let referenceKey = firstRowPrimaryKeyButtonList.first else { fatalError("firstRowPrimaryKeyButtonList가 비어있습니다.") }

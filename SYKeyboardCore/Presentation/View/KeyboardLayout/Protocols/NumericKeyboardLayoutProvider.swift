@@ -6,7 +6,7 @@
 //
 
 /// 숫자 키보드 레이아웃 프로토콜
-public protocol NumericKeyboardLayoutProvider: NormalKeyboardLayoutProvider, TextInteractionGestureHandling, SwitchGestureHandling {}
+public protocol NumericKeyboardLayoutProvider: NormalKeyboardLayoutProvider {}
 
 extension NumericKeyboardLayoutProvider {
     var keyboard: SYKeyboardType { .numeric }

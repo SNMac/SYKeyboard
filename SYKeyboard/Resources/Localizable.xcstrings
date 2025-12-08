@@ -140,6 +140,16 @@
         }
       }
     },
+    "나랏글" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Naratgeul"
+          }
+        }
+      }
+    },
     "단말기 모델" : {
       "localizations" : {
         "en" : {
@@ -436,6 +446,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Info"
+          }
+        }
+      }
+    },
+    "천지인" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cheonjiin"
           }
         }
       }

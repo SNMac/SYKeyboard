@@ -45,6 +45,8 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
     }
 }
 
+// MARK: - SYKeyboardApp
+
 @main
 struct SYKeyboardApp: App {
     

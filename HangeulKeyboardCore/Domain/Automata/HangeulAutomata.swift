@@ -6,7 +6,7 @@
 //
 
 /// 한글 오토마타 프로토콜
-protocol HangeulAutomataProtocol {
+protocol HangeulAutomataProtocol: AnyObject {
     var 초성Table: [String] { get }
     var 중성Table: [String] { get }
     var 종성Table: [String] { get }
@@ -59,13 +59,13 @@ final class HangeulAutomata: HangeulAutomataProtocol {
     private let 한글UnicodeEnd: UInt32 = 0xD7A3
     
     let 초성Table: [String] = ["ㄱ", "ㄲ", "ㄴ", "ㄷ", "ㄸ", "ㄹ", "ㅁ", "ㅂ", "ㅃ", "ㅅ", "ㅆ", "ㅇ",
-                                     "ㅈ", "ㅉ", "ㅊ", "ㅋ", "ㅌ", "ㅍ", "ㅎ"]
+                             "ㅈ", "ㅉ", "ㅊ", "ㅋ", "ㅌ", "ㅍ", "ㅎ"]
     
     let 중성Table: [String] = ["ㅏ", "ㅐ", "ㅑ", "ㅒ", "ㅓ", "ㅔ", "ㅕ", "ㅖ", "ㅗ", "ㅘ", "ㅙ", "ㅚ",
-                                     "ㅛ", "ㅜ", "ㅝ", "ㅞ", "ㅟ", "ㅠ", "ㅡ", "ㅢ", "ㅣ"]
+                             "ㅛ", "ㅜ", "ㅝ", "ㅞ", "ㅟ", "ㅠ", "ㅡ", "ㅢ", "ㅣ"]
     
     let 종성Table: [String] = [" ", "ㄱ", "ㄲ", "ㄳ", "ㄴ", "ㄵ", "ㄶ","ㄷ", "ㄹ", "ㄺ", "ㄻ", "ㄼ", "ㄽ", "ㄾ", "ㄿ", "ㅀ",
-                                     "ㅁ", "ㅂ", "ㅄ", "ㅅ", "ㅆ", "ㅇ", "ㅈ", "ㅊ", "ㅋ", "ㅌ", "ㅍ", "ㅎ"]
+                             "ㅁ", "ㅂ", "ㅄ", "ㅅ", "ㅆ", "ㅇ", "ㅈ", "ㅊ", "ㅋ", "ㅌ", "ㅍ", "ㅎ"]
     
     private let 겹모음조합Table: [(앞모음: String, 뒷모음: String, 결과: String)] = [
         ("ㅗ", "ㅏ", "ㅘ"),
