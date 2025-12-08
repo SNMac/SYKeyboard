@@ -274,18 +274,7 @@ open class BaseKeyboardViewController: UIInputViewController {
     
     /// 삭제가 일어나기 전 실행되는 메서드
     open func deleteBackwardWillPerform() {
-        guard UserDefaultsManager.shared.isPeriodShortcutEnabled else { return }
-        
-        if performedPeriodShortcut {
-            preventNextPeriodShortcut = true
-            performedPeriodShortcut = false
-        } else if preventNextPeriodShortcut {
-            if let lastChar = textDocumentProxy.documentContextBeforeInput?.last {
-                if lastChar.isLetter || lastChar.isNumber {
-                    preventNextPeriodShortcut = false
-                }
-            }
-        }
+        handlePeriodShortcutOnDelete()
     }
     
     /// 문자열 입력 UI의 텍스트를 삭제하는 메서드 (단일 호출)
@@ -299,18 +288,7 @@ open class BaseKeyboardViewController: UIInputViewController {
     
     /// 반복 삭제가 일어나기 전 실행되는 메서드
     open func repeatDeleteBackwardWillPerform() {
-        guard UserDefaultsManager.shared.isPeriodShortcutEnabled else { return }
-        
-        if performedPeriodShortcut {
-            preventNextPeriodShortcut = true
-            performedPeriodShortcut = false
-        } else if preventNextPeriodShortcut {
-            if let lastChar = textDocumentProxy.documentContextBeforeInput?.last {
-                if lastChar.isLetter || lastChar.isNumber {
-                    preventNextPeriodShortcut = false
-                }
-            }
-        }
+        handlePeriodShortcutOnDelete()
     }
     
     /// 문자열 입력 UI의 텍스트를 삭제하는 메서드 (반복 호출)
@@ -433,9 +411,9 @@ private extension BaseKeyboardViewController {
         }
         if button is DeleteButton {
             button.addAction(inputAction, for: .touchDown)
-        } else if button is SpaceButton {
+        } else if let spaceButton = button as? SpaceButton {
             button.addAction(inputAction, for: .touchUpInside)
-            addPeriodShortcutActionToSpaceButton(button as! SpaceButton)
+            addPeriodShortcutActionToSpaceButton(spaceButton)
         } else {
             button.addAction(inputAction, for: .touchUpInside)
         }
@@ -698,6 +676,25 @@ extension BaseKeyboardViewController {
         }
         
         return false
+    }
+}
+
+// MARK: - Private Methods
+
+private extension BaseKeyboardViewController {
+    func handlePeriodShortcutOnDelete() {
+        guard UserDefaultsManager.shared.isPeriodShortcutEnabled else { return }
+        
+        if performedPeriodShortcut {
+            preventNextPeriodShortcut = true
+            performedPeriodShortcut = false
+        } else if preventNextPeriodShortcut {
+            if let lastChar = textDocumentProxy.documentContextBeforeInput?.last {
+                if lastChar.isLetter || lastChar.isNumber {
+                    preventNextPeriodShortcut = false
+                }
+            }
+        }
     }
 }
 
