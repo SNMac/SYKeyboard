@@ -272,22 +272,53 @@ open class BaseKeyboardViewController: UIInputViewController {
         textDocumentProxy.insertText("\n")
     }
     
+    /// 삭제가 일어나기 전 실행되는 메서드
+    open func deleteBackwardWillPerform() {
+        guard UserDefaultsManager.shared.isPeriodShortcutEnabled else { return }
+        
+        if performedPeriodShortcut {
+            preventNextPeriodShortcut = true
+            performedPeriodShortcut = false
+        } else if preventNextPeriodShortcut {
+            if let lastChar = textDocumentProxy.documentContextBeforeInput?.last {
+                if lastChar.isLetter || lastChar.isNumber {
+                    preventNextPeriodShortcut = false
+                }
+            }
+        }
+    }
+    
     /// 문자열 입력 UI의 텍스트를 삭제하는 메서드 (단일 호출)
     /// - `isPreview == true`이면 즉시 리턴
     open func deleteBackward() {
         if isPreview { return }
         
+        deleteBackwardWillPerform()
+        textDocumentProxy.deleteBackward()
+    }
+    
+    /// 반복 삭제가 일어나기 전 실행되는 메서드
+    open func repeatDeleteBackwardWillPerform() {
+        guard UserDefaultsManager.shared.isPeriodShortcutEnabled else { return }
+        
         if performedPeriodShortcut {
             preventNextPeriodShortcut = true
             performedPeriodShortcut = false
+        } else if preventNextPeriodShortcut {
+            if let lastChar = textDocumentProxy.documentContextBeforeInput?.last {
+                if lastChar.isLetter || lastChar.isNumber {
+                    preventNextPeriodShortcut = false
+                }
+            }
         }
-        
-        textDocumentProxy.deleteBackward()
     }
+    
     /// 문자열 입력 UI의 텍스트를 삭제하는 메서드 (반복 호출)
     /// - `isPreview == true`이면 즉시 리턴
     open func repeatDeleteBackward() {
         if isPreview { return }
+        
+        repeatDeleteBackwardWillPerform()
         textDocumentProxy.deleteBackward()
     }
     
