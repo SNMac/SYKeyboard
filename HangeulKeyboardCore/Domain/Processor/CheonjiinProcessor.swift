@@ -94,48 +94,57 @@ final class CheonjiinProcessor: HangeulProcessable {
     /// 2. **모음 입력**: 천지인 조합 테이블을 확인하여 모음을 합치거나 새로 추가합니다.
     /// 3. **자음 입력**: 이전 키와 동일하면 순환(Cycle)하고, 아니면 새로 추가합니다.
     func input(글자Input: String, beforeText: String) -> (processedText: String, input글자: String?) {
-        // 입력값 정규화 ("천", "·" -> "ㆍ")
-        var normalizedInput = 글자Input
-        if 글자Input == "천" || 글자Input == "·" { normalizedInput = "ㆍ" }
-        
         // [확정 상태 체크]
         // 조합이 확정(false)된 상태라면, 오토마타 합치기를 시도하지 않고 바로 새 글자로 붙입니다.
         // 예: "가"(확정) + "ㄴ" -> "간"(X) -> "가ㄴ"(O)
         if !is한글조합OnGoing {
             committedLength = beforeText.count
             is한글조합OnGoing = true
-            return (beforeText + normalizedInput, normalizedInput)
+            return (beforeText + 글자Input, 글자Input)
         }
         
         // 1. [모음 입력] (ㆍ, ㅡ, ㅣ)
-        if ["ㆍ", "ㅡ", "ㅣ"].contains(normalizedInput) {
+        if ["ㆍ", "ㅡ", "ㅣ"].contains(글자Input) {
             // 모음 조합 시도
-            if let (prefix, combined모음) = tryCombine모음(input: normalizedInput, beforeText: beforeText) {
+            if let (prefix, combined모음) = tryCombine모음(input: 글자Input, beforeText: beforeText) {
                 // 조합된 모음을 오토마타에 입력하여 연음 및 자모 결합 처리
                 // 예: "닭" + "ㅓ"(조합됨) -> "달거"
                 let newText = automata.add글자(글자Input: combined모음, beforeText: prefix)
-                
                 is한글조합OnGoing = true
-                return (newText, combined모음)
+                
+                var nextRepeatChar = combined모음
+                switch combined모음 {
+                case "ㅘ":
+                    nextRepeatChar = "ㅏ"
+                case "ㅝ":
+                    nextRepeatChar = "ㅓ"
+                case "ㅙ":
+                    nextRepeatChar = "ㅐ"
+                case "ㅞ":
+                    nextRepeatChar = "ㅔ"
+                default:
+                    break
+                }
+                return (newText, nextRepeatChar)
             }
             
             // 조합 실패 시 단순 추가
-            let newText = automata.add글자(글자Input: normalizedInput, beforeText: beforeText)
+            let newText = automata.add글자(글자Input: 글자Input, beforeText: beforeText)
             is한글조합OnGoing = true
-            return (newText, normalizedInput)
+            return (newText, 글자Input)
         }
         
         // 2. [자음 입력]
         else {
             // 조합 중이고, 순환 가능한 자음이면 순환 시도
-            if let cycleList = 자음순환Table[normalizedInput] {
-                return cycle자음(inputKey: normalizedInput, cycleList: cycleList, beforeText: beforeText)
+            if let cycleList = 자음순환Table[글자Input] {
+                return cycle자음(inputKey: 글자Input, cycleList: cycleList, beforeText: beforeText)
             }
             
             // 순환 불가능 -> 새로 추가
-            let newText = automata.add글자(글자Input: normalizedInput, beforeText: beforeText)
+            let newText = automata.add글자(글자Input: 글자Input, beforeText: beforeText)
             is한글조합OnGoing = true
-            return (newText, normalizedInput)
+            return (newText, 글자Input)
         }
     }
     
