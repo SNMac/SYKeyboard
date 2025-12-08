@@ -51,6 +51,16 @@
         }
       }
     },
+    "'.' 단축키" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“.” shortcut"
+          }
+        }
+      }
+    },
     "%.1f" : {
       "shouldTranslate" : false
     },
@@ -296,6 +306,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Numeric Keypad"
+          }
+        }
+      }
+    },
+    "스페이스 바를 두 번 탭하면 마침표와 간격을 차례로 삽입" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Double tapping the space bar will insert a period followed by a space"
           }
         }
       }

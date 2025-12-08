@@ -103,7 +103,6 @@ final public class UserDefaultsManager {
     public var isHapticFeedbackEnabled: Bool
     
     /* 입력 설정 */
-
     /// 길게 누르기 동작 - 반복 입력
     @UserDefaultsWrapper(key: UserDefaultsKeys.isLongPressToRepeatInputEnabled, defaultValue: DefaultValues.isLongPressToRepeatInputEnabled)
     public var isLongPressToRepeatInputEnabled: Bool
@@ -116,7 +115,9 @@ final public class UserDefaultsManager {
     /// 텍스트 대치
     @UserDefaultsWrapper(key: UserDefaultsKeys.isTextReplacementEnabled, defaultValue: DefaultValues.isTextReplacementEnabled)
     public var isTextReplacementEnabled: Bool
-
+    /// '.' 단축키
+    @UserDefaultsWrapper(key: UserDefaultsKeys.isPeriodShortcutEnabled, defaultValue: DefaultValues.isPeriodShortcutEnabled)
+    public var isPeriodShortcutEnabled: Bool
     /// 스페이스/리턴 입력 후 주 키보드로 변경
     @UserDefaultsWrapper(key: UserDefaultsKeys.isAutoChangeToPrimaryEnabled, defaultValue: DefaultValues.isAutoChangeToPrimaryEnabled)
     public var isAutoChangeToPrimaryEnabled: Bool

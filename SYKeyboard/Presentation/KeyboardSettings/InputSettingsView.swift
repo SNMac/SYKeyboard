@@ -28,6 +28,9 @@ struct InputSettingsView: View {
     @AppStorage(UserDefaultsKeys.isTextReplacementEnabled, store: UserDefaultsManager.shared.storage)
     private var isTextReplacementEnabled = DefaultValues.isTextReplacementEnabled
     
+    @AppStorage(UserDefaultsKeys.isPeriodShortcutEnabled, store: UserDefaultsManager.shared.storage)
+    private var isPeriodShortcutEnabled = DefaultValues.isPeriodShortcutEnabled
+    
     @AppStorage(UserDefaultsKeys.isAutoChangeToPrimaryEnabled, store: UserDefaultsManager.shared.storage)
     private var isAutoChangeToPrimaryEnabled = DefaultValues.isAutoChangeToPrimaryEnabled
     
@@ -87,7 +90,6 @@ struct InputSettingsView: View {
             Analytics.logEvent("selected_long_press_action", parameters: [
                 "action": newValue.analyticsValue
             ])
-            
             hideKeyboard()
         }
     }
@@ -113,7 +115,6 @@ struct InputSettingsView: View {
                 "name": "auto_capitalization",
                 "value": newValue ? "on" : "off"
             ])
-            
             hideKeyboard()
         }
         
@@ -127,7 +128,19 @@ struct InputSettingsView: View {
                 "name": "text_replacement",
                 "value": newValue ? "on" : "off"
             ])
-            
+            hideKeyboard()
+        }
+        
+        Toggle(isOn: $isPeriodShortcutEnabled, label: {
+            Text("'.' 단축키")
+            Text("스페이스 바를 두 번 탭하면 마침표와 간격을 차례로 삽입")
+                .font(.caption)
+        })
+        .onChange(of: isPeriodShortcutEnabled) { newValue in
+            Analytics.logEvent("input_settings", parameters: [
+                "name": "period_shortcut",
+                "value": newValue ? "on" : "off"
+            ])
             hideKeyboard()
         }
         
@@ -141,7 +154,6 @@ struct InputSettingsView: View {
                 "name": "auto_change_to_primary",
                 "value": newValue ? "on" : "off"
             ])
-            
             hideKeyboard()
         }
         
@@ -153,7 +165,6 @@ struct InputSettingsView: View {
                 "name": "drag_to_move_cursor",
                 "value": newValue ? "on" : "off"
             ])
-            
             hideKeyboard()
         }
         

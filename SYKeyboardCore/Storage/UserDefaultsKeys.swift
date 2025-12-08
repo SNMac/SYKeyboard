@@ -22,6 +22,8 @@ public enum UserDefaultsKeys {
     public static let isDragToMoveCursorEnabled = "isDragToMoveCursorEnabled"
     /// 텍스트 대치
     public static let isTextReplacementEnabled = "isTextReplacementEnabled"
+    /// '.' 단축키
+    public static let isPeriodShortcutEnabled = "isPeriodShortcutEnabled"
     /// 스페이스/리턴 입력 후 주 키보드로 변경
     public static let isAutoChangeToPrimaryEnabled = "isAutoChangeToPrimaryEnabled"
     
