@@ -16,7 +16,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Drag ‘!#1’, ‘한글’ or ‘ABC’ button up or long press"
+            "value" : "Drag “!#1“, “한글“ or “ABC“ button up or long press"
           }
         }
       }
@@ -26,7 +26,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Drag ‘!#1’, ‘한글’ or ‘ABC’ button up or long press to change"
+            "value" : "Drag “!#1“, “한글“ or “ABC“ button up or long press to change"
           }
         }
       }
@@ -36,7 +36,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Drag ‘!#1’, ‘한글’, or ‘ABC’ button in the direction of the arrow"
+            "value" : "Drag “!#1“, “한글“, or “ABC“ button in the direction of the arrow"
           }
         }
       }
@@ -46,7 +46,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Drag ‘!#1’, ‘한글’ or ‘ABC’ button in the direction of the arrow to switch"
+            "value" : "Drag “!#1“, “한글“ or “ABC“ button in the direction of the arrow to switch"
           }
         }
       }
@@ -505,7 +505,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Keyboard ➡️ Enable ‘SYKeyboard’ and ‘Allow Full Access’"
+            "value" : "Keyboard ➡️ Enable “SYKeyboard“ and “Allow Full Access“"
           }
         }
       }
