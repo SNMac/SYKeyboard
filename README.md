@@ -1,7 +1,10 @@
 <img src="https://github.com/user-attachments/assets/fb7e719e-7353-4649-8ecc-a11058a6c3d6" width="200">
 
 # SY키보드
-> SY키보드는 가볍고, 사용하기 간편한 나랏글 키보드입니다. (추후 두벌식 키보드 추가 예정)  
+> SY키보드는 가볍고, 사용하기 간편한 한글, 영어 키보드입니다.
+> - 한글 키보드: 나랏글, 천지인
+> - 영어 키보드: QWERTY  
+> 
 > [Figma](https://www.figma.com/design/0i3sNlaez0LG0QMfw80yJ4/SY%ED%82%A4%EB%B3%B4%EB%93%9C?node-id=0-1&t=L8rArjkBX9MJ3UJD-1)
 > 
 > 개발 기간: 2024.07.30 ~ 2025.01.15  
