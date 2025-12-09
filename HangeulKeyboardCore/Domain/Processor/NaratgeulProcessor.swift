@@ -123,7 +123,7 @@ final class NaratgeulProcessor: HangeulProcessable {
     ///
     /// 1. **특수 기능 키**: '획', '쌍' 키 입력 시 마지막 글자를 변환합니다.
     /// 2. **모음 결합**: 'ㅣ' 키나 이중모음 결합(ㅘ, ㅝ 등)을 처리합니다.
-    /// 3. **모음 토글**: `ㅏ` <-> `ㅓ` 등 키 반복 입력을 처리합니다.
+    /// 3. **모음 토글**: 'ㅏ' <-> 'ㅓ' 등 키 반복 입력을 처리합니다.
     /// 4. **기본 입력**: 위 경우가 아니면 표준 오토마타(`add글자`)를 통해 자소를 결합합니다.
     func input(글자Input: String, beforeText: String) -> (processedText: String, input글자: String?) {
         
@@ -282,13 +282,24 @@ private extension NaratgeulProcessor {
                 let 종성글자 = automata.종성Table[종성Index]
                 
                 // A. 단순 종성 변환
-                if let converted종성 = 쌍자음Table[종성글자],
-                   let converted종성Index = automata.종성Table.firstIndex(of: converted종성),
-                   let new글자 = automata.combine(초성Index: 초성Index, 중성Index: 중성Index, 종성Index: converted종성Index) {
-                    return (newText + String(new글자), converted종성)
+                if let converted종성 = 쌍자음Table[종성글자] {
+                    
+                    // Case 1: 변환된 글자가 '유효한 종성'인 경우 (예: ㄱ -> ㄲ, '각' -> '깎')
+                    if let converted종성Index = automata.종성Table.firstIndex(of: converted종성),
+                       let new글자 = automata.combine(초성Index: 초성Index, 중성Index: 중성Index, 종성Index: converted종성Index) {
+                        return (newText + String(new글자), converted종성)
+                    }
+                    
+                    // Case 2: 변환된 글자가 '종성으로 쓸 수 없는 경우' (예: ㅁ -> ㅃ, '옴' -> '오ㅃ')
+                    // 받침을 떼어내고(종성Index: 0), 새 글자로 분리해서 붙입니다.
+                    else if let prevCharWithout종성 = automata.combine(초성Index: 초성Index, 중성Index: 중성Index, 종성Index: 0) {
+                        // "오" + "ㅃ"
+                        let separatedText = newText + String(prevCharWithout종성) + converted종성
+                        return (separatedText, converted종성)
+                    }
                 }
                 
-                // B. 겹받침 분해 후 변환
+                // B. 겹받침 분해 후 변환 (기존 코드 유지)
                 if let (앞받침, 뒷받침) = automata.decompose겹받침(종성: 종성글자) {
                     if let converted뒷받침 = 쌍자음Table[뒷받침],
                        let 앞받침Index = automata.종성Table.firstIndex(of: 앞받침) {
