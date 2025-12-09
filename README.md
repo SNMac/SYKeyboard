@@ -214,7 +214,11 @@ func setStyles() {
 최근 WWDC에서 SwiftUI 위주의 업데이트가 계속 발표되고 있으니, 나중에는 더 커스텀하기 편하게 SwiftUI가 업데이트되지 않을까 싶다!  
 그렇게 된다면 다시 UIKit에서 SwiftUI로 리팩토링을 하여 지금보다도 더 가독성, 유지보수에 좋은 코드를 만들 수 있을 것 같다.
 
-<br><br>
+<br>
+
+---
+
+<br>
 
 ### 키보드 높이 제약조건 지정 시 키보드 표시 애니메이션 글리칭 현상
 #### 문제 상황
@@ -308,7 +312,11 @@ func setKeyboardHeight() {
 
 출처: [Stack Overflow - iOS 8 Custom Keyboard: Changing the height without warning 'Unable to simultaneously satisfy constraints...'](https://stackoverflow.com/questions/26569476/ios-8-custom-keyboard-changing-the-height-without-warning-unable-to-simultaneo)
 
-<br><br>
+<br>
+
+---
+
+<br>
 
 
 ### 키보드 가장자리 터치 딜레이
@@ -358,7 +366,11 @@ override func viewDidAppear(_ animated: Bool) {
 
 출처: [Stack Overflow - UISystemGateGestureRecognizer and delayed taps near bottom of screen](https://stackoverflow.com/questions/19799961/uisystemgategesturerecognizer-and-delayed-taps-near-bottom-of-screen)
 
-<br><br>
+<br>
+
+---
+
+<br>
 
 
 ## 📊 다이어그램
@@ -443,6 +455,8 @@ direction LR
 
     classDef SYKeyboard_primary fill:#ffa6ed
 ```
+
+---
 
 ### 키보드 레이아웃 구조
 ``` mermaid
@@ -530,6 +544,8 @@ direction LR
     classDef SYKeyboard_primary fill:#ffa6ed
 ```
 
+---
+
 ### 키보드 버튼 구조
 ``` mermaid
 %%{
@@ -598,7 +614,9 @@ direction LR
     classDef SYKeyboard_primary fill:#ffa6ed
 ```
 
-<br><br>
+---
+
+<br>
 
 
 ## 📱 주요 기능
