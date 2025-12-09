@@ -280,23 +280,31 @@ private func initKeyboardConstraints() {
 위 답변을 토대로 높이 제약조건 코드를 수정하고 방어코드를 추가하였다.
 ``` swift
 func setKeyboardHeight() {
-    if !isHeightConstraintAdded, self.view.superview != nil {
-        self.view.snp.makeConstraints {
-            $0.edges.equalToSuperview()
-            $0.height.equalTo(UserDefaultsManager.shared.keyboardHeight).priority(999)
+    let keyboardHeight: CGFloat
+    if let orientation = self.view.window?.windowScene?.effectiveGeometry.interfaceOrientation {
+        keyboardHeight = orientation == .portrait ? UserDefaultsManager.shared.keyboardHeight : KeyboardLayoutFigure.landscapeKeyboardHeight
+    } else {
+        if !isPreview {
+            assertionFailure("View가 window 계층에 없습니다.")
         }
-        isHeightConstraintAdded = true
+        keyboardHeight = UserDefaultsManager.shared.keyboardHeight
+    }
+    
+    if let keyboardHeightConstraint {
+        keyboardHeightConstraint.constant = keyboardHeight
+    } else {
+        let constraint = self.view.heightAnchor.constraint(equalToConstant: keyboardHeight)
+        constraint.priority = .init(999)
+        constraint.isActive = true
+        
+        keyboardHeightConstraint = constraint
     }
 }
 ```
-- `SnapKit`을 통해 자동으로 `translatesAutoresizingMaskIntoConstraints`가 `false`로 설정됨
 
 |    설명    |   스크린샷   |
 | :-------------: | :----------: |
 | 해결 이후 | <img src = "https://github.com/user-attachments/assets/be7f5279-7b22-4dcd-830e-85a98ad7141a" width ="250"> |
-
-정말 오랫동안 고민하던 문제였고, 글리칭이 없는 다른 키보드 어플에서는 어떻게 해결했는지 개발자에게 여쭤보고 싶을 정도로 해결 방법이 궁금했었다.  
-해결하고 나니 속이 시원하다...
 
 출처: [Stack Overflow - iOS 8 Custom Keyboard: Changing the height without warning 'Unable to simultaneously satisfy constraints...'](https://stackoverflow.com/questions/26569476/ios-8-custom-keyboard-changing-the-height-without-warning-unable-to-simultaneo)
 
@@ -335,7 +343,7 @@ func setKeyboardHeight() {
 ``` swift
 override func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
-    let window = self.view.window!
+    guard let window = self.view.window else { fatalError("View가 window 계층에 없습니다.") }
     let systemGestureRecognizer0 = window.gestureRecognizers?[0] as? UIGestureRecognizer
     let systemGestureRecognizer1 = window.gestureRecognizers?[1] as? UIGestureRecognizer
     systemGestureRecognizer0?.delaysTouchesBegan = false
@@ -343,9 +351,10 @@ override func viewDidAppear(_ animated: Bool) {
 }
 ```
 
-<img width="881" height="67" alt="image" src="https://github.com/user-attachments/assets/2306bfa1-1788-428a-8755-6817e464e48c" />
-
-설정 이후 side effect가 생길 수 있다는 경고 메세지가 콘솔창에 뜨지만, 애플에서 `preferredScreenEdgesDeferringSystemGestures`를 `UIInputViewController`에 지원해주지 않는 이상 해결 방법이 없어보인다 🙄
+> <img width="881" height="67" alt="image" src="https://github.com/user-attachments/assets/2306bfa1-1788-428a-8755-6817e464e48c" />
+>
+> 설정 이후 side effect가 생길 수 있다는 경고 메세지가 콘솔창에 뜬다.  
+> 애플에서 `UIInputViewController`에 `preferredScreenEdgesDeferringSystemGestures`를 지원하게된다면 수정해야겠다.
 
 출처: [Stack Overflow - UISystemGateGestureRecognizer and delayed taps near bottom of screen](https://stackoverflow.com/questions/19799961/uisystemgategesturerecognizer-and-delayed-taps-near-bottom-of-screen)
 
