@@ -282,6 +282,7 @@ private func initKeyboardConstraints() {
 
 #### 해결 과정
 위 답변을 토대로 높이 제약조건 코드를 수정하고 방어코드를 추가하였다.
+- 키보드 가로모드 대응 코드도 추가된 상태
 ``` swift
 func setKeyboardHeight() {
     let keyboardHeight: CGFloat
