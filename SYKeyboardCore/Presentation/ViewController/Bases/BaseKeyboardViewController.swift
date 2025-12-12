@@ -160,6 +160,11 @@ open class BaseKeyboardViewController: UIInputViewController {
         coordinator.animate { _ in self.setKeyboardHeight() }
     }
     
+    open override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        cancelTimer()
+    }
+    
     open override func textWillChange(_ textInput: (any UITextInput)?) {
         super.textWillChange(textInput)
         updateKeyboardType()
@@ -201,16 +206,11 @@ open class BaseKeyboardViewController: UIInputViewController {
     /// 반복 텍스트 상호작용이 일어나기 전 실행되는 메서드
     open func repeatTextInteractionWillPerform(button: TextInteractable) {
         // 방어 코드
-        timer?.cancel()
-        timer = nil
-        logger.debug("반복 타이머 초기화")
+        cancelTimer()
     }
     /// 반복 텍스트 상호작용이 일어난 후 실행되는 메서드
     open func repeatTextInteractionDidPerform(button: TextInteractable) {
-        timer?.cancel()
-        timer = nil
-        logger.debug("반복 타이머 초기화")
-        
+        cancelTimer()
         tempDeletedCharacters.removeAll()
     }
     
@@ -294,7 +294,7 @@ open class BaseKeyboardViewController: UIInputViewController {
     /// 문자열 입력 UI의 텍스트를 삭제하는 메서드 (반복 호출)
     /// - `isPreview == true`이면 즉시 리턴
     open func repeatDeleteBackward() {
-        if isPreview { return }
+        if isPreview || self.view.window == nil { return }
         
         repeatDeleteBackwardWillPerform()
         textDocumentProxy.deleteBackward()
@@ -456,9 +456,7 @@ private extension BaseKeyboardViewController {
         if UserDefaultsManager.shared.isPeriodShortcutEnabled {
             let periodShortcutAction = UIAction { [weak self] _ in
                 guard let self else { return }
-                if isPreview || preventNextPeriodShortcut {
-                    return
-                }
+                if isPreview || preventNextPeriodShortcut { return }
                 
                 guard let beforeText = textDocumentProxy.documentContextBeforeInput else { return }
                 
@@ -696,6 +694,12 @@ private extension BaseKeyboardViewController {
             }
         }
     }
+    
+    func cancelTimer() {
+        timer?.cancel()
+        timer = nil
+        logger.debug("반복 타이머 초기화")
+    }
 }
 
 // MARK: - SwitchGestureControllerDelegate
@@ -772,6 +776,11 @@ extension BaseKeyboardViewController: TextInteractionGestureControllerDelegate {
             timer = Timer.publish(every: repeatTimerInterval, on: .main, in: .common)
                 .autoconnect()
                 .sink { [weak self] _ in
+                    if self?.view.window == nil {
+                        self?.cancelTimer()
+                        return
+                    }
+                    
                     self?.performRepeatTextInteraction(for: button)
                 }
             logger.debug("반복 타이머 생성")
