@@ -148,9 +148,8 @@ open class BaseKeyboardViewController: UIInputViewController {
     
     open override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        guard let window = self.view.window else { fatalError("View가 window 계층에 없습니다.") }
-        let systemGestureRecognizer0 = window.gestureRecognizers?[0] as? UIGestureRecognizer
-        let systemGestureRecognizer1 = window.gestureRecognizers?[1] as? UIGestureRecognizer
+        let systemGestureRecognizer0 = self.view.window?.gestureRecognizers?[0] as? UIGestureRecognizer
+        let systemGestureRecognizer1 = self.view.window?.gestureRecognizers?[1] as? UIGestureRecognizer
         systemGestureRecognizer0?.delaysTouchesBegan = false
         systemGestureRecognizer1?.delaysTouchesBegan = false
     }
