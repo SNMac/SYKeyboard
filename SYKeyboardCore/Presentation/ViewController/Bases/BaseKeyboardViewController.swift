@@ -419,13 +419,13 @@ private extension BaseKeyboardViewController {
             guard let self, let currentButton = action.sender as? BaseKeyboardButton else { return }
             
             if currentButton.isProgrammaticCall {
-                // 코드로 강제 호출된 경우 -> 무조건 입력 수행
+                // 코드(sendActions)로 호출된 경우 -> 무조건 입력 수행
                 performTextInteraction(for: button)
                 
             } else {
                 // 사용자가 touchUpInside한 경우 -> currentPressedButton 확인
                 if let currentPressedButton = buttonStateController.currentPressedButton,
-                   currentPressedButton === button {
+                   currentPressedButton == button {
                     performTextInteraction(for: button)
                 }
             }
@@ -501,21 +501,24 @@ private extension BaseKeyboardViewController {
     func addGesturesToTextInterableButton(_ button: TextInteractable) {
         guard !(button is ReturnButton) && !(button is SecondaryKeyButton) && !(button.type.primaryKeyList == [".com"]) else { return }
         
-        if UserDefaultsManager.shared.isDragToMoveCursorEnabled
-            || button is DeleteButton {
+        if UserDefaultsManager.shared.isDragToMoveCursorEnabled ||
+            button is DeleteButton {
             // 팬(드래그) 제스처
             let panGesture = UIPanGestureRecognizer(target: textInteractionGestureController, action: #selector(textInteractionGestureController.panGestureHandler(_:)))
             panGesture.delegate = textInteractionGestureController
+            panGesture.delaysTouchesBegan = false
+            panGesture.cancelsTouchesInView = true
             button.addGestureRecognizer(panGesture)
         }
         
-        if (UserDefaultsManager.shared.isLongPressToRepeatInputEnabled || UserDefaultsManager.shared.isLongPressToNumberInputEnabled)
-            || button is DeleteButton {
+        if (UserDefaultsManager.shared.isLongPressToRepeatInputEnabled || UserDefaultsManager.shared.isLongPressToNumberInputEnabled) ||
+            button is DeleteButton {
             // 길게 누르기 제스처
             let longPressGesture = UILongPressGestureRecognizer(target: textInteractionGestureController, action: #selector(textInteractionGestureController.longPressGestureHandler(_:)))
             longPressGesture.delegate = textInteractionGestureController
             longPressGesture.minimumPressDuration = UserDefaultsManager.shared.longPressDuration
             longPressGesture.allowableMovement = UserDefaultsManager.shared.cursorActiveDistance
+            longPressGesture.delaysTouchesBegan = false
             button.addGestureRecognizer(longPressGesture)
         }
     }
@@ -525,7 +528,7 @@ private extension BaseKeyboardViewController {
         let switchToSymbolKeyboard = UIAction { [weak self] action in
             guard let self else { return }
             guard let currentPressedButton = buttonStateController.currentPressedButton,
-                  currentPressedButton === primaryKeyboardView.switchButton else { return }
+                  currentPressedButton == primaryKeyboardView.switchButton else { return }
             currentKeyboard = .symbol
         }
         primaryKeyboardView.switchButton.addAction(switchToSymbolKeyboard, for: .touchUpInside)
@@ -534,7 +537,7 @@ private extension BaseKeyboardViewController {
         let switchToPrimaryKeyboardForSymbol = UIAction { [weak self] _ in
             guard let self else { return }
             guard let currentPressedButton = buttonStateController.currentPressedButton,
-                  currentPressedButton === symbolKeyboardView.switchButton else { return }
+                  currentPressedButton == symbolKeyboardView.switchButton else { return }
             currentKeyboard = primaryKeyboardView.keyboard
         }
         symbolKeyboardView.switchButton.addAction(switchToPrimaryKeyboardForSymbol, for: .touchUpInside)
@@ -542,7 +545,7 @@ private extension BaseKeyboardViewController {
         let switchToPrimaryKeyboardForNumeric = UIAction { [weak self] _ in
             guard let self else { return }
             guard let currentPressedButton = buttonStateController.currentPressedButton,
-                  currentPressedButton === numericKeyboardView.switchButton else { return }
+                  currentPressedButton == numericKeyboardView.switchButton else { return }
             currentKeyboard = primaryKeyboardView.keyboard
         }
         numericKeyboardView.switchButton.addAction(switchToPrimaryKeyboardForNumeric, for: .touchUpInside)
@@ -669,7 +672,7 @@ extension BaseKeyboardViewController {
         let replacementEntries = entries.filter { entry in
             let isMatch = beforeText.lowercased().hasSuffix(entry.userInput.lowercased())
             
-            // 단축어가 'm' (대소문자 무시)이고, 대치할 결과물이 정확히 "M"인 경우 제외 - iOS 버그?
+            // 단축어가 'm' (대소문자 무시)이고, 대치할 결과물이 "M"인 경우 제외 - iOS 버그?
             if entry.userInput.lowercased() == "m" && entry.documentText == "M" {
                 return false
             }
@@ -678,7 +681,7 @@ extension BaseKeyboardViewController {
         }
         guard let replacement = replacementEntries.max(by: { $0.userInput.count < $1.userInput.count }) else { return }
         
-        // 만약 대치하려는 단어가 '방금 복구된(취소된) 단어'와 같다면 대치를 수행하지 않고 종료
+        // 만약 대치하려는 단어가 방금 복구된 단어와 같다면 대치를 수행하지 않고 종료
         if let ignored = ignoredReplacementShortcut, ignored == replacement.userInput {
             ignoredReplacementShortcut = nil
             return

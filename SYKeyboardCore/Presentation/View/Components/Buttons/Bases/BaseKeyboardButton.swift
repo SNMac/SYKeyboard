@@ -18,20 +18,20 @@ public class BaseKeyboardButton: UIButton {
     
     final var isPressed: Bool = false {
         didSet {
-            self.setNeedsUpdateConfiguration()
+            setNeedsUpdateConfiguration()
         }
     }
     
     final public var isGesturing: Bool = false {
         didSet {
-            self.setNeedsUpdateConfiguration()
+            setNeedsUpdateConfiguration()
         }
     }
     
     /// 코드로 `sendActions`가 호출되었는지 확인하는 플래그
     private(set) var isProgrammaticCall: Bool = false
     
-    open override func sendActions(for controlEvents: UIControl.Event) {
+    public override func sendActions(for controlEvents: UIControl.Event) {
         isProgrammaticCall = true
         
         super.sendActions(for: controlEvents)

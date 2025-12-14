@@ -68,8 +68,12 @@ final class TextInteractionGestureController: NSObject {
             }
         case .ended, .cancelled, .failed:
             // 순서 중요
-            if !isCursorActive { gestureButton?.sendActions(for: .touchUpInside) }
-            setCurrentPressedButton(nil)
+            if gesture.state == .cancelled {
+                logger.debug("팬 제스처 취소")
+            } else {
+                if !isCursorActive { gestureButton?.sendActions(for: .touchUpInside) }
+                logger.debug("팬 제스처 비활성화")
+            }
             
             onPanGestureEnded(gesture)
             isCursorActive = false
@@ -89,8 +93,7 @@ final class TextInteractionGestureController: NSObject {
         
         switch gesture.state {
         case .began:
-            guard getCurrentPressedButton() === gestureButton else {
-                logger.info("현재 눌려있는 버튼으로 인해 제스처 무시")
+            guard getCurrentPressedButton() == gestureButton else {
                 gesture.state = .cancelled
                 return
             }
