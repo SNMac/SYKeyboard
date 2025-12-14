@@ -44,9 +44,14 @@ struct CursorMovementSettingsView: View {
             .navigationBarTitleDisplayMode(.inline)
             .requestReviewViewModifier()
         }.onDisappear {
-            Analytics.logEvent("cursor_movement_settings", parameters: [
-                "cursor_active_distance": cursorActiveDistance,
-                "cursor_move_interval": cursorMoveInterval
+            Analytics.logEvent("cursor_active_distance", parameters: [
+                "view": "CursorMovementSettingsView",
+                "value": cursorActiveDistance,
+            ])
+            
+            Analytics.logEvent("cursor_move_interval", parameters: [
+                "view": "CursorMovementSettingsView",
+                "value": cursorMoveInterval
             ])
         }
     }
