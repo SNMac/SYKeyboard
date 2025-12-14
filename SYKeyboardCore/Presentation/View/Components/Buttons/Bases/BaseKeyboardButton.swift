@@ -28,6 +28,17 @@ public class BaseKeyboardButton: UIButton {
         }
     }
     
+    /// 코드로 `sendActions`가 호출되었는지 확인하는 플래그
+    private(set) var isProgrammaticCall: Bool = false
+    
+    open override func sendActions(for controlEvents: UIControl.Event) {
+        isProgrammaticCall = true
+        
+        super.sendActions(for: controlEvents)
+        
+        isProgrammaticCall = false
+    }
+    
     var leadingConstraint: NSLayoutConstraint?
     var trailingConstraint: NSLayoutConstraint?
     var visualConstraints: [NSLayoutConstraint] = []

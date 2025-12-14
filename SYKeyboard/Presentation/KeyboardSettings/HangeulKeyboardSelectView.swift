@@ -50,7 +50,8 @@ struct HangeulKeyboardSelectView: View {
             selectedHangeulKeyboard = HangeulKeyboardType(rawValue: newValue.rawValue) ?? .naratgeul
             
             Analytics.logEvent("selected_hangeul_keyboard", parameters: [
-                "keyboard": newValue.analyticsValue
+                "view": "HangeulKeyboardSelectView",
+                "value": newValue.analyticsValue
             ])
             hideKeyboard()
         }

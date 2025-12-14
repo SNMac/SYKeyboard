@@ -28,18 +28,18 @@ struct FeedbackSettingsView: View {
     var body: some View {
         Toggle("소리 피드백", isOn: $isSoundFeedbackEnabled)
             .onChange(of: isSoundFeedbackEnabled) { newValue in
-                Analytics.logEvent("feedback_settings", parameters: [
-                    "name": "sound_feedback",
-                    "value": newValue ? "on" : "off"
+                Analytics.logEvent("sound_feedback", parameters: [
+                    "view": "FeedbackSettingsView",
+                    "enabled": newValue ? "true" : "false"
                 ])
                 hideKeyboard()
             }
         
         Toggle("햅틱 피드백", isOn: $isHapticFeedbackEnabled)
             .onChange(of: isHapticFeedbackEnabled) { newValue in
-                Analytics.logEvent("feedback_settings", parameters: [
-                    "name": "haptic_feedback",
-                    "value": newValue ? "on" : "off"
+                Analytics.logEvent("haptic_feedback", parameters: [
+                    "view": "FeedbackSettingsView",
+                    "enabled": newValue ? "true" : "false"
                 ])
                 hideKeyboard()
             }

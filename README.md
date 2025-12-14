@@ -1,7 +1,10 @@
 <img src="https://github.com/user-attachments/assets/fb7e719e-7353-4649-8ecc-a11058a6c3d6" width="200">
 
 # SY키보드
-> SY키보드는 가볍고, 사용하기 간편한 나랏글 키보드입니다. (추후 천지인 키보드 추가 예정)  
+> SY키보드는 가볍고, 사용하기 간편한 한글, 영어 키보드입니다.
+> - 한글 키보드: 나랏글, 천지인, 두벌식(구현 예정)
+> - 영어 키보드: QWERTY  
+> 
 > [Figma](https://www.figma.com/design/0i3sNlaez0LG0QMfw80yJ4/SY%ED%82%A4%EB%B3%B4%EB%93%9C?node-id=0-1&t=L8rArjkBX9MJ3UJD-1)
 > 
 > 개발 기간: 2024.07.30 ~ 2025.01.15  
@@ -209,12 +212,24 @@ func setStyles() {
 <br>
 
 #### 결론 및 회고
-명령형 프레임워크인 UIKit으로 리팩토링하면서 복잡한 버튼, 제스처 로직을 효율적으로 처리할 수 있었지만, 선언형 프레임워크인 SwiftUI보다 UI 구현 코드는 더 길어지게 되었다.  
-현재로선 UIKit이 SwiftUI보다 세밀한 커스텀이 가능한 장점이 있어 SY키보드에는 UIKit이 좀더 적합하다고 생각된다.  
-최근 WWDC에서 SwiftUI 위주의 업데이트가 계속 발표되고 있으니, 나중에는 더 커스텀하기 편하게 SwiftUI가 업데이트되지 않을까 싶다!  
-그렇게 된다면 다시 UIKit에서 SwiftUI로 리팩토링을 하여 지금보다도 더 가독성, 유지보수에 좋은 코드를 만들 수 있을 것 같다.
+|    설명    |   스크린샷   |
+| :-------------: | :----------: |
+| 리팩토링 이전 | <img height="500" alt="SY키보드 구버전 입력 처리 시간" src="https://github.com/user-attachments/assets/0586e311-26e5-461d-bb1d-afdaf133696f" /> |
+| 리팩토링 이후 | <img height="500" alt="SY키보드 신버전 입력 처리 시간" src="https://github.com/user-attachments/assets/ce6d53a4-b30f-4535-9aa0-b4adc0c0d6d6" /> |
+> 실기기에 리팩토링 이전과 이후 버전을 Release 빌드로 설치 후 "동해물과 백두산이 마르고 닳도록"을 입력, 키보드의 입력 처리 시간을 측정한 결과이다.
 
-<br><br>
+<br>
+
+명령형 프레임워크인 UIKit으로 리팩토링하면서 복잡한 버튼, 제스처 로직을 효율적으로 처리할 수 있었지만, 선언형 프레임워크인 SwiftUI보다 UI 구현 코드는 더 길어지게 되었다.  
+하지만 리팩토링 이후 키보드 입력 처리 시간이 이전보다 1/3 정도로 단축되어 성능이 높아지는 이점을 얻을 수 있었다.  
+또한, 현재로선 UIKit이 SwiftUI보다 세밀한 커스텀이 가능한 장점이 있어 SY키보드에는 UIKit이 좀더 적합하다고 생각된다.  
+최근 WWDC에서 SwiftUI 위주의 업데이트가 계속 발표되고 있으니, 나중에 커스텀하기 더 편하게 SwiftUI가 업데이트된다면 그때 다시 SwiftUI로 리팩토링을 해봐야겠다.
+
+<br>
+
+---
+
+<br>
 
 ### 키보드 높이 제약조건 지정 시 키보드 표시 애니메이션 글리칭 현상
 #### 문제 상황
@@ -278,29 +293,42 @@ private func initKeyboardConstraints() {
 
 #### 해결 과정
 위 답변을 토대로 높이 제약조건 코드를 수정하고 방어코드를 추가하였다.
+- 키보드 가로모드 대응 코드도 추가된 상태
 ``` swift
 func setKeyboardHeight() {
-    if !isHeightConstraintAdded, self.view.superview != nil {
-        self.view.snp.makeConstraints {
-            $0.edges.equalToSuperview()
-            $0.height.equalTo(UserDefaultsManager.shared.keyboardHeight).priority(999)
+    let keyboardHeight: CGFloat
+    if let orientation = self.view.window?.windowScene?.effectiveGeometry.interfaceOrientation {
+        keyboardHeight = orientation == .portrait ? UserDefaultsManager.shared.keyboardHeight : KeyboardLayoutFigure.landscapeKeyboardHeight
+    } else {
+        if !isPreview {
+            assertionFailure("View가 window 계층에 없습니다.")
         }
-        isHeightConstraintAdded = true
+        keyboardHeight = UserDefaultsManager.shared.keyboardHeight
+    }
+    
+    if let keyboardHeightConstraint {
+        keyboardHeightConstraint.constant = keyboardHeight
+    } else {
+        let constraint = self.view.heightAnchor.constraint(equalToConstant: keyboardHeight)
+        constraint.priority = .init(999)
+        constraint.isActive = true
+        
+        keyboardHeightConstraint = constraint
     }
 }
 ```
-- `SnapKit`을 통해 자동으로 `translatesAutoresizingMaskIntoConstraints`가 `false`로 설정됨
 
 |    설명    |   스크린샷   |
 | :-------------: | :----------: |
 | 해결 이후 | <img src = "https://github.com/user-attachments/assets/be7f5279-7b22-4dcd-830e-85a98ad7141a" width ="250"> |
 
-정말 오랫동안 고민하던 문제였고, 글리칭이 없는 다른 키보드 어플에서는 어떻게 해결했는지 개발자에게 여쭤보고 싶을 정도로 해결 방법이 궁금했었다.  
-해결하고 나니 속이 시원하다...
-
 출처: [Stack Overflow - iOS 8 Custom Keyboard: Changing the height without warning 'Unable to simultaneously satisfy constraints...'](https://stackoverflow.com/questions/26569476/ios-8-custom-keyboard-changing-the-height-without-warning-unable-to-simultaneo)
 
-<br><br>
+<br>
+
+---
+
+<br>
 
 
 ### 키보드 가장자리 터치 딜레이
@@ -335,7 +363,7 @@ func setKeyboardHeight() {
 ``` swift
 override func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
-    let window = self.view.window!
+    guard let window = self.view.window else { fatalError("View가 window 계층에 없습니다.") }
     let systemGestureRecognizer0 = window.gestureRecognizers?[0] as? UIGestureRecognizer
     let systemGestureRecognizer1 = window.gestureRecognizers?[1] as? UIGestureRecognizer
     systemGestureRecognizer0?.delaysTouchesBegan = false
@@ -343,13 +371,18 @@ override func viewDidAppear(_ animated: Bool) {
 }
 ```
 
-<img width="881" height="67" alt="image" src="https://github.com/user-attachments/assets/2306bfa1-1788-428a-8755-6817e464e48c" />
-
-설정 이후 side effect가 생길 수 있다는 경고 메세지가 콘솔창에 뜨지만, 애플에서 `preferredScreenEdgesDeferringSystemGestures`를 `UIInputViewController`에 지원해주지 않는 이상 해결 방법이 없어보인다 🙄
+> <img width="881" height="67" alt="image" src="https://github.com/user-attachments/assets/2306bfa1-1788-428a-8755-6817e464e48c" />
+>
+> 설정 이후 side effect가 생길 수 있다는 경고 메세지가 콘솔창에 뜬다.  
+> 애플에서 `UIInputViewController`에 `preferredScreenEdgesDeferringSystemGestures`를 지원하게된다면 수정해야겠다.
 
 출처: [Stack Overflow - UISystemGateGestureRecognizer and delayed taps near bottom of screen](https://stackoverflow.com/questions/19799961/uisystemgategesturerecognizer-and-delayed-taps-near-bottom-of-screen)
 
-<br><br>
+<br>
+
+---
+
+<br>
 
 
 ## 📊 다이어그램
@@ -434,6 +467,8 @@ direction LR
 
     classDef SYKeyboard_primary fill:#ffa6ed
 ```
+
+---
 
 ### 키보드 레이아웃 구조
 ``` mermaid
@@ -521,6 +556,8 @@ direction LR
     classDef SYKeyboard_primary fill:#ffa6ed
 ```
 
+---
+
 ### 키보드 버튼 구조
 ``` mermaid
 %%{
@@ -589,7 +626,9 @@ direction LR
     classDef SYKeyboard_primary fill:#ffa6ed
 ```
 
-<br><br>
+---
+
+<br>
 
 
 ## 📱 주요 기능

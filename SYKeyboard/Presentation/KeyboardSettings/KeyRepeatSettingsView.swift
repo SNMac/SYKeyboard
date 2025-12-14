@@ -43,9 +43,14 @@ struct KeyRepeatSettingsView: View {
             .navigationBarTitleDisplayMode(.inline)
             .requestReviewViewModifier()
         }.onDisappear {
-            Analytics.logEvent("key_repeat_settings", parameters: [
-                "long_press_duration": longPressDuration,
-                "repeat_rate": repeatRate
+            Analytics.logEvent("long_press_duration", parameters: [
+                "view": "KeyRepeatSettingsView",
+                "value": longPressDuration,
+            ])
+            
+            Analytics.logEvent("repeat_rate", parameters: [
+                "view": "KeyRepeatSettingsView",
+                "value": repeatRate
             ])
         }
     }

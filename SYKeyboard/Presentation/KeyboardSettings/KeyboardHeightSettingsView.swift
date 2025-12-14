@@ -85,8 +85,9 @@ private extension KeyboardHeightSettingsView {
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
                     keyboardHeight = tempKeyboardHeight
-                    Analytics.logEvent("keyboard_height_settings", parameters: [
-                        "keyboard_height": keyboardHeight
+                    Analytics.logEvent("keyboard_height", parameters: [
+                        "view": "KeyboardHeightSettingsView",
+                        "value": keyboardHeight
                     ])
                     
                     dismiss()
