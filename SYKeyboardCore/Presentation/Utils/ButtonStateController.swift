@@ -18,6 +18,8 @@ final public class ButtonStateController {
     var currentPressedButton: BaseKeyboardButton? {
         didSet {
             oldValue?.isPressed = false
+            oldValue?.gestureRecognizers?.forEach { $0.state = .cancelled }
+            
             currentPressedButton?.isPressed = true
         }
     }
@@ -65,8 +67,9 @@ final public class ButtonStateController {
                 }
             } else {
                 buttonReleaseAction = UIAction { [weak self] _ in
-                    guard let currentPressedButton = self?.currentPressedButton, currentPressedButton === button else { return }
-                    self?.currentPressedButton = nil
+                    if self?.currentPressedButton == button {
+                        self?.currentPressedButton = nil
+                    }
                 }
             }
             button.addAction(buttonReleaseAction, for: .touchUpInside)
