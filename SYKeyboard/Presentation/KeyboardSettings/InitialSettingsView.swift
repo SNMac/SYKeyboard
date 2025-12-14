@@ -16,7 +16,7 @@ struct InitialSettingsView: View {
     var body: some View {
         Button {
             Analytics.logEvent("open_system_settings", parameters: [
-                "view": "initial_settings"
+                "view": "InitialSettingsView",
             ])
             
             if let settingsURL = URL(string: UIApplication.openSettingsURLString) {

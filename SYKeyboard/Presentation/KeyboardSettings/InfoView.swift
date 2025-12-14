@@ -25,7 +25,7 @@ struct InfoView: View {
     var body: some View {
         Button {
             Analytics.logEvent("open_keyboard_instructions", parameters: [
-                "view": "info"
+                "view": "InfoView",
             ])
             
             isShowingInstructions = true
@@ -41,7 +41,7 @@ struct InfoView: View {
         
         Button {
             Analytics.logEvent("open_email_inquiry", parameters: [
-                "view": "info"
+                "view": "InfoView",
             ])
             
             guard let address = Bundle.main.infoDictionary?["DeveloperEmail"] as? String else {
@@ -84,7 +84,7 @@ struct InfoView: View {
         
         Button {
             Analytics.logEvent("open_review", parameters: [
-                "view": "info"
+                "view": "InfoView",
             ])
             
             let reviewURLString = "https://apps.apple.com/app/id6670792957?action=write-review"

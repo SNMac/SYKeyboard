@@ -88,7 +88,8 @@ struct InputSettingsView: View {
             }
             
             Analytics.logEvent("selected_long_press_action", parameters: [
-                "action": newValue.analyticsValue
+                "view": "InputSettingsView",
+                "value": newValue.analyticsValue
             ])
             hideKeyboard()
         }
@@ -111,9 +112,9 @@ struct InputSettingsView: View {
             Text("자동 대문자")
         })
         .onChange(of: isAutoCapitalizationEnabled) { newValue in
-            Analytics.logEvent("input_settings", parameters: [
-                "name": "auto_capitalization",
-                "value": newValue ? "on" : "off"
+            Analytics.logEvent("auto_capitalization", parameters: [
+                "view": "InputSettingsView",
+                "enabled": newValue ? "true" : "false"
             ])
             hideKeyboard()
         }
@@ -124,9 +125,9 @@ struct InputSettingsView: View {
                 .font(.caption)
         })
         .onChange(of: isTextReplacementEnabled) { newValue in
-            Analytics.logEvent("input_settings", parameters: [
-                "name": "text_replacement",
-                "value": newValue ? "on" : "off"
+            Analytics.logEvent("text_replacement", parameters: [
+                "view": "InputSettingsView",
+                "enabled": newValue ? "true" : "false"
             ])
             hideKeyboard()
         }
@@ -138,8 +139,8 @@ struct InputSettingsView: View {
         })
         .onChange(of: isPeriodShortcutEnabled) { newValue in
             Analytics.logEvent("input_settings", parameters: [
-                "name": "period_shortcut",
-                "value": newValue ? "on" : "off"
+                "view": "InputSettingsView",
+                "enabled": newValue ? "true" : "false"
             ])
             hideKeyboard()
         }
@@ -150,9 +151,9 @@ struct InputSettingsView: View {
                 .font(.caption)
         })
         .onChange(of: isAutoChangeToPrimaryEnabled) { newValue in
-            Analytics.logEvent("input_settings", parameters: [
-                "name": "auto_change_to_primary",
-                "value": newValue ? "on" : "off"
+            Analytics.logEvent("auto_change_to_primary", parameters: [
+                "view": "InputSettingsView",
+                "enabled": newValue ? "true" : "false"
             ])
             hideKeyboard()
         }
@@ -161,9 +162,9 @@ struct InputSettingsView: View {
             Text("드래그하여 커서 이동")
         })
         .onChange(of: isDragToMoveCursorEnabled) { newValue in
-            Analytics.logEvent("input_settings", parameters: [
-                "name": "drag_to_move_cursor",
-                "value": newValue ? "on" : "off"
+            Analytics.logEvent("drag_to_move_cursor", parameters: [
+                "view": "InputSettingsView",
+                "enabled": newValue ? "true" : "false"
             ])
             hideKeyboard()
         }

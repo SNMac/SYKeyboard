@@ -80,9 +80,11 @@ private extension OneHandedKeyboardWidthSettingsView {
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
                     oneHandedKeyboardWidth = tempOneHandedKeyboardWidth
-                    Analytics.logEvent("one_handed_keyboard_width_settings", parameters: [
-                        "one_handed_keyboard_width": oneHandedKeyboardWidth
+                    Analytics.logEvent("one_handed_keyboard_width", parameters: [
+                        "view": "OneHandedKeyboardWidthSettingsView",
+                        "value": oneHandedKeyboardWidth
                     ])
+                    
                     dismiss()
                 } label: {
                     Text("저장")

@@ -88,8 +88,17 @@ open class BaseKeyboardViewController: UIInputViewController {
     
     /// 텍스트 대치 데이터
     private var userLexicon: UILexicon?
+    /// 텍스트 대치 이력 저장용 모델
+    private struct ReplacementHistoryItem: Equatable {
+        /// 사용자가 입력했던 단축어 (예: "ㅈㄱㅈ")
+        let userInput: String
+        /// 대치된 결과물 (예: "지금 가는 중!")
+        let documentText: String
+    }
     /// 텍스트 대치 기록
-    private var textReplacementHistory: [String] = []
+    private var textReplacementHistory: [ReplacementHistoryItem] = []
+    /// 방금 대치 취소(Restore)된 단축어를 저장하는 변수
+    private var ignoredReplacementShortcut: String?
     
     /// 키보드 높이 제약 조건
     private var keyboardHeightConstraint: NSLayoutConstraint?
@@ -148,9 +157,8 @@ open class BaseKeyboardViewController: UIInputViewController {
     
     open override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        guard let window = self.view.window else { fatalError("View가 window 계층에 없습니다.") }
-        let systemGestureRecognizer0 = window.gestureRecognizers?[0] as? UIGestureRecognizer
-        let systemGestureRecognizer1 = window.gestureRecognizers?[1] as? UIGestureRecognizer
+        let systemGestureRecognizer0 = self.view.window?.gestureRecognizers?[0] as? UIGestureRecognizer
+        let systemGestureRecognizer1 = self.view.window?.gestureRecognizers?[1] as? UIGestureRecognizer
         systemGestureRecognizer0?.delaysTouchesBegan = false
         systemGestureRecognizer1?.delaysTouchesBegan = false
     }
@@ -158,6 +166,11 @@ open class BaseKeyboardViewController: UIInputViewController {
     open override func viewWillTransition(to size: CGSize, with coordinator: any UIViewControllerTransitionCoordinator) {
         super.viewWillTransition(to: size, with: coordinator)
         coordinator.animate { _ in self.setKeyboardHeight() }
+    }
+    
+    open override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        cancelTimer()
     }
     
     open override func textWillChange(_ textInput: (any UITextInput)?) {
@@ -193,6 +206,11 @@ open class BaseKeyboardViewController: UIInputViewController {
             preventNextPeriodShortcut = false
             performedPeriodShortcut = false
         }
+        
+        if !(button is SpaceButton) {
+            ignoredReplacementShortcut = nil
+        }
+        
         tempDeletedCharacters.removeAll()
     }
     /// 텍스트 상호작용이 일어난 후 실행되는 메서드
@@ -201,16 +219,11 @@ open class BaseKeyboardViewController: UIInputViewController {
     /// 반복 텍스트 상호작용이 일어나기 전 실행되는 메서드
     open func repeatTextInteractionWillPerform(button: TextInteractable) {
         // 방어 코드
-        timer?.cancel()
-        timer = nil
-        logger.debug("반복 타이머 초기화")
+        cancelTimer()
     }
     /// 반복 텍스트 상호작용이 일어난 후 실행되는 메서드
     open func repeatTextInteractionDidPerform(button: TextInteractable) {
-        timer?.cancel()
-        timer = nil
-        logger.debug("반복 타이머 초기화")
-        
+        cancelTimer()
         tempDeletedCharacters.removeAll()
     }
     
@@ -294,7 +307,7 @@ open class BaseKeyboardViewController: UIInputViewController {
     /// 문자열 입력 UI의 텍스트를 삭제하는 메서드 (반복 호출)
     /// - `isPreview == true`이면 즉시 리턴
     open func repeatDeleteBackward() {
-        if isPreview { return }
+        if isPreview || self.view.window == nil { return }
         
         repeatDeleteBackwardWillPerform()
         textDocumentProxy.deleteBackward()
@@ -348,11 +361,9 @@ private extension BaseKeyboardViewController {
     func setKeyboardHeight() {
         let keyboardHeight: CGFloat
         if let orientation = self.view.window?.windowScene?.effectiveGeometry.interfaceOrientation {
-            keyboardHeight = orientation == .portrait ? UserDefaultsManager.shared.keyboardHeight : KeyboardLayoutFigure.landscapeKeyboardHeight
+            keyboardHeight = (orientation == .portrait) ? UserDefaultsManager.shared.keyboardHeight : KeyboardLayoutFigure.landscapeKeyboardHeight
         } else {
-            if !isPreview {
-                assertionFailure("View가 window 계층에 없습니다.")
-            }
+            if !isPreview { assertionFailure("View가 window 계층에 없습니다.") }
             keyboardHeight = UserDefaultsManager.shared.keyboardHeight
         }
         
@@ -404,10 +415,20 @@ private extension BaseKeyboardViewController {
     }
     
     func addInputActionToTextInterableButton(_ button: TextInteractable) {
-        let inputAction = UIAction { [weak self] _ in
-            guard let self, let currentPressedButton = buttonStateController.currentPressedButton,
-                  currentPressedButton === button else { return }
-            performTextInteraction(for: button)
+        let inputAction = UIAction { [weak self] action in
+            guard let self, let currentButton = action.sender as? BaseKeyboardButton else { return }
+            
+            if currentButton.isProgrammaticCall {
+                // 코드로 강제 호출된 경우 -> 무조건 입력 수행
+                performTextInteraction(for: button)
+                
+            } else {
+                // 사용자가 touchUpInside한 경우 -> currentPressedButton 확인
+                if let currentPressedButton = buttonStateController.currentPressedButton,
+                   currentPressedButton === button {
+                    performTextInteraction(for: button)
+                }
+            }
         }
         if button is DeleteButton {
             button.addAction(inputAction, for: .touchDown)
@@ -456,9 +477,7 @@ private extension BaseKeyboardViewController {
         if UserDefaultsManager.shared.isPeriodShortcutEnabled {
             let periodShortcutAction = UIAction { [weak self] _ in
                 guard let self else { return }
-                if isPreview || preventNextPeriodShortcut {
-                    return
-                }
+                if isPreview || preventNextPeriodShortcut { return }
                 
                 guard let beforeText = textDocumentProxy.documentContextBeforeInput else { return }
                 
@@ -647,31 +666,45 @@ extension BaseKeyboardViewController {
         guard let entries = userLexicon?.entries,
               let beforeText = textDocumentProxy.documentContextBeforeInput else { return }
         
-        let replacementEntries = entries.filter { beforeText.lowercased().hasSuffix($0.userInput.lowercased()) }
+        let replacementEntries = entries.filter { entry in
+            let isMatch = beforeText.lowercased().hasSuffix(entry.userInput.lowercased())
+            
+            // 단축어가 'm' (대소문자 무시)이고, 대치할 결과물이 정확히 "M"인 경우 제외 - iOS 버그?
+            if entry.userInput.lowercased() == "m" && entry.documentText == "M" {
+                return false
+            }
+            
+            return isMatch
+        }
         guard let replacement = replacementEntries.max(by: { $0.userInput.count < $1.userInput.count }) else { return }
         
+        // 만약 대치하려는 단어가 '방금 복구된(취소된) 단어'와 같다면 대치를 수행하지 않고 종료
+        if let ignored = ignoredReplacementShortcut, ignored == replacement.userInput {
+            ignoredReplacementShortcut = nil
+            return
+        }
+        
+        // 대치 수행
         for _ in 0..<replacement.userInput.count { textDocumentProxy.deleteBackward() }
         textDocumentProxy.insertText(replacement.documentText)
         
-        textReplacementHistory.append(replacement.documentText)
+        let historyItem = ReplacementHistoryItem(userInput: replacement.userInput, documentText: replacement.documentText)
+        textReplacementHistory.append(historyItem)
     }
     
     private func attemptToRestoreReplacementWord() -> Bool {
-        guard let entries = userLexicon?.entries,
-              let beforeText = textDocumentProxy.documentContextBeforeInput,
+        guard let beforeText = textDocumentProxy.documentContextBeforeInput,
               !textReplacementHistory.isEmpty else { return false }
         
-        for replacedText in textReplacementHistory.reversed() {
-            if beforeText.hasSuffix(replacedText) {
-                if let entry = entries.first(where: { $0.documentText == replacedText }) {
-                    for _ in 0..<entry.documentText.count { textDocumentProxy.deleteBackward() }
-                    textDocumentProxy.insertText(entry.userInput)
-                    
-                    if let historyIndex = textReplacementHistory.firstIndex(of: entry.documentText) {
-                        textReplacementHistory.remove(at: historyIndex)
-                    }
-                    return true
-                }
+        for (index, item) in textReplacementHistory.enumerated().reversed() {
+            if beforeText.hasSuffix(item.documentText) {
+                for _ in 0..<item.documentText.count { textDocumentProxy.deleteBackward() }
+                textDocumentProxy.insertText(item.userInput)
+                textReplacementHistory.remove(at: index)
+                
+                ignoredReplacementShortcut = item.userInput
+                
+                return true
             }
         }
         
@@ -695,6 +728,12 @@ private extension BaseKeyboardViewController {
                 }
             }
         }
+    }
+    
+    func cancelTimer() {
+        timer?.cancel()
+        timer = nil
+        logger.debug("반복 타이머 초기화")
     }
 }
 
@@ -772,6 +811,11 @@ extension BaseKeyboardViewController: TextInteractionGestureControllerDelegate {
             timer = Timer.publish(every: repeatTimerInterval, on: .main, in: .common)
                 .autoconnect()
                 .sink { [weak self] _ in
+                    if self?.view.window == nil {
+                        self?.cancelTimer()
+                        return
+                    }
+                    
                     self?.performRepeatTextInteraction(for: button)
                 }
             logger.debug("반복 타이머 생성")
