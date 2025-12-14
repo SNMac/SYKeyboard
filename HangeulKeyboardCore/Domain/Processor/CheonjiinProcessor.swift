@@ -217,15 +217,19 @@ final class CheonjiinProcessor: HangeulProcessable {
             }
             
         } else {
-            // [상황 B] 확정된 글자('가') 자체를 수정하는 경우
-            // 예: "가" -> "ㄱ"
+            // [상황 B] 확정된 영역에 대한 삭제
             
-            // 기존 글자를 깼으므로 확정 길이를 줄여서 '수정 모드'로 진입합니다.
-            // "가"(1) -> "ㄱ"(1) 이라도 수정 모드여야 하므로 committedLength를 강제로 줄입니다.
-            committedLength = max(0, deletedText.count - 1)
-            
-            // 수정 중이므로 무조건 조합 중 상태입니다.
-            is한글조합OnGoing = true
+            // 방금 지워진 글자가 한글인지 확인
+            let isDeletedCharHangeul = beforeText.last?.isHangeul ?? false
+            if isDeletedCharHangeul {
+                // 한글을 지운 경우: 수정 모드로 진입 ("가" -> "ㄱ")
+                committedLength = max(0, deletedText.count - 1)
+                is한글조합OnGoing = true
+            } else {
+                // 숫자/기호를 지운 경우: 앞 글자 확정 유지 ("각4" -> "각")
+                committedLength = deletedText.count
+                is한글조합OnGoing = false
+            }
         }
         
         // 3. 종성 복원 로직
