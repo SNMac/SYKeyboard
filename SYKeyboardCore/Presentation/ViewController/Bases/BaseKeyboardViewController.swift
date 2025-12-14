@@ -401,10 +401,20 @@ private extension BaseKeyboardViewController {
     }
     
     func addInputActionToTextInterableButton(_ button: TextInteractable) {
-        let inputAction = UIAction { [weak self] _ in
-            guard let self, let currentPressedButton = buttonStateController.currentPressedButton,
-                  currentPressedButton === button else { return }
-            performTextInteraction(for: button)
+        let inputAction = UIAction { [weak self] action in
+            guard let self, let currentButton = action.sender as? BaseKeyboardButton else { return }
+            
+            if currentButton.isProgrammaticCall {
+                // 코드로 강제 호출된 경우 -> 무조건 입력 수행
+                performTextInteraction(for: button)
+                
+            } else {
+                // 사용자가 touchUpInside한 경우 -> currentPressedButton 확인
+                if let currentPressedButton = buttonStateController.currentPressedButton,
+                   currentPressedButton === button {
+                    performTextInteraction(for: button)
+                }
+            }
         }
         if button is DeleteButton {
             button.addAction(inputAction, for: .touchDown)
