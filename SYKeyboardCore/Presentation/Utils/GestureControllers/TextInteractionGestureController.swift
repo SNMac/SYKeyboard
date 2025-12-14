@@ -89,7 +89,7 @@ final class TextInteractionGestureController: NSObject {
         
         switch gesture.state {
         case .began:
-            guard getCurrentPressedButton() === gestureButton else {
+            guard getCurrentPressedButton() == gestureButton else {
                 logger.info("현재 눌려있는 버튼으로 인해 제스처 무시")
                 gesture.state = .cancelled
                 return

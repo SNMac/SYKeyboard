@@ -149,7 +149,7 @@ func addInputActionToTextInterableButton(_ button: TextInteractable) {
     let inputAction = UIAction { [weak self] _ in
         guard let self,
               let currentPressedButton = buttonStateController.currentPressedButton,
-              currentPressedButton === button else { return }
+              currentPressedButton == button else { return }
         performTextInteraction(for: button.button)
     }
     if button is DeleteButton {

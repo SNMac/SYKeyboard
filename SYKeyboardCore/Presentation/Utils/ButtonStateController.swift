@@ -65,7 +65,7 @@ final public class ButtonStateController {
                 }
             } else {
                 buttonReleaseAction = UIAction { [weak self] _ in
-                    guard let currentPressedButton = self?.currentPressedButton, currentPressedButton === button else { return }
+                    guard let currentPressedButton = self?.currentPressedButton, currentPressedButton == button else { return }
                     self?.currentPressedButton = nil
                 }
             }

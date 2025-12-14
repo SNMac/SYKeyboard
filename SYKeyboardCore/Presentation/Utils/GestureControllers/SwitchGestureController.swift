@@ -168,7 +168,7 @@ final class SwitchGestureController: NSObject {
         
         switch gesture.state {
         case .began:
-            guard getCurrentPressedButton() === switchButton else {
+            guard getCurrentPressedButton() == switchButton else {
                 logger.info("현재 눌려있는 버튼으로 인해 제스처 무시")
                 gesture.state = .cancelled
                 return
