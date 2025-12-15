@@ -20,10 +20,10 @@ final class EnglishKeyboardViewController: EnglishKeyboardCoreViewController {
     /// 전체 접근 허용 안내 오버레이
     private lazy var requestFullAccessOverlayView = RequestFullAccessOverlayView()
     
-    // MARK: - Initializer
+    // MARK: - Lifecycle
     
-    override init(nibName nibNameOrNil: String?, bundle nibBundleOrNil: Bundle?) {
-        super.init(nibName: nil, bundle: nil)
+    override func viewDidLoad() {
+        super.viewDidLoad()
         
         // Firebase 로딩
         if FirebaseApp.app() == nil {
@@ -33,16 +33,7 @@ final class EnglishKeyboardViewController: EnglishKeyboardCoreViewController {
         // IDFV를 사용하여 Crashlytics User ID 설정
         let idfv = UIDevice.current.identifierForVendor?.uuidString
         Crashlytics.crashlytics().setUserID(idfv)
-    }
-    
-    @MainActor required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-    
-    // MARK: - Lifecycle
-    
-    override func viewDidLoad() {
-        super.viewDidLoad()
+        
         if needToShowFullAccessGuide {
             setupRequestFullAccessOverlayView()
         }
