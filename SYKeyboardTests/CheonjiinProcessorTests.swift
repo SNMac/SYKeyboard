@@ -301,7 +301,9 @@ private extension CheonjiinProcessorTests {
     }
     
     func get중성Keys(index: Int) -> [String] {
-        let 천 = "ㆍ"; let 지 = "ㅡ"; let 인 = "ㅣ"
+        let 천 = "ㆍ"
+        let 지 = "ㅡ"
+        let 인 = "ㅣ"
         
         switch index {
         case 0: return [인, 천]             // ㅏ
@@ -316,7 +318,7 @@ private extension CheonjiinProcessorTests {
         case 9: return [천, 지, 인, 천]     // ㅘ (ㅗ + ㅏ)
         case 10: return [천, 지, 인, 천, 인] // ㅙ (ㅘ + ㅣ)
         case 11: return [천, 지, 인]        // ㅚ (ㅗ + ㅣ)
-        case 12: return [천, 지, 천]        // ㅛ (ㅗ + ㆍ)
+        case 12: return [천, 천, 지]       // ㅛ (ㆍ + ㆍ = ᆢ, ᆢ + ㅡ = ㅛ)
         case 13: return [지, 천]             // ㅜ
         case 14: return [지, 천, 천, 인]     // ㅝ (ㅜ + ㅓ)
         case 15: return [지, 천, 천, 인, 인] // ㅞ (ㅝ + ㅣ)
