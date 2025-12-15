@@ -151,8 +151,12 @@ open class BaseKeyboardViewController: UIInputViewController {
     
     open override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        if !isPreview { setKeyboardHeight() }
         FeedbackManager.shared.prepareHaptic()
+    }
+    
+    open override func viewIsAppearing(_ animated: Bool) {
+        super.viewIsAppearing(animated)
+        if !isPreview { setKeyboardHeight() }
     }
     
     open override func viewDidAppear(_ animated: Bool) {
@@ -363,18 +367,18 @@ private extension BaseKeyboardViewController {
         if let orientation = self.view.window?.windowScene?.effectiveGeometry.interfaceOrientation {
             keyboardHeight = (orientation == .portrait) ? UserDefaultsManager.shared.keyboardHeight : KeyboardLayoutFigure.landscapeKeyboardHeight
         } else {
-            if !isPreview { assertionFailure("View가 window 계층에 없습니다.") }
-            keyboardHeight = UserDefaultsManager.shared.keyboardHeight
+            assertionFailure("View가 window 계층에 없습니다.")
+            return
         }
         
         if let keyboardHeightConstraint {
             keyboardHeightConstraint.constant = keyboardHeight
         } else {
-            let constraint = self.view.heightAnchor.constraint(equalToConstant: keyboardHeight)
-            constraint.priority = .init(999)
-            constraint.isActive = true
+            let heightConstraint = keyboardView.heightAnchor.constraint(equalToConstant: keyboardHeight)
+            heightConstraint.priority = .init(999)
+            heightConstraint.isActive = true
             
-            keyboardHeightConstraint = constraint
+            keyboardHeightConstraint = heightConstraint
         }
     }
     
