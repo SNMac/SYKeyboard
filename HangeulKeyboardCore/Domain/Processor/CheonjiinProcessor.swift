@@ -190,9 +190,6 @@ final class CheonjiinProcessor: HangeulProcessable {
             return ""
         }
         
-        // 삭제 전 텍스트 길이 저장
-        let previousCount = beforeText.count
-        
         // 삭제 전, 현재 텍스트 길이가 확정 길이보다 긴지 확인합니다.
         let isDeletingNewChar = beforeText.count > committedLength
         
@@ -209,13 +206,6 @@ final class CheonjiinProcessor: HangeulProcessable {
                 committedLength = deletedText.count
             }
             
-            // 글자 수가 줄어들었다면(예: "ㅋㅋㅋ"(3) -> "ㅋㅋ"(2)),
-            // 방금 지운 글자는 '완전한 글자'였으므로, 남은 앞부분은 확정 짓습니다.
-            // 그래야 다음에 'ㄱ'을 눌렀을 때 'ㅋ'가 'ㄲ'으로 변하지 않고 'ㄱ'이 새로 붙습니다.
-            if deletedText.count < previousCount {
-                committedLength = deletedText.count
-                is한글조합OnGoing = false
-            }
             // 만약 삭제 후 남은 글자가 정확히 확정된 글자라면 ("가"),
             // 다시 '확정 상태(조합 끊김)'로 돌아가야 합니다.
             // 그래야 다음 'ㄴ' 입력 시 '간'이 아니라 '가ㄴ'이 됩니다.
