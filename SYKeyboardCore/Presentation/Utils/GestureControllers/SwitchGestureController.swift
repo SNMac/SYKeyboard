@@ -105,7 +105,9 @@ final class SwitchGestureController: NSObject {
         case .ended, .cancelled, .failed:
             // 순서 중요
             lockedPanDirection = nil
-            if !isOverlayActive && switchButton.isGesturing { switchButton.sendActions(for: .touchUpInside) }
+            if !isOverlayActive && switchButton.isGesturing {
+                switchButton.sendActions(for: .touchUpInside)
+            }
             setCurrentPressedButton(nil)
             
             onkeyboardSelectPanGestureEnded(gesture, config: config)
@@ -145,7 +147,9 @@ final class SwitchGestureController: NSObject {
         case .ended, .cancelled, .failed:
             // 순서 중요
             lockedPanDirection = nil
-            if !isOverlayActive && switchButton.isGesturing { switchButton.sendActions(for: .touchUpInside) }
+            if !isOverlayActive && switchButton.isGesturing {
+                switchButton.sendActions(for: .touchUpInside)
+            }
             setCurrentPressedButton(nil)
             
             onOneHandedModeSelectPanGestureEnded(gesture, config: config)
