@@ -143,7 +143,7 @@ xcuserdata
 
 
 # Start of SNMac custom gitignore
+.obsidian/
 .xcuserstate
 GoogleService-Info.plist
 Secrets.xcconfig
-.obsidian/
