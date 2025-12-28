@@ -177,8 +177,8 @@ open class BaseKeyboardViewController: UIInputViewController {
         cancelTimer()
     }
     
-    open override func textWillChange(_ textInput: (any UITextInput)?) {
-        super.textWillChange(textInput)
+    open override func textDidChange(_ textInput: (any UITextInput)?) {
+        super.textDidChange(textInput)
         updateKeyboardType()
         oldKeyboardType = textDocumentProxy.keyboardType
         updateReturnButtonType()

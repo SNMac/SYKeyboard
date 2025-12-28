@@ -72,8 +72,8 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
     
     // MARK: - Override Methods
     
-    open override func textWillChange(_ textInput: (any UITextInput)?) {
-        super.textWillChange(textInput)
+    open override func textDidChange(_ textInput: (any UITextInput)?) {
+        super.textDidChange(textInput)
         buffer.removeAll()
         lastInputText = nil
         processor.reset한글조합()
@@ -192,17 +192,23 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
     open override func insertSpaceText() {
         if isPreview { return }
         
-        let result = processor.inputSpace(beforeText: buffer)
-        switch result {
-        case .insertSpace:
-            // 실제 공백 입력
+        if currentKeyboard == .naratgeul || currentKeyboard == .cheonjiin {
+            let result = processor.inputSpace(beforeText: buffer)
+            switch result {
+            case .insertSpace:
+                // 실제 공백 입력
+                super.insertSpaceText()
+                buffer.removeAll()
+                lastInputText = nil
+                
+            case .commitCombination:
+                // 조합 끊기 (화면 변화 없음, 버퍼 유지)
+                lastInputText = nil // 반복 입력(ㄱ -> ㅋ) 방지용 초기화
+            }
+        } else {
             super.insertSpaceText()
             buffer.removeAll()
             lastInputText = nil
-            
-        case .commitCombination:
-            // 조합 끊기 (화면 변화 없음, 버퍼 유지)
-            lastInputText = nil // 반복 입력(ㄱ -> ㅋ) 방지용 초기화
         }
         
         updateSpaceButtonImage()
