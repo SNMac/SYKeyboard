@@ -7,8 +7,6 @@
 
 import UIKit
 
-import SYKeyboardAssets
-
 /// 삭제 버튼
 final public class DeleteButton: SecondaryButton, TextInteractable {
     

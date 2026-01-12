@@ -7,8 +7,6 @@
 
 import UIKit
 
-import SYKeyboardAssets
-
 /// 대문자/기호 전환 버튼
 final public class ShiftButton: SecondaryButton {
     

@@ -7,8 +7,6 @@
 
 import UIKit
 
-import SYKeyboardAssets
-
 /// 리턴 버튼
 final public class ReturnButton: SecondaryButton, TextInteractable {
     
