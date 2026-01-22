@@ -18,6 +18,8 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
     private var buffer: String = ""
     /// 마지막으로 입력한 문자
     private var lastInputText: String?
+    /// 현재 반복 입력 동작 중인지 확인하는 플래그
+    private var isRepeatingInput: Bool = false
     
     /// 한글 오토마타
     private let automata: HangeulAutomataProtocol = HangeulAutomata()
@@ -82,6 +84,12 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
         lastInputText = nil
         processor.reset한글조합()
         updateSpaceButtonImage()
+        primaryKeyboardView.initShiftButton()
+    }
+    
+    open override func didSetCurrentKeyboard() {
+        super.didSetCurrentKeyboard()
+        primaryKeyboardView.initShiftButton()
     }
     
     open override func updateKeyboardType() {
@@ -138,11 +146,18 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
     }
     
     open override func repeatTextInteractionWillPerform(button: TextInteractable) {
+        isRepeatingInput = true
         super.repeatTextInteractionWillPerform(button: button)
         super.performTextInteraction(for: button)
         if lastInputText != nil || button is DeleteButton || button is SpaceButton {
             button.playFeedback()
         }
+    }
+    
+    open override func repeatTextInteractionDidPerform(button: TextInteractable) {
+        super.repeatTextInteractionDidPerform(button: button)
+        isRepeatingInput = false
+        primaryKeyboardView.initShiftButton()
     }
     
     open override func insertPrimaryKeyText(from button: TextInteractable) {
@@ -159,6 +174,10 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
         buffer = processedText
         lastInputText = input글자
         updateSpaceButtonImage()
+        
+        if !isRepeatingInput {
+            primaryKeyboardView.initShiftButton()
+        }
     }
     
     open override func insertSecondaryKeyText(from button: TextInteractable) {
@@ -178,6 +197,8 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
         buffer = processedText
         lastInputText = input글자
         updateSpaceButtonImage()
+        
+        primaryKeyboardView.initShiftButton()
     }
     
     open override func repeatInsertPrimaryKeyText(from button: TextInteractable) {
@@ -196,7 +217,9 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
     open override func insertSpaceText() {
         if isPreview { return }
         
-        if currentKeyboard == .naratgeul || currentKeyboard == .cheonjiin {
+        if currentKeyboard == .naratgeul ||
+            currentKeyboard == .cheonjiin ||
+            currentKeyboard == .dubeolsik {
             let result = processor.inputSpace(beforeText: buffer)
             switch result {
             case .insertSpace:
@@ -216,6 +239,8 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
         }
         
         updateSpaceButtonImage()
+        
+        primaryKeyboardView.initShiftButton()
     }
     
     open override func insertReturnText() {
@@ -226,6 +251,8 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
         processor.reset한글조합()
         lastInputText = nil
         updateSpaceButtonImage()
+        
+        primaryKeyboardView.initShiftButton()
     }
     
     open override func deleteBackward() {
@@ -248,6 +275,8 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
         }
         updateSpaceButtonImage()
         lastInputText = nil
+        
+        primaryKeyboardView.initShiftButton()
     }
     
     open override func repeatDeleteBackward() {
@@ -267,6 +296,8 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
         }
         updateSpaceButtonImage()
         lastInputText = nil
+        
+        primaryKeyboardView.initShiftButton()
     }
 }
 
