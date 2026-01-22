@@ -129,13 +129,15 @@ extension EnglishKeyboardLayoutProvider {
     }
     
     func updateLayoutToTwitter() {
+        spaceButton.isHidden = false
+        atButton.isHidden = true
+        periodButton.isHidden = true
+        slashButton.isHidden = true
+        dotComButton.isHidden = true
+        
         returnButton.isHidden = true
         secondaryAtButton.isHidden = false
         secondarySharpButton.isHidden = false
-        
-        returnButton.isHidden = false
-        secondaryAtButton.isHidden = true
-        secondarySharpButton.isHidden = true
         
         initShiftButton()
     }
