@@ -31,8 +31,14 @@ protocol HangeulKeyboardLayoutProvider: PrimaryKeyboardRepresentable {
     func updateLayoutForCurrentHangeulMode(oldMode: HangeulKeyboardMode)
     /// `UIKeyboardType`이 `.default` 일 때의 레이아웃 설정
     func updateLayoutToDefault()
+    /// `UIKeyboardType`이 `.URL` 일 때의 레이아웃 설정
+    func updateLayoutToURL()
+    /// `UIKeyboardType`이 `.emailAddress` 일 때의 레이아웃 설정
+    func updateLayoutToEmailAddress()
     /// `UIKeyboardType`이 `.twitter` 일 때의 레이아웃 설정
     func updateLayoutToTwitter()
+    /// `UIKeyboardType`이 `.webSearch` 일 때의 레이아웃 설정
+    func updateLayoutToWebSearch()
     /// `ShiftButton`의 Shift 상태 초기화
     func initShiftButton()
     /// `ShiftButton`의 Shift 상태 변경
@@ -57,12 +63,40 @@ extension HangeulKeyboardLayoutProvider {
         switch currentHangeulKeyboardMode {
         case .default:
             updateLayoutToDefault()
+        case .URL:
+            updateLayoutToURL()
+        case .emailAddress:
+            updateLayoutToEmailAddress()
         case .twitter:
             updateLayoutToTwitter()
+        case .webSearch:
+            updateLayoutToWebSearch()
         }
     }
     
     func updateLayoutToDefault() {
+        spaceButton.isHidden = false
+        
+        returnButton.isHidden = false
+        secondaryAtButton.isHidden = true
+        secondarySharpButton.isHidden = true
+        
+        initShiftButton()
+    }
+    
+    func updateLayoutToURL() {
+        spaceButton.isHidden = true
+        
+        returnButton.isHidden = false
+        secondaryAtButton.isHidden = true
+        secondarySharpButton.isHidden = true
+        
+        initShiftButton()
+    }
+    
+    func updateLayoutToEmailAddress() {
+        spaceButton.isHidden = false
+        
         returnButton.isHidden = false
         secondaryAtButton.isHidden = true
         secondarySharpButton.isHidden = true
@@ -71,9 +105,21 @@ extension HangeulKeyboardLayoutProvider {
     }
     
     func updateLayoutToTwitter() {
+        spaceButton.isHidden = false
+        
         returnButton.isHidden = true
         secondaryAtButton.isHidden = false
         secondarySharpButton.isHidden = false
+        
+        initShiftButton()
+    }
+    
+    func updateLayoutToWebSearch() {
+        spaceButton.isHidden = false
+        
+        returnButton.isHidden = false
+        secondaryAtButton.isHidden = true
+        secondarySharpButton.isHidden = true
         
         initShiftButton()
     }
