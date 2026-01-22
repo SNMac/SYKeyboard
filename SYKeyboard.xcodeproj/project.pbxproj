@@ -18,12 +18,12 @@
 		5B25D1212F155BBC003122E2 /* EnglishKeyboardCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5BB373AA2ED5D937006AB083 /* EnglishKeyboardCore.framework */; };
 		5B25D1222F155BBC003122E2 /* EnglishKeyboardCore.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 5BB373AA2ED5D937006AB083 /* EnglishKeyboardCore.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		5B2CF1092EDE384D00F4A844 /* AdSupport.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5B2CF1082EDE384D00F4A844 /* AdSupport.framework */; };
+		5B3D95892F22A9A900200234 /* FirebaseCrashlytics in Frameworks */ = {isa = PBXBuildFile; productRef = 5B3D95882F22A9A900200234 /* FirebaseCrashlytics */; };
+		5B3D958B2F22A9AF00200234 /* FirebaseCrashlytics in Frameworks */ = {isa = PBXBuildFile; productRef = 5B3D958A2F22A9AF00200234 /* FirebaseCrashlytics */; };
 		5B8284742E6EEE04006425C7 /* EnglishKeyboard.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 5B82846D2E6EEE04006425C7 /* EnglishKeyboard.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		5B8E6E112E1E42D800657BF4 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = 5B8E6E102E1E42D800657BF4 /* FirebaseAnalytics */; };
 		5B9D004C2D92C38200DA108E /* HangeulKeyboard.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 5B7B3F6B2C569B8200F7C093 /* HangeulKeyboard.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		5BB377A42ED600AC006AB083 /* FirebaseCrashlytics in Frameworks */ = {isa = PBXBuildFile; productRef = 5BB377A32ED600AC006AB083 /* FirebaseCrashlytics */; };
-		5BB377C42ED61248006AB083 /* FirebaseCrashlytics in Frameworks */ = {isa = PBXBuildFile; productRef = 5BB377C32ED61248006AB083 /* FirebaseCrashlytics */; };
-		5BB377C62ED61250006AB083 /* FirebaseCrashlytics in Frameworks */ = {isa = PBXBuildFile; productRef = 5BB377C52ED61250006AB083 /* FirebaseCrashlytics */; };
 		5BB377D62ED62420006AB083 /* SYKeyboardCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5BB373512ED5AA18006AB083 /* SYKeyboardCore.framework */; };
 		5BB377D92ED62423006AB083 /* SYKeyboardCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5BB373512ED5AA18006AB083 /* SYKeyboardCore.framework */; };
 		5BB37A5E2ED643B9006AB083 /* MetaAdapterTarget in Frameworks */ = {isa = PBXBuildFile; productRef = 5BB37A5D2ED643B9006AB083 /* MetaAdapterTarget */; };
@@ -173,7 +173,6 @@
 			membershipExceptions = (
 				"Resources/Configs/DebugConfig-SYKeyboard.xcconfig",
 				"Resources/Configs/ReleaseConfig-SYKeyboard.xcconfig",
-				Resources/Configs/Secrets.xcconfig,
 				Resources/Info.plist,
 			);
 			target = 5B7B3F552C569B7800F7C093 /* SYKeyboard */;
@@ -315,8 +314,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				5BB377C62ED61250006AB083 /* FirebaseCrashlytics in Frameworks */,
 				5B25D1162F155B23003122E2 /* HangeulKeyboardCore.framework in Frameworks */,
+				5B3D958B2F22A9AF00200234 /* FirebaseCrashlytics in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -324,8 +323,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				5BB377C42ED61248006AB083 /* FirebaseCrashlytics in Frameworks */,
 				5B25D1192F155B27003122E2 /* EnglishKeyboardCore.framework in Frameworks */,
+				5B3D95892F22A9A900200234 /* FirebaseCrashlytics in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -515,7 +514,7 @@
 			);
 			name = EnglishKeyboard;
 			packageProductDependencies = (
-				5BB377C32ED61248006AB083 /* FirebaseCrashlytics */,
+				5B3D95882F22A9A900200234 /* FirebaseCrashlytics */,
 			);
 			productName = EnglishKeyboard;
 			productReference = 5B82846D2E6EEE04006425C7 /* EnglishKeyboard.appex */;
@@ -1747,22 +1746,22 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		5B3D95882F22A9A900200234 /* FirebaseCrashlytics */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 5B8E6E0F2E1E42D800657BF4 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseCrashlytics;
+		};
+		5B3D958A2F22A9AF00200234 /* FirebaseCrashlytics */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 5B8E6E0F2E1E42D800657BF4 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseCrashlytics;
+		};
 		5B8E6E102E1E42D800657BF4 /* FirebaseAnalytics */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 5B8E6E0F2E1E42D800657BF4 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseAnalytics;
 		};
 		5BB377A32ED600AC006AB083 /* FirebaseCrashlytics */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 5B8E6E0F2E1E42D800657BF4 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
-			productName = FirebaseCrashlytics;
-		};
-		5BB377C32ED61248006AB083 /* FirebaseCrashlytics */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 5B8E6E0F2E1E42D800657BF4 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
-			productName = FirebaseCrashlytics;
-		};
-		5BB377C52ED61250006AB083 /* FirebaseCrashlytics */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 5B8E6E0F2E1E42D800657BF4 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseCrashlytics;

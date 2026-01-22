@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import OSLog
 
 import HangeulKeyboardCore
 
@@ -14,6 +15,10 @@ import FirebaseCrashlytics
 
 /// 한글 키보드 입력/UI 컨트롤러
 final class HangeulKeyboardViewController: HangeulKeyboardCoreViewController {
+    
+    // MARK: - Properties
+    
+    private lazy var logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: String(describing: self))
     
     // MARK: - UI Components
     
@@ -41,6 +46,8 @@ final class HangeulKeyboardViewController: HangeulKeyboardCoreViewController {
     
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
+        
+        logger.fault("Memory Warning Received in \(Bundle.main.bundleIdentifier!)")
         
         // 메모리 경고 발생 시 Crashlytics에 로그 남기기
         let msg = "Memory Warning Received in \(Bundle.main.bundleIdentifier!)"
