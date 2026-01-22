@@ -39,6 +39,9 @@ final class NaratgeulKeyboardView: FourByFourKeyboardView, HangeulKeyboardLayout
         didSet(oldMode) { updateLayoutForCurrentHangeulMode(oldMode: oldMode) }
     }
     
+    var isShifted: Bool = false
+    var wasShifted: Bool = false
+    
     init() {
         super.init(frame: .zero)
         updateLayoutToDefault()

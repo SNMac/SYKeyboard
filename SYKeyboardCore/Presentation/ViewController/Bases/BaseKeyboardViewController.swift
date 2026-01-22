@@ -191,16 +191,6 @@ open class BaseKeyboardViewController: UIInputViewController {
         updateReturnButtonType()
     }
     
-    /// 현재 보이는 키보드를  `currentKeyboard`에 맞게 변경하는 메서드
-    open func updateShowingKeyboard() {
-        primaryKeyboardView.isHidden = (currentKeyboard != primaryKeyboardView.keyboard)
-        symbolKeyboardView.isHidden = (currentKeyboard != .symbol)
-        symbolKeyboardView.initShiftButton()
-        isSymbolInput = false
-        numericKeyboardView.isHidden = (currentKeyboard != .numeric)
-        tenkeyKeyboardView.isHidden = (currentKeyboard != .tenKey)
-    }
-    
     /// `UIKeyboardType`에 맞는 키보드 레이아웃으로 업데이트하는 메서드
     open func updateKeyboardType() { fatalError("메서드가 오버라이딩 되지 않았습니다.") }
     
@@ -389,7 +379,7 @@ private extension BaseKeyboardViewController {
         }
         
         UserDefaultsManager.shared.needsInputModeSwitchKey = self.needsInputModeSwitchKey
-
+        
     }
 }
 
@@ -606,6 +596,16 @@ private extension BaseKeyboardViewController {
     func updateOneHandModekeyboard() {
         leftChevronButton.isHidden = !(currentOneHandedMode == .right)
         rightChevronButton.isHidden = !(currentOneHandedMode == .left)
+    }
+    
+    /// 현재 보이는 키보드를  `currentKeyboard`에 맞게 변경하는 메서드
+    func updateShowingKeyboard() {
+        primaryKeyboardView.isHidden = (currentKeyboard != primaryKeyboardView.keyboard)
+        symbolKeyboardView.isHidden = (currentKeyboard != .symbol)
+        symbolKeyboardView.initShiftButton()
+        isSymbolInput = false
+        numericKeyboardView.isHidden = (currentKeyboard != .numeric)
+        tenkeyKeyboardView.isHidden = (currentKeyboard != .tenKey)
     }
     
     func updateReturnButtonType() {

@@ -44,10 +44,6 @@ open class EnglishKeyboardCoreViewController: BaseKeyboardViewController {
     open override func didSetCurrentKeyboard() {
         super.didSetCurrentKeyboard()
         updateShiftButton()
-    }
-    
-    open override func updateShowingKeyboard() {
-        super.updateShowingKeyboard()
         isUppercaseInput = false
     }
     

@@ -14,9 +14,9 @@ protocol HangeulKeyboardLayoutProvider: PrimaryKeyboardRepresentable {
     /// 현재 한글 키보드 모드
     var currentHangeulKeyboardMode: HangeulKeyboardMode { get set }
     /// Shift 상태
-    var isShifted: Bool? { get set }
+    var isShifted: Bool { get set }
     /// 이전 Shift 상태
-    var wasShifted: Bool? { get set }
+    var wasShifted: Bool { get set }
     /// 대문자 전환 버튼
     var shiftButton: ShiftButton? { get }
     /// 리턴 버튼 수평 스택
@@ -48,14 +48,6 @@ protocol HangeulKeyboardLayoutProvider: PrimaryKeyboardRepresentable {
 // MARK: - Protocol Properties & Methods
 
 extension HangeulKeyboardLayoutProvider {
-    var isShifted: Bool? {
-        get { nil }
-        set {}
-    }
-    var wasShifted: Bool? {
-        get { nil }
-        set {}
-    }
     var shiftButton: ShiftButton? { nil }
     
     func updateLayoutForCurrentHangeulMode(oldMode: HangeulKeyboardMode) {

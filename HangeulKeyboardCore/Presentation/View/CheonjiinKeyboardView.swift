@@ -26,7 +26,6 @@ final class CheonjiinKeyboardView: FourByFourPlusKeyboardView, HangeulKeyboardLa
         ]
     }
     
-    
     override var secondaryKeyList: [[[String]]] {
         [
             [ ["1"], ["2"], ["3"] ],
@@ -39,6 +38,9 @@ final class CheonjiinKeyboardView: FourByFourPlusKeyboardView, HangeulKeyboardLa
     final var currentHangeulKeyboardMode: HangeulKeyboardMode = .default {
         didSet(oldMode) { updateLayoutForCurrentHangeulMode(oldMode: oldMode) }
     }
+    
+    var isShifted: Bool = false
+    var wasShifted: Bool = false
     
     init() {
         super.init(frame: .zero)
