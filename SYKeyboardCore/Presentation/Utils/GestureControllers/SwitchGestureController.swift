@@ -425,11 +425,16 @@ private extension SwitchGestureController {
         
         let currentKeyboard = getCurrentKeyboard()
         switch currentKeyboard {
-        case .naratgeul, .cheonjiin, .dubeolsik:
+        case .naratgeul, .cheonjiin:
             guard let hangeulKeyboardView else { fatalError("옵셔널 바인딩 실패 - hangeulKeyboardView가 nil입니다.") }
             config = (gestureHandler: hangeulKeyboardView,
                       keyboardSelectTargetkeyboard: .numeric,
                       keyboardSelectTargetDirection: .left)
+        case .dubeolsik:
+            guard let hangeulKeyboardView else { fatalError("옵셔널 바인딩 실패 - hangeulKeyboardView가 nil입니다.") }
+            config = (gestureHandler: hangeulKeyboardView,
+                      keyboardSelectTargetkeyboard: .numeric,
+                      keyboardSelectTargetDirection: .right)
         case .qwerty:
             guard let englishKeyboardView else { fatalError("옵셔널 바인딩 실패 - englishKeyboardView가 nil입니다.") }
             config = (gestureHandler: englishKeyboardView,
