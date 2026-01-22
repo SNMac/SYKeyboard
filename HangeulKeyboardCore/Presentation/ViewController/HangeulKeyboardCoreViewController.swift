@@ -25,6 +25,8 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
     private lazy var naratgeulProcessor: HangeulProcessable = NaratgeulProcessor(automata: automata)
     /// 천지인 입력기
     private lazy var cheonjiinProcessor: HangeulProcessable = CheonjiinProcessor(automata: automata)
+    /// 두벌식 입력기
+    private lazy var dubeolsikProcessor: HangeulProcessable = DubeolsikProcessor(automata: automata)
     
     /// 한글 키보드 입력기
     private var processor: HangeulProcessable {
@@ -34,7 +36,7 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
         case .cheonjiin:
             return cheonjiinProcessor
         case .dubeolsik:
-            fatalError("구현이 필요한 case 입니다.")
+            return dubeolsikProcessor
         }
     }
     
@@ -44,6 +46,8 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
     private lazy var naratgeulKeyboardView: HangeulKeyboardLayoutProvider = NaratgeulKeyboardView()
     /// 천지인 키보드
     private lazy var cheonjiinKeyboardView: HangeulKeyboardLayoutProvider = CheonjiinKeyboardView()
+    /// 두벌식 키보드
+    private lazy var dubeolsikKeyboardView: HangeulKeyboardLayoutProvider = DubeolsikKeyboardView()
     
     /// 사용자가 선택한 한글 키보드
     private var hangeulKeyboardView: HangeulKeyboardLayoutProvider {
@@ -53,7 +57,7 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
         case .cheonjiin:
             return cheonjiinKeyboardView
         case .dubeolsik:
-            fatalError("구현이 필요한 case 입니다.")
+            return dubeolsikKeyboardView
         }
     }
     
