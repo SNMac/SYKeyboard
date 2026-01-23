@@ -15,7 +15,7 @@ final public class ButtonStateController {
     private lazy var logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: String(describing: self))
     
     /// 현재 눌린 버튼
-    var currentPressedButton: BaseKeyboardButton? {
+    weak var currentPressedButton: BaseKeyboardButton? {
         didSet {
             oldValue?.isPressed = false
             oldValue?.gestureRecognizers?.forEach { $0.state = .cancelled }

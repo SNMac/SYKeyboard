@@ -169,7 +169,7 @@ open class BaseKeyboardViewController: UIInputViewController {
     
     open override func viewWillTransition(to size: CGSize, with coordinator: any UIViewControllerTransitionCoordinator) {
         super.viewWillTransition(to: size, with: coordinator)
-        coordinator.animate { _ in self.setKeyboardHeight() }
+        coordinator.animate { [weak self] _ in self?.setKeyboardHeight() }
     }
     
     open override func viewWillDisappear(_ animated: Bool) {
@@ -498,7 +498,10 @@ private extension BaseKeyboardViewController {
         if UserDefaultsManager.shared.isDragToMoveCursorEnabled ||
             button is DeleteButton {
             // 팬(드래그) 제스처
-            let panGesture = UIPanGestureRecognizer(target: textInteractionGestureController, action: #selector(textInteractionGestureController.panGestureHandler(_:)))
+            let panGesture = UIPanGestureRecognizer(
+                target: self,
+                action: #selector(handlePanGesture(_:))
+            )
             panGesture.delegate = textInteractionGestureController
             panGesture.delaysTouchesBegan = false
             panGesture.cancelsTouchesInView = true
@@ -508,7 +511,10 @@ private extension BaseKeyboardViewController {
         if (UserDefaultsManager.shared.isLongPressToRepeatInputEnabled || UserDefaultsManager.shared.isLongPressToNumberInputEnabled) ||
             button is DeleteButton {
             // 길게 누르기 제스처
-            let longPressGesture = UILongPressGestureRecognizer(target: textInteractionGestureController, action: #selector(textInteractionGestureController.longPressGestureHandler(_:)))
+            let longPressGesture = UILongPressGestureRecognizer(
+                target: self,
+                action: #selector(handleLongPressGesture(_:))
+            )
             longPressGesture.delegate = textInteractionGestureController
             longPressGesture.minimumPressDuration = UserDefaultsManager.shared.longPressDuration
             longPressGesture.allowableMovement = UserDefaultsManager.shared.cursorActiveDistance
@@ -553,7 +559,10 @@ private extension BaseKeyboardViewController {
     func addGesturesToSwitchButton(_ button: SwitchButton) {
         if UserDefaultsManager.shared.isNumericKeypadEnabled {
             // 팬(드래그) 제스처
-            let keyboardSelectPanGesture = UIPanGestureRecognizer(target: switchGestureController, action: #selector(switchGestureController.keyboardSelectPanGestureHandler(_:)))
+            let keyboardSelectPanGesture = UIPanGestureRecognizer(
+                target: self,
+                action: #selector(handleKeyboardSelectPan(_:))
+            )
             keyboardSelectPanGesture.name = SwitchGestureController.PanGestureName.keyboardSelect.rawValue
             keyboardSelectPanGesture.delegate = switchGestureController
             button.addGestureRecognizer(keyboardSelectPanGesture)
@@ -561,12 +570,18 @@ private extension BaseKeyboardViewController {
         
         if UserDefaultsManager.shared.isOneHandedKeyboardEnabled {
             // 팬(드래그) 제스처
-            let oneHandedModeSelectPanGesture = UIPanGestureRecognizer(target: switchGestureController, action: #selector(switchGestureController.oneHandedModeSelectPanGestureHandler(_:)))
+            let oneHandedModeSelectPanGesture = UIPanGestureRecognizer(
+                target: self,
+                action: #selector(handleOneHandedModePan(_:))
+            )
             oneHandedModeSelectPanGesture.delegate = switchGestureController
             button.addGestureRecognizer(oneHandedModeSelectPanGesture)
             
             // 길게 누르기 제스처
-            let oneHandedModeSelectLongPressGesture = UILongPressGestureRecognizer(target: switchGestureController, action: #selector(switchGestureController.oneHandedModeLongPressGestureHandler(_:)))
+            let oneHandedModeSelectLongPressGesture = UILongPressGestureRecognizer(
+                target: self,
+                action: #selector(handleOneHandedModeLongPress(_:))
+            )
             oneHandedModeSelectPanGesture.name = SwitchGestureController.PanGestureName.oneHandedModeSelect.rawValue
             oneHandedModeSelectLongPressGesture.delegate = switchGestureController
             oneHandedModeSelectLongPressGesture.minimumPressDuration = UserDefaultsManager.shared.longPressDuration
@@ -587,6 +602,30 @@ private extension BaseKeyboardViewController {
         let resetOneHandMode = UIAction { [weak self] _ in self?.currentOneHandedMode = .center }
         leftChevronButton.addAction(resetOneHandMode, for: .touchUpInside)
         rightChevronButton.addAction(resetOneHandMode, for: .touchUpInside)
+    }
+}
+
+// MARK: - @objc Methods
+
+@objc private extension BaseKeyboardViewController {
+    @objc func handlePanGesture(_ gesture: UIPanGestureRecognizer) {
+        textInteractionGestureController.panGestureHandler(gesture)
+    }
+    
+    @objc func handleLongPressGesture(_ gesture: UILongPressGestureRecognizer) {
+        textInteractionGestureController.longPressGestureHandler(gesture)
+    }
+    
+    @objc func handleKeyboardSelectPan(_ gesture: UIPanGestureRecognizer) {
+        switchGestureController.keyboardSelectPanGestureHandler(gesture)
+    }
+    
+    @objc func handleOneHandedModePan(_ gesture: UIPanGestureRecognizer) {
+        switchGestureController.oneHandedModeSelectPanGestureHandler(gesture)
+    }
+    
+    @objc func handleOneHandedModeLongPress(_ gesture: UILongPressGestureRecognizer) {
+        switchGestureController.oneHandedModeLongPressGestureHandler(gesture)
     }
 }
 
