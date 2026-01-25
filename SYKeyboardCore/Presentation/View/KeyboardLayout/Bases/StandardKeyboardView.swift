@@ -38,6 +38,7 @@ open class StandardKeyboardView: UIView {
     }
     final public var wasShifted: Bool = false
     
+    // Initializer Injection
     public let getIsShiftedLetterInput: () -> Bool
     public let setIsShiftedLetterInput: (Bool) -> ()
     

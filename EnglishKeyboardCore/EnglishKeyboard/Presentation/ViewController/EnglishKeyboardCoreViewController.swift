@@ -120,6 +120,7 @@ open class EnglishKeyboardCoreViewController: BaseKeyboardViewController {
     open override func repeatTextInteractionDidPerform(button: TextInteractable) {
         super.repeatTextInteractionDidPerform(button: button)
         isRepeatingInput = false
+        updateShiftButton()
     }
     
     open override func insertPrimaryKeyText(from button: TextInteractable) {
