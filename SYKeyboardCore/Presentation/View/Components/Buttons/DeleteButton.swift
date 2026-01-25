@@ -54,25 +54,25 @@ private extension DeleteButton {
             break
         }
         
-        let imageConfig = UIImage.SymbolConfiguration(pointSize: FontSize.imageSize, weight: .medium)
+        let imageConfig = UIImage.SymbolConfiguration(pointSize: FontSize.imageSize, weight: .medium, scale: .large)
         self.configurationUpdateHandler = { [weak self] button in
             guard let self else { return }
             switch button.state {
             case .normal:
                 if isGesturing {
                     backgroundView.backgroundColor = .secondaryButtonPressed
-                    button.configuration?.image = UIImage(systemName: "delete.backward.fill")?.withConfiguration(imageConfig).withTintColor(.label, renderingMode: .alwaysOriginal)
+                    primaryKeyListImageView.image = UIImage(systemName: "delete.backward.fill")?.withConfiguration(imageConfig).withTintColor(.label, renderingMode: .alwaysOriginal)
                 } else {
                     backgroundView.backgroundColor = .secondaryButton
-                    button.configuration?.image = UIImage(systemName: "delete.backward")?.withConfiguration(imageConfig).withTintColor(.label, renderingMode: .alwaysOriginal)
+                    primaryKeyListImageView.image = UIImage(systemName: "delete.backward")?.withConfiguration(imageConfig).withTintColor(.label, renderingMode: .alwaysOriginal)
                 }
             case .highlighted:
                 if isPressed || isGesturing {
                     backgroundView.backgroundColor = .secondaryButtonPressed
-                    button.configuration?.image = UIImage(systemName: "delete.backward.fill")?.withConfiguration(imageConfig).withTintColor(.label, renderingMode: .alwaysOriginal)
+                    primaryKeyListImageView.image = UIImage(systemName: "delete.backward.fill")?.withConfiguration(imageConfig).withTintColor(.label, renderingMode: .alwaysOriginal)
                 } else {
                     backgroundView.backgroundColor = .secondaryButton
-                    button.configuration?.image = UIImage(systemName: "delete.backward")?.withConfiguration(imageConfig).withTintColor(.label, renderingMode: .alwaysOriginal)
+                    primaryKeyListImageView.image = UIImage(systemName: "delete.backward")?.withConfiguration(imageConfig).withTintColor(.label, renderingMode: .alwaysOriginal)
                 }
             default:
                 break

@@ -14,7 +14,7 @@ final public class ShiftButton: SecondaryButton {
     
     private let keyboard: SYKeyboardType
     
-    private let imageConfig = UIImage.SymbolConfiguration(pointSize: FontSize.imageSize, weight: .medium)
+    private let imageConfig = UIImage.SymbolConfiguration(pointSize: FontSize.imageSize, weight: .medium, scale: .large)
     
     // MARK: - Initializer
     
@@ -43,10 +43,10 @@ final public class ShiftButton: SecondaryButton {
         case .dubeolsik, .qwerty:
             if isShifted {
                 self.isGesturing = true
-                self.configuration?.image = UIImage(systemName: "shift.fill")?.withConfiguration(imageConfig).withTintColor(.label, renderingMode: .alwaysOriginal)
+                primaryKeyListImageView.image = UIImage(systemName: "shift.fill")?.withConfiguration(imageConfig).withTintColor(.label, renderingMode: .alwaysOriginal)
             } else {
                 self.isGesturing = false
-                self.configuration?.image = UIImage(systemName: "shift")?.withConfiguration(imageConfig).withTintColor(.label, renderingMode: .alwaysOriginal)
+                primaryKeyListImageView.image = UIImage(systemName: "shift")?.withConfiguration(imageConfig).withTintColor(.label, renderingMode: .alwaysOriginal)
             }
         case .symbol:
             if isShifted {
@@ -65,11 +65,11 @@ final public class ShiftButton: SecondaryButton {
             if isCapsLocked {
                 self.isPressed = true
                 self.isGesturing = true
-                self.configuration?.image = UIImage(systemName: "capslock.fill")?.withConfiguration(imageConfig).withTintColor(.label, renderingMode: .alwaysOriginal)
+                primaryKeyListImageView.image = UIImage(systemName: "capslock.fill")?.withConfiguration(imageConfig).withTintColor(.label, renderingMode: .alwaysOriginal)
             } else {
                 self.isPressed = false
                 self.isGesturing = false
-                self.configuration?.image = UIImage(systemName: "shift")?.withConfiguration(imageConfig).withTintColor(.label, renderingMode: .alwaysOriginal)
+                primaryKeyListImageView.image = UIImage(systemName: "shift")?.withConfiguration(imageConfig).withTintColor(.label, renderingMode: .alwaysOriginal)
             }
         default:
             assertionFailure("도달할 수 없는 case 입니다.")
@@ -91,7 +91,7 @@ private extension ShiftButton {
         switch keyboard {
         case .dubeolsik, .qwerty:
             self.configuration?.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 0, bottom: 0, trailing: KeyboardLayoutFigure.buttonHorizontalInset)
-            self.configuration?.image = UIImage(systemName: "shift")?.withConfiguration(imageConfig).withTintColor(.label, renderingMode: .alwaysOriginal)
+            primaryKeyListImageView.image = UIImage(systemName: "shift")?.withConfiguration(imageConfig).withTintColor(.label, renderingMode: .alwaysOriginal)
         case .symbol:
             primaryKeyListLabel.text = "1/2"
             primaryKeyListLabel.font = .monospacedSystemFont(ofSize: 16, weight: .regular)

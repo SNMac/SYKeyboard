@@ -24,7 +24,7 @@ final public class ReturnButton: SecondaryButton, TextInteractable {
     // MARK: - Internal Methods
     
     func update(for returnKeyType: ReturnKeyType) {
-        self.configuration?.image = returnKeyType.image
+        primaryKeyListImageView.image = returnKeyType.image
         self.configurationUpdateHandler = { [weak self] button in
             guard let self else { return }
             
@@ -138,7 +138,7 @@ extension ReturnButton {
         var image: UIImage? {
             switch self {
             case .default:
-                let imageConfig = UIImage.SymbolConfiguration(pointSize: FontSize.imageSize, weight: .medium)
+                let imageConfig = UIImage.SymbolConfiguration(pointSize: FontSize.imageSize, weight: .medium, scale: .large)
                 return UIImage(systemName: "return")?.withConfiguration(imageConfig).withTintColor(.label, renderingMode: .alwaysOriginal)
             case .go, .google, .join, .next, .route, .search, .send, .yahoo, .done, .emergencyCall, .continue:
                 return nil
