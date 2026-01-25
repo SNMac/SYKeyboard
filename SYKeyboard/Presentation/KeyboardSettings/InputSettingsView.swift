@@ -89,7 +89,7 @@ struct InputSettingsView: View {
             
             Analytics.logEvent("selected_long_press_action", parameters: [
                 "view": "InputSettingsView",
-                "value": newValue.analyticsValue
+                "action_type": newValue.analyticsValue
             ])
             hideKeyboard()
         }
@@ -114,7 +114,7 @@ struct InputSettingsView: View {
         .onChange(of: isAutoCapitalizationEnabled) { newValue in
             Analytics.logEvent("auto_capitalization", parameters: [
                 "view": "InputSettingsView",
-                "enabled": newValue ? "true" : "false"
+                "enabled": newValue ? 1 : 0
             ])
             hideKeyboard()
         }
@@ -127,7 +127,7 @@ struct InputSettingsView: View {
         .onChange(of: isTextReplacementEnabled) { newValue in
             Analytics.logEvent("text_replacement", parameters: [
                 "view": "InputSettingsView",
-                "enabled": newValue ? "true" : "false"
+                "enabled": newValue ? 1 : 0
             ])
             hideKeyboard()
         }
@@ -140,7 +140,7 @@ struct InputSettingsView: View {
         .onChange(of: isPeriodShortcutEnabled) { newValue in
             Analytics.logEvent("input_settings", parameters: [
                 "view": "InputSettingsView",
-                "enabled": newValue ? "true" : "false"
+                "enabled": newValue ? 1 : 0
             ])
             hideKeyboard()
         }
@@ -153,7 +153,7 @@ struct InputSettingsView: View {
         .onChange(of: isAutoChangeToPrimaryEnabled) { newValue in
             Analytics.logEvent("auto_change_to_primary", parameters: [
                 "view": "InputSettingsView",
-                "enabled": newValue ? "true" : "false"
+                "enabled": newValue ? 1 : 0
             ])
             hideKeyboard()
         }
@@ -164,7 +164,7 @@ struct InputSettingsView: View {
         .onChange(of: isDragToMoveCursorEnabled) { newValue in
             Analytics.logEvent("drag_to_move_cursor", parameters: [
                 "view": "InputSettingsView",
-                "enabled": newValue ? "true" : "false"
+                "enabled": newValue ? 1 : 0
             ])
             hideKeyboard()
         }

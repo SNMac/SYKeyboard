@@ -7,8 +7,6 @@
 
 import UIKit
 
-import SYKeyboardAssets
-
 /// 키보드 버튼 그림자
 final class ButtonShadowView: UIView {
     

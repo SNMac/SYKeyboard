@@ -18,6 +18,10 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
     private var buffer: String = ""
     /// 마지막으로 입력한 문자
     private var lastInputText: String?
+    /// 현재 반복 입력 동작 중인지 확인하는 플래그
+    private var isRepeatingInput: Bool = false
+    /// 글자가 입력되었는지 확인하는 플래그
+    private var is글자Input: Bool = false
     
     /// 한글 오토마타
     private let automata: HangeulAutomataProtocol = HangeulAutomata()
@@ -25,6 +29,8 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
     private lazy var naratgeulProcessor: HangeulProcessable = NaratgeulProcessor(automata: automata)
     /// 천지인 입력기
     private lazy var cheonjiinProcessor: HangeulProcessable = CheonjiinProcessor(automata: automata)
+    /// 두벌식 입력기
+    private lazy var dubeolsikProcessor: HangeulProcessable = DubeolsikProcessor(automata: automata)
     
     /// 한글 키보드 입력기
     private var processor: HangeulProcessable {
@@ -34,7 +40,7 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
         case .cheonjiin:
             return cheonjiinProcessor
         case .dubeolsik:
-            fatalError("구현이 필요한 case 입니다.")
+            return dubeolsikProcessor
         }
     }
     
@@ -44,6 +50,11 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
     private lazy var naratgeulKeyboardView: HangeulKeyboardLayoutProvider = NaratgeulKeyboardView()
     /// 천지인 키보드
     private lazy var cheonjiinKeyboardView: HangeulKeyboardLayoutProvider = CheonjiinKeyboardView()
+    /// 두벌식 키보드
+    private lazy var dubeolsikKeyboardView: HangeulKeyboardLayoutProvider = DubeolsikKeyboardView(
+        getIsShiftedLetterInput: { [weak self] in return self?.is글자Input ?? false },
+        setIsShiftedLetterInput: { [weak self] is글자Input in self?.is글자Input = is글자Input }
+    )
     
     /// 사용자가 선택한 한글 키보드
     private var hangeulKeyboardView: HangeulKeyboardLayoutProvider {
@@ -53,7 +64,7 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
         case .cheonjiin:
             return cheonjiinKeyboardView
         case .dubeolsik:
-            fatalError("구현이 필요한 case 입니다.")
+            return dubeolsikKeyboardView
         }
     }
     
@@ -78,6 +89,13 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
         lastInputText = nil
         processor.reset한글조합()
         updateSpaceButtonImage()
+        updateShiftButton()
+    }
+    
+    open override func didSetCurrentKeyboard() {
+        super.didSetCurrentKeyboard()
+        is글자Input = false
+        updateShiftButton()
     }
     
     open override func updateKeyboardType() {
@@ -97,7 +115,7 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
             symbolKeyboardView.currentSymbolKeyboardMode = .default
             currentKeyboard = .symbol
         case .URL:
-            hangeulKeyboardView.currentHangeulKeyboardMode = .default
+            hangeulKeyboardView.currentHangeulKeyboardMode = .URL
             symbolKeyboardView.currentSymbolKeyboardMode = .URL
             currentKeyboard = primaryKeyboardView.keyboard
         case .numberPad:
@@ -108,7 +126,7 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
             tenkeyKeyboardView.currentTenkeyKeyboardMode = .numberPad
             currentKeyboard = .tenKey
         case .emailAddress:
-            hangeulKeyboardView.currentHangeulKeyboardMode = .default
+            hangeulKeyboardView.currentHangeulKeyboardMode = .emailAddress
             symbolKeyboardView.currentSymbolKeyboardMode = .emailAddress
             currentKeyboard = primaryKeyboardView.keyboard
         case .decimalPad:
@@ -119,7 +137,7 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
             symbolKeyboardView.currentSymbolKeyboardMode = .default
             currentKeyboard = primaryKeyboardView.keyboard
         case .webSearch:
-            hangeulKeyboardView.currentHangeulKeyboardMode = .default
+            hangeulKeyboardView.currentHangeulKeyboardMode = .webSearch
             symbolKeyboardView.currentSymbolKeyboardMode = .webSearch
             currentKeyboard = primaryKeyboardView.keyboard
         case .asciiCapableNumberPad:
@@ -133,12 +151,25 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
         }
     }
     
+    open override func textInteractionDidPerform(button: any TextInteractable) {
+        super.textInteractionDidPerform(button: button)
+        is글자Input = true
+        if !isRepeatingInput { updateShiftButton() }
+    }
+    
     open override func repeatTextInteractionWillPerform(button: TextInteractable) {
+        isRepeatingInput = true
         super.repeatTextInteractionWillPerform(button: button)
         super.performTextInteraction(for: button)
         if lastInputText != nil || button is DeleteButton || button is SpaceButton {
             button.playFeedback()
         }
+    }
+    
+    open override func repeatTextInteractionDidPerform(button: TextInteractable) {
+        super.repeatTextInteractionDidPerform(button: button)
+        isRepeatingInput = false
+        updateShiftButton()
     }
     
     open override func insertPrimaryKeyText(from button: TextInteractable) {
@@ -192,17 +223,25 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
     open override func insertSpaceText() {
         if isPreview { return }
         
-        let result = processor.inputSpace(beforeText: buffer)
-        switch result {
-        case .insertSpace:
-            // 실제 공백 입력
+        if currentKeyboard == .naratgeul ||
+            currentKeyboard == .cheonjiin ||
+            currentKeyboard == .dubeolsik {
+            let result = processor.inputSpace(beforeText: buffer)
+            switch result {
+            case .insertSpace:
+                // 실제 공백 입력
+                super.insertSpaceText()
+                buffer.removeAll()
+                lastInputText = nil
+                
+            case .commitCombination:
+                // 조합 끊기 (화면 변화 없음, 버퍼 유지)
+                lastInputText = nil // 반복 입력(ㄱ -> ㅋ) 방지용 초기화
+            }
+        } else {
             super.insertSpaceText()
             buffer.removeAll()
             lastInputText = nil
-            
-        case .commitCombination:
-            // 조합 끊기 (화면 변화 없음, 버퍼 유지)
-            lastInputText = nil // 반복 입력(ㄱ -> ㅋ) 방지용 초기화
         }
         
         updateSpaceButtonImage()
@@ -269,5 +308,13 @@ private extension HangeulKeyboardCoreViewController {
         } else {
             primaryKeyboardView.updateSpaceButtonImage(systemName: "space")
         }
+    }
+    
+    /// Shift 버튼을 상황에 맞게 업데이트하는 메서드
+    func updateShiftButton() {
+        // Shift 버튼이 눌려있는 경우 실행 X
+        guard !buttonStateController.isShiftButtonPressed else { return }
+        primaryKeyboardView.updateShiftButton(isShifted: false)
+        is글자Input = false
     }
 }

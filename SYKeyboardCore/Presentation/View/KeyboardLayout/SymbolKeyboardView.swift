@@ -6,11 +6,17 @@
 //
 
 import UIKit
+import OSLog
 
 /// 기호 키보드
 final class SymbolKeyboardView: UIView, SymbolKeyboardLayoutProvider {
     
     // MARK: - Properties
+    
+    private lazy var logger = Logger(
+        subsystem: Bundle.main.bundleIdentifier!,
+        category: "\(String(describing: type(of: self))) <\(Unmanaged.passUnretained(self).toOpaque())>"
+    )
     
     public private(set) lazy var allButtonList: [BaseKeyboardButton] = primaryButtonList + secondaryButtonList
     public private(set) lazy var primaryButtonList: [PrimaryButton] = firstRowPrimaryKeyButtonList + secondRowPrimaryKeyButtonList + thirdRowPrimaryKeyButtonList + [spaceButton, atButton, periodButton, slashButton, dotComButton]
@@ -32,6 +38,9 @@ final class SymbolKeyboardView: UIView, SymbolKeyboardLayoutProvider {
         }
     }
     var wasShifted: Bool = false
+    
+    /// `periodButton`의 너비 제약 조건을 저장하는 변수
+    public var periodButtonWidthConstraint: NSLayoutConstraint?
     
     // MARK: - UI Components
     
@@ -111,6 +120,10 @@ final class SymbolKeyboardView: UIView, SymbolKeyboardLayoutProvider {
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
+    
+    deinit {
+        logger.debug("\(String(describing: type(of: self))) deinit")
+    }
 }
 
 // MARK: - UI Methods
@@ -188,7 +201,8 @@ private extension SymbolKeyboardView {
         
         periodButton.translatesAutoresizingMaskIntoConstraints = false
         if let superview = periodButton.superview {
-            periodButton.widthAnchor.constraint(equalTo: superview.widthAnchor, multiplier: 0.2).isActive = true
+            periodButtonWidthConstraint = periodButton.widthAnchor.constraint(equalTo: superview.widthAnchor, multiplier: 0.2)
+            periodButtonWidthConstraint?.isActive = true
         }
         
         slashButton.translatesAutoresizingMaskIntoConstraints = false
@@ -251,6 +265,21 @@ private extension SymbolKeyboardView {
                 let primaryKeyList = currentSymbolKeyboardMode.keyList[symbolKeyListIndex][rowIndex][buttonIndex]
                 button.update(buttonType: TextInteractableType.keyButton(primary: primaryKeyList, secondary: nil))
             }
+        }
+    }
+}
+
+// MARK: - Internal Methods
+
+extension SymbolKeyboardView {
+    func updatePeriodButtonWidthConstraint(multiplier: CGFloat?) {
+        periodButtonWidthConstraint?.isActive = false
+        
+        guard let multiplier = multiplier else { return }
+        
+        if let superview = periodButton.superview {
+            periodButtonWidthConstraint = periodButton.widthAnchor.constraint(equalTo: superview.widthAnchor, multiplier: multiplier)
+            periodButtonWidthConstraint?.isActive = true
         }
     }
 }

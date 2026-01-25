@@ -150,9 +150,9 @@ private extension KeyboardSelectOverlayView {
         xmarkImageContainerView.addSubview(xmarkImageView)
         
         switch keyboard {
-        case .naratgeul, .cheonjiin, .dubeolsik:
+        case .naratgeul, .cheonjiin:
             [numericLabel, xmarkImageContainerView].forEach { self.addArrangedSubview($0) }
-        case .qwerty, .symbol:
+        case .dubeolsik, .qwerty, .symbol:
             [xmarkImageContainerView, numericLabel].forEach { self.addArrangedSubview($0) }
         case .numeric:
             [symbolLabel, xmarkImageContainerView].forEach { self.addArrangedSubview($0) }
@@ -162,7 +162,6 @@ private extension KeyboardSelectOverlayView {
     }
     
     func setConstraints() {
-        
         blurView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             blurView.topAnchor.constraint(equalTo: self.topAnchor),
@@ -172,16 +171,11 @@ private extension KeyboardSelectOverlayView {
         ])
         
         xmarkImageView.translatesAutoresizingMaskIntoConstraints = false
-        var xmarkImageViewConstraints: [NSLayoutConstraint] = [
+        NSLayoutConstraint.activate([
             xmarkImageView.topAnchor.constraint(equalTo: xmarkImageContainerView.topAnchor),
             xmarkImageView.leadingAnchor.constraint(equalTo: xmarkImageContainerView.leadingAnchor),
             xmarkImageView.trailingAnchor.constraint(equalTo: xmarkImageContainerView.trailingAnchor),
             xmarkImageView.bottomAnchor.constraint(equalTo: xmarkImageContainerView.bottomAnchor)
-        ]
-        if keyboard == .naratgeul || keyboard == .cheonjiin || keyboard == .dubeolsik {
-            xmarkImageViewConstraints.append(xmarkImageView.heightAnchor.constraint(equalTo: numericLabel.heightAnchor))
-        }
-        NSLayoutConstraint.activate(xmarkImageViewConstraints)
-        
+        ])
     }
 }

@@ -22,7 +22,7 @@ struct HangeulKeyboardSelectView: View {
     enum HangeulKeyboard: Int, CaseIterable {
         case naratgeul
         case cheonjiin
-        // TODO: 두벌식 추가
+        case dubeolsik
         
         var displayStr: String {
             switch self {
@@ -30,6 +30,8 @@ struct HangeulKeyboardSelectView: View {
                 String(localized: "나랏글")
             case .cheonjiin:
                 String(localized: "천지인")
+            case .dubeolsik:
+                String(localized: "두벌식")
             }
         }
         
@@ -39,6 +41,8 @@ struct HangeulKeyboardSelectView: View {
                 "naratgeul"
             case .cheonjiin:
                 "cheonjiin"
+            case .dubeolsik:
+                "dubeolsik"
             }
         }
     }
@@ -51,7 +55,7 @@ struct HangeulKeyboardSelectView: View {
             
             Analytics.logEvent("selected_hangeul_keyboard", parameters: [
                 "view": "HangeulKeyboardSelectView",
-                "value": newValue.analyticsValue
+                "hangeul_keyboard": newValue.analyticsValue
             ])
             hideKeyboard()
         }

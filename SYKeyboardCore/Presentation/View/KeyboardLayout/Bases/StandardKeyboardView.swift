@@ -6,10 +6,16 @@
 //
 
 import UIKit
+import OSLog
 
 open class StandardKeyboardView: UIView {
     
     // MARK: - Properties
+    
+    private lazy var logger = Logger(
+        subsystem: Bundle.main.bundleIdentifier!,
+        category: "\(String(describing: type(of: self))) <\(Unmanaged.passUnretained(self).toOpaque())>"
+    )
     
     /// 키보드 종류
     open var keyboard: SYKeyboardType { fatalError("프로퍼티가 오버라이딩 되지 않았습니다.") }
@@ -31,6 +37,13 @@ open class StandardKeyboardView: UIView {
         }
     }
     final public var wasShifted: Bool = false
+    
+    /// `periodButton`의 너비 제약 조건을 저장하는 변수
+    public var periodButtonWidthConstraint: NSLayoutConstraint?
+    
+    // Initializer Injection
+    public let getIsShiftedLetterInput: () -> Bool
+    public let setIsShiftedLetterInput: (Bool) -> ()
     
     // MARK: - UI Components
     
@@ -126,13 +139,23 @@ open class StandardKeyboardView: UIView {
     
     // MARK: - Initializer
     
-    public override init(frame: CGRect) {
-        super.init(frame: frame)
+    public init(
+        getIsShiftedLetterInput: @escaping () -> Bool,
+        setIsShiftedLetterInput: @escaping (Bool) -> ()
+    ) {
+        self.getIsShiftedLetterInput = getIsShiftedLetterInput
+        self.setIsShiftedLetterInput = setIsShiftedLetterInput
+        super.init(frame: .zero)
+        
         setupUI()
     }
     
     required public init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+    
+    deinit {
+        logger.debug("\(String(describing: type(of: self))) deinit")
     }
     
     // MARK: - Overridable Methods
@@ -147,8 +170,9 @@ open class StandardKeyboardView: UIView {
         
         let disableShift = UIAction { [weak self] _ in
             guard let self else { return }
-            if wasShifted {
+            if wasShifted || getIsShiftedLetterInput() {
                 isShifted = false
+                setIsShiftedLetterInput(false)
             }
         }
         shiftButton.addAction(disableShift, for: .touchUpInside)
@@ -250,7 +274,8 @@ private extension StandardKeyboardView {
         
         periodButton.translatesAutoresizingMaskIntoConstraints = false
         if let superview = periodButton.superview {
-            periodButton.widthAnchor.constraint(equalTo: superview.widthAnchor, multiplier: 0.2).isActive = true
+            periodButtonWidthConstraint = periodButton.widthAnchor.constraint(equalTo: superview.widthAnchor, multiplier: 0.2)
+            periodButtonWidthConstraint?.isActive = true
         }
         
         slashButton.translatesAutoresizingMaskIntoConstraints = false
@@ -284,6 +309,19 @@ private extension StandardKeyboardView {
 // MARK: - Update Methods
 
 extension StandardKeyboardView {
+    /// `periodButton`의 너비 제약 조건을 업데이트합니다.
+    /// - Parameter multiplier: 설정할 비율 (nil인 경우 제약 조건 비활성화)
+    public func updatePeriodButtonWidthConstraint(multiplier: CGFloat?) {
+        periodButtonWidthConstraint?.isActive = false
+        
+        guard let multiplier = multiplier else { return }
+        
+        if let superview = periodButton.superview {
+            periodButtonWidthConstraint = periodButton.widthAnchor.constraint(equalTo: superview.widthAnchor, multiplier: multiplier)
+            periodButtonWidthConstraint?.isActive = true
+        }
+    }
+    
     final public func updateKeyButtonList() {
         let keyListIndex = (isShifted ? 1 : 0)
         let rowList = [firstRowPrimaryKeyButtonList, secondRowPrimaryKeyButtonList, thirdRowPrimaryKeyButtonList]

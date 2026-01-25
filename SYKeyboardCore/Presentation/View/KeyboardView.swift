@@ -6,10 +6,16 @@
 //
 
 import UIKit
+import OSLog
 
 final public class KeyboardView: UIView {
     
     // MARK: - Properties
+    
+    private lazy var logger = Logger(
+        subsystem: Bundle.main.bundleIdentifier!,
+        category: "\(String(describing: type(of: self))) <\(Unmanaged.passUnretained(self).toOpaque())>"
+    )
     
     private var keyboardLayoutWidthConstraint: NSLayoutConstraint?
     
@@ -75,6 +81,10 @@ final public class KeyboardView: UIView {
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+    
+    deinit {
+        logger.debug("\(String(describing: type(of: self))) deinit")
     }
     
     // MARK: - Internal Methods

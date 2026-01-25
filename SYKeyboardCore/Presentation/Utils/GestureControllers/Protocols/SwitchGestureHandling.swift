@@ -8,7 +8,7 @@
 import UIKit
 
 /// 키보드 전환 버튼 제스처 핸들러 프로토콜
-public protocol SwitchGestureHandling {
+public protocol SwitchGestureHandling: AnyObject {
     /// 키보드 전환 버튼
     var switchButton: SwitchButton { get }
     /// 키보드 레이아웃 선택 UI

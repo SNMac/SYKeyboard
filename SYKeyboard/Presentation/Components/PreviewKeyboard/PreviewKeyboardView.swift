@@ -46,18 +46,18 @@ private extension PreviewKeyboardView {
         PreviewHangeulKeyboardViewController(keyboardHeight: $keyboardHeight,
                                              oneHandedKeyboardWidth: $oneHandedKeyboardWidth,
                                              displayOneHandedMode: displayOneHandedMode)
-            .frame(height: keyboardHeight)
-            .background(.keyboardBackground)
-            .padding(.bottom, needsInputModeSwitchKey ? 0 : 40)
+        .frame(height: keyboardHeight)
+        .background(.keyboardBackground)
+        .padding(.bottom, needsInputModeSwitchKey ? 0 : 40)
     }
     
     var previewEnglishKeyboard: some View {
         PreviewEnglishKeyboardViewController(keyboardHeight: $keyboardHeight,
                                              oneHandedKeyboardWidth: $oneHandedKeyboardWidth,
                                              displayOneHandedMode: displayOneHandedMode)
-            .frame(height: keyboardHeight)
-            .background(.keyboardBackground)
-            .padding(.bottom, needsInputModeSwitchKey ? 0 : 40)
+        .frame(height: keyboardHeight)
+        .background(.keyboardBackground)
+        .padding(.bottom, needsInputModeSwitchKey ? 0 : 40)
     }
 }
 

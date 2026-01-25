@@ -7,8 +7,6 @@
 
 import UIKit
 
-import SYKeyboardAssets
-
 /// 주 키보드 버튼
 public class PrimaryButton: BaseKeyboardButton {
     

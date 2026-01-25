@@ -20,7 +20,10 @@ final class FeedbackManager {
     
     // MARK: - Properties
     
-    private lazy var logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: String(describing: self))
+    private lazy var logger = Logger(
+        subsystem: Bundle.main.bundleIdentifier!,
+        category: "\(String(describing: type(of: self))) <\(Unmanaged.passUnretained(self).toOpaque())>"
+    )
     
     /// 햅틱 피드백 생성기
     private let lightFeedbackGenerator = UIImpactFeedbackGenerator(style: .light)

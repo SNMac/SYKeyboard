@@ -14,12 +14,18 @@ open class EnglishKeyboardCoreViewController: BaseKeyboardViewController {
     
     // MARK: - Properties
     
+    /// 현재 반복 입력 동작 중인지 확인하는 플래그
+    private var isRepeatingInput: Bool = false
+    /// 대문자가 입력되었는지 확인하는 플래그
     private var isUppercaseInput: Bool = false
     
     // MARK: - UI Components
     
     /// 영어 키보드
-    private lazy var englishKeyboardView: EnglishKeyboardLayoutProvider = EnglishKeyboardView(getIsUppercaseInput: { [weak self] in return self?.isUppercaseInput ?? false })
+    private lazy var englishKeyboardView: EnglishKeyboardLayoutProvider = EnglishKeyboardView(
+        getIsShiftedLetterInput: { [weak self] in return self?.isUppercaseInput ?? false },
+        setIsShiftedLetterInput: { [weak self] isUppercaseInput in self?.isUppercaseInput = isUppercaseInput }
+    )
     
     open override var primaryKeyboardView: PrimaryKeyboardRepresentable { englishKeyboardView }
     
@@ -44,11 +50,6 @@ open class EnglishKeyboardCoreViewController: BaseKeyboardViewController {
     open override func didSetCurrentKeyboard() {
         super.didSetCurrentKeyboard()
         updateShiftButton()
-    }
-    
-    open override func updateShowingKeyboard() {
-        super.updateShowingKeyboard()
-        isUppercaseInput = false
     }
     
     open override func updateKeyboardType() {
@@ -103,13 +104,22 @@ open class EnglishKeyboardCoreViewController: BaseKeyboardViewController {
         }
     }
     
-    open override func textInteractionDidPerform() {
-        super.textInteractionDidPerform()
-        updateShiftButton()
+    open override func textInteractionDidPerform(button: TextInteractable) {
+        super.textInteractionDidPerform(button: button)
+        if let primaryKey = button.type.primaryKeyList.first {
+            if primaryKey.count == 1 && Character(primaryKey).isUppercase { isUppercaseInput = true }
+        }
+        if !isRepeatingInput { updateShiftButton() }
+    }
+    
+    open override func repeatTextInteractionWillPerform(button: any TextInteractable) {
+        isRepeatingInput = true
+        super.repeatTextInteractionWillPerform(button: button)
     }
     
     open override func repeatTextInteractionDidPerform(button: TextInteractable) {
         super.repeatTextInteractionDidPerform(button: button)
+        isRepeatingInput = false
         updateShiftButton()
     }
     
@@ -117,7 +127,6 @@ open class EnglishKeyboardCoreViewController: BaseKeyboardViewController {
         if isPreview { return }
         
         guard let primaryKey = button.type.primaryKeyList.first else { fatalError("keys 배열이 비어있습니다.") }
-        if primaryKey.count == 1 && Character(primaryKey).isUppercase { isUppercaseInput = true }
         textDocumentProxy.insertText(primaryKey)
     }
     
@@ -138,7 +147,6 @@ open class EnglishKeyboardCoreViewController: BaseKeyboardViewController {
             assertionFailure("keys 배열이 비어있습니다.")
             return
         }
-        if primaryKey.count == 1 && Character(primaryKey).isUppercase { isUppercaseInput = true }
         textDocumentProxy.insertText(primaryKey)
     }
 }
