@@ -68,31 +68,6 @@ final class DubeolsikKeyboardView: StandardKeyboardView, HangeulKeyboardLayoutPr
     }
 }
 
-// MARK: - Private Methods
-
-private extension DubeolsikKeyboardView {
-    /// periodButton에 걸려있는 기존 Width 제약 조건을 찾아 제거합니다.
-    func removePeriodButtonWidthConstraints() {
-        guard let superview = periodButton.superview else { return }
-        
-        let constraintsToRemove = superview.constraints.filter { constraint in
-            guard let firstItem = constraint.firstItem as? UIView else { return false }
-            return firstItem == periodButton && constraint.firstAttribute == .width
-        }
-        
-        NSLayoutConstraint.deactivate(constraintsToRemove)
-    }
-    
-    /// 기존 제약 조건을 제거하고 새로운 너비(Multiplier) 제약 조건을 설정합니다.
-    func remakePeriodButtonWidthConstraint(multiplier: CGFloat) {
-        removePeriodButtonWidthConstraints()
-        
-        guard let superview = periodButton.superview else { return }
-        let newConstraint = periodButton.widthAnchor.constraint(equalTo: superview.widthAnchor, multiplier: multiplier)
-        newConstraint.isActive = true
-    }
-}
-
 // MARK: - HangeulKeyboardLayoutProvider Methods
 
 extension DubeolsikKeyboardView {
