@@ -45,6 +45,8 @@ public protocol SymbolKeyboardLayoutProvider: NormalKeyboardLayoutProvider {
     func initShiftButton()
     /// `ShiftButton`의 Shift 상태 변경
     func updateShiftButton(isShifted: Bool)
+    /// `periodButton` 너비 제약 조건 업데이트 메서드
+    func updatePeriodButtonWidthConstraint(multiplier: CGFloat?)
 }
 
 // MARK: - Protocol Properties & Methods
@@ -83,7 +85,7 @@ extension SymbolKeyboardLayoutProvider {
         slashButton.isHidden = false
         dotComButton.isHidden = false
         
-        removePeriodButtonWidthConstraints()
+        updatePeriodButtonWidthConstraint(multiplier: nil)
         
         initShiftButton()
     }
@@ -95,7 +97,7 @@ extension SymbolKeyboardLayoutProvider {
         slashButton.isHidden = true
         dotComButton.isHidden = true
         
-        remakePeriodButtonWidthConstraint(multiplier: 0.25)
+        updatePeriodButtonWidthConstraint(multiplier: 0.25)
         
         initShiftButton()
     }
@@ -107,7 +109,7 @@ extension SymbolKeyboardLayoutProvider {
         slashButton.isHidden = true
         dotComButton.isHidden = true
         
-        remakePeriodButtonWidthConstraint(multiplier: 0.20)
+        updatePeriodButtonWidthConstraint(multiplier: 0.20)
         
         initShiftButton()
     }
@@ -120,29 +122,5 @@ extension SymbolKeyboardLayoutProvider {
     func updateShiftButton(isShifted: Bool) {
         self.isShifted = isShifted
         wasShifted = false
-    }
-}
-
-// MARK: - Helper Methods
-
-private extension SymbolKeyboardLayoutProvider {
-    /// periodButton에 걸려있는 기존 Width 제약 조건을 찾아 제거합니다.
-    func removePeriodButtonWidthConstraints() {
-        guard let superview = periodButton.superview else { return }
-        let constraintsToRemove = superview.constraints.filter { constraint in
-            guard let firstItem = constraint.firstItem as? UIView else { return false }
-            return firstItem == periodButton && constraint.firstAttribute == .width
-        }
-        
-        NSLayoutConstraint.deactivate(constraintsToRemove)
-    }
-    /// 기존 제약 조건을 제거하고 새로운 너비(Multiplier) 제약 조건을 설정합니다.
-    func remakePeriodButtonWidthConstraint(multiplier: CGFloat) {
-        removePeriodButtonWidthConstraints()
-        
-        guard let superview = periodButton.superview else { return }
-        
-        let newConstraint = periodButton.widthAnchor.constraint(equalTo: superview.widthAnchor, multiplier: multiplier)
-        newConstraint.isActive = true
     }
 }

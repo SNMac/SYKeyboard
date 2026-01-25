@@ -39,6 +39,9 @@ final class SymbolKeyboardView: UIView, SymbolKeyboardLayoutProvider {
     }
     var wasShifted: Bool = false
     
+    /// `periodButton`의 너비 제약 조건을 저장하는 변수
+    public var periodButtonWidthConstraint: NSLayoutConstraint?
+    
     // MARK: - UI Components
     
     /// 키보드 레이아웃 수직 스택
@@ -198,7 +201,8 @@ private extension SymbolKeyboardView {
         
         periodButton.translatesAutoresizingMaskIntoConstraints = false
         if let superview = periodButton.superview {
-            periodButton.widthAnchor.constraint(equalTo: superview.widthAnchor, multiplier: 0.2).isActive = true
+            periodButtonWidthConstraint = periodButton.widthAnchor.constraint(equalTo: superview.widthAnchor, multiplier: 0.2)
+            periodButtonWidthConstraint?.isActive = true
         }
         
         slashButton.translatesAutoresizingMaskIntoConstraints = false
@@ -261,6 +265,21 @@ private extension SymbolKeyboardView {
                 let primaryKeyList = currentSymbolKeyboardMode.keyList[symbolKeyListIndex][rowIndex][buttonIndex]
                 button.update(buttonType: TextInteractableType.keyButton(primary: primaryKeyList, secondary: nil))
             }
+        }
+    }
+}
+
+// MARK: - Internal Methods
+
+extension SymbolKeyboardView {
+    func updatePeriodButtonWidthConstraint(multiplier: CGFloat?) {
+        periodButtonWidthConstraint?.isActive = false
+        
+        guard let multiplier = multiplier else { return }
+        
+        if let superview = periodButton.superview {
+            periodButtonWidthConstraint = periodButton.widthAnchor.constraint(equalTo: superview.widthAnchor, multiplier: multiplier)
+            periodButtonWidthConstraint?.isActive = true
         }
     }
 }

@@ -117,7 +117,7 @@ extension DubeolsikKeyboardView {
         slashButton.isHidden = false
         dotComButton.isHidden = false
 
-        removePeriodButtonWidthConstraints()
+        updatePeriodButtonWidthConstraint(multiplier: nil)
 
         returnButton.isHidden = false
         secondaryAtButton.isHidden = true
@@ -133,7 +133,7 @@ extension DubeolsikKeyboardView {
         slashButton.isHidden = true
         dotComButton.isHidden = true
 
-        remakePeriodButtonWidthConstraint(multiplier: 0.25)
+        updatePeriodButtonWidthConstraint(multiplier: 0.25)
 
         returnButton.isHidden = false
         secondaryAtButton.isHidden = true
@@ -149,7 +149,7 @@ extension DubeolsikKeyboardView {
         slashButton.isHidden = true
         dotComButton.isHidden = true
 
-        remakePeriodButtonWidthConstraint(multiplier: 0.20)
+        updatePeriodButtonWidthConstraint(multiplier: 0.20)
 
         returnButton.isHidden = false
         secondaryAtButton.isHidden = true
