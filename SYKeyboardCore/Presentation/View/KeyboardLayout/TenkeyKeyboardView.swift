@@ -6,11 +6,14 @@
 //
 
 import UIKit
+import OSLog
 
 /// 텐키 키보드
 final class TenkeyKeyboardView: UIView, TenkeyKeyboardLayoutProvider {
     
     // MARK: - Properties
+    
+    private lazy var logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: String(describing: self))
     
     public private(set) lazy var allButtonList: [BaseKeyboardButton] = primaryButtonList + secondaryButtonList
     public private(set) lazy var primaryButtonList: [PrimaryButton] = firstRowPrimaryKeyButtonList + secondRowPrimaryKeyButtonList + thirdRowPrimaryKeyButtonList + fourthRowPrimaryKeyButtonList
@@ -71,6 +74,10 @@ final class TenkeyKeyboardView: UIView, TenkeyKeyboardLayoutProvider {
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+    
+    deinit {
+        logger.debug("\(String(describing: self)) deinit")
     }
 }
 

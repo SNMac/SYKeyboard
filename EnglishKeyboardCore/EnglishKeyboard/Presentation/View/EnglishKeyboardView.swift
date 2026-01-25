@@ -31,7 +31,7 @@ final class EnglishKeyboardView: StandardKeyboardView, EnglishKeyboardLayoutProv
     var willCapsLock: Bool = false
     
     private let getIsUppercaseInput: () -> Bool
-
+    
     // MARK: - Initializer
     
     init(getIsUppercaseInput: @escaping () -> Bool) {

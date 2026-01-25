@@ -50,6 +50,8 @@ final class DubeolsikKeyboardView: StandardKeyboardView, HangeulKeyboardLayoutPr
         didSet(oldMode) { updateLayoutForCurrentHangeulMode(oldMode: oldMode) }
     }
     
+    // MARK: - Initializer
+    
     init() {
         super.init(frame: .zero)
         updateLayoutToDefault()

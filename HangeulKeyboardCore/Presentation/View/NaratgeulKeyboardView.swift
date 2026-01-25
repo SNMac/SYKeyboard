@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import OSLog
 
 import SYKeyboardCore
 
@@ -41,6 +42,8 @@ final class NaratgeulKeyboardView: FourByFourKeyboardView, HangeulKeyboardLayout
     
     var isShifted: Bool = false
     var wasShifted: Bool = false
+    
+    // MARK: - Initializer
     
     init() {
         super.init(frame: .zero)

@@ -42,6 +42,8 @@ final class CheonjiinKeyboardView: FourByFourPlusKeyboardView, HangeulKeyboardLa
     var isShifted: Bool = false
     var wasShifted: Bool = false
     
+    // MARK: - Initializer
+    
     init() {
         super.init(frame: .zero)
         updateLayoutToDefault()

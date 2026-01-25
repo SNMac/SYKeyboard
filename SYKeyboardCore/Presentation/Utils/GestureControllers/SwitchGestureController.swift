@@ -77,6 +77,10 @@ final class SwitchGestureController: NSObject {
         self.setCurrentPressedButton = setCurrentPressedButton
     }
     
+    deinit {
+        logger.debug("\(String(describing: self)) deinit")
+    }
+    
     // MARK: - @objc Gesture Methods
     
     @objc func keyboardSelectPanGestureHandler(_ gesture: UIPanGestureRecognizer) {

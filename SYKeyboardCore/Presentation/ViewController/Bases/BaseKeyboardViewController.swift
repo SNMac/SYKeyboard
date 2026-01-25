@@ -137,6 +137,10 @@ open class BaseKeyboardViewController: UIInputViewController {
     
     // MARK: - Lifecycle
     
+    open override func loadView() {
+        self.view = keyboardView
+    }
+    
     open override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
@@ -172,16 +176,20 @@ open class BaseKeyboardViewController: UIInputViewController {
         coordinator.animate { [weak self] _ in self?.setKeyboardHeight() }
     }
     
-    open override func viewWillDisappear(_ animated: Bool) {
-        super.viewWillDisappear(animated)
-        cancelTimer()
-    }
-    
     open override func textDidChange(_ textInput: (any UITextInput)?) {
         super.textDidChange(textInput)
         updateKeyboardType()
         oldKeyboardType = textDocumentProxy.keyboardType
         updateReturnButtonType()
+    }
+    
+    open override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        cancelTimer()
+    }
+    
+    deinit {
+        logger.debug("\(String(describing: self)) deinit")
     }
     
     // MARK: - Overridable Methods
@@ -321,8 +329,6 @@ private extension BaseKeyboardViewController {
     func setupUI() {
         setDelegates()
         setActions()
-        setHierarchy()
-        setConstraints()
     }
     
     func setDelegates() {
@@ -336,20 +342,6 @@ private extension BaseKeyboardViewController {
         setSwitchButtonAction()
         setExclusiveButtonAction()
         setChevronButtonAction()
-    }
-    
-    func setHierarchy() {
-        self.view.addSubview(keyboardView)
-    }
-    
-    func setConstraints() {
-        keyboardView.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([
-            keyboardView.topAnchor.constraint(equalTo: self.view.topAnchor),
-            keyboardView.leadingAnchor.constraint(equalTo: self.view.leadingAnchor),
-            keyboardView.trailingAnchor.constraint(equalTo: self.view.trailingAnchor),
-            keyboardView.bottomAnchor.constraint(equalTo: self.view.bottomAnchor)
-        ])
     }
     
     func setKeyboardHeight() {
@@ -410,17 +402,17 @@ private extension BaseKeyboardViewController {
     
     func addInputActionToTextInterableButton(_ button: TextInteractable) {
         let inputAction = UIAction { [weak self] action in
-            guard let self, let currentButton = action.sender as? BaseKeyboardButton else { return }
+            guard let self, let currentButton = action.sender as? TextInteractable else { return }
             
             if currentButton.isProgrammaticCall {
                 // 코드(sendActions)로 호출된 경우 -> 무조건 입력 수행
-                performTextInteraction(for: button)
+                performTextInteraction(for: currentButton)
                 
             } else {
                 // 사용자가 touchUpInside한 경우 -> currentPressedButton 확인
                 if let currentPressedButton = buttonStateController.currentPressedButton,
-                   currentPressedButton == button {
-                    performTextInteraction(for: button)
+                   currentPressedButton == currentButton {
+                    performTextInteraction(for: currentButton)
                 }
             }
         }
