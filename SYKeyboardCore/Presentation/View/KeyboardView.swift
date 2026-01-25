@@ -12,7 +12,10 @@ final public class KeyboardView: UIView {
     
     // MARK: - Properties
     
-    private lazy var logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: String(describing: self))
+    private lazy var logger = Logger(
+        subsystem: Bundle.main.bundleIdentifier!,
+        category: "\(String(describing: type(of: self))) <\(Unmanaged.passUnretained(self).toOpaque())>"
+    )
     
     private var keyboardLayoutWidthConstraint: NSLayoutConstraint?
     
@@ -81,7 +84,7 @@ final public class KeyboardView: UIView {
     }
     
     deinit {
-        logger.debug("\(String(describing: self)) deinit")
+        logger.debug("\(String(describing: type(of: self))) deinit")
     }
     
     // MARK: - Internal Methods

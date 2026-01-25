@@ -12,7 +12,10 @@ final public class ButtonStateController {
     
     // MARK: - Properties
     
-    private lazy var logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: String(describing: self))
+    private lazy var logger = Logger(
+        subsystem: Bundle.main.bundleIdentifier!,
+        category: "\(String(describing: type(of: self))) <\(Unmanaged.passUnretained(self).toOpaque())>"
+    )
     
     /// 현재 눌린 버튼
     weak var currentPressedButton: BaseKeyboardButton? {
@@ -29,7 +32,7 @@ final public class ButtonStateController {
     // MARK: - Lifecycle
     
     deinit {
-        logger.debug("\(String(describing: self)) deinit")
+        logger.debug("\(String(describing: type(of: self))) deinit")
     }
     
     // MARK: - Internal Methods

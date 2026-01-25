@@ -13,7 +13,10 @@ final class NumericKeyboardView: UIView, NumericKeyboardLayoutProvider {
     
     // MARK: - Properties
     
-    private lazy var logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: String(describing: self))
+    private lazy var logger = Logger(
+        subsystem: Bundle.main.bundleIdentifier!,
+        category: "\(String(describing: type(of: self))) <\(Unmanaged.passUnretained(self).toOpaque())>"
+    )
     
     public private(set) lazy var allButtonList: [BaseKeyboardButton] = primaryButtonList + secondaryButtonList
     public private(set) lazy var primaryButtonList: [PrimaryButton] = firstRowPrimaryKeyButtonList + secondRowPrimaryKeyButtonList + thirdRowPrimaryKeyButtonList + fourthRowPrimaryKeyButtonList + [spaceButton]
@@ -92,7 +95,7 @@ final class NumericKeyboardView: UIView, NumericKeyboardLayoutProvider {
     }
     
     deinit {
-        logger.debug("\(String(describing: self)) deinit")
+        logger.debug("\(String(describing: type(of: self))) deinit")
     }
 }
 

@@ -13,7 +13,10 @@ final class SymbolKeyboardView: UIView, SymbolKeyboardLayoutProvider {
     
     // MARK: - Properties
     
-    private lazy var logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: String(describing: self))
+    private lazy var logger = Logger(
+        subsystem: Bundle.main.bundleIdentifier!,
+        category: "\(String(describing: type(of: self))) <\(Unmanaged.passUnretained(self).toOpaque())>"
+    )
     
     public private(set) lazy var allButtonList: [BaseKeyboardButton] = primaryButtonList + secondaryButtonList
     public private(set) lazy var primaryButtonList: [PrimaryButton] = firstRowPrimaryKeyButtonList + secondRowPrimaryKeyButtonList + thirdRowPrimaryKeyButtonList + [spaceButton, atButton, periodButton, slashButton, dotComButton]
@@ -116,7 +119,7 @@ final class SymbolKeyboardView: UIView, SymbolKeyboardLayoutProvider {
     }
     
     deinit {
-        logger.debug("\(String(describing: self)) deinit")
+        logger.debug("\(String(describing: type(of: self))) deinit")
     }
 }
 

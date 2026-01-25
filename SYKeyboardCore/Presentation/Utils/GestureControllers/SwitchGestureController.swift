@@ -18,7 +18,10 @@ final class SwitchGestureController: NSObject {
     
     // MARK: - Properties
     
-    private lazy var logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: String(describing: self))
+    private lazy var logger = Logger(
+        subsystem: Bundle.main.bundleIdentifier!,
+        category: "\(String(describing: type(of: self))) <\(Unmanaged.passUnretained(self).toOpaque())>"
+    )
     
     enum PanGestureName: String {
         case keyboardSelect
@@ -78,7 +81,7 @@ final class SwitchGestureController: NSObject {
     }
     
     deinit {
-        logger.debug("\(String(describing: self)) deinit")
+        logger.debug("\(String(describing: type(of: self))) deinit")
     }
     
     // MARK: - @objc Gesture Methods

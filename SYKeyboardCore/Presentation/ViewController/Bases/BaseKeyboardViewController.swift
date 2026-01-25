@@ -13,7 +13,10 @@ open class BaseKeyboardViewController: UIInputViewController {
     
     // MARK: - Properties
     
-    private lazy var logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: String(describing: self))
+    private lazy var logger = Logger(
+        subsystem: Bundle.main.bundleIdentifier!,
+        category: "\(String(describing: type(of: self))) <\(Unmanaged.passUnretained(self).toOpaque())>"
+    )
     
     /// Preview 모드 플래그 변수
     final public var isPreview: Bool = false
@@ -193,7 +196,7 @@ open class BaseKeyboardViewController: UIInputViewController {
     }
     
     deinit {
-        logger.debug("\(String(describing: self)) deinit")
+        logger.debug("\(String(describing: type(of: self))) deinit")
     }
     
     // MARK: - Overridable Methods
