@@ -52,8 +52,14 @@ final class DubeolsikKeyboardView: StandardKeyboardView, HangeulKeyboardLayoutPr
     
     // MARK: - Initializer
     
-    init() {
-        super.init(frame: .zero)
+    override init(
+        getIsShiftedLetterInput: @escaping () -> Bool,
+        setIsShiftedLetterInput: @escaping (Bool) -> ()
+    ) {
+        super.init(
+            getIsShiftedLetterInput: getIsShiftedLetterInput,
+            setIsShiftedLetterInput: setIsShiftedLetterInput
+        )
         updateLayoutToDefault()
     }
     

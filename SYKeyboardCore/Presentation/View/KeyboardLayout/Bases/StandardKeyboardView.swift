@@ -35,6 +35,9 @@ open class StandardKeyboardView: UIView {
     }
     final public var wasShifted: Bool = false
     
+    public let getIsShiftedLetterInput: () -> Bool
+    public let setIsShiftedLetterInput: (Bool) -> ()
+    
     // MARK: - UI Components
     
     /// 키보드 레이아웃 수직 스택
@@ -129,8 +132,14 @@ open class StandardKeyboardView: UIView {
     
     // MARK: - Initializer
     
-    public override init(frame: CGRect) {
-        super.init(frame: frame)
+    public init(
+        getIsShiftedLetterInput: @escaping () -> Bool,
+        setIsShiftedLetterInput: @escaping (Bool) -> ()
+    ) {
+        self.getIsShiftedLetterInput = getIsShiftedLetterInput
+        self.setIsShiftedLetterInput = setIsShiftedLetterInput
+        super.init(frame: .zero)
+        
         setupUI()
     }
     
@@ -154,8 +163,9 @@ open class StandardKeyboardView: UIView {
         
         let disableShift = UIAction { [weak self] _ in
             guard let self else { return }
-            if wasShifted {
+            if wasShifted || getIsShiftedLetterInput() {
                 isShifted = false
+                setIsShiftedLetterInput(false)
             }
         }
         shiftButton.addAction(disableShift, for: .touchUpInside)

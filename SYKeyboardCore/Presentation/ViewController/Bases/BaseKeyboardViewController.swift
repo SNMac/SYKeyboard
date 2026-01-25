@@ -220,7 +220,7 @@ open class BaseKeyboardViewController: UIInputViewController {
         tempDeletedCharacters.removeAll()
     }
     /// 텍스트 상호작용이 일어난 후 실행되는 메서드
-    open func textInteractionDidPerform() {}
+    open func textInteractionDidPerform(button: TextInteractable) {}
     
     /// 반복 텍스트 상호작용이 일어나기 전 실행되는 메서드
     open func repeatTextInteractionWillPerform(button: TextInteractable) {
@@ -654,7 +654,7 @@ private extension BaseKeyboardViewController {
 extension BaseKeyboardViewController {
     final public func performTextInteraction(for button: TextInteractable, insertSecondaryKeyIfAvailable: Bool = false) {
         textInteractionWillPerform(button: button)
-        defer { textInteractionDidPerform() }
+        defer { textInteractionDidPerform(button: button) }
         
         switch button.type {
         case .keyButton:
@@ -682,7 +682,7 @@ extension BaseKeyboardViewController {
     
     final public func performRepeatTextInteraction(for button: TextInteractable) {
         textInteractionWillPerform(button: button)
-        defer { textInteractionDidPerform() }
+        defer { textInteractionDidPerform(button: button) }
         
         switch button.type {
         case .keyButton:
