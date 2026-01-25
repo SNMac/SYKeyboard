@@ -24,7 +24,6 @@
 		5BB37A5E2ED643B9006AB083 /* MetaAdapterTarget in Frameworks */ = {isa = PBXBuildFile; productRef = 5BB37A5D2ED643B9006AB083 /* MetaAdapterTarget */; };
 		5BB37A612ED644B5006AB083 /* GoogleMobileAds in Frameworks */ = {isa = PBXBuildFile; productRef = 5BB37A602ED644B5006AB083 /* GoogleMobileAds */; };
 		5BC38F1C2D8AE2FE00E6B44E /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = 5BC38F1B2D8AE2FE00E6B44E /* README.md */; };
-		5BCECD5C2F26C5F500A7F562 /* SYKeyboardCoreResources.bundle in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 5BCECC7F2F26C38E00A7F562 /* SYKeyboardCoreResources.bundle */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		5BCECD622F26C74B00A7F562 /* SYKeyboardCoreResources.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 5BCECC7F2F26C38E00A7F562 /* SYKeyboardCoreResources.bundle */; };
 		5BCECD632F26C74E00A7F562 /* SYKeyboardCoreResources.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 5BCECC7F2F26C38E00A7F562 /* SYKeyboardCoreResources.bundle */; };
 		5BCECD642F26C7CD00A7F562 /* SYKeyboardCoreResources.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 5BCECC7F2F26C38E00A7F562 /* SYKeyboardCoreResources.bundle */; };
@@ -101,13 +100,6 @@
 			remoteGlobalIDString = 5BB373502ED5AA18006AB083;
 			remoteInfo = SYKeyboardCore;
 		};
-		5BCECD5D2F26C5F500A7F562 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 5B7B3F4E2C569B7800F7C093 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 5BCECC7E2F26C38E00A7F562;
-			remoteInfo = SYKeyboardCoreResources;
-		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -119,7 +111,6 @@
 			files = (
 				5B8284742E6EEE04006425C7 /* EnglishKeyboard.appex in Embed Foundation Extensions */,
 				5B9D004C2D92C38200DA108E /* HangeulKeyboard.appex in Embed Foundation Extensions */,
-				5BCECD5C2F26C5F500A7F562 /* SYKeyboardCoreResources.bundle in Embed Foundation Extensions */,
 			);
 			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -629,7 +620,6 @@
 				5BB373582ED5AA18006AB083 /* PBXTargetDependency */,
 				5BB373B12ED5D937006AB083 /* PBXTargetDependency */,
 				5BB373E12ED5DADC006AB083 /* PBXTargetDependency */,
-				5BCECD5E2F26C5F500A7F562 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				5B53F8012E1E56BD0083F7CA /* Keyboards */,
@@ -1141,11 +1131,6 @@
 			isa = PBXTargetDependency;
 			target = 5BB373502ED5AA18006AB083 /* SYKeyboardCore */;
 			targetProxy = 5BB374112ED5DE65006AB083 /* PBXContainerItemProxy */;
-		};
-		5BCECD5E2F26C5F500A7F562 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 5BCECC7E2F26C38E00A7F562 /* SYKeyboardCoreResources */;
-			targetProxy = 5BCECD5D2F26C5F500A7F562 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
