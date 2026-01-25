@@ -100,6 +100,27 @@
 			remoteGlobalIDString = 5BB373502ED5AA18006AB083;
 			remoteInfo = SYKeyboardCore;
 		};
+		5BCECD732F26D18C00A7F562 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 5B7B3F4E2C569B7800F7C093 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 5BCECC7E2F26C38E00A7F562;
+			remoteInfo = SYKeyboardCoreResources;
+		};
+		5BCECD752F26D19200A7F562 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 5B7B3F4E2C569B7800F7C093 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 5BCECC7E2F26C38E00A7F562;
+			remoteInfo = SYKeyboardCoreResources;
+		};
+		5BCECD772F26D19600A7F562 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 5B7B3F4E2C569B7800F7C093 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 5BCECC7E2F26C38E00A7F562;
+			remoteInfo = SYKeyboardCoreResources;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -615,6 +636,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				5BCECD742F26D18C00A7F562 /* PBXTargetDependency */,
 				5B9D004E2D92C38200DA108E /* PBXTargetDependency */,
 				5B8284732E6EEE04006425C7 /* PBXTargetDependency */,
 				5BB373582ED5AA18006AB083 /* PBXTargetDependency */,
@@ -645,6 +667,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				5BCECD762F26D19200A7F562 /* PBXTargetDependency */,
 				5BB374092ED5DCC6006AB083 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
@@ -668,6 +691,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				5BCECD782F26D19600A7F562 /* PBXTargetDependency */,
 				5BB373D42ED5D9F9006AB083 /* PBXTargetDependency */,
 			);
 			name = EnglishKeyboard;
@@ -1131,6 +1155,21 @@
 			isa = PBXTargetDependency;
 			target = 5BB373502ED5AA18006AB083 /* SYKeyboardCore */;
 			targetProxy = 5BB374112ED5DE65006AB083 /* PBXContainerItemProxy */;
+		};
+		5BCECD742F26D18C00A7F562 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 5BCECC7E2F26C38E00A7F562 /* SYKeyboardCoreResources */;
+			targetProxy = 5BCECD732F26D18C00A7F562 /* PBXContainerItemProxy */;
+		};
+		5BCECD762F26D19200A7F562 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 5BCECC7E2F26C38E00A7F562 /* SYKeyboardCoreResources */;
+			targetProxy = 5BCECD752F26D19200A7F562 /* PBXContainerItemProxy */;
+		};
+		5BCECD782F26D19600A7F562 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 5BCECC7E2F26C38E00A7F562 /* SYKeyboardCoreResources */;
+			targetProxy = 5BCECD772F26D19600A7F562 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
