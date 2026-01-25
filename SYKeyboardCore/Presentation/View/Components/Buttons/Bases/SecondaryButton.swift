@@ -7,8 +7,6 @@
 
 import UIKit
 
-import SYKeyboardAssets
-
 /// 보조 키보드 버튼
 public class SecondaryButton: BaseKeyboardButton {
     

@@ -180,6 +180,16 @@
         }
       }
     },
+    "두벌식" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dubeolsik"
+          }
+        }
+      }
+    },
     "드래그하여 커서 이동" : {
       "localizations" : {
         "en" : {

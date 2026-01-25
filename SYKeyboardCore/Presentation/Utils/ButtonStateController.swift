@@ -12,10 +12,13 @@ final public class ButtonStateController {
     
     // MARK: - Properties
     
-    private lazy var logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: String(describing: self))
+    private lazy var logger = Logger(
+        subsystem: Bundle.main.bundleIdentifier!,
+        category: "\(String(describing: type(of: self))) <\(Unmanaged.passUnretained(self).toOpaque())>"
+    )
     
     /// 현재 눌린 버튼
-    var currentPressedButton: BaseKeyboardButton? {
+    weak var currentPressedButton: BaseKeyboardButton? {
         didSet {
             oldValue?.isPressed = false
             oldValue?.gestureRecognizers?.forEach { $0.state = .cancelled }
@@ -26,32 +29,38 @@ final public class ButtonStateController {
     /// Shift 버튼 눌림 여부
     public var isShiftButtonPressed: Bool = false
     
+    // MARK: - Lifecycle
+    
+    deinit {
+        logger.debug("\(String(describing: type(of: self))) deinit")
+    }
+    
     // MARK: - Internal Methods
     
     func setFeedbackActionToButtons(_ buttonList: [BaseKeyboardButton]) {
         buttonList.forEach { button in
             let playFeedbackAndSetPressed: UIAction
             if button is ShiftButton {
-                playFeedbackAndSetPressed = UIAction { [weak self] _ in
-                    guard let self else { return }
+                playFeedbackAndSetPressed = UIAction { [weak self] action in
+                    guard let senderButton = action.sender as? BaseKeyboardButton else { return }
                     
-                    if let previousButton = currentPressedButton, previousButton != button {
+                    if let previousButton = self?.currentPressedButton, previousButton != senderButton {
                         previousButton.sendActions(for: .touchUpInside)
                     }
                     
-                    isShiftButtonPressed = true
-                    button.playFeedback()
+                    self?.isShiftButtonPressed = true
+                    senderButton.playFeedback()
                 }
             } else {
-                playFeedbackAndSetPressed = UIAction { [weak self] _ in
-                    guard let self else { return }
+                playFeedbackAndSetPressed = UIAction { [weak self] action in
+                    guard let senderButton = action.sender as? BaseKeyboardButton else { return }
                     
-                    if let previousButton = currentPressedButton, previousButton != button {
+                    if let previousButton = self?.currentPressedButton, previousButton != senderButton {
                         previousButton.sendActions(for: .touchUpInside)
                     }
                     
-                    currentPressedButton = button
-                    button.playFeedback()
+                    self?.currentPressedButton = senderButton
+                    senderButton.playFeedback()
                 }
             }
             button.addAction(playFeedbackAndSetPressed, for: .touchDown)
@@ -66,8 +75,10 @@ final public class ButtonStateController {
                     self?.isShiftButtonPressed = false
                 }
             } else {
-                buttonReleaseAction = UIAction { [weak self] _ in
-                    if self?.currentPressedButton == button {
+                buttonReleaseAction = UIAction { [weak self] action in
+                    guard let senderButton = action.sender as? BaseKeyboardButton else { return }
+                    
+                    if self?.currentPressedButton == senderButton {
                         self?.currentPressedButton = nil
                     }
                 }

@@ -14,9 +14,9 @@ protocol HangeulKeyboardLayoutProvider: PrimaryKeyboardRepresentable {
     /// 현재 한글 키보드 모드
     var currentHangeulKeyboardMode: HangeulKeyboardMode { get set }
     /// Shift 상태
-    var isShifted: Bool? { get set }
+    var isShifted: Bool { get set }
     /// 이전 Shift 상태
-    var wasShifted: Bool? { get set }
+    var wasShifted: Bool { get set }
     /// 대문자 전환 버튼
     var shiftButton: ShiftButton? { get }
     /// 리턴 버튼 수평 스택
@@ -31,8 +31,14 @@ protocol HangeulKeyboardLayoutProvider: PrimaryKeyboardRepresentable {
     func updateLayoutForCurrentHangeulMode(oldMode: HangeulKeyboardMode)
     /// `UIKeyboardType`이 `.default` 일 때의 레이아웃 설정
     func updateLayoutToDefault()
+    /// `UIKeyboardType`이 `.URL` 일 때의 레이아웃 설정
+    func updateLayoutToURL()
+    /// `UIKeyboardType`이 `.emailAddress` 일 때의 레이아웃 설정
+    func updateLayoutToEmailAddress()
     /// `UIKeyboardType`이 `.twitter` 일 때의 레이아웃 설정
     func updateLayoutToTwitter()
+    /// `UIKeyboardType`이 `.webSearch` 일 때의 레이아웃 설정
+    func updateLayoutToWebSearch()
     /// `ShiftButton`의 Shift 상태 초기화
     func initShiftButton()
     /// `ShiftButton`의 Shift 상태 변경
@@ -42,14 +48,6 @@ protocol HangeulKeyboardLayoutProvider: PrimaryKeyboardRepresentable {
 // MARK: - Protocol Properties & Methods
 
 extension HangeulKeyboardLayoutProvider {
-    var isShifted: Bool? {
-        get { nil }
-        set {}
-    }
-    var wasShifted: Bool? {
-        get { nil }
-        set {}
-    }
     var shiftButton: ShiftButton? { nil }
     
     func updateLayoutForCurrentHangeulMode(oldMode: HangeulKeyboardMode) {
@@ -57,12 +55,40 @@ extension HangeulKeyboardLayoutProvider {
         switch currentHangeulKeyboardMode {
         case .default:
             updateLayoutToDefault()
+        case .URL:
+            updateLayoutToURL()
+        case .emailAddress:
+            updateLayoutToEmailAddress()
         case .twitter:
             updateLayoutToTwitter()
+        case .webSearch:
+            updateLayoutToWebSearch()
         }
     }
     
     func updateLayoutToDefault() {
+        spaceButton.isHidden = false
+        
+        returnButton.isHidden = false
+        secondaryAtButton.isHidden = true
+        secondarySharpButton.isHidden = true
+        
+        initShiftButton()
+    }
+    
+    func updateLayoutToURL() {
+        spaceButton.isHidden = true
+        
+        returnButton.isHidden = false
+        secondaryAtButton.isHidden = true
+        secondarySharpButton.isHidden = true
+        
+        initShiftButton()
+    }
+    
+    func updateLayoutToEmailAddress() {
+        spaceButton.isHidden = false
+        
         returnButton.isHidden = false
         secondaryAtButton.isHidden = true
         secondarySharpButton.isHidden = true
@@ -71,9 +97,21 @@ extension HangeulKeyboardLayoutProvider {
     }
     
     func updateLayoutToTwitter() {
+        spaceButton.isHidden = false
+        
         returnButton.isHidden = true
         secondaryAtButton.isHidden = false
         secondarySharpButton.isHidden = false
+        
+        initShiftButton()
+    }
+    
+    func updateLayoutToWebSearch() {
+        spaceButton.isHidden = false
+        
+        returnButton.isHidden = false
+        secondaryAtButton.isHidden = true
+        secondarySharpButton.isHidden = true
         
         initShiftButton()
     }

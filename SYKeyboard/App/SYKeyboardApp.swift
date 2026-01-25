@@ -18,7 +18,10 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
     
     // MARK: - Properties
     
-    private lazy var logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: String(describing: self))
+    private lazy var logger = Logger(
+        subsystem: Bundle.main.bundleIdentifier!,
+        category: "\(String(describing: type(of: self))) <\(Unmanaged.passUnretained(self).toOpaque())>"
+    )
     
     var window: UIWindow?  // FBAudienceNetwork 크래시 방지
     

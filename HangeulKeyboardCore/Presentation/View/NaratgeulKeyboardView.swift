@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import OSLog
 
 import SYKeyboardCore
 
@@ -38,6 +39,11 @@ final class NaratgeulKeyboardView: FourByFourKeyboardView, HangeulKeyboardLayout
     final var currentHangeulKeyboardMode: HangeulKeyboardMode = .default {
         didSet(oldMode) { updateLayoutForCurrentHangeulMode(oldMode: oldMode) }
     }
+    
+    var isShifted: Bool = false
+    var wasShifted: Bool = false
+    
+    // MARK: - Initializer
     
     init() {
         super.init(frame: .zero)

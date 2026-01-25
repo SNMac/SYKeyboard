@@ -6,10 +6,16 @@
 //
 
 import UIKit
+import OSLog
 
 open class FourByFourKeyboardView: UIView {
     
     // MARK: - Properties
+    
+    private lazy var logger = Logger(
+        subsystem: Bundle.main.bundleIdentifier!,
+        category: "\(String(describing: type(of: self))) <\(Unmanaged.passUnretained(self).toOpaque())>"
+    )
     
     /// 키보드 종류
     open var keyboard: SYKeyboardType { fatalError("프로퍼티가 오버라이딩 되지 않았습니다.") }
@@ -108,6 +114,10 @@ open class FourByFourKeyboardView: UIView {
     
     required public init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+    
+    deinit {
+        logger.debug("\(String(describing: type(of: self))) deinit")
     }
 }
 

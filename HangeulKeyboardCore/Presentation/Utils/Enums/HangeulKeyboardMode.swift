@@ -7,5 +7,8 @@
 
 enum HangeulKeyboardMode {
     case `default`
+    case URL
+    case emailAddress
     case twitter
+    case webSearch
 }

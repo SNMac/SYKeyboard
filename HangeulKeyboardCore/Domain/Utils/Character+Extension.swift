@@ -12,7 +12,7 @@ extension Character {
     var isHangeul: Bool {
         guard let scalar = self.unicodeScalars.first?.value else { return false }
         
-        return (0xAC00...0xD7A3).contains(scalar) || // 가 ~ 힣 (완성형)
-               (0x3130...0x318F).contains(scalar)    // ㄱ ~ ㅎ, ㅏ ~ ㅣ, ㆍ(318D), ᆢ(318E) 포함
+        return (0xAC00...0xD7A3).contains(scalar) // 가 ~ 힣 (완성형)
+        || (0x3130...0x318F).contains(scalar)    // ㄱ ~ ㅎ, ㅏ ~ ㅣ, ㆍ(318D), ᆢ(318E) 포함
     }
 }

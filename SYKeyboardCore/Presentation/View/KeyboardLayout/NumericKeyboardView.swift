@@ -6,11 +6,17 @@
 //
 
 import UIKit
+import OSLog
 
 /// 숫자 키보드
 final class NumericKeyboardView: UIView, NumericKeyboardLayoutProvider {
     
     // MARK: - Properties
+    
+    private lazy var logger = Logger(
+        subsystem: Bundle.main.bundleIdentifier!,
+        category: "\(String(describing: type(of: self))) <\(Unmanaged.passUnretained(self).toOpaque())>"
+    )
     
     public private(set) lazy var allButtonList: [BaseKeyboardButton] = primaryButtonList + secondaryButtonList
     public private(set) lazy var primaryButtonList: [PrimaryButton] = firstRowPrimaryKeyButtonList + secondRowPrimaryKeyButtonList + thirdRowPrimaryKeyButtonList + fourthRowPrimaryKeyButtonList + [spaceButton]
@@ -86,6 +92,10 @@ final class NumericKeyboardView: UIView, NumericKeyboardLayoutProvider {
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+    
+    deinit {
+        logger.debug("\(String(describing: type(of: self))) deinit")
     }
 }
 

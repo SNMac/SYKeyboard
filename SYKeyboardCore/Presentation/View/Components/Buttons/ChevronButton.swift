@@ -7,8 +7,6 @@
 
 import UIKit
 
-import SYKeyboardAssets
-
 /// 한 손 키보드 해제 버튼
 final class ChevronButton: UIButton {
     
