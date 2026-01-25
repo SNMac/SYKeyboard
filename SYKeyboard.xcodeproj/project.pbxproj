@@ -149,6 +149,7 @@
 			membershipExceptions = (
 				"Resources/Configs/DebugConfig-SYKeyboard.xcconfig",
 				"Resources/Configs/ReleaseConfig-SYKeyboard.xcconfig",
+				Resources/Configs/Secrets.xcconfig,
 				Resources/Info.plist,
 			);
 			target = 5B7B3F552C569B7800F7C093 /* SYKeyboard */;
@@ -569,7 +570,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 2610;
-				LastUpgradeCheck = 2610;
+				LastUpgradeCheck = 2620;
 				TargetAttributes = {
 					5B48C0712E7C141900973C00 = {
 						CreatedOnToolsVersion = 26.0;
