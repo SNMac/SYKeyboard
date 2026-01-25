@@ -19,7 +19,10 @@ open class EnglishKeyboardCoreViewController: BaseKeyboardViewController {
     // MARK: - UI Components
     
     /// 영어 키보드
-    private lazy var englishKeyboardView: EnglishKeyboardLayoutProvider = EnglishKeyboardView(getIsUppercaseInput: { [weak self] in return self?.isUppercaseInput ?? false })
+    private lazy var englishKeyboardView: EnglishKeyboardLayoutProvider = EnglishKeyboardView(
+        getIsUppercaseInput: { [weak self] in return self?.isUppercaseInput ?? false },
+        setIsUppercaseInput: { [weak self] isUppercaseInput in self?.isUppercaseInput = isUppercaseInput }
+    )
     
     open override var primaryKeyboardView: PrimaryKeyboardRepresentable { englishKeyboardView }
     

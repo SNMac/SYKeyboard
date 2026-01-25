@@ -31,11 +31,13 @@ final class EnglishKeyboardView: StandardKeyboardView, EnglishKeyboardLayoutProv
     var willCapsLock: Bool = false
     
     private let getIsUppercaseInput: () -> Bool
+    private let setIsUppercaseInput: (Bool) -> ()
     
     // MARK: - Initializer
     
-    init(getIsUppercaseInput: @escaping () -> Bool) {
+    init(getIsUppercaseInput: @escaping () -> Bool, setIsUppercaseInput: @escaping (Bool) -> ()) {
         self.getIsUppercaseInput = getIsUppercaseInput
+        self.setIsUppercaseInput = setIsUppercaseInput
         super.init(frame: .zero)
         
         updateLayoutToDefault()
@@ -73,6 +75,7 @@ final class EnglishKeyboardView: StandardKeyboardView, EnglishKeyboardLayoutProv
             guard let self else { return }
             if (!isCapsLocked && wasShifted) || getIsUppercaseInput() {
                 isShifted = false
+                setIsUppercaseInput(false)
             }
         }
         shiftButton.addAction(disableShift, for: .touchUpInside)
