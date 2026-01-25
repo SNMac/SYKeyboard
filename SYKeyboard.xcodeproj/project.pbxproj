@@ -8,9 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		5B25D1162F155B23003122E2 /* HangeulKeyboardCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5BB373DA2ED5DADC006AB083 /* HangeulKeyboardCore.framework */; };
-		5B25D1172F155B23003122E2 /* HangeulKeyboardCore.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 5BB373DA2ED5DADC006AB083 /* HangeulKeyboardCore.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		5B25D1192F155B27003122E2 /* EnglishKeyboardCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5BB373AA2ED5D937006AB083 /* EnglishKeyboardCore.framework */; };
-		5B25D11A2F155B27003122E2 /* EnglishKeyboardCore.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 5BB373AA2ED5D937006AB083 /* EnglishKeyboardCore.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		5B25D11C2F155BB9003122E2 /* SYKeyboardCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5BB373512ED5AA18006AB083 /* SYKeyboardCore.framework */; };
 		5B25D11D2F155BB9003122E2 /* SYKeyboardCore.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 5BB373512ED5AA18006AB083 /* SYKeyboardCore.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		5B25D11F2F155BBA003122E2 /* HangeulKeyboardCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5BB373DA2ED5DADC006AB083 /* HangeulKeyboardCore.framework */; };
@@ -105,28 +103,6 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
-		5B25D1182F155B23003122E2 /* Embed Frameworks */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "";
-			dstSubfolderSpec = 10;
-			files = (
-				5B25D1172F155B23003122E2 /* HangeulKeyboardCore.framework in Embed Frameworks */,
-			);
-			name = "Embed Frameworks";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		5B25D11B2F155B27003122E2 /* Embed Frameworks */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "";
-			dstSubfolderSpec = 10;
-			files = (
-				5B25D11A2F155B27003122E2 /* EnglishKeyboardCore.framework in Embed Frameworks */,
-			);
-			name = "Embed Frameworks";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		5B25D11E2F155BB9003122E2 /* Embed Frameworks */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -479,7 +455,6 @@
 				5B7B3F672C569B8200F7C093 /* Sources */,
 				5B7B3F682C569B8200F7C093 /* Frameworks */,
 				5B7B3F692C569B8200F7C093 /* Resources */,
-				5B25D1182F155B23003122E2 /* Embed Frameworks */,
 				5BB377CD2ED61481006AB083 /* Setup Firebase Environment */,
 				5BB377A82ED6080F006AB083 /* Setup Crashlytics */,
 			);
@@ -503,7 +478,6 @@
 				5B8284692E6EEE04006425C7 /* Sources */,
 				5B82846A2E6EEE04006425C7 /* Frameworks */,
 				5B82846B2E6EEE04006425C7 /* Resources */,
-				5B25D11B2F155B27003122E2 /* Embed Frameworks */,
 				5BB377CC2ED6146C006AB083 /* Setup Firebase Environment */,
 				5BB377CB2ED6145D006AB083 /* Setup Crashlytics */,
 			);
