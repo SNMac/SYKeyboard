@@ -69,20 +69,24 @@ open class BaseKeyboardViewController: UIInputViewController {
     }
     
     /// 키 입력 버튼, 스페이스 버튼, 삭제 버튼 제스처 컨트롤러
-    private lazy var textInteractionGestureController = TextInteractionGestureController(keyboardFrameView: keyboardFrameHStackView,
-                                                                                         getCurrentPressedButton: { [weak self] in self?.buttonStateController.currentPressedButton },
-                                                                                         setCurrentPressedButton: { [weak self] button in self?.buttonStateController.currentPressedButton = button })
+    private lazy var textInteractionGestureController = TextInteractionGestureController(
+        keyboardFrameView: keyboardFrameHStackView,
+        getCurrentPressedButton: { [weak self] in self?.buttonStateController.currentPressedButton },
+        setCurrentPressedButton: { [weak self] button in self?.buttonStateController.currentPressedButton = button }
+    )
     
     /// 키보드 전환 버튼 제스처 컨트롤러
-    private lazy var switchGestureController = SwitchGestureController(keyboardFrameView: keyboardFrameHStackView,
-                                                                       hangeulKeyboardView: primaryKeyboardView as SwitchGestureHandling,
-                                                                       englishKeyboardView: primaryKeyboardView as SwitchGestureHandling,
-                                                                       symbolKeyboardView: symbolKeyboardView,
-                                                                       numericKeyboardView: numericKeyboardView,
-                                                                       getCurrentKeyboard: { [weak self] in return self?.currentKeyboard ?? .naratgeul },
-                                                                       getCurrentOneHandedMode: { [weak self] in return self?.currentOneHandedMode ?? .center },
-                                                                       getCurrentPressedButton: { [weak self] in self?.buttonStateController.currentPressedButton },
-                                                                       setCurrentPressedButton: { [weak self] button in self?.buttonStateController.currentPressedButton = button })
+    private lazy var switchGestureController = SwitchGestureController(
+        keyboardFrameView: keyboardFrameHStackView,
+        hangeulKeyboardView: primaryKeyboardView as SwitchGestureHandling,
+        englishKeyboardView: primaryKeyboardView as SwitchGestureHandling,
+        symbolKeyboardView: symbolKeyboardView,
+        numericKeyboardView: numericKeyboardView,
+        getCurrentKeyboard: { [weak self] in return self?.currentKeyboard ?? .naratgeul },
+        getCurrentOneHandedMode: { [weak self] in return self?.currentOneHandedMode ?? .center },
+        getCurrentPressedButton: { [weak self] in self?.buttonStateController.currentPressedButton },
+        setCurrentPressedButton: { [weak self] button in self?.buttonStateController.currentPressedButton = button }
+    )
     /// 버튼 상태 컨트롤러
     public let buttonStateController = ButtonStateController()
     
