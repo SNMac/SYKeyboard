@@ -183,8 +183,8 @@ open class BaseKeyboardViewController: UIInputViewController {
         coordinator.animate { [weak self] _ in self?.setKeyboardHeight() }
     }
     
-    open override func textDidChange(_ textInput: (any UITextInput)?) {
-        super.textDidChange(textInput)
+    open override func textWillChange(_ textInput: (any UITextInput)?) {
+        super.textWillChange(textInput)
         updateKeyboardType()
         oldKeyboardType = textDocumentProxy.keyboardType
         updateReturnButtonType()

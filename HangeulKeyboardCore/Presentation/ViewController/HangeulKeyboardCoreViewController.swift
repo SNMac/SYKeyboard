@@ -53,7 +53,7 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
     /// 두벌식 키보드
     private lazy var dubeolsikKeyboardView: HangeulKeyboardLayoutProvider = DubeolsikKeyboardView(
         getIsShiftedLetterInput: { [weak self] in return self?.is글자Input ?? false },
-        setIsShiftedLetterInput: { [weak self] isHangeulInput in self?.is글자Input = isHangeulInput }
+        setIsShiftedLetterInput: { [weak self] is글자Input in self?.is글자Input = is글자Input }
     )
     
     /// 사용자가 선택한 한글 키보드
@@ -83,8 +83,8 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
     
     // MARK: - Override Methods
     
-    open override func textDidChange(_ textInput: (any UITextInput)?) {
-        super.textDidChange(textInput)
+    open override func textWillChange(_ textInput: (any UITextInput)?) {
+        super.textWillChange(textInput)
         buffer.removeAll()
         lastInputText = nil
         processor.reset한글조합()
@@ -115,7 +115,7 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
             symbolKeyboardView.currentSymbolKeyboardMode = .default
             currentKeyboard = .symbol
         case .URL:
-            hangeulKeyboardView.currentHangeulKeyboardMode = .default
+            hangeulKeyboardView.currentHangeulKeyboardMode = .URL
             symbolKeyboardView.currentSymbolKeyboardMode = .URL
             currentKeyboard = primaryKeyboardView.keyboard
         case .numberPad:
@@ -126,7 +126,7 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
             tenkeyKeyboardView.currentTenkeyKeyboardMode = .numberPad
             currentKeyboard = .tenKey
         case .emailAddress:
-            hangeulKeyboardView.currentHangeulKeyboardMode = .default
+            hangeulKeyboardView.currentHangeulKeyboardMode = .emailAddress
             symbolKeyboardView.currentSymbolKeyboardMode = .emailAddress
             currentKeyboard = primaryKeyboardView.keyboard
         case .decimalPad:
@@ -137,7 +137,7 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
             symbolKeyboardView.currentSymbolKeyboardMode = .default
             currentKeyboard = primaryKeyboardView.keyboard
         case .webSearch:
-            hangeulKeyboardView.currentHangeulKeyboardMode = .default
+            hangeulKeyboardView.currentHangeulKeyboardMode = .webSearch
             symbolKeyboardView.currentSymbolKeyboardMode = .webSearch
             currentKeyboard = primaryKeyboardView.keyboard
         case .asciiCapableNumberPad:
