@@ -2,7 +2,7 @@
 
 # SY키보드
 > SY키보드는 가볍고, 사용하기 간편한 한글, 영어 키보드입니다.
-> - 한글 키보드: 나랏글, 천지인, 두벌식(구현 예정)
+> - 한글 키보드: 나랏글, 천지인, 두벌식
 > - 영어 키보드: QWERTY  
 > 
 > [Figma](https://www.figma.com/design/0i3sNlaez0LG0QMfw80yJ4/SY%ED%82%A4%EB%B3%B4%EB%93%9C?node-id=0-1&t=L8rArjkBX9MJ3UJD-1)
@@ -647,7 +647,7 @@ direction LR
 1. **나랏글 키보드**  
 기본에 충실한 나랏글(EZ한글) 키보드입니다.
 
-<img src = "https://github.com/user-attachments/assets/82f8f17e-821f-4680-be27-fa55c4bd908b" width ="250">
+<img src = "https://github.com/user-attachments/assets/0833076c-4e68-4ba6-9800-09a8d9317780" width ="300">
 
 <br><br>
 
@@ -655,22 +655,23 @@ direction LR
 2. **천지인 키보드**  
 입력이 편리한 천지인 키보드입니다.
 
-<img src = "https://github.com/user-attachments/assets/8f7fb0bf-3e14-4929-b55b-c00884f5ddd7" width ="250">
+<img src = "https://github.com/user-attachments/assets/3202c156-a466-4177-8a2a-33424ed2fdf2" width ="300">
 
 <br><br>
 
 
-3. **두벌식 키보드**
+3. **두벌식 키보드**  
 대중적인 두벌식(한글 쿼티) 키보드입니다.
-(구현 예정)
+
+<img src = "https://github.com/user-attachments/assets/04933c74-0ee3-4418-bb6f-60b764992ff4" width ="300">
 
 <br><br>
 
 
-4. **영어 키보드**
+4. **영어 키보드**  
 대중적인 영어(QWERTY) 키보드입니다.
 
-<img src = "https://github.com/user-attachments/assets/b918f869-a23a-4c0c-953d-7a6a1363b654" width ="250">
+<img src = "https://github.com/user-attachments/assets/d28be80b-971f-4bce-a443-0976f9221e3f" width ="300">
 
 <br><br>
 
@@ -678,15 +679,15 @@ direction LR
 5. **숫자 키패드 탑재**  
 숫자를 입력할 때 큰 버튼으로 편하게 입력할 수 있는 숫자 입력 전용 키패드를 탑재했습니다.
 
-<img src="https://github.com/user-attachments/assets/99b11dac-2761-42d2-a54f-d5e440c421cb" width="250">
-    
+<img src="https://github.com/user-attachments/assets/26bc90e8-5ae9-4d0a-8ae4-8b17e70d2d56" width="300">
+  
 <br><br>
 
 
 6. **한 손 키보드 모드**  
 한 손으로 폰을 들고 있는 상태에서도 입력하기 수월하도록 한 손 키보드 모드를 제공합니다.
 
-<img src="https://github.com/user-attachments/assets/8854953a-d0bd-4615-ad04-caa5c620e3db" width="250">
+<img src="https://github.com/user-attachments/assets/b05cabe1-c0bf-4032-8a6f-3b16436834ef" width="300">
 
 <br><br>
 
@@ -694,7 +695,8 @@ direction LR
 7. **다양하고 디테일한 키보드 설정**  
 길게 누르기 동작, 커서 이동, 키보드 높이 및 한 손 키보드 너비 조절 등 사용자의 편의에 맞게 키보드 설정이 가능합니다.
 
-<img src="https://github.com/user-attachments/assets/7163eff8-046c-4c2d-a2d9-1d635dac2cca" width="250">
+<img src="https://github.com/user-attachments/assets/d6ee0bb4-d267-4767-9c81-a4b6ba9662ac" width="300">&nbsp;&nbsp;&nbsp;&nbsp;
+<img src="https://github.com/user-attachments/assets/7b94b9bd-2084-48f8-8741-7056b2c68fa4" width="300">
 
 <br><br>
 
