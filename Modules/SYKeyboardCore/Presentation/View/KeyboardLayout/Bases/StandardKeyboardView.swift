@@ -229,21 +229,20 @@ private extension StandardKeyboardView {
             layoutVStackView.bottomAnchor.constraint(equalTo: self.bottomAnchor)
         ])
         
-        guard let referenceKey = firstRowPrimaryKeyButtonList.first else { fatalError("firstRowPrimaryKeyButtonList가 비어있습니다.") }
         for (index, button) in secondRowPrimaryKeyButtonList.enumerated() {
             button.translatesAutoresizingMaskIntoConstraints = false
             guard let superview = button.superview else { continue }
             
+            let multiplier = 1.0 / CGFloat(firstRowPrimaryKeyButtonList.count)
             if index == 0 {
                 guard let lastButton = secondRowPrimaryKeyButtonList.last else { fatalError("secondRowPrimaryKeyButtonList가 비어있습니다.") }
                 button.widthAnchor.constraint(equalTo: lastButton.widthAnchor).isActive = true
-                button.updateKeyAlignment(.right, referenceKey: referenceKey)
+                button.updateKeyAlignment(.right, referenceView: superview, multiplier: multiplier)
                 
             } else if index == secondRowPrimaryKeyButtonList.count - 1 {
-                button.updateKeyAlignment(.left, referenceKey: referenceKey)
+                button.updateKeyAlignment(.left, referenceView: superview, multiplier: multiplier)
                 
             } else {
-                let multiplier = 1.0 / CGFloat(firstRowPrimaryKeyButtonList.count)
                 button.widthAnchor.constraint(equalTo: superview.widthAnchor, multiplier: multiplier).isActive = true
             }
         }
