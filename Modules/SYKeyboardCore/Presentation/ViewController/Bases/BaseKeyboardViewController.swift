@@ -144,10 +144,6 @@ open class BaseKeyboardViewController: UIInputViewController {
     
     // MARK: - Lifecycle
     
-    open override func loadView() {
-        self.view = keyboardView
-    }
-    
     open override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
@@ -193,6 +189,11 @@ open class BaseKeyboardViewController: UIInputViewController {
     open override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         cancelTimer()
+    }
+    
+    open override func viewDidDisappear(_ animated: Bool) {
+        super.viewDidDisappear(animated)
+        keyboardView.removeFromSuperview()
     }
     
     deinit {
@@ -336,6 +337,8 @@ private extension BaseKeyboardViewController {
     func setupUI() {
         setDelegates()
         setActions()
+        setHierarchy()
+        setConstraints()
     }
     
     func setDelegates() {
@@ -351,6 +354,20 @@ private extension BaseKeyboardViewController {
         setChevronButtonAction()
     }
     
+    func setHierarchy() {
+        self.view.addSubview(keyboardView)
+    }
+    
+    func setConstraints() {
+        keyboardView.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            keyboardView.topAnchor.constraint(equalTo: self.view.topAnchor),
+            keyboardView.leadingAnchor.constraint(equalTo: self.view.leadingAnchor),
+            keyboardView.trailingAnchor.constraint(equalTo: self.view.trailingAnchor),
+            keyboardView.bottomAnchor.constraint(equalTo: self.view.bottomAnchor)
+        ])
+    }
+
     func setKeyboardHeight() {
         let keyboardHeight: CGFloat
         if let orientation = self.view.window?.windowScene?.effectiveGeometry.interfaceOrientation {
