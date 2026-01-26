@@ -72,20 +72,9 @@ final public class PrimaryKeyButton: PrimaryButton, TextInteractable {
     func update(buttonType: TextInteractableType) {
         self.type = buttonType
     }
-    
-    /// 키의 시각적 정렬을 업데이트합니다.
-    /// - Parameters:
-    ///   - keyAlignment: 정렬 방향 (`.left`, `.right`, `.center`)
-    ///   - referenceView: 시각적 너비의 기준이 될 뷰 (예: `'s'` 키)
-    ///   - multiplier: 너비 배율 (`keyAlignment == .center`일 시 무시됨)
-    func updateKeyAlignment(_ keyAlignment: KeyAlignment, referenceView: UIView, multiplier: CGFloat) {
-        self.keyAlignment = keyAlignment
-        
-        remakeConstraintsForVisuals(referenceView: referenceView, multiplier: multiplier)
-    }
 }
 
-// MARK: - SecondaryKey UI Methods
+// MARK: - UI Methods
 
 private extension PrimaryKeyButton {
     func setupUI() {
@@ -139,37 +128,5 @@ private extension PrimaryKeyButton {
         } else {
             secondaryKeyLabel.text = secondaryKey
         }
-    }
-    
-    func remakeConstraintsForVisuals(referenceView: UIView, multiplier: CGFloat) {
-        NSLayoutConstraint.deactivate(visualConstraints)
-        visualConstraints.removeAll()
-        
-        let top = shadowView.topAnchor.constraint(equalTo: self.topAnchor, constant: insetDy)
-        let bottom = shadowView.bottomAnchor.constraint(equalTo: self.bottomAnchor, constant: -insetDy)
-        visualConstraints.append(contentsOf: [top, bottom])
-        
-        switch keyAlignment {
-        case .left:
-            let leading = shadowView.leadingAnchor.constraint(equalTo: self.leadingAnchor, constant: insetDx)
-            let width = shadowView.widthAnchor.constraint(equalTo: referenceView.widthAnchor,
-                                                          multiplier: multiplier,
-                                                          constant: -(insetDx * 2))
-            visualConstraints.append(contentsOf: [leading, width])
-            
-        case .right:
-            let trailing = shadowView.trailingAnchor.constraint(equalTo: self.trailingAnchor, constant: -insetDx)
-            let width = shadowView.widthAnchor.constraint(equalTo: referenceView.widthAnchor,
-                                                          multiplier: multiplier,
-                                                          constant: -(insetDx * 2))
-            visualConstraints.append(contentsOf: [trailing, width])
-            
-        case .center:
-            let leading = shadowView.leadingAnchor.constraint(equalTo: self.leadingAnchor, constant: insetDx)
-            let trailing = shadowView.trailingAnchor.constraint(equalTo: self.trailingAnchor, constant: -insetDx)
-            visualConstraints.append(contentsOf: [leading, trailing])
-        }
-        
-        NSLayoutConstraint.activate(visualConstraints)
     }
 }

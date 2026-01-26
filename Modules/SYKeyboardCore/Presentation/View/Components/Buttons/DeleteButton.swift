@@ -47,15 +47,6 @@ private extension DeleteButton {
     }
     
     func setStyles() {
-        switch keyboard {
-        case .dubeolsik, .qwerty, .symbol:
-            self.configuration?.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: KeyboardLayoutFigure.buttonHorizontalInset, bottom: 0, trailing: 0)
-            let newConstant = insetDx + KeyboardLayoutFigure.buttonHorizontalInset
-            leadingConstraint?.constant = newConstant
-        default:
-            break
-        }
-        
         let imageConfig = UIImage.SymbolConfiguration(pointSize: FontSize.imageSize, weight: .medium, scale: .large)
         self.configurationUpdateHandler = { [weak self] button in
             guard let self else { return }

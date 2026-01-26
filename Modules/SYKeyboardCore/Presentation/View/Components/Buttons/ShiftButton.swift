@@ -87,12 +87,8 @@ private extension ShiftButton {
     }
     
     func setStyles() {
-        let newConstant = -(insetDx + KeyboardLayoutFigure.buttonHorizontalInset)
-        trailingConstraint?.constant = newConstant
-        
         switch keyboard {
         case .dubeolsik, .qwerty:
-            self.configuration?.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 0, bottom: 0, trailing: KeyboardLayoutFigure.buttonHorizontalInset)
             primaryKeyListImageView.image = UIImage(systemName: "shift")?.withConfiguration(imageConfig).withTintColor(.label, renderingMode: .alwaysOriginal)
         case .symbol:
             primaryKeyListLabel.text = "1/2"

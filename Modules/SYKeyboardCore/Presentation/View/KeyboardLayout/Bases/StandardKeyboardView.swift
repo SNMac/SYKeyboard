@@ -67,7 +67,12 @@ open class StandardKeyboardView: UIView {
         return keyboardRowHStackView
     }()
     /// 키보드 세번째 내부 행
-    private let thirdRowInsideHStackView = KeyboardRowHStackView()
+    private let thirdRowInsideHStackView: KeyboardRowHStackView = {
+        let keyboardRowHStackView = KeyboardRowHStackView()
+        keyboardRowHStackView.distribution = .fill
+        
+        return keyboardRowHStackView
+    }()
     /// 키보드 네번째 행
     private let fourthRowHStackView: KeyboardRowHStackView = {
         let keyboardRowHStackView = KeyboardRowHStackView()
@@ -247,14 +252,29 @@ private extension StandardKeyboardView {
             }
         }
         
-        shiftButton.translatesAutoresizingMaskIntoConstraints = false
-        if let superview = shiftButton.superview {
-            let multiplier = 1.0 / KeyboardLayoutFigure.shiftAndDeleteButtonDivider
-            shiftButton.widthAnchor.constraint(equalTo: superview.widthAnchor, multiplier: multiplier).isActive = true
+        for (index, button) in thirdRowPrimaryKeyButtonList.enumerated() {
+            button.translatesAutoresizingMaskIntoConstraints = false
+            
+            let multiplier = 1.0 / CGFloat(firstRowPrimaryKeyButtonList.count)
+            if index == 0 {
+                guard let lastButton = thirdRowPrimaryKeyButtonList.last else { fatalError("thirdRowPrimaryKeyButtonList가 비어있습니다.") }
+                button.widthAnchor.constraint(equalTo: lastButton.widthAnchor).isActive = true
+                button.updateKeyAlignment(.right, referenceView: thirdRowHStackView, multiplier: multiplier)
+                
+            } else if index == thirdRowPrimaryKeyButtonList.count - 1 {
+                button.updateKeyAlignment(.left, referenceView: thirdRowHStackView, multiplier: multiplier)
+                
+            } else {
+                button.widthAnchor.constraint(equalTo: thirdRowHStackView.widthAnchor, multiplier: multiplier).isActive = true
+            }
         }
         
-        deleteButton.translatesAutoresizingMaskIntoConstraints = false
-        deleteButton.widthAnchor.constraint(equalTo: shiftButton.widthAnchor).isActive = true
+        if let referenceView = firstRowPrimaryKeyButtonList.first {
+            shiftButton.widthAnchor.constraint(equalTo: referenceView.widthAnchor,
+                                               multiplier: KeyboardLayoutFigure.shiftAndDeleteButtonWidthMultiplier).isActive = true
+            deleteButton.widthAnchor.constraint(equalTo: referenceView.widthAnchor,
+                                                multiplier: KeyboardLayoutFigure.shiftAndDeleteButtonWidthMultiplier).isActive = true
+        }
         
         fourthRowLeftSecondaryButtonHStackView.translatesAutoresizingMaskIntoConstraints = false
         if let superview = fourthRowLeftSecondaryButtonHStackView.superview {

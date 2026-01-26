@@ -12,6 +12,15 @@ public class BaseKeyboardButton: UIButton {
     
     // MARK: - Properties
     
+    /// 버튼 정렬 관리용
+    enum KeyAlignment {
+        case center  // 일반 키
+        case left  // 영어 키보드의 'l' 키처럼 왼쪽에 붙는 키
+        case right  // 영어 키보드의 'a' 키처럼 오른쪽에 붙는 키
+    }
+    
+    private var keyAlignment: KeyAlignment = .center
+    
     final let insetDx: CGFloat
     final let insetDy: CGFloat
     final let cornerRadius: CGFloat
@@ -91,6 +100,19 @@ public class BaseKeyboardButton: UIButton {
         fatalError("init(coder:) has not been implemented")
     }
     
+    // MARK: - Internal Methods
+    
+    /// 키의 시각적 정렬을 업데이트합니다.
+    /// - Parameters:
+    ///   - keyAlignment: 정렬 방향 (`.left`, `.right`, `.center`)
+    ///   - referenceView: 시각적 너비의 기준이 될 뷰 (예: `'s'` 키)
+    ///   - multiplier: 너비 배율 (`keyAlignment == .center`일 시 무시됨)
+    func updateKeyAlignment(_ keyAlignment: KeyAlignment, referenceView: UIView?, multiplier: CGFloat) {
+        self.keyAlignment = keyAlignment
+        
+        remakeConstraintsForVisuals(referenceView: referenceView, multiplier: multiplier)
+    }
+    
     // MARK: - Overridable Methods
     
     /// 햅틱 피드백, 사운드 피드백을 재생하는 메서드
@@ -158,5 +180,43 @@ private extension BaseKeyboardButton {
             primaryKeyListImageView.trailingAnchor.constraint(equalTo: backgroundView.trailingAnchor),
             primaryKeyListImageView.bottomAnchor.constraint(equalTo: backgroundView.bottomAnchor)
         ])
+    }
+}
+
+// MARK: - Update Methods
+
+private extension BaseKeyboardButton {
+    func remakeConstraintsForVisuals(referenceView: UIView?, multiplier: CGFloat) {
+        NSLayoutConstraint.deactivate(visualConstraints)
+        visualConstraints.removeAll()
+        
+        let top = shadowView.topAnchor.constraint(equalTo: self.topAnchor, constant: insetDy)
+        let bottom = shadowView.bottomAnchor.constraint(equalTo: self.bottomAnchor, constant: -insetDy)
+        visualConstraints.append(contentsOf: [top, bottom])
+        
+        switch keyAlignment {
+        case .left:
+            guard let referenceView else { break }
+            let leading = shadowView.leadingAnchor.constraint(equalTo: self.leadingAnchor, constant: insetDx)
+            let width = shadowView.widthAnchor.constraint(equalTo: referenceView.widthAnchor,
+                                                          multiplier: multiplier,
+                                                          constant: -(insetDx * 2))
+            visualConstraints.append(contentsOf: [leading, width])
+            
+        case .right:
+            guard let referenceView else { break }
+            let trailing = shadowView.trailingAnchor.constraint(equalTo: self.trailingAnchor, constant: -insetDx)
+            let width = shadowView.widthAnchor.constraint(equalTo: referenceView.widthAnchor,
+                                                          multiplier: multiplier,
+                                                          constant: -(insetDx * 2))
+            visualConstraints.append(contentsOf: [trailing, width])
+            
+        case .center:
+            let leading = shadowView.leadingAnchor.constraint(equalTo: self.leadingAnchor, constant: insetDx)
+            let trailing = shadowView.trailingAnchor.constraint(equalTo: self.trailingAnchor, constant: -insetDx)
+            visualConstraints.append(contentsOf: [leading, trailing])
+        }
+        
+        NSLayoutConstraint.activate(visualConstraints)
     }
 }
