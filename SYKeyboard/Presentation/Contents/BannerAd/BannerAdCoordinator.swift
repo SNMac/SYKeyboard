@@ -8,7 +8,6 @@
 import SwiftUI
 import OSLog
 
-import FirebaseAnalytics
 import GoogleMobileAds
 
 final class BannerAdCoordinator: NSObject {
@@ -33,17 +32,7 @@ final class BannerAdCoordinator: NSObject {
     func handlePaidEvent(value: AdValue, banner: BannerView) {
         let currencyCode = value.currencyCode
         let amount = value.value
-        
         logger.debug("PAID EVENT: \(amount) \(currencyCode)")
-        
-        Analytics.logEvent(AnalyticsEventAdImpression, parameters: [
-            AnalyticsParameterAdPlatform: "google_mobile_ads",
-            AnalyticsParameterAdSource: banner.responseInfo?.loadedAdNetworkResponseInfo?.adNetworkClassName ?? "unknown",
-            AnalyticsParameterAdFormat: "banner",
-            AnalyticsParameterAdUnitName: banner.adUnitID ?? "unknown",
-            AnalyticsParameterCurrency: currencyCode,
-            AnalyticsParameterValue: amount
-        ])
     }
 }
 
@@ -55,41 +44,23 @@ extension BannerAdCoordinator: BannerViewDelegate {
         
         let responseInfo = bannerView.responseInfo
         logger.debug("DID RECEIVE AD:\n\(responseInfo)")
-        
-        let adNetworkClassName = responseInfo?.loadedAdNetworkResponseInfo?.adNetworkClassName
-        let latency = responseInfo?.loadedAdNetworkResponseInfo?.latency
-        Analytics.logEvent("receive_ad_success", parameters: [
-            AnalyticsParameterAdFormat: "banner",
-            AnalyticsParameterAdSource: adNetworkClassName ?? "unknown",
-            "latency": latency ?? 0
-        ])
     }
     
     func bannerView(_ bannerView: BannerView, didFailToReceiveAdWithError error: Error) {
         parent.isAdReceived = false
         let responseInfo = bannerView.responseInfo
         logger.error("FAILED TO RECEIVE AD: \(error.localizedDescription)\n\(responseInfo)")
-        
-        Analytics.logEvent("receive_ad_failed", parameters: [
-            AnalyticsParameterAdFormat: "banner",
-            "error_message": error.localizedDescription
-        ])
     }
     
     func bannerViewDidRecordClick(_ bannerView: BannerView) {
         logger.debug("BANNER AD CLICKED")
-        
-        Analytics.logEvent("ad_click", parameters: [
-            AnalyticsParameterAdFormat: "banner",
-            AnalyticsParameterAdUnitName: bannerView.adUnitID ?? "unknown"
-        ])
     }
     
     func bannerViewWillPresentScreen(_ bannerView: BannerView) {
-        Analytics.logEvent("ad_open_screen", parameters: nil)
+        logger.debug("BANNER AD PRESENT SCREEN")
     }
     
     func bannerViewDidDismissScreen(_ bannerView: BannerView) {
-        Analytics.logEvent("ad_close_screen", parameters: nil)
+        logger.debug("BANNER AD DISMISS SCREEN")
     }
 }
