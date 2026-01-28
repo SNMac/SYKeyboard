@@ -148,17 +148,17 @@ Button(action: {}) {
 // BaseKeyboardViewController 클래스의 일부
 func addInputActionToTextInterableButton(_ button: TextInteractable) {
     let inputAction = UIAction { [weak self] action in
-        guard let self, let currentButton = action.sender as? BaseKeyboardButton else { return }
+        guard let self, let currentButton = action.sender as? TextInteractable else { return }
         
         if currentButton.isProgrammaticCall {
             // 코드(sendActions)로 호출된 경우 -> 무조건 입력 수행
-            performTextInteraction(for: button)
+            performTextInteraction(for: currentButton)
             
         } else {
             // 사용자가 touchUpInside한 경우 -> currentPressedButton 확인
             if let currentPressedButton = buttonStateController.currentPressedButton,
-               currentPressedButton == button {
-                performTextInteraction(for: button)
+               currentPressedButton == currentButton {
+                performTextInteraction(for: currentButton)
             }
         }
     }
@@ -177,26 +177,26 @@ func setFeedbackActionToButtons(_ buttonList: [BaseKeyboardButton]) {
     buttonList.forEach { button in
         let playFeedbackAndSetPressed: UIAction
         if button is ShiftButton {
-            playFeedbackAndSetPressed = UIAction { [weak self] _ in
-                guard let self else { return }
+            playFeedbackAndSetPressed = UIAction { [weak self] action in
+                guard let senderButton = action.sender as? BaseKeyboardButton else { return }
                 
-                if let previousButton = currentPressedButton, previousButton != button {
+                if let previousButton = self?.currentPressedButton, previousButton != senderButton {
                     previousButton.sendActions(for: .touchUpInside)
                 }
                 
-                isShiftButtonPressed = true
-                button.playFeedback()
+                self?.isShiftButtonPressed = true
+                senderButton.playFeedback()
             }
         } else {
-            playFeedbackAndSetPressed = UIAction { [weak self] _ in
-                guard let self else { return }
+            playFeedbackAndSetPressed = UIAction { [weak self] action in
+                guard let senderButton = action.sender as? BaseKeyboardButton else { return }
                 
-                if let previousButton = currentPressedButton, previousButton != button {
+                if let previousButton = self?.currentPressedButton, previousButton != senderButton {
                     previousButton.sendActions(for: .touchUpInside)
                 }
                 
-                currentPressedButton = button
-                button.playFeedback()
+                self?.currentPressedButton = senderButton
+                senderButton.playFeedback()
             }
         }
         button.addAction(playFeedbackAndSetPressed, for: .touchDown)
@@ -205,20 +205,18 @@ func setFeedbackActionToButtons(_ buttonList: [BaseKeyboardButton]) {
 
 // PrimaryButton 클래스의 일부
 func setStyles() {
-        self.configurationUpdateHandler = { [weak self] button in
-            guard let self else { return }
-            switch button.state {
-            case .normal:
-                backgroundView.backgroundColor = .primaryButton
-            case .highlighted:
-                backgroundView.backgroundColor = isPressed ? .primaryButtonPressed : .primaryButton
-            case .selected:
-                backgroundView.backgroundColor = .primaryButtonPressed
-            default:
-                break
-            }
+    self.configurationUpdateHandler = { [weak self] button in
+        guard let self else { return }
+        switch button.state {
+        case .normal:
+            backgroundView.backgroundColor = isGesturing ? .primaryButtonPressed : .primaryButton
+        case .highlighted:
+            backgroundView.backgroundColor = isPressed || isGesturing ? .primaryButtonPressed : .primaryButton
+        default:
+            break
         }
     }
+}
 ```
 </details>
 
@@ -524,6 +522,7 @@ direction LR
     namespace FinalKeyboardView {
       class NaratgeulKeyboardView
       class CheonjiinKeyboardView
+      class DubeolsikKeyboardView
       class EnglishKeyboardView
       class SymbolKeyboardView
       class NumericKeyboardView
@@ -554,6 +553,8 @@ direction LR
     HangeulKeyboardLayoutProvider <|.. NaratgeulKeyboardView: Implementation
     FourByFourPlusKeyboardView <|-- CheonjiinKeyboardView: Inheritance
     HangeulKeyboardLayoutProvider <|.. CheonjiinKeyboardView: Implementation
+    StandardKeyboardView <|-- DubeolsikKeyboardView: Inheritance
+    HangeulKeyboardLayoutProvider <|.. DubeolsikKeyboardView: Implementation
 
     PrimaryKeyboardRepresentable <|-- EnglishKeyboardLayoutProvider: Inheritance
 
