@@ -97,7 +97,7 @@ private extension KeyboardSettingsView {
         // 현재 앱의 Bundle ID에 "."을 붙여서 키보드 확장의 Bundle ID 패턴을 생성
         //   - 메인 앱의 Bundle ID: "github.com-SNMac.SYKeyboard"
         //     -> 키보드 Extension의 Bundle ID: "github.com-SNMac.SYKeyboard.keyboard"
-        let keyboardExtensionBundleIDPrefix = Bundle.main.bundleIdentifier! + "."
+        let keyboardExtensionBundleIDPrefix = (Bundle.main.bundleIdentifier ?? "Unknown Bundle") + "."
         for keyboard in keyboards {
             // "AppleKeyboards" 목록을 순회하며 현재 앱의 키보드 확장이 포함되어 있는지 검사
             if keyboard.hasPrefix(keyboardExtensionBundleIDPrefix) {

@@ -15,7 +15,10 @@ struct RequestReviewViewModifier: ViewModifier {
     
     // MARK: - Properties
     
-    private static let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: "RequestReviewViewModifier")
+    private static let logger = Logger(
+        subsystem: Bundle.main.bundleIdentifier ?? "Unknown Bundle",
+        category: "RequestReviewViewModifier"
+    )
     
     @Environment(\.requestReview) private var requestReview
     

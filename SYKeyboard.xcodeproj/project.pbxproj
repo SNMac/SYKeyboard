@@ -151,14 +151,14 @@
 		5B53F8172E1E56BD0083F7CA /* Exceptions for "Keyboards" folder in "SYKeyboard" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				EnglishKeyboard/Presentation/View/RequestFullAccessOverlayView.swift,
+				Common/Errors/KeyboardError.swift,
+				Common/View/RequestFullAccessOverlayView.swift,
 				EnglishKeyboard/Presentation/ViewController/EnglishKeyboardViewController.swift,
 				"EnglishKeyboard/Resources/Configs/DebugConfig-EnglishKeyboard.xcconfig",
 				"EnglishKeyboard/Resources/Configs/ReleaseConfig-EnglishKeyboard.xcconfig",
 				EnglishKeyboard/Resources/Info.plist,
 				EnglishKeyboard/Resources/InfoPlist.xcstrings,
 				EnglishKeyboard/Resources/Localizable.xcstrings,
-				HangeulKeyboard/Presentation/View/RequestFullAccessOverlayView.swift,
 				HangeulKeyboard/Presentation/ViewController/HangeulKeyboardViewController.swift,
 				"HangeulKeyboard/Resources/Configs/DebugConfig-HangeulKeyboard.xcconfig",
 				"HangeulKeyboard/Resources/Configs/ReleaseConfig-HangeulKeyboard.xcconfig",
@@ -171,7 +171,8 @@
 		5B53F8182E1E56BD0083F7CA /* Exceptions for "Keyboards" folder in "HangeulKeyboard" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				HangeulKeyboard/Presentation/View/RequestFullAccessOverlayView.swift,
+				Common/Errors/KeyboardError.swift,
+				Common/View/RequestFullAccessOverlayView.swift,
 				HangeulKeyboard/Presentation/ViewController/HangeulKeyboardViewController.swift,
 				HangeulKeyboard/Resources/InfoPlist.xcstrings,
 				HangeulKeyboard/Resources/Localizable.xcstrings,
@@ -181,7 +182,8 @@
 		5B8284822E6EEED8006425C7 /* Exceptions for "Keyboards" folder in "EnglishKeyboard" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				EnglishKeyboard/Presentation/View/RequestFullAccessOverlayView.swift,
+				Common/Errors/KeyboardError.swift,
+				Common/View/RequestFullAccessOverlayView.swift,
 				EnglishKeyboard/Presentation/ViewController/EnglishKeyboardViewController.swift,
 				EnglishKeyboard/Resources/InfoPlist.xcstrings,
 				EnglishKeyboard/Resources/Localizable.xcstrings,

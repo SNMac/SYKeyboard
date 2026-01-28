@@ -15,7 +15,10 @@ struct NaratgeulProcessorTests {
     
     // MARK: - Properties
     
-    private static let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: String(describing: "NaratgeulProcessorTests"))
+    private static let logger = Logger(
+        subsystem: Bundle.main.bundleIdentifier ?? "Unknown Bundle",
+        category: String(describing: "NaratgeulProcessorTests")
+    )
     
     private let automata: HangeulAutomataProtocol = HangeulAutomata()
     private let processor: HangeulProcessable

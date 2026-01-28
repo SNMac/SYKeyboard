@@ -13,7 +13,7 @@ open class FourByFourPlusKeyboardView: UIView {
     // MARK: - Properties
     
     private lazy var logger = Logger(
-        subsystem: Bundle.main.bundleIdentifier!,
+        subsystem: Bundle.main.bundleIdentifier ?? "Unknown Bundle",
         category: "\(String(describing: type(of: self))) <\(Unmanaged.passUnretained(self).toOpaque())>"
     )
     
