@@ -14,7 +14,10 @@ struct InfoView: View {
     
     // MARK: - Properties
     
-    private static let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: String(describing: "SupportEmail"))
+    private static let logger = Logger(
+        subsystem: Bundle.main.bundleIdentifier ?? "Unknown Bundle",
+        category: String(describing: "SupportEmail")
+    )
     
     @Environment(\.openURL) private var openURL
     @State private var isShowingInstructions = false

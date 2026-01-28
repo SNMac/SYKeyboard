@@ -13,7 +13,10 @@ final public class SwitchButton: SecondaryButton {
     
     // MARK: - Properties
     
-    private let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: "SwitchButton")
+    private let logger = Logger(
+        subsystem: Bundle.main.bundleIdentifier ?? "Unknown Bundle",
+        category: "SwitchButton"
+    )
     
     public static var previewPrimaryLanguage: String = "ko-KR"
     

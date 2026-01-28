@@ -1,6 +1,6 @@
 //
 //  RequestFullAccessOverlayView.swift
-//  EnglishKeyboard
+//  HangeulKeyboard, EnglishKeyboard
 //
 //  Created by 서동환 on 11/24/25.
 //

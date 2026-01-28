@@ -15,7 +15,10 @@ struct HangeulAutomataTests {
     
     // MARK: - Properties
     
-    private static let logger = Logger(subsystem: Bundle.main.bundleIdentifier!, category: String(describing: "HangeulAutomataTests"))
+    private static let logger = Logger(
+        subsystem: Bundle.main.bundleIdentifier ?? "Unknown Bundle",
+        category: String(describing: "HangeulAutomataTests")
+    )
     
     private let automata: HangeulAutomataProtocol = HangeulAutomata()
     

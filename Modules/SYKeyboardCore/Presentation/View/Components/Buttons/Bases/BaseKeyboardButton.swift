@@ -48,8 +48,6 @@ public class BaseKeyboardButton: UIButton {
         isProgrammaticCall = false
     }
     
-    var leadingConstraint: NSLayoutConstraint?
-    var trailingConstraint: NSLayoutConstraint?
     var visualConstraints: [NSLayoutConstraint] = []
     
     // MARK: - UI Components
@@ -132,6 +130,12 @@ private extension BaseKeyboardButton {
         self.tintColor = .clear
         self.backgroundColor = .systemBackground.withAlphaComponent(0.001)  // 터치 영역 확보용
         
+        if #available(iOS 26, *) {
+            shadowView.isHidden = true
+        } else {
+            shadowView.isHidden = false
+        }
+        
         var buttonConfig = UIButton.Configuration.plain()
         buttonConfig.contentInsets = .zero
         buttonConfig.titleAlignment = .center
@@ -148,22 +152,20 @@ private extension BaseKeyboardButton {
     
     func setConstraints() {
         shadowView.translatesAutoresizingMaskIntoConstraints = false
-        let top = shadowView.topAnchor.constraint(equalTo: self.topAnchor, constant: insetDy)
-        let leading = shadowView.leadingAnchor.constraint(equalTo: self.leadingAnchor, constant: insetDx)
-        leadingConstraint = leading
-        let trailing = shadowView.trailingAnchor.constraint(equalTo: self.trailingAnchor, constant: -insetDx)
-        trailingConstraint = trailing
-        let bottom = shadowView.bottomAnchor.constraint(equalTo: self.bottomAnchor, constant: -insetDy)
-        visualConstraints = [top, leading, trailing, bottom]
-        NSLayoutConstraint.activate(visualConstraints)
+        NSLayoutConstraint.activate([
+            shadowView.topAnchor.constraint(equalTo: backgroundView.topAnchor),
+            shadowView.leadingAnchor.constraint(equalTo: backgroundView.leadingAnchor),
+            shadowView.trailingAnchor.constraint(equalTo: backgroundView.trailingAnchor),
+            shadowView.bottomAnchor.constraint(equalTo: backgroundView.bottomAnchor)
+        ])
         
         backgroundView.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([
-            backgroundView.topAnchor.constraint(equalTo: shadowView.topAnchor),
-            backgroundView.leadingAnchor.constraint(equalTo: shadowView.leadingAnchor),
-            backgroundView.trailingAnchor.constraint(equalTo: shadowView.trailingAnchor),
-            backgroundView.bottomAnchor.constraint(equalTo: shadowView.bottomAnchor)
-        ])
+        let top = backgroundView.topAnchor.constraint(equalTo: self.topAnchor, constant: insetDy)
+        let leading = backgroundView.leadingAnchor.constraint(equalTo: self.leadingAnchor, constant: insetDx)
+        let trailing = backgroundView.trailingAnchor.constraint(equalTo: self.trailingAnchor, constant: -insetDx)
+        let bottom = backgroundView.bottomAnchor.constraint(equalTo: self.bottomAnchor, constant: -insetDy)
+        visualConstraints = [top, leading, trailing, bottom]
+        NSLayoutConstraint.activate(visualConstraints)
         
         primaryKeyListLabel.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([

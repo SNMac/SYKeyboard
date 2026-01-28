@@ -14,7 +14,7 @@ open class BaseKeyboardViewController: UIInputViewController {
     // MARK: - Properties
     
     private lazy var logger = Logger(
-        subsystem: Bundle.main.bundleIdentifier!,
+        subsystem: Bundle.main.bundleIdentifier ?? "Unknown Bundle",
         category: "\(String(describing: type(of: self))) <\(Unmanaged.passUnretained(self).toOpaque())>"
     )
     
@@ -158,12 +158,8 @@ open class BaseKeyboardViewController: UIInputViewController {
     
     open override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        FeedbackManager.shared.prepareHaptic()
-    }
-    
-    open override func viewIsAppearing(_ animated: Bool) {
-        super.viewIsAppearing(animated)
         if !isPreview { setKeyboardHeight() }
+        FeedbackManager.shared.prepareHaptic()
     }
     
     open override func viewDidAppear(_ animated: Bool) {

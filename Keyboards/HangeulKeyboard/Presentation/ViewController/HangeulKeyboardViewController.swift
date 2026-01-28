@@ -19,7 +19,7 @@ final class HangeulKeyboardViewController: HangeulKeyboardCoreViewController {
     // MARK: - Properties
     
     private lazy var logger = Logger(
-        subsystem: Bundle.main.bundleIdentifier!,
+        subsystem: Bundle.main.bundleIdentifier ?? "Unknown Bundle",
         category: "\(String(describing: type(of: self))) <\(Unmanaged.passUnretained(self).toOpaque())>"
     )
     
@@ -33,14 +33,7 @@ final class HangeulKeyboardViewController: HangeulKeyboardCoreViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        // Firebase 로딩
-        if FirebaseApp.app() == nil {
-            FirebaseApp.configure()
-        }
-        
-        // IDFV를 사용하여 Crashlytics User ID 설정
-        let idfv = UIDevice.current.identifierForVendor?.uuidString
-        Crashlytics.crashlytics().setUserID(idfv)
+        setupFirebase()
         
         if needToShowFullAccessGuide {
             setupRequestFullAccessOverlayView()
@@ -50,14 +43,12 @@ final class HangeulKeyboardViewController: HangeulKeyboardCoreViewController {
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         
-        logger.fault("Memory Warning Received in \(Bundle.main.bundleIdentifier!)")
+        let msg = "Memory Warning Received in \(Bundle.main.bundleIdentifier ?? "Unknown Bundle")"
+        logger.fault("\(msg)")
         
         // 메모리 경고 발생 시 Crashlytics에 로그 남기기
-        let msg = "Memory Warning Received in \(Bundle.main.bundleIdentifier!)"
         Crashlytics.crashlytics().log(msg)
-        
-        let error = NSError(domain: Bundle.main.bundleIdentifier!, code: -1, userInfo: [NSLocalizedDescriptionKey: msg])
-        Crashlytics.crashlytics().record(error: error)
+        Crashlytics.crashlytics().setCustomValue(true, forKey: "did_receive_memory_warning")
     }
 }
 
@@ -82,8 +73,12 @@ private extension HangeulKeyboardViewController {
         requestFullAccessOverlayView.closeButton.addAction(closeOverlayAction, for: .touchUpInside)
         
         let redirectToSettingsAction = UIAction { [weak self] _ in
-            guard let url = URL(string: "sykeyboard://") else {
+            let urlString = "sykeyboard://"
+            guard let url = URL(string: urlString) else {
                 assertionFailure("올바르지 않은 URL 형식입니다.")
+                
+                let error = KeyboardError.invalidSettingsURL(url: urlString)
+                Crashlytics.crashlytics().record(error: error)
                 return
             }
             self?.openURL(url)
@@ -95,6 +90,17 @@ private extension HangeulKeyboardViewController {
 // MARK: - Private Methods
 
 private extension HangeulKeyboardViewController {
+    func setupFirebase() {
+        // Firebase 로딩
+        if FirebaseApp.app() == nil {
+            FirebaseApp.configure()
+        }
+        
+        // IDFV를 사용하여 Crashlytics User ID 설정
+        let idfv = UIDevice.current.identifierForVendor?.uuidString
+        Crashlytics.crashlytics().setUserID(idfv)
+    }
+    
     func openURL(_ url: URL) {
         var responder: UIResponder? = self
         while responder != nil {
