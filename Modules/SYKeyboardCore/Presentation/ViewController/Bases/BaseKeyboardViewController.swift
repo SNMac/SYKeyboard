@@ -126,7 +126,9 @@ open class BaseKeyboardViewController: UIInputViewController {
     
     // MARK: - UI Components
     
-    private lazy var keyboardView = KeyboardView(primaryKeyboardView: primaryKeyboardView)
+    private lazy var keyboardView: KeyboardView = {
+        return KeyboardView.loadFromNib(primaryKeyboardView: primaryKeyboardView)
+    }()
     /// 키보드 전체 수직 스택
     private lazy var keyboardFrameHStackView = keyboardView.keyboardFrameHStackView
     /// 한 손 키보드 해제 버튼(오른손 모드)
@@ -143,6 +145,10 @@ open class BaseKeyboardViewController: UIInputViewController {
     private lazy var rightChevronButton = keyboardView.rightChevronButton
     
     // MARK: - Lifecycle
+    
+    open override func loadView() {
+        self.view = keyboardView
+    }
     
     open override func viewDidLoad() {
         super.viewDidLoad()
@@ -189,7 +195,6 @@ open class BaseKeyboardViewController: UIInputViewController {
     
     deinit {
         logger.debug("\(String(describing: type(of: self))) deinit")
-        keyboardView.removeFromSuperview()
     }
     
     // MARK: - Overridable Methods
@@ -329,8 +334,6 @@ private extension BaseKeyboardViewController {
     func setupUI() {
         setDelegates()
         setActions()
-        setHierarchy()
-        setConstraints()
     }
     
     func setDelegates() {
@@ -346,20 +349,6 @@ private extension BaseKeyboardViewController {
         setChevronButtonAction()
     }
     
-    func setHierarchy() {
-        self.view.addSubview(keyboardView)
-    }
-    
-    func setConstraints() {
-        keyboardView.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([
-            keyboardView.topAnchor.constraint(equalTo: self.view.topAnchor),
-            keyboardView.leadingAnchor.constraint(equalTo: self.view.leadingAnchor),
-            keyboardView.trailingAnchor.constraint(equalTo: self.view.trailingAnchor),
-            keyboardView.bottomAnchor.constraint(equalTo: self.view.bottomAnchor)
-        ])
-    }
-
     func setKeyboardHeight() {
         let keyboardHeight: CGFloat
         if let orientation = self.view.window?.windowScene?.effectiveGeometry.interfaceOrientation {
