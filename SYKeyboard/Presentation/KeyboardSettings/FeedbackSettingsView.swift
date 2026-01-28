@@ -30,7 +30,7 @@ struct FeedbackSettingsView: View {
             .onChange(of: isSoundFeedbackEnabled) { newValue in
                 Analytics.logEvent("sound_feedback", parameters: [
                     "view": "FeedbackSettingsView",
-                    "enabled": newValue ? 1 : 0
+                    "enabled": newValue ? "on" : "off"
                 ])
                 hideKeyboard()
             }
@@ -39,7 +39,7 @@ struct FeedbackSettingsView: View {
             .onChange(of: isHapticFeedbackEnabled) { newValue in
                 Analytics.logEvent("haptic_feedback", parameters: [
                     "view": "FeedbackSettingsView",
-                    "enabled": newValue ? 1 : 0
+                    "enabled": newValue ? "on" : "off"
                 ])
                 hideKeyboard()
             }
