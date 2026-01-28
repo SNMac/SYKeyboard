@@ -697,6 +697,8 @@ extension BaseKeyboardViewController {
     }
     
     final public func performRepeatTextInteraction(for button: TextInteractable) {
+        guard self.view.window != nil else { return }
+        
         textInteractionWillPerform(button: button)
         defer { textInteractionDidPerform(button: button) }
         
