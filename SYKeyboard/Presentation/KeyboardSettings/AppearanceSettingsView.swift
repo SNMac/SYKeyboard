@@ -36,7 +36,7 @@ struct AppearanceSettingsView: View {
         .onChange(of: isNumericKeypadEnabled) { newValue in
             Analytics.logEvent("numeric_keypad", parameters: [
                 "view": "AppearanceSettingsView",
-                "enabled": newValue ? 1 : 0
+                "enabled": newValue ? "on" : "off"
             ])
             hideKeyboard()
         }
@@ -49,7 +49,7 @@ struct AppearanceSettingsView: View {
         .onChange(of: isOneHandedKeyboardEnabled) { newValue in
             Analytics.logEvent("one_handed_keyboard", parameters: [
                 "view": "AppearanceSettingsView",
-                "enabled": newValue ? 1 : 0
+                "enabled": newValue ? "on" : "off"
             ])
             hideKeyboard()
         }
