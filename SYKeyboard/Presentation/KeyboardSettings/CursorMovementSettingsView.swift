@@ -46,12 +46,12 @@ struct CursorMovementSettingsView: View {
         }.onDisappear {
             Analytics.logEvent("cursor_active_distance", parameters: [
                 "view": "CursorMovementSettingsView",
-                "distance": cursorActiveDistance,
+                "value": cursorActiveDistance,
             ])
             
             Analytics.logEvent("cursor_move_interval", parameters: [
                 "view": "CursorMovementSettingsView",
-                "interval": cursorMoveInterval
+                "value": cursorMoveInterval
             ])
         }
     }

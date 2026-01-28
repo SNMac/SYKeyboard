@@ -8,7 +8,6 @@
 import SwiftUI
 import OSLog
 
-import FirebaseAnalytics
 import GoogleMobileAds
 
 struct BannerAdView: UIViewRepresentable {

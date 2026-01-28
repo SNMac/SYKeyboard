@@ -89,7 +89,7 @@ struct InputSettingsView: View {
             
             Analytics.logEvent("selected_long_press_action", parameters: [
                 "view": "InputSettingsView",
-                "action_type": newValue.analyticsValue
+                "selection": newValue.analyticsValue
             ])
             hideKeyboard()
         }

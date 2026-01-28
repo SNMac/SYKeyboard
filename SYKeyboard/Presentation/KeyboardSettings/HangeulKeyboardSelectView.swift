@@ -55,7 +55,7 @@ struct HangeulKeyboardSelectView: View {
             
             Analytics.logEvent("selected_hangeul_keyboard", parameters: [
                 "view": "HangeulKeyboardSelectView",
-                "hangeul_keyboard": newValue.analyticsValue
+                "selection": newValue.analyticsValue
             ])
             hideKeyboard()
         }
