@@ -82,7 +82,7 @@ private extension OneHandedKeyboardWidthSettingsView {
                     oneHandedKeyboardWidth = tempOneHandedKeyboardWidth
                     Analytics.logEvent("one_handed_keyboard_width", parameters: [
                         "view": "OneHandedKeyboardWidthSettingsView",
-                        "width": oneHandedKeyboardWidth
+                        "value": oneHandedKeyboardWidth
                     ])
                     
                     dismiss()

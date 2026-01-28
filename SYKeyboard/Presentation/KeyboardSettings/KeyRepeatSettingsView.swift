@@ -45,12 +45,12 @@ struct KeyRepeatSettingsView: View {
         }.onDisappear {
             Analytics.logEvent("long_press_duration", parameters: [
                 "view": "KeyRepeatSettingsView",
-                "duration": longPressDuration,
+                "value": longPressDuration,
             ])
             
             Analytics.logEvent("repeat_rate", parameters: [
                 "view": "KeyRepeatSettingsView",
-                "rate": repeatRate
+                "value": repeatRate
             ])
         }
     }
