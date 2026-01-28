@@ -21,7 +21,7 @@ let package = Package(
         .target(
             name: "SYKeyboardAssets",
             resources: [
-                .process("SYKeyboardAssets.xcassets")
+                .process("Resources")
             ]
         ),
     ]
