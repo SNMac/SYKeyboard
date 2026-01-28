@@ -33,7 +33,7 @@ final public class KeyboardView: UIInputView {
         return stackView
     }()
     /// 키보드 레이아웃 뷰
-    let keyboardLayoutView = UIView()
+    private let keyboardLayoutView = UIView()
     /// 한 손 키보드 해제 버튼(오른손 모드)
     let leftChevronButton: ChevronButton = {
         let chevronButton = ChevronButton(direction: .left)
@@ -42,7 +42,7 @@ final public class KeyboardView: UIInputView {
         return chevronButton
     }()
     /// 주 키보드
-    final var primaryKeyboardView: PrimaryKeyboardRepresentable!
+    private var primaryKeyboardView: PrimaryKeyboardRepresentable!
     /// 기호 키보드
     lazy var symbolKeyboardView: SymbolKeyboardLayoutProvider = {
         let symbolKeyboardView = SymbolKeyboardView()
