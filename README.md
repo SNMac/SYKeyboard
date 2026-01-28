@@ -242,6 +242,85 @@ func setStyles() {
 
 <br>
 
+### 메모리 누수로 인한 크래시
+#### 문제 상황
+|    설명    |   스크린샷   |
+| :-------------: | :----------: |
+| Crashlytics | <img src = "https://github.com/user-attachments/assets/98888ed5-0803-40d2-b69f-daea116388e0" width ="1000"> |
+| Instruments<br>Allocations | <img src = "https://github.com/user-attachments/assets/b1984b51-6bcf-4e50-88de-a31dd5a8d5ee" width ="1000"> |
+| Instruments<br>Generations | <img src = "https://github.com/user-attachments/assets/c0cebf30-cf81-459f-a0db-e351c250128f" width ="1000"> |
+
+Crashlytics에 `didReceiveMemoryWarning` 로그와 크래시가 발생하는 것을 보고, Profile을 실행하여 다음 사항을 확인했다.
+- Allocations 그래프를 통해 키보드 dismiss 이후에도 인스턴스가 메모리에서 해제되지 않음
+- 키보드 dismiss 이후 Generation에 키보드 관련 인스턴스 존재
+- 키보드를 표시할때마다 새로운 인스턴스가 쌓이다가 임계점을 넘어가면 크래시가 발생
+
+<br>
+
+#### 원인 분석
+- `KeyboardView`가 `deinit`되지 않음
+1. iOS 버그로 인해 코드 베이스 레이아웃 작성 시 `UIInputViewController`(`BaseKeyboardViewController`)의 `view`가 메모리에서 해제되지 않는다.
+2. `view`의 `subview`인 `KeyboardView` 또한 해제되지 않게 된다.
+ 
+- 버튼이 순환 참조로 인해 `deinit`되지 않음
+1. `BaseKeyboardViewController`와 `ButtonStateController`에서 버튼에 액션을 할당할 때, 클로저 내부에서 인자로 들어온 버튼을 강하게 참조
+2. 버튼 -> `UIAction` -> 클로저 -> 버튼 순환 참조
+3. `UIAction` 클로저 내부 `[weak self]`는 해당 인스턴스와의 연결만 약한 참조로 변경
+ 
+```swift
+// BaseKeyboardViewController
+
+func addInputActionToTextInterableButton(_ button: TextInteractable) {
+    let inputAction = UIAction { [weak self] action in
+        guard let self, let currentButton = action.sender as? TextInteractable else { return }
+        
+        if currentButton.isProgrammaticCall {
+            // 메서드 인자인 'button'을 클로저가 강하게 캡처
+            performTextInteraction(for: button)
+    // ...
+```
+
+<br>
+
+#### 해결 과정
+- `BaseKeyboardViewController`의 `deinit`에 `keyboardView.removeFromSuperview()` 추가
+  - `deinit`되지 않는 `UIInputView`로부터 `KeyboardView`의 참조를 떼어내기 위함
+- `UIAction`의 `sender` 프로퍼티를 활용하여 버튼 객체에 대한 강한 캡처 제거
+
+```swift
+// BaseKeyboardViewController
+
+deinit {
+    logger.debug("\(String(describing: type(of: self))) deinit")
+    keyboardView.removeFromSuperview()
+}
+
+func addInputActionToTextInterableButton(_ button: TextInteractable) {
+    let inputAction = UIAction { [weak self] action in
+        guard let self, let currentButton = action.sender as? TextInteractable else { return }
+        
+        if currentButton.isProgrammaticCall {
+            // UIAction의 sender 프로퍼티를 활용하여 버튼 객체에 대한 강한 캡처 제거
+            performTextInteraction(for: currentButton)
+    // ...
+```
+
+
+|    설명    |   스크린샷   |
+| :-------------: | :----------: |
+| Instruments<br>Allocations | <img src = "https://github.com/user-attachments/assets/831cdd9d-310b-4e3c-aa11-0e2a970c35f8" width ="1000"> |
+| Instruments<br>Generations | <img src = "https://github.com/user-attachments/assets/7a79b68e-cf66-499b-9cbd-076e2082a15e" width ="1000"> |
+
+Instruments의 Allocations 그래프와 Generations 표를 통해 키보드 dismiss 이후에 인스턴스가 메모리에서 해제되는 것을 확인하였다.  
+
+출처: [Apple Developer Forums - UIInputView is not deallocated from memory](https://developer.apple.com/forums/thread/807619)
+
+<br>
+
+---
+
+<br>
+
 ### 키보드 높이 제약조건 지정 시 키보드 표시 애니메이션 글리칭 현상
 #### 문제 상황
 |    설명    |   스크린샷   |
@@ -340,86 +419,6 @@ func setKeyboardHeight() {
 ---
 
 <br>
-
-
-### 메모리 누수로 인한 크래시
-#### 문제 상황
-|    설명    |   스크린샷   |
-| :-------------: | :----------: |
-| Crashlytics | <img src = "https://github.com/user-attachments/assets/98888ed5-0803-40d2-b69f-daea116388e0" width ="1000"> |
-| Instruments<br>Allocations | <img src = "https://github.com/user-attachments/assets/b1984b51-6bcf-4e50-88de-a31dd5a8d5ee" width ="1000"> |
-| Instruments<br>Generations | <img src = "https://github.com/user-attachments/assets/c0cebf30-cf81-459f-a0db-e351c250128f" width ="1000"> |
-
-Crashlytics에 `didReceiveMemoryWarning` 로그와 크래시가 발생하는 것을 보고, Profile을 실행하여 다음 사항을 확인했다.
-- Allocations 그래프를 통해 키보드 dismiss 이후에도 인스턴스가 메모리에서 해제되지 않음
-- 키보드 dismiss 이후 Generation에 키보드 관련 인스턴스 존재
-- 키보드를 표시할때마다 새로운 인스턴스가 쌓이다가 임계점을 넘어가면 크래시가 발생
-
-<br>
-
-#### 원인 분석
-- `KeyboardView`가 `deinit`되지 않음
-1. iOS 버그로 인해 코드 베이스 레이아웃 작성 시 `UIInputViewController`(`BaseKeyboardViewController`)의 `view`가 메모리에서 해제되지 않는다.
-2. `view`의 `subview`인 `KeyboardView` 또한 해제되지 않게 된다.
- 
-- 버튼이 순환 참조로 인해 `deinit`되지 않음
-1. `BaseKeyboardViewController`와 `ButtonStateController`에서 버튼에 액션을 할당할 때, 클로저 내부에서 인자로 들어온 버튼을 강하게 참조
-2. 버튼 -> `UIAction` -> 클로저 -> 버튼 순환 참조
-3. `UIAction` 클로저 내부 `[weak self]`는 해당 인스턴스와의 연결만 약한 참조로 변경
- 
-```swift
-// BaseKeyboardViewController
-
-func addInputActionToTextInterableButton(_ button: TextInteractable) {
-    let inputAction = UIAction { [weak self] action in
-        guard let self, let currentButton = action.sender as? TextInteractable else { return }
-        
-        if currentButton.isProgrammaticCall {
-            // 메서드 인자인 'button'을 클로저가 강하게 캡처
-            performTextInteraction(for: button)
-    // ...
-```
-
-<br>
-
-#### 해결 과정
-- `BaseKeyboardViewController`의 `deinit`에 `keyboardView.removeFromSuperview()` 추가
-  - `deinit`되지 않는 `UIInputView`로부터 `KeyboardView`의 참조를 떼어내기 위함
-- `UIAction`의 `sender` 프로퍼티를 활용하여 버튼 객체에 대한 강한 캡처 제거
-
-```swift
-// BaseKeyboardViewController
-
-deinit {
-    logger.debug("\(String(describing: type(of: self))) deinit")
-    keyboardView.removeFromSuperview()
-}
-
-func addInputActionToTextInterableButton(_ button: TextInteractable) {
-    let inputAction = UIAction { [weak self] action in
-        guard let self, let currentButton = action.sender as? TextInteractable else { return }
-        
-        if currentButton.isProgrammaticCall {
-            // UIAction의 sender 프로퍼티를 활용하여 버튼 객체에 대한 강한 캡처 제거
-            performTextInteraction(for: currentButton)
-    // ...
-```
-
-|    설명    |   스크린샷   |
-| :-------------: | :----------: |
-| Instruments<br>Allocations | <img src = "https://github.com/user-attachments/assets/831cdd9d-310b-4e3c-aa11-0e2a970c35f8" width ="1000"> |
-| Instruments<br>Generations | <img src = "https://github.com/user-attachments/assets/7a79b68e-cf66-499b-9cbd-076e2082a15e" width ="1000"> |
-
-Instruments의 Allocations 그래프와 Generations 표를 통해 키보드 dismiss 이후에 인스턴스가 메모리에서 해제되는 것을 확인하였다.  
-
-출처: [Apple Developer Forums - UIInputView is not deallocated from memory](https://developer.apple.com/forums/thread/807619)
-
-<br>
-
----
-
-<br>
-
 
 ## 📊 다이어그램
 ### 키보드 종류 구조
