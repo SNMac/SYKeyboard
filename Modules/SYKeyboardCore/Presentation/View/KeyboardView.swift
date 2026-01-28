@@ -44,21 +44,21 @@ final public class KeyboardView: UIInputView {
     /// 주 키보드
     final var primaryKeyboardView: PrimaryKeyboardRepresentable!
     /// 기호 키보드
-    final lazy var symbolKeyboardView: SymbolKeyboardLayoutProvider = {
+    lazy var symbolKeyboardView: SymbolKeyboardLayoutProvider = {
         let symbolKeyboardView = SymbolKeyboardView()
         symbolKeyboardView.isHidden = true
         
         return symbolKeyboardView
     }()
     /// 숫자 키보드
-    final lazy var numericKeyboardView: NumericKeyboardLayoutProvider = {
+    lazy var numericKeyboardView: NumericKeyboardLayoutProvider = {
         let numericKeyboardView = NumericKeyboardView()
         numericKeyboardView.isHidden = true
         
         return numericKeyboardView
     }()
     /// 텐키 키보드
-    final lazy var tenkeyKeyboardView: TenkeyKeyboardLayoutProvider = {
+    lazy var tenkeyKeyboardView: TenkeyKeyboardLayoutProvider = {
         let tenkeyKeyboardView = TenkeyKeyboardView()
         tenkeyKeyboardView.isHidden = true
         
