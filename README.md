@@ -342,52 +342,77 @@ func setKeyboardHeight() {
 <br>
 
 
-### 키보드 가장자리 터치 딜레이
+### 메모리 누수로 인한 크래시
 #### 문제 상황
 |    설명    |   스크린샷   |
 | :-------------: | :----------: |
-| 터치 딜레이<br>영역 | <img src = "https://github.com/user-attachments/assets/31aed9f1-ac3b-4839-aa42-b7a21e0693ab" width ="250"> |
+| Crashlytics | <img src = "https://github.com/user-attachments/assets/98888ed5-0803-40d2-b69f-daea116388e0" width ="1000"> |
+| Instruments<br>Allocations | <img src = "https://github.com/user-attachments/assets/b1984b51-6bcf-4e50-88de-a31dd5a8d5ee" width ="1000"> |
+| Instruments<br>Generations | <img src = "https://github.com/user-attachments/assets/c0cebf30-cf81-459f-a0db-e351c250128f" width ="1000"> |
 
-실 기기에서 키보드 테스트 도중 위 사진의 빨간색 네모 영역을 터치할 때 딜레이가 존재하는 것을 발견했다.
-- 단일 터치 시 인식까지 딜레이 존재, 반복 터치 시 손가락을 뗄 때만 반응
+Crashlytics에 `didReceiveMemoryWarning` 로그와 크래시가 발생하는 것을 보고, Profile을 실행하여 다음 사항을 확인했다.
+- Allocations 그래프를 통해 키보드 dismiss 이후에도 인스턴스가 메모리에서 해제되지 않음
+- 키보드 dismiss 이후 Generation에 키보드 관련 인스턴스 존재
+- 키보드를 표시할때마다 새로운 인스턴스가 쌓이다가 임계점을 넘어가면 크래시가 발생
 
 <br>
 
 #### 원인 분석
-<img width="785" height="159" alt="image" src="https://github.com/user-attachments/assets/7581e20e-d7e7-4fa4-a486-180576543ea4" />
+- `KeyboardView`가 `deinit`되지 않음
+1. iOS 버그로 인해 코드 베이스 레이아웃 작성 시 `UIInputViewController`(`BaseKeyboardViewController`)의 `view`가 메모리에서 해제되지 않는다.
+2. `view`의 `subview`인 `KeyboardView` 또한 해제되지 않게 된다.
+ 
+- 버튼이 순환 참조로 인해 `deinit`되지 않음
+1. `BaseKeyboardViewController`와 `ButtonStateController`에서 버튼에 액션을 할당할 때, 클로저 내부에서 인자로 들어온 버튼을 강하게 참조
+2. 버튼 -> `UIAction` -> 클로저 -> 버튼 순환 참조
+3. `UIAction` 클로저 내부 `[weak self]`는 해당 인스턴스와의 연결만 약한 참조로 변경
+ 
+```swift
+// BaseKeyboardViewController
 
-> 1. 키보드 앱이 실행되면 `viewWillAppear` 단계에서 `self.view.window`를 포함한 모든 `UIView`에 앱의 `UIWindow`가 할당됨
-> 2. 이때 `UIWindow`에 있는 2개의 `UISystemGestureGateGestureRecognizer`가 화면 하단의 제스처 바 혹은 화면 왼쪽, 오른쪽 모서리의 시스템 제스처 인식을 담당함
-> - 예: 홈 화면으로 가기, 뒤로 가기 등
-> 3. 사용자가 사진의 빨간색 네모 영역을 터치
-> 4. `UISystemGestureGateGestureRecognizer`가 사진의 빨간색 네모 영역의 터치를 키보드의 `UIButton`보다 먼저 인식
-> 5. 시스템 제스처가 아닌 경우, 터치 이벤트를 소비하지 않고 키보드 버튼으로 넘겨줌
-> 6. `UIButton`의 `UIControl`에서 터치 이벤트 소비
-
-`UISystemGestureGateGestureRecognizer`가 사용자의 터치 이벤트를 시스템 제스처인지 판단하는 과정(4, 5)을 거치면서 딜레이가 생기게 된다.
+func addInputActionToTextInterableButton(_ button: TextInteractable) {
+    let inputAction = UIAction { [weak self] action in
+        guard let self, let currentButton = action.sender as? TextInteractable else { return }
+        
+        if currentButton.isProgrammaticCall {
+            // 메서드 인자인 'button'을 클로저가 강하게 캡처
+            performTextInteraction(for: button)
+    // ...
+```
 
 <br>
 
 #### 해결 과정
-처음에는 iOS 11부터 지원하는 `preferredScreenEdgesDeferringSystemGestures` 프로퍼티를 사용하여 해결하려 했지만, `UIInputViewController`에서는 지원하지 않는듯 했다.  
-그래서 `UISystemGestureGateGestureRecognizer`의 `delaysTouchesBegan`를 `false`로 설정하는 것으로 해결하였다.
-``` swift
-override func viewDidAppear(_ animated: Bool) {
-    super.viewDidAppear(animated)
-    guard let window = self.view.window else { fatalError("View가 window 계층에 없습니다.") }
-    let systemGestureRecognizer0 = window.gestureRecognizers?[0] as? UIGestureRecognizer
-    let systemGestureRecognizer1 = window.gestureRecognizers?[1] as? UIGestureRecognizer
-    systemGestureRecognizer0?.delaysTouchesBegan = false
-    systemGestureRecognizer1?.delaysTouchesBegan = false
+- `BaseKeyboardViewController`의 `deinit`에 `keyboardView.removeFromSuperview()` 추가
+  - `deinit`되지 않는 `UIInputView`로부터 `KeyboardView`의 참조를 떼어내기 위함
+- `UIAction`의 `sender` 프로퍼티를 활용하여 버튼 객체에 대한 강한 캡처 제거
+
+```swift
+// BaseKeyboardViewController
+
+deinit {
+    logger.debug("\(String(describing: type(of: self))) deinit")
+    keyboardView.removeFromSuperview()
 }
+
+func addInputActionToTextInterableButton(_ button: TextInteractable) {
+    let inputAction = UIAction { [weak self] action in
+        guard let self, let currentButton = action.sender as? TextInteractable else { return }
+        
+        if currentButton.isProgrammaticCall {
+            // UIAction의 sender 프로퍼티를 활용하여 버튼 객체에 대한 강한 캡처 제거
+            performTextInteraction(for: currentButton)
+    // ...
 ```
 
-> <img width="881" height="67" alt="image" src="https://github.com/user-attachments/assets/2306bfa1-1788-428a-8755-6817e464e48c" />
->
-> 설정 이후 side effect가 생길 수 있다는 경고 메세지가 콘솔창에 뜬다.  
-> 애플에서 `UIInputViewController`에 `preferredScreenEdgesDeferringSystemGestures`를 지원하게된다면 수정해야겠다.
+|    설명    |   스크린샷   |
+| :-------------: | :----------: |
+| Instruments<br>Allocations | <img src = "https://github.com/user-attachments/assets/831cdd9d-310b-4e3c-aa11-0e2a970c35f8" width ="1000"> |
+| Instruments<br>Generations | <img src = "https://github.com/user-attachments/assets/7a79b68e-cf66-499b-9cbd-076e2082a15e" width ="1000"> |
 
-출처: [Stack Overflow - UISystemGateGestureRecognizer and delayed taps near bottom of screen](https://stackoverflow.com/questions/19799961/uisystemgategesturerecognizer-and-delayed-taps-near-bottom-of-screen)
+Instruments의 Allocations 그래프와 Generations 표를 통해 키보드 dismiss 이후에 인스턴스가 메모리에서 해제되는 것을 확인하였다.  
+
+출처: [Apple Developer Forums - UIInputView is not deallocated from memory](https://developer.apple.com/forums/thread/807619)
 
 <br>
 
@@ -505,7 +530,7 @@ direction LR
       class SwitchGestureHandling
     }
 
-    namespace KeyboardTypeLayoutProtocol {
+    namespace KeyboardLayoutProtocol {
       class HangeulKeyboardLayoutProvider
       class EnglishKeyboardLayoutProvider
       class SymbolKeyboardLayoutProvider
