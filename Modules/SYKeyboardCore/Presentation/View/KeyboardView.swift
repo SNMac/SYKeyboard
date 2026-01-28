@@ -87,7 +87,7 @@ final public class KeyboardView: UIInputView {
     static func loadFromNib(primaryKeyboardView: PrimaryKeyboardRepresentable) -> KeyboardView {
         let nibName = "KeyboardView"
         
-        let bundle = KeyboardAssets.bundle
+        let bundle = SYKBDAssets.bundle
         let nib = UINib(nibName: nibName, bundle: bundle)
         
         guard let view = nib.instantiate(withOwner: nil, options: nil).first as? KeyboardView else {
