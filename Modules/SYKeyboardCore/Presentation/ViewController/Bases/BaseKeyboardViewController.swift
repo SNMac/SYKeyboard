@@ -191,13 +191,9 @@ open class BaseKeyboardViewController: UIInputViewController {
         cancelTimer()
     }
     
-    open override func viewDidDisappear(_ animated: Bool) {
-        super.viewDidDisappear(animated)
-        keyboardView.removeFromSuperview()
-    }
-    
     deinit {
         logger.debug("\(String(describing: type(of: self))) deinit")
+        keyboardView.removeFromSuperview()
     }
     
     // MARK: - Overridable Methods
