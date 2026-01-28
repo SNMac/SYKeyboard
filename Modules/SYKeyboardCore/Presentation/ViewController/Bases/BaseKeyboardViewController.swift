@@ -158,12 +158,8 @@ open class BaseKeyboardViewController: UIInputViewController {
     
     open override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        FeedbackManager.shared.prepareHaptic()
-    }
-    
-    open override func viewIsAppearing(_ animated: Bool) {
-        super.viewIsAppearing(animated)
         if !isPreview { setKeyboardHeight() }
+        FeedbackManager.shared.prepareHaptic()
     }
     
     open override func viewDidAppear(_ animated: Bool) {
