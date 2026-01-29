@@ -259,7 +259,7 @@ Crashlytics에 `didReceiveMemoryWarning` 로그와 크래시가 발생하는 것
 
 #### 원인 분석
 - `KeyboardView`가 `deinit`되지 않음
-1. iOS 버그로 인해 코드 베이스 레이아웃 작성 시 `UIInputViewController`(`BaseKeyboardViewController`)의 `view`가 메모리에서 해제되지 않는다.
+1. iOS 버그로 인해 코드 베이스 레이아웃 작성 시 `BaseKeyboardViewController`(`UIInputViewController`)의 `view`(`UIInputView`)가 메모리에서 해제되지 않는다.
 2. `view`의 `subview`인 `KeyboardView` 또한 해제되지 않게 된다.
  
 - 버튼이 순환 참조로 인해 `deinit`되지 않음
@@ -268,14 +268,14 @@ Crashlytics에 `didReceiveMemoryWarning` 로그와 크래시가 발생하는 것
 3. `UIAction` 클로저 내부 `[weak self]`는 해당 인스턴스와의 연결만 약한 참조로 변경
  
 ```swift
-// BaseKeyboardViewController
+// BaseKeyboardViewController (UIInputViewController)
 
 func addInputActionToTextInterableButton(_ button: TextInteractable) {
     let inputAction = UIAction { [weak self] action in
         guard let self, let currentButton = action.sender as? TextInteractable else { return }
         
         if currentButton.isProgrammaticCall {
-            // 메서드 인자인 'button'을 클로저가 강하게 캡처
+            // 메서드 인자인 'button'을 클로저가 강하게 참조(캡처)
             performTextInteraction(for: button)
     // ...
 ```
@@ -283,12 +283,11 @@ func addInputActionToTextInterableButton(_ button: TextInteractable) {
 <br>
 
 #### 해결 과정
-- `BaseKeyboardViewController`의 `deinit`에 `keyboardView.removeFromSuperview()` 추가
-  - `deinit`되지 않는 `UIInputView`로부터 `KeyboardView`의 참조를 떼어내기 위함
-- `UIAction`의 `sender` 프로퍼티를 활용하여 버튼 객체에 대한 강한 캡처 제거
+- `KeyboardView`를 Storyboard(xib)로 초기화하고, `loadView` 시점에 할당하도록 수정
+- `UIAction` 클로저의 매개변수를 활용하여 버튼 객체에 대한 강한 참조 제거
 
 ```swift
-// BaseKeyboardViewController
+// BaseKeyboardViewController (UIInputViewController)
 
 deinit {
     logger.debug("\(String(describing: type(of: self))) deinit")
@@ -300,7 +299,7 @@ func addInputActionToTextInterableButton(_ button: TextInteractable) {
         guard let self, let currentButton = action.sender as? TextInteractable else { return }
         
         if currentButton.isProgrammaticCall {
-            // UIAction의 sender 프로퍼티를 활용하여 버튼 객체에 대한 강한 캡처 제거
+            // UIAction 클로저의 매개변수를 활용, 버튼에 대한 강한 참조(캡처) 제거
             performTextInteraction(for: currentButton)
     // ...
 ```
