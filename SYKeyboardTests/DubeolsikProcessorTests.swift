@@ -167,6 +167,61 @@ struct DubeolsikProcessorTests {
         #expect(텍스트 == "")
     }
     
+    @Test("종성 복원: '갉' + 'ㅏ' = '갈가' -> 삭제 -> '갉' 복귀 확인")
+    func test종성복원_갉_아_삭제() {
+        // 1. '갉' 만들기
+        var 텍스트 = ""
+        텍스트 = input("ㄱ", to: 텍스트)
+        텍스트 = input("ㅏ", to: 텍스트)
+        텍스트 = input("ㄹ", to: 텍스트)
+        텍스트 = input("ㄱ", to: 텍스트) // 갉
+        
+        #expect(텍스트 == "갉")
+        
+        // 2. 'ㅏ' 입력 -> '갈가' (연음 발생)
+        텍스트 = input("ㅏ", to: 텍스트)
+        #expect(텍스트 == "갈가")
+        
+        // 3. 삭제 -> '갉'으로 복원되어야 함 (기존: 갈ㄱ)
+        텍스트 = processor.delete(beforeText: 텍스트)
+        
+        #expect(텍스트 == "갉", "연음된 글자를 지웠을 때, 앞 글자의 겹받침으로 복원되어야 합니다.")
+    }
+    
+    @Test("종성 복원: '앉' + 'ㅏ' = '안자' -> 삭제 -> '앉' 복귀 확인")
+    func test종성복원_앉_아_삭제() {
+        // 1. '앉' 만들기 (ㄴ + ㅈ)
+        var 텍스트 = ""
+        텍스트 = input("ㅇ", to: 텍스트)
+        텍스트 = input("ㅏ", to: 텍스트)
+        텍스트 = input("ㄴ", to: 텍스트)
+        텍스트 = input("ㅈ", to: 텍스트) // 앉
+        
+        #expect(텍스트 == "앉")
+        
+        // 2. 'ㅏ' 입력 -> '안자'
+        텍스트 = input("ㅏ", to: 텍스트)
+        #expect(텍스트 == "안자")
+        
+        // 3. 삭제 -> '앉'
+        텍스트 = processor.delete(beforeText: 텍스트)
+        #expect(텍스트 == "앉")
+    }
+    
+    @Test("종성 복원 예외: 남은 글자가 모음이거나 완성형일 때는 합치지 않음")
+    func test종성복원_예외케이스() {
+        var 텍스트 = ""
+        텍스트 = input("ㄱ", to: 텍스트)
+        텍스트 = input("ㅏ", to: 텍스트)
+        텍스트 = input("ㄱ", to: 텍스트) // "각"
+        let 확정된텍스트 = processor.inputSpace(beforeText: 텍스트)
+        
+        텍스트 += " " // "각 "
+        
+        텍스트 = processor.delete(beforeText: 텍스트)
+        #expect(텍스트 == "각")
+    }
+    
     // MARK: - 4. 11,172자 전체 검증 (Heavy Test)
     
     @Test("두벌식 11,172자 전체 생성 및 삭제 검증")

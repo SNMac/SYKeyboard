@@ -49,9 +49,38 @@ final class DubeolsikProcessor: HangeulProcessable {
     
     /// 마지막 글자를 삭제합니다.
     ///
-    /// 오토마타의 `delete글자`를 호출하여 자소 단위로 분해/삭제합니다.
+    /// 1. 오토마타를 통해 삭제를 수행합니다.
+    /// 2. [종성 복원] 삭제 후 남은 마지막 글자가 '자음'이고, 앞 글자의 받침으로 들어갈 수 있다면 합칩니다.
+    ///    예: '갈가' -> Delete -> '갈ㄱ' -> '갉'
     func delete(beforeText: String) -> String {
-        return automata.delete글자(beforeText: beforeText)
+        // 1. 기본 오토마타 삭제 수행
+        let deletedText = automata.delete글자(beforeText: beforeText)
+        
+        // 텍스트가 2글자 미만이면 결합할 대상이 없으므로 반환
+        if deletedText.count < 2 { return deletedText }
+        
+        // 2. 분리 (Prefix + LastChar)
+        let lastIndex = deletedText.index(before: deletedText.endIndex)
+        let lastChar = deletedText[lastIndex]
+        let lastCharString = String(lastChar)
+        let prefixText = String(deletedText[..<lastIndex])
+        
+        // 남은 마지막 글자가 실제로 '종성(받침)'으로 쓰일 수 있는 자음인지 확인합니다.
+        guard automata.종성Table.contains(lastCharString) && lastCharString != " " else {
+            return deletedText
+        }
+        
+        // 3. 결합 시도
+        // 앞 글자(Prefix)에 자음(LastChar)을 더해봅니다.
+        let mergedText = automata.add글자(글자Input: lastCharString, beforeText: prefixText)
+        
+        // 4. 병합 성공 확인
+        // 두 글자가 한 글자로 합쳐졌다면(길이가 줄어들었다면) 성공으로 간주
+        if mergedText.count < deletedText.count {
+            return mergedText
+        }
+        
+        return deletedText
     }
     
     /// 두벌식은 별도의 조합 상태 플래그를 관리하지 않으므로 빈 구현으로 둡니다.
