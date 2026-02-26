@@ -20,10 +20,10 @@
 
 
 ## 👥 대상 사용자
-- 나랏글 키보드/천지인 키보드를 계속 사용해 왔던 사람
-- 나랏글 키보드/천지인 키보드에 입문하는 사람
-- 편의 기능이 있는 두벌식 키보드를 사용해 보고 싶은 사람
-- 필수적인 기능들을 포함하되, 가벼운 키보드 앱을 찾는 사람
+- 나랏글/천지인 키보드를 사용 중이거나 입문하는 사람
+- 편의 기능이 있는 키보드를 사용해 보고 싶은 사람
+- 키보드 자체 기능을 중시한 키보드 앱을 찾는 사람
+- 한글 키보드를 사용해 보고 싶은 외국인
 
 <br><br>
 
@@ -37,6 +37,7 @@
 | 인터페이스 | `UIKit`, `SwiftUI` |
 | 활용 API | `Firebase Analytics`, `Firebase Crashlytics`, `Google AdMob` |
 | 내부 저장소 | `UserDefaults` |
+| 로컬라이징 | `String Catalog` |
 | 테스트 | `Swift Testing` |
 
 <br><br>
@@ -672,7 +673,9 @@ direction LR
 1. **나랏글 키보드**  
 기본에 충실한 나랏글(EZ한글) 키보드입니다.
 
-<img src = "https://github.com/user-attachments/assets/0833076c-4e68-4ba6-9800-09a8d9317780" width ="300">
+|    한국어    |   영어   |
+| :-------------: | :----------: |
+| <img width="300" alt="나랏글" src="https://github.com/user-attachments/assets/15493bed-ac5e-4a2c-899b-47d856f40364"> | <img width="300" alt="나랏글 - 영어" src="https://github.com/user-attachments/assets/97685cc5-8b97-4698-9715-586f860199c3"> |
 
 <br><br>
 
@@ -680,7 +683,9 @@ direction LR
 2. **천지인 키보드**  
 입력이 편리한 천지인 키보드입니다.
 
-<img src = "https://github.com/user-attachments/assets/3202c156-a466-4177-8a2a-33424ed2fdf2" width ="300">
+|    한국어    |   영어   |
+| :-------------: | :----------: |
+| <img width="300" alt="천지인" src="https://github.com/user-attachments/assets/ca129e21-e852-4ae3-b377-78402414b42f"> | <img width="300" alt="천지인 - 영어" src="https://github.com/user-attachments/assets/9326e623-c338-4473-bf1a-ab9282d8e7dd"> |
 
 <br><br>
 
@@ -688,7 +693,9 @@ direction LR
 3. **두벌식 키보드**  
 대중적인 두벌식(한글 쿼티) 키보드입니다.
 
-<img src = "https://github.com/user-attachments/assets/04933c74-0ee3-4418-bb6f-60b764992ff4" width ="300">
+|    한국어    |   영어   |
+| :-------------: | :----------: |
+| <img width="300" alt="두벌식" src="https://github.com/user-attachments/assets/aaf9392b-9e2b-4d84-ae08-d74af635c531"> | <img width="300" alt="두벌식 - 영어" src="https://github.com/user-attachments/assets/615421f0-780d-422b-8c9e-761303092058"> |
 
 <br><br>
 
@@ -696,7 +703,9 @@ direction LR
 4. **영어 키보드**  
 대중적인 영어(QWERTY) 키보드입니다.
 
-<img src = "https://github.com/user-attachments/assets/d28be80b-971f-4bce-a443-0976f9221e3f" width ="300">
+|    한국어    |   영어   |
+| :-------------: | :----------: |
+| <img width="300" alt="쿼티" src="https://github.com/user-attachments/assets/b121994d-4ff6-4050-a5f4-c26706a8ebde"> | <img width="300" alt="쿼티 - 영어" src="https://github.com/user-attachments/assets/5ed489c4-6538-4be9-b00d-cc860ef172c3"> |
 
 <br><br>
 
@@ -704,15 +713,19 @@ direction LR
 5. **숫자 키패드 탑재**  
 숫자를 입력할 때 큰 버튼으로 편하게 입력할 수 있는 숫자 입력 전용 키패드를 탑재했습니다.
 
-<img src="https://github.com/user-attachments/assets/26bc90e8-5ae9-4d0a-8ae4-8b17e70d2d56" width="300">
-  
+|    한국어    |   영어   |
+| :-------------: | :----------: |
+| <img width="300" alt="숫자 키패드" src="https://github.com/user-attachments/assets/2c68169f-4dcb-4732-90a2-fa415885cd0e"> | <img width="300" alt="숫자 키패드 - 영어" src="https://github.com/user-attachments/assets/4c48f4fa-d50a-49bf-8e72-479aa9185a25"> |
+
 <br><br>
 
 
 6. **한 손 키보드 모드**  
 한 손으로 폰을 들고 있는 상태에서도 입력하기 수월하도록 한 손 키보드 모드를 제공합니다.
 
-<img src="https://github.com/user-attachments/assets/b05cabe1-c0bf-4032-8a6f-3b16436834ef" width="300">
+|    한국어    |   영어   |
+| :-------------: | :----------: |
+| <img width="300" alt="한 손 키보드" src="https://github.com/user-attachments/assets/fbb6019e-dbd5-4bb4-9d83-c4164a9502d4"> | <img width="300" alt="한 손 키보드 - 영어" src="https://github.com/user-attachments/assets/764c0f9f-9296-4b7d-a5cc-125a113b6beb"> |
 
 <br><br>
 
@@ -720,8 +733,11 @@ direction LR
 7. **다양하고 디테일한 키보드 설정**  
 길게 누르기 동작, 커서 이동, 키보드 높이 및 한 손 키보드 너비 조절 등 사용자의 편의에 맞게 키보드 설정이 가능합니다.
 
-<img src="https://github.com/user-attachments/assets/d6ee0bb4-d267-4767-9c81-a4b6ba9662ac" width="300">&nbsp;&nbsp;&nbsp;&nbsp;
-<img src="https://github.com/user-attachments/assets/7b94b9bd-2084-48f8-8741-7056b2c68fa4" width="300">
+|    한국어    |   영어   |
+| :-------------: | :----------: |
+| <img width="300" alt="메인 앱 1" src="https://github.com/user-attachments/assets/7f645a08-d9c3-4ed2-8b0e-48051540611d"> | <img width="300" alt="메인 앱 1 - 영어" src="https://github.com/user-attachments/assets/af458496-f058-4cc6-a1d1-bdfb7ba66712"> |
+| <img width="300" alt="메인 앱 2" src="https://github.com/user-attachments/assets/139c31a4-1786-4def-a7f1-5b21255555ac" width="300"> | <img width="300" alt="메인 앱 2 - 영어" src="https://github.com/user-attachments/assets/5f8d080f-da82-4f0b-894b-49fa371224dc" width="300"> |
+| <img width="300" alt="메인 앱 3" src="https://github.com/user-attachments/assets/7cb7a502-c769-4fae-80e9-b83fce0886aa" width="300"> | <img width="300" alt="메인 앱 3 - 영어" src="https://github.com/user-attachments/assets/bc8d8ffe-a511-443c-a661-88438df14275" width="300"> |
 
 <br><br>
 
