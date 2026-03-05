@@ -855,12 +855,16 @@ extension BaseKeyboardViewController: TextInteractionGestureControllerDelegate {
             let repeatTimerInterval = 0.10 - UserDefaultsManager.shared.repeatRate
             timer = Timer.publish(every: repeatTimerInterval, on: .main, in: .common)
                 .autoconnect()
-                .sink { [weak self] _ in
+                .sink { [weak self, weak button] _ in
                     if self?.view.window == nil {
                         self?.cancelTimer()
                         return
                     }
                     
+                    guard let button else {
+                        self?.cancelTimer()
+                        return
+                    }
                     self?.performRepeatTextInteraction(for: button)
                 }
             logger.debug("반복 타이머 생성")
