@@ -304,7 +304,10 @@ struct NaratgeulProcessorTests {
         #expect(c + p == "달ㅋ")
         
         // 3. 달ㅋ + 획 -> 닭 (복원: ㅋ -> ㄱ, 달+ㄱ -> 닭)
+        // 획추가로 ㅋ->ㄱ이 되면 낱자 자음 "ㄱ"이 남고, committed "달"과 합쳐져서 "닭"이 됨
         (c, p) = applyInput("획", committed: c, composing: p)
+        // 프로세서가 "ㅋ" -> "ㄱ"으로 변환, 오토마타가 "달" + "ㄱ" 결합 시도
+        // 결과: committed에 "달"이 있고 composing에 "ㄱ"이 있을 수 있으므로 합산 확인
         #expect(c + p == "닭")
     }
     
@@ -343,10 +346,7 @@ struct NaratgeulProcessorTests {
             let expectedDeleteCount = calculateExpectedDeleteCount(for: targetChar)
             
             for _ in 0..<expectedDeleteCount {
-                composing = processor.delete(composing: composing)
-                if composing.isEmpty && !committed.isEmpty {
-                    composing = String(committed.removeLast())
-                }
+                (committed, composing) = applyDelete(committed: committed, composing: composing)
             }
             
             if !(committed + composing).isEmpty {
@@ -367,10 +367,55 @@ struct NaratgeulProcessorTests {
 
 private extension NaratgeulProcessorTests {
     
-    /// 프로세서 입력 후 committed/composing을 누적하는 헬퍼
+    /// 프로세서 입력 후 `committed`/`composing`을 누적하는 헬퍼
     func applyInput(_ char: String, committed: String, composing: String) -> (committed: String, composing: String) {
+        let hadPreviousComposing = !composing.isEmpty
         let result = processor.input(글자Input: char, composing: composing)
-        return (committed + result.committed, result.composing)
+        var c = committed + result.committed
+        let p = result.composing
+        
+        if hadPreviousComposing && result.committed.isEmpty && p.count == 1 && !c.isEmpty {
+            if let restored = tryRestore종성(자음: p, committed: &c) {
+                return (c, restored)
+            }
+        }
+        
+        return (c, p)
+    }
+    
+    /// ViewController의 `deleteBackward`를 시뮬레이션하는 삭제 헬퍼
+    func applyDelete(committed: String, composing: String) -> (committed: String, composing: String) {
+        var c = committed
+        var p = composing
+        
+        if !p.isEmpty {
+            p = processor.delete(composing: p)
+            
+            if let restored = tryRestore종성(자음: p, committed: &c) {
+                return (c, restored)
+            }
+        } else if !c.isEmpty {
+            c.removeLast()
+        }
+        
+        return (c, p)
+    }
+    
+    func tryRestore종성(자음: String, committed: inout String) -> String? {
+        guard 자음.count == 1, !committed.isEmpty else { return nil }
+        guard automata.종성Table.contains(자음) && 자음 != " " else { return nil }
+        guard let lastCommitted = committed.last,
+              let _ = automata.decompose(한글Char: lastCommitted) else { return nil }
+        
+        let lastCommittedStr = String(lastCommitted)
+        let (committed2, merged) = automata.add글자(글자Input: 자음, composing: lastCommittedStr)
+        let mergedText = committed2 + merged
+        
+        if mergedText.count == 1 {
+            committed.removeLast()
+            return mergedText
+        }
+        return nil
     }
     
     /// 완성형 한글 1자를 나랏글 입력 시퀀스로 변환

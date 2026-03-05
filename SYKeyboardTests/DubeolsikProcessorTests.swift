@@ -181,7 +181,7 @@ struct DubeolsikProcessorTests {
         #expect(c + p == "갈가")
         
         // 3. 삭제 -> '갉'으로 복원되어야 함
-        p = processor.delete(composing: p)
+        (c, p) = applyDelete(committed: c, composing: p)
         #expect(c + p == "갉", "연음된 글자를 지웠을 때, 앞 글자의 겹받침으로 복원되어야 합니다.")
     }
     
@@ -201,7 +201,7 @@ struct DubeolsikProcessorTests {
         #expect(c + p == "안자")
         
         // 3. 삭제 -> '앉'
-        p = processor.delete(composing: p)
+        (c, p) = applyDelete(committed: c, composing: p)
         #expect(c + p == "앉")
     }
     
@@ -261,10 +261,7 @@ struct DubeolsikProcessorTests {
             
             // 4. 삭제 시뮬레이션
             for _ in 0..<입력키배열.count {
-                composing = processor.delete(composing: composing)
-                if composing.isEmpty && !committed.isEmpty {
-                    composing = String(committed.removeLast())
-                }
+                (committed, composing) = applyDelete(committed: committed, composing: composing)
             }
             
             if !(committed + composing).isEmpty {
@@ -285,10 +282,59 @@ struct DubeolsikProcessorTests {
 
 private extension DubeolsikProcessorTests {
     
-    /// 프로세서 입력 후 committed/composing을 누적하는 헬퍼
+    /// 프로세서 입력 후 `committed`/`composing`을 누적하는 헬퍼
+    /// 입력 시에도 종성 복원을 시뮬레이션합니다 (ViewController의 `applyCompositionResult`와 동일).
     func applyInput(_ char: String, committed: String, composing: String) -> (committed: String, composing: String) {
+        let hadPreviousComposing = !composing.isEmpty
         let result = processor.input(글자Input: char, composing: composing)
-        return (committed + result.committed, result.composing)
+        var c = committed + result.committed
+        let p = result.composing
+        
+        // 입력 시 종성 복원
+        if hadPreviousComposing && result.committed.isEmpty && p.count == 1 && !c.isEmpty {
+            if let restored = tryRestore종성(자음: p, committed: &c) {
+                return (c, restored)
+            }
+        }
+        
+        return (c, p)
+    }
+    
+    /// ViewController의 `deleteBackward`를 시뮬레이션하는 삭제 헬퍼
+    func applyDelete(committed: String, composing: String) -> (committed: String, composing: String) {
+        var c = committed
+        var p = composing
+        
+        if !p.isEmpty {
+            p = processor.delete(composing: p)
+            
+            // 삭제 시 종성 복원
+            if let restored = tryRestore종성(자음: p, committed: &c) {
+                return (c, restored)
+            }
+        } else if !c.isEmpty {
+            c.removeLast()
+        }
+        
+        return (c, p)
+    }
+    
+    /// 낱자 자음 1개를 `committed` 마지막 한글에 종성으로 합치기 시도
+    func tryRestore종성(자음: String, committed: inout String) -> String? {
+        guard 자음.count == 1, !committed.isEmpty else { return nil }
+        guard automata.종성Table.contains(자음) && 자음 != " " else { return nil }
+        guard let lastCommitted = committed.last,
+              let _ = automata.decompose(한글Char: lastCommitted) else { return nil }
+        
+        let lastCommittedStr = String(lastCommitted)
+        let (committed2, merged) = automata.add글자(글자Input: 자음, composing: lastCommittedStr)
+        let mergedText = committed2 + merged
+        
+        if mergedText.count == 1 {
+            committed.removeLast()
+            return mergedText
+        }
+        return nil
     }
     
     /// 완성된 한글 문자를 두벌식 키 입력 배열로 분해

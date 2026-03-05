@@ -66,14 +66,12 @@ final class CheonjiinProcessor: HangeulProcessable {
         // [비한글 입력 처리]
         if !is천지인모음 && !is천지인자음 {
             is한글조합OnGoing = false
-            // composing 전체를 확정하고, 새 글자도 확정
             return .commitAll(composing + 글자Input, input글자: 글자Input)
         }
         
         // [확정 상태 체크]
         if !is한글조합OnGoing {
             is한글조합OnGoing = true
-            // composing을 확정하고, 새 글자로 새 조합 시작
             return CompositionResult(committed: composing, composing: 글자Input, input글자: 글자Input)
         }
         
@@ -82,25 +80,43 @@ final class CheonjiinProcessor: HangeulProcessable {
             
             // A. 모음 조합 시도
             if let (prefix, combined모음) = tryCombine모음(input: 글자Input, composing: composing) {
-                let (committed, newComposing) = automata.add글자(글자Input: combined모음, composing: prefix)
+                // prefix에 자음이나 완성형 한글이 남아있을 수 있으므로
+                // 오토마타가 결합하게 함 (예: "닭" 뒤의 "ㆍ"+"ㅣ"="ㅓ" → "달"+"거" 연음)
+                let is표준중성 = automata.중성Table.contains(combined모음)
                 
-                is한글조합OnGoing = true
-                
-                var nextRepeatChar = combined모음
-                switch combined모음 {
-                case "ㅘ": nextRepeatChar = "ㅏ"
-                case "ㅝ": nextRepeatChar = "ㅓ"
-                case "ㅙ": nextRepeatChar = "ㅐ"
-                case "ㅞ": nextRepeatChar = "ㅔ"
-                default: break
+                if is표준중성 {
+                    // 표준 모음 → 오토마타에 위임 (연음 가능)
+                    let (committed, newComposing) = automata.add글자(글자Input: combined모음, composing: prefix)
+                    is한글조합OnGoing = true
+                    
+                    var nextRepeatChar = combined모음
+                    switch combined모음 {
+                    case "ㅘ": nextRepeatChar = "ㅏ"
+                    case "ㅝ": nextRepeatChar = "ㅓ"
+                    case "ㅙ": nextRepeatChar = "ㅐ"
+                    case "ㅞ": nextRepeatChar = "ㅔ"
+                    default: break
+                    }
+                    return CompositionResult(committed: committed, composing: newComposing, input글자: nextRepeatChar)
+                } else {
+                    // 비표준 모음 (ㆍ, ᆢ 등) → composing에 직접 붙임
+                    is한글조합OnGoing = true
+                    return .composingOnly(prefix + combined모음, input글자: combined모음)
                 }
-                return CompositionResult(committed: committed, composing: newComposing, input글자: nextRepeatChar)
             }
             
-            // B. 모음 단순 추가
-            let (committed, newComposing) = automata.add글자(글자Input: 글자Input, composing: composing)
-            is한글조합OnGoing = true
-            return CompositionResult(committed: committed, composing: newComposing, input글자: 글자Input)
+            // B. 모음 단순 추가 (조합 실패)
+            let is표준중성 = automata.중성Table.contains(글자Input)
+            if is표준중성 {
+                // 표준 모음(ㅣ, ㅡ) → 오토마타에 위임 (자음+모음 결합, 연음 가능)
+                let (committed, newComposing) = automata.add글자(글자Input: 글자Input, composing: composing)
+                is한글조합OnGoing = true
+                return CompositionResult(committed: committed, composing: newComposing, input글자: 글자Input)
+            } else {
+                // 천지인 특수문자(ㆍ) → composing에 이어붙여서 다음 tryCombine모음에서 조합
+                is한글조합OnGoing = true
+                return .composingOnly(composing + 글자Input, input글자: 글자Input)
+            }
         }
         
         // 2. [자음 입력]
@@ -130,6 +146,18 @@ final class CheonjiinProcessor: HangeulProcessable {
         guard !composing.isEmpty else {
             is한글조합OnGoing = false
             return ""
+        }
+        
+        // 마지막 글자가 천지인 특수문자(ㆍ, ᆢ)이면 직접 제거
+        if let lastChar = composing.last {
+            let lastCharString = String(lastChar)
+            if lastCharString == "ㆍ" || lastCharString == "ᆢ" {
+                let result = String(composing.dropLast())
+                if result.isEmpty {
+                    is한글조합OnGoing = false
+                }
+                return result
+            }
         }
         
         // 오토마타를 이용한 기본 삭제

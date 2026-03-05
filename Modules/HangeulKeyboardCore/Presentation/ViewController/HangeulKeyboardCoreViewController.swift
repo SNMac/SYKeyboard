@@ -12,7 +12,8 @@ import SYKeyboardCore
 /// 한글 키보드 입력/UI 컨트롤러
 ///
 /// `committedBuffer`와 `composingBuffer`를 분리하여
-/// `textDocumentProxy`에 대한 delete/insert를 `composingBuffer`(최대 1~2글자)로 한정합니다.
+/// textDocumentProxy에 대한 delete/insert를 composingBuffer(최대 1~2글자)로 한정합니다.
+/// 이를 통해 버퍼 크기에 무관하게 항상 O(1) 성능을 보장합니다.
 open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
     
     // MARK: - Properties
@@ -22,6 +23,7 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
     private var committedBuffer: String = ""
     
     /// 현재 오토마타가 조합 중인 문자열 (최대 1~2글자).
+    /// 입력 시마다 이 부분만 delete → 재입력하므로 항상 O(1)입니다.
     private var composingBuffer: String = ""
     
     /// 마지막으로 입력한 문자
@@ -207,7 +209,6 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
         }
         
         textDocumentProxy.insertText(lastInputText)
-        // 반복 입력은 조합과 무관하므로 committed에 직접 추가
         committedBuffer.append(lastInputText)
     }
     
@@ -255,24 +256,30 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
         deleteBackwardWillPerform()
         
         if !composingBuffer.isEmpty {
-            // 조합 중인 글자가 있으면 composingBuffer에서만 삭제 처리
-            for _ in 0..<composingBuffer.count { textDocumentProxy.deleteBackward() }
+            let oldComposingCount = composingBuffer.count
+            for _ in 0..<oldComposingCount { textDocumentProxy.deleteBackward() }
+            
             let remaining = processor.delete(composing: composingBuffer)
-            if !remaining.isEmpty {
-                textDocumentProxy.insertText(remaining)
+            
+            // 종성 복원: 삭제 후 낱자 자음 1개만 남고 committed에 한글이 있으면 합치기 시도
+            if let restored = tryRestore종성(자음: remaining, committed: &committedBuffer) {
+                textDocumentProxy.insertText(restored)
+                composingBuffer = restored
+            } else {
+                if !remaining.isEmpty {
+                    textDocumentProxy.insertText(remaining)
+                }
+                composingBuffer = remaining
             }
-            composingBuffer = remaining
             
             if composingBuffer.isEmpty {
                 processor.reset한글조합()
             }
         } else if !committedBuffer.isEmpty {
-            // 조합 중인 글자가 없고 확정된 버퍼가 있으면 마지막 확정 글자 삭제
             textDocumentProxy.deleteBackward()
             committedBuffer.removeLast()
             processor.reset한글조합()
         } else {
-            // 버퍼가 모두 비어있으면 일반 삭제
             textDocumentProxy.deleteBackward()
             processor.reset한글조합()
         }
@@ -309,22 +316,61 @@ private extension HangeulKeyboardCoreViewController {
     
     /// `CompositionResult`를 `textDocumentProxy`에 반영합니다.
     func applyCompositionResult(_ result: CompositionResult) {
-        // 1. 기존 composingBuffer를 화면에서 제거 (최대 1~2글자)
-        for _ in 0..<composingBuffer.count { textDocumentProxy.deleteBackward() }
+        let oldComposingCount = composingBuffer.count
+        let hadPreviousComposing = oldComposingCount > 0
         
-        // 2. 확정된 글자 + 새 조합 글자를 한 번에 입력
-        let textToInsert = result.committed + result.composing
+        for _ in 0..<oldComposingCount { textDocumentProxy.deleteBackward() }
+        
+        let finalCommitted = result.committed
+        let finalComposing = result.composing
+        
+        // 입력 시 종성 복원: composing이 낱자 자음 1개이고 committed가 비어있으면
+        // committedBuffer의 마지막 한글과 합치기 시도
+        // 단, 이전 composing이 있었을 때만 (변환의 결과). 이전 composing이 비었으면 새 입력이므로 복원 안 함.
+        if hadPreviousComposing && finalCommitted.isEmpty && finalComposing.count == 1 && !committedBuffer.isEmpty {
+            if let restored = tryRestore종성(자음: finalComposing, committed: &committedBuffer) {
+                textDocumentProxy.deleteBackward()
+                textDocumentProxy.insertText(restored)
+                composingBuffer = restored
+                lastInputText = result.input글자
+                updateSpaceButtonImage()
+                return
+            }
+        }
+        
+        let textToInsert = finalCommitted + finalComposing
         if !textToInsert.isEmpty {
             textDocumentProxy.insertText(textToInsert)
         }
         
-        // 3. 버퍼 업데이트
-        committedBuffer.append(result.committed)
-        composingBuffer = result.composing
+        committedBuffer.append(finalCommitted)
+        composingBuffer = finalComposing
         
-        // 4. 반복 입력 정보 저장
         lastInputText = result.input글자
         updateSpaceButtonImage()
+    }
+    
+    /// 낱자 자음 1개를 `committed`의 마지막 한글에 종성으로 합치는 시도
+    ///
+    /// 성공하면 합쳐진 글자를 반환하고 `committed`에서 마지막 글자를 제거합니다.
+    /// 실패하면 `nil`을 반환하고 `committed`를 변경하지 않습니다.
+    func tryRestore종성(자음: String, committed: inout String) -> String? {
+        guard 자음.count == 1, !committed.isEmpty else { return nil }
+        guard automata.종성Table.contains(자음) && 자음 != " " else { return nil }
+        guard let lastCommitted = committed.last,
+              let _ = automata.decompose(한글Char: lastCommitted) else { return nil }
+        
+        let lastCommittedStr = String(lastCommitted)
+        let (committed2, merged) = automata.add글자(글자Input: 자음, composing: lastCommittedStr)
+        let mergedText = committed2 + merged
+        
+        // 2글자 → 1글자로 합쳐진 경우만 성공
+        if mergedText.count == 1 {
+            committed.removeLast()
+            return mergedText
+        }
+        
+        return nil
     }
     
     /// `composingBuffer`를 `committedBuffer`로 이동시킵니다 (조합 확정).
@@ -347,7 +393,6 @@ private extension HangeulKeyboardCoreViewController {
         }
     }
     
-    /// Shift 버튼을 상황에 맞게 업데이트하는 메서드
     func updateShiftButton() {
         guard !buttonStateController.isShiftButtonPressed else { return }
         primaryKeyboardView.updateShiftButton(isShifted: false)

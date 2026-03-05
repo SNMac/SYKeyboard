@@ -113,10 +113,10 @@ final class NaratgeulProcessor: HangeulProcessable {
     }
     
     func delete(composing: String) -> String {
-        // 1. 'ㅣ' 결합 분해 시도 (예: 애 -> 아)
+        // 1. 'ㅣ' 결합 분해 시도 (예: '애' -> '아')
         if let result = decompose모음(composing: composing) { return result }
         
-        // 2. 이중모음 분해 시도 (예: 뭐 -> 무)
+        // 2. 이중모음 분해 시도 (예: '뭐' -> '무')
         if let result = decompose이중모음(composing: composing) { return result }
         
         // 3. 일반 삭제는 오토마타에게 위임
@@ -208,9 +208,8 @@ private extension NaratgeulProcessor {
                         return .composingOnly(prefix + String(new글자), input글자: converted종성)
                     }
                     
-                    // Case 2: 종성으로 쓸 수 없는 경우 (예: ㅁ -> ㅃ, 옴 -> 오ㅃ)
+                    // Case 2: 종성으로 쓸 수 없는 경우 (예: ㅁ -> ㅃ, '옴' -> '오ㅃ')
                     else if let prevCharWithout종성 = automata.combine(초성Index: 초성Index, 중성Index: 중성Index, 종성Index: 0) {
-                        let separatedText = prefix + String(prevCharWithout종성) + converted종성
                         // 앞 글자는 확정, 쌍자음은 새 조합
                         return CompositionResult(
                             committed: prefix + String(prevCharWithout종성),
@@ -324,7 +323,7 @@ private extension NaratgeulProcessor {
         return nil
     }
     
-    /// 'ㅣ' 결합된 모음을 분해 (예: 애 -> 아)
+    /// 'ㅣ' 결합된 모음을 분해 (예: '애' -> '아')
     func decompose모음(composing: String) -> String? {
         guard let lastChar = composing.last else { return nil }
         
@@ -353,7 +352,7 @@ private extension NaratgeulProcessor {
         return nil
     }
     
-    /// 이중모음 결합 (예: ㅜ + ㅓ = ㅝ)
+    /// 이중모음 결합 (예: 'ㅜ' + 'ㅓ' = 'ㅝ')
     func combine이중모음(글자Input: String, composing: String) -> CompositionResult? {
         guard let lastChar = composing.last else { return nil }
         
@@ -389,7 +388,7 @@ private extension NaratgeulProcessor {
         return nil
     }
     
-    /// 이중모음 분해 (예: 뭐 -> 무)
+    /// 이중모음 분해 (예: '뭐' -> '무')
     func decompose이중모음(composing: String) -> String? {
         guard let lastChar = composing.last else { return nil }
         

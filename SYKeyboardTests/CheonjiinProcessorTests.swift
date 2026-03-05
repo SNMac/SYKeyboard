@@ -138,7 +138,7 @@ struct CheonjiinProcessorTests {
         #expect(c + p == "달거")
         
         // 3. 삭제 -> '닭'으로 복원
-        p = processor.delete(composing: p)
+        (c, p) = applyDelete(committed: c, composing: p)
         #expect(c + p == "닭")
     }
     
@@ -218,10 +218,55 @@ struct CheonjiinProcessorTests {
 
 private extension CheonjiinProcessorTests {
     
-    /// 프로세서 입력 후 committed/composing을 누적하는 헬퍼
+    /// 프로세서 입력 후 `committed`/`composing`을 누적하는 헬퍼
     func applyInput(_ char: String, committed: String, composing: String) -> (committed: String, composing: String) {
+        let hadPreviousComposing = !composing.isEmpty
         let result = processor.input(글자Input: char, composing: composing)
-        return (committed + result.committed, result.composing)
+        var c = committed + result.committed
+        let p = result.composing
+        
+        if hadPreviousComposing && result.committed.isEmpty && p.count == 1 && !c.isEmpty {
+            if let restored = tryRestore종성(자음: p, committed: &c) {
+                return (c, restored)
+            }
+        }
+        
+        return (c, p)
+    }
+    
+    /// ViewController의 `deleteBackward`를 시뮬레이션하는 삭제 헬퍼
+    func applyDelete(committed: String, composing: String) -> (committed: String, composing: String) {
+        var c = committed
+        var p = composing
+        
+        if !p.isEmpty {
+            p = processor.delete(composing: p)
+            
+            if let restored = tryRestore종성(자음: p, committed: &c) {
+                return (c, restored)
+            }
+        } else if !c.isEmpty {
+            c.removeLast()
+        }
+        
+        return (c, p)
+    }
+    
+    func tryRestore종성(자음: String, committed: inout String) -> String? {
+        guard 자음.count == 1, !committed.isEmpty else { return nil }
+        guard automata.종성Table.contains(자음) && 자음 != " " else { return nil }
+        guard let lastCommitted = committed.last,
+              let _ = automata.decompose(한글Char: lastCommitted) else { return nil }
+        
+        let lastCommittedStr = String(lastCommitted)
+        let (committed2, merged) = automata.add글자(글자Input: 자음, composing: lastCommittedStr)
+        let mergedText = committed2 + merged
+        
+        if mergedText.count == 1 {
+            committed.removeLast()
+            return mergedText
+        }
+        return nil
     }
     
     /// 완성된 한글 한 글자를 천지인 키 입력 배열로 분해
