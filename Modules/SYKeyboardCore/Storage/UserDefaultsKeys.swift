@@ -14,10 +14,8 @@ public enum UserDefaultsKeys {
     public static let isHapticFeedbackEnabled = "isHapticFeedbackEnabled"
     
     /* 입력 설정 */
-    /// 길게 누르기 동작 - 반복 입력
-    public static let isLongPressToRepeatInputEnabled = "isLongPressToRepeatInputEnabled"
-    /// 길게 누르기 동작 - 숫자 입력
-    public static let isLongPressToNumberInputEnabled = "isLongPressToNumberInputEnabled"
+    /// 선택한 길게 누르기 동작
+    public static let selectedLongPressAction = "selectedLongPressAction"
     /// 드래그하여 커서 이동
     public static let isDragToMoveCursorEnabled = "isDragToMoveCursorEnabled"
     /// 텍스트 대치

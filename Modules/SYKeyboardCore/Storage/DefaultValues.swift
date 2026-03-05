@@ -18,10 +18,8 @@ public enum DefaultValues {
     public static let isHapticFeedbackEnabled: Bool = true
     
     /* 입력 설정 */
-    /// 길게 누르기 동작 - 반복 입력 기본값
-    public static let isLongPressToRepeatInputEnabled: Bool = true
-    /// 길게 누르기 동작 - 숫자 입력 기본값
-    public static let isLongPressToNumberInputEnabled: Bool = false
+    /// 선택한 길게 누르기 동작
+    public static let selectedLongPressAction: LongPressAction = .repeatInput
     /// 드래그하여 커서 이동 기본값
     public static let isDragToMoveCursorEnabled: Bool = true
     /// 텍스트 대치 기본값

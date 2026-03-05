@@ -80,6 +80,8 @@ private extension OneHandedKeyboardWidthSettingsView {
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
                     oneHandedKeyboardWidth = tempOneHandedKeyboardWidth
+                    Analytics.setUserProperty(String(format: "%.1f", oneHandedKeyboardWidth),
+                                              forName: "pref_one_handed_width")
                     Analytics.logEvent("one_handed_keyboard_width", parameters: [
                         "view": "OneHandedKeyboardWidthSettingsView",
                         "value": oneHandedKeyboardWidth

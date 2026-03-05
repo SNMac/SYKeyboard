@@ -103,12 +103,19 @@ final public class UserDefaultsManager {
     public var isHapticFeedbackEnabled: Bool
     
     /* 입력 설정 */
-    /// 길게 누르기 동작 - 반복 입력
-    @UserDefaultsWrapper(key: UserDefaultsKeys.isLongPressToRepeatInputEnabled, defaultValue: DefaultValues.isLongPressToRepeatInputEnabled)
-    public var isLongPressToRepeatInputEnabled: Bool
-    /// 길게 누르기 동작 - 숫자 입력
-    @UserDefaultsWrapper(key: UserDefaultsKeys.isLongPressToNumberInputEnabled, defaultValue: DefaultValues.isLongPressToNumberInputEnabled)
-    public var isLongPressToNumberInputEnabled: Bool
+    /// 선택한 길게 누르기 동작
+    public var selectedLongPressAction: LongPressAction {
+        get {
+            guard let rawValue = self.storage.object(forKey: UserDefaultsKeys.selectedLongPressAction) as? LongPressAction.RawValue,
+                  let value = LongPressAction(rawValue: rawValue) else {
+                return DefaultValues.selectedLongPressAction
+            }
+            return value
+        }
+        set {
+            self.storage.set(newValue.rawValue, forKey: UserDefaultsKeys.selectedLongPressAction)
+        }
+    }
     /// 드래그하여 커서 이동
     @UserDefaultsWrapper(key: UserDefaultsKeys.isDragToMoveCursorEnabled, defaultValue: DefaultValues.isDragToMoveCursorEnabled)
     public var isDragToMoveCursorEnabled: Bool
