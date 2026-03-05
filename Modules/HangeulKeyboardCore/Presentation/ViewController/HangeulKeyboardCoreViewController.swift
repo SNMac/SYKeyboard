@@ -12,7 +12,7 @@ import SYKeyboardCore
 /// 한글 키보드 입력/UI 컨트롤러
 ///
 /// `committedBuffer`와 `composingBuffer`를 분리하여
-/// `textDocumentProxy`에 대한 delete/insert를 composingBuffer(최대 1~2글자)로 한정합니다.
+/// `textDocumentProxy`에 대한 delete/insert를 `composingBuffer`(최대 1~2글자)로 한정합니다.
 /// 이를 통해 버퍼 크기에 무관하게 항상 O(1) 성능을 보장합니다.
 open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
     
@@ -206,6 +206,12 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
             super.repeatTextInteractionDidPerform(button: button)
             button.isGesturing = false
             return
+        }
+        
+        // 반복 입력은 조합과 무관하므로, 먼저 조합 중인 글자를 확정
+        if !composingBuffer.isEmpty {
+            commitComposingBuffer()
+            processor.reset한글조합()
         }
         
         textDocumentProxy.insertText(lastInputText)
