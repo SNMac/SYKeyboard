@@ -10,12 +10,20 @@ import UIKit
 import SYKeyboardCore
 
 /// 한글 키보드 입력/UI 컨트롤러
+///
+/// `committedBuffer`와 `composingBuffer`를 분리하여
+/// `textDocumentProxy`에 대한 delete/insert를 `composingBuffer`(최대 1~2글자)로 한정합니다.
 open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
     
     // MARK: - Properties
     
-    /// 입력한 문자열 임시저장 버퍼
-    private var buffer: String = ""
+    /// 조합이 완료되어 더 이상 변경되지 않는 문자열.
+    /// `textDocumentProxy`에 이미 확정 입력되어 있으므로 delete/insert 대상이 아닙니다.
+    private var committedBuffer: String = ""
+    
+    /// 현재 오토마타가 조합 중인 문자열 (최대 1~2글자).
+    private var composingBuffer: String = ""
+    
     /// 마지막으로 입력한 문자
     private var lastInputText: String?
     /// 현재 반복 입력 동작 중인지 확인하는 플래그
@@ -85,7 +93,7 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
     
     open override func textWillChange(_ textInput: (any UITextInput)?) {
         super.textWillChange(textInput)
-        buffer.removeAll()
+        clearAllBuffers()
         lastInputText = nil
         processor.reset한글조합()
         updateSpaceButtonImage()
@@ -106,7 +114,6 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
             symbolKeyboardView.currentSymbolKeyboardMode = .default
             currentKeyboard = primaryKeyboardView.keyboard
         case .asciiCapable:
-            // 지원 안함
             hangeulKeyboardView.currentHangeulKeyboardMode = .default
             symbolKeyboardView.currentSymbolKeyboardMode = .default
             currentKeyboard = primaryKeyboardView.keyboard
@@ -122,7 +129,6 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
             tenkeyKeyboardView.currentTenkeyKeyboardMode = .numberPad
             currentKeyboard = .tenKey
         case .phonePad, .namePhonePad:
-            // 항상 iOS 시스템 키보드 표시됨
             tenkeyKeyboardView.currentTenkeyKeyboardMode = .numberPad
             currentKeyboard = .tenKey
         case .emailAddress:
@@ -177,15 +183,7 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
         
         guard let primaryKey = button.type.primaryKeyList.first else { fatalError("primaryKeyList 배열이 비어있습니다.") }
         
-        let beforeText = String(buffer.reversed().prefix(while: { !$0.isWhitespace }).reversed())
-        let (processedText, input글자) = processor.input(글자Input: primaryKey, beforeText: beforeText)
-        
-        for _ in 0..<beforeText.count { textDocumentProxy.deleteBackward() }
-        textDocumentProxy.insertText(processedText)
-        
-        buffer = processedText
-        lastInputText = input글자
-        updateSpaceButtonImage()
+        applyCompositionResult(processor.input(글자Input: primaryKey, composing: composingBuffer))
     }
     
     open override func insertSecondaryKeyText(from button: TextInteractable) {
@@ -196,15 +194,7 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
             return
         }
         
-        let beforeText = String(buffer.reversed().prefix(while: { !$0.isWhitespace }).reversed())
-        let (processedText, input글자) = processor.input(글자Input: secondaryKey, beforeText: beforeText)
-        
-        for _ in 0..<beforeText.count { textDocumentProxy.deleteBackward() }
-        textDocumentProxy.insertText(processedText)
-        
-        buffer = processedText
-        lastInputText = input글자
-        updateSpaceButtonImage()
+        applyCompositionResult(processor.input(글자Input: secondaryKey, composing: composingBuffer))
     }
     
     open override func repeatInsertPrimaryKeyText(from button: TextInteractable) {
@@ -217,7 +207,8 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
         }
         
         textDocumentProxy.insertText(lastInputText)
-        buffer.append(lastInputText)
+        // 반복 입력은 조합과 무관하므로 committed에 직접 추가
+        committedBuffer.append(lastInputText)
     }
     
     open override func insertSpaceText() {
@@ -226,21 +217,22 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
         if currentKeyboard == .naratgeul ||
             currentKeyboard == .cheonjiin ||
             currentKeyboard == .dubeolsik {
-            let result = processor.inputSpace(beforeText: buffer)
+            let result = processor.inputSpace(composing: composingBuffer)
             switch result {
             case .insertSpace:
-                // 실제 공백 입력
                 super.insertSpaceText()
-                buffer.removeAll()
+                commitComposingBuffer()
+                committedBuffer.append(" ")
                 lastInputText = nil
                 
             case .commitCombination:
-                // 조합 끊기 (화면 변화 없음, 버퍼 유지)
-                lastInputText = nil // 반복 입력(ㄱ -> ㅋ) 방지용 초기화
+                commitComposingBuffer()
+                lastInputText = nil
             }
         } else {
             super.insertSpaceText()
-            buffer.removeAll()
+            commitComposingBuffer()
+            committedBuffer.append(" ")
             lastInputText = nil
         }
         
@@ -251,7 +243,7 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
         if isPreview { return }
         
         super.insertReturnText()
-        buffer.removeAll()
+        commitComposingBuffer()
         processor.reset한글조합()
         lastInputText = nil
         updateSpaceButtonImage()
@@ -262,16 +254,25 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
         
         deleteBackwardWillPerform()
         
-        if !buffer.isEmpty {
-            for _ in 0..<buffer.count { textDocumentProxy.deleteBackward() }
-            let text = processor.delete(beforeText: buffer)
-            textDocumentProxy.insertText(text)
-            buffer = text
+        if !composingBuffer.isEmpty {
+            // 조합 중인 글자가 있으면 composingBuffer에서만 삭제 처리
+            for _ in 0..<composingBuffer.count { textDocumentProxy.deleteBackward() }
+            let remaining = processor.delete(composing: composingBuffer)
+            if !remaining.isEmpty {
+                textDocumentProxy.insertText(remaining)
+            }
+            composingBuffer = remaining
             
-            if buffer.isEmpty {
+            if composingBuffer.isEmpty {
                 processor.reset한글조합()
             }
+        } else if !committedBuffer.isEmpty {
+            // 조합 중인 글자가 없고 확정된 버퍼가 있으면 마지막 확정 글자 삭제
+            textDocumentProxy.deleteBackward()
+            committedBuffer.removeLast()
+            processor.reset한글조합()
         } else {
+            // 버퍼가 모두 비어있으면 일반 삭제
             textDocumentProxy.deleteBackward()
             processor.reset한글조합()
         }
@@ -285,12 +286,15 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
         repeatDeleteBackwardWillPerform()
         
         textDocumentProxy.deleteBackward()
-        if !buffer.isEmpty {
-            buffer.removeLast()
+        if !composingBuffer.isEmpty {
+            composingBuffer.removeLast()
             
-            if buffer.isEmpty {
+            if composingBuffer.isEmpty {
                 processor.reset한글조합()
             }
+        } else if !committedBuffer.isEmpty {
+            committedBuffer.removeLast()
+            processor.reset한글조합()
         } else {
             processor.reset한글조합()
         }
@@ -302,6 +306,39 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
 // MARK: - Private Methods
 
 private extension HangeulKeyboardCoreViewController {
+    
+    /// `CompositionResult`를 `textDocumentProxy`에 반영합니다.
+    func applyCompositionResult(_ result: CompositionResult) {
+        // 1. 기존 composingBuffer를 화면에서 제거 (최대 1~2글자)
+        for _ in 0..<composingBuffer.count { textDocumentProxy.deleteBackward() }
+        
+        // 2. 확정된 글자 + 새 조합 글자를 한 번에 입력
+        let textToInsert = result.committed + result.composing
+        if !textToInsert.isEmpty {
+            textDocumentProxy.insertText(textToInsert)
+        }
+        
+        // 3. 버퍼 업데이트
+        committedBuffer.append(result.committed)
+        composingBuffer = result.composing
+        
+        // 4. 반복 입력 정보 저장
+        lastInputText = result.input글자
+        updateSpaceButtonImage()
+    }
+    
+    /// `composingBuffer`를 `committedBuffer`로 이동시킵니다 (조합 확정).
+    func commitComposingBuffer() {
+        committedBuffer.append(composingBuffer)
+        composingBuffer.removeAll()
+    }
+    
+    /// 모든 버퍼를 초기화합니다.
+    func clearAllBuffers() {
+        committedBuffer.removeAll()
+        composingBuffer.removeAll()
+    }
+    
     func updateSpaceButtonImage() {
         if processor.is한글조합OnGoing {
             primaryKeyboardView.updateSpaceButtonImage(systemName: "arrow.right")
@@ -312,7 +349,6 @@ private extension HangeulKeyboardCoreViewController {
     
     /// Shift 버튼을 상황에 맞게 업데이트하는 메서드
     func updateShiftButton() {
-        // Shift 버튼이 눌려있는 경우 실행 X
         guard !buttonStateController.isShiftButtonPressed else { return }
         primaryKeyboardView.updateShiftButton(isShifted: false)
         is글자Input = false
