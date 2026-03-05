@@ -12,7 +12,7 @@ import SYKeyboardCore
 /// 한글 키보드 입력/UI 컨트롤러
 ///
 /// `committedBuffer`와 `composingBuffer`를 분리하여
-/// textDocumentProxy에 대한 delete/insert를 composingBuffer(최대 1~2글자)로 한정합니다.
+/// `textDocumentProxy`에 대한 delete/insert를 composingBuffer(최대 1~2글자)로 한정합니다.
 /// 이를 통해 버퍼 크기에 무관하게 항상 O(1) 성능을 보장합니다.
 open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
     
@@ -263,6 +263,8 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
             
             // 종성 복원: 삭제 후 낱자 자음 1개만 남고 committed에 한글이 있으면 합치기 시도
             if let restored = tryRestore종성(자음: remaining, committed: &committedBuffer) {
+                // committed에서 마지막 글자가 제거되었으므로 화면에서도 제거
+                textDocumentProxy.deleteBackward()
                 textDocumentProxy.insertText(restored)
                 composingBuffer = restored
             } else {
