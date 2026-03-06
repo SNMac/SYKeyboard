@@ -284,9 +284,28 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
                 processor.reset한글조합()
             }
         } else if !committedBuffer.isEmpty {
-            textDocumentProxy.deleteBackward()
-            committedBuffer.removeLast()
-            processor.reset한글조합()
+            let lastCommitted = committedBuffer.last!
+            
+            // 한글이면 composing으로 옮겨서 자소 단위 분해 삭제
+            if automata.decompose(한글Char: lastCommitted) != nil {
+                textDocumentProxy.deleteBackward()
+                committedBuffer.removeLast()
+                
+                let decomposed = processor.delete(composing: String(lastCommitted))
+                if !decomposed.isEmpty {
+                    textDocumentProxy.insertText(decomposed)
+                }
+                composingBuffer = decomposed
+                
+                if composingBuffer.isEmpty {
+                    processor.reset한글조합()
+                }
+            } else {
+                // 비한글(숫자, 기호 등)은 통째로 삭제
+                textDocumentProxy.deleteBackward()
+                committedBuffer.removeLast()
+                processor.reset한글조합()
+            }
         } else {
             textDocumentProxy.deleteBackward()
             processor.reset한글조합()
@@ -324,9 +343,28 @@ private extension HangeulKeyboardCoreViewController {
     
     /// `CompositionResult`를 `textDocumentProxy`에 반영합니다.
     func applyCompositionResult(_ result: CompositionResult) {
-        let oldComposingCount = composingBuffer.count
+        let oldComposing = composingBuffer
+        let oldComposingCount = oldComposing.count
         let hadPreviousComposing = oldComposingCount > 0
         
+        // 최적화: 기존 composing이 변경 없이 그대로 확정된 경우 (예: 숫자/기호 입력)
+        // delete → reinsert를 건너뛰고 새 글자만 append
+        if result.committed == oldComposing {
+            // 기존 composing이 그대로 committed → 화면에서 지우고 다시 넣을 필요 없음
+            committedBuffer.append(result.committed)
+            composingBuffer = result.composing
+            
+            // 새 composing 부분만 입력
+            if !result.composing.isEmpty {
+                textDocumentProxy.insertText(result.composing)
+            }
+            
+            lastInputText = result.input글자
+            updateSpaceButtonImage()
+            return
+        }
+        
+        // 일반 경로: 기존 composing을 지우고 새 결과를 입력
         for _ in 0..<oldComposingCount { textDocumentProxy.deleteBackward() }
         
         let finalCommitted = result.committed

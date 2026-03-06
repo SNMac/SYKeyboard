@@ -223,7 +223,7 @@ private extension CheonjiinProcessorTests {
         let hadPreviousComposing = !composing.isEmpty
         let result = processor.input(글자Input: char, composing: composing)
         var c = committed + result.committed
-        let p = result.composing
+        var p = result.composing
         
         if hadPreviousComposing && result.committed.isEmpty && p.count == 1 && !c.isEmpty {
             if let restored = tryRestore종성(자음: p, committed: &c) {
@@ -242,11 +242,19 @@ private extension CheonjiinProcessorTests {
         if !p.isEmpty {
             p = processor.delete(composing: p)
             
+            // 삭제 시 종성 복원
             if let restored = tryRestore종성(자음: p, committed: &c) {
                 return (c, restored)
             }
         } else if !c.isEmpty {
-            c.removeLast()
+            let lastCommitted = c.last!
+            // 한글이면 composing으로 옮겨서 자소 단위 분해 삭제
+            if automata.decompose(한글Char: lastCommitted) != nil {
+                c.removeLast()
+                p = processor.delete(composing: String(lastCommitted))
+            } else {
+                c.removeLast()
+            }
         }
         
         return (c, p)
