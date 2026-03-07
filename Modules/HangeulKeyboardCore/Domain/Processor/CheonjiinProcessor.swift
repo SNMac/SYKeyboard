@@ -57,7 +57,7 @@ final class CheonjiinProcessor: HangeulProcessable {
         self.automata = automata
     }
     
-    // MARK: - Protocol Implementation
+    // MARK: - HangeulProcessable Methods
     
     func input(글자Input: String, composing: String) -> CompositionResult {
         let is천지인모음 = ["ㆍ", "ㅡ", "ㅣ"].contains(글자Input)
@@ -187,6 +187,10 @@ final class CheonjiinProcessor: HangeulProcessable {
         }
         
         return deletedText
+    }
+    
+    func start한글조합() {
+        is한글조합OnGoing = true
     }
     
     func reset한글조합() {

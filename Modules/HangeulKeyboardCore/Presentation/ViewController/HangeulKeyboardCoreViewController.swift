@@ -228,8 +228,8 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
             switch result {
             case .insertSpace:
                 super.insertSpaceText()
-                commitComposingBuffer()
-                committedBuffer.append(" ")
+                clearAllBuffers()
+                processor.reset한글조합()
                 lastInputText = nil
                 
             case .commitCombination:
@@ -238,8 +238,8 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
             }
         } else {
             super.insertSpaceText()
-            commitComposingBuffer()
-            committedBuffer.append(" ")
+            clearAllBuffers()
+            processor.reset한글조합()
             lastInputText = nil
         }
         
@@ -250,7 +250,8 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
         if isPreview { return }
         
         super.insertReturnText()
-        commitComposingBuffer()
+        
+        clearAllBuffers()
         processor.reset한글조합()
         lastInputText = nil
         updateSpaceButtonImage()
@@ -281,8 +282,24 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
             }
             
             if composingBuffer.isEmpty {
-                processor.reset한글조합()
+                if !committedBuffer.isEmpty {
+                    let lastCommitted = committedBuffer.last!
+                    let lastStr = String(lastCommitted)
+                    if automata.초성Table.contains(lastStr) || automata.중성Table.contains(lastStr)
+                        || automata.decompose(한글Char: lastCommitted) != nil {
+                        committedBuffer.removeLast()
+                        textDocumentProxy.deleteBackward()
+                        textDocumentProxy.insertText(lastStr)
+                        composingBuffer = lastStr
+                        processor.start한글조합()
+                    }
+                }
+                
+                if composingBuffer.isEmpty {
+                    processor.reset한글조합()
+                }
             }
+            
         } else if !committedBuffer.isEmpty {
             let lastCommitted = committedBuffer.last!
             

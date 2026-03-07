@@ -11,7 +11,7 @@ import OSLog
 @testable import HangeulKeyboardCore
 
 @Suite("나랏글 입력기 검증")
-struct NaratgeulProcessorTests {
+struct NaratgeulProcessorTests: HangeulProcessorTestable {
     
     // MARK: - Properties
     
@@ -20,8 +20,8 @@ struct NaratgeulProcessorTests {
         category: String(describing: "NaratgeulProcessorTests")
     )
     
-    private let automata: HangeulAutomataProtocol = HangeulAutomata()
-    private let processor: HangeulProcessable
+    let automata: HangeulAutomataProtocol = HangeulAutomata()
+    let processor: HangeulProcessable
     
     var 나랏글자음Map: [String: [String]] {
         [
@@ -304,14 +304,37 @@ struct NaratgeulProcessorTests {
         #expect(c + p == "달ㅋ")
         
         // 3. 달ㅋ + 획 -> 닭 (복원: ㅋ -> ㄱ, 달+ㄱ -> 닭)
-        // 획추가로 ㅋ->ㄱ이 되면 낱자 자음 "ㄱ"이 남고, committed "달"과 합쳐져서 "닭"이 됨
         (c, p) = applyInput("획", committed: c, composing: p)
-        // 프로세서가 "ㅋ" -> "ㄱ"으로 변환, 오토마타가 "달" + "ㄱ" 결합 시도
-        // 결과: committed에 "달"이 있고 composing에 "ㄱ"이 있을 수 있으므로 합산 확인
         #expect(c + p == "닭")
     }
     
-    // MARK: - 9. 나랏글 11,172자 전체 검증 (Heavy Test)
+    // MARK: - 9. 삭제 후 재입력 결합 테스트
+    
+    @Test("삭제 후 재입력: ㄴㄴ -> 삭제 -> ㄴ -> ㅏ 입력 시 '나'로 결합")
+    func test삭제후_재입력_결합() {
+        var (c, p) = ("", "")
+        
+        // 1. ㄴ 두 번 입력 -> "ㄴㄴ"
+        (c, p) = applyInput("ㄴ", committed: c, composing: p)
+        (c, p) = applyInput("ㄴ", committed: c, composing: p)
+        #expect(c + p == "ㄴㄴ")
+        
+        // 2. ㅏ 입력 -> "ㄴ나"
+        (c, p) = applyInput("ㅏ", committed: c, composing: p)
+        #expect(c + p == "ㄴ나")
+        
+        // 3. 삭제 두 번 -> "ㄴ"
+        (c, p) = applyDelete(committed: c, composing: p)
+        #expect(c + p == "ㄴㄴ")
+        (c, p) = applyDelete(committed: c, composing: p)
+        #expect(c + p == "ㄴ")
+        
+        // 4. ㅏ 입력 -> "나"여야 함
+        (c, p) = applyInput("ㅏ", committed: c, composing: p)
+        #expect(c + p == "나", "삭제 후 남은 낱자 자음이 다음 모음과 결합되어야 합니다.")
+    }
+    
+    // MARK: - 10. 나랏글 11,172자 전체 검증 (Heavy Test)
     
     @Test("나랏글 11,172자 전체 생성 및 삭제 검증")
     func validateAll나랏글한글글자() {
@@ -363,68 +386,9 @@ struct NaratgeulProcessorTests {
     }
 }
 
-// MARK: - Test Helper Methods
+// MARK: - Private Methods
 
 private extension NaratgeulProcessorTests {
-    
-    /// 프로세서 입력 후 `committed`/`composing`을 누적하는 헬퍼
-    func applyInput(_ char: String, committed: String, composing: String) -> (committed: String, composing: String) {
-        let hadPreviousComposing = !composing.isEmpty
-        let result = processor.input(글자Input: char, composing: composing)
-        var c = committed + result.committed
-        var p = result.composing
-        
-        if hadPreviousComposing && result.committed.isEmpty && p.count == 1 && !c.isEmpty {
-            if let restored = tryRestore종성(자음: p, committed: &c) {
-                return (c, restored)
-            }
-        }
-        
-        return (c, p)
-    }
-    
-    /// ViewController의 `deleteBackward`를 시뮬레이션하는 삭제 헬퍼
-    func applyDelete(committed: String, composing: String) -> (committed: String, composing: String) {
-        var c = committed
-        var p = composing
-        
-        if !p.isEmpty {
-            p = processor.delete(composing: p)
-            
-            // 삭제 시 종성 복원
-            if let restored = tryRestore종성(자음: p, committed: &c) {
-                return (c, restored)
-            }
-        } else if !c.isEmpty {
-            let lastCommitted = c.last!
-            // 한글이면 composing으로 옮겨서 자소 단위 분해 삭제
-            if automata.decompose(한글Char: lastCommitted) != nil {
-                c.removeLast()
-                p = processor.delete(composing: String(lastCommitted))
-            } else {
-                c.removeLast()
-            }
-        }
-        
-        return (c, p)
-    }
-    
-    func tryRestore종성(자음: String, committed: inout String) -> String? {
-        guard 자음.count == 1, !committed.isEmpty else { return nil }
-        guard automata.종성Table.contains(자음) && 자음 != " " else { return nil }
-        guard let lastCommitted = committed.last,
-              let _ = automata.decompose(한글Char: lastCommitted) else { return nil }
-        
-        let lastCommittedStr = String(lastCommitted)
-        let (committed2, merged) = automata.add글자(글자Input: 자음, composing: lastCommittedStr)
-        let mergedText = committed2 + merged
-        
-        if mergedText.count == 1 {
-            committed.removeLast()
-            return mergedText
-        }
-        return nil
-    }
     
     /// 완성형 한글 1자를 나랏글 입력 시퀀스로 변환
     func convertTo나랏글입력(for char: Character) -> [String] {

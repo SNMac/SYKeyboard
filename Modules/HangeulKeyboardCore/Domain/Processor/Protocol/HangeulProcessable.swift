@@ -64,6 +64,9 @@ protocol HangeulProcessable: AnyObject {
     /// - Returns: 삭제 후 남은 조합 문자열
     func delete(composing: String) -> String
     
+    /// 한글 조합 상태를 시작합니다.
+    func start한글조합()
+    
     /// 한글 조합 상태를 리셋합니다.
     func reset한글조합()
 }

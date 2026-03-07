@@ -11,7 +11,7 @@ import OSLog
 @testable import HangeulKeyboardCore
 
 @Suite("천지인 입력기 검증")
-struct CheonjiinProcessorTests {
+struct CheonjiinProcessorTests: HangeulProcessorTestable {
     
     // MARK: - Properties
     
@@ -20,8 +20,8 @@ struct CheonjiinProcessorTests {
         category: String(describing: "CheonjiinProcessorTests")
     )
     
-    private let automata: HangeulAutomataProtocol = HangeulAutomata()
-    private let processor: HangeulProcessable
+    let automata: HangeulAutomataProtocol = HangeulAutomata()
+    let processor: HangeulProcessable
     
     private let 천 = "ㆍ"
     private let 지 = "ㅡ"
@@ -185,7 +185,61 @@ struct CheonjiinProcessorTests {
         #expect(c + p == "와")
     }
     
-    // MARK: - 4. 11,172자 전체 검증 (Heavy Test)
+    // MARK: - 4. 삭제 후 재입력 결합 테스트
+    
+    @Test("삭제 후 재입력: 조합 확정 -> 새 글자 입력 -> 삭제 -> 낱자 자음이 composing으로 복귀")
+    func test삭제후_재입력_결합() {
+        var (c, p) = ("", "")
+        
+        // 1. '간' 만들기
+        (c, p) = applyInput("ㄱ", committed: c, composing: p)
+        (c, p) = applyInput("ㅣ", committed: c, composing: p)
+        (c, p) = applyInput("ㆍ", committed: c, composing: p) // 가
+        (c, p) = applyInput("ㄴ", committed: c, composing: p) // 간
+        #expect(c + p == "간")
+        
+        // 2. Space(조합 확정) 후 ㄴ 입력
+        _ = processor.inputSpace(composing: p)
+        c += p
+        p = ""
+        (c, p) = applyInput("ㄴ", committed: c, composing: p)
+        #expect(c + p == "간ㄴ")
+        
+        // 3. 삭제 -> "간" 유지
+        (c, p) = applyDelete(committed: c, composing: p)
+        #expect(c + p == "간")
+        
+        // 4. ㅣ + ㆍ 입력 -> "가나" (연음: 간 + ㅏ -> 가나)
+        (c, p) = applyInput("ㅣ", committed: c, composing: p)
+        (c, p) = applyInput("ㆍ", committed: c, composing: p)
+        #expect(c + p == "가나", "삭제 후 확정 글자가 composing으로 복귀하여 연음이 발생해야 합니다.")
+    }
+    
+    @Test("조합 확정 후 삭제: '가' 확정 -> 'ㄴ' 입력 -> 삭제 시 '가' 유지")
+    func test조합확정후_삭제_이전글자유지() {
+        var (c, p) = ("", "")
+        
+        // 1. '가' 만들기
+        (c, p) = applyInput("ㄱ", committed: c, composing: p)
+        (c, p) = applyInput("ㅣ", committed: c, composing: p)
+        (c, p) = applyInput("ㆍ", committed: c, composing: p)
+        #expect(c + p == "가")
+        
+        // 2. Space(조합 확정)
+        _ = processor.inputSpace(composing: p)
+        c += p
+        p = ""
+        
+        // 3. 'ㄴ' 입력
+        (c, p) = applyInput("ㄴ", committed: c, composing: p)
+        #expect(c + p == "가ㄴ")
+        
+        // 4. 삭제 -> "가"가 남아야 함 (""가 되면 안 됨)
+        (c, p) = applyDelete(committed: c, composing: p)
+        #expect(c + p == "가", "조합 확정 후 새 글자를 삭제해도 이전 확정 글자는 유지되어야 합니다.")
+    }
+    
+    // MARK: - 5. 11,172자 전체 검증 (Heavy Test)
     
     @Test("천지인 11,172자 전체 생성 및 삭제 검증")
     func validateAllCharacters() {
@@ -214,68 +268,9 @@ struct CheonjiinProcessorTests {
     }
 }
 
-// MARK: - Test Helpers
+// MARK: - Private Methods
 
 private extension CheonjiinProcessorTests {
-    
-    /// 프로세서 입력 후 `committed`/`composing`을 누적하는 헬퍼
-    func applyInput(_ char: String, committed: String, composing: String) -> (committed: String, composing: String) {
-        let hadPreviousComposing = !composing.isEmpty
-        let result = processor.input(글자Input: char, composing: composing)
-        var c = committed + result.committed
-        var p = result.composing
-        
-        if hadPreviousComposing && result.committed.isEmpty && p.count == 1 && !c.isEmpty {
-            if let restored = tryRestore종성(자음: p, committed: &c) {
-                return (c, restored)
-            }
-        }
-        
-        return (c, p)
-    }
-    
-    /// ViewController의 `deleteBackward`를 시뮬레이션하는 삭제 헬퍼
-    func applyDelete(committed: String, composing: String) -> (committed: String, composing: String) {
-        var c = committed
-        var p = composing
-        
-        if !p.isEmpty {
-            p = processor.delete(composing: p)
-            
-            // 삭제 시 종성 복원
-            if let restored = tryRestore종성(자음: p, committed: &c) {
-                return (c, restored)
-            }
-        } else if !c.isEmpty {
-            let lastCommitted = c.last!
-            // 한글이면 composing으로 옮겨서 자소 단위 분해 삭제
-            if automata.decompose(한글Char: lastCommitted) != nil {
-                c.removeLast()
-                p = processor.delete(composing: String(lastCommitted))
-            } else {
-                c.removeLast()
-            }
-        }
-        
-        return (c, p)
-    }
-    
-    func tryRestore종성(자음: String, committed: inout String) -> String? {
-        guard 자음.count == 1, !committed.isEmpty else { return nil }
-        guard automata.종성Table.contains(자음) && 자음 != " " else { return nil }
-        guard let lastCommitted = committed.last,
-              let _ = automata.decompose(한글Char: lastCommitted) else { return nil }
-        
-        let lastCommittedStr = String(lastCommitted)
-        let (committed2, merged) = automata.add글자(글자Input: 자음, composing: lastCommittedStr)
-        let mergedText = committed2 + merged
-        
-        if mergedText.count == 1 {
-            committed.removeLast()
-            return mergedText
-        }
-        return nil
-    }
     
     /// 완성된 한글 한 글자를 천지인 키 입력 배열로 분해
     func decomposeTo천지인Keys(char: Character) -> [String] {
