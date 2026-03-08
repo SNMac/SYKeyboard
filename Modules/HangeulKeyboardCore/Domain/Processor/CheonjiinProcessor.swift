@@ -19,8 +19,6 @@ final class CheonjiinProcessor: HangeulProcessable {
     /// 현재 한글 조합(순환 또는 모음 조합)이 진행 중인지 여부
     var is한글조합OnGoing: Bool = false
     
-    private var protectedCommittedCount: Int = 0
-
     /// 표준 한글 오토마타 (자소 합치기/나누기 담당)
     private let automata: HangeulAutomataProtocol
     
@@ -194,21 +192,12 @@ final class CheonjiinProcessor: HangeulProcessable {
         return deletedText
     }
     
-    func canRestore종성(committedCount: Int) -> Bool {
-        return committedCount > protectedCommittedCount
-    }
-    
-    func setCommitProtection(committedCount: Int) {
-        protectedCommittedCount = committedCount
-    }
-    
     func start한글조합() {
         is한글조합OnGoing = true
     }
     
     func reset한글조합() {
         is한글조합OnGoing = false
-        protectedCommittedCount = 0
     }
 }
 

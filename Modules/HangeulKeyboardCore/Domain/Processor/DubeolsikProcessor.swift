@@ -73,9 +73,6 @@ final class DubeolsikProcessor: HangeulProcessable {
         return deletedText
     }
     
-    func canRestore종성(committedCount: Int) -> Bool { true }
-    func setCommitProtection(committedCount: Int) { }
-    
     // 두벌식은 별도의 조합 상태 플래그를 관리하지 않으므로 빈 구현으로 둡니다.
     func start한글조합() {}
     func reset한글조합() {}

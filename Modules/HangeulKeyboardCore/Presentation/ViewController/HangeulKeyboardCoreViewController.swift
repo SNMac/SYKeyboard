@@ -32,6 +32,8 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
     private var isRepeatingInput: Bool = false
     /// 글자가 입력되었는지 확인하는 플래그
     private var is글자Input: Bool = false
+    /// 스페이스(확정)로 보호된 `committedBuffer` 내의 글자 수
+    private var protectedCommittedCount: Int = 0
     
     /// 한글 오토마타
     private let automata: HangeulAutomataProtocol = HangeulAutomata()
@@ -177,6 +179,27 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
     open override func repeatTextInteractionDidPerform(button: TextInteractable) {
         super.repeatTextInteractionDidPerform(button: button)
         isRepeatingInput = false
+        
+        // 반복 삭제 후 composing이 비고 committed에 한글이 있으면 끌어오기
+        if button is DeleteButton && composingBuffer.isEmpty && !committedBuffer.isEmpty {
+            let lastCommitted = committedBuffer.last!
+            let lastStr = String(lastCommitted)
+            if automata.초성Table.contains(lastStr) || automata.중성Table.contains(lastStr)
+                || automata.decompose(한글Char: lastCommitted) != nil {
+                
+                let isProtected = committedBuffer.count <= protectedCommittedCount
+                
+                committedBuffer.removeLast()
+                textDocumentProxy.deleteBackward()
+                textDocumentProxy.insertText(lastStr)
+                composingBuffer = lastStr
+                
+                if !isProtected {
+                    processor.start한글조합()
+                }
+            }
+        }
+        
         updateShiftButton()
     }
     
@@ -232,7 +255,7 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
                 
             case .commitCombination:
                 commitComposingBuffer()
-                processor.setCommitProtection(committedCount: committedBuffer.count)
+                protectedCommittedCount = committedBuffer.count
                 lastInputText = nil
             }
         } else {
@@ -268,8 +291,7 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
             let remaining = processor.delete(composing: composingBuffer)
             
             // 종성 복원: 삭제 후 낱자 자음 1개만 남고 committed에 한글이 있으면 합치기 시도
-            if processor.canRestore종성(committedCount: committedBuffer.count),
-               let restored = tryRestore종성(자음: remaining, committed: &committedBuffer) {
+            if let restored = tryRestore종성(자음: remaining, committed: &committedBuffer) {
                 // committed에서 마지막 글자가 제거되었으므로 화면에서도 제거
                 textDocumentProxy.deleteBackward()
                 textDocumentProxy.insertText(restored)
@@ -287,11 +309,17 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
                     let lastStr = String(lastCommitted)
                     if automata.초성Table.contains(lastStr) || automata.중성Table.contains(lastStr)
                         || automata.decompose(한글Char: lastCommitted) != nil {
+                        
+                        let isProtected = committedBuffer.count <= protectedCommittedCount
+                        
                         committedBuffer.removeLast()
                         textDocumentProxy.deleteBackward()
                         textDocumentProxy.insertText(lastStr)
                         composingBuffer = lastStr
-                        processor.start한글조합()
+                        
+                        if !isProtected {
+                            processor.start한글조합()
+                        }
                     }
                 }
                 
@@ -305,6 +333,8 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
             
             // 한글이면 composing으로 옮겨서 자소 단위 분해 삭제
             if automata.decompose(한글Char: lastCommitted) != nil {
+                let isProtected = committedBuffer.count <= protectedCommittedCount
+                
                 textDocumentProxy.deleteBackward()
                 committedBuffer.removeLast()
                 
@@ -316,6 +346,8 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
                 
                 if composingBuffer.isEmpty {
                     processor.reset한글조합()
+                } else if !isProtected {
+                    processor.start한글조합()
                 }
             } else {
                 // 비한글(숫자, 기호 등)은 통째로 삭제
@@ -391,8 +423,7 @@ private extension HangeulKeyboardCoreViewController {
         // committedBuffer의 마지막 한글과 합치기 시도
         // 단, 이전 composing이 있었을 때만 (변환의 결과). 이전 composing이 비었으면 새 입력이므로 복원 안 함.
         if hadPreviousComposing && finalCommitted.isEmpty && finalComposing.count == 1 && !committedBuffer.isEmpty {
-            if processor.canRestore종성(committedCount: committedBuffer.count),
-               let restored = tryRestore종성(자음: finalComposing, committed: &committedBuffer) {
+            if let restored = tryRestore종성(자음: finalComposing, committed: &committedBuffer) {
                 textDocumentProxy.deleteBackward()
                 textDocumentProxy.insertText(restored)
                 composingBuffer = restored
@@ -421,6 +452,7 @@ private extension HangeulKeyboardCoreViewController {
     func tryRestore종성(자음: String, committed: inout String) -> String? {
         guard 자음.count == 1, !committed.isEmpty else { return nil }
         guard automata.종성Table.contains(자음) && 자음 != " " else { return nil }
+        guard committed.count > protectedCommittedCount else { return nil }
         guard let lastCommitted = committed.last,
               let _ = automata.decompose(한글Char: lastCommitted) else { return nil }
         
@@ -447,6 +479,7 @@ private extension HangeulKeyboardCoreViewController {
     func clearAllBuffers() {
         committedBuffer.removeAll()
         composingBuffer.removeAll()
+        protectedCommittedCount = 0
     }
     
     func updateSpaceButtonImage() {

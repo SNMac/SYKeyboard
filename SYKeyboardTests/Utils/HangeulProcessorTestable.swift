@@ -13,6 +13,10 @@ import Testing
 ///
 /// `NaratgeulProcessorTests`, `CheonjiinProcessorTests`, `DubeolsikProcessorTests`에서
 /// 공통으로 사용하는 `applyInput`, `applyDelete`, `tryRestore종성` 로직을 한곳에서 관리합니다.
+///
+/// > Note: 이 헬퍼는 프로세서 단위 테스트용입니다. `protectedCommittedCount` 등
+/// > 컨트롤러 레벨의 확정 보호 로직은 `KeyboardControllerSimulator`를 사용하는
+/// > 통합 테스트에서 검증합니다.
 protocol HangeulProcessorTestable {
     var automata: HangeulAutomataProtocol { get }
     var processor: HangeulProcessable { get }
@@ -31,8 +35,7 @@ extension HangeulProcessorTestable {
         
         // 입력 시 종성 복원
         if hadPreviousComposing && result.committed.isEmpty && p.count == 1 && !c.isEmpty {
-            if processor.canRestore종성(committedCount: c.count),
-               let restored = tryRestore종성(자음: p, committed: &c) {
+            if let restored = tryRestore종성(자음: p, committed: &c) {
                 return (c, restored)
             }
         }
@@ -48,8 +51,8 @@ extension HangeulProcessorTestable {
         if !p.isEmpty {
             p = processor.delete(composing: p)
             
-            if processor.canRestore종성(committedCount: c.count),
-               let restored = tryRestore종성(자음: p, committed: &c) {
+            // 삭제 시 종성 복원
+            if let restored = tryRestore종성(자음: p, committed: &c) {
                 return (c, restored)
             }
             
