@@ -208,22 +208,20 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
             return
         }
         
-        // 반복 입력은 조합과 무관하므로, 먼저 조합 중인 글자를 확정
         if !composingBuffer.isEmpty {
             commitComposingBuffer()
-            processor.reset한글조합()
         }
         
         textDocumentProxy.insertText(lastInputText)
-        committedBuffer.append(lastInputText)
+        composingBuffer = lastInputText
     }
     
     open override func insertSpaceText() {
         if isPreview { return }
         
-        if currentKeyboard == .naratgeul ||
-            currentKeyboard == .cheonjiin ||
-            currentKeyboard == .dubeolsik {
+        if currentKeyboard == .naratgeul
+            || currentKeyboard == .cheonjiin
+            || currentKeyboard == .dubeolsik {
             let result = processor.inputSpace(composing: composingBuffer)
             switch result {
             case .insertSpace:
@@ -234,6 +232,7 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
                 
             case .commitCombination:
                 commitComposingBuffer()
+                processor.setCommitProtection(committedCount: committedBuffer.count)
                 lastInputText = nil
             }
         } else {
@@ -269,7 +268,8 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
             let remaining = processor.delete(composing: composingBuffer)
             
             // 종성 복원: 삭제 후 낱자 자음 1개만 남고 committed에 한글이 있으면 합치기 시도
-            if let restored = tryRestore종성(자음: remaining, committed: &committedBuffer) {
+            if processor.canRestore종성(committedCount: committedBuffer.count),
+               let restored = tryRestore종성(자음: remaining, committed: &committedBuffer) {
                 // committed에서 마지막 글자가 제거되었으므로 화면에서도 제거
                 textDocumentProxy.deleteBackward()
                 textDocumentProxy.insertText(restored)
@@ -391,7 +391,8 @@ private extension HangeulKeyboardCoreViewController {
         // committedBuffer의 마지막 한글과 합치기 시도
         // 단, 이전 composing이 있었을 때만 (변환의 결과). 이전 composing이 비었으면 새 입력이므로 복원 안 함.
         if hadPreviousComposing && finalCommitted.isEmpty && finalComposing.count == 1 && !committedBuffer.isEmpty {
-            if let restored = tryRestore종성(자음: finalComposing, committed: &committedBuffer) {
+            if processor.canRestore종성(committedCount: committedBuffer.count),
+               let restored = tryRestore종성(자음: finalComposing, committed: &committedBuffer) {
                 textDocumentProxy.deleteBackward()
                 textDocumentProxy.insertText(restored)
                 composingBuffer = restored

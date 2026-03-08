@@ -70,6 +70,8 @@ final class NaratgeulProcessor: HangeulProcessable {
         "ㅗ": "ㅘ", "ㅜ": "ㅝ"
     ]
     
+    // MARK: - Initializer
+    
     init(automata: HangeulAutomataProtocol) {
         self.automata = automata
     }
@@ -122,6 +124,9 @@ final class NaratgeulProcessor: HangeulProcessable {
         // 3. 일반 삭제는 오토마타에게 위임
         return automata.delete글자(composing: composing)
     }
+    
+    func canRestore종성(committedCount: Int) -> Bool { true }
+    func setCommitProtection(committedCount: Int) { }
     
     // 나랏글은 별도의 조합 상태 플래그를 관리하지 않으므로 빈 구현으로 둡니다.
     func start한글조합() {}

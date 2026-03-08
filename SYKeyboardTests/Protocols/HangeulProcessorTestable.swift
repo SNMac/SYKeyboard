@@ -31,7 +31,8 @@ extension HangeulProcessorTestable {
         
         // 입력 시 종성 복원
         if hadPreviousComposing && result.committed.isEmpty && p.count == 1 && !c.isEmpty {
-            if let restored = tryRestore종성(자음: p, committed: &c) {
+            if processor.canRestore종성(committedCount: c.count),
+               let restored = tryRestore종성(자음: p, committed: &c) {
                 return (c, restored)
             }
         }
@@ -47,8 +48,8 @@ extension HangeulProcessorTestable {
         if !p.isEmpty {
             p = processor.delete(composing: p)
             
-            // 삭제 시 종성 복원
-            if let restored = tryRestore종성(자음: p, committed: &c) {
+            if processor.canRestore종성(committedCount: c.count),
+               let restored = tryRestore종성(자음: p, committed: &c) {
                 return (c, restored)
             }
             

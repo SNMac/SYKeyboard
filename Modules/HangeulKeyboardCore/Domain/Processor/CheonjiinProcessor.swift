@@ -19,6 +19,8 @@ final class CheonjiinProcessor: HangeulProcessable {
     /// 현재 한글 조합(순환 또는 모음 조합)이 진행 중인지 여부
     var is한글조합OnGoing: Bool = false
     
+    private var protectedCommittedCount: Int = 0
+
     /// 표준 한글 오토마타 (자소 합치기/나누기 담당)
     private let automata: HangeulAutomataProtocol
     
@@ -53,6 +55,8 @@ final class CheonjiinProcessor: HangeulProcessable {
         "ㅝ": ["ㅣ": "ㅞ"]
     ]
     
+    // MARK: - Initializer
+    
     init(automata: HangeulAutomataProtocol) {
         self.automata = automata
     }
@@ -61,10 +65,11 @@ final class CheonjiinProcessor: HangeulProcessable {
     
     func input(글자Input: String, composing: String) -> CompositionResult {
         let is천지인모음 = ["ㆍ", "ㅡ", "ㅣ"].contains(글자Input)
+        let is표준모음 = automata.중성Table.contains(글자Input)
         let is천지인자음 = 자음순환Table.keys.contains(글자Input)
         
         // [비한글 입력 처리]
-        if !is천지인모음 && !is천지인자음 {
+        if !is천지인모음 && !is표준모음 && !is천지인자음 {
             is한글조합OnGoing = false
             return .commitAll(composing + 글자Input, input글자: 글자Input)
         }
@@ -75,8 +80,8 @@ final class CheonjiinProcessor: HangeulProcessable {
             return CompositionResult(committed: composing, composing: 글자Input, input글자: 글자Input)
         }
         
-        // 1. [모음 입력] (ㆍ, ㅡ, ㅣ)
-        if is천지인모음 {
+        // 1. [모음 입력]
+        if is천지인모음 || is표준모음 {
             
             // A. 모음 조합 시도
             if let (prefix, combined모음) = tryCombine모음(input: 글자Input, composing: composing) {
@@ -189,12 +194,21 @@ final class CheonjiinProcessor: HangeulProcessable {
         return deletedText
     }
     
+    func canRestore종성(committedCount: Int) -> Bool {
+        return committedCount > protectedCommittedCount
+    }
+    
+    func setCommitProtection(committedCount: Int) {
+        protectedCommittedCount = committedCount
+    }
+    
     func start한글조합() {
         is한글조합OnGoing = true
     }
     
     func reset한글조합() {
         is한글조합OnGoing = false
+        protectedCommittedCount = 0
     }
 }
 

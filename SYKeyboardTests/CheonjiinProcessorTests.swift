@@ -216,7 +216,7 @@ struct CheonjiinProcessorTests: HangeulProcessorTestable {
     }
     
     @Test("조합 확정 후 삭제: '가' 확정 -> 'ㄴ' 입력 -> 삭제 시 '가' 유지")
-    func test조합확정후_삭제_이전글자유지() {
+    func test확정후_삭제_이전글자유지() {
         var (c, p) = ("", "")
         
         // 1. '가' 만들기
@@ -237,6 +237,71 @@ struct CheonjiinProcessorTests: HangeulProcessorTestable {
         // 4. 삭제 -> "가"가 남아야 함 (""가 되면 안 됨)
         (c, p) = applyDelete(committed: c, composing: p)
         #expect(c + p == "가", "조합 확정 후 새 글자를 삭제해도 이전 확정 글자는 유지되어야 합니다.")
+    }
+    
+    @Test("조합 확정 후 삭제: '가(확정)나' -> 삭제 -> '가ㄴ' (종성 합치기 방지)")
+    func test확정후_삭제_종성합치기방지() {
+        var (c, p) = ("", "")
+        
+        // 1. '가' 만들기
+        (c, p) = applyInput("ㄱ", committed: c, composing: p)
+        (c, p) = applyInput("ㅣ", committed: c, composing: p)
+        (c, p) = applyInput("ㆍ", committed: c, composing: p)
+        #expect(c + p == "가")
+        
+        // 2. Space(조합 확정) - 컨트롤러 동작 시뮬레이션
+        _ = processor.inputSpace(composing: p)
+        c += p
+        p = ""
+        processor.setCommitProtection(committedCount: c.count)
+        
+        // 3. '나' 만들기
+        (c, p) = applyInput("ㄴ", committed: c, composing: p)
+        (c, p) = applyInput("ㅣ", committed: c, composing: p)
+        (c, p) = applyInput("ㆍ", committed: c, composing: p)
+        #expect(c + p == "가나")
+        
+        // 4. 삭제 -> '가ㄴ' ('간'이 되면 안 됨)
+        (c, p) = applyDelete(committed: c, composing: p)
+        #expect(c + p == "가ㄴ", "스페이스로 확정된 글자에는 종성이 합쳐지면 안 됩니다.")
+    }
+    
+    @Test("조합 확정 후 삭제: '가(확정)나다' -> 연속 삭제 흐름")
+    func test확정후_연속삭제() {
+        var (c, p) = ("", "")
+        
+        // 1. '가' 만들기 + 확정
+        (c, p) = applyInput("ㄱ", committed: c, composing: p)
+        (c, p) = applyInput("ㅣ", committed: c, composing: p)
+        (c, p) = applyInput("ㆍ", committed: c, composing: p)
+        _ = processor.inputSpace(composing: p)
+        c += p
+        p = ""
+        processor.setCommitProtection(committedCount: c.count)
+        
+        // 2. '나다' 만들기
+        (c, p) = applyInput("ㄴ", committed: c, composing: p)
+        (c, p) = applyInput("ㅣ", committed: c, composing: p)
+        (c, p) = applyInput("ㆍ", committed: c, composing: p) // 나
+        (c, p) = applyInput("ㄷ", committed: c, composing: p)
+        (c, p) = applyInput("ㅣ", committed: c, composing: p)
+        (c, p) = applyInput("ㆍ", committed: c, composing: p) // 다
+        #expect(c + p == "가나다")
+        
+        // 3. 연속 삭제
+        (c, p) = applyDelete(committed: c, composing: p) // 가나ㄷ → 가낟
+        (c, p) = applyDelete(committed: c, composing: p) // 가나
+        (c, p) = applyDelete(committed: c, composing: p) // 가ㄴ (간이 아님)
+        #expect(c + p == "가ㄴ", "확정 경계를 넘어 종성이 합쳐지면 안 됩니다.")
+        
+        (c, p) = applyDelete(committed: c, composing: p) // 가
+        #expect(c + p == "가")
+        
+        (c, p) = applyDelete(committed: c, composing: p) // ㄱ
+        #expect(c + p == "ㄱ")
+        
+        (c, p) = applyDelete(committed: c, composing: p) // ""
+        #expect(c + p == "")
     }
     
     // MARK: - 5. 11,172자 전체 검증 (Heavy Test)

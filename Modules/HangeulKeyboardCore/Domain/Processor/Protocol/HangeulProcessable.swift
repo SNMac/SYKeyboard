@@ -64,6 +64,13 @@ protocol HangeulProcessable: AnyObject {
     /// - Returns: 삭제 후 남은 조합 문자열
     func delete(composing: String) -> String
     
+    /// 종성 복원이 허용되는지 확인합니다.
+    /// - Parameter committedCount: 현재 `committedBuffer`의 글자 수
+    func canRestore종성(committedCount: Int) -> Bool
+
+    /// 확정 보호 경계를 설정합니다.
+    func setCommitProtection(committedCount: Int)
+    
     /// 한글 조합 상태를 시작합니다.
     func start한글조합()
     
