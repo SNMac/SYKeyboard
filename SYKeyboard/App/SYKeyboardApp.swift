@@ -133,7 +133,7 @@ struct SYKeyboardApp: App {
     
     @Environment(\.openURL) var openURL
     
-    // MARK: - Contents
+    // MARK: - Content
     
     var body: some Scene {
         WindowGroup {

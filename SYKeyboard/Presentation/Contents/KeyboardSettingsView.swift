@@ -14,7 +14,7 @@ struct KeyboardSettingsView: View {
     @Environment(\.scenePhase) private var scenePhase
     @State private var isKeyboardExtensionEnabled: Bool = false
     
-    // MARK: - Contents
+    // MARK: - Content
     
     var body: some View {
         List {

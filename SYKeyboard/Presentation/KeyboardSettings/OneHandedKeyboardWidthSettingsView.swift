@@ -30,7 +30,7 @@ struct OneHandedKeyboardWidthSettingsView: View {
     
     @State private var tempOneHandedKeyboardWidth: Double = DefaultValues.oneHandedKeyboardWidth
     
-    // MARK: - Contents
+    // MARK: - Content
     
     var body: some View {
         NavigationStack {

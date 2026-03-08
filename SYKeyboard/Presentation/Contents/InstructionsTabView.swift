@@ -13,7 +13,7 @@ struct InstructionsTabView: View {
     
     @Environment(\.dismiss) private var dismiss
     
-    // MARK: - Contents
+    // MARK: - Content
     
     var body: some View {
         TabView {

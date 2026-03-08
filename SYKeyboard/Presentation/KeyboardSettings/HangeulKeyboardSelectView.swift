@@ -62,7 +62,7 @@ struct HangeulKeyboardSelectView: View {
         }
     }
     
-    // MARK: - Contents
+    // MARK: - Content
     
     var body: some View {
         Picker("한글 키보드", selection: keyboardSelectionBinding) {

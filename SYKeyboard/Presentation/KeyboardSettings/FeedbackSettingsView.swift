@@ -23,7 +23,7 @@ struct FeedbackSettingsView: View {
     @AppStorage(UserDefaultsKeys.isHapticFeedbackEnabled, store: UserDefaultsManager.shared.storage)
     private var isHapticFeedbackEnabled = DefaultValues.isHapticFeedbackEnabled
     
-    // MARK: - Contents
+    // MARK: - Content
     
     var body: some View {
         Toggle("소리 피드백", isOn: $isSoundFeedbackEnabled)

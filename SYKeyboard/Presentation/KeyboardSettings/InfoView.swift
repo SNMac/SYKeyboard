@@ -23,7 +23,7 @@ struct InfoView: View {
     @State private var isShowingInstructions = false
     @State private var isShowingMailErrorAlert = false
     
-    // MARK: - Contents
+    // MARK: - Content
     
     var body: some View {
         Button {

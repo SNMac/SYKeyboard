@@ -30,7 +30,7 @@ struct KeyboardHeightSettingsView: View {
     
     @State private var tempKeyboardHeight: Double = DefaultValues.keyboardHeight
     
-    // MARK: - Contents
+    // MARK: - Content
     
     var body: some View {
         NavigationStack {

@@ -77,7 +77,7 @@ struct InputSettingsView: View {
         }
     }
     
-    // MARK: - Contents
+    // MARK: - Content
     
     var body: some View {
         Picker("길게 누르기 동작", selection: longPressModeBinding) {

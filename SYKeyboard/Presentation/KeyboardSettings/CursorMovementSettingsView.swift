@@ -21,7 +21,7 @@ struct CursorMovementSettingsView: View {
     @AppStorage(UserDefaultsKeys.cursorMoveInterval, store: UserDefaultsManager.shared.storage)
     private var cursorMoveInterval = DefaultValues.cursorMoveInterval
     
-    // MARK: - Contents
+    // MARK: - Content
     
     var body: some View {
         NavigationStack {

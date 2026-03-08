@@ -21,7 +21,7 @@ struct KeyRepeatSettingsView: View {
     @AppStorage(UserDefaultsKeys.repeatRate, store: UserDefaultsManager.shared.storage)
     private var repeatRate = DefaultValues.repeatRate
     
-    // MARK: - Contents
+    // MARK: - Content
     
     var body: some View {
         NavigationStack {
