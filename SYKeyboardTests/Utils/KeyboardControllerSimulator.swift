@@ -105,8 +105,7 @@ final class KeyboardControllerSimulator {
                 if !committedBuffer.isEmpty {
                     let lastCommitted = committedBuffer.last!
                     let lastStr = String(lastCommitted)
-                    if automata.초성Table.contains(lastStr) || automata.중성Table.contains(lastStr)
-                        || automata.decompose(한글Char: lastCommitted) != nil {
+                    if lastCommitted.isHangeul {
                         
                         let isProtected = committedBuffer.count <= protectedCommittedCount
                         
@@ -128,7 +127,7 @@ final class KeyboardControllerSimulator {
             let lastCommitted = committedBuffer.last!
             
             // 한글이면 composing으로 옮겨서 자소 단위 분해 삭제
-            if automata.decompose(한글Char: lastCommitted) != nil {
+            if lastCommitted.isHangeul {
                 let isProtected = committedBuffer.count <= protectedCommittedCount
                 
                 committedBuffer.removeLast()
@@ -183,8 +182,7 @@ final class KeyboardControllerSimulator {
         if composingBuffer.isEmpty && !committedBuffer.isEmpty {
             let lastCommitted = committedBuffer.last!
             let lastStr = String(lastCommitted)
-            if automata.초성Table.contains(lastStr) || automata.중성Table.contains(lastStr)
-                || automata.decompose(한글Char: lastCommitted) != nil {
+            if lastCommitted.isHangeul {
                 
                 let isProtected = committedBuffer.count <= protectedCommittedCount
                 
