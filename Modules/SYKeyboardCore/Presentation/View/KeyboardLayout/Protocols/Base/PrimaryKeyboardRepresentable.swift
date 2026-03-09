@@ -15,7 +15,7 @@ public protocol PrimaryKeyboardRepresentable: NormalKeyboardLayoutProvider {
     
     func updateNextKeyboardButton(needsInputModeSwitchKey: Bool, nextKeyboardAction: Selector)
     func initShiftButton()
-    func updateShiftButton(isShifted: Bool)
+    func updateShiftButton(to isShifted: Bool)
     func updateSpaceButtonImage(systemName: String)
 }
 

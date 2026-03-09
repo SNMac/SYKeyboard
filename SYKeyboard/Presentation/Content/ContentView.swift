@@ -20,7 +20,7 @@ struct ContentView: View {
     
     @State private var isAdReceived: Bool = false
     
-    // MARK: - Contents
+    // MARK: - Content
     
     var body: some View {
         NavigationStack {

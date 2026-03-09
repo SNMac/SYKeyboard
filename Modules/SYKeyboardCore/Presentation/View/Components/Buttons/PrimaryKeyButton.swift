@@ -40,7 +40,7 @@ final public class PrimaryKeyButton: PrimaryButton, TextInteractable {
         let label = UILabel()
         label.font = .monospacedDigitSystemFont(ofSize: 9, weight: .regular)
         label.textColor = .secondaryLabel
-        label.isHidden = !UserDefaultsManager.shared.isLongPressToNumberInputEnabled
+        label.isHidden = !(UserDefaultsManager.shared.selectedLongPressAction == .numberInput)
         
         return label
     }()

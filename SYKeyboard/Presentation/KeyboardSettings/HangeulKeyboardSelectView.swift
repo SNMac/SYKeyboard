@@ -52,7 +52,8 @@ struct HangeulKeyboardSelectView: View {
             return HangeulKeyboard(rawValue: selectedHangeulKeyboard.rawValue) ?? .naratgeul
         } set: { newValue in
             selectedHangeulKeyboard = HangeulKeyboardType(rawValue: newValue.rawValue) ?? .naratgeul
-            
+            Analytics.setUserProperty(newValue.analyticsValue,
+                                      forName: "pref_hangeul_keyboard")
             Analytics.logEvent("selected_hangeul_keyboard", parameters: [
                 "view": "HangeulKeyboardSelectView",
                 "selection": newValue.analyticsValue
@@ -61,7 +62,7 @@ struct HangeulKeyboardSelectView: View {
         }
     }
     
-    // MARK: - Contents
+    // MARK: - Content
     
     var body: some View {
         Picker("한글 키보드", selection: keyboardSelectionBinding) {

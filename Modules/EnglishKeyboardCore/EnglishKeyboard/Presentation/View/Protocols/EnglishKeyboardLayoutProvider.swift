@@ -58,7 +58,7 @@ protocol EnglishKeyboardLayoutProvider: PrimaryKeyboardRepresentable {
     /// `ShiftButton`의 Shift 상태 초기화
     func initShiftButton()
     /// `ShiftButton`의 Shift 상태 변경
-    func updateShiftButton(isShifted: Bool)
+    func updateShiftButton(to isShifted: Bool)
     /// `periodButton` 너비 제약 조건 업데이트 메서드
     func updatePeriodButtonWidthConstraint(multiplier: CGFloat?)
 }
@@ -167,7 +167,7 @@ extension EnglishKeyboardLayoutProvider {
         willCapsLock = false
     }
     
-    func updateShiftButton(isShifted: Bool) {
+    func updateShiftButton(to isShifted: Bool) {
         if !isCapsLocked {
             self.isShifted = isShifted
             wasShifted = false

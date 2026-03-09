@@ -11,7 +11,7 @@ import OSLog
 @testable import HangeulKeyboardCore
 
 @Suite("두벌식 입력기 검증")
-struct DubeolsikProcessorTests {
+struct DubeolsikProcessorTests: HangeulProcessorTestable {
     
     // MARK: - Properties
     
@@ -20,8 +20,8 @@ struct DubeolsikProcessorTests {
         category: String(describing: "DubeolsikProcessorTests")
     )
     
-    private let automata: HangeulAutomataProtocol = HangeulAutomata()
-    private let processor: HangeulProcessable
+    let automata: HangeulAutomataProtocol = HangeulAutomata()
+    let processor: HangeulProcessable
     
     private let 초성Table = ["ㄱ", "ㄲ", "ㄴ", "ㄷ", "ㄸ", "ㄹ", "ㅁ", "ㅂ", "ㅃ", "ㅅ", "ㅆ", "ㅇ", "ㅈ", "ㅉ", "ㅊ", "ㅋ", "ㅌ", "ㅍ", "ㅎ"]
     private let 중성Table = ["ㅏ", "ㅐ", "ㅑ", "ㅒ", "ㅓ", "ㅔ", "ㅕ", "ㅖ", "ㅗ", "ㅘ", "ㅙ", "ㅚ", "ㅛ", "ㅜ", "ㅝ", "ㅞ", "ㅟ", "ㅠ", "ㅡ", "ㅢ", "ㅣ"]
@@ -48,54 +48,54 @@ struct DubeolsikProcessorTests {
     
     @Test("기본 입력: '가' 생성 (ㄱ + ㅏ)")
     func test기본입력_가() {
-        var 텍스트 = ""
-        텍스트 = input("ㄱ", to: 텍스트)
-        텍스트 = input("ㅏ", to: 텍스트)
+        var (c, p) = ("", "")
+        (c, p) = applyInput("ㄱ", committed: c, composing: p)
+        (c, p) = applyInput("ㅏ", committed: c, composing: p)
         
-        #expect(텍스트 == "가")
+        #expect(c + p == "가")
     }
     
     @Test("종성 입력: '각' 생성 (가 + ㄱ)")
     func test기본입력_각() {
-        var 텍스트 = ""
-        텍스트 = input("ㄱ", to: 텍스트)
-        텍스트 = input("ㅏ", to: 텍스트) // 가
-        텍스트 = input("ㄱ", to: 텍스트) // 각
+        var (c, p) = ("", "")
+        (c, p) = applyInput("ㄱ", committed: c, composing: p)
+        (c, p) = applyInput("ㅏ", committed: c, composing: p) // 가
+        (c, p) = applyInput("ㄱ", committed: c, composing: p) // 각
         
-        #expect(텍스트 == "각")
+        #expect(c + p == "각")
     }
     
     @Test("복합 모음 입력: '와' 생성 (ㅇ + ㅗ + ㅏ)")
     func test복합모음_와() {
-        var 텍스트 = ""
-        텍스트 = input("ㅇ", to: 텍스트)
-        텍스트 = input("ㅗ", to: 텍스트)
-        텍스트 = input("ㅏ", to: 텍스트) // ㅗ + ㅏ -> ㅘ
+        var (c, p) = ("", "")
+        (c, p) = applyInput("ㅇ", committed: c, composing: p)
+        (c, p) = applyInput("ㅗ", committed: c, composing: p)
+        (c, p) = applyInput("ㅏ", committed: c, composing: p) // ㅗ + ㅏ -> ㅘ
         
-        #expect(텍스트 == "와")
+        #expect(c + p == "와")
     }
     
     @Test("겹받침 입력: '닭' 생성 (ㄷ + ㅏ + ㄹ + ㄱ)")
     func test겹받침_닭() {
-        var 텍스트 = ""
-        텍스트 = input("ㄷ", to: 텍스트)
-        텍스트 = input("ㅏ", to: 텍스트)
-        텍스트 = input("ㄹ", to: 텍스트) // 달
-        텍스트 = input("ㄱ", to: 텍스트) // 닭 (ㄹ + ㄱ -> ㄺ)
+        var (c, p) = ("", "")
+        (c, p) = applyInput("ㄷ", committed: c, composing: p)
+        (c, p) = applyInput("ㅏ", committed: c, composing: p)
+        (c, p) = applyInput("ㄹ", committed: c, composing: p) // 달
+        (c, p) = applyInput("ㄱ", committed: c, composing: p) // 닭
         
-        #expect(텍스트 == "닭")
+        #expect(c + p == "닭")
     }
     
     @Test("연음 입력: '안녕' (ㅇ+ㅏ+ㄴ+ㄴ+ㅕ+ㅇ)")
     func test연음입력_안녕() {
-        var 텍스트 = ""
+        var (c, p) = ("", "")
         let 입력배열 = ["ㅇ", "ㅏ", "ㄴ", "ㄴ", "ㅕ", "ㅇ"]
         
         for 자소 in 입력배열 {
-            텍스트 = input(자소, to: 텍스트)
+            (c, p) = applyInput(자소, committed: c, composing: p)
         }
         
-        #expect(텍스트 == "안녕")
+        #expect(c + p == "안녕")
     }
     
     // MARK: - 2. 스페이스바 및 특수문자 동작 테스트
@@ -103,126 +103,158 @@ struct DubeolsikProcessorTests {
     @Test("Space 입력: 항상 insertSpace 반환 및 공백 입력")
     func test스페이스_동작() {
         // 1. 조합 중이 아닐 때
-        let 결과1 = processor.inputSpace(beforeText: "가")
+        let 결과1 = processor.inputSpace(composing: "가")
         #expect(결과1 == .insertSpace, "조합 중이 아닐 때도 insertSpace여야 함")
         
         // 2. 조합 중일 때 (두벌식은 조합 상태와 무관하게 띄어쓰기)
-        let 결과2 = processor.inputSpace(beforeText: "ㄱ")
+        let 결과2 = processor.inputSpace(composing: "ㄱ")
         #expect(결과2 == .insertSpace, "자음만 입력된 상태에서도 insertSpace여야 함")
     }
     
     @Test("비한글 입력: 숫자/특수문자 입력 시 단순 추가")
     func test비한글_입력() {
-        var 텍스트 = ""
-        텍스트 = input("ㄱ", to: 텍스트)
-        #expect(텍스트 == "ㄱ")
+        var (c, p) = ("", "")
+        (c, p) = applyInput("ㄱ", committed: c, composing: p)
+        #expect(c + p == "ㄱ")
         
         // 숫자 입력 -> 조합 끊기고 추가
-        텍스트 = input("1", to: 텍스트)
-        #expect(텍스트 == "ㄱ1")
+        (c, p) = applyInput("1", committed: c, composing: p)
+        #expect(c + p == "ㄱ1")
         
-        텍스트 = input("ㅏ", to: 텍스트)
-        #expect(텍스트 == "ㄱ1ㅏ")
+        (c, p) = applyInput("ㅏ", committed: c, composing: p)
+        #expect(c + p == "ㄱ1ㅏ")
     }
     
     // MARK: - 3. 삭제(Backspace) 테스트
     
     @Test("삭제: '닭' -> '달' -> '다' -> 'ㄷ' -> ''")
     func test삭제_흐름_닭() {
-        // 1. 닭 생성
-        var 텍스트 = "닭"
+        var (c, p) = ("", "닭")
         
-        // 2. 삭제 1회: 닭(ㄺ) -> 달(ㄹ)
-        텍스트 = processor.delete(beforeText: 텍스트)
-        #expect(텍스트 == "달")
+        // 삭제 1회: 닭(ㄺ) -> 달(ㄹ)
+        p = processor.delete(composing: p)
+        #expect(c + p == "달")
         
-        // 3. 삭제 2회: 달 -> 다
-        텍스트 = processor.delete(beforeText: 텍스트)
-        #expect(텍스트 == "다")
+        // 삭제 2회: 달 -> 다
+        p = processor.delete(composing: p)
+        #expect(c + p == "다")
         
-        // 4. 삭제 3회: 다 -> ㄷ
-        텍스트 = processor.delete(beforeText: 텍스트)
-        #expect(텍스트 == "ㄷ")
+        // 삭제 3회: 다 -> ㄷ
+        p = processor.delete(composing: p)
+        #expect(c + p == "ㄷ")
         
-        // 5. 삭제 4회: ㄷ -> ""
-        텍스트 = processor.delete(beforeText: 텍스트)
-        #expect(텍스트 == "")
+        // 삭제 4회: ㄷ -> ""
+        p = processor.delete(composing: p)
+        #expect(c + p == "")
     }
     
     @Test("삭제: '와' -> '오' -> 'ㅇ' -> ''")
     func test삭제_흐름_와() {
-        // 1. 와 생성
-        var 텍스트 = "와"
+        var (c, p) = ("", "와")
         
-        // 2. 삭제 1회: 와(ㅘ) -> 오(ㅗ)
-        텍스트 = processor.delete(beforeText: 텍스트)
-        #expect(텍스트 == "오")
+        // 삭제 1회: 와(ㅘ) -> 오(ㅗ)
+        p = processor.delete(composing: p)
+        #expect(c + p == "오")
         
-        // 3. 삭제 2회: 오 -> ㅇ
-        텍스트 = processor.delete(beforeText: 텍스트)
-        #expect(텍스트 == "ㅇ")
+        // 삭제 2회: 오 -> ㅇ
+        p = processor.delete(composing: p)
+        #expect(c + p == "ㅇ")
         
-        // 4. 삭제 3회: ㅇ -> ""
-        텍스트 = processor.delete(beforeText: 텍스트)
-        #expect(텍스트 == "")
+        // 삭제 3회: ㅇ -> ""
+        p = processor.delete(composing: p)
+        #expect(c + p == "")
     }
     
     @Test("종성 복원: '갉' + 'ㅏ' = '갈가' -> 삭제 -> '갉' 복귀 확인")
     func test종성복원_갉_아_삭제() {
         // 1. '갉' 만들기
-        var 텍스트 = ""
-        텍스트 = input("ㄱ", to: 텍스트)
-        텍스트 = input("ㅏ", to: 텍스트)
-        텍스트 = input("ㄹ", to: 텍스트)
-        텍스트 = input("ㄱ", to: 텍스트) // 갉
+        var (c, p) = ("", "")
+        (c, p) = applyInput("ㄱ", committed: c, composing: p)
+        (c, p) = applyInput("ㅏ", committed: c, composing: p)
+        (c, p) = applyInput("ㄹ", committed: c, composing: p)
+        (c, p) = applyInput("ㄱ", committed: c, composing: p) // 갉
         
-        #expect(텍스트 == "갉")
+        #expect(c + p == "갉")
         
         // 2. 'ㅏ' 입력 -> '갈가' (연음 발생)
-        텍스트 = input("ㅏ", to: 텍스트)
-        #expect(텍스트 == "갈가")
+        (c, p) = applyInput("ㅏ", committed: c, composing: p)
+        #expect(c + p == "갈가")
         
-        // 3. 삭제 -> '갉'으로 복원되어야 함 (기존: 갈ㄱ)
-        텍스트 = processor.delete(beforeText: 텍스트)
-        
-        #expect(텍스트 == "갉", "연음된 글자를 지웠을 때, 앞 글자의 겹받침으로 복원되어야 합니다.")
+        // 3. 삭제 -> '갉'으로 복원되어야 함
+        (c, p) = applyDelete(committed: c, composing: p)
+        #expect(c + p == "갉", "연음된 글자를 지웠을 때, 앞 글자의 겹받침으로 복원되어야 합니다.")
     }
     
     @Test("종성 복원: '앉' + 'ㅏ' = '안자' -> 삭제 -> '앉' 복귀 확인")
     func test종성복원_앉_아_삭제() {
         // 1. '앉' 만들기 (ㄴ + ㅈ)
-        var 텍스트 = ""
-        텍스트 = input("ㅇ", to: 텍스트)
-        텍스트 = input("ㅏ", to: 텍스트)
-        텍스트 = input("ㄴ", to: 텍스트)
-        텍스트 = input("ㅈ", to: 텍스트) // 앉
+        var (c, p) = ("", "")
+        (c, p) = applyInput("ㅇ", committed: c, composing: p)
+        (c, p) = applyInput("ㅏ", committed: c, composing: p)
+        (c, p) = applyInput("ㄴ", committed: c, composing: p)
+        (c, p) = applyInput("ㅈ", committed: c, composing: p) // 앉
         
-        #expect(텍스트 == "앉")
+        #expect(c + p == "앉")
         
         // 2. 'ㅏ' 입력 -> '안자'
-        텍스트 = input("ㅏ", to: 텍스트)
-        #expect(텍스트 == "안자")
+        (c, p) = applyInput("ㅏ", committed: c, composing: p)
+        #expect(c + p == "안자")
         
         // 3. 삭제 -> '앉'
-        텍스트 = processor.delete(beforeText: 텍스트)
-        #expect(텍스트 == "앉")
+        (c, p) = applyDelete(committed: c, composing: p)
+        #expect(c + p == "앉")
     }
     
     @Test("종성 복원 예외: 남은 글자가 모음이거나 완성형일 때는 합치지 않음")
     func test종성복원_예외케이스() {
-        var 텍스트 = ""
-        텍스트 = input("ㄱ", to: 텍스트)
-        텍스트 = input("ㅏ", to: 텍스트)
-        텍스트 = input("ㄱ", to: 텍스트) // "각"
-        let 확정된텍스트 = processor.inputSpace(beforeText: 텍스트)
+        var (c, p) = ("", "")
+        (c, p) = applyInput("ㄱ", committed: c, composing: p)
+        (c, p) = applyInput("ㅏ", committed: c, composing: p)
+        (c, p) = applyInput("ㄱ", committed: c, composing: p) // "각"
         
-        텍스트 += " " // "각 "
+        // Space로 확정
+        _ = processor.inputSpace(composing: p)
+        c += p
+        p = ""
+        c += " " // "각 "
         
-        텍스트 = processor.delete(beforeText: 텍스트)
-        #expect(텍스트 == "각")
+        // 삭제 -> "각" (공백만 삭제)
+        // composing이 비었으므로 committed에서 마지막을 가져옴
+        p = String(c.removeLast()) // p = " "
+        p = processor.delete(composing: p)
+        if p.isEmpty && !c.isEmpty {
+            p = String(c.removeLast())
+        }
+        #expect(c + p == "각")
     }
     
-    // MARK: - 4. 11,172자 전체 검증 (Heavy Test)
+    // MARK: - 4. 삭제 후 재입력 결합 테스트
+    
+    @Test("삭제 후 재입력: ㄴㄴ -> 삭제 -> ㄴ -> ㅏ 입력 시 '나'로 결합")
+    func test삭제후_재입력_결합() {
+        var (c, p) = ("", "")
+        
+        // 1. ㄴ 두 번 입력 -> "ㄴㄴ"
+        (c, p) = applyInput("ㄴ", committed: c, composing: p)
+        (c, p) = applyInput("ㄴ", committed: c, composing: p)
+        #expect(c + p == "ㄴㄴ")
+        
+        // 2. ㅏ 입력 -> "ㄴ나"
+        (c, p) = applyInput("ㅏ", committed: c, composing: p)
+        #expect(c + p == "ㄴ나")
+        
+        // 3. 삭제 두 번 -> "ㄴ"
+        (c, p) = applyDelete(committed: c, composing: p)
+        #expect(c + p == "ㄴㄴ")
+        (c, p) = applyDelete(committed: c, composing: p)
+        #expect(c + p == "ㄴ")
+        
+        // 4. ㅏ 입력 -> "나"여야 함 ("ㄴㅏ"가 아님)
+        (c, p) = applyInput("ㅏ", committed: c, composing: p)
+        #expect(c + p == "나", "삭제 후 남은 낱자 자음이 다음 모음과 결합되어야 합니다.")
+    }
+    
+    // MARK: - 5. 11,172자 전체 검증 (Heavy Test)
     
     @Test("두벌식 11,172자 전체 생성 및 삭제 검증")
     func validateAll두벌식한글글자() {
@@ -237,31 +269,29 @@ struct DubeolsikProcessorTests {
             let 목표글자Char = Character(스칼라)
             let 목표글자String = String(목표글자Char)
             
-            // 1. 두벌식 입력 시퀀스로 변환 (예: 닭 -> ㄷ, ㅏ, ㄹ, ㄱ)
+            // 1. 두벌식 입력 시퀀스로 변환
             let 입력키배열 = decompose두벌식키분해(char: 목표글자Char)
             
             // 2. 입력 시뮬레이션
-            var 현재텍스트 = ""
+            var (committed, composing) = ("", "")
             for 키 in 입력키배열 {
-                현재텍스트 = processor.input(글자Input: 키, beforeText: 현재텍스트).processedText
+                (committed, composing) = applyInput(키, committed: committed, composing: composing)
             }
             
             // 3. 생성 검증
-            if 현재텍스트 != 목표글자String {
-                Self.logger.error("생성 실패: 목표(\(목표글자String)) != 결과(\(현재텍스트)) / 입력: \(입력키배열)")
+            if committed + composing != 목표글자String {
+                Self.logger.error("생성 실패: 목표(\(목표글자String)) != 결과(\(committed + composing)) / 입력: \(입력키배열)")
                 실패횟수 += 1
                 continue
             }
             
             // 4. 삭제 시뮬레이션
-            // 입력한 키의 개수만큼 백스페이스를 눌렀을 때 빈 문자열로 돌아가야 함
-            var 삭제테스트텍스트 = 현재텍스트
             for _ in 0..<입력키배열.count {
-                삭제테스트텍스트 = processor.delete(beforeText: 삭제테스트텍스트)
+                (committed, composing) = applyDelete(committed: committed, composing: composing)
             }
             
-            if !삭제테스트텍스트.isEmpty {
-                Self.logger.error("삭제 실패: \(목표글자String) -> 잔여물: '\(삭제테스트텍스트)'")
+            if !(committed + composing).isEmpty {
+                Self.logger.error("삭제 실패: \(목표글자String) -> 잔여물: '\(committed + composing)'")
                 실패횟수 += 1
             }
         }
@@ -274,14 +304,9 @@ struct DubeolsikProcessorTests {
     }
 }
 
-// MARK: - Test Helpers
+// MARK: - Private Methods
 
 private extension DubeolsikProcessorTests {
-    
-    /// 단순 입력 헬퍼 (Text만 반환)
-    func input(_ char: String, to text: String) -> String {
-        return processor.input(글자Input: char, beforeText: text).processedText
-    }
     
     /// 완성된 한글 문자를 두벌식 키 입력 배열로 분해
     func decompose두벌식키분해(char: Character) -> [String] {
@@ -294,14 +319,11 @@ private extension DubeolsikProcessorTests {
         
         var 입력키배열: [String] = []
         
-        // 1. 초성
         입력키배열.append(초성Table[초성Index])
         
-        // 2. 중성 (재귀적으로 낱자 분해)
         let 중성Char = 중성Table[중성Index]
         입력키배열.append(contentsOf: decompose모음_재귀(중성Char))
         
-        // 3. 종성 (겹받침 분해)
         if 종성Index != 0 {
             let 종성Char = 종성Table[종성Index]
             입력키배열.append(contentsOf: decompose자음_분해(종성Char))
@@ -310,7 +332,6 @@ private extension DubeolsikProcessorTests {
         return 입력키배열
     }
     
-    /// 모음을 재귀적으로 분해 (예: ㅙ -> ㅘ, ㅣ -> ㅗ, ㅏ, ㅣ)
     func decompose모음_재귀(_ 모음: String) -> [String] {
         if ["ㅐ", "ㅔ", "ㅒ", "ㅖ"].contains(모음) { return [모음] }
         
@@ -321,7 +342,6 @@ private extension DubeolsikProcessorTests {
         }
     }
     
-    /// 자음을 분해 (예: ㄳ -> ㄱ, ㅅ)
     func decompose자음_분해(_ 자음: String) -> [String] {
         if let 조합 = 겹자음조합Table.first(where: { $0.겹자음 == 자음 }) {
             return [조합.앞자음, 조합.뒷자음]

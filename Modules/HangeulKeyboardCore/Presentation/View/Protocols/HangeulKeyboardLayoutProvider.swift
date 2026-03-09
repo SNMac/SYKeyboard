@@ -42,7 +42,7 @@ protocol HangeulKeyboardLayoutProvider: PrimaryKeyboardRepresentable {
     /// `ShiftButton`의 Shift 상태 초기화
     func initShiftButton()
     /// `ShiftButton`의 Shift 상태 변경
-    func updateShiftButton(isShifted: Bool)
+    func updateShiftButton(to isShifted: Bool)
 }
 
 // MARK: - Protocol Properties & Methods
@@ -77,13 +77,7 @@ extension HangeulKeyboardLayoutProvider {
     }
     
     func updateLayoutToURL() {
-        spaceButton.isHidden = true
-        
-        returnButton.isHidden = false
-        secondaryAtButton.isHidden = true
-        secondarySharpButton.isHidden = true
-        
-        initShiftButton()
+        updateLayoutToDefault()
     }
     
     func updateLayoutToEmailAddress() {
@@ -121,7 +115,7 @@ extension HangeulKeyboardLayoutProvider {
         wasShifted = false
     }
     
-    func updateShiftButton(isShifted: Bool) {
+    func updateShiftButton(to isShifted: Bool) {
         self.isShifted = isShifted
         wasShifted = false
     }

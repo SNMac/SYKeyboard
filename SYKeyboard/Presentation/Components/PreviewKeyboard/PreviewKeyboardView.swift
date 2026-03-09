@@ -18,7 +18,7 @@ struct PreviewKeyboardView: View {
     
     let displayOneHandedMode: Bool
     
-    // MARK: - Contents
+    // MARK: - Content
     
     var body: some View {
         Picker(selection: $previewKeyboardLanguage, label: Text("키보드 언어")) {

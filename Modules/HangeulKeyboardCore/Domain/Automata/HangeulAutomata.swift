@@ -11,42 +11,25 @@ protocol HangeulAutomataProtocol: AnyObject {
     var 중성Table: [String] { get }
     var 종성Table: [String] { get }
     
-    /// 새로운 글자를 입력받아 처리된 전체 문자열을 반환합니다.
+    /// 새로운 글자를 입력받아 확정/조합 분리된 결과를 반환합니다.
     /// - Parameters:
-    ///   - 글자Input: 새로 입력된 글자 (`String` 타입)
-    ///   - beforeText: 입력 전의 전체 문자열
-    func add글자(글자Input: String, beforeText: String) -> String
-    /// 마지막 글자를 지우거나 분해합니다.
-    /// - Parameters:
-    ///   - beforeText: 삭제 전의 전체 문자열
-    func delete글자(beforeText: String) -> String
+    ///   - 글자Input: 새로 입력된 글자
+    ///   - composing: 현재 조합 중인 문자열 (최대 1~2글자)
+    /// - Returns: `committed`(확정)과 `composing`(조합 중)이 분리된 결과
+    func add글자(글자Input: String, composing: String) -> (committed: String, composing: String)
+    
+    /// 조합 중인 마지막 글자를 지우거나 분해합니다.
+    /// - Parameter composing: 현재 조합 중인 문자열
+    /// - Returns: 삭제 후 남은 조합 문자열
+    func delete글자(composing: String) -> String
     
     /// 초성, 중성, 종성 인덱스를 조합하여 완성된 한글 문자 하나를 생성합니다.
-    ///
-    /// 유니코드 공식: `0xAC00 + (초성 * 21 * 28) + (중성 * 28) + 종성`
-    ///
-    /// - Parameters:
-    ///   - 초성Index: 초성 테이블의 인덱스 (0 ~ 18)
-    ///   - 중성Index: 중성 테이블의 인덱스 (0 ~ 20)
-    ///   - 종성Index: 종성 테이블의 인덱스 (0 ~ 27). 종성이 없는 경우 0입니다.
-    /// - Returns: 조합된 한글 `Character`. 인덱스가 범위를 벗어나거나 유효하지 않은 유니코드인 경우 `nil`을 반환합니다.
     func combine(초성Index: Int, 중성Index: Int, 종성Index: Int) -> Character?
+    
     /// 완성된 한글 문자를 초성, 중성, 종성 인덱스로 분해합니다.
-    ///
-    /// 입력된 문자가 '가'(0xAC00) ~ '힣'(0xD7A3) 범위 내의 완성형 한글 글자일 때만 동작합니다.
-    /// 자음이나 모음 단독(예: 'ㄱ', 'ㅏ')일 경우 `nil`을 반환합니다.
-    ///
-    /// - Parameter 한글Char: 분해할 한글 문자 (Character)
-    /// - Returns: (초성Index, 중성Index, 종성Index) 형태의 튜플. 분해 실패 시 `nil`을 반환합니다.
     func decompose(한글Char: Character) -> (초성Index: Int, 중성Index: Int, 종성Index: Int)?
     
-    /// 겹받침을 구성하는 두 개의 낱자 자음으로 분해합니다.
-    ///
-    /// 입력된 종성이 겹받침(예: 'ㄳ', 'ㄺ')인 경우, 이를 앞받침과 뒷받침으로 나누어 반환합니다.
-    /// 겹받침이 아니거나 분해할 수 없는 경우 `nil`을 반환합니다.
-    ///
-    /// - Parameter 종성: 분해할 종성 문자열 (예: "ㄳ")
-    /// - Returns: (앞받침, 뒷받침) 형태의 튜플 (예: ("ㄱ", "ㅅ")). 분해 실패 시 `nil`.
+    /// 겹받침을 두 개의 낱자 자음으로 분해합니다.
     func decompose겹받침(종성: String) -> (String, String)?
 }
 
@@ -64,7 +47,7 @@ final class HangeulAutomata: HangeulAutomataProtocol {
     let 중성Table: [String] = ["ㅏ", "ㅐ", "ㅑ", "ㅒ", "ㅓ", "ㅔ", "ㅕ", "ㅖ", "ㅗ", "ㅘ", "ㅙ", "ㅚ",
                              "ㅛ", "ㅜ", "ㅝ", "ㅞ", "ㅟ", "ㅠ", "ㅡ", "ㅢ", "ㅣ"]
     
-    let 종성Table: [String] = [" ", "ㄱ", "ㄲ", "ㄳ", "ㄴ", "ㄵ", "ㄶ","ㄷ", "ㄹ", "ㄺ", "ㄻ", "ㄼ", "ㄽ", "ㄾ", "ㄿ", "ㅀ",
+    let 종성Table: [String] = [" ", "ㄱ", "ㄲ", "ㄳ", "ㄴ", "ㄵ", "ㄶ", "ㄷ", "ㄹ", "ㄺ", "ㄻ", "ㄼ", "ㄽ", "ㄾ", "ㄿ", "ㅀ",
                              "ㅁ", "ㅂ", "ㅄ", "ㅅ", "ㅆ", "ㅇ", "ㅈ", "ㅊ", "ㅋ", "ㅌ", "ㅍ", "ㅎ"]
     
     private let 겹모음조합Table: [(앞모음: String, 뒷모음: String, 결과: String)] = [
@@ -95,16 +78,17 @@ final class HangeulAutomata: HangeulAutomataProtocol {
     
     // MARK: - Internal Methods
     
-    func add글자(글자Input: String, beforeText: String) -> String {
-        guard !글자Input.isEmpty else { return beforeText }
-        guard let beforeTextLast글자Char = beforeText.last else { return beforeText + 글자Input }
+    func add글자(글자Input: String, composing: String) -> (committed: String, composing: String) {
+        guard !글자Input.isEmpty else { return ("", composing) }
+        guard let lastChar = composing.last else { return ("", 글자Input) }
         
-        var newText = beforeText
+        // composing의 앞부분 (composing이 2글자인 경우 첫 글자)
+        let prefix = String(composing.dropLast())
         
         // 1. 입력이 모음인 경우
         if 중성Table.contains(글자Input) {
             // 마지막 글자가 완성된 한글인 경우
-            if let (초성Index, 중성Index, 종성Index) = decompose(한글Char: beforeTextLast글자Char) {
+            if let (초성Index, 중성Index, 종성Index) = decompose(한글Char: lastChar) {
                 // 1-1. 종성이 있는 경우 (예: '각' + 'ㅏ')
                 if 종성Index != 0 {
                     let 종성글자 = 종성Table[종성Index]
@@ -116,69 +100,46 @@ final class HangeulAutomata: HangeulAutomataProtocol {
                               let 중성InputIndex = 중성Table.firstIndex(of: 글자Input),
                               let 앞글자 = combine(초성Index: 초성Index, 중성Index: 중성Index, 종성Index: 앞받침Index),
                               let 뒷글자 = combine(초성Index: 뒷받침Index, 중성Index: 중성InputIndex, 종성Index: 0) else {
-                            
-                            assertionFailure("[\(#function)] Critical Error: 겹받침 분해/조합 실패 (Input: \(글자Input))")
-                            return newText + 글자Input
+                            return (composing, 글자Input)
                         }
-                        
-                        newText.removeLast()
-                        newText.append(앞글자)
-                        newText.append(뒷글자)
-                        return newText
+                        // 앞글자는 확정, 뒷글자는 새 조합
+                        return (prefix + String(앞글자), String(뒷글자))
                     } else {
-                        // 홑받침인 경우 (예: '각' + 'ㅏ' -> '가' + '가')
+                        // 홑받침인 경우 (예: '각' + 'ㅏ' -> '가' 확정 + '가' 조합)
                         if let next글자초성Index = 초성Table.firstIndex(of: 종성글자) {
                             guard let 중성InputIndex = 중성Table.firstIndex(of: 글자Input),
                                   let 앞글자 = combine(초성Index: 초성Index, 중성Index: 중성Index, 종성Index: 0),
                                   let 뒷글자 = combine(초성Index: next글자초성Index, 중성Index: 중성InputIndex, 종성Index: 0) else {
-                                
-                                assertionFailure("[\(#function)] Critical Error: 종성 연음 조합 실패")
-                                return newText + 글자Input
+                                return (composing, 글자Input)
                             }
-                            
-                            newText.removeLast()
-                            newText.append(앞글자)
-                            newText.append(뒷글자)
-                            return newText
+                            return (prefix + String(앞글자), String(뒷글자))
                         }
                     }
                 }
-                // 1-2. 종성이 없는 경우 (예: '고' + 'ㅏ') -> 복모음 확인
+                // 1-2. 종성이 없는 경우 (예: '고' + 'ㅏ') -> 겹모음 확인
                 else {
                     let existing중성 = 중성Table[중성Index]
                     if let combined중성 = find겹모음(앞모음: existing중성, 뒷모음: 글자Input) {
                         guard let combined중성Index = 중성Table.firstIndex(of: combined중성),
                               let new글자 = combine(초성Index: 초성Index, 중성Index: combined중성Index, 종성Index: 0) else {
-                            
-                            assertionFailure("[\(#function)] Critical Error: 복모음 조합 실패")
-                            return newText + 글자Input
+                            return (composing, 글자Input)
                         }
-                        
-                        newText.removeLast()
-                        newText.append(new글자)
-                        return newText
+                        return (prefix, String(new글자))
                     }
                 }
             }
             // 마지막 글자가 낱자 자음인 경우 (예: 'ㄱ' + 'ㅏ' -> '가')
-            else if let last글자초성Index = 초성Table.firstIndex(of: String(beforeTextLast글자Char)) {
+            else if let last글자초성Index = 초성Table.firstIndex(of: String(lastChar)) {
                 guard let 중성Index = 중성Table.firstIndex(of: 글자Input),
                       let new글자 = combine(초성Index: last글자초성Index, 중성Index: 중성Index, 종성Index: 0) else {
-                    
-                    assertionFailure("[\(#function)] Critical Error: 자음+모음 결합 실패")
-                    return newText + 글자Input
+                    return (composing, 글자Input)
                 }
-                
-                newText.removeLast()
-                newText.append(new글자)
-                return newText
+                return (prefix, String(new글자))
             }
             // 마지막 글자가 낱자 모음인 경우 (예: 'ㅜ' + 'ㅓ' -> 'ㅝ')
-            else if 중성Table.contains(String(beforeTextLast글자Char)) {
-                if let combined중성 = find겹모음(앞모음: String(beforeTextLast글자Char), 뒷모음: 글자Input) {
-                    newText.removeLast()
-                    newText.append(combined중성)
-                    return newText
+            else if 중성Table.contains(String(lastChar)) {
+                if let combined중성 = find겹모음(앞모음: String(lastChar), 뒷모음: 글자Input) {
+                    return (prefix, combined중성)
                 }
             }
         }
@@ -186,19 +147,14 @@ final class HangeulAutomata: HangeulAutomataProtocol {
         // 2. 입력이 자음인 경우
         else if 초성Table.contains(글자Input) {
             // 마지막 글자가 완성된 한글인 경우
-            if let (초성Index, 중성Index, 종성Index) = decompose(한글Char: beforeTextLast글자Char) {
+            if let (초성Index, 중성Index, 종성Index) = decompose(한글Char: lastChar) {
                 // 2-1. 종성이 없는 경우 (예: '가' + 'ㄱ' -> '각')
                 if 종성Index == 0 {
-                    // 입력된 자음이 종성으로 쓰일 수 있는지 확인
                     if let input종성Index = 종성Table.firstIndex(of: 글자Input) {
                         guard let new글자 = combine(초성Index: 초성Index, 중성Index: 중성Index, 종성Index: input종성Index) else {
-                            assertionFailure("[\(#function)] Critical Error: 종성 추가 실패")
-                            return newText + 글자Input
+                            return (composing, 글자Input)
                         }
-                        
-                        newText.removeLast()
-                        newText.append(new글자)
-                        return newText
+                        return (prefix, String(new글자))
                     }
                 }
                 // 2-2. 종성이 있는 경우 (예: '각' + 'ㅅ' -> 'ㄳ') -> 겹받침 확인
@@ -207,30 +163,26 @@ final class HangeulAutomata: HangeulAutomataProtocol {
                     if let combined종성 = find겹자음(앞자음: existing종성, 뒷자음: 글자Input) {
                         guard let combined종성Index = 종성Table.firstIndex(of: combined종성),
                               let new글자 = combine(초성Index: 초성Index, 중성Index: 중성Index, 종성Index: combined종성Index) else {
-                            
-                            assertionFailure("[\(#function)] Critical Error: 겹받침 생성 실패")
-                            return newText + 글자Input
+                            return (composing, 글자Input)
                         }
-                        
-                        newText.removeLast()
-                        newText.append(new글자)
-                        return newText
+                        return (prefix, String(new글자))
                     }
                 }
             }
         }
         
-        // 위의 어떤 결합 조건에도 해당하지 않으면 그냥 추가
-        return newText + 글자Input
+        // 위의 어떤 결합 조건에도 해당하지 않으면:
+        // 현재 composing 전체를 확정하고, 새 글자를 새 조합으로 시작
+        return (composing, 글자Input)
     }
     
-    func delete글자(beforeText: String) -> String {
-        guard let beforeTextLast글자Char = beforeText.last else { return beforeText }
+    func delete글자(composing: String) -> String {
+        guard let lastChar = composing.last else { return composing }
         
-        var newText = beforeText
+        var newText = composing
         
         // 1. 완성된 한글인 경우 분해 시도
-        if let (초성Index, 중성Index, 종성Index) = decompose(한글Char: beforeTextLast글자Char) {
+        if let (초성Index, 중성Index, 종성Index) = decompose(한글Char: lastChar) {
             newText.removeLast()
             
             // 1-1. 종성이 있는 경우
@@ -241,16 +193,13 @@ final class HangeulAutomata: HangeulAutomataProtocol {
                 if let (앞받침, _) = decompose겹받침(종성: 종성글자) {
                     guard let 앞받침Index = 종성Table.firstIndex(of: 앞받침),
                           let new글자 = combine(초성Index: 초성Index, 중성Index: 중성Index, 종성Index: 앞받침Index) else {
-                        
-                        assertionFailure("[\(#function)] Critical Error: 겹받침 삭제 분해 실패")
-                        return beforeText
+                        return composing
                     }
                     newText.append(new글자)
                 } else {
                     // 홑받침이면 종성 제거 (예: '각' -> '가')
                     guard let new글자 = combine(초성Index: 초성Index, 중성Index: 중성Index, 종성Index: 0) else {
-                        assertionFailure("[\(#function)] Critical Error: 홑받침 삭제 실패")
-                        return beforeText
+                        return composing
                     }
                     newText.append(new글자)
                 }
@@ -263,9 +212,7 @@ final class HangeulAutomata: HangeulAutomataProtocol {
                 if let (앞모음, _) = decompose겹모음(중성: 중성글자) {
                     guard let 앞모음Index = 중성Table.firstIndex(of: 앞모음),
                           let new글자 = combine(초성Index: 초성Index, 중성Index: 앞모음Index, 종성Index: 0) else {
-                        
-                        assertionFailure("[\(#function)] Critical Error: 겹모음 삭제 분해 실패")
-                        return beforeText
+                        return composing
                     }
                     newText.append(new글자)
                 } else {
@@ -274,11 +221,11 @@ final class HangeulAutomata: HangeulAutomataProtocol {
                 }
             }
         }
-        // 2. 완성된 한글이 아닌 경우 (낱자 자음/모음, 혹은 특수문자)
+        // 2. 완성된 한글이 아닌 경우 (낱자 자음/모음)
         else {
             newText.removeLast()
             
-            let last글자String = String(beforeTextLast글자Char)
+            let last글자String = String(lastChar)
             
             // 겹모음 낱자 분해 (예: 'ㅘ' -> 'ㅗ')
             if 중성Table.contains(last글자String),
@@ -308,7 +255,6 @@ final class HangeulAutomata: HangeulAutomataProtocol {
         return (초성Index, 중성Index, 종성Index)
     }
     
-    // "ㄳ" -> ("ㄱ", "ㅅ")
     func decompose겹받침(종성: String) -> (String, String)? {
         for 조합 in 겹자음조합Table {
             if 조합.결과 == 종성 { return (조합.앞자음, 조합.뒷자음) }
@@ -320,7 +266,6 @@ final class HangeulAutomata: HangeulAutomataProtocol {
 // MARK: - Private Methods
 
 private extension HangeulAutomata {
-    // ["ㅗ","ㅏ","ㅘ"] 형식의 테이블에서 조합 찾기
     func find겹모음(앞모음: String, 뒷모음: String) -> String? {
         for 조합 in 겹모음조합Table {
             if 조합.앞모음 == 앞모음 && 조합.뒷모음 == 뒷모음 { return 조합.결과 }
@@ -328,7 +273,6 @@ private extension HangeulAutomata {
         return nil
     }
     
-    // "ㅘ" -> ("ㅗ", "ㅏ")
     func decompose겹모음(중성: String) -> (String, String)? {
         for 조합 in 겹모음조합Table {
             if 조합.결과 == 중성 { return (조합.앞모음, 조합.뒷모음) }
@@ -336,7 +280,6 @@ private extension HangeulAutomata {
         return nil
     }
     
-    // ["ㄱ","ㅅ","ㄳ"] 형식의 테이블에서 조합 찾기
     func find겹자음(앞자음: String, 뒷자음: String) -> String? {
         for 조합 in 겹자음조합Table {
             if 조합.앞자음 == 앞자음 && 조합.뒷자음 == 뒷자음 { return 조합.결과 }

@@ -30,7 +30,7 @@ struct OneHandedKeyboardWidthSettingsView: View {
     
     @State private var tempOneHandedKeyboardWidth: Double = DefaultValues.oneHandedKeyboardWidth
     
-    // MARK: - Contents
+    // MARK: - Content
     
     var body: some View {
         NavigationStack {
@@ -80,6 +80,8 @@ private extension OneHandedKeyboardWidthSettingsView {
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
                     oneHandedKeyboardWidth = tempOneHandedKeyboardWidth
+                    Analytics.setUserProperty(String(format: "%.1f", oneHandedKeyboardWidth),
+                                              forName: "pref_one_handed_width")
                     Analytics.logEvent("one_handed_keyboard_width", parameters: [
                         "view": "OneHandedKeyboardWidthSettingsView",
                         "value": oneHandedKeyboardWidth

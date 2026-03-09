@@ -25,7 +25,7 @@ struct InstructionsPageView: View {
         self.description = description
     }
     
-    // MARK: - Contents
+    // MARK: - Content
     
     var body: some View {
         VStack {

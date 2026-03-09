@@ -21,7 +21,7 @@ struct KeyRepeatSettingsView: View {
     @AppStorage(UserDefaultsKeys.repeatRate, store: UserDefaultsManager.shared.storage)
     private var repeatRate = DefaultValues.repeatRate
     
-    // MARK: - Contents
+    // MARK: - Content
     
     var body: some View {
         NavigationStack {
@@ -43,11 +43,15 @@ struct KeyRepeatSettingsView: View {
             .navigationBarTitleDisplayMode(.inline)
             .requestReviewViewModifier()
         }.onDisappear {
+            Analytics.setUserProperty(String(format: "%.2f", longPressDuration),
+                                      forName: "pref_long_press_duration")
             Analytics.logEvent("long_press_duration", parameters: [
                 "view": "KeyRepeatSettingsView",
                 "value": longPressDuration,
             ])
             
+            Analytics.setUserProperty(String(format: "%.3f", repeatRate),
+                                      forName: "pref_repeat_rate")
             Analytics.logEvent("repeat_rate", parameters: [
                 "view": "KeyRepeatSettingsView",
                 "value": repeatRate

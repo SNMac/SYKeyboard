@@ -30,7 +30,7 @@ struct KeyboardHeightSettingsView: View {
     
     @State private var tempKeyboardHeight: Double = DefaultValues.keyboardHeight
     
-    // MARK: - Contents
+    // MARK: - Content
     
     var body: some View {
         NavigationStack {
@@ -85,6 +85,8 @@ private extension KeyboardHeightSettingsView {
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
                     keyboardHeight = tempKeyboardHeight
+                    Analytics.setUserProperty(String(format: "%.1f", keyboardHeight),
+                                              forName: "pref_keyboard_height")
                     Analytics.logEvent("keyboard_height", parameters: [
                         "view": "KeyboardHeightSettingsView",
                         "value": keyboardHeight

@@ -21,7 +21,7 @@ struct CursorMovementSettingsView: View {
     @AppStorage(UserDefaultsKeys.cursorMoveInterval, store: UserDefaultsManager.shared.storage)
     private var cursorMoveInterval = DefaultValues.cursorMoveInterval
     
-    // MARK: - Contents
+    // MARK: - Content
     
     var body: some View {
         NavigationStack {
@@ -44,11 +44,15 @@ struct CursorMovementSettingsView: View {
             .navigationBarTitleDisplayMode(.inline)
             .requestReviewViewModifier()
         }.onDisappear {
+            Analytics.setUserProperty(String(format: "%.1f", cursorActiveDistance),
+                                      forName: "pref_cursor_atv_distance")
             Analytics.logEvent("cursor_active_distance", parameters: [
                 "view": "CursorMovementSettingsView",
                 "value": cursorActiveDistance,
             ])
             
+            Analytics.setUserProperty(String(format: "%.1f", cursorMoveInterval),
+                                      forName: "pref_cursor_mv_interval")
             Analytics.logEvent("cursor_move_interval", parameters: [
                 "view": "CursorMovementSettingsView",
                 "value": cursorMoveInterval

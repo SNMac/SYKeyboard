@@ -11,7 +11,7 @@ import FirebaseAnalytics
 
 struct InitialSettingsView: View {
     
-    // MARK: - Contents
+    // MARK: - Content
 
     var body: some View {
         Button {

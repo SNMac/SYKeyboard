@@ -18,18 +18,24 @@ final class SymbolKeyboardView: UIView, SymbolKeyboardLayoutProvider {
         category: "\(String(describing: type(of: self))) <\(Unmanaged.passUnretained(self).toOpaque())>"
     )
     
+    private let keyList: [[[[String]]]] = [
+        [
+            [ ["1"], ["2"], ["3"], ["4"], ["5"], ["6"], ["7"], ["8"], ["9"], ["0"] ],
+            [ ["-"], ["/"], [":"], [";"], ["("], [")"], ["₩"], ["&"], ["@"], ["“"] ],
+            [ ["."], [","], ["?"], ["!"], ["’"] ]
+        ],
+        [
+            [ ["["], ["]"], ["{"], ["}"], ["#"], ["%"], ["^"], ["*"], ["+"], ["="] ],
+            [ ["_"], ["\\"], ["|"], ["~"], ["<"], [">"], ["$"], ["£"], ["¥"], ["•"] ],
+            [ ["."], [","], ["?"], ["!"], ["’"] ]
+        ]
+    ]
+    
     public private(set) lazy var allButtonList: [BaseKeyboardButton] = primaryButtonList + secondaryButtonList
-    public private(set) lazy var primaryButtonList: [PrimaryButton] = firstRowPrimaryKeyButtonList + secondRowPrimaryKeyButtonList + thirdRowPrimaryKeyButtonList + [spaceButton, atButton, periodButton, slashButton, dotComButton]
+    public private(set) lazy var primaryButtonList: [PrimaryButton] = firstRowPrimaryKeyButtonList + secondRowPrimaryKeyButtonList + thirdRowPrimaryKeyButtonList + [spaceButton]
     public private(set) lazy var secondaryButtonList: [SecondaryButton] = [shiftButton, deleteButton, switchButton, returnButton, nextKeyboardButton]
     public private(set) lazy var totalTextInterableButtonList: [TextInteractable] = firstRowPrimaryKeyButtonList + secondRowPrimaryKeyButtonList + thirdRowPrimaryKeyButtonList
-    + [deleteButton, spaceButton, atButton, periodButton, slashButton, dotComButton, returnButton]
-    
-    var currentSymbolKeyboardMode: SymbolKeyboardMode = .default {
-        didSet(oldMode) {
-            updateLayoutForCurrentSymbolKeyboardMode(oldMode: oldMode)
-            isShifted = false
-        }
-    }
+    + [deleteButton, spaceButton, returnButton]
     
     var isShifted: Bool = false {
         didSet {
@@ -38,9 +44,6 @@ final class SymbolKeyboardView: UIView, SymbolKeyboardLayoutProvider {
         }
     }
     var wasShifted: Bool = false
-    
-    /// `periodButton`의 너비 제약 조건을 저장하는 변수
-    public var periodButtonWidthConstraint: NSLayoutConstraint?
     
     // MARK: - UI Components
     
@@ -73,30 +76,25 @@ final class SymbolKeyboardView: UIView, SymbolKeyboardLayoutProvider {
         return keyboardRowHStackView
     }()
     public private(set) var fourthRowLeftSecondaryButtonHStackView = KeyboardRowHStackView()
-    public private(set) var spaceButtonHStackView: KeyboardRowHStackView = {
-        let keyboardRowHStackView = KeyboardRowHStackView()
-        keyboardRowHStackView.distribution = .fill
-        
-        return keyboardRowHStackView
-    }()
     
     /// 키보드 첫번째 행 `PrimaryKeyButton` 배열
-    private lazy var firstRowPrimaryKeyButtonList = currentSymbolKeyboardMode.keyList[0][0].map { PrimaryKeyButton(keyboard: .symbol, button: .keyButton(primary: $0, secondary: nil)) }
+    private lazy var firstRowPrimaryKeyButtonList = keyList[0][0].map {
+        PrimaryKeyButton(keyboard: .symbol, button: .keyButton(primary: $0, secondary: nil))
+    }
     /// 키보드 두번째 행 `PrimaryKeyButton` 배열
-    private lazy var secondRowPrimaryKeyButtonList = currentSymbolKeyboardMode.keyList[0][1].map { PrimaryKeyButton(keyboard: .symbol, button: .keyButton(primary: $0, secondary: nil)) }
+    private lazy var secondRowPrimaryKeyButtonList = keyList[0][1].map {
+        PrimaryKeyButton(keyboard: .symbol, button: .keyButton(primary: $0, secondary: nil))
+    }
     /// 키보드 세번째 행 `PrimaryKeyButton` 배열
-    private lazy var thirdRowPrimaryKeyButtonList = currentSymbolKeyboardMode.keyList[0][2].map { PrimaryKeyButton(keyboard: .symbol, button: .keyButton(primary: $0, secondary: nil)) }
+    private lazy var thirdRowPrimaryKeyButtonList = keyList[0][2].map {
+        PrimaryKeyButton(keyboard: .symbol, button: .keyButton(primary: $0, secondary: nil))
+    }
     
     public private(set) var shiftButton = ShiftButton(keyboard: .symbol)
     public private(set) var deleteButton = DeleteButton(keyboard: .symbol)
     public private(set) var switchButton = SwitchButton(keyboard: .symbol)
     
-    // 스페이스 버튼 위치
     public private(set) var spaceButton = SpaceButton(keyboard: .symbol)
-    public private(set) var atButton = PrimaryKeyButton(keyboard: .symbol, button: .keyButton(primary: ["@"], secondary: nil))
-    public private(set) var periodButton = PrimaryKeyButton(keyboard: .symbol, button: .keyButton(primary: ["."], secondary: nil))
-    public private(set) var slashButton = PrimaryKeyButton(keyboard: .symbol, button: .keyButton(primary: ["/"], secondary: nil))
-    public private(set) var dotComButton = PrimaryKeyButton(keyboard: .symbol, button: .keyButton(primary: [".com"], secondary: nil))
     
     public private(set) var returnButton = ReturnButton(keyboard: .symbol)
     public private(set) var nextKeyboardButton = NextKeyboardButton(keyboard: .symbol)
@@ -119,7 +117,6 @@ final class SymbolKeyboardView: UIView, SymbolKeyboardLayoutProvider {
     override init(frame: CGRect) {
         super.init(frame: frame)
         setupUI()
-        updateLayoutToDefault()
     }
     
     required init?(coder: NSCoder) {
@@ -166,9 +163,8 @@ private extension SymbolKeyboardView {
         [shiftButton, thirdRowInsideHStackView, deleteButton].forEach { thirdRowHStackView.addArrangedSubview($0) }
         thirdRowPrimaryKeyButtonList.forEach { thirdRowInsideHStackView.addArrangedSubview($0) }
         
-        [fourthRowLeftSecondaryButtonHStackView, spaceButtonHStackView, returnButton].forEach { fourthRowHStackView.addArrangedSubview($0) }
+        [fourthRowLeftSecondaryButtonHStackView, spaceButton, returnButton].forEach { fourthRowHStackView.addArrangedSubview($0) }
         [switchButton, nextKeyboardButton].forEach { fourthRowLeftSecondaryButtonHStackView.addArrangedSubview($0) }
-        [spaceButton, atButton, periodButton, slashButton, dotComButton].forEach { spaceButtonHStackView.addArrangedSubview($0) }
     }
     
     func setConstraints() {
@@ -187,52 +183,42 @@ private extension SymbolKeyboardView {
             if index == 0 {
                 guard let lastButton = thirdRowPrimaryKeyButtonList.last else { fatalError("thirdRowPrimaryKeyButtonList가 비어있습니다.") }
                 button.widthAnchor.constraint(equalTo: lastButton.widthAnchor).isActive = true
-                button.updateKeyAlignment(.right, referenceView: thirdRowHStackView, multiplier: multiplier)
+                button.updateKeyAlignment(.right,
+                                          referenceView: thirdRowHStackView,
+                                          multiplier: multiplier)
                 
             } else if index == thirdRowPrimaryKeyButtonList.count - 1 {
-                button.updateKeyAlignment(.left, referenceView: thirdRowHStackView, multiplier: multiplier)
+                button.updateKeyAlignment(.left,
+                                          referenceView: thirdRowHStackView,
+                                          multiplier: multiplier)
                 
             } else {
-                button.widthAnchor.constraint(equalTo: thirdRowHStackView.widthAnchor, multiplier: multiplier).isActive = true
+                button.widthAnchor.constraint(equalTo: thirdRowHStackView.widthAnchor,
+                                              multiplier: multiplier).isActive = true
             }
         }
         
         if let referenceView = firstRowPrimaryKeyButtonList.first {
-            shiftButton.widthAnchor.constraint(equalTo: referenceView.widthAnchor,
-                                               multiplier: KeyboardLayoutFigure.shiftAndDeleteButtonWidthMultiplier).isActive = true
-            deleteButton.widthAnchor.constraint(equalTo: referenceView.widthAnchor,
-                                                multiplier: KeyboardLayoutFigure.shiftAndDeleteButtonWidthMultiplier).isActive = true
+            shiftButton.widthAnchor.constraint(
+                equalTo: referenceView.widthAnchor,
+                multiplier: KeyboardLayoutFigure.shiftAndDeleteButtonWidthMultiplier
+            ).isActive = true
+            deleteButton.widthAnchor.constraint(
+                equalTo: referenceView.widthAnchor,
+                multiplier: KeyboardLayoutFigure.shiftAndDeleteButtonWidthMultiplier
+            ).isActive = true
         }
         
         fourthRowLeftSecondaryButtonHStackView.translatesAutoresizingMaskIntoConstraints = false
         if let superview = fourthRowLeftSecondaryButtonHStackView.superview {
-            fourthRowLeftSecondaryButtonHStackView.widthAnchor.constraint(equalTo: superview.widthAnchor, multiplier: 0.25).isActive = true
+            fourthRowLeftSecondaryButtonHStackView.widthAnchor.constraint(equalTo: superview.widthAnchor,
+                                                                          multiplier: 0.25).isActive = true
         }
         
-        spaceButtonHStackView.translatesAutoresizingMaskIntoConstraints = false
-        if let superview = spaceButtonHStackView.superview {
-            spaceButtonHStackView.widthAnchor.constraint(equalTo: superview.widthAnchor, multiplier: 0.5).isActive = true
-        }
-        
-        atButton.translatesAutoresizingMaskIntoConstraints = false
-        if let superview = atButton.superview {
-            atButton.widthAnchor.constraint(equalTo: superview.widthAnchor, multiplier: 0.25).isActive = true
-        }
-        
-        periodButton.translatesAutoresizingMaskIntoConstraints = false
-        if let superview = periodButton.superview {
-            periodButtonWidthConstraint = periodButton.widthAnchor.constraint(equalTo: superview.widthAnchor, multiplier: 0.2)
-            periodButtonWidthConstraint?.isActive = true
-        }
-        
-        slashButton.translatesAutoresizingMaskIntoConstraints = false
-        if let superview = slashButton.superview {
-            slashButton.widthAnchor.constraint(equalTo: superview.widthAnchor, multiplier: 1.0/3.0).isActive = true
-        }
-        
-        dotComButton.translatesAutoresizingMaskIntoConstraints = false
-        if let superview = dotComButton.superview {
-            dotComButton.widthAnchor.constraint(equalTo: superview.widthAnchor, multiplier: 1.0/3.0).isActive = true
+        returnButton.translatesAutoresizingMaskIntoConstraints = false
+        if let superview = returnButton.superview {
+            returnButton.widthAnchor.constraint(equalTo: superview.widthAnchor,
+                                                multiplier: 0.25).isActive = true
         }
         
         keyboardSelectOverlayView.translatesAutoresizingMaskIntoConstraints = false
@@ -282,24 +268,9 @@ private extension SymbolKeyboardView {
         let rowList = [firstRowPrimaryKeyButtonList, secondRowPrimaryKeyButtonList, thirdRowPrimaryKeyButtonList]
         for (rowIndex, buttonList) in rowList.enumerated() {
             for (buttonIndex, button) in buttonList.enumerated() {
-                let primaryKeyList = currentSymbolKeyboardMode.keyList[symbolKeyListIndex][rowIndex][buttonIndex]
+                let primaryKeyList = keyList[symbolKeyListIndex][rowIndex][buttonIndex]
                 button.update(buttonType: TextInteractableType.keyButton(primary: primaryKeyList, secondary: nil))
             }
-        }
-    }
-}
-
-// MARK: - Internal Methods
-
-extension SymbolKeyboardView {
-    func updatePeriodButtonWidthConstraint(multiplier: CGFloat?) {
-        periodButtonWidthConstraint?.isActive = false
-        
-        guard let multiplier = multiplier else { return }
-        
-        if let superview = periodButton.superview {
-            periodButtonWidthConstraint = periodButton.widthAnchor.constraint(equalTo: superview.widthAnchor, multiplier: multiplier)
-            periodButtonWidthConstraint?.isActive = true
         }
     }
 }

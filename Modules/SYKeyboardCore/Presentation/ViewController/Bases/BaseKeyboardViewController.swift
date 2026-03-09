@@ -505,8 +505,8 @@ private extension BaseKeyboardViewController {
             button.addGestureRecognizer(panGesture)
         }
         
-        if (UserDefaultsManager.shared.isLongPressToRepeatInputEnabled || UserDefaultsManager.shared.isLongPressToNumberInputEnabled) ||
-            button is DeleteButton {
+        if UserDefaultsManager.shared.selectedLongPressAction != .disabled
+            || button is DeleteButton {
             // 길게 누르기 제스처
             let longPressGesture = UILongPressGestureRecognizer(
                 target: self,
@@ -848,15 +848,19 @@ extension BaseKeyboardViewController: TextInteractionGestureControllerDelegate {
     }
     
     final func textInteractableButtonLongPressing(_ controller: TextInteractionGestureController, button: TextInteractable) {
-        if UserDefaultsManager.shared.isLongPressToRepeatInputEnabled
+        if UserDefaultsManager.shared.selectedLongPressAction == .repeatInput
             || button is DeleteButton {
             repeatTextInteractionWillPerform(button: button)
             
             let repeatTimerInterval = 0.10 - UserDefaultsManager.shared.repeatRate
             timer = Timer.publish(every: repeatTimerInterval, on: .main, in: .common)
                 .autoconnect()
-                .sink { [weak self] _ in
+                .sink { [weak self, weak button] _ in
                     if self?.view.window == nil {
+                        self?.cancelTimer()
+                        return
+                    }
+                    guard let button else {
                         self?.cancelTimer()
                         return
                     }
@@ -864,14 +868,14 @@ extension BaseKeyboardViewController: TextInteractionGestureControllerDelegate {
                     self?.performRepeatTextInteraction(for: button)
                 }
             logger.debug("반복 타이머 생성")
-        } else if UserDefaultsManager.shared.isLongPressToNumberInputEnabled {
+        } else if UserDefaultsManager.shared.selectedLongPressAction == .numberInput {
             performTextInteraction(for: button, insertSecondaryKeyIfAvailable: true)
             button.isGesturing = false
         }
     }
     
     final func textInteractableButtonLongPressStopped(_ controller: TextInteractionGestureController, button: TextInteractable) {
-        if UserDefaultsManager.shared.isLongPressToRepeatInputEnabled
+        if UserDefaultsManager.shared.selectedLongPressAction == .repeatInput
             || button is DeleteButton {
             repeatTextInteractionDidPerform(button: button)
         }
