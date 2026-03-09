@@ -57,19 +57,15 @@ open class EnglishKeyboardCoreViewController: BaseKeyboardViewController {
         switch textDocumentProxy.keyboardType {
         case .default, nil:
             englishKeyboardView.currentEnglishKeyboardMode = .default
-            symbolKeyboardView.currentSymbolKeyboardMode = .default
             currentKeyboard = .qwerty
         case .asciiCapable:
             englishKeyboardView.currentEnglishKeyboardMode = .default
-            symbolKeyboardView.currentSymbolKeyboardMode = .default
             currentKeyboard = .qwerty
         case .numbersAndPunctuation:
             englishKeyboardView.currentEnglishKeyboardMode = .default
-            symbolKeyboardView.currentSymbolKeyboardMode = .default
             currentKeyboard = .symbol
         case .URL:
             englishKeyboardView.currentEnglishKeyboardMode = .URL
-            symbolKeyboardView.currentSymbolKeyboardMode = .URL
             currentKeyboard = .qwerty
         case .numberPad:
             tenkeyKeyboardView.currentTenkeyKeyboardMode = .numberPad
@@ -80,18 +76,15 @@ open class EnglishKeyboardCoreViewController: BaseKeyboardViewController {
             currentKeyboard = .tenKey
         case .emailAddress:
             englishKeyboardView.currentEnglishKeyboardMode = .emailAddress
-            symbolKeyboardView.currentSymbolKeyboardMode = .emailAddress
             currentKeyboard = .qwerty
         case .decimalPad:
             tenkeyKeyboardView.currentTenkeyKeyboardMode = .decimalPad
             currentKeyboard = .tenKey
         case .twitter:
             englishKeyboardView.currentEnglishKeyboardMode = .twitter
-            symbolKeyboardView.currentSymbolKeyboardMode = .default
             currentKeyboard = .qwerty
         case .webSearch:
             englishKeyboardView.currentEnglishKeyboardMode = .webSearch
-            symbolKeyboardView.currentSymbolKeyboardMode = .webSearch
             currentKeyboard = .qwerty
         case .asciiCapableNumberPad:
             tenkeyKeyboardView.currentTenkeyKeyboardMode = .numberPad
@@ -99,7 +92,6 @@ open class EnglishKeyboardCoreViewController: BaseKeyboardViewController {
         @unknown default:
             assertionFailure("구현이 필요한 case 입니다.")
             englishKeyboardView.currentEnglishKeyboardMode = .default
-            symbolKeyboardView.currentSymbolKeyboardMode = .default
             currentKeyboard = .qwerty
         }
     }
@@ -173,7 +165,7 @@ private extension EnglishKeyboardCoreViewController {
             }
         }
         
-        primaryKeyboardView.updateShiftButton(isShifted: shouldShift)
+        primaryKeyboardView.updateShiftButton(to: shouldShift)
         isUppercaseInput = false
     }
 }

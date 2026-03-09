@@ -860,11 +860,11 @@ extension BaseKeyboardViewController: TextInteractionGestureControllerDelegate {
                         self?.cancelTimer()
                         return
                     }
-                    
                     guard let button else {
                         self?.cancelTimer()
                         return
                     }
+                    
                     self?.performRepeatTextInteraction(for: button)
                 }
             logger.debug("반복 타이머 생성")

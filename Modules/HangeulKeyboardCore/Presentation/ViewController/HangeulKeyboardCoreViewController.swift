@@ -115,19 +115,15 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
         switch textDocumentProxy.keyboardType {
         case .default, nil:
             hangeulKeyboardView.currentHangeulKeyboardMode = .default
-            symbolKeyboardView.currentSymbolKeyboardMode = .default
             currentKeyboard = primaryKeyboardView.keyboard
         case .asciiCapable:
             hangeulKeyboardView.currentHangeulKeyboardMode = .default
-            symbolKeyboardView.currentSymbolKeyboardMode = .default
             currentKeyboard = primaryKeyboardView.keyboard
         case .numbersAndPunctuation:
             hangeulKeyboardView.currentHangeulKeyboardMode = .default
-            symbolKeyboardView.currentSymbolKeyboardMode = .default
             currentKeyboard = .symbol
         case .URL:
             hangeulKeyboardView.currentHangeulKeyboardMode = .URL
-            symbolKeyboardView.currentSymbolKeyboardMode = .URL
             currentKeyboard = primaryKeyboardView.keyboard
         case .numberPad:
             tenkeyKeyboardView.currentTenkeyKeyboardMode = .numberPad
@@ -137,18 +133,15 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
             currentKeyboard = .tenKey
         case .emailAddress:
             hangeulKeyboardView.currentHangeulKeyboardMode = .emailAddress
-            symbolKeyboardView.currentSymbolKeyboardMode = .emailAddress
             currentKeyboard = primaryKeyboardView.keyboard
         case .decimalPad:
             tenkeyKeyboardView.currentTenkeyKeyboardMode = .decimalPad
             currentKeyboard = .tenKey
         case .twitter:
             hangeulKeyboardView.currentHangeulKeyboardMode = .twitter
-            symbolKeyboardView.currentSymbolKeyboardMode = .default
             currentKeyboard = primaryKeyboardView.keyboard
         case .webSearch:
             hangeulKeyboardView.currentHangeulKeyboardMode = .webSearch
-            symbolKeyboardView.currentSymbolKeyboardMode = .webSearch
             currentKeyboard = primaryKeyboardView.keyboard
         case .asciiCapableNumberPad:
             tenkeyKeyboardView.currentTenkeyKeyboardMode = .numberPad
@@ -156,7 +149,6 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
         @unknown default:
             assertionFailure("구현이 필요한 case 입니다.")
             hangeulKeyboardView.currentHangeulKeyboardMode = .default
-            symbolKeyboardView.currentSymbolKeyboardMode = .default
             currentKeyboard = primaryKeyboardView.keyboard
         }
     }
@@ -490,7 +482,7 @@ private extension HangeulKeyboardCoreViewController {
     
     func updateShiftButton() {
         guard !buttonStateController.isShiftButtonPressed else { return }
-        primaryKeyboardView.updateShiftButton(isShifted: false)
+        primaryKeyboardView.updateShiftButton(to: false)
         is글자Input = false
     }
 }

@@ -228,7 +228,6 @@
 				"HangeulKeyboardCore/Storage/UserDefaultsManager+Extension.swift",
 				SYKeyboardCore/Presentation/Utils/ButtonStateController.swift,
 				SYKeyboardCore/Presentation/Utils/Enums/KeyboardFigure.swift,
-				SYKeyboardCore/Presentation/Utils/Enums/KeyboardMode/SymbolKeyboardMode.swift,
 				SYKeyboardCore/Presentation/Utils/Enums/KeyboardMode/TenkeyKeyboardMode.swift,
 				SYKeyboardCore/Presentation/Utils/Enums/PanDirection.swift,
 				SYKeyboardCore/Presentation/Utils/Enums/SYKeyboardType.swift,
@@ -290,7 +289,6 @@
 			membershipExceptions = (
 				SYKeyboardCore/Presentation/Utils/ButtonStateController.swift,
 				SYKeyboardCore/Presentation/Utils/Enums/KeyboardFigure.swift,
-				SYKeyboardCore/Presentation/Utils/Enums/KeyboardMode/SymbolKeyboardMode.swift,
 				SYKeyboardCore/Presentation/Utils/Enums/KeyboardMode/TenkeyKeyboardMode.swift,
 				SYKeyboardCore/Presentation/Utils/Enums/PanDirection.swift,
 				SYKeyboardCore/Presentation/Utils/Enums/SYKeyboardType.swift,
