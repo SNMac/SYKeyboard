@@ -77,13 +77,7 @@ extension HangeulKeyboardLayoutProvider {
     }
     
     func updateLayoutToURL() {
-        spaceButton.isHidden = true
-        
-        returnButton.isHidden = false
-        secondaryAtButton.isHidden = true
-        secondarySharpButton.isHidden = true
-        
-        initShiftButton()
+        updateLayoutToDefault()
     }
     
     func updateLayoutToEmailAddress() {
