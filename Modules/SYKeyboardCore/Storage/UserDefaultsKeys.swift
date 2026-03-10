@@ -18,6 +18,8 @@ public enum UserDefaultsKeys {
     public static let selectedLongPressAction = "selectedLongPressAction"
     /// 자동완성 텍스트
     public static let isPredictiveTextEnabled = "isPredictiveTextEnabled"
+    /// 맞춤법 확인 버튼
+    public static let isGrammarCheckButtonEnabled = "isGrammarCheckButtonEnabled"
     /// 드래그하여 커서 이동
     public static let isDragToMoveCursorEnabled = "isDragToMoveCursorEnabled"
     /// 텍스트 대치

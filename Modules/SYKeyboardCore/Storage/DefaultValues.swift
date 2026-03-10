@@ -22,6 +22,8 @@ public enum DefaultValues {
     public static let selectedLongPressAction: LongPressAction = .repeatInput
     /// 자동완성 텍스트 기본값
     public static let isPredictiveTextEnabled: Bool = true
+    /// 맞춤법 확인 버튼 기본값
+    public static let isGrammarCheckButtonEnabled: Bool = true
     /// 드래그하여 커서 이동 기본값
     public static let isDragToMoveCursorEnabled: Bool = true
     /// 텍스트 대치 기본값
