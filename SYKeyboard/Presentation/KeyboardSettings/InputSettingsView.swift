@@ -166,8 +166,10 @@ struct InputSettingsView: View {
             hideKeyboard()
         }
         
-        NavigationLink("커서 이동") {
-            CursorMovementSettingsView()
+        if isDragToMoveCursorEnabled {
+            NavigationLink("커서 이동") {
+                CursorMovementSettingsView()
+            }
         }
     }
 }
