@@ -62,7 +62,7 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
         }
         
         func setAnalyticsProperty(_ bool: Bool, forName name: String) {
-            Analytics.setUserProperty(bool ? "true" : "false", forName: name)
+            Analytics.setUserProperty(bool.analyticsValue, forName: name)
         }
         
         func setAnalyticsProperty(_ double: Double, format: String, forName name: String) {
