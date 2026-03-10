@@ -16,6 +16,8 @@ public enum UserDefaultsKeys {
     /* 입력 설정 */
     /// 선택한 길게 누르기 동작
     public static let selectedLongPressAction = "selectedLongPressAction"
+    /// 자동완성 텍스트
+    public static let isPredictiveTextEnabled = "isPredictiveTextEnabled"
     /// 드래그하여 커서 이동
     public static let isDragToMoveCursorEnabled = "isDragToMoveCursorEnabled"
     /// 텍스트 대치

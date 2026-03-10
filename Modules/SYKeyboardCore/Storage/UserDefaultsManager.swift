@@ -106,16 +106,19 @@ final public class UserDefaultsManager {
     /// 선택한 길게 누르기 동작
     public var selectedLongPressAction: LongPressAction {
         get {
-            guard let rawValue = self.storage.object(forKey: UserDefaultsKeys.selectedLongPressAction) as? LongPressAction.RawValue,
+            guard let rawValue = storage.object(forKey: UserDefaultsKeys.selectedLongPressAction) as? LongPressAction.RawValue,
                   let value = LongPressAction(rawValue: rawValue) else {
                 return DefaultValues.selectedLongPressAction
             }
             return value
         }
         set {
-            self.storage.set(newValue.rawValue, forKey: UserDefaultsKeys.selectedLongPressAction)
+            storage.set(newValue.rawValue, forKey: UserDefaultsKeys.selectedLongPressAction)
         }
     }
+    /// 자동완성 텍스트
+    @UserDefaultsWrapper(key: UserDefaultsKeys.isPredictiveTextEnabled, defaultValue: DefaultValues.isPredictiveTextEnabled)
+    public var isPredictiveTextEnabled: Bool
     /// 드래그하여 커서 이동
     @UserDefaultsWrapper(key: UserDefaultsKeys.isDragToMoveCursorEnabled, defaultValue: DefaultValues.isDragToMoveCursorEnabled)
     public var isDragToMoveCursorEnabled: Bool
