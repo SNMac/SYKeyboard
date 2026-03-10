@@ -31,7 +31,7 @@ final class TextInteractionGestureController: NSObject {
     private var intervalReferPanPoint: CGPoint = .zero
     
     // Initializer Injection
-    private weak var keyboardFrameView: UIView?
+    private weak var keyboardHStackView: UIView?
     private let getCurrentPressedButton: () -> BaseKeyboardButton?
     private let setCurrentPressedButton: (BaseKeyboardButton?) -> ()
     
@@ -40,10 +40,10 @@ final class TextInteractionGestureController: NSObject {
     
     // MARK: - Initializer
     
-    init(keyboardFrameView: UIView,
+    init(keyboardHStackView: UIView,
          getCurrentPressedButton: @escaping () -> BaseKeyboardButton?,
          setCurrentPressedButton: @escaping (BaseKeyboardButton?) -> ()) {
-        self.keyboardFrameView = keyboardFrameView
+        self.keyboardHStackView = keyboardHStackView
         self.getCurrentPressedButton = getCurrentPressedButton
         self.setCurrentPressedButton = setCurrentPressedButton
     }
@@ -67,7 +67,7 @@ final class TextInteractionGestureController: NSObject {
         case .changed:
             let distance = calcDistance(point1: initialPanPoint, point2: currentPoint)
             if isCursorActive || distance >= UserDefaultsManager.shared.cursorActiveDistance {
-                keyboardFrameView?.isUserInteractionEnabled = false
+                keyboardHStackView?.isUserInteractionEnabled = false
                 
                 isCursorActive = true
                 gestureButton?.isGesturing = false
@@ -87,7 +87,7 @@ final class TextInteractionGestureController: NSObject {
             intervalReferPanPoint = .zero
             gestureButton?.isGesturing = false
             
-            keyboardFrameView?.isUserInteractionEnabled = true
+            keyboardHStackView?.isUserInteractionEnabled = true
             logger.debug("팬 제스처 비활성화")
         default:
             break
@@ -103,7 +103,7 @@ final class TextInteractionGestureController: NSObject {
                 gesture.state = .cancelled
                 return
             }
-            keyboardFrameView?.isUserInteractionEnabled = false
+            keyboardHStackView?.isUserInteractionEnabled = false
             
             gestureButton?.isGesturing = true
             onLongPressGestureBegan(gesture)
@@ -119,7 +119,7 @@ final class TextInteractionGestureController: NSObject {
             
             onLongPressGestureEnded(gesture)
             gestureButton?.isGesturing = false
-            keyboardFrameView?.isUserInteractionEnabled = true
+            keyboardHStackView?.isUserInteractionEnabled = true
         default:
             break
         }

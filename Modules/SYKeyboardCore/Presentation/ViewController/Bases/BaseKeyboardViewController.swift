@@ -73,14 +73,14 @@ open class BaseKeyboardViewController: UIInputViewController {
     
     /// 키 입력 버튼, 스페이스 버튼, 삭제 버튼 제스처 컨트롤러
     private lazy var textInteractionGestureController = TextInteractionGestureController(
-        keyboardFrameView: keyboardFrameHStackView,
+        keyboardHStackView: keyboardHStackView,
         getCurrentPressedButton: { [weak self] in self?.buttonStateController.currentPressedButton },
         setCurrentPressedButton: { [weak self] button in self?.buttonStateController.currentPressedButton = button }
     )
     
     /// 키보드 전환 버튼 제스처 컨트롤러
     private lazy var switchGestureController = SwitchGestureController(
-        keyboardFrameView: keyboardFrameHStackView,
+        keyboardHStackView: keyboardHStackView,
         hangeulKeyboardView: primaryKeyboardView as SwitchGestureHandling,
         englishKeyboardView: primaryKeyboardView as SwitchGestureHandling,
         symbolKeyboardView: symbolKeyboardView,
@@ -129,8 +129,8 @@ open class BaseKeyboardViewController: UIInputViewController {
     private lazy var keyboardView: KeyboardView = {
         return KeyboardView.loadFromNib(primaryKeyboardView: primaryKeyboardView)
     }()
-    /// 키보드 전체 수직 스택
-    private lazy var keyboardFrameHStackView = keyboardView.keyboardFrameHStackView
+    /// 키보드 수평 스택
+    private lazy var keyboardHStackView = keyboardView.keyboardHStackView
     /// 한 손 키보드 해제 버튼(오른손 모드)
     private lazy var leftChevronButton = keyboardView.leftChevronButton
     /// 주 키보드(오버라이딩 필요)
@@ -352,7 +352,8 @@ private extension BaseKeyboardViewController {
     func setKeyboardHeight() {
         let keyboardHeight: CGFloat
         if let orientation = self.view.window?.windowScene?.effectiveGeometry.interfaceOrientation {
-            keyboardHeight = (orientation == .portrait) ? UserDefaultsManager.shared.keyboardHeight : KeyboardLayoutFigure.landscapeKeyboardHeight
+            let portraitKeyboardHeight = UserDefaultsManager.shared.keyboardHeight + (UserDefaultsManager.shared.isPredictiveTextEnabled ? KeyboardLayoutFigure.toolBarHeight : 0)
+            keyboardHeight = (orientation == .portrait) ? portraitKeyboardHeight : KeyboardLayoutFigure.landscapeKeyboardHeight
         } else {
             assertionFailure("View가 window 계층에 없습니다.")
             return

@@ -24,7 +24,19 @@ final public class KeyboardView: UIInputView {
     // MARK: - UI Components
     
     /// 키보드 전체 수직 스택
-    let keyboardFrameHStackView: UIStackView = {
+    private let keyboardFrameVStackView: UIStackView = {
+        let stackView = UIStackView()
+        stackView.axis = .vertical
+        stackView.spacing = 0
+        stackView.backgroundColor = .clear
+        
+        return stackView
+    }()
+    
+    private let toolBarView = ToolBarView()
+    
+    /// 키보드 수평 스택
+    let keyboardHStackView: UIStackView = {
         let stackView = UIStackView()
         stackView.axis = .horizontal
         stackView.spacing = 0
@@ -115,20 +127,29 @@ private extension KeyboardView {
     }
     
     func setHierarchy() {
-        self.addSubview(keyboardFrameHStackView)
+        self.addSubview(keyboardFrameVStackView)
         
-        [leftChevronButton, keyboardLayoutView, rightChevronButton].forEach { keyboardFrameHStackView.addArrangedSubview($0) }
+        [toolBarView, keyboardHStackView].forEach {
+            keyboardFrameVStackView.addArrangedSubview($0)
+        }
+        
+        [leftChevronButton, keyboardLayoutView, rightChevronButton].forEach { keyboardHStackView.addArrangedSubview($0) }
         
         [primaryKeyboardView, symbolKeyboardView, numericKeyboardView, tenkeyKeyboardView].forEach { keyboardLayoutView.addSubview($0) }
     }
     
     func setConstraints() {
-        keyboardFrameHStackView.translatesAutoresizingMaskIntoConstraints = false
+        keyboardFrameVStackView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
-            keyboardFrameHStackView.topAnchor.constraint(equalTo: self.topAnchor),
-            keyboardFrameHStackView.leadingAnchor.constraint(equalTo: self.leadingAnchor),
-            keyboardFrameHStackView.trailingAnchor.constraint(equalTo: self.trailingAnchor),
-            keyboardFrameHStackView.bottomAnchor.constraint(equalTo: self.bottomAnchor)
+            keyboardFrameVStackView.topAnchor.constraint(equalTo: self.topAnchor),
+            keyboardFrameVStackView.leadingAnchor.constraint(equalTo: self.leadingAnchor),
+            keyboardFrameVStackView.trailingAnchor.constraint(equalTo: self.trailingAnchor),
+            keyboardFrameVStackView.bottomAnchor.constraint(equalTo: self.bottomAnchor)
+        ])
+        
+        toolBarView.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            toolBarView.heightAnchor.constraint(equalToConstant: KeyboardLayoutFigure.toolBarHeight)
         ])
         
         keyboardLayoutView.translatesAutoresizingMaskIntoConstraints = false
