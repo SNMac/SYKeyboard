@@ -35,12 +35,10 @@ private extension PrimaryButton {
         self.configurationUpdateHandler = { [weak self] button in
             guard let self else { return }
             switch button.state {
-            case .normal:
-                backgroundView.backgroundColor = isGesturing ? .primaryButtonPressed : .primaryButton
             case .highlighted:
                 backgroundView.backgroundColor = isPressed || isGesturing ? .primaryButtonPressed : .primaryButton
             default:
-                break
+                backgroundView.backgroundColor = isGesturing ? .primaryButtonPressed : .primaryButton
             }
         }
     }

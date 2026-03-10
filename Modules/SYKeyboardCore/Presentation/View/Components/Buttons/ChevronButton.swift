@@ -76,12 +76,10 @@ private extension ChevronButton {
         let imageConfig = UIImage.SymbolConfiguration(pointSize: 32, weight: .medium)
         self.configurationUpdateHandler = { [weak self] button in
             switch button.state {
-            case .normal:
-                button.configuration?.image = self?.direction.image?.withConfiguration(imageConfig).withTintColor(.chevronButton, renderingMode: .alwaysOriginal)
             case .highlighted:
                 button.configuration?.image = self?.direction.image?.withConfiguration(imageConfig).withTintColor(.chevronButtonPressed, renderingMode: .alwaysOriginal)
             default:
-                break
+                button.configuration?.image = self?.direction.image?.withConfiguration(imageConfig).withTintColor(.chevronButton, renderingMode: .alwaysOriginal)
             }
         }
     }

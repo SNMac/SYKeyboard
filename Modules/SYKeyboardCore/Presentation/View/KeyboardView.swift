@@ -27,13 +27,19 @@ final public class KeyboardView: UIInputView {
     private let keyboardFrameVStackView: UIStackView = {
         let stackView = UIStackView()
         stackView.axis = .vertical
-        stackView.spacing = 0
+        stackView.spacing = KeyboardLayoutFigure.keyboardFrameSpacing
         stackView.backgroundColor = .clear
         
         return stackView
     }()
     
-    private let toolBarView = ToolBarView()
+    /// 자동완성 툴바
+    private let suggestionBarHStackView: SuggestionBarHStackView = {
+        let suggestionBar = SuggestionBarHStackView()
+        suggestionBar.isHidden = !UserDefaultsManager.shared.isPredictiveTextEnabled
+        
+        return suggestionBar
+    }()
     
     /// 키보드 수평 스택
     let keyboardHStackView: UIStackView = {
@@ -129,7 +135,7 @@ private extension KeyboardView {
     func setHierarchy() {
         self.addSubview(keyboardFrameVStackView)
         
-        [toolBarView, keyboardHStackView].forEach {
+        [suggestionBarHStackView, keyboardHStackView].forEach {
             keyboardFrameVStackView.addArrangedSubview($0)
         }
         
@@ -147,9 +153,9 @@ private extension KeyboardView {
             keyboardFrameVStackView.bottomAnchor.constraint(equalTo: self.bottomAnchor)
         ])
         
-        toolBarView.translatesAutoresizingMaskIntoConstraints = false
+        suggestionBarHStackView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
-            toolBarView.heightAnchor.constraint(equalToConstant: KeyboardLayoutFigure.toolBarHeight)
+            suggestionBarHStackView.heightAnchor.constraint(equalToConstant: KeyboardLayoutFigure.suggestionBarHeight)
         ])
         
         keyboardLayoutView.translatesAutoresizingMaskIntoConstraints = false
