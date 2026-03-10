@@ -182,4 +182,107 @@ struct CheonjiinControllerTests {
         sim.input(인)
         #expect(sim.text == "ㄱㄱ기", "반복 입력 후 마지막 글자가 다음 입력과 조합되어야 합니다.")
     }
+    
+    // MARK: - 6. 확정 보호 해제 후 종성 복원
+    
+    @Test("확정 보호 해제 후 종성 복원: '가나(확정)다' -> 삭제 3번 -> 재입력 '나니' -> 삭제 -> '가난'")
+    func test확정보호해제후_종성복원() {
+        let sim = KeyboardControllerSimulator(
+            automata: automata,
+            processor: CheonjiinProcessor(automata: automata)
+        )
+        
+        // 1. '가나' 입력 후 확정
+        sim.input("ㄱ"); sim.input(인); sim.input(천) // 가
+        sim.input("ㄴ"); sim.input(인); sim.input(천) // 나
+        sim.space()
+        
+        // 2. '다' 입력
+        sim.input("ㄷ"); sim.input(인); sim.input(천) // 다
+        #expect(sim.text == "가나다")
+        
+        // 3. 삭제 3번 -> '가ㄴ' (확정 영역 진입)
+        sim.delete() // 가나ㄷ
+        sim.delete() // 가나
+        sim.delete() // 가ㄴ
+        #expect(sim.text == "가ㄴ")
+        
+        // 4. 재입력 '나니' (ㅣㆍㄴㅣ)
+        sim.input(인); sim.input(천) // 가나
+        sim.input("ㄴ"); sim.input(인) // 가나니
+        #expect(sim.text == "가나니")
+        
+        // 5. 삭제 -> '가난' (보호 해제되었으므로 종성 복원 동작)
+        sim.delete()
+        #expect(sim.text == "가난", "확정 영역이 삭제로 해제된 후에는 종성 복원이 동작해야 합니다.")
+    }
+    
+    @Test("확정 직후 삭제: '가나(확정)다' -> 삭제 1번 -> '가나ㄷ' (보호 유지)")
+    func test확정직후_삭제_보호유지() {
+        let sim = KeyboardControllerSimulator(
+            automata: automata,
+            processor: CheonjiinProcessor(automata: automata)
+        )
+        
+        sim.input("ㄱ"); sim.input(인); sim.input(천) // 가
+        sim.input("ㄴ"); sim.input(인); sim.input(천) // 나
+        sim.space()
+        sim.input("ㄷ"); sim.input(인); sim.input(천) // 다
+        #expect(sim.text == "가나다")
+        
+        sim.delete()
+        #expect(sim.text == "가나ㄷ", "확정 영역이 손상되지 않았으므로 종성 합치기가 방지되어야 합니다.")
+    }
+    
+    @Test("확정 직후 삭제 -> 재입력: '가나(확정)' -> 삭제 2번 -> 'ㄷ' 입력 -> '가나ㄷ' (보호 유지)")
+    func test확정후_삭제2번_재입력_보호유지() {
+        let sim = KeyboardControllerSimulator(
+            automata: automata,
+            processor: CheonjiinProcessor(automata: automata)
+        )
+        
+        sim.input("ㄱ"); sim.input(인); sim.input(천) // 가
+        sim.input("ㄴ"); sim.input(인); sim.input(천) // 나
+        sim.space()
+        sim.input("ㄷ"); sim.input(인); sim.input(천) // 다
+        
+        // 삭제 2번으로 '가나'까지 돌림 (확정 글자 '나'를 끌어옴, 아직 분해하지 않음)
+        sim.delete() // 가나ㄷ
+        sim.delete() // 가나
+        
+        // 'ㄷ' 입력 -> 보호된 '나'와 합쳐지면 안 됨
+        sim.input("ㄷ")
+        #expect(sim.text == "가나ㄷ", "끌어온 보호 글자에 새 자음이 결합되면 안 됩니다.")
+    }
+    
+    @Test("확정 보호 해제 경계: '가(확정)나' -> 삭제로 'ㄴ'까지 -> 재입력 -> 종성 복원")
+    func test확정보호해제_경계() {
+        let sim = KeyboardControllerSimulator(
+            automata: automata,
+            processor: CheonjiinProcessor(automata: automata)
+        )
+        
+        // '가' 확정
+        sim.input("ㄱ"); sim.input(인); sim.input(천)
+        sim.space()
+        
+        // '나' 입력 후 전부 삭제해서 'ㄴ'까지
+        sim.input("ㄴ"); sim.input(인); sim.input(천) // 나
+        sim.delete() // ㄴ -> 확정 '가'와 합쳐지면 안 됨
+        #expect(sim.text == "가ㄴ", "확정 영역이 유지되어 종성 합치기가 방지되어야 합니다.")
+        
+        // 삭제해서 '가'만 남기고 확정 글자 진입
+        sim.delete() // 가
+        sim.delete() // ㄱ (확정 영역 분해 -> 보호 해제)
+        
+        // 재입력 '가나니'
+        sim.input(인); sim.input(천) // 가
+        sim.input("ㄴ"); sim.input(인); sim.input(천) // 나
+        sim.input("ㄴ"); sim.input(인) // 니
+        #expect(sim.text == "가나니")
+        
+        // 삭제 -> '가난' (보호 해제되었으므로 종성 복원 동작)
+        sim.delete()
+        #expect(sim.text == "가난", "확정 영역 분해 후에는 종성 복원이 동작해야 합니다.")
+    }
 }

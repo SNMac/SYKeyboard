@@ -181,6 +181,8 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
                 let isProtected = committedBuffer.count <= protectedCommittedCount
                 
                 committedBuffer.removeLast()
+                // 확정 영역이 삭제(분해)되면 보호 해제
+                protectedCommittedCount = min(protectedCommittedCount, committedBuffer.count)
                 textDocumentProxy.deleteBackward()
                 textDocumentProxy.insertText(lastStr)
                 composingBuffer = lastStr
@@ -303,11 +305,14 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
                         let isProtected = committedBuffer.count <= protectedCommittedCount
                         
                         committedBuffer.removeLast()
+                        // 확정 영역이 삭제(분해)되면 보호 해제
+                        protectedCommittedCount = min(protectedCommittedCount, committedBuffer.count)
                         textDocumentProxy.deleteBackward()
                         textDocumentProxy.insertText(lastStr)
                         composingBuffer = lastStr
                         
                         if !isProtected {
+                            // 보호되지 않은 글자만 조합 시작
                             processor.start한글조합()
                         }
                     }
@@ -327,6 +332,8 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
                 
                 textDocumentProxy.deleteBackward()
                 committedBuffer.removeLast()
+                // 확정 영역이 삭제(분해)되면 보호 해제
+                protectedCommittedCount = min(protectedCommittedCount, committedBuffer.count)
                 
                 let decomposed = processor.delete(composing: String(lastCommitted))
                 if !decomposed.isEmpty {
@@ -337,12 +344,14 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
                 if composingBuffer.isEmpty {
                     processor.reset한글조합()
                 } else if !isProtected {
+                    // 보호되지 않은 글자만 조합 시작
                     processor.start한글조합()
                 }
             } else {
                 // 비한글(숫자, 기호 등)은 통째로 삭제
                 textDocumentProxy.deleteBackward()
                 committedBuffer.removeLast()
+                protectedCommittedCount = min(protectedCommittedCount, committedBuffer.count)
                 processor.reset한글조합()
             }
         } else {

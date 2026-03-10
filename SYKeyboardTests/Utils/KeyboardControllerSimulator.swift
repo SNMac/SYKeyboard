@@ -110,6 +110,8 @@ final class KeyboardControllerSimulator {
                         let isProtected = committedBuffer.count <= protectedCommittedCount
                         
                         committedBuffer.removeLast()
+                        // 확정 영역이 삭제(분해)되면 보호 해제
+                        protectedCommittedCount = min(protectedCommittedCount, committedBuffer.count)
                         composingBuffer = lastStr
                         
                         if !isProtected {
@@ -131,6 +133,9 @@ final class KeyboardControllerSimulator {
                 let isProtected = committedBuffer.count <= protectedCommittedCount
                 
                 committedBuffer.removeLast()
+                // 확정 영역이 삭제(분해)되면 보호 해제
+                protectedCommittedCount = min(protectedCommittedCount, committedBuffer.count)
+                
                 let decomposed = processor.delete(composing: String(lastCommitted))
                 composingBuffer = decomposed
                 
@@ -142,6 +147,8 @@ final class KeyboardControllerSimulator {
             } else {
                 // 비한글(숫자, 기호 등)은 통째로 삭제
                 committedBuffer.removeLast()
+                // 확정 영역이 삭제되면 보호 해제
+                protectedCommittedCount = min(protectedCommittedCount, committedBuffer.count)
                 processor.reset한글조합()
             }
         } else {
@@ -170,6 +177,8 @@ final class KeyboardControllerSimulator {
             }
         } else if !committedBuffer.isEmpty {
             committedBuffer.removeLast()
+            // 확정 영역이 삭제되면 보호 해제
+            protectedCommittedCount = min(protectedCommittedCount, committedBuffer.count)
             processor.reset한글조합()
         } else {
             processor.reset한글조합()
@@ -187,6 +196,8 @@ final class KeyboardControllerSimulator {
                 let isProtected = committedBuffer.count <= protectedCommittedCount
                 
                 committedBuffer.removeLast()
+                // 확정 영역이 삭제(분해)되면 보호 해제
+                protectedCommittedCount = min(protectedCommittedCount, committedBuffer.count)
                 composingBuffer = lastStr
                 
                 if !isProtected {
