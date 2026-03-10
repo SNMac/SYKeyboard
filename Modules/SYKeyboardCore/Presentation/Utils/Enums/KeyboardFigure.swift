@@ -11,6 +11,8 @@ import CoreFoundation
 enum KeyboardLayoutFigure {
     /// 키보드 가로모드 높이
     static let landscapeKeyboardHeight: CGFloat = 188.0
+    /// 키보드 자동완성 툴바 높이
+    static let autocompleteBarHeight: CGFloat = 44.0
     /// Shift 버튼과 삭제 버튼 곱하기 계수
     static let shiftAndDeleteButtonWidthMultiplier: CGFloat = 1.35
     /// 기호 키보드 세번째 열 버튼 곱하기 계수

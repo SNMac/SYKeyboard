@@ -164,16 +164,7 @@ final public class UserDefaultsManager {
     /// 한 손 키보드 저장용
     @UserDefaultsRawRepresentableWrapper(key: UserDefaultsKeys.lastOneHandedMode, defaultValue: DefaultValues.lastOneHandedMode)
     public var lastOneHandedMode: OneHandedMode
-    /// 온보딩 여부
-    @UserDefaultsWrapper(key: UserDefaultsKeys.isOnboarding, defaultValue: DefaultValues.isOnboarding)
-    public var isOnboarding: Bool
     /// 전체 접근 허용 안내 오버레이 닫음 여부
     @UserDefaultsWrapper(key: UserDefaultsKeys.isRequestFullAccessOverlayClosed, defaultValue: DefaultValues.isRequestFullAccessOverlayClosed)
     public var isRequestFullAccessOverlayClosed: Bool
-    /// 앱의 특정 기능 또는 키보드를 실행한 횟수
-    @UserDefaultsWrapper(key: UserDefaultsKeys.reviewCounter, defaultValue: DefaultValues.reviewCounter)
-    public var reviewCounter: Int
-    /// 마지막으로 리뷰를 요청한 빌드
-    @UserDefaultsWrapper(key: UserDefaultsKeys.lastBuildPromptedForReview, defaultValue: DefaultValues.lastBuildPromptedForReview)
-    public var lastBuildPromptedForReview: String
 }

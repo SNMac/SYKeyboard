@@ -53,12 +53,6 @@ public enum DefaultValues {
     public static let needsInputModeSwitchKey: Bool = true
     /// 한 손 키보드 저장용 기본값
     public static let lastOneHandedMode: OneHandedMode = .center
-    /// 온보딩 여부 기본값
-    public static let isOnboarding: Bool = true
     /// 전체 접근 허용 안내 오버레이 닫음 여부 기본값
     public static let isRequestFullAccessOverlayClosed: Bool = false
-    /// 앱의 특정 기능 또는 키보드를 실행한 횟수 기본값
-    public static let reviewCounter: Int = 0
-    /// 마지막으로 리뷰를 요청한 빌드 기본값
-    public static let lastBuildPromptedForReview: String = ""
 }
