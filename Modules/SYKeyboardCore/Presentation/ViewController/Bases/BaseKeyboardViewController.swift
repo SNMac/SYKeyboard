@@ -323,9 +323,7 @@ open class BaseKeyboardViewController: UIInputViewController {
     /// - `isPreview == true`이면 즉시 리턴
     open func insertReturnText() {
         if isPreview { return }
-        if textDocumentProxy.returnKeyType == .default {
-            textDocumentProxy.insertText("\n")
-        }
+        textDocumentProxy.insertText("\n")
         suggestionController.clearReplacementHistory()
     }
     
