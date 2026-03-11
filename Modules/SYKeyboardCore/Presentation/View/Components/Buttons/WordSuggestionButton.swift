@@ -29,6 +29,19 @@ final class WordSuggestionButton: UIButton {
         return view
     }()
     
+    private let suggestionLabel: UILabel = {
+        let label = UILabel()
+        label.textColor = .label
+        label.textAlignment = .center
+        label.numberOfLines = 2
+        label.adjustsFontSizeToFitWidth = true
+        label.minimumScaleFactor = 0.7
+        label.lineBreakMode = .byTruncatingMiddle
+        label.isUserInteractionEnabled = false
+        
+        return label
+    }()
+    
     // MARK: - Initializer
     
     override init(frame: CGRect) {
@@ -48,7 +61,7 @@ final class WordSuggestionButton: UIButton {
     // MARK: - Internal Methods
     
     func update(to title: String) {
-        self.configuration?.title = title
+        suggestionLabel.text = title
         self.isUserInteractionEnabled = !title.isEmpty
     }
 }
@@ -67,9 +80,6 @@ private extension WordSuggestionButton {
         self.backgroundColor = .systemBackground.withAlphaComponent(0.001)  // 터치 영역 확보용
         self.isUserInteractionEnabled = false
         
-        var config = UIButton.Configuration.plain()
-        config.baseForegroundColor = .label
-        self.configuration = config
         self.configurationUpdateHandler = { [weak self] button in
             switch button.state {
             case .highlighted:
@@ -86,15 +96,25 @@ private extension WordSuggestionButton {
     
     func setHierarchy() {
         self.insertSubview(backgroundView, at: 0)
+        self.addSubview(suggestionLabel)
     }
     
     func setConstraints() {
         backgroundView.translatesAutoresizingMaskIntoConstraints = false
+        suggestionLabel.translatesAutoresizingMaskIntoConstraints = false
+        
         NSLayoutConstraint.activate([
             backgroundView.topAnchor.constraint(equalTo: self.topAnchor),
             backgroundView.leadingAnchor.constraint(equalTo: self.leadingAnchor),
             backgroundView.trailingAnchor.constraint(equalTo: self.trailingAnchor),
             backgroundView.bottomAnchor.constraint(equalTo: self.bottomAnchor)
+        ])
+        
+        NSLayoutConstraint.activate([
+            suggestionLabel.topAnchor.constraint(equalTo: self.topAnchor),
+            suggestionLabel.leadingAnchor.constraint(equalTo: self.leadingAnchor, constant: 4),
+            suggestionLabel.trailingAnchor.constraint(equalTo: self.trailingAnchor, constant: -4),
+            suggestionLabel.bottomAnchor.constraint(equalTo: self.bottomAnchor)
         ])
     }
 }
