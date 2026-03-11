@@ -107,6 +107,9 @@ open class BaseKeyboardViewController: UIInputViewController {
     /// 방금 대치 취소(Restore)된 단축어를 저장하는 변수
     private var ignoredReplacementShortcut: String?
     
+    /// 자동완성 텍스트 제안 컨트롤러
+    private let suggestionController = SuggestionController()
+    
     /// 키보드 높이 제약 조건
     private var keyboardHeightConstraint: NSLayoutConstraint?
     
@@ -129,6 +132,8 @@ open class BaseKeyboardViewController: UIInputViewController {
     private lazy var keyboardView: KeyboardView = {
         return KeyboardView.loadFromNib(primaryKeyboardView: primaryKeyboardView)
     }()
+    /// 자동완성 툴바
+    private lazy var suggestionBarHStackView = keyboardView.suggestionBarHStackView
     /// 키보드 수평 스택
     private lazy var keyboardHStackView = keyboardView.keyboardHStackView
     /// 한 손 키보드 해제 버튼(오른손 모드)
@@ -208,6 +213,8 @@ open class BaseKeyboardViewController: UIInputViewController {
     open func updateKeyboardType() { fatalError("메서드가 오버라이딩 되지 않았습니다.") }
     
     /// 텍스트 상호작용이 일어나기 전 실행되는 메서드
+    ///
+    /// > 하위 클래스에서 오버라이드 시 반드시 `super`로 호출 필요
     open func textInteractionWillPerform(button: TextInteractable) {
         if !(button is SpaceButton) && !(button is DeleteButton) {
             preventNextPeriodShortcut = false
@@ -221,14 +228,26 @@ open class BaseKeyboardViewController: UIInputViewController {
         tempDeletedCharacters.removeAll()
     }
     /// 텍스트 상호작용이 일어난 후 실행되는 메서드
-    open func textInteractionDidPerform(button: TextInteractable) {}
+    ///
+    /// > 하위 클래스에서 오버라이드 시 반드시 `super`로 호출 필요
+    open func textInteractionDidPerform(button: TextInteractable) {
+        if UserDefaultsManager.shared.isPredictiveTextEnabled {
+            suggestionController.updateSuggestions(
+                contextBeforeInput: textDocumentProxy.documentContextBeforeInput
+            )
+        }
+    }
     
     /// 반복 텍스트 상호작용이 일어나기 전 실행되는 메서드
+    ///
+    /// > 하위 클래스에서 오버라이드 시 반드시 `super`로 호출 필요
     open func repeatTextInteractionWillPerform(button: TextInteractable) {
         // 방어 코드
         cancelTimer()
     }
     /// 반복 텍스트 상호작용이 일어난 후 실행되는 메서드
+    ///
+    /// > 하위 클래스에서 오버라이드 시 반드시 `super`로 호출 필요
     open func repeatTextInteractionDidPerform(button: TextInteractable) {
         cancelTimer()
         tempDeletedCharacters.removeAll()
@@ -299,6 +318,9 @@ open class BaseKeyboardViewController: UIInputViewController {
     
     /// 문자열 입력 UI의 텍스트를 삭제하는 메서드 (단일 호출)
     /// - `isPreview == true`이면 즉시 리턴
+    ///
+    /// > 하위 클래스에서 오버라이드 시 텍스트 수정 작업 전 반드시
+    /// `super.deleteBackwardWillPerform` 호출 필요
     open func deleteBackward() {
         if isPreview { return }
         
@@ -313,6 +335,9 @@ open class BaseKeyboardViewController: UIInputViewController {
     
     /// 문자열 입력 UI의 텍스트를 삭제하는 메서드 (반복 호출)
     /// - `isPreview == true`이면 즉시 리턴
+    ///
+    /// > 하위 클래스에서 오버라이드 시 텍스트 수정 작업 전 반드시
+    /// `super.repeatDeleteBackwardWillPerform` 호출 필요
     open func repeatDeleteBackward() {
         if isPreview || self.view.window == nil { return }
         
@@ -339,6 +364,8 @@ private extension BaseKeyboardViewController {
     func setDelegates() {
         textInteractionGestureController.delegate = self
         switchGestureController.delegate = self
+        suggestionController.delegate = self
+        suggestionBarHStackView.suggestionDelegate = self
     }
     
     func setActions() {
@@ -881,5 +908,37 @@ extension BaseKeyboardViewController: TextInteractionGestureControllerDelegate {
             || button is DeleteButton {
             repeatTextInteractionDidPerform(button: button)
         }
+    }
+}
+
+// MARK: - SuggestionControllerDelegate
+
+extension BaseKeyboardViewController: SuggestionControllerDelegate {
+    final func suggestionController(_ controller: SuggestionController, didUpdateSuggestions suggestions: [String]) {
+        keyboardView.suggestionBarHStackView.updatePredictions(suggestions)
+    }
+}
+
+// MARK: - SuggestionBarDelegate
+
+extension BaseKeyboardViewController: SuggestionBarDelegate {
+    final func suggestionBar(_ bar: SuggestionBarHStackView, didSelectSuggestionAt index: Int) {
+        guard let result = suggestionController.selectSuggestion(
+            at: index,
+            contextBeforeInput: textDocumentProxy.documentContextBeforeInput
+        ) else { return }
+        
+        for _ in 0..<result.deleteCount {
+            textDocumentProxy.deleteBackward()
+        }
+        textDocumentProxy.insertText(result.insertText)
+        
+        suggestionController.updateSuggestions(
+            contextBeforeInput: textDocumentProxy.documentContextBeforeInput
+        )
+    }
+    
+    func suggestionBarDidTapGrammarCheck(_ bar: SuggestionBarHStackView) {
+        // TODO: 추후 Foundation Models 맞춤법 검사 연동
     }
 }

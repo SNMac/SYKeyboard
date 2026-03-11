@@ -66,7 +66,6 @@ private extension WordSuggestionButton {
         self.backgroundColor = .systemBackground.withAlphaComponent(0.001)  // 터치 영역 확보용
         
         var config = UIButton.Configuration.plain()
-        config.title = "가"
         config.baseForegroundColor = .label
         self.configuration = config
         self.configurationUpdateHandler = { [weak self] button in
