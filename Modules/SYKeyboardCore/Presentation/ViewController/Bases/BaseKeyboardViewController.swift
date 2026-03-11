@@ -94,7 +94,7 @@ open class BaseKeyboardViewController: UIInputViewController {
     public let buttonStateController = ButtonStateController()
     
     /// 자동완성 텍스트 제안 컨트롤러
-    private let suggestionController = SuggestionController()
+    private let suggestionController: SuggestionController
     
     /// 키보드 높이 제약 조건
     private var keyboardHeightConstraint: NSLayoutConstraint?
@@ -134,6 +134,26 @@ open class BaseKeyboardViewController: UIInputViewController {
     final public lazy var tenkeyKeyboardView: TenkeyKeyboardLayoutProvider = keyboardView.tenkeyKeyboardView
     /// 한 손 키보드 해제 버튼(왼손 모드)
     private lazy var rightChevronButton = keyboardView.rightChevronButton
+    
+    // MARK: - Initializer
+    
+    public override init(nibName nibNameOrNil: String?, bundle nibBundleOrNil: Bundle?) {
+        self.suggestionController = SuggestionController()
+        super.init(nibName: nibNameOrNil, bundle: nibBundleOrNil)
+    }
+    
+    public init(textCheckerLanguages: [String]) {
+        self.suggestionController = SuggestionController(textCheckerLanguages: textCheckerLanguages)
+        super.init(nibName: nil, bundle: nil)
+    }
+        
+    required public init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
+    deinit {
+        logger.debug("\(String(describing: type(of: self))) deinit")
+    }
     
     // MARK: - Lifecycle
     
@@ -184,10 +204,6 @@ open class BaseKeyboardViewController: UIInputViewController {
     open override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         cancelTimer()
-    }
-    
-    deinit {
-        logger.debug("\(String(describing: type(of: self))) deinit")
     }
     
     // MARK: - Overridable Methods
@@ -375,8 +391,11 @@ private extension BaseKeyboardViewController {
     func setKeyboardHeight() {
         let keyboardHeight: CGFloat
         if let orientation = self.view.window?.windowScene?.effectiveGeometry.interfaceOrientation {
+            let suggestionBarHeight = UserDefaultsManager.shared.isPredictiveTextEnabled
+            ? KeyboardLayoutFigure.suggestionBarHeight + KeyboardLayoutFigure.keyboardFrameSpacing
+            : 0
             keyboardHeight = (orientation == .portrait)
-            ? UserDefaultsManager.shared.keyboardHeight + (UserDefaultsManager.shared.isPredictiveTextEnabled ? KeyboardLayoutFigure.suggestionBarHeight + KeyboardLayoutFigure.keyboardFrameSpacing : 0)
+            ? UserDefaultsManager.shared.keyboardHeight + suggestionBarHeight
             : KeyboardLayoutFigure.landscapeKeyboardHeight
         } else {
             assertionFailure("View가 window 계층에 없습니다.")

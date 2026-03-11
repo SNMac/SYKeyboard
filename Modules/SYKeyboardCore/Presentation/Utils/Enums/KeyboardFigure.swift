@@ -8,13 +8,13 @@
 import CoreFoundation
 
 /// 키보드 레이아웃 수치
-enum KeyboardLayoutFigure {
+public enum KeyboardLayoutFigure {
     /// 키보드 가로모드 높이
-    static let landscapeKeyboardHeight: CGFloat = 188.0
+    public static let landscapeKeyboardHeight: CGFloat = 188.0
     /// 키보드 프레임 내부 간격
-    static let keyboardFrameSpacing: CGFloat = 4.0
+    public static let keyboardFrameSpacing: CGFloat = 4.0
     /// 키보드 자동완성 제안 높이
-    static let suggestionBarHeight: CGFloat = 40.0
+    public static let suggestionBarHeight: CGFloat = 40.0
     /// 키보드 자동완성 버튼 구분선 높이
     static let suggestionButtonDividerHeight: CGFloat = 24.0
     /// Shift 버튼과 삭제 버튼 곱하기 계수

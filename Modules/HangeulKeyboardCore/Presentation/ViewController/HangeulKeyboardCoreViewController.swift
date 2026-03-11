@@ -84,9 +84,9 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
     
     // MARK: - Initializer
     
-    public override init(nibName nibNameOrNil: String?, bundle nibBundleOrNil: Bundle?) {
-        super.init(nibName: nibNameOrNil, bundle: nibBundleOrNil)
+    public init() {
         SwitchButton.previewPrimaryLanguage = "ko-KR"
+        super.init(textCheckerLanguages: ["ko_KR"])
     }
     
     @MainActor required public init?(coder: NSCoder) {

@@ -62,7 +62,7 @@ final class SuggestionController {
     private var currentSuggestions: [SuggestionItem] = []
     
     /// `UILexicon` 기반 엔진 (연락처, 텍스트 대치 등)
-    private let lexiconEngine: LexiconPredictiveTextEngine
+    private let lexiconEngine = LexiconPredictiveTextEngine()
     /// `UITextChecker` 기반 엔진 (시스템 사전)
     private let textCheckerEngine: TextCheckerPredictiveTextEngine
     
@@ -88,12 +88,8 @@ final class SuggestionController {
     /// - Parameters:
     ///   - lexiconEngine: `UILexicon` 기반 엔진 (기본값: 새 인스턴스)
     ///   - textCheckerEngine: `UITextChecker` 기반 엔진 (기본값: 한국어+영어)
-    init(
-        lexiconEngine: LexiconPredictiveTextEngine = LexiconPredictiveTextEngine(),
-        textCheckerEngine: TextCheckerPredictiveTextEngine = TextCheckerPredictiveTextEngine()
-    ) {
-        self.lexiconEngine = lexiconEngine
-        self.textCheckerEngine = textCheckerEngine
+    init(textCheckerLanguages: [String] = ["ko_KR"]) {
+        self.textCheckerEngine = TextCheckerPredictiveTextEngine(languages: textCheckerLanguages)
     }
     
     // MARK: - Lexicon Loading

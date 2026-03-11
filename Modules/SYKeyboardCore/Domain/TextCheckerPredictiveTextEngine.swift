@@ -29,8 +29,8 @@ final class TextCheckerPredictiveTextEngine: PredictiveTextService {
     
     /// 지정한 언어 목록으로 엔진을 초기화합니다.
     ///
-    /// - Parameter languages: 자동완성에 사용할 언어 코드 배열 (기본값: `["ko_KR", "en_US"]`)
-    init(languages: [String] = ["ko_KR", "en_US"]) {
+    /// - Parameter languages: 자동완성에 사용할 언어 코드 배열
+    init(languages: [String]) {
         self.languages = languages
     }
     

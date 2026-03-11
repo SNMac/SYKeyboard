@@ -23,11 +23,15 @@ struct OneHandedKeyboardWidthSettingsView: View {
     @AppStorage(UserDefaultsKeys.oneHandedKeyboardWidth, store: UserDefaultsManager.shared.storage)
     private var oneHandedKeyboardWidth = DefaultValues.oneHandedKeyboardWidth
     
+    @AppStorage(UserDefaultsKeys.isPredictiveTextEnabled, store: UserDefaultsManager.shared.storage)
+    private var isPredictiveTextEnabled = DefaultValues.isPredictiveTextEnabled
+    
     @AppStorage(UserDefaultsKeys.needsInputModeSwitchKey, store: UserDefaultsManager.shared.storage)
     private var needsInputModeSwitchKey = DefaultValues.needsInputModeSwitchKey
     
     @AppStorage("previewKeyboardLanguage") private var previewKeyboardLanguage: PreviewKeyboardLanguage = .hangeul
     
+    @State private var previewKeyboardHeight: Double = DefaultValues.keyboardHeight
     @State private var tempOneHandedKeyboardWidth: Double = DefaultValues.oneHandedKeyboardWidth
     
     // MARK: - Content
@@ -38,13 +42,14 @@ struct OneHandedKeyboardWidthSettingsView: View {
             
             Spacer()
             
-            PreviewKeyboardView(keyboardHeight: $keyboardHeight,
+            PreviewKeyboardView(keyboardHeight: $previewKeyboardHeight,
                                 oneHandedKeyboardWidth: $tempOneHandedKeyboardWidth,
                                 needsInputModeSwitchKey: $needsInputModeSwitchKey,
                                 previewKeyboardLanguage: $previewKeyboardLanguage,
                                 displayOneHandedMode: true)
         }.onAppear {
             tempOneHandedKeyboardWidth = oneHandedKeyboardWidth
+            updatePreviewKeyboardHeight()
         }.requestReviewViewModifier()
     }
 }
@@ -94,6 +99,17 @@ private extension OneHandedKeyboardWidthSettingsView {
                 }
             }
         }
+    }
+}
+
+// MARK: - Private Methods
+
+private extension OneHandedKeyboardWidthSettingsView {
+    func updatePreviewKeyboardHeight() {
+        let suggestionBarHeight = isPredictiveTextEnabled
+        ? KeyboardLayoutFigure.suggestionBarHeight + KeyboardLayoutFigure.keyboardFrameSpacing
+        : 0
+        previewKeyboardHeight = keyboardHeight + suggestionBarHeight
     }
 }
 
