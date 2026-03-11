@@ -123,6 +123,8 @@ struct InputSettingsView: View {
         
         Toggle(isOn: $isPredictiveTextEnabled, label: {
             Text("자동완성 텍스트")
+            Text("키보드 상단에 자동완성 텍스트 표시")
+                .font(.caption)
         })
         .onChange(of: isPredictiveTextEnabled) { newValue in
             Analytics.setUserProperty(newValue.analyticsValue,
