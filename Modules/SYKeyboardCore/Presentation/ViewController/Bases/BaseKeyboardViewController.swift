@@ -680,6 +680,7 @@ private extension BaseKeyboardViewController {
         let shouldHideGrammarCheck = !UserDefaultsManager.shared.isGrammarCheckButtonEnabled || textDocumentProxy.spellCheckingType == .no
         
         suggestionBarHStackView.isHidden = shouldHideSuggestions
+        suggestionController.isEnabled = !shouldHideSuggestions
         suggestionBarHStackView.grammarCheckButton.isHidden = shouldHideGrammarCheck
     }
 }

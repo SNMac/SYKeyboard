@@ -21,6 +21,7 @@ protocol SuggestionControllerDelegate: AnyObject {
 ///
 /// `UILexicon`과 `UITextChecker` 두 소스를 조합하여 후보를 생성하며,
 /// 스페이스 입력 시 텍스트 대치, 삭제 시 대치 복구 기능을 제공합니다.
+/// `isEnabled`를 통해 연산 자체를 비활성화할 수 있습니다.
 ///
 /// ## 동작 흐름
 /// 1. **입력 중**: SuggestionBar에 `UILexicon` + `UITextChecker` 후보 표시
@@ -33,6 +34,13 @@ final class SuggestionController {
     // MARK: - Properties
     
     weak var delegate: SuggestionControllerDelegate?
+    
+    /// 자동완성 활성화 여부 (false면 엔진 연산 자체를 건너뜀)
+    var isEnabled: Bool = true {
+        didSet {
+            if !isEnabled { clearSuggestions() }
+        }
+    }
     
     /// 자동완성 후보와 출처 정보를 함께 저장하는 모델
     struct SuggestionItem {
@@ -107,21 +115,13 @@ final class SuggestionController {
     ///
     /// `UILexicon` 결과를 우선 배치하고, `UITextChecker` 결과로 나머지를 채웁니다.
     /// 중복은 제거되며, 결과는 최대 3개로 제한됩니다.
+    /// 마지막 문자가 공백이면 후보를 초기화합니다.
+    /// `isEnabled`가 `false`이면 갱신을 건너뜁니다.
     ///
     /// - Parameter contextBeforeInput: 커서 앞의 텍스트 (`documentContextBeforeInput`)
     func updateSuggestions(contextBeforeInput: String?) {
-        guard let context = contextBeforeInput, !context.isEmpty else {
-            clearSuggestions()
-            return
-        }
-        
-        if let last = context.last, last.isWhitespace {
-            clearSuggestions()
-            return
-        }
-        
-        currentSuggestions = mergeSuggestions(for: context)
-        delegate?.suggestionController(self, didUpdateSuggestions: currentSuggestions.map(\.text))
+        guard isEnabled else { return }
+        performUpdateSuggestions(contextBeforeInput: contextBeforeInput)
     }
     
     /// 모든 후보를 초기화합니다.
@@ -253,6 +253,24 @@ final class SuggestionController {
 // MARK: - Private Methods
 
 private extension SuggestionController {
+    /// 실제 후보 갱신 로직
+    func performUpdateSuggestions(contextBeforeInput: String?) {
+        guard isEnabled else { return }
+        
+        guard let context = contextBeforeInput, !context.isEmpty else {
+            clearSuggestions()
+            return
+        }
+        
+        if let last = context.last, last.isWhitespace {
+            clearSuggestions()
+            return
+        }
+        
+        currentSuggestions = mergeSuggestions(for: context)
+        delegate?.suggestionController(self, didUpdateSuggestions: currentSuggestions.map { $0.text })
+    }
+    
     /// `UILexicon`과 `UITextChecker`의 결과를 병합합니다.
     ///
     /// `UILexicon` 결과를 먼저 배치하여 사용자 개인화 데이터를 우선시하고,
