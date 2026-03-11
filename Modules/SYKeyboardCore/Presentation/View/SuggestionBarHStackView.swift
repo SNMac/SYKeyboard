@@ -156,16 +156,14 @@ private extension SuggestionBarHStackView {
     }
     
     func setActions() {
-        let buttons: [(Int, WordSuggestionButton)] = [
-            (0, predictedWordButton1),
-            (1, predictedWordButton2),
-            (2, predictedWordButton3)
-        ]
+        let buttons = [predictedWordButton1, predictedWordButton2, predictedWordButton3]
         
-        for (index, button) in buttons {
+        for (index, button) in buttons.enumerated() {
             let action = UIAction { [weak self] _ in
                 guard let self else { return }
                 suggestionDelegate?.suggestionBar(self, didSelectSuggestionAt: index)
+                FeedbackManager.shared.playHaptic()
+                FeedbackManager.shared.playModifierSound()
             }
             button.addAction(action, for: .touchUpInside)
         }

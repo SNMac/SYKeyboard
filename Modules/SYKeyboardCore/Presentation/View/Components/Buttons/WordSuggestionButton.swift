@@ -49,6 +49,7 @@ final class WordSuggestionButton: UIButton {
     
     func update(to title: String) {
         self.configuration?.title = title
+        self.isUserInteractionEnabled = !title.isEmpty
     }
 }
 
@@ -64,6 +65,7 @@ private extension WordSuggestionButton {
     func setStyles() {
         self.tintColor = .clear
         self.backgroundColor = .systemBackground.withAlphaComponent(0.001)  // 터치 영역 확보용
+        self.isUserInteractionEnabled = false
         
         var config = UIButton.Configuration.plain()
         config.baseForegroundColor = .label

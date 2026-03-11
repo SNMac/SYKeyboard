@@ -897,7 +897,7 @@ extension BaseKeyboardViewController: SuggestionBarDelegate {
         suggestionController.updateSuggestions(contextBeforeInput: textDocumentProxy.documentContextBeforeInput)
     }
     
-    func suggestionBarDidTapGrammarCheck(_ bar: SuggestionBarHStackView) {
+    final func suggestionBarDidTapGrammarCheck(_ bar: SuggestionBarHStackView) {
         // TODO: 추후 Foundation Models 맞춤법 검사 연동
     }
 }

@@ -24,7 +24,7 @@ protocol SuggestionControllerDelegate: AnyObject {
 ///
 /// ## 동작 흐름
 /// 1. **입력 중**: SuggestionBar에 `UILexicon` + `UITextChecker` 후보 표시
-/// 2. **후보 탭**: 현재 단어를 선택한 후보로 교체
+/// 2. **후보 탭**: 현재 단어를 선택한 후보로 교체 (텍스트 대치 후보는 대치 이력 기록)
 /// 3. **스페이스**: `UILexicon`에 정확히 매칭되는 텍스트 대치 자동 수행
 /// 4. **삭제**: 방금 대치된 단어를 원래 단축어로 복구
 /// 5. **복구 후 스페이스**: 같은 단축어에 대해 재대치 방지
@@ -34,8 +34,24 @@ final class SuggestionController {
     
     weak var delegate: SuggestionControllerDelegate?
     
-    /// 현재 표시 중인 후보 단어 배열
-    private(set) var currentSuggestions: [String] = []
+    /// 자동완성 후보와 출처 정보를 함께 저장하는 모델
+    struct SuggestionItem {
+        /// 후보 텍스트
+        let text: String
+        /// 후보의 출처
+        let source: Source
+        
+        /// 후보 출처 구분
+        enum Source {
+            /// `UILexicon` 기반 (텍스트 대치)
+            case lexicon
+            /// `UITextChecker` 기반 (시스템 사전)
+            case textChecker
+        }
+    }
+    
+    /// 현재 표시 중인 후보 배열 (출처 정보 포함)
+    private var currentSuggestions: [SuggestionItem] = []
     
     /// `UILexicon` 기반 엔진 (연락처, 텍스트 대치 등)
     private let lexiconEngine: LexiconPredictiveTextEngine
@@ -45,8 +61,13 @@ final class SuggestionController {
     /// 후보 최대 표시 개수
     private let maxSuggestions = 3
     
-    // 텍스트 대치 관련
-    
+    /// 텍스트 대치 이력을 저장하는 모델
+    private struct ReplacementRecord: Equatable {
+        /// 사용자가 입력한 단축어 (예: "ㅈㄱㅈ")
+        let userInput: String
+        /// 대치된 결과물 (예: "지금 가는 중!")
+        let documentText: String
+    }
     /// 텍스트 대치 이력
     private var replacementHistory: [ReplacementRecord] = []
     /// 방금 복구된 단축어 (재대치 방지용)
@@ -94,9 +115,13 @@ final class SuggestionController {
             return
         }
         
-        let merged = mergeSuggestions(for: context)
-        currentSuggestions = merged
-        delegate?.suggestionController(self, didUpdateSuggestions: currentSuggestions)
+        if let last = context.last, last.isWhitespace {
+            clearSuggestions()
+            return
+        }
+        
+        currentSuggestions = mergeSuggestions(for: context)
+        delegate?.suggestionController(self, didUpdateSuggestions: currentSuggestions.map(\.text))
     }
     
     /// 모든 후보를 초기화합니다.
@@ -107,7 +132,9 @@ final class SuggestionController {
     
     /// 사용자가 후보를 선택했을 때 호출합니다.
     ///
-    /// 선택된 단어를 학습하고, 현재 입력 중인 단어를 교체하기 위한 정보를 반환합니다.
+    /// 현재 입력 중인 단어를 선택한 후보로 교체하기 위한 정보를 반환합니다.
+    /// `UITextChecker` 결과인 경우 선택된 단어를 학습하며,
+    /// `UILexicon` 결과인 경우 삭제 시 복구를 위해 대치 이력을 기록합니다.
     ///
     /// - Parameters:
     ///   - index: 선택된 후보의 인덱스 (0~2)
@@ -116,12 +143,24 @@ final class SuggestionController {
     func selectSuggestion(at index: Int, contextBeforeInput: String?) -> (deleteCount: Int, insertText: String)? {
         guard index >= 0, index < currentSuggestions.count else { return nil }
         
-        let selected = currentSuggestions[index]
-        let currentWord = extractLastWord(from: contextBeforeInput ?? "")
+        let context = contextBeforeInput ?? ""
+        if let last = context.last, last.isWhitespace { return nil }
         
-        textCheckerEngine.learn(word: selected)
+        let item = currentSuggestions[index]
+        let currentWord = extractLastWord(from: context)
         
-        return (deleteCount: currentWord.count, insertText: selected + " ")
+        textCheckerEngine.learn(word: item.text)
+        
+        // 텍스트 대치일 때만 대치 이력 기록
+        if item.source == .lexicon {
+            let record = ReplacementRecord(
+                userInput: currentWord,
+                documentText: item.text
+            )
+            replacementHistory.append(record)
+        }
+        
+        return (deleteCount: currentWord.count, insertText: item.text)
     }
     
     // MARK: - Text Replacement Methods
@@ -221,19 +260,19 @@ private extension SuggestionController {
     ///
     /// - Parameter context: 커서 앞의 텍스트
     /// - Returns: 중복 제거된 후보 배열 (최대 3개)
-    func mergeSuggestions(for context: String) -> [String] {
+    func mergeSuggestions(for context: String) -> [SuggestionItem] {
         let lexiconResults = lexiconEngine.suggestions(for: context)
         let checkerResults = textCheckerEngine.suggestions(for: context)
         
         var seen = Set<String>()
-        var merged: [String] = []
+        var merged: [SuggestionItem] = []
         
-        // 1순위: UILexicon (사용자 개인화 데이터)
+        // 1순위: UILexicon (텍스트 대치)
         for suggestion in lexiconResults {
             let lowered = suggestion.lowercased()
             guard !seen.contains(lowered) else { continue }
             seen.insert(lowered)
-            merged.append(suggestion)
+            merged.append(SuggestionItem(text: suggestion, source: .lexicon))
             if merged.count >= maxSuggestions { return merged }
         }
         
@@ -242,7 +281,7 @@ private extension SuggestionController {
             let lowered = suggestion.lowercased()
             guard !seen.contains(lowered) else { continue }
             seen.insert(lowered)
-            merged.append(suggestion)
+            merged.append(SuggestionItem(text: suggestion, source: .textChecker))
             if merged.count >= maxSuggestions { return merged }
         }
         
@@ -258,17 +297,5 @@ private extension SuggestionController {
             return ""
         }
         return String(last)
-    }
-}
-
-// MARK: - ReplacementRecord
-
-private extension SuggestionController {
-    /// 텍스트 대치 이력을 저장하는 모델
-    struct ReplacementRecord: Equatable {
-        /// 사용자가 입력한 단축어 (예: "ㅈㄱㅈ")
-        let userInput: String
-        /// 대치된 결과물 (예: "지금 가는 중!")
-        let documentText: String
     }
 }
