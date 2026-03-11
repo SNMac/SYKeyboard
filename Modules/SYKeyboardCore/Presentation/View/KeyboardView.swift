@@ -146,8 +146,10 @@ private extension KeyboardView {
     
     func setConstraints() {
         keyboardFrameVStackView.translatesAutoresizingMaskIntoConstraints = false
+        if BaseKeyboardViewController.isPreview {
+            keyboardFrameVStackView.topAnchor.constraint(equalTo: self.topAnchor).isActive = true
+        }
         NSLayoutConstraint.activate([
-            keyboardFrameVStackView.topAnchor.constraint(equalTo: self.topAnchor),
             keyboardFrameVStackView.leadingAnchor.constraint(equalTo: self.leadingAnchor),
             keyboardFrameVStackView.trailingAnchor.constraint(equalTo: self.trailingAnchor),
             keyboardFrameVStackView.bottomAnchor.constraint(equalTo: self.bottomAnchor)

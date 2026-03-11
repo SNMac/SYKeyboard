@@ -19,8 +19,9 @@ open class BaseKeyboardViewController: UIInputViewController {
     )
     
     /// Preview 모드 플래그 변수
-    final public var isPreview: Bool = false
+    public static var isPreview: Bool = false
     final public var previewOneHandedMode: OneHandedMode = .center
+    public var onPreviewOneHandedModeChanged: ((OneHandedMode) -> Void)?
     
     /// 전체 접근 허용 안내 필요 여부
     final public var needToShowFullAccessGuide: Bool {
@@ -42,15 +43,16 @@ open class BaseKeyboardViewController: UIInputViewController {
     /// 현재 한 손 키보드 모드
     private var currentOneHandedMode: OneHandedMode {
         get {
-            if isPreview {
+            if BaseKeyboardViewController.isPreview {
                 return previewOneHandedMode
             } else {
                 return UserDefaultsManager.shared.lastOneHandedMode
             }
         }
         set {
-            if isPreview {
+            if BaseKeyboardViewController.isPreview {
                 previewOneHandedMode = newValue
+                onPreviewOneHandedModeChanged?(newValue)
             } else {
                 UserDefaultsManager.shared.lastOneHandedMode = newValue
             }
@@ -167,7 +169,7 @@ open class BaseKeyboardViewController: UIInputViewController {
         super.viewDidLoad()
         setupUI()
         setNextKeyboardButton()
-        if isPreview { updateReturnButtonType() }
+        if BaseKeyboardViewController.isPreview { updateReturnButtonType() }
         
         if UserDefaultsManager.shared.isOneHandedKeyboardEnabled { updateOneHandModekeyboard() }
         if UserDefaultsManager.shared.isTextReplacementEnabled
@@ -178,7 +180,7 @@ open class BaseKeyboardViewController: UIInputViewController {
     
     open override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        if !isPreview { setKeyboardHeight() }
+        if !BaseKeyboardViewController.isPreview { setKeyboardHeight() }
         FeedbackManager.shared.prepareHaptic()
     }
     
@@ -195,12 +197,12 @@ open class BaseKeyboardViewController: UIInputViewController {
         coordinator.animate { [weak self] _ in self?.setKeyboardHeight() }
     }
     
-    open override func textWillChange(_ textInput: (any UITextInput)?) {
-        super.textWillChange(textInput)
+    open override func textDidChange(_ textInput: (any UITextInput)?) {
+        super.textDidChange(textInput)
         updateKeyboardType()
-        oldKeyboardType = textDocumentProxy.keyboardType
         updateReturnButtonType()
         updateSuggestionBarHidden()
+        oldKeyboardType = textDocumentProxy.keyboardType
     }
     
     open override func viewWillDisappear(_ animated: Bool) {
@@ -269,12 +271,12 @@ open class BaseKeyboardViewController: UIInputViewController {
     }
     
     /// 사용자가 탭한 `TextInteractable` 버튼의 `primaryKeyList` 중 상황에 맞는 문자를 입력하는 메서드 (단일 호출)
-    /// - `isPreview == true`이면 즉시 리턴
+    /// - `BaseKeyboardViewController.isPreview == true`이면 즉시 리턴
     ///
     /// - Parameters:
     ///   - button: `TextInteractable` 버튼
     open func insertPrimaryKeyText(from button: TextInteractable) {
-        if isPreview { return }
+        if BaseKeyboardViewController.isPreview { return }
         
         guard let primaryKey = button.type.primaryKeyList.first else {
             assertionFailure("primaryKeyList 배열이 비어있습니다.")
@@ -284,12 +286,12 @@ open class BaseKeyboardViewController: UIInputViewController {
     }
     
     /// 사용자가 탭한 `TextInteractable` 버튼의 `secondaryKey`를 입력하는 메서드 (단일 호출)
-    /// - `isPreview == true`이면 즉시 리턴
+    /// - `BaseKeyboardViewController.isPreview == true`이면 즉시 리턴
     ///
     /// - Parameters:
     ///   - button: `TextInteractable` 버튼
     open func insertSecondaryKeyText(from button: TextInteractable) {
-        if isPreview { return }
+        if BaseKeyboardViewController.isPreview { return }
         
         guard let secondaryKey = button.type.secondaryKey else {
             assertionFailure("secondaryKey가 nil입니다.")
@@ -299,12 +301,12 @@ open class BaseKeyboardViewController: UIInputViewController {
     }
     
     /// 사용자가 탭한 `TextInteractable` 버튼의 `primaryKeyList` 중 상황에 맞는 문자를 입력하는 메서드 (반복 호출)
-    /// - `isPreview == true`이면 즉시 리턴
+    /// - `BaseKeyboardViewController.isPreview == true`이면 즉시 리턴
     ///
     /// - Parameters:
     ///   - button: `TextInteractable` 버튼
     open func repeatInsertPrimaryKeyText(from button: TextInteractable) {
-        if isPreview { return }
+        if BaseKeyboardViewController.isPreview { return }
         
         guard let primaryKey = button.type.primaryKeyList.first else {
             assertionFailure("keys 배열이 비어있습니다.")
@@ -314,15 +316,15 @@ open class BaseKeyboardViewController: UIInputViewController {
     }
     
     /// 공백 문자를 입력하는 메서드
-    /// - `isPreview == true`이면 즉시 리턴
+    /// - `BaseKeyboardViewController.isPreview == true`이면 즉시 리턴
     open func insertSpaceText() {
-        if isPreview { return }
+        if BaseKeyboardViewController.isPreview { return }
         textDocumentProxy.insertText(" ")
     }
     /// 개행 문자를 입력하는 메서드
-    /// - `isPreview == true`이면 즉시 리턴
+    /// - `BaseKeyboardViewController.isPreview == true`이면 즉시 리턴
     open func insertReturnText() {
-        if isPreview { return }
+        if BaseKeyboardViewController.isPreview { return }
         textDocumentProxy.insertText("\n")
         suggestionController.clearReplacementHistory()
     }
@@ -333,12 +335,12 @@ open class BaseKeyboardViewController: UIInputViewController {
     }
     
     /// 문자열 입력 UI의 텍스트를 삭제하는 메서드 (단일 호출)
-    /// - `isPreview == true`이면 즉시 리턴
+    /// - `BaseKeyboardViewController.isPreview == true`이면 즉시 리턴
     ///
     /// > 하위 클래스에서 오버라이드 시 텍스트 수정 작업 전 반드시
     /// `super.deleteBackwardWillPerform` 호출 필요
     open func deleteBackward() {
-        if isPreview { return }
+        if BaseKeyboardViewController.isPreview { return }
         
         deleteBackwardWillPerform()
         textDocumentProxy.deleteBackward()
@@ -350,12 +352,12 @@ open class BaseKeyboardViewController: UIInputViewController {
     }
     
     /// 문자열 입력 UI의 텍스트를 삭제하는 메서드 (반복 호출)
-    /// - `isPreview == true`이면 즉시 리턴
+    /// - `BaseKeyboardViewController.isPreview == true`이면 즉시 리턴
     ///
     /// > 하위 클래스에서 오버라이드 시 텍스트 수정 작업 전 반드시
     /// `super.repeatDeleteBackwardWillPerform` 호출 필요
     open func repeatDeleteBackward() {
-        if isPreview || self.view.window == nil { return }
+        if BaseKeyboardViewController.isPreview || self.view.window == nil { return }
         
         repeatDeleteBackwardWillPerform()
         textDocumentProxy.deleteBackward()
@@ -395,9 +397,12 @@ private extension BaseKeyboardViewController {
     func setKeyboardHeight() {
         let keyboardHeight: CGFloat
         if let orientation = self.view.window?.windowScene?.effectiveGeometry.interfaceOrientation {
-            let suggestionBarHeight = UserDefaultsManager.shared.isPredictiveTextEnabled
+            let isSuggestionBarVisible = UserDefaultsManager.shared.isPredictiveTextEnabled
+            && textDocumentProxy.autocorrectionType != .no
+            let suggestionBarHeight = isSuggestionBarVisible
             ? KeyboardLayoutFigure.suggestionBarHeight + KeyboardLayoutFigure.keyboardFrameSpacing
             : 0
+            
             keyboardHeight = (orientation == .portrait)
             ? UserDefaultsManager.shared.keyboardHeight + suggestionBarHeight
             : KeyboardLayoutFigure.landscapeKeyboardHeight
@@ -414,6 +419,7 @@ private extension BaseKeyboardViewController {
             heightConstraint.isActive = true
             
             keyboardHeightConstraint = heightConstraint
+            keyboardHStackView.heightAnchor.constraint(equalToConstant: UserDefaultsManager.shared.keyboardHeight).isActive = true
         }
     }
     
@@ -516,7 +522,7 @@ private extension BaseKeyboardViewController {
         if UserDefaultsManager.shared.isPeriodShortcutEnabled {
             let periodShortcutAction = UIAction { [weak self] _ in
                 guard let self else { return }
-                if isPreview || preventNextPeriodShortcut { return }
+                if BaseKeyboardViewController.isPreview || preventNextPeriodShortcut { return }
                 
                 guard let beforeText = textDocumentProxy.documentContextBeforeInput else { return }
                 
@@ -538,7 +544,9 @@ private extension BaseKeyboardViewController {
     }
     
     func addGesturesToTextInterableButton(_ button: TextInteractable) {
-        guard !(button is ReturnButton) && !(button is SecondaryKeyButton) && !(button.type.primaryKeyList == [".com"]) else { return }
+        guard !(button is ReturnButton)
+                && !(button is SecondaryKeyButton)
+                && !(button.type.primaryKeyList == [".com"]) else { return }
         
         if UserDefaultsManager.shared.isDragToMoveCursorEnabled ||
             button is DeleteButton {

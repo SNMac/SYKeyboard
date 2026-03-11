@@ -40,8 +40,8 @@ open class EnglishKeyboardCoreViewController: BaseKeyboardViewController {
     
     // MARK: - Override Methods
     
-    open override func textWillChange(_ textInput: (any UITextInput)?) {
-        super.textWillChange(textInput)
+    open override func textDidChange(_ textInput: (any UITextInput)?) {
+        super.textDidChange(textInput)
         updateShiftButton()
     }
     
@@ -108,14 +108,14 @@ open class EnglishKeyboardCoreViewController: BaseKeyboardViewController {
     }
     
     open override func insertPrimaryKeyText(from button: TextInteractable) {
-        if isPreview { return }
+        if BaseKeyboardViewController.isPreview { return }
         
         guard let primaryKey = button.type.primaryKeyList.first else { fatalError("keys 배열이 비어있습니다.") }
         textDocumentProxy.insertText(primaryKey)
     }
     
     open override func insertSecondaryKeyText(from button: TextInteractable) {
-        if isPreview { return }
+        if BaseKeyboardViewController.isPreview { return }
         
         guard let secondaryKey = button.type.secondaryKey else {
             assertionFailure("secondaryKey가 nil입니다.")
@@ -125,7 +125,7 @@ open class EnglishKeyboardCoreViewController: BaseKeyboardViewController {
     }
     
     open override func repeatInsertPrimaryKeyText(from button: TextInteractable) {
-        if isPreview { return }
+        if BaseKeyboardViewController.isPreview { return }
         
         guard let primaryKey = button.type.primaryKeyList.first else {
             assertionFailure("keys 배열이 비어있습니다.")

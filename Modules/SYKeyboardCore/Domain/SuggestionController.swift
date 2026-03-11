@@ -100,7 +100,7 @@ final class SuggestionController {
     ///
     /// - Parameter inputViewController: 현재 키보드의 `UIInputViewController`
     func loadLexicon(from inputViewController: UIInputViewController) {
-        Task {
+        Task { @MainActor in
             lexiconEngine.setLexicon(await inputViewController.requestSupplementaryLexicon())
         }
     }

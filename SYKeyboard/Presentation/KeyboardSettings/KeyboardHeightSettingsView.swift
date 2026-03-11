@@ -31,6 +31,7 @@ struct KeyboardHeightSettingsView: View {
     
     @AppStorage("previewKeyboardLanguage") private var previewKeyboardLanguage: PreviewKeyboardLanguage = .hangeul
     
+    @State private var previewOneHandedMode: OneHandedMode = .center
     @State private var tempKeyboardHeight: Double = DefaultValues.keyboardHeight
     @State private var previewKeyboardHeight: Double = DefaultValues.keyboardHeight
     
@@ -46,7 +47,7 @@ struct KeyboardHeightSettingsView: View {
                                 oneHandedKeyboardWidth: $oneHandedKeyboardWidth,
                                 needsInputModeSwitchKey: $needsInputModeSwitchKey,
                                 previewKeyboardLanguage: $previewKeyboardLanguage,
-                                displayOneHandedMode: false)
+                                oneHandedMode: $previewOneHandedMode)
         }.onAppear {
             tempKeyboardHeight = keyboardHeight
             updatePreviewKeyboardHeight()

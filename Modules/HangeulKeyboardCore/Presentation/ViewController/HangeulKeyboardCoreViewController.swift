@@ -103,8 +103,8 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
     
     // MARK: - Override Methods
     
-    open override func textWillChange(_ textInput: (any UITextInput)?) {
-        super.textWillChange(textInput)
+    open override func textDidChange(_ textInput: (any UITextInput)?) {
+        super.textDidChange(textInput)
         clearAllBuffers()
         lastInputText = nil
         processor.reset한글조합()
@@ -210,7 +210,7 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
     }
     
     open override func insertPrimaryKeyText(from button: TextInteractable) {
-        if isPreview { return }
+        if BaseKeyboardViewController.isPreview { return }
         
         guard let primaryKey = button.type.primaryKeyList.first else { fatalError("primaryKeyList 배열이 비어있습니다.") }
         
@@ -225,7 +225,7 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
     }
     
     open override func insertSecondaryKeyText(from button: TextInteractable) {
-        if isPreview { return }
+        if BaseKeyboardViewController.isPreview { return }
         
         guard let secondaryKey = button.type.secondaryKey else {
             assertionFailure("secondaryKey가 nil입니다.")
@@ -243,7 +243,7 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
     }
     
     open override func repeatInsertPrimaryKeyText(from button: TextInteractable) {
-        if isPreview { return }
+        if BaseKeyboardViewController.isPreview { return }
         
         guard let lastInputText else {
             super.repeatTextInteractionDidPerform(button: button)
@@ -260,7 +260,7 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
     }
     
     open override func insertSpaceText() {
-        if isPreview { return }
+        if BaseKeyboardViewController.isPreview { return }
         
         if currentKeyboard == .naratgeul
             || currentKeyboard == .cheonjiin
@@ -289,7 +289,7 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
     }
     
     open override func insertReturnText() {
-        if isPreview { return }
+        if BaseKeyboardViewController.isPreview { return }
         
         super.insertReturnText()
         
@@ -300,7 +300,7 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
     }
     
     open override func deleteBackward() {
-        if isPreview { return }
+        if BaseKeyboardViewController.isPreview { return }
         
         deleteBackwardWillPerform()
         
@@ -375,7 +375,7 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
     }
     
     open override func repeatDeleteBackward() {
-        if isPreview { return }
+        if BaseKeyboardViewController.isPreview { return }
         
         repeatDeleteBackwardWillPerform()
         

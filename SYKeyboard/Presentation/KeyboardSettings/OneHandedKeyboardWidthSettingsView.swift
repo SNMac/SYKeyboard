@@ -31,6 +31,7 @@ struct OneHandedKeyboardWidthSettingsView: View {
     
     @AppStorage("previewKeyboardLanguage") private var previewKeyboardLanguage: PreviewKeyboardLanguage = .hangeul
     
+    @State private var previewOneHandedMode: OneHandedMode = .right
     @State private var previewKeyboardHeight: Double = DefaultValues.keyboardHeight
     @State private var tempOneHandedKeyboardWidth: Double = DefaultValues.oneHandedKeyboardWidth
     
@@ -46,10 +47,11 @@ struct OneHandedKeyboardWidthSettingsView: View {
                                 oneHandedKeyboardWidth: $tempOneHandedKeyboardWidth,
                                 needsInputModeSwitchKey: $needsInputModeSwitchKey,
                                 previewKeyboardLanguage: $previewKeyboardLanguage,
-                                displayOneHandedMode: true)
+                                oneHandedMode: $previewOneHandedMode)
         }.onAppear {
             tempOneHandedKeyboardWidth = oneHandedKeyboardWidth
             updatePreviewKeyboardHeight()
+            updatePreviewLanguageBasedOnSystem()
         }.requestReviewViewModifier()
     }
 }
@@ -110,6 +112,16 @@ private extension OneHandedKeyboardWidthSettingsView {
         ? KeyboardLayoutFigure.suggestionBarHeight + KeyboardLayoutFigure.keyboardFrameSpacing
         : 0
         previewKeyboardHeight = keyboardHeight + suggestionBarHeight
+    }
+    
+    func updatePreviewLanguageBasedOnSystem() {
+        let currentLanguageCode = Bundle.main.preferredLocalizations.first ?? "ko"
+        
+        if currentLanguageCode.hasPrefix("ko") {
+            previewKeyboardLanguage = .hangeul
+        } else {
+            previewKeyboardLanguage = .english
+        }
     }
 }
 
