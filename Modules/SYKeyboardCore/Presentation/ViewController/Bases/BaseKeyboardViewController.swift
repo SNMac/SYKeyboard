@@ -178,6 +178,7 @@ open class BaseKeyboardViewController: UIInputViewController {
         updateKeyboardType()
         oldKeyboardType = textDocumentProxy.keyboardType
         updateReturnButtonType()
+        updateSuggestionBarHidden()
     }
     
     open override func viewWillDisappear(_ animated: Bool) {
@@ -671,6 +672,15 @@ private extension BaseKeyboardViewController {
     func updateReturnButtonType() {
         let type = ReturnButton.ReturnKeyType(type: textDocumentProxy.returnKeyType)
         currentReturnButton?.update(for: type)
+    }
+    
+    func updateSuggestionBarHidden() {
+        let shouldHideSuggestions = !UserDefaultsManager.shared.isPredictiveTextEnabled
+        || textDocumentProxy.autocorrectionType == .no
+        let shouldHideGrammarCheck = !UserDefaultsManager.shared.isGrammarCheckButtonEnabled || textDocumentProxy.spellCheckingType == .no
+        
+        suggestionBarHStackView.isHidden = shouldHideSuggestions
+        suggestionBarHStackView.grammarCheckButton.isHidden = shouldHideGrammarCheck
     }
 }
 

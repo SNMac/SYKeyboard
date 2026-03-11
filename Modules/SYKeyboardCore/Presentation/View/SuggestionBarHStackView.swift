@@ -89,7 +89,7 @@ final class SuggestionBarHStackView: UIStackView {
         return view
     }()
     
-    private lazy var grammarCheckButton: GrammarCheckButton = {
+    lazy var grammarCheckButton: GrammarCheckButton = {
         let button = GrammarCheckButton()
         button.leadingDivider = predictedWordDivider3
         
