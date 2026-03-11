@@ -20,12 +20,12 @@ public enum DefaultValues {
     /* 입력 설정 */
     /// 선택한 길게 누르기 동작
     public static let selectedLongPressAction: LongPressAction = .repeatInput
-    /// 자동완성 텍스트 기본값
-    public static let isPredictiveTextEnabled: Bool = true
     /// 드래그하여 커서 이동 기본값
     public static let isDragToMoveCursorEnabled: Bool = true
     /// 텍스트 대치 기본값
     public static let isTextReplacementEnabled: Bool = true
+    /// 자동완성 텍스트 기본값
+    public static let isPredictiveTextEnabled: Bool = true
     /// '.' 단축키 여부 기본값
     public static let isPeriodShortcutEnabled: Bool = true
     /// 스페이스/리턴 입력 후 주 키보드로 변경 기본값

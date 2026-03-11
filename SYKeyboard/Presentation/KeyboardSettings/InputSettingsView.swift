@@ -93,19 +93,6 @@ struct InputSettingsView: View {
             KeyRepeatSettingsView()
         }
         
-        Toggle(isOn: $isPredictiveTextEnabled, label: {
-            Text("자동완성 텍스트")
-        })
-        .onChange(of: isPredictiveTextEnabled) { newValue in
-            Analytics.setUserProperty(newValue.analyticsValue,
-                                      forName: "pref_predictive_text")
-            Analytics.logEvent("predictive_text", parameters: [
-                "view": "InputSettingsView",
-                "enabled": newValue.analyticsValue
-            ])
-            hideKeyboard()
-        }
-        
         Toggle(isOn: $isAutoCapitalizationEnabled, label: {
             Text("자동 대문자")
         })
@@ -128,6 +115,19 @@ struct InputSettingsView: View {
             Analytics.setUserProperty(newValue.analyticsValue,
                                       forName: "pref_text_replacement")
             Analytics.logEvent("text_replacement", parameters: [
+                "view": "InputSettingsView",
+                "enabled": newValue.analyticsValue
+            ])
+            hideKeyboard()
+        }
+        
+        Toggle(isOn: $isPredictiveTextEnabled, label: {
+            Text("자동완성 텍스트")
+        })
+        .onChange(of: isPredictiveTextEnabled) { newValue in
+            Analytics.setUserProperty(newValue.analyticsValue,
+                                      forName: "pref_predictive_text")
+            Analytics.logEvent("predictive_text", parameters: [
                 "view": "InputSettingsView",
                 "enabled": newValue.analyticsValue
             ])

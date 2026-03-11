@@ -116,15 +116,15 @@ final public class UserDefaultsManager {
             storage.set(newValue.rawValue, forKey: UserDefaultsKeys.selectedLongPressAction)
         }
     }
-    /// 자동완성 텍스트
-    @UserDefaultsWrapper(key: UserDefaultsKeys.isPredictiveTextEnabled, defaultValue: DefaultValues.isPredictiveTextEnabled)
-    public var isPredictiveTextEnabled: Bool
     /// 드래그하여 커서 이동
     @UserDefaultsWrapper(key: UserDefaultsKeys.isDragToMoveCursorEnabled, defaultValue: DefaultValues.isDragToMoveCursorEnabled)
     public var isDragToMoveCursorEnabled: Bool
     /// 텍스트 대치
     @UserDefaultsWrapper(key: UserDefaultsKeys.isTextReplacementEnabled, defaultValue: DefaultValues.isTextReplacementEnabled)
     public var isTextReplacementEnabled: Bool
+    /// 자동완성 텍스트
+    @UserDefaultsWrapper(key: UserDefaultsKeys.isPredictiveTextEnabled, defaultValue: DefaultValues.isPredictiveTextEnabled)
+    public var isPredictiveTextEnabled: Bool
     /// '.' 단축키
     @UserDefaultsWrapper(key: UserDefaultsKeys.isPeriodShortcutEnabled, defaultValue: DefaultValues.isPeriodShortcutEnabled)
     public var isPeriodShortcutEnabled: Bool
