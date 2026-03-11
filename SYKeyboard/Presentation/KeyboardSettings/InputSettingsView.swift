@@ -19,6 +19,12 @@ struct InputSettingsView: View {
     @AppStorage(UserDefaultsKeys.selectedLongPressAction, store: UserDefaultsManager.shared.storage)
     private var selectedLongPressAction = DefaultValues.selectedLongPressAction
     
+    @AppStorage(UserDefaultsKeys.isPredictiveTextEnabled, store: UserDefaultsManager.shared.storage)
+    private var isPredictiveTextEnabled = DefaultValues.isPredictiveTextEnabled
+    
+    @AppStorage(UserDefaultsKeys.isGrammarCheckButtonEnabled, store: UserDefaultsManager.shared.storage)
+    private var isGrammarCheckButtonEnabled = DefaultValues.isGrammarCheckButtonEnabled
+    
     @AppStorage(UserDefaultsKeys.isAutoCapitalizationEnabled, store: UserDefaultsManager.shared.storage)
     private var isAutoCapitalizationEnabled = DefaultValues.isAutoCapitalizationEnabled
     
@@ -88,6 +94,34 @@ struct InputSettingsView: View {
         
         NavigationLink("길게 누르기 입력") {
             KeyRepeatSettingsView()
+        }
+        
+        Toggle(isOn: $isPredictiveTextEnabled, label: {
+            Text("자동완성 텍스트")
+        })
+        .onChange(of: isPredictiveTextEnabled) { newValue in
+            Analytics.setUserProperty(newValue.analyticsValue,
+                                      forName: "pref_predictive_text")
+            Analytics.logEvent("predictive_text", parameters: [
+                "view": "InputSettingsView",
+                "enabled": newValue.analyticsValue
+            ])
+            hideKeyboard()
+        }
+        
+        if isPredictiveTextEnabled {
+            Toggle(isOn: $isGrammarCheckButtonEnabled, label: {
+                Text("맞춤법 확인 버튼")
+            })
+            .onChange(of: isGrammarCheckButtonEnabled) { newValue in
+                Analytics.setUserProperty(newValue.analyticsValue,
+                                          forName: "pref_grammar_check_button")
+                Analytics.logEvent("grammar_check_button", parameters: [
+                    "view": "InputSettingsView",
+                    "enabled": newValue.analyticsValue
+                ])
+                hideKeyboard()
+            }
         }
         
         Toggle(isOn: $isAutoCapitalizationEnabled, label: {
