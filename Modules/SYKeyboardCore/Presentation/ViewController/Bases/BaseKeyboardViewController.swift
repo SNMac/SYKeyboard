@@ -101,6 +101,8 @@ open class BaseKeyboardViewController: UIInputViewController {
     
     /// 반복 입력용 타이머
     private var timer: AnyCancellable?
+    /// 현재 반복 입력 동작 중인지 확인하는 플래그
+    public private(set) var isRepeatingInput: Bool = false
     
     /// 삭제 버튼 팬 제스처로 인해 임시로 삭제된 내용을 저장하는 변수
     private var tempDeletedCharacters: [Character] = []
@@ -235,10 +237,8 @@ open class BaseKeyboardViewController: UIInputViewController {
     ///
     /// > 하위 클래스에서 오버라이드 시 반드시 `super`로 호출 필요
     open func textInteractionDidPerform(button: TextInteractable) {
-        if UserDefaultsManager.shared.isPredictiveTextEnabled {
-            suggestionController.updateSuggestions(
-                contextBeforeInput: textDocumentProxy.documentContextBeforeInput
-            )
+        if !isRepeatingInput && UserDefaultsManager.shared.isPredictiveTextEnabled {
+            suggestionController.updateSuggestions(contextBeforeInput: textDocumentProxy.documentContextBeforeInput)
         }
     }
     
@@ -253,6 +253,7 @@ open class BaseKeyboardViewController: UIInputViewController {
     open func repeatTextInteractionWillPerform(button: TextInteractable) {
         // 방어 코드
         cancelTimer()
+        isRepeatingInput = true
     }
     /// 반복 텍스트 상호작용이 일어난 후 실행되는 메서드
     ///
@@ -260,6 +261,11 @@ open class BaseKeyboardViewController: UIInputViewController {
     open func repeatTextInteractionDidPerform(button: TextInteractable) {
         cancelTimer()
         tempDeletedCharacters.removeAll()
+        isRepeatingInput = false
+        
+        if UserDefaultsManager.shared.isPredictiveTextEnabled {
+            suggestionController.updateSuggestions(contextBeforeInput: textDocumentProxy.documentContextBeforeInput)
+        }
     }
     
     /// 사용자가 탭한 `TextInteractable` 버튼의 `primaryKeyList` 중 상황에 맞는 문자를 입력하는 메서드 (단일 호출)

@@ -14,8 +14,6 @@ open class EnglishKeyboardCoreViewController: BaseKeyboardViewController {
     
     // MARK: - Properties
     
-    /// 현재 반복 입력 동작 중인지 확인하는 플래그
-    private var isRepeatingInput: Bool = false
     /// 대문자가 입력되었는지 확인하는 플래그
     private var isUppercaseInput: Bool = false
     
@@ -104,14 +102,8 @@ open class EnglishKeyboardCoreViewController: BaseKeyboardViewController {
         if !isRepeatingInput { updateShiftButton() }
     }
     
-    open override func repeatTextInteractionWillPerform(button: any TextInteractable) {
-        isRepeatingInput = true
-        super.repeatTextInteractionWillPerform(button: button)
-    }
-    
     open override func repeatTextInteractionDidPerform(button: TextInteractable) {
         super.repeatTextInteractionDidPerform(button: button)
-        isRepeatingInput = false
         updateShiftButton()
     }
     

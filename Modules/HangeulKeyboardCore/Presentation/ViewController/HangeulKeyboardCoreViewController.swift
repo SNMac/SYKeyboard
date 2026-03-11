@@ -28,8 +28,6 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
     
     /// 마지막으로 입력한 문자
     private var lastInputText: String?
-    /// 현재 반복 입력 동작 중인지 확인하는 플래그
-    private var isRepeatingInput: Bool = false
     /// 글자가 입력되었는지 확인하는 플래그
     private var is글자Input: Bool = false
     /// 스페이스(확정)로 보호된 `committedBuffer` 내의 글자 수
@@ -168,7 +166,6 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
     }
     
     open override func repeatTextInteractionWillPerform(button: TextInteractable) {
-        isRepeatingInput = true
         super.repeatTextInteractionWillPerform(button: button)
         super.performTextInteraction(for: button)
         if lastInputText != nil || button is DeleteButton || button is SpaceButton {
@@ -178,7 +175,6 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
     
     open override func repeatTextInteractionDidPerform(button: TextInteractable) {
         super.repeatTextInteractionDidPerform(button: button)
-        isRepeatingInput = false
         
         // 반복 삭제 후 composing이 비고 committed에 한글이 있으면 끌어오기
         if button is DeleteButton && composingBuffer.isEmpty && !committedBuffer.isEmpty {
