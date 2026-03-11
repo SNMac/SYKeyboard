@@ -17,13 +17,13 @@ struct KeyboardTestView: View {
     
     var body: some View {
         TextField("터치하여 키보드 테스트", text: $text, axis: .vertical)
-            .lineLimit(1...4)
+            .lineLimit(4)
             .padding(EdgeInsets(top: 4, leading: 12, bottom: 4, trailing: 12))
             .background {
                 Color(.systemGray6)
                     .clipShape(RoundedRectangle(cornerRadius: 8))
             }
-            .padding(EdgeInsets(top: 0, leading: 20, bottom: 0, trailing: 20))
+            .padding(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
     }
 }
 

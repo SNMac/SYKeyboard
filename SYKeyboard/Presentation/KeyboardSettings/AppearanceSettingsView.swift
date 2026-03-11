@@ -34,12 +34,11 @@ struct AppearanceSettingsView: View {
                 .font(.caption)
         })
         .onChange(of: isNumericKeypadEnabled) { newValue in
-            let newValueStr = newValue ? "true" : "false"
-            Analytics.setUserProperty(newValueStr,
+            Analytics.setUserProperty(newValue.analyticsValue,
                                       forName: "pref_numeric_keypad")
             Analytics.logEvent("numeric_keypad", parameters: [
                 "view": "AppearanceSettingsView",
-                "enabled": newValueStr
+                "enabled": newValue.analyticsValue
             ])
             hideKeyboard()
         }
@@ -50,12 +49,11 @@ struct AppearanceSettingsView: View {
                 .font(.caption)
         })
         .onChange(of: isOneHandedKeyboardEnabled) { newValue in
-            let newValueStr = newValue ? "true" : "false"
-            Analytics.setUserProperty(newValueStr,
+            Analytics.setUserProperty(newValue.analyticsValue,
                                       forName: "pref_one_handed_keyboard")
             Analytics.logEvent("one_handed_keyboard", parameters: [
                 "view": "AppearanceSettingsView",
-                "enabled": newValueStr
+                "enabled": newValue.analyticsValue
             ])
             hideKeyboard()
         }

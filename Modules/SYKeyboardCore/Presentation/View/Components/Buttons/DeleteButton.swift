@@ -51,14 +51,6 @@ private extension DeleteButton {
         self.configurationUpdateHandler = { [weak self] button in
             guard let self else { return }
             switch button.state {
-            case .normal:
-                if isGesturing {
-                    backgroundView.backgroundColor = .secondaryButtonPressed
-                    primaryKeyListImageView.image = UIImage(systemName: "delete.backward.fill")?.withConfiguration(imageConfig).withTintColor(.label, renderingMode: .alwaysOriginal)
-                } else {
-                    backgroundView.backgroundColor = .secondaryButton
-                    primaryKeyListImageView.image = UIImage(systemName: "delete.backward")?.withConfiguration(imageConfig).withTintColor(.label, renderingMode: .alwaysOriginal)
-                }
             case .highlighted:
                 if isPressed || isGesturing {
                     backgroundView.backgroundColor = .secondaryButtonPressed
@@ -68,7 +60,13 @@ private extension DeleteButton {
                     primaryKeyListImageView.image = UIImage(systemName: "delete.backward")?.withConfiguration(imageConfig).withTintColor(.label, renderingMode: .alwaysOriginal)
                 }
             default:
-                break
+                if isGesturing {
+                    backgroundView.backgroundColor = .secondaryButtonPressed
+                    primaryKeyListImageView.image = UIImage(systemName: "delete.backward.fill")?.withConfiguration(imageConfig).withTintColor(.label, renderingMode: .alwaysOriginal)
+                } else {
+                    backgroundView.backgroundColor = .secondaryButton
+                    primaryKeyListImageView.image = UIImage(systemName: "delete.backward")?.withConfiguration(imageConfig).withTintColor(.label, renderingMode: .alwaysOriginal)
+                }
             }
         }
     }

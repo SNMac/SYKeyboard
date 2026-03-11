@@ -19,6 +19,9 @@ struct InputSettingsView: View {
     @AppStorage(UserDefaultsKeys.selectedLongPressAction, store: UserDefaultsManager.shared.storage)
     private var selectedLongPressAction = DefaultValues.selectedLongPressAction
     
+    @AppStorage(UserDefaultsKeys.isPredictiveTextEnabled, store: UserDefaultsManager.shared.storage)
+    private var isPredictiveTextEnabled = DefaultValues.isPredictiveTextEnabled
+    
     @AppStorage(UserDefaultsKeys.isAutoCapitalizationEnabled, store: UserDefaultsManager.shared.storage)
     private var isAutoCapitalizationEnabled = DefaultValues.isAutoCapitalizationEnabled
     
@@ -94,12 +97,11 @@ struct InputSettingsView: View {
             Text("자동 대문자")
         })
         .onChange(of: isAutoCapitalizationEnabled) { newValue in
-            let newValueStr = newValue ? "true" : "false"
-            Analytics.setUserProperty(newValueStr,
+            Analytics.setUserProperty(newValue.analyticsValue,
                                       forName: "pref_auto_capitalization")
             Analytics.logEvent("auto_capitalization", parameters: [
                 "view": "InputSettingsView",
-                "enabled": newValueStr
+                "enabled": newValue.analyticsValue
             ])
             hideKeyboard()
         }
@@ -110,12 +112,26 @@ struct InputSettingsView: View {
                 .font(.caption)
         })
         .onChange(of: isTextReplacementEnabled) { newValue in
-            let newValueStr = newValue ? "true" : "false"
-            Analytics.setUserProperty(newValueStr,
+            Analytics.setUserProperty(newValue.analyticsValue,
                                       forName: "pref_text_replacement")
             Analytics.logEvent("text_replacement", parameters: [
                 "view": "InputSettingsView",
-                "enabled": newValueStr
+                "enabled": newValue.analyticsValue
+            ])
+            hideKeyboard()
+        }
+        
+        Toggle(isOn: $isPredictiveTextEnabled, label: {
+            Text("자동완성 텍스트")
+            Text("키보드 상단에 자동완성 텍스트 표시")
+                .font(.caption)
+        })
+        .onChange(of: isPredictiveTextEnabled) { newValue in
+            Analytics.setUserProperty(newValue.analyticsValue,
+                                      forName: "pref_predictive_text")
+            Analytics.logEvent("predictive_text", parameters: [
+                "view": "InputSettingsView",
+                "enabled": newValue.analyticsValue
             ])
             hideKeyboard()
         }
@@ -126,12 +142,11 @@ struct InputSettingsView: View {
                 .font(.caption)
         })
         .onChange(of: isPeriodShortcutEnabled) { newValue in
-            let newValueStr = newValue ? "true" : "false"
-            Analytics.setUserProperty(newValueStr,
+            Analytics.setUserProperty(newValue.analyticsValue,
                                       forName: "pref_period_shortcut")
             Analytics.logEvent("period_shortcut", parameters: [
                 "view": "InputSettingsView",
-                "enabled": newValueStr
+                "enabled": newValue.analyticsValue
             ])
             hideKeyboard()
         }
@@ -142,12 +157,11 @@ struct InputSettingsView: View {
                 .font(.caption)
         })
         .onChange(of: isAutoChangeToPrimaryEnabled) { newValue in
-            let newValueStr = newValue ? "true" : "false"
-            Analytics.setUserProperty(newValueStr,
+            Analytics.setUserProperty(newValue.analyticsValue,
                                       forName: "pref_auto_change_primary")
             Analytics.logEvent("auto_change_to_primary", parameters: [
                 "view": "InputSettingsView",
-                "enabled": newValueStr
+                "enabled": newValue.analyticsValue
             ])
             hideKeyboard()
         }
@@ -156,18 +170,19 @@ struct InputSettingsView: View {
             Text("드래그하여 커서 이동")
         })
         .onChange(of: isDragToMoveCursorEnabled) { newValue in
-            let newValueStr = newValue ? "true" : "false"
-            Analytics.setUserProperty(newValueStr,
+            Analytics.setUserProperty(newValue.analyticsValue,
                                       forName: "pref_drag_to_move_cursor")
             Analytics.logEvent("drag_to_move_cursor", parameters: [
                 "view": "InputSettingsView",
-                "enabled": newValueStr
+                "enabled": newValue.analyticsValue
             ])
             hideKeyboard()
         }
         
-        NavigationLink("커서 이동") {
-            CursorMovementSettingsView()
+        if isDragToMoveCursorEnabled {
+            NavigationLink("커서 이동") {
+                CursorMovementSettingsView()
+            }
         }
     }
 }

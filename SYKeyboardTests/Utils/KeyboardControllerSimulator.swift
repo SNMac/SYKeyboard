@@ -15,9 +15,11 @@ import Testing
 /// `committedBuffer`/`composingBuffer`/`protectedCommittedCount` 관리를 재현하여
 /// 프로세서 단위 테스트에서 검증할 수 없는 컨트롤러 레벨 동작을 테스트합니다.
 ///
-/// > 이 클래스의 버퍼 관리 로직(`tryRestore종성`, 끌어오기, `protectedCommittedCount` 체크 등)은
-/// `HangeulKeyboardCoreViewController`와 동일한 구현을 의도적으로 유지하고 있습니다.
-/// 컨트롤러의 해당 로직을 수정할 경우 이 파일도 함께 수정하세요.
+/// 종성 복원 로직은 프로세서의 `inputWithRestore종성`(입력)과 `deleteWithRestore종성`(삭제)에서
+/// 모두 처리하므로, 이 시뮬레이터에는 종성 복원 코드가 없습니다.
+///
+/// > 이 클래스의 버퍼 관리 로직은 `HangeulKeyboardCoreViewController`와 동일한 구현을
+/// > 의도적으로 유지하고 있습니다. 컨트롤러의 해당 로직을 수정할 경우 이 파일도 함께 수정하세요.
 final class KeyboardControllerSimulator {
     
     // MARK: - Properties
@@ -34,6 +36,8 @@ final class KeyboardControllerSimulator {
     private var protectedCommittedCount: Int = 0
     /// 마지막으로 입력한 문자 (반복 입력용)
     private var lastInputText: String?
+    /// 끌어온 글자가 보호 상태였는지 추적
+    private var isPulledFromProtected: Bool = false
     
     /// 현재 화면에 표시되는 전체 텍스트
     var text: String { committedBuffer + composingBuffer }
@@ -49,24 +53,14 @@ final class KeyboardControllerSimulator {
     
     /// 글자 입력 (컨트롤러의 `insertPrimaryKeyText` 시뮬레이션)
     func input(_ char: String) {
-        let hadPreviousComposing = !composingBuffer.isEmpty
-        let result = processor.input(글자Input: char, composing: composingBuffer)
+        let result = processor.inputWithRestore종성(
+            글자Input: char,
+            composing: composingBuffer,
+            committedTail: String(committedBuffer.suffix(2)),
+            isProtected: committedBuffer.count <= protectedCommittedCount
+        )
         
-        let finalCommitted = result.committed
-        let finalComposing = result.composing
-        
-        // 입력 시 종성 복원
-        if hadPreviousComposing && finalCommitted.isEmpty && finalComposing.count == 1 && !committedBuffer.isEmpty {
-            if let restored = tryRestore종성(자음: finalComposing, committed: &committedBuffer) {
-                composingBuffer = restored
-                lastInputText = result.input글자
-                return
-            }
-        }
-        
-        committedBuffer.append(finalCommitted)
-        composingBuffer = finalComposing
-        lastInputText = result.input글자
+        applyCompositionResult(result)
     }
     
     /// 스페이스 입력 (컨트롤러의 `insertSpaceText` 시뮬레이션)
@@ -78,11 +72,13 @@ final class KeyboardControllerSimulator {
             composingBuffer.removeAll()
             protectedCommittedCount = committedBuffer.count
             lastInputText = nil
+            isPulledFromProtected = false
             
         case .insertSpace:
             committedBuffer.removeAll()
             composingBuffer.removeAll()
             protectedCommittedCount = 0
+            isPulledFromProtected = false
             processor.reset한글조합()
             lastInputText = nil
         }
@@ -91,36 +87,20 @@ final class KeyboardControllerSimulator {
     /// 삭제 (컨트롤러의 `deleteBackward` 시뮬레이션)
     func delete() {
         if !composingBuffer.isEmpty {
-            let remaining = processor.delete(composing: composingBuffer)
+            // 프로세서에 committed 꼬리(최대 2글자)와 보호 여부를 전달
+            let deleteResult = processor.deleteWithRestore종성(
+                composing: composingBuffer,
+                committedTail: String(committedBuffer.suffix(2)),
+                isProtected: committedBuffer.count <= protectedCommittedCount
+            )
             
-            // 종성 복원
-            if let restored = tryRestore종성(자음: remaining, committed: &committedBuffer) {
-                composingBuffer = restored
-            } else {
-                composingBuffer = remaining
-            }
+            // 프로세서가 committed를 소비했으면 제거
+            applyConsumedCommitted(count: deleteResult.consumedCommittedCount)
+            composingBuffer = deleteResult.composing
             
             // composing이 비었으면 committed에서 끌어오기
             if composingBuffer.isEmpty {
-                if !committedBuffer.isEmpty {
-                    let lastCommitted = committedBuffer.last!
-                    let lastStr = String(lastCommitted)
-                    if lastCommitted.isHangeul {
-                        
-                        let isProtected = committedBuffer.count <= protectedCommittedCount
-                        
-                        committedBuffer.removeLast()
-                        composingBuffer = lastStr
-                        
-                        if !isProtected {
-                            processor.start한글조합()
-                        }
-                    }
-                }
-                
-                if composingBuffer.isEmpty {
-                    processor.reset한글조합()
-                }
+                pullFromCommittedIfNeeded()
             }
             
         } else if !committedBuffer.isEmpty {
@@ -131,17 +111,30 @@ final class KeyboardControllerSimulator {
                 let isProtected = committedBuffer.count <= protectedCommittedCount
                 
                 committedBuffer.removeLast()
-                let decomposed = processor.delete(composing: String(lastCommitted))
-                composingBuffer = decomposed
+                // 확정 영역이 삭제(분해)되면 보호 해제
+                protectedCommittedCount = min(protectedCommittedCount, committedBuffer.count)
+                
+                // 끌어온 글자를 삭제 처리
+                let deleteResult = processor.deleteWithRestore종성(
+                    composing: String(lastCommitted),
+                    committedTail: String(committedBuffer.suffix(2)),
+                    isProtected: committedBuffer.count <= protectedCommittedCount
+                )
+                
+                applyConsumedCommitted(count: deleteResult.consumedCommittedCount)
+                composingBuffer = deleteResult.composing
                 
                 if composingBuffer.isEmpty {
                     processor.reset한글조합()
                 } else if !isProtected {
+                    // 보호되지 않은 글자만 조합 시작
                     processor.start한글조합()
                 }
             } else {
                 // 비한글(숫자, 기호 등)은 통째로 삭제
                 committedBuffer.removeLast()
+                // 확정 영역이 삭제되면 보호 해제
+                protectedCommittedCount = min(protectedCommittedCount, committedBuffer.count)
                 processor.reset한글조합()
             }
         } else {
@@ -158,6 +151,7 @@ final class KeyboardControllerSimulator {
             composingBuffer.removeAll()
         }
         composingBuffer = char
+        isPulledFromProtected = false
     }
     
     /// 반복 삭제 (컨트롤러의 `repeatDeleteBackward` 시뮬레이션)
@@ -170,6 +164,8 @@ final class KeyboardControllerSimulator {
             }
         } else if !committedBuffer.isEmpty {
             committedBuffer.removeLast()
+            // 확정 영역이 삭제되면 보호 해제
+            protectedCommittedCount = min(protectedCommittedCount, committedBuffer.count)
             processor.reset한글조합()
         } else {
             processor.reset한글조합()
@@ -187,7 +183,12 @@ final class KeyboardControllerSimulator {
                 let isProtected = committedBuffer.count <= protectedCommittedCount
                 
                 committedBuffer.removeLast()
+                // 확정 영역이 삭제(분해)되면 보호 해제
+                protectedCommittedCount = min(protectedCommittedCount, committedBuffer.count)
                 composingBuffer = lastStr
+                
+                // 보호 상태를 기억
+                isPulledFromProtected = isProtected
                 
                 if !isProtected {
                     processor.start한글조합()
@@ -198,45 +199,78 @@ final class KeyboardControllerSimulator {
     
     /// 반복 입력 시작 시 조합 (컨트롤러의 `insertPrimaryKeyText`에서 repeat 시작 시뮬레이션)
     func repeatStart(_ primaryKey: String) {
-        let result = processor.input(글자Input: primaryKey, composing: composingBuffer)
+        let result = processor.inputWithRestore종성(
+            글자Input: primaryKey,
+            composing: composingBuffer,
+            committedTail: String(committedBuffer.suffix(2)),
+            isProtected: committedBuffer.count <= protectedCommittedCount
+        )
         
-        let finalCommitted = result.committed
-        let finalComposing = result.composing
-        
-        // 입력 시 종성 복원
-        let hadPreviousComposing = !composingBuffer.isEmpty
-        if hadPreviousComposing && finalCommitted.isEmpty && finalComposing.count == 1 && !committedBuffer.isEmpty {
-            if let restored = tryRestore종성(자음: finalComposing, committed: &committedBuffer) {
-                composingBuffer = restored
-                lastInputText = result.input글자
-                return
-            }
-        }
-        
-        committedBuffer.append(finalCommitted)
-        composingBuffer = finalComposing
-        lastInputText = result.input글자
+        applyCompositionResult(result)
     }
 }
 
 // MARK: - Private Methods
 
 private extension KeyboardControllerSimulator {
-    func tryRestore종성(자음: String, committed: inout String) -> String? {
-        guard 자음.count == 1, !committed.isEmpty else { return nil }
-        guard automata.종성Table.contains(자음) && 자음 != " " else { return nil }
-        guard committed.count > protectedCommittedCount else { return nil }
-        guard let lastCommitted = committed.last,
-              let _ = automata.decompose(한글Char: lastCommitted) else { return nil }
+    
+    /// `CompositionResult`를 버퍼에 반영합니다.
+    func applyCompositionResult(_ result: CompositionResult) {
+        applyConsumedCommitted(count: result.consumedCommittedCount)
         
-        let lastCommittedStr = String(lastCommitted)
-        let (committed2, merged) = automata.add글자(글자Input: 자음, composing: lastCommittedStr)
-        let mergedText = committed2 + merged
-        
-        if mergedText.count == 1 {
-            committed.removeLast()
-            return mergedText
+        if !result.committed.isEmpty {
+            committedBuffer.append(result.committed)
+            
+            // 끌어온 보호 글자가 committed로 돌아가면 보호 카운트 복원
+            if isPulledFromProtected {
+                protectedCommittedCount = committedBuffer.count
+                isPulledFromProtected = false
+            }
+        } else {
+            // committed 추가 없이 composing만 변경된 경우 (종성 복원 등)
+            isPulledFromProtected = false
         }
-        return nil
+        
+        composingBuffer = result.composing
+        lastInputText = result.input글자
+    }
+    
+    /// 프로세서가 소비한 committed 글자를 `committedBuffer`에서 제거합니다.
+    func applyConsumedCommitted(count: Int) {
+        guard count > 0 else { return }
+        for _ in 0..<count {
+            committedBuffer.removeLast()
+        }
+        protectedCommittedCount = min(protectedCommittedCount, committedBuffer.count)
+    }
+    
+    /// composing이 비었을 때 committed에서 마지막 한글을 끌어옵니다.
+    func pullFromCommittedIfNeeded() {
+        guard composingBuffer.isEmpty, !committedBuffer.isEmpty else {
+            if composingBuffer.isEmpty {
+                processor.reset한글조합()
+            }
+            return
+        }
+        
+        let lastCommitted = committedBuffer.last!
+        let lastStr = String(lastCommitted)
+        
+        if lastCommitted.isHangeul {
+            let isProtected = committedBuffer.count <= protectedCommittedCount
+            
+            committedBuffer.removeLast()
+            protectedCommittedCount = min(protectedCommittedCount, committedBuffer.count)
+            composingBuffer = lastStr
+            
+            // 보호 상태를 기억하여 이후 committed로 돌아갈 때 복원
+            isPulledFromProtected = isProtected
+            
+            if !isProtected {
+                processor.start한글조합()
+            }
+        } else {
+            processor.reset한글조합()
+        }
     }
 }

@@ -24,6 +24,8 @@ public enum DefaultValues {
     public static let isDragToMoveCursorEnabled: Bool = true
     /// 텍스트 대치 기본값
     public static let isTextReplacementEnabled: Bool = true
+    /// 자동완성 텍스트 기본값
+    public static let isPredictiveTextEnabled: Bool = true
     /// '.' 단축키 여부 기본값
     public static let isPeriodShortcutEnabled: Bool = true
     /// 스페이스/리턴 입력 후 주 키보드로 변경 기본값
@@ -53,12 +55,6 @@ public enum DefaultValues {
     public static let needsInputModeSwitchKey: Bool = true
     /// 한 손 키보드 저장용 기본값
     public static let lastOneHandedMode: OneHandedMode = .center
-    /// 온보딩 여부 기본값
-    public static let isOnboarding: Bool = true
     /// 전체 접근 허용 안내 오버레이 닫음 여부 기본값
     public static let isRequestFullAccessOverlayClosed: Bool = false
-    /// 앱의 특정 기능 또는 키보드를 실행한 횟수 기본값
-    public static let reviewCounter: Int = 0
-    /// 마지막으로 리뷰를 요청한 빌드 기본값
-    public static let lastBuildPromptedForReview: String = ""
 }

@@ -14,8 +14,6 @@ open class EnglishKeyboardCoreViewController: BaseKeyboardViewController {
     
     // MARK: - Properties
     
-    /// 현재 반복 입력 동작 중인지 확인하는 플래그
-    private var isRepeatingInput: Bool = false
     /// 대문자가 입력되었는지 확인하는 플래그
     private var isUppercaseInput: Bool = false
     
@@ -31,9 +29,9 @@ open class EnglishKeyboardCoreViewController: BaseKeyboardViewController {
     
     // MARK: - Initializer
     
-    public override init(nibName nibNameOrNil: String?, bundle nibBundleOrNil: Bundle?) {
+    public init() {
         SwitchButton.previewPrimaryLanguage = "en-US"
-        super.init(nibName: nibNameOrNil, bundle: nibBundleOrNil)
+        super.init(textCheckerLanguages: ["en_US"])
     }
     
     @MainActor required public init?(coder: NSCoder) {
@@ -42,8 +40,8 @@ open class EnglishKeyboardCoreViewController: BaseKeyboardViewController {
     
     // MARK: - Override Methods
     
-    open override func textWillChange(_ textInput: (any UITextInput)?) {
-        super.textWillChange(textInput)
+    open override func textDidChange(_ textInput: (any UITextInput)?) {
+        super.textDidChange(textInput)
         updateShiftButton()
     }
     
@@ -104,26 +102,20 @@ open class EnglishKeyboardCoreViewController: BaseKeyboardViewController {
         if !isRepeatingInput { updateShiftButton() }
     }
     
-    open override func repeatTextInteractionWillPerform(button: any TextInteractable) {
-        isRepeatingInput = true
-        super.repeatTextInteractionWillPerform(button: button)
-    }
-    
     open override func repeatTextInteractionDidPerform(button: TextInteractable) {
         super.repeatTextInteractionDidPerform(button: button)
-        isRepeatingInput = false
         updateShiftButton()
     }
     
     open override func insertPrimaryKeyText(from button: TextInteractable) {
-        if isPreview { return }
+        if BaseKeyboardViewController.isPreview { return }
         
         guard let primaryKey = button.type.primaryKeyList.first else { fatalError("keys 배열이 비어있습니다.") }
         textDocumentProxy.insertText(primaryKey)
     }
     
     open override func insertSecondaryKeyText(from button: TextInteractable) {
-        if isPreview { return }
+        if BaseKeyboardViewController.isPreview { return }
         
         guard let secondaryKey = button.type.secondaryKey else {
             assertionFailure("secondaryKey가 nil입니다.")
@@ -133,7 +125,7 @@ open class EnglishKeyboardCoreViewController: BaseKeyboardViewController {
     }
     
     open override func repeatInsertPrimaryKeyText(from button: TextInteractable) {
-        if isPreview { return }
+        if BaseKeyboardViewController.isPreview { return }
         
         guard let primaryKey = button.type.primaryKeyList.first else {
             assertionFailure("keys 배열이 비어있습니다.")

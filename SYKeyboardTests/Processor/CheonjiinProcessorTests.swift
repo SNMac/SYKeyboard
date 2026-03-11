@@ -115,7 +115,16 @@ struct CheonjiinProcessorTests: HangeulProcessorTestable {
         #expect(c + p == "가니")
         
         // 3. 삭제 (ㅣ 삭제) -> '가ㄴ'이어야 함 ('간'으로 합쳐지면 안 됨)
-        p = processor.delete(composing: p)
+        // 프로세서 단위 테스트에서는 protectedCommittedCount가 없으므로
+        // isProtected: false로 전달하면 종성 복원이 동작할 수 있음.
+        // 이 테스트는 Space 확정 보호 시나리오이므로 컨트롤러 통합 테스트에서 검증.
+        // 여기서는 composing 내부 삭제만 확인.
+        let deleteResult = processor.delete(
+            composing: p,
+            committedTail: String(c.suffix(2)),
+            isProtected: true  // Space 확정 보호
+        )
+        p = deleteResult.composing
         #expect(c + p == "가ㄴ")
     }
     
@@ -239,7 +248,31 @@ struct CheonjiinProcessorTests: HangeulProcessorTestable {
         #expect(c + p == "가", "조합 확정 후 새 글자를 삭제해도 이전 확정 글자는 유지되어야 합니다.")
     }
     
-    // MARK: - 5. 11,172자 전체 검증 (Heavy Test)
+    // MARK: - 5. 비표준 모음(ㆍ, ᆢ) 삭제 및 연음 테스트
+
+    @Test("비표준 모음 삭제 후 입력: '간ᆢㄷ' -> 삭제 -> '간ᆢ' -> 'ㅣ' -> '가녀'")
+    func test비표준모음_삭제후_연음() {
+        var (c, p) = ("", "")
+        
+        // 1. '간ᆢㄷ' 만들기 (ㄱ + ㅣ + ㆍ + ㄴ + ㆍ + ㆍ + ㄷ)
+        (c, p) = applyInput("ㄱ", committed: c, composing: p)
+        (c, p) = applyInput(인, committed: c, composing: p)
+        (c, p) = applyInput(천, committed: c, composing: p) // 가
+        (c, p) = applyInput("ㄴ", committed: c, composing: p) // 간
+        (c, p) = applyInput(천, committed: c, composing: p) // 간ㆍ
+        (c, p) = applyInput(천, committed: c, composing: p) // 간ᆢ
+        (c, p) = applyInput("ㄷ", committed: c, composing: p) // 간ᆢㄷ
+        
+        // 2. 삭제 -> '간ᆢ'
+        (c, p) = applyDelete(committed: c, composing: p)
+        #expect(c + p == "간ᆢ")
+        
+        // 3. 'ㅣ' 입력 -> '가녀' (ᆢ + ㅣ = ㅕ, 간 + ㅕ -> 가 + 녀 연음)
+        (c, p) = applyInput(인, committed: c, composing: p)
+        #expect(c + p == "가녀", "비표준 모음 삭제 후 표준 모음 조합 시 연음이 발생해야 합니다.")
+    }
+    
+    // MARK: - 6. 11,172자 전체 검증 (Heavy Test)
     
     @Test("천지인 11,172자 전체 생성 및 삭제 검증")
     func validateAllCharacters() {

@@ -450,6 +450,16 @@
         }
       }
     },
+    "자동완성 텍스트" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Predictive Text"
+          }
+        }
+      }
+    },
     "저장" : {
       "localizations" : {
         "en" : {
@@ -556,6 +566,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Keyboard User Guide"
+          }
+        }
+      }
+    },
+    "키보드 상단에 자동완성 텍스트 표시" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Display predicted text at the top of the keyboard"
           }
         }
       }

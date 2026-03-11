@@ -94,13 +94,8 @@ private extension ShiftButton {
             primaryKeyListLabel.text = "1/2"
             primaryKeyListLabel.font = .monospacedSystemFont(ofSize: 16, weight: .regular)
             
-            self.configurationUpdateHandler = { [weak self] button in
-                switch button.state {
-                case .normal, .highlighted:
-                    self?.backgroundView.backgroundColor = .secondaryButton
-                default:
-                    break
-                }
+            self.configurationUpdateHandler = { [weak self] _ in
+                self?.backgroundView.backgroundColor = .secondaryButton
             }
         case .naratgeul, .cheonjiin, .numeric, .tenKey:
             assertionFailure("도달할 수 없는 case 입니다.")

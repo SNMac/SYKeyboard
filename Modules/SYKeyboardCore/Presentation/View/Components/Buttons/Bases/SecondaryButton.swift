@@ -35,12 +35,10 @@ private extension SecondaryButton {
         self.configurationUpdateHandler = { [weak self] button in
             guard let self else { return }
             switch button.state {
-            case .normal:
-                backgroundView.backgroundColor = isGesturing ? .secondaryButtonPressed : .secondaryButton
             case .highlighted:
                 backgroundView.backgroundColor = isPressed || isGesturing ? .secondaryButtonPressed : .secondaryButton
             default:
-                break
+                backgroundView.backgroundColor = isGesturing ? .secondaryButtonPressed : .secondaryButton
             }
         }
     }

@@ -42,9 +42,7 @@ public class BaseKeyboardButton: UIButton {
     
     public override func sendActions(for controlEvents: UIControl.Event) {
         isProgrammaticCall = true
-        
         super.sendActions(for: controlEvents)
-        
         isProgrammaticCall = false
     }
     
