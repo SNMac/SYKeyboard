@@ -33,6 +33,10 @@ final class LexiconPredictiveTextEngine: PredictiveTextService {
     
     // MARK: - PredictiveTextService Methods
     
+    /// 현재 입력된 단어와 정확히 일치하는 텍스트 대치 후보만 반환합니다.
+    ///
+    /// - Parameter contextBeforeInput: 커서 앞의 텍스트
+    /// - Returns: 정확히 매칭된 대치 결과 배열
     func suggestions(for contextBeforeInput: String) -> [String] {
         guard let lexicon = lexicon else { return [] }
         
@@ -45,27 +49,15 @@ final class LexiconPredictiveTextEngine: PredictiveTextService {
             let entryInput = entry.userInput.lowercased()
             let entryDoc = entry.documentText.lowercased()
             
-            // 입력 중인 단어와 동일하면 제외
-            guard entryDoc != lowered else { return nil }
+            guard entryInput == lowered,
+                  entryDoc != lowered else { return nil }
             
-            // userInput이 현재 입력의 접두사와 일치하거나,
-            // documentText가 현재 입력의 접두사와 일치하면 후보로 반환
-            if entryInput.hasPrefix(lowered) || entryDoc.hasPrefix(lowered) {
-                return entry.documentText
-            }
-            
-            // 정확히 일치하는 경우 (텍스트 대치용)
-            if entryInput == lowered {
-                return entry.documentText
-            }
-            
-            return nil
+            return entry.documentText
         }
     }
     
-    func learn(word: String) {
-        // UILexicon은 시스템이 관리하므로 학습 불필요
-    }
+    // UILexicon은 시스템이 관리하므로 학습 불필요
+    func learn(word: String) {}
 }
 
 // MARK: - Private Methods

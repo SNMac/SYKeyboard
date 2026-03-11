@@ -23,9 +23,9 @@ protocol SuggestionControllerDelegate: AnyObject {
 /// 스페이스 입력 시 텍스트 대치, 삭제 시 대치 복구 기능을 제공합니다.
 ///
 /// ## 동작 흐름
-/// 1. **입력 중**: SuggestionBar에 UILexicon + UITextChecker 후보 표시
+/// 1. **입력 중**: SuggestionBar에 `UILexicon` + `UITextChecker` 후보 표시
 /// 2. **후보 탭**: 현재 단어를 선택한 후보로 교체
-/// 3. **스페이스**: UILexicon에 정확히 매칭되는 텍스트 대치 자동 수행
+/// 3. **스페이스**: `UILexicon`에 정확히 매칭되는 텍스트 대치 자동 수행
 /// 4. **삭제**: 방금 대치된 단어를 원래 단축어로 복구
 /// 5. **복구 후 스페이스**: 같은 단축어에 대해 재대치 방지
 final class SuggestionController {
@@ -57,8 +57,8 @@ final class SuggestionController {
     /// 지정한 엔진들로 컨트롤러를 초기화합니다.
     ///
     /// - Parameters:
-    ///   - lexiconEngine: UILexicon 기반 엔진 (기본값: 새 인스턴스)
-    ///   - textCheckerEngine: UITextChecker 기반 엔진 (기본값: 한국어+영어)
+    ///   - lexiconEngine: `UILexicon` 기반 엔진 (기본값: 새 인스턴스)
+    ///   - textCheckerEngine: `UITextChecker` 기반 엔진 (기본값: 한국어+영어)
     init(
         lexiconEngine: LexiconPredictiveTextEngine = LexiconPredictiveTextEngine(),
         textCheckerEngine: TextCheckerPredictiveTextEngine = TextCheckerPredictiveTextEngine()
@@ -75,8 +75,8 @@ final class SuggestionController {
     ///
     /// - Parameter inputViewController: 현재 키보드의 `UIInputViewController`
     func loadLexicon(from inputViewController: UIInputViewController) {
-        inputViewController.requestSupplementaryLexicon { [weak self] lexicon in
-            self?.lexiconEngine.setLexicon(lexicon)
+        Task {
+            lexiconEngine.setLexicon(await inputViewController.requestSupplementaryLexicon())
         }
     }
     
@@ -84,7 +84,7 @@ final class SuggestionController {
     
     /// 현재 입력 컨텍스트를 기반으로 후보를 갱신합니다.
     ///
-    /// UILexicon 결과를 우선 배치하고, UITextChecker 결과로 나머지를 채웁니다.
+    /// `UILexicon` 결과를 우선 배치하고, `UITextChecker` 결과로 나머지를 채웁니다.
     /// 중복은 제거되며, 결과는 최대 3개로 제한됩니다.
     ///
     /// - Parameter contextBeforeInput: 커서 앞의 텍스트 (`documentContextBeforeInput`)
@@ -128,7 +128,7 @@ final class SuggestionController {
     
     /// 스페이스 입력 시 텍스트 대치를 시도합니다.
     ///
-    /// 커서 앞 텍스트의 끝부분이 UILexicon의 `userInput`과 일치하면
+    /// 커서 앞 텍스트의 끝부분이 `UILexicon`의 `userInput`과 일치하면
     /// 해당 `documentText`로 교체합니다.
     /// 방금 복구된 단축어와 동일하면 대치를 건너뜁니다.
     ///
