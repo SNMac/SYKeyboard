@@ -300,7 +300,10 @@ open class BaseKeyboardViewController: UIInputViewController {
     /// - `isPreview == true`이면 즉시 리턴
     open func insertReturnText() {
         if isPreview { return }
-        textDocumentProxy.insertText("\n")
+        if textDocumentProxy.returnKeyType == .default {
+            textDocumentProxy.insertText("\n")
+        }
+        suggestionController.clearReplacementHistory()
     }
     
     /// 삭제가 일어나기 전 실행되는 메서드
