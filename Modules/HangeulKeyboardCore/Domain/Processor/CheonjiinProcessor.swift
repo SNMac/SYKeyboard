@@ -222,12 +222,7 @@ private extension CheonjiinProcessor {
     
     /// composing 문자열에 비표준 모음(ㆍ, ᆢ)이 포함되어 있는지 확인
     func composingContains비표준모음(_ composing: String) -> Bool {
-        for char in composing {
-            if 비표준모음Set.contains(String(char)) {
-                return true
-            }
-        }
-        return false
+        composing.contains { 비표준모음Set.contains(String($0)) }
     }
     
     /// committed 끝이 비표준 모음(ㆍ, ᆢ)일 때, 앞글자까지 포함하여 composing으로 올리기
@@ -250,14 +245,8 @@ private extension CheonjiinProcessor {
         let lastCommittedStr = String(committedTail.last!)
         
         if 비표준모음Set.contains(lastCommittedStr) {
-            if committedTail.count >= 2 {
-                let beforeLast = committedTail.dropLast()
-                let fullComposing = beforeLast + lastCommittedStr + remaining
-                return DeleteResult(composing: String(fullComposing), consumedCommittedCount: committedTail.count)
-            } else {
-                let fullComposing = lastCommittedStr + remaining
-                return DeleteResult(composing: fullComposing, consumedCommittedCount: 1)
-            }
+            let fullComposing = committedTail + remaining
+            return DeleteResult(composing: fullComposing, consumedCommittedCount: committedTail.count)
         }
         
         return nil
