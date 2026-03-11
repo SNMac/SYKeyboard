@@ -1,6 +1,6 @@
 //
 //  SuggestionBarHStackView.swift
-//  SYKeyboard
+//  SYKeyboardCore
 //
 //  Created by 서동환 on 3/10/26.
 //

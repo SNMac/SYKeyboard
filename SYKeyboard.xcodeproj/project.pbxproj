@@ -227,6 +227,9 @@
 				"HangeulKeyboardCore/Storage/DefaultValues+Extension.swift",
 				"HangeulKeyboardCore/Storage/UserDefaultsKeys+Extension.swift",
 				"HangeulKeyboardCore/Storage/UserDefaultsManager+Extension.swift",
+				SYKeyboardCore/Domain/PredictiveTextEngine.swift,
+				SYKeyboardCore/Domain/Protocols/PredictiveTextService.swift,
+				SYKeyboardCore/Domain/SuggestionController.swift,
 				SYKeyboardCore/Presentation/Utils/ButtonStateController.swift,
 				SYKeyboardCore/Presentation/Utils/Enums/KeyboardFigure.swift,
 				SYKeyboardCore/Presentation/Utils/Enums/KeyboardMode/TenkeyKeyboardMode.swift,
@@ -290,6 +293,9 @@
 		5BCECD532F26C3B800A7F562 /* Exceptions for "Modules" folder in "SYKeyboardCore" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				SYKeyboardCore/Domain/PredictiveTextEngine.swift,
+				SYKeyboardCore/Domain/Protocols/PredictiveTextService.swift,
+				SYKeyboardCore/Domain/SuggestionController.swift,
 				SYKeyboardCore/Presentation/Utils/ButtonStateController.swift,
 				SYKeyboardCore/Presentation/Utils/Enums/KeyboardFigure.swift,
 				SYKeyboardCore/Presentation/Utils/Enums/KeyboardMode/TenkeyKeyboardMode.swift,
