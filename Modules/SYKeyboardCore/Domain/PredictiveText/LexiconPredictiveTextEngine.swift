@@ -14,7 +14,7 @@ import UIKit
 ///
 /// - Note: `UILexicon`은 키보드 익스텐션에서만 사용 가능하며,
 ///   `UIInputViewController.requestSupplementaryLexicon`을 통해 로드해야 합니다.
-final class LexiconPredictiveTextEngine: PredictiveTextService {
+final class LexiconPredictiveTextEngine: PredictiveTextProvider {
     
     // MARK: - Properties
     

@@ -1,5 +1,5 @@
 //
-//  PredictiveTextService.swift
+//  PredictiveTextProvider.swift
 //  SYKeyboardCore
 //
 //  Created by 서동환 on 3/11/26.
@@ -9,7 +9,7 @@
 ///
 /// 입력 컨텍스트를 기반으로 예측 후보를 반환하고,
 /// 사용자가 선택한 단어를 학습하는 기능을 정의합니다.
-protocol PredictiveTextService: AnyObject {
+protocol PredictiveTextProvider: AnyObject {
     /// 현재 입력 컨텍스트를 기반으로 자동완성 후보를 반환합니다.
     ///
     /// - Parameter contextBeforeInput: 커서 앞의 텍스트 (`documentContextBeforeInput`)

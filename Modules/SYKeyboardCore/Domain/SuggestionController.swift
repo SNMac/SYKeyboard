@@ -29,13 +29,13 @@ protocol SuggestionControllerDelegate: AnyObject {
 /// 3. **스페이스**: `UILexicon`에 정확히 매칭되는 텍스트 대치 자동 수행
 /// 4. **삭제**: 방금 대치된 단어를 원래 단축어로 복구
 /// 5. **복구 후 스페이스**: 같은 단축어에 대해 재대치 방지
-final class SuggestionController {
+final class SuggestionController: SuggestionService {
     
     // MARK: - Properties
     
     weak var delegate: SuggestionControllerDelegate?
     
-    /// 자동완성 활성화 여부 (false면 엔진 연산 자체를 건너뜀)
+    /// 자동완성 활성화 여부 (`false`면 엔진 연산 자체를 건너뜀)
     var isEnabled: Bool = true {
         didSet {
             if !isEnabled { clearSuggestions() }

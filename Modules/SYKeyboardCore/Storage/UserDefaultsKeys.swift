@@ -20,6 +20,8 @@ public enum UserDefaultsKeys {
     public static let isPredictiveTextEnabled = "isPredictiveTextEnabled"
     /// 맞춤법 확인 버튼
     public static let isGrammarCheckButtonEnabled = "isGrammarCheckButtonEnabled"
+    /// 선택한 맞춤법 확인 방법
+    public static let selectedGrammarCheckMethod = "selectedGrammarCheckMethod"
     /// 드래그하여 커서 이동
     public static let isDragToMoveCursorEnabled = "isDragToMoveCursorEnabled"
     /// 텍스트 대치

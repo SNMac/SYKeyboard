@@ -18,7 +18,7 @@ import UIKit
 /// let suggestions = engine.suggestions(for: "hel")
 /// // ["hello", "help", "helmet", ...]
 /// ```
-final class TextCheckerPredictiveTextEngine: PredictiveTextService {
+final class TextCheckerPredictiveTextEngine: PredictiveTextProvider {
     
     // MARK: - Properties
     

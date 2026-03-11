@@ -96,7 +96,11 @@ open class BaseKeyboardViewController: UIInputViewController {
     public let buttonStateController = ButtonStateController()
     
     /// 자동완성 텍스트 제안 컨트롤러
-    private let suggestionController: SuggestionController
+    private let suggestionController: SuggestionService
+    
+    private lazy var grammarCheckEngine: GrammarCheckService = {
+        return GrammarCheckEngine(preferredMethod: UserDefaultsManager.shared.selectedGrammarCheckMethod)
+    }()
     
     /// 키보드 높이 제약 조건
     private var keyboardHeightConstraint: NSLayoutConstraint?
@@ -150,7 +154,7 @@ open class BaseKeyboardViewController: UIInputViewController {
         self.suggestionController = SuggestionController(textCheckerLanguages: textCheckerLanguages)
         super.init(nibName: nil, bundle: nil)
     }
-        
+    
     required public init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
@@ -943,6 +947,22 @@ extension BaseKeyboardViewController: SuggestionBarDelegate {
     }
     
     final func suggestionBarDidTapGrammarCheck(_ bar: SuggestionBarHStackView) {
-        // TODO: 추후 Foundation Models 맞춤법 검사 연동
+        guard let text = textDocumentProxy.documentContextBeforeInput,
+              !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
+        
+        Task {
+            do {
+                let result = try await grammarCheckEngine.check(text: text)
+                logger.debug("Grammar check - hasCorrections: \(result.hasCorrections)")
+                logger.debug("Grammar check - correctedText: \(result.correctedText)")
+                if result.hasCorrections {
+                    await MainActor.run {
+                        // TODO: 별도 오버레이 UI에 result.correctedText 표시
+                    }
+                }
+            } catch {
+                logger.error("Grammar check failed: \(error.localizedDescription)")
+            }
+        }
     }
 }

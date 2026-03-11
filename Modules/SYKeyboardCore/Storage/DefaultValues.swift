@@ -24,6 +24,8 @@ public enum DefaultValues {
     public static let isPredictiveTextEnabled: Bool = true
     /// 맞춤법 확인 버튼 기본값
     public static let isGrammarCheckButtonEnabled: Bool = true
+    /// 선택한 맞춤법 확인 방법
+    public static let selectedGrammarCheckMethod: GrammarCheckMethod = .api
     /// 드래그하여 커서 이동 기본값
     public static let isDragToMoveCursorEnabled: Bool = true
     /// 텍스트 대치 기본값
