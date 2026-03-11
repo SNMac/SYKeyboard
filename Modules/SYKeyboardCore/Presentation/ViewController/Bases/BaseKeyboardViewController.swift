@@ -98,8 +98,10 @@ open class BaseKeyboardViewController: UIInputViewController {
     /// 자동완성 텍스트 제안 컨트롤러
     private let suggestionController: SuggestionService
     
-    /// 키보드 높이 제약 조건
-    private var keyboardHeightConstraint: NSLayoutConstraint?
+    /// `KeyboardView` 높이 제약 조건
+    private var keyboardViewHeightConstraint: NSLayoutConstraint?
+    /// `keyboardHStackView` 높이 제약 조건
+    private var keyboardHStackViewHeightConstraint: NSLayoutConstraint?
     
     /// 반복 입력용 타이머
     private var timer: AnyCancellable?
@@ -399,6 +401,8 @@ private extension BaseKeyboardViewController {
         if let orientation = self.view.window?.windowScene?.effectiveGeometry.interfaceOrientation {
             let isSuggestionBarVisible = UserDefaultsManager.shared.isPredictiveTextEnabled
             && textDocumentProxy.autocorrectionType != .no
+            && currentKeyboard != .tenKey
+            
             let suggestionBarHeight = isSuggestionBarVisible
             ? KeyboardLayoutFigure.suggestionBarHeight + KeyboardLayoutFigure.keyboardFrameSpacing
             : 0
@@ -411,15 +415,21 @@ private extension BaseKeyboardViewController {
             return
         }
         
-        if let keyboardHeightConstraint {
-            keyboardHeightConstraint.constant = keyboardHeight
+        if let keyboardViewHeightConstraint {
+            keyboardViewHeightConstraint.constant = keyboardHeight
         } else {
             let heightConstraint = keyboardView.heightAnchor.constraint(equalToConstant: keyboardHeight)
             heightConstraint.priority = .init(999)
             heightConstraint.isActive = true
-            
-            keyboardHeightConstraint = heightConstraint
-            keyboardHStackView.heightAnchor.constraint(equalToConstant: UserDefaultsManager.shared.keyboardHeight).isActive = true
+            keyboardViewHeightConstraint = heightConstraint
+        }
+        
+        if let keyboardHStackViewHeightConstraint {
+            keyboardHStackViewHeightConstraint.constant = UserDefaultsManager.shared.keyboardHeight
+        } else {
+            let stackHeightConstraint = keyboardHStackView.heightAnchor.constraint(equalToConstant: UserDefaultsManager.shared.keyboardHeight)
+            stackHeightConstraint.isActive = true
+            keyboardHStackViewHeightConstraint = stackHeightConstraint
         }
     }
     
@@ -706,11 +716,20 @@ private extension BaseKeyboardViewController {
     }
     
     func updateSuggestionBarHidden() {
+        let prevSuggestionHiddenState = suggestionBarHStackView.isHidden
+        
         let shouldHideSuggestions = !UserDefaultsManager.shared.isPredictiveTextEnabled
         || textDocumentProxy.autocorrectionType == .no
+        || currentKeyboard == .tenKey
         
         suggestionBarHStackView.isHidden = shouldHideSuggestions
         suggestionController.isEnabled = !shouldHideSuggestions
+        
+        if prevSuggestionHiddenState != shouldHideSuggestions {
+            DispatchQueue.main.async {
+                self.setKeyboardHeight()
+            }
+        }
     }
 }
 
