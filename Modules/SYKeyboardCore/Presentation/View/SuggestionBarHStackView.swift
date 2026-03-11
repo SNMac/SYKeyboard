@@ -24,7 +24,7 @@ protocol SuggestionBarDelegate: AnyObject {
     func suggestionBarDidTapGrammarCheck(_ bar: SuggestionBarHStackView)
 }
 
-/// 자동완성 후보 단어와 맞춤법 검사 버튼을 표시하는 수평 스택 뷰
+/// 자동완성 후보 단어와 맞춤법 검사 버튼을 표시하는 수평 스택 툴바
 ///
 /// 최대 3개의 후보 버튼과 1개의 맞춤법 검사 버튼으로 구성되며,
 /// 각 버튼의 탭 이벤트는 `SuggestionBarDelegate`를 통해 전달됩니다.
