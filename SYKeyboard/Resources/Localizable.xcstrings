@@ -220,16 +220,6 @@
         }
       }
     },
-    "맞춤법 확인 버튼" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Grammar Check Button"
-          }
-        }
-      }
-    },
     "문의하기" : {
       "localizations" : {
         "en" : {

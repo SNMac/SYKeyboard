@@ -98,10 +98,6 @@ open class BaseKeyboardViewController: UIInputViewController {
     /// 자동완성 텍스트 제안 컨트롤러
     private let suggestionController: SuggestionService
     
-    private lazy var grammarCheckEngine: GrammarCheckService = {
-        return GrammarCheckEngine(preferredMethod: UserDefaultsManager.shared.selectedGrammarCheckMethod)
-    }()
-    
     /// 키보드 높이 제약 조건
     private var keyboardHeightConstraint: NSLayoutConstraint?
     
@@ -712,11 +708,9 @@ private extension BaseKeyboardViewController {
     func updateSuggestionBarHidden() {
         let shouldHideSuggestions = !UserDefaultsManager.shared.isPredictiveTextEnabled
         || textDocumentProxy.autocorrectionType == .no
-        let shouldHideGrammarCheck = !UserDefaultsManager.shared.isGrammarCheckButtonEnabled || textDocumentProxy.spellCheckingType == .no
         
         suggestionBarHStackView.isHidden = shouldHideSuggestions
         suggestionController.isEnabled = !shouldHideSuggestions
-        suggestionBarHStackView.grammarCheckButton.isHidden = shouldHideGrammarCheck
     }
 }
 
@@ -944,25 +938,5 @@ extension BaseKeyboardViewController: SuggestionBarDelegate {
         suggestionDidApply()
         
         suggestionController.updateSuggestions(contextBeforeInput: textDocumentProxy.documentContextBeforeInput)
-    }
-    
-    final func suggestionBarDidTapGrammarCheck(_ bar: SuggestionBarHStackView) {
-        guard let text = textDocumentProxy.documentContextBeforeInput,
-              !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
-        
-        Task {
-            do {
-                let result = try await grammarCheckEngine.check(text: text)
-                logger.debug("Grammar check - hasCorrections: \(result.hasCorrections)")
-                logger.debug("Grammar check - correctedText: \(result.correctedText)")
-                if result.hasCorrections {
-                    await MainActor.run {
-                        // TODO: 별도 오버레이 UI에 result.correctedText 표시
-                    }
-                }
-            } catch {
-                logger.error("Grammar check failed: \(error.localizedDescription)")
-            }
-        }
     }
 }

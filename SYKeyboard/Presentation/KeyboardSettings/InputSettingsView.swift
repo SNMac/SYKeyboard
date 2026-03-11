@@ -22,9 +22,6 @@ struct InputSettingsView: View {
     @AppStorage(UserDefaultsKeys.isPredictiveTextEnabled, store: UserDefaultsManager.shared.storage)
     private var isPredictiveTextEnabled = DefaultValues.isPredictiveTextEnabled
     
-    @AppStorage(UserDefaultsKeys.isGrammarCheckButtonEnabled, store: UserDefaultsManager.shared.storage)
-    private var isGrammarCheckButtonEnabled = DefaultValues.isGrammarCheckButtonEnabled
-    
     @AppStorage(UserDefaultsKeys.isAutoCapitalizationEnabled, store: UserDefaultsManager.shared.storage)
     private var isAutoCapitalizationEnabled = DefaultValues.isAutoCapitalizationEnabled
     
@@ -107,21 +104,6 @@ struct InputSettingsView: View {
                 "enabled": newValue.analyticsValue
             ])
             hideKeyboard()
-        }
-        
-        if isPredictiveTextEnabled {
-            Toggle(isOn: $isGrammarCheckButtonEnabled, label: {
-                Text("맞춤법 확인 버튼")
-            })
-            .onChange(of: isGrammarCheckButtonEnabled) { newValue in
-                Analytics.setUserProperty(newValue.analyticsValue,
-                                          forName: "pref_grammar_check_button")
-                Analytics.logEvent("grammar_check_button", parameters: [
-                    "view": "InputSettingsView",
-                    "enabled": newValue.analyticsValue
-                ])
-                hideKeyboard()
-            }
         }
         
         Toggle(isOn: $isAutoCapitalizationEnabled, label: {

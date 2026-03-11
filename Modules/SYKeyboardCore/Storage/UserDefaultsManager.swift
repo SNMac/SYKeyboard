@@ -119,22 +119,6 @@ final public class UserDefaultsManager {
     /// 자동완성 텍스트
     @UserDefaultsWrapper(key: UserDefaultsKeys.isPredictiveTextEnabled, defaultValue: DefaultValues.isPredictiveTextEnabled)
     public var isPredictiveTextEnabled: Bool
-    /// 맞춤법 확인 버튼
-    @UserDefaultsWrapper(key: UserDefaultsKeys.isGrammarCheckButtonEnabled, defaultValue: DefaultValues.isGrammarCheckButtonEnabled)
-    public var isGrammarCheckButtonEnabled: Bool
-    /// 선택한 맞춤법 확인 방법
-    public var selectedGrammarCheckMethod: GrammarCheckMethod {
-        get {
-            guard let rawValue = storage.object(forKey: UserDefaultsKeys.selectedGrammarCheckMethod) as? GrammarCheckMethod.RawValue,
-                  let value = GrammarCheckMethod(rawValue: rawValue) else {
-                return DefaultValues.selectedGrammarCheckMethod
-            }
-            return value
-        }
-        set {
-            storage.set(newValue.rawValue, forKey: UserDefaultsKeys.selectedLongPressAction)
-        }
-    }
     /// 드래그하여 커서 이동
     @UserDefaultsWrapper(key: UserDefaultsKeys.isDragToMoveCursorEnabled, defaultValue: DefaultValues.isDragToMoveCursorEnabled)
     public var isDragToMoveCursorEnabled: Bool

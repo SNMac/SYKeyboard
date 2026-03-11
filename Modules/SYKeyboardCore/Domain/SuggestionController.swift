@@ -35,7 +35,6 @@ final class SuggestionController: SuggestionService {
     
     weak var delegate: SuggestionControllerDelegate?
     
-    /// 자동완성 활성화 여부 (`false`면 엔진 연산 자체를 건너뜀)
     var isEnabled: Bool = true {
         didSet {
             if !isEnabled { clearSuggestions() }
@@ -88,54 +87,31 @@ final class SuggestionController: SuggestionService {
     /// - Parameters:
     ///   - lexiconEngine: `UILexicon` 기반 엔진 (기본값: 새 인스턴스)
     ///   - textCheckerEngine: `UITextChecker` 기반 엔진 (기본값: 한국어+영어)
-    init(textCheckerLanguages: [String] = ["ko_KR"]) {
+    init(textCheckerLanguages: [String] = ["ko_KR", "en-US"]) {
         self.textCheckerEngine = TextCheckerPredictiveTextEngine(languages: textCheckerLanguages)
     }
     
     // MARK: - Lexicon Loading
     
-    /// `UIInputViewController`로부터 `UILexicon`을 로드합니다.
-    ///
-    /// `viewDidLoad` 시점에 호출하여 Lexicon 데이터를 준비합니다.
-    ///
-    /// - Parameter inputViewController: 현재 키보드의 `UIInputViewController`
     func loadLexicon(from inputViewController: UIInputViewController) {
         Task { @MainActor in
-            lexiconEngine.setLexicon(await inputViewController.requestSupplementaryLexicon())
+            let lexicon = await inputViewController.requestSupplementaryLexicon()
+            lexiconEngine.setLexicon(lexicon)
         }
     }
     
     // MARK: - Suggestion Methods
     
-    /// 현재 입력 컨텍스트를 기반으로 후보를 갱신합니다.
-    ///
-    /// `UILexicon` 결과를 우선 배치하고, `UITextChecker` 결과로 나머지를 채웁니다.
-    /// 중복은 제거되며, 결과는 최대 3개로 제한됩니다.
-    /// 마지막 문자가 공백이면 후보를 초기화합니다.
-    /// `isEnabled`가 `false`이면 갱신을 건너뜁니다.
-    ///
-    /// - Parameter contextBeforeInput: 커서 앞의 텍스트 (`documentContextBeforeInput`)
     func updateSuggestions(contextBeforeInput: String?) {
         guard isEnabled else { return }
         performUpdateSuggestions(contextBeforeInput: contextBeforeInput)
     }
     
-    /// 모든 후보를 초기화합니다.
     func clearSuggestions() {
         currentSuggestions = []
         delegate?.suggestionController(self, didUpdateSuggestions: [])
     }
     
-    /// 사용자가 후보를 선택했을 때 호출합니다.
-    ///
-    /// 현재 입력 중인 단어를 선택한 후보로 교체하기 위한 정보를 반환합니다.
-    /// `UITextChecker` 결과인 경우 선택된 단어를 학습하며,
-    /// `UILexicon` 결과인 경우 삭제 시 복구를 위해 대치 이력을 기록합니다.
-    ///
-    /// - Parameters:
-    ///   - index: 선택된 후보의 인덱스 (0~2)
-    ///   - contextBeforeInput: 커서 앞의 텍스트
-    /// - Returns: 삭제할 글자 수와 삽입할 텍스트의 튜플, 유효하지 않은 인덱스면 `nil`
     func selectSuggestion(at index: Int, contextBeforeInput: String?) -> (deleteCount: Int, insertText: String)? {
         guard index >= 0, index < currentSuggestions.count else { return nil }
         
@@ -161,14 +137,6 @@ final class SuggestionController: SuggestionService {
     
     // MARK: - Text Replacement Methods
     
-    /// 스페이스 입력 시 텍스트 대치를 시도합니다.
-    ///
-    /// 커서 앞 텍스트의 끝부분이 `UILexicon`의 `userInput`과 일치하면
-    /// 해당 `documentText`로 교체합니다.
-    /// 방금 복구된 단축어와 동일하면 대치를 건너뜁니다.
-    ///
-    /// - Parameter contextBeforeInput: 커서 앞의 텍스트
-    /// - Returns: 대치 수행 정보. 대치가 불필요하면 `nil`
     func attemptTextReplacement(contextBeforeInput: String?) -> (deleteCount: Int, insertText: String)? {
         guard let context = contextBeforeInput,
               let lexicon = lexiconEngine.lexicon else { return nil }
@@ -205,13 +173,6 @@ final class SuggestionController: SuggestionService {
         return (deleteCount: match.userInput.count, insertText: match.documentText)
     }
     
-    /// 삭제 시 방금 수행된 텍스트 대치를 복구합니다.
-    ///
-    /// 커서 앞 텍스트의 끝부분이 이전에 대치된 `documentText`와 일치하면
-    /// 원래 `userInput`으로 되돌립니다.
-    ///
-    /// - Parameter contextBeforeInput: 커서 앞의 텍스트
-    /// - Returns: 복구 수행 정보. 복구할 대상이 없으면 `nil`
     func attemptRestoreReplacement(contextBeforeInput: String?) -> (deleteCount: Int, insertText: String)? {
         guard let context = contextBeforeInput,
               !replacementHistory.isEmpty else { return nil }
@@ -235,12 +196,10 @@ final class SuggestionController: SuggestionService {
     
     // MARK: - State Management
     
-    /// 스페이스 버튼 이외의 키 입력 시 호출하여 재대치 방지 상태를 초기화합니다.
     func clearIgnoredShortcut() {
         ignoredShortcut = nil
     }
     
-    /// 대치 이력을 모두 초기화합니다.
     func clearReplacementHistory() {
         replacementHistory = []
     }

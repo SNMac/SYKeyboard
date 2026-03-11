@@ -17,11 +17,6 @@ protocol SuggestionBarDelegate: AnyObject {
     ///   - bar: 이벤트를 발생시킨 `SuggestionBarHStackView`
     ///   - index: 선택된 후보의 인덱스 (0~2)
     func suggestionBar(_ bar: SuggestionBarHStackView, didSelectSuggestionAt index: Int)
-    
-    /// 맞춤법 검사 버튼이 탭되었을 때 호출됩니다.
-    ///
-    /// - Parameter bar: 이벤트를 발생시킨 `SuggestionBarHStackView`
-    func suggestionBarDidTapGrammarCheck(_ bar: SuggestionBarHStackView)
 }
 
 /// 자동완성 후보 단어와 맞춤법 검사 버튼을 표시하는 수평 스택 툴바
@@ -36,23 +31,14 @@ final class SuggestionBarHStackView: UIStackView {
     
     // MARK: - UI Components
     
-    private let predictionHStackView: UIStackView = {
-        let stackView = UIStackView()
-        stackView.axis = .horizontal
-        stackView.spacing = 0
-        stackView.alignment = .center
-        
-        return stackView
-    }()
-    
     private lazy var predictedWordButton1: WordSuggestionButton = {
         let button = WordSuggestionButton()
-        button.trailingDivider = predictedWordDivider1
+        button.trailingDivider = firstWordButtonDivider
         
         return button
     }()
     
-    private let predictedWordDivider1: UIView = {
+    private let firstWordButtonDivider: UIView = {
         let view = UIView()
         view.backgroundColor = .suggestionDividerColor
         
@@ -61,13 +47,13 @@ final class SuggestionBarHStackView: UIStackView {
     
     private lazy var predictedWordButton2: WordSuggestionButton = {
         let button = WordSuggestionButton()
-        button.leadingDivider = predictedWordDivider1
-        button.trailingDivider = predictedWordDivider2
+        button.leadingDivider = firstWordButtonDivider
+        button.trailingDivider = secondWordButtonDivider
         
         return button
     }()
     
-    private let predictedWordDivider2: UIView = {
+    private let secondWordButtonDivider: UIView = {
         let view = UIView()
         view.backgroundColor = .suggestionDividerColor
         
@@ -76,22 +62,7 @@ final class SuggestionBarHStackView: UIStackView {
     
     private lazy var predictedWordButton3: WordSuggestionButton = {
         let button = WordSuggestionButton()
-        button.leadingDivider = predictedWordDivider2
-        button.trailingDivider = predictedWordDivider3
-        
-        return button
-    }()
-    
-    private let predictedWordDivider3: UIView = {
-        let view = UIView()
-        view.backgroundColor = .suggestionDividerColor
-        
-        return view
-    }()
-    
-    lazy var grammarCheckButton: GrammarCheckButton = {
-        let button = GrammarCheckButton()
-        button.leadingDivider = predictedWordDivider3
+        button.leadingDivider = secondWordButtonDivider
         
         return button
     }()
@@ -111,7 +82,7 @@ final class SuggestionBarHStackView: UIStackView {
     
     override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
         // 이미 하나의 버튼이 highlighted 상태면 다른 터치 무시
-        let buttons: [UIButton] = [predictedWordButton1, predictedWordButton2, predictedWordButton3, grammarCheckButton]
+        let buttons: [UIButton] = [predictedWordButton1, predictedWordButton2, predictedWordButton3]
         
         if buttons.contains(where: { $0.isHighlighted }) {
             return nil
@@ -152,6 +123,7 @@ private extension SuggestionBarHStackView {
     
     func setStyles() {
         self.axis = .horizontal
+        self.alignment = .center
         self.spacing = 0
     }
     
@@ -167,42 +139,27 @@ private extension SuggestionBarHStackView {
             }
             button.addAction(action, for: .touchUpInside)
         }
-        
-        let grammarAction = UIAction { [weak self] _ in
-            guard let self else { return }
-            suggestionDelegate?.suggestionBarDidTapGrammarCheck(self)
-        }
-        grammarCheckButton.addAction(grammarAction, for: .touchUpInside)
     }
     
     func setHierarchy() {
-        [predictedWordButton1, predictedWordDivider1, predictedWordButton2, predictedWordDivider2, predictedWordButton3, predictedWordDivider3].forEach {
-            predictionHStackView.addArrangedSubview($0)
-        }
-        
-        [predictionHStackView, grammarCheckButton].forEach {
+        [predictedWordButton1, firstWordButtonDivider, predictedWordButton2, secondWordButtonDivider, predictedWordButton3].forEach {
             self.addArrangedSubview($0)
         }
     }
     
     func setConstraints() {
-        [predictedWordDivider1, predictedWordDivider2, predictedWordDivider3].forEach {
+        [firstWordButtonDivider, secondWordButtonDivider].forEach {
             $0.translatesAutoresizingMaskIntoConstraints = false
             $0.widthAnchor.constraint(equalToConstant: 1).isActive = true
             $0.heightAnchor.constraint(equalToConstant: KeyboardLayoutFigure.suggestionButtonDividerHeight).isActive = true
         }
         
         NSLayoutConstraint.activate([
-            predictedWordButton1.heightAnchor.constraint(equalTo: predictionHStackView.heightAnchor),
+            predictedWordButton1.heightAnchor.constraint(equalTo: self.heightAnchor),
             predictedWordButton2.widthAnchor.constraint(equalTo: predictedWordButton1.widthAnchor),
-            predictedWordButton2.heightAnchor.constraint(equalTo: predictionHStackView.heightAnchor),
+            predictedWordButton2.heightAnchor.constraint(equalTo: self.heightAnchor),
             predictedWordButton3.widthAnchor.constraint(equalTo: predictedWordButton1.widthAnchor),
-            predictedWordButton3.heightAnchor.constraint(equalTo: predictionHStackView.heightAnchor)
-        ])
-        
-        grammarCheckButton.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([
-            grammarCheckButton.widthAnchor.constraint(equalTo: grammarCheckButton.heightAnchor)
+            predictedWordButton3.heightAnchor.constraint(equalTo: self.heightAnchor)
         ])
     }
 }
