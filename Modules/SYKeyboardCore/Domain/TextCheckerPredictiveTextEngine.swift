@@ -1,5 +1,5 @@
 //
-//  PredictiveTextEngine.swift
+//  TextCheckerPredictiveTextEngine.swift
 //  SYKeyboardCore
 //
 //  Created by 서동환 on 3/11/26.
@@ -14,11 +14,11 @@ import UIKit
 /// 자동완성 후보를 조회합니다.
 ///
 /// ```swift
-/// let engine = PredictiveTextEngine()
+/// let engine = TextCheckerPredictiveTextEngine()
 /// let suggestions = engine.suggestions(for: "hel")
 /// // ["hello", "help", "helmet", ...]
 /// ```
-final class PredictiveTextEngine: PredictiveTextService {
+final class TextCheckerPredictiveTextEngine: PredictiveTextService {
     
     // MARK: - Properties
     
@@ -71,7 +71,7 @@ final class PredictiveTextEngine: PredictiveTextService {
 
 // MARK: - Private Methods
 
-private extension PredictiveTextEngine {
+private extension TextCheckerPredictiveTextEngine {
     /// 텍스트에서 마지막 단어를 추출합니다.
     ///
     /// 공백 문자를 기준으로 분리한 뒤 마지막 요소를 반환합니다.

@@ -93,20 +93,6 @@ open class BaseKeyboardViewController: UIInputViewController {
     /// 버튼 상태 컨트롤러
     public let buttonStateController = ButtonStateController()
     
-    /// 텍스트 대치 데이터
-    private var userLexicon: UILexicon?
-    /// 텍스트 대치 이력 저장용 모델
-    private struct ReplacementHistoryItem: Equatable {
-        /// 사용자가 입력했던 단축어 (예: "ㅈㄱㅈ")
-        let userInput: String
-        /// 대치된 결과물 (예: "지금 가는 중!")
-        let documentText: String
-    }
-    /// 텍스트 대치 기록
-    private var textReplacementHistory: [ReplacementHistoryItem] = []
-    /// 방금 대치 취소(Restore)된 단축어를 저장하는 변수
-    private var ignoredReplacementShortcut: String?
-    
     /// 자동완성 텍스트 제안 컨트롤러
     private let suggestionController = SuggestionController()
     
@@ -162,8 +148,9 @@ open class BaseKeyboardViewController: UIInputViewController {
         if isPreview { updateReturnButtonType() }
         
         if UserDefaultsManager.shared.isOneHandedKeyboardEnabled { updateOneHandModekeyboard() }
-        if UserDefaultsManager.shared.isTextReplacementEnabled {
-            Task { userLexicon = await requestSupplementaryLexicon() }
+        if UserDefaultsManager.shared.isTextReplacementEnabled
+            || UserDefaultsManager.shared.isPredictiveTextEnabled {
+            suggestionController.loadLexicon(from: self)
         }
     }
     
@@ -222,7 +209,7 @@ open class BaseKeyboardViewController: UIInputViewController {
         }
         
         if !(button is SpaceButton) {
-            ignoredReplacementShortcut = nil
+            suggestionController.clearIgnoredShortcut()
         }
         
         tempDeletedCharacters.removeAll()
@@ -694,7 +681,15 @@ extension BaseKeyboardViewController {
                 insertPrimaryKeyText(from: button)
             }
         case .deleteButton:
-            if !attemptToRestoreReplacementWord() {
+            if UserDefaultsManager.shared.isTextReplacementEnabled,
+               let restore = suggestionController.attemptRestoreReplacement(
+                contextBeforeInput: textDocumentProxy.documentContextBeforeInput
+               ) {
+                for _ in 0..<restore.deleteCount {
+                    textDocumentProxy.deleteBackward()
+                }
+                textDocumentProxy.insertText(restore.insertText)
+            } else {
                 if let selectedText = textDocumentProxy.selectedText {
                     tempDeletedCharacters.append(contentsOf: selectedText.reversed())
                 } else if let lastBeforeCursor = textDocumentProxy.documentContextBeforeInput?.last {
@@ -703,7 +698,15 @@ extension BaseKeyboardViewController {
                 deleteBackward()
             }
         case .spaceButton:
-            attemptToReplaceCurrentWord()
+            if UserDefaultsManager.shared.isTextReplacementEnabled,
+               let replacement = suggestionController.attemptTextReplacement(
+                contextBeforeInput: textDocumentProxy.documentContextBeforeInput
+               ) {
+                for _ in 0..<replacement.deleteCount {
+                    textDocumentProxy.deleteBackward()
+                }
+                textDocumentProxy.insertText(replacement.insertText)
+            }
             insertSpaceText()
         case .returnButton:
             insertReturnText()
@@ -734,55 +737,6 @@ extension BaseKeyboardViewController {
             insertReturnText()
             button.playFeedback()
         }
-    }
-    
-    private func attemptToReplaceCurrentWord() {
-        guard let entries = userLexicon?.entries,
-              let beforeText = textDocumentProxy.documentContextBeforeInput else { return }
-        
-        let replacementEntries = entries.filter { entry in
-            let isMatch = beforeText.lowercased().hasSuffix(entry.userInput.lowercased())
-            
-            // 단축어가 'm' (대소문자 무시)이고, 대치할 결과물이 "M"인 경우 제외 - iOS 버그?
-            if entry.userInput.lowercased() == "m" && entry.documentText == "M" {
-                return false
-            }
-            
-            return isMatch
-        }
-        guard let replacement = replacementEntries.max(by: { $0.userInput.count < $1.userInput.count }) else { return }
-        
-        // 만약 대치하려는 단어가 방금 복구된 단어와 같다면 대치를 수행하지 않고 종료
-        if let ignored = ignoredReplacementShortcut, ignored == replacement.userInput {
-            ignoredReplacementShortcut = nil
-            return
-        }
-        
-        // 대치 수행
-        for _ in 0..<replacement.userInput.count { textDocumentProxy.deleteBackward() }
-        textDocumentProxy.insertText(replacement.documentText)
-        
-        let historyItem = ReplacementHistoryItem(userInput: replacement.userInput, documentText: replacement.documentText)
-        textReplacementHistory.append(historyItem)
-    }
-    
-    private func attemptToRestoreReplacementWord() -> Bool {
-        guard let beforeText = textDocumentProxy.documentContextBeforeInput,
-              !textReplacementHistory.isEmpty else { return false }
-        
-        for (index, item) in textReplacementHistory.enumerated().reversed() {
-            if beforeText.hasSuffix(item.documentText) {
-                for _ in 0..<item.documentText.count { textDocumentProxy.deleteBackward() }
-                textDocumentProxy.insertText(item.userInput)
-                textReplacementHistory.remove(at: index)
-                
-                ignoredReplacementShortcut = item.userInput
-                
-                return true
-            }
-        }
-        
-        return false
     }
 }
 
