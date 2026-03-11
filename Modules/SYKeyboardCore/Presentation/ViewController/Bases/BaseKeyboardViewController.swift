@@ -225,6 +225,11 @@ open class BaseKeyboardViewController: UIInputViewController {
         }
     }
     
+    /// SuggestionBar에서 후보를 선택하여 텍스트가 교체된 후 호출되는 메서드
+    ///
+    /// > 하위 클래스에서 오버라이드 시 반드시 `super`로 호출 필요
+    open func suggestionDidApply() {}
+    
     /// 반복 텍스트 상호작용이 일어나기 전 실행되는 메서드
     ///
     /// > 하위 클래스에서 오버라이드 시 반드시 `super`로 호출 필요
@@ -886,6 +891,8 @@ extension BaseKeyboardViewController: SuggestionBarDelegate {
             textDocumentProxy.deleteBackward()
         }
         textDocumentProxy.insertText(result.insertText)
+        
+        suggestionDidApply()
         
         suggestionController.updateSuggestions(
             contextBeforeInput: textDocumentProxy.documentContextBeforeInput

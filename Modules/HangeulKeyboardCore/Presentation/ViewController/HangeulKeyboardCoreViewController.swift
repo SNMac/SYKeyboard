@@ -153,10 +153,18 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
         }
     }
     
-    open override func textInteractionDidPerform(button: any TextInteractable) {
+    open override func textInteractionDidPerform(button: TextInteractable) {
         super.textInteractionDidPerform(button: button)
         is글자Input = true
         if !isRepeatingInput { updateShiftButton() }
+    }
+    
+    open override func suggestionDidApply() {
+        super.suggestionDidApply()
+        clearAllBuffers()
+        processor.reset한글조합()
+        lastInputText = nil
+        updateSpaceButtonImage()
     }
     
     open override func repeatTextInteractionWillPerform(button: TextInteractable) {
