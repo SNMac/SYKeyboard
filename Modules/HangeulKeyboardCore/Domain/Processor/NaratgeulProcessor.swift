@@ -21,7 +21,7 @@ final class NaratgeulProcessor: HangeulProcessable {
     var is한글조합OnGoing: Bool { false }
     
     /// 표준 한글 오토마타 (자소 분해/조합 담당)
-    private let automata: HangeulAutomataProtocol
+    let automata: HangeulAutomataProtocol
     
     /// 획추가 변환 테이블
     private let 획추가Table: [String: String] = [
@@ -114,15 +114,22 @@ final class NaratgeulProcessor: HangeulProcessable {
         return .insertSpace
     }
     
-    func delete(composing: String) -> String {
+    /// 나랏글은 비표준 모음이 없으므로 `committedTail`/`isProtected`를 사용하지 않습니다.
+    /// committed와의 종성 합치기는 `deleteWithRestore종성`(프로토콜 기본 구현)에서 처리합니다.
+    func delete(composing: String, committedTail: String, isProtected: Bool) -> DeleteResult {
         // 1. 'ㅣ' 결합 분해 시도 (예: '애' -> '아')
-        if let result = decompose모음(composing: composing) { return result }
+        if let result = decompose모음(composing: composing) {
+            return DeleteResult(composing: result, consumedCommittedCount: 0)
+        }
         
         // 2. 이중모음 분해 시도 (예: '뭐' -> '무')
-        if let result = decompose이중모음(composing: composing) { return result }
+        if let result = decompose이중모음(composing: composing) {
+            return DeleteResult(composing: result, consumedCommittedCount: 0)
+        }
         
         // 3. 일반 삭제는 오토마타에게 위임
-        return automata.delete글자(composing: composing)
+        let deleted = automata.delete글자(composing: composing)
+        return DeleteResult(composing: deleted, consumedCommittedCount: 0)
     }
     
     // 나랏글은 별도의 조합 상태 플래그를 관리하지 않으므로 빈 구현으로 둡니다.

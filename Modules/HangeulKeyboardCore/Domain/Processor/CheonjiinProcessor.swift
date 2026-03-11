@@ -12,6 +12,9 @@
 ///   1. **자음 순환**: 버튼 반복 입력 시 자음이 순환합니다 (예: ㄱ -> ㅋ -> ㄲ).
 ///   2. **모음 조합**: 천(ㆍ), 지(ㅡ), 인(ㅣ) 3개 키의 조합으로 모음을 생성합니다.
 ///   3. **스페이스**: 조합 중일 땐 글자 확정(Commit), 아닐 땐 띄어쓰기를 수행합니다.
+///   4. **종성 복원**: 삭제 시 비표준 모음(ㆍ, ᆢ)이 committed 끝에 있으면
+///      앞글자까지 포함하여 composing으로 올립니다.
+///      표준 한글과의 종성 합치기는 `deleteWithRestore종성`(프로토콜 기본 구현)에서 처리합니다.
 final class CheonjiinProcessor: HangeulProcessable {
     
     // MARK: - Properties
@@ -20,7 +23,10 @@ final class CheonjiinProcessor: HangeulProcessable {
     var is한글조합OnGoing: Bool = false
     
     /// 표준 한글 오토마타 (자소 합치기/나누기 담당)
-    private let automata: HangeulAutomataProtocol
+    let automata: HangeulAutomataProtocol
+    
+    /// 천지인 비표준 모음 문자 집합
+    private let 비표준모음Set: Set<String> = ["ㆍ", "ᆢ"]
     
     /// 자음 순환 테이블
     private let 자음순환Table: [String: [String]] = [
@@ -145,34 +151,28 @@ final class CheonjiinProcessor: HangeulProcessable {
         }
     }
     
-    func delete(composing: String) -> String {
+    func delete(composing: String, committedTail: String, isProtected: Bool) -> DeleteResult {
         guard !composing.isEmpty else {
             is한글조합OnGoing = false
-            return ""
+            return DeleteResult(composing: "", consumedCommittedCount: 0)
         }
         
-        // 마지막 글자가 천지인 특수문자(ㆍ, ᆢ)이면 직접 제거
-        if let lastChar = composing.last {
-            let lastCharString = String(lastChar)
-            if lastCharString == "ㆍ" || lastCharString == "ᆢ" {
-                let result = String(composing.dropLast())
-                if result.isEmpty {
-                    is한글조합OnGoing = false
-                }
-                return result
+        // composing에 비표준 모음(ㆍ, ᆢ)이 포함되어 있으면 오토마타에 위임하지 않고 직접 처리
+        // (오토마타는 비표준 모음을 처리할 수 없으므로 마지막 글자만 단순 제거)
+        if composingContains비표준모음(composing) {
+            let remaining = String(composing.dropLast())
+            if remaining.isEmpty {
+                is한글조합OnGoing = false
+                return DeleteResult(composing: "", consumedCommittedCount: 0)
             }
+            is한글조합OnGoing = true
+            return DeleteResult(composing: remaining, consumedCommittedCount: 0)
         }
         
         // 오토마타를 이용한 기본 삭제
-        let deletedText = automata.delete글자(composing: composing)
+        var deletedText = automata.delete글자(composing: composing)
         
-        if deletedText.isEmpty {
-            is한글조합OnGoing = false
-        } else {
-            is한글조합OnGoing = true
-        }
-        
-        // 종성 복원 로직: 삭제 후 남은 자음이 앞 글자의 받침이 될 수 있는지 확인
+        // 삭제 후 composing 내부 종성 복원 (2글자 이상일 때: prefix 글자에 종성 합치기)
         if let lastChar = deletedText.last {
             let lastCharString = String(lastChar)
             
@@ -182,14 +182,29 @@ final class CheonjiinProcessor: HangeulProcessable {
                 if let prefixLast = prefix.last,
                    let _ = automata.decompose(한글Char: prefixLast) {
                     let (committed, merged) = automata.add글자(글자Input: lastCharString, composing: prefix)
-                    let restoredText = committed + merged
-                    is한글조합OnGoing = true
-                    return restoredText
+                    deletedText = committed + merged
                 }
             }
         }
         
-        return deletedText
+        // committed 끝이 비표준 모음(ㆍ, ᆢ)일 때, 앞글자까지 포함하여 composing으로 올리기
+        // (표준 한글과의 종성 합치기는 deleteWithRestore종성에서 처리)
+        if let result = tryRestore비표준모음ToCommitted(
+            remaining: deletedText,
+            committedTail: committedTail,
+            isProtected: isProtected
+        ) {
+            is한글조합OnGoing = true
+            return result
+        }
+        
+        if deletedText.isEmpty {
+            is한글조합OnGoing = false
+        } else {
+            is한글조합OnGoing = true
+        }
+        
+        return DeleteResult(composing: deletedText, consumedCommittedCount: 0)
     }
     
     func start한글조합() {
@@ -204,6 +219,49 @@ final class CheonjiinProcessor: HangeulProcessable {
 // MARK: - Private Methods
 
 private extension CheonjiinProcessor {
+    
+    /// composing 문자열에 비표준 모음(ㆍ, ᆢ)이 포함되어 있는지 확인
+    func composingContains비표준모음(_ composing: String) -> Bool {
+        for char in composing {
+            if 비표준모음Set.contains(String(char)) {
+                return true
+            }
+        }
+        return false
+    }
+    
+    /// committed 끝이 비표준 모음(ㆍ, ᆢ)일 때, 앞글자까지 포함하여 composing으로 올리기
+    ///
+    /// 예시: committedTail = "간ㆍ", remaining = "ㄷ"
+    ///   → composing = "간ㆍㄷ" (2글자 소비)
+    ///   → 이후 모음 입력(예: ㆍ+ㅣ=ㅓ)으로 "간" → "가너" 연음 가능
+    func tryRestore비표준모음ToCommitted(
+        remaining: String,
+        committedTail: String,
+        isProtected: Bool
+    ) -> DeleteResult? {
+        guard remaining.count <= 1 else { return nil }
+        if remaining.count == 1 {
+            guard automata.종성Table.contains(remaining) && remaining != " " else { return nil }
+        }
+        guard !isProtected else { return nil }
+        guard !committedTail.isEmpty else { return nil }
+        
+        let lastCommittedStr = String(committedTail.last!)
+        
+        if 비표준모음Set.contains(lastCommittedStr) {
+            if committedTail.count >= 2 {
+                let beforeLast = committedTail.dropLast()
+                let fullComposing = beforeLast + lastCommittedStr + remaining
+                return DeleteResult(composing: String(fullComposing), consumedCommittedCount: committedTail.count)
+            } else {
+                let fullComposing = lastCommittedStr + remaining
+                return DeleteResult(composing: fullComposing, consumedCommittedCount: 1)
+            }
+        }
+        
+        return nil
+    }
     
     /// 모음 조합 로직
     func tryCombine모음(input: String, composing: String) -> (String, String)? {

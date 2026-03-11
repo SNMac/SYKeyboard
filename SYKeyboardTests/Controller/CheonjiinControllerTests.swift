@@ -285,4 +285,35 @@ struct CheonjiinControllerTests {
         sim.delete()
         #expect(sim.text == "가난", "확정 영역 분해 후에는 종성 복원이 동작해야 합니다.")
     }
+    
+    // MARK: - 7. 확정 보호 유지: 끌어오기 후 재입력
+    
+    @Test("확정 보호 유지: '가(확정)나' -> 삭제 2번 -> '가' -> '나' 입력 -> 삭제 -> '가ㄴ'")
+    func test확정보호_끌어오기후_재입력() {
+        let sim = KeyboardControllerSimulator(
+            automata: automata,
+            processor: CheonjiinProcessor(automata: automata)
+        )
+        
+        // 1. '가' 확정
+        sim.input("ㄱ"); sim.input(인); sim.input(천)
+        sim.space()
+        
+        // 2. '나' 입력
+        sim.input("ㄴ"); sim.input(인); sim.input(천)
+        #expect(sim.text == "가나")
+        
+        // 3. 삭제 2번 -> '가' (보호된 글자 끌어오기)
+        sim.delete() // 가ㄴ
+        sim.delete() // 가
+        #expect(sim.text == "가")
+        
+        // 4. '나' 다시 입력
+        sim.input("ㄴ"); sim.input(인); sim.input(천)
+        #expect(sim.text == "가나")
+        
+        // 5. 삭제 -> '가ㄴ' (확정 보호 유지)
+        sim.delete()
+        #expect(sim.text == "가ㄴ", "끌어온 보호 글자가 committed로 돌아갈 때 보호 상태가 유지되어야 합니다.")
+    }
 }

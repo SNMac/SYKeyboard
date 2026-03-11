@@ -132,19 +132,23 @@ struct DubeolsikProcessorTests: HangeulProcessorTestable {
         var (c, p) = ("", "닭")
         
         // 삭제 1회: 닭(ㄺ) -> 달(ㄹ)
-        p = processor.delete(composing: p)
+        let r1 = processor.delete(composing: p, committedTail: "", isProtected: false)
+        p = r1.composing
         #expect(c + p == "달")
         
         // 삭제 2회: 달 -> 다
-        p = processor.delete(composing: p)
+        let r2 = processor.delete(composing: p, committedTail: "", isProtected: false)
+        p = r2.composing
         #expect(c + p == "다")
         
         // 삭제 3회: 다 -> ㄷ
-        p = processor.delete(composing: p)
+        let r3 = processor.delete(composing: p, committedTail: "", isProtected: false)
+        p = r3.composing
         #expect(c + p == "ㄷ")
         
         // 삭제 4회: ㄷ -> ""
-        p = processor.delete(composing: p)
+        let r4 = processor.delete(composing: p, committedTail: "", isProtected: false)
+        p = r4.composing
         #expect(c + p == "")
     }
     
@@ -152,16 +156,16 @@ struct DubeolsikProcessorTests: HangeulProcessorTestable {
     func test삭제_흐름_와() {
         var (c, p) = ("", "와")
         
-        // 삭제 1회: 와(ㅘ) -> 오(ㅗ)
-        p = processor.delete(composing: p)
+        let r1 = processor.delete(composing: p, committedTail: "", isProtected: false)
+        p = r1.composing
         #expect(c + p == "오")
         
-        // 삭제 2회: 오 -> ㅇ
-        p = processor.delete(composing: p)
+        let r2 = processor.delete(composing: p, committedTail: "", isProtected: false)
+        p = r2.composing
         #expect(c + p == "ㅇ")
         
-        // 삭제 3회: ㅇ -> ""
-        p = processor.delete(composing: p)
+        let r3 = processor.delete(composing: p, committedTail: "", isProtected: false)
+        p = r3.composing
         #expect(c + p == "")
     }
     
@@ -219,9 +223,9 @@ struct DubeolsikProcessorTests: HangeulProcessorTestable {
         c += " " // "각 "
         
         // 삭제 -> "각" (공백만 삭제)
-        // composing이 비었으므로 committed에서 마지막을 가져옴
         p = String(c.removeLast()) // p = " "
-        p = processor.delete(composing: p)
+        let deleteResult = processor.delete(composing: p, committedTail: String(c.suffix(2)), isProtected: false)
+        p = deleteResult.composing
         if p.isEmpty && !c.isEmpty {
             p = String(c.removeLast())
         }
