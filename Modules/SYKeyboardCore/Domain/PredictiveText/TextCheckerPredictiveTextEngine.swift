@@ -44,19 +44,39 @@ final class TextCheckerPredictiveTextEngine: PredictiveTextProvider {
         var seen = Set<String>()
         var merged: [String] = []
         
+        // 1순위: completions (접두어 자동완성)
         for language in languages {
-            let guesses = checker.completions(
+            let completions = checker.completions(
                 forPartialWordRange: range,
                 in: lastWord,
                 language: language
             ) ?? []
             
-            for guess in guesses {
-                let lowered = guess.lowercased()
+            for word in completions {
+                let lowered = word.lowercased()
                 guard lowered != lastWord.lowercased(),
                       !seen.contains(lowered) else { continue }
                 seen.insert(lowered)
-                merged.append(guess)
+                merged.append(word)
+            }
+        }
+        
+        // 2순위: guesses (오타 교정, completions가 부족할 때)
+        if merged.isEmpty {
+            for language in languages {
+                let guesses = checker.guesses(
+                    forWordRange: range,
+                    in: lastWord,
+                    language: language
+                ) ?? []
+                
+                for word in guesses {
+                    let lowered = word.lowercased()
+                    guard lowered != lastWord.lowercased(),
+                          !seen.contains(lowered) else { continue }
+                    seen.insert(lowered)
+                    merged.append(word)
+                }
             }
         }
         

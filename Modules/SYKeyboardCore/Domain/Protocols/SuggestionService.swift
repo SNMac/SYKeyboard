@@ -67,6 +67,16 @@ protocol SuggestionService: AnyObject {
     /// - Returns: 삭제할 글자 수와 삽입할 텍스트의 튜플, 유효하지 않으면 `nil`
     func selectSuggestion(at index: Int, contextBeforeInput: String?) -> (deleteCount: Int, insertText: String)?
     
+    // MARK: - Learning
+    
+    /// 단어를 시스템 사전에 학습시킵니다.
+    ///
+    /// 사용자가 현재 입력 단어를 확정했을 때 호출하여
+    /// 이후 `UITextChecker` 후보에 반영합니다.
+    ///
+    /// - Parameter word: 학습할 단어
+    func learnWord(_ word: String)
+        
     // MARK: - Text Replacement
     
     /// 스페이스 입력 시 텍스트 대치를 시도합니다.
