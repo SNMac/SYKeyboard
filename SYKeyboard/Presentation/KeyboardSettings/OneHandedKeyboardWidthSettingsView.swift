@@ -109,7 +109,7 @@ private extension OneHandedKeyboardWidthSettingsView {
 private extension OneHandedKeyboardWidthSettingsView {
     func updatePreviewKeyboardHeight() {
         let suggestionBarHeight = isPredictiveTextEnabled
-        ? KeyboardLayoutFigure.suggestionBarHeight + KeyboardLayoutFigure.keyboardFrameSpacing
+        ? KeyboardLayoutFigure.suggestionBarHeightWithTopSpacing + KeyboardLayoutFigure.keyboardFrameSpacing
         : 0
         previewKeyboardHeight = keyboardHeight + suggestionBarHeight
     }

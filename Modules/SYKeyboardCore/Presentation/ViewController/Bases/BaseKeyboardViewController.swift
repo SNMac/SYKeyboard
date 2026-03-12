@@ -136,7 +136,7 @@ open class BaseKeyboardViewController: UIInputViewController {
         return KeyboardView.loadFromNib(primaryKeyboardView: primaryKeyboardView)
     }()
     /// 자동완성 툴바
-    private lazy var suggestionBarHStackView = keyboardView.suggestionBarHStackView
+    private lazy var suggestionBarView = keyboardView.suggestionBarView
     /// 키보드 수평 스택
     private lazy var keyboardHStackView = keyboardView.keyboardHStackView
     /// 한 손 키보드 해제 버튼(오른손 모드)
@@ -478,7 +478,7 @@ private extension BaseKeyboardViewController {
         textInteractionGestureController.delegate = self
         switchGestureController.delegate = self
         suggestionController.delegate = self
-        suggestionBarHStackView.suggestionDelegate = self
+        suggestionBarView.suggestionDelegate = self
     }
     
     func setActions() {
@@ -490,39 +490,44 @@ private extension BaseKeyboardViewController {
     }
     
     func setKeyboardHeight() {
-        let keyboardHeight: CGFloat
+        let keyboardViewHeight: CGFloat
+        let keyboardHStackViewHeight: CGFloat
         if let orientation = self.view.window?.windowScene?.effectiveGeometry.interfaceOrientation {
             let isSuggestionBarVisible = UserDefaultsManager.shared.isPredictiveTextEnabled
             && textDocumentProxy.autocorrectionType != .no
             && currentKeyboard != .tenKey
             
             let suggestionBarHeight = isSuggestionBarVisible
-            ? KeyboardLayoutFigure.suggestionBarHeight + KeyboardLayoutFigure.keyboardFrameSpacing * 2
+            ? KeyboardLayoutFigure.suggestionBarHeightWithTopSpacing
             : 0
             
-            keyboardHeight = (orientation == .portrait)
-            ? UserDefaultsManager.shared.keyboardHeight + suggestionBarHeight
-            : KeyboardLayoutFigure.landscapeKeyboardHeight
+            if orientation == .portrait {
+                keyboardViewHeight = UserDefaultsManager.shared.keyboardHeight + suggestionBarHeight
+                keyboardHStackViewHeight = UserDefaultsManager.shared.keyboardHeight
+            } else {
+                keyboardViewHeight = KeyboardLayoutFigure.landscapeKeyboardHeight
+                keyboardHStackViewHeight = KeyboardLayoutFigure.landscapeKeyboardHeight - suggestionBarHeight
+            }
         } else {
             assertionFailure("View가 window 계층에 없습니다.")
             return
         }
         
         if let keyboardViewHeightConstraint {
-            keyboardViewHeightConstraint.constant = keyboardHeight
+            keyboardViewHeightConstraint.constant = keyboardViewHeight
         } else {
-            let heightConstraint = keyboardView.heightAnchor.constraint(equalToConstant: keyboardHeight)
+            let heightConstraint = keyboardView.heightAnchor.constraint(equalToConstant: keyboardViewHeight)
             heightConstraint.priority = .init(999)
             heightConstraint.isActive = true
             keyboardViewHeightConstraint = heightConstraint
         }
         
         if let keyboardHStackViewHeightConstraint {
-            keyboardHStackViewHeightConstraint.constant = UserDefaultsManager.shared.keyboardHeight
+            keyboardHStackViewHeightConstraint.constant = keyboardHStackViewHeight
         } else {
-            let stackHeightConstraint = keyboardHStackView.heightAnchor.constraint(equalToConstant: UserDefaultsManager.shared.keyboardHeight)
-            stackHeightConstraint.isActive = true
-            keyboardHStackViewHeightConstraint = stackHeightConstraint
+            let heightConstraint = keyboardHStackView.heightAnchor.constraint(equalToConstant: keyboardHStackViewHeight)
+            heightConstraint.isActive = true
+            keyboardHStackViewHeightConstraint = heightConstraint
         }
     }
     
@@ -795,13 +800,13 @@ private extension BaseKeyboardViewController {
     }
     
     func updateSuggestionBarHidden() {
-        let prevSuggestionHiddenState = suggestionBarHStackView.isHidden
+        let prevSuggestionHiddenState = suggestionBarView.isHidden
         
         let shouldHideSuggestions = !UserDefaultsManager.shared.isPredictiveTextEnabled
         || textDocumentProxy.autocorrectionType == .no
         || currentKeyboard == .tenKey
         
-        suggestionBarHStackView.isHidden = shouldHideSuggestions
+        suggestionBarView.isHidden = shouldHideSuggestions
         suggestionController.isEnabled = !shouldHideSuggestions
         
         if prevSuggestionHiddenState != shouldHideSuggestions {
@@ -1014,14 +1019,14 @@ extension BaseKeyboardViewController: TextInteractionGestureControllerDelegate {
 
 extension BaseKeyboardViewController: SuggestionControllerDelegate {
     final func suggestionController(_ controller: SuggestionController, didUpdateCurrentWord currentWord: String?, suggestions: [String]) {
-        keyboardView.suggestionBarHStackView.updateSuggestions(currentWord: currentWord, suggestions: suggestions)
+        keyboardView.suggestionBarView.updateSuggestions(currentWord: currentWord, suggestions: suggestions)
     }
 }
 
 // MARK: - SuggestionBarDelegate
 
 extension BaseKeyboardViewController: SuggestionBarDelegate {
-    final func suggestionBar(_ bar: SuggestionBarHStackView, didSelectSuggestionAt index: Int) {
+    final func suggestionBar(_ bar: SuggestionBarView, didSelectSuggestionAt index: Int) {
         if suggestionController.currentMode == .nGram {
             guard let word = suggestionController.nGramSuggestionText(at: index) else { return }
             

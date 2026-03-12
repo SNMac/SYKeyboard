@@ -1,5 +1,5 @@
 //
-//  WordSuggestionButton.swift
+//  WordSuggestionButtonLikeView.swift
 //  SYKeyboardCore
 //
 //  Created by 서동환 on 3/11/26.
@@ -9,11 +9,29 @@ import UIKit
 
 import SYKeyboardAssets
 
-final class WordSuggestionButton: UIButton {
+final class WordSuggestionButtonLikeView: UIView {
     
     // MARK: - Properties
     
     private let cornerRadius: CGFloat
+    
+    var hasText: Bool {
+        return !(suggestionLabel.text?.isEmpty ?? true)
+    }
+    
+    var isSuggestionHighlighted: Bool = false {
+        didSet {
+            if isSuggestionHighlighted {
+                backgroundView.backgroundColor = .suggestionButtonPressed
+                leadingDivider?.backgroundColor = .clear
+                trailingDivider?.backgroundColor = .clear
+            } else {
+                backgroundView.backgroundColor = .clear
+                leadingDivider?.backgroundColor = .suggestionDividerColor
+                trailingDivider?.backgroundColor = .suggestionDividerColor
+            }
+        }
+    }
     
     weak var leadingDivider: UIView?
     weak var trailingDivider: UIView?
@@ -46,7 +64,7 @@ final class WordSuggestionButton: UIButton {
     
     override init(frame: CGRect) {
         if #available(iOS 26, *) {
-            self.cornerRadius = KeyboardLayoutFigure.suggestionBarHeight / 2
+            self.cornerRadius = KeyboardLayoutFigure.suggestionBarHeightWithTopSpacing / 2
         } else {
             self.cornerRadius = 4.6
         }
@@ -62,13 +80,12 @@ final class WordSuggestionButton: UIButton {
     
     func update(to title: String) {
         suggestionLabel.text = title
-        self.isUserInteractionEnabled = !title.isEmpty
     }
 }
 
 // MARK: - UI Methods
 
-private extension WordSuggestionButton {
+private extension WordSuggestionButtonLikeView {
     func setupUI() {
         setStyles()
         setHierarchy()
@@ -78,20 +95,6 @@ private extension WordSuggestionButton {
     func setStyles() {
         self.tintColor = .clear
         self.backgroundColor = .systemBackground.withAlphaComponent(0.001)  // 터치 영역 확보용
-        self.isUserInteractionEnabled = false
-        
-        self.configurationUpdateHandler = { [weak self] button in
-            switch button.state {
-            case .highlighted:
-                self?.backgroundView.backgroundColor = .suggestionButtonPressed
-                self?.leadingDivider?.backgroundColor = .clear
-                self?.trailingDivider?.backgroundColor = .clear
-            default:
-                self?.backgroundView.backgroundColor = .clear
-                self?.leadingDivider?.backgroundColor = .suggestionDividerColor
-                self?.trailingDivider?.backgroundColor = .suggestionDividerColor
-            }
-        }
     }
     
     func setHierarchy() {
