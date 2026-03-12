@@ -19,14 +19,8 @@ struct InputSettingsView: View {
     @AppStorage(UserDefaultsKeys.selectedLongPressAction, store: UserDefaultsManager.shared.storage)
     private var selectedLongPressAction = DefaultValues.selectedLongPressAction
     
-    @AppStorage(UserDefaultsKeys.isPredictiveTextEnabled, store: UserDefaultsManager.shared.storage)
-    private var isPredictiveTextEnabled = DefaultValues.isPredictiveTextEnabled
-    
     @AppStorage(UserDefaultsKeys.isAutoCapitalizationEnabled, store: UserDefaultsManager.shared.storage)
     private var isAutoCapitalizationEnabled = DefaultValues.isAutoCapitalizationEnabled
-    
-    @AppStorage(UserDefaultsKeys.isTextReplacementEnabled, store: UserDefaultsManager.shared.storage)
-    private var isTextReplacementEnabled = DefaultValues.isTextReplacementEnabled
     
     @AppStorage(UserDefaultsKeys.isPeriodShortcutEnabled, store: UserDefaultsManager.shared.storage)
     private var isPeriodShortcutEnabled = DefaultValues.isPeriodShortcutEnabled
@@ -90,7 +84,7 @@ struct InputSettingsView: View {
         }
         
         NavigationLink("길게 누르기 입력") {
-            KeyRepeatSettingsView()
+            LongPressSettingsView()
         }
         
         Toggle(isOn: $isAutoCapitalizationEnabled, label: {
@@ -100,36 +94,6 @@ struct InputSettingsView: View {
             Analytics.setUserProperty(newValue.analyticsValue,
                                       forName: "pref_auto_capitalization")
             Analytics.logEvent("auto_capitalization", parameters: [
-                "view": "InputSettingsView",
-                "enabled": newValue.analyticsValue
-            ])
-            hideKeyboard()
-        }
-        
-        Toggle(isOn: $isTextReplacementEnabled, label: {
-            Text("텍스트 대치")
-            Text("시스템 설정의 텍스트 대치 단축키 사용")
-                .font(.caption)
-        })
-        .onChange(of: isTextReplacementEnabled) { newValue in
-            Analytics.setUserProperty(newValue.analyticsValue,
-                                      forName: "pref_text_replacement")
-            Analytics.logEvent("text_replacement", parameters: [
-                "view": "InputSettingsView",
-                "enabled": newValue.analyticsValue
-            ])
-            hideKeyboard()
-        }
-        
-        Toggle(isOn: $isPredictiveTextEnabled, label: {
-            Text("자동완성 텍스트")
-            Text("키보드 상단에 자동완성 텍스트 표시")
-                .font(.caption)
-        })
-        .onChange(of: isPredictiveTextEnabled) { newValue in
-            Analytics.setUserProperty(newValue.analyticsValue,
-                                      forName: "pref_predictive_text")
-            Analytics.logEvent("predictive_text", parameters: [
                 "view": "InputSettingsView",
                 "enabled": newValue.analyticsValue
             ])

@@ -99,9 +99,6 @@ protocol SuggestionService: AnyObject {
     /// 키보드가 비활성화되기 전에 호출합니다.
     func saveNGramData()
     
-    /// n-gram 학습 데이터를 모두 초기화합니다.
-    func resetNGramData()
-    
     // MARK: - Text Replacement
     
     /// 스페이스 입력 시 텍스트 대치를 시도합니다.

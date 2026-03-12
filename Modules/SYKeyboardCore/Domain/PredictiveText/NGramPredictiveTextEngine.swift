@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import OSLog
 
 /// 사용자 입력 이력 기반 n-gram 다음 단어 예측 엔진
 ///
@@ -31,9 +32,14 @@ import Foundation
 /// 1. 스페이스 입력 시 `addWord(_:)`로 단어 축적 및 n-gram 기록
 /// 2. 리턴 입력 시 `endSentence()`로 문장 버퍼 초기화
 /// 3. 입력 없음 / 자동완성 후 `suggestions(for:)`로 다음 단어 예측
-final class NGramPredictiveTextEngine: PredictiveTextProvider {
+final public class NGramPredictiveTextEngine: PredictiveTextProvider {
     
     // MARK: - Properties
+    
+    private lazy var logger = Logger(
+        subsystem: Bundle.main.bundleIdentifier ?? "Unknown Bundle",
+        category: "\(String(describing: type(of: self))) <\(Unmanaged.passUnretained(self).toOpaque())>"
+    )
     
     /// bigram 저장소: "직전 단어" → ["다음 단어": 빈도수]
     private var bigramStore: [String: [String: Int]] = [:]
@@ -51,9 +57,9 @@ final class NGramPredictiveTextEngine: PredictiveTextProvider {
     /// 전체 키 최대 개수
     private let maxKeys = 5000
     
-    /// UserDefaults 저장 키
-    private static let bigramStoreKey = "com.sykeyboard.ngram.bigram"
-    private static let trigramStoreKey = "com.sykeyboard.ngram.trigram"
+    /// `UserDefaults` 저장 키
+    private static let bigramStoreKey = "com.snmac.sykeyboard.ngram.bigram"
+    private static let trigramStoreKey = "com.snmac.sykeyboard.ngram.trigram"
     
     /// App Group UserDefaults
     private let storage: UserDefaults = {
@@ -70,7 +76,7 @@ final class NGramPredictiveTextEngine: PredictiveTextProvider {
     
     // MARK: - Initializer
     
-    init() {
+    public init() {
         loadFromDisk()
     }
     
@@ -135,6 +141,8 @@ final class NGramPredictiveTextEngine: PredictiveTextProvider {
         currentSentenceWords.append(word)
         recordNGrams()
         scheduleSave()
+        
+        logger.debug("[NGram] n-gram 기록: \(word)")
     }
     
     /// 문장이 끝났을 때 버퍼를 초기화합니다.
@@ -153,12 +161,14 @@ final class NGramPredictiveTextEngine: PredictiveTextProvider {
     }
     
     /// 모든 학습 데이터를 초기화합니다.
-    func resetAllData() {
+    public func resetAllData() {
         bigramStore = [:]
         trigramStore = [:]
         currentSentenceWords = []
         storage.removeObject(forKey: NGramPredictiveTextEngine.bigramStoreKey)
         storage.removeObject(forKey: NGramPredictiveTextEngine.trigramStoreKey)
+        
+        logger.debug("[NGram] 학습 데이터 초기화")
     }
 }
 
@@ -184,6 +194,7 @@ private extension NGramPredictiveTextEngine {
             let value = words[count - 1]
             bigramStore[key, default: [:]][value, default: 0] += 1
             pruneEntries(in: &bigramStore, forKey: key)
+            logger.debug("[NGram] bigram: \"\(key)\" → \"\(value)\" (count: \(self.bigramStore[key]?[value] ?? 0))")
         }
         
         // trigram: 직전 2단어 → 현재 단어
@@ -192,6 +203,7 @@ private extension NGramPredictiveTextEngine {
             let value = words[count - 1]
             trigramStore[key, default: [:]][value, default: 0] += 1
             pruneEntries(in: &trigramStore, forKey: key)
+            logger.debug("[NGram] trigram: \"\(key)\" → \"\(value)\" (count: \(self.trigramStore[key]?[value] ?? 0))")
         }
         
         pruneKeys(in: &bigramStore)

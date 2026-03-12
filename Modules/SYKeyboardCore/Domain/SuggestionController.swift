@@ -163,10 +163,6 @@ final class SuggestionController: SuggestionService {
         nGramEngine.saveToDisk()
     }
     
-    func resetNGramData() {
-        nGramEngine.resetAllData()
-    }
-    
     // MARK: - Text Replacement Methods
     
     func attemptTextReplacement(contextBeforeInput: String?) -> (deleteCount: Int, insertText: String)? {

@@ -40,6 +40,12 @@ struct KeyboardSettingsView: View {
                 }
                 
                 Section {
+                    PredictiveTextSettingsView()
+                } header: {
+                    Text("자동완성 텍스트 설정")
+                }
+                
+                Section {
                     InputSettingsView()
                 } header: {
                     Text("입력 설정")

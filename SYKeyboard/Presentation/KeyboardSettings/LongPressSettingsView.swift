@@ -1,5 +1,5 @@
 //
-//  KeyRepeatSettingsView.swift
+//  LongPressSettingsView.swift
 //  SYKeyboard
 //
 //  Created by 서동환 on 9/5/24.
@@ -11,7 +11,7 @@ import SYKeyboardCore
 
 import FirebaseAnalytics
 
-struct KeyRepeatSettingsView: View {
+struct LongPressSettingsView: View {
     
     // MARK: - Properties
     
@@ -62,7 +62,7 @@ struct KeyRepeatSettingsView: View {
 
 // MARK: - UI Components
 
-private extension KeyRepeatSettingsView {
+private extension LongPressSettingsView {
     var longPressDurationSetting: some View {
         HStack {
             Text("\(longPressDuration, specifier: "%.2f")")
@@ -103,5 +103,5 @@ private extension KeyRepeatSettingsView {
 // MARK: - Preview
 
 #Preview {
-    KeyRepeatSettingsView()
+    LongPressSettingsView()
 }
