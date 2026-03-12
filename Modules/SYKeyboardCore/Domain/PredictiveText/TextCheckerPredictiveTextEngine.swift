@@ -61,22 +61,20 @@ final class TextCheckerPredictiveTextEngine: PredictiveTextProvider {
             }
         }
         
-        // 2순위: guesses (오타 교정, completions가 부족할 때)
-        if merged.isEmpty {
-            for language in languages {
-                let guesses = checker.guesses(
-                    forWordRange: range,
-                    in: lastWord,
-                    language: language
-                ) ?? []
-                
-                for word in guesses {
-                    let lowered = word.lowercased()
-                    guard lowered != lastWord.lowercased(),
-                          !seen.contains(lowered) else { continue }
-                    seen.insert(lowered)
-                    merged.append(word)
-                }
+        // 2순위: guesses (오타 교정, 중복 제거하여 보충)
+        for language in languages {
+            let guesses = checker.guesses(
+                forWordRange: range,
+                in: lastWord,
+                language: language
+            ) ?? []
+            
+            for word in guesses {
+                let lowered = word.lowercased()
+                guard lowered != lastWord.lowercased(),
+                      !seen.contains(lowered) else { continue }
+                seen.insert(lowered)
+                merged.append(word)
             }
         }
         
