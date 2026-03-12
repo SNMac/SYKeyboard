@@ -13,8 +13,9 @@ protocol SuggestionControllerDelegate: AnyObject {
     ///
     /// - Parameters:
     ///   - controller: 이벤트를 발생시킨 `SuggestionController`
-    ///   - suggestions: 업데이트된 후보 단어 배열 (최대 3개)
-    func suggestionController(_ controller: SuggestionController, didUpdateSuggestions suggestions: [String])
+    ///   - currentWord: 현재 입력 중인 단어 (없으면 nil)
+    ///   - suggestions: 업데이트된 후보 단어 배열 (최대 2개, 텍스트 대치 우선)
+    func suggestionController(_ controller: SuggestionController, didUpdateCurrentWord currentWord: String?, suggestions: [String])
 }
 
 /// 자동완성 후보 조회, 텍스트 대치, 대치 복구를 통합 관리하는 컨트롤러
@@ -109,7 +110,7 @@ final class SuggestionController: SuggestionService {
     
     func clearSuggestions() {
         currentSuggestions = []
-        delegate?.suggestionController(self, didUpdateSuggestions: [])
+        delegate?.suggestionController(self, didUpdateCurrentWord: nil, suggestions: [])
     }
     
     func selectSuggestion(at index: Int, contextBeforeInput: String?) -> (deleteCount: Int, insertText: String)? {
@@ -121,7 +122,10 @@ final class SuggestionController: SuggestionService {
         let item = currentSuggestions[index]
         let currentWord = extractLastWord(from: context)
         
-        textCheckerEngine.learn(word: item.text)
+        // textChecker 후보만 학습, 텍스트 대치(lexicon)는 제외
+        if item.source == .textChecker {
+            textCheckerEngine.learn(word: item.text)
+        }
         
         // 텍스트 대치일 때만 대치 이력 기록
         if item.source == .lexicon {
@@ -133,6 +137,12 @@ final class SuggestionController: SuggestionService {
         }
         
         return (deleteCount: currentWord.count, insertText: item.text)
+    }
+    
+    // MARK: - Learning
+
+    func learnWord(_ word: String) {
+        textCheckerEngine.learn(word: word)
     }
     
     // MARK: - Text Replacement Methods
@@ -222,23 +232,34 @@ private extension SuggestionController {
             return
         }
         
-        currentSuggestions = mergeSuggestions(for: context)
-        delegate?.suggestionController(self, didUpdateSuggestions: currentSuggestions.map { $0.text })
+        let currentWord = extractLastWord(from: context)
+        currentSuggestions = mergeSuggestions(for: context, currentWord: currentWord)
+        delegate?.suggestionController(
+            self,
+            didUpdateCurrentWord: currentWord.isEmpty ? nil : currentWord,
+            suggestions: currentSuggestions.map { $0.text }
+        )
     }
     
     /// `UILexicon`과 `UITextChecker`의 결과를 병합합니다.
     ///
-    /// `UILexicon` 결과를 먼저 배치하여 사용자 개인화 데이터를 우선시하고,
-    /// 남은 슬롯을 `UITextChecker` 결과로 채웁니다.
+    /// 현재 입력 중인 단어와 동일한 후보는 제외하고,
+    /// `UILexicon` 결과를 먼저 배치하여 사용자 개인화 데이터를 우선시합니다.
     ///
-    /// - Parameter context: 커서 앞의 텍스트
-    /// - Returns: 중복 제거된 후보 배열 (최대 3개)
-    func mergeSuggestions(for context: String) -> [SuggestionItem] {
+    /// - Parameters:
+    ///   - context: 커서 앞의 텍스트
+    ///   - currentWord: 현재 입력 중인 단어
+    /// - Returns: 중복 제거된 후보 배열 (최대 2개)
+    func mergeSuggestions(for context: String, currentWord: String) -> [SuggestionItem] {
         let lexiconResults = lexiconEngine.suggestions(for: context)
         let checkerResults = textCheckerEngine.suggestions(for: context)
         
         var seen = Set<String>()
+        // 현재 입력 단어는 button1에 표시되므로 후보에서 제외
+        seen.insert(currentWord.lowercased())
         var merged: [SuggestionItem] = []
+        
+        let maxSuggestionSlots = maxSuggestions - 1  // button1은 현재 입력용
         
         // 1순위: UILexicon (텍스트 대치)
         for suggestion in lexiconResults {
@@ -246,7 +267,7 @@ private extension SuggestionController {
             guard !seen.contains(lowered) else { continue }
             seen.insert(lowered)
             merged.append(SuggestionItem(text: suggestion, source: .lexicon))
-            if merged.count >= maxSuggestions { return merged }
+            if merged.count >= maxSuggestionSlots { return merged }
         }
         
         // 2순위: UITextChecker (시스템 사전)
@@ -255,7 +276,7 @@ private extension SuggestionController {
             guard !seen.contains(lowered) else { continue }
             seen.insert(lowered)
             merged.append(SuggestionItem(text: suggestion, source: .textChecker))
-            if merged.count >= maxSuggestions { return merged }
+            if merged.count >= maxSuggestionSlots { return merged }
         }
         
         return merged

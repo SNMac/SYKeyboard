@@ -93,15 +93,22 @@ final class SuggestionBarHStackView: UIStackView {
     
     // MARK: - Internal Methods
     
-    /// 자동완성 후보 단어를 업데이트합니다.
+    /// 자동완성 바를 업데이트합니다.
     ///
-    /// 후보가 3개 미만이면 나머지 버튼의 타이틀을 빈 문자열로 설정합니다.
-    ///
-    /// - Parameter suggestions: 표시할 후보 단어 배열 (최대 3개)
-    func updatePredictions(_ suggestions: [String]) {
-        let buttons = [predictedWordButton1, predictedWordButton2, predictedWordButton3]
+    /// - Parameters:
+    ///   - currentWord: 현재 입력 중인 단어 (button1에 ""로 감싸서 표시)
+    ///   - suggestions: 자동완성 후보 배열 (최대 2개, button2~3에 표시)
+    func updateSuggestions(currentWord: String?, suggestions: [String]) {
+        // Button 1: 현재 입력 단어를 따옴표로 감싸서 표시
+        if let word = currentWord, !word.isEmpty {
+            predictedWordButton1.update(to: "\"\(word)\"")
+        } else {
+            predictedWordButton1.update(to: "")
+        }
         
-        for (index, button) in buttons.enumerated() {
+        // Button 2-3: 자동완성 후보
+        let suggestionButtons = [predictedWordButton2, predictedWordButton3]
+        for (index, button) in suggestionButtons.enumerated() {
             if index < suggestions.count {
                 button.update(to: suggestions[index])
             } else {

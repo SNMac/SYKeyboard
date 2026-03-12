@@ -935,8 +935,8 @@ extension BaseKeyboardViewController: TextInteractionGestureControllerDelegate {
 // MARK: - SuggestionControllerDelegate
 
 extension BaseKeyboardViewController: SuggestionControllerDelegate {
-    final func suggestionController(_ controller: SuggestionController, didUpdateSuggestions suggestions: [String]) {
-        keyboardView.suggestionBarHStackView.updatePredictions(suggestions)
+    final func suggestionController(_ controller: SuggestionController, didUpdateCurrentWord currentWord: String?, suggestions: [String]) {
+        keyboardView.suggestionBarHStackView.updateSuggestions(currentWord: currentWord, suggestions: suggestions)
     }
 }
 
@@ -944,8 +944,21 @@ extension BaseKeyboardViewController: SuggestionControllerDelegate {
 
 extension BaseKeyboardViewController: SuggestionBarDelegate {
     final func suggestionBar(_ bar: SuggestionBarHStackView, didSelectSuggestionAt index: Int) {
+        if index == 0 {
+            // Button1 탭: 현재 입력 단어를 확정하고 학습
+            let context = textDocumentProxy.documentContextBeforeInput ?? ""
+            let currentWord = context.split(whereSeparator: { $0.isWhitespace }).last.map(String.init) ?? ""
+            if !currentWord.isEmpty {
+                suggestionController.learnWord(currentWord)
+            }
+            return
+        }
+        
+        // Button2-3 → suggestionController의 인덱스 0-1로 변환
+        let suggestionIndex = index - 1
+        
         guard let result = suggestionController.selectSuggestion(
-            at: index,
+            at: suggestionIndex,
             contextBeforeInput: textDocumentProxy.documentContextBeforeInput
         ) else { return }
         
