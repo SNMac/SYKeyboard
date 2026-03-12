@@ -143,6 +143,12 @@ final class SuggestionController: SuggestionService {
         return (deleteCount: currentWord.count, insertText: item.text)
     }
     
+    func nGramSuggestionText(at index: Int) -> String? {
+        guard index >= 0, index < currentSuggestions.count,
+              currentSuggestions[index].source == .nGram else { return nil }
+        return currentSuggestions[index].text
+    }
+    
     // MARK: - Learning
     
     func learnWord(_ word: String) {

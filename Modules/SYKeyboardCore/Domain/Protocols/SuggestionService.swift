@@ -70,6 +70,9 @@ protocol SuggestionService: AnyObject {
     /// - Returns: 삭제할 글자 수와 삽입할 텍스트의 튜플, 유효하지 않으면 `nil`
     func selectSuggestion(at index: Int, contextBeforeInput: String?) -> (deleteCount: Int, insertText: String)?
     
+    /// n-gram 모드에서 특정 인덱스의 후보 텍스트를 반환합니다.
+    func nGramSuggestionText(at index: Int) -> String?
+    
     // MARK: - Learning
     
     /// 단어를 시스템 사전에 학습시킵니다.
