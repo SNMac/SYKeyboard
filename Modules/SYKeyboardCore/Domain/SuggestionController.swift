@@ -20,16 +20,17 @@ protocol SuggestionControllerDelegate: AnyObject {
 
 /// 자동완성 후보 조회, 텍스트 대치, 대치 복구를 통합 관리하는 컨트롤러
 ///
-/// `UILexicon`과 `UITextChecker` 두 소스를 조합하여 후보를 생성하며,
+/// `UILexicon`과 `UITextChecker`, n-gram 세 소스를 조합하여 후보를 생성하며,
 /// 스페이스 입력 시 텍스트 대치, 삭제 시 대치 복구 기능을 제공합니다.
 /// `isEnabled`를 통해 연산 자체를 비활성화할 수 있습니다.
 ///
 /// ## 동작 흐름
 /// 1. **입력 중**: SuggestionBar에 `UILexicon` + `UITextChecker` 후보 표시
 /// 2. **후보 탭**: 현재 단어를 선택한 후보로 교체 (텍스트 대치 후보는 대치 이력 기록)
-/// 3. **스페이스**: `UILexicon`에 정확히 매칭되는 텍스트 대치 자동 수행
+/// 3. **스페이스**: `UILexicon`에 정확히 매칭되는 텍스트 대치 자동 수행, n-gram 기록
 /// 4. **삭제**: 방금 대치된 단어를 원래 단축어로 복구
 /// 5. **복구 후 스페이스**: 같은 단축어에 대해 재대치 방지
+/// 6. **입력 없음 / 자동완성 후**: n-gram 기반 다음 단어 예측
 final class SuggestionController: SuggestionService {
     
     // MARK: - Properties
@@ -55,6 +56,8 @@ final class SuggestionController: SuggestionService {
             case lexicon
             /// `UITextChecker` 기반 (시스템 사전)
             case textChecker
+            /// n-gram 기반 (다음 단어 예측)
+            case nGram
         }
     }
     
@@ -65,6 +68,8 @@ final class SuggestionController: SuggestionService {
     private let lexiconEngine = LexiconPredictiveTextEngine()
     /// `UITextChecker` 기반 엔진 (시스템 사전)
     private let textCheckerEngine: TextCheckerPredictiveTextEngine
+    /// n-gram 기반 엔진 (다음 단어 예측)
+    private let nGramEngine = NGramPredictiveTextEngine()
     
     /// 후보 최대 표시 개수
     private let maxSuggestions = 3
@@ -86,8 +91,7 @@ final class SuggestionController: SuggestionService {
     /// 지정한 엔진들로 컨트롤러를 초기화합니다.
     ///
     /// - Parameters:
-    ///   - lexiconEngine: `UILexicon` 기반 엔진 (기본값: 새 인스턴스)
-    ///   - textCheckerEngine: `UITextChecker` 기반 엔진 (기본값: 한국어+영어)
+    ///   - textCheckerLanguages: `UITextChecker`에서 사용할 언어 코드 배열 (기본값: 한국어+영어)
     init(textCheckerLanguages: [String] = ["ko_KR", "en-US"]) {
         self.textCheckerEngine = TextCheckerPredictiveTextEngine(languages: textCheckerLanguages)
     }
@@ -122,7 +126,7 @@ final class SuggestionController: SuggestionService {
         let item = currentSuggestions[index]
         let currentWord = extractLastWord(from: context)
         
-        // textChecker 후보만 학습, 텍스트 대치(lexicon)는 제외
+        // textChecker 후보만 학습, 텍스트 대치(lexicon)와 nGram은 제외
         if item.source == .textChecker {
             textCheckerEngine.learn(word: item.text)
         }
@@ -140,9 +144,27 @@ final class SuggestionController: SuggestionService {
     }
     
     // MARK: - Learning
-
+    
     func learnWord(_ word: String) {
         textCheckerEngine.learn(word: word)
+    }
+    
+    // MARK: - N-Gram Recording
+    
+    func recordWord(_ word: String) {
+        nGramEngine.addWord(word)
+    }
+    
+    func endSentence() {
+        nGramEngine.endSentence()
+    }
+    
+    func saveNGramData() {
+        nGramEngine.saveToDisk()
+    }
+    
+    func resetNGramData() {
+        nGramEngine.resetAllData()
     }
     
     // MARK: - Text Replacement Methods
@@ -222,13 +244,16 @@ private extension SuggestionController {
     func performUpdateSuggestions(contextBeforeInput: String?) {
         guard isEnabled else { return }
         
-        guard let context = contextBeforeInput, !context.isEmpty else {
-            clearSuggestions()
-            return
-        }
+        let context = contextBeforeInput ?? ""
         
-        if let last = context.last, last.isWhitespace {
-            clearSuggestions()
+        // 입력이 없거나 마지막 문자가 공백이면 n-gram 기반 다음 단어 예측
+        if context.isEmpty || context.last?.isWhitespace == true {
+            currentSuggestions = nGramSuggestions(for: context)
+            delegate?.suggestionController(
+                self,
+                didUpdateCurrentWord: nil,
+                suggestions: currentSuggestions.map { $0.text }
+            )
             return
         }
         
@@ -239,6 +264,22 @@ private extension SuggestionController {
             didUpdateCurrentWord: currentWord.isEmpty ? nil : currentWord,
             suggestions: currentSuggestions.map { $0.text }
         )
+    }
+    
+    /// n-gram 기반 다음 단어 예측 후보를 생성합니다.
+    ///
+    /// 입력이 없거나 마지막 문자가 공백일 때 사용됩니다.
+    /// 이 경우 button1에 currentWord가 없으므로 3개 슬롯 모두 사용합니다.
+    ///
+    /// - Parameter context: 커서 앞의 텍스트
+    /// - Returns: n-gram 예측 후보 배열 (최대 3개)
+    func nGramSuggestions(for context: String) -> [SuggestionItem] {
+        guard !context.isEmpty else { return [] }
+        
+        let results = nGramEngine.suggestions(for: context)
+        return results.prefix(maxSuggestions).map {
+            SuggestionItem(text: $0, source: .nGram)
+        }
     }
     
     /// `UILexicon`과 `UITextChecker`의 결과를 병합합니다.

@@ -210,6 +210,7 @@ open class BaseKeyboardViewController: UIInputViewController {
     open override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         cancelTimer()
+        suggestionController.saveNGramData()
     }
     
     // MARK: - Overridable Methods
@@ -321,14 +322,25 @@ open class BaseKeyboardViewController: UIInputViewController {
     /// - `BaseKeyboardViewController.isPreview == true`이면 즉시 리턴
     open func insertSpaceText() {
         if BaseKeyboardViewController.isPreview { return }
+        
+        // 스페이스 입력 전 직전 단어를 n-gram에 기록
+        if let context = textDocumentProxy.documentContextBeforeInput {
+            let lastWord = context.split(whereSeparator: { $0.isWhitespace }).last.map(String.init) ?? ""
+            if !lastWord.isEmpty {
+                suggestionController.recordWord(lastWord)
+            }
+        }
+        
         textDocumentProxy.insertText(" ")
     }
+    
     /// 개행 문자를 입력하는 메서드
     /// - `BaseKeyboardViewController.isPreview == true`이면 즉시 리턴
     open func insertReturnText() {
         if BaseKeyboardViewController.isPreview { return }
         textDocumentProxy.insertText("\n")
         suggestionController.clearReplacementHistory()
+        suggestionController.endSentence()
     }
     
     /// 삭제가 일어나기 전 실행되는 메서드
@@ -944,13 +956,40 @@ extension BaseKeyboardViewController: SuggestionControllerDelegate {
 
 extension BaseKeyboardViewController: SuggestionBarDelegate {
     final func suggestionBar(_ bar: SuggestionBarHStackView, didSelectSuggestionAt index: Int) {
+        let context = textDocumentProxy.documentContextBeforeInput ?? ""
+        let isNGramMode = context.isEmpty || context.last?.isWhitespace == true
+        
+        if isNGramMode {
+            // n-gram 모드: button1~3 모두 다음 단어 예측
+            // selectSuggestion은 "현재 단어 교체"용이므로 여기서는 직접 삽입
+            guard let result = suggestionController.selectSuggestion(
+                at: index,
+                contextBeforeInput: context
+            ) else {
+                // selectSuggestion이 nil을 반환할 수 있으므로 (공백 뒤라서)
+                // 직접 n-gram 후보를 확인하여 삽입
+                // delegate를 통해 받은 suggestions를 바로 사용할 수 없으므로
+                // updateSuggestions를 호출하여 갱신
+                return
+            }
+            
+            textDocumentProxy.insertText(result.insertText)
+            suggestionController.recordWord(result.insertText)
+            textDocumentProxy.insertText(" ")
+            
+            suggestionDidApply()
+            suggestionController.updateSuggestions(contextBeforeInput: textDocumentProxy.documentContextBeforeInput)
+            return
+        }
+        
         if index == 0 {
             // Button1 탭: 현재 입력 단어를 확정하고 학습
-            let context = textDocumentProxy.documentContextBeforeInput ?? ""
             let currentWord = context.split(whereSeparator: { $0.isWhitespace }).last.map(String.init) ?? ""
             if !currentWord.isEmpty {
                 suggestionController.learnWord(currentWord)
+                suggestionController.recordWord(currentWord)
             }
+            suggestionController.clearSuggestions()
             return
         }
         
@@ -959,13 +998,16 @@ extension BaseKeyboardViewController: SuggestionBarDelegate {
         
         guard let result = suggestionController.selectSuggestion(
             at: suggestionIndex,
-            contextBeforeInput: textDocumentProxy.documentContextBeforeInput
+            contextBeforeInput: context
         ) else { return }
         
         for _ in 0..<result.deleteCount {
             textDocumentProxy.deleteBackward()
         }
         textDocumentProxy.insertText(result.insertText)
+        
+        // 선택한 후보도 n-gram에 기록
+        suggestionController.recordWord(result.insertText)
         
         suggestionDidApply()
         

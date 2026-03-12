@@ -10,8 +10,9 @@ import UIKit
 /// `UITextChecker` 기반의 자동완성 엔진
 ///
 /// 한국어와 영어를 동시에 지원하며, 커서 앞 텍스트에서 마지막 단어를 추출해
-/// `UITextChecker.completions(forPartialWordRange:in:language:)`를 통해
-/// 자동완성 후보를 조회합니다.
+/// `UITextChecker.completions(forPartialWordRange:in:language:)`와
+/// `UITextChecker.guesses(forWordRange:in:language:)`를 통해
+/// 자동완성 및 오타 교정 후보를 조회합니다.
 ///
 /// ```swift
 /// let engine = TextCheckerPredictiveTextEngine()
