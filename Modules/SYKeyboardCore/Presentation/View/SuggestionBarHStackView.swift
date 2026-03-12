@@ -23,6 +23,10 @@ protocol SuggestionBarDelegate: AnyObject {
 ///
 /// 최대 3개의 후보 버튼과 1개의 맞춤법 검사 버튼으로 구성되며,
 /// 각 버튼의 탭 이벤트는 `SuggestionBarDelegate`를 통해 전달됩니다.
+///
+/// ## 표시 모드
+/// - **입력 중**: button1에 `"현재단어"`, button2~3에 자동완성 후보
+/// - **입력 없음 / 자동완성 후**: button1~3에 n-gram 다음 단어 예측
 final class SuggestionBarHStackView: UIStackView {
     
     // MARK: - Properties
@@ -95,24 +99,35 @@ final class SuggestionBarHStackView: UIStackView {
     
     /// 자동완성 바를 업데이트합니다.
     ///
+    /// `currentWord`가 있으면 button1에 따옴표로 감싸서 표시하고
+    /// button2~3에 자동완성 후보를 표시합니다.
+    /// `currentWord`가 없으면 button1~3에 다음 단어 예측 후보를 표시합니다.
+    ///
     /// - Parameters:
-    ///   - currentWord: 현재 입력 중인 단어 (button1에 ""로 감싸서 표시)
-    ///   - suggestions: 자동완성 후보 배열 (최대 2개, button2~3에 표시)
+    ///   - currentWord: 현재 입력 중인 단어 (없으면 nil)
+    ///   - suggestions: 자동완성 또는 예측 후보 배열
     func updateSuggestions(currentWord: String?, suggestions: [String]) {
-        // Button 1: 현재 입력 단어를 따옴표로 감싸서 표시
         if let word = currentWord, !word.isEmpty {
+            // 입력 중: button1에 "현재단어", button2~3에 자동완성 후보
             predictedWordButton1.update(to: "\"\(word)\"")
+            
+            let suggestionButtons = [predictedWordButton2, predictedWordButton3]
+            for (index, button) in suggestionButtons.enumerated() {
+                if index < suggestions.count {
+                    button.update(to: suggestions[index])
+                } else {
+                    button.update(to: "")
+                }
+            }
         } else {
-            predictedWordButton1.update(to: "")
-        }
-        
-        // Button 2-3: 자동완성 후보
-        let suggestionButtons = [predictedWordButton2, predictedWordButton3]
-        for (index, button) in suggestionButtons.enumerated() {
-            if index < suggestions.count {
-                button.update(to: suggestions[index])
-            } else {
-                button.update(to: "")
+            // 입력 없음 / 자동완성 후: button1~3에 n-gram 예측 후보
+            let buttons = [predictedWordButton1, predictedWordButton2, predictedWordButton3]
+            for (index, button) in buttons.enumerated() {
+                if index < suggestions.count {
+                    button.update(to: suggestions[index])
+                } else {
+                    button.update(to: "")
+                }
             }
         }
     }
