@@ -490,7 +490,8 @@ private extension BaseKeyboardViewController {
     }
     
     func setKeyboardHeight() {
-        let keyboardHeight: CGFloat
+        let keyboardViewHeight: CGFloat
+        let keyboardHStackViewHeight: CGFloat
         if let orientation = self.view.window?.windowScene?.effectiveGeometry.interfaceOrientation {
             let isSuggestionBarVisible = UserDefaultsManager.shared.isPredictiveTextEnabled
             && textDocumentProxy.autocorrectionType != .no
@@ -500,29 +501,33 @@ private extension BaseKeyboardViewController {
             ? KeyboardLayoutFigure.suggestionBarHeight + KeyboardLayoutFigure.keyboardFrameSpacing * 2
             : 0
             
-            keyboardHeight = (orientation == .portrait)
+            keyboardViewHeight = (orientation == .portrait)
             ? UserDefaultsManager.shared.keyboardHeight + suggestionBarHeight
             : KeyboardLayoutFigure.landscapeKeyboardHeight
+            
+            keyboardHStackViewHeight = (orientation == .portrait)
+            ? UserDefaultsManager.shared.keyboardHeight
+            : KeyboardLayoutFigure.landscapeKeyboardHeight - suggestionBarHeight
         } else {
             assertionFailure("View가 window 계층에 없습니다.")
             return
         }
         
         if let keyboardViewHeightConstraint {
-            keyboardViewHeightConstraint.constant = keyboardHeight
+            keyboardViewHeightConstraint.constant = keyboardViewHeight
         } else {
-            let heightConstraint = keyboardView.heightAnchor.constraint(equalToConstant: keyboardHeight)
+            let heightConstraint = keyboardView.heightAnchor.constraint(equalToConstant: keyboardViewHeight)
             heightConstraint.priority = .init(999)
             heightConstraint.isActive = true
             keyboardViewHeightConstraint = heightConstraint
         }
         
         if let keyboardHStackViewHeightConstraint {
-            keyboardHStackViewHeightConstraint.constant = UserDefaultsManager.shared.keyboardHeight
+            keyboardHStackViewHeightConstraint.constant = keyboardHStackViewHeight
         } else {
-            let stackHeightConstraint = keyboardHStackView.heightAnchor.constraint(equalToConstant: UserDefaultsManager.shared.keyboardHeight)
-            stackHeightConstraint.isActive = true
-            keyboardHStackViewHeightConstraint = stackHeightConstraint
+            let heightConstraint = keyboardHStackView.heightAnchor.constraint(equalToConstant: keyboardHStackViewHeight)
+            heightConstraint.isActive = true
+            keyboardHStackViewHeightConstraint = heightConstraint
         }
     }
     
