@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import OSLog
 
 /// `UITextChecker` 기반의 자동완성 엔진
 ///
@@ -14,28 +15,59 @@ import UIKit
 /// `UITextChecker.guesses(forWordRange:in:language:)`를 통해
 /// 자동완성 및 오타 교정 후보를 조회합니다.
 ///
+/// 학습한 단어 목록을 App Group `UserDefaults`에 저장하여
+/// 메인 앱에서 일괄 초기화할 수 있습니다.
+///
 /// ```swift
-/// let engine = TextCheckerPredictiveTextEngine()
+/// let engine = TextCheckerPredictiveTextEngine(languages: ["ko_KR", "en-US"])
 /// let suggestions = engine.suggestions(for: "hel")
 /// // ["hello", "help", "helmet", ...]
 /// ```
-final class TextCheckerPredictiveTextEngine: PredictiveTextProvider {
+final public class TextCheckerPredictiveTextEngine: PredictiveTextProvider {
     
     // MARK: - Properties
     
+    private lazy var logger = Logger(
+        subsystem: Bundle.main.bundleIdentifier ?? "Unknown Bundle",
+        category: "\(String(describing: type(of: self))) <\(Unmanaged.passUnretained(self).toOpaque())>"
+    )
+    
     private let checker = UITextChecker()
     private let languages: [String]
+    
+    private static let learnedWordsKey = "com.snmac.sykeyboard.textchecker.learnedWords"
+    
+    private let storage: UserDefaults = {
+        guard let userDefaults = UserDefaults(suiteName: DefaultValues.groupBundleID) else {
+            fatalError("UserDefaults를 suiteName으로 불러오는 데 실패했습니다.")
+        }
+        return userDefaults
+    }()
+    
+    /// 학습한 단어 목록
+    ///
+    /// App Group `UserDefaults`에 `[String]`으로 저장되며,
+    /// getter에서 `Set`으로 변환하여 중복을 방지합니다.
+    private var learnedWords: Set<String> {
+        get {
+            let array = storage.stringArray(forKey: Self.learnedWordsKey) ?? []
+            return Set(array)
+        }
+        set {
+            storage.set(Array(newValue), forKey: Self.learnedWordsKey)
+        }
+    }
     
     // MARK: - Initializer
     
     /// 지정한 언어 목록으로 엔진을 초기화합니다.
     ///
     /// - Parameter languages: 자동완성에 사용할 언어 코드 배열
-    init(languages: [String]) {
+    public init(languages: [String]) {
         self.languages = languages
     }
     
-    // MARK: - PredictiveTextService Methods
+    // MARK: - PredictiveTextProvider Methods
     
     func suggestions(for contextBeforeInput: String) -> [String] {
         let lastWord = currentWord(from: contextBeforeInput)
@@ -83,8 +115,23 @@ final class TextCheckerPredictiveTextEngine: PredictiveTextProvider {
     }
     
     func learn(word: String) {
-        guard !word.isEmpty else { return }
+        guard !word.isEmpty, !UITextChecker.hasLearnedWord(word) else { return }
         UITextChecker.learnWord(word)
+        learnedWords.insert(word)
+        
+        logger.debug("[TextChecker] 시스템 사전 학습: \(word)")
+    }
+    
+    // MARK: - Reset Methods
+    
+    /// 학습한 모든 단어를 시스템 사전에서 제거하고 저장소를 초기화합니다.
+    public func unlearnAllWords() {
+        for word in learnedWords {
+            UITextChecker.unlearnWord(word)
+        }
+        learnedWords = []
+        
+        logger.debug("[TextChecker] 시스템 사전 초기화")
     }
 }
 

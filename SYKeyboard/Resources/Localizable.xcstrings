@@ -460,6 +460,16 @@
         }
       }
     },
+    "자동완성 텍스트 설정" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Predictive Text Settings"
+          }
+        }
+      }
+    },
     "저장" : {
       "localizations" : {
         "en" : {
@@ -660,6 +670,26 @@
         }
       }
     },
+    "학습 데이터 초기화" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reset Learning Data"
+          }
+        }
+      }
+    },
+    "학습한 단어와 예측 데이터가 모두 삭제됩니다. 이 작업은 되돌릴 수 없습니다." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "All learned words and prediction data will be deleted. This action cannot be undone."
+          }
+        }
+      }
+    },
     "한 손 키보드 너비" : {
       "localizations" : {
         "en" : {
@@ -716,6 +746,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Haptic Feedback"
+          }
+        }
+      }
+    },
+    "확인" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Confirm"
           }
         }
       }
