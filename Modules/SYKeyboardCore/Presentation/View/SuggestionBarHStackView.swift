@@ -33,12 +33,12 @@ final class SuggestionBarHStackView: UIStackView {
     
     private lazy var predictedWordButton1: WordSuggestionButton = {
         let button = WordSuggestionButton()
-        button.trailingDivider = firstWordButtonDivider
+        button.trailingDivider = leftDivider
         
         return button
     }()
     
-    private let firstWordButtonDivider: UIView = {
+    private let leftDivider: UIView = {
         let view = UIView()
         view.backgroundColor = .suggestionDividerColor
         
@@ -47,13 +47,13 @@ final class SuggestionBarHStackView: UIStackView {
     
     private lazy var predictedWordButton2: WordSuggestionButton = {
         let button = WordSuggestionButton()
-        button.leadingDivider = firstWordButtonDivider
-        button.trailingDivider = secondWordButtonDivider
+        button.leadingDivider = leftDivider
+        button.trailingDivider = rightDivider
         
         return button
     }()
     
-    private let secondWordButtonDivider: UIView = {
+    private let rightDivider: UIView = {
         let view = UIView()
         view.backgroundColor = .suggestionDividerColor
         
@@ -62,7 +62,7 @@ final class SuggestionBarHStackView: UIStackView {
     
     private lazy var predictedWordButton3: WordSuggestionButton = {
         let button = WordSuggestionButton()
-        button.leadingDivider = secondWordButtonDivider
+        button.leadingDivider = rightDivider
         
         return button
     }()
@@ -125,6 +125,8 @@ private extension SuggestionBarHStackView {
         self.axis = .horizontal
         self.alignment = .center
         self.spacing = 0
+        self.layoutMargins = UIEdgeInsets(top: 0, left: 1, bottom: 0, right: 1)
+        self.isLayoutMarginsRelativeArrangement = true
     }
     
     func setActions() {
@@ -142,13 +144,13 @@ private extension SuggestionBarHStackView {
     }
     
     func setHierarchy() {
-        [predictedWordButton1, firstWordButtonDivider, predictedWordButton2, secondWordButtonDivider, predictedWordButton3].forEach {
+        [predictedWordButton1, leftDivider, predictedWordButton2, rightDivider, predictedWordButton3].forEach {
             self.addArrangedSubview($0)
         }
     }
     
     func setConstraints() {
-        [firstWordButtonDivider, secondWordButtonDivider].forEach {
+        [leftDivider, rightDivider].forEach {
             $0.translatesAutoresizingMaskIntoConstraints = false
             $0.widthAnchor.constraint(equalToConstant: 1).isActive = true
             $0.heightAnchor.constraint(equalToConstant: KeyboardLayoutFigure.suggestionButtonDividerHeight).isActive = true

@@ -27,10 +27,17 @@ final public class KeyboardView: UIInputView {
     private let keyboardFrameVStackView: UIStackView = {
         let stackView = UIStackView()
         stackView.axis = .vertical
-        stackView.spacing = KeyboardLayoutFigure.keyboardFrameSpacing
+        stackView.spacing = 0
         stackView.backgroundColor = .clear
         
         return stackView
+    }()
+    
+    private let topSpacer: UIView = {
+        let view = UIView()
+        view.backgroundColor = .clear
+        
+        return view
     }()
     
     /// 자동완성 툴바
@@ -39,6 +46,13 @@ final public class KeyboardView: UIInputView {
         suggestionBar.isHidden = !UserDefaultsManager.shared.isPredictiveTextEnabled
         
         return suggestionBar
+    }()
+    
+    private let middleSpacer: UIView = {
+        let view = UIView()
+        view.backgroundColor = .clear
+        
+        return view
     }()
     
     /// 키보드 수평 스택
@@ -135,7 +149,7 @@ private extension KeyboardView {
     func setHierarchy() {
         self.addSubview(keyboardFrameVStackView)
         
-        [suggestionBarHStackView, keyboardHStackView].forEach {
+        [topSpacer, suggestionBarHStackView, middleSpacer, keyboardHStackView].forEach {
             keyboardFrameVStackView.addArrangedSubview($0)
         }
         
@@ -145,6 +159,11 @@ private extension KeyboardView {
     }
     
     func setConstraints() {
+        [topSpacer, middleSpacer].forEach {
+            $0.translatesAutoresizingMaskIntoConstraints = false
+            $0.heightAnchor.constraint(equalToConstant: KeyboardLayoutFigure.keyboardFrameSpacing).isActive = true
+        }
+        
         keyboardFrameVStackView.translatesAutoresizingMaskIntoConstraints = false
         if BaseKeyboardViewController.isPreview {
             keyboardFrameVStackView.topAnchor.constraint(equalTo: self.topAnchor).isActive = true

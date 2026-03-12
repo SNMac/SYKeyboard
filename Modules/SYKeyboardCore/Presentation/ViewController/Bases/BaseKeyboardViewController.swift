@@ -404,7 +404,7 @@ private extension BaseKeyboardViewController {
             && currentKeyboard != .tenKey
             
             let suggestionBarHeight = isSuggestionBarVisible
-            ? KeyboardLayoutFigure.suggestionBarHeight + KeyboardLayoutFigure.keyboardFrameSpacing
+            ? KeyboardLayoutFigure.suggestionBarHeight + KeyboardLayoutFigure.keyboardFrameSpacing * 2
             : 0
             
             keyboardHeight = (orientation == .portrait)
