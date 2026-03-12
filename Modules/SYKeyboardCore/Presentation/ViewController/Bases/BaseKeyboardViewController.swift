@@ -961,20 +961,10 @@ extension BaseKeyboardViewController: SuggestionBarDelegate {
         
         if isNGramMode {
             // n-gram 모드: button1~3 모두 다음 단어 예측
-            // selectSuggestion은 "현재 단어 교체"용이므로 여기서는 직접 삽입
-            guard let result = suggestionController.selectSuggestion(
-                at: index,
-                contextBeforeInput: context
-            ) else {
-                // selectSuggestion이 nil을 반환할 수 있으므로 (공백 뒤라서)
-                // 직접 n-gram 후보를 확인하여 삽입
-                // delegate를 통해 받은 suggestions를 바로 사용할 수 없으므로
-                // updateSuggestions를 호출하여 갱신
-                return
-            }
-            
-            textDocumentProxy.insertText(result.insertText)
-            suggestionController.recordWord(result.insertText)
+            // selectSuggestion은 "현재 단어 교체"용이므로 직접 삽입
+            guard let word = suggestionController.nGramSuggestionText(at: index) else { return }
+            textDocumentProxy.insertText(word)
+            suggestionController.recordWord(word)
             textDocumentProxy.insertText(" ")
             
             suggestionDidApply()
