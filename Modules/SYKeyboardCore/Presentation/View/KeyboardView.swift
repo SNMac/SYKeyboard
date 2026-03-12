@@ -28,31 +28,16 @@ final public class KeyboardView: UIInputView {
         let stackView = UIStackView()
         stackView.axis = .vertical
         stackView.spacing = 0
-        stackView.backgroundColor = .clear
         
         return stackView
     }()
     
-    private let topSpacer: UIView = {
-        let view = UIView()
-        view.backgroundColor = .clear
-        
-        return view
-    }()
-    
     /// 자동완성 툴바
-    let suggestionBarHStackView: SuggestionBarHStackView = {
-        let suggestionBar = SuggestionBarHStackView()
+    let suggestionBarView: SuggestionBarView = {
+        let suggestionBar = SuggestionBarView()
         suggestionBar.isHidden = !UserDefaultsManager.shared.isPredictiveTextEnabled
         
         return suggestionBar
-    }()
-    
-    private let middleSpacer: UIView = {
-        let view = UIView()
-        view.backgroundColor = .clear
-        
-        return view
     }()
     
     /// 키보드 수평 스택
@@ -60,12 +45,15 @@ final public class KeyboardView: UIInputView {
         let stackView = UIStackView()
         stackView.axis = .horizontal
         stackView.spacing = 0
-        stackView.backgroundColor = .clear
+        stackView.layoutMargins = UIEdgeInsets(top: KeyboardLayoutFigure.keyboardFrameSpacing, left: 0, bottom: 0, right: 0)
+        stackView.isLayoutMarginsRelativeArrangement = true
         
         return stackView
     }()
+    
     /// 키보드 레이아웃 뷰
     private let keyboardLayoutView = UIView()
+    
     /// 한 손 키보드 해제 버튼(오른손 모드)
     let leftChevronButton: ChevronButton = {
         let chevronButton = ChevronButton(direction: .left)
@@ -73,8 +61,10 @@ final public class KeyboardView: UIInputView {
         
         return chevronButton
     }()
+    
     /// 주 키보드
     private var primaryKeyboardView: PrimaryKeyboardRepresentable!
+    
     /// 기호 키보드
     lazy var symbolKeyboardView: SymbolKeyboardLayoutProvider = {
         let symbolKeyboardView = SymbolKeyboardView()
@@ -82,6 +72,7 @@ final public class KeyboardView: UIInputView {
         
         return symbolKeyboardView
     }()
+    
     /// 숫자 키보드
     lazy var numericKeyboardView: NumericKeyboardLayoutProvider = {
         let numericKeyboardView = NumericKeyboardView()
@@ -89,6 +80,7 @@ final public class KeyboardView: UIInputView {
         
         return numericKeyboardView
     }()
+    
     /// 텐키 키보드
     lazy var tenkeyKeyboardView: TenkeyKeyboardLayoutProvider = {
         let tenkeyKeyboardView = TenkeyKeyboardView()
@@ -96,6 +88,7 @@ final public class KeyboardView: UIInputView {
         
         return tenkeyKeyboardView
     }()
+    
     /// 한 손 키보드 해제 버튼(왼손 모드)
     let rightChevronButton: ChevronButton = {
         let chevronButton = ChevronButton(direction: .right)
@@ -128,6 +121,7 @@ final public class KeyboardView: UIInputView {
         
         view.primaryKeyboardView = primaryKeyboardView
         view.setupUI()
+        
         return view
     }
     
@@ -149,7 +143,7 @@ private extension KeyboardView {
     func setHierarchy() {
         self.addSubview(keyboardFrameVStackView)
         
-        [topSpacer, suggestionBarHStackView, middleSpacer, keyboardHStackView].forEach {
+        [suggestionBarView, keyboardHStackView].forEach {
             keyboardFrameVStackView.addArrangedSubview($0)
         }
         
@@ -159,11 +153,6 @@ private extension KeyboardView {
     }
     
     func setConstraints() {
-        [topSpacer, middleSpacer].forEach {
-            $0.translatesAutoresizingMaskIntoConstraints = false
-            $0.heightAnchor.constraint(equalToConstant: KeyboardLayoutFigure.keyboardFrameSpacing).isActive = true
-        }
-        
         keyboardFrameVStackView.translatesAutoresizingMaskIntoConstraints = false
         if BaseKeyboardViewController.isPreview {
             keyboardFrameVStackView.topAnchor.constraint(equalTo: self.topAnchor).isActive = true
@@ -174,9 +163,9 @@ private extension KeyboardView {
             keyboardFrameVStackView.bottomAnchor.constraint(equalTo: self.bottomAnchor)
         ])
         
-        suggestionBarHStackView.translatesAutoresizingMaskIntoConstraints = false
+        suggestionBarView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
-            suggestionBarHStackView.heightAnchor.constraint(equalToConstant: KeyboardLayoutFigure.suggestionBarHeight)
+            suggestionBarView.heightAnchor.constraint(equalToConstant: KeyboardLayoutFigure.suggestionBarHeightWithTopSpacing)
         ])
         
         keyboardLayoutView.translatesAutoresizingMaskIntoConstraints = false

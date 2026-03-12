@@ -115,7 +115,7 @@ private extension KeyboardHeightSettingsView {
 private extension KeyboardHeightSettingsView {
     func updatePreviewKeyboardHeight() {
         let suggestionBarHeight = isPredictiveTextEnabled
-        ? KeyboardLayoutFigure.suggestionBarHeight + KeyboardLayoutFigure.keyboardFrameSpacing
+        ? KeyboardLayoutFigure.suggestionBarHeightWithTopSpacing + KeyboardLayoutFigure.keyboardFrameSpacing
         : 0
         previewKeyboardHeight = tempKeyboardHeight + suggestionBarHeight
     }

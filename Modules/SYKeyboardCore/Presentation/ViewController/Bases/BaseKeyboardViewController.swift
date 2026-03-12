@@ -136,7 +136,7 @@ open class BaseKeyboardViewController: UIInputViewController {
         return KeyboardView.loadFromNib(primaryKeyboardView: primaryKeyboardView)
     }()
     /// 자동완성 툴바
-    private lazy var suggestionBarHStackView = keyboardView.suggestionBarHStackView
+    private lazy var suggestionBarView = keyboardView.suggestionBarView
     /// 키보드 수평 스택
     private lazy var keyboardHStackView = keyboardView.keyboardHStackView
     /// 한 손 키보드 해제 버튼(오른손 모드)
@@ -478,7 +478,7 @@ private extension BaseKeyboardViewController {
         textInteractionGestureController.delegate = self
         switchGestureController.delegate = self
         suggestionController.delegate = self
-        suggestionBarHStackView.suggestionDelegate = self
+        suggestionBarView.suggestionDelegate = self
     }
     
     func setActions() {
@@ -498,16 +498,16 @@ private extension BaseKeyboardViewController {
             && currentKeyboard != .tenKey
             
             let suggestionBarHeight = isSuggestionBarVisible
-            ? KeyboardLayoutFigure.suggestionBarHeight + KeyboardLayoutFigure.keyboardFrameSpacing * 2
+            ? KeyboardLayoutFigure.suggestionBarHeightWithTopSpacing
             : 0
             
-            keyboardViewHeight = (orientation == .portrait)
-            ? UserDefaultsManager.shared.keyboardHeight + suggestionBarHeight
-            : KeyboardLayoutFigure.landscapeKeyboardHeight
-            
-            keyboardHStackViewHeight = (orientation == .portrait)
-            ? UserDefaultsManager.shared.keyboardHeight
-            : KeyboardLayoutFigure.landscapeKeyboardHeight - suggestionBarHeight
+            if orientation == .portrait {
+                keyboardViewHeight = UserDefaultsManager.shared.keyboardHeight + suggestionBarHeight
+                keyboardHStackViewHeight = UserDefaultsManager.shared.keyboardHeight
+            } else {
+                keyboardViewHeight = KeyboardLayoutFigure.landscapeKeyboardHeight
+                keyboardHStackViewHeight = KeyboardLayoutFigure.landscapeKeyboardHeight - suggestionBarHeight
+            }
         } else {
             assertionFailure("View가 window 계층에 없습니다.")
             return
@@ -800,13 +800,13 @@ private extension BaseKeyboardViewController {
     }
     
     func updateSuggestionBarHidden() {
-        let prevSuggestionHiddenState = suggestionBarHStackView.isHidden
+        let prevSuggestionHiddenState = suggestionBarView.isHidden
         
         let shouldHideSuggestions = !UserDefaultsManager.shared.isPredictiveTextEnabled
         || textDocumentProxy.autocorrectionType == .no
         || currentKeyboard == .tenKey
         
-        suggestionBarHStackView.isHidden = shouldHideSuggestions
+        suggestionBarView.isHidden = shouldHideSuggestions
         suggestionController.isEnabled = !shouldHideSuggestions
         
         if prevSuggestionHiddenState != shouldHideSuggestions {
@@ -1019,14 +1019,14 @@ extension BaseKeyboardViewController: TextInteractionGestureControllerDelegate {
 
 extension BaseKeyboardViewController: SuggestionControllerDelegate {
     final func suggestionController(_ controller: SuggestionController, didUpdateCurrentWord currentWord: String?, suggestions: [String]) {
-        keyboardView.suggestionBarHStackView.updateSuggestions(currentWord: currentWord, suggestions: suggestions)
+        keyboardView.suggestionBarView.updateSuggestions(currentWord: currentWord, suggestions: suggestions)
     }
 }
 
 // MARK: - SuggestionBarDelegate
 
 extension BaseKeyboardViewController: SuggestionBarDelegate {
-    final func suggestionBar(_ bar: SuggestionBarHStackView, didSelectSuggestionAt index: Int) {
+    final func suggestionBar(_ bar: SuggestionBarView, didSelectSuggestionAt index: Int) {
         if suggestionController.currentMode == .nGram {
             guard let word = suggestionController.nGramSuggestionText(at: index) else { return }
             
