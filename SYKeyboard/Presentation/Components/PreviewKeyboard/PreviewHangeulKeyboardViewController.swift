@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+import SYKeyboardCore
 import HangeulKeyboardCore
 
 /// 한글 키보드 Preview
@@ -18,15 +19,26 @@ struct PreviewHangeulKeyboardViewController: UIViewControllerRepresentable {
     
     @Binding var keyboardHeight: Double
     @Binding var oneHandedKeyboardWidth: Double
+    @Binding var oneHandedMode: OneHandedMode
     
-    let displayOneHandedMode: Bool
+    class Coordinator: NSObject {
+        var parent: PreviewHangeulKeyboardViewController
+        
+        init(_ parent: PreviewHangeulKeyboardViewController) {
+            self.parent = parent
+        }
+    }
     
-    // MARK: - Internal Methods
+    // MARK: - UIViewControllerRepresentable Methods
+    
+    func makeCoordinator() -> Coordinator {
+        return Coordinator(self)
+    }
     
     func makeUIViewController(context: Context) -> HangeulKeyboardCoreViewController {
         let keyboard = HangeulKeyboardCoreViewController()
-        keyboard.isPreview = true
-        keyboard.previewOneHandedMode = displayOneHandedMode ? .right : .center
+        HangeulKeyboardCoreViewController.isPreview = true
+        keyboard.previewOneHandedMode = oneHandedMode
         
         let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene
         let screenWidth = windowScene?.screen.bounds.width ?? 0
@@ -34,10 +46,21 @@ struct PreviewHangeulKeyboardViewController: UIViewControllerRepresentable {
         keyboard.view.frame = CGRect(x: 0, y: 0, width: screenWidth, height: keyboardHeight)
         keyboard.view.layoutIfNeeded()
         
+        keyboard.onPreviewOneHandedModeChanged = { newMode in
+            DispatchQueue.main.async {
+                context.coordinator.parent.oneHandedMode = newMode
+            }
+        }
+        
         return keyboard
     }
     
     func updateUIViewController(_ uiViewController: HangeulKeyboardCoreViewController, context: Context) {
+        context.coordinator.parent = self
+        
         uiViewController.updateOneHandedWidthForPreview(to: oneHandedKeyboardWidth)
+        if uiViewController.previewOneHandedMode != oneHandedMode {
+            uiViewController.previewOneHandedMode = oneHandedMode
+        }
     }
 }

@@ -33,14 +33,6 @@ final public class ReturnButton: SecondaryButton, TextInteractable {
             primaryKeyListLabel.text = returnKeyType.title
             primaryKeyListLabel.font = .systemFont(ofSize: 18)
             switch button.state {
-            case .normal:
-                if isGesturing {
-                    primaryKeyListLabel.textColor = returnKeyType.highlightedColor
-                    backgroundView.backgroundColor = .secondaryButtonPressed
-                } else {
-                    primaryKeyListLabel.textColor = returnKeyType.normalColor
-                    backgroundView.backgroundColor = returnKeyType.backgroundColor
-                }
             case .highlighted:
                 if isPressed || isGesturing {
                     primaryKeyListLabel.textColor = returnKeyType.highlightedColor
@@ -50,7 +42,13 @@ final public class ReturnButton: SecondaryButton, TextInteractable {
                     backgroundView.backgroundColor = returnKeyType.backgroundColor
                 }
             default:
-                break
+                if isGesturing {
+                    primaryKeyListLabel.textColor = returnKeyType.highlightedColor
+                    backgroundView.backgroundColor = .secondaryButtonPressed
+                } else {
+                    primaryKeyListLabel.textColor = returnKeyType.normalColor
+                    backgroundView.backgroundColor = returnKeyType.backgroundColor
+                }
             }
         }
     }

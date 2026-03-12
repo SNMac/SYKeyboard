@@ -23,14 +23,19 @@ struct KeyboardHeightSettingsView: View {
     @AppStorage(UserDefaultsKeys.oneHandedKeyboardWidth, store: UserDefaultsManager.shared.storage)
     private var oneHandedKeyboardWidth = DefaultValues.oneHandedKeyboardWidth
     
+    @AppStorage(UserDefaultsKeys.isPredictiveTextEnabled, store: UserDefaultsManager.shared.storage)
+    private var isPredictiveTextEnabled = DefaultValues.isPredictiveTextEnabled
+    
     @AppStorage(UserDefaultsKeys.needsInputModeSwitchKey, store: UserDefaultsManager.shared.storage)
     private var needsInputModeSwitchKey = true
     
     @AppStorage("previewKeyboardLanguage") private var previewKeyboardLanguage: PreviewKeyboardLanguage = .hangeul
     
+    @State private var previewOneHandedMode: OneHandedMode = .center
     @State private var tempKeyboardHeight: Double = DefaultValues.keyboardHeight
+    @State private var previewKeyboardHeight: Double = DefaultValues.keyboardHeight
     
-    // MARK: - Contents
+    // MARK: - Content
     
     var body: some View {
         NavigationStack {
@@ -38,13 +43,16 @@ struct KeyboardHeightSettingsView: View {
             
             Spacer()
             
-            PreviewKeyboardView(keyboardHeight: $tempKeyboardHeight,
+            PreviewKeyboardView(keyboardHeight: $previewKeyboardHeight,
                                 oneHandedKeyboardWidth: $oneHandedKeyboardWidth,
                                 needsInputModeSwitchKey: $needsInputModeSwitchKey,
                                 previewKeyboardLanguage: $previewKeyboardLanguage,
-                                displayOneHandedMode: false)
+                                oneHandedMode: $previewOneHandedMode)
         }.onAppear {
             tempKeyboardHeight = keyboardHeight
+            updatePreviewKeyboardHeight()
+        }.onChange(of: tempKeyboardHeight) { _ in
+            updatePreviewKeyboardHeight()
         }.requestReviewViewModifier()
     }
 }
@@ -85,6 +93,8 @@ private extension KeyboardHeightSettingsView {
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
                     keyboardHeight = tempKeyboardHeight
+                    Analytics.setUserProperty(String(format: "%.1f", keyboardHeight),
+                                              forName: "pref_keyboard_height")
                     Analytics.logEvent("keyboard_height", parameters: [
                         "view": "KeyboardHeightSettingsView",
                         "value": keyboardHeight
@@ -97,6 +107,17 @@ private extension KeyboardHeightSettingsView {
                 }
             }
         }
+    }
+}
+
+// MARK: - Private Methods
+
+private extension KeyboardHeightSettingsView {
+    func updatePreviewKeyboardHeight() {
+        let suggestionBarHeight = isPredictiveTextEnabled
+        ? KeyboardLayoutFigure.suggestionBarHeight + KeyboardLayoutFigure.keyboardFrameSpacing
+        : 0
+        previewKeyboardHeight = tempKeyboardHeight + suggestionBarHeight
     }
 }
 

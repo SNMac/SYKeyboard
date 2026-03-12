@@ -23,14 +23,19 @@ struct OneHandedKeyboardWidthSettingsView: View {
     @AppStorage(UserDefaultsKeys.oneHandedKeyboardWidth, store: UserDefaultsManager.shared.storage)
     private var oneHandedKeyboardWidth = DefaultValues.oneHandedKeyboardWidth
     
+    @AppStorage(UserDefaultsKeys.isPredictiveTextEnabled, store: UserDefaultsManager.shared.storage)
+    private var isPredictiveTextEnabled = DefaultValues.isPredictiveTextEnabled
+    
     @AppStorage(UserDefaultsKeys.needsInputModeSwitchKey, store: UserDefaultsManager.shared.storage)
     private var needsInputModeSwitchKey = DefaultValues.needsInputModeSwitchKey
     
     @AppStorage("previewKeyboardLanguage") private var previewKeyboardLanguage: PreviewKeyboardLanguage = .hangeul
     
+    @State private var previewOneHandedMode: OneHandedMode = .right
+    @State private var previewKeyboardHeight: Double = DefaultValues.keyboardHeight
     @State private var tempOneHandedKeyboardWidth: Double = DefaultValues.oneHandedKeyboardWidth
     
-    // MARK: - Contents
+    // MARK: - Content
     
     var body: some View {
         NavigationStack {
@@ -38,13 +43,15 @@ struct OneHandedKeyboardWidthSettingsView: View {
             
             Spacer()
             
-            PreviewKeyboardView(keyboardHeight: $keyboardHeight,
+            PreviewKeyboardView(keyboardHeight: $previewKeyboardHeight,
                                 oneHandedKeyboardWidth: $tempOneHandedKeyboardWidth,
                                 needsInputModeSwitchKey: $needsInputModeSwitchKey,
                                 previewKeyboardLanguage: $previewKeyboardLanguage,
-                                displayOneHandedMode: true)
+                                oneHandedMode: $previewOneHandedMode)
         }.onAppear {
             tempOneHandedKeyboardWidth = oneHandedKeyboardWidth
+            updatePreviewKeyboardHeight()
+            updatePreviewLanguageBasedOnSystem()
         }.requestReviewViewModifier()
     }
 }
@@ -80,6 +87,8 @@ private extension OneHandedKeyboardWidthSettingsView {
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
                     oneHandedKeyboardWidth = tempOneHandedKeyboardWidth
+                    Analytics.setUserProperty(String(format: "%.1f", oneHandedKeyboardWidth),
+                                              forName: "pref_one_handed_width")
                     Analytics.logEvent("one_handed_keyboard_width", parameters: [
                         "view": "OneHandedKeyboardWidthSettingsView",
                         "value": oneHandedKeyboardWidth
@@ -91,6 +100,27 @@ private extension OneHandedKeyboardWidthSettingsView {
                         .fontWeight(.semibold)
                 }
             }
+        }
+    }
+}
+
+// MARK: - Private Methods
+
+private extension OneHandedKeyboardWidthSettingsView {
+    func updatePreviewKeyboardHeight() {
+        let suggestionBarHeight = isPredictiveTextEnabled
+        ? KeyboardLayoutFigure.suggestionBarHeight + KeyboardLayoutFigure.keyboardFrameSpacing
+        : 0
+        previewKeyboardHeight = keyboardHeight + suggestionBarHeight
+    }
+    
+    func updatePreviewLanguageBasedOnSystem() {
+        let currentLanguageCode = Bundle.main.preferredLocalizations.first ?? "ko"
+        
+        if currentLanguageCode.hasPrefix("ko") {
+            previewKeyboardLanguage = .hangeul
+        } else {
+            previewKeyboardLanguage = .english
         }
     }
 }

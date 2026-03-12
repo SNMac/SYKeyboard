@@ -16,11 +16,11 @@ struct InputSettingsView: View {
     
     // MARK: - Properties
     
-    @AppStorage(UserDefaultsKeys.isLongPressToNumberInputEnabled, store: UserDefaultsManager.shared.storage)
-    private var isLongPressToNumberInputEnabled = DefaultValues.isLongPressToNumberInputEnabled
+    @AppStorage(UserDefaultsKeys.selectedLongPressAction, store: UserDefaultsManager.shared.storage)
+    private var selectedLongPressAction = DefaultValues.selectedLongPressAction
     
-    @AppStorage(UserDefaultsKeys.isLongPressToRepeatInputEnabled, store: UserDefaultsManager.shared.storage)
-    private var isLongPressToRepeatInputEnabled = DefaultValues.isLongPressToRepeatInputEnabled
+    @AppStorage(UserDefaultsKeys.isPredictiveTextEnabled, store: UserDefaultsManager.shared.storage)
+    private var isPredictiveTextEnabled = DefaultValues.isPredictiveTextEnabled
     
     @AppStorage(UserDefaultsKeys.isAutoCapitalizationEnabled, store: UserDefaultsManager.shared.storage)
     private var isAutoCapitalizationEnabled = DefaultValues.isAutoCapitalizationEnabled
@@ -67,26 +67,11 @@ struct InputSettingsView: View {
     
     private var longPressModeBinding: Binding<LongPressMode> {
         Binding {
-            if isLongPressToRepeatInputEnabled {
-                return .repeatInput
-            } else if isLongPressToNumberInputEnabled {
-                return .numberInput
-            } else {
-                return .disabled
-            }
+            return LongPressMode(rawValue: selectedLongPressAction.rawValue) ?? .repeatInput
         } set: { newValue in
-            switch newValue {
-            case .repeatInput:
-                isLongPressToRepeatInputEnabled = true
-                isLongPressToNumberInputEnabled = false
-            case .numberInput:
-                isLongPressToRepeatInputEnabled = false
-                isLongPressToNumberInputEnabled = true
-            case .disabled:
-                isLongPressToRepeatInputEnabled = false
-                isLongPressToNumberInputEnabled = false
-            }
-            
+            selectedLongPressAction = LongPressAction(rawValue: newValue.rawValue) ?? .repeatInput
+            Analytics.setUserProperty(newValue.analyticsValue,
+                                      forName: "pref_long_press_action")
             Analytics.logEvent("selected_long_press_action", parameters: [
                 "view": "InputSettingsView",
                 "selection": newValue.analyticsValue
@@ -95,7 +80,7 @@ struct InputSettingsView: View {
         }
     }
     
-    // MARK: - Contents
+    // MARK: - Content
     
     var body: some View {
         Picker("길게 누르기 동작", selection: longPressModeBinding) {
@@ -112,9 +97,11 @@ struct InputSettingsView: View {
             Text("자동 대문자")
         })
         .onChange(of: isAutoCapitalizationEnabled) { newValue in
+            Analytics.setUserProperty(newValue.analyticsValue,
+                                      forName: "pref_auto_capitalization")
             Analytics.logEvent("auto_capitalization", parameters: [
                 "view": "InputSettingsView",
-                "enabled": newValue ? "on" : "off"
+                "enabled": newValue.analyticsValue
             ])
             hideKeyboard()
         }
@@ -125,9 +112,26 @@ struct InputSettingsView: View {
                 .font(.caption)
         })
         .onChange(of: isTextReplacementEnabled) { newValue in
+            Analytics.setUserProperty(newValue.analyticsValue,
+                                      forName: "pref_text_replacement")
             Analytics.logEvent("text_replacement", parameters: [
                 "view": "InputSettingsView",
-                "enabled": newValue ? "on" : "off"
+                "enabled": newValue.analyticsValue
+            ])
+            hideKeyboard()
+        }
+        
+        Toggle(isOn: $isPredictiveTextEnabled, label: {
+            Text("자동완성 텍스트")
+            Text("키보드 상단에 자동완성 텍스트 표시")
+                .font(.caption)
+        })
+        .onChange(of: isPredictiveTextEnabled) { newValue in
+            Analytics.setUserProperty(newValue.analyticsValue,
+                                      forName: "pref_predictive_text")
+            Analytics.logEvent("predictive_text", parameters: [
+                "view": "InputSettingsView",
+                "enabled": newValue.analyticsValue
             ])
             hideKeyboard()
         }
@@ -138,9 +142,11 @@ struct InputSettingsView: View {
                 .font(.caption)
         })
         .onChange(of: isPeriodShortcutEnabled) { newValue in
-            Analytics.logEvent("input_settings", parameters: [
+            Analytics.setUserProperty(newValue.analyticsValue,
+                                      forName: "pref_period_shortcut")
+            Analytics.logEvent("period_shortcut", parameters: [
                 "view": "InputSettingsView",
-                "enabled": newValue ? "on" : "off"
+                "enabled": newValue.analyticsValue
             ])
             hideKeyboard()
         }
@@ -151,9 +157,11 @@ struct InputSettingsView: View {
                 .font(.caption)
         })
         .onChange(of: isAutoChangeToPrimaryEnabled) { newValue in
+            Analytics.setUserProperty(newValue.analyticsValue,
+                                      forName: "pref_auto_change_primary")
             Analytics.logEvent("auto_change_to_primary", parameters: [
                 "view": "InputSettingsView",
-                "enabled": newValue ? "on" : "off"
+                "enabled": newValue.analyticsValue
             ])
             hideKeyboard()
         }
@@ -162,15 +170,19 @@ struct InputSettingsView: View {
             Text("드래그하여 커서 이동")
         })
         .onChange(of: isDragToMoveCursorEnabled) { newValue in
+            Analytics.setUserProperty(newValue.analyticsValue,
+                                      forName: "pref_drag_to_move_cursor")
             Analytics.logEvent("drag_to_move_cursor", parameters: [
                 "view": "InputSettingsView",
-                "enabled": newValue ? "on" : "off"
+                "enabled": newValue.analyticsValue
             ])
             hideKeyboard()
         }
         
-        NavigationLink("커서 이동") {
-            CursorMovementSettingsView()
+        if isDragToMoveCursorEnabled {
+            NavigationLink("커서 이동") {
+                CursorMovementSettingsView()
+            }
         }
     }
 }

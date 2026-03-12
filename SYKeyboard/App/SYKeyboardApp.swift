@@ -14,6 +14,8 @@ import FirebaseAnalytics
 import FirebaseCrashlytics
 import GoogleMobileAds
 
+import SYKeyboardCore
+
 final class AppDelegate: UIResponder, UIApplicationDelegate {
     
     // MARK: - Properties
@@ -36,6 +38,8 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
         Analytics.setUserID(idfv)
         Crashlytics.crashlytics().setUserID(idfv)
         
+        setInitialUserProperties()
+        
         // AdMob 로딩
         Task {
             let initializationStatus = await MobileAds.shared.start()
@@ -45,6 +49,56 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
         }
         
         return true
+    }
+    
+    // MARK: - Helper Methods
+    
+    /// 앱 실행 시 현재 `UserDefaults`에 저장된 설정값들을 Firebase Analytics User Property로 전송합니다.
+    private func setInitialUserProperties() {
+        let keyboardSettingsManager = UserDefaultsManager.shared
+        
+        func setAnalyticsProperty(_ string: String, forName name: String) {
+            Analytics.setUserProperty(string, forName: name)
+        }
+        
+        func setAnalyticsProperty(_ bool: Bool, forName name: String) {
+            Analytics.setUserProperty(bool.analyticsValue, forName: name)
+        }
+        
+        func setAnalyticsProperty(_ double: Double, format: String, forName name: String) {
+            Analytics.setUserProperty(String(format: format, double), forName: name)
+        }
+        
+        // 한글 키보드
+        let selectedHangeulKeyboardRaw = keyboardSettingsManager.selectedHangeulKeyboard.rawValue
+        let hangeulKeyboard = HangeulKeyboardSelectView.HangeulKeyboard(rawValue: selectedHangeulKeyboardRaw) ?? .naratgeul
+        setAnalyticsProperty(hangeulKeyboard.analyticsValue, forName: "pref_hangeul_keyboard")
+        
+        // 피드백 설정
+        setAnalyticsProperty(keyboardSettingsManager.isSoundFeedbackEnabled, forName: "pref_sound_feedback")
+        setAnalyticsProperty(keyboardSettingsManager.isHapticFeedbackEnabled, forName: "pref_haptic_feedback")
+        
+        // 입력 설정
+        let selectedLongPressActionRaw = keyboardSettingsManager.selectedLongPressAction.rawValue
+        let longPressMode = InputSettingsView.LongPressMode(rawValue: selectedLongPressActionRaw) ?? .repeatInput
+        setAnalyticsProperty(longPressMode.analyticsValue, forName: "pref_long_press_action")
+        setAnalyticsProperty(keyboardSettingsManager.longPressDuration, format: "%.2f", forName: "pref_long_press_duration")
+        setAnalyticsProperty(keyboardSettingsManager.repeatRate, format: "%.3f", forName: "pref_repeat_rate")
+        setAnalyticsProperty(keyboardSettingsManager.isAutoCapitalizationEnabled, forName: "pref_auto_capitalization")
+        setAnalyticsProperty(keyboardSettingsManager.isTextReplacementEnabled, forName: "pref_text_replacement")
+        setAnalyticsProperty(keyboardSettingsManager.isPeriodShortcutEnabled, forName: "pref_period_shortcut")
+        setAnalyticsProperty(keyboardSettingsManager.isAutoChangeToPrimaryEnabled, forName: "pref_auto_change_primary")
+        setAnalyticsProperty(keyboardSettingsManager.isDragToMoveCursorEnabled, forName: "pref_drag_to_move_cursor")
+        setAnalyticsProperty(keyboardSettingsManager.cursorActiveDistance, format: "%.1f", forName: "pref_cursor_atv_distance")
+        setAnalyticsProperty(keyboardSettingsManager.cursorMoveInterval, format: "%.1f", forName: "pref_cursor_mv_interval")
+        
+        // 외형 설정
+        setAnalyticsProperty(keyboardSettingsManager.keyboardHeight, format: "%.1f", forName: "pref_keyboard_height")
+        setAnalyticsProperty(keyboardSettingsManager.isNumericKeypadEnabled, forName: "pref_numeric_keypad")
+        setAnalyticsProperty(keyboardSettingsManager.isOneHandedKeyboardEnabled, forName: "pref_one_handed_keyboard")
+        setAnalyticsProperty(keyboardSettingsManager.oneHandedKeyboardWidth, format: "%.1f", forName: "pref_one_handed_width")
+        
+        logger.debug("Firebase Analytics User Properties 초기화 완료")
     }
 }
 
@@ -59,7 +113,7 @@ struct SYKeyboardApp: App {
     
     @Environment(\.openURL) var openURL
     
-    // MARK: - Contents
+    // MARK: - Content
     
     var body: some Scene {
         WindowGroup {

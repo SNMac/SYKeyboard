@@ -14,14 +14,14 @@ public enum UserDefaultsKeys {
     public static let isHapticFeedbackEnabled = "isHapticFeedbackEnabled"
     
     /* 입력 설정 */
-    /// 길게 누르기 동작 - 반복 입력
-    public static let isLongPressToRepeatInputEnabled = "isLongPressToRepeatInputEnabled"
-    /// 길게 누르기 동작 - 숫자 입력
-    public static let isLongPressToNumberInputEnabled = "isLongPressToNumberInputEnabled"
+    /// 선택한 길게 누르기 동작
+    public static let selectedLongPressAction = "selectedLongPressAction"
     /// 드래그하여 커서 이동
     public static let isDragToMoveCursorEnabled = "isDragToMoveCursorEnabled"
     /// 텍스트 대치
     public static let isTextReplacementEnabled = "isTextReplacementEnabled"
+    /// 자동완성 텍스트
+    public static let isPredictiveTextEnabled = "isPredictiveTextEnabled"
     /// '.' 단축키
     public static let isPeriodShortcutEnabled = "isPeriodShortcutEnabled"
     /// 스페이스/리턴 입력 후 주 키보드로 변경
@@ -52,12 +52,6 @@ public enum UserDefaultsKeys {
     public static let needsInputModeSwitchKey = "needsInputModeSwitchKey"
     /// 한 손 키보드 저장용
     public static let lastOneHandedMode = "lastOneHandedMode"
-    /// 온보딩 여부
-    public static let isOnboarding = "isOnboarding"
     /// 전체 접근 허용 안내 오버레이 닫음 여부
     public static let isRequestFullAccessOverlayClosed = "isRequestFullAccessOverlayClosed"
-    /// 앱의 특정 기능 또는 키보드를 실행한 횟수
-    public static let reviewCounter = "reviewCounter"
-    /// 마지막으로 리뷰를 요청한 빌드
-    public static let lastBuildPromptedForReview = "lastBuildPromptedForReview"
 }

@@ -14,8 +14,6 @@ open class EnglishKeyboardCoreViewController: BaseKeyboardViewController {
     
     // MARK: - Properties
     
-    /// 현재 반복 입력 동작 중인지 확인하는 플래그
-    private var isRepeatingInput: Bool = false
     /// 대문자가 입력되었는지 확인하는 플래그
     private var isUppercaseInput: Bool = false
     
@@ -31,9 +29,9 @@ open class EnglishKeyboardCoreViewController: BaseKeyboardViewController {
     
     // MARK: - Initializer
     
-    public override init(nibName nibNameOrNil: String?, bundle nibBundleOrNil: Bundle?) {
+    public init() {
         SwitchButton.previewPrimaryLanguage = "en-US"
-        super.init(nibName: nibNameOrNil, bundle: nibBundleOrNil)
+        super.init(textCheckerLanguages: ["en_US"])
     }
     
     @MainActor required public init?(coder: NSCoder) {
@@ -42,8 +40,8 @@ open class EnglishKeyboardCoreViewController: BaseKeyboardViewController {
     
     // MARK: - Override Methods
     
-    open override func textWillChange(_ textInput: (any UITextInput)?) {
-        super.textWillChange(textInput)
+    open override func textDidChange(_ textInput: (any UITextInput)?) {
+        super.textDidChange(textInput)
         updateShiftButton()
     }
     
@@ -57,19 +55,15 @@ open class EnglishKeyboardCoreViewController: BaseKeyboardViewController {
         switch textDocumentProxy.keyboardType {
         case .default, nil:
             englishKeyboardView.currentEnglishKeyboardMode = .default
-            symbolKeyboardView.currentSymbolKeyboardMode = .default
             currentKeyboard = .qwerty
         case .asciiCapable:
             englishKeyboardView.currentEnglishKeyboardMode = .default
-            symbolKeyboardView.currentSymbolKeyboardMode = .default
             currentKeyboard = .qwerty
         case .numbersAndPunctuation:
             englishKeyboardView.currentEnglishKeyboardMode = .default
-            symbolKeyboardView.currentSymbolKeyboardMode = .default
             currentKeyboard = .symbol
         case .URL:
             englishKeyboardView.currentEnglishKeyboardMode = .URL
-            symbolKeyboardView.currentSymbolKeyboardMode = .URL
             currentKeyboard = .qwerty
         case .numberPad:
             tenkeyKeyboardView.currentTenkeyKeyboardMode = .numberPad
@@ -80,18 +74,15 @@ open class EnglishKeyboardCoreViewController: BaseKeyboardViewController {
             currentKeyboard = .tenKey
         case .emailAddress:
             englishKeyboardView.currentEnglishKeyboardMode = .emailAddress
-            symbolKeyboardView.currentSymbolKeyboardMode = .emailAddress
             currentKeyboard = .qwerty
         case .decimalPad:
             tenkeyKeyboardView.currentTenkeyKeyboardMode = .decimalPad
             currentKeyboard = .tenKey
         case .twitter:
             englishKeyboardView.currentEnglishKeyboardMode = .twitter
-            symbolKeyboardView.currentSymbolKeyboardMode = .default
             currentKeyboard = .qwerty
         case .webSearch:
             englishKeyboardView.currentEnglishKeyboardMode = .webSearch
-            symbolKeyboardView.currentSymbolKeyboardMode = .webSearch
             currentKeyboard = .qwerty
         case .asciiCapableNumberPad:
             tenkeyKeyboardView.currentTenkeyKeyboardMode = .numberPad
@@ -99,7 +90,6 @@ open class EnglishKeyboardCoreViewController: BaseKeyboardViewController {
         @unknown default:
             assertionFailure("구현이 필요한 case 입니다.")
             englishKeyboardView.currentEnglishKeyboardMode = .default
-            symbolKeyboardView.currentSymbolKeyboardMode = .default
             currentKeyboard = .qwerty
         }
     }
@@ -112,26 +102,20 @@ open class EnglishKeyboardCoreViewController: BaseKeyboardViewController {
         if !isRepeatingInput { updateShiftButton() }
     }
     
-    open override func repeatTextInteractionWillPerform(button: any TextInteractable) {
-        isRepeatingInput = true
-        super.repeatTextInteractionWillPerform(button: button)
-    }
-    
     open override func repeatTextInteractionDidPerform(button: TextInteractable) {
         super.repeatTextInteractionDidPerform(button: button)
-        isRepeatingInput = false
         updateShiftButton()
     }
     
     open override func insertPrimaryKeyText(from button: TextInteractable) {
-        if isPreview { return }
+        if BaseKeyboardViewController.isPreview { return }
         
         guard let primaryKey = button.type.primaryKeyList.first else { fatalError("keys 배열이 비어있습니다.") }
         textDocumentProxy.insertText(primaryKey)
     }
     
     open override func insertSecondaryKeyText(from button: TextInteractable) {
-        if isPreview { return }
+        if BaseKeyboardViewController.isPreview { return }
         
         guard let secondaryKey = button.type.secondaryKey else {
             assertionFailure("secondaryKey가 nil입니다.")
@@ -141,7 +125,7 @@ open class EnglishKeyboardCoreViewController: BaseKeyboardViewController {
     }
     
     open override func repeatInsertPrimaryKeyText(from button: TextInteractable) {
-        if isPreview { return }
+        if BaseKeyboardViewController.isPreview { return }
         
         guard let primaryKey = button.type.primaryKeyList.first else {
             assertionFailure("keys 배열이 비어있습니다.")
@@ -173,7 +157,7 @@ private extension EnglishKeyboardCoreViewController {
             }
         }
         
-        primaryKeyboardView.updateShiftButton(isShifted: shouldShift)
+        primaryKeyboardView.updateShiftButton(to: shouldShift)
         isUppercaseInput = false
     }
 }

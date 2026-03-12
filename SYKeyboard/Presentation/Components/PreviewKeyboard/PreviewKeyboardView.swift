@@ -7,6 +7,8 @@
 
 import SwiftUI
 
+import SYKeyboardCore
+
 struct PreviewKeyboardView: View {
     
     // MARK: - Properties
@@ -15,10 +17,9 @@ struct PreviewKeyboardView: View {
     @Binding var oneHandedKeyboardWidth: Double
     @Binding var needsInputModeSwitchKey: Bool
     @Binding var previewKeyboardLanguage: PreviewKeyboardLanguage
+    @Binding var oneHandedMode: OneHandedMode
     
-    let displayOneHandedMode: Bool
-    
-    // MARK: - Contents
+    // MARK: - Content
     
     var body: some View {
         Picker(selection: $previewKeyboardLanguage, label: Text("키보드 언어")) {
@@ -45,7 +46,7 @@ private extension PreviewKeyboardView {
     var previewHangeulKeyboard: some View {
         PreviewHangeulKeyboardViewController(keyboardHeight: $keyboardHeight,
                                              oneHandedKeyboardWidth: $oneHandedKeyboardWidth,
-                                             displayOneHandedMode: displayOneHandedMode)
+                                             oneHandedMode: $oneHandedMode)
         .frame(height: keyboardHeight)
         .background(.keyboardBackground)
         .padding(.bottom, needsInputModeSwitchKey ? 0 : 40)
@@ -54,7 +55,7 @@ private extension PreviewKeyboardView {
     var previewEnglishKeyboard: some View {
         PreviewEnglishKeyboardViewController(keyboardHeight: $keyboardHeight,
                                              oneHandedKeyboardWidth: $oneHandedKeyboardWidth,
-                                             displayOneHandedMode: displayOneHandedMode)
+                                             oneHandedMode: $oneHandedMode)
         .frame(height: keyboardHeight)
         .background(.keyboardBackground)
         .padding(.bottom, needsInputModeSwitchKey ? 0 : 40)
