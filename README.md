@@ -21,8 +21,9 @@
 
 ## 👥 대상 사용자
 - 나랏글/천지인 키보드를 사용 중이거나 입문하는 사람
-- 편의 기능이 있는 키보드를 사용해 보고 싶은 사람
-- 키보드 자체 기능을 중시한 키보드 앱을 찾는 사람
+-  키보드 앱을 찾는 사람
+- 키보드 자체 기능과 더불어 기본적인 편의 기능이 있는 키보드를 사용해 보고 싶은 사람
+  - 한 손 키보드, 키보드 높이 조절, 자동완성 문구 추천 등
 - 한글 키보드를 사용해 보고 싶은 외국인
 
 <br><br>
@@ -730,13 +731,23 @@ direction LR
 <br><br>
 
 
-7. **다양하고 디테일한 키보드 설정**  
+7. **자동완성 문구**  
+입력한 단어에 맞는 자동완성 문구를 추천합니다.
+
+|    한국어    |   영어   |
+| :-------------: | :----------: |
+| <img width="300" alt="자동완성" src="https://github.com/user-attachments/assets/a6973023-601f-4310-82f3-a23c687805d8"> | <img width="300" alt="자동완성 - 영어" src="https://github.com/user-attachments/assets/2416ad73-b1c6-43f8-a1c7-b818a1224348"> |
+
+<br><br>
+
+
+8. **다양하고 디테일한 키보드 설정**  
 길게 누르기 동작, 커서 이동, 키보드 높이 및 한 손 키보드 너비 조절 등 사용자의 편의에 맞게 키보드 설정이 가능합니다.
 
 |    한국어    |   영어   |
 | :-------------: | :----------: |
-| <img width="300" alt="메인 앱 1" src="https://github.com/user-attachments/assets/7f645a08-d9c3-4ed2-8b0e-48051540611d"> | <img width="300" alt="메인 앱 1 - 영어" src="https://github.com/user-attachments/assets/af458496-f058-4cc6-a1d1-bdfb7ba66712"> |
-| <img width="300" alt="메인 앱 2" src="https://github.com/user-attachments/assets/139c31a4-1786-4def-a7f1-5b21255555ac" width="300"> | <img width="300" alt="메인 앱 2 - 영어" src="https://github.com/user-attachments/assets/5f8d080f-da82-4f0b-894b-49fa371224dc" width="300"> |
+| <img width="300" alt="메인 앱 1" src="https://github.com/user-attachments/assets/bde6db7a-afdb-4e6a-a010-7509e312a251"> | <img width="300" alt="메인 앱 1 - 영어" src="https://github.com/user-attachments/assets/ebf5b3ca-3187-4c90-b058-1ae288f139a1"> |
+| <img width="300" alt="메인 앱 2" src="https://github.com/user-attachments/assets/ddc33920-46bf-4834-8824-451686b71ab0" width="300"> | <img width="300" alt="메인 앱 2 - 영어" src="https://github.com/user-attachments/assets/a4d4fbfe-0718-4a2c-944e-4cb5c6c97e69" width="300"> |
 | <img width="300" alt="메인 앱 3" src="https://github.com/user-attachments/assets/7cb7a502-c769-4fae-80e9-b83fce0886aa" width="300"> | <img width="300" alt="메인 앱 3 - 영어" src="https://github.com/user-attachments/assets/bc8d8ffe-a511-443c-a661-88438df14275" width="300"> |
 
 <br><br>
