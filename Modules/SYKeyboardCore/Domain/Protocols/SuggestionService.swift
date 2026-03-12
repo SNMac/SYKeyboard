@@ -35,6 +35,9 @@ protocol SuggestionService: AnyObject {
     /// `false`로 설정하면 후보 연산을 건너뛰고 현재 후보를 초기화합니다.
     var isEnabled: Bool { get set }
     
+    /// 현재 SuggestionBar의 표시 모드
+    var currentMode: SuggestionMode { get }
+    
     // MARK: - Lexicon
     
     /// `UIInputViewController`로부터 `UILexicon`을 로드합니다.
@@ -57,6 +60,12 @@ protocol SuggestionService: AnyObject {
     /// - Parameter contextBeforeInput: 커서 앞의 텍스트 (`documentContextBeforeInput`)
     func updateSuggestions(contextBeforeInput: String?)
     
+    /// n-gram 추천 탭 후 강제로 n-gram 갱신을 시도하고,
+    /// 결과가 없으면 입력 중 모드로 폴백합니다.
+    ///
+    /// - Parameter contextBeforeInput: 커서 앞의 텍스트
+    func updateSuggestionsAfterNGramSelection(contextBeforeInput: String?)
+    
     /// 모든 후보를 초기화합니다.
     func clearSuggestions()
     
@@ -71,6 +80,12 @@ protocol SuggestionService: AnyObject {
     func selectSuggestion(at index: Int, contextBeforeInput: String?) -> (deleteCount: Int, insertText: String)?
     
     /// n-gram 모드에서 특정 인덱스의 후보 텍스트를 반환합니다.
+    ///
+    /// `selectSuggestion`은 마지막 문자가 공백일 때 `nil`을 반환하므로,
+    /// n-gram 모드에서는 이 메서드로 후보를 직접 가져와 삽입합니다.
+    ///
+    /// - Parameter index: 선택된 후보의 인덱스 (0~2)
+    /// - Returns: 후보 텍스트, 유효하지 않거나 n-gram 출처가 아니면 `nil`
     func nGramSuggestionText(at index: Int) -> String?
     
     // MARK: - Learning
