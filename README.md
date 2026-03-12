@@ -676,7 +676,7 @@ direction LR
 
 |    한국어    |   영어   |
 | :-------------: | :----------: |
-| <img width="300" alt="나랏글" src="https://github.com/user-attachments/assets/15493bed-ac5e-4a2c-899b-47d856f40364"> | <img width="300" alt="나랏글 - 영어" src="https://github.com/user-attachments/assets/97685cc5-8b97-4698-9715-586f860199c3"> |
+| <img width="300" alt="나랏글" src="https://github.com/user-attachments/assets/9d171154-d82d-4df0-8faa-2db1ec9d17f0"> | <img width="300" alt="나랏글 - 영어" src="https://github.com/user-attachments/assets/f8e7f761-11c1-4765-8e29-0b1217888bb7"> |
 
 <br><br>
 
@@ -686,7 +686,7 @@ direction LR
 
 |    한국어    |   영어   |
 | :-------------: | :----------: |
-| <img width="300" alt="천지인" src="https://github.com/user-attachments/assets/ca129e21-e852-4ae3-b377-78402414b42f"> | <img width="300" alt="천지인 - 영어" src="https://github.com/user-attachments/assets/9326e623-c338-4473-bf1a-ab9282d8e7dd"> |
+| <img width="300" alt="천지인" src="https://github.com/user-attachments/assets/ba3114d3-ddb3-4c10-8c8c-2cc808fc4e6f"> | <img width="300" alt="천지인 - 영어" src="https://github.com/user-attachments/assets/639a7456-aa93-4692-93f6-f02082f4e4e7"> |
 
 <br><br>
 
@@ -696,7 +696,7 @@ direction LR
 
 |    한국어    |   영어   |
 | :-------------: | :----------: |
-| <img width="300" alt="두벌식" src="https://github.com/user-attachments/assets/aaf9392b-9e2b-4d84-ae08-d74af635c531"> | <img width="300" alt="두벌식 - 영어" src="https://github.com/user-attachments/assets/615421f0-780d-422b-8c9e-761303092058"> |
+| <img width="300" alt="두벌식" src="https://github.com/user-attachments/assets/9c1e00d9-ad12-4794-9274-56ae2e152ea6"> | <img width="300" alt="두벌식 - 영어" src="https://github.com/user-attachments/assets/a1ce6b2f-4fca-4631-8460-6b1c47e37903"> |
 
 <br><br>
 
@@ -706,7 +706,7 @@ direction LR
 
 |    한국어    |   영어   |
 | :-------------: | :----------: |
-| <img width="300" alt="쿼티" src="https://github.com/user-attachments/assets/b121994d-4ff6-4050-a5f4-c26706a8ebde"> | <img width="300" alt="쿼티 - 영어" src="https://github.com/user-attachments/assets/5ed489c4-6538-4be9-b00d-cc860ef172c3"> |
+| <img width="300" alt="쿼티" src="https://github.com/user-attachments/assets/9f0161cf-bf3b-4fde-9547-6fac22f36c40"> | <img width="300" alt="쿼티 - 영어" src="https://github.com/user-attachments/assets/b380b083-1d1b-48a7-b46a-ef80711b4b52"> |
 
 <br><br>
 
@@ -716,7 +716,7 @@ direction LR
 
 |    한국어    |   영어   |
 | :-------------: | :----------: |
-| <img width="300" alt="숫자 키패드" src="https://github.com/user-attachments/assets/2c68169f-4dcb-4732-90a2-fa415885cd0e"> | <img width="300" alt="숫자 키패드 - 영어" src="https://github.com/user-attachments/assets/4c48f4fa-d50a-49bf-8e72-479aa9185a25"> |
+| <img width="300" alt="숫자 키패드" src="https://github.com/user-attachments/assets/9b350f24-5a04-478d-a9d4-a4e1aa47bc6f"> | <img width="300" alt="숫자 키패드 - 영어" src="https://github.com/user-attachments/assets/0079d83c-c405-4b25-b21b-c86bbeeabef9"> |
 
 <br><br>
 
@@ -726,7 +726,7 @@ direction LR
 
 |    한국어    |   영어   |
 | :-------------: | :----------: |
-| <img width="300" alt="한 손 키보드" src="https://github.com/user-attachments/assets/fbb6019e-dbd5-4bb4-9d83-c4164a9502d4"> | <img width="300" alt="한 손 키보드 - 영어" src="https://github.com/user-attachments/assets/764c0f9f-9296-4b7d-a5cc-125a113b6beb"> |
+| <img width="300" alt="한 손 키보드" src="https://github.com/user-attachments/assets/fae0d5fd-c3a9-4a72-b55f-3ce32acffa36"> | <img width="300" alt="한 손 키보드 - 영어" src="https://github.com/user-attachments/assets/b9462ec1-d47a-4adf-b872-ad414b20f699"> |
 
 <br><br>
 
@@ -736,7 +736,7 @@ direction LR
 
 |    한국어    |   영어   |
 | :-------------: | :----------: |
-| <img width="300" alt="자동완성" src="https://github.com/user-attachments/assets/a6973023-601f-4310-82f3-a23c687805d8"> | <img width="300" alt="자동완성 - 영어" src="https://github.com/user-attachments/assets/2416ad73-b1c6-43f8-a1c7-b818a1224348"> |
+| <img width="300" alt="자동완성" src="https://github.com/user-attachments/assets/79397f49-fa0b-4a34-a52c-411254b58672"> | <img width="300" alt="자동완성 - 영어" src="https://github.com/user-attachments/assets/6e668b4b-e2be-4da0-b2f8-342c226858e3"> |
 
 <br><br>
 
@@ -746,9 +746,9 @@ direction LR
 
 |    한국어    |   영어   |
 | :-------------: | :----------: |
-| <img width="300" alt="메인 앱 1" src="https://github.com/user-attachments/assets/bde6db7a-afdb-4e6a-a010-7509e312a251"> | <img width="300" alt="메인 앱 1 - 영어" src="https://github.com/user-attachments/assets/ebf5b3ca-3187-4c90-b058-1ae288f139a1"> |
-| <img width="300" alt="메인 앱 2" src="https://github.com/user-attachments/assets/ddc33920-46bf-4834-8824-451686b71ab0" width="300"> | <img width="300" alt="메인 앱 2 - 영어" src="https://github.com/user-attachments/assets/a4d4fbfe-0718-4a2c-944e-4cb5c6c97e69" width="300"> |
-| <img width="300" alt="메인 앱 3" src="https://github.com/user-attachments/assets/7cb7a502-c769-4fae-80e9-b83fce0886aa" width="300"> | <img width="300" alt="메인 앱 3 - 영어" src="https://github.com/user-attachments/assets/bc8d8ffe-a511-443c-a661-88438df14275" width="300"> |
+| <img width="300" alt="메인 앱 1" src="https://github.com/user-attachments/assets/9bb71497-459a-48b5-9937-f9946f9d56c2"> | <img width="300" alt="메인 앱 1 - 영어" src="https://github.com/user-attachments/assets/92645ff2-ab29-4666-85a1-98409299ee8a"> |
+| <img width="300" alt="메인 앱 2" src="https://github.com/user-attachments/assets/f7de1552-65ce-49cd-841e-0ea68b730093" width="300"> | <img width="300" alt="메인 앱 2 - 영어" src="https://github.com/user-attachments/assets/c5b59eda-dfe7-442e-8993-80dd7712d2ea" width="300"> |
+| <img width="300" alt="메인 앱 3" src="https://github.com/user-attachments/assets/c9ce4a05-0061-45ea-b5ae-46072c5ac976" width="300"> | <img width="300" alt="메인 앱 3 - 영어" src="https://github.com/user-attachments/assets/968b4cc3-562f-47d5-b097-bc055e932531" width="300"> |
 
 <br><br>
 

@@ -10,6 +10,10 @@ import UIKit
 import SYKeyboardCore
 
 /// 영어 키보드 입력/UI 컨트롤러
+///
+/// `textDocumentProxy` 조작은 `BaseKeyboardViewController`의 래핑 메서드
+/// (`insertText`, `deleteText`, `replaceText`)를 통해 수행하여
+/// `inputBuffer`가 항상 자동 동기화됩니다.
 open class EnglishKeyboardCoreViewController: BaseKeyboardViewController {
     
     // MARK: - Properties
@@ -31,7 +35,7 @@ open class EnglishKeyboardCoreViewController: BaseKeyboardViewController {
     
     public init() {
         SwitchButton.previewPrimaryLanguage = "en-US"
-        super.init(textCheckerLanguages: ["en_US"])
+        super.init(language: "en-US")
     }
     
     @MainActor required public init?(coder: NSCoder) {
@@ -69,7 +73,6 @@ open class EnglishKeyboardCoreViewController: BaseKeyboardViewController {
             tenkeyKeyboardView.currentTenkeyKeyboardMode = .numberPad
             currentKeyboard = .tenKey
         case .phonePad, .namePhonePad:
-            // 항상 iOS 시스템 키보드 표시됨
             tenkeyKeyboardView.currentTenkeyKeyboardMode = .numberPad
             currentKeyboard = .tenKey
         case .emailAddress:
@@ -111,7 +114,7 @@ open class EnglishKeyboardCoreViewController: BaseKeyboardViewController {
         if BaseKeyboardViewController.isPreview { return }
         
         guard let primaryKey = button.type.primaryKeyList.first else { fatalError("keys 배열이 비어있습니다.") }
-        textDocumentProxy.insertText(primaryKey)
+        insertText(primaryKey)
     }
     
     open override func insertSecondaryKeyText(from button: TextInteractable) {
@@ -121,7 +124,7 @@ open class EnglishKeyboardCoreViewController: BaseKeyboardViewController {
             assertionFailure("secondaryKey가 nil입니다.")
             return
         }
-        textDocumentProxy.insertText(secondaryKey)
+        insertText(secondaryKey)
     }
     
     open override func repeatInsertPrimaryKeyText(from button: TextInteractable) {
@@ -131,7 +134,7 @@ open class EnglishKeyboardCoreViewController: BaseKeyboardViewController {
             assertionFailure("keys 배열이 비어있습니다.")
             return
         }
-        textDocumentProxy.insertText(primaryKey)
+        insertText(primaryKey)
     }
 }
 
@@ -140,7 +143,6 @@ open class EnglishKeyboardCoreViewController: BaseKeyboardViewController {
 private extension EnglishKeyboardCoreViewController {
     /// Shift 버튼을 상황에 맞게 업데이트하는 메서드
     func updateShiftButton() {
-        // Shift 버튼이 눌려있는 경우 실행 X
         guard !buttonStateController.isShiftButtonPressed else { return }
         
         var shouldShift: Bool = false

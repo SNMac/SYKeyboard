@@ -17,10 +17,10 @@ import UIKit
 /// - `SuggestionController`: `UILexicon` + `UITextChecker` + n-gram을 조합한 기본 구현
 ///
 /// ## 동작 흐름
-/// 1. **입력 중**: `updateSuggestions(contextBeforeInput:)`로 후보 갱신
-/// 2. **후보 탭**: `selectSuggestion(at:contextBeforeInput:)`로 현재 단어 교체
-/// 3. **스페이스**: `attemptTextReplacement(contextBeforeInput:)`로 텍스트 대치 수행, `recordWord(_:)`로 n-gram 기록
-/// 4. **삭제**: `attemptRestoreReplacement(contextBeforeInput:)`로 대치 복구
+/// 1. **입력 중**: `updateSuggestions(inputBuffer:)`로 후보 갱신
+/// 2. **후보 탭**: `selectSuggestion(at:inputBuffer:)`로 현재 단어 교체
+/// 3. **스페이스**: `attemptTextReplacement(inputBuffer:)`로 텍스트 대치 수행, `recordWord(_:)`로 n-gram 기록
+/// 4. **삭제**: `attemptRestoreReplacement(inputBuffer:)`로 대치 복구
 /// 5. **리턴**: `endSentence()`로 n-gram 문장 버퍼 초기화
 /// 6. **기타 키 입력**: `clearIgnoredShortcut()`으로 재대치 방지 상태 초기화
 protocol SuggestionService: AnyObject {
@@ -49,7 +49,7 @@ protocol SuggestionService: AnyObject {
     
     // MARK: - Suggestions
     
-    /// 현재 입력 컨텍스트를 기반으로 후보를 갱신합니다.
+    /// 현재 입력 버퍼를 기반으로 후보를 갱신합니다.
     ///
     /// 갱신 결과는 `delegate`의
     /// `SuggestionControllerDelegate/suggestionController(_:didUpdateCurrentWord:suggestions:)`를 통해 전달됩니다.
@@ -57,14 +57,14 @@ protocol SuggestionService: AnyObject {
     /// 입력 중일 때는 button1에 현재 단어, button2~3에 자동완성 후보를 표시하고,
     /// 입력이 없거나 마지막 문자가 공백이면 n-gram 기반 다음 단어 예측을 표시합니다.
     ///
-    /// - Parameter contextBeforeInput: 커서 앞의 텍스트 (`documentContextBeforeInput`)
-    func updateSuggestions(contextBeforeInput: String?)
+    /// - Parameter inputBuffer: 현재 키보드 세션에서 직접 입력한 텍스트 버퍼
+    func updateSuggestions(inputBuffer: String)
     
     /// n-gram 추천 탭 후 강제로 n-gram 갱신을 시도하고,
     /// 결과가 없으면 입력 중 모드로 폴백합니다.
     ///
-    /// - Parameter contextBeforeInput: 커서 앞의 텍스트
-    func updateSuggestionsAfterNGramSelection(contextBeforeInput: String?)
+    /// - Parameter inputBuffer: 현재 키보드 세션에서 직접 입력한 텍스트 버퍼
+    func updateSuggestionsAfterNGramSelection(inputBuffer: String)
     
     /// 모든 후보를 초기화합니다.
     func clearSuggestions()
@@ -75,9 +75,9 @@ protocol SuggestionService: AnyObject {
     ///
     /// - Parameters:
     ///   - index: 선택된 후보의 인덱스 (0~1)
-    ///   - contextBeforeInput: 커서 앞의 텍스트
+    ///   - inputBuffer: 현재 키보드 세션에서 직접 입력한 텍스트 버퍼
     /// - Returns: 삭제할 글자 수와 삽입할 텍스트의 튜플, 유효하지 않으면 `nil`
-    func selectSuggestion(at index: Int, contextBeforeInput: String?) -> (deleteCount: Int, insertText: String)?
+    func selectSuggestion(at index: Int, inputBuffer: String) -> (deleteCount: Int, insertText: String)?
     
     /// n-gram 모드에서 특정 인덱스의 후보 텍스트를 반환합니다.
     ///
@@ -121,22 +121,22 @@ protocol SuggestionService: AnyObject {
     
     /// 스페이스 입력 시 텍스트 대치를 시도합니다.
     ///
-    /// 커서 앞 텍스트의 끝부분이 `UILexicon`의 `userInput`과 일치하면
+    /// 입력 버퍼의 끝부분이 `UILexicon`의 `userInput`과 일치하면
     /// 해당 `documentText`로 교체합니다.
     /// 방금 복구된 단축어와 동일하면 대치를 건너뜁니다.
     ///
-    /// - Parameter contextBeforeInput: 커서 앞의 텍스트
+    /// - Parameter inputBuffer: 현재 키보드 세션에서 직접 입력한 텍스트 버퍼
     /// - Returns: 대치 수행 정보. 대치가 불필요하면 `nil`
-    func attemptTextReplacement(contextBeforeInput: String?) -> (deleteCount: Int, insertText: String)?
+    func attemptTextReplacement(inputBuffer: String) -> (deleteCount: Int, insertText: String)?
     
     /// 삭제 시 방금 수행된 텍스트 대치를 복구합니다.
     ///
-    /// 커서 앞 텍스트의 끝부분이 이전에 대치된 `documentText`와 일치하면
+    /// 입력 버퍼의 끝부분이 이전에 대치된 `documentText`와 일치하면
     /// 원래 `userInput`으로 되돌립니다.
     ///
-    /// - Parameter contextBeforeInput: 커서 앞의 텍스트
+    /// - Parameter inputBuffer: 현재 키보드 세션에서 직접 입력한 텍스트 버퍼
     /// - Returns: 복구 수행 정보. 복구할 대상이 없으면 `nil`
-    func attemptRestoreReplacement(contextBeforeInput: String?) -> (deleteCount: Int, insertText: String)?
+    func attemptRestoreReplacement(inputBuffer: String) -> (deleteCount: Int, insertText: String)?
     
     // MARK: - State Management
     

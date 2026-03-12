@@ -19,7 +19,7 @@ import OSLog
 /// 메인 앱에서 일괄 초기화할 수 있습니다.
 ///
 /// ```swift
-/// let engine = TextCheckerPredictiveTextEngine(languages: ["ko_KR", "en-US"])
+/// let engine = TextCheckerPredictiveTextEngine(languages: ["ko_KR", "en_US"])
 /// let suggestions = engine.suggestions(for: "hel")
 /// // ["hello", "help", "helmet", ...]
 /// ```
@@ -33,7 +33,7 @@ final public class TextCheckerPredictiveTextEngine: PredictiveTextProvider {
     )
     
     private let checker = UITextChecker()
-    private let languages: [String]
+    private let language: String
     
     private static let learnedWordsKey = "com.snmac.sykeyboard.textchecker.learnedWords"
     
@@ -62,9 +62,9 @@ final public class TextCheckerPredictiveTextEngine: PredictiveTextProvider {
     
     /// 지정한 언어 목록으로 엔진을 초기화합니다.
     ///
-    /// - Parameter languages: 자동완성에 사용할 언어 코드 배열
-    public init(languages: [String]) {
-        self.languages = languages
+    /// - Parameter language: 자동완성에 사용할 언어 코드
+    public init(language: String) {
+        self.language = language
     }
     
     // MARK: - PredictiveTextProvider Methods
@@ -78,37 +78,33 @@ final public class TextCheckerPredictiveTextEngine: PredictiveTextProvider {
         var merged: [String] = []
         
         // 1순위: completions (접두어 자동완성)
-        for language in languages {
-            let completions = checker.completions(
-                forPartialWordRange: range,
-                in: lastWord,
-                language: language
-            ) ?? []
-            
-            for word in completions {
-                let lowered = word.lowercased()
-                guard lowered != lastWord.lowercased(),
-                      !seen.contains(lowered) else { continue }
-                seen.insert(lowered)
-                merged.append(word)
-            }
+        let completions = checker.completions(
+            forPartialWordRange: range,
+            in: lastWord,
+            language: language
+        ) ?? []
+        
+        for word in completions {
+            let lowered = word.lowercased()
+            guard lowered != lastWord.lowercased(),
+                  !seen.contains(lowered) else { continue }
+            seen.insert(lowered)
+            merged.append(word)
         }
         
         // 2순위: guesses (오타 교정, 중복 제거하여 보충)
-        for language in languages {
-            let guesses = checker.guesses(
-                forWordRange: range,
-                in: lastWord,
-                language: language
-            ) ?? []
-            
-            for word in guesses {
-                let lowered = word.lowercased()
-                guard lowered != lastWord.lowercased(),
-                      !seen.contains(lowered) else { continue }
-                seen.insert(lowered)
-                merged.append(word)
-            }
+        let guesses = checker.guesses(
+            forWordRange: range,
+            in: lastWord,
+            language: language
+        ) ?? []
+        
+        for word in guesses {
+            let lowered = word.lowercased()
+            guard lowered != lastWord.lowercased(),
+                  !seen.contains(lowered) else { continue }
+            seen.insert(lowered)
+            merged.append(word)
         }
         
         return merged

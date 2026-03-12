@@ -17,6 +17,10 @@ import SYKeyboardCore
 ///
 /// 한글 종성 복원 로직은 모두 프로세서(`HangeulProcessable`) 내부에서 처리하며,
 /// VC는 반환된 결과(`CompositionResult`/`DeleteResult`)를 적용만 합니다.
+///
+/// `textDocumentProxy` 조작은 `BaseKeyboardViewController`의 래핑 메서드
+/// (`insertText`, `deleteText`, `replaceText`)를 통해 수행하여
+/// `inputBuffer`가 항상 자동 동기화됩니다.
 open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
     
     // MARK: - Properties
@@ -94,7 +98,7 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
     
     public init() {
         SwitchButton.previewPrimaryLanguage = "ko-KR"
-        super.init(textCheckerLanguages: ["ko_KR"])
+        super.init(language: "ko-KR")
     }
     
     @MainActor required public init?(coder: NSCoder) {
@@ -196,8 +200,8 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
                 
                 committedBuffer.removeLast()
                 protectedCommittedCount = min(protectedCommittedCount, committedBuffer.count)
-                textDocumentProxy.deleteBackward()
-                textDocumentProxy.insertText(lastStr)
+                // 끌어오기: 글자 자체는 변경되지 않으므로 replaceText 사용
+                replaceText(deleteCount: 1, insert: lastStr)
                 composingBuffer = lastStr
                 
                 if !isProtected {
@@ -255,7 +259,7 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
             commitComposingBuffer()
         }
         
-        textDocumentProxy.insertText(lastInputText)
+        insertText(lastInputText)
         composingBuffer = lastInputText
     }
     
@@ -306,24 +310,22 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
         
         if !composingBuffer.isEmpty {
             let oldComposingCount = composingBuffer.count
-            for _ in 0..<oldComposingCount { textDocumentProxy.deleteBackward() }
             
-            // 프로세서에 committed 꼬리(최대 2글자)와 보호 여부를 전달
             let deleteResult = processor.deleteWithRestore종성(
                 composing: composingBuffer,
                 committedTail: String(committedBuffer.suffix(2)),
                 isProtected: committedBuffer.count <= protectedCommittedCount
             )
             
-            // 프로세서가 committed를 소비했으면 committedBuffer에서도 제거
+            // 기존 composing + 소비된 committed를 한 번에 삭제하고 새 composing 삽입
+            let totalDeleteCount = oldComposingCount + deleteResult.consumedCommittedCount
+            replaceText(deleteCount: totalDeleteCount, insert: deleteResult.composing)
+            
+            // committedBuffer 동기화
             applyConsumedCommitted(count: deleteResult.consumedCommittedCount)
             
-            if !deleteResult.composing.isEmpty {
-                textDocumentProxy.insertText(deleteResult.composing)
-            }
             composingBuffer = deleteResult.composing
             
-            // composing이 비었으면 committed에서 끌어오기
             if composingBuffer.isEmpty {
                 pullFromCommittedIfNeeded()
             }
@@ -331,27 +333,24 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
         } else if !committedBuffer.isEmpty {
             let lastCommitted = committedBuffer.last!
             
-            // 한글이면 composing으로 옮겨서 자소 단위 분해 삭제
             if lastCommitted.isHangeul {
                 let isProtected = committedBuffer.count <= protectedCommittedCount
                 
-                textDocumentProxy.deleteBackward()
                 committedBuffer.removeLast()
                 protectedCommittedCount = min(protectedCommittedCount, committedBuffer.count)
                 
-                // 끌어온 글자를 삭제 처리: 이 시점에서 committedTail은 이미 1글자 줄어든 상태
                 let deleteResult = processor.deleteWithRestore종성(
                     composing: String(lastCommitted),
                     committedTail: String(committedBuffer.suffix(2)),
                     isProtected: committedBuffer.count <= protectedCommittedCount
                 )
                 
-                // 이 경로에서도 프로세서가 committed를 소비할 수 있음
+                // committed에서 꺼낸 글자(1) + 추가 소비분을 한 번에 삭제하고 새 composing 삽입
+                let totalDeleteCount = 1 + deleteResult.consumedCommittedCount
+                replaceText(deleteCount: totalDeleteCount, insert: deleteResult.composing)
+                
                 applyConsumedCommitted(count: deleteResult.consumedCommittedCount)
                 
-                if !deleteResult.composing.isEmpty {
-                    textDocumentProxy.insertText(deleteResult.composing)
-                }
                 composingBuffer = deleteResult.composing
                 
                 if composingBuffer.isEmpty {
@@ -360,14 +359,13 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
                     processor.start한글조합()
                 }
             } else {
-                // 비한글(숫자, 기호 등)은 통째로 삭제
-                textDocumentProxy.deleteBackward()
+                deleteText()
                 committedBuffer.removeLast()
                 protectedCommittedCount = min(protectedCommittedCount, committedBuffer.count)
                 processor.reset한글조합()
             }
         } else {
-            textDocumentProxy.deleteBackward()
+            deleteText()
             processor.reset한글조합()
         }
         updateSpaceButtonImage()
@@ -379,7 +377,7 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
         
         repeatDeleteBackwardWillPerform()
         
-        textDocumentProxy.deleteBackward()
+        deleteText()
         if !composingBuffer.isEmpty {
             composingBuffer.removeLast()
             
@@ -401,7 +399,7 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
 
 private extension HangeulKeyboardCoreViewController {
     
-    /// `CompositionResult`를 `textDocumentProxy`에 반영합니다.
+    /// `CompositionResult`를 `textDocumentProxy`와 `inputBuffer`에 반영합니다.
     func applyCompositionResult(_ result: CompositionResult) {
         let oldComposing = composingBuffer
         let oldComposingCount = oldComposing.count
@@ -411,7 +409,6 @@ private extension HangeulKeyboardCoreViewController {
         if result.committed == oldComposing && result.consumedCommittedCount == 0 {
             committedBuffer.append(result.committed)
             
-            // 끌어온 보호 글자가 그대로 확정되면 보호 카운트 복원
             if isPulledFromProtected {
                 protectedCommittedCount = committedBuffer.count
                 isPulledFromProtected = false
@@ -420,7 +417,8 @@ private extension HangeulKeyboardCoreViewController {
             composingBuffer = result.composing
             
             if !result.composing.isEmpty {
-                textDocumentProxy.insertText(result.composing)
+                // 기존 composing은 그대로 committed → inputBuffer 변경 없음, 새 composing만 추가
+                insertText(result.composing)
             }
             
             lastInputText = result.input글자
@@ -428,27 +426,22 @@ private extension HangeulKeyboardCoreViewController {
             return
         }
         
-        // 일반 경로: 기존 composing을 지우고 새 결과를 입력
-        for _ in 0..<oldComposingCount { textDocumentProxy.deleteBackward() }
-        
-        // 프로세서가 committed를 소비했으면 (종성 복원) committedBuffer에서도 제거
-        applyConsumedCommitted(count: result.consumedCommittedCount)
-        
+        // 일반 경로: 기존 composing + 소비된 committed를 지우고 새 결과를 입력
+        let totalDeleteCount = oldComposingCount + result.consumedCommittedCount
         let textToInsert = result.committed + result.composing
-        if !textToInsert.isEmpty {
-            textDocumentProxy.insertText(textToInsert)
-        }
+        replaceText(deleteCount: totalDeleteCount, insert: textToInsert)
+        
+        // committedBuffer 동기화 (textDocumentProxy 삭제는 replaceText에서 이미 수행)
+        applyConsumedCommitted(count: result.consumedCommittedCount)
         
         if !result.committed.isEmpty {
             committedBuffer.append(result.committed)
             
-            // 끌어온 보호 글자가 committed로 돌아가면 보호 카운트 복원
             if isPulledFromProtected {
                 protectedCommittedCount = committedBuffer.count
                 isPulledFromProtected = false
             }
         } else {
-            // committed 추가 없이 composing만 변경된 경우 (종성 복원 등)
             isPulledFromProtected = false
         }
         
@@ -458,11 +451,13 @@ private extension HangeulKeyboardCoreViewController {
         updateSpaceButtonImage()
     }
     
-    /// 프로세서가 소비한 committed 글자를 `committedBuffer`와 `textDocumentProxy`에서 제거합니다.
+    /// 프로세서가 소비한 committed 글자를 `committedBuffer`에서 제거합니다.
+    ///
+    /// `textDocumentProxy` 삭제는 `replaceText`에서 이미 수행되었으므로,
+    /// 이 메서드는 `committedBuffer`만 동기화합니다.
     func applyConsumedCommitted(count: Int) {
         guard count > 0 else { return }
         for _ in 0..<count {
-            textDocumentProxy.deleteBackward()
             committedBuffer.removeLast()
         }
         protectedCommittedCount = min(protectedCommittedCount, committedBuffer.count)
@@ -472,8 +467,9 @@ private extension HangeulKeyboardCoreViewController {
     ///
     /// 삭제 후 composing이 빈 상태에서 committed에 한글이 있으면,
     /// 마지막 글자를 composing으로 옮겨서 다음 삭제 시 자소 단위 분해가 가능하도록 합니다.
-    /// 보호된 글자를 끌어오면 `isPulledFromProtected`를 설정하여
-    /// 이후 committed로 돌아갈 때 보호 상태를 복원합니다.
+    ///
+    /// 끌어오기는 proxy 상 delete→insert이지만 실제 글자가 변경되지 않으므로
+    /// `replaceText`를 사용하여 inputBuffer도 자동 동기화됩니다.
     func pullFromCommittedIfNeeded() {
         guard composingBuffer.isEmpty, !committedBuffer.isEmpty else {
             if composingBuffer.isEmpty {
@@ -490,18 +486,15 @@ private extension HangeulKeyboardCoreViewController {
             
             committedBuffer.removeLast()
             protectedCommittedCount = min(protectedCommittedCount, committedBuffer.count)
-            textDocumentProxy.deleteBackward()
-            textDocumentProxy.insertText(lastStr)
+            replaceText(deleteCount: 1, insert: lastStr)
             composingBuffer = lastStr
             
-            // 보호 상태를 기억하여 이후 committed로 돌아갈 때 복원
             isPulledFromProtected = isProtected
             
             if !isProtected {
                 processor.start한글조합()
             }
         } else {
-            // 비한글이면 끌어오지 않음
             processor.reset한글조합()
         }
     }
