@@ -25,6 +25,8 @@ struct PredictiveTextSettingsView: View {
     @State private var showResetNGramAlert = false
     @State private var showResetAllAlert = false
     
+    private let supportedLanguages = ["ko-KR", "en-US"]
+    
     // MARK: - Content
     
     var body: some View {
@@ -79,8 +81,10 @@ struct PredictiveTextSettingsView: View {
 
 private extension PredictiveTextSettingsView {
     func resetLearnedWords() {
-        let engine = TextCheckerPredictiveTextEngine(languages: ["ko_KR", "en-US"])
-        engine.unlearnAllWords()
+        for language in supportedLanguages {
+            let engine = TextCheckerPredictiveTextEngine(language: language)
+            engine.unlearnAllWords()
+        }
         
         Analytics.logEvent("reset_learned_words", parameters: [
             "view": "PredictiveTextSettingsView"
@@ -88,8 +92,10 @@ private extension PredictiveTextSettingsView {
     }
     
     func resetNGramData() {
-        let engine = NGramPredictiveTextEngine()
-        engine.resetAllData()
+        for lang in supportedLanguages {
+            let engine = NGramPredictiveTextEngine(language: lang)
+            engine.resetAllData()
+        }
         
         Analytics.logEvent("reset_ngram_data", parameters: [
             "view": "PredictiveTextSettingsView"

@@ -32,6 +32,9 @@ enum SuggestionMode {
 /// 스페이스 입력 시 텍스트 대치, 삭제 시 대치 복구 기능을 제공합니다.
 /// `isEnabled`를 통해 연산 자체를 비활성화할 수 있습니다.
 ///
+/// 모든 후보 조회는 `BaseKeyboardViewController`가 관리하는 `inputBuffer`를 기준으로
+/// 수행되며, 현재 키보드 세션에서 직접 입력한 텍스트만 대상으로 합니다.
+///
 /// ## 동작 흐름
 /// 1. **입력 중**: SuggestionBar에 `UILexicon` + `UITextChecker` 후보 표시
 /// 2. **후보 탭**: 현재 단어를 선택한 후보로 교체 (텍스트 대치 후보는 대치 이력 기록)
@@ -80,7 +83,7 @@ final class SuggestionController: SuggestionService {
     /// `UITextChecker` 기반 엔진 (시스템 사전)
     private let textCheckerEngine: TextCheckerPredictiveTextEngine
     /// n-gram 기반 엔진 (다음 단어 예측)
-    private let nGramEngine = NGramPredictiveTextEngine()
+    private let nGramEngine: NGramPredictiveTextEngine
     
     /// 후보 최대 표시 개수
     private let maxSuggestions = 3
@@ -99,12 +102,12 @@ final class SuggestionController: SuggestionService {
     
     // MARK: - Initializer
     
-    /// 지정한 엔진들로 컨트롤러를 초기화합니다.
+    /// 지정한 언어로 컨트롤러를 초기화합니다.
     ///
-    /// - Parameters:
-    ///   - textCheckerLanguages: `UITextChecker`에서 사용할 언어 코드 배열 (기본값: 한국어+영어)
-    init(textCheckerLanguages: [String] = ["ko_KR", "en-US"]) {
-        self.textCheckerEngine = TextCheckerPredictiveTextEngine(languages: textCheckerLanguages)
+    /// - Parameter language: `UITextChecker`, NGram엔진에서 사용할 언어 코드 (기본값: "ko-KR")
+    init(language: String = "ko-KR") {
+        self.textCheckerEngine = TextCheckerPredictiveTextEngine(language: language)
+        self.nGramEngine = NGramPredictiveTextEngine(language: language)
     }
     
     // MARK: - Lexicon Loading
@@ -118,24 +121,15 @@ final class SuggestionController: SuggestionService {
     
     // MARK: - Suggestion Methods
     
-    func updateSuggestions(contextBeforeInput: String?) {
+    func updateSuggestions(inputBuffer: String) {
         guard isEnabled else { return }
-        performUpdateSuggestions(contextBeforeInput: contextBeforeInput)
+        performUpdateSuggestions(inputBuffer: inputBuffer)
     }
     
-    /// n-gram 추천 탭 후 강제로 n-gram 갱신을 시도하고,
-    /// 결과가 없으면 입력 중 모드로 폴백합니다.
-    ///
-    /// 뒤 공백 없이 단어를 삽입한 후 호출되므로,
-    /// context가 글자로 끝나는 상태에서 n-gram 모드를 시도합니다.
-    ///
-    /// - Parameter contextBeforeInput: 커서 앞의 텍스트
-    func updateSuggestionsAfterNGramSelection(contextBeforeInput: String?) {
+    func updateSuggestionsAfterNGramSelection(inputBuffer: String) {
         guard isEnabled else { return }
         
-        let context = contextBeforeInput ?? ""
-        
-        let nGramResults = nGramSuggestions(for: context)
+        let nGramResults = nGramSuggestions(for: inputBuffer)
         
         if !nGramResults.isEmpty {
             currentMode = .nGram
@@ -146,8 +140,7 @@ final class SuggestionController: SuggestionService {
                 suggestions: currentSuggestions.map { $0.text }
             )
         } else {
-            // 폴백 시 performUpdateSuggestions가 currentMode = .typing으로 설정
-            performUpdateSuggestions(contextBeforeInput: contextBeforeInput)
+            performUpdateSuggestions(inputBuffer: inputBuffer)
         }
     }
     
@@ -157,21 +150,18 @@ final class SuggestionController: SuggestionService {
         delegate?.suggestionController(self, didUpdateCurrentWord: nil, suggestions: [])
     }
     
-    func selectSuggestion(at index: Int, contextBeforeInput: String?) -> (deleteCount: Int, insertText: String)? {
+    func selectSuggestion(at index: Int, inputBuffer: String) -> (deleteCount: Int, insertText: String)? {
         guard index >= 0, index < currentSuggestions.count else { return nil }
         
-        let context = contextBeforeInput ?? ""
-        if let last = context.last, last.isWhitespace { return nil }
+        if let last = inputBuffer.last, last.isWhitespace { return nil }
         
         let item = currentSuggestions[index]
-        let currentWord = extractLastWord(from: context)
+        let currentWord = extractLastWord(from: inputBuffer)
         
-        // textChecker 후보만 학습, 텍스트 대치(lexicon)와 nGram은 제외
         if item.source == .textChecker {
             textCheckerEngine.learn(word: item.text)
         }
         
-        // 텍스트 대치일 때만 대치 이력 기록
         if item.source == .lexicon {
             let record = ReplacementRecord(
                 userInput: currentWord,
@@ -211,15 +201,13 @@ final class SuggestionController: SuggestionService {
     
     // MARK: - Text Replacement Methods
     
-    func attemptTextReplacement(contextBeforeInput: String?) -> (deleteCount: Int, insertText: String)? {
-        guard let context = contextBeforeInput,
+    func attemptTextReplacement(inputBuffer: String) -> (deleteCount: Int, insertText: String)? {
+        guard !inputBuffer.isEmpty,
               let lexicon = lexiconEngine.lexicon else { return nil }
         
-        // 가장 긴 매칭을 우선 적용
         let matchingEntries = lexicon.entries.filter { entry in
-            let isMatch = context.lowercased().hasSuffix(entry.userInput.lowercased())
+            let isMatch = inputBuffer.lowercased().hasSuffix(entry.userInput.lowercased())
             
-            // iOS 버그 대응: 'm' → 'M' 매핑 제외
             if entry.userInput.lowercased() == "m" && entry.documentText == "M" {
                 return false
             }
@@ -231,13 +219,11 @@ final class SuggestionController: SuggestionService {
             $0.userInput.count < $1.userInput.count
         }) else { return nil }
         
-        // 방금 복구된 단축어와 동일하면 대치 건너뛰기
         if let ignored = ignoredShortcut, ignored == match.userInput {
             ignoredShortcut = nil
             return nil
         }
         
-        // 대치 이력 기록
         let record = ReplacementRecord(
             userInput: match.userInput,
             documentText: match.documentText
@@ -247,15 +233,14 @@ final class SuggestionController: SuggestionService {
         return (deleteCount: match.userInput.count, insertText: match.documentText)
     }
     
-    func attemptRestoreReplacement(contextBeforeInput: String?) -> (deleteCount: Int, insertText: String)? {
-        guard let context = contextBeforeInput,
+    func attemptRestoreReplacement(inputBuffer: String) -> (deleteCount: Int, insertText: String)? {
+        guard !inputBuffer.isEmpty,
               !replacementHistory.isEmpty else { return nil }
         
         for (index, record) in replacementHistory.enumerated().reversed() {
-            if context.hasSuffix(record.documentText) {
+            if inputBuffer.hasSuffix(record.documentText) {
                 replacementHistory.remove(at: index)
                 
-                // 복구된 단축어를 기록하여 재대치 방지
                 ignoredShortcut = record.userInput
                 
                 return (
@@ -284,19 +269,17 @@ final class SuggestionController: SuggestionService {
 private extension SuggestionController {
     /// 실제 후보 갱신 로직
     ///
-    /// 문맥에 따라 두 가지 모드로 분기합니다:
-    /// - 입력 없음(`nil`/빈 문자열) 또는 마지막 문자가 공백 → n-gram 모드
+    /// 입력 버퍼에 따라 두 가지 모드로 분기합니다:
+    /// - 버퍼 비어있음 또는 마지막 문자가 공백 → n-gram 모드
     /// - 단어 타이핑 중 → 입력 중 모드 (lexicon + textChecker)
     ///
-    /// - Parameter contextBeforeInput: 커서 앞의 텍스트 (`nil` 가능)
-    func performUpdateSuggestions(contextBeforeInput: String?) {
+    /// - Parameter inputBuffer: 현재 키보드 세션에서 직접 입력한 텍스트 버퍼
+    func performUpdateSuggestions(inputBuffer: String) {
         guard isEnabled else { return }
         
-        let context = contextBeforeInput ?? ""
-        
-        if context.isEmpty || context.last?.isWhitespace == true {
+        if inputBuffer.isEmpty || inputBuffer.last?.isWhitespace == true {
             currentMode = .nGram
-            currentSuggestions = nGramSuggestions(for: context)
+            currentSuggestions = nGramSuggestions(for: inputBuffer)
             delegate?.suggestionController(
                 self,
                 didUpdateCurrentWord: nil,
@@ -306,8 +289,8 @@ private extension SuggestionController {
         }
         
         currentMode = .typing
-        let currentWord = extractLastWord(from: context)
-        currentSuggestions = mergeSuggestions(for: context, currentWord: currentWord)
+        let currentWord = extractLastWord(from: inputBuffer)
+        currentSuggestions = mergeSuggestions(for: inputBuffer, currentWord: currentWord)
         delegate?.suggestionController(
             self,
             didUpdateCurrentWord: currentWord.isEmpty ? nil : currentWord,
@@ -317,14 +300,13 @@ private extension SuggestionController {
     
     /// n-gram 기반 다음 단어 예측 후보를 생성합니다.
     ///
-    /// 입력이 없거나 마지막 문자가 공백일 때 사용됩니다.
-    /// context가 비어있으면 unigram(자주 사용한 단어)을,
+    /// 입력 버퍼가 비어있으면 unigram(자주 사용한 단어)을,
     /// 공백으로 끝나면 trigram → bigram → unigram 순으로 조회합니다.
     ///
-    /// - Parameter context: 커서 앞의 텍스트 (빈 문자열 가능)
+    /// - Parameter inputBuffer: 현재 키보드 세션에서 직접 입력한 텍스트 버퍼
     /// - Returns: n-gram 예측 후보 배열 (최대 3개)
-    func nGramSuggestions(for context: String) -> [SuggestionItem] {
-        let results = nGramEngine.suggestions(for: context)
+    func nGramSuggestions(for inputBuffer: String) -> [SuggestionItem] {
+        let results = nGramEngine.suggestions(for: inputBuffer)
         return results.prefix(maxSuggestions).map {
             SuggestionItem(text: $0, source: .nGram)
         }
@@ -336,21 +318,19 @@ private extension SuggestionController {
     /// `UILexicon` 결과를 먼저 배치하여 사용자 개인화 데이터를 우선시합니다.
     ///
     /// - Parameters:
-    ///   - context: 커서 앞의 텍스트
+    ///   - inputBuffer: 현재 키보드 세션에서 직접 입력한 텍스트 버퍼
     ///   - currentWord: 현재 입력 중인 단어
     /// - Returns: 중복 제거된 후보 배열 (최대 2개)
-    func mergeSuggestions(for context: String, currentWord: String) -> [SuggestionItem] {
-        let lexiconResults = lexiconEngine.suggestions(for: context)
-        let checkerResults = textCheckerEngine.suggestions(for: context)
+    func mergeSuggestions(for inputBuffer: String, currentWord: String) -> [SuggestionItem] {
+        let lexiconResults = lexiconEngine.suggestions(for: inputBuffer)
+        let checkerResults = textCheckerEngine.suggestions(for: inputBuffer)
         
         var seen = Set<String>()
-        // 현재 입력 단어는 button1에 표시되므로 후보에서 제외
         seen.insert(currentWord.lowercased())
         var merged: [SuggestionItem] = []
         
-        let maxSuggestionSlots = maxSuggestions - 1  // button1은 현재 입력용
+        let maxSuggestionSlots = maxSuggestions - 1
         
-        // 1순위: UILexicon (텍스트 대치)
         for suggestion in lexiconResults {
             let lowered = suggestion.lowercased()
             guard !seen.contains(lowered) else { continue }
@@ -359,7 +339,6 @@ private extension SuggestionController {
             if merged.count >= maxSuggestionSlots { return merged }
         }
         
-        // 2순위: UITextChecker (시스템 사전)
         for suggestion in checkerResults {
             let lowered = suggestion.lowercased()
             guard !seen.contains(lowered) else { continue }

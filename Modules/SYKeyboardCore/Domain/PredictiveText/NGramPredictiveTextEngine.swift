@@ -14,18 +14,25 @@ import OSLog
 /// 문맥에 따른 다음 단어를 빈도순으로 예측합니다.
 /// 문맥이 없는 경우(키보드 처음 열림 등)에는 unigram으로 자주 사용한 단어를 추천합니다.
 ///
-/// ```swift
-/// let engine = NGramPredictiveTextEngine()
-/// engine.addWord("오늘")     // 버퍼: ["오늘"]
-/// engine.addWord("날씨")     // 버퍼: ["오늘", "날씨"], bigram 기록: "오늘" → "날씨"
-/// engine.addWord("좋다")     // bigram + trigram 기록
+/// 언어별로 데이터가 분리되어 저장됩니다. 생성 시 전달한 `language` 식별자에 따라
+/// 한글 키보드는 한글 n-gram만, 영어 키보드는 영어 n-gram만 조회·기록합니다.
 ///
-/// // 이후 "오늘 날씨" 입력 시
-/// engine.suggestions(for: "오늘 날씨") // → ["좋다"]
+/// ```swift
+/// let koEngine = NGramPredictiveTextEngine(language: "ko")
+/// let enEngine = NGramPredictiveTextEngine(language: "en")
+///
+/// koEngine.addWord("오늘")
+/// koEngine.addWord("날씨")
+/// koEngine.suggestions(for: "오늘") // → ["날씨"] (한글 데이터만 조회)
+///
+/// enEngine.addWord("good")
+/// enEngine.addWord("morning")
+/// enEngine.suggestions(for: "good") // → ["morning"] (영어 데이터만 조회)
 /// ```
 ///
 /// ## 저장 구조
 /// - `UserDefaults(suiteName:)`을 통해 App Group에 영구 저장
+/// - 키 형식: `com.snmac.sykeyboard.ngram.{language}.{unigram|bigram|trigram}`
 /// - unigram: `[String: Int]` 형태
 /// - bigram/trigram: 각각 `[String: [String: Int]]` 형태
 /// - 항목 수 제한으로 메모리 과다 사용 방지
@@ -42,6 +49,9 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
         subsystem: Bundle.main.bundleIdentifier ?? "Unknown Bundle",
         category: "\(String(describing: type(of: self))) <\(Unmanaged.passUnretained(self).toOpaque())>"
     )
+    
+    /// 언어 식별자 (예: "ko", "en")
+    private let language: String
     
     /// unigram 저장소: "단어" → 빈도수
     private var unigramStore: [String: Int] = [:]
@@ -61,10 +71,16 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
     /// 전체 키 최대 개수
     private let maxKeys = 5000
     
-    // UserDefaults 저장 키
-    private static let unigramStoreKey = "com.snmac.sykeyboard.ngram.unigram"
-    private static let bigramStoreKey = "com.snmac.sykeyboard.ngram.bigram"
-    private static let trigramStoreKey = "com.snmac.sykeyboard.ngram.trigram"
+    // UserDefaults 저장 키 — 언어별 분리
+    private var unigramStoreKey: String {
+        "com.snmac.sykeyboard.ngram.\(language).unigram"
+    }
+    private var bigramStoreKey: String {
+        "com.snmac.sykeyboard.ngram.\(language).bigram"
+    }
+    private var trigramStoreKey: String {
+        "com.snmac.sykeyboard.ngram.\(language).trigram"
+    }
     
     /// App Group UserDefaults
     private let storage: UserDefaults = {
@@ -81,7 +97,11 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
     
     // MARK: - Initializer
     
-    public init() {
+    /// 언어별 n-gram 엔진을 생성합니다.
+    ///
+    /// - Parameter language: 언어 식별자 (예: "ko-KR", "en-US")
+    public init(language: String) {
+        self.language = language
         loadFromDisk()
     }
     
@@ -161,7 +181,7 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
         recordNGrams()
         scheduleSave()
         
-        logger.debug("[NGram] n-gram 기록: \(word)")
+        logger.debug("[NGram/\(self.language)] n-gram 기록: \(word)")
     }
     
     /// 문장이 끝났을 때 버퍼를 초기화합니다.
@@ -175,9 +195,9 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
     
     /// n-gram 데이터를 디스크에 저장합니다.
     func saveToDisk() {
-        storage.set(unigramStore, forKey: Self.unigramStoreKey)
-        storage.set(bigramStore, forKey: Self.bigramStoreKey)
-        storage.set(trigramStore, forKey: Self.trigramStoreKey)
+        storage.set(unigramStore, forKey: unigramStoreKey)
+        storage.set(bigramStore, forKey: bigramStoreKey)
+        storage.set(trigramStore, forKey: trigramStoreKey)
     }
     
     /// 모든 학습 데이터를 초기화합니다.
@@ -186,11 +206,11 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
         bigramStore = [:]
         trigramStore = [:]
         currentSentenceWords = []
-        storage.removeObject(forKey: Self.unigramStoreKey)
-        storage.removeObject(forKey: Self.bigramStoreKey)
-        storage.removeObject(forKey: Self.trigramStoreKey)
+        storage.removeObject(forKey: unigramStoreKey)
+        storage.removeObject(forKey: bigramStoreKey)
+        storage.removeObject(forKey: trigramStoreKey)
         
-        logger.debug("[NGram] 학습 데이터 초기화")
+        logger.debug("[NGram/\(self.language)] 학습 데이터 초기화")
     }
 }
 
@@ -199,11 +219,11 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
 private extension NGramPredictiveTextEngine {
     /// 디스크에서 n-gram 데이터를 로드합니다.
     func loadFromDisk() {
-        unigramStore = (storage.dictionary(forKey: Self.unigramStoreKey)
+        unigramStore = (storage.dictionary(forKey: unigramStoreKey)
                 as? [String: Int]) ?? [:]
-        bigramStore = (storage.dictionary(forKey: NGramPredictiveTextEngine.bigramStoreKey)
+        bigramStore = (storage.dictionary(forKey: bigramStoreKey)
             as? [String: [String: Int]]) ?? [:]
-        trigramStore = (storage.dictionary(forKey: NGramPredictiveTextEngine.trigramStoreKey)
+        trigramStore = (storage.dictionary(forKey: trigramStoreKey)
             as? [String: [String: Int]]) ?? [:]
     }
     
@@ -222,7 +242,7 @@ private extension NGramPredictiveTextEngine {
             let value = words[count - 1]
             bigramStore[key, default: [:]][value, default: 0] += 1
             pruneEntries(in: &bigramStore, forKey: key)
-            logger.debug("[NGram] bigram: \"\(key)\" → \"\(value)\" (count: \(self.bigramStore[key]?[value] ?? 0))")
+            logger.debug("[NGram/\(self.language)] bigram: \"\(key)\" → \"\(value)\" (count: \(self.bigramStore[key]?[value] ?? 0))")
         }
         
         // trigram: 직전 2단어 → 현재 단어
@@ -231,7 +251,7 @@ private extension NGramPredictiveTextEngine {
             let value = words[count - 1]
             trigramStore[key, default: [:]][value, default: 0] += 1
             pruneEntries(in: &trigramStore, forKey: key)
-            logger.debug("[NGram] trigram: \"\(key)\" → \"\(value)\" (count: \(self.trigramStore[key]?[value] ?? 0))")
+            logger.debug("[NGram/\(self.language)] trigram: \"\(key)\" → \"\(value)\" (count: \(self.trigramStore[key]?[value] ?? 0))")
         }
         
         pruneUnigram()

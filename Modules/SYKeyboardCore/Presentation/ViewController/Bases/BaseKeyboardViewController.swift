@@ -98,6 +98,17 @@ open class BaseKeyboardViewController: UIInputViewController {
     /// 자동완성 텍스트 제안 컨트롤러
     private let suggestionController: SuggestionService
     
+    /// 현재 키보드 세션에서 직접 입력한 텍스트를 추적하는 버퍼
+    ///
+    /// `documentContextBeforeInput` 대신 이 버퍼를 사용하여
+    /// 다른 키보드에서 입력한 텍스트나 앱이 미리 채운 텍스트가
+    /// n-gram 학습에 포함되는 것을 방지합니다.
+    ///
+    /// 커서 이동, 키보드 열림/닫힘 시 초기화됩니다.
+    /// 서브클래스에서는 `insertText`, `deleteText`, `replaceText`,
+    /// `resetInputBuffer` 래핑 메서드를 통해 조작합니다.
+    private var inputBuffer: String = ""
+    
     /// `KeyboardView` 높이 제약 조건
     private var keyboardViewHeightConstraint: NSLayoutConstraint?
     /// `keyboardHStackView` 높이 제약 조건
@@ -148,8 +159,8 @@ open class BaseKeyboardViewController: UIInputViewController {
         super.init(nibName: nibNameOrNil, bundle: nibBundleOrNil)
     }
     
-    public init(textCheckerLanguages: [String]) {
-        self.suggestionController = SuggestionController(textCheckerLanguages: textCheckerLanguages)
+    public init(language: String) {
+        self.suggestionController = SuggestionController(language: language)
         super.init(nibName: nil, bundle: nil)
     }
     
@@ -169,6 +180,7 @@ open class BaseKeyboardViewController: UIInputViewController {
     
     open override func viewDidLoad() {
         super.viewDidLoad()
+        resetInputBuffer()
         setupUI()
         setNextKeyboardButton()
         if BaseKeyboardViewController.isPreview { updateReturnButtonType() }
@@ -207,13 +219,14 @@ open class BaseKeyboardViewController: UIInputViewController {
         oldKeyboardType = textDocumentProxy.keyboardType
         
         if UserDefaultsManager.shared.isPredictiveTextEnabled {
-            suggestionController.updateSuggestions(contextBeforeInput: textDocumentProxy.documentContextBeforeInput)
+            suggestionController.updateSuggestions(inputBuffer: inputBuffer)
         }
     }
     
     open override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         cancelTimer()
+        resetInputBuffer()
         suggestionController.saveNGramData()
     }
     
@@ -247,7 +260,7 @@ open class BaseKeyboardViewController: UIInputViewController {
     /// > 하위 클래스에서 오버라이드 시 반드시 `super`로 호출 필요
     open func textInteractionDidPerform(button: TextInteractable) {
         if !isRepeatingInput && UserDefaultsManager.shared.isPredictiveTextEnabled {
-            suggestionController.updateSuggestions(contextBeforeInput: textDocumentProxy.documentContextBeforeInput)
+            suggestionController.updateSuggestions(inputBuffer: inputBuffer)
         }
     }
     
@@ -273,7 +286,7 @@ open class BaseKeyboardViewController: UIInputViewController {
         isRepeatingInput = false
         
         if UserDefaultsManager.shared.isPredictiveTextEnabled {
-            suggestionController.updateSuggestions(contextBeforeInput: textDocumentProxy.documentContextBeforeInput)
+            suggestionController.updateSuggestions(inputBuffer: inputBuffer)
         }
     }
     
@@ -289,7 +302,7 @@ open class BaseKeyboardViewController: UIInputViewController {
             assertionFailure("primaryKeyList 배열이 비어있습니다.")
             return
         }
-        textDocumentProxy.insertText(primaryKey)
+        insertText(primaryKey)
     }
     
     /// 사용자가 탭한 `TextInteractable` 버튼의 `secondaryKey`를 입력하는 메서드 (단일 호출)
@@ -304,7 +317,7 @@ open class BaseKeyboardViewController: UIInputViewController {
             assertionFailure("secondaryKey가 nil입니다.")
             return
         }
-        textDocumentProxy.insertText(secondaryKey)
+        insertText(secondaryKey)
     }
     
     /// 사용자가 탭한 `TextInteractable` 버튼의 `primaryKeyList` 중 상황에 맞는 문자를 입력하는 메서드 (반복 호출)
@@ -319,7 +332,7 @@ open class BaseKeyboardViewController: UIInputViewController {
             assertionFailure("keys 배열이 비어있습니다.")
             return
         }
-        textDocumentProxy.insertText(primaryKey)
+        insertText(primaryKey)
     }
     
     /// 공백 문자를 입력하는 메서드
@@ -328,14 +341,18 @@ open class BaseKeyboardViewController: UIInputViewController {
         if BaseKeyboardViewController.isPreview { return }
         
         // 스페이스 입력 전 직전 단어를 n-gram에 기록
-        if let context = textDocumentProxy.documentContextBeforeInput {
-            let lastWord = context.split(whereSeparator: { $0.isWhitespace }).last.map(String.init) ?? ""
-            if !lastWord.isEmpty {
-                suggestionController.recordWord(lastWord)
-            }
+        let lastWord: String
+        if let spaceIndex = inputBuffer.lastIndex(where: { $0.isWhitespace }) {
+            lastWord = String(inputBuffer[inputBuffer.index(after: spaceIndex)...])
+        } else {
+            lastWord = inputBuffer
         }
         
-        textDocumentProxy.insertText(" ")
+        if !lastWord.isEmpty {
+            suggestionController.recordWord(lastWord)
+        }
+        
+        insertText(" ")
     }
     
     /// 개행 문자를 입력하는 메서드
@@ -343,6 +360,7 @@ open class BaseKeyboardViewController: UIInputViewController {
     open func insertReturnText() {
         if BaseKeyboardViewController.isPreview { return }
         textDocumentProxy.insertText("\n")
+        resetInputBuffer()
         suggestionController.clearReplacementHistory()
         suggestionController.endSentence()
     }
@@ -361,7 +379,7 @@ open class BaseKeyboardViewController: UIInputViewController {
         if BaseKeyboardViewController.isPreview { return }
         
         deleteBackwardWillPerform()
-        textDocumentProxy.deleteBackward()
+        deleteText()
     }
     
     /// 반복 삭제가 일어나기 전 실행되는 메서드
@@ -378,7 +396,7 @@ open class BaseKeyboardViewController: UIInputViewController {
         if BaseKeyboardViewController.isPreview || self.view.window == nil { return }
         
         repeatDeleteBackwardWillPerform()
-        textDocumentProxy.deleteBackward()
+        deleteText()
     }
     
     // MARK: - Public Methods
@@ -386,6 +404,64 @@ open class BaseKeyboardViewController: UIInputViewController {
     public func updateOneHandedWidthForPreview(to oneHandedWidth: Double) {
         keyboardView.updateOneHandedWidth(oneHandedWidth)
         self.view.layoutIfNeeded()
+    }
+}
+
+// MARK: - Text Proxy Wrapper Methods
+
+extension BaseKeyboardViewController {
+    /// `textDocumentProxy`에 텍스트를 삽입하고 `inputBuffer`를 동기화합니다.
+    ///
+    /// `textDocumentProxy.insertText`를 직접 호출하는 대신 이 메서드를 사용하여
+    /// 입력 버퍼가 항상 실제 입력과 일치하도록 보장합니다.
+    ///
+    /// - Parameter text: 삽입할 텍스트
+    public func insertText(_ text: String) {
+        textDocumentProxy.insertText(text)
+        inputBuffer.append(text)
+    }
+    
+    /// `textDocumentProxy`에서 1글자를 삭제하고 `inputBuffer`를 동기화합니다.
+    ///
+    /// `textDocumentProxy.deleteBackward()`를 직접 호출하는 대신 이 메서드를 사용하여
+    /// 입력 버퍼가 항상 실제 입력과 일치하도록 보장합니다.
+    public func deleteText() {
+        textDocumentProxy.deleteBackward()
+        if !inputBuffer.isEmpty {
+            inputBuffer.removeLast()
+        }
+    }
+    
+    /// `textDocumentProxy`에서 여러 글자를 삭제한 후 새 텍스트를 삽입하고
+    /// `inputBuffer`를 동기화합니다.
+    ///
+    /// 한글 오토마타의 delete → reinsert 패턴이나 텍스트 대치/복구에 사용합니다.
+    ///
+    /// - Parameters:
+    ///   - deleteCount: 삭제할 글자 수
+    ///   - text: 삭제 후 삽입할 텍스트
+    public func replaceText(deleteCount: Int, insert text: String) {
+        for _ in 0..<deleteCount {
+            textDocumentProxy.deleteBackward()
+        }
+        if !text.isEmpty {
+            textDocumentProxy.insertText(text)
+        }
+        
+        if inputBuffer.count >= deleteCount {
+            inputBuffer.removeLast(deleteCount)
+        } else {
+            inputBuffer = ""
+        }
+        inputBuffer.append(text)
+    }
+    
+    /// 입력 버퍼를 초기화합니다.
+    ///
+    /// 커서 이동, 키보드 열림/닫힘 등 버퍼와 실제 텍스트 위치가
+    /// 어긋날 수 있는 상황에서 호출합니다.
+    public func resetInputBuffer() {
+        inputBuffer = ""
     }
 }
 
@@ -490,11 +566,8 @@ private extension BaseKeyboardViewController {
             guard let self, let currentButton = action.sender as? TextInteractable else { return }
             
             if currentButton.isProgrammaticCall {
-                // 코드(sendActions)로 호출된 경우 -> 무조건 입력 수행
                 performTextInteraction(for: currentButton)
-                
             } else {
-                // 사용자가 touchUpInside한 경우 -> currentPressedButton 확인
                 if let currentPressedButton = buttonStateController.currentPressedButton,
                    currentPressedButton == currentButton {
                     performTextInteraction(for: currentButton)
@@ -515,8 +588,7 @@ private extension BaseKeyboardViewController {
         addInputActionToTextInterableButton(button)
         
         switch button.type {
-        case .keyButton(primary: ["’"], secondary: nil):
-            // touchUpInside 되었을 때 ➡️ 주 키보드 전환
+        case .keyButton(primary: ["'"], secondary: nil):
             let switchToPrimaryKeyboard = UIAction { [weak self] _ in
                 guard let self else { return }
                 if textDocumentProxy.keyboardType != .numbersAndPunctuation && UserDefaultsManager.shared.isAutoChangeToPrimaryEnabled {
@@ -526,7 +598,6 @@ private extension BaseKeyboardViewController {
             button.addAction(switchToPrimaryKeyboard, for: .touchUpInside)
             
         case .spaceButton, .returnButton:
-            // 이전에 기호가 입력되고 난 후 touchUpInside 되었을 때 ➡️ 주 키보드 전환
             let switchToPrimaryKeyboard = UIAction { [weak self] _ in
                 guard let self else { return }
                 if textDocumentProxy.keyboardType != .numbersAndPunctuation && UserDefaultsManager.shared.isAutoChangeToPrimaryEnabled && isSymbolInput {
@@ -558,8 +629,8 @@ private extension BaseKeyboardViewController {
                     if let lastChar = textWithoutLastSpace.last,
                        (lastChar.isLetter || lastChar.isNumber) {
                         
-                        textDocumentProxy.deleteBackward()
-                        textDocumentProxy.insertText(".")
+                        // " " → "." 교체: 래핑 메서드 사용
+                        replaceText(deleteCount: 1, insert: ".")
                         
                         performedPeriodShortcut = true
                     }
@@ -576,7 +647,6 @@ private extension BaseKeyboardViewController {
         
         if UserDefaultsManager.shared.isDragToMoveCursorEnabled ||
             button is DeleteButton {
-            // 팬(드래그) 제스처
             let panGesture = UIPanGestureRecognizer(
                 target: self,
                 action: #selector(handlePanGesture(_:))
@@ -589,7 +659,6 @@ private extension BaseKeyboardViewController {
         
         if UserDefaultsManager.shared.selectedLongPressAction != .disabled
             || button is DeleteButton {
-            // 길게 누르기 제스처
             let longPressGesture = UILongPressGestureRecognizer(
                 target: self,
                 action: #selector(handleLongPressGesture(_:))
@@ -603,7 +672,6 @@ private extension BaseKeyboardViewController {
     }
     
     func setSwitchButtonAction() {
-        // 기호 키보드 전환
         let switchToSymbolKeyboard = UIAction { [weak self] action in
             guard let self else { return }
             guard let currentPressedButton = buttonStateController.currentPressedButton,
@@ -612,7 +680,6 @@ private extension BaseKeyboardViewController {
         }
         primaryKeyboardView.switchButton.addAction(switchToSymbolKeyboard, for: .touchUpInside)
         
-        // 주 키보드 전환
         let switchToPrimaryKeyboardForSymbol = UIAction { [weak self] _ in
             guard let self else { return }
             guard let currentPressedButton = buttonStateController.currentPressedButton,
@@ -629,7 +696,6 @@ private extension BaseKeyboardViewController {
         }
         numericKeyboardView.switchButton.addAction(switchToPrimaryKeyboardForNumeric, for: .touchUpInside)
         
-        // 숫자 키보드, 한 손 키보드 전환
         [primaryKeyboardView.switchButton,
          symbolKeyboardView.switchButton,
          numericKeyboardView.switchButton].forEach { addGesturesToSwitchButton($0) }
@@ -637,7 +703,6 @@ private extension BaseKeyboardViewController {
     
     func addGesturesToSwitchButton(_ button: SwitchButton) {
         if UserDefaultsManager.shared.isNumericKeypadEnabled {
-            // 팬(드래그) 제스처
             let keyboardSelectPanGesture = UIPanGestureRecognizer(
                 target: self,
                 action: #selector(handleKeyboardSelectPan(_:))
@@ -648,7 +713,6 @@ private extension BaseKeyboardViewController {
         }
         
         if UserDefaultsManager.shared.isOneHandedKeyboardEnabled {
-            // 팬(드래그) 제스처
             let oneHandedModeSelectPanGesture = UIPanGestureRecognizer(
                 target: self,
                 action: #selector(handleOneHandedModePan(_:))
@@ -656,7 +720,6 @@ private extension BaseKeyboardViewController {
             oneHandedModeSelectPanGesture.delegate = switchGestureController
             button.addGestureRecognizer(oneHandedModeSelectPanGesture)
             
-            // 길게 누르기 제스처
             let oneHandedModeSelectLongPressGesture = UILongPressGestureRecognizer(
                 target: self,
                 action: #selector(handleOneHandedModeLongPress(_:))
@@ -716,7 +779,6 @@ private extension BaseKeyboardViewController {
         rightChevronButton.isHidden = !(currentOneHandedMode == .left)
     }
     
-    /// 현재 보이는 키보드를  `currentKeyboard`에 맞게 변경하는 메서드
     func updateShowingKeyboard() {
         primaryKeyboardView.isHidden = (currentKeyboard != primaryKeyboardView.keyboard)
         symbolKeyboardView.isHidden = (currentKeyboard != .symbol)
@@ -766,12 +828,10 @@ extension BaseKeyboardViewController {
         case .deleteButton:
             if UserDefaultsManager.shared.isTextReplacementEnabled,
                let restore = suggestionController.attemptRestoreReplacement(
-                contextBeforeInput: textDocumentProxy.documentContextBeforeInput
+                inputBuffer: inputBuffer
                ) {
-                for _ in 0..<restore.deleteCount {
-                    textDocumentProxy.deleteBackward()
-                }
-                textDocumentProxy.insertText(restore.insertText)
+                // 대치 복구: 래핑 메서드 사용
+                replaceText(deleteCount: restore.deleteCount, insert: restore.insertText)
             } else {
                 if let selectedText = textDocumentProxy.selectedText {
                     tempDeletedCharacters.append(contentsOf: selectedText.reversed())
@@ -783,12 +843,10 @@ extension BaseKeyboardViewController {
         case .spaceButton:
             if UserDefaultsManager.shared.isTextReplacementEnabled,
                let replacement = suggestionController.attemptTextReplacement(
-                contextBeforeInput: textDocumentProxy.documentContextBeforeInput
+                inputBuffer: inputBuffer
                ) {
-                for _ in 0..<replacement.deleteCount {
-                    textDocumentProxy.deleteBackward()
-                }
-                textDocumentProxy.insertText(replacement.insertText)
+                // 텍스트 대치: 래핑 메서드 사용
+                replaceText(deleteCount: replacement.deleteCount, insert: replacement.insertText)
             }
             insertSpaceText()
         case .returnButton:
@@ -866,6 +924,9 @@ extension BaseKeyboardViewController: TextInteractionGestureControllerDelegate {
     final func primaryButtonPanning(_ controller: TextInteractionGestureController, to direction: PanDirection) {
         logger.debug("Primary Button 팬 제스처 방향: \(String(describing: direction))")
         
+        // 커서 이동 시 입력 버퍼 초기화
+        resetInputBuffer()
+        
         switch direction {
         case .left:
             if textDocumentProxy.documentContextBeforeInput != nil {
@@ -891,14 +952,14 @@ extension BaseKeyboardViewController: TextInteractionGestureControllerDelegate {
         case .left:
             if let lastBeforeCursor = textDocumentProxy.documentContextBeforeInput?.last {
                 tempDeletedCharacters.append(lastBeforeCursor)
-                textDocumentProxy.deleteBackward()
+                deleteText()
                 FeedbackManager.shared.playHaptic()
                 FeedbackManager.shared.playDeleteSound()
                 logger.debug("커서 앞 글자 삭제")
             }
         case .right:
             if let lastDeleted = tempDeletedCharacters.popLast() {
-                textDocumentProxy.insertText(String(lastDeleted))
+                insertText(String(lastDeleted))
                 FeedbackManager.shared.playHaptic()
                 FeedbackManager.shared.playDeleteSound()
                 logger.debug("삭제된 글자 복구")
@@ -960,32 +1021,25 @@ extension BaseKeyboardViewController: SuggestionControllerDelegate {
 
 extension BaseKeyboardViewController: SuggestionBarDelegate {
     final func suggestionBar(_ bar: SuggestionBarHStackView, didSelectSuggestionAt index: Int) {
-        let context = textDocumentProxy.documentContextBeforeInput ?? ""
-        
         if suggestionController.currentMode == .nGram {
-            // n-gram 모드: button1~3 모두 다음 단어 예측
-            // selectSuggestion은 "현재 단어 교체"용이므로 직접 삽입
             guard let word = suggestionController.nGramSuggestionText(at: index) else { return }
             
-            // context가 글자로 끝나면 앞에 공백 추가
-            let needsLeadingSpace = !context.isEmpty && context.last?.isWhitespace != true
+            let needsLeadingSpace = !inputBuffer.isEmpty && inputBuffer.last?.isWhitespace != true
             if needsLeadingSpace {
-                textDocumentProxy.insertText(" ")
+                insertText(" ")
             }
             
-            textDocumentProxy.insertText(word)
+            insertText(word)
             suggestionController.recordWord(word)
             
             suggestionDidApply()
             
-            // 강제 n-gram 갱신 → 결과 없으면 입력 중 모드로 폴백
-            suggestionController.updateSuggestionsAfterNGramSelection(contextBeforeInput: textDocumentProxy.documentContextBeforeInput)
+            suggestionController.updateSuggestionsAfterNGramSelection(inputBuffer: inputBuffer)
             return
         }
         
         if index == 0 {
-            // Button1 탭: 현재 입력 단어를 확정하고 학습
-            let currentWord = context.split(whereSeparator: { $0.isWhitespace }).last.map(String.init) ?? ""
+            let currentWord = inputBuffer.split(whereSeparator: { $0.isWhitespace }).last.map(String.init) ?? ""
             if !currentWord.isEmpty {
                 suggestionController.learnWord(currentWord)
                 suggestionController.recordWord(currentWord)
@@ -994,23 +1048,18 @@ extension BaseKeyboardViewController: SuggestionBarDelegate {
             return
         }
         
-        // Button2-3 → suggestionController의 인덱스 0-1로 변환
         let suggestionIndex = index - 1
         
         guard let result = suggestionController.selectSuggestion(
             at: suggestionIndex,
-            contextBeforeInput: context
+            inputBuffer: inputBuffer
         ) else { return }
         
-        for _ in 0..<result.deleteCount {
-            textDocumentProxy.deleteBackward()
-        }
-        textDocumentProxy.insertText(result.insertText)
+        replaceText(deleteCount: result.deleteCount, insert: result.insertText)
         
-        // 선택한 후보도 n-gram에 기록
         suggestionController.recordWord(result.insertText)
         
         suggestionDidApply()
-        suggestionController.updateSuggestions(contextBeforeInput: textDocumentProxy.documentContextBeforeInput)
+        suggestionController.updateSuggestions(inputBuffer: inputBuffer)
     }
 }
