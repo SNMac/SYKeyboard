@@ -32,12 +32,8 @@ open class FourByFourPlusKeyboardView: UIView {
     
     // MARK: - UI Components
     
-    /// 상단 여백
-    private let topSpacer = KeyboardSpacer()
     /// 키보드 레이아웃 수직 스택
     private let layoutVStackView = KeyboardLayoutVStackView()
-    /// 하단 여백
-    private let bottomSpacer = KeyboardSpacer()
     
     /// 키보드 첫번째 행
     private let firstRowHStackView = KeyboardRowHStackView()
@@ -139,9 +135,7 @@ private extension FourByFourPlusKeyboardView {
     }
     
     func setHierarchy() {
-        [topSpacer,
-         layoutVStackView,
-         bottomSpacer,
+        [layoutVStackView,
          keyboardSelectOverlayView,
          oneHandedModeSelectOverlayView].forEach { self.addSubview($0) }
         
@@ -171,28 +165,12 @@ private extension FourByFourPlusKeyboardView {
     }
     
     func setConstraints() {
-        topSpacer.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([
-            topSpacer.topAnchor.constraint(equalTo: self.topAnchor),
-            topSpacer.leadingAnchor.constraint(equalTo: self.leadingAnchor),
-            topSpacer.trailingAnchor.constraint(equalTo: self.trailingAnchor),
-            topSpacer.heightAnchor.constraint(equalToConstant: 2)
-        ])
-        
         layoutVStackView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
-            layoutVStackView.topAnchor.constraint(equalTo: topSpacer.bottomAnchor),
+            layoutVStackView.topAnchor.constraint(equalTo: self.topAnchor),
             layoutVStackView.leadingAnchor.constraint(equalTo: self.leadingAnchor),
             layoutVStackView.trailingAnchor.constraint(equalTo: self.trailingAnchor),
-            layoutVStackView.bottomAnchor.constraint(equalTo: bottomSpacer.topAnchor)
-        ])
-        
-        bottomSpacer.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([
-            bottomSpacer.leadingAnchor.constraint(equalTo: self.leadingAnchor),
-            bottomSpacer.trailingAnchor.constraint(equalTo: self.trailingAnchor),
-            bottomSpacer.bottomAnchor.constraint(equalTo: self.bottomAnchor),
-            bottomSpacer.heightAnchor.constraint(equalToConstant: 2)
+            layoutVStackView.bottomAnchor.constraint(equalTo: self.bottomAnchor)
         ])
         
         keyboardSelectOverlayView.translatesAutoresizingMaskIntoConstraints = false
