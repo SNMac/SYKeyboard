@@ -205,6 +205,10 @@ open class BaseKeyboardViewController: UIInputViewController {
         updateReturnButtonType()
         updateSuggestionBarHidden()
         oldKeyboardType = textDocumentProxy.keyboardType
+        
+        if UserDefaultsManager.shared.isPredictiveTextEnabled {
+            suggestionController.updateSuggestions(contextBeforeInput: textDocumentProxy.documentContextBeforeInput)
+        }
     }
     
     open override func viewWillDisappear(_ animated: Bool) {
@@ -957,18 +961,25 @@ extension BaseKeyboardViewController: SuggestionControllerDelegate {
 extension BaseKeyboardViewController: SuggestionBarDelegate {
     final func suggestionBar(_ bar: SuggestionBarHStackView, didSelectSuggestionAt index: Int) {
         let context = textDocumentProxy.documentContextBeforeInput ?? ""
-        let isNGramMode = context.isEmpty || context.last?.isWhitespace == true
         
-        if isNGramMode {
+        if suggestionController.currentMode == .nGram {
             // n-gram 모드: button1~3 모두 다음 단어 예측
             // selectSuggestion은 "현재 단어 교체"용이므로 직접 삽입
             guard let word = suggestionController.nGramSuggestionText(at: index) else { return }
+            
+            // context가 글자로 끝나면 앞에 공백 추가
+            let needsLeadingSpace = !context.isEmpty && context.last?.isWhitespace != true
+            if needsLeadingSpace {
+                textDocumentProxy.insertText(" ")
+            }
+            
             textDocumentProxy.insertText(word)
             suggestionController.recordWord(word)
-            textDocumentProxy.insertText(" ")
             
             suggestionDidApply()
-            suggestionController.updateSuggestions(contextBeforeInput: textDocumentProxy.documentContextBeforeInput)
+            
+            // 강제 n-gram 갱신 → 결과 없으면 입력 중 모드로 폴백
+            suggestionController.updateSuggestionsAfterNGramSelection(contextBeforeInput: textDocumentProxy.documentContextBeforeInput)
             return
         }
         
@@ -1000,7 +1011,6 @@ extension BaseKeyboardViewController: SuggestionBarDelegate {
         suggestionController.recordWord(result.insertText)
         
         suggestionDidApply()
-        
         suggestionController.updateSuggestions(contextBeforeInput: textDocumentProxy.documentContextBeforeInput)
     }
 }

@@ -18,6 +18,14 @@ protocol SuggestionControllerDelegate: AnyObject {
     func suggestionController(_ controller: SuggestionController, didUpdateCurrentWord currentWord: String?, suggestions: [String])
 }
 
+/// 현재 SuggestionBar의 표시 모드
+enum SuggestionMode {
+    /// 입력 중: button1에 "현재단어", button2~3에 자동완성 후보
+    case typing
+    /// n-gram: button1~3에 다음 단어 예측
+    case nGram
+}
+
 /// 자동완성 후보 조회, 텍스트 대치, 대치 복구를 통합 관리하는 컨트롤러
 ///
 /// `UILexicon`과 `UITextChecker`, n-gram 세 소스를 조합하여 후보를 생성하며,
@@ -42,6 +50,9 @@ final class SuggestionController: SuggestionService {
             if !isEnabled { clearSuggestions() }
         }
     }
+    
+    /// 현재 표시 모드
+    private(set) var currentMode: SuggestionMode = .nGram
     
     /// 자동완성 후보와 출처 정보를 함께 저장하는 모델
     struct SuggestionItem {
@@ -112,8 +123,37 @@ final class SuggestionController: SuggestionService {
         performUpdateSuggestions(contextBeforeInput: contextBeforeInput)
     }
     
+    /// n-gram 추천 탭 후 강제로 n-gram 갱신을 시도하고,
+    /// 결과가 없으면 입력 중 모드로 폴백합니다.
+    ///
+    /// 뒤 공백 없이 단어를 삽입한 후 호출되므로,
+    /// context가 글자로 끝나는 상태에서 n-gram 모드를 시도합니다.
+    ///
+    /// - Parameter contextBeforeInput: 커서 앞의 텍스트
+    func updateSuggestionsAfterNGramSelection(contextBeforeInput: String?) {
+        guard isEnabled else { return }
+        
+        let context = contextBeforeInput ?? ""
+        
+        let nGramResults = nGramSuggestions(for: context)
+        
+        if !nGramResults.isEmpty {
+            currentMode = .nGram
+            currentSuggestions = nGramResults
+            delegate?.suggestionController(
+                self,
+                didUpdateCurrentWord: nil,
+                suggestions: currentSuggestions.map { $0.text }
+            )
+        } else {
+            // 폴백 시 performUpdateSuggestions가 currentMode = .typing으로 설정
+            performUpdateSuggestions(contextBeforeInput: contextBeforeInput)
+        }
+    }
+    
     func clearSuggestions() {
         currentSuggestions = []
+        currentMode = .nGram
         delegate?.suggestionController(self, didUpdateCurrentWord: nil, suggestions: [])
     }
     
@@ -243,13 +283,19 @@ final class SuggestionController: SuggestionService {
 
 private extension SuggestionController {
     /// 실제 후보 갱신 로직
+    ///
+    /// 문맥에 따라 두 가지 모드로 분기합니다:
+    /// - 입력 없음(`nil`/빈 문자열) 또는 마지막 문자가 공백 → n-gram 모드
+    /// - 단어 타이핑 중 → 입력 중 모드 (lexicon + textChecker)
+    ///
+    /// - Parameter contextBeforeInput: 커서 앞의 텍스트 (`nil` 가능)
     func performUpdateSuggestions(contextBeforeInput: String?) {
         guard isEnabled else { return }
         
         let context = contextBeforeInput ?? ""
         
-        // 입력이 없거나 마지막 문자가 공백이면 n-gram 기반 다음 단어 예측
         if context.isEmpty || context.last?.isWhitespace == true {
+            currentMode = .nGram
             currentSuggestions = nGramSuggestions(for: context)
             delegate?.suggestionController(
                 self,
@@ -259,6 +305,7 @@ private extension SuggestionController {
             return
         }
         
+        currentMode = .typing
         let currentWord = extractLastWord(from: context)
         currentSuggestions = mergeSuggestions(for: context, currentWord: currentWord)
         delegate?.suggestionController(
@@ -271,13 +318,12 @@ private extension SuggestionController {
     /// n-gram 기반 다음 단어 예측 후보를 생성합니다.
     ///
     /// 입력이 없거나 마지막 문자가 공백일 때 사용됩니다.
-    /// 이 경우 button1에 currentWord가 없으므로 3개 슬롯 모두 사용합니다.
+    /// context가 비어있으면 unigram(자주 사용한 단어)을,
+    /// 공백으로 끝나면 trigram → bigram → unigram 순으로 조회합니다.
     ///
-    /// - Parameter context: 커서 앞의 텍스트
+    /// - Parameter context: 커서 앞의 텍스트 (빈 문자열 가능)
     /// - Returns: n-gram 예측 후보 배열 (최대 3개)
     func nGramSuggestions(for context: String) -> [SuggestionItem] {
-        guard !context.isEmpty else { return [] }
-        
         let results = nGramEngine.suggestions(for: context)
         return results.prefix(maxSuggestions).map {
             SuggestionItem(text: $0, source: .nGram)

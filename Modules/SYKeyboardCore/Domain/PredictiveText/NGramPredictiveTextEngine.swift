@@ -10,8 +10,9 @@ import OSLog
 
 /// 사용자 입력 이력 기반 n-gram 다음 단어 예측 엔진
 ///
-/// 사용자가 입력한 단어 시퀀스를 bigram(2-gram), trigram(3-gram)으로 기록하여
+/// 사용자가 입력한 단어를 unigram(1-gram), bigram(2-gram), trigram(3-gram)으로 기록하여
 /// 문맥에 따른 다음 단어를 빈도순으로 예측합니다.
+/// 문맥이 없는 경우(키보드 처음 열림 등)에는 unigram으로 자주 사용한 단어를 추천합니다.
 ///
 /// ```swift
 /// let engine = NGramPredictiveTextEngine()
@@ -25,7 +26,8 @@ import OSLog
 ///
 /// ## 저장 구조
 /// - `UserDefaults(suiteName:)`을 통해 App Group에 영구 저장
-/// - bigram/trigram 각각 `[String: [String: Int]]` 형태
+/// - unigram: `[String: Int]` 형태
+/// - bigram/trigram: 각각 `[String: [String: Int]]` 형태
 /// - 항목 수 제한으로 메모리 과다 사용 방지
 ///
 /// ## 동작 흐름
@@ -41,6 +43,8 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
         category: "\(String(describing: type(of: self))) <\(Unmanaged.passUnretained(self).toOpaque())>"
     )
     
+    /// unigram 저장소: "단어" → 빈도수
+    private var unigramStore: [String: Int] = [:]
     /// bigram 저장소: "직전 단어" → ["다음 단어": 빈도수]
     private var bigramStore: [String: [String: Int]] = [:]
     /// trigram 저장소: "직전 2단어" → ["다음 단어": 빈도수]
@@ -57,7 +61,8 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
     /// 전체 키 최대 개수
     private let maxKeys = 5000
     
-    /// `UserDefaults` 저장 키
+    // UserDefaults 저장 키
+    private static let unigramStoreKey = "com.snmac.sykeyboard.ngram.unigram"
     private static let bigramStoreKey = "com.snmac.sykeyboard.ngram.bigram"
     private static let trigramStoreKey = "com.snmac.sykeyboard.ngram.trigram"
     
@@ -84,17 +89,21 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
     
     /// 커서 앞 문맥을 기반으로 다음 단어를 예측합니다.
     ///
-    /// trigram(직전 2단어)을 우선 조회하고,
-    /// 부족하면 bigram(직전 1단어)으로 보충합니다.
+    /// trigram(직전 2단어) → bigram(직전 1단어) → unigram(빈도순) 순으로
+    /// 조회하며, 각 단계에서 부족한 슬롯을 다음 단계로 보충합니다.
+    /// 문맥이 비어있으면 unigram만 사용합니다.
     ///
-    /// - Parameter contextBeforeInput: 커서 앞의 텍스트
+    /// - Parameter contextBeforeInput: 커서 앞의 텍스트 (빈 문자열 가능)
     /// - Returns: 빈도순으로 정렬된 다음 단어 후보 배열 (최대 3개)
     func suggestions(for contextBeforeInput: String) -> [String] {
         let words = contextBeforeInput
             .split(whereSeparator: { $0.isWhitespace })
             .map(String.init)
         
-        guard !words.isEmpty else { return [] }
+        // 문맥이 없으면 unigram (자주 사용한 단어)
+        if words.isEmpty {
+            return rankedUnigramCandidates()
+        }
         
         var seen = Set<String>()
         var results: [String] = []
@@ -119,6 +128,16 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
             seen.insert(word.lowercased())
             results.append(word)
             if results.count >= maxPredictions { return results }
+        }
+        
+        // 3순위: unigram (슬롯이 남아있으면 보충)
+        if results.count < maxPredictions {
+            for word in rankedUnigramCandidates() {
+                guard !seen.contains(word.lowercased()) else { continue }
+                seen.insert(word.lowercased())
+                results.append(word)
+                if results.count >= maxPredictions { break }
+            }
         }
         
         return results
@@ -156,17 +175,20 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
     
     /// n-gram 데이터를 디스크에 저장합니다.
     func saveToDisk() {
-        storage.set(bigramStore, forKey: NGramPredictiveTextEngine.bigramStoreKey)
-        storage.set(trigramStore, forKey: NGramPredictiveTextEngine.trigramStoreKey)
+        storage.set(unigramStore, forKey: Self.unigramStoreKey)
+        storage.set(bigramStore, forKey: Self.bigramStoreKey)
+        storage.set(trigramStore, forKey: Self.trigramStoreKey)
     }
     
     /// 모든 학습 데이터를 초기화합니다.
     public func resetAllData() {
+        unigramStore = [:]
         bigramStore = [:]
         trigramStore = [:]
         currentSentenceWords = []
-        storage.removeObject(forKey: NGramPredictiveTextEngine.bigramStoreKey)
-        storage.removeObject(forKey: NGramPredictiveTextEngine.trigramStoreKey)
+        storage.removeObject(forKey: Self.unigramStoreKey)
+        storage.removeObject(forKey: Self.bigramStoreKey)
+        storage.removeObject(forKey: Self.trigramStoreKey)
         
         logger.debug("[NGram] 학습 데이터 초기화")
     }
@@ -177,6 +199,8 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
 private extension NGramPredictiveTextEngine {
     /// 디스크에서 n-gram 데이터를 로드합니다.
     func loadFromDisk() {
+        unigramStore = (storage.dictionary(forKey: Self.unigramStoreKey)
+                as? [String: Int]) ?? [:]
         bigramStore = (storage.dictionary(forKey: NGramPredictiveTextEngine.bigramStoreKey)
             as? [String: [String: Int]]) ?? [:]
         trigramStore = (storage.dictionary(forKey: NGramPredictiveTextEngine.trigramStoreKey)
@@ -187,6 +211,10 @@ private extension NGramPredictiveTextEngine {
     func recordNGrams() {
         let words = currentSentenceWords
         let count = words.count
+        
+        // unigram: 현재 단어
+        let currentWord = words[count - 1]
+        unigramStore[currentWord, default: 0] += 1
         
         // bigram: 직전 단어 → 현재 단어
         if count >= 2 {
@@ -206,8 +234,21 @@ private extension NGramPredictiveTextEngine {
             logger.debug("[NGram] trigram: \"\(key)\" → \"\(value)\" (count: \(self.trigramStore[key]?[value] ?? 0))")
         }
         
+        pruneUnigram()
         pruneKeys(in: &bigramStore)
         pruneKeys(in: &trigramStore)
+    }
+    
+    /// 빈도순으로 정렬된 unigram 후보를 반환합니다.
+    ///
+    /// 문맥이 없거나 trigram/bigram 결과가 부족할 때 사용됩니다.
+    ///
+    /// - Returns: 빈도순으로 정렬된 단어 배열 (최대 `maxPredictions`개)
+    func rankedUnigramCandidates() -> [String] {
+        return unigramStore
+            .sorted { $0.value > $1.value }
+            .prefix(maxPredictions)
+            .map { $0.key }
     }
     
     /// 빈도순으로 정렬된 후보를 반환합니다.
@@ -221,6 +262,18 @@ private extension NGramPredictiveTextEngine {
         return frequencies
             .sorted { $0.value > $1.value }
             .map { $0.key }
+    }
+    
+    /// unigram 항목 수가 제한을 초과하면 빈도 낮은 항목을 제거합니다.
+    ///
+    /// `maxKeys`를 초과할 때 빈도가 낮은 순서대로 제거합니다.
+    func pruneUnigram() {
+        guard unigramStore.count > maxKeys else { return }
+        let sorted = unigramStore.sorted { $0.value < $1.value }
+        let removeCount = unigramStore.count - maxKeys
+        for i in 0..<removeCount {
+            unigramStore.removeValue(forKey: sorted[i].key)
+        }
     }
     
     /// 특정 키의 항목 수가 제한을 초과하면 빈도 낮은 항목을 제거합니다.
