@@ -213,6 +213,7 @@ open class BaseKeyboardViewController: UIInputViewController {
     
     open override func textDidChange(_ textInput: (any UITextInput)?) {
         super.textDidChange(textInput)
+        resetInputBuffer()
         updateKeyboardType()
         updateReturnButtonType()
         updateSuggestionBarHidden()
