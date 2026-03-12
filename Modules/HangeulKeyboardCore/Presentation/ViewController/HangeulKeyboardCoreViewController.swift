@@ -107,8 +107,8 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
     
     // MARK: - Override Methods
     
-    open override func textDidChange(_ textInput: (any UITextInput)?) {
-        super.textDidChange(textInput)
+    open override func textWillChange(_ textInput: (any UITextInput)?) {
+        super.textWillChange(textInput)
         clearAllBuffers()
         lastInputText = nil
         processor.reset한글조합()
