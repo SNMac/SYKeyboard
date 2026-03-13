@@ -110,7 +110,8 @@ protocol SuggestionService: AnyObject {
     /// n-gram 문장 버퍼를 초기화합니다.
     ///
     /// 리턴 키 입력 시 호출합니다.
-    func endSentence()
+    /// - Parameter lastWord: 기록할 마지막 단어
+    func endSentence(lastWord: String?)
     
     /// n-gram 데이터를 디스크에 저장합니다.
     ///

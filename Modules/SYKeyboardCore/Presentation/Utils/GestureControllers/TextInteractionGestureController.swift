@@ -52,6 +52,12 @@ final class TextInteractionGestureController: NSObject {
         logger.debug("\(String(describing: type(of: self))) deinit")
     }
     
+    // MARK: - Internal Methods
+    
+    func releaseButtonGesture(for button: TextInteractable) {
+        setCurrentPressedButton(nil)
+    }
+    
     // MARK: - @objc Gesture Methods
     
     @objc func panGestureHandler(_ gesture: UIPanGestureRecognizer) {

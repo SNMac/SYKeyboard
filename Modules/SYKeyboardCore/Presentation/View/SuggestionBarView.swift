@@ -31,6 +31,7 @@ final class SuggestionBarView: UIView {
     
     // MARK: - Properties
     
+    weak var keyboardHStackView: UIView?
     weak var suggestionDelegate: SuggestionBarDelegate?
     
     private var suggestionButtons: [WordSuggestionButtonLikeView] {
@@ -88,8 +89,10 @@ final class SuggestionBarView: UIView {
     
     // MARK: - Initializer
     
-    override init(frame: CGRect) {
-        super.init(frame: frame)
+    init(keyboardHStackView: UIStackView) {
+        self.keyboardHStackView = keyboardHStackView
+        super.init(frame: .zero)
+        
         setupUI()
     }
     
@@ -103,6 +106,7 @@ final class SuggestionBarView: UIView {
         guard let touch = touches.first else { return }
         let point = touch.location(in: self)
         updateHighlight(at: point)
+        keyboardHStackView?.isUserInteractionEnabled = false
     }
     
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
@@ -122,10 +126,12 @@ final class SuggestionBarView: UIView {
         }
         
         clearAllHighlights()
+        keyboardHStackView?.isUserInteractionEnabled = true
     }
     
     override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
         clearAllHighlights()
+        keyboardHStackView?.isUserInteractionEnabled = true
     }
     
     // MARK: - Internal Methods

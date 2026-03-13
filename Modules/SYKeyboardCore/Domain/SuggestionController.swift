@@ -191,8 +191,8 @@ final class SuggestionController: SuggestionService {
         nGramEngine.addWord(word)
     }
     
-    func endSentence() {
-        nGramEngine.endSentence()
+    func endSentence(lastWord: String?) {
+        nGramEngine.endSentence(lastWord: lastWord)
     }
     
     func saveNGramData() {

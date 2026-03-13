@@ -93,7 +93,7 @@ open class BaseKeyboardViewController: UIInputViewController {
         setCurrentPressedButton: { [weak self] button in self?.buttonStateController.currentPressedButton = button }
     )
     /// 버튼 상태 컨트롤러
-    public let buttonStateController = ButtonStateController()
+    public lazy var buttonStateController = ButtonStateController(suggestionBarView: suggestionBarView)
     
     /// 자동완성 텍스트 제안 컨트롤러
     private let suggestionController: SuggestionService
@@ -341,15 +341,7 @@ open class BaseKeyboardViewController: UIInputViewController {
     open func insertSpaceText() {
         if BaseKeyboardViewController.isPreview { return }
         
-        // 스페이스 입력 전 직전 단어를 n-gram에 기록
-        let lastWord: String
-        if let spaceIndex = inputBuffer.lastIndex(where: { $0.isWhitespace }) {
-            lastWord = String(inputBuffer[inputBuffer.index(after: spaceIndex)...])
-        } else {
-            lastWord = inputBuffer
-        }
-        
-        if !lastWord.isEmpty {
+        if let lastWord = extractLastWord(from: inputBuffer) {
             suggestionController.recordWord(lastWord)
         }
         
@@ -360,10 +352,13 @@ open class BaseKeyboardViewController: UIInputViewController {
     /// - `BaseKeyboardViewController.isPreview == true`이면 즉시 리턴
     open func insertReturnText() {
         if BaseKeyboardViewController.isPreview { return }
+        
+        let lastWord = extractLastWord(from: inputBuffer)
+        
         textDocumentProxy.insertText("\n")
         resetInputBuffer()
         suggestionController.clearReplacementHistory()
-        suggestionController.endSentence()
+        suggestionController.endSentence(lastWord: lastWord)
     }
     
     /// 삭제가 일어나기 전 실행되는 메서드
@@ -463,6 +458,20 @@ extension BaseKeyboardViewController {
     /// 어긋날 수 있는 상황에서 호출합니다.
     public func resetInputBuffer() {
         inputBuffer = ""
+    }
+    
+    /// `inputBuffer`에서 아직 스페이스로 커밋되지 않은 마지막 단어를 추출합니다.
+    ///
+    /// 버퍼가 비어있거나 공백으로 끝나면(이미 스페이스에서 학습 완료)
+    /// `nil`을 반환하여 중복 학습을 방지합니다.
+    private func extractLastWord(from buffer: String) -> String? {
+        guard !buffer.isEmpty, !buffer.last!.isWhitespace else { return nil }
+        
+        if let spaceIndex = buffer.lastIndex(where: { $0.isWhitespace }) {
+            return String(buffer[buffer.index(after: spaceIndex)...])
+        } else {
+            return buffer
+        }
     }
 }
 
@@ -1004,6 +1013,7 @@ extension BaseKeyboardViewController: TextInteractionGestureControllerDelegate {
         } else if UserDefaultsManager.shared.selectedLongPressAction == .numberInput {
             performTextInteraction(for: button, insertSecondaryKeyIfAvailable: true)
             button.isGesturing = false
+            textInteractionGestureController.releaseButtonGesture(for: button)
         }
     }
     

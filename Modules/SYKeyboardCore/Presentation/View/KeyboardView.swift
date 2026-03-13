@@ -33,8 +33,8 @@ final public class KeyboardView: UIInputView {
     }()
     
     /// 자동완성 툴바
-    let suggestionBarView: SuggestionBarView = {
-        let suggestionBar = SuggestionBarView()
+    lazy var suggestionBarView: SuggestionBarView = {
+        let suggestionBar = SuggestionBarView(keyboardHStackView: keyboardHStackView)
         suggestionBar.isHidden = !UserDefaultsManager.shared.isPredictiveTextEnabled
         
         return suggestionBar
