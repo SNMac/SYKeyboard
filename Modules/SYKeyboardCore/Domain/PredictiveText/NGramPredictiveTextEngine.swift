@@ -184,10 +184,17 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
         logger.debug("[NGram/\(self.language)] n-gram 기록: \(word)")
     }
     
-    /// 문장이 끝났을 때 버퍼를 초기화합니다.
+    /// 마지막 단어를 기록한 뒤 문장 버퍼를 초기화합니다.
     ///
     /// 리턴 키 입력 시 호출합니다.
-    func endSentence() {
+    /// 스페이스 없이 바로 리턴을 누른 경우, 마지막 단어가 아직 기록되지 않았을 수 있으므로
+    /// `lastWord`를 전달하면 중복 없이 기록 후 버퍼를 초기화합니다.
+    ///
+    /// - Parameter lastWord: 리턴 직전에 아직 커밋되지 않은 단어 (없으면 `nil`)
+    func endSentence(lastWord: String? = nil) {
+        if let word = lastWord, !word.isEmpty {
+            addWord(word)
+        }
         currentSentenceWords.removeAll()
     }
     

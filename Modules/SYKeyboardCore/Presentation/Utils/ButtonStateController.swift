@@ -17,19 +17,24 @@ final public class ButtonStateController {
         category: "\(String(describing: type(of: self))) <\(Unmanaged.passUnretained(self).toOpaque())>"
     )
     
-    /// 현재 눌린 버튼
+    weak var suggestionBarView: UIView?
     weak var currentPressedButton: BaseKeyboardButton? {
         didSet {
             oldValue?.isPressed = false
             oldValue?.gestureRecognizers?.forEach { $0.state = .cancelled }
-            
             currentPressedButton?.isPressed = true
+            
+            suggestionBarView?.isUserInteractionEnabled = (currentPressedButton == nil)
         }
     }
     /// Shift 버튼 눌림 여부
     public var isShiftButtonPressed: Bool = false
     
     // MARK: - Lifecycle
+    
+    init(suggestionBarView: SuggestionBarView) {
+        self.suggestionBarView = suggestionBarView
+    }
     
     deinit {
         logger.debug("\(String(describing: type(of: self))) deinit")
@@ -83,7 +88,7 @@ final public class ButtonStateController {
                     }
                 }
             }
-            button.addAction(buttonReleaseAction, for: .touchUpInside)
+            button.addAction(buttonReleaseAction, for: [.touchUpInside, .touchUpOutside])
         }
     }
 }
