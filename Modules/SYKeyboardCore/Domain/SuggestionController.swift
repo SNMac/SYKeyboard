@@ -182,20 +182,24 @@ final class SuggestionController: SuggestionService {
     // MARK: - Learning
     
     func learnWord(_ word: String) {
+        guard isEnabled else { return }
         textCheckerEngine.learn(word: word)
     }
     
     // MARK: - N-Gram Recording
     
     func recordWord(_ word: String) {
+        guard isEnabled else { return }
         nGramEngine.addWord(word)
     }
     
     func endSentence(lastWord: String?) {
+        guard isEnabled else { return }
         nGramEngine.endSentence(lastWord: lastWord)
     }
     
     func saveNGramData() {
+        guard isEnabled else { return }
         nGramEngine.saveToDisk()
     }
     
@@ -275,8 +279,6 @@ private extension SuggestionController {
     ///
     /// - Parameter inputBuffer: 현재 키보드 세션에서 직접 입력한 텍스트 버퍼
     func performUpdateSuggestions(inputBuffer: String) {
-        guard isEnabled else { return }
-        
         if inputBuffer.isEmpty || inputBuffer.last?.isWhitespace == true {
             currentMode = .nGram
             currentSuggestions = nGramSuggestions(for: inputBuffer)
