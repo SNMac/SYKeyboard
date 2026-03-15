@@ -69,8 +69,8 @@ final public class TextCheckerPredictiveTextEngine: PredictiveTextProvider {
     
     // MARK: - PredictiveTextProvider Methods
     
-    func suggestions(for contextBeforeInput: String) -> [String] {
-        let lastWord = currentWord(from: contextBeforeInput)
+    func suggestions(for baseText: String) -> [String] {
+        let lastWord = currentWord(from: baseText)
         guard !lastWord.isEmpty else { return [] }
         
         let range = NSRange(location: 0, length: lastWord.utf16.count)
