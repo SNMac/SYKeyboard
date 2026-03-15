@@ -17,7 +17,7 @@ import UIKit
 /// - `SuggestionController`: `UILexicon` + `UITextChecker` + n-gram을 조합한 기본 구현
 ///
 /// ## 동작 흐름
-/// 1. **입력 중**: `updateSuggestions(inputBuffer:)`로 후보 갱신
+/// 1. **입력 중**: `updateSuggestions(for baseText:)`로 후보 갱신
 /// 2. **후보 탭**: `selectSuggestion(at:inputBuffer:)`로 현재 단어 교체
 /// 3. **스페이스**: `attemptTextReplacement(inputBuffer:)`로 텍스트 대치 수행, `recordWord(_:)`로 n-gram 기록
 /// 4. **삭제**: `attemptRestoreReplacement(inputBuffer:)`로 대치 복구
@@ -57,8 +57,8 @@ protocol SuggestionService: AnyObject {
     /// 입력 중일 때는 button1에 현재 단어, button2~3에 자동완성 후보를 표시하고,
     /// 입력이 없거나 마지막 문자가 공백이면 n-gram 기반 다음 단어 예측을 표시합니다.
     ///
-    /// - Parameter inputBuffer: 현재 키보드 세션에서 직접 입력한 텍스트 버퍼
-    func updateSuggestions(inputBuffer: String)
+    /// - Parameter baseText: 자동완성을 제공할 텍스트
+    func updateSuggestions(for baseText: String)
     
     /// n-gram 추천 탭 후 강제로 n-gram 갱신을 시도하고,
     /// 결과가 없으면 입력 중 모드로 폴백합니다.
@@ -75,7 +75,9 @@ protocol SuggestionService: AnyObject {
     ///
     /// - Parameters:
     ///   - index: 선택된 후보의 인덱스 (0~1)
-    ///   - inputBuffer: 현재 키보드 세션에서 직접 입력한 텍스트 버퍼
+    ///   - inputBuffer: 현재 입력 중인 텍스트 버퍼.
+    ///     일반적으로 키보드 세션의 `inputBuffer`이며,
+    ///     텍스트가 선택된 경우 `selectedText`가 전달될 수 있습니다.
     /// - Returns: 삭제할 글자 수와 삽입할 텍스트의 튜플, 유효하지 않으면 `nil`
     func selectSuggestion(at index: Int, inputBuffer: String) -> (deleteCount: Int, insertText: String)?
     

@@ -113,10 +113,10 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
     /// 조회하며, 각 단계에서 부족한 슬롯을 다음 단계로 보충합니다.
     /// 문맥이 비어있으면 unigram만 사용합니다.
     ///
-    /// - Parameter contextBeforeInput: 커서 앞의 텍스트 (빈 문자열 가능)
+    /// - Parameter baseText: 자동완성을 제공할 텍스트 (`inputBuffer`)
     /// - Returns: 빈도순으로 정렬된 다음 단어 후보 배열 (최대 3개)
-    func suggestions(for contextBeforeInput: String) -> [String] {
-        let words = contextBeforeInput
+    func suggestions(for baseText: String) -> [String] {
+        let words = baseText
             .split(whereSeparator: { $0.isWhitespace })
             .map(String.init)
         

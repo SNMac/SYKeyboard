@@ -213,15 +213,19 @@ open class BaseKeyboardViewController: UIInputViewController {
     
     open override func textWillChange(_ textInput: (any UITextInput)?) {
         super.textWillChange(textInput)
+        logger.debug("textWillChange")
         resetInputBuffer()
         updateKeyboardType()
         oldKeyboardType = textDocumentProxy.keyboardType
         updateReturnButtonType()
-        updateSuggestionBarHidden()
         
-        if UserDefaultsManager.shared.isPredictiveTextEnabled {
-            suggestionController.updateSuggestions(inputBuffer: inputBuffer)
-        }
+        updateSuggestionBarHidden()
+    }
+    
+    open override func textDidChange(_ textInput: (any UITextInput)?) {
+        super.textDidChange(textInput)
+        logger.debug("textDidChange")
+        updateSuggestions()
     }
     
     open override func viewWillDisappear(_ animated: Bool) {
@@ -260,8 +264,8 @@ open class BaseKeyboardViewController: UIInputViewController {
     ///
     /// > 하위 클래스에서 오버라이드 시 반드시 `super`로 호출 필요
     open func textInteractionDidPerform(button: TextInteractable) {
-        if !isRepeatingInput && UserDefaultsManager.shared.isPredictiveTextEnabled {
-            suggestionController.updateSuggestions(inputBuffer: inputBuffer)
+        if !isRepeatingInput {
+            updateSuggestions()
         }
     }
     
@@ -286,9 +290,7 @@ open class BaseKeyboardViewController: UIInputViewController {
         tempDeletedCharacters.removeAll()
         isRepeatingInput = false
         
-        if UserDefaultsManager.shared.isPredictiveTextEnabled {
-            suggestionController.updateSuggestions(inputBuffer: inputBuffer)
-        }
+        updateSuggestions()
     }
     
     /// 사용자가 탭한 `TextInteractable` 버튼의 `primaryKeyList` 중 상황에 맞는 문자를 입력하는 메서드 (단일 호출)
@@ -899,6 +901,20 @@ extension BaseKeyboardViewController {
 // MARK: - Private Methods
 
 private extension BaseKeyboardViewController {
+    func updateSuggestions() {
+        if UserDefaultsManager.shared.isPredictiveTextEnabled {
+            if let selectedText = textDocumentProxy.selectedText, !selectedText.isEmpty {
+                if !selectedText.contains(where: { $0.isWhitespace }) {
+                    suggestionController.updateSuggestions(for: selectedText)
+                } else {
+                    suggestionController.clearSuggestions()
+                }
+            } else {
+                suggestionController.updateSuggestions(for: inputBuffer)
+            }
+        }
+    }
+    
     func handlePeriodShortcutOnDelete() {
         guard UserDefaultsManager.shared.isPeriodShortcutEnabled else { return }
         
@@ -1029,7 +1045,7 @@ extension BaseKeyboardViewController: TextInteractionGestureControllerDelegate {
 
 extension BaseKeyboardViewController: SuggestionControllerDelegate {
     final func suggestionController(_ controller: SuggestionController, didUpdateCurrentWord currentWord: String?, suggestions: [String]) {
-        keyboardView.suggestionBarView.updateSuggestions(currentWord: currentWord, suggestions: suggestions)
+        suggestionBarView.updateSuggestions(currentWord: currentWord, suggestions: suggestions)
     }
 }
 
@@ -1037,6 +1053,30 @@ extension BaseKeyboardViewController: SuggestionControllerDelegate {
 
 extension BaseKeyboardViewController: SuggestionBarDelegate {
     final func suggestionBar(_ bar: SuggestionBarView, didSelectSuggestionAt index: Int) {
+        if let selectedText = textDocumentProxy.selectedText, !selectedText.isEmpty {
+            if index == 0 {
+                // 현재 선택된 단어 확정, 후보 비우기
+                suggestionController.clearSuggestions()
+                return
+            }
+            
+            let suggestionIndex = index - 1
+            guard suggestionIndex >= 0,
+                  let result = suggestionController.selectSuggestion(
+                    at: suggestionIndex,
+                    inputBuffer: selectedText
+                  ) else { return }
+            
+            // selectedText가 있는 상태에서 insertText하면
+            // 시스템이 선택 영역을 자동 교체
+            textDocumentProxy.insertText(result.insertText)
+            inputBuffer.append(result.insertText)
+            
+            suggestionDidApply()
+            updateSuggestions()
+            return
+        }
+        
         if suggestionController.currentMode == .nGram {
             guard let word = suggestionController.nGramSuggestionText(at: index) else { return }
             
@@ -1076,6 +1116,6 @@ extension BaseKeyboardViewController: SuggestionBarDelegate {
         suggestionController.recordWord(result.insertText)
         
         suggestionDidApply()
-        suggestionController.updateSuggestions(inputBuffer: inputBuffer)
+        updateSuggestions()
     }
 }

@@ -121,9 +121,9 @@ final class SuggestionController: SuggestionService {
     
     // MARK: - Suggestion Methods
     
-    func updateSuggestions(inputBuffer: String) {
+    func updateSuggestions(for baseText: String) {
         guard isEnabled else { return }
-        performUpdateSuggestions(inputBuffer: inputBuffer)
+        performUpdateSuggestions(for: baseText)
     }
     
     func updateSuggestionsAfterNGramSelection(inputBuffer: String) {
@@ -140,7 +140,7 @@ final class SuggestionController: SuggestionService {
                 suggestions: currentSuggestions.map { $0.text }
             )
         } else {
-            performUpdateSuggestions(inputBuffer: inputBuffer)
+            performUpdateSuggestions(for: inputBuffer)
         }
     }
     
@@ -277,11 +277,11 @@ private extension SuggestionController {
     /// - 버퍼 비어있음 또는 마지막 문자가 공백 → n-gram 모드
     /// - 단어 타이핑 중 → 입력 중 모드 (lexicon + textChecker)
     ///
-    /// - Parameter inputBuffer: 현재 키보드 세션에서 직접 입력한 텍스트 버퍼
-    func performUpdateSuggestions(inputBuffer: String) {
-        if inputBuffer.isEmpty || inputBuffer.last?.isWhitespace == true {
+    /// - Parameter baseText: 자동완성을 제공할 텍스트
+    func performUpdateSuggestions(for baseText: String) {
+        if baseText.isEmpty || baseText.last?.isWhitespace == true {
             currentMode = .nGram
-            currentSuggestions = nGramSuggestions(for: inputBuffer)
+            currentSuggestions = nGramSuggestions(for: baseText)
             delegate?.suggestionController(
                 self,
                 didUpdateCurrentWord: nil,
@@ -291,8 +291,8 @@ private extension SuggestionController {
         }
         
         currentMode = .typing
-        let currentWord = extractLastWord(from: inputBuffer)
-        currentSuggestions = mergeSuggestions(for: inputBuffer, currentWord: currentWord)
+        let currentWord = extractLastWord(from: baseText)
+        currentSuggestions = mergeSuggestions(for: baseText, currentWord: currentWord)
         delegate?.suggestionController(
             self,
             didUpdateCurrentWord: currentWord.isEmpty ? nil : currentWord,
@@ -320,12 +320,12 @@ private extension SuggestionController {
     /// `UILexicon` 결과를 먼저 배치하여 사용자 개인화 데이터를 우선시합니다.
     ///
     /// - Parameters:
-    ///   - inputBuffer: 현재 키보드 세션에서 직접 입력한 텍스트 버퍼
+    ///   - text: 자동완성을 제공할 텍스트
     ///   - currentWord: 현재 입력 중인 단어
     /// - Returns: 중복 제거된 후보 배열 (최대 2개)
-    func mergeSuggestions(for inputBuffer: String, currentWord: String) -> [SuggestionItem] {
-        let lexiconResults = lexiconEngine.suggestions(for: inputBuffer)
-        let checkerResults = textCheckerEngine.suggestions(for: inputBuffer)
+    func mergeSuggestions(for text: String, currentWord: String) -> [SuggestionItem] {
+        let lexiconResults = lexiconEngine.suggestions(for: text)
+        let checkerResults = textCheckerEngine.suggestions(for: text)
         
         var seen = Set<String>()
         seen.insert(currentWord.lowercased())

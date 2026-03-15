@@ -35,12 +35,12 @@ final class LexiconPredictiveTextEngine: PredictiveTextProvider {
     
     /// 현재 입력된 단어와 정확히 일치하는 텍스트 대치 후보만 반환합니다.
     ///
-    /// - Parameter contextBeforeInput: 커서 앞의 텍스트
+    /// - Parameter baseText: 자동완성을 제공할 텍스트
     /// - Returns: 정확히 매칭된 대치 결과 배열
-    func suggestions(for contextBeforeInput: String) -> [String] {
+    func suggestions(for baseText: String) -> [String] {
         guard let lexicon = lexicon else { return [] }
         
-        let lastWord = currentWord(from: contextBeforeInput)
+        let lastWord = currentWord(from: baseText)
         guard !lastWord.isEmpty else { return [] }
         
         let lowered = lastWord.lowercased()
