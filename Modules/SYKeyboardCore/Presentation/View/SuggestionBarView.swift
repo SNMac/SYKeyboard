@@ -34,6 +34,8 @@ final class SuggestionBarView: UIView {
     weak var keyboardHStackView: UIView?
     weak var suggestionDelegate: SuggestionBarDelegate?
     
+    private weak var activeTouch: UITouch?
+    
     private var suggestionButtons: [SuggestionButtonView] {
         return [suggestionButton1, suggestionButton2, suggestionButton3]
     }
@@ -103,20 +105,21 @@ final class SuggestionBarView: UIView {
     // MARK: - Lifecycle
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-        guard let touch = touches.first else { return }
+        guard activeTouch == nil, let touch = touches.first else { return }
+        activeTouch = touch
         let point = touch.location(in: self)
         updateHighlight(at: point)
         keyboardHStackView?.isUserInteractionEnabled = false
     }
-    
+
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
-        guard let touch = touches.first else { return }
+        guard let touch = activeTouch, touches.contains(touch) else { return }
         let point = touch.location(in: self)
         updateHighlight(at: point)
     }
-    
+
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
-        guard let touch = touches.first else { return }
+        guard let touch = activeTouch, touches.contains(touch) else { return }
         let point = touch.location(in: self)
         
         if let (index, _) = suggestionButton(at: point) {
@@ -125,11 +128,14 @@ final class SuggestionBarView: UIView {
             FeedbackManager.shared.playModifierSound()
         }
         
+        activeTouch = nil
         clearAllHighlights()
         keyboardHStackView?.isUserInteractionEnabled = true
     }
-    
+
     override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
+        guard let touch = activeTouch, touches.contains(touch) else { return }
+        activeTouch = nil
         clearAllHighlights()
         keyboardHStackView?.isUserInteractionEnabled = true
     }
