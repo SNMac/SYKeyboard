@@ -34,8 +34,8 @@ final class SuggestionBarView: UIView {
     weak var keyboardHStackView: UIView?
     weak var suggestionDelegate: SuggestionBarDelegate?
     
-    private var suggestionButtons: [WordSuggestionButtonLikeView] {
-        return [predictedWordButton1, predictedWordButton2, predictedWordButton3]
+    private var suggestionButtons: [SuggestionButtonView] {
+        return [suggestionButton1, suggestionButton2, suggestionButton3]
     }
     
     // MARK: - UI Components
@@ -51,8 +51,8 @@ final class SuggestionBarView: UIView {
         return stackView
     }()
     
-    private lazy var predictedWordButton1: WordSuggestionButtonLikeView = {
-        let button = WordSuggestionButtonLikeView()
+    private lazy var suggestionButton1: SuggestionButtonView = {
+        let button = SuggestionButtonView()
         button.trailingDivider = leftDivider
         
         return button
@@ -65,8 +65,8 @@ final class SuggestionBarView: UIView {
         return view
     }()
     
-    private lazy var predictedWordButton2: WordSuggestionButtonLikeView = {
-        let button = WordSuggestionButtonLikeView()
+    private lazy var suggestionButton2: SuggestionButtonView = {
+        let button = SuggestionButtonView()
         button.leadingDivider = leftDivider
         button.trailingDivider = rightDivider
         
@@ -80,8 +80,8 @@ final class SuggestionBarView: UIView {
         return view
     }()
     
-    private lazy var predictedWordButton3: WordSuggestionButtonLikeView = {
-        let button = WordSuggestionButtonLikeView()
+    private lazy var suggestionButton3: SuggestionButtonView = {
+        let button = SuggestionButtonView()
         button.leadingDivider = rightDivider
         
         return button
@@ -148,9 +148,9 @@ final class SuggestionBarView: UIView {
     func updateSuggestions(currentWord: String?, suggestions: [String]) {
         if let word = currentWord, !word.isEmpty {
             // 입력 중: button1에 "현재단어", button2~3에 자동완성 후보
-            predictedWordButton1.update(to: "\"\(word)\"")
+            suggestionButton1.update(to: "\"\(word)\"")
             
-            let suggestionButtons = [predictedWordButton2, predictedWordButton3]
+            let suggestionButtons = [suggestionButton2, suggestionButton3]
             for (index, button) in suggestionButtons.enumerated() {
                 if index < suggestions.count {
                     button.update(to: suggestions[index])
@@ -160,7 +160,7 @@ final class SuggestionBarView: UIView {
             }
         } else {
             // 입력 없음 / 자동완성 후: button1~3에 n-gram 예측 후보
-            let buttons = [predictedWordButton1, predictedWordButton2, predictedWordButton3]
+            let buttons = [suggestionButton1, suggestionButton2, suggestionButton3]
             for (index, button) in buttons.enumerated() {
                 if index < suggestions.count {
                     button.update(to: suggestions[index])
@@ -188,7 +188,7 @@ private extension SuggestionBarView {
     func setHierarchy() {
         self.addSubview(buttonContainerHStackView)
         
-        [predictedWordButton1, leftDivider, predictedWordButton2, rightDivider, predictedWordButton3].forEach {
+        [suggestionButton1, leftDivider, suggestionButton2, rightDivider, suggestionButton3].forEach {
             buttonContainerHStackView.addArrangedSubview($0)
         }
     }
@@ -208,15 +208,15 @@ private extension SuggestionBarView {
             $0.heightAnchor.constraint(equalToConstant: KeyboardLayoutFigure.suggestionButtonDividerHeight).isActive = true
         }
         
-        predictedWordButton1.translatesAutoresizingMaskIntoConstraints = false
-        predictedWordButton2.translatesAutoresizingMaskIntoConstraints = false
-        predictedWordButton3.translatesAutoresizingMaskIntoConstraints = false
+        suggestionButton1.translatesAutoresizingMaskIntoConstraints = false
+        suggestionButton2.translatesAutoresizingMaskIntoConstraints = false
+        suggestionButton3.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
-            predictedWordButton1.heightAnchor.constraint(equalTo: buttonContainerHStackView.heightAnchor),
-            predictedWordButton2.widthAnchor.constraint(equalTo: predictedWordButton1.widthAnchor),
-            predictedWordButton2.heightAnchor.constraint(equalTo: buttonContainerHStackView.heightAnchor),
-            predictedWordButton3.widthAnchor.constraint(equalTo: predictedWordButton1.widthAnchor),
-            predictedWordButton3.heightAnchor.constraint(equalTo: buttonContainerHStackView.heightAnchor)
+            suggestionButton1.heightAnchor.constraint(equalTo: buttonContainerHStackView.heightAnchor),
+            suggestionButton2.widthAnchor.constraint(equalTo: suggestionButton1.widthAnchor),
+            suggestionButton2.heightAnchor.constraint(equalTo: buttonContainerHStackView.heightAnchor),
+            suggestionButton3.widthAnchor.constraint(equalTo: suggestionButton1.widthAnchor),
+            suggestionButton3.heightAnchor.constraint(equalTo: buttonContainerHStackView.heightAnchor)
         ])
     }
 }
@@ -224,7 +224,7 @@ private extension SuggestionBarView {
 // MARK: - Private Methods
 
 private extension SuggestionBarView {
-    func suggestionButton(at point: CGPoint) -> (Int, WordSuggestionButtonLikeView)? {
+    func suggestionButton(at point: CGPoint) -> (Int, SuggestionButtonView)? {
         for (index, button) in suggestionButtons.enumerated() {
             guard button.hasText else { continue }
             let buttonFrame = button.convert(button.bounds, to: self)
@@ -238,13 +238,28 @@ private extension SuggestionBarView {
     func updateHighlight(at point: CGPoint) {
         let hit = suggestionButton(at: point)
         for button in suggestionButtons {
-            button.isSuggestionHighlighted = (button === hit?.1)
+            button.isHighlighted = (button === hit?.1)
         }
+        updateDividers()
     }
-
+    
     func clearAllHighlights() {
         for button in suggestionButtons {
-            button.isSuggestionHighlighted = false
+            button.isHighlighted = false
         }
+        updateDividers()
+    }
+    
+    func updateDividers() {
+        let btn1Highlighted = suggestionButton1.isHighlighted
+        let btn2Highlighted = suggestionButton2.isHighlighted
+        let btn3Highlighted = suggestionButton3.isHighlighted
+        
+        leftDivider.backgroundColor = (btn1Highlighted || btn2Highlighted)
+        ? .clear
+        : .suggestionDividerColor
+        rightDivider.backgroundColor = (btn2Highlighted || btn3Highlighted)
+        ? .clear
+        : .suggestionDividerColor
     }
 }

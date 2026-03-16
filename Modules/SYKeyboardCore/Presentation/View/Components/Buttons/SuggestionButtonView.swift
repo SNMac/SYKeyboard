@@ -1,5 +1,5 @@
 //
-//  WordSuggestionButtonLikeView.swift
+//  SuggestionButtonView.swift
 //  SYKeyboardCore
 //
 //  Created by 서동환 on 3/11/26.
@@ -9,7 +9,7 @@ import UIKit
 
 import SYKeyboardAssets
 
-final class WordSuggestionButtonLikeView: UIView {
+final class SuggestionButtonView: UIView {
     
     // MARK: - Properties
     
@@ -19,17 +19,9 @@ final class WordSuggestionButtonLikeView: UIView {
         return !(suggestionLabel.text?.isEmpty ?? true)
     }
     
-    var isSuggestionHighlighted: Bool = false {
+    var isHighlighted: Bool = false {
         didSet {
-            if isSuggestionHighlighted {
-                backgroundView.backgroundColor = .suggestionButtonPressed
-                leadingDivider?.backgroundColor = .clear
-                trailingDivider?.backgroundColor = .clear
-            } else {
-                backgroundView.backgroundColor = .clear
-                leadingDivider?.backgroundColor = .suggestionDividerColor
-                trailingDivider?.backgroundColor = .suggestionDividerColor
-            }
+            backgroundView.backgroundColor = isHighlighted ? .suggestionButtonPressed : .clear
         }
     }
     
@@ -85,7 +77,7 @@ final class WordSuggestionButtonLikeView: UIView {
 
 // MARK: - UI Methods
 
-private extension WordSuggestionButtonLikeView {
+private extension SuggestionButtonView {
     func setupUI() {
         setStyles()
         setHierarchy()
