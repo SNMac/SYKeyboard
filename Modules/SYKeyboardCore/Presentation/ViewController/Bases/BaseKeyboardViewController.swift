@@ -501,27 +501,25 @@ private extension BaseKeyboardViewController {
     }
     
     func setKeyboardHeight() {
+        guard let window = self.view.window,
+              let orientation = window.windowScene?.effectiveGeometry.interfaceOrientation else { return }
+        
         let keyboardViewHeight: CGFloat
         let keyboardHStackViewHeight: CGFloat
-        if let orientation = self.view.window?.windowScene?.effectiveGeometry.interfaceOrientation {
-            let isSuggestionBarVisible = UserDefaultsManager.shared.isPredictiveTextEnabled
-            && textDocumentProxy.autocorrectionType != .no
-            && currentKeyboard != .tenKey
-            
-            let suggestionBarHeight = isSuggestionBarVisible
-            ? KeyboardLayoutFigure.suggestionBarHeightWithTopSpacing
-            : 0
-            
-            if orientation == .portrait {
-                keyboardViewHeight = UserDefaultsManager.shared.keyboardHeight + suggestionBarHeight
-                keyboardHStackViewHeight = UserDefaultsManager.shared.keyboardHeight
-            } else {
-                keyboardViewHeight = KeyboardLayoutFigure.landscapeKeyboardHeight
-                keyboardHStackViewHeight = KeyboardLayoutFigure.landscapeKeyboardHeight - suggestionBarHeight
-            }
+        let isSuggestionBarVisible = UserDefaultsManager.shared.isPredictiveTextEnabled
+        && textDocumentProxy.autocorrectionType != .no
+        && currentKeyboard != .tenKey
+        
+        let suggestionBarHeight = isSuggestionBarVisible
+        ? KeyboardLayoutFigure.suggestionBarHeightWithTopSpacing
+        : 0
+        
+        if orientation == .portrait {
+            keyboardViewHeight = UserDefaultsManager.shared.keyboardHeight + suggestionBarHeight
+            keyboardHStackViewHeight = UserDefaultsManager.shared.keyboardHeight
         } else {
-            assertionFailure("View가 window 계층에 없습니다.")
-            return
+            keyboardViewHeight = KeyboardLayoutFigure.landscapeKeyboardHeight
+            keyboardHStackViewHeight = KeyboardLayoutFigure.landscapeKeyboardHeight - suggestionBarHeight
         }
         
         if let keyboardViewHeightConstraint {
@@ -821,8 +819,8 @@ private extension BaseKeyboardViewController {
         suggestionController.isEnabled = !shouldHideSuggestions
         
         if prevSuggestionHiddenState != shouldHideSuggestions {
-            DispatchQueue.main.async {
-                self.setKeyboardHeight()
+            DispatchQueue.main.async { [weak self] in
+                self?.setKeyboardHeight()
             }
         }
     }
