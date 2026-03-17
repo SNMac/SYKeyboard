@@ -30,16 +30,17 @@
 
 
 ## 🛠️ 기술 스택
-| 범위 | 기술 이름 |
-|:---------:|:----------|
-| 의존성 관리 도구 | `SPM` |
-| 형상 관리 도구 | `Git`, `GitHub` |
-| 디자인 패턴 | `Delegate`, `Singleton` |
-| 인터페이스 | `UIKit`, `SwiftUI` |
-| 활용 API | `Firebase Analytics`, `Firebase Crashlytics`, `Google AdMob` |
-| 내부 저장소 | `UserDefaults` |
-| 로컬라이징 | `String Catalog` |
-| 테스트 | `Swift Testing` |
+|    범위     | 기술 이름                                                        |
+| :-------: | :----------------------------------------------------------- |
+| 의존성 관리 도구 | `SPM`                                                        |
+| 형상 관리 도구  | `Git`, `GitHub`                                              |
+|  디자인 패턴   | `Delegate`, `Singleton`                                      |
+|   인터페이스   | `UIKit`, `SwiftUI`                                           |
+|  활용 API   | `Firebase Analytics`, `Firebase Crashlytics`, `Google AdMob` |
+|  내부 저장소   | `UserDefaults`                                               |
+| 자동완성 텍스트  | `UILexicon`, `UITextChecker`                                 |
+|   로컬라이징   | `String Catalog`                                             |
+|    테스트    | `Swift Testing`                                              |
 
 <br><br>
 
