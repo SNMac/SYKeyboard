@@ -92,7 +92,7 @@ protocol SuggestionService: AnyObject {
     ///
     /// - Parameters:
     ///   - index: 선택된 후보의 인덱스 (0~1)
-    ///   - baseText: 현재 입력 중인 텍스트 버퍼.
+    ///   - baseText: 자동완성을 제공할 텍스트.
     ///     일반적으로 키보드 세션의 `inputBuffer`이며,
     ///     텍스트가 선택된 경우 `selectedText`가 전달될 수 있습니다.
     /// - Returns: 삭제할 글자 수와 삽입할 텍스트의 튜플, 유효하지 않으면 `nil`
@@ -151,7 +151,7 @@ protocol SuggestionService: AnyObject {
     /// 해당 `documentText`로 교체합니다.
     /// 방금 복구된 단축어와 동일하면 대치를 건너뜁니다.
     ///
-    /// - Parameter baseText: 현재 키보드 세션에서 직접 입력한 텍스트 버퍼
+    /// - Parameter baseText: 텍스트 대치를 제공할 텍스트
     /// - Returns: 대치 수행 정보. 대치가 불필요하면 `nil`
     func attemptTextReplacement(baseText: String) -> (deleteCount: Int, insertText: String)?
     
