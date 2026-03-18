@@ -209,13 +209,13 @@ final class SuggestionController: SuggestionService {
         delegate?.suggestionController(self, didUpdateCurrentWord: nil, suggestions: [])
     }
     
-    func selectSuggestion(at index: Int, inputBuffer: String) -> (deleteCount: Int, insertText: String)? {
+    func selectSuggestion(at index: Int, baseText: String) -> (deleteCount: Int, insertText: String)? {
         guard index >= 0, index < currentSuggestions.count else { return nil }
         
-        if let last = inputBuffer.last, last.isWhitespace { return nil }
+        if let last = baseText.last, last.isWhitespace { return nil }
         
         let item = currentSuggestions[index]
-        let currentWord = extractLastWord(from: inputBuffer)
+        let currentWord = extractLastWord(from: baseText)
         
         if item.source == .textChecker {
             textCheckerEngine?.learn(word: item.text)
@@ -252,24 +252,50 @@ final class SuggestionController: SuggestionService {
         nGramEngine?.addWord(word)
     }
     
-    func endSentence(lastWord: String?) {
+    func endSentence(inputBuffer: String) {
         guard isPredictiveTextEnabled, !isSuspended else { return }
-        nGramEngine?.endSentence(lastWord: lastWord)
+        recordUncommittedWords(from: inputBuffer)
+        nGramEngine?.endSentence()
     }
     
     func saveNGramData() {
         nGramEngine?.saveToDisk()
     }
     
+    func recordUncommittedWords(from inputBuffer: String) {
+        guard let nGramEngine else { return }
+        
+        let words = inputBuffer
+            .split(whereSeparator: { $0.isWhitespace })
+            .map(String.init)
+        
+        guard !words.isEmpty else { return }
+        
+        let committedCount = nGramEngine.currentSentenceWordsCount
+        let uncommitted = Array(words.dropFirst(committedCount))
+        
+        for word in uncommitted {
+            nGramEngine.addWord(word)
+        }
+    }
+    
+    func removeLastRecordedWord() {
+        nGramEngine?.removeLastWord()
+    }
+    
+    func resetSentenceBuffer() {
+        nGramEngine?.resetSentenceBuffer()
+    }
+    
     // MARK: - Text Replacement Methods
     
-    func attemptTextReplacement(inputBuffer: String) -> (deleteCount: Int, insertText: String)? {
+    func attemptTextReplacement(baseText: String) -> (deleteCount: Int, insertText: String)? {
         guard isTextReplacementEnabled,
-              !inputBuffer.isEmpty,
+              !baseText.isEmpty,
               let lexicon = lexiconEngine?.lexicon else { return nil }
         
         let matchingEntries = lexicon.entries.filter { entry in
-            let isMatch = inputBuffer.lowercased().hasSuffix(entry.userInput.lowercased())
+            let isMatch = baseText.lowercased().hasSuffix(entry.userInput.lowercased())
             
             if entry.userInput.lowercased() == "m" && entry.documentText == "M" {
                 return false

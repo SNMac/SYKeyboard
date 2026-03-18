@@ -92,11 +92,11 @@ protocol SuggestionService: AnyObject {
     ///
     /// - Parameters:
     ///   - index: 선택된 후보의 인덱스 (0~1)
-    ///   - inputBuffer: 현재 입력 중인 텍스트 버퍼.
+    ///   - baseText: 현재 입력 중인 텍스트 버퍼.
     ///     일반적으로 키보드 세션의 `inputBuffer`이며,
     ///     텍스트가 선택된 경우 `selectedText`가 전달될 수 있습니다.
     /// - Returns: 삭제할 글자 수와 삽입할 텍스트의 튜플, 유효하지 않으면 `nil`
-    func selectSuggestion(at index: Int, inputBuffer: String) -> (deleteCount: Int, insertText: String)?
+    func selectSuggestion(at index: Int, baseText: String) -> (deleteCount: Int, insertText: String)?
     
     /// n-gram 모드에서 특정 인덱스의 후보 텍스트를 반환합니다.
     ///
@@ -126,16 +126,22 @@ protocol SuggestionService: AnyObject {
     /// - Parameter word: 기록할 단어
     func recordWord(_ word: String)
     
-    /// n-gram 문장 버퍼를 초기화합니다.
-    ///
-    /// 리턴 키 입력 시 호출합니다.
-    /// - Parameter lastWord: 기록할 마지막 단어
-    func endSentence(lastWord: String?)
+    /// 미기록 단어를 기록한 뒤 n-gram 문장 버퍼를 초기화합니다.
+    func endSentence(inputBuffer: String)
     
     /// n-gram 데이터를 디스크에 저장합니다.
     ///
     /// 키보드가 비활성화되기 전에 호출합니다.
     func saveNGramData()
+    
+    /// `inputBuffer`에서 아직 문장 버퍼에 기록되지 않은 단어들을 순서대로 기록합니다.
+    func recordUncommittedWords(from inputBuffer: String)
+    
+    /// 마지막으로 기록된 단어를 문장 버퍼에서 제거합니다.
+    func removeLastRecordedWord()
+    
+    /// 문장 버퍼를 초기화합니다.
+    func resetSentenceBuffer()
     
     // MARK: - Text Replacement
     
@@ -145,9 +151,9 @@ protocol SuggestionService: AnyObject {
     /// 해당 `documentText`로 교체합니다.
     /// 방금 복구된 단축어와 동일하면 대치를 건너뜁니다.
     ///
-    /// - Parameter inputBuffer: 현재 키보드 세션에서 직접 입력한 텍스트 버퍼
+    /// - Parameter baseText: 현재 키보드 세션에서 직접 입력한 텍스트 버퍼
     /// - Returns: 대치 수행 정보. 대치가 불필요하면 `nil`
-    func attemptTextReplacement(inputBuffer: String) -> (deleteCount: Int, insertText: String)?
+    func attemptTextReplacement(baseText: String) -> (deleteCount: Int, insertText: String)?
     
     /// 삭제 시 방금 수행된 텍스트 대치를 복구합니다.
     ///

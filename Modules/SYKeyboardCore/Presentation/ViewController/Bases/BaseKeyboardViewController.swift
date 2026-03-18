@@ -348,9 +348,7 @@ open class BaseKeyboardViewController: UIInputViewController {
     open func insertSpaceText() {
         if BaseKeyboardViewController.isPreview { return }
         
-        if let lastWord = extractLastWord(from: inputBuffer) {
-            suggestionController.recordWord(lastWord)
-        }
+        suggestionController.recordUncommittedWords(from: inputBuffer)
         
         insertText(" ")
     }
@@ -360,12 +358,11 @@ open class BaseKeyboardViewController: UIInputViewController {
     open func insertReturnText() {
         if BaseKeyboardViewController.isPreview { return }
         
-        let lastWord = extractLastWord(from: inputBuffer)
+        suggestionController.endSentence(inputBuffer: inputBuffer)
         
         textDocumentProxy.insertText("\n")
         resetInputBuffer()
         suggestionController.clearReplacementHistory()
-        suggestionController.endSentence(lastWord: lastWord)
     }
     
     /// 삭제가 일어나기 전 실행되는 메서드
@@ -429,9 +426,19 @@ extension BaseKeyboardViewController {
     /// `textDocumentProxy.deleteBackward()`를 직접 호출하는 대신 이 메서드를 사용하여
     /// 입력 버퍼가 항상 실제 입력과 일치하도록 보장합니다.
     public func deleteText() {
+        let wasSpaceAtEnd = inputBuffer.last?.isWhitespace == true
+        
         textDocumentProxy.deleteBackward()
         if !inputBuffer.isEmpty {
             inputBuffer.removeLast()
+        }
+        
+        if inputBuffer.isEmpty {
+            // 모든 입력을 지운 경우 → 문장 버퍼 전체 초기화
+            suggestionController.resetSentenceBuffer()
+        } else if wasSpaceAtEnd && inputBuffer.last?.isWhitespace != true {
+            // 스페이스를 지워서 커밋된 단어 경계를 허문 경우 → n-gram 버퍼에서 pop
+            suggestionController.removeLastRecordedWord()
         }
     }
     
@@ -465,6 +472,7 @@ extension BaseKeyboardViewController {
     /// 어긋날 수 있는 상황에서 호출합니다.
     public func resetInputBuffer() {
         inputBuffer = ""
+        suggestionController.resetSentenceBuffer()
     }
     
     /// `inputBuffer`에서 아직 스페이스로 커밋되지 않은 마지막 단어를 추출합니다.
@@ -861,7 +869,7 @@ extension BaseKeyboardViewController {
             }
         case .spaceButton:
             if let replacement = suggestionController.attemptTextReplacement(
-                inputBuffer: inputBuffer
+                baseText: inputBuffer
             ) {
                 // 텍스트 대치: 래핑 메서드 사용
                 replaceText(deleteCount: replacement.deleteCount, insert: replacement.insertText)
@@ -1065,7 +1073,7 @@ extension BaseKeyboardViewController: SuggestionBarDelegate {
             guard suggestionIndex >= 0,
                   let result = suggestionController.selectSuggestion(
                     at: suggestionIndex,
-                    inputBuffer: selectedText
+                    baseText: selectedText
                   ) else { return }
             
             // selectedText가 있는 상태에서 insertText하면
@@ -1087,7 +1095,6 @@ extension BaseKeyboardViewController: SuggestionBarDelegate {
             }
             
             insertText(word)
-            suggestionController.recordWord(word)
             
             suggestionDidApply()
             
@@ -1109,7 +1116,7 @@ extension BaseKeyboardViewController: SuggestionBarDelegate {
         
         guard let result = suggestionController.selectSuggestion(
             at: suggestionIndex,
-            inputBuffer: inputBuffer
+            baseText: inputBuffer
         ) else { return }
         
         replaceText(deleteCount: result.deleteCount, insert: result.insertText)

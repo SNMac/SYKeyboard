@@ -100,6 +100,11 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
     /// 디스크 저장 주기 (n번 기록마다 1회 저장)
     private let writePeriod = 10
     
+    /// 현재 문장 버퍼의 단어 수 (외부에서 미기록 단어 수 계산용)
+    var currentSentenceWordsCount: Int {
+        currentSentenceWords.count
+    }
+    
     // MARK: - Legacy UserDefaults (마이그레이션용)
     
     /// 기존 UserDefaults 저장 키 — 마이그레이션 후 제거
@@ -238,25 +243,35 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
         currentSentenceWords.append(word)
         recordNGrams()
         scheduleSave()
-        
-        logger.debug("[NGram/\(self.language)] n-gram 기록: \(word)")
     }
     
-    /// 마지막 단어를 기록한 뒤 문장 버퍼를 초기화합니다.
+    /// 문장 버퍼를 초기화하고 디스크에 저장합니다.
     ///
     /// 리턴 키 입력 시 호출합니다.
-    /// 스페이스 없이 바로 리턴을 누른 경우, 마지막 단어가 아직 기록되지 않았을 수 있으므로
-    /// `lastWord`를 전달하면 중복 없이 기록 후 버퍼를 초기화합니다.
-    ///
     /// 디스크 로딩이 완료되지 않은 경우 무시됩니다.
-    ///
-    /// - Parameter lastWord: 리턴 직전에 아직 커밋되지 않은 단어 (없으면 `nil`)
-    func endSentence(lastWord: String? = nil) {
+    func endSentence() {
         guard isLoaded else { return }
-        if let word = lastWord, !word.isEmpty {
-            addWord(word)
-        }
         currentSentenceWords.removeAll()
+        saveToDisk()
+    }
+    
+    /// 마지막으로 기록된 단어를 문장 버퍼에서 제거합니다.
+    ///
+    /// 사용자가 삭제로 커밋된 단어 경계(스페이스)를 허물었을 때 호출하여
+    /// `currentSentenceWords`와 실제 입력 상태를 동기화합니다.
+    func removeLastWord() {
+        guard !currentSentenceWords.isEmpty else { return }
+        currentSentenceWords.removeLast()
+        logger.debug("[NGram/\(self.language)] 문장 버퍼 마지막 기록 단어 제거")
+    }
+    
+    /// 문장 버퍼를 초기화합니다.
+    ///
+    /// 커서 이동, 키보드 열림/닫힘 등 `inputBuffer`가 초기화되는 시점에
+    /// 함께 호출하여 n-gram 문맥을 리셋합니다.
+    func resetSentenceBuffer() {
+        currentSentenceWords.removeAll()
+        logger.debug("[NGram/\(self.language)] 문장 버퍼 초기화")
     }
     
     // MARK: - Persistence
