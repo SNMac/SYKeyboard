@@ -45,7 +45,7 @@ import OSLog
 /// 빈 결과 반환 / 무시됩니다. 키보드 표시 속도에 영향을 주지 않습니다.
 ///
 /// ## 마이그레이션
-/// 기존 UserDefaults에 저장된 n-gram 데이터가 있는 경우,
+/// 기존 `UserDefaults`에 저장된 n-gram 데이터가 있는 경우,
 /// 초기 로딩 시 자동으로 파일로 마이그레이션한 뒤 UserDefaults에서 제거합니다.
 final public class NGramPredictiveTextEngine: PredictiveTextProvider {
     
@@ -113,7 +113,7 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
         "com.snmac.sykeyboard.ngram.\(language).trigram"
     }
     
-    /// App Group UserDefaults (마이그레이션 읽기/삭제 전용)
+    /// App Group `UserDefaults` (마이그레이션 읽기/삭제 전용)
     private let legacyStorage: UserDefaults = {
         guard let userDefaults = UserDefaults(suiteName: DefaultValues.groupBundleID) else {
             fatalError("UserDefaults를 suiteName으로 불러오는 데 실패했습니다.")
@@ -128,7 +128,7 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
     /// 디스크 로딩은 백그라운드에서 수행되며, 완료 전까지
     /// `suggestions`는 빈 배열, `addWord`/`endSentence`는 무시됩니다.
     ///
-    /// 기존 UserDefaults에 데이터가 남아있으면 자동으로 파일로 마이그레이션합니다.
+    /// 기존 `UserDefaults`에 데이터가 남아있으면 자동으로 파일로 마이그레이션합니다.
     ///
     /// - Parameter language: 언어 식별자 (예: "ko-KR", "en-US")
     public init(language: String) {
@@ -325,10 +325,10 @@ private extension NGramPredictiveTextEngine {
     
     // MARK: Migration
     
-    /// 기존 UserDefaults에서 n-gram 데이터를 읽어 파일로 마이그레이션합니다.
+    /// 기존 `UserDefaults`에서 n-gram 데이터를 읽어 파일로 마이그레이션합니다.
     ///
-    /// UserDefaults에 데이터가 없으면 `nil`을 반환합니다.
-    /// 마이그레이션 성공 시 UserDefaults에서 기존 키를 제거합니다.
+    /// `UserDefaults`에 데이터가 없으면 `nil`을 반환합니다.
+    /// 마이그레이션 성공 시 `UserDefaults`에서 기존 키를 제거합니다.
     ///
     /// - Returns: 마이그레이션된 데이터, 기존 데이터가 없으면 `nil`
     func migrateFromUserDefaults() -> NGramData? {
@@ -379,6 +379,8 @@ private extension NGramPredictiveTextEngine {
         // unigram: 현재 단어
         let currentWord = words[count - 1]
         unigramStore[currentWord, default: 0] += 1
+        pruneUnigram()
+        logger.debug("[NGram/\(self.language)] unigram: \"\(currentWord)\" (count: \(self.unigramStore[currentWord] ?? 0))")
         
         // bigram: 직전 단어 → 현재 단어
         if count >= 2 {
@@ -398,7 +400,6 @@ private extension NGramPredictiveTextEngine {
             logger.debug("[NGram/\(self.language)] trigram: \"\(key)\" → \"\(value)\" (count: \(self.trigramStore[key]?[value] ?? 0))")
         }
         
-        pruneUnigram()
         pruneKeys(in: &bigramStore)
         pruneKeys(in: &trigramStore)
     }
