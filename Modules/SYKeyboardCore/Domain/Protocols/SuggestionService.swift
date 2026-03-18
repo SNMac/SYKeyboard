@@ -11,7 +11,12 @@ import UIKit
 ///
 /// SuggestionBar에 표시할 후보 관리, 스페이스 입력 시 텍스트 대치,
 /// 삭제 시 대치 복구 기능을 통합적으로 정의합니다.
-/// `isEnabled`를 통해 연산 자체를 비활성화할 수 있습니다.
+///
+/// ## 활성화 제어
+/// - `isPredictiveTextEnabled`: 사용자 설정. `false`이면 자동완성 관련 엔진을 비활성화합니다.
+/// - `isTextReplacementEnabled`: 사용자 설정. `false`이면 텍스트 대치 기능을 비활성화합니다.
+/// - `isSuspended`: 텍스트 필드별 일시적 비활성화 (`autocorrectionType == .no` 등).
+///   엔진을 해제하지 않고 조회·기록만 건너뜁니다.
 ///
 /// ## 채택 구현체
 /// - `SuggestionController`: `UILexicon` + `UITextChecker` + n-gram을 조합한 기본 구현
@@ -30,10 +35,22 @@ protocol SuggestionService: AnyObject {
     /// 후보 업데이트 이벤트를 수신하는 델리게이트
     var delegate: SuggestionControllerDelegate? { get set }
     
-    /// 자동완성 활성화 여부
+    /// 자동완성 사용자 설정
     ///
-    /// `false`로 설정하면 후보 연산을 건너뛰고 현재 후보를 초기화합니다.
-    var isEnabled: Bool { get set }
+    /// `false`로 설정하면 자동완성 관련 엔진(`UITextChecker`, n-gram)을 비활성화합니다.
+    /// `true`로 복구하면 엔진을 재생성합니다.
+    var isPredictiveTextEnabled: Bool { get set }
+    
+    /// 텍스트 대치 사용자 설정
+    ///
+    /// `false`로 설정하면 텍스트 대치 기능을 비활성화합니다.
+    var isTextReplacementEnabled: Bool { get set }
+    
+    /// 텍스트 필드별 일시적 비활성화
+    ///
+    /// `autocorrectionType == .no`인 텍스트 필드 등에서 `true`로 설정합니다.
+    /// 엔진을 해제하지 않고 조회·기록만 건너뜁니다.
+    var isSuspended: Bool { get set }
     
     /// 현재 SuggestionBar의 표시 모드
     var currentMode: SuggestionMode { get }

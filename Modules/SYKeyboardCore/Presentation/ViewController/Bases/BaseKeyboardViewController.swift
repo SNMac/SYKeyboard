@@ -186,6 +186,12 @@ open class BaseKeyboardViewController: UIInputViewController {
         if BaseKeyboardViewController.isPreview { updateReturnButtonType() }
         
         if UserDefaultsManager.shared.isOneHandedKeyboardEnabled { updateOneHandModekeyboard() }
+        
+        // 사용자 설정을 SuggestionController에 전달 — 엔진 생성은 didSet에서 자동 수행
+        suggestionController.isTextReplacementEnabled = UserDefaultsManager.shared.isTextReplacementEnabled
+        suggestionController.isPredictiveTextEnabled = UserDefaultsManager.shared.isPredictiveTextEnabled
+        
+        // lexicon 로딩 (텍스트 대치 또는 자동완성 중 하나라도 켜져 있으면)
         if UserDefaultsManager.shared.isTextReplacementEnabled
             || UserDefaultsManager.shared.isPredictiveTextEnabled {
             suggestionController.loadLexicon(from: self)
@@ -506,7 +512,7 @@ private extension BaseKeyboardViewController {
         
         let keyboardViewHeight: CGFloat
         let keyboardHStackViewHeight: CGFloat
-        let isSuggestionBarVisible = UserDefaultsManager.shared.isPredictiveTextEnabled
+        let isSuggestionBarVisible = suggestionController.isPredictiveTextEnabled
         && textDocumentProxy.autocorrectionType != .no
         && currentKeyboard != .tenKey
         
@@ -811,12 +817,12 @@ private extension BaseKeyboardViewController {
     func updateSuggestionBarHidden() {
         let prevSuggestionHiddenState = suggestionBarView.isHidden
         
-        let shouldHideSuggestions = !UserDefaultsManager.shared.isPredictiveTextEnabled
+        let shouldHideSuggestions = !suggestionController.isPredictiveTextEnabled
         || textDocumentProxy.autocorrectionType == .no
         || currentKeyboard == .tenKey
         
         suggestionBarView.isHidden = shouldHideSuggestions
-        suggestionController.isEnabled = !shouldHideSuggestions
+        suggestionController.isSuspended = shouldHideSuggestions
         
         if prevSuggestionHiddenState != shouldHideSuggestions {
             DispatchQueue.main.async { [weak self] in
@@ -841,10 +847,9 @@ extension BaseKeyboardViewController {
                 insertPrimaryKeyText(from: button)
             }
         case .deleteButton:
-            if UserDefaultsManager.shared.isTextReplacementEnabled,
-               let restore = suggestionController.attemptRestoreReplacement(
+            if let restore = suggestionController.attemptRestoreReplacement(
                 inputBuffer: inputBuffer
-               ) {
+            ) {
                 // 대치 복구: 래핑 메서드 사용
                 replaceText(deleteCount: restore.deleteCount, insert: restore.insertText)
             } else {
@@ -856,10 +861,9 @@ extension BaseKeyboardViewController {
                 deleteBackward()
             }
         case .spaceButton:
-            if UserDefaultsManager.shared.isTextReplacementEnabled,
-               let replacement = suggestionController.attemptTextReplacement(
+            if let replacement = suggestionController.attemptTextReplacement(
                 inputBuffer: inputBuffer
-               ) {
+            ) {
                 // 텍스트 대치: 래핑 메서드 사용
                 replaceText(deleteCount: replacement.deleteCount, insert: replacement.insertText)
             }
@@ -900,7 +904,7 @@ extension BaseKeyboardViewController {
 
 private extension BaseKeyboardViewController {
     func updateSuggestions() {
-        if UserDefaultsManager.shared.isPredictiveTextEnabled {
+        if suggestionController.isPredictiveTextEnabled {
             if let selectedText = textDocumentProxy.selectedText, !selectedText.isEmpty {
                 if !selectedText.contains(where: { $0.isWhitespace }) {
                     suggestionController.updateSuggestions(for: selectedText)
