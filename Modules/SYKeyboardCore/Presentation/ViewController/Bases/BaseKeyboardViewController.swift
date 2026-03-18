@@ -58,18 +58,11 @@ open class BaseKeyboardViewController: UIInputViewController {
             updateOneHandModekeyboard()
         }
     }
-    /// 현재 키보드의 리턴 버튼
-    private var currentReturnButton: ReturnButton? {
-        switch currentKeyboard {
-        case .naratgeul, .cheonjiin, .dubeolsik, .qwerty:
-            return primaryKeyboardView.returnButton
-        case .symbol:
-            return symbolKeyboardView.returnButton
-        case .numeric:
-            return numericKeyboardView.returnButton
-        default:
-            return nil
-        }
+    /// 키보드 리턴 버튼 배열
+    private var returnButtonList: [ReturnButton] {
+        return [primaryKeyboardView.returnButton,
+                symbolKeyboardView.returnButton,
+                numericKeyboardView.returnButton]
     }
     
     /// 키 입력 버튼, 스페이스 버튼, 삭제 버튼 제스처 컨트롤러
@@ -221,15 +214,19 @@ open class BaseKeyboardViewController: UIInputViewController {
         logger.debug("textWillChange")
         resetInputBuffer()
         updateKeyboardType()
-        oldKeyboardType = textDocumentProxy.keyboardType
         updateReturnButtonType()
-        
+        updateReturnButtonEnabled()
         updateSuggestionBarHidden()
     }
     
     open override func textDidChange(_ textInput: (any UITextInput)?) {
         super.textDidChange(textInput)
         logger.debug("textDidChange")
+        updateKeyboardType()
+        oldKeyboardType = textDocumentProxy.keyboardType
+        updateReturnButtonType()
+        updateReturnButtonEnabled()
+        updateSuggestionBarHidden()
         updateSuggestions()
     }
     
@@ -270,6 +267,7 @@ open class BaseKeyboardViewController: UIInputViewController {
     /// > 하위 클래스에서 오버라이드 시 반드시 `super`로 호출 필요
     open func textInteractionDidPerform(button: TextInteractable) {
         if !isRepeatingInput {
+            updateReturnButtonEnabled()
             updateSuggestions()
         }
     }
@@ -295,6 +293,7 @@ open class BaseKeyboardViewController: UIInputViewController {
         tempDeletedCharacters.removeAll()
         isRepeatingInput = false
         
+        updateReturnButtonEnabled()
         updateSuggestions()
     }
     
@@ -818,7 +817,18 @@ private extension BaseKeyboardViewController {
     
     func updateReturnButtonType() {
         let type = ReturnButton.ReturnKeyType(type: textDocumentProxy.returnKeyType)
-        currentReturnButton?.update(for: type)
+        returnButtonList.forEach { $0.update(for: type) }
+    }
+    
+    func updateReturnButtonEnabled() {
+        guard textDocumentProxy.enablesReturnKeyAutomatically == true else {
+            returnButtonList.forEach { $0.updateEnabled(true) }
+            return
+        }
+        let before = textDocumentProxy.documentContextBeforeInput
+        let after = textDocumentProxy.documentContextAfterInput
+        let hasText = (before != nil && !before!.isEmpty) || (after != nil && !after!.isEmpty)
+        returnButtonList.forEach { $0.updateEnabled(hasText) }
     }
     
     func updateSuggestionBarHidden() {

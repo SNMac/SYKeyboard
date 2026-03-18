@@ -12,14 +12,13 @@ final public class SpaceButton: PrimaryButton, TextInteractable {
     
     // MARK: - Properties
     
-    public let type: TextInteractableType
+    public let type: TextInteractableType = .spaceButton
 
     private let imageConfig = UIImage.SymbolConfiguration(pointSize: FontSize.imageSize, weight: .medium, scale: .large)
     
     // MARK: - Initializer
     
     public override init(keyboard: SYKeyboardType) {
-        self.type = .spaceButton
         super.init(keyboard: keyboard)
         
         setupUI()

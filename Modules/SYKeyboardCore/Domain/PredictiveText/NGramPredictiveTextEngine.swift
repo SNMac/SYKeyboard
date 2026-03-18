@@ -150,8 +150,8 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
             guard let self else { return }
             
             let loaded = self.loadFromFile()
-                ?? self.migrateFromUserDefaults()
-                ?? NGramData(unigram: [:], bigram: [:], trigram: [:])
+            ?? self.migrateFromUserDefaults()
+            ?? NGramData(unigram: [:], bigram: [:], trigram: [:])
             
             DispatchQueue.main.async {
                 self.unigramStore = loaded.unigram
@@ -347,12 +347,9 @@ private extension NGramPredictiveTextEngine {
     ///
     /// - Returns: 마이그레이션된 데이터, 기존 데이터가 없으면 `nil`
     func migrateFromUserDefaults() -> NGramData? {
-        let unigram = legacyStorage.dictionary(forKey: legacyUnigramKey)
-            as? [String: Int]
-        let bigram = legacyStorage.dictionary(forKey: legacyBigramKey)
-            as? [String: [String: Int]]
-        let trigram = legacyStorage.dictionary(forKey: legacyTrigramKey)
-            as? [String: [String: Int]]
+        let unigram = legacyStorage.dictionary(forKey: legacyUnigramKey) as? [String: Int]
+        let bigram = legacyStorage.dictionary(forKey: legacyBigramKey) as? [String: [String: Int]]
+        let trigram = legacyStorage.dictionary(forKey: legacyTrigramKey) as? [String: [String: Int]]
         
         // 세 저장소 모두 비어있으면 마이그레이션 대상 없음
         guard unigram != nil || bigram != nil || trigram != nil else { return nil }
