@@ -35,6 +35,16 @@ public extension UIColor {
         return UIColor(named: "SecondaryButtonPressedColor", in: SYKBDAssets.bundle, compatibleWith: nil)!
     }
     
+    /// ReturnButtonDisabledBackgroundColor
+    static var returnButtonDisabledBackground: UIColor {
+        return UIColor(named: "ReturnButtonDisabledBackgroundColor", in: SYKBDAssets.bundle, compatibleWith: nil)!
+    }
+    
+    /// ReturnButtonDisabledLabelColor
+    static var returnButtonDisabledLabel: UIColor {
+        return UIColor(named: "ReturnButtonDisabledLabelColor", in: SYKBDAssets.bundle, compatibleWith: nil)!
+    }
+    
     // MARK: - Chevron Button
     
     /// ChevronButtonColor

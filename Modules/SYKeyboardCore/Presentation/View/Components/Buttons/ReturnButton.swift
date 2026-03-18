@@ -16,6 +16,17 @@ final public class ReturnButton: SecondaryButton, TextInteractable {
     
     public let type: TextInteractableType = .returnButton
     
+    // MARK: - Initializer
+    
+    public override init(keyboard: SYKeyboardType) {
+        super.init(keyboard: keyboard)
+        setupUI()
+    }
+    
+    @MainActor required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
     // MARK: - Override Methods
     
     public override func playFeedback() {
@@ -27,11 +38,12 @@ final public class ReturnButton: SecondaryButton, TextInteractable {
     
     func update(for returnKeyType: ReturnKeyType) {
         primaryKeyListImageView.image = returnKeyType.image
+        
         self.configurationUpdateHandler = { [weak self] button in
             guard let self else { return }
-            
             primaryKeyListLabel.text = returnKeyType.title
-            primaryKeyListLabel.font = .systemFont(ofSize: 18)
+            
+            guard self.isUserInteractionEnabled else { return }
             switch button.state {
             case .highlighted:
                 if isPressed || isGesturing {
@@ -51,6 +63,33 @@ final public class ReturnButton: SecondaryButton, TextInteractable {
                 }
             }
         }
+    }
+    
+    /// 리턴 버튼의 활성화 상태를 설정합니다.
+    ///
+    /// `enablesReturnKeyAutomatically`가 `true`인 텍스트 필드에서
+    /// 텍스트가 비어있을 때 비활성화합니다.
+    func updateEnabled(_ isEnabled: Bool) {
+        self.isUserInteractionEnabled = isEnabled
+        if isEnabled {
+            self.setNeedsUpdateConfiguration()
+        } else {
+            primaryKeyListLabel.textColor = .returnButtonDisabledLabel
+            primaryKeyListImageView.tintColor = .returnButtonDisabledLabel
+            backgroundView.backgroundColor = .returnButtonDisabledBackground
+        }
+    }
+}
+
+// MARK: - UI Methods
+
+private extension ReturnButton {
+    func setupUI() {
+        setStyles()
+    }
+    
+    func setStyles() {
+        primaryKeyListLabel.font = .systemFont(ofSize: 18)
     }
 }
 
