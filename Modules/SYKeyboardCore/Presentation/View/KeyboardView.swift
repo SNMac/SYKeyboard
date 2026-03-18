@@ -136,8 +136,13 @@ final public class KeyboardView: UIInputView {
 
 private extension KeyboardView {
     func setupUI() {
+        setStyles()
         setHierarchy()
         setConstraints()
+    }
+    
+    func setStyles() {
+        self.backgroundColor = .systemBackground.withAlphaComponent(0.001)  // 터치 영역 확보용
     }
     
     func setHierarchy() {

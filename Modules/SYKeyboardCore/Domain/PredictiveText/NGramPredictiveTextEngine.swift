@@ -31,17 +31,32 @@ import OSLog
 /// ```
 ///
 /// ## 저장 구조
-/// - `UserDefaults(suiteName:)`을 통해 App Group에 영구 저장
-/// - 키 형식: `com.snmac.sykeyboard.ngram.{language}.{unigram|bigram|trigram}`
-/// - unigram: `[String: Int]` 형태
-/// - bigram/trigram: 각각 `[String: [String: Int]]` 형태
+/// - App Group 컨테이너에 언어별 바이너리 plist 파일로 영구 저장
+/// - 파일명: `ngram_{language}.plist` (예: `ngram_ko.plist`)
 /// - 항목 수 제한으로 메모리 과다 사용 방지
 ///
 /// ## 동작 흐름
 /// 1. 스페이스 입력 시 `addWord(_:)`로 단어 축적 및 n-gram 기록
 /// 2. 리턴 입력 시 `endSentence()`로 문장 버퍼 초기화
 /// 3. 입력 없음 / 자동완성 후 `suggestions(for:)`로 다음 단어 예측
+///
+/// ## 비동기 로딩
+/// 디스크 로딩은 백그라운드 스레드에서 수행되며, 완료 전까지 조회·기록 요청은
+/// 빈 결과 반환 / 무시됩니다. 키보드 표시 속도에 영향을 주지 않습니다.
+///
+/// ## 마이그레이션
+/// 기존 `UserDefaults`에 저장된 n-gram 데이터가 있는 경우,
+/// 초기 로딩 시 자동으로 파일로 마이그레이션한 뒤 UserDefaults에서 제거합니다.
 final public class NGramPredictiveTextEngine: PredictiveTextProvider {
+    
+    // MARK: - Storage Model
+    
+    /// n-gram 데이터를 하나의 파일로 묶는 Codable 구조체
+    fileprivate struct NGramData: Codable {
+        var unigram: [String: Int]
+        var bigram: [String: [String: Int]]
+        var trigram: [String: [String: Int]]
+    }
     
     // MARK: - Properties
     
@@ -52,6 +67,9 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
     
     /// 언어 식별자 (예: "ko", "en")
     private let language: String
+    
+    /// 디스크 로딩 완료 여부 (로딩 전에는 조회·기록을 건너뜀)
+    private var isLoaded = false
     
     /// unigram 저장소: "단어" → 빈도수
     private var unigramStore: [String: Int] = [:]
@@ -71,38 +89,78 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
     /// 전체 키 최대 개수
     private let maxKeys = 5000
     
-    // UserDefaults 저장 키 — 언어별 분리
-    private var unigramStoreKey: String {
-        "com.snmac.sykeyboard.ngram.\(language).unigram"
-    }
-    private var bigramStoreKey: String {
-        "com.snmac.sykeyboard.ngram.\(language).bigram"
-    }
-    private var trigramStoreKey: String {
-        "com.snmac.sykeyboard.ngram.\(language).trigram"
-    }
+    /// 바이너리 plist 파일 경로
+    private let fileURL: URL
     
-    /// App Group UserDefaults
-    private let storage: UserDefaults = {
-        guard let userDefaults = UserDefaults(suiteName: DefaultValues.groupBundleID) else {
-            fatalError("UserDefaults를 suiteName으로 불러오는 데 실패했습니다.")
-        }
-        return userDefaults
-    }()
+    /// 백그라운드 저장용 직렬 큐
+    private let saveQueue = DispatchQueue(label: "com.snmac.sykeyboard.ngram.save", qos: .utility)
     
     /// 디스크 저장 디바운스용 카운터
     private var writeCounter: Int = 0
     /// 디스크 저장 주기 (n번 기록마다 1회 저장)
     private let writePeriod = 10
     
+    /// 현재 문장 버퍼의 단어 수 (외부에서 미기록 단어 수 계산용)
+    var currentSentenceWordsCount: Int {
+        currentSentenceWords.count
+    }
+    
+    // MARK: - Legacy UserDefaults (마이그레이션용)
+    
+    /// 기존 UserDefaults 저장 키 — 마이그레이션 후 제거
+    private var legacyUnigramKey: String {
+        "com.snmac.sykeyboard.ngram.\(language).unigram"
+    }
+    private var legacyBigramKey: String {
+        "com.snmac.sykeyboard.ngram.\(language).bigram"
+    }
+    private var legacyTrigramKey: String {
+        "com.snmac.sykeyboard.ngram.\(language).trigram"
+    }
+    
+    /// App Group `UserDefaults` (마이그레이션 읽기/삭제 전용)
+    private let legacyStorage: UserDefaults = {
+        guard let userDefaults = UserDefaults(suiteName: DefaultValues.groupBundleID) else {
+            fatalError("UserDefaults를 suiteName으로 불러오는 데 실패했습니다.")
+        }
+        return userDefaults
+    }()
+    
     // MARK: - Initializer
     
     /// 언어별 n-gram 엔진을 생성합니다.
     ///
+    /// 디스크 로딩은 백그라운드에서 수행되며, 완료 전까지
+    /// `suggestions`는 빈 배열, `addWord`/`endSentence`는 무시됩니다.
+    ///
+    /// 기존 `UserDefaults`에 데이터가 남아있으면 자동으로 파일로 마이그레이션합니다.
+    ///
     /// - Parameter language: 언어 식별자 (예: "ko-KR", "en-US")
     public init(language: String) {
         self.language = language
-        loadFromDisk()
+        
+        guard let containerURL = FileManager.default.containerURL(
+            forSecurityApplicationGroupIdentifier: DefaultValues.groupBundleID
+        ) else {
+            fatalError("App Group 컨테이너 URL을 가져오는 데 실패했습니다.")
+        }
+        self.fileURL = containerURL.appendingPathComponent("ngram_\(language).plist")
+        
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            guard let self else { return }
+            
+            let loaded = self.loadFromFile()
+                ?? self.migrateFromUserDefaults()
+                ?? NGramData(unigram: [:], bigram: [:], trigram: [:])
+            
+            DispatchQueue.main.async {
+                self.unigramStore = loaded.unigram
+                self.bigramStore = loaded.bigram
+                self.trigramStore = loaded.trigram
+                self.isLoaded = true
+                self.logger.debug("[NGram/\(self.language)] 디스크 로딩 완료")
+            }
+        }
     }
     
     // MARK: - PredictiveTextProvider
@@ -113,9 +171,13 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
     /// 조회하며, 각 단계에서 부족한 슬롯을 다음 단계로 보충합니다.
     /// 문맥이 비어있으면 unigram만 사용합니다.
     ///
+    /// 디스크 로딩이 완료되지 않은 경우 빈 배열을 반환합니다.
+    ///
     /// - Parameter baseText: 자동완성을 제공할 텍스트 (`inputBuffer`)
     /// - Returns: 빈도순으로 정렬된 다음 단어 후보 배열 (최대 3개)
     func suggestions(for baseText: String) -> [String] {
+        guard isLoaded else { return [] }
+        
         let words = baseText
             .split(whereSeparator: { $0.isWhitespace })
             .map(String.init)
@@ -173,38 +235,74 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
     /// 단어를 현재 문장 버퍼에 추가하고 n-gram을 기록합니다.
     ///
     /// 스페이스 입력 시 직전 단어를 전달하여 호출합니다.
+    /// 디스크 로딩이 완료되지 않은 경우 무시됩니다.
     ///
     /// - Parameter word: 추가할 단어
     func addWord(_ word: String) {
-        guard !word.isEmpty else { return }
+        guard isLoaded, !word.isEmpty else { return }
         currentSentenceWords.append(word)
         recordNGrams()
         scheduleSave()
-        
-        logger.debug("[NGram/\(self.language)] n-gram 기록: \(word)")
     }
     
-    /// 마지막 단어를 기록한 뒤 문장 버퍼를 초기화합니다.
+    /// 문장 버퍼를 초기화하고 디스크에 저장합니다.
     ///
     /// 리턴 키 입력 시 호출합니다.
-    /// 스페이스 없이 바로 리턴을 누른 경우, 마지막 단어가 아직 기록되지 않았을 수 있으므로
-    /// `lastWord`를 전달하면 중복 없이 기록 후 버퍼를 초기화합니다.
-    ///
-    /// - Parameter lastWord: 리턴 직전에 아직 커밋되지 않은 단어 (없으면 `nil`)
-    func endSentence(lastWord: String? = nil) {
-        if let word = lastWord, !word.isEmpty {
-            addWord(word)
-        }
+    /// 디스크 로딩이 완료되지 않은 경우 무시됩니다.
+    func endSentence() {
+        guard isLoaded else { return }
         currentSentenceWords.removeAll()
+        saveToDisk()
+    }
+    
+    /// 마지막으로 기록된 단어를 문장 버퍼에서 제거합니다.
+    ///
+    /// 사용자가 삭제로 커밋된 단어 경계(스페이스)를 허물었을 때 호출하여
+    /// `currentSentenceWords`와 실제 입력 상태를 동기화합니다.
+    func removeLastWord() {
+        guard !currentSentenceWords.isEmpty else { return }
+        currentSentenceWords.removeLast()
+        logger.debug("[NGram/\(self.language)] 문장 버퍼 마지막 기록 단어 제거")
+    }
+    
+    /// 문장 버퍼를 초기화합니다.
+    ///
+    /// 커서 이동, 키보드 열림/닫힘 등 `inputBuffer`가 초기화되는 시점에
+    /// 함께 호출하여 n-gram 문맥을 리셋합니다.
+    func resetSentenceBuffer() {
+        currentSentenceWords.removeAll()
+        logger.debug("[NGram/\(self.language)] 문장 버퍼 초기화")
     }
     
     // MARK: - Persistence
     
-    /// n-gram 데이터를 디스크에 저장합니다.
+    /// n-gram 데이터를 백그라운드에서 디스크에 저장합니다.
+    ///
+    /// 메인 스레드에서 스냅샷을 캡처한 뒤 직렬 큐에서 인코딩·쓰기를 수행하여
+    /// 입력 처리를 블로킹하지 않습니다.
+    ///
+    /// 디스크 로딩이 완료되지 않은 경우 빈 데이터로 덮어쓰는 것을 방지하기 위해
+    /// 저장을 건너뜁니다.
     func saveToDisk() {
-        storage.set(unigramStore, forKey: unigramStoreKey)
-        storage.set(bigramStore, forKey: bigramStoreKey)
-        storage.set(trigramStore, forKey: trigramStoreKey)
+        guard isLoaded else { return }
+        
+        let snapshot = NGramData(
+            unigram: unigramStore,
+            bigram: bigramStore,
+            trigram: trigramStore
+        )
+        let url = fileURL
+        
+        saveQueue.async { [weak self] in
+            do {
+                let encoder = PropertyListEncoder()
+                encoder.outputFormat = .binary
+                let data = try encoder.encode(snapshot)
+                try data.write(to: url, options: .atomic)
+            } catch {
+                self?.logger.error("[NGram] 디스크 저장 실패: \(error.localizedDescription)")
+            }
+        }
     }
     
     /// 모든 학습 데이터를 초기화합니다.
@@ -213,9 +311,14 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
         bigramStore = [:]
         trigramStore = [:]
         currentSentenceWords = []
-        storage.removeObject(forKey: unigramStoreKey)
-        storage.removeObject(forKey: bigramStoreKey)
-        storage.removeObject(forKey: trigramStoreKey)
+        
+        // 파일 삭제
+        try? FileManager.default.removeItem(at: fileURL)
+        
+        // 레거시 UserDefaults도 정리 (마이그레이션 전 사용자 대비)
+        legacyStorage.removeObject(forKey: legacyUnigramKey)
+        legacyStorage.removeObject(forKey: legacyBigramKey)
+        legacyStorage.removeObject(forKey: legacyTrigramKey)
         
         logger.debug("[NGram/\(self.language)] 학습 데이터 초기화")
     }
@@ -224,15 +327,64 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
 // MARK: - Private Methods
 
 private extension NGramPredictiveTextEngine {
-    /// 디스크에서 n-gram 데이터를 로드합니다.
-    func loadFromDisk() {
-        unigramStore = (storage.dictionary(forKey: unigramStoreKey)
-                as? [String: Int]) ?? [:]
-        bigramStore = (storage.dictionary(forKey: bigramStoreKey)
-            as? [String: [String: Int]]) ?? [:]
-        trigramStore = (storage.dictionary(forKey: trigramStoreKey)
-            as? [String: [String: Int]]) ?? [:]
+    
+    // MARK: File I/O
+    
+    /// 바이너리 plist 파일에서 n-gram 데이터를 로드합니다.
+    ///
+    /// - Returns: 로드된 데이터, 파일이 없거나 파싱 실패 시 `nil`
+    func loadFromFile() -> NGramData? {
+        guard let data = try? Data(contentsOf: fileURL) else { return nil }
+        return try? PropertyListDecoder().decode(NGramData.self, from: data)
     }
+    
+    // MARK: Migration
+    
+    /// 기존 `UserDefaults`에서 n-gram 데이터를 읽어 파일로 마이그레이션합니다.
+    ///
+    /// `UserDefaults`에 데이터가 없으면 `nil`을 반환합니다.
+    /// 마이그레이션 성공 시 `UserDefaults`에서 기존 키를 제거합니다.
+    ///
+    /// - Returns: 마이그레이션된 데이터, 기존 데이터가 없으면 `nil`
+    func migrateFromUserDefaults() -> NGramData? {
+        let unigram = legacyStorage.dictionary(forKey: legacyUnigramKey)
+            as? [String: Int]
+        let bigram = legacyStorage.dictionary(forKey: legacyBigramKey)
+            as? [String: [String: Int]]
+        let trigram = legacyStorage.dictionary(forKey: legacyTrigramKey)
+            as? [String: [String: Int]]
+        
+        // 세 저장소 모두 비어있으면 마이그레이션 대상 없음
+        guard unigram != nil || bigram != nil || trigram != nil else { return nil }
+        
+        let migrated = NGramData(
+            unigram: unigram ?? [:],
+            bigram: bigram ?? [:],
+            trigram: trigram ?? [:]
+        )
+        
+        // 파일로 저장
+        do {
+            let encoder = PropertyListEncoder()
+            encoder.outputFormat = .binary
+            let data = try encoder.encode(migrated)
+            try data.write(to: fileURL, options: .atomic)
+        } catch {
+            logger.error("[NGram/\(self.language)] 마이그레이션 저장 실패: \(error.localizedDescription)")
+            return migrated  // 메모리에는 올려서 사용, 다음 saveToDisk에서 재시도
+        }
+        
+        // UserDefaults에서 기존 키 제거
+        legacyStorage.removeObject(forKey: legacyUnigramKey)
+        legacyStorage.removeObject(forKey: legacyBigramKey)
+        legacyStorage.removeObject(forKey: legacyTrigramKey)
+        
+        logger.debug("[NGram/\(self.language)] UserDefaults → 파일 마이그레이션 완료")
+        
+        return migrated
+    }
+    
+    // MARK: N-Gram Recording
     
     /// 현재 버퍼의 마지막 단어들로 n-gram을 기록합니다.
     func recordNGrams() {
@@ -242,6 +394,8 @@ private extension NGramPredictiveTextEngine {
         // unigram: 현재 단어
         let currentWord = words[count - 1]
         unigramStore[currentWord, default: 0] += 1
+        pruneUnigram()
+        logger.debug("[NGram/\(self.language)] unigram: \"\(currentWord)\" (count: \(self.unigramStore[currentWord] ?? 0))")
         
         // bigram: 직전 단어 → 현재 단어
         if count >= 2 {
@@ -261,10 +415,11 @@ private extension NGramPredictiveTextEngine {
             logger.debug("[NGram/\(self.language)] trigram: \"\(key)\" → \"\(value)\" (count: \(self.trigramStore[key]?[value] ?? 0))")
         }
         
-        pruneUnigram()
         pruneKeys(in: &bigramStore)
         pruneKeys(in: &trigramStore)
     }
+    
+    // MARK: Ranking
     
     /// 빈도순으로 정렬된 unigram 후보를 반환합니다.
     ///
@@ -290,6 +445,8 @@ private extension NGramPredictiveTextEngine {
             .sorted { $0.value > $1.value }
             .map { $0.key }
     }
+    
+    // MARK: Pruning
     
     /// unigram 항목 수가 제한을 초과하면 빈도 낮은 항목을 제거합니다.
     ///
@@ -332,6 +489,8 @@ private extension NGramPredictiveTextEngine {
             store.removeValue(forKey: sorted[i].key)
         }
     }
+    
+    // MARK: Save Scheduling
     
     /// 일정 주기마다 디스크에 저장합니다.
     func scheduleSave() {
