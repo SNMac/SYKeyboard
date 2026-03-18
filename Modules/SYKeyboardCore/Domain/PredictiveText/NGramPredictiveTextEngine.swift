@@ -41,6 +41,10 @@ import OSLog
 /// 1. 스페이스 입력 시 `addWord(_:)`로 단어 축적 및 n-gram 기록
 /// 2. 리턴 입력 시 `endSentence()`로 문장 버퍼 초기화
 /// 3. 입력 없음 / 자동완성 후 `suggestions(for:)`로 다음 단어 예측
+///
+/// ## 비동기 로딩
+/// 디스크 로딩은 백그라운드 스레드에서 수행되며, 완료 전까지 조회·기록 요청은
+/// 빈 결과 반환 / 무시됩니다. 키보드 표시 속도에 영향을 주지 않습니다.
 final public class NGramPredictiveTextEngine: PredictiveTextProvider {
     
     // MARK: - Properties
@@ -52,6 +56,9 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
     
     /// 언어 식별자 (예: "ko", "en")
     private let language: String
+    
+    /// 디스크 로딩 완료 여부 (로딩 전에는 조회·기록을 건너뜀)
+    private var isLoaded = false
     
     /// unigram 저장소: "단어" → 빈도수
     private var unigramStore: [String: Int] = [:]
@@ -99,10 +106,31 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
     
     /// 언어별 n-gram 엔진을 생성합니다.
     ///
+    /// 디스크 로딩은 백그라운드에서 수행되며, 완료 전까지
+    /// `suggestions`는 빈 배열, `addWord`/`endSentence`는 무시됩니다.
+    ///
     /// - Parameter language: 언어 식별자 (예: "ko-KR", "en-US")
     public init(language: String) {
         self.language = language
-        loadFromDisk()
+        
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            guard let self else { return }
+            
+            let unigram = (self.storage.dictionary(forKey: self.unigramStoreKey)
+                as? [String: Int]) ?? [:]
+            let bigram = (self.storage.dictionary(forKey: self.bigramStoreKey)
+                as? [String: [String: Int]]) ?? [:]
+            let trigram = (self.storage.dictionary(forKey: self.trigramStoreKey)
+                as? [String: [String: Int]]) ?? [:]
+            
+            DispatchQueue.main.async {
+                self.unigramStore = unigram
+                self.bigramStore = bigram
+                self.trigramStore = trigram
+                self.isLoaded = true
+                self.logger.debug("[NGram/\(self.language)] 디스크 로딩 완료")
+            }
+        }
     }
     
     // MARK: - PredictiveTextProvider
@@ -113,9 +141,13 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
     /// 조회하며, 각 단계에서 부족한 슬롯을 다음 단계로 보충합니다.
     /// 문맥이 비어있으면 unigram만 사용합니다.
     ///
+    /// 디스크 로딩이 완료되지 않은 경우 빈 배열을 반환합니다.
+    ///
     /// - Parameter baseText: 자동완성을 제공할 텍스트 (`inputBuffer`)
     /// - Returns: 빈도순으로 정렬된 다음 단어 후보 배열 (최대 3개)
     func suggestions(for baseText: String) -> [String] {
+        guard isLoaded else { return [] }
+        
         let words = baseText
             .split(whereSeparator: { $0.isWhitespace })
             .map(String.init)
@@ -173,10 +205,11 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
     /// 단어를 현재 문장 버퍼에 추가하고 n-gram을 기록합니다.
     ///
     /// 스페이스 입력 시 직전 단어를 전달하여 호출합니다.
+    /// 디스크 로딩이 완료되지 않은 경우 무시됩니다.
     ///
     /// - Parameter word: 추가할 단어
     func addWord(_ word: String) {
-        guard !word.isEmpty else { return }
+        guard isLoaded, !word.isEmpty else { return }
         currentSentenceWords.append(word)
         recordNGrams()
         scheduleSave()
@@ -190,8 +223,11 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
     /// 스페이스 없이 바로 리턴을 누른 경우, 마지막 단어가 아직 기록되지 않았을 수 있으므로
     /// `lastWord`를 전달하면 중복 없이 기록 후 버퍼를 초기화합니다.
     ///
+    /// 디스크 로딩이 완료되지 않은 경우 무시됩니다.
+    ///
     /// - Parameter lastWord: 리턴 직전에 아직 커밋되지 않은 단어 (없으면 `nil`)
     func endSentence(lastWord: String? = nil) {
+        guard isLoaded else { return }
         if let word = lastWord, !word.isEmpty {
             addWord(word)
         }
@@ -201,7 +237,11 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
     // MARK: - Persistence
     
     /// n-gram 데이터를 디스크에 저장합니다.
+    ///
+    /// 디스크 로딩이 완료되지 않은 경우 빈 데이터로 덮어쓰는 것을 방지하기 위해
+    /// 저장을 건너뜁니다.
     func saveToDisk() {
+        guard isLoaded else { return }
         storage.set(unigramStore, forKey: unigramStoreKey)
         storage.set(bigramStore, forKey: bigramStoreKey)
         storage.set(trigramStore, forKey: trigramStoreKey)
@@ -224,16 +264,6 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
 // MARK: - Private Methods
 
 private extension NGramPredictiveTextEngine {
-    /// 디스크에서 n-gram 데이터를 로드합니다.
-    func loadFromDisk() {
-        unigramStore = (storage.dictionary(forKey: unigramStoreKey)
-                as? [String: Int]) ?? [:]
-        bigramStore = (storage.dictionary(forKey: bigramStoreKey)
-            as? [String: [String: Int]]) ?? [:]
-        trigramStore = (storage.dictionary(forKey: trigramStoreKey)
-            as? [String: [String: Int]]) ?? [:]
-    }
-    
     /// 현재 버퍼의 마지막 단어들로 n-gram을 기록합니다.
     func recordNGrams() {
         let words = currentSentenceWords
