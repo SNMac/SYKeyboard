@@ -214,7 +214,6 @@ open class BaseKeyboardViewController: UIInputViewController {
         logger.debug("textWillChange")
         resetInputBuffer()
         updateKeyboardType()
-        oldKeyboardType = textDocumentProxy.keyboardType
         updateReturnButtonType()
         updateReturnButtonEnabled()
         updateSuggestionBarHidden()
@@ -223,6 +222,11 @@ open class BaseKeyboardViewController: UIInputViewController {
     open override func textDidChange(_ textInput: (any UITextInput)?) {
         super.textDidChange(textInput)
         logger.debug("textDidChange")
+        updateKeyboardType()
+        oldKeyboardType = textDocumentProxy.keyboardType
+        updateReturnButtonType()
+        updateReturnButtonEnabled()
+        updateSuggestionBarHidden()
         updateSuggestions()
     }
     

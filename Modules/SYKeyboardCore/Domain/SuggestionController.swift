@@ -263,6 +263,7 @@ final class SuggestionController: SuggestionService {
     }
     
     func recordUncommittedWords(from inputBuffer: String) {
+        guard isPredictiveTextEnabled, !isSuspended else { return }
         guard let nGramEngine else { return }
         
         let words = inputBuffer
@@ -280,6 +281,7 @@ final class SuggestionController: SuggestionService {
     }
     
     func removeLastRecordedWord() {
+        guard isPredictiveTextEnabled, !isSuspended else { return }
         nGramEngine?.removeLastWord()
     }
     
