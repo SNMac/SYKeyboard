@@ -46,7 +46,7 @@ public enum DefaultValues {
     /// 키 반복 속도 기본값
     public static let repeatRate: Double = 0.05
     /// 활성화 드래그 거리 기본값
-    public static let cursorActiveDistance: Double = 50.0
+    public static let cursorActiveDistance: Double = 40.0
     /// 이동 드래그 간격 기본값
     public static let cursorMoveInterval: Double = 5.0
     
