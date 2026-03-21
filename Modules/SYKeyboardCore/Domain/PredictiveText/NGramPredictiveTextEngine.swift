@@ -351,7 +351,6 @@ private extension NGramPredictiveTextEngine {
         let bigram = legacyStorage.dictionary(forKey: legacyBigramKey) as? [String: [String: Int]]
         let trigram = legacyStorage.dictionary(forKey: legacyTrigramKey) as? [String: [String: Int]]
         
-        // 세 저장소 모두 비어있으면 마이그레이션 대상 없음
         guard unigram != nil || bigram != nil || trigram != nil else { return nil }
         
         let migrated = NGramData(
@@ -368,10 +367,10 @@ private extension NGramPredictiveTextEngine {
             try data.write(to: fileURL, options: .atomic)
         } catch {
             logger.error("[NGram/\(self.language)] 마이그레이션 저장 실패: \(error.localizedDescription)")
-            return migrated  // 메모리에는 올려서 사용, 다음 saveToDisk에서 재시도
+            return nil  // 다음 실행 시 재시도
         }
         
-        // UserDefaults에서 기존 키 제거
+        // 파일 저장 성공한 경우에만 UserDefaults에서 제거
         legacyStorage.removeObject(forKey: legacyUnigramKey)
         legacyStorage.removeObject(forKey: legacyBigramKey)
         legacyStorage.removeObject(forKey: legacyTrigramKey)
