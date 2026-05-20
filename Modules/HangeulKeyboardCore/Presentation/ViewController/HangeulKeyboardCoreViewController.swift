@@ -46,6 +46,16 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
     /// 이후 `applyCompositionResult`에서 해당 글자가 committed로 돌아갈 때
     /// `protectedCommittedCount`를 복원하여 보호 상태를 유지합니다.
     private var isPulledFromProtected: Bool = false
+    /// 삭제 버튼 touchDown 직전 조합 중인 글자가 있었는지 추적합니다.
+    private var hadComposingBeforeDeleteTouchDown: Bool = false
+    /// 삭제 버튼 touchDown 직전 조합 문자열입니다.
+    private var composingBeforeDeleteTouchDown: String = ""
+    /// 삭제 버튼 touchDown 직전 확정 문자열입니다.
+    private var committedBeforeDeleteTouchDown: String = ""
+    /// touchDown 삭제로 이미 복구 버퍼에 저장된 글자의 잔여 조합 삭제를 한 번만 건너뜁니다.
+    private var shouldSkipNextDeletePanRestore: Bool = false
+    /// touchDown 삭제로 앞 글자가 재조합된 경우, 첫 pan 삭제 때 복구할 원래 글자입니다.
+    private var nextDeletePanRestoreReplacement: Character?
     
     /// 한글 오토마타
     private let automata: HangeulAutomataProtocol = HangeulAutomata()
@@ -164,9 +174,30 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
             currentKeyboard = primaryKeyboardView.keyboard
         }
     }
+
+    open override func textInteractionWillPerform(button: TextInteractable) {
+        hadComposingBeforeDeleteTouchDown = button is DeleteButton && !composingBuffer.isEmpty
+        composingBeforeDeleteTouchDown = hadComposingBeforeDeleteTouchDown ? composingBuffer : ""
+        committedBeforeDeleteTouchDown = hadComposingBeforeDeleteTouchDown ? committedBuffer : ""
+        if !(button is DeleteButton) {
+            shouldSkipNextDeletePanRestore = false
+            nextDeletePanRestoreReplacement = nil
+        }
+        super.textInteractionWillPerform(button: button)
+    }
     
     open override func textInteractionDidPerform(button: TextInteractable) {
         super.textInteractionDidPerform(button: button)
+        if button is DeleteButton {
+            shouldSkipNextDeletePanRestore = hadComposingBeforeDeleteTouchDown && !composingBuffer.isEmpty
+            nextDeletePanRestoreReplacement = deletePanRestoreReplacementAfterDeleteTouchDown()
+            hadComposingBeforeDeleteTouchDown = false
+            composingBeforeDeleteTouchDown = ""
+            committedBeforeDeleteTouchDown = ""
+        } else {
+            shouldSkipNextDeletePanRestore = false
+            nextDeletePanRestoreReplacement = nil
+        }
         is글자Input = true
         if !isRepeatingInput { updateShiftButton() }
     }
@@ -305,12 +336,12 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
     
     open override func deleteBackward() {
         if BaseKeyboardViewController.isPreview { return }
-        
+
         deleteBackwardWillPerform()
-        
+
         if !composingBuffer.isEmpty {
             let oldComposingCount = composingBuffer.count
-            
+
             let deleteResult = processor.deleteWithRestore종성(
                 composing: composingBuffer,
                 committedTail: String(committedBuffer.suffix(2)),
@@ -371,7 +402,82 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
         updateSpaceButtonImage()
         lastInputText = nil
     }
-    
+
+    open override func deleteButtonPanDeleteText(hasPendingRestoreText _: Bool) -> (character: Character, shouldRestore: Bool)? {
+        if BaseKeyboardViewController.isPreview { return nil }
+
+        var deletedCharacter: Character?
+        let shouldRestoreDeletedCharacter: Bool
+        let shouldSkipRestore = shouldSkipNextDeletePanRestore
+        let restoreReplacement = nextDeletePanRestoreReplacement
+        shouldSkipNextDeletePanRestore = false
+        nextDeletePanRestoreReplacement = nil
+
+        if !composingBuffer.isEmpty {
+            deletedCharacter = composingBuffer.removeLast()
+            if shouldSkipRestore, let restoreReplacement {
+                deletedCharacter = restoreReplacement
+                shouldRestoreDeletedCharacter = true
+            } else {
+                shouldRestoreDeletedCharacter = !shouldSkipRestore
+            }
+            deleteText()
+            isPulledFromProtected = false
+            if composingBuffer.isEmpty {
+                processor.reset한글조합()
+            } else {
+                processor.start한글조합()
+            }
+        } else if !committedBuffer.isEmpty {
+            deletedCharacter = committedBuffer.removeLast()
+            shouldRestoreDeletedCharacter = true
+            deleteText()
+            protectedCommittedCount = min(protectedCommittedCount, committedBuffer.count)
+            isPulledFromProtected = false
+            processor.reset한글조합()
+        } else {
+            deletedCharacter = textDocumentProxy.documentContextBeforeInput?.last
+            shouldRestoreDeletedCharacter = true
+            if deletedCharacter != nil {
+                deleteText()
+            }
+            isPulledFromProtected = false
+            processor.reset한글조합()
+        }
+
+        guard let deletedCharacter else { return nil }
+
+        updateSpaceButtonImage()
+        lastInputText = nil
+        return (deletedCharacter, shouldRestoreDeletedCharacter)
+    }
+
+    open override func deleteButtonPanRestoreText(_ character: Character) {
+        if BaseKeyboardViewController.isPreview { return }
+
+        shouldSkipNextDeletePanRestore = false
+        nextDeletePanRestoreReplacement = nil
+
+        let text = String(character)
+        if !composingBuffer.isEmpty {
+            commitComposingBuffer()
+        }
+
+        insertText(text)
+
+        if character.isHangeul {
+            composingBuffer = text
+            isPulledFromProtected = false
+            processor.start한글조합()
+        } else {
+            committedBuffer.append(text)
+            processor.reset한글조합()
+        }
+
+        updateSpaceButtonImage()
+        lastInputText = text
+    }
+
     open override func repeatDeleteBackward() {
         if BaseKeyboardViewController.isPreview { return }
         
@@ -450,7 +556,29 @@ private extension HangeulKeyboardCoreViewController {
         lastInputText = result.input글자
         updateSpaceButtonImage()
     }
-    
+
+    /// touchDown 삭제가 앞 글자를 재조합한 경우 첫 pan 삭제 때 복구할 원래 글자를 반환합니다.
+    func deletePanRestoreReplacementAfterDeleteTouchDown() -> Character? {
+        guard shouldSkipNextDeletePanRestore else { return nil }
+
+        let remainingBeforeDelete = String(composingBeforeDeleteTouchDown.dropLast())
+        if remainingBeforeDelete.count == 1,
+           composingBuffer.count == 1,
+           remainingBeforeDelete != composingBuffer {
+            return remainingBeforeDelete.last
+        }
+
+        let consumedCommittedCount = committedBeforeDeleteTouchDown.count - committedBuffer.count
+        guard consumedCommittedCount == 1,
+              composingBuffer.count == 1,
+              let consumedCommitted = committedBeforeDeleteTouchDown.last,
+              String(consumedCommitted) != composingBuffer else {
+            return nil
+        }
+
+        return consumedCommitted
+    }
+
     /// 프로세서가 소비한 committed 글자를 `committedBuffer`에서 제거합니다.
     ///
     /// `textDocumentProxy` 삭제는 `replaceText`에서 이미 수행되었으므로,

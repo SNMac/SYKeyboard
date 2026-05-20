@@ -94,4 +94,5 @@ struct NaratgeulControllerTests {
         sim.input("획")
         #expect(sim.text == "ㄱㄱㅋ", "반복 입력 후 마지막 글자에 획추가가 적용되어야 합니다.")
     }
+
 }

@@ -393,11 +393,28 @@ open class BaseKeyboardViewController: UIInputViewController {
     /// `super.repeatDeleteBackwardWillPerform` 호출 필요
     open func repeatDeleteBackward() {
         if BaseKeyboardViewController.isPreview || self.view.window == nil { return }
-        
+
         repeatDeleteBackwardWillPerform()
         deleteText()
     }
-    
+
+    /// 삭제 버튼 팬 제스처로 커서 앞 글자를 삭제하고 복구 버퍼 반영 여부를 반환합니다.
+    ///
+    /// 입력기별 내부 조합 버퍼가 있는 경우 override하여 버퍼를 함께 동기화합니다.
+    open func deleteButtonPanDeleteText(hasPendingRestoreText: Bool) -> (character: Character, shouldRestore: Bool)? {
+        guard let lastBeforeCursor = textDocumentProxy.documentContextBeforeInput?.last else { return nil }
+
+        deleteText()
+        return (lastBeforeCursor, true)
+    }
+
+    /// 삭제 버튼 팬 제스처로 임시 삭제된 문자를 복구합니다.
+    ///
+    /// 입력기별 내부 조합 버퍼가 있는 경우 override하여 복구된 문자를 조합 상태에 반영합니다.
+    open func deleteButtonPanRestoreText(_ character: Character) {
+        insertText(String(character))
+    }
+
     // MARK: - Public Methods
     
     public func updateOneHandedWidthForPreview(to oneHandedWidth: Double) {
@@ -1000,16 +1017,17 @@ extension BaseKeyboardViewController: TextInteractionGestureControllerDelegate {
         
         switch direction {
         case .left:
-            if let lastBeforeCursor = textDocumentProxy.documentContextBeforeInput?.last {
-                tempDeletedCharacters.append(lastBeforeCursor)
-                deleteText()
+            if let deleteResult = deleteButtonPanDeleteText(hasPendingRestoreText: !tempDeletedCharacters.isEmpty) {
+                if deleteResult.shouldRestore {
+                    tempDeletedCharacters.append(deleteResult.character)
+                }
                 FeedbackManager.shared.playHaptic()
                 FeedbackManager.shared.playDeleteSound()
                 logger.debug("커서 앞 글자 삭제")
             }
         case .right:
             if let lastDeleted = tempDeletedCharacters.popLast() {
-                insertText(String(lastDeleted))
+                deleteButtonPanRestoreText(lastDeleted)
                 FeedbackManager.shared.playHaptic()
                 FeedbackManager.shared.playDeleteSound()
                 logger.debug("삭제된 글자 복구")

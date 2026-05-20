@@ -38,6 +38,12 @@ final class KeyboardControllerSimulator {
     private var lastInputText: String?
     /// 끌어온 글자가 보호 상태였는지 추적
     private var isPulledFromProtected: Bool = false
+    /// 삭제 버튼 드래그로 임시 삭제된 문자 버퍼
+    private var tempDeletedCharacters: [Character] = []
+    /// touchDown 삭제로 이미 복구 버퍼에 저장된 글자의 잔여 조합 삭제를 한 번만 건너뜁니다.
+    private var shouldSkipNextDeletePanRestore: Bool = false
+    /// touchDown 삭제로 앞 글자가 재조합된 경우, 첫 pan 삭제 때 복구할 원래 글자입니다.
+    private var nextDeletePanRestoreReplacement: Character?
     
     /// 현재 화면에 표시되는 전체 텍스트
     var text: String { committedBuffer + composingBuffer }
@@ -158,7 +164,7 @@ final class KeyboardControllerSimulator {
     func repeatDelete() {
         if !composingBuffer.isEmpty {
             composingBuffer.removeLast()
-            
+
             if composingBuffer.isEmpty {
                 processor.reset한글조합()
             }
@@ -172,7 +178,102 @@ final class KeyboardControllerSimulator {
         }
         lastInputText = nil
     }
-    
+
+    /// 삭제 버튼 touchDown (컨트롤러의 단일 삭제 액션 시뮬레이션)
+    func deleteButtonTouchDown() {
+        let hadComposingBeforeDelete = !composingBuffer.isEmpty
+        let composingBeforeDelete = composingBuffer
+        let committedBeforeDelete = committedBuffer
+        if let lastCharacter = text.last {
+            tempDeletedCharacters.append(lastCharacter)
+        }
+        delete()
+        shouldSkipNextDeletePanRestore = hadComposingBeforeDelete && !composingBuffer.isEmpty
+        nextDeletePanRestoreReplacement = deletePanRestoreReplacementAfterDeleteTouchDown(
+            composingBeforeDelete: composingBeforeDelete,
+            committedBeforeDelete: committedBeforeDelete
+        )
+    }
+
+    /// 삭제 버튼 드래그 중간 상태 세팅 (회귀 테스트용)
+    func setDeleteDragStateForTesting(
+        committed: String,
+        composing: String,
+        deletedCharacters: [Character],
+        shouldSkipNextDeletePanRestore: Bool = true,
+        nextDeletePanRestoreReplacement: Character? = nil
+    ) {
+        committedBuffer = committed
+        composingBuffer = composing
+        tempDeletedCharacters = deletedCharacters
+        self.shouldSkipNextDeletePanRestore = shouldSkipNextDeletePanRestore
+        self.nextDeletePanRestoreReplacement = nextDeletePanRestoreReplacement
+        protectedCommittedCount = min(protectedCommittedCount, committedBuffer.count)
+    }
+
+    /// 삭제 버튼 왼쪽 드래그 (컨트롤러의 `deleteButtonPanDeleteText` 시뮬레이션)
+    func dragDeleteLeft() {
+        let shouldSkipRestore = shouldSkipNextDeletePanRestore
+        let restoreReplacement = nextDeletePanRestoreReplacement
+        shouldSkipNextDeletePanRestore = false
+        nextDeletePanRestoreReplacement = nil
+
+        if !composingBuffer.isEmpty {
+            var shouldRestoreDeletedCharacter = !shouldSkipRestore
+            var deletedCharacter = composingBuffer.removeLast()
+            if shouldSkipRestore, let restoreReplacement {
+                deletedCharacter = restoreReplacement
+                shouldRestoreDeletedCharacter = true
+            }
+            if shouldRestoreDeletedCharacter {
+                tempDeletedCharacters.append(deletedCharacter)
+            }
+            isPulledFromProtected = false
+
+            if composingBuffer.isEmpty {
+                processor.reset한글조합()
+            } else {
+                processor.start한글조합()
+            }
+        } else if !committedBuffer.isEmpty {
+            tempDeletedCharacters.append(committedBuffer.removeLast())
+            protectedCommittedCount = min(protectedCommittedCount, committedBuffer.count)
+            isPulledFromProtected = false
+            processor.reset한글조합()
+        } else {
+            isPulledFromProtected = false
+            processor.reset한글조합()
+        }
+
+        lastInputText = nil
+    }
+
+    /// 삭제 버튼 오른쪽 드래그 (컨트롤러의 `deleteButtonPanRestoreText` 시뮬레이션)
+    func dragRestoreRight() {
+        guard let lastDeleted = tempDeletedCharacters.popLast() else { return }
+
+        shouldSkipNextDeletePanRestore = false
+        nextDeletePanRestoreReplacement = nil
+
+        let text = String(lastDeleted)
+        if !composingBuffer.isEmpty {
+            committedBuffer.append(composingBuffer)
+            composingBuffer.removeAll()
+            isPulledFromProtected = false
+        }
+
+        if lastDeleted.isHangeul {
+            composingBuffer = text
+            isPulledFromProtected = false
+            processor.start한글조합()
+        } else {
+            committedBuffer.append(text)
+            processor.reset한글조합()
+        }
+
+        lastInputText = text
+    }
+
     /// 반복 삭제 종료 후 끌어오기 (컨트롤러의 `repeatTextInteractionDidPerform` 시뮬레이션)
     func finishRepeatDelete() {
         if composingBuffer.isEmpty && !committedBuffer.isEmpty {
@@ -234,6 +335,31 @@ private extension KeyboardControllerSimulator {
         composingBuffer = result.composing
         lastInputText = result.input글자
     }
+
+    /// touchDown 삭제가 앞 글자를 재조합한 경우 첫 pan 삭제 때 복구할 원래 글자를 반환합니다.
+    func deletePanRestoreReplacementAfterDeleteTouchDown(
+        composingBeforeDelete: String,
+        committedBeforeDelete: String
+    ) -> Character? {
+        guard shouldSkipNextDeletePanRestore else { return nil }
+
+        let remainingBeforeDelete = String(composingBeforeDelete.dropLast())
+        if remainingBeforeDelete.count == 1,
+           composingBuffer.count == 1,
+           remainingBeforeDelete != composingBuffer {
+            return remainingBeforeDelete.last
+        }
+
+        let consumedCommittedCount = committedBeforeDelete.count - committedBuffer.count
+        guard consumedCommittedCount == 1,
+              composingBuffer.count == 1,
+              let consumedCommitted = committedBeforeDelete.last,
+              String(consumedCommitted) != composingBuffer else {
+            return nil
+        }
+
+        return consumedCommitted
+    }
     
     /// 프로세서가 소비한 committed 글자를 `committedBuffer`에서 제거합니다.
     func applyConsumedCommitted(count: Int) {
@@ -243,7 +369,7 @@ private extension KeyboardControllerSimulator {
         }
         protectedCommittedCount = min(protectedCommittedCount, committedBuffer.count)
     }
-    
+
     /// composing이 비었을 때 committed에서 마지막 한글을 끌어옵니다.
     func pullFromCommittedIfNeeded() {
         guard composingBuffer.isEmpty, !committedBuffer.isEmpty else {
