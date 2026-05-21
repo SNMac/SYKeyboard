@@ -7,27 +7,36 @@
 
 /// `UserDefaults`의 키값 관리용
 public enum UserDefaultsKeys {
-    /* 피드백 설정 */
+    
+    // MARK: - 피드백 설정
+    
     /// 소리 피드백
     public static let isSoundFeedbackEnabled = "isSoundFeedbackEnabled"
     /// 햅틱 피드백
     public static let isHapticFeedbackEnabled = "isHapticFeedbackEnabled"
     
-    /* 입력 설정 */
-    /// 선택한 길게 누르기 동작
-    public static let selectedLongPressAction = "selectedLongPressAction"
-    /// 드래그하여 커서 이동
-    public static let isDragToMoveCursorEnabled = "isDragToMoveCursorEnabled"
+    // MARK: - 자동완성 텍스트 설정
+
     /// 텍스트 대치
     public static let isTextReplacementEnabled = "isTextReplacementEnabled"
     /// 자동완성 텍스트
     public static let isPredictiveTextEnabled = "isPredictiveTextEnabled"
+    
+    // MARK: - 입력 설정
+    
+    /// 선택한 길게 누르기 동작
+    public static let selectedLongPressAction = "selectedLongPressAction"
+    /// 드래그하여 커서 이동
+    public static let isDragToMoveCursorEnabled = "isDragToMoveCursorEnabled"
+    /// 리턴 키 Undo/Redo 활성화 여부
+    public static let isReturnKeyUndoRedoEnabled = "isReturnKeyUndoRedoEnabled"
     /// '.' 단축키
     public static let isPeriodShortcutEnabled = "isPeriodShortcutEnabled"
     /// 스페이스/리턴 입력 후 주 키보드로 변경
     public static let isAutoChangeToPrimaryEnabled = "isAutoChangeToPrimaryEnabled"
     
-    /* 입력 설정 -> 속도/커서 설정 */
+    // MARK: - 입력 설정 -> 속도/커서 설정
+    
     /// 반복 지연 시간
     public static let longPressDuration = "longPressDuration"
     /// 키 반복 속도
@@ -37,7 +46,7 @@ public enum UserDefaultsKeys {
     /// 이동 드래그 간격
     public static let cursorMoveInterval = "cursorMoveInterval"
     
-    /* 외형 설정 */
+    // MARK: - 외형 설정
     /// 키보드 높이
     public static let keyboardHeight = "keyboardHeight"
     /// 숫자 키패드 활성화
@@ -47,7 +56,7 @@ public enum UserDefaultsKeys {
     /// 한 손 키보드 너비
     public static let oneHandedKeyboardWidth = "oneHandedKeyboardWidth"
     
-    /* 기타 설정 */
+    // MARK: - 기타 설정
     /// 키보드 전환 버튼(􀆪) 표시 설정용
     public static let needsInputModeSwitchKey = "needsInputModeSwitchKey"
     /// 한 손 키보드 저장용

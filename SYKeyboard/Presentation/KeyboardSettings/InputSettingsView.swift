@@ -22,6 +22,9 @@ struct InputSettingsView: View {
     @AppStorage(UserDefaultsKeys.isAutoCapitalizationEnabled, store: UserDefaultsManager.shared.storage)
     private var isAutoCapitalizationEnabled = DefaultValues.isAutoCapitalizationEnabled
     
+    @AppStorage(UserDefaultsKeys.isReturnKeyUndoRedoEnabled, store: UserDefaultsManager.shared.storage)
+    private var isReturnKeyUndoRedoEnabled = DefaultValues.isReturnKeyUndoRedoEnabled
+    
     @AppStorage(UserDefaultsKeys.isPeriodShortcutEnabled, store: UserDefaultsManager.shared.storage)
     private var isPeriodShortcutEnabled = DefaultValues.isPeriodShortcutEnabled
     
@@ -94,6 +97,21 @@ struct InputSettingsView: View {
             Analytics.setUserProperty(newValue.analyticsValue,
                                       forName: "pref_auto_capitalization")
             Analytics.logEvent("auto_capitalization", parameters: [
+                "view": "InputSettingsView",
+                "enabled": newValue.analyticsValue
+            ])
+            hideKeyboard()
+        }
+        
+        Toggle(isOn: $isReturnKeyUndoRedoEnabled, label: {
+            Text("리턴 키 Undo/Redo")
+            Text("리턴 키를 왼쪽/오른쪽으로 드래그하여 Redo/Undo")
+                .font(.caption)
+        })
+        .onChange(of: isReturnKeyUndoRedoEnabled) { newValue in
+            Analytics.setUserProperty(newValue.analyticsValue,
+                                      forName: "pref_return_undo_redo")
+            Analytics.logEvent("return_undo_redo", parameters: [
                 "view": "InputSettingsView",
                 "enabled": newValue.analyticsValue
             ])
