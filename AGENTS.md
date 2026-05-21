@@ -66,7 +66,7 @@
 
 ## 빌드와 테스트
 
-가능하면 변경 범위에 맞춰 아래 명령을 실행한다. 시뮬레이터 이름은 로컬 환경에 맞게 조정한다.
+가능하면 변경 범위에 맞춰 아래 명령을 실행한다. 기본 검증 기준은 `iPhone 13 mini / iOS 16.0`이며, 해당 런타임이 없는 로컬 환경에서는 가장 가까운 iOS 16+ 시뮬레이터로 조정하고 최종 응답에 실제 검증 대상을 명시한다.
 
 ```sh
 xcodebuild -list -project SYKeyboard.xcodeproj
@@ -76,21 +76,21 @@ xcodebuild -list -project SYKeyboard.xcodeproj
 xcodebuild test \
   -project SYKeyboard.xcodeproj \
   -scheme SYKeyboard \
-  -destination 'platform=iOS Simulator,name=iPhone 16'
+  -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0'
 ```
 
 ```sh
 xcodebuild build \
   -project SYKeyboard.xcodeproj \
   -scheme HangeulKeyboard \
-  -destination 'platform=iOS Simulator,name=iPhone 16'
+  -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0'
 ```
 
 ```sh
 xcodebuild build \
   -project SYKeyboard.xcodeproj \
   -scheme EnglishKeyboard \
-  -destination 'platform=iOS Simulator,name=iPhone 16'
+  -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0'
 ```
 
 프로젝트 scheme는 `SYKeyboard`, `HangeulKeyboard`, `EnglishKeyboard`, `SYKeyboardCore`, `HangeulKeyboardCore`, `EnglishKeyboardCore`, `SYKeyboardAssets`가 공유되어 있다. `SYKeyboard`/키보드 extension scheme의 TestAction은 `SYKeyboardTests`를 포함한다.
