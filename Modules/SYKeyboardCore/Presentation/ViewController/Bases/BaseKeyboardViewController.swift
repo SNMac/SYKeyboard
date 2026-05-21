@@ -1021,6 +1021,7 @@ extension BaseKeyboardViewController: TextInteractionGestureControllerDelegate {
                 if deleteResult.shouldRestore {
                     tempDeletedCharacters.append(deleteResult.character)
                 }
+                updateSuggestions()
                 FeedbackManager.shared.playHaptic()
                 FeedbackManager.shared.playDeleteSound()
                 logger.debug("커서 앞 글자 삭제")
@@ -1028,6 +1029,7 @@ extension BaseKeyboardViewController: TextInteractionGestureControllerDelegate {
         case .right:
             if let lastDeleted = tempDeletedCharacters.popLast() {
                 deleteButtonPanRestoreText(lastDeleted)
+                updateSuggestions()
                 FeedbackManager.shared.playHaptic()
                 FeedbackManager.shared.playDeleteSound()
                 logger.debug("삭제된 글자 복구")

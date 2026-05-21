@@ -5,6 +5,7 @@ Last Updated: 2026-05-21
 ## Relevant Files
 
 - `Modules/SYKeyboardCore/Presentation/ViewController/Bases/BaseKeyboardViewController.swift`: 삭제 버튼 팬 제스처에서 임시 삭제 버퍼를 관리한다.
+- `Modules/SYKeyboardCore/Presentation/Suggestion/SuggestionController.swift`: 자동완성 UI의 현재 단어/추천 표시를 관리한다.
 - `Modules/HangeulKeyboardCore/Presentation/ViewController/HangeulKeyboardCoreViewController.swift`: 한글 입력기의 `committedBuffer`, `composingBuffer`, 프로세서 상태를 관리한다.
 - `Modules/HangeulKeyboardCore/Domain/Processor/Protocols/HangeulProcessable.swift`: 입력/삭제 시 종성 복원 공통 로직이 있다.
 - `Modules/HangeulKeyboardCore/Domain/Processor/DubeolsikProcessor.swift`: 두벌식 입력/삭제 조합 로직이다.
@@ -25,6 +26,8 @@ Last Updated: 2026-05-21
 - 이후 사용자가 `동해물고` 상태에서 삭제 버튼 드래그로 완전 삭제/복구하면 `동해고`가 되는 추가 회귀를 보고했다.
 - 두벌식 `동해물고` 자연 입력 상태에서는 마지막 `고`가 `composingBuffer`에 있고, 삭제 touchDown이 `committedBuffer`의 `물`을 소비해 `묽`으로 재조합할 수 있다.
 - 이 상태에서 첫 pan 삭제를 단순히 복구 스킵하면 재조합된 `묽` 안의 원래 `물`까지 복구 버퍼에서 빠져 `동해고`가 된다.
+- 이후 사용자가 `동해물과` 전체 드래그 삭제/복구 후 실제 입력값은 `동해물과`이지만 자동완성 UI 왼쪽 현재 단어가 `동해물고`로 남는 마이너 회귀를 보고했다.
+- 일반 키 입력/삭제 경로는 `textInteractionDidPerform`에서 `updateSuggestions()`를 호출하지만, 삭제 버튼 pan 삭제/복구 경로는 `deleteButtonPanDeleteText`/`deleteButtonPanRestoreText`만 실행하고 자동완성 UI를 갱신하지 않았다.
 
 ## Decisions
 
@@ -35,12 +38,14 @@ Last Updated: 2026-05-21
 - `BaseKeyboardViewController`에는 pan 삭제/복구 hook을 두고, 한글 컨트롤러는 이를 override해 `committedBuffer`, `composingBuffer`, processor 상태를 함께 동기화한다.
 - `.touchDown` 삭제로 이미 복구 버퍼에 원래 글자(`과`)가 들어간 상태에서 pan 삭제가 잔여 조합 글자(`고`)를 지우는 경우, 화면에서는 삭제하되 복구 버퍼에는 추가하지 않는다.
 - touchDown 삭제가 확정 글자를 소비해 앞 글자를 재조합한 경우(`물` + `고` 삭제 -> `묽`), 첫 pan 삭제 때 재조합 결과 전체를 버리지 않고 원래 남아야 할 글자(`물`)를 복구 버퍼에 넣는다.
+- 삭제 버튼 pan 삭제/복구가 성공하면 실제 텍스트와 `inputBuffer`가 바뀌므로, 자동완성 UI도 같은 제스처 안에서 즉시 갱신한다.
 
 ## Hypotheses
 
 - 확인됨: 핵심 원인은 복구 후 `composingBuffer` 유지 자체가 아니라, pan 시작 전에 `.touchDown` 일반 삭제가 먼저 실행된 뒤 pan 복구 버퍼가 잔여 조합 글자까지 함께 담는 이벤트 순서였다.
 - 추정: 실제 키보드 extension에서도 `.touchDown`은 유지하되, pan 삭제가 잔여 조합 글자를 복구 버퍼에 넣지 않으면 `고` 누적이 중단된다.
 - 확인됨: `동해물고` 회귀는 pan 삭제 스킵을 복구 버퍼 전체 존재 여부로 판단하거나, 재조합된 `묽`을 그대로 스킵하면서 발생한다. touchDown 직전 `committedBuffer`/`composingBuffer`를 기록해야 원래 복구할 `물`을 찾을 수 있다.
+- 확인됨: 자동완성 UI 왼쪽 현재 단어가 `동해물고`로 남는 문제는 삭제 touchDown 직후 갱신된 suggestion 상태가 pan 복구 이후 다시 갱신되지 않아 발생한다.
 
 ## Open Questions
 
@@ -60,13 +65,12 @@ Last Updated: 2026-05-21
 - 2026-05-21에 사용자가 실기기에서 테스트했고, 의도한 동작대로 수정되었음을 확인했다.
 - 2026-05-21에 `동해물고` 회귀를 잡기 위해 `HangeulDeleteButtonDragControllerTests`에 자연 입력 경로와 내부 상태 경계 테스트를 추가했다. 수정 전 `동해물고` 테스트는 `동해고`로 실패했고, 수정 후 `iPhone 13 mini / iOS 16.0`에서 통과했다.
 - 2026-05-21에 같은 `iPhone 13 mini / iOS 16.0`에서 전체 `SYKeyboardTests`가 통과했다.
+- 2026-05-21에 `동해물과` 전체 드래그 삭제/복구 후 자동완성 현재 단어가 `동해물과`로 동기화되는 테스트를 `HangeulDeleteButtonDragControllerTests`에 추가했고, 같은 `iPhone 13 mini / iOS 16.0`에서 `HangeulDeleteButtonDragControllerTests`가 통과했다.
 
 ## Current Uncommitted State
 
 - 다음 파일들이 수정된 상태다.
-  - `Modules/HangeulKeyboardCore/Presentation/ViewController/HangeulKeyboardCoreViewController.swift`
   - `Modules/SYKeyboardCore/Presentation/ViewController/Bases/BaseKeyboardViewController.swift`
   - `SYKeyboardTests/Controller/HangeulDeleteButtonDragControllerTests.swift`
   - `SYKeyboardTests/Utils/KeyboardControllerSimulator.swift`
-  - `AGENTS.md`
 - `dev/active/delete-drag-restore-regression/` 문서도 최신 상태로 갱신 중이다.

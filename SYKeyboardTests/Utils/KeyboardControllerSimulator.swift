@@ -44,6 +44,8 @@ final class KeyboardControllerSimulator {
     private var shouldSkipNextDeletePanRestore: Bool = false
     /// touchDown 삭제로 앞 글자가 재조합된 경우, 첫 pan 삭제 때 복구할 원래 글자입니다.
     private var nextDeletePanRestoreReplacement: Character?
+    /// 자동완성 UI의 현재 단어 표시값 시뮬레이션
+    private(set) var suggestionCurrentWord: String?
     
     /// 현재 화면에 표시되는 전체 텍스트
     var text: String { committedBuffer + composingBuffer }
@@ -193,6 +195,7 @@ final class KeyboardControllerSimulator {
             composingBeforeDelete: composingBeforeDelete,
             committedBeforeDelete: committedBeforeDelete
         )
+        updateSuggestionCurrentWord()
     }
 
     /// 삭제 버튼 드래그 중간 상태 세팅 (회귀 테스트용)
@@ -246,6 +249,7 @@ final class KeyboardControllerSimulator {
         }
 
         lastInputText = nil
+        updateSuggestionCurrentWord()
     }
 
     /// 삭제 버튼 오른쪽 드래그 (컨트롤러의 `deleteButtonPanRestoreText` 시뮬레이션)
@@ -272,6 +276,7 @@ final class KeyboardControllerSimulator {
         }
 
         lastInputText = text
+        updateSuggestionCurrentWord()
     }
 
     /// 반복 삭제 종료 후 끌어오기 (컨트롤러의 `repeatTextInteractionDidPerform` 시뮬레이션)
@@ -334,6 +339,12 @@ private extension KeyboardControllerSimulator {
         
         composingBuffer = result.composing
         lastInputText = result.input글자
+        updateSuggestionCurrentWord()
+    }
+
+    /// 자동완성 UI의 현재 단어 표시를 갱신합니다.
+    func updateSuggestionCurrentWord() {
+        suggestionCurrentWord = text.isEmpty || text.last?.isWhitespace == true ? nil : text
     }
 
     /// touchDown 삭제가 앞 글자를 재조합한 경우 첫 pan 삭제 때 복구할 원래 글자를 반환합니다.

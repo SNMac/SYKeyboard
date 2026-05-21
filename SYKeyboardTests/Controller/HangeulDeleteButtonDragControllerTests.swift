@@ -125,6 +125,30 @@ struct HangeulDeleteButtonDragControllerTests {
         #expect(sim.text == "동해물과", "touchDown으로 생긴 '동해물고' 상태도 전체 복구 시 '물'이 빠지면 안 됩니다.")
     }
 
+    @Test("두벌식 삭제 버튼 드래그 복구: 전체 복구 후 자동완성 현재 단어 동기화")
+    func test두벌식_삭제버튼드래그_전체복구후_자동완성현재단어동기화() {
+        let sim = KeyboardControllerSimulator(
+            automata: automata,
+            processor: DubeolsikProcessor(automata: automata)
+        )
+
+        inputDubeolsik동해물과(into: sim)
+        sim.deleteButtonTouchDown()
+        #expect(sim.text == "동해물고")
+        #expect(sim.suggestionCurrentWord == "동해물고")
+
+        while !sim.text.isEmpty {
+            sim.dragDeleteLeft()
+        }
+        #expect(sim.suggestionCurrentWord == nil)
+
+        for _ in "동해물과" {
+            sim.dragRestoreRight()
+        }
+        #expect(sim.text == "동해물과")
+        #expect(sim.suggestionCurrentWord == "동해물과", "삭제 드래그 복구 후 자동완성 UI의 현재 단어도 실제 텍스트와 같아야 합니다.")
+    }
+
     @Test("천지인 삭제 버튼 드래그 복구: touchDown 선삭제 후 pan 복구가 중복되지 않음")
     func test천지인_삭제버튼드래그_touchDown선삭제후_복구중복방지() {
         let sim = KeyboardControllerSimulator(
