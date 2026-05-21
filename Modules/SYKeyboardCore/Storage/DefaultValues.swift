@@ -24,6 +24,8 @@ public enum DefaultValues {
     public static let isTextReplacementEnabled: Bool = true
     /// 자동완성 텍스트 기본값
     public static let isPredictiveTextEnabled: Bool = true
+    /// Undo/Redo 기능 활성화 여부 기본값
+    public static let isUndoRedoEnabled: Bool = true
     
     // MARK: - 입력 설정
     
@@ -31,8 +33,6 @@ public enum DefaultValues {
     public static let selectedLongPressAction: LongPressAction = .repeatInput
     /// 드래그하여 커서 이동 기본값
     public static let isDragToMoveCursorEnabled: Bool = true
-    /// 리턴 키 Undo/Redo 활성화 여부 기본값
-    public static let isReturnKeyUndoRedoEnabled: Bool = true
     /// '.' 단축키 여부 기본값
     public static let isPeriodShortcutEnabled: Bool = true
     /// 스페이스/리턴 입력 후 주 키보드로 변경 기본값

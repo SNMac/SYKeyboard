@@ -109,6 +109,9 @@ final public class UserDefaultsManager {
     /// 자동완성 텍스트
     @UserDefaultsWrapper(key: UserDefaultsKeys.isPredictiveTextEnabled, defaultValue: DefaultValues.isPredictiveTextEnabled)
     public var isPredictiveTextEnabled: Bool
+    /// Undo/Redo 기능 활성화 여부
+    @UserDefaultsWrapper(key: UserDefaultsKeys.isUndoRedoEnabled, defaultValue: DefaultValues.isUndoRedoEnabled)
+    public var isUndoRedoEnabled: Bool
     
     // MARK: 입력 설정
     
@@ -128,9 +131,6 @@ final public class UserDefaultsManager {
     /// 드래그하여 커서 이동
     @UserDefaultsWrapper(key: UserDefaultsKeys.isDragToMoveCursorEnabled, defaultValue: DefaultValues.isDragToMoveCursorEnabled)
     public var isDragToMoveCursorEnabled: Bool
-    /// 리턴 키 Undo/Redo 활성화 여부
-    @UserDefaultsWrapper(key: UserDefaultsKeys.isReturnKeyUndoRedoEnabled, defaultValue: DefaultValues.isReturnKeyUndoRedoEnabled)
-    public var isReturnKeyUndoRedoEnabled: Bool
     /// '.' 단축키
     @UserDefaultsWrapper(key: UserDefaultsKeys.isPeriodShortcutEnabled, defaultValue: DefaultValues.isPeriodShortcutEnabled)
     public var isPeriodShortcutEnabled: Bool

@@ -21,6 +21,8 @@ public enum UserDefaultsKeys {
     public static let isTextReplacementEnabled = "isTextReplacementEnabled"
     /// 자동완성 텍스트
     public static let isPredictiveTextEnabled = "isPredictiveTextEnabled"
+    /// Undo/Redo 기능 활성화 여부
+    public static let isUndoRedoEnabled = "isUndoRedoEnabled"
     
     // MARK: - 입력 설정
     
@@ -28,8 +30,6 @@ public enum UserDefaultsKeys {
     public static let selectedLongPressAction = "selectedLongPressAction"
     /// 드래그하여 커서 이동
     public static let isDragToMoveCursorEnabled = "isDragToMoveCursorEnabled"
-    /// 리턴 키 Undo/Redo 활성화 여부
-    public static let isReturnKeyUndoRedoEnabled = "isReturnKeyUndoRedoEnabled"
     /// '.' 단축키
     public static let isPeriodShortcutEnabled = "isPeriodShortcutEnabled"
     /// 스페이스/리턴 입력 후 주 키보드로 변경
