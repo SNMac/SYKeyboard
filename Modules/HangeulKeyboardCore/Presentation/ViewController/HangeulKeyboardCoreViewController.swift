@@ -103,6 +103,10 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
     }
     
     open override var primaryKeyboardView: PrimaryKeyboardRepresentable { hangeulKeyboardView }
+
+    open override var shouldDeferUndoRedoCommit: Bool {
+        return !composingBuffer.isEmpty
+    }
     
     // MARK: - Initializer
     
@@ -199,6 +203,9 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
             nextDeletePanRestoreReplacement = nil
         }
         is글자Input = true
+        if composingBuffer.isEmpty {
+            commitDeferredUndoRedoGroupIfNeeded()
+        }
         if !isRepeatingInput { updateShiftButton() }
     }
     
@@ -241,6 +248,9 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
             }
         }
         
+        if composingBuffer.isEmpty {
+            commitDeferredUndoRedoGroupIfNeeded()
+        }
         updateShiftButton()
     }
     

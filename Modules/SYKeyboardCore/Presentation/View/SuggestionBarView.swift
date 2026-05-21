@@ -17,6 +17,10 @@ protocol SuggestionBarDelegate: AnyObject {
     ///   - bar: 이벤트를 발생시킨 `SuggestionBarView`
     ///   - index: 선택된 후보의 인덱스 (0~2)
     func suggestionBar(_ bar: SuggestionBarView, didSelectSuggestionAt index: Int)
+    /// undo 버튼이 탭되었을 때 호출됩니다.
+    func suggestionBarDidTapUndo(_ bar: SuggestionBarView)
+    /// redo 버튼이 탭되었을 때 호출됩니다.
+    func suggestionBarDidTapRedo(_ bar: SuggestionBarView)
 }
 
 /// 자동완성 후보 단어와 맞춤법 검사 버튼을 표시하는 툴바
@@ -38,6 +42,14 @@ final class SuggestionBarView: UIView {
     
     private var suggestionButtons: [SuggestionButtonView] {
         return [suggestionButton1, suggestionButton2, suggestionButton3]
+    }
+
+    private var undoRedoViews: [UIView] {
+        return [undoRedoLeadingDivider, undoButton, undoRedoMiddleDivider, redoButton]
+    }
+
+    private var undoRedoButtons: [SuggestionActionButtonView] {
+        return [undoButton, redoButton]
     }
     
     // MARK: - UI Components
@@ -88,6 +100,36 @@ final class SuggestionBarView: UIView {
         
         return button
     }()
+
+    private let undoRedoLeadingDivider: UIView = {
+        let view = UIView()
+        view.backgroundColor = .suggestionDividerColor
+        view.isHidden = true
+
+        return view
+    }()
+
+    private lazy var undoButton: SuggestionActionButtonView = {
+        let button = makeUndoRedoButton(systemName: "arrow.uturn.backward")
+        button.accessibilityLabel = "Undo"
+
+        return button
+    }()
+
+    private let undoRedoMiddleDivider: UIView = {
+        let view = UIView()
+        view.backgroundColor = .suggestionDividerColor
+        view.isHidden = true
+
+        return view
+    }()
+
+    private lazy var redoButton: SuggestionActionButtonView = {
+        let button = makeUndoRedoButton(systemName: "arrow.uturn.forward")
+        button.accessibilityLabel = "Redo"
+
+        return button
+    }()
     
     // MARK: - Initializer
     
@@ -124,6 +166,17 @@ final class SuggestionBarView: UIView {
         
         if let (index, _) = suggestionButton(at: point) {
             suggestionDelegate?.suggestionBar(self, didSelectSuggestionAt: index)
+            FeedbackManager.shared.playHaptic()
+            FeedbackManager.shared.playModifierSound()
+        } else if let action = undoRedoButton(at: point) {
+            switch action {
+            case undoButton:
+                suggestionDelegate?.suggestionBarDidTapUndo(self)
+            case redoButton:
+                suggestionDelegate?.suggestionBarDidTapRedo(self)
+            default:
+                break
+            }
             FeedbackManager.shared.playHaptic()
             FeedbackManager.shared.playModifierSound()
         }
@@ -176,6 +229,14 @@ final class SuggestionBarView: UIView {
             }
         }
     }
+
+    /// 자동완성 바 우측의 undo/redo 버튼 표시와 활성 상태를 갱신합니다.
+    func updateUndoRedoControls(isVisible: Bool, canUndo: Bool, canRedo: Bool) {
+        undoRedoViews.forEach { $0.isHidden = !isVisible }
+        undoButton.isEnabled = isVisible && canUndo
+        redoButton.isEnabled = isVisible && canRedo
+        updateDividers()
+    }
 }
 
 // MARK: - UI Methods
@@ -194,7 +255,15 @@ private extension SuggestionBarView {
     func setHierarchy() {
         self.addSubview(buttonContainerHStackView)
         
-        [suggestionButton1, leftDivider, suggestionButton2, rightDivider, suggestionButton3].forEach {
+        [suggestionButton1,
+         leftDivider,
+         suggestionButton2,
+         rightDivider,
+         suggestionButton3,
+         undoRedoLeadingDivider,
+         undoButton,
+         undoRedoMiddleDivider,
+         redoButton].forEach {
             buttonContainerHStackView.addArrangedSubview($0)
         }
     }
@@ -208,7 +277,7 @@ private extension SuggestionBarView {
             buttonContainerHStackView.bottomAnchor.constraint(equalTo: self.bottomAnchor, constant: 0)
         ])
         
-        [leftDivider, rightDivider].forEach {
+        [leftDivider, rightDivider, undoRedoLeadingDivider, undoRedoMiddleDivider].forEach {
             $0.translatesAutoresizingMaskIntoConstraints = false
             $0.widthAnchor.constraint(equalToConstant: 1).isActive = true
             $0.heightAnchor.constraint(equalToConstant: KeyboardLayoutFigure.suggestionButtonDividerHeight).isActive = true
@@ -224,12 +293,26 @@ private extension SuggestionBarView {
             suggestionButton3.widthAnchor.constraint(equalTo: suggestionButton1.widthAnchor),
             suggestionButton3.heightAnchor.constraint(equalTo: buttonContainerHStackView.heightAnchor)
         ])
+
+        [undoButton, redoButton].forEach {
+            $0.translatesAutoresizingMaskIntoConstraints = false
+            $0.widthAnchor.constraint(equalToConstant: 40).isActive = true
+            $0.heightAnchor.constraint(equalTo: buttonContainerHStackView.heightAnchor).isActive = true
+        }
     }
+
 }
 
 // MARK: - Private Methods
 
 private extension SuggestionBarView {
+    func makeUndoRedoButton(systemName: String) -> SuggestionActionButtonView {
+        let button = SuggestionActionButtonView(systemName: systemName)
+        button.isHidden = true
+
+        return button
+    }
+
     func suggestionButton(at point: CGPoint) -> (Int, SuggestionButtonView)? {
         for (index, button) in suggestionButtons.enumerated() {
             guard button.hasText else { continue }
@@ -240,17 +323,36 @@ private extension SuggestionBarView {
         }
         return nil
     }
+
+    func undoRedoButton(at point: CGPoint) -> SuggestionActionButtonView? {
+        for button in undoRedoButtons {
+            guard !button.isHidden, button.isEnabled else { continue }
+            let buttonFrame = button.convert(button.bounds, to: self)
+            if buttonFrame.contains(point) {
+                return button
+            }
+        }
+        return nil
+    }
     
     func updateHighlight(at point: CGPoint) {
         let hit = suggestionButton(at: point)
         for button in suggestionButtons {
             button.isHighlighted = (button === hit?.1)
         }
+
+        let actionHit = undoRedoButton(at: point)
+        for button in undoRedoButtons {
+            button.isHighlighted = (button === actionHit)
+        }
         updateDividers()
     }
     
     func clearAllHighlights() {
         for button in suggestionButtons {
+            button.isHighlighted = false
+        }
+        for button in undoRedoButtons {
             button.isHighlighted = false
         }
         updateDividers()
@@ -267,5 +369,103 @@ private extension SuggestionBarView {
         rightDivider.backgroundColor = (btn2Highlighted || btn3Highlighted)
         ? .clear
         : .suggestionDividerColor
+        undoRedoLeadingDivider.backgroundColor = (btn3Highlighted || undoButton.isHighlighted)
+        ? .clear
+        : .suggestionDividerColor
+        undoRedoMiddleDivider.backgroundColor = (undoButton.isHighlighted || redoButton.isHighlighted)
+        ? .clear
+        : .suggestionDividerColor
+    }
+}
+
+// MARK: - Supporting Views
+
+private final class SuggestionActionButtonView: UIView {
+
+    // MARK: - Properties
+
+    var isHighlighted: Bool = false {
+        didSet {
+            backgroundView.backgroundColor = isHighlighted ? .suggestionButtonPressed : .clear
+        }
+    }
+
+    var isEnabled: Bool = false {
+        didSet {
+            imageView.alpha = isEnabled ? 1.0 : 0.32
+            accessibilityTraits = isEnabled ? .button : [.button, .notEnabled]
+        }
+    }
+
+    // MARK: - UI Components
+
+    private let backgroundView: UIView = {
+        let view = UIView()
+        view.isUserInteractionEnabled = false
+        view.clipsToBounds = true
+        view.layer.cornerRadius = 4.6
+
+        return view
+    }()
+
+    private let imageView: UIImageView = {
+        let imageView = UIImageView()
+        imageView.tintColor = .label
+        imageView.contentMode = .scaleAspectFit
+        imageView.isUserInteractionEnabled = false
+
+        return imageView
+    }()
+
+    // MARK: - Initializer
+
+    init(systemName: String) {
+        super.init(frame: .zero)
+        imageView.image = UIImage(systemName: systemName)
+        setupUI()
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+}
+
+// MARK: - UI Methods
+
+private extension SuggestionActionButtonView {
+    func setupUI() {
+        setStyles()
+        setHierarchy()
+        setConstraints()
+    }
+
+    func setStyles() {
+        self.backgroundColor = .systemBackground.withAlphaComponent(0.001)
+        self.isAccessibilityElement = true
+        self.accessibilityTraits = [.button, .notEnabled]
+    }
+
+    func setHierarchy() {
+        self.insertSubview(backgroundView, at: 0)
+        self.addSubview(imageView)
+    }
+
+    func setConstraints() {
+        backgroundView.translatesAutoresizingMaskIntoConstraints = false
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+
+        NSLayoutConstraint.activate([
+            backgroundView.topAnchor.constraint(equalTo: self.topAnchor),
+            backgroundView.leadingAnchor.constraint(equalTo: self.leadingAnchor),
+            backgroundView.trailingAnchor.constraint(equalTo: self.trailingAnchor),
+            backgroundView.bottomAnchor.constraint(equalTo: self.bottomAnchor)
+        ])
+
+        NSLayoutConstraint.activate([
+            imageView.centerXAnchor.constraint(equalTo: self.centerXAnchor),
+            imageView.centerYAnchor.constraint(equalTo: self.centerYAnchor),
+            imageView.widthAnchor.constraint(equalToConstant: 18),
+            imageView.heightAnchor.constraint(equalToConstant: 18)
+        ])
     }
 }

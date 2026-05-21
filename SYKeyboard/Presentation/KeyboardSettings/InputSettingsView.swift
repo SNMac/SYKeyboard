@@ -22,8 +22,8 @@ struct InputSettingsView: View {
     @AppStorage(UserDefaultsKeys.isAutoCapitalizationEnabled, store: UserDefaultsManager.shared.storage)
     private var isAutoCapitalizationEnabled = DefaultValues.isAutoCapitalizationEnabled
     
-    @AppStorage(UserDefaultsKeys.isReturnKeyUndoRedoEnabled, store: UserDefaultsManager.shared.storage)
-    private var isReturnKeyUndoRedoEnabled = DefaultValues.isReturnKeyUndoRedoEnabled
+    @AppStorage(UserDefaultsKeys.isUndoRedoEnabled, store: UserDefaultsManager.shared.storage)
+    private var isUndoRedoEnabled = DefaultValues.isUndoRedoEnabled
     
     @AppStorage(UserDefaultsKeys.isPeriodShortcutEnabled, store: UserDefaultsManager.shared.storage)
     private var isPeriodShortcutEnabled = DefaultValues.isPeriodShortcutEnabled
@@ -103,15 +103,15 @@ struct InputSettingsView: View {
             hideKeyboard()
         }
         
-        Toggle(isOn: $isReturnKeyUndoRedoEnabled, label: {
-            Text("리턴 키 Undo/Redo")
-            Text("리턴 키를 왼쪽/오른쪽으로 드래그하여 Redo/Undo")
+        Toggle(isOn: $isUndoRedoEnabled, label: {
+            Text("Undo/Redo 기능")
+            Text("키보드 상단에 Undo/Redo 버튼을 표시")
                 .font(.caption)
         })
-        .onChange(of: isReturnKeyUndoRedoEnabled) { newValue in
+        .onChange(of: isUndoRedoEnabled) { newValue in
             Analytics.setUserProperty(newValue.analyticsValue,
-                                      forName: "pref_return_undo_redo")
-            Analytics.logEvent("return_undo_redo", parameters: [
+                                      forName: "pref_undo_redo")
+            Analytics.logEvent("undo_redo", parameters: [
                 "view": "InputSettingsView",
                 "enabled": newValue.analyticsValue
             ])

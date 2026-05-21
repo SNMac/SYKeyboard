@@ -1,0 +1,83 @@
+# Suggestion Bar Undo Redo Plan
+
+Last Updated: 2026-05-21
+
+## Goal
+
+- 자동완성 바 우측에 undo/redo 버튼을 추가하고, 기능 추가 뒤 `BaseKeyboardViewController`의 큰 리팩토링을 진행한다.
+
+## Current State
+
+- 브랜치명은 `feat/#31-return-button-undo-redo`이다.
+- `Modules/SYKeyboardCore/Presentation/ViewController/Bases/BaseKeyboardViewController.swift`는 1000줄이 넘으며 버튼 액션, 텍스트 프록시 래퍼, 제스처 delegate, suggestion 연동이 한 파일에 모여 있다.
+- 리턴 버튼 단일/반복 입력은 `performReturnButtonTextInteraction()`과 `performRepeatReturnButtonTextInteraction(for:)`로 분리되어 있다.
+- 리턴 버튼 drag undo/redo 설계는 폐기했다. QWERTY 배열에서 redo 드래그가 불편하고, 추후 클립보드 UI와 제스처 책임이 충돌할 수 있기 때문이다.
+- undo/redo는 자동완성 바가 보이고 `isUndoRedoEnabled`가 켜진 경우에만 우측 버튼으로 제공한다.
+
+## Approach
+
+1. 동작 변경 없는 작은 선행 리팩토링을 먼저 적용한다.
+   - 리턴 버튼 일반 입력과 반복 입력의 진입점을 별도 메서드로 분리한다.
+   - 새 진입점은 당장은 기존처럼 `insertReturnText()`만 호출한다.
+   - 이후 undo/redo 기능은 이 진입점 안에 추가한다.
+2. 자동완성 바 undo/redo 기능을 추가한다.
+   - `KeyboardUndoRedoManager`가 키보드 세션 동안 텍스트 변경 기록을 보관한다.
+   - 입력 중 변경은 pending undo 단위로 묶고, 1초 debounce가 지나면 undo stack에 확정한다.
+   - debounce 확정 전에도 pending 변경이 있으면 undo 버튼은 활성화한다.
+   - redo stack은 undo 이후 새 입력이 발생하면 비운다.
+   - undo/redo 적용 후에는 커서/외부 텍스트와 `inputBuffer`가 섞이지 않도록 `resetInputBuffer()`를 호출한다.
+   - `isPredictiveTextEnabled == true && isUndoRedoEnabled == true`일 때만 기록, 버튼 표시, undo/redo 수행을 허용한다.
+3. 기능 추가가 끝난 뒤 `BaseKeyboardViewController`의 큰 리팩토링을 별도 단계로 진행한다.
+   - 실제로 생긴 책임 기준으로 분리한다.
+   - 후보 영역은 리턴 버튼 처리, 텍스트 프록시 래퍼와 입력 버퍼, 버튼 액션 세팅, 제스처 delegate, suggestion 연동이다.
+
+## Risks
+
+- 자동완성 바는 후보 3개를 전제로 구성되어 있어 undo/redo 버튼 추가 시 작은 화면에서 후보 영역이 줄어들 수 있다.
+- undo/redo가 `textDocumentProxy`를 직접 조작하면 `inputBuffer`와 suggestion replacement history가 어긋날 수 있다.
+- 반복 입력 경로에서 리턴 버튼 feedback과 일반 입력 경로의 후처리 순서가 달라지면 회귀가 생길 수 있다.
+- 키보드 extension은 입력 지연에 민감하므로 undo/redo 상태 추적은 가볍게 유지해야 한다.
+- 현재 undo/redo 기록은 세션 메모리 전용이며 키보드 dismiss 시 `viewWillDisappear`에서 비운다.
+
+## Verification
+
+- 선행 리팩토링 후 실행할 검증 명령:
+
+```sh
+xcodebuild build \
+  -project SYKeyboard.xcodeproj \
+  -scheme SYKeyboardCore \
+  -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0'
+```
+
+- 기능 추가 뒤 실행할 검증 명령:
+
+```sh
+xcodebuild test \
+  -project SYKeyboard.xcodeproj \
+  -scheme SYKeyboard \
+  -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0'
+```
+
+```sh
+xcodebuild build \
+  -project SYKeyboard.xcodeproj \
+  -scheme HangeulKeyboard \
+  -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0'
+```
+
+```sh
+xcodebuild build \
+  -project SYKeyboard.xcodeproj \
+  -scheme EnglishKeyboard \
+  -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0'
+```
+
+- 수동 확인이 필요한 경우:
+  - 실제 텍스트 입력 앱에서 자동완성 바 표시 여부, undo/redo 버튼 활성화, 삭제, 스페이스, 리턴, symbol keyboard 자동 전환을 확인한다.
+
+## Done Criteria
+
+- 선행 리팩토링은 리턴 버튼 동작 변경 없이 전용 처리 진입점을 만든다.
+- undo/redo 기능 추가 시 자동완성 ON/OFF, undo/redo 설정 ON/OFF, 버튼 활성화 상태, 일반 리턴 입력, 반복 입력 경로가 모두 의도대로 동작한다.
+- 큰 리팩토링은 기능 추가와 별도 변경으로 진행하고, 각 단계마다 빌드 또는 테스트 결과를 기록한다.

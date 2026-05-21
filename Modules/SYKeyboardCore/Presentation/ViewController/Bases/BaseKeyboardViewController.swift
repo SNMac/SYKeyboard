@@ -110,6 +110,27 @@ open class BaseKeyboardViewController: UIInputViewController {
     private var timer: AnyCancellable?
     /// 현재 반복 입력 동작 중인지 확인하는 플래그
     public private(set) var isRepeatingInput: Bool = false
+    /// 키보드 세션 동안만 유지되는 undo/redo 기록 관리자
+    private var undoRedoManager = KeyboardUndoRedoManager()
+    /// undo/redo 기록을 문서 편집기처럼 묶기 위한 debounce 타이머
+    private var undoRedoDebounceTimer: AnyCancellable?
+    /// undo/redo 기록 묶음 확정까지 기다리는 시간
+    private let undoRedoDebounceInterval: TimeInterval = 1.0
+    /// undo/redo 적용 중 텍스트 래퍼가 새 기록을 만들지 않도록 막는 플래그
+    private var isApplyingUndoRedoEdit: Bool = false
+    /// 조합 등으로 인해 debounce 시점에 undo 단위를 아직 확정하지 못했는지 여부
+    private var needsDeferredUndoRedoCommit: Bool = false
+    /// `textWillChange` 시점의 텍스트 컨텍스트 스냅샷
+    private var pendingTextChangeContext: KeyboardTextContextSnapshot?
+    /// `textWillChange` 시점의 입력 대상 식별자
+    private var pendingTextChangeInputIdentifier: ObjectIdentifier?
+    /// 마지막으로 확인한 입력 대상 식별자
+    private var currentTextInputIdentifier: ObjectIdentifier?
+    /// 자동완성과 undo/redo 설정이 모두 켜진 경우에만 기능을 활성화합니다.
+    private var isUndoRedoFeatureAvailable: Bool {
+        return keyboardSettingsManager.isPredictiveTextEnabled
+        && keyboardSettingsManager.isUndoRedoEnabled
+    }
     
     /// 삭제 버튼 팬 제스처로 인해 임시로 삭제된 내용을 저장하는 변수
     private var tempDeletedCharacters: [Character] = []
@@ -188,6 +209,7 @@ open class BaseKeyboardViewController: UIInputViewController {
             || keyboardSettingsManager.isPredictiveTextEnabled {
             suggestionController.loadLexicon(from: self)
         }
+        updateSuggestionBarHidden()
     }
     
     open override func viewWillAppear(_ animated: Bool) {
@@ -212,6 +234,8 @@ open class BaseKeyboardViewController: UIInputViewController {
     open override func textWillChange(_ textInput: (any UITextInput)?) {
         super.textWillChange(textInput)
         logger.debug("textWillChange")
+        pendingTextChangeContext = currentTextContextSnapshot()
+        pendingTextChangeInputIdentifier = textInputIdentifier(for: textInput)
         resetInputBuffer()
         updateKeyboardType()
         updateReturnButtonType()
@@ -222,6 +246,7 @@ open class BaseKeyboardViewController: UIInputViewController {
     open override func textDidChange(_ textInput: (any UITextInput)?) {
         super.textDidChange(textInput)
         logger.debug("textDidChange")
+        invalidateUndoRedoHistoryIfNeededAfterTextChange(textInput)
         updateKeyboardType()
         oldKeyboardType = textDocumentProxy.keyboardType
         updateReturnButtonType()
@@ -233,6 +258,9 @@ open class BaseKeyboardViewController: UIInputViewController {
     open override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         cancelTimer()
+        cancelUndoRedoDebounceTimer()
+        undoRedoManager.removeAll()
+        updateUndoRedoControls()
         resetInputBuffer()
         suggestionController.saveNGramData()
     }
@@ -276,6 +304,11 @@ open class BaseKeyboardViewController: UIInputViewController {
     ///
     /// > 하위 클래스에서 오버라이드 시 반드시 `super`로 호출 필요
     open func suggestionDidApply() {}
+
+    /// 조합 중인 텍스트가 있을 때 undo 단위 확정을 미루기 위한 hook입니다.
+    open var shouldDeferUndoRedoCommit: Bool {
+        return false
+    }
     
     /// 반복 텍스트 상호작용이 일어나기 전 실행되는 메서드
     ///
@@ -359,11 +392,27 @@ open class BaseKeyboardViewController: UIInputViewController {
         
         suggestionController.endSentence(inputBuffer: inputBuffer)
         
+        recordUndoRedoChange(deletedText: "", insertedText: "\n")
         textDocumentProxy.insertText("\n")
         resetInputBuffer()
         suggestionController.clearReplacementHistory()
     }
     
+    /// 리턴 버튼 단일 입력을 수행하는 메서드
+    ///
+    /// 리턴 버튼에 추가 동작이 필요한 경우 이 메서드에서 분기합니다.
+    open func performReturnButtonTextInteraction() {
+        insertReturnText()
+    }
+
+    /// 리턴 버튼 반복 입력을 수행하는 메서드
+    ///
+    /// 리턴 버튼에 추가 동작이 필요한 경우 이 메서드에서 분기합니다.
+    open func performRepeatReturnButtonTextInteraction(for button: TextInteractable) {
+        insertReturnText()
+        button.playFeedback()
+    }
+
     /// 삭제가 일어나기 전 실행되는 메서드
     open func deleteBackwardWillPerform() {
         handlePeriodShortcutOnDelete()
@@ -435,6 +484,7 @@ extension BaseKeyboardViewController {
     public func insertText(_ text: String) {
         textDocumentProxy.insertText(text)
         inputBuffer.append(text)
+        recordUndoRedoChange(deletedText: "", insertedText: text)
     }
     
     /// `textDocumentProxy`에서 1글자를 삭제하고 `inputBuffer`를 동기화합니다.
@@ -443,11 +493,13 @@ extension BaseKeyboardViewController {
     /// 입력 버퍼가 항상 실제 입력과 일치하도록 보장합니다.
     public func deleteText() {
         let wasSpaceAtEnd = inputBuffer.last?.isWhitespace == true
+        let deletedText = textDeletedBySingleBackward()
         
         textDocumentProxy.deleteBackward()
         if !inputBuffer.isEmpty {
             inputBuffer.removeLast()
         }
+        recordUndoRedoChange(deletedText: deletedText, insertedText: "")
         
         if inputBuffer.isEmpty {
             // 모든 입력을 지운 경우 → 문장 버퍼 전체 초기화
@@ -467,6 +519,7 @@ extension BaseKeyboardViewController {
     ///   - deleteCount: 삭제할 글자 수
     ///   - text: 삭제 후 삽입할 텍스트
     public func replaceText(deleteCount: Int, insert text: String) {
+        let deletedText = textBeforeCursorSuffix(count: deleteCount)
         for _ in 0..<deleteCount {
             textDocumentProxy.deleteBackward()
         }
@@ -480,6 +533,7 @@ extension BaseKeyboardViewController {
             inputBuffer = ""
         }
         inputBuffer.append(text)
+        recordUndoRedoChange(deletedText: deletedText, insertedText: text)
     }
     
     /// 입력 버퍼를 초기화합니다.
@@ -489,6 +543,12 @@ extension BaseKeyboardViewController {
     public func resetInputBuffer() {
         inputBuffer = ""
         suggestionController.resetSentenceBuffer()
+    }
+
+    /// 조합 확정 지연 요청이 있었고 현재 확정 가능한 상태라면 pending undo 단위를 stack에 반영합니다.
+    public final func commitDeferredUndoRedoGroupIfNeeded() {
+        guard needsDeferredUndoRedoCommit else { return }
+        commitPendingUndoRedoGroup()
     }
     
     /// `inputBuffer`에서 아직 스페이스로 커밋되지 않은 마지막 단어를 추출합니다.
@@ -857,6 +917,7 @@ private extension BaseKeyboardViewController {
         
         suggestionBarView.isHidden = shouldHideSuggestions
         suggestionController.isSuspended = shouldHideSuggestions
+        updateUndoRedoControls()
         
         if prevSuggestionHiddenState != shouldHideSuggestions {
             DispatchQueue.main.async { [weak self] in
@@ -903,7 +964,7 @@ extension BaseKeyboardViewController {
             }
             insertSpaceText()
         case .returnButton:
-            insertReturnText()
+            performReturnButtonTextInteraction()
         }
     }
     
@@ -928,8 +989,7 @@ extension BaseKeyboardViewController {
             insertSpaceText()
             button.playFeedback()
         case .returnButton:
-            insertReturnText()
-            button.playFeedback()
+            performRepeatReturnButtonTextInteraction(for: button)
         }
     }
 }
@@ -937,6 +997,295 @@ extension BaseKeyboardViewController {
 // MARK: - Private Methods
 
 private extension BaseKeyboardViewController {
+    func performUndo() {
+        guard isUndoRedoFeatureAvailable else { return }
+
+        cancelUndoRedoDebounceTimer()
+        guard let edit = undoRedoManager.undo() else {
+            updateUndoRedoControls()
+            return
+        }
+        guard applyUndoRedoEdit(edit) else {
+            invalidateUndoRedoHistoryForTextContextChange()
+            return
+        }
+        undoRedoManager.updateLastRedoTargetContext(currentTextContextSnapshot())
+        updateUndoRedoControls()
+        FeedbackManager.shared.playHaptic()
+    }
+
+    func performRedo() {
+        guard isUndoRedoFeatureAvailable else { return }
+
+        cancelUndoRedoDebounceTimer()
+        guard let edit = undoRedoManager.redo() else {
+            updateUndoRedoControls()
+            return
+        }
+        guard applyUndoRedoEdit(edit) else {
+            invalidateUndoRedoHistoryForTextContextChange()
+            return
+        }
+        undoRedoManager.updateLastUndoTargetContext(currentTextContextSnapshot())
+        updateUndoRedoControls()
+        FeedbackManager.shared.playHaptic()
+    }
+
+    func applyUndoRedoEdit(_ edit: KeyboardUndoRedoEdit) -> Bool {
+        guard !BaseKeyboardViewController.isPreview else { return false }
+
+        isApplyingUndoRedoEdit = true
+        defer { isApplyingUndoRedoEdit = false }
+
+        guard restoreTextPositionIfPossible(to: edit.targetContext) else { return false }
+
+        for _ in 0..<edit.deleteCount {
+            textDocumentProxy.deleteBackward()
+        }
+        if !edit.insertText.isEmpty {
+            textDocumentProxy.insertText(edit.insertText)
+        }
+
+        resetInputBuffer()
+        suggestionController.clearReplacementHistory()
+        updateReturnButtonEnabled()
+        updateSuggestions()
+        return true
+    }
+
+    func recordUndoRedoChange(
+        deletedText: String,
+        insertedText: String
+    ) {
+        guard isUndoRedoFeatureAvailable,
+              !isApplyingUndoRedoEdit else { return }
+        undoRedoManager.record(
+            deletedText: deletedText,
+            insertedText: insertedText,
+            targetContext: currentTextContextSnapshot()
+        )
+        scheduleUndoRedoDebounceCommit()
+        updateUndoRedoControls()
+    }
+
+    func scheduleUndoRedoDebounceCommit() {
+        undoRedoDebounceTimer?.cancel()
+        undoRedoDebounceTimer = Just(())
+            .delay(for: .seconds(undoRedoDebounceInterval), scheduler: RunLoop.main)
+            .sink { [weak self] _ in
+                self?.commitPendingUndoRedoGroup()
+            }
+    }
+
+    func commitPendingUndoRedoGroup() {
+        guard !shouldDeferUndoRedoCommit else {
+            needsDeferredUndoRedoCommit = true
+            undoRedoDebounceTimer = nil
+            updateUndoRedoControls()
+            return
+        }
+
+        undoRedoManager.commitPendingGroup()
+        needsDeferredUndoRedoCommit = false
+        undoRedoDebounceTimer = nil
+        updateUndoRedoControls()
+    }
+
+    func cancelUndoRedoDebounceTimer() {
+        undoRedoDebounceTimer?.cancel()
+        undoRedoDebounceTimer = nil
+    }
+
+    func invalidateUndoRedoHistoryForTextContextChange() {
+        guard !isApplyingUndoRedoEdit else { return }
+        cancelUndoRedoDebounceTimer()
+        needsDeferredUndoRedoCommit = false
+        undoRedoManager.removeAll()
+        updateUndoRedoControls()
+    }
+
+    func updateUndoRedoControls() {
+        let shouldShowUndoRedo = !suggestionBarView.isHidden && isUndoRedoFeatureAvailable
+        suggestionBarView.updateUndoRedoControls(
+            isVisible: shouldShowUndoRedo,
+            canUndo: undoRedoManager.canUndo,
+            canRedo: undoRedoManager.canRedo
+        )
+    }
+
+    func textDeletedBySingleBackward() -> String {
+        if let selectedText = textDocumentProxy.selectedText, !selectedText.isEmpty {
+            return selectedText
+        }
+        if let lastBeforeCursor = textDocumentProxy.documentContextBeforeInput?.last {
+            return String(lastBeforeCursor)
+        }
+        return ""
+    }
+
+    func textBeforeCursorSuffix(count: Int) -> String {
+        guard count > 0,
+              let beforeInput = textDocumentProxy.documentContextBeforeInput else { return "" }
+        return String(beforeInput.suffix(count))
+    }
+
+    func currentTextContextSnapshot() -> KeyboardTextContextSnapshot {
+        return KeyboardTextContextSnapshot(
+            beforeInput: textDocumentProxy.documentContextBeforeInput,
+            afterInput: textDocumentProxy.documentContextAfterInput
+        )
+    }
+
+    func textInputIdentifier(for textInput: (any UITextInput)?) -> ObjectIdentifier? {
+        guard let textInput else { return nil }
+        return ObjectIdentifier(textInput as AnyObject)
+    }
+
+    func invalidateUndoRedoHistoryIfNeededAfterTextChange(_ textInput: (any UITextInput)?) {
+        defer {
+            pendingTextChangeContext = nil
+            pendingTextChangeInputIdentifier = nil
+        }
+
+        guard !isApplyingUndoRedoEdit else { return }
+
+        let nextIdentifier = textInputIdentifier(for: textInput)
+        let didChangeTextInput = currentTextInputIdentifier != nil
+        && nextIdentifier != nil
+        && currentTextInputIdentifier != nextIdentifier
+
+        let didChangeContextWithoutCursorMove: Bool
+        if (nextIdentifier == nil || currentTextInputIdentifier == nil),
+           let pendingTextChangeContext {
+            didChangeContextWithoutCursorMove = !isReachableCursorMove(
+                from: pendingTextChangeContext,
+                to: currentTextContextSnapshot()
+            )
+        } else {
+            didChangeContextWithoutCursorMove = false
+        }
+
+        if didChangeTextInput || didChangeContextWithoutCursorMove {
+            invalidateUndoRedoHistoryForTextContextChange()
+        }
+
+        if let nextIdentifier {
+            currentTextInputIdentifier = nextIdentifier
+        } else if currentTextInputIdentifier == nil {
+            currentTextInputIdentifier = pendingTextChangeInputIdentifier
+        }
+    }
+
+    func restoreTextPositionIfPossible(to targetContext: KeyboardTextContextSnapshot?) -> Bool {
+        guard let targetContext else { return true }
+
+        guard let offset = cursorOffset(from: currentTextContextSnapshot(), to: targetContext) else {
+            return false
+        }
+
+        if offset != 0 {
+            textDocumentProxy.adjustTextPosition(byCharacterOffset: offset)
+        }
+        return true
+    }
+
+    func isReachableCursorMove(
+        from source: KeyboardTextContextSnapshot,
+        to target: KeyboardTextContextSnapshot
+    ) -> Bool {
+        return cursorOffset(from: source, to: target) != nil
+    }
+
+    func cursorOffset(
+        from source: KeyboardTextContextSnapshot,
+        to target: KeyboardTextContextSnapshot
+    ) -> Int? {
+        if context(source, matches: target) { return 0 }
+
+        let maxLeftDistance = source.beforeInput?.count ?? 0
+        let maxRightDistance = source.afterInput?.count ?? 0
+        let maxDistance = max(maxLeftDistance, maxRightDistance)
+
+        guard maxDistance > 0 else { return nil }
+
+        for distance in 1...maxDistance {
+            if distance <= maxLeftDistance,
+               let movedContext = context(source, movingBy: -distance),
+               context(movedContext, matches: target) {
+                return -distance
+            }
+
+            if distance <= maxRightDistance,
+               let movedContext = context(source, movingBy: distance),
+               context(movedContext, matches: target) {
+                return distance
+            }
+        }
+
+        return nil
+    }
+
+    func context(
+        _ source: KeyboardTextContextSnapshot,
+        movingBy offset: Int
+    ) -> KeyboardTextContextSnapshot? {
+        guard offset != 0 else { return source }
+
+        if offset < 0 {
+            guard let beforeInput = source.beforeInput else { return nil }
+
+            let distance = abs(offset)
+            let movedText = String(beforeInput.suffix(distance))
+            let nextBeforeInput = String(beforeInput.dropLast(distance))
+            let nextAfterInput = movedText + (source.afterInput ?? "")
+
+            return KeyboardTextContextSnapshot(
+                beforeInput: nextBeforeInput,
+                afterInput: nextAfterInput
+            )
+        } else {
+            guard let afterInput = source.afterInput else { return nil }
+
+            let movedText = String(afterInput.prefix(offset))
+            let nextBeforeInput = (source.beforeInput ?? "") + movedText
+            let nextAfterInput = String(afterInput.dropFirst(offset))
+
+            return KeyboardTextContextSnapshot(
+                beforeInput: nextBeforeInput,
+                afterInput: nextAfterInput
+            )
+        }
+    }
+
+    func context(
+        _ source: KeyboardTextContextSnapshot,
+        matches target: KeyboardTextContextSnapshot
+    ) -> Bool {
+        let matchesBeforeInput: Bool
+        if let targetBeforeInput = target.beforeInput {
+            if targetBeforeInput.isEmpty {
+                matchesBeforeInput = source.beforeInput?.isEmpty == true
+            } else {
+                matchesBeforeInput = source.beforeInput?.hasSuffix(targetBeforeInput) == true
+            }
+        } else {
+            matchesBeforeInput = true
+        }
+
+        let matchesAfterInput: Bool
+        if let targetAfterInput = target.afterInput {
+            if targetAfterInput.isEmpty {
+                matchesAfterInput = source.afterInput?.isEmpty == true
+            } else {
+                matchesAfterInput = source.afterInput?.hasPrefix(targetAfterInput) == true
+            }
+        } else {
+            matchesAfterInput = true
+        }
+
+        return matchesBeforeInput && matchesAfterInput
+    }
+
     func updateSuggestions() {
         if suggestionController.isPredictiveTextEnabled {
             if let selectedText = textDocumentProxy.selectedText, !selectedText.isEmpty {
@@ -1043,7 +1392,7 @@ extension BaseKeyboardViewController: TextInteractionGestureControllerDelegate {
         tempDeletedCharacters.removeAll()
         logger.debug("임시 삭제 내용 저장 변수 초기화")
     }
-    
+
     final func textInteractableButtonLongPressing(_ controller: TextInteractionGestureController, button: TextInteractable) {
         if keyboardSettingsManager.selectedLongPressAction == .repeatInput
             || button is DeleteButton {
@@ -1108,6 +1457,7 @@ extension BaseKeyboardViewController: SuggestionBarDelegate {
             
             // selectedText가 있는 상태에서 insertText하면
             // 시스템이 선택 영역을 자동 교체
+            recordUndoRedoChange(deletedText: selectedText, insertedText: result.insertText)
             textDocumentProxy.insertText(result.insertText)
             inputBuffer.append(result.insertText)
             
@@ -1155,5 +1505,13 @@ extension BaseKeyboardViewController: SuggestionBarDelegate {
         
         suggestionDidApply()
         updateSuggestions()
+    }
+
+    final func suggestionBarDidTapUndo(_ bar: SuggestionBarView) {
+        performUndo()
+    }
+
+    final func suggestionBarDidTapRedo(_ bar: SuggestionBarView) {
+        performRedo()
     }
 }
