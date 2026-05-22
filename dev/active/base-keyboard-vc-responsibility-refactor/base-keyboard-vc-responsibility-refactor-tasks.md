@@ -21,6 +21,8 @@ Last Updated: 2026-05-22
 - [x] `KeyboardPresentationStatePolicyTests` RED/GREEN을 확인한다.
 - [x] text interaction gesture 조건을 `KeyboardGesturePolicy`로 동작 변경 없이 분리한다.
 - [x] `KeyboardGesturePolicyTests` RED/GREEN을 확인한다.
+- [x] period shortcut 조건과 삭제 후 방지 상태를 `KeyboardPeriodShortcutPolicy`로 동작 변경 없이 분리한다.
+- [x] `KeyboardPeriodShortcutPolicyTests` RED/GREEN을 확인한다.
 - [ ] 한글 조합/삭제/드래그/undo 관련 controller 변경 시 `KeyboardControllerSimulator.swift`를 함께 갱신한다.
 - [x] 변경 범위에 맞춰 targeted 테스트 또는 `SYKeyboardCore` 빌드를 실행한다.
 - [x] 최종 통합 전 전체 `SYKeyboard` 테스트를 실행하거나, 실행하지 못한 이유를 문서화한다.

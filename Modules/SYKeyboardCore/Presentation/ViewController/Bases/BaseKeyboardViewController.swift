@@ -758,22 +758,16 @@ private extension BaseKeyboardViewController {
         if keyboardSettingsManager.isPeriodShortcutEnabled {
             let periodShortcutAction = UIAction { [weak self] _ in
                 guard let self else { return }
-                if BaseKeyboardViewController.isPreview || preventNextPeriodShortcut { return }
-                
-                guard let beforeText = textDocumentProxy.documentContextBeforeInput else { return }
-                
-                if beforeText.hasSuffix(" ") {
-                    let textWithoutLastSpace = beforeText.dropLast()
-                    
-                    if let lastChar = textWithoutLastSpace.last,
-                       (lastChar.isLetter || lastChar.isNumber) {
-                        
-                        // " " → "." 교체: 래핑 메서드 사용
-                        replaceText(deleteCount: 1, insert: ".")
-                        
-                        performedPeriodShortcut = true
-                    }
-                }
+                guard KeyboardPeriodShortcutPolicy.shouldReplaceTrailingSpaceWithPeriod(
+                    isPreview: BaseKeyboardViewController.isPreview,
+                    preventsNextPeriodShortcut: preventNextPeriodShortcut,
+                    documentContextBeforeInput: textDocumentProxy.documentContextBeforeInput
+                ) else { return }
+
+                // " " -> "." 교체: 래핑 메서드 사용
+                replaceText(deleteCount: 1, insert: ".")
+
+                performedPeriodShortcut = true
             }
             button.addAction(periodShortcutAction, for: .touchDownRepeat)
         }
@@ -1196,18 +1190,15 @@ private extension BaseKeyboardViewController {
     }
     
     func handlePeriodShortcutOnDelete() {
-        guard keyboardSettingsManager.isPeriodShortcutEnabled else { return }
-        
-        if performedPeriodShortcut {
-            preventNextPeriodShortcut = true
-            performedPeriodShortcut = false
-        } else if preventNextPeriodShortcut {
-            if let lastChar = textDocumentProxy.documentContextBeforeInput?.last {
-                if lastChar.isLetter || lastChar.isNumber {
-                    preventNextPeriodShortcut = false
-                }
-            }
-        }
+        let state = KeyboardPeriodShortcutPolicy.stateAfterDelete(
+            isPeriodShortcutEnabled: keyboardSettingsManager.isPeriodShortcutEnabled,
+            performedPeriodShortcut: performedPeriodShortcut,
+            preventsNextPeriodShortcut: preventNextPeriodShortcut,
+            documentContextBeforeInput: textDocumentProxy.documentContextBeforeInput
+        )
+
+        performedPeriodShortcut = state.performedPeriodShortcut
+        preventNextPeriodShortcut = state.preventsNextPeriodShortcut
     }
     
     func cancelTimer() {

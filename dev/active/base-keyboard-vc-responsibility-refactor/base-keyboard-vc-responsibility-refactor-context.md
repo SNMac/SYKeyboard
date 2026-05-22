@@ -15,6 +15,7 @@ Last Updated: 2026-05-22
 - `SYKeyboardTests/Utils/KeyboardTextContextNavigatorTests.swift`: cursor 이동 후 undo/redo 위치 복원 로직을 검증한다.
 - `Modules/SYKeyboardCore/Presentation/Utils/KeyboardUndoRedoManager.swift`: undo/redo manager와 `KeyboardUndoRedoSession`이 있다.
 - `Modules/SYKeyboardCore/Presentation/Utils/KeyboardGesturePolicy.swift`: text interaction pan/long press gesture 추가와 long press 동작 선택 조건을 검증 가능한 순수 정책으로 분리한 타입이다.
+- `Modules/SYKeyboardCore/Presentation/Utils/KeyboardPeriodShortcutPolicy.swift`: space double tap period shortcut 수행 조건과 삭제 후 방지 상태 전환을 검증 가능한 순수 정책으로 분리한 타입이다.
 - `Modules/SYKeyboardCore/Presentation/Utils/KeyboardPresentationStatePolicy.swift`: return button 활성화와 suggestion bar 숨김 조건을 검증 가능한 순수 정책으로 분리한 타입이다.
 - `Modules/SYKeyboardCore/Presentation/Utils/GestureControllers/TextInteractionGestureController.swift`: text interaction pan/long press gesture handling을 담당한다.
 - `Modules/SYKeyboardCore/Presentation/Utils/GestureControllers/SwitchGestureController.swift`: keyboard switch/one-handed mode gesture handling을 담당한다.
@@ -59,6 +60,7 @@ Last Updated: 2026-05-22
 - `extractLastWord(from:)`는 `rg`로 참조가 없음을 확인한 뒤 제거했다. 현재 suggestion 학습/선택 흐름은 `SuggestionController`와 `inputBuffer` 직접 경로를 사용한다.
 - 두 번째 코드 변경으로 `KeyboardGesturePolicy`를 추가했다. text interaction pan/long press gesture 추가 조건과 long press 반복 입력/숫자 입력 분기 조건은 순수 정책으로 검증하고, Base는 gesture 등록과 controller 호출 순서를 유지한다.
 - `setKeyboardHeight()`의 suggestion bar 표시 조건도 `KeyboardPresentationStatePolicy.shouldHideSuggestionBar(...)`를 재사용하도록 정리했다. 높이 계산 순서와 constraint 적용 순서는 유지했다.
+- 세 번째 코드 변경으로 `KeyboardPeriodShortcutPolicy`를 추가했다. space double tap에서 trailing space를 period로 치환할지, 삭제 후 다음 shortcut을 방지/해제할지는 순수 정책으로 검증하고, Base는 기존 `touchDownRepeat` action과 `replaceText(deleteCount:insert:)` 호출 순서를 유지한다.
 
 ## Quality Assessment - 2026-05-22
 
@@ -118,7 +120,15 @@ Last Updated: 2026-05-22
 - 2026-05-22 정책 테스트 묶음 확인:
   - `xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0' -only-testing:SYKeyboardTests/KeyboardPresentationStatePolicyTests -only-testing:SYKeyboardTests/KeyboardGesturePolicyTests`
   - 결과: `TEST SUCCEEDED`.
+- 2026-05-22 `KeyboardPeriodShortcutPolicyTests` RED:
+  - 권한 있는 환경에서 `KeyboardPeriodShortcutPolicy` 미정의 컴파일 실패를 확인했다.
+- 2026-05-22 `KeyboardPeriodShortcutPolicyTests` GREEN:
+  - `xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0' -only-testing:SYKeyboardTests/KeyboardPeriodShortcutPolicyTests`
+  - 결과: `TEST SUCCEEDED`.
 - 2026-05-22 전체 `SYKeyboard` 테스트 확인:
+  - `xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0'`
+  - 결과: `TEST SUCCEEDED`.
+- 2026-05-22 `KeyboardPeriodShortcutPolicy` 연결 후 전체 `SYKeyboard` 테스트 확인:
   - `xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0'`
   - 결과: `TEST SUCCEEDED`.
 - 변경 후 실행할 확인:
