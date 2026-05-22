@@ -22,9 +22,6 @@ struct InputSettingsView: View {
     @AppStorage(UserDefaultsKeys.isAutoCapitalizationEnabled, store: UserDefaultsManager.shared.storage)
     private var isAutoCapitalizationEnabled = DefaultValues.isAutoCapitalizationEnabled
     
-    @AppStorage(UserDefaultsKeys.isUndoRedoEnabled, store: UserDefaultsManager.shared.storage)
-    private var isUndoRedoEnabled = DefaultValues.isUndoRedoEnabled
-    
     @AppStorage(UserDefaultsKeys.isPeriodShortcutEnabled, store: UserDefaultsManager.shared.storage)
     private var isPeriodShortcutEnabled = DefaultValues.isPeriodShortcutEnabled
     
@@ -97,21 +94,6 @@ struct InputSettingsView: View {
             Analytics.setUserProperty(newValue.analyticsValue,
                                       forName: "pref_auto_capitalization")
             Analytics.logEvent("auto_capitalization", parameters: [
-                "view": "InputSettingsView",
-                "enabled": newValue.analyticsValue
-            ])
-            hideKeyboard()
-        }
-        
-        Toggle(isOn: $isUndoRedoEnabled, label: {
-            Text("Undo/Redo 기능")
-            Text("키보드 상단에 Undo/Redo 버튼을 표시")
-                .font(.caption)
-        })
-        .onChange(of: isUndoRedoEnabled) { newValue in
-            Analytics.setUserProperty(newValue.analyticsValue,
-                                      forName: "pref_undo_redo")
-            Analytics.logEvent("undo_redo", parameters: [
                 "view": "InputSettingsView",
                 "enabled": newValue.analyticsValue
             ])
