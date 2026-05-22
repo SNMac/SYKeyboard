@@ -565,19 +565,6 @@ extension BaseKeyboardViewController {
         updateUndoRedoControls()
     }
     
-    /// `inputBuffer`에서 아직 스페이스로 커밋되지 않은 마지막 단어를 추출합니다.
-    ///
-    /// 버퍼가 비어있거나 공백으로 끝나면(이미 스페이스에서 학습 완료)
-    /// `nil`을 반환하여 중복 학습을 방지합니다.
-    private func extractLastWord(from buffer: String) -> String? {
-        guard !buffer.isEmpty, !buffer.last!.isWhitespace else { return nil }
-
-        if let spaceIndex = buffer.lastIndex(where: { $0.isWhitespace }) {
-            return String(buffer[buffer.index(after: spaceIndex)...])
-        } else {
-            return buffer
-        }
-    }
 }
 
 // MARK: - Text Proxy Wrapper Helper Methods
@@ -631,9 +618,11 @@ private extension BaseKeyboardViewController {
         
         let keyboardViewHeight: CGFloat
         let keyboardHStackViewHeight: CGFloat
-        let isSuggestionBarVisible = suggestionController.isPredictiveTextEnabled
-        && textDocumentProxy.autocorrectionType != .no
-        && currentKeyboard != .tenKey
+        let isSuggestionBarVisible = !KeyboardPresentationStatePolicy.shouldHideSuggestionBar(
+            isPredictiveTextEnabled: suggestionController.isPredictiveTextEnabled,
+            autocorrectionType: textDocumentProxy.autocorrectionType ?? .default,
+            currentKeyboard: currentKeyboard
+        )
         
         let suggestionBarHeight = isSuggestionBarVisible
         ? KeyboardLayoutFigure.suggestionBarHeightWithTopSpacing
@@ -794,9 +783,13 @@ private extension BaseKeyboardViewController {
         guard !(button is ReturnButton)
                 && !(button is SecondaryKeyButton)
                 && !(button.type.primaryKeyList == [".com"]) else { return }
+
+        let isDeleteButton = button is DeleteButton
         
-        if keyboardSettingsManager.isDragToMoveCursorEnabled ||
-            button is DeleteButton {
+        if KeyboardGesturePolicy.shouldAddTextInteractionPanGesture(
+            isDragToMoveCursorEnabled: keyboardSettingsManager.isDragToMoveCursorEnabled,
+            isDeleteButton: isDeleteButton
+        ) {
             let panGesture = UIPanGestureRecognizer(
                 target: self,
                 action: #selector(handlePanGesture(_:))
@@ -807,8 +800,10 @@ private extension BaseKeyboardViewController {
             button.addGestureRecognizer(panGesture)
         }
         
-        if keyboardSettingsManager.selectedLongPressAction != .disabled
-            || button is DeleteButton {
+        if KeyboardGesturePolicy.shouldAddTextInteractionLongPressGesture(
+            selectedLongPressAction: keyboardSettingsManager.selectedLongPressAction,
+            isDeleteButton: isDeleteButton
+        ) {
             let longPressGesture = UILongPressGestureRecognizer(
                 target: self,
                 action: #selector(handleLongPressGesture(_:))
@@ -940,22 +935,22 @@ private extension BaseKeyboardViewController {
     }
     
     func updateReturnButtonEnabled() {
-        guard textDocumentProxy.enablesReturnKeyAutomatically == true else {
-            returnButtonList.forEach { $0.updateEnabled(true) }
-            return
-        }
-        let before = textDocumentProxy.documentContextBeforeInput
-        let after = textDocumentProxy.documentContextAfterInput
-        let hasText = (before != nil && !before!.isEmpty) || (after != nil && !after!.isEmpty)
-        returnButtonList.forEach { $0.updateEnabled(hasText) }
+        let isEnabled = KeyboardPresentationStatePolicy.isReturnButtonEnabled(
+            enablesReturnKeyAutomatically: textDocumentProxy.enablesReturnKeyAutomatically == true,
+            documentContextBeforeInput: textDocumentProxy.documentContextBeforeInput,
+            documentContextAfterInput: textDocumentProxy.documentContextAfterInput
+        )
+        returnButtonList.forEach { $0.updateEnabled(isEnabled) }
     }
     
     func updateSuggestionBarHidden() {
         let prevSuggestionHiddenState = suggestionBarView.isHidden
         
-        let shouldHideSuggestions = !suggestionController.isPredictiveTextEnabled
-        || textDocumentProxy.autocorrectionType == .no
-        || currentKeyboard == .tenKey
+        let shouldHideSuggestions = KeyboardPresentationStatePolicy.shouldHideSuggestionBar(
+            isPredictiveTextEnabled: suggestionController.isPredictiveTextEnabled,
+            autocorrectionType: textDocumentProxy.autocorrectionType ?? .default,
+            currentKeyboard: currentKeyboard
+        )
         
         suggestionBarView.isHidden = shouldHideSuggestions
         suggestionController.isSuspended = shouldHideSuggestions
@@ -1272,18 +1267,27 @@ extension BaseKeyboardViewController: TextInteractionGestureControllerDelegate {
     }
 
     final func textInteractableButtonLongPressing(_ controller: TextInteractionGestureController, button: TextInteractable) {
-        if keyboardSettingsManager.selectedLongPressAction == .repeatInput
-            || button is DeleteButton {
+        let isDeleteButton = button is DeleteButton
+
+        if KeyboardGesturePolicy.shouldPerformRepeatInputOnLongPress(
+            selectedLongPressAction: keyboardSettingsManager.selectedLongPressAction,
+            isDeleteButton: isDeleteButton
+        ) {
             repeatTextInteractionWillPerform(button: button)
             startRepeatInputTimer(for: button)
-        } else if keyboardSettingsManager.selectedLongPressAction == .numberInput {
+        } else if KeyboardGesturePolicy.shouldPerformNumberInputOnLongPress(
+            selectedLongPressAction: keyboardSettingsManager.selectedLongPressAction,
+            isDeleteButton: isDeleteButton
+        ) {
             performNumberInputLongPress(for: button)
         }
     }
 
     final func textInteractableButtonLongPressStopped(_ controller: TextInteractionGestureController, button: TextInteractable) {
-        if keyboardSettingsManager.selectedLongPressAction == .repeatInput
-            || button is DeleteButton {
+        if KeyboardGesturePolicy.shouldPerformRepeatInputOnLongPress(
+            selectedLongPressAction: keyboardSettingsManager.selectedLongPressAction,
+            isDeleteButton: button is DeleteButton
+        ) {
             repeatTextInteractionDidPerform(button: button)
         }
     }

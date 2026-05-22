@@ -1,0 +1,206 @@
+# Base Keyboard VC Responsibility Refactor Plan
+
+Last Updated: 2026-05-22
+
+## Goal
+
+- `BaseKeyboardViewController`의 책임을 유지보수성과 확장성에 무리가 없는 선에서 분리하고, 기능 동작은 임의로 변경하지 않는다.
+- 실제 코드 품질 평가를 먼저 받은 뒤, 남은 리팩토링 범위와 우선순위를 다시 수립한다.
+
+## Current State
+
+- 브랜치명은 `feat/#31-undo-redo`이다.
+- 이전 세션에서 undo/redo 기능 추가 후 `BaseKeyboardViewController`를 작은 단위로 리팩토링했다.
+- 최근 리팩토링 커밋:
+  - `ad98772 refactor: #31 - undo redo 세션 상태 분리`
+  - `1656d60 refactor: #31 - suggestion 선택 흐름 분리`
+  - `f2d569d refactor: #31 - 버튼과 제스처 처리 흐름 분리`
+  - `16fbc8c refactor: #31 - 텍스트 치환 처리 단계 분리`
+  - `9aa9577 refactor: #31 - 텍스트 프록시 래퍼 정리`
+- 현재까지의 리팩토링은 큰 메서드에 뭉쳐 있던 코드를 private helper와 `KeyboardUndoRedoSession`으로 나누는 수준이다.
+- 2026-05-22 작업 재개 후 `KeyboardPresentationStatePolicy`를 추가하여 return button 활성화 여부와 suggestion bar 숨김 여부의 순수 판단 로직을 `BaseKeyboardViewController`에서 분리했다.
+- 2026-05-22 작업 재개 후 `KeyboardGesturePolicy`를 추가하여 text interaction gesture 추가 조건과 long press 분기 조건의 순수 판단 로직을 `BaseKeyboardViewController`에서 분리했다.
+- `BaseKeyboardViewController`는 여전히 아래 책임을 함께 가진다.
+  - 키보드 view wiring과 height 갱신
+  - 버튼 action binding과 gesture recognizer binding
+  - text interaction 실행
+  - `textDocumentProxy` 조작과 `inputBuffer` 동기화
+  - suggestion 표시/선택/학습 연결
+  - undo/redo session 연결
+  - extension lifecycle, focus/context change 대응
+- 관련 파일:
+  - `Modules/SYKeyboardCore/Presentation/ViewController/Bases/BaseKeyboardViewController.swift`
+  - `Modules/HangeulKeyboardCore/Presentation/ViewController/HangeulKeyboardCoreViewController.swift`
+  - `SYKeyboardTests/Utils/KeyboardControllerSimulator.swift`
+  - `SYKeyboardTests/Controller/*ControllerTests.swift`
+  - `SYKeyboardTests/Utils/KeyboardUndoRedoManagerTests.swift`
+  - `SYKeyboardTests/Utils/KeyboardTextContextNavigatorTests.swift`
+  - `Modules/SYKeyboardCore/Presentation/Utils/KeyboardUndoRedoManager.swift`
+  - `Modules/SYKeyboardCore/Presentation/Utils/KeyboardGesturePolicy.swift`
+  - `Modules/SYKeyboardCore/Presentation/Utils/KeyboardPresentationStatePolicy.swift`
+  - `Modules/SYKeyboardCore/Presentation/Utils/GestureControllers/TextInteractionGestureController.swift`
+  - `Modules/SYKeyboardCore/Presentation/Utils/GestureControllers/SwitchGestureController.swift`
+  - `Modules/SYKeyboardCore/Presentation/View/SuggestionBarView.swift`
+
+## Approach
+
+1. 품질 평가를 먼저 진행한다.
+   - `BaseKeyboardViewController`, 한글 subclass, gesture controller, suggestion, undo/redo, 테스트 헬퍼를 함께 본다.
+   - 단순 라인 수보다 변경 이유, 책임 경계, 테스트 가능성, extension 런타임 비용을 기준으로 평가한다.
+   - SOLID/OOP 원칙은 목적이 아니라 판단 도구로 사용한다. 기능 동일성과 단순성을 해치는 추출은 하지 않는다.
+2. 테스트 코드 동기화 범위를 먼저 정한다.
+   - `KeyboardControllerSimulator.swift`는 `HangeulKeyboardCoreViewController`의 버퍼 관리와 삭제 드래그 흐름을 의도적으로 복제한다.
+   - 한글 조합/삭제/복구/undo 관련 컨트롤러 로직을 옮기거나 이름을 바꾸면 simulator도 함께 갱신한다.
+   - simulator가 실제 컨트롤러와 계속 같은 규칙을 유지하도록, 변경 PR/커밋마다 대응 여부를 체크한다.
+3. 책임 분리 후보를 평가한다.
+   - 후보 A: text editing/input buffer adapter
+     - `insertText`, `deleteText`, `replaceText`, `resetInputBuffer`와 특수 예외 경로를 더 명확히 한다.
+     - selected text, return, undo/redo 직접 적용 예외 때문에 별도 타입 추출은 신중히 판단한다.
+   - 후보 B: keyboard action binder
+     - 버튼 목록, input action 생성, symbol 자동 전환, period shortcut binding을 다룬다.
+     - control event 순서가 바뀌면 회귀 위험이 크므로 동작 보존 테스트/빌드가 필요하다.
+   - 후보 C: text interaction coordinator
+     - `performTextInteraction`, `performRepeatTextInteraction`, delete/space/return 경계 처리를 다룬다.
+     - 한글 subclass override hook과 충돌하지 않아야 한다.
+   - 후보 D: suggestion interaction coordinator
+     - selected text, n-gram, current word confirmation, input buffer suggestion 경로를 다룬다.
+     - `textDocumentProxy`와 `inputBuffer` 직접 접근을 줄일 수 있을 때만 추출한다.
+   - 후보 E: keyboard layout/lifecycle updater
+     - suggestion bar hidden state, keyboard height, return button state, one-handed mode update를 다룬다.
+     - UIKit extension lifecycle과 orientation 제약을 유지한다.
+4. 설계 원칙을 느슨하지만 일관되게 적용한다.
+   - Single Responsibility: 새 타입은 한 종류의 변경 이유만 가져야 한다.
+   - Open/Closed: 입력기별 조합 정책은 subclass hook으로 열어두되, 공통 Base가 한글 세부 규칙을 알지 않게 한다.
+   - Liskov: `HangeulKeyboardCoreViewController`가 Base hook을 override할 때 Base의 호출 순서를 깨지 않아야 한다.
+   - Interface Segregation: 거대한 delegate/protocol을 만들지 않는다. 필요한 callback만 둔다.
+   - Dependency Inversion: UIKit 시스템 객체를 억지로 숨기지 않는다. 테스트 가능한 순수 로직부터 분리한다.
+5. 작은 단위로만 구현한다.
+   - 각 커밋은 동작 변경 없는 구조 변경 하나만 담는다.
+   - 추출 후에도 call order, control event, feedback, suggestion update, undo boundary를 diff로 확인한다.
+   - 기능 변경이 필요해 보이면 리팩토링 커밋에 섞지 말고 사용자 확인 후 별도 작업으로 분리한다.
+
+## Risks
+
+- `BaseKeyboardViewController`는 iOS keyboard extension의 런타임 경계라 무리한 추상화가 입력 지연이나 lifecycle 회귀로 이어질 수 있다.
+- `textDocumentProxy`는 UIKit 시스템 객체라 테스트 double이 어렵다. 억지 adapter 추출은 오히려 책임을 흐릴 수 있다.
+- `KeyboardControllerSimulator.swift`는 실제 컨트롤러 로직을 복제하므로, 컨트롤러 변경 후 테스트 helper가 뒤처지면 테스트가 거짓 안정감을 줄 수 있다.
+- 한글 입력/삭제/조합, 삭제 버튼 드래그 복구, undo/redo 적용 후 조합 reset은 회귀 위험이 높다.
+- selected text 자동 교체, return 입력, undo/redo 직접 적용은 일반 text wrapper와 다른 예외 경로다. 통합 추상화 시 기능이 바뀔 수 있다.
+- 버튼 action과 gesture recognizer는 `touchDown`, `touchUpInside`, long press, pan 순서가 중요하다.
+- 접근성 label/traits는 이전 작업에서 의도적으로 제외했다. 별도 요청 없이 되살리지 않는다.
+
+## Verification
+
+- 2026-05-22 `KeyboardPresentationStatePolicy` 추가 전 RED 확인:
+
+```sh
+xcodebuild test \
+  -project SYKeyboard.xcodeproj \
+  -scheme SYKeyboard \
+  -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0' \
+  -only-testing:SYKeyboardTests/KeyboardPresentationStatePolicyTests
+```
+
+결과: 권한 있는 환경에서 실행했으며 `KeyboardPresentationStatePolicy` 미정의로 실패했다.
+
+- 2026-05-22 `KeyboardPresentationStatePolicy` 추가 후 GREEN 확인:
+
+```sh
+xcodebuild test \
+  -project SYKeyboard.xcodeproj \
+  -scheme SYKeyboard \
+  -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0' \
+  -only-testing:SYKeyboardTests/KeyboardPresentationStatePolicyTests
+```
+
+결과: `TEST SUCCEEDED`.
+
+- 2026-05-22 `KeyboardGesturePolicy` 추가 전 RED 확인:
+
+```sh
+xcodebuild test \
+  -project SYKeyboard.xcodeproj \
+  -scheme SYKeyboard \
+  -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0' \
+  -only-testing:SYKeyboardTests/KeyboardGesturePolicyTests
+```
+
+결과: 권한 있는 환경에서 실행했으며 `KeyboardGesturePolicy` 미정의로 실패했다.
+
+- 2026-05-22 `KeyboardGesturePolicy` 추가 후 GREEN 확인:
+
+```sh
+xcodebuild test \
+  -project SYKeyboard.xcodeproj \
+  -scheme SYKeyboard \
+  -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0' \
+  -only-testing:SYKeyboardTests/KeyboardGesturePolicyTests
+```
+
+결과: `TEST SUCCEEDED`.
+
+- 2026-05-22 정책 테스트 묶음 확인:
+
+```sh
+xcodebuild test \
+  -project SYKeyboard.xcodeproj \
+  -scheme SYKeyboard \
+  -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0' \
+  -only-testing:SYKeyboardTests/KeyboardPresentationStatePolicyTests \
+  -only-testing:SYKeyboardTests/KeyboardGesturePolicyTests
+```
+
+결과: `TEST SUCCEEDED`.
+
+- 문서/계획만 변경한 경우:
+
+```sh
+git diff --check -- dev/active/base-keyboard-vc-responsibility-refactor
+git status --short --untracked-files=all
+```
+
+- `BaseKeyboardViewController` 또는 Core 코드 변경 후 최소 검증:
+
+```sh
+xcodebuild build \
+  -project SYKeyboard.xcodeproj \
+  -scheme SYKeyboardCore \
+  -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0'
+```
+
+- 한글 조합/삭제/드래그/undo 경계 변경 후 권장 검증:
+
+```sh
+xcodebuild test \
+  -project SYKeyboard.xcodeproj \
+  -scheme SYKeyboard \
+  -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0' \
+  -only-testing:SYKeyboardTests/DubeolsikControllerTests \
+  -only-testing:SYKeyboardTests/NaratgeulControllerTests \
+  -only-testing:SYKeyboardTests/CheonjiinControllerTests \
+  -only-testing:SYKeyboardTests/HangeulDeleteButtonDragControllerTests \
+  -only-testing:SYKeyboardTests/KeyboardUndoRedoManagerTests \
+  -only-testing:SYKeyboardTests/KeyboardTextContextNavigatorTests
+```
+
+- 최종 통합 확인:
+
+```sh
+xcodebuild test \
+  -project SYKeyboard.xcodeproj \
+  -scheme SYKeyboard \
+  -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0'
+```
+
+2026-05-22 결과: `TEST SUCCEEDED`.
+
+- 수동 확인이 필요한 경우:
+  - 실제 텍스트 입력 앱에서 한글/영문 키보드 extension을 열고 입력, 삭제, 반복 삭제, 삭제 드래그, 스페이스, 리턴, 자동완성 선택, undo/redo를 확인한다.
+
+## Done Criteria
+
+- 품질 평가 결과가 문서화되어 있고, 남은 리팩토링 범위가 우선순위로 정리되어 있다.
+- `BaseKeyboardViewController`의 책임 경계가 현재보다 명확해졌지만, 기능 동작은 바뀌지 않는다.
+- `KeyboardControllerSimulator.swift` 등 복제/보조 테스트 코드가 실제 컨트롤러 변경과 동기화되어 있다.
+- 변경별 검증 명령과 결과가 기록되어 있다.
+- 추가 리팩토링을 하지 않는 결정도 근거와 함께 문서화되어 있다.
