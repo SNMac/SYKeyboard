@@ -47,7 +47,13 @@ Last Updated: 2026-05-22
 - 1차 리팩토링 커밋은 `ad98772 refactor: #31 - undo redo 세션 상태 분리`이다.
 - 2차 리팩토링에서 `SuggestionBarDelegate.suggestionBar(_:didSelectSuggestionAt:)`의 분기를 `handleSelectedTextSuggestion(at:)`, `handleNGramSuggestion(at:)`, `handleCurrentWordConfirmationIfNeeded(at:)`, `handleInputBufferSuggestion(at:)`로 분리했다.
 - selected text 또는 n-gram mode에서 후보 선택이 실패할 때 해당 delegate 처리가 바로 끝나는 기존 early return 동작을 유지했다.
-- 2026-05-22 현재 2차 리팩토링 변경은 아직 커밋하지 않았다. `git status --short --untracked-files=all`의 미커밋 파일은 `Modules/SYKeyboardCore/Presentation/ViewController/Bases/BaseKeyboardViewController.swift`와 `dev/active/suggestion-bar-undo-redo/` 문서 3종이다.
+- 2차 리팩토링 커밋은 `1656d60 refactor: #31 - suggestion 선택 흐름 분리`이다.
+- 3차 리팩토링에서 버튼 action binding을 정리했다. `allKeyboardButtonList`, `primaryAndNumericTextInteractableButtonList`, `makeTextInputAction()`을 추가하고, `setTextInteractableButtonAction()`을 기본/숫자, symbol, tenkey 경로로 분리했다.
+- 3차 리팩토링은 control event와 gesture 추가 조건을 바꾸지 않았다. 삭제 버튼은 `touchDown`, 스페이스와 일반 입력 버튼은 `touchUpInside`, symbol keyboard의 자동 primary 전환 action, tenkey의 gesture 미추가 흐름이 유지된다.
+- 4차 리팩토링에서 gesture delegate callback을 helper로 분리했다. primary pan 커서 이동, delete pan 삭제/복구, long press 반복 입력 타이머/number input 처리가 별도 private helper로 이동했다.
+- 4차 리팩토링은 `primaryButtonPanning`의 `resetInputBuffer()` 호출 위치를 switch 이전으로 유지했다. 예상 밖 direction에서도 기존처럼 reset 후 assertion에 도달하도록 하기 위한 보존이다.
+- 4차 리팩토링은 delete pan에서 `updateSuggestions()`, haptic, delete sound, debug log 호출 순서를 유지했다.
+- 2026-05-22 현재 3차/4차 리팩토링 변경은 아직 커밋하지 않았다. `git status --short --untracked-files=all`의 미커밋 파일은 `Modules/SYKeyboardCore/Presentation/ViewController/Bases/BaseKeyboardViewController.swift`와 `dev/active/suggestion-bar-undo-redo/` 문서 3종이다.
 
 ## Decisions
 
@@ -70,6 +76,8 @@ Last Updated: 2026-05-22
 - suggestion 선택 흐름, 버튼 action binding, gesture delegate 분리는 1차 리팩토링 검증 뒤 별도 단계로 진행한다.
 - undo/redo 세션 리팩토링 뒤 다음 단계는 suggestion 선택 흐름 메서드 분리로 제한한다. 별도 coordinator 추출은 상태 접근 범위가 줄어든 뒤 다시 판단한다.
 - suggestion 선택 흐름은 2차 리팩토링에서 별도 coordinator가 아니라 `BaseKeyboardViewController`의 private helper로만 분리한다. delegate에서 접근하던 `textDocumentProxy`, `inputBuffer`, `suggestionController`, undo/redo 기록 호출을 그대로 사용해 동작 변경 위험을 줄이기 위한 결정이다.
+- 버튼 action binding 리팩토링은 새 타입 추출 없이 `BaseKeyboardViewController` 내부 helper 정리로 제한한다. 버튼 이벤트 타이밍과 gesture 조건이 실제 키보드 동작에 직접 영향을 주므로, control event 변경 없이 중복 목록 계산과 action 생성만 분리한다.
+- gesture delegate 리팩토링은 callback 본문을 private helper로 나누는 수준으로 제한한다. `TextInteractionGestureController`와 `SwitchGestureController`의 delegate protocol, gesture recognizer wiring, 입력/삭제 실행 순서는 바꾸지 않는다.
 
 ## Open Questions
 
@@ -77,7 +85,7 @@ Last Updated: 2026-05-22
 - 실제 텍스트 입력 앱에서 undo/redo 버튼 크기와 자동완성 후보 폭이 손에 맞는지 수동 확인이 필요하다.
 - 실제 한글 키보드에서 `안녕핫 -> 백스페이스 -> 안녕하 -> undo -> 안녕핫`과 undo/redo 후 새 한글 입력이 이전 조합과 섞이지 않는지 수동 확인이 필요하다.
 - suggestion 선택 흐름의 별도 coordinator 추출은 보류한다. private helper 분리 뒤에도 `inputBuffer`와 `textDocumentProxy` 직접 접근이 남아 있어, coordinator 추출은 텍스트 프록시 wrapper 정리 이후 다시 판단한다.
-- 다음 리팩토링 후보는 버튼 action binding 또는 gesture delegate 분리다.
+- 다음 리팩토링 후보는 텍스트 프록시 wrapper와 `inputBuffer` 연동 범위다.
 
 ## Verification Notes
 
@@ -209,6 +217,42 @@ xcodebuild build \
 ```
 
 - suggestion 선택 흐름 분리 후 전체 `SYKeyboard` 테스트를 한 번 실행했을 때 Simulator app launch 단계에서 `No such process`로 실패했다. 같은 명령을 재실행했고 `** TEST SUCCEEDED **`를 확인했다.
+
+```sh
+xcodebuild test \
+  -project SYKeyboard.xcodeproj \
+  -scheme SYKeyboard \
+  -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0'
+```
+
+- 2차 리팩토링 커밋 전 같은 전체 `SYKeyboard` 테스트를 재실행했고 `** TEST SUCCEEDED **`를 확인했다.
+- 버튼 action binding 분리 후 `SYKeyboardCore` 빌드가 통과했다.
+
+```sh
+xcodebuild build \
+  -project SYKeyboard.xcodeproj \
+  -scheme SYKeyboardCore \
+  -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0'
+```
+
+- 버튼 action binding 분리 직후 `git diff --check`는 새 helper 사이 빈 줄의 trailing whitespace 때문에 실패했다. whitespace 정리 후 같은 파일 범위 검사가 통과했다.
+
+```sh
+git diff --check -- \
+  Modules/SYKeyboardCore/Presentation/ViewController/Bases/BaseKeyboardViewController.swift
+```
+
+- gesture delegate callback 분리 후 작업 범위 파일 기준 `git diff --check`가 통과했다.
+- gesture delegate callback 분리 후 `SYKeyboardCore` 빌드가 통과했다.
+
+```sh
+xcodebuild build \
+  -project SYKeyboard.xcodeproj \
+  -scheme SYKeyboardCore \
+  -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0'
+```
+
+- 3차/4차 리팩토링 묶음과 문서 갱신 후 전체 `SYKeyboard` 테스트가 통과했다.
 
 ```sh
 xcodebuild test \

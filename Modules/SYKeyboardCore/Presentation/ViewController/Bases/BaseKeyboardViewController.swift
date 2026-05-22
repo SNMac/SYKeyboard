@@ -64,6 +64,18 @@ open class BaseKeyboardViewController: UIInputViewController {
                 symbolKeyboardView.returnButton,
                 numericKeyboardView.returnButton]
     }
+    /// 전체 키보드 버튼 배열
+    private var allKeyboardButtonList: [BaseKeyboardButton] {
+        return primaryKeyboardView.allButtonList
+        + symbolKeyboardView.allButtonList
+        + numericKeyboardView.allButtonList
+        + tenkeyKeyboardView.allButtonList
+    }
+    /// 기본/숫자 키보드 입력 버튼 배열
+    private var primaryAndNumericTextInteractableButtonList: [TextInteractable] {
+        return primaryKeyboardView.totalTextInterableButtonList
+        + numericKeyboardView.totalTextInterableButtonList
+    }
     
     /// 키 입력 버튼, 스페이스 버튼, 삭제 버튼 제스처 컨트롤러
     private lazy var textInteractionGestureController = TextInteractionGestureController(
@@ -657,31 +669,49 @@ private extension BaseKeyboardViewController {
 
 private extension BaseKeyboardViewController {
     func setButtonFeedbackAction() {
-        let allButtonList = (primaryKeyboardView.allButtonList
-                             + symbolKeyboardView.allButtonList
-                             + numericKeyboardView.allButtonList
-                             + tenkeyKeyboardView.allButtonList)
-        buttonStateController.setFeedbackActionToButtons(allButtonList)
+        buttonStateController.setFeedbackActionToButtons(allKeyboardButtonList)
     }
-    
+
     func setTextInteractableButtonAction() {
-        (primaryKeyboardView.totalTextInterableButtonList + numericKeyboardView.totalTextInterableButtonList).forEach {
+        setPrimaryAndNumericTextInteractableButtonAction()
+        setSymbolTextInteractableButtonAction()
+        setTenkeyTextInteractableButtonAction()
+    }
+
+    func setPrimaryAndNumericTextInteractableButtonAction() {
+        primaryAndNumericTextInteractableButtonList.forEach {
             addInputActionToTextInterableButton($0)
             addGesturesToTextInterableButton($0)
         }
-        
+    }
+
+    func setSymbolTextInteractableButtonAction() {
         symbolKeyboardView.totalTextInterableButtonList.forEach {
             addInputActionToSymbolTextInterableButton($0)
             addGesturesToTextInterableButton($0)
         }
-        
+    }
+
+    func setTenkeyTextInteractableButtonAction() {
         tenkeyKeyboardView.totalTextInterableButtonList.forEach { addInputActionToTextInterableButton($0) }
     }
-    
+
     func addInputActionToTextInterableButton(_ button: TextInteractable) {
-        let inputAction = UIAction { [weak self] action in
+        let inputAction = makeTextInputAction()
+        if button is DeleteButton {
+            button.addAction(inputAction, for: .touchDown)
+        } else if let spaceButton = button as? SpaceButton {
+            button.addAction(inputAction, for: .touchUpInside)
+            addPeriodShortcutActionToSpaceButton(spaceButton)
+        } else {
+            button.addAction(inputAction, for: .touchUpInside)
+        }
+    }
+
+    func makeTextInputAction() -> UIAction {
+        return UIAction { [weak self] action in
             guard let self, let currentButton = action.sender as? TextInteractable else { return }
-            
+
             if currentButton.isProgrammaticCall {
                 performTextInteraction(for: currentButton)
             } else {
@@ -690,14 +720,6 @@ private extension BaseKeyboardViewController {
                     performTextInteraction(for: currentButton)
                 }
             }
-        }
-        if button is DeleteButton {
-            button.addAction(inputAction, for: .touchDown)
-        } else if let spaceButton = button as? SpaceButton {
-            button.addAction(inputAction, for: .touchUpInside)
-            addPeriodShortcutActionToSpaceButton(spaceButton)
-        } else {
-            button.addAction(inputAction, for: .touchUpInside)
         }
     }
     
@@ -850,11 +872,7 @@ private extension BaseKeyboardViewController {
     }
     
     func setExclusiveButtonAction() {
-        let allButtonList = (primaryKeyboardView.allButtonList
-                             + symbolKeyboardView.allButtonList
-                             + numericKeyboardView.allButtonList
-                             + tenkeyKeyboardView.allButtonList)
-        buttonStateController.setExclusiveActionToButtons(allButtonList)
+        buttonStateController.setExclusiveActionToButtons(allKeyboardButtonList)
     }
     
     func setChevronButtonAction() {
@@ -1210,55 +1228,33 @@ extension BaseKeyboardViewController: SwitchGestureControllerDelegate {
 extension BaseKeyboardViewController: TextInteractionGestureControllerDelegate {
     final func primaryButtonPanning(_ controller: TextInteractionGestureController, to direction: PanDirection) {
         logger.debug("Primary Button 팬 제스처 방향: \(String(describing: direction))")
-        
+
         // 커서 이동 시 입력 버퍼 초기화
         resetInputBuffer()
-        
+
         switch direction {
         case .left:
-            if textDocumentProxy.documentContextBeforeInput != nil {
-                textDocumentProxy.adjustTextPosition(byCharacterOffset: -1)
-                FeedbackManager.shared.playHaptic(isForcing: true)
-                logger.debug("커서 왼쪽 이동")
-            }
+            moveCursorLeftIfPossible()
         case .right:
-            if textDocumentProxy.documentContextAfterInput != nil {
-                textDocumentProxy.adjustTextPosition(byCharacterOffset: 1)
-                FeedbackManager.shared.playHaptic(isForcing: true)
-                logger.debug("커서 오른쪽 이동")
-            }
+            moveCursorRightIfPossible()
         default:
             assertionFailure("도달할 수 없는 case 입니다.")
         }
     }
-    
+
     final func deleteButtonPanning(_ controller: TextInteractionGestureController, to direction: PanDirection) {
         logger.debug("DeleteButton 팬 제스처 방향: \(String(describing: direction))")
-        
+
         switch direction {
         case .left:
-            if let deleteResult = deleteButtonPanDeleteText(hasPendingRestoreText: !tempDeletedCharacters.isEmpty) {
-                if deleteResult.shouldRestore {
-                    tempDeletedCharacters.append(deleteResult.character)
-                }
-                updateSuggestions()
-                FeedbackManager.shared.playHaptic()
-                FeedbackManager.shared.playDeleteSound()
-                logger.debug("커서 앞 글자 삭제")
-            }
+            performDeleteButtonPanDeleteIfPossible()
         case .right:
-            if let lastDeleted = tempDeletedCharacters.popLast() {
-                deleteButtonPanRestoreText(lastDeleted)
-                updateSuggestions()
-                FeedbackManager.shared.playHaptic()
-                FeedbackManager.shared.playDeleteSound()
-                logger.debug("삭제된 글자 복구")
-            }
+            performDeleteButtonPanRestoreIfPossible()
         default:
             assertionFailure("도달할 수 없는 case 입니다.")
         }
     }
-    
+
     final func deleteButtonPanStopped(_ controller: TextInteractionGestureController) {
         tempDeletedCharacters.removeAll()
         logger.debug("임시 삭제 내용 저장 변수 초기화")
@@ -1268,35 +1264,84 @@ extension BaseKeyboardViewController: TextInteractionGestureControllerDelegate {
         if keyboardSettingsManager.selectedLongPressAction == .repeatInput
             || button is DeleteButton {
             repeatTextInteractionWillPerform(button: button)
-            
-            let repeatTimerInterval = 0.10 - keyboardSettingsManager.repeatRate
-            timer = Timer.publish(every: repeatTimerInterval, on: .main, in: .common)
-                .autoconnect()
-                .sink { [weak self, weak button] _ in
-                    if self?.view.window == nil {
-                        self?.cancelTimer()
-                        return
-                    }
-                    guard let button else {
-                        self?.cancelTimer()
-                        return
-                    }
-                    
-                    self?.performRepeatTextInteraction(for: button)
-                }
-            logger.debug("반복 타이머 생성")
+            startRepeatInputTimer(for: button)
         } else if keyboardSettingsManager.selectedLongPressAction == .numberInput {
-            performTextInteraction(for: button, insertSecondaryKeyIfAvailable: true)
-            button.isGesturing = false
-            textInteractionGestureController.releaseButtonGesture(for: button)
+            performNumberInputLongPress(for: button)
         }
     }
-    
+
     final func textInteractableButtonLongPressStopped(_ controller: TextInteractionGestureController, button: TextInteractable) {
         if keyboardSettingsManager.selectedLongPressAction == .repeatInput
             || button is DeleteButton {
             repeatTextInteractionDidPerform(button: button)
         }
+    }
+}
+
+private extension BaseKeyboardViewController {
+    func moveCursorLeftIfPossible() {
+        guard textDocumentProxy.documentContextBeforeInput != nil else { return }
+
+        textDocumentProxy.adjustTextPosition(byCharacterOffset: -1)
+        FeedbackManager.shared.playHaptic(isForcing: true)
+        logger.debug("커서 왼쪽 이동")
+    }
+
+    func moveCursorRightIfPossible() {
+        guard textDocumentProxy.documentContextAfterInput != nil else { return }
+
+        textDocumentProxy.adjustTextPosition(byCharacterOffset: 1)
+        FeedbackManager.shared.playHaptic(isForcing: true)
+        logger.debug("커서 오른쪽 이동")
+    }
+
+    func performDeleteButtonPanDeleteIfPossible() {
+        guard let deleteResult = deleteButtonPanDeleteText(
+            hasPendingRestoreText: !tempDeletedCharacters.isEmpty
+        ) else { return }
+
+        if deleteResult.shouldRestore {
+            tempDeletedCharacters.append(deleteResult.character)
+        }
+        updateSuggestions()
+        FeedbackManager.shared.playHaptic()
+        FeedbackManager.shared.playDeleteSound()
+        logger.debug("커서 앞 글자 삭제")
+    }
+
+    func performDeleteButtonPanRestoreIfPossible() {
+        guard let lastDeleted = tempDeletedCharacters.popLast() else { return }
+
+        deleteButtonPanRestoreText(lastDeleted)
+        updateSuggestions()
+        FeedbackManager.shared.playHaptic()
+        FeedbackManager.shared.playDeleteSound()
+        logger.debug("삭제된 글자 복구")
+    }
+
+    func startRepeatInputTimer(for button: TextInteractable) {
+        let repeatTimerInterval = 0.10 - keyboardSettingsManager.repeatRate
+        timer = Timer.publish(every: repeatTimerInterval, on: .main, in: .common)
+            .autoconnect()
+            .sink { [weak self, weak button] _ in
+                if self?.view.window == nil {
+                    self?.cancelTimer()
+                    return
+                }
+                guard let button else {
+                    self?.cancelTimer()
+                    return
+                }
+
+                self?.performRepeatTextInteraction(for: button)
+            }
+        logger.debug("반복 타이머 생성")
+    }
+
+    func performNumberInputLongPress(for button: TextInteractable) {
+        performTextInteraction(for: button, insertSecondaryKeyIfAvailable: true)
+        button.isGesturing = false
+        textInteractionGestureController.releaseButtonGesture(for: button)
     }
 }
 
