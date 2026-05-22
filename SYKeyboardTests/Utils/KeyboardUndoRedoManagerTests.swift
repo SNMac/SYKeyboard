@@ -169,6 +169,18 @@ struct KeyboardUndoRedoManagerTests {
         #expect(undo == KeyboardUndoRedoEdit(deleteCount: 0, insertText: "bc"))
     }
 
+    @Test("한글 입력 후 삭제 경계가 확정되면 undo는 삭제만 되돌림")
+    func test한글입력후삭제경계_삭제만Undo() {
+        var manager = KeyboardUndoRedoManager()
+
+        manager.record(deletedText: "", insertedText: "안녕핫", targetContext: nil)
+        manager.commitPendingGroup()
+        manager.record(deletedText: "핫", insertedText: "하", targetContext: nil)
+
+        #expect(manager.undo() == KeyboardUndoRedoEdit(deleteCount: 1, insertText: "핫"))
+        #expect(manager.undo() == KeyboardUndoRedoEdit(deleteCount: 3, insertText: ""))
+    }
+
     @Test("history 최대 개수를 넘으면 오래된 undo 단위를 버림")
     func testMaxHistory초과_오래된기록제거() {
         var manager = KeyboardUndoRedoManager(maxHistoryCount: 2)

@@ -129,6 +129,15 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
         updateSpaceButtonImage()
         updateShiftButton()
     }
+
+    open override func undoRedoEditDidApply() {
+        super.undoRedoEditDidApply()
+        clearAllBuffers()
+        lastInputText = nil
+        processor.reset한글조합()
+        updateSpaceButtonImage()
+        updateShiftButton()
+    }
     
     open override func didSetCurrentKeyboard() {
         super.didSetCurrentKeyboard()
@@ -344,6 +353,16 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
         lastInputText = nil
         commitUndoRedoGroupIfPossible()
         updateSpaceButtonImage()
+    }
+
+    open override func deleteBackwardWillPerform() {
+        super.deleteBackwardWillPerform()
+        commitUndoRedoGroupIgnoringCompositionDeferral()
+    }
+
+    open override func repeatDeleteBackwardWillPerform() {
+        super.repeatDeleteBackwardWillPerform()
+        commitUndoRedoGroupIgnoringCompositionDeferral()
     }
     
     open override func deleteBackward() {

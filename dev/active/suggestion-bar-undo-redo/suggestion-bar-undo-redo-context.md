@@ -15,7 +15,7 @@ Last Updated: 2026-05-22
 
 ## Facts Checked
 
-- `git branch --show-current` 결과는 `feat/#31-return-button-undo-redo`이다.
+- `git branch --show-current` 결과는 `feat/#31-undo-redo`이다.
 - `BaseKeyboardViewController.swift`는 `wc -l` 기준 1159줄이다.
 - 현재 일반 리턴 입력은 `performTextInteraction(for:)`의 `.returnButton` 분기에서 `insertReturnText()`를 직접 호출한다.
 - 현재 반복 리턴 입력은 `performRepeatTextInteraction(for:)`의 `.returnButton` 분기에서 `insertReturnText()` 호출 후 `button.playFeedback()`을 실행한다.
@@ -24,6 +24,7 @@ Last Updated: 2026-05-22
 - undo/redo 버튼은 자동완성 바가 표시되고 `isUndoRedoEnabled`가 켜져 있을 때만 표시된다.
 - undo/redo 버튼은 `UIButton`이 아니라 `SuggestionActionButtonView` 기반 `UIView`다. 자동완성 후보와 같은 직접 highlight 처리 방식을 유지해 `UIButton` 기본 탭 애니메이션을 피한다.
 - undo/redo 액션 버튼 폭은 44pt이며, iOS 26 이상에서는 suggestion bar 높이에 맞춘 pill radius를 사용한다.
+- undo/redo 액션 버튼의 `accessibilityLabel`, `accessibilityTraits`, `isAccessibilityElement` 코드는 현재 의도적으로 제거된 상태다. 사용자가 접근성 관련 코드를 일부러 뺐다고 명시했다.
 - `isPredictiveTextEnabled`가 false이면 `isUndoRedoEnabled` 값과 관계없이 undo/redo 기록과 실행은 비활성화된다.
 - undo/redo 기록은 키보드가 disappear 되면 비운다.
 - `textWillChange`는 더 이상 무조건 undo/redo 기록을 비우지 않는다. `textInput` 식별자가 바뀌거나, 식별자를 얻을 수 없는 상황에서 before/after context 변화가 커서 이동으로 설명되지 않을 때만 기록을 비운다.
@@ -33,8 +34,11 @@ Last Updated: 2026-05-22
 - 조합 확정 지연 중 조합이 끝나면 `commitDeferredUndoRedoGroupIfNeeded()`로 미뤄둔 pending group을 확정한다.
 - 스페이스 입력과 엔터 입력은 pending undo group을 즉시 확정한다.
 - 단일 백스페이스 시작 시 기존 pending undo group을 확정한다.
+- 한글 키보드는 단일/반복 백스페이스 시작 시 `commitUndoRedoGroupIgnoringCompositionDeferral()`로 조합 지연 여부와 관계없이 기존 pending undo group을 확정한다. 이는 `안녕핫 -> 백스페이스 -> 안녕하 -> undo`가 `안녕하` 전체 삭제가 아니라 방금 삭제를 되돌려 `안녕핫`을 복구하도록 하기 위한 처리다.
 - `KeyboardUndoRedoManager`는 순수 입력에서 순수 삭제로, 또는 순수 삭제에서 순수 입력으로 전환될 때 기존 pending group을 확정하고 새 group을 시작한다.
-- 최근 작업 중 `git status --short`에는 `HangeulKeyboardCoreViewController`, `KeyboardUndoRedoManager`, `SuggestionBarView`, `BaseKeyboardViewController`, `KeyboardUndoRedoManagerTests`, 작업 문서 변경이 표시된다.
+- undo/redo 적용 후 `BaseKeyboardViewController.applyUndoRedoEdit(_:)`는 `undoRedoEditDidApply()` hook을 호출한다.
+- `HangeulKeyboardCoreViewController.undoRedoEditDidApply()`는 `clearAllBuffers()`, `processor.reset한글조합()`, `lastInputText = nil`, space/shift 버튼 갱신을 수행한다. undo/redo 뒤 새 한글 입력이 이전 조합 상태와 이어 붙는 것을 막기 위한 처리다.
+- 현재 uncommitted 상태에는 `HangeulKeyboardCoreViewController`, `SuggestionBarView`, `BaseKeyboardViewController`, `KeyboardUndoRedoManagerTests`, 작업 문서 변경이 표시된다.
 
 ## Decisions
 
@@ -43,17 +47,22 @@ Last Updated: 2026-05-22
 - undo/redo 기능은 `KeyboardUndoRedoManager`와 `SuggestionBarView` 우측 버튼 delegate를 통해 추가한다.
 - 연속 입력은 pending mutation으로 묶고, 0.8초 debounce 이후 `commitPendingGroup()`으로 확정한다.
 - 스페이스/엔터/백스페이스 시작/입력↔삭제 전환은 사용자가 기대하는 편집 경계로 보고 undo group을 나눈다.
+- 한글 백스페이스 시작은 조합 중이어도 undo 기록 경계로 본다. 단, 실제 한글 조합/삭제 동작은 유지하고 undo 기록만 이전 입력 group과 분리한다.
 - debounce 확정 전에도 `canUndo`가 true가 되어 undo 버튼을 즉시 활성화한다.
 - undo/redo 적용 뒤에는 `inputBuffer`를 초기화한다. 이는 외부 텍스트 삭제/복구가 자동완성 학습 버퍼에 섞이는 위험을 줄이기 위한 보수적 선택이다.
+- 한글 undo/redo 적용 뒤에는 `composingBuffer`, `committedBuffer`, processor 상태도 초기화한다. 이는 undo/redo 후 새 한글 입력이 이전 조합 버퍼와 합쳐지는 실기기 버그를 막기 위한 결정이다.
 - 커서 이동만으로는 undo/redo history를 무효화하지 않는다. 텍스트필드 focus 변경 또는 커서 이동으로 설명되지 않는 외부 context 변경에서만 history를 무효화한다.
 - 리턴 버튼 pan undo/redo는 제거한다. 추후 클립보드 내역은 리턴 버튼 위쪽 드래그나 별도 UI로 다시 설계한다.
 - 자동완성 바 안의 undo/redo 액션도 후보 텍스트와 동일하게 `SuggestionBarView`의 touch hit-test에서 처리한다.
+- 접근성 label/traits는 현재 범위에서 제외한다. 리팩토링 중에도 사용자가 별도 요청하지 않으면 재추가하지 않는다.
 - 기능 추가 후 실제 책임이 드러난 상태에서 `BaseKeyboardViewController`의 큰 리팩토링을 진행한다.
 
 ## Open Questions
 
 - 추후 클립보드 내역 UI를 리턴 버튼 위쪽 드래그로 열지, 자동완성 바 영역의 별도 컨트롤로 둘지는 아직 확정되지 않았다.
 - 실제 텍스트 입력 앱에서 undo/redo 버튼 크기와 자동완성 후보 폭이 손에 맞는지 수동 확인이 필요하다.
+- 실제 한글 키보드에서 `안녕핫 -> 백스페이스 -> 안녕하 -> undo -> 안녕핫`과 undo/redo 후 새 한글 입력이 이전 조합과 섞이지 않는지 수동 확인이 필요하다.
+- `BaseKeyboardViewController` 리팩토링에서 undo/redo 상태를 별도 coordinator로 분리할지, 텍스트 프록시 wrapper와 함께 묶을지는 아직 확정하지 않았다.
 
 ## Verification Notes
 
@@ -111,6 +120,24 @@ xcodebuild test \
 ```
 
 - 전체 `git diff --check`는 `SuggestionBarView.swift`의 trailing whitespace 때문에 한 번 실패했고, whitespace 정리 후 관련 파일 범위 `git diff --check`가 통과했다.
+- 한글 백스페이스 undo 경계와 undo/redo 후 조합 버퍼 초기화를 추가한 뒤, 샌드박스에서는 SwiftPM/Xcode 캐시와 CoreSimulator 로그 권한 문제로 테스트가 실패했다. 동일 명령을 권한 있는 환경에서 재실행했고 `** TEST SUCCEEDED **`를 확인했다.
+
+```sh
+xcodebuild test \
+  -project SYKeyboard.xcodeproj \
+  -scheme SYKeyboard \
+  -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0' \
+  -only-testing:SYKeyboardTests/KeyboardUndoRedoManagerTests
+```
+
+- 같은 변경 뒤 작업 범위 파일 기준 `git diff --check`가 통과했다.
+
+```sh
+git diff --check -- \
+  Modules/HangeulKeyboardCore/Presentation/ViewController/HangeulKeyboardCoreViewController.swift \
+  Modules/SYKeyboardCore/Presentation/ViewController/Bases/BaseKeyboardViewController.swift \
+  SYKeyboardTests/Utils/KeyboardUndoRedoManagerTests.swift
+```
 
 ```sh
 xcodebuild build \

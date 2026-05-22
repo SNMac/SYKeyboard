@@ -1,4 +1,4 @@
-# Return Button Undo Redo Tasks
+# Suggestion Bar Undo Redo Tasks
 
 Last Updated: 2026-05-22
 
@@ -28,9 +28,17 @@ Last Updated: 2026-05-22
 - [x] 단일 백스페이스 시작 시 기존 pending undo group을 확정한다.
 - [x] 입력↔삭제 전환 시 기존 pending undo group을 확정하고 새 group을 시작한다.
 - [x] 입력↔삭제 전환 테스트를 먼저 실패시킨 뒤 통과를 확인한다.
+- [x] 한글 백스페이스 시작 시 조합 지연 여부와 관계없이 기존 undo group을 확정한다.
+- [x] `안녕핫 -> 백스페이스 -> 안녕하 -> undo`가 삭제만 되돌리는 기록 단위 테스트를 추가한다.
+- [x] undo/redo 적용 뒤 한글 조합 버퍼와 processor 상태를 초기화한다.
+- [x] 접근성 label/traits 코드는 현재 범위에서 의도적으로 제외된 상태로 문서화한다.
 - [x] 전체 `SYKeyboard` 테스트 통과를 확인한다.
 - [x] 한글 키보드 extension 빌드를 확인한다.
 - [x] 영문 키보드 extension 빌드를 확인한다.
 - [x] 작업 문서에 최신 undo group 규칙과 검증 결과를 반영한다.
-- [ ] 실제 입력 앱에서 자동완성 바 undo/redo 버튼 표시, 활성화, 버튼 폭을 수동 확인한다.
+- [x] 실제 입력 앱에서 자동완성 바 undo/redo 버튼 표시, 활성화, 버튼 폭을 수동 확인한다.
+- [x] 실제 한글 키보드에서 `안녕핫 -> 백스페이스 -> 안녕하 -> undo -> 안녕핫`을 수동 확인한다.
+- [x] 실제 한글 키보드에서 undo/redo 후 새 입력이 이전 조합과 섞이지 않는지 수동 확인한다.
 - [ ] 기능 추가 이후 `BaseKeyboardViewController` 큰 리팩토링 범위를 다시 확정한다.
+- [ ] 리팩토링 시 undo/redo 세션 상태, 텍스트 프록시 wrapper, suggestion 연동을 어떤 단위로 분리할지 결정한다.
+- [ ] 리팩토링 시 접근성 label/traits 코드를 별도 요청 없이 재추가하지 않는다.

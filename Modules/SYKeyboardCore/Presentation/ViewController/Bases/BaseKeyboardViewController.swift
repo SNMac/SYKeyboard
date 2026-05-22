@@ -305,6 +305,14 @@ open class BaseKeyboardViewController: UIInputViewController {
     /// > 하위 클래스에서 오버라이드 시 반드시 `super`로 호출 필요
     open func suggestionDidApply() {}
 
+    /// undo/redo로 텍스트가 직접 변경된 후 내부 입력 상태를 동기화하기 위한 hook입니다.
+    ///
+    /// > 하위 클래스에서 오버라이드 시 반드시 `super`로 호출 필요
+    open func undoRedoEditDidApply() {
+        resetInputBuffer()
+        suggestionController.clearReplacementHistory()
+    }
+
     /// 조합 중인 텍스트가 있을 때 undo 단위 확정을 미루기 위한 hook입니다.
     open var shouldDeferUndoRedoCommit: Bool {
         return false
@@ -557,6 +565,17 @@ extension BaseKeyboardViewController {
     /// 스페이스/리턴처럼 사용자가 명시적인 편집 경계를 만든 경우 pending undo 단위를 확정합니다.
     public final func commitUndoRedoGroupIfPossible() {
         commitPendingUndoRedoGroup()
+    }
+
+    /// 삭제 시작처럼 조합 중이어도 이전 편집 단위를 끊어야 하는 경우 pending undo 단위를 확정합니다.
+    public final func commitUndoRedoGroupIgnoringCompositionDeferral() {
+        guard isUndoRedoFeatureAvailable else { return }
+
+        undoRedoDebounceTimer?.cancel()
+        undoRedoManager.commitPendingGroup()
+        needsDeferredUndoRedoCommit = false
+        undoRedoDebounceTimer = nil
+        updateUndoRedoControls()
     }
     
     /// `inputBuffer`에서 아직 스페이스로 커밋되지 않은 마지막 단어를 추출합니다.
@@ -1054,8 +1073,7 @@ private extension BaseKeyboardViewController {
             textDocumentProxy.insertText(edit.insertText)
         }
 
-        resetInputBuffer()
-        suggestionController.clearReplacementHistory()
+        undoRedoEditDidApply()
         updateReturnButtonEnabled()
         updateSuggestions()
         return true

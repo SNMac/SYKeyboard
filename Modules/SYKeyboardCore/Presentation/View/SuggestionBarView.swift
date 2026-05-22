@@ -111,7 +111,6 @@ final class SuggestionBarView: UIView {
 
     private lazy var undoButton: SuggestionActionButtonView = {
         let button = makeUndoRedoButton(systemName: "arrow.uturn.backward")
-        button.accessibilityLabel = "Undo"
 
         return button
     }()
@@ -126,7 +125,6 @@ final class SuggestionBarView: UIView {
 
     private lazy var redoButton: SuggestionActionButtonView = {
         let button = makeUndoRedoButton(systemName: "arrow.uturn.forward")
-        button.accessibilityLabel = "Redo"
 
         return button
     }()
@@ -394,8 +392,7 @@ private final class SuggestionActionButtonView: UIView {
 
     var isEnabled: Bool = false {
         didSet {
-            imageView.alpha = isEnabled ? 1.0 : 0.6
-            accessibilityTraits = isEnabled ? .button : [.button, .notEnabled]
+            imageView.alpha = isEnabled ? 1.0 : 0.32
         }
     }
 
@@ -448,8 +445,6 @@ private extension SuggestionActionButtonView {
 
     func setStyles() {
         self.backgroundColor = .systemBackground.withAlphaComponent(0.001)
-        self.isAccessibilityElement = true
-        self.accessibilityTraits = [.button, .notEnabled]
     }
 
     func setHierarchy() {
