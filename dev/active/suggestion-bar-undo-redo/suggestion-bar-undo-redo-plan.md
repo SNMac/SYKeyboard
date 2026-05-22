@@ -9,7 +9,7 @@ Last Updated: 2026-05-22
 ## Current State
 
 - 브랜치명은 `feat/#31-undo-redo`이다.
-- `Modules/SYKeyboardCore/Presentation/ViewController/Bases/BaseKeyboardViewController.swift`는 1000줄이 넘으며 버튼 액션, 텍스트 프록시 래퍼, 제스처 delegate, suggestion 연동이 한 파일에 모여 있다.
+- `Modules/SYKeyboardCore/Presentation/ViewController/Bases/BaseKeyboardViewController.swift`는 undo/redo 세션 상태 분리 후 `wc -l` 기준 1388줄이며, 버튼 액션, 텍스트 프록시 래퍼, 제스처 delegate, suggestion 연동은 아직 한 파일에 남아 있다.
 - 리턴 버튼 단일/반복 입력은 `performReturnButtonTextInteraction()`과 `performRepeatReturnButtonTextInteraction(for:)`로 분리되어 있다.
 - 리턴 버튼 drag undo/redo 설계는 폐기했다. QWERTY 배열에서 redo 드래그가 불편하고, 추후 클립보드 UI와 제스처 책임이 충돌할 수 있기 때문이다.
 - undo/redo는 자동완성 바가 보이고 `isUndoRedoEnabled`가 켜진 경우에만 우측 버튼으로 제공한다.
@@ -37,6 +37,14 @@ Last Updated: 2026-05-22
    - 후보 영역은 리턴 버튼 처리, undo/redo 세션 상태, 텍스트 프록시 래퍼와 입력 버퍼, 버튼 액션 세팅, 제스처 delegate, suggestion 연동이다.
    - 한글 조합 버퍼와 undo/redo 기록 경계의 연결은 `HangeulKeyboardCoreViewController`에 남기고, 공통 Base 리팩토링에서는 입력기별 조합 정책을 일반화하지 않는다.
    - 접근성 label/traits 제거는 현재 의도된 상태로 보고, 별도 요청 없이 리팩토링 중 재추가하지 않는다.
+4. 1차 큰 리팩토링은 기능 변경 없이 undo/redo 세션 상태만 분리한다.
+   - 새 타입 후보는 `KeyboardUndoRedoSession`이며, `KeyboardUndoRedoManager`의 pending/stack 관리 위에 debounce, deferred commit, text context change 감지, 적용 중 기록 방지 상태를 담당한다.
+   - `BaseKeyboardViewController`에는 실제 `textDocumentProxy` 조작, `undoRedoEditDidApply()` hook 호출, return/suggestion UI 갱신만 남긴다.
+   - `applyUndoRedoEdit(_:)` 내부의 적용 순서와 `commitUndoRedoGroupIgnoringCompositionDeferral()`의 조합 지연 무시 동작은 바꾸지 않는다.
+   - 첫 리팩토링에서는 suggestion 선택 흐름, 버튼 액션 세팅, gesture delegate를 함께 이동하지 않는다. 검증 가능한 단위로 쪼개기 위한 결정이다.
+5. 다음 리팩토링 후보는 suggestion 선택 흐름의 메서드 분리다.
+   - 아직 별도 coordinator로 분리하지 않는다.
+   - 먼저 `SuggestionBarDelegate`의 selected text, n-gram, 현재 단어 확정, input buffer suggestion 경로를 작은 private 메서드로 나누는 정도로 제한한다.
 
 ## Risks
 
@@ -48,6 +56,7 @@ Last Updated: 2026-05-22
 - 한글 조합 중에는 pending group 확정을 지연하므로, space가 천지인/나랏글/두벌식 조합 확정으로 쓰이는 경우에도 조합 버퍼가 비워진 뒤 확정해야 한다.
 - 백스페이스 시작은 한글 조합 중이어도 undo 기록 경계로 취급한다. 조합 표시/삭제 동작은 유지하되, 기록만 이전 입력 group과 분리해야 한다.
 - 리팩토링에서 `applyUndoRedoEdit`, `undoRedoEditDidApply`, `commitUndoRedoGroupIgnoringCompositionDeferral` 호출 순서를 바꾸면 한글 undo 후 재입력 조합 버그가 재발할 수 있다.
+- undo/redo 세션 타입으로 상태를 옮길 때 `textWillChange`/`textDidChange`의 pending context 초기화 타이밍이 달라지면 cursor 이동 후 위치 anchor 복원이나 focus 변경 history 무효화가 달라질 수 있다.
 
 ## Verification
 
@@ -94,3 +103,4 @@ xcodebuild build \
 - undo group은 스페이스, 엔터, 입력↔삭제 전환, 백스페이스 시작에서 예측 가능한 경계로 나뉜다.
 - 한글 undo/redo 후 내부 조합 버퍼가 남지 않는다.
 - 큰 리팩토링은 기능 추가와 별도 변경으로 진행하고, 각 단계마다 빌드 또는 테스트 결과를 기록한다.
+- undo/redo 세션 리팩토링은 리팩토링 전후 `canUndo`/`canRedo`, debounce 확정, 조합 확정 지연, focus 변경 history 무효화, undo/redo 적용 순서가 동일해야 한다.

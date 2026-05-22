@@ -39,6 +39,14 @@ Last Updated: 2026-05-22
 - [x] 실제 입력 앱에서 자동완성 바 undo/redo 버튼 표시, 활성화, 버튼 폭을 수동 확인한다.
 - [x] 실제 한글 키보드에서 `안녕핫 -> 백스페이스 -> 안녕하 -> undo -> 안녕핫`을 수동 확인한다.
 - [x] 실제 한글 키보드에서 undo/redo 후 새 입력이 이전 조합과 섞이지 않는지 수동 확인한다.
-- [ ] 기능 추가 이후 `BaseKeyboardViewController` 큰 리팩토링 범위를 다시 확정한다.
-- [ ] 리팩토링 시 undo/redo 세션 상태, 텍스트 프록시 wrapper, suggestion 연동을 어떤 단위로 분리할지 결정한다.
-- [ ] 리팩토링 시 접근성 label/traits 코드를 별도 요청 없이 재추가하지 않는다.
+- [x] 기능 추가 이후 `BaseKeyboardViewController` 큰 리팩토링 범위를 다시 확정한다.
+- [x] 리팩토링 시 undo/redo 세션 상태, 텍스트 프록시 wrapper, suggestion 연동을 어떤 단위로 분리할지 결정한다.
+- [x] 리팩토링 시 접근성 label/traits 코드를 별도 요청 없이 재추가하지 않는다.
+- [x] `KeyboardUndoRedoSession` 타입을 추가해 undo/redo debounce, deferred commit, text context change 감지를 분리한다.
+- [x] `BaseKeyboardViewController`의 undo/redo 프로퍼티와 private helper를 새 세션 타입 호출로 교체한다.
+- [x] undo/redo 적용 순서와 한글 조합 reset hook 호출 순서가 리팩토링 전과 동일한지 코드 diff로 확인한다.
+- [x] 리팩토링 후 targeted undo/redo 테스트를 실행한다.
+- [x] 리팩토링 후 `SYKeyboardCore` 빌드를 실행한다.
+- [x] 리팩토링 후 전체 `SYKeyboard` 테스트를 실행한다.
+- [x] 리팩토링 결과와 검증 결과를 작업 문서에 기록한다.
+- [ ] 다음 단계로 `SuggestionBarDelegate`의 suggestion 선택 흐름을 동작 변경 없이 작은 private 메서드로 분리한다.

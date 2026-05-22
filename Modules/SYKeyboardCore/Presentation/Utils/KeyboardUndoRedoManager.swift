@@ -5,6 +5,7 @@
 //  Created by Codex on 5/21/26.
 //
 
+import Combine
 import Foundation
 
 struct KeyboardUndoRedoEdit: Equatable {
@@ -216,6 +217,180 @@ struct KeyboardUndoRedoManager {
     private mutating func trimUndoStackIfNeeded() {
         guard undoStack.count > maxHistoryCount else { return }
         undoStack.removeFirst(undoStack.count - maxHistoryCount)
+    }
+}
+
+final class KeyboardUndoRedoSession {
+
+    // MARK: - Properties
+
+    private var manager = KeyboardUndoRedoManager()
+    private var debounceTimer: AnyCancellable?
+    private let debounceInterval: TimeInterval
+    private var needsDeferredCommit: Bool = false
+    private var pendingTextChangeContext: KeyboardTextContextSnapshot?
+    private var pendingTextChangeInputIdentifier: ObjectIdentifier?
+    private var currentTextInputIdentifier: ObjectIdentifier?
+
+    private(set) var isApplyingEdit: Bool = false
+
+    var canUndo: Bool {
+        return manager.canUndo
+    }
+
+    var canRedo: Bool {
+        return manager.canRedo
+    }
+
+    // MARK: - Initializer
+
+    init(debounceInterval: TimeInterval = 0.8) {
+        self.debounceInterval = debounceInterval
+    }
+
+    // MARK: - Internal Methods
+
+    func record(
+        deletedText: String,
+        insertedText: String,
+        targetContext: KeyboardTextContextSnapshot,
+        shouldDeferCommit: @escaping () -> Bool,
+        debouncedCommitDidFinish: @escaping () -> Void
+    ) {
+        manager.record(
+            deletedText: deletedText,
+            insertedText: insertedText,
+            targetContext: targetContext
+        )
+        scheduleDebounceCommit(
+            shouldDeferCommit: shouldDeferCommit,
+            debouncedCommitDidFinish: debouncedCommitDidFinish
+        )
+    }
+
+    func undo() -> KeyboardUndoRedoEdit? {
+        manager.undo()
+    }
+
+    func redo() -> KeyboardUndoRedoEdit? {
+        manager.redo()
+    }
+
+    func updateLastUndoTargetContext(_ context: KeyboardTextContextSnapshot?) {
+        manager.updateLastUndoTargetContext(context)
+    }
+
+    func updateLastRedoTargetContext(_ context: KeyboardTextContextSnapshot?) {
+        manager.updateLastRedoTargetContext(context)
+    }
+
+    @discardableResult
+    func commitDeferredGroupIfNeeded(shouldDeferCommit: Bool) -> Bool {
+        guard needsDeferredCommit else { return false }
+        commitPendingGroup(shouldDeferCommit: shouldDeferCommit)
+        return true
+    }
+
+    func commitPendingGroup(shouldDeferCommit: Bool) {
+        guard !shouldDeferCommit else {
+            needsDeferredCommit = true
+            debounceTimer = nil
+            return
+        }
+
+        manager.commitPendingGroup()
+        needsDeferredCommit = false
+        debounceTimer = nil
+    }
+
+    func commitPendingGroupIgnoringDeferral() {
+        debounceTimer?.cancel()
+        manager.commitPendingGroup()
+        needsDeferredCommit = false
+        debounceTimer = nil
+    }
+
+    func cancelDebounceTimer() {
+        debounceTimer?.cancel()
+        debounceTimer = nil
+    }
+
+    func removeAll() {
+        cancelDebounceTimer()
+        needsDeferredCommit = false
+        manager.removeAll()
+    }
+
+    func performApplyingEdit(_ apply: () -> Bool) -> Bool {
+        isApplyingEdit = true
+        defer { isApplyingEdit = false }
+        return apply()
+    }
+
+    func prepareForTextWillChange(
+        inputIdentifier: ObjectIdentifier?,
+        context: KeyboardTextContextSnapshot
+    ) {
+        pendingTextChangeContext = context
+        pendingTextChangeInputIdentifier = inputIdentifier
+    }
+
+    func shouldInvalidateAfterTextChange(
+        inputIdentifier nextIdentifier: ObjectIdentifier?,
+        currentContext: KeyboardTextContextSnapshot
+    ) -> Bool {
+        defer {
+            pendingTextChangeContext = nil
+            pendingTextChangeInputIdentifier = nil
+        }
+
+        guard !isApplyingEdit else { return false }
+
+        let didChangeTextInput = currentTextInputIdentifier != nil
+        && nextIdentifier != nil
+        && currentTextInputIdentifier != nextIdentifier
+
+        let didChangeContextWithoutCursorMove: Bool
+        if (nextIdentifier == nil || currentTextInputIdentifier == nil),
+           let pendingTextChangeContext {
+            didChangeContextWithoutCursorMove = !isReachableCursorMove(
+                from: pendingTextChangeContext,
+                to: currentContext
+            )
+        } else {
+            didChangeContextWithoutCursorMove = false
+        }
+
+        if let nextIdentifier {
+            currentTextInputIdentifier = nextIdentifier
+        } else if currentTextInputIdentifier == nil {
+            currentTextInputIdentifier = pendingTextChangeInputIdentifier
+        }
+
+        return didChangeTextInput || didChangeContextWithoutCursorMove
+    }
+
+    // MARK: - Private Methods
+
+    private func scheduleDebounceCommit(
+        shouldDeferCommit: @escaping () -> Bool,
+        debouncedCommitDidFinish: @escaping () -> Void
+    ) {
+        debounceTimer?.cancel()
+        debounceTimer = Just(())
+            .delay(for: .seconds(debounceInterval), scheduler: RunLoop.main)
+            .sink { [weak self] _ in
+                guard let self else { return }
+                self.commitPendingGroup(shouldDeferCommit: shouldDeferCommit())
+                debouncedCommitDidFinish()
+            }
+    }
+
+    private func isReachableCursorMove(
+        from source: KeyboardTextContextSnapshot,
+        to target: KeyboardTextContextSnapshot
+    ) -> Bool {
+        return KeyboardTextContextNavigator.cursorOffset(from: source, to: target) != nil
     }
 }
 

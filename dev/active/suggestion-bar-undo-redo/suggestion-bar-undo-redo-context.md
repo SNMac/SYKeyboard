@@ -16,7 +16,8 @@ Last Updated: 2026-05-22
 ## Facts Checked
 
 - `git branch --show-current` 결과는 `feat/#31-undo-redo`이다.
-- `BaseKeyboardViewController.swift`는 `wc -l` 기준 1159줄이다.
+- 리팩토링 전 `BaseKeyboardViewController.swift`는 `wc -l` 기준 1456줄이었다.
+- undo/redo 세션 상태 분리 후 `BaseKeyboardViewController.swift`는 `wc -l` 기준 1388줄이고, `KeyboardUndoRedoManager.swift`는 482줄이다.
 - 현재 일반 리턴 입력은 `performTextInteraction(for:)`의 `.returnButton` 분기에서 `insertReturnText()`를 직접 호출한다.
 - 현재 반복 리턴 입력은 `performRepeatTextInteraction(for:)`의 `.returnButton` 분기에서 `insertReturnText()` 호출 후 `button.playFeedback()`을 실행한다.
 - 현재 `insertReturnText()`는 preview에서는 리턴하고, 실제 입력에서는 undo/redo 기록, `suggestionController.endSentence(inputBuffer:)`, `textDocumentProxy.insertText("\n")`, `resetInputBuffer()`, `suggestionController.clearReplacementHistory()`를 수행한다.
@@ -38,7 +39,10 @@ Last Updated: 2026-05-22
 - `KeyboardUndoRedoManager`는 순수 입력에서 순수 삭제로, 또는 순수 삭제에서 순수 입력으로 전환될 때 기존 pending group을 확정하고 새 group을 시작한다.
 - undo/redo 적용 후 `BaseKeyboardViewController.applyUndoRedoEdit(_:)`는 `undoRedoEditDidApply()` hook을 호출한다.
 - `HangeulKeyboardCoreViewController.undoRedoEditDidApply()`는 `clearAllBuffers()`, `processor.reset한글조합()`, `lastInputText = nil`, space/shift 버튼 갱신을 수행한다. undo/redo 뒤 새 한글 입력이 이전 조합 상태와 이어 붙는 것을 막기 위한 처리다.
-- 현재 uncommitted 상태에는 `HangeulKeyboardCoreViewController`, `SuggestionBarView`, `BaseKeyboardViewController`, `KeyboardUndoRedoManagerTests`, 작업 문서 변경이 표시된다.
+- 2026-05-22 현재 `git status --short --untracked-files=all` 출력은 비어 있다.
+- Xcode 프로젝트는 `Modules` 폴더를 파일 시스템 동기화 방식으로 참조하지만, 첫 undo/redo 세션 리팩토링은 새 파일 추가 대신 기존 `KeyboardUndoRedoManager.swift` 안에 별도 타입을 추가하는 방식으로 pbxproj 변경 위험을 피한다.
+- `KeyboardUndoRedoSession`은 `KeyboardUndoRedoManager.swift` 안에 추가했다. debounce timer, deferred commit, undo/redo 적용 중 상태, text context change 감지를 담당한다.
+- `BaseKeyboardViewController.applyUndoRedoEdit(_:)`의 실제 적용 순서는 유지했다. `restoreTextPositionIfPossible`, delete, insert, `undoRedoEditDidApply()`, `updateReturnButtonEnabled()`, `updateSuggestions()` 순서다.
 
 ## Decisions
 
@@ -56,13 +60,17 @@ Last Updated: 2026-05-22
 - 자동완성 바 안의 undo/redo 액션도 후보 텍스트와 동일하게 `SuggestionBarView`의 touch hit-test에서 처리한다.
 - 접근성 label/traits는 현재 범위에서 제외한다. 리팩토링 중에도 사용자가 별도 요청하지 않으면 재추가하지 않는다.
 - 기능 추가 후 실제 책임이 드러난 상태에서 `BaseKeyboardViewController`의 큰 리팩토링을 진행한다.
+- 1차 리팩토링은 `KeyboardUndoRedoSession` 타입을 추가해 debounce timer, deferred commit, undo/redo 적용 중 상태, text context change 감지를 `BaseKeyboardViewController`에서 분리한다.
+- 1차 리팩토링에서 실제 텍스트 적용, `undoRedoEditDidApply()`, `updateReturnButtonEnabled()`, `updateSuggestions()` 호출은 `BaseKeyboardViewController`에 남긴다.
+- suggestion 선택 흐름, 버튼 action binding, gesture delegate 분리는 1차 리팩토링 검증 뒤 별도 단계로 진행한다.
+- undo/redo 세션 리팩토링 뒤 다음 단계는 suggestion 선택 흐름 메서드 분리로 제한한다. 별도 coordinator 추출은 상태 접근 범위가 줄어든 뒤 다시 판단한다.
 
 ## Open Questions
 
 - 추후 클립보드 내역 UI를 리턴 버튼 위쪽 드래그로 열지, 자동완성 바 영역의 별도 컨트롤로 둘지는 아직 확정되지 않았다.
 - 실제 텍스트 입력 앱에서 undo/redo 버튼 크기와 자동완성 후보 폭이 손에 맞는지 수동 확인이 필요하다.
 - 실제 한글 키보드에서 `안녕핫 -> 백스페이스 -> 안녕하 -> undo -> 안녕핫`과 undo/redo 후 새 한글 입력이 이전 조합과 섞이지 않는지 수동 확인이 필요하다.
-- `BaseKeyboardViewController` 리팩토링에서 undo/redo 상태를 별도 coordinator로 분리할지, 텍스트 프록시 wrapper와 함께 묶을지는 아직 확정하지 않았다.
+- `KeyboardUndoRedoSession` 분리 뒤 suggestion 선택 흐름을 메서드 분리까지만 할지, 별도 coordinator로 뺄지는 아직 확정하지 않았다.
 
 ## Verification Notes
 
@@ -145,3 +153,35 @@ xcodebuild build \
   -scheme EnglishKeyboard \
   -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0'
 ```
+
+- undo/redo 세션 상태 분리 후 샌드박스에서 `swiftc -typecheck`와 `xcodebuild`가 Xcode/SwiftPM 캐시 권한 문제로 실패했다.
+- 동일 변경을 권한 있는 환경에서 검증했고 `SYKeyboardCore` 빌드가 통과했다.
+
+```sh
+xcodebuild build \
+  -project SYKeyboard.xcodeproj \
+  -scheme SYKeyboardCore \
+  -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0'
+```
+
+- undo/redo 세션 상태 분리 후 targeted undo/redo 테스트가 통과했다.
+
+```sh
+xcodebuild test \
+  -project SYKeyboard.xcodeproj \
+  -scheme SYKeyboard \
+  -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0' \
+  -only-testing:SYKeyboardTests/KeyboardUndoRedoManagerTests \
+  -only-testing:SYKeyboardTests/KeyboardTextContextNavigatorTests
+```
+
+- 같은 변경 뒤 전체 `SYKeyboard` 테스트가 통과했다.
+
+```sh
+xcodebuild test \
+  -project SYKeyboard.xcodeproj \
+  -scheme SYKeyboard \
+  -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0'
+```
+
+- 작업 범위 파일 기준 `git diff --check`가 통과했다.
