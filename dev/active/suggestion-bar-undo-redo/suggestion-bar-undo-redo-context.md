@@ -53,7 +53,13 @@ Last Updated: 2026-05-22
 - 4차 리팩토링에서 gesture delegate callback을 helper로 분리했다. primary pan 커서 이동, delete pan 삭제/복구, long press 반복 입력 타이머/number input 처리가 별도 private helper로 이동했다.
 - 4차 리팩토링은 `primaryButtonPanning`의 `resetInputBuffer()` 호출 위치를 switch 이전으로 유지했다. 예상 밖 direction에서도 기존처럼 reset 후 assertion에 도달하도록 하기 위한 보존이다.
 - 4차 리팩토링은 delete pan에서 `updateSuggestions()`, haptic, delete sound, debug log 호출 순서를 유지했다.
-- 2026-05-22 현재 3차/4차 리팩토링 변경은 아직 커밋하지 않았다. `git status --short --untracked-files=all`의 미커밋 파일은 `Modules/SYKeyboardCore/Presentation/ViewController/Bases/BaseKeyboardViewController.swift`와 `dev/active/suggestion-bar-undo-redo/` 문서 3종이다.
+- 3차/4차 리팩토링 커밋은 `f2d569d refactor: #31 - 버튼과 제스처 처리 흐름 분리`이다.
+- 5차 리팩토링에서 `replaceText` 내부의 문서 조작과 `inputBuffer` 갱신을 `replaceTextInDocument(deleteCount:insert:)`, `replaceInputBufferSuffix(deleteCount:insert:)`로 분리했다.
+- `insertText`, `deleteText`, `replaceText`, `resetInputBuffer`는 일반 입력/삭제와 `inputBuffer` 동기화의 기본 경로다.
+- 리턴 입력은 `suggestionController.endSentence(inputBuffer:)` 뒤 newline을 직접 삽입하고, undo 기록 확정 뒤 `resetInputBuffer()`를 호출하는 특수 경로다.
+- selected text suggestion은 시스템 선택 영역 자동 교체를 유지하려고 `textDocumentProxy.insertText`를 직접 호출하고, undo deleted text를 selected text로 기록하는 특수 경로다.
+- undo/redo 적용은 기존 history에 다시 기록되면 안 되므로 wrapper를 타지 않고 `undoRedoSession.performApplyingEdit` 안에서 직접 `textDocumentProxy`를 조작한다.
+- 2026-05-22 현재 5차 리팩토링 변경은 아직 커밋하지 않았다. `git status --short --untracked-files=all`의 미커밋 파일은 `Modules/SYKeyboardCore/Presentation/ViewController/Bases/BaseKeyboardViewController.swift`와 `dev/active/suggestion-bar-undo-redo/` 문서 3종이다.
 
 ## Decisions
 
@@ -78,6 +84,7 @@ Last Updated: 2026-05-22
 - suggestion 선택 흐름은 2차 리팩토링에서 별도 coordinator가 아니라 `BaseKeyboardViewController`의 private helper로만 분리한다. delegate에서 접근하던 `textDocumentProxy`, `inputBuffer`, `suggestionController`, undo/redo 기록 호출을 그대로 사용해 동작 변경 위험을 줄이기 위한 결정이다.
 - 버튼 action binding 리팩토링은 새 타입 추출 없이 `BaseKeyboardViewController` 내부 helper 정리로 제한한다. 버튼 이벤트 타이밍과 gesture 조건이 실제 키보드 동작에 직접 영향을 주므로, control event 변경 없이 중복 목록 계산과 action 생성만 분리한다.
 - gesture delegate 리팩토링은 callback 본문을 private helper로 나누는 수준으로 제한한다. `TextInteractionGestureController`와 `SwitchGestureController`의 delegate protocol, gesture recognizer wiring, 입력/삭제 실행 순서는 바꾸지 않는다.
+- 텍스트 프록시 wrapper 리팩토링은 새 타입 추출보다 먼저 현재 예외 경로를 명시한다. selected text, return, undo/redo 경로는 기록과 버퍼 갱신 순서가 달라 일반 wrapper와 합치지 않는다.
 
 ## Open Questions
 
@@ -85,7 +92,7 @@ Last Updated: 2026-05-22
 - 실제 텍스트 입력 앱에서 undo/redo 버튼 크기와 자동완성 후보 폭이 손에 맞는지 수동 확인이 필요하다.
 - 실제 한글 키보드에서 `안녕핫 -> 백스페이스 -> 안녕하 -> undo -> 안녕핫`과 undo/redo 후 새 한글 입력이 이전 조합과 섞이지 않는지 수동 확인이 필요하다.
 - suggestion 선택 흐름의 별도 coordinator 추출은 보류한다. private helper 분리 뒤에도 `inputBuffer`와 `textDocumentProxy` 직접 접근이 남아 있어, coordinator 추출은 텍스트 프록시 wrapper 정리 이후 다시 판단한다.
-- 다음 리팩토링 후보는 텍스트 프록시 wrapper와 `inputBuffer` 연동 범위다.
+- 다음 리팩토링 후보는 텍스트 프록시 wrapper를 별도 타입으로 뺄 수 있는지 판단하는 것이다.
 
 ## Verification Notes
 
@@ -258,5 +265,15 @@ xcodebuild build \
 xcodebuild test \
   -project SYKeyboard.xcodeproj \
   -scheme SYKeyboard \
+  -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0'
+```
+
+- 5차 리팩토링 후 작업 범위 파일 기준 `git diff --check`가 통과했다.
+- 5차 리팩토링 후 `SYKeyboardCore` 빌드가 통과했다.
+
+```sh
+xcodebuild build \
+  -project SYKeyboard.xcodeproj \
+  -scheme SYKeyboardCore \
   -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0'
 ```

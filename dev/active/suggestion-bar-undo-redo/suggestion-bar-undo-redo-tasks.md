@@ -64,4 +64,9 @@ Last Updated: 2026-05-22
 - [x] gesture delegate callback 분리 후 `git diff --check`를 실행한다.
 - [x] gesture delegate callback 분리 결과와 검증 결과를 작업 문서에 기록한다.
 - [x] 3차/4차 리팩토링 묶음 후 전체 `SYKeyboard` 테스트를 실행한다.
-- [ ] 다음 단계로 텍스트 프록시 wrapper와 `inputBuffer` 연동 범위를 문서화한다.
+- [x] 다음 단계로 텍스트 프록시 wrapper와 `inputBuffer` 연동 범위를 문서화한다.
+- [x] `replaceText` 내부의 문서 조작과 `inputBuffer` suffix 갱신을 helper로 분리한다.
+- [x] 5차 리팩토링 후 `SYKeyboardCore` 빌드를 실행한다.
+- [x] 5차 리팩토링 후 `git diff --check`를 실행한다.
+- [x] 5차 리팩토링 결과와 검증 결과를 작업 문서에 기록한다.
+- [ ] 다음 단계로 텍스트 프록시 wrapper의 별도 타입 추출 가능성을 판단한다.

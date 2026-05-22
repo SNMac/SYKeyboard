@@ -530,19 +530,8 @@ extension BaseKeyboardViewController {
     ///   - text: 삭제 후 삽입할 텍스트
     public func replaceText(deleteCount: Int, insert text: String) {
         let deletedText = textBeforeCursorSuffix(count: deleteCount)
-        for _ in 0..<deleteCount {
-            textDocumentProxy.deleteBackward()
-        }
-        if !text.isEmpty {
-            textDocumentProxy.insertText(text)
-        }
-        
-        if inputBuffer.count >= deleteCount {
-            inputBuffer.removeLast(deleteCount)
-        } else {
-            inputBuffer = ""
-        }
-        inputBuffer.append(text)
+        replaceTextInDocument(deleteCount: deleteCount, insert: text)
+        replaceInputBufferSuffix(deleteCount: deleteCount, insert: text)
         recordUndoRedoChange(deletedText: deletedText, insertedText: text)
     }
     
@@ -1028,6 +1017,24 @@ extension BaseKeyboardViewController {
 // MARK: - Private Methods
 
 private extension BaseKeyboardViewController {
+    func replaceTextInDocument(deleteCount: Int, insert text: String) {
+        for _ in 0..<deleteCount {
+            textDocumentProxy.deleteBackward()
+        }
+        if !text.isEmpty {
+            textDocumentProxy.insertText(text)
+        }
+    }
+
+    func replaceInputBufferSuffix(deleteCount: Int, insert text: String) {
+        if inputBuffer.count >= deleteCount {
+            inputBuffer.removeLast(deleteCount)
+        } else {
+            inputBuffer = ""
+        }
+        inputBuffer.append(text)
+    }
+
     func performUndo() {
         guard isUndoRedoFeatureAvailable else { return }
 

@@ -9,7 +9,7 @@ Last Updated: 2026-05-22
 ## Current State
 
 - 브랜치명은 `feat/#31-undo-redo`이다.
-- `Modules/SYKeyboardCore/Presentation/ViewController/Bases/BaseKeyboardViewController.swift`는 gesture delegate callback 분리 후 `wc -l` 기준 1448줄이며, 텍스트 프록시 래퍼는 아직 한 파일에 남아 있다.
+- `Modules/SYKeyboardCore/Presentation/ViewController/Bases/BaseKeyboardViewController.swift`는 `replaceText` 내부 단계 분리 후 `wc -l` 기준 1455줄이며, 텍스트 프록시 래퍼는 아직 한 파일에 남아 있다.
 - 리턴 버튼 단일/반복 입력은 `performReturnButtonTextInteraction()`과 `performRepeatReturnButtonTextInteraction(for:)`로 분리되어 있다.
 - 리턴 버튼 drag undo/redo 설계는 폐기했다. QWERTY 배열에서 redo 드래그가 불편하고, 추후 클립보드 UI와 제스처 책임이 충돌할 수 있기 때문이다.
 - undo/redo는 자동완성 바가 보이고 `isUndoRedoEnabled`가 켜진 경우에만 우측 버튼으로 제공한다.
@@ -56,8 +56,14 @@ Last Updated: 2026-05-22
    - delete button pan의 삭제/복구 흐름을 `performDeleteButtonPanDeleteIfPossible()`, `performDeleteButtonPanRestoreIfPossible()`로 분리한다.
    - long press 반복 입력 타이머와 number input 처리를 `startRepeatInputTimer(for:)`, `performNumberInputLongPress(for:)`로 분리한다.
    - `resetInputBuffer()`, suggestion update, haptic/sound feedback, delete restore stack, timer sink 내부 조건의 순서는 유지한다.
-8. 다음 리팩토링 후보는 텍스트 프록시 wrapper와 `inputBuffer` 연동 범위다.
-   - 실제 입력/삭제 기록과 undo/redo 기록이 함께 움직이므로, 별도 타입 추출 전 현재 wrapper 호출 순서를 먼저 문서화한다.
+8. 5차 리팩토링은 텍스트 프록시 wrapper와 `inputBuffer` 연동 범위 문서화 및 작은 helper 분리로 제한한다.
+   - `insertText`, `deleteText`, `replaceText`, `resetInputBuffer`가 일반 입력/삭제와 `inputBuffer` 동기화의 기본 경로다.
+   - 리턴 입력은 문장 종료 처리 뒤 newline을 직접 삽입하고, undo 기록 확정 뒤 `resetInputBuffer()`를 호출하는 특수 경로로 유지한다.
+   - selected text suggestion은 시스템 선택 영역 자동 교체를 위해 `textDocumentProxy.insertText`를 직접 호출하고, deleted text를 selected text로 기록하는 특수 경로로 유지한다.
+   - undo/redo 적용은 기존 history에 다시 기록되면 안 되므로 wrapper를 타지 않고 직접 `textDocumentProxy`를 조작하는 특수 경로로 유지한다.
+   - 코드 변경은 `replaceText` 내부의 문서 삭제/삽입과 `inputBuffer` suffix 갱신을 helper로 나누는 정도로 제한한다.
+9. 다음 리팩토링 후보는 텍스트 프록시 wrapper를 별도 타입으로 뺄 수 있는지 판단하는 것이다.
+   - selected text, return, undo/redo 같은 예외 경로를 새 타입이 과도하게 알게 되면 추출하지 않는다.
 
 ## Risks
 
