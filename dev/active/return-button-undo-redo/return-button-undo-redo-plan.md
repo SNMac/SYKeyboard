@@ -1,6 +1,6 @@
 # Suggestion Bar Undo Redo Plan
 
-Last Updated: 2026-05-21
+Last Updated: 2026-05-22
 
 ## Goal
 
@@ -8,7 +8,7 @@ Last Updated: 2026-05-21
 
 ## Current State
 
-- 브랜치명은 `feat/#31-return-button-undo-redo`이다.
+- 브랜치명은 `feat/#31-undo-redo`이다.
 - `Modules/SYKeyboardCore/Presentation/ViewController/Bases/BaseKeyboardViewController.swift`는 1000줄이 넘으며 버튼 액션, 텍스트 프록시 래퍼, 제스처 delegate, suggestion 연동이 한 파일에 모여 있다.
 - 리턴 버튼 단일/반복 입력은 `performReturnButtonTextInteraction()`과 `performRepeatReturnButtonTextInteraction(for:)`로 분리되어 있다.
 - 리턴 버튼 drag undo/redo 설계는 폐기했다. QWERTY 배열에서 redo 드래그가 불편하고, 추후 클립보드 UI와 제스처 책임이 충돌할 수 있기 때문이다.
@@ -22,7 +22,9 @@ Last Updated: 2026-05-21
    - 이후 undo/redo 기능은 이 진입점 안에 추가한다.
 2. 자동완성 바 undo/redo 기능을 추가한다.
    - `KeyboardUndoRedoManager`가 키보드 세션 동안 텍스트 변경 기록을 보관한다.
-   - 입력 중 변경은 pending undo 단위로 묶고, 1초 debounce가 지나면 undo stack에 확정한다.
+   - 입력 중 변경은 pending undo 단위로 묶고, 0.8초 debounce가 지나면 undo stack에 확정한다.
+   - 스페이스/엔터 입력은 현재 undo group을 즉시 확정하는 명시적 편집 경계로 처리한다.
+   - 입력과 삭제가 전환되면 기존 pending group을 확정하고 새 group을 시작한다.
    - debounce 확정 전에도 pending 변경이 있으면 undo 버튼은 활성화한다.
    - redo stack은 undo 이후 새 입력이 발생하면 비운다.
    - undo/redo 적용 후에는 커서/외부 텍스트와 `inputBuffer`가 섞이지 않도록 `resetInputBuffer()`를 호출한다.
@@ -38,6 +40,7 @@ Last Updated: 2026-05-21
 - 반복 입력 경로에서 리턴 버튼 feedback과 일반 입력 경로의 후처리 순서가 달라지면 회귀가 생길 수 있다.
 - 키보드 extension은 입력 지연에 민감하므로 undo/redo 상태 추적은 가볍게 유지해야 한다.
 - 현재 undo/redo 기록은 세션 메모리 전용이며 키보드 dismiss 시 `viewWillDisappear`에서 비운다.
+- 한글 조합 중에는 pending group 확정을 지연하므로, space가 천지인/나랏글/두벌식 조합 확정으로 쓰이는 경우에도 조합 버퍼가 비워진 뒤 확정해야 한다.
 
 ## Verification
 
@@ -80,4 +83,5 @@ xcodebuild build \
 
 - 선행 리팩토링은 리턴 버튼 동작 변경 없이 전용 처리 진입점을 만든다.
 - undo/redo 기능 추가 시 자동완성 ON/OFF, undo/redo 설정 ON/OFF, 버튼 활성화 상태, 일반 리턴 입력, 반복 입력 경로가 모두 의도대로 동작한다.
+- undo group은 스페이스, 엔터, 입력↔삭제 전환, 백스페이스 시작에서 예측 가능한 경계로 나뉜다.
 - 큰 리팩토링은 기능 추가와 별도 변경으로 진행하고, 각 단계마다 빌드 또는 테스트 결과를 기록한다.

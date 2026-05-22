@@ -34,7 +34,7 @@ protocol SuggestionBarDelegate: AnyObject {
 final class SuggestionBarView: UIView {
     
     // MARK: - Properties
-    
+
     weak var keyboardHStackView: UIView?
     weak var suggestionDelegate: SuggestionBarDelegate?
     
@@ -296,7 +296,7 @@ private extension SuggestionBarView {
 
         [undoButton, redoButton].forEach {
             $0.translatesAutoresizingMaskIntoConstraints = false
-            $0.widthAnchor.constraint(equalToConstant: 40).isActive = true
+            $0.widthAnchor.constraint(equalToConstant: 44).isActive = true
             $0.heightAnchor.constraint(equalTo: buttonContainerHStackView.heightAnchor).isActive = true
         }
     }
@@ -384,6 +384,8 @@ private final class SuggestionActionButtonView: UIView {
 
     // MARK: - Properties
 
+    private let cornerRadius: CGFloat
+
     var isHighlighted: Bool = false {
         didSet {
             backgroundView.backgroundColor = isHighlighted ? .suggestionButtonPressed : .clear
@@ -392,18 +394,18 @@ private final class SuggestionActionButtonView: UIView {
 
     var isEnabled: Bool = false {
         didSet {
-            imageView.alpha = isEnabled ? 1.0 : 0.32
+            imageView.alpha = isEnabled ? 1.0 : 0.6
             accessibilityTraits = isEnabled ? .button : [.button, .notEnabled]
         }
     }
 
     // MARK: - UI Components
 
-    private let backgroundView: UIView = {
+    private lazy var backgroundView: UIView = {
         let view = UIView()
         view.isUserInteractionEnabled = false
         view.clipsToBounds = true
-        view.layer.cornerRadius = 4.6
+        view.layer.cornerRadius = cornerRadius
 
         return view
     }()
@@ -420,6 +422,11 @@ private final class SuggestionActionButtonView: UIView {
     // MARK: - Initializer
 
     init(systemName: String) {
+        if #available(iOS 26, *) {
+            self.cornerRadius = (KeyboardLayoutFigure.suggestionBarHeightWithTopSpacing - KeyboardLayoutFigure.keyboardFrameSpacing) / 2
+        } else {
+            self.cornerRadius = 4.6
+        }
         super.init(frame: .zero)
         imageView.image = UIImage(systemName: systemName)
         setupUI()

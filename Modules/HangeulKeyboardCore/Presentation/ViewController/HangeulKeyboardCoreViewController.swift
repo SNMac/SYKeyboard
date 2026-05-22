@@ -330,6 +330,7 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
             lastInputText = nil
         }
         
+        commitUndoRedoGroupIfPossible()
         updateSpaceButtonImage()
     }
     
@@ -341,6 +342,7 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
         clearAllBuffers()
         processor.reset한글조합()
         lastInputText = nil
+        commitUndoRedoGroupIfPossible()
         updateSpaceButtonImage()
     }
     

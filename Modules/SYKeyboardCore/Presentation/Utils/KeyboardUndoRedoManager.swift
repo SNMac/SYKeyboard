@@ -28,6 +28,94 @@ struct KeyboardTextContextSnapshot: Equatable {
     let afterInput: String?
 }
 
+struct KeyboardTextContextNavigator {
+
+    // MARK: - Internal Methods
+
+    static func cursorOffset(
+        from source: KeyboardTextContextSnapshot,
+        to target: KeyboardTextContextSnapshot
+    ) -> Int? {
+        if context(source, matches: target) { return 0 }
+
+        let maxLeftDistance = source.beforeInput?.count ?? 0
+        let maxRightDistance = source.afterInput?.count ?? 0
+        let maxDistance = max(maxLeftDistance, maxRightDistance)
+
+        guard maxDistance > 0 else { return nil }
+
+        for distance in 1...maxDistance {
+            if distance <= maxLeftDistance,
+               let movedContext = context(source, movingBy: -distance),
+               context(movedContext, matches: target) {
+                return -distance
+            }
+
+            if distance <= maxRightDistance,
+               let movedContext = context(source, movingBy: distance),
+               context(movedContext, matches: target) {
+                return distance
+            }
+        }
+
+        return nil
+    }
+
+    // MARK: - Private Methods
+
+    private static func context(
+        _ source: KeyboardTextContextSnapshot,
+        movingBy offset: Int
+    ) -> KeyboardTextContextSnapshot? {
+        guard offset != 0 else { return source }
+
+        if offset < 0 {
+            guard let beforeInput = source.beforeInput else { return nil }
+
+            let distance = abs(offset)
+            let movedText = String(beforeInput.suffix(distance))
+            let nextBeforeInput = String(beforeInput.dropLast(distance))
+            let nextAfterInput = movedText + (source.afterInput ?? "")
+
+            return KeyboardTextContextSnapshot(
+                beforeInput: nextBeforeInput,
+                afterInput: nextAfterInput
+            )
+        } else {
+            guard let afterInput = source.afterInput else { return nil }
+
+            let movedText = String(afterInput.prefix(offset))
+            let nextBeforeInput = (source.beforeInput ?? "") + movedText
+            let nextAfterInput = String(afterInput.dropFirst(offset))
+
+            return KeyboardTextContextSnapshot(
+                beforeInput: nextBeforeInput,
+                afterInput: nextAfterInput
+            )
+        }
+    }
+
+    private static func context(
+        _ source: KeyboardTextContextSnapshot,
+        matches target: KeyboardTextContextSnapshot
+    ) -> Bool {
+        return beforeContext(source.beforeInput, matches: target.beforeInput)
+        && afterContext(source.afterInput, matches: target.afterInput)
+    }
+
+    private static func beforeContext(_ source: String?, matches target: String?) -> Bool {
+        guard let target else { return true }
+        guard !target.isEmpty else { return source?.isEmpty != false }
+        return source?.hasSuffix(target) == true
+    }
+
+    private static func afterContext(_ source: String?, matches target: String?) -> Bool {
+        guard let target else { return true }
+        guard !target.isEmpty else { return source?.isEmpty != false }
+        return source?.hasPrefix(target) == true
+    }
+}
+
 struct KeyboardUndoRedoManager {
 
     // MARK: - Properties
@@ -67,12 +155,19 @@ struct KeyboardUndoRedoManager {
             redoTargetContext: nil
         )
 
+        guard !mutation.isNoop else { return }
+
         redoStack.removeAll()
 
-        if pendingMutation != nil {
-            pendingMutation?.merge(with: mutation)
-            if pendingMutation?.isNoop == true {
-                pendingMutation = nil
+        if let currentPendingMutation = pendingMutation {
+            if currentPendingMutation.shouldStartNewGroup(before: mutation) {
+                commitPendingGroup()
+                pendingMutation = mutation
+            } else {
+                pendingMutation?.merge(with: mutation)
+                if pendingMutation?.isNoop == true {
+                    pendingMutation = nil
+                }
             }
         } else {
             pendingMutation = mutation
@@ -152,10 +247,23 @@ private struct KeyboardTextMutation {
     }
 
     var isNoop: Bool {
-        return deletedText.isEmpty && insertedText.isEmpty
+        return deletedText == insertedText
+    }
+
+    private var isPureInsertion: Bool {
+        return deletedText.isEmpty && !insertedText.isEmpty
+    }
+
+    private var isPureDeletion: Bool {
+        return !deletedText.isEmpty && insertedText.isEmpty
     }
 
     // MARK: - Internal Methods
+
+    func shouldStartNewGroup(before other: KeyboardTextMutation) -> Bool {
+        return (isPureInsertion && other.isPureDeletion)
+        || (isPureDeletion && other.isPureInsertion)
+    }
 
     mutating func merge(with other: KeyboardTextMutation) {
         if insertedText.isEmpty && other.insertedText.isEmpty {

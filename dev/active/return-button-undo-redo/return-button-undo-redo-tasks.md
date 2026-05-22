@@ -22,8 +22,15 @@ Last Updated: 2026-05-22
 - [x] 한글 조합 중에는 천지인/나랏글/두벌식 모두 undo stack 확정을 지연한다.
 - [x] cursor 이동만으로 undo/redo history를 초기화하지 않도록 text context 변경 감지를 완화한다.
 - [x] cursor 이동 후 undo/redo 실행 시 저장된 context anchor로 편집 위치 복원을 시도한다.
+- [x] undo debounce 간격을 0.8초로 조정한다.
+- [x] 스페이스 입력 시 pending undo group을 즉시 확정한다.
+- [x] 엔터 입력 시 pending undo group을 즉시 확정한다.
+- [x] 단일 백스페이스 시작 시 기존 pending undo group을 확정한다.
+- [x] 입력↔삭제 전환 시 기존 pending undo group을 확정하고 새 group을 시작한다.
+- [x] 입력↔삭제 전환 테스트를 먼저 실패시킨 뒤 통과를 확인한다.
 - [x] 전체 `SYKeyboard` 테스트 통과를 확인한다.
 - [x] 한글 키보드 extension 빌드를 확인한다.
 - [x] 영문 키보드 extension 빌드를 확인한다.
+- [x] 작업 문서에 최신 undo group 규칙과 검증 결과를 반영한다.
 - [ ] 실제 입력 앱에서 자동완성 바 undo/redo 버튼 표시, 활성화, 버튼 폭을 수동 확인한다.
 - [ ] 기능 추가 이후 `BaseKeyboardViewController` 큰 리팩토링 범위를 다시 확정한다.

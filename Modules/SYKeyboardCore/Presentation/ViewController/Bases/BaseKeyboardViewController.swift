@@ -115,7 +115,7 @@ open class BaseKeyboardViewController: UIInputViewController {
     /// undo/redo 기록을 문서 편집기처럼 묶기 위한 debounce 타이머
     private var undoRedoDebounceTimer: AnyCancellable?
     /// undo/redo 기록 묶음 확정까지 기다리는 시간
-    private let undoRedoDebounceInterval: TimeInterval = 1.0
+    private let undoRedoDebounceInterval: TimeInterval = 0.8
     /// undo/redo 적용 중 텍스트 래퍼가 새 기록을 만들지 않도록 막는 플래그
     private var isApplyingUndoRedoEdit: Bool = false
     /// 조합 등으로 인해 debounce 시점에 undo 단위를 아직 확정하지 못했는지 여부
@@ -383,6 +383,7 @@ open class BaseKeyboardViewController: UIInputViewController {
         suggestionController.recordUncommittedWords(from: inputBuffer)
         
         insertText(" ")
+        commitUndoRedoGroupIfPossible()
     }
     
     /// 개행 문자를 입력하는 메서드
@@ -392,8 +393,9 @@ open class BaseKeyboardViewController: UIInputViewController {
         
         suggestionController.endSentence(inputBuffer: inputBuffer)
         
-        recordUndoRedoChange(deletedText: "", insertedText: "\n")
         textDocumentProxy.insertText("\n")
+        recordUndoRedoChange(deletedText: "", insertedText: "\n")
+        commitUndoRedoGroupIfPossible()
         resetInputBuffer()
         suggestionController.clearReplacementHistory()
     }
@@ -415,6 +417,7 @@ open class BaseKeyboardViewController: UIInputViewController {
 
     /// 삭제가 일어나기 전 실행되는 메서드
     open func deleteBackwardWillPerform() {
+        commitUndoRedoGroupIfPossible()
         handlePeriodShortcutOnDelete()
     }
     
@@ -548,6 +551,11 @@ extension BaseKeyboardViewController {
     /// 조합 확정 지연 요청이 있었고 현재 확정 가능한 상태라면 pending undo 단위를 stack에 반영합니다.
     public final func commitDeferredUndoRedoGroupIfNeeded() {
         guard needsDeferredUndoRedoCommit else { return }
+        commitPendingUndoRedoGroup()
+    }
+
+    /// 스페이스/리턴처럼 사용자가 명시적인 편집 경계를 만든 경우 pending undo 단위를 확정합니다.
+    public final func commitUndoRedoGroupIfPossible() {
         commitPendingUndoRedoGroup()
     }
     
@@ -1179,7 +1187,10 @@ private extension BaseKeyboardViewController {
     func restoreTextPositionIfPossible(to targetContext: KeyboardTextContextSnapshot?) -> Bool {
         guard let targetContext else { return true }
 
-        guard let offset = cursorOffset(from: currentTextContextSnapshot(), to: targetContext) else {
+        guard let offset = KeyboardTextContextNavigator.cursorOffset(
+            from: currentTextContextSnapshot(),
+            to: targetContext
+        ) else {
             return false
         }
 
@@ -1193,97 +1204,7 @@ private extension BaseKeyboardViewController {
         from source: KeyboardTextContextSnapshot,
         to target: KeyboardTextContextSnapshot
     ) -> Bool {
-        return cursorOffset(from: source, to: target) != nil
-    }
-
-    func cursorOffset(
-        from source: KeyboardTextContextSnapshot,
-        to target: KeyboardTextContextSnapshot
-    ) -> Int? {
-        if context(source, matches: target) { return 0 }
-
-        let maxLeftDistance = source.beforeInput?.count ?? 0
-        let maxRightDistance = source.afterInput?.count ?? 0
-        let maxDistance = max(maxLeftDistance, maxRightDistance)
-
-        guard maxDistance > 0 else { return nil }
-
-        for distance in 1...maxDistance {
-            if distance <= maxLeftDistance,
-               let movedContext = context(source, movingBy: -distance),
-               context(movedContext, matches: target) {
-                return -distance
-            }
-
-            if distance <= maxRightDistance,
-               let movedContext = context(source, movingBy: distance),
-               context(movedContext, matches: target) {
-                return distance
-            }
-        }
-
-        return nil
-    }
-
-    func context(
-        _ source: KeyboardTextContextSnapshot,
-        movingBy offset: Int
-    ) -> KeyboardTextContextSnapshot? {
-        guard offset != 0 else { return source }
-
-        if offset < 0 {
-            guard let beforeInput = source.beforeInput else { return nil }
-
-            let distance = abs(offset)
-            let movedText = String(beforeInput.suffix(distance))
-            let nextBeforeInput = String(beforeInput.dropLast(distance))
-            let nextAfterInput = movedText + (source.afterInput ?? "")
-
-            return KeyboardTextContextSnapshot(
-                beforeInput: nextBeforeInput,
-                afterInput: nextAfterInput
-            )
-        } else {
-            guard let afterInput = source.afterInput else { return nil }
-
-            let movedText = String(afterInput.prefix(offset))
-            let nextBeforeInput = (source.beforeInput ?? "") + movedText
-            let nextAfterInput = String(afterInput.dropFirst(offset))
-
-            return KeyboardTextContextSnapshot(
-                beforeInput: nextBeforeInput,
-                afterInput: nextAfterInput
-            )
-        }
-    }
-
-    func context(
-        _ source: KeyboardTextContextSnapshot,
-        matches target: KeyboardTextContextSnapshot
-    ) -> Bool {
-        let matchesBeforeInput: Bool
-        if let targetBeforeInput = target.beforeInput {
-            if targetBeforeInput.isEmpty {
-                matchesBeforeInput = source.beforeInput?.isEmpty == true
-            } else {
-                matchesBeforeInput = source.beforeInput?.hasSuffix(targetBeforeInput) == true
-            }
-        } else {
-            matchesBeforeInput = true
-        }
-
-        let matchesAfterInput: Bool
-        if let targetAfterInput = target.afterInput {
-            if targetAfterInput.isEmpty {
-                matchesAfterInput = source.afterInput?.isEmpty == true
-            } else {
-                matchesAfterInput = source.afterInput?.hasPrefix(targetAfterInput) == true
-            }
-        } else {
-            matchesAfterInput = true
-        }
-
-        return matchesBeforeInput && matchesAfterInput
+        return KeyboardTextContextNavigator.cursorOffset(from: source, to: target) != nil
     }
 
     func updateSuggestions() {
