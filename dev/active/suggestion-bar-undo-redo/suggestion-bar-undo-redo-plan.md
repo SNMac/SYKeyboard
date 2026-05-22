@@ -9,7 +9,7 @@ Last Updated: 2026-05-22
 ## Current State
 
 - 브랜치명은 `feat/#31-undo-redo`이다.
-- `Modules/SYKeyboardCore/Presentation/ViewController/Bases/BaseKeyboardViewController.swift`는 undo/redo 세션 상태 분리 후 `wc -l` 기준 1388줄이며, 버튼 액션, 텍스트 프록시 래퍼, 제스처 delegate, suggestion 연동은 아직 한 파일에 남아 있다.
+- `Modules/SYKeyboardCore/Presentation/ViewController/Bases/BaseKeyboardViewController.swift`는 suggestion 선택 흐름 분리 후 `wc -l` 기준 1403줄이며, 버튼 액션, 텍스트 프록시 래퍼, 제스처 delegate는 아직 한 파일에 남아 있다.
 - 리턴 버튼 단일/반복 입력은 `performReturnButtonTextInteraction()`과 `performRepeatReturnButtonTextInteraction(for:)`로 분리되어 있다.
 - 리턴 버튼 drag undo/redo 설계는 폐기했다. QWERTY 배열에서 redo 드래그가 불편하고, 추후 클립보드 UI와 제스처 책임이 충돌할 수 있기 때문이다.
 - undo/redo는 자동완성 바가 보이고 `isUndoRedoEnabled`가 켜진 경우에만 우측 버튼으로 제공한다.
@@ -42,9 +42,12 @@ Last Updated: 2026-05-22
    - `BaseKeyboardViewController`에는 실제 `textDocumentProxy` 조작, `undoRedoEditDidApply()` hook 호출, return/suggestion UI 갱신만 남긴다.
    - `applyUndoRedoEdit(_:)` 내부의 적용 순서와 `commitUndoRedoGroupIgnoringCompositionDeferral()`의 조합 지연 무시 동작은 바꾸지 않는다.
    - 첫 리팩토링에서는 suggestion 선택 흐름, 버튼 액션 세팅, gesture delegate를 함께 이동하지 않는다. 검증 가능한 단위로 쪼개기 위한 결정이다.
-5. 다음 리팩토링 후보는 suggestion 선택 흐름의 메서드 분리다.
+5. 2차 리팩토링은 suggestion 선택 흐름의 메서드 분리로 제한한다.
    - 아직 별도 coordinator로 분리하지 않는다.
-   - 먼저 `SuggestionBarDelegate`의 selected text, n-gram, 현재 단어 확정, input buffer suggestion 경로를 작은 private 메서드로 나누는 정도로 제한한다.
+   - `SuggestionBarDelegate`의 selected text, n-gram, 현재 단어 확정, input buffer suggestion 경로를 작은 private 메서드로 나눈다.
+   - selected text나 n-gram mode에서 후보 선택이 실패하면 기존처럼 이후 input buffer suggestion 경로로 떨어지지 않고 해당 분기에서 종료한다.
+6. 다음 리팩토링 후보는 버튼 action binding 또는 gesture delegate 분리다.
+   - 기능 차이가 생기기 쉬운 입력 실행 순서보다, 설정/연결 책임처럼 검증 가능한 구조 분리부터 검토한다.
 
 ## Risks
 

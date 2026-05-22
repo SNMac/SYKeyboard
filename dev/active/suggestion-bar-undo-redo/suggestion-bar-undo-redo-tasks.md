@@ -49,4 +49,8 @@ Last Updated: 2026-05-22
 - [x] 리팩토링 후 `SYKeyboardCore` 빌드를 실행한다.
 - [x] 리팩토링 후 전체 `SYKeyboard` 테스트를 실행한다.
 - [x] 리팩토링 결과와 검증 결과를 작업 문서에 기록한다.
-- [ ] 다음 단계로 `SuggestionBarDelegate`의 suggestion 선택 흐름을 동작 변경 없이 작은 private 메서드로 분리한다.
+- [x] 다음 단계로 `SuggestionBarDelegate`의 suggestion 선택 흐름을 동작 변경 없이 작은 private 메서드로 분리한다.
+- [x] suggestion 선택 흐름 분리 후 `SYKeyboardCore` 빌드를 실행한다.
+- [x] suggestion 선택 흐름 분리 후 전체 `SYKeyboard` 테스트를 실행한다.
+- [x] suggestion 선택 흐름 분리 결과와 검증 결과를 작업 문서에 기록한다.
+- [ ] 다음 단계로 버튼 action binding 또는 gesture delegate 분리 범위를 확정한다.

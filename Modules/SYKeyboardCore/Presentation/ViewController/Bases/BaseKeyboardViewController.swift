@@ -1312,70 +1312,10 @@ extension BaseKeyboardViewController: SuggestionControllerDelegate {
 
 extension BaseKeyboardViewController: SuggestionBarDelegate {
     final func suggestionBar(_ bar: SuggestionBarView, didSelectSuggestionAt index: Int) {
-        if let selectedText = textDocumentProxy.selectedText, !selectedText.isEmpty {
-            if index == 0 {
-                // 현재 선택된 단어 확정, 후보 비우기
-                suggestionController.clearSuggestions()
-                return
-            }
-            
-            let suggestionIndex = index - 1
-            guard suggestionIndex >= 0,
-                  let result = suggestionController.selectSuggestion(
-                    at: suggestionIndex,
-                    baseText: selectedText
-                  ) else { return }
-            
-            // selectedText가 있는 상태에서 insertText하면
-            // 시스템이 선택 영역을 자동 교체
-            recordUndoRedoChange(deletedText: selectedText, insertedText: result.insertText)
-            textDocumentProxy.insertText(result.insertText)
-            inputBuffer.append(result.insertText)
-            
-            suggestionDidApply()
-            updateSuggestions()
-            return
-        }
-        
-        if suggestionController.currentMode == .nGram {
-            guard let word = suggestionController.nGramSuggestionText(at: index) else { return }
-            
-            let needsLeadingSpace = !inputBuffer.isEmpty && inputBuffer.last?.isWhitespace != true
-            if needsLeadingSpace {
-                insertText(" ")
-            }
-            
-            insertText(word)
-            
-            suggestionDidApply()
-            
-            suggestionController.updateSuggestionsAfterNGramSelection(inputBuffer: inputBuffer)
-            return
-        }
-        
-        if index == 0 {
-            let currentWord = inputBuffer.split(whereSeparator: { $0.isWhitespace }).last.map(String.init) ?? ""
-            if !currentWord.isEmpty {
-                suggestionController.learnWord(currentWord)
-                suggestionController.recordWord(currentWord)
-            }
-            suggestionController.clearSuggestions()
-            return
-        }
-        
-        let suggestionIndex = index - 1
-        
-        guard let result = suggestionController.selectSuggestion(
-            at: suggestionIndex,
-            baseText: inputBuffer
-        ) else { return }
-        
-        replaceText(deleteCount: result.deleteCount, insert: result.insertText)
-        
-        suggestionController.recordWord(result.insertText)
-        
-        suggestionDidApply()
-        updateSuggestions()
+        if handleSelectedTextSuggestion(at: index) { return }
+        if handleNGramSuggestion(at: index) { return }
+        if handleCurrentWordConfirmationIfNeeded(at: index) { return }
+        handleInputBufferSuggestion(at: index)
     }
 
     final func suggestionBarDidTapUndo(_ bar: SuggestionBarView) {
@@ -1384,5 +1324,80 @@ extension BaseKeyboardViewController: SuggestionBarDelegate {
 
     final func suggestionBarDidTapRedo(_ bar: SuggestionBarView) {
         performRedo()
+    }
+}
+
+private extension BaseKeyboardViewController {
+    func handleSelectedTextSuggestion(at index: Int) -> Bool {
+        guard let selectedText = textDocumentProxy.selectedText,
+              !selectedText.isEmpty else { return false }
+
+        if index == 0 {
+            // 현재 선택된 단어 확정, 후보 비우기
+            suggestionController.clearSuggestions()
+            return true
+        }
+
+        let suggestionIndex = index - 1
+        guard suggestionIndex >= 0,
+              let result = suggestionController.selectSuggestion(
+                at: suggestionIndex,
+                baseText: selectedText
+              ) else { return true }
+
+        // selectedText가 있는 상태에서 insertText하면
+        // 시스템이 선택 영역을 자동 교체
+        recordUndoRedoChange(deletedText: selectedText, insertedText: result.insertText)
+        textDocumentProxy.insertText(result.insertText)
+        inputBuffer.append(result.insertText)
+
+        suggestionDidApply()
+        updateSuggestions()
+        return true
+    }
+
+    func handleNGramSuggestion(at index: Int) -> Bool {
+        guard suggestionController.currentMode == .nGram else { return false }
+        guard let word = suggestionController.nGramSuggestionText(at: index) else { return true }
+
+        let needsLeadingSpace = !inputBuffer.isEmpty && inputBuffer.last?.isWhitespace != true
+        if needsLeadingSpace {
+            insertText(" ")
+        }
+
+        insertText(word)
+
+        suggestionDidApply()
+
+        suggestionController.updateSuggestionsAfterNGramSelection(inputBuffer: inputBuffer)
+        return true
+    }
+
+    func handleCurrentWordConfirmationIfNeeded(at index: Int) -> Bool {
+        guard index == 0 else { return false }
+
+        let currentWord = inputBuffer.split(whereSeparator: { $0.isWhitespace }).last.map(String.init) ?? ""
+        if !currentWord.isEmpty {
+            suggestionController.learnWord(currentWord)
+            suggestionController.recordWord(currentWord)
+        }
+        suggestionController.clearSuggestions()
+        return true
+    }
+
+    func handleInputBufferSuggestion(at index: Int) {
+        let suggestionIndex = index - 1
+
+        guard let result = suggestionController.selectSuggestion(
+            at: suggestionIndex,
+            baseText: inputBuffer
+        ) else { return }
+
+        replaceText(deleteCount: result.deleteCount, insert: result.insertText)
+
+        suggestionController.recordWord(result.insertText)
+
+        suggestionDidApply()
+        updateSuggestions()
     }
 }
