@@ -571,12 +571,34 @@ extension BaseKeyboardViewController {
     /// `nil`을 반환하여 중복 학습을 방지합니다.
     private func extractLastWord(from buffer: String) -> String? {
         guard !buffer.isEmpty, !buffer.last!.isWhitespace else { return nil }
-        
+
         if let spaceIndex = buffer.lastIndex(where: { $0.isWhitespace }) {
             return String(buffer[buffer.index(after: spaceIndex)...])
         } else {
             return buffer
         }
+    }
+}
+
+// MARK: - Text Proxy Wrapper Helper Methods
+
+private extension BaseKeyboardViewController {
+    func replaceTextInDocument(deleteCount: Int, insert text: String) {
+        for _ in 0..<deleteCount {
+            textDocumentProxy.deleteBackward()
+        }
+        if !text.isEmpty {
+            textDocumentProxy.insertText(text)
+        }
+    }
+
+    func replaceInputBufferSuffix(deleteCount: Int, insert text: String) {
+        if inputBuffer.count >= deleteCount {
+            inputBuffer.removeLast(deleteCount)
+        } else {
+            inputBuffer = ""
+        }
+        inputBuffer.append(text)
     }
 }
 
@@ -1017,24 +1039,6 @@ extension BaseKeyboardViewController {
 // MARK: - Private Methods
 
 private extension BaseKeyboardViewController {
-    func replaceTextInDocument(deleteCount: Int, insert text: String) {
-        for _ in 0..<deleteCount {
-            textDocumentProxy.deleteBackward()
-        }
-        if !text.isEmpty {
-            textDocumentProxy.insertText(text)
-        }
-    }
-
-    func replaceInputBufferSuffix(deleteCount: Int, insert text: String) {
-        if inputBuffer.count >= deleteCount {
-            inputBuffer.removeLast(deleteCount)
-        } else {
-            inputBuffer = ""
-        }
-        inputBuffer.append(text)
-    }
-
     func performUndo() {
         guard isUndoRedoFeatureAvailable else { return }
 

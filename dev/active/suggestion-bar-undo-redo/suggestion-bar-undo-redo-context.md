@@ -59,6 +59,9 @@ Last Updated: 2026-05-22
 - 리턴 입력은 `suggestionController.endSentence(inputBuffer:)` 뒤 newline을 직접 삽입하고, undo 기록 확정 뒤 `resetInputBuffer()`를 호출하는 특수 경로다.
 - selected text suggestion은 시스템 선택 영역 자동 교체를 유지하려고 `textDocumentProxy.insertText`를 직접 호출하고, undo deleted text를 selected text로 기록하는 특수 경로다.
 - undo/redo 적용은 기존 history에 다시 기록되면 안 되므로 wrapper를 타지 않고 `undoRedoSession.performApplyingEdit` 안에서 직접 `textDocumentProxy`를 조작한다.
+- 텍스트 프록시 wrapper의 별도 타입 추출은 보류했다. 별도 타입이 `inputBuffer`, `suggestionController`, undo/redo 기록, selected text 자동 교체, return 특수 처리, undo/redo 직접 적용 예외를 모두 알아야 해 책임이 더 커진다고 판단했다.
+- `replaceTextInDocument(deleteCount:insert:)`와 `replaceInputBufferSuffix(deleteCount:insert:)`는 `Text Proxy Wrapper Helper Methods` 섹션으로 이동해 wrapper 근처에 모았다.
+- 현재까지 후보였던 undo/redo 세션 상태, suggestion 선택 흐름, 버튼 action binding, gesture delegate, text proxy wrapper는 모두 한 차례 정리했다. 추가 타입 추출은 현 단계에서 보류한다.
 - 2026-05-22 현재 5차 리팩토링 변경은 아직 커밋하지 않았다. `git status --short --untracked-files=all`의 미커밋 파일은 `Modules/SYKeyboardCore/Presentation/ViewController/Bases/BaseKeyboardViewController.swift`와 `dev/active/suggestion-bar-undo-redo/` 문서 3종이다.
 
 ## Decisions
@@ -85,6 +88,7 @@ Last Updated: 2026-05-22
 - 버튼 action binding 리팩토링은 새 타입 추출 없이 `BaseKeyboardViewController` 내부 helper 정리로 제한한다. 버튼 이벤트 타이밍과 gesture 조건이 실제 키보드 동작에 직접 영향을 주므로, control event 변경 없이 중복 목록 계산과 action 생성만 분리한다.
 - gesture delegate 리팩토링은 callback 본문을 private helper로 나누는 수준으로 제한한다. `TextInteractionGestureController`와 `SwitchGestureController`의 delegate protocol, gesture recognizer wiring, 입력/삭제 실행 순서는 바꾸지 않는다.
 - 텍스트 프록시 wrapper 리팩토링은 새 타입 추출보다 먼저 현재 예외 경로를 명시한다. selected text, return, undo/redo 경로는 기록과 버퍼 갱신 순서가 달라 일반 wrapper와 합치지 않는다.
+- wrapper 별도 타입 추출은 하지 않는다. 현재 구조에서는 helper를 wrapper 섹션 주변에 두는 편이 기능 동일성을 보존하기 쉽다.
 
 ## Open Questions
 
@@ -92,11 +96,21 @@ Last Updated: 2026-05-22
 - 실제 텍스트 입력 앱에서 undo/redo 버튼 크기와 자동완성 후보 폭이 손에 맞는지 수동 확인이 필요하다.
 - 실제 한글 키보드에서 `안녕핫 -> 백스페이스 -> 안녕하 -> undo -> 안녕핫`과 undo/redo 후 새 한글 입력이 이전 조합과 섞이지 않는지 수동 확인이 필요하다.
 - suggestion 선택 흐름의 별도 coordinator 추출은 보류한다. private helper 분리 뒤에도 `inputBuffer`와 `textDocumentProxy` 직접 접근이 남아 있어, coordinator 추출은 텍스트 프록시 wrapper 정리 이후 다시 판단한다.
-- 다음 리팩토링 후보는 텍스트 프록시 wrapper를 별도 타입으로 뺄 수 있는지 판단하는 것이다.
+- 현재 `BaseKeyboardViewController` 리팩토링은 추가 타입 추출 없이 마무리한다. 다음 작업은 현재 미커밋 5차 리팩토링을 커밋하기 전 diff와 검증 범위를 확인하는 것이다.
 
 ## Verification Notes
 
 - 선행 리팩토링 후 아래 명령을 실행했다.
+
+```sh
+xcodebuild build \
+  -project SYKeyboard.xcodeproj \
+  -scheme SYKeyboardCore \
+  -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0'
+```
+
+- wrapper helper 섹션 이동 후 작업 범위 파일 기준 `git diff --check`가 통과했다.
+- wrapper helper 섹션 이동 후 `SYKeyboardCore` 빌드가 통과했다.
 
 ```sh
 xcodebuild build \

@@ -69,4 +69,10 @@ Last Updated: 2026-05-22
 - [x] 5차 리팩토링 후 `SYKeyboardCore` 빌드를 실행한다.
 - [x] 5차 리팩토링 후 `git diff --check`를 실행한다.
 - [x] 5차 리팩토링 결과와 검증 결과를 작업 문서에 기록한다.
-- [ ] 다음 단계로 텍스트 프록시 wrapper의 별도 타입 추출 가능성을 판단한다.
+- [x] 다음 단계로 텍스트 프록시 wrapper의 별도 타입 추출 가능성을 판단한다.
+- [x] 텍스트 프록시 wrapper 별도 타입 추출 보류 결정을 문서화한다.
+- [x] wrapper helper를 `Text Proxy Wrapper Helper Methods` 섹션으로 이동한다.
+- [x] wrapper helper 섹션 이동 후 `SYKeyboardCore` 빌드를 실행한다.
+- [x] wrapper helper 섹션 이동 후 `git diff --check`를 실행한다.
+- [x] 현재까지의 `BaseKeyboardViewController` 리팩토링 마무리 기준을 재평가한다.
+- [ ] 5차 리팩토링 커밋 전 전체 diff와 검증 범위를 확인한다.

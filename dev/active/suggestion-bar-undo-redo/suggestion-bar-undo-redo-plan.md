@@ -9,7 +9,7 @@ Last Updated: 2026-05-22
 ## Current State
 
 - 브랜치명은 `feat/#31-undo-redo`이다.
-- `Modules/SYKeyboardCore/Presentation/ViewController/Bases/BaseKeyboardViewController.swift`는 `replaceText` 내부 단계 분리 후 `wc -l` 기준 1455줄이며, 텍스트 프록시 래퍼는 아직 한 파일에 남아 있다.
+- `Modules/SYKeyboardCore/Presentation/ViewController/Bases/BaseKeyboardViewController.swift`는 wrapper helper 섹션 이동 후 `wc -l` 기준 1459줄이다.
 - 리턴 버튼 단일/반복 입력은 `performReturnButtonTextInteraction()`과 `performRepeatReturnButtonTextInteraction(for:)`로 분리되어 있다.
 - 리턴 버튼 drag undo/redo 설계는 폐기했다. QWERTY 배열에서 redo 드래그가 불편하고, 추후 클립보드 UI와 제스처 책임이 충돌할 수 있기 때문이다.
 - undo/redo는 자동완성 바가 보이고 `isUndoRedoEnabled`가 켜진 경우에만 우측 버튼으로 제공한다.
@@ -62,8 +62,13 @@ Last Updated: 2026-05-22
    - selected text suggestion은 시스템 선택 영역 자동 교체를 위해 `textDocumentProxy.insertText`를 직접 호출하고, deleted text를 selected text로 기록하는 특수 경로로 유지한다.
    - undo/redo 적용은 기존 history에 다시 기록되면 안 되므로 wrapper를 타지 않고 직접 `textDocumentProxy`를 조작하는 특수 경로로 유지한다.
    - 코드 변경은 `replaceText` 내부의 문서 삭제/삽입과 `inputBuffer` suffix 갱신을 helper로 나누는 정도로 제한한다.
-9. 다음 리팩토링 후보는 텍스트 프록시 wrapper를 별도 타입으로 뺄 수 있는지 판단하는 것이다.
-   - selected text, return, undo/redo 같은 예외 경로를 새 타입이 과도하게 알게 되면 추출하지 않는다.
+9. 텍스트 프록시 wrapper의 별도 타입 추출은 보류한다.
+   - selected text, return, undo/redo 같은 예외 경로를 새 타입이 과도하게 알게 된다.
+   - 대신 wrapper helper를 `Text Proxy Wrapper Helper Methods` 섹션으로 모아 현재 파일 안에서 응집도를 높인다.
+10. 다음 리팩토링 후보는 현재까지의 `BaseKeyboardViewController` 리팩토링을 마무리하고, 추가 분리가 기능 동일성을 해치지 않는지 재평가하는 것이다.
+   - 현재 후보였던 undo/redo 세션 상태, suggestion 선택 흐름, 버튼 action binding, gesture delegate, text proxy wrapper는 모두 한 차례 정리했다.
+   - 추가 타입 추출은 새 책임 경계가 명확해질 때만 진행한다.
+   - 현 단계의 다음 작업은 현재 미커밋 5차 리팩토링을 커밋하기 전 전체 diff와 검증 범위를 확인하는 것이다.
 
 ## Risks
 
@@ -123,3 +128,4 @@ xcodebuild build \
 - 한글 undo/redo 후 내부 조합 버퍼가 남지 않는다.
 - 큰 리팩토링은 기능 추가와 별도 변경으로 진행하고, 각 단계마다 빌드 또는 테스트 결과를 기록한다.
 - undo/redo 세션 리팩토링은 리팩토링 전후 `canUndo`/`canRedo`, debounce 확정, 조합 확정 지연, focus 변경 history 무효화, undo/redo 적용 순서가 동일해야 한다.
+- 현재 `BaseKeyboardViewController` 리팩토링은 추가 타입 추출 없이 마무리한다. 이후 리팩토링은 새 버그, 새 기능, 또는 명확한 중복이 생겼을 때 별도 계획으로 진행한다.
