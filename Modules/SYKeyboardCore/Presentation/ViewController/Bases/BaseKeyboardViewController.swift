@@ -730,7 +730,11 @@ private extension BaseKeyboardViewController {
         case .keyButton(primary: ["'"], secondary: nil):
             let switchToPrimaryKeyboard = UIAction { [weak self] _ in
                 guard let self else { return }
-                if textDocumentProxy.keyboardType != .numbersAndPunctuation && keyboardSettingsManager.isAutoChangeToPrimaryEnabled {
+                if KeyboardSymbolInputPolicy.shouldSwitchToPrimaryAfterApostropheInput(
+                    buttonType: button.type,
+                    keyboardType: textDocumentProxy.keyboardType ?? .default,
+                    isAutoChangeToPrimaryEnabled: keyboardSettingsManager.isAutoChangeToPrimaryEnabled
+                ) {
                     currentKeyboard = primaryKeyboardView.keyboard
                 }
             }
@@ -739,7 +743,12 @@ private extension BaseKeyboardViewController {
         case .spaceButton, .returnButton:
             let switchToPrimaryKeyboard = UIAction { [weak self] _ in
                 guard let self else { return }
-                if textDocumentProxy.keyboardType != .numbersAndPunctuation && keyboardSettingsManager.isAutoChangeToPrimaryEnabled && isSymbolInput {
+                if KeyboardSymbolInputPolicy.shouldSwitchToPrimaryAfterSpaceOrReturn(
+                    buttonType: button.type,
+                    keyboardType: textDocumentProxy.keyboardType ?? .default,
+                    isAutoChangeToPrimaryEnabled: keyboardSettingsManager.isAutoChangeToPrimaryEnabled,
+                    isSymbolInput: isSymbolInput
+                ) {
                     currentKeyboard = primaryKeyboardView.keyboard
                 }
             }
@@ -749,8 +758,10 @@ private extension BaseKeyboardViewController {
             break
             
         default:
-            let additionalInputAction = UIAction { [weak self] _ in self?.isSymbolInput = true }
-            button.addAction(additionalInputAction, for: .touchUpInside)
+            if KeyboardSymbolInputPolicy.shouldMarkSymbolInput(buttonType: button.type) {
+                let additionalInputAction = UIAction { [weak self] _ in self?.isSymbolInput = true }
+                button.addAction(additionalInputAction, for: .touchUpInside)
+            }
         }
     }
     

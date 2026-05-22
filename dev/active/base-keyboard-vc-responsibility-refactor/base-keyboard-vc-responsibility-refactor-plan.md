@@ -21,6 +21,7 @@ Last Updated: 2026-05-22
 - 2026-05-22 작업 재개 후 `KeyboardPresentationStatePolicy`를 추가하여 return button 활성화 여부와 suggestion bar 숨김 여부의 순수 판단 로직을 `BaseKeyboardViewController`에서 분리했다.
 - 2026-05-22 작업 재개 후 `KeyboardGesturePolicy`를 추가하여 text interaction gesture 추가 조건과 long press 분기 조건의 순수 판단 로직을 `BaseKeyboardViewController`에서 분리했다.
 - 2026-05-22 작업 재개 후 `KeyboardPeriodShortcutPolicy`를 추가하여 period shortcut 수행 조건과 삭제 후 방지 상태 전환 로직을 `BaseKeyboardViewController`에서 분리했다.
+- 2026-05-22 작업 재개 후 `KeyboardSymbolInputPolicy`를 추가하여 symbol keyboard 입력 후 기본 키보드 자동 전환과 symbol 입력 상태 표시 조건을 `BaseKeyboardViewController`에서 분리했다.
 - `BaseKeyboardViewController`는 여전히 아래 책임을 함께 가진다.
   - 키보드 view wiring과 height 갱신
   - 버튼 action binding과 gesture recognizer binding
@@ -40,6 +41,7 @@ Last Updated: 2026-05-22
   - `Modules/SYKeyboardCore/Presentation/Utils/KeyboardGesturePolicy.swift`
   - `Modules/SYKeyboardCore/Presentation/Utils/KeyboardPeriodShortcutPolicy.swift`
   - `Modules/SYKeyboardCore/Presentation/Utils/KeyboardPresentationStatePolicy.swift`
+  - `Modules/SYKeyboardCore/Presentation/Utils/KeyboardSymbolInputPolicy.swift`
   - `Modules/SYKeyboardCore/Presentation/Utils/GestureControllers/TextInteractionGestureController.swift`
   - `Modules/SYKeyboardCore/Presentation/Utils/GestureControllers/SwitchGestureController.swift`
   - `Modules/SYKeyboardCore/Presentation/View/SuggestionBarView.swift`
@@ -178,6 +180,30 @@ xcodebuild test \
 
 결과: `TEST SUCCEEDED`.
 
+- 2026-05-22 `KeyboardSymbolInputPolicy` 추가 전 RED 확인:
+
+```sh
+xcodebuild test \
+  -project SYKeyboard.xcodeproj \
+  -scheme SYKeyboard \
+  -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0' \
+  -only-testing:SYKeyboardTests/KeyboardSymbolInputPolicyTests
+```
+
+결과: 권한 있는 환경에서 실행했으며 `KeyboardSymbolInputPolicy` 미정의로 실패했다.
+
+- 2026-05-22 `KeyboardSymbolInputPolicy` 추가 후 GREEN 확인:
+
+```sh
+xcodebuild test \
+  -project SYKeyboard.xcodeproj \
+  -scheme SYKeyboard \
+  -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0' \
+  -only-testing:SYKeyboardTests/KeyboardSymbolInputPolicyTests
+```
+
+결과: `TEST SUCCEEDED`.
+
 - 문서/계획만 변경한 경우:
 
 ```sh
@@ -220,6 +246,7 @@ xcodebuild test \
 
 2026-05-22 결과: `TEST SUCCEEDED`.
 2026-05-22 `KeyboardPeriodShortcutPolicy` 연결 후 재확인 결과: `TEST SUCCEEDED`.
+2026-05-22 `KeyboardSymbolInputPolicy` 연결 후 재확인 결과: `TEST SUCCEEDED`.
 
 - 수동 확인이 필요한 경우:
   - 실제 텍스트 입력 앱에서 한글/영문 키보드 extension을 열고 입력, 삭제, 반복 삭제, 삭제 드래그, 스페이스, 리턴, 자동완성 선택, undo/redo를 확인한다.
