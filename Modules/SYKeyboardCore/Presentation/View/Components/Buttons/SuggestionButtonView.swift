@@ -56,7 +56,8 @@ final class SuggestionButtonView: UIView {
     
     override init(frame: CGRect) {
         if #available(iOS 26, *) {
-            self.cornerRadius = (KeyboardLayoutFigure.suggestionBarHeightWithTopSpacing - KeyboardLayoutFigure.keyboardFrameSpacing) / 2
+            let height = KeyboardLayoutFigure.suggestionBarHeightWithTopSpacing - KeyboardLayoutFigure.keyboardFrameSpacing
+            self.cornerRadius = height / 2
         } else {
             self.cornerRadius = 4.6
         }

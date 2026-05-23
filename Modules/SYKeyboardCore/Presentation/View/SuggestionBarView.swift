@@ -294,7 +294,7 @@ private extension SuggestionBarView {
 
         [undoButton, redoButton].forEach {
             $0.translatesAutoresizingMaskIntoConstraints = false
-            $0.widthAnchor.constraint(equalToConstant: 44).isActive = true
+            $0.widthAnchor.constraint(equalToConstant: KeyboardLayoutFigure.undoRedoButtonWidth).isActive = true
             $0.heightAnchor.constraint(equalTo: buttonContainerHStackView.heightAnchor).isActive = true
         }
     }
@@ -420,7 +420,8 @@ private final class SuggestionActionButtonView: UIView {
 
     init(systemName: String) {
         if #available(iOS 26, *) {
-            self.cornerRadius = (KeyboardLayoutFigure.suggestionBarHeightWithTopSpacing - KeyboardLayoutFigure.keyboardFrameSpacing) / 2
+            let height = KeyboardLayoutFigure.suggestionBarHeightWithTopSpacing - KeyboardLayoutFigure.keyboardFrameSpacing
+            self.cornerRadius = min(KeyboardLayoutFigure.undoRedoButtonWidth, height) / 2
         } else {
             self.cornerRadius = 4.6
         }

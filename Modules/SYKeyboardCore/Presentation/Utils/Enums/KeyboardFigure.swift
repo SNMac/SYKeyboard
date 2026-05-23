@@ -17,6 +17,8 @@ public enum KeyboardLayoutFigure {
     public static let suggestionBarHeightWithTopSpacing: CGFloat = 48.0
     /// 키보드 자동완성 버튼 구분선 높이
     static let suggestionButtonDividerHeight: CGFloat = 24.0
+    /// Undo/Redo 버튼 너비
+    static let undoRedoButtonWidth: CGFloat = 44.0
     /// Shift 버튼과 삭제 버튼 곱하기 계수
     static let shiftAndDeleteButtonWidthMultiplier: CGFloat = 1.35
     /// 기호 키보드 세번째 열 버튼 곱하기 계수
