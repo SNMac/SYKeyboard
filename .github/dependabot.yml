@@ -22,9 +22,4 @@ updates:
           - "*GoogleMobileAds*"
           - "*google-mobile-ads*"
           - "GoogleUserMessagingPlatform"
-
-  # GitHub Actions 워크플로우 의존성 (actions/checkout 같은 거)
-  - package-ecosystem: "github-actions"
-    directory: "/"
-    schedule:
-      interval: "monthly"
+          
