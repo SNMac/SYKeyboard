@@ -1,0 +1,30 @@
+# To get started with Dependabot version updates, you'll need to specify which
+# package ecosystems to update and where the package manifests are located.
+# Please see the documentation for all configuration options:
+# https://docs.github.com/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
+
+version: 2
+updates:
+  # Swift Package Manager 의존성
+  - package-ecosystem: "swift"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    groups:
+      firebase:
+        patterns:
+          - "Firebase*"
+          - "firebase-ios-sdk"
+      google-ads:
+        patterns:
+          - "*GoogleMobileAds*"
+          - "*google-mobile-ads*"
+          - "GoogleUserMessagingPlatform"
+
+  # GitHub Actions 워크플로우 의존성 (actions/checkout 같은 거)
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
