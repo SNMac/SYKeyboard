@@ -1,6 +1,6 @@
 # Base Keyboard VC Responsibility Refactor Tasks
 
-Last Updated: 2026-05-22
+Last Updated: 2026-06-01
 
 ## Checklist
 
@@ -25,6 +25,10 @@ Last Updated: 2026-05-22
 - [x] `KeyboardPeriodShortcutPolicyTests` RED/GREEN을 확인한다.
 - [x] symbol keyboard 자동 전환과 입력 상태 표시 조건을 `KeyboardSymbolInputPolicy`로 동작 변경 없이 분리한다.
 - [x] `KeyboardSymbolInputPolicyTests` RED/GREEN을 확인한다.
+- [x] keyboard height 계산을 `KeyboardHeightPolicy`로 동작 변경 없이 분리한다.
+- [x] `KeyboardHeightPolicyTests` RED/GREEN을 확인한다.
+- [x] 기존 정책 테스트 묶음에 `KeyboardHeightPolicyTests`를 포함해 재확인한다.
+- [ ] action binding 감사표를 작성해 버튼별 control event와 gesture 등록 순서를 고정한다.
 - [ ] 한글 조합/삭제/드래그/undo 관련 controller 변경 시 `KeyboardControllerSimulator.swift`를 함께 갱신한다.
 - [x] 변경 범위에 맞춰 targeted 테스트 또는 `SYKeyboardCore` 빌드를 실행한다.
 - [x] 최종 통합 전 전체 `SYKeyboard` 테스트를 실행하거나, 실행하지 못한 이유를 문서화한다.
