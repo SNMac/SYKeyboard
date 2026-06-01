@@ -19,7 +19,9 @@ Last Updated: 2026-06-01
 - `Modules/SYKeyboardCore/Presentation/Utils/KeyboardPresentationStatePolicy.swift`: return button 활성화와 suggestion bar 숨김 조건을 검증 가능한 순수 정책으로 분리한 타입이다.
 - `Modules/SYKeyboardCore/Presentation/Utils/KeyboardSymbolInputPolicy.swift`: symbol keyboard 입력 후 기본 키보드 자동 전환과 symbol 입력 상태 표시 조건을 검증 가능한 순수 정책으로 분리한 타입이다.
 - `Modules/SYKeyboardCore/Presentation/Utils/KeyboardHeightPolicy.swift`: portrait/landscape 및 suggestion bar 표시 여부에 따른 keyboard view와 hstack 높이 계산을 검증 가능한 순수 정책으로 분리한 타입이다.
+- `Modules/SYKeyboardCore/Presentation/Utils/KeyboardTextInteractionPolicy.swift`: text interaction 실행 중 보조키 입력, 단일 삭제 임시 저장 문자, 반복 삭제 수행 조건을 검증 가능한 순수 정책으로 분리한 타입이다.
 - `SYKeyboardTests/Utils/KeyboardHeightPolicyTests.swift`: keyboard height 계산 정책의 portrait/landscape, suggestion bar 표시/숨김 케이스를 검증한다.
+- `SYKeyboardTests/Utils/KeyboardTextInteractionPolicyTests.swift`: text interaction 정책의 보조키/삭제/반복 삭제 조건을 검증한다.
 - `Modules/SYKeyboardCore/Presentation/Utils/ButtonStateController.swift`: 버튼 feedback, pressed 상태, release 상태, suggestion bar interaction enabled 상태를 담당한다.
 - `Modules/SYKeyboardCore/Presentation/Utils/GestureControllers/TextInteractionGestureController.swift`: text interaction pan/long press gesture handling을 담당한다.
 - `Modules/SYKeyboardCore/Presentation/Utils/GestureControllers/SwitchGestureController.swift`: keyboard switch/one-handed mode gesture handling을 담당한다.
@@ -79,6 +81,7 @@ Last Updated: 2026-06-01
 - 다섯 번째 코드 변경으로 `KeyboardHeightPolicy`를 추가했다. `setKeyboardHeight()`의 orientation/suggestion bar 기반 높이 계산은 순수 정책으로 검증하고, Base는 기존처럼 window orientation 확인과 constraint 생성/갱신만 담당한다.
 - 2026-06-01 `KeyboardHeightPolicyTests` 첫 GREEN 시도는 테스트 파일의 `CGFloat` 리터럴에 `CoreFoundation` import가 없어 컴파일 실패했다. 원인은 테스트 코드 import 누락이었고, `CoreFoundation` import 추가 후 같은 targeted 테스트가 통과했다.
 - 여섯 번째 코드 변경으로 text interaction gesture 등록 대상 판단을 `KeyboardGesturePolicy.shouldAddTextInteractionGestures(...)`로 옮겼다. Base는 `ReturnButton`, `SecondaryKeyButton`, `.com` 제외 조건을 직접 조합하지 않고 정책 결과만 사용한다.
+- 일곱 번째 코드 변경으로 `KeyboardTextInteractionPolicy`를 추가했다. Base는 보조키 입력 가능 여부, 단일 삭제 시 `tempDeletedCharacters`에 추가할 문자, 반복 삭제 수행 가능 여부를 직접 조합하지 않고 정책 결과만 사용한다.
 
 ## Quality Assessment - 2026-05-22
 
@@ -87,7 +90,7 @@ Last Updated: 2026-06-01
 | Lifecycle/context change | `viewDidLoad`, `viewWillAppear`, `textWillChange`, `textDidChange`, `viewWillDisappear`에서 buffer, undo/redo, suggestion, layout 갱신을 직접 호출한다. | Base의 실제 extension 경계라 완전 분리는 부적절하다. 다만 context change 시 호출 순서를 문서화하고 helper 이름을 정리할 수 있다. | 호출 순서 변경 없이 유지. |
 | Keyboard layout/update | `updateShowingKeyboard`, `updateReturnButtonType`, `updateReturnButtonEnabled`, `updateSuggestionBarHidden`, `setKeyboardHeight`가 같은 파일에 있다. | UI 상태 갱신 책임으로 응집도는 높지만 Base 파일을 크게 만든다. 외부 의존성은 view와 settings 중심이라 비교적 안전한 분리 후보이다. `KeyboardPresentationStatePolicy`와 `KeyboardHeightPolicy`로 순수 조건/계산 일부는 분리했다. | UIKit view 반영 순서는 유지하고, 추가 추출은 action binding 감사 후 판단한다. |
 | Action binding | `setTextInteractableButtonAction`, `addInputAction...`, `setSwitchButtonAction`, gesture 추가가 button/control event 순서를 직접 관리한다. | 분리 효과는 크지만 `currentKeyboard`, `isSymbolInput`, period shortcut, gesture controller, selector target 등 결합이 많다. | 별도 타입 추출 전 private helper 이름 정리 또는 작은 binder 설계가 필요하다. |
-| Text interaction dispatch | `performTextInteraction`, `performRepeatTextInteraction`, delete pan, repeat timer가 입력 이벤트의 핵심 순서를 담당한다. | 한글 subclass hook과 직접 연결되므로 위험도가 높다. | action/layout 정리 후, 테스트 기준을 먼저 고정하고 진행한다. |
+| Text interaction dispatch | `performTextInteraction`, `performRepeatTextInteraction`, delete pan, repeat timer가 입력 이벤트의 핵심 순서를 담당한다. | 한글 subclass hook과 직접 연결되므로 위험도가 높다. 다만 보조키/삭제/반복 삭제의 순수 조건은 `KeyboardTextInteractionPolicy`로 분리했다. | 남은 dispatch 추출은 call order와 subclass hook을 고정한 뒤 진행한다. |
 | Text proxy/input buffer | `insertText`, `deleteText`, `replaceText`, `resetInputBuffer`가 suggestion/undo와 함께 움직인다. | 단순 adapter 추출 시 예외 경로가 늘어날 가능성이 높다. | 현 단계 보류. 직접 `textDocumentProxy` 사용 예외만 계속 추적한다. |
 | Suggestion selection | 선택 텍스트, n-gram, 현재 단어 확정, inputBuffer 후보 선택이 helper로 나뉘어 있다. | 이미 1차 분리는 되어 있으나 Base의 `inputBuffer`와 proxy에 강하게 묶여 있다. | 별도 coordinator는 보류, helper별 테스트 가능성만 검토한다. |
 | Undo/redo | `KeyboardUndoRedoSession`은 분리되어 있으나 Base가 적용, context 복원, controls 갱신을 맡는다. | session 분리는 적절하다. UI/proxy 적용부는 Base에 남는 것이 자연스럽다. | 유지. |
@@ -172,7 +175,7 @@ Last Updated: 2026-06-01
 ## Handoff Notes
 
 - action binding 감사표를 작성했다. 다음 단계는 감사표 기준으로 `BaseKeyboardViewController`의 action binding 구역을 크게 옮기지 않고, 이름 정리 또는 순수 조건 분리처럼 회귀 위험이 낮은 후보만 선별하는 것이다.
-- 감사표 기준 첫 후속 변경으로 text interaction gesture 등록 대상 조건을 `KeyboardGesturePolicy`에 포함했다. 남은 action binding은 closure와 UIKit target/action 결합이 커서 즉시 binder로 옮기지 않는다.
+- 감사표 기준 첫 후속 변경으로 text interaction gesture 등록 대상 조건을 `KeyboardGesturePolicy`에 포함했다. 이어서 text interaction 실행 중 순수 판단만 `KeyboardTextInteractionPolicy`로 분리했다. 남은 action binding은 closure와 UIKit target/action 결합이 커서 즉시 binder로 옮기지 않는다.
 - 리팩토링 계획을 세울 때 `KeyboardControllerSimulator.swift`를 별도 테스트 debt로 취급하지 말고 핵심 동기화 대상으로 포함한다.
 - 새 타입을 만들기 전에 해당 타입이 알아야 하는 상태를 목록화한다. `textDocumentProxy`, `inputBuffer`, `suggestionController`, `undoRedoSession`, `keyboardSettingsManager`, subclass hook 중 3개 이상을 알아야 하면 추출을 보류한다.
 - 기능 변경이 필요해 보이면 리팩토링이 아니라 별도 feature/fix로 문서화하고 사용자 확인을 받는다.
@@ -238,6 +241,14 @@ Last Updated: 2026-06-01
   - `git diff --check -- dev/active/base-keyboard-vc-responsibility-refactor`
   - 결과: 통과.
 - 2026-06-01 text interaction gesture 등록 대상 정책 연결 후 전체 `SYKeyboard` 테스트 확인:
+  - `xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0'`
+  - 결과: `TEST SUCCEEDED`.
+- 2026-06-01 `KeyboardTextInteractionPolicyTests` RED:
+  - 권한 있는 환경에서 `KeyboardTextInteractionPolicy` 미정의 컴파일 실패를 확인했다.
+- 2026-06-01 `KeyboardTextInteractionPolicyTests` GREEN:
+  - `xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0' -only-testing:SYKeyboardTests/KeyboardTextInteractionPolicyTests`
+  - 결과: `TEST SUCCEEDED`.
+- 2026-06-01 `KeyboardTextInteractionPolicy` 연결 후 전체 `SYKeyboard` 테스트 확인:
   - `xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0'`
   - 결과: `TEST SUCCEEDED`.
 - 변경 후 실행할 확인:

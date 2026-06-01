@@ -974,7 +974,10 @@ extension BaseKeyboardViewController {
         
         switch button.type {
         case .keyButton:
-            if insertSecondaryKeyIfAvailable && button.type.secondaryKey != nil {
+            if KeyboardTextInteractionPolicy.shouldInsertSecondaryKey(
+                insertSecondaryKeyIfAvailable: insertSecondaryKeyIfAvailable,
+                secondaryKey: button.type.secondaryKey
+            ) {
                 insertSecondaryKeyText(from: button)
             } else {
                 insertPrimaryKeyText(from: button)
@@ -986,11 +989,11 @@ extension BaseKeyboardViewController {
                 // 대치 복구: 래핑 메서드 사용
                 replaceText(deleteCount: restore.deleteCount, insert: restore.insertText)
             } else {
-                if let selectedText = textDocumentProxy.selectedText {
-                    tempDeletedCharacters.append(contentsOf: selectedText.reversed())
-                } else if let lastBeforeCursor = textDocumentProxy.documentContextBeforeInput?.last {
-                    tempDeletedCharacters.append(lastBeforeCursor)
-                }
+                let deletedCharacters = KeyboardTextInteractionPolicy.temporaryDeletedCharactersForSingleDelete(
+                    selectedText: textDocumentProxy.selectedText,
+                    documentContextBeforeInput: textDocumentProxy.documentContextBeforeInput
+                )
+                tempDeletedCharacters.append(contentsOf: deletedCharacters)
                 deleteBackward()
             }
         case .spaceButton:
@@ -1017,7 +1020,10 @@ extension BaseKeyboardViewController {
             repeatInsertPrimaryKeyText(from: button)
             button.playFeedback()
         case .deleteButton:
-            if textDocumentProxy.documentContextBeforeInput != nil || textDocumentProxy.selectedText != nil {
+            if KeyboardTextInteractionPolicy.shouldRepeatDelete(
+                documentContextBeforeInput: textDocumentProxy.documentContextBeforeInput,
+                selectedText: textDocumentProxy.selectedText
+            ) {
                 repeatDeleteBackward()
                 button.playFeedback()
             } else {
