@@ -779,9 +779,11 @@ private extension BaseKeyboardViewController {
     }
     
     func addGesturesToTextInterableButton(_ button: TextInteractable) {
-        guard !(button is ReturnButton)
-                && !(button is SecondaryKeyButton)
-                && !(button.type.primaryKeyList == [".com"]) else { return }
+        guard KeyboardGesturePolicy.shouldAddTextInteractionGestures(
+            isReturnButton: button is ReturnButton,
+            isSecondaryKeyButton: button is SecondaryKeyButton,
+            primaryKeyList: button.type.primaryKeyList
+        ) else { return }
 
         let isDeleteButton = button is DeleteButton
         

@@ -34,6 +34,38 @@ struct KeyboardGesturePolicyTests {
         )
     }
 
+    @Test("리턴 보조키 닷컴 키는 text interaction gesture 등록 대상에서 제외")
+    func testTextInteractionGesture등록대상조건() {
+        #expect(
+            KeyboardGesturePolicy.shouldAddTextInteractionGestures(
+                isReturnButton: false,
+                isSecondaryKeyButton: false,
+                primaryKeyList: ["A"]
+            )
+        )
+        #expect(
+            KeyboardGesturePolicy.shouldAddTextInteractionGestures(
+                isReturnButton: true,
+                isSecondaryKeyButton: false,
+                primaryKeyList: ["\n"]
+            ) == false
+        )
+        #expect(
+            KeyboardGesturePolicy.shouldAddTextInteractionGestures(
+                isReturnButton: false,
+                isSecondaryKeyButton: true,
+                primaryKeyList: ["1"]
+            ) == false
+        )
+        #expect(
+            KeyboardGesturePolicy.shouldAddTextInteractionGestures(
+                isReturnButton: false,
+                isSecondaryKeyButton: false,
+                primaryKeyList: [".com"]
+            ) == false
+        )
+    }
+
     @Test("길게 누르기 설정이 꺼져도 삭제 버튼이면 long press gesture를 추가")
     func testLongPressGesture추가조건() {
         #expect(

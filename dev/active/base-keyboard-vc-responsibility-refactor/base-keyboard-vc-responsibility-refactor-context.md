@@ -14,12 +14,13 @@ Last Updated: 2026-06-01
 - `SYKeyboardTests/Utils/KeyboardUndoRedoManagerTests.swift`: undo/redo 기록 단위와 redo 초기화를 검증한다.
 - `SYKeyboardTests/Utils/KeyboardTextContextNavigatorTests.swift`: cursor 이동 후 undo/redo 위치 복원 로직을 검증한다.
 - `Modules/SYKeyboardCore/Presentation/Utils/KeyboardUndoRedoManager.swift`: undo/redo manager와 `KeyboardUndoRedoSession`이 있다.
-- `Modules/SYKeyboardCore/Presentation/Utils/KeyboardGesturePolicy.swift`: text interaction pan/long press gesture 추가와 long press 동작 선택 조건을 검증 가능한 순수 정책으로 분리한 타입이다.
+- `Modules/SYKeyboardCore/Presentation/Utils/KeyboardGesturePolicy.swift`: text interaction gesture 등록 대상, pan/long press gesture 추가, long press 동작 선택 조건을 검증 가능한 순수 정책으로 분리한 타입이다.
 - `Modules/SYKeyboardCore/Presentation/Utils/KeyboardPeriodShortcutPolicy.swift`: space double tap period shortcut 수행 조건과 삭제 후 방지 상태 전환을 검증 가능한 순수 정책으로 분리한 타입이다.
 - `Modules/SYKeyboardCore/Presentation/Utils/KeyboardPresentationStatePolicy.swift`: return button 활성화와 suggestion bar 숨김 조건을 검증 가능한 순수 정책으로 분리한 타입이다.
 - `Modules/SYKeyboardCore/Presentation/Utils/KeyboardSymbolInputPolicy.swift`: symbol keyboard 입력 후 기본 키보드 자동 전환과 symbol 입력 상태 표시 조건을 검증 가능한 순수 정책으로 분리한 타입이다.
 - `Modules/SYKeyboardCore/Presentation/Utils/KeyboardHeightPolicy.swift`: portrait/landscape 및 suggestion bar 표시 여부에 따른 keyboard view와 hstack 높이 계산을 검증 가능한 순수 정책으로 분리한 타입이다.
 - `SYKeyboardTests/Utils/KeyboardHeightPolicyTests.swift`: keyboard height 계산 정책의 portrait/landscape, suggestion bar 표시/숨김 케이스를 검증한다.
+- `Modules/SYKeyboardCore/Presentation/Utils/ButtonStateController.swift`: 버튼 feedback, pressed 상태, release 상태, suggestion bar interaction enabled 상태를 담당한다.
 - `Modules/SYKeyboardCore/Presentation/Utils/GestureControllers/TextInteractionGestureController.swift`: text interaction pan/long press gesture handling을 담당한다.
 - `Modules/SYKeyboardCore/Presentation/Utils/GestureControllers/SwitchGestureController.swift`: keyboard switch/one-handed mode gesture handling을 담당한다.
 - `Modules/SYKeyboardCore/Presentation/View/SuggestionBarView.swift`: suggestion 표시와 undo/redo action touch handling을 담당한다.
@@ -49,7 +50,9 @@ Last Updated: 2026-06-01
 - `SYKeyboard.xcodeproj/project.pbxproj`의 `Modules` synchronized root는 Core 파일을 target별 `membershipExceptions`에 나열한다. 새 Core Swift 파일은 `SYKeyboard` target 예외와 `SYKeyboardCore` target 예외 양쪽에 추가해야 한다.
 - 2026-06-01 작업 재개 시점의 `git status --short --untracked-files=all`는 비어 있었다.
 - 2026-06-01 작업 중 uncommitted 변경 파일은 `BaseKeyboardViewController.swift`, `SYKeyboard.xcodeproj/project.pbxproj`, `KeyboardHeightPolicy.swift`, `KeyboardHeightPolicyTests.swift`, active task 문서 3종이다.
+- 2026-06-01 `KeyboardHeightPolicy` 작업은 `1acbad42 refactor: #31 - 키보드 높이 계산 정책 분리`로 커밋했고, action binding 감사 시작 시점의 `git status --short --untracked-files=all`는 비어 있었다.
 - 2026-06-01 현재 최근 리팩토링 커밋은 아래 순서로 확인했다.
+  - `1acbad42 refactor: #31 - 키보드 높이 계산 정책 분리`
   - `e1e2fb8d refactor: #31 - Undo/Redo 코너값 계산 가독성 개선`
   - `4935f547 refactor: #31 - 심볼 입력 전환 정책 분리`
   - `41d54c0a refactor: #31 - 마침표 단축 입력 정책 분리`
@@ -75,6 +78,7 @@ Last Updated: 2026-06-01
 - 네 번째 코드 변경으로 `KeyboardSymbolInputPolicy`를 추가했다. symbol keyboard의 작은따옴표, space/return, 일반 symbol key 입력 후 상태 판단은 순수 정책으로 검증하고, Base는 기존 `touchUpInside` action 등록 순서를 유지한다.
 - 다섯 번째 코드 변경으로 `KeyboardHeightPolicy`를 추가했다. `setKeyboardHeight()`의 orientation/suggestion bar 기반 높이 계산은 순수 정책으로 검증하고, Base는 기존처럼 window orientation 확인과 constraint 생성/갱신만 담당한다.
 - 2026-06-01 `KeyboardHeightPolicyTests` 첫 GREEN 시도는 테스트 파일의 `CGFloat` 리터럴에 `CoreFoundation` import가 없어 컴파일 실패했다. 원인은 테스트 코드 import 누락이었고, `CoreFoundation` import 추가 후 같은 targeted 테스트가 통과했다.
+- 여섯 번째 코드 변경으로 text interaction gesture 등록 대상 판단을 `KeyboardGesturePolicy.shouldAddTextInteractionGestures(...)`로 옮겼다. Base는 `ReturnButton`, `SecondaryKeyButton`, `.com` 제외 조건을 직접 조합하지 않고 정책 결과만 사용한다.
 
 ## Quality Assessment - 2026-05-22
 
@@ -88,6 +92,62 @@ Last Updated: 2026-06-01
 | Suggestion selection | 선택 텍스트, n-gram, 현재 단어 확정, inputBuffer 후보 선택이 helper로 나뉘어 있다. | 이미 1차 분리는 되어 있으나 Base의 `inputBuffer`와 proxy에 강하게 묶여 있다. | 별도 coordinator는 보류, helper별 테스트 가능성만 검토한다. |
 | Undo/redo | `KeyboardUndoRedoSession`은 분리되어 있으나 Base가 적용, context 복원, controls 갱신을 맡는다. | session 분리는 적절하다. UI/proxy 적용부는 Base에 남는 것이 자연스럽다. | 유지. |
 | Hangeul buffers | subclass가 조합/확정/protected buffer와 삭제 드래그 상태를 관리한다. | Base로 올리면 입력기별 정책을 침범한다. | Base 리팩토링과 분리하고 simulator 동기화표를 별도 관리한다. |
+
+## Action Binding Audit - 2026-06-01
+
+### `BaseKeyboardViewController.setActions()` 등록 순서
+
+| Order | Method | Scope | Notes |
+| --- | --- | --- | --- |
+| 1 | `setButtonFeedbackAction()` | `allKeyboardButtonList` 전체 | `ButtonStateController`가 `.touchDown` feedback과 `currentPressedButton` 상태를 등록한다. `ShiftButton`은 `isShiftButtonPressed`만 갱신하고 `currentPressedButton`으로 잡지 않는 예외가 있다. |
+| 2 | `setTextInteractableButtonAction()` | primary, numeric, symbol, tenKey text interactable | 입력 action과 text interaction gesture를 등록한다. Tenkey는 입력 action만 받고 pan/long press gesture는 등록하지 않는다. |
+| 3 | `setSwitchButtonAction()` | primary, symbol, numeric switch button | `.touchUpInside` keyboard 전환 action과 switch pan/long press gesture를 등록한다. |
+| 4 | `setExclusiveButtonAction()` | `allKeyboardButtonList` 전체 | `.touchUpInside`, `.touchUpOutside`에서 pressed 상태를 해제한다. 입력/switch action 뒤에 등록된다. |
+| 5 | `setChevronButtonAction()` | one-handed chevron button | `.touchUpInside`에서 `currentOneHandedMode = .center`로 되돌린다. |
+
+### Text Interactable Buttons
+
+| Button / Keyboard | Base Control Events | Gesture Registration | Important Coupling |
+| --- | --- | --- | --- |
+| Primary/numeric normal key | `.touchDown` feedback, `.touchUpInside` input, `.touchUpInside/.touchUpOutside` release | `KeyboardGesturePolicy` 조건에 따라 pan/long press 등록 | `makeTextInputAction()`은 programmatic call이거나 `currentPressedButton == currentButton`일 때만 입력한다. |
+| Delete | `.touchDown` feedback과 delete input, `.touchUpInside/.touchUpOutside` release | pan/long press 등록 가능 | delete는 입력 event가 `.touchDown`이다. 삭제 드래그 복구는 touchDown 선삭제 상태와 `tempDeletedCharacters`에 의존한다. |
+| Space | `.touchUpInside` input, 설정 시 `.touchDownRepeat` period shortcut, release | pan/long press 등록 가능 | period shortcut은 trailing space를 먼저 확인하고 `replaceText(deleteCount: 1, insert: ".")` 후 `performedPeriodShortcut = true`를 세운다. |
+| Return | `.touchUpInside` input, release | gesture 등록 제외 | return 입력은 `performReturnButtonTextInteraction()` 경로로 분기한다. |
+| Secondary key / `.com` | `.touchUpInside` input, release | gesture 등록 제외 | long press 숫자 입력이나 cursor pan 대상으로 취급하지 않는다. |
+| Tenkey text key | `.touchUpInside` input, release | gesture 등록 없음 | `addGesturesToTextInterableButton(_:)`를 호출하지 않는 현재 구조를 유지해야 한다. |
+
+### Symbol Keyboard Extra Actions
+
+| Symbol Button | Extra `.touchUpInside` Action | Registration Dependency |
+| --- | --- | --- |
+| 작은따옴표 key `["'"]` | `KeyboardSymbolInputPolicy.shouldSwitchToPrimaryAfterApostropheInput(...)`가 true이면 기본 키보드로 전환 | base input action 뒤에 추가된다. 입력 후 전환 순서가 중요하다. |
+| Space / Return | `KeyboardSymbolInputPolicy.shouldSwitchToPrimaryAfterSpaceOrReturn(...)`가 true이면 기본 키보드로 전환 | base input action 뒤에 추가된다. `isSymbolInput` 상태를 읽는다. |
+| 일반 symbol key | `KeyboardSymbolInputPolicy.shouldMarkSymbolInput(buttonType:)`가 true이면 `isSymbolInput = true` | base input action 뒤에 추가된다. |
+| Delete | 추가 action 없음 | delete는 base `.touchDown` 입력만 유지한다. |
+
+### Switch Buttons
+
+| Binding | Condition | Notes |
+| --- | --- | --- |
+| `.touchDown` feedback/pressed | `ButtonStateController` 공통 binding | switch button도 `currentPressedButton` guard의 대상이다. |
+| `.touchUpInside` keyboard switch | `currentPressedButton`이 해당 switch button일 때만 실행 | primary는 `.symbol`, symbol/numeric은 `primaryKeyboardView.keyboard`로 전환한다. |
+| Keyboard select pan | `keyboardSettingsManager.useNumericKeypad` | gesture name은 `.keyboardSelect`이며 `SwitchGestureController`가 overlay 선택과 전환을 처리한다. overlay가 열리지 않은 pan 종료는 `sendActions(for: .touchUpInside)`를 합성할 수 있다. |
+| One-handed pan/long press | `keyboardSettingsManager.useOneHandedKeyboard` | pan gesture name은 `.oneHandedModeSelect`다. long press는 pan과 동시에 인식 가능하며, pan이 long press보다 fail 우선순위를 가진다. |
+
+### View-Owned Actions Outside Base
+
+| Area | Action Owner | Notes |
+| --- | --- | --- |
+| Primary keyboard shift | `StandardKeyboardView`, `EnglishKeyboardView`, `HangeulKeyboardLayoutProvider` 구현 | `.touchDown`, `.touchDownRepeat`, `.touchUpInside` shift/caps/shift 해제 action은 Base가 아니라 keyboard view에서 등록한다. |
+| Symbol shift | `SymbolKeyboardView` | symbol page 전환 action은 view 내부 action이며, Base의 text/switch binding과 분리되어 있다. |
+| Next keyboard button | `NextKeyboardButton` | drag/up gesture-like visual state action을 자체 등록한다. Base action binding 추출 대상에서 제외한다. |
+
+### Extraction Implications
+
+- 별도 `KeyboardActionBinder` 추출은 단순 파일 이동보다 결합이 크다. 최소한 `buttonStateController`, `keyboardSettingsManager`, 현재 keyboard setter, primary/symbol/numeric/tenkey view, text/switch gesture controller, `textDocumentProxy`, `isSymbolInput`, `performedPeriodShortcut`, `shouldPreventPeriodShortcut`, selector target을 알아야 한다.
+- 등록 순서는 feedback -> input/switch -> release를 유지해야 한다. 특히 `makeTextInputAction()`의 `currentPressedButton` guard와 gesture controller의 synthetic `.touchUpInside`가 같은 상태에 의존한다.
+- delete의 `.touchDown` 입력, symbol extra `.touchUpInside` action의 base input 이후 실행, switch pan 종료의 synthetic `.touchUpInside`, tenkey의 no-gesture 구조는 추출 전후 동작 보존 체크포인트다.
+- 현 단계에서는 binder 타입을 바로 만들기보다 `BaseKeyboardViewController` 안에서 action binding 구역을 유지하고, 순수 정책으로 빠질 수 있는 작은 조건이 새로 발견될 때만 분리한다. 2026-06-01에는 text interaction gesture 등록 대상 조건만 `KeyboardGesturePolicy`로 옮겼다.
 
 ## Hangeul Controller / Simulator Sync Points
 
@@ -111,7 +171,8 @@ Last Updated: 2026-06-01
 
 ## Handoff Notes
 
-- 다음 세션 첫 작업은 action binding 감사표 작성이다. `touchDown`, `touchUpInside`, `touchDownRepeat`, long press, pan gesture의 등록 순서와 조건을 버튼 타입별로 정리한 뒤 추출 여부를 판단한다.
+- action binding 감사표를 작성했다. 다음 단계는 감사표 기준으로 `BaseKeyboardViewController`의 action binding 구역을 크게 옮기지 않고, 이름 정리 또는 순수 조건 분리처럼 회귀 위험이 낮은 후보만 선별하는 것이다.
+- 감사표 기준 첫 후속 변경으로 text interaction gesture 등록 대상 조건을 `KeyboardGesturePolicy`에 포함했다. 남은 action binding은 closure와 UIKit target/action 결합이 커서 즉시 binder로 옮기지 않는다.
 - 리팩토링 계획을 세울 때 `KeyboardControllerSimulator.swift`를 별도 테스트 debt로 취급하지 말고 핵심 동기화 대상으로 포함한다.
 - 새 타입을 만들기 전에 해당 타입이 알아야 하는 상태를 목록화한다. `textDocumentProxy`, `inputBuffer`, `suggestionController`, `undoRedoSession`, `keyboardSettingsManager`, subclass hook 중 3개 이상을 알아야 하면 추출을 보류한다.
 - 기능 변경이 필요해 보이면 리팩토링이 아니라 별도 feature/fix로 문서화하고 사용자 확인을 받는다.
@@ -129,6 +190,12 @@ Last Updated: 2026-06-01
 - 2026-05-22 `KeyboardGesturePolicyTests` RED:
   - 권한 있는 환경에서 `KeyboardGesturePolicy` 미정의 컴파일 실패를 확인했다.
 - 2026-05-22 `KeyboardGesturePolicyTests` GREEN:
+  - `xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0' -only-testing:SYKeyboardTests/KeyboardGesturePolicyTests`
+  - 결과: `TEST SUCCEEDED`.
+- 2026-06-01 `KeyboardGesturePolicyTests` RED:
+  - sandbox 실행은 SwiftPM/Xcode 캐시 및 CoreSimulator 권한 문제로 실패했다.
+  - 권한 있는 환경에서 `shouldAddTextInteractionGestures` 미정의 컴파일 실패를 확인했다.
+- 2026-06-01 `KeyboardGesturePolicyTests` GREEN:
   - `xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0' -only-testing:SYKeyboardTests/KeyboardGesturePolicyTests`
   - 결과: `TEST SUCCEEDED`.
 - 2026-05-22 정책 테스트 묶음 확인:
@@ -164,6 +231,13 @@ Last Updated: 2026-06-01
   - `xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0' -only-testing:SYKeyboardTests/KeyboardPresentationStatePolicyTests -only-testing:SYKeyboardTests/KeyboardGesturePolicyTests -only-testing:SYKeyboardTests/KeyboardPeriodShortcutPolicyTests -only-testing:SYKeyboardTests/KeyboardSymbolInputPolicyTests -only-testing:SYKeyboardTests/KeyboardHeightPolicyTests`
   - 결과: `TEST SUCCEEDED`.
 - 2026-06-01 전체 `SYKeyboard` 테스트 확인:
+  - `xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0'`
+  - 결과: `TEST SUCCEEDED`.
+- 2026-06-01 action binding 감사표 문서 변경 확인:
+  - 감사표 작성 자체는 코드 변경 없이 active task 문서 3종만 수정했다.
+  - `git diff --check -- dev/active/base-keyboard-vc-responsibility-refactor`
+  - 결과: 통과.
+- 2026-06-01 text interaction gesture 등록 대상 정책 연결 후 전체 `SYKeyboard` 테스트 확인:
   - `xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0'`
   - 결과: `TEST SUCCEEDED`.
 - 변경 후 실행할 확인:

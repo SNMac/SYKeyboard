@@ -7,6 +7,16 @@
 
 enum KeyboardGesturePolicy {
 
+    static func shouldAddTextInteractionGestures(
+        isReturnButton: Bool,
+        isSecondaryKeyButton: Bool,
+        primaryKeyList: [String]
+    ) -> Bool {
+        return !isReturnButton
+            && !isSecondaryKeyButton
+            && primaryKeyList != [".com"]
+    }
+
     static func shouldAddTextInteractionPanGesture(
         isDragToMoveCursorEnabled: Bool,
         isDeleteButton: Bool

@@ -27,6 +27,9 @@ Last Updated: 2026-06-01
 - 2026-05-22 작업 재개 후 `KeyboardPeriodShortcutPolicy`를 추가하여 period shortcut 수행 조건과 삭제 후 방지 상태 전환 로직을 `BaseKeyboardViewController`에서 분리했다.
 - 2026-05-22 작업 재개 후 `KeyboardSymbolInputPolicy`를 추가하여 symbol keyboard 입력 후 기본 키보드 자동 전환과 symbol 입력 상태 표시 조건을 `BaseKeyboardViewController`에서 분리했다.
 - 2026-06-01 작업 재개 후 `KeyboardHeightPolicy`를 추가하여 portrait/landscape 및 suggestion bar 표시 여부에 따른 순수 높이 계산 로직을 `BaseKeyboardViewController`에서 분리했다.
+- 2026-06-01 `KeyboardHeightPolicy` 작업은 `1acbad42 refactor: #31 - 키보드 높이 계산 정책 분리`로 커밋했다.
+- 2026-06-01 action binding 감사표를 작성해 Base의 feedback/input/switch/release 등록 순서, symbol extra action, switch gesture, view-owned shift action의 경계를 고정했다.
+- 2026-06-01 감사표 기준으로 text interaction gesture 등록 대상 판단을 `KeyboardGesturePolicy`로 분리했다.
 - `BaseKeyboardViewController`는 여전히 아래 책임을 함께 가진다.
   - 키보드 view wiring과 height 갱신
   - 버튼 action binding과 gesture recognizer binding
@@ -69,6 +72,8 @@ Last Updated: 2026-06-01
    - 후보 B: keyboard action binder
      - 버튼 목록, input action 생성, symbol 자동 전환, period shortcut binding을 다룬다.
      - control event 순서가 바뀌면 회귀 위험이 크므로 동작 보존 테스트/빌드가 필요하다.
+     - 2026-06-01 감사 결과 별도 binder는 `buttonStateController`, settings, keyboard setter, gesture controller, proxy, symbol/period 상태, selector target까지 알아야 하므로 즉시 추출하지 않는다. 먼저 Base 내부 action binding 구역의 이름/순서 가독성 개선이나 순수 조건 분리 후보만 고른다.
+     - 첫 후속 변경으로 text interaction gesture 등록 대상 조건만 기존 `KeyboardGesturePolicy`에 포함했다.
    - 후보 C: text interaction coordinator
      - `performTextInteraction`, `performRepeatTextInteraction`, delete/space/return 경계 처리를 다룬다.
      - 한글 subclass override hook과 충돌하지 않아야 한다.
@@ -97,6 +102,7 @@ Last Updated: 2026-06-01
 - 한글 입력/삭제/조합, 삭제 버튼 드래그 복구, undo/redo 적용 후 조합 reset은 회귀 위험이 높다.
 - selected text 자동 교체, return 입력, undo/redo 직접 적용은 일반 text wrapper와 다른 예외 경로다. 통합 추상화 시 기능이 바뀔 수 있다.
 - 버튼 action과 gesture recognizer는 `touchDown`, `touchUpInside`, long press, pan 순서가 중요하다.
+- delete 입력은 `.touchDown`, symbol extra action은 base input 뒤 `.touchUpInside`, switch pan은 overlay가 없을 때 synthetic `.touchUpInside`를 만들 수 있다. action binding을 옮길 때 이 세 가지를 별도 체크포인트로 둔다.
 - 접근성 label/traits는 이전 작업에서 의도적으로 제외했다. 별도 요청 없이 되살리지 않는다.
 
 ## Verification
