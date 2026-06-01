@@ -1421,8 +1421,9 @@ private extension BaseKeyboardViewController {
         guard suggestionController.currentMode == .nGram else { return false }
         guard let word = suggestionController.nGramSuggestionText(at: index) else { return true }
 
-        let needsLeadingSpace = !inputBuffer.isEmpty && inputBuffer.last?.isWhitespace != true
-        if needsLeadingSpace {
+        if KeyboardSuggestionSelectionPolicy.shouldInsertLeadingSpaceBeforeNGramSuggestion(
+            inputBuffer: inputBuffer
+        ) {
             insertText(" ")
         }
 
@@ -1437,7 +1438,9 @@ private extension BaseKeyboardViewController {
     func handleCurrentWordConfirmationIfNeeded(at index: Int) -> Bool {
         guard index == 0 else { return false }
 
-        let currentWord = inputBuffer.split(whereSeparator: { $0.isWhitespace }).last.map(String.init) ?? ""
+        let currentWord = KeyboardSuggestionSelectionPolicy.currentWordForConfirmation(
+            inputBuffer: inputBuffer
+        )
         if !currentWord.isEmpty {
             suggestionController.learnWord(currentWord)
             suggestionController.recordWord(currentWord)

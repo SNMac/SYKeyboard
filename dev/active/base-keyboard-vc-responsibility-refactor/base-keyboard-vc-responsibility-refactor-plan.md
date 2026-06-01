@@ -31,6 +31,7 @@ Last Updated: 2026-06-01
 - 2026-06-01 action binding 감사표를 작성해 Base의 feedback/input/switch/release 등록 순서, symbol extra action, switch gesture, view-owned shift action의 경계를 고정했다.
 - 2026-06-01 감사표 기준으로 text interaction gesture 등록 대상 판단을 `KeyboardGesturePolicy`로 분리했다.
 - 2026-06-01 text interaction 실행 중 보조키 입력, 단일 삭제 임시 저장/undo 기록 문자, 반복 삭제 수행 조건을 `KeyboardTextInteractionPolicy`로 분리했다.
+- 2026-06-01 suggestion 선택 흐름 중 n-gram 후보 앞 공백 삽입 여부와 현재 단어 확정용 마지막 단어 추출을 `KeyboardSuggestionSelectionPolicy`로 분리했다.
 - `BaseKeyboardViewController`는 여전히 아래 책임을 함께 가진다.
   - 키보드 view wiring과 height 갱신
   - 버튼 action binding과 gesture recognizer binding
@@ -53,6 +54,7 @@ Last Updated: 2026-06-01
   - `Modules/SYKeyboardCore/Presentation/Utils/KeyboardSymbolInputPolicy.swift`
   - `Modules/SYKeyboardCore/Presentation/Utils/KeyboardHeightPolicy.swift`
   - `Modules/SYKeyboardCore/Presentation/Utils/KeyboardTextInteractionPolicy.swift`
+  - `Modules/SYKeyboardCore/Presentation/Utils/KeyboardSuggestionSelectionPolicy.swift`
   - `Modules/SYKeyboardCore/Presentation/Utils/GestureControllers/TextInteractionGestureController.swift`
   - `Modules/SYKeyboardCore/Presentation/Utils/GestureControllers/SwitchGestureController.swift`
   - `Modules/SYKeyboardCore/Presentation/View/SuggestionBarView.swift`
@@ -83,6 +85,7 @@ Last Updated: 2026-06-01
    - 후보 D: suggestion interaction coordinator
      - selected text, n-gram, current word confirmation, input buffer suggestion 경로를 다룬다.
      - `textDocumentProxy`와 `inputBuffer` 직접 접근을 줄일 수 있을 때만 추출한다.
+     - 2026-06-01에는 coordinator 추출 대신 n-gram 앞 공백과 현재 단어 확정용 단어 추출의 순수 판단만 `KeyboardSuggestionSelectionPolicy`로 분리했다.
    - 후보 E: keyboard layout/lifecycle updater
      - suggestion bar hidden state, keyboard height, return button state, one-handed mode update를 다룬다.
      - UIKit extension lifecycle과 orientation 제약을 유지한다.
@@ -255,6 +258,41 @@ xcodebuild test \
   -only-testing:SYKeyboardTests/KeyboardPeriodShortcutPolicyTests \
   -only-testing:SYKeyboardTests/KeyboardSymbolInputPolicyTests \
   -only-testing:SYKeyboardTests/KeyboardHeightPolicyTests
+```
+
+결과: `TEST SUCCEEDED`.
+
+- 2026-06-01 `KeyboardSuggestionSelectionPolicyTests` RED:
+
+```sh
+xcodebuild test \
+  -project SYKeyboard.xcodeproj \
+  -scheme SYKeyboard \
+  -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0' \
+  -only-testing:SYKeyboardTests/KeyboardSuggestionSelectionPolicyTests
+```
+
+결과: 첫 sandbox 실행은 SwiftPM/Xcode 캐시 및 CoreSimulator 권한 문제로 실패했다. 권한 있는 환경에서 `KeyboardSuggestionSelectionPolicy` 미정의 컴파일 실패를 확인했다.
+
+- 2026-06-01 `KeyboardSuggestionSelectionPolicyTests` GREEN:
+
+```sh
+xcodebuild test \
+  -project SYKeyboard.xcodeproj \
+  -scheme SYKeyboard \
+  -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0' \
+  -only-testing:SYKeyboardTests/KeyboardSuggestionSelectionPolicyTests
+```
+
+결과: `TEST SUCCEEDED`.
+
+- 2026-06-01 suggestion 선택 정책 연결 후 전체 `SYKeyboard` 테스트 확인:
+
+```sh
+xcodebuild test \
+  -project SYKeyboard.xcodeproj \
+  -scheme SYKeyboard \
+  -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0'
 ```
 
 결과: `TEST SUCCEEDED`.

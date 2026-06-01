@@ -36,6 +36,8 @@ Last Updated: 2026-06-01
 - [x] `KeyboardTextInteractionPolicyTests` RED/GREEN을 확인한다.
 - [x] 단일 삭제 undo 기록 문자열 판단을 `KeyboardTextInteractionPolicy`로 동작 변경 없이 분리한다.
 - [x] 확장된 `KeyboardTextInteractionPolicyTests` RED/GREEN을 확인한다.
+- [x] suggestion 선택의 n-gram 앞 공백과 현재 단어 확정용 단어 추출을 `KeyboardSuggestionSelectionPolicy`로 동작 변경 없이 분리한다.
+- [x] `KeyboardSuggestionSelectionPolicyTests` RED/GREEN을 확인한다.
 - [ ] 한글 조합/삭제/드래그/undo 관련 controller 변경 시 `KeyboardControllerSimulator.swift`를 함께 갱신한다.
 - [x] 변경 범위에 맞춰 targeted 테스트 또는 `SYKeyboardCore` 빌드를 실행한다.
 - [x] 최종 통합 전 전체 `SYKeyboard` 테스트를 실행하거나, 실행하지 못한 이유를 문서화한다.
