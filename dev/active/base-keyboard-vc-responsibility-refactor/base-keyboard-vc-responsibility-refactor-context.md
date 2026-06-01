@@ -19,7 +19,7 @@ Last Updated: 2026-06-01
 - `Modules/SYKeyboardCore/Presentation/Utils/KeyboardPresentationStatePolicy.swift`: return button 활성화와 suggestion bar 숨김 조건을 검증 가능한 순수 정책으로 분리한 타입이다.
 - `Modules/SYKeyboardCore/Presentation/Utils/KeyboardSymbolInputPolicy.swift`: symbol keyboard 입력 후 기본 키보드 자동 전환과 symbol 입력 상태 표시 조건을 검증 가능한 순수 정책으로 분리한 타입이다.
 - `Modules/SYKeyboardCore/Presentation/Utils/KeyboardHeightPolicy.swift`: portrait/landscape 및 suggestion bar 표시 여부에 따른 keyboard view와 hstack 높이 계산을 검증 가능한 순수 정책으로 분리한 타입이다.
-- `Modules/SYKeyboardCore/Presentation/Utils/KeyboardTextInteractionPolicy.swift`: text interaction 실행 중 보조키 입력, 단일 삭제 임시 저장 문자, 반복 삭제 수행 조건을 검증 가능한 순수 정책으로 분리한 타입이다.
+- `Modules/SYKeyboardCore/Presentation/Utils/KeyboardTextInteractionPolicy.swift`: text interaction 실행 중 보조키 입력, 단일 삭제 임시 저장/undo 기록 문자, 반복 삭제 수행 조건을 검증 가능한 순수 정책으로 분리한 타입이다.
 - `SYKeyboardTests/Utils/KeyboardHeightPolicyTests.swift`: keyboard height 계산 정책의 portrait/landscape, suggestion bar 표시/숨김 케이스를 검증한다.
 - `SYKeyboardTests/Utils/KeyboardTextInteractionPolicyTests.swift`: text interaction 정책의 보조키/삭제/반복 삭제 조건을 검증한다.
 - `Modules/SYKeyboardCore/Presentation/Utils/ButtonStateController.swift`: 버튼 feedback, pressed 상태, release 상태, suggestion bar interaction enabled 상태를 담당한다.
@@ -82,6 +82,7 @@ Last Updated: 2026-06-01
 - 2026-06-01 `KeyboardHeightPolicyTests` 첫 GREEN 시도는 테스트 파일의 `CGFloat` 리터럴에 `CoreFoundation` import가 없어 컴파일 실패했다. 원인은 테스트 코드 import 누락이었고, `CoreFoundation` import 추가 후 같은 targeted 테스트가 통과했다.
 - 여섯 번째 코드 변경으로 text interaction gesture 등록 대상 판단을 `KeyboardGesturePolicy.shouldAddTextInteractionGestures(...)`로 옮겼다. Base는 `ReturnButton`, `SecondaryKeyButton`, `.com` 제외 조건을 직접 조합하지 않고 정책 결과만 사용한다.
 - 일곱 번째 코드 변경으로 `KeyboardTextInteractionPolicy`를 추가했다. Base는 보조키 입력 가능 여부, 단일 삭제 시 `tempDeletedCharacters`에 추가할 문자, 반복 삭제 수행 가능 여부를 직접 조합하지 않고 정책 결과만 사용한다.
+- 여덟 번째 코드 변경으로 단일 삭제 undo 기록용 문자열 판단도 `KeyboardTextInteractionPolicy.deletedTextForSingleBackward(...)`로 옮겼다. 선택 텍스트는 원문으로 기록하고, 빈 선택 텍스트는 커서 앞 마지막 문자로 fallback하는 기존 동작을 유지한다.
 
 ## Quality Assessment - 2026-05-22
 
@@ -175,7 +176,7 @@ Last Updated: 2026-06-01
 ## Handoff Notes
 
 - action binding 감사표를 작성했다. 다음 단계는 감사표 기준으로 `BaseKeyboardViewController`의 action binding 구역을 크게 옮기지 않고, 이름 정리 또는 순수 조건 분리처럼 회귀 위험이 낮은 후보만 선별하는 것이다.
-- 감사표 기준 첫 후속 변경으로 text interaction gesture 등록 대상 조건을 `KeyboardGesturePolicy`에 포함했다. 이어서 text interaction 실행 중 순수 판단만 `KeyboardTextInteractionPolicy`로 분리했다. 남은 action binding은 closure와 UIKit target/action 결합이 커서 즉시 binder로 옮기지 않는다.
+- 감사표 기준 첫 후속 변경으로 text interaction gesture 등록 대상 조건을 `KeyboardGesturePolicy`에 포함했다. 이어서 text interaction 실행 중 순수 판단만 `KeyboardTextInteractionPolicy`로 분리했고, 단일 삭제 undo 기록 문자열 판단도 같은 정책에 포함했다. 남은 action binding은 closure와 UIKit target/action 결합이 커서 즉시 binder로 옮기지 않는다.
 - 리팩토링 계획을 세울 때 `KeyboardControllerSimulator.swift`를 별도 테스트 debt로 취급하지 말고 핵심 동기화 대상으로 포함한다.
 - 새 타입을 만들기 전에 해당 타입이 알아야 하는 상태를 목록화한다. `textDocumentProxy`, `inputBuffer`, `suggestionController`, `undoRedoSession`, `keyboardSettingsManager`, subclass hook 중 3개 이상을 알아야 하면 추출을 보류한다.
 - 기능 변경이 필요해 보이면 리팩토링이 아니라 별도 feature/fix로 문서화하고 사용자 확인을 받는다.
@@ -249,6 +250,14 @@ Last Updated: 2026-06-01
   - `xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0' -only-testing:SYKeyboardTests/KeyboardTextInteractionPolicyTests`
   - 결과: `TEST SUCCEEDED`.
 - 2026-06-01 `KeyboardTextInteractionPolicy` 연결 후 전체 `SYKeyboard` 테스트 확인:
+  - `xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0'`
+  - 결과: `TEST SUCCEEDED`.
+- 2026-06-01 `KeyboardTextInteractionPolicyTests` 단일 삭제 기록 문자 RED:
+  - 권한 있는 환경에서 `deletedTextForSingleBackward` 미정의 컴파일 실패를 확인했다.
+- 2026-06-01 `KeyboardTextInteractionPolicyTests` 단일 삭제 기록 문자 GREEN:
+  - `xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0' -only-testing:SYKeyboardTests/KeyboardTextInteractionPolicyTests`
+  - 결과: `TEST SUCCEEDED`.
+- 2026-06-01 단일 삭제 기록 문자 정책 연결 후 전체 `SYKeyboard` 테스트 확인:
   - `xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0'`
   - 결과: `TEST SUCCEEDED`.
 - 변경 후 실행할 확인:

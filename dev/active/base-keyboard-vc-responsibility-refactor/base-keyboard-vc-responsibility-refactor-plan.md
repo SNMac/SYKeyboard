@@ -30,7 +30,7 @@ Last Updated: 2026-06-01
 - 2026-06-01 `KeyboardHeightPolicy` 작업은 `1acbad42 refactor: #31 - 키보드 높이 계산 정책 분리`로 커밋했다.
 - 2026-06-01 action binding 감사표를 작성해 Base의 feedback/input/switch/release 등록 순서, symbol extra action, switch gesture, view-owned shift action의 경계를 고정했다.
 - 2026-06-01 감사표 기준으로 text interaction gesture 등록 대상 판단을 `KeyboardGesturePolicy`로 분리했다.
-- 2026-06-01 text interaction 실행 중 보조키 입력, 단일 삭제 임시 저장 문자, 반복 삭제 수행 조건을 `KeyboardTextInteractionPolicy`로 분리했다.
+- 2026-06-01 text interaction 실행 중 보조키 입력, 단일 삭제 임시 저장/undo 기록 문자, 반복 삭제 수행 조건을 `KeyboardTextInteractionPolicy`로 분리했다.
 - `BaseKeyboardViewController`는 여전히 아래 책임을 함께 가진다.
   - 키보드 view wiring과 height 갱신
   - 버튼 action binding과 gesture recognizer binding
@@ -79,7 +79,7 @@ Last Updated: 2026-06-01
   - 후보 C: text interaction coordinator
      - `performTextInteraction`, `performRepeatTextInteraction`, delete/space/return 경계 처리를 다룬다.
      - 한글 subclass override hook과 충돌하지 않아야 한다.
-     - 2026-06-01에는 coordinator 추출 대신 보조키/삭제/반복 삭제의 순수 판단만 `KeyboardTextInteractionPolicy`로 분리했다.
+     - 2026-06-01에는 coordinator 추출 대신 보조키/삭제/반복 삭제/undo 기록 문자열의 순수 판단만 `KeyboardTextInteractionPolicy`로 분리했다.
    - 후보 D: suggestion interaction coordinator
      - selected text, n-gram, current word confirmation, input buffer suggestion 경로를 다룬다.
      - `textDocumentProxy`와 `inputBuffer` 직접 접근을 줄일 수 있을 때만 추출한다.
@@ -283,6 +283,30 @@ xcodebuild test \
 
 결과: `TEST SUCCEEDED`.
 
+- 2026-06-01 `KeyboardTextInteractionPolicy.deletedTextForSingleBackward` 추가 전 RED 확인:
+
+```sh
+xcodebuild test \
+  -project SYKeyboard.xcodeproj \
+  -scheme SYKeyboard \
+  -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0' \
+  -only-testing:SYKeyboardTests/KeyboardTextInteractionPolicyTests
+```
+
+결과: 권한 있는 환경에서 실행했으며 `deletedTextForSingleBackward` 미정의로 실패했다.
+
+- 2026-06-01 `KeyboardTextInteractionPolicy.deletedTextForSingleBackward` 추가 후 GREEN 확인:
+
+```sh
+xcodebuild test \
+  -project SYKeyboard.xcodeproj \
+  -scheme SYKeyboard \
+  -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0' \
+  -only-testing:SYKeyboardTests/KeyboardTextInteractionPolicyTests
+```
+
+결과: `TEST SUCCEEDED`.
+
 - 문서/계획만 변경한 경우:
 
 ```sh
@@ -328,6 +352,7 @@ xcodebuild test \
 2026-05-22 `KeyboardSymbolInputPolicy` 연결 후 재확인 결과: `TEST SUCCEEDED`.
 2026-06-01 `KeyboardHeightPolicy` 연결 후 재확인 결과: `TEST SUCCEEDED`.
 2026-06-01 `KeyboardTextInteractionPolicy` 연결 후 재확인 결과: `TEST SUCCEEDED`.
+2026-06-01 `KeyboardTextInteractionPolicy.deletedTextForSingleBackward` 연결 후 재확인 결과: `TEST SUCCEEDED`.
 
 - 수동 확인이 필요한 경우:
   - 실제 텍스트 입력 앱에서 한글/영문 키보드 extension을 열고 입력, 삭제, 반복 삭제, 삭제 드래그, 스페이스, 리턴, 자동완성 선택, undo/redo를 확인한다.

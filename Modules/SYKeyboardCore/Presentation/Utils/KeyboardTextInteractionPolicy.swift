@@ -27,6 +27,19 @@ enum KeyboardTextInteractionPolicy {
         return ""
     }
 
+    static func deletedTextForSingleBackward(
+        selectedText: String?,
+        documentContextBeforeInput: String?
+    ) -> String {
+        if let selectedText, !selectedText.isEmpty {
+            return selectedText
+        }
+        if let lastBeforeCursor = documentContextBeforeInput?.last {
+            return String(lastBeforeCursor)
+        }
+        return ""
+    }
+
     static func shouldRepeatDelete(
         documentContextBeforeInput: String?,
         selectedText: String?

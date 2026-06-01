@@ -1136,13 +1136,10 @@ private extension BaseKeyboardViewController {
     }
 
     func textDeletedBySingleBackward() -> String {
-        if let selectedText = textDocumentProxy.selectedText, !selectedText.isEmpty {
-            return selectedText
-        }
-        if let lastBeforeCursor = textDocumentProxy.documentContextBeforeInput?.last {
-            return String(lastBeforeCursor)
-        }
-        return ""
+        return KeyboardTextInteractionPolicy.deletedTextForSingleBackward(
+            selectedText: textDocumentProxy.selectedText,
+            documentContextBeforeInput: textDocumentProxy.documentContextBeforeInput
+        )
     }
 
     func textBeforeCursorSuffix(count: Int) -> String {
