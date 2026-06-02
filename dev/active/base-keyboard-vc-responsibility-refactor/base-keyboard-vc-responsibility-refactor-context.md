@@ -14,13 +14,13 @@ Last Updated: 2026-06-02
 - `SYKeyboardTests/Utils/KeyboardUndoRedoManagerTests.swift`: undo/redo 기록 단위와 redo 초기화를 검증한다.
 - `SYKeyboardTests/Utils/KeyboardTextContextNavigatorTests.swift`: cursor 이동 후 undo/redo 위치 복원 로직을 검증한다.
 - `Modules/SYKeyboardCore/Presentation/Utils/KeyboardUndoRedoManager.swift`: undo/redo manager와 `KeyboardUndoRedoSession`이 있다.
-- `Modules/SYKeyboardCore/Presentation/Utils/KeyboardGesturePolicy.swift`: text interaction gesture 등록 대상, pan/long press gesture 추가, long press 동작 선택 조건을 검증 가능한 순수 정책으로 분리한 타입이다.
-- `Modules/SYKeyboardCore/Presentation/Utils/KeyboardPeriodShortcutPolicy.swift`: space double tap period shortcut 수행 조건과 삭제 후 방지 상태 전환을 검증 가능한 순수 정책으로 분리한 타입이다.
-- `Modules/SYKeyboardCore/Presentation/Utils/KeyboardPresentationStatePolicy.swift`: return button 활성화, suggestion bar 숨김 조건, undo/redo 기능 활성화와 controls 표시 조건을 검증 가능한 순수 정책으로 분리한 타입이다.
-- `Modules/SYKeyboardCore/Presentation/Utils/KeyboardSymbolInputPolicy.swift`: symbol keyboard 입력 후 기본 키보드 자동 전환과 symbol 입력 상태 표시 조건을 검증 가능한 순수 정책으로 분리한 타입이다.
-- `Modules/SYKeyboardCore/Presentation/Utils/KeyboardHeightPolicy.swift`: portrait/landscape 및 suggestion bar 표시 여부에 따른 keyboard view와 hstack 높이 계산을 검증 가능한 순수 정책으로 분리한 타입이다.
-- `Modules/SYKeyboardCore/Presentation/Utils/KeyboardTextInteractionPolicy.swift`: text interaction 실행 중 보조키 입력, 단일 삭제 임시 저장/undo 기록 문자, 반복 삭제 수행 조건을 검증 가능한 순수 정책으로 분리한 타입이다.
-- `Modules/SYKeyboardCore/Presentation/Utils/KeyboardSuggestionSelectionPolicy.swift`: suggestion 선택 흐름의 n-gram 앞 공백 삽입 여부, 현재 단어 확정용 단어 추출, suggestion 갱신 action, lexicon 로딩 조건 판단을 검증 가능한 순수 정책으로 분리한 타입이다.
+- `Modules/SYKeyboardCore/Presentation/Utils/Policies/KeyboardGesturePolicy.swift`: text interaction gesture 등록 대상, pan/long press gesture 추가, long press 동작 선택 조건을 검증 가능한 순수 정책으로 분리한 타입이다.
+- `Modules/SYKeyboardCore/Presentation/Utils/Policies/KeyboardPeriodShortcutPolicy.swift`: space double tap period shortcut 수행 조건과 삭제 후 방지 상태 전환을 검증 가능한 순수 정책으로 분리한 타입이다.
+- `Modules/SYKeyboardCore/Presentation/Utils/Policies/KeyboardPresentationStatePolicy.swift`: return button 활성화, suggestion bar 숨김 조건, undo/redo 기능 활성화와 controls 표시 조건을 검증 가능한 순수 정책으로 분리한 타입이다.
+- `Modules/SYKeyboardCore/Presentation/Utils/Policies/KeyboardSymbolInputPolicy.swift`: symbol keyboard 입력 후 기본 키보드 자동 전환과 symbol 입력 상태 표시 조건을 검증 가능한 순수 정책으로 분리한 타입이다.
+- `Modules/SYKeyboardCore/Presentation/Utils/Policies/KeyboardHeightPolicy.swift`: portrait/landscape 및 suggestion bar 표시 여부에 따른 keyboard view와 hstack 높이 계산을 검증 가능한 순수 정책으로 분리한 타입이다.
+- `Modules/SYKeyboardCore/Presentation/Utils/Policies/KeyboardTextInteractionPolicy.swift`: text interaction 실행 중 보조키 입력, 단일 삭제 임시 저장/undo 기록 문자, 반복 삭제 수행 조건을 검증 가능한 순수 정책으로 분리한 타입이다.
+- `Modules/SYKeyboardCore/Presentation/Utils/Policies/KeyboardSuggestionSelectionPolicy.swift`: suggestion 선택 흐름의 n-gram 앞 공백 삽입 여부, 현재 단어 확정용 단어 추출, suggestion 갱신 action, lexicon 로딩 조건 판단을 검증 가능한 순수 정책으로 분리한 타입이다.
 - `SYKeyboardTests/Utils/KeyboardHeightPolicyTests.swift`: keyboard height 계산 정책의 portrait/landscape, suggestion bar 표시/숨김 케이스를 검증한다.
 - `SYKeyboardTests/Utils/KeyboardTextInteractionPolicyTests.swift`: text interaction 정책의 보조키/삭제/반복 삭제 조건을 검증한다.
 - `SYKeyboardTests/Utils/KeyboardSuggestionSelectionPolicyTests.swift`: suggestion 선택 정책의 n-gram 앞 공백 삽입 조건과 현재 단어 추출을 검증한다.
@@ -64,6 +64,8 @@ Last Updated: 2026-06-02
   - `b1566957 refactor: #31 - 텍스트 프록시 래퍼 정리`
 - 2026-06-02 `516ed1c refactor: #31 - lexicon 로딩 정책 분리` 커밋 후 `git status --short --untracked-files=all`는 비어 있었다.
 - 2026-06-02 Base 마감 문서 작업 시작 시점의 `git status --short --untracked-files=all`는 비어 있었다.
+- 2026-06-02 Policy 파일 이동 전 `git status --short --untracked-files=all`는 비어 있었다.
+- `SYKeyboard.xcodeproj/project.pbxproj`의 `Modules` synchronized root membership exceptions는 Policy 파일 경로를 직접 가지고 있어, `Policies/` 폴더 이동 시 해당 경로도 함께 바꿔야 한다.
 
 ## Decisions
 
@@ -97,6 +99,7 @@ Last Updated: 2026-06-02
 - text proxy adapter는 selected text 자동 교체, return 입력, undo/redo 직접 적용, 한글 subclass hook 예외를 모두 감싸야 해서 오히려 예외가 늘 가능성이 있으므로 보류한다.
 - full suggestion coordinator는 `textDocumentProxy`, `inputBuffer`, `suggestionController`, undo 기록, subclass `suggestionDidApply()` hook을 함께 알아야 하므로 현재는 순수 정책 분리 수준에서 멈춘다.
 - 다음 큰 개선은 Base가 아니라 `KeyboardControllerSimulator`와 실제 한글 controller 중복 축소, suggestion/undo 기능의 도메인 테스트 안정화로 넘긴다.
+- production Policy 파일은 `Modules/SYKeyboardCore/Presentation/Utils/Policies/` 아래에 모은다. 테스트 파일은 기존 `SYKeyboardTests/Utils/*PolicyTests.swift` 위치를 유지한다.
 
 ## Quality Assessment - 2026-05-22
 
@@ -182,6 +185,7 @@ Last Updated: 2026-06-02
 ## Open Questions
 
 - Base 리팩토링 자체는 마감했다. 필요하면 별도 사람 리뷰나 정적 분석은 추가할 수 있지만, 현재 active task의 다음 구현 범위는 아니다.
+- 다음 채팅에서는 먼저 `Policies/` 폴더에 모인 테스트 가능한 조건 분리가 충분히 마감되었는지 확인한다.
 - `KeyboardControllerSimulator.swift`와 실제 `HangeulKeyboardCoreViewController` 중복을 어떻게 줄일지는 다음 큰 개선 과제다.
 - 테스트 helper를 더 실제 controller 로직에 가깝게 만들지, 아니면 순수 domain/service 추출 후 테스트가 그 타입을 직접 검증하게 할지는 다음 과제에서 결정한다.
 - suggestion/undo 기능의 도메인 테스트를 어느 계층에 둘지 정해야 한다. Base가 아니라 policy/session/domain 쪽 테스트 안정화를 우선한다.
@@ -194,7 +198,7 @@ Last Updated: 2026-06-02
 - 리팩토링 계획을 세울 때 `KeyboardControllerSimulator.swift`를 별도 테스트 debt로 취급하지 말고 핵심 동기화 대상으로 포함한다.
 - 새 타입을 만들기 전에 해당 타입이 알아야 하는 상태를 목록화한다. `textDocumentProxy`, `inputBuffer`, `suggestionController`, `undoRedoSession`, `keyboardSettingsManager`, subclass hook 중 3개 이상을 알아야 하면 추출을 보류한다.
 - 기능 변경이 필요해 보이면 리팩토링이 아니라 별도 feature/fix로 문서화하고 사용자 확인을 받는다.
-- 다음 세션에서 이 active task를 이어간다면 Base를 더 쪼개기보다, `KeyboardControllerSimulator` 중복 축소 또는 suggestion/undo 도메인 테스트 안정화 작업으로 새 계획을 잡는다.
+- 다음 세션에서 이 active task를 이어간다면 `Policies/` 폴더 이동과 테스트 가능한 조건 분리의 마감 여부를 먼저 확인한 뒤, Base를 더 쪼개기보다 `KeyboardControllerSimulator` 중복 축소 또는 suggestion/undo 도메인 테스트 안정화 작업으로 새 계획을 잡는다.
 
 ## Verification Notes
 
@@ -284,6 +288,10 @@ Last Updated: 2026-06-02
 - 2026-06-02 lexicon 로딩 정책 연결 후 전체 `SYKeyboard` 테스트 확인:
   - `xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0'`
   - 결과: `TEST SUCCEEDED`.
+- 2026-06-02 Policy 파일 `Policies/` 폴더 이동 후 전체 `SYKeyboard` 테스트 시도:
+  - `xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0'`
+  - 결과: 승인 단계의 usage limit으로 실행하지 못했다.
+  - 대체 확인: `git diff --check`, 이전 Policy 경로 검색, Xcode project membership exception 경로 확인.
 - 2026-06-01 `KeyboardTextInteractionPolicyTests` 단일 삭제 기록 문자 RED:
   - 권한 있는 환경에서 `deletedTextForSingleBackward` 미정의 컴파일 실패를 확인했다.
 - 2026-06-01 `KeyboardTextInteractionPolicyTests` 단일 삭제 기록 문자 GREEN:

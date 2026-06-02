@@ -49,6 +49,9 @@ Last Updated: 2026-06-02
 - [x] `BaseKeyboardViewController`를 iOS keyboard extension boundary로 유지하고 리팩토링 마감 결정을 문서화한다.
 - [x] action binder, text proxy adapter, full suggestion coordinator 보류 사유를 문서화한다.
 - [x] 다음 큰 개선 대상을 controller simulator 중복 축소와 suggestion/undo 도메인 테스트 안정화로 넘긴다.
+- [x] production Policy 파일을 `Utils/Policies/` 폴더로 모은다.
+- [x] Policy 파일 이동 후 Xcode project membership exception 경로를 갱신한다.
+- [x] 다음 채팅에서 테스트 가능한 조건 분리 마감 여부를 먼저 확인하도록 handoff를 남긴다.
 - [ ] 한글 조합/삭제/드래그/undo 관련 controller 변경 시 `KeyboardControllerSimulator.swift`를 함께 갱신한다.
 - [x] 변경 범위에 맞춰 targeted 테스트 또는 `SYKeyboardCore` 빌드를 실행한다.
 - [x] 최종 통합 전 전체 `SYKeyboard` 테스트를 실행하거나, 실행하지 못한 이유를 문서화한다.
