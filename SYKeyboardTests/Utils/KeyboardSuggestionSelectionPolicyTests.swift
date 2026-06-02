@@ -59,4 +59,43 @@ struct KeyboardSuggestionSelectionPolicyTests {
             ) == ""
         )
     }
+
+    @Test("자동완성 갱신 동작은 설정과 선택 텍스트 상태에 따라 결정")
+    func test자동완성갱신동작() {
+        #expect(
+            KeyboardSuggestionSelectionPolicy.suggestionUpdateAction(
+                isPredictiveTextEnabled: false,
+                selectedText: "hello",
+                inputBuffer: "input"
+            ) == .none
+        )
+        #expect(
+            KeyboardSuggestionSelectionPolicy.suggestionUpdateAction(
+                isPredictiveTextEnabled: true,
+                selectedText: "hello",
+                inputBuffer: "input"
+            ) == .update("hello")
+        )
+        #expect(
+            KeyboardSuggestionSelectionPolicy.suggestionUpdateAction(
+                isPredictiveTextEnabled: true,
+                selectedText: "hello world",
+                inputBuffer: "input"
+            ) == .clear
+        )
+        #expect(
+            KeyboardSuggestionSelectionPolicy.suggestionUpdateAction(
+                isPredictiveTextEnabled: true,
+                selectedText: "",
+                inputBuffer: "input"
+            ) == .update("input")
+        )
+        #expect(
+            KeyboardSuggestionSelectionPolicy.suggestionUpdateAction(
+                isPredictiveTextEnabled: true,
+                selectedText: nil,
+                inputBuffer: "input"
+            ) == .update("input")
+        )
+    }
 }

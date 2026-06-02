@@ -1186,16 +1186,19 @@ private extension BaseKeyboardViewController {
     }
 
     func updateSuggestions() {
-        if suggestionController.isPredictiveTextEnabled {
-            if let selectedText = textDocumentProxy.selectedText, !selectedText.isEmpty {
-                if !selectedText.contains(where: { $0.isWhitespace }) {
-                    suggestionController.updateSuggestions(for: selectedText)
-                } else {
-                    suggestionController.clearSuggestions()
-                }
-            } else {
-                suggestionController.updateSuggestions(for: inputBuffer)
-            }
+        let action = KeyboardSuggestionSelectionPolicy.suggestionUpdateAction(
+            isPredictiveTextEnabled: suggestionController.isPredictiveTextEnabled,
+            selectedText: textDocumentProxy.selectedText,
+            inputBuffer: inputBuffer
+        )
+
+        switch action {
+        case .none:
+            break
+        case .update(let text):
+            suggestionController.updateSuggestions(for: text)
+        case .clear:
+            suggestionController.clearSuggestions()
         }
     }
     
