@@ -205,8 +205,10 @@ open class BaseKeyboardViewController: UIInputViewController {
         suggestionController.isPredictiveTextEnabled = keyboardSettingsManager.isPredictiveTextEnabled
         
         // lexicon 로딩 (텍스트 대치 또는 자동완성 중 하나라도 켜져 있으면)
-        if keyboardSettingsManager.isTextReplacementEnabled
-            || keyboardSettingsManager.isPredictiveTextEnabled {
+        if KeyboardSuggestionSelectionPolicy.shouldLoadLexicon(
+            isTextReplacementEnabled: keyboardSettingsManager.isTextReplacementEnabled,
+            isPredictiveTextEnabled: keyboardSettingsManager.isPredictiveTextEnabled
+        ) {
             suggestionController.loadLexicon(from: self)
         }
         updateSuggestionBarHidden()

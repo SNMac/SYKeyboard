@@ -21,6 +21,13 @@ enum KeyboardSuggestionSelectionPolicy {
         return inputBuffer.split(whereSeparator: { $0.isWhitespace }).last.map(String.init) ?? ""
     }
 
+    static func shouldLoadLexicon(
+        isTextReplacementEnabled: Bool,
+        isPredictiveTextEnabled: Bool
+    ) -> Bool {
+        return isTextReplacementEnabled || isPredictiveTextEnabled
+    }
+
     static func suggestionUpdateAction(
         isPredictiveTextEnabled: Bool,
         selectedText: String?,
