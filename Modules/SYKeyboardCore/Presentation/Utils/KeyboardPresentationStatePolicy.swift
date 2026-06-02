@@ -37,4 +37,11 @@ enum KeyboardPresentationStatePolicy {
     ) -> Bool {
         return !isSuggestionBarHidden && isUndoRedoFeatureAvailable
     }
+
+    static func isUndoRedoFeatureAvailable(
+        isPredictiveTextEnabled: Bool,
+        isUndoRedoEnabled: Bool
+    ) -> Bool {
+        return isPredictiveTextEnabled && isUndoRedoEnabled
+    }
 }

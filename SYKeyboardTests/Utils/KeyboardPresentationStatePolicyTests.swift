@@ -102,4 +102,26 @@ struct KeyboardPresentationStatePolicyTests {
             ) == false
         )
     }
+
+    @Test("undo redo 기능은 자동완성과 undo redo 설정이 모두 켜진 경우에만 활성화")
+    func testUndoRedo기능활성화조건() {
+        #expect(
+            KeyboardPresentationStatePolicy.isUndoRedoFeatureAvailable(
+                isPredictiveTextEnabled: true,
+                isUndoRedoEnabled: true
+            ) == true
+        )
+        #expect(
+            KeyboardPresentationStatePolicy.isUndoRedoFeatureAvailable(
+                isPredictiveTextEnabled: false,
+                isUndoRedoEnabled: true
+            ) == false
+        )
+        #expect(
+            KeyboardPresentationStatePolicy.isUndoRedoFeatureAvailable(
+                isPredictiveTextEnabled: true,
+                isUndoRedoEnabled: false
+            ) == false
+        )
+    }
 }

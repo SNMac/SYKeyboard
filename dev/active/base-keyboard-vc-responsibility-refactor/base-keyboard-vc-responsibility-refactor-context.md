@@ -16,7 +16,7 @@ Last Updated: 2026-06-02
 - `Modules/SYKeyboardCore/Presentation/Utils/KeyboardUndoRedoManager.swift`: undo/redo manager와 `KeyboardUndoRedoSession`이 있다.
 - `Modules/SYKeyboardCore/Presentation/Utils/KeyboardGesturePolicy.swift`: text interaction gesture 등록 대상, pan/long press gesture 추가, long press 동작 선택 조건을 검증 가능한 순수 정책으로 분리한 타입이다.
 - `Modules/SYKeyboardCore/Presentation/Utils/KeyboardPeriodShortcutPolicy.swift`: space double tap period shortcut 수행 조건과 삭제 후 방지 상태 전환을 검증 가능한 순수 정책으로 분리한 타입이다.
-- `Modules/SYKeyboardCore/Presentation/Utils/KeyboardPresentationStatePolicy.swift`: return button 활성화, suggestion bar 숨김 조건, undo/redo controls 표시 조건을 검증 가능한 순수 정책으로 분리한 타입이다.
+- `Modules/SYKeyboardCore/Presentation/Utils/KeyboardPresentationStatePolicy.swift`: return button 활성화, suggestion bar 숨김 조건, undo/redo 기능 활성화와 controls 표시 조건을 검증 가능한 순수 정책으로 분리한 타입이다.
 - `Modules/SYKeyboardCore/Presentation/Utils/KeyboardSymbolInputPolicy.swift`: symbol keyboard 입력 후 기본 키보드 자동 전환과 symbol 입력 상태 표시 조건을 검증 가능한 순수 정책으로 분리한 타입이다.
 - `Modules/SYKeyboardCore/Presentation/Utils/KeyboardHeightPolicy.swift`: portrait/landscape 및 suggestion bar 표시 여부에 따른 keyboard view와 hstack 높이 계산을 검증 가능한 순수 정책으로 분리한 타입이다.
 - `Modules/SYKeyboardCore/Presentation/Utils/KeyboardTextInteractionPolicy.swift`: text interaction 실행 중 보조키 입력, 단일 삭제 임시 저장/undo 기록 문자, 반복 삭제 수행 조건을 검증 가능한 순수 정책으로 분리한 타입이다.
@@ -88,6 +88,7 @@ Last Updated: 2026-06-02
 - 아홉 번째 코드 변경으로 suggestion 선택 흐름의 n-gram 앞 공백 삽입 조건과 현재 단어 확정용 단어 추출을 `KeyboardSuggestionSelectionPolicy`로 옮겼다. `insertText`, `suggestionDidApply`, suggestion 갱신 호출 순서는 유지했다.
 - 열 번째 코드 변경으로 `updateSuggestions()`의 자동완성 갱신 분기 판단을 `KeyboardSuggestionSelectionPolicy.suggestionUpdateAction(...)`으로 옮겼다. 자동완성 꺼짐은 no-op, 단일 selected text는 해당 텍스트로 갱신, whitespace 포함 selected text는 clear, selected text가 없으면 `inputBuffer`로 갱신하는 기존 동작을 유지했다.
 - 열한 번째 코드 변경으로 `updateUndoRedoControls()`의 controls 표시 조건을 `KeyboardPresentationStatePolicy.shouldShowUndoRedoControls(...)`로 옮겼다. suggestion bar가 보이고 undo/redo 기능이 활성화된 경우에만 표시하는 기존 동작을 유지했다.
+- 열두 번째 코드 변경으로 Base의 undo/redo 기능 활성화 설정 조합 판단을 `KeyboardPresentationStatePolicy.isUndoRedoFeatureAvailable(...)`로 옮겼다. 자동완성과 undo/redo 설정이 모두 켜진 경우에만 활성화되는 기존 동작을 유지했다.
 
 ## Quality Assessment - 2026-05-22
 
@@ -256,6 +257,15 @@ Last Updated: 2026-06-02
   - `xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0' -only-testing:SYKeyboardTests/KeyboardTextInteractionPolicyTests`
   - 결과: `TEST SUCCEEDED`.
 - 2026-06-01 `KeyboardTextInteractionPolicy` 연결 후 전체 `SYKeyboard` 테스트 확인:
+  - `xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0'`
+  - 결과: `TEST SUCCEEDED`.
+- 2026-06-02 `KeyboardPresentationStatePolicy.isUndoRedoFeatureAvailable` RED:
+  - `xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0' -derivedDataPath /private/tmp/SYKeyboardDerivedDataRed -only-testing:SYKeyboardTests/KeyboardPresentationStatePolicyTests`
+  - 권한 있는 환경에서 `isUndoRedoFeatureAvailable` 미정의 컴파일 실패를 확인했다.
+- 2026-06-02 `KeyboardPresentationStatePolicy.isUndoRedoFeatureAvailable` GREEN:
+  - `xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0' -derivedDataPath /private/tmp/SYKeyboardDerivedDataRed -only-testing:SYKeyboardTests/KeyboardPresentationStatePolicyTests`
+  - 결과: `TEST SUCCEEDED`.
+- 2026-06-02 undo/redo 기능 활성화 정책 연결 후 전체 `SYKeyboard` 테스트 확인:
   - `xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0'`
   - 결과: `TEST SUCCEEDED`.
 - 2026-06-01 `KeyboardTextInteractionPolicyTests` 단일 삭제 기록 문자 RED:

@@ -34,6 +34,7 @@ Last Updated: 2026-06-02
 - 2026-06-01 suggestion 선택 흐름 중 n-gram 후보 앞 공백 삽입 여부와 현재 단어 확정용 마지막 단어 추출을 `KeyboardSuggestionSelectionPolicy`로 분리했다.
 - 2026-06-02 suggestion 갱신 흐름 중 자동완성 설정, selected text, whitespace 포함 선택 텍스트, `inputBuffer` fallback 판단을 `KeyboardSuggestionSelectionPolicy.suggestionUpdateAction(...)`으로 분리했다.
 - 2026-06-02 undo/redo controls 표시 여부 판단을 `KeyboardPresentationStatePolicy.shouldShowUndoRedoControls(...)`로 분리했다.
+- 2026-06-02 undo/redo 기능 활성화 설정 조합 판단을 `KeyboardPresentationStatePolicy.isUndoRedoFeatureAvailable(...)`로 분리했다.
 - `BaseKeyboardViewController`는 여전히 아래 책임을 함께 가진다.
   - 키보드 view wiring과 height 갱신
   - 버튼 action binding과 gesture recognizer binding
@@ -395,6 +396,7 @@ xcodebuild test \
 2026-06-01 `KeyboardTextInteractionPolicy.deletedTextForSingleBackward` 연결 후 재확인 결과: `TEST SUCCEEDED`.
 2026-06-02 `KeyboardSuggestionSelectionPolicy.suggestionUpdateAction` 연결 후 재확인 결과: `TEST SUCCEEDED`.
 2026-06-02 `KeyboardPresentationStatePolicy.shouldShowUndoRedoControls` 연결 후 재확인 결과: `TEST SUCCEEDED`.
+2026-06-02 `KeyboardPresentationStatePolicy.isUndoRedoFeatureAvailable` 연결 후 재확인 결과: `TEST SUCCEEDED`.
 
 - 수동 확인이 필요한 경우:
   - 실제 텍스트 입력 앱에서 한글/영문 키보드 extension을 열고 입력, 삭제, 반복 삭제, 삭제 드래그, 스페이스, 리턴, 자동완성 선택, undo/redo를 확인한다.

@@ -126,8 +126,10 @@ open class BaseKeyboardViewController: UIInputViewController {
     private var undoRedoSession = KeyboardUndoRedoSession()
     /// 자동완성과 undo/redo 설정이 모두 켜진 경우에만 기능을 활성화합니다.
     private var isUndoRedoFeatureAvailable: Bool {
-        return keyboardSettingsManager.isPredictiveTextEnabled
-        && keyboardSettingsManager.isUndoRedoEnabled
+        return KeyboardPresentationStatePolicy.isUndoRedoFeatureAvailable(
+            isPredictiveTextEnabled: keyboardSettingsManager.isPredictiveTextEnabled,
+            isUndoRedoEnabled: keyboardSettingsManager.isUndoRedoEnabled
+        )
     }
     
     /// 삭제 버튼 팬 제스처로 인해 임시로 삭제된 내용을 저장하는 변수
