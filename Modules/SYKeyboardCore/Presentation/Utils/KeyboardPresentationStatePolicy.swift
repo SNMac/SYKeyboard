@@ -30,4 +30,11 @@ enum KeyboardPresentationStatePolicy {
         || autocorrectionType == .no
         || currentKeyboard == .tenKey
     }
+
+    static func shouldShowUndoRedoControls(
+        isSuggestionBarHidden: Bool,
+        isUndoRedoFeatureAvailable: Bool
+    ) -> Bool {
+        return !isSuggestionBarHidden && isUndoRedoFeatureAvailable
+    }
 }

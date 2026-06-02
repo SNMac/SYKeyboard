@@ -1127,7 +1127,10 @@ private extension BaseKeyboardViewController {
     }
 
     func updateUndoRedoControls() {
-        let shouldShowUndoRedo = !suggestionBarView.isHidden && isUndoRedoFeatureAvailable
+        let shouldShowUndoRedo = KeyboardPresentationStatePolicy.shouldShowUndoRedoControls(
+            isSuggestionBarHidden: suggestionBarView.isHidden,
+            isUndoRedoFeatureAvailable: isUndoRedoFeatureAvailable
+        )
         suggestionBarView.updateUndoRedoControls(
             isVisible: shouldShowUndoRedo,
             canUndo: undoRedoSession.canUndo,

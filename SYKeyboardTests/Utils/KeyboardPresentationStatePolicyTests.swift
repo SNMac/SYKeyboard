@@ -80,4 +80,26 @@ struct KeyboardPresentationStatePolicyTests {
             ) == false
         )
     }
+
+    @Test("undo redo controls는 suggestion bar가 보이고 기능이 활성화된 경우에만 표시")
+    func testUndoRedoControls표시조건() {
+        #expect(
+            KeyboardPresentationStatePolicy.shouldShowUndoRedoControls(
+                isSuggestionBarHidden: false,
+                isUndoRedoFeatureAvailable: true
+            ) == true
+        )
+        #expect(
+            KeyboardPresentationStatePolicy.shouldShowUndoRedoControls(
+                isSuggestionBarHidden: true,
+                isUndoRedoFeatureAvailable: true
+            ) == false
+        )
+        #expect(
+            KeyboardPresentationStatePolicy.shouldShowUndoRedoControls(
+                isSuggestionBarHidden: false,
+                isUndoRedoFeatureAvailable: false
+            ) == false
+        )
+    }
 }
