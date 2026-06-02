@@ -21,7 +21,11 @@ Last Updated: 2026-06-02
   - `f1bb9e3f refactor: #31 - 버튼과 제스처 처리 흐름 분리`
   - `a328efba refactor: #31 - suggestion 선택 흐름 분리`
   - `6329d808 refactor: #31 - undo redo 세션 상태 분리`
-- 현재까지의 리팩토링은 큰 메서드에 뭉쳐 있던 코드를 private helper와 `KeyboardUndoRedoSession`으로 나누는 수준이다.
+- 이번 마감형 리팩토링의 최근 커밋:
+  - `83570f2f refactor: #31 - 자동완성 갱신 정책 분리`
+  - `cbdcfcfa refactor: #31 - undo redo 표시 정책 분리`
+  - `00ad634a refactor: #31 - undo redo 활성화 정책 분리`
+  - `516ed1c refactor: #31 - lexicon 로딩 정책 분리`
 - 2026-05-22 작업 재개 후 `KeyboardPresentationStatePolicy`를 추가하여 return button 활성화 여부와 suggestion bar 숨김 여부의 순수 판단 로직을 `BaseKeyboardViewController`에서 분리했다.
 - 2026-05-22 작업 재개 후 `KeyboardGesturePolicy`를 추가하여 text interaction gesture 추가 조건과 long press 분기 조건의 순수 판단 로직을 `BaseKeyboardViewController`에서 분리했다.
 - 2026-05-22 작업 재개 후 `KeyboardPeriodShortcutPolicy`를 추가하여 period shortcut 수행 조건과 삭제 후 방지 상태 전환 로직을 `BaseKeyboardViewController`에서 분리했다.
@@ -35,6 +39,8 @@ Last Updated: 2026-06-02
 - 2026-06-02 suggestion 갱신 흐름 중 자동완성 설정, selected text, whitespace 포함 선택 텍스트, `inputBuffer` fallback 판단을 `KeyboardSuggestionSelectionPolicy.suggestionUpdateAction(...)`으로 분리했다.
 - 2026-06-02 undo/redo controls 표시 여부 판단을 `KeyboardPresentationStatePolicy.shouldShowUndoRedoControls(...)`로 분리했다.
 - 2026-06-02 undo/redo 기능 활성화 설정 조합 판단을 `KeyboardPresentationStatePolicy.isUndoRedoFeatureAvailable(...)`로 분리했다.
+- 2026-06-02 lexicon 로딩 여부 판단을 `KeyboardSuggestionSelectionPolicy.shouldLoadLexicon(...)`으로 분리했다.
+- 2026-06-02 기준 `BaseKeyboardViewController` 리팩토링은 안전한 마감형 범위에서 종료한다. Base는 coordinator가 아니라 iOS keyboard extension boundary로 유지한다.
 - `BaseKeyboardViewController`는 여전히 아래 책임을 함께 가진다.
   - 키보드 view wiring과 height 갱신
   - 버튼 action binding과 gesture recognizer binding
@@ -43,6 +49,7 @@ Last Updated: 2026-06-02
   - suggestion 표시/선택/학습 연결
   - undo/redo session 연결
   - extension lifecycle, focus/context change 대응
+- action binder, text proxy adapter, full suggestion coordinator 추출은 이번 범위에서 보류한다.
 - 관련 파일:
   - `Modules/SYKeyboardCore/Presentation/ViewController/Bases/BaseKeyboardViewController.swift`
   - `Modules/HangeulKeyboardCore/Presentation/ViewController/HangeulKeyboardCoreViewController.swift`
@@ -102,6 +109,10 @@ Last Updated: 2026-06-02
    - 각 커밋은 동작 변경 없는 구조 변경 하나만 담는다.
    - 추출 후에도 call order, control event, feedback, suggestion update, undo boundary를 diff로 확인한다.
    - 기능 변경이 필요해 보이면 리팩토링 커밋에 섞지 말고 사용자 확인 후 별도 작업으로 분리한다.
+6. `BaseKeyboardViewController` 리팩토링을 마감한다.
+   - Base는 UIKit extension lifecycle, `textDocumentProxy`, target/action, gesture recognizer, view 갱신을 잇는 경계 객체로 둔다.
+   - 추가 분리는 순수 정책 타입 수준에서 이미 충분히 진행했으므로, 새 coordinator/protocol/adapter를 만들지 않는다.
+   - 다음 큰 개선은 Base가 아니라 `KeyboardControllerSimulator`와 실제 한글 controller 중복 축소, suggestion/undo 도메인 테스트 안정화로 넘긴다.
 
 ## Risks
 
@@ -113,6 +124,8 @@ Last Updated: 2026-06-02
 - 버튼 action과 gesture recognizer는 `touchDown`, `touchUpInside`, long press, pan 순서가 중요하다.
 - delete 입력은 `.touchDown`, symbol extra action은 base input 뒤 `.touchUpInside`, switch pan은 overlay가 없을 때 synthetic `.touchUpInside`를 만들 수 있다. action binding을 옮길 때 이 세 가지를 별도 체크포인트로 둔다.
 - 접근성 label/traits는 이전 작업에서 의도적으로 제외했다. 별도 요청 없이 되살리지 않는다.
+- 마감 이후에도 Base의 줄 수는 크지만, iOS keyboard extension 경계 책임을 담고 있으므로 라인 수만 줄이기 위한 추출은 피한다.
+- 다음 단계에서 한글 controller/simulator 중복을 줄일 때는 한글 조합/삭제/드래그/undo 회귀 위험이 Base보다 크므로, 컨트롤러 통합 테스트를 먼저 고정한다.
 
 ## Verification
 
@@ -397,6 +410,7 @@ xcodebuild test \
 2026-06-02 `KeyboardSuggestionSelectionPolicy.suggestionUpdateAction` 연결 후 재확인 결과: `TEST SUCCEEDED`.
 2026-06-02 `KeyboardPresentationStatePolicy.shouldShowUndoRedoControls` 연결 후 재확인 결과: `TEST SUCCEEDED`.
 2026-06-02 `KeyboardPresentationStatePolicy.isUndoRedoFeatureAvailable` 연결 후 재확인 결과: `TEST SUCCEEDED`.
+2026-06-02 `KeyboardSuggestionSelectionPolicy.shouldLoadLexicon` 연결 후 재확인 결과: `TEST SUCCEEDED`.
 
 - 수동 확인이 필요한 경우:
   - 실제 텍스트 입력 앱에서 한글/영문 키보드 extension을 열고 입력, 삭제, 반복 삭제, 삭제 드래그, 스페이스, 리턴, 자동완성 선택, undo/redo를 확인한다.

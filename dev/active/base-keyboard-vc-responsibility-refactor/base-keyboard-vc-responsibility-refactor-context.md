@@ -20,7 +20,7 @@ Last Updated: 2026-06-02
 - `Modules/SYKeyboardCore/Presentation/Utils/KeyboardSymbolInputPolicy.swift`: symbol keyboard 입력 후 기본 키보드 자동 전환과 symbol 입력 상태 표시 조건을 검증 가능한 순수 정책으로 분리한 타입이다.
 - `Modules/SYKeyboardCore/Presentation/Utils/KeyboardHeightPolicy.swift`: portrait/landscape 및 suggestion bar 표시 여부에 따른 keyboard view와 hstack 높이 계산을 검증 가능한 순수 정책으로 분리한 타입이다.
 - `Modules/SYKeyboardCore/Presentation/Utils/KeyboardTextInteractionPolicy.swift`: text interaction 실행 중 보조키 입력, 단일 삭제 임시 저장/undo 기록 문자, 반복 삭제 수행 조건을 검증 가능한 순수 정책으로 분리한 타입이다.
-- `Modules/SYKeyboardCore/Presentation/Utils/KeyboardSuggestionSelectionPolicy.swift`: suggestion 선택 흐름의 n-gram 앞 공백 삽입 여부, 현재 단어 확정용 단어 추출, suggestion 갱신 action 판단을 검증 가능한 순수 정책으로 분리한 타입이다.
+- `Modules/SYKeyboardCore/Presentation/Utils/KeyboardSuggestionSelectionPolicy.swift`: suggestion 선택 흐름의 n-gram 앞 공백 삽입 여부, 현재 단어 확정용 단어 추출, suggestion 갱신 action, lexicon 로딩 조건 판단을 검증 가능한 순수 정책으로 분리한 타입이다.
 - `SYKeyboardTests/Utils/KeyboardHeightPolicyTests.swift`: keyboard height 계산 정책의 portrait/landscape, suggestion bar 표시/숨김 케이스를 검증한다.
 - `SYKeyboardTests/Utils/KeyboardTextInteractionPolicyTests.swift`: text interaction 정책의 보조키/삭제/반복 삭제 조건을 검증한다.
 - `SYKeyboardTests/Utils/KeyboardSuggestionSelectionPolicyTests.swift`: suggestion 선택 정책의 n-gram 앞 공백 삽입 조건과 현재 단어 추출을 검증한다.
@@ -62,6 +62,8 @@ Last Updated: 2026-06-02
   - `41d54c0a refactor: #31 - 마침표 단축 입력 정책 분리`
   - `8e97c2a5 refactor: #31 - 키보드 정책 조건 분리`
   - `b1566957 refactor: #31 - 텍스트 프록시 래퍼 정리`
+- 2026-06-02 `516ed1c refactor: #31 - lexicon 로딩 정책 분리` 커밋 후 `git status --short --untracked-files=all`는 비어 있었다.
+- 2026-06-02 Base 마감 문서 작업 시작 시점의 `git status --short --untracked-files=all`는 비어 있었다.
 
 ## Decisions
 
@@ -89,17 +91,23 @@ Last Updated: 2026-06-02
 - 열 번째 코드 변경으로 `updateSuggestions()`의 자동완성 갱신 분기 판단을 `KeyboardSuggestionSelectionPolicy.suggestionUpdateAction(...)`으로 옮겼다. 자동완성 꺼짐은 no-op, 단일 selected text는 해당 텍스트로 갱신, whitespace 포함 selected text는 clear, selected text가 없으면 `inputBuffer`로 갱신하는 기존 동작을 유지했다.
 - 열한 번째 코드 변경으로 `updateUndoRedoControls()`의 controls 표시 조건을 `KeyboardPresentationStatePolicy.shouldShowUndoRedoControls(...)`로 옮겼다. suggestion bar가 보이고 undo/redo 기능이 활성화된 경우에만 표시하는 기존 동작을 유지했다.
 - 열두 번째 코드 변경으로 Base의 undo/redo 기능 활성화 설정 조합 판단을 `KeyboardPresentationStatePolicy.isUndoRedoFeatureAvailable(...)`로 옮겼다. 자동완성과 undo/redo 설정이 모두 켜진 경우에만 활성화되는 기존 동작을 유지했다.
+- 열세 번째 코드 변경으로 `viewDidLoad()`의 lexicon 로딩 조건을 `KeyboardSuggestionSelectionPolicy.shouldLoadLexicon(...)`으로 옮겼다. 텍스트 대치 또는 자동완성 중 하나라도 켜진 경우에만 lexicon을 로드하는 기존 동작을 유지했다.
+- 2026-06-02 기준 Base 리팩토링은 마감한다. `BaseKeyboardViewController`는 coordinator가 아니라 iOS keyboard extension boundary이며, lifecycle, UIKit target/action, `textDocumentProxy`, gesture recognizer, view 갱신을 잇는 경계 책임을 계속 가진다.
+- `KeyboardActionBinder`는 `buttonStateController`, settings, current keyboard setter, primary/symbol/numeric/tenkey view, gesture controllers, selector target, period/symbol 상태를 알아야 하므로 이번 범위에서 보류한다.
+- text proxy adapter는 selected text 자동 교체, return 입력, undo/redo 직접 적용, 한글 subclass hook 예외를 모두 감싸야 해서 오히려 예외가 늘 가능성이 있으므로 보류한다.
+- full suggestion coordinator는 `textDocumentProxy`, `inputBuffer`, `suggestionController`, undo 기록, subclass `suggestionDidApply()` hook을 함께 알아야 하므로 현재는 순수 정책 분리 수준에서 멈춘다.
+- 다음 큰 개선은 Base가 아니라 `KeyboardControllerSimulator`와 실제 한글 controller 중복 축소, suggestion/undo 기능의 도메인 테스트 안정화로 넘긴다.
 
 ## Quality Assessment - 2026-05-22
 
 | Area | Current Responsibility | Assessment | Next Action |
 | --- | --- | --- | --- |
-| Lifecycle/context change | `viewDidLoad`, `viewWillAppear`, `textWillChange`, `textDidChange`, `viewWillDisappear`에서 buffer, undo/redo, suggestion, layout 갱신을 직접 호출한다. | Base의 실제 extension 경계라 완전 분리는 부적절하다. 다만 context change 시 호출 순서를 문서화하고 helper 이름을 정리할 수 있다. | 호출 순서 변경 없이 유지. |
+| Lifecycle/context change | `viewDidLoad`, `viewWillAppear`, `textWillChange`, `textDidChange`, `viewWillDisappear`에서 buffer, undo/redo, suggestion, layout 갱신을 직접 호출한다. | Base의 실제 extension 경계라 완전 분리는 부적절하다. 일부 순수 조건은 정책으로 분리했다. | Base 리팩토링 마감. 호출 순서 변경 없이 유지. |
 | Keyboard layout/update | `updateShowingKeyboard`, `updateReturnButtonType`, `updateReturnButtonEnabled`, `updateSuggestionBarHidden`, `setKeyboardHeight`가 같은 파일에 있다. | UI 상태 갱신 책임으로 응집도는 높지만 Base 파일을 크게 만든다. 외부 의존성은 view와 settings 중심이라 비교적 안전한 분리 후보이다. `KeyboardPresentationStatePolicy`와 `KeyboardHeightPolicy`로 순수 조건/계산 일부는 분리했다. | UIKit view 반영 순서는 유지하고, 추가 추출은 action binding 감사 후 판단한다. |
-| Action binding | `setTextInteractableButtonAction`, `addInputAction...`, `setSwitchButtonAction`, gesture 추가가 button/control event 순서를 직접 관리한다. | 분리 효과는 크지만 `currentKeyboard`, `isSymbolInput`, period shortcut, gesture controller, selector target 등 결합이 많다. | 별도 타입 추출 전 private helper 이름 정리 또는 작은 binder 설계가 필요하다. |
+| Action binding | `setTextInteractableButtonAction`, `addInputAction...`, `setSwitchButtonAction`, gesture 추가가 button/control event 순서를 직접 관리한다. | 분리 효과는 크지만 `currentKeyboard`, `isSymbolInput`, period shortcut, gesture controller, selector target 등 결합이 많다. | 별도 binder 추출 보류. 감사표로 순서를 고정한다. |
 | Text interaction dispatch | `performTextInteraction`, `performRepeatTextInteraction`, delete pan, repeat timer가 입력 이벤트의 핵심 순서를 담당한다. | 한글 subclass hook과 직접 연결되므로 위험도가 높다. 다만 보조키/삭제/반복 삭제의 순수 조건은 `KeyboardTextInteractionPolicy`로 분리했다. | 남은 dispatch 추출은 call order와 subclass hook을 고정한 뒤 진행한다. |
-| Text proxy/input buffer | `insertText`, `deleteText`, `replaceText`, `resetInputBuffer`가 suggestion/undo와 함께 움직인다. | 단순 adapter 추출 시 예외 경로가 늘어날 가능성이 높다. | 현 단계 보류. 직접 `textDocumentProxy` 사용 예외만 계속 추적한다. |
-| Suggestion selection | 선택 텍스트, n-gram, 현재 단어 확정, inputBuffer 후보 선택이 helper로 나뉘어 있다. | 이미 1차 분리는 되어 있으나 Base의 `inputBuffer`와 proxy에 강하게 묶여 있다. | 별도 coordinator는 보류, helper별 테스트 가능성만 검토한다. |
+| Text proxy/input buffer | `insertText`, `deleteText`, `replaceText`, `resetInputBuffer`가 suggestion/undo와 함께 움직인다. | 단순 adapter 추출 시 예외 경로가 늘어날 가능성이 높다. | adapter 추출 보류. 다음 개선은 한글 controller/domain 테스트 쪽으로 이동한다. |
+| Suggestion selection | 선택 텍스트, n-gram, 현재 단어 확정, inputBuffer 후보 선택이 helper로 나뉘어 있다. | 이미 1차 분리는 되어 있으나 Base의 `inputBuffer`와 proxy에 강하게 묶여 있다. | full coordinator 추출 보류. 순수 정책 분리로 마감한다. |
 | Undo/redo | `KeyboardUndoRedoSession`은 분리되어 있으나 Base가 적용, context 복원, controls 갱신을 맡는다. | session 분리는 적절하다. UI/proxy 적용부는 Base에 남는 것이 자연스럽다. | 유지. |
 | Hangeul buffers | subclass가 조합/확정/protected buffer와 삭제 드래그 상태를 관리한다. | Base로 올리면 입력기별 정책을 침범한다. | Base 리팩토링과 분리하고 simulator 동기화표를 별도 관리한다. |
 
@@ -173,21 +181,20 @@ Last Updated: 2026-06-02
 
 ## Open Questions
 
-- 품질 평가는 현재 Codex 코드 리뷰 형식으로 1차 진행했다. 필요하면 별도 사람 리뷰나 정적 분석을 추가한다.
-- `BaseKeyboardViewController`에서 가장 먼저 분리할 책임은 keyboard layout/update helper로 잡았고, 현재는 return/suggestion/gesture/period/symbol/height 정책까지 작은 순수 타입으로 분리했다.
-- `KeyboardControllerSimulator.swift`가 실제 `HangeulKeyboardCoreViewController`와 얼마나 중복되는지 확인했으며, 현 단계에서는 중복 제거보다 동기화표를 유지하는 쪽이 안전하다.
-- 테스트 helper를 더 실제 controller 로직에 가깝게 만들지, 아니면 순수 domain/service 추출 후 테스트가 그 타입을 직접 검증하게 할지는 미정이다.
-- `SuggestionBarView`와 suggestion selection coordinator를 분리할지 여부는 selected text / n-gram / inputBuffer coupling을 더 확인한 뒤 판단한다.
+- Base 리팩토링 자체는 마감했다. 필요하면 별도 사람 리뷰나 정적 분석은 추가할 수 있지만, 현재 active task의 다음 구현 범위는 아니다.
+- `KeyboardControllerSimulator.swift`와 실제 `HangeulKeyboardCoreViewController` 중복을 어떻게 줄일지는 다음 큰 개선 과제다.
+- 테스트 helper를 더 실제 controller 로직에 가깝게 만들지, 아니면 순수 domain/service 추출 후 테스트가 그 타입을 직접 검증하게 할지는 다음 과제에서 결정한다.
+- suggestion/undo 기능의 도메인 테스트를 어느 계층에 둘지 정해야 한다. Base가 아니라 policy/session/domain 쪽 테스트 안정화를 우선한다.
 
 ## Handoff Notes
 
-- action binding 감사표를 작성했다. 다음 단계는 감사표 기준으로 `BaseKeyboardViewController`의 action binding 구역을 크게 옮기지 않고, 이름 정리 또는 순수 조건 분리처럼 회귀 위험이 낮은 후보만 선별하는 것이다.
+- action binding 감사표를 작성했고, Base 리팩토링은 마감했다. `BaseKeyboardViewController`의 action binding 구역은 크게 옮기지 않는다.
 - 감사표 기준 첫 후속 변경으로 text interaction gesture 등록 대상 조건을 `KeyboardGesturePolicy`에 포함했다. 이어서 text interaction 실행 중 순수 판단만 `KeyboardTextInteractionPolicy`로 분리했고, 단일 삭제 undo 기록 문자열 판단도 같은 정책에 포함했다. 남은 action binding은 closure와 UIKit target/action 결합이 커서 즉시 binder로 옮기지 않는다.
-- suggestion 선택 흐름은 아직 Base에 남긴다. 다만 n-gram 앞 공백 삽입, 현재 단어 확정용 단어 추출, suggestion 갱신 action처럼 문자열/설정만 보는 판단은 `KeyboardSuggestionSelectionPolicy`로 분리했다.
+- suggestion 선택 흐름은 Base에 남긴다. 다만 n-gram 앞 공백 삽입, 현재 단어 확정용 단어 추출, suggestion 갱신 action, lexicon 로딩 조건처럼 문자열/설정만 보는 판단은 `KeyboardSuggestionSelectionPolicy`로 분리했다.
 - 리팩토링 계획을 세울 때 `KeyboardControllerSimulator.swift`를 별도 테스트 debt로 취급하지 말고 핵심 동기화 대상으로 포함한다.
 - 새 타입을 만들기 전에 해당 타입이 알아야 하는 상태를 목록화한다. `textDocumentProxy`, `inputBuffer`, `suggestionController`, `undoRedoSession`, `keyboardSettingsManager`, subclass hook 중 3개 이상을 알아야 하면 추출을 보류한다.
 - 기능 변경이 필요해 보이면 리팩토링이 아니라 별도 feature/fix로 문서화하고 사용자 확인을 받는다.
-- 품질 평가 결과가 나오기 전에는 큰 이동, 파일 분리, protocol 추가를 시작하지 않는다.
+- 다음 세션에서 이 active task를 이어간다면 Base를 더 쪼개기보다, `KeyboardControllerSimulator` 중복 축소 또는 suggestion/undo 도메인 테스트 안정화 작업으로 새 계획을 잡는다.
 
 ## Verification Notes
 
@@ -266,6 +273,15 @@ Last Updated: 2026-06-02
   - `xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0' -derivedDataPath /private/tmp/SYKeyboardDerivedDataRed -only-testing:SYKeyboardTests/KeyboardPresentationStatePolicyTests`
   - 결과: `TEST SUCCEEDED`.
 - 2026-06-02 undo/redo 기능 활성화 정책 연결 후 전체 `SYKeyboard` 테스트 확인:
+  - `xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0'`
+  - 결과: `TEST SUCCEEDED`.
+- 2026-06-02 `KeyboardSuggestionSelectionPolicy.shouldLoadLexicon` RED:
+  - `xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0' -derivedDataPath /private/tmp/SYKeyboardDerivedDataLexiconRed -only-testing:SYKeyboardTests/KeyboardSuggestionSelectionPolicyTests`
+  - 권한 있는 환경에서 `shouldLoadLexicon` 미정의 컴파일 실패를 확인했다.
+- 2026-06-02 `KeyboardSuggestionSelectionPolicy.shouldLoadLexicon` GREEN:
+  - `xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0' -derivedDataPath /private/tmp/SYKeyboardDerivedDataLexiconRed -only-testing:SYKeyboardTests/KeyboardSuggestionSelectionPolicyTests`
+  - 결과: `TEST SUCCEEDED`.
+- 2026-06-02 lexicon 로딩 정책 연결 후 전체 `SYKeyboard` 테스트 확인:
   - `xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0'`
   - 결과: `TEST SUCCEEDED`.
 - 2026-06-01 `KeyboardTextInteractionPolicyTests` 단일 삭제 기록 문자 RED:
