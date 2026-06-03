@@ -37,7 +37,7 @@
 xcodebuild test \
   -project SYKeyboard.xcodeproj \
   -scheme SYKeyboard \
-  -destination 'platform=iOS Simulator,name=iPhone 16'
+  -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0'
 ```
 
 집중 검증이 필요하면 관련 테스트 파일을 먼저 확인한다.
@@ -76,14 +76,14 @@ xcodebuild test \
 xcodebuild build \
   -project SYKeyboard.xcodeproj \
   -scheme HangeulKeyboard \
-  -destination 'platform=iOS Simulator,name=iPhone 16'
+  -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0'
 ```
 
 ```sh
 xcodebuild build \
   -project SYKeyboard.xcodeproj \
   -scheme EnglishKeyboard \
-  -destination 'platform=iOS Simulator,name=iPhone 16'
+  -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0'
 ```
 
 UI/입력 변경은 가능하면 시뮬레이터에서 메시지 앱 등 실제 텍스트 입력 환경으로 확인한다.
@@ -113,7 +113,7 @@ UI/입력 변경은 가능하면 시뮬레이터에서 메시지 앱 등 실제 
 xcodebuild build \
   -project SYKeyboard.xcodeproj \
   -scheme SYKeyboard \
-  -destination 'platform=iOS Simulator,name=iPhone 16'
+  -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0'
 ```
 
 설정 저장 동작은 앱을 재실행하거나 키보드 extension을 다시 열어 유지 여부를 확인한다.
