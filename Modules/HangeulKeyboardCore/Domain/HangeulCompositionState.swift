@@ -13,7 +13,24 @@ enum HangeulProxyEdit: Equatable {
 }
 
 struct HangeulCompositionTransition: Equatable {
-    let proxyEdit: HangeulProxyEdit
+    let proxyEdits: [HangeulProxyEdit]
+
+    var proxyEdit: HangeulProxyEdit {
+        return proxyEdits.last ?? .none
+    }
+
+    init(proxyEdit: HangeulProxyEdit) {
+        proxyEdits = [proxyEdit]
+    }
+
+    init(proxyEdits: [HangeulProxyEdit]) {
+        self.proxyEdits = proxyEdits
+    }
+
+    func appending(_ transition: HangeulCompositionTransition?) -> HangeulCompositionTransition {
+        guard let transition else { return self }
+        return HangeulCompositionTransition(proxyEdits: proxyEdits + transition.proxyEdits)
+    }
 }
 
 struct HangeulDeleteTouchDownResult: Equatable {
@@ -88,7 +105,7 @@ struct HangeulCompositionState {
 
     @discardableResult
     mutating func delete(using processor: HangeulProcessable) -> HangeulCompositionTransition {
-        let transition: HangeulCompositionTransition
+        var transition: HangeulCompositionTransition
 
         if !composingBuffer.isEmpty {
             let oldComposingCount = composingBuffer.count
@@ -107,7 +124,7 @@ struct HangeulCompositionState {
             composingBuffer = deleteResult.composing
 
             if composingBuffer.isEmpty {
-                _ = pullFromCommittedIfNeeded(using: processor)
+                transition = transition.appending(pullFromCommittedIfNeeded(using: processor))
             }
         } else if !committedBuffer.isEmpty {
             let lastCommitted = committedBuffer.last!
@@ -347,6 +364,15 @@ struct HangeulCompositionState {
         shouldSkipNextDeletePanRestore = false
         nextDeletePanRestoreReplacement = nil
         temporaryDeletedCharacters.removeAll()
+        lastInputText = nil
+    }
+
+    mutating func setDeletePanRestorePolicy(
+        shouldSkipNextRestore: Bool,
+        replacement: Character?
+    ) {
+        shouldSkipNextDeletePanRestore = shouldSkipNextRestore
+        nextDeletePanRestoreReplacement = replacement
     }
 
     mutating func setDeleteDragState(

@@ -25,38 +25,16 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
     
     // MARK: - Properties
     
-    /// 조합이 완료되어 더 이상 변경되지 않는 문자열.
-    /// `textDocumentProxy`에 이미 확정 입력되어 있으므로 delete/insert 대상이 아닙니다.
-    private var committedBuffer: String = ""
-    
-    /// 현재 오토마타가 조합 중인 문자열 (최대 1~2글자).
-    /// 입력 시마다 이 부분만 delete → 재입력하므로 항상 O(1)입니다.
-    private var composingBuffer: String = ""
-    
-    /// 마지막으로 입력한 문자
-    private var lastInputText: String?
+    /// 한글 조합 상태 전이.
+    private var compositionState = HangeulCompositionState()
     /// 글자가 입력되었는지 확인하는 플래그
     private var is글자Input: Bool = false
-    /// 스페이스(확정)로 보호된 `committedBuffer` 내의 글자 수
-    private var protectedCommittedCount: Int = 0
-    
-    /// 끌어온 글자가 보호 상태였는지 추적하는 플래그.
-    ///
-    /// `pullFromCommittedIfNeeded`에서 보호된 글자를 끌어오면 `true`로 설정됩니다.
-    /// 이후 `applyCompositionResult`에서 해당 글자가 committed로 돌아갈 때
-    /// `protectedCommittedCount`를 복원하여 보호 상태를 유지합니다.
-    private var isPulledFromProtected: Bool = false
     /// 삭제 버튼 touchDown 직전 조합 중인 글자가 있었는지 추적합니다.
     private var hadComposingBeforeDeleteTouchDown: Bool = false
     /// 삭제 버튼 touchDown 직전 조합 문자열입니다.
     private var composingBeforeDeleteTouchDown: String = ""
     /// 삭제 버튼 touchDown 직전 확정 문자열입니다.
     private var committedBeforeDeleteTouchDown: String = ""
-    /// touchDown 삭제로 이미 복구 버퍼에 저장된 글자의 잔여 조합 삭제를 한 번만 건너뜁니다.
-    private var shouldSkipNextDeletePanRestore: Bool = false
-    /// touchDown 삭제로 앞 글자가 재조합된 경우, 첫 pan 삭제 때 복구할 원래 글자입니다.
-    private var nextDeletePanRestoreReplacement: Character?
-    
     /// 한글 오토마타
     private let automata: HangeulAutomataProtocol = HangeulAutomata()
     /// 나랏글 입력기
@@ -77,6 +55,12 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
             return dubeolsikProcessor
         }
     }
+
+    private var committedBuffer: String { compositionState.committedBuffer }
+
+    private var composingBuffer: String { compositionState.composingBuffer }
+
+    private var lastInputText: String? { compositionState.lastInputText }
     
     // MARK: - UI Components
     
@@ -124,7 +108,6 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
     open override func textWillChange(_ textInput: (any UITextInput)?) {
         super.textWillChange(textInput)
         clearAllBuffers()
-        lastInputText = nil
         processor.reset한글조합()
         updateSpaceButtonImage()
         updateShiftButton()
@@ -133,7 +116,6 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
     open override func undoRedoEditDidApply() {
         super.undoRedoEditDidApply()
         clearAllBuffers()
-        lastInputText = nil
         processor.reset한글조합()
         updateSpaceButtonImage()
         updateShiftButton()
@@ -193,8 +175,10 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
         composingBeforeDeleteTouchDown = hadComposingBeforeDeleteTouchDown ? composingBuffer : ""
         committedBeforeDeleteTouchDown = hadComposingBeforeDeleteTouchDown ? committedBuffer : ""
         if !(button is DeleteButton) {
-            shouldSkipNextDeletePanRestore = false
-            nextDeletePanRestoreReplacement = nil
+            compositionState.setDeletePanRestorePolicy(
+                shouldSkipNextRestore: false,
+                replacement: nil
+            )
         }
         super.textInteractionWillPerform(button: button)
     }
@@ -202,14 +186,18 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
     open override func textInteractionDidPerform(button: TextInteractable) {
         super.textInteractionDidPerform(button: button)
         if button is DeleteButton {
-            shouldSkipNextDeletePanRestore = hadComposingBeforeDeleteTouchDown && !composingBuffer.isEmpty
-            nextDeletePanRestoreReplacement = deletePanRestoreReplacementAfterDeleteTouchDown()
+            compositionState.setDeletePanRestorePolicy(
+                shouldSkipNextRestore: hadComposingBeforeDeleteTouchDown && !composingBuffer.isEmpty,
+                replacement: deletePanRestoreReplacementAfterDeleteTouchDown()
+            )
             hadComposingBeforeDeleteTouchDown = false
             composingBeforeDeleteTouchDown = ""
             committedBeforeDeleteTouchDown = ""
         } else {
-            shouldSkipNextDeletePanRestore = false
-            nextDeletePanRestoreReplacement = nil
+            compositionState.setDeletePanRestorePolicy(
+                shouldSkipNextRestore: false,
+                replacement: nil
+            )
         }
         is글자Input = true
         if composingBuffer.isEmpty {
@@ -222,7 +210,6 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
         super.suggestionDidApply()
         clearAllBuffers()
         processor.reset한글조합()
-        lastInputText = nil
         updateSpaceButtonImage()
     }
     
@@ -237,24 +224,8 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
     open override func repeatTextInteractionDidPerform(button: TextInteractable) {
         super.repeatTextInteractionDidPerform(button: button)
         
-        // 반복 삭제 후 composing이 비고 committed에 한글이 있으면 끌어오기
-        if button is DeleteButton && composingBuffer.isEmpty && !committedBuffer.isEmpty {
-            let lastCommitted = committedBuffer.last!
-            let lastStr = String(lastCommitted)
-            if lastCommitted.isHangeul {
-                
-                let isProtected = committedBuffer.count <= protectedCommittedCount
-                
-                committedBuffer.removeLast()
-                protectedCommittedCount = min(protectedCommittedCount, committedBuffer.count)
-                // 끌어오기: 글자 자체는 변경되지 않으므로 replaceText 사용
-                replaceText(deleteCount: 1, insert: lastStr)
-                composingBuffer = lastStr
-                
-                if !isProtected {
-                    processor.start한글조합()
-                }
-            }
+        if button is DeleteButton {
+            applyCompositionTransition(compositionState.finishRepeatDelete(using: processor))
         }
         
         if composingBuffer.isEmpty {
@@ -268,14 +239,7 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
         
         guard let primaryKey = button.type.primaryKeyList.first else { fatalError("primaryKeyList 배열이 비어있습니다.") }
         
-        applyCompositionResult(
-            processor.inputWithRestore종성(
-                글자Input: primaryKey,
-                composing: composingBuffer,
-                committedTail: String(committedBuffer.suffix(2)),
-                isProtected: committedBuffer.count <= protectedCommittedCount
-            )
-        )
+        applyCompositionTransition(compositionState.input(primaryKey, using: processor))
     }
     
     open override func insertSecondaryKeyText(from button: TextInteractable) {
@@ -286,31 +250,19 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
             return
         }
         
-        applyCompositionResult(
-            processor.inputWithRestore종성(
-                글자Input: secondaryKey,
-                composing: composingBuffer,
-                committedTail: String(committedBuffer.suffix(2)),
-                isProtected: committedBuffer.count <= protectedCommittedCount
-            )
-        )
+        applyCompositionTransition(compositionState.input(secondaryKey, using: processor))
     }
     
     open override func repeatInsertPrimaryKeyText(from button: TextInteractable) {
         if BaseKeyboardViewController.isPreview { return }
         
-        guard let lastInputText else {
+        guard lastInputText != nil else {
             super.repeatTextInteractionDidPerform(button: button)
             button.isGesturing = false
             return
         }
         
-        if !composingBuffer.isEmpty {
-            commitComposingBuffer()
-        }
-        
-        insertText(lastInputText)
-        composingBuffer = lastInputText
+        applyCompositionTransition(compositionState.repeatInsert(using: processor))
     }
     
     open override func insertSpaceText() {
@@ -319,24 +271,16 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
         if currentKeyboard == .naratgeul
             || currentKeyboard == .cheonjiin
             || currentKeyboard == .dubeolsik {
-            let result = processor.inputSpace(composing: composingBuffer)
-            switch result {
-            case .insertSpace:
+            let transition = compositionState.space(using: processor)
+            if transition.proxyEdit == .insert(" ") {
                 super.insertSpaceText()
-                clearAllBuffers()
-                processor.reset한글조합()
-                lastInputText = nil
-                
-            case .commitCombination:
-                commitComposingBuffer()
-                protectedCommittedCount = committedBuffer.count
-                lastInputText = nil
+            } else {
+                applyCompositionTransition(transition)
             }
         } else {
             super.insertSpaceText()
             clearAllBuffers()
             processor.reset한글조합()
-            lastInputText = nil
         }
         
         commitUndoRedoGroupIfPossible()
@@ -350,7 +294,6 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
         
         clearAllBuffers()
         processor.reset한글조합()
-        lastInputText = nil
         commitUndoRedoGroupIfPossible()
         updateSpaceButtonImage()
     }
@@ -370,143 +313,31 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
 
         deleteBackwardWillPerform()
 
-        if !composingBuffer.isEmpty {
-            let oldComposingCount = composingBuffer.count
-
-            let deleteResult = processor.deleteWithRestore종성(
-                composing: composingBuffer,
-                committedTail: String(committedBuffer.suffix(2)),
-                isProtected: committedBuffer.count <= protectedCommittedCount
-            )
-            
-            // 기존 composing + 소비된 committed를 한 번에 삭제하고 새 composing 삽입
-            let totalDeleteCount = oldComposingCount + deleteResult.consumedCommittedCount
-            replaceText(deleteCount: totalDeleteCount, insert: deleteResult.composing)
-            
-            // committedBuffer 동기화
-            applyConsumedCommitted(count: deleteResult.consumedCommittedCount)
-            
-            composingBuffer = deleteResult.composing
-            
-            if composingBuffer.isEmpty {
-                pullFromCommittedIfNeeded()
-            }
-            
-        } else if !committedBuffer.isEmpty {
-            let lastCommitted = committedBuffer.last!
-            
-            if lastCommitted.isHangeul {
-                let isProtected = committedBuffer.count <= protectedCommittedCount
-                
-                committedBuffer.removeLast()
-                protectedCommittedCount = min(protectedCommittedCount, committedBuffer.count)
-                
-                let deleteResult = processor.deleteWithRestore종성(
-                    composing: String(lastCommitted),
-                    committedTail: String(committedBuffer.suffix(2)),
-                    isProtected: committedBuffer.count <= protectedCommittedCount
-                )
-                
-                // committed에서 꺼낸 글자(1) + 추가 소비분을 한 번에 삭제하고 새 composing 삽입
-                let totalDeleteCount = 1 + deleteResult.consumedCommittedCount
-                replaceText(deleteCount: totalDeleteCount, insert: deleteResult.composing)
-                
-                applyConsumedCommitted(count: deleteResult.consumedCommittedCount)
-                
-                composingBuffer = deleteResult.composing
-                
-                if composingBuffer.isEmpty {
-                    processor.reset한글조합()
-                } else if !isProtected {
-                    processor.start한글조합()
-                }
-            } else {
-                deleteText()
-                committedBuffer.removeLast()
-                protectedCommittedCount = min(protectedCommittedCount, committedBuffer.count)
-                processor.reset한글조합()
-            }
-        } else {
-            deleteText()
-            processor.reset한글조합()
-        }
+        applyCompositionTransition(compositionState.delete(using: processor))
         updateSpaceButtonImage()
-        lastInputText = nil
     }
 
     open override func deleteButtonPanDeleteText(hasPendingRestoreText _: Bool) -> (character: Character, shouldRestore: Bool)? {
         if BaseKeyboardViewController.isPreview { return nil }
 
-        var deletedCharacter: Character?
-        let shouldRestoreDeletedCharacter: Bool
-        let shouldSkipRestore = shouldSkipNextDeletePanRestore
-        let restoreReplacement = nextDeletePanRestoreReplacement
-        shouldSkipNextDeletePanRestore = false
-        nextDeletePanRestoreReplacement = nil
-
-        if !composingBuffer.isEmpty {
-            deletedCharacter = composingBuffer.removeLast()
-            if shouldSkipRestore, let restoreReplacement {
-                deletedCharacter = restoreReplacement
-                shouldRestoreDeletedCharacter = true
-            } else {
-                shouldRestoreDeletedCharacter = !shouldSkipRestore
-            }
-            deleteText()
-            isPulledFromProtected = false
-            if composingBuffer.isEmpty {
-                processor.reset한글조합()
-            } else {
-                processor.start한글조합()
-            }
-        } else if !committedBuffer.isEmpty {
-            deletedCharacter = committedBuffer.removeLast()
-            shouldRestoreDeletedCharacter = true
-            deleteText()
-            protectedCommittedCount = min(protectedCommittedCount, committedBuffer.count)
-            isPulledFromProtected = false
-            processor.reset한글조합()
-        } else {
-            deletedCharacter = textDocumentProxy.documentContextBeforeInput?.last
-            shouldRestoreDeletedCharacter = true
-            if deletedCharacter != nil {
-                deleteText()
-            }
-            isPulledFromProtected = false
-            processor.reset한글조합()
+        let result = compositionState.deleteButtonPanDelete(using: processor)
+        if let result {
+            applyCompositionTransition(result.transition)
+            updateSpaceButtonImage()
+            return (result.character, result.shouldRestore)
         }
 
-        guard let deletedCharacter else { return nil }
-
+        guard let deletedCharacter = textDocumentProxy.documentContextBeforeInput?.last else { return nil }
+        deleteText()
         updateSpaceButtonImage()
-        lastInputText = nil
-        return (deletedCharacter, shouldRestoreDeletedCharacter)
+        return (deletedCharacter, true)
     }
 
     open override func deleteButtonPanRestoreText(_ character: Character) {
         if BaseKeyboardViewController.isPreview { return }
 
-        shouldSkipNextDeletePanRestore = false
-        nextDeletePanRestoreReplacement = nil
-
-        let text = String(character)
-        if !composingBuffer.isEmpty {
-            commitComposingBuffer()
-        }
-
-        insertText(text)
-
-        if character.isHangeul {
-            composingBuffer = text
-            isPulledFromProtected = false
-            processor.start한글조합()
-        } else {
-            committedBuffer.append(text)
-            processor.reset한글조합()
-        }
-
+        applyCompositionTransition(compositionState.deleteButtonPanRestore(character, using: processor))
         updateSpaceButtonImage()
-        lastInputText = text
     }
 
     open override func repeatDeleteBackward() {
@@ -514,84 +345,44 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
         
         repeatDeleteBackwardWillPerform()
         
-        deleteText()
-        if !composingBuffer.isEmpty {
-            composingBuffer.removeLast()
-            
-            if composingBuffer.isEmpty {
-                processor.reset한글조합()
-            }
-        } else if !committedBuffer.isEmpty {
-            committedBuffer.removeLast()
-            processor.reset한글조합()
-        } else {
-            processor.reset한글조합()
-        }
+        applyCompositionTransition(compositionState.repeatDelete(using: processor))
         updateSpaceButtonImage()
-        lastInputText = nil
     }
 }
 
 // MARK: - Private Methods
 
 private extension HangeulKeyboardCoreViewController {
-    
-    /// `CompositionResult`를 `textDocumentProxy`와 `inputBuffer`에 반영합니다.
-    func applyCompositionResult(_ result: CompositionResult) {
-        let oldComposing = composingBuffer
-        let oldComposingCount = oldComposing.count
-        
-        // 최적화: 기존 composing이 변경 없이 그대로 확정된 경우 (예: 숫자/기호 입력)
-        // delete → reinsert를 건너뛰고 새 글자만 append
-        if result.committed == oldComposing && result.consumedCommittedCount == 0 {
-            committedBuffer.append(result.committed)
-            
-            if isPulledFromProtected {
-                protectedCommittedCount = committedBuffer.count
-                isPulledFromProtected = false
+
+    /// 상태 전이가 요청한 proxy 편집만 수행합니다.
+    func applyCompositionTransition(_ transition: HangeulCompositionTransition?) {
+        guard let transition else { return }
+
+        for proxyEdit in transition.proxyEdits {
+            switch proxyEdit {
+            case .none:
+                break
+
+            case .insert(let text):
+                insertText(text)
+
+            case .delete(let count):
+                if count == 1 {
+                    deleteText()
+                } else {
+                    replaceText(deleteCount: count, insert: "")
+                }
+
+            case .replace(let deleteCount, let insertText):
+                replaceText(deleteCount: deleteCount, insert: insertText)
             }
-            
-            composingBuffer = result.composing
-            
-            if !result.composing.isEmpty {
-                // 기존 composing은 그대로 committed → inputBuffer 변경 없음, 새 composing만 추가
-                insertText(result.composing)
-            }
-            
-            lastInputText = result.input글자
-            updateSpaceButtonImage()
-            return
         }
-        
-        // 일반 경로: 기존 composing + 소비된 committed를 지우고 새 결과를 입력
-        let totalDeleteCount = oldComposingCount + result.consumedCommittedCount
-        let textToInsert = result.committed + result.composing
-        replaceText(deleteCount: totalDeleteCount, insert: textToInsert)
-        
-        // committedBuffer 동기화 (textDocumentProxy 삭제는 replaceText에서 이미 수행)
-        applyConsumedCommitted(count: result.consumedCommittedCount)
-        
-        if !result.committed.isEmpty {
-            committedBuffer.append(result.committed)
-            
-            if isPulledFromProtected {
-                protectedCommittedCount = committedBuffer.count
-                isPulledFromProtected = false
-            }
-        } else {
-            isPulledFromProtected = false
-        }
-        
-        composingBuffer = result.composing
-        
-        lastInputText = result.input글자
+
         updateSpaceButtonImage()
     }
 
     /// touchDown 삭제가 앞 글자를 재조합한 경우 첫 pan 삭제 때 복구할 원래 글자를 반환합니다.
     func deletePanRestoreReplacementAfterDeleteTouchDown() -> Character? {
-        guard shouldSkipNextDeletePanRestore else { return nil }
-
         let remainingBeforeDelete = String(composingBeforeDeleteTouchDown.dropLast())
         if remainingBeforeDelete.count == 1,
            composingBuffer.count == 1,
@@ -609,68 +400,10 @@ private extension HangeulKeyboardCoreViewController {
 
         return consumedCommitted
     }
-
-    /// 프로세서가 소비한 committed 글자를 `committedBuffer`에서 제거합니다.
-    ///
-    /// `textDocumentProxy` 삭제는 `replaceText`에서 이미 수행되었으므로,
-    /// 이 메서드는 `committedBuffer`만 동기화합니다.
-    func applyConsumedCommitted(count: Int) {
-        guard count > 0 else { return }
-        for _ in 0..<count {
-            committedBuffer.removeLast()
-        }
-        protectedCommittedCount = min(protectedCommittedCount, committedBuffer.count)
-    }
-    
-    /// composing이 비었을 때 committed에서 마지막 한글을 끌어옵니다.
-    ///
-    /// 삭제 후 composing이 빈 상태에서 committed에 한글이 있으면,
-    /// 마지막 글자를 composing으로 옮겨서 다음 삭제 시 자소 단위 분해가 가능하도록 합니다.
-    ///
-    /// 끌어오기는 proxy 상 delete→insert이지만 실제 글자가 변경되지 않으므로
-    /// `replaceText`를 사용하여 inputBuffer도 자동 동기화됩니다.
-    func pullFromCommittedIfNeeded() {
-        guard composingBuffer.isEmpty, !committedBuffer.isEmpty else {
-            if composingBuffer.isEmpty {
-                processor.reset한글조합()
-            }
-            return
-        }
-        
-        let lastCommitted = committedBuffer.last!
-        let lastStr = String(lastCommitted)
-        
-        if lastCommitted.isHangeul {
-            let isProtected = committedBuffer.count <= protectedCommittedCount
-            
-            committedBuffer.removeLast()
-            protectedCommittedCount = min(protectedCommittedCount, committedBuffer.count)
-            replaceText(deleteCount: 1, insert: lastStr)
-            composingBuffer = lastStr
-            
-            isPulledFromProtected = isProtected
-            
-            if !isProtected {
-                processor.start한글조합()
-            }
-        } else {
-            processor.reset한글조합()
-        }
-    }
-    
-    /// `composingBuffer`를 `committedBuffer`로 이동시킵니다 (조합 확정).
-    func commitComposingBuffer() {
-        committedBuffer.append(composingBuffer)
-        composingBuffer.removeAll()
-        isPulledFromProtected = false
-    }
     
     /// 모든 버퍼를 초기화합니다.
     func clearAllBuffers() {
-        committedBuffer.removeAll()
-        composingBuffer.removeAll()
-        protectedCommittedCount = 0
-        isPulledFromProtected = false
+        compositionState.clearAllBuffers()
     }
     
     func updateSpaceButtonImage() {
