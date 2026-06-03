@@ -1,6 +1,6 @@
 # Delete Drag Restore Regression Plan
 
-Last Updated: 2026-05-21
+Last Updated: 2026-06-03
 
 ## Goal
 
@@ -22,10 +22,12 @@ Last Updated: 2026-05-21
   - 삭제 pan 삭제/복구 hook은 유지하고, 한글 컨트롤러에서 글자 단위 삭제/복구와 버퍼 동기화를 담당한다.
   - `.touchDown` 삭제로 이미 복구 버퍼에 글자가 있으면, pan 삭제가 잔여 조합 글자를 지워도 복구 버퍼에는 추가하지 않는다.
   - touchDown 삭제가 앞 글자를 재조합한 경우에는 첫 pan 삭제 때 재조합 결과 대신 원래 남아야 할 글자만 복구 버퍼에 넣는다.
+  - touchDown 삭제가 조합 중인 마지막 낱자를 지우고 직전 확정 글자를 그대로 composing으로 끌어온 경우에는, 첫 pan 삭제 때 그 확정 글자도 복구 버퍼에 넣는다.
   - 삭제 버튼 pan 삭제/복구가 성공하면 `updateSuggestions()`를 호출해 자동완성 UI 현재 단어를 실제 텍스트와 맞춘다.
   - `KeyboardControllerSimulator`에 touchDown/pan 순서 회귀 테스트를 추가했다.
 - 확인 결과:
   - 2026-05-21에 사용자가 실기기에서 테스트했고, 의도한 동작대로 수정되었음을 확인했다.
+  - 2026-06-03에 `동해물거ㅓ -> touchDown 선삭제 -> 전체 드래그 삭제/복구` 회귀를 추가로 수정했고, 전체 `SYKeyboardTests`가 통과했다.
 
 관련 파일:
 
@@ -56,6 +58,7 @@ Last Updated: 2026-05-21
 - 테스트 시뮬레이터가 실제 `textDocumentProxy`, `inputBuffer`, 팬 제스처 종료 시점과 다르게 동작할 수 있다.
 - 삭제 버튼 단일 탭은 `.touchDown`에서 즉시 삭제된다. 따라서 pan 시작 전 잔여 조합 글자가 생길 수 있고, pan 삭제/복구 버퍼가 이를 중복 복구하지 않도록 유지해야 한다.
 - 두벌식 삭제는 확정 글자를 다시 끌어와 재조합할 수 있으므로, touchDown 직전/직후의 `committedBuffer` 차이를 같이 확인해야 한다.
+- 두벌식에서 `동해물거ㅓ`처럼 마지막 입력이 독립 모음이면 touchDown 삭제 후 직전 확정 글자(`거`)가 composing으로 끌려올 수 있다. 이 글자는 원문에 있던 화면 글자이므로 pan 삭제 복구 대상에 포함해야 한다.
 - 자동완성 UI는 `inputBuffer`를 기준으로 갱신되므로, pan 삭제/복구처럼 `textInteractionDidPerform`을 거치지 않는 경로에서 갱신 호출이 빠지면 실제 텍스트와 표시가 어긋날 수 있다.
 
 ## Verification
@@ -110,6 +113,28 @@ xcodebuild test \
 
 결과: 통과.
 
+2026-06-03 추가 검증:
+
+```sh
+xcodebuild test \
+  -project SYKeyboard.xcodeproj \
+  -scheme SYKeyboard \
+  -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0' \
+  -only-testing:SYKeyboardTests/HangeulDeleteButtonDragControllerTests
+```
+
+결과: 샌드박스 일반 실행은 CoreSimulator/SwiftPM 캐시 권한 오류로 실패했고, 권한 있는 실행에서 통과. `test두벌식_삭제버튼드래그_동해물거ㅓ_touchDown선삭제후_전체복구`를 추가했다.
+
+```sh
+xcodebuild test \
+  -project SYKeyboard.xcodeproj \
+  -scheme SYKeyboard \
+  -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0' \
+  -only-testing:SYKeyboardTests
+```
+
+결과: 권한 있는 실행에서 통과.
+
 ```sh
 xcodebuild -quiet build \
   -project SYKeyboard.xcodeproj \
@@ -145,6 +170,7 @@ xcodebuild -quiet build \
 - `동해물과 -> 전체 드래그 삭제 -> 전체 드래그 복구` 결과가 실제 키보드에서 `동해물과`이다. 사용자 실기기 테스트로 확인.
 - 손을 뗀 뒤 동일 드래그를 반복해도 `동해물고과`, `동해물고고과`처럼 글자가 늘어나지 않는다. 자동 테스트와 사용자 실기기 테스트로 확인.
 - `동해물고 -> 전체 드래그 삭제 -> 전체 드래그 복구` 결과가 `동해물고`이다. 자동 테스트로 확인.
+- `동해물거ㅓ -> touchDown 선삭제 -> 전체 드래그 삭제 -> 전체 드래그 복구` 결과가 `동해물거ㅓ`이다. 자동 테스트로 확인.
 - `동해물과 -> 전체 드래그 삭제 -> 전체 드래그 복구` 후 자동완성 UI 왼쪽 현재 단어가 `동해물과`이다. 자동 테스트로 확인.
 - 자동 테스트가 실제 실패를 잡도록 보강되어 있다. `HangeulDeleteButtonDragControllerTests`에 두벌식, 천지인, 나랏글 공통 회귀 시나리오가 있다.
 - `SYKeyboardTests`가 iPhone 13 mini / iOS 16.0 시뮬레이터에서 통과한다. 완료.

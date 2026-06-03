@@ -1,6 +1,6 @@
 # Delete Drag Restore Regression Context
 
-Last Updated: 2026-05-21
+Last Updated: 2026-06-03
 
 ## Relevant Files
 
@@ -28,6 +28,10 @@ Last Updated: 2026-05-21
 - 이 상태에서 첫 pan 삭제를 단순히 복구 스킵하면 재조합된 `묽` 안의 원래 `물`까지 복구 버퍼에서 빠져 `동해고`가 된다.
 - 이후 사용자가 `동해물과` 전체 드래그 삭제/복구 후 실제 입력값은 `동해물과`이지만 자동완성 UI 왼쪽 현재 단어가 `동해물고`로 남는 마이너 회귀를 보고했다.
 - 일반 키 입력/삭제 경로는 `textInteractionDidPerform`에서 `updateSuggestions()`를 호출하지만, 삭제 버튼 pan 삭제/복구 경로는 `deleteButtonPanDeleteText`/`deleteButtonPanRestoreText`만 실행하고 자동완성 UI를 갱신하지 않았다.
+- 2026-06-03에 사용자가 `동해물거ㅓ` 입력 후 삭제 버튼을 왼쪽으로 드래그했다가 오른쪽으로 드래그하면 `동해물ㅓ`가 된다고 보고했다.
+- 두벌식 `동해물거ㅓ` 자연 입력 상태는 `committedBuffer = "동해물거"`, `composingBuffer = "ㅓ"`로 분리된다.
+- touchDown 삭제가 `ㅓ`를 임시 복구 버퍼에 넣고 삭제한 뒤, `pullFromCommittedIfNeeded`가 직전 확정 글자 `거`를 composing으로 끌어온다.
+- 기존 보정은 끌려온 `거`가 현재 composing과 같으면 첫 pan 삭제에서 복구 대상에 넣지 않았다. 그 결과 전체 복구 시 `거`가 누락되어 `동해물ㅓ`가 됐다.
 
 ## Decisions
 
@@ -39,6 +43,7 @@ Last Updated: 2026-05-21
 - `.touchDown` 삭제로 이미 복구 버퍼에 원래 글자(`과`)가 들어간 상태에서 pan 삭제가 잔여 조합 글자(`고`)를 지우는 경우, 화면에서는 삭제하되 복구 버퍼에는 추가하지 않는다.
 - touchDown 삭제가 확정 글자를 소비해 앞 글자를 재조합한 경우(`물` + `고` 삭제 -> `묽`), 첫 pan 삭제 때 재조합 결과 전체를 버리지 않고 원래 남아야 할 글자(`물`)를 복구 버퍼에 넣는다.
 - 삭제 버튼 pan 삭제/복구가 성공하면 실제 텍스트와 `inputBuffer`가 바뀌므로, 자동완성 UI도 같은 제스처 안에서 즉시 갱신한다.
+- touchDown 삭제 후 직전 확정 글자가 그대로 composing으로 끌려온 경우에는 그 글자가 원문에 있던 화면 글자이므로, 첫 pan 삭제의 복구 대상으로 기록한다.
 
 ## Hypotheses
 
@@ -46,6 +51,7 @@ Last Updated: 2026-05-21
 - 추정: 실제 키보드 extension에서도 `.touchDown`은 유지하되, pan 삭제가 잔여 조합 글자를 복구 버퍼에 넣지 않으면 `고` 누적이 중단된다.
 - 확인됨: `동해물고` 회귀는 pan 삭제 스킵을 복구 버퍼 전체 존재 여부로 판단하거나, 재조합된 `묽`을 그대로 스킵하면서 발생한다. touchDown 직전 `committedBuffer`/`composingBuffer`를 기록해야 원래 복구할 `물`을 찾을 수 있다.
 - 확인됨: 자동완성 UI 왼쪽 현재 단어가 `동해물고`로 남는 문제는 삭제 touchDown 직후 갱신된 suggestion 상태가 pan 복구 이후 다시 갱신되지 않아 발생한다.
+- 확인됨: `동해물거ㅓ` 회귀는 touchDown 삭제 후 확정 글자 `거`가 composing으로 끌려온 상태를 “복구 스킵 대상”으로 처리해서 발생했다.
 
 ## Open Questions
 
@@ -66,11 +72,17 @@ Last Updated: 2026-05-21
 - 2026-05-21에 `동해물고` 회귀를 잡기 위해 `HangeulDeleteButtonDragControllerTests`에 자연 입력 경로와 내부 상태 경계 테스트를 추가했다. 수정 전 `동해물고` 테스트는 `동해고`로 실패했고, 수정 후 `iPhone 13 mini / iOS 16.0`에서 통과했다.
 - 2026-05-21에 같은 `iPhone 13 mini / iOS 16.0`에서 전체 `SYKeyboardTests`가 통과했다.
 - 2026-05-21에 `동해물과` 전체 드래그 삭제/복구 후 자동완성 현재 단어가 `동해물과`로 동기화되는 테스트를 `HangeulDeleteButtonDragControllerTests`에 추가했고, 같은 `iPhone 13 mini / iOS 16.0`에서 `HangeulDeleteButtonDragControllerTests`가 통과했다.
+- 2026-06-03에 `HangeulDeleteButtonDragControllerTests`에 `동해물거ㅓ` touchDown 선삭제 후 전체 복구 테스트를 추가했다.
+- 2026-06-03에 샌드박스 일반 실행의 `xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0' -only-testing:SYKeyboardTests/HangeulDeleteButtonDragControllerTests`는 CoreSimulator/SwiftPM 캐시 권한 오류로 실패했다.
+- 2026-06-03에 같은 `HangeulDeleteButtonDragControllerTests` 명령을 권한 있는 환경에서 실행했고 통과했다.
+- 2026-06-03에 `xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0' -only-testing:SYKeyboardTests`를 권한 있는 환경에서 실행했고 통과했다.
 
 ## Current Uncommitted State
 
 - 다음 파일들이 수정된 상태다.
-  - `Modules/SYKeyboardCore/Presentation/ViewController/Bases/BaseKeyboardViewController.swift`
+  - `Modules/HangeulKeyboardCore/Domain/HangeulCompositionState.swift`
+  - `Modules/HangeulKeyboardCore/Presentation/ViewController/HangeulKeyboardCoreViewController.swift`
   - `SYKeyboardTests/Controller/HangeulDeleteButtonDragControllerTests.swift`
-  - `SYKeyboardTests/Utils/KeyboardControllerSimulator.swift`
-- `dev/active/delete-drag-restore-regression/` 문서도 최신 상태로 갱신 중이다.
+  - `dev/archive/delete-drag-restore-regression/delete-drag-restore-regression-context.md`
+  - `dev/archive/delete-drag-restore-regression/delete-drag-restore-regression-plan.md`
+  - `dev/archive/delete-drag-restore-regression/delete-drag-restore-regression-tasks.md`

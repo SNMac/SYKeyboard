@@ -497,8 +497,7 @@ private extension HangeulCompositionState {
         let consumedCommittedCount = committedBeforeDelete.count - committedBuffer.count
         guard consumedCommittedCount == 1,
               composingBuffer.count == 1,
-              let consumedCommitted = committedBeforeDelete.last,
-              String(consumedCommitted) != composingBuffer else {
+              let consumedCommitted = committedBeforeDelete.last else {
             return nil
         }
 

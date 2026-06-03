@@ -1,6 +1,6 @@
 # Delete Drag Restore Regression Tasks
 
-Last Updated: 2026-05-21
+Last Updated: 2026-06-03
 
 ## Checklist
 
@@ -23,6 +23,10 @@ Last Updated: 2026-05-21
 - [x] iPhone 13 mini / iOS 16.0에서 `HangeulDeleteButtonDragControllerTests`를 재실행한다.
 - [x] `동해물과` 전체 드래그 복구 후 자동완성 UI 현재 단어가 `동해물고`로 남는 회귀를 재현하는 테스트를 추가한다.
 - [x] 삭제 버튼 pan 삭제/복구 성공 시 자동완성 UI를 갱신한다.
+- [x] `동해물거ㅓ -> touchDown 선삭제 -> 전체 드래그 삭제/복구 -> 동해물ㅓ` 추가 회귀를 재현하는 테스트를 추가한다.
+- [x] touchDown 삭제 후 직전 확정 글자가 그대로 composing으로 끌려온 경우 첫 pan 삭제 복구 대상에 포함한다.
+- [x] iPhone 13 mini / iOS 16.0에서 `HangeulDeleteButtonDragControllerTests`를 재실행한다.
+- [x] iPhone 13 mini / iOS 16.0에서 전체 `SYKeyboardTests`를 재실행한다.
 - [x] `git status --short`로 변경 범위를 확인한다.
 
 ## Reproduction Scenario
@@ -55,12 +59,21 @@ Last Updated: 2026-05-21
 4. 기대값: 실제 입력값과 자동완성 UI 제일 왼쪽 현재 단어가 모두 `동해물과`
 5. 실제값: 실제 입력값은 `동해물과`이지만 자동완성 UI 제일 왼쪽 현재 단어가 `동해물고`
 
+## Additional Reproduction Scenario 2
+
+1. 두벌식 한글 키보드에서 `동해물거ㅓ`를 입력한다.
+2. 삭제 버튼에서 손을 떼지 않고 왼쪽으로 드래그해 모든 글자를 삭제한다.
+3. 같은 터치 상태에서 오른쪽으로 드래그해 삭제 버퍼의 모든 글자를 복구한다.
+4. 기대값: `동해물거ㅓ`
+5. 실제값: `동해물ㅓ`
+
 ## Notes For Next Session
 
 - 현재 root cause는 삭제 버튼 `.touchDown` 선삭제와 pan 삭제/복구가 한 터치 안에서 섞이는 이벤트 순서다.
 - 삭제 버튼 단일 삭제 액션은 의도된 `.touchDown` 동작으로 유지한다.
 - 수정은 pan 삭제/복구 hook에서 한글 버퍼를 직접 동기화하고, `.touchDown`으로 이미 복구 버퍼에 담긴 원래 글자가 있으면 잔여 조합 글자를 복구 버퍼에 중복 추가하지 않는 방식이다.
 - `동해물고`처럼 touchDown 삭제가 `물`을 소비해 `묽`으로 재조합하는 경우가 있으므로, 첫 pan 삭제 때 복구할 원래 글자를 touchDown 직전 `committedBuffer`/`composingBuffer`에서 계산한다.
+- `동해물거ㅓ`처럼 touchDown 삭제 후 직전 확정 글자가 그대로 composing으로 끌려온 경우에는 그 글자가 원문에 있던 화면 글자이므로 복구 대상에 포함한다.
 - 삭제 버튼 pan 삭제/복구 경로도 일반 키 입력처럼 `updateSuggestions()`를 호출해야 자동완성 현재 단어가 실제 텍스트와 어긋나지 않는다.
 - 회귀 테스트는 `HangeulDeleteButtonDragControllerTests`에 두벌식, 천지인, 나랏글 공통 시나리오로 모아져 있다.
 - 자동 검증과 사용자 실기기 수동 확인이 모두 통과했다.

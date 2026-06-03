@@ -125,6 +125,17 @@ struct HangeulDeleteButtonDragControllerTests {
         #expect(sim.text == "동해물과", "touchDown으로 생긴 '동해물고' 상태도 전체 복구 시 '물'이 빠지면 안 됩니다.")
     }
 
+    @Test("두벌식 삭제 버튼 드래그 복구: '동해물거ㅓ' touchDown 후 전체 복구")
+    func test두벌식_삭제버튼드래그_동해물거ㅓ_touchDown선삭제후_전체복구() {
+        let sim = KeyboardControllerSimulator(
+            automata: automata,
+            processor: DubeolsikProcessor(automata: automata)
+        )
+
+        inputDubeolsik동해물거ㅓ(into: sim)
+        assertTouchDown선삭제후_전체복구(sim, expectedTouchDownText: "동해물거", expectedRestoredText: "동해물거ㅓ")
+    }
+
     @Test("두벌식 삭제 버튼 드래그 복구: 전체 복구 후 자동완성 현재 단어 동기화")
     func test두벌식_삭제버튼드래그_전체복구후_자동완성현재단어동기화() {
         let sim = KeyboardControllerSimulator(
@@ -250,6 +261,12 @@ private extension HangeulDeleteButtonDragControllerTests {
 
     func inputDubeolsik동해물고(into sim: KeyboardControllerSimulator) {
         ["ㄷ", "ㅗ", "ㅇ", "ㅎ", "ㅐ", "ㅁ", "ㅜ", "ㄹ", "ㄱ", "ㅗ"].forEach {
+            sim.input($0)
+        }
+    }
+
+    func inputDubeolsik동해물거ㅓ(into sim: KeyboardControllerSimulator) {
+        ["ㄷ", "ㅗ", "ㅇ", "ㅎ", "ㅐ", "ㅁ", "ㅜ", "ㄹ", "ㄱ", "ㅓ", "ㅓ"].forEach {
             sim.input($0)
         }
     }

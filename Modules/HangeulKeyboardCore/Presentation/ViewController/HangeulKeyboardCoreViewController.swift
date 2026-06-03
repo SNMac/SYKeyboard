@@ -393,8 +393,7 @@ private extension HangeulKeyboardCoreViewController {
         let consumedCommittedCount = committedBeforeDeleteTouchDown.count - committedBuffer.count
         guard consumedCommittedCount == 1,
               composingBuffer.count == 1,
-              let consumedCommitted = committedBeforeDeleteTouchDown.last,
-              String(consumedCommitted) != composingBuffer else {
+              let consumedCommitted = committedBeforeDeleteTouchDown.last else {
             return nil
         }
 
