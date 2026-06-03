@@ -18,7 +18,7 @@ enum KeyboardTextInteractionPolicy {
         selectedText: String?,
         documentContextBeforeInput: String?
     ) -> String {
-        if let selectedText {
+        if let selectedText, !selectedText.isEmpty {
             return String(selectedText.reversed())
         }
         if let lastBeforeCursor = documentContextBeforeInput?.last {
@@ -44,7 +44,7 @@ enum KeyboardTextInteractionPolicy {
         documentContextBeforeInput: String?,
         selectedText: String?
     ) -> Bool {
-        return documentContextBeforeInput != nil || selectedText != nil
+        return documentContextBeforeInput != nil || selectedText?.isEmpty == false
     }
 
     static func repeatTimerInterval(repeatRate: Double) -> Double {

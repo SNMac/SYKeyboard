@@ -44,6 +44,12 @@ struct KeyboardTextInteractionPolicyTests {
         )
         #expect(
             KeyboardTextInteractionPolicy.temporaryDeletedCharactersForSingleDelete(
+                selectedText: "",
+                documentContextBeforeInput: "가나다"
+            ) == "다"
+        )
+        #expect(
+            KeyboardTextInteractionPolicy.temporaryDeletedCharactersForSingleDelete(
                 selectedText: nil,
                 documentContextBeforeInput: "가나다"
             ) == "다"
@@ -91,6 +97,12 @@ struct KeyboardTextInteractionPolicyTests {
                 documentContextBeforeInput: nil,
                 selectedText: "나"
             )
+        )
+        #expect(
+            KeyboardTextInteractionPolicy.shouldRepeatDelete(
+                documentContextBeforeInput: nil,
+                selectedText: ""
+            ) == false
         )
         #expect(
             KeyboardTextInteractionPolicy.shouldRepeatDelete(
