@@ -95,4 +95,5 @@ struct DubeolsikControllerTests {
         sim.input("ㅏ")
         #expect(sim.text == "ㄱㄱ가", "반복 입력 후 마지막 자음이 다음 모음과 결합되어야 합니다.")
     }
+
 }

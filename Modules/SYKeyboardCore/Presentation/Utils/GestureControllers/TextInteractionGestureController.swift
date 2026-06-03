@@ -16,7 +16,7 @@ protocol TextInteractionGestureControllerDelegate: AnyObject {
     func textInteractableButtonLongPressStopped(_ controller: TextInteractionGestureController, button: TextInteractable)
 }
 
-/// 입력 상호작용 버튼(리턴 버튼 제외) 제스처 컨트롤러
+/// 입력 상호작용 버튼 제스처 컨트롤러
 final class TextInteractionGestureController: NSObject {
     
     // MARK: - Properties

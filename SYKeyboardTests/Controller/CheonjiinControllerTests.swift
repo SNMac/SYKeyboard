@@ -316,4 +316,5 @@ struct CheonjiinControllerTests {
         sim.delete()
         #expect(sim.text == "가ㄴ", "끌어온 보호 글자가 committed로 돌아갈 때 보호 상태가 유지되어야 합니다.")
     }
+
 }

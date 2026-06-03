@@ -92,9 +92,8 @@ final public class UserDefaultsManager {
     public static let shared = UserDefaultsManager()
     private init() {}
     
-    // MARK: Getter
+    // MARK: 피드백 설정
     
-    /* 피드백 설정 */
     /// 소리 피드백
     @UserDefaultsWrapper(key: UserDefaultsKeys.isSoundFeedbackEnabled, defaultValue: DefaultValues.isSoundFeedbackEnabled)
     public var isSoundFeedbackEnabled: Bool
@@ -102,7 +101,20 @@ final public class UserDefaultsManager {
     @UserDefaultsWrapper(key: UserDefaultsKeys.isHapticFeedbackEnabled, defaultValue: DefaultValues.isHapticFeedbackEnabled)
     public var isHapticFeedbackEnabled: Bool
     
-    /* 입력 설정 */
+    // MARK: 자동완성 텍스트 설정
+    
+    /// 텍스트 대치
+    @UserDefaultsWrapper(key: UserDefaultsKeys.isTextReplacementEnabled, defaultValue: DefaultValues.isTextReplacementEnabled)
+    public var isTextReplacementEnabled: Bool
+    /// 자동완성 텍스트
+    @UserDefaultsWrapper(key: UserDefaultsKeys.isPredictiveTextEnabled, defaultValue: DefaultValues.isPredictiveTextEnabled)
+    public var isPredictiveTextEnabled: Bool
+    /// Undo/Redo 기능 활성화 여부
+    @UserDefaultsWrapper(key: UserDefaultsKeys.isUndoRedoEnabled, defaultValue: DefaultValues.isUndoRedoEnabled)
+    public var isUndoRedoEnabled: Bool
+    
+    // MARK: 입력 설정
+    
     /// 선택한 길게 누르기 동작
     public var selectedLongPressAction: LongPressAction {
         get {
@@ -119,12 +131,6 @@ final public class UserDefaultsManager {
     /// 드래그하여 커서 이동
     @UserDefaultsWrapper(key: UserDefaultsKeys.isDragToMoveCursorEnabled, defaultValue: DefaultValues.isDragToMoveCursorEnabled)
     public var isDragToMoveCursorEnabled: Bool
-    /// 텍스트 대치
-    @UserDefaultsWrapper(key: UserDefaultsKeys.isTextReplacementEnabled, defaultValue: DefaultValues.isTextReplacementEnabled)
-    public var isTextReplacementEnabled: Bool
-    /// 자동완성 텍스트
-    @UserDefaultsWrapper(key: UserDefaultsKeys.isPredictiveTextEnabled, defaultValue: DefaultValues.isPredictiveTextEnabled)
-    public var isPredictiveTextEnabled: Bool
     /// '.' 단축키
     @UserDefaultsWrapper(key: UserDefaultsKeys.isPeriodShortcutEnabled, defaultValue: DefaultValues.isPeriodShortcutEnabled)
     public var isPeriodShortcutEnabled: Bool
@@ -132,7 +138,8 @@ final public class UserDefaultsManager {
     @UserDefaultsWrapper(key: UserDefaultsKeys.isAutoChangeToPrimaryEnabled, defaultValue: DefaultValues.isAutoChangeToPrimaryEnabled)
     public var isAutoChangeToPrimaryEnabled: Bool
     
-    /* 입력 설정 -> 속도/커서 설정 */
+    // MARK: 입력 설정 -> 속도/커서 설정
+    
     /// 반복 지연 시간
     @UserDefaultsWrapper(key: UserDefaultsKeys.longPressDuration, defaultValue: DefaultValues.longPressDuration)
     public var longPressDuration: Double
@@ -146,7 +153,8 @@ final public class UserDefaultsManager {
     @UserDefaultsWrapper(key: UserDefaultsKeys.cursorMoveInterval, defaultValue: DefaultValues.cursorMoveInterval)
     public var cursorMoveInterval: Double
     
-    /* 외형 설정 */
+    // MARK: 외형 설정
+    
     /// 키보드 높이
     @UserDefaultsWrapper(key: UserDefaultsKeys.keyboardHeight, defaultValue: DefaultValues.keyboardHeight)
     public var keyboardHeight: Double
@@ -160,7 +168,8 @@ final public class UserDefaultsManager {
     @UserDefaultsWrapper(key: UserDefaultsKeys.oneHandedKeyboardWidth, defaultValue: DefaultValues.oneHandedKeyboardWidth)
     public var oneHandedKeyboardWidth: Double
     
-    /* 기타 설정 */
+    // MARK: 기타 설정
+    
     /// 키보드 전환 버튼(􀆪) 표시 설정용
     @UserDefaultsWrapper(key: UserDefaultsKeys.needsInputModeSwitchKey, defaultValue: DefaultValues.needsInputModeSwitchKey)
     public var needsInputModeSwitchKey: Bool

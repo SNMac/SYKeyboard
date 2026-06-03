@@ -56,7 +56,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "“.” shortcut"
+            "value" : "“.” Shortcut"
           }
         }
       }
@@ -96,6 +96,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Adding SYKeyboard in Settings allows for more customization."
+          }
+        }
+      }
+    },
+    "Undo/Redo 기능" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Undo/Redo Feature"
           }
         }
       }
@@ -576,6 +586,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Keyboard User Guide"
+          }
+        }
+      }
+    },
+    "키보드 상단에 Undo/Redo 버튼을 표시" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Display the Undo/Redo buttons at the top of the keyboard"
           }
         }
       }

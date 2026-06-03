@@ -70,6 +70,8 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
     
     /// 디스크 로딩 완료 여부 (로딩 전에는 조회·기록을 건너뜀)
     private var isLoaded = false
+    /// 마이그레이션 파일 쓰기가 보류 중인지 여부
+    private var needsLegacyCleanup = false
     
     /// unigram 저장소: "단어" → 빈도수
     private var unigramStore: [String: Int] = [:]
@@ -149,14 +151,23 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
             guard let self else { return }
             
-            let loaded = self.loadFromFile()
-            ?? self.migrateFromUserDefaults()
-            ?? NGramData(unigram: [:], bigram: [:], trigram: [:])
+            var needsCleanup = false
+            let loaded: NGramData
+            
+            if let fileData = self.loadFromFile() {
+                loaded = fileData
+            } else if let migrationResult = self.migrateFromUserDefaults() {
+                loaded = migrationResult.data
+                needsCleanup = migrationResult.needsCleanup
+            } else {
+                loaded = NGramData(unigram: [:], bigram: [:], trigram: [:])
+            }
             
             DispatchQueue.main.async {
                 self.unigramStore = loaded.unigram
                 self.bigramStore = loaded.bigram
                 self.trigramStore = loaded.trigram
+                self.needsLegacyCleanup = needsCleanup
                 self.isLoaded = true
                 self.logger.debug("[NGram/\(self.language)] 디스크 로딩 완료")
             }
@@ -292,15 +303,27 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
             trigram: trigramStore
         )
         let url = fileURL
+        let shouldCleanupLegacy = needsLegacyCleanup
         
         saveQueue.async { [weak self] in
+            guard let self else { return }
             do {
                 let encoder = PropertyListEncoder()
                 encoder.outputFormat = .binary
                 let data = try encoder.encode(snapshot)
                 try data.write(to: url, options: .atomic)
+                
+                if shouldCleanupLegacy {
+                    self.legacyStorage.removeObject(forKey: self.legacyUnigramKey)
+                    self.legacyStorage.removeObject(forKey: self.legacyBigramKey)
+                    self.legacyStorage.removeObject(forKey: self.legacyTrigramKey)
+                    DispatchQueue.main.async {
+                        self.needsLegacyCleanup = false
+                    }
+                    self.logger.debug("[NGram/\(self.language)] 보류된 레거시 데이터 정리 완료")
+                }
             } catch {
-                self?.logger.error("[NGram] 디스크 저장 실패: \(error.localizedDescription)")
+                self.logger.error("[NGram] 디스크 저장 실패: \(error.localizedDescription)")
             }
         }
     }
@@ -345,13 +368,12 @@ private extension NGramPredictiveTextEngine {
     /// `UserDefaults`에 데이터가 없으면 `nil`을 반환합니다.
     /// 마이그레이션 성공 시 `UserDefaults`에서 기존 키를 제거합니다.
     ///
-    /// - Returns: 마이그레이션된 데이터, 기존 데이터가 없으면 `nil`
-    func migrateFromUserDefaults() -> NGramData? {
+    /// - Returns: 마이그레이션된 데이터와 레거시 정리 보류 여부, 기존 데이터가 없으면 `nil`
+    func migrateFromUserDefaults() -> (data: NGramData, needsCleanup: Bool)? {
         let unigram = legacyStorage.dictionary(forKey: legacyUnigramKey) as? [String: Int]
         let bigram = legacyStorage.dictionary(forKey: legacyBigramKey) as? [String: [String: Int]]
         let trigram = legacyStorage.dictionary(forKey: legacyTrigramKey) as? [String: [String: Int]]
         
-        // 세 저장소 모두 비어있으면 마이그레이션 대상 없음
         guard unigram != nil || bigram != nil || trigram != nil else { return nil }
         
         let migrated = NGramData(
@@ -360,7 +382,6 @@ private extension NGramPredictiveTextEngine {
             trigram: trigram ?? [:]
         )
         
-        // 파일로 저장
         do {
             let encoder = PropertyListEncoder()
             encoder.outputFormat = .binary
@@ -368,17 +389,16 @@ private extension NGramPredictiveTextEngine {
             try data.write(to: fileURL, options: .atomic)
         } catch {
             logger.error("[NGram/\(self.language)] 마이그레이션 저장 실패: \(error.localizedDescription)")
-            return migrated  // 메모리에는 올려서 사용, 다음 saveToDisk에서 재시도
+            return (migrated, true)  // 데이터는 올리되, cleanup 보류
         }
         
-        // UserDefaults에서 기존 키 제거
         legacyStorage.removeObject(forKey: legacyUnigramKey)
         legacyStorage.removeObject(forKey: legacyBigramKey)
         legacyStorage.removeObject(forKey: legacyTrigramKey)
         
         logger.debug("[NGram/\(self.language)] UserDefaults → 파일 마이그레이션 완료")
         
-        return migrated
+        return (migrated, false)
     }
     
     // MARK: N-Gram Recording

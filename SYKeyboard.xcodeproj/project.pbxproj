@@ -211,6 +211,7 @@
 				"EnglishKeyboardCore/Storage/UserDefaultsKeys+Extension.swift",
 				"EnglishKeyboardCore/Storage/UserDefaultsManager+Extension.swift",
 				HangeulKeyboardCore/Domain/Automata/HangeulAutomata.swift,
+				HangeulKeyboardCore/Domain/HangeulCompositionState.swift,
 				HangeulKeyboardCore/Domain/Processor/CheonjiinProcessor.swift,
 				HangeulKeyboardCore/Domain/Processor/DubeolsikProcessor.swift,
 				HangeulKeyboardCore/Domain/Processor/NaratgeulProcessor.swift,
@@ -246,6 +247,14 @@
 				SYKeyboardCore/Presentation/Utils/GestureControllers/Protocols/SwitchGestureHandling.swift,
 				SYKeyboardCore/Presentation/Utils/GestureControllers/SwitchGestureController.swift,
 				SYKeyboardCore/Presentation/Utils/GestureControllers/TextInteractionGestureController.swift,
+				SYKeyboardCore/Presentation/Utils/KeyboardUndoRedoManager.swift,
+				SYKeyboardCore/Presentation/Utils/Policies/KeyboardGesturePolicy.swift,
+				SYKeyboardCore/Presentation/Utils/Policies/KeyboardHeightPolicy.swift,
+				SYKeyboardCore/Presentation/Utils/Policies/KeyboardPeriodShortcutPolicy.swift,
+				SYKeyboardCore/Presentation/Utils/Policies/KeyboardPresentationStatePolicy.swift,
+				SYKeyboardCore/Presentation/Utils/Policies/KeyboardSuggestionSelectionPolicy.swift,
+				SYKeyboardCore/Presentation/Utils/Policies/KeyboardSymbolInputPolicy.swift,
+				SYKeyboardCore/Presentation/Utils/Policies/KeyboardTextInteractionPolicy.swift,
 				SYKeyboardCore/Presentation/View/Components/Buttons/Bases/BaseKeyboardButton.swift,
 				SYKeyboardCore/Presentation/View/Components/Buttons/Bases/ButtonBackgroundView.swift,
 				SYKeyboardCore/Presentation/View/Components/Buttons/Bases/ButtonShadowView.swift,
@@ -313,6 +322,14 @@
 				SYKeyboardCore/Presentation/Utils/GestureControllers/Protocols/SwitchGestureHandling.swift,
 				SYKeyboardCore/Presentation/Utils/GestureControllers/SwitchGestureController.swift,
 				SYKeyboardCore/Presentation/Utils/GestureControllers/TextInteractionGestureController.swift,
+				SYKeyboardCore/Presentation/Utils/KeyboardUndoRedoManager.swift,
+				SYKeyboardCore/Presentation/Utils/Policies/KeyboardGesturePolicy.swift,
+				SYKeyboardCore/Presentation/Utils/Policies/KeyboardHeightPolicy.swift,
+				SYKeyboardCore/Presentation/Utils/Policies/KeyboardPeriodShortcutPolicy.swift,
+				SYKeyboardCore/Presentation/Utils/Policies/KeyboardPresentationStatePolicy.swift,
+				SYKeyboardCore/Presentation/Utils/Policies/KeyboardSuggestionSelectionPolicy.swift,
+				SYKeyboardCore/Presentation/Utils/Policies/KeyboardSymbolInputPolicy.swift,
+				SYKeyboardCore/Presentation/Utils/Policies/KeyboardTextInteractionPolicy.swift,
 				SYKeyboardCore/Presentation/View/Components/Buttons/Bases/BaseKeyboardButton.swift,
 				SYKeyboardCore/Presentation/View/Components/Buttons/Bases/ButtonBackgroundView.swift,
 				SYKeyboardCore/Presentation/View/Components/Buttons/Bases/ButtonShadowView.swift,
@@ -372,10 +389,11 @@
 			);
 			target = 5BB373A92ED5D937006AB083 /* EnglishKeyboardCore */;
 		};
-		5BCECD552F26C3B800A7F562 /* Exceptions for "Modules" folder in "HangeulKeyboardCore" target */ = {
+				5BCECD552F26C3B800A7F562 /* Exceptions for "Modules" folder in "HangeulKeyboardCore" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				HangeulKeyboardCore/Domain/Automata/HangeulAutomata.swift,
+				HangeulKeyboardCore/Domain/HangeulCompositionState.swift,
 				HangeulKeyboardCore/Domain/Processor/CheonjiinProcessor.swift,
 				HangeulKeyboardCore/Domain/Processor/DubeolsikProcessor.swift,
 				HangeulKeyboardCore/Domain/Processor/NaratgeulProcessor.swift,

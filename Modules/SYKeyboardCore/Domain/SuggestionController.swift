@@ -324,19 +324,27 @@ final class SuggestionController: SuggestionService {
         return (deleteCount: match.userInput.count, insertText: match.documentText)
     }
     
-    func attemptRestoreReplacement(inputBuffer: String) -> (deleteCount: Int, insertText: String)? {
+    func attemptRestoreReplacement(
+        inputBuffer: String,
+        documentContextBeforeInput: String?,
+        selectedText: String?
+    ) -> (deleteCount: Int, insertText: String)? {
         guard isTextReplacementEnabled,
-              !inputBuffer.isEmpty,
               !replacementHistory.isEmpty else { return nil }
         
         for (index, record) in replacementHistory.enumerated().reversed() {
-            if inputBuffer.hasSuffix(record.documentText) {
+            if let deleteCount = KeyboardSuggestionSelectionPolicy.textReplacementRestoreDeleteCount(
+                documentText: record.documentText,
+                inputBuffer: inputBuffer,
+                documentContextBeforeInput: documentContextBeforeInput,
+                selectedText: selectedText
+            ) {
                 replacementHistory.remove(at: index)
                 
                 ignoredShortcut = record.userInput
                 
                 return (
-                    deleteCount: record.documentText.count,
+                    deleteCount: deleteCount,
                     insertText: record.userInput
                 )
             }

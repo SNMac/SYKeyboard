@@ -1,0 +1,136 @@
+# Suggestion Bar Undo Redo Plan
+
+Last Updated: 2026-06-04
+
+## Goal
+
+- 자동완성 바 우측에 undo/redo 버튼을 추가하고, 기능 추가 뒤 `BaseKeyboardViewController`의 큰 리팩토링을 진행한다.
+
+## Current State
+
+- 브랜치명은 `feat/#31-undo-redo`이다.
+- `Modules/SYKeyboardCore/Presentation/ViewController/Bases/BaseKeyboardViewController.swift`는 wrapper helper 섹션 이동 후 `wc -l` 기준 1459줄이다.
+- 리턴 버튼 단일/반복 입력은 `performReturnButtonTextInteraction()`과 `performRepeatReturnButtonTextInteraction(for:)`로 분리되어 있다.
+- 리턴 버튼 drag undo/redo 설계는 폐기했다. QWERTY 배열에서 redo 드래그가 불편하고, 추후 클립보드 UI와 제스처 책임이 충돌할 수 있기 때문이다.
+- undo/redo는 자동완성 바가 보이고 `isUndoRedoEnabled`가 켜진 경우에만 우측 버튼으로 제공한다.
+- 한글 키보드에서는 단일 백스페이스와 반복 백스페이스 시작 시 조합 중이어도 기존 pending undo group을 강제로 확정한다. `안녕핫 -> 백스페이스 -> 안녕하 -> undo`가 전체 삭제가 아니라 `안녕핫` 복구로 동작해야 하기 때문이다.
+- 한글 반복 백스페이스는 삭제 버튼 touchDown에서 먼저 삭제된 문자까지 같은 undo group에 포함한다. 반복 삭제로 `ㅏㅏㅏㅏㅏㅏ -> ㅏㅏㅏ`이 된 뒤 undo하면 삭제된 `ㅏㅏㅏ`이 한 번에 복구되어 반복 삭제 직전 상태로 돌아가야 한다. undo 후 같은 반복 삭제를 다시 수행해도 복구 기준점이 한 글자씩 줄어들면 안 된다.
+- undo/redo 적용 후에는 한글 조합 버퍼와 processor 상태를 초기화한다. undo/redo 뒤 새 한글 입력이 이전 조합 상태와 이어 붙는 현상을 막기 위한 처리다.
+- undo/redo 액션 버튼의 접근성 label/traits 코드는 의도적으로 제외한다. 사용자가 접근성 관련 코드를 일부러 뺐으므로, 리팩토링에서 되살리지 않는다.
+
+## Approach
+
+1. 동작 변경 없는 작은 선행 리팩토링을 먼저 적용한다.
+   - 리턴 버튼 일반 입력과 반복 입력의 진입점을 별도 메서드로 분리한다.
+   - 새 진입점은 당장은 기존처럼 `insertReturnText()`만 호출한다.
+   - 이후 undo/redo 기능은 이 진입점 안에 추가한다.
+2. 자동완성 바 undo/redo 기능을 추가한다.
+   - `KeyboardUndoRedoManager`가 키보드 세션 동안 텍스트 변경 기록을 보관한다.
+   - 입력 중 변경은 pending undo 단위로 묶고, 0.8초 debounce가 지나면 undo stack에 확정한다.
+   - 스페이스/엔터 입력은 현재 undo group을 즉시 확정하는 명시적 편집 경계로 처리한다.
+   - 입력과 삭제가 전환되면 기존 pending group을 확정하고 새 group을 시작한다.
+   - 반복 삭제는 touchDown 선삭제 시점에만 기존 group을 확정하고, touchDown 삭제와 반복으로 삭제된 문자들을 하나의 pending group으로 묶는다.
+   - 한글 컨트롤러에서 반복 상태의 내부 단일 삭제는 `Base.deleteBackwardWillPerform()`을 타지 않게 한다. `Base.deleteBackwardWillPerform()`은 시작하자마자 pending group을 commit하므로, 반복 상태 guard는 `super.deleteBackwardWillPerform()`보다 앞에 있어야 한다.
+   - debounce 확정 전에도 pending 변경이 있으면 undo 버튼은 활성화한다.
+   - redo stack은 undo 이후 새 입력이 발생하면 비운다.
+   - undo/redo 적용 후에는 커서/외부 텍스트와 `inputBuffer`가 섞이지 않도록 `resetInputBuffer()`를 호출한다.
+   - `isPredictiveTextEnabled == true && isUndoRedoEnabled == true`일 때만 기록, 버튼 표시, undo/redo 수행을 허용한다.
+3. 기능 추가가 끝난 뒤 `BaseKeyboardViewController`의 큰 리팩토링을 별도 단계로 진행한다.
+   - 실제로 생긴 책임 기준으로 분리한다.
+   - 후보 영역은 리턴 버튼 처리, undo/redo 세션 상태, 텍스트 프록시 래퍼와 입력 버퍼, 버튼 액션 세팅, 제스처 delegate, suggestion 연동이다.
+   - 한글 조합 버퍼와 undo/redo 기록 경계의 연결은 `HangeulKeyboardCoreViewController`에 남기고, 공통 Base 리팩토링에서는 입력기별 조합 정책을 일반화하지 않는다.
+   - 접근성 label/traits 제거는 현재 의도된 상태로 보고, 별도 요청 없이 리팩토링 중 재추가하지 않는다.
+4. 1차 큰 리팩토링은 기능 변경 없이 undo/redo 세션 상태만 분리한다.
+   - 새 타입 후보는 `KeyboardUndoRedoSession`이며, `KeyboardUndoRedoManager`의 pending/stack 관리 위에 debounce, deferred commit, text context change 감지, 적용 중 기록 방지 상태를 담당한다.
+   - `BaseKeyboardViewController`에는 실제 `textDocumentProxy` 조작, `undoRedoEditDidApply()` hook 호출, return/suggestion UI 갱신만 남긴다.
+   - `applyUndoRedoEdit(_:)` 내부의 적용 순서와 `commitUndoRedoGroupIgnoringCompositionDeferral()`의 조합 지연 무시 동작은 바꾸지 않는다.
+   - 첫 리팩토링에서는 suggestion 선택 흐름, 버튼 액션 세팅, gesture delegate를 함께 이동하지 않는다. 검증 가능한 단위로 쪼개기 위한 결정이다.
+5. 2차 리팩토링은 suggestion 선택 흐름의 메서드 분리로 제한한다.
+   - 아직 별도 coordinator로 분리하지 않는다.
+   - `SuggestionBarDelegate`의 selected text, n-gram, 현재 단어 확정, input buffer suggestion 경로를 작은 private 메서드로 나눈다.
+   - selected text나 n-gram mode에서 후보 선택이 실패하면 기존처럼 이후 input buffer suggestion 경로로 떨어지지 않고 해당 분기에서 종료한다.
+6. 3차 리팩토링은 버튼 action binding 분리로 제한한다.
+   - 전체 버튼 목록 계산을 `allKeyboardButtonList`로 모은다.
+   - 기본/숫자 키보드 입력 버튼 목록을 `primaryAndNumericTextInteractableButtonList`로 모은다.
+   - text input `UIAction` 생성은 `makeTextInputAction()`으로 분리한다.
+   - 삭제 버튼 `touchDown`, 스페이스 `touchUpInside`, period shortcut, symbol keyboard 자동 전환, tenkey 제스처 제외 조건은 그대로 둔다.
+7. 4차 리팩토링은 gesture delegate callback 분리로 제한한다.
+   - primary button pan의 좌/우 커서 이동을 `moveCursorLeftIfPossible()`, `moveCursorRightIfPossible()`로 분리한다.
+   - delete button pan의 삭제/복구 흐름을 `performDeleteButtonPanDeleteIfPossible()`, `performDeleteButtonPanRestoreIfPossible()`로 분리한다.
+   - long press 반복 입력 타이머와 number input 처리를 `startRepeatInputTimer(for:)`, `performNumberInputLongPress(for:)`로 분리한다.
+   - `resetInputBuffer()`, suggestion update, haptic/sound feedback, delete restore stack, timer sink 내부 조건의 순서는 유지한다.
+8. 5차 리팩토링은 텍스트 프록시 wrapper와 `inputBuffer` 연동 범위 문서화 및 작은 helper 분리로 제한한다.
+   - `insertText`, `deleteText`, `replaceText`, `resetInputBuffer`가 일반 입력/삭제와 `inputBuffer` 동기화의 기본 경로다.
+   - 리턴 입력은 문장 종료 처리 뒤 newline을 직접 삽입하고, undo 기록 확정 뒤 `resetInputBuffer()`를 호출하는 특수 경로로 유지한다.
+   - selected text suggestion은 시스템 선택 영역 자동 교체를 위해 `textDocumentProxy.insertText`를 직접 호출하고, deleted text를 selected text로 기록하는 특수 경로로 유지한다.
+   - undo/redo 적용은 기존 history에 다시 기록되면 안 되므로 wrapper를 타지 않고 직접 `textDocumentProxy`를 조작하는 특수 경로로 유지한다.
+   - 코드 변경은 `replaceText` 내부의 문서 삭제/삽입과 `inputBuffer` suffix 갱신을 helper로 나누는 정도로 제한한다.
+9. 텍스트 프록시 wrapper의 별도 타입 추출은 보류한다.
+   - selected text, return, undo/redo 같은 예외 경로를 새 타입이 과도하게 알게 된다.
+   - 대신 wrapper helper를 `Text Proxy Wrapper Helper Methods` 섹션으로 모아 현재 파일 안에서 응집도를 높인다.
+10. 다음 리팩토링 후보는 현재까지의 `BaseKeyboardViewController` 리팩토링을 마무리하고, 추가 분리가 기능 동일성을 해치지 않는지 재평가하는 것이다.
+   - 현재 후보였던 undo/redo 세션 상태, suggestion 선택 흐름, 버튼 action binding, gesture delegate, text proxy wrapper는 모두 한 차례 정리했다.
+   - 추가 타입 추출은 새 책임 경계가 명확해질 때만 진행한다.
+   - 현 단계의 다음 작업은 현재 미커밋 5차 리팩토링을 커밋하기 전 전체 diff와 검증 범위를 확인하는 것이다.
+
+## Risks
+
+- 자동완성 바는 후보 3개를 전제로 구성되어 있어 undo/redo 버튼 추가 시 작은 화면에서 후보 영역이 줄어들 수 있다.
+- undo/redo가 `textDocumentProxy`를 직접 조작하면 `inputBuffer`와 suggestion replacement history가 어긋날 수 있다.
+- 반복 입력 경로에서 리턴 버튼 feedback과 일반 입력 경로의 후처리 순서가 달라지면 회귀가 생길 수 있다.
+- 키보드 extension은 입력 지연에 민감하므로 undo/redo 상태 추적은 가볍게 유지해야 한다.
+- 현재 undo/redo 기록은 세션 메모리 전용이며 키보드 dismiss 시 `viewWillDisappear`에서 비운다.
+- 한글 조합 중에는 pending group 확정을 지연하므로, space가 천지인/나랏글/두벌식 조합 확정으로 쓰이는 경우에도 조합 버퍼가 비워진 뒤 확정해야 한다.
+- 백스페이스 시작은 한글 조합 중이어도 undo 기록 경계로 취급한다. 조합 표시/삭제 동작은 유지하되, 기록만 이전 입력 group과 분리해야 한다.
+- 반복 백스페이스 진행 중에도 매 tick마다 강제 확정하거나 long press 시작 시 내부 단일 삭제 경로에서 강제 확정하면 반복 삭제가 한 글자씩 undo되는 회귀가 생긴다. 특히 한글 `deleteBackwardWillPerform()`에서 `super.deleteBackwardWillPerform()`을 먼저 호출하면 `Base`가 guard 전에 pending group을 확정하므로, 반복 동작 안에서는 touchDown 선삭제 이후 pending 삭제 group을 유지해야 한다.
+- 리팩토링에서 `applyUndoRedoEdit`, `undoRedoEditDidApply`, `commitUndoRedoGroupIgnoringCompositionDeferral` 호출 순서를 바꾸면 한글 undo 후 재입력 조합 버그가 재발할 수 있다.
+- undo/redo 세션 타입으로 상태를 옮길 때 `textWillChange`/`textDidChange`의 pending context 초기화 타이밍이 달라지면 cursor 이동 후 위치 anchor 복원이나 focus 변경 history 무효화가 달라질 수 있다.
+
+## Verification
+
+- 선행 리팩토링 후 실행할 검증 명령:
+
+```sh
+xcodebuild build \
+  -project SYKeyboard.xcodeproj \
+  -scheme SYKeyboardCore \
+  -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0'
+```
+
+- 기능 추가 뒤 실행할 검증 명령:
+
+```sh
+xcodebuild test \
+  -project SYKeyboard.xcodeproj \
+  -scheme SYKeyboard \
+  -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0'
+```
+
+```sh
+xcodebuild build \
+  -project SYKeyboard.xcodeproj \
+  -scheme HangeulKeyboard \
+  -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0'
+```
+
+```sh
+xcodebuild build \
+  -project SYKeyboard.xcodeproj \
+  -scheme EnglishKeyboard \
+  -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0'
+```
+
+- 수동 확인이 필요한 경우:
+  - 실제 텍스트 입력 앱에서 자동완성 바 표시 여부, undo/redo 버튼 활성화, 삭제, 스페이스, 리턴, symbol keyboard 자동 전환을 확인한다.
+  - 한글 키보드에서 `안녕핫 -> 백스페이스 -> 안녕하 -> undo -> 안녕핫` 복구와, undo/redo 이후 새 한글 입력이 이전 조합과 섞이지 않는지 확인한다.
+
+## Done Criteria
+
+- 선행 리팩토링은 리턴 버튼 동작 변경 없이 전용 처리 진입점을 만든다.
+- undo/redo 기능 추가 시 자동완성 ON/OFF, undo/redo 설정 ON/OFF, 버튼 활성화 상태, 일반 리턴 입력, 반복 입력 경로가 모두 의도대로 동작한다.
+- undo group은 스페이스, 엔터, 입력↔삭제 전환, 백스페이스 시작에서 예측 가능한 경계로 나뉜다.
+- 반복 삭제는 touchDown 선삭제와 반복 동작 안의 삭제들을 하나의 undo 단위로 묶는다.
+- 한글 undo/redo 후 내부 조합 버퍼가 남지 않는다.
+- 큰 리팩토링은 기능 추가와 별도 변경으로 진행하고, 각 단계마다 빌드 또는 테스트 결과를 기록한다.
+- undo/redo 세션 리팩토링은 리팩토링 전후 `canUndo`/`canRedo`, debounce 확정, 조합 확정 지연, focus 변경 history 무효화, undo/redo 적용 순서가 동일해야 한다.
+- 현재 `BaseKeyboardViewController` 리팩토링은 추가 타입 추출 없이 마무리한다. 이후 리팩토링은 새 버그, 새 기능, 또는 명확한 중복이 생겼을 때 별도 계획으로 진행한다.
