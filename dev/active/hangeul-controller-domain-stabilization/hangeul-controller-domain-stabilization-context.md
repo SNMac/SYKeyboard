@@ -11,6 +11,8 @@ Last Updated: 2026-06-03
 - `Modules/SYKeyboardCore/Presentation/ViewController/Bases/BaseKeyboardViewController.swift`: 이번 범위에서 action 흐름을 변경하지 않을 기준 파일이다.
 - `Modules/SYKeyboardCore/Presentation/Utils/KeyboardUndoRedoManager.swift`: undo/redo 도메인 manager다.
 - `Modules/SYKeyboardCore/Presentation/Utils/Policies/KeyboardSuggestionSelectionPolicy.swift`: suggestion 선택/갱신 순수 정책이다.
+- `Modules/HangeulKeyboardCore/Domain/HangeulCompositionState.swift`: controller와 simulator가 공유하는 한글 조합/삭제/드래그/repeat 상태 전이다.
+- `SYKeyboardTests/Domain/HangeulCompositionStateTests.swift`: 상태 타입의 입력/스페이스/삭제/repeat/delete pan 회귀 테스트다.
 
 ## Facts Checked
 
@@ -20,6 +22,10 @@ Last Updated: 2026-06-03
 - Delete는 `.touchDown`, 일반 입력은 `.touchUpInside`, space period shortcut은 `.touchDownRepeat`에 의존한다.
 - `HangeulKeyboardCoreViewController`는 `textInteractionWillPerform` / `textInteractionDidPerform` hook 순서로 delete touchDown 전후 상태를 저장한다.
 - `KeyboardControllerSimulator`는 controller와 같은 버퍼 전이 로직을 복제하고 있으며, 파일 주석도 controller 변경 시 함께 수정하라고 명시한다.
+- `HangeulCompositionState`를 추가했고, simulator와 `HangeulKeyboardCoreViewController`가 같은 상태 타입을 사용한다.
+- Controller는 상태 전이가 반환한 `HangeulProxyEdit`만 `insertText`, `deleteText`, `replaceText`로 반영한다.
+- Base/action registration과 gesture dispatch 흐름은 변경하지 않았다.
+- suggestion/undo 보강 테스트는 production 수정 없이 기존 동작으로 통과했다.
 
 ## Decisions
 
@@ -28,12 +34,17 @@ Last Updated: 2026-06-03
 - Controller는 proxy 반영과 UI/undo side effect를 계속 담당한다.
 - Simulator는 새 도메인 타입을 사용해 테스트 helper 역할을 유지한다.
 - suggestion/undo는 큰 coordinator 추출 없이 순수 도메인 테스트 보강을 우선한다.
+- 삭제 중 committed 마지막 한글을 끌어오는 경우 proxy edit이 두 번 필요하므로 `HangeulCompositionTransition`이 `proxyEdits` 배열을 가진다.
 
 ## Open Questions
 
-- `HangeulCompositionState`가 processor start/reset을 직접 호출할지, mutation으로 반환할지는 첫 RED/GREEN 구현 중 가장 단순한 방향으로 확정한다.
-- Xcode synchronized root가 새 domain/test 파일을 자동 인식하는지, `project.pbxproj` membership exception 수정이 필요한지는 RED 실행 결과로 확인한다.
+- 없음.
 
 ## Verification Notes
 
-- 아직 구현 검증은 시작하지 않았다.
+- RED: `xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0' -only-testing:SYKeyboardTests/HangeulCompositionStateTests`가 `Cannot find 'HangeulCompositionState' in scope`로 실패함을 확인했다.
+- GREEN: `HangeulCompositionStateTests` targeted 테스트가 `TEST SUCCEEDED`.
+- Focused controller/simulator: `DubeolsikControllerTests`, `NaratgeulControllerTests`, `CheonjiinControllerTests`, `HangeulDeleteButtonDragControllerTests`가 `TEST SUCCEEDED`.
+- Suggestion/undo: `KeyboardSuggestionSelectionPolicyTests`, `KeyboardUndoRedoManagerTests`가 `TEST SUCCEEDED`.
+- Final: `xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0'`가 `TEST SUCCEEDED`.
+- 최종 문서 갱신 전 `git status --short --untracked-files=all`는 비어 있었다.
