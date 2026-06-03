@@ -31,7 +31,7 @@ struct KeyboardTextContextSnapshot: Equatable {
 
 struct KeyboardTextContextNavigator {
 
-    static let maximumCursorRestoreDistance = 128
+    static let maximumCursorRestoreDistance = 256
 
     // MARK: - Internal Methods
 
@@ -212,6 +212,16 @@ struct KeyboardUndoRedoManager {
         return !redoStack.isEmpty
     }
 
+    func canApplyUndo(from currentContext: KeyboardTextContextSnapshot) -> Bool {
+        guard let edit = nextUndoEdit else { return false }
+        return canApply(edit, from: currentContext)
+    }
+
+    func canApplyRedo(from currentContext: KeyboardTextContextSnapshot) -> Bool {
+        guard let edit = nextRedoEdit else { return false }
+        return canApply(edit, from: currentContext)
+    }
+
     // MARK: - Initializer
 
     init(maxHistoryCount: Int = 100) {
@@ -296,6 +306,28 @@ struct KeyboardUndoRedoManager {
         guard undoStack.count > maxHistoryCount else { return }
         undoStack.removeFirst(undoStack.count - maxHistoryCount)
     }
+
+    private var nextUndoEdit: KeyboardUndoRedoEdit? {
+        if let pendingMutation {
+            return pendingMutation.undoEdit
+        }
+        return undoStack.last?.undoEdit
+    }
+
+    private var nextRedoEdit: KeyboardUndoRedoEdit? {
+        return redoStack.last?.redoEdit
+    }
+
+    private func canApply(
+        _ edit: KeyboardUndoRedoEdit,
+        from currentContext: KeyboardTextContextSnapshot
+    ) -> Bool {
+        guard let targetContext = edit.targetContext else { return true }
+        return KeyboardTextContextNavigator.cursorOffset(
+            from: currentContext,
+            to: targetContext
+        ) != nil
+    }
 }
 
 final class KeyboardUndoRedoSession {
@@ -318,6 +350,14 @@ final class KeyboardUndoRedoSession {
 
     var canRedo: Bool {
         return manager.canRedo
+    }
+
+    func canApplyUndo(from currentContext: KeyboardTextContextSnapshot) -> Bool {
+        return manager.canApplyUndo(from: currentContext)
+    }
+
+    func canApplyRedo(from currentContext: KeyboardTextContextSnapshot) -> Bool {
+        return manager.canApplyRedo(from: currentContext)
     }
 
     // MARK: - Initializer
@@ -428,24 +468,13 @@ final class KeyboardUndoRedoSession {
         && nextIdentifier != nil
         && currentTextInputIdentifier != nextIdentifier
 
-        let didChangeContextWithoutCursorMove: Bool
-        if (nextIdentifier == nil || currentTextInputIdentifier == nil),
-           let pendingTextChangeContext {
-            didChangeContextWithoutCursorMove = !isReachableCursorMove(
-                from: pendingTextChangeContext,
-                to: currentContext
-            )
-        } else {
-            didChangeContextWithoutCursorMove = false
-        }
-
         if let nextIdentifier {
             currentTextInputIdentifier = nextIdentifier
         } else if currentTextInputIdentifier == nil {
             currentTextInputIdentifier = pendingTextChangeInputIdentifier
         }
 
-        return didChangeTextInput || didChangeContextWithoutCursorMove
+        return didChangeTextInput
     }
 
     // MARK: - Private Methods
@@ -464,12 +493,6 @@ final class KeyboardUndoRedoSession {
             }
     }
 
-    private func isReachableCursorMove(
-        from source: KeyboardTextContextSnapshot,
-        to target: KeyboardTextContextSnapshot
-    ) -> Bool {
-        return KeyboardTextContextNavigator.cursorOffset(from: source, to: target) != nil
-    }
 }
 
 // MARK: - Supporting Types

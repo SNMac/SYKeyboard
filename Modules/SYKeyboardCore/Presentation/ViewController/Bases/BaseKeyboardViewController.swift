@@ -1056,6 +1056,10 @@ private extension BaseKeyboardViewController {
         guard isUndoRedoFeatureAvailable else { return }
 
         undoRedoSession.cancelDebounceTimer()
+        guard undoRedoSession.canApplyUndo(from: currentTextContextSnapshot()) else {
+            updateUndoRedoControls()
+            return
+        }
         guard let edit = undoRedoSession.undo() else {
             updateUndoRedoControls()
             return
@@ -1073,6 +1077,10 @@ private extension BaseKeyboardViewController {
         guard isUndoRedoFeatureAvailable else { return }
 
         undoRedoSession.cancelDebounceTimer()
+        guard undoRedoSession.canApplyRedo(from: currentTextContextSnapshot()) else {
+            updateUndoRedoControls()
+            return
+        }
         guard let edit = undoRedoSession.redo() else {
             updateUndoRedoControls()
             return
@@ -1142,10 +1150,11 @@ private extension BaseKeyboardViewController {
             isSuggestionBarHidden: suggestionBarView.isHidden,
             isUndoRedoFeatureAvailable: isUndoRedoFeatureAvailable
         )
+        let currentContext = currentTextContextSnapshot()
         suggestionBarView.updateUndoRedoControls(
             isVisible: shouldShowUndoRedo,
-            canUndo: undoRedoSession.canUndo,
-            canRedo: undoRedoSession.canRedo
+            canUndo: undoRedoSession.canApplyUndo(from: currentContext),
+            canRedo: undoRedoSession.canApplyRedo(from: currentContext)
         )
     }
 
@@ -1317,6 +1326,7 @@ private extension BaseKeyboardViewController {
         guard textDocumentProxy.documentContextBeforeInput != nil else { return }
 
         textDocumentProxy.adjustTextPosition(byCharacterOffset: -1)
+        updateUndoRedoControls()
         FeedbackManager.shared.playHaptic(isForcing: true)
         logger.debug("커서 왼쪽 이동")
     }
@@ -1325,6 +1335,7 @@ private extension BaseKeyboardViewController {
         guard textDocumentProxy.documentContextAfterInput != nil else { return }
 
         textDocumentProxy.adjustTextPosition(byCharacterOffset: 1)
+        updateUndoRedoControls()
         FeedbackManager.shared.playHaptic(isForcing: true)
         logger.debug("커서 오른쪽 이동")
     }

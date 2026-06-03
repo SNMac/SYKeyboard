@@ -236,10 +236,47 @@ struct KeyboardUndoRedoManagerTests {
         #expect(manager.undo() == KeyboardUndoRedoEdit(deleteCount: 1, insertText: ""))
         #expect(manager.undo() == nil)
     }
+
+    @Test("다음 undo 적용 가능성은 기록을 제거하지 않고 현재 context 기준으로 판단함")
+    func testCanApplyUndo_현재Context기준_기록유지() {
+        var manager = KeyboardUndoRedoManager()
+        let target = KeyboardTextContextSnapshot(beforeInput: "abc", afterInput: "")
+        let unreachable = KeyboardTextContextSnapshot(beforeInput: "xyz", afterInput: "")
+
+        manager.record(deletedText: "", insertedText: "d", targetContext: target)
+        manager.commitPendingGroup()
+
+        #expect(manager.canUndo == true)
+        #expect(manager.canApplyUndo(from: unreachable) == false)
+        #expect(manager.canUndo == true)
+        #expect(manager.undo() == KeyboardUndoRedoEdit(deleteCount: 1, insertText: "", targetContext: target))
+    }
+
+    @Test("다음 redo 적용 가능성은 기록을 제거하지 않고 현재 context 기준으로 판단함")
+    func testCanApplyRedo_현재Context기준_기록유지() {
+        var manager = KeyboardUndoRedoManager()
+        let undoTarget = KeyboardTextContextSnapshot(beforeInput: "abc", afterInput: "")
+        let redoTarget = KeyboardTextContextSnapshot(beforeInput: "", afterInput: "abc")
+        let unreachable = KeyboardTextContextSnapshot(beforeInput: "xyz", afterInput: "")
+
+        manager.record(deletedText: "", insertedText: "abc", targetContext: undoTarget)
+        _ = manager.undo()
+        manager.updateLastRedoTargetContext(redoTarget)
+
+        #expect(manager.canRedo == true)
+        #expect(manager.canApplyRedo(from: unreachable) == false)
+        #expect(manager.canRedo == true)
+        #expect(manager.redo() == KeyboardUndoRedoEdit(deleteCount: 0, insertText: "abc", targetContext: redoTarget))
+    }
 }
 
 @Suite("키보드 undo/redo cursor context 검증")
 struct KeyboardTextContextNavigatorTests {
+
+    @Test("커서 복원 최대 거리는 256자임")
+    func testMaximumCursorRestoreDistance_256() {
+        #expect(KeyboardTextContextNavigator.maximumCursorRestoreDistance == 256)
+    }
 
     @Test("커서가 왼쪽으로 이동한 뒤 원래 편집 위치까지 오른쪽 offset을 반환함")
     func testCursorOffset_왼쪽이동후복원() {
@@ -308,5 +345,35 @@ struct KeyboardTextContextNavigatorTests {
         let target = KeyboardTextContextSnapshot(beforeInput: "", afterInput: moveText + "tail")
 
         #expect(KeyboardTextContextNavigator.cursorOffset(from: current, to: target) == nil)
+    }
+}
+
+@Suite("키보드 undo/redo session 검증")
+struct KeyboardUndoRedoSessionTests {
+
+    @Test("복원 가능 범위를 벗어난 context 변화만으로는 history를 무효화하지 않음")
+    func testTextChange_복원범위초과Context변화_History유지() {
+        let session = KeyboardUndoRedoSession()
+        let source = KeyboardTextContextSnapshot(beforeInput: "abc", afterInput: "")
+        let unreachable = KeyboardTextContextSnapshot(beforeInput: "xyz", afterInput: "")
+
+        session.record(
+            deletedText: "",
+            insertedText: "d",
+            targetContext: source,
+            shouldDeferCommit: { false },
+            debouncedCommitDidFinish: {}
+        )
+        session.commitPendingGroup(shouldDeferCommit: false)
+        session.prepareForTextWillChange(inputIdentifier: nil, context: source)
+
+        #expect(
+            session.shouldInvalidateAfterTextChange(
+                inputIdentifier: nil,
+                currentContext: unreachable
+            ) == false
+        )
+        #expect(session.canUndo == true)
+        #expect(session.canApplyUndo(from: unreachable) == false)
     }
 }
