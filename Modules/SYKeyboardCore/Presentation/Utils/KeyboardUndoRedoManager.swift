@@ -31,6 +31,8 @@ struct KeyboardTextContextSnapshot: Equatable {
 
 struct KeyboardTextContextNavigator {
 
+    static let maximumCursorRestoreDistance = 128
+
     // MARK: - Internal Methods
 
     static func cursorOffset(
@@ -39,22 +41,26 @@ struct KeyboardTextContextNavigator {
     ) -> Int? {
         if context(source, matches: target) { return 0 }
 
-        let maxLeftDistance = source.beforeInput?.count ?? 0
-        let maxRightDistance = source.afterInput?.count ?? 0
+        let maxLeftDistance = min(
+            source.beforeInput?.count ?? 0,
+            maximumCursorRestoreDistance
+        )
+        let maxRightDistance = min(
+            source.afterInput?.count ?? 0,
+            maximumCursorRestoreDistance
+        )
         let maxDistance = max(maxLeftDistance, maxRightDistance)
 
         guard maxDistance > 0 else { return nil }
 
         for distance in 1...maxDistance {
             if distance <= maxLeftDistance,
-               let movedContext = context(source, movingBy: -distance),
-               context(movedContext, matches: target) {
+               context(source, movingBy: -distance, matches: target) {
                 return -distance
             }
 
             if distance <= maxRightDistance,
-               let movedContext = context(source, movingBy: distance),
-               context(movedContext, matches: target) {
+               context(source, movingBy: distance, matches: target) {
                 return distance
             }
         }
@@ -66,42 +72,52 @@ struct KeyboardTextContextNavigator {
 
     private static func context(
         _ source: KeyboardTextContextSnapshot,
-        movingBy offset: Int
-    ) -> KeyboardTextContextSnapshot? {
-        guard offset != 0 else { return source }
-
-        if offset < 0 {
-            guard let beforeInput = source.beforeInput else { return nil }
-
-            let distance = abs(offset)
-            let movedText = String(beforeInput.suffix(distance))
-            let nextBeforeInput = String(beforeInput.dropLast(distance))
-            let nextAfterInput = movedText + (source.afterInput ?? "")
-
-            return KeyboardTextContextSnapshot(
-                beforeInput: nextBeforeInput,
-                afterInput: nextAfterInput
-            )
-        } else {
-            guard let afterInput = source.afterInput else { return nil }
-
-            let movedText = String(afterInput.prefix(offset))
-            let nextBeforeInput = (source.beforeInput ?? "") + movedText
-            let nextAfterInput = String(afterInput.dropFirst(offset))
-
-            return KeyboardTextContextSnapshot(
-                beforeInput: nextBeforeInput,
-                afterInput: nextAfterInput
-            )
-        }
-    }
-
-    private static func context(
-        _ source: KeyboardTextContextSnapshot,
         matches target: KeyboardTextContextSnapshot
     ) -> Bool {
         return beforeContext(source.beforeInput, matches: target.beforeInput)
         && afterContext(source.afterInput, matches: target.afterInput)
+    }
+
+    private static func context(
+        _ source: KeyboardTextContextSnapshot,
+        movingBy offset: Int,
+        matches target: KeyboardTextContextSnapshot
+    ) -> Bool {
+        guard offset != 0 else { return context(source, matches: target) }
+
+        if offset < 0 {
+            guard let beforeInput = source.beforeInput,
+                  let splitIndex = beforeInput.index(
+                    beforeInput.endIndex,
+                    offsetBy: offset,
+                    limitedBy: beforeInput.startIndex
+                  ) else {
+                return false
+            }
+
+            return beforeContext(beforeInput[..<splitIndex], matches: target.beforeInput)
+            && afterContext(
+                prefix: beforeInput[splitIndex...],
+                suffix: source.afterInput,
+                matches: target.afterInput
+            )
+        } else {
+            guard let afterInput = source.afterInput,
+                  let splitIndex = afterInput.index(
+                    afterInput.startIndex,
+                    offsetBy: offset,
+                    limitedBy: afterInput.endIndex
+                  ) else {
+                return false
+            }
+
+            return beforeContext(
+                prefix: source.beforeInput,
+                suffix: afterInput[..<splitIndex],
+                matches: target.beforeInput
+            )
+            && afterContext(afterInput[splitIndex...], matches: target.afterInput)
+        }
     }
 
     private static func beforeContext(_ source: String?, matches target: String?) -> Bool {
@@ -114,6 +130,68 @@ struct KeyboardTextContextNavigator {
         guard let target else { return true }
         guard !target.isEmpty else { return source?.isEmpty != false }
         return source?.hasPrefix(target) == true
+    }
+
+    private static func beforeContext(_ source: Substring, matches target: String?) -> Bool {
+        guard let target else { return true }
+        guard !target.isEmpty else { return source.isEmpty }
+        return source.hasSuffix(target)
+    }
+
+    private static func beforeContext(
+        prefix: String?,
+        suffix: Substring,
+        matches target: String?
+    ) -> Bool {
+        guard let target else { return true }
+        guard !target.isEmpty else {
+            return prefix?.isEmpty != false && suffix.isEmpty
+        }
+
+        let suffixCount = suffix.count
+        if target.count <= suffixCount {
+            return suffix.hasSuffix(target)
+        }
+
+        guard let prefix else { return false }
+
+        let targetSuffixStart = target.index(target.endIndex, offsetBy: -suffixCount)
+        let targetPrefix = target[..<targetSuffixStart]
+        let targetSuffix = target[targetSuffixStart...]
+
+        return suffix.elementsEqual(targetSuffix)
+        && prefix.hasSuffix(String(targetPrefix))
+    }
+
+    private static func afterContext(_ source: Substring, matches target: String?) -> Bool {
+        guard let target else { return true }
+        guard !target.isEmpty else { return source.isEmpty }
+        return source.hasPrefix(target)
+    }
+
+    private static func afterContext(
+        prefix: Substring,
+        suffix: String?,
+        matches target: String?
+    ) -> Bool {
+        guard let target else { return true }
+        guard !target.isEmpty else {
+            return prefix.isEmpty && suffix?.isEmpty != false
+        }
+
+        let prefixCount = prefix.count
+        if target.count <= prefixCount {
+            return prefix.hasPrefix(target)
+        }
+
+        guard let suffix else { return false }
+
+        let targetPrefixEnd = target.index(target.startIndex, offsetBy: prefixCount)
+        let targetPrefix = target[..<targetPrefixEnd]
+        let targetSuffix = target[targetPrefixEnd...]
+
+        return prefix.elementsEqual(targetPrefix)
+        && suffix.hasPrefix(String(targetSuffix))
     }
 }
 

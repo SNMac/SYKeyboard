@@ -331,6 +331,12 @@ struct HangeulCompositionState {
         return deleteButtonPanRestore(character, using: processor)
     }
 
+    mutating func finishDeleteButtonPan() {
+        shouldSkipNextDeletePanRestore = false
+        nextDeletePanRestoreReplacement = nil
+        temporaryDeletedCharacters.removeAll()
+    }
+
     @discardableResult
     mutating func finishRepeatDelete(
         using processor: HangeulProcessable

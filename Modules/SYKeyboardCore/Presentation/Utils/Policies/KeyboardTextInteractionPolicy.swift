@@ -46,4 +46,8 @@ enum KeyboardTextInteractionPolicy {
     ) -> Bool {
         return documentContextBeforeInput != nil || selectedText != nil
     }
+
+    static func repeatTimerInterval(repeatRate: Double) -> Double {
+        return max(0.01, 0.10 - repeatRate)
+    }
 }

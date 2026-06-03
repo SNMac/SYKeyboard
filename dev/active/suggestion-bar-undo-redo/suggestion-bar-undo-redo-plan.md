@@ -1,6 +1,6 @@
 # Suggestion Bar Undo Redo Plan
 
-Last Updated: 2026-05-22
+Last Updated: 2026-06-04
 
 ## Goal
 
@@ -13,7 +13,8 @@ Last Updated: 2026-05-22
 - 리턴 버튼 단일/반복 입력은 `performReturnButtonTextInteraction()`과 `performRepeatReturnButtonTextInteraction(for:)`로 분리되어 있다.
 - 리턴 버튼 drag undo/redo 설계는 폐기했다. QWERTY 배열에서 redo 드래그가 불편하고, 추후 클립보드 UI와 제스처 책임이 충돌할 수 있기 때문이다.
 - undo/redo는 자동완성 바가 보이고 `isUndoRedoEnabled`가 켜진 경우에만 우측 버튼으로 제공한다.
-- 한글 키보드에서는 단일/반복 백스페이스 시작 시 조합 중이어도 기존 pending undo group을 강제로 확정한다. `안녕핫 -> 백스페이스 -> 안녕하 -> undo`가 전체 삭제가 아니라 `안녕핫` 복구로 동작해야 하기 때문이다.
+- 한글 키보드에서는 단일 백스페이스와 반복 백스페이스 시작 시 조합 중이어도 기존 pending undo group을 강제로 확정한다. `안녕핫 -> 백스페이스 -> 안녕하 -> undo`가 전체 삭제가 아니라 `안녕핫` 복구로 동작해야 하기 때문이다.
+- 한글 반복 백스페이스는 삭제 버튼 touchDown에서 먼저 삭제된 문자까지 같은 undo group에 포함한다. 반복 삭제로 `ㅏㅏㅏㅏㅏㅏ -> ㅏㅏㅏ`이 된 뒤 undo하면 삭제된 `ㅏㅏㅏ`이 한 번에 복구되어 반복 삭제 직전 상태로 돌아가야 한다. undo 후 같은 반복 삭제를 다시 수행해도 복구 기준점이 한 글자씩 줄어들면 안 된다.
 - undo/redo 적용 후에는 한글 조합 버퍼와 processor 상태를 초기화한다. undo/redo 뒤 새 한글 입력이 이전 조합 상태와 이어 붙는 현상을 막기 위한 처리다.
 - undo/redo 액션 버튼의 접근성 label/traits 코드는 의도적으로 제외한다. 사용자가 접근성 관련 코드를 일부러 뺐으므로, 리팩토링에서 되살리지 않는다.
 
@@ -28,6 +29,8 @@ Last Updated: 2026-05-22
    - 입력 중 변경은 pending undo 단위로 묶고, 0.8초 debounce가 지나면 undo stack에 확정한다.
    - 스페이스/엔터 입력은 현재 undo group을 즉시 확정하는 명시적 편집 경계로 처리한다.
    - 입력과 삭제가 전환되면 기존 pending group을 확정하고 새 group을 시작한다.
+   - 반복 삭제는 touchDown 선삭제 시점에만 기존 group을 확정하고, touchDown 삭제와 반복으로 삭제된 문자들을 하나의 pending group으로 묶는다.
+   - 한글 컨트롤러에서 반복 상태의 내부 단일 삭제는 `Base.deleteBackwardWillPerform()`을 타지 않게 한다. `Base.deleteBackwardWillPerform()`은 시작하자마자 pending group을 commit하므로, 반복 상태 guard는 `super.deleteBackwardWillPerform()`보다 앞에 있어야 한다.
    - debounce 확정 전에도 pending 변경이 있으면 undo 버튼은 활성화한다.
    - redo stack은 undo 이후 새 입력이 발생하면 비운다.
    - undo/redo 적용 후에는 커서/외부 텍스트와 `inputBuffer`가 섞이지 않도록 `resetInputBuffer()`를 호출한다.
@@ -79,6 +82,7 @@ Last Updated: 2026-05-22
 - 현재 undo/redo 기록은 세션 메모리 전용이며 키보드 dismiss 시 `viewWillDisappear`에서 비운다.
 - 한글 조합 중에는 pending group 확정을 지연하므로, space가 천지인/나랏글/두벌식 조합 확정으로 쓰이는 경우에도 조합 버퍼가 비워진 뒤 확정해야 한다.
 - 백스페이스 시작은 한글 조합 중이어도 undo 기록 경계로 취급한다. 조합 표시/삭제 동작은 유지하되, 기록만 이전 입력 group과 분리해야 한다.
+- 반복 백스페이스 진행 중에도 매 tick마다 강제 확정하거나 long press 시작 시 내부 단일 삭제 경로에서 강제 확정하면 반복 삭제가 한 글자씩 undo되는 회귀가 생긴다. 특히 한글 `deleteBackwardWillPerform()`에서 `super.deleteBackwardWillPerform()`을 먼저 호출하면 `Base`가 guard 전에 pending group을 확정하므로, 반복 동작 안에서는 touchDown 선삭제 이후 pending 삭제 group을 유지해야 한다.
 - 리팩토링에서 `applyUndoRedoEdit`, `undoRedoEditDidApply`, `commitUndoRedoGroupIgnoringCompositionDeferral` 호출 순서를 바꾸면 한글 undo 후 재입력 조합 버그가 재발할 수 있다.
 - undo/redo 세션 타입으로 상태를 옮길 때 `textWillChange`/`textDidChange`의 pending context 초기화 타이밍이 달라지면 cursor 이동 후 위치 anchor 복원이나 focus 변경 history 무효화가 달라질 수 있다.
 
@@ -125,6 +129,7 @@ xcodebuild build \
 - 선행 리팩토링은 리턴 버튼 동작 변경 없이 전용 처리 진입점을 만든다.
 - undo/redo 기능 추가 시 자동완성 ON/OFF, undo/redo 설정 ON/OFF, 버튼 활성화 상태, 일반 리턴 입력, 반복 입력 경로가 모두 의도대로 동작한다.
 - undo group은 스페이스, 엔터, 입력↔삭제 전환, 백스페이스 시작에서 예측 가능한 경계로 나뉜다.
+- 반복 삭제는 touchDown 선삭제와 반복 동작 안의 삭제들을 하나의 undo 단위로 묶는다.
 - 한글 undo/redo 후 내부 조합 버퍼가 남지 않는다.
 - 큰 리팩토링은 기능 추가와 별도 변경으로 진행하고, 각 단계마다 빌드 또는 테스트 결과를 기록한다.
 - undo/redo 세션 리팩토링은 리팩토링 전후 `canUndo`/`canRedo`, debounce 확정, 조합 확정 지연, focus 변경 history 무효화, undo/redo 적용 순서가 동일해야 한다.

@@ -191,6 +191,24 @@ struct KeyboardUndoRedoManagerTests {
         #expect(undo == KeyboardUndoRedoEdit(deleteCount: 0, insertText: "bc"))
     }
 
+    @Test("반복 삭제 undo 후 다시 반복 삭제해도 복구 개수를 유지함")
+    func test반복삭제_undo후재반복삭제_복구개수유지() {
+        var manager = KeyboardUndoRedoManager()
+
+        manager.record(deletedText: "", insertedText: "ㅏㅏㅏㅏㅏㅏ", targetContext: nil)
+        manager.commitPendingGroup()
+
+        for _ in 0..<3 {
+            manager.record(deletedText: "ㅏ", insertedText: "", targetContext: nil)
+            manager.record(deletedText: "ㅏ", insertedText: "", targetContext: nil)
+            manager.record(deletedText: "ㅏ", insertedText: "", targetContext: nil)
+
+            #expect(manager.undo() == KeyboardUndoRedoEdit(deleteCount: 0, insertText: "ㅏㅏㅏ"))
+        }
+
+        #expect(manager.undo() == KeyboardUndoRedoEdit(deleteCount: 6, insertText: ""))
+    }
+
     @Test("한글 입력 후 삭제 경계가 확정되면 undo는 삭제만 되돌림")
     func test한글입력후삭제경계_삭제만Undo() {
         var manager = KeyboardUndoRedoManager()
@@ -269,5 +287,26 @@ struct KeyboardTextContextNavigatorTests {
         let target = KeyboardTextContextSnapshot(beforeInput: "abc", afterInput: "")
 
         #expect(KeyboardTextContextNavigator.cursorOffset(from: current, to: target) == 0)
+    }
+
+    @Test("최대 복원 거리 안쪽의 커서 이동은 복원 offset을 반환함")
+    func testCursorOffset_최대복원거리내_복원() {
+        let moveText = String(repeating: "a", count: KeyboardTextContextNavigator.maximumCursorRestoreDistance)
+        let current = KeyboardTextContextSnapshot(beforeInput: moveText, afterInput: "tail")
+        let target = KeyboardTextContextSnapshot(beforeInput: "", afterInput: moveText + "tail")
+
+        #expect(
+            KeyboardTextContextNavigator.cursorOffset(from: current, to: target)
+            == -KeyboardTextContextNavigator.maximumCursorRestoreDistance
+        )
+    }
+
+    @Test("최대 복원 거리를 넘는 커서 이동은 탐색을 중단함")
+    func testCursorOffset_최대복원거리초과_nil() {
+        let moveText = String(repeating: "a", count: KeyboardTextContextNavigator.maximumCursorRestoreDistance + 1)
+        let current = KeyboardTextContextSnapshot(beforeInput: moveText, afterInput: "tail")
+        let target = KeyboardTextContextSnapshot(beforeInput: "", afterInput: moveText + "tail")
+
+        #expect(KeyboardTextContextNavigator.cursorOffset(from: current, to: target) == nil)
     }
 }

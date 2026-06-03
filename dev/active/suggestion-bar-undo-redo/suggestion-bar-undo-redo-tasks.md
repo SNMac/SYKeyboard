@@ -1,6 +1,6 @@
 # Suggestion Bar Undo Redo Tasks
 
-Last Updated: 2026-05-22
+Last Updated: 2026-06-04
 
 ## Checklist
 
@@ -75,4 +75,13 @@ Last Updated: 2026-05-22
 - [x] wrapper helper 섹션 이동 후 `SYKeyboardCore` 빌드를 실행한다.
 - [x] wrapper helper 섹션 이동 후 `git diff --check`를 실행한다.
 - [x] 현재까지의 `BaseKeyboardViewController` 리팩토링 마무리 기준을 재평가한다.
+- [x] 한글 반복 삭제가 touchDown 선삭제와 반복 삭제를 서로 다른 undo group으로 분리하는 경로를 확인한다.
+- [x] 한글 반복 삭제 진행 중에는 단일/반복 삭제 경로의 추가 강제 commit을 건너뛰도록 수정한다.
+- [x] 반복 상태 guard가 `super.deleteBackwardWillPerform()`보다 앞에 있어야 함을 확인하고 반영한다.
+- [x] 반복 삭제가 touchDown 선삭제를 포함해 하나의 undo 단위로 복구되는 테스트를 추가한다.
+- [x] undo 후 다시 반복 삭제해도 복구 개수가 줄어들지 않는 반복 사이클 테스트로 갱신한다.
+- [x] 반복 삭제 undo 단위 수정 후 targeted `KeyboardUndoRedoManagerTests`를 실행한다.
+- [x] 반복 삭제 undo 단위 수정 후 `HangeulKeyboard` 빌드를 실행한다.
+- [x] 반복 삭제 undo 단위 수정 후 전체 `SYKeyboard` 테스트를 실행한다.
+- [x] 반복 삭제 undo 단위 변경과 검증 결과를 작업 문서에 반영한다.
 - [ ] 5차 리팩토링 커밋 전 전체 diff와 검증 범위를 확인한다.

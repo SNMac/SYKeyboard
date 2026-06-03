@@ -478,6 +478,11 @@ open class BaseKeyboardViewController: UIInputViewController {
         insertText(String(character))
     }
 
+    /// 삭제 버튼 팬 제스처가 끝난 뒤 입력기별 임시 복구 상태를 정리합니다.
+    ///
+    /// > 하위 클래스에서 오버라이드 시 반드시 `super`로 호출 필요
+    open func deleteButtonPanDidStop() {}
+
     // MARK: - Public Methods
     
     public func updateOneHandedWidthForPreview(to oneHandedWidth: Double) {
@@ -1276,6 +1281,7 @@ extension BaseKeyboardViewController: TextInteractionGestureControllerDelegate {
 
     final func deleteButtonPanStopped(_ controller: TextInteractionGestureController) {
         tempDeletedCharacters.removeAll()
+        deleteButtonPanDidStop()
         logger.debug("임시 삭제 내용 저장 변수 초기화")
     }
 
@@ -1348,7 +1354,9 @@ private extension BaseKeyboardViewController {
     }
 
     func startRepeatInputTimer(for button: TextInteractable) {
-        let repeatTimerInterval = 0.10 - keyboardSettingsManager.repeatRate
+        let repeatTimerInterval = KeyboardTextInteractionPolicy.repeatTimerInterval(
+            repeatRate: keyboardSettingsManager.repeatRate
+        )
         timer = Timer.publish(every: repeatTimerInterval, on: .main, in: .common)
             .autoconnect()
             .sink { [weak self, weak button] _ in

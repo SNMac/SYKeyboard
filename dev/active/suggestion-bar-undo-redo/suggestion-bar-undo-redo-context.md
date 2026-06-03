@@ -1,6 +1,6 @@
 # Suggestion Bar Undo Redo Context
 
-Last Updated: 2026-05-22
+Last Updated: 2026-06-04
 
 ## Relevant Files
 
@@ -9,6 +9,7 @@ Last Updated: 2026-05-22
 - `Modules/SYKeyboardCore/Presentation/Utils/KeyboardUndoRedoManager.swift`: 세션 한정 undo/redo 기록과 debounce pending 그룹을 담당한다.
 - `Modules/SYKeyboardCore/Presentation/Utils/GestureControllers/TextInteractionGestureController.swift`: 키/삭제 버튼 pan gesture를 담당한다. 리턴 버튼 undo/redo pan 분기는 제거했다.
 - `Modules/SYKeyboardCore/Presentation/Utils/Enums/TextInteractableType.swift`: 리턴 버튼이 `.returnButton` 타입으로 분기되는 기준이다.
+- `Modules/HangeulKeyboardCore/Presentation/ViewController/HangeulKeyboardCoreViewController.swift`: 한글 조합 버퍼와 undo/redo 기록 경계를 연결한다. 반복 삭제 중 강제 commit 여부를 여기서 결정한다.
 - `SYKeyboardTests/Utils/KeyboardUndoRedoManagerTests.swift`: undo/redo 기록 단위, redo 초기화, 치환 기록을 검증한다.
 - `dev/codex-skill-playbook.md`: 키보드 extension UI와 버튼 이벤트 변경 시 확인할 프로젝트 로컬 규칙이다.
 - `dev/coding-conventions.md`: UIKit 키보드 UI, 접근 제어, 주석, 테스트 스타일 기준이다.
@@ -37,6 +38,11 @@ Last Updated: 2026-05-22
 - 스페이스 입력과 엔터 입력은 pending undo group을 즉시 확정한다.
 - 단일 백스페이스 시작 시 기존 pending undo group을 확정한다.
 - 한글 키보드는 단일/반복 백스페이스 시작 시 `commitUndoRedoGroupIgnoringCompositionDeferral()`로 조합 지연 여부와 관계없이 기존 pending undo group을 확정한다. 이는 `안녕핫 -> 백스페이스 -> 안녕하 -> undo`가 `안녕하` 전체 삭제가 아니라 방금 삭제를 되돌려 `안녕핫`을 복구하도록 하기 위한 처리다.
+- 2026-06-04 확인 결과, 삭제 버튼 touchDown에서 먼저 삭제된 1글자와 long press 반복 삭제가 서로 다른 undo group으로 분리되는 문제가 있었다. 예: `ㅏㅏㅏㅏㅏㅏ -> ㅏㅏㅏ` 후 undo가 처음에는 `ㅏㅏㅏㅏㅏㅏ`로 복구되지만, undo 뒤 같은 반복 삭제를 다시 수행하면 `ㅏㅏㅏㅏㅏ`, 그 다음에는 `ㅏㅏㅏㅏ`처럼 복구 기준점이 한 글자씩 줄어드는 증상이다.
+- 원인은 long press 반복 시작 시 `repeatTextInteractionWillPerform(button:)` 안의 `super.performTextInteraction(for:)`가 내부 단일 삭제 경로를 타며, `HangeulKeyboardCoreViewController.deleteBackwardWillPerform()`이 `super.deleteBackwardWillPerform()`을 먼저 호출하던 흐름이었다. `Base.deleteBackwardWillPerform()`은 시작하자마자 `commitUndoRedoGroupIfPossible()`을 호출하므로, 이후 guard를 추가해도 touchDown 삭제 pending group은 이미 확정된 뒤였다.
+- 현재 한글 반복 삭제 진행 중에는 `isRepeatingInput == true`이면 `deleteBackwardWillPerform()`이 `super.repeatDeleteBackwardWillPerform()`만 호출하고 바로 return한다. 이 분기가 `super.deleteBackwardWillPerform()`보다 앞에 있으므로 반복 시작의 내부 단일 삭제가 일반 삭제 commit 경계를 타지 않는다.
+- `repeatDeleteBackwardWillPerform()`도 `isRepeatingInput == true`일 때 추가 강제 commit을 건너뛰도록 유지한다. 따라서 touchDown 선삭제와 반복 삭제로 삭제된 문자들은 하나의 pending undo group으로 묶인다.
+- `KeyboardUndoRedoManagerTests`에 `ㅏㅏㅏㅏㅏㅏ` 입력 group 확정 후 삭제 3회 undo를 세 번 반복해도 매번 `ㅏㅏㅏ`이 복구되는 테스트를 추가했다.
 - `KeyboardUndoRedoManager`는 순수 입력에서 순수 삭제로, 또는 순수 삭제에서 순수 입력으로 전환될 때 기존 pending group을 확정하고 새 group을 시작한다.
 - undo/redo 적용 후 `BaseKeyboardViewController.applyUndoRedoEdit(_:)`는 `undoRedoEditDidApply()` hook을 호출한다.
 - `HangeulKeyboardCoreViewController.undoRedoEditDidApply()`는 `clearAllBuffers()`, `processor.reset한글조합()`, `lastInputText = nil`, space/shift 버튼 갱신을 수행한다. undo/redo 뒤 새 한글 입력이 이전 조합 상태와 이어 붙는 것을 막기 위한 처리다.
@@ -71,6 +77,7 @@ Last Updated: 2026-05-22
 - undo/redo 기능은 `KeyboardUndoRedoManager`와 `SuggestionBarView` 우측 버튼 delegate를 통해 추가한다.
 - 연속 입력은 pending mutation으로 묶고, 0.8초 debounce 이후 `commitPendingGroup()`으로 확정한다.
 - 스페이스/엔터/백스페이스 시작/입력↔삭제 전환은 사용자가 기대하는 편집 경계로 보고 undo group을 나눈다.
+- 반복 삭제는 touchDown 선삭제 시점에만 기존 group을 끊고, touchDown 삭제와 반복 중 삭제된 문자들은 하나의 undo group으로 묶는다.
 - 한글 백스페이스 시작은 조합 중이어도 undo 기록 경계로 본다. 단, 실제 한글 조합/삭제 동작은 유지하고 undo 기록만 이전 입력 group과 분리한다.
 - debounce 확정 전에도 `canUndo`가 true가 되어 undo 버튼을 즉시 활성화한다.
 - undo/redo 적용 뒤에는 `inputBuffer`를 초기화한다. 이는 외부 텍스트 삭제/복구가 자동완성 학습 버퍼에 섞이는 위험을 줄이기 위한 보수적 선택이다.
@@ -175,6 +182,52 @@ xcodebuild test \
 ```
 
 - 같은 변경 뒤 작업 범위 파일 기준 `git diff --check`가 통과했다.
+
+- 반복 삭제 undo 단위 수정 후 작업 범위 파일 기준 `git diff --check`가 통과했다.
+
+```sh
+git diff --check -- \
+  Modules/HangeulKeyboardCore/Presentation/ViewController/HangeulKeyboardCoreViewController.swift \
+  SYKeyboardTests/Utils/KeyboardUndoRedoManagerTests.swift
+```
+
+- 반복 삭제 undo 단위 수정 후 targeted `KeyboardUndoRedoManagerTests`가 통과했다. 추가 테스트 이름은 `test반복삭제_undo후재반복삭제_복구개수유지`다. 샌드박스 일반 실행은 CoreSimulator/SwiftPM 캐시 권한 문제로 실패했고, 동일 명령을 권한 있는 환경에서 재실행해 `** TEST SUCCEEDED **`를 확인했다.
+
+```sh
+xcodebuild test \
+  -project SYKeyboard.xcodeproj \
+  -scheme SYKeyboard \
+  -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0' \
+  -only-testing:SYKeyboardTests/KeyboardUndoRedoManagerTests
+```
+
+- 같은 변경 뒤 `HangeulKeyboard` 빌드가 통과했다. 샌드박스 일반 실행은 같은 권한 문제로 실패했고, 동일 명령을 권한 있는 환경에서 재실행해 `** BUILD SUCCEEDED **`를 확인했다.
+
+```sh
+xcodebuild build \
+  -project SYKeyboard.xcodeproj \
+  -scheme HangeulKeyboard \
+  -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0'
+```
+
+- 한글 삭제 경계 변경의 회귀 확인을 위해 전체 `SYKeyboard` 테스트를 실행했다. 샌드박스 일반 실행은 CoreSimulator/SwiftPM 캐시 권한 문제로 실패했고, 동일 명령을 권한 있는 환경에서 재실행해 `** TEST SUCCEEDED **`를 확인했다.
+
+```sh
+xcodebuild test \
+  -project SYKeyboard.xcodeproj \
+  -scheme SYKeyboard \
+  -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0'
+```
+
+- 테스트를 사용자 제보 예시처럼 `ㅏㅏㅏㅏㅏㅏ -> ㅏㅏㅏ -> undo` 반복 사이클로 갱신한 뒤 targeted `KeyboardUndoRedoManagerTests`를 다시 실행했고 `** TEST SUCCEEDED **`를 확인했다.
+
+```sh
+xcodebuild test \
+  -project SYKeyboard.xcodeproj \
+  -scheme SYKeyboard \
+  -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0' \
+  -only-testing:SYKeyboardTests/KeyboardUndoRedoManagerTests
+```
 
 ```sh
 git diff --check -- \

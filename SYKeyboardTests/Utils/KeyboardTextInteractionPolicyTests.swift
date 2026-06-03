@@ -99,4 +99,20 @@ struct KeyboardTextInteractionPolicyTests {
             ) == false
         )
     }
+
+    @Test("반복 입력 타이머 간격은 최소값 아래로 내려가지 않음")
+    func test반복입력타이머간격최소값() {
+        expectRepeatTimerInterval(repeatRate: 0.05, expected: 0.05)
+        expectRepeatTimerInterval(repeatRate: 0.09, expected: 0.01)
+        expectRepeatTimerInterval(repeatRate: 0.10, expected: 0.01)
+        expectRepeatTimerInterval(repeatRate: 0.20, expected: 0.01)
+    }
+}
+
+private extension KeyboardTextInteractionPolicyTests {
+    func expectRepeatTimerInterval(repeatRate: Double, expected: Double) {
+        let interval = KeyboardTextInteractionPolicy.repeatTimerInterval(repeatRate: repeatRate)
+
+        #expect(abs(interval - expected) < 0.0001)
+    }
 }

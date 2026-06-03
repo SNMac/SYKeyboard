@@ -299,12 +299,18 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
     }
 
     open override func deleteBackwardWillPerform() {
+        if isRepeatingInput {
+            super.repeatDeleteBackwardWillPerform()
+            return
+        }
+
         super.deleteBackwardWillPerform()
         commitUndoRedoGroupIgnoringCompositionDeferral()
     }
 
     open override func repeatDeleteBackwardWillPerform() {
         super.repeatDeleteBackwardWillPerform()
+        guard !isRepeatingInput else { return }
         commitUndoRedoGroupIgnoringCompositionDeferral()
     }
     
@@ -338,6 +344,11 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
 
         applyCompositionTransition(compositionState.deleteButtonPanRestore(character, using: processor))
         updateSpaceButtonImage()
+    }
+
+    open override func deleteButtonPanDidStop() {
+        super.deleteButtonPanDidStop()
+        compositionState.finishDeleteButtonPan()
     }
 
     open override func repeatDeleteBackward() {

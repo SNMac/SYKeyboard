@@ -104,4 +104,25 @@ struct HangeulCompositionStateTests {
         #expect(panDelete?.shouldRestore == false)
         #expect(state.temporaryDeletedCharacters == ["돈"])
     }
+
+    @Test("delete pan 종료는 임시 복구 상태만 초기화함")
+    func testDeletePan종료_임시복구상태초기화() {
+        var state = HangeulCompositionState()
+        let processor = DubeolsikProcessor(automata: HangeulAutomata())
+
+        state.setDeleteDragState(
+            committed: "가",
+            composing: "",
+            deletedCharacters: ["나"],
+            shouldSkipNextDeletePanRestore: true,
+            nextDeletePanRestoreReplacement: "다"
+        )
+
+        state.finishDeleteButtonPan()
+
+        #expect(state.committedBuffer == "가")
+        #expect(state.composingBuffer == "")
+        #expect(state.temporaryDeletedCharacters.isEmpty)
+        #expect(state.deleteButtonPanRestoreLast(using: processor) == nil)
+    }
 }
