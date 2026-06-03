@@ -158,15 +158,23 @@ struct HangeulCompositionState {
             return HangeulCompositionTransition(proxyEdit: .none)
         }
 
+        return repeatInsert(lastInputText, using: processor)
+    }
+
+    @discardableResult
+    mutating func repeatInsert(
+        _ text: String,
+        using _: HangeulProcessable
+    ) -> HangeulCompositionTransition {
         if !composingBuffer.isEmpty {
             committedBuffer.append(composingBuffer)
             composingBuffer.removeAll()
         }
 
-        composingBuffer = lastInputText
+        composingBuffer = text
+        lastInputText = text
         isPulledFromProtected = false
-        processor.start한글조합()
-        return HangeulCompositionTransition(proxyEdit: .insert(lastInputText))
+        return HangeulCompositionTransition(proxyEdit: .insert(text))
     }
 
     @discardableResult
@@ -299,6 +307,14 @@ struct HangeulCompositionState {
     }
 
     @discardableResult
+    mutating func deleteButtonPanRestoreLast(
+        using processor: HangeulProcessable
+    ) -> HangeulCompositionTransition? {
+        guard let character = temporaryDeletedCharacters.popLast() else { return nil }
+        return deleteButtonPanRestore(character, using: processor)
+    }
+
+    @discardableResult
     mutating func finishRepeatDelete(
         using processor: HangeulProcessable
     ) -> HangeulCompositionTransition? {
@@ -331,6 +347,21 @@ struct HangeulCompositionState {
         shouldSkipNextDeletePanRestore = false
         nextDeletePanRestoreReplacement = nil
         temporaryDeletedCharacters.removeAll()
+    }
+
+    mutating func setDeleteDragState(
+        committed: String,
+        composing: String,
+        deletedCharacters: [Character],
+        shouldSkipNextDeletePanRestore: Bool = true,
+        nextDeletePanRestoreReplacement: Character? = nil
+    ) {
+        committedBuffer = committed
+        composingBuffer = composing
+        temporaryDeletedCharacters = deletedCharacters
+        self.shouldSkipNextDeletePanRestore = shouldSkipNextDeletePanRestore
+        self.nextDeletePanRestoreReplacement = nextDeletePanRestoreReplacement
+        protectedCommittedCount = min(protectedCommittedCount, committedBuffer.count)
     }
 }
 
