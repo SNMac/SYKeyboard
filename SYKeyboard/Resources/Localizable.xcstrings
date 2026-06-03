@@ -56,7 +56,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "“.” shortcut"
+            "value" : "“.” Shortcut"
           }
         }
       }
@@ -101,7 +101,14 @@
       }
     },
     "Undo/Redo 기능" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Undo/Redo Feature"
+          }
+        }
+      }
     },
     "가로 모드에선 iOS 기본 키보드와 동일한 높이로 표시됩니다." : {
       "localizations" : {
@@ -584,7 +591,14 @@
       }
     },
     "키보드 상단에 Undo/Redo 버튼을 표시" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Display the Undo/Redo buttons at the top of the keyboard"
+          }
+        }
+      }
     },
     "키보드 상단에 자동완성 텍스트 표시" : {
       "localizations" : {
