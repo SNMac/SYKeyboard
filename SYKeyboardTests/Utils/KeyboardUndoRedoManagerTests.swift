@@ -70,6 +70,17 @@ struct KeyboardUndoRedoManagerTests {
         #expect(manager.redo() == nil)
     }
 
+    @Test("undo 이후 새 치환은 redo 기록을 비움")
+    func testUndo후_새치환_Redo초기화() {
+        var manager = KeyboardUndoRedoManager()
+
+        manager.record(deletedText: "ㄷ", insertedText: "돈", targetContext: nil)
+        _ = manager.undo()
+        manager.record(deletedText: "ㄴ", insertedText: "난", targetContext: nil)
+
+        #expect(manager.redo() == nil)
+    }
+
     @Test("치환은 삭제와 입력을 하나의 undo/redo 단위로 기록함")
     func test치환_undoRedo() {
         var manager = KeyboardUndoRedoManager()
@@ -113,6 +124,17 @@ struct KeyboardUndoRedoManagerTests {
 
         let redo = manager.redo()
         #expect(redo == KeyboardUndoRedoEdit(deleteCount: 0, insertText: "abc", targetContext: redoTarget))
+    }
+
+    @Test("pending group commit 후에도 undo 적용 위치 context를 유지함")
+    func testPendingGroupCommit후_UndoContext유지() {
+        var manager = KeyboardUndoRedoManager()
+        let target = KeyboardTextContextSnapshot(beforeInput: "안녕", afterInput: "하세요")
+
+        manager.record(deletedText: "", insertedText: "돈", targetContext: target)
+        manager.commitPendingGroup()
+
+        #expect(manager.undo() == KeyboardUndoRedoEdit(deleteCount: 1, insertText: "", targetContext: target))
     }
 
     @Test("입력 후 삭제로 전환되면 삭제를 별도 undo 단위로 기록함")
