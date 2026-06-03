@@ -1,6 +1,6 @@
 # Base Keyboard VC Responsibility Refactor Plan
 
-Last Updated: 2026-06-02
+Last Updated: 2026-06-03
 
 ## Goal
 
@@ -42,6 +42,7 @@ Last Updated: 2026-06-02
 - 2026-06-02 lexicon 로딩 여부 판단을 `KeyboardSuggestionSelectionPolicy.shouldLoadLexicon(...)`으로 분리했다.
 - 2026-06-02 기준 `BaseKeyboardViewController` 리팩토링은 안전한 마감형 범위에서 종료한다. Base는 coordinator가 아니라 iOS keyboard extension boundary로 유지한다.
 - 2026-06-02 production Policy 파일 7개를 `Modules/SYKeyboardCore/Presentation/Utils/Policies/`로 이동해 테스트 가능한 조건 분리 결과물을 한 폴더에 모았다.
+- 2026-06-03 `Policies/` 폴더 이동 후 전체 `SYKeyboard` 테스트를 `iPhone 13 mini / iOS 16.0`에서 재확인했고 `TEST SUCCEEDED`를 확인했다.
 - `BaseKeyboardViewController`는 여전히 아래 책임을 함께 가진다.
   - 키보드 view wiring과 height 갱신
   - 버튼 action binding과 gesture recognizer binding
@@ -51,7 +52,7 @@ Last Updated: 2026-06-02
   - undo/redo session 연결
   - extension lifecycle, focus/context change 대응
 - action binder, text proxy adapter, full suggestion coordinator 추출은 이번 범위에서 보류한다.
-- 다음 채팅의 첫 확인 포인트는 `Policies/`로 모은 테스트 가능한 조건 분리가 Base 마감 기준을 충족하는지 확인하는 것이다.
+- `Policies/`로 모은 테스트 가능한 조건 분리는 Base 마감 기준을 충족하는 것으로 확인했다.
 - 관련 파일:
   - `Modules/SYKeyboardCore/Presentation/ViewController/Bases/BaseKeyboardViewController.swift`
   - `Modules/HangeulKeyboardCore/Presentation/ViewController/HangeulKeyboardCoreViewController.swift`
@@ -413,7 +414,7 @@ xcodebuild test \
 2026-06-02 `KeyboardPresentationStatePolicy.shouldShowUndoRedoControls` 연결 후 재확인 결과: `TEST SUCCEEDED`.
 2026-06-02 `KeyboardPresentationStatePolicy.isUndoRedoFeatureAvailable` 연결 후 재확인 결과: `TEST SUCCEEDED`.
 2026-06-02 `KeyboardSuggestionSelectionPolicy.shouldLoadLexicon` 연결 후 재확인 결과: `TEST SUCCEEDED`.
-2026-06-02 `Policies/` 폴더 이동 후 전체 `SYKeyboard` 테스트는 실행을 시도했으나 승인 단계의 usage limit으로 실행하지 못했다. 대신 `git diff --check`, 이전 Policy 경로 검색, Xcode project membership exception 경로 확인을 수행한다.
+2026-06-03 `Policies/` 폴더 이동 후 전체 `SYKeyboard` 테스트 재확인 결과: `TEST SUCCEEDED`.
 
 - 수동 확인이 필요한 경우:
   - 실제 텍스트 입력 앱에서 한글/영문 키보드 extension을 열고 입력, 삭제, 반복 삭제, 삭제 드래그, 스페이스, 리턴, 자동완성 선택, undo/redo를 확인한다.

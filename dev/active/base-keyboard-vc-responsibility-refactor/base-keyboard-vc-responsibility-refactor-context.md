@@ -1,6 +1,6 @@
 # Base Keyboard VC Responsibility Refactor Context
 
-Last Updated: 2026-06-02
+Last Updated: 2026-06-03
 
 ## Relevant Files
 
@@ -66,6 +66,8 @@ Last Updated: 2026-06-02
 - 2026-06-02 Base 마감 문서 작업 시작 시점의 `git status --short --untracked-files=all`는 비어 있었다.
 - 2026-06-02 Policy 파일 이동 전 `git status --short --untracked-files=all`는 비어 있었다.
 - `SYKeyboard.xcodeproj/project.pbxproj`의 `Modules` synchronized root membership exceptions는 Policy 파일 경로를 직접 가지고 있어, `Policies/` 폴더 이동 시 해당 경로도 함께 바꿔야 한다.
+- 2026-06-03 작업 재개 시점의 `git status --short --untracked-files=all`는 비어 있었다.
+- 2026-06-03 `Policies/` 폴더 이동 후 전체 `SYKeyboard` 테스트를 `iPhone 13 mini / iOS 16.0`에서 권한 있는 환경으로 실행했고 `TEST SUCCEEDED`를 확인했다.
 
 ## Decisions
 
@@ -185,7 +187,7 @@ Last Updated: 2026-06-02
 ## Open Questions
 
 - Base 리팩토링 자체는 마감했다. 필요하면 별도 사람 리뷰나 정적 분석은 추가할 수 있지만, 현재 active task의 다음 구현 범위는 아니다.
-- 다음 채팅에서는 먼저 `Policies/` 폴더에 모인 테스트 가능한 조건 분리가 충분히 마감되었는지 확인한다.
+- `Policies/` 폴더에 모인 테스트 가능한 조건 분리는 전체 테스트로 마감 확인했다.
 - `KeyboardControllerSimulator.swift`와 실제 `HangeulKeyboardCoreViewController` 중복을 어떻게 줄일지는 다음 큰 개선 과제다.
 - 테스트 helper를 더 실제 controller 로직에 가깝게 만들지, 아니면 순수 domain/service 추출 후 테스트가 그 타입을 직접 검증하게 할지는 다음 과제에서 결정한다.
 - suggestion/undo 기능의 도메인 테스트를 어느 계층에 둘지 정해야 한다. Base가 아니라 policy/session/domain 쪽 테스트 안정화를 우선한다.
@@ -198,7 +200,7 @@ Last Updated: 2026-06-02
 - 리팩토링 계획을 세울 때 `KeyboardControllerSimulator.swift`를 별도 테스트 debt로 취급하지 말고 핵심 동기화 대상으로 포함한다.
 - 새 타입을 만들기 전에 해당 타입이 알아야 하는 상태를 목록화한다. `textDocumentProxy`, `inputBuffer`, `suggestionController`, `undoRedoSession`, `keyboardSettingsManager`, subclass hook 중 3개 이상을 알아야 하면 추출을 보류한다.
 - 기능 변경이 필요해 보이면 리팩토링이 아니라 별도 feature/fix로 문서화하고 사용자 확인을 받는다.
-- 다음 세션에서 이 active task를 이어간다면 `Policies/` 폴더 이동과 테스트 가능한 조건 분리의 마감 여부를 먼저 확인한 뒤, Base를 더 쪼개기보다 `KeyboardControllerSimulator` 중복 축소 또는 suggestion/undo 도메인 테스트 안정화 작업으로 새 계획을 잡는다.
+- 다음 세션에서 이어간다면 Base를 더 쪼개기보다 `KeyboardControllerSimulator` 중복 축소 또는 suggestion/undo 도메인 테스트 안정화 작업으로 새 계획을 잡는다.
 
 ## Verification Notes
 
@@ -292,6 +294,10 @@ Last Updated: 2026-06-02
   - `xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0'`
   - 결과: 승인 단계의 usage limit으로 실행하지 못했다.
   - 대체 확인: `git diff --check`, 이전 Policy 경로 검색, Xcode project membership exception 경로 확인.
+- 2026-06-03 Policy 파일 `Policies/` 폴더 이동 후 전체 `SYKeyboard` 테스트 재확인:
+  - sandbox 실행은 SwiftPM/Xcode 캐시 및 CoreSimulator 권한 문제로 실패했다.
+  - 권한 있는 환경에서 `xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0'`
+  - 결과: `TEST SUCCEEDED`.
 - 2026-06-01 `KeyboardTextInteractionPolicyTests` 단일 삭제 기록 문자 RED:
   - 권한 있는 환경에서 `deletedTextForSingleBackward` 미정의 컴파일 실패를 확인했다.
 - 2026-06-01 `KeyboardTextInteractionPolicyTests` 단일 삭제 기록 문자 GREEN:
