@@ -25,7 +25,7 @@ import UIKit
 /// 1. **입력 중**: `updateSuggestions(for baseText:)`로 후보 갱신
 /// 2. **후보 탭**: `selectSuggestion(at:inputBuffer:)`로 현재 단어 교체
 /// 3. **스페이스**: `attemptTextReplacement(inputBuffer:)`로 텍스트 대치 수행, `recordWord(_:)`로 n-gram 기록
-/// 4. **삭제**: `attemptRestoreReplacement(inputBuffer:)`로 대치 복구
+/// 4. **삭제**: `attemptRestoreReplacement(inputBuffer:documentContextBeforeInput:selectedText:)`로 대치 복구
 /// 5. **리턴**: `endSentence()`로 n-gram 문장 버퍼 초기화
 /// 6. **기타 키 입력**: `clearIgnoredShortcut()`으로 재대치 방지 상태 초기화
 protocol SuggestionService: AnyObject {
@@ -157,12 +157,18 @@ protocol SuggestionService: AnyObject {
     
     /// 삭제 시 방금 수행된 텍스트 대치를 복구합니다.
     ///
-    /// 입력 버퍼의 끝부분이 이전에 대치된 `documentText`와 일치하면
+    /// 입력 버퍼 또는 커서 앞 컨텍스트의 끝부분이 이전에 대치된 `documentText`와 일치하면
     /// 원래 `userInput`으로 되돌립니다.
     ///
     /// - Parameter inputBuffer: 현재 키보드 세션에서 직접 입력한 텍스트 버퍼
+    /// - Parameter documentContextBeforeInput: 호스트 앱이 제공하는 커서 앞 텍스트
+    /// - Parameter selectedText: 현재 선택된 텍스트. 존재하면 선택 삭제를 우선합니다.
     /// - Returns: 복구 수행 정보. 복구할 대상이 없으면 `nil`
-    func attemptRestoreReplacement(inputBuffer: String) -> (deleteCount: Int, insertText: String)?
+    func attemptRestoreReplacement(
+        inputBuffer: String,
+        documentContextBeforeInput: String?,
+        selectedText: String?
+    ) -> (deleteCount: Int, insertText: String)?
     
     // MARK: - State Management
     

@@ -988,7 +988,9 @@ extension BaseKeyboardViewController {
             }
         case .deleteButton:
             if let restore = suggestionController.attemptRestoreReplacement(
-                inputBuffer: inputBuffer
+                inputBuffer: inputBuffer,
+                documentContextBeforeInput: textDocumentProxy.documentContextBeforeInput,
+                selectedText: textDocumentProxy.selectedText
             ) {
                 // 대치 복구: 래핑 메서드 사용
                 replaceText(deleteCount: restore.deleteCount, insert: restore.insertText)
