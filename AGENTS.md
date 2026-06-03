@@ -95,7 +95,17 @@ xcodebuild build \
 
 프로젝트 scheme는 `SYKeyboard`, `HangeulKeyboard`, `EnglishKeyboard`, `SYKeyboardCore`, `HangeulKeyboardCore`, `EnglishKeyboardCore`, `SYKeyboardAssets`가 공유되어 있다. `SYKeyboard`/키보드 extension scheme의 TestAction은 `SYKeyboardTests`를 포함한다.
 
-샌드박스 환경에서는 Xcode/SwiftPM 캐시, CoreSimulator 로그, 사용자 프로비저닝 프로파일 접근 때문에 `xcodebuild`가 실패할 수 있다. 실패 원인이 권한/캐시 접근이면 그 사실을 최종 응답에 명시하고, 가능하면 권한이 있는 환경에서 다시 검증한다.
+### Codex 샌드박스와 Xcode 검증
+
+Codex의 기본 샌드박스에서는 Xcode/SwiftPM 캐시, CoreSimulator 로그, 사용자 프로비저닝 프로파일, `~/Library/Developer/Xcode/DerivedData`, `~/Library/Caches`, `~/.cache/clang` 접근이 제한될 수 있다. 이 경우 프로젝트 코드 문제가 아니어도 `xcodebuild`가 아래와 같은 환경 오류로 멈출 수 있다.
+
+- `CoreSimulatorService connection became invalid`
+- `Operation not permitted`
+- `error opening ... ModuleCache`
+- `cannot open ... ManifestLoading`
+- `.xcresult` 접근 또는 삭제 권한 오류
+
+이 문제는 저장소 설정만으로 안정적으로 해결할 수 있는 범위가 아니며, Codex가 테스트를 실행할 때 권한 있는 실행으로 재시도해야 한다. `xcodebuild`가 위와 같은 권한/캐시/시뮬레이터 접근 오류로 실패하면, 같은 명령을 `require_escalated`로 재실행해 코드 실패와 환경 실패를 분리한다. 최종 응답에는 샌드박스 실패 여부와 권한 있는 환경에서의 실제 검증 결과를 구분해서 기록한다.
 
 ## 테스트 지침
 

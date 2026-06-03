@@ -143,3 +143,35 @@ sed -n '1,220p' AGENTS.md
 sed -n '1,220p' dev/README.md
 git status --short
 ```
+
+## xcode-sandbox-verification
+
+### Trigger
+
+- `xcodebuild test`
+- `xcodebuild build`
+- SwiftPM package graph resolve
+- CoreSimulator 실행
+- `.xcresult` 조회
+- `~/Library/Developer/Xcode`, `~/Library/Caches`, `~/.cache/clang` 권한 오류
+
+### Rules
+
+- Codex 샌드박스의 Xcode/SwiftPM/CoreSimulator 권한 오류는 저장소 코드나 사용자 로컬 설정 문제로 단정하지 않는다.
+- `CoreSimulatorService connection became invalid`, `Operation not permitted`, `ModuleCache`, `ManifestLoading`, `.xcresult` 접근 오류가 보이면 환경 실패로 분류한다.
+- 환경 실패가 검증을 막으면 같은 명령을 권한 있는 실행으로 재시도한다.
+- 최종 응답에는 샌드박스 실패와 권한 있는 실행 결과를 분리해서 쓴다.
+- 권한 있는 실행에서도 실패할 때만 코드/테스트 실패로 보고 원인을 추적한다.
+
+### Verification Pattern
+
+먼저 일반 실행을 시도한다.
+
+```sh
+xcodebuild test \
+  -project SYKeyboard.xcodeproj \
+  -scheme SYKeyboard \
+  -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0'
+```
+
+샌드박스 권한 오류로 실패하면 Codex는 동일 명령을 `require_escalated`로 재실행한다. 사용자가 직접 터미널/Xcode에서 실행하는 경우에는 이 문제가 재현되지 않을 수 있으며, 그때는 사용자 환경의 정상 실행 결과를 우선한다.
