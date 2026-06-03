@@ -36,6 +36,13 @@
   - AGENTS.md, README, dev 문서 변경: `docs-and-infrastructure`
 - Claude Code 전용 `.claude/hooks`나 `.claude/settings.json` 패턴을 그대로 이식하지 않는다. Codex에서는 `AGENTS.md`, 프로젝트 문서, 명시적 검증 명령으로 같은 목적을 달성한다.
 
+## 이슈 관리
+
+- 현재 작업 관리와 진행 추적은 Linear를 사용한다.
+- 새 이슈 등록은 GitHub Issue에만 한다.
+- Linear에는 GitHub Issue에서 파생된 작업 추적, 상태 관리, 연결 정보 정리에 집중한다.
+- Codex가 새 이슈 생성을 요청받으면 기본 생성 위치를 GitHub Issue로 판단하고, Linear 이슈 생성은 사용자가 명시적으로 요청한 경우에만 한다.
+
 ## 코드 스타일
 
 - Swift 5 프로젝트이며 Xcode 16 이상을 기준으로 한다. `SYKeyboardAssets` 패키지는 `swift-tools-version: 6.2`를 사용한다.
