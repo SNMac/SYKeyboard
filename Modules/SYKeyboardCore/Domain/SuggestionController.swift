@@ -10,6 +10,8 @@ import OSLog
 
 /// n-gram 예측 엔진에 필요한 기록/저장 기능 계약
 protocol NGramPredictiveTextProviding: PredictiveTextProvider {
+    /// 디스크 로딩이 완료되었을 때 호출할 콜백
+    var onLoadCompleted: (() -> Void)? { get set }
     /// 현재 문장 버퍼의 단어 수
     var currentSentenceWordsCount: Int { get }
 
@@ -172,6 +174,8 @@ final class SuggestionController: SuggestionService {
     ///
     /// `isPredictiveTextEnabled`가 `false`이면 `nil`이 됩니다.
     private var nGramEngine: NGramPredictiveTextProviding?
+    /// 마지막으로 자동완성 갱신을 요청한 텍스트
+    private var lastSuggestionBaseText: String?
     /// `requestSupplementaryLexicon()` 중복 요청 방지 플래그
     private var isLoadingLexicon = false
 
@@ -219,7 +223,11 @@ final class SuggestionController: SuggestionService {
 
         if nGramEngine == nil {
             let state = signposter.beginInterval("PrepareNGramEngine")
-            nGramEngine = engineFactory.makeNGramEngine(language)
+            let engine = engineFactory.makeNGramEngine(language)
+            engine.onLoadCompleted = { [weak self] in
+                self?.refreshSuggestionsAfterNGramLoadIfNeeded()
+            }
+            nGramEngine = engine
             signposter.endInterval("PrepareNGramEngine", state)
         }
     }
@@ -260,6 +268,7 @@ final class SuggestionController: SuggestionService {
 
     func updateSuggestions(for baseText: String) {
         guard isPredictiveTextEnabled, !isSuspended else { return }
+        lastSuggestionBaseText = baseText
         preparePredictiveEnginesIfNeeded()
         prepareLexiconEngineIfNeeded()
         performUpdateSuggestions(for: baseText)
@@ -267,6 +276,7 @@ final class SuggestionController: SuggestionService {
 
     func updateSuggestionsAfterNGramSelection(inputBuffer: String) {
         guard isPredictiveTextEnabled, !isSuspended else { return }
+        lastSuggestionBaseText = inputBuffer
         preparePredictiveEnginesIfNeeded()
         prepareLexiconEngineIfNeeded()
 
@@ -286,6 +296,7 @@ final class SuggestionController: SuggestionService {
     }
 
     func clearSuggestions() {
+        lastSuggestionBaseText = nil
         currentSuggestions = []
         currentMode = .nGram
         delegate?.suggestionController(self, didUpdateCurrentWord: nil, suggestions: [])
@@ -490,6 +501,12 @@ private extension SuggestionController {
             didUpdateCurrentWord: currentWord.isEmpty ? nil : currentWord,
             suggestions: currentSuggestions.map { $0.text }
         )
+    }
+
+    func refreshSuggestionsAfterNGramLoadIfNeeded() {
+        guard isPredictiveTextEnabled, !isSuspended else { return }
+        guard let lastSuggestionBaseText else { return }
+        performUpdateSuggestions(for: lastSuggestionBaseText)
     }
 
     /// n-gram 기반 다음 단어 예측 후보를 생성합니다.

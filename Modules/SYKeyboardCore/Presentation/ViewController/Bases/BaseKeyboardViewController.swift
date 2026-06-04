@@ -1010,6 +1010,12 @@ private extension BaseKeyboardViewController {
             suggestionController.loadLexicon(from: self)
         }
         performanceSignposter.endInterval("DeferredSuggestionPreparation", state)
+
+        if KeyboardSuggestionSelectionPolicy.shouldUpdateInitialSuggestionsAfterDeferredPreparation(
+            shouldPreparePredictiveEngines: shouldPreparePredictiveEngines
+        ) {
+            updateSuggestions()
+        }
     }
 }
 

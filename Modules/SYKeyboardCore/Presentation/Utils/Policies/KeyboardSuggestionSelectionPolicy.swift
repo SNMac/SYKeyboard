@@ -28,6 +28,12 @@ enum KeyboardSuggestionSelectionPolicy {
         return isTextReplacementEnabled || isPredictiveTextEnabled
     }
 
+    static func shouldUpdateInitialSuggestionsAfterDeferredPreparation(
+        shouldPreparePredictiveEngines: Bool
+    ) -> Bool {
+        return shouldPreparePredictiveEngines
+    }
+
     static func textReplacementRestoreDeleteCount(
         documentText: String,
         inputBuffer: String,
