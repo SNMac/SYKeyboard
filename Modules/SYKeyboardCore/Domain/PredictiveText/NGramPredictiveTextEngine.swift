@@ -140,6 +140,11 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
     /// - Parameter language: 언어 식별자 (예: "ko-KR", "en-US")
     public init(language: String) {
         self.language = language
+        let signposter = OSSignposter(
+            subsystem: Bundle.main.bundleIdentifier ?? "Unknown Bundle",
+            category: "NGramPredictiveTextEngine"
+        )
+        let initState = signposter.beginInterval("NGramInit")
         
         guard let containerURL = FileManager.default.containerURL(
             forSecurityApplicationGroupIdentifier: DefaultValues.groupBundleID
@@ -147,9 +152,11 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
             fatalError("App Group 컨테이너 URL을 가져오는 데 실패했습니다.")
         }
         self.fileURL = containerURL.appendingPathComponent("ngram_\(language).plist")
+        signposter.endInterval("NGramInit", initState)
         
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
             guard let self else { return }
+            let loadState = signposter.beginInterval("NGramBackgroundLoad")
             
             var needsCleanup = false
             let loaded: NGramData
@@ -170,6 +177,7 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
                 self.needsLegacyCleanup = needsCleanup
                 self.isLoaded = true
                 self.logger.debug("[NGram/\(self.language)] 디스크 로딩 완료")
+                signposter.endInterval("NGramBackgroundLoad", loadState)
             }
         }
     }

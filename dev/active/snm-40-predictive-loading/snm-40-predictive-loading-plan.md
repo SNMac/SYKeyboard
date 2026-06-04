@@ -1,6 +1,6 @@
 # SNM-40 Predictive Loading Plan
 
-Last Updated: 2026-06-03
+Last Updated: 2026-06-04
 
 ## Goal
 
@@ -15,13 +15,19 @@ Last Updated: 2026-06-03
 
 ## Current State
 
+- 2026-06-04 변경 후:
+  - `BaseKeyboardViewController.viewDidLoad()`는 자동완성/텍스트 대치 설정값만 전달하고, 예측 엔진 생성과 lexicon 요청은 첫 표시 이후 `viewDidAppear(_:)`의 지연 준비 경로에서 시작한다.
+  - `SuggestionController`는 설정 저장과 엔진 생성을 분리하고, `preparePredictiveEnginesIfNeeded()`, `prepareLexiconEngineIfNeeded()`에서 중복 없이 엔진을 준비한다.
+  - `loadLexicon(from:)`은 lexicon 엔진을 필요 시 준비한 뒤 `requestSupplementaryLexicon()` 중복 요청을 막는다.
+  - `KeyboardLifecycle`, `SuggestionController`, `NGramPredictiveTextEngine` signpost 지점으로 lifecycle, 엔진 준비, `RequestSupplementaryLexicon`, n-gram init/background load를 분리해서 볼 수 있다.
 - `Modules/SYKeyboardCore/Presentation/ViewController/Bases/BaseKeyboardViewController.swift`
   - `viewDidLoad()`에서 UI 설정 직후 `suggestionController.isTextReplacementEnabled`, `suggestionController.isPredictiveTextEnabled`를 설정한다.
-  - 자동완성 또는 텍스트 대치가 켜져 있으면 같은 `viewDidLoad()`에서 `suggestionController.loadLexicon(from:)`을 호출한다.
+  - 자동완성 또는 텍스트 대치가 켜져 있으면 첫 표시 이후 지연 준비 경로에서 `suggestionController.loadLexicon(from:)`을 호출한다.
   - `textDidChange(_:)`, 버튼 입력 후, 후보 선택 후에 `updateSuggestions()`가 호출된다.
 - `Modules/SYKeyboardCore/Domain/SuggestionController.swift`
-  - `isPredictiveTextEnabled = true`가 되면 `TextCheckerPredictiveTextEngine`, `NGramPredictiveTextEngine`을 즉시 생성한다.
-  - `updateLexiconEngine()`은 자동완성 또는 텍스트 대치 중 하나라도 켜져 있으면 `LexiconPredictiveTextEngine`을 즉시 생성한다.
+  - `isPredictiveTextEnabled = true`가 되어도 `TextCheckerPredictiveTextEngine`, `NGramPredictiveTextEngine`을 즉시 생성하지 않는다.
+  - `preparePredictiveEnginesIfNeeded()`는 자동완성 ON 상태에서 `TextCheckerPredictiveTextEngine`, `NGramPredictiveTextEngine`을 한 번만 생성한다.
+  - `prepareLexiconEngineIfNeeded()`는 자동완성 또는 텍스트 대치 중 하나라도 켜져 있으면 `LexiconPredictiveTextEngine`을 한 번만 생성한다.
   - `loadLexicon(from:)`은 `Task { @MainActor in await inputViewController.requestSupplementaryLexicon() }`로 lexicon을 요청한다.
 - `Modules/SYKeyboardCore/Domain/PredictiveText/NGramPredictiveTextEngine.swift`
   - init 시 App Group 컨테이너 URL과 App Group `UserDefaults`를 준비한다.
@@ -114,6 +120,9 @@ xcodebuild build \
   - 자동완성 후보 표시/선택/삭제 후 갱신 확인
   - 텍스트 대치 ON 상태에서 단축어 입력 후 스페이스 대치와 삭제 복구 확인
   - 자동완성 OFF 상태에서 suggestion bar 숨김과 입력 동작 확인
+  - 필드별 자동완성 허용 필드에서 비허용 필드로 이동할 때 suggestion bar 숨김과 후보 초기화 확인
+  - 필드별 자동완성 비허용 필드에서 허용 필드로 이동할 때 suggestion bar 재표시와 첫 입력 후보 갱신 확인
+  - 앱 실행 후 첫 포커스가 자동완성 비허용 필드인 상태에서 허용 필드로 이동해 lazy 준비 경로가 정상 동작하는지 확인
 
 ## Done Criteria
 

@@ -10,29 +10,33 @@ import Combine
 import OSLog
 
 open class BaseKeyboardViewController: UIInputViewController {
-    
+
     // MARK: - Properties
-    
+
     private lazy var logger = Logger(
         subsystem: Bundle.main.bundleIdentifier ?? "Unknown Bundle",
         category: "\(String(describing: type(of: self))) <\(Unmanaged.passUnretained(self).toOpaque())>"
     )
-    
+    private let performanceSignposter = OSSignposter(
+        subsystem: Bundle.main.bundleIdentifier ?? "Unknown Bundle",
+        category: "KeyboardLifecycle"
+    )
+
     /// Preview 모드 플래그 변수
     public static var isPreview: Bool = false
     final public var previewOneHandedMode: OneHandedMode = .center
     public var onPreviewOneHandedModeChanged: ((OneHandedMode) -> Void)?
-    
+
     /// 전체 접근 허용 안내 필요 여부
     final public var needToShowFullAccessGuide: Bool {
         return !hasFullAccess && !keyboardSettingsManager.isRequestFullAccessOverlayClosed
     }
-    
+
     /// 키보드 설정을 관리하는 `UserDefaultsManager`
     final public let keyboardSettingsManager: UserDefaultsManager = UserDefaultsManager.shared
-    
+
     final public lazy var oldKeyboardType: UIKeyboardType? = textDocumentProxy.keyboardType
-    
+
     /// 현재 표시되는 키보드
     public lazy var currentKeyboard: SYKeyboardType = primaryKeyboardView.keyboard {
         didSet {
@@ -76,14 +80,14 @@ open class BaseKeyboardViewController: UIInputViewController {
         return primaryKeyboardView.totalTextInterableButtonList
         + numericKeyboardView.totalTextInterableButtonList
     }
-    
+
     /// 키 입력 버튼, 스페이스 버튼, 삭제 버튼 제스처 컨트롤러
     private lazy var textInteractionGestureController = TextInteractionGestureController(
         keyboardHStackView: keyboardHStackView,
         getCurrentPressedButton: { [weak self] in self?.buttonStateController.currentPressedButton },
         setCurrentPressedButton: { [weak self] button in self?.buttonStateController.currentPressedButton = button }
     )
-    
+
     /// 키보드 전환 버튼 제스처 컨트롤러
     private lazy var switchGestureController = SwitchGestureController(
         keyboardHStackView: keyboardHStackView,
@@ -98,10 +102,10 @@ open class BaseKeyboardViewController: UIInputViewController {
     )
     /// 버튼 상태 컨트롤러
     public lazy var buttonStateController = ButtonStateController(suggestionBarView: suggestionBarView)
-    
+
     /// 자동완성 텍스트 제안 컨트롤러
     private let suggestionController: SuggestionService
-    
+
     /// 현재 키보드 세션에서 직접 입력한 텍스트를 추적하는 버퍼
     ///
     /// `documentContextBeforeInput` 대신 이 버퍼를 사용하여
@@ -112,18 +116,24 @@ open class BaseKeyboardViewController: UIInputViewController {
     /// 서브클래스에서는 `insertText`, `deleteText`, `replaceText`,
     /// `resetInputBuffer` 래핑 메서드를 통해 조작합니다.
     private var inputBuffer: String = ""
-    
+
     /// `KeyboardView` 높이 제약 조건
     private var keyboardViewHeightConstraint: NSLayoutConstraint?
     /// `keyboardHStackView` 높이 제약 조건
     private var keyboardHStackViewHeightConstraint: NSLayoutConstraint?
-    
+
     /// 반복 입력용 타이머
     private var timer: AnyCancellable?
     /// 현재 반복 입력 동작 중인지 확인하는 플래그
     public private(set) var isRepeatingInput: Bool = false
     /// 키보드 세션 동안만 유지되는 undo/redo 상태 관리자
     private var undoRedoSession = KeyboardUndoRedoSession()
+    /// 첫 표시 이후 자동완성 준비를 한 번만 시작했는지 여부
+    private var didStartDeferredSuggestionPreparation = false
+    /// 첫 후보 갱신 계측 이벤트 중복 방지 플래그
+    private var didEmitFirstSuggestionUpdateSignpost = false
+    /// 첫 입력 처리 계측 이벤트 중복 방지 플래그
+    private var didEmitFirstTextInteractionSignpost = false
     /// 자동완성과 undo/redo 설정이 모두 켜진 경우에만 기능을 활성화합니다.
     private var isUndoRedoFeatureAvailable: Bool {
         return KeyboardPresentationStatePolicy.isUndoRedoFeatureAvailable(
@@ -131,20 +141,20 @@ open class BaseKeyboardViewController: UIInputViewController {
             isUndoRedoEnabled: keyboardSettingsManager.isUndoRedoEnabled
         )
     }
-    
+
     /// 삭제 버튼 팬 제스처로 인해 임시로 삭제된 내용을 저장하는 변수
     private var tempDeletedCharacters: [Character] = []
-    
+
     /// '.' 단축키 수행 여부
     final public var performedPeriodShortcut: Bool = false
     /// 사용자가 '.' 단축키로 입력된 마침표를 지웠을 때, 다시 '.' 단축키가 실행되는 것을 막는 플래그
     final public var preventNextPeriodShortcut: Bool = false
-    
+
     /// 기호 키보드에서 기호 입력 여부를 저장하는 변수
     private var isSymbolInput: Bool = false
-    
+
     // MARK: - UI Components
-    
+
     private lazy var keyboardView: KeyboardView = {
         return KeyboardView.loadFromNib(primaryKeyboardView: primaryKeyboardView)
     }()
@@ -164,75 +174,81 @@ open class BaseKeyboardViewController: UIInputViewController {
     final public lazy var tenkeyKeyboardView: TenkeyKeyboardLayoutProvider = keyboardView.tenkeyKeyboardView
     /// 한 손 키보드 해제 버튼(왼손 모드)
     private lazy var rightChevronButton = keyboardView.rightChevronButton
-    
+
     // MARK: - Initializer
-    
+
     public override init(nibName nibNameOrNil: String?, bundle nibBundleOrNil: Bundle?) {
         self.suggestionController = SuggestionController()
         super.init(nibName: nibNameOrNil, bundle: nibBundleOrNil)
     }
-    
+
     public init(language: String) {
         self.suggestionController = SuggestionController(language: language)
         super.init(nibName: nil, bundle: nil)
     }
-    
+
     required public init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
+
     deinit {
         logger.debug("\(String(describing: type(of: self))) deinit")
     }
-    
+
     // MARK: - Lifecycle
-    
+
     open override func loadView() {
+        let state = performanceSignposter.beginInterval("KeyboardLoadView")
+        defer { performanceSignposter.endInterval("KeyboardLoadView", state) }
+
         self.view = keyboardView
     }
-    
+
     open override func viewDidLoad() {
+        let state = performanceSignposter.beginInterval("KeyboardViewDidLoad")
+        defer { performanceSignposter.endInterval("KeyboardViewDidLoad", state) }
+
         super.viewDidLoad()
         resetInputBuffer()
         setupUI()
         setNextKeyboardButton()
         if BaseKeyboardViewController.isPreview { updateReturnButtonType() }
-        
+
         if keyboardSettingsManager.isOneHandedKeyboardEnabled { updateOneHandModekeyboard() }
-        
-        // 사용자 설정을 SuggestionController에 전달 — 엔진 생성은 didSet에서 자동 수행
+
+        // 사용자 설정을 SuggestionController에 전달 — 엔진 생성은 첫 표시 이후로 지연
         suggestionController.isTextReplacementEnabled = keyboardSettingsManager.isTextReplacementEnabled
         suggestionController.isPredictiveTextEnabled = keyboardSettingsManager.isPredictiveTextEnabled
-        
-        // lexicon 로딩 (텍스트 대치 또는 자동완성 중 하나라도 켜져 있으면)
-        if KeyboardSuggestionSelectionPolicy.shouldLoadLexicon(
-            isTextReplacementEnabled: keyboardSettingsManager.isTextReplacementEnabled,
-            isPredictiveTextEnabled: keyboardSettingsManager.isPredictiveTextEnabled
-        ) {
-            suggestionController.loadLexicon(from: self)
-        }
+
         updateSuggestionBarHidden()
     }
-    
+
     open override func viewWillAppear(_ animated: Bool) {
+        let state = performanceSignposter.beginInterval("KeyboardViewWillAppear")
+        defer { performanceSignposter.endInterval("KeyboardViewWillAppear", state) }
+
         super.viewWillAppear(animated)
         if !BaseKeyboardViewController.isPreview { setKeyboardHeight() }
         FeedbackManager.shared.prepareHaptic()
     }
-    
+
     open override func viewDidAppear(_ animated: Bool) {
+        let state = performanceSignposter.beginInterval("KeyboardViewDidAppear")
+        defer { performanceSignposter.endInterval("KeyboardViewDidAppear", state) }
+
         super.viewDidAppear(animated)
         let systemGestureRecognizer0 = self.view.window?.gestureRecognizers?[0] as? UIGestureRecognizer
         let systemGestureRecognizer1 = self.view.window?.gestureRecognizers?[1] as? UIGestureRecognizer
         systemGestureRecognizer0?.delaysTouchesBegan = false
         systemGestureRecognizer1?.delaysTouchesBegan = false
+        startDeferredSuggestionPreparationIfNeeded()
     }
-    
+
     open override func viewWillTransition(to size: CGSize, with coordinator: any UIViewControllerTransitionCoordinator) {
         super.viewWillTransition(to: size, with: coordinator)
         coordinator.animate { [weak self] _ in self?.setKeyboardHeight() }
     }
-    
+
     open override func textWillChange(_ textInput: (any UITextInput)?) {
         super.textWillChange(textInput)
         logger.debug("textWillChange")
@@ -246,7 +262,7 @@ open class BaseKeyboardViewController: UIInputViewController {
         updateReturnButtonEnabled()
         updateSuggestionBarHidden()
     }
-    
+
     open override func textDidChange(_ textInput: (any UITextInput)?) {
         super.textDidChange(textInput)
         logger.debug("textDidChange")
@@ -258,7 +274,7 @@ open class BaseKeyboardViewController: UIInputViewController {
         updateSuggestionBarHidden()
         updateSuggestions()
     }
-    
+
     open override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         cancelTimer()
@@ -267,17 +283,17 @@ open class BaseKeyboardViewController: UIInputViewController {
         resetInputBuffer()
         suggestionController.saveNGramData()
     }
-    
+
     // MARK: - Overridable Methods
-    
+
     open func didSetCurrentKeyboard() {
         updateShowingKeyboard()
         updateReturnButtonType()
     }
-    
+
     /// `UIKeyboardType`에 맞는 키보드 레이아웃으로 업데이트하는 메서드
     open func updateKeyboardType() { fatalError("메서드가 오버라이딩 되지 않았습니다.") }
-    
+
     /// 텍스트 상호작용이 일어나기 전 실행되는 메서드
     ///
     /// > 하위 클래스에서 오버라이드 시 반드시 `super`로 호출 필요
@@ -286,11 +302,11 @@ open class BaseKeyboardViewController: UIInputViewController {
             preventNextPeriodShortcut = false
             performedPeriodShortcut = false
         }
-        
+
         if !(button is SpaceButton) {
             suggestionController.clearIgnoredShortcut()
         }
-        
+
         tempDeletedCharacters.removeAll()
     }
     /// 텍스트 상호작용이 일어난 후 실행되는 메서드
@@ -302,7 +318,7 @@ open class BaseKeyboardViewController: UIInputViewController {
             updateSuggestions()
         }
     }
-    
+
     /// SuggestionBar에서 후보를 선택하여 텍스트가 교체된 후 호출되는 메서드
     ///
     /// > 하위 클래스에서 오버라이드 시 반드시 `super`로 호출 필요
@@ -320,7 +336,7 @@ open class BaseKeyboardViewController: UIInputViewController {
     open var shouldDeferUndoRedoCommit: Bool {
         return false
     }
-    
+
     /// 반복 텍스트 상호작용이 일어나기 전 실행되는 메서드
     ///
     /// > 하위 클래스에서 오버라이드 시 반드시 `super`로 호출 필요
@@ -336,11 +352,11 @@ open class BaseKeyboardViewController: UIInputViewController {
         cancelTimer()
         tempDeletedCharacters.removeAll()
         isRepeatingInput = false
-        
+
         updateReturnButtonEnabled()
         updateSuggestions()
     }
-    
+
     /// 사용자가 탭한 `TextInteractable` 버튼의 `primaryKeyList` 중 상황에 맞는 문자를 입력하는 메서드 (단일 호출)
     /// - `BaseKeyboardViewController.isPreview == true`이면 즉시 리턴
     ///
@@ -348,14 +364,14 @@ open class BaseKeyboardViewController: UIInputViewController {
     ///   - button: `TextInteractable` 버튼
     open func insertPrimaryKeyText(from button: TextInteractable) {
         if BaseKeyboardViewController.isPreview { return }
-        
+
         guard let primaryKey = button.type.primaryKeyList.first else {
             assertionFailure("primaryKeyList 배열이 비어있습니다.")
             return
         }
         insertText(primaryKey)
     }
-    
+
     /// 사용자가 탭한 `TextInteractable` 버튼의 `secondaryKey`를 입력하는 메서드 (단일 호출)
     /// - `BaseKeyboardViewController.isPreview == true`이면 즉시 리턴
     ///
@@ -363,14 +379,14 @@ open class BaseKeyboardViewController: UIInputViewController {
     ///   - button: `TextInteractable` 버튼
     open func insertSecondaryKeyText(from button: TextInteractable) {
         if BaseKeyboardViewController.isPreview { return }
-        
+
         guard let secondaryKey = button.type.secondaryKey else {
             assertionFailure("secondaryKey가 nil입니다.")
             return
         }
         insertText(secondaryKey)
     }
-    
+
     /// 사용자가 탭한 `TextInteractable` 버튼의 `primaryKeyList` 중 상황에 맞는 문자를 입력하는 메서드 (반복 호출)
     /// - `BaseKeyboardViewController.isPreview == true`이면 즉시 리턴
     ///
@@ -378,39 +394,39 @@ open class BaseKeyboardViewController: UIInputViewController {
     ///   - button: `TextInteractable` 버튼
     open func repeatInsertPrimaryKeyText(from button: TextInteractable) {
         if BaseKeyboardViewController.isPreview { return }
-        
+
         guard let primaryKey = button.type.primaryKeyList.first else {
             assertionFailure("keys 배열이 비어있습니다.")
             return
         }
         insertText(primaryKey)
     }
-    
+
     /// 공백 문자를 입력하는 메서드
     /// - `BaseKeyboardViewController.isPreview == true`이면 즉시 리턴
     open func insertSpaceText() {
         if BaseKeyboardViewController.isPreview { return }
-        
+
         suggestionController.recordUncommittedWords(from: inputBuffer)
-        
+
         insertText(" ")
         commitUndoRedoGroupIfPossible()
     }
-    
+
     /// 개행 문자를 입력하는 메서드
     /// - `BaseKeyboardViewController.isPreview == true`이면 즉시 리턴
     open func insertReturnText() {
         if BaseKeyboardViewController.isPreview { return }
-        
+
         suggestionController.endSentence(inputBuffer: inputBuffer)
-        
+
         textDocumentProxy.insertText("\n")
         recordUndoRedoChange(deletedText: "", insertedText: "\n")
         commitUndoRedoGroupIfPossible()
         resetInputBuffer()
         suggestionController.clearReplacementHistory()
     }
-    
+
     /// 리턴 버튼 단일 입력을 수행하는 메서드
     ///
     /// 리턴 버튼에 추가 동작이 필요한 경우 이 메서드에서 분기합니다.
@@ -431,7 +447,7 @@ open class BaseKeyboardViewController: UIInputViewController {
         commitUndoRedoGroupIfPossible()
         handlePeriodShortcutOnDelete()
     }
-    
+
     /// 문자열 입력 UI의 텍스트를 삭제하는 메서드 (단일 호출)
     /// - `BaseKeyboardViewController.isPreview == true`이면 즉시 리턴
     ///
@@ -439,16 +455,16 @@ open class BaseKeyboardViewController: UIInputViewController {
     /// `super.deleteBackwardWillPerform` 호출 필요
     open func deleteBackward() {
         if BaseKeyboardViewController.isPreview { return }
-        
+
         deleteBackwardWillPerform()
         deleteText()
     }
-    
+
     /// 반복 삭제가 일어나기 전 실행되는 메서드
     open func repeatDeleteBackwardWillPerform() {
         handlePeriodShortcutOnDelete()
     }
-    
+
     /// 문자열 입력 UI의 텍스트를 삭제하는 메서드 (반복 호출)
     /// - `BaseKeyboardViewController.isPreview == true`이면 즉시 리턴
     ///
@@ -484,7 +500,7 @@ open class BaseKeyboardViewController: UIInputViewController {
     open func deleteButtonPanDidStop() {}
 
     // MARK: - Public Methods
-    
+
     public func updateOneHandedWidthForPreview(to oneHandedWidth: Double) {
         keyboardView.updateOneHandedWidth(oneHandedWidth)
         self.view.layoutIfNeeded()
@@ -505,7 +521,7 @@ extension BaseKeyboardViewController {
         inputBuffer.append(text)
         recordUndoRedoChange(deletedText: "", insertedText: text)
     }
-    
+
     /// `textDocumentProxy`에서 1글자를 삭제하고 `inputBuffer`를 동기화합니다.
     ///
     /// `textDocumentProxy.deleteBackward()`를 직접 호출하는 대신 이 메서드를 사용하여
@@ -513,13 +529,13 @@ extension BaseKeyboardViewController {
     public func deleteText() {
         let wasSpaceAtEnd = inputBuffer.last?.isWhitespace == true
         let deletedText = textDeletedBySingleBackward()
-        
+
         textDocumentProxy.deleteBackward()
         if !inputBuffer.isEmpty {
             inputBuffer.removeLast()
         }
         recordUndoRedoChange(deletedText: deletedText, insertedText: "")
-        
+
         if inputBuffer.isEmpty {
             // 모든 입력을 지운 경우 → 문장 버퍼 전체 초기화
             suggestionController.resetSentenceBuffer()
@@ -528,7 +544,7 @@ extension BaseKeyboardViewController {
             suggestionController.removeLastRecordedWord()
         }
     }
-    
+
     /// `textDocumentProxy`에서 여러 글자를 삭제한 후 새 텍스트를 삽입하고
     /// `inputBuffer`를 동기화합니다.
     ///
@@ -543,7 +559,7 @@ extension BaseKeyboardViewController {
         replaceInputBufferSuffix(deleteCount: deleteCount, insert: text)
         recordUndoRedoChange(deletedText: deletedText, insertedText: text)
     }
-    
+
     /// 입력 버퍼를 초기화합니다.
     ///
     /// 커서 이동, 키보드 열림/닫힘 등 버퍼와 실제 텍스트 위치가
@@ -573,7 +589,7 @@ extension BaseKeyboardViewController {
         undoRedoSession.commitPendingGroupIgnoringDeferral()
         updateUndoRedoControls()
     }
-    
+
 }
 
 // MARK: - Text Proxy Wrapper Helper Methods
@@ -605,14 +621,14 @@ private extension BaseKeyboardViewController {
         setDelegates()
         setActions()
     }
-    
+
     func setDelegates() {
         textInteractionGestureController.delegate = self
         switchGestureController.delegate = self
         suggestionController.delegate = self
         suggestionBarView.suggestionDelegate = self
     }
-    
+
     func setActions() {
         setButtonFeedbackAction()
         setTextInteractableButtonAction()
@@ -620,11 +636,11 @@ private extension BaseKeyboardViewController {
         setExclusiveButtonAction()
         setChevronButtonAction()
     }
-    
+
     func setKeyboardHeight() {
         guard let window = self.view.window,
               let orientation = window.windowScene?.effectiveGeometry.interfaceOrientation else { return }
-        
+
         let isSuggestionBarVisible = !KeyboardPresentationStatePolicy.shouldHideSuggestionBar(
             isPredictiveTextEnabled: suggestionController.isPredictiveTextEnabled,
             autocorrectionType: textDocumentProxy.autocorrectionType ?? .default,
@@ -638,7 +654,7 @@ private extension BaseKeyboardViewController {
             isSuggestionBarVisible: isSuggestionBarVisible,
             isPortrait: orientation == .portrait
         )
-        
+
         if let keyboardViewHeightConstraint {
             keyboardViewHeightConstraint.constant = height.keyboardViewHeight
         } else {
@@ -647,7 +663,7 @@ private extension BaseKeyboardViewController {
             heightConstraint.isActive = true
             keyboardViewHeightConstraint = heightConstraint
         }
-        
+
         if let keyboardHStackViewHeightConstraint {
             keyboardHStackViewHeightConstraint.constant = height.keyboardHStackViewHeight
         } else {
@@ -656,15 +672,15 @@ private extension BaseKeyboardViewController {
             keyboardHStackViewHeightConstraint = heightConstraint
         }
     }
-    
+
     func setNextKeyboardButton() {
         [primaryKeyboardView, symbolKeyboardView, numericKeyboardView].forEach {
             $0.updateNextKeyboardButton(needsInputModeSwitchKey: self.needsInputModeSwitchKey,
                                         nextKeyboardAction: #selector(self.handleInputModeList(from:with:)))
         }
-        
+
         keyboardSettingsManager.needsInputModeSwitchKey = self.needsInputModeSwitchKey
-        
+
     }
 }
 
@@ -725,10 +741,10 @@ private extension BaseKeyboardViewController {
             }
         }
     }
-    
+
     func addInputActionToSymbolTextInterableButton(_ button: TextInteractable) {
         addInputActionToTextInterableButton(button)
-        
+
         switch button.type {
         case .keyButton(primary: ["'"], secondary: nil):
             let switchToPrimaryKeyboard = UIAction { [weak self] _ in
@@ -742,7 +758,7 @@ private extension BaseKeyboardViewController {
                 }
             }
             button.addAction(switchToPrimaryKeyboard, for: .touchUpInside)
-            
+
         case .spaceButton, .returnButton:
             let switchToPrimaryKeyboard = UIAction { [weak self] _ in
                 guard let self else { return }
@@ -756,10 +772,10 @@ private extension BaseKeyboardViewController {
                 }
             }
             button.addAction(switchToPrimaryKeyboard, for: .touchUpInside)
-            
+
         case .deleteButton:
             break
-            
+
         default:
             if KeyboardSymbolInputPolicy.shouldMarkSymbolInput(buttonType: button.type) {
                 let additionalInputAction = UIAction { [weak self] _ in self?.isSymbolInput = true }
@@ -767,7 +783,7 @@ private extension BaseKeyboardViewController {
             }
         }
     }
-    
+
     func addPeriodShortcutActionToSpaceButton(_ button: SpaceButton) {
         if keyboardSettingsManager.isPeriodShortcutEnabled {
             let periodShortcutAction = UIAction { [weak self] _ in
@@ -786,7 +802,7 @@ private extension BaseKeyboardViewController {
             button.addAction(periodShortcutAction, for: .touchDownRepeat)
         }
     }
-    
+
     func addGesturesToTextInterableButton(_ button: TextInteractable) {
         guard KeyboardGesturePolicy.shouldAddTextInteractionGestures(
             isReturnButton: button is ReturnButton,
@@ -795,7 +811,7 @@ private extension BaseKeyboardViewController {
         ) else { return }
 
         let isDeleteButton = button is DeleteButton
-        
+
         if KeyboardGesturePolicy.shouldAddTextInteractionPanGesture(
             isDragToMoveCursorEnabled: keyboardSettingsManager.isDragToMoveCursorEnabled,
             isDeleteButton: isDeleteButton
@@ -809,7 +825,7 @@ private extension BaseKeyboardViewController {
             panGesture.cancelsTouchesInView = true
             button.addGestureRecognizer(panGesture)
         }
-        
+
         if KeyboardGesturePolicy.shouldAddTextInteractionLongPressGesture(
             selectedLongPressAction: keyboardSettingsManager.selectedLongPressAction,
             isDeleteButton: isDeleteButton
@@ -825,7 +841,7 @@ private extension BaseKeyboardViewController {
             button.addGestureRecognizer(longPressGesture)
         }
     }
-    
+
     func setSwitchButtonAction() {
         let switchToSymbolKeyboard = UIAction { [weak self] action in
             guard let self else { return }
@@ -834,7 +850,7 @@ private extension BaseKeyboardViewController {
             currentKeyboard = .symbol
         }
         primaryKeyboardView.switchButton.addAction(switchToSymbolKeyboard, for: .touchUpInside)
-        
+
         let switchToPrimaryKeyboardForSymbol = UIAction { [weak self] _ in
             guard let self else { return }
             guard let currentPressedButton = buttonStateController.currentPressedButton,
@@ -842,7 +858,7 @@ private extension BaseKeyboardViewController {
             currentKeyboard = primaryKeyboardView.keyboard
         }
         symbolKeyboardView.switchButton.addAction(switchToPrimaryKeyboardForSymbol, for: .touchUpInside)
-        
+
         let switchToPrimaryKeyboardForNumeric = UIAction { [weak self] _ in
             guard let self else { return }
             guard let currentPressedButton = buttonStateController.currentPressedButton,
@@ -850,12 +866,12 @@ private extension BaseKeyboardViewController {
             currentKeyboard = primaryKeyboardView.keyboard
         }
         numericKeyboardView.switchButton.addAction(switchToPrimaryKeyboardForNumeric, for: .touchUpInside)
-        
+
         [primaryKeyboardView.switchButton,
          symbolKeyboardView.switchButton,
          numericKeyboardView.switchButton].forEach { addGesturesToSwitchButton($0) }
     }
-    
+
     func addGesturesToSwitchButton(_ button: SwitchButton) {
         if keyboardSettingsManager.isNumericKeypadEnabled {
             let keyboardSelectPanGesture = UIPanGestureRecognizer(
@@ -866,7 +882,7 @@ private extension BaseKeyboardViewController {
             keyboardSelectPanGesture.delegate = switchGestureController
             button.addGestureRecognizer(keyboardSelectPanGesture)
         }
-        
+
         if keyboardSettingsManager.isOneHandedKeyboardEnabled {
             let oneHandedModeSelectPanGesture = UIPanGestureRecognizer(
                 target: self,
@@ -874,7 +890,7 @@ private extension BaseKeyboardViewController {
             )
             oneHandedModeSelectPanGesture.delegate = switchGestureController
             button.addGestureRecognizer(oneHandedModeSelectPanGesture)
-            
+
             let oneHandedModeSelectLongPressGesture = UILongPressGestureRecognizer(
                 target: self,
                 action: #selector(handleOneHandedModeLongPress(_:))
@@ -886,11 +902,11 @@ private extension BaseKeyboardViewController {
             button.addGestureRecognizer(oneHandedModeSelectLongPressGesture)
         }
     }
-    
+
     func setExclusiveButtonAction() {
         buttonStateController.setExclusiveActionToButtons(allKeyboardButtonList)
     }
-    
+
     func setChevronButtonAction() {
         let resetOneHandMode = UIAction { [weak self] _ in self?.currentOneHandedMode = .center }
         leftChevronButton.addAction(resetOneHandMode, for: .touchUpInside)
@@ -904,19 +920,19 @@ private extension BaseKeyboardViewController {
     @objc func handlePanGesture(_ gesture: UIPanGestureRecognizer) {
         textInteractionGestureController.panGestureHandler(gesture)
     }
-    
+
     @objc func handleLongPressGesture(_ gesture: UILongPressGestureRecognizer) {
         textInteractionGestureController.longPressGestureHandler(gesture)
     }
-    
+
     @objc func handleKeyboardSelectPan(_ gesture: UIPanGestureRecognizer) {
         switchGestureController.keyboardSelectPanGestureHandler(gesture)
     }
-    
+
     @objc func handleOneHandedModePan(_ gesture: UIPanGestureRecognizer) {
         switchGestureController.oneHandedModeSelectPanGestureHandler(gesture)
     }
-    
+
     @objc func handleOneHandedModeLongPress(_ gesture: UILongPressGestureRecognizer) {
         switchGestureController.oneHandedModeLongPressGestureHandler(gesture)
     }
@@ -929,7 +945,7 @@ private extension BaseKeyboardViewController {
         leftChevronButton.isHidden = !(currentOneHandedMode == .right)
         rightChevronButton.isHidden = !(currentOneHandedMode == .left)
     }
-    
+
     func updateShowingKeyboard() {
         primaryKeyboardView.isHidden = (currentKeyboard != primaryKeyboardView.keyboard)
         symbolKeyboardView.isHidden = (currentKeyboard != .symbol)
@@ -938,12 +954,12 @@ private extension BaseKeyboardViewController {
         numericKeyboardView.isHidden = (currentKeyboard != .numeric)
         tenkeyKeyboardView.isHidden = (currentKeyboard != .tenKey)
     }
-    
+
     func updateReturnButtonType() {
         let type = ReturnButton.ReturnKeyType(type: textDocumentProxy.returnKeyType)
         returnButtonList.forEach { $0.update(for: type) }
     }
-    
+
     func updateReturnButtonEnabled() {
         let isEnabled = KeyboardPresentationStatePolicy.isReturnButtonEnabled(
             enablesReturnKeyAutomatically: textDocumentProxy.enablesReturnKeyAutomatically == true,
@@ -952,25 +968,46 @@ private extension BaseKeyboardViewController {
         )
         returnButtonList.forEach { $0.updateEnabled(isEnabled) }
     }
-    
+
     func updateSuggestionBarHidden() {
         let prevSuggestionHiddenState = suggestionBarView.isHidden
-        
+
         let shouldHideSuggestions = KeyboardPresentationStatePolicy.shouldHideSuggestionBar(
             isPredictiveTextEnabled: suggestionController.isPredictiveTextEnabled,
             autocorrectionType: textDocumentProxy.autocorrectionType ?? .default,
             currentKeyboard: currentKeyboard
         )
-        
+
         suggestionBarView.isHidden = shouldHideSuggestions
         suggestionController.isSuspended = shouldHideSuggestions
         updateUndoRedoControls()
-        
+
         if prevSuggestionHiddenState != shouldHideSuggestions {
             DispatchQueue.main.async { [weak self] in
                 self?.setKeyboardHeight()
             }
         }
+    }
+
+    func startDeferredSuggestionPreparationIfNeeded() {
+        guard !BaseKeyboardViewController.isPreview else { return }
+        guard !didStartDeferredSuggestionPreparation else { return }
+        guard KeyboardSuggestionSelectionPolicy.shouldLoadLexicon(
+            isTextReplacementEnabled: keyboardSettingsManager.isTextReplacementEnabled,
+            isPredictiveTextEnabled: keyboardSettingsManager.isPredictiveTextEnabled
+        ) || keyboardSettingsManager.isPredictiveTextEnabled else { return }
+
+        didStartDeferredSuggestionPreparation = true
+        let state = performanceSignposter.beginInterval("DeferredSuggestionPreparation")
+        suggestionController.preparePredictiveEnginesIfNeeded()
+
+        if KeyboardSuggestionSelectionPolicy.shouldLoadLexicon(
+            isTextReplacementEnabled: keyboardSettingsManager.isTextReplacementEnabled,
+            isPredictiveTextEnabled: keyboardSettingsManager.isPredictiveTextEnabled
+        ) {
+            suggestionController.loadLexicon(from: self)
+        }
+        performanceSignposter.endInterval("DeferredSuggestionPreparation", state)
     }
 }
 
@@ -978,9 +1015,14 @@ private extension BaseKeyboardViewController {
 
 extension BaseKeyboardViewController {
     final public func performTextInteraction(for button: TextInteractable, insertSecondaryKeyIfAvailable: Bool = false) {
+        if !didEmitFirstTextInteractionSignpost {
+            didEmitFirstTextInteractionSignpost = true
+            performanceSignposter.emitEvent("FirstTextInteraction")
+        }
+
         textInteractionWillPerform(button: button)
         defer { textInteractionDidPerform(button: button) }
-        
+
         switch button.type {
         case .keyButton:
             if KeyboardTextInteractionPolicy.shouldInsertSecondaryKey(
@@ -1019,13 +1061,13 @@ extension BaseKeyboardViewController {
             performReturnButtonTextInteraction()
         }
     }
-    
+
     final public func performRepeatTextInteraction(for button: TextInteractable) {
         guard self.view.window != nil else { return }
-        
+
         textInteractionWillPerform(button: button)
         defer { textInteractionDidPerform(button: button) }
-        
+
         switch button.type {
         case .keyButton:
             repeatInsertPrimaryKeyText(from: button)
@@ -1209,6 +1251,11 @@ private extension BaseKeyboardViewController {
     }
 
     func updateSuggestions() {
+        if !didEmitFirstSuggestionUpdateSignpost {
+            didEmitFirstSuggestionUpdateSignpost = true
+            performanceSignposter.emitEvent("FirstUpdateSuggestions")
+        }
+
         let action = KeyboardSuggestionSelectionPolicy.suggestionUpdateAction(
             isPredictiveTextEnabled: suggestionController.isPredictiveTextEnabled,
             selectedText: textDocumentProxy.selectedText,
@@ -1224,7 +1271,7 @@ private extension BaseKeyboardViewController {
             suggestionController.clearSuggestions()
         }
     }
-    
+
     func handlePeriodShortcutOnDelete() {
         let state = KeyboardPeriodShortcutPolicy.stateAfterDelete(
             isPeriodShortcutEnabled: keyboardSettingsManager.isPeriodShortcutEnabled,
@@ -1236,7 +1283,7 @@ private extension BaseKeyboardViewController {
         performedPeriodShortcut = state.performedPeriodShortcut
         preventNextPeriodShortcut = state.preventsNextPeriodShortcut
     }
-    
+
     func cancelTimer() {
         timer?.cancel()
         timer = nil
@@ -1250,7 +1297,7 @@ extension BaseKeyboardViewController: SwitchGestureControllerDelegate {
     final func changeKeyboard(_ controller: SwitchGestureController, to newKeyboard: SYKeyboardType) {
         self.currentKeyboard = newKeyboard
     }
-    
+
     final func changeOneHandedMode(_ controller: SwitchGestureController, to newMode: OneHandedMode) {
         self.currentOneHandedMode = newMode
     }
