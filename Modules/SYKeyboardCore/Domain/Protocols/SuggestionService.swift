@@ -65,7 +65,7 @@ protocol SuggestionService: AnyObject {
 
     /// `UIInputViewController`로부터 `UILexicon`을 로드합니다.
     ///
-    /// `viewDidLoad` 시점에 호출하여 Lexicon 데이터를 준비합니다.
+    /// 첫 표시 이후 또는 필요한 시점에 호출하여 Lexicon 데이터를 준비합니다.
     ///
     /// - Parameter inputViewController: 현재 키보드의 `UIInputViewController`
     func loadLexicon(from inputViewController: UIInputViewController)

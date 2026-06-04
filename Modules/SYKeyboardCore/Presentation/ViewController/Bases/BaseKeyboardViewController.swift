@@ -992,19 +992,21 @@ private extension BaseKeyboardViewController {
     func startDeferredSuggestionPreparationIfNeeded() {
         guard !BaseKeyboardViewController.isPreview else { return }
         guard !didStartDeferredSuggestionPreparation else { return }
-        guard KeyboardSuggestionSelectionPolicy.shouldLoadLexicon(
+        let shouldLoadLexicon = KeyboardSuggestionSelectionPolicy.shouldLoadLexicon(
             isTextReplacementEnabled: keyboardSettingsManager.isTextReplacementEnabled,
             isPredictiveTextEnabled: keyboardSettingsManager.isPredictiveTextEnabled
-        ) || keyboardSettingsManager.isPredictiveTextEnabled else { return }
+        )
+        let shouldPreparePredictiveEngines = keyboardSettingsManager.isPredictiveTextEnabled
+            && !suggestionController.isSuspended
+        guard shouldLoadLexicon || shouldPreparePredictiveEngines else { return }
 
         didStartDeferredSuggestionPreparation = true
         let state = performanceSignposter.beginInterval("DeferredSuggestionPreparation")
-        suggestionController.preparePredictiveEnginesIfNeeded()
+        if shouldPreparePredictiveEngines {
+            suggestionController.preparePredictiveEnginesIfNeeded()
+        }
 
-        if KeyboardSuggestionSelectionPolicy.shouldLoadLexicon(
-            isTextReplacementEnabled: keyboardSettingsManager.isTextReplacementEnabled,
-            isPredictiveTextEnabled: keyboardSettingsManager.isPredictiveTextEnabled
-        ) {
+        if shouldLoadLexicon {
             suggestionController.loadLexicon(from: self)
         }
         performanceSignposter.endInterval("DeferredSuggestionPreparation", state)

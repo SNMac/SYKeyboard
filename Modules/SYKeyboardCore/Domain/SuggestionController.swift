@@ -195,8 +195,7 @@ final class SuggestionController: SuggestionService {
     /// 지정한 언어로 컨트롤러를 초기화합니다.
     ///
     /// 초기화 시점에는 엔진을 생성하지 않습니다.
-    /// `isPredictiveTextEnabled`와 `isTextReplacementEnabled`를 설정하면
-    /// 해당 엔진이 자동으로 생성됩니다.
+    /// 설정값은 저장만 하고, 해당 엔진은 준비 API에서 생성합니다.
     ///
     /// - Parameter language: `UITextChecker`, NGram엔진에서 사용할 언어 코드 (기본값: "ko-KR")
     init(
@@ -241,7 +240,12 @@ final class SuggestionController: SuggestionService {
         guard lexiconEngine?.lexicon == nil else { return }
 
         isLoadingLexicon = true
-        Task { @MainActor in
+        Task { @MainActor [weak self, weak inputViewController] in
+            guard let self else { return }
+            guard let inputViewController else {
+                self.isLoadingLexicon = false
+                return
+            }
             let state = self.signposter.beginInterval("RequestSupplementaryLexicon")
             defer {
                 self.signposter.endInterval("RequestSupplementaryLexicon", state)
