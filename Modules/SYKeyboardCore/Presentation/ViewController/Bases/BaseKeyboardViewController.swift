@@ -274,6 +274,16 @@ open class BaseKeyboardViewController: UIInputViewController {
         updateSuggestionBarHidden()
         updateSuggestions()
     }
+    
+    open override func selectionWillChange(_ textInput: (any UITextInput)?) {
+        super.selectionWillChange(textInput)
+        logger.debug("selectionWillChange")
+    }
+    
+    open override func selectionDidChange(_ textInput: (any UITextInput)?) {
+        super.selectionDidChange(textInput)
+        logger.debug("selectionDidChange")
+    }
 
     open override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
