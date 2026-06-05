@@ -1,0 +1,121 @@
+# Code Review Scope Context
+
+Last Updated: 2026-06-06
+
+## Relevant Files
+
+- `dev/README.md`: `dev/active/<task-name>/` 구조와 plan/context/tasks 역할을 정의한다.
+- `dev/templates/task-plan-template.md`: 새 작업 계획 문서의 기본 형식을 제공한다.
+- `dev/templates/task-context-template.md`: 새 작업 컨텍스트 문서의 기본 형식을 제공한다.
+- `dev/templates/task-tasks-template.md`: 새 작업 체크리스트 문서의 기본 형식을 제공한다.
+- `dev/codex-skill-playbook.md`: 작업 유형별로 읽어야 할 프로젝트 로컬 지침과 검증 명령을 정의한다.
+- `README.md`: 앱의 기능, 기술 스택, UIKit 리팩토링 배경을 설명한다.
+- `Modules/HangeulKeyboardCore/Domain/`: 한글 조합과 Processor 규칙의 중심이다.
+- `Modules/SYKeyboardCore/`: 공통 키보드 런타임, 버튼, 제스처, 레이아웃, 자동완성, 저장소 기본 타입의 중심이다.
+- `Modules/EnglishKeyboardCore/`: 영문 키보드 core view/controller와 저장소 확장이다.
+- `SYKeyboard/`: SwiftUI 기반 메인 앱, 설정 화면, preview keyboard, 앱 리소스의 중심이다.
+- `Keyboards/`: 한글/영문 keyboard extension target 진입점, plist, entitlements, localization 리소스가 있다.
+- `SYKeyboardTests/`: Swift Testing 기반 한글 Processor, Controller, 정책, 자동완성 관련 테스트가 있다.
+- `SYKeyboardAssets/`: 공통 XIB와 asset 접근 API를 제공하는 로컬 SPM 패키지다.
+- `.github/`: PR/issue/dependabot 등 저장소 운영 파일이 있다.
+- `dev/active/code-review-scope/code-review-scope-findings.md`: 트랙별 코드리뷰 findings를 누적하는 종합 문서다.
+
+## Facts Checked
+
+- 문서 작성 전 `git status --short` 실행 결과 출력이 없었다. 확인 시점에는 작업트리에 변경사항이 없었다.
+- 0번 baseline 리뷰 시점의 현재 브랜치는 `feat/#49-cursor-drag-acceleration`이다.
+- 0번 baseline 리뷰 시점의 현재 HEAD는 `482463f04538d2e08e34fa8a09a147df6992ac75`이고, 직전 커밋은 `8494534d31699afbdc4d0f981573c19a74850149`이다.
+- 0번 baseline 리뷰 시점의 `git status --short --branch`는 `?? dev/active/code-review-scope/`만 표시했다. 즉 코드리뷰 범위 문서는 아직 untracked 상태다.
+- `git diff 8494534d31699afbdc4d0f981573c19a74850149..HEAD --stat` 기준 HEAD까지의 커밋 범위에는 #49 커서 드래그 가속 기능 변경 9개 파일이 포함되어 있다.
+- 0번 baseline 리뷰 시점의 `dev/active/`에는 `code-review-scope` 자신을 포함해 다음 작업 문서가 있다.
+  - `snm-40-predictive-loading`
+  - `cursor-drag-acceleration`
+  - `code-review-scope`
+  - `base-keyboard-vc-responsibility-refactor`
+  - `suggestion-bar-undo-redo`
+- `dev/README.md`는 장기 작업에 `dev/active/<task-name>/` 아래 3종 문서를 만들도록 안내한다.
+- `dev/templates/`에는 `task-plan-template.md`, `task-context-template.md`, `task-tasks-template.md`가 있다.
+- `dev/codex-skill-playbook.md`에는 `hangeul-input-logic`, `ios-keyboard-extension`, `swiftui-settings`, `docs-and-infrastructure`, `xcode-sandbox-verification` 지침이 있다.
+- 문서 작성 전 `dev/active/`에는 다음 작업 문서가 있었다.
+  - `snm-40-predictive-loading`
+  - `cursor-drag-acceleration`
+  - `base-keyboard-vc-responsibility-refactor`
+  - `suggestion-bar-undo-redo`
+- `README.md` 기준 앱은 한글 나랏글/천지인/두벌식, 영어 QWERTY, 한 손 키보드, 높이 조절, 자동완성 문구 추천을 주요 기능으로 가진다.
+- `Modules/HangeulKeyboardCore/Domain/`에는 `HangeulAutomata`, `HangeulProcessable`, `DubeolsikProcessor`, `NaratgeulProcessor`, `CheonjiinProcessor`, `HangeulCompositionState`가 있다.
+- `Modules/SYKeyboardCore/Presentation/Utils/Policies/`에는 키보드 높이, 제스처, 텍스트 인터랙션, 자동완성 선택, 마침표 단축 입력, 커서 드래그 가속도, 심볼 입력, 표시 상태 정책 테스트 대상이 되는 파일들이 있다.
+- `SYKeyboardTests/`에는 한글 Processor/Controller 테스트와 공통 정책 테스트가 분리되어 있다.
+- `Keyboards/`에는 한글/영문 extension별 `Info.plist`, entitlements, xcconfig, localization 리소스가 분리되어 있다.
+- `Common/Firebase/`에는 Debug/Release `GoogleService-Info.plist`가 있다. 프로젝트 지침상 이 파일들은 명시 요청 없이 수정하지 않는다.
+- 일반 샌드박스에서 `xcodebuild -list -project SYKeyboard.xcodeproj`는 CoreSimulator, clang ModuleCache, SwiftPM ManifestLoading 권한 오류로 실패했다.
+- 권한 있는 환경에서 `xcodebuild -list -project SYKeyboard.xcodeproj`는 성공했고, 실제 scheme 목록은 `SYKeyboard`, `HangeulKeyboard`, `EnglishKeyboard`, `SYKeyboardCore`, `HangeulKeyboardCore`, `EnglishKeyboardCore`, `SYKeyboardAssets`다.
+
+## Decisions
+
+- 전체 리뷰를 9개 트랙으로 나눈다.
+  - 0. Baseline Inventory And Review Rules
+  - 1. Hangeul Input Domain Logic
+  - 2. Common Keyboard Interaction Runtime
+  - 3. Keyboard Layout, Views, And Assets
+  - 4. Predictive Text And Suggestion Bar
+  - 5. Settings And UserDefaults Contract
+  - 6. Keyboard Extension Entry Points
+  - 7. Main App Shell, Onboarding, Ads, And Resources
+  - 8. Build, Packaging, And Repository Hygiene
+- 한글 조합 로직은 독립 트랙으로 둔다. 입력 조합/삭제 규칙은 회귀 위험이 높고 관련 테스트가 별도로 존재하기 때문이다.
+- `BaseKeyboardViewController` 관련 리뷰는 공통 interaction runtime 트랙에 둔다. 이 파일은 여러 기능을 조율하므로 UI layout 트랙과 섞으면 리뷰 범위가 커진다.
+- 자동완성/suggestion bar는 별도 트랙으로 둔다. 현재 활성 작업 문서가 있고 full access, loading, undo/redo, 입력 조합과의 충돌을 함께 봐야 하기 때문이다.
+- Settings/UserDefaults는 별도 트랙으로 둔다. 앱과 extension이 같은 키/기본값을 공유하므로 단순 SwiftUI 리뷰로 처리하면 누락 위험이 있다.
+- extension entry point는 layout 트랙과 분리한다. target lifecycle, plist, entitlements, full access는 UI 구성과 다른 검토 기준을 갖기 때문이다.
+- 빌드/패키징/저장소 hygiene은 마지막에 둔다. 앞선 리뷰에서 발견된 target membership, 테스트, 문서 변경 필요성을 모아 확인하는 성격이 강하기 때문이다.
+- 리뷰 findings와 후속 문서 변경은 현재 #49 기능 변경과 섞이지 않도록 별도 커밋 또는 별도 브랜치/작업트리로 분리하는 것을 기본 원칙으로 둔다.
+- 각 리뷰 채팅은 시작 시 현재 브랜치, HEAD, `git status --short --branch`, 검증 명령 결과를 자체 baseline으로 다시 기록한다. 이전 문서의 Facts Checked는 과거 시점 기록으로만 사용한다.
+- 전체 리뷰 findings는 `dev/active/code-review-scope/code-review-scope-findings.md`에 종합한다. 각 채팅 final answer는 즉시 공유용이고, 장기 추적은 findings 문서를 기준으로 한다.
+
+## Inferences
+
+- 추정: 각 리뷰 채팅은 하나의 트랙만 다루는 것이 적절하다. 현재 파일 수와 테스트 분포상 한 트랙이 1회 코드리뷰 대화에서 다룰 수 있는 현실적인 최대 범위에 가깝다.
+- 추정: `0. Baseline Inventory And Review Rules`를 먼저 진행하면 이후 트랙의 발견사항 형식과 검증 기준이 흔들릴 가능성이 줄어든다.
+- 추정: `3. Keyboard Layout, Views, And Assets`와 `6. Keyboard Extension Entry Points`는 실제 시뮬레이터 수동 확인까지 하면 각각 별도 채팅으로 두는 편이 낫다.
+
+## Open Questions
+
+- 각 트랙에서 실제 코드 변경까지 진행할지, 리뷰 findings만 수집할지 아직 정하지 않았다.
+- 수동 시뮬레이터 검증을 Codex가 직접 수행할지, 사용자가 실제 기기/시뮬레이터에서 확인할지 아직 정하지 않았다.
+
+## Suggested Finding Format
+
+```text
+## Findings
+
+- [P1] 파일:라인 - 사용자 영향 또는 회귀 위험
+  - 근거:
+  - 제안:
+  - 검증:
+
+## Open Questions
+
+- 확인이 필요한 전제
+
+## Verification Suggestions
+
+- 실행할 명령 또는 수동 확인 흐름
+
+## Handoff
+
+- 다음 리뷰 트랙으로 넘길 내용
+```
+
+## Finding Priority Criteria
+
+- `P1`: 즉시 수정해야 하는 문제. 빌드/테스트 실패, 사용자 입력 손상, 데이터 손실, 크래시, 보안/권한 위험, 명백한 기능 회귀처럼 다음 단계 진행을 막는 항목이다.
+- `P2`: 다음 트랙이나 병합 전 수정해야 하는 문제. 회귀 가능성이 높은 설계 결함, 검증 누락, 모듈 계약 불일치, 문서와 실제 절차의 불일치처럼 방치하면 리뷰 결론을 흐릴 수 있는 항목이다.
+- `P3`: 추적하면 좋은 개선 사항. PR 템플릿 보강, 문서 표현 정리, 유지보수 편의 개선처럼 즉시 기능 위험은 낮지만 후속 작업 품질을 높이는 항목이다.
+
+## Verification Notes
+
+- 문서 작성 전 `git status --short`를 실행했고 출력이 없었다.
+- 0번 baseline 리뷰에서 `git status --short --branch`, `git branch -vv`, `git log --oneline --decorate -8`, `git diff 8494534d31699afbdc4d0f981573c19a74850149..HEAD --stat`를 실행했다.
+- 일반 샌드박스에서 `xcodebuild -list -project SYKeyboard.xcodeproj`가 권한 오류로 실패한 뒤, 권한 있는 환경에서 같은 명령을 재실행해 성공을 확인했다.
+- 사용자가 전체 리뷰 findings를 종합 문서로 모으기로 결정해 `dev/active/code-review-scope/code-review-scope-findings.md`를 추가했다.
+- 코드 빌드나 테스트는 실행하지 않았다. 이번 작업은 리뷰 범위와 baseline 절차 문서화이며 코드 동작 변경이 없다.
