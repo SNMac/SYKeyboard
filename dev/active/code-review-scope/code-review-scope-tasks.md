@@ -18,7 +18,7 @@ Last Updated: 2026-06-06
 ## Review Execution Checklist
 
 - [x] `0. Baseline Inventory And Review Rules` 리뷰를 별도 채팅에서 진행한다.
-- [ ] `1. Hangeul Input Domain Logic` 리뷰를 별도 채팅에서 진행한다.
+- [x] `1. Hangeul Input Domain Logic` 리뷰를 별도 채팅에서 진행한다.
 - [ ] `2. Common Keyboard Interaction Runtime` 리뷰를 별도 채팅에서 진행한다.
 - [ ] `4. Predictive Text And Suggestion Bar` 리뷰를 별도 채팅에서 진행한다.
 - [ ] `5. Settings And UserDefaults Contract` 리뷰를 별도 채팅에서 진행한다.
@@ -34,6 +34,8 @@ Last Updated: 2026-06-06
 - 0번 baseline 리뷰 결과로 `code-review-scope-context.md`에 현재 inventory, priority criteria, 검증 결과를 보강했다.
 - 사용자가 각 채팅의 findings를 종합 문서로 모으는 방식을 선택했다.
 - `code-review-scope-findings.md`를 추가하고 0번 baseline 리뷰 findings를 반영 완료 상태로 기록했다.
+- 1번 한글 입력 도메인 리뷰에서 나랏글 이중모음 교차 입력 처리 P2, 천지인 전체 삭제 검증 누락 P3를 발견해 `code-review-scope-findings.md`에 누적했다. 이후 사용자가 나랏글 이중모음 교차 입력 처리는 의도된 동작이라고 확인해 해당 P2를 `Invalid`로 정정했다.
+- 1번 리뷰 검증으로 일반 샌드박스와 권한 있는 환경에서 `xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0'`를 실행했다. 일반 샌드박스는 CoreSimulator/SwiftPM cache 권한 오류로 실패했고, 권한 있는 실행은 `TEST SUCCEEDED`로 통과했다.
 
 ## Per-Chat Checklist
 

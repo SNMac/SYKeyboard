@@ -50,8 +50,27 @@ Last Updated: 2026-06-06
 - 처리: `.github/pull_request_template.md`에 `## ✅ 검증` 섹션과 Codex 샌드박스 재실행 기록 안내를 추가했다.
 - 검증: `git diff --check`, `rg -n "[ \t]+$" .github/pull_request_template.md dev/active/code-review-scope`
 
+### Track 1. Hangeul Input Domain Logic
+
+#### [P2][Invalid] 나랏글 이중모음 결합이 입력 모음을 구분하지 않음
+
+- 위치: `Modules/HangeulKeyboardCore/Domain/Processor/NaratgeulProcessor.swift:367`
+- 영향: `ㅗ + ㅓ` 또는 `ㅜ + ㅏ` 같은 교차 입력도 각각 `ㅘ`, `ㅝ`로 조합될 수 있어 사용자가 의도하지 않은 글자가 만들어질 위험이 있다.
+- 근거: `input()`은 입력이 `ㅏ` 또는 `ㅓ`이면 `combine이중모음(글자Input:composing:)`을 호출하지만, `combine이중모음`은 `글자Input` 값을 실제 분기 조건에 사용하지 않는다. 현재 `이중모음결합Table`은 마지막 모음이 `ㅗ`면 항상 `ㅘ`, `ㅜ`면 항상 `ㅝ`로 변환한다. 반면 테스트 입력 맵은 `ㅘ = ["ㅗ", "ㅏ"]`, `ㅝ = ["ㅜ", "ㅓ"]`만 기대 경로로 정의한다.
+- 판단: 사용자 확인 결과 이 동작은 의도된 동작이다. 따라서 버그 finding이 아니며 수정 대상에서 제외한다.
+- 검증: 사용자 확인. 추가 코드 검증 없음.
+
+#### [P3][Open] 천지인 전체 문자 테스트가 삭제 경로를 검증하지 않음
+
+- 위치: `SYKeyboardTests/Processor/CheonjiinProcessorTests.swift:277`
+- 영향: 천지인은 비표준 모음과 `committedTail` 복원 삭제 로직이 별도로 있는데, 전체 11,172자 테스트는 생성만 검증해서 겹모음/겹받침 삭제 회귀가 넓게 노출되지 않는다.
+- 근거: `CheonjiinProcessorTests.validateAllCharacters()`는 입력 후 `committed + composing`이 목표 글자인지만 확인한다. 두벌식 전체 테스트는 생성 후 삭제 루프까지 검증하고, 나랏글 전체 테스트도 예상 삭제 횟수만큼 삭제 후 잔여물을 확인한다.
+- 제안: 천지인도 전체 문자 생성 뒤 삭제 루프를 추가하거나, 최소한 겹받침/복합모음/비표준 모음 중간상태를 포함한 삭제 매트릭스를 보강한다.
+- 검증: `xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0'`
+
 ## Handoff
 
-- Track 1부터 각 리뷰 채팅의 findings는 이 문서의 `## Findings` 아래에 트랙별 섹션으로 추가한다.
+- Track 2부터 각 리뷰 채팅의 findings는 이 문서의 `## Findings` 아래에 트랙별 섹션으로 추가한다.
 - 각 finding은 우선순위, 상태, 위치, 영향, 근거, 제안 또는 처리, 검증을 포함한다.
 - 다른 트랙으로 넘길 내용은 해당 트랙 섹션 끝에 `Handoff` 항목으로 남긴다.
+- Track 1의 나랏글 이중모음 교차 입력 동작은 사용자 확인으로 의도된 동작으로 정리했다.
