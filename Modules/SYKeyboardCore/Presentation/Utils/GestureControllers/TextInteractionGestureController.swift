@@ -9,7 +9,7 @@ import UIKit
 import OSLog
 
 protocol TextInteractionGestureControllerDelegate: AnyObject {
-    func primaryButtonPanning(_ controller: TextInteractionGestureController, to direction: PanDirection)
+    func primaryButtonPanning(_ controller: TextInteractionGestureController, to direction: PanDirection, steps: Int)
     func deleteButtonPanning(_ controller: TextInteractionGestureController, to direction: PanDirection)
     func deleteButtonPanStopped(_ controller: TextInteractionGestureController)
     func textInteractableButtonLongPressing(_ controller: TextInteractionGestureController, button: TextInteractable)
@@ -29,6 +29,7 @@ final class TextInteractionGestureController: NSObject {
     private var isCursorActive: Bool = false
     private var initialPanPoint: CGPoint = .zero
     private var intervalReferPanPoint: CGPoint = .zero
+    private var previousPanVelocity: CGFloat = 0
     
     // Initializer Injection
     private weak var keyboardHStackView: UIView?
@@ -69,15 +70,21 @@ final class TextInteractionGestureController: NSObject {
             gestureButton?.isGesturing = true
             initialPanPoint = currentPoint
             intervalReferPanPoint = currentPoint
+            previousPanVelocity = 0
             logger.debug("팬 제스처 활성화")
         case .changed:
             let distance = calcDistance(point1: initialPanPoint, point2: currentPoint)
             if isCursorActive || distance >= UserDefaultsManager.shared.cursorActiveDistance {
+                let wasCursorActive = isCursorActive
                 keyboardHStackView?.isUserInteractionEnabled = false
                 
                 isCursorActive = true
                 gestureButton?.isGesturing = false
-                onPanGestureChanged(gesture)
+                if wasCursorActive {
+                    onPanGestureChanged(gesture)
+                } else {
+                    onPanGestureActivated(gesture)
+                }
             }
         case .ended, .cancelled, .failed:
             // 순서 중요
@@ -91,6 +98,7 @@ final class TextInteractionGestureController: NSObject {
             isCursorActive = false
             initialPanPoint = .zero
             intervalReferPanPoint = .zero
+            previousPanVelocity = 0
             gestureButton?.isGesturing = false
             
             keyboardHStackView?.isUserInteractionEnabled = true
@@ -135,6 +143,27 @@ final class TextInteractionGestureController: NSObject {
 // MARK: - Gesture Methods
 
 private extension TextInteractionGestureController {
+    func onPanGestureActivated(_ gesture: UIPanGestureRecognizer) {
+        let currentPoint = gesture.location(in: gesture.view)
+        let distance = currentPoint.x - intervalReferPanPoint.x
+
+        if let movement = CursorDragAccelerationPolicy.initialMovement(
+            deltaX: distance,
+            cursorMoveInterval: UserDefaultsManager.shared.cursorMoveInterval
+        ) {
+            if gesture.view is DeleteButton {
+                delegate?.deleteButtonPanning(self, to: movement.direction)
+            } else if gesture.view is TextInteractable {
+                delegate?.primaryButtonPanning(self, to: movement.direction, steps: movement.steps)
+            } else {
+                assertionFailure("입력 상호작용 버튼이 아닙니다.")
+            }
+        }
+
+        intervalReferPanPoint = currentPoint
+        previousPanVelocity = 0
+    }
+
     func onPanGestureChanged(_ gesture: UIPanGestureRecognizer) {
         let currentPoint = gesture.location(in: gesture.view)
         
@@ -147,10 +176,14 @@ private extension TextInteractionGestureController {
                     delegate?.deleteButtonPanning(self, to: .left)
                 }
             } else if gesture.view is TextInteractable {
-                if distance > 0 {
-                    delegate?.primaryButtonPanning(self, to: .right)
-                } else {
-                    delegate?.primaryButtonPanning(self, to: .left)
+                if let movement = CursorDragAccelerationPolicy.movement(
+                    deltaX: distance,
+                    velocity: gesture.velocity(in: gesture.view).x,
+                    previousVelocity: previousPanVelocity,
+                    cursorMoveInterval: UserDefaultsManager.shared.cursorMoveInterval
+                ) {
+                    delegate?.primaryButtonPanning(self, to: movement.direction, steps: movement.steps)
+                    previousPanVelocity = movement.velocity
                 }
             } else {
                 assertionFailure("입력 상호작용 버튼이 아닙니다.")
