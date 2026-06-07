@@ -1,6 +1,6 @@
 # Code Review Scope Context
 
-Last Updated: 2026-06-06
+Last Updated: 2026-06-07
 
 ## Relevant Files
 
@@ -49,6 +49,11 @@ Last Updated: 2026-06-06
 - `Common/Firebase/`에는 Debug/Release `GoogleService-Info.plist`가 있다. 프로젝트 지침상 이 파일들은 명시 요청 없이 수정하지 않는다.
 - 일반 샌드박스에서 `xcodebuild -list -project SYKeyboard.xcodeproj`는 CoreSimulator, clang ModuleCache, SwiftPM ManifestLoading 권한 오류로 실패했다.
 - 권한 있는 환경에서 `xcodebuild -list -project SYKeyboard.xcodeproj`는 성공했고, 실제 scheme 목록은 `SYKeyboard`, `HangeulKeyboard`, `EnglishKeyboard`, `SYKeyboardCore`, `HangeulKeyboardCore`, `EnglishKeyboardCore`, `SYKeyboardAssets`다.
+- 2번 리뷰 시점의 현재 브랜치는 `refactor/#57-overall-code-review`, HEAD는 `879587f2ab9c8f167479cdc3fdfe728e1554c3b6`이며 작업트리는 깨끗했다.
+- `0fc8cb81..879587f2`에는 리뷰 문서와 PR 템플릿 변경만 있고 Track 2 runtime 코드는 `origin/develop`과 같다.
+- `ButtonStateController`의 해제 action은 `.touchUpInside`, `.touchUpOutside`만 처리하며 `.touchCancel`을 처리하지 않는다.
+- `TextInteractionGestureController`와 `SwitchGestureController`는 `.ended`, `.cancelled`, `.failed`를 같은 종료 분기에서 처리한다.
+- 현재 `SYKeyboardTests`에는 gesture controller의 취소/실패 상태나 `ButtonStateController`의 `.touchCancel` event 흐름을 직접 검증하는 테스트가 없다.
 
 ## Decisions
 
@@ -119,3 +124,5 @@ Last Updated: 2026-06-06
 - 일반 샌드박스에서 `xcodebuild -list -project SYKeyboard.xcodeproj`가 권한 오류로 실패한 뒤, 권한 있는 환경에서 같은 명령을 재실행해 성공을 확인했다.
 - 사용자가 전체 리뷰 findings를 종합 문서로 모으기로 결정해 `dev/active/code-review-scope/code-review-scope-findings.md`를 추가했다.
 - 코드 빌드나 테스트는 실행하지 않았다. 이번 작업은 리뷰 범위와 baseline 절차 문서화이며 코드 동작 변경이 없다.
+- 2번 리뷰에서 일반 샌드박스의 `xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0'`는 CoreSimulatorService, clang ModuleCache, SwiftPM ManifestLoading 권한 오류로 실패했다.
+- 같은 테스트를 권한 있는 환경에서 재실행했고 `iPhone 13 mini / iOS 16.0`에서 `TEST SUCCEEDED`를 확인했다.

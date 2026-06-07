@@ -1,6 +1,6 @@
 # Code Review Scope Tasks
 
-Last Updated: 2026-06-06
+Last Updated: 2026-06-07
 
 ## Setup Checklist
 
@@ -19,7 +19,7 @@ Last Updated: 2026-06-06
 
 - [x] `0. Baseline Inventory And Review Rules` 리뷰를 별도 채팅에서 진행한다.
 - [x] `1. Hangeul Input Domain Logic` 리뷰를 별도 채팅에서 진행한다.
-- [ ] `2. Common Keyboard Interaction Runtime` 리뷰를 별도 채팅에서 진행한다.
+- [x] `2. Common Keyboard Interaction Runtime` 리뷰를 별도 채팅에서 진행한다.
 - [ ] `4. Predictive Text And Suggestion Bar` 리뷰를 별도 채팅에서 진행한다.
 - [ ] `5. Settings And UserDefaults Contract` 리뷰를 별도 채팅에서 진행한다.
 - [ ] `3. Keyboard Layout, Views, And Assets` 리뷰를 별도 채팅에서 진행한다.
@@ -36,6 +36,8 @@ Last Updated: 2026-06-06
 - `code-review-scope-findings.md`를 추가하고 0번 baseline 리뷰 findings를 반영 완료 상태로 기록했다.
 - 1번 한글 입력 도메인 리뷰에서 나랏글 이중모음 교차 입력 처리 P2, 천지인 전체 삭제 검증 누락 P3를 발견해 `code-review-scope-findings.md`에 누적했다. 이후 사용자가 나랏글 이중모음 교차 입력 처리는 의도된 동작이라고 확인해 해당 P2를 `Invalid`로 정정했다.
 - 1번 리뷰 검증으로 일반 샌드박스와 권한 있는 환경에서 `xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0'`를 실행했다. 일반 샌드박스는 CoreSimulator/SwiftPM cache 권한 오류로 실패했고, 권한 있는 실행은 `TEST SUCCEEDED`로 통과했다.
+- 2번 공통 키보드 interaction runtime 리뷰에서 취소된 텍스트 팬의 입력 실행 P1, `touchCancel` 눌림 상태 잔존 P1, 취소된 키보드 전환 제스처 확정 P2를 발견해 `code-review-scope-findings.md`에 누적했다.
+- 2번 리뷰 검증으로 일반 샌드박스와 권한 있는 환경에서 동일한 `xcodebuild test`를 실행했다. 일반 샌드박스는 CoreSimulator/SwiftPM cache 권한 오류로 실패했고, 권한 있는 `iPhone 13 mini / iOS 16.0` 실행은 `TEST SUCCEEDED`로 통과했다. 기존 테스트에는 제스처 취소 및 `touchCancel` 상태 전이 검증이 없다.
 
 ## Per-Chat Checklist
 

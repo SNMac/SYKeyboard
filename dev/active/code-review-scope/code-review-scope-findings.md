@@ -1,6 +1,6 @@
 # Code Review Scope Findings
 
-Last Updated: 2026-06-06
+Last Updated: 2026-06-07
 
 ## Purpose
 
@@ -68,9 +68,37 @@ Last Updated: 2026-06-06
 - 제안: 천지인도 전체 문자 생성 뒤 삭제 루프를 추가하거나, 최소한 겹받침/복합모음/비표준 모음 중간상태를 포함한 삭제 매트릭스를 보강한다.
 - 검증: `xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0'`
 
+### Track 2. Common Keyboard Interaction Runtime
+
+#### [P1][Open] 취소된 텍스트 팬 제스처가 정상 키 입력을 실행함
+
+- 위치: `Modules/SYKeyboardCore/Presentation/Utils/GestureControllers/TextInteractionGestureController.swift:89`
+- 영향: 문자 또는 스페이스 버튼에서 짧은 드래그가 시스템이나 다른 제스처에 의해 취소되면, 사용자가 확정하지 않은 키가 입력될 수 있다.
+- 근거: `.ended`, `.cancelled`, `.failed`가 같은 분기를 사용하고, 커서 이동이 활성화되지 않은 경우 `sendActions(for: .touchUpInside)`를 호출한다. 이 호출은 `BaseKeyboardButton.isProgrammaticCall`을 활성화하므로 `BaseKeyboardViewController.makeTextInputAction()`의 현재 눌린 버튼 검증을 우회하고 입력을 수행한다.
+- 제안: `.ended`만 짧은 팬을 탭으로 확정하고, `.cancelled`/`.failed`는 입력 없이 상태만 정리한다. 제스처 상태별 입력 횟수를 검증하는 interaction test를 추가한다.
+- 검증: 코드 경로 확인. 현재 테스트에는 `TextInteractionGestureController`의 `.cancelled`/`.failed` 상태 검증이 없다.
+
+#### [P1][Open] `touchCancel`이 버튼 눌림 상태를 해제하지 않아 다음 터치에서 이전 키를 입력할 수 있음
+
+- 위치: `Modules/SYKeyboardCore/Presentation/Utils/ButtonStateController.swift:91`
+- 영향: 터치가 중단되면 suggestion bar가 비활성 상태로 남거나 Shift가 계속 눌린 것으로 처리될 수 있다. 다음 버튼의 `touchDown`에서 취소된 이전 버튼의 `.touchUpInside`가 실행되어 의도하지 않은 키/리턴 입력도 발생할 수 있다.
+- 근거: 버튼 해제 action은 `.touchUpInside`, `.touchUpOutside`에만 등록되어 있고 `.touchCancel`에는 등록되지 않는다. 이후 다른 버튼을 누르면 `currentPressedButton`에 남은 이전 버튼에 `sendActions(for: .touchUpInside)`를 호출하며, programmatic call은 입력 action의 현재 버튼 검증을 우회한다.
+- 제안: `.touchCancel`에서도 일반 버튼의 `currentPressedButton`과 Shift의 `isShiftButtonPressed`를 정리한다. 취소 후 suggestion bar 활성 상태와 다음 버튼 입력 횟수를 검증하는 테스트를 추가한다.
+- 검증: 코드 경로 확인. 현재 테스트에는 `ButtonStateController`의 UIControl event 상태 전이 검증이 없다.
+
+#### [P2][Open] 취소된 키보드 전환 제스처가 전환 결과를 확정할 수 있음
+
+- 위치: `Modules/SYKeyboardCore/Presentation/Utils/GestureControllers/SwitchGestureController.swift:112`, `Modules/SYKeyboardCore/Presentation/Utils/GestureControllers/SwitchGestureController.swift:193`
+- 영향: 키보드 선택 또는 한 손 모드 드래그/길게 누르기가 중단되어도 키보드 종류나 한 손 모드가 바뀔 수 있다.
+- 근거: 팬의 `.cancelled`/`.failed`가 `.ended`와 같은 완료 경로를 실행해 `.touchUpInside`와 `on...GestureEnded`를 호출한다. 완료 helper는 현재 위치에 따라 `changeKeyboard` 또는 `changeOneHandedMode` delegate를 호출한다. 취소된 long press도 동일하게 종료 helper를 호출한다.
+- 제안: 취소/실패 시 overlay와 버튼 상태만 정리하고 delegate 변경은 `.ended`에서만 확정한다. overlay가 표시된 상태에서 각 제스처를 취소하는 테스트를 추가한다.
+- 검증: 코드 경로 확인. 현재 테스트에는 `SwitchGestureController` 취소 상태 검증이 없다.
+
 ## Handoff
 
 - Track 2부터 각 리뷰 채팅의 findings는 이 문서의 `## Findings` 아래에 트랙별 섹션으로 추가한다.
 - 각 finding은 우선순위, 상태, 위치, 영향, 근거, 제안 또는 처리, 검증을 포함한다.
 - 다른 트랙으로 넘길 내용은 해당 트랙 섹션 끝에 `Handoff` 항목으로 남긴다.
 - Track 1의 나랏글 이중모음 교차 입력 동작은 사용자 확인으로 의도된 동작으로 정리했다.
+- Track 2의 세 finding은 모두 제스처/UIControl 취소 상태 전이와 관련되어 있어 함께 수정하고 interaction test로 검증하는 편이 적절하다.
+- Track 4에서는 selection 변화와 `inputBuffer`/suggestion 상태 동기화가 자동완성 결과에 미치는 영향을 확인한다.
