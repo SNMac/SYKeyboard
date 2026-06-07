@@ -29,6 +29,8 @@
 - 장기 작업이나 여러 모듈을 건드리는 작업은 `dev/README.md`를 읽고 `dev/active/<task-name>/`에 plan/context/tasks 문서를 만든다.
 - 단일 파일의 작은 수정이나 단순 문서 정리는 `dev/active` 문서를 만들지 않아도 된다.
 - 작업 문서를 만들 때는 `dev/templates/`의 템플릿을 사용한다.
+- Superpowers 스킬이 설계 문서나 구현 계획을 생성하면 기본 경로인 `docs/superpowers/` 대신 `dev/active/<task-name>/superpowers/` 아래에 저장한다.
+- Superpowers 문서는 해당 스킬이 요구하는 상세 형식과 내용을 유지하며, `dev/templates/` 형식으로 축약하지 않는다.
 - 프로젝트별 온디맨드 지침은 `dev/codex-skill-playbook.md`에 있다. 아래 작업 전에는 해당 섹션을 먼저 확인한다.
   - 한글 조합/삭제/Processor 변경: `hangeul-input-logic`
   - 키보드 extension UI, 버튼, 제스처, 높이 변경: `ios-keyboard-extension`

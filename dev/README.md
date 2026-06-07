@@ -19,16 +19,25 @@
 dev/active/<task-name>/
 ├── <task-name>-plan.md
 ├── <task-name>-context.md
-└── <task-name>-tasks.md
+├── <task-name>-tasks.md
+└── superpowers/
+    ├── specs/
+    │   └── YYYY-MM-DD-<task-name>-design.md
+    └── plans/
+        └── YYYY-MM-DD-<task-name>.md
 ```
 
 작업이 완료되면 필요에 따라 `dev/archive/<task-name>/`로 옮긴다.
+
+`superpowers/`는 Superpowers 스킬을 사용할 때만 만든다. Superpowers가 기본 경로로 제시하는 `docs/superpowers/`는 사용하지 않고, 위 작업 디렉터리 아래에서 `specs/`와 `plans/` 구조를 유지한다.
 
 ## 파일 역할
 
 - `*-plan.md`: 목표, 현재 상태, 접근 방식, 위험, 검증 방법을 정리한다.
 - `*-context.md`: 관련 파일, 주요 결정, 열어본 문서, 주의할 도메인 규칙을 기록한다.
 - `*-tasks.md`: 실제 실행 체크리스트다. 각 항목은 확인 가능한 완료 기준을 가져야 한다.
+- `superpowers/specs/`: Superpowers `brainstorming`이 생성하는 상세 설계 문서를 보관한다.
+- `superpowers/plans/`: Superpowers `writing-plans`가 생성하는 상세 구현 계획을 보관한다.
 
 ## 작성 규칙
 
@@ -38,6 +47,7 @@ dev/active/<task-name>/
 - 테스트/빌드 명령은 실제로 실행할 명령 그대로 적는다.
 - 완료된 항목은 바로 체크한다. 마지막에 한꺼번에 맞추지 않는다.
 - 작업 중 새로 알게 된 제약은 `*-context.md`에 기록한다.
+- Superpowers 문서는 스킬이 요구하는 형식과 상세 수준을 유지하며 일반 작업 문서 템플릿에 맞춰 축약하지 않는다.
 
 ## 빠른 시작
 
@@ -50,3 +60,9 @@ cp dev/templates/task-tasks-template.md dev/active/<task-name>/<task-name>-tasks
 
 `<task-name>`은 소문자 영문, 숫자, 하이픈으로 작성한다. 예: `hangeul-delete-regression`, `keyboard-height-settings`.
 
+Superpowers를 사용하는 경우 필요한 디렉터리를 추가한다.
+
+```sh
+mkdir -p dev/active/<task-name>/superpowers/specs
+mkdir -p dev/active/<task-name>/superpowers/plans
+```
