@@ -1,6 +1,6 @@
 # Cursor Drag Acceleration Plan
 
-Last Updated: 2026-06-05
+Last Updated: 2026-06-06
 
 ## Goal
 
@@ -16,7 +16,8 @@ Last Updated: 2026-06-05
   - `CursorDragAccelerationPolicy`가 `cursorMoveInterval` 기반 `baseTicks`에 속도/가속도 boost를 더해 step을 계산한다.
   - primary cursor 이동 delegate는 `steps`를 받는다.
   - 삭제 버튼 drag는 기존 삭제/복구 동작을 유지하고 step 가속을 적용하지 않는다.
-  - cursor 이동 반복 중 입력 버퍼 초기화는 gesture update당 한 번만 수행한다.
+  - cursor 이동 중 입력 버퍼 초기화는 gesture update당 한 번만 수행한다.
+  - 여러 cursor step은 가능한 실제 step 수를 계산한 뒤 `adjustTextPosition(byCharacterOffset:)`를 한 번만 호출한다.
   - cursor 활성화 첫 이벤트는 활성화 전 누적 거리를 가속 step으로 사용하지 않고 최대 1칸만 이동한다.
   - 속도 계산은 UIKit의 `UIPanGestureRecognizer.velocity(in:)`를 사용한다.
 - 관련 파일:
@@ -43,13 +44,13 @@ Last Updated: 2026-06-05
    - UIKit gesture 객체 없이 테스트 가능한 구조로 만든다.
 3. delegate 계약을 step-aware로 확장한다.
    - `primaryButtonPanning(_:to:steps:)`로 primary cursor 이동만 step-aware 처리한다.
-   - 커서 이동은 `steps`만큼 반복 이동한다.
+  - 커서 이동은 실제 이동 가능한 step 수를 계산해 한 번의 offset 적용으로 처리한다.
    - 삭제 버튼 드래그는 텍스트 삭제/복구 회귀 위험이 커서 기존 1회 처리 동작을 유지한다.
-4. 커서 이동 적용부를 반복 가능한 helper로 정리한다.
-   - `moveCursorLeftIfPossible()`와 `moveCursorRightIfPossible()`는 한 칸 이동의 단일 책임을 유지한다.
-   - `moveCursor(_:steps:)` 같은 private helper에서 최대 `steps`회 반복하고, 문맥이 없으면 중단한다.
+4. 커서 이동 적용부를 step-aware helper로 정리한다.
+   - `CursorDragAccelerationPolicy.applicableSteps`에서 방향과 현재 문맥을 기준으로 실제 이동 가능한 step 수를 계산한다.
+   - `BaseKeyboardViewController.moveCursorIfPossible(to:steps:)`는 `adjustTextPosition(byCharacterOffset:)`를 한 번만 호출한다.
    - 입력 버퍼 초기화는 한 번만 수행한다.
-   - undo/redo control 갱신과 haptic은 과도한 호출을 피하기 위해 step 반복 후 1회 호출한다.
+   - undo/redo control 갱신과 haptic은 과도한 호출을 피하기 위해 실제 이동 후 1회 호출한다.
 5. `cursorMoveInterval`을 느린 드래그의 기준 간격으로 유지한다.
    - 사용자가 천천히 드래그할 때는 기존처럼 `cursorMoveInterval` 거리마다 커서가 1칸 이동한다.
    - 빠른 드래그나 가속 구간에서는 `cursorMoveInterval`로 계산한 기본 tick 수에 배수 또는 상수 보정을 적용한다.
@@ -94,6 +95,11 @@ Last Updated: 2026-06-05
   - cursor 활성화 첫 이벤트는 `initialMovement`로 최대 1칸만 처리하고 `intervalReferPanPoint`를 현재 위치로 갱신한다.
   - 활성화 이후에는 step 발생 후 `intervalReferPanPoint`를 현재 위치로 갱신하면 구현이 단순하고 튐이 적다.
   - `deltaX` 안에 여러 interval이 포함된 경우에는 `baseTicks`와 보정 step으로 반영한다.
+- 적용 step:
+  - `actualSteps = min(requestedSteps, availableContextLength)`로 계산한다.
+  - 왼쪽은 `documentContextBeforeInput.suffix(requestedSteps).count`, 오른쪽은 `documentContextAfterInput.prefix(requestedSteps).count`만 확인한다.
+  - `maximumStep = 4`라서 전체 문맥 길이를 세지 않고 필요한 글자 수만 확인한다.
+  - `adjustTextPosition(byCharacterOffset:)`는 `-actualSteps` 또는 `actualSteps`로 1회 호출한다.
 
 ## Product Notes
 
@@ -113,6 +119,8 @@ Last Updated: 2026-06-05
 - haptic/sound를 step마다 발생시키면 빠른 드래그에서 피드백이 과도해질 수 있다.
 - 활성화 전 누적 거리를 첫 가속 계산에 포함하면 첫 이동이 `maximumStep`까지 튈 수 있다. 활성화 첫 이벤트와 활성화 이후 이동 이벤트를 분리해야 한다.
 - `UIPanGestureRecognizer.velocity(in:)`를 쓰되 gesture 객체는 policy로 넘기지 않는다. gesture layer에서 x축 velocity만 추출해 순수 policy에 전달한다.
+- PR #58 리뷰 반영으로 n-gram 로딩 완료 callback이 main thread가 아닌 곳에서 들어와도 `SuggestionController`의 후보 갱신은 main queue에서 수행하도록 보장한다.
+- 같은 리뷰 반영으로 multi-step cursor 이동은 반복 IPC 호출 대신 단일 `adjustTextPosition` 호출로 처리한다.
 
 ## Verification
 
@@ -167,6 +175,12 @@ xcodebuild build \
   - RED: `650pt/s`, `1200pt/s`, 첫 velocity 샘플 보정 테스트 추가 후 해당 3개 테스트 실패 확인.
   - GREEN: `fastVelocityThreshold = 900pt/s`, `veryFastVelocityThreshold = 1600pt/s`, `accelerationThreshold = 900pt/s`, `previousVelocity > 0` guard 적용 후 `xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0'`에서 `** TEST SUCCEEDED **` 확인.
   - `HangeulKeyboard`/`EnglishKeyboard` scheme build에서 각각 `** BUILD SUCCEEDED **` 확인.
+- 2026-06-06 PR #58 리뷰 반영:
+  - RED: `CursorDragAccelerationPolicy.applicableSteps` 미구현으로 컴파일 실패 확인.
+  - GREEN: `SuggestionController` main thread 보장과 cursor step 단일 offset 적용 후 `xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0'`에서 `** TEST SUCCEEDED **` 확인.
+  - `HangeulKeyboard` scheme build에서 `** BUILD SUCCEEDED **` 확인.
+  - `EnglishKeyboard` scheme build는 첫 병렬 실행에서 `build.db` lock으로 실패했고, 단독 재실행에서 `** BUILD SUCCEEDED **` 확인.
+  - `git diff --check`: exit 0.
 
 ## Done Criteria
 

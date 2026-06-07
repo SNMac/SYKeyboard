@@ -71,6 +71,26 @@ enum CursorDragAccelerationPolicy {
 
         return Movement(direction: direction, steps: steps, velocity: speed)
     }
+
+    static func applicableSteps(
+        to direction: PanDirection,
+        requestedSteps: Int,
+        documentContextBeforeInput: String?,
+        documentContextAfterInput: String?
+    ) -> Int {
+        guard requestedSteps > 0 else { return 0 }
+
+        switch direction {
+        case .left:
+            guard let documentContextBeforeInput else { return 0 }
+            return min(requestedSteps, documentContextBeforeInput.suffix(requestedSteps).count)
+        case .right:
+            guard let documentContextAfterInput else { return 0 }
+            return min(requestedSteps, documentContextAfterInput.prefix(requestedSteps).count)
+        default:
+            return 0
+        }
+    }
 }
 
 private extension CursorDragAccelerationPolicy {

@@ -1,6 +1,6 @@
 # Cursor Drag Acceleration Tasks
 
-Last Updated: 2026-06-05
+Last Updated: 2026-06-06
 
 ## Checklist
 
@@ -37,6 +37,15 @@ Last Updated: 2026-06-05
 - [x] 사용자 설정 범위를 반영해 threshold를 `900/1600/900`으로 재조정한다.
 - [x] 첫 velocity 샘플에는 가속 증가 보정을 적용하지 않는 테스트를 추가한다.
 - [x] threshold 조정 후 `xcodebuild test`, 한글/영문 키보드 scheme 빌드를 재실행한다.
+- [x] PR #58 review comment를 확인하고 타당성을 판단한다.
+- [x] GitHub review comment에는 직접 답변하지 않는다.
+- [x] n-gram 로딩 완료 callback이 background에서 호출되어도 후보 갱신이 main thread에서 수행되는 테스트를 추가한다.
+- [x] `SuggestionController`에서 로딩 완료 후 후보 갱신을 main queue로 보장한다.
+- [x] cursor multi-step 이동의 실제 적용 step을 현재 document context 길이로 제한하는 테스트를 추가한다.
+- [x] cursor multi-step 이동을 step별 반복 호출이 아니라 단일 `adjustTextPosition(byCharacterOffset:)` 호출로 적용한다.
+- [x] PR #58 review 반영 후 `xcodebuild test`를 재실행한다.
+- [x] PR #58 review 반영 후 한글/영문 키보드 scheme 빌드를 재실행한다.
+- [x] PR #58 review 반영 후 `git diff --check`를 실행한다.
 - [ ] 실제 입력 앱에서 한글/영문 느린 드래그, 빠른 드래그, 경계 이동, 조합 중 이동을 수동 확인한다.
 - [x] `git status --short`로 의도하지 않은 변경이 없는지 확인한다.
 - [x] 구현 결과와 검증 결과를 최종 응답에 요약한다.

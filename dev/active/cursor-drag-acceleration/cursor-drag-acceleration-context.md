@@ -1,6 +1,6 @@
 # Cursor Drag Acceleration Context
 
-Last Updated: 2026-06-05
+Last Updated: 2026-06-06
 
 ## Relevant Files
 
@@ -8,10 +8,14 @@ Last Updated: 2026-06-05
 - `Modules/SYKeyboardCore/Presentation/ViewController/Bases/BaseKeyboardViewController.swift`: `TextInteractionGestureControllerDelegate` 구현체이며, primary pan에서는 커서를 한 칸 이동하고 delete pan에서는 삭제/복구를 수행한다.
 - `Modules/SYKeyboardCore/Presentation/Utils/Enums/PanDirection.swift`: pan 방향 enum이다.
 - `Modules/SYKeyboardCore/Presentation/Utils/Policies/KeyboardGesturePolicy.swift`: gesture 등록 조건 정책이다. 새 step 계산 정책을 이 파일에 섞기보다 별도 policy로 두는 편이 테스트와 책임 분리에 맞다.
+- `Modules/SYKeyboardCore/Presentation/Utils/Policies/CursorDragAccelerationPolicy.swift`: cursor drag step 계산과 실제 적용 가능한 step 제한을 담당한다.
+- `Modules/SYKeyboardCore/Domain/SuggestionController.swift`: predictive text 준비 완료 후 후보 갱신 callback을 처리한다.
 - `Modules/SYKeyboardCore/Storage/DefaultValues.swift`: `cursorActiveDistance = 30.0`, `cursorMoveInterval = 5.0` 기본값이 있다.
 - `Modules/SYKeyboardCore/Storage/UserDefaultsManager.swift`: 키보드 extension 런타임에서 cursor 설정값을 읽는다.
 - `SYKeyboard/Presentation/KeyboardSettings/CursorMovementSettingsView.swift`: 사용자가 활성화 거리와 이동 간격을 조절하는 SwiftUI 설정 화면이다.
 - `SYKeyboardTests/Utils/KeyboardGesturePolicyTests.swift`: gesture policy 테스트 스타일 참고 파일이다.
+- `SYKeyboardTests/Utils/CursorDragAccelerationPolicyTests.swift`: cursor drag step 계산과 실제 적용 step 제한 테스트다.
+- `SYKeyboardTests/Domain/SuggestionControllerPreparationTests.swift`: n-gram 준비/로딩 완료 후 후보 갱신 테스트다.
 - `SYKeyboardTests/Controller/HangeulDeleteButtonDragControllerTests.swift`: 삭제 버튼 drag 삭제/복구 회귀 테스트다.
 - `SYKeyboardTests/Utils/KeyboardUndoRedoManagerTests.swift`: cursor context 및 undo/redo anchor 검증이 있다.
 
@@ -36,6 +40,11 @@ Last Updated: 2026-06-05
 - 사용자 설정 범위는 `cursorMoveInterval = 1.0...9.0`(`0.5` 단위, 기본값 `5.0`), `cursorActiveDistance = 10.0...50.0`(`1.0` 단위, 기본값 `30.0`)이다.
 - 2026-06-05 threshold 조정 후 `650pt/s`는 기본 interval에서 속도 보정을 만들지 않고, `1200pt/s`는 very fast가 아니라 fast 보정만 만든다.
 - 첫 velocity 샘플은 이전 속도가 0이므로 가속 증가 보정을 적용하지 않는다.
+- 2026-06-06 PR #58 review에서 `SuggestionController.refreshSuggestionsAfterNGramLoadIfNeeded()`의 UI/delegate 갱신 main-thread 보장과 다중 cursor step의 단일 `adjustTextPosition(byCharacterOffset:)` 적용 필요성이 제기됐다.
+- 실제 `NGramPredictiveTextEngine`은 현재 main queue에서 `onLoadCompleted`를 호출하지만, `PredictiveTextPreparing` 프로토콜 자체가 호출 thread를 보장하지 않으므로 `SuggestionController`에서 main queue hop을 방어적으로 추가했다.
+- `textDocumentProxy.adjustTextPosition(byCharacterOffset:)`는 keyboard extension과 host 앱 사이 호출이므로 여러 step을 loop로 나누면 호출 비용과 중간 상태 노출이 커진다.
+- cursor 이동 적용 step은 요청 step과 `documentContextBeforeInput`/`documentContextAfterInput`의 실제 길이 중 작은 값으로 제한한다.
+- 적용 가능한 step 계산은 `suffix(requestedSteps)` 또는 `prefix(requestedSteps)`만 확인하므로 탐색량은 현재 최대 step 수준으로 작다.
 
 ## Inferences
 
@@ -49,18 +58,20 @@ Last Updated: 2026-06-05
 - 작업 문서 이름은 `cursor-drag-acceleration`으로 둔다.
 - 구현 계획은 새 설정값 추가 없이 내부 정책 상수로 시작한다.
 - `cursorMoveInterval` 기본값 `5.0`과 의미를 유지한다. 느린 드래그의 1칸 이동 기준이며, 가속 step 계산의 기준 tick으로 사용한다.
-- `BaseKeyboardViewController`의 한 칸 이동 helper는 유지하고, step 반복은 별도 helper로 감싼다.
+- `BaseKeyboardViewController`는 요청 step을 실제 적용 가능한 step으로 제한한 뒤, `adjustTextPosition(byCharacterOffset:)`를 gesture update당 한 번만 호출한다.
 - 빠른 드래그 보정은 곱셈형보다 보수적인 덧셈형(`baseTicks + speedBoost + accelerationBoost`)으로 구현한다.
 - 확정값은 `maximumStep = 4`, `fastVelocityThreshold = 900pt/s`, `veryFastVelocityThreshold = 1600pt/s`, `accelerationThreshold = 900pt/s 증가`다.
 - haptic과 undo/redo control 갱신은 step마다 반복하지 않고 gesture update당 한 번만 수행한다.
 - cursor 활성화 첫 이동은 가속 대상에서 제외한다. 활성화 전 누적 거리는 가속 계산의 `baseTicks`로 사용하지 않는다.
 - 속도 계산은 UIKit gesture가 제공하는 `velocity(in:)`를 우선 사용한다. `CursorDragAccelerationPolicy.movement`는 `elapsedTime` 대신 x축 velocity를 입력으로 받는다.
 - 가속 증가 보정은 `previousVelocity > 0`일 때만 허용한다.
+- n-gram 로딩 완료 callback은 호출 thread와 무관하게 `SuggestionController`가 main queue에서 후보 갱신을 수행하도록 보장한다.
 
 ## Open Questions
 
 - 실제 입력 앱에서 손 감각 기준으로 `fastVelocityThreshold`, `veryFastVelocityThreshold`, `maximumStep`을 추가 튜닝할 여지가 있다.
 - 2026-06-05 수정 후 실기기 재확인은 아직 수행하지 않았다.
+- PR #58 review 반영 후 실제 PR review comment에는 직접 답변하지 않았다.
 
 ## Verification Notes
 
@@ -109,3 +120,8 @@ git diff --check
   - RED: `650pt/s`, `1200pt/s`, 첫 velocity 샘플 보정 테스트 추가 후 해당 3개 테스트 실패 확인.
   - GREEN: `900/1600/900` threshold와 `previousVelocity > 0` guard 적용 후 `xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0'` 성공.
   - 추가 검증: `HangeulKeyboard`/`EnglishKeyboard` scheme build 성공.
+- 2026-06-06 PR #58 review 반영 RED/GREEN:
+  - RED: background n-gram callback main-thread 갱신 테스트와 cursor 적용 step 제한 테스트 추가 후 `CursorDragAccelerationPolicy.applicableSteps` 미구현 compile error를 확인했다.
+  - GREEN: `SuggestionController` main queue hop, `CursorDragAccelerationPolicy.applicableSteps`, 단일 `adjustTextPosition(byCharacterOffset:)` 호출 구현 후 `xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0'` 성공.
+  - 추가 검증: `HangeulKeyboard` scheme build 성공. `EnglishKeyboard` scheme build는 병렬 실행 중 `build.db` lock으로 1회 실패했고, 같은 명령을 순차 재실행해 성공했다.
+  - `git diff --check`: exit 0

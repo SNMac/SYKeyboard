@@ -1380,41 +1380,28 @@ extension BaseKeyboardViewController: TextInteractionGestureControllerDelegate {
 
 private extension BaseKeyboardViewController {
     func moveCursorIfPossible(to direction: PanDirection, steps: Int) {
-        guard steps > 0 else { return }
+        let actualSteps = CursorDragAccelerationPolicy.applicableSteps(
+            to: direction,
+            requestedSteps: steps,
+            documentContextBeforeInput: textDocumentProxy.documentContextBeforeInput,
+            documentContextAfterInput: textDocumentProxy.documentContextAfterInput
+        )
+        guard actualSteps > 0 else { return }
 
-        var didMoveCursor = false
-        for _ in 0..<steps {
-            switch direction {
-            case .left:
-                didMoveCursor = moveCursorLeftIfPossible() || didMoveCursor
-            case .right:
-                didMoveCursor = moveCursorRightIfPossible() || didMoveCursor
-            default:
-                assertionFailure("도달할 수 없는 case 입니다.")
-                return
-            }
+        switch direction {
+        case .left:
+            textDocumentProxy.adjustTextPosition(byCharacterOffset: -actualSteps)
+            logger.debug("커서 왼쪽 이동: \(actualSteps)칸")
+        case .right:
+            textDocumentProxy.adjustTextPosition(byCharacterOffset: actualSteps)
+            logger.debug("커서 오른쪽 이동: \(actualSteps)칸")
+        default:
+            assertionFailure("도달할 수 없는 case 입니다.")
+            return
         }
 
-        if didMoveCursor {
-            updateUndoRedoControls()
-            FeedbackManager.shared.playHaptic(isForcing: true)
-        }
-    }
-
-    func moveCursorLeftIfPossible() -> Bool {
-        guard textDocumentProxy.documentContextBeforeInput != nil else { return false }
-
-        textDocumentProxy.adjustTextPosition(byCharacterOffset: -1)
-        logger.debug("커서 왼쪽 이동")
-        return true
-    }
-
-    func moveCursorRightIfPossible() -> Bool {
-        guard textDocumentProxy.documentContextAfterInput != nil else { return false }
-
-        textDocumentProxy.adjustTextPosition(byCharacterOffset: 1)
-        logger.debug("커서 오른쪽 이동")
-        return true
+        updateUndoRedoControls()
+        FeedbackManager.shared.playHaptic(isForcing: true)
     }
 
     func performDeleteButtonPanDeleteIfPossible() {

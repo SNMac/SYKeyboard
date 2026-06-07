@@ -5,6 +5,7 @@
 //  Created by Codex on 6/4/26.
 //
 
+import Foundation
 import Testing
 
 @testable import SYKeyboardCore
@@ -90,7 +91,7 @@ struct SuggestionControllerPreparationTests {
     }
 
     @Test("n-gram 로딩 완료 후 마지막 후보 갱신을 다시 수행")
-    func testNGram로딩완료후_마지막후보갱신을다시수행() {
+    func testNGram로딩완료후_마지막후보갱신을다시수행() async {
         let factory = CountingSuggestionEngineFactory()
         let delegate = RecordingSuggestionControllerDelegate()
         let controller = SuggestionController(
@@ -104,9 +105,36 @@ struct SuggestionControllerPreparationTests {
         #expect(delegate.updates.last?.suggestions == [])
 
         factory.lastNGramProvider?.completeLoad(suggestions: ["오늘", "내일"])
+        await waitForMainQueue()
 
         #expect(delegate.updates.last?.currentWord == nil)
         #expect(delegate.updates.last?.suggestions == ["오늘", "내일"])
+    }
+
+    @Test("n-gram 로딩 완료 callback이 background에서 호출되어도 후보 갱신은 main에서 수행")
+    func testNGram로딩완료Callback_background호출_main갱신() async {
+        let factory = CountingSuggestionEngineFactory()
+        let delegate = RecordingSuggestionControllerDelegate()
+        let controller = SuggestionController(
+            language: "ko-KR",
+            engineFactory: factory.makeFactory()
+        )
+        controller.delegate = delegate
+        controller.isPredictiveTextEnabled = true
+
+        controller.updateSuggestions(for: "")
+
+        await withCheckedContinuation { continuation in
+            DispatchQueue.global(qos: .userInitiated).async {
+                factory.lastNGramProvider?.completeLoad(suggestions: ["오늘", "내일"])
+                DispatchQueue.main.async {
+                    continuation.resume()
+                }
+            }
+        }
+
+        #expect(delegate.updates.last?.suggestions == ["오늘", "내일"])
+        #expect(delegate.updateIsMainThread.last == true)
     }
 }
 
@@ -181,6 +209,7 @@ private final class RecordingSuggestionControllerDelegate: SuggestionControllerD
     }
 
     private(set) var updates: [Update] = []
+    private(set) var updateIsMainThread: [Bool] = []
 
     func suggestionController(
         _ controller: SuggestionController,
@@ -188,5 +217,14 @@ private final class RecordingSuggestionControllerDelegate: SuggestionControllerD
         suggestions: [String]
     ) {
         updates.append(Update(currentWord: currentWord, suggestions: suggestions))
+        updateIsMainThread.append(Thread.isMainThread)
+    }
+}
+
+private func waitForMainQueue() async {
+    await withCheckedContinuation { continuation in
+        DispatchQueue.main.async {
+            continuation.resume()
+        }
     }
 }

@@ -137,4 +137,40 @@ struct CursorDragAccelerationPolicyTests {
 
         #expect(result == nil)
     }
+
+    @Test("왼쪽 커서 이동 적용 step은 요청 step과 앞 문맥 길이 중 작은 값")
+    func test왼쪽커서이동_적용Step계산() {
+        let steps = CursorDragAccelerationPolicy.applicableSteps(
+            to: .left,
+            requestedSteps: 4,
+            documentContextBeforeInput: "가나",
+            documentContextAfterInput: "다라마"
+        )
+
+        #expect(steps == 2)
+    }
+
+    @Test("오른쪽 커서 이동 적용 step은 요청 step과 뒤 문맥 길이 중 작은 값")
+    func test오른쪽커서이동_적용Step계산() {
+        let steps = CursorDragAccelerationPolicy.applicableSteps(
+            to: .right,
+            requestedSteps: 4,
+            documentContextBeforeInput: "가나다",
+            documentContextAfterInput: "라마"
+        )
+
+        #expect(steps == 2)
+    }
+
+    @Test("커서 이동 적용 step은 nil 문맥이면 0")
+    func test커서이동_nil문맥_0Step() {
+        let steps = CursorDragAccelerationPolicy.applicableSteps(
+            to: .left,
+            requestedSteps: 4,
+            documentContextBeforeInput: nil,
+            documentContextAfterInput: "라마"
+        )
+
+        #expect(steps == 0)
+    }
 }
