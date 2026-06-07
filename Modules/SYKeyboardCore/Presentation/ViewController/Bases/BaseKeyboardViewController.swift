@@ -274,6 +274,16 @@ open class BaseKeyboardViewController: UIInputViewController {
         updateSuggestionBarHidden()
         updateSuggestions()
     }
+    
+    open override func selectionWillChange(_ textInput: (any UITextInput)?) {
+        super.selectionWillChange(textInput)
+        logger.debug("selectionWillChange")
+    }
+    
+    open override func selectionDidChange(_ textInput: (any UITextInput)?) {
+        super.selectionDidChange(textInput)
+        logger.debug("selectionDidChange")
+    }
 
     open override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
@@ -1010,6 +1020,12 @@ private extension BaseKeyboardViewController {
             suggestionController.loadLexicon(from: self)
         }
         performanceSignposter.endInterval("DeferredSuggestionPreparation", state)
+
+        if KeyboardSuggestionSelectionPolicy.shouldUpdateInitialSuggestionsAfterDeferredPreparation(
+            shouldPreparePredictiveEngines: shouldPreparePredictiveEngines
+        ) {
+            updateSuggestions()
+        }
     }
 }
 
@@ -1308,20 +1324,12 @@ extension BaseKeyboardViewController: SwitchGestureControllerDelegate {
 // MARK: - TextInteractionGestureControllerDelegate
 
 extension BaseKeyboardViewController: TextInteractionGestureControllerDelegate {
-    final func primaryButtonPanning(_ controller: TextInteractionGestureController, to direction: PanDirection) {
-        logger.debug("Primary Button 팬 제스처 방향: \(String(describing: direction))")
+    final func primaryButtonPanning(_ controller: TextInteractionGestureController, to direction: PanDirection, steps: Int) {
+        logger.debug("Primary Button 팬 제스처 방향: \(String(describing: direction)), steps: \(steps)")
 
         // 커서 이동 시 입력 버퍼 초기화
         resetInputBuffer()
-
-        switch direction {
-        case .left:
-            moveCursorLeftIfPossible()
-        case .right:
-            moveCursorRightIfPossible()
-        default:
-            assertionFailure("도달할 수 없는 case 입니다.")
-        }
+        moveCursorIfPossible(to: direction, steps: steps)
     }
 
     final func deleteButtonPanning(_ controller: TextInteractionGestureController, to direction: PanDirection) {
@@ -1371,22 +1379,29 @@ extension BaseKeyboardViewController: TextInteractionGestureControllerDelegate {
 }
 
 private extension BaseKeyboardViewController {
-    func moveCursorLeftIfPossible() {
-        guard textDocumentProxy.documentContextBeforeInput != nil else { return }
+    func moveCursorIfPossible(to direction: PanDirection, steps: Int) {
+        let actualSteps = CursorDragAccelerationPolicy.applicableSteps(
+            to: direction,
+            requestedSteps: steps,
+            documentContextBeforeInput: textDocumentProxy.documentContextBeforeInput,
+            documentContextAfterInput: textDocumentProxy.documentContextAfterInput
+        )
+        guard actualSteps > 0 else { return }
 
-        textDocumentProxy.adjustTextPosition(byCharacterOffset: -1)
+        switch direction {
+        case .left:
+            textDocumentProxy.adjustTextPosition(byCharacterOffset: -actualSteps)
+            logger.debug("커서 왼쪽 이동: \(actualSteps)칸")
+        case .right:
+            textDocumentProxy.adjustTextPosition(byCharacterOffset: actualSteps)
+            logger.debug("커서 오른쪽 이동: \(actualSteps)칸")
+        default:
+            assertionFailure("도달할 수 없는 case 입니다.")
+            return
+        }
+
         updateUndoRedoControls()
         FeedbackManager.shared.playHaptic(isForcing: true)
-        logger.debug("커서 왼쪽 이동")
-    }
-
-    func moveCursorRightIfPossible() {
-        guard textDocumentProxy.documentContextAfterInput != nil else { return }
-
-        textDocumentProxy.adjustTextPosition(byCharacterOffset: 1)
-        updateUndoRedoControls()
-        FeedbackManager.shared.playHaptic(isForcing: true)
-        logger.debug("커서 오른쪽 이동")
     }
 
     func performDeleteButtonPanDeleteIfPossible() {

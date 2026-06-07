@@ -69,7 +69,7 @@ private extension CursorMovementSettingsView {
             Text("\(cursorActiveDistance, specifier: "%.1f")")
                 .monospacedDigit()
                 .frame(width: 40)
-            Slider(value: $cursorActiveDistance, in: 20.0...60.0, step: 1.0) { _ in
+            Slider(value: $cursorActiveDistance, in: 10.0...50.0, step: 1.0) { _ in
                 hideKeyboard()
             }
             Button {

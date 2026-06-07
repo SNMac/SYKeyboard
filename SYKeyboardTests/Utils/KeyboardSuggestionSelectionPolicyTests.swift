@@ -128,6 +128,20 @@ struct KeyboardSuggestionSelectionPolicyTests {
         )
     }
 
+    @Test("지연 준비 후 초기 후보 갱신은 예측 엔진을 준비한 경우에만 수행")
+    func test지연준비후_초기후보갱신조건() {
+        #expect(
+            KeyboardSuggestionSelectionPolicy.shouldUpdateInitialSuggestionsAfterDeferredPreparation(
+                shouldPreparePredictiveEngines: true
+            )
+        )
+        #expect(
+            KeyboardSuggestionSelectionPolicy.shouldUpdateInitialSuggestionsAfterDeferredPreparation(
+                shouldPreparePredictiveEngines: false
+            ) == false
+        )
+    }
+
     @Test("대치 복구는 입력 버퍼가 비어도 커서 앞 컨텍스트로 최근 대치 결과를 찾음")
     func test대치복구컨텍스트Fallback() {
         #expect(

@@ -5,6 +5,7 @@
 //  Created by Codex on 6/4/26.
 //
 
+import Foundation
 import Testing
 
 @testable import SYKeyboardCore
@@ -88,6 +89,53 @@ struct SuggestionControllerPreparationTests {
         #expect(factory.nGramCreationCount == 1)
         #expect(factory.lexiconCreationCount == 1)
     }
+
+    @Test("n-gram 로딩 완료 후 마지막 후보 갱신을 다시 수행")
+    func testNGram로딩완료후_마지막후보갱신을다시수행() async {
+        let factory = CountingSuggestionEngineFactory()
+        let delegate = RecordingSuggestionControllerDelegate()
+        let controller = SuggestionController(
+            language: "ko-KR",
+            engineFactory: factory.makeFactory()
+        )
+        controller.delegate = delegate
+        controller.isPredictiveTextEnabled = true
+
+        controller.updateSuggestions(for: "")
+        #expect(delegate.updates.last?.suggestions == [])
+
+        factory.lastNGramProvider?.completeLoad(suggestions: ["오늘", "내일"])
+        await waitForMainQueue()
+
+        #expect(delegate.updates.last?.currentWord == nil)
+        #expect(delegate.updates.last?.suggestions == ["오늘", "내일"])
+    }
+
+    @Test("n-gram 로딩 완료 callback이 background에서 호출되어도 후보 갱신은 main에서 수행")
+    func testNGram로딩완료Callback_background호출_main갱신() async {
+        let factory = CountingSuggestionEngineFactory()
+        let delegate = RecordingSuggestionControllerDelegate()
+        let controller = SuggestionController(
+            language: "ko-KR",
+            engineFactory: factory.makeFactory()
+        )
+        controller.delegate = delegate
+        controller.isPredictiveTextEnabled = true
+
+        controller.updateSuggestions(for: "")
+
+        await withCheckedContinuation { continuation in
+            DispatchQueue.global(qos: .userInitiated).async {
+                factory.lastNGramProvider?.completeLoad(suggestions: ["오늘", "내일"])
+                DispatchQueue.main.async {
+                    continuation.resume()
+                }
+            }
+        }
+
+        #expect(delegate.updates.last?.suggestions == ["오늘", "내일"])
+        #expect(delegate.updateIsMainThread.last == true)
+    }
 }
 
 private final class CountingSuggestionEngineFactory {
@@ -97,6 +145,7 @@ private final class CountingSuggestionEngineFactory {
     private(set) var lexiconCreationCount = 0
     private(set) var textCheckerCreationCount = 0
     private(set) var nGramCreationCount = 0
+    private(set) var lastNGramProvider: StubNGramPredictiveTextProvider?
 
     // MARK: - Internal Methods
 
@@ -112,7 +161,9 @@ private final class CountingSuggestionEngineFactory {
             },
             makeNGramEngine: { [weak self] _ in
                 self?.nGramCreationCount += 1
-                return StubNGramPredictiveTextProvider()
+                let provider = StubNGramPredictiveTextProvider()
+                self?.lastNGramProvider = provider
+                return provider
             }
         )
     }
@@ -124,11 +175,13 @@ private final class StubPredictiveTextProvider: PredictiveTextProvider {
 }
 
 private final class StubNGramPredictiveTextProvider: NGramPredictiveTextProviding {
+    var onLoadCompleted: (() -> Void)?
     var currentSentenceWordsCount: Int { recordedWords.count }
 
     private var recordedWords: [String] = []
+    private var loadedSuggestions: [String] = []
 
-    func suggestions(for baseText: String) -> [String] { [] }
+    func suggestions(for baseText: String) -> [String] { loadedSuggestions }
     func learn(word: String) {}
     func addWord(_ word: String) {
         recordedWords.append(word)
@@ -143,4 +196,35 @@ private final class StubNGramPredictiveTextProvider: NGramPredictiveTextProvidin
         recordedWords.removeAll()
     }
     func saveToDisk() {}
+    func completeLoad(suggestions: [String]) {
+        loadedSuggestions = suggestions
+        onLoadCompleted?()
+    }
+}
+
+private final class RecordingSuggestionControllerDelegate: SuggestionControllerDelegate {
+    struct Update: Equatable {
+        let currentWord: String?
+        let suggestions: [String]
+    }
+
+    private(set) var updates: [Update] = []
+    private(set) var updateIsMainThread: [Bool] = []
+
+    func suggestionController(
+        _ controller: SuggestionController,
+        didUpdateCurrentWord currentWord: String?,
+        suggestions: [String]
+    ) {
+        updates.append(Update(currentWord: currentWord, suggestions: suggestions))
+        updateIsMainThread.append(Thread.isMainThread)
+    }
+}
+
+private func waitForMainQueue() async {
+    await withCheckedContinuation { continuation in
+        DispatchQueue.main.async {
+            continuation.resume()
+        }
+    }
 }

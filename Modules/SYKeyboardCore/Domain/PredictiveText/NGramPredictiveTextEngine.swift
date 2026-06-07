@@ -70,6 +70,8 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
     
     /// 디스크 로딩 완료 여부 (로딩 전에는 조회·기록을 건너뜀)
     private var isLoaded = false
+    /// 디스크 로딩 완료 시 호출할 콜백
+    var onLoadCompleted: (() -> Void)?
     /// 마이그레이션 파일 쓰기가 보류 중인지 여부
     private var needsLegacyCleanup = false
     
@@ -178,6 +180,7 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
                 self.isLoaded = true
                 self.logger.debug("[NGram/\(self.language)] 디스크 로딩 완료")
                 signposter.endInterval("NGramBackgroundLoad", loadState)
+                self.onLoadCompleted?()
             }
         }
     }
