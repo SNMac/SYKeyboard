@@ -94,6 +94,56 @@ Last Updated: 2026-06-07
 - 제안: 취소/실패 시 overlay와 버튼 상태만 정리하고 delegate 변경은 `.ended`에서만 확정한다. overlay가 표시된 상태에서 각 제스처를 취소하는 테스트를 추가한다.
 - 검증: 코드 경로 확인. 현재 테스트에는 `SwitchGestureController` 취소 상태 검증이 없다.
 
+### Track 4. Predictive Text And Suggestion Bar
+
+#### [P1][Invalid] selection 변경 후 이전 후보가 새 위치의 텍스트를 변경할 수 있음
+
+- 위치: `Modules/SYKeyboardCore/Presentation/ViewController/Bases/BaseKeyboardViewController.swift:283`, `Modules/SYKeyboardCore/Presentation/ViewController/Bases/BaseKeyboardViewController.swift:1487`
+- 영향: 후보가 표시된 뒤 커서를 이동하거나 다른 단어를 선택하면, 이전 텍스트용 후보를 탭해 새 커서 위치의 문자를 삭제하거나 현재 선택 텍스트를 관련 없는 후보로 교체할 수 있다.
+- 근거: `selectionDidChange(_:)`는 로그만 남기며 `inputBuffer`나 후보를 초기화/갱신하지 않는다. 이후 후보 선택은 현재 선택 텍스트 또는 기존 `inputBuffer`를 사용하지만, `SuggestionController.currentSuggestions`가 해당 텍스트로 생성됐는지 확인하지 않는다.
+- 판단: 사용자 확인 결과 `selectionWillChange(_:)`와 `selectionDidChange(_:)`는 관찰되지 않지만, focus 중인 텍스트 필드 변경, 사용자의 텍스트 필드 탭, 커서 이동 시 `textWillChange(_:)`와 `textDidChange(_:)`가 호출된다. 현재 구현은 `textWillChange(_:)`에서 `resetInputBuffer()`를 호출하고 `textDidChange(_:)`에서 `updateSuggestions()`를 호출하므로 커서/필드 변경 후 이전 후보가 그대로 남는다는 finding의 전제가 성립하지 않는다.
+- 검증: 사용자 수동 확인 및 `BaseKeyboardViewController.textWillChange(_:)`, `textDidChange(_:)` 코드 경로 확인.
+
+#### [P1][Open] 텍스트 대치 복구 이력이 다른 위치의 동일 문구를 단축어로 되돌릴 수 있음
+
+- 위치: `Modules/SYKeyboardCore/Domain/SuggestionController.swift:432`, `Modules/SYKeyboardCore/Presentation/ViewController/Bases/BaseKeyboardViewController.swift:283`
+- 영향: 텍스트 대치를 수행한 뒤 커서를 다른 위치의 동일한 확장 문구 뒤로 이동하고 삭제하면, 해당 문구가 과거 단축어로 예기치 않게 변경될 수 있다.
+- 근거: `attemptRestoreReplacement(...)`는 모든 과거 `replacementHistory`를 역순으로 탐색하고 현재 `inputBuffer` 또는 커서 앞 컨텍스트 suffix가 `documentText`와 같으면 복구한다. 이력에는 원래 대치 위치나 컨텍스트 anchor가 없고 selection/cursor 변경 시 이력을 비우지 않는다.
+- 제안: 직전 대치의 위치/컨텍스트와 일치할 때만 복구하거나, 커서·selection·focus 변경 시 복구 이력을 무효화한다.
+- 검증: 코드 경로 확인. 대치 직후 삭제 복구와 다른 위치의 동일 문구 삭제를 구분하는 테스트가 없다.
+
+#### [P1][Open] 텍스트 대치 단축어가 긴 단어의 suffix와도 일치함
+
+- 위치: `Modules/SYKeyboardCore/Domain/SuggestionController.swift:396`
+- 영향: 단축어가 일반 단어의 끝부분과 같으면 스페이스 입력 시 일반 단어 일부가 의도하지 않은 대치 문구로 변경될 수 있다.
+- 근거: `attemptTextReplacement(baseText:)`는 `baseText.lowercased().hasSuffix(entry.userInput.lowercased())`만 확인하며 단축어 앞 단어 경계를 검사하지 않는다. 예를 들어 단축어 `id`는 `paid`의 suffix와도 일치한다.
+- 제안: 전체 `baseText` suffix가 아니라 현재 입력 단어와 단축어가 정확히 일치하는지 검사하거나 단축어 앞의 단어 경계를 확인한다.
+- 검증: 코드 경로 확인. 독립 단축어와 긴 단어 내부 suffix를 구분하는 텍스트 대치 테스트가 없다.
+
+#### [P2][Open] 비동기 lexicon 로딩 전 첫 텍스트 대치가 조용히 누락될 수 있음
+
+- 위치: `Modules/SYKeyboardCore/Presentation/ViewController/Bases/BaseKeyboardViewController.swift:1002`, `Modules/SYKeyboardCore/Domain/SuggestionController.swift:391`
+- 영향: 키보드가 표시된 직후 사용자가 단축어와 스페이스를 빠르게 입력하면 동일한 입력이어도 첫 텍스트 대치가 적용되지 않을 수 있다.
+- 근거: lexicon 요청은 `viewDidAppear(_:)` 이후 비동기로 시작되고, `attemptTextReplacement(baseText:)`는 `lexiconEngine?.lexicon`이 아직 없으면 재시도나 보류 없이 `nil`을 반환한다. `snm-40-predictive-loading` 문서에도 첫 대치 누락 여부가 미해결 질문으로 남아 있다.
+- 제안: 텍스트 대치가 켜진 경우 lexicon 준비 시점을 앞당기거나, 로딩 중 첫 대치 요청을 안전하게 재평가하는 정책을 명시한다.
+- 검증: 코드 경로와 `dev/active/snm-40-predictive-loading/` 확인. lexicon 응답을 지연시킨 상태의 첫 스페이스 대치 테스트가 없다.
+
+#### [P2][Open] n-gram 초기화가 background load/save와 경쟁해 삭제한 학습 데이터를 되살릴 수 있음
+
+- 위치: `Modules/SYKeyboardCore/Domain/PredictiveText/NGramPredictiveTextEngine.swift:159`, `Modules/SYKeyboardCore/Domain/PredictiveText/NGramPredictiveTextEngine.swift:319`, `Modules/SYKeyboardCore/Domain/PredictiveText/NGramPredictiveTextEngine.swift:343`
+- 영향: 사용자가 자동완성 학습 데이터를 초기화해도 진행 중이던 load 또는 save가 이후 완료되면 메모리나 파일에 이전 데이터가 다시 나타날 수 있다.
+- 근거: init의 background load, `saveQueue`의 파일 쓰기, `resetAllData()`의 메모리 초기화/파일 삭제가 하나의 직렬화된 상태나 generation 검증 없이 독립적으로 실행된다.
+- 제안: load/save/reset을 하나의 저장소 직렬 큐 또는 generation token으로 조정하고, 초기화를 위해 로딩 엔진을 새로 만드는 대신 저장소 수준 reset API를 제공한다.
+- 검증: 코드 경로 확인. load/save를 보류한 상태에서 reset 후 보류 작업을 완료하는 경쟁 조건 테스트가 없다.
+
+#### [P3][Open] n-gram 로딩 전 확정된 단어가 학습에서 누락될 수 있음
+
+- 위치: `Modules/SYKeyboardCore/Domain/PredictiveText/NGramPredictiveTextEngine.swift:263`, `Modules/SYKeyboardCore/Domain/PredictiveText/NGramPredictiveTextEngine.swift:274`
+- 영향: 키보드 표시 직후 로딩이 끝나기 전에 스페이스나 리턴으로 확정된 초기 단어가 n-gram 학습에 포함되지 않을 수 있다.
+- 근거: `addWord(_:)`와 `endSentence()`는 `isLoaded == false`이면 요청을 버린다. `snm-40-predictive-loading` 문서도 로딩 전 기록 queue 필요 여부를 미해결 질문으로 남겼다.
+- 제안: 로딩 전 기록을 메모리 queue에 보관해 로딩 완료 후 순서대로 적용하거나, 누락을 의도된 trade-off로 명시하고 검증한다.
+- 검증: 코드 경로와 `dev/active/snm-40-predictive-loading/` 확인. 로딩 전 `addWord`/`endSentence` 호출 보존 여부 테스트가 없다.
+
 ## Handoff
 
 - Track 2부터 각 리뷰 채팅의 findings는 이 문서의 `## Findings` 아래에 트랙별 섹션으로 추가한다.
@@ -101,4 +151,7 @@ Last Updated: 2026-06-07
 - 다른 트랙으로 넘길 내용은 해당 트랙 섹션 끝에 `Handoff` 항목으로 남긴다.
 - Track 1의 나랏글 이중모음 교차 입력 동작은 사용자 확인으로 의도된 동작으로 정리했다.
 - Track 2의 세 finding은 모두 제스처/UIControl 취소 상태 전이와 관련되어 있어 함께 수정하고 interaction test로 검증하는 편이 적절하다.
-- Track 4에서는 selection 변화와 `inputBuffer`/suggestion 상태 동기화가 자동완성 결과에 미치는 영향을 확인한다.
+- Track 4의 selection stale 후보 finding은 실제 `textWillChange(_:)`/`textDidChange(_:)` 호출 동작 확인으로 `Invalid` 처리했다. selection 콜백 대신 text change 콜백을 외부 문서 컨텍스트 동기화 기준으로 본다.
+- Track 4의 텍스트 대치 복구 이력 문제는 `textWillChange(_:)`에서 `inputBuffer`와 n-gram 문맥은 초기화하지만 replacement history는 유지한다는 점을 고려해 후속 검증한다.
+- Track 4의 lexicon/n-gram 로딩 findings는 `dev/active/snm-40-predictive-loading/`의 미해결 질문과 연결해 후속 처리한다.
+- Track 5에서는 메인 앱에서 학습 데이터 초기화를 요청하는 설정 화면과 n-gram 저장소 reset 계약을 함께 확인한다.

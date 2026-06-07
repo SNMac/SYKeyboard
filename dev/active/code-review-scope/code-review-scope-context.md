@@ -54,6 +54,17 @@ Last Updated: 2026-06-07
 - `ButtonStateController`의 해제 action은 `.touchUpInside`, `.touchUpOutside`만 처리하며 `.touchCancel`을 처리하지 않는다.
 - `TextInteractionGestureController`와 `SwitchGestureController`는 `.ended`, `.cancelled`, `.failed`를 같은 종료 분기에서 처리한다.
 - 현재 `SYKeyboardTests`에는 gesture controller의 취소/실패 상태나 `ButtonStateController`의 `.touchCancel` event 흐름을 직접 검증하는 테스트가 없다.
+- 4번 리뷰 시점의 현재 브랜치는 `refactor/#57-overall-code-review`, HEAD는 `fda3b45e`이며 작업 시작 시 작업트리는 깨끗했다.
+- `0fc8cb81..fda3b45e`에는 코드리뷰 문서와 PR 템플릿 변경만 있고 Track 4 자동완성 코드는 `origin/develop`과 같다.
+- 사용자 수동 확인 결과 `selectionWillChange(_:)`와 `selectionDidChange(_:)`는 어떤 조건에서도 호출되는 것을 관찰하지 못했다. iOS 자체 문제이거나 아직 호출 조건을 찾지 못한 상태다.
+- 사용자 수동 확인 결과 focus 중인 텍스트 필드 변경, 사용자의 텍스트 필드 탭, 커서 이동 시 `textWillChange(_:)`와 `textDidChange(_:)`가 호출된다.
+- 현재 구현은 `textWillChange(_:)`에서 `resetInputBuffer()`를 호출하고 `textDidChange(_:)`에서 `updateSuggestions()`를 호출하므로, 외부 필드/커서 변경 시 `inputBuffer`와 후보 동기화는 selection 콜백이 아니라 text change 콜백을 기준으로 수행된다.
+- `SuggestionController.attemptTextReplacement(baseText:)`는 단어 경계 없이 전체 `baseText`의 suffix로 단축어를 찾는다.
+- `SuggestionController.attemptRestoreReplacement(...)`는 위치 anchor 없이 전체 `replacementHistory`를 탐색한다.
+- lexicon 요청은 `viewDidAppear(_:)` 이후 비동기로 시작되고, lexicon 준비 전 `attemptTextReplacement(baseText:)`는 재시도 없이 실패한다.
+- `NGramPredictiveTextEngine`의 load, save, reset은 서로 다른 실행 경로에서 직렬화 없이 파일과 메모리 상태를 변경한다.
+- `NGramPredictiveTextEngine.addWord(_:)`와 `endSentence()`는 background load 완료 전 호출을 무시한다.
+- 현재 Track 4 관련 테스트는 엔진 준비 횟수, n-gram callback main-thread 갱신, suggestion 선택 정책, undo/redo manager를 검증하지만 selection 변경, 텍스트 대치 경계/복구 위치, 저장소 경쟁 조건을 직접 검증하지 않는다.
 
 ## Decisions
 
@@ -126,3 +137,7 @@ Last Updated: 2026-06-07
 - 코드 빌드나 테스트는 실행하지 않았다. 이번 작업은 리뷰 범위와 baseline 절차 문서화이며 코드 동작 변경이 없다.
 - 2번 리뷰에서 일반 샌드박스의 `xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0'`는 CoreSimulatorService, clang ModuleCache, SwiftPM ManifestLoading 권한 오류로 실패했다.
 - 같은 테스트를 권한 있는 환경에서 재실행했고 `iPhone 13 mini / iOS 16.0`에서 `TEST SUCCEEDED`를 확인했다.
+- 4번 리뷰에서 `requesting-code-review` 지침에 따라 독립 코드리뷰 서브에이전트를 실행하고 Track 4 findings를 교차검증했다.
+- 4번 리뷰의 Track 4 집중 테스트는 일반 샌드박스에서 CoreSimulatorService, clang ModuleCache, SwiftPM ManifestLoading 권한 오류로 실패했다.
+- 같은 집중 테스트를 권한 있는 환경에서 재실행했고 `iPhone 13 mini / iOS 16.0`에서 `TEST SUCCEEDED`를 확인했다.
+- 4번 리뷰에서 권한 있는 환경의 전체 `xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0'`도 `TEST SUCCEEDED`를 확인했다.

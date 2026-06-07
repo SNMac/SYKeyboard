@@ -20,7 +20,7 @@ Last Updated: 2026-06-07
 - [x] `0. Baseline Inventory And Review Rules` 리뷰를 별도 채팅에서 진행한다.
 - [x] `1. Hangeul Input Domain Logic` 리뷰를 별도 채팅에서 진행한다.
 - [x] `2. Common Keyboard Interaction Runtime` 리뷰를 별도 채팅에서 진행한다.
-- [ ] `4. Predictive Text And Suggestion Bar` 리뷰를 별도 채팅에서 진행한다.
+- [x] `4. Predictive Text And Suggestion Bar` 리뷰를 별도 채팅에서 진행한다.
 - [ ] `5. Settings And UserDefaults Contract` 리뷰를 별도 채팅에서 진행한다.
 - [ ] `3. Keyboard Layout, Views, And Assets` 리뷰를 별도 채팅에서 진행한다.
 - [ ] `6. Keyboard Extension Entry Points` 리뷰를 별도 채팅에서 진행한다.
@@ -38,6 +38,11 @@ Last Updated: 2026-06-07
 - 1번 리뷰 검증으로 일반 샌드박스와 권한 있는 환경에서 `xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0'`를 실행했다. 일반 샌드박스는 CoreSimulator/SwiftPM cache 권한 오류로 실패했고, 권한 있는 실행은 `TEST SUCCEEDED`로 통과했다.
 - 2번 공통 키보드 interaction runtime 리뷰에서 취소된 텍스트 팬의 입력 실행 P1, `touchCancel` 눌림 상태 잔존 P1, 취소된 키보드 전환 제스처 확정 P2를 발견해 `code-review-scope-findings.md`에 누적했다.
 - 2번 리뷰 검증으로 일반 샌드박스와 권한 있는 환경에서 동일한 `xcodebuild test`를 실행했다. 일반 샌드박스는 CoreSimulator/SwiftPM cache 권한 오류로 실패했고, 권한 있는 `iPhone 13 mini / iOS 16.0` 실행은 `TEST SUCCEEDED`로 통과했다. 기존 테스트에는 제스처 취소 및 `touchCancel` 상태 전이 검증이 없다.
+- 4번 자동완성/suggestion bar 리뷰에서 selection 변경 후 stale 후보 적용 P1, 다른 위치의 동일 대치 문구 복구 P1, 단어 내부 suffix 텍스트 대치 P1, 첫 lexicon 로딩 전 대치 누락 P2, n-gram reset 경쟁 조건 P2, 로딩 전 n-gram 기록 누락 P3를 발견해 `code-review-scope-findings.md`에 누적했다.
+- 4번 리뷰는 `requesting-code-review` 지침에 따라 독립 코드리뷰 서브에이전트 결과와 로컬 코드 경로 검토를 교차검증했다.
+- 4번 리뷰의 Track 4 집중 테스트는 일반 샌드박스에서 CoreSimulator/SwiftPM cache 권한 오류로 실패했고, 권한 있는 `iPhone 13 mini / iOS 16.0` 실행은 `TEST SUCCEEDED`로 통과했다. 기존 테스트에는 새 findings의 상태 전이를 직접 검증하는 케이스가 없다.
+- 4번 리뷰의 권한 있는 전체 `SYKeyboard` 테스트도 `iPhone 13 mini / iOS 16.0`에서 `TEST SUCCEEDED`로 통과했다.
+- 사용자 수동 확인 결과 필드 변경/텍스트 필드 탭/커서 이동 시 `textWillChange(_:)`와 `textDidChange(_:)`가 호출되어 input buffer와 후보가 갱신됨을 확인했다. 이에 따라 selection 변경 후 stale 후보 적용 P1을 `Invalid`로 정정했다.
 
 ## Per-Chat Checklist
 
