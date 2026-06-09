@@ -391,7 +391,7 @@
 			);
 			target = 5BB373A92ED5D937006AB083 /* EnglishKeyboardCore */;
 		};
-				5BCECD552F26C3B800A7F562 /* Exceptions for "Modules" folder in "HangeulKeyboardCore" target */ = {
+		5BCECD552F26C3B800A7F562 /* Exceptions for "Modules" folder in "HangeulKeyboardCore" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				HangeulKeyboardCore/Domain/Automata/HangeulAutomata.swift,
@@ -459,6 +459,11 @@
 				5BCECD552F26C3B800A7F562 /* Exceptions for "Modules" folder in "HangeulKeyboardCore" target */,
 			);
 			path = Modules;
+			sourceTree = "<group>";
+		};
+		5BF8E7482FD7D15A00BA7B7F /* ci_scripts */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = ci_scripts;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -542,6 +547,7 @@
 		5B7B3F4D2C569B7800F7C093 = {
 			isa = PBXGroup;
 			children = (
+				5BF8E7482FD7D15A00BA7B7F /* ci_scripts */,
 				5BCECC832F26C3A900A7F562 /* Modules */,
 				5BC38F1B2D8AE2FE00E6B44E /* README.md */,
 				5BA419DE2CB99238005E7C86 /* .gitignore */,
@@ -641,6 +647,7 @@
 				5BC07E132DAD0BD8005796AB /* Common */,
 				5BC07E462DAD0BDA005796AB /* SYKeyboard */,
 				5BCECC832F26C3A900A7F562 /* Modules */,
+				5BF8E7482FD7D15A00BA7B7F /* ci_scripts */,
 			);
 			name = SYKeyboard;
 			productName = SYKeyboard;
@@ -1913,7 +1920,7 @@
 			repositoryURL = "https://github.com/googleads/swift-package-manager-google-mobile-ads.git";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 12.14.0;
+				minimumVersion = 13.4.0;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
