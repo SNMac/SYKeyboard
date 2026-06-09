@@ -25,7 +25,7 @@ struct ContentView: View {
     var body: some View {
         NavigationStack {
             GeometryReader { geometry in
-                let adSize = currentOrientationAnchoredAdaptiveBanner(width: geometry.size.width)
+                let adSize = largeAnchoredAdaptiveBanner(width: geometry.size.width)
                 
                 ZStack(alignment: .bottom) {
                     VStack {
