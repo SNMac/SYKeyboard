@@ -24,7 +24,7 @@ Last Updated: 2026-06-14
 - [x] `5. Settings And UserDefaults Contract` 리뷰를 별도 채팅에서 진행한다.
 - [x] `3. Keyboard Layout, Views, And Assets` 리뷰를 별도 채팅에서 진행한다.
 - [x] `6. Keyboard Extension Entry Points` 리뷰를 별도 채팅에서 진행한다.
-- [ ] `7. Main App Shell, Onboarding, Ads, And Resources` 리뷰를 별도 채팅에서 진행한다.
+- [x] `7. Main App Shell, Onboarding, Ads, And Resources` 리뷰를 별도 채팅에서 진행한다.
 - [ ] `8. Build, Packaging, And Repository Hygiene` 리뷰를 별도 채팅에서 진행한다.
 - [x] 각 채팅의 findings를 하나의 종합 목록으로 병합할지 결정한다.
 
@@ -58,6 +58,12 @@ Last Updated: 2026-06-14
 - 사용자 결정에 따라 설정 이동 실패 무시 P3는 `Deferred`로 변경했다. 사용자 실패 UI는 추가하지 않고 개발자 진단 로그만 후속 개선 대상으로 둔다.
 - 사용자 결정에 따라 전체 접근 오버레이 닫힘 상태는 각 keyboard extension의 `UserDefaults.standard`에 저장하기로 했다. app-group 동기화/마이그레이션 없이 한글/영문 상태를 독립적으로 유지한다.
 - 사용자 결정에 따라 EnglishKeyboard Debug/Release target에도 `APPLICATION_EXTENSION_API_ONLY = YES`를 적용하기로 했다. 후속 코드 변경 시 EnglishKeyboard extension target 빌드로 검증한다.
+- 7번 Main App Shell, Onboarding, Ads, And Resources 리뷰에서 설정 이동 deep link와 최초 ATT 요청 충돌 P2, 화면 폭 변경 후 adaptive banner 크기 미동기화 P2, 광고 미수신 시 빈 하단 safe area P2, 자동 인앱 리뷰 요청 연결 해제 P2, 한국어 온보딩 문구의 영문 `or` P3를 발견해 `code-review-scope-findings.md`에 누적했다.
+- 7번 리뷰는 `requesting-code-review` 지침에 따라 독립 코드리뷰 서브에이전트 결과와 로컬 코드/리소스 경로 검토를 교차검증했다.
+- 7번 리뷰의 일반 샌드박스 `SYKeyboard` 빌드는 CoreSimulator/SwiftPM cache 권한 오류로 실패했고, 권한 있는 `iPhone 13 mini / iOS 16.0` 실행은 `BUILD SUCCEEDED`로 통과했다.
+- Track 7의 `sykeyboard://`는 현재 extension의 설정 이동 전용 URL이므로 URL 종류를 구분하지 않는 동작 자체는 finding으로 보지 않았다. 향후 다른 deep link를 추가할 때 명시적인 routing을 정의한다.
+- Track 7의 ATT 충돌은 iOS 26.5 시뮬레이터에서 재현됐고, banner 성공/실패 및 회전/resize와 자동 리뷰 요청 흐름은 실제 UI 수동 검증이 남아 있다.
+- Track 7의 한국어 온보딩 문구 P3는 `or`를 `드래그하거나` 표현으로 수정하고 실제 안내, preview, String Catalog 반영을 확인해 `Resolved` 처리했다.
 
 ## Per-Chat Checklist
 

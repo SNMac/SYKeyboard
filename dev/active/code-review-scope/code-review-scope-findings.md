@@ -215,6 +215,48 @@ Last Updated: 2026-06-14
 - 후속: 개발자가 실패 상황을 확인할 수 있도록 responder chain에서 `UIApplication`을 찾지 못한 경우와 URL 열기 completion 실패에 진단 로그를 남기는 수준으로 제한한다.
 - 검증: 사용자 결정 및 코드 경로 확인. 진단 로그를 추가할 때 성공/실패 분기만 확인한다.
 
+### Track 7. Main App Shell, Onboarding, Ads, And Resources
+
+#### [P2][Open] 설정 이동 deep link가 최초 ATT 권한 요청과 충돌함
+
+- 위치: `SYKeyboard/App/SYKeyboardApp.swift:121`, `SYKeyboard/App/SYKeyboardApp.swift:126`
+- 영향: 전체 접근 안내에서 `sykeyboard://`로 앱을 열어 시스템 설정으로 이동하려는 최초 사용자가, 설정 앱 위에서 SYKeyboard의 추적 권한 팝업을 보게 되어 설정 흐름이 중단되고 권한 요청 맥락도 불명확해진다.
+- 근거: `.onOpenURL`은 즉시 시스템 설정을 열고, 인접한 `didBecomeActive` 구독은 ATT 상태가 `.notDetermined`이면 독립적으로 권한을 요청한다. 독립 코드리뷰에서 iOS 26.5 시뮬레이터의 최초 권한 상태로 `sykeyboard://`를 열었을 때 Settings가 foreground인 상태에서 SYKeyboard ATT 팝업이 표시되는 것을 재현했다.
+- 제안: ATT 요청을 온보딩 이후의 명시적인 앱 내부 시점으로 이동하거나, 설정 redirect를 처리하는 동안에는 ATT 요청을 보류한다.
+- 검증: ATT 권한을 초기화한 뒤 `sykeyboard://` 진입 시 Settings가 팝업 없이 열리는지 확인하고, 일반 앱 실행에서는 정한 앱 내부 시점에 ATT 요청이 표시되는지 확인한다.
+
+#### [P2][Open] 화면 폭 변경 후 adaptive banner가 최초 크기를 유지함
+
+- 위치: `SYKeyboard/Presentation/Content/ContentView.swift:28`, `SYKeyboard/Presentation/Content/BannerAd/BannerAdView.swift:37`
+- 영향: 회전 또는 iPad 창 크기 변경 후 SwiftUI가 확보한 광고 영역과 실제 로드된 banner 크기가 달라져 광고가 잘리거나 빈 공간이 생길 수 있다.
+- 근거: `ContentView`는 현재 `geometry.size.width`로 `adSize`를 다시 계산하지만, `BannerAdView.updateUIView(_:,context:)`가 비어 있어 이미 생성된 `BannerView`의 `adSize`와 광고 요청은 갱신되지 않는다.
+- 제안: `updateUIView`에서 새 크기와 현재 banner 크기를 비교해 `adSize`를 갱신하고 필요한 경우 광고를 다시 요청한다.
+- 검증: 광고 로드 후 기기 회전과 iPad 창 크기 변경을 수행해 `BannerView.adSize`, 실제 frame, SwiftUI 광고 영역이 일치하는지 확인한다.
+
+#### [P2][Open] 광고를 받지 못해도 빈 하단 safe area가 유지됨
+
+- 위치: `SYKeyboard/Presentation/Content/ContentView.swift:36`
+- 영향: 네트워크 오류, 광고 재고 부족, 초기 로딩 중에도 설정 목록 아래에 광고 높이만큼 빈 공간이 남아 사용 가능한 화면 영역이 줄어든다.
+- 근거: `safeAreaInset` 내부의 `BannerAdView`는 항상 `adSize.size.height`까지 레이아웃에 참여한다. `isAdReceived == false`일 때 적용하는 `.opacity(0)`와 `.allowsHitTesting(false)`는 표시와 입력만 바꾸며 레이아웃 공간은 제거하지 않는다.
+- 제안: 광고 수신 성공 시에만 safe-area 높이를 확보하거나, 수신 상태에 따라 광고 container 높이를 0과 실제 높이 사이에서 전환한다.
+- 검증: 광고 요청을 실패시키거나 오프라인으로 실행해 하단 빈 공간이 없는지 확인하고, 광고 수신 후에만 설정 목록이 광고 높이만큼 안전하게 올라가는지 확인한다.
+
+#### [P2][Open] 자동 인앱 리뷰 요청 modifier가 어떤 화면에도 연결되지 않음
+
+- 위치: `SYKeyboard/Presentation/Components/ViewModifiers/RequestReviewViewModifier.swift:14`, `SYKeyboard/Presentation/Utils/Extensions/View+Extension.swift:15`
+- 영향: 사용자가 앱 화면을 반복 방문해도 `reviewCounter`가 증가하지 않고 자동 인앱 리뷰 요청이 절대 표시되지 않는다. 수동 App Store 리뷰 버튼만 동작한다.
+- 근거: `requestReviewViewModifier()` helper와 modifier 구현은 남아 있지만, 현재 Swift 파일에서 이를 적용하는 호출이 없다. Git 이력상 과거 설정 화면들에는 modifier가 적용되어 있었으므로 기능 연결이 제거된 상태다.
+- 제안: 자동 리뷰 요청을 유지할 계획이면 반복 방문을 의미하는 안정적인 화면에 modifier를 적용하고, 유지하지 않을 계획이면 modifier와 관련 저장 키를 제거해 의도를 명확히 한다.
+- 검증: 자동 요청을 유지할 경우 threshold 직전 counter로 대상 화면을 열고 닫아 counter 증가, build당 1회 제한, 요청 호출을 확인한다.
+
+#### [P3][Resolved] 한 손 키보드 안내의 한국어 문구에 영문 `or`가 노출됨
+
+- 위치: `SYKeyboard/Presentation/Content/InstructionsTabView.swift:49`, `SYKeyboard/Presentation/InstructionsTab/InstructionsPageView.swift:62`, `SYKeyboard/Resources/Localizable.xcstrings`
+- 영향: 한국어 온보딩 화면에 영문 접속사가 섞여 문구 완성도가 떨어진다.
+- 근거: 한국어 source 문자열이 `"'!#1', '한글' 또는 'ABC' 버튼을 위로 드래그 or 길게 누르기"`로 정의되어 있다.
+- 처리: 실제 안내 문구와 SwiftUI preview 문구를 자연스러운 한국어인 `위로 드래그하거나 길게 누르기`로 변경하고 String Catalog key를 함께 갱신했다.
+- 검증: `jq empty SYKeyboard/Resources/Localizable.xcstrings`, `xcodebuild build -project SYKeyboard.xcodeproj -scheme SYKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0'`
+
 ## Handoff
 
 - Track 2부터 각 리뷰 채팅의 findings는 이 문서의 `## Findings` 아래에 트랙별 섹션으로 추가한다.
@@ -234,4 +276,7 @@ Last Updated: 2026-06-14
 - Track 6의 전체 접근 오버레이 닫힘 상태는 각 extension의 `UserDefaults.standard`에만 저장한다. app-group 동기화나 마이그레이션은 하지 않으며 한글/영문 상태를 독립적으로 유지한다.
 - Track 6의 EnglishKeyboard Debug/Release에 `APPLICATION_EXTENSION_API_ONLY = YES`를 적용하기로 결정했다. Track 8의 build/packaging 리뷰에서도 target별 설정 parity와 적용 후 빌드 결과를 다시 확인한다.
 - Track 6의 설정 이동 실패는 비핵심 best-effort 기능으로 유지한다. 사용자 실패 UI 대신 개발자 진단 로그만 후속 개선 대상으로 둔다.
-- `SYKeyboardApp`의 `.onOpenURL`은 현재 URL 종류와 관계없이 시스템 설정을 연다. `sykeyboard://` 진입 흐름의 의도와 다른 deep link 영향은 Track 7에서 확인한다.
+- Track 7 확인 결과 `sykeyboard://`는 현재 등록된 유일한 custom scheme이며 extension의 설정 이동 전용으로 사용되므로, URL 종류를 구분하지 않고 시스템 설정을 여는 현재 동작 자체는 finding으로 보지 않는다. 향후 다른 deep link를 추가할 때는 명시적인 URL routing을 먼저 정의한다.
+- Track 7의 ATT/설정 이동 충돌은 extension overlay에서 시작되는 사용자 흐름이지만 수정 책임은 메인 앱 lifecycle에 둔다.
+- Track 7의 banner 두 finding은 함께 수정하고, 광고 성공/실패 및 기기 회전/iPad resize 흐름을 수동 검증하는 편이 적절하다.
+- Track 7에서 `SYKeyboard/Resources/Info.plist` source에 `DeveloperEmail` key가 두 번 선언된 것을 확인했다. 빌드 결과에는 하나의 값만 남지만 source hygiene와 Firebase/config packaging 전반은 Track 8로 넘긴다.

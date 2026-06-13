@@ -85,6 +85,17 @@ Last Updated: 2026-06-14
 - HangeulKeyboard Debug/Release target에는 `APPLICATION_EXTENSION_API_ONLY = YES`가 있고 EnglishKeyboard Debug/Release target에는 해당 설정이 없다.
 - 두 extension의 `openURL(_:)`은 responder chain에서 `UIApplication`을 찾지 못하거나 URL 열기에 실패해도 사용자 피드백이나 오류 기록 없이 종료한다.
 - 한글/영문 extension의 Info.plist, entitlements, String Catalog 구성에서는 추가 concrete finding을 확인하지 못했다.
+- 7번 리뷰 시점의 현재 브랜치는 `refactor/#57-overall-code-review`, HEAD는 `07a9ccfe`이며 작업 시작 시 `code-review-scope-context.md`, `code-review-scope-findings.md`, `code-review-scope-tasks.md`에 사용자 변경이 있었다.
+- `origin/develop..07a9ccfe`에는 리뷰 문서/운영 문서 변경만 있고 Track 7 메인 앱 runtime 코드는 `origin/develop`과 같다.
+- `sykeyboard://`는 현재 앱에 등록된 유일한 custom URL scheme이며 한글/영문 extension의 전체 접근 안내에서 시스템 설정 이동을 요청할 때 사용한다.
+- `SYKeyboardApp`은 custom URL 수신 시 시스템 설정을 열고, 같은 app lifecycle에서 ATT 상태가 `.notDetermined`이면 권한을 요청한다.
+- 독립 코드리뷰에서 iOS 26.5 시뮬레이터의 최초 권한 상태로 `sykeyboard://`를 열었을 때 Settings 위에 SYKeyboard ATT 팝업이 표시되는 것을 재현했다.
+- `ContentView`는 geometry 폭으로 adaptive banner 크기를 다시 계산하지만 `BannerAdView.updateUIView`는 비어 있다.
+- 광고 미수신 상태의 `.opacity(0)`와 `.allowsHitTesting(false)`는 `safeAreaInset` 내부 banner의 레이아웃 높이를 제거하지 않는다.
+- `RequestReviewViewModifier`와 `requestReviewViewModifier()` helper는 존재하지만 현재 앱 화면에는 적용되지 않는다.
+- 한 손 키보드 변경 안내의 한국어 source 문자열에는 영문 `or`가 포함되어 있었고, 이후 `위로 드래그하거나 길게 누르기`로 수정했다.
+- Track 7 범위의 Info.plist, entitlements, Firebase plist는 `plutil -lint`를 통과했고 String Catalog 및 onboarding asset catalog JSON은 `jq`로 파싱됐다.
+- 권한 있는 환경의 `SYKeyboard` 빌드는 `iPhone 13 mini / iOS 16.0`에서 `BUILD SUCCEEDED`로 통과했으며, 빌드 결과물에 `GoogleService-Info.plist`, `en.lproj`, `ko.lproj`, `Assets.car`가 포함된 것을 확인했다.
 
 ## Decisions
 
@@ -177,3 +188,8 @@ Last Updated: 2026-06-14
 - 6번 리뷰의 첫 EnglishKeyboard 빌드는 HangeulKeyboard와 동일 DerivedData에서 병렬 실행되어 build database/Info.plist 작업 충돌로 실패했다. 별도 `/private/tmp/SYKeyboard-Track6-English` DerivedData 경로에서 단독 재실행한 빌드는 성공했다.
 - EnglishKeyboard에 `APPLICATION_EXTENSION_API_ONLY=YES`를 명령행에서 전역 override한 검증은 host app에도 설정이 적용되어 `UIApplication.shared`에서 실패했다. target 단독 override 재시도는 DerivedData 내부 충돌로 완료하지 못했다.
 - `plutil -lint`로 한글/영문 extension의 Info.plist와 entitlements, 메인 앱 Info.plist가 모두 유효함을 확인했다.
+- 7번 리뷰에서 `requesting-code-review` 지침에 따라 독립 코드리뷰 서브에이전트를 실행하고 Track 7 findings를 로컬 코드 경로와 교차검증했다.
+- 7번 리뷰의 일반 샌드박스 `SYKeyboard` 빌드는 CoreSimulator/SwiftPM cache 권한 오류로 실패했다.
+- 같은 빌드를 권한 있는 환경에서 재실행했고 `iPhone 13 mini / iOS 16.0`에서 `BUILD SUCCEEDED`를 확인했다.
+- Track 7의 ATT/설정 이동 충돌은 독립 리뷰어가 iOS 26.5 시뮬레이터에서 재현했다. banner 레이아웃과 자동 리뷰 요청 findings는 코드 경로로 확인했으며 실제 UI 수동 검증이 남아 있다.
+- Track 7의 한국어 온보딩 문구 P3는 실제 안내, SwiftUI preview, String Catalog를 함께 수정하고 `Resolved` 처리했다.
