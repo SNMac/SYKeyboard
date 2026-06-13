@@ -73,6 +73,12 @@ Last Updated: 2026-06-13
 - 앱 전용 `isOnboarding` manager getter도 선언된 기본값 `true`와 달리 absent key에서 `false`를 반환하지만, 현재 `ContentView`는 `@AppStorage` 기본값을 사용한다.
 - `PredictiveTextSettingsView`의 학습 데이터 초기화는 임시 n-gram 엔진을 만들어 `resetAllData()`를 호출하므로, 기존 Track 4의 load/save/reset 경쟁 조건이 설정 화면의 전체 삭제 약속에도 영향을 준다.
 - 현재 `SYKeyboardTests`에는 UserDefaults 키/기본값/type parity, absent-key fallback, 동일 keyboard controller 재진입 후 설정 동기화 테스트가 없다.
+- 3번 리뷰 시점의 현재 브랜치는 `refactor/#57-overall-code-review`, HEAD는 `59912481`이며 작업 시작 시 작업트리는 깨끗했다.
+- `origin/develop..59912481`에는 리뷰 문서/운영 문서 변경만 있고 Track 3 레이아웃/View/asset 런타임 코드는 `origin/develop`과 같다.
+- `KeyboardView`의 `keyboardLayoutView` 너비는 설정값을 `greaterThanOrEqualToConstant` 하한으로만 사용하므로, 한 손 모드에서 설정한 폭보다 확장될 수 있다.
+- 기본 리턴 키 이미지는 `.alwaysOriginal`과 `.label` 색상으로 생성되며, 비활성화 시 `UIImageView.tintColor`만 변경하므로 비활성 색상이 이미지에 적용되지 않는다.
+- Track 3 포함 범위의 한글/영문 모드별 숨김 처리와 `SYKBDAssets.bundle`/XIB custom module/색상 asset 접근에서는 추가 concrete finding을 확인하지 못했다.
+- `SYKeyboardAssets/Sources/SYKeyboardAssets/Resources/.DS_Store`는 로컬에 존재하지만 `.gitignore` 대상이며 git에는 추적되지 않는다.
 
 ## Decisions
 
@@ -152,3 +158,7 @@ Last Updated: 2026-06-13
 - 5번 리뷰에서 `requesting-code-review` 지침에 따라 독립 코드리뷰 서브에이전트를 실행하고 Track 5 findings를 교차검증했다.
 - 5번 리뷰에서 일반 샌드박스의 `xcodebuild -list -project SYKeyboard.xcodeproj`는 CoreSimulator/SwiftPM cache 권한 오류로 실패했다.
 - 5번 리뷰에서 권한 있는 환경의 `xcodebuild build -project SYKeyboard.xcodeproj -scheme SYKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0'`는 `BUILD SUCCEEDED`로 통과했다.
+- 3번 리뷰에서 `requesting-code-review` 지침에 따라 독립 코드리뷰 서브에이전트를 실행하고 Track 3 findings를 교차검증했다.
+- 3번 리뷰에서 일반 샌드박스의 HangeulKeyboard/EnglishKeyboard 빌드는 CoreSimulator/SwiftPM cache 권한 오류로 실패했다.
+- 같은 빌드를 권한 있는 환경에서 재실행했고 `iPhone 13 mini / iOS 16.0`에서 HangeulKeyboard와 EnglishKeyboard 모두 `BUILD SUCCEEDED`를 확인했다.
+- Track 3의 두 finding은 빌드로 재현되지 않는 시각/Auto Layout 문제이므로 실제 extension과 preview 수동 검증이 남아 있다.

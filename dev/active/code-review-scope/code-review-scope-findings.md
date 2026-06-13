@@ -94,6 +94,24 @@ Last Updated: 2026-06-13
 - 제안: 취소/실패 시 overlay와 버튼 상태만 정리하고 delegate 변경은 `.ended`에서만 확정한다. overlay가 표시된 상태에서 각 제스처를 취소하는 테스트를 추가한다.
 - 검증: 코드 경로 확인. 현재 테스트에는 `SwitchGestureController` 취소 상태 검증이 없다.
 
+### Track 3. Keyboard Layout, Views, And Assets
+
+#### [P2][Open] 한 손 키보드가 설정한 너비보다 확장될 수 있음
+
+- 위치: `Modules/SYKeyboardCore/Presentation/View/KeyboardView.swift:178`
+- 영향: 한 손 키보드 너비 슬라이더 값이 실제 키보드 너비로 보장되지 않으며, 넓은 화면이나 회전 후 키보드가 예상보다 크게 표시될 수 있다. 작은 화면에서는 설정 폭과 chevron이 함께 배치되며 제약 충돌 또는 가장자리 잘림 위험도 있다.
+- 근거: `keyboardLayoutView` 너비는 `greaterThanOrEqualToConstant`로만 제한된다. 한 손 모드에서도 수평 `UIStackView`가 남는 공간을 `keyboardLayoutView`에 배분할 수 있고, `updateOneHandedWidth(_:)`도 같은 하한값만 변경한다.
+- 제안: 한 손 모드에서는 가용 폭으로 clamp한 `equalToConstant` 너비 제약을 사용하고, 중앙 모드에서는 해당 고정 폭 제약을 비활성화한다.
+- 검증: 코드 경로와 독립 코드리뷰 결과 확인. 슬라이더 `300/320/340` 각각에서 portrait/landscape, 한글/영문 preview 및 실제 extension의 `keyboardLayoutView.frame.width`를 측정하는 수동 검증이 필요하다.
+
+#### [P3][Open] 비활성화된 기본 리턴 키 아이콘이 활성 색상으로 남음
+
+- 위치: `Modules/SYKeyboardCore/Presentation/View/Components/Buttons/ReturnButton.swift:78`, `Modules/SYKeyboardCore/Presentation/View/Components/Buttons/ReturnButton.swift:181`
+- 영향: `enablesReturnKeyAutomatically`로 기본 리턴 키가 비활성화되어도 아이콘은 활성 상태 색상으로 보여 비활성 상태가 불명확하다. 배경과 입력 차단은 정상이다.
+- 근거: 기본 리턴 이미지는 `.alwaysOriginal`과 `.label` 색상으로 생성된다. 비활성화 시 `primaryKeyListImageView.tintColor`만 변경하므로 이미지 색상에는 적용되지 않는다.
+- 제안: 기본 리턴 이미지를 template rendering으로 사용하거나 비활성화 시 `.returnButtonDisabledLabel` 색상으로 다시 생성한다.
+- 검증: 코드 경로와 독립 코드리뷰 결과 확인. 빈 필드에서 비활성 기본 리턴 키의 아이콘/라벨/배경 색상과 텍스트 입력 후 활성 상태 복원을 수동 확인해야 한다.
+
 ### Track 4. Predictive Text And Suggestion Bar
 
 #### [P1][Invalid] selection 변경 후 이전 후보가 새 위치의 텍스트를 변경할 수 있음
@@ -177,6 +195,9 @@ Last Updated: 2026-06-13
 - 다른 트랙으로 넘길 내용은 해당 트랙 섹션 끝에 `Handoff` 항목으로 남긴다.
 - Track 1의 나랏글 이중모음 교차 입력 동작은 사용자 확인으로 의도된 동작으로 정리했다.
 - Track 2의 세 finding은 모두 제스처/UIControl 취소 상태 전이와 관련되어 있어 함께 수정하고 interaction test로 검증하는 편이 적절하다.
+- Track 3의 한 손 키보드 폭 finding은 실제 extension과 preview의 portrait/landscape 프레임 측정이 필요하다. 고정 폭 적용 시 작은 화면 가용 폭 clamp도 함께 정의해야 한다.
+- Track 3의 기본 리턴 키 아이콘 finding은 `ReturnButton`의 template/original rendering 정책을 정리할 때 함께 수정한다.
+- `SYKeyboardAssets/Sources/SYKeyboardAssets/Resources/.DS_Store`는 `.gitignore` 대상이라 추적되지는 않지만 로컬 리소스 폴더에 존재한다. 실제 SPM 리소스 번들 포함 여부는 Track 8에서 확인한다.
 - Track 4의 selection stale 후보 finding은 실제 `textWillChange(_:)`/`textDidChange(_:)` 호출 동작 확인으로 `Invalid` 처리했다. selection 콜백 대신 text change 콜백을 외부 문서 컨텍스트 동기화 기준으로 본다.
 - Track 4의 텍스트 대치 복구 이력 문제는 `textWillChange(_:)`에서 `inputBuffer`와 n-gram 문맥은 초기화하지만 replacement history는 유지한다는 점을 고려해 후속 검증한다.
 - Track 4의 lexicon/n-gram 로딩 findings는 `dev/active/snm-40-predictive-loading/`의 미해결 질문과 연결해 후속 처리한다.

@@ -22,7 +22,7 @@ Last Updated: 2026-06-13
 - [x] `2. Common Keyboard Interaction Runtime` 리뷰를 별도 채팅에서 진행한다.
 - [x] `4. Predictive Text And Suggestion Bar` 리뷰를 별도 채팅에서 진행한다.
 - [x] `5. Settings And UserDefaults Contract` 리뷰를 별도 채팅에서 진행한다.
-- [ ] `3. Keyboard Layout, Views, And Assets` 리뷰를 별도 채팅에서 진행한다.
+- [x] `3. Keyboard Layout, Views, And Assets` 리뷰를 별도 채팅에서 진행한다.
 - [ ] `6. Keyboard Extension Entry Points` 리뷰를 별도 채팅에서 진행한다.
 - [ ] `7. Main App Shell, Onboarding, Ads, And Resources` 리뷰를 별도 채팅에서 진행한다.
 - [ ] `8. Build, Packaging, And Repository Hygiene` 리뷰를 별도 채팅에서 진행한다.
@@ -47,6 +47,10 @@ Last Updated: 2026-06-13
 - 5번 리뷰는 `requesting-code-review` 지침에 따라 독립 코드리뷰 서브에이전트 결과와 로컬 코드 경로 검토를 교차검증했다.
 - 5번 리뷰에서 학습 데이터 초기화 화면이 기존 Track 4의 n-gram reset 경쟁 조건 영향을 받는 것을 확인했으며, 중복 finding 대신 Track 4/5 handoff로 기록했다.
 - 5번 리뷰의 일반 샌드박스 `xcodebuild -list`는 CoreSimulator/SwiftPM cache 권한 오류로 실패했고, 권한 있는 `SYKeyboard` 앱 빌드는 `iPhone 13 mini / iOS 16.0`에서 `BUILD SUCCEEDED`로 통과했다.
+- 3번 Keyboard Layout, Views, And Assets 리뷰에서 한 손 키보드가 설정 폭보다 확장될 수 있는 P2와 비활성 기본 리턴 키 아이콘 색상 P3를 발견해 `code-review-scope-findings.md`에 누적했다.
+- 3번 리뷰는 `requesting-code-review` 지침에 따라 독립 코드리뷰 서브에이전트 결과와 로컬 코드 경로 검토를 교차검증했다.
+- 3번 리뷰의 일반 샌드박스 HangeulKeyboard/EnglishKeyboard 빌드는 CoreSimulator/SwiftPM cache 권한 오류로 실패했고, 권한 있는 `iPhone 13 mini / iOS 16.0` 실행은 두 scheme 모두 `BUILD SUCCEEDED`로 통과했다.
+- Track 3 findings는 실제 extension과 preview에서 portrait/landscape 수동 확인이 필요하다. 로컬 리소스 폴더의 ignored `.DS_Store` 실제 패키징 여부는 Track 8로 넘긴다.
 
 ## Per-Chat Checklist
 
