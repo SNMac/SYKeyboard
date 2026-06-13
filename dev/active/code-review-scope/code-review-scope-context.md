@@ -1,6 +1,6 @@
 # Code Review Scope Context
 
-Last Updated: 2026-06-07
+Last Updated: 2026-06-13
 
 ## Relevant Files
 
@@ -65,6 +65,14 @@ Last Updated: 2026-06-07
 - `NGramPredictiveTextEngine`의 load, save, reset은 서로 다른 실행 경로에서 직렬화 없이 파일과 메모리 상태를 변경한다.
 - `NGramPredictiveTextEngine.addWord(_:)`와 `endSentence()`는 background load 완료 전 호출을 무시한다.
 - 현재 Track 4 관련 테스트는 엔진 준비 횟수, n-gram callback main-thread 갱신, suggestion 선택 정책, undo/redo manager를 검증하지만 selection 변경, 텍스트 대치 경계/복구 위치, 저장소 경쟁 조건을 직접 검증하지 않는다.
+- 5번 리뷰 시점의 현재 브랜치는 `refactor/#57-overall-code-review`, HEAD는 `6d4d6b07`이며 작업 시작 시 작업트리는 깨끗했다.
+- `origin/develop..6d4d6b07`에는 리뷰 문서/운영 문서 변경만 있고 Track 5 설정 및 저장소 런타임 코드는 `origin/develop`과 같다.
+- 영어 자동 대문자 기본값과 `InputSettingsView`의 `@AppStorage` 기본값은 `true`지만, `UserDefaultsManager.isAutoCapitalizationEnabled`는 absent key에서 `storage.bool(forKey:)`의 `false`를 반환한다.
+- 영어 키보드의 `updateShiftButton()`과 앱 초기 Analytics는 `UserDefaultsManager.isAutoCapitalizationEnabled`를 직접 읽는다.
+- 공통 키보드 런타임은 조건부 action/gesture와 suggestion 설정을 `viewDidLoad()`에서 구성하며, `viewWillAppear()`에서는 해당 설정을 다시 동기화하지 않는다.
+- 앱 전용 `isOnboarding` manager getter도 선언된 기본값 `true`와 달리 absent key에서 `false`를 반환하지만, 현재 `ContentView`는 `@AppStorage` 기본값을 사용한다.
+- `PredictiveTextSettingsView`의 학습 데이터 초기화는 임시 n-gram 엔진을 만들어 `resetAllData()`를 호출하므로, 기존 Track 4의 load/save/reset 경쟁 조건이 설정 화면의 전체 삭제 약속에도 영향을 준다.
+- 현재 `SYKeyboardTests`에는 UserDefaults 키/기본값/type parity, absent-key fallback, 동일 keyboard controller 재진입 후 설정 동기화 테스트가 없다.
 
 ## Decisions
 
@@ -141,3 +149,6 @@ Last Updated: 2026-06-07
 - 4번 리뷰의 Track 4 집중 테스트는 일반 샌드박스에서 CoreSimulatorService, clang ModuleCache, SwiftPM ManifestLoading 권한 오류로 실패했다.
 - 같은 집중 테스트를 권한 있는 환경에서 재실행했고 `iPhone 13 mini / iOS 16.0`에서 `TEST SUCCEEDED`를 확인했다.
 - 4번 리뷰에서 권한 있는 환경의 전체 `xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0'`도 `TEST SUCCEEDED`를 확인했다.
+- 5번 리뷰에서 `requesting-code-review` 지침에 따라 독립 코드리뷰 서브에이전트를 실행하고 Track 5 findings를 교차검증했다.
+- 5번 리뷰에서 일반 샌드박스의 `xcodebuild -list -project SYKeyboard.xcodeproj`는 CoreSimulator/SwiftPM cache 권한 오류로 실패했다.
+- 5번 리뷰에서 권한 있는 환경의 `xcodebuild build -project SYKeyboard.xcodeproj -scheme SYKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0'`는 `BUILD SUCCEEDED`로 통과했다.

@@ -1,6 +1,6 @@
 # Code Review Scope Tasks
 
-Last Updated: 2026-06-07
+Last Updated: 2026-06-13
 
 ## Setup Checklist
 
@@ -21,7 +21,7 @@ Last Updated: 2026-06-07
 - [x] `1. Hangeul Input Domain Logic` 리뷰를 별도 채팅에서 진행한다.
 - [x] `2. Common Keyboard Interaction Runtime` 리뷰를 별도 채팅에서 진행한다.
 - [x] `4. Predictive Text And Suggestion Bar` 리뷰를 별도 채팅에서 진행한다.
-- [ ] `5. Settings And UserDefaults Contract` 리뷰를 별도 채팅에서 진행한다.
+- [x] `5. Settings And UserDefaults Contract` 리뷰를 별도 채팅에서 진행한다.
 - [ ] `3. Keyboard Layout, Views, And Assets` 리뷰를 별도 채팅에서 진행한다.
 - [ ] `6. Keyboard Extension Entry Points` 리뷰를 별도 채팅에서 진행한다.
 - [ ] `7. Main App Shell, Onboarding, Ads, And Resources` 리뷰를 별도 채팅에서 진행한다.
@@ -43,6 +43,10 @@ Last Updated: 2026-06-07
 - 4번 리뷰의 Track 4 집중 테스트는 일반 샌드박스에서 CoreSimulator/SwiftPM cache 권한 오류로 실패했고, 권한 있는 `iPhone 13 mini / iOS 16.0` 실행은 `TEST SUCCEEDED`로 통과했다. 기존 테스트에는 새 findings의 상태 전이를 직접 검증하는 케이스가 없다.
 - 4번 리뷰의 권한 있는 전체 `SYKeyboard` 테스트도 `iPhone 13 mini / iOS 16.0`에서 `TEST SUCCEEDED`로 통과했다.
 - 사용자 수동 확인 결과 필드 변경/텍스트 필드 탭/커서 이동 시 `textWillChange(_:)`와 `textDidChange(_:)`가 호출되어 input buffer와 후보가 갱신됨을 확인했다. 이에 따라 selection 변경 후 stale 후보 적용 P1을 `Invalid`로 정정했다.
+- 5번 Settings/UserDefaults 계약 리뷰에서 최초 설치 자동 대문자 기본값 불일치 P1, 키보드 controller 재진입 시 설정 미동기화 P2, 앱 전용 온보딩 manager 기본값 불일치 P3를 발견해 `code-review-scope-findings.md`에 누적했다.
+- 5번 리뷰는 `requesting-code-review` 지침에 따라 독립 코드리뷰 서브에이전트 결과와 로컬 코드 경로 검토를 교차검증했다.
+- 5번 리뷰에서 학습 데이터 초기화 화면이 기존 Track 4의 n-gram reset 경쟁 조건 영향을 받는 것을 확인했으며, 중복 finding 대신 Track 4/5 handoff로 기록했다.
+- 5번 리뷰의 일반 샌드박스 `xcodebuild -list`는 CoreSimulator/SwiftPM cache 권한 오류로 실패했고, 권한 있는 `SYKeyboard` 앱 빌드는 `iPhone 13 mini / iOS 16.0`에서 `BUILD SUCCEEDED`로 통과했다.
 
 ## Per-Chat Checklist
 

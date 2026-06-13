@@ -1,6 +1,6 @@
 # Code Review Scope Findings
 
-Last Updated: 2026-06-07
+Last Updated: 2026-06-13
 
 ## Purpose
 
@@ -144,6 +144,32 @@ Last Updated: 2026-06-07
 - 제안: 로딩 전 기록을 메모리 queue에 보관해 로딩 완료 후 순서대로 적용하거나, 누락을 의도된 trade-off로 명시하고 검증한다.
 - 검증: 코드 경로와 `dev/active/snm-40-predictive-loading/` 확인. 로딩 전 `addWord`/`endSentence` 호출 보존 여부 테스트가 없다.
 
+### Track 5. Settings And UserDefaults Contract
+
+#### [P1][Open] 최초 설치에서 자동 대문자 기본값이 설정 화면과 키보드 런타임에서 다르게 해석됨
+
+- 위치: `Modules/EnglishKeyboardCore/Storage/UserDefaultsManager+Extension.swift:15`, `Modules/EnglishKeyboardCore/Storage/DefaultValues+Extension.swift:12`, `SYKeyboard/Presentation/KeyboardSettings/InputSettingsView.swift:22`
+- 영향: 사용자가 자동 대문자 설정을 변경한 적 없는 최초 설치 상태에서 설정 화면은 활성화로 표시하지만, 영어 키보드는 자동 대문자를 비활성화하고 앱 초기 Analytics도 비활성화로 기록한다.
+- 근거: 선언된 기본값과 `@AppStorage` 기본값은 `true`지만, 영어 키보드 런타임 getter는 키가 없으면 `false`를 반환하는 `storage.bool(forKey:)`를 사용한다. `EnglishKeyboardCoreViewController.updateShiftButton()`은 이 getter를 직접 읽는다.
+- 제안: `UserDefaultsWrapper`를 사용하거나 `storage.object(forKey:) as? Bool ?? DefaultValues.isAutoCapitalizationEnabled`로 absent-key fallback을 일치시킨다.
+- 검증: 코드 경로 확인. 빈 App Group 저장소에서 설정 화면과 manager getter가 모두 `true`를 반환하는 계약 테스트가 없다.
+
+#### [P2][Open] 키보드 컨트롤러가 재사용되면 변경된 설정 일부가 다시 반영되지 않음
+
+- 위치: `Modules/SYKeyboardCore/Presentation/ViewController/Bases/BaseKeyboardViewController.swift:207`, `Modules/SYKeyboardCore/Presentation/ViewController/Bases/BaseKeyboardViewController.swift:226`
+- 영향: 기존 키보드 컨트롤러가 사라졌다 다시 표시되는 동안 앱에서 설정을 바꾸면, 마침표 단축키, 커서 드래그, 길게 누르기, 숫자 키패드/한 손 모드 전환 제스처, 자동완성/텍스트 대치 상태가 이전 값으로 남을 수 있다.
+- 근거: 설정 화면은 App Group `@AppStorage`에 즉시 값을 쓰지만, 런타임은 조건부 action/gesture와 suggestion 상태를 `viewDidLoad()`에서만 구성한다. `viewWillAppear()`는 키보드 높이와 햅틱 준비만 갱신하며 설정을 다시 적용하지 않는다.
+- 제안: 재진입 시 호출할 idempotent 설정 갱신 경로를 정의하고, 조건부 action/gesture 추가·제거 및 suggestion 상태를 현재 저장값과 동기화한다.
+- 검증: 동일 controller 인스턴스를 재사용하면서 disappear/appear 사이 설정값을 변경하는 lifecycle 테스트가 없다.
+
+#### [P3][Open] 앱 전용 온보딩 manager getter가 선언된 기본값과 다름
+
+- 위치: `SYKeyboard/Storage/UserDefaultsManager+Extension.swift:13`, `SYKeyboard/Storage/DefaultValues+Extension.swift:12`
+- 영향: 현재 `ContentView`는 올바른 `@AppStorage` 기본값을 사용하므로 즉시 사용자 영향은 없지만, 향후 manager getter를 직접 사용하는 코드는 최초 실행에서 온보딩 기본값을 `true`가 아닌 `false`로 해석한다.
+- 근거: 선언된 기본값은 `true`지만 getter는 키가 없으면 `false`를 반환하는 `storage.bool(forKey:)`를 사용한다.
+- 제안: 공통 default-aware wrapper 또는 명시적인 absent-key fallback으로 getter 계약을 일치시킨다.
+- 검증: 빈 저장소의 앱 전용 기본값을 검증하는 테스트가 없다.
+
 ## Handoff
 
 - Track 2부터 각 리뷰 채팅의 findings는 이 문서의 `## Findings` 아래에 트랙별 섹션으로 추가한다.
@@ -154,4 +180,6 @@ Last Updated: 2026-06-07
 - Track 4의 selection stale 후보 finding은 실제 `textWillChange(_:)`/`textDidChange(_:)` 호출 동작 확인으로 `Invalid` 처리했다. selection 콜백 대신 text change 콜백을 외부 문서 컨텍스트 동기화 기준으로 본다.
 - Track 4의 텍스트 대치 복구 이력 문제는 `textWillChange(_:)`에서 `inputBuffer`와 n-gram 문맥은 초기화하지만 replacement history는 유지한다는 점을 고려해 후속 검증한다.
 - Track 4의 lexicon/n-gram 로딩 findings는 `dev/active/snm-40-predictive-loading/`의 미해결 질문과 연결해 후속 처리한다.
-- Track 5에서는 메인 앱에서 학습 데이터 초기화를 요청하는 설정 화면과 n-gram 저장소 reset 계약을 함께 확인한다.
+- Track 5에서 메인 앱의 학습 데이터 초기화 화면이 모든 데이터 삭제를 약속하지만 임시 엔진을 생성해 `resetAllData()`를 호출한다는 점을 확인했다. 기존 Track 4의 n-gram reset 경쟁 조건을 해결할 때 설정 화면과 활성 extension 엔진 사이의 저장소 수준 reset 계약을 함께 정의해야 한다.
+- Track 5의 키보드 재진입 설정 갱신 finding은 공통 런타임과 extension lifecycle에 걸쳐 있으므로 Track 2/6 후속 수정에서 함께 다룬다.
+- Track 5 범위에는 UserDefaults 키/기본값/type parity, absent-key fallback, 재진입 설정 갱신을 직접 검증하는 테스트가 없다.
