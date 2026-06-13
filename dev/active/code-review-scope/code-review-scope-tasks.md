@@ -1,6 +1,6 @@
 # Code Review Scope Tasks
 
-Last Updated: 2026-06-13
+Last Updated: 2026-06-14
 
 ## Setup Checklist
 
@@ -23,7 +23,7 @@ Last Updated: 2026-06-13
 - [x] `4. Predictive Text And Suggestion Bar` 리뷰를 별도 채팅에서 진행한다.
 - [x] `5. Settings And UserDefaults Contract` 리뷰를 별도 채팅에서 진행한다.
 - [x] `3. Keyboard Layout, Views, And Assets` 리뷰를 별도 채팅에서 진행한다.
-- [ ] `6. Keyboard Extension Entry Points` 리뷰를 별도 채팅에서 진행한다.
+- [x] `6. Keyboard Extension Entry Points` 리뷰를 별도 채팅에서 진행한다.
 - [ ] `7. Main App Shell, Onboarding, Ads, And Resources` 리뷰를 별도 채팅에서 진행한다.
 - [ ] `8. Build, Packaging, And Repository Hygiene` 리뷰를 별도 채팅에서 진행한다.
 - [x] 각 채팅의 findings를 하나의 종합 목록으로 병합할지 결정한다.
@@ -51,6 +51,13 @@ Last Updated: 2026-06-13
 - 3번 리뷰는 `requesting-code-review` 지침에 따라 독립 코드리뷰 서브에이전트 결과와 로컬 코드 경로 검토를 교차검증했다.
 - 3번 리뷰의 일반 샌드박스 HangeulKeyboard/EnglishKeyboard 빌드는 CoreSimulator/SwiftPM cache 권한 오류로 실패했고, 권한 있는 `iPhone 13 mini / iOS 16.0` 실행은 두 scheme 모두 `BUILD SUCCEEDED`로 통과했다.
 - Track 3 findings는 실제 extension과 preview에서 portrait/landscape 수동 확인이 필요하다. 로컬 리소스 폴더의 ignored `.DS_Store` 실제 패키징 여부는 Track 8로 넘긴다.
+- 6번 Keyboard Extension Entry Points 리뷰에서 전체 접근 미허용 상태의 오버레이 닫힘 저장 P2, EnglishKeyboard app-extension-safe API 검사 누락 P2, 설정 이동 실패 무시 P3를 발견해 `code-review-scope-findings.md`에 누적했다.
+- 6번 리뷰는 `requesting-code-review` 지침에 따라 독립 코드리뷰 서브에이전트 결과와 로컬 코드/target 설정 검토를 교차검증했다.
+- 6번 리뷰의 일반 샌드박스 Xcode 확인은 CoreSimulator/SwiftPM cache 권한 오류로 실패했다. 권한 있는 `iPhone 13 mini / iOS 16.0` HangeulKeyboard 빌드와 별도 DerivedData 경로의 EnglishKeyboard 빌드는 성공했다.
+- 6번 리뷰에서 한글/영문 extension Info.plist와 entitlements는 `plutil -lint`를 통과했다. 전체 접근 미허용 상태의 닫힘 유지와 설정 이동 버튼은 실제 extension 수동 검증이 남아 있다.
+- 사용자 결정에 따라 설정 이동 실패 무시 P3는 `Deferred`로 변경했다. 사용자 실패 UI는 추가하지 않고 개발자 진단 로그만 후속 개선 대상으로 둔다.
+- 사용자 결정에 따라 전체 접근 오버레이 닫힘 상태는 각 keyboard extension의 `UserDefaults.standard`에 저장하기로 했다. app-group 동기화/마이그레이션 없이 한글/영문 상태를 독립적으로 유지한다.
+- 사용자 결정에 따라 EnglishKeyboard Debug/Release target에도 `APPLICATION_EXTENSION_API_ONLY = YES`를 적용하기로 했다. 후속 코드 변경 시 EnglishKeyboard extension target 빌드로 검증한다.
 
 ## Per-Chat Checklist
 

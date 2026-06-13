@@ -1,6 +1,6 @@
 # Code Review Scope Findings
 
-Last Updated: 2026-06-13
+Last Updated: 2026-06-14
 
 ## Purpose
 
@@ -188,6 +188,33 @@ Last Updated: 2026-06-13
 - 제안: 공통 default-aware wrapper 또는 명시적인 absent-key fallback으로 getter 계약을 일치시킨다.
 - 검증: 빈 저장소의 앱 전용 기본값을 검증하는 테스트가 없다.
 
+### Track 6. Keyboard Extension Entry Points
+
+#### [P2][Open] 전체 접근 미허용 상태에서 오버레이 닫힘 상태를 공유 컨테이너에 저장함
+
+- 위치: `Keyboards/HangeulKeyboard/Presentation/ViewController/HangeulKeyboardViewController.swift:70`, `Keyboards/EnglishKeyboard/Presentation/ViewController/EnglishKeyboardViewController.swift:70`, `Modules/SYKeyboardCore/Storage/UserDefaultsManager.swift:180`
+- 영향: 전체 접근을 허용하지 않은 사용자가 안내를 닫아도 keyboard extension이 app-group 공유 컨테이너에 접근할 수 없어 닫힘 상태가 다음 세션에 유지되지 않을 수 있다. 그 결과 한글/영문 키보드를 다시 열 때 전체 화면 오버레이가 반복 표시될 수 있다.
+- 근거: 오버레이는 `hasFullAccess == false`일 때 표시되지만 닫기 action은 app-group suite를 사용하는 `keyboardSettingsManager.isRequestFullAccessOverlayClosed`에 기록한다.
+- 결정: 닫힘 상태는 각 keyboard extension의 `UserDefaults.standard`에 기록한다. 한글/영문 extension은 닫힘 상태를 서로 독립적으로 유지하며, app-group 저장소와 동기화하거나 전체 접근 허용 후 마이그레이션하지 않는다.
+- 검증: 독립 코드리뷰와 코드 경로 확인. 수정 후 전체 접근 미허용 상태에서 한글/영문 키보드 각각 오버레이를 닫고 extension을 종료/재실행해 상태가 독립적으로 유지되는지 확인한다.
+
+#### [P2][Open] EnglishKeyboard target에 app-extension-safe API 검사가 비활성화되어 있음
+
+- 위치: `SYKeyboard.xcodeproj/project.pbxproj:1477`, `SYKeyboard.xcodeproj/project.pbxproj:1511`
+- 영향: 영어 keyboard extension 또는 의존 코드에 app extension에서 사용할 수 없는 API가 추가되어도 빌드 시 검출되지 않을 수 있다. 같은 역할의 한글 extension과 안전성 검증 수준도 달라진다.
+- 근거: HangeulKeyboard Debug/Release에는 `APPLICATION_EXTENSION_API_ONLY = YES`가 있지만 EnglishKeyboard Debug/Release에는 해당 설정이 없다.
+- 결정: EnglishKeyboard Debug/Release에도 `APPLICATION_EXTENSION_API_ONLY = YES`를 적용한다. 변경 후 extension target만 대상으로 빌드해 현재 의존성까지 app-extension-safe인지 확인한다.
+- 검증: 일반 EnglishKeyboard scheme 빌드는 통과했다. 명령행에서 설정을 전역 override하면 host app에도 적용되어 `UIApplication.shared`에서 실패했고, target 단독 override 검증은 DerivedData 내부 충돌로 완료하지 못했다.
+
+#### [P3][Deferred] 설정 이동 버튼이 URL 열기 실패를 조용히 무시함
+
+- 위치: `Keyboards/HangeulKeyboard/Presentation/ViewController/HangeulKeyboardViewController.swift:104`, `Keyboards/EnglishKeyboard/Presentation/ViewController/EnglishKeyboardViewController.swift:104`
+- 영향: responder chain에서 `UIApplication`을 찾지 못하거나 URL 열기가 거부되면 사용자가 `시스템 설정 이동` 버튼을 눌러도 아무 반응이 없다.
+- 근거: `openURL(_:)`은 `UIApplication`을 찾지 못하면 그대로 종료하고, `application.open(url)`의 성공/실패 completion도 처리하지 않는다.
+- 판단: 설정 이동은 비핵심 편의 기능이며 오버레이에 수동 설정 경로가 이미 표시되어 있다. 사용자 실패 UI나 복잡한 fallback은 추가하지 않고 현재 best-effort 동작을 유지한다.
+- 후속: 개발자가 실패 상황을 확인할 수 있도록 responder chain에서 `UIApplication`을 찾지 못한 경우와 URL 열기 completion 실패에 진단 로그를 남기는 수준으로 제한한다.
+- 검증: 사용자 결정 및 코드 경로 확인. 진단 로그를 추가할 때 성공/실패 분기만 확인한다.
+
 ## Handoff
 
 - Track 2부터 각 리뷰 채팅의 findings는 이 문서의 `## Findings` 아래에 트랙별 섹션으로 추가한다.
@@ -204,3 +231,7 @@ Last Updated: 2026-06-13
 - Track 5에서 메인 앱의 학습 데이터 초기화 화면이 모든 데이터 삭제를 약속하지만 임시 엔진을 생성해 `resetAllData()`를 호출한다는 점을 확인했다. 기존 Track 4의 n-gram reset 경쟁 조건을 해결할 때 설정 화면과 활성 extension 엔진 사이의 저장소 수준 reset 계약을 함께 정의해야 한다.
 - Track 5의 키보드 재진입 설정 갱신 finding은 공통 런타임과 extension lifecycle에 걸쳐 있으므로 Track 2/6 후속 수정에서 함께 다룬다.
 - Track 5 범위에는 UserDefaults 키/기본값/type parity, absent-key fallback, 재진입 설정 갱신을 직접 검증하는 테스트가 없다.
+- Track 6의 전체 접근 오버레이 닫힘 상태는 각 extension의 `UserDefaults.standard`에만 저장한다. app-group 동기화나 마이그레이션은 하지 않으며 한글/영문 상태를 독립적으로 유지한다.
+- Track 6의 EnglishKeyboard Debug/Release에 `APPLICATION_EXTENSION_API_ONLY = YES`를 적용하기로 결정했다. Track 8의 build/packaging 리뷰에서도 target별 설정 parity와 적용 후 빌드 결과를 다시 확인한다.
+- Track 6의 설정 이동 실패는 비핵심 best-effort 기능으로 유지한다. 사용자 실패 UI 대신 개발자 진단 로그만 후속 개선 대상으로 둔다.
+- `SYKeyboardApp`의 `.onOpenURL`은 현재 URL 종류와 관계없이 시스템 설정을 연다. `sykeyboard://` 진입 흐름의 의도와 다른 deep link 영향은 Track 7에서 확인한다.

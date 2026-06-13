@@ -1,6 +1,6 @@
 # Code Review Scope Context
 
-Last Updated: 2026-06-13
+Last Updated: 2026-06-14
 
 ## Relevant Files
 
@@ -79,6 +79,12 @@ Last Updated: 2026-06-13
 - 기본 리턴 키 이미지는 `.alwaysOriginal`과 `.label` 색상으로 생성되며, 비활성화 시 `UIImageView.tintColor`만 변경하므로 비활성 색상이 이미지에 적용되지 않는다.
 - Track 3 포함 범위의 한글/영문 모드별 숨김 처리와 `SYKBDAssets.bundle`/XIB custom module/색상 asset 접근에서는 추가 concrete finding을 확인하지 못했다.
 - `SYKeyboardAssets/Sources/SYKeyboardAssets/Resources/.DS_Store`는 로컬에 존재하지만 `.gitignore` 대상이며 git에는 추적되지 않는다.
+- 6번 리뷰 시점의 현재 브랜치는 `refactor/#57-overall-code-review`, HEAD는 `7d14be52`이며 작업 시작 시 작업트리는 깨끗했다.
+- `origin/develop..7d14be52`에는 리뷰 문서/운영 문서 변경만 있고 Track 6 extension entry point 런타임 코드는 `origin/develop`과 같다.
+- 전체 접근 안내 오버레이는 `hasFullAccess == false`일 때 표시되지만 닫힘 상태는 app-group suite의 `isRequestFullAccessOverlayClosed`에 기록한다.
+- HangeulKeyboard Debug/Release target에는 `APPLICATION_EXTENSION_API_ONLY = YES`가 있고 EnglishKeyboard Debug/Release target에는 해당 설정이 없다.
+- 두 extension의 `openURL(_:)`은 responder chain에서 `UIApplication`을 찾지 못하거나 URL 열기에 실패해도 사용자 피드백이나 오류 기록 없이 종료한다.
+- 한글/영문 extension의 Info.plist, entitlements, String Catalog 구성에서는 추가 concrete finding을 확인하지 못했다.
 
 ## Decisions
 
@@ -101,6 +107,9 @@ Last Updated: 2026-06-13
 - 리뷰 findings와 후속 문서 변경은 현재 #49 기능 변경과 섞이지 않도록 별도 커밋 또는 별도 브랜치/작업트리로 분리하는 것을 기본 원칙으로 둔다.
 - 각 리뷰 채팅은 시작 시 현재 브랜치, HEAD, `git status --short --branch`, 검증 명령 결과를 자체 baseline으로 다시 기록한다. 이전 문서의 Facts Checked는 과거 시점 기록으로만 사용한다.
 - 전체 리뷰 findings는 `dev/active/code-review-scope/code-review-scope-findings.md`에 종합한다. 각 채팅 final answer는 즉시 공유용이고, 장기 추적은 findings 문서를 기준으로 한다.
+- Track 6의 설정 이동 버튼은 비핵심 편의 기능이므로 URL 열기 실패 시 사용자 실패 UI나 복잡한 fallback을 추가하지 않는다. 현재 best-effort 동작을 유지하고 개발자 진단 로그만 후속 개선 대상으로 둔다.
+- Track 6의 전체 접근 오버레이 닫힘 상태는 각 keyboard extension의 `UserDefaults.standard`에 저장한다. 한글/영문 extension별 상태는 독립적으로 유지하고 app-group 저장소와 동기화하거나 전체 접근 허용 후 마이그레이션하지 않는다.
+- Track 6의 EnglishKeyboard Debug/Release target에도 HangeulKeyboard와 동일하게 `APPLICATION_EXTENSION_API_ONLY = YES`를 적용한다. 적용 후 EnglishKeyboard extension target 빌드로 app-extension-safe API 계약을 검증한다.
 
 ## Inferences
 
@@ -162,3 +171,9 @@ Last Updated: 2026-06-13
 - 3번 리뷰에서 일반 샌드박스의 HangeulKeyboard/EnglishKeyboard 빌드는 CoreSimulator/SwiftPM cache 권한 오류로 실패했다.
 - 같은 빌드를 권한 있는 환경에서 재실행했고 `iPhone 13 mini / iOS 16.0`에서 HangeulKeyboard와 EnglishKeyboard 모두 `BUILD SUCCEEDED`를 확인했다.
 - Track 3의 두 finding은 빌드로 재현되지 않는 시각/Auto Layout 문제이므로 실제 extension과 preview 수동 검증이 남아 있다.
+- 6번 리뷰에서 `requesting-code-review` 지침에 따라 독립 코드리뷰 서브에이전트를 실행하고 Track 6 findings를 교차검증했다.
+- 6번 리뷰의 일반 샌드박스 `xcodebuild -showBuildSettings`는 CoreSimulator/SwiftPM cache 권한 오류로 실패했다.
+- 6번 리뷰에서 권한 있는 `HangeulKeyboard` 빌드는 `iPhone 13 mini / iOS 16.0`에서 성공했다.
+- 6번 리뷰의 첫 EnglishKeyboard 빌드는 HangeulKeyboard와 동일 DerivedData에서 병렬 실행되어 build database/Info.plist 작업 충돌로 실패했다. 별도 `/private/tmp/SYKeyboard-Track6-English` DerivedData 경로에서 단독 재실행한 빌드는 성공했다.
+- EnglishKeyboard에 `APPLICATION_EXTENSION_API_ONLY=YES`를 명령행에서 전역 override한 검증은 host app에도 설정이 적용되어 `UIApplication.shared`에서 실패했다. target 단독 override 재시도는 DerivedData 내부 충돌로 완료하지 못했다.
+- `plutil -lint`로 한글/영문 extension의 Info.plist와 entitlements, 메인 앱 Info.plist가 모두 유효함을 확인했다.
