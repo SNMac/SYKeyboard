@@ -25,7 +25,7 @@ Last Updated: 2026-06-14
 - [x] `3. Keyboard Layout, Views, And Assets` 리뷰를 별도 채팅에서 진행한다.
 - [x] `6. Keyboard Extension Entry Points` 리뷰를 별도 채팅에서 진행한다.
 - [x] `7. Main App Shell, Onboarding, Ads, And Resources` 리뷰를 별도 채팅에서 진행한다.
-- [ ] `8. Build, Packaging, And Repository Hygiene` 리뷰를 별도 채팅에서 진행한다.
+- [x] `8. Build, Packaging, And Repository Hygiene` 리뷰를 별도 채팅에서 진행한다.
 - [x] 각 채팅의 findings를 하나의 종합 목록으로 병합할지 결정한다.
 
 ## Completed Review Notes
@@ -64,6 +64,13 @@ Last Updated: 2026-06-14
 - Track 7의 `sykeyboard://`는 현재 extension의 설정 이동 전용 URL이므로 URL 종류를 구분하지 않는 동작 자체는 finding으로 보지 않았다. 향후 다른 deep link를 추가할 때 명시적인 routing을 정의한다.
 - Track 7의 ATT 충돌은 iOS 26.5 시뮬레이터에서 재현됐고, banner 성공/실패 및 회전/resize와 자동 리뷰 요청 흐름은 실제 UI 수동 검증이 남아 있다.
 - Track 7의 한국어 온보딩 문구 P3는 `or`를 `드래그하거나` 표현으로 수정하고 실제 안내, preview, String Catalog 반영을 확인해 `Resolved` 처리했다.
+- 8번 Build, Packaging, And Repository Hygiene 리뷰에서 fresh clone 빌드 준비 절차 부재 P2, Xcode 16+ 문서와 `swift-tools-version: 6.2` 계약 불일치 P2, 앱 번들에 저장소 문서/CI 스크립트 포함 P3, Meta mediation의 mutable `main` 의존 P3, 메인 앱 Info.plist 중복 key P3, generated SwiftPM workspace metadata 추적 P3를 발견해 `code-review-scope-findings.md`에 누적했다.
+- 8번 리뷰는 `requesting-code-review` 지침에 따라 독립 코드리뷰 서브에이전트 결과와 로컬 project/package/산출물 검토를 교차검증했다.
+- 8번 리뷰의 일반 샌드박스 `xcodebuild -list`와 `swift package` 확인은 CoreSimulator/SwiftPM cache 권한 오류로 실패했다. 권한 있는 환경의 `xcodebuild -list`와 별도 DerivedData 경로의 `SYKeyboard` 빌드는 `iPhone 13 mini / iOS 16.0`에서 성공했다.
+- 빌드 산출물에서 `SYKeyboard.app/README.md`와 `SYKeyboard.app/ci_post_clone.sh` 포함을 확인했고, `SYKeyboardAssets` resource bundle에는 ignored `.DS_Store`가 포함되지 않은 것을 확인했다.
+- 사용자 확인에 따라 Xcode Cloud의 secret 생성과 정상 CI/CD를 clean-environment 계약으로 인정해 fresh clone bootstrap finding을 `Invalid` 처리했다.
+- 사용자가 `README.md` resource membership, `ci_post_clone.sh` app target membership, 중복 `DeveloperEmail`을 수정했고, `SYKeyboard` 재빌드 및 산출물 검사 후 관련 findings를 `Resolved` 처리했다.
+- Meta mediation은 다른 라이브러리의 전이 의존성이 아니라 프로젝트와 메인 앱 Frameworks에 직접 추가된 package임을 확인했다. 이후 release version 기반 requirement로 다시 추가하고 Meta adapter `6.21.101` resolve와 앱 빌드를 확인해 mutable `main` branch finding을 `Resolved` 처리했다.
 
 ## Per-Chat Checklist
 

@@ -257,6 +257,53 @@ Last Updated: 2026-06-14
 - 처리: 실제 안내 문구와 SwiftUI preview 문구를 자연스러운 한국어인 `위로 드래그하거나 길게 누르기`로 변경하고 String Catalog key를 함께 갱신했다.
 - 검증: `jq empty SYKeyboard/Resources/Localizable.xcstrings`, `xcodebuild build -project SYKeyboard.xcodeproj -scheme SYKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0'`
 
+### Track 8. Build, Packaging, And Repository Hygiene
+
+#### [P2][Invalid] fresh clone에서 문서의 빌드 명령을 실행할 준비 절차가 없음
+
+- 위치: `.gitignore:154`, `ci_scripts/ci_post_clone.sh:12`, `SYKeyboard.xcodeproj/project.pbxproj:949`, `AGENTS.md:79`
+- 판단: 저장소의 clean-environment 빌드 계약은 Xcode Cloud의 `ci_post_clone.sh`가 환경변수를 검증하고 `Secrets.xcconfig`와 Firebase plist를 생성하는 흐름이다. 사용자가 이 흐름에서 CI/CD 빌드와 테스트가 정상 수행됨을 확인했으며, 로컬 fresh clone bootstrap은 지원 요구사항이 아니므로 finding에서 제외한다.
+
+#### [P2][Open] 문서의 Xcode 16+ 지원 기준과 로컬 package 최소 tools version이 일치하지 않음
+
+- 위치: `README.md:50`, `AGENTS.md:52`, `SYKeyboardAssets/Package.swift:1`
+- 영향: Xcode 16 이상이면 개발 가능한 것으로 안내되지만, `SYKeyboardAssets` manifest는 Swift tools 6.2 이상을 요구해 낮은 버전 Xcode에서 package graph 해석 전에 막힐 수 있다.
+- 근거: README와 AGENTS는 Xcode 16+를 기준으로 선언하고, package manifest는 최소 tools version을 `6.2`로 선언한다. 현재 검증 환경은 Xcode 26.5 / Swift 6.3.2뿐이다.
+- 제안: 실제 최소 지원 Xcode를 문서에 명시하거나, package가 Swift tools 6.2 기능을 사용하지 않는다면 지원하려는 Xcode에 맞춰 tools version을 낮추고 검증한다.
+- 검증: 문서에 선언할 최소 Xcode에서 `xcodebuild -list`와 `SYKeyboard` 빌드를 실행한다.
+
+#### [P3][Resolved] 저장소 문서와 CI 스크립트가 메인 앱 번들에 포함됨
+
+- 위치: `SYKeyboard.xcodeproj/project.pbxproj:650`, `SYKeyboard.xcodeproj/project.pbxproj:839`
+- 영향: 런타임에 필요하지 않은 `README.md`와 `ci_post_clone.sh`가 app bundle에 포함되어 배포 산출물과 target membership에 불필요한 노이즈가 생긴다.
+- 근거: `README.md`는 app resources build phase에 명시적으로 포함되어 있고, `ci_scripts/`는 app target의 filesystem-synchronized group이다. 별도 DerivedData 빌드 산출물에서 두 파일의 실제 포함을 확인했다.
+- 처리: app resources build phase에서 `README.md`를 제거하고, filesystem-synchronized `ci_scripts/` group의 app target membership에서 `ci_post_clone.sh`를 제외했다.
+- 검증: `SYKeyboard` scheme 빌드가 성공했고, 새 app bundle에 `README.md`와 `ci_post_clone.sh`가 포함되지 않은 것을 확인했다.
+
+#### [P3][Resolved] Meta mediation 의존성이 mutable `main` branch를 따름
+
+- 위치: `SYKeyboard.xcodeproj/project.pbxproj:492`, `SYKeyboard.xcodeproj/project.pbxproj:818`, `SYKeyboard.xcodeproj/project.pbxproj:1910`, `SYKeyboard.xcodeproj/project.pbxproj:1937`
+- 영향: package update 시 검토되지 않은 adapter 변경이 들어와 빌드나 광고 동작이 달라질 수 있다.
+- 근거: Meta adapter repository가 프로젝트의 `packageReferences`에 직접 선언되고 `MetaAdapterTarget`도 메인 앱 Frameworks에 직접 연결되어 있어 다른 라이브러리의 전이 의존성이 아니다. package requirement는 `kind = branch`, `branch = main`이며, 현재 일반 clone 재현성은 `Package.resolved`의 revision `52622d3` 고정으로 완화된다.
+- 처리: Meta mediation package를 다시 추가하면서 requirement를 `upToNextMajorVersion`, 최소 버전 `6.21.101`로 변경하고 `Package.resolved`를 release version `6.21.101`로 갱신했다.
+- 검증: 별도 DerivedData 경로에서 package graph가 Meta adapter `6.21.101`과 FBAudienceNetwork `6.21.1`로 resolve됐고, `SYKeyboard` scheme 빌드가 성공했다.
+
+#### [P3][Resolved] 메인 앱 Info.plist에 `DeveloperEmail` key가 중복 선언됨
+
+- 위치: `SYKeyboard/Resources/Info.plist:7`
+- 영향: 중복 dictionary key는 도구별 해석이 모호하고 향후 두 값이 달라질 때 설정 drift를 숨길 수 있다.
+- 근거: source plist에 동일 key가 두 번 존재한다. `plutil -lint`는 통과하며 현재 빌드 산출물에는 하나의 값만 남는다.
+- 처리: 중복 선언 하나를 제거했다.
+- 검증: source plist의 `DeveloperEmail` key가 하나인 것과 `plutil -lint` 통과, 새 app bundle의 processed plist에 key가 하나인 것을 확인했다.
+
+#### [P3][Open] generated SwiftPM workspace metadata가 git에 추적됨
+
+- 위치: `SYKeyboardAssets/.swiftpm/xcode/package.xcworkspace/contents.xcworkspacedata:1`, `.gitignore:128`
+- 영향: 생성 가능한 workspace metadata가 불필요한 리뷰 변경을 만들고 저장소의 ignore 정책과 어긋난다.
+- 근거: 해당 파일과 정확히 일치하는 ignore 규칙이 있지만 파일은 이미 git에 추적되어 있다.
+- 제안: 파일을 git 추적에서 제거하고 현재 ignore 규칙을 유지한다.
+- 검증: package를 Xcode에서 다시 연 뒤 `git status --short`가 깨끗한지 확인한다.
+
 ## Handoff
 
 - Track 2부터 각 리뷰 채팅의 findings는 이 문서의 `## Findings` 아래에 트랙별 섹션으로 추가한다.
@@ -280,3 +327,9 @@ Last Updated: 2026-06-14
 - Track 7의 ATT/설정 이동 충돌은 extension overlay에서 시작되는 사용자 흐름이지만 수정 책임은 메인 앱 lifecycle에 둔다.
 - Track 7의 banner 두 finding은 함께 수정하고, 광고 성공/실패 및 기기 회전/iPad resize 흐름을 수동 검증하는 편이 적절하다.
 - Track 7에서 `SYKeyboard/Resources/Info.plist` source에 `DeveloperEmail` key가 두 번 선언된 것을 확인했다. 빌드 결과에는 하나의 값만 남지만 source hygiene와 Firebase/config packaging 전반은 Track 8로 넘긴다.
+- Track 8에서 전체 review execution checklist가 완료됐다. 다음 단계는 Open findings의 수정 우선순위와 묶음을 결정하는 것이다.
+- fresh clone bootstrap 문서화 finding은 Xcode Cloud의 secret 생성 흐름이 저장소의 clean-environment 빌드 계약이고 CI/CD가 정상 수행된다는 사용자 확인에 따라 `Invalid` 처리했다.
+- Track 8의 앱 번들 문서/스크립트 포함과 중복 `DeveloperEmail` findings는 사용자 수정 후 빌드 산출물 검증을 거쳐 `Resolved` 처리했다.
+- Meta mediation package는 전이 의존성이 아니라 프로젝트에 직접 추가된 의존성이다. release version 기반 requirement로 다시 추가하고 빌드를 검증해 mutable `main` branch finding을 `Resolved` 처리했다.
+- `SYKeyboardAssets` resource bundle에는 ignored `.DS_Store`가 포함되지 않아 추가 finding으로 보지 않는다.
+- Track 6의 EnglishKeyboard `APPLICATION_EXTENSION_API_ONLY` parity finding은 여전히 Open이며, Track 8에서 중복 finding을 추가하지 않았다.

@@ -96,6 +96,20 @@ Last Updated: 2026-06-14
 - 한 손 키보드 변경 안내의 한국어 source 문자열에는 영문 `or`가 포함되어 있었고, 이후 `위로 드래그하거나 길게 누르기`로 수정했다.
 - Track 7 범위의 Info.plist, entitlements, Firebase plist는 `plutil -lint`를 통과했고 String Catalog 및 onboarding asset catalog JSON은 `jq`로 파싱됐다.
 - 권한 있는 환경의 `SYKeyboard` 빌드는 `iPhone 13 mini / iOS 16.0`에서 `BUILD SUCCEEDED`로 통과했으며, 빌드 결과물에 `GoogleService-Info.plist`, `en.lproj`, `ko.lproj`, `Assets.car`가 포함된 것을 확인했다.
+- 8번 리뷰 시점의 현재 브랜치는 `refactor/#57-overall-code-review`, HEAD는 `16e5e752`이며 작업 시작 시 작업트리는 깨끗했다.
+- 저장소에서 추적되는 shared scheme은 `SYKeyboard`, `HangeulKeyboard`, `EnglishKeyboard` 3개이며, 권한 있는 `xcodebuild -list`는 Core target과 `SYKeyboardAssets`를 포함한 총 7개 scheme을 표시했다.
+- `Secrets.xcconfig`와 Debug/Release `GoogleService-Info.plist`는 `.gitignore` 대상이며, 생성 가능한 tracked 경로는 `ci_scripts/ci_post_clone.sh`뿐이다. README와 AGENTS의 로컬 빌드 절차에는 이 bootstrap 요구사항이 없다.
+- 사용자는 Xcode Cloud의 `ci_post_clone.sh` secret 생성 흐름을 clean-environment 빌드 계약으로 확인했으며, CI/CD 빌드와 테스트가 정상 수행되고 있어 로컬 fresh clone bootstrap을 별도 지원 요구사항으로 두지 않는다.
+- `AGENTS.md`와 README는 Xcode 16 이상을 개발 기준으로 표시하지만, 로컬 `SYKeyboardAssets/Package.swift`는 최소 tools version을 `6.2`로 선언한다.
+- `SYKeyboard` app target의 filesystem-synchronized group에 `ci_scripts/`가 포함되어 있고, app resources build phase에는 저장소 루트 `README.md`가 명시적으로 포함되어 있다.
+- 권한 있는 별도 DerivedData 빌드 산출물에는 `SYKeyboard.app/README.md`와 `SYKeyboard.app/ci_post_clone.sh`가 실제 포함되어 있었다.
+- 이후 app resources에서 `README.md`를 제거하고 `ci_post_clone.sh`를 app target membership에서 제외했으며, 새 `SYKeyboard.app` 산출물에 두 파일이 없는 것을 확인했다.
+- `SYKeyboardAssets`는 `Resources` 전체를 process하지만, ignored `.DS_Store`는 실제 resource bundle 산출물에 포함되지 않았다.
+- Meta mediation package는 프로젝트의 `packageReferences`와 메인 앱 Frameworks에 직접 연결된 의존성이다. 이후 `main` branch requirement를 제거하고 `upToNextMajorVersion`, 최소 버전 `6.21.101`로 다시 추가했으며, `Package.resolved`는 release version `6.21.101`과 FBAudienceNetwork `6.21.1`을 기록한다.
+- `SYKeyboard/Resources/Info.plist`의 중복 `DeveloperEmail` 선언을 제거했으며, source plist와 새 빌드 산출물 모두 key가 하나다.
+- `SYKeyboardAssets/.swiftpm/xcode/package.xcworkspace/contents.xcworkspacedata`는 정확한 `.gitignore` 규칙이 있는데도 git에 추적 중이다.
+- 사용자 수정 후 권한 있는 `iPhone 13 mini / iOS 16.0` 대상 `SYKeyboard` 빌드는 `BUILD SUCCEEDED`로 통과했다.
+- Meta mediation requirement 변경 후 별도 DerivedData 경로의 권한 있는 빌드에서 Meta adapter `6.21.101`과 FBAudienceNetwork `6.21.1` resolve 및 `SYKeyboard`의 `BUILD SUCCEEDED`를 확인했다.
 
 ## Decisions
 
@@ -121,6 +135,8 @@ Last Updated: 2026-06-14
 - Track 6의 설정 이동 버튼은 비핵심 편의 기능이므로 URL 열기 실패 시 사용자 실패 UI나 복잡한 fallback을 추가하지 않는다. 현재 best-effort 동작을 유지하고 개발자 진단 로그만 후속 개선 대상으로 둔다.
 - Track 6의 전체 접근 오버레이 닫힘 상태는 각 keyboard extension의 `UserDefaults.standard`에 저장한다. 한글/영문 extension별 상태는 독립적으로 유지하고 app-group 저장소와 동기화하거나 전체 접근 허용 후 마이그레이션하지 않는다.
 - Track 6의 EnglishKeyboard Debug/Release target에도 HangeulKeyboard와 동일하게 `APPLICATION_EXTENSION_API_ONLY = YES`를 적용한다. 적용 후 EnglishKeyboard extension target 빌드로 app-extension-safe API 계약을 검증한다.
+- Track 8의 fresh clone 빌드 준비 절차는 Xcode Cloud의 `ci_post_clone.sh` secret 생성 흐름과 정상 CI/CD 검증을 저장소의 clean-environment 빌드 계약으로 인정하고 별도 로컬 bootstrap finding에서 제외한다.
+- Track 8의 Xcode 지원 기준은 실제 최소 지원 Xcode를 올리거나 `SYKeyboardAssets`의 tools version을 낮추는 방식 중 하나로 일치시킨다.
 
 ## Inferences
 
@@ -193,3 +209,9 @@ Last Updated: 2026-06-14
 - 같은 빌드를 권한 있는 환경에서 재실행했고 `iPhone 13 mini / iOS 16.0`에서 `BUILD SUCCEEDED`를 확인했다.
 - Track 7의 ATT/설정 이동 충돌은 독립 리뷰어가 iOS 26.5 시뮬레이터에서 재현했다. banner 레이아웃과 자동 리뷰 요청 findings는 코드 경로로 확인했으며 실제 UI 수동 검증이 남아 있다.
 - Track 7의 한국어 온보딩 문구 P3는 실제 안내, SwiftUI preview, String Catalog를 함께 수정하고 `Resolved` 처리했다.
+- 8번 리뷰에서 `requesting-code-review` 지침에 따라 독립 코드리뷰 서브에이전트를 실행하고 Track 8 findings를 로컬 project/package/산출물 경로와 교차검증했다.
+- 8번 리뷰의 일반 샌드박스 `xcodebuild -list -project SYKeyboard.xcodeproj`와 `swift package --package-path SYKeyboardAssets dump-package`는 CoreSimulator/SwiftPM cache 권한 오류로 실패했다.
+- 권한 있는 `xcodebuild -list -project SYKeyboard.xcodeproj`는 성공했고 7개 scheme을 확인했다.
+- 권한 있는 `xcodebuild build -project SYKeyboard.xcodeproj -scheme SYKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0' -derivedDataPath /private/tmp/SYKeyboard-Track8-DerivedData`는 `BUILD SUCCEEDED`로 통과했다.
+- 빌드 산출물 확인으로 `SYKeyboard.app/README.md`, `SYKeyboard.app/ci_post_clone.sh` 포함과 `SYKeyboardAssets_SYKeyboardAssets.bundle`의 `.DS_Store` 미포함을 확인했다.
+- `xmllint --noout`으로 shared scheme과 plist XML을, `jq empty`로 `Package.resolved`, Xcode Cloud manifest, String Catalog JSON을 확인했고 모두 통과했다.
