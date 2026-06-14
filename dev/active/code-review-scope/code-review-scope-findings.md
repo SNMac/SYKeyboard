@@ -60,13 +60,19 @@ Last Updated: 2026-06-14
 - 판단: 사용자 확인 결과 이 동작은 의도된 동작이다. 따라서 버그 finding이 아니며 수정 대상에서 제외한다.
 - 검증: 사용자 확인. 추가 코드 검증 없음.
 
-#### [P3][Open] 천지인 전체 문자 테스트가 삭제 경로를 검증하지 않음
+#### [P3][Resolved] 천지인 전체 문자 테스트가 삭제 경로를 검증하지 않음
 
 - 위치: `SYKeyboardTests/Processor/CheonjiinProcessorTests.swift:277`
 - 영향: 천지인은 비표준 모음과 `committedTail` 복원 삭제 로직이 별도로 있는데, 전체 11,172자 테스트는 생성만 검증해서 겹모음/겹받침 삭제 회귀가 넓게 노출되지 않는다.
 - 근거: `CheonjiinProcessorTests.validateAllCharacters()`는 입력 후 `committed + composing`이 목표 글자인지만 확인한다. 두벌식 전체 테스트는 생성 후 삭제 루프까지 검증하고, 나랏글 전체 테스트도 예상 삭제 횟수만큼 삭제 후 잔여물을 확인한다.
 - 제안: 천지인도 전체 문자 생성 뒤 삭제 루프를 추가하거나, 최소한 겹받침/복합모음/비표준 모음 중간상태를 포함한 삭제 매트릭스를 보강한다.
-- 검증: `xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0'`
+- 처리: 완성형 글자의 중성/종성 구조 기반 예상 삭제 횟수를 계산해 11,172자 생성 후 전체 삭제를 검증하도록 보강했다. 완성형 전체 삭제로 검증할 수 없는 `ㆍ`/`ᆢ` composing 삭제와 `committedTail` 복원, `consumedCommittedCount`, `isProtected` 계약은 별도 매트릭스로 추가했다. production 코드는 변경하지 않았다.
+- 검증:
+  - 일반 샌드박스 targeted 테스트는 CoreSimulator/Xcode 캐시 권한 오류로 실패했다.
+  - 권한 있는 환경의 `xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0' -only-testing:SYKeyboardTests/CheonjiinProcessorTests`는 정상 코드에서 `TEST SUCCEEDED`를 확인했다.
+  - 비표준 모음 삭제가 진행되지 않도록 임시 mutation한 상태에서 새 `test비표준모음_Composing삭제()`가 실패함을 확인한 뒤 production 코드를 원복했다.
+  - production 원복 후 같은 천지인 targeted 테스트를 fresh 재실행해 `TEST SUCCEEDED`를 확인했다.
+  - 권한 있는 환경의 `xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0'` 전체 테스트도 `TEST SUCCEEDED`를 확인했다.
 
 ### Track 2. Common Keyboard Interaction Runtime
 
