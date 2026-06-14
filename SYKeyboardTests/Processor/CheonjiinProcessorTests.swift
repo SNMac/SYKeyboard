@@ -382,6 +382,11 @@ struct CheonjiinProcessorTests: HangeulProcessorTestable {
         
         #expect(failureCount == 0, "총 \(failureCount)개의 글자에서 생성 또는 삭제 실패")
     }
+
+    @Test("완성형 한글이 아닌 글자의 예상 삭제 횟수는 0")
+    func test비한글_예상삭제횟수() {
+        #expect(calculateExpectedDeleteCount(for: "A") == 0)
+    }
 }
 
 // MARK: - Private Methods
@@ -500,7 +505,8 @@ private extension CheonjiinProcessorTests {
 
     /// 완성형 한글 한 글자를 모두 지우기 위해 필요한 백스페이스 횟수를 계산
     func calculateExpectedDeleteCount(for char: Character) -> Int {
-        guard let scalar = char.unicodeScalars.first else { return 0 }
+        guard let scalar = char.unicodeScalars.first,
+              (0xAC00...0xD7A3).contains(scalar.value) else { return 0 }
         let code = Int(scalar.value) - 0xAC00
 
         let 중성Index = (code % (21 * 28)) / 28
