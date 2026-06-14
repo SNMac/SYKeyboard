@@ -76,29 +76,43 @@ Last Updated: 2026-06-14
 
 ### Track 2. Common Keyboard Interaction Runtime
 
-#### [P1][Open] 취소된 텍스트 팬 제스처가 정상 키 입력을 실행함
+#### [P1][Resolved] 취소된 텍스트 팬 제스처가 정상 키 입력을 실행함
 
 - 위치: `Modules/SYKeyboardCore/Presentation/Utils/GestureControllers/TextInteractionGestureController.swift:89`
 - 영향: 문자 또는 스페이스 버튼에서 짧은 드래그가 시스템이나 다른 제스처에 의해 취소되면, 사용자가 확정하지 않은 키가 입력될 수 있다.
 - 근거: `.ended`, `.cancelled`, `.failed`가 같은 분기를 사용하고, 커서 이동이 활성화되지 않은 경우 `sendActions(for: .touchUpInside)`를 호출한다. 이 호출은 `BaseKeyboardButton.isProgrammaticCall`을 활성화하므로 `BaseKeyboardViewController.makeTextInputAction()`의 현재 눌린 버튼 검증을 우회하고 입력을 수행한다.
 - 제안: `.ended`만 짧은 팬을 탭으로 확정하고, `.cancelled`/`.failed`는 입력 없이 상태만 정리한다. 제스처 상태별 입력 횟수를 검증하는 interaction test를 추가한다.
-- 검증: 코드 경로 확인. 현재 테스트에는 `TextInteractionGestureController`의 `.cancelled`/`.failed` 상태 검증이 없다.
+- 처리: `.ended`만 짧은 팬의 `.touchUpInside`를 전송하고, `.cancelled`/`.failed`는 해당 gesture button이 현재 눌린 버튼일 때만 해제하도록 변경했다. 삭제 pan의 stop callback과 UI 상호작용 복구는 terminal 상태와 무관하게 유지했다.
+- 검증:
+  - `TextInteractionGestureControllerTests`에서 정상 종료 입력, 취소/실패 입력 차단, 삭제 pan stop callback, 다른 현재 버튼 보존을 확인했다.
+  - 권한 있는 환경의 집중 interaction 테스트와 전체 `SYKeyboard` 테스트에서 `TEST SUCCEEDED`를 확인했다.
 
-#### [P1][Open] `touchCancel`이 버튼 눌림 상태를 해제하지 않아 다음 터치에서 이전 키를 입력할 수 있음
+#### [P1][Resolved] `touchCancel`이 버튼 눌림 상태를 해제하지 않아 다음 터치에서 이전 키를 입력할 수 있음
 
 - 위치: `Modules/SYKeyboardCore/Presentation/Utils/ButtonStateController.swift:91`
 - 영향: 터치가 중단되면 suggestion bar가 비활성 상태로 남거나 Shift가 계속 눌린 것으로 처리될 수 있다. 다음 버튼의 `touchDown`에서 취소된 이전 버튼의 `.touchUpInside`가 실행되어 의도하지 않은 키/리턴 입력도 발생할 수 있다.
 - 근거: 버튼 해제 action은 `.touchUpInside`, `.touchUpOutside`에만 등록되어 있고 `.touchCancel`에는 등록되지 않는다. 이후 다른 버튼을 누르면 `currentPressedButton`에 남은 이전 버튼에 `sendActions(for: .touchUpInside)`를 호출하며, programmatic call은 입력 action의 현재 버튼 검증을 우회한다.
 - 제안: `.touchCancel`에서도 일반 버튼의 `currentPressedButton`과 Shift의 `isShiftButtonPressed`를 정리한다. 취소 후 suggestion bar 활성 상태와 다음 버튼 입력 횟수를 검증하는 테스트를 추가한다.
-- 검증: 코드 경로 확인. 현재 테스트에는 `ButtonStateController`의 UIControl event 상태 전이 검증이 없다.
+- 처리: 일반 버튼과 Shift 버튼에 `.touchCancel` 전용 action을 추가했다. 일반 터치 취소는 상태를 해제하되, 활성 recognizer가 터치 소유권을 얻으며 발생시킨 `.touchCancel`은 `isGesturing`으로 구분해 유지하고 terminal gesture handler가 정리하도록 했다.
+- 검증:
+  - `ButtonStateControllerTests`에서 일반 버튼 취소 후 눌림/suggestion bar 복구와 다음 버튼이 이전 입력을 실행하지 않는지 확인했다.
+  - Shift 취소 후 `isShiftButtonPressed == false`를 확인했다.
+  - 첫 구현 후 실기기에서 길게 누르기 반복 입력과 커서 드래그가 즉시 종료되는 회귀를 확인했다.
+  - 활성 제스처 중 일반 버튼/Shift `.touchCancel`이 상태를 유지하는 테스트가 첫 구현에서 실패함을 확인하고 조건부 해제 로직을 추가했다.
+  - 조건부 해제 수정 후 권한 있는 환경의 집중 interaction 테스트에서 `TEST SUCCEEDED`를 확인했다.
+  - 사용자 실기기 확인에서 길게 누르기 반복 입력과 버튼 영역 밖 커서 드래그가 정상 동작함을 확인했다.
 
-#### [P2][Open] 취소된 키보드 전환 제스처가 전환 결과를 확정할 수 있음
+#### [P2][Resolved] 취소된 키보드 전환 제스처가 전환 결과를 확정할 수 있음
 
 - 위치: `Modules/SYKeyboardCore/Presentation/Utils/GestureControllers/SwitchGestureController.swift:112`, `Modules/SYKeyboardCore/Presentation/Utils/GestureControllers/SwitchGestureController.swift:193`
 - 영향: 키보드 선택 또는 한 손 모드 드래그/길게 누르기가 중단되어도 키보드 종류나 한 손 모드가 바뀔 수 있다.
 - 근거: 팬의 `.cancelled`/`.failed`가 `.ended`와 같은 완료 경로를 실행해 `.touchUpInside`와 `on...GestureEnded`를 호출한다. 완료 helper는 현재 위치에 따라 `changeKeyboard` 또는 `changeOneHandedMode` delegate를 호출한다. 취소된 long press도 동일하게 종료 helper를 호출한다.
 - 제안: 취소/실패 시 overlay와 버튼 상태만 정리하고 delegate 변경은 `.ended`에서만 확정한다. overlay가 표시된 상태에서 각 제스처를 취소하는 테스트를 추가한다.
-- 검증: 코드 경로 확인. 현재 테스트에는 `SwitchGestureController` 취소 상태 검증이 없다.
+- 처리: 키보드 선택 pan, 한 손 모드 pan, initial/continuation long press에서 `.ended`만 `.touchUpInside`와 delegate 변경을 확정하도록 분리했다. 취소/실패 시 overlay, 강조, gesture 상태, 버튼 상호작용은 정리하며 다른 현재 눌린 버튼은 보존한다.
+- 검증:
+  - `SwitchGestureControllerTests`에서 정상 종료 전환, 취소/실패 결과 차단, keyboard/one-handed overlay 정리, initial/continuation long press 취소, 다른 현재 버튼 보존을 확인했다.
+  - 권한 있는 환경의 집중 interaction 테스트와 전체 `SYKeyboard` 테스트에서 `TEST SUCCEEDED`를 확인했다.
+  - 권한 있는 환경에서 `HangeulKeyboard`, `EnglishKeyboard` scheme 빌드 모두 `BUILD SUCCEEDED`를 확인했다.
 
 ### Track 3. Keyboard Layout, Views, And Assets
 

@@ -88,8 +88,11 @@ final class TextInteractionGestureController: NSObject {
             }
         case .ended, .cancelled, .failed:
             // 순서 중요
-            if isCursorActive {
-                setCurrentPressedButton(nil)
+            if isCursorActive || gesture.state != .ended {
+                if let gestureButton = gestureButton as? BaseKeyboardButton,
+                   getCurrentPressedButton() === gestureButton {
+                    setCurrentPressedButton(nil)
+                }
             } else {
                 gestureButton?.sendActions(for: .touchUpInside)
             }
