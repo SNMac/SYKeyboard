@@ -38,7 +38,7 @@ final public class PrimaryKeyButton: PrimaryButton, TextInteractable {
     
     private let secondaryKeyLabel: UILabel = {
         let label = UILabel()
-        label.font = .monospacedDigitSystemFont(ofSize: 9, weight: .regular)
+        label.font = .monospacedDigitSystemFont(ofSize: FontSize.stringKeySmall, weight: .regular)
         label.textColor = .secondaryLabel
         label.isHidden = !(UserDefaultsManager.shared.selectedLongPressAction == .numberInput)
         
@@ -108,16 +108,16 @@ private extension PrimaryKeyButton {
             
             if primaryKey.count == 1 {
                 if Character(primaryKey).isLowercase {
-                    primaryKeyListLabel.font = .systemFont(ofSize: FontSize.lowercaseKeySize)
+                    primaryKeyListLabel.font = .systemFont(ofSize: FontSize.charKeyLarge)
                 } else {
-                    primaryKeyListLabel.font = .systemFont(ofSize: FontSize.defaultKeySize)
+                    primaryKeyListLabel.font = .systemFont(ofSize: FontSize.charKeyMedium)
                 }
             } else {
-                primaryKeyListLabel.font = .systemFont(ofSize: FontSize.stringKeySize)
+                primaryKeyListLabel.font = .systemFont(ofSize: FontSize.stringKeyMedium)
             }
         } else {
             primaryKeyListLabel.text = type.primaryKeyList.joined(separator: "")
-            primaryKeyListLabel.font = .systemFont(ofSize: FontSize.defaultKeySize)
+            primaryKeyListLabel.font = .systemFont(ofSize: FontSize.charKeyMedium)
         }
     }
     

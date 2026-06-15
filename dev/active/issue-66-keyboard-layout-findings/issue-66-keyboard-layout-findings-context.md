@@ -1,6 +1,6 @@
 # Issue 66 Keyboard Layout Findings Context
 
-Last Updated: 2026-06-14
+Last Updated: 2026-06-15
 
 ## Relevant Files
 
@@ -25,18 +25,20 @@ Last Updated: 2026-06-14
 - `updateEnabled(true)`는 `setNeedsUpdateConfiguration()`만 호출하며, 현재 configuration handler는 이미지 tint를 활성 색상으로 갱신하지 않는다.
 - 현재 `SYKeyboardTests`에는 `KeyboardView` 폭 또는 `ReturnButton` 시각 상태를 직접 검증하는 테스트가 없다.
 - 작업 시작 시 `git status --short` 출력은 비어 있었다.
+- 세로와 가로 한 손 모드의 고정 폭은 설정 폭과 `keyboardHStackView` 가용 폭에서 표시 중인 chevron 압축 폭을 뺀 폭 중 작은 값으로 계산하도록 구현했다.
+- 중앙 모드에서는 고정 폭 제약을 비활성화하고, `layoutSubviews`에서 회전과 가용 폭 변경을 재계산한다.
+- 기본 리턴 이미지는 template rendering으로 변경했고 활성/강조/비활성 상태에서 라벨과 이미지 tint를 함께 갱신한다.
 
 ## Decisions
 
 - 두 finding은 모두 `Valid`로 판단한다.
-- P2는 단순히 `greaterThanOrEqualToConstant`를 `equalToConstant`로 교체하지 않고, 모드별 제약 활성화와 가용 폭 clamp를 함께 구현한다.
+- P2는 화면 방향과 무관하게 한 손 모드에서 고정 폭과 가용 폭 clamp를 적용한다.
 - P3는 template rendering과 상태별 tint 갱신을 함께 구현한다.
-- 실제 코드는 아직 수정하지 않고, 이번 작업에서는 검토 결과와 수정 계획만 문서화한다.
+- preview 모드 변경은 `updateOneHandedModeForPreview(to:)`를 통해 실제 extension과 같은 폭 갱신 경로를 사용한다.
 
 ## Open Questions
 
-- 가용 폭이 설정 최소값보다 작은 실제 extension 환경에서 chevron이 확보해야 할 최소 폭은 구현 중 `systemLayoutSizeFitting` 결과와 실제 터치 영역을 기준으로 확정해야 한다.
-- preview와 실제 extension에서 private `keyboardLayoutView.frame.width`를 반복 측정할 진단 방법은 구현 시 테스트 전용 접근자 또는 임시 로깅 중 더 작은 변경으로 선택해야 한다.
+- 현재 booted 시뮬레이터가 없어 preview와 실제 extension의 portrait/landscape 프레임 측정 및 리턴 키 시각 상태 수동 확인이 남아 있다.
 
 ## Verification Notes
 
@@ -52,4 +54,23 @@ git blame -L 35,85 -- Modules/SYKeyboardCore/Presentation/View/Components/Button
 ```
 
 - `gh issue view 66 --repo SNMac/SYKeyboard --comments`는 GitHub Projects classic deprecation GraphQL 오류로 실패했고, REST API 조회로 이슈 본문과 댓글 부재를 확인했다.
-- 코드 수정이나 빌드/테스트는 아직 수행하지 않았다.
+- TDD RED:
+  - 폭 정책 테스트는 정책 미구현으로 컴파일 실패하는 것을 확인했다.
+  - 리턴 버튼 테스트는 template rendering과 활성 tint 복원 두 케이스가 실패하는 것을 확인했다.
+- TDD GREEN:
+  - 병렬 테스트를 끈 focused 테스트 실행이 exit code 0으로 완료됐다.
+  - 가로 한 손 모드에서도 설정 폭을 적용하는 정책 테스트가 exit code 0으로 완료됐다.
+- 전체 검증:
+
+```sh
+xcodebuild test -quiet \
+  -project SYKeyboard.xcodeproj \
+  -scheme SYKeyboard \
+  -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0' \
+  -parallel-testing-enabled NO \
+  -enableCodeCoverage NO
+```
+
+- 전체 `SYKeyboard` 테스트가 exit code 0으로 완료됐다.
+- `HangeulKeyboard`, `EnglishKeyboard` scheme 빌드가 iPhone 13 mini / iOS 16.0에서 exit code 0으로 완료됐다.
+- 병렬 focused 테스트는 테스트 결과 출력 후 Xcode result 기록 단계에서 멈춰 종료했으며, 병렬 테스트를 끈 실행에서는 정상 종료됐다.

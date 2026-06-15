@@ -1,6 +1,6 @@
 # Issue 66 Keyboard Layout Findings Plan
 
-Last Updated: 2026-06-14
+Last Updated: 2026-06-15
 
 ## Goal
 
@@ -12,7 +12,7 @@ Last Updated: 2026-06-14
 
 - 판단: 타당하다.
 - `keyboardLayoutView`에는 `greaterThanOrEqualToConstant` 너비 제약만 있고, 한 손 모드에서 표시되는 chevron과 함께 `keyboardHStackView`의 전체 폭을 채운다.
-- 따라서 설정값 `300...340`은 실제 폭이 아니라 하한값이며, 넓은 화면에서는 설정값보다 커질 수 있다.
+- 따라서 설정값 `300...340`은 실제 폭이 아니라 하한값이며, 넓은 화면이나 가로 화면에서 설정값보다 커질 수 있다.
 - 이슈의 수정 제안은 방향이 맞지만, `equalToConstant`로 바꾸는 것만으로는 부족하다. 중앙 모드에서는 제약을 비활성화하고, 한 손 모드에서는 가용 폭 clamp와 회전/preview 크기 변경 시 재계산이 필요하다.
 
 ### [P3] 비활성화된 기본 리턴 키 아이콘이 활성 색상으로 남음
@@ -23,6 +23,8 @@ Last Updated: 2026-06-14
 
 ## Current State
 
+- 두 finding의 코드 수정과 자동 검증을 완료했다.
+- 현재 booted 시뮬레이터가 없어 preview 및 실제 extension 수동 검증은 남아 있다.
 - 관련 파일:
   - `Modules/SYKeyboardCore/Presentation/View/KeyboardView.swift`
   - `Modules/SYKeyboardCore/Presentation/ViewController/Bases/BaseKeyboardViewController.swift`
@@ -37,7 +39,7 @@ Last Updated: 2026-06-14
 1. 한 손 키보드 폭 계약을 명확히 한다.
    - `KeyboardView`가 설정 폭과 현재 `OneHandedMode`를 보관하도록 한다.
    - 중앙 모드에서는 키보드 레이아웃 고정 폭 제약을 비활성화해 기존처럼 전체 폭을 사용한다.
-   - 왼쪽/오른쪽 모드에서는 `keyboardLayoutView.widthAnchor`의 고정 폭 제약을 활성화한다.
+   - 세로와 가로 왼쪽/오른쪽 모드에서는 `keyboardLayoutView.widthAnchor`의 고정 폭 제약을 활성화한다.
    - 적용 폭은 설정 폭과 `keyboardHStackView`의 가용 폭에서 표시 중인 chevron의 최소 필요 폭을 뺀 값 중 작은 값으로 정한다.
    - `layoutSubviews` 또는 동등한 레이아웃 갱신 경로에서 폭 변화가 있을 때만 상수를 다시 계산해 회전과 preview 크기 변경을 반영한다.
 
@@ -90,7 +92,7 @@ xcodebuild build \
 ```
 
 - 수동 검증:
-  - 한글/영문 preview에서 설정 폭 `300`, `320`, `340`을 선택하고 왼쪽/오른쪽 모드의 실제 키보드 폭이 설정값과 일치하는지 확인한다.
+  - 한글/영문 preview에서 설정 폭 `300`, `320`, `340`을 선택하고 세로와 가로 왼쪽/오른쪽 모드의 실제 키보드 폭이 설정값과 일치하는지 확인한다.
   - 중앙 모드에서 키보드가 전체 가용 폭을 사용하는지 확인한다.
   - portrait/landscape 및 설정 폭보다 좁은 가용 폭에서 제약 충돌 로그, 잘림, chevron 터치 영역 이상이 없는지 확인한다.
   - 실제 extension의 빈 텍스트 필드에서 기본 리턴 키 아이콘/배경이 비활성 색상인지 확인하고, 텍스트 입력 후 활성 색상으로 복원되는지 확인한다.

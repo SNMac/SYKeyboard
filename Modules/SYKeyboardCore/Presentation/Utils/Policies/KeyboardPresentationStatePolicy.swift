@@ -9,6 +9,18 @@ import UIKit
 
 enum KeyboardPresentationStatePolicy {
 
+    static func oneHandedKeyboardFixedWidth(
+        configuredWidth: CGFloat,
+        availableWidth: CGFloat,
+        accessoryWidth: CGFloat,
+        isOneHandedMode: Bool
+    ) -> CGFloat? {
+        guard isOneHandedMode else { return nil }
+
+        let maximumWidth = max(0, availableWidth - accessoryWidth)
+        return min(configuredWidth, maximumWidth)
+    }
+
     static func isReturnButtonEnabled(
         enablesReturnKeyAutomatically: Bool,
         documentContextBeforeInput: String?,

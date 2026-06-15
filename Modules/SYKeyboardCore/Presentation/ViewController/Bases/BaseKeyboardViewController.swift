@@ -515,6 +515,12 @@ open class BaseKeyboardViewController: UIInputViewController {
         keyboardView.updateOneHandedWidth(oneHandedWidth)
         self.view.layoutIfNeeded()
     }
+
+    public func updateOneHandedModeForPreview(to oneHandedMode: OneHandedMode) {
+        previewOneHandedMode = oneHandedMode
+        updateOneHandModekeyboard()
+        self.view.layoutIfNeeded()
+    }
 }
 
 // MARK: - Text Proxy Wrapper Methods
@@ -954,6 +960,7 @@ private extension BaseKeyboardViewController {
     func updateOneHandModekeyboard() {
         leftChevronButton.isHidden = !(currentOneHandedMode == .right)
         rightChevronButton.isHidden = !(currentOneHandedMode == .left)
+        keyboardView.updateOneHandedMode(currentOneHandedMode)
     }
 
     func updateShowingKeyboard() {

@@ -60,7 +60,7 @@ struct PreviewEnglishKeyboardViewController: UIViewControllerRepresentable {
         
         uiViewController.updateOneHandedWidthForPreview(to: oneHandedKeyboardWidth)
         if uiViewController.previewOneHandedMode != oneHandedMode {
-            uiViewController.previewOneHandedMode = oneHandedMode
+            uiViewController.updateOneHandedModeForPreview(to: oneHandedMode)
         }
     }
 }

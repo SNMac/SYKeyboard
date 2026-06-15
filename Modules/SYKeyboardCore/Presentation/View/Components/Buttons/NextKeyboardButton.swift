@@ -44,7 +44,7 @@ private extension NextKeyboardButton {
     }
     
     func setStyles() {
-        let imageConfig = UIImage.SymbolConfiguration(pointSize: FontSize.imageSize, weight: .medium, scale: .large)
+        let imageConfig = UIImage.SymbolConfiguration(pointSize: FontSize.imageMedium, weight: .medium, scale: .large)
         primaryKeyListImageView.image = UIImage(systemName: "globe")?.withConfiguration(imageConfig).withTintColor(.label, renderingMode: .alwaysOriginal)
     }
     

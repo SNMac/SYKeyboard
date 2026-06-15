@@ -23,7 +23,6 @@ public class BaseKeyboardButton: UIButton {
     
     final let insetDx: CGFloat
     final let insetDy: CGFloat
-    final let cornerRadius: CGFloat
     
     final var isPressed: Bool = false {
         didSet {
@@ -51,9 +50,9 @@ public class BaseKeyboardButton: UIButton {
     // MARK: - UI Components
     
     /// 배경 UI
-    final lazy var backgroundView = ButtonBackgroundView(cornerRadius: self.cornerRadius)
+    final let backgroundView = ButtonBackgroundView()
     /// 그림자 UI
-    final lazy var shadowView = ButtonShadowView(cornerRadius: self.cornerRadius)
+    final let shadowView = ButtonShadowView()
     /// iOS 26 `UIButton.Configuration.attributedTitle` 애니메이션 해결용
     final let primaryKeyListLabel: UILabel = {
         let label = UILabel()
@@ -81,11 +80,6 @@ public class BaseKeyboardButton: UIButton {
         case .dubeolsik, .qwerty, .symbol:
             self.insetDx = 3
             self.insetDy = 4
-        }
-        if #available(iOS 26, *) {
-            self.cornerRadius = 8.5
-        } else {
-            self.cornerRadius = 4.6
         }
         super.init(frame: .zero)
         

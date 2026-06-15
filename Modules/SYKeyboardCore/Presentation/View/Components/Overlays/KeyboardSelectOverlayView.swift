@@ -26,10 +26,10 @@ final public class KeyboardSelectOverlayView: UIStackView {
     private let numericLabel: UILabel = {
         let label = UILabel()
         label.text = "123"
-        label.font = .systemFont(ofSize: 20, weight: .regular)
+        label.font = .systemFont(ofSize: FontSize.overlayMedium, weight: .regular)
         label.textAlignment = .center
         label.clipsToBounds = true
-        label.layer.cornerRadius = 8
+        label.layer.cornerRadius = KeyboardLayoutFigure.buttonCornerRadius
         
         return label
     }()
@@ -37,17 +37,17 @@ final public class KeyboardSelectOverlayView: UIStackView {
     private let symbolLabel: UILabel = {
         let label = UILabel()
         label.text = "!#1"
-        label.font = .systemFont(ofSize: 20, weight: .regular)
+        label.font = .systemFont(ofSize: FontSize.overlayMedium, weight: .regular)
         label.textAlignment = .center
         label.clipsToBounds = true
-        label.layer.cornerRadius = 8
+        label.layer.cornerRadius = KeyboardLayoutFigure.buttonCornerRadius
         
         return label
     }()
     /// 키보드 선택 취소 이미지
     private let xmarkImageView: UIImageView = {
         let imageView = UIImageView()
-        let imageConfig = UIImage.SymbolConfiguration(pointSize: 20, weight: .regular)
+        let imageConfig = UIImage.SymbolConfiguration(pointSize: FontSize.overlayMedium, weight: .regular)
         imageView.image = UIImage(systemName: "xmark.square")?.withConfiguration(imageConfig).withTintColor(.label, renderingMode: .alwaysOriginal)
         imageView.contentMode = .center
         
@@ -57,7 +57,7 @@ final public class KeyboardSelectOverlayView: UIStackView {
     private(set) var xmarkImageContainerView: UIView = {
         let view = UIView()
         view.clipsToBounds = true
-        view.layer.cornerRadius = 8
+        view.layer.cornerRadius = KeyboardLayoutFigure.buttonCornerRadius
         
         return view
     }()
@@ -141,7 +141,7 @@ private extension KeyboardSelectOverlayView {
         self.directionalLayoutMargins = NSDirectionalEdgeInsets(top: 8, leading: 8, bottom: 8, trailing: 8)
         
         self.clipsToBounds = true
-        self.layer.cornerRadius = 8
+        self.layer.cornerRadius = KeyboardLayoutFigure.selectOverlayCornerRadius
     }
     
     func setHierarchy() {
