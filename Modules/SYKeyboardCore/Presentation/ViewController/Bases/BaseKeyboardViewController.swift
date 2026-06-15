@@ -958,8 +958,6 @@ private extension BaseKeyboardViewController {
 
 private extension BaseKeyboardViewController {
     func updateOneHandModekeyboard() {
-        leftChevronButton.isHidden = !(currentOneHandedMode == .right)
-        rightChevronButton.isHidden = !(currentOneHandedMode == .left)
         keyboardView.updateOneHandedMode(currentOneHandedMode)
     }
 

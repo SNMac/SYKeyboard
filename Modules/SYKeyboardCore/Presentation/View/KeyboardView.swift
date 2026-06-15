@@ -20,8 +20,6 @@ final public class KeyboardView: UIInputView {
     )
     
     private var keyboardLayoutWidthConstraint: NSLayoutConstraint?
-    private var configuredOneHandedWidth = CGFloat(UserDefaultsManager.shared.oneHandedKeyboardWidth)
-    private var oneHandedMode: OneHandedMode = .center
     
     // MARK: - UI Components
     
@@ -108,11 +106,6 @@ final public class KeyboardView: UIInputView {
     deinit {
         logger.debug("\(String(describing: type(of: self))) deinit")
     }
-
-    public override func layoutSubviews() {
-        super.layoutSubviews()
-        updateKeyboardLayoutWidthConstraint()
-    }
     
     // MARK: - Internal Methods
     
@@ -134,14 +127,14 @@ final public class KeyboardView: UIInputView {
     
     /// 한 손 키보드 너비 업데이트를 업데이트하는 메서드
     func updateOneHandedWidth(_ width: Double) {
-        configuredOneHandedWidth = width
-        updateKeyboardLayoutWidthConstraint()
+        keyboardLayoutWidthConstraint?.constant = width
+        self.layoutIfNeeded()
     }
 
-    /// 현재 한 손 키보드 모드에 맞게 너비 제약을 업데이트하는 메서드
+    /// 현재 한 손 키보드 모드에 맞게 Chevron 표시를 업데이트하는 메서드
     func updateOneHandedMode(_ mode: OneHandedMode) {
-        oneHandedMode = mode
-        updateKeyboardLayoutWidthConstraint()
+        leftChevronButton.isHidden = mode != .right
+        rightChevronButton.isHidden = mode != .left
     }
 }
 
@@ -187,7 +180,9 @@ private extension KeyboardView {
         ])
         
         keyboardLayoutView.translatesAutoresizingMaskIntoConstraints = false
-        keyboardLayoutWidthConstraint = keyboardLayoutView.widthAnchor.constraint(equalToConstant: configuredOneHandedWidth)
+        let minWidth = UserDefaultsManager.shared.oneHandedKeyboardWidth
+        keyboardLayoutWidthConstraint = keyboardLayoutView.widthAnchor.constraint(greaterThanOrEqualToConstant: minWidth)
+        keyboardLayoutWidthConstraint?.isActive = true
         
         [primaryKeyboardView, symbolKeyboardView, numericKeyboardView, tenkeyKeyboardView].forEach {
             $0.translatesAutoresizingMaskIntoConstraints = false
@@ -198,35 +193,5 @@ private extension KeyboardView {
                 $0.bottomAnchor.constraint(equalTo: keyboardLayoutView.bottomAnchor)
             ])
         }
-    }
-
-    func updateKeyboardLayoutWidthConstraint() {
-        guard let keyboardLayoutWidthConstraint else { return }
-
-        let isOneHandedMode = oneHandedMode != .center
-        guard isOneHandedMode else {
-            keyboardLayoutWidthConstraint.isActive = false
-            return
-        }
-
-        let availableWidth = keyboardHStackView.bounds.width
-        guard availableWidth > 0 else { return }
-
-        let visibleChevron = oneHandedMode == .left ? rightChevronButton : leftChevronButton
-        let accessoryWidth = visibleChevron.systemLayoutSizeFitting(UIView.layoutFittingCompressedSize).width
-        guard let fixedWidth = KeyboardPresentationStatePolicy.oneHandedKeyboardFixedWidth(
-            configuredWidth: configuredOneHandedWidth,
-            availableWidth: availableWidth,
-            accessoryWidth: accessoryWidth,
-            isOneHandedMode: isOneHandedMode
-        ) else {
-            keyboardLayoutWidthConstraint.isActive = false
-            return
-        }
-
-        if keyboardLayoutWidthConstraint.constant != fixedWidth {
-            keyboardLayoutWidthConstraint.constant = fixedWidth
-        }
-        keyboardLayoutWidthConstraint.isActive = true
     }
 }
