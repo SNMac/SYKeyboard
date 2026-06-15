@@ -130,6 +130,12 @@ final public class KeyboardView: UIInputView {
         keyboardLayoutWidthConstraint?.constant = width
         self.layoutIfNeeded()
     }
+
+    /// 현재 한 손 키보드 모드에 맞게 Chevron 표시를 업데이트하는 메서드
+    func updateOneHandedMode(_ mode: OneHandedMode) {
+        leftChevronButton.isHidden = mode != .right
+        rightChevronButton.isHidden = mode != .left
+    }
 }
 
 // MARK: - UI Methods

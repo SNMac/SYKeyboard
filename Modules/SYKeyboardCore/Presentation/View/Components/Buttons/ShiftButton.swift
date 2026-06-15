@@ -16,7 +16,7 @@ final public class ShiftButton: SecondaryButton {
     
     private let keyboard: SYKeyboardType
     
-    private let imageConfig = UIImage.SymbolConfiguration(pointSize: FontSize.imageSize, weight: .medium, scale: .large)
+    private let imageConfig = UIImage.SymbolConfiguration(pointSize: FontSize.imageMedium, weight: .medium, scale: .large)
     
     // MARK: - Initializer
     
@@ -92,7 +92,7 @@ private extension ShiftButton {
             primaryKeyListImageView.image = UIImage(systemName: "shift")?.withConfiguration(imageConfig).withTintColor(.label, renderingMode: .alwaysOriginal)
         case .symbol:
             primaryKeyListLabel.text = "1/2"
-            primaryKeyListLabel.font = .monospacedSystemFont(ofSize: 16, weight: .regular)
+            primaryKeyListLabel.font = .monospacedSystemFont(ofSize: FontSize.stringKeyMedium, weight: .regular)
             
             self.configurationUpdateHandler = { [weak self] _ in
                 self?.backgroundView.backgroundColor = .secondaryButton

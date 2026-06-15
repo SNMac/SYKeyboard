@@ -116,21 +116,29 @@ Last Updated: 2026-06-14
 
 ### Track 3. Keyboard Layout, Views, And Assets
 
-#### [P2][Open] 한 손 키보드가 설정한 너비보다 확장될 수 있음
+#### [P2][Invalid] 한 손 키보드가 설정한 너비보다 확장될 수 있음
 
 - 위치: `Modules/SYKeyboardCore/Presentation/View/KeyboardView.swift:178`
-- 영향: 한 손 키보드 너비 슬라이더 값이 실제 키보드 너비로 보장되지 않으며, 넓은 화면이나 회전 후 키보드가 예상보다 크게 표시될 수 있다. 작은 화면에서는 설정 폭과 chevron이 함께 배치되며 제약 충돌 또는 가장자리 잘림 위험도 있다.
+- 영향: 한 손 키보드 너비 슬라이더 값은 정확한 고정 폭이 아니라 키보드가 확보해야 할 최소 폭으로 적용된다.
 - 근거: `keyboardLayoutView` 너비는 `greaterThanOrEqualToConstant`로만 제한된다. 한 손 모드에서도 수평 `UIStackView`가 남는 공간을 `keyboardLayoutView`에 배분할 수 있고, `updateOneHandedWidth(_:)`도 같은 하한값만 변경한다.
-- 제안: 한 손 모드에서는 가용 폭으로 clamp한 `equalToConstant` 너비 제약을 사용하고, 중앙 모드에서는 해당 고정 폭 제약을 비활성화한다.
-- 검증: 코드 경로와 독립 코드리뷰 결과 확인. 슬라이더 `300/320/340` 각각에서 portrait/landscape, 한글/영문 preview 및 실제 extension의 `keyboardLayoutView.frame.width`를 측정하는 수동 검증이 필요하다.
+- 판단: 사용자 결정에 따라 설정값은 정확한 폭이 아니라 최소 폭이다. `equalToConstant` 고정 폭은 hidden arranged subview를 사용하는 기존 스택 레이아웃과 충돌해 세로·가로 한 손 모드 전환에서 제약 경고를 발생시켰다. 기준 커밋 `84a48326c9d492654074c863227b7330f3b2a97a`처럼 `greaterThanOrEqualToConstant` 제약을 항상 활성화하고 Chevron은 `isHidden`으로 표시한다.
+- 처리: 고정 폭 계산·활성화 정책과 Chevron 폭 0 축소 처리를 제거했다. `KeyboardView`는 최소 폭 상수와 Chevron hidden 상태를 갱신하며, VC는 현재 모드 저장과 Chevron 탭 action만 관리한다.
+- 검증:
+  - 기준 커밋에서 같은 최소 폭 레이아웃으로 세로·가로 한 손 모드 전환 시 제약 경고가 없음을 사용자 확인했다.
+  - 최소 폭 계약 복원 후 iPhone 13 mini / iOS 16.0에서 전체 `SYKeyboard` 테스트와 `HangeulKeyboard`, `EnglishKeyboard` 빌드가 exit code 0으로 완료됐다.
+  - 새 DerivedData 경로를 사용한 XcodeBuildMCP 앱 빌드·실행과 테스트 입력 필드의 키보드 표시가 성공했다.
+  - UI 자동화로 커스텀 키보드의 한 손 모드 선택 제스처를 실행할 수 없어, 현재 변경 후 실제 extension의 세로·가로 한 손 모드 전환 경고는 사용자 재확인이 필요하다.
 
-#### [P3][Open] 비활성화된 기본 리턴 키 아이콘이 활성 색상으로 남음
+#### [P3][Resolved] 비활성화된 기본 리턴 키 아이콘이 활성 색상으로 남음
 
 - 위치: `Modules/SYKeyboardCore/Presentation/View/Components/Buttons/ReturnButton.swift:78`, `Modules/SYKeyboardCore/Presentation/View/Components/Buttons/ReturnButton.swift:181`
 - 영향: `enablesReturnKeyAutomatically`로 기본 리턴 키가 비활성화되어도 아이콘은 활성 상태 색상으로 보여 비활성 상태가 불명확하다. 배경과 입력 차단은 정상이다.
 - 근거: 기본 리턴 이미지는 `.alwaysOriginal`과 `.label` 색상으로 생성된다. 비활성화 시 `primaryKeyListImageView.tintColor`만 변경하므로 이미지 색상에는 적용되지 않는다.
-- 제안: 기본 리턴 이미지를 template rendering으로 사용하거나 비활성화 시 `.returnButtonDisabledLabel` 색상으로 다시 생성한다.
-- 검증: 코드 경로와 독립 코드리뷰 결과 확인. 빈 필드에서 비활성 기본 리턴 키의 아이콘/라벨/배경 색상과 텍스트 입력 후 활성 상태 복원을 수동 확인해야 한다.
+- 처리: 기본 리턴 이미지를 template rendering으로 변경하고, 현재 return key type을 보관해 활성/강조/비활성 상태에서 라벨과 이미지 tint를 함께 갱신한다. 비활성화 후 활성화 시 정상 foreground/background 색상을 즉시 복원한다.
+- 검증:
+  - `ReturnButtonTests`에서 기본 이미지의 template rendering과 비활성화 후 활성 tint 복원을 확인했다.
+  - 권한 있는 환경의 iPhone 13 mini / iOS 16.0에서 전체 `SYKeyboard` 테스트와 `HangeulKeyboard`, `EnglishKeyboard` 빌드가 exit code 0으로 완료됐다.
+  - 실제 extension의 빈 필드 비활성 상태와 텍스트 입력 후 활성 복원은 수동 확인하지 못했다.
 
 ### Track 4. Predictive Text And Suggestion Bar
 
@@ -331,7 +339,7 @@ Last Updated: 2026-06-14
 - 다른 트랙으로 넘길 내용은 해당 트랙 섹션 끝에 `Handoff` 항목으로 남긴다.
 - Track 1의 나랏글 이중모음 교차 입력 동작은 사용자 확인으로 의도된 동작으로 정리했다.
 - Track 2의 세 finding은 모두 제스처/UIControl 취소 상태 전이와 관련되어 있어 함께 수정하고 interaction test로 검증하는 편이 적절하다.
-- Track 3의 한 손 키보드 폭 finding은 실제 extension과 preview의 portrait/landscape 프레임 측정이 필요하다. 고정 폭 적용 시 작은 화면 가용 폭 clamp도 함께 정의해야 한다.
+- Track 3의 한 손 키보드 폭 finding은 최소 폭 계약으로 최종 결정됐다. 실제 extension과 preview의 portrait/landscape에서 키보드가 설정값 이상을 확보하고 제약 경고가 없는지 확인한다.
 - Track 3의 기본 리턴 키 아이콘 finding은 `ReturnButton`의 template/original rendering 정책을 정리할 때 함께 수정한다.
 - `SYKeyboardAssets/Sources/SYKeyboardAssets/Resources/.DS_Store`는 `.gitignore` 대상이라 추적되지는 않지만 로컬 리소스 폴더에 존재한다. 실제 SPM 리소스 번들 포함 여부는 Track 8에서 확인한다.
 - Track 4의 selection stale 후보 finding은 실제 `textWillChange(_:)`/`textDidChange(_:)` 호출 동작 확인으로 `Invalid` 처리했다. selection 콜백 대신 text change 콜백을 외부 문서 컨텍스트 동기화 기준으로 본다.
