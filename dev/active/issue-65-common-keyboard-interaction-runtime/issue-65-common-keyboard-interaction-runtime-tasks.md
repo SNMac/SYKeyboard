@@ -41,8 +41,8 @@ Last Updated: 2026-06-14
 - [x] `HangeulKeyboard` scheme 빌드를 실행한다.
 - [x] `EnglishKeyboard` scheme 빌드를 실행한다.
 - [x] 조건부 `.touchCancel` 수정 후 집중 interaction 테스트를 다시 실행한다.
-- [ ] 조건부 `.touchCancel` 수정 후 전체 테스트와 한글/영문 extension 빌드를 다시 실행한다.
+- [x] 조건부 `.touchCancel` 수정 후 전체 테스트와 한글/영문 extension 빌드를 다시 실행한다.
 - [x] 실기기에서 길게 누르기 반복 입력과 버튼 영역 밖 커서 드래그를 재확인한다.
-- [ ] 실제 입력 앱에서 취소/정상 종료 흐름을 수동 확인한다.
+- [x] 실제 입력 앱에서 취소/정상 종료 흐름을 수동 확인한다.
 - [x] `dev/active/code-review-scope/code-review-scope-findings.md`에 세 finding의 처리와 검증 결과를 반영한다.
 - [x] `git diff --check`와 `git status --short`로 문서/코드 변경 범위를 확인한다.
