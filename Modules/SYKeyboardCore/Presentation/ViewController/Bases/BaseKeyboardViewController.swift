@@ -1588,10 +1588,14 @@ private extension BaseKeyboardViewController {
 
     func handleInputBufferSuggestion(at index: Int) {
         let suggestionIndex = index - 1
+        let baseText = KeyboardSuggestionSelectionPolicy.suggestionSelectionBaseText(
+            inputBuffer: inputBuffer,
+            documentContextBeforeInput: textDocumentProxy.documentContextBeforeInput
+        )
 
         guard let result = suggestionController.selectSuggestion(
             at: suggestionIndex,
-            baseText: inputBuffer
+            baseText: baseText
         ) else { return }
 
         replaceText(deleteCount: result.deleteCount, insert: result.insertText)

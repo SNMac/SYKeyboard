@@ -127,6 +127,28 @@ struct KeyboardSuggestionSelectionPolicyTests {
         )
     }
 
+    @Test("후보 선택 기준 텍스트는 입력 버퍼가 비어 있으면 커서 앞 문맥을 사용")
+    func test후보선택기준텍스트() {
+        #expect(
+            KeyboardSuggestionSelectionPolicy.suggestionSelectionBaseText(
+                inputBuffer: "동",
+                documentContextBeforeInput: "동해"
+            ) == "동"
+        )
+        #expect(
+            KeyboardSuggestionSelectionPolicy.suggestionSelectionBaseText(
+                inputBuffer: "",
+                documentContextBeforeInput: "동해"
+            ) == "동해"
+        )
+        #expect(
+            KeyboardSuggestionSelectionPolicy.suggestionSelectionBaseText(
+                inputBuffer: "",
+                documentContextBeforeInput: nil
+            ) == ""
+        )
+    }
+
     @Test("lexicon은 텍스트 대치나 자동완성 중 하나라도 켜진 경우 로드")
     func testLexicon로딩조건() {
         #expect(

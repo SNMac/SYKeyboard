@@ -26,6 +26,8 @@ Last Updated: 2026-06-16
 - 사용자 보고: 현재 글자를 입력한 뒤 커서를 이동하면 자동완성 제안이 초기 상태로 돌아간다.
 - 사용자 기대: 커서 이동이 끝난 뒤 커서 앞 글자/단어에 맞게 자동완성 제안을 다시 표시한다.
 - 사용자 추가 기대: 커서를 이동하는 동안에는 텍스트필드에 아무것도 없는 상황의 초기 후보로 바뀌지 않고, 직전 자동완성 후보가 그대로 남아 있어야 한다.
+- 사용자 수동 확인: `동해 안녕 가나` 입력 후 `동해` 뒤로 커서를 옮겨 후보 `동행한`을 탭하면 `동해동행한 안녕 가나`가 되어 커서 앞 단어가 교체되지 않았다.
+- 사용자 수동 확인: 수정 후 같은 흐름에서 `동행한 안녕 가나`로 정상 교체되는 것을 확인했다.
 - `NGramPredictiveTextEngine.init(language:)`는 background load 완료 후 main queue에서 store와 `isLoaded`를 반영한다.
 - `NGramPredictiveTextEngine.addWord(_:)`와 `endSentence()`는 `isLoaded == false`이면 요청을 버린다.
 - `NGramPredictiveTextEngine.resetAllData()`는 메모리를 비우고 파일/legacy UserDefaults를 삭제하지만, 이미 진행 중인 background load 또는 save의 후속 반영을 막는 generation 검사가 없다.
@@ -45,7 +47,8 @@ Last Updated: 2026-06-16
 - n-gram 로딩 전 입력은 in-memory queue에 보관하고, reset은 generation token으로 오래된 load/save 반영을 차단한다.
 - 2026-06-16 커서 이동 후 제안 재계산은 키보드 primary 버튼 커서 드래그가 끝난 시점에 `updateSuggestionsForCursorContext()`를 호출하는 방식으로 처리한다. 넓은 `textDidChange(_:)` fallback은 undo/redo와 focus 전환 부작용을 줄이기 위해 사용하지 않는다.
 - 2026-06-16 커서 드래그 중 후보 유지 요구는 `isPrimaryCursorDragging` 상태와 `KeyboardSuggestionSelectionPolicy.shouldUpdateSuggestionsOnTextDidChange(...)`로 처리했다. primary 커서 드래그 중 `textDidChange(_:)`에서는 후보 갱신을 건너뛰고, 드래그 종료 시 `updateSuggestionsForCursorContext()`로 커서 앞 문맥 기준 후보를 다시 계산한다.
-- selected text가 있으면 기존처럼 selected text 정책이 우선한다. 문서 컨텍스트 기반 후보를 탭했을 때 실제 문서의 커서 앞 단어를 교체하는 동작은 delete count 안전성 검증이 더 필요해 후속 항목으로 남긴다.
+- 문서 컨텍스트 기반 후보 선택은 `inputBuffer`가 비어 있으면 `textDocumentProxy.documentContextBeforeInput`을 후보 선택 기준 텍스트로 사용해 커서 앞 단어 길이만큼 삭제하도록 처리한다.
+- selected text가 있으면 기존처럼 selected text 정책이 우선한다.
 
 ## Hypotheses
 
@@ -61,7 +64,6 @@ Last Updated: 2026-06-16
 - 대치 복구 이력을 커서/focus 변경 시 무효화하는 것만으로 충분한지, 아니면 record 자체에 context anchor를 추가해야 하는지 구현 중 테스트로 결정한다.
 - n-gram reset race를 generation token으로 막을지, load/save/reset을 모두 하나의 serial state queue로 모을지 구현 난이도와 테스트 가능성을 비교해야 한다.
 - 커서 이동 후 외부 문서 컨텍스트 기반 후보를 보여줄 때 `SuggestionController.lastSuggestionBaseText`와 `inputBuffer`를 어떻게 구분할지 확인이 필요하다.
-- 커서 앞 단어 기준 제안을 선택했을 때 replace/delete count가 실제 문서 컨텍스트를 안전하게 수정하는지 별도 확인이 필요하다.
 
 ## Verification Notes
 
@@ -136,3 +138,20 @@ xcodebuild test \
 ```
 
 - 결과: 구현 전 새 `KeyboardSuggestionSelectionPolicyTests.testTextDidChange자동완성갱신조건()`가 production 함수 없음으로 실패하는 RED를 확인했고, 구현 후 권한 있는 환경에서 두 focused suite 모두 `** TEST SUCCEEDED **`를 확인했다.
+- 2026-06-16 문서 컨텍스트 기반 후보 선택 focused 테스트:
+
+```sh
+xcodebuild clean test \
+  -project SYKeyboard.xcodeproj \
+  -scheme SYKeyboard \
+  -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0' \
+  -only-testing:SYKeyboardTests/KeyboardSuggestionSelectionPolicyTests
+
+xcodebuild test \
+  -project SYKeyboard.xcodeproj \
+  -scheme SYKeyboard \
+  -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0' \
+  -only-testing:SYKeyboardTests/KeyboardSuggestionSelectionPolicyTests
+```
+
+- 결과: clean test에서 새 `KeyboardSuggestionSelectionPolicyTests.test후보선택기준텍스트()`가 production 함수 없음으로 실패하는 RED를 확인했고, 구현 후 권한 있는 환경에서 `KeyboardSuggestionSelectionPolicyTests`가 `** TEST SUCCEEDED **`로 통과했다.

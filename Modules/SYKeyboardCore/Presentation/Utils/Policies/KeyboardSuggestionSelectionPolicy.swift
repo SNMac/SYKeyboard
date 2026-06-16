@@ -46,6 +46,14 @@ enum KeyboardSuggestionSelectionPolicy {
         return !isPrimaryCursorDragging
     }
 
+    static func suggestionSelectionBaseText(
+        inputBuffer: String,
+        documentContextBeforeInput: String?
+    ) -> String {
+        guard inputBuffer.isEmpty else { return inputBuffer }
+        return documentContextBeforeInput ?? ""
+    }
+
     static func textReplacementRestoreDeleteCount(
         documentText: String,
         inputBuffer: String,
