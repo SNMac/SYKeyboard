@@ -134,6 +134,8 @@ open class BaseKeyboardViewController: UIInputViewController {
     private var didEmitFirstSuggestionUpdateSignpost = false
     /// 첫 입력 처리 계측 이벤트 중복 방지 플래그
     private var didEmitFirstTextInteractionSignpost = false
+    /// primary 버튼 커서 드래그 중에는 `textDidChange` 후보 갱신을 건너뜁니다.
+    private var isPrimaryCursorDragging = false
     /// 자동완성과 undo/redo 설정이 모두 켜진 경우에만 기능을 활성화합니다.
     private var isUndoRedoFeatureAvailable: Bool {
         return KeyboardPresentationStatePolicy.isUndoRedoFeatureAvailable(
@@ -220,6 +222,12 @@ open class BaseKeyboardViewController: UIInputViewController {
         suggestionController.isTextReplacementEnabled = keyboardSettingsManager.isTextReplacementEnabled
         suggestionController.isPredictiveTextEnabled = keyboardSettingsManager.isPredictiveTextEnabled
 
+        if KeyboardSuggestionSelectionPolicy.shouldStartLexiconLoadBeforeFirstAppearance(
+            isTextReplacementEnabled: keyboardSettingsManager.isTextReplacementEnabled
+        ) {
+            suggestionController.loadLexicon(from: self)
+        }
+
         updateSuggestionBarHidden()
     }
 
@@ -272,7 +280,11 @@ open class BaseKeyboardViewController: UIInputViewController {
         updateReturnButtonType()
         updateReturnButtonEnabled()
         updateSuggestionBarHidden()
-        updateSuggestions()
+        if KeyboardSuggestionSelectionPolicy.shouldUpdateSuggestionsOnTextDidChange(
+            isPrimaryCursorDragging: isPrimaryCursorDragging
+        ) {
+            updateSuggestions()
+        }
     }
     
     open override func selectionWillChange(_ textInput: (any UITextInput)?) {
@@ -1074,7 +1086,8 @@ extension BaseKeyboardViewController {
             }
         case .spaceButton:
             if let replacement = suggestionController.attemptTextReplacement(
-                baseText: inputBuffer
+                baseText: inputBuffer,
+                documentContextBeforeInput: textDocumentProxy.documentContextBeforeInput
             ) {
                 // 텍스트 대치: 래핑 메서드 사용
                 replaceText(deleteCount: replacement.deleteCount, insert: replacement.insertText)
@@ -1254,6 +1267,7 @@ private extension BaseKeyboardViewController {
             currentContext: currentTextContextSnapshot()
         ) {
             invalidateUndoRedoHistoryForTextContextChange()
+            suggestionController.clearReplacementHistory()
         }
     }
 
@@ -1283,6 +1297,25 @@ private extension BaseKeyboardViewController {
             isPredictiveTextEnabled: suggestionController.isPredictiveTextEnabled,
             selectedText: textDocumentProxy.selectedText,
             inputBuffer: inputBuffer
+        )
+
+        switch action {
+        case .none:
+            break
+        case .update(let text):
+            suggestionController.updateSuggestions(for: text)
+        case .clear:
+            suggestionController.clearSuggestions()
+        }
+    }
+
+    func updateSuggestionsForCursorContext() {
+        let action = KeyboardSuggestionSelectionPolicy.suggestionUpdateAction(
+            isPredictiveTextEnabled: suggestionController.isPredictiveTextEnabled,
+            selectedText: textDocumentProxy.selectedText,
+            inputBuffer: KeyboardSuggestionSelectionPolicy.limitedDocumentContextBeforeInput(
+                textDocumentProxy.documentContextBeforeInput
+            )
         )
 
         switch action {
@@ -1331,6 +1364,7 @@ extension BaseKeyboardViewController: SwitchGestureControllerDelegate {
 extension BaseKeyboardViewController: TextInteractionGestureControllerDelegate {
     final func primaryButtonPanning(_ controller: TextInteractionGestureController, to direction: PanDirection, steps: Int) {
         logger.debug("Primary Button 팬 제스처 방향: \(String(describing: direction)), steps: \(steps)")
+        isPrimaryCursorDragging = true
 
         // 커서 이동 시 입력 버퍼 초기화
         resetInputBuffer()
@@ -1354,6 +1388,12 @@ extension BaseKeyboardViewController: TextInteractionGestureControllerDelegate {
         tempDeletedCharacters.removeAll()
         deleteButtonPanDidStop()
         logger.debug("임시 삭제 내용 저장 변수 초기화")
+    }
+
+    final func primaryButtonPanStopped(_ controller: TextInteractionGestureController) {
+        isPrimaryCursorDragging = false
+        updateReturnButtonEnabled()
+        updateSuggestionsForCursorContext()
     }
 
     final func textInteractableButtonLongPressing(_ controller: TextInteractionGestureController, button: TextInteractable) {
@@ -1551,10 +1591,14 @@ private extension BaseKeyboardViewController {
 
     func handleInputBufferSuggestion(at index: Int) {
         let suggestionIndex = index - 1
+        let baseText = KeyboardSuggestionSelectionPolicy.suggestionSelectionBaseText(
+            inputBuffer: inputBuffer,
+            documentContextBeforeInput: textDocumentProxy.documentContextBeforeInput
+        )
 
         guard let result = suggestionController.selectSuggestion(
             at: suggestionIndex,
-            baseText: inputBuffer
+            baseText: baseText
         ) else { return }
 
         replaceText(deleteCount: result.deleteCount, insert: result.insertText)

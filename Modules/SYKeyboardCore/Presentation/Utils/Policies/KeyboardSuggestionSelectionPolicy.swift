@@ -28,10 +28,35 @@ enum KeyboardSuggestionSelectionPolicy {
         return isTextReplacementEnabled || isPredictiveTextEnabled
     }
 
+    static func shouldStartLexiconLoadBeforeFirstAppearance(
+        isTextReplacementEnabled: Bool
+    ) -> Bool {
+        return isTextReplacementEnabled
+    }
+
     static func shouldUpdateInitialSuggestionsAfterDeferredPreparation(
         shouldPreparePredictiveEngines: Bool
     ) -> Bool {
         return shouldPreparePredictiveEngines
+    }
+
+    static func shouldUpdateSuggestionsOnTextDidChange(
+        isPrimaryCursorDragging: Bool
+    ) -> Bool {
+        return !isPrimaryCursorDragging
+    }
+
+    static func suggestionSelectionBaseText(
+        inputBuffer: String,
+        documentContextBeforeInput: String?
+    ) -> String {
+        guard inputBuffer.isEmpty else { return inputBuffer }
+        return limitedDocumentContextBeforeInput(documentContextBeforeInput)
+    }
+
+    static func limitedDocumentContextBeforeInput(_ context: String?) -> String {
+        guard let context else { return "" }
+        return String(context.suffix(KeyboardTextContextNavigator.maximumCursorRestoreDistance))
     }
 
     static func textReplacementRestoreDeleteCount(

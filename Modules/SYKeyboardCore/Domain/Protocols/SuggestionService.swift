@@ -158,8 +158,12 @@ protocol SuggestionService: AnyObject {
     /// 방금 복구된 단축어와 동일하면 대치를 건너뜁니다.
     ///
     /// - Parameter baseText: 텍스트 대치를 제공할 텍스트
+    /// - Parameter documentContextBeforeInput: 호스트 앱이 제공하는 커서 앞 텍스트
     /// - Returns: 대치 수행 정보. 대치가 불필요하면 `nil`
-    func attemptTextReplacement(baseText: String) -> (deleteCount: Int, insertText: String)?
+    func attemptTextReplacement(
+        baseText: String,
+        documentContextBeforeInput: String?
+    ) -> (deleteCount: Int, insertText: String)?
 
     /// 삭제 시 방금 수행된 텍스트 대치를 복구합니다.
     ///

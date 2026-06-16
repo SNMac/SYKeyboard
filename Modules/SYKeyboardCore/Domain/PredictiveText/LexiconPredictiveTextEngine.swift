@@ -14,11 +14,35 @@ import UIKit
 ///
 /// - Note: `UILexicon`은 키보드 익스텐션에서만 사용 가능하며,
 ///   `UIInputViewController.requestSupplementaryLexicon`을 통해 로드해야 합니다.
-final class LexiconPredictiveTextEngine: PredictiveTextProvider {
+struct TextReplacementEntry: Equatable {
+    let userInput: String
+    let documentText: String
+}
+
+protocol LexiconSuggestionProviding: PredictiveTextProvider {
+    var hasLoadedLexicon: Bool { get }
+    var textReplacementEntries: [TextReplacementEntry] { get }
+}
+
+protocol LexiconLoadableSuggestionProviding: LexiconSuggestionProviding {
+    func setLexicon(_ lexicon: UILexicon)
+}
+
+final class LexiconPredictiveTextEngine: LexiconLoadableSuggestionProviding {
     
     // MARK: - Properties
     
     private(set) var lexicon: UILexicon?
+
+    var hasLoadedLexicon: Bool {
+        lexicon != nil
+    }
+
+    var textReplacementEntries: [TextReplacementEntry] {
+        lexicon?.entries.map {
+            TextReplacementEntry(userInput: $0.userInput, documentText: $0.documentText)
+        } ?? []
+    }
     
     // MARK: - Internal Methods
     

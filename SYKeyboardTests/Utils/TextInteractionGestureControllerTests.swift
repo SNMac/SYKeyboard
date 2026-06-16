@@ -145,15 +145,52 @@ struct TextInteractionGestureControllerTests {
 
         #expect(currentPressedButton === otherButton)
     }
+
+    @Test("primary cursor pan 종료는 stop callback을 호출")
+    func testPrimaryCursorPan종료_stopCallback() {
+        let keyboardHStackView = UIView()
+        let cursorButton = PrimaryKeyButton(
+            keyboard: .dubeolsik,
+            button: .keyButton(primary: ["ㄷ"], secondary: nil)
+        )
+        var currentPressedButton: BaseKeyboardButton? = cursorButton
+        let delegate = TextInteractionGestureDelegateSpy()
+        let controller = TextInteractionGestureController(
+            keyboardHStackView: keyboardHStackView,
+            getCurrentPressedButton: { currentPressedButton },
+            setCurrentPressedButton: { currentPressedButton = $0 }
+        )
+        let cursorGesture = UIPanGestureRecognizer()
+        let oldCursorActiveDistance = UserDefaultsManager.shared.cursorActiveDistance
+
+        controller.delegate = delegate
+        UserDefaultsManager.shared.cursorActiveDistance = 0
+        defer { UserDefaultsManager.shared.cursorActiveDistance = oldCursorActiveDistance }
+
+        cursorButton.addGestureRecognizer(cursorGesture)
+        cursorGesture.state = .began
+        controller.panGestureHandler(cursorGesture)
+        cursorGesture.state = .changed
+        controller.panGestureHandler(cursorGesture)
+        cursorGesture.state = .ended
+        controller.panGestureHandler(cursorGesture)
+
+        #expect(delegate.primaryPanStoppedCount == 1)
+    }
 }
 
 @MainActor
 private final class TextInteractionGestureDelegateSpy: TextInteractionGestureControllerDelegate {
     var deletePanStoppedCount = 0
+    var primaryPanStoppedCount = 0
 
     func primaryButtonPanning(_ controller: TextInteractionGestureController, to direction: PanDirection, steps: Int) {}
 
     func deleteButtonPanning(_ controller: TextInteractionGestureController, to direction: PanDirection) {}
+
+    func primaryButtonPanStopped(_ controller: TextInteractionGestureController) {
+        primaryPanStoppedCount += 1
+    }
 
     func deleteButtonPanStopped(_ controller: TextInteractionGestureController) {
         deletePanStoppedCount += 1

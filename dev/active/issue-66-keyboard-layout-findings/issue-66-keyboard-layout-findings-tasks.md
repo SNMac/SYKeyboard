@@ -27,6 +27,6 @@ Last Updated: 2026-06-15
 - [x] P3 비활성/활성/강조 상태에서 라벨과 이미지 tint를 함께 갱신한다.
 - [x] 전체 `SYKeyboard` 테스트를 실행한다.
 - [x] `HangeulKeyboard`와 `EnglishKeyboard` scheme을 빌드한다.
-- [ ] 한글/영문 preview 및 실제 extension에서 수동 검증한다.
+- [x] 한글/영문 preview 및 실제 extension에서 수동 검증한다.
 - [x] `dev/active/code-review-scope/code-review-scope-findings.md`에 처리 상태와 검증 결과를 반영한다.
 - [x] `git status --short`로 의도하지 않은 변경이 없는지 확인한다.
