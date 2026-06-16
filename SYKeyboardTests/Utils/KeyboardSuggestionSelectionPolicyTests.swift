@@ -113,6 +113,20 @@ struct KeyboardSuggestionSelectionPolicyTests {
         )
     }
 
+    @Test("textDidChange 자동완성 갱신은 primary 커서 드래그 중에는 건너뜀")
+    func testTextDidChange자동완성갱신조건() {
+        #expect(
+            KeyboardSuggestionSelectionPolicy.shouldUpdateSuggestionsOnTextDidChange(
+                isPrimaryCursorDragging: false
+            )
+        )
+        #expect(
+            KeyboardSuggestionSelectionPolicy.shouldUpdateSuggestionsOnTextDidChange(
+                isPrimaryCursorDragging: true
+            ) == false
+        )
+    }
+
     @Test("lexicon은 텍스트 대치나 자동완성 중 하나라도 켜진 경우 로드")
     func testLexicon로딩조건() {
         #expect(

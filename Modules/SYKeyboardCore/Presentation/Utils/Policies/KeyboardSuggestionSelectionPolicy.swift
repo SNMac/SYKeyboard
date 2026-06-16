@@ -40,6 +40,12 @@ enum KeyboardSuggestionSelectionPolicy {
         return shouldPreparePredictiveEngines
     }
 
+    static func shouldUpdateSuggestionsOnTextDidChange(
+        isPrimaryCursorDragging: Bool
+    ) -> Bool {
+        return !isPrimaryCursorDragging
+    }
+
     static func textReplacementRestoreDeleteCount(
         documentText: String,
         inputBuffer: String,

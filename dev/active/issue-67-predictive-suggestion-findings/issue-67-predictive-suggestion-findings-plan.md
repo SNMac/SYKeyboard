@@ -21,7 +21,7 @@ Last Updated: 2026-06-16
   - 현재 글자를 입력한 뒤 커서를 이동하면 자동완성 제안이 초기 상태로 돌아간다.
   - 기대 동작은 커서 이동이 끝난 뒤 커서 앞 글자/단어에 맞게 자동완성 제안을 다시 계산하는 것이다.
   - 키보드 커서 드래그가 끝난 뒤 제안 재계산은 구현했다.
-  - 추가 기대 동작: 커서를 이동하는 동안에는 텍스트필드에 아무것도 없는 상황의 초기 후보로 바뀌지 않고, 드래그 시작 직전 후보가 그대로 남아 있어야 한다.
+  - 커서를 이동하는 동안에는 텍스트필드에 아무것도 없는 상황의 초기 후보로 바뀌지 않고, 드래그 시작 직전 후보가 그대로 남아 있도록 구현했다.
 - 관련 파일:
   - `Modules/SYKeyboardCore/Domain/SuggestionController.swift`
   - `Modules/SYKeyboardCore/Domain/PredictiveText/NGramPredictiveTextEngine.swift`

@@ -38,13 +38,13 @@ Last Updated: 2026-06-16
 - 대치 복구 이력 finding은 유효한 것으로 본다. 현재 기록에는 원래 위치 anchor가 없어 동일 문구가 다른 위치에 있을 때 구분할 근거가 없다.
 - n-gram reset race finding은 유효한 것으로 본다. `resetAllData()`와 background load/save 사이에 세대 검사가 없다.
 - n-gram 로딩 전 기록 누락 finding은 유효한 것으로 본다. 기존 SNM-40 문서에도 명시된 open question이고 코드가 요청을 버린다.
-- 커서 이동 후 제안 재계산은 후속 작업으로 유지한다. 단, 커서 앞 문맥을 자동완성 조회에는 사용할 수 있지만 n-gram 학습 기록에는 사용하지 않는 방향을 우선한다.
+- 커서 이동 후 제안 재계산은 키보드 primary 커서 드래그 종료 시점에 처리한다. 커서 앞 문맥은 자동완성 조회에만 사용하고, n-gram 학습 기록에는 사용하지 않는다.
 - 2026-06-16 선택 범위 구현에서는 커서 이동 후 제안 재계산을 제외하고, 사용자가 선택한 텍스트 대치/lexicon 로딩/n-gram 로딩·reset 항목을 먼저 처리했다.
 - 텍스트 대치 복구는 마지막 대치 이력만 복구 대상으로 삼고, `textWillChange(_:)`에서 복구 이력을 비워 커서/focus/context 변경 뒤 과거 대치 이력이 쓰이지 않도록 했다.
 - lexicon 첫 대치 누락은 입력을 block하지 않고, 텍스트 대치가 켜진 경우 `viewDidLoad()`에서 lexicon load를 앞당겨 시작하는 정책으로 처리했다.
 - n-gram 로딩 전 입력은 in-memory queue에 보관하고, reset은 generation token으로 오래된 load/save 반영을 차단한다.
 - 2026-06-16 커서 이동 후 제안 재계산은 키보드 primary 버튼 커서 드래그가 끝난 시점에 `updateSuggestionsForCursorContext()`를 호출하는 방식으로 처리한다. 넓은 `textDidChange(_:)` fallback은 undo/redo와 focus 전환 부작용을 줄이기 위해 사용하지 않는다.
-- 2026-06-16 커서 드래그 중 후보 유지 요구는 아직 구현 전이다. 현재 구현은 드래그 종료 후 재계산을 다루며, 드래그 중 빈 `inputBuffer` 기준 초기 후보 노출을 막는 상태 게이트는 후속 작업으로 남긴다.
+- 2026-06-16 커서 드래그 중 후보 유지 요구는 `isPrimaryCursorDragging` 상태와 `KeyboardSuggestionSelectionPolicy.shouldUpdateSuggestionsOnTextDidChange(...)`로 처리했다. primary 커서 드래그 중 `textDidChange(_:)`에서는 후보 갱신을 건너뛰고, 드래그 종료 시 `updateSuggestionsForCursorContext()`로 커서 앞 문맥 기준 후보를 다시 계산한다.
 - selected text가 있으면 기존처럼 selected text 정책이 우선한다. 문서 컨텍스트 기반 후보를 탭했을 때 실제 문서의 커서 앞 단어를 교체하는 동작은 delete count 안전성 검증이 더 필요해 후속 항목으로 남긴다.
 
 ## Hypotheses
@@ -62,7 +62,6 @@ Last Updated: 2026-06-16
 - n-gram reset race를 generation token으로 막을지, load/save/reset을 모두 하나의 serial state queue로 모을지 구현 난이도와 테스트 가능성을 비교해야 한다.
 - 커서 이동 후 외부 문서 컨텍스트 기반 후보를 보여줄 때 `SuggestionController.lastSuggestionBaseText`와 `inputBuffer`를 어떻게 구분할지 확인이 필요하다.
 - 커서 앞 단어 기준 제안을 선택했을 때 replace/delete count가 실제 문서 컨텍스트를 안전하게 수정하는지 별도 확인이 필요하다.
-- 커서 드래그 중 후보 유지 구현 시 `textWillChange(_:)`/`textDidChange(_:)`에서 발생하는 후보 초기화만 막고, 일반 focus 전환이나 selected text 변경에서 필요한 clear 동작은 유지해야 한다.
 
 ## Verification Notes
 
@@ -120,3 +119,20 @@ xcodebuild test \
 
 - 결과: 구현 전 `TextInteractionGestureControllerTests.test취소된Pan_다른현재버튼보존()`에서 RED 실패를 확인했고, 구현 후 권한 있는 환경에서 두 focused suite 모두 `** TEST SUCCEEDED **`를 확인했다.
 - Xcode가 연결된 물리 기기의 passcode 관련 경고를 출력했지만, 테스트 대상은 iPhone 13 mini / iOS 16.0 시뮬레이터였고 테스트 결과는 성공으로 종료됐다.
+- 2026-06-16 커서 드래그 중 직전 후보 유지 focused 테스트:
+
+```sh
+xcodebuild test \
+  -project SYKeyboard.xcodeproj \
+  -scheme SYKeyboard \
+  -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0' \
+  -only-testing:SYKeyboardTests/KeyboardSuggestionSelectionPolicyTests
+
+xcodebuild test \
+  -project SYKeyboard.xcodeproj \
+  -scheme SYKeyboard \
+  -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0' \
+  -only-testing:SYKeyboardTests/TextInteractionGestureControllerTests
+```
+
+- 결과: 구현 전 새 `KeyboardSuggestionSelectionPolicyTests.testTextDidChange자동완성갱신조건()`가 production 함수 없음으로 실패하는 RED를 확인했고, 구현 후 권한 있는 환경에서 두 focused suite 모두 `** TEST SUCCEEDED **`를 확인했다.
