@@ -31,7 +31,7 @@ extension NGramPredictiveTextEngine: NGramPredictiveTextProviding {}
 
 /// `SuggestionController`가 사용하는 예측 엔진 생성 팩토리
 struct SuggestionControllerEngineFactory {
-    let makeLexiconEngine: () -> LexiconPredictiveTextEngine
+    let makeLexiconEngine: () -> LexiconSuggestionProviding
     let makeTextCheckerEngine: (String) -> PredictiveTextProvider
     let makeNGramEngine: (String) -> NGramPredictiveTextProviding
 
@@ -165,7 +165,7 @@ final class SuggestionController: SuggestionService {
     /// `UILexicon` 기반 엔진 (연락처, 텍스트 대치 등)
     ///
     /// 자동완성과 텍스트 대치 양쪽에서 사용되므로, 둘 다 꺼졌을 때만 `nil`이 됩니다.
-    private var lexiconEngine: LexiconPredictiveTextEngine?
+    private var lexiconEngine: LexiconSuggestionProviding?
     /// `UITextChecker` 기반 엔진 (시스템 사전)
     ///
     /// `isPredictiveTextEnabled`가 `false`이면 `nil`이 됩니다.
@@ -245,7 +245,7 @@ final class SuggestionController: SuggestionService {
         prepareLexiconEngineIfNeeded()
         guard lexiconEngine != nil else { return }
         guard !isLoadingLexicon else { return }
-        guard lexiconEngine?.lexicon == nil else { return }
+        guard lexiconEngine?.hasLoadedLexicon == false else { return }
 
         isLoadingLexicon = true
         Task { @MainActor [weak self, weak inputViewController] in
@@ -260,7 +260,7 @@ final class SuggestionController: SuggestionService {
                 self.isLoadingLexicon = false
             }
             let lexicon = await inputViewController.requestSupplementaryLexicon()
-            lexiconEngine?.setLexicon(lexicon)
+            (lexiconEngine as? LexiconLoadableSuggestionProviding)?.setLexicon(lexicon)
         }
     }
 
@@ -391,10 +391,14 @@ final class SuggestionController: SuggestionService {
     func attemptTextReplacement(baseText: String) -> (deleteCount: Int, insertText: String)? {
         guard isTextReplacementEnabled,
               !baseText.isEmpty,
-              let lexicon = lexiconEngine?.lexicon else { return nil }
+              let lexiconEngine,
+              lexiconEngine.hasLoadedLexicon else { return nil }
 
-        let matchingEntries = lexicon.entries.filter { entry in
-            let isMatch = baseText.lowercased().hasSuffix(entry.userInput.lowercased())
+        let currentWord = extractLastWord(from: baseText)
+        guard !currentWord.isEmpty else { return nil }
+
+        let matchingEntries = lexiconEngine.textReplacementEntries.filter { entry in
+            let isMatch = currentWord.lowercased() == entry.userInput.lowercased()
 
             if entry.userInput.lowercased() == "m" && entry.documentText == "M" {
                 return false
@@ -429,25 +433,24 @@ final class SuggestionController: SuggestionService {
         guard isTextReplacementEnabled,
               !replacementHistory.isEmpty else { return nil }
 
-        for (index, record) in replacementHistory.enumerated().reversed() {
-            if let deleteCount = KeyboardSuggestionSelectionPolicy.textReplacementRestoreDeleteCount(
-                documentText: record.documentText,
-                inputBuffer: inputBuffer,
-                documentContextBeforeInput: documentContextBeforeInput,
-                selectedText: selectedText
-            ) {
-                replacementHistory.remove(at: index)
-
-                ignoredShortcut = record.userInput
-
-                return (
-                    deleteCount: deleteCount,
-                    insertText: record.userInput
-                )
-            }
+        guard let record = replacementHistory.last else { return nil }
+        guard let deleteCount = KeyboardSuggestionSelectionPolicy.textReplacementRestoreDeleteCount(
+            documentText: record.documentText,
+            inputBuffer: inputBuffer,
+            documentContextBeforeInput: documentContextBeforeInput,
+            selectedText: selectedText
+        ) else {
+            return nil
         }
 
-        return nil
+        replacementHistory.removeLast()
+
+        ignoredShortcut = record.userInput
+
+        return (
+            deleteCount: deleteCount,
+            insertText: record.userInput
+        )
     }
 
     // MARK: - State Management

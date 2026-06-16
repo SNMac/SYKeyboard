@@ -11,15 +11,16 @@ Last Updated: 2026-06-16
 - GitHub Issue: `https://github.com/SNMac/SYKeyboard/issues/67`
 - Parent issue: `#57`
 - Findings source: `dev/active/code-review-scope/code-review-scope-findings.md`
-- 이번 범위의 Open findings:
+- 2026-06-16 선택 범위에서 처리한 findings:
   - `[P1]` 텍스트 대치 복구 이력이 다른 위치의 동일 문구를 단축어로 되돌릴 수 있음
   - `[P1]` 텍스트 대치 단축어가 긴 단어의 suffix와도 일치함
   - `[P2]` 비동기 lexicon 로딩 전 첫 텍스트 대치가 조용히 누락될 수 있음
   - `[P2]` n-gram 초기화가 background load/save와 경쟁해 삭제한 학습 데이터를 되살릴 수 있음
   - `[P3]` n-gram 로딩 전 확정된 단어가 학습에서 누락될 수 있음
-- 추가 사용자 보고:
+- 남은 추가 사용자 보고:
   - 현재 글자를 입력한 뒤 커서를 이동하면 자동완성 제안이 초기 상태로 돌아간다.
   - 기대 동작은 커서 이동이 끝난 뒤 커서 앞 글자/단어에 맞게 자동완성 제안을 다시 계산하는 것이다.
+  - 커서 이동 후 제안 재계산은 이번 선택 범위에는 포함하지 않고 후속 작업으로 유지한다.
 - 관련 파일:
   - `Modules/SYKeyboardCore/Domain/SuggestionController.swift`
   - `Modules/SYKeyboardCore/Domain/PredictiveText/NGramPredictiveTextEngine.swift`
@@ -62,6 +63,21 @@ Last Updated: 2026-06-16
 - 커서 이동 후 문서 컨텍스트 기반 제안을 추가할 때, 사용자가 직접 입력하지 않은 텍스트를 n-gram 학습 입력으로 기록하면 학습 데이터가 오염될 수 있다.
 
 ## Verification
+
+- 2026-06-16 선택 범위 focused 테스트 통과:
+
+```sh
+xcodebuild test \
+  -project SYKeyboard.xcodeproj \
+  -scheme SYKeyboard \
+  -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0' \
+  -only-testing:SYKeyboardTests/SuggestionControllerTextReplacementTests \
+  -only-testing:SYKeyboardTests/NGramPredictiveTextEngineLoadingTests \
+  -only-testing:SYKeyboardTests/KeyboardSuggestionSelectionPolicyTests
+```
+
+- 결과: `** TEST SUCCEEDED **`
+- 일반 샌드박스의 `xcodebuild`는 Xcode/Simulator 캐시와 CoreSimulator 권한 문제로 실패할 수 있어 권한 있는 실행으로 검증했다.
 
 - 집중 테스트:
 

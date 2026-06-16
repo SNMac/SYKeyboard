@@ -220,6 +220,12 @@ open class BaseKeyboardViewController: UIInputViewController {
         suggestionController.isTextReplacementEnabled = keyboardSettingsManager.isTextReplacementEnabled
         suggestionController.isPredictiveTextEnabled = keyboardSettingsManager.isPredictiveTextEnabled
 
+        if KeyboardSuggestionSelectionPolicy.shouldStartLexiconLoadBeforeFirstAppearance(
+            isTextReplacementEnabled: keyboardSettingsManager.isTextReplacementEnabled
+        ) {
+            suggestionController.loadLexicon(from: self)
+        }
+
         updateSuggestionBarHidden()
     }
 
@@ -257,6 +263,7 @@ open class BaseKeyboardViewController: UIInputViewController {
             context: currentTextContextSnapshot()
         )
         resetInputBuffer()
+        suggestionController.clearReplacementHistory()
         updateKeyboardType()
         updateReturnButtonType()
         updateReturnButtonEnabled()

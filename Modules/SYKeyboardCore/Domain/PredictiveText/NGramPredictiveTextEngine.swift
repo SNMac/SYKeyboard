@@ -74,6 +74,10 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
     var onLoadCompleted: (() -> Void)?
     /// 마이그레이션 파일 쓰기가 보류 중인지 여부
     private var needsLegacyCleanup = false
+    /// reset과 비동기 load/save 결과를 구분하기 위한 세대 값
+    private var storageGeneration = 0
+    /// 로딩 완료 전에 들어온 기록 이벤트
+    private var pendingEvents: [PendingEvent] = []
     
     /// unigram 저장소: "단어" → 빈도수
     private var unigramStore: [String: Int] = [:]
@@ -95,6 +99,8 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
     
     /// 바이너리 plist 파일 경로
     private let fileURL: URL
+    /// 테스트에서 비동기 load 적용 지연을 재현하기 위한 값
+    private let loadApplyDelay: Duration?
     
     /// 백그라운드 저장용 직렬 큐
     private let saveQueue = DispatchQueue(label: "com.snmac.sykeyboard.ngram.save", qos: .utility)
@@ -123,12 +129,13 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
     }
     
     /// App Group `UserDefaults` (마이그레이션 읽기/삭제 전용)
-    private let legacyStorage: UserDefaults = {
-        guard let userDefaults = UserDefaults(suiteName: DefaultValues.groupBundleID) else {
-            fatalError("UserDefaults를 suiteName으로 불러오는 데 실패했습니다.")
-        }
-        return userDefaults
-    }()
+    private let legacyStorage: UserDefaults
+
+    /// 로딩 전 들어온 기록 이벤트
+    private enum PendingEvent {
+        case addWord(String)
+        case endSentence
+    }
     
     // MARK: - Initializer
     
@@ -140,8 +147,7 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
     /// 기존 `UserDefaults`에 데이터가 남아있으면 자동으로 파일로 마이그레이션합니다.
     ///
     /// - Parameter language: 언어 식별자 (예: "ko-KR", "en-US")
-    public init(language: String) {
-        self.language = language
+    public convenience init(language: String) {
         let signposter = OSSignposter(
             subsystem: Bundle.main.bundleIdentifier ?? "Unknown Bundle",
             category: "NGramPredictiveTextEngine"
@@ -153,9 +159,40 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
         ) else {
             fatalError("App Group 컨테이너 URL을 가져오는 데 실패했습니다.")
         }
-        self.fileURL = containerURL.appendingPathComponent("ngram_\(language).plist")
+        let fileURL = containerURL.appendingPathComponent("ngram_\(language).plist")
+        guard let legacyStorage = UserDefaults(suiteName: DefaultValues.groupBundleID) else {
+            fatalError("UserDefaults를 suiteName으로 불러오는 데 실패했습니다.")
+        }
         signposter.endInterval("NGramInit", initState)
-        
+
+        self.init(
+            language: language,
+            fileURL: fileURL,
+            legacyStorage: legacyStorage,
+            loadApplyDelay: nil
+        )
+    }
+
+    init(
+        language: String,
+        fileURL: URL,
+        legacyStorage: UserDefaults,
+        loadApplyDelay: Duration? = nil
+    ) {
+        self.language = language
+        self.fileURL = fileURL
+        self.legacyStorage = legacyStorage
+        self.loadApplyDelay = loadApplyDelay
+        startBackgroundLoad()
+    }
+
+    private func startBackgroundLoad() {
+        let signposter = OSSignposter(
+            subsystem: Bundle.main.bundleIdentifier ?? "Unknown Bundle",
+            category: "NGramPredictiveTextEngine"
+        )
+        let generation = storageGeneration
+
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
             guard let self else { return }
             let loadState = signposter.beginInterval("NGramBackgroundLoad")
@@ -172,15 +209,30 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
                 loaded = NGramData(unigram: [:], bigram: [:], trigram: [:])
             }
             
-            DispatchQueue.main.async {
+            let applyLoadedData = { [weak self] in
+                guard let self else { return }
+                guard self.storageGeneration == generation else {
+                    signposter.endInterval("NGramBackgroundLoad", loadState)
+                    return
+                }
                 self.unigramStore = loaded.unigram
                 self.bigramStore = loaded.bigram
                 self.trigramStore = loaded.trigram
                 self.needsLegacyCleanup = needsCleanup
                 self.isLoaded = true
+                self.flushPendingEvents()
                 self.logger.debug("[NGram/\(self.language)] 디스크 로딩 완료")
                 signposter.endInterval("NGramBackgroundLoad", loadState)
                 self.onLoadCompleted?()
+            }
+
+            if let loadApplyDelay = self.loadApplyDelay {
+                Task { @MainActor in
+                    try? await Task.sleep(for: loadApplyDelay)
+                    applyLoadedData()
+                }
+            } else {
+                DispatchQueue.main.async(execute: applyLoadedData)
             }
         }
     }
@@ -261,7 +313,11 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
     ///
     /// - Parameter word: 추가할 단어
     func addWord(_ word: String) {
-        guard isLoaded, !word.isEmpty else { return }
+        guard !word.isEmpty else { return }
+        guard isLoaded else {
+            pendingEvents.append(.addWord(word))
+            return
+        }
         currentSentenceWords.append(word)
         recordNGrams()
         scheduleSave()
@@ -272,7 +328,10 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
     /// 리턴 키 입력 시 호출합니다.
     /// 디스크 로딩이 완료되지 않은 경우 무시됩니다.
     func endSentence() {
-        guard isLoaded else { return }
+        guard isLoaded else {
+            pendingEvents.append(.endSentence)
+            return
+        }
         currentSentenceWords.removeAll()
         saveToDisk()
     }
@@ -308,6 +367,7 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
     func saveToDisk() {
         guard isLoaded else { return }
         
+        let generation = storageGeneration
         let snapshot = NGramData(
             unigram: unigramStore,
             bigram: bigramStore,
@@ -318,6 +378,12 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
         
         saveQueue.async { [weak self] in
             guard let self else { return }
+            var shouldWrite = false
+            DispatchQueue.main.sync {
+                shouldWrite = self.storageGeneration == generation
+            }
+            guard shouldWrite else { return }
+
             do {
                 let encoder = PropertyListEncoder()
                 encoder.outputFormat = .binary
@@ -341,10 +407,14 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
     
     /// 모든 학습 데이터를 초기화합니다.
     public func resetAllData() {
+        storageGeneration += 1
+        isLoaded = true
         unigramStore = [:]
         bigramStore = [:]
         trigramStore = [:]
         currentSentenceWords = []
+        pendingEvents = []
+        writeCounter = 0
         
         // 파일 삭제
         try? FileManager.default.removeItem(at: fileURL)
@@ -413,6 +483,25 @@ private extension NGramPredictiveTextEngine {
     }
     
     // MARK: N-Gram Recording
+
+    /// 로딩 전에 들어온 기록 이벤트를 로딩된 저장소 위에 순서대로 반영합니다.
+    func flushPendingEvents() {
+        let events = pendingEvents
+        pendingEvents = []
+
+        for event in events {
+            switch event {
+            case .addWord(let word):
+                guard !word.isEmpty else { continue }
+                currentSentenceWords.append(word)
+                recordNGrams()
+                scheduleSave()
+            case .endSentence:
+                currentSentenceWords.removeAll()
+                saveToDisk()
+            }
+        }
+    }
     
     /// 현재 버퍼의 마지막 단어들로 n-gram을 기록합니다.
     func recordNGrams() {

@@ -128,6 +128,20 @@ struct KeyboardSuggestionSelectionPolicyTests {
         )
     }
 
+    @Test("텍스트 대치용 lexicon은 첫 표시 전 로드를 시작")
+    func test텍스트대치용Lexicon은_첫표시전로드를시작() {
+        #expect(
+            KeyboardSuggestionSelectionPolicy.shouldStartLexiconLoadBeforeFirstAppearance(
+                isTextReplacementEnabled: true
+            )
+        )
+        #expect(
+            KeyboardSuggestionSelectionPolicy.shouldStartLexiconLoadBeforeFirstAppearance(
+                isTextReplacementEnabled: false
+            ) == false
+        )
+    }
+
     @Test("지연 준비 후 초기 후보 갱신은 예측 엔진을 준비한 경우에만 수행")
     func test지연준비후_초기후보갱신조건() {
         #expect(

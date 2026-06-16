@@ -37,7 +37,11 @@ Last Updated: 2026-06-16
 - 대치 복구 이력 finding은 유효한 것으로 본다. 현재 기록에는 원래 위치 anchor가 없어 동일 문구가 다른 위치에 있을 때 구분할 근거가 없다.
 - n-gram reset race finding은 유효한 것으로 본다. `resetAllData()`와 background load/save 사이에 세대 검사가 없다.
 - n-gram 로딩 전 기록 누락 finding은 유효한 것으로 본다. 기존 SNM-40 문서에도 명시된 open question이고 코드가 요청을 버린다.
-- 커서 이동 후 제안 재계산은 이번 작업 범위에 포함한다. 단, 커서 앞 문맥을 자동완성 조회에는 사용할 수 있지만 n-gram 학습 기록에는 사용하지 않는 방향을 우선한다.
+- 커서 이동 후 제안 재계산은 후속 작업으로 유지한다. 단, 커서 앞 문맥을 자동완성 조회에는 사용할 수 있지만 n-gram 학습 기록에는 사용하지 않는 방향을 우선한다.
+- 2026-06-16 선택 범위 구현에서는 커서 이동 후 제안 재계산을 제외하고, 사용자가 선택한 텍스트 대치/lexicon 로딩/n-gram 로딩·reset 항목을 먼저 처리했다.
+- 텍스트 대치 복구는 마지막 대치 이력만 복구 대상으로 삼고, `textWillChange(_:)`에서 복구 이력을 비워 커서/focus/context 변경 뒤 과거 대치 이력이 쓰이지 않도록 했다.
+- lexicon 첫 대치 누락은 입력을 block하지 않고, 텍스트 대치가 켜진 경우 `viewDidLoad()`에서 lexicon load를 앞당겨 시작하는 정책으로 처리했다.
+- n-gram 로딩 전 입력은 in-memory queue에 보관하고, reset은 generation token으로 오래된 load/save 반영을 차단한다.
 
 ## Hypotheses
 
@@ -79,3 +83,18 @@ sed -n '1,260p' dev/coding-conventions.md
 - `gh issue view` 실패는 GitHub CLI GraphQL query의 classic Projects 필드 오류이며, `gh api` 직접 조회로 우회했다.
 - 아직 테스트/빌드는 실행하지 않았다. 이 문서는 구현 전 수정 계획 산출물이다.
 - 2026-06-16 사용자 추가 요청으로 커서 이동 후 커서 앞 글자 기준 자동완성 제안 재계산 계획을 추가했다.
+- 2026-06-16 선택 범위 구현 후 focused 테스트:
+
+```sh
+xcodebuild test \
+  -project SYKeyboard.xcodeproj \
+  -scheme SYKeyboard \
+  -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0' \
+  -only-testing:SYKeyboardTests/SuggestionControllerTextReplacementTests \
+  -only-testing:SYKeyboardTests/NGramPredictiveTextEngineLoadingTests \
+  -only-testing:SYKeyboardTests/KeyboardSuggestionSelectionPolicyTests
+```
+
+- 결과: 권한 있는 환경에서 `** TEST SUCCEEDED **`.
+- 테스트 대상은 iPhone 13 mini / iOS 16.0 시뮬레이터다. Xcode가 연결된 물리 기기의 passcode 관련 경고를 출력했지만, focused 테스트 결과는 성공으로 종료됐다.
+- 전체 `SYKeyboard` 테스트와 `HangeulKeyboard`/`EnglishKeyboard` 개별 scheme 빌드는 아직 별도 실행하지 않았다.

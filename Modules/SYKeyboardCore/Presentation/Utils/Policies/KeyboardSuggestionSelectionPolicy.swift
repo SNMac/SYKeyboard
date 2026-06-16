@@ -28,6 +28,12 @@ enum KeyboardSuggestionSelectionPolicy {
         return isTextReplacementEnabled || isPredictiveTextEnabled
     }
 
+    static func shouldStartLexiconLoadBeforeFirstAppearance(
+        isTextReplacementEnabled: Bool
+    ) -> Bool {
+        return isTextReplacementEnabled
+    }
+
     static func shouldUpdateInitialSuggestionsAfterDeferredPreparation(
         shouldPreparePredictiveEngines: Bool
     ) -> Bool {

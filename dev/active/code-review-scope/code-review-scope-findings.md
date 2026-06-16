@@ -150,45 +150,50 @@ Last Updated: 2026-06-14
 - 판단: 사용자 확인 결과 `selectionWillChange(_:)`와 `selectionDidChange(_:)`는 관찰되지 않지만, focus 중인 텍스트 필드 변경, 사용자의 텍스트 필드 탭, 커서 이동 시 `textWillChange(_:)`와 `textDidChange(_:)`가 호출된다. 현재 구현은 `textWillChange(_:)`에서 `resetInputBuffer()`를 호출하고 `textDidChange(_:)`에서 `updateSuggestions()`를 호출하므로 커서/필드 변경 후 이전 후보가 그대로 남는다는 finding의 전제가 성립하지 않는다.
 - 검증: 사용자 수동 확인 및 `BaseKeyboardViewController.textWillChange(_:)`, `textDidChange(_:)` 코드 경로 확인.
 
-#### [P1][Open] 텍스트 대치 복구 이력이 다른 위치의 동일 문구를 단축어로 되돌릴 수 있음
+#### [P1][Resolved] 텍스트 대치 복구 이력이 다른 위치의 동일 문구를 단축어로 되돌릴 수 있음
 
 - 위치: `Modules/SYKeyboardCore/Domain/SuggestionController.swift:432`, `Modules/SYKeyboardCore/Presentation/ViewController/Bases/BaseKeyboardViewController.swift:283`
 - 영향: 텍스트 대치를 수행한 뒤 커서를 다른 위치의 동일한 확장 문구 뒤로 이동하고 삭제하면, 해당 문구가 과거 단축어로 예기치 않게 변경될 수 있다.
 - 근거: `attemptRestoreReplacement(...)`는 모든 과거 `replacementHistory`를 역순으로 탐색하고 현재 `inputBuffer` 또는 커서 앞 컨텍스트 suffix가 `documentText`와 같으면 복구한다. 이력에는 원래 대치 위치나 컨텍스트 anchor가 없고 selection/cursor 변경 시 이력을 비우지 않는다.
 - 제안: 직전 대치의 위치/컨텍스트와 일치할 때만 복구하거나, 커서·selection·focus 변경 시 복구 이력을 무효화한다.
-- 검증: 코드 경로 확인. 대치 직후 삭제 복구와 다른 위치의 동일 문구 삭제를 구분하는 테스트가 없다.
+- 처리: `attemptRestoreReplacement(...)`가 마지막 대치 이력만 복구 대상으로 삼도록 제한했다. `textWillChange(_:)`에서는 입력 버퍼와 함께 텍스트 대치 복구 이력을 비워 커서/focus/context 변경 뒤 과거 대치 이력이 쓰이지 않게 했다.
+- 검증: `SuggestionControllerTextReplacementTests`에 마지막 대치 복구와 이력 삭제 후 미복구 테스트를 추가했다. 권한 있는 환경의 iPhone 13 mini / iOS 16.0 focused 테스트에서 `TEST SUCCEEDED`를 확인했다.
 
-#### [P1][Open] 텍스트 대치 단축어가 긴 단어의 suffix와도 일치함
+#### [P1][Resolved] 텍스트 대치 단축어가 긴 단어의 suffix와도 일치함
 
 - 위치: `Modules/SYKeyboardCore/Domain/SuggestionController.swift:396`
 - 영향: 단축어가 일반 단어의 끝부분과 같으면 스페이스 입력 시 일반 단어 일부가 의도하지 않은 대치 문구로 변경될 수 있다.
 - 근거: `attemptTextReplacement(baseText:)`는 `baseText.lowercased().hasSuffix(entry.userInput.lowercased())`만 확인하며 단축어 앞 단어 경계를 검사하지 않는다. 예를 들어 단축어 `id`는 `paid`의 suffix와도 일치한다.
 - 제안: 전체 `baseText` suffix가 아니라 현재 입력 단어와 단축어가 정확히 일치하는지 검사하거나 단축어 앞의 단어 경계를 확인한다.
-- 검증: 코드 경로 확인. 독립 단축어와 긴 단어 내부 suffix를 구분하는 텍스트 대치 테스트가 없다.
+- 처리: `attemptTextReplacement(baseText:)`가 커서 앞 마지막 단어와 단축어의 exact match만 허용하도록 변경했다.
+- 검증: `SuggestionControllerTextReplacementTests`에서 `paid`는 대치하지 않고 `id`만 대치하는 경로를 확인했다. 권한 있는 환경의 iPhone 13 mini / iOS 16.0 focused 테스트에서 `TEST SUCCEEDED`를 확인했다.
 
-#### [P2][Open] 비동기 lexicon 로딩 전 첫 텍스트 대치가 조용히 누락될 수 있음
+#### [P2][Resolved] 비동기 lexicon 로딩 전 첫 텍스트 대치가 조용히 누락될 수 있음
 
 - 위치: `Modules/SYKeyboardCore/Presentation/ViewController/Bases/BaseKeyboardViewController.swift:1002`, `Modules/SYKeyboardCore/Domain/SuggestionController.swift:391`
 - 영향: 키보드가 표시된 직후 사용자가 단축어와 스페이스를 빠르게 입력하면 동일한 입력이어도 첫 텍스트 대치가 적용되지 않을 수 있다.
 - 근거: lexicon 요청은 `viewDidAppear(_:)` 이후 비동기로 시작되고, `attemptTextReplacement(baseText:)`는 `lexiconEngine?.lexicon`이 아직 없으면 재시도나 보류 없이 `nil`을 반환한다. `snm-40-predictive-loading` 문서에도 첫 대치 누락 여부가 미해결 질문으로 남아 있다.
 - 제안: 텍스트 대치가 켜진 경우 lexicon 준비 시점을 앞당기거나, 로딩 중 첫 대치 요청을 안전하게 재평가하는 정책을 명시한다.
-- 검증: 코드 경로와 `dev/active/snm-40-predictive-loading/` 확인. lexicon 응답을 지연시킨 상태의 첫 스페이스 대치 테스트가 없다.
+- 처리: 텍스트 대치가 켜진 경우 `BaseKeyboardViewController.viewDidLoad()`에서 lexicon 로딩을 먼저 시작하도록 했다. 입력 이벤트를 기다리는 blocking 방식은 사용하지 않는다.
+- 검증: `KeyboardSuggestionSelectionPolicyTests`에 텍스트 대치용 lexicon 선로딩 정책 테스트를 추가했다. 권한 있는 환경의 iPhone 13 mini / iOS 16.0 focused 테스트에서 `TEST SUCCEEDED`를 확인했다. 실제 시스템 `UILexicon` 지연 완료 타이밍의 첫 스페이스 입력은 수동 확인이 필요하다.
 
-#### [P2][Open] n-gram 초기화가 background load/save와 경쟁해 삭제한 학습 데이터를 되살릴 수 있음
+#### [P2][Resolved] n-gram 초기화가 background load/save와 경쟁해 삭제한 학습 데이터를 되살릴 수 있음
 
 - 위치: `Modules/SYKeyboardCore/Domain/PredictiveText/NGramPredictiveTextEngine.swift:159`, `Modules/SYKeyboardCore/Domain/PredictiveText/NGramPredictiveTextEngine.swift:319`, `Modules/SYKeyboardCore/Domain/PredictiveText/NGramPredictiveTextEngine.swift:343`
 - 영향: 사용자가 자동완성 학습 데이터를 초기화해도 진행 중이던 load 또는 save가 이후 완료되면 메모리나 파일에 이전 데이터가 다시 나타날 수 있다.
 - 근거: init의 background load, `saveQueue`의 파일 쓰기, `resetAllData()`의 메모리 초기화/파일 삭제가 하나의 직렬화된 상태나 generation 검증 없이 독립적으로 실행된다.
 - 제안: load/save/reset을 하나의 저장소 직렬 큐 또는 generation token으로 조정하고, 초기화를 위해 로딩 엔진을 새로 만드는 대신 저장소 수준 reset API를 제공한다.
-- 검증: 코드 경로 확인. load/save를 보류한 상태에서 reset 후 보류 작업을 완료하는 경쟁 조건 테스트가 없다.
+- 처리: `NGramPredictiveTextEngine`에 storage generation을 추가해 reset 이후 완료된 오래된 background load/save가 메모리나 파일에 반영되지 않게 했다. reset 시 pending event와 write counter도 함께 비운다.
+- 검증: `NGramPredictiveTextEngineLoadingTests`에 reset 이후 지연 load 결과가 되살아나지 않는 테스트를 추가했다. 권한 있는 환경의 iPhone 13 mini / iOS 16.0 focused 테스트에서 `TEST SUCCEEDED`를 확인했다.
 
-#### [P3][Open] n-gram 로딩 전 확정된 단어가 학습에서 누락될 수 있음
+#### [P3][Resolved] n-gram 로딩 전 확정된 단어가 학습에서 누락될 수 있음
 
 - 위치: `Modules/SYKeyboardCore/Domain/PredictiveText/NGramPredictiveTextEngine.swift:263`, `Modules/SYKeyboardCore/Domain/PredictiveText/NGramPredictiveTextEngine.swift:274`
 - 영향: 키보드 표시 직후 로딩이 끝나기 전에 스페이스나 리턴으로 확정된 초기 단어가 n-gram 학습에 포함되지 않을 수 있다.
 - 근거: `addWord(_:)`와 `endSentence()`는 `isLoaded == false`이면 요청을 버린다. `snm-40-predictive-loading` 문서도 로딩 전 기록 queue 필요 여부를 미해결 질문으로 남겼다.
 - 제안: 로딩 전 기록을 메모리 queue에 보관해 로딩 완료 후 순서대로 적용하거나, 누락을 의도된 trade-off로 명시하고 검증한다.
-- 검증: 코드 경로와 `dev/active/snm-40-predictive-loading/` 확인. 로딩 전 `addWord`/`endSentence` 호출 보존 여부 테스트가 없다.
+- 처리: 로딩 전 `addWord(_:)`와 `endSentence()` 호출을 pending event queue에 보관하고, load 완료 후 순서대로 반영하도록 했다. reset 시 queue는 폐기한다.
+- 검증: `NGramPredictiveTextEngineLoadingTests`에 로딩 전 기록한 단어가 로딩 완료 후 후보에 반영되는 테스트를 추가했다. 권한 있는 환경의 iPhone 13 mini / iOS 16.0 focused 테스트에서 `TEST SUCCEEDED`를 확인했다.
 
 ### Track 5. Settings And UserDefaults Contract
 
