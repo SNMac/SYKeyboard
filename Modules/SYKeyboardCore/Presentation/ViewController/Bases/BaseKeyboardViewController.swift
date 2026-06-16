@@ -265,7 +265,6 @@ open class BaseKeyboardViewController: UIInputViewController {
             context: currentTextContextSnapshot()
         )
         resetInputBuffer()
-        suggestionController.clearReplacementHistory()
         updateKeyboardType()
         updateReturnButtonType()
         updateReturnButtonEnabled()
@@ -1087,7 +1086,8 @@ extension BaseKeyboardViewController {
             }
         case .spaceButton:
             if let replacement = suggestionController.attemptTextReplacement(
-                baseText: inputBuffer
+                baseText: inputBuffer,
+                documentContextBeforeInput: textDocumentProxy.documentContextBeforeInput
             ) {
                 // 텍스트 대치: 래핑 메서드 사용
                 replaceText(deleteCount: replacement.deleteCount, insert: replacement.insertText)
@@ -1267,6 +1267,7 @@ private extension BaseKeyboardViewController {
             currentContext: currentTextContextSnapshot()
         ) {
             invalidateUndoRedoHistoryForTextContextChange()
+            suggestionController.clearReplacementHistory()
         }
     }
 
@@ -1312,7 +1313,9 @@ private extension BaseKeyboardViewController {
         let action = KeyboardSuggestionSelectionPolicy.suggestionUpdateAction(
             isPredictiveTextEnabled: suggestionController.isPredictiveTextEnabled,
             selectedText: textDocumentProxy.selectedText,
-            inputBuffer: textDocumentProxy.documentContextBeforeInput ?? ""
+            inputBuffer: KeyboardSuggestionSelectionPolicy.limitedDocumentContextBeforeInput(
+                textDocumentProxy.documentContextBeforeInput
+            )
         )
 
         switch action {

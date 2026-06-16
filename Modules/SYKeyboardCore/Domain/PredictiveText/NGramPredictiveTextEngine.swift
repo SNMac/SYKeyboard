@@ -76,6 +76,8 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
     private var needsLegacyCleanup = false
     /// reset과 비동기 load/save 결과를 구분하기 위한 세대 값
     private var storageGeneration = 0
+    /// 백그라운드 load/save에서 storage generation을 확인하기 위한 lock
+    private let storageGenerationLock = NSLock()
     /// 로딩 완료 전에 들어온 기록 이벤트
     private var pendingEvents: [PendingEvent] = []
     
@@ -191,7 +193,7 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
             subsystem: Bundle.main.bundleIdentifier ?? "Unknown Bundle",
             category: "NGramPredictiveTextEngine"
         )
-        let generation = storageGeneration
+        let generation = currentStorageGeneration()
 
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
             guard let self else { return }
@@ -211,7 +213,7 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
             
             let applyLoadedData = { [weak self] in
                 guard let self else { return }
-                guard self.storageGeneration == generation else {
+                guard self.currentStorageGeneration() == generation else {
                     signposter.endInterval("NGramBackgroundLoad", loadState)
                     return
                 }
@@ -367,7 +369,7 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
     func saveToDisk() {
         guard isLoaded else { return }
         
-        let generation = storageGeneration
+        let generation = currentStorageGeneration()
         let snapshot = NGramData(
             unigram: unigramStore,
             bigram: bigramStore,
@@ -378,11 +380,7 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
         
         saveQueue.async { [weak self] in
             guard let self else { return }
-            var shouldWrite = false
-            DispatchQueue.main.sync {
-                shouldWrite = self.storageGeneration == generation
-            }
-            guard shouldWrite else { return }
+            guard self.currentStorageGeneration() == generation else { return }
 
             do {
                 let encoder = PropertyListEncoder()
@@ -407,7 +405,7 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
     
     /// 모든 학습 데이터를 초기화합니다.
     public func resetAllData() {
-        storageGeneration += 1
+        advanceStorageGeneration()
         isLoaded = true
         unigramStore = [:]
         bigramStore = [:]
@@ -431,6 +429,18 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
 // MARK: - Private Methods
 
 private extension NGramPredictiveTextEngine {
+
+    func currentStorageGeneration() -> Int {
+        storageGenerationLock.lock()
+        defer { storageGenerationLock.unlock() }
+        return storageGeneration
+    }
+
+    func advanceStorageGeneration() {
+        storageGenerationLock.lock()
+        storageGeneration += 1
+        storageGenerationLock.unlock()
+    }
     
     // MARK: File I/O
     
@@ -492,13 +502,9 @@ private extension NGramPredictiveTextEngine {
         for event in events {
             switch event {
             case .addWord(let word):
-                guard !word.isEmpty else { continue }
-                currentSentenceWords.append(word)
-                recordNGrams()
-                scheduleSave()
+                addWord(word)
             case .endSentence:
-                currentSentenceWords.removeAll()
-                saveToDisk()
+                endSentence()
             }
         }
     }

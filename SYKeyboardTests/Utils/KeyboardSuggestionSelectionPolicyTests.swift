@@ -149,6 +149,19 @@ struct KeyboardSuggestionSelectionPolicyTests {
         )
     }
 
+    @Test("후보 선택 기준 텍스트는 커서 앞 문맥을 최대 256자로 제한")
+    func test후보선택기준텍스트_문맥길이제한() {
+        let droppedPrefix = String(repeating: "가", count: 50)
+        let retainedContext = String(repeating: "나", count: 254) + "동해"
+
+        #expect(
+            KeyboardSuggestionSelectionPolicy.suggestionSelectionBaseText(
+                inputBuffer: "",
+                documentContextBeforeInput: droppedPrefix + retainedContext
+            ) == retainedContext
+        )
+    }
+
     @Test("lexicon은 텍스트 대치나 자동완성 중 하나라도 켜진 경우 로드")
     func testLexicon로딩조건() {
         #expect(

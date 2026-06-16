@@ -25,6 +25,11 @@ Last Updated: 2026-06-16
 - [x] 커서 드래그 중에는 빈 입력 상태 후보로 바꾸지 않고 직전 자동완성 후보를 유지한다.
 - [x] 문서 컨텍스트 기반 제안 선택 시 replace/delete count가 안전한지 테스트한다.
 - [x] 커서 이동 후 selected text가 있는 경우 이전 후보가 남지 않는지 테스트한다.
+- [x] PR #80 review의 후보 선택 문맥 길이 제한을 기존 256자 cursor restore 계약에 맞춰 반영한다.
+- [x] PR #80 review의 `DispatchQueue.main.sync` 지적을 반영해 n-gram storage generation 확인을 lock 기반으로 바꾼다.
+- [x] PR #80 review의 `flushPendingEvents()` 중복 지적을 반영해 기존 기록 메서드를 재사용한다.
+- [x] PR #80 review의 `replacementHistory` 누적 지적은 단일 optional 대신 최근 20개 context anchor 기반 이력으로 보정한다.
+- [x] PR #80 review 대응 focused 테스트를 RED/GREEN으로 확인한다.
 - [x] focused 테스트를 실행한다.
 - [ ] 전체 `SYKeyboard` 테스트를 실행한다.
 - [ ] `HangeulKeyboard`와 `EnglishKeyboard` extension 빌드를 실행한다.

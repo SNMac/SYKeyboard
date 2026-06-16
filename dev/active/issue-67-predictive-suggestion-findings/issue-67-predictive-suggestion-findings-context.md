@@ -42,18 +42,21 @@ Last Updated: 2026-06-16
 - n-gram 로딩 전 기록 누락 finding은 유효한 것으로 본다. 기존 SNM-40 문서에도 명시된 open question이고 코드가 요청을 버린다.
 - 커서 이동 후 제안 재계산은 키보드 primary 커서 드래그 종료 시점에 처리한다. 커서 앞 문맥은 자동완성 조회에만 사용하고, n-gram 학습 기록에는 사용하지 않는다.
 - 2026-06-16 선택 범위 구현에서는 커서 이동 후 제안 재계산을 제외하고, 사용자가 선택한 텍스트 대치/lexicon 로딩/n-gram 로딩·reset 항목을 먼저 처리했다.
-- 텍스트 대치 복구는 마지막 대치 이력만 복구 대상으로 삼고, `textWillChange(_:)`에서 복구 이력을 비워 커서/focus/context 변경 뒤 과거 대치 이력이 쓰이지 않도록 했다.
+- PR #80 review 대응에서 텍스트 대치 복구는 최근 20개 이력을 유지하되, 대치 직전 커서 앞 문맥 suffix와 확장 문구가 현재 커서 앞 문맥과 맞는 기록만 최신순으로 복구하도록 바꿨다. 다른 위치의 동일 확장 문구는 context anchor가 다르면 복구하지 않는다.
+- `textWillChange(_:)`만으로는 커서 이동과 focus 변경을 구분하기 어려우므로, 커서 이동에서는 복구 이력을 유지하고 실제 입력 대상 변경으로 undo/redo history를 무효화할 때 복구 이력도 비운다.
 - lexicon 첫 대치 누락은 입력을 block하지 않고, 텍스트 대치가 켜진 경우 `viewDidLoad()`에서 lexicon load를 앞당겨 시작하는 정책으로 처리했다.
 - n-gram 로딩 전 입력은 in-memory queue에 보관하고, reset은 generation token으로 오래된 load/save 반영을 차단한다.
 - 2026-06-16 커서 이동 후 제안 재계산은 키보드 primary 버튼 커서 드래그가 끝난 시점에 `updateSuggestionsForCursorContext()`를 호출하는 방식으로 처리한다. 넓은 `textDidChange(_:)` fallback은 undo/redo와 focus 전환 부작용을 줄이기 위해 사용하지 않는다.
 - 2026-06-16 커서 드래그 중 후보 유지 요구는 `isPrimaryCursorDragging` 상태와 `KeyboardSuggestionSelectionPolicy.shouldUpdateSuggestionsOnTextDidChange(...)`로 처리했다. primary 커서 드래그 중 `textDidChange(_:)`에서는 후보 갱신을 건너뛰고, 드래그 종료 시 `updateSuggestionsForCursorContext()`로 커서 앞 문맥 기준 후보를 다시 계산한다.
 - 문서 컨텍스트 기반 후보 선택은 `inputBuffer`가 비어 있으면 `textDocumentProxy.documentContextBeforeInput`을 후보 선택 기준 텍스트로 사용해 커서 앞 단어 길이만큼 삭제하도록 처리한다.
 - selected text가 있으면 기존처럼 selected text 정책이 우선한다.
+- PR #80 review 대응에서 후보 선택과 커서 컨텍스트 후보 갱신에 사용하는 `documentContextBeforeInput`은 기존 undo/redo cursor restore 선례와 같은 256자 suffix로 제한한다.
+- PR #80 review 대응에서 n-gram `saveQueue`의 `DispatchQueue.main.sync`는 제거하고, storage generation 값만 `NSLock`으로 보호해 background load/save/reset 세대 검사를 유지한다.
+- PR #80 review 대응에서 `flushPendingEvents()`는 중복 구현 대신 `addWord(_:)`와 `endSentence()`를 재사용한다.
 
 ## Hypotheses
 
-- 추정: 대치 복구 이력은 `textWillChange(_:)`에서 `resetInputBuffer()`와 함께 비우면 focus/커서 변경으로 인한 오복구 위험을 크게 줄일 수 있다. 단, 실제 대치 직후 삭제 경로에서 `textWillChange(_:)`가 호출되는지 확인이 필요하다.
-- 추정: 대치 복구를 “마지막 기록 1건”으로 제한해도 사용자 기대 동작에는 충분할 가능성이 높다. 과거 여러 대치 이력을 오래 유지하는 기능 요구는 아직 확인되지 않았다.
+- 추정: context anchor가 같은 동일 확장 문구가 반복되는 문서에서는 최신 이력이 먼저 복구된다. 이 경우에도 `documentText`만으로 역검색하던 기존 방식보다 오복구 위험은 낮다.
 - 추정: `NGramPredictiveTextEngine` race 테스트를 안정적으로 작성하려면 파일 I/O와 queue를 주입 가능하게 만드는 작은 테스트 seam이 필요할 수 있다.
 - 추정: lexicon 준비 전 첫 대치 누락은 실제 `UILexicon` 지연 완료를 테스트하기 어렵기 때문에 `SuggestionController`의 준비 상태/정책 단위 테스트와 수동 확인을 병행해야 할 수 있다.
 - 추정: 키보드 자체 커서 드래그 종료 시점에는 `textDocumentProxy.documentContextBeforeInput`이 이동 후 커서 앞 문맥을 반영하므로, 커서 컨텍스트 전용 후보 갱신으로 커서 앞 글자에 맞는 후보를 다시 표시할 수 있다.
@@ -61,7 +64,7 @@ Last Updated: 2026-06-16
 ## Open Questions
 
 - 텍스트 대치 lexicon이 아직 로딩 중일 때 스페이스 입력을 어떻게 처리할지 최종 UX 정책이 필요하다. 입력을 지연시키지는 않고, 로딩 완료 후 다음 스페이스나 입력 이벤트에서 재평가하는 방향이 입력 지연 위험이 낮다.
-- 대치 복구 이력을 커서/focus 변경 시 무효화하는 것만으로 충분한지, 아니면 record 자체에 context anchor를 추가해야 하는지 구현 중 테스트로 결정한다.
+- 실제 입력 앱에서 여러 텍스트 대치를 수행한 뒤 이전 대치 위치로 커서를 옮겨 삭제했을 때 context anchor 기반 복구가 기대대로 동작하는지 수동 확인이 필요하다.
 - n-gram reset race를 generation token으로 막을지, load/save/reset을 모두 하나의 serial state queue로 모을지 구현 난이도와 테스트 가능성을 비교해야 한다.
 - 커서 이동 후 외부 문서 컨텍스트 기반 후보를 보여줄 때 `SuggestionController.lastSuggestionBaseText`와 `inputBuffer`를 어떻게 구분할지 확인이 필요하다.
 
@@ -155,3 +158,18 @@ xcodebuild test \
 ```
 
 - 결과: clean test에서 새 `KeyboardSuggestionSelectionPolicyTests.test후보선택기준텍스트()`가 production 함수 없음으로 실패하는 RED를 확인했고, 구현 후 권한 있는 환경에서 `KeyboardSuggestionSelectionPolicyTests`가 `** TEST SUCCEEDED **`로 통과했다.
+- 2026-06-16 PR #80 review 대응 focused 테스트:
+
+```sh
+xcodebuild test \
+  -project SYKeyboard.xcodeproj \
+  -scheme SYKeyboard \
+  -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0' \
+  -resultBundlePath /private/tmp/SYKeyboardReviewFix3.xcresult \
+  -only-testing:SYKeyboardTests/KeyboardSuggestionSelectionPolicyTests \
+  -only-testing:SYKeyboardTests/SuggestionControllerTextReplacementTests \
+  -only-testing:SYKeyboardTests/NGramPredictiveTextEngineLoadingTests
+```
+
+- 결과: 권한 있는 환경에서 `** TEST SUCCEEDED **`.
+- RED 확인: 같은 focused 테스트에서 `test후보선택기준텍스트_문맥길이제한`, `test대치복구는_문맥과맞는대치결과를복구`, `test대치복구는_다른위치의같은확장문구를복구하지않음`, `test대치복구이력은_최근20개만보관`이 구현 전 실패했다. 첫 RED 실행은 Xcode 결과 로그 정리 단계가 멈춰 `pkill`로 종료했지만 실패 테스트 출력은 확인했다.

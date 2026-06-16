@@ -51,7 +51,12 @@ enum KeyboardSuggestionSelectionPolicy {
         documentContextBeforeInput: String?
     ) -> String {
         guard inputBuffer.isEmpty else { return inputBuffer }
-        return documentContextBeforeInput ?? ""
+        return limitedDocumentContextBeforeInput(documentContextBeforeInput)
+    }
+
+    static func limitedDocumentContextBeforeInput(_ context: String?) -> String {
+        guard let context else { return "" }
+        return String(context.suffix(KeyboardTextContextNavigator.maximumCursorRestoreDistance))
     }
 
     static func textReplacementRestoreDeleteCount(

@@ -181,6 +181,8 @@ final class SuggestionController: SuggestionService {
 
     /// 후보 최대 표시 개수
     private let maxSuggestions = 3
+    /// 복구 가능한 텍스트 대치 이력 최대 개수
+    private let maxReplacementHistoryCount = 20
 
     /// 텍스트 대치 이력을 저장하는 모델
     private struct ReplacementRecord: Equatable {
@@ -188,6 +190,8 @@ final class SuggestionController: SuggestionService {
         let userInput: String
         /// 대치된 결과물 (예: "지금 가는 중!")
         let documentText: String
+        /// 대치 결과 앞쪽의 제한된 문맥
+        let contextBeforeDocumentText: String
     }
     /// 텍스트 대치 이력
     private var replacementHistory: [ReplacementRecord] = []
@@ -315,11 +319,12 @@ final class SuggestionController: SuggestionService {
         }
 
         if item.source == .lexicon {
-            let record = ReplacementRecord(
+            appendReplacementRecord(
                 userInput: currentWord,
-                documentText: item.text
+                documentText: item.text,
+                baseText: baseText,
+                currentWord: currentWord
             )
-            replacementHistory.append(record)
         }
 
         return (deleteCount: currentWord.count, insertText: item.text)
@@ -389,6 +394,13 @@ final class SuggestionController: SuggestionService {
     // MARK: - Text Replacement Methods
 
     func attemptTextReplacement(baseText: String) -> (deleteCount: Int, insertText: String)? {
+        return attemptTextReplacement(baseText: baseText, documentContextBeforeInput: nil)
+    }
+
+    func attemptTextReplacement(
+        baseText: String,
+        documentContextBeforeInput: String?
+    ) -> (deleteCount: Int, insertText: String)? {
         guard isTextReplacementEnabled,
               !baseText.isEmpty,
               let lexiconEngine,
@@ -416,11 +428,12 @@ final class SuggestionController: SuggestionService {
             return nil
         }
 
-        let record = ReplacementRecord(
+        appendReplacementRecord(
             userInput: match.userInput,
-            documentText: match.documentText
+            documentText: match.documentText,
+            baseText: documentContextBeforeInput ?? baseText,
+            currentWord: currentWord
         )
-        replacementHistory.append(record)
 
         return (deleteCount: match.userInput.count, insertText: match.documentText)
     }
@@ -433,24 +446,24 @@ final class SuggestionController: SuggestionService {
         guard isTextReplacementEnabled,
               !replacementHistory.isEmpty else { return nil }
 
-        guard let record = replacementHistory.last else { return nil }
-        guard let deleteCount = KeyboardSuggestionSelectionPolicy.textReplacementRestoreDeleteCount(
-            documentText: record.documentText,
-            inputBuffer: inputBuffer,
-            documentContextBeforeInput: documentContextBeforeInput,
-            selectedText: selectedText
-        ) else {
-            return nil
+        for (index, record) in replacementHistory.enumerated().reversed() {
+            guard let deleteCount = textReplacementRestoreDeleteCount(
+                for: record,
+                inputBuffer: inputBuffer,
+                documentContextBeforeInput: documentContextBeforeInput,
+                selectedText: selectedText
+            ) else { continue }
+
+            replacementHistory.remove(at: index)
+            ignoredShortcut = record.userInput
+
+            return (
+                deleteCount: deleteCount,
+                insertText: record.userInput
+            )
         }
 
-        replacementHistory.removeLast()
-
-        ignoredShortcut = record.userInput
-
-        return (
-            deleteCount: deleteCount,
-            insertText: record.userInput
-        )
+        return nil
     }
 
     // MARK: - State Management
@@ -467,6 +480,68 @@ final class SuggestionController: SuggestionService {
 // MARK: - Private Methods
 
 private extension SuggestionController {
+
+    func appendReplacementRecord(
+        userInput: String,
+        documentText: String,
+        baseText: String,
+        currentWord: String
+    ) {
+        let contextBeforeDocumentText: String
+        if currentWord.count <= baseText.count {
+            contextBeforeDocumentText = String(
+                baseText
+                    .dropLast(currentWord.count)
+                    .suffix(KeyboardTextContextNavigator.maximumCursorRestoreDistance)
+            )
+        } else {
+            contextBeforeDocumentText = ""
+        }
+
+        replacementHistory.append(
+            ReplacementRecord(
+                userInput: userInput,
+                documentText: documentText,
+                contextBeforeDocumentText: contextBeforeDocumentText
+            )
+        )
+
+        if replacementHistory.count > maxReplacementHistoryCount {
+            replacementHistory.removeFirst(replacementHistory.count - maxReplacementHistoryCount)
+        }
+    }
+
+    private func textReplacementRestoreDeleteCount(
+        for record: ReplacementRecord,
+        inputBuffer: String,
+        documentContextBeforeInput: String?,
+        selectedText: String?
+    ) -> Int? {
+        guard selectedText?.isEmpty != false else { return nil }
+
+        if replacementRecord(record, matches: inputBuffer) {
+            return record.documentText.count
+        }
+
+        guard inputBuffer.isEmpty,
+              let documentContextBeforeInput else { return nil }
+
+        return replacementRecord(record, matches: documentContextBeforeInput)
+            ? record.documentText.count
+            : nil
+    }
+
+    private func replacementRecord(
+        _ record: ReplacementRecord,
+        matches text: String
+    ) -> Bool {
+        guard !record.documentText.isEmpty else { return false }
+
+        let expectedSuffix = record.contextBeforeDocumentText + record.documentText
+        guard text.count >= expectedSuffix.count else { return false }
+        return text.hasSuffix(expectedSuffix)
+    }
+
     /// `isPredictiveTextEnabled` 또는 `isTextReplacementEnabled` 변경 시
     /// 더 이상 필요 없는 `lexiconEngine`을 해제합니다.
     ///
