@@ -20,10 +20,11 @@ Last Updated: 2026-06-16
 - [x] n-gram load/save/reset 세대 관리 또는 직렬화 로직을 구현한다.
 - [x] n-gram 로딩 전 `addWord(_:)`/`endSentence()` 보존 테스트를 추가한다.
 - [x] n-gram 로딩 전 입력 queue를 구현하고 reset 시 폐기되도록 한다.
-- [ ] 커서 이동 후 제안이 초기 상태로 돌아가는 동작을 재현하는 테스트를 추가한다.
-- [ ] `textDidChange(_:)` 이후 커서 앞 문맥의 마지막 단어를 기준으로 자동완성 제안을 갱신한다.
+- [x] 커서 이동 후 제안이 초기 상태로 돌아가는 동작을 재현하는 테스트를 추가한다.
+- [x] 키보드 커서 드래그 종료 후 커서 앞 문맥을 기준으로 자동완성 제안을 갱신한다.
+- [ ] 커서 드래그 중에는 빈 입력 상태 후보로 바꾸지 않고 직전 자동완성 후보를 유지한다.
 - [ ] 문서 컨텍스트 기반 제안 선택 시 replace/delete count가 안전한지 테스트한다.
-- [ ] 커서 이동 후 selected text가 있는 경우 이전 후보가 남지 않는지 테스트한다.
+- [x] 커서 이동 후 selected text가 있는 경우 이전 후보가 남지 않는지 테스트한다.
 - [x] focused 테스트를 실행한다.
 - [ ] 전체 `SYKeyboard` 테스트를 실행한다.
 - [ ] `HangeulKeyboard`와 `EnglishKeyboard` extension 빌드를 실행한다.

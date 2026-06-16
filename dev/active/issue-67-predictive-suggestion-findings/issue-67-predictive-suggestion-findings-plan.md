@@ -20,7 +20,8 @@ Last Updated: 2026-06-16
 - 남은 추가 사용자 보고:
   - 현재 글자를 입력한 뒤 커서를 이동하면 자동완성 제안이 초기 상태로 돌아간다.
   - 기대 동작은 커서 이동이 끝난 뒤 커서 앞 글자/단어에 맞게 자동완성 제안을 다시 계산하는 것이다.
-  - 커서 이동 후 제안 재계산은 이번 선택 범위에는 포함하지 않고 후속 작업으로 유지한다.
+  - 키보드 커서 드래그가 끝난 뒤 제안 재계산은 구현했다.
+  - 추가 기대 동작: 커서를 이동하는 동안에는 텍스트필드에 아무것도 없는 상황의 초기 후보로 바뀌지 않고, 드래그 시작 직전 후보가 그대로 남아 있어야 한다.
 - 관련 파일:
   - `Modules/SYKeyboardCore/Domain/SuggestionController.swift`
   - `Modules/SYKeyboardCore/Domain/PredictiveText/NGramPredictiveTextEngine.swift`
@@ -49,7 +50,9 @@ Last Updated: 2026-06-16
    - `endSentence()`도 queue에 포함해 문장 경계가 유지되게 한다.
    - reset 이후의 보류 queue는 폐기한다.
 5. 커서 이동 후 자동완성 제안 재계산을 추가한다.
-   - `textWillChange(_:)`에서 기존처럼 입력 버퍼와 복구 이력을 안전하게 초기화하되, `textDidChange(_:)`에서 `textDocumentProxy.documentContextBeforeInput`의 마지막 단어를 기준으로 제안을 다시 계산한다.
+   - 키보드 primary 버튼 커서 드래그가 끝난 시점에 `textDocumentProxy.documentContextBeforeInput`을 기준으로 제안을 다시 계산한다.
+   - 커서 드래그 중에는 후보를 재계산하거나 clear하지 않고, 드래그 시작 직전 후보를 유지한다.
+   - 넓은 `textDidChange(_:)` fallback은 focus 전환, undo/redo, 외부 텍스트 변경에 끼는 부작용을 줄이기 위해 사용하지 않는다.
    - 현재 키보드 세션에서 직접 입력한 `inputBuffer`와 외부 문서 컨텍스트 기반 제안을 구분해, n-gram 문장 학습에는 외부 컨텍스트를 잘못 기록하지 않도록 한다.
    - selected text가 있거나 자동완성이 비활성/일시 중단된 필드에서는 기존 정책대로 clear/no-op을 유지한다.
 6. findings 문서를 처리 결과와 검증 결과로 갱신한다.
@@ -61,6 +64,7 @@ Last Updated: 2026-06-16
 - n-gram 변경은 저장 파일, legacy UserDefaults migration, background queue, main queue 반영이 얽혀 있어 race 테스트를 먼저 만들지 않으면 회귀를 놓치기 쉽다.
 - 키보드 extension의 입력 이벤트 내부에서 lexicon을 기다리도록 만들면 입력 지연이 생길 수 있으므로, blocking wait는 피한다.
 - 커서 이동 후 문서 컨텍스트 기반 제안을 추가할 때, 사용자가 직접 입력하지 않은 텍스트를 n-gram 학습 입력으로 기록하면 학습 데이터가 오염될 수 있다.
+- 커서 드래그 중 후보 유지를 구현할 때 일반 입력/삭제/selection 변경에서 필요한 후보 clear까지 막으면 오래된 후보가 남을 수 있으므로, “키보드 primary 커서 드래그 중” 상태로 범위를 좁혀야 한다.
 
 ## Verification
 
@@ -122,6 +126,7 @@ xcodebuild build \
   - 키보드 표시 직후 단축어와 스페이스를 빠르게 입력해도 대치 누락 정책이 계획대로 동작한다.
   - 자동완성 학습 데이터 초기화 후 이전 후보가 되살아나지 않는다.
   - 글자를 입력한 뒤 같은 필드의 다른 위치로 커서를 옮기면 커서 앞 단어에 맞는 자동완성 제안이 표시된다.
+  - 커서를 이동하는 동안에는 드래그 시작 직전 자동완성 후보가 유지되고, 손을 떼면 커서 앞 단어 기준 후보로 갱신된다.
   - 커서 이동 후 selected text가 있는 경우에는 관련 없는 이전 후보가 남지 않는다.
 
 ## Done Criteria

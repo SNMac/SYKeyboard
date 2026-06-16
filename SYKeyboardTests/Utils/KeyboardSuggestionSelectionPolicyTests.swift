@@ -104,6 +104,13 @@ struct KeyboardSuggestionSelectionPolicyTests {
                 inputBuffer: "input"
             ) == .update("input")
         )
+        #expect(
+            KeyboardSuggestionSelectionPolicy.suggestionUpdateAction(
+                isPredictiveTextEnabled: true,
+                selectedText: nil,
+                inputBuffer: ""
+            ) == .update("")
+        )
     }
 
     @Test("lexicon은 텍스트 대치나 자동완성 중 하나라도 켜진 경우 로드")

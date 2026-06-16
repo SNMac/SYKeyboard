@@ -1302,6 +1302,23 @@ private extension BaseKeyboardViewController {
         }
     }
 
+    func updateSuggestionsForCursorContext() {
+        let action = KeyboardSuggestionSelectionPolicy.suggestionUpdateAction(
+            isPredictiveTextEnabled: suggestionController.isPredictiveTextEnabled,
+            selectedText: textDocumentProxy.selectedText,
+            inputBuffer: textDocumentProxy.documentContextBeforeInput ?? ""
+        )
+
+        switch action {
+        case .none:
+            break
+        case .update(let text):
+            suggestionController.updateSuggestions(for: text)
+        case .clear:
+            suggestionController.clearSuggestions()
+        }
+    }
+
     func handlePeriodShortcutOnDelete() {
         let state = KeyboardPeriodShortcutPolicy.stateAfterDelete(
             isPeriodShortcutEnabled: keyboardSettingsManager.isPeriodShortcutEnabled,
@@ -1361,6 +1378,11 @@ extension BaseKeyboardViewController: TextInteractionGestureControllerDelegate {
         tempDeletedCharacters.removeAll()
         deleteButtonPanDidStop()
         logger.debug("임시 삭제 내용 저장 변수 초기화")
+    }
+
+    final func primaryButtonPanStopped(_ controller: TextInteractionGestureController) {
+        updateReturnButtonEnabled()
+        updateSuggestionsForCursorContext()
     }
 
     final func textInteractableButtonLongPressing(_ controller: TextInteractionGestureController, button: TextInteractable) {
