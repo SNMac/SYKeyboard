@@ -1,13 +1,11 @@
 //
-//  DefaultValues+Extension.swift
+//  AppDefaultValues.swift
 //  SYKeyboard
 //
-//  Created by 서동환 on 3/10/26.
+//  Created by Codex on 6/18/26.
 //
 
-import SYKeyboardCore
-
-extension DefaultValues {
+enum AppDefaultValues {
     /// 온보딩 여부 기본값
     static let isOnboarding: Bool = true
     /// 앱의 특정 기능 또는 키보드를 실행한 횟수 기본값

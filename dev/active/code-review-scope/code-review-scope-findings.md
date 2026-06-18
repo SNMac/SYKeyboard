@@ -1,6 +1,6 @@
 # Code Review Scope Findings
 
-Last Updated: 2026-06-14
+Last Updated: 2026-06-18
 
 ## Purpose
 
@@ -197,29 +197,38 @@ Last Updated: 2026-06-14
 
 ### Track 5. Settings And UserDefaults Contract
 
-#### [P1][Open] 최초 설치에서 자동 대문자 기본값이 설정 화면과 키보드 런타임에서 다르게 해석됨
+#### [P1][Resolved] 최초 설치에서 자동 대문자 기본값이 설정 화면과 키보드 런타임에서 다르게 해석됨
 
 - 위치: `Modules/EnglishKeyboardCore/Storage/UserDefaultsManager+Extension.swift:15`, `Modules/EnglishKeyboardCore/Storage/DefaultValues+Extension.swift:12`, `SYKeyboard/Presentation/KeyboardSettings/InputSettingsView.swift:22`
 - 영향: 사용자가 자동 대문자 설정을 변경한 적 없는 최초 설치 상태에서 설정 화면은 활성화로 표시하지만, 영어 키보드는 자동 대문자를 비활성화하고 앱 초기 Analytics도 비활성화로 기록한다.
 - 근거: 선언된 기본값과 `@AppStorage` 기본값은 `true`지만, 영어 키보드 런타임 getter는 키가 없으면 `false`를 반환하는 `storage.bool(forKey:)`를 사용한다. `EnglishKeyboardCoreViewController.updateShiftButton()`은 이 getter를 직접 읽는다.
 - 제안: `UserDefaultsWrapper`를 사용하거나 `storage.object(forKey:) as? Bool ?? DefaultValues.isAutoCapitalizationEnabled`로 absent-key fallback을 일치시킨다.
-- 검증: 코드 경로 확인. 빈 App Group 저장소에서 설정 화면과 manager getter가 모두 `true`를 반환하는 계약 테스트가 없다.
+- 처리: 영어 키보드의 `isAutoCapitalizationEnabled` getter를 `storage.object(forKey:) as? Bool ?? DefaultValues.isAutoCapitalizationEnabled`로 변경해 absent key에서 선언된 기본값을 반환하도록 했다. `UserDefaultsContractTests`에 빈 저장소 fallback 계약 테스트를 추가했다.
+- 검증:
+  - 일반 샌드박스의 targeted 테스트는 CoreSimulator/Xcode 캐시 권한 오류로 실패했다.
+  - 권한 있는 환경에서 구현 전 targeted 테스트가 `AppUserDefaults*` 타입 미정의 compile error로 실패하는 것을 확인했다.
+  - 구현 후 권한 있는 환경의 `xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0' -only-testing:SYKeyboardTests/UserDefaultsContractTests`는 `TEST SUCCEEDED`를 확인했다.
+  - 권한 있는 환경의 전체 `SYKeyboard` 테스트와 `HangeulKeyboard`, `EnglishKeyboard` 빌드도 성공했다.
 
-#### [P2][Open] 키보드 컨트롤러가 재사용되면 변경된 설정 일부가 다시 반영되지 않음
+#### [P2][Invalid] 키보드 컨트롤러가 재사용되면 변경된 설정 일부가 다시 반영되지 않음
 
 - 위치: `Modules/SYKeyboardCore/Presentation/ViewController/Bases/BaseKeyboardViewController.swift:207`, `Modules/SYKeyboardCore/Presentation/ViewController/Bases/BaseKeyboardViewController.swift:226`
 - 영향: 기존 키보드 컨트롤러가 사라졌다 다시 표시되는 동안 앱에서 설정을 바꾸면, 마침표 단축키, 커서 드래그, 길게 누르기, 숫자 키패드/한 손 모드 전환 제스처, 자동완성/텍스트 대치 상태가 이전 값으로 남을 수 있다.
 - 근거: 설정 화면은 App Group `@AppStorage`에 즉시 값을 쓰지만, 런타임은 조건부 action/gesture와 suggestion 상태를 `viewDidLoad()`에서만 구성한다. `viewWillAppear()`는 키보드 높이와 햅틱 준비만 갱신하며 설정을 다시 적용하지 않는다.
 - 제안: 재진입 시 호출할 idempotent 설정 갱신 경로를 정의하고, 조건부 action/gesture 추가·제거 및 suggestion 상태를 현재 저장값과 동기화한다.
-- 검증: 동일 controller 인스턴스를 재사용하면서 disappear/appear 사이 설정값을 변경하는 lifecycle 테스트가 없다.
+- 처리: 실제 lifecycle 로그 확인 결과 키보드가 다시 표시될 때 기존 controller 인스턴스를 재사용하지 않고 새 인스턴스를 생성하며 `viewDidLoad()`를 다시 거친다. 따라서 현재 관찰된 환경에서는 stale 설정 전제가 성립하지 않는다.
+- 검증: `loadView`, `viewDidLoad`, `viewWillAppear`, `viewDidAppear`, `deinit` lifecycle 로그로 새 인스턴스 생성과 `viewDidLoad()` 재호출을 확인했다.
 
-#### [P3][Open] 앱 전용 온보딩 manager getter가 선언된 기본값과 다름
+#### [P3][Resolved] 앱 전용 UserDefaults 상태의 모듈 경계와 기본값 계약 정리
 
 - 위치: `SYKeyboard/Storage/UserDefaultsManager+Extension.swift:13`, `SYKeyboard/Storage/DefaultValues+Extension.swift:12`
-- 영향: 현재 `ContentView`는 올바른 `@AppStorage` 기본값을 사용하므로 즉시 사용자 영향은 없지만, 향후 manager getter를 직접 사용하는 코드는 최초 실행에서 온보딩 기본값을 `true`가 아닌 `false`로 해석한다.
-- 근거: 선언된 기본값은 `true`지만 getter는 키가 없으면 `false`를 반환하는 `storage.bool(forKey:)`를 사용한다.
-- 제안: 공통 default-aware wrapper 또는 명시적인 absent-key fallback으로 getter 계약을 일치시킨다.
-- 검증: 빈 저장소의 앱 전용 기본값을 검증하는 테스트가 없다.
+- 영향: 현재 `ContentView`는 올바른 `@AppStorage` 기본값을 사용하므로 즉시 사용자 영향은 낮지만, 앱 전용 온보딩/리뷰 상태가 `SYKeyboardCore.UserDefaultsManager/UserDefaultsKeys/DefaultValues` 확장에 섞여 모듈 경계가 흐려진다. 향후 manager getter를 직접 사용하는 코드는 최초 실행에서 온보딩 기본값을 `true`가 아닌 `false`로 해석할 수 있다.
+- 근거: 선언된 기본값은 `true`지만 getter는 키가 없으면 `false`를 반환하는 `storage.bool(forKey:)`를 사용한다. 추가 확인 결과 `isOnboarding`, `reviewCounter`, `lastBuildPromptedForReview`는 앱 타깃에서만 사용되고 키보드 모듈 사용처는 확인되지 않았다.
+- 제안: 단순 fallback 수정 대신 앱 전용 `AppUserDefaultsManager`, `AppUserDefaultsKeys`, `AppDefaultValues`로 분리한다. 기존 key 문자열과 App Group suiteName은 유지해 저장 데이터 위치를 바꾸지 않는다.
+- 처리: 앱 타깃에 `AppUserDefaultsManager`, `AppUserDefaultsKeys`, `AppDefaultValues`를 추가하고 `ContentView`, `RequestReviewViewModifier`가 앱 전용 타입을 사용하도록 전환했다. 기존 key 문자열과 App Group suiteName은 유지했고, `SYKeyboardCore.UserDefaultsManager/UserDefaultsKeys/DefaultValues`에 붙어 있던 앱 전용 extension 파일은 제거했다.
+- 검증:
+  - `UserDefaultsContractTests`에서 빈 저장소의 온보딩 기본값 fallback과 앱 전용 key 문자열 보존을 확인했다.
+  - 권한 있는 환경의 targeted 계약 테스트, 전체 `SYKeyboard` 테스트, `HangeulKeyboard` 빌드, `EnglishKeyboard` 빌드가 모두 성공했다.
 
 ### Track 6. Keyboard Extension Entry Points
 
