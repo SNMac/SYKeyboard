@@ -12,7 +12,7 @@ import EnglishKeyboardCore
 import SYKeyboardCore
 @testable import SYKeyboard
 
-@Suite("UserDefaults 기본값 계약 검증")
+@Suite("UserDefaults 기본값 계약 검증", .serialized)
 struct UserDefaultsContractTests {
 
     @Test("자동 대문자는 저장값이 없으면 선언된 기본값을 반환")
@@ -29,7 +29,10 @@ struct UserDefaultsContractTests {
 
     @Test("앱 전용 온보딩 상태는 저장값이 없으면 앱 기본값을 반환")
     func testAppOnboardingDefaultFallback() {
-        let storage = UserDefaults(suiteName: "UserDefaultsContractTests-\(UUID().uuidString)")!
+        let suiteName = "UserDefaultsContractTests-\(UUID().uuidString)"
+        let storage = UserDefaults(suiteName: suiteName)!
+        defer { storage.removePersistentDomain(forName: suiteName) }
+
         let manager = AppUserDefaultsManager(storage: storage)
 
         #expect(manager.isOnboarding == AppDefaultValues.isOnboarding)
