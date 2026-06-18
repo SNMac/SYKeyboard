@@ -16,7 +16,12 @@ public struct UserDefaultsWrapper<T: Codable> {
     // MARK: Properties
     
     /// 데이터를 저장할 `UserDefaults`
-    private let storage: UserDefaults
+    private let storage: UserDefaults = {
+        guard let userDefaults = UserDefaults(suiteName: DefaultValues.groupBundleID) else {
+            fatalError("UserDefaults를 suiteName으로 불러오는 데 실패했습니다.")
+        }
+        return userDefaults
+    }()
     
     /// 값을 저장할 키값
     private let key: String
@@ -30,12 +35,7 @@ public struct UserDefaultsWrapper<T: Codable> {
     
     // MARK: Initializer
     
-    init(
-        storage: UserDefaults = UserDefaultsManager.defaultStorage,
-        key: String,
-        defaultValue: T
-    ) {
-        self.storage = storage
+    init(key: String, defaultValue: T) {
         self.key = key
         self.defaultValue = defaultValue
     }
@@ -50,7 +50,7 @@ public struct UserDefaultsRawRepresentableWrapper<T: RawRepresentable> {
     // MARK: Properties
     
     /// 데이터를 저장할 `UserDefaults`
-    private let storage: UserDefaults
+    private let storage: UserDefaults = UserDefaults(suiteName: DefaultValues.groupBundleID)!
     /// 값을 저장할 키값
     private let key: String
     /// 기본값
@@ -71,12 +71,7 @@ public struct UserDefaultsRawRepresentableWrapper<T: RawRepresentable> {
     
     // MARK: Initializer
     
-    init(
-        storage: UserDefaults = UserDefaultsManager.defaultStorage,
-        key: String,
-        defaultValue: T
-    ) {
-        self.storage = storage
+    init(key: String, defaultValue: T) {
         self.key = key
         self.defaultValue = defaultValue
     }
@@ -90,111 +85,12 @@ final public class UserDefaultsManager {
     // MARK: Properties
     
     /// 데이터를 저장할 `UserDefaults`
-    public let storage: UserDefaults
+    public let storage: UserDefaults = UserDefaults(suiteName: DefaultValues.groupBundleID)!
     
     // MARK: Singleton Initializer
     
     public static let shared = UserDefaultsManager()
-
-    init(storage: UserDefaults = UserDefaultsManager.defaultStorage) {
-        self.storage = storage
-
-        _isSoundFeedbackEnabled = UserDefaultsWrapper(
-            storage: storage,
-            key: UserDefaultsKeys.isSoundFeedbackEnabled,
-            defaultValue: DefaultValues.isSoundFeedbackEnabled
-        )
-        _isHapticFeedbackEnabled = UserDefaultsWrapper(
-            storage: storage,
-            key: UserDefaultsKeys.isHapticFeedbackEnabled,
-            defaultValue: DefaultValues.isHapticFeedbackEnabled
-        )
-        _isTextReplacementEnabled = UserDefaultsWrapper(
-            storage: storage,
-            key: UserDefaultsKeys.isTextReplacementEnabled,
-            defaultValue: DefaultValues.isTextReplacementEnabled
-        )
-        _isPredictiveTextEnabled = UserDefaultsWrapper(
-            storage: storage,
-            key: UserDefaultsKeys.isPredictiveTextEnabled,
-            defaultValue: DefaultValues.isPredictiveTextEnabled
-        )
-        _isUndoRedoEnabled = UserDefaultsWrapper(
-            storage: storage,
-            key: UserDefaultsKeys.isUndoRedoEnabled,
-            defaultValue: DefaultValues.isUndoRedoEnabled
-        )
-        _isDragToMoveCursorEnabled = UserDefaultsWrapper(
-            storage: storage,
-            key: UserDefaultsKeys.isDragToMoveCursorEnabled,
-            defaultValue: DefaultValues.isDragToMoveCursorEnabled
-        )
-        _isPeriodShortcutEnabled = UserDefaultsWrapper(
-            storage: storage,
-            key: UserDefaultsKeys.isPeriodShortcutEnabled,
-            defaultValue: DefaultValues.isPeriodShortcutEnabled
-        )
-        _isAutoChangeToPrimaryEnabled = UserDefaultsWrapper(
-            storage: storage,
-            key: UserDefaultsKeys.isAutoChangeToPrimaryEnabled,
-            defaultValue: DefaultValues.isAutoChangeToPrimaryEnabled
-        )
-        _longPressDuration = UserDefaultsWrapper(
-            storage: storage,
-            key: UserDefaultsKeys.longPressDuration,
-            defaultValue: DefaultValues.longPressDuration
-        )
-        _repeatRate = UserDefaultsWrapper(
-            storage: storage,
-            key: UserDefaultsKeys.repeatRate,
-            defaultValue: DefaultValues.repeatRate
-        )
-        _cursorActiveDistance = UserDefaultsWrapper(
-            storage: storage,
-            key: UserDefaultsKeys.cursorActiveDistance,
-            defaultValue: DefaultValues.cursorActiveDistance
-        )
-        _cursorMoveInterval = UserDefaultsWrapper(
-            storage: storage,
-            key: UserDefaultsKeys.cursorMoveInterval,
-            defaultValue: DefaultValues.cursorMoveInterval
-        )
-        _keyboardHeight = UserDefaultsWrapper(
-            storage: storage,
-            key: UserDefaultsKeys.keyboardHeight,
-            defaultValue: DefaultValues.keyboardHeight
-        )
-        _isNumericKeypadEnabled = UserDefaultsWrapper(
-            storage: storage,
-            key: UserDefaultsKeys.isNumericKeypadEnabled,
-            defaultValue: DefaultValues.isNumericKeypadEnabled
-        )
-        _isOneHandedKeyboardEnabled = UserDefaultsWrapper(
-            storage: storage,
-            key: UserDefaultsKeys.isOneHandedKeyboardEnabled,
-            defaultValue: DefaultValues.isOneHandedKeyboardEnabled
-        )
-        _oneHandedKeyboardWidth = UserDefaultsWrapper(
-            storage: storage,
-            key: UserDefaultsKeys.oneHandedKeyboardWidth,
-            defaultValue: DefaultValues.oneHandedKeyboardWidth
-        )
-        _needsInputModeSwitchKey = UserDefaultsWrapper(
-            storage: storage,
-            key: UserDefaultsKeys.needsInputModeSwitchKey,
-            defaultValue: DefaultValues.needsInputModeSwitchKey
-        )
-        _lastOneHandedMode = UserDefaultsRawRepresentableWrapper(
-            storage: storage,
-            key: UserDefaultsKeys.lastOneHandedMode,
-            defaultValue: DefaultValues.lastOneHandedMode
-        )
-        _isRequestFullAccessOverlayClosed = UserDefaultsWrapper(
-            storage: storage,
-            key: UserDefaultsKeys.isRequestFullAccessOverlayClosed,
-            defaultValue: DefaultValues.isRequestFullAccessOverlayClosed
-        )
-    }
+    private init() {}
     
     // MARK: 피드백 설정
     
@@ -283,13 +179,4 @@ final public class UserDefaultsManager {
     /// 전체 접근 허용 안내 오버레이 닫음 여부
     @UserDefaultsWrapper(key: UserDefaultsKeys.isRequestFullAccessOverlayClosed, defaultValue: DefaultValues.isRequestFullAccessOverlayClosed)
     public var isRequestFullAccessOverlayClosed: Bool
-}
-
-extension UserDefaultsManager {
-    static let defaultStorage: UserDefaults = {
-        guard let userDefaults = UserDefaults(suiteName: DefaultValues.groupBundleID) else {
-            fatalError("UserDefaults를 suiteName으로 불러오는 데 실패했습니다.")
-        }
-        return userDefaults
-    }()
 }
