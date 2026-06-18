@@ -354,7 +354,6 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
     /// 함께 호출하여 n-gram 문맥을 리셋합니다.
     func resetSentenceBuffer() {
         currentSentenceWords.removeAll()
-        logger.debug("[NGram/\(self.language)] 문장 버퍼 초기화")
     }
     
     // MARK: - Persistence

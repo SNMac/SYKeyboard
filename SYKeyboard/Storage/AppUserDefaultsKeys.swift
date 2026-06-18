@@ -1,13 +1,11 @@
 //
-//  UserDefaultsKeys+Extension.swift
+//  AppUserDefaultsKeys.swift
 //  SYKeyboard
 //
-//  Created by 서동환 on 3/10/26.
+//  Created by Codex on 6/18/26.
 //
 
-import SYKeyboardCore
-
-extension UserDefaultsKeys {
+enum AppUserDefaultsKeys {
     /// 온보딩 여부
     static let isOnboarding = "isOnboarding"
     /// 앱의 특정 기능 또는 키보드를 실행한 횟수

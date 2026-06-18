@@ -9,8 +9,6 @@ import SwiftUI
 import OSLog
 import StoreKit
 
-import SYKeyboardCore
-
 struct RequestReviewViewModifier: ViewModifier {
     
     // MARK: - Properties
@@ -22,11 +20,11 @@ struct RequestReviewViewModifier: ViewModifier {
     
     @Environment(\.requestReview) private var requestReview
     
-    @AppStorage(UserDefaultsKeys.reviewCounter, store: UserDefaultsManager.shared.storage)
-    var reviewCounter = DefaultValues.reviewCounter
+    @AppStorage(AppUserDefaultsKeys.reviewCounter, store: AppUserDefaultsManager.shared.storage)
+    var reviewCounter = AppDefaultValues.reviewCounter
     
-    @AppStorage(UserDefaultsKeys.lastBuildPromptedForReview, store: UserDefaultsManager.shared.storage)
-    var lastBuildPromptedForReview = DefaultValues.lastBuildPromptedForReview
+    @AppStorage(AppUserDefaultsKeys.lastBuildPromptedForReview, store: AppUserDefaultsManager.shared.storage)
+    var lastBuildPromptedForReview = AppDefaultValues.lastBuildPromptedForReview
     
     // MARK: - Content
     

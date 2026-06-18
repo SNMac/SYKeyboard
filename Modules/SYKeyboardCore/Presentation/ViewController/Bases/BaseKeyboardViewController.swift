@@ -200,6 +200,7 @@ open class BaseKeyboardViewController: UIInputViewController {
     // MARK: - Lifecycle
 
     open override func loadView() {
+        logger.debug("loadView")
         let state = performanceSignposter.beginInterval("KeyboardLoadView")
         defer { performanceSignposter.endInterval("KeyboardLoadView", state) }
 
@@ -211,6 +212,7 @@ open class BaseKeyboardViewController: UIInputViewController {
         defer { performanceSignposter.endInterval("KeyboardViewDidLoad", state) }
 
         super.viewDidLoad()
+        logger.debug("viewDidLoad")
         resetInputBuffer()
         setupUI()
         setNextKeyboardButton()
@@ -236,11 +238,13 @@ open class BaseKeyboardViewController: UIInputViewController {
         defer { performanceSignposter.endInterval("KeyboardViewWillAppear", state) }
 
         super.viewWillAppear(animated)
+        logger.debug("viewWillAppear")
         if !BaseKeyboardViewController.isPreview { setKeyboardHeight() }
         FeedbackManager.shared.prepareHaptic()
     }
 
     open override func viewDidAppear(_ animated: Bool) {
+        logger.debug("viewDidAppear")
         let state = performanceSignposter.beginInterval("KeyboardViewDidAppear")
         defer { performanceSignposter.endInterval("KeyboardViewDidAppear", state) }
 
@@ -254,6 +258,7 @@ open class BaseKeyboardViewController: UIInputViewController {
 
     open override func viewWillTransition(to size: CGSize, with coordinator: any UIViewControllerTransitionCoordinator) {
         super.viewWillTransition(to: size, with: coordinator)
+        logger.debug("viewWillTransition")
         coordinator.animate { [weak self] _ in self?.setKeyboardHeight() }
     }
 
@@ -1363,7 +1368,6 @@ extension BaseKeyboardViewController: SwitchGestureControllerDelegate {
 
 extension BaseKeyboardViewController: TextInteractionGestureControllerDelegate {
     final func primaryButtonPanning(_ controller: TextInteractionGestureController, to direction: PanDirection, steps: Int) {
-        logger.debug("Primary Button 팬 제스처 방향: \(String(describing: direction)), steps: \(steps)")
         isPrimaryCursorDragging = true
 
         // 커서 이동 시 입력 버퍼 초기화
@@ -1372,8 +1376,6 @@ extension BaseKeyboardViewController: TextInteractionGestureControllerDelegate {
     }
 
     final func deleteButtonPanning(_ controller: TextInteractionGestureController, to direction: PanDirection) {
-        logger.debug("DeleteButton 팬 제스처 방향: \(String(describing: direction))")
-
         switch direction {
         case .left:
             performDeleteButtonPanDeleteIfPossible()
@@ -1436,10 +1438,8 @@ private extension BaseKeyboardViewController {
         switch direction {
         case .left:
             textDocumentProxy.adjustTextPosition(byCharacterOffset: -actualSteps)
-            logger.debug("커서 왼쪽 이동: \(actualSteps)칸")
         case .right:
             textDocumentProxy.adjustTextPosition(byCharacterOffset: actualSteps)
-            logger.debug("커서 오른쪽 이동: \(actualSteps)칸")
         default:
             assertionFailure("도달할 수 없는 case 입니다.")
             return
@@ -1460,7 +1460,6 @@ private extension BaseKeyboardViewController {
         updateSuggestions()
         FeedbackManager.shared.playHaptic()
         FeedbackManager.shared.playDeleteSound()
-        logger.debug("커서 앞 글자 삭제")
     }
 
     func performDeleteButtonPanRestoreIfPossible() {
@@ -1470,7 +1469,6 @@ private extension BaseKeyboardViewController {
         updateSuggestions()
         FeedbackManager.shared.playHaptic()
         FeedbackManager.shared.playDeleteSound()
-        logger.debug("삭제된 글자 복구")
     }
 
     func startRepeatInputTimer(for button: TextInteractable) {
