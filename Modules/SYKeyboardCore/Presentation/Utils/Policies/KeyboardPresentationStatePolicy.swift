@@ -12,13 +12,14 @@ enum KeyboardPresentationStatePolicy {
     static func isReturnButtonEnabled(
         enablesReturnKeyAutomatically: Bool,
         documentContextBeforeInput: String?,
+        selectedText: String?,
         documentContextAfterInput: String?
     ) -> Bool {
         guard enablesReturnKeyAutomatically else { return true }
 
-        let hasTextBeforeInput = documentContextBeforeInput?.isEmpty == false
-        let hasTextAfterInput = documentContextAfterInput?.isEmpty == false
-        return hasTextBeforeInput || hasTextAfterInput
+        return documentContextBeforeInput?.isEmpty == false
+        || selectedText?.isEmpty == false
+        || documentContextAfterInput?.isEmpty == false
     }
 
     static func shouldHideSuggestionBar(

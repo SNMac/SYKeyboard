@@ -18,6 +18,7 @@ struct KeyboardPresentationStatePolicyTests {
         let isEnabled = KeyboardPresentationStatePolicy.isReturnButtonEnabled(
             enablesReturnKeyAutomatically: false,
             documentContextBeforeInput: nil,
+            selectedText: nil,
             documentContextAfterInput: nil
         )
 
@@ -30,6 +31,7 @@ struct KeyboardPresentationStatePolicyTests {
             KeyboardPresentationStatePolicy.isReturnButtonEnabled(
                 enablesReturnKeyAutomatically: true,
                 documentContextBeforeInput: nil,
+                selectedText: nil,
                 documentContextAfterInput: nil
             ) == false
         )
@@ -37,6 +39,7 @@ struct KeyboardPresentationStatePolicyTests {
             KeyboardPresentationStatePolicy.isReturnButtonEnabled(
                 enablesReturnKeyAutomatically: true,
                 documentContextBeforeInput: "가",
+                selectedText: nil,
                 documentContextAfterInput: nil
             ) == true
         )
@@ -44,8 +47,37 @@ struct KeyboardPresentationStatePolicyTests {
             KeyboardPresentationStatePolicy.isReturnButtonEnabled(
                 enablesReturnKeyAutomatically: true,
                 documentContextBeforeInput: nil,
+                selectedText: nil,
                 documentContextAfterInput: "나"
             ) == true
+        )
+    }
+
+    @Test("return 자동 활성화가 켜져 있으면 선택된 텍스트만 있어도 활성화")
+    func testReturn자동활성화켜짐_선택텍스트존재시활성화() {
+        #expect(
+            KeyboardPresentationStatePolicy.isReturnButtonEnabled(
+                enablesReturnKeyAutomatically: true,
+                documentContextBeforeInput: nil,
+                selectedText: "전체 선택",
+                documentContextAfterInput: nil
+            ) == true
+        )
+        #expect(
+            KeyboardPresentationStatePolicy.isReturnButtonEnabled(
+                enablesReturnKeyAutomatically: true,
+                documentContextBeforeInput: "",
+                selectedText: " ",
+                documentContextAfterInput: ""
+            ) == true
+        )
+        #expect(
+            KeyboardPresentationStatePolicy.isReturnButtonEnabled(
+                enablesReturnKeyAutomatically: true,
+                documentContextBeforeInput: "",
+                selectedText: "",
+                documentContextAfterInput: ""
+            ) == false
         )
     }
 
