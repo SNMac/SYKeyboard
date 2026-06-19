@@ -47,8 +47,9 @@
 
 ## 🔨 개발 환경
 ![Static Badge|67](https://img.shields.io/badge/Swift%205-%23F05138?logo=swift&logoColor=white)
-![Static Badge](https://img.shields.io/badge/Xcode%2016%20~-%23147EFB?logo=xcode&logoColor=white)
 ![Static Badge|55](https://img.shields.io/badge/16%20~%20-%23000000?logo=ios&logoColor=white)
+
+로컬 SPM 패키지는 `swift-tools-version: 6.0` manifest를 기준으로 한다.
 
 <br><br>
 
@@ -752,4 +753,3 @@ direction LR
 | <img width="300" alt="메인 앱 3" src="https://github.com/user-attachments/assets/c9ce4a05-0061-45ea-b5ae-46072c5ac976" width="300"> | <img width="300" alt="메인 앱 3 - 영어" src="https://github.com/user-attachments/assets/968b4cc3-562f-47d5-b097-bc055e932531" width="300"> |
 
 <br><br>
-
