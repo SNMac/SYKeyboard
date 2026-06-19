@@ -17,10 +17,9 @@ enum KeyboardPresentationStatePolicy {
     ) -> Bool {
         guard enablesReturnKeyAutomatically else { return true }
 
-        let hasTextBeforeInput = documentContextBeforeInput?.isEmpty == false
-        let hasSelectedText = selectedText?.isEmpty == false
-        let hasTextAfterInput = documentContextAfterInput?.isEmpty == false
-        return hasTextBeforeInput || hasSelectedText || hasTextAfterInput
+        return documentContextBeforeInput?.isEmpty == false
+        || selectedText?.isEmpty == false
+        || documentContextAfterInput?.isEmpty == false
     }
 
     static func shouldHideSuggestionBar(
