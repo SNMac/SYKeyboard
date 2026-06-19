@@ -49,7 +49,7 @@
 
 ## 코드 스타일
 
-- Swift 5 프로젝트이며 Xcode 16 이상을 기준으로 한다. `SYKeyboardAssets` 패키지는 `swift-tools-version: 6.2`를 사용한다.
+- Swift 5 프로젝트이며 Xcode 16 이상을 기준으로 한다. `SYKeyboardAssets` 패키지는 `swift-tools-version: 6.0`을 사용한다.
 - 자세한 코딩 컨벤션은 `dev/coding-conventions.md`를 따른다. 새 Swift 코드를 작성하기 전 관련 섹션을 먼저 확인한다.
 - 기존 스타일처럼 `// MARK: -` 섹션, 명확한 접근 제어, 짧은 한국어 주석을 유지한다.
 - Swift, Foundation, UIKit, SwiftUI가 제공하는 표준 API를 우선 사용한다. 예를 들어 UIKit gesture의 위치/속도처럼 프레임워크가 직접 제공하는 값이 있으면 별도 프레임워크 import나 직접 계산보다 이를 먼저 검토한다.

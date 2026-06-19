@@ -313,13 +313,17 @@ Last Updated: 2026-06-19
 - 위치: `.gitignore:154`, `ci_scripts/ci_post_clone.sh:12`, `SYKeyboard.xcodeproj/project.pbxproj:949`, `AGENTS.md:79`
 - 판단: 저장소의 clean-environment 빌드 계약은 Xcode Cloud의 `ci_post_clone.sh`가 환경변수를 검증하고 `Secrets.xcconfig`와 Firebase plist를 생성하는 흐름이다. 사용자가 이 흐름에서 CI/CD 빌드와 테스트가 정상 수행됨을 확인했으며, 로컬 fresh clone bootstrap은 지원 요구사항이 아니므로 finding에서 제외한다.
 
-#### [P2][Open] 문서의 Xcode 16+ 지원 기준과 로컬 package 최소 tools version이 일치하지 않음
+#### [P2][Resolved] 문서의 Xcode 16+ 지원 기준과 로컬 package 최소 tools version이 일치하지 않음
 
 - 위치: `README.md:50`, `AGENTS.md:52`, `SYKeyboardAssets/Package.swift:1`
 - 영향: Xcode 16 이상이면 개발 가능한 것으로 안내되지만, `SYKeyboardAssets` manifest는 Swift tools 6.2 이상을 요구해 낮은 버전 Xcode에서 package graph 해석 전에 막힐 수 있다.
-- 근거: README와 AGENTS는 Xcode 16+를 기준으로 선언하고, package manifest는 최소 tools version을 `6.2`로 선언한다. 현재 검증 환경은 Xcode 26.5 / Swift 6.3.2뿐이다.
-- 제안: 실제 최소 지원 Xcode를 문서에 명시하거나, package가 Swift tools 6.2 기능을 사용하지 않는다면 지원하려는 Xcode에 맞춰 tools version을 낮추고 검증한다.
-- 검증: 문서에 선언할 최소 Xcode에서 `xcodebuild -list`와 `SYKeyboard` 빌드를 실행한다.
+- 근거: 최초 리뷰 시점에는 README와 AGENTS가 Xcode 16+를 기준으로 선언하고, package manifest는 최소 tools version을 `6.2`로 선언했다. 현재 검증 환경은 Xcode 26.5 / Swift 6.3.2다.
+- 처리: `SYKeyboardAssets/Package.swift`의 tools version을 `6.0`으로 낮췄다. README에서는 Xcode 버전 badge를 제거하고 local package tools version만 명시했으며, AGENTS의 package tools version 설명도 `swift-tools-version: 6.0` 기준으로 맞췄다.
+- 검증:
+  - 일반 샌드박스의 `xcodebuild -list -project SYKeyboard.xcodeproj`는 Xcode/SwiftPM 캐시와 CoreSimulator 권한 오류로 실패했다.
+  - 권한 있는 환경의 `xcodebuild -list -project SYKeyboard.xcodeproj`는 package graph를 정상 해석하고 project/scheme 목록을 출력했다.
+  - 권한 있는 환경의 `xcodebuild build -project SYKeyboard.xcodeproj -scheme SYKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0'`는 `BUILD SUCCEEDED`를 확인했다.
+  - README에서 Xcode 버전 기준을 제거했으므로 별도 Xcode 16.0 실환경 검증은 필수 조건으로 두지 않는다.
 
 #### [P3][Resolved] 저장소 문서와 CI 스크립트가 메인 앱 번들에 포함됨
 
@@ -345,13 +349,15 @@ Last Updated: 2026-06-19
 - 처리: 중복 선언 하나를 제거했다.
 - 검증: source plist의 `DeveloperEmail` key가 하나인 것과 `plutil -lint` 통과, 새 app bundle의 processed plist에 key가 하나인 것을 확인했다.
 
-#### [P3][Open] generated SwiftPM workspace metadata가 git에 추적됨
+#### [P3][Resolved] generated SwiftPM workspace metadata가 git에 추적됨
 
 - 위치: `SYKeyboardAssets/.swiftpm/xcode/package.xcworkspace/contents.xcworkspacedata:1`, `.gitignore:128`
 - 영향: 생성 가능한 workspace metadata가 불필요한 리뷰 변경을 만들고 저장소의 ignore 정책과 어긋난다.
 - 근거: 해당 파일과 정확히 일치하는 ignore 규칙이 있지만 파일은 이미 git에 추적되어 있다.
-- 제안: 파일을 git 추적에서 제거하고 현재 ignore 규칙을 유지한다.
-- 검증: package를 Xcode에서 다시 연 뒤 `git status --short`가 깨끗한지 확인한다.
+- 처리: `SYKeyboardAssets/.swiftpm/xcode/package.xcworkspace/contents.xcworkspacedata`를 git index에서 제거했다. 기존 root `.swiftpm/...` ignore 규칙만으로는 `SYKeyboardAssets/.swiftpm/...`가 ignore되지 않는 것을 확인해 `**/.swiftpm/xcode/package.xcworkspace/contents.xcworkspacedata` 규칙을 추가했다.
+- 검증:
+  - `git ls-files SYKeyboardAssets/.swiftpm/xcode/package.xcworkspace/contents.xcworkspacedata` 출력이 비어 있음을 확인했다.
+  - `git check-ignore -v SYKeyboardAssets/.swiftpm/xcode/package.xcworkspace/contents.xcworkspacedata`가 `.gitignore`의 nested SwiftPM workspace ignore 규칙을 출력하는 것을 확인했다.
 
 ## Handoff
 
@@ -383,3 +389,4 @@ Last Updated: 2026-06-19
 - Meta mediation package는 전이 의존성이 아니라 프로젝트에 직접 추가된 의존성이다. release version 기반 requirement로 다시 추가하고 빌드를 검증해 mutable `main` branch finding을 `Resolved` 처리했다.
 - `SYKeyboardAssets` resource bundle에는 ignored `.DS_Store`가 포함되지 않아 추가 finding으로 보지 않는다.
 - Track 6의 EnglishKeyboard `APPLICATION_EXTENSION_API_ONLY` parity finding은 `Resolved` 처리했고, Track 8에서 중복 finding을 추가하지 않았다.
+- Issue #71의 남은 Track 8 open findings 두 개는 처리와 권한 있는 빌드 검증을 마쳤다. README에서 Xcode 버전 기준을 제거했으므로 검증 기준은 현재 실사용 환경인 Xcode 26.5로 기록한다.
