@@ -52,7 +52,7 @@ struct OneHandedKeyboardWidthSettingsView: View {
             tempOneHandedKeyboardWidth = oneHandedKeyboardWidth
             updatePreviewKeyboardHeight()
             updatePreviewLanguageBasedOnSystem()
-        }.requestReviewViewModifier()
+        }.requestReviewOnDetailSettingsReturn()
     }
 }
 

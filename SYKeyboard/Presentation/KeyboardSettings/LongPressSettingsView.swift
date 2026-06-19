@@ -41,7 +41,7 @@ struct LongPressSettingsView: View {
             }
             .navigationTitle("길게 누르기 입력")
             .navigationBarTitleDisplayMode(.inline)
-            .requestReviewViewModifier()
+            .requestReviewOnDetailSettingsReturn()
         }.onDisappear {
             Analytics.setUserProperty(String(format: "%.2f", longPressDuration),
                                       forName: "pref_long_press_duration")

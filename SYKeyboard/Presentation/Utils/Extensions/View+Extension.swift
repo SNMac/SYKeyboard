@@ -12,7 +12,8 @@ extension View {
         UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
     }
     
-    func requestReviewViewModifier() -> some View {
-        modifier(RequestReviewViewModifier())
+    func requestReviewOnDetailSettingsReturn(isEnabled: Bool = true) -> some View {
+        modifier(RequestReviewViewModifier(action: .requestAfterDetailSettingsReturn,
+                                           isEnabled: isEnabled))
     }
 }

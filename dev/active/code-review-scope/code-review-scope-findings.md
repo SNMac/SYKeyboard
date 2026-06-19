@@ -266,37 +266,37 @@ Last Updated: 2026-06-19
 
 ### Track 7. Main App Shell, Onboarding, Ads, And Resources
 
-#### [P2][Open] 설정 이동 deep link가 최초 ATT 권한 요청과 충돌함
+#### [P2][Resolved] 설정 이동 deep link가 최초 ATT 권한 요청과 충돌함
 
 - 위치: `SYKeyboard/App/SYKeyboardApp.swift:121`, `SYKeyboard/App/SYKeyboardApp.swift:126`
 - 영향: 전체 접근 안내에서 `sykeyboard://`로 앱을 열어 시스템 설정으로 이동하려는 최초 사용자가, 설정 앱 위에서 SYKeyboard의 추적 권한 팝업을 보게 되어 설정 흐름이 중단되고 권한 요청 맥락도 불명확해진다.
-- 근거: `.onOpenURL`은 즉시 시스템 설정을 열고, 인접한 `didBecomeActive` 구독은 ATT 상태가 `.notDetermined`이면 독립적으로 권한을 요청한다. 독립 코드리뷰에서 iOS 26.5 시뮬레이터의 최초 권한 상태로 `sykeyboard://`를 열었을 때 Settings가 foreground인 상태에서 SYKeyboard ATT 팝업이 표시되는 것을 재현했다.
-- 제안: ATT 요청을 온보딩 이후의 명시적인 앱 내부 시점으로 이동하거나, 설정 redirect를 처리하는 동안에는 ATT 요청을 보류한다.
-- 검증: ATT 권한을 초기화한 뒤 `sykeyboard://` 진입 시 Settings가 팝업 없이 열리는지 확인하고, 일반 앱 실행에서는 정한 앱 내부 시점에 ATT 요청이 표시되는지 확인한다.
+- 근거: `.onOpenURL`은 즉시 시스템 설정을 열고, 인접한 `didBecomeActive` 구독은 ATT 상태가 `.notDetermined`이면 독립적으로 권한을 요청한다. 기존 리뷰 당시에는 iOS 26.5 시뮬레이터에서 해당 충돌을 재현했으나, 현재 제품 동작에서는 iOS 26 이상 설정 이동 버튼을 숨긴다. 남은 적용 범위는 iOS 26 미만의 설정 이동 버튼 경로다.
+- 처리: `AppTrackingAuthorizationPolicy`를 추가해 온보딩 중이거나 설정 redirect 처리 중이면 ATT 요청을 보류하도록 했다. `sykeyboard://` 처리 시 `isHandlingSettingsRedirect`를 세우고, 다음 active notification에서 요청 없이 redirect 상태만 해제한다. 온보딩 모달을 닫아 `isOnboarding == false`가 되는 시점에는 설정 redirect 중이 아닐 때만 ATT 요청을 수행한다.
+- 검증: `AppTrackingAuthorizationPolicyTests`로 온보딩 중 요청 금지, 설정 redirect 중 요청 금지와 상태 해제, 온보딩 이후 일반 active 상태 요청 조건, 온보딩 모달 dismissal 직후 요청 조건을 확인했다. `xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0'` 통과.
 
-#### [P2][Open] 화면 폭 변경 후 adaptive banner가 최초 크기를 유지함
+#### [P2][Resolved] 화면 폭 변경 후 adaptive banner가 최초 크기를 유지함
 
 - 위치: `SYKeyboard/Presentation/Content/ContentView.swift:28`, `SYKeyboard/Presentation/Content/BannerAd/BannerAdView.swift:37`
-- 영향: 회전 또는 iPad 창 크기 변경 후 SwiftUI가 확보한 광고 영역과 실제 로드된 banner 크기가 달라져 광고가 잘리거나 빈 공간이 생길 수 있다.
+- 영향: iPhone 세로 전용 앱에서도 초기 레이아웃 또는 safe-area 폭 재계산 시점에 SwiftUI가 확보한 광고 영역과 실제 로드된 banner 크기가 달라져 광고가 잘리거나 빈 공간이 생길 수 있다.
 - 근거: `ContentView`는 현재 `geometry.size.width`로 `adSize`를 다시 계산하지만, `BannerAdView.updateUIView(_:,context:)`가 비어 있어 이미 생성된 `BannerView`의 `adSize`와 광고 요청은 갱신되지 않는다.
-- 제안: `updateUIView`에서 새 크기와 현재 banner 크기를 비교해 `adSize`를 갱신하고 필요한 경우 광고를 다시 요청한다.
-- 검증: 광고 로드 후 기기 회전과 iPad 창 크기 변경을 수행해 `BannerView.adSize`, 실제 frame, SwiftUI 광고 영역이 일치하는지 확인한다.
+- 처리: `BannerAdView.updateUIView(_:context:)`에서 현재 `BannerView.adSize.size`와 새 `adSize.size`를 비교하고, 크기가 달라진 경우 `adSize`를 갱신한 뒤 광고를 다시 요청하도록 했다.
+- 검증: `xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0'` 통과. iPhone 세로 환경에서 광고 성공/실패 상태 수동 검증은 남아 있다.
 
-#### [P2][Open] 광고를 받지 못해도 빈 하단 safe area가 유지됨
+#### [P2][Resolved] 광고를 받지 못해도 빈 하단 safe area가 유지됨
 
 - 위치: `SYKeyboard/Presentation/Content/ContentView.swift:36`
 - 영향: 네트워크 오류, 광고 재고 부족, 초기 로딩 중에도 설정 목록 아래에 광고 높이만큼 빈 공간이 남아 사용 가능한 화면 영역이 줄어든다.
 - 근거: `safeAreaInset` 내부의 `BannerAdView`는 항상 `adSize.size.height`까지 레이아웃에 참여한다. `isAdReceived == false`일 때 적용하는 `.opacity(0)`와 `.allowsHitTesting(false)`는 표시와 입력만 바꾸며 레이아웃 공간은 제거하지 않는다.
-- 제안: 광고 수신 성공 시에만 safe-area 높이를 확보하거나, 수신 상태에 따라 광고 container 높이를 0과 실제 높이 사이에서 전환한다.
-- 검증: 광고 요청을 실패시키거나 오프라인으로 실행해 하단 빈 공간이 없는지 확인하고, 광고 수신 후에만 설정 목록이 광고 높이만큼 안전하게 올라가는지 확인한다.
+- 처리: `BannerAdLayoutPolicy`를 추가해 광고 미수신 상태에서는 container 높이를 0으로 계산하고, 광고 수신 후에만 실제 광고 높이를 확보하도록 했다.
+- 검증: `BannerAdLayoutPolicyTests`로 광고 미수신/수신 상태의 container 높이를 확인했다. `xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0'` 통과. 오프라인/광고 실패 수동 검증은 남아 있다.
 
-#### [P2][Open] 자동 인앱 리뷰 요청 modifier가 어떤 화면에도 연결되지 않음
+#### [P2][Resolved] 자동 인앱 리뷰 요청 기준이 상세 설정 화면에만 묶여 있음
 
 - 위치: `SYKeyboard/Presentation/Components/ViewModifiers/RequestReviewViewModifier.swift:14`, `SYKeyboard/Presentation/Utils/Extensions/View+Extension.swift:15`
-- 영향: 사용자가 앱 화면을 반복 방문해도 `reviewCounter`가 증가하지 않고 자동 인앱 리뷰 요청이 절대 표시되지 않는다. 수동 App Store 리뷰 버튼만 동작한다.
-- 근거: `requestReviewViewModifier()` helper와 modifier 구현은 남아 있지만, 현재 Swift 파일에서 이를 적용하는 호출이 없다. Git 이력상 과거 설정 화면들에는 modifier가 적용되어 있었으므로 기능 연결이 제거된 상태다.
-- 제안: 자동 리뷰 요청을 유지할 계획이면 반복 방문을 의미하는 안정적인 화면에 modifier를 적용하고, 유지하지 않을 계획이면 modifier와 관련 저장 키를 제거해 의도를 명확히 한다.
-- 검증: 자동 요청을 유지할 경우 threshold 직전 counter로 대상 화면을 열고 닫아 counter 증가, build당 1회 제한, 요청 호출을 확인한다.
+- 영향: 기존 finding의 “어떤 화면에도 연결되지 않음” 전제는 현재 코드 기준 부정확했다. 다만 카운트 기준이 4개 상세 설정 화면 방문에만 묶여 있어 반복 사용 신호가 좁고, threshold 50회도 실제 요청까지 지나치게 보수적이었다.
+- 근거: 확인 시점에 `requestReviewViewModifier()`는 `LongPressSettingsView`, `KeyboardHeightSettingsView`, `CursorMovementSettingsView`, `OneHandedKeyboardWidthSettingsView`에 적용되어 있었다.
+- 처리: 리뷰 로직을 `RequestReviewPolicy`로 분리하고, 앱 실행과 상세 설정 복귀를 카운트 기준으로 삼도록 변경했다. 앱 실행은 카운트만 증가시키고, 실제 `requestReview()` 판단은 상세 설정 화면에서 메인 설정으로 돌아오는 시점에만 수행해 앱 시작 직후 팝업을 피한다. threshold는 30회로 낮췄고, build당 1회 제한은 유지했다.
+- 검증: `RequestReviewPolicyTests`로 앱 실행은 즉시 요청하지 않고, 상세 설정 복귀 시 카운트/threshold/build 조건을 만족할 때만 요청되는지 확인했다. `xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0'` 통과.
 
 #### [P3][Resolved] 한 손 키보드 안내의 한국어 문구에 영문 `or`가 노출됨
 
@@ -373,8 +373,9 @@ Last Updated: 2026-06-19
 - Track 6의 EnglishKeyboard Debug/Release에 `APPLICATION_EXTENSION_API_ONLY = YES`를 적용하기로 결정했다. Track 8의 build/packaging 리뷰에서도 target별 설정 parity와 적용 후 빌드 결과를 다시 확인한다.
 - Track 6의 설정 이동 실패는 비핵심 best-effort 기능으로 유지한다. 사용자 실패 UI 대신 개발자 진단 로그만 후속 개선 대상으로 둔다.
 - Track 7 확인 결과 `sykeyboard://`는 현재 등록된 유일한 custom scheme이며 extension의 설정 이동 전용으로 사용되므로, URL 종류를 구분하지 않고 시스템 설정을 여는 현재 동작 자체는 finding으로 보지 않는다. 향후 다른 deep link를 추가할 때는 명시적인 URL routing을 먼저 정의한다.
-- Track 7의 ATT/설정 이동 충돌은 extension overlay에서 시작되는 사용자 흐름이지만 수정 책임은 메인 앱 lifecycle에 둔다.
-- Track 7의 banner 두 finding은 함께 수정하고, 광고 성공/실패 및 기기 회전/iPad resize 흐름을 수동 검증하는 편이 적절하다.
+- Track 7의 ATT/설정 이동 충돌은 extension overlay에서 시작되는 사용자 흐름이지만 수정 책임은 메인 앱 lifecycle에 둔다. `AppTrackingAuthorizationPolicy`로 온보딩/설정 redirect 중 요청을 보류하도록 처리했다.
+- Track 7의 banner 두 finding은 함께 수정했다. 앱은 iPhone 세로 전용이므로 회전/iPad resize 검증은 범위에서 제외하고, 광고 성공/실패 흐름은 수동 검증이 필요하다.
+- Track 7의 자동 인앱 리뷰 요청은 기존 finding의 미연결 전제가 현재 코드와 맞지 않아 범위를 재정의했다. 앱 실행은 카운트만 증가시키고, 상세 설정 복귀는 카운트 증가 후 요청 UI 표시 여부를 판단한다.
 - Track 7에서 `SYKeyboard/Resources/Info.plist` source에 `DeveloperEmail` key가 두 번 선언된 것을 확인했다. 빌드 결과에는 하나의 값만 남지만 source hygiene와 Firebase/config packaging 전반은 Track 8로 넘긴다.
 - Track 8에서 전체 review execution checklist가 완료됐다. 다음 단계는 Open findings의 수정 우선순위와 묶음을 결정하는 것이다.
 - fresh clone bootstrap 문서화 finding은 Xcode Cloud의 secret 생성 흐름이 저장소의 clean-environment 빌드 계약이고 CI/CD가 정상 수행된다는 사용자 확인에 따라 `Invalid` 처리했다.
