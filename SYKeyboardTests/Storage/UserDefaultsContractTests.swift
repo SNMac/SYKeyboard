@@ -45,8 +45,8 @@ struct UserDefaultsContractTests {
         #expect(AppUserDefaultsKeys.lastBuildPromptedForReview == "lastBuildPromptedForReview")
     }
 
-    @Test("전체 접근 오버레이 닫힘 상태는 주입한 local 저장소에만 기록")
-    func testRequestFullAccessOverlayStateUsesLocalStorage() {
+    @Test("KeyboardExtensionLocalStateStore는 주입한 저장소에만 닫힘 상태를 기록")
+    func testKeyboardExtensionLocalStateStoreUsesInjectedStorage() {
         let suiteName = "RequestFullAccessOverlayStateTests-\(UUID().uuidString)"
         let localStorage = UserDefaults(suiteName: suiteName)!
         let sharedStorage = UserDefaultsManager.shared.storage
