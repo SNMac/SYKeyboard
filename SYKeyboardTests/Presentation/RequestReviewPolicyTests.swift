@@ -12,6 +12,11 @@ import Testing
 @Suite("자동 리뷰 요청 정책 검증")
 struct RequestReviewPolicyTests {
 
+    @Test("리뷰 요청 기준 횟수는 30회")
+    func testThresholdIsThirtyInteractions() {
+        #expect(RequestReviewPolicy.threshold == 30)
+    }
+
     @Test("앱 실행은 카운트만 증가시키고 즉시 요청하지 않음")
     func testValidAppLaunchIncrementsCounterWithoutPrompting() {
         let result = RequestReviewPolicy.recordEligibleInteraction(

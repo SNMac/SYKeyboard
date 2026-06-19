@@ -17,7 +17,7 @@ enum RequestReviewPolicy {
     
     // MARK: - Properties
     
-    static let threshold = 5
+    static let threshold = 30
     
     // MARK: - Internal Methods
     
