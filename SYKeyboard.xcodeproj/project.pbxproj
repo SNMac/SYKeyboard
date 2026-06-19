@@ -301,6 +301,7 @@
 				SYKeyboardCore/Storage/DefaultValues.swift,
 				SYKeyboardCore/Storage/Enums/LongPressAction.swift,
 				SYKeyboardCore/Storage/Enums/OneHandedMode.swift,
+				SYKeyboardCore/Storage/KeyboardExtensionLocalStateStore.swift,
 				SYKeyboardCore/Storage/UserDefaultsKeys.swift,
 				SYKeyboardCore/Storage/UserDefaultsManager.swift,
 				SYKeyboardCore/SYKeyboardCore.docc,
@@ -377,6 +378,7 @@
 				SYKeyboardCore/Storage/DefaultValues.swift,
 				SYKeyboardCore/Storage/Enums/LongPressAction.swift,
 				SYKeyboardCore/Storage/Enums/OneHandedMode.swift,
+				SYKeyboardCore/Storage/KeyboardExtensionLocalStateStore.swift,
 				SYKeyboardCore/Storage/UserDefaultsKeys.swift,
 				SYKeyboardCore/Storage/UserDefaultsManager.swift,
 				SYKeyboardCore/SYKeyboardCore.docc,
@@ -1483,6 +1485,7 @@
 			baseConfigurationReferenceAnchor = 5B53F8012E1E56BD0083F7CA /* Keyboards */;
 			baseConfigurationReferenceRelativePath = "EnglishKeyboard/Resources/Configs/DebugConfig-EnglishKeyboard.xcconfig";
 			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
 				CODE_SIGN_ENTITLEMENTS = Keyboards/EnglishKeyboard/Resources/EnglishKeyboard.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = "$(BUILD_NUMBER)";
@@ -1517,6 +1520,7 @@
 			baseConfigurationReferenceAnchor = 5B53F8012E1E56BD0083F7CA /* Keyboards */;
 			baseConfigurationReferenceRelativePath = "EnglishKeyboard/Resources/Configs/ReleaseConfig-EnglishKeyboard.xcconfig";
 			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
 				CODE_SIGN_ENTITLEMENTS = Keyboards/EnglishKeyboard/Resources/EnglishKeyboard.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = "$(BUILD_NUMBER)";

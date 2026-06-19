@@ -29,11 +29,13 @@ open class BaseKeyboardViewController: UIInputViewController {
 
     /// 전체 접근 허용 안내 필요 여부
     final public var needToShowFullAccessGuide: Bool {
-        return !hasFullAccess && !keyboardSettingsManager.isRequestFullAccessOverlayClosed
+        return !hasFullAccess && !keyboardExtensionLocalStateStore.isClosed
     }
 
     /// 키보드 설정을 관리하는 `UserDefaultsManager`
     final public let keyboardSettingsManager: UserDefaultsManager = UserDefaultsManager.shared
+    /// Keyboard extension별 local 상태 저장소
+    final public let keyboardExtensionLocalStateStore = KeyboardExtensionLocalStateStore()
 
     final public lazy var oldKeyboardType: UIKeyboardType? = textDocumentProxy.keyboardType
 

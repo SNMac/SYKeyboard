@@ -67,7 +67,7 @@ private extension EnglishKeyboardViewController {
         ])
         
         let closeOverlayAction = UIAction { [weak self] _ in
-            self?.keyboardSettingsManager.isRequestFullAccessOverlayClosed = true
+            self?.keyboardExtensionLocalStateStore.isClosed = true
             self?.requestFullAccessOverlayView.isHidden = true
         }
         requestFullAccessOverlayView.closeButton.addAction(closeOverlayAction, for: .touchUpInside)

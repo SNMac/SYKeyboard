@@ -44,6 +44,30 @@ struct UserDefaultsContractTests {
         #expect(AppUserDefaultsKeys.reviewCounter == "reviewCounter")
         #expect(AppUserDefaultsKeys.lastBuildPromptedForReview == "lastBuildPromptedForReview")
     }
+
+    @Test("KeyboardExtensionLocalStateStore는 주입한 저장소에만 닫힘 상태를 기록")
+    func testKeyboardExtensionLocalStateStoreUsesInjectedStorage() {
+        let suiteName = "RequestFullAccessOverlayStateTests-\(UUID().uuidString)"
+        let localStorage = UserDefaults(suiteName: suiteName)!
+        let sharedStorage = UserDefaultsManager.shared.storage
+        let key = UserDefaultsKeys.isRequestFullAccessOverlayClosed
+        let originalSharedValue = sharedStorage.object(forKey: key)
+
+        sharedStorage.removeObject(forKey: key)
+        defer {
+            localStorage.removePersistentDomain(forName: suiteName)
+            restore(originalSharedValue, forKey: key, in: sharedStorage)
+        }
+
+        let store = KeyboardExtensionLocalStateStore(storage: localStorage)
+
+        #expect(store.isClosed == DefaultValues.isRequestFullAccessOverlayClosed)
+
+        store.isClosed = true
+
+        #expect(localStorage.bool(forKey: key) == true)
+        #expect(sharedStorage.object(forKey: key) == nil)
+    }
 }
 
 private extension UserDefaultsContractTests {
