@@ -488,14 +488,17 @@ private extension SuggestionController {
         currentWord: String
     ) {
         let contextBeforeDocumentText: String
-        if currentWord.count <= baseText.count {
+        if baseText.hasSuffix(currentWord) {
             contextBeforeDocumentText = String(
                 baseText
                     .dropLast(currentWord.count)
                     .suffix(KeyboardTextContextNavigator.maximumCursorRestoreDistance)
             )
         } else {
-            contextBeforeDocumentText = ""
+            contextBeforeDocumentText = String(
+                baseText
+                    .suffix(KeyboardTextContextNavigator.maximumCursorRestoreDistance)
+            )
         }
 
         replacementHistory.append(

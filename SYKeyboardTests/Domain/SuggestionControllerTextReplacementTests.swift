@@ -60,6 +60,30 @@ struct SuggestionControllerTextReplacementTests {
         #expect(latestRestore?.insertText == "addr")
     }
 
+    @Test("대치 복구는 문서 컨텍스트가 입력 단어로 끝나지 않아도 문맥을 보존")
+    func test대치복구는_문서컨텍스트가_입력단어로끝나지않아도_문맥을보존() {
+        let controller = makeController(
+            entries: [
+                TextReplacementEntry(userInput: "id", documentText: "identifier")
+            ]
+        )
+        controller.isTextReplacementEnabled = true
+        controller.prepareLexiconEngineIfNeeded()
+
+        _ = controller.attemptTextReplacement(
+            baseText: "id",
+            documentContextBeforeInput: "hello"
+        )
+
+        let restore = controller.attemptRestoreReplacement(
+            inputBuffer: "",
+            documentContextBeforeInput: "helloidentifier",
+            selectedText: nil
+        )
+        #expect(restore?.deleteCount == 10)
+        #expect(restore?.insertText == "id")
+    }
+
     @Test("대치 복구는 다른 위치의 같은 확장 문구를 단축어로 되돌리지 않음")
     func test대치복구는_다른위치의같은확장문구를복구하지않음() {
         let controller = makeController(
