@@ -62,7 +62,7 @@ Last Updated: 2026-06-14
 - 7번 리뷰는 `requesting-code-review` 지침에 따라 독립 코드리뷰 서브에이전트 결과와 로컬 코드/리소스 경로 검토를 교차검증했다.
 - 7번 리뷰의 일반 샌드박스 `SYKeyboard` 빌드는 CoreSimulator/SwiftPM cache 권한 오류로 실패했고, 권한 있는 `iPhone 13 mini / iOS 16.0` 실행은 `BUILD SUCCEEDED`로 통과했다.
 - Track 7의 `sykeyboard://`는 현재 extension의 설정 이동 전용 URL이므로 URL 종류를 구분하지 않는 동작 자체는 finding으로 보지 않았다. 향후 다른 deep link를 추가할 때 명시적인 routing을 정의한다.
-- Track 7의 ATT 충돌은 iOS 26.5 시뮬레이터에서 재현됐고, banner 성공/실패 및 회전/resize와 자동 리뷰 요청 흐름은 실제 UI 수동 검증이 남아 있다.
+- Track 7의 ATT 충돌은 현재 제품 동작 기준으로 iOS 26 미만 설정 이동 버튼 경로에 적용된다. banner 성공/실패와 자동 리뷰 요청 흐름은 실제 UI 수동 검증이 남아 있다.
 - Track 7의 한국어 온보딩 문구 P3는 `or`를 `드래그하거나` 표현으로 수정하고 실제 안내, preview, String Catalog 반영을 확인해 `Resolved` 처리했다.
 - 8번 Build, Packaging, And Repository Hygiene 리뷰에서 fresh clone 빌드 준비 절차 부재 P2, Xcode 16+ 문서와 `swift-tools-version: 6.2` 계약 불일치 P2, 앱 번들에 저장소 문서/CI 스크립트 포함 P3, Meta mediation의 mutable `main` 의존 P3, 메인 앱 Info.plist 중복 key P3, generated SwiftPM workspace metadata 추적 P3를 발견해 `code-review-scope-findings.md`에 누적했다.
 - 8번 리뷰는 `requesting-code-review` 지침에 따라 독립 코드리뷰 서브에이전트 결과와 로컬 project/package/산출물 검토를 교차검증했다.

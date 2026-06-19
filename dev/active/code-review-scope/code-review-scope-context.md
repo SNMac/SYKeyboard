@@ -89,7 +89,7 @@ Last Updated: 2026-06-14
 - `origin/develop..07a9ccfe`에는 리뷰 문서/운영 문서 변경만 있고 Track 7 메인 앱 runtime 코드는 `origin/develop`과 같다.
 - `sykeyboard://`는 현재 앱에 등록된 유일한 custom URL scheme이며 한글/영문 extension의 전체 접근 안내에서 시스템 설정 이동을 요청할 때 사용한다.
 - `SYKeyboardApp`은 custom URL 수신 시 시스템 설정을 열고, 같은 app lifecycle에서 ATT 상태가 `.notDetermined`이면 권한을 요청한다.
-- 독립 코드리뷰에서 iOS 26.5 시뮬레이터의 최초 권한 상태로 `sykeyboard://`를 열었을 때 Settings 위에 SYKeyboard ATT 팝업이 표시되는 것을 재현했다.
+- 기존 리뷰 당시에는 iOS 26.5 시뮬레이터의 최초 권한 상태로 `sykeyboard://`를 열었을 때 Settings 위에 SYKeyboard ATT 팝업이 표시되는 것을 재현했다. 현재 제품 동작에서는 iOS 26 이상 설정 이동 버튼을 숨기므로 남은 적용 범위는 iOS 26 미만의 설정 이동 버튼 경로다.
 - `ContentView`는 geometry 폭으로 adaptive banner 크기를 다시 계산하지만 `BannerAdView.updateUIView`는 비어 있다.
 - 광고 미수신 상태의 `.opacity(0)`와 `.allowsHitTesting(false)`는 `safeAreaInset` 내부 banner의 레이아웃 높이를 제거하지 않는다.
 - `RequestReviewViewModifier`와 `requestReviewViewModifier()` helper는 존재하지만 현재 앱 화면에는 적용되지 않는다.
@@ -207,7 +207,7 @@ Last Updated: 2026-06-14
 - 7번 리뷰에서 `requesting-code-review` 지침에 따라 독립 코드리뷰 서브에이전트를 실행하고 Track 7 findings를 로컬 코드 경로와 교차검증했다.
 - 7번 리뷰의 일반 샌드박스 `SYKeyboard` 빌드는 CoreSimulator/SwiftPM cache 권한 오류로 실패했다.
 - 같은 빌드를 권한 있는 환경에서 재실행했고 `iPhone 13 mini / iOS 16.0`에서 `BUILD SUCCEEDED`를 확인했다.
-- Track 7의 ATT/설정 이동 충돌은 독립 리뷰어가 iOS 26.5 시뮬레이터에서 재현했다. banner 레이아웃과 자동 리뷰 요청 findings는 코드 경로로 확인했으며 실제 UI 수동 검증이 남아 있다.
+- Track 7의 ATT/설정 이동 충돌은 기존 리뷰 당시 iOS 26.5 시뮬레이터에서 재현했으나, 현재 제품 동작에서는 iOS 26 이상 설정 이동 버튼을 숨긴다. 남은 적용 범위는 iOS 26 미만의 설정 이동 버튼 경로다. banner 레이아웃과 자동 리뷰 요청 findings는 코드 경로로 확인했으며 실제 UI 수동 검증이 남아 있다.
 - Track 7의 한국어 온보딩 문구 P3는 실제 안내, SwiftUI preview, String Catalog를 함께 수정하고 `Resolved` 처리했다.
 - 8번 리뷰에서 `requesting-code-review` 지침에 따라 독립 코드리뷰 서브에이전트를 실행하고 Track 8 findings를 로컬 project/package/산출물 경로와 교차검증했다.
 - 8번 리뷰의 일반 샌드박스 `xcodebuild -list -project SYKeyboard.xcodeproj`와 `swift package --package-path SYKeyboardAssets dump-package`는 CoreSimulator/SwiftPM cache 권한 오류로 실패했다.

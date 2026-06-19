@@ -42,7 +42,7 @@ struct CursorMovementSettingsView: View {
             }
             .navigationTitle("커서 이동")
             .navigationBarTitleDisplayMode(.inline)
-            .requestReviewViewModifier()
+            .requestReviewOnDetailSettingsReturn()
         }.onDisappear {
             Analytics.setUserProperty(String(format: "%.1f", cursorActiveDistance),
                                       forName: "pref_cursor_atv_distance")

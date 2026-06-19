@@ -53,7 +53,7 @@ struct KeyboardHeightSettingsView: View {
             updatePreviewKeyboardHeight()
         }.onChange(of: tempKeyboardHeight) { _ in
             updatePreviewKeyboardHeight()
-        }.requestReviewViewModifier()
+        }.requestReviewOnDetailSettingsReturn()
     }
 }
 

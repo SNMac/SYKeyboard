@@ -10,37 +10,41 @@ import OSLog
 import StoreKit
 
 struct RequestReviewViewModifier: ViewModifier {
-    
+
+    enum Action {
+        case requestAfterDetailSettingsReturn
+    }
+
     // MARK: - Properties
-    
+
     private static let logger = Logger(
         subsystem: Bundle.main.bundleIdentifier ?? "Unknown Bundle",
         category: "RequestReviewViewModifier"
     )
-    
+
     @Environment(\.requestReview) private var requestReview
-    
+
+    let action: Action
+    let isEnabled: Bool
+
     @AppStorage(AppUserDefaultsKeys.reviewCounter, store: AppUserDefaultsManager.shared.storage)
-    var reviewCounter = AppDefaultValues.reviewCounter
-    
+    private var reviewCounter = AppDefaultValues.reviewCounter
+
     @AppStorage(AppUserDefaultsKeys.lastBuildPromptedForReview, store: AppUserDefaultsManager.shared.storage)
-    var lastBuildPromptedForReview = AppDefaultValues.lastBuildPromptedForReview
-    
+    private var lastBuildPromptedForReview = AppDefaultValues.lastBuildPromptedForReview
+
     // MARK: - Content
-    
+
+    init(action: Action,
+         isEnabled: Bool) {
+        self.action = action
+        self.isEnabled = isEnabled
+    }
+
     func body(content: Content) -> some View {
         content
-            .onAppear {
-                reviewCounter += 1
-                Self.logger.debug("reviewCounter = \(reviewCounter)")
-            }
             .onDisappear {
-                guard let currentAppBuild = Bundle.appBuild else { return }
-                if reviewCounter >= 50, currentAppBuild != lastBuildPromptedForReview {
-                    reviewCounter = 0
-                    presentReview()
-                    lastBuildPromptedForReview = currentAppBuild
-                }
+                requestReviewAfterDetailSettingsReturnIfNeeded()
             }
     }
 }
@@ -48,6 +52,25 @@ struct RequestReviewViewModifier: ViewModifier {
 // MARK: - Private Methods
 
 private extension RequestReviewViewModifier {
+    func requestReviewAfterDetailSettingsReturnIfNeeded() {
+        guard action == .requestAfterDetailSettingsReturn else { return }
+
+        let result = RequestReviewPolicy.recordDetailSettingsReturnAndEvaluate(
+            reviewCounter: reviewCounter,
+            currentAppBuild: Bundle.appBuild,
+            lastBuildPromptedForReview: lastBuildPromptedForReview,
+            isEligible: isEnabled
+        )
+
+        reviewCounter = result.reviewCounter
+        lastBuildPromptedForReview = result.lastBuildPromptedForReview
+        Self.logger.debug("reviewCounter = \(reviewCounter)")
+
+        if result.shouldRequestReview {
+            presentReview()
+        }
+    }
+
     func presentReview() {
         Task {
             try? await Task.sleep(for: .seconds(1))

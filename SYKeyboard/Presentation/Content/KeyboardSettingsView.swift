@@ -8,14 +8,15 @@
 import SwiftUI
 
 struct KeyboardSettingsView: View {
-    
+
     // MARK: - Properties
-    
+
     @Environment(\.scenePhase) private var scenePhase
+
     @State private var isKeyboardExtensionEnabled: Bool = false
-    
+
     // MARK: - Content
-    
+
     var body: some View {
         List {
             Section {
@@ -29,28 +30,28 @@ struct KeyboardSettingsView: View {
             .alignmentGuide(.listRowSeparatorLeading) { dimensions in
                 dimensions[.leading]
             }
-            
+
             HangeulKeyboardSelectView()
-            
+
             if isKeyboardExtensionEnabled {
                 Section {
                     FeedbackSettingsView()
                 } header: {
                     Text("피드백 설정")
                 }
-                
+
                 Section {
                     PredictiveTextSettingsView()
                 } header: {
                     Text("자동완성 텍스트 설정")
                 }
-                
+
                 Section {
                     InputSettingsView()
                 } header: {
                     Text("입력 설정")
                 }
-                
+
                 Section {
                     AppearanceSettingsView()
                 } header: {
@@ -63,7 +64,7 @@ struct KeyboardSettingsView: View {
                     Text("SY키보드를 설정에서 추가하시면 세부 설정이 가능합니다.")
                 }
             }
-            
+
             Section {
                 InfoView()
             } header: {
@@ -99,7 +100,7 @@ private extension KeyboardSettingsView {
         guard let keyboards = UserDefaults.standard.dictionaryRepresentation()["AppleKeyboards"] as? [String] else {
             return false
         }
-        
+
         // 현재 앱의 Bundle ID에 "."을 붙여서 키보드 확장의 Bundle ID 패턴을 생성
         //   - 메인 앱의 Bundle ID: "github.com-SNMac.SYKeyboard"
         //     -> 키보드 Extension의 Bundle ID: "github.com-SNMac.SYKeyboard.keyboard"
@@ -110,7 +111,7 @@ private extension KeyboardSettingsView {
                 return true
             }
         }
-        
+
         return false
     }
 }
