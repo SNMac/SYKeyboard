@@ -359,6 +359,20 @@ Last Updated: 2026-06-19
   - `git ls-files SYKeyboardAssets/.swiftpm/xcode/package.xcworkspace/contents.xcworkspacedata` 출력이 비어 있음을 확인했다.
   - `git check-ignore -v SYKeyboardAssets/.swiftpm/xcode/package.xcworkspace/contents.xcworkspacedata`가 `.gitignore`의 nested SwiftPM workspace ignore 규칙을 출력하는 것을 확인했다.
 
+### Track 9. Selected Text Context Handling
+
+#### [P2][Resolved] return 자동 활성화 판단이 선택된 텍스트를 텍스트 존재 여부에 포함하지 않음
+
+- 위치: `Modules/SYKeyboardCore/Presentation/Utils/Policies/KeyboardPresentationStatePolicy.swift:12`, `Modules/SYKeyboardCore/Presentation/ViewController/Bases/BaseKeyboardViewController.swift:998`, `SYKeyboardTests/Utils/KeyboardPresentationStatePolicyTests.swift:57`
+- 영향: `enablesReturnKeyAutomatically`가 켜진 텍스트 필드에서 전체 텍스트가 선택된 상태이면 `documentContextBeforeInput`과 `documentContextAfterInput`이 모두 비어 있을 수 있다. 이 경우 실제로 선택된 텍스트가 있는데도 return 버튼이 비활성화될 수 있다.
+- 근거: `UITextInputTraits.enablesReturnKeyAutomatically` SDK 헤더는 text widget contents의 zero-length/non-zero-length 상태에 따라 return key를 자동 비활성/활성화한다고 설명하고, `UITextDocumentProxy` SDK 헤더는 custom keyboard 문맥으로 `documentContextBeforeInput`, `documentContextAfterInput`, `selectedText`를 별도 제공한다. 기존 정책은 before/after만 확인했다.
+- 처리: `KeyboardPresentationStatePolicy.isReturnButtonEnabled(...)`에 `selectedText` 입력을 추가하고, before/selected/after 중 하나라도 비어 있지 않으면 return을 활성화하도록 변경했다. `BaseKeyboardViewController.updateReturnButtonEnabled()`는 `textDocumentProxy.selectedText`를 함께 전달한다.
+- 검증:
+  - 구현 전 `KeyboardPresentationStatePolicyTests`에 `selectedText` 파라미터와 selected text 전용 케이스를 먼저 추가했고, 기존 production API가 인자를 받지 못해 `extra argument 'selectedText' in call`로 실패하는 RED를 확인했다.
+  - 구현 후 `xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0' -only-testing:SYKeyboardTests/KeyboardPresentationStatePolicyTests`에서 `TEST SUCCEEDED`를 확인했다.
+  - 같은 destination의 전체 `xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0'`도 `TEST SUCCEEDED`를 확인했다.
+  - 두 테스트 실행 모두 연결된 잠금 기기 관련 `DTDKRemoteDeviceConnection` 경고를 출력했지만, 시뮬레이터 테스트는 exit code 0으로 완료됐다.
+
 ## Handoff
 
 - Track 2부터 각 리뷰 채팅의 findings는 이 문서의 `## Findings` 아래에 트랙별 섹션으로 추가한다.

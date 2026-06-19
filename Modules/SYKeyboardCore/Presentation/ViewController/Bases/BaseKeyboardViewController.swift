@@ -998,6 +998,7 @@ private extension BaseKeyboardViewController {
         let isEnabled = KeyboardPresentationStatePolicy.isReturnButtonEnabled(
             enablesReturnKeyAutomatically: textDocumentProxy.enablesReturnKeyAutomatically == true,
             documentContextBeforeInput: textDocumentProxy.documentContextBeforeInput,
+            selectedText: textDocumentProxy.selectedText,
             documentContextAfterInput: textDocumentProxy.documentContextAfterInput
         )
         returnButtonList.forEach { $0.updateEnabled(isEnabled) }
