@@ -1,6 +1,6 @@
 # Code Review Scope Findings
 
-Last Updated: 2026-06-18
+Last Updated: 2026-06-19
 
 ## Purpose
 
@@ -232,21 +232,28 @@ Last Updated: 2026-06-18
 
 ### Track 6. Keyboard Extension Entry Points
 
-#### [P2][Open] 전체 접근 미허용 상태에서 오버레이 닫힘 상태를 공유 컨테이너에 저장함
+#### [P2][Resolved] 전체 접근 미허용 상태에서 오버레이 닫힘 상태를 공유 컨테이너에 저장함
 
-- 위치: `Keyboards/HangeulKeyboard/Presentation/ViewController/HangeulKeyboardViewController.swift:70`, `Keyboards/EnglishKeyboard/Presentation/ViewController/EnglishKeyboardViewController.swift:70`, `Modules/SYKeyboardCore/Storage/UserDefaultsManager.swift:180`
+- 위치: `Keyboards/HangeulKeyboard/Presentation/ViewController/HangeulKeyboardViewController.swift:70`, `Keyboards/EnglishKeyboard/Presentation/ViewController/EnglishKeyboardViewController.swift:70`, `Modules/SYKeyboardCore/Presentation/ViewController/Bases/BaseKeyboardViewController.swift:31`, `Modules/SYKeyboardCore/Storage/KeyboardExtensionLocalStateStore.swift`
 - 영향: 전체 접근을 허용하지 않은 사용자가 안내를 닫아도 keyboard extension이 app-group 공유 컨테이너에 접근할 수 없어 닫힘 상태가 다음 세션에 유지되지 않을 수 있다. 그 결과 한글/영문 키보드를 다시 열 때 전체 화면 오버레이가 반복 표시될 수 있다.
 - 근거: 오버레이는 `hasFullAccess == false`일 때 표시되지만 닫기 action은 app-group suite를 사용하는 `keyboardSettingsManager.isRequestFullAccessOverlayClosed`에 기록한다.
-- 결정: 닫힘 상태는 각 keyboard extension의 `UserDefaults.standard`에 기록한다. 한글/영문 extension은 닫힘 상태를 서로 독립적으로 유지하며, app-group 저장소와 동기화하거나 전체 접근 허용 후 마이그레이션하지 않는다.
-- 검증: 독립 코드리뷰와 코드 경로 확인. 수정 후 전체 접근 미허용 상태에서 한글/영문 키보드 각각 오버레이를 닫고 extension을 종료/재실행해 상태가 독립적으로 유지되는지 확인한다.
+- 처리: `KeyboardExtensionLocalStateStore`를 추가해 기본 저장소를 `UserDefaults.standard`로 분리했다. `BaseKeyboardViewController.needToShowFullAccessGuide`와 한글/영문 overlay close action이 이 local store를 사용하도록 변경했다. app-group 저장소와 동기화하거나 전체 접근 허용 후 migration하지 않는다.
+- 검증:
+  - 구현 전 `UserDefaultsContractTests/testRequestFullAccessOverlayStateUsesLocalStorage()`는 local state store 타입 미정의로 실패하는 것을 확인했다.
+  - rename 작업에서 테스트를 먼저 `KeyboardExtensionLocalStateStore`로 변경한 뒤, 권한 있는 환경에서 타입 미정의 compile error로 RED를 확인했다.
+  - 구현 후 권한 있는 환경의 `xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0' -only-testing:SYKeyboardTests/UserDefaultsContractTests`에서 `TEST SUCCEEDED`를 확인했다.
+  - 권한 있는 환경의 전체 `SYKeyboard` 테스트와 `HangeulKeyboard`, `EnglishKeyboard` scheme 빌드가 모두 성공했다.
+  - 2026-06-19 사용자 실기기 확인에서 전체 접근 미허용 상태의 한글/영문 오버레이 닫힘 유지 동작이 정상이라고 확인했다.
 
-#### [P2][Open] EnglishKeyboard target에 app-extension-safe API 검사가 비활성화되어 있음
+#### [P2][Resolved] EnglishKeyboard target에 app-extension-safe API 검사가 비활성화되어 있음
 
-- 위치: `SYKeyboard.xcodeproj/project.pbxproj:1477`, `SYKeyboard.xcodeproj/project.pbxproj:1511`
+- 위치: `SYKeyboard.xcodeproj/project.pbxproj`
 - 영향: 영어 keyboard extension 또는 의존 코드에 app extension에서 사용할 수 없는 API가 추가되어도 빌드 시 검출되지 않을 수 있다. 같은 역할의 한글 extension과 안전성 검증 수준도 달라진다.
 - 근거: HangeulKeyboard Debug/Release에는 `APPLICATION_EXTENSION_API_ONLY = YES`가 있지만 EnglishKeyboard Debug/Release에는 해당 설정이 없다.
-- 결정: EnglishKeyboard Debug/Release에도 `APPLICATION_EXTENSION_API_ONLY = YES`를 적용한다. 변경 후 extension target만 대상으로 빌드해 현재 의존성까지 app-extension-safe인지 확인한다.
-- 검증: 일반 EnglishKeyboard scheme 빌드는 통과했다. 명령행에서 설정을 전역 override하면 host app에도 적용되어 `UIApplication.shared`에서 실패했고, target 단독 override 검증은 DerivedData 내부 충돌로 완료하지 못했다.
+- 처리: EnglishKeyboard Debug/Release build settings에 `APPLICATION_EXTENSION_API_ONLY = YES`를 추가했다.
+- 검증:
+  - 권한 있는 환경의 `xcodebuild build -project SYKeyboard.xcodeproj -scheme EnglishKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0'`에서 `BUILD SUCCEEDED`를 확인했다.
+  - 권한 있는 환경의 `HangeulKeyboard` scheme 빌드와 전체 `SYKeyboard` 테스트도 성공했다.
 
 #### [P3][Deferred] 설정 이동 버튼이 URL 열기 실패를 조용히 무시함
 
@@ -374,4 +381,4 @@ Last Updated: 2026-06-18
 - Track 8의 앱 번들 문서/스크립트 포함과 중복 `DeveloperEmail` findings는 사용자 수정 후 빌드 산출물 검증을 거쳐 `Resolved` 처리했다.
 - Meta mediation package는 전이 의존성이 아니라 프로젝트에 직접 추가된 의존성이다. release version 기반 requirement로 다시 추가하고 빌드를 검증해 mutable `main` branch finding을 `Resolved` 처리했다.
 - `SYKeyboardAssets` resource bundle에는 ignored `.DS_Store`가 포함되지 않아 추가 finding으로 보지 않는다.
-- Track 6의 EnglishKeyboard `APPLICATION_EXTENSION_API_ONLY` parity finding은 여전히 Open이며, Track 8에서 중복 finding을 추가하지 않았다.
+- Track 6의 EnglishKeyboard `APPLICATION_EXTENSION_API_ONLY` parity finding은 `Resolved` 처리했고, Track 8에서 중복 finding을 추가하지 않았다.
