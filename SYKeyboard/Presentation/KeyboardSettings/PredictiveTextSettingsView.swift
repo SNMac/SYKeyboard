@@ -66,7 +66,7 @@ struct PredictiveTextSettingsView: View {
         if isPredictiveTextEnabled {
             Toggle(isOn: $isUndoRedoEnabled, label: {
                 Text("Undo/Redo 기능")
-                Text("키보드 상단에 Undo/Redo 버튼을 표시")
+                Text("키보드 상단에 Undo/Redo 버튼을 표시\n(일부 앱에서는 정상적으로 동작하지 않을 수 있습니다)")
                     .font(.caption)
             })
             .onChange(of: isUndoRedoEnabled) { newValue in
