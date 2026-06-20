@@ -60,16 +60,16 @@ private extension SecondaryKeyButton {
             
             if key.count == 1 {
                 if Character(key).isLowercase {
-                    primaryKeyListLabel.font = .systemFont(ofSize: FontSize.lowercaseKeySize)
+                    primaryKeyListLabel.font = .systemFont(ofSize: FontSize.charKeyLarge)
                 } else {
-                    primaryKeyListLabel.font = .systemFont(ofSize: FontSize.defaultKeySize)
+                    primaryKeyListLabel.font = .systemFont(ofSize: FontSize.charKeyMedium)
                 }
             } else {
-                primaryKeyListLabel.font = .systemFont(ofSize: FontSize.stringKeySize)
+                primaryKeyListLabel.font = .systemFont(ofSize: FontSize.stringKeyMedium)
             }
         } else {
             primaryKeyListLabel.text = type.primaryKeyList.joined(separator: "")
-            primaryKeyListLabel.font = .systemFont(ofSize: FontSize.defaultKeySize)
+            primaryKeyListLabel.font = .systemFont(ofSize: FontSize.charKeyMedium)
         }
     }
 }

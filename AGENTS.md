@@ -15,10 +15,12 @@
 
 ## 작업 원칙
 
-- 기존 구조와 네이밍을 먼저 따른다. 불필요한 아키텍처 변경이나 대규모 이동은 하지 않는다.
+- **기존 구조와 네이밍을 먼저 따른다. 불필요한 아키텍처 변경이나 대규모 이동은 하지 않는다.**
 - 파일을 수정하기 전에 관련 파일과 인접 구현을 읽는다.
-- 기존 키보드 기능, 입력 흐름, 버튼 이벤트 타이밍은 명시 요청 없이 바꾸지 않는다. 기능 추가나 버그 수정은 현재 동작을 보존하는 방식으로 먼저 설계하고, 기존 동작 변경이 꼭 필요하면 사용자에게 확인한다.
-- 한글 입력, 삭제, 조합 상태, 커서 이동, 스페이스/리턴 동작 변경은 회귀 위험이 높으므로 테스트를 추가하거나 기존 테스트를 실행한다.
+- **기존 키보드 기능, 입력 흐름, 버튼 이벤트 타이밍은 명시 요청 없이 바꾸지 않는다. 기능 추가나 버그 수정은 현재 동작을 보존하는 방식으로 먼저 설계하고, 기존 동작 변경이 꼭 필요하면 사용자에게 확인한다.**
+- **한글 입력, 삭제, 조합 상태, 커서 이동, 스페이스/리턴 동작 변경은 회귀 위험이 높으므로 테스트를 추가하거나 기존 테스트를 실행한다.**
+- **현재 확인된 환경에서 `UIInputViewController.selectionWillChange(_:)`와 `selectionDidChange(_:)`는 호출되는 경우를 관찰하지 못했다. 커서/selection 상태 동기화를 이 콜백에만 의존하지 않는다. iOS 자체 문제이거나 아직 확인하지 못한 호출 조건일 수 있으므로, 관련 동작을 변경할 때는 실제 입력 앱에서 다시 확인한다.**
+- **현재 확인된 환경에서 focus 중인 텍스트 필드 변경, 사용자의 텍스트 필드 탭, 커서 이동 시 `UIInputViewController.textWillChange(_:)`와 `textDidChange(_:)`가 호출된다. 외부 텍스트 컨텍스트 변경에 따른 `inputBuffer`, 자동완성 후보, undo/redo 상태 동기화는 이 콜백 경로를 함께 확인한다.**
 - 키보드 확장은 메모리/높이/입력 지연에 민감하다. 무거운 작업, 불필요한 비동기 체인, 빈번한 재생성은 피한다.
 - 앱 설정과 키보드 확장은 `UserDefaultsManager`와 `DefaultValues`를 공유한다. 설정 키 변경 시 앱/확장/Core 양쪽 영향을 확인한다.
 - Firebase, AdMob, entitlements, bundle identifier, provisioning, `GoogleService-Info.plist`, `Secrets.xcconfig` 관련 변경은 사용자가 명시적으로 요청한 경우에만 한다.
@@ -29,6 +31,8 @@
 - 장기 작업이나 여러 모듈을 건드리는 작업은 `dev/README.md`를 읽고 `dev/active/<task-name>/`에 plan/context/tasks 문서를 만든다.
 - 단일 파일의 작은 수정이나 단순 문서 정리는 `dev/active` 문서를 만들지 않아도 된다.
 - 작업 문서를 만들 때는 `dev/templates/`의 템플릿을 사용한다.
+- Superpowers 스킬이 설계 문서나 구현 계획을 생성하면 기본 경로인 `docs/superpowers/` 대신 `dev/active/<task-name>/superpowers/` 아래에 저장한다.
+- Superpowers 문서는 해당 스킬이 요구하는 상세 형식과 내용을 유지하며, `dev/templates/` 형식으로 축약하지 않는다.
 - 프로젝트별 온디맨드 지침은 `dev/codex-skill-playbook.md`에 있다. 아래 작업 전에는 해당 섹션을 먼저 확인한다.
   - 한글 조합/삭제/Processor 변경: `hangeul-input-logic`
   - 키보드 extension UI, 버튼, 제스처, 높이 변경: `ios-keyboard-extension`
@@ -45,7 +49,7 @@
 
 ## 코드 스타일
 
-- Swift 5 프로젝트이며 Xcode 16 이상을 기준으로 한다. `SYKeyboardAssets` 패키지는 `swift-tools-version: 6.2`를 사용한다.
+- Swift 5 프로젝트이며 Xcode 16 이상을 기준으로 한다. `SYKeyboardAssets` 패키지는 `swift-tools-version: 6.0`을 사용한다.
 - 자세한 코딩 컨벤션은 `dev/coding-conventions.md`를 따른다. 새 Swift 코드를 작성하기 전 관련 섹션을 먼저 확인한다.
 - 기존 스타일처럼 `// MARK: -` 섹션, 명확한 접근 제어, 짧은 한국어 주석을 유지한다.
 - Swift, Foundation, UIKit, SwiftUI가 제공하는 표준 API를 우선 사용한다. 예를 들어 UIKit gesture의 위치/속도처럼 프레임워크가 직접 제공하는 값이 있으면 별도 프레임워크 import나 직접 계산보다 이를 먼저 검토한다.
@@ -122,6 +126,7 @@ Codex의 기본 샌드박스에서는 Xcode/SwiftPM 캐시, CoreSimulator 로그
 - 나랏글/천지인/두벌식은 동일한 기대 동작처럼 보여도 조합 상태와 스페이스 처리 규칙이 다를 수 있으므로 각각 검증한다.
 - 삭제 로직은 `composing`, `committedTail`, 보호 상태, 겹받침/겹모음 분해를 함께 확인한다.
 - UI 변경은 가능한 경우 빌드까지 확인하고, 키보드 extension은 실제 입력 앱에서 열리는 흐름까지 염두에 둔다.
+- 커서 이동, focus 전환, 텍스트 필드 탭과 관련된 변경은 실제 입력 앱에서 `textWillChange(_:)`/`textDidChange(_:)` 호출과 내부 상태 동기화를 확인한다. `selectionWillChange(_:)`/`selectionDidChange(_:)` 호출을 전제로 검증을 생략하지 않는다.
 
 ## 커밋 메시지 규칙
 

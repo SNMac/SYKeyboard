@@ -135,6 +135,8 @@ xcodebuild build \
 - Claude Code 전용 hook/settings를 Codex에 그대로 적용한다고 쓰지 않는다.
 - Codex에서 실제로 작동하는 방식과 참고용 패턴을 구분한다.
 - 장기 작업은 `dev/active/<task-name>/`에 plan/context/tasks 3종 문서를 둔다.
+- Superpowers의 설계 문서와 구현 계획은 `docs/superpowers/` 대신 `dev/active/<task-name>/superpowers/specs/`와 `dev/active/<task-name>/superpowers/plans/`에 저장한다.
+- Superpowers 문서는 스킬 고유의 형식과 상세 수준을 유지하고 `dev/templates/` 형식으로 축약하지 않는다.
 
 ### Verification
 

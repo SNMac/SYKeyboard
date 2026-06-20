@@ -271,6 +271,75 @@ struct CheonjiinProcessorTests: HangeulProcessorTestable {
         (c, p) = applyInput(인, committed: c, composing: p)
         #expect(c + p == "가녀", "비표준 모음 삭제 후 표준 모음 조합 시 연음이 발생해야 합니다.")
     }
+
+    @Test("비표준 모음 포함 composing은 마지막 글자만 삭제")
+    func test비표준모음_Composing삭제() {
+        let cases = [
+            (composing: "ㆍ", expected: ""),
+            (composing: "ᆢ", expected: ""),
+            (composing: "간ㆍ", expected: "간"),
+            (composing: "간ᆢ", expected: "간")
+        ]
+
+        for testCase in cases {
+            let result = processor.delete(
+                composing: testCase.composing,
+                committedTail: "",
+                isProtected: false
+            )
+
+            #expect(
+                result.composing == testCase.expected,
+                "'\(testCase.composing)' 삭제 결과가 '\(testCase.expected)'여야 합니다."
+            )
+            #expect(result.consumedCommittedCount == 0)
+        }
+    }
+
+    @Test("committed 비표준 모음 복원은 보호되지 않은 경우에만 committed를 소비")
+    func test비표준모음_Committed복원() {
+        let cases = [
+            (
+                composing: "ㄷ",
+                committedTail: "간ㆍ",
+                isProtected: false,
+                expectedComposing: "간ㆍ",
+                expectedConsumedCount: 2
+            ),
+            (
+                composing: "다",
+                committedTail: "간ᆢ",
+                isProtected: false,
+                expectedComposing: "간ᆢㄷ",
+                expectedConsumedCount: 2
+            ),
+            (
+                composing: "ㄷ",
+                committedTail: "간ㆍ",
+                isProtected: true,
+                expectedComposing: "",
+                expectedConsumedCount: 0
+            ),
+            (
+                composing: "다",
+                committedTail: "간ᆢ",
+                isProtected: true,
+                expectedComposing: "ㄷ",
+                expectedConsumedCount: 0
+            )
+        ]
+
+        for testCase in cases {
+            let result = processor.delete(
+                composing: testCase.composing,
+                committedTail: testCase.committedTail,
+                isProtected: testCase.isProtected
+            )
+
+            #expect(result.composing == testCase.expectedComposing)
+            #expect(result.consumedCommittedCount == testCase.expectedConsumedCount)
+        }
+    }
     
     // MARK: - 6. 11,172자 전체 검증 (Heavy Test)
     
@@ -294,10 +363,29 @@ struct CheonjiinProcessorTests: HangeulProcessorTestable {
             if committed + composing != targetString {
                 Self.logger.error("실패: \(targetString) (생성됨: \(committed + composing)) / 입력키: \(keySequence)")
                 failureCount += 1
+                continue
+            }
+
+            let expectedDeleteCount = calculateExpectedDeleteCount(for: char)
+
+            for _ in 0..<expectedDeleteCount {
+                (committed, composing) = applyDelete(committed: committed, composing: composing)
+            }
+
+            if !(committed + composing).isEmpty {
+                Self.logger.error(
+                    "삭제 실패: \(targetString) -> 예상 삭제 횟수(\(expectedDeleteCount)) 실행 후 잔여물: '\(committed + composing)'"
+                )
+                failureCount += 1
             }
         }
         
-        #expect(failureCount == 0, "총 \(failureCount)개의 글자 생성 실패")
+        #expect(failureCount == 0, "총 \(failureCount)개의 글자에서 생성 또는 삭제 실패")
+    }
+
+    @Test("완성형 한글이 아닌 글자의 예상 삭제 횟수는 0")
+    func test비한글_예상삭제횟수() {
+        #expect(calculateExpectedDeleteCount(for: "A") == 0)
     }
 }
 
@@ -413,5 +501,28 @@ private extension CheonjiinProcessorTests {
         case 27: return ["ㅅ", "ㅅ"]
         default: return []
         }
+    }
+
+    /// 완성형 한글 한 글자를 모두 지우기 위해 필요한 백스페이스 횟수를 계산
+    func calculateExpectedDeleteCount(for char: Character) -> Int {
+        guard let scalar = char.unicodeScalars.first,
+              (0xAC00...0xD7A3).contains(scalar.value) else { return 0 }
+        let code = Int(scalar.value) - 0xAC00
+
+        let 중성Index = (code % (21 * 28)) / 28
+        let 종성Index = code % 28
+
+        let 중성Deletes = [
+            1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 3, 2, 1, 1, 2, 3, 2, 1, 1, 2, 1
+        ]
+        let 겹받침Indices = Set([3, 5, 6, 9, 10, 11, 12, 13, 14, 15, 18])
+
+        var count = 1 + 중성Deletes[중성Index]
+
+        if 종성Index != 0 {
+            count += 겹받침Indices.contains(종성Index) ? 2 : 1
+        }
+
+        return count
     }
 }

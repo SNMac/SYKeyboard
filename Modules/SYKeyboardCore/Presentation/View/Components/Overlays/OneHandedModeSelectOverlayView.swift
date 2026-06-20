@@ -24,7 +24,7 @@ final public class OneHandedModeSelectOverlayView: UIStackView {
     /// 왼손 모드 이미지
     private let leftKeyboardImageView: UIImageView = {
         let imageView = UIImageView()
-        let imageConfig = UIImage.SymbolConfiguration(pointSize: 26, weight: .regular)
+        let imageConfig = UIImage.SymbolConfiguration(pointSize: FontSize.overlayLarge, weight: .regular)
         imageView.image = UIImage(systemName: "keyboard.onehanded.left")?.withConfiguration(imageConfig).withTintColor(.label, renderingMode: .alwaysOriginal)
         imageView.contentMode = .center
         
@@ -34,14 +34,14 @@ final public class OneHandedModeSelectOverlayView: UIStackView {
     let leftKeyboardImageContainerView: UIView = {
         let view = UIView()
         view.clipsToBounds = true
-        view.layer.cornerRadius = 8
+        view.layer.cornerRadius = KeyboardLayoutFigure.buttonCornerRadius
         
         return view
     }()
     /// 기본 모드 이미지
     private let normalKeyboardImageView: UIImageView = {
         let imageView = UIImageView()
-        let imageConfig = UIImage.SymbolConfiguration(pointSize: 26, weight: .regular)
+        let imageConfig = UIImage.SymbolConfiguration(pointSize: FontSize.overlayLarge, weight: .regular)
         imageView.image = UIImage(systemName: "keyboard")?.withConfiguration(imageConfig).withTintColor(.label, renderingMode: .alwaysOriginal)
         imageView.contentMode = .center
         
@@ -51,14 +51,14 @@ final public class OneHandedModeSelectOverlayView: UIStackView {
     private let normalKeyboardImageContainerView: UIView = {
         let view = UIView()
         view.clipsToBounds = true
-        view.layer.cornerRadius = 8
+        view.layer.cornerRadius = KeyboardLayoutFigure.buttonCornerRadius
         
         return view
     }()
     /// 오른손 모드 이미지
     private let rightKeyboardImageView: UIImageView = {
         let imageView = UIImageView()
-        let imageConfig = UIImage.SymbolConfiguration(pointSize: 26, weight: .regular)
+        let imageConfig = UIImage.SymbolConfiguration(pointSize: FontSize.overlayLarge, weight: .regular)
         imageView.image = UIImage(systemName: "keyboard.onehanded.right")?.withConfiguration(imageConfig).withTintColor(.label, renderingMode: .alwaysOriginal)
         imageView.contentMode = .center
         
@@ -68,7 +68,7 @@ final public class OneHandedModeSelectOverlayView: UIStackView {
     let rightKeyboardImageContainerView: UIView = {
         let view = UIView()
         view.clipsToBounds = true
-        view.layer.cornerRadius = 8
+        view.layer.cornerRadius = KeyboardLayoutFigure.buttonCornerRadius
         
         return view
     }()
@@ -146,7 +146,7 @@ private extension OneHandedModeSelectOverlayView {
         self.directionalLayoutMargins = NSDirectionalEdgeInsets(top: 8, leading: 8, bottom: 8, trailing: 8)
         
         self.clipsToBounds = true
-        self.layer.cornerRadius = 8
+        self.layer.cornerRadius = KeyboardLayoutFigure.selectOverlayCornerRadius
     }
     
     func setHierarchy() {

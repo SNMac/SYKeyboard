@@ -104,6 +104,62 @@ struct KeyboardSuggestionSelectionPolicyTests {
                 inputBuffer: "input"
             ) == .update("input")
         )
+        #expect(
+            KeyboardSuggestionSelectionPolicy.suggestionUpdateAction(
+                isPredictiveTextEnabled: true,
+                selectedText: nil,
+                inputBuffer: ""
+            ) == .update("")
+        )
+    }
+
+    @Test("textDidChange 자동완성 갱신은 primary 커서 드래그 중에는 건너뜀")
+    func testTextDidChange자동완성갱신조건() {
+        #expect(
+            KeyboardSuggestionSelectionPolicy.shouldUpdateSuggestionsOnTextDidChange(
+                isPrimaryCursorDragging: false
+            )
+        )
+        #expect(
+            KeyboardSuggestionSelectionPolicy.shouldUpdateSuggestionsOnTextDidChange(
+                isPrimaryCursorDragging: true
+            ) == false
+        )
+    }
+
+    @Test("후보 선택 기준 텍스트는 입력 버퍼가 비어 있으면 커서 앞 문맥을 사용")
+    func test후보선택기준텍스트() {
+        #expect(
+            KeyboardSuggestionSelectionPolicy.suggestionSelectionBaseText(
+                inputBuffer: "동",
+                documentContextBeforeInput: "동해"
+            ) == "동"
+        )
+        #expect(
+            KeyboardSuggestionSelectionPolicy.suggestionSelectionBaseText(
+                inputBuffer: "",
+                documentContextBeforeInput: "동해"
+            ) == "동해"
+        )
+        #expect(
+            KeyboardSuggestionSelectionPolicy.suggestionSelectionBaseText(
+                inputBuffer: "",
+                documentContextBeforeInput: nil
+            ) == ""
+        )
+    }
+
+    @Test("후보 선택 기준 텍스트는 커서 앞 문맥을 최대 256자로 제한")
+    func test후보선택기준텍스트_문맥길이제한() {
+        let droppedPrefix = String(repeating: "가", count: 50)
+        let retainedContext = String(repeating: "나", count: 254) + "동해"
+
+        #expect(
+            KeyboardSuggestionSelectionPolicy.suggestionSelectionBaseText(
+                inputBuffer: "",
+                documentContextBeforeInput: droppedPrefix + retainedContext
+            ) == retainedContext
+        )
     }
 
     @Test("lexicon은 텍스트 대치나 자동완성 중 하나라도 켜진 경우 로드")
@@ -124,6 +180,20 @@ struct KeyboardSuggestionSelectionPolicyTests {
             KeyboardSuggestionSelectionPolicy.shouldLoadLexicon(
                 isTextReplacementEnabled: false,
                 isPredictiveTextEnabled: false
+            ) == false
+        )
+    }
+
+    @Test("텍스트 대치용 lexicon은 첫 표시 전 로드를 시작")
+    func test텍스트대치용Lexicon은_첫표시전로드를시작() {
+        #expect(
+            KeyboardSuggestionSelectionPolicy.shouldStartLexiconLoadBeforeFirstAppearance(
+                isTextReplacementEnabled: true
+            )
+        )
+        #expect(
+            KeyboardSuggestionSelectionPolicy.shouldStartLexiconLoadBeforeFirstAppearance(
+                isTextReplacementEnabled: false
             ) == false
         )
     }

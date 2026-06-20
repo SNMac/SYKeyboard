@@ -85,16 +85,16 @@ open class FourByFourKeyboardView: UIView {
     public private(set) lazy var secondaryAtButton = SecondaryKeyButton(keyboard: keyboard, button: .keyButton(primary: ["@"], secondary: nil))
     public private(set) lazy var secondarySharpButton = SecondaryKeyButton(keyboard: keyboard, button: .keyButton(primary: ["#"], secondary: nil))
     
-    public  private(set) lazy var switchButton = SwitchButton(keyboard: keyboard)
-    public  private(set) lazy var nextKeyboardButton = NextKeyboardButton(keyboard: keyboard)
+    public private(set) lazy var switchButton = SwitchButton(keyboard: keyboard)
+    public private(set) lazy var nextKeyboardButton = NextKeyboardButton(keyboard: keyboard)
     
-    public  private(set) lazy var keyboardSelectOverlayView: KeyboardSelectOverlayView = {
+    public private(set) lazy var keyboardSelectOverlayView: KeyboardSelectOverlayView = {
         let overlayView = KeyboardSelectOverlayView(keyboard: keyboard)
         overlayView.isHidden = true
         
         return overlayView
     }()
-    public  private(set) lazy var oneHandedModeSelectOverlayView: OneHandedModeSelectOverlayView = {
+    public private(set) lazy var oneHandedModeSelectOverlayView: OneHandedModeSelectOverlayView = {
         let overlayView = OneHandedModeSelectOverlayView()
         overlayView.isHidden = true
         
@@ -167,17 +167,17 @@ private extension FourByFourKeyboardView {
         keyboardSelectOverlayView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             keyboardSelectOverlayView.trailingAnchor.constraint(equalTo: self.trailingAnchor, constant: -4),
-            keyboardSelectOverlayView.centerYAnchor.constraint(equalTo: returnButton.centerYAnchor),
-            keyboardSelectOverlayView.widthAnchor.constraint(equalTo: self.widthAnchor, multiplier: KeyboardLayoutFigure.keyboardSelectOverlayWidthMultiplier),
-            keyboardSelectOverlayView.heightAnchor.constraint(equalTo: returnButton.heightAnchor)
+            keyboardSelectOverlayView.bottomAnchor.constraint(equalTo: switchButton.topAnchor, constant: -4),
+            keyboardSelectOverlayView.widthAnchor.constraint(equalToConstant: KeyboardLayoutFigure.keyboardSelectOverlayWidth),
+            keyboardSelectOverlayView.heightAnchor.constraint(equalToConstant: KeyboardLayoutFigure.selectOverlayHeight)
         ])
         
         oneHandedModeSelectOverlayView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             oneHandedModeSelectOverlayView.trailingAnchor.constraint(equalTo: self.trailingAnchor, constant: -4),
-            oneHandedModeSelectOverlayView.centerYAnchor.constraint(equalTo: returnButton.centerYAnchor),
-            oneHandedModeSelectOverlayView.widthAnchor.constraint(equalTo: self.widthAnchor, multiplier: KeyboardLayoutFigure.oneHandedModeSelectOverlayWidthMultiplier),
-            oneHandedModeSelectOverlayView.heightAnchor.constraint(equalTo: returnButton.heightAnchor)
+            oneHandedModeSelectOverlayView.bottomAnchor.constraint(equalTo: switchButton.topAnchor, constant: -4),
+            oneHandedModeSelectOverlayView.widthAnchor.constraint(equalToConstant: KeyboardLayoutFigure.oneHandedModeSelectOverlayWidth),
+            oneHandedModeSelectOverlayView.heightAnchor.constraint(equalToConstant: KeyboardLayoutFigure.selectOverlayHeight)
         ])
     }
 }

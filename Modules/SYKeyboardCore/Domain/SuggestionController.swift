@@ -31,7 +31,7 @@ extension NGramPredictiveTextEngine: NGramPredictiveTextProviding {}
 
 /// `SuggestionController`가 사용하는 예측 엔진 생성 팩토리
 struct SuggestionControllerEngineFactory {
-    let makeLexiconEngine: () -> LexiconPredictiveTextEngine
+    let makeLexiconEngine: () -> LexiconSuggestionProviding
     let makeTextCheckerEngine: (String) -> PredictiveTextProvider
     let makeNGramEngine: (String) -> NGramPredictiveTextProviding
 
@@ -165,7 +165,7 @@ final class SuggestionController: SuggestionService {
     /// `UILexicon` 기반 엔진 (연락처, 텍스트 대치 등)
     ///
     /// 자동완성과 텍스트 대치 양쪽에서 사용되므로, 둘 다 꺼졌을 때만 `nil`이 됩니다.
-    private var lexiconEngine: LexiconPredictiveTextEngine?
+    private var lexiconEngine: LexiconSuggestionProviding?
     /// `UITextChecker` 기반 엔진 (시스템 사전)
     ///
     /// `isPredictiveTextEnabled`가 `false`이면 `nil`이 됩니다.
@@ -181,6 +181,8 @@ final class SuggestionController: SuggestionService {
 
     /// 후보 최대 표시 개수
     private let maxSuggestions = 3
+    /// 복구 가능한 텍스트 대치 이력 최대 개수
+    private let maxReplacementHistoryCount = 20
 
     /// 텍스트 대치 이력을 저장하는 모델
     private struct ReplacementRecord: Equatable {
@@ -188,6 +190,8 @@ final class SuggestionController: SuggestionService {
         let userInput: String
         /// 대치된 결과물 (예: "지금 가는 중!")
         let documentText: String
+        /// 대치 결과 앞쪽의 제한된 문맥
+        let contextBeforeDocumentText: String
     }
     /// 텍스트 대치 이력
     private var replacementHistory: [ReplacementRecord] = []
@@ -245,7 +249,7 @@ final class SuggestionController: SuggestionService {
         prepareLexiconEngineIfNeeded()
         guard lexiconEngine != nil else { return }
         guard !isLoadingLexicon else { return }
-        guard lexiconEngine?.lexicon == nil else { return }
+        guard lexiconEngine?.hasLoadedLexicon == false else { return }
 
         isLoadingLexicon = true
         Task { @MainActor [weak self, weak inputViewController] in
@@ -260,7 +264,7 @@ final class SuggestionController: SuggestionService {
                 self.isLoadingLexicon = false
             }
             let lexicon = await inputViewController.requestSupplementaryLexicon()
-            lexiconEngine?.setLexicon(lexicon)
+            (lexiconEngine as? LexiconLoadableSuggestionProviding)?.setLexicon(lexicon)
         }
     }
 
@@ -315,11 +319,12 @@ final class SuggestionController: SuggestionService {
         }
 
         if item.source == .lexicon {
-            let record = ReplacementRecord(
+            appendReplacementRecord(
                 userInput: currentWord,
-                documentText: item.text
+                documentText: item.text,
+                baseText: baseText,
+                currentWord: currentWord
             )
-            replacementHistory.append(record)
         }
 
         return (deleteCount: currentWord.count, insertText: item.text)
@@ -389,12 +394,23 @@ final class SuggestionController: SuggestionService {
     // MARK: - Text Replacement Methods
 
     func attemptTextReplacement(baseText: String) -> (deleteCount: Int, insertText: String)? {
+        return attemptTextReplacement(baseText: baseText, documentContextBeforeInput: nil)
+    }
+
+    func attemptTextReplacement(
+        baseText: String,
+        documentContextBeforeInput: String?
+    ) -> (deleteCount: Int, insertText: String)? {
         guard isTextReplacementEnabled,
               !baseText.isEmpty,
-              let lexicon = lexiconEngine?.lexicon else { return nil }
+              let lexiconEngine,
+              lexiconEngine.hasLoadedLexicon else { return nil }
 
-        let matchingEntries = lexicon.entries.filter { entry in
-            let isMatch = baseText.lowercased().hasSuffix(entry.userInput.lowercased())
+        let currentWord = extractLastWord(from: baseText)
+        guard !currentWord.isEmpty else { return nil }
+
+        let matchingEntries = lexiconEngine.textReplacementEntries.filter { entry in
+            let isMatch = currentWord.lowercased() == entry.userInput.lowercased()
 
             if entry.userInput.lowercased() == "m" && entry.documentText == "M" {
                 return false
@@ -412,11 +428,12 @@ final class SuggestionController: SuggestionService {
             return nil
         }
 
-        let record = ReplacementRecord(
+        appendReplacementRecord(
             userInput: match.userInput,
-            documentText: match.documentText
+            documentText: match.documentText,
+            baseText: documentContextBeforeInput ?? baseText,
+            currentWord: currentWord
         )
-        replacementHistory.append(record)
 
         return (deleteCount: match.userInput.count, insertText: match.documentText)
     }
@@ -430,21 +447,20 @@ final class SuggestionController: SuggestionService {
               !replacementHistory.isEmpty else { return nil }
 
         for (index, record) in replacementHistory.enumerated().reversed() {
-            if let deleteCount = KeyboardSuggestionSelectionPolicy.textReplacementRestoreDeleteCount(
-                documentText: record.documentText,
+            guard let deleteCount = textReplacementRestoreDeleteCount(
+                for: record,
                 inputBuffer: inputBuffer,
                 documentContextBeforeInput: documentContextBeforeInput,
                 selectedText: selectedText
-            ) {
-                replacementHistory.remove(at: index)
+            ) else { continue }
 
-                ignoredShortcut = record.userInput
+            replacementHistory.remove(at: index)
+            ignoredShortcut = record.userInput
 
-                return (
-                    deleteCount: deleteCount,
-                    insertText: record.userInput
-                )
-            }
+            return (
+                deleteCount: deleteCount,
+                insertText: record.userInput
+            )
         }
 
         return nil
@@ -464,6 +480,71 @@ final class SuggestionController: SuggestionService {
 // MARK: - Private Methods
 
 private extension SuggestionController {
+
+    func appendReplacementRecord(
+        userInput: String,
+        documentText: String,
+        baseText: String,
+        currentWord: String
+    ) {
+        let contextBeforeDocumentText: String
+        if baseText.hasSuffix(currentWord) {
+            contextBeforeDocumentText = String(
+                baseText
+                    .dropLast(currentWord.count)
+                    .suffix(KeyboardTextContextNavigator.maximumCursorRestoreDistance)
+            )
+        } else {
+            contextBeforeDocumentText = String(
+                baseText
+                    .suffix(KeyboardTextContextNavigator.maximumCursorRestoreDistance)
+            )
+        }
+
+        replacementHistory.append(
+            ReplacementRecord(
+                userInput: userInput,
+                documentText: documentText,
+                contextBeforeDocumentText: contextBeforeDocumentText
+            )
+        )
+
+        if replacementHistory.count > maxReplacementHistoryCount {
+            replacementHistory.removeFirst(replacementHistory.count - maxReplacementHistoryCount)
+        }
+    }
+
+    private func textReplacementRestoreDeleteCount(
+        for record: ReplacementRecord,
+        inputBuffer: String,
+        documentContextBeforeInput: String?,
+        selectedText: String?
+    ) -> Int? {
+        guard selectedText?.isEmpty != false else { return nil }
+
+        if replacementRecord(record, matches: inputBuffer) {
+            return record.documentText.count
+        }
+
+        guard inputBuffer.isEmpty,
+              let documentContextBeforeInput else { return nil }
+
+        return replacementRecord(record, matches: documentContextBeforeInput)
+            ? record.documentText.count
+            : nil
+    }
+
+    private func replacementRecord(
+        _ record: ReplacementRecord,
+        matches text: String
+    ) -> Bool {
+        guard !record.documentText.isEmpty else { return false }
+
+        let expectedSuffix = record.contextBeforeDocumentText + record.documentText
+        guard text.count >= expectedSuffix.count else { return false }
+        return text.hasSuffix(expectedSuffix)
+    }
+
     /// `isPredictiveTextEnabled` 또는 `isTextReplacementEnabled` 변경 시
     /// 더 이상 필요 없는 `lexiconEngine`을 해제합니다.
     ///

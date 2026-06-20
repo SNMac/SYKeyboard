@@ -11,6 +11,7 @@ import OSLog
 protocol TextInteractionGestureControllerDelegate: AnyObject {
     func primaryButtonPanning(_ controller: TextInteractionGestureController, to direction: PanDirection, steps: Int)
     func deleteButtonPanning(_ controller: TextInteractionGestureController, to direction: PanDirection)
+    func primaryButtonPanStopped(_ controller: TextInteractionGestureController)
     func deleteButtonPanStopped(_ controller: TextInteractionGestureController)
     func textInteractableButtonLongPressing(_ controller: TextInteractionGestureController, button: TextInteractable)
     func textInteractableButtonLongPressStopped(_ controller: TextInteractionGestureController, button: TextInteractable)
@@ -88,8 +89,11 @@ final class TextInteractionGestureController: NSObject {
             }
         case .ended, .cancelled, .failed:
             // 순서 중요
-            if isCursorActive {
-                setCurrentPressedButton(nil)
+            if isCursorActive || gesture.state != .ended {
+                if let gestureButton,
+                   getCurrentPressedButton() === gestureButton {
+                    setCurrentPressedButton(nil)
+                }
             } else {
                 gestureButton?.sendActions(for: .touchUpInside)
             }
@@ -195,6 +199,9 @@ private extension TextInteractionGestureController {
     func onPanGestureEnded(_ gesture: UIPanGestureRecognizer) {
         if gesture.view is DeleteButton {
             delegate?.deleteButtonPanStopped(self)
+        } else if isCursorActive,
+                  gesture.view is TextInteractable {
+            delegate?.primaryButtonPanStopped(self)
         }
     }
     

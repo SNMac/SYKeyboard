@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		5B17397D2FDE0E84001DB248 /* MetaAdapterTarget in Frameworks */ = {isa = PBXBuildFile; productRef = 5B17397C2FDE0E84001DB248 /* MetaAdapterTarget */; };
 		5B25D1162F155B23003122E2 /* HangeulKeyboardCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5BB373DA2ED5DADC006AB083 /* HangeulKeyboardCore.framework */; };
 		5B25D1192F155B27003122E2 /* EnglishKeyboardCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5BB373AA2ED5D937006AB083 /* EnglishKeyboardCore.framework */; };
 		5B25D11C2F155BB9003122E2 /* SYKeyboardCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5BB373512ED5AA18006AB083 /* SYKeyboardCore.framework */; };
@@ -21,9 +22,7 @@
 		5BB377A42ED600AC006AB083 /* FirebaseCrashlytics in Frameworks */ = {isa = PBXBuildFile; productRef = 5BB377A32ED600AC006AB083 /* FirebaseCrashlytics */; };
 		5BB377D62ED62420006AB083 /* SYKeyboardCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5BB373512ED5AA18006AB083 /* SYKeyboardCore.framework */; };
 		5BB377D92ED62423006AB083 /* SYKeyboardCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5BB373512ED5AA18006AB083 /* SYKeyboardCore.framework */; };
-		5BB37A5E2ED643B9006AB083 /* MetaAdapterTarget in Frameworks */ = {isa = PBXBuildFile; productRef = 5BB37A5D2ED643B9006AB083 /* MetaAdapterTarget */; };
 		5BB37A612ED644B5006AB083 /* GoogleMobileAds in Frameworks */ = {isa = PBXBuildFile; productRef = 5BB37A602ED644B5006AB083 /* GoogleMobileAds */; };
-		5BC38F1C2D8AE2FE00E6B44E /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = 5BC38F1B2D8AE2FE00E6B44E /* README.md */; };
 		5BCED1112F26DEEC00A7F562 /* SYKeyboardAssets in Frameworks */ = {isa = PBXBuildFile; productRef = 5BCED1102F26DEEC00A7F562 /* SYKeyboardAssets */; };
 /* End PBXBuildFile section */
 
@@ -129,6 +128,13 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		5B17397A2FDE0BBB001DB248 /* Exceptions for "ci_scripts" folder in "SYKeyboard" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				ci_post_clone.sh,
+			);
+			target = 5B7B3F552C569B7800F7C093 /* SYKeyboard */;
+		};
 		5B53F7A32E1E517F0083F7CA /* Exceptions for "SYKeyboard" folder in "SYKeyboard" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
@@ -295,6 +301,7 @@
 				SYKeyboardCore/Storage/DefaultValues.swift,
 				SYKeyboardCore/Storage/Enums/LongPressAction.swift,
 				SYKeyboardCore/Storage/Enums/OneHandedMode.swift,
+				SYKeyboardCore/Storage/KeyboardExtensionLocalStateStore.swift,
 				SYKeyboardCore/Storage/UserDefaultsKeys.swift,
 				SYKeyboardCore/Storage/UserDefaultsManager.swift,
 				SYKeyboardCore/SYKeyboardCore.docc,
@@ -371,6 +378,7 @@
 				SYKeyboardCore/Storage/DefaultValues.swift,
 				SYKeyboardCore/Storage/Enums/LongPressAction.swift,
 				SYKeyboardCore/Storage/Enums/OneHandedMode.swift,
+				SYKeyboardCore/Storage/KeyboardExtensionLocalStateStore.swift,
 				SYKeyboardCore/Storage/UserDefaultsKeys.swift,
 				SYKeyboardCore/Storage/UserDefaultsManager.swift,
 				SYKeyboardCore/SYKeyboardCore.docc,
@@ -463,6 +471,9 @@
 		};
 		5BF8E7482FD7D15A00BA7B7F /* ci_scripts */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				5B17397A2FDE0BBB001DB248 /* Exceptions for "ci_scripts" folder in "SYKeyboard" target */,
+			);
 			path = ci_scripts;
 			sourceTree = "<group>";
 		};
@@ -480,8 +491,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5B17397D2FDE0E84001DB248 /* MetaAdapterTarget in Frameworks */,
 				5B2CF1092EDE384D00F4A844 /* AdSupport.framework in Frameworks */,
-				5BB37A5E2ED643B9006AB083 /* MetaAdapterTarget in Frameworks */,
 				5B25D11C2F155BB9003122E2 /* SYKeyboardCore.framework in Frameworks */,
 				5B8E6E112E1E42D800657BF4 /* FirebaseAnalytics in Frameworks */,
 				5BB37A612ED644B5006AB083 /* GoogleMobileAds in Frameworks */,
@@ -804,9 +815,9 @@
 			mainGroup = 5B7B3F4D2C569B7800F7C093;
 			packageReferences = (
 				5B8E6E0F2E1E42D800657BF4 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
-				5BB37A5C2ED643B9006AB083 /* XCRemoteSwiftPackageReference "googleads-mobile-ios-mediation-meta" */,
 				5BB37A5F2ED644B5006AB083 /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */,
 				5BCED1092F26DD8A00A7F562 /* XCLocalSwiftPackageReference "SYKeyboardAssets" */,
+				5B17397B2FDE0E84001DB248 /* XCRemoteSwiftPackageReference "googleads-mobile-ios-mediation-meta" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 5B7B3F572C569B7800F7C093 /* Products */;
@@ -836,7 +847,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				5BC38F1C2D8AE2FE00E6B44E /* README.md in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1475,6 +1485,7 @@
 			baseConfigurationReferenceAnchor = 5B53F8012E1E56BD0083F7CA /* Keyboards */;
 			baseConfigurationReferenceRelativePath = "EnglishKeyboard/Resources/Configs/DebugConfig-EnglishKeyboard.xcconfig";
 			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
 				CODE_SIGN_ENTITLEMENTS = Keyboards/EnglishKeyboard/Resources/EnglishKeyboard.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = "$(BUILD_NUMBER)";
@@ -1509,6 +1520,7 @@
 			baseConfigurationReferenceAnchor = 5B53F8012E1E56BD0083F7CA /* Keyboards */;
 			baseConfigurationReferenceRelativePath = "EnglishKeyboard/Resources/Configs/ReleaseConfig-EnglishKeyboard.xcconfig";
 			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
 				CODE_SIGN_ENTITLEMENTS = Keyboards/EnglishKeyboard/Resources/EnglishKeyboard.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = "$(BUILD_NUMBER)";
@@ -1899,20 +1911,20 @@
 /* End XCLocalSwiftPackageReference section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		5B17397B2FDE0E84001DB248 /* XCRemoteSwiftPackageReference "googleads-mobile-ios-mediation-meta" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/googleads/googleads-mobile-ios-mediation-meta.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 6.21.101;
+			};
+		};
 		5B8E6E0F2E1E42D800657BF4 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/firebase/firebase-ios-sdk.git";
 			requirement = {
 				kind = upToNextMajorVersion;
 				minimumVersion = 12.14.0;
-			};
-		};
-		5BB37A5C2ED643B9006AB083 /* XCRemoteSwiftPackageReference "googleads-mobile-ios-mediation-meta" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/googleads/googleads-mobile-ios-mediation-meta.git";
-			requirement = {
-				branch = main;
-				kind = branch;
 			};
 		};
 		5BB37A5F2ED644B5006AB083 /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */ = {
@@ -1926,6 +1938,11 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		5B17397C2FDE0E84001DB248 /* MetaAdapterTarget */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 5B17397B2FDE0E84001DB248 /* XCRemoteSwiftPackageReference "googleads-mobile-ios-mediation-meta" */;
+			productName = MetaAdapterTarget;
+		};
 		5B3D95882F22A9A900200234 /* FirebaseCrashlytics */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 5B8E6E0F2E1E42D800657BF4 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
@@ -1945,11 +1962,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 5B8E6E0F2E1E42D800657BF4 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseCrashlytics;
-		};
-		5BB37A5D2ED643B9006AB083 /* MetaAdapterTarget */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 5BB37A5C2ED643B9006AB083 /* XCRemoteSwiftPackageReference "googleads-mobile-ios-mediation-meta" */;
-			productName = MetaAdapterTarget;
 		};
 		5BB37A602ED644B5006AB083 /* GoogleMobileAds */ = {
 			isa = XCSwiftPackageProductDependency;

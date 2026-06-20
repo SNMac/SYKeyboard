@@ -47,7 +47,7 @@ private extension DeleteButton {
     }
     
     func setStyles() {
-        let imageConfig = UIImage.SymbolConfiguration(pointSize: FontSize.imageSize, weight: .medium, scale: .large)
+        let imageConfig = UIImage.SymbolConfiguration(pointSize: FontSize.imageMedium, weight: .medium, scale: .large)
         self.configurationUpdateHandler = { [weak self] button in
             guard let self else { return }
             switch button.state {

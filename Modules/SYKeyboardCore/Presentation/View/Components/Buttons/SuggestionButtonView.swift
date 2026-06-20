@@ -41,6 +41,7 @@ final class SuggestionButtonView: UIView {
     
     private let suggestionLabel: UILabel = {
         let label = UILabel()
+        label.font = .systemFont(ofSize: FontSize.stringKeyMedium)
         label.textColor = .label
         label.textAlignment = .center
         label.numberOfLines = 2

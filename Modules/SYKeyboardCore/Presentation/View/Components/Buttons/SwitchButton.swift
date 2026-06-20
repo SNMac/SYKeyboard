@@ -28,7 +28,7 @@ final public class SwitchButton: SecondaryButton {
     private lazy var oneHandedLabel: UILabel = {
         let label = UILabel()
         label.attributedText = createOneHandedAttributedText(needToEmphasize: false)
-        label.font = .systemFont(ofSize: 9)
+        label.font = .systemFont(ofSize: FontSize.stringKeySmall)
         label.isHidden = !UserDefaultsManager.shared.isOneHandedKeyboardEnabled
         
         return label
@@ -37,7 +37,7 @@ final public class SwitchButton: SecondaryButton {
     private lazy var keyboardSelectLabel: UILabel = {
         let label = UILabel()
         label.attributedText = createKeyboardSelectAttributedText(needToEmphasize: false)
-        label.font = .systemFont(ofSize: 9)
+        label.font = .systemFont(ofSize: FontSize.stringKeySmall)
         label.isHidden = !UserDefaultsManager.shared.isNumericKeypadEnabled
         
         return label
@@ -87,11 +87,11 @@ final public class SwitchButton: SecondaryButton {
         
         primaryKeyListLabel.text = title
         if backgroundView.bounds.width < 38 {
-            primaryKeyListLabel.font = .monospacedDigitSystemFont(ofSize: 14, weight: .regular)
+            primaryKeyListLabel.font = .monospacedDigitSystemFont(ofSize: FontSize.stringKeyMedium - 4, weight: .regular)
         } else if backgroundView.bounds.width < 44 {
-            primaryKeyListLabel.font = .monospacedDigitSystemFont(ofSize: 16, weight: .regular)
+            primaryKeyListLabel.font = .monospacedDigitSystemFont(ofSize: FontSize.stringKeyMedium - 2, weight: .regular)
         } else {
-            primaryKeyListLabel.font = .monospacedDigitSystemFont(ofSize: 18, weight: .regular)
+            primaryKeyListLabel.font = .monospacedDigitSystemFont(ofSize: FontSize.stringKeyMedium, weight: .regular)
         }
     }
     
@@ -124,7 +124,7 @@ private extension SwitchButton {
     
     func setStyles() {
         primaryKeyListLabel.text = title
-        primaryKeyListLabel.font = .monospacedDigitSystemFont(ofSize: 18, weight: .regular)
+        primaryKeyListLabel.font = .monospacedDigitSystemFont(ofSize: FontSize.stringKeyMedium, weight: .regular)
     }
     
     func setHierarchy() {
@@ -160,7 +160,7 @@ private extension SwitchButton {
 
 private extension SwitchButton {
     func createOneHandedAttributedText(needToEmphasize: Bool) -> NSAttributedString? {
-        let imageConfig = UIImage.SymbolConfiguration(pointSize: 9, weight: needToEmphasize ? .bold : .regular)
+        let imageConfig = UIImage.SymbolConfiguration(pointSize: FontSize.stringKeySmall, weight: needToEmphasize ? .bold : .regular)
         
         let arrowtriangleUp = NSTextAttachment()
         arrowtriangleUp.image = UIImage(systemName: needToEmphasize ? "arrowtriangle.up.fill" : "arrowtriangle.up")?.withConfiguration(imageConfig).withTintColor(.label, renderingMode: .alwaysOriginal)
@@ -182,8 +182,8 @@ private extension SwitchButton {
     }
     
     func createKeyboardSelectAttributedText(needToEmphasize: Bool) -> NSAttributedString? {
-        let imageConfig = UIImage.SymbolConfiguration(pointSize: 9, weight: needToEmphasize ? .bold : .regular)
-        let attributes: [NSAttributedString.Key: Any] = [.font: UIFont.systemFont(ofSize: 9, weight: needToEmphasize ? .bold : .regular),
+        let imageConfig = UIImage.SymbolConfiguration(pointSize: FontSize.stringKeySmall, weight: needToEmphasize ? .bold : .regular)
+        let attributes: [NSAttributedString.Key: Any] = [.font: UIFont.systemFont(ofSize: FontSize.stringKeySmall, weight: needToEmphasize ? .bold : .regular),
                                                          .foregroundColor: UIColor.label]
         
         let text: String
