@@ -123,10 +123,11 @@ struct SuggestionControllerPreparationTests {
         controller.isPredictiveTextEnabled = true
 
         controller.updateSuggestions(for: "")
+        let provider = factory.lastNGramProvider
 
         await withCheckedContinuation { continuation in
             DispatchQueue.global(qos: .userInitiated).async {
-                factory.lastNGramProvider?.completeLoad(suggestions: ["오늘", "내일"])
+                provider?.completeLoad(suggestions: ["오늘", "내일"])
                 DispatchQueue.main.async {
                     continuation.resume()
                 }
@@ -174,7 +175,7 @@ private final class StubPredictiveTextProvider: PredictiveTextProvider {
     func learn(word: String) {}
 }
 
-private final class StubNGramPredictiveTextProvider: NGramPredictiveTextProviding {
+private final class StubNGramPredictiveTextProvider: NGramPredictiveTextProviding, @unchecked Sendable {
     var onLoadCompleted: (() -> Void)?
     var currentSentenceWordsCount: Int { recordedWords.count }
 
