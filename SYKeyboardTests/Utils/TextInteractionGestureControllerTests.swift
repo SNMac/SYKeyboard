@@ -28,11 +28,10 @@ struct TextInteractionGestureControllerTests {
             getCurrentPressedButton: { currentPressedButton },
             setCurrentPressedButton: { currentPressedButton = $0 }
         )
-        let gesture = UIPanGestureRecognizer()
+        let gesture = TestPanGestureRecognizer(state: .ended)
 
         button.addAction(UIAction { _ in inputCount += 1 }, for: .touchUpInside)
         button.addGestureRecognizer(gesture)
-        gesture.state = .ended
 
         controller.panGestureHandler(gesture)
 
@@ -53,11 +52,10 @@ struct TextInteractionGestureControllerTests {
             getCurrentPressedButton: { currentPressedButton },
             setCurrentPressedButton: { currentPressedButton = $0 }
         )
-        let gesture = UIPanGestureRecognizer()
+        let gesture = TestPanGestureRecognizer(state: .cancelled)
 
         button.addAction(UIAction { _ in inputCount += 1 }, for: .touchUpInside)
         button.addGestureRecognizer(gesture)
-        gesture.state = .cancelled
 
         controller.panGestureHandler(gesture)
 
@@ -79,12 +77,11 @@ struct TextInteractionGestureControllerTests {
             getCurrentPressedButton: { currentPressedButton },
             setCurrentPressedButton: { currentPressedButton = $0 }
         )
-        let gesture = UIPanGestureRecognizer()
+        let gesture = TestPanGestureRecognizer(state: .cancelled)
 
         controller.delegate = delegate
         button.addAction(UIAction { _ in inputCount += 1 }, for: .touchUpInside)
         button.addGestureRecognizer(gesture)
-        gesture.state = .cancelled
 
         controller.panGestureHandler(gesture)
 
@@ -107,11 +104,10 @@ struct TextInteractionGestureControllerTests {
             getCurrentPressedButton: { currentPressedButton },
             setCurrentPressedButton: { currentPressedButton = $0 }
         )
-        let gesture = UIPanGestureRecognizer()
+        let gesture = TestPanGestureRecognizer(state: .failed)
 
         button.addAction(UIAction { _ in inputCount += 1 }, for: .touchUpInside)
         button.addGestureRecognizer(gesture)
-        gesture.state = .failed
 
         controller.panGestureHandler(gesture)
 
@@ -136,10 +132,9 @@ struct TextInteractionGestureControllerTests {
             getCurrentPressedButton: { currentPressedButton },
             setCurrentPressedButton: { currentPressedButton = $0 }
         )
-        let gesture = UIPanGestureRecognizer()
+        let gesture = TestPanGestureRecognizer(state: .cancelled)
 
         gestureButton.addGestureRecognizer(gesture)
-        gesture.state = .cancelled
 
         controller.panGestureHandler(gesture)
 
@@ -160,7 +155,7 @@ struct TextInteractionGestureControllerTests {
             getCurrentPressedButton: { currentPressedButton },
             setCurrentPressedButton: { currentPressedButton = $0 }
         )
-        let cursorGesture = UIPanGestureRecognizer()
+        let cursorGesture = TestPanGestureRecognizer()
         let oldCursorActiveDistance = UserDefaultsManager.shared.cursorActiveDistance
 
         controller.delegate = delegate
@@ -199,4 +194,18 @@ private final class TextInteractionGestureDelegateSpy: TextInteractionGestureCon
     func textInteractableButtonLongPressing(_ controller: TextInteractionGestureController, button: TextInteractable) {}
 
     func textInteractableButtonLongPressStopped(_ controller: TextInteractionGestureController, button: TextInteractable) {}
+}
+
+private final class TestPanGestureRecognizer: UIPanGestureRecognizer {
+    private var forcedState: UIGestureRecognizer.State
+
+    init(state: UIGestureRecognizer.State = .possible) {
+        self.forcedState = state
+        super.init(target: nil, action: nil)
+    }
+
+    override var state: UIGestureRecognizer.State {
+        get { forcedState }
+        set { forcedState = newValue }
+    }
 }

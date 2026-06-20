@@ -17,11 +17,10 @@ struct SwitchGestureControllerTests {
     @Test("정상 종료된 키보드 선택 pan은 전환을 확정")
     func test정상종료된키보드선택Pan() {
         let environment = makeEnvironment()
-        let gesture = UIPanGestureRecognizer()
+        let gesture = TestPanGestureRecognizer(state: .ended)
 
         environment.handler.showKeyboardSelectOverlay(needToEmphasizeTarget: true)
         environment.handler.switchButton.addGestureRecognizer(gesture)
-        gesture.state = .ended
 
         environment.controller.keyboardSelectPanGestureHandler(gesture)
 
@@ -32,11 +31,10 @@ struct SwitchGestureControllerTests {
     @Test("취소된 키보드 선택 pan은 전환하지 않고 overlay를 정리")
     func test취소된키보드선택Pan() {
         let environment = makeEnvironment()
-        let gesture = UIPanGestureRecognizer()
+        let gesture = TestPanGestureRecognizer(state: .cancelled)
 
         environment.handler.showKeyboardSelectOverlay(needToEmphasizeTarget: true)
         environment.handler.switchButton.addGestureRecognizer(gesture)
-        gesture.state = .cancelled
 
         environment.controller.keyboardSelectPanGestureHandler(gesture)
 
@@ -49,11 +47,10 @@ struct SwitchGestureControllerTests {
     @Test("취소된 한 손 모드 pan은 모드를 변경하지 않고 overlay를 정리")
     func test취소된한손모드Pan() {
         let environment = makeEnvironment()
-        let gesture = UIPanGestureRecognizer()
+        let gesture = TestPanGestureRecognizer(state: .cancelled)
 
         environment.handler.showOneHandedModeSelectOverlay(of: .center)
         environment.handler.switchButton.addGestureRecognizer(gesture)
-        gesture.state = .cancelled
 
         environment.controller.oneHandedModeSelectPanGestureHandler(gesture)
 
@@ -66,11 +63,10 @@ struct SwitchGestureControllerTests {
     @Test("실패한 키보드 선택 pan은 전환하지 않고 overlay를 정리")
     func test실패한키보드선택Pan() {
         let environment = makeEnvironment()
-        let gesture = UIPanGestureRecognizer()
+        let gesture = TestPanGestureRecognizer(state: .failed)
 
         environment.handler.showKeyboardSelectOverlay(needToEmphasizeTarget: true)
         environment.handler.switchButton.addGestureRecognizer(gesture)
-        gesture.state = .failed
 
         environment.controller.keyboardSelectPanGestureHandler(gesture)
 
@@ -82,11 +78,10 @@ struct SwitchGestureControllerTests {
     @Test("취소된 한 손 모드 long press는 모드를 변경하지 않고 overlay를 정리")
     func test취소된한손모드LongPress() {
         let environment = makeEnvironment()
-        let gesture = UILongPressGestureRecognizer()
+        let gesture = TestLongPressGestureRecognizer(state: .cancelled)
 
         environment.handler.showOneHandedModeSelectOverlay(of: .center)
         environment.handler.switchButton.addGestureRecognizer(gesture)
-        gesture.state = .cancelled
 
         environment.controller.oneHandedModeLongPressGestureHandler(gesture)
 
@@ -99,11 +94,10 @@ struct SwitchGestureControllerTests {
     @Test("취소된 연속 한 손 모드 long press는 모드를 변경하지 않고 overlay를 정리")
     func test취소된연속한손모드LongPress() {
         let environment = makeEnvironment()
-        let gesture = UILongPressGestureRecognizer()
+        let gesture = TestLongPressGestureRecognizer(state: .cancelled)
 
         environment.handler.showOneHandedModeSelectOverlay(of: .center)
         environment.keyboardHStackView.addGestureRecognizer(gesture)
-        gesture.state = .cancelled
 
         environment.controller.keyboardHStackViewPressGestureHandler(gesture)
 
@@ -119,10 +113,9 @@ struct SwitchGestureControllerTests {
             button: .keyButton(primary: ["ㄱ"], secondary: nil)
         )
         let environment = makeEnvironment(currentPressedButton: otherButton)
-        let gesture = UILongPressGestureRecognizer()
+        let gesture = TestLongPressGestureRecognizer(state: .cancelled)
 
         environment.handler.switchButton.addGestureRecognizer(gesture)
-        gesture.state = .cancelled
 
         environment.controller.oneHandedModeLongPressGestureHandler(gesture)
 
@@ -196,5 +189,33 @@ private final class SwitchGestureDelegateSpy: SwitchGestureControllerDelegate {
 
     func changeOneHandedMode(_ controller: SwitchGestureController, to newMode: OneHandedMode) {
         changedOneHandedModes.append(newMode)
+    }
+}
+
+private final class TestPanGestureRecognizer: UIPanGestureRecognizer {
+    private var forcedState: UIGestureRecognizer.State
+
+    init(state: UIGestureRecognizer.State = .possible) {
+        self.forcedState = state
+        super.init(target: nil, action: nil)
+    }
+
+    override var state: UIGestureRecognizer.State {
+        get { forcedState }
+        set { forcedState = newValue }
+    }
+}
+
+private final class TestLongPressGestureRecognizer: UILongPressGestureRecognizer {
+    private var forcedState: UIGestureRecognizer.State
+
+    init(state: UIGestureRecognizer.State = .possible) {
+        self.forcedState = state
+        super.init(target: nil, action: nil)
+    }
+
+    override var state: UIGestureRecognizer.State {
+        get { forcedState }
+        set { forcedState = newValue }
     }
 }
