@@ -10,6 +10,7 @@ import OSLog
 
 protocol TextInteractionGestureControllerDelegate: AnyObject {
     func primaryButtonPanning(_ controller: TextInteractionGestureController, to direction: PanDirection, steps: Int)
+    func primaryButtonSelectionPanning(_ controller: TextInteractionGestureController, to direction: PanDirection, steps: Int)
     func deleteButtonPanning(_ controller: TextInteractionGestureController, to direction: PanDirection)
     func primaryButtonPanStopped(_ controller: TextInteractionGestureController)
     func deleteButtonPanStopped(_ controller: TextInteractionGestureController)
@@ -186,7 +187,11 @@ private extension TextInteractionGestureController {
                     previousVelocity: previousPanVelocity,
                     cursorMoveInterval: UserDefaultsManager.shared.cursorMoveInterval
                 ) {
-                    delegate?.primaryButtonPanning(self, to: movement.direction, steps: movement.steps)
+                    if gesture.numberOfTouches >= 2 {
+                        delegate?.primaryButtonSelectionPanning(self, to: movement.direction, steps: movement.steps)
+                    } else {
+                        delegate?.primaryButtonPanning(self, to: movement.direction, steps: movement.steps)
+                    }
                     previousPanVelocity = movement.velocity
                 }
             } else {

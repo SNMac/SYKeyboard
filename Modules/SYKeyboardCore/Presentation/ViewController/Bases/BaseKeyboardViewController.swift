@@ -1378,6 +1378,14 @@ extension BaseKeyboardViewController: TextInteractionGestureControllerDelegate {
         moveCursorIfPossible(to: direction, steps: steps)
     }
 
+    final func primaryButtonSelectionPanning(_ controller: TextInteractionGestureController, to direction: PanDirection, steps: Int) {
+        isPrimaryCursorDragging = true
+
+        // 선택 모드 진입 시에도 조합 상태와 자동완성 버퍼를 먼저 분리한다.
+        resetInputBuffer()
+        moveCursorIfPossible(to: direction, steps: steps)
+    }
+
     final func deleteButtonPanning(_ controller: TextInteractionGestureController, to direction: PanDirection) {
         switch direction {
         case .left:

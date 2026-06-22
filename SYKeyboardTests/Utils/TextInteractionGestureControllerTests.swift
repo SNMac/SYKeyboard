@@ -172,14 +172,66 @@ struct TextInteractionGestureControllerTests {
 
         #expect(delegate.primaryPanStoppedCount == 1)
     }
+
+    @Test("primary cursor pan 중 두 번째 터치는 selection pan callback을 호출")
+    func testPrimaryCursorPan_두번째터치_selectionCallback() {
+        let keyboardHStackView = UIView()
+        let cursorButton = PrimaryKeyButton(
+            keyboard: .dubeolsik,
+            button: .keyButton(primary: ["ㄷ"], secondary: nil)
+        )
+        var currentPressedButton: BaseKeyboardButton? = cursorButton
+        let delegate = TextInteractionGestureDelegateSpy()
+        let controller = TextInteractionGestureController(
+            keyboardHStackView: keyboardHStackView,
+            getCurrentPressedButton: { currentPressedButton },
+            setCurrentPressedButton: { currentPressedButton = $0 }
+        )
+        let cursorGesture = TestPanGestureRecognizer()
+        let oldCursorActiveDistance = UserDefaultsManager.shared.cursorActiveDistance
+        let oldCursorMoveInterval = UserDefaultsManager.shared.cursorMoveInterval
+
+        controller.delegate = delegate
+        UserDefaultsManager.shared.cursorActiveDistance = 0
+        UserDefaultsManager.shared.cursorMoveInterval = 5
+        defer {
+            UserDefaultsManager.shared.cursorActiveDistance = oldCursorActiveDistance
+            UserDefaultsManager.shared.cursorMoveInterval = oldCursorMoveInterval
+        }
+
+        cursorButton.addGestureRecognizer(cursorGesture)
+        cursorGesture.state = .began
+        cursorGesture.location = .zero
+        controller.panGestureHandler(cursorGesture)
+
+        cursorGesture.state = .changed
+        cursorGesture.location = .zero
+        cursorGesture.numberOfTouchesValue = 1
+        controller.panGestureHandler(cursorGesture)
+
+        cursorGesture.location = CGPoint(x: 5, y: 0)
+        cursorGesture.numberOfTouchesValue = 2
+        controller.panGestureHandler(cursorGesture)
+
+        #expect(delegate.primarySelectionPanningCount == 1)
+        #expect(delegate.primaryPanningCount == 0)
+    }
 }
 
 @MainActor
 private final class TextInteractionGestureDelegateSpy: TextInteractionGestureControllerDelegate {
     var deletePanStoppedCount = 0
     var primaryPanStoppedCount = 0
+    var primaryPanningCount = 0
+    var primarySelectionPanningCount = 0
 
-    func primaryButtonPanning(_ controller: TextInteractionGestureController, to direction: PanDirection, steps: Int) {}
+    func primaryButtonPanning(_ controller: TextInteractionGestureController, to direction: PanDirection, steps: Int) {
+        primaryPanningCount += 1
+    }
+
+    func primaryButtonSelectionPanning(_ controller: TextInteractionGestureController, to direction: PanDirection, steps: Int) {
+        primarySelectionPanningCount += 1
+    }
 
     func deleteButtonPanning(_ controller: TextInteractionGestureController, to direction: PanDirection) {}
 
@@ -200,6 +252,8 @@ private final class TextInteractionGestureDelegateSpy: TextInteractionGestureCon
 // handler 호출 시점까지 안정적으로 유지되지 않아 종료 상태를 테스트 더블로 고정한다.
 private final class TestPanGestureRecognizer: UIPanGestureRecognizer {
     private var forcedState: UIGestureRecognizer.State
+    var location: CGPoint = .zero
+    var numberOfTouchesValue: Int = 1
 
     init(state: UIGestureRecognizer.State = .possible) {
         self.forcedState = state
@@ -209,5 +263,13 @@ private final class TestPanGestureRecognizer: UIPanGestureRecognizer {
     override var state: UIGestureRecognizer.State {
         get { forcedState }
         set { forcedState = newValue }
+    }
+
+    override var numberOfTouches: Int {
+        numberOfTouchesValue
+    }
+
+    override func location(in view: UIView?) -> CGPoint {
+        location
     }
 }
