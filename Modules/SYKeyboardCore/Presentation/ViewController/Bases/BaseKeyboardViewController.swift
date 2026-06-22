@@ -87,7 +87,10 @@ open class BaseKeyboardViewController: UIInputViewController {
     private lazy var textInteractionGestureController = TextInteractionGestureController(
         keyboardHStackView: keyboardHStackView,
         getCurrentPressedButton: { [weak self] in self?.buttonStateController.currentPressedButton },
-        setCurrentPressedButton: { [weak self] button in self?.buttonStateController.currentPressedButton = button }
+        setCurrentPressedButton: { [weak self] button in self?.buttonStateController.currentPressedButton = button },
+        setIsTextInteractionGestureActive: { [weak self] isActive in
+            self?.buttonStateController.isTextInteractionGestureActive = isActive
+        }
     )
 
     /// 키보드 전환 버튼 제스처 컨트롤러
@@ -858,6 +861,7 @@ private extension BaseKeyboardViewController {
             panGesture.delegate = textInteractionGestureController
             panGesture.delaysTouchesBegan = false
             panGesture.cancelsTouchesInView = true
+            panGesture.maximumNumberOfTouches = isDeleteButton ? 1 : 2
             button.addGestureRecognizer(panGesture)
         }
 

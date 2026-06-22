@@ -1,11 +1,13 @@
 # Issue 84 Cursor Drag Selection Context
 
-Last Updated: 2026-06-20
+Last Updated: 2026-06-22
 
 ## Relevant Files
 
 - `Modules/SYKeyboardCore/Presentation/Utils/GestureControllers/TextInteractionGestureController.swift`: primary/delete 버튼 pan gesture의 활성화, cursor step 계산, delegate 호출을 담당한다. 두 번째 터치 감지와 selection mode 상태 전이를 추가할 가능성이 높다.
 - `Modules/SYKeyboardCore/Presentation/ViewController/Bases/BaseKeyboardViewController.swift`: `TextInteractionGestureControllerDelegate` 구현체이며, cursor 이동, `textWillChange(_:)`, `textDidChange(_:)`, `selectionWillChange(_:)`, `selectionDidChange(_:)`, input buffer, 자동완성, undo/redo 갱신을 조율한다.
+- `Modules/SYKeyboardCore/Presentation/Utils/ButtonStateController.swift`: 현재 눌린 버튼과 suggestion bar interaction 상태를 관리한다. cursor drag 중 다른 키 입력을 막는 gate를 둘 수 있는 후보 지점이다.
+- `Modules/SYKeyboardCore/Presentation/View/Components/Buttons/Bases/BaseKeyboardButton.swift`: `sendActions(for:)`를 override하고 있어 드래그 중 입력 action 차단을 공통 처리할 수 있는 후보 지점이다.
 - `Modules/SYKeyboardCore/Presentation/Utils/Policies/CursorDragAccelerationPolicy.swift`: 현재 cursor drag step 계산 정책이다. selection range 계산 정책은 이 파일에 섞기보다 별도 policy로 두는 편이 테스트와 책임 분리에 맞다.
 - `Modules/SYKeyboardCore/Presentation/Utils/Policies/CursorDragSelectionPolicy.swift`: selection range 계산과 marked text 후보 생성을 담당하는 순수 정책 타입이다.
 - `Modules/SYKeyboardCore/Presentation/Utils/Enums/PanDirection.swift`: selection 방향 계산에 재사용될 수 있는 pan 방향 enum이다.
@@ -48,11 +50,21 @@ Last Updated: 2026-06-20
 - `CursorDragSelectionPolicy.markedTextCommand`는 현재 cursor 앞/뒤 context를 조합해 `setMarkedText(_:selectedRange:)`에 넘길 후보 문자열과 selected range를 만든다.
 - `TextInteractionGestureController`는 primary cursor drag 중 `gesture.numberOfTouches >= 2`이면 기존 cursor 이동 delegate 대신 selection panning delegate를 호출한다.
 - `BaseKeyboardViewController.primaryButtonSelectionPanning(_:to:steps:)`는 현재 실제 selection 적용 전 안전한 placeholder로 `resetInputBuffer()` 후 기존 cursor 이동만 수행한다.
+- 2026-06-22 사용자가 실제 확인한 결과, 두 번째 손가락 터치가 먹히지 않는다.
+- `TextInteractionGestureController.panGestureHandler(_:)`는 cursor drag 활성화 시 `keyboardHStackView?.isUserInteractionEnabled = false`를 수행한다.
+- pan gesture는 keyboard 전체가 아니라 각 `TextInteractable` 버튼에 붙어 있다.
+- `BaseKeyboardViewController.addGesturesToTextInterableButton(_:)`는 primary/delete 버튼에 `UIPanGestureRecognizer`를 추가하지만 touch 수 제한을 명시하지 않는다.
+- `BaseKeyboardButton.sendActions(for:)`는 현재 `isEnabled`일 때만 super를 호출한다.
+- primary cursor drag 활성화 중에는 이제 `keyboardHStackView.isUserInteractionEnabled`를 끄지 않는다.
+- `ButtonStateController.isTextInteractionGestureActive`가 true이면 다른 버튼의 touchDown feedback/input 준비 action이 early return한다.
+- `BaseKeyboardViewController.addGesturesToTextInterableButton(_:)`는 primary pan `maximumNumberOfTouches`를 2, delete pan `maximumNumberOfTouches`를 1로 설정한다.
 
 ## Inferences
 
 - selection mode의 range 계산은 gesture layer가 아니라 순수 policy로 분리해야 기본 정책과 anchor 정책을 안정적으로 테스트할 수 있다.
 - 이슈의 "커서 드래그 중 다른 손가락 터치"는 `UIPanGestureRecognizer`의 `numberOfTouches` 또는 gesture recognizer 설정을 검토해야 하는 요구로 해석된다.
+- 두 번째 손가락 touch가 recognizer까지 오지 않는 직접 원인은 cursor drag 중 `keyboardHStackView.isUserInteractionEnabled = false`로 새 hit-test가 막히는 것일 가능성이 높다.
+- `keyboardHStackView.isUserInteractionEnabled`를 켜 둔 채 입력 action만 gate로 차단하면 두 번째 touch 전달과 드래그 중 다른 키 입력 방지를 동시에 만족할 가능성이 높다.
 - `setMarkedText(_:selectedRange:)` spike가 실패하면 실제 선택 상태를 남기는 구현 자체가 제약될 수 있으므로 본 구현에 들어가기 전 결론을 남겨야 한다.
 - 한글 조합 중 selection mode 진입은 일반 cursor 이동보다 회귀 위험이 높으므로, 조합을 commit할지 reset할지 명확히 정해야 한다.
 - 사용자 설정으로 노출하지 않는 내부 플래그는 `UserDefaultsManager` 설정값보다 code-level policy 선택이나 debug/test injection이 더 적합할 수 있다.
@@ -68,6 +80,10 @@ Last Updated: 2026-06-20
 - Superpowers 문서는 아직 만들지 않았다. 이번 요청은 `dev-docs` 계획 생성이며, 상세 설계/구현 계획을 별도 스킬로 확장할 때 `dev/active/issue-84-cursor-drag-selection/superpowers/` 아래에 둔다.
 - 실제 host text에 `setMarkedText(_:selectedRange:)`를 적용하는 코드는 아직 연결하지 않는다. 이슈가 요구한 실제 입력 앱 spike 전에는 marked text가 커밋/중복/선택 해제되는 위험을 배제할 수 없기 때문이다.
 - 이번 구현 범위는 selection 정책, marked text 후보 생성, 두 번째 터치 gesture 분기, 안전한 controller placeholder까지로 제한한다.
+- 다음 수정에서는 cursor drag 중 `keyboardHStackView.isUserInteractionEnabled = false`에 의존하지 않는다.
+- 다음 수정에서는 드래그 중 입력 action 차단을 명시적인 state/gate로 분리한다.
+- long press, keyboard switch overlay, suggestion bar가 기존에 사용하는 interaction disable 흐름은 별도 기능이므로 이번 수정 범위에서 건드리지 않는다.
+- 이번 수정에서는 gate 위치를 `ButtonStateController`로 결정했다. 드래그 중 새 touchDown이 이전 버튼의 `sendActions(.touchUpInside)`를 호출하는 경로를 가장 앞에서 차단하기 위해서다.
 
 ## Open Questions
 
@@ -78,6 +94,8 @@ Last Updated: 2026-06-20
 - 기본 iPhone 방식의 "선택된 범위가 줄어들지 않음"을 구현할 때 시작 방향별 최대 좌/우 범위를 어떤 상태값으로 저장할 것인가?
 - 내부 anchor 정책을 런타임에서 어떻게 선택할 것인가? 테스트 전용 initializer injection인지, 내부 상수인지, debug flag인지 결정이 필요하다.
 - selection mode 중 undo/redo 기록은 선택 상태만 남기는 경우 기록하지 않을지, marked text 커밋이 발생할 경우 어떤 change로 기록할지 확인이 필요하다.
+- 입력 action gate의 위치는 `ButtonStateController`가 적합한가, `BaseKeyboardButton.sendActions(for:)`가 적합한가?
+- primary pan은 `maximumNumberOfTouches = 2`로 명시하고 delete pan은 기존처럼 둘지 또는 1로 제한할지 결정이 필요하다.
 
 ## Verification Notes
 
@@ -130,3 +148,12 @@ git status --short
   - `unmarkText()` 이후 선택 범위 유지/커밋/해제 확인
   - selection mode 중 `selectedText`, `documentContextBeforeInput`, `documentContextAfterInput` 반영 타이밍 확인
   - 실제 입력 앱 수동 확인
+
+- 2026-06-22 추가 기록:
+  - 현재 기반 작업은 `27ecf7e feat: #84 - 커서 드래그 선택 기반 추가`로 커밋했다.
+  - 커밋 직후 `git status --short`는 비어 있었다.
+  - 다음 작업은 두 번째 손가락 touch delivery를 막는 interaction disable 의존을 제거하고, 드래그 중 다른 키 입력은 별도 gate로 차단하는 것이다.
+  - RED: `ButtonStateController`에 gate 속성이 없어 `ButtonStateControllerTests`가 컴파일 실패했다.
+  - GREEN: `TextInteractionGestureControllerTests`와 `ButtonStateControllerTests` targeted run이 통과했다.
+  - 전체 `SYKeyboard` test suite는 `iPhone 13 mini / iOS 16.0`에서 통과했다.
+  - 권한 있는 실행의 `HangeulKeyboard`, `EnglishKeyboard` build는 `iPhone 13 mini / iOS 16.0`에서 모두 통과했다.

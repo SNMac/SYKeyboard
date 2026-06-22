@@ -37,6 +37,7 @@ final class TextInteractionGestureController: NSObject {
     private weak var keyboardHStackView: UIView?
     private let getCurrentPressedButton: () -> BaseKeyboardButton?
     private let setCurrentPressedButton: (BaseKeyboardButton?) -> ()
+    private let setIsTextInteractionGestureActive: (Bool) -> Void
     
     // Property Injection
     weak var delegate: TextInteractionGestureControllerDelegate?
@@ -45,10 +46,12 @@ final class TextInteractionGestureController: NSObject {
     
     init(keyboardHStackView: UIView,
          getCurrentPressedButton: @escaping () -> BaseKeyboardButton?,
-         setCurrentPressedButton: @escaping (BaseKeyboardButton?) -> ()) {
+         setCurrentPressedButton: @escaping (BaseKeyboardButton?) -> (),
+         setIsTextInteractionGestureActive: @escaping (Bool) -> Void = { _ in }) {
         self.keyboardHStackView = keyboardHStackView
         self.getCurrentPressedButton = getCurrentPressedButton
         self.setCurrentPressedButton = setCurrentPressedButton
+        self.setIsTextInteractionGestureActive = setIsTextInteractionGestureActive
     }
     
     deinit {
@@ -78,7 +81,11 @@ final class TextInteractionGestureController: NSObject {
             let distance = calcDistance(point1: initialPanPoint, point2: currentPoint)
             if isCursorActive || distance >= UserDefaultsManager.shared.cursorActiveDistance {
                 let wasCursorActive = isCursorActive
-                keyboardHStackView?.isUserInteractionEnabled = false
+                if gestureButton is DeleteButton {
+                    keyboardHStackView?.isUserInteractionEnabled = false
+                } else {
+                    setIsTextInteractionGestureActive(true)
+                }
                 
                 isCursorActive = true
                 gestureButton?.isGesturing = false
@@ -106,6 +113,7 @@ final class TextInteractionGestureController: NSObject {
             previousPanVelocity = 0
             gestureButton?.isGesturing = false
             
+            setIsTextInteractionGestureActive(false)
             keyboardHStackView?.isUserInteractionEnabled = true
             logger.debug("팬 제스처 비활성화")
         default:

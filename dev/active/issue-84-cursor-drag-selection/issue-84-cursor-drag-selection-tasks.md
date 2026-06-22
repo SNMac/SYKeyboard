@@ -1,6 +1,6 @@
 # Issue 84 Cursor Drag Selection Tasks
 
-Last Updated: 2026-06-20
+Last Updated: 2026-06-22
 
 ## Checklist
 
@@ -20,6 +20,10 @@ Last Updated: 2026-06-20
 - [x] selection 정책 타입을 구현한다.
 - [x] `TextInteractionGestureController`에서 pan 중 두 번째 터치 감지 테스트를 추가한다.
 - [x] `TextInteractionGestureController`에서 selection mode 진입 callback 분기를 구현한다.
+- [x] cursor drag 활성화 중 `keyboardHStackView.isUserInteractionEnabled`를 유지하는 회귀 테스트를 추가한다.
+- [x] cursor drag 활성화 중 다른 키 입력 action이 실행되지 않는 gate 테스트를 추가한다.
+- [x] primary pan gesture의 touch 수 설정을 명시한다.
+- [x] cursor drag 중 다른 키 입력 차단을 interaction disable 대신 명시적 gate로 구현한다.
 - [ ] 종료/취소/실패 시 cursor active와 selection mode 상태가 정리되는 테스트를 추가한다.
 - [x] `BaseKeyboardViewController`에서 selection mode 진입 전 input buffer 정리 흐름을 안전한 placeholder로 구현한다.
 - [ ] selection mode 중 `textWillChange(_:)`/`textDidChange(_:)`가 들어올 때 내부 상태가 충돌하지 않는지 테스트 또는 수동 검증 항목을 추가한다.

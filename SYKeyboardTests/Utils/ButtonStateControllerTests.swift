@@ -92,6 +92,36 @@ struct ButtonStateControllerTests {
         #expect(suggestionBarView.isUserInteractionEnabled == false)
     }
 
+    @Test("텍스트 상호작용 제스처 중 다른 버튼 touchDown은 이전 입력을 실행하지 않음")
+    func test텍스트상호작용제스처중_다른버튼TouchDown_입력차단() {
+        let keyboardHStackView = UIStackView()
+        let suggestionBarView = SuggestionBarView(keyboardHStackView: keyboardHStackView)
+        let controller = ButtonStateController(suggestionBarView: suggestionBarView)
+        let firstButton = PrimaryKeyButton(
+            keyboard: .dubeolsik,
+            button: .keyButton(primary: ["ㄱ"], secondary: nil)
+        )
+        let secondButton = PrimaryKeyButton(
+            keyboard: .dubeolsik,
+            button: .keyButton(primary: ["ㄴ"], secondary: nil)
+        )
+        var firstButtonInputCount = 0
+
+        firstButton.addAction(
+            UIAction { _ in firstButtonInputCount += 1 },
+            for: .touchUpInside
+        )
+        controller.setFeedbackActionToButtons([firstButton, secondButton])
+        controller.setExclusiveActionToButtons([firstButton, secondButton])
+
+        firstButton.sendActions(for: .touchDown)
+        controller.isTextInteractionGestureActive = true
+        secondButton.sendActions(for: .touchDown)
+
+        #expect(firstButtonInputCount == 0)
+        #expect(controller.currentPressedButton === firstButton)
+    }
+
     @Test("제스처가 시작된 Shift touchCancel은 눌림 상태를 유지")
     func testShift_제스처중TouchCancel() {
         let keyboardHStackView = UIStackView()

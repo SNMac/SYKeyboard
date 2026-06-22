@@ -1,6 +1,6 @@
 # Issue 84 Cursor Drag Selection Plan
 
-Last Updated: 2026-06-20
+Last Updated: 2026-06-22
 
 ## Goal
 
@@ -19,6 +19,8 @@ Last Updated: 2026-06-20
   - `CursorDragSelectionPolicy.markedTextCommand`로 `setMarkedText(_:selectedRange:)` 호출 후보를 순수 함수로 계산한다.
   - `TextInteractionGestureController`는 primary cursor drag 중 두 번째 터치를 감지하면 selection panning delegate로 분기한다.
   - `BaseKeyboardViewController`의 selection panning 구현은 실제 marked text 적용 전 안전한 placeholder로 남겨 두었다.
+- 2026-06-22 현재 실제 확인에서 두 번째 손가락 터치가 먹히지 않는 증상이 있다.
+- 유력 원인은 cursor drag 활성화 시 `keyboardHStackView.isUserInteractionEnabled = false`가 되어 새 touch hit-test가 막히는 것이다.
 - 관련 파일:
   - `Modules/SYKeyboardCore/Presentation/Utils/GestureControllers/TextInteractionGestureController.swift`
   - `Modules/SYKeyboardCore/Presentation/ViewController/Bases/BaseKeyboardViewController.swift`
@@ -51,6 +53,7 @@ Last Updated: 2026-06-20
    - 기존 cursor active 판정, 첫 이동 보정, step 계산 흐름을 보존한다.
    - pan 중 추가 터치 감지 시 selection mode로 전환하는 상태 전이를 추가한다.
    - 종료/취소/실패 시 cursor active와 selection mode 상태를 함께 정리한다.
+   - cursor drag 중에는 `keyboardHStackView` hit-test를 끄지 않고, 별도 입력 차단 gate로 다른 키 입력 실행만 막는다.
 4. `BaseKeyboardViewController`에서 selection mode 적용 경계를 정리한다.
    - selection mode 진입 전 `resetInputBuffer()`와 한글 조합 확정/정리 흐름을 명확히 한다.
    - selection mode 중 `textWillChange(_:)`/`textDidChange(_:)`가 들어와도 내부 selection 상태와 자동완성 갱신이 충돌하지 않게 한다.
@@ -73,6 +76,14 @@ Last Updated: 2026-06-20
 - 보류:
   - 실제 `setMarkedText(_:selectedRange:)` 호출 연결은 실제 입력 앱 spike 전까지 보류한다.
   - 손가락 해제 후 선택 상태를 남기는 최종 동작은 아직 구현 완료로 보지 않는다.
+- 다음 수정:
+  - `keyboardHStackView.isUserInteractionEnabled = false`에 의존하던 cursor drag 중 입력 차단을 별도 gate로 분리한다.
+  - primary pan recognizer가 두 번째 touch를 받을 수 있도록 touch 수 설정을 명시한다.
+  - 드래그 중 다른 키 입력이 실행되지 않는 회귀 테스트를 추가한다.
+- 2026-06-22 추가 완료:
+  - primary cursor drag 활성화 중 `keyboardHStackView.isUserInteractionEnabled`를 유지하도록 변경했다.
+  - `ButtonStateController.isTextInteractionGestureActive` gate로 드래그 중 다른 버튼 touchDown 입력 실행을 차단했다.
+  - primary pan은 `maximumNumberOfTouches = 2`, delete pan은 `maximumNumberOfTouches = 1`로 명시했다.
 
 ## Spike Checklist
 
@@ -90,6 +101,7 @@ Last Updated: 2026-06-20
 - 호스트 앱별로 marked text, selection 표시, `selectedText` 반영 타이밍이 다를 수 있다.
 - selection mode 구현을 `selectionWillChange(_:)`/`selectionDidChange(_:)`에 의존하면 현재 프로젝트에서 관찰된 호출 조건과 맞지 않을 수 있다.
 - 두 번째 터치 감지는 기존 버튼 touch 흐름, long press, delete pan, keyboard stack user interaction disable 타이밍과 충돌할 수 있다.
+- `keyboardHStackView.isUserInteractionEnabled`를 유지하면 드래그 중 다른 버튼 touch가 들어올 수 있으므로 입력 action gate가 빠지면 원치 않는 키 입력 회귀가 생길 수 있다.
 - 한글 조합 중 selection mode에 들어가면 composing 상태와 실제 host text 상태가 어긋날 수 있다.
 - 한 번 선택된 범위를 줄이지 않는 기본 정책은 anchor 기반 내부 정책과 결과가 다르므로 테스트가 정책별로 분리되어야 한다.
 - selection mode 중 자동완성, undo/redo, return enabled 갱신이 기존 cursor drag skip 정책과 충돌할 수 있다.

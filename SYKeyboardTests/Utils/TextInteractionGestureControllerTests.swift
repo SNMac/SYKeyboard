@@ -173,6 +173,38 @@ struct TextInteractionGestureControllerTests {
         #expect(delegate.primaryPanStoppedCount == 1)
     }
 
+    @Test("primary cursor pan 활성화는 keyboard stack interaction을 끄지 않음")
+    func testPrimaryCursorPan활성화_keyboardStackInteraction유지() {
+        let keyboardHStackView = UIView()
+        let cursorButton = PrimaryKeyButton(
+            keyboard: .dubeolsik,
+            button: .keyButton(primary: ["ㄷ"], secondary: nil)
+        )
+        var currentPressedButton: BaseKeyboardButton? = cursorButton
+        var isTextInteractionGestureActive = false
+        let controller = TextInteractionGestureController(
+            keyboardHStackView: keyboardHStackView,
+            getCurrentPressedButton: { currentPressedButton },
+            setCurrentPressedButton: { currentPressedButton = $0 },
+            setIsTextInteractionGestureActive: { isTextInteractionGestureActive = $0 }
+        )
+        let cursorGesture = TestPanGestureRecognizer()
+        let oldCursorActiveDistance = UserDefaultsManager.shared.cursorActiveDistance
+
+        UserDefaultsManager.shared.cursorActiveDistance = 0
+        defer { UserDefaultsManager.shared.cursorActiveDistance = oldCursorActiveDistance }
+
+        cursorButton.addGestureRecognizer(cursorGesture)
+        cursorGesture.state = .began
+        controller.panGestureHandler(cursorGesture)
+
+        cursorGesture.state = .changed
+        controller.panGestureHandler(cursorGesture)
+
+        #expect(keyboardHStackView.isUserInteractionEnabled)
+        #expect(isTextInteractionGestureActive)
+    }
+
     @Test("primary cursor pan 중 두 번째 터치는 selection pan callback을 호출")
     func testPrimaryCursorPan_두번째터치_selectionCallback() {
         let keyboardHStackView = UIView()
