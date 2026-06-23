@@ -29,8 +29,6 @@ final public class ButtonStateController {
     }
     /// Shift 버튼 눌림 여부
     public var isShiftButtonPressed: Bool = false
-    /// 텍스트 상호작용 제스처 중 다른 버튼 입력 차단 여부
-    var isTextInteractionGestureActive: Bool = false
     
     // MARK: - Lifecycle
     
@@ -50,7 +48,6 @@ final public class ButtonStateController {
             if button is ShiftButton {
                 playFeedbackAndSetPressed = UIAction { [weak self] action in
                     guard let senderButton = action.sender as? BaseKeyboardButton else { return }
-                    guard self?.isTextInteractionGestureActive == false else { return }
                     
                     if let previousButton = self?.currentPressedButton, previousButton != senderButton {
                         previousButton.sendActions(for: .touchUpInside)
@@ -62,7 +59,6 @@ final public class ButtonStateController {
             } else {
                 playFeedbackAndSetPressed = UIAction { [weak self] action in
                     guard let senderButton = action.sender as? BaseKeyboardButton else { return }
-                    guard self?.isTextInteractionGestureActive == false else { return }
                     
                     if let previousButton = self?.currentPressedButton, previousButton != senderButton {
                         previousButton.sendActions(for: .touchUpInside)

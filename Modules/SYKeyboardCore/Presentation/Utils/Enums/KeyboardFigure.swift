@@ -45,6 +45,14 @@ public enum KeyboardLayoutFigure {
             return 4.6
         }
     }()
+    // 기타 오버레이 코너값
+    static let otherOverlayCornerRadius: CGFloat = {
+        if #available(iOS 26, *) {
+            return 12.0
+        } else {
+            return 0.0
+        }
+    }()
 }
 
 /// 키보드 버튼  `font`, `image` 크기

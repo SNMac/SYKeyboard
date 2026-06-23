@@ -173,20 +173,18 @@ struct TextInteractionGestureControllerTests {
         #expect(delegate.primaryPanStoppedCount == 1)
     }
 
-    @Test("primary cursor pan 활성화는 keyboard stack interaction을 끄지 않음")
-    func testPrimaryCursorPan활성화_keyboardStackInteraction유지() {
+    @Test("primary cursor pan 활성화는 keyboard stack interaction을 끔")
+    func testPrimaryCursorPan활성화_keyboardStackInteraction비활성화() {
         let keyboardHStackView = UIView()
         let cursorButton = PrimaryKeyButton(
             keyboard: .dubeolsik,
             button: .keyButton(primary: ["ㄷ"], secondary: nil)
         )
         var currentPressedButton: BaseKeyboardButton? = cursorButton
-        var isTextInteractionGestureActive = false
         let controller = TextInteractionGestureController(
             keyboardHStackView: keyboardHStackView,
             getCurrentPressedButton: { currentPressedButton },
-            setCurrentPressedButton: { currentPressedButton = $0 },
-            setIsTextInteractionGestureActive: { isTextInteractionGestureActive = $0 }
+            setCurrentPressedButton: { currentPressedButton = $0 }
         )
         let cursorGesture = TestPanGestureRecognizer()
         let oldCursorActiveDistance = UserDefaultsManager.shared.cursorActiveDistance
@@ -201,12 +199,11 @@ struct TextInteractionGestureControllerTests {
         cursorGesture.state = .changed
         controller.panGestureHandler(cursorGesture)
 
-        #expect(keyboardHStackView.isUserInteractionEnabled)
-        #expect(isTextInteractionGestureActive)
+        #expect(keyboardHStackView.isUserInteractionEnabled == false)
     }
 
-    @Test("primary cursor pan 중 두 번째 터치는 selection pan callback을 호출")
-    func testPrimaryCursorPan_두번째터치_selectionCallback() {
+    @Test("primary cursor pan 중 이동 간격을 넘으면 cursor pan callback을 호출")
+    func testPrimaryCursorPan_cursorCallback() {
         let keyboardHStackView = UIView()
         let cursorButton = PrimaryKeyButton(
             keyboard: .dubeolsik,
@@ -238,31 +235,29 @@ struct TextInteractionGestureControllerTests {
 
         cursorGesture.state = .changed
         cursorGesture.location = .zero
-        cursorGesture.numberOfTouchesValue = 1
         controller.panGestureHandler(cursorGesture)
 
         cursorGesture.location = CGPoint(x: 5, y: 0)
-        cursorGesture.numberOfTouchesValue = 2
         controller.panGestureHandler(cursorGesture)
 
-        #expect(delegate.primarySelectionPanningCount == 1)
-        #expect(delegate.primaryPanningCount == 0)
+        #expect(delegate.primaryPanningCount == 1)
     }
+
 }
 
 @MainActor
 private final class TextInteractionGestureDelegateSpy: TextInteractionGestureControllerDelegate {
+    var primaryCursorDragActivatedCount = 0
     var deletePanStoppedCount = 0
     var primaryPanStoppedCount = 0
     var primaryPanningCount = 0
-    var primarySelectionPanningCount = 0
+
+    func primaryButtonCursorDragActivated(_ controller: TextInteractionGestureController) {
+        primaryCursorDragActivatedCount += 1
+    }
 
     func primaryButtonPanning(_ controller: TextInteractionGestureController, to direction: PanDirection, steps: Int) {
         primaryPanningCount += 1
-    }
-
-    func primaryButtonSelectionPanning(_ controller: TextInteractionGestureController, to direction: PanDirection, steps: Int) {
-        primarySelectionPanningCount += 1
     }
 
     func deleteButtonPanning(_ controller: TextInteractionGestureController, to direction: PanDirection) {}
@@ -285,7 +280,6 @@ private final class TextInteractionGestureDelegateSpy: TextInteractionGestureCon
 private final class TestPanGestureRecognizer: UIPanGestureRecognizer {
     private var forcedState: UIGestureRecognizer.State
     var location: CGPoint = .zero
-    var numberOfTouchesValue: Int = 1
 
     init(state: UIGestureRecognizer.State = .possible) {
         self.forcedState = state
@@ -295,10 +289,6 @@ private final class TestPanGestureRecognizer: UIPanGestureRecognizer {
     override var state: UIGestureRecognizer.State {
         get { forcedState }
         set { forcedState = newValue }
-    }
-
-    override var numberOfTouches: Int {
-        numberOfTouchesValue
     }
 
     override func location(in view: UIView?) -> CGPoint {

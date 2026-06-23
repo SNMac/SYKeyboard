@@ -9,8 +9,8 @@ import UIKit
 import OSLog
 
 protocol TextInteractionGestureControllerDelegate: AnyObject {
+    func primaryButtonCursorDragActivated(_ controller: TextInteractionGestureController)
     func primaryButtonPanning(_ controller: TextInteractionGestureController, to direction: PanDirection, steps: Int)
-    func primaryButtonSelectionPanning(_ controller: TextInteractionGestureController, to direction: PanDirection, steps: Int)
     func deleteButtonPanning(_ controller: TextInteractionGestureController, to direction: PanDirection)
     func primaryButtonPanStopped(_ controller: TextInteractionGestureController)
     func deleteButtonPanStopped(_ controller: TextInteractionGestureController)
@@ -37,7 +37,6 @@ final class TextInteractionGestureController: NSObject {
     private weak var keyboardHStackView: UIView?
     private let getCurrentPressedButton: () -> BaseKeyboardButton?
     private let setCurrentPressedButton: (BaseKeyboardButton?) -> ()
-    private let setIsTextInteractionGestureActive: (Bool) -> Void
     
     // Property Injection
     weak var delegate: TextInteractionGestureControllerDelegate?
@@ -46,12 +45,10 @@ final class TextInteractionGestureController: NSObject {
     
     init(keyboardHStackView: UIView,
          getCurrentPressedButton: @escaping () -> BaseKeyboardButton?,
-         setCurrentPressedButton: @escaping (BaseKeyboardButton?) -> (),
-         setIsTextInteractionGestureActive: @escaping (Bool) -> Void = { _ in }) {
+         setCurrentPressedButton: @escaping (BaseKeyboardButton?) -> ()) {
         self.keyboardHStackView = keyboardHStackView
         self.getCurrentPressedButton = getCurrentPressedButton
         self.setCurrentPressedButton = setCurrentPressedButton
-        self.setIsTextInteractionGestureActive = setIsTextInteractionGestureActive
     }
     
     deinit {
@@ -81,17 +78,17 @@ final class TextInteractionGestureController: NSObject {
             let distance = calcDistance(point1: initialPanPoint, point2: currentPoint)
             if isCursorActive || distance >= UserDefaultsManager.shared.cursorActiveDistance {
                 let wasCursorActive = isCursorActive
-                if gestureButton is DeleteButton {
-                    keyboardHStackView?.isUserInteractionEnabled = false
-                } else {
-                    setIsTextInteractionGestureActive(true)
-                }
+                keyboardHStackView?.isUserInteractionEnabled = false
                 
                 isCursorActive = true
                 gestureButton?.isGesturing = false
                 if wasCursorActive {
                     onPanGestureChanged(gesture)
                 } else {
+                    if gesture.view is TextInteractable,
+                       !(gesture.view is DeleteButton) {
+                        delegate?.primaryButtonCursorDragActivated(self)
+                    }
                     onPanGestureActivated(gesture)
                 }
             }
@@ -113,7 +110,6 @@ final class TextInteractionGestureController: NSObject {
             previousPanVelocity = 0
             gestureButton?.isGesturing = false
             
-            setIsTextInteractionGestureActive(false)
             keyboardHStackView?.isUserInteractionEnabled = true
             logger.debug("팬 제스처 비활성화")
         default:
@@ -195,11 +191,7 @@ private extension TextInteractionGestureController {
                     previousVelocity: previousPanVelocity,
                     cursorMoveInterval: UserDefaultsManager.shared.cursorMoveInterval
                 ) {
-                    if gesture.numberOfTouches >= 2 {
-                        delegate?.primaryButtonSelectionPanning(self, to: movement.direction, steps: movement.steps)
-                    } else {
-                        delegate?.primaryButtonPanning(self, to: movement.direction, steps: movement.steps)
-                    }
+                    delegate?.primaryButtonPanning(self, to: movement.direction, steps: movement.steps)
                     previousPanVelocity = movement.velocity
                 }
             } else {

@@ -87,10 +87,7 @@ open class BaseKeyboardViewController: UIInputViewController {
     private lazy var textInteractionGestureController = TextInteractionGestureController(
         keyboardHStackView: keyboardHStackView,
         getCurrentPressedButton: { [weak self] in self?.buttonStateController.currentPressedButton },
-        setCurrentPressedButton: { [weak self] button in self?.buttonStateController.currentPressedButton = button },
-        setIsTextInteractionGestureActive: { [weak self] isActive in
-            self?.buttonStateController.isTextInteractionGestureActive = isActive
-        }
+        setCurrentPressedButton: { [weak self] button in self?.buttonStateController.currentPressedButton = button }
     )
 
     /// 키보드 전환 버튼 제스처 컨트롤러
@@ -181,6 +178,12 @@ open class BaseKeyboardViewController: UIInputViewController {
     final public lazy var tenkeyKeyboardView: TenkeyKeyboardLayoutProvider = keyboardView.tenkeyKeyboardView
     /// 한 손 키보드 해제 버튼(왼손 모드)
     private lazy var rightChevronButton = keyboardView.rightChevronButton
+    /// 커서 드래그 활성 상태를 표시하는 overlay
+    private lazy var cursorDragIndicatorView: CursorDragIndicatorView = {
+        let view = CursorDragIndicatorView()
+        view.isHidden = true
+        return view
+    }()
 
     // MARK: - Initializer
 
@@ -656,6 +659,7 @@ private extension BaseKeyboardViewController {
 
 private extension BaseKeyboardViewController {
     func setupUI() {
+        setCursorDragOverlays()
         setDelegates()
         setActions()
     }
@@ -673,6 +677,17 @@ private extension BaseKeyboardViewController {
         setSwitchButtonAction()
         setExclusiveButtonAction()
         setChevronButtonAction()
+    }
+
+    func setCursorDragOverlays() {
+        keyboardView.addSubview(cursorDragIndicatorView)
+        cursorDragIndicatorView.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            cursorDragIndicatorView.topAnchor.constraint(equalTo: keyboardHStackView.topAnchor),
+            cursorDragIndicatorView.leadingAnchor.constraint(equalTo: keyboardHStackView.leadingAnchor),
+            cursorDragIndicatorView.trailingAnchor.constraint(equalTo: keyboardHStackView.trailingAnchor),
+            cursorDragIndicatorView.bottomAnchor.constraint(equalTo: keyboardHStackView.bottomAnchor)
+        ])
     }
 
     func setKeyboardHeight() {
@@ -861,7 +876,6 @@ private extension BaseKeyboardViewController {
             panGesture.delegate = textInteractionGestureController
             panGesture.delaysTouchesBegan = false
             panGesture.cancelsTouchesInView = true
-            panGesture.maximumNumberOfTouches = isDeleteButton ? 1 : 2
             button.addGestureRecognizer(panGesture)
         }
 
@@ -1374,20 +1388,16 @@ extension BaseKeyboardViewController: SwitchGestureControllerDelegate {
 // MARK: - TextInteractionGestureControllerDelegate
 
 extension BaseKeyboardViewController: TextInteractionGestureControllerDelegate {
+    final func primaryButtonCursorDragActivated(_ controller: TextInteractionGestureController) {
+        showCursorDragOverlays()
+    }
+
     final func primaryButtonPanning(_ controller: TextInteractionGestureController, to direction: PanDirection, steps: Int) {
         isPrimaryCursorDragging = true
 
         // 커서 이동 시 입력 버퍼 초기화
         resetInputBuffer()
-        moveCursorIfPossible(to: direction, steps: steps)
-    }
-
-    final func primaryButtonSelectionPanning(_ controller: TextInteractionGestureController, to direction: PanDirection, steps: Int) {
-        isPrimaryCursorDragging = true
-
-        // 선택 모드 진입 시에도 조합 상태와 자동완성 버퍼를 먼저 분리한다.
-        resetInputBuffer()
-        moveCursorIfPossible(to: direction, steps: steps)
+        _ = moveCursorIfPossible(to: direction, steps: steps)
     }
 
     final func deleteButtonPanning(_ controller: TextInteractionGestureController, to direction: PanDirection) {
@@ -1408,6 +1418,7 @@ extension BaseKeyboardViewController: TextInteractionGestureControllerDelegate {
     }
 
     final func primaryButtonPanStopped(_ controller: TextInteractionGestureController) {
+        hideCursorDragOverlays()
         isPrimaryCursorDragging = false
         updateReturnButtonEnabled()
         updateSuggestionsForCursorContext()
@@ -1441,14 +1452,23 @@ extension BaseKeyboardViewController: TextInteractionGestureControllerDelegate {
 }
 
 private extension BaseKeyboardViewController {
-    func moveCursorIfPossible(to direction: PanDirection, steps: Int) {
+    func showCursorDragOverlays() {
+        cursorDragIndicatorView.isHidden = false
+        keyboardView.bringSubviewToFront(cursorDragIndicatorView)
+    }
+
+    func hideCursorDragOverlays() {
+        cursorDragIndicatorView.isHidden = true
+    }
+
+    func moveCursorIfPossible(to direction: PanDirection, steps: Int) -> Int {
         let actualSteps = CursorDragAccelerationPolicy.applicableSteps(
             to: direction,
             requestedSteps: steps,
             documentContextBeforeInput: textDocumentProxy.documentContextBeforeInput,
             documentContextAfterInput: textDocumentProxy.documentContextAfterInput
         )
-        guard actualSteps > 0 else { return }
+        guard actualSteps > 0 else { return 0 }
 
         switch direction {
         case .left:
@@ -1457,11 +1477,12 @@ private extension BaseKeyboardViewController {
             textDocumentProxy.adjustTextPosition(byCharacterOffset: actualSteps)
         default:
             assertionFailure("도달할 수 없는 case 입니다.")
-            return
+            return 0
         }
 
         updateUndoRedoControls()
         FeedbackManager.shared.playHaptic(isForcing: true)
+        return actualSteps
     }
 
     func performDeleteButtonPanDeleteIfPossible() {
