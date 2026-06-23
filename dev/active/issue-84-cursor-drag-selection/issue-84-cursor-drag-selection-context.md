@@ -7,10 +7,10 @@ Last Updated: 2026-06-23
 - `Modules/SYKeyboardCore/Presentation/Utils/GestureControllers/TextInteractionGestureController.swift`: primary/delete 버튼 pan gesture의 활성화, cursor step 계산, delegate 호출을 담당한다. selection 분기는 제거하고 cursor movement callback만 유지한다.
 - `Modules/SYKeyboardCore/Presentation/Utils/Enums/KeyboardFigure.swift`: 버튼, 선택 overlay, 기타 overlay의 공통 레이아웃 수치를 정의한다. cursor drag indicator는 `otherOverlayCornerRadius`를 사용한다.
 - `Modules/SYKeyboardCore/Presentation/ViewController/Bases/BaseKeyboardViewController.swift`: cursor 이동과 cursor drag indicator overlay 표시/정리를 담당한다. `setMarkedText(_:selectedRange:)` 기반 selection 적용은 제거한다.
-- `Modules/SYKeyboardCore/Presentation/View/Components/Overlays/CursorDragIndicatorView.swift`: cursor drag 활성 상태를 보여주는 overlay다. iOS 26 이상 `UIGlassEffect(style: .regular)`, 그 미만 `UIBlurEffect(style: .systemMaterial)`를 사용하고, `character.cursor.ibeam` 아이콘을 vibrancy view 안에 표시한다.
+- `Modules/SYKeyboardCore/Presentation/View/Components/Overlays/CursorDragIndicatorView.swift`: cursor drag 활성 상태를 보여주는 overlay다. iOS 26 이상 `UIGlassEffect(style: .regular)`, 그 미만 `UIBlurEffect(style: .systemMaterial)`를 사용한다. `character.cursor.ibeam` 아이콘은 Liquid Glass에서는 effect view에 직접 표시하고, Material fallback에서는 vibrancy view 안에 표시한다.
 - `Modules/SYKeyboardCore/Presentation/Utils/Policies/CursorDragAccelerationPolicy.swift`: cursor drag step 계산 정책이다.
 - `SYKeyboardTests/Utils/TextInteractionGestureControllerTests.swift`: cursor drag 활성화, cursor movement callback, stop callback을 검증한다.
-- `SYKeyboardTests/Utils/CursorDragOverlayTests.swift`: cursor indicator effect, symbol name/fallback, vibrancy 적용을 검증한다.
+- `SYKeyboardTests/Utils/CursorDragOverlayTests.swift`: cursor indicator effect, symbol name/fallback, OS별 vibrancy 적용 여부를 검증한다.
 
 ## Facts Checked
 
@@ -19,7 +19,8 @@ Last Updated: 2026-06-23
 - 사용자는 selection 기능 구현 취소를 결정했고, cursor drag indicator overlay는 유지하기로 했다.
 - 공개 UIKit `UIImage.SymbolConfiguration`에는 SF Symbol locale/language를 직접 강제하는 옵션이 확인되지 않았다.
 - `character.cursor.ibeam`을 우선 사용하고, OS에서 해당 symbol을 제공하지 않으면 `text.cursor` fallback을 사용한다.
-- `UIVibrancyEffect`는 `UIBlurEffect` 기반 API다. 현재 구현은 Glass/Material background effect view 위에 별도 vibrancy effect view를 얹는다.
+- `UIVibrancyEffect`는 `UIBlurEffect` 기반 API다. Xcode 26.5 SDK header에서도 `UIBlurEffect`가 설정된 `UIVisualEffectView` 위/하위에 두는 용도라고 설명한다.
+- Liquid Glass에서는 `UIVibrancyEffect`를 사용하지 않고, Material fallback에서만 vibrancy view를 사용한다.
 - `KeyboardLayoutFigure.otherOverlayCornerRadius`는 iOS 26 이상에서 `12.0`, 그 미만에서 `0.0`을 반환한다.
 
 ## Decisions
@@ -34,7 +35,7 @@ Last Updated: 2026-06-23
 
 ## Open Questions
 
-- 실제 iOS 26+ 기기에서 `UIGlassEffect` 배경 위 vibrancy icon이 의도한 대비로 보이는가?
+- 실제 iOS 26+ 기기에서 `UIGlassEffect` indicator와 아이콘 대비가 의도대로 보이는가?
 - iOS 26+ 시스템 locale에서 `character.cursor.ibeam`이 한글/영문 키보드 사용 맥락에 맞게 표시되는가?
 
 ## Verification Notes
@@ -63,6 +64,16 @@ xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard -destination 'p
 ```
 
   - 결과: 통과했다.
+  - 실행 중 연결된 잠긴 실기기 때문에 `DTDKRemoteDeviceConnection ... The device is passcode protected` 경고가 반복되었지만 테스트 결과는 성공이었다.
+
+- PR review 반영 후 overlay 테스트:
+
+```sh
+xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard -destination 'platform=iOS Simulator,id=CBD992D3-5364-4F69-AC5F-0077ADF1A292' -only-testing:SYKeyboardTests/CursorDragOverlayTests
+```
+
+  - 결과: 통과했다.
+  - `vibrancyView` lazy 초기화를 Material fallback 분기로 제한하고, 테스트 기대값을 iOS 26 이상 Liquid Glass에서는 vibrancy 없음 / iOS 25 이하 Material에서는 vibrancy 있음으로 분기했다.
   - 실행 중 연결된 잠긴 실기기 때문에 `DTDKRemoteDeviceConnection ... The device is passcode protected` 경고가 반복되었지만 테스트 결과는 성공이었다.
 
 - 전체 테스트:

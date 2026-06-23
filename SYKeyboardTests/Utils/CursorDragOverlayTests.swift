@@ -35,11 +35,15 @@ struct CursorDragOverlayTests {
         #expect(CursorDragIndicatorSymbolFactory.image() != nil)
     }
 
-    @Test("indicator는 아이콘에 vibrancy effect를 적용")
+    @Test("indicator는 Material fallback에서만 아이콘에 vibrancy effect를 적용")
     func testIndicator_아이콘VibrancyEffect적용() {
         let view = CursorDragIndicatorView()
 
-        #expect(view.containsVisualEffect(of: UIVibrancyEffect.self))
+        if #available(iOS 26.0, *) {
+            #expect(!view.containsVisualEffect(of: UIVibrancyEffect.self))
+        } else {
+            #expect(view.containsVisualEffect(of: UIVibrancyEffect.self))
+        }
     }
 }
 

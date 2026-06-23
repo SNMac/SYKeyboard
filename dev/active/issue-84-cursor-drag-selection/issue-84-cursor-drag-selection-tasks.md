@@ -15,7 +15,7 @@ Last Updated: 2026-06-23
 - [x] `BaseKeyboardViewController`에서 cursor drag indicator overlay만 표시하도록 정리한다.
 - [x] indicator symbol을 `character.cursor.ibeam` 우선 사용으로 변경한다.
 - [x] 구형 OS에서 symbol image가 nil이 되지 않도록 fallback을 둔다.
-- [x] indicator icon에 `UIVibrancyEffect`를 적용한다.
+- [x] iOS 25 이하 Material fallback에서 indicator icon에 `UIVibrancyEffect`를 적용한다.
 - [x] indicator corner radius를 `KeyboardLayoutFigure.otherOverlayCornerRadius`로 분리해 반영한다.
 - [x] `CursorDragOverlayTests`를 indicator effect/symbol/vibrancy 검증으로 갱신한다.
 - [x] `TextInteractionGestureControllerTests`를 cursor movement callback 중심으로 갱신한다.
@@ -23,4 +23,4 @@ Last Updated: 2026-06-23
 - [x] selection/markedText 잔여 참조가 없는지 `rg`로 확인한다.
 - [x] 전체 `SYKeyboard` test를 실행한다. 샌드박스 실패 후 권한 있는 실행으로 통과했다.
 - [x] `HangeulKeyboard`, `EnglishKeyboard` extension build를 실행한다. `HangeulKeyboard` 샌드박스 실패 후 권한 있는 실행으로 둘 다 통과했다.
-- [ ] 실제 iOS 26+ 환경에서 Liquid Glass + vibrancy indicator 시각 결과를 확인한다.
+- [ ] 실제 iOS 26+ 환경에서 Liquid Glass indicator 시각 결과를 확인한다.

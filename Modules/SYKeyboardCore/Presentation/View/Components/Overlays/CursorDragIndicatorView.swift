@@ -100,7 +100,6 @@ private extension CursorDragIndicatorView {
 
     func setConstraints() {
         effectView.translatesAutoresizingMaskIntoConstraints = false
-        vibrancyView.translatesAutoresizingMaskIntoConstraints = false
         imageView.translatesAutoresizingMaskIntoConstraints = false
 
         NSLayoutConstraint.activate([
@@ -116,6 +115,8 @@ private extension CursorDragIndicatorView {
                 imageView.centerYAnchor.constraint(equalTo: effectView.contentView.centerYAnchor)
             ])
         } else {
+            vibrancyView.translatesAutoresizingMaskIntoConstraints = false
+
             NSLayoutConstraint.activate([
                 vibrancyView.topAnchor.constraint(equalTo: effectView.contentView.topAnchor),
                 vibrancyView.leadingAnchor.constraint(equalTo: effectView.contentView.leadingAnchor),
