@@ -9,6 +9,7 @@ import UIKit
 import OSLog
 
 protocol TextInteractionGestureControllerDelegate: AnyObject {
+    func primaryButtonCursorDragActivated(_ controller: TextInteractionGestureController)
     func primaryButtonPanning(_ controller: TextInteractionGestureController, to direction: PanDirection, steps: Int)
     func deleteButtonPanning(_ controller: TextInteractionGestureController, to direction: PanDirection)
     func primaryButtonPanStopped(_ controller: TextInteractionGestureController)
@@ -84,6 +85,10 @@ final class TextInteractionGestureController: NSObject {
                 if wasCursorActive {
                     onPanGestureChanged(gesture)
                 } else {
+                    if gesture.view is TextInteractable,
+                       !(gesture.view is DeleteButton) {
+                        delegate?.primaryButtonCursorDragActivated(self)
+                    }
                     onPanGestureActivated(gesture)
                 }
             }
