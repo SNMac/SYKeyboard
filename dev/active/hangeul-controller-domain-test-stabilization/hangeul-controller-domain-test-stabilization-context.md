@@ -180,3 +180,11 @@ xcodebuild build \
 
   - 결과: 샌드박스에서 `CoreSimulatorService connection became invalid`로 실패.
   - 권한 있는 재실행은 Crashlytics 외부 전송 가능성 때문에 자동 승인 거절됨.
+
+- 사용자 실기기 수동 확인:
+
+```text
+한글 키보드 실제 입력 앱에서 삭제 버튼 단일 탭, 왼쪽 pan 삭제, 오른쪽 pan restore, 반복 삭제 후 조합 복원 흐름 확인
+```
+
+  - 결과: 정상 동작 확인.

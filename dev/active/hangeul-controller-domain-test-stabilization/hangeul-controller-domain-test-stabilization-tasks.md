@@ -23,6 +23,7 @@ Last Updated: 2026-06-26
 - [x] 전체 `SYKeyboard` 테스트를 실행한다.
 - [ ] `HangeulKeyboard` scheme 빌드를 확인한다. 샌드박스 CoreSimulator 실패, 권한 있는 재실행은 Crashlytics 외부 전송 가능성으로 자동 승인 거절.
 - [x] `git status --short`로 의도하지 않은 변경이 없는지 확인한다.
+- [x] 실제 키보드 삭제 제스처 흐름을 사용자 실기기에서 확인한다.
 - [ ] 완료 내용과 검증 결과를 최종 응답에 요약한다.
 
 ## Baseline Commands
