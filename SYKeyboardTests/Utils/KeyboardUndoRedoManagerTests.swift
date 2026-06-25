@@ -376,4 +376,42 @@ struct KeyboardUndoRedoSessionTests {
         #expect(session.canUndo == true)
         #expect(session.canApplyUndo(from: unreachable) == false)
     }
+
+    @Test("undo/redo 적용 중 text change는 history를 무효화하지 않음")
+    func testApplyingEdit중_TextChange_History유지() {
+        let session = KeyboardUndoRedoSession()
+        let firstInput = NSObject()
+        let secondInput = NSObject()
+        let firstID = ObjectIdentifier(firstInput)
+        let secondID = ObjectIdentifier(secondInput)
+        let source = KeyboardTextContextSnapshot(beforeInput: "abc", afterInput: "")
+        let changed = KeyboardTextContextSnapshot(beforeInput: "xyz", afterInput: "")
+
+        session.record(
+            deletedText: "",
+            insertedText: "d",
+            targetContext: source,
+            shouldDeferCommit: { false },
+            debouncedCommitDidFinish: {}
+        )
+        session.commitPendingGroup(shouldDeferCommit: false)
+        session.prepareForTextWillChange(inputIdentifier: firstID, context: source)
+        #expect(
+            session.shouldInvalidateAfterTextChange(
+                inputIdentifier: firstID,
+                currentContext: source
+            ) == false
+        )
+
+        let didApply = session.performApplyingEdit {
+            session.prepareForTextWillChange(inputIdentifier: firstID, context: source)
+            return session.shouldInvalidateAfterTextChange(
+                inputIdentifier: secondID,
+                currentContext: changed
+            ) == false
+        }
+
+        #expect(didApply)
+        #expect(session.canUndo)
+    }
 }

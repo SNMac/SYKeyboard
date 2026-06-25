@@ -162,6 +162,18 @@ struct KeyboardSuggestionSelectionPolicyTests {
         )
     }
 
+    @Test("커서 앞 문맥 제한은 nil을 빈 문자열로 처리하고 256자 suffix만 유지")
+    func test커서앞문맥제한_nil과길이제한() {
+        let droppedPrefix = String(repeating: "가", count: 3)
+        let retainedContext = String(repeating: "나", count: KeyboardTextContextNavigator.maximumCursorRestoreDistance)
+
+        #expect(KeyboardSuggestionSelectionPolicy.limitedDocumentContextBeforeInput(nil) == "")
+        #expect(
+            KeyboardSuggestionSelectionPolicy.limitedDocumentContextBeforeInput(droppedPrefix + retainedContext)
+            == retainedContext
+        )
+    }
+
     @Test("lexicon은 텍스트 대치나 자동완성 중 하나라도 켜진 경우 로드")
     func testLexicon로딩조건() {
         #expect(

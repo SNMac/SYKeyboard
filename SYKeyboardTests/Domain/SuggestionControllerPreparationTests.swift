@@ -137,6 +137,27 @@ struct SuggestionControllerPreparationTests {
         #expect(delegate.updates.last?.suggestions == ["오늘", "내일"])
         #expect(delegate.updateIsMainThread.last == true)
     }
+
+    @Test("후보 초기화 후 n-gram 로딩 완료는 마지막 후보를 다시 갱신하지 않음")
+    func test후보초기화후_NGram로딩완료_후보갱신없음() {
+        let factory = CountingSuggestionEngineFactory()
+        let delegate = RecordingSuggestionControllerDelegate()
+        let controller = SuggestionController(
+            language: "ko-KR",
+            engineFactory: factory.makeFactory()
+        )
+        controller.delegate = delegate
+        controller.isPredictiveTextEnabled = true
+
+        controller.updateSuggestions(for: "")
+        controller.clearSuggestions()
+        let updateCountAfterClear = delegate.updates.count
+
+        factory.lastNGramProvider?.completeLoad(suggestions: ["오늘", "내일"])
+
+        #expect(delegate.updates.count == updateCountAfterClear)
+        #expect(delegate.updates.last?.suggestions == [])
+    }
 }
 
 private final class CountingSuggestionEngineFactory {
