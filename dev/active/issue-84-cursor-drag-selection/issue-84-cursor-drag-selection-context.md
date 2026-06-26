@@ -1,6 +1,6 @@
 # Issue 84 Cursor Drag Indicator Context
 
-Last Updated: 2026-06-23
+Last Updated: 2026-06-26
 
 ## Relevant Files
 
@@ -11,6 +11,7 @@ Last Updated: 2026-06-23
 - `Modules/SYKeyboardCore/Presentation/Utils/Policies/CursorDragAccelerationPolicy.swift`: cursor drag step 계산 정책이다.
 - `SYKeyboardTests/Utils/TextInteractionGestureControllerTests.swift`: cursor drag 활성화, cursor movement callback, stop callback을 검증한다.
 - `SYKeyboardTests/Utils/CursorDragOverlayTests.swift`: cursor indicator effect, symbol name/fallback, OS별 vibrancy 적용 여부를 검증한다.
+- 2026-06-26 추가: 같은 `CursorDragIndicatorView`를 delete drag overlay에도 재사용한다. delete overlay는 `delete.backward` symbol을 주입한다.
 
 ## Facts Checked
 
@@ -22,6 +23,7 @@ Last Updated: 2026-06-23
 - `UIVibrancyEffect`는 `UIBlurEffect` 기반 API다. Xcode 26.5 SDK header에서도 `UIBlurEffect`가 설정된 `UIVisualEffectView` 위/하위에 두는 용도라고 설명한다.
 - Liquid Glass에서는 `UIVibrancyEffect`를 사용하지 않고, Material fallback에서만 vibrancy view를 사용한다.
 - `KeyboardLayoutFigure.otherOverlayCornerRadius`는 iOS 26 이상에서 `12.0`, 그 미만에서 `0.0`을 반환한다.
+- `delete.backward` SF Symbol 이미지는 현재 테스트 환경에서 nil이 아니다.
 
 ## Decisions
 
@@ -32,11 +34,15 @@ Last Updated: 2026-06-23
 - indicator SF Symbol은 `character.cursor.ibeam`을 우선 사용한다.
 - 구형 OS에서 `character.cursor.ibeam`이 없으면 overlay가 비지 않도록 `text.cursor` fallback을 둔다.
 - cursor drag indicator corner radius는 선택 overlay용 `selectOverlayCornerRadius`가 아니라 기타 overlay용 `otherOverlayCornerRadius`를 사용한다.
+- delete drag overlay는 cursor drag overlay와 같은 UI/effect/corner radius를 사용하고 symbol만 `delete.backward`로 다르게 둔다.
+- delete drag overlay 표시는 `BaseKeyboardViewController.deleteButtonPanning(_:to:)`에서, 숨김은 `deleteButtonPanStopped(_:)`에서 수행한다.
+- 기존 cursor drag overlay 기본 symbol은 `character.cursor.ibeam`으로 유지한다.
 
 ## Open Questions
 
 - 실제 iOS 26+ 기기에서 `UIGlassEffect` indicator와 아이콘 대비가 의도대로 보이는가?
 - iOS 26+ 시스템 locale에서 `character.cursor.ibeam`이 한글/영문 키보드 사용 맥락에 맞게 표시되는가?
+- 실제 iOS 26+ 또는 iOS 27 기기에서 delete drag overlay의 `delete.backward` 대비와 위치가 의도대로 보이는가?
 
 ## Verification Notes
 
@@ -102,3 +108,43 @@ rg -n "SelectionTouch|selectionTouch|SelectionPanning|setMarkedText|cursorDragSe
 ```
 
   - 결과: 일치 항목 없음.
+
+- delete drag overlay RED:
+
+```sh
+xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0' -only-testing:SYKeyboardTests/CursorDragOverlayTests/testDeleteIndicatorSymbol_deleteBackward
+```
+
+  - 결과: `CursorDragIndicatorSymbolFactory`에 `deleteSymbolName`과 symbol 주입 가능한 `image(symbolName:)`가 없어 실패했다.
+
+- delete drag overlay GREEN:
+
+```sh
+xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0' -only-testing:SYKeyboardTests/CursorDragOverlayTests
+```
+
+  - 결과: 통과했다. 기존 `character.cursor.ibeam` symbol 테스트와 신규 `delete.backward` symbol 테스트가 모두 통과했다.
+
+- delete drag overlay targeted 검증:
+
+```sh
+xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0' -only-testing:SYKeyboardTests/TextInteractionGestureControllerTests -only-testing:SYKeyboardTests/CursorDragOverlayTests
+```
+
+  - 결과: 통과했다. `** TEST SUCCEEDED **`
+
+- delete drag overlay 전체 검증:
+
+```sh
+xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0'
+```
+
+  - 결과: 통과했다. `** TEST SUCCEEDED **`
+
+- 사용자 실기기 수동 확인:
+
+```text
+삭제 버튼 드래그 중 delete.backward overlay 표시 동작 확인
+```
+
+  - 결과: 정상 동작 확인.

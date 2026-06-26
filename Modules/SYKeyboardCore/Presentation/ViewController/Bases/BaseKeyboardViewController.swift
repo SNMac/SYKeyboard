@@ -184,6 +184,14 @@ open class BaseKeyboardViewController: UIInputViewController {
         view.isHidden = true
         return view
     }()
+    /// 삭제 버튼 드래그 활성 상태를 표시하는 overlay
+    private lazy var deleteDragIndicatorView: CursorDragIndicatorView = {
+        let view = CursorDragIndicatorView(
+            symbolName: CursorDragIndicatorSymbolFactory.deleteSymbolName
+        )
+        view.isHidden = true
+        return view
+    }()
 
     // MARK: - Initializer
 
@@ -680,14 +688,16 @@ private extension BaseKeyboardViewController {
     }
 
     func setCursorDragOverlays() {
-        keyboardView.addSubview(cursorDragIndicatorView)
-        cursorDragIndicatorView.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([
-            cursorDragIndicatorView.topAnchor.constraint(equalTo: keyboardHStackView.topAnchor),
-            cursorDragIndicatorView.leadingAnchor.constraint(equalTo: keyboardHStackView.leadingAnchor),
-            cursorDragIndicatorView.trailingAnchor.constraint(equalTo: keyboardHStackView.trailingAnchor),
-            cursorDragIndicatorView.bottomAnchor.constraint(equalTo: keyboardHStackView.bottomAnchor)
-        ])
+        [cursorDragIndicatorView, deleteDragIndicatorView].forEach {
+            keyboardView.addSubview($0)
+            $0.translatesAutoresizingMaskIntoConstraints = false
+            NSLayoutConstraint.activate([
+                $0.topAnchor.constraint(equalTo: keyboardHStackView.topAnchor),
+                $0.leadingAnchor.constraint(equalTo: keyboardHStackView.leadingAnchor),
+                $0.trailingAnchor.constraint(equalTo: keyboardHStackView.trailingAnchor),
+                $0.bottomAnchor.constraint(equalTo: keyboardHStackView.bottomAnchor)
+            ])
+        }
     }
 
     func setKeyboardHeight() {
@@ -1401,6 +1411,7 @@ extension BaseKeyboardViewController: TextInteractionGestureControllerDelegate {
     }
 
     final func deleteButtonPanning(_ controller: TextInteractionGestureController, to direction: PanDirection) {
+        showDeleteDragOverlays()
         switch direction {
         case .left:
             performDeleteButtonPanDeleteIfPossible()
@@ -1412,6 +1423,7 @@ extension BaseKeyboardViewController: TextInteractionGestureControllerDelegate {
     }
 
     final func deleteButtonPanStopped(_ controller: TextInteractionGestureController) {
+        hideDeleteDragOverlays()
         tempDeletedCharacters.removeAll()
         deleteButtonPanDidStop()
         logger.debug("임시 삭제 내용 저장 변수 초기화")
@@ -1459,6 +1471,15 @@ private extension BaseKeyboardViewController {
 
     func hideCursorDragOverlays() {
         cursorDragIndicatorView.isHidden = true
+    }
+
+    func showDeleteDragOverlays() {
+        deleteDragIndicatorView.isHidden = false
+        keyboardView.bringSubviewToFront(deleteDragIndicatorView)
+    }
+
+    func hideDeleteDragOverlays() {
+        deleteDragIndicatorView.isHidden = true
     }
 
     func moveCursorIfPossible(to direction: PanDirection, steps: Int) -> Int {

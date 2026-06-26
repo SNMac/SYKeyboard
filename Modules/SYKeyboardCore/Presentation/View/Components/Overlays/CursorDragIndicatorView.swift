@@ -21,9 +21,13 @@ enum CursorDragIndicatorEffectFactory {
 /// 커서 드래그 표시 레이어의 SF Symbol 생성 정책
 enum CursorDragIndicatorSymbolFactory {
     static let symbolName = "character.cursor.ibeam"
+    static let deleteSymbolName = "delete.backward"
     static let fallbackSymbolName = "text.cursor"
 
-    static func image() -> UIImage? {
+    static func image(
+        symbolName: String = symbolName,
+        fallbackSymbolName: String = fallbackSymbolName
+    ) -> UIImage? {
         let imageConfig = UIImage.SymbolConfiguration(pointSize: FontSize.overlayLarge, weight: .regular)
         return (UIImage(systemName: symbolName) ?? UIImage(systemName: fallbackSymbolName))?
             .withConfiguration(imageConfig)
@@ -44,13 +48,21 @@ enum CursorDragIndicatorVibrancyEffectFactory {
 /// 커서 드래그가 활성화되었음을 보여주는 overlay
 final class CursorDragIndicatorView: UIView {
 
+    // MARK: - Properties
+
+    private let symbolName: String
+    private let fallbackSymbolName: String
+
     // MARK: - UI Components
 
     private lazy var effectView = UIVisualEffectView(effect: CursorDragIndicatorEffectFactory.effect())
     private lazy var vibrancyView = UIVisualEffectView(effect: CursorDragIndicatorVibrancyEffectFactory.effect())
-    private let imageView: UIImageView = {
+    private lazy var imageView: UIImageView = {
         let imageView = UIImageView()
-        imageView.image = CursorDragIndicatorSymbolFactory.image()
+        imageView.image = CursorDragIndicatorSymbolFactory.image(
+            symbolName: symbolName,
+            fallbackSymbolName: fallbackSymbolName
+        )
         imageView.tintColor = .secondaryLabel
         imageView.contentMode = .center
 
@@ -59,7 +71,13 @@ final class CursorDragIndicatorView: UIView {
 
     // MARK: - Initializer
 
-    override init(frame: CGRect) {
+    init(
+        symbolName: String = CursorDragIndicatorSymbolFactory.symbolName,
+        fallbackSymbolName: String = CursorDragIndicatorSymbolFactory.fallbackSymbolName,
+        frame: CGRect = .zero
+    ) {
+        self.symbolName = symbolName
+        self.fallbackSymbolName = fallbackSymbolName
         super.init(frame: frame)
         setupUI()
     }
