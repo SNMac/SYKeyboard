@@ -1466,7 +1466,6 @@ extension BaseKeyboardViewController: TextInteractionGestureControllerDelegate {
 private extension BaseKeyboardViewController {
     func showCursorDragOverlays() {
         cursorDragIndicatorView.isHidden = false
-        keyboardView.bringSubviewToFront(cursorDragIndicatorView)
     }
 
     func hideCursorDragOverlays() {
@@ -1475,7 +1474,6 @@ private extension BaseKeyboardViewController {
 
     func showDeleteDragOverlays() {
         deleteDragIndicatorView.isHidden = false
-        keyboardView.bringSubviewToFront(deleteDragIndicatorView)
     }
 
     func hideDeleteDragOverlays() {
