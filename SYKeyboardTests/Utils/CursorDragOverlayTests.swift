@@ -30,6 +30,12 @@ struct CursorDragOverlayTests {
         #expect(CursorDragIndicatorSymbolFactory.symbolName == "character.cursor.ibeam")
     }
 
+    @Test("delete indicator symbol은 delete backward를 사용")
+    func testDeleteIndicatorSymbol_deleteBackward() {
+        #expect(CursorDragIndicatorSymbolFactory.deleteSymbolName == "delete.backward")
+        #expect(CursorDragIndicatorSymbolFactory.image(symbolName: "delete.backward") != nil)
+    }
+
     @Test("indicator symbol image는 구형 OS에서도 비어 있지 않음")
     func testIndicatorSymbolImage_존재() {
         #expect(CursorDragIndicatorSymbolFactory.image() != nil)

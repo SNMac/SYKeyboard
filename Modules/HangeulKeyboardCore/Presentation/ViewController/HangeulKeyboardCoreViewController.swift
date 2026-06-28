@@ -29,12 +29,6 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
     private var compositionState = HangeulCompositionState()
     /// 글자가 입력되었는지 확인하는 플래그
     private var is글자Input: Bool = false
-    /// 삭제 버튼 touchDown 직전 조합 중인 글자가 있었는지 추적합니다.
-    private var hadComposingBeforeDeleteTouchDown: Bool = false
-    /// 삭제 버튼 touchDown 직전 조합 문자열입니다.
-    private var composingBeforeDeleteTouchDown: String = ""
-    /// 삭제 버튼 touchDown 직전 확정 문자열입니다.
-    private var committedBeforeDeleteTouchDown: String = ""
     /// 한글 오토마타
     private let automata: HangeulAutomataProtocol = HangeulAutomata()
     /// 나랏글 입력기
@@ -171,14 +165,10 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
     }
 
     open override func textInteractionWillPerform(button: TextInteractable) {
-        hadComposingBeforeDeleteTouchDown = button is DeleteButton && !composingBuffer.isEmpty
-        composingBeforeDeleteTouchDown = hadComposingBeforeDeleteTouchDown ? composingBuffer : ""
-        committedBeforeDeleteTouchDown = hadComposingBeforeDeleteTouchDown ? committedBuffer : ""
-        if !(button is DeleteButton) {
-            compositionState.setDeletePanRestorePolicy(
-                shouldSkipNextRestore: false,
-                replacement: nil
-            )
+        if button is DeleteButton {
+            compositionState.beginDeleteButtonTouchDown()
+        } else {
+            compositionState.cancelDeleteButtonTouchDown()
         }
         super.textInteractionWillPerform(button: button)
     }
@@ -186,18 +176,9 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
     open override func textInteractionDidPerform(button: TextInteractable) {
         super.textInteractionDidPerform(button: button)
         if button is DeleteButton {
-            compositionState.setDeletePanRestorePolicy(
-                shouldSkipNextRestore: hadComposingBeforeDeleteTouchDown && !composingBuffer.isEmpty,
-                replacement: deletePanRestoreReplacementAfterDeleteTouchDown()
-            )
-            hadComposingBeforeDeleteTouchDown = false
-            composingBeforeDeleteTouchDown = ""
-            committedBeforeDeleteTouchDown = ""
+            compositionState.endDeleteButtonTouchDown()
         } else {
-            compositionState.setDeletePanRestorePolicy(
-                shouldSkipNextRestore: false,
-                replacement: nil
-            )
+            compositionState.cancelDeleteButtonTouchDown()
         }
         is글자Input = true
         if composingBuffer.isEmpty {
@@ -392,25 +373,6 @@ private extension HangeulKeyboardCoreViewController {
         updateSpaceButtonImage()
     }
 
-    /// touchDown 삭제가 앞 글자를 재조합한 경우 첫 pan 삭제 때 복구할 원래 글자를 반환합니다.
-    func deletePanRestoreReplacementAfterDeleteTouchDown() -> Character? {
-        let remainingBeforeDelete = String(composingBeforeDeleteTouchDown.dropLast())
-        if remainingBeforeDelete.count == 1,
-           composingBuffer.count == 1,
-           remainingBeforeDelete != composingBuffer {
-            return remainingBeforeDelete.last
-        }
-
-        let consumedCommittedCount = committedBeforeDeleteTouchDown.count - committedBuffer.count
-        guard consumedCommittedCount == 1,
-              composingBuffer.count == 1,
-              let consumedCommitted = committedBeforeDeleteTouchDown.last else {
-            return nil
-        }
-
-        return consumedCommitted
-    }
-    
     /// 모든 버퍼를 초기화합니다.
     func clearAllBuffers() {
         compositionState.clearAllBuffers()

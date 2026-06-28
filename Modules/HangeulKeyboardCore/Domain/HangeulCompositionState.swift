@@ -57,6 +57,7 @@ struct HangeulCompositionState {
     private var isPulledFromProtected: Bool = false
     private var shouldSkipNextDeletePanRestore: Bool = false
     private var nextDeletePanRestoreReplacement: Character?
+    private var deleteTouchDownSnapshot: DeleteTouchDownSnapshot?
 
     var text: String {
         return committedBuffer + composingBuffer
@@ -217,26 +218,45 @@ struct HangeulCompositionState {
     mutating func deleteButtonTouchDown(
         using processor: HangeulProcessable
     ) -> HangeulDeleteTouchDownResult {
-        let hadComposingBeforeDelete = !composingBuffer.isEmpty
-        let composingBeforeDelete = composingBuffer
-        let committedBeforeDelete = committedBuffer
         let deletedCharacter = text.last
 
         if let deletedCharacter {
             temporaryDeletedCharacters.append(deletedCharacter)
         }
 
+        beginDeleteButtonTouchDown()
         let transition = delete(using: processor)
-        shouldSkipNextDeletePanRestore = hadComposingBeforeDelete && !composingBuffer.isEmpty
-        nextDeletePanRestoreReplacement = deletePanRestoreReplacementAfterDeleteTouchDown(
-            composingBeforeDelete: composingBeforeDelete,
-            committedBeforeDelete: committedBeforeDelete
-        )
+        endDeleteButtonTouchDown()
 
         return HangeulDeleteTouchDownResult(
             deletedCharacter: deletedCharacter,
             transition: transition
         )
+    }
+
+    mutating func beginDeleteButtonTouchDown() {
+        deleteTouchDownSnapshot = DeleteTouchDownSnapshot(
+            hadComposingBeforeDelete: !composingBuffer.isEmpty,
+            composingBeforeDelete: composingBuffer,
+            committedBeforeDelete: committedBuffer
+        )
+    }
+
+    mutating func endDeleteButtonTouchDown() {
+        guard let snapshot = deleteTouchDownSnapshot else { return }
+
+        shouldSkipNextDeletePanRestore = snapshot.hadComposingBeforeDelete && !composingBuffer.isEmpty
+        nextDeletePanRestoreReplacement = deletePanRestoreReplacementAfterDeleteTouchDown(
+            composingBeforeDelete: snapshot.composingBeforeDelete,
+            committedBeforeDelete: snapshot.committedBeforeDelete
+        )
+        deleteTouchDownSnapshot = nil
+    }
+
+    mutating func cancelDeleteButtonTouchDown() {
+        deleteTouchDownSnapshot = nil
+        shouldSkipNextDeletePanRestore = false
+        nextDeletePanRestoreReplacement = nil
     }
 
     @discardableResult
@@ -369,16 +389,9 @@ struct HangeulCompositionState {
         isPulledFromProtected = false
         shouldSkipNextDeletePanRestore = false
         nextDeletePanRestoreReplacement = nil
+        deleteTouchDownSnapshot = nil
         temporaryDeletedCharacters.removeAll()
         lastInputText = nil
-    }
-
-    mutating func setDeletePanRestorePolicy(
-        shouldSkipNextRestore: Bool,
-        replacement: Character?
-    ) {
-        shouldSkipNextDeletePanRestore = shouldSkipNextRestore
-        nextDeletePanRestoreReplacement = replacement
     }
 
     mutating func setDeleteDragState(
@@ -395,6 +408,12 @@ struct HangeulCompositionState {
         self.nextDeletePanRestoreReplacement = nextDeletePanRestoreReplacement
         protectedCommittedCount = min(protectedCommittedCount, committedBuffer.count)
     }
+}
+
+private struct DeleteTouchDownSnapshot {
+    let hadComposingBeforeDelete: Bool
+    let composingBeforeDelete: String
+    let committedBeforeDelete: String
 }
 
 // MARK: - Private Methods

@@ -153,6 +153,31 @@ struct SuggestionControllerTextReplacementTests {
         #expect(restore == nil)
     }
 
+    @Test("대치 복구 직후 같은 단축어는 한 번만 재대치를 건너뜀")
+    func test대치복구직후_같은단축어_재대치한번건너뜀() {
+        let controller = makeController(
+            entries: [
+                TextReplacementEntry(userInput: "id", documentText: "identifier")
+            ]
+        )
+        controller.isTextReplacementEnabled = true
+        controller.prepareLexiconEngineIfNeeded()
+
+        _ = controller.attemptTextReplacement(baseText: "id")
+        let restore = controller.attemptRestoreReplacement(
+            inputBuffer: "identifier",
+            documentContextBeforeInput: "identifier",
+            selectedText: nil
+        )
+
+        #expect(restore?.insertText == "id")
+        #expect(controller.attemptTextReplacement(baseText: "id") == nil)
+
+        let replacement = controller.attemptTextReplacement(baseText: "id")
+        #expect(replacement?.deleteCount == 2)
+        #expect(replacement?.insertText == "identifier")
+    }
+
     private func makeController(entries: [TextReplacementEntry]) -> SuggestionController {
         let provider = StubLexiconSuggestionProvider(entries: entries)
         let factory = SuggestionControllerEngineFactory(

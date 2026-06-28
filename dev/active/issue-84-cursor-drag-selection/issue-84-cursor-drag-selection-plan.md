@@ -1,12 +1,13 @@
 # Issue 84 Cursor Drag Indicator Plan
 
-Last Updated: 2026-06-23
+Last Updated: 2026-06-26
 
 ## Goal
 
 - GitHub Issue #84의 텍스트 선택 기능 구현은 취소한다.
 - 커서 드래그 중 표시되는 overlay는 유지한다.
 - overlay 아이콘은 `character.cursor.ibeam`을 우선 사용한다. `UIVibrancyEffect`는 iOS 25 이하 Material fallback에서만 적용한다.
+- 삭제 버튼 드래그 중에도 같은 overlay UI를 표시하되 아이콘만 `delete.backward`로 사용한다.
 
 ## Current State
 
@@ -19,6 +20,8 @@ Last Updated: 2026-06-23
 - indicator 아이콘은 `character.cursor.ibeam`을 우선 사용하고, 구형 OS에서 심볼이 없으면 빈 이미지 방지를 위해 `text.cursor`로 fallback한다.
 - indicator corner radius는 `KeyboardLayoutFigure.otherOverlayCornerRadius`를 사용한다. 현재 값은 iOS 26 이상 `12.0`, 그 미만 `0.0`이다.
 - iOS 26 이상 Liquid Glass에서는 `UIVibrancyEffect`를 사용하지 않고, iOS 25 이하 Material fallback에서만 vibrancy view를 사용한다.
+- 2026-06-26 추가: `CursorDragIndicatorView`는 symbol name을 주입받을 수 있고, 기본값은 기존 cursor drag용 `character.cursor.ibeam`이다.
+- 2026-06-26 추가: `BaseKeyboardViewController`는 delete pan 중 `delete.backward` 아이콘 overlay를 `keyboardHStackView` 위에 표시하고, pan 종료 시 숨긴다.
 
 ## Approach
 
@@ -33,9 +36,15 @@ Last Updated: 2026-06-23
    - iOS 26 이상에서는 아이콘을 Glass effect view의 `contentView` 안에 직접 배치한다.
    - iOS 25 이하에서는 아이콘을 `UIVibrancyEffect`가 적용된 `UIVisualEffectView.contentView` 안에 배치한다.
    - 기타 overlay 전용 corner radius 상수를 사용해 선택 overlay 수치와 분리한다.
-3. 검증
+3. delete indicator 추가
+   - `CursorDragIndicatorView`에 symbol name 주입을 추가한다.
+   - cursor drag indicator의 기본 symbol은 변경하지 않는다.
+   - delete drag indicator는 `delete.backward` symbol을 사용한다.
+   - delete pan 시작 경로인 `deleteButtonPanning(_:to:)`에서 표시하고 `deleteButtonPanStopped(_:)`에서 숨긴다.
+4. 검증
    - `TextInteractionGestureControllerTests`에서 cursor movement callback만 검증한다.
    - `CursorDragOverlayTests`에서 effect, symbol name, fallback image, OS별 vibrancy 적용 여부를 검증한다.
+   - delete indicator symbol이 `delete.backward`인지 검증한다.
    - 가능한 경우 전체 `SYKeyboard` test와 키보드 extension build를 재실행한다.
 
 ## Risks
@@ -43,6 +52,7 @@ Last Updated: 2026-06-23
 - `character.cursor.ibeam`은 OS별 SF Symbols 제공 여부가 다를 수 있어 구형 OS에서는 fallback이 보일 수 있다.
 - `UIVibrancyEffect`는 blur 기반 API라 iOS 26 `UIGlassEffect` 자체를 직접 입력으로 받지는 않는다. 현재 구현은 Liquid Glass에서는 vibrancy를 생략하고 Material fallback에서만 vibrancy view를 얹는다.
 - 실제 iOS 26+에서 Liquid Glass indicator 시각 결과는 수동 확인이 필요하다.
+- delete pan은 기존 삭제/복구 입력 로직과 결합되어 있으므로 overlay show/hide 추가가 삭제/복구 timing을 바꾸지 않아야 한다.
 
 ## Verification
 
@@ -81,5 +91,6 @@ xcodebuild build \
 - selection mode와 `setMarkedText` 기반 선택 적용 코드가 제거된다.
 - cursor drag 중 indicator overlay는 계속 표시된다.
 - indicator 아이콘은 `character.cursor.ibeam`을 우선 사용한다.
+- delete button drag 중 indicator overlay는 `delete.backward` 아이콘으로 표시된다.
 - iOS 25 이하 Material fallback에서 indicator 아이콘에 `UIVibrancyEffect`가 적용된다.
 - targeted gesture/overlay 테스트가 통과한다.

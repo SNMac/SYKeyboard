@@ -1,6 +1,6 @@
 # Issue 84 Cursor Drag Indicator Tasks
 
-Last Updated: 2026-06-23
+Last Updated: 2026-06-26
 
 ## Checklist
 
@@ -23,4 +23,11 @@ Last Updated: 2026-06-23
 - [x] selection/markedText 잔여 참조가 없는지 `rg`로 확인한다.
 - [x] 전체 `SYKeyboard` test를 실행한다. 샌드박스 실패 후 권한 있는 실행으로 통과했다.
 - [x] `HangeulKeyboard`, `EnglishKeyboard` extension build를 실행한다. `HangeulKeyboard` 샌드박스 실패 후 권한 있는 실행으로 둘 다 통과했다.
+- [x] delete button drag 중 같은 indicator overlay를 `delete.backward` 아이콘으로 표시한다.
+- [x] 기존 cursor drag overlay 아이콘은 `character.cursor.ibeam`으로 유지한다.
+- [x] delete indicator symbol 테스트를 RED/GREEN으로 추가한다.
+- [x] delete overlay 변경 후 targeted `TextInteractionGestureControllerTests`, `CursorDragOverlayTests`를 실행한다.
+- [x] delete overlay 변경 후 전체 `SYKeyboard` test를 실행한다.
+- [x] 실제 기기에서 delete drag indicator 동작을 확인한다.
 - [ ] 실제 iOS 26+ 환경에서 Liquid Glass indicator 시각 결과를 확인한다.
+- [ ] 실제 iOS 26+ 또는 iOS 27 환경에서 delete drag indicator 시각 결과를 확인한다.
