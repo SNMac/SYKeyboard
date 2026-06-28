@@ -6,6 +6,7 @@
 //
 
 import CoreGraphics
+import UIKit
 
 enum KeyboardHeightPolicy {
 
@@ -33,6 +34,53 @@ enum KeyboardHeightPolicy {
                 keyboardViewHeight: landscapeKeyboardHeight,
                 keyboardHStackViewHeight: landscapeKeyboardHeight - visibleSuggestionBarHeight
             )
+        }
+    }
+
+    static func isPortrait(
+        orientation: UIInterfaceOrientation,
+        usesOrientation: Bool = true,
+        fallbackBounds: CGRect,
+        horizontalSizeClass: UIUserInterfaceSizeClass = .unspecified,
+        verticalSizeClass: UIUserInterfaceSizeClass = .unspecified
+    ) -> Bool {
+        if usesOrientation == false {
+            return isPortrait(
+                horizontalSizeClass: horizontalSizeClass,
+                verticalSizeClass: verticalSizeClass
+            ) ?? (fallbackBounds.height >= fallbackBounds.width)
+        }
+
+        switch orientation {
+        case .portrait, .portraitUpsideDown:
+            return true
+        case .landscapeLeft, .landscapeRight:
+            return false
+        case .unknown:
+            if let traitIsPortrait = isPortrait(
+                horizontalSizeClass: horizontalSizeClass,
+                verticalSizeClass: verticalSizeClass
+            ) {
+                return traitIsPortrait
+            }
+
+            return fallbackBounds.height >= fallbackBounds.width
+        @unknown default:
+            return fallbackBounds.height >= fallbackBounds.width
+        }
+    }
+
+    private static func isPortrait(
+        horizontalSizeClass: UIUserInterfaceSizeClass,
+        verticalSizeClass: UIUserInterfaceSizeClass
+    ) -> Bool? {
+        switch (horizontalSizeClass, verticalSizeClass) {
+        case (.compact, .regular):
+            return true
+        case (.compact, .compact), (.regular, .compact):
+            return false
+        default:
+            return nil
         }
     }
 }

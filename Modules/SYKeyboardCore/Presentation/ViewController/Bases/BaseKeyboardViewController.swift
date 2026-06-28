@@ -701,8 +701,9 @@ private extension BaseKeyboardViewController {
     }
 
     func setKeyboardHeight() {
-        guard let window = self.view.window,
-              let orientation = window.windowScene?.effectiveGeometry.interfaceOrientation else { return }
+        guard let window = self.view.window else { return }
+        let windowScene = window.windowScene
+        let orientation = windowScene?.effectiveGeometry.interfaceOrientation ?? .unknown
 
         let isSuggestionBarVisible = !KeyboardPresentationStatePolicy.shouldHideSuggestionBar(
             isPredictiveTextEnabled: suggestionController.isPredictiveTextEnabled,
@@ -710,12 +711,20 @@ private extension BaseKeyboardViewController {
             currentKeyboard: currentKeyboard
         )
 
+        let isPortrait = KeyboardHeightPolicy.isPortrait(
+            orientation: orientation,
+            usesOrientation: usesInterfaceOrientationForKeyboardHeight,
+            fallbackBounds: window.bounds,
+            horizontalSizeClass: traitCollection.horizontalSizeClass,
+            verticalSizeClass: traitCollection.verticalSizeClass
+        )
+
         let height = KeyboardHeightPolicy.height(
             keyboardSettingsHeight: keyboardSettingsManager.keyboardHeight,
             landscapeKeyboardHeight: KeyboardLayoutFigure.landscapeKeyboardHeight,
             suggestionBarHeight: KeyboardLayoutFigure.suggestionBarHeightWithTopSpacing,
             isSuggestionBarVisible: isSuggestionBarVisible,
-            isPortrait: orientation == .portrait
+            isPortrait: isPortrait
         )
 
         if let keyboardViewHeightConstraint {
@@ -733,6 +742,14 @@ private extension BaseKeyboardViewController {
             let heightConstraint = keyboardHStackView.heightAnchor.constraint(equalToConstant: height.keyboardHStackViewHeight)
             heightConstraint.isActive = true
             keyboardHStackViewHeightConstraint = heightConstraint
+        }
+    }
+
+    var usesInterfaceOrientationForKeyboardHeight: Bool {
+        if #available(iOS 27.0, *) {
+            return false
+        } else {
+            return true
         }
     }
 
@@ -1047,7 +1064,9 @@ private extension BaseKeyboardViewController {
 
         if prevSuggestionHiddenState != shouldHideSuggestions {
             DispatchQueue.main.async { [weak self] in
-                self?.setKeyboardHeight()
+                guard let self else { return }
+
+                self.setKeyboardHeight()
             }
         }
     }
