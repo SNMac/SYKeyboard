@@ -44,7 +44,7 @@ enum KeyboardHeightPolicy {
         horizontalSizeClass: UIUserInterfaceSizeClass = .unspecified,
         verticalSizeClass: UIUserInterfaceSizeClass = .unspecified
     ) -> Bool {
-        if usesOrientation == false {
+        if !usesOrientation {
             return isPortrait(
                 horizontalSizeClass: horizontalSizeClass,
                 verticalSizeClass: verticalSizeClass

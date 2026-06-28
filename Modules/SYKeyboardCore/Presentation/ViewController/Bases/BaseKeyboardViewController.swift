@@ -748,9 +748,8 @@ private extension BaseKeyboardViewController {
     var usesInterfaceOrientationForKeyboardHeight: Bool {
         if #available(iOS 27.0, *) {
             return false
-        } else {
-            return true
         }
+        return true
     }
 
     func setNextKeyboardButton() {
