@@ -250,7 +250,6 @@ open class BaseKeyboardViewController: UIInputViewController {
         logger.debug("viewDidLoad")
         resetInputBuffer()
         setupUI()
-        setNextKeyboardButton()
         if BaseKeyboardViewController.isPreview { updateReturnButtonType() }
 
         if keyboardSettingsManager.isOneHandedKeyboardEnabled { updateOneHandModekeyboard() }
@@ -279,6 +278,11 @@ open class BaseKeyboardViewController: UIInputViewController {
         if !BaseKeyboardViewController.isPreview { setKeyboardHeight() }
         FeedbackManager.shared.prepareHaptic()
         updateEdgeTouchSystemGesturePolicy()
+    }
+    
+    open override func viewWillLayoutSubviews() {
+        setNextKeyboardButton()
+        super.viewWillLayoutSubviews()
     }
 
     open override func viewDidAppear(_ animated: Bool) {
@@ -917,7 +921,6 @@ private extension BaseKeyboardViewController {
         }
 
         keyboardSettingsManager.needsInputModeSwitchKey = self.needsInputModeSwitchKey
-
     }
 }
 
