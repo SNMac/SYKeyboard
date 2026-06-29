@@ -32,6 +32,8 @@ public enum UserDefaultsKeys {
     public static let isDragToMoveCursorEnabled = "isDragToMoveCursorEnabled"
     /// '.' 단축키
     public static let isPeriodShortcutEnabled = "isPeriodShortcutEnabled"
+    /// Smart Punctuation
+    public static let isSmartPunctuationEnabled = "isSmartPunctuationEnabled"
     /// 스페이스/리턴 입력 후 주 키보드로 변경
     public static let isAutoChangeToPrimaryEnabled = "isAutoChangeToPrimaryEnabled"
     
