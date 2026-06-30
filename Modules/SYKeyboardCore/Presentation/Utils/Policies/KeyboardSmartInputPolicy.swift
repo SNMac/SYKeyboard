@@ -7,11 +7,48 @@
 
 import UIKit
 
+struct KeyboardSmartQuoteState: Equatable {
+    private(set) var nextDoubleQuoteIsOpening = true
+    private(set) var nextSingleQuoteIsOpening = true
+
+    mutating func consume(_ transform: KeyboardSmartInputPolicy.TypedTextTransform) {
+        switch transform.consumedQuoteKind {
+        case .double:
+            nextDoubleQuoteIsOpening.toggle()
+        case .single:
+            nextSingleQuoteIsOpening.toggle()
+        case nil:
+            break
+        }
+    }
+
+    mutating func reset() {
+        nextDoubleQuoteIsOpening = true
+        nextSingleQuoteIsOpening = true
+    }
+}
+
 struct KeyboardSmartInputPolicy {
 
     struct TypedTextTransform: Equatable {
+        enum QuoteKind {
+            case double
+            case single
+        }
+
         let deleteCount: Int
         let insertText: String
+        let consumedQuoteKind: QuoteKind?
+
+        init(
+            deleteCount: Int,
+            insertText: String,
+            consumedQuoteKind: QuoteKind? = nil
+        ) {
+            self.deleteCount = deleteCount
+            self.insertText = insertText
+            self.consumedQuoteKind = consumedQuoteKind
+        }
     }
 
     static func transformTypedText(
@@ -19,21 +56,35 @@ struct KeyboardSmartInputPolicy {
         documentContextBeforeInput: String?,
         isSmartPunctuationEnabled: Bool,
         smartQuotesType: UITextSmartQuotesType,
-        smartDashesType: UITextSmartDashesType
+        smartDashesType: UITextSmartDashesType,
+        isDefaultSmartQuotesEnabled: Bool = true,
+        nextDoubleQuoteIsOpening: Bool = true,
+        nextSingleQuoteIsOpening: Bool = true
     ) -> TypedTextTransform {
+        let shouldApplySmartQuotes = shouldApplySmartQuotes(
+            type: smartQuotesType,
+            isDefaultSmartQuotesEnabled: isDefaultSmartQuotesEnabled
+        )
+
+        if let straightQuote = straightQuoteText(for: text),
+           !isSmartPunctuationEnabled || !shouldApplySmartQuotes {
+            return TypedTextTransform(deleteCount: 0, insertText: straightQuote)
+        }
+
         guard isSmartPunctuationEnabled else {
             return TypedTextTransform(deleteCount: 0, insertText: text)
         }
 
-        if smartQuotesType == .yes,
+        if shouldApplySmartQuotes,
            let smartQuote = smartQuoteText(
             for: text,
-            documentContextBeforeInput: documentContextBeforeInput
+            nextDoubleQuoteIsOpening: nextDoubleQuoteIsOpening,
+            nextSingleQuoteIsOpening: nextSingleQuoteIsOpening
            ) {
-            return TypedTextTransform(deleteCount: 0, insertText: smartQuote)
+            return smartQuote
         }
 
-        if smartDashesType == .yes,
+        if smartDashesType != .no,
            let smartDash = smartDashTransform(
             for: text,
             documentContextBeforeInput: documentContextBeforeInput
@@ -61,28 +112,58 @@ struct KeyboardSmartInputPolicy {
 }
 
 private extension KeyboardSmartInputPolicy {
+    static func shouldApplySmartQuotes(
+        type: UITextSmartQuotesType,
+        isDefaultSmartQuotesEnabled: Bool
+    ) -> Bool {
+        switch type {
+        case .yes:
+            return true
+        case .no:
+            return false
+        default:
+            return isDefaultSmartQuotesEnabled
+        }
+    }
+
+    static func straightQuoteText(for text: String) -> String? {
+        guard text.count == 1, let character = text.first else { return nil }
+
+        if doubleQuoteCharacters.contains(character) {
+            return "\""
+        }
+
+        if singleQuoteCharacters.contains(character) {
+            return "'"
+        }
+
+        return nil
+    }
+
     static func smartQuoteText(
         for text: String,
-        documentContextBeforeInput: String?
-    ) -> String? {
-        switch text {
-        case "\"":
-            return isEvenQuoteCount(
-                in: documentContextBeforeInput,
-                quoteCharacters: ["\"", "“", "”"]
-            ) ? "“" : "”"
-        case "'":
-            if isWordInternalApostropheContext(documentContextBeforeInput) {
-                return "’"
-            }
+        nextDoubleQuoteIsOpening: Bool,
+        nextSingleQuoteIsOpening: Bool
+    ) -> TypedTextTransform? {
+        guard text.count == 1, let character = text.first else { return nil }
 
-            return isEvenQuoteCount(
-                in: documentContextBeforeInput,
-                quoteCharacters: ["'", "‘", "’"]
-            ) ? "‘" : "’"
-        default:
-            return nil
+        if doubleQuoteCharacters.contains(character) {
+            return TypedTextTransform(
+                deleteCount: 0,
+                insertText: nextDoubleQuoteIsOpening ? "“" : "”",
+                consumedQuoteKind: .double
+            )
         }
+
+        if singleQuoteCharacters.contains(character) {
+            return TypedTextTransform(
+                deleteCount: 0,
+                insertText: nextSingleQuoteIsOpening ? "‘" : "’",
+                consumedQuoteKind: .single
+            )
+        }
+
+        return nil
     }
 
     static func smartDashTransform(
@@ -99,19 +180,7 @@ private extension KeyboardSmartInputPolicy {
         }
     }
 
-    static func isEvenQuoteCount(
-        in text: String?,
-        quoteCharacters: Set<Character>
-    ) -> Bool {
-        let count = text?.reduce(0) { partialResult, character in
-            partialResult + (quoteCharacters.contains(character) ? 1 : 0)
-        } ?? 0
+    static var doubleQuoteCharacters: Set<Character> { ["\"", "“", "”"] }
 
-        return count.isMultiple(of: 2)
-    }
-
-    static func isWordInternalApostropheContext(_ text: String?) -> Bool {
-        guard let previousCharacter = text?.last else { return false }
-        return previousCharacter.isLetter || previousCharacter.isNumber
-    }
+    static var singleQuoteCharacters: Set<Character> { ["'", "‘", "’"] }
 }

@@ -35,25 +35,28 @@ enum KeyboardSymbolInputPolicy {
 
     static func shouldMarkSymbolInput(buttonType: TextInteractableType) -> Bool {
         switch buttonType {
-        case .keyButton(primary: ["'"], secondary: nil),
-                .deleteButton,
-                .spaceButton,
-                .returnButton:
+        case .keyButton where isApostropheKey(buttonType),
+             .deleteButton,
+             .spaceButton,
+             .returnButton:
             return false
         default:
             return true
         }
     }
+
+    static func isApostropheKey(_ buttonType: TextInteractableType) -> Bool {
+        guard case .keyButton(let primary, nil) = buttonType,
+              primary.count == 1,
+              let character = primary.first?.first else {
+            return false
+        }
+
+        return ["'", "‘", "’"].contains(character)
+    }
 }
 
 private extension KeyboardSymbolInputPolicy {
-    static func isApostropheKey(_ buttonType: TextInteractableType) -> Bool {
-        if case .keyButton(primary: ["'"], secondary: nil) = buttonType {
-            return true
-        }
-        return false
-    }
-
     static func isSpaceOrReturn(_ buttonType: TextInteractableType) -> Bool {
         switch buttonType {
         case .spaceButton, .returnButton:

@@ -61,8 +61,15 @@
         }
       }
     },
-    "'' → ‘’, \"\" → “”, -- → —, ... → … 으로 변경\n(지원하는 텍스트필드에 한정)" : {
-
+    "'' → ‘’, \"\" → “”, -- → —, ... → … 으로 변경\n(지원하는 텍스트 필드에 한정)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Change '' → ‘’, \"\" → “”, -- → —, ... → …\n(Limited to supported text fields)"
+          }
+        }
+      }
     },
     "%.1f" : {
       "shouldTranslate" : false
@@ -334,7 +341,14 @@
       }
     },
     "스마트 구두점" : {
-
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Smart Punctuation"
+          }
+        }
+      }
     },
     "스페이스 바를 두 번 탭하면 마침표와 간격을 차례로 삽입" : {
       "localizations" : {

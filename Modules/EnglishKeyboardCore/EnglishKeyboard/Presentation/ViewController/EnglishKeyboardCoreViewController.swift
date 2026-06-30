@@ -30,6 +30,10 @@ open class EnglishKeyboardCoreViewController: BaseKeyboardViewController {
     )
     
     open override var primaryKeyboardView: PrimaryKeyboardRepresentable { englishKeyboardView }
+
+    open override var treatsDefaultSmartQuotesAsEnabled: Bool {
+        return false
+    }
     
     // MARK: - Initializer
     
@@ -114,7 +118,7 @@ open class EnglishKeyboardCoreViewController: BaseKeyboardViewController {
         if BaseKeyboardViewController.isPreview { return }
         
         guard let primaryKey = button.type.primaryKeyList.first else { fatalError("keys 배열이 비어있습니다.") }
-        insertText(primaryKey)
+        insertTypedText(primaryKey)
     }
     
     open override func insertSecondaryKeyText(from button: TextInteractable) {
@@ -124,7 +128,7 @@ open class EnglishKeyboardCoreViewController: BaseKeyboardViewController {
             assertionFailure("secondaryKey가 nil입니다.")
             return
         }
-        insertText(secondaryKey)
+        insertTypedText(secondaryKey)
     }
     
     open override func repeatInsertPrimaryKeyText(from button: TextInteractable) {
@@ -134,7 +138,7 @@ open class EnglishKeyboardCoreViewController: BaseKeyboardViewController {
             assertionFailure("keys 배열이 비어있습니다.")
             return
         }
-        insertText(primaryKey)
+        insertTypedText(primaryKey)
     }
 }
 

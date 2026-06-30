@@ -118,6 +118,7 @@ open class BaseKeyboardViewController: UIInputViewController {
     /// 서브클래스에서는 `insertText`, `deleteText`, `replaceText`,
     /// `resetInputBuffer` 래핑 메서드를 통해 조작합니다.
     private var inputBuffer: String = ""
+    private var smartQuoteState = KeyboardSmartQuoteState()
 
     /// `KeyboardView` 높이 제약 조건
     private var keyboardViewHeightConstraint: NSLayoutConstraint?
@@ -380,6 +381,11 @@ open class BaseKeyboardViewController: UIInputViewController {
         return false
     }
 
+    /// smartQuotesType이 `.default`일 때 smart quotes를 적용할지 결정합니다.
+    open var treatsDefaultSmartQuotesAsEnabled: Bool {
+        return true
+    }
+
     /// 반복 텍스트 상호작용이 일어나기 전 실행되는 메서드
     ///
     /// > 하위 클래스에서 오버라이드 시 반드시 `super`로 호출 필요
@@ -575,10 +581,13 @@ extension BaseKeyboardViewController {
     public func insertTypedText(_ text: String) {
         let transform = KeyboardSmartInputPolicy.transformTypedText(
             text,
-            documentContextBeforeInput: textDocumentProxy.documentContextBeforeInput,
+            documentContextBeforeInput: typedTextContextBeforeInput(),
             isSmartPunctuationEnabled: keyboardSettingsManager.isSmartPunctuationEnabled,
             smartQuotesType: textDocumentProxy.smartQuotesType ?? .default,
-            smartDashesType: textDocumentProxy.smartDashesType ?? .default
+            smartDashesType: textDocumentProxy.smartDashesType ?? .default,
+            isDefaultSmartQuotesEnabled: treatsDefaultSmartQuotesAsEnabled,
+            nextDoubleQuoteIsOpening: smartQuoteState.nextDoubleQuoteIsOpening,
+            nextSingleQuoteIsOpening: smartQuoteState.nextSingleQuoteIsOpening
         )
 
         if transform.deleteCount > 0 {
@@ -586,6 +595,7 @@ extension BaseKeyboardViewController {
         } else {
             insertText(transform.insertText)
         }
+        smartQuoteState.consume(transform)
     }
 
     /// `textDocumentProxy`에서 1글자를 삭제하고 `inputBuffer`를 동기화합니다.
@@ -632,6 +642,7 @@ extension BaseKeyboardViewController {
     /// 어긋날 수 있는 상황에서 호출합니다.
     public func resetInputBuffer() {
         inputBuffer = ""
+        smartQuoteState.reset()
         suggestionController.resetSentenceBuffer()
     }
 
@@ -708,6 +719,14 @@ private extension BaseKeyboardViewController {
         }
         inputBuffer.append(text)
     }
+
+    func typedTextContextBeforeInput() -> String {
+        if !inputBuffer.isEmpty { return inputBuffer }
+        return KeyboardSuggestionSelectionPolicy.limitedDocumentContextBeforeInput(
+            textDocumentProxy.documentContextBeforeInput
+        )
+    }
+
 }
 
 // MARK: - UI Methods
@@ -872,7 +891,7 @@ private extension BaseKeyboardViewController {
         addInputActionToTextInterableButton(button)
 
         switch button.type {
-        case .keyButton(primary: ["'"], secondary: nil):
+        case .keyButton where KeyboardSymbolInputPolicy.isApostropheKey(button.type):
             let switchToPrimaryKeyboard = UIAction { [weak self] _ in
                 guard let self else { return }
                 if KeyboardSymbolInputPolicy.shouldSwitchToPrimaryAfterApostropheInput(

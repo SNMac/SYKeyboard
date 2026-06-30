@@ -27,7 +27,7 @@ struct UserDefaultsContractTests {
         #expect(UserDefaultsManager.shared.isAutoCapitalizationEnabled == DefaultValues.isAutoCapitalizationEnabled)
     }
 
-    @Test("Smart Punctuation은 저장값이 없으면 false를 반환하고 공유 저장소 키를 유지")
+    @Test("Smart Punctuation은 저장값이 없으면 true를 반환하고 공유 저장소 키를 유지")
     func testSmartPunctuationDefaultFallbackAndKey() {
         let storage = UserDefaultsManager.shared.storage
         let key = UserDefaultsKeys.isSmartPunctuationEnabled
@@ -37,8 +37,8 @@ struct UserDefaultsContractTests {
         defer { restore(originalValue, forKey: key, in: storage) }
 
         #expect(key == "isSmartPunctuationEnabled")
-        #expect(DefaultValues.isSmartPunctuationEnabled == false)
-        #expect(UserDefaultsManager.shared.isSmartPunctuationEnabled == false)
+        #expect(DefaultValues.isSmartPunctuationEnabled == true)
+        #expect(UserDefaultsManager.shared.isSmartPunctuationEnabled == true)
     }
 
     @Test("앱 전용 온보딩 상태는 저장값이 없으면 앱 기본값을 반환")

@@ -16,10 +16,26 @@ struct KeyboardSymbolInputPolicyTests {
     @Test("작은따옴표 입력 후 조건이 맞으면 기본 키보드로 전환")
     func test작은따옴표입력후기본키보드전환조건() {
         let apostrophe = TextInteractableType.keyButton(primary: ["'"], secondary: nil)
+        let closingSmartApostrophe = TextInteractableType.keyButton(primary: ["’"], secondary: nil)
+        let openingSmartApostrophe = TextInteractableType.keyButton(primary: ["‘"], secondary: nil)
 
         #expect(
             KeyboardSymbolInputPolicy.shouldSwitchToPrimaryAfterApostropheInput(
                 buttonType: apostrophe,
+                keyboardType: .default,
+                isAutoChangeToPrimaryEnabled: true
+            )
+        )
+        #expect(
+            KeyboardSymbolInputPolicy.shouldSwitchToPrimaryAfterApostropheInput(
+                buttonType: closingSmartApostrophe,
+                keyboardType: .default,
+                isAutoChangeToPrimaryEnabled: true
+            )
+        )
+        #expect(
+            KeyboardSymbolInputPolicy.shouldSwitchToPrimaryAfterApostropheInput(
+                buttonType: openingSmartApostrophe,
                 keyboardType: .default,
                 isAutoChangeToPrimaryEnabled: true
             )
@@ -94,6 +110,16 @@ struct KeyboardSymbolInputPolicyTests {
         #expect(
             KeyboardSymbolInputPolicy.shouldMarkSymbolInput(
                 buttonType: .keyButton(primary: ["'"], secondary: nil)
+            ) == false
+        )
+        #expect(
+            KeyboardSymbolInputPolicy.shouldMarkSymbolInput(
+                buttonType: .keyButton(primary: ["’"], secondary: nil)
+            ) == false
+        )
+        #expect(
+            KeyboardSymbolInputPolicy.shouldMarkSymbolInput(
+                buttonType: .keyButton(primary: ["‘"], secondary: nil)
             ) == false
         )
         #expect(KeyboardSymbolInputPolicy.shouldMarkSymbolInput(buttonType: .deleteButton) == false)

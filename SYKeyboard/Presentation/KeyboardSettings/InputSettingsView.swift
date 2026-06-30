@@ -105,7 +105,7 @@ struct InputSettingsView: View {
         
         Toggle(isOn: $isSmartPunctuationEnabled, label: {
             Text("스마트 구두점")
-            Text("'' → ‘’, \"\" → “”, -- → —, ... →→ … 으로 변경\n(지원하는 텍스트필드에 한정)")
+            Text("'' → ‘’, \"\" → “”, -- → —, ... → … 으로 변경\n(지원하는 텍스트 필드에 한정)")
                 .font(.caption)
         })
         .onChange(of: isSmartPunctuationEnabled) { newValue in
