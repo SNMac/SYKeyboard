@@ -5,6 +5,8 @@
 //  Created by Codex on 5/22/26.
 //
 
+import UIKit
+
 enum KeyboardGesturePolicy {
 
     static func shouldAddTextInteractionGestures(
@@ -43,5 +45,15 @@ enum KeyboardGesturePolicy {
         isDeleteButton: Bool
     ) -> Bool {
         return selectedLongPressAction == .numberInput && !isDeleteButton
+    }
+
+    static func configureSystemGestureForEdgeTouch(_ gesture: UIGestureRecognizer) {
+        gesture.delaysTouchesBegan = false
+        gesture.delaysTouchesEnded = false
+        gesture.cancelsTouchesInView = false
+
+        if gesture is UIScreenEdgePanGestureRecognizer {
+            gesture.isEnabled = false
+        }
     }
 }
