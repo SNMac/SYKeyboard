@@ -386,6 +386,11 @@ open class BaseKeyboardViewController: UIInputViewController {
         return true
     }
 
+    /// Smart Quotes 입력 규칙을 결정합니다.
+    open var smartQuoteRule: KeyboardSmartQuoteRule {
+        return .koreanSystem
+    }
+
     /// 반복 텍스트 상호작용이 일어나기 전 실행되는 메서드
     ///
     /// > 하위 클래스에서 오버라이드 시 반드시 `super`로 호출 필요
@@ -586,6 +591,7 @@ extension BaseKeyboardViewController {
             smartQuotesType: textDocumentProxy.smartQuotesType ?? .default,
             smartDashesType: textDocumentProxy.smartDashesType ?? .default,
             isDefaultSmartQuotesEnabled: treatsDefaultSmartQuotesAsEnabled,
+            quoteRule: smartQuoteRule,
             nextDoubleQuoteIsOpening: smartQuoteState.nextDoubleQuoteIsOpening,
             nextSingleQuoteIsOpening: smartQuoteState.nextSingleQuoteIsOpening
         )

@@ -13,6 +13,19 @@ import UIKit
 @Suite("심볼 키보드 입력 정책 검증")
 struct KeyboardSymbolInputPolicyTests {
 
+    @MainActor
+    @Test("기호 키보드 작은따옴표 키는 닫는 따옴표를 표시")
+    func test기호키보드작은따옴표표시() {
+        let symbolKeyboardView = SymbolKeyboardView()
+        let unshiftedApostrophe = symbolKeyboardView.lastPrimaryKeyButton?.type.primaryKeyList.first
+
+        symbolKeyboardView.isShifted = true
+        let shiftedApostrophe = symbolKeyboardView.lastPrimaryKeyButton?.type.primaryKeyList.first
+
+        #expect(unshiftedApostrophe == "’")
+        #expect(shiftedApostrophe == "’")
+    }
+
     @Test("작은따옴표 입력 후 조건이 맞으면 기본 키보드로 전환")
     func test작은따옴표입력후기본키보드전환조건() {
         let apostrophe = TextInteractableType.keyButton(primary: ["'"], secondary: nil)
@@ -125,5 +138,11 @@ struct KeyboardSymbolInputPolicyTests {
         #expect(KeyboardSymbolInputPolicy.shouldMarkSymbolInput(buttonType: .deleteButton) == false)
         #expect(KeyboardSymbolInputPolicy.shouldMarkSymbolInput(buttonType: .spaceButton) == false)
         #expect(KeyboardSymbolInputPolicy.shouldMarkSymbolInput(buttonType: .returnButton) == false)
+    }
+}
+
+private extension SymbolKeyboardView {
+    var lastPrimaryKeyButton: PrimaryKeyButton? {
+        primaryButtonList.compactMap { $0 as? PrimaryKeyButton }.last
     }
 }

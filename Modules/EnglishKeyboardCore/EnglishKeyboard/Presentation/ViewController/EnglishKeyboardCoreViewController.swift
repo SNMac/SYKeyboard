@@ -34,6 +34,10 @@ open class EnglishKeyboardCoreViewController: BaseKeyboardViewController {
     open override var treatsDefaultSmartQuotesAsEnabled: Bool {
         return false
     }
+
+    open override var smartQuoteRule: KeyboardSmartQuoteRule {
+        return .englishSystem
+    }
     
     // MARK: - Initializer
     

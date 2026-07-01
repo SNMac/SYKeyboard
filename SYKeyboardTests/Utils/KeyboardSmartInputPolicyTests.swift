@@ -147,29 +147,148 @@ struct KeyboardSmartInputPolicyTests {
         #expect(second.consumedQuoteKind == .double)
     }
 
-    @Test("single quote는 apostrophe 예외 없이 다음 입력 상태에 따라 여는 따옴표나 닫는 따옴표를 삽입")
-    func testSingleQuoteUsesNextOpeningState() {
-        let firstAfterWord = KeyboardSmartInputPolicy.transformTypedText(
+    @Test("한국어 single quote는 두 번씩 여는 따옴표와 닫는 따옴표를 반복")
+    func testKoreanSingleQuoteUsesTwoInputCycle() {
+        var state = KeyboardSmartQuoteState()
+
+        let first = KeyboardSmartInputPolicy.transformTypedText(
             "'",
-            documentContextBeforeInput: "don",
+            documentContextBeforeInput: nil,
             isSmartPunctuationEnabled: true,
             smartQuotesType: .yes,
             smartDashesType: .no,
-            nextSingleQuoteIsOpening: true
+            nextDoubleQuoteIsOpening: state.nextDoubleQuoteIsOpening,
+            nextSingleQuoteIsOpening: state.nextSingleQuoteIsOpening
         )
+        state.consume(first)
+
         let second = KeyboardSmartInputPolicy.transformTypedText(
             "'",
             documentContextBeforeInput: nil,
             isSmartPunctuationEnabled: true,
             smartQuotesType: .yes,
             smartDashesType: .no,
-            nextSingleQuoteIsOpening: false
+            nextDoubleQuoteIsOpening: state.nextDoubleQuoteIsOpening,
+            nextSingleQuoteIsOpening: state.nextSingleQuoteIsOpening
+        )
+        state.consume(second)
+
+        let third = KeyboardSmartInputPolicy.transformTypedText(
+            "'",
+            documentContextBeforeInput: nil,
+            isSmartPunctuationEnabled: true,
+            smartQuotesType: .yes,
+            smartDashesType: .no,
+            nextDoubleQuoteIsOpening: state.nextDoubleQuoteIsOpening,
+            nextSingleQuoteIsOpening: state.nextSingleQuoteIsOpening
+        )
+        state.consume(third)
+
+        let fourth = KeyboardSmartInputPolicy.transformTypedText(
+            "'",
+            documentContextBeforeInput: nil,
+            isSmartPunctuationEnabled: true,
+            smartQuotesType: .yes,
+            smartDashesType: .no,
+            nextDoubleQuoteIsOpening: state.nextDoubleQuoteIsOpening,
+            nextSingleQuoteIsOpening: state.nextSingleQuoteIsOpening
+        )
+        state.consume(fourth)
+
+        let fifth = KeyboardSmartInputPolicy.transformTypedText(
+            "'",
+            documentContextBeforeInput: nil,
+            isSmartPunctuationEnabled: true,
+            smartQuotesType: .yes,
+            smartDashesType: .no,
+            nextDoubleQuoteIsOpening: state.nextDoubleQuoteIsOpening,
+            nextSingleQuoteIsOpening: state.nextSingleQuoteIsOpening
         )
 
-        #expect(firstAfterWord.insertText == "‘")
-        #expect(firstAfterWord.consumedQuoteKind == .single)
-        #expect(second.insertText == "’")
-        #expect(second.consumedQuoteKind == .single)
+        #expect([first.insertText, second.insertText, third.insertText, fourth.insertText, fifth.insertText] == ["‘", "‘", "’", "’", "‘"])
+        #expect([first.consumedQuoteKind, second.consumedQuoteKind, third.consumedQuoteKind, fourth.consumedQuoteKind, fifth.consumedQuoteKind] == [.single, .single, .single, .single, .single])
+    }
+
+    @Test("영어 single quote는 커서 앞 문맥으로 여닫는 따옴표를 결정")
+    func testEnglishSingleQuoteUsesPrecedingContext() {
+        let afterLetter = KeyboardSmartInputPolicy.transformTypedText(
+            "'",
+            documentContextBeforeInput: "don",
+            isSmartPunctuationEnabled: true,
+            smartQuotesType: .yes,
+            smartDashesType: .no,
+            quoteRule: .englishSystem
+        )
+        let afterOpeningSingleQuote = KeyboardSmartInputPolicy.transformTypedText(
+            "'",
+            documentContextBeforeInput: "‘",
+            isSmartPunctuationEnabled: true,
+            smartQuotesType: .yes,
+            smartDashesType: .no,
+            quoteRule: .englishSystem
+        )
+        let afterClosingSingleQuote = KeyboardSmartInputPolicy.transformTypedText(
+            "'",
+            documentContextBeforeInput: "’",
+            isSmartPunctuationEnabled: true,
+            smartQuotesType: .yes,
+            smartDashesType: .no,
+            quoteRule: .englishSystem
+        )
+        let afterWhitespace = KeyboardSmartInputPolicy.transformTypedText(
+            "'",
+            documentContextBeforeInput: " ",
+            isSmartPunctuationEnabled: true,
+            smartQuotesType: .yes,
+            smartDashesType: .no,
+            quoteRule: .englishSystem
+        )
+
+        #expect(afterLetter.insertText == "’")
+        #expect(afterOpeningSingleQuote.insertText == "’")
+        #expect(afterClosingSingleQuote.insertText == "‘")
+        #expect(afterWhitespace.insertText == "‘")
+    }
+
+    @Test("영어 double quote는 커서 앞 문맥으로 여닫는 따옴표를 결정")
+    func testEnglishDoubleQuoteUsesPrecedingContext() {
+        let afterNumber = KeyboardSmartInputPolicy.transformTypedText(
+            "\"",
+            documentContextBeforeInput: "1",
+            isSmartPunctuationEnabled: true,
+            smartQuotesType: .yes,
+            smartDashesType: .no,
+            quoteRule: .englishSystem
+        )
+        let afterOpeningDoubleQuote = KeyboardSmartInputPolicy.transformTypedText(
+            "\"",
+            documentContextBeforeInput: "“",
+            isSmartPunctuationEnabled: true,
+            smartQuotesType: .yes,
+            smartDashesType: .no,
+            quoteRule: .englishSystem
+        )
+        let afterClosingDoubleQuote = KeyboardSmartInputPolicy.transformTypedText(
+            "\"",
+            documentContextBeforeInput: "”",
+            isSmartPunctuationEnabled: true,
+            smartQuotesType: .yes,
+            smartDashesType: .no,
+            quoteRule: .englishSystem
+        )
+        let afterPunctuation = KeyboardSmartInputPolicy.transformTypedText(
+            "\"",
+            documentContextBeforeInput: ".",
+            isSmartPunctuationEnabled: true,
+            smartQuotesType: .yes,
+            smartDashesType: .no,
+            quoteRule: .englishSystem
+        )
+
+        #expect(afterNumber.insertText == "”")
+        #expect(afterOpeningDoubleQuote.insertText == "”")
+        #expect(afterClosingDoubleQuote.insertText == "“")
+        #expect(afterPunctuation.insertText == "“")
     }
 
     @Test("symbol 키보드의 curly quote 입력도 smart quote 대상으로 정규화")
