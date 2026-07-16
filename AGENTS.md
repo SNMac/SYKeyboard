@@ -28,6 +28,8 @@
 
 ## Codex 작업 인프라
 
+- 라이브러리/API 문서 확인, 코드 생성, 설정 또는 구성 단계가 필요한 작업에서는 사용자가 명시적으로 요청하지 않아도 항상 Context7 MCP를 먼저 사용해 현재 문서와 권장 사용법을 확인한다.
+- Context7 MCP가 응답하지 않거나 사용량 초과 등으로 사용할 수 없거나 필요한 정보를 찾지 못해도 작업을 중단하지 않는다. 우선 기존 지식을 바탕으로 계속 진행하고, 기존 지식만으로 해결하기 어려울 때 공식 문서를 확인한다. 최종 응답에는 Context7을 사용하지 못한 이유와, 대체 출처를 확인했다면 실제로 확인한 출처를 명시한다.
 - 장기 작업이나 여러 모듈을 건드리는 작업은 `dev/README.md`를 읽고 `dev/active/<task-name>/`에 plan/context/tasks 문서를 만든다.
 - 단일 파일의 작은 수정이나 단순 문서 정리는 `dev/active` 문서를 만들지 않아도 된다.
 - 작업 문서를 만들 때는 `dev/templates/`의 템플릿을 사용한다.
@@ -51,6 +53,7 @@
 
 - Swift 5 프로젝트이며 Xcode 16 이상을 기준으로 한다. `SYKeyboardAssets` 패키지는 `swift-tools-version: 6.0`을 사용한다.
 - 자세한 코딩 컨벤션은 `dev/coding-conventions.md`를 따른다. 새 Swift 코드를 작성하기 전 관련 섹션을 먼저 확인한다.
+- deprecated API의 신규 사용은 지양하고, 현재 지원되는 권장 API를 우선한다. 기존 deprecated API를 수정할 때도 변경 범위와 호환성을 확인해 가능한 경우 권장 대체 API로 전환한다.
 - 기존 스타일처럼 `// MARK: -` 섹션, 명확한 접근 제어, 짧은 한국어 주석을 유지한다.
 - Swift, Foundation, UIKit, SwiftUI가 제공하는 표준 API를 우선 사용한다. 예를 들어 UIKit gesture의 위치/속도처럼 프레임워크가 직접 제공하는 값이 있으면 별도 프레임워크 import나 직접 계산보다 이를 먼저 검토한다.
 - SwiftUI 설정 화면은 `@AppStorage(..., store: UserDefaultsManager.shared.storage)` 패턴을 따른다.
