@@ -6,6 +6,7 @@
 //
 
 import Testing
+import UIKit
 
 @testable import SYKeyboardCore
 
@@ -130,5 +131,29 @@ struct KeyboardGesturePolicyTests {
                 isDeleteButton: true
             ) == false
         )
+    }
+
+    @Test("system gesture recognizer는 edge key touch 지연과 취소를 비활성화")
+    func testSystemGestureTouchDelay해제정책() {
+        let gesture = UIGestureRecognizer()
+        gesture.delaysTouchesBegan = true
+        gesture.delaysTouchesEnded = true
+        gesture.cancelsTouchesInView = true
+
+        KeyboardGesturePolicy.configureSystemGestureForEdgeTouch(gesture)
+
+        #expect(gesture.delaysTouchesBegan == false)
+        #expect(gesture.delaysTouchesEnded == false)
+        #expect(gesture.cancelsTouchesInView == false)
+    }
+
+    @Test("screen edge pan gesture는 edge key touch를 가로채지 않도록 비활성화")
+    func testScreenEdgePanGesture비활성화정책() {
+        let gesture = UIScreenEdgePanGestureRecognizer()
+        gesture.isEnabled = true
+
+        KeyboardGesturePolicy.configureSystemGestureForEdgeTouch(gesture)
+
+        #expect(gesture.isEnabled == false)
     }
 }

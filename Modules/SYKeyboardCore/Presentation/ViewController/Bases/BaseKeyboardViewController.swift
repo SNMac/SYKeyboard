@@ -210,6 +210,10 @@ open class BaseKeyboardViewController: UIInputViewController {
         fatalError("init(coder:) has not been implemented")
     }
 
+    open override var preferredScreenEdgesDeferringSystemGestures: UIRectEdge {
+        return [.left, .right]
+    }
+
     deinit {
         logger.debug("\(String(describing: type(of: self))) deinit")
     }
@@ -248,6 +252,7 @@ open class BaseKeyboardViewController: UIInputViewController {
         }
 
         updateSuggestionBarHidden()
+        updateEdgeTouchSystemGesturePolicy()
     }
 
     open override func viewWillAppear(_ animated: Bool) {
@@ -258,6 +263,7 @@ open class BaseKeyboardViewController: UIInputViewController {
         logger.debug("viewWillAppear")
         if !BaseKeyboardViewController.isPreview { setKeyboardHeight() }
         FeedbackManager.shared.prepareHaptic()
+        updateEdgeTouchSystemGesturePolicy()
     }
 
     open override func viewDidAppear(_ animated: Bool) {
@@ -266,10 +272,7 @@ open class BaseKeyboardViewController: UIInputViewController {
         defer { performanceSignposter.endInterval("KeyboardViewDidAppear", state) }
 
         super.viewDidAppear(animated)
-        let systemGestureRecognizer0 = self.view.window?.gestureRecognizers?[0] as? UIGestureRecognizer
-        let systemGestureRecognizer1 = self.view.window?.gestureRecognizers?[1] as? UIGestureRecognizer
-        systemGestureRecognizer0?.delaysTouchesBegan = false
-        systemGestureRecognizer1?.delaysTouchesBegan = false
+        updateEdgeTouchSystemGesturePolicy()
         startDeferredSuggestionPreparationIfNeeded()
     }
 
@@ -822,6 +825,40 @@ private extension BaseKeyboardViewController {
             return false
         }
         return true
+    }
+
+    func updateEdgeTouchSystemGesturePolicy() {
+        guard !BaseKeyboardViewController.isPreview else { return }
+
+        setNeedsUpdateOfScreenEdgesDeferringSystemGestures()
+        edgeTouchSystemGestureHostViews().forEach { hostView in
+            hostView.gestureRecognizers?.forEach {
+                KeyboardGesturePolicy.configureSystemGestureForEdgeTouch($0)
+            }
+        }
+    }
+
+    func edgeTouchSystemGestureHostViews() -> [UIView] {
+        var hostViews: [UIView] = []
+        var visitedIDs = Set<ObjectIdentifier>()
+
+        func appendIfNeeded(_ view: UIView?) {
+            guard let view else { return }
+            let id = ObjectIdentifier(view)
+            guard !visitedIDs.contains(id) else { return }
+            visitedIDs.insert(id)
+            hostViews.append(view)
+        }
+
+        appendIfNeeded(view.window)
+
+        var parentView = view.superview
+        while let currentView = parentView {
+            appendIfNeeded(currentView)
+            parentView = currentView.superview
+        }
+
+        return hostViews
     }
 
     func setNextKeyboardButton() {
