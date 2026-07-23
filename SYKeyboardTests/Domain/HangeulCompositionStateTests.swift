@@ -8,6 +8,7 @@
 import Testing
 
 @testable import HangeulKeyboardCore
+@testable import SYKeyboardCore
 
 @Suite("한글 조합 상태 전이 검증")
 struct HangeulCompositionStateTests {
@@ -84,6 +85,81 @@ struct HangeulCompositionStateTests {
         #expect(finish?.proxyEdit == .replace(deleteCount: 1, insertText: "돈"))
         #expect(state.committedBuffer == "")
         #expect(state.composingBuffer == "돈")
+    }
+
+    @Test("빈 한글 조합 상태의 경계 반복 삭제는 줄바꿈 확인을 shared undo 기록에 전달")
+    func test빈조합상태_경계반복삭제_줄바꿈Undo전달() {
+        var state = HangeulCompositionState()
+        let processor = DubeolsikProcessor(automata: HangeulAutomata())
+        var request = RepeatDeleteRequest()
+
+        let delete = state.repeatDelete(using: processor)
+        request.begin(
+            context: KeyboardTextContextSnapshot(
+                beforeInput: nil,
+                afterInput: "한글"
+            ),
+            selectedText: nil
+        )
+        let captureResult = request.capture(
+            deletedText: "",
+            insertedText: "",
+            reliability: .proxyContext
+        )
+        let completion = request.completeAfterTextChange(
+            isRepeatingInput: true,
+            currentContext: KeyboardTextContextSnapshot(
+                beforeInput: "앞줄",
+                afterInput: "한글"
+            ),
+            currentSelectedText: nil
+        )
+
+        #expect(delete.proxyEdit == .delete(count: 1))
+        #expect(captureResult == .awaitingTextChange)
+        #expect(state.committedBuffer.isEmpty)
+        #expect(state.composingBuffer.isEmpty)
+        #expect(
+            completion == .mutations([
+                RepeatDeleteMutationDraft(
+                    deletedText: "\n",
+                    insertedText: "",
+                    reliability: .authoritative
+                )
+            ])
+        )
+    }
+
+    @Test("한글 반복 삭제 치환 mutation은 callback 확인 뒤 한 번만 유지")
+    func test한글반복삭제_치환Mutation_Callback확인() {
+        var request = RepeatDeleteRequest()
+        request.begin(
+            context: KeyboardTextContextSnapshot(beforeInput: "한", afterInput: ""),
+            selectedText: nil
+        )
+        let captureResult = request.capture(
+            deletedText: "한",
+            insertedText: "하",
+            reliability: .authoritative
+        )
+        #expect(captureResult == .awaitingTextChange)
+
+        let completion = request.completeAfterTextChange(
+            isRepeatingInput: true,
+            currentContext: KeyboardTextContextSnapshot(beforeInput: "하", afterInput: ""),
+            currentSelectedText: nil
+        )
+
+        #expect(
+            completion == .mutations([
+                RepeatDeleteMutationDraft(
+                    deletedText: "한",
+                    insertedText: "하",
+                    reliability: .authoritative
+                )
+            ])
+        )
+        #expect(request.completeWithoutDeletion() == nil)
     }
 
     @Test("delete touchDown 후 pan 삭제는 복구 문자를 한 번만 기록함")

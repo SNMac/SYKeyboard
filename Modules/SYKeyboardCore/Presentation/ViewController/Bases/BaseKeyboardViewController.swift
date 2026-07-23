@@ -141,6 +141,8 @@ open class BaseKeyboardViewController: UIInputViewController {
     private var isPrimaryCursorDragging = false
     /// 커서 이동 요청 직전 문맥입니다. `textDidChange`에서 실제 위치 변경을 확인한 뒤 소비합니다.
     private var pendingCursorDragHapticContext: KeyboardTextContextSnapshot?
+    /// 모든 반복 삭제 요청을 실제 문맥 변경 확인 후 성공 또는 무효로 한 번만 완료합니다.
+    private var repeatDeleteRequest = RepeatDeleteRequest()
     /// 자동완성과 undo/redo 설정이 모두 켜진 경우에만 기능을 활성화합니다.
     private var isUndoRedoFeatureAvailable: Bool {
         return KeyboardPresentationStatePolicy.isUndoRedoFeatureAvailable(
@@ -310,6 +312,12 @@ open class BaseKeyboardViewController: UIInputViewController {
             FeedbackManager.shared.playHaptic(isForcing: true)
         }
         pendingCursorDragHapticContext = nil
+        let repeatDeleteCompletion = repeatDeleteRequest.completeAfterTextChange(
+            isRepeatingInput: isRepeatingInput,
+            currentContext: currentTextContext,
+            currentSelectedText: textDocumentProxy.selectedText
+        )
+        processRepeatDeleteCompletion(repeatDeleteCompletion)
         invalidateUndoRedoHistoryIfNeededAfterTextChange(textInput)
         updateKeyboardType()
         oldKeyboardType = textDocumentProxy.keyboardType
@@ -335,7 +343,7 @@ open class BaseKeyboardViewController: UIInputViewController {
 
     open override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
-        cancelTimer()
+        stopRepeatInputTracking()
         undoRedoSession.removeAll()
         updateUndoRedoControls()
         resetInputBuffer()
@@ -410,16 +418,18 @@ open class BaseKeyboardViewController: UIInputViewController {
     /// > 하위 클래스에서 오버라이드 시 반드시 `super`로 호출 필요
     open func repeatTextInteractionWillPerform(button: TextInteractable) {
         // 방어 코드
-        cancelTimer()
+        stopRepeatInputTracking()
         isRepeatingInput = true
     }
     /// 반복 텍스트 상호작용이 일어난 후 실행되는 메서드
     ///
     /// > 하위 클래스에서 오버라이드 시 반드시 `super`로 호출 필요
     open func repeatTextInteractionDidPerform(button: TextInteractable) {
-        cancelTimer()
+        if case .deleteButton = button.type {
+            completeRepeatDeleteAtCurrentContext()
+        }
+        stopRepeatInputTracking()
         tempDeletedCharacters.removeAll()
-        isRepeatingInput = false
 
         updateReturnButtonEnabled()
         updateSuggestions()
@@ -624,13 +634,23 @@ extension BaseKeyboardViewController {
     /// 입력 버퍼가 항상 실제 입력과 일치하도록 보장합니다.
     public func deleteText() {
         let wasSpaceAtEnd = inputBuffer.last?.isWhitespace == true
-        let deletedText = textDeletedBySingleBackward()
+        let selectedText = textDocumentProxy.selectedText
+        let deletedText = KeyboardTextInteractionPolicy.deletedTextForSingleBackward(
+            selectedText: selectedText,
+            documentContextBeforeInput: textDocumentProxy.documentContextBeforeInput
+        )
 
         textDocumentProxy.deleteBackward()
         if !inputBuffer.isEmpty {
             inputBuffer.removeLast()
         }
-        recordUndoRedoChange(deletedText: deletedText, insertedText: "")
+        let reliability: RepeatDeleteMutationReliability =
+            selectedText?.isEmpty == false ? .authoritative : .proxyContext
+        recordUndoRedoChange(
+            deletedText: deletedText,
+            insertedText: "",
+            reliability: reliability
+        )
 
         if inputBuffer.isEmpty {
             // 모든 입력을 지운 경우 → 문장 버퍼 전체 초기화
@@ -1286,14 +1306,17 @@ extension BaseKeyboardViewController {
             repeatInsertPrimaryKeyText(from: button)
             button.playFeedback()
         case .deleteButton:
-            if KeyboardTextInteractionPolicy.shouldRepeatDelete(
-                documentContextBeforeInput: textDocumentProxy.documentContextBeforeInput,
-                selectedText: textDocumentProxy.selectedText
-            ) {
+            let action = repeatDeleteRequest.actionForNextTick(
+                currentContext: currentTextContextSnapshot(),
+                currentSelectedText: textDocumentProxy.selectedText
+            )
+            switch action {
+            case .deleteAwaitingTextChange(let previousCompletion):
+                processRepeatDeleteCompletion(previousCompletion)
+                beginRepeatDeleteRequest()
                 repeatDeleteBackward()
-                button.playFeedback()
-            } else {
-                button.isGesturing = false
+            case .finishWithoutDeletion:
+                finishRepeatDeleteWithoutDeletion(for: button)
             }
         case .spaceButton:
             insertSpaceText()
@@ -1302,11 +1325,36 @@ extension BaseKeyboardViewController {
             performRepeatReturnButtonTextInteraction(for: button)
         }
     }
+
+    /// 한글 조합 상태를 보존하는 첫 반복 삭제에 실제 삭제 기준 피드백을 적용합니다.
+    final public func performInitialRepeatDeleteTextInteraction(for button: TextInteractable) {
+        guard self.view.window != nil else { return }
+
+        let action = repeatDeleteRequest.actionForNextTick(
+            currentContext: currentTextContextSnapshot(),
+            currentSelectedText: textDocumentProxy.selectedText
+        )
+        switch action {
+        case .deleteAwaitingTextChange(let previousCompletion):
+            processRepeatDeleteCompletion(previousCompletion)
+            beginRepeatDeleteRequest()
+            performTextInteraction(for: button)
+        case .finishWithoutDeletion:
+            finishRepeatDeleteWithoutDeletion(for: button)
+        }
+    }
 }
 
 // MARK: - Private Methods
 
 private extension BaseKeyboardViewController {
+    func beginRepeatDeleteRequest() {
+        repeatDeleteRequest.begin(
+            context: currentTextContextSnapshot(),
+            selectedText: textDocumentProxy.selectedText
+        )
+    }
+
     func performUndo() {
         guard isUndoRedoFeatureAvailable else { return }
 
@@ -1371,8 +1419,24 @@ private extension BaseKeyboardViewController {
 
     func recordUndoRedoChange(
         deletedText: String,
-        insertedText: String
+        insertedText: String,
+        reliability: RepeatDeleteMutationReliability = .authoritative
     ) {
+        let captureResult = repeatDeleteRequest.capture(
+            deletedText: deletedText,
+            insertedText: insertedText,
+            reliability: reliability
+        )
+        switch captureResult {
+        case .awaitingTextChange:
+            return
+        case .completion(let completion):
+            processRepeatDeleteCompletion(completion)
+            return
+        case nil:
+            break
+        }
+
         guard isUndoRedoFeatureAvailable,
               !undoRedoSession.isApplyingEdit else { return }
         undoRedoSession.record(
@@ -1387,6 +1451,30 @@ private extension BaseKeyboardViewController {
             }
         )
         updateUndoRedoControls()
+    }
+
+    func processRepeatDeleteCompletion(_ completion: RepeatDeleteCompletion?) {
+        guard case .mutations(let drafts) = completion else { return }
+        for draft in drafts {
+            recordUndoRedoChange(
+                deletedText: draft.deletedText,
+                insertedText: draft.insertedText
+            )
+        }
+        FeedbackManager.shared.playHaptic()
+        FeedbackManager.shared.playDeleteSound()
+    }
+
+    @discardableResult
+    func completeRepeatDeleteAtCurrentContext() -> Bool {
+        let completion = repeatDeleteRequest.completeAtCheckpoint(
+            currentContext: currentTextContextSnapshot(),
+            currentSelectedText: textDocumentProxy.selectedText
+        )
+        guard completion != nil else { return false }
+
+        processRepeatDeleteCompletion(completion)
+        return true
     }
 
     func commitPendingUndoRedoGroup() {
@@ -1410,13 +1498,6 @@ private extension BaseKeyboardViewController {
             isVisible: shouldShowUndoRedo,
             canUndo: undoRedoSession.canApplyUndo(from: currentContext),
             canRedo: undoRedoSession.canApplyRedo(from: currentContext)
-        )
-    }
-
-    func textDeletedBySingleBackward() -> String {
-        return KeyboardTextInteractionPolicy.deletedTextForSingleBackward(
-            selectedText: textDocumentProxy.selectedText,
-            documentContextBeforeInput: textDocumentProxy.documentContextBeforeInput
         )
     }
 
@@ -1521,6 +1602,19 @@ private extension BaseKeyboardViewController {
         timer?.cancel()
         timer = nil
         logger.debug("반복 타이머 초기화")
+    }
+
+    func stopRepeatInputTracking() {
+        cancelTimer()
+        repeatDeleteRequest.cancel()
+        isRepeatingInput = false
+    }
+
+    func finishRepeatDeleteWithoutDeletion(for button: TextInteractable) {
+        guard repeatDeleteRequest.completeWithoutDeletion() == .noDeletion else { return }
+
+        button.isGesturing = false
+        stopRepeatInputTracking()
     }
 }
 
@@ -1676,11 +1770,11 @@ private extension BaseKeyboardViewController {
             .autoconnect()
             .sink { [weak self, weak button] _ in
                 if self?.view.window == nil {
-                    self?.cancelTimer()
+                    self?.stopRepeatInputTracking()
                     return
                 }
                 guard let button else {
-                    self?.cancelTimer()
+                    self?.stopRepeatInputTracking()
                     return
                 }
 
