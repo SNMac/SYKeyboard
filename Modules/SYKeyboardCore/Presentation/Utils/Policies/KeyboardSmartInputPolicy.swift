@@ -238,7 +238,7 @@ private extension KeyboardSmartInputPolicy {
         }
     }
 
-    static var doubleQuoteCharacters: Set<Character> { ["\"", "“", "”"] }
+    static let doubleQuoteCharacters: Set<Character> = ["\"", "“", "”"]
 
-    static var singleQuoteCharacters: Set<Character> { ["'", "‘", "’"] }
+    static let singleQuoteCharacters: Set<Character> = ["'", "‘", "’"]
 }
