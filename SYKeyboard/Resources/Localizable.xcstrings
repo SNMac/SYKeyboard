@@ -61,6 +61,16 @@
         }
       }
     },
+    "'' → ‘’, \"\" → “”, -- → —, ... → … 으로 변경\n(지원하는 텍스트 필드에 한정)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Change '' → ‘’, \"\" → “”, -- → —, ... → …\n(Limited to supported text fields)"
+          }
+        }
+      }
+    },
     "%.1f" : {
       "shouldTranslate" : false
     },
@@ -326,6 +336,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Numeric Keypad"
+          }
+        }
+      }
+    },
+    "스마트 구두점" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Smart Punctuation"
           }
         }
       }

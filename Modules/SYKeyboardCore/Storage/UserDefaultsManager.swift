@@ -134,6 +134,9 @@ final public class UserDefaultsManager {
     /// '.' 단축키
     @UserDefaultsWrapper(key: UserDefaultsKeys.isPeriodShortcutEnabled, defaultValue: DefaultValues.isPeriodShortcutEnabled)
     public var isPeriodShortcutEnabled: Bool
+    /// Smart Punctuation
+    @UserDefaultsWrapper(key: UserDefaultsKeys.isSmartPunctuationEnabled, defaultValue: DefaultValues.isSmartPunctuationEnabled)
+    public var isSmartPunctuationEnabled: Bool
     /// 스페이스/리턴 입력 후 주 키보드로 변경
     @UserDefaultsWrapper(key: UserDefaultsKeys.isAutoChangeToPrimaryEnabled, defaultValue: DefaultValues.isAutoChangeToPrimaryEnabled)
     public var isAutoChangeToPrimaryEnabled: Bool

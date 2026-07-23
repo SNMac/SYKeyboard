@@ -22,9 +22,12 @@ struct InputSettingsView: View {
     @AppStorage(UserDefaultsKeys.isAutoCapitalizationEnabled, store: UserDefaultsManager.shared.storage)
     private var isAutoCapitalizationEnabled = DefaultValues.isAutoCapitalizationEnabled
     
+    @AppStorage(UserDefaultsKeys.isSmartPunctuationEnabled, store: UserDefaultsManager.shared.storage)
+    private var isSmartPunctuationEnabled = DefaultValues.isSmartPunctuationEnabled
+    
     @AppStorage(UserDefaultsKeys.isPeriodShortcutEnabled, store: UserDefaultsManager.shared.storage)
     private var isPeriodShortcutEnabled = DefaultValues.isPeriodShortcutEnabled
-    
+
     @AppStorage(UserDefaultsKeys.isAutoChangeToPrimaryEnabled, store: UserDefaultsManager.shared.storage)
     private var isAutoChangeToPrimaryEnabled = DefaultValues.isAutoChangeToPrimaryEnabled
     
@@ -94,6 +97,21 @@ struct InputSettingsView: View {
             Analytics.setUserProperty(newValue.analyticsValue,
                                       forName: "pref_auto_capitalization")
             Analytics.logEvent("auto_capitalization", parameters: [
+                "view": "InputSettingsView",
+                "enabled": newValue.analyticsValue
+            ])
+            hideKeyboard()
+        }
+        
+        Toggle(isOn: $isSmartPunctuationEnabled, label: {
+            Text("스마트 구두점")
+            Text("'' → ‘’, \"\" → “”, -- → —, ... → … 으로 변경\n(지원하는 텍스트 필드에 한정)")
+                .font(.caption)
+        })
+        .onChange(of: isSmartPunctuationEnabled) { newValue in
+            Analytics.setUserProperty(newValue.analyticsValue,
+                                      forName: "pref_smart_punctuation")
+            Analytics.logEvent("smart_punctuation", parameters: [
                 "view": "InputSettingsView",
                 "enabled": newValue.analyticsValue
             ])

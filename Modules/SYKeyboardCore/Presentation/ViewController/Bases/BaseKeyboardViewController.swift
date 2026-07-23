@@ -118,6 +118,7 @@ open class BaseKeyboardViewController: UIInputViewController {
     /// 서브클래스에서는 `insertText`, `deleteText`, `replaceText`,
     /// `resetInputBuffer` 래핑 메서드를 통해 조작합니다.
     private var inputBuffer: String = ""
+    private var smartQuoteState = KeyboardSmartQuoteState()
 
     /// `KeyboardView` 높이 제약 조건
     private var keyboardViewHeightConstraint: NSLayoutConstraint?
@@ -380,6 +381,16 @@ open class BaseKeyboardViewController: UIInputViewController {
         return false
     }
 
+    /// smartQuotesType이 `.default`일 때 smart quotes를 적용할지 결정합니다.
+    open var treatsDefaultSmartQuotesAsEnabled: Bool {
+        return true
+    }
+
+    /// Smart Quotes 입력 규칙을 결정합니다.
+    open var smartQuoteRule: KeyboardSmartQuoteRule {
+        return .koreanSystem
+    }
+
     /// 반복 텍스트 상호작용이 일어나기 전 실행되는 메서드
     ///
     /// > 하위 클래스에서 오버라이드 시 반드시 `super`로 호출 필요
@@ -412,7 +423,7 @@ open class BaseKeyboardViewController: UIInputViewController {
             assertionFailure("primaryKeyList 배열이 비어있습니다.")
             return
         }
-        insertText(primaryKey)
+        insertTypedText(primaryKey)
     }
 
     /// 사용자가 탭한 `TextInteractable` 버튼의 `secondaryKey`를 입력하는 메서드 (단일 호출)
@@ -427,7 +438,7 @@ open class BaseKeyboardViewController: UIInputViewController {
             assertionFailure("secondaryKey가 nil입니다.")
             return
         }
-        insertText(secondaryKey)
+        insertTypedText(secondaryKey)
     }
 
     /// 사용자가 탭한 `TextInteractable` 버튼의 `primaryKeyList` 중 상황에 맞는 문자를 입력하는 메서드 (반복 호출)
@@ -442,7 +453,7 @@ open class BaseKeyboardViewController: UIInputViewController {
             assertionFailure("keys 배열이 비어있습니다.")
             return
         }
-        insertText(primaryKey)
+        insertTypedText(primaryKey)
     }
 
     /// 공백 문자를 입력하는 메서드
@@ -571,6 +582,28 @@ extension BaseKeyboardViewController {
         recordUndoRedoChange(deletedText: "", insertedText: text)
     }
 
+    /// 사용자가 키를 눌러 입력한 텍스트에만 Smart Punctuation을 적용합니다.
+    public func insertTypedText(_ text: String) {
+        let transform = KeyboardSmartInputPolicy.transformTypedText(
+            text,
+            documentContextBeforeInput: typedTextContextBeforeInput(),
+            isSmartPunctuationEnabled: keyboardSettingsManager.isSmartPunctuationEnabled,
+            smartQuotesType: textDocumentProxy.smartQuotesType ?? .default,
+            smartDashesType: textDocumentProxy.smartDashesType ?? .default,
+            isDefaultSmartQuotesEnabled: treatsDefaultSmartQuotesAsEnabled,
+            quoteRule: smartQuoteRule,
+            nextDoubleQuoteIsOpening: smartQuoteState.nextDoubleQuoteIsOpening,
+            nextSingleQuoteIsOpening: smartQuoteState.nextSingleQuoteIsOpening
+        )
+
+        if transform.deleteCount > 0 {
+            replaceText(deleteCount: transform.deleteCount, insert: transform.insertText)
+        } else {
+            insertText(transform.insertText)
+        }
+        smartQuoteState.consume(transform)
+    }
+
     /// `textDocumentProxy`에서 1글자를 삭제하고 `inputBuffer`를 동기화합니다.
     ///
     /// `textDocumentProxy.deleteBackward()`를 직접 호출하는 대신 이 메서드를 사용하여
@@ -615,6 +648,7 @@ extension BaseKeyboardViewController {
     /// 어긋날 수 있는 상황에서 호출합니다.
     public func resetInputBuffer() {
         inputBuffer = ""
+        smartQuoteState.reset()
         suggestionController.resetSentenceBuffer()
     }
 
@@ -644,6 +678,36 @@ extension BaseKeyboardViewController {
 // MARK: - Text Proxy Wrapper Helper Methods
 
 private extension BaseKeyboardViewController {
+    func replaceTextWithSmartInsertDeleteSpacing(deleteCount: Int, insert text: String) {
+        replaceText(
+            deleteCount: deleteCount,
+            insert: textWithSmartInsertDeleteLeadingSpace(
+                deleteCount: deleteCount,
+                insert: text
+            )
+        )
+    }
+
+    func textWithSmartInsertDeleteLeadingSpace(deleteCount: Int, insert text: String) -> String {
+        return KeyboardSmartInputPolicy.smartInsertDeleteLeadingSpacePrefix(
+            textBeforeInsertion: textBeforeInsertionAfterDeletingSuffix(deleteCount: deleteCount),
+            isSmartPunctuationEnabled: keyboardSettingsManager.isSmartPunctuationEnabled,
+            smartInsertDeleteType: textDocumentProxy.smartInsertDeleteType ?? .default
+        ) + text
+    }
+
+    func textBeforeInsertionAfterDeletingSuffix(deleteCount: Int) -> String {
+        let textBeforeCursor = inputBuffer.isEmpty
+            ? KeyboardSuggestionSelectionPolicy.limitedDocumentContextBeforeInput(
+                textDocumentProxy.documentContextBeforeInput
+            )
+            : inputBuffer
+
+        guard deleteCount > 0 else { return textBeforeCursor }
+        guard textBeforeCursor.count >= deleteCount else { return "" }
+        return String(textBeforeCursor.dropLast(deleteCount))
+    }
+
     func replaceTextInDocument(deleteCount: Int, insert text: String) {
         for _ in 0..<deleteCount {
             textDocumentProxy.deleteBackward()
@@ -661,6 +725,14 @@ private extension BaseKeyboardViewController {
         }
         inputBuffer.append(text)
     }
+
+    func typedTextContextBeforeInput() -> String {
+        if !inputBuffer.isEmpty { return inputBuffer }
+        return KeyboardSuggestionSelectionPolicy.limitedDocumentContextBeforeInput(
+            textDocumentProxy.documentContextBeforeInput
+        )
+    }
+
 }
 
 // MARK: - UI Methods
@@ -825,7 +897,7 @@ private extension BaseKeyboardViewController {
         addInputActionToTextInterableButton(button)
 
         switch button.type {
-        case .keyButton(primary: ["'"], secondary: nil):
+        case .keyButton where KeyboardSymbolInputPolicy.isApostropheKey(button.type):
             let switchToPrimaryKeyboard = UIAction { [weak self] _ in
                 guard let self else { return }
                 if KeyboardSymbolInputPolicy.shouldSwitchToPrimaryAfterApostropheInput(
@@ -1144,7 +1216,10 @@ extension BaseKeyboardViewController {
                 documentContextBeforeInput: textDocumentProxy.documentContextBeforeInput
             ) {
                 // 텍스트 대치: 래핑 메서드 사용
-                replaceText(deleteCount: replacement.deleteCount, insert: replacement.insertText)
+                replaceTextWithSmartInsertDeleteSpacing(
+                    deleteCount: replacement.deleteCount,
+                    insert: replacement.insertText
+                )
             }
             insertSpaceText()
         case .returnButton:
@@ -1617,11 +1692,16 @@ private extension BaseKeyboardViewController {
                 baseText: selectedText
               ) else { return true }
 
+        let insertText = textWithSmartInsertDeleteLeadingSpace(
+            deleteCount: 0,
+            insert: result.insertText
+        )
+
         // selectedText가 있는 상태에서 insertText하면
         // 시스템이 선택 영역을 자동 교체
-        recordUndoRedoChange(deletedText: selectedText, insertedText: result.insertText)
-        textDocumentProxy.insertText(result.insertText)
-        inputBuffer.append(result.insertText)
+        recordUndoRedoChange(deletedText: selectedText, insertedText: insertText)
+        textDocumentProxy.insertText(insertText)
+        inputBuffer.append(insertText)
 
         suggestionDidApply()
         updateSuggestions()
@@ -1672,7 +1752,10 @@ private extension BaseKeyboardViewController {
             baseText: baseText
         ) else { return }
 
-        replaceText(deleteCount: result.deleteCount, insert: result.insertText)
+        replaceTextWithSmartInsertDeleteSpacing(
+            deleteCount: result.deleteCount,
+            insert: result.insertText
+        )
 
         suggestionController.recordWord(result.insertText)
 

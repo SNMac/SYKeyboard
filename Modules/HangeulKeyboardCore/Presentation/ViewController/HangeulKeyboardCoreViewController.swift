@@ -217,6 +217,14 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
     
     open override func insertPrimaryKeyText(from button: TextInteractable) {
         if BaseKeyboardViewController.isPreview { return }
+
+        if currentKeyboard == .symbol {
+            clearAllBuffers()
+            processor.reset한글조합()
+            super.insertPrimaryKeyText(from: button)
+            updateSpaceButtonImage()
+            return
+        }
         
         guard let primaryKey = button.type.primaryKeyList.first else { fatalError("primaryKeyList 배열이 비어있습니다.") }
         
@@ -236,6 +244,12 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
     
     open override func repeatInsertPrimaryKeyText(from button: TextInteractable) {
         if BaseKeyboardViewController.isPreview { return }
+
+        if currentKeyboard == .symbol {
+            super.repeatInsertPrimaryKeyText(from: button)
+            updateSpaceButtonImage()
+            return
+        }
         
         guard lastInputText != nil else {
             super.repeatTextInteractionDidPerform(button: button)

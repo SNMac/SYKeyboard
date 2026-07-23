@@ -35,6 +35,8 @@ public enum DefaultValues {
     public static let isDragToMoveCursorEnabled: Bool = true
     /// '.' 단축키 여부 기본값
     public static let isPeriodShortcutEnabled: Bool = true
+    /// Smart Punctuation 기본값
+    public static let isSmartPunctuationEnabled: Bool = true
     /// 스페이스/리턴 입력 후 주 키보드로 변경 기본값
     public static let isAutoChangeToPrimaryEnabled: Bool = true
     
