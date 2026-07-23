@@ -85,7 +85,8 @@ enum CursorDragAccelerationPolicy {
             guard let documentContextBeforeInput else { return 0 }
             return min(requestedSteps, documentContextBeforeInput.suffix(requestedSteps).count)
         case .right:
-            guard let documentContextAfterInput else { return 0 }
+            guard let documentContextAfterInput,
+                  !documentContextAfterInput.isEmpty else { return 1 }
             return min(requestedSteps, documentContextAfterInput.prefix(requestedSteps).count)
         default:
             return 0

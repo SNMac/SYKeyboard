@@ -139,6 +139,8 @@ open class BaseKeyboardViewController: UIInputViewController {
     private var didEmitFirstTextInteractionSignpost = false
     /// primary 버튼 커서 드래그 중에는 `textDidChange` 후보 갱신을 건너뜁니다.
     private var isPrimaryCursorDragging = false
+    /// 커서 이동 요청 직전 문맥입니다. `textDidChange`에서 실제 위치 변경을 확인한 뒤 소비합니다.
+    private var pendingCursorDragHapticContext: KeyboardTextContextSnapshot?
     /// 자동완성과 undo/redo 설정이 모두 켜진 경우에만 기능을 활성화합니다.
     private var isUndoRedoFeatureAvailable: Bool {
         return KeyboardPresentationStatePolicy.isUndoRedoFeatureAvailable(
@@ -299,6 +301,15 @@ open class BaseKeyboardViewController: UIInputViewController {
     open override func textDidChange(_ textInput: (any UITextInput)?) {
         super.textDidChange(textInput)
         logger.debug("textDidChange")
+        let currentTextContext = currentTextContextSnapshot()
+        if KeyboardGesturePolicy.shouldPlayCursorDragHapticOnTextDidChange(
+            isPrimaryCursorDragging: isPrimaryCursorDragging,
+            pendingRequestContext: pendingCursorDragHapticContext,
+            currentContext: currentTextContext
+        ) {
+            FeedbackManager.shared.playHaptic(isForcing: true)
+        }
+        pendingCursorDragHapticContext = nil
         invalidateUndoRedoHistoryIfNeededAfterTextChange(textInput)
         updateKeyboardType()
         oldKeyboardType = textDocumentProxy.keyboardType
@@ -1619,18 +1630,19 @@ private extension BaseKeyboardViewController {
         )
         guard actualSteps > 0 else { return 0 }
 
+        pendingCursorDragHapticContext = currentTextContextSnapshot()
         switch direction {
         case .left:
             textDocumentProxy.adjustTextPosition(byCharacterOffset: -actualSteps)
         case .right:
             textDocumentProxy.adjustTextPosition(byCharacterOffset: actualSteps)
         default:
+            pendingCursorDragHapticContext = nil
             assertionFailure("도달할 수 없는 case 입니다.")
             return 0
         }
 
         updateUndoRedoControls()
-        FeedbackManager.shared.playHaptic(isForcing: true)
         return actualSteps
     }
 

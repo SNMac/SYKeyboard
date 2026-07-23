@@ -47,6 +47,20 @@ enum KeyboardGesturePolicy {
         return selectedLongPressAction == .numberInput && !isDeleteButton
     }
 
+    static func shouldPlayCursorDragHapticOnTextDidChange(
+        isPrimaryCursorDragging: Bool,
+        pendingRequestContext: KeyboardTextContextSnapshot?,
+        currentContext: KeyboardTextContextSnapshot
+    ) -> Bool {
+        guard isPrimaryCursorDragging,
+              let pendingRequestContext else { return false }
+
+        return normalizedContext(pendingRequestContext.beforeInput)
+            != normalizedContext(currentContext.beforeInput)
+        || normalizedContext(pendingRequestContext.afterInput)
+            != normalizedContext(currentContext.afterInput)
+    }
+
     static func configureSystemGestureForEdgeTouch(_ gesture: UIGestureRecognizer) {
         gesture.delaysTouchesBegan = false
         gesture.delaysTouchesEnded = false
@@ -55,5 +69,11 @@ enum KeyboardGesturePolicy {
         if gesture is UIScreenEdgePanGestureRecognizer {
             gesture.isEnabled = false
         }
+    }
+}
+
+private extension KeyboardGesturePolicy {
+    static func normalizedContext(_ context: String?) -> String {
+        return context ?? ""
     }
 }
