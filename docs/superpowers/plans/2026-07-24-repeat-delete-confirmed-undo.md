@@ -929,3 +929,114 @@ extension 등록과 전체 접근 ON까지만 확인 완료로 분리했고, Mes
 `미검증`으로 유지했으며 물리 햅틱을 Simulator 검증 성공으로 표현하지 않았다. 기준 `e16e559f` 이후
 production 코드 변경은 없고 Step 1~4 계획 문서 커밋은 4개로 분리됐다. 이 Step 기록은 지정 메시지의
 다섯 번째 문서 커밋으로 분리한다.
+
+---
+
+## 2026-07-25 History Compaction 정정
+
+이 문서의 `97745c46..HEAD`, `239a1657..HEAD`, `e16e559f` 및 개별 Step SHA는 사용자 요청에 따른
+history compaction 전 실행 기록이다. 해당 SHA object가 로컬에 남아 있더라도 현재 branch 이력에서는
+unreachable이므로 현재 범위나 재현 가능한 Step commit으로 해석하지 않는다. compaction 직전 최종
+commit `46990093`과 compaction 후 `afb74ad4`의 tree는
+`406ac51d160781c2ba9bad3b9429ba8881693b6d`로 동일하다.
+
+현재 branch에서 도달 가능한 task-level commit은 다음 8개다.
+
+| 순서 | Commit | 내용 |
+|---|---|---|
+| 1 | `a046505b` | 반복 삭제 mutation 계획과 실행 기준 정리 |
+| 2 | `0f747742` | 반복 삭제 mutation 확인 상태 추가 |
+| 3 | `d676e881` | 반복 삭제 요청과 callback undo 검증 |
+| 4 | `8e3a4aab` | 반복 삭제 실제 mutation 최종 검증 |
+| 5 | `d05cad5e` | 반복 삭제 tick 처리 설계 및 계획 |
+| 6 | `dbf5d89f` | 반복 삭제 callback과 선택 상태 검증 |
+| 7 | `b73f0e7e` | 반복 삭제 tick당 단일 호출 속도 유지 |
+| 8 | `afb74ad4` | 반복 삭제 tick 최종 검증 |
+
+`.superpowers/sdd/task-1-confirmed-undo-report.md`는 scratch ignore 규칙이 기존 tracked 파일을 자동으로
+제외하지 못해 남아 있던 파일이며, 2026-07-25 최종 리뷰 수정에서 index와 tree에서 제거했다.
+
+최종 리뷰에서 발견된 초기 delete `.touchDown` 순서 결함은 controller가 사용하는
+`DeleteMutationLifecycle` 회귀 테스트로 보완한다. 테스트 controller/proxy harness가 없어 실제
+`UIInputViewController` instance를 직접 구동하지는 못하며, production lifecycle 정책으로
+touchDown-before-capture, callback-before/after-capture, tap release, English timer 전환, Hangeul 즉시
+첫 repeat, 첫 proxy 후보와 실제 줄바꿈 불일치 및 grouped Undo/Redo를 검증한다.
+
+Messages의 실제 한글·영문 8개 수동 항목은 여전히 `사용자 검증 대기`다. 이 자동 검증은 실제 앱의
+체감 cadence, 버튼 해제, Undo/Redo UI, 사운드·햅틱을 통과한 것으로 대체하지 않는다.
+
+2026-07-25 최종 리뷰 수정 자동 검증은 iPhone 13 mini / iOS 16.0에서 신규 lifecycle 집중 테스트
+RED(신규 production 타입 부재 컴파일 실패) 후 release-before-callback 리뷰 회귀 RED를 추가로 확인했고,
+최종 GREEN에서 7개가 통과했다. release된 touchDown 요청은 다음 callback과 조정할 때까지 보존하고,
+확인 전 long press 전환은 다음 mutation을 만들지 않으며, 한글 즉시 전환 후 반복 상태가 끝났다면
+timer를 다시 만들지 않도록 보완했다. 최종 전체 suite는 293개 통과, 실패·skip 0개였고, sandbox 권한
+오류를 분리한 권한 있는 재실행에서 `HangeulKeyboard`와 `EnglishKeyboard` build가 모두 성공했다.
+
+### 2026-07-25 최종 재리뷰 Cycle 4 수정
+
+재리뷰의 Critical finding에 따라 확인되지 않은 repeat tick을 gesture release에서 취소하지 않고
+`releasedRepeatTick`으로 보존한다. unchanged newline checkpoint 뒤 release가 먼저 발생해도 지연된
+`textDidChange(_:)`가 mutation을 한 번 확정하고 grouped Undo/Redo에 줄바꿈을 포함하며 repeat
+feedback을 한 번만 요청한다. 관련 없는 callback이 확인에 실패하면 released 요청을 즉시 폐기해 이후
+callback이나 입력에 남기지 않는다.
+
+Important finding에 따라 lifecycle의 새 요청 시작이 기존 pending 요청을 덮어쓰지 않도록
+`DeleteMutationStartResult`로 gate한다. 확인되지 않은 released touchDown 뒤 두 번째 delete touchDown은
+새 삭제를 실행하지 않는다. non-delete 일반 입력과 long press repeat는 실제 edit 전에
+`prepareForNonDeleteEdit()`로 released 요청을 정리하고, capture에도 같은 방어를 적용해 새 삽입 mutation이
+이전 삭제 요청에 흡수되지 않게 한다. initial touchDown feedback, 확인된 repeat feedback 한 번,
+English timer와 Hangeul 즉시 repeat 의미, `max(0.01, 0.10 - repeatRate)` 간격과 tick당 최대 한 번의 새
+삭제는 유지한다.
+
+정확한 lifecycle 집중 명령은 production 수정 전 exit 65와 `** TEST FAILED **`를 반환했다.
+`beginTouchDown`의 `.started`/`.awaitingPreviousMutation` 계약 부재로 3개 build command가 실패한
+예상 RED였다. self-review에서 callback-before-capture 순서를 추가한 뒤에는
+`prepareForNonDeleteEdit` 부재로 같은 명령이 다시 예상 RED를 보였다. 최소 구현 뒤 최종 focused
+GREEN은 lifecycle 테스트 11개 통과였다.
+
+최종 전체 `SYKeyboard` suite는 iPhone 13 mini / iOS 16.0에서 297개 통과, 실패·skip·expected failure
+0개였다. 같은 대상의 `HangeulKeyboard`와 `EnglishKeyboard` build는 모두
+`** BUILD SUCCEEDED **`였다. Messages 한글·영문 8개 수동 항목과 실제 사운드·햅틱은 여전히
+`사용자 검증 대기`이며 자동 검증 성공으로 표현하지 않는다.
+
+### 2026-07-25 최종 재리뷰 Cycle 5 수정
+
+callback이 오지 않는 문서 시작의 최초 삭제는 선택 영역이 없고, 요청 전·후 문맥이 모두 비어 있으며,
+현재 문맥이 변하지 않고, draft가 없거나 빈 draft뿐일 때만 `.noDeletion`으로 확정한다. 문맥이 비어
+있어도 요청 전 문맥이 비어 있지 않은 줄 경계와 nonempty proxy 후보는 계속 pending으로 남긴다.
+proxy suffix 확인에는 `before.hasSuffix(candidate.deletedText)`를 추가해 빈 `before`에서 nonempty
+후보를 성공으로 잘못 확정하지 않는다. ordinary release는 기존처럼 요청을 정리하며, Hangeul 즉시
+long press와 English timer는 확정된 `.noDeletion`을 `.finishWithoutDeletion`으로 소비해 timer와
+버튼 상태를 종료한다.
+
+확인되지 않은 released 요청이 남은 상태에서 두 번째 delete touchDown이 오면 요청을 덮어쓰거나 새
+삭제를 실행하지 않고 deferred intent를 기록한다. 앞 요청이 callback 또는 checkpoint에서
+확정·취소된 뒤 현재 문맥으로 deferred touchDown을 한 번만 실행하며, 기존 touchDown 피드백을
+중복하지 않는다. delete pan도 같은 명시적 boundary를 통과한다. 앞 요청이 모호하면 방향을 queue하고,
+late callback으로 앞 요청을 조정한 뒤 pan 방향을 한 번 적용해 최초 줄바꿈과 pan 삭제가 grouped
+Undo/Redo에 함께 남도록 했다.
+
+production 수정 전 정확한 focused 명령은 다음 계약이 없어 exit 65와 `** TEST FAILED **`를
+반환했다.
+
+```sh
+xcodebuild test \
+  -project SYKeyboard.xcodeproj \
+  -scheme SYKeyboard \
+  -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0' \
+  -only-testing:SYKeyboardTests/DeleteMutationLifecycleTests
+```
+
+예상한 컴파일 실패는 `.deferred`, `beginDeferredTouchDown`, `actionForDeletePan` 부재였다. 기존 11개
+회귀를 유지하고 문서 시작 no-op, Hangeul/English long press 종료, nonempty proxy 대기, deferred
+두 번째 tap, pan boundary와 grouped Undo/Redo를 다루는 5개를 추가했다. 기본 병렬 focused GREEN
+시도는 cloned Simulator 결과 정리에서 `simctl diagnose --timeout=600` 상태로 멈춰 해당
+`xcodebuild` process만 종료했다. 동일 코드와 대상을 `-parallel-testing-enabled NO`로 재실행한
+최종 focused GREEN은 16개 모두 통과, exit 0, `** TEST SUCCEEDED **`였다.
+
+최종 전체 suite도 같은 non-parallel 안정화 옵션으로 새로 실행해 35 suites의 302개 테스트가 모두
+통과했고 exit 0, `** TEST SUCCEEDED **`였다. 같은 iPhone 13 mini / iOS 16.0 대상에서
+`HangeulKeyboard`와 `EnglishKeyboard` build는 기본 sandbox의 CoreSimulator·SwiftPM/clang cache
+권한 오류(exit 74)를 분리한 뒤 동일 명령을 권한 있는 환경에서 재실행해 각각 exit 0,
+`** BUILD SUCCEEDED **`를 확인했다. Messages 한글·영문 8개 수동 항목과 실제 사운드·햅틱은 계속
+`사용자 검증 대기`다.

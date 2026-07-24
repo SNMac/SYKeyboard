@@ -141,8 +141,14 @@ open class BaseKeyboardViewController: UIInputViewController {
     private var isPrimaryCursorDragging = false
     /// 커서 이동 요청 직전 문맥입니다. `textDidChange`에서 실제 위치 변경을 확인한 뒤 소비합니다.
     private var pendingCursorDragHapticContext: KeyboardTextContextSnapshot?
-    /// 모든 반복 삭제 요청을 실제 문맥 변경 확인 후 성공 또는 무효로 한 번만 완료합니다.
-    private var repeatDeleteRequest = RepeatDeleteRequest()
+    /// touchDown과 반복 삭제 요청을 실제 문맥 변경 확인 후 성공 또는 무효로 한 번만 완료합니다.
+    private var deleteMutationLifecycle = DeleteMutationLifecycle()
+    /// 삭제 touchDown, pan, pan stop을 generation 단위 FIFO로 조정합니다.
+    private var deleteInteractionCoordinator = DeleteInteractionCoordinator()
+    /// 보류 삭제 drain 중 동기 callback 재진입을 막습니다.
+    private var isDrainingPendingDeleteInteractions = false
+    /// 현재 host text input의 식별자입니다.
+    private var currentTextInputIdentifier: ObjectIdentifier?
     /// 자동완성과 undo/redo 설정이 모두 켜진 경우에만 기능을 활성화합니다.
     private var isUndoRedoFeatureAvailable: Bool {
         return KeyboardPresentationStatePolicy.isUndoRedoFeatureAvailable(
@@ -289,6 +295,7 @@ open class BaseKeyboardViewController: UIInputViewController {
     open override func textWillChange(_ textInput: (any UITextInput)?) {
         super.textWillChange(textInput)
         logger.debug("textWillChange")
+        synchronizeDeleteInteractionInputIdentifier(textInput)
         undoRedoSession.prepareForTextWillChange(
             inputIdentifier: textInputIdentifier(for: textInput),
             context: currentTextContextSnapshot()
@@ -303,6 +310,7 @@ open class BaseKeyboardViewController: UIInputViewController {
     open override func textDidChange(_ textInput: (any UITextInput)?) {
         super.textDidChange(textInput)
         logger.debug("textDidChange")
+        synchronizeDeleteInteractionInputIdentifier(textInput)
         let currentTextContext = currentTextContextSnapshot()
         if KeyboardGesturePolicy.shouldPlayCursorDragHapticOnTextDidChange(
             isPrimaryCursorDragging: isPrimaryCursorDragging,
@@ -312,12 +320,11 @@ open class BaseKeyboardViewController: UIInputViewController {
             FeedbackManager.shared.playHaptic(isForcing: true)
         }
         pendingCursorDragHapticContext = nil
-        let repeatDeleteCompletion = repeatDeleteRequest.completeAfterTextChange(
-            isRepeatingInput: isRepeatingInput,
+        let deleteMutationOutcome = deleteMutationLifecycle.completeAfterTextChange(
             currentContext: currentTextContext,
             currentSelectedText: textDocumentProxy.selectedText
         )
-        processRepeatDeleteCompletion(repeatDeleteCompletion)
+        processDeleteMutationCallbackOutcome(deleteMutationOutcome)
         invalidateUndoRedoHistoryIfNeededAfterTextChange(textInput)
         updateKeyboardType()
         oldKeyboardType = textDocumentProxy.keyboardType
@@ -344,6 +351,7 @@ open class BaseKeyboardViewController: UIInputViewController {
     open override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         stopRepeatInputTracking()
+        currentTextInputIdentifier = nil
         undoRedoSession.removeAll()
         updateUndoRedoControls()
         resetInputBuffer()
@@ -418,17 +426,21 @@ open class BaseKeyboardViewController: UIInputViewController {
     /// > 하위 클래스에서 오버라이드 시 반드시 `super`로 호출 필요
     open func repeatTextInteractionWillPerform(button: TextInteractable) {
         // 방어 코드
-        stopRepeatInputTracking()
+        cancelTimer()
         isRepeatingInput = true
     }
     /// 반복 텍스트 상호작용이 일어난 후 실행되는 메서드
     ///
     /// > 하위 클래스에서 오버라이드 시 반드시 `super`로 호출 필요
     open func repeatTextInteractionDidPerform(button: TextInteractable) {
+        let isDeleteButton: Bool
         if case .deleteButton = button.type {
+            isDeleteButton = true
             completeRepeatDeleteAtCurrentContext()
+        } else {
+            isDeleteButton = false
         }
-        stopRepeatInputTracking()
+        stopRepeatInputTracking(preservingTouchDown: isDeleteButton)
         tempDeletedCharacters.removeAll()
 
         updateReturnButtonEnabled()
@@ -938,11 +950,27 @@ private extension BaseKeyboardViewController {
         let inputAction = makeTextInputAction()
         if button is DeleteButton {
             button.addAction(inputAction, for: .touchDown)
+            button.addAction(
+                makeDeleteButtonReleaseAction(),
+                for: [.touchUpInside, .touchUpOutside, .touchCancel]
+            )
         } else if let spaceButton = button as? SpaceButton {
             button.addAction(inputAction, for: .touchUpInside)
             addPeriodShortcutActionToSpaceButton(spaceButton)
         } else {
             button.addAction(inputAction, for: .touchUpInside)
+        }
+    }
+
+    func makeDeleteButtonReleaseAction() -> UIAction {
+        return UIAction { [weak self] _ in
+            guard let self else { return }
+
+            let resolution = deleteMutationLifecycle.finishTouchDown(
+                currentContext: currentTextContextSnapshot(),
+                currentSelectedText: textDocumentProxy.selectedText
+            )
+            processDeleteMutationResolution(resolution)
         }
     }
 
@@ -1249,6 +1277,27 @@ extension BaseKeyboardViewController {
             performanceSignposter.emitEvent("FirstTextInteraction")
         }
 
+        if case .deleteButton = button.type {
+            if !isRepeatingInput {
+                let disposition = deleteInteractionCoordinator.beginTouchDown(
+                    button: button,
+                    inputIdentifier: currentTextInputIdentifier
+                )
+                if disposition == .enqueued {
+                    return
+                }
+                guard beginDeleteTouchDownRequest() == .started else {
+                    cancelPendingDeleteInteractions()
+                    return
+                }
+            }
+            performDeleteTextInteractionWithSemanticHooks(for: button) {
+                performDeleteButtonTextInteraction()
+            }
+            return
+        } else {
+            cancelPendingDeleteInteractions()
+        }
         textInteractionWillPerform(button: button)
         defer { textInteractionDidPerform(button: button) }
 
@@ -1263,21 +1312,7 @@ extension BaseKeyboardViewController {
                 insertPrimaryKeyText(from: button)
             }
         case .deleteButton:
-            if let restore = suggestionController.attemptRestoreReplacement(
-                inputBuffer: inputBuffer,
-                documentContextBeforeInput: textDocumentProxy.documentContextBeforeInput,
-                selectedText: textDocumentProxy.selectedText
-            ) {
-                // 대치 복구: 래핑 메서드 사용
-                replaceText(deleteCount: restore.deleteCount, insert: restore.insertText)
-            } else {
-                let deletedCharacters = KeyboardTextInteractionPolicy.temporaryDeletedCharactersForSingleDelete(
-                    selectedText: textDocumentProxy.selectedText,
-                    documentContextBeforeInput: textDocumentProxy.documentContextBeforeInput
-                )
-                tempDeletedCharacters.append(contentsOf: deletedCharacters)
-                deleteBackward()
-            }
+            assertionFailure("삭제 버튼은 semantic hook 경로에서 먼저 처리됩니다.")
         case .spaceButton:
             if let replacement = suggestionController.attemptTextReplacement(
                 baseText: inputBuffer,
@@ -1298,6 +1333,14 @@ extension BaseKeyboardViewController {
     final public func performRepeatTextInteraction(for button: TextInteractable) {
         guard self.view.window != nil else { return }
 
+        if case .deleteButton = button.type {
+            performDeleteTextInteractionWithSemanticHooks(for: button) {
+                performRepeatDeleteTextInteraction(for: button)
+            }
+            return
+        }
+
+        cancelPendingDeleteInteractions()
         textInteractionWillPerform(button: button)
         defer { textInteractionDidPerform(button: button) }
 
@@ -1306,18 +1349,7 @@ extension BaseKeyboardViewController {
             repeatInsertPrimaryKeyText(from: button)
             button.playFeedback()
         case .deleteButton:
-            let action = repeatDeleteRequest.actionForNextTick(
-                currentContext: currentTextContextSnapshot(),
-                currentSelectedText: textDocumentProxy.selectedText
-            )
-            switch action {
-            case .deleteAwaitingTextChange(let previousCompletion):
-                processRepeatDeleteCompletion(previousCompletion)
-                beginRepeatDeleteRequest()
-                repeatDeleteBackward()
-            case .finishWithoutDeletion:
-                finishRepeatDeleteWithoutDeletion(for: button)
-            }
+            assertionFailure("삭제 버튼은 semantic hook 경로에서 먼저 처리됩니다.")
         case .spaceButton:
             insertSpaceText()
             button.playFeedback()
@@ -1330,15 +1362,17 @@ extension BaseKeyboardViewController {
     final public func performInitialRepeatDeleteTextInteraction(for button: TextInteractable) {
         guard self.view.window != nil else { return }
 
-        let action = repeatDeleteRequest.actionForNextTick(
+        let action = deleteMutationLifecycle.actionForNextRepeat(
             currentContext: currentTextContextSnapshot(),
             currentSelectedText: textDocumentProxy.selectedText
         )
         switch action {
-        case .deleteAwaitingTextChange(let previousCompletion):
-            processRepeatDeleteCompletion(previousCompletion)
-            beginRepeatDeleteRequest()
+        case .deleteAwaitingTextChange(let previousResolution):
+            processDeleteMutationResolution(previousResolution)
+            guard beginRepeatDeleteRequest() == .started else { return }
             performTextInteraction(for: button)
+        case .awaitingPreviousMutation:
+            return
         case .finishWithoutDeletion:
             finishRepeatDeleteWithoutDeletion(for: button)
         }
@@ -1348,16 +1382,76 @@ extension BaseKeyboardViewController {
 // MARK: - Private Methods
 
 private extension BaseKeyboardViewController {
-    func beginRepeatDeleteRequest() {
-        repeatDeleteRequest.begin(
+    func performDeleteTextInteractionWithSemanticHooks(
+        for button: TextInteractable,
+        body: () -> Void
+    ) {
+        let wasDraining = isDrainingPendingDeleteInteractions
+        isDrainingPendingDeleteInteractions = true
+        textInteractionWillPerform(button: button)
+        defer {
+            textInteractionDidPerform(button: button)
+            isDrainingPendingDeleteInteractions = wasDraining
+            if !wasDraining {
+                drainPendingDeleteInteractionsIfPossible()
+            }
+        }
+        body()
+    }
+
+    func performRepeatDeleteTextInteraction(for button: TextInteractable) {
+        let action = deleteMutationLifecycle.actionForNextRepeat(
+            currentContext: currentTextContextSnapshot(),
+            currentSelectedText: textDocumentProxy.selectedText
+        )
+        switch action {
+        case .deleteAwaitingTextChange(let previousResolution):
+            processDeleteMutationResolution(previousResolution)
+            guard beginRepeatDeleteRequest() == .started else { return }
+            repeatDeleteBackward()
+        case .awaitingPreviousMutation:
+            return
+        case .finishWithoutDeletion:
+            finishRepeatDeleteWithoutDeletion(for: button)
+        }
+    }
+
+    func beginDeleteTouchDownRequest() -> DeleteMutationStartResult {
+        return deleteMutationLifecycle.beginTouchDown(
             context: currentTextContextSnapshot(),
             selectedText: textDocumentProxy.selectedText
         )
     }
 
+    func beginRepeatDeleteRequest() -> DeleteMutationStartResult {
+        return deleteMutationLifecycle.beginRepeat(
+            context: currentTextContextSnapshot(),
+            selectedText: textDocumentProxy.selectedText
+        )
+    }
+
+    func performDeleteButtonTextInteraction() {
+        if let restore = suggestionController.attemptRestoreReplacement(
+            inputBuffer: inputBuffer,
+            documentContextBeforeInput: textDocumentProxy.documentContextBeforeInput,
+            selectedText: textDocumentProxy.selectedText
+        ) {
+            replaceText(deleteCount: restore.deleteCount, insert: restore.insertText)
+            return
+        }
+
+        let deletedCharacters = KeyboardTextInteractionPolicy.temporaryDeletedCharactersForSingleDelete(
+            selectedText: textDocumentProxy.selectedText,
+            documentContextBeforeInput: textDocumentProxy.documentContextBeforeInput
+        )
+        tempDeletedCharacters.append(contentsOf: deletedCharacters)
+        deleteBackward()
+    }
+
     func performUndo() {
         guard isUndoRedoFeatureAvailable else { return }
 
+        cancelPendingDeleteInteractions()
         undoRedoSession.cancelDebounceTimer()
         guard undoRedoSession.canApplyUndo(from: currentTextContextSnapshot()) else {
             updateUndoRedoControls()
@@ -1379,6 +1473,7 @@ private extension BaseKeyboardViewController {
     func performRedo() {
         guard isUndoRedoFeatureAvailable else { return }
 
+        cancelPendingDeleteInteractions()
         undoRedoSession.cancelDebounceTimer()
         guard undoRedoSession.canApplyRedo(from: currentTextContextSnapshot()) else {
             updateUndoRedoControls()
@@ -1422,7 +1517,7 @@ private extension BaseKeyboardViewController {
         insertedText: String,
         reliability: RepeatDeleteMutationReliability = .authoritative
     ) {
-        let captureResult = repeatDeleteRequest.capture(
+        let captureResult = deleteMutationLifecycle.capture(
             deletedText: deletedText,
             insertedText: insertedText,
             reliability: reliability
@@ -1430,8 +1525,8 @@ private extension BaseKeyboardViewController {
         switch captureResult {
         case .awaitingTextChange:
             return
-        case .completion(let completion):
-            processRepeatDeleteCompletion(completion)
+        case .completion(let resolution):
+            processDeleteMutationResolution(resolution)
             return
         case nil:
             break
@@ -1453,27 +1548,50 @@ private extension BaseKeyboardViewController {
         updateUndoRedoControls()
     }
 
-    func processRepeatDeleteCompletion(_ completion: RepeatDeleteCompletion?) {
-        guard case .mutations(let drafts) = completion else { return }
-        for draft in drafts {
-            recordUndoRedoChange(
-                deletedText: draft.deletedText,
-                insertedText: draft.insertedText
-            )
+    func processDeleteMutationResolution(_ resolution: DeleteMutationResolution?) {
+        guard let resolution else { return }
+
+        if case .mutations(let drafts) = resolution.completion {
+            for draft in drafts {
+                recordUndoRedoChange(
+                    deletedText: draft.deletedText,
+                    insertedText: draft.insertedText
+                )
+            }
         }
-        FeedbackManager.shared.playHaptic()
-        FeedbackManager.shared.playDeleteSound()
+        if resolution.shouldPlayFeedback {
+            FeedbackManager.shared.playHaptic()
+            FeedbackManager.shared.playDeleteSound()
+        }
+        resolvePendingDeleteInteractionsIfNeeded()
+        drainPendingDeleteInteractionsIfPossible()
+    }
+
+    func processDeleteMutationCallbackOutcome(_ outcome: DeleteMutationCallbackOutcome) {
+        switch outcome {
+        case .noResolution:
+            break
+        case .resolved(let resolution):
+            processDeleteMutationResolution(resolution)
+        case .cancelled:
+            cancelPendingDeleteInteractions()
+        }
+    }
+
+    func resolvePendingDeleteInteractionsIfNeeded() {
+        guard let generation = deleteInteractionCoordinator.currentGeneration else { return }
+        _ = deleteInteractionCoordinator.resolve(generation)
     }
 
     @discardableResult
     func completeRepeatDeleteAtCurrentContext() -> Bool {
-        let completion = repeatDeleteRequest.completeAtCheckpoint(
+        let resolution = deleteMutationLifecycle.completeAtCheckpoint(
             currentContext: currentTextContextSnapshot(),
             currentSelectedText: textDocumentProxy.selectedText
         )
-        guard completion != nil else { return false }
+        guard resolution != nil else { return false }
 
-        processRepeatDeleteCompletion(completion)
+        processDeleteMutationResolution(resolution)
         return true
     }
 
@@ -1604,14 +1722,18 @@ private extension BaseKeyboardViewController {
         logger.debug("반복 타이머 초기화")
     }
 
-    func stopRepeatInputTracking() {
+    func stopRepeatInputTracking(preservingTouchDown: Bool = false) {
         cancelTimer()
-        repeatDeleteRequest.cancel()
+        if preservingTouchDown {
+            deleteMutationLifecycle.finishRepeatTracking()
+        } else {
+            cancelPendingDeleteInteractions()
+        }
         isRepeatingInput = false
     }
 
     func finishRepeatDeleteWithoutDeletion(for button: TextInteractable) {
-        guard repeatDeleteRequest.completeWithoutDeletion() == .noDeletion else { return }
+        guard deleteMutationLifecycle.completeWithoutDeletion() == .noDeletion else { return }
 
         button.isGesturing = false
         stopRepeatInputTracking()
@@ -1647,21 +1769,14 @@ extension BaseKeyboardViewController: TextInteractionGestureControllerDelegate {
 
     final func deleteButtonPanning(_ controller: TextInteractionGestureController, to direction: PanDirection) {
         showDeleteDragOverlays()
-        switch direction {
-        case .left:
-            performDeleteButtonPanDeleteIfPossible()
-        case .right:
-            performDeleteButtonPanRestoreIfPossible()
-        default:
-            assertionFailure("도달할 수 없는 case 입니다.")
-        }
+        guard deleteInteractionCoordinator.enqueuePan(direction) == .performNow else { return }
+        performDeleteButtonPanIfLifecycleReady(to: direction)
     }
 
     final func deleteButtonPanStopped(_ controller: TextInteractionGestureController) {
         hideDeleteDragOverlays()
-        tempDeletedCharacters.removeAll()
-        deleteButtonPanDidStop()
-        logger.debug("임시 삭제 내용 저장 변수 초기화")
+        guard deleteInteractionCoordinator.enqueuePanStop() == .performNow else { return }
+        finishDeleteButtonPanTracking()
     }
 
     final func primaryButtonPanStopped(_ controller: TextInteractionGestureController) {
@@ -1679,6 +1794,7 @@ extension BaseKeyboardViewController: TextInteractionGestureControllerDelegate {
             isDeleteButton: isDeleteButton
         ) {
             repeatTextInteractionWillPerform(button: button)
+            guard isRepeatingInput else { return }
             startRepeatInputTimer(for: button)
         } else if KeyboardGesturePolicy.shouldPerformNumberInputOnLongPress(
             selectedLongPressAction: keyboardSettingsManager.selectedLongPressAction,
@@ -1713,6 +1829,103 @@ private extension BaseKeyboardViewController {
 
     func hideDeleteDragOverlays() {
         deleteDragIndicatorView.isHidden = true
+    }
+
+    func cancelPendingDeleteInteractions() {
+        finishCancelledDeletePanIfNeeded(
+            DeleteInteractionNonDeleteMutationBoundary.cancel(
+                lifecycle: &deleteMutationLifecycle,
+                coordinator: &deleteInteractionCoordinator
+            )
+        )
+    }
+
+    func drainPendingDeleteInteractionsIfPossible() {
+        guard !isDrainingPendingDeleteInteractions else { return }
+
+        isDrainingPendingDeleteInteractions = true
+        defer { isDrainingPendingDeleteInteractions = false }
+
+        while let event = deleteInteractionCoordinator.nextReadyEvent() {
+            switch event {
+            case .touchDown(let button):
+                guard beginDeleteTouchDownRequest() == .started else {
+                    cancelPendingDeleteInteractions()
+                    return
+                }
+                performDeleteTextInteractionWithSemanticHooks(for: button) {
+                    performDeleteButtonTextInteraction()
+                }
+                let resolution = deleteMutationLifecycle.finishTouchDown(
+                    currentContext: currentTextContextSnapshot(),
+                    currentSelectedText: textDocumentProxy.selectedText
+                )
+                processDeleteMutationResolution(resolution)
+                if deleteMutationLifecycle.isPending {
+                    return
+                }
+            case .pan(let direction):
+                performDeleteButtonPanIfLifecycleReady(to: direction)
+                if deleteMutationLifecycle.isPending {
+                    return
+                }
+            case .panStop:
+                finishDeleteButtonPanTracking()
+            }
+        }
+    }
+
+    func synchronizeDeleteInteractionInputIdentifier(_ textInput: (any UITextInput)?) {
+        let inputIdentifier = textInputIdentifier(for: textInput)
+        if let cancellation = deleteInteractionCoordinator.cancelIfInputIdentifierChanged(
+            to: inputIdentifier
+        ) {
+            deleteMutationLifecycle.cancel()
+            finishCancelledDeletePanIfNeeded(cancellation)
+        }
+        if let inputIdentifier {
+            currentTextInputIdentifier = inputIdentifier
+        }
+    }
+
+    func finishCancelledDeletePanIfNeeded(_ cancellation: DeleteInteractionCancellationResult) {
+        guard cancellation.shouldFinishPanTracking else { return }
+
+        hideDeleteDragOverlays()
+        tempDeletedCharacters.removeAll()
+        deleteButtonPanDidStop()
+        logger.debug("취소된 삭제 pan 임시 상태 초기화")
+    }
+
+    func performDeleteButtonPanInteraction(to direction: PanDirection) {
+        switch direction {
+        case .left:
+            performDeleteButtonPanDeleteIfPossible()
+        case .right:
+            performDeleteButtonPanRestoreIfPossible()
+        default:
+            assertionFailure("도달할 수 없는 case 입니다.")
+        }
+    }
+
+    func performDeleteButtonPanIfLifecycleReady(to direction: PanDirection) {
+        let action = deleteMutationLifecycle.actionForDeletePan(
+            currentContext: currentTextContextSnapshot(),
+            currentSelectedText: textDocumentProxy.selectedText
+        )
+        switch action {
+        case .perform(let previousResolution):
+            processDeleteMutationResolution(previousResolution)
+            performDeleteButtonPanInteraction(to: direction)
+        case .awaitingPreviousMutation:
+            return
+        }
+    }
+
+    func finishDeleteButtonPanTracking() {
+        tempDeletedCharacters.removeAll()
+        deleteButtonPanDidStop()
+        logger.debug("임시 삭제 내용 저장 변수 초기화")
     }
 
     func moveCursorIfPossible(to direction: PanDirection, steps: Int) -> Int {
@@ -1802,6 +2015,7 @@ extension BaseKeyboardViewController: SuggestionControllerDelegate {
 
 extension BaseKeyboardViewController: SuggestionBarDelegate {
     final func suggestionBar(_ bar: SuggestionBarView, didSelectSuggestionAt index: Int) {
+        cancelPendingDeleteInteractions()
         if handleSelectedTextSuggestion(at: index) { return }
         if handleNGramSuggestion(at: index) { return }
         if handleCurrentWordConfirmationIfNeeded(at: index) { return }

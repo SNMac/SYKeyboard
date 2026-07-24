@@ -231,7 +231,6 @@ struct KeyboardUndoRedoManagerTests {
             reliability: .proxyContext
         )
         let completion = request.completeAfterTextChange(
-            isRepeatingInput: true,
             currentContext: KeyboardTextContextSnapshot(
                 beforeInput: "ab",
                 afterInput: ""
@@ -248,7 +247,6 @@ struct KeyboardUndoRedoManagerTests {
             }
         }
         if case .mutations(let drafts) = request.completeAfterTextChange(
-            isRepeatingInput: true,
             currentContext: KeyboardTextContextSnapshot(
                 beforeInput: "ab",
                 afterInput: ""

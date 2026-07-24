@@ -107,7 +107,6 @@ struct HangeulCompositionStateTests {
             reliability: .proxyContext
         )
         let completion = request.completeAfterTextChange(
-            isRepeatingInput: true,
             currentContext: KeyboardTextContextSnapshot(
                 beforeInput: "앞줄",
                 afterInput: "한글"
@@ -145,7 +144,6 @@ struct HangeulCompositionStateTests {
         #expect(captureResult == .awaitingTextChange)
 
         let completion = request.completeAfterTextChange(
-            isRepeatingInput: true,
             currentContext: KeyboardTextContextSnapshot(beforeInput: "하", afterInput: ""),
             currentSelectedText: nil
         )
