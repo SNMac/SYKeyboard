@@ -1713,44 +1713,6 @@ struct DeleteInteractionCoordinatorTests {
         #expect(harness.coordinator.isWaitingForResolution == false)
     }
 
-    @Test("확인된 줄바꿈을 FIFO right 전에 복구 버퍼에 저장")
-    func testConfirmedNewlineIsBufferedBeforeRightReplay() {
-        var harness = DeleteInteractionIntegrationHarness()
-        let requestContext = KeyboardTextContextSnapshot(beforeInput: "", afterInput: "라마바")
-
-        let didBeginBoundary = harness.beginPanBoundary(context: requestContext)
-        let panDisposition = harness.enqueuePan(.right)
-        let stopDisposition = harness.enqueuePanStop()
-        #expect(didBeginBoundary)
-        #expect(panDisposition == .enqueued)
-        #expect(stopDisposition == .enqueued)
-
-        let outcome = harness.completeAfterTextChange(
-            context: KeyboardTextContextSnapshot(
-                beforeInput: "가나다",
-                afterInput: "라마바"
-            )
-        )
-        harness.process(outcome)
-        harness.drain { harness, event in
-            switch event {
-            case .pan(.right):
-                guard let restored = harness.temporaryDeletedCharacters.popLast() else {
-                    Issue.record("right replay 전에 줄바꿈 복구 문자가 저장되지 않음")
-                    return
-                }
-                harness.restoredCharacters.append(restored)
-            case .panStop:
-                harness.panFinishCount += 1
-            default:
-                Issue.record("예상하지 않은 replay event")
-            }
-        }
-
-        #expect(harness.restoredCharacters == ["\n"])
-        #expect(harness.panFinishCount == 1)
-    }
-
     @Test("pan boundary 확인 전 이벤트는 FIFO이고 noDeletion은 앞쪽 left만 폐기")
     func testPanBoundaryFIFOAndNoOpLeftDiscard() throws {
         var coordinator = DeleteInteractionCoordinator()
@@ -1993,77 +1955,6 @@ struct DeleteInteractionCoordinatorTests {
         #expect(harness.observedEvents.isEmpty)
     }
 
-    @Test("보류 touchDown은 will-body-did semantic hook 순서로 실행")
-    func testDeferredTouchDownRunsWillBodyDidHooksInOrder() {
-        var harness = DeleteInteractionIntegrationHarness()
-        let first = DeleteButton(keyboard: .dubeolsik)
-        let second = DeleteButton(keyboard: .dubeolsik)
-        let context = KeyboardTextContextSnapshot(beforeInput: "가", afterInput: "")
-        _ = harness.beginTouchDown(button: first, context: context)
-        _ = harness.capture(deletedText: "가")
-        #expect(harness.beginTouchDown(button: second, context: context) == .enqueued)
-
-        let outcome = harness.completeAfterTextChange(
-            context: KeyboardTextContextSnapshot(beforeInput: "", afterInput: "")
-        )
-        harness.process(outcome)
-        harness.drain { harness, event in
-            guard case .touchDown(let button) = event else {
-                Issue.record("보류 touchDown 대신 다른 event가 재생됨")
-                return
-            }
-            harness.hookTrace.append("will")
-            #expect(ObjectIdentifier(button as AnyObject) == ObjectIdentifier(second))
-            _ = harness.lifecycle.beginTouchDown(context: context, selectedText: nil)
-            harness.hookTrace.append("body")
-            harness.hookTrace.append("did")
-        }
-
-        #expect(harness.hookTrace == ["will", "body", "did"])
-    }
-
-    @Test("동기 callback 재진입은 현재 touchDown보다 다음 FIFO event를 앞세우지 않음")
-    func testSynchronousCallbackDoesNotOvertakeFIFO() {
-        var harness = DeleteInteractionIntegrationHarness()
-        let first = DeleteButton(keyboard: .dubeolsik)
-        let second = DeleteButton(keyboard: .dubeolsik)
-        let firstContext = KeyboardTextContextSnapshot(beforeInput: "가나", afterInput: "")
-        _ = harness.beginTouchDown(button: first, context: firstContext)
-        _ = harness.capture(deletedText: "나")
-        _ = harness.beginTouchDown(button: second, context: firstContext)
-        _ = harness.enqueuePan(.left)
-
-        let firstOutcome = harness.completeAfterTextChange(
-            context: KeyboardTextContextSnapshot(beforeInput: "가", afterInput: "")
-        )
-        harness.process(firstOutcome)
-        harness.drain { harness, event in
-            switch event {
-            case .touchDown:
-                harness.hookTrace.append("will")
-                _ = harness.lifecycle.beginTouchDown(
-                    context: KeyboardTextContextSnapshot(beforeInput: "가", afterInput: ""),
-                    selectedText: nil
-                )
-                _ = harness.capture(deletedText: "가")
-                harness.hookTrace.append("body")
-                let synchronousOutcome = harness.completeAfterTextChange(
-                    context: KeyboardTextContextSnapshot(beforeInput: "", afterInput: "")
-                )
-                harness.process(synchronousOutcome)
-                harness.drain { reentrantHarness, reentrantEvent in
-                    reentrantHarness.record(reentrantEvent)
-                }
-                harness.hookTrace.append("did")
-            case .pan:
-                harness.hookTrace.append("pan")
-            case .panStop:
-                harness.hookTrace.append("panStop")
-            }
-        }
-
-        #expect(harness.hookTrace == ["will", "body", "did", "pan"])
-    }
 }
 
 @MainActor
@@ -2073,9 +1964,7 @@ private struct DeleteInteractionIntegrationHarness {
     var observedDispositions: [DeleteInteractionDisposition] = []
     var observedEvents: [String] = []
     var observedOutcomes: [DeleteMutationCallbackOutcome] = []
-    var hookTrace: [String] = []
     var temporaryDeletedCharacters: [Character] = []
-    var restoredCharacters: [Character] = []
     var panFinishCount = 0
 
     private var isDraining = false

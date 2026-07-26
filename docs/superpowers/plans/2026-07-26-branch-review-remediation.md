@@ -435,7 +435,7 @@ git commit -m "test: #102 - non-delete 경계 검증 단일화"
 - Consumes: direct coordinator FIFO·reentry tests
 - Produces: production보다 테스트 구현을 검증하는 hook·순서 assertion이 없는 coordinator suite
 
-- [ ] **Step 1: direct production 정책 검증의 대체 범위 확인**
+- [x] **Step 1: direct production 정책 검증의 대체 범위 확인**
 
 다음 direct coordinator 테스트가 각각 FIFO와 재진입 gate를 검증하는지 확인한다.
 
@@ -444,7 +444,7 @@ testFIFOOrder()
 testReplayTouchDownBlocksSynchronousReentry()
 ```
 
-- [ ] **Step 2: 수동 순서 재작성 테스트 제거**
+- [x] **Step 2: 수동 순서 재작성 테스트 제거**
 
 ```swift
 // Remove:
@@ -455,11 +455,11 @@ testSynchronousCallbackDoesNotOvertakeFIFO()
 
 사용하지 않게 된 harness의 `hookTrace`, `restoredCharacters`를 제거한다.
 
-- [ ] **Step 3: focused GREEN 확인**
+- [x] **Step 3: focused GREEN 확인**
 
 `DeleteInteractionCoordinatorTests`를 실행한다. Expected: 통과.
 
-- [ ] **Step 4: 계획 결과 기록 및 커밋**
+- [x] **Step 4: 계획 결과 기록 및 커밋**
 
 ```sh
 git add \
@@ -467,6 +467,14 @@ git add \
   docs/superpowers/plans/2026-07-26-branch-review-remediation.md
 git commit -m "test: #102 - 수동 controller 순서 검증 제거"
 ```
+
+**실행 결과**
+
+- FIFO 순서는 `testFIFOOrder()`, replay gate는
+  `testReplayTouchDownBlocksSynchronousReentry()`의 production coordinator 호출로 유지했다.
+- controller의 줄바꿈 buffer·semantic hook·재진입 순서를 harness에서 직접 재작성한 3개와 사용하지
+  않는 trace 상태 2개를 제거했다.
+- `DeleteInteractionCoordinatorTests` 12개 통과, 실패·skip 0.
 
 ### Task 8: tautological repeat tick 테스트 제거
 
