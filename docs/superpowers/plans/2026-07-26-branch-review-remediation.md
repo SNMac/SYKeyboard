@@ -182,11 +182,11 @@ git commit -m "fix: #102 - 반복 삭제 후 다음 삭제 입력 보존"
 - Consumes: `RepeatDeleteRequest`
 - Produces: 중복 없이 일반 문자, 동일 문맥 줄바꿈, 권위 치환을 각각 한 번 검증하는 policy suite
 
-- [ ] **Step 1: 삭제 전 policy suite 기준선 확인**
+- [x] **Step 1: 삭제 전 policy suite 기준선 확인**
 
 `KeyboardTextInteractionPolicyTests`를 focused 실행한다. Expected: 통과.
 
-- [ ] **Step 2: 중복 함수 제거와 assertion 병합**
+- [x] **Step 2: 중복 함수 제거와 assertion 병합**
 
 다음 함수는 더 이른 동일 시나리오 테스트로 assertion을 병합한 뒤 제거한다.
 
@@ -200,11 +200,11 @@ test반복삭제_권위치환_예상문맥일치()
 `test반복삭제_일반문자Callback_후보확정()`에는 callback 전 `request.isPending`과 callback 후
 `request.isPending == false` assertion을 남긴다.
 
-- [ ] **Step 3: focused GREEN 확인**
+- [x] **Step 3: focused GREEN 확인**
 
 `KeyboardTextInteractionPolicyTests`를 다시 실행한다. Expected: 제거된 3개를 제외한 suite 통과.
 
-- [ ] **Step 4: 계획 결과 기록 및 커밋**
+- [x] **Step 4: 계획 결과 기록 및 커밋**
 
 ```sh
 git add \
@@ -212,6 +212,12 @@ git add \
   docs/superpowers/plans/2026-07-26-branch-review-remediation.md
 git commit -m "test: #102 - 삭제 요청 중복 검증 통합"
 ```
+
+**실행 결과**
+
+- 정리 전 `KeyboardTextInteractionPolicyTests` 29개 통과.
+- 일반 문자 callback 테스트에 pending 전·후 assertion을 병합하고 동일 시나리오 3개를 제거했다.
+- 정리 후 26개 통과, 실패·skip 0.
 
 ### Task 3: coordinator cancellation 중복 테스트 통합
 

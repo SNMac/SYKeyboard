@@ -242,6 +242,7 @@ struct KeyboardTextInteractionPolicyTests {
             reliability: .proxyContext
         )
         #expect(captureResult == .awaitingTextChange)
+        #expect(request.isPending)
 
         #expect(
             request.completeAfterTextChange(
@@ -255,6 +256,7 @@ struct KeyboardTextInteractionPolicyTests {
                 )
             ])
         )
+        #expect(request.isPending == false)
     }
 
     @Test("capture 전 callback 문맥은 capture 완료 결과로 전달")
@@ -393,34 +395,6 @@ struct KeyboardTextInteractionPolicyTests {
         #expect(request.isPending)
     }
 
-    @Test("동일 문맥 textDidChange는 메시지 줄바꿈 삭제로 확정")
-    func test반복삭제_동일문맥Callback_줄바꿈확정() {
-        var request = RepeatDeleteRequest()
-        let context = KeyboardTextContextSnapshot(
-            beforeInput: "다라",
-            afterInput: "마바\n"
-        )
-        request.begin(context: context, selectedText: nil)
-        _ = request.capture(
-            deletedText: "라",
-            insertedText: "",
-            reliability: .proxyContext
-        )
-
-        #expect(
-            request.completeAfterTextChange(
-                currentContext: context,
-                currentSelectedText: nil
-            ) == .mutations([
-                RepeatDeleteMutationDraft(
-                    deletedText: "\n",
-                    insertedText: "",
-                    reliability: .authoritative
-                )
-            ])
-        )
-    }
-
     @Test("선택 텍스트가 해제된 callback은 선택 삭제를 확정")
     func test반복삭제_선택삭제_Callback확정() {
         var request = RepeatDeleteRequest()
@@ -524,34 +498,6 @@ struct KeyboardTextInteractionPolicyTests {
         )
     }
 
-    @Test("권위 치환은 요청 문맥에 mutation을 적용한 결과와 일치할 때만 확정")
-    func test반복삭제_권위치환_예상문맥일치() {
-        var request = RepeatDeleteRequest()
-        let draft = RepeatDeleteMutationDraft(
-            deletedText: "한",
-            insertedText: "하",
-            reliability: .authoritative
-        )
-        request.begin(
-            context: KeyboardTextContextSnapshot(beforeInput: "한", afterInput: ""),
-            selectedText: nil
-        )
-        #expect(
-            request.capture(
-                deletedText: draft.deletedText,
-                insertedText: draft.insertedText,
-                reliability: draft.reliability
-            ) == .awaitingTextChange
-        )
-
-        #expect(
-            request.completeAfterTextChange(
-                currentContext: KeyboardTextContextSnapshot(beforeInput: "하", afterInput: ""),
-                currentSelectedText: nil
-            ) == .mutations([draft])
-        )
-    }
-
     @Test("권위 치환 뒤 앞 문맥이 그대로면 확정하지 않음")
     func test반복삭제_권위치환_변경없는앞문맥_확정안함() {
         var request = RepeatDeleteRequest()
@@ -616,34 +562,6 @@ struct KeyboardTextInteractionPolicyTests {
             ) == nil
         )
         #expect(request.isPending)
-    }
-
-    @Test("pending 요청 callback은 반복 입력 flag 없이도 확정")
-    func test삭제Mutation_Pending요청_Callback확정() {
-        var request = RepeatDeleteRequest()
-        request.begin(
-            context: KeyboardTextContextSnapshot(beforeInput: "마바", afterInput: ""),
-            selectedText: nil
-        )
-        _ = request.capture(
-            deletedText: "바",
-            insertedText: "",
-            reliability: .proxyContext
-        )
-
-        #expect(
-            request.completeAfterTextChange(
-                currentContext: KeyboardTextContextSnapshot(beforeInput: "마", afterInput: ""),
-                currentSelectedText: nil
-            ) == .mutations([
-                RepeatDeleteMutationDraft(
-                    deletedText: "바",
-                    insertedText: "",
-                    reliability: .proxyContext
-                )
-            ])
-        )
-        #expect(request.isPending == false)
     }
 
     @Test("pending 요청이 없으면 callback과 checkpoint 모두 확정하지 않음")
