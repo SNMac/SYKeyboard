@@ -317,11 +317,11 @@ git commit -m "test: #102 - 반복 삭제 manager 중복 검증 제거"
 - Consumes: `HangeulCompositionState.repeatDelete(using:)`
 - Produces: Hangeul state 결과만 검증하는 빈 상태 테스트
 
-- [ ] **Step 1: Hangeul suite 기준선 확인**
+- [x] **Step 1: Hangeul suite 기준선 확인**
 
 `HangeulCompositionStateTests`를 focused 실행한다. Expected: 통과.
 
-- [ ] **Step 2: 빈 state 테스트를 state 책임으로 축소**
+- [x] **Step 2: 빈 state 테스트를 state 책임으로 축소**
 
 기존 `test빈조합상태_경계반복삭제_줄바꿈Undo전달()`을 다음 의미로 변경한다.
 
@@ -339,7 +339,7 @@ func test빈조합상태_반복삭제() {
 }
 ```
 
-- [ ] **Step 3: Hangeul state를 사용하지 않는 권위 치환 테스트 제거**
+- [x] **Step 3: Hangeul state를 사용하지 않는 권위 치환 테스트 제거**
 
 ```swift
 // Remove:
@@ -349,11 +349,11 @@ test한글반복삭제_치환Mutation_Callback확인()
 동일 `"한" → "하"` 요청은 policy suite의
 `test반복삭제_권위있는조합치환_원형유지()`가 유지한다.
 
-- [ ] **Step 4: focused GREEN 확인**
+- [x] **Step 4: focused GREEN 확인**
 
 `HangeulCompositionStateTests`와 `KeyboardTextInteractionPolicyTests`를 실행한다. Expected: 통과.
 
-- [ ] **Step 5: 계획 결과 기록 및 커밋**
+- [x] **Step 5: 계획 결과 기록 및 커밋**
 
 ```sh
 git add \
@@ -361,6 +361,13 @@ git add \
   docs/superpowers/plans/2026-07-26-branch-review-remediation.md
 git commit -m "test: #102 - 한글 상태와 삭제 요청 검증 분리"
 ```
+
+**실행 결과**
+
+- 정리 전 `HangeulCompositionStateTests` 9개 통과.
+- 빈 state 테스트는 실제 `proxyEdit`과 state buffer만 검증하도록 축소하고, Hangeul state를 사용하지
+  않는 권위 치환 request 테스트 및 불필요한 `SYKeyboardCore` import를 제거했다.
+- 정리 후 Hangeul state 8개와 policy 26개, 총 34개 통과, 실패·skip 0.
 
 ### Task 6: 이름만 다른 non-delete harness 테스트 정리
 
