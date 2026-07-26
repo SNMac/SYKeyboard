@@ -62,6 +62,92 @@ struct KeyboardTextInteractionPolicyTests {
         )
     }
 
+    @Test("앞 문맥이 비고 문서에 텍스트가 남으면 pan boundary 요청")
+    func testDeletePanBoundaryRequestPolicy() {
+        #expect(
+            KeyboardTextInteractionPolicy.shouldRequestDeletePanBoundary(
+                hasText: true,
+                documentContextBeforeInput: nil,
+                selectedText: nil
+            )
+        )
+        #expect(
+            KeyboardTextInteractionPolicy.shouldRequestDeletePanBoundary(
+                hasText: true,
+                documentContextBeforeInput: "",
+                selectedText: ""
+            )
+        )
+        #expect(
+            KeyboardTextInteractionPolicy.shouldRequestDeletePanBoundary(
+                hasText: false,
+                documentContextBeforeInput: "",
+                selectedText: nil
+            ) == false
+        )
+        #expect(
+            KeyboardTextInteractionPolicy.shouldRequestDeletePanBoundary(
+                hasText: true,
+                documentContextBeforeInput: "가",
+                selectedText: nil
+            ) == false
+        )
+        #expect(
+            KeyboardTextInteractionPolicy.shouldRequestDeletePanBoundary(
+                hasText: true,
+                documentContextBeforeInput: "",
+                selectedText: "선택"
+            ) == false
+        )
+    }
+
+    @Test("확인된 pan boundary 줄바꿈만 임시 복구 문자로 반환")
+    func testConfirmedPanBoundaryRestoreCharacters() {
+        let newlineResolution = DeleteMutationResolution(
+            completion: .mutations([
+                RepeatDeleteMutationDraft(
+                    deletedText: "\n",
+                    insertedText: "",
+                    reliability: .authoritative
+                )
+            ]),
+            origin: .panBoundary,
+            shouldPlayFeedback: true
+        )
+        let noDeletionResolution = DeleteMutationResolution(
+            completion: .noDeletion,
+            origin: .panBoundary,
+            shouldPlayFeedback: false
+        )
+        let nonNewlineResolution = DeleteMutationResolution(
+            completion: .mutations([
+                RepeatDeleteMutationDraft(
+                    deletedText: "가",
+                    insertedText: "",
+                    reliability: .authoritative
+                )
+            ]),
+            origin: .panBoundary,
+            shouldPlayFeedback: true
+        )
+
+        #expect(
+            KeyboardTextInteractionPolicy
+                .temporaryDeletedCharactersForConfirmedPanBoundary(newlineResolution)
+            == ["\n"]
+        )
+        #expect(
+            KeyboardTextInteractionPolicy
+                .temporaryDeletedCharactersForConfirmedPanBoundary(noDeletionResolution)
+            .isEmpty
+        )
+        #expect(
+            KeyboardTextInteractionPolicy
+                .temporaryDeletedCharactersForConfirmedPanBoundary(nonNewlineResolution)
+            .isEmpty
+        )
+    }
+
     @Test("단일 삭제 기록 문자는 비어 있지 않은 선택 텍스트를 원문으로 우선 사용")
     func test단일삭제기록문자() {
         #expect(
@@ -675,6 +761,128 @@ struct KeyboardTextInteractionPolicyTests {
 @Suite("삭제 mutation lifecycle 검증")
 struct DeleteMutationLifecycleTests {
 
+    @Test("pan boundary 동일 문맥 callback은 줄바꿈 mutation을 확정")
+    func testPanBoundarySameContextCallbackConfirmsNewline() {
+        var lifecycle = DeleteMutationLifecycle()
+        let context = KeyboardTextContextSnapshot(beforeInput: "", afterInput: "라마바")
+
+        #expect(
+            lifecycle.beginPanBoundary(
+                context: context,
+                selectedText: nil
+            ) == .started
+        )
+        #expect(
+            lifecycle.capture(
+                deletedText: "",
+                insertedText: "",
+                reliability: .proxyContext
+            ) == .awaitingTextChange
+        )
+
+        #expect(
+            lifecycle.completeAfterTextChange(
+                currentContext: context,
+                currentSelectedText: nil
+            ) == .resolved(
+                DeleteMutationResolution(
+                    completion: .mutations([
+                        RepeatDeleteMutationDraft(
+                            deletedText: "\n",
+                            insertedText: "",
+                            reliability: .authoritative
+                        )
+                    ]),
+                    origin: .panBoundary,
+                    shouldPlayFeedback: true
+                )
+            )
+        )
+    }
+
+    @Test("pan boundary callback 시 선택 텍스트가 생기면 줄바꿈 추론을 취소")
+    func testPanBoundaryCallbackSelectionCancelsNewlineInference() {
+        var lifecycle = DeleteMutationLifecycle()
+        let context = KeyboardTextContextSnapshot(beforeInput: "", afterInput: "라마바")
+        _ = lifecycle.beginPanBoundary(context: context, selectedText: nil)
+        _ = lifecycle.capture(
+            deletedText: "",
+            insertedText: "",
+            reliability: .proxyContext
+        )
+
+        #expect(
+            lifecycle.completeAfterTextChange(
+                currentContext: context,
+                currentSelectedText: "선택"
+            ) == .cancelled
+        )
+        #expect(lifecycle.isPending == false)
+    }
+
+    @Test("pan boundary 빈 문맥에서 직전 줄이 나타나면 줄바꿈 mutation을 확정")
+    func testPanBoundaryPreviousLineContextConfirmsNewline() {
+        var lifecycle = DeleteMutationLifecycle()
+        let requestContext = KeyboardTextContextSnapshot(beforeInput: nil, afterInput: "라마바")
+        _ = lifecycle.beginPanBoundary(context: requestContext, selectedText: nil)
+        _ = lifecycle.capture(
+            deletedText: "",
+            insertedText: "",
+            reliability: .proxyContext
+        )
+
+        #expect(
+            lifecycle.finishPanBoundary(
+                currentContext: KeyboardTextContextSnapshot(
+                    beforeInput: "가나다",
+                    afterInput: "라마바"
+                ),
+                currentSelectedText: nil
+            ) == DeleteMutationResolution(
+                completion: .mutations([
+                    RepeatDeleteMutationDraft(
+                        deletedText: "\n",
+                        insertedText: "",
+                        reliability: .authoritative
+                    )
+                ]),
+                origin: .panBoundary,
+                shouldPlayFeedback: true
+            )
+        )
+    }
+
+    @Test("released pan boundary는 후속 checkpoint에서 noDeletion")
+    func testReleasedPanBoundaryLaterCheckpointIsNoDeletion() {
+        var lifecycle = DeleteMutationLifecycle()
+        let context = KeyboardTextContextSnapshot(beforeInput: "", afterInput: "가나다")
+        _ = lifecycle.beginPanBoundary(context: context, selectedText: nil)
+        _ = lifecycle.capture(
+            deletedText: "",
+            insertedText: "",
+            reliability: .proxyContext
+        )
+
+        #expect(
+            lifecycle.finishPanBoundary(
+                currentContext: context,
+                currentSelectedText: nil
+            ) == nil
+        )
+        #expect(lifecycle.isPending)
+        #expect(
+            lifecycle.completeAtCheckpoint(
+                currentContext: context,
+                currentSelectedText: nil
+            ) == DeleteMutationResolution(
+                completion: .noDeletion,
+                origin: .panBoundary,
+                shouldPlayFeedback: false
+            )
+        )
+        #expect(lifecycle.isPending == false)
+    }
+
     @Test("touchDown capture 후 callback은 반복 상태 전에도 줄바꿈을 확정")
     func testTouchDown_Capture후Callback_줄바꿈확정() {
         var lifecycle = DeleteMutationLifecycle()
@@ -705,6 +913,7 @@ struct DeleteMutationLifecycleTests {
                         reliability: .authoritative
                     )
                 ]),
+                origin: .touchDown,
                 shouldPlayFeedback: false
                 )
             )
@@ -746,6 +955,7 @@ struct DeleteMutationLifecycleTests {
                             reliability: .authoritative
                         )
                     ]),
+                    origin: .touchDown,
                     shouldPlayFeedback: false
                 )
             )
@@ -786,6 +996,7 @@ struct DeleteMutationLifecycleTests {
                         reliability: .authoritative
                     )
                 ]),
+                origin: .touchDown,
                 shouldPlayFeedback: false
                 )
             )
@@ -842,6 +1053,7 @@ struct DeleteMutationLifecycleTests {
             resolution
             == DeleteMutationResolution(
                 completion: .noDeletion,
+                origin: .touchDown,
                 shouldPlayFeedback: false
             )
         )
@@ -1055,6 +1267,7 @@ struct DeleteMutationLifecycleTests {
                         reliability: .authoritative
                     )
                 ]),
+                origin: .touchDown,
                 shouldPlayFeedback: false
                 )
             )
@@ -1114,6 +1327,7 @@ struct DeleteMutationLifecycleTests {
                         reliability: .authoritative
                     )
                 ]),
+                origin: .repeatTick,
                 shouldPlayFeedback: true
                 )
             )
@@ -1456,6 +1670,159 @@ private extension KeyboardTextInteractionPolicyTests {
 @MainActor
 @Suite("Delete interaction coordinator")
 struct DeleteInteractionCoordinatorTests {
+
+    @Test("panStop 뒤 late callback이 줄바꿈을 확정한 후 tracking을 종료")
+    func testPanStopBeforeLateCallbackConfirmsNewlineAndFinishesTracking() {
+        var harness = DeleteInteractionIntegrationHarness()
+        let requestContext = KeyboardTextContextSnapshot(beforeInput: "", afterInput: "라마바")
+
+        let didBeginBoundary = harness.beginPanBoundary(context: requestContext)
+        let stopDisposition = harness.enqueuePanStop()
+        let releaseResolution = harness.lifecycle.finishPanBoundary(
+            currentContext: requestContext,
+            currentSelectedText: nil
+        )
+        #expect(didBeginBoundary)
+        #expect(stopDisposition == .enqueued)
+        #expect(releaseResolution == nil)
+        #expect(harness.lifecycle.isPending)
+        #expect(harness.coordinator.isWaitingForResolution)
+
+        let outcome = harness.completeAfterTextChange(
+            context: KeyboardTextContextSnapshot(
+                beforeInput: "가나다",
+                afterInput: "라마바"
+            )
+        )
+        harness.process(outcome)
+        harness.drain { harness, event in
+            guard case .panStop = event else {
+                Issue.record("late callback 뒤 panStop 이외 이벤트가 재생됨")
+                return
+            }
+            harness.panFinishCount += 1
+        }
+
+        #expect(harness.temporaryDeletedCharacters == ["\n"])
+        #expect(harness.panFinishCount == 1)
+        #expect(harness.lifecycle.isPending == false)
+        #expect(harness.coordinator.currentGeneration == nil)
+        #expect(harness.coordinator.isWaitingForResolution == false)
+    }
+
+    @Test("문서 시작 panStop no-op은 후속 checkpoint에서 coordinator를 정리")
+    func testDocumentStartPanStopNoOpCheckpointCleansCoordinator() {
+        var harness = DeleteInteractionIntegrationHarness()
+        let context = KeyboardTextContextSnapshot(beforeInput: "", afterInput: "가나다")
+
+        let didBeginBoundary = harness.beginPanBoundary(context: context)
+        let stopDisposition = harness.enqueuePanStop()
+        let releaseResolution = harness.lifecycle.finishPanBoundary(
+            currentContext: context,
+            currentSelectedText: nil
+        )
+        #expect(didBeginBoundary)
+        #expect(stopDisposition == .enqueued)
+        #expect(releaseResolution == nil)
+
+        let resolution = harness.lifecycle.completeAtCheckpoint(
+            currentContext: context,
+            currentSelectedText: nil
+        )
+        #expect(
+            resolution == DeleteMutationResolution(
+                completion: .noDeletion,
+                origin: .panBoundary,
+                shouldPlayFeedback: false
+            )
+        )
+        if let resolution {
+            harness.process(.resolved(resolution))
+        }
+        harness.drain { harness, event in
+            guard case .panStop = event else {
+                Issue.record("no-op checkpoint 뒤 panStop 이외 이벤트가 재생됨")
+                return
+            }
+            harness.panFinishCount += 1
+        }
+
+        #expect(harness.panFinishCount == 1)
+        #expect(harness.lifecycle.isPending == false)
+        #expect(harness.coordinator.currentGeneration == nil)
+        #expect(harness.coordinator.isWaitingForResolution == false)
+    }
+
+    @Test("확인된 줄바꿈을 FIFO right 전에 복구 버퍼에 저장")
+    func testConfirmedNewlineIsBufferedBeforeRightReplay() {
+        var harness = DeleteInteractionIntegrationHarness()
+        let requestContext = KeyboardTextContextSnapshot(beforeInput: "", afterInput: "라마바")
+
+        let didBeginBoundary = harness.beginPanBoundary(context: requestContext)
+        let panDisposition = harness.enqueuePan(.right)
+        let stopDisposition = harness.enqueuePanStop()
+        #expect(didBeginBoundary)
+        #expect(panDisposition == .enqueued)
+        #expect(stopDisposition == .enqueued)
+
+        let outcome = harness.completeAfterTextChange(
+            context: KeyboardTextContextSnapshot(
+                beforeInput: "가나다",
+                afterInput: "라마바"
+            )
+        )
+        harness.process(outcome)
+        harness.drain { harness, event in
+            switch event {
+            case .pan(.right):
+                guard let restored = harness.temporaryDeletedCharacters.popLast() else {
+                    Issue.record("right replay 전에 줄바꿈 복구 문자가 저장되지 않음")
+                    return
+                }
+                harness.restoredCharacters.append(restored)
+            case .panStop:
+                harness.panFinishCount += 1
+            default:
+                Issue.record("예상하지 않은 replay event")
+            }
+        }
+
+        #expect(harness.restoredCharacters == ["\n"])
+        #expect(harness.panFinishCount == 1)
+    }
+
+    @Test("pan boundary 확인 전 이벤트는 FIFO이고 noDeletion은 앞쪽 left만 폐기")
+    func testPanBoundaryFIFOAndNoOpLeftDiscard() throws {
+        var coordinator = DeleteInteractionCoordinator()
+
+        #expect(coordinator.enqueuePan(.left) == .performNow)
+        let pendingGeneration = coordinator.beginPanBoundaryMutation(inputIdentifier: nil)
+        let generation = try #require(pendingGeneration)
+        #expect(coordinator.isWaitingForResolution)
+        #expect(coordinator.enqueuePan(.left) == .enqueued)
+        #expect(coordinator.enqueuePan(.left) == .enqueued)
+        #expect(coordinator.enqueuePan(.right) == .enqueued)
+        #expect(coordinator.enqueuePan(.left) == .enqueued)
+        #expect(coordinator.enqueuePanStop() == .enqueued)
+
+        let didResolve = coordinator.resolve(
+            generation,
+            discardingLeadingNoOpPanLeft: true
+        )
+        #expect(didResolve)
+        guard case .pan(.right)? = coordinator.nextReadyEvent() else {
+            Issue.record("선행 no-op left 뒤 right가 먼저 재생되지 않음")
+            return
+        }
+        guard case .pan(.left)? = coordinator.nextReadyEvent() else {
+            Issue.record("right 뒤의 유효 left가 보존되지 않음")
+            return
+        }
+        guard case .panStop? = coordinator.nextReadyEvent() else {
+            Issue.record("pan stop 순서가 보존되지 않음")
+            return
+        }
+    }
 
     @Test("pan과 stop 뒤의 touchDown을 도착 순서대로 재생")
     func testFIFOOrder() throws {
@@ -1865,6 +2232,8 @@ private struct DeleteInteractionIntegrationHarness {
     var observedEvents: [String] = []
     var observedOutcomes: [DeleteMutationCallbackOutcome] = []
     var hookTrace: [String] = []
+    var temporaryDeletedCharacters: [Character] = []
+    var restoredCharacters: [Character] = []
     var panFinishCount = 0
 
     private var isDraining = false
@@ -1885,6 +2254,25 @@ private struct DeleteInteractionIntegrationHarness {
         return disposition
     }
 
+    mutating func beginPanBoundary(
+        context: KeyboardTextContextSnapshot
+    ) -> Bool {
+        guard coordinator.beginPanBoundaryMutation(inputIdentifier: nil) != nil else {
+            return false
+        }
+        guard lifecycle.beginPanBoundary(context: context, selectedText: nil) == .started else {
+            _ = coordinator.cancel()
+            lifecycle.cancel()
+            return false
+        }
+        _ = lifecycle.capture(
+            deletedText: "",
+            insertedText: "",
+            reliability: .proxyContext
+        )
+        return true
+    }
+
     mutating func capture(deletedText: String) -> DeleteMutationCaptureResult? {
         return lifecycle.capture(
             deletedText: deletedText,
@@ -1895,6 +2283,12 @@ private struct DeleteInteractionIntegrationHarness {
 
     mutating func enqueuePan(_ direction: PanDirection) -> DeleteInteractionDisposition {
         let disposition = coordinator.enqueuePan(direction)
+        observedDispositions.append(disposition)
+        return disposition
+    }
+
+    mutating func enqueuePanStop() -> DeleteInteractionDisposition {
+        let disposition = coordinator.enqueuePanStop()
         observedDispositions.append(disposition)
         return disposition
     }
@@ -1914,7 +2308,11 @@ private struct DeleteInteractionIntegrationHarness {
         switch outcome {
         case .noResolution:
             return
-        case .resolved:
+        case .resolved(let resolution):
+            temporaryDeletedCharacters.append(
+                contentsOf: KeyboardTextInteractionPolicy
+                    .temporaryDeletedCharactersForConfirmedPanBoundary(resolution)
+            )
             guard let generation = coordinator.currentGeneration else { return }
             _ = coordinator.resolve(generation)
         case .cancelled:

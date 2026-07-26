@@ -83,10 +83,43 @@ struct DeleteInteractionCoordinator {
         return .enqueued
     }
 
+    mutating func beginPanBoundaryMutation(
+        inputIdentifier: ObjectIdentifier?
+    ) -> DeleteInteractionGeneration? {
+        if let currentGeneration {
+            guard !isWaitingForResolution else { return nil }
+            if let currentInputIdentifier = self.inputIdentifier,
+               let inputIdentifier,
+               currentInputIdentifier != inputIdentifier {
+                return nil
+            }
+            if self.inputIdentifier == nil {
+                self.inputIdentifier = inputIdentifier
+            }
+            isWaitingForResolution = true
+            return currentGeneration
+        }
+
+        nextGenerationRawValue &+= 1
+        let generation = DeleteInteractionGeneration(rawValue: nextGenerationRawValue)
+        currentGeneration = generation
+        self.inputIdentifier = inputIdentifier
+        isWaitingForResolution = true
+        return generation
+    }
+
     @discardableResult
-    mutating func resolve(_ generation: DeleteInteractionGeneration) -> Bool {
+    mutating func resolve(
+        _ generation: DeleteInteractionGeneration,
+        discardingLeadingNoOpPanLeft: Bool = false
+    ) -> Bool {
         guard currentGeneration == generation, isWaitingForResolution else { return false }
 
+        if discardingLeadingNoOpPanLeft {
+            while case .pan(.left)? = pendingEvents.first {
+                pendingEvents.removeFirst()
+            }
+        }
         isWaitingForResolution = false
         finishGenerationIfReadyAndEmpty()
         return true
@@ -164,6 +197,10 @@ enum RepeatDeleteConfirmationSource: Equatable {
     case checkpoint
 }
 
+enum RepeatDeleteBoundaryExpectation: Equatable {
+    case newline
+}
+
 struct RepeatDeleteMutationDraft: Equatable {
     let deletedText: String
     let insertedText: String
@@ -182,7 +219,14 @@ enum RepeatDeleteCaptureResult: Equatable {
 
 struct DeleteMutationResolution: Equatable {
     let completion: RepeatDeleteCompletion
+    let origin: DeleteMutationOrigin
     let shouldPlayFeedback: Bool
+}
+
+enum DeleteMutationOrigin: Equatable {
+    case touchDown
+    case repeatTick
+    case panBoundary
 }
 
 enum DeleteMutationCallbackOutcome: Equatable {
@@ -224,6 +268,7 @@ struct RepeatDeleteRequest {
 
     private var requestContext: KeyboardTextContextSnapshot?
     private var requestSelectedText: String?
+    private var boundaryExpectation: RepeatDeleteBoundaryExpectation?
     private var drafts: [RepeatDeleteMutationDraft] = []
     private var callbackObservationBeforeCapture: RepeatDeleteObservation?
 
@@ -239,10 +284,12 @@ struct RepeatDeleteRequest {
 
     mutating func begin(
         context: KeyboardTextContextSnapshot,
-        selectedText: String?
+        selectedText: String?,
+        boundaryExpectation: RepeatDeleteBoundaryExpectation? = nil
     ) {
         requestContext = context
         requestSelectedText = selectedText
+        self.boundaryExpectation = boundaryExpectation
         drafts.removeAll()
         callbackObservationBeforeCapture = nil
     }
@@ -384,6 +431,8 @@ struct RepeatDeleteRequest {
             return drafts
         }
 
+        guard normalized(currentSelectedText).isEmpty else { return [] }
+
         if drafts.contains(where: { $0.reliability == .authoritative }) {
             guard drafts.allSatisfy({ $0.reliability == .authoritative }),
                   let expectedBefore = expectedBeforeInput(
@@ -411,7 +460,21 @@ struct RepeatDeleteRequest {
             && currentBefore == before
         let isEmptyToPreviousLineBoundary = before.isEmpty
             && !currentBefore.isEmpty
-        guard isSameLineContextBoundary || isEmptyToPreviousLineBoundary else { return [] }
+        if isSameLineContextBoundary || isEmptyToPreviousLineBoundary {
+            return [
+                RepeatDeleteMutationDraft(
+                    deletedText: "\n",
+                    insertedText: "",
+                    reliability: .authoritative
+                )
+            ]
+        }
+
+        guard boundaryExpectation == .newline else { return [] }
+
+        let isSameLineCallback = source == .textDidChange && currentBefore == before
+        let isEmptyToPreviousLine = before.isEmpty && !currentBefore.isEmpty
+        guard isSameLineCallback || isEmptyToPreviousLine else { return [] }
 
         return [
             RepeatDeleteMutationDraft(
@@ -455,6 +518,7 @@ struct RepeatDeleteRequest {
     private mutating func consume() {
         requestContext = nil
         requestSelectedText = nil
+        boundaryExpectation = nil
         drafts.removeAll()
         callbackObservationBeforeCapture = nil
     }
@@ -471,6 +535,8 @@ struct DeleteMutationLifecycle {
         case releasedTouchDown
         case repeatTick
         case releasedRepeatTick
+        case panBoundary
+        case releasedPanBoundary
     }
 
     // MARK: - Properties
@@ -483,14 +549,20 @@ struct DeleteMutationLifecycle {
         return request.isPending
     }
 
+    var hasReleasedPanBoundaryRequest: Bool {
+        return requestKind == .releasedPanBoundary
+    }
+
     private var isReleasedRequest: Bool {
         return requestKind == .releasedTouchDown
             || requestKind == .releasedRepeatTick
+            || requestKind == .releasedPanBoundary
     }
 
     private var isActiveRequest: Bool {
         return requestKind == .touchDown
             || requestKind == .repeatTick
+            || requestKind == .panBoundary
     }
 
     // MARK: - Internal Methods
@@ -510,6 +582,20 @@ struct DeleteMutationLifecycle {
         selectedText: String?
     ) -> DeleteMutationStartResult {
         return begin(kind: .repeatTick, context: context, selectedText: selectedText)
+    }
+
+    @discardableResult
+    mutating func beginPanBoundary(
+        context: KeyboardTextContextSnapshot,
+        selectedText: String?
+    ) -> DeleteMutationStartResult {
+        guard requestKind == nil else { return .deferred }
+        return begin(
+            kind: .panBoundary,
+            context: context,
+            selectedText: selectedText,
+            boundaryExpectation: .newline
+        )
     }
 
     mutating func capture(
@@ -577,7 +663,9 @@ struct DeleteMutationLifecycle {
 
         if requestKind == .touchDown
             || requestKind == .releasedTouchDown
-            || requestKind == .releasedRepeatTick {
+            || requestKind == .releasedRepeatTick
+            || requestKind == .panBoundary
+            || requestKind == .releasedPanBoundary {
             if let completion = request.completeAtCheckpoint(
                 currentContext: currentContext,
                 currentSelectedText: currentSelectedText
@@ -639,8 +727,17 @@ struct DeleteMutationLifecycle {
         currentContext: KeyboardTextContextSnapshot,
         currentSelectedText: String?
     ) -> DeleteMutationResolution? {
-        return resolve(
+        if let resolution = resolve(
             request.completeAtCheckpoint(
+                currentContext: currentContext,
+                currentSelectedText: currentSelectedText
+            )
+        ) {
+            return resolution
+        }
+        guard requestKind == .releasedPanBoundary else { return nil }
+        return resolve(
+            request.completeWithoutDeletionIfProven(
                 currentContext: currentContext,
                 currentSelectedText: currentSelectedText
             )
@@ -672,6 +769,21 @@ struct DeleteMutationLifecycle {
         return nil
     }
 
+    mutating func finishPanBoundary(
+        currentContext: KeyboardTextContextSnapshot,
+        currentSelectedText: String?
+    ) -> DeleteMutationResolution? {
+        guard requestKind == .panBoundary else { return nil }
+
+        requestKind = .releasedPanBoundary
+        return resolve(
+            request.completeAtCheckpoint(
+                currentContext: currentContext,
+                currentSelectedText: currentSelectedText
+            )
+        )
+    }
+
     mutating func prepareForNonDeleteEdit() {
         didCompleteWithoutDeletion = false
         guard isReleasedRequest else { return }
@@ -686,7 +798,7 @@ struct DeleteMutationLifecycle {
             break
         case .repeatTick:
             requestKind = .releasedRepeatTick
-        case .releasedRepeatTick, nil:
+        case .releasedRepeatTick, .panBoundary, .releasedPanBoundary, nil:
             break
         }
     }
@@ -720,12 +832,17 @@ struct DeleteMutationLifecycle {
     private mutating func begin(
         kind: RequestKind,
         context: KeyboardTextContextSnapshot,
-        selectedText: String?
+        selectedText: String?,
+        boundaryExpectation: RepeatDeleteBoundaryExpectation? = nil
     ) -> DeleteMutationStartResult {
         guard requestKind == nil else { return .awaitingPreviousMutation }
 
         didCompleteWithoutDeletion = false
-        request.begin(context: context, selectedText: selectedText)
+        request.begin(
+            context: context,
+            selectedText: selectedText,
+            boundaryExpectation: boundaryExpectation
+        )
         requestKind = kind
         return .started
     }
@@ -737,11 +854,24 @@ struct DeleteMutationLifecycle {
 
         self.requestKind = nil
         didCompleteWithoutDeletion = completion == .noDeletion
+        let origin = origin(for: requestKind)
         return DeleteMutationResolution(
             completion: completion,
+            origin: origin,
             shouldPlayFeedback: completion.isMutation
-                && (requestKind == .repeatTick || requestKind == .releasedRepeatTick)
+                && (origin == .repeatTick || origin == .panBoundary)
         )
+    }
+
+    private func origin(for requestKind: RequestKind) -> DeleteMutationOrigin {
+        switch requestKind {
+        case .touchDown, .releasedTouchDown:
+            return .touchDown
+        case .repeatTick, .releasedRepeatTick:
+            return .repeatTick
+        case .panBoundary, .releasedPanBoundary:
+            return .panBoundary
+        }
     }
 }
 
@@ -772,6 +902,31 @@ enum KeyboardTextInteractionPolicy {
             return String(lastBeforeCursor)
         }
         return ""
+    }
+
+    static func shouldRequestDeletePanBoundary(
+        hasText: Bool,
+        documentContextBeforeInput: String?,
+        selectedText: String?
+    ) -> Bool {
+        return hasText
+            && (documentContextBeforeInput ?? "").isEmpty
+            && (selectedText ?? "").isEmpty
+    }
+
+    static func temporaryDeletedCharactersForConfirmedPanBoundary(
+        _ resolution: DeleteMutationResolution
+    ) -> [Character] {
+        guard resolution.origin == .panBoundary,
+              case .mutations(let drafts) = resolution.completion,
+              drafts.count == 1,
+              let draft = drafts.first,
+              draft.deletedText == "\n",
+              draft.insertedText.isEmpty,
+              draft.reliability == .authoritative
+        else { return [] }
+
+        return ["\n"]
     }
 
     static func deletedTextForSingleBackward(

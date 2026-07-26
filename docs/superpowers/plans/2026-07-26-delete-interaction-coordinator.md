@@ -722,17 +722,18 @@ cache 권한 오류로 각각 exit code 74였고, 권한 있는 동일 destinati
 - 어느 timer tick에서도 새 delete가 두 번 이상 발생하지 않는다.
 - 기존 lifecycle 집중 테스트와 전체 `SYKeyboard` 테스트가 통과한다.
 - `HangeulKeyboard`와 `EnglishKeyboard`가 빌드된다.
-- Messages 8개 항목과 실제 사운드·햅틱은 사용자가 확인하기 전까지 `검증 대기`로 남는다.
+- Messages 9개 항목과 실제 사운드·햅틱은 사용자가 확인하기 전까지 `검증 대기`로 남는다.
 
 ## 수동 검증 대기
 
-자동 검증 완료 뒤에도 다음 항목을 통과로 표시하지 않는다.
+자동 검증 완료 뒤에도 다음 항목은 사용자 검증 대기이며 통과로 표시하지 않는다.
 
-1. Messages 여러 줄에서 delete drag 좌우 왕복
+1. Messages 여러 줄에서 delete drag가 줄바꿈을 넘어 왼쪽 삭제되고 오른쪽 왕복에서 원문 복구
 2. 한글·영문에서 문서 끝까지 long delete
 3. 삭제 가능한 동안 기존 cadence와 동일한 체감 속도
 4. 정상 반복 상태에서 timer tick당 실제 delete 한 번
 5. Undo 원문 복원
 6. Redo 재삭제
 7. 선택 텍스트 삭제 Undo/Redo
-8. 문서 시작에서 버튼 UI, 사운드, 햅틱 종료
+8. 문서 시작에서 손을 누르는 동안 버튼 UI 유지, 손을 떼면 강조·gesture 해제
+9. 문서 시작 도달 뒤 추가 사운드·햅틱 없음

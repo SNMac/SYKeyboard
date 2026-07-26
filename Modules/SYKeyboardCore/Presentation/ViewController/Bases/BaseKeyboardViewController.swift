@@ -1374,7 +1374,7 @@ extension BaseKeyboardViewController {
         case .awaitingPreviousMutation:
             return
         case .finishWithoutDeletion:
-            finishRepeatDeleteWithoutDeletion(for: button)
+            finishRepeatDeleteWithoutDeletion()
         }
     }
 }
@@ -1412,7 +1412,7 @@ private extension BaseKeyboardViewController {
         case .awaitingPreviousMutation:
             return
         case .finishWithoutDeletion:
-            finishRepeatDeleteWithoutDeletion(for: button)
+            finishRepeatDeleteWithoutDeletion()
         }
     }
 
@@ -1551,7 +1551,14 @@ private extension BaseKeyboardViewController {
     func processDeleteMutationResolution(_ resolution: DeleteMutationResolution?) {
         guard let resolution else { return }
 
-        if case .mutations(let drafts) = resolution.completion {
+        let confirmedPanBoundaryCharacters = KeyboardTextInteractionPolicy
+            .temporaryDeletedCharactersForConfirmedPanBoundary(resolution)
+        tempDeletedCharacters.append(contentsOf: confirmedPanBoundaryCharacters)
+        let shouldApplyMutationEffects =
+            resolution.origin != .panBoundary || !confirmedPanBoundaryCharacters.isEmpty
+
+        if shouldApplyMutationEffects,
+           case .mutations(let drafts) = resolution.completion {
             for draft in drafts {
                 recordUndoRedoChange(
                     deletedText: draft.deletedText,
@@ -1559,11 +1566,15 @@ private extension BaseKeyboardViewController {
                 )
             }
         }
-        if resolution.shouldPlayFeedback {
+        if shouldApplyMutationEffects && resolution.shouldPlayFeedback {
             FeedbackManager.shared.playHaptic()
             FeedbackManager.shared.playDeleteSound()
         }
-        resolvePendingDeleteInteractionsIfNeeded()
+        let shouldDiscardLeadingPanLeft =
+            resolution.origin == .panBoundary && resolution.completion == .noDeletion
+        resolvePendingDeleteInteractionsIfNeeded(
+            discardingLeadingNoOpPanLeft: shouldDiscardLeadingPanLeft
+        )
         drainPendingDeleteInteractionsIfPossible()
     }
 
@@ -1578,9 +1589,14 @@ private extension BaseKeyboardViewController {
         }
     }
 
-    func resolvePendingDeleteInteractionsIfNeeded() {
+    func resolvePendingDeleteInteractionsIfNeeded(
+        discardingLeadingNoOpPanLeft: Bool
+    ) {
         guard let generation = deleteInteractionCoordinator.currentGeneration else { return }
-        _ = deleteInteractionCoordinator.resolve(generation)
+        _ = deleteInteractionCoordinator.resolve(
+            generation,
+            discardingLeadingNoOpPanLeft: discardingLeadingNoOpPanLeft
+        )
     }
 
     @discardableResult
@@ -1732,10 +1748,9 @@ private extension BaseKeyboardViewController {
         isRepeatingInput = false
     }
 
-    func finishRepeatDeleteWithoutDeletion(for button: TextInteractable) {
+    func finishRepeatDeleteWithoutDeletion() {
         guard deleteMutationLifecycle.completeWithoutDeletion() == .noDeletion else { return }
 
-        button.isGesturing = false
         stopRepeatInputTracking()
     }
 }
@@ -1775,7 +1790,20 @@ extension BaseKeyboardViewController: TextInteractionGestureControllerDelegate {
 
     final func deleteButtonPanStopped(_ controller: TextInteractionGestureController) {
         hideDeleteDragOverlays()
-        guard deleteInteractionCoordinator.enqueuePanStop() == .performNow else { return }
+        guard deleteInteractionCoordinator.enqueuePanStop() == .performNow else {
+            let generation = deleteInteractionCoordinator.currentGeneration
+            let resolution = deleteMutationLifecycle.finishPanBoundary(
+                currentContext: currentTextContextSnapshot(),
+                currentSelectedText: textDocumentProxy.selectedText
+            )
+            processDeleteMutationResolution(resolution)
+            if let generation,
+               resolution == nil,
+               deleteMutationLifecycle.hasReleasedPanBoundaryRequest {
+                scheduleReleasedPanBoundaryCheckpoint(for: generation)
+            }
+            return
+        }
         finishDeleteButtonPanTracking()
     }
 
@@ -1922,6 +1950,28 @@ private extension BaseKeyboardViewController {
         }
     }
 
+    func scheduleReleasedPanBoundaryCheckpoint(
+        for generation: DeleteInteractionGeneration
+    ) {
+        DispatchQueue.main.async { [weak self] in
+            guard let self,
+                  self.deleteInteractionCoordinator.currentGeneration == generation,
+                  self.deleteInteractionCoordinator.isWaitingForResolution,
+                  self.deleteMutationLifecycle.hasReleasedPanBoundaryRequest
+            else { return }
+
+            let resolution = self.deleteMutationLifecycle.completeAtCheckpoint(
+                currentContext: self.currentTextContextSnapshot(),
+                currentSelectedText: self.textDocumentProxy.selectedText
+            )
+            guard let resolution else {
+                self.cancelPendingDeleteInteractions()
+                return
+            }
+            self.processDeleteMutationResolution(resolution)
+        }
+    }
+
     func finishDeleteButtonPanTracking() {
         tempDeletedCharacters.removeAll()
         deleteButtonPanDidStop()
@@ -1954,16 +2004,36 @@ private extension BaseKeyboardViewController {
     }
 
     func performDeleteButtonPanDeleteIfPossible() {
-        guard let deleteResult = deleteButtonPanDeleteText(
+        if let deleteResult = deleteButtonPanDeleteText(
             hasPendingRestoreText: !tempDeletedCharacters.isEmpty
-        ) else { return }
-
-        if deleteResult.shouldRestore {
-            tempDeletedCharacters.append(deleteResult.character)
+        ) {
+            if deleteResult.shouldRestore {
+                tempDeletedCharacters.append(deleteResult.character)
+            }
+            updateSuggestions()
+            FeedbackManager.shared.playHaptic()
+            FeedbackManager.shared.playDeleteSound()
+            return
         }
-        updateSuggestions()
-        FeedbackManager.shared.playHaptic()
-        FeedbackManager.shared.playDeleteSound()
+
+        guard KeyboardTextInteractionPolicy.shouldRequestDeletePanBoundary(
+            hasText: textDocumentProxy.hasText,
+            documentContextBeforeInput: textDocumentProxy.documentContextBeforeInput,
+            selectedText: textDocumentProxy.selectedText
+        ) else { return }
+        guard deleteInteractionCoordinator.beginPanBoundaryMutation(
+            inputIdentifier: currentTextInputIdentifier
+        ) != nil else { return }
+        guard deleteMutationLifecycle.beginPanBoundary(
+            context: currentTextContextSnapshot(),
+            selectedText: textDocumentProxy.selectedText
+        ) == .started else {
+            deleteMutationLifecycle.cancel()
+            finishCancelledDeletePanIfNeeded(deleteInteractionCoordinator.cancel())
+            return
+        }
+
+        deleteText()
     }
 
     func performDeleteButtonPanRestoreIfPossible() {
