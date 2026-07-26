@@ -86,26 +86,13 @@ struct DeleteInteractionCoordinator {
     mutating func beginPanBoundaryMutation(
         inputIdentifier: ObjectIdentifier?
     ) -> DeleteInteractionGeneration? {
-        if let currentGeneration {
-            guard !isWaitingForResolution else { return nil }
-            if let currentInputIdentifier = self.inputIdentifier,
-               let inputIdentifier,
-               currentInputIdentifier != inputIdentifier {
-                return nil
-            }
-            if self.inputIdentifier == nil {
-                self.inputIdentifier = inputIdentifier
-            }
-            isWaitingForResolution = true
-            return currentGeneration
-        }
+        return beginMutation(inputIdentifier: inputIdentifier)
+    }
 
-        nextGenerationRawValue &+= 1
-        let generation = DeleteInteractionGeneration(rawValue: nextGenerationRawValue)
-        currentGeneration = generation
-        self.inputIdentifier = inputIdentifier
-        isWaitingForResolution = true
-        return generation
+    mutating func beginRepeatMutation(
+        inputIdentifier: ObjectIdentifier?
+    ) -> DeleteInteractionGeneration? {
+        return beginMutation(inputIdentifier: inputIdentifier)
     }
 
     @discardableResult
@@ -173,6 +160,31 @@ struct DeleteInteractionCoordinator {
     }
 
     // MARK: - Private Methods
+
+    private mutating func beginMutation(
+        inputIdentifier: ObjectIdentifier?
+    ) -> DeleteInteractionGeneration? {
+        if let currentGeneration {
+            guard !isWaitingForResolution else { return nil }
+            if let currentInputIdentifier = self.inputIdentifier,
+               let inputIdentifier,
+               currentInputIdentifier != inputIdentifier {
+                return nil
+            }
+            if self.inputIdentifier == nil {
+                self.inputIdentifier = inputIdentifier
+            }
+            isWaitingForResolution = true
+            return currentGeneration
+        }
+
+        nextGenerationRawValue &+= 1
+        let generation = DeleteInteractionGeneration(rawValue: nextGenerationRawValue)
+        currentGeneration = generation
+        self.inputIdentifier = inputIdentifier
+        isWaitingForResolution = true
+        return generation
+    }
 
     private mutating func finishGenerationIfReadyAndEmpty() {
         guard !isWaitingForResolution, pendingEvents.isEmpty else { return }

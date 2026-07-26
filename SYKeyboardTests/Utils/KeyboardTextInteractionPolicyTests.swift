@@ -1671,6 +1671,48 @@ private extension KeyboardTextInteractionPolicyTests {
 @Suite("Delete interaction coordinator")
 struct DeleteInteractionCoordinatorTests {
 
+    @Test("released repeat 확인 전 다음 touchDown은 late callback 뒤 한 번 replay")
+    func testReleasedRepeatQueuesNextTouchDownUntilLateCallback() throws {
+        var coordinator = DeleteInteractionCoordinator()
+        var lifecycle = DeleteMutationLifecycle()
+        let nextButton = DeleteButton(keyboard: .dubeolsik)
+        let before = KeyboardTextContextSnapshot(beforeInput: "가나", afterInput: "")
+        let after = KeyboardTextContextSnapshot(beforeInput: "가", afterInput: "")
+
+        let pendingGeneration = coordinator.beginRepeatMutation(inputIdentifier: nil)
+        let generation = try #require(pendingGeneration)
+        #expect(lifecycle.beginRepeat(context: before, selectedText: nil) == .started)
+        _ = lifecycle.capture(
+            deletedText: "나",
+            insertedText: "",
+            reliability: .proxyContext
+        )
+        lifecycle.finishRepeatTracking()
+
+        #expect(
+            coordinator.beginTouchDown(
+                button: nextButton,
+                inputIdentifier: nil
+            ) == .enqueued
+        )
+        let outcome = lifecycle.completeAfterTextChange(
+            currentContext: after,
+            currentSelectedText: nil
+        )
+        guard case .resolved = outcome else {
+            Issue.record("released repeat가 late callback에서 확정되지 않음")
+            return
+        }
+        let didResolve = coordinator.resolve(generation)
+        #expect(didResolve)
+        guard case .touchDown(let replayed)? = coordinator.nextReadyEvent() else {
+            Issue.record("보류된 다음 touchDown이 replay되지 않음")
+            return
+        }
+        #expect(ObjectIdentifier(replayed as AnyObject) == ObjectIdentifier(nextButton))
+        #expect(coordinator.nextReadyEvent() == nil)
+    }
+
     @Test("panStop 뒤 late callback이 줄바꿈을 확정한 후 tracking을 종료")
     func testPanStopBeforeLateCallbackConfirmsNewlineAndFinishesTracking() {
         var harness = DeleteInteractionIntegrationHarness()

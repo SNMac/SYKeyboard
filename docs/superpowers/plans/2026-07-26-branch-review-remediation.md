@@ -39,7 +39,7 @@
 - Consumes: `DeleteInteractionCoordinator.currentGeneration`, `resolve(_:)`, `DeleteMutationLifecycle.beginRepeat`
 - Produces: `DeleteInteractionCoordinator.beginRepeatMutation(inputIdentifier:) -> DeleteInteractionGeneration?`
 
-- [ ] **Step 1: 실패하는 회귀 테스트 작성**
+- [x] **Step 1: 실패하는 회귀 테스트 작성**
 
 `DeleteInteractionCoordinatorTests`에 production coordinator와 lifecycle을 함께 사용하는 테스트를 추가한다.
 
@@ -52,9 +52,8 @@ func testReleasedRepeatQueuesNextTouchDownUntilLateCallback() throws {
     let before = KeyboardTextContextSnapshot(beforeInput: "가나", afterInput: "")
     let after = KeyboardTextContextSnapshot(beforeInput: "가", afterInput: "")
 
-    let generation = try #require(
-        coordinator.beginRepeatMutation(inputIdentifier: nil)
-    )
+    let pendingGeneration = coordinator.beginRepeatMutation(inputIdentifier: nil)
+    let generation = try #require(pendingGeneration)
     #expect(lifecycle.beginRepeat(context: before, selectedText: nil) == .started)
     _ = lifecycle.capture(
         deletedText: "나",
@@ -74,7 +73,8 @@ func testReleasedRepeatQueuesNextTouchDownUntilLateCallback() throws {
         Issue.record("released repeat가 late callback에서 확정되지 않음")
         return
     }
-    #expect(coordinator.resolve(generation))
+    let didResolve = coordinator.resolve(generation)
+    #expect(didResolve)
     guard case .touchDown(let replayed)? = coordinator.nextReadyEvent() else {
         Issue.record("보류된 다음 touchDown이 replay되지 않음")
         return
@@ -84,7 +84,7 @@ func testReleasedRepeatQueuesNextTouchDownUntilLateCallback() throws {
 }
 ```
 
-- [ ] **Step 2: RED 확인**
+- [x] **Step 2: RED 확인**
 
 XcodeBuildMCP의 `SYKeyboard` scheme에서 다음 focused test를 실행한다.
 
@@ -99,7 +99,7 @@ xcodebuild test \
 
 Expected: `beginRepeatMutation` 부재로 build/test 실패.
 
-- [ ] **Step 3: coordinator에 repeat generation 시작 구현**
+- [x] **Step 3: coordinator에 repeat generation 시작 구현**
 
 `beginPanBoundaryMutation`의 공통 generation 시작 규칙을 private helper로 추출하고 repeat API에서도 사용한다.
 
@@ -123,7 +123,7 @@ private mutating func beginMutation(
 }
 ```
 
-- [ ] **Step 4: controller가 lifecycle보다 coordinator를 먼저 시작**
+- [x] **Step 4: controller가 lifecycle보다 coordinator를 먼저 시작**
 
 `beginRepeatDeleteRequest()`가 두 상태 머신을 함께 시작하고 불일치 시 함께 취소하도록 변경한다.
 
@@ -147,11 +147,11 @@ func beginRepeatDeleteRequest() -> DeleteMutationStartResult {
 }
 ```
 
-- [ ] **Step 5: GREEN과 인접 lifecycle 검증**
+- [x] **Step 5: GREEN과 인접 lifecycle 검증**
 
 Task 1 focused suite와 `DeleteMutationLifecycleTests`를 실행한다. Expected: 모두 통과.
 
-- [ ] **Step 6: 계획 결과 기록 및 커밋**
+- [x] **Step 6: 계획 결과 기록 및 커밋**
 
 이 Task의 체크박스를 완료하고 실제 테스트 결과를 Task 아래에 기록한다.
 
@@ -163,6 +163,14 @@ git add \
   docs/superpowers/plans/2026-07-26-branch-review-remediation.md
 git commit -m "fix: #102 - 반복 삭제 후 다음 삭제 입력 보존"
 ```
+
+**실행 결과**
+
+- RED: `beginRepeatMutation` 부재로 예상한 compile failure를 확인했다.
+- 첫 GREEN 시도: Swift Testing macro 내부 mutating 호출 제한으로 compile failure가 발생해 호출
+  결과를 지역 변수로 분리했다.
+- 최종 GREEN: `DeleteInteractionCoordinatorTests`와 `DeleteMutationLifecycleTests` 41개 통과,
+  실패·skip 0.
 
 ### Task 2: request와 callback 완전 중복 테스트 통합
 

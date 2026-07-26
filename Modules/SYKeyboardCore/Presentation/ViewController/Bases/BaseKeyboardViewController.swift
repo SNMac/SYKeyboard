@@ -1424,10 +1424,21 @@ private extension BaseKeyboardViewController {
     }
 
     func beginRepeatDeleteRequest() -> DeleteMutationStartResult {
-        return deleteMutationLifecycle.beginRepeat(
+        guard deleteInteractionCoordinator.beginRepeatMutation(
+            inputIdentifier: currentTextInputIdentifier
+        ) != nil else {
+            return .awaitingPreviousMutation
+        }
+
+        let result = deleteMutationLifecycle.beginRepeat(
             context: currentTextContextSnapshot(),
             selectedText: textDocumentProxy.selectedText
         )
+        guard result == .started else {
+            cancelPendingDeleteInteractions()
+            return result
+        }
+        return .started
     }
 
     func performDeleteButtonTextInteraction() {
