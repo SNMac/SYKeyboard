@@ -162,6 +162,30 @@ struct CursorDragAccelerationPolicyTests {
         #expect(steps == 2)
     }
 
+    @Test("오른쪽 문맥이 빈 문자열이면 경계 이동을 위해 1칸 요청")
+    func test오른쪽커서이동_빈문맥_1Step() {
+        let steps = CursorDragAccelerationPolicy.applicableSteps(
+            to: .right,
+            requestedSteps: 4,
+            documentContextBeforeInput: "가",
+            documentContextAfterInput: ""
+        )
+
+        #expect(steps == 1)
+    }
+
+    @Test("오른쪽 문맥이 nil이면 경계 이동을 위해 1칸 요청")
+    func test오른쪽커서이동_nil문맥_1Step() {
+        let steps = CursorDragAccelerationPolicy.applicableSteps(
+            to: .right,
+            requestedSteps: 4,
+            documentContextBeforeInput: "가",
+            documentContextAfterInput: nil
+        )
+
+        #expect(steps == 1)
+    }
+
     @Test("커서 이동 적용 step은 nil 문맥이면 0")
     func test커서이동_nil문맥_0Step() {
         let steps = CursorDragAccelerationPolicy.applicableSteps(

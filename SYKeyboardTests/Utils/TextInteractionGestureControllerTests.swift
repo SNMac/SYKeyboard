@@ -243,6 +243,35 @@ struct TextInteractionGestureControllerTests {
         #expect(delegate.primaryPanningCount == 1)
     }
 
+    @Test("삭제 long press 제스처 상태는 실제 종료까지 유지")
+    func testDeleteLongPressOwnsGesturingStateUntilEnd() {
+        let keyboardHStackView = UIView()
+        let button = DeleteButton(keyboard: .dubeolsik)
+        var currentPressedButton: BaseKeyboardButton? = button
+        let controller = TextInteractionGestureController(
+            keyboardHStackView: keyboardHStackView,
+            getCurrentPressedButton: { currentPressedButton },
+            setCurrentPressedButton: { currentPressedButton = $0 }
+        )
+        let gesture = TestLongPressGestureRecognizer()
+
+        button.addGestureRecognizer(gesture)
+        gesture.state = .began
+        controller.longPressGestureHandler(gesture)
+
+        #expect(button.isGesturing)
+
+        gesture.state = .changed
+        controller.longPressGestureHandler(gesture)
+
+        #expect(button.isGesturing)
+
+        gesture.state = .ended
+        controller.longPressGestureHandler(gesture)
+
+        #expect(button.isGesturing == false)
+    }
+
 }
 
 @MainActor
@@ -293,5 +322,14 @@ private final class TestPanGestureRecognizer: UIPanGestureRecognizer {
 
     override func location(in view: UIView?) -> CGPoint {
         location
+    }
+}
+
+private final class TestLongPressGestureRecognizer: UILongPressGestureRecognizer {
+    private var forcedState: UIGestureRecognizer.State = .possible
+
+    override var state: UIGestureRecognizer.State {
+        get { forcedState }
+        set { forcedState = newValue }
     }
 }

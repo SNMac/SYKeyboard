@@ -86,6 +86,18 @@ struct HangeulCompositionStateTests {
         #expect(state.composingBuffer == "돈")
     }
 
+    @Test("빈 한글 조합 상태의 반복 삭제는 proxy delete만 요청")
+    func test빈조합상태_반복삭제() {
+        var state = HangeulCompositionState()
+        let processor = DubeolsikProcessor(automata: HangeulAutomata())
+
+        let delete = state.repeatDelete(using: processor)
+
+        #expect(delete.proxyEdit == .delete(count: 1))
+        #expect(state.committedBuffer.isEmpty)
+        #expect(state.composingBuffer.isEmpty)
+    }
+
     @Test("delete touchDown 후 pan 삭제는 복구 문자를 한 번만 기록함")
     func testDeleteTouchDown후Pan복구중복방지() {
         var state = HangeulCompositionState()

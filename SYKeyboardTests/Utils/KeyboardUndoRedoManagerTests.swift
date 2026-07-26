@@ -191,6 +191,62 @@ struct KeyboardUndoRedoManagerTests {
         #expect(undo == KeyboardUndoRedoEdit(deleteCount: 0, insertText: "bc"))
     }
 
+    @Test("반복 삭제 경계에서 확인된 줄바꿈은 같은 그룹 순서로 한 번만 복구")
+    func test반복삭제_확인된줄바꿈_UndoRedo순서와중복방지() {
+        var manager = KeyboardUndoRedoManager()
+        var request = RepeatDeleteRequest()
+
+        manager.record(deletedText: "c", insertedText: "", targetContext: nil)
+        request.begin(
+            context: KeyboardTextContextSnapshot(
+                beforeInput: nil,
+                afterInput: ""
+            ),
+            selectedText: nil
+        )
+        let captureResult = request.capture(
+            deletedText: "",
+            insertedText: "",
+            reliability: .proxyContext
+        )
+        let completion = request.completeAfterTextChange(
+            currentContext: KeyboardTextContextSnapshot(
+                beforeInput: "ab",
+                afterInput: ""
+            ),
+            currentSelectedText: nil
+        )
+        if case .mutations(let drafts) = completion {
+            for draft in drafts {
+                manager.record(
+                    deletedText: draft.deletedText,
+                    insertedText: draft.insertedText,
+                    targetContext: nil
+                )
+            }
+        }
+        if case .mutations(let drafts) = request.completeAfterTextChange(
+            currentContext: KeyboardTextContextSnapshot(
+                beforeInput: "ab",
+                afterInput: ""
+            ),
+            currentSelectedText: nil
+        ) {
+            for draft in drafts {
+                manager.record(
+                    deletedText: draft.deletedText,
+                    insertedText: draft.insertedText,
+                    targetContext: nil
+                )
+            }
+        }
+        manager.record(deletedText: "b", insertedText: "", targetContext: nil)
+
+        #expect(captureResult == .awaitingTextChange)
+        #expect(manager.undo() == KeyboardUndoRedoEdit(deleteCount: 0, insertText: "b\nc"))
+        #expect(manager.redo() == KeyboardUndoRedoEdit(deleteCount: 3, insertText: ""))
+    }
+
     @Test("반복 삭제 undo 후 다시 반복 삭제해도 복구 개수를 유지함")
     func test반복삭제_undo후재반복삭제_복구개수유지() {
         var manager = KeyboardUndoRedoManager()

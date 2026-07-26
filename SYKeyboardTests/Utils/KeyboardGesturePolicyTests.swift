@@ -133,6 +133,64 @@ struct KeyboardGesturePolicyTests {
         )
     }
 
+    @Test("textDidChange 커서 햅틱은 primary 드래그의 실제 문맥 변경에만 재생")
+    func testTextDidChange커서햅틱조건() {
+        let requestContext = KeyboardTextContextSnapshot(
+            beforeInput: "가",
+            afterInput: ""
+        )
+        let movedContext = KeyboardTextContextSnapshot(
+            beforeInput: "가\n",
+            afterInput: ""
+        )
+
+        #expect(
+            KeyboardGesturePolicy.shouldPlayCursorDragHapticOnTextDidChange(
+                isPrimaryCursorDragging: true,
+                pendingRequestContext: requestContext,
+                currentContext: movedContext
+            )
+        )
+        #expect(
+            KeyboardGesturePolicy.shouldPlayCursorDragHapticOnTextDidChange(
+                isPrimaryCursorDragging: true,
+                pendingRequestContext: requestContext,
+                currentContext: requestContext
+            ) == false
+        )
+        #expect(
+            KeyboardGesturePolicy.shouldPlayCursorDragHapticOnTextDidChange(
+                isPrimaryCursorDragging: true,
+                pendingRequestContext: nil,
+                currentContext: movedContext
+            ) == false
+        )
+        #expect(
+            KeyboardGesturePolicy.shouldPlayCursorDragHapticOnTextDidChange(
+                isPrimaryCursorDragging: false,
+                pendingRequestContext: requestContext,
+                currentContext: movedContext
+            ) == false
+        )
+    }
+
+    @Test("커서 문맥의 nil과 빈 문자열은 같은 위치로 취급")
+    func testTextDidChange커서햅틱_nil빈문맥동일취급() {
+        #expect(
+            KeyboardGesturePolicy.shouldPlayCursorDragHapticOnTextDidChange(
+                isPrimaryCursorDragging: true,
+                pendingRequestContext: KeyboardTextContextSnapshot(
+                    beforeInput: "가",
+                    afterInput: nil
+                ),
+                currentContext: KeyboardTextContextSnapshot(
+                    beforeInput: "가",
+                    afterInput: ""
+                )
+            ) == false
+        )
+    }
+
     @Test("system gesture recognizer는 edge key touch 지연과 취소를 비활성화")
     func testSystemGestureTouchDelay해제정책() {
         let gesture = UIGestureRecognizer()
