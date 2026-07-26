@@ -486,7 +486,7 @@ git commit -m "test: #102 - 수동 controller 순서 검증 제거"
 - Consumes: `RepeatDeleteRequest.actionForNextTick`
 - Produces: 실제 action state를 직접 비교하는 기존 테스트만 유지
 
-- [ ] **Step 1: 대체 테스트 확인**
+- [x] **Step 1: 대체 테스트 확인**
 
 다음 기존 테스트가 idle, confirmed, unconfirmed tick의 실제 enum 결과를 직접 비교하는지 확인한다.
 
@@ -496,18 +496,18 @@ test반복삭제_다음Tick_이전확정후새삭제준비()
 test반복삭제_다음Tick_확인실패시종료()
 ```
 
-- [ ] **Step 2: 로컬 0/1 매핑으로 자기 자신을 검증하는 함수 제거**
+- [x] **Step 2: 로컬 0/1 매핑으로 자기 자신을 검증하는 함수 제거**
 
 ```swift
 // Remove:
 testRepeatTickExactSingleDeleteContract()
 ```
 
-- [ ] **Step 3: focused GREEN 확인**
+- [x] **Step 3: focused GREEN 확인**
 
 `DeleteMutationLifecycleTests`와 `KeyboardTextInteractionPolicyTests`를 실행한다. Expected: 통과.
 
-- [ ] **Step 4: 계획 결과 기록 및 커밋**
+- [x] **Step 4: 계획 결과 기록 및 커밋**
 
 ```sh
 git add \
@@ -515,6 +515,13 @@ git add \
   docs/superpowers/plans/2026-07-26-branch-review-remediation.md
 git commit -m "test: #102 - 반복 tick 자기검증 테스트 제거"
 ```
+
+**실행 결과**
+
+- idle, confirmed, unconfirmed tick은 기존 3개 테스트에서 실제 `RepeatDeleteAction`을 직접 비교함을
+  확인했다.
+- action을 다시 0/1로 매핑하고 `<= 1`을 확인하던 자기검증 테스트 1개를 제거했다.
+- lifecycle 21개와 policy 26개, 총 47개 통과, 실패·skip 0.
 
 ### Task 9: 전체 회귀 검증
 

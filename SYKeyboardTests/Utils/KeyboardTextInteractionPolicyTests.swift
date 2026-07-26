@@ -1494,64 +1494,6 @@ struct DeleteMutationLifecycleTests {
         #expect(manager.undo() == nil)
     }
 
-    @Test("정상 반복 tick은 정확히 한 번이고 예외 tick은 누적하지 않음")
-    func testRepeatTickExactSingleDeleteContract() {
-        func invocationCount(_ action: RepeatDeleteAction) -> Int {
-            switch action {
-            case .deleteAwaitingTextChange:
-                return 1
-            case .finishWithoutDeletion:
-                return 0
-            }
-        }
-
-        let before = KeyboardTextContextSnapshot(beforeInput: "가나", afterInput: "")
-        let after = KeyboardTextContextSnapshot(beforeInput: "가", afterInput: "")
-
-        var idle = RepeatDeleteRequest()
-        let idleTick = idle.actionForNextTick(
-            currentContext: before,
-            currentSelectedText: nil
-        )
-
-        var confirmed = RepeatDeleteRequest()
-        confirmed.begin(context: before, selectedText: nil)
-        _ = confirmed.capture(
-            deletedText: "나",
-            insertedText: "",
-            reliability: .proxyContext
-        )
-        let confirmedTick = confirmed.actionForNextTick(
-            currentContext: after,
-            currentSelectedText: nil
-        )
-
-        var unconfirmed = RepeatDeleteRequest()
-        unconfirmed.begin(context: before, selectedText: nil)
-        _ = unconfirmed.capture(
-            deletedText: "나",
-            insertedText: "",
-            reliability: .proxyContext
-        )
-        let exceptionalTick = unconfirmed.actionForNextTick(
-            currentContext: before,
-            currentSelectedText: nil
-        )
-        _ = unconfirmed.completeWithoutDeletion()
-        let laterIndependentTick = unconfirmed.actionForNextTick(
-            currentContext: before,
-            currentSelectedText: nil
-        )
-
-        #expect(invocationCount(idleTick) == 1)
-        #expect(invocationCount(confirmedTick) == 1)
-        #expect(invocationCount(exceptionalTick) == 0)
-        #expect(invocationCount(laterIndependentTick) == 1)
-        #expect(
-            [idleTick, confirmedTick, exceptionalTick, laterIndependentTick]
-                .allSatisfy { invocationCount($0) <= 1 }
-        )
-    }
 }
 
 private extension DeleteMutationCallbackOutcome {
