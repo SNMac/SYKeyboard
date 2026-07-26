@@ -153,5 +153,7 @@ xcuserdata
 .xcuserstate
 GoogleService-Info.plist
 Secrets.xcconfig
+
+# AI
 .codex/
-.claude/settings.local.json
+.superpowers/
