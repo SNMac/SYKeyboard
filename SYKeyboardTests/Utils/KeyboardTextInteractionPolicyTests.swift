@@ -2095,22 +2095,6 @@ struct DeleteInteractionCoordinatorTests {
         #expect(harness.observedEvents.isEmpty)
     }
 
-    @Test("취소 generation은 pan cleanup을 정확히 한 번 완료")
-    func testCancelledGenerationFinishesPanExactlyOnce() {
-        var harness = DeleteInteractionIntegrationHarness()
-        let button = DeleteButton(keyboard: .dubeolsik)
-        _ = harness.beginTouchDown(
-            button: button,
-            context: KeyboardTextContextSnapshot(beforeInput: "가", afterInput: "")
-        )
-        _ = harness.enqueuePan(.left)
-
-        harness.cancel()
-        harness.cancel()
-
-        #expect(harness.panFinishCount == 1)
-    }
-
     @Test("보류 touchDown은 will-body-did semantic hook 순서로 실행")
     func testDeferredTouchDownRunsWillBodyDidHooksInOrder() {
         var harness = DeleteInteractionIntegrationHarness()

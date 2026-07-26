@@ -229,23 +229,23 @@ git commit -m "test: #102 - 삭제 요청 중복 검증 통합"
 - Consumes: `DeleteInteractionCoordinator.cancel()`
 - Produces: queue 폐기와 pan cleanup 단일 소유권을 직접 검증하는 한 테스트
 
-- [ ] **Step 1: 유지할 direct coordinator 테스트 확인**
+- [x] **Step 1: 유지할 direct coordinator 테스트 확인**
 
 `testCancelClearsQueueAndFinishesPanOnce()`가 첫 cancel은 `true`, 두 번째 cancel은 `false`,
 `nextReadyEvent()`는 nil임을 확인하는지 읽고 focused suite를 실행한다.
 
-- [ ] **Step 2: harness 중복 테스트 제거**
+- [x] **Step 2: harness 중복 테스트 제거**
 
 ```swift
 // Remove:
 testCancelledGenerationFinishesPanExactlyOnce()
 ```
 
-- [ ] **Step 3: focused GREEN 확인**
+- [x] **Step 3: focused GREEN 확인**
 
 `DeleteInteractionCoordinatorTests`를 실행한다. Expected: 통과.
 
-- [ ] **Step 4: 계획 결과 기록 및 커밋**
+- [x] **Step 4: 계획 결과 기록 및 커밋**
 
 ```sh
 git add \
@@ -253,6 +253,12 @@ git add \
   docs/superpowers/plans/2026-07-26-branch-review-remediation.md
 git commit -m "test: #102 - coordinator 취소 중복 검증 통합"
 ```
+
+**실행 결과**
+
+- 정리 전 `DeleteInteractionCoordinatorTests` 19개 통과.
+- 두 번 취소와 pan cleanup 단일 소유권은 direct coordinator 테스트로 유지했다.
+- harness 중복 1개 제거 후 18개 통과, 실패·skip 0.
 
 ### Task 4: Undo/Redo manager의 중복·무효 반복 삭제 테스트 제거
 
