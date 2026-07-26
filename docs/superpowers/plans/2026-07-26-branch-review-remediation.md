@@ -379,7 +379,7 @@ git commit -m "test: #102 - 한글 상태와 삭제 요청 검증 분리"
 - Consumes: `DeleteInteractionNonDeleteMutationBoundary.cancel`
 - Produces: 공통 cancellation boundary의 lifecycle·coordinator 결과를 직접 검증하는 한 테스트
 
-- [ ] **Step 1: 공통 boundary assertion 강화**
+- [x] **Step 1: 공통 boundary assertion 강화**
 
 `testNonDeleteBoundaryDoesNotReplayQueuedPan()`을 harness 전용 이름 대신 production boundary 계약으로
 이름을 바꾸고 다음 결과를 직접 확인한다.
@@ -393,7 +393,7 @@ git commit -m "test: #102 - 한글 상태와 삭제 요청 검증 분리"
 
 helper는 `DeleteInteractionNonDeleteMutationBoundary.cancel`을 호출하는 하나만 남긴다.
 
-- [ ] **Step 2: 같은 helper와 독립 manager를 결합한 테스트 제거**
+- [x] **Step 2: 같은 helper와 독립 manager를 결합한 테스트 제거**
 
 ```swift
 // Remove:
@@ -404,11 +404,11 @@ testViewStopDoesNotReplayQueuedPan()
 
 사용하지 않게 된 `cancelForNonDeleteBoundary`, `cancelForViewStop` helper를 제거한다.
 
-- [ ] **Step 3: focused GREEN 확인**
+- [x] **Step 3: focused GREEN 확인**
 
 `DeleteInteractionCoordinatorTests`와 `KeyboardUndoRedoManagerTests`를 실행한다. Expected: 통과.
 
-- [ ] **Step 4: 계획 결과 기록 및 커밋**
+- [x] **Step 4: 계획 결과 기록 및 커밋**
 
 ```sh
 git add \
@@ -416,6 +416,14 @@ git add \
   docs/superpowers/plans/2026-07-26-branch-review-remediation.md
 git commit -m "test: #102 - non-delete 경계 검증 단일화"
 ```
+
+**실행 결과**
+
+- 공통 production cancellation boundary 테스트에 lifecycle pending 해제와 coordinator generation 폐기
+  assertion을 추가했다.
+- 같은 helper에 suggestion·Undo/Redo manager를 독립적으로 결합한 2개와 view stop 별칭 1개,
+  사용하지 않는 helper 2개를 제거했다.
+- coordinator 15개와 manager 20개, 총 35개 통과, 실패·skip 0.
 
 ### Task 7: production을 재작성한 harness 검증 제거
 

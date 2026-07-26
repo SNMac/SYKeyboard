@@ -1932,8 +1932,8 @@ struct DeleteInteractionCoordinatorTests {
         #expect(coordinator.cancel().shouldFinishPanTracking == false)
     }
 
-    @Test("non-delete 경계는 보류 pan을 재생하지 않음")
-    func testNonDeleteBoundaryDoesNotReplayQueuedPan() {
+    @Test("non-delete mutation 경계는 lifecycle과 coordinator를 함께 취소")
+    func testNonDeleteMutationBoundaryCancelsLifecycleAndCoordinator() {
         var harness = DeleteInteractionIntegrationHarness()
         let button = DeleteButton(keyboard: .dubeolsik)
         let context = KeyboardTextContextSnapshot(beforeInput: "가", afterInput: "")
@@ -1941,7 +1941,7 @@ struct DeleteInteractionCoordinatorTests {
         _ = harness.capture(deletedText: "가")
         #expect(harness.enqueuePan(.left) == .enqueued)
 
-        harness.cancelForNonDeleteBoundary()
+        harness.cancelForDirectNonDeleteMutation()
         let lateOutcome = harness.completeAfterTextChange(
             context: KeyboardTextContextSnapshot(beforeInput: "", afterInput: "")
         )
@@ -1950,110 +1950,8 @@ struct DeleteInteractionCoordinatorTests {
             Issue.record("취소된 pan이 재생됨")
         }
 
-        #expect(harness.observedEvents.isEmpty)
-        #expect(harness.panFinishCount == 1)
-    }
-
-    @Test("Suggestion 직접 편집 경계는 pending delete를 취소하고 해당 편집만 Undo에 기록")
-    func testSuggestionDirectEditBoundaryPreservesOwnUndo() {
-        var harness = DeleteInteractionIntegrationHarness()
-        var manager = KeyboardUndoRedoManager()
-        let button = DeleteButton(keyboard: .dubeolsik)
-        let context = KeyboardTextContextSnapshot(beforeInput: "기존", afterInput: "")
-        _ = harness.beginTouchDown(button: button, context: context)
-        _ = harness.capture(deletedText: "존")
-        #expect(harness.enqueuePan(.left) == .enqueued)
-
-        harness.cancelForDirectNonDeleteMutation()
-        manager.record(
-            deletedText: "기존",
-            insertedText: "추천",
-            targetContext: context
-        )
-        manager.commitPendingGroup()
-
-        let lateOutcome = harness.completeAfterTextChange(
-            context: KeyboardTextContextSnapshot(beforeInput: "추천", afterInput: "")
-        )
-        harness.process(lateOutcome)
-        harness.drain { _, _ in
-            Issue.record("Suggestion 편집 뒤 취소된 delete queue가 재생됨")
-        }
-
-        #expect(lateOutcome == .noResolution)
-        #expect(harness.observedEvents.isEmpty)
-        #expect(
-            manager.undo()
-            == KeyboardUndoRedoEdit(
-                deleteCount: 2,
-                insertText: "기존",
-                targetContext: context
-            )
-        )
-    }
-
-    @Test("Undo와 Redo 직접 편집 경계는 pending delete를 취소하고 기존 history를 보존")
-    func testUndoRedoDirectEditBoundaryPreservesHistory() {
-        var harness = DeleteInteractionIntegrationHarness()
-        var manager = KeyboardUndoRedoManager()
-        let button = DeleteButton(keyboard: .dubeolsik)
-        let context = KeyboardTextContextSnapshot(beforeInput: "가", afterInput: "")
-        manager.record(
-            deletedText: "",
-            insertedText: "가",
-            targetContext: context
-        )
-        manager.commitPendingGroup()
-        _ = harness.beginTouchDown(button: button, context: context)
-        _ = harness.capture(deletedText: "가")
-        #expect(harness.enqueuePan(.right) == .enqueued)
-
-        harness.cancelForDirectNonDeleteMutation()
-        let undo = manager.undo()
-        let redo = manager.redo()
-
-        let lateOutcome = harness.completeAfterTextChange(
-            context: KeyboardTextContextSnapshot(beforeInput: "", afterInput: "")
-        )
-        harness.process(lateOutcome)
-        harness.drain { _, _ in
-            Issue.record("Undo/Redo 편집 뒤 취소된 delete queue가 재생됨")
-        }
-
-        #expect(lateOutcome == .noResolution)
-        #expect(harness.observedEvents.isEmpty)
-        #expect(
-            undo
-            == KeyboardUndoRedoEdit(
-                deleteCount: 1,
-                insertText: "",
-                targetContext: context
-            )
-        )
-        #expect(
-            redo
-            == KeyboardUndoRedoEdit(
-                deleteCount: 0,
-                insertText: "가"
-            )
-        )
-    }
-
-    @Test("view stop은 보류 pan을 재생하지 않음")
-    func testViewStopDoesNotReplayQueuedPan() {
-        var harness = DeleteInteractionIntegrationHarness()
-        let button = DeleteButton(keyboard: .dubeolsik)
-        _ = harness.beginTouchDown(
-            button: button,
-            context: KeyboardTextContextSnapshot(beforeInput: "가", afterInput: "")
-        )
-        #expect(harness.enqueuePan(.right) == .enqueued)
-
-        harness.cancelForViewStop()
-        harness.drain { _, _ in
-            Issue.record("화면 종료 뒤 pan이 재생됨")
-        }
-
+        #expect(harness.lifecycle.isPending == false)
+        #expect(harness.coordinator.currentGeneration == nil)
         #expect(harness.observedEvents.isEmpty)
         #expect(harness.panFinishCount == 1)
     }
@@ -2264,11 +2162,6 @@ private struct DeleteInteractionIntegrationHarness {
         }
     }
 
-    mutating func cancelForNonDeleteBoundary() {
-        lifecycle.prepareForNonDeleteEdit()
-        cancel()
-    }
-
     mutating func cancelForDirectNonDeleteMutation() {
         finishPanIfNeeded(
             DeleteInteractionNonDeleteMutationBoundary.cancel(
@@ -2276,10 +2169,6 @@ private struct DeleteInteractionIntegrationHarness {
                 coordinator: &coordinator
             )
         )
-    }
-
-    mutating func cancelForViewStop() {
-        cancel()
     }
 
     mutating func cancelForInputIdentifierChange(to inputIdentifier: ObjectIdentifier?) {
