@@ -532,7 +532,7 @@ git commit -m "test: #102 - 반복 tick 자기검증 테스트 제거"
 - Consumes: Tasks 1-8의 production·test 변경
 - Produces: 실제 test/build 결과가 기록된 완료 계획
 
-- [ ] **Step 1: diff와 작업 범위 확인**
+- [x] **Step 1: diff와 작업 범위 확인**
 
 ```sh
 git status --short
@@ -542,22 +542,22 @@ git diff --stat 52e47130..HEAD
 
 Expected: 계획된 production, test, docs 파일만 변경되고 whitespace 오류 없음.
 
-- [ ] **Step 2: 전체 test 실행**
+- [x] **Step 2: 전체 test 실행**
 
 XcodeBuildMCP에서 `SYKeyboard` scheme, iPhone 13 mini / iOS 16.0,
 `-parallel-testing-enabled NO`로 전체 테스트를 실행한다. Expected: 실패·skip 0.
 
-- [ ] **Step 3: HangeulKeyboard build**
+- [x] **Step 3: HangeulKeyboard build**
 
 XcodeBuildMCP default scheme을 `HangeulKeyboard`로 바꾸고 simulator build를 실행한다.
 Expected: `BUILD SUCCEEDED`.
 
-- [ ] **Step 4: EnglishKeyboard build**
+- [x] **Step 4: EnglishKeyboard build**
 
 XcodeBuildMCP default scheme을 `EnglishKeyboard`로 바꾸고 simulator build를 실행한다.
 Expected: `BUILD SUCCEEDED`.
 
-- [ ] **Step 5: 계획에 실제 결과 기록 및 검증 커밋**
+- [x] **Step 5: 계획에 실제 결과 기록 및 검증 커밋**
 
 실제 테스트 수, build 결과, 외부 dependency 경고를 이 Task 아래에 기록하고 체크박스를 완료한다.
 
@@ -565,3 +565,14 @@ Expected: `BUILD SUCCEEDED`.
 git add docs/superpowers/plans/2026-07-26-branch-review-remediation.md
 git commit -m "docs: #102 - 브랜치 리뷰 수정 검증 결과 기록"
 ```
+
+**실행 결과**
+
+- `git status --short`: 출력 없음.
+- `git diff --check HEAD~8..HEAD`: 출력 없음.
+- 변경 범위: production 2개, test 3개, 설계·계획 문서 2개.
+- XcodeBuildMCP `SYKeyboard` 전체 테스트: 316개 통과, 실패·skip 0.
+- XcodeBuildMCP `HangeulKeyboard` build: 성공. 외부 Meta/FBAudienceNetwork `.pcm` 경로 경고가
+  있었고 build error는 없었다.
+- XcodeBuildMCP `EnglishKeyboard` build: 성공, warning·error 0.
+- 대상: iPhone 13 mini / iOS 16.0, `-parallel-testing-enabled NO`.
