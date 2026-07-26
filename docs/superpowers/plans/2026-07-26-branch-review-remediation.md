@@ -270,11 +270,11 @@ git commit -m "test: #102 - coordinator 취소 중복 검증 통합"
 - Consumes: `KeyboardUndoRedoManager`
 - Produces: manager 자체 grouping과 edit 변환만 검증하는 suite
 
-- [ ] **Step 1: manager suite 기준선 확인**
+- [x] **Step 1: manager suite 기준선 확인**
 
 `KeyboardUndoRedoManagerTests`를 focused 실행한다. Expected: 통과.
 
-- [ ] **Step 2: 다른 lifecycle 통합 검증과 겹치는 함수 제거**
+- [x] **Step 2: 다른 lifecycle 통합 검증과 겹치는 함수 제거**
 
 ```swift
 // Remove:
@@ -288,11 +288,11 @@ lifecycle resolution을 통해 검증한다. 두 번째 함수의 no-op은
 `testReleasedRepeatNoDeletionDoesNotRecordFeedbackOrUndo()`가 lifecycle resolution을 manager
 기록 경계까지 전달해 검증한다.
 
-- [ ] **Step 3: focused GREEN 확인**
+- [x] **Step 3: focused GREEN 확인**
 
 `KeyboardUndoRedoManagerTests`와 `DeleteMutationLifecycleTests`를 실행한다. Expected: 모두 통과.
 
-- [ ] **Step 4: 계획 결과 기록 및 커밋**
+- [x] **Step 4: 계획 결과 기록 및 커밋**
 
 ```sh
 git add \
@@ -300,6 +300,12 @@ git add \
   docs/superpowers/plans/2026-07-26-branch-review-remediation.md
 git commit -m "test: #102 - 반복 삭제 manager 중복 검증 제거"
 ```
+
+**실행 결과**
+
+- 정리 전 `KeyboardUndoRedoManagerTests` 22개 통과.
+- hard-coded 전체 삭제 배열 검증과 lifecycle 결과를 manager에 전달하지 않는 no-op 검증을 제거했다.
+- 정리 후 manager 20개와 `DeleteMutationLifecycleTests` 22개, 총 42개 통과, 실패·skip 0.
 
 ### Task 5: Hangeul suite에 잘못 배치된 request 테스트 정리
 

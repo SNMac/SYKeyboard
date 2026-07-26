@@ -59,27 +59,6 @@ struct KeyboardUndoRedoManagerTests {
         #expect(redo == KeyboardUndoRedoEdit(deleteCount: 1, insertText: ""))
     }
 
-    @Test("커서 드래그 후 전체 반복 삭제 undo는 마지막 줄바꿈까지 원문 복원")
-    func test반복삭제_커서드래그후전체삭제_원문복원() {
-        var manager = KeyboardUndoRedoManager()
-        let confirmedDeletedTexts = [
-            "\n", "바", "마", "\n", "라", "다", "\n", "나", "가"
-        ]
-
-        for deletedText in confirmedDeletedTexts {
-            manager.record(deletedText: deletedText, insertedText: "", targetContext: nil)
-        }
-
-        #expect(
-            manager.undo()
-            == KeyboardUndoRedoEdit(deleteCount: 0, insertText: "가나\n다라\n마바\n")
-        )
-        #expect(
-            manager.redo()
-            == KeyboardUndoRedoEdit(deleteCount: 9, insertText: "")
-        )
-    }
-
     @Test("undo 이후 새 입력은 redo 기록을 비움")
     func testUndo후_새입력_Redo초기화() {
         var manager = KeyboardUndoRedoManager()
@@ -266,26 +245,6 @@ struct KeyboardUndoRedoManagerTests {
         #expect(captureResult == .awaitingTextChange)
         #expect(manager.undo() == KeyboardUndoRedoEdit(deleteCount: 0, insertText: "b\nc"))
         #expect(manager.redo() == KeyboardUndoRedoEdit(deleteCount: 3, insertText: ""))
-    }
-
-    @Test("문서 시작의 무효 반복 삭제는 undo mutation을 만들지 않음")
-    func test반복삭제_문서시작무효요청_Undo없음() {
-        var manager = KeyboardUndoRedoManager()
-        var request = RepeatDeleteRequest()
-
-        manager.record(deletedText: "", insertedText: "", targetContext: nil)
-        request.begin(
-            context: KeyboardTextContextSnapshot(
-                beforeInput: nil,
-                afterInput: ""
-            ),
-            selectedText: nil
-        )
-        #expect(request.completeWithoutDeletion() == .noDeletion)
-
-        #expect(manager.canUndo == false)
-        #expect(manager.undo() == nil)
-        #expect(manager.redo() == nil)
     }
 
     @Test("반복 삭제 undo 후 다시 반복 삭제해도 복구 개수를 유지함")
