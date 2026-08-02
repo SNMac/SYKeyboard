@@ -9,7 +9,7 @@ import Testing
 
 @testable import HangeulKeyboardCore
 
-@Suite("천지인 컨트롤러 통합 검증")
+@Suite("천지인 HangeulCompositionState 기반 입력 상태 시나리오")
 struct CheonjiinControllerTests {
     
     // MARK: - Properties
@@ -24,8 +24,7 @@ struct CheonjiinControllerTests {
     
     @Test("확정 후 삭제: '가(확정)나' -> 삭제 -> '가ㄴ'")
     func test확정후_삭제_종성합치기방지() {
-        let sim = KeyboardControllerSimulator(
-            automata: automata,
+        let sim = HangeulCompositionTestHarness(
             processor: CheonjiinProcessor(automata: automata)
         )
         
@@ -40,8 +39,7 @@ struct CheonjiinControllerTests {
     
     @Test("확정 후 연속 삭제: '가(확정)나다' -> 전체 삭제")
     func test확정후_연속삭제() {
-        let sim = KeyboardControllerSimulator(
-            automata: automata,
+        let sim = HangeulCompositionTestHarness(
             processor: CheonjiinProcessor(automata: automata)
         )
         
@@ -70,8 +68,7 @@ struct CheonjiinControllerTests {
     
     @Test("확정 후 삭제 -> 재입력: '가(확정)ㄴ' -> 삭제 -> '가' -> 'ㄴ' -> '가ㄴ'")
     func test확정후_삭제_재입력() {
-        let sim = KeyboardControllerSimulator(
-            automata: automata,
+        let sim = HangeulCompositionTestHarness(
             processor: CheonjiinProcessor(automata: automata)
         )
         
@@ -90,8 +87,7 @@ struct CheonjiinControllerTests {
     
     @Test("반복 삭제 후 확정 보호: '가(확정)니ㅣㅣ' -> 반복 삭제 -> '가니' -> 삭제 -> '가ㄴ'")
     func test반복삭제후_확정보호() {
-        let sim = KeyboardControllerSimulator(
-            automata: automata,
+        let sim = HangeulCompositionTestHarness(
             processor: CheonjiinProcessor(automata: automata)
         )
         
@@ -116,8 +112,7 @@ struct CheonjiinControllerTests {
     
     @Test("반복 삭제로 확정 글자까지 도달: '가(확정)니ㅣㅣ' -> 반복 삭제 -> '가' -> 'ㄴ' -> '가ㄴ'")
     func test반복삭제_확정글자까지() {
-        let sim = KeyboardControllerSimulator(
-            automata: automata,
+        let sim = HangeulCompositionTestHarness(
             processor: CheonjiinProcessor(automata: automata)
         )
         
@@ -142,8 +137,7 @@ struct CheonjiinControllerTests {
     
     @Test("반복 입력 모음 조합: 'ㅏㅏㅏ' 후 'ㆍ' 길게 -> 'ㅏㅏㅑㅑㅑ'")
     func test반복입력_모음조합() {
-        let sim = KeyboardControllerSimulator(
-            automata: automata,
+        let sim = HangeulCompositionTestHarness(
             processor: CheonjiinProcessor(automata: automata)
         )
         
@@ -167,8 +161,7 @@ struct CheonjiinControllerTests {
     
     @Test("반복 입력 후 조합: 'ㄱㄱㄱ' 길게 후 'ㅣ' -> 'ㄱㄱ기'")
     func test반복입력후_조합() {
-        let sim = KeyboardControllerSimulator(
-            automata: automata,
+        let sim = HangeulCompositionTestHarness(
             processor: CheonjiinProcessor(automata: automata)
         )
         
@@ -187,8 +180,7 @@ struct CheonjiinControllerTests {
     
     @Test("확정 보호 해제 후 종성 복원: '가나(확정)다' -> 삭제 3번 -> 재입력 '나니' -> 삭제 -> '가난'")
     func test확정보호해제후_종성복원() {
-        let sim = KeyboardControllerSimulator(
-            automata: automata,
+        let sim = HangeulCompositionTestHarness(
             processor: CheonjiinProcessor(automata: automata)
         )
         
@@ -219,8 +211,7 @@ struct CheonjiinControllerTests {
     
     @Test("확정 직후 삭제: '가나(확정)다' -> 삭제 1번 -> '가나ㄷ' (보호 유지)")
     func test확정직후_삭제_보호유지() {
-        let sim = KeyboardControllerSimulator(
-            automata: automata,
+        let sim = HangeulCompositionTestHarness(
             processor: CheonjiinProcessor(automata: automata)
         )
         
@@ -236,8 +227,7 @@ struct CheonjiinControllerTests {
     
     @Test("확정 직후 삭제 -> 재입력: '가나(확정)' -> 삭제 2번 -> 'ㄷ' 입력 -> '가나ㄷ' (보호 유지)")
     func test확정후_삭제2번_재입력_보호유지() {
-        let sim = KeyboardControllerSimulator(
-            automata: automata,
+        let sim = HangeulCompositionTestHarness(
             processor: CheonjiinProcessor(automata: automata)
         )
         
@@ -257,8 +247,7 @@ struct CheonjiinControllerTests {
     
     @Test("확정 보호 해제 경계: '가(확정)나' -> 삭제로 'ㄴ'까지 -> 재입력 -> 종성 복원")
     func test확정보호해제_경계() {
-        let sim = KeyboardControllerSimulator(
-            automata: automata,
+        let sim = HangeulCompositionTestHarness(
             processor: CheonjiinProcessor(automata: automata)
         )
         
@@ -290,8 +279,7 @@ struct CheonjiinControllerTests {
     
     @Test("확정 보호 유지: '가(확정)나' -> 삭제 2번 -> '가' -> '나' 입력 -> 삭제 -> '가ㄴ'")
     func test확정보호_끌어오기후_재입력() {
-        let sim = KeyboardControllerSimulator(
-            automata: automata,
+        let sim = HangeulCompositionTestHarness(
             processor: CheonjiinProcessor(automata: automata)
         )
         

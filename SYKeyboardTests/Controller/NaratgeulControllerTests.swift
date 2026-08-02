@@ -9,7 +9,7 @@ import Testing
 
 @testable import HangeulKeyboardCore
 
-@Suite("나랏글 컨트롤러 통합 검증")
+@Suite("나랏글 HangeulCompositionState 기반 입력 상태 시나리오")
 struct NaratgeulControllerTests {
     
     // MARK: - Properties
@@ -20,8 +20,7 @@ struct NaratgeulControllerTests {
     
     @Test("반복 입력 후 조합: 'ㄱㄱㄱ' 후 'ㅏ' -> 'ㄱㄱ가'")
     func test반복입력후_조합() {
-        let sim = KeyboardControllerSimulator(
-            automata: automata,
+        let sim = HangeulCompositionTestHarness(
             processor: NaratgeulProcessor(automata: automata)
         )
         
@@ -36,8 +35,7 @@ struct NaratgeulControllerTests {
     
     @Test("반복 입력 후 조합: 'ㅏㅏㅏ' 후 'ㄴ' -> 'ㅏㅏㅏㄴ'")
     func test반복입력_모음후_자음() {
-        let sim = KeyboardControllerSimulator(
-            automata: automata,
+        let sim = HangeulCompositionTestHarness(
             processor: NaratgeulProcessor(automata: automata)
         )
         
@@ -54,8 +52,7 @@ struct NaratgeulControllerTests {
     
     @Test("반복 삭제 후 조합: 'ㄱㄱㄱㅏㅏ' -> 반복 삭제 -> 'ㄱ' -> 'ㅏ' -> '가'")
     func test반복삭제후_끌어오기_조합() {
-        let sim = KeyboardControllerSimulator(
-            automata: automata,
+        let sim = HangeulCompositionTestHarness(
             processor: NaratgeulProcessor(automata: automata)
         )
         
@@ -81,8 +78,7 @@ struct NaratgeulControllerTests {
     
     @Test("반복 입력 후 획추가: 'ㄱㄱㄱ' 후 '획' -> 'ㄱㄱㅋ'")
     func test반복입력후_획추가() {
-        let sim = KeyboardControllerSimulator(
-            automata: automata,
+        let sim = HangeulCompositionTestHarness(
             processor: NaratgeulProcessor(automata: automata)
         )
         

@@ -151,6 +151,25 @@ scheme, simulator, `extraArgs`를 확인한다. 테스트에서 사용한 code c
   가능한 한 production 진입점을 호출하고 정확한 기대값을 검증한다. production
   코드를 호출하지 않는 helper 자체 검증, 구현을 복제한 simulator 검증,
   `!=`만 사용하는 약한 단언, 시간 경과만으로 성공하는 테스트는 추가하지 않는다.
+- 숫자가 포함되어 있다는 이유만으로 UI 구현 테스트로 판단하지 않는다. 입력
+  임계값, 키보드 높이 계산식, 반복 타이머 하한처럼 사용자 동작과 안전성에
+  영향을 주는 정책 수치는 검증한다.
+- exact color, font, SF Symbol 이름, corner radius, effect subclass, private
+  subview 계층, `Mirror` 기반 private 상태는 unit test에서 고정하지 않는다.
+- production 동작을 검증한다고 설명하는 테스트는 해당 production 진입점을
+  호출해야 한다. helper가 결과를 직접 계산하거나 production 로직을 복제한
+  경우 통합 검증으로 인정하지 않는다.
+- production 클래스에 `ForTesting` 메서드를 추가하지 않는다. 의미 있는 상태
+  계산은 production policy로 분리하고 UI 결과는 공개된 동작으로 검증한다.
+- processor 단위 테스트는 processor 반환값을 검증하고, controller 수준의
+  committed/composing 상태 전이는 `HangeulCompositionState`를 사용한다.
+- 테스트·suite·harness 이름과 설명은 실제로 호출한 production 범위와 일치해야
+  한다. `HangeulCompositionState` harness는 ViewController 또는 자동완성 통합
+  테스트로 부르지 않고 조합/상태 동작으로 한정한다.
+- synthetic 자동완성 필드, 수동 상태 갱신, 그 결과에 대한 단언만으로는 실제
+  자동완성 검증을 주장하지 않는다. 자동완성 통합 테스트는 controller,
+  `inputBuffer`, `SuggestionController` 등 실제 production 경로를 거치며, 그렇지
+  않으면 조합/상태 동작으로 이름과 범위를 한정한다.
 - 수식 evaluator 변경은 정상 예시뿐 아니라 비유한 숫자 토큰·중간 결과, 주변
   일반 텍스트와 구분자, `x`/`X` 경계, 반올림된 음수 0 같은 적대 입력도
   검토한다. 전체 테스트가 통과해도 이 경계 사례를 별도로 확인한다.
@@ -165,6 +184,30 @@ scheme, simulator, `extraArgs`를 확인한다. 테스트에서 사용한 code c
 - 수식 후보 preview, 후보 탭, 스페이스는 동일한 origin-aware action 계약을
   사용한다. 확정 대치는 `UITextDocumentProxy.insertText`를 사용하고
   `setMarkedText`를 사용하지 않는다.
+
+### 테스트 경계 예시
+
+- 유지: 커서 속도별 이동 step, suggestion bar 표시 여부, 키보드 높이 계산,
+  제스처 취소 후 입력 복구
+- 제거하거나 실제 화면 검증으로 이동: 정확한 tint, blur/glass 구체 타입,
+  SF Symbol 이름, private subview 구조
+- 명시적 UI 회귀 계약: 자동완성 후보의 스크롤 없음·두 줄·자동 축소·중간 생략
+- 명명 예시: `HangeulCompositionState` harness의 committed/composing 검증은
+  조합/상태 테스트이며 ViewController·자동완성 통합 테스트가 아님
+- 자동완성 통합 예시: controller 입력에서 `inputBuffer`를 거쳐
+  `SuggestionController` 결과를 확인한다. synthetic 필드 수동 갱신은
+  조합/상태 테스트로만 설명한다.
+
+새 테스트 추가 전 확인:
+
+- 이 테스트가 실패할 production 동작을 한 문장으로 설명할 수 있는가?
+- production 진입점을 실제로 호출하는가?
+- helper가 기대 결과나 상태 전이를 다시 구현하고 있지 않은가?
+- 테스트·suite·harness 이름과 설명이 실제 production 호출 범위와 일치하는가?
+- 자동완성 통합을 주장한다면 controller/`inputBuffer`/`SuggestionController`의
+  실제 production 경로를 거치는가? 아니라면 조합/상태 테스트로 한정했는가?
+- UI 구조가 바뀌어도 사용자 동작이 같으면 통과하는가?
+- 시각 속성을 고정한다면 명시된 제품 계약 또는 접근성 요구가 있는가?
 
 ## 커밋 메시지 규칙
 

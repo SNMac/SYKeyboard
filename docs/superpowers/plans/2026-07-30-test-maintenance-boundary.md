@@ -459,6 +459,8 @@ git commit -m "refactor: 자동완성 highlight 상태 정책 분리"
 - Modify: `SYKeyboardTests/Controller/DubeolsikControllerTests.swift`
 - Modify: `SYKeyboardTests/Controller/HangeulDeleteButtonDragControllerTests.swift`
 - Modify: `SYKeyboardTests/Controller/NaratgeulControllerTests.swift`
+- Modify: `SYKeyboardTests/Utils/HangeulProcessorTestable.swift`
+  - Step 5의 이전 타입명 0건 계약을 위해 문서 주석 1줄만 새 harness 이름으로 갱신한다.
 - Modify: `docs/superpowers/plans/2026-07-30-test-maintenance-boundary.md`
 
 **Interfaces:**
@@ -467,7 +469,7 @@ git commit -m "refactor: 자동완성 highlight 상태 정책 분리"
 - Produces: production `HangeulCompositionState`를 호출하는 `input`, `space`, `delete`, `repeatInsert`, `repeatDelete`, `deleteButtonTouchDown`, `dragDeleteLeft`, `dragRestoreRight`, `finishRepeatDelete`, `repeatStart`
 - Removes: `KeyboardControllerSimulator.suggestionCurrentWord`
 
-- [ ] **Step 1: synthetic 자동완성 테스트가 실제 production gap을 잡지 못함을 기록**
+- [x] **Step 1: synthetic 자동완성 테스트가 실제 production gap을 잡지 못함을 기록**
 
 Read-only confirmation:
 
@@ -482,7 +484,7 @@ Expected: simulator 내부 대입과 해당 assertion만 검색되고 production
 `SuggestionController`/`inputBuffer` 호출은 검색되지 않는다. 결과를 Task 3에
 기록한다.
 
-- [ ] **Step 2: harness 이름과 initializer를 실제 책임에 맞게 변경**
+- [x] **Step 2: harness 이름과 initializer를 실제 책임에 맞게 변경**
 
 파일과 타입을 다음처럼 변경한다.
 
@@ -495,7 +497,7 @@ init(automata:processor:) → init(processor:)
 기존 initializer의 사용하지 않는 `automata` parameter를 제거한다.
 모든 controller suite call site를 새 타입과 initializer로 갱신한다.
 
-- [ ] **Step 3: synthetic suggestion 상태와 테스트 제거**
+- [x] **Step 3: synthetic suggestion 상태와 테스트 제거**
 
 Harness에서 다음을 제거한다.
 
@@ -509,13 +511,13 @@ input/deleteButtonTouchDown/dragDeleteLeft/dragRestoreRight의 synthetic update 
 `test두벌식_삭제버튼드래그_전체복구후_자동완성현재단어동기화`를 제거한다.
 삭제·복구 text와 composing buffer를 확인하는 기존 테스트는 유지한다.
 
-- [ ] **Step 4: suite 설명을 검증 범위에 맞게 갱신**
+- [x] **Step 4: suite 설명을 검증 범위에 맞게 갱신**
 
 `Controller` 폴더의 suite 이름과 harness 문서에서 “실제 ViewController 통합”
 의미를 제거하고 `HangeulCompositionState 기반 입력 상태 시나리오`임을
 명시한다. 파일 경로는 이번 Task에서 이동하지 않는다.
 
-- [ ] **Step 5: synthetic 경로 제거 확인**
+- [x] **Step 5: synthetic 경로 제거 확인**
 
 Run:
 
@@ -527,7 +529,7 @@ rg -n \
 
 Expected: 검색 결과가 없다.
 
-- [ ] **Step 6: 한글 상태 시나리오 테스트 실행**
+- [x] **Step 6: 한글 상태 시나리오 테스트 실행**
 
 Run:
 
@@ -546,7 +548,7 @@ xcodebuild test \
 Expected: synthetic 자동완성 테스트를 제외한 production state 시나리오가 모두
 통과한다.
 
-- [ ] **Step 7: Task 3 결과 기록 및 커밋**
+- [x] **Step 7: Task 3 결과 기록 및 커밋**
 
 계획 문서의 Task 3에 검색 결과, 실제 destination, 테스트 수를 기록하고
 Step 1~7 체크박스를 완료 처리한다.
@@ -559,9 +561,19 @@ git add \
   SYKeyboardTests/Controller/DubeolsikControllerTests.swift \
   SYKeyboardTests/Controller/HangeulDeleteButtonDragControllerTests.swift \
   SYKeyboardTests/Controller/NaratgeulControllerTests.swift \
+  SYKeyboardTests/Utils/HangeulProcessorTestable.swift \
   docs/superpowers/plans/2026-07-30-test-maintenance-boundary.md
 git commit -m "test: 한글 상태 시나리오 harness 책임 정리"
 ```
+
+#### Task 3 실행 결과 (2026-07-30)
+
+- Destination: `platform=iOS Simulator,name=iPhone 13 mini,OS=16.0` (선택된 기기: `iPhone 13 mini`, iOS 16.0, arm64, `CBD992D3-5364-4F69-AC5F-0077ADF1A292`).
+- Step 1: `rg -n 'suggestionCurrentWord|updateSuggestionCurrentWord|SuggestionController|inputBuffer' SYKeyboardTests/Utils/KeyboardControllerSimulator.swift SYKeyboardTests/Controller/HangeulDeleteButtonDragControllerTests.swift` 결과는 synthetic `suggestionCurrentWord` 저장·갱신 7건과 해당 테스트 assertion 3건뿐이었다. production `SuggestionController` 및 `inputBuffer` 호출은 0건이어서 이 테스트가 production 자동완성 경로의 회귀를 검출하지 못함을 확인했다.
+- Step 2~4: `DubeolsikControllerTests` 호출부를 먼저 새 계약으로 변경하고 같은 suite만 실행해 `Cannot find 'HangeulCompositionTestHarness' in scope` 컴파일 실패를 확인했다. 이어 파일·타입을 `HangeulCompositionTestHarness`로 변경하고 사용하지 않는 `automata` initializer parameter를 제거했으며, 네 controller suite 설명을 `HangeulCompositionState 기반 입력 상태 시나리오`로 갱신했다. 같은 두벌식 suite 재실행에서는 4개가 통과했다.
+- Step 3: harness의 synthetic suggestion property·갱신 메서드·호출과 자기 충족형 자동완성 테스트 1개만 제거했다. production 코드 및 자동완성 로직은 변경하지 않았고, 삭제·복구 text 및 조합 buffer 동기화 시나리오는 유지했다.
+- Step 5: `rg -n 'KeyboardControllerSimulator|suggestionCurrentWord|updateSuggestionCurrentWord|init\\(automata:' SYKeyboardTests` 결과는 비어 있었다. 최초 검색에서 Task 4 대상인 `HangeulProcessorTestable.swift` 문서 주석에 이전 타입명 1건이 남아 있어, Step 5의 0건 계약을 만족하도록 승인받아 해당 주석만 새 harness 이름으로 갱신했다. `applyDelete` 등 Task 4 구현은 변경하지 않았다.
+- Step 6: `xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0' -only-testing:SYKeyboardTests/HangeulCompositionStateTests -only-testing:SYKeyboardTests/CheonjiinControllerTests -only-testing:SYKeyboardTests/DubeolsikControllerTests -only-testing:SYKeyboardTests/HangeulDeleteButtonDragControllerTests -only-testing:SYKeyboardTests/NaratgeulControllerTests`가 성공했다. 실행 당시 기록 기준으로 통과 38, 실패 0, skip 0이었다. 당시 집중 테스트 bundle `Test-SYKeyboard-2026.07.30_23-57-04-+0900.xcresult`와 Task 6 전체 suite의 실행 당시 경로 `/Users/macmillan/Library/Developer/Xcode/DerivedData/SYKeyboard-hgprdtyustcuukabeovkjzrtclhy/Logs/Test/Test-SYKeyboard-2026.07.31_00-32-15-+0900.xcresult`는 모두 이후 정리되어 현재 재판독할 수 없다. Task 3 범위를 포함한 Task 6의 passed 365, failed 0, skipped 0은 실행 당시 로그와 리뷰로 확인된 기록이다.
 
 ---
 
@@ -580,7 +592,7 @@ git commit -m "test: 한글 상태 시나리오 harness 책임 정리"
 - Removes: `HangeulProcessorTestable.applyDelete(committed:composing:)`
 - Retains: `HangeulProcessorTestable.applyInput(_:committed:composing:)` for processor input-result scenarios only
 
-- [ ] **Step 1: applyDelete 사용 위치를 고정**
+- [x] **Step 1: applyDelete 사용 위치를 고정**
 
 Run:
 
@@ -592,7 +604,7 @@ Expected: `HangeulProcessorTestable` 구현 1곳과 processor suite call site 13
 검색된다. 실제 개수가 다르면 계획 문서에 기록하고 검색된 모든 call site를
 이번 Task 범위에 포함한다.
 
-- [ ] **Step 2: 삭제 시나리오 테스트를 production state harness로 변경**
+- [x] **Step 2: 삭제 시나리오 테스트를 production state harness로 변경**
 
 입력부터 삭제까지 이어지는 각 테스트는 다음 패턴으로 바꾼다.
 
@@ -611,7 +623,7 @@ harness.delete()
 한 테스트 안에서 processor 반환값 자체를 검증하는 단언은 raw processor API를
 유지하고, controller 수준의 pull-from-committed 기대만 harness로 옮긴다.
 
-- [ ] **Step 3: 11,172자 삭제 검증을 production state harness로 변경**
+- [x] **Step 3: 11,172자 삭제 검증을 production state harness로 변경**
 
 각 글자 iteration마다 새 harness를 만들고 기존 변환 입력 sequence를
 `harness.input`으로 재생한다. 삭제는 `expectedDeleteCount`만큼
@@ -634,7 +646,7 @@ for _ in 0..<expectedDeleteCount {
 processor의 내부 상태가 iteration 사이에 남지 않도록 기존 reset 방식이 있으면
 유지하고, 없다면 각 iteration 시작 시 `processor.reset한글조합()`을 호출한다.
 
-- [ ] **Step 4: applyDelete helper 제거**
+- [x] **Step 4: applyDelete helper 제거**
 
 `HangeulProcessorTestable.swift`에서 `applyDelete` 전체를 제거한다.
 `automata`가 `applyDelete`에서만 사용되고 각 conforming suite가 별도로
@@ -642,7 +654,7 @@ processor의 내부 상태가 iteration 사이에 남지 않도록 기존 reset 
 processor 입력 결과 누적 helper이며 controller 보호·끌어오기 검증에 사용하지
 않는다고 수정한다.
 
-- [ ] **Step 5: helper 중복 제거 확인**
+- [x] **Step 5: helper 중복 제거 확인**
 
 Run:
 
@@ -654,7 +666,7 @@ rg -n \
 
 Expected: 검색 결과가 없다.
 
-- [ ] **Step 6: processor와 composition state 집중 테스트 실행**
+- [x] **Step 6: processor와 composition state 집중 테스트 실행**
 
 Run:
 
@@ -674,7 +686,7 @@ Expected: 천지인·두벌식·나랏글 processor, production composition stat
 automata 테스트가 모두 통과한다. 전체 글자 테스트의 실제 실행 수와 소요 결과를
 기록한다.
 
-- [ ] **Step 7: Task 4 결과 기록 및 커밋**
+- [x] **Step 7: Task 4 결과 기록 및 커밋**
 
 계획 문서의 Task 4에 migration call site 수, 실제 destination, 테스트 수를
 기록하고 Step 1~7 체크박스를 완료 처리한다.
@@ -689,6 +701,17 @@ git add \
 git commit -m "test: processor 삭제 시나리오 production 상태 사용"
 ```
 
+#### Task 4 실행 결과 (2026-07-31)
+
+- Destination: `platform=iOS Simulator,name=iPhone 13 mini,OS=16.0` (선택된 기기: `iPhone 13 mini`, iOS 16.0, arm64, `CBD992D3-5364-4F69-AC5F-0077ADF1A292`).
+- Step 1: `rg -n 'applyDelete\\(' SYKeyboardTests/Processor SYKeyboardTests/Utils/HangeulProcessorTestable.swift` 결과는 helper 구현 1건과 processor suite call site 13건(천지인 5, 두벌식 5, 나랏글 3)으로 계획과 일치했다.
+- TDD/refactor 기준선: 변경 전 XcodeBuildMCP 집중 테스트가 57개 통과, 실패 0이었다. 먼저 `HangeulProcessorTestable.applyDelete`만 제거한 뒤 같은 집중 테스트를 실행해 processor call site에서 `cannot find 'applyDelete' in scope` 컴파일 실패를 확인하고, production harness migration으로 해소했다.
+- Step 2~4: 13개 call site 전체를 `HangeulCompositionTestHarness(processor:)`의 `input`/`delete`/`space` 경로로 옮겼고, 세 11,172자 loop는 각 iteration에서 processor를 reset한 뒤 새 harness를 사용하도록 변경했다. processor 반환값을 직접 단언하는 테스트와 `applyInput` 기반 processor 입력 결과 테스트는 유지했다. 중복 `applyDelete` 구현만 제거하고 conforming suite initializer에 필요한 `automata` requirement는 유지했다.
+- Production 경계 교정: 기존 천지인 `test삭제후_재입력_결합`은 duplicated helper가 스페이스 보호 상태를 잃은 채 `committed` 마지막 글자를 끌어오고 조합을 다시 시작해 `가나`를 기대하는 false expectation이었다. production `HangeulCompositionState`도 마지막 보호 글자를 `composingBuffer`로 끌어오지만, `isPulledFromProtected`가 `start한글조합`을 막아 다음 입력과 재조합하지 않으므로 결과는 `간ㅏ`다. 테스트 이름·설명·기대값을 이 실제 스페이스 확정 후 삭제·재입력 동작에 맞췄고 production 코드는 변경하지 않았다.
+- Step 5: `rg -n 'applyDelete\\(|composing이 비었으면 committed에서 끌어오기|ViewController의 \`deleteBackward\`를 시뮬레이션' SYKeyboardTests` 결과는 비어 있었다.
+- Step 6: 계획에 기재된 `xcodebuild test` 집중 명령이 성공했다. 실행 당시 기록 기준으로 통과 57, 실패 0, skip 0, 전체 test operation 52.603초였다. 당시 집중 테스트 bundle `Test-SYKeyboard-2026.07.31_00-12-47-+0900.xcresult`와 Task 6 전체 suite의 실행 당시 경로 `/Users/macmillan/Library/Developer/Xcode/DerivedData/SYKeyboard-hgprdtyustcuukabeovkjzrtclhy/Logs/Test/Test-SYKeyboard-2026.07.31_00-32-15-+0900.xcresult`는 모두 이후 정리되어 현재 재판독할 수 없다. Task 4 범위를 포함한 Task 6의 passed 365, failed 0, skipped 0은 실행 당시 로그와 리뷰로 확인된 기록이다. 당시 첫 summary 판독은 sandbox 권한 오류가 발생해 권한 있는 환경에서 같은 명령을 재실행했다.
+- 전체 글자 검증은 천지인 11,172자 0.74초, 두벌식 11,172자 0.26초, 나랏글 11,172자 0.46초, `HangeulAutomataTests` 11,172자 0.31초로 모두 통과했다. 세 processor loop 합계 33,516자와 automata 11,172자를 검증했다.
+
 ---
 
 ### Task 5: AGENTS 테스트 작성 계약 반영
@@ -701,7 +724,7 @@ git commit -m "test: processor 삭제 시나리오 production 상태 사용"
 - Consumes: Tasks 1~4에서 확정된 테스트 허용·금지 경계
 - Produces: 새 테스트 작성 시 바로 적용할 규칙, 예시, 체크리스트
 
-- [ ] **Step 1: 테스트 지침에 허용·금지 규칙 추가**
+- [x] **Step 1: 테스트 지침에 허용·금지 규칙 추가**
 
 `AGENTS.md`의 `## 테스트 지침`에 다음 내용을 한국어로 추가한다.
 
@@ -720,7 +743,7 @@ git commit -m "test: processor 삭제 시나리오 production 상태 사용"
   committed/composing 상태 전이는 `HangeulCompositionState`를 사용한다.
 ```
 
-- [ ] **Step 2: 즉시 사용할 예시와 체크리스트 추가**
+- [x] **Step 2: 즉시 사용할 예시와 체크리스트 추가**
 
 같은 섹션에 다음 예시와 체크리스트를 추가한다.
 
@@ -742,7 +765,7 @@ git commit -m "test: processor 삭제 시나리오 production 상태 사용"
 - 시각 속성을 고정한다면 명시된 제품 계약 또는 접근성 요구가 있는가?
 ```
 
-- [ ] **Step 3: 문서 일관성 확인**
+- [x] **Step 3: 문서 일관성 확인**
 
 Run:
 
@@ -754,7 +777,7 @@ rg -n \
 
 Expected: 모든 신규 규칙과 예시가 검색되며 기존 테스트 지침과 충돌하지 않는다.
 
-- [ ] **Step 4: Task 5 결과 기록 및 커밋**
+- [x] **Step 4: Task 5 결과 기록 및 커밋**
 
 계획 문서의 Task 5에 추가한 규칙·예시·체크리스트 위치를 기록하고 Step 1~4
 체크박스를 완료 처리한다.
@@ -766,18 +789,39 @@ git add \
 git commit -m "docs: 테스트 코드 작성 경계 반영"
 ```
 
+#### Task 5 실행 결과 (2026-07-31)
+
+- Step 1: `AGENTS.md`의 `## 테스트 지침`에 정책 수치와 시각 구현 속성의
+  구분, production 진입점 호출, production 로직 복제 helper 금지,
+  `ForTesting` API 금지, processor 반환값과 `HangeulCompositionState`의
+  역할 분리를 추가했다. 이어서 테스트·suite·harness의 이름과 설명을 실제
+  production 호출 범위에 맞추고, `HangeulCompositionState` harness를
+  ViewController·자동완성 통합으로 표기하지 않는 규칙을 추가했다.
+- Step 2: 같은 섹션에 `### 테스트 경계 예시`와 새 테스트 추가 전 확인
+  체크리스트를 추가했다. 자동완성 후보의 스크롤 없음·두 줄·자동 축소·중간
+  생략은 명시적 UI 회귀 계약으로만 고정한다. synthetic 필드의 수동 갱신·단언은
+  자동완성 검증으로 주장하지 않고, 자동완성 통합은 controller/`inputBuffer`/
+  `SuggestionController`의 실제 production 경로를 거쳐야 한다는 예시와
+  체크리스트를 추가했다.
+- Step 3: `rg -n 'ForTesting|Mirror|SF Symbol|HangeulCompositionState|테스트 경계 예시|새 테스트 추가 전 확인' AGENTS.md`로 모든 신규 규칙·예시
+  키워드가 검색됨을 정적 확인했다. 리뷰 보완 후에는 production 경로와
+  `synthetic 자동완성` 키워드도 추가로 확인했다. 문서 변경만이므로
+  빌드·테스트는 실행하지 않았다.
+- Step 4: `AGENTS.md`와 이 계획 문서를 한 문서 커밋으로 기록했다.
+
 ---
 
 ### Task 6: 전체 회귀 검증
 
 **Files:**
 - Modify: `docs/superpowers/plans/2026-07-30-test-maintenance-boundary.md`
+- Create: `.superpowers/sdd/2026-07-30-test-maintenance-boundary/task-6-report.md`
 
 **Interfaces:**
 - Consumes: Tasks 1~5의 test/production/documentation 변경
 - Produces: 전체 test와 세 scheme build 결과, 재현 가능한 검증 기록
 
-- [ ] **Step 1: 사용 가능한 Simulator와 scheme 확인**
+- [x] **Step 1: 사용 가능한 Simulator와 scheme 확인**
 
 Run:
 
@@ -789,7 +833,7 @@ xcrun simctl list devices available
 Expected: `SYKeyboard`, `HangeulKeyboard`, `EnglishKeyboard` scheme과 실제 사용할
 iOS 16+ Simulator를 확인한다.
 
-- [ ] **Step 2: 전체 SYKeyboardTests 실행**
+- [x] **Step 2: 전체 SYKeyboardTests 실행**
 
 Run:
 
@@ -803,7 +847,7 @@ xcodebuild test \
 Expected: 전체 테스트가 실패 없이 통과한다. 총 passed/failed/skipped 개수를
 기록한다.
 
-- [ ] **Step 3: 세 production scheme build**
+- [x] **Step 3: 세 production scheme build**
 
 Run:
 
@@ -826,22 +870,25 @@ xcodebuild build \
 
 Expected: 세 scheme 모두 `BUILD SUCCEEDED`.
 
-- [ ] **Step 4: 정적 범위와 formatting 확인**
+- [x] **Step 4: 정적 범위와 formatting 확인**
 
 Run:
 
 ```sh
 rg -n \
-  'CursorDragOverlayTests|ReturnButtonTests|suggestionCurrentWord|KeyboardControllerSimulator|applyDelete\\(|ForTesting|Mirror\\(' \
+  'CursorDragOverlayTests|ReturnButtonTests|suggestionCurrentWord|KeyboardControllerSimulator|applyDelete\\(|Mirror\\(' \
   SYKeyboardTests Modules/SYKeyboardCore/Presentation/View/SuggestionBarView.swift
+rg -n 'ForTesting' Modules
 git diff --check HEAD~5..HEAD
 git status --short
 ```
 
-Expected: 제거 대상 검색 결과가 없고 `git diff --check`가 성공한다. 계획 문서
-기록 외 예상하지 못한 변경이 없다.
+Expected: 제거 대상과 production `ForTesting` API 검색 결과가 각각 없고
+`git diff --check`가 성공한다. `SYKeyboardTests`의 test-only harness 이름은
+production seam이 아니므로 이 검사의 대상이 아니다. 계획 문서 기록 외 예상하지
+못한 변경이 없다.
 
-- [ ] **Step 5: 검증 결과 판독과 계획 완료 기록**
+- [x] **Step 5: 검증 결과 판독과 계획 완료 기록**
 
 Task 6 아래에 다음을 실제 값으로 기록한다.
 
@@ -854,9 +901,53 @@ Task 6 아래에 다음을 실제 값으로 기록한다.
 
 모든 검증이 성공한 경우에만 Step 1~6과 계획 전체를 완료 처리한다.
 
-- [ ] **Step 6: 최종 검증 문서 커밋**
+- [x] **Step 6: 최종 검증 문서 커밋**
 
 ```sh
 git add docs/superpowers/plans/2026-07-30-test-maintenance-boundary.md
+git add -f .superpowers/sdd/2026-07-30-test-maintenance-boundary/task-6-report.md
 git commit -m "docs: 테스트 유지보수 경계 정리 검증 결과 반영"
 ```
+
+#### Task 6 실행 결과 (2026-07-31)
+
+- 환경: `platform=iOS Simulator,name=iPhone 13 mini,OS=16.0`에서 선택된
+  `iPhone 13 mini`, iOS 16.0 (build 20A360), arm64,
+  `CBD992D3-5364-4F69-AC5F-0077ADF1A292`를 사용했다. 호스트 아키텍처도
+  `uname -m`으로 arm64를 확인했다. `xcodebuild -list -project
+  SYKeyboard.xcodeproj`는 `SYKeyboard`, `HangeulKeyboard`, `EnglishKeyboard`
+  scheme을 포함함을, `xcrun simctl list devices available`는 해당 iOS 16.0
+  simulator가 사용 가능함을 확인했다.
+- sandbox 구분: 최초 기본 sandbox의 `xcodebuild -list -project
+  SYKeyboard.xcodeproj`와 `xcrun simctl list devices available`은
+  `CoreSimulatorService connection became invalid` 및
+  `ModuleCache: Operation not permitted`/SwiftPM manifest cache 권한 오류로
+  중단됐다. 같은 두 명령을 권한 있는 환경에서 재실행해 성공했다. 이후 test와
+  build는 확인된 동일한 cache/Simulator 제약을 피하기 위해 권한 있는 환경에서
+  실행했다.
+- Step 2: `xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard
+  -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0'`가
+  성공했다. 실행 당시의 일시적 결과 bundle 경로는
+  `/Users/macmillan/Library/Developer/Xcode/DerivedData/SYKeyboard-hgprdtyustcuukabeovkjzrtclhy/Logs/Test/Test-SYKeyboard-2026.07.31_00-32-15-+0900.xcresult`였고,
+  당시 `xcrun xcresulttool get test-results summary --path <위 경로>`로 passed
+  365, failed 0, skipped 0, result `Passed`를 판독했다. 이 bundle은 이후
+  DerivedData에서 정리되어 현재 재판독할 수 없으며, 수치는 실행 당시 로그와
+  리뷰로 확인된 기록이다.
+- Step 3: 동일 destination에서 `xcodebuild build -project
+  SYKeyboard.xcodeproj -scheme SYKeyboard -destination 'platform=iOS
+  Simulator,name=iPhone 13 mini,OS=16.0'`, `-scheme HangeulKeyboard`,
+  `-scheme EnglishKeyboard`를 각각 실행했고 세 명령 모두 `BUILD SUCCEEDED`였다.
+- Step 4: 원래 broad `rg` 명령은
+  `HangeulDeleteButtonDragControllerTests.swift:83`의
+  `setDeleteDragStateForTesting(` 및
+  `HangeulCompositionTestHarness.swift:67`의 같은 test-only harness 메서드
+  정의, 정확히 두 건을 반환했다. 둘은 `SYKeyboardTests` 내부 helper/호출이며
+  production `Modules/` API가 아니므로 허용한다. 이에 따라 제거 대상과
+  `Mirror(`는 `SYKeyboardTests` 및 `SuggestionBarView.swift`에서, `ForTesting`은
+  production `Modules/`에서 별도로 검색하도록 검증 명령을 교정했고 두 검색은
+  모두 no matches였다. `git diff --check HEAD~5..HEAD`는 성공했고, 문서 기록 전
+  `git status --short`는 비어 있었다.
+- 수동 화면 항목: 이번 Task는 simulator test와 build만 수행했다. 실제 host 앱에서
+  키보드를 열어 입력, 커서 이동, focus 전환 시 `textWillChange(_:)`/
+  `textDidChange(_:)` 상태 동기화 및 시각 UI를 관찰하는 수동 검증은 실행하지
+  않았다.

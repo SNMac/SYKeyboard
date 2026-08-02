@@ -9,7 +9,7 @@ import Testing
 
 @testable import HangeulKeyboardCore
 
-@Suite("두벌식 컨트롤러 통합 검증")
+@Suite("두벌식 HangeulCompositionState 기반 입력 상태 시나리오")
 struct DubeolsikControllerTests {
     
     // MARK: - Properties
@@ -20,8 +20,7 @@ struct DubeolsikControllerTests {
     
     @Test("반복 입력 후 조합: 'ㄱㄱㄱ' 후 'ㅣ' -> 'ㄱㄱ기'")
     func test반복입력후_조합() {
-        let sim = KeyboardControllerSimulator(
-            automata: automata,
+        let sim = HangeulCompositionTestHarness(
             processor: DubeolsikProcessor(automata: automata)
         )
         
@@ -36,8 +35,7 @@ struct DubeolsikControllerTests {
     
     @Test("반복 입력 후 조합: 'ㅏㅏㅏ' 후 'ㄴ' -> 'ㅏㅏㅏㄴ'")
     func test반복입력_모음후_자음() {
-        let sim = KeyboardControllerSimulator(
-            automata: automata,
+        let sim = HangeulCompositionTestHarness(
             processor: DubeolsikProcessor(automata: automata)
         )
         
@@ -54,8 +52,7 @@ struct DubeolsikControllerTests {
     
     @Test("반복 삭제 후 조합: '개ㅐㅐㅏㅏ' -> 반복 삭제 -> '개' -> 'ㄴ' -> '갠'")
     func test반복삭제후_끌어오기_조합() {
-        let sim = KeyboardControllerSimulator(
-            automata: automata,
+        let sim = HangeulCompositionTestHarness(
             processor: DubeolsikProcessor(automata: automata)
         )
         
@@ -82,8 +79,7 @@ struct DubeolsikControllerTests {
     
     @Test("반복 입력 후 연음: 'ㄱㄱㄱ' 후 'ㅏ' -> 'ㄱㄱ가'")
     func test반복입력후_연음() {
-        let sim = KeyboardControllerSimulator(
-            automata: automata,
+        let sim = HangeulCompositionTestHarness(
             processor: DubeolsikProcessor(automata: automata)
         )
         
