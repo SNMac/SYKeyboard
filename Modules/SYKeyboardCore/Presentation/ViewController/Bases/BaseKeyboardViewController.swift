@@ -1248,13 +1248,9 @@ private extension BaseKeyboardViewController {
             return
         }
 
-        let baseText = KeyboardSuggestionSelectionPolicy.generalSuggestionBaseText(
-            inputBuffer: inputBuffer
-        )
-
         suggestionBarView.updatePreviewHighlight(
             index: suggestionController.textReplacementPreviewSuggestionIndex(
-                baseText: baseText
+                baseText: inputBuffer
             )
         )
     }
@@ -1348,12 +1344,8 @@ extension BaseKeyboardViewController {
             ), applyMathResultSuggestionAction(action) {
                 // 수식 action을 적용한 경우 일반 텍스트 대치를 건너뜁니다.
             } else {
-                let baseText = KeyboardSuggestionSelectionPolicy.generalSuggestionBaseText(
-                    inputBuffer: inputBuffer
-                )
-
                 if let replacement = suggestionController.attemptTextReplacement(
-                    baseText: baseText,
+                    baseText: inputBuffer,
                     documentContextBeforeInput: textDocumentProxy.documentContextBeforeInput
                 ) {
                     // 텍스트 대치: 래핑 메서드 사용
@@ -1735,36 +1727,14 @@ private extension BaseKeyboardViewController {
             performanceSignposter.emitEvent("FirstUpdateSuggestions")
         }
 
-        suggestionController.isShowMathResultsEnabled = shouldShowMathResults()
-
-        let selectedText = textDocumentProxy.selectedText
-        let action = KeyboardSuggestionSelectionPolicy.suggestionUpdateAction(
-            isPredictiveTextEnabled: suggestionController.isPredictiveTextEnabled,
-            selectedText: selectedText,
-            inputBuffer: inputBuffer
-        )
-        let mathExpressionText = KeyboardSuggestionSelectionPolicy
-            .mathExpressionDetectionText(
-                selectedText: selectedText,
-                inputBuffer: inputBuffer,
-                documentContextBeforeInput: textDocumentProxy.documentContextBeforeInput
-            )
-
-        switch action {
-        case .none:
-            break
-        case .update(let text):
-            suggestionController.updateSuggestions(
-                for: text,
-                selectedText: selectedText,
-                mathExpressionText: mathExpressionText
-            )
-        case .clear:
-            suggestionController.clearSuggestions()
-        }
+        updateSuggestionsForCurrentContext()
     }
 
     func updateSuggestionsForCursorContext() {
+        updateSuggestionsForCurrentContext()
+    }
+
+    func updateSuggestionsForCurrentContext() {
         suggestionController.isShowMathResultsEnabled = shouldShowMathResults()
 
         let selectedText = textDocumentProxy.selectedText
@@ -2152,12 +2122,17 @@ private extension BaseKeyboardViewController {
 extension BaseKeyboardViewController: SuggestionControllerDelegate {
     final func suggestionController(_ controller: SuggestionController, didUpdateCurrentWord currentWord: String?, suggestions: [String]) {
         if controller.currentMode == .mathExpression {
-            suggestionBarView.updateMathResultSuggestions(suggestions)
-            updateSuggestionPreviewHighlight()
-            return
+            suggestionBarView.updateSuggestions(
+                currentWord: nil,
+                suggestions: suggestions
+            )
+        } else {
+            suggestionBarView.updateSuggestions(
+                currentWord: currentWord,
+                suggestions: suggestions
+            )
         }
 
-        suggestionBarView.updateSuggestions(currentWord: currentWord, suggestions: suggestions)
         updateSuggestionPreviewHighlight()
     }
 }
@@ -2303,13 +2278,9 @@ private extension BaseKeyboardViewController {
 
     func handleInputBufferSuggestion(at index: Int) {
         let suggestionIndex = index - 1
-        let baseText = KeyboardSuggestionSelectionPolicy.generalSuggestionBaseText(
-            inputBuffer: inputBuffer
-        )
-
         guard let result = suggestionController.selectSuggestion(
             at: suggestionIndex,
-            baseText: baseText
+            baseText: inputBuffer
         ) else { return }
 
         replaceTextWithSmartInsertDeleteSpacing(

@@ -255,18 +255,6 @@ final class SuggestionBarView: UIView {
         applyHighlights()
     }
 
-    /// 수식 결과 후보를 업데이트합니다.
-    ///
-    /// - Parameter suggestions: 원문, 원문+결과, 결과값 후보 배열
-    func updateMathResultSuggestions(_ suggestions: [String]) {
-        let buttons = [suggestionButton1, suggestionButton2, suggestionButton3]
-        for (index, button) in buttons.enumerated() {
-            let title = index < suggestions.count ? suggestions[index] : ""
-            button.update(to: title)
-        }
-        applyHighlights()
-    }
-
     /// 스페이스로 자동 적용될 후보의 preview 하이라이트를 갱신합니다.
     ///
     /// - Parameter index: 강조할 후보 인덱스 (0~2), 없으면 `nil`

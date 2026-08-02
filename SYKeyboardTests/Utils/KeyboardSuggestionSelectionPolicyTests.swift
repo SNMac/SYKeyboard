@@ -127,20 +127,6 @@ struct KeyboardSuggestionSelectionPolicyTests {
         )
     }
 
-    @Test("일반 후보 기준 텍스트는 현재 세션 입력 버퍼만 사용")
-    func test후보선택기준텍스트() {
-        #expect(
-            KeyboardSuggestionSelectionPolicy.generalSuggestionBaseText(
-                inputBuffer: "동"
-            ) == "동"
-        )
-        #expect(
-            KeyboardSuggestionSelectionPolicy.generalSuggestionBaseText(
-                inputBuffer: ""
-            ) == ""
-        )
-    }
-
     @Test("커서 앞 문맥 제한은 nil을 빈 문자열로 처리하고 256자 suffix만 유지")
     func test커서앞문맥제한_nil과길이제한() {
         let droppedPrefix = String(repeating: "가", count: 3)

@@ -46,10 +46,6 @@ enum KeyboardSuggestionSelectionPolicy {
         return !isPrimaryCursorDragging
     }
 
-    static func generalSuggestionBaseText(inputBuffer: String) -> String {
-        return inputBuffer
-    }
-
     static func limitedDocumentContextBeforeInput(_ context: String?) -> String {
         guard let context else { return "" }
         return String(context.suffix(KeyboardTextContextNavigator.maximumCursorRestoreDistance))

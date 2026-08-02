@@ -205,12 +205,9 @@ struct SuggestionControllerTextReplacementTests {
         controller.isTextReplacementEnabled = true
         controller.prepareLexiconEngineIfNeeded()
 
-        let baseText = KeyboardSuggestionSelectionPolicy.generalSuggestionBaseText(
-            inputBuffer: ""
-        )
+        let baseText = ""
         controller.updateSuggestions(for: baseText)
 
-        #expect(baseText == "")
         #expect(controller.textReplacementPreviewSuggestionIndex(baseText: baseText) == nil)
 
         let replacement = controller.attemptTextReplacement(
