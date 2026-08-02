@@ -27,6 +27,49 @@ struct SuggestionControllerMathResultsTests {
         #expect(delegate.updates.last?.suggestions == ["\"3 - 1 =\"", "3 - 1 =2", "2"])
     }
 
+    @Test("앞쪽 숫자 문맥 뒤 수식은 suffix 기준 후보와 action을 생성")
+    func test앞쪽숫자문맥뒤수식은_Suffix기준후보와Action을생성() {
+        let delegate = RecordingMathExpressionSuggestionDelegate()
+        let controller = SuggestionController()
+        controller.delegate = delegate
+        controller.isPredictiveTextEnabled = true
+        controller.isShowMathResultsEnabled = true
+
+        controller.updateSuggestions(for: "1 2 + 3 =")
+
+        #expect(controller.currentMode == .mathExpression)
+        #expect(
+            delegate.updates.last?.suggestions
+                == ["\"2 + 3 =\"", "2 + 3 =5", "5"]
+        )
+        #expect(
+            controller.mathResultAction(
+                at: 1,
+                selectedText: nil
+            ) == .insertResult("5")
+        )
+        #expect(
+            controller.mathResultAction(
+                at: 2,
+                selectedText: nil
+            ) == .replaceExpression(deleteCount: 7, insertText: "5")
+        )
+
+        controller.updateSuggestions(for: "1 2+3=")
+
+        #expect(controller.currentMode == .mathExpression)
+        #expect(
+            delegate.updates.last?.suggestions
+                == ["\"2+3=\"", "2+3=5", "5"]
+        )
+        #expect(
+            controller.mathResultAction(
+                at: 2,
+                selectedText: nil
+            ) == .replaceExpression(deleteCount: 4, insertText: "5")
+        )
+    }
+
     @Test("선택되지 않은 가운데 후보는 결과값 삽입 action")
     func test선택되지않은가운데후보는_결과값삽입Action() {
         let controller = makeMathController(expression: "3-1=")

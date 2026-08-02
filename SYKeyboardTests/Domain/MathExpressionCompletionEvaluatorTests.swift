@@ -33,13 +33,31 @@ struct MathExpressionCompletionEvaluatorTests {
         )
     }
 
-    @Test("숫자 구성 문자 사이 공백은 서로 다른 숫자로 보고 거부")
-    func test숫자구성문자사이공백은_서로다른숫자로보고거부() {
+    @Test("앞쪽 숫자 문맥 뒤 마지막 수식만 계산")
+    func test앞쪽숫자문맥뒤_마지막수식만계산() {
+        let spacedCompletion = MathExpressionCompletionEvaluator.completion(
+            for: "1 2 + 3 ="
+        )
+        #expect(spacedCompletion?.expressionText == "2 + 3 =")
+        #expect(spacedCompletion?.displayText == "2 + 3 =5")
+        #expect(spacedCompletion?.insertText == "5")
+
+        let compactCompletion = MathExpressionCompletionEvaluator.completion(
+            for: "1 2+3="
+        )
+        #expect(compactCompletion?.expressionText == "2+3=")
+        #expect(compactCompletion?.displayText == "2+3=5")
+        #expect(compactCompletion?.insertText == "5")
+    }
+
+    @Test("소수점 쉼표와 문자 문맥의 숫자 사이 공백은 거부")
+    func test소수점쉼표와문자문맥의_숫자사이공백은거부() {
         for expression in [
-            "1 2+3=",
             "1 . 2+3=",
             "1, 000+2=",
-            "memo 2 3+1="
+            "memo 2 3+1=",
+            "x 1 2+3=",
+            "1 + 2 3+4="
         ] {
             #expect(
                 MathExpressionCompletionEvaluator.completion(

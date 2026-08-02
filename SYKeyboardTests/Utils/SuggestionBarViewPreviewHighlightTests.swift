@@ -92,15 +92,19 @@ struct SuggestionBarViewPreviewHighlightTests {
         #expect(buttons.allSatisfy { isSuggestionButtonHighlighted($0) == false })
     }
 
-    @Test("기본 자동완성 후보 라벨은 suggestionButtonLabel로 표시")
-    func test기본자동완성후보라벨은_SuggestionButtonLabel로표시() {
+    @Test("기본 자동완성 후보 라벨은 iOS 버전에 맞는 색상으로 표시")
+    func test기본자동완성후보라벨은_iOS버전에맞는색상으로표시() {
         let bar = SuggestionBarView(keyboardHStackView: UIStackView())
 
         bar.updateSuggestions(currentWord: nil, suggestions: ["a", "b", "c"])
 
         let labels = suggestionLabels(in: bar)
         #expect(labels.count == 3)
-        #expect(labels.allSatisfy { $0.textColor == .suggestionButtonLabel })
+        #expect(
+            labels.allSatisfy {
+                $0.textColor == expectedDefaultSuggestionLabelColor()
+            }
+        )
     }
 
     @Test("preview 하이라이트 후보 라벨은 label 색상으로 표시")
@@ -112,9 +116,9 @@ struct SuggestionBarViewPreviewHighlightTests {
 
         let labels = suggestionLabels(in: bar)
         #expect(labels.count == 3)
-        #expect(labels[0].textColor == .suggestionButtonLabel)
+        #expect(labels[0].textColor == expectedDefaultSuggestionLabelColor())
         #expect(labels[1].textColor == .label)
-        #expect(labels[2].textColor == .suggestionButtonLabel)
+        #expect(labels[2].textColor == expectedDefaultSuggestionLabelColor())
     }
 
     @Test("수식 후보도 하이라이트 여부만으로 라벨 색상을 결정")
@@ -124,13 +128,17 @@ struct SuggestionBarViewPreviewHighlightTests {
 
         var labels = suggestionLabels(in: bar)
         #expect(labels.count == 3)
-        #expect(labels.allSatisfy { $0.textColor == .suggestionButtonLabel })
+        #expect(
+            labels.allSatisfy {
+                $0.textColor == expectedDefaultSuggestionLabelColor()
+            }
+        )
 
         bar.updatePreviewHighlight(index: 2)
 
         labels = suggestionLabels(in: bar)
-        #expect(labels[0].textColor == .suggestionButtonLabel)
-        #expect(labels[1].textColor == .suggestionButtonLabel)
+        #expect(labels[0].textColor == expectedDefaultSuggestionLabelColor())
+        #expect(labels[1].textColor == expectedDefaultSuggestionLabelColor())
         #expect(labels[2].textColor == .label)
     }
 
@@ -225,6 +233,14 @@ struct SuggestionBarViewPreviewHighlightTests {
         }
 
         return result
+    }
+}
+
+private func expectedDefaultSuggestionLabelColor() -> UIColor {
+    if #available(iOS 26.0, *) {
+        return .suggestionButtonLabel
+    } else {
+        return .label
     }
 }
 

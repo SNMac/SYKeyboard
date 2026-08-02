@@ -17,7 +17,20 @@ enum MathExpressionCompletionEvaluator {
     static func completion(for text: String) -> MathExpressionCompletion? {
         guard text.last == "=" else { return nil }
 
-        let expressionText = expressionSuffix(beforeEqualIn: text)
+        for expressionText in expressionSuffixCandidates(beforeEqualIn: text) {
+            if let completion = completion(forExpressionText: expressionText) {
+                return completion
+            }
+        }
+
+        return nil
+    }
+}
+
+private extension MathExpressionCompletionEvaluator {
+    static func completion(
+        forExpressionText expressionText: String
+    ) -> MathExpressionCompletion? {
         let expressionBody = String(expressionText.dropLast())
         guard !expressionBody.contains("=") else { return nil }
         guard !containsWhitespaceBetweenNumberComponents(expressionBody) else {
@@ -34,11 +47,55 @@ enum MathExpressionCompletionEvaluator {
             insertText: resultText
         )
     }
-}
 
-private extension MathExpressionCompletionEvaluator {
     static var scientificNotationThreshold: Double {
         10_000_000_000
+    }
+
+    static func expressionSuffixCandidates(
+        beforeEqualIn text: String
+    ) -> [String] {
+        let expressionText = expressionSuffix(beforeEqualIn: text)
+        var candidates = [expressionText]
+
+        guard expressionText == String(text.drop { $0.isWhitespace }) else {
+            return candidates
+        }
+
+        var index = expressionText.startIndex
+        while index < expressionText.endIndex {
+            guard expressionText[index] == " " else {
+                index = expressionText.index(after: index)
+                continue
+            }
+
+            let whitespaceStartIndex = index
+            repeat {
+                index = expressionText.index(after: index)
+            } while index < expressionText.endIndex && expressionText[index] == " "
+
+            guard whitespaceStartIndex > expressionText.startIndex,
+                  index < expressionText.endIndex else {
+                continue
+            }
+
+            let previousIndex = expressionText.index(before: whitespaceStartIndex)
+            guard expressionText[previousIndex].isNumber,
+                  expressionText[index].isNumber else {
+                continue
+            }
+
+            let context = expressionText[..<index]
+            guard context.allSatisfy({
+                $0.isNumber || $0 == " "
+            }) else {
+                continue
+            }
+
+            candidates.append(String(expressionText[index...]))
+        }
+
+        return candidates
     }
 
     static func expressionSuffix(beforeEqualIn text: String) -> String {

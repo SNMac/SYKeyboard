@@ -118,6 +118,11 @@ private extension SuggestionButtonView {
 
     func updateAppearance() {
         backgroundView.backgroundColor = isHighlighted ? .suggestionButtonPressed : .clear
-        suggestionLabel.textColor = isHighlighted ? .label : .suggestionButtonLabel
+
+        if #available(iOS 26.0, *) {
+            suggestionLabel.textColor = isHighlighted ? .label : .suggestionButtonLabel
+        } else {
+            suggestionLabel.textColor = .label
+        }
     }
 }
