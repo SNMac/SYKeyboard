@@ -40,8 +40,8 @@ final class SuggestionBarView: UIView {
     weak var suggestionDelegate: SuggestionBarDelegate?
     
     private weak var activeTouch: UITouch?
-    private weak var touchHighlightedSuggestionButton: SuggestionButtonView?
-    private weak var touchHighlightedActionButton: SuggestionActionButtonView?
+    private var touchedSuggestionIndex: Int?
+    private var touchedActionIndex: Int?
     private var previewHighlightIndex: Int?
     
     private var suggestionButtons: [SuggestionButtonView] {
@@ -288,27 +288,6 @@ final class SuggestionBarView: UIView {
         updateDividers()
     }
 
-    #if DEBUG
-    func updateTouchHighlightForTesting(index: Int?) {
-        if let index, suggestionButtons.indices.contains(index) {
-            touchHighlightedSuggestionButton = suggestionButtons[index]
-        } else {
-            touchHighlightedSuggestionButton = nil
-        }
-        applyHighlights()
-        updateDividers()
-    }
-
-    func updateUndoRedoTouchHighlightForTesting(index: Int?) {
-        if let index, undoRedoButtons.indices.contains(index) {
-            touchHighlightedActionButton = undoRedoButtons[index]
-        } else {
-            touchHighlightedActionButton = nil
-        }
-        applyHighlights()
-        updateDividers()
-    }
-    #endif
 }
 
 // MARK: - UI Methods
@@ -409,32 +388,38 @@ private extension SuggestionBarView {
     
     func updateHighlight(at point: CGPoint) {
         let hit = suggestionButton(at: point)
-        touchHighlightedSuggestionButton = hit?.1
+        touchedSuggestionIndex = hit?.0
 
         let actionHit = undoRedoButton(at: point)
-        touchHighlightedActionButton = actionHit
+        touchedActionIndex = actionHit.flatMap { actionButton in
+            undoRedoButtons.firstIndex { $0 === actionButton }
+        }
         applyHighlights()
         updateDividers()
     }
     
     func clearTouchHighlights() {
-        touchHighlightedSuggestionButton = nil
-        touchHighlightedActionButton = nil
+        touchedSuggestionIndex = nil
+        touchedActionIndex = nil
         applyHighlights()
         updateDividers()
     }
 
     func applyHighlights() {
-        let hasTouchHighlight = touchHighlightedSuggestionButton != nil || touchHighlightedActionButton != nil
+        let state = SuggestionHighlightPolicy.resolve(
+            previewSuggestionIndex: previewHighlightIndex,
+            touchedSuggestionIndex: touchedSuggestionIndex,
+            touchedActionIndex: touchedActionIndex,
+            suggestionCount: suggestionButtons.count,
+            actionCount: undoRedoButtons.count
+        )
 
         for (index, button) in suggestionButtons.enumerated() {
-            let isPreviewHighlighted = !hasTouchHighlight && previewHighlightIndex == index
-            let isTouchHighlighted = button === touchHighlightedSuggestionButton
-            button.isHighlighted = isTouchHighlighted || isPreviewHighlighted
+            button.isHighlighted = state.highlightedSuggestionIndex == index
         }
 
-        for button in undoRedoButtons {
-            button.isHighlighted = (button === touchHighlightedActionButton)
+        for (index, button) in undoRedoButtons.enumerated() {
+            button.isHighlighted = state.highlightedActionIndex == index
         }
     }
     
