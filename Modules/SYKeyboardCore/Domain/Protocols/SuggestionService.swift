@@ -92,8 +92,13 @@ protocol SuggestionService: AnyObject {
     /// 입력 중일 때는 button1에 현재 단어, button2~3에 자동완성 후보를 표시하고,
     /// 입력이 없거나 마지막 문자가 공백이면 n-gram 기반 다음 단어 예측을 표시합니다.
     ///
-    /// - Parameter baseText: 자동완성을 제공할 텍스트
-    func updateSuggestions(for baseText: String)
+    /// - Parameters:
+    ///   - baseText: 자동완성을 제공할 텍스트
+    ///   - selectedText: 후보 생성 시점에 선택된 텍스트. 선택이 없으면 `nil`
+    func updateSuggestions(
+        for baseText: String,
+        selectedText: String?
+    )
 
     /// n-gram 추천 탭 후 강제로 n-gram 갱신을 시도하고,
     /// 결과가 없으면 입력 중 모드로 폴백합니다.
@@ -218,4 +223,10 @@ protocol SuggestionService: AnyObject {
 
     /// 대치 이력을 모두 초기화합니다.
     func clearReplacementHistory()
+}
+
+extension SuggestionService {
+    func updateSuggestions(for baseText: String) {
+        updateSuggestions(for: baseText, selectedText: nil)
+    }
 }

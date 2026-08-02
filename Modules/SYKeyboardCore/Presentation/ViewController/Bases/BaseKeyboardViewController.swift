@@ -1732,9 +1732,10 @@ private extension BaseKeyboardViewController {
 
         suggestionController.isShowMathResultsEnabled = shouldShowMathResults()
 
+        let selectedText = textDocumentProxy.selectedText
         let action = KeyboardSuggestionSelectionPolicy.suggestionUpdateAction(
             isPredictiveTextEnabled: suggestionController.isPredictiveTextEnabled,
-            selectedText: textDocumentProxy.selectedText,
+            selectedText: selectedText,
             inputBuffer: inputBuffer,
             documentContextBeforeInput: textDocumentProxy.documentContextBeforeInput
         )
@@ -1743,7 +1744,10 @@ private extension BaseKeyboardViewController {
         case .none:
             break
         case .update(let text):
-            suggestionController.updateSuggestions(for: text)
+            suggestionController.updateSuggestions(
+                for: text,
+                selectedText: selectedText
+            )
         case .clear:
             suggestionController.clearSuggestions()
         }
@@ -1752,9 +1756,10 @@ private extension BaseKeyboardViewController {
     func updateSuggestionsForCursorContext() {
         suggestionController.isShowMathResultsEnabled = shouldShowMathResults()
 
+        let selectedText = textDocumentProxy.selectedText
         let action = KeyboardSuggestionSelectionPolicy.suggestionUpdateAction(
             isPredictiveTextEnabled: suggestionController.isPredictiveTextEnabled,
-            selectedText: textDocumentProxy.selectedText,
+            selectedText: selectedText,
             inputBuffer: KeyboardSuggestionSelectionPolicy.limitedDocumentContextBeforeInput(
                 textDocumentProxy.documentContextBeforeInput
             )
@@ -1764,7 +1769,10 @@ private extension BaseKeyboardViewController {
         case .none:
             break
         case .update(let text):
-            suggestionController.updateSuggestions(for: text)
+            suggestionController.updateSuggestions(
+                for: text,
+                selectedText: selectedText
+            )
         case .clear:
             suggestionController.clearSuggestions()
         }

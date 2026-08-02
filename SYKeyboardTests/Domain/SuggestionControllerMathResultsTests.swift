@@ -53,7 +53,10 @@ struct SuggestionControllerMathResultsTests {
 
     @Test("선택된 가운데 후보는 원문과 결과로 selection 교체")
     func test선택된가운데후보는_원문과결과로Selection교체() {
-        let controller = makeMathController(expression: "3-1=")
+        let controller = makeMathController(
+            expression: "3-1=",
+            selectedText: "3-1="
+        )
 
         #expect(
             controller.mathResultAction(
@@ -65,7 +68,10 @@ struct SuggestionControllerMathResultsTests {
 
     @Test("선택된 오른쪽 후보는 결과값으로 selection 교체")
     func test선택된오른쪽후보는_결과값으로Selection교체() {
-        let controller = makeMathController(expression: "3-1=")
+        let controller = makeMathController(
+            expression: "3-1=",
+            selectedText: "3-1="
+        )
 
         #expect(
             controller.mathResultAction(
@@ -77,7 +83,10 @@ struct SuggestionControllerMathResultsTests {
 
     @Test("수식 suffix 앞에 선택 prefix가 있으면 가운데 후보가 prefix를 보존")
     func test수식Suffix앞에선택Prefix가있으면_가운데후보가Prefix를보존() {
-        let controller = makeMathController(expression: "memo3+1=")
+        let controller = makeMathController(
+            expression: "memo3+1=",
+            selectedText: "memo3+1="
+        )
 
         #expect(
             controller.mathResultAction(
@@ -89,7 +98,10 @@ struct SuggestionControllerMathResultsTests {
 
     @Test("수식 suffix 앞에 선택 prefix가 있으면 오른쪽 후보가 prefix를 보존")
     func test수식Suffix앞에선택Prefix가있으면_오른쪽후보가Prefix를보존() {
-        let controller = makeMathController(expression: "memo3+1=")
+        let controller = makeMathController(
+            expression: "memo3+1=",
+            selectedText: "memo3+1="
+        )
 
         #expect(
             controller.mathResultAction(
@@ -109,14 +121,22 @@ struct SuggestionControllerMathResultsTests {
                 selectedText: nil
             ) == .confirmOriginal
         )
+
+        let selectedController = makeMathController(
+            expression: "3-1=",
+            selectedText: "3-1="
+        )
         #expect(
-            controller.mathResultAction(
+            selectedController.mathResultAction(
                 at: 0,
                 selectedText: "3-1="
             ) == .confirmOriginal
         )
 
-        let prefixedController = makeMathController(expression: "memo3+1=")
+        let prefixedController = makeMathController(
+            expression: "memo3+1=",
+            selectedText: "memo3+1="
+        )
         #expect(
             prefixedController.mathResultAction(
                 at: 0,
@@ -127,7 +147,10 @@ struct SuggestionControllerMathResultsTests {
 
     @Test("현재 수식 생성 기준과 선택 문자열이 다르면 action을 반환하지 않음")
     func test현재수식생성기준과선택문자열이다르면_Action을반환하지않음() {
-        let controller = makeMathController(expression: "memo3+1=")
+        let controller = makeMathController(
+            expression: "memo3+1=",
+            selectedText: "memo3+1="
+        )
 
         #expect(
             controller.mathResultAction(
@@ -140,6 +163,172 @@ struct SuggestionControllerMathResultsTests {
                 at: 2,
                 selectedText: "3+1="
             ) == nil
+        )
+    }
+
+    @Test("selection-origin 정확한 수식 후보는 좌중우 action 유지")
+    func testSelectionOrigin정확한수식후보는_좌중우Action유지() {
+        let controller = makeMathController(
+            expression: "3+1=",
+            selectedText: "3+1="
+        )
+
+        #expect(
+            controller.mathResultAction(
+                at: 0,
+                selectedText: "3+1="
+            ) == .confirmOriginal
+        )
+        #expect(
+            controller.mathResultAction(
+                at: 1,
+                selectedText: "3+1="
+            ) == .replaceSelection("3+1=4")
+        )
+        #expect(
+            controller.mathResultAction(
+                at: 2,
+                selectedText: "3+1="
+            ) == .replaceSelection("4")
+        )
+    }
+
+    @Test("selection-origin 후보는 선택 해제 후 모든 action 차단")
+    func testSelectionOrigin후보는_선택해제후_모든Action차단() {
+        let controller = makeMathController(
+            expression: "3+1=",
+            selectedText: "3+1="
+        )
+
+        for index in 0...2 {
+            #expect(
+                controller.mathResultAction(
+                    at: index,
+                    selectedText: nil
+                ) == nil
+            )
+        }
+    }
+
+    @Test("selection-origin 후보는 빈 selection에서 모든 action 차단")
+    func testSelectionOrigin후보는_빈Selection에서_모든Action차단() {
+        let controller = makeMathController(
+            expression: "3+1=",
+            selectedText: "3+1="
+        )
+
+        for index in 0...2 {
+            #expect(
+                controller.mathResultAction(
+                    at: index,
+                    selectedText: ""
+                ) == nil
+            )
+        }
+    }
+
+    @Test("selection-origin prefix 후보는 다른 selection에서 모든 action 차단")
+    func testSelectionOriginPrefix후보는_다른Selection에서_모든Action차단() {
+        let controller = makeMathController(
+            expression: "memo3+1=",
+            selectedText: "memo3+1="
+        )
+
+        for index in 0...2 {
+            #expect(
+                controller.mathResultAction(
+                    at: index,
+                    selectedText: "note3+1="
+                ) == nil
+            )
+        }
+    }
+
+    @Test("unselected-origin 후보는 selection이 없으면 기존 action 유지")
+    func testUnselectedOrigin후보는_Selection이없으면_기존Action유지() {
+        let controller = makeMathController(expression: "3+1=")
+
+        #expect(
+            controller.mathResultAction(
+                at: 1,
+                selectedText: nil
+            ) == .insertResult("4")
+        )
+        #expect(
+            controller.mathResultAction(
+                at: 2,
+                selectedText: nil
+            ) == .replaceExpression(deleteCount: 4, insertText: "4")
+        )
+    }
+
+    @Test("unselected-origin 후보는 새 selection이 생기면 모든 action 차단")
+    func testUnselectedOrigin후보는_새Selection이생기면_모든Action차단() {
+        let controller = makeMathController(expression: "3+1=")
+
+        for index in 0...2 {
+            #expect(
+                controller.mathResultAction(
+                    at: index,
+                    selectedText: "memo"
+                ) == nil
+            )
+        }
+    }
+
+    @Test("후보 갱신은 이전 selection origin을 새 origin으로 교체")
+    func test후보갱신은_이전SelectionOrigin을_새Origin으로교체() {
+        let controller = makeMathController(
+            expression: "3+1=",
+            selectedText: "3+1="
+        )
+
+        controller.updateSuggestions(
+            for: "5+1=",
+            selectedText: nil
+        )
+
+        #expect(
+            controller.mathResultAction(
+                at: 1,
+                selectedText: nil
+            ) == .insertResult("6")
+        )
+        #expect(
+            controller.mathResultAction(
+                at: 2,
+                selectedText: nil
+            ) == .replaceExpression(deleteCount: 4, insertText: "6")
+        )
+    }
+
+    @Test("후보 clear는 selection origin과 수식 action을 초기화")
+    func test후보Clear는_SelectionOrigin과_수식Action을초기화() {
+        let controller = makeMathController(
+            expression: "3+1=",
+            selectedText: "3+1="
+        )
+
+        controller.clearSuggestions()
+
+        for index in 0...2 {
+            #expect(
+                controller.mathResultAction(
+                    at: index,
+                    selectedText: "3+1="
+                ) == nil
+            )
+        }
+
+        controller.updateSuggestions(
+            for: "2+2=",
+            selectedText: nil
+        )
+        #expect(
+            controller.mathResultAction(
+                at: 1,
+                selectedText: nil
+            ) == .insertResult("4")
         )
     }
 
@@ -198,11 +387,17 @@ struct SuggestionControllerMathResultsTests {
     }
 }
 
-private func makeMathController(expression: String) -> SuggestionController {
+private func makeMathController(
+    expression: String,
+    selectedText: String? = nil
+) -> SuggestionController {
     let controller = SuggestionController()
     controller.isPredictiveTextEnabled = true
     controller.isShowMathResultsEnabled = true
-    controller.updateSuggestions(for: expression)
+    controller.updateSuggestions(
+        for: expression,
+        selectedText: selectedText
+    )
     return controller
 }
 
