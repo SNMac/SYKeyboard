@@ -34,7 +34,7 @@ struct SuggestionControllerMathResultsTests {
         #expect(
             controller.mathResultAction(
                 at: 1,
-                hasSelectedText: false
+                selectedText: nil
             ) == .insertResult("2")
         )
     }
@@ -46,7 +46,7 @@ struct SuggestionControllerMathResultsTests {
         #expect(
             controller.mathResultAction(
                 at: 2,
-                hasSelectedText: false
+                selectedText: nil
             ) == .replaceExpression(deleteCount: 7, insertText: "3")
         )
     }
@@ -58,7 +58,7 @@ struct SuggestionControllerMathResultsTests {
         #expect(
             controller.mathResultAction(
                 at: 1,
-                hasSelectedText: true
+                selectedText: "3-1="
             ) == .replaceSelection("3-1=2")
         )
     }
@@ -70,26 +70,76 @@ struct SuggestionControllerMathResultsTests {
         #expect(
             controller.mathResultAction(
                 at: 2,
-                hasSelectedText: true
+                selectedText: "3-1="
             ) == .replaceSelection("2")
         )
     }
 
-    @Test("왼쪽 후보는 selection 여부와 무관하게 원문 확정")
-    func test왼쪽후보는_Selection여부와무관하게원문확정() {
+    @Test("수식 suffix 앞에 선택 prefix가 있으면 가운데 후보가 prefix를 보존")
+    func test수식Suffix앞에선택Prefix가있으면_가운데후보가Prefix를보존() {
+        let controller = makeMathController(expression: "memo3+1=")
+
+        #expect(
+            controller.mathResultAction(
+                at: 1,
+                selectedText: "memo3+1="
+            ) == .replaceSelection("memo3+1=4")
+        )
+    }
+
+    @Test("수식 suffix 앞에 선택 prefix가 있으면 오른쪽 후보가 prefix를 보존")
+    func test수식Suffix앞에선택Prefix가있으면_오른쪽후보가Prefix를보존() {
+        let controller = makeMathController(expression: "memo3+1=")
+
+        #expect(
+            controller.mathResultAction(
+                at: 2,
+                selectedText: "memo3+1="
+            ) == .replaceSelection("memo4")
+        )
+    }
+
+    @Test("왼쪽 후보는 정확한 수식과 prefix 선택에서 원문 확정")
+    func test왼쪽후보는_정확한수식과Prefix선택에서원문확정() {
         let controller = makeMathController(expression: "3-1=")
 
         #expect(
             controller.mathResultAction(
                 at: 0,
-                hasSelectedText: false
+                selectedText: nil
             ) == .confirmOriginal
         )
         #expect(
             controller.mathResultAction(
                 at: 0,
-                hasSelectedText: true
+                selectedText: "3-1="
             ) == .confirmOriginal
+        )
+
+        let prefixedController = makeMathController(expression: "memo3+1=")
+        #expect(
+            prefixedController.mathResultAction(
+                at: 0,
+                selectedText: "memo3+1="
+            ) == .confirmOriginal
+        )
+    }
+
+    @Test("현재 수식 생성 기준과 선택 문자열이 다르면 action을 반환하지 않음")
+    func test현재수식생성기준과선택문자열이다르면_Action을반환하지않음() {
+        let controller = makeMathController(expression: "memo3+1=")
+
+        #expect(
+            controller.mathResultAction(
+                at: 1,
+                selectedText: "note3+1="
+            ) == nil
+        )
+        #expect(
+            controller.mathResultAction(
+                at: 2,
+                selectedText: "3+1="
+            ) == nil
         )
     }
 
@@ -122,13 +172,13 @@ struct SuggestionControllerMathResultsTests {
         #expect(
             controller.mathResultAction(
                 at: 1,
-                hasSelectedText: false
+                selectedText: nil
             ) == .insertResult("10")
         )
         #expect(
             controller.mathResultAction(
                 at: 2,
-                hasSelectedText: false
+                selectedText: nil
             ) == .replaceExpression(deleteCount: 8, insertText: "10")
         )
     }

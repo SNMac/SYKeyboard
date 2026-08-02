@@ -1240,10 +1240,9 @@ private extension BaseKeyboardViewController {
     }
 
     func updateSuggestionPreviewHighlight() {
-        let hasSelectedText = textDocumentProxy.selectedText?.isEmpty == false
         if suggestionController.mathResultAction(
             at: 1,
-            hasSelectedText: hasSelectedText
+            selectedText: textDocumentProxy.selectedText
         ) != nil {
             suggestionBarView.updatePreviewHighlight(index: 1)
             return
@@ -1337,10 +1336,9 @@ extension BaseKeyboardViewController {
         case .deleteButton:
             assertionFailure("삭제 버튼은 semantic hook 경로에서 먼저 처리됩니다.")
         case .spaceButton:
-            let hasSelectedText = textDocumentProxy.selectedText?.isEmpty == false
             if let action = suggestionController.mathResultAction(
                 at: 1,
-                hasSelectedText: hasSelectedText
+                selectedText: textDocumentProxy.selectedText
             ), applyMathResultSuggestionAction(action) {
                 // 수식 action을 적용한 경우 일반 텍스트 대치를 건너뜁니다.
             } else {
@@ -2204,10 +2202,9 @@ private extension BaseKeyboardViewController {
     func handleMathResultSuggestion(at index: Int) -> Bool {
         guard suggestionController.currentMode == .mathExpression else { return false }
 
-        let hasSelectedText = textDocumentProxy.selectedText?.isEmpty == false
         guard let action = suggestionController.mathResultAction(
             at: index,
-            hasSelectedText: hasSelectedText
+            selectedText: textDocumentProxy.selectedText
         ) else { return true }
         guard applyMathResultSuggestionAction(action) else { return true }
 

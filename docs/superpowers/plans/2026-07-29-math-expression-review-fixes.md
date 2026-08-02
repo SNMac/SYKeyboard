@@ -633,3 +633,57 @@ git commit -m "docs: #98 - 수식 자동완성 최종 리뷰 수정 검증"
 - 숫자 구성 문자 사이 공백은 거부하고 연산자·괄호 주변 공백은 허용한다.
 - 집중·전체 테스트와 두 확장 빌드가 통과한다.
 - `git diff --check b5822448..HEAD`가 통과한다.
+
+---
+
+## Final Review Fix (2026-07-29)
+
+최종 리뷰에서 `memo3+1=` selection의 수식 suffix 후보가 selection 전체를
+`3+1=4` 또는 `4`로 교체해 `memo` prefix를 잃는 문제를 수정했다.
+`mathResultAction`은 실제 `selectedText: String?`를 받고, 현재 completion 및
+`lastSuggestionBaseText`와 일치하는 selection만 처리한다. 가운데 action은
+`memo3+1=4`, 오른쪽 action은 `memo4`로 prefix를 보존하며, stale/mismatched
+selection에는 action을 반환하지 않는다. preview·space·tap 호출부가 모두 같은
+selection-aware API를 사용한다.
+
+TDD RED:
+
+```sh
+xcodebuild test \
+  -project SYKeyboard.xcodeproj \
+  -scheme SYKeyboard \
+  -only-testing:SYKeyboardTests/SuggestionControllerMathResultsTests
+```
+
+기존 `hasSelectedText: Bool` API에서 새 `selectedText: String?` 호출이 컴파일되지
+않아 의도한 RED를 확인했다. 구현 후 단일 suite는 12 passed, 0 failed,
+0 skipped로 GREEN이 됐다.
+
+iPhone 13 mini / iOS 16.0 집중 회귀:
+
+```sh
+xcodebuild test \
+  -project SYKeyboard.xcodeproj \
+  -scheme SYKeyboard \
+  -destination 'platform=iOS Simulator,id=CBD992D3-5364-4F69-AC5F-0077ADF1A292' \
+  -only-testing:SYKeyboardTests/SuggestionControllerMathResultsTests \
+  -only-testing:SYKeyboardTests/MathExpressionCompletionEvaluatorTests \
+  -only-testing:SYKeyboardTests/SuggestionBarViewPreviewHighlightTests \
+  -only-testing:SYKeyboardTests/KeyboardUndoRedoManagerTests \
+  -only-testing:SYKeyboardTests/KeyboardSuggestionSelectionPolicyTests
+```
+
+결과: `TEST SUCCEEDED`; xcresult 기준 75 passed, 0 failed, 0 skipped.
+
+iPhone 13 mini / iOS 16.0 전체 회귀:
+
+```sh
+xcodebuild test \
+  -project SYKeyboard.xcodeproj \
+  -scheme SYKeyboard \
+  -destination 'platform=iOS Simulator,id=CBD992D3-5364-4F69-AC5F-0077ADF1A292'
+```
+
+기본 샌드박스 실행은 CoreSimulator 및 SwiftPM/clang cache 권한 오류로 exit 74가
+발생했다. 권한 있는 환경에서 같은 명령을 재실행한 결과 `TEST SUCCEEDED`;
+xcresult 기준 361 passed, 0 failed, 0 skipped였다.

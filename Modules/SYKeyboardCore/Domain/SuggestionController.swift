@@ -210,6 +210,8 @@ final class SuggestionController: SuggestionService {
     private var nGramEngine: NGramPredictiveTextProviding?
     /// 마지막으로 자동완성 갱신을 요청한 텍스트
     private var lastSuggestionBaseText: String?
+    /// 현재 표시 중인 수식 후보를 만든 계산 결과
+    private var currentMathCompletion: MathExpressionCompletion?
     /// `requestSupplementaryLexicon()` 중복 요청 방지 플래그
     private var isLoadingLexicon = false
 
@@ -335,6 +337,7 @@ final class SuggestionController: SuggestionService {
 
     func clearSuggestions() {
         lastSuggestionBaseText = nil
+        currentMathCompletion = nil
         currentSuggestions = []
         currentMode = .nGram
         delegate?.suggestionController(self, didUpdateCurrentWord: nil, suggestions: [])
@@ -372,11 +375,25 @@ final class SuggestionController: SuggestionService {
 
     func mathResultAction(
         at index: Int,
-        hasSelectedText: Bool
+        selectedText: String?
     ) -> MathResultSuggestionAction? {
         guard currentMode == .mathExpression,
               index >= 0,
               index < currentSuggestions.count else { return nil }
+
+        let selectedPrefix: String?
+        if let selectedText, !selectedText.isEmpty {
+            guard selectedText == lastSuggestionBaseText,
+                  let currentMathCompletion,
+                  selectedText.hasSuffix(currentMathCompletion.expressionText) else {
+                return nil
+            }
+            selectedPrefix = String(
+                selectedText.dropLast(currentMathCompletion.expressionText.count)
+            )
+        } else {
+            selectedPrefix = nil
+        }
 
         let item = currentSuggestions[index]
 
@@ -385,18 +402,20 @@ final class SuggestionController: SuggestionService {
             return .confirmOriginal
         case .mathExpressionInsertion:
             guard let insertText = item.insertText else { return nil }
-            return hasSelectedText
-                ? .replaceSelection(item.text)
-                : .insertResult(insertText)
+            if let selectedPrefix {
+                return .replaceSelection(selectedPrefix + item.text)
+            }
+            return .insertResult(insertText)
         case .mathExpressionReplacement:
             guard let insertText = item.insertText,
                   let deleteCount = item.replacementDeleteCount else { return nil }
-            return hasSelectedText
-                ? .replaceSelection(insertText)
-                : .replaceExpression(
-                    deleteCount: deleteCount,
-                    insertText: insertText
-                )
+            if let selectedPrefix {
+                return .replaceSelection(selectedPrefix + insertText)
+            }
+            return .replaceExpression(
+                deleteCount: deleteCount,
+                insertText: insertText
+            )
         default:
             return nil
         }
@@ -654,6 +673,7 @@ private extension SuggestionController {
     func performUpdateSuggestions(for baseText: String) {
         if isShowMathResultsEnabled,
            let completion = MathExpressionCompletionEvaluator.completion(for: baseText) {
+            currentMathCompletion = completion
             currentMode = .mathExpression
             currentSuggestions = [
                 SuggestionItem(
@@ -680,6 +700,7 @@ private extension SuggestionController {
             return
         }
 
+        currentMathCompletion = nil
         if baseText.isEmpty || baseText.last?.isWhitespace == true {
             currentMode = .nGram
             currentSuggestions = nGramSuggestions(for: baseText)

@@ -125,15 +125,15 @@ protocol SuggestionService: AnyObject {
     /// - Returns: 후보 텍스트, 유효하지 않거나 n-gram 출처가 아니면 `nil`
     func nGramSuggestionText(at index: Int) -> String?
 
-    /// 수식 결과 모드에서 선택 상태를 반영한 후보 적용 action을 반환합니다.
+    /// 수식 결과 모드에서 현재 선택 텍스트를 반영한 후보 적용 action을 반환합니다.
     ///
     /// - Parameters:
     ///   - index: 선택된 후보의 인덱스 (0~2)
-    ///   - hasSelectedText: 현재 텍스트 선택 여부
+    ///   - selectedText: 현재 선택된 텍스트. 선택이 없으면 `nil`
     /// - Returns: 적용할 action, 유효하지 않거나 수식 후보가 아니면 `nil`
     func mathResultAction(
         at index: Int,
-        hasSelectedText: Bool
+        selectedText: String?
     ) -> MathResultSuggestionAction?
 
     /// 현재 입력 버퍼가 스페이스로 텍스트 대치될 때 강조할 SuggestionBar 후보 인덱스를 반환합니다.
