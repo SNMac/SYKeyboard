@@ -1240,8 +1240,11 @@ private extension BaseKeyboardViewController {
     }
 
     func updateSuggestionPreviewHighlight() {
-        if suggestionController.currentMode == .mathExpression,
-           suggestionController.mathResultInsertText(at: 1) != nil {
+        let hasSelectedText = textDocumentProxy.selectedText?.isEmpty == false
+        if suggestionController.mathResultAction(
+            at: 1,
+            hasSelectedText: hasSelectedText
+        ) != nil {
             suggestionBarView.updatePreviewHighlight(index: 1)
             return
         }
@@ -1334,8 +1337,12 @@ extension BaseKeyboardViewController {
         case .deleteButton:
             assertionFailure("삭제 버튼은 semantic hook 경로에서 먼저 처리됩니다.")
         case .spaceButton:
-            if let result = suggestionController.mathResultInsertText(at: 1) {
-                insertText(result)
+            let hasSelectedText = textDocumentProxy.selectedText?.isEmpty == false
+            if let action = suggestionController.mathResultAction(
+                at: 1,
+                hasSelectedText: hasSelectedText
+            ), applyMathResultSuggestionAction(action) {
+                // 수식 action을 적용한 경우 일반 텍스트 대치를 건너뜁니다.
             } else {
                 let baseText = KeyboardSuggestionSelectionPolicy.suggestionSelectionBaseText(
                     inputBuffer: inputBuffer,
@@ -2138,8 +2145,8 @@ extension BaseKeyboardViewController: SuggestionControllerDelegate {
 extension BaseKeyboardViewController: SuggestionBarDelegate {
     final func suggestionBar(_ bar: SuggestionBarView, didSelectSuggestionAt index: Int) {
         cancelPendingDeleteInteractions()
-        if handleSelectedTextSuggestion(at: index) { return }
         if handleMathResultSuggestion(at: index) { return }
+        if handleSelectedTextSuggestion(at: index) { return }
         if handleNGramSuggestion(at: index) { return }
         if handleCurrentWordConfirmationIfNeeded(at: index) { return }
         handleInputBufferSuggestion(at: index)
@@ -2187,11 +2194,7 @@ private extension BaseKeyboardViewController {
             insert: result.insertText
         )
 
-        // selectedText가 있는 상태에서 insertText하면
-        // 시스템이 선택 영역을 자동 교체
-        recordUndoRedoChange(deletedText: selectedText, insertedText: insertText)
-        textDocumentProxy.insertText(insertText)
-        inputBuffer.append(insertText)
+        replaceSelectedText(selectedText, with: insertText)
 
         suggestionDidApply()
         updateSuggestions()
@@ -2201,23 +2204,48 @@ private extension BaseKeyboardViewController {
     func handleMathResultSuggestion(at index: Int) -> Bool {
         guard suggestionController.currentMode == .mathExpression else { return false }
 
-        let isOriginal = suggestionController.isMathExpressionOriginal(at: index)
+        let hasSelectedText = textDocumentProxy.selectedText?.isEmpty == false
+        guard let action = suggestionController.mathResultAction(
+            at: index,
+            hasSelectedText: hasSelectedText
+        ) else { return true }
+        guard applyMathResultSuggestionAction(action) else { return true }
 
-        if isOriginal {
-            suggestionController.clearSuggestions()
-        } else if let replacement = suggestionController.mathResultReplacement(at: index) {
-            replaceText(deleteCount: replacement.deleteCount, insert: replacement.insertText)
-        } else if let result = suggestionController.mathResultInsertText(at: index) {
-            insertText(result)
-        } else {
+        if case .confirmOriginal = action {
             return true
-        }
-
-        if !isOriginal {
+        } else {
             suggestionDidApply()
             updateSuggestions()
         }
         return true
+    }
+
+    @discardableResult
+    func applyMathResultSuggestionAction(
+        _ action: MathResultSuggestionAction
+    ) -> Bool {
+        switch action {
+        case .confirmOriginal:
+            suggestionController.clearSuggestions()
+        case .insertResult(let text):
+            insertText(text)
+        case .replaceExpression(let deleteCount, let insertText):
+            replaceText(deleteCount: deleteCount, insert: insertText)
+        case .replaceSelection(let text):
+            guard let selectedText = textDocumentProxy.selectedText,
+                  !selectedText.isEmpty else { return false }
+            replaceSelectedText(selectedText, with: text)
+        }
+        return true
+    }
+
+    func replaceSelectedText(_ selectedText: String, with insertText: String) {
+        textDocumentProxy.insertText(insertText)
+        inputBuffer.append(insertText)
+        recordUndoRedoChange(
+            deletedText: selectedText,
+            insertedText: insertText
+        )
     }
 
     func handleNGramSuggestion(at index: Int) -> Bool {

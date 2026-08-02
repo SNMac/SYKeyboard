@@ -27,43 +27,70 @@ struct SuggestionControllerMathResultsTests {
         #expect(delegate.updates.last?.suggestions == ["\"3 - 1 =\"", "3 - 1 =2", "2"])
     }
 
-    @Test("가운데 수식 결과 후보 선택은 결과값만 삽입")
-    func test가운데수식결과후보선택은_결과값만삽입() {
-        let controller = SuggestionController()
-        controller.isPredictiveTextEnabled = true
-        controller.isShowMathResultsEnabled = true
+    @Test("선택되지 않은 가운데 후보는 결과값 삽입 action")
+    func test선택되지않은가운데후보는_결과값삽입Action() {
+        let controller = makeMathController(expression: "3-1=")
 
-        controller.updateSuggestions(for: "3-1=")
-        let result = controller.mathResultInsertText(at: 1)
-
-        #expect(result == "2")
+        #expect(
+            controller.mathResultAction(
+                at: 1,
+                hasSelectedText: false
+            ) == .insertResult("2")
+        )
     }
 
-    @Test("오른쪽 수식 결과 후보 선택은 수식 전체를 결과값으로 대치")
-    func test오른쪽수식결과후보선택은_수식전체를결과값으로대치() {
-        let controller = SuggestionController()
-        controller.isPredictiveTextEnabled = true
-        controller.isShowMathResultsEnabled = true
+    @Test("선택되지 않은 오른쪽 후보는 수식 전체 대치 action")
+    func test선택되지않은오른쪽후보는_수식전체대치Action() {
+        let controller = makeMathController(expression: "1 + 2 =")
 
-        controller.updateSuggestions(for: "1 + 2 =")
-        let replacement = controller.mathResultReplacement(at: 2)
-
-        #expect(replacement?.deleteCount == 7)
-        #expect(replacement?.insertText == "3")
+        #expect(
+            controller.mathResultAction(
+                at: 2,
+                hasSelectedText: false
+            ) == .replaceExpression(deleteCount: 7, insertText: "3")
+        )
     }
 
-    @Test("왼쪽 수식 원문 후보 선택은 입력을 변경하지 않음")
-    func test왼쪽수식원문후보선택은_입력을변경하지않음() {
-        let controller = SuggestionController()
-        controller.isPredictiveTextEnabled = true
-        controller.isShowMathResultsEnabled = true
+    @Test("선택된 가운데 후보는 원문과 결과로 selection 교체")
+    func test선택된가운데후보는_원문과결과로Selection교체() {
+        let controller = makeMathController(expression: "3-1=")
 
-        controller.updateSuggestions(for: "1 + 2 =")
+        #expect(
+            controller.mathResultAction(
+                at: 1,
+                hasSelectedText: true
+            ) == .replaceSelection("3-1=2")
+        )
+    }
 
-        #expect(controller.isMathExpressionOriginal(at: 0))
-        #expect(controller.isMathExpressionOriginal(at: 1) == false)
-        #expect(controller.mathResultInsertText(at: 0) == nil)
-        #expect(controller.mathResultReplacement(at: 0) == nil)
+    @Test("선택된 오른쪽 후보는 결과값으로 selection 교체")
+    func test선택된오른쪽후보는_결과값으로Selection교체() {
+        let controller = makeMathController(expression: "3-1=")
+
+        #expect(
+            controller.mathResultAction(
+                at: 2,
+                hasSelectedText: true
+            ) == .replaceSelection("2")
+        )
+    }
+
+    @Test("왼쪽 후보는 selection 여부와 무관하게 원문 확정")
+    func test왼쪽후보는_Selection여부와무관하게원문확정() {
+        let controller = makeMathController(expression: "3-1=")
+
+        #expect(
+            controller.mathResultAction(
+                at: 0,
+                hasSelectedText: false
+            ) == .confirmOriginal
+        )
+        #expect(
+            controller.mathResultAction(
+                at: 0,
+                hasSelectedText: true
+            ) == .confirmOriginal
+        )
     }
 
     @Test("수식 결과 설정이 꺼져 있으면 수식 후보를 표시하지 않음")
@@ -92,9 +119,18 @@ struct SuggestionControllerMathResultsTests {
 
         #expect(controller.currentMode == .mathExpression)
         #expect(delegate.updates.last?.suggestions == ["\"(3+2)*2=\"", "(3+2)*2=10", "10"])
-        #expect(controller.mathResultInsertText(at: 1) == "10")
-        #expect(controller.mathResultReplacement(at: 2)?.deleteCount == 8)
-        #expect(controller.mathResultReplacement(at: 2)?.insertText == "10")
+        #expect(
+            controller.mathResultAction(
+                at: 1,
+                hasSelectedText: false
+            ) == .insertResult("10")
+        )
+        #expect(
+            controller.mathResultAction(
+                at: 2,
+                hasSelectedText: false
+            ) == .replaceExpression(deleteCount: 8, insertText: "10")
+        )
     }
 
     @Test("부호가 연속된 수식은 수식 모드로 전환하지 않음")
@@ -110,6 +146,14 @@ struct SuggestionControllerMathResultsTests {
         #expect(controller.currentMode == .typing)
         #expect(delegate.updates.last?.suggestions != ["\"3++1=\"", "3++1=4", "4"])
     }
+}
+
+private func makeMathController(expression: String) -> SuggestionController {
+    let controller = SuggestionController()
+    controller.isPredictiveTextEnabled = true
+    controller.isShowMathResultsEnabled = true
+    controller.updateSuggestions(for: expression)
+    return controller
 }
 
 private final class RecordingMathExpressionSuggestionDelegate: SuggestionControllerDelegate {

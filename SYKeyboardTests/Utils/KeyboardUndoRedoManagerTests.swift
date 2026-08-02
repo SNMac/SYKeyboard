@@ -324,6 +324,80 @@ struct KeyboardUndoRedoManagerTests {
         #expect(manager.canRedo == true)
         #expect(manager.redo() == KeyboardUndoRedoEdit(deleteCount: 0, insertText: "abc", targetContext: redoTarget))
     }
+
+    @Test("선택된 가운데 수식 후보 탭은 치환 결과 문맥에서 undo redo 가능")
+    func test선택된가운데수식후보탭은_치환결과문맥에서UndoRedo가능() {
+        assertSelectedMathSuggestionUndoRedo(
+            originalText: "3+1=",
+            replacementText: "3+1=4"
+        )
+    }
+
+    @Test("선택된 오른쪽 수식 후보 탭은 치환 결과 문맥에서 undo redo 가능")
+    func test선택된오른쪽수식후보탭은_치환결과문맥에서UndoRedo가능() {
+        assertSelectedMathSuggestionUndoRedo(
+            originalText: "3+1=",
+            replacementText: "4"
+        )
+    }
+
+    private func assertSelectedMathSuggestionUndoRedo(
+        originalText: String,
+        replacementText: String
+    ) {
+        let selectedContext = KeyboardTextContextSnapshot(
+            beforeInput: "",
+            afterInput: ""
+        )
+        var manager = KeyboardUndoRedoManager()
+        let replacementContext = KeyboardTextContextSnapshot(
+            beforeInput: replacementText,
+            afterInput: ""
+        )
+        let originalContext = KeyboardTextContextSnapshot(
+            beforeInput: originalText,
+            afterInput: ""
+        )
+
+        var preReplacementManager = KeyboardUndoRedoManager()
+        preReplacementManager.record(
+            deletedText: originalText,
+            insertedText: replacementText,
+            targetContext: selectedContext
+        )
+        preReplacementManager.commitPendingGroup()
+
+        #expect(preReplacementManager.canApplyUndo(from: replacementContext) == false)
+
+        manager.record(
+            deletedText: originalText,
+            insertedText: replacementText,
+            targetContext: replacementContext
+        )
+        manager.commitPendingGroup()
+
+        #expect(manager.canApplyUndo(from: replacementContext))
+        #expect(
+            manager.undo()
+                == KeyboardUndoRedoEdit(
+                    deleteCount: replacementText.count,
+                    insertText: originalText,
+                    targetContext: replacementContext
+                )
+        )
+
+        manager.updateLastRedoTargetContext(originalContext)
+
+        #expect(manager.canApplyRedo(from: originalContext))
+        #expect(
+            manager.redo()
+                == KeyboardUndoRedoEdit(
+                    deleteCount: originalText.count,
+                    insertText: replacementText,
+                    targetContext: originalContext
+                )
+        )
+    }
 }
 
 @Suite("키보드 undo/redo cursor context 검증")

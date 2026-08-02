@@ -7,6 +7,13 @@
 
 import UIKit
 
+enum MathResultSuggestionAction: Equatable {
+    case confirmOriginal
+    case insertResult(String)
+    case replaceExpression(deleteCount: Int, insertText: String)
+    case replaceSelection(String)
+}
+
 /// 자동완성 후보 조회, 텍스트 대치, 대치 복구를 제공하는 서비스 프로토콜
 ///
 /// SuggestionBar에 표시할 후보 관리, 스페이스 입력 시 텍스트 대치,
@@ -118,29 +125,16 @@ protocol SuggestionService: AnyObject {
     /// - Returns: 후보 텍스트, 유효하지 않거나 n-gram 출처가 아니면 `nil`
     func nGramSuggestionText(at index: Int) -> String?
 
-    /// 수식 결과 모드에서 특정 인덱스의 삽입 텍스트를 반환합니다.
+    /// 수식 결과 모드에서 선택 상태를 반영한 후보 적용 action을 반환합니다.
     ///
-    /// 가운데 후보는 원문 수식 뒤에 결과값만 삽입합니다.
-    ///
-    /// - Parameter index: 선택된 후보의 인덱스 (0~2)
-    /// - Returns: 삽입할 결과값, 유효하지 않거나 결과 삽입 후보가 아니면 `nil`
-    func mathResultInsertText(at index: Int) -> String?
-
-    /// 수식 결과 모드에서 특정 인덱스가 원문 확정 후보인지 반환합니다.
-    ///
-    /// 왼쪽 후보는 입력을 변경하지 않고 현재 수식 후보를 확정합니다.
-    ///
-    /// - Parameter index: 선택된 후보의 인덱스 (0~2)
-    /// - Returns: 원문 확정 후보이면 `true`
-    func isMathExpressionOriginal(at index: Int) -> Bool
-
-    /// 수식 결과 모드에서 특정 인덱스의 수식 전체 대치 정보를 반환합니다.
-    ///
-    /// 오른쪽 후보는 입력된 수식 전체를 결과값으로 대치합니다.
-    ///
-    /// - Parameter index: 선택된 후보의 인덱스 (0~2)
-    /// - Returns: 삭제할 수식 길이와 삽입할 결과값, 유효하지 않거나 대치 후보가 아니면 `nil`
-    func mathResultReplacement(at index: Int) -> (deleteCount: Int, insertText: String)?
+    /// - Parameters:
+    ///   - index: 선택된 후보의 인덱스 (0~2)
+    ///   - hasSelectedText: 현재 텍스트 선택 여부
+    /// - Returns: 적용할 action, 유효하지 않거나 수식 후보가 아니면 `nil`
+    func mathResultAction(
+        at index: Int,
+        hasSelectedText: Bool
+    ) -> MathResultSuggestionAction?
 
     /// 현재 입력 버퍼가 스페이스로 텍스트 대치될 때 강조할 SuggestionBar 후보 인덱스를 반환합니다.
     ///

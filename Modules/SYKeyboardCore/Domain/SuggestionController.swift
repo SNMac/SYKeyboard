@@ -370,27 +370,36 @@ final class SuggestionController: SuggestionService {
         return currentSuggestions[index].text
     }
 
-    func mathResultInsertText(at index: Int) -> String? {
+    func mathResultAction(
+        at index: Int,
+        hasSelectedText: Bool
+    ) -> MathResultSuggestionAction? {
         guard currentMode == .mathExpression,
-              index >= 0, index < currentSuggestions.count,
-              currentSuggestions[index].source == .mathExpressionInsertion else { return nil }
-        return currentSuggestions[index].insertText
-    }
+              index >= 0,
+              index < currentSuggestions.count else { return nil }
 
-    func isMathExpressionOriginal(at index: Int) -> Bool {
-        return currentMode == .mathExpression
-            && index >= 0
-            && index < currentSuggestions.count
-            && currentSuggestions[index].source == .mathExpressionOriginal
-    }
+        let item = currentSuggestions[index]
 
-    func mathResultReplacement(at index: Int) -> (deleteCount: Int, insertText: String)? {
-        guard currentMode == .mathExpression,
-              index >= 0, index < currentSuggestions.count,
-              currentSuggestions[index].source == .mathExpressionReplacement,
-              let deleteCount = currentSuggestions[index].replacementDeleteCount,
-              let insertText = currentSuggestions[index].insertText else { return nil }
-        return (deleteCount: deleteCount, insertText: insertText)
+        switch item.source {
+        case .mathExpressionOriginal:
+            return .confirmOriginal
+        case .mathExpressionInsertion:
+            guard let insertText = item.insertText else { return nil }
+            return hasSelectedText
+                ? .replaceSelection(item.text)
+                : .insertResult(insertText)
+        case .mathExpressionReplacement:
+            guard let insertText = item.insertText,
+                  let deleteCount = item.replacementDeleteCount else { return nil }
+            return hasSelectedText
+                ? .replaceSelection(insertText)
+                : .replaceExpression(
+                    deleteCount: deleteCount,
+                    insertText: insertText
+                )
+        default:
+            return nil
+        }
     }
 
     func textReplacementPreviewSuggestionIndex(baseText: String) -> Int? {
