@@ -178,6 +178,57 @@ struct SuggestionControllerTextReplacementTests {
         #expect(replacement?.insertText == "identifier")
     }
 
+    @Test("텍스트 대치 preview 인덱스는 SuggestionBar 후보 위치를 반환")
+    func test텍스트대치Preview인덱스는_SuggestionBar후보위치를반환() {
+        let controller = makeController(
+            entries: [
+                TextReplacementEntry(userInput: "id", documentText: "identifier")
+            ]
+        )
+        controller.isPredictiveTextEnabled = true
+        controller.isTextReplacementEnabled = true
+        controller.prepareLexiconEngineIfNeeded()
+
+        controller.updateSuggestions(for: "id")
+
+        #expect(controller.textReplacementPreviewSuggestionIndex(baseText: "id") == 1)
+    }
+
+    @Test("입력 버퍼가 비어 있으면 커서 앞 문맥으로 텍스트 대치 preview와 적용을 판정")
+    func test입력버퍼가비어있으면_커서앞문맥으로텍스트대치를판정() {
+        let controller = makeController(
+            entries: [
+                TextReplacementEntry(userInput: "id", documentText: "identifier")
+            ]
+        )
+        controller.isPredictiveTextEnabled = true
+        controller.isTextReplacementEnabled = true
+        controller.prepareLexiconEngineIfNeeded()
+
+        let baseText = KeyboardSuggestionSelectionPolicy.suggestionSelectionBaseText(
+            inputBuffer: "",
+            documentContextBeforeInput: "hello id"
+        )
+        controller.updateSuggestions(for: baseText)
+
+        #expect(controller.textReplacementPreviewSuggestionIndex(baseText: baseText) == 1)
+
+        let replacement = controller.attemptTextReplacement(
+            baseText: baseText,
+            documentContextBeforeInput: "hello id"
+        )
+        #expect(replacement?.deleteCount == 2)
+        #expect(replacement?.insertText == "identifier")
+
+        let restore = controller.attemptRestoreReplacement(
+            inputBuffer: "",
+            documentContextBeforeInput: "hello identifier",
+            selectedText: nil
+        )
+        #expect(restore?.deleteCount == 10)
+        #expect(restore?.insertText == "id")
+    }
+
     private func makeController(entries: [TextReplacementEntry]) -> SuggestionController {
         let provider = StubLexiconSuggestionProvider(entries: entries)
         let factory = SuggestionControllerEngineFactory(

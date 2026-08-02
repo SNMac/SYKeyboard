@@ -21,7 +21,7 @@ final class SuggestionButtonView: UIView {
     
     var isHighlighted: Bool = false {
         didSet {
-            backgroundView.backgroundColor = isHighlighted ? .suggestionButtonPressed : .clear
+            updateAppearance()
         }
     }
     
@@ -74,6 +74,7 @@ final class SuggestionButtonView: UIView {
     
     func update(to title: String) {
         suggestionLabel.text = title
+        updateAppearance()
     }
 }
 
@@ -113,5 +114,10 @@ private extension SuggestionButtonView {
             suggestionLabel.trailingAnchor.constraint(equalTo: self.trailingAnchor, constant: -4),
             suggestionLabel.bottomAnchor.constraint(equalTo: self.bottomAnchor)
         ])
+    }
+
+    func updateAppearance() {
+        backgroundView.backgroundColor = isHighlighted ? .suggestionButtonPressed : .clear
+        suggestionLabel.textColor = isHighlighted ? .label : .suggestionButtonLabel
     }
 }

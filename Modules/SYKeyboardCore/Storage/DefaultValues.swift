@@ -26,6 +26,8 @@ public enum DefaultValues {
     public static let isPredictiveTextEnabled: Bool = true
     /// Undo/Redo 기능 활성화 여부 기본값
     public static let isUndoRedoEnabled: Bool = true
+    /// 수식 결과 표시 기본값
+    public static let isShowMathResultsEnabled: Bool = true
     
     // MARK: - 입력 설정
     

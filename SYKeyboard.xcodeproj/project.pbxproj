@@ -234,6 +234,7 @@
 				"HangeulKeyboardCore/Storage/DefaultValues+Extension.swift",
 				"HangeulKeyboardCore/Storage/UserDefaultsKeys+Extension.swift",
 				"HangeulKeyboardCore/Storage/UserDefaultsManager+Extension.swift",
+				SYKeyboardCore/Domain/MathExpressionCompletionEvaluator.swift,
 				SYKeyboardCore/Domain/PredictiveText/LexiconPredictiveTextEngine.swift,
 				SYKeyboardCore/Domain/PredictiveText/NGramPredictiveTextEngine.swift,
 				SYKeyboardCore/Domain/PredictiveText/Protocols/PredictiveTextProvider.swift,
@@ -313,6 +314,7 @@
 		5BCECD532F26C3B800A7F562 /* Exceptions for "Modules" folder in "SYKeyboardCore" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				SYKeyboardCore/Domain/MathExpressionCompletionEvaluator.swift,
 				SYKeyboardCore/Domain/PredictiveText/LexiconPredictiveTextEngine.swift,
 				SYKeyboardCore/Domain/PredictiveText/NGramPredictiveTextEngine.swift,
 				SYKeyboardCore/Domain/PredictiveText/Protocols/PredictiveTextProvider.swift,

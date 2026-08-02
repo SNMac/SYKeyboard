@@ -112,6 +112,9 @@ final public class UserDefaultsManager {
     /// Undo/Redo 기능 활성화 여부
     @UserDefaultsWrapper(key: UserDefaultsKeys.isUndoRedoEnabled, defaultValue: DefaultValues.isUndoRedoEnabled)
     public var isUndoRedoEnabled: Bool
+    /// 수식 결과 표시
+    @UserDefaultsWrapper(key: UserDefaultsKeys.isShowMathResultsEnabled, defaultValue: DefaultValues.isShowMathResultsEnabled)
+    public var isShowMathResultsEnabled: Bool
     
     // MARK: 입력 설정
     

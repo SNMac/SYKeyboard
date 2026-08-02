@@ -59,6 +59,8 @@ enum SuggestionMode {
     case typing
     /// n-gram: button1~3에 다음 단어 예측
     case nGram
+    /// 수식 결과: button1에 원문, button2에 원문+결과, button3에 결과 대치 후보
+    case mathExpression
 }
 
 /// 자동완성 후보 조회, 텍스트 대치, 대치 복구를 통합 관리하는 컨트롤러
@@ -128,6 +130,16 @@ final class SuggestionController: SuggestionService {
         }
     }
 
+    /// 수식 결과 후보 표시 사용자 설정
+    var isShowMathResultsEnabled: Bool = true {
+        didSet {
+            guard oldValue != isShowMathResultsEnabled else { return }
+            if !isShowMathResultsEnabled, currentMode == .mathExpression {
+                clearSuggestions()
+            }
+        }
+    }
+
     /// 텍스트 필드별 일시적 비활성화
     ///
     /// `autocorrectionType == .no`인 텍스트 필드 등에서 `true`로 설정합니다.
@@ -147,6 +159,22 @@ final class SuggestionController: SuggestionService {
         let text: String
         /// 후보의 출처
         let source: Source
+        /// 후보 선택 시 삽입할 텍스트
+        let insertText: String?
+        /// 후보 선택 시 삭제할 텍스트 수
+        let replacementDeleteCount: Int?
+
+        init(
+            text: String,
+            source: Source,
+            insertText: String? = nil,
+            replacementDeleteCount: Int? = nil
+        ) {
+            self.text = text
+            self.source = source
+            self.insertText = insertText
+            self.replacementDeleteCount = replacementDeleteCount
+        }
 
         /// 후보 출처 구분
         enum Source {
@@ -156,6 +184,12 @@ final class SuggestionController: SuggestionService {
             case textChecker
             /// n-gram 기반 (다음 단어 예측)
             case nGram
+            /// 수식 원문 확인 후보
+            case mathExpressionOriginal
+            /// 수식 결과 삽입 후보
+            case mathExpressionInsertion
+            /// 수식 전체 대치 후보
+            case mathExpressionReplacement
         }
     }
 
@@ -336,6 +370,44 @@ final class SuggestionController: SuggestionService {
         return currentSuggestions[index].text
     }
 
+    func mathResultInsertText(at index: Int) -> String? {
+        guard currentMode == .mathExpression,
+              index >= 0, index < currentSuggestions.count,
+              currentSuggestions[index].source == .mathExpressionInsertion else { return nil }
+        return currentSuggestions[index].insertText
+    }
+
+    func isMathExpressionOriginal(at index: Int) -> Bool {
+        return currentMode == .mathExpression
+            && index >= 0
+            && index < currentSuggestions.count
+            && currentSuggestions[index].source == .mathExpressionOriginal
+    }
+
+    func mathResultReplacement(at index: Int) -> (deleteCount: Int, insertText: String)? {
+        guard currentMode == .mathExpression,
+              index >= 0, index < currentSuggestions.count,
+              currentSuggestions[index].source == .mathExpressionReplacement,
+              let deleteCount = currentSuggestions[index].replacementDeleteCount,
+              let insertText = currentSuggestions[index].insertText else { return nil }
+        return (deleteCount: deleteCount, insertText: insertText)
+    }
+
+    func textReplacementPreviewSuggestionIndex(baseText: String) -> Int? {
+        guard currentMode == .typing,
+              let match = textReplacementMatch(baseText: baseText) else { return nil }
+
+        if let ignored = ignoredShortcut, ignored == match.entry.userInput {
+            return nil
+        }
+
+        guard let suggestionIndex = currentSuggestions.firstIndex(where: {
+            $0.source == .lexicon && $0.text == match.entry.documentText
+        }) else { return nil }
+
+        return suggestionIndex + 1
+    }
+
     // MARK: - Learning
 
     func learnWord(_ word: String) {
@@ -401,41 +473,21 @@ final class SuggestionController: SuggestionService {
         baseText: String,
         documentContextBeforeInput: String?
     ) -> (deleteCount: Int, insertText: String)? {
-        guard isTextReplacementEnabled,
-              !baseText.isEmpty,
-              let lexiconEngine,
-              lexiconEngine.hasLoadedLexicon else { return nil }
+        guard let match = textReplacementMatch(baseText: baseText) else { return nil }
 
-        let currentWord = extractLastWord(from: baseText)
-        guard !currentWord.isEmpty else { return nil }
-
-        let matchingEntries = lexiconEngine.textReplacementEntries.filter { entry in
-            let isMatch = currentWord.lowercased() == entry.userInput.lowercased()
-
-            if entry.userInput.lowercased() == "m" && entry.documentText == "M" {
-                return false
-            }
-
-            return isMatch
-        }
-
-        guard let match = matchingEntries.max(by: {
-            $0.userInput.count < $1.userInput.count
-        }) else { return nil }
-
-        if let ignored = ignoredShortcut, ignored == match.userInput {
+        if let ignored = ignoredShortcut, ignored == match.entry.userInput {
             ignoredShortcut = nil
             return nil
         }
 
         appendReplacementRecord(
-            userInput: match.userInput,
-            documentText: match.documentText,
+            userInput: match.entry.userInput,
+            documentText: match.entry.documentText,
             baseText: documentContextBeforeInput ?? baseText,
-            currentWord: currentWord
+            currentWord: match.currentWord
         )
 
-        return (deleteCount: match.userInput.count, insertText: match.documentText)
+        return (deleteCount: match.entry.userInput.count, insertText: match.entry.documentText)
     }
 
     func attemptRestoreReplacement(
@@ -480,6 +532,34 @@ final class SuggestionController: SuggestionService {
 // MARK: - Private Methods
 
 private extension SuggestionController {
+
+    func textReplacementMatch(
+        baseText: String
+    ) -> (entry: TextReplacementEntry, currentWord: String)? {
+        guard isTextReplacementEnabled,
+              !baseText.isEmpty,
+              let lexiconEngine,
+              lexiconEngine.hasLoadedLexicon else { return nil }
+
+        let currentWord = extractLastWord(from: baseText)
+        guard !currentWord.isEmpty else { return nil }
+
+        let matchingEntries = lexiconEngine.textReplacementEntries.filter { entry in
+            let isMatch = currentWord.lowercased() == entry.userInput.lowercased()
+
+            if entry.userInput.lowercased() == "m" && entry.documentText == "M" {
+                return false
+            }
+
+            return isMatch
+        }
+
+        guard let entry = matchingEntries.max(by: {
+            $0.userInput.count < $1.userInput.count
+        }) else { return nil }
+
+        return (entry: entry, currentWord: currentWord)
+    }
 
     func appendReplacementRecord(
         userInput: String,
@@ -563,6 +643,34 @@ private extension SuggestionController {
     ///
     /// - Parameter baseText: 자동완성을 제공할 텍스트
     func performUpdateSuggestions(for baseText: String) {
+        if isShowMathResultsEnabled,
+           let completion = MathExpressionCompletionEvaluator.completion(for: baseText) {
+            currentMode = .mathExpression
+            currentSuggestions = [
+                SuggestionItem(
+                    text: "\"\(completion.expressionText)\"",
+                    source: .mathExpressionOriginal
+                ),
+                SuggestionItem(
+                    text: completion.displayText,
+                    source: .mathExpressionInsertion,
+                    insertText: completion.insertText
+                ),
+                SuggestionItem(
+                    text: completion.insertText,
+                    source: .mathExpressionReplacement,
+                    insertText: completion.insertText,
+                    replacementDeleteCount: completion.expressionText.count
+                )
+            ]
+            delegate?.suggestionController(
+                self,
+                didUpdateCurrentWord: nil,
+                suggestions: currentSuggestions.map { $0.text }
+            )
+            return
+        }
+
         if baseText.isEmpty || baseText.last?.isWhitespace == true {
             currentMode = .nGram
             currentSuggestions = nGramSuggestions(for: baseText)

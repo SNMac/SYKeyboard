@@ -113,6 +113,18 @@ struct KeyboardSuggestionSelectionPolicyTests {
         )
     }
 
+    @Test("자동완성 갱신 기준 텍스트는 입력 버퍼가 비어 있으면 커서 앞 문맥을 사용")
+    func test자동완성갱신기준텍스트는_입력버퍼가비어있으면_커서앞문맥을사용() {
+        #expect(
+            KeyboardSuggestionSelectionPolicy.suggestionUpdateAction(
+                isPredictiveTextEnabled: true,
+                selectedText: nil,
+                inputBuffer: "",
+                documentContextBeforeInput: "3+1="
+            ) == .update("3+1=")
+        )
+    }
+
     @Test("textDidChange 자동완성 갱신은 primary 커서 드래그 중에는 건너뜀")
     func testTextDidChange자동완성갱신조건() {
         #expect(

@@ -46,6 +46,11 @@ protocol SuggestionService: AnyObject {
     /// `false`로 설정하면 텍스트 대치 기능을 비활성화합니다.
     var isTextReplacementEnabled: Bool { get set }
 
+    /// 수식 결과 후보 표시 사용자 설정
+    ///
+    /// `false`로 설정하면 `=` 입력 시 계산 결과 후보를 표시하지 않습니다.
+    var isShowMathResultsEnabled: Bool { get set }
+
     /// 텍스트 필드별 일시적 비활성화
     ///
     /// `autocorrectionType == .no`인 텍스트 필드 등에서 `true`로 설정합니다.
@@ -112,6 +117,38 @@ protocol SuggestionService: AnyObject {
     /// - Parameter index: 선택된 후보의 인덱스 (0~2)
     /// - Returns: 후보 텍스트, 유효하지 않거나 n-gram 출처가 아니면 `nil`
     func nGramSuggestionText(at index: Int) -> String?
+
+    /// 수식 결과 모드에서 특정 인덱스의 삽입 텍스트를 반환합니다.
+    ///
+    /// 가운데 후보는 원문 수식 뒤에 결과값만 삽입합니다.
+    ///
+    /// - Parameter index: 선택된 후보의 인덱스 (0~2)
+    /// - Returns: 삽입할 결과값, 유효하지 않거나 결과 삽입 후보가 아니면 `nil`
+    func mathResultInsertText(at index: Int) -> String?
+
+    /// 수식 결과 모드에서 특정 인덱스가 원문 확정 후보인지 반환합니다.
+    ///
+    /// 왼쪽 후보는 입력을 변경하지 않고 현재 수식 후보를 확정합니다.
+    ///
+    /// - Parameter index: 선택된 후보의 인덱스 (0~2)
+    /// - Returns: 원문 확정 후보이면 `true`
+    func isMathExpressionOriginal(at index: Int) -> Bool
+
+    /// 수식 결과 모드에서 특정 인덱스의 수식 전체 대치 정보를 반환합니다.
+    ///
+    /// 오른쪽 후보는 입력된 수식 전체를 결과값으로 대치합니다.
+    ///
+    /// - Parameter index: 선택된 후보의 인덱스 (0~2)
+    /// - Returns: 삭제할 수식 길이와 삽입할 결과값, 유효하지 않거나 대치 후보가 아니면 `nil`
+    func mathResultReplacement(at index: Int) -> (deleteCount: Int, insertText: String)?
+
+    /// 현재 입력 버퍼가 스페이스로 텍스트 대치될 때 강조할 SuggestionBar 후보 인덱스를 반환합니다.
+    ///
+    /// 이 메서드는 대치 이력을 변경하지 않는 preview 용도입니다.
+    ///
+    /// - Parameter baseText: 텍스트 대치를 제공할 텍스트
+    /// - Returns: SuggestionBar 후보 인덱스 (0~2), 대치 후보가 없으면 `nil`
+    func textReplacementPreviewSuggestionIndex(baseText: String) -> Int?
 
     // MARK: - Learning
 

@@ -31,6 +31,7 @@ protocol SuggestionBarDelegate: AnyObject {
 /// ## 표시 모드
 /// - **입력 중**: button1에 `"현재단어"`, button2~3에 자동완성 후보
 /// - **입력 없음 / 자동완성 후**: button1~3에 n-gram 다음 단어 예측
+/// - **수식 결과**: button1에 원문, button2에 원문+결과, button3에 결과 대치 후보
 final class SuggestionBarView: UIView {
     
     // MARK: - Properties
@@ -39,6 +40,9 @@ final class SuggestionBarView: UIView {
     weak var suggestionDelegate: SuggestionBarDelegate?
     
     private weak var activeTouch: UITouch?
+    private weak var touchHighlightedSuggestionButton: SuggestionButtonView?
+    private weak var touchHighlightedActionButton: SuggestionActionButtonView?
+    private var previewHighlightIndex: Int?
     
     private var suggestionButtons: [SuggestionButtonView] {
         return [suggestionButton1, suggestionButton2, suggestionButton3]
@@ -180,14 +184,14 @@ final class SuggestionBarView: UIView {
         }
         
         activeTouch = nil
-        clearAllHighlights()
+        clearTouchHighlights()
         keyboardHStackView?.isUserInteractionEnabled = true
     }
 
     override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
         guard let touch = activeTouch, touches.contains(touch) else { return }
         activeTouch = nil
-        clearAllHighlights()
+        clearTouchHighlights()
         keyboardHStackView?.isUserInteractionEnabled = true
     }
     
@@ -226,6 +230,32 @@ final class SuggestionBarView: UIView {
                 }
             }
         }
+        applyHighlights()
+    }
+
+    /// 수식 결과 후보를 업데이트합니다.
+    ///
+    /// - Parameter suggestions: 원문, 원문+결과, 결과값 후보 배열
+    func updateMathResultSuggestions(_ suggestions: [String]) {
+        let buttons = [suggestionButton1, suggestionButton2, suggestionButton3]
+        for (index, button) in buttons.enumerated() {
+            let title = index < suggestions.count ? suggestions[index] : ""
+            button.update(to: title)
+        }
+        applyHighlights()
+    }
+
+    /// 스페이스로 자동 적용될 후보의 preview 하이라이트를 갱신합니다.
+    ///
+    /// - Parameter index: 강조할 후보 인덱스 (0~2), 없으면 `nil`
+    func updatePreviewHighlight(index: Int?) {
+        if let index, !suggestionButtons.indices.contains(index) {
+            previewHighlightIndex = nil
+        } else {
+            previewHighlightIndex = index
+        }
+        applyHighlights()
+        updateDividers()
     }
 
     /// 자동완성 바 우측의 undo/redo 버튼 표시와 활성 상태를 갱신합니다.
@@ -235,6 +265,28 @@ final class SuggestionBarView: UIView {
         redoButton.isEnabled = isVisible && canRedo
         updateDividers()
     }
+
+    #if DEBUG
+    func updateTouchHighlightForTesting(index: Int?) {
+        if let index, suggestionButtons.indices.contains(index) {
+            touchHighlightedSuggestionButton = suggestionButtons[index]
+        } else {
+            touchHighlightedSuggestionButton = nil
+        }
+        applyHighlights()
+        updateDividers()
+    }
+
+    func updateUndoRedoTouchHighlightForTesting(index: Int?) {
+        if let index, undoRedoButtons.indices.contains(index) {
+            touchHighlightedActionButton = undoRedoButtons[index]
+        } else {
+            touchHighlightedActionButton = nil
+        }
+        applyHighlights()
+        updateDividers()
+    }
+    #endif
 }
 
 // MARK: - UI Methods
@@ -335,25 +387,33 @@ private extension SuggestionBarView {
     
     func updateHighlight(at point: CGPoint) {
         let hit = suggestionButton(at: point)
-        for button in suggestionButtons {
-            button.isHighlighted = (button === hit?.1)
-        }
+        touchHighlightedSuggestionButton = hit?.1
 
         let actionHit = undoRedoButton(at: point)
-        for button in undoRedoButtons {
-            button.isHighlighted = (button === actionHit)
-        }
+        touchHighlightedActionButton = actionHit
+        applyHighlights()
         updateDividers()
     }
     
-    func clearAllHighlights() {
-        for button in suggestionButtons {
-            button.isHighlighted = false
-        }
-        for button in undoRedoButtons {
-            button.isHighlighted = false
-        }
+    func clearTouchHighlights() {
+        touchHighlightedSuggestionButton = nil
+        touchHighlightedActionButton = nil
+        applyHighlights()
         updateDividers()
+    }
+
+    func applyHighlights() {
+        let hasTouchHighlight = touchHighlightedSuggestionButton != nil || touchHighlightedActionButton != nil
+
+        for (index, button) in suggestionButtons.enumerated() {
+            let isPreviewHighlighted = !hasTouchHighlight && previewHighlightIndex == index
+            let isTouchHighlighted = button === touchHighlightedSuggestionButton
+            button.isHighlighted = isTouchHighlighted || isPreviewHighlighted
+        }
+
+        for button in undoRedoButtons {
+            button.isHighlighted = (button === touchHighlightedActionButton)
+        }
     }
     
     func updateDividers() {

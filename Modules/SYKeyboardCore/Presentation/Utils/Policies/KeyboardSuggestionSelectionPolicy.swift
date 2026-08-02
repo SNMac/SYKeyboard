@@ -100,6 +100,24 @@ enum KeyboardSuggestionSelectionPolicy {
 
         return .update(inputBuffer)
     }
+
+    static func suggestionUpdateAction(
+        isPredictiveTextEnabled: Bool,
+        selectedText: String?,
+        inputBuffer: String,
+        documentContextBeforeInput: String?
+    ) -> SuggestionUpdateAction {
+        let baseText = suggestionSelectionBaseText(
+            inputBuffer: inputBuffer,
+            documentContextBeforeInput: documentContextBeforeInput
+        )
+
+        return suggestionUpdateAction(
+            isPredictiveTextEnabled: isPredictiveTextEnabled,
+            selectedText: selectedText,
+            inputBuffer: baseText
+        )
+    }
 }
 
 private extension KeyboardSuggestionSelectionPolicy {

@@ -23,6 +23,9 @@ struct PredictiveTextSettingsView: View {
     
     @AppStorage(UserDefaultsKeys.isUndoRedoEnabled, store: UserDefaultsManager.shared.storage)
     private var isUndoRedoEnabled = DefaultValues.isUndoRedoEnabled
+
+    @AppStorage(UserDefaultsKeys.isShowMathResultsEnabled, store: UserDefaultsManager.shared.storage)
+    private var isShowMathResultsEnabled = DefaultValues.isShowMathResultsEnabled
     
     @State private var showResetLearnedWordsAlert = false
     @State private var showResetNGramAlert = false
@@ -64,6 +67,21 @@ struct PredictiveTextSettingsView: View {
         }
         
         if isPredictiveTextEnabled {
+            Toggle(isOn: $isShowMathResultsEnabled, label: {
+                Text("수식 결과 표시")
+                Text("키보드 상단에 수식 계산 결과 표시")
+                    .font(.caption)
+            })
+            .onChange(of: isShowMathResultsEnabled) { newValue in
+                Analytics.setUserProperty(newValue.analyticsValue,
+                                          forName: "pref_math_results")
+                Analytics.logEvent("show_math_results", parameters: [
+                    "view": "InputSettingsView",
+                    "enabled": newValue.analyticsValue
+                ])
+                hideKeyboard()
+            }
+
             Toggle(isOn: $isUndoRedoEnabled, label: {
                 Text("Undo/Redo 기능")
                 Text("키보드 상단에 Undo/Redo 버튼을 표시\n(일부 앱에서는 정상적으로 동작하지 않을 수 있습니다)")
