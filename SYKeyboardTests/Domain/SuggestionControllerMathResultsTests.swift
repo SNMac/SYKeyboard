@@ -70,6 +70,36 @@ struct SuggestionControllerMathResultsTests {
         )
     }
 
+    @Test("커서 문맥 수식은 빈 일반 추천 기준과 분리해 후보와 action을 유지")
+    func test커서문맥수식은_빈일반추천기준과분리해_후보와Action을유지() {
+        let delegate = RecordingMathExpressionSuggestionDelegate()
+        let controller = SuggestionController()
+        controller.delegate = delegate
+        controller.isPredictiveTextEnabled = true
+        controller.isShowMathResultsEnabled = true
+
+        controller.updateSuggestions(
+            for: "",
+            selectedText: nil,
+            mathExpressionText: "memo 3+1="
+        )
+
+        #expect(controller.currentMode == .mathExpression)
+        #expect(delegate.updates.last?.suggestions == ["\"3+1=\"", "3+1=4", "4"])
+        #expect(
+            controller.mathResultAction(
+                at: 1,
+                selectedText: nil
+            ) == .insertResult("4")
+        )
+        #expect(
+            controller.mathResultAction(
+                at: 2,
+                selectedText: nil
+            ) == .replaceExpression(deleteCount: 4, insertText: "4")
+        )
+    }
+
     @Test("선택되지 않은 가운데 후보는 결과값 삽입 action")
     func test선택되지않은가운데후보는_결과값삽입Action() {
         let controller = makeMathController(expression: "3-1=")

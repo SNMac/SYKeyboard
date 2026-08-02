@@ -93,11 +93,14 @@ protocol SuggestionService: AnyObject {
     /// 입력이 없거나 마지막 문자가 공백이면 n-gram 기반 다음 단어 예측을 표시합니다.
     ///
     /// - Parameters:
-    ///   - baseText: 자동완성을 제공할 텍스트
+    ///   - baseText: 일반 자동완성을 제공할 현재 세션 텍스트
     ///   - selectedText: 후보 생성 시점에 선택된 텍스트. 선택이 없으면 `nil`
+    ///   - mathExpressionText: 수식 탐지에만 사용하는 텍스트. 일반 예측 엔진과
+    ///     텍스트 대치에는 전달하지 않습니다.
     func updateSuggestions(
         for baseText: String,
-        selectedText: String?
+        selectedText: String?,
+        mathExpressionText: String
     )
 
     /// n-gram 추천 탭 후 강제로 n-gram 갱신을 시도하고,
@@ -226,6 +229,17 @@ protocol SuggestionService: AnyObject {
 }
 
 extension SuggestionService {
+    func updateSuggestions(
+        for baseText: String,
+        selectedText: String?
+    ) {
+        updateSuggestions(
+            for: baseText,
+            selectedText: selectedText,
+            mathExpressionText: baseText
+        )
+    }
+
     func updateSuggestions(for baseText: String) {
         updateSuggestions(for: baseText, selectedText: nil)
     }

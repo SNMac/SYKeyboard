@@ -113,18 +113,6 @@ struct KeyboardSuggestionSelectionPolicyTests {
         )
     }
 
-    @Test("자동완성 갱신 기준 텍스트는 입력 버퍼가 비어 있으면 커서 앞 문맥을 사용")
-    func test자동완성갱신기준텍스트는_입력버퍼가비어있으면_커서앞문맥을사용() {
-        #expect(
-            KeyboardSuggestionSelectionPolicy.suggestionUpdateAction(
-                isPredictiveTextEnabled: true,
-                selectedText: nil,
-                inputBuffer: "",
-                documentContextBeforeInput: "3+1="
-            ) == .update("3+1=")
-        )
-    }
-
     @Test("textDidChange 자동완성 갱신은 primary 커서 드래그 중에는 건너뜀")
     func testTextDidChange자동완성갱신조건() {
         #expect(
@@ -139,38 +127,17 @@ struct KeyboardSuggestionSelectionPolicyTests {
         )
     }
 
-    @Test("후보 선택 기준 텍스트는 입력 버퍼가 비어 있으면 커서 앞 문맥을 사용")
+    @Test("일반 후보 기준 텍스트는 현재 세션 입력 버퍼만 사용")
     func test후보선택기준텍스트() {
         #expect(
-            KeyboardSuggestionSelectionPolicy.suggestionSelectionBaseText(
-                inputBuffer: "동",
-                documentContextBeforeInput: "동해"
+            KeyboardSuggestionSelectionPolicy.generalSuggestionBaseText(
+                inputBuffer: "동"
             ) == "동"
         )
         #expect(
-            KeyboardSuggestionSelectionPolicy.suggestionSelectionBaseText(
-                inputBuffer: "",
-                documentContextBeforeInput: "동해"
-            ) == "동해"
-        )
-        #expect(
-            KeyboardSuggestionSelectionPolicy.suggestionSelectionBaseText(
-                inputBuffer: "",
-                documentContextBeforeInput: nil
+            KeyboardSuggestionSelectionPolicy.generalSuggestionBaseText(
+                inputBuffer: ""
             ) == ""
-        )
-    }
-
-    @Test("후보 선택 기준 텍스트는 커서 앞 문맥을 최대 256자로 제한")
-    func test후보선택기준텍스트_문맥길이제한() {
-        let droppedPrefix = String(repeating: "가", count: 50)
-        let retainedContext = String(repeating: "나", count: 254) + "동해"
-
-        #expect(
-            KeyboardSuggestionSelectionPolicy.suggestionSelectionBaseText(
-                inputBuffer: "",
-                documentContextBeforeInput: droppedPrefix + retainedContext
-            ) == retainedContext
         )
     }
 
@@ -183,6 +150,38 @@ struct KeyboardSuggestionSelectionPolicyTests {
         #expect(
             KeyboardSuggestionSelectionPolicy.limitedDocumentContextBeforeInput(droppedPrefix + retainedContext)
             == retainedContext
+        )
+    }
+
+    @Test("수식 탐지 텍스트는 선택과 세션 입력을 우선하고 둘 다 없을 때만 커서 문맥을 사용")
+    func test수식탐지텍스트는_선택과세션입력을우선하고_둘다없을때만커서문맥을사용() {
+        #expect(
+            KeyboardSuggestionSelectionPolicy.mathExpressionDetectionText(
+                selectedText: "3+1=",
+                inputBuffer: "4+1=",
+                documentContextBeforeInput: "5+1="
+            ) == "3+1="
+        )
+        #expect(
+            KeyboardSuggestionSelectionPolicy.mathExpressionDetectionText(
+                selectedText: nil,
+                inputBuffer: "4+1=",
+                documentContextBeforeInput: "5+1="
+            ) == "4+1="
+        )
+        #expect(
+            KeyboardSuggestionSelectionPolicy.mathExpressionDetectionText(
+                selectedText: nil,
+                inputBuffer: "",
+                documentContextBeforeInput: "hello 5+1="
+            ) == "hello 5+1="
+        )
+        #expect(
+            KeyboardSuggestionSelectionPolicy.suggestionUpdateAction(
+                isPredictiveTextEnabled: true,
+                selectedText: nil,
+                inputBuffer: ""
+            ) == .update("")
         )
     }
 

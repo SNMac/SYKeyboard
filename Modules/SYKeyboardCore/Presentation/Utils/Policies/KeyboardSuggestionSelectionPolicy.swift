@@ -46,17 +46,27 @@ enum KeyboardSuggestionSelectionPolicy {
         return !isPrimaryCursorDragging
     }
 
-    static func suggestionSelectionBaseText(
-        inputBuffer: String,
-        documentContextBeforeInput: String?
-    ) -> String {
-        guard inputBuffer.isEmpty else { return inputBuffer }
-        return limitedDocumentContextBeforeInput(documentContextBeforeInput)
+    static func generalSuggestionBaseText(inputBuffer: String) -> String {
+        return inputBuffer
     }
 
     static func limitedDocumentContextBeforeInput(_ context: String?) -> String {
         guard let context else { return "" }
         return String(context.suffix(KeyboardTextContextNavigator.maximumCursorRestoreDistance))
+    }
+
+    static func mathExpressionDetectionText(
+        selectedText: String?,
+        inputBuffer: String,
+        documentContextBeforeInput: String?
+    ) -> String {
+        if let selectedText, !selectedText.isEmpty {
+            return selectedText
+        }
+        if !inputBuffer.isEmpty {
+            return inputBuffer
+        }
+        return limitedDocumentContextBeforeInput(documentContextBeforeInput)
     }
 
     static func textReplacementRestoreDeleteCount(
@@ -101,23 +111,6 @@ enum KeyboardSuggestionSelectionPolicy {
         return .update(inputBuffer)
     }
 
-    static func suggestionUpdateAction(
-        isPredictiveTextEnabled: Bool,
-        selectedText: String?,
-        inputBuffer: String,
-        documentContextBeforeInput: String?
-    ) -> SuggestionUpdateAction {
-        let baseText = suggestionSelectionBaseText(
-            inputBuffer: inputBuffer,
-            documentContextBeforeInput: documentContextBeforeInput
-        )
-
-        return suggestionUpdateAction(
-            isPredictiveTextEnabled: isPredictiveTextEnabled,
-            selectedText: selectedText,
-            inputBuffer: baseText
-        )
-    }
 }
 
 private extension KeyboardSuggestionSelectionPolicy {

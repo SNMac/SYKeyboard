@@ -285,3 +285,85 @@ push는 수행하지 않는다.
 
 Result: 이 계획 문서의 최종 검증 기록을 별도 docs 커밋으로 남겼다. push는 수행하지
 않았다.
+
+## 2026-07-30 최종 branch 리뷰 수정 웨이브
+
+최초 최종 리뷰에서 아래 Important 2건을 확인했다.
+
+1. `MathExpressionCompletionEvaluator`가 `Double.infinity` 숫자 token과 non-finite
+   중간 연산을 최종 결과 검사 전까지 허용했다.
+2. 수식 탐지를 위해 추가한 `documentContextBeforeInput` fallback이 일반 자동완성,
+   후보 선택, 텍스트 대치 preview와 스페이스 대치의 기준 텍스트까지 확장했다.
+
+이번 한 번의 수정 웨이브는
+`.superpowers/sdd/2026-07-30-single-delete-released-touchdown-recovery/final-fix-brief.md`
+계약에 따라 위 두 건만 수정했다. 기존 released-touchDown 복구,
+suggestion scrolling rollback, iOS 26 색상 분기에는 변경이 없다.
+
+### Important 1: non-finite token과 중간 결과 거부
+
+- [x] 400자리 숫자를 분모에 둬 최종값이 `0`으로 보이는 회귀 테스트를 추가했다.
+- [x] 308자리 finite 숫자와 작은 finite 소수를 사용해 `+`, `-`, `*`, `/` 중간
+  overflow가 외부 나눗셈으로 `0`이 되는 네 경로를 추가했다.
+- [x] RED에서 신규 2개 테스트의 5개 expectation이 실패하고 기존 19개가
+  통과하는 것을 확인했다.
+- [x] `parseNumber()`에서 `nil`과 non-finite를 거부하고, expression/term/factor/
+  bracket 각 단계에서 산술 결과의 finiteness를 확인했다.
+- [x] evaluator 집중 GREEN은 21 passed / 0 failed / 0 skipped였다.
+
+### Important 2: 일반 추천 기준과 cursor math 입력 분리
+
+- [x] `inputBuffer == ""`, cursor context가 `"hello id"`인 기존 preview/space
+  대치 계약을 반대로 고쳐 새 단축어 확장을 차단했다.
+- [x] behavioral RED에서 3개 테스트의 5개 expectation이 실패하고 기존 20개가
+  통과하는 것을 확인했다.
+- [x] 일반 suggestion base는 `selectedText` 또는 현재 세션 `inputBuffer`만
+  사용하도록 복구했다.
+- [x] `mathExpressionText`를 `SuggestionService`와 `SuggestionController`의 별도
+  입력으로 추가했다. cursor context는 evaluator에만 전달하며 lexicon,
+  text-checker, n-gram과 text replacement에는 전달하지 않는다.
+- [x] cursor-context 수식 `"memo 3+1="`의 후보 및 unselected preview/tap/space
+  action을 보존하고, 기존 selection-origin exact/prefix/stale suite를 통과했다.
+- [x] 기존 대치 이력 삭제 복구의 document context fallback은 유지했다.
+
+### 수정 후 최종 검증
+
+XcodeBuildMCP session에서 이름 기반 simulator selector가 최초 실행을 iOS 18.6으로
+재해석한 것을 로그에서 확인했다. 최종 근거는 이름 selector를 제거하고 정확한
+UDID `CBD992D3-5364-4F69-AC5F-0077ADF1A292`를 설정해 iPhone 13 mini /
+iOS 16.0(arm64)에서 다시 수집했다.
+
+| 검증 | 최종 결과 |
+| --- | --- |
+| evaluator + suggestion policy + math controller + text replacement | 66 passed / 0 failed / 0 skipped |
+| delete lifecycle + coordinator | 35 passed / 0 failed / 0 skipped |
+| `SYKeyboard` 전체 테스트 | 376 passed / 0 failed / 0 skipped |
+| `HangeulKeyboard` build | 성공 |
+| `EnglishKeyboard` build | 성공 |
+| `git diff --check` | 성공, 출력 없음 |
+| `hasSelectedText` 검색 | 일치 없음, exit 1 |
+| production `setMarkedText` 검색 | 일치 없음, exit 1 |
+
+최종 로그와 result bundle:
+
+- focused feature:
+  `~/Library/Developer/XcodeBuildMCP/workspaces/SYKeyboard-5f24c9a85604/logs/test_sim_2026-07-30T13-15-00-250Z_pid82639_df7b9b19.log`
+- focused delete:
+  `~/Library/Developer/XcodeBuildMCP/workspaces/SYKeyboard-5f24c9a85604/logs/test_sim_2026-07-30T13-16-05-146Z_pid82639_fd02037c.log`
+- full test:
+  `~/Library/Developer/XcodeBuildMCP/workspaces/SYKeyboard-5f24c9a85604/logs/test_sim_2026-07-30T13-17-16-181Z_pid82639_50b3690f.log`
+- full test result:
+  `~/Library/Developer/XcodeBuildMCP/workspaces/SYKeyboard-5f24c9a85604/result-bundles/test_sim_2026-07-30T13-17-16-182Z_pid82639_f1bf354f.xcresult`
+- Hangeul build:
+  `~/Library/Developer/XcodeBuildMCP/workspaces/SYKeyboard-5f24c9a85604/logs/build_sim_2026-07-30T13-13-40-182Z_pid82639_e6832a16.log`
+- English build:
+  `~/Library/Developer/XcodeBuildMCP/workspaces/SYKeyboard-5f24c9a85604/logs/build_sim_2026-07-30T13-14-24-790Z_pid82639_965bb41c.log`
+
+### 남은 Minor와 수동 위험
+
+- delimiter suffix finding은 이번 Important 수정 범위 밖의 Minor로 남는다.
+- 반올림 결과가 negative zero로 표시될 수 있는 finding도 Minor로 남는다.
+- 실제 host 앱에서 결과 확정 뒤 `textDidChange(_:)` callback이 누락되는 조건과
+  이어지는 다음 단일 삭제의 정확히 한 번 실행은 자동화로 관찰하지 못했다.
+- focused 실행에서 Meta/Buck의 삭제된 `.pcm` 경로를 가리키는 외부 경고 26건이
+  있었지만 테스트와 빌드는 컴파일 오류 없이 성공했다.

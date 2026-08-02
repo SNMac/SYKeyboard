@@ -223,6 +223,8 @@ final class SuggestionController: SuggestionService {
     private var nGramEngine: NGramPredictiveTextProviding?
     /// 마지막으로 자동완성 갱신을 요청한 텍스트
     private var lastSuggestionBaseText: String?
+    /// 마지막으로 수식 탐지를 요청한 텍스트
+    private var lastMathExpressionText: String?
     /// 마지막으로 자동완성 갱신을 요청한 selection origin
     private var lastSuggestionOrigin: MathSuggestionOrigin?
     /// 현재 표시 중인 수식 후보를 만든 계산 결과
@@ -325,21 +327,28 @@ final class SuggestionController: SuggestionService {
 
     func updateSuggestions(
         for baseText: String,
-        selectedText: String?
+        selectedText: String?,
+        mathExpressionText: String
     ) {
         guard isPredictiveTextEnabled, !isSuspended else { return }
         let origin = MathSuggestionOrigin(selectedText: selectedText)
         lastSuggestionBaseText = baseText
+        lastMathExpressionText = mathExpressionText
         lastSuggestionOrigin = origin
         preparePredictiveEnginesIfNeeded()
         prepareLexiconEngineIfNeeded()
-        performUpdateSuggestions(for: baseText, origin: origin)
+        performUpdateSuggestions(
+            for: baseText,
+            mathExpressionText: mathExpressionText,
+            origin: origin
+        )
     }
 
     func updateSuggestionsAfterNGramSelection(inputBuffer: String) {
         guard isPredictiveTextEnabled, !isSuspended else { return }
         let origin = MathSuggestionOrigin.unselected
         lastSuggestionBaseText = inputBuffer
+        lastMathExpressionText = inputBuffer
         lastSuggestionOrigin = origin
         preparePredictiveEnginesIfNeeded()
         prepareLexiconEngineIfNeeded()
@@ -357,12 +366,17 @@ final class SuggestionController: SuggestionService {
                 suggestions: currentSuggestions.map { $0.text }
             )
         } else {
-            performUpdateSuggestions(for: inputBuffer, origin: origin)
+            performUpdateSuggestions(
+                for: inputBuffer,
+                mathExpressionText: inputBuffer,
+                origin: origin
+            )
         }
     }
 
     func clearSuggestions() {
         lastSuggestionBaseText = nil
+        lastMathExpressionText = nil
         lastSuggestionOrigin = nil
         currentMathCompletion = nil
         currentMathSuggestionOrigin = nil
@@ -705,10 +719,13 @@ private extension SuggestionController {
     /// - Parameter baseText: 자동완성을 제공할 텍스트
     func performUpdateSuggestions(
         for baseText: String,
+        mathExpressionText: String,
         origin: MathSuggestionOrigin
     ) {
         if isShowMathResultsEnabled,
-           let completion = MathExpressionCompletionEvaluator.completion(for: baseText) {
+           let completion = MathExpressionCompletionEvaluator.completion(
+               for: mathExpressionText
+           ) {
             currentMathCompletion = completion
             currentMathSuggestionOrigin = origin
             currentMode = .mathExpression
@@ -773,9 +790,11 @@ private extension SuggestionController {
     func performRefreshSuggestionsAfterNGramLoadIfNeeded() {
         guard isPredictiveTextEnabled, !isSuspended else { return }
         guard let lastSuggestionBaseText,
+              let lastMathExpressionText,
               let lastSuggestionOrigin else { return }
         performUpdateSuggestions(
             for: lastSuggestionBaseText,
+            mathExpressionText: lastMathExpressionText,
             origin: lastSuggestionOrigin
         )
     }

@@ -1248,9 +1248,8 @@ private extension BaseKeyboardViewController {
             return
         }
 
-        let baseText = KeyboardSuggestionSelectionPolicy.suggestionSelectionBaseText(
-            inputBuffer: inputBuffer,
-            documentContextBeforeInput: textDocumentProxy.documentContextBeforeInput
+        let baseText = KeyboardSuggestionSelectionPolicy.generalSuggestionBaseText(
+            inputBuffer: inputBuffer
         )
 
         suggestionBarView.updatePreviewHighlight(
@@ -1349,9 +1348,8 @@ extension BaseKeyboardViewController {
             ), applyMathResultSuggestionAction(action) {
                 // 수식 action을 적용한 경우 일반 텍스트 대치를 건너뜁니다.
             } else {
-                let baseText = KeyboardSuggestionSelectionPolicy.suggestionSelectionBaseText(
-                    inputBuffer: inputBuffer,
-                    documentContextBeforeInput: textDocumentProxy.documentContextBeforeInput
+                let baseText = KeyboardSuggestionSelectionPolicy.generalSuggestionBaseText(
+                    inputBuffer: inputBuffer
                 )
 
                 if let replacement = suggestionController.attemptTextReplacement(
@@ -1743,9 +1741,14 @@ private extension BaseKeyboardViewController {
         let action = KeyboardSuggestionSelectionPolicy.suggestionUpdateAction(
             isPredictiveTextEnabled: suggestionController.isPredictiveTextEnabled,
             selectedText: selectedText,
-            inputBuffer: inputBuffer,
-            documentContextBeforeInput: textDocumentProxy.documentContextBeforeInput
+            inputBuffer: inputBuffer
         )
+        let mathExpressionText = KeyboardSuggestionSelectionPolicy
+            .mathExpressionDetectionText(
+                selectedText: selectedText,
+                inputBuffer: inputBuffer,
+                documentContextBeforeInput: textDocumentProxy.documentContextBeforeInput
+            )
 
         switch action {
         case .none:
@@ -1753,7 +1756,8 @@ private extension BaseKeyboardViewController {
         case .update(let text):
             suggestionController.updateSuggestions(
                 for: text,
-                selectedText: selectedText
+                selectedText: selectedText,
+                mathExpressionText: mathExpressionText
             )
         case .clear:
             suggestionController.clearSuggestions()
@@ -1767,10 +1771,14 @@ private extension BaseKeyboardViewController {
         let action = KeyboardSuggestionSelectionPolicy.suggestionUpdateAction(
             isPredictiveTextEnabled: suggestionController.isPredictiveTextEnabled,
             selectedText: selectedText,
-            inputBuffer: KeyboardSuggestionSelectionPolicy.limitedDocumentContextBeforeInput(
-                textDocumentProxy.documentContextBeforeInput
-            )
+            inputBuffer: inputBuffer
         )
+        let mathExpressionText = KeyboardSuggestionSelectionPolicy
+            .mathExpressionDetectionText(
+                selectedText: selectedText,
+                inputBuffer: inputBuffer,
+                documentContextBeforeInput: textDocumentProxy.documentContextBeforeInput
+            )
 
         switch action {
         case .none:
@@ -1778,7 +1786,8 @@ private extension BaseKeyboardViewController {
         case .update(let text):
             suggestionController.updateSuggestions(
                 for: text,
-                selectedText: selectedText
+                selectedText: selectedText,
+                mathExpressionText: mathExpressionText
             )
         case .clear:
             suggestionController.clearSuggestions()
@@ -2294,9 +2303,8 @@ private extension BaseKeyboardViewController {
 
     func handleInputBufferSuggestion(at index: Int) {
         let suggestionIndex = index - 1
-        let baseText = KeyboardSuggestionSelectionPolicy.suggestionSelectionBaseText(
-            inputBuffer: inputBuffer,
-            documentContextBeforeInput: textDocumentProxy.documentContextBeforeInput
+        let baseText = KeyboardSuggestionSelectionPolicy.generalSuggestionBaseText(
+            inputBuffer: inputBuffer
         )
 
         guard let result = suggestionController.selectSuggestion(

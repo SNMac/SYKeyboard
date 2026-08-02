@@ -194,8 +194,8 @@ struct SuggestionControllerTextReplacementTests {
         #expect(controller.textReplacementPreviewSuggestionIndex(baseText: "id") == 1)
     }
 
-    @Test("입력 버퍼가 비어 있으면 커서 앞 문맥으로 텍스트 대치 preview와 적용을 판정")
-    func test입력버퍼가비어있으면_커서앞문맥으로텍스트대치를판정() {
+    @Test("입력 버퍼가 비어 있으면 커서 앞 문맥의 단축어를 preview하거나 대치하지 않음")
+    func test입력버퍼가비어있으면_커서앞문맥의단축어를Preview하거나대치하지않음() {
         let controller = makeController(
             entries: [
                 TextReplacementEntry(userInput: "id", documentText: "identifier")
@@ -205,28 +205,46 @@ struct SuggestionControllerTextReplacementTests {
         controller.isTextReplacementEnabled = true
         controller.prepareLexiconEngineIfNeeded()
 
-        let baseText = KeyboardSuggestionSelectionPolicy.suggestionSelectionBaseText(
-            inputBuffer: "",
-            documentContextBeforeInput: "hello id"
+        let baseText = KeyboardSuggestionSelectionPolicy.generalSuggestionBaseText(
+            inputBuffer: ""
         )
         controller.updateSuggestions(for: baseText)
 
-        #expect(controller.textReplacementPreviewSuggestionIndex(baseText: baseText) == 1)
+        #expect(baseText == "")
+        #expect(controller.textReplacementPreviewSuggestionIndex(baseText: baseText) == nil)
 
         let replacement = controller.attemptTextReplacement(
             baseText: baseText,
             documentContextBeforeInput: "hello id"
         )
-        #expect(replacement?.deleteCount == 2)
-        #expect(replacement?.insertText == "identifier")
+        #expect(replacement == nil)
+    }
 
-        let restore = controller.attemptRestoreReplacement(
-            inputBuffer: "",
-            documentContextBeforeInput: "hello identifier",
-            selectedText: nil
+    @Test("분리된 커서 문맥은 일반 추천과 텍스트 대치 입력으로 전달하지 않음")
+    func test분리된커서문맥은_일반추천과텍스트대치입력으로전달하지않음() {
+        let controller = makeController(
+            entries: [
+                TextReplacementEntry(userInput: "id", documentText: "identifier")
+            ]
         )
-        #expect(restore?.deleteCount == 10)
-        #expect(restore?.insertText == "id")
+        controller.isPredictiveTextEnabled = true
+        controller.isTextReplacementEnabled = true
+        controller.prepareLexiconEngineIfNeeded()
+
+        controller.updateSuggestions(
+            for: "",
+            selectedText: nil,
+            mathExpressionText: "hello id"
+        )
+
+        #expect(controller.currentMode == .nGram)
+        #expect(controller.textReplacementPreviewSuggestionIndex(baseText: "") == nil)
+        #expect(
+            controller.attemptTextReplacement(
+                baseText: "",
+                documentContextBeforeInput: "hello id"
+            ) == nil
+        )
     }
 
     private func makeController(entries: [TextReplacementEntry]) -> SuggestionController {

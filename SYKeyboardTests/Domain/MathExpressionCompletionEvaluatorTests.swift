@@ -224,4 +224,35 @@ struct MathExpressionCompletionEvaluatorTests {
             )?.insertText == "1×10¹¹"
         )
     }
+
+    @Test("유한하지 않은 숫자 토큰은 외부 연산 결과가 유한해도 거부")
+    func test유한하지않은숫자토큰은_외부연산결과가유한해도거부() {
+        let overflowingNumber = String(repeating: "9", count: 400)
+
+        #expect(
+            MathExpressionCompletionEvaluator.completion(
+                for: "1/\(overflowingNumber)="
+            ) == nil
+        )
+    }
+
+    @Test("유한 피연산자의 중간 연산 overflow는 외부 연산 결과가 유한해도 거부")
+    func test유한피연산자의중간연산Overflow는_외부연산결과가유한해도거부() {
+        let largeFiniteNumber = String(repeating: "9", count: 308)
+        let smallFiniteNumber = "0." + String(repeating: "0", count: 307) + "1"
+        let expressions = [
+            "1/(\(largeFiniteNumber)+\(largeFiniteNumber))=",
+            "1/(\(largeFiniteNumber)-(0-\(largeFiniteNumber)))=",
+            "1/(\(largeFiniteNumber)*2)=",
+            "1/(2/\(smallFiniteNumber))="
+        ]
+
+        for expression in expressions {
+            #expect(
+                MathExpressionCompletionEvaluator.completion(
+                    for: expression
+                ) == nil
+            )
+        }
+    }
 }

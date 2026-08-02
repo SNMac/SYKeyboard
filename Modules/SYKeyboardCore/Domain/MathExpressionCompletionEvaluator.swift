@@ -242,7 +242,9 @@ private extension MathExpressionParser {
             hasBinaryOperator = true
             index += 1
             guard let nextValue = parseTerm() else { return nil }
-            value = current == "+" ? value + nextValue : value - nextValue
+            let result = current == "+" ? value + nextValue : value - nextValue
+            guard result.isFinite else { return nil }
+            value = result
         }
 
         return value
@@ -257,10 +259,14 @@ private extension MathExpressionParser {
             guard let nextValue = parseFactor() else { return nil }
 
             if current == "*" {
-                value *= nextValue
+                let result = value * nextValue
+                guard result.isFinite else { return nil }
+                value = result
             } else {
                 guard nextValue != 0 else { return nil }
-                value /= nextValue
+                let result = value / nextValue
+                guard result.isFinite else { return nil }
+                value = result
             }
         }
 
@@ -271,7 +277,8 @@ private extension MathExpressionParser {
         if index == 0, peek() == "-" {
             index += 1
             guard let value = parsePrimary() else { return nil }
-            return -value
+            let result = -value
+            return result.isFinite ? result : nil
         }
 
         if peek() == "+" || peek() == "-" {
@@ -287,7 +294,7 @@ private extension MathExpressionParser {
             guard let value = parseExpression() else { return nil }
             guard peek() == closingBracket else { return nil }
             index += 1
-            return value
+            return value.isFinite ? value : nil
         }
 
         return parseNumber()
@@ -319,7 +326,9 @@ private extension MathExpressionParser {
             numberText.removeLast()
         }
 
-        return Double(numberText)
+        guard let value = Double(numberText),
+              value.isFinite else { return nil }
+        return value
     }
 
     func isValidIntegerText(_ text: String) -> Bool {
