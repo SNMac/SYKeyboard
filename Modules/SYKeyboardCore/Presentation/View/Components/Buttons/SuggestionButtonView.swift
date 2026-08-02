@@ -18,7 +18,7 @@ final class SuggestionButtonView: UIView {
     var hasText: Bool {
         return !(suggestionLabel.text?.isEmpty ?? true)
     }
-    
+
     var isHighlighted: Bool = false {
         didSet {
             updateAppearance()
@@ -38,7 +38,7 @@ final class SuggestionButtonView: UIView {
         
         return view
     }()
-    
+
     private let suggestionLabel: UILabel = {
         let label = UILabel()
         label.font = .systemFont(ofSize: FontSize.stringKeyMedium)
@@ -69,7 +69,7 @@ final class SuggestionButtonView: UIView {
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
+
     // MARK: - Internal Methods
     
     func update(to title: String) {

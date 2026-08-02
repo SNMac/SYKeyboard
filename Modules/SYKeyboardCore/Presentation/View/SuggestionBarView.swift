@@ -151,25 +151,44 @@ final class SuggestionBarView: UIView {
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         guard activeTouch == nil, let touch = touches.first else { return }
         activeTouch = touch
-        let point = touch.location(in: self)
-        updateHighlight(at: point)
-        keyboardHStackView?.isUserInteractionEnabled = false
+        beginTouchInteraction(at: touch.location(in: self))
     }
 
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
         guard let touch = activeTouch, touches.contains(touch) else { return }
-        let point = touch.location(in: self)
-        updateHighlight(at: point)
+        moveTouchInteraction(to: touch.location(in: self))
     }
 
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
         guard let touch = activeTouch, touches.contains(touch) else { return }
-        let point = touch.location(in: self)
-        
+        endTouchInteraction(at: touch.location(in: self), playsFeedback: true)
+        activeTouch = nil
+    }
+
+    override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
+        guard let touch = activeTouch, touches.contains(touch) else { return }
+        cancelTouchInteraction()
+        activeTouch = nil
+    }
+
+    // MARK: - Internal Methods
+
+    func beginTouchInteraction(at point: CGPoint) {
+        updateHighlight(at: point)
+        keyboardHStackView?.isUserInteractionEnabled = false
+    }
+
+    func moveTouchInteraction(to point: CGPoint) {
+        updateHighlight(at: point)
+    }
+
+    func endTouchInteraction(at point: CGPoint, playsFeedback: Bool) {
         if let (index, _) = suggestionButton(at: point) {
-            suggestionDelegate?.suggestionBar(self, didSelectSuggestionAt: index)
-            FeedbackManager.shared.playHaptic()
-            FeedbackManager.shared.playModifierSound()
+            suggestionDelegate?.suggestionBar(
+                self,
+                didSelectSuggestionAt: index
+            )
+            playSelectionFeedbackIfNeeded(playsFeedback)
         } else if let action = undoRedoButton(at: point) {
             switch action {
             case undoButton:
@@ -179,24 +198,27 @@ final class SuggestionBarView: UIView {
             default:
                 break
             }
-            FeedbackManager.shared.playHaptic()
-            FeedbackManager.shared.playModifierSound()
+            playSelectionFeedbackIfNeeded(playsFeedback)
         }
-        
-        activeTouch = nil
+
+        resetTouchInteraction()
+    }
+
+    func cancelTouchInteraction() {
+        resetTouchInteraction()
+    }
+
+    func playSelectionFeedbackIfNeeded(_ shouldPlay: Bool) {
+        guard shouldPlay else { return }
+        FeedbackManager.shared.playHaptic()
+        FeedbackManager.shared.playModifierSound()
+    }
+
+    func resetTouchInteraction() {
         clearTouchHighlights()
         keyboardHStackView?.isUserInteractionEnabled = true
     }
 
-    override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
-        guard let touch = activeTouch, touches.contains(touch) else { return }
-        activeTouch = nil
-        clearTouchHighlights()
-        keyboardHStackView?.isUserInteractionEnabled = true
-    }
-    
-    // MARK: - Internal Methods
-    
     /// 자동완성 바를 업데이트합니다.
     ///
     /// `currentWord`가 있으면 button1에 따옴표로 감싸서 표시하고
