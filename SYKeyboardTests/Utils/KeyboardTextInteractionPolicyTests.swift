@@ -1531,6 +1531,94 @@ private extension KeyboardTextInteractionPolicyTests {
 @Suite("Delete interaction coordinator")
 struct DeleteInteractionCoordinatorTests {
 
+    @Test("released touchDown callback 누락 뒤 다음 단일 탭은 이전 요청을 확정하고 한 번 실행")
+    func testReleasedTouchDownMissingCallbackRecoversOnNextTap() throws {
+        var coordinator = DeleteInteractionCoordinator()
+        var lifecycle = DeleteMutationLifecycle()
+        let button = DeleteButton(keyboard: .dubeolsik)
+        let beforeDeletion = KeyboardTextContextSnapshot(beforeInput: "1 1 ", afterInput: "")
+        let afterDeletion = KeyboardTextContextSnapshot(beforeInput: "1 1", afterInput: "")
+        let expectedDraft = RepeatDeleteMutationDraft(
+            deletedText: " ",
+            insertedText: "",
+            reliability: .proxyContext
+        )
+
+        #expect(coordinator.beginTouchDown(button: button, inputIdentifier: nil) == .performNow)
+        #expect(lifecycle.beginTouchDown(context: beforeDeletion, selectedText: nil) == .started)
+        #expect(
+            lifecycle.capture(
+                deletedText: expectedDraft.deletedText,
+                insertedText: expectedDraft.insertedText,
+                reliability: expectedDraft.reliability
+            ) == .awaitingTextChange
+        )
+        #expect(
+            lifecycle.finishTouchDown(
+                currentContext: beforeDeletion,
+                currentSelectedText: nil
+            ) == nil
+        )
+        #expect(lifecycle.isPending)
+
+        let recoveredResolution = lifecycle.completeReleasedTouchDownAtCheckpoint(
+            currentContext: afterDeletion,
+            currentSelectedText: nil
+        )
+        #expect(
+            recoveredResolution == DeleteMutationResolution(
+                completion: .mutations([expectedDraft]),
+                origin: .touchDown,
+                shouldPlayFeedback: false
+            )
+        )
+        #expect(
+            lifecycle.completeAfterTextChange(
+                currentContext: afterDeletion,
+                currentSelectedText: nil
+            ) == .noResolution
+        )
+
+        let generation = try #require(coordinator.currentGeneration)
+        let didResolve = coordinator.resolve(generation)
+        #expect(didResolve)
+        #expect(coordinator.beginTouchDown(button: button, inputIdentifier: nil) == .performNow)
+        #expect(lifecycle.beginTouchDown(context: afterDeletion, selectedText: nil) == .started)
+    }
+
+    @Test("released touchDown checkpoint 문맥이 불확실하면 다음 단일 탭을 보류")
+    func testReleasedTouchDownUnconfirmedCheckpointKeepsNextTapEnqueued() {
+        var coordinator = DeleteInteractionCoordinator()
+        var lifecycle = DeleteMutationLifecycle()
+        let button = DeleteButton(keyboard: .dubeolsik)
+        let staleContext = KeyboardTextContextSnapshot(beforeInput: "1 1 ", afterInput: "")
+
+        #expect(coordinator.beginTouchDown(button: button, inputIdentifier: nil) == .performNow)
+        #expect(lifecycle.beginTouchDown(context: staleContext, selectedText: nil) == .started)
+        #expect(
+            lifecycle.capture(
+                deletedText: " ",
+                insertedText: "",
+                reliability: .proxyContext
+            ) == .awaitingTextChange
+        )
+        #expect(
+            lifecycle.finishTouchDown(
+                currentContext: staleContext,
+                currentSelectedText: nil
+            ) == nil
+        )
+
+        #expect(
+            lifecycle.completeReleasedTouchDownAtCheckpoint(
+                currentContext: staleContext,
+                currentSelectedText: nil
+            ) == nil
+        )
+        #expect(coordinator.beginTouchDown(button: button, inputIdentifier: nil) == .enqueued)
+        #expect(lifecycle.isPending)
+    }
+
     @Test("released repeat 확인 전 다음 touchDown은 late callback 뒤 한 번 replay")
     func testReleasedRepeatQueuesNextTouchDownUntilLateCallback() throws {
         var coordinator = DeleteInteractionCoordinator()

@@ -1301,6 +1301,13 @@ extension BaseKeyboardViewController {
 
         if case .deleteButton = button.type {
             if !isRepeatingInput {
+                let previousResolution = deleteMutationLifecycle
+                    .completeReleasedTouchDownAtCheckpoint(
+                        currentContext: currentTextContextSnapshot(),
+                        currentSelectedText: textDocumentProxy.selectedText
+                    )
+                processDeleteMutationResolution(previousResolution)
+
                 let disposition = deleteInteractionCoordinator.beginTouchDown(
                     button: button,
                     inputIdentifier: currentTextInputIdentifier

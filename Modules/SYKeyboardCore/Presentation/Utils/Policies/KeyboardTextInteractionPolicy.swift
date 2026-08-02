@@ -756,6 +756,19 @@ struct DeleteMutationLifecycle {
         )
     }
 
+    mutating func completeReleasedTouchDownAtCheckpoint(
+        currentContext: KeyboardTextContextSnapshot,
+        currentSelectedText: String?
+    ) -> DeleteMutationResolution? {
+        guard requestKind == .releasedTouchDown else { return nil }
+        return resolve(
+            request.completeAtCheckpoint(
+                currentContext: currentContext,
+                currentSelectedText: currentSelectedText
+            )
+        )
+    }
+
     mutating func finishTouchDown(
         currentContext: KeyboardTextContextSnapshot,
         currentSelectedText: String?
