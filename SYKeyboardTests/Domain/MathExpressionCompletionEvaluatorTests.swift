@@ -26,6 +26,34 @@ struct MathExpressionCompletionEvaluatorTests {
 
         #expect(completion?.displayText == "3 - 1 =2")
         #expect(completion?.insertText == "2")
+        #expect(
+            MathExpressionCompletionEvaluator.completion(
+                for: "( 3 + 2 ) * 2 ="
+            )?.insertText == "10"
+        )
+    }
+
+    @Test("숫자 구성 문자 사이 공백은 서로 다른 숫자로 보고 거부")
+    func test숫자구성문자사이공백은_서로다른숫자로보고거부() {
+        for expression in [
+            "1 2+3=",
+            "1 . 2+3=",
+            "1, 000+2=",
+            "memo 2 3+1="
+        ] {
+            #expect(
+                MathExpressionCompletionEvaluator.completion(
+                    for: expression
+                ) == nil
+            )
+        }
+    }
+
+    @Test("숫자 구성 문자 사이 탭과 NBSP도 거부")
+    func test숫자구성문자사이탭과NBSP도거부() {
+        for expression in ["1\t2+3=", "1\u{00A0}2+3="] {
+            #expect(MathExpressionCompletionEvaluator.completion(for: expression) == nil)
+        }
     }
 
     @Test("소수점 연산과 곱셈 나눗셈 우선순위를 계산")

@@ -20,6 +20,9 @@ enum MathExpressionCompletionEvaluator {
         let expressionText = expressionSuffix(beforeEqualIn: text)
         let expressionBody = String(expressionText.dropLast())
         guard !expressionBody.contains("=") else { return nil }
+        guard !containsWhitespaceBetweenNumberComponents(expressionBody) else {
+            return nil
+        }
 
         var parser = MathExpressionParser(expressionBody)
         guard let value = parser.evaluate() else { return nil }
@@ -39,11 +42,45 @@ private extension MathExpressionCompletionEvaluator {
     }
 
     static func expressionSuffix(beforeEqualIn text: String) -> String {
-        let allowedCharacters = Set("0123456789,.+-*/×⋅xX÷=()[]{} ")
-        let reversedSuffix = text.reversed().prefix { allowedCharacters.contains($0) }
+        let allowedCharacters = Set("0123456789,.+-*/×⋅xX÷=()[]{}")
+        let reversedSuffix = text.reversed().prefix {
+            allowedCharacters.contains($0) || $0.isWhitespace
+        }
         let suffix = String(reversedSuffix.reversed())
 
         return String(suffix.drop { $0.isWhitespace })
+    }
+
+    static func containsWhitespaceBetweenNumberComponents(
+        _ expression: String
+    ) -> Bool {
+        var previousNonWhitespace: Character?
+        var hasWhitespaceAfterPrevious = false
+
+        for character in expression {
+            if character.isWhitespace {
+                if previousNonWhitespace != nil {
+                    hasWhitespaceAfterPrevious = true
+                }
+                continue
+            }
+
+            if hasWhitespaceAfterPrevious,
+               let previousNonWhitespace,
+               isNumberComponent(previousNonWhitespace),
+               isNumberComponent(character) {
+                return true
+            }
+
+            previousNonWhitespace = character
+            hasWhitespaceAfterPrevious = false
+        }
+
+        return false
+    }
+
+    static func isNumberComponent(_ character: Character) -> Bool {
+        return character.isNumber || character == "." || character == ","
     }
 
     static func formattedResult(_ value: Double) -> String? {

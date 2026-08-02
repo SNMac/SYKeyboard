@@ -373,7 +373,7 @@ xcodebuild test \
 - Consumes: `MathExpressionCompletionEvaluator.completion(for:)`
 - Produces: parser 정규화 전 숫자 공백 validation
 
-- [ ] **Step 1: 잘못된 숫자 공백 회귀 테스트 작성**
+- [x] **Step 1: 잘못된 숫자 공백 회귀 테스트 작성**
 
 ```swift
 @Test("숫자 구성 문자 사이 공백은 서로 다른 숫자로 보고 거부")
@@ -403,7 +403,7 @@ func test숫자구성문자사이공백은_서로다른숫자로보고거부() {
 )
 ```
 
-- [ ] **Step 2: evaluator 집중 테스트로 RED 확인**
+- [x] **Step 2: evaluator 집중 테스트로 RED 확인**
 
 Run:
 
@@ -418,7 +418,11 @@ xcodebuild test \
 Expected: 신규 숫자 공백 case는 현재 parser가 공백을 제거하므로 실패하고, 기존과
 신규 토큰 경계 공백 case는 통과한다.
 
-- [ ] **Step 3: RED 테스트와 결과를 커밋**
+결과 (2026-07-29): 위 명령은 exit 65으로 실패했다. 신규
+`test숫자구성문자사이공백은_서로다른숫자로보고거부`만 4개 입력마다 실패했고,
+기존 evaluator 테스트와 `( 3 + 2 ) * 2 =` 토큰 경계 공백 검증은 통과했다.
+
+- [x] **Step 3: RED 테스트와 결과를 커밋**
 
 ```sh
 git add \
@@ -427,7 +431,10 @@ git add \
 git commit -m "test: #98 - 수식 숫자 사이 공백 거부 계약 추가"
 ```
 
-- [ ] **Step 4: parser 정규화 전 숫자 공백 검증 구현**
+결과 (2026-07-29): `test: #98 - 수식 숫자 사이 공백 거부 계약 추가` 커밋에 RED
+테스트와 Step 1~2 결과를 기록했다.
+
+- [x] **Step 4: parser 정규화 전 숫자 공백 검증 구현**
 
 `completion(for:)`에서 parser를 만들기 전에 다음 guard를 추가한다.
 
@@ -473,7 +480,10 @@ static func isNumberComponent(_ character: Character) -> Bool {
 }
 ```
 
-- [ ] **Step 5: evaluator와 controller 수식 suite GREEN 확인**
+결과 (2026-07-29): `completion(for:)`가 parser 생성 전에 숫자 구성 문자 사이의
+공백 구간을 거부하도록 구현했다. 연산자와 괄호는 숫자 구성 문자에 포함하지 않는다.
+
+- [x] **Step 5: evaluator와 controller 수식 suite GREEN 확인**
 
 Run:
 
@@ -489,7 +499,11 @@ xcodebuild test \
 Expected: 숫자 공백 거부, 토큰 경계 공백 허용과 수식 action suite가 모두
 통과한다.
 
-- [ ] **Step 6: 구현과 GREEN 결과 커밋**
+결과 (2026-07-29): 위 명령은 exit 0 (`** TEST SUCCEEDED **`)으로 통과했다.
+`MathExpressionCompletionEvaluatorTests` 17개와
+`SuggestionControllerMathResultsTests` 9개가 모두 통과했다.
+
+- [x] **Step 6: 구현과 GREEN 결과 커밋**
 
 ```sh
 git add \
@@ -497,6 +511,15 @@ git add \
   docs/superpowers/plans/2026-07-29-math-expression-review-fixes.md
 git commit -m "fix: #98 - 수식 숫자 사이 공백 결합 방지"
 ```
+
+결과 (2026-07-29): `fix: #98 - 수식 숫자 사이 공백 결합 방지` 커밋에 구현과
+Step 4~5 GREEN 결과를 기록했다.
+
+**Fix Round 1 결과 (2026-07-29):** suffix 추출의 허용 판정도
+`Character.isWhitespace`를 사용하도록 수정해 TAB과 NBSP가 숫자 구성 문자 사이에
+있어도 validation 전에 suffix가 잘리지 않게 했다. TAB/NBSP 거부 회귀 테스트와
+기존 evaluator·controller 수식 suite를 iPhone 13 mini / iOS 16.0에서 재실행해
+exit 0으로 통과했다.
 
 ---
 
@@ -510,7 +533,7 @@ git commit -m "fix: #98 - 수식 숫자 사이 공백 결합 방지"
 - Consumes: Task 1의 selection-aware action, Task 2의 숫자 공백 validation
 - Produces: 전체 branch 검증 증거와 clean whitespace
 
-- [ ] **Step 1: 기존 trailing whitespace 제거**
+- [x] **Step 1: 기존 trailing whitespace 제거**
 
 `UIColor+Extension.swift:73`의 빈 줄에서 공백만 제거하고 별도 커밋한다.
 
@@ -519,7 +542,9 @@ git add SYKeyboardAssets/Sources/SYKeyboardAssets/Utils/Extensions/UIColor+Exten
 git commit -m "chore: #98 - UIColor 확장 trailing whitespace 정리"
 ```
 
-- [ ] **Step 2: 집중 회귀 suite 실행**
+결과 (2026-07-29): `UIColor+Extension.swift:73`의 빈 줄 공백만 제거했고, `ffb387d` (`chore: #98 - UIColor 확장 trailing whitespace 정리`)로 별도 커밋했다.
+
+- [x] **Step 2: 집중 회귀 suite 실행**
 
 Run:
 
@@ -537,7 +562,9 @@ xcodebuild test \
 
 Expected: 모든 집중 회귀 테스트가 실패 없이 통과한다.
 
-- [ ] **Step 3: iOS 16 전체 테스트 실행**
+결과 (2026-07-29): 기본 샌드박스에서는 CoreSimulator 연결과 Xcode 캐시 권한 오류로 시작하지 못해 권한 있는 환경에서 재실행했다. iPhone 13 mini / iOS 16.0에서 `TEST SUCCEEDED`; xcresult 집계는 passed 72, failed 0, skipped 0, expected failures 0이다.
+
+- [x] **Step 3: iOS 16 전체 테스트 실행**
 
 Run:
 
@@ -550,7 +577,9 @@ xcodebuild test \
 
 Expected: 전체 테스트가 실패 없이 끝난다. passed/failed/skipped 수를 기록한다.
 
-- [ ] **Step 4: 한글·영문 확장 빌드**
+결과 (2026-07-29): 권한 있는 환경에서 iPhone 13 mini / iOS 16.0 전체 suite가 `TEST SUCCEEDED`; xcresult 집계는 passed 358, failed 0, skipped 0, expected failures 0이다.
+
+- [x] **Step 4: 한글·영문 확장 빌드**
 
 Run:
 
@@ -568,7 +597,9 @@ xcodebuild build \
 
 Expected: 두 확장 모두 성공한다. warning과 오류 수를 기록한다.
 
-- [ ] **Step 5: 전체 branch whitespace와 scope 확인**
+결과 (2026-07-29): 권한 있는 환경에서 두 build가 `BUILD SUCCEEDED`로 끝났다. HangeulKeyboard는 warning 29건, error 0건(외부 Meta/FBAudienceNetwork PCM 경로 누락 및 AppIntents metadata extraction skip); EnglishKeyboard는 warning 0건, error 0건이다.
+
+- [x] **Step 5: 전체 branch whitespace와 scope 확인**
 
 Run:
 
@@ -583,7 +614,9 @@ rg -n "setMarkedText" \
 Expected: merge-base 기준 whitespace 오류와 working tree 변경이 없다.
 `setMarkedText` 검색 결과가 없다.
 
-- [ ] **Step 6: 검증 결과를 기록하고 문서 커밋**
+결과 (2026-07-29): `git diff --check b5822448..HEAD`, `git status --short`, 지정 경로의 `setMarkedText` 검색 모두 출력 없이 성공했다. 문서 기록 전 working tree는 clean이었다.
+
+- [x] **Step 6: 검증 결과를 기록하고 문서 커밋**
 
 ```sh
 git add docs/superpowers/plans/2026-07-29-math-expression-review-fixes.md
