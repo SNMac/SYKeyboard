@@ -170,6 +170,38 @@ struct KeyboardTextInteractionPolicyTests {
         )
     }
 
+    @Test("같은 입력 대상의 반복 tick과 식별 불가능한 기존 경로는 계속 수행")
+    func test반복입력_같은입력대상_계속수행() {
+        let input = RepeatInputIdentity()
+        let inputIdentifier = ObjectIdentifier(input)
+
+        #expect(
+            KeyboardTextInteractionPolicy.shouldContinueRepeatInput(
+                startedInputIdentifier: inputIdentifier,
+                currentInputIdentifier: inputIdentifier
+            )
+        )
+        #expect(
+            KeyboardTextInteractionPolicy.shouldContinueRepeatInput(
+                startedInputIdentifier: nil,
+                currentInputIdentifier: inputIdentifier
+            )
+        )
+    }
+
+    @Test("반복 입력 시작 뒤 입력 대상이 바뀌면 stale tick을 중단")
+    func test반복입력_입력대상변경_staleTick중단() {
+        let startedInput = RepeatInputIdentity()
+        let currentInput = RepeatInputIdentity()
+
+        #expect(
+            KeyboardTextInteractionPolicy.shouldContinueRepeatInput(
+                startedInputIdentifier: ObjectIdentifier(startedInput),
+                currentInputIdentifier: ObjectIdentifier(currentInput)
+            ) == false
+        )
+    }
+
     @Test("pending이 없으면 다음 tick은 완료 기록 없이 삭제 한 번 준비")
     func test반복삭제_다음Tick_새삭제준비() {
         var request = RepeatDeleteRequest()
@@ -1495,6 +1527,8 @@ struct DeleteMutationLifecycleTests {
     }
 
 }
+
+private final class RepeatInputIdentity {}
 
 private extension DeleteMutationCallbackOutcome {
     var resolution: DeleteMutationResolution? {

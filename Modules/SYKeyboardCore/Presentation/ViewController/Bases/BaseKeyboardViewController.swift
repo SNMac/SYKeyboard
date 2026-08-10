@@ -2093,9 +2093,17 @@ private extension BaseKeyboardViewController {
         let repeatTimerInterval = KeyboardTextInteractionPolicy.repeatTimerInterval(
             repeatRate: keyboardSettingsManager.repeatRate
         )
+        let startedInputIdentifier = currentTextInputIdentifier
         timer = Timer.publish(every: repeatTimerInterval, on: .main, in: .common)
             .autoconnect()
             .sink { [weak self, weak button] _ in
+                if !KeyboardTextInteractionPolicy.shouldContinueRepeatInput(
+                    startedInputIdentifier: startedInputIdentifier,
+                    currentInputIdentifier: self?.currentTextInputIdentifier
+                ) {
+                    self?.stopRepeatInputTracking()
+                    return
+                }
                 if self?.view.window == nil {
                     self?.stopRepeatInputTracking()
                     return

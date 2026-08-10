@@ -970,4 +970,12 @@ enum KeyboardTextInteractionPolicy {
     static func repeatTimerInterval(repeatRate: Double) -> Double {
         return max(0.01, 0.10 - repeatRate)
     }
+
+    static func shouldContinueRepeatInput(
+        startedInputIdentifier: ObjectIdentifier?,
+        currentInputIdentifier: ObjectIdentifier?
+    ) -> Bool {
+        guard let startedInputIdentifier else { return true }
+        return startedInputIdentifier == currentInputIdentifier
+    }
 }
