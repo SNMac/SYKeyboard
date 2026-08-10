@@ -72,12 +72,12 @@ xcodebuild test \
 - `atButton`, `periodButton`, `slashButton`, `dotComButton`의 너비 제약은 생성·재생성 시 모두 priority `999`를 사용한다.
 - stack distribution, arranged subview 순서, `isHidden` 전환 API는 변경하지 않는다.
 
-- [ ] 숨김 가능한 다섯 뷰의 크기 제약 생성 위치를 재확인한다.
-- [ ] 대상 높이·너비 제약만 priority `999`로 설정한다.
-- [ ] `KeyboardHeightPolicyTests`와 `KeyboardPresentationStatePolicyTests`를 실행해 기존 표시·높이 계약을 확인한다.
-- [ ] `EnglishKeyboard`와 `HangeulKeyboard`를 빌드해 양쪽 layout 코드를 확인한다.
-- [ ] 이 step의 체크박스와 실제 명령·결과를 아래 결과란에 기록한다.
-- [ ] `fix: 숨김 키보드 뷰의 크기 제약 충돌 방지`로 이 step 변경만 커밋한다.
+- [x] 숨김 가능한 다섯 뷰의 크기 제약 생성 위치를 재확인한다.
+- [x] 대상 높이·너비 제약만 priority `999`로 설정한다.
+- [x] `KeyboardHeightPolicyTests`와 `KeyboardPresentationStatePolicyTests`를 실행해 기존 표시·높이 계약을 확인한다.
+- [x] `EnglishKeyboard`와 `HangeulKeyboard`를 빌드해 양쪽 layout 코드를 확인한다.
+- [x] 이 step의 체크박스와 실제 명령·결과를 아래 결과란에 기록한다.
+- [x] `fix: 숨김 키보드 뷰의 크기 제약 충돌 방지`로 이 step 변경만 커밋한다.
 
 **Verification commands:**
 
@@ -97,7 +97,17 @@ xcodebuild build -project SYKeyboard.xcodeproj -scheme EnglishKeyboard \
   -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0'
 ```
 
-**Result:** 실행 전
+**Result:**
+
+- iPhone 13 mini / iOS 16.0에서 `KeyboardHeightPolicyTests`와
+  `KeyboardPresentationStatePolicyTests` 고유 테스트 15개가 통과했다
+  (`xcodebuild` exit 0).
+- xcresult:
+  `/Users/macmillan/Library/Developer/Xcode/DerivedData/SYKeyboard-hgprdtyustcuukabeovkjzrtclhy/Logs/Test/Test-SYKeyboard-2026.08.10_20-48-12-+0900.xcresult`
+- 같은 destination에서 `HangeulKeyboard`와 `EnglishKeyboard` scheme 빌드가
+  각각 exit 0으로 통과했다.
+- 테스트는 기존 사용자 동작 정책을 검증하며, exact priority나 private view
+  구조를 고정하는 synthetic 테스트는 프로젝트 지침에 따라 추가하지 않았다.
 
 ### Step 3: 전체 회귀 검증 및 결과 기록
 
