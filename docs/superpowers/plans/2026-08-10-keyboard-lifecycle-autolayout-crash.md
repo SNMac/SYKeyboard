@@ -32,12 +32,12 @@
 - `BaseKeyboardViewController`는 마지막으로 callback에서 관찰한 optional autocorrection type을 보관한다.
 - `setKeyboardHeight()`와 `updateSuggestionBarHidden()`은 `textDocumentProxy` 대신 캐시를 사용한다.
 
-- [ ] 테스트에 `autocorrectionType: nil`일 때 predictive text가 켜진 일반 키보드는 suggestion bar를 표시한다는 기대를 추가하고, production signature 변경 전 컴파일 실패를 확인한다.
-- [ ] policy가 optional trait의 `nil`을 `.default`로 처리하도록 최소 변경한다.
-- [ ] `textWillChange(_:)`/`textDidChange(_:)`에서 캐시를 갱신하고, `viewDidLoad`/`viewWillAppear` 경로의 직접 `autocorrectionType` 접근을 제거한다.
-- [ ] 관련 policy 테스트를 실행해 통과를 확인한다.
-- [ ] 이 step의 체크박스와 실제 명령·결과를 아래 결과란에 기록한다.
-- [ ] `fix: 키보드 표시 전 document proxy 접근 제거`로 이 step 변경만 커밋한다.
+- [x] 테스트에 `autocorrectionType: nil`일 때 predictive text가 켜진 일반 키보드는 suggestion bar를 표시한다는 기대를 추가하고, production signature 변경 전 컴파일 실패를 확인한다.
+- [x] policy가 optional trait의 `nil`을 `.default`로 처리하도록 최소 변경한다.
+- [x] `textWillChange(_:)`/`textDidChange(_:)`에서 캐시를 갱신하고, `viewDidLoad`/`viewWillAppear` 경로의 직접 `autocorrectionType` 접근을 제거한다.
+- [x] 관련 policy 테스트를 실행해 통과를 확인한다.
+- [x] 이 step의 체크박스와 실제 명령·결과를 아래 결과란에 기록한다.
+- [x] `fix: 키보드 표시 전 document proxy 접근 제거`로 이 step 변경만 커밋한다.
 
 **Verification command:**
 
@@ -49,7 +49,16 @@ xcodebuild test \
   -only-testing:SYKeyboardTests/KeyboardPresentationStatePolicyTests
 ```
 
-**Result:** 실행 전
+**Result:**
+
+- RED: production 변경 전 test build가
+  `'nil' is not compatible with expected argument type 'UITextAutocorrectionType'`로
+  실패했다(`xcodebuild` exit 65).
+- GREEN: iPhone 13 mini / iOS 16.0에서
+  `KeyboardPresentationStatePolicyTests` 고유 테스트 6개가 통과했다
+  (`xcodebuild` exit 0).
+- xcresult:
+  `/Users/macmillan/Library/Developer/Xcode/DerivedData/SYKeyboard-hgprdtyustcuukabeovkjzrtclhy/Logs/Test/Test-SYKeyboard-2026.08.10_20-45-13-+0900.xcresult`
 
 ### Step 2: 숨김 arranged subview 크기 제약 충돌 제거
 

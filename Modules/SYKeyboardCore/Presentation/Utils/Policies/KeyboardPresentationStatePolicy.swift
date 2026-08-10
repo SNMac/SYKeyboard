@@ -24,7 +24,7 @@ enum KeyboardPresentationStatePolicy {
 
     static func shouldHideSuggestionBar(
         isPredictiveTextEnabled: Bool,
-        autocorrectionType: UITextAutocorrectionType,
+        autocorrectionType: UITextAutocorrectionType?,
         currentKeyboard: SYKeyboardType
     ) -> Bool {
         return !isPredictiveTextEnabled

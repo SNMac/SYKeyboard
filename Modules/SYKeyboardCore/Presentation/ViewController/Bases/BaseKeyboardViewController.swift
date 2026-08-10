@@ -149,6 +149,8 @@ open class BaseKeyboardViewController: UIInputViewController {
     private var isDrainingPendingDeleteInteractions = false
     /// 현재 host text input의 식별자입니다.
     private var currentTextInputIdentifier: ObjectIdentifier?
+    /// host 입력 변경 callback에서 마지막으로 확인한 자동 수정 설정입니다.
+    private var currentAutocorrectionType: UITextAutocorrectionType?
     /// 자동완성과 undo/redo 설정이 모두 켜진 경우에만 기능을 활성화합니다.
     private var isUndoRedoFeatureAvailable: Bool {
         return KeyboardPresentationStatePolicy.isUndoRedoFeatureAvailable(
@@ -296,6 +298,7 @@ open class BaseKeyboardViewController: UIInputViewController {
     open override func textWillChange(_ textInput: (any UITextInput)?) {
         super.textWillChange(textInput)
         logger.debug("textWillChange")
+        currentAutocorrectionType = textDocumentProxy.autocorrectionType
         synchronizeDeleteInteractionInputIdentifier(textInput)
         undoRedoSession.prepareForTextWillChange(
             inputIdentifier: textInputIdentifier(for: textInput),
@@ -311,6 +314,7 @@ open class BaseKeyboardViewController: UIInputViewController {
     open override func textDidChange(_ textInput: (any UITextInput)?) {
         super.textDidChange(textInput)
         logger.debug("textDidChange")
+        currentAutocorrectionType = textDocumentProxy.autocorrectionType
         synchronizeDeleteInteractionInputIdentifier(textInput)
         let currentTextContext = currentTextContextSnapshot()
         if KeyboardGesturePolicy.shouldPlayCursorDragHapticOnTextDidChange(
@@ -826,7 +830,7 @@ private extension BaseKeyboardViewController {
 
         let isSuggestionBarVisible = !KeyboardPresentationStatePolicy.shouldHideSuggestionBar(
             isPredictiveTextEnabled: suggestionController.isPredictiveTextEnabled,
-            autocorrectionType: textDocumentProxy.autocorrectionType ?? .default,
+            autocorrectionType: currentAutocorrectionType,
             currentKeyboard: currentKeyboard
         )
 
@@ -1222,7 +1226,7 @@ private extension BaseKeyboardViewController {
 
         let shouldHideSuggestions = KeyboardPresentationStatePolicy.shouldHideSuggestionBar(
             isPredictiveTextEnabled: suggestionController.isPredictiveTextEnabled,
-            autocorrectionType: textDocumentProxy.autocorrectionType ?? .default,
+            autocorrectionType: currentAutocorrectionType,
             currentKeyboard: currentKeyboard
         )
 

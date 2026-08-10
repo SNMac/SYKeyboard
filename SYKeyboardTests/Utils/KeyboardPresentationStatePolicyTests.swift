@@ -111,6 +111,13 @@ struct KeyboardPresentationStatePolicyTests {
                 currentKeyboard: .qwerty
             ) == false
         )
+        #expect(
+            KeyboardPresentationStatePolicy.shouldHideSuggestionBar(
+                isPredictiveTextEnabled: true,
+                autocorrectionType: nil,
+                currentKeyboard: .qwerty
+            ) == false
+        )
     }
 
     @Test("undo redo controls는 suggestion bar가 보이고 기능이 활성화된 경우에만 표시")
