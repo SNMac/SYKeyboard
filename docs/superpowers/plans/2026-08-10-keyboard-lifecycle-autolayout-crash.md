@@ -114,12 +114,12 @@ xcodebuild build -project SYKeyboard.xcodeproj -scheme EnglishKeyboard \
 **Files:**
 - Modify: `docs/superpowers/plans/2026-08-10-keyboard-lifecycle-autolayout-crash.md`
 
-- [ ] `SYKeyboard` 전체 테스트를 실행하고 테스트 개수·통과 여부를 기록한다.
-- [ ] `HangeulKeyboard`, `EnglishKeyboard`, `SYKeyboard` scheme을 빌드하고 결과를 기록한다.
-- [ ] 가능한 Simulator에서 키보드 표시·필드 전환·회전과 Auto Layout 경고를 확인하고, 관찰하지 못한 항목은 차단 경로를 기록한다.
-- [ ] `git diff --check`와 `git status --short`로 변경 범위를 확인한다.
-- [ ] 이 step의 체크박스와 실제 명령·산출물 경로를 아래 결과란에 기록한다.
-- [ ] `docs: 키보드 크래시 수정 검증 결과 기록`으로 검증 문서만 커밋한다.
+- [x] `SYKeyboard` 전체 테스트를 실행하고 테스트 개수·통과 여부를 기록한다.
+- [x] `HangeulKeyboard`, `EnglishKeyboard`, `SYKeyboard` scheme을 빌드하고 결과를 기록한다.
+- [x] 가능한 Simulator에서 키보드 표시·필드 전환·회전과 Auto Layout 경고를 확인하고, 관찰하지 못한 항목은 차단 경로를 기록한다.
+- [x] `git diff --check`와 `git status --short`로 변경 범위를 확인한다.
+- [x] 이 step의 체크박스와 실제 명령·산출물 경로를 아래 결과란에 기록한다.
+- [x] `docs: 키보드 크래시 수정 검증 결과 기록`으로 검증 문서만 커밋한다.
 
 **Verification commands:**
 
@@ -139,4 +139,28 @@ xcodebuild build -project SYKeyboard.xcodeproj -scheme EnglishKeyboard \
   -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0'
 ```
 
-**Result:** 실행 전
+**Result:**
+
+- 샌드박스의 첫 전체 테스트는 CoreSimulatorService와 SwiftPM/clang 캐시 접근
+  제한으로 exit 74에서 중단됐다. 같은 명령을 권한 있는 환경에서 재실행한
+  결과, iPhone 13 mini / iOS 16.0에서 고유 테스트 366개가 모두 통과했다
+  (`xcodebuild` exit 0).
+- 전체 테스트 xcresult:
+  `/Users/macmillan/Library/Developer/Xcode/DerivedData/SYKeyboard-hgprdtyustcuukabeovkjzrtclhy/Logs/Test/Test-SYKeyboard-2026.08.10_20-51-50-+0900.xcresult`
+- 전체 테스트 로그:
+  `/Users/macmillan/Library/Application Support/rtk/tee/1786362775_xcodebuild_test_-project_SYKeyboard_xcod.log`
+- 같은 destination에서 `SYKeyboard`, `HangeulKeyboard`, `EnglishKeyboard` scheme
+  빌드가 모두 exit 0으로 통과했다. 각 로그는 다음과 같다.
+  - `/Users/macmillan/Library/Application Support/rtk/tee/1786362834_xcodebuild_build_-project_SYKeyboard_xco.log`
+  - `/Users/macmillan/Library/Application Support/rtk/tee/1786362848_xcodebuild_build_-project_SYKeyboard_xco.log`
+  - `/Users/macmillan/Library/Application Support/rtk/tee/1786362864_xcodebuild_build_-project_SYKeyboard_xco.log`
+- XcodeBuildMCP에서 사용 가능한 Simulator 51개를 확인했으나 부팅된 기기가
+  없었다. 사용자 요청 없이 기기를 새로 부팅하지 않는 디버거 절차에 따라 실제
+  커스텀 키보드 표시, 입력 필드 전환, 회전, 해당 과정의 Auto Layout 로그는
+  관찰하지 못했다. 이 항목은 자동 테스트와 scheme 빌드가 대체하지 않는다.
+- `git diff --check`는 출력 없이 exit 0이었고, `git status --short`에는 이
+  검증 결과를 기록한 계획 문서 한 파일만 표시됐다.
+- 구현 커밋 범위의 별도 코드 리뷰에서는 Critical 결함이나 코드 수정이 필요한
+  Important 결함을 찾지 못했다. 다만 이번 크래시는 private UIKit lifecycle과
+  layout 경로에서 발생하므로 위 수동 smoke test 전에는 production-ready 또는
+  실제 크래시 제거 완료로 판정하지 않는다.
