@@ -60,9 +60,9 @@
 
 ### 선택 텍스트 갱신 정책
 
-`BaseKeyboardViewController` 는 선택 텍스트가 있을 때
-`MathExpressionCompletionEvaluator.completion(for:)`로 유효한 수식인지 판정한다.
-그 결과를 `KeyboardSuggestionSelectionPolicy.suggestionUpdateAction` 에 전달해 다음처럼 분기한다.
+`KeyboardSuggestionSelectionPolicy.suggestionUpdateAction`은 공백이 포함된 선택 텍스트만
+`MathExpressionCompletionEvaluator.completion(for:)`로 유효한 수식인지 판정해 다음처럼
+분기한다.
 
 - 선택 텍스트에 공백이 없음: 기존처럼 `.update(selectedText)`
 - 공백이 있고 유효한 수식임: `.update(selectedText)`
@@ -109,8 +109,6 @@
   - 문맥 경계 suffix 후보, 선행 소수점 parsing, 음수 0 정규화를 추가한다.
 - Modify: `Modules/SYKeyboardCore/Presentation/Utils/Policies/KeyboardSuggestionSelectionPolicy.swift`
   - 공백 선택의 수식 여부를 갱신 action에 반영한다.
-- Modify: `Modules/SYKeyboardCore/Presentation/ViewController/Bases/BaseKeyboardViewController.swift`
-  - 선택 수식 유효성을 policy에 전달한다.
 - Modify: `SYKeyboardTests/Domain/MathExpressionCompletionEvaluatorTests.swift`
   - 문맥 경계, 오탐지 방지, 음수 0 회귀를 검증한다.
 - Modify: `SYKeyboardTests/Utils/KeyboardSuggestionSelectionPolicyTests.swift`
