@@ -633,8 +633,7 @@ extension BaseKeyboardViewController {
             smartDashesType: textDocumentProxy.smartDashesType ?? .default,
             isDefaultSmartQuotesEnabled: treatsDefaultSmartQuotesAsEnabled,
             quoteRule: smartQuoteRule,
-            nextDoubleQuoteIsOpening: smartQuoteState.nextDoubleQuoteIsOpening,
-            nextSingleQuoteIsOpening: smartQuoteState.nextSingleQuoteIsOpening
+            nextDoubleQuoteIsOpening: smartQuoteState.nextDoubleQuoteIsOpening
         )
 
         if transform.deleteCount > 0 {
