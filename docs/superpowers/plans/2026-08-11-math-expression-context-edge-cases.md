@@ -333,7 +333,7 @@ git commit -m "fix: #98 - 공백 포함 선택 수식 후보 허용"
 - Consumes: Task 1과 Task 2의 production 동작과 회귀 테스트
 - Produces: 실제 명령·simulator·테스트 개수·빌드 결과가 기록된 완료 증거
 
-- [ ] **Step 1: 전체 `SYKeyboard` 테스트 실행**
+- [x] **Step 1: 전체 `SYKeyboard` 테스트 실행**
 
 ```sh
 xcodebuild test \
@@ -344,7 +344,19 @@ xcodebuild test \
 
 Expected: 실패와 skip 없이 전체 테스트가 통과한다. `.xcresult`에서 실제 테스트 개수와 실패 개수를 확인한다.
 
-- [ ] **Step 2: 한글·영문 keyboard extension 빌드**
+결과 (2026-08-11): iPhone 13 mini / iOS 16.0
+(`CBD992D3-5364-4F69-AC5F-0077ADF1A292`) arm64 단일 실행에서 전체
+374/374개 테스트가 통과했고 실패, skip, expected failure는 각각 0개였다.
+결과 번들은
+`/private/tmp/SYKeyboard-MathEdge-Final-20260811-1230.xcresult`에 저장했고,
+다음 명령으로 동일한 개수를 확인했다.
+
+```sh
+xcrun xcresulttool get test-results summary \
+  --path /private/tmp/SYKeyboard-MathEdge-Final-20260811-1230.xcresult
+```
+
+- [x] **Step 2: 한글·영문 keyboard extension 빌드**
 
 ```sh
 xcodebuild build \
@@ -360,7 +372,14 @@ xcodebuild build \
 
 Expected: 두 scheme이 build error 없이 성공한다. 외부 SDK 경고가 있으면 코드 실패와 구분해 기록한다.
 
-- [ ] **Step 3: 변경 범위와 whitespace 검증**
+결과 (2026-08-11): 같은 iPhone 13 mini / iOS 16.0 simulator의 arm64를
+대상으로 `HangeulKeyboard`와 `EnglishKeyboard` scheme을 각각 빌드했고 두 명령
+모두 exit code 0으로 성공했다. 한글 scheme 빌드에서는 Meta/FBAudienceNetwork
+정적 라이브러리의 외부 PCM debug 경로 경고가 출력됐지만 project compile 또는
+link error는 없었다. 영문 scheme의 증분 빌드는 destination 중복 경고 외에 추가
+경고 없이 성공했다.
+
+- [x] **Step 3: 변경 범위와 whitespace 검증**
 
 ```sh
 git diff --check 4fb82fed..HEAD
@@ -371,11 +390,22 @@ git diff --stat 4fb82fed..HEAD
 Expected: whitespace 오류가 없고, 설계·계획·evaluator·selection policy·관련 테스트 이외의
 변경이 없다.
 
-- [ ] **Step 4: 자동 검증 결과 기록과 커밋**
+결과 (2026-08-11): `git diff --check 4fb82fed..HEAD`와 현재 미커밋 변경 대상
+`git diff --check`가 모두 출력 없이 exit code 0으로 통과했다. 기준 커밋 이후 변경은
+설계·계획 문서, evaluator와 selection policy, 관련 테스트 3개로 총 7개 파일이며,
+현재 미커밋 변경은 이 계획 문서의 검증 기록뿐임을 `git status --short`와
+`git diff --stat`으로 확인했다.
+
+- [x] **Step 4: 자동 검증 결과 기록과 커밋**
 
 계획 문서에 실제 전체 테스트 개수, simulator UDID·OS, 두 extension 빌드 결과, 경고,
 `.xcresult` 경로와 결과 추출 명령을 기록한다. 실제 입력 앱은 자동 검증이 대체할 수
 없으므로 수동 확인을 수행하지 못하면 미확인으로 기록한다.
+
+결과 (2026-08-11): 전체 374개 테스트와 두 keyboard extension 빌드가 모두
+성공했고, 결과 bundle 경로와 추출 명령을 위 단계에 기록했다. 실제 host 입력 앱에서
+키보드를 열어 후보 preview·탭·스페이스 동작을 관찰하는 수동 검증은 수행하지 않아
+미확인 상태로 남긴다.
 
 ```sh
 git add docs/superpowers/plans/2026-08-11-math-expression-context-edge-cases.md
