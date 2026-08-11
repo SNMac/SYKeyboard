@@ -336,7 +336,7 @@ git commit -m "fix: #98 - 수식 입력 크기와 중첩 깊이 제한"
 - Consumes: Task 1과 Task 2의 production 동작과 테스트
 - Produces: 전체 test/build 결과와 whitespace 오류가 없는 자동 검증 상태
 
-- [ ] **Step 1: 기존 문서 trailing space를 표시 가능한 문자로 교체**
+- [x] **Step 1: 기존 문서 trailing space를 표시 가능한 문자로 교체**
 
 기존 삭제 예시의 실제 trailing space를 `␠`로 표시해 의미는 유지하고 `git diff --check` 오류를 제거한다.
 
@@ -344,7 +344,7 @@ git commit -m "fix: #98 - 수식 입력 크기와 중첩 깊이 제한"
 1 1 + 2 =3  --삭제 반복-->  1 1  --다음 삭제 1회-->  1␠
 ```
 
-- [ ] **Step 2: 전체 `SYKeyboard` 테스트 실행과 결과 추출**
+- [x] **Step 2: 전체 `SYKeyboard` 테스트 실행과 결과 추출**
 
 ```sh
 xcodebuild test -quiet \
@@ -362,7 +362,7 @@ xcrun xcresulttool get test-results summary \
 
 Expected: 실패, skip, expected failure 없이 전체 테스트가 통과한다. 결과 bundle에서 실제 총 테스트 개수와 simulator 정보를 기록한다.
 
-- [ ] **Step 3: 한글·영문 keyboard extension 빌드**
+- [x] **Step 3: 한글·영문 keyboard extension 빌드**
 
 ```sh
 xcodebuild build -quiet \
@@ -380,7 +380,7 @@ xcodebuild build -quiet \
 
 Expected: 두 scheme이 build error 없이 성공한다. 외부 SDK PCM 경고는 project compile 실패와 구분해 기록한다.
 
-- [ ] **Step 4: 변경 범위와 whitespace 검증**
+- [x] **Step 4: 변경 범위와 whitespace 검증**
 
 ```sh
 git diff --check origin/develop..HEAD
@@ -392,7 +392,7 @@ rg -n 'mathExpressionCompletionType|synchronizeTextInputTraits' \
 
 Expected: branch 전체에 whitespace 오류가 없고 working tree에는 계획 결과 기록만 남는다. `mathExpressionCompletionType`의 직접 접근은 callback에서만 호출되는 helper 내부 한 곳뿐이다.
 
-- [ ] **Step 5: 자동 검증 결과 기록과 커밋**
+- [x] **Step 5: 자동 검증 결과 기록과 커밋**
 
 계획 문서에 실제 전체 테스트 개수, simulator UDID·OS, 두 extension 빌드 결과, 경고와 `.xcresult` 경로를 기록한다. iOS 18+ 실기기 host 앱 검증은 자동화가 대체하지 않으므로 수행하지 못하면 미확인으로 기록한다.
 
@@ -402,3 +402,5 @@ git add \
   docs/superpowers/plans/2026-08-12-math-expression-merge-readiness-hardening.md
 git commit -m "docs: #98 - 수식 안정성 보강 검증 결과 기록"
 ```
+
+**실행 결과 (2026-08-12):** 삭제 복구 설계 문서의 알려진 trailing space를 `␠`로 교체했다. 시작 시 `/private/tmp/SYKeyboard-MathHardening-Final.xcresult`는 존재하지 않았으나, 기본 샌드박스 테스트가 CoreSimulator와 SwiftPM/clang cache 권한 오류로 컴파일 전에 중단하면서 불완전 bundle을 만들었으므로 삭제하지 않고 보존했다. 같은 이유로 첫 두 권한 있는 실행도 `Data/`와 `Staging/`만 있는 불완전 bundle을 남겨 보존했다. `rtk proxy xcodebuild test -quiet -project SYKeyboard.xcodeproj -scheme SYKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0' -parallel-testing-enabled NO -collect-test-diagnostics never -resultBundlePath /private/tmp/SYKeyboard-MathHardening-Final-20260812-0330.xcresult ONLY_ACTIVE_ARCH=YES ARCHS=arm64`를 권한 있는 환경에서 완료해 exit 0을 확인했다. 이어 `rtk xcrun xcresulttool get test-results summary --path /private/tmp/SYKeyboard-MathHardening-Final-20260812-0330.xcresult`로 iPhone 13 mini / iOS 16.0 / arm64 (UDID `CBD992D3-5364-4F69-AC5F-0077ADF1A292`)의 전체 376개 통과, 실패 0, skip 0, expected failure 0을 추출했다. HangeulKeyboard와 EnglishKeyboard는 동일 대상·옵션의 권한 있는 build에서 각각 exit 0으로 성공했다. 두 기본 샌드박스 build는 같은 CoreSimulator·cache 권한 오류로 중단됐고, HangeulKeyboard 성공 build에는 Meta 외부 SDK의 누락된 PCM 경고와 Xcode의 동일 UDID 다중 architecture 대상 선택 경고가 있었으나 project compile error는 없었다. EnglishKeyboard 성공 build에는 동일 destination 선택 경고만 있었다. `git diff --check`는 working tree에서 통과했고, `git diff --check origin/develop..HEAD`의 커밋 전 실행은 아직 커밋되지 않은 이 문서의 기존 trailing space 1건만 보고했다. 문서 commit 후 같은 명령은 exit 0으로 통과했고 `git status --short`도 비어 있었다. `rg -n -C 4 'mathExpressionCompletionType|synchronizeTextInputTraits' Modules/SYKeyboardCore/Presentation/ViewController/Bases/BaseKeyboardViewController.swift` 확인 결과 직접 trait 접근은 `synchronizeTextInputTraits()` 내부 1곳이며 helper 호출은 `textWillChange(_:)`, `textDidChange(_:)` 두 callback뿐이다. iOS 18+ 실기기 host 앱에서의 실제 callback timing 및 trait 반영은 이 자동 검증으로 확인하지 못했으므로 미확인 상태다.
