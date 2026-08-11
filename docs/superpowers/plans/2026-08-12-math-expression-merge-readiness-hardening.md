@@ -176,7 +176,7 @@ git commit -m "fix: #98 - 수식 host trait 조기 접근 제거"
 - Produces: `MathExpressionCompletionEvaluator.maximumInputLength == 256`, parser 최대 중첩 16단계
 - Preserves: 기존 suffix 후보 순서, parser 문법, formatting과 유한성 guard
 
-- [ ] **Step 1: 길이와 중첩 경계 RED 테스트 작성**
+- [x] **Step 1: 길이와 중첩 경계 RED 테스트 작성**
 
 `MathExpressionCompletionEvaluatorTests`에 production 진입점을 호출하는 두 테스트를 추가한다.
 
@@ -243,7 +243,7 @@ func test제한보다긴입력은_거부() {
 
 중간 연산의 기존 `isFinite` guard는 방어 코드로 유지하되, 256자 제한 뒤에는 긴 입력 테스트가 overflow parser 경로를 검증한다고 설명하지 않는다.
 
-- [ ] **Step 2: evaluator 집중 테스트 RED 확인**
+- [x] **Step 2: evaluator 집중 테스트 RED 확인**
 
 Run:
 
@@ -260,7 +260,7 @@ xcodebuild test -quiet \
 
 Expected: 257자 입력은 leading space 뒤 정상 수식으로 계산되고 17단계 괄호도 계산되어 신규 단언 2개가 실패한다. 정확히 256자, 16단계, `.5+1=`과 기존 적대 입력은 통과한다.
 
-- [ ] **Step 3: evaluator 길이와 parser 깊이 guard 구현**
+- [x] **Step 3: evaluator 길이와 parser 깊이 guard 구현**
 
 `MathExpressionCompletionEvaluator`에 정책 수치를 선언하고 suffix 처리 전에 검사한다.
 
@@ -304,13 +304,13 @@ if let closingBracket = closingBracket(for: peek()) {
 }
 ```
 
-- [ ] **Step 4: evaluator 집중 테스트 GREEN 확인**
+- [x] **Step 4: evaluator 집중 테스트 GREEN 확인**
 
 Step 2 명령을 다시 실행한다.
 
 Expected: 256/257자와 16/17단계 경계, `.5+1=`, suffix 문맥, 음수 0, 잘못된 숫자와 oversized input을 포함한 evaluator 테스트가 모두 통과한다.
 
-- [ ] **Step 5: Task 2 결과 기록과 커밋**
+- [x] **Step 5: Task 2 결과 기록과 커밋**
 
 계획 문서의 Task 2 체크박스와 RED/GREEN 결과에 실제 테스트 개수와 실패·성공 이유를 기록한다.
 
@@ -321,6 +321,8 @@ git add \
   docs/superpowers/plans/2026-08-12-math-expression-merge-readiness-hardening.md
 git commit -m "fix: #98 - 수식 입력 크기와 중첩 깊이 제한"
 ```
+
+**실행 결과 (2026-08-12):** iPhone 13 mini / iOS 16.0 (arm64)에서 수행했다. 기본 샌드박스의 Step 2 첫 실행은 CoreSimulator와 SwiftPM/clang cache 접근 권한 오류로 컴파일 전에 중단되어, 권한 있는 동일 명령으로 재실행했다. 첫 권한 있는 실행은 추가한 oversized-input 테스트의 `for` 본문 괄호 누락으로 컴파일에 실패했고, 테스트 문법만 수정해 다시 실행했다. RED 실행은 길이 guard가 없어 257자 입력을 계산하고 nesting guard가 없어 17단계 괄호를 계산하여 신규 테스트 2개가 기대대로 실패했다. GREEN 집중 테스트는 evaluator 테스트 29개 통과, 실패 0개였다. 전체 `SYKeyboard` 테스트의 첫 실행은 `SuggestionControllerMathResultsTests.test후보갱신은_이전SelectionOrigin을_새Origin으로교체()` 1개가 실패했으나, 같은 테스트 단독 실행은 통과했고 전체 재실행은 376개 통과, 실패 0개였다. `git diff --check`도 통과했다.
 
 ---
 

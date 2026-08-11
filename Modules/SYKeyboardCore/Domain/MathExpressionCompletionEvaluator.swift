@@ -14,7 +14,10 @@ struct MathExpressionCompletion: Equatable {
 }
 
 enum MathExpressionCompletionEvaluator {
+    static let maximumInputLength = 256
+
     static func completion(for text: String) -> MathExpressionCompletion? {
+        guard text.count <= maximumInputLength else { return nil }
         guard text.last == "=" else { return nil }
 
         for expressionText in expressionSuffixCandidates(beforeEqualIn: text) {
@@ -319,9 +322,12 @@ private extension MathExpressionCompletionEvaluator {
 }
 
 private struct MathExpressionParser {
+    private static let maximumNestingDepth = 16
+
     private let characters: [Character]
     private var index = 0
     private var hasBinaryOperator = false
+    private var nestingDepth = 0
 
     init(_ expression: String) {
         characters = expression.compactMap { character -> Character? in
@@ -405,6 +411,10 @@ private extension MathExpressionParser {
 
     mutating func parsePrimary() -> Double? {
         if let closingBracket = closingBracket(for: peek()) {
+            guard nestingDepth < Self.maximumNestingDepth else { return nil }
+            nestingDepth += 1
+            defer { nestingDepth -= 1 }
+
             index += 1
             guard let value = parseExpression() else { return nil }
             guard peek() == closingBracket else { return nil }

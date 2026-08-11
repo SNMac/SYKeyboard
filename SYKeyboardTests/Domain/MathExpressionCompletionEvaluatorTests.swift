@@ -298,29 +298,55 @@ struct MathExpressionCompletionEvaluatorTests {
         )
     }
 
-    @Test("유한하지 않은 숫자 토큰은 외부 연산 결과가 유한해도 거부")
-    func test유한하지않은숫자토큰은_외부연산결과가유한해도거부() {
-        let overflowingNumber = String(repeating: "9", count: 400)
-
+    @Test("수식 입력은 256자까지 계산하고 초과 입력은 거부")
+    func test수식입력길이경계() {
+        let maximumLengthExpression = String(repeating: "1+", count: 127) + "1="
+        #expect(maximumLengthExpression.count == 256)
         #expect(
             MathExpressionCompletionEvaluator.completion(
-                for: "1/\(overflowingNumber)="
+                for: maximumLengthExpression
+            )?.insertText == "128"
+        )
+
+        let oversizedExpression = " " + maximumLengthExpression
+        #expect(oversizedExpression.count == 257)
+        #expect(
+            MathExpressionCompletionEvaluator.completion(
+                for: oversizedExpression
             ) == nil
         )
     }
 
-    @Test("유한 피연산자의 중간 연산 overflow는 외부 연산 결과가 유한해도 거부")
-    func test유한피연산자의중간연산Overflow는_외부연산결과가유한해도거부() {
-        let largeFiniteNumber = String(repeating: "9", count: 308)
-        let smallFiniteNumber = "0." + String(repeating: "0", count: 307) + "1"
-        let expressions = [
-            "1/(\(largeFiniteNumber)+\(largeFiniteNumber))=",
-            "1/(\(largeFiniteNumber)-(0-\(largeFiniteNumber)))=",
-            "1/(\(largeFiniteNumber)*2)=",
-            "1/(2/\(smallFiniteNumber))="
-        ]
+    @Test("괄호 중첩은 16단계까지 계산하고 17단계부터 거부")
+    func test괄호중첩깊이경계() {
+        func expression(depth: Int) -> String {
+            return String(repeating: "(", count: depth)
+                + "1+1"
+                + String(repeating: ")", count: depth)
+                + "="
+        }
 
-        for expression in expressions {
+        #expect(
+            MathExpressionCompletionEvaluator.completion(
+                for: expression(depth: 16)
+            )?.insertText == "2"
+        )
+        #expect(
+            MathExpressionCompletionEvaluator.completion(
+                for: expression(depth: 17)
+            ) == nil
+        )
+    }
+
+    @Test("제한보다 긴 숫자와 연산 입력은 후보를 만들지 않음")
+    func test제한보다긴입력은_거부() {
+        let overflowingNumber = String(repeating: "9", count: 400)
+        let largeFiniteNumber = String(repeating: "9", count: 308)
+
+        for expression in [
+            "1/\(overflowingNumber)=",
+            "1/(\(largeFiniteNumber)*2)="
+        ] {
             #expect(
                 MathExpressionCompletionEvaluator.completion(
                     for: expression
