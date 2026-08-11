@@ -35,7 +35,7 @@
 - Produces: `KeyboardPresentationStatePolicy.shouldShowMathResults(isSettingEnabled:isHostCompletionAllowed:) -> Bool`
 - Preserves: `SuggestionController.isShowMathResultsEnabled`, 기존 autocorrection cache와 suggestion update 경로
 
-- [ ] **Step 1: 표시 정책 RED 테스트 작성**
+- [x] **Step 1: 표시 정책 RED 테스트 작성**
 
 `KeyboardPresentationStatePolicyTests`에 production policy의 전체 Boolean 조합을 추가한다.
 
@@ -69,7 +69,7 @@ func test수식결과표시조건() {
 }
 ```
 
-- [ ] **Step 2: policy 집중 테스트 RED 확인**
+- [x] **Step 2: policy 집중 테스트 RED 확인**
 
 Run:
 
@@ -86,7 +86,7 @@ xcodebuild test -quiet \
 
 Expected: `KeyboardPresentationStatePolicy`에 `shouldShowMathResults`가 없어 test target compile이 실패한다. 기존 policy 테스트의 동작 실패는 없어야 한다.
 
-- [ ] **Step 3: pure policy와 callback 전용 trait cache 구현**
+- [x] **Step 3: pure policy와 callback 전용 trait cache 구현**
 
 `KeyboardPresentationStatePolicy`에 다음 메서드를 추가한다.
 
@@ -132,7 +132,7 @@ func shouldShowMathResults() -> Bool {
 }
 ```
 
-- [ ] **Step 4: policy GREEN과 호출 경계 확인**
+- [x] **Step 4: policy GREEN과 호출 경계 확인**
 
 Step 2 명령을 다시 실행한다.
 
@@ -147,7 +147,7 @@ rg -n 'mathExpressionCompletionType|synchronizeTextInputTraits' \
 
 Expected: `mathExpressionCompletionType`은 helper 내부에만 있고 helper 호출은 `textWillChange(_:)`와 `textDidChange(_:)`에만 있다. appearance 및 `shouldShowMathResults()` 경로에는 직접 proxy trait 접근이 없다.
 
-- [ ] **Step 5: Task 1 결과 기록과 커밋**
+- [x] **Step 5: Task 1 결과 기록과 커밋**
 
 계획 문서의 Task 1 체크박스와 RED/GREEN 결과에 실제 simulator, 테스트 개수와 실패·성공 이유를 기록한다.
 
@@ -159,6 +159,8 @@ git add \
   docs/superpowers/plans/2026-08-12-math-expression-merge-readiness-hardening.md
 git commit -m "fix: #98 - 수식 host trait 조기 접근 제거"
 ```
+
+**실행 결과 (2026-08-12):** iPhone 13 mini / iOS 16.0 (arm64)에서 수행했다. 기본 샌드박스의 Step 2 첫 실행은 CoreSimulator와 SwiftPM/clang cache 접근 권한 오류로 컴파일 전에 중단되어, 권한 있는 동일 명령으로 재실행했다. RED 실행은 `shouldShowMathResults`가 없어서 테스트 타깃 컴파일이 실패했고, 이것이 새 정책 API 부재에 의한 기대한 실패임을 확인했다. GREEN 집중 테스트는 7개 통과, 실패 0개였다 (`Test-SYKeyboard-2026.08.12_03-02-17-+0900.xcresult`). 전체 `SYKeyboard` 테스트는 375개 통과, 실패 0개였다 (`Test-SYKeyboard-2026.08.12_03-03-32-+0900.xcresult`). `rg` 호출 경계 확인 결과 `mathExpressionCompletionType`은 `synchronizeTextInputTraits()` 내부 1곳에만 있고, helper 호출은 `textWillChange(_:)`와 `textDidChange(_:)` 2곳뿐이다.
 
 ---
 

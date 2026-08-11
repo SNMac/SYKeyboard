@@ -151,6 +151,8 @@ open class BaseKeyboardViewController: UIInputViewController {
     private var currentTextInputIdentifier: ObjectIdentifier?
     /// host 입력 변경 callback에서 마지막으로 확인한 자동 수정 설정입니다.
     private var currentAutocorrectionType: UITextAutocorrectionType?
+    /// host 입력 변경 callback에서 마지막으로 확인한 수식 자동완성 허용 상태입니다.
+    private var isMathExpressionCompletionAllowed = true
     /// 자동완성과 undo/redo 설정이 모두 켜진 경우에만 기능을 활성화합니다.
     private var isUndoRedoFeatureAvailable: Bool {
         return KeyboardPresentationStatePolicy.isUndoRedoFeatureAvailable(
@@ -298,7 +300,7 @@ open class BaseKeyboardViewController: UIInputViewController {
     open override func textWillChange(_ textInput: (any UITextInput)?) {
         super.textWillChange(textInput)
         logger.debug("textWillChange")
-        currentAutocorrectionType = textDocumentProxy.autocorrectionType
+        synchronizeTextInputTraits()
         synchronizeDeleteInteractionInputIdentifier(textInput)
         undoRedoSession.prepareForTextWillChange(
             inputIdentifier: textInputIdentifier(for: textInput),
@@ -314,7 +316,7 @@ open class BaseKeyboardViewController: UIInputViewController {
     open override func textDidChange(_ textInput: (any UITextInput)?) {
         super.textDidChange(textInput)
         logger.debug("textDidChange")
-        currentAutocorrectionType = textDocumentProxy.autocorrectionType
+        synchronizeTextInputTraits()
         synchronizeDeleteInteractionInputIdentifier(textInput)
         let currentTextContext = currentTextContextSnapshot()
         if KeyboardGesturePolicy.shouldPlayCursorDragHapticOnTextDidChange(
@@ -2170,14 +2172,22 @@ extension BaseKeyboardViewController: SuggestionBarDelegate {
 }
 
 private extension BaseKeyboardViewController {
-    func shouldShowMathResults() -> Bool {
-        guard keyboardSettingsManager.isShowMathResultsEnabled else { return false }
+    func synchronizeTextInputTraits() {
+        currentAutocorrectionType = textDocumentProxy.autocorrectionType
 
         if #available(iOS 18.0, *) {
-            return textDocumentProxy.mathExpressionCompletionType != .no
+            isMathExpressionCompletionAllowed =
+                textDocumentProxy.mathExpressionCompletionType != .no
+        } else {
+            isMathExpressionCompletionAllowed = true
         }
+    }
 
-        return true
+    func shouldShowMathResults() -> Bool {
+        return KeyboardPresentationStatePolicy.shouldShowMathResults(
+            isSettingEnabled: keyboardSettingsManager.isShowMathResultsEnabled,
+            isHostCompletionAllowed: isMathExpressionCompletionAllowed
+        )
     }
 
     func handleSelectedTextSuggestion(at index: Int) -> Bool {

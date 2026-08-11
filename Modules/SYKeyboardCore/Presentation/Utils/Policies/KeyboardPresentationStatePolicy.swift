@@ -32,6 +32,13 @@ enum KeyboardPresentationStatePolicy {
         || currentKeyboard == .tenKey
     }
 
+    static func shouldShowMathResults(
+        isSettingEnabled: Bool,
+        isHostCompletionAllowed: Bool
+    ) -> Bool {
+        return isSettingEnabled && isHostCompletionAllowed
+    }
+
     static func shouldShowUndoRedoControls(
         isSuggestionBarHidden: Bool,
         isUndoRedoFeatureAvailable: Bool
