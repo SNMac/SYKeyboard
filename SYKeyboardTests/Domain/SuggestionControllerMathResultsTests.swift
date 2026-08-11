@@ -437,7 +437,16 @@ struct SuggestionControllerMathResultsTests {
         controller.updateSuggestions(for: "3-1=")
 
         #expect(controller.currentMode == .typing)
-        #expect(delegate.updates.last?.suggestions != ["", "3-1=2", ""])
+        #expect(delegate.updates.last?.currentWord == "3-1=")
+        #expect(delegate.updates.last?.suggestions == [])
+        for index in 0...2 {
+            #expect(
+                controller.mathResultAction(
+                    at: index,
+                    selectedText: nil
+                ) == nil
+            )
+        }
     }
 
     @Test("괄호 수식은 좌중우 후보에 원문과 결과를 표시")

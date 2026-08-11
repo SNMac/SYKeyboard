@@ -325,27 +325,27 @@ struct KeyboardUndoRedoManagerTests {
         #expect(manager.redo() == KeyboardUndoRedoEdit(deleteCount: 0, insertText: "abc", targetContext: redoTarget))
     }
 
-    @Test("선택된 가운데 수식 후보 탭은 치환 결과 문맥에서 undo redo 가능")
-    func test선택된가운데수식후보탭은_치환결과문맥에서UndoRedo가능() {
-        assertSelectedMathSuggestionUndoRedo(
+    @Test("전체 수식 대치 record는 대치 문맥에서 undo redo 가능")
+    func test전체수식대치Record는_대치문맥에서UndoRedo가능() {
+        assertReplacementRecordUndoRedo(
             originalText: "3+1=",
             replacementText: "3+1=4"
         )
     }
 
-    @Test("선택된 오른쪽 수식 후보 탭은 치환 결과 문맥에서 undo redo 가능")
-    func test선택된오른쪽수식후보탭은_치환결과문맥에서UndoRedo가능() {
-        assertSelectedMathSuggestionUndoRedo(
+    @Test("결과만 대치 record는 대치 문맥에서 undo redo 가능")
+    func test결과만대치Record는_대치문맥에서UndoRedo가능() {
+        assertReplacementRecordUndoRedo(
             originalText: "3+1=",
             replacementText: "4"
         )
     }
 
-    private func assertSelectedMathSuggestionUndoRedo(
+    private func assertReplacementRecordUndoRedo(
         originalText: String,
         replacementText: String
     ) {
-        let selectedContext = KeyboardTextContextSnapshot(
+        let initialContext = KeyboardTextContextSnapshot(
             beforeInput: "",
             afterInput: ""
         )
@@ -359,15 +359,15 @@ struct KeyboardUndoRedoManagerTests {
             afterInput: ""
         )
 
-        var preReplacementManager = KeyboardUndoRedoManager()
-        preReplacementManager.record(
+        var mismatchedTargetManager = KeyboardUndoRedoManager()
+        mismatchedTargetManager.record(
             deletedText: originalText,
             insertedText: replacementText,
-            targetContext: selectedContext
+            targetContext: initialContext
         )
-        preReplacementManager.commitPendingGroup()
+        mismatchedTargetManager.commitPendingGroup()
 
-        #expect(preReplacementManager.canApplyUndo(from: replacementContext) == false)
+        #expect(mismatchedTargetManager.canApplyUndo(from: replacementContext) == false)
 
         manager.record(
             deletedText: originalText,

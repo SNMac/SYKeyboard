@@ -17,8 +17,8 @@ enum MathExpressionCompletionEvaluator {
     static let maximumInputLength = 256
 
     static func completion(for text: String) -> MathExpressionCompletion? {
-        guard text.count <= maximumInputLength else { return nil }
         guard text.last == "=" else { return nil }
+        guard text.dropFirst(maximumInputLength).isEmpty else { return nil }
 
         for expressionText in expressionSuffixCandidates(beforeEqualIn: text) {
             if let completion = completion(forExpressionText: expressionText) {

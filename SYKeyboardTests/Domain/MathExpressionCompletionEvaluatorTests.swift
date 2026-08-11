@@ -338,6 +338,20 @@ struct MathExpressionCompletionEvaluatorTests {
         )
     }
 
+    @Test("동일 깊이 괄호 그룹을 연산자로 연결해 계산")
+    func test동일깊이괄호그룹을_연산자로연결해계산() {
+        let depth16Expression = String(repeating: "(", count: 16)
+            + "1+1"
+            + String(repeating: ")", count: 16)
+        let expression = depth16Expression + "+" + depth16Expression + "="
+
+        #expect(
+            MathExpressionCompletionEvaluator.completion(
+                for: expression
+            )?.insertText == "4"
+        )
+    }
+
     @Test("제한보다 긴 숫자와 연산 입력은 후보를 만들지 않음")
     func test제한보다긴입력은_거부() {
         let overflowingNumber = String(repeating: "9", count: 400)
