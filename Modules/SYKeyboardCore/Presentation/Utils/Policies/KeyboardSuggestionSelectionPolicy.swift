@@ -98,7 +98,10 @@ enum KeyboardSuggestionSelectionPolicy {
         guard isPredictiveTextEnabled else { return .none }
 
         if let selectedText, !selectedText.isEmpty {
-            if selectedText.contains(where: { $0.isWhitespace }) {
+            if selectedText.contains(where: { $0.isWhitespace }),
+               MathExpressionCompletionEvaluator.completion(
+                   for: selectedText
+               ) == nil {
                 return .clear
             }
             return .update(selectedText)

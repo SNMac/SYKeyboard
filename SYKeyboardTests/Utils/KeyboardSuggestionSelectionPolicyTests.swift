@@ -86,6 +86,13 @@ struct KeyboardSuggestionSelectionPolicyTests {
         #expect(
             KeyboardSuggestionSelectionPolicy.suggestionUpdateAction(
                 isPredictiveTextEnabled: true,
+                selectedText: "3 + 1 =",
+                inputBuffer: "input"
+            ) == .update("3 + 1 =")
+        )
+        #expect(
+            KeyboardSuggestionSelectionPolicy.suggestionUpdateAction(
+                isPredictiveTextEnabled: true,
                 selectedText: "hello\nworld",
                 inputBuffer: "input"
             ) == .clear

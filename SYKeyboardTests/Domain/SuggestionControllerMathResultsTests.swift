@@ -154,6 +154,27 @@ struct SuggestionControllerMathResultsTests {
         )
     }
 
+    @Test("공백이 포함된 선택 수식은 원문과 결과 action을 유지")
+    func test공백포함선택수식은_원문과결과Action을유지() {
+        let controller = makeMathController(
+            expression: "3 + 1 =",
+            selectedText: "3 + 1 ="
+        )
+
+        #expect(
+            controller.mathResultAction(
+                at: 1,
+                selectedText: "3 + 1 ="
+            ) == .replaceSelection("3 + 1 =4")
+        )
+        #expect(
+            controller.mathResultAction(
+                at: 2,
+                selectedText: "3 + 1 ="
+            ) == .replaceSelection("4")
+        )
+    }
+
     @Test("수식 suffix 앞에 선택 prefix가 있으면 가운데 후보가 prefix를 보존")
     func test수식Suffix앞에선택Prefix가있으면_가운데후보가Prefix를보존() {
         let controller = makeMathController(

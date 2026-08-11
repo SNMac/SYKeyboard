@@ -197,9 +197,14 @@ git commit -m "fix: #98 - 수식 문맥 경계와 선행 소수점 처리"
 - Produces: 기존 `suggestionUpdateAction(isPredictiveTextEnabled:selectedText:inputBuffer:) -> SuggestionUpdateAction`
 - Preserves: `SuggestionController.mathResultAction(at:selectedText:) -> MathResultSuggestionAction?`
 
-- [ ] **Step 1: selection policy와 controller action 재현 테스트 작성**
+- [x] **Step 1: selection policy와 controller action 재현 테스트 작성**
 
 `KeyboardSuggestionSelectionPolicyTests`에 공백 수식과 일반 다중 단어 선택을 구분하는 단언을 추가한다.
+
+결과 (2026-08-11): 기존 `suggestionUpdateAction` production 진입점에 선택한
+`3 + 1 =`이 `.update`를 반환해야 한다는 단언을 추가했다. 일반 `hello world`의
+`.clear` 계약은 그대로 두었다. controller에는 공백이 포함된 selection-origin의
+가운데·오른쪽 action 반환값을 직접 검증하는 테스트를 추가했다.
 
 ```swift
 #expect(
@@ -239,7 +244,7 @@ let controller = makeMathController(
 )
 ```
 
-- [ ] **Step 2: selection 집중 테스트 RED 확인**
+- [x] **Step 2: selection 집중 테스트 RED 확인**
 
 Run:
 
@@ -255,7 +260,14 @@ xcodebuild test \
 Expected: 공백 수식이 `.clear`라서 policy 단언이 실패한다. controller action 자체는
 기존 하위 계약이 올바르면 통과할 수 있다.
 
-- [ ] **Step 3: 유효한 공백 수식만 selection update 허용**
+결과 (2026-08-11): iPhone 13 mini / iOS 16.0
+(`CBD992D3-5364-4F69-AC5F-0077ADF1A292`) arm64 단일 실행에서 두 suite의
+35개 테스트를 실행했다. 신규 공백 수식 policy 단언 1개만 기존 `.clear`
+반환으로 실패했고, 공백 포함 selection-origin controller action과 기존 테스트는
+통과해 예상한 RED를 확인했다. 실패 진단 수집은 `never`로 설정해 이전 진단 수집
+지연 없이 exit code 65와 실패 테스트 이름을 확인했다.
+
+- [x] **Step 3: 유효한 공백 수식만 selection update 허용**
 
 `suggestionUpdateAction` 은 공백이 포함된 선택 텍스트만 evaluator로 확인해 다음처럼
 분기한다.
@@ -275,15 +287,31 @@ if let selectedText, !selectedText.isEmpty {
 공백이 없는 선택은 evaluator를 호출하지 않고 기존 경로를 유지한다. controller의 기존
 origin-aware action 검증은 변경하지 않는다.
 
-- [ ] **Step 4: selection 집중 테스트 GREEN 확인**
+결과 (2026-08-11): 선택 텍스트에 공백이 있을 때만 기존 evaluator를 호출하고,
+완성 가능한 수식이면 `.update(selectedText)`를 유지하도록 변경했다. 일반 다중 단어
+선택은 기존처럼 `.clear`를 반환하며, 공백 없는 선택과 controller action 경로는
+변경하지 않았다.
+
+- [x] **Step 4: selection 집중 테스트 GREEN 확인**
 
 Step 2와 같은 명령을 실행한다.
 
 Expected: 공백 수식 selection update, 일반 공백 selection clear, 좌·중·우 selection-origin action과 stale selection 차단 테스트가 모두 통과한다.
 
-- [ ] **Step 5: Task 2 결과 기록과 커밋**
+결과 (2026-08-11): iPhone 13 mini / iOS 16.0
+(`CBD992D3-5364-4F69-AC5F-0077ADF1A292`) arm64 단일 실행에서 두 suite의
+35/35개 테스트가 통과했고 exit code는 0이었다. 공백 수식 selection update,
+일반 다중 단어 selection clear, selection-origin action과 stale selection 차단을
+함께 재확인했다. Meta/FBAudienceNetwork 정적 라이브러리의 외부 PCM debug 경로
+경고는 있었지만 테스트 실패는 없었다.
+
+- [x] **Step 5: Task 2 결과 기록과 커밋**
 
 계획 문서의 Task 2 체크박스와 RED/GREEN 결과를 실제 실행 결과로 갱신한다.
+
+결과 (2026-08-11): production 변경은 selection policy 한 파일의 기존 분기에
+한정했다. evaluator를 재사용해 수식 문법을 중복 구현하지 않았고, 공백 없는 선택과
+controller의 origin-aware action 계약은 그대로 유지했다.
 
 ```sh
 git add \
