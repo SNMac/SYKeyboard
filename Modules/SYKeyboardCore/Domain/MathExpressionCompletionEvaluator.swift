@@ -58,6 +58,17 @@ private extension MathExpressionCompletionEvaluator {
         let expressionText = expressionSuffix(beforeEqualIn: text)
         var candidates = [expressionText]
 
+        appendLastLineCandidate(in: text, to: &candidates)
+        appendWordEndingMultiplicationCandidate(
+            expressionText: expressionText,
+            originalText: text,
+            to: &candidates
+        )
+        appendCandidateAfterPreviousResult(
+            in: expressionText,
+            to: &candidates
+        )
+
         guard expressionText == String(text.drop { $0.isWhitespace }) else {
             return candidates
         }
@@ -96,6 +107,109 @@ private extension MathExpressionCompletionEvaluator {
         }
 
         return candidates
+    }
+
+    static func appendLastLineCandidate(
+        in text: String,
+        to candidates: inout [String]
+    ) {
+        guard let newlineIndex = text.lastIndex(where: { $0.isNewline }) else {
+            return
+        }
+
+        let candidateStartIndex = text.index(after: newlineIndex)
+        appendCandidate(text[candidateStartIndex...], to: &candidates)
+    }
+
+    static func appendWordEndingMultiplicationCandidate(
+        expressionText: String,
+        originalText: String,
+        to candidates: inout [String]
+    ) {
+        guard expressionText.first == "x" || expressionText.first == "X",
+              let expressionStartIndex = originalText.index(
+                  originalText.endIndex,
+                  offsetBy: -expressionText.count,
+                  limitedBy: originalText.startIndex
+              ),
+              expressionStartIndex > originalText.startIndex else {
+            return
+        }
+
+        let previousIndex = originalText.index(before: expressionStartIndex)
+        guard originalText[previousIndex].isLetter,
+              let whitespaceIndex = expressionText.firstIndex(
+                  where: { $0.isWhitespace }
+              ),
+              let candidate = suffixAfterWhitespaceRun(
+                  startingAt: whitespaceIndex,
+                  in: expressionText
+              ) else {
+            return
+        }
+
+        appendCandidate(candidate, to: &candidates)
+    }
+
+    static func appendCandidateAfterPreviousResult(
+        in expressionText: String,
+        to candidates: inout [String]
+    ) {
+        let expressionBody = expressionText.dropLast()
+        guard let previousEqualIndex = expressionBody.lastIndex(of: "=") else {
+            return
+        }
+
+        let resultStartIndex = expressionBody.index(after: previousEqualIndex)
+        guard resultStartIndex < expressionBody.endIndex,
+              let whitespaceIndex = expressionBody[resultStartIndex...]
+                  .firstIndex(where: { $0.isWhitespace }) else {
+            return
+        }
+
+        let resultToken = expressionBody[resultStartIndex..<whitespaceIndex]
+        guard isMathResultToken(resultToken),
+              let candidate = suffixAfterWhitespaceRun(
+                  startingAt: whitespaceIndex,
+                  in: expressionText
+              ) else {
+            return
+        }
+
+        appendCandidate(candidate, to: &candidates)
+    }
+
+    static func isMathResultToken(_ token: Substring) -> Bool {
+        guard token.contains(where: { $0.isNumber }) else { return false }
+
+        return token.enumerated().allSatisfy { offset, character in
+            character.isNumber
+                || character == "."
+                || character == ","
+                || (offset == 0 && character == "-")
+        }
+    }
+
+    static func suffixAfterWhitespaceRun(
+        startingAt whitespaceIndex: String.Index,
+        in text: String
+    ) -> Substring? {
+        var index = whitespaceIndex
+        while index < text.endIndex, text[index].isWhitespace {
+            index = text.index(after: index)
+        }
+
+        guard index < text.endIndex else { return nil }
+        return text[index...]
+    }
+
+    static func appendCandidate(
+        _ candidate: Substring,
+        to candidates: inout [String]
+    ) {
+        let text = String(candidate.drop(while: { $0.isWhitespace }))
+        guard !text.isEmpty, !candidates.contains(text) else { return }
+        candidates.append(text)
     }
 
     static func expressionSuffix(beforeEqualIn text: String) -> String {
@@ -152,6 +266,7 @@ private extension MathExpressionCompletionEvaluator {
 
     static func decimalResult(_ value: Double) -> String? {
         let roundedValue = (value * 1000).rounded() / 1000
+        let normalizedValue = roundedValue == 0 ? 0.0 : roundedValue
 
         let formatter = NumberFormatter()
         formatter.locale = Locale(identifier: "en_US_POSIX")
@@ -162,7 +277,7 @@ private extension MathExpressionCompletionEvaluator {
         formatter.minimumFractionDigits = 0
         formatter.maximumFractionDigits = 3
 
-        return formatter.string(from: NSNumber(value: roundedValue))
+        return formatter.string(from: NSNumber(value: normalizedValue))
     }
 
     static func scientificResult(_ value: Double) -> String? {
@@ -308,17 +423,30 @@ private extension MathExpressionParser {
         }
 
         let integerText = String(characters[integerStartIndex..<index])
-        guard isValidIntegerText(integerText) else { return nil }
+        let hasIntegerPart = !integerText.isEmpty
+        if hasIntegerPart {
+            guard isValidIntegerText(integerText) else { return nil }
+        } else {
+            guard peek() == "." else { return nil }
+        }
 
-        var numberText = integerText.replacingOccurrences(of: ",", with: "")
+        var numberText = hasIntegerPart
+            ? integerText.replacingOccurrences(of: ",", with: "")
+            : "0"
 
         if peek() == "." {
             numberText.append(".")
             index += 1
 
+            let fractionalStartIndex = index
+
             while let current = peek(), current.isNumber {
                 numberText.append(current)
                 index += 1
+            }
+
+            if !hasIntegerPart && fractionalStartIndex == index {
+                return nil
             }
         }
 

@@ -31,9 +31,14 @@
 - Consumes: `MathExpressionCompletionEvaluator.completion(for:) -> MathExpressionCompletion?`
 - Produces: 선행 소수점과 제한된 문맥 suffix를 반영한 기존 `MathExpressionCompletion`
 
-- [ ] **Step 1: evaluator 재현과 오탐지 방지 테스트 작성**
+- [x] **Step 1: evaluator 재현과 오탐지 방지 테스트 작성**
 
 `MathExpressionCompletionEvaluatorTests`에 production 진입점을 호출하는 다음 계약을 추가한다.
+
+결과 (2026-08-11): 선행 소수점, 이전 등식, `x/X` 단어 경계, 줄바꿈,
+음수 0의 production 반환값을 검증하는 7개 테스트를 추가했다. 잘못된 선행
+소수점과 이전 등식 뒤 반복 숫자 공백의 오탐지 방지를 별도 단언으로
+고정했다.
 
 ```swift
 @Test("정수부를 생략한 소수를 0으로 시작하는 소수로 계산")
@@ -94,7 +99,7 @@ func test반올림된음수0은_양수0으로표시() {
 }
 ```
 
-- [ ] **Step 2: evaluator 집중 테스트 RED 확인**
+- [x] **Step 2: evaluator 집중 테스트 RED 확인**
 
 Run:
 
@@ -108,7 +113,15 @@ xcodebuild test \
 
 Expected: 기존 테스트는 통과하고 신규 정상 인식·음수 0 단언만 현재 `nil` 또는 `-0`으로 실패한다. 잘못된 선행 소수점과 오탐지 방지 단언은 기존처럼 통과한다.
 
-- [ ] **Step 3: 제한된 suffix 후보와 선행 소수점 parsing 구현**
+결과 (2026-08-11): iPhone 13 mini / iOS 16.0
+(`CBD992D3-5364-4F69-AC5F-0077ADF1A292`)에서 28개 evaluator 테스트를 실행했다.
+선행 소수점, 이전 등식, `x/X` 단어 경계, 줄바꿈, 음수 0의 신규 테스트
+5개가 각각 `nil` 또는 `-0`으로 실패해 예상한 RED를 확인했다. 잘못된
+선행 소수점과 이전 등식 뒤 반복 숫자 공백 방지 테스트, 기존 21개 테스트는
+통과했다. 테스트 완료 후 simulator 진단 수집에서 600초 timeout이 발생했으나
+실제 테스트 성공·실패 결과는 출력에서 확인했다.
+
+- [x] **Step 3: 제한된 suffix 후보와 선행 소수점 parsing 구현**
 
 `expressionSuffixCandidates(beforeEqualIn:)`는 기존 최대 suffix 뒤에 중복 없이 다음 후보를 추가한다.
 
@@ -134,15 +147,32 @@ static func appendCandidate(
 
 `decimalResult(_:)`는 반올림 후 `roundedValue == 0`이면 `0.0`을 formatter에 전달한다.
 
-- [ ] **Step 4: evaluator 집중 테스트 GREEN 확인**
+결과 (2026-08-11): 최대 suffix 뒤에 마지막 줄, 단어 끝 `x/X`, 이전 등식
+결과 뒤의 제한된 후보를 중복 없이 추가했다. 이전 등식 결과 token은 숫자,
+소수점, 쉼표, 선행 음수 부호만 허용하고 첫 whitespace run 뒤 후보만 평가해
+더 짧은 애매한 수식을 오탐지하지 않도록 했다. `parseNumber()`는 선행
+소수점을 0으로 시작하는 소수로 파싱하되 소수부 최소 한 자리를 요구하고,
+반올림 결과 0은 양수 0으로 정규화했다.
+
+- [x] **Step 4: evaluator 집중 테스트 GREEN 확인**
 
 Step 2와 같은 명령을 실행한다.
 
 Expected: 선행 소수점, 이전 등식, `x/X` 단어, 줄바꿈, 음수 0 신규 계약과 기존 evaluator 테스트가 모두 통과한다.
 
-- [ ] **Step 5: Task 1 결과 기록과 커밋**
+결과 (2026-08-11): iPhone 13 mini / iOS 16.0
+(`CBD992D3-5364-4F69-AC5F-0077ADF1A292`) arm64 단일 실행에서 evaluator
+테스트 28/28개가 통과했고 실패와 skip은 0개였다. Meta/FBAudienceNetwork
+정적 라이브러리의 외부 PCM debug 경로 경고가 출력됐지만 테스트 exit code는 0이었다.
+
+- [x] **Step 5: Task 1 결과 기록과 커밋**
 
 계획 문서의 Task 1 체크박스와 RED/GREEN 결과에 실제 테스트 개수, simulator, 실패·성공 이유를 기록한다.
+
+결과 (2026-08-11): production 변경은 evaluator 한 파일에 한정했고, 신규 7개
+테스트가 실제 `completion(for:)` 반환값을 검증한다. 최대 suffix 우선,
+기존 숫자-only fallback, 잘못된 숫자 공백·연속 등호 거부, 유한성 검증을
+그대로 유지하는 것을 집중 테스트로 재확인했다.
 
 ```sh
 git add \

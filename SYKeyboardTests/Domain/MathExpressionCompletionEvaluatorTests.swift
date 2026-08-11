@@ -82,6 +82,79 @@ struct MathExpressionCompletionEvaluatorTests {
         #expect(completion?.insertText == "7.5")
     }
 
+    @Test("정수부를 생략한 소수를 0으로 시작하는 소수로 계산")
+    func test선행소수점숫자를_계산() {
+        #expect(
+            MathExpressionCompletionEvaluator.completion(
+                for: ".5+1="
+            )?.insertText == "1.5"
+        )
+        #expect(
+            MathExpressionCompletionEvaluator.completion(
+                for: "-.5+1="
+            )?.insertText == "0.5"
+        )
+    }
+
+    @Test("잘못된 선행 소수점은 후보를 만들지 않음")
+    func test잘못된선행소수점은_거부() {
+        for expression in [".+1=", "..5+1=", "1..5+1="] {
+            #expect(
+                MathExpressionCompletionEvaluator.completion(
+                    for: expression
+                ) == nil
+            )
+        }
+    }
+
+    @Test("이전 등식 결과 뒤 마지막 수식만 계산")
+    func test이전등식결과뒤_마지막수식만계산() {
+        let completion = MathExpressionCompletionEvaluator.completion(
+            for: "3+1=4 2+3="
+        )
+
+        #expect(completion?.expressionText == "2+3=")
+        #expect(completion?.insertText == "5")
+    }
+
+    @Test("이전 등식 뒤 숫자 공백이 여러 번이면 더 짧은 수식을 오탐지하지 않음")
+    func test이전등식뒤_애매한숫자공백은거부() {
+        #expect(
+            MathExpressionCompletionEvaluator.completion(
+                for: "3+1=4 2 3+4="
+            ) == nil
+        )
+    }
+
+    @Test("단어 끝 곱셈 별칭은 마지막 수식과 분리")
+    func test단어끝곱셈별칭을_수식과분리() {
+        for text in ["tax 2+3=", "BOX 2+3="] {
+            let completion = MathExpressionCompletionEvaluator.completion(for: text)
+
+            #expect(completion?.expressionText == "2+3=")
+            #expect(completion?.insertText == "5")
+        }
+    }
+
+    @Test("줄바꿈 뒤 마지막 수식을 독립 문맥으로 계산")
+    func test줄바꿈뒤_마지막수식을계산() {
+        for text in ["1\n2+3=", "memo 1\n2+3="] {
+            let completion = MathExpressionCompletionEvaluator.completion(for: text)
+
+            #expect(completion?.expressionText == "2+3=")
+            #expect(completion?.insertText == "5")
+        }
+    }
+
+    @Test("반올림된 음수 0은 부호 없이 표시")
+    func test반올림된음수0은_양수0으로표시() {
+        #expect(
+            MathExpressionCompletionEvaluator.completion(
+                for: "-0.0001+0="
+            )?.insertText == "0"
+        )
+    }
+
     @Test("올바른 천 단위 쉼표 숫자는 계산하고 입력 원문을 유지")
     func test올바른천단위쉼표숫자는_계산하고입력원문을유지() {
         let completion = MathExpressionCompletionEvaluator.completion(
