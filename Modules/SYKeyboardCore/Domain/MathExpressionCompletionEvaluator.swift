@@ -15,6 +15,29 @@ struct MathExpressionCompletion: Equatable {
 
 enum MathExpressionCompletionEvaluator {
     static let maximumInputLength = 256
+    private static let allowedExpressionCharacters = Set(
+        "0123456789,.+-*/×⋅xX÷=()[]{}"
+    )
+    private static let decimalFormatter: NumberFormatter = {
+        let formatter = NumberFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.numberStyle = .decimal
+        formatter.usesGroupingSeparator = true
+        formatter.groupingSeparator = ","
+        formatter.groupingSize = 3
+        formatter.minimumFractionDigits = 0
+        formatter.maximumFractionDigits = 3
+        return formatter
+    }()
+    private static let scientificFormatter: NumberFormatter = {
+        let formatter = NumberFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.numberStyle = .decimal
+        formatter.usesGroupingSeparator = false
+        formatter.minimumFractionDigits = 0
+        formatter.maximumFractionDigits = 3
+        return formatter
+    }()
 
     static func completion(for text: String) -> MathExpressionCompletion? {
         guard text.last == "=" else { return nil }
@@ -216,9 +239,8 @@ private extension MathExpressionCompletionEvaluator {
     }
 
     static func expressionSuffix(beforeEqualIn text: String) -> String {
-        let allowedCharacters = Set("0123456789,.+-*/×⋅xX÷=()[]{}")
         let reversedSuffix = text.reversed().prefix {
-            allowedCharacters.contains($0) || $0.isWhitespace
+            allowedExpressionCharacters.contains($0) || $0.isWhitespace
         }
         let suffix = String(reversedSuffix.reversed())
 
@@ -271,16 +293,7 @@ private extension MathExpressionCompletionEvaluator {
         let roundedValue = (value * 1000).rounded() / 1000
         let normalizedValue = roundedValue == 0 ? 0.0 : roundedValue
 
-        let formatter = NumberFormatter()
-        formatter.locale = Locale(identifier: "en_US_POSIX")
-        formatter.numberStyle = .decimal
-        formatter.usesGroupingSeparator = true
-        formatter.groupingSeparator = ","
-        formatter.groupingSize = 3
-        formatter.minimumFractionDigits = 0
-        formatter.maximumFractionDigits = 3
-
-        return formatter.string(from: NSNumber(value: normalizedValue))
+        return decimalFormatter.string(from: NSNumber(value: normalizedValue))
     }
 
     static func scientificResult(_ value: Double) -> String? {
@@ -294,14 +307,9 @@ private extension MathExpressionCompletionEvaluator {
             exponent += 1
         }
 
-        let formatter = NumberFormatter()
-        formatter.locale = Locale(identifier: "en_US_POSIX")
-        formatter.numberStyle = .decimal
-        formatter.usesGroupingSeparator = false
-        formatter.minimumFractionDigits = 0
-        formatter.maximumFractionDigits = 3
-
-        guard let mantissaText = formatter.string(from: NSNumber(value: mantissa)),
+        guard let mantissaText = scientificFormatter.string(
+            from: NSNumber(value: mantissa)
+        ),
               let exponentText = superscriptText(for: exponent) else {
             return nil
         }
