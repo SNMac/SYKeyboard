@@ -66,6 +66,11 @@ public extension UIColor {
     
     // MARK: - Suggestion Bar
     
+    /// SuggestionButtonLabelColor
+    static var suggestionButtonLabel: UIColor {
+        return UIColor(named: "SuggestionButtonLabelColor", in: SYKBDAssets.bundle, compatibleWith: nil)!
+    }
+
     /// SuggestionButtonPressedColor
     static var suggestionButtonPressed: UIColor {
         return UIColor(named: "SuggestionButtonPressedColor", in: SYKBDAssets.bundle, compatibleWith: nil)!

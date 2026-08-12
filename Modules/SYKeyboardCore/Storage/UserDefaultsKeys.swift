@@ -23,6 +23,8 @@ public enum UserDefaultsKeys {
     public static let isPredictiveTextEnabled = "isPredictiveTextEnabled"
     /// Undo/Redo 기능 활성화 여부
     public static let isUndoRedoEnabled = "isUndoRedoEnabled"
+    /// 수식 결과 표시
+    public static let isShowMathResultsEnabled = "isShowMathResultsEnabled"
     
     // MARK: - 입력 설정
     

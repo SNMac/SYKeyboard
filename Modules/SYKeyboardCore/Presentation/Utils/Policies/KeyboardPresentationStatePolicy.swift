@@ -24,12 +24,19 @@ enum KeyboardPresentationStatePolicy {
 
     static func shouldHideSuggestionBar(
         isPredictiveTextEnabled: Bool,
-        autocorrectionType: UITextAutocorrectionType,
+        autocorrectionType: UITextAutocorrectionType?,
         currentKeyboard: SYKeyboardType
     ) -> Bool {
         return !isPredictiveTextEnabled
         || autocorrectionType == .no
         || currentKeyboard == .tenKey
+    }
+
+    static func shouldShowMathResults(
+        isSettingEnabled: Bool,
+        isHostCompletionAllowed: Bool
+    ) -> Bool {
+        return isSettingEnabled && isHostCompletionAllowed
     }
 
     static func shouldShowUndoRedoControls(

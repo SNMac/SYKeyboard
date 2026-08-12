@@ -175,9 +175,11 @@ private extension KeyboardView {
         ])
         
         suggestionBarView.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([
-            suggestionBarView.heightAnchor.constraint(equalToConstant: KeyboardLayoutFigure.suggestionBarHeightWithTopSpacing)
-        ])
+        let suggestionBarHeightConstraint = suggestionBarView.heightAnchor.constraint(
+            equalToConstant: KeyboardLayoutFigure.suggestionBarHeightWithTopSpacing
+        )
+        suggestionBarHeightConstraint.priority = .init(999)
+        suggestionBarHeightConstraint.isActive = true
         
         keyboardLayoutView.translatesAutoresizingMaskIntoConstraints = false
         let minWidth = UserDefaultsManager.shared.oneHandedKeyboardWidth

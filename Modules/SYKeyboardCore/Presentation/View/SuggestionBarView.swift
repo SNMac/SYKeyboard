@@ -31,6 +31,7 @@ protocol SuggestionBarDelegate: AnyObject {
 /// ## 표시 모드
 /// - **입력 중**: button1에 `"현재단어"`, button2~3에 자동완성 후보
 /// - **입력 없음 / 자동완성 후**: button1~3에 n-gram 다음 단어 예측
+/// - **수식 결과**: button1에 원문, button2에 원문+결과, button3에 결과 대치 후보
 final class SuggestionBarView: UIView {
     
     // MARK: - Properties
@@ -39,6 +40,9 @@ final class SuggestionBarView: UIView {
     weak var suggestionDelegate: SuggestionBarDelegate?
     
     private weak var activeTouch: UITouch?
+    private var touchedSuggestionIndex: Int?
+    private var touchedActionIndex: Int?
+    private var previewHighlightIndex: Int?
     
     private var suggestionButtons: [SuggestionButtonView] {
         return [suggestionButton1, suggestionButton2, suggestionButton3]
@@ -147,25 +151,44 @@ final class SuggestionBarView: UIView {
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         guard activeTouch == nil, let touch = touches.first else { return }
         activeTouch = touch
-        let point = touch.location(in: self)
-        updateHighlight(at: point)
-        keyboardHStackView?.isUserInteractionEnabled = false
+        beginTouchInteraction(at: touch.location(in: self))
     }
 
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
         guard let touch = activeTouch, touches.contains(touch) else { return }
-        let point = touch.location(in: self)
-        updateHighlight(at: point)
+        moveTouchInteraction(to: touch.location(in: self))
     }
 
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
         guard let touch = activeTouch, touches.contains(touch) else { return }
-        let point = touch.location(in: self)
-        
+        endTouchInteraction(at: touch.location(in: self), playsFeedback: true)
+        activeTouch = nil
+    }
+
+    override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
+        guard let touch = activeTouch, touches.contains(touch) else { return }
+        cancelTouchInteraction()
+        activeTouch = nil
+    }
+
+    // MARK: - Internal Methods
+
+    func beginTouchInteraction(at point: CGPoint) {
+        updateHighlight(at: point)
+        keyboardHStackView?.isUserInteractionEnabled = false
+    }
+
+    func moveTouchInteraction(to point: CGPoint) {
+        updateHighlight(at: point)
+    }
+
+    func endTouchInteraction(at point: CGPoint, playsFeedback: Bool) {
         if let (index, _) = suggestionButton(at: point) {
-            suggestionDelegate?.suggestionBar(self, didSelectSuggestionAt: index)
-            FeedbackManager.shared.playHaptic()
-            FeedbackManager.shared.playModifierSound()
+            suggestionDelegate?.suggestionBar(
+                self,
+                didSelectSuggestionAt: index
+            )
+            playSelectionFeedbackIfNeeded(playsFeedback)
         } else if let action = undoRedoButton(at: point) {
             switch action {
             case undoButton:
@@ -175,24 +198,27 @@ final class SuggestionBarView: UIView {
             default:
                 break
             }
-            FeedbackManager.shared.playHaptic()
-            FeedbackManager.shared.playModifierSound()
+            playSelectionFeedbackIfNeeded(playsFeedback)
         }
-        
-        activeTouch = nil
-        clearAllHighlights()
+
+        resetTouchInteraction()
+    }
+
+    func cancelTouchInteraction() {
+        resetTouchInteraction()
+    }
+
+    func playSelectionFeedbackIfNeeded(_ shouldPlay: Bool) {
+        guard shouldPlay else { return }
+        FeedbackManager.shared.playHaptic()
+        FeedbackManager.shared.playModifierSound()
+    }
+
+    func resetTouchInteraction() {
+        clearTouchHighlights()
         keyboardHStackView?.isUserInteractionEnabled = true
     }
 
-    override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
-        guard let touch = activeTouch, touches.contains(touch) else { return }
-        activeTouch = nil
-        clearAllHighlights()
-        keyboardHStackView?.isUserInteractionEnabled = true
-    }
-    
-    // MARK: - Internal Methods
-    
     /// 자동완성 바를 업데이트합니다.
     ///
     /// `currentWord`가 있으면 button1에 따옴표로 감싸서 표시하고
@@ -226,6 +252,20 @@ final class SuggestionBarView: UIView {
                 }
             }
         }
+        applyHighlights()
+    }
+
+    /// 스페이스로 자동 적용될 후보의 preview 하이라이트를 갱신합니다.
+    ///
+    /// - Parameter index: 강조할 후보 인덱스 (0~2), 없으면 `nil`
+    func updatePreviewHighlight(index: Int?) {
+        if let index, !suggestionButtons.indices.contains(index) {
+            previewHighlightIndex = nil
+        } else {
+            previewHighlightIndex = index
+        }
+        applyHighlights()
+        updateDividers()
     }
 
     /// 자동완성 바 우측의 undo/redo 버튼 표시와 활성 상태를 갱신합니다.
@@ -235,6 +275,7 @@ final class SuggestionBarView: UIView {
         redoButton.isEnabled = isVisible && canRedo
         updateDividers()
     }
+
 }
 
 // MARK: - UI Methods
@@ -335,25 +376,39 @@ private extension SuggestionBarView {
     
     func updateHighlight(at point: CGPoint) {
         let hit = suggestionButton(at: point)
-        for button in suggestionButtons {
-            button.isHighlighted = (button === hit?.1)
-        }
+        touchedSuggestionIndex = hit?.0
 
         let actionHit = undoRedoButton(at: point)
-        for button in undoRedoButtons {
-            button.isHighlighted = (button === actionHit)
+        touchedActionIndex = actionHit.flatMap { actionButton in
+            undoRedoButtons.firstIndex { $0 === actionButton }
         }
+        applyHighlights()
         updateDividers()
     }
     
-    func clearAllHighlights() {
-        for button in suggestionButtons {
-            button.isHighlighted = false
-        }
-        for button in undoRedoButtons {
-            button.isHighlighted = false
-        }
+    func clearTouchHighlights() {
+        touchedSuggestionIndex = nil
+        touchedActionIndex = nil
+        applyHighlights()
         updateDividers()
+    }
+
+    func applyHighlights() {
+        let state = SuggestionHighlightPolicy.resolve(
+            previewSuggestionIndex: previewHighlightIndex,
+            touchedSuggestionIndex: touchedSuggestionIndex,
+            touchedActionIndex: touchedActionIndex,
+            suggestionCount: suggestionButtons.count,
+            actionCount: undoRedoButtons.count
+        )
+
+        for (index, button) in suggestionButtons.enumerated() {
+            button.isHighlighted = state.highlightedSuggestionIndex == index
+        }
+
+        for (index, button) in undoRedoButtons.enumerated() {
+            button.isHighlighted = state.highlightedActionIndex == index
+        }
     }
     
     func updateDividers() {

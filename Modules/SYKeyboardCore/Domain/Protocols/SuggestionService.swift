@@ -7,6 +7,13 @@
 
 import UIKit
 
+enum MathResultSuggestionAction: Equatable {
+    case confirmOriginal
+    case insertResult(String)
+    case replaceExpression(deleteCount: Int, insertText: String)
+    case replaceSelection(String)
+}
+
 /// 자동완성 후보 조회, 텍스트 대치, 대치 복구를 제공하는 서비스 프로토콜
 ///
 /// SuggestionBar에 표시할 후보 관리, 스페이스 입력 시 텍스트 대치,
@@ -46,6 +53,11 @@ protocol SuggestionService: AnyObject {
     /// `false`로 설정하면 텍스트 대치 기능을 비활성화합니다.
     var isTextReplacementEnabled: Bool { get set }
 
+    /// 수식 결과 후보 표시 사용자 설정
+    ///
+    /// `false`로 설정하면 `=` 입력 시 계산 결과 후보를 표시하지 않습니다.
+    var isShowMathResultsEnabled: Bool { get set }
+
     /// 텍스트 필드별 일시적 비활성화
     ///
     /// `autocorrectionType == .no`인 텍스트 필드 등에서 `true`로 설정합니다.
@@ -80,8 +92,16 @@ protocol SuggestionService: AnyObject {
     /// 입력 중일 때는 button1에 현재 단어, button2~3에 자동완성 후보를 표시하고,
     /// 입력이 없거나 마지막 문자가 공백이면 n-gram 기반 다음 단어 예측을 표시합니다.
     ///
-    /// - Parameter baseText: 자동완성을 제공할 텍스트
-    func updateSuggestions(for baseText: String)
+    /// - Parameters:
+    ///   - baseText: 일반 자동완성을 제공할 현재 세션 텍스트
+    ///   - selectedText: 후보 생성 시점에 선택된 텍스트. 선택이 없으면 `nil`
+    ///   - mathExpressionText: 수식 탐지에만 사용하는 텍스트. 일반 예측 엔진과
+    ///     텍스트 대치에는 전달하지 않습니다.
+    func updateSuggestions(
+        for baseText: String,
+        selectedText: String?,
+        mathExpressionText: String
+    )
 
     /// n-gram 추천 탭 후 강제로 n-gram 갱신을 시도하고,
     /// 결과가 없으면 입력 중 모드로 폴백합니다.
@@ -112,6 +132,25 @@ protocol SuggestionService: AnyObject {
     /// - Parameter index: 선택된 후보의 인덱스 (0~2)
     /// - Returns: 후보 텍스트, 유효하지 않거나 n-gram 출처가 아니면 `nil`
     func nGramSuggestionText(at index: Int) -> String?
+
+    /// 수식 결과 모드에서 현재 선택 텍스트를 반영한 후보 적용 action을 반환합니다.
+    ///
+    /// - Parameters:
+    ///   - index: 선택된 후보의 인덱스 (0~2)
+    ///   - selectedText: 현재 선택된 텍스트. 선택이 없으면 `nil`
+    /// - Returns: 적용할 action, 유효하지 않거나 수식 후보가 아니면 `nil`
+    func mathResultAction(
+        at index: Int,
+        selectedText: String?
+    ) -> MathResultSuggestionAction?
+
+    /// 현재 입력 버퍼가 스페이스로 텍스트 대치될 때 강조할 SuggestionBar 후보 인덱스를 반환합니다.
+    ///
+    /// 이 메서드는 대치 이력을 변경하지 않는 preview 용도입니다.
+    ///
+    /// - Parameter baseText: 텍스트 대치를 제공할 텍스트
+    /// - Returns: SuggestionBar 후보 인덱스 (0~2), 대치 후보가 없으면 `nil`
+    func textReplacementPreviewSuggestionIndex(baseText: String) -> Int?
 
     // MARK: - Learning
 
@@ -187,4 +226,21 @@ protocol SuggestionService: AnyObject {
 
     /// 대치 이력을 모두 초기화합니다.
     func clearReplacementHistory()
+}
+
+extension SuggestionService {
+    func updateSuggestions(
+        for baseText: String,
+        selectedText: String?
+    ) {
+        updateSuggestions(
+            for: baseText,
+            selectedText: selectedText,
+            mathExpressionText: baseText
+        )
+    }
+
+    func updateSuggestions(for baseText: String) {
+        updateSuggestions(for: baseText, selectedText: nil)
+    }
 }

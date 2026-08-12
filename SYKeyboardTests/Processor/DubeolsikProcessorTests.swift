@@ -171,91 +171,80 @@ struct DubeolsikProcessorTests: HangeulProcessorTestable {
     
     @Test("종성 복원: '갉' + 'ㅏ' = '갈가' -> 삭제 -> '갉' 복귀 확인")
     func test종성복원_갉_아_삭제() {
+        let harness = HangeulCompositionTestHarness(processor: processor)
+
         // 1. '갉' 만들기
-        var (c, p) = ("", "")
-        (c, p) = applyInput("ㄱ", committed: c, composing: p)
-        (c, p) = applyInput("ㅏ", committed: c, composing: p)
-        (c, p) = applyInput("ㄹ", committed: c, composing: p)
-        (c, p) = applyInput("ㄱ", committed: c, composing: p) // 갉
-        
-        #expect(c + p == "갉")
+        ["ㄱ", "ㅏ", "ㄹ", "ㄱ"].forEach(harness.input)
+        #expect(harness.text == "갉")
         
         // 2. 'ㅏ' 입력 -> '갈가' (연음 발생)
-        (c, p) = applyInput("ㅏ", committed: c, composing: p)
-        #expect(c + p == "갈가")
+        harness.input("ㅏ")
+        #expect(harness.text == "갈가")
         
         // 3. 삭제 -> '갉'으로 복원되어야 함
-        (c, p) = applyDelete(committed: c, composing: p)
-        #expect(c + p == "갉", "연음된 글자를 지웠을 때, 앞 글자의 겹받침으로 복원되어야 합니다.")
+        harness.delete()
+        #expect(harness.text == "갉", "연음된 글자를 지웠을 때, 앞 글자의 겹받침으로 복원되어야 합니다.")
     }
     
     @Test("종성 복원: '앉' + 'ㅏ' = '안자' -> 삭제 -> '앉' 복귀 확인")
     func test종성복원_앉_아_삭제() {
+        let harness = HangeulCompositionTestHarness(processor: processor)
+
         // 1. '앉' 만들기 (ㄴ + ㅈ)
-        var (c, p) = ("", "")
-        (c, p) = applyInput("ㅇ", committed: c, composing: p)
-        (c, p) = applyInput("ㅏ", committed: c, composing: p)
-        (c, p) = applyInput("ㄴ", committed: c, composing: p)
-        (c, p) = applyInput("ㅈ", committed: c, composing: p) // 앉
-        
-        #expect(c + p == "앉")
+        ["ㅇ", "ㅏ", "ㄴ", "ㅈ"].forEach(harness.input)
+        #expect(harness.text == "앉")
         
         // 2. 'ㅏ' 입력 -> '안자'
-        (c, p) = applyInput("ㅏ", committed: c, composing: p)
-        #expect(c + p == "안자")
+        harness.input("ㅏ")
+        #expect(harness.text == "안자")
         
         // 3. 삭제 -> '앉'
-        (c, p) = applyDelete(committed: c, composing: p)
-        #expect(c + p == "앉")
+        harness.delete()
+        #expect(harness.text == "앉")
     }
     
     @Test("종성 복원 예외: 남은 글자가 모음이거나 완성형일 때는 합치지 않음")
     func test종성복원_예외케이스() {
-        var (c, p) = ("", "")
-        (c, p) = applyInput("ㄱ", committed: c, composing: p)
-        (c, p) = applyInput("ㅏ", committed: c, composing: p)
-        (c, p) = applyInput("ㄱ", committed: c, composing: p) // "각"
-        
-        // Space로 확정
-        _ = processor.inputSpace(composing: p)
-        c += p
-        p = ""
-        c += " " // "각 "
-        
-        // 삭제 -> "각" (공백만 삭제)
-        p = String(c.removeLast()) // p = " "
-        let deleteResult = processor.delete(composing: p, committedTail: String(c.suffix(2)), isProtected: false)
-        p = deleteResult.composing
-        if p.isEmpty && !c.isEmpty {
-            p = String(c.removeLast())
-        }
-        #expect(c + p == "각")
+        let 모음결과 = processor.deleteWithRestore종성(
+            composing: "ㅘ",
+            committedTail: "각",
+            isProtected: false
+        )
+        #expect(모음결과.composing == "ㅗ")
+        #expect(모음결과.consumedCommittedCount == 0)
+
+        let 완성형결과 = processor.deleteWithRestore종성(
+            composing: "과",
+            committedTail: "각",
+            isProtected: false
+        )
+        #expect(완성형결과.composing == "고")
+        #expect(완성형결과.consumedCommittedCount == 0)
     }
     
     // MARK: - 4. 삭제 후 재입력 결합 테스트
     
     @Test("삭제 후 재입력: ㄴㄴ -> 삭제 -> ㄴ -> ㅏ 입력 시 '나'로 결합")
     func test삭제후_재입력_결합() {
-        var (c, p) = ("", "")
+        let harness = HangeulCompositionTestHarness(processor: processor)
         
         // 1. ㄴ 두 번 입력 -> "ㄴㄴ"
-        (c, p) = applyInput("ㄴ", committed: c, composing: p)
-        (c, p) = applyInput("ㄴ", committed: c, composing: p)
-        #expect(c + p == "ㄴㄴ")
+        ["ㄴ", "ㄴ"].forEach(harness.input)
+        #expect(harness.text == "ㄴㄴ")
         
         // 2. ㅏ 입력 -> "ㄴ나"
-        (c, p) = applyInput("ㅏ", committed: c, composing: p)
-        #expect(c + p == "ㄴ나")
+        harness.input("ㅏ")
+        #expect(harness.text == "ㄴ나")
         
         // 3. 삭제 두 번 -> "ㄴ"
-        (c, p) = applyDelete(committed: c, composing: p)
-        #expect(c + p == "ㄴㄴ")
-        (c, p) = applyDelete(committed: c, composing: p)
-        #expect(c + p == "ㄴ")
+        harness.delete()
+        #expect(harness.text == "ㄴㄴ")
+        harness.delete()
+        #expect(harness.text == "ㄴ")
         
         // 4. ㅏ 입력 -> "나"여야 함 ("ㄴㅏ"가 아님)
-        (c, p) = applyInput("ㅏ", committed: c, composing: p)
-        #expect(c + p == "나", "삭제 후 남은 낱자 자음이 다음 모음과 결합되어야 합니다.")
+        harness.input("ㅏ")
+        #expect(harness.text == "나", "삭제 후 남은 낱자 자음이 다음 모음과 결합되어야 합니다.")
     }
     
     // MARK: - 5. 11,172자 전체 검증 (Heavy Test)
@@ -277,25 +266,24 @@ struct DubeolsikProcessorTests: HangeulProcessorTestable {
             let 입력키배열 = decompose두벌식키분해(char: 목표글자Char)
             
             // 2. 입력 시뮬레이션
-            var (committed, composing) = ("", "")
-            for 키 in 입력키배열 {
-                (committed, composing) = applyInput(키, committed: committed, composing: composing)
-            }
+            processor.reset한글조합()
+            let harness = HangeulCompositionTestHarness(processor: processor)
+            입력키배열.forEach(harness.input)
             
             // 3. 생성 검증
-            if committed + composing != 목표글자String {
-                Self.logger.error("생성 실패: 목표(\(목표글자String)) != 결과(\(committed + composing)) / 입력: \(입력키배열)")
+            if harness.text != 목표글자String {
+                Self.logger.error("생성 실패: 목표(\(목표글자String)) != 결과(\(harness.text)) / 입력: \(입력키배열)")
                 실패횟수 += 1
                 continue
             }
             
             // 4. 삭제 시뮬레이션
             for _ in 0..<입력키배열.count {
-                (committed, composing) = applyDelete(committed: committed, composing: composing)
+                harness.delete()
             }
             
-            if !(committed + composing).isEmpty {
-                Self.logger.error("삭제 실패: \(목표글자String) -> 잔여물: '\(committed + composing)'")
+            if !harness.text.isEmpty {
+                Self.logger.error("삭제 실패: \(목표글자String) -> 잔여물: '\(harness.text)'")
                 실패횟수 += 1
             }
         }

@@ -86,6 +86,7 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
         setAnalyticsProperty(keyboardSettingsManager.repeatRate, format: "%.3f", forName: "pref_repeat_rate")
         setAnalyticsProperty(keyboardSettingsManager.isAutoCapitalizationEnabled, forName: "pref_auto_capitalization")
         setAnalyticsProperty(keyboardSettingsManager.isTextReplacementEnabled, forName: "pref_text_replacement")
+        setAnalyticsProperty(keyboardSettingsManager.isShowMathResultsEnabled, forName: "pref_math_results")
         setAnalyticsProperty(keyboardSettingsManager.isPeriodShortcutEnabled, forName: "pref_period_shortcut")
         setAnalyticsProperty(keyboardSettingsManager.isAutoChangeToPrimaryEnabled, forName: "pref_auto_change_primary")
         setAnalyticsProperty(keyboardSettingsManager.isDragToMoveCursorEnabled, forName: "pref_drag_to_move_cursor")

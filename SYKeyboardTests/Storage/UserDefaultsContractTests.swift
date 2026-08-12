@@ -41,6 +41,20 @@ struct UserDefaultsContractTests {
         #expect(UserDefaultsManager.shared.isSmartPunctuationEnabled == true)
     }
 
+    @Test("수식 결과 표시는 저장값이 없으면 true를 반환하고 공유 저장소 키를 유지")
+    func testShowMathResultsDefaultFallbackAndKey() {
+        let storage = UserDefaultsManager.shared.storage
+        let key = UserDefaultsKeys.isShowMathResultsEnabled
+        let originalValue = storage.object(forKey: key)
+
+        storage.removeObject(forKey: key)
+        defer { restore(originalValue, forKey: key, in: storage) }
+
+        #expect(key == "isShowMathResultsEnabled")
+        #expect(DefaultValues.isShowMathResultsEnabled == true)
+        #expect(UserDefaultsManager.shared.isShowMathResultsEnabled == true)
+    }
+
     @Test("앱 전용 온보딩 상태는 저장값이 없으면 앱 기본값을 반환")
     func testAppOnboardingDefaultFallback() {
         let suiteName = "UserDefaultsContractTests-\(UUID().uuidString)"

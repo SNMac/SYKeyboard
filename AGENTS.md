@@ -25,6 +25,14 @@
 - 앱 설정과 키보드 확장은 `UserDefaultsManager`와 `DefaultValues`를 공유한다. 설정 키 변경 시 앱/확장/Core 양쪽 영향을 확인한다.
 - Firebase, AdMob, entitlements, bundle identifier, provisioning, `GoogleService-Info.plist`, `Secrets.xcconfig` 관련 변경은 사용자가 명시적으로 요청한 경우에만 한다.
 - 사용자가 만든 변경이 있을 수 있으므로 작업 전후 `git status --short`로 범위를 확인하고, 무관한 변경은 되돌리지 않는다.
+- 리뷰·판별·상태 확인 요청은 `cherry-pick`, `merge`, `rebase`, `squash`,
+  `reset`, 브랜치 전환, push, PR 생성 권한을 포함하지 않는다. 사용자가 명시한
+  통합 순서와 브랜치/worktree 제약을 그대로 지키고, 다음 단계가 명시적으로
+  요청되기 전에는 읽기 전용 확인에 머문다.
+- 자동완성 후보의 가로 스크롤과 scroll edge effect는 롤백된 상태가 현재
+  의도다. `SuggestionButtonView`의 기존 두 줄·글자 축소·중간 생략 동작을
+  유지하고, 사용자가 다시 요청하지 않는 한 스크롤 컨테이너나 제스처 중재를
+  재도입하지 않는다.
 
 ## Codex 작업 인프라
 
@@ -38,7 +46,10 @@
 - 각 step은 실제 작업과 해당 검증이 모두 끝난 직후에만 체크한다. 실행하지 않았거나 실패한 step을 미리 완료로 표시하지 않는다.
 - step이 끝날 때마다 계획 문서의 체크박스와 실제 결과(테스트 개수, 빌드 결과, 확인하지 못한 항목)를 함께 갱신하고, 해당 step에서 변경한 코드·테스트·문서를 하나의 커밋으로 남긴다.
 - 다음 step은 직전 step의 체크와 커밋이 완료된 뒤 시작한다. 여러 step을 한 커밋으로 합치거나 모든 체크를 작업 마지막에 한꺼번에 반영하지 않는다.
-- 검증만 수행하는 step도 계획 문서에 실제 명령·대상·결과를 기록하고 문서 커밋을 남긴다.
+- 검증만 수행하는 step도 계획 문서에 실제 명령·대상·결과를 기록하고 문서
+  커밋을 남긴다. `.xcresult`, 로그처럼 결과를 별도 산출물에서 판독했다면 실제
+  산출물 경로와 결과 추출 명령도 함께 기록해 다른 작업자가 같은 결과를
+  재확인할 수 있게 한다.
 - step 커밋은 이 문서의 커밋 메시지 규칙을 따르며, 계획에 명시된 파일 범위 밖의 사용자 변경을 포함하지 않는다.
 
 ## 이슈 관리
@@ -50,7 +61,10 @@
 
 ## 코드 스타일
 
-- Swift 5 프로젝트이며 Xcode 16 이상을 기준으로 한다. `SYKeyboardAssets` 패키지는 `swift-tools-version: 6.0`을 사용한다.
+- Swift 5 프로젝트이며 Xcode 26 이상을 기준으로 한다. 현재 production 코드가
+  `UIGlassEffect` 등 iOS 26 SDK 심볼을 직접 참조하므로, `#available`만으로
+  Xcode 16 SDK 컴파일 호환성이 생기지 않는다. `SYKeyboardAssets` 패키지는
+  `swift-tools-version: 6.0`을 사용한다.
 - deprecated API의 신규 사용은 지양하고, 현재 지원되는 권장 API를 우선한다. 기존 deprecated API를 수정할 때도 변경 범위와 호환성을 확인해 가능한 경우 권장 대체 API로 전환한다.
 - 기존 스타일처럼 `// MARK: -` 섹션, 명확한 접근 제어, 짧은 한국어 주석을 유지한다.
 - Swift, Foundation, UIKit, SwiftUI가 제공하는 표준 API를 우선 사용한다. 예를 들어 UIKit gesture의 위치/속도처럼 프레임워크가 직접 제공하는 값이 있으면 별도 프레임워크 import나 직접 계산보다 이를 먼저 검토한다.
@@ -118,6 +132,13 @@ Codex의 기본 샌드박스에서는 Xcode/SwiftPM 캐시, CoreSimulator 로그
 
 이 문제는 저장소 설정만으로 안정적으로 해결할 수 있는 범위가 아니며, Codex가 테스트를 실행할 때 권한 있는 실행으로 재시도해야 한다. `xcodebuild`가 위와 같은 권한/캐시/시뮬레이터 접근 오류로 실패하면, 같은 명령을 `require_escalated`로 재실행해 코드 실패와 환경 실패를 분리한다. 최종 응답에는 샌드박스 실패 여부와 권한 있는 환경에서의 실제 검증 결과를 구분해서 기록한다.
 
+XcodeBuildMCP를 사용할 때는 첫 build/test 전에 `session_show_defaults`로 project,
+scheme, simulator, `extraArgs`를 확인한다. 테스트에서 사용한 code coverage나
+`-only-testing` 옵션이 extension 빌드에 남을 수 있으므로 scheme을 전환할 때
+`extraArgs`를 명시적으로 비우거나 다시 설정한다. 세션 설정 때문에 컴파일 전에
+중단된 실행은 코드 실패로 기록하지 않고, 설정을 바로잡은 같은 명령의 결과를
+검증 근거로 사용한다.
+
 ## 테스트 지침
 
 - 테스트는 Swift Testing(`import Testing`, `@Suite`, `@Test`, `#expect`)을 사용한다.
@@ -126,6 +147,67 @@ Codex의 기본 샌드박스에서는 Xcode/SwiftPM 캐시, CoreSimulator 로그
 - 삭제 로직은 `composing`, `committedTail`, 보호 상태, 겹받침/겹모음 분해를 함께 확인한다.
 - UI 변경은 가능한 경우 빌드까지 확인하고, 키보드 extension은 실제 입력 앱에서 열리는 흐름까지 염두에 둔다.
 - 커서 이동, focus 전환, 텍스트 필드 탭과 관련된 변경은 실제 입력 앱에서 `textWillChange(_:)`/`textDidChange(_:)` 호출과 내부 상태 동기화를 확인한다. `selectionWillChange(_:)`/`selectionDidChange(_:)` 호출을 전제로 검증을 생략하지 않는다.
+- 테스트 개수와 통과 여부만으로 merge 가능성을 판정하지 않는다. 새 테스트는
+  가능한 한 production 진입점을 호출하고 정확한 기대값을 검증한다. production
+  코드를 호출하지 않는 helper 자체 검증, 구현을 복제한 simulator 검증,
+  `!=`만 사용하는 약한 단언, 시간 경과만으로 성공하는 테스트는 추가하지 않는다.
+- 숫자가 포함되어 있다는 이유만으로 UI 구현 테스트로 판단하지 않는다. 입력
+  임계값, 키보드 높이 계산식, 반복 타이머 하한처럼 사용자 동작과 안전성에
+  영향을 주는 정책 수치는 검증한다.
+- exact color, font, SF Symbol 이름, corner radius, effect subclass, private
+  subview 계층, `Mirror` 기반 private 상태는 unit test에서 고정하지 않는다.
+- production 동작을 검증한다고 설명하는 테스트는 해당 production 진입점을
+  호출해야 한다. helper가 결과를 직접 계산하거나 production 로직을 복제한
+  경우 통합 검증으로 인정하지 않는다.
+- production 클래스에 `ForTesting` 메서드를 추가하지 않는다. 의미 있는 상태
+  계산은 production policy로 분리하고 UI 결과는 공개된 동작으로 검증한다.
+- processor 단위 테스트는 processor 반환값을 검증하고, controller 수준의
+  committed/composing 상태 전이는 `HangeulCompositionState`를 사용한다.
+- 테스트·suite·harness 이름과 설명은 실제로 호출한 production 범위와 일치해야
+  한다. `HangeulCompositionState` harness는 ViewController 또는 자동완성 통합
+  테스트로 부르지 않고 조합/상태 동작으로 한정한다.
+- synthetic 자동완성 필드, 수동 상태 갱신, 그 결과에 대한 단언만으로는 실제
+  자동완성 검증을 주장하지 않는다. 자동완성 통합 테스트는 controller,
+  `inputBuffer`, `SuggestionController` 등 실제 production 경로를 거치며, 그렇지
+  않으면 조합/상태 동작으로 이름과 범위를 한정한다.
+- 수식 evaluator 변경은 정상 예시뿐 아니라 비유한 숫자 토큰·중간 결과, 주변
+  일반 텍스트와 구분자, `x`/`X` 경계, 반올림된 음수 0 같은 적대 입력도
+  검토한다. 전체 테스트가 통과해도 이 경계 사례를 별도로 확인한다.
+- 실제 화면, 햅틱, 사운드 또는 host 앱 상호작용이 완료 조건이면 자동 테스트와
+  빌드가 수동 관찰을 대체하지 않는다. 광고·overlay·키보드 미활성화로 관찰하지
+  못한 항목은 미확인 상태와 정확한 차단 경로를 기록하고 완료 또는
+  production-ready로 표시하지 않는다.
+- selection에서 생성한 수식 후보는 생성 당시 `selectedText`와 현재
+  `selectedText`가 정확히 일치할 때만 action을 허용한다. 현재 selection이
+  `nil`, 빈 문자열 또는 다른 문자열이면 preview, 후보 탭, 스페이스의 모든
+  수식 action을 막고, 미선택 상태에서 생성한 후보의 기존 동작은 유지한다.
+- 수식 후보 preview, 후보 탭, 스페이스는 동일한 origin-aware action 계약을
+  사용한다. 확정 대치는 `UITextDocumentProxy.insertText`를 사용하고
+  `setMarkedText`를 사용하지 않는다.
+
+### 테스트 경계 예시
+
+- 유지: 커서 속도별 이동 step, suggestion bar 표시 여부, 키보드 높이 계산,
+  제스처 취소 후 입력 복구
+- 제거하거나 실제 화면 검증으로 이동: 정확한 tint, blur/glass 구체 타입,
+  SF Symbol 이름, private subview 구조
+- 명시적 UI 회귀 계약: 자동완성 후보의 스크롤 없음·두 줄·자동 축소·중간 생략
+- 명명 예시: `HangeulCompositionState` harness의 committed/composing 검증은
+  조합/상태 테스트이며 ViewController·자동완성 통합 테스트가 아님
+- 자동완성 통합 예시: controller 입력에서 `inputBuffer`를 거쳐
+  `SuggestionController` 결과를 확인한다. synthetic 필드 수동 갱신은
+  조합/상태 테스트로만 설명한다.
+
+새 테스트 추가 전 확인:
+
+- 이 테스트가 실패할 production 동작을 한 문장으로 설명할 수 있는가?
+- production 진입점을 실제로 호출하는가?
+- helper가 기대 결과나 상태 전이를 다시 구현하고 있지 않은가?
+- 테스트·suite·harness 이름과 설명이 실제 production 호출 범위와 일치하는가?
+- 자동완성 통합을 주장한다면 controller/`inputBuffer`/`SuggestionController`의
+  실제 production 경로를 거치는가? 아니라면 조합/상태 테스트로 한정했는가?
+- UI 구조가 바뀌어도 사용자 동작이 같으면 통과하는가?
+- 시각 속성을 고정한다면 명시된 제품 계약 또는 접근성 요구가 있는가?
 
 ## 커밋 메시지 규칙
 

@@ -147,66 +147,20 @@ struct KeyboardSmartInputPolicyTests {
         #expect(second.consumedQuoteKind == .double)
     }
 
-    @Test("한국어 single quote는 두 번씩 여는 따옴표와 닫는 따옴표를 반복")
-    func testKoreanSingleQuoteUsesTwoInputCycle() {
-        var state = KeyboardSmartQuoteState()
+    @Test("한국어 single quote는 가장 최근 여는 따옴표 뒤 내용 유무로 여닫음을 결정")
+    func testKoreanSingleQuoteUsesContentAfterOpeningQuote() {
+        let contexts: [String?] = [nil, "한글", "‘", "‘‘", "‘한글", "‘ ", "‘!", "‘한글’"]
+        let results = contexts.map {
+            KeyboardSmartInputPolicy.transformTypedText(
+                "'",
+                documentContextBeforeInput: $0,
+                isSmartPunctuationEnabled: true,
+                smartQuotesType: .yes,
+                smartDashesType: .no
+            ).insertText
+        }
 
-        let first = KeyboardSmartInputPolicy.transformTypedText(
-            "'",
-            documentContextBeforeInput: nil,
-            isSmartPunctuationEnabled: true,
-            smartQuotesType: .yes,
-            smartDashesType: .no,
-            nextDoubleQuoteIsOpening: state.nextDoubleQuoteIsOpening,
-            nextSingleQuoteIsOpening: state.nextSingleQuoteIsOpening
-        )
-        state.consume(first)
-
-        let second = KeyboardSmartInputPolicy.transformTypedText(
-            "'",
-            documentContextBeforeInput: nil,
-            isSmartPunctuationEnabled: true,
-            smartQuotesType: .yes,
-            smartDashesType: .no,
-            nextDoubleQuoteIsOpening: state.nextDoubleQuoteIsOpening,
-            nextSingleQuoteIsOpening: state.nextSingleQuoteIsOpening
-        )
-        state.consume(second)
-
-        let third = KeyboardSmartInputPolicy.transformTypedText(
-            "'",
-            documentContextBeforeInput: nil,
-            isSmartPunctuationEnabled: true,
-            smartQuotesType: .yes,
-            smartDashesType: .no,
-            nextDoubleQuoteIsOpening: state.nextDoubleQuoteIsOpening,
-            nextSingleQuoteIsOpening: state.nextSingleQuoteIsOpening
-        )
-        state.consume(third)
-
-        let fourth = KeyboardSmartInputPolicy.transformTypedText(
-            "'",
-            documentContextBeforeInput: nil,
-            isSmartPunctuationEnabled: true,
-            smartQuotesType: .yes,
-            smartDashesType: .no,
-            nextDoubleQuoteIsOpening: state.nextDoubleQuoteIsOpening,
-            nextSingleQuoteIsOpening: state.nextSingleQuoteIsOpening
-        )
-        state.consume(fourth)
-
-        let fifth = KeyboardSmartInputPolicy.transformTypedText(
-            "'",
-            documentContextBeforeInput: nil,
-            isSmartPunctuationEnabled: true,
-            smartQuotesType: .yes,
-            smartDashesType: .no,
-            nextDoubleQuoteIsOpening: state.nextDoubleQuoteIsOpening,
-            nextSingleQuoteIsOpening: state.nextSingleQuoteIsOpening
-        )
-
-        #expect([first.insertText, second.insertText, third.insertText, fourth.insertText, fifth.insertText] == ["‘", "‘", "’", "’", "‘"])
-        #expect([first.consumedQuoteKind, second.consumedQuoteKind, third.consumedQuoteKind, fourth.consumedQuoteKind, fifth.consumedQuoteKind] == [.single, .single, .single, .single, .single])
+        #expect(results == ["‘", "‘", "‘", "‘", "’", "’", "’", "‘"])
     }
 
     @Test("영어 single quote는 커서 앞 문맥으로 여닫는 따옴표를 결정")
@@ -298,16 +252,14 @@ struct KeyboardSmartInputPolicyTests {
             documentContextBeforeInput: "",
             isSmartPunctuationEnabled: true,
             smartQuotesType: .yes,
-            smartDashesType: .no,
-            nextSingleQuoteIsOpening: true
+            smartDashesType: .no
         )
         let closingSingle = KeyboardSmartInputPolicy.transformTypedText(
             "’",
-            documentContextBeforeInput: "",
+            documentContextBeforeInput: "‘한글",
             isSmartPunctuationEnabled: true,
             smartQuotesType: .yes,
-            smartDashesType: .no,
-            nextSingleQuoteIsOpening: false
+            smartDashesType: .no
         )
         let openingDouble = KeyboardSmartInputPolicy.transformTypedText(
             "“",
@@ -342,8 +294,7 @@ struct KeyboardSmartInputPolicyTests {
             isSmartPunctuationEnabled: true,
             smartQuotesType: .yes,
             smartDashesType: .no,
-            nextDoubleQuoteIsOpening: state.nextDoubleQuoteIsOpening,
-            nextSingleQuoteIsOpening: state.nextSingleQuoteIsOpening
+            nextDoubleQuoteIsOpening: state.nextDoubleQuoteIsOpening
         )
         state.consume(first)
 
@@ -353,8 +304,7 @@ struct KeyboardSmartInputPolicyTests {
             isSmartPunctuationEnabled: true,
             smartQuotesType: .yes,
             smartDashesType: .no,
-            nextDoubleQuoteIsOpening: state.nextDoubleQuoteIsOpening,
-            nextSingleQuoteIsOpening: state.nextSingleQuoteIsOpening
+            nextDoubleQuoteIsOpening: state.nextDoubleQuoteIsOpening
         )
 
         #expect(first.insertText == "“")

@@ -9,18 +9,11 @@ import UIKit
 
 struct KeyboardSmartQuoteState: Equatable {
     private(set) var nextDoubleQuoteIsOpening = true
-    private var singleQuoteInputCount = 0
-
-    var nextSingleQuoteIsOpening: Bool {
-        return (singleQuoteInputCount / 2).isMultiple(of: 2)
-    }
 
     mutating func consume(_ transform: KeyboardSmartInputPolicy.TypedTextTransform) {
         switch transform.consumedQuoteKind {
         case .double:
             nextDoubleQuoteIsOpening.toggle()
-        case .single:
-            singleQuoteInputCount += 1
         case nil:
             break
         }
@@ -28,7 +21,6 @@ struct KeyboardSmartQuoteState: Equatable {
 
     mutating func reset() {
         nextDoubleQuoteIsOpening = true
-        singleQuoteInputCount = 0
     }
 }
 
@@ -42,7 +34,6 @@ struct KeyboardSmartInputPolicy {
     struct TypedTextTransform: Equatable {
         enum QuoteKind {
             case double
-            case single
         }
 
         let deleteCount: Int
@@ -68,8 +59,7 @@ struct KeyboardSmartInputPolicy {
         smartDashesType: UITextSmartDashesType,
         isDefaultSmartQuotesEnabled: Bool = true,
         quoteRule: KeyboardSmartQuoteRule = .koreanSystem,
-        nextDoubleQuoteIsOpening: Bool = true,
-        nextSingleQuoteIsOpening: Bool = true
+        nextDoubleQuoteIsOpening: Bool = true
     ) -> TypedTextTransform {
         let shouldApplySmartQuotes = shouldApplySmartQuotes(
             type: smartQuotesType,
@@ -90,8 +80,7 @@ struct KeyboardSmartInputPolicy {
             for: text,
             documentContextBeforeInput: documentContextBeforeInput,
             quoteRule: quoteRule,
-            nextDoubleQuoteIsOpening: nextDoubleQuoteIsOpening,
-            nextSingleQuoteIsOpening: nextSingleQuoteIsOpening
+            nextDoubleQuoteIsOpening: nextDoubleQuoteIsOpening
            ) {
             return smartQuote
         }
@@ -156,8 +145,7 @@ private extension KeyboardSmartInputPolicy {
         for text: String,
         documentContextBeforeInput: String?,
         quoteRule: KeyboardSmartQuoteRule,
-        nextDoubleQuoteIsOpening: Bool,
-        nextSingleQuoteIsOpening: Bool
+        nextDoubleQuoteIsOpening: Bool
     ) -> TypedTextTransform? {
         guard text.count == 1, let character = text.first else { return nil }
 
@@ -178,10 +166,8 @@ private extension KeyboardSmartInputPolicy {
                 deleteCount: 0,
                 insertText: singleQuoteText(
                     documentContextBeforeInput: documentContextBeforeInput,
-                    quoteRule: quoteRule,
-                    nextSingleQuoteIsOpening: nextSingleQuoteIsOpening
-                ),
-                consumedQuoteKind: .single
+                    quoteRule: quoteRule
+                )
             )
         }
 
@@ -203,12 +189,19 @@ private extension KeyboardSmartInputPolicy {
 
     static func singleQuoteText(
         documentContextBeforeInput: String?,
-        quoteRule: KeyboardSmartQuoteRule,
-        nextSingleQuoteIsOpening: Bool
+        quoteRule: KeyboardSmartQuoteRule
     ) -> String {
         switch quoteRule {
         case .koreanSystem:
-            return nextSingleQuoteIsOpening ? "‘" : "’"
+            guard let documentContextBeforeInput,
+                  let lastQuoteIndex = documentContextBeforeInput.lastIndex(where: {
+                      singleQuoteCharacters.contains($0)
+                  }),
+                  documentContextBeforeInput[lastQuoteIndex] == "‘",
+                  documentContextBeforeInput.index(after: lastQuoteIndex) != documentContextBeforeInput.endIndex else {
+                return "‘"
+            }
+            return "’"
         case .englishSystem:
             return shouldCloseSingleQuote(after: documentContextBeforeInput?.last) ? "’" : "‘"
         }

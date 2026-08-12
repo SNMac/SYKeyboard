@@ -312,26 +312,25 @@ struct NaratgeulProcessorTests: HangeulProcessorTestable {
     
     @Test("삭제 후 재입력: ㄴㄴ -> 삭제 -> ㄴ -> ㅏ 입력 시 '나'로 결합")
     func test삭제후_재입력_결합() {
-        var (c, p) = ("", "")
+        let harness = HangeulCompositionTestHarness(processor: processor)
         
         // 1. ㄴ 두 번 입력 -> "ㄴㄴ"
-        (c, p) = applyInput("ㄴ", committed: c, composing: p)
-        (c, p) = applyInput("ㄴ", committed: c, composing: p)
-        #expect(c + p == "ㄴㄴ")
+        ["ㄴ", "ㄴ"].forEach(harness.input)
+        #expect(harness.text == "ㄴㄴ")
         
         // 2. ㅏ 입력 -> "ㄴ나"
-        (c, p) = applyInput("ㅏ", committed: c, composing: p)
-        #expect(c + p == "ㄴ나")
+        harness.input("ㅏ")
+        #expect(harness.text == "ㄴ나")
         
         // 3. 삭제 두 번 -> "ㄴ"
-        (c, p) = applyDelete(committed: c, composing: p)
-        #expect(c + p == "ㄴㄴ")
-        (c, p) = applyDelete(committed: c, composing: p)
-        #expect(c + p == "ㄴ")
+        harness.delete()
+        #expect(harness.text == "ㄴㄴ")
+        harness.delete()
+        #expect(harness.text == "ㄴ")
         
         // 4. ㅏ 입력 -> "나"여야 함
-        (c, p) = applyInput("ㅏ", committed: c, composing: p)
-        #expect(c + p == "나", "삭제 후 남은 낱자 자음이 다음 모음과 결합되어야 합니다.")
+        harness.input("ㅏ")
+        #expect(harness.text == "나", "삭제 후 남은 낱자 자음이 다음 모음과 결합되어야 합니다.")
     }
     
     // MARK: - 10. 나랏글 11,172자 전체 검증 (Heavy Test)
@@ -354,13 +353,12 @@ struct NaratgeulProcessorTests: HangeulProcessorTestable {
             let inputSequence = convertTo나랏글입력(for: targetChar)
             
             // 2. 입력 테스트
-            var (committed, composing) = ("", "")
-            for inputKey in inputSequence {
-                (committed, composing) = applyInput(inputKey, committed: committed, composing: composing)
-            }
+            processor.reset한글조합()
+            let harness = HangeulCompositionTestHarness(processor: processor)
+            inputSequence.forEach(harness.input)
             
-            if committed + composing != targetString {
-                Self.logger.error("생성 실패: 목표(\(targetString)) != 결과(\(committed + composing)) / 입력: \(inputSequence)")
+            if harness.text != targetString {
+                Self.logger.error("생성 실패: 목표(\(targetString)) != 결과(\(harness.text)) / 입력: \(inputSequence)")
                 failureCount += 1
                 continue
             }
@@ -369,11 +367,11 @@ struct NaratgeulProcessorTests: HangeulProcessorTestable {
             let expectedDeleteCount = calculateExpectedDeleteCount(for: targetChar)
             
             for _ in 0..<expectedDeleteCount {
-                (committed, composing) = applyDelete(committed: committed, composing: composing)
+                harness.delete()
             }
             
-            if !(committed + composing).isEmpty {
-                Self.logger.error("삭제 실패: \(targetString) -> 예상 삭제 횟수(\(expectedDeleteCount)) 실행 후 잔여물: '\(committed + composing)'")
+            if !harness.text.isEmpty {
+                Self.logger.error("삭제 실패: \(targetString) -> 예상 삭제 횟수(\(expectedDeleteCount)) 실행 후 잔여물: '\(harness.text)'")
                 failureCount += 1
             }
         }

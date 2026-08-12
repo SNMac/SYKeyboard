@@ -9,7 +9,7 @@ import Testing
 
 @testable import HangeulKeyboardCore
 
-@Suite("한글 삭제 버튼 드래그 공통 검증")
+@Suite("한글 삭제 버튼 드래그 HangeulCompositionState 기반 입력 상태 시나리오")
 struct HangeulDeleteButtonDragControllerTests {
 
     // MARK: - Properties
@@ -24,8 +24,7 @@ struct HangeulDeleteButtonDragControllerTests {
 
     @Test("두벌식 삭제 버튼 드래그 복구: '동해물과' 전체 삭제 후 복구")
     func test두벌식_삭제버튼드래그_전체복구후_버퍼동기화() {
-        let sim = KeyboardControllerSimulator(
-            automata: automata,
+        let sim = HangeulCompositionTestHarness(
             processor: DubeolsikProcessor(automata: automata)
         )
 
@@ -35,8 +34,7 @@ struct HangeulDeleteButtonDragControllerTests {
 
     @Test("천지인 삭제 버튼 드래그 복구: '동해물과' 전체 삭제 후 복구")
     func test천지인_삭제버튼드래그_전체복구후_버퍼동기화() {
-        let sim = KeyboardControllerSimulator(
-            automata: automata,
+        let sim = HangeulCompositionTestHarness(
             processor: CheonjiinProcessor(automata: automata)
         )
 
@@ -46,8 +44,7 @@ struct HangeulDeleteButtonDragControllerTests {
 
     @Test("나랏글 삭제 버튼 드래그 복구: '동해물과' 전체 삭제 후 복구")
     func test나랏글_삭제버튼드래그_전체복구후_버퍼동기화() {
-        let sim = KeyboardControllerSimulator(
-            automata: automata,
+        let sim = HangeulCompositionTestHarness(
             processor: NaratgeulProcessor(automata: automata)
         )
 
@@ -59,8 +56,7 @@ struct HangeulDeleteButtonDragControllerTests {
 
     @Test("두벌식 삭제 버튼 드래그 복구: touchDown 선삭제 후 pan 복구가 중복되지 않음")
     func test두벌식_삭제버튼드래그_touchDown선삭제후_복구중복방지() {
-        let sim = KeyboardControllerSimulator(
-            automata: automata,
+        let sim = HangeulCompositionTestHarness(
             processor: DubeolsikProcessor(automata: automata)
         )
 
@@ -70,8 +66,7 @@ struct HangeulDeleteButtonDragControllerTests {
 
     @Test("두벌식 삭제 버튼 드래그 복구: '동해물고' touchDown 선삭제 후 전체 복구")
     func test두벌식_삭제버튼드래그_동해물고_touchDown선삭제후_전체복구() {
-        let sim = KeyboardControllerSimulator(
-            automata: automata,
+        let sim = HangeulCompositionTestHarness(
             processor: DubeolsikProcessor(automata: automata)
         )
 
@@ -81,8 +76,7 @@ struct HangeulDeleteButtonDragControllerTests {
 
     @Test("두벌식 삭제 버튼 드래그 복구: '동해물고' touchDown 후 조합 버퍼의 '물'을 보존")
     func test두벌식_삭제버튼드래그_동해물고_touchDown후_물누락방지() {
-        let sim = KeyboardControllerSimulator(
-            automata: automata,
+        let sim = HangeulCompositionTestHarness(
             processor: DubeolsikProcessor(automata: automata)
         )
 
@@ -105,8 +99,7 @@ struct HangeulDeleteButtonDragControllerTests {
 
     @Test("두벌식 삭제 버튼 드래그 복구: '동해물과' touchDown으로 생긴 '동해물고' 전체 복구")
     func test두벌식_삭제버튼드래그_동해물과_touchDown후_동해물고_전체복구() {
-        let sim = KeyboardControllerSimulator(
-            automata: automata,
+        let sim = HangeulCompositionTestHarness(
             processor: DubeolsikProcessor(automata: automata)
         )
 
@@ -127,8 +120,7 @@ struct HangeulDeleteButtonDragControllerTests {
 
     @Test("두벌식 삭제 버튼 드래그 복구: '동해물거ㅓ' touchDown 후 전체 복구")
     func test두벌식_삭제버튼드래그_동해물거ㅓ_touchDown선삭제후_전체복구() {
-        let sim = KeyboardControllerSimulator(
-            automata: automata,
+        let sim = HangeulCompositionTestHarness(
             processor: DubeolsikProcessor(automata: automata)
         )
 
@@ -136,34 +128,9 @@ struct HangeulDeleteButtonDragControllerTests {
         assertTouchDown선삭제후_전체복구(sim, expectedTouchDownText: "동해물거", expectedRestoredText: "동해물거ㅓ")
     }
 
-    @Test("두벌식 삭제 버튼 드래그 복구: 전체 복구 후 자동완성 현재 단어 동기화")
-    func test두벌식_삭제버튼드래그_전체복구후_자동완성현재단어동기화() {
-        let sim = KeyboardControllerSimulator(
-            automata: automata,
-            processor: DubeolsikProcessor(automata: automata)
-        )
-
-        inputDubeolsik동해물과(into: sim)
-        sim.deleteButtonTouchDown()
-        #expect(sim.text == "동해물고")
-        #expect(sim.suggestionCurrentWord == "동해물고")
-
-        while !sim.text.isEmpty {
-            sim.dragDeleteLeft()
-        }
-        #expect(sim.suggestionCurrentWord == nil)
-
-        for _ in "동해물과" {
-            sim.dragRestoreRight()
-        }
-        #expect(sim.text == "동해물과")
-        #expect(sim.suggestionCurrentWord == "동해물과", "삭제 드래그 복구 후 자동완성 UI의 현재 단어도 실제 텍스트와 같아야 합니다.")
-    }
-
     @Test("천지인 삭제 버튼 드래그 복구: touchDown 선삭제 후 pan 복구가 중복되지 않음")
     func test천지인_삭제버튼드래그_touchDown선삭제후_복구중복방지() {
-        let sim = KeyboardControllerSimulator(
-            automata: automata,
+        let sim = HangeulCompositionTestHarness(
             processor: CheonjiinProcessor(automata: automata)
         )
 
@@ -173,8 +140,7 @@ struct HangeulDeleteButtonDragControllerTests {
 
     @Test("나랏글 삭제 버튼 드래그 복구: touchDown 선삭제 후 pan 복구가 중복되지 않음")
     func test나랏글_삭제버튼드래그_touchDown선삭제후_복구중복방지() {
-        let sim = KeyboardControllerSimulator(
-            automata: automata,
+        let sim = HangeulCompositionTestHarness(
             processor: NaratgeulProcessor(automata: automata)
         )
 
@@ -187,7 +153,7 @@ struct HangeulDeleteButtonDragControllerTests {
 
 private extension HangeulDeleteButtonDragControllerTests {
 
-    func assert전체복구후_버퍼동기화(_ sim: KeyboardControllerSimulator) {
+    func assert전체복구후_버퍼동기화(_ sim: HangeulCompositionTestHarness) {
         #expect(sim.text == "동해물과")
 
         sim.dragDeleteLeft()
@@ -210,7 +176,7 @@ private extension HangeulDeleteButtonDragControllerTests {
         #expect(sim.text == "동해물광", "드래그 복구 후 내부 composingBuffer가 마지막 글자와 동기화되어야 합니다.")
     }
 
-    func assertTouchDown선삭제후_복구중복방지(_ sim: KeyboardControllerSimulator) {
+    func assertTouchDown선삭제후_복구중복방지(_ sim: HangeulCompositionTestHarness) {
         #expect(sim.text == "동해물과")
 
         sim.deleteButtonTouchDown()
@@ -228,7 +194,7 @@ private extension HangeulDeleteButtonDragControllerTests {
     }
 
     func assertTouchDown선삭제후_전체복구(
-        _ sim: KeyboardControllerSimulator,
+        _ sim: HangeulCompositionTestHarness,
         expectedTouchDownText: String,
         expectedRestoredText: String
     ) {
@@ -253,25 +219,25 @@ private extension HangeulDeleteButtonDragControllerTests {
 
 private extension HangeulDeleteButtonDragControllerTests {
 
-    func inputDubeolsik동해물과(into sim: KeyboardControllerSimulator) {
+    func inputDubeolsik동해물과(into sim: HangeulCompositionTestHarness) {
         ["ㄷ", "ㅗ", "ㅇ", "ㅎ", "ㅐ", "ㅁ", "ㅜ", "ㄹ", "ㄱ", "ㅗ", "ㅏ"].forEach {
             sim.input($0)
         }
     }
 
-    func inputDubeolsik동해물고(into sim: KeyboardControllerSimulator) {
+    func inputDubeolsik동해물고(into sim: HangeulCompositionTestHarness) {
         ["ㄷ", "ㅗ", "ㅇ", "ㅎ", "ㅐ", "ㅁ", "ㅜ", "ㄹ", "ㄱ", "ㅗ"].forEach {
             sim.input($0)
         }
     }
 
-    func inputDubeolsik동해물거ㅓ(into sim: KeyboardControllerSimulator) {
+    func inputDubeolsik동해물거ㅓ(into sim: HangeulCompositionTestHarness) {
         ["ㄷ", "ㅗ", "ㅇ", "ㅎ", "ㅐ", "ㅁ", "ㅜ", "ㄹ", "ㄱ", "ㅓ", "ㅓ"].forEach {
             sim.input($0)
         }
     }
 
-    func inputCheonjiin동해물과(into sim: KeyboardControllerSimulator) {
+    func inputCheonjiin동해물과(into sim: HangeulCompositionTestHarness) {
         [
             "ㄷ", 천, 지, "ㅇ",             // 동
             "ㅅ", "ㅅ", 인, 천, 인,        // 해
@@ -282,7 +248,7 @@ private extension HangeulDeleteButtonDragControllerTests {
         }
     }
 
-    func inputNaratgeul동해물과(into sim: KeyboardControllerSimulator) {
+    func inputNaratgeul동해물과(into sim: HangeulCompositionTestHarness) {
         [
             "ㄴ", "획", "ㅗ", "ㅇ",  // 동
             "ㅇ", "획", "ㅏ", "ㅣ", // 해

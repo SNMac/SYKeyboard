@@ -18,10 +18,10 @@ final class SuggestionButtonView: UIView {
     var hasText: Bool {
         return !(suggestionLabel.text?.isEmpty ?? true)
     }
-    
+
     var isHighlighted: Bool = false {
         didSet {
-            backgroundView.backgroundColor = isHighlighted ? .suggestionButtonPressed : .clear
+            updateAppearance()
         }
     }
     
@@ -38,7 +38,7 @@ final class SuggestionButtonView: UIView {
         
         return view
     }()
-    
+
     private let suggestionLabel: UILabel = {
         let label = UILabel()
         label.font = .systemFont(ofSize: FontSize.stringKeyMedium)
@@ -69,11 +69,12 @@ final class SuggestionButtonView: UIView {
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
+
     // MARK: - Internal Methods
     
     func update(to title: String) {
         suggestionLabel.text = title
+        updateAppearance()
     }
 }
 
@@ -113,5 +114,15 @@ private extension SuggestionButtonView {
             suggestionLabel.trailingAnchor.constraint(equalTo: self.trailingAnchor, constant: -4),
             suggestionLabel.bottomAnchor.constraint(equalTo: self.bottomAnchor)
         ])
+    }
+
+    func updateAppearance() {
+        backgroundView.backgroundColor = isHighlighted ? .suggestionButtonPressed : .clear
+
+        if #available(iOS 26.0, *) {
+            suggestionLabel.textColor = isHighlighted ? .label : .suggestionButtonLabel
+        } else {
+            suggestionLabel.textColor = .label
+        }
     }
 }

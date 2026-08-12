@@ -756,6 +756,19 @@ struct DeleteMutationLifecycle {
         )
     }
 
+    mutating func completeReleasedTouchDownAtCheckpoint(
+        currentContext: KeyboardTextContextSnapshot,
+        currentSelectedText: String?
+    ) -> DeleteMutationResolution? {
+        guard requestKind == .releasedTouchDown else { return nil }
+        return resolve(
+            request.completeAtCheckpoint(
+                currentContext: currentContext,
+                currentSelectedText: currentSelectedText
+            )
+        )
+    }
+
     mutating func finishTouchDown(
         currentContext: KeyboardTextContextSnapshot,
         currentSelectedText: String?
@@ -956,5 +969,13 @@ enum KeyboardTextInteractionPolicy {
 
     static func repeatTimerInterval(repeatRate: Double) -> Double {
         return max(0.01, 0.10 - repeatRate)
+    }
+
+    static func shouldContinueRepeatInput(
+        startedInputIdentifier: ObjectIdentifier?,
+        currentInputIdentifier: ObjectIdentifier?
+    ) -> Bool {
+        guard let startedInputIdentifier else { return true }
+        return startedInputIdentifier == currentInputIdentifier
     }
 }

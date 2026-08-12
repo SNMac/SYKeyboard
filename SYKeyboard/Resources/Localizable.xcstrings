@@ -300,6 +300,16 @@
         }
       }
     },
+    "수식 결과 표시" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "show Math Results"
+          }
+        }
+      }
+    },
     "숫자 입력" : {
       "localizations" : {
         "en" : {
@@ -616,6 +626,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Display the Undo/Redo buttons at the top of the keyboard\n(May not work properly in some apps)"
+          }
+        }
+      }
+    },
+    "키보드 상단에 수식 계산 결과 표시" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Display math results at the top of the keyboard"
           }
         }
       }

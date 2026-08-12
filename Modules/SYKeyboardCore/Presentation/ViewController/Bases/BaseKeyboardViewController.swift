@@ -149,6 +149,10 @@ open class BaseKeyboardViewController: UIInputViewController {
     private var isDrainingPendingDeleteInteractions = false
     /// 현재 host text input의 식별자입니다.
     private var currentTextInputIdentifier: ObjectIdentifier?
+    /// host 입력 변경 callback에서 마지막으로 확인한 자동 수정 설정입니다.
+    private var currentAutocorrectionType: UITextAutocorrectionType?
+    /// host 입력 변경 callback에서 마지막으로 확인한 수식 자동완성 허용 상태입니다.
+    private var isMathExpressionCompletionAllowed = true
     /// 자동완성과 undo/redo 설정이 모두 켜진 경우에만 기능을 활성화합니다.
     private var isUndoRedoFeatureAvailable: Bool {
         return KeyboardPresentationStatePolicy.isUndoRedoFeatureAvailable(
@@ -254,6 +258,7 @@ open class BaseKeyboardViewController: UIInputViewController {
         // 사용자 설정을 SuggestionController에 전달 — 엔진 생성은 첫 표시 이후로 지연
         suggestionController.isTextReplacementEnabled = keyboardSettingsManager.isTextReplacementEnabled
         suggestionController.isPredictiveTextEnabled = keyboardSettingsManager.isPredictiveTextEnabled
+        suggestionController.isShowMathResultsEnabled = shouldShowMathResults()
 
         if KeyboardSuggestionSelectionPolicy.shouldStartLexiconLoadBeforeFirstAppearance(
             isTextReplacementEnabled: keyboardSettingsManager.isTextReplacementEnabled
@@ -295,6 +300,7 @@ open class BaseKeyboardViewController: UIInputViewController {
     open override func textWillChange(_ textInput: (any UITextInput)?) {
         super.textWillChange(textInput)
         logger.debug("textWillChange")
+        synchronizeTextInputTraits()
         synchronizeDeleteInteractionInputIdentifier(textInput)
         undoRedoSession.prepareForTextWillChange(
             inputIdentifier: textInputIdentifier(for: textInput),
@@ -310,6 +316,7 @@ open class BaseKeyboardViewController: UIInputViewController {
     open override func textDidChange(_ textInput: (any UITextInput)?) {
         super.textDidChange(textInput)
         logger.debug("textDidChange")
+        synchronizeTextInputTraits()
         synchronizeDeleteInteractionInputIdentifier(textInput)
         let currentTextContext = currentTextContextSnapshot()
         if KeyboardGesturePolicy.shouldPlayCursorDragHapticOnTextDidChange(
@@ -628,8 +635,7 @@ extension BaseKeyboardViewController {
             smartDashesType: textDocumentProxy.smartDashesType ?? .default,
             isDefaultSmartQuotesEnabled: treatsDefaultSmartQuotesAsEnabled,
             quoteRule: smartQuoteRule,
-            nextDoubleQuoteIsOpening: smartQuoteState.nextDoubleQuoteIsOpening,
-            nextSingleQuoteIsOpening: smartQuoteState.nextSingleQuoteIsOpening
+            nextDoubleQuoteIsOpening: smartQuoteState.nextDoubleQuoteIsOpening
         )
 
         if transform.deleteCount > 0 {
@@ -825,7 +831,7 @@ private extension BaseKeyboardViewController {
 
         let isSuggestionBarVisible = !KeyboardPresentationStatePolicy.shouldHideSuggestionBar(
             isPredictiveTextEnabled: suggestionController.isPredictiveTextEnabled,
-            autocorrectionType: textDocumentProxy.autocorrectionType ?? .default,
+            autocorrectionType: currentAutocorrectionType,
             currentKeyboard: currentKeyboard
         )
 
@@ -1221,7 +1227,7 @@ private extension BaseKeyboardViewController {
 
         let shouldHideSuggestions = KeyboardPresentationStatePolicy.shouldHideSuggestionBar(
             isPredictiveTextEnabled: suggestionController.isPredictiveTextEnabled,
-            autocorrectionType: textDocumentProxy.autocorrectionType ?? .default,
+            autocorrectionType: currentAutocorrectionType,
             currentKeyboard: currentKeyboard
         )
 
@@ -1236,6 +1242,22 @@ private extension BaseKeyboardViewController {
                 self.setKeyboardHeight()
             }
         }
+    }
+
+    func updateSuggestionPreviewHighlight() {
+        if suggestionController.mathResultAction(
+            at: 1,
+            selectedText: textDocumentProxy.selectedText
+        ) != nil {
+            suggestionBarView.updatePreviewHighlight(index: 1)
+            return
+        }
+
+        suggestionBarView.updatePreviewHighlight(
+            index: suggestionController.textReplacementPreviewSuggestionIndex(
+                baseText: inputBuffer
+            )
+        )
     }
 
     func startDeferredSuggestionPreparationIfNeeded() {
@@ -1279,6 +1301,13 @@ extension BaseKeyboardViewController {
 
         if case .deleteButton = button.type {
             if !isRepeatingInput {
+                let previousResolution = deleteMutationLifecycle
+                    .completeReleasedTouchDownAtCheckpoint(
+                        currentContext: currentTextContextSnapshot(),
+                        currentSelectedText: textDocumentProxy.selectedText
+                    )
+                processDeleteMutationResolution(previousResolution)
+
                 let disposition = deleteInteractionCoordinator.beginTouchDown(
                     button: button,
                     inputIdentifier: currentTextInputIdentifier
@@ -1314,15 +1343,22 @@ extension BaseKeyboardViewController {
         case .deleteButton:
             assertionFailure("삭제 버튼은 semantic hook 경로에서 먼저 처리됩니다.")
         case .spaceButton:
-            if let replacement = suggestionController.attemptTextReplacement(
-                baseText: inputBuffer,
-                documentContextBeforeInput: textDocumentProxy.documentContextBeforeInput
-            ) {
-                // 텍스트 대치: 래핑 메서드 사용
-                replaceTextWithSmartInsertDeleteSpacing(
-                    deleteCount: replacement.deleteCount,
-                    insert: replacement.insertText
-                )
+            if let action = suggestionController.mathResultAction(
+                at: 1,
+                selectedText: textDocumentProxy.selectedText
+            ), applyMathResultSuggestionAction(action) {
+                // 수식 action을 적용한 경우 일반 텍스트 대치를 건너뜁니다.
+            } else {
+                if let replacement = suggestionController.attemptTextReplacement(
+                    baseText: inputBuffer,
+                    documentContextBeforeInput: textDocumentProxy.documentContextBeforeInput
+                ) {
+                    // 텍스트 대치: 래핑 메서드 사용
+                    replaceTextWithSmartInsertDeleteSpacing(
+                        deleteCount: replacement.deleteCount,
+                        insert: replacement.insertText
+                    )
+                }
             }
             insertSpaceText()
         case .returnButton:
@@ -1696,36 +1732,38 @@ private extension BaseKeyboardViewController {
             performanceSignposter.emitEvent("FirstUpdateSuggestions")
         }
 
-        let action = KeyboardSuggestionSelectionPolicy.suggestionUpdateAction(
-            isPredictiveTextEnabled: suggestionController.isPredictiveTextEnabled,
-            selectedText: textDocumentProxy.selectedText,
-            inputBuffer: inputBuffer
-        )
-
-        switch action {
-        case .none:
-            break
-        case .update(let text):
-            suggestionController.updateSuggestions(for: text)
-        case .clear:
-            suggestionController.clearSuggestions()
-        }
+        updateSuggestionsForCurrentContext()
     }
 
     func updateSuggestionsForCursorContext() {
+        updateSuggestionsForCurrentContext()
+    }
+
+    func updateSuggestionsForCurrentContext() {
+        suggestionController.isShowMathResultsEnabled = shouldShowMathResults()
+
+        let selectedText = textDocumentProxy.selectedText
         let action = KeyboardSuggestionSelectionPolicy.suggestionUpdateAction(
             isPredictiveTextEnabled: suggestionController.isPredictiveTextEnabled,
-            selectedText: textDocumentProxy.selectedText,
-            inputBuffer: KeyboardSuggestionSelectionPolicy.limitedDocumentContextBeforeInput(
-                textDocumentProxy.documentContextBeforeInput
-            )
+            selectedText: selectedText,
+            inputBuffer: inputBuffer
         )
+        let mathExpressionText = KeyboardSuggestionSelectionPolicy
+            .mathExpressionDetectionText(
+                selectedText: selectedText,
+                inputBuffer: inputBuffer,
+                documentContextBeforeInput: textDocumentProxy.documentContextBeforeInput
+            )
 
         switch action {
         case .none:
             break
         case .update(let text):
-            suggestionController.updateSuggestions(for: text)
+            suggestionController.updateSuggestions(
+                for: text,
+                selectedText: selectedText,
+                mathExpressionText: mathExpressionText
+            )
         case .clear:
             suggestionController.clearSuggestions()
         }
@@ -2060,9 +2098,17 @@ private extension BaseKeyboardViewController {
         let repeatTimerInterval = KeyboardTextInteractionPolicy.repeatTimerInterval(
             repeatRate: keyboardSettingsManager.repeatRate
         )
+        let startedInputIdentifier = currentTextInputIdentifier
         timer = Timer.publish(every: repeatTimerInterval, on: .main, in: .common)
             .autoconnect()
             .sink { [weak self, weak button] _ in
+                if !KeyboardTextInteractionPolicy.shouldContinueRepeatInput(
+                    startedInputIdentifier: startedInputIdentifier,
+                    currentInputIdentifier: self?.currentTextInputIdentifier
+                ) {
+                    self?.stopRepeatInputTracking()
+                    return
+                }
                 if self?.view.window == nil {
                     self?.stopRepeatInputTracking()
                     return
@@ -2088,7 +2134,19 @@ private extension BaseKeyboardViewController {
 
 extension BaseKeyboardViewController: SuggestionControllerDelegate {
     final func suggestionController(_ controller: SuggestionController, didUpdateCurrentWord currentWord: String?, suggestions: [String]) {
-        suggestionBarView.updateSuggestions(currentWord: currentWord, suggestions: suggestions)
+        if controller.currentMode == .mathExpression {
+            suggestionBarView.updateSuggestions(
+                currentWord: nil,
+                suggestions: suggestions
+            )
+        } else {
+            suggestionBarView.updateSuggestions(
+                currentWord: currentWord,
+                suggestions: suggestions
+            )
+        }
+
+        updateSuggestionPreviewHighlight()
     }
 }
 
@@ -2097,6 +2155,7 @@ extension BaseKeyboardViewController: SuggestionControllerDelegate {
 extension BaseKeyboardViewController: SuggestionBarDelegate {
     final func suggestionBar(_ bar: SuggestionBarView, didSelectSuggestionAt index: Int) {
         cancelPendingDeleteInteractions()
+        if handleMathResultSuggestion(at: index) { return }
         if handleSelectedTextSuggestion(at: index) { return }
         if handleNGramSuggestion(at: index) { return }
         if handleCurrentWordConfirmationIfNeeded(at: index) { return }
@@ -2113,6 +2172,24 @@ extension BaseKeyboardViewController: SuggestionBarDelegate {
 }
 
 private extension BaseKeyboardViewController {
+    func synchronizeTextInputTraits() {
+        currentAutocorrectionType = textDocumentProxy.autocorrectionType
+
+        if #available(iOS 18.0, *) {
+            isMathExpressionCompletionAllowed =
+                textDocumentProxy.mathExpressionCompletionType != .no
+        } else {
+            isMathExpressionCompletionAllowed = true
+        }
+    }
+
+    func shouldShowMathResults() -> Bool {
+        return KeyboardPresentationStatePolicy.shouldShowMathResults(
+            isSettingEnabled: keyboardSettingsManager.isShowMathResultsEnabled,
+            isHostCompletionAllowed: isMathExpressionCompletionAllowed
+        )
+    }
+
     func handleSelectedTextSuggestion(at index: Int) -> Bool {
         guard let selectedText = textDocumentProxy.selectedText,
               !selectedText.isEmpty else { return false }
@@ -2135,15 +2212,57 @@ private extension BaseKeyboardViewController {
             insert: result.insertText
         )
 
-        // selectedText가 있는 상태에서 insertText하면
-        // 시스템이 선택 영역을 자동 교체
-        recordUndoRedoChange(deletedText: selectedText, insertedText: insertText)
-        textDocumentProxy.insertText(insertText)
-        inputBuffer.append(insertText)
+        replaceSelectedText(selectedText, with: insertText)
 
         suggestionDidApply()
         updateSuggestions()
         return true
+    }
+
+    func handleMathResultSuggestion(at index: Int) -> Bool {
+        guard suggestionController.currentMode == .mathExpression else { return false }
+
+        guard let action = suggestionController.mathResultAction(
+            at: index,
+            selectedText: textDocumentProxy.selectedText
+        ) else { return true }
+        guard applyMathResultSuggestionAction(action) else { return true }
+
+        if case .confirmOriginal = action {
+            return true
+        } else {
+            suggestionDidApply()
+            updateSuggestions()
+        }
+        return true
+    }
+
+    @discardableResult
+    func applyMathResultSuggestionAction(
+        _ action: MathResultSuggestionAction
+    ) -> Bool {
+        switch action {
+        case .confirmOriginal:
+            suggestionController.clearSuggestions()
+        case .insertResult(let text):
+            insertText(text)
+        case .replaceExpression(let deleteCount, let insertText):
+            replaceText(deleteCount: deleteCount, insert: insertText)
+        case .replaceSelection(let text):
+            guard let selectedText = textDocumentProxy.selectedText,
+                  !selectedText.isEmpty else { return false }
+            replaceSelectedText(selectedText, with: text)
+        }
+        return true
+    }
+
+    func replaceSelectedText(_ selectedText: String, with insertText: String) {
+        textDocumentProxy.insertText(insertText)
+        inputBuffer.append(insertText)
+        recordUndoRedoChange(
+            deletedText: selectedText,
+            insertedText: insertText
+        )
     }
 
     func handleNGramSuggestion(at index: Int) -> Bool {
@@ -2180,14 +2299,9 @@ private extension BaseKeyboardViewController {
 
     func handleInputBufferSuggestion(at index: Int) {
         let suggestionIndex = index - 1
-        let baseText = KeyboardSuggestionSelectionPolicy.suggestionSelectionBaseText(
-            inputBuffer: inputBuffer,
-            documentContextBeforeInput: textDocumentProxy.documentContextBeforeInput
-        )
-
         guard let result = suggestionController.selectSuggestion(
             at: suggestionIndex,
-            baseText: baseText
+            baseText: inputBuffer
         ) else { return }
 
         replaceTextWithSmartInsertDeleteSpacing(

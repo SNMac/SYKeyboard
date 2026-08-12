@@ -297,27 +297,40 @@ private extension StandardKeyboardView {
         
         atButton.translatesAutoresizingMaskIntoConstraints = false
         if let superview = atButton.superview {
-            atButton.widthAnchor.constraint(equalTo: superview.widthAnchor,
-                                            multiplier: 0.25).isActive = true
+            let widthConstraint = atButton.widthAnchor.constraint(
+                equalTo: superview.widthAnchor,
+                multiplier: 0.25
+            )
+            widthConstraint.priority = .init(999)
+            widthConstraint.isActive = true
         }
         
         periodButton.translatesAutoresizingMaskIntoConstraints = false
         if let superview = periodButton.superview {
             periodButtonWidthConstraint = periodButton.widthAnchor.constraint(equalTo: superview.widthAnchor,
                                                                               multiplier: 0.2)
+            periodButtonWidthConstraint?.priority = .init(999)
             periodButtonWidthConstraint?.isActive = true
         }
         
         slashButton.translatesAutoresizingMaskIntoConstraints = false
         if let superview = slashButton.superview {
-            slashButton.widthAnchor.constraint(equalTo: superview.widthAnchor,
-                                               multiplier: 1.0/3.0).isActive = true
+            let widthConstraint = slashButton.widthAnchor.constraint(
+                equalTo: superview.widthAnchor,
+                multiplier: 1.0/3.0
+            )
+            widthConstraint.priority = .init(999)
+            widthConstraint.isActive = true
         }
         
         dotComButton.translatesAutoresizingMaskIntoConstraints = false
         if let superview = dotComButton.superview {
-            dotComButton.widthAnchor.constraint(equalTo: superview.widthAnchor,
-                                                multiplier: 1.0/3.0).isActive = true
+            let widthConstraint = dotComButton.widthAnchor.constraint(
+                equalTo: superview.widthAnchor,
+                multiplier: 1.0/3.0
+            )
+            widthConstraint.priority = .init(999)
+            widthConstraint.isActive = true
         }
         
         returnButtonHStackView.translatesAutoresizingMaskIntoConstraints = false
@@ -356,6 +369,7 @@ extension StandardKeyboardView {
         
         if let superview = periodButton.superview {
             periodButtonWidthConstraint = periodButton.widthAnchor.constraint(equalTo: superview.widthAnchor, multiplier: multiplier)
+            periodButtonWidthConstraint?.priority = .init(999)
             periodButtonWidthConstraint?.isActive = true
         }
     }
