@@ -90,6 +90,46 @@ struct SuggestionControllerPreparationTests {
         #expect(factory.lexiconCreationCount == 1)
     }
 
+    @Test("language 전환은 이전 ngram을 저장하고 새 엔진을 지연 생성")
+    func testLanguageChangeSavesOldEngineAndDefersNewCreation() {
+        let factory = CountingSuggestionEngineFactory()
+        let controller = SuggestionController(
+            language: "ko-KR",
+            engineFactory: factory.makeFactory()
+        )
+        controller.isPredictiveTextEnabled = true
+        controller.preparePredictiveEnginesIfNeeded()
+        let koreanEngine = factory.lastNGramProvider
+
+        controller.updateLanguage(to: "en-US")
+
+        #expect(koreanEngine?.saveCount == 1)
+        #expect(factory.nGramLanguages == ["ko-KR"])
+        controller.preparePredictiveEnginesIfNeeded()
+        #expect(factory.nGramLanguages == ["ko-KR", "en-US"])
+        #expect(factory.textCheckerLanguages == ["ko-KR", "en-US"])
+    }
+
+    @Test("이전 language load callback은 새 후보를 갱신하지 않음")
+    func testStaleLanguageLoadCallbackIsIgnored() {
+        let factory = CountingSuggestionEngineFactory()
+        let delegate = RecordingSuggestionControllerDelegate()
+        let controller = SuggestionController(
+            language: "ko-KR",
+            engineFactory: factory.makeFactory()
+        )
+        controller.delegate = delegate
+        controller.isPredictiveTextEnabled = true
+        controller.updateSuggestions(for: "", selectedText: nil, mathExpressionText: "")
+        let koreanEngine = factory.lastNGramProvider
+
+        controller.updateLanguage(to: "en-US")
+        let updateCount = delegate.updates.count
+        koreanEngine?.completeLoad(suggestions: ["오래된 후보"])
+
+        #expect(delegate.updates.count == updateCount)
+    }
+
     @Test("n-gram 로딩 완료 후 마지막 후보 갱신을 다시 수행")
     func testNGram로딩완료후_마지막후보갱신을다시수행() async {
         let factory = CountingSuggestionEngineFactory()
@@ -167,6 +207,9 @@ private final class CountingSuggestionEngineFactory {
     private(set) var lexiconCreationCount = 0
     private(set) var textCheckerCreationCount = 0
     private(set) var nGramCreationCount = 0
+    private(set) var textCheckerLanguages: [String] = []
+    private(set) var nGramLanguages: [String] = []
+    private(set) var nGramProviders: [StubNGramPredictiveTextProvider] = []
     private(set) var lastNGramProvider: StubNGramPredictiveTextProvider?
 
     // MARK: - Internal Methods
@@ -177,13 +220,16 @@ private final class CountingSuggestionEngineFactory {
                 self?.lexiconCreationCount += 1
                 return LexiconPredictiveTextEngine()
             },
-            makeTextCheckerEngine: { [weak self] _ in
+            makeTextCheckerEngine: { [weak self] language in
                 self?.textCheckerCreationCount += 1
+                self?.textCheckerLanguages.append(language)
                 return StubPredictiveTextProvider()
             },
-            makeNGramEngine: { [weak self] _ in
+            makeNGramEngine: { [weak self] language in
                 self?.nGramCreationCount += 1
+                self?.nGramLanguages.append(language)
                 let provider = StubNGramPredictiveTextProvider()
+                self?.nGramProviders.append(provider)
                 self?.lastNGramProvider = provider
                 return provider
             }
@@ -199,6 +245,7 @@ private final class StubPredictiveTextProvider: PredictiveTextProvider {
 private final class StubNGramPredictiveTextProvider: NGramPredictiveTextProviding, @unchecked Sendable {
     var onLoadCompleted: (() -> Void)?
     var currentSentenceWordsCount: Int { recordedWords.count }
+    private(set) var saveCount = 0
 
     private var recordedWords: [String] = []
     private var loadedSuggestions: [String] = []
@@ -217,7 +264,9 @@ private final class StubNGramPredictiveTextProvider: NGramPredictiveTextProvidin
     func resetSentenceBuffer() {
         recordedWords.removeAll()
     }
-    func saveToDisk() {}
+    func saveToDisk() {
+        saveCount += 1
+    }
     func completeLoad(suggestions: [String]) {
         loadedSuggestions = suggestions
         onLoadCompleted?()

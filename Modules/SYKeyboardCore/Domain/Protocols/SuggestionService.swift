@@ -67,6 +67,9 @@ protocol SuggestionService: AnyObject {
     /// 현재 SuggestionBar의 표시 모드
     var currentMode: SuggestionMode { get }
 
+    /// 예측 엔진에서 사용할 언어를 전환합니다.
+    func updateLanguage(to language: String)
+
     // MARK: - Lexicon
 
     /// 자동완성 예측 엔진을 필요한 시점에 준비합니다.

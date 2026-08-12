@@ -107,7 +107,9 @@ final class SuggestionController: SuggestionService {
     weak var delegate: SuggestionControllerDelegate?
 
     /// 엔진 재생성 시 사용할 언어 코드
-    private let language: String
+    private var language: String
+    /// 비동기 n-gram 로드 콜백을 식별하는 엔진 세대
+    private var engineGeneration = 0
     /// 예측 엔진 생성 팩토리
     private let engineFactory: SuggestionControllerEngineFactory
     /// 성능 계측용 signposter
@@ -271,6 +273,22 @@ final class SuggestionController: SuggestionService {
 
     // MARK: - Lexicon Loading
 
+    func updateLanguage(to language: String) {
+        guard self.language != language else { return }
+
+        nGramEngine?.saveToDisk()
+        engineGeneration += 1
+        self.language = language
+        textCheckerEngine = nil
+        nGramEngine = nil
+        lastSuggestionBaseText = nil
+        lastMathExpressionText = nil
+        lastSuggestionOrigin = nil
+        currentMathCompletion = nil
+        currentMathSuggestionOrigin = nil
+        clearSuggestions()
+    }
+
     func preparePredictiveEnginesIfNeeded() {
         guard isPredictiveTextEnabled else { return }
 
@@ -282,9 +300,14 @@ final class SuggestionController: SuggestionService {
 
         if nGramEngine == nil {
             let state = signposter.beginInterval("PrepareNGramEngine")
-            let engine = engineFactory.makeNGramEngine(language)
+            let generation = engineGeneration
+            let engineLanguage = language
+            let engine = engineFactory.makeNGramEngine(engineLanguage)
             engine.onLoadCompleted = { [weak self] in
-                self?.refreshSuggestionsAfterNGramLoadIfNeeded()
+                guard let self,
+                      self.engineGeneration == generation,
+                      self.language == engineLanguage else { return }
+                self.refreshSuggestionsAfterNGramLoadIfNeeded()
             }
             nGramEngine = engine
             signposter.endInterval("PrepareNGramEngine", state)

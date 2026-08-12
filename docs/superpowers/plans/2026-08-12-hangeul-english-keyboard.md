@@ -240,7 +240,7 @@ git commit -m "feat: #46 - 통합 키보드 시작 언어 정책 추가"
 - Preserves: `lexiconEngine` instance across language changes
 - Guards: async n-gram callback with captured `engineGeneration` and language
 
-- [ ] **Step 1: language 전환 실패 테스트 추가**
+- [x] **Step 1: language 전환 실패 테스트 추가**
 
 `CountingSuggestionEngineFactory`가 생성 요청 language, n-gram provider별 `saveCount`와 생성된 provider 배열을 기록하게 한다. 다음 production 진입점 테스트를 추가한다.
 
@@ -280,7 +280,7 @@ func testStaleLanguageLoadCallbackIsIgnored() {
 }
 ```
 
-- [ ] **Step 2: API 부재 RED 확인**
+- [x] **Step 2: API 부재 RED 확인**
 
 ```sh
 xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
@@ -290,7 +290,7 @@ xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
 
 Expected: `updateLanguage(to:)` 또는 test spy 필드 부재로 test build 실패.
 
-- [ ] **Step 3: language 전환 구현**
+- [x] **Step 3: language 전환 구현**
 
 ```swift
 private var language: String
@@ -328,11 +328,11 @@ engine.onLoadCompleted = { [weak self] in
 
 `lexiconEngine`과 `isLoadingLexicon`은 language 전환에서 해제하지 않는다. `SuggestionService` test double이 있으면 동일 API를 no-op이 아니라 호출 기록 방식으로 구현한다.
 
-- [ ] **Step 4: GREEN과 기존 준비 회귀 확인**
+- [x] **Step 4: GREEN과 기존 준비 회귀 확인**
 
 Step 2 명령 실행. Expected: 기존 지연 준비 테스트를 포함해 suite 전체 PASS.
 
-- [ ] **Step 5: 결과 기록과 커밋**
+- [x] **Step 5: 결과 기록과 커밋**
 
 ```sh
 git add Modules/SYKeyboardCore/Domain/Protocols/SuggestionService.swift \
@@ -341,6 +341,11 @@ git add Modules/SYKeyboardCore/Domain/Protocols/SuggestionService.swift \
   docs/superpowers/plans/2026-08-12-hangeul-english-keyboard.md
 git commit -m "feat: #46 - 자동완성 언어 전환 지원"
 ```
+
+**Result:**
+
+- RED: `xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0' -only-testing:SYKeyboardTests/SuggestionControllerPreparationTests`를 권한 있는 환경에서 실행해 exit 65를 확인했다. 새 테스트가 호출하는 `SuggestionController.updateLanguage(to:)`가 없어 test build가 실패했으며, 결과는 `/Users/macmillan/Library/Developer/Xcode/DerivedData/SYKeyboard-hgprdtyustcuukabeovkjzrtclhy/Logs/Test/Test-SYKeyboard-2026.08.13_00-38-13-+0900.xcresult`에 기록되었다. 기본 sandbox 실행은 Simulator/SwiftPM cache 권한 오류(exit 74)로 컴파일 전 중단되어 RED 근거로 사용하지 않았다.
+- GREEN: 같은 명령을 권한 있는 환경에서 다시 실행해 exit 0, 고유 9/9 passed, failed 0, skipped 0을 확인했다. destination은 iPhone 13 mini / iOS 16.0 (arm64)이며 결과는 `/Users/macmillan/Library/Developer/Xcode/DerivedData/SYKeyboard-hgprdtyustcuukabeovkjzrtclhy/Logs/Test/Test-SYKeyboard-2026.08.13_00-38-55-+0900.xcresult`에 기록되었다.
 
 ### Task 3: 다중 primary view 공통 기반
 
