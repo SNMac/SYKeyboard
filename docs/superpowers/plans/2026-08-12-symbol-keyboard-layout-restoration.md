@@ -35,7 +35,7 @@
 - Produces: internal `var keyList: [[[[String]]]]`
 - Consumes: UIKit `UIKeyboardType`와 기존 `SymbolKeyboardView` 버튼 구조
 
-- [ ] **Step 1: 모드 매핑과 키 배열을 요구하는 실패 테스트 추가**
+- [x] **Step 1: 모드 매핑과 키 배열을 요구하는 실패 테스트 추가**
 
 `KeyboardSymbolInputPolicyTests`에 다음 테스트를 추가한다. 배열 기대값은
 `7bdf59fd^`의 사용자 표시 계약에서 직접 작성하며 production helper로 계산하지
@@ -65,7 +65,7 @@ func test기호키보드모드별키배열() {
 }
 ```
 
-- [ ] **Step 2: 테스트가 기능 부재로 실패하는지 확인**
+- [x] **Step 2: 테스트가 기능 부재로 실패하는지 확인**
 
 Run:
 
@@ -80,7 +80,7 @@ xcodebuild test \
 Expected: `SymbolKeyboardMode`를 찾을 수 없어 test build가 실패한다. 문법 오류나
 Simulator 오류는 RED로 인정하지 않는다.
 
-- [ ] **Step 3: SymbolKeyboardMode 최소 구현 추가**
+- [x] **Step 3: SymbolKeyboardMode 최소 구현 추가**
 
 다음 공개 모드와 매핑을 추가한다. `keyList`에는 아래 네 모드의 일반·Shift 배열을
 완전하게 작성하고 기본 배열의 큰따옴표는 현재 계약인 `”`를 사용한다.
@@ -161,11 +161,11 @@ public enum SymbolKeyboardMode: Equatable {
 SYKeyboardCore/Presentation/Utils/Enums/KeyboardMode/SymbolKeyboardMode.swift,
 ```
 
-- [ ] **Step 4: 관련 테스트 통과 확인**
+- [x] **Step 4: 관련 테스트 통과 확인**
 
 Step 2와 같은 명령을 실행한다. Expected: `KeyboardSymbolInputPolicyTests` 전체 PASS.
 
-- [ ] **Step 5: 결과 기록 및 커밋**
+- [x] **Step 5: 결과 기록 및 커밋**
 
 RED/GREEN 명령, exit code, 고유 테스트 개수와 xcresult 경로를 이 task 아래
 `Result`에 기록한 뒤 다음 파일만 커밋한다.
@@ -178,6 +178,16 @@ git add \
   docs/superpowers/plans/2026-08-12-symbol-keyboard-layout-restoration.md
 git commit -m "feat: #108 - UIKeyboardType별 기호 배열 복원"
 ```
+
+**Result:**
+
+- RED: iPhone 13 mini / iOS 16.0에서 test build가
+  `Cannot find 'SymbolKeyboardMode' in scope`로 실패했다(`xcodebuild` exit 65).
+  xcresult는
+  `/Users/macmillan/Library/Developer/Xcode/DerivedData/SYKeyboard-hgprdtyustcuukabeovkjzrtclhy/Logs/Test/Test-SYKeyboard-2026.08.12_21-55-43-+0900.xcresult`다.
+- GREEN: 같은 destination에서 `KeyboardSymbolInputPolicyTests` 고유 테스트 6개가
+  모두 통과했다(`xcodebuild` exit 0). xcresult는
+  `/Users/macmillan/Library/Developer/Xcode/DerivedData/SYKeyboard-hgprdtyustcuukabeovkjzrtclhy/Logs/Test/Test-SYKeyboard-2026.08.12_21-56-32-+0900.xcresult`다.
 
 ### Task 2: 기호 키보드의 모드별 키와 하단 행 전환 복원
 

@@ -13,6 +13,34 @@ import UIKit
 @Suite("심볼 키보드 입력 정책 검증")
 struct KeyboardSymbolInputPolicyTests {
 
+    @Test("UIKeyboardType은 대응하는 기호 키보드 모드로 매핑")
+    func testUIKeyboardType별기호키보드모드() {
+        #expect(SymbolKeyboardMode(keyboardType: nil) == .default)
+        #expect(SymbolKeyboardMode(keyboardType: .default) == .default)
+        #expect(SymbolKeyboardMode(keyboardType: .numbersAndPunctuation) == .default)
+        #expect(SymbolKeyboardMode(keyboardType: .URL) == .URL)
+        #expect(SymbolKeyboardMode(keyboardType: .emailAddress) == .emailAddress)
+        #expect(SymbolKeyboardMode(keyboardType: .webSearch) == .webSearch)
+        #expect(SymbolKeyboardMode(keyboardType: .twitter) == .default)
+    }
+
+    @Test("기호 키보드 모드는 일반과 Shift 키 배열을 제공")
+    func test기호키보드모드별키배열() {
+        #expect(
+            SymbolKeyboardMode.default.keyList[0][1].map { $0.first ?? "" } ==
+            ["-", "/", ":", ";", "(", ")", "₩", "&", "@", "”"]
+        )
+        #expect(
+            SymbolKeyboardMode.URL.keyList[0][2].map { $0.first ?? "" } ==
+            ["_", ":", "-", "+", ""]
+        )
+        #expect(
+            SymbolKeyboardMode.emailAddress.keyList[0][2].map { $0.first ?? "" } ==
+            [".", "_", "-", "+", ""]
+        )
+        #expect(SymbolKeyboardMode.webSearch.keyList == SymbolKeyboardMode.default.keyList)
+    }
+
     @MainActor
     @Test("기호 키보드 작은따옴표 키는 닫는 따옴표를 표시")
     func test기호키보드작은따옴표표시() {
