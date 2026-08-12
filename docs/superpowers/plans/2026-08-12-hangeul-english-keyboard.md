@@ -498,7 +498,7 @@ git commit -m "refactor: #46 - 다중 주 키보드 공통 기반 추가"
 - Produces: `public func finishForLanguageChange()`
 - Preserves: `HangeulKeyboardCoreViewController`의 기존 override 결과
 
-- [ ] **Step 1: 어댑터 production 진입점 실패 테스트 작성**
+- [x] **Step 1: 어댑터 production 진입점 실패 테스트 작성**
 
 ```swift
 @Suite("한글 입력 어댑터")
@@ -528,7 +528,7 @@ struct HangeulKeyboardInputAdapterTests {
 
 기존 `HangeulCompositionStateTests`의 조합/삭제 기대값은 그대로 유지한다.
 
-- [ ] **Step 2: 어댑터 부재 RED 확인**
+- [x] **Step 2: 어댑터 부재 RED 확인**
 
 ```sh
 xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
@@ -539,7 +539,7 @@ xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
 
 Expected: `HangeulKeyboardInputAdapter` 부재로 test build 실패.
 
-- [ ] **Step 3: transition 공개 범위와 어댑터 최소 구현**
+- [x] **Step 3: transition 공개 범위와 어댑터 최소 구현**
 
 통합 extension이 edit를 Base wrapper로 적용할 수 있게 기존 이름을 유지하며 필요한 멤버만 public으로 연다.
 
@@ -620,14 +620,14 @@ public final class HangeulKeyboardInputAdapter {
 
 Concrete 한글 view와 `HangeulKeyboardLayoutProvider`는 adapter가 public `PrimaryKeyboardRepresentable`로 제공할 수 있는 최소 initializer/access만 공개한다.
 
-- [ ] **Step 4: 기존 한글 controller를 어댑터 routing으로 전환**
+- [x] **Step 4: 기존 한글 controller를 어댑터 routing으로 전환**
 
 - 기존 `compositionState`, 세 Processor, 세 view 저장 property를 adapter 하나로 교체한다.
 - 각 override는 adapter의 production method를 호출하고 기존 `applyCompositionTransition(_:)`로 edit를 적용한다.
 - `shouldDeferUndoRedoCommit`, space image, shift reset, repeat/delete pan hook의 기존 순서와 `super` 호출 위치를 유지한다.
 - 동작 변경 없이 controller가 adapter를 실제 사용하도록 한다. adapter만 테스트하고 controller가 과거 private state를 계속 사용하게 두지 않는다.
 
-- [ ] **Step 5: 관련 한글 전체 GREEN 확인**
+- [x] **Step 5: 관련 한글 전체 GREEN 확인**
 
 ```sh
 xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
@@ -642,7 +642,7 @@ xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
 
 Expected: 지정 suite 모두 PASS. Processor 반환값과 composition state 기대값이 extraction 전과 동일.
 
-- [ ] **Step 6: 한글 extension build**
+- [x] **Step 6: 한글 extension build**
 
 ```sh
 xcodebuild build -project SYKeyboard.xcodeproj -scheme HangeulKeyboard \
@@ -651,7 +651,7 @@ xcodebuild build -project SYKeyboard.xcodeproj -scheme HangeulKeyboard \
 
 Expected: exit 0.
 
-- [ ] **Step 7: 결과 기록과 커밋**
+- [x] **Step 7: 결과 기록과 커밋**
 
 ```sh
 git add Modules/HangeulKeyboardCore/Domain/HangeulCompositionState.swift \
@@ -666,6 +666,13 @@ git add Modules/HangeulKeyboardCore/Domain/HangeulCompositionState.swift \
   docs/superpowers/plans/2026-08-12-hangeul-english-keyboard.md
 git commit -m "refactor: #46 - 한글 입력 상태 어댑터 분리"
 ```
+
+**Result:**
+
+- RED: 지정 adapter/composition 명령의 기본 sandbox 실행은 CoreSimulator와 SwiftPM cache 권한 오류로 컴파일 전에 중단되어 exit 74였고 RED 근거로 사용하지 않았다. 같은 명령을 권한 있는 환경에서 다시 실행해 exit 65와 `Cannot find 'HangeulKeyboardInputAdapter' in scope`를 확인했다. 결과는 `/Users/macmillan/Library/Developer/Xcode/DerivedData/SYKeyboard-hgprdtyustcuukabeovkjzrtclhy/Logs/Test/Test-SYKeyboard-2026.08.13_01-40-36-+0900.xcresult`에 기록되었다.
+- GREEN: `xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0' -only-testing:SYKeyboardTests/HangeulKeyboardInputAdapterTests -only-testing:SYKeyboardTests/HangeulCompositionStateTests -only-testing:SYKeyboardTests/NaratgeulProcessorTests -only-testing:SYKeyboardTests/CheonjiinProcessorTests -only-testing:SYKeyboardTests/DubeolsikProcessorTests -only-testing:SYKeyboardTests/HangeulAutomataTests`를 권한 있는 환경에서 실행해 exit 0, 고유 59/59 passed, failed 0, skipped 0을 확인했다. destination은 iPhone 13 mini / iOS 16.0 (arm64)이며 최종 결과는 `/Users/macmillan/Library/Developer/Xcode/DerivedData/SYKeyboard-hgprdtyustcuukabeovkjzrtclhy/Logs/Test/Test-SYKeyboard-2026.08.13_01-51-43-+0900.xcresult`에 기록되었다.
+- BUILD: `xcodebuild build -project SYKeyboard.xcodeproj -scheme HangeulKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0'`를 권한 있는 환경에서 실행해 exit 0과 `** BUILD SUCCEEDED **`를 확인했다. 최종 build log는 `/Users/macmillan/Library/Application Support/rtk/tee/1786553599_xcodebuild_build_-project_SYKeyboard_xco.log`에 기록되었다.
+- 구현: 기존 controller의 composition/processor/view 상태를 `HangeulKeyboardInputAdapter`로 완전히 교체했다. concrete view는 adapter 내부에서 `PrimaryKeyboardRepresentable`로 type erasure되므로 cross-module public 접근을 추가로 열지 않았다.
 
 ### Task 5: 영어 입력 어댑터 추출
 

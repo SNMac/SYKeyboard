@@ -25,70 +25,28 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
     
     // MARK: - Properties
     
-    /// 한글 조합 상태 전이.
-    private var compositionState = HangeulCompositionState()
-    /// 글자가 입력되었는지 확인하는 플래그
-    private var is글자Input: Bool = false
-    /// 한글 오토마타
-    private let automata: HangeulAutomataProtocol = HangeulAutomata()
-    /// 나랏글 입력기
-    private lazy var naratgeulProcessor: HangeulProcessable = NaratgeulProcessor(automata: automata)
-    /// 천지인 입력기
-    private lazy var cheonjiinProcessor: HangeulProcessable = CheonjiinProcessor(automata: automata)
-    /// 두벌식 입력기
-    private lazy var dubeolsikProcessor: HangeulProcessable = DubeolsikProcessor(automata: automata)
-    
-    /// 한글 키보드 입력기
-    private var processor: HangeulProcessable {
-        switch UserDefaultsManager.shared.selectedHangeulKeyboard {
-        case .naratgeul:
-            return naratgeulProcessor
-        case .cheonjiin:
-            return cheonjiinProcessor
-        case .dubeolsik:
-            return dubeolsikProcessor
-        }
-    }
+    private let inputAdapter: HangeulKeyboardInputAdapter
 
-    private var committedBuffer: String { compositionState.committedBuffer }
-
-    private var composingBuffer: String { compositionState.composingBuffer }
-
-    private var lastInputText: String? { compositionState.lastInputText }
-    
     // MARK: - UI Components
-    
-    /// 나랏글 키보드
-    private lazy var naratgeulKeyboardView: HangeulKeyboardLayoutProvider = NaratgeulKeyboardView()
-    /// 천지인 키보드
-    private lazy var cheonjiinKeyboardView: HangeulKeyboardLayoutProvider = CheonjiinKeyboardView()
-    /// 두벌식 키보드
-    private lazy var dubeolsikKeyboardView: HangeulKeyboardLayoutProvider = DubeolsikKeyboardView(
-        getIsShiftedLetterInput: { [weak self] in return self?.is글자Input ?? false },
-        setIsShiftedLetterInput: { [weak self] is글자Input in self?.is글자Input = is글자Input }
-    )
-    
-    /// 사용자가 선택한 한글 키보드
-    private var hangeulKeyboardView: HangeulKeyboardLayoutProvider {
-        switch UserDefaultsManager.shared.selectedHangeulKeyboard {
-        case .naratgeul:
-            return naratgeulKeyboardView
-        case .cheonjiin:
-            return cheonjiinKeyboardView
-        case .dubeolsik:
-            return dubeolsikKeyboardView
-        }
+
+    open override var primaryKeyboardViews: [PrimaryKeyboardRepresentable] {
+        return inputAdapter.primaryKeyboardViews
     }
-    
-    open override var primaryKeyboardView: PrimaryKeyboardRepresentable { hangeulKeyboardView }
+
+    open override var primaryKeyboardView: PrimaryKeyboardRepresentable {
+        return inputAdapter.primaryKeyboardView
+    }
 
     open override var shouldDeferUndoRedoCommit: Bool {
-        return !composingBuffer.isEmpty
+        return inputAdapter.shouldDeferUndoRedoCommit
     }
     
     // MARK: - Initializer
     
     public init() {
+        inputAdapter = HangeulKeyboardInputAdapter(
+            selectedKeyboard: UserDefaultsManager.shared.selectedHangeulKeyboard
+        )
         SwitchButton.previewPrimaryLanguage = "ko-KR"
         super.init(language: "ko-KR")
     }
@@ -101,23 +59,21 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
     
     open override func textWillChange(_ textInput: (any UITextInput)?) {
         super.textWillChange(textInput)
-        clearAllBuffers()
-        processor.reset한글조합()
+        inputAdapter.clearForExternalTextChange()
         updateSpaceButtonImage()
         updateShiftButton()
     }
 
     open override func undoRedoEditDidApply() {
         super.undoRedoEditDidApply()
-        clearAllBuffers()
-        processor.reset한글조합()
+        inputAdapter.clearForExternalTextChange()
         updateSpaceButtonImage()
         updateShiftButton()
     }
     
     open override func didSetCurrentKeyboard() {
         super.didSetCurrentKeyboard()
-        is글자Input = false
+        inputAdapter.clearLetterInputState()
         updateShiftButton()
     }
     
@@ -125,19 +81,16 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
         guard textDocumentProxy.keyboardType != oldKeyboardType else { return }
         let symbolKeyboardMode = SymbolKeyboardMode(keyboardType: textDocumentProxy.keyboardType)
         symbolKeyboardView.currentSymbolKeyboardMode = symbolKeyboardMode
+        inputAdapter.updateLayout(for: textDocumentProxy.keyboardType)
         
         switch textDocumentProxy.keyboardType {
         case .default, nil:
-            hangeulKeyboardView.currentHangeulKeyboardMode = .default
             currentKeyboard = primaryKeyboardView.keyboard
         case .asciiCapable:
-            hangeulKeyboardView.currentHangeulKeyboardMode = .default
             currentKeyboard = primaryKeyboardView.keyboard
         case .numbersAndPunctuation:
-            hangeulKeyboardView.currentHangeulKeyboardMode = .default
             currentKeyboard = .symbol
         case .URL:
-            hangeulKeyboardView.currentHangeulKeyboardMode = .URL
             currentKeyboard = primaryKeyboardView.keyboard
         case .numberPad:
             tenkeyKeyboardView.currentTenkeyKeyboardMode = .numberPad
@@ -146,32 +99,27 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
             tenkeyKeyboardView.currentTenkeyKeyboardMode = .numberPad
             currentKeyboard = .tenKey
         case .emailAddress:
-            hangeulKeyboardView.currentHangeulKeyboardMode = .emailAddress
             currentKeyboard = primaryKeyboardView.keyboard
         case .decimalPad:
             tenkeyKeyboardView.currentTenkeyKeyboardMode = .decimalPad
             currentKeyboard = .tenKey
         case .twitter:
-            hangeulKeyboardView.currentHangeulKeyboardMode = .twitter
             currentKeyboard = primaryKeyboardView.keyboard
         case .webSearch:
-            hangeulKeyboardView.currentHangeulKeyboardMode = .webSearch
             currentKeyboard = primaryKeyboardView.keyboard
         case .asciiCapableNumberPad:
             tenkeyKeyboardView.currentTenkeyKeyboardMode = .numberPad
             currentKeyboard = .tenKey
         @unknown default:
-            assertionFailure("구현이 필요한 case 입니다.")
-            hangeulKeyboardView.currentHangeulKeyboardMode = .default
             currentKeyboard = primaryKeyboardView.keyboard
         }
     }
 
     open override func textInteractionWillPerform(button: TextInteractable) {
         if button is DeleteButton {
-            compositionState.beginDeleteButtonTouchDown()
+            inputAdapter.beginDeleteTouchDown()
         } else {
-            compositionState.cancelDeleteButtonTouchDown()
+            inputAdapter.cancelDeleteTouchDown()
         }
         super.textInteractionWillPerform(button: button)
     }
@@ -179,12 +127,12 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
     open override func textInteractionDidPerform(button: TextInteractable) {
         super.textInteractionDidPerform(button: button)
         if button is DeleteButton {
-            compositionState.endDeleteButtonTouchDown()
+            inputAdapter.endDeleteTouchDown()
         } else {
-            compositionState.cancelDeleteButtonTouchDown()
+            inputAdapter.cancelDeleteTouchDown()
         }
-        is글자Input = true
-        if composingBuffer.isEmpty {
+        inputAdapter.recordTextInteraction()
+        if !inputAdapter.shouldDeferUndoRedoCommit {
             commitDeferredUndoRedoGroupIfNeeded()
         }
         if !isRepeatingInput { updateShiftButton() }
@@ -192,8 +140,7 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
     
     open override func suggestionDidApply() {
         super.suggestionDidApply()
-        clearAllBuffers()
-        processor.reset한글조합()
+        inputAdapter.clearForExternalTextChange()
         updateSpaceButtonImage()
     }
     
@@ -205,7 +152,7 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
         }
 
         super.performTextInteraction(for: button)
-        if lastInputText != nil || button is SpaceButton {
+        if inputAdapter.hasRepeatableInput || button is SpaceButton {
             button.playFeedback()
         }
     }
@@ -214,10 +161,13 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
         super.repeatTextInteractionDidPerform(button: button)
         
         if button is DeleteButton {
-            applyCompositionTransition(compositionState.finishRepeatDelete(using: processor))
+            let transition = inputAdapter.finishRepeatDelete()
+            if transition.proxyEdit != .none {
+                applyCompositionTransition(transition)
+            }
         }
         
-        if composingBuffer.isEmpty {
+        if !inputAdapter.shouldDeferUndoRedoCommit {
             commitDeferredUndoRedoGroupIfNeeded()
         }
         updateShiftButton()
@@ -227,8 +177,7 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
         if BaseKeyboardViewController.isPreview { return }
 
         if currentKeyboard == .symbol {
-            clearAllBuffers()
-            processor.reset한글조합()
+            inputAdapter.clearForExternalTextChange()
             super.insertPrimaryKeyText(from: button)
             updateSpaceButtonImage()
             return
@@ -236,7 +185,7 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
         
         guard let primaryKey = button.type.primaryKeyList.first else { fatalError("primaryKeyList 배열이 비어있습니다.") }
         
-        applyCompositionTransition(compositionState.input(primaryKey, using: processor))
+        applyCompositionTransition(inputAdapter.input(primaryKey))
     }
     
     open override func insertSecondaryKeyText(from button: TextInteractable) {
@@ -247,7 +196,7 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
             return
         }
         
-        applyCompositionTransition(compositionState.input(secondaryKey, using: processor))
+        applyCompositionTransition(inputAdapter.input(secondaryKey))
     }
     
     open override func repeatInsertPrimaryKeyText(from button: TextInteractable) {
@@ -259,13 +208,13 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
             return
         }
         
-        guard lastInputText != nil else {
+        guard inputAdapter.hasRepeatableInput else {
             super.repeatTextInteractionDidPerform(button: button)
             button.isGesturing = false
             return
         }
         
-        applyCompositionTransition(compositionState.repeatInsert(using: processor))
+        applyCompositionTransition(inputAdapter.repeatInput())
     }
     
     open override func insertSpaceText() {
@@ -274,7 +223,7 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
         if currentKeyboard == .naratgeul
             || currentKeyboard == .cheonjiin
             || currentKeyboard == .dubeolsik {
-            let transition = compositionState.space(using: processor)
+            let transition = inputAdapter.space()
             if transition.proxyEdit == .insert(" ") {
                 super.insertSpaceText()
             } else {
@@ -282,8 +231,7 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
             }
         } else {
             super.insertSpaceText()
-            clearAllBuffers()
-            processor.reset한글조합()
+            inputAdapter.clearForExternalTextChange()
         }
         
         commitUndoRedoGroupIfPossible()
@@ -295,8 +243,7 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
         
         super.insertReturnText()
         
-        clearAllBuffers()
-        processor.reset한글조합()
+        inputAdapter.clearForExternalTextChange()
         commitUndoRedoGroupIfPossible()
         updateSpaceButtonImage()
     }
@@ -322,14 +269,14 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
 
         deleteBackwardWillPerform()
 
-        applyCompositionTransition(compositionState.delete(using: processor))
+        applyCompositionTransition(inputAdapter.delete())
         updateSpaceButtonImage()
     }
 
     open override func deleteButtonPanDeleteText(hasPendingRestoreText _: Bool) -> (character: Character, shouldRestore: Bool)? {
         if BaseKeyboardViewController.isPreview { return nil }
 
-        let result = compositionState.deleteButtonPanDelete(using: processor)
+        let result = inputAdapter.beginDeletePan()
         if let result {
             applyCompositionTransition(result.transition)
             updateSpaceButtonImage()
@@ -345,13 +292,13 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
     open override func deleteButtonPanRestoreText(_ character: Character) {
         if BaseKeyboardViewController.isPreview { return }
 
-        applyCompositionTransition(compositionState.deleteButtonPanRestore(character, using: processor))
+        applyCompositionTransition(inputAdapter.restoreDeletePan(character))
         updateSpaceButtonImage()
     }
 
     open override func deleteButtonPanDidStop() {
         super.deleteButtonPanDidStop()
-        compositionState.finishDeleteButtonPan()
+        inputAdapter.finishDeletePan()
     }
 
     open override func repeatDeleteBackward() {
@@ -359,7 +306,7 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
         
         repeatDeleteBackwardWillPerform()
         
-        applyCompositionTransition(compositionState.repeatDelete(using: processor))
+        applyCompositionTransition(inputAdapter.repeatDelete())
         updateSpaceButtonImage()
     }
 }
@@ -395,22 +342,12 @@ private extension HangeulKeyboardCoreViewController {
         updateSpaceButtonImage()
     }
 
-    /// 모든 버퍼를 초기화합니다.
-    func clearAllBuffers() {
-        compositionState.clearAllBuffers()
-    }
-    
     func updateSpaceButtonImage() {
-        if processor.is한글조합OnGoing {
-            primaryKeyboardView.updateSpaceButtonImage(systemName: "arrow.right")
-        } else {
-            primaryKeyboardView.updateSpaceButtonImage(systemName: "space")
-        }
+        inputAdapter.updateSpaceButtonImage()
     }
     
     func updateShiftButton() {
         guard !buttonStateController.isShiftButtonPressed else { return }
-        primaryKeyboardView.updateShiftButton(to: false)
-        is글자Input = false
+        inputAdapter.resetShiftState()
     }
 }

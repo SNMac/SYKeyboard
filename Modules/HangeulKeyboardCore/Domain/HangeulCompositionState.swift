@@ -5,29 +5,31 @@
 //  Created by Codex on 6/3/26.
 //
 
-enum HangeulProxyEdit: Equatable {
+public enum HangeulProxyEdit: Equatable {
     case none
     case insert(String)
     case delete(count: Int)
     case replace(deleteCount: Int, insertText: String)
 }
 
-struct HangeulCompositionTransition: Equatable {
-    let proxyEdits: [HangeulProxyEdit]
+public struct HangeulCompositionTransition: Equatable {
+    public let proxyEdits: [HangeulProxyEdit]
 
-    var proxyEdit: HangeulProxyEdit {
+    public var proxyEdit: HangeulProxyEdit {
         return proxyEdits.last ?? .none
     }
 
-    init(proxyEdit: HangeulProxyEdit) {
+    public init(proxyEdit: HangeulProxyEdit) {
         proxyEdits = [proxyEdit]
     }
 
-    init(proxyEdits: [HangeulProxyEdit]) {
+    public init(proxyEdits: [HangeulProxyEdit]) {
         self.proxyEdits = proxyEdits
     }
 
-    func appending(_ transition: HangeulCompositionTransition?) -> HangeulCompositionTransition {
+    public func appending(
+        _ transition: HangeulCompositionTransition?
+    ) -> HangeulCompositionTransition {
         guard let transition else { return self }
         return HangeulCompositionTransition(proxyEdits: proxyEdits + transition.proxyEdits)
     }
@@ -38,10 +40,10 @@ struct HangeulDeleteTouchDownResult: Equatable {
     let transition: HangeulCompositionTransition
 }
 
-struct HangeulDeletePanResult: Equatable {
-    let character: Character
-    let shouldRestore: Bool
-    let transition: HangeulCompositionTransition
+public struct HangeulDeletePanResult: Equatable {
+    public let character: Character
+    public let shouldRestore: Bool
+    public let transition: HangeulCompositionTransition
 }
 
 struct HangeulCompositionState {
