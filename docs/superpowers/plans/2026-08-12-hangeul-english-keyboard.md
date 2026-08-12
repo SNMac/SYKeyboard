@@ -367,7 +367,7 @@ git commit -m "feat: #46 - 자동완성 언어 전환 지원"
 - Changes: `KeyboardView.loadFromNib(primaryKeyboardViews:)`
 - Preserves: single-primary subclasses without override changes
 
-- [ ] **Step 1: 다중 view container 실패 테스트 작성**
+- [x] **Step 1: 다중 view container 실패 테스트 작성**
 
 테스트 파일에 `StandardKeyboardView`를 상속한 `TestPrimaryKeyboardView` 두 개를 만들고 production `KeyboardView.loadFromNib(primaryKeyboardViews:)`를 호출한다. `KeyboardView`에는 `@testable`에서 설치 결과를 읽을 수 있는 `private(set) var primaryKeyboardViews`를 둔다.
 
@@ -390,7 +390,7 @@ func testKeyboardViewKeepsAllPrimaryViews() {
 
 `TestPrimaryKeyboardView`는 `keyboard`, 3행 일반/Shift `primaryKeyList`, 같은 shape의 빈 `secondaryKeyList`만 override하고 `PrimaryKeyboardRepresentable`을 채택한다.
 
-- [ ] **Step 2: 단일 인자 API 때문에 RED 확인**
+- [x] **Step 2: 단일 인자 API 때문에 RED 확인**
 
 ```sh
 xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
@@ -400,7 +400,7 @@ xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
 
 Expected: `loadFromNib(primaryKeyboardViews:)`를 찾을 수 없어 test build 실패.
 
-- [ ] **Step 3: stable list와 active view 분리 구현**
+- [x] **Step 3: stable list와 active view 분리 구현**
 
 `BaseKeyboardViewController` 기본 API:
 
@@ -432,7 +432,7 @@ open func textInputDidChange(_ textInput: (any UITextInput)?) {}
 - `textWillChange` 시작에서 이전/새 `ObjectIdentifier?`를 비교하고 식별자가 실제로 바뀐 경우 한 번만 `textInputDidChange(_:)`를 호출한다. `nil`이면 현재 mode를 강제 변경하지 않는다.
 - setup에서 action은 한 번만 등록하며 mode 전환 시 `setupUI()`를 다시 호출하지 않는다.
 
-- [ ] **Step 4: 다중 view와 기존 공통 정책 GREEN 확인**
+- [x] **Step 4: 다중 view와 기존 공통 정책 GREEN 확인**
 
 ```sh
 xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
@@ -444,7 +444,7 @@ xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
 
 Expected: 모든 지정 테스트 PASS, Auto Layout constraint warning 없음.
 
-- [ ] **Step 5: 기존 전용 extension compile 회귀 확인**
+- [x] **Step 5: 기존 전용 extension compile 회귀 확인**
 
 ```sh
 xcodebuild build -project SYKeyboard.xcodeproj -scheme HangeulKeyboard \
@@ -455,7 +455,7 @@ xcodebuild build -project SYKeyboard.xcodeproj -scheme EnglishKeyboard \
 
 Expected: 두 build exit 0.
 
-- [ ] **Step 6: 결과 기록과 커밋**
+- [x] **Step 6: 결과 기록과 커밋**
 
 ```sh
 git add Modules/SYKeyboardCore/Presentation/View/KeyboardView.swift \
@@ -465,6 +465,12 @@ git add Modules/SYKeyboardCore/Presentation/View/KeyboardView.swift \
   docs/superpowers/plans/2026-08-12-hangeul-english-keyboard.md
 git commit -m "refactor: #46 - 다중 주 키보드 공통 기반 추가"
 ```
+
+**Result:**
+
+- RED: `xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0' -only-testing:SYKeyboardTests/KeyboardPrimaryViewCollectionTests`를 권한 있는 환경에서 실행해 exit 65를 확인했다. `loadFromNib(primaryKeyboardViews:)` 인자 label이 없어 test build가 실패했으며 결과는 `/Users/macmillan/Library/Developer/Xcode/DerivedData/SYKeyboard-hgprdtyustcuukabeovkjzrtclhy/Logs/Test/Test-SYKeyboard-2026.08.13_01-12-01-+0900.xcresult`에 기록되었다. 기본 sandbox 실행은 CoreSimulator/SwiftPM cache 권한 오류로 exit 74가 되어 RED 근거에서 제외했다.
+- GREEN: collection, switch gesture, text interaction policy 세 suite를 함께 실행해 exit 0, 고유 36/36 passed, failed 0, skipped 0을 확인했다. destination은 iPhone 13 mini / iOS 16.0 (arm64)이며 결과는 `/Users/macmillan/Library/Developer/Xcode/DerivedData/SYKeyboard-hgprdtyustcuukabeovkjzrtclhy/Logs/Test/Test-SYKeyboard-2026.08.13_01-18-19-+0900.xcresult`에 기록되었다. 실행 로그에서 Auto Layout constraint 충돌은 확인되지 않았다.
+- BUILD: 같은 destination에서 `HangeulKeyboard`와 `EnglishKeyboard` scheme build를 각각 실행해 모두 exit 0을 확인했다. 최종 로그는 `/Users/macmillan/Library/Application Support/rtk/tee/1786551597_xcodebuild_build_-project_SYKeyboard_xco.log`, `/Users/macmillan/Library/Application Support/rtk/tee/1786551613_xcodebuild_build_-project_SYKeyboard_xco.log`이다.
 
 ### Task 4: 한글 입력 어댑터 추출
 

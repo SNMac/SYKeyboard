@@ -62,8 +62,8 @@ final public class KeyboardView: UIInputView {
         return chevronButton
     }()
     
-    /// 주 키보드
-    private var primaryKeyboardView: PrimaryKeyboardRepresentable!
+    /// 주 키보드 목록
+    private(set) var primaryKeyboardViews: [PrimaryKeyboardRepresentable] = []
     
     /// 기호 키보드
     lazy var symbolKeyboardView: SymbolKeyboardLayoutProvider = {
@@ -109,7 +109,7 @@ final public class KeyboardView: UIInputView {
     
     // MARK: - Internal Methods
     
-    static func loadFromNib(primaryKeyboardView: PrimaryKeyboardRepresentable) -> KeyboardView {
+    static func loadFromNib(primaryKeyboardViews: [PrimaryKeyboardRepresentable]) -> KeyboardView {
         let nibName = "KeyboardView"
         
         let bundle = SYKBDAssets.bundle
@@ -119,7 +119,7 @@ final public class KeyboardView: UIInputView {
             fatalError("bundle로부터 \(nibName)를 불러오는 데에 실패했습니다.")
         }
         
-        view.primaryKeyboardView = primaryKeyboardView
+        view.primaryKeyboardViews = primaryKeyboardViews
         view.setupUI()
         
         return view
@@ -160,7 +160,9 @@ private extension KeyboardView {
         
         [leftChevronButton, keyboardLayoutView, rightChevronButton].forEach { keyboardHStackView.addArrangedSubview($0) }
         
-        [primaryKeyboardView, symbolKeyboardView, numericKeyboardView, tenkeyKeyboardView].forEach { keyboardLayoutView.addSubview($0) }
+        (primaryKeyboardViews.map { $0 as UIView }
+         + [symbolKeyboardView, numericKeyboardView, tenkeyKeyboardView])
+            .forEach { keyboardLayoutView.addSubview($0) }
     }
     
     func setConstraints() {
@@ -186,7 +188,8 @@ private extension KeyboardView {
         keyboardLayoutWidthConstraint = keyboardLayoutView.widthAnchor.constraint(greaterThanOrEqualToConstant: minWidth)
         keyboardLayoutWidthConstraint?.isActive = true
         
-        [primaryKeyboardView, symbolKeyboardView, numericKeyboardView, tenkeyKeyboardView].forEach {
+        (primaryKeyboardViews.map { $0 as UIView }
+         + [symbolKeyboardView, numericKeyboardView, tenkeyKeyboardView]).forEach {
             $0.translatesAutoresizingMaskIntoConstraints = false
             NSLayoutConstraint.activate([
                 $0.topAnchor.constraint(equalTo: keyboardLayoutView.topAnchor),

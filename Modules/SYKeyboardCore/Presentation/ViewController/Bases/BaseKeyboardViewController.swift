@@ -66,20 +66,19 @@ open class BaseKeyboardViewController: UIInputViewController {
     }
     /// 키보드 리턴 버튼 배열
     private var returnButtonList: [ReturnButton] {
-        return [primaryKeyboardView.returnButton,
-                symbolKeyboardView.returnButton,
-                numericKeyboardView.returnButton]
+        return primaryKeyboardViews.map(\.returnButton)
+        + [symbolKeyboardView.returnButton, numericKeyboardView.returnButton]
     }
     /// 전체 키보드 버튼 배열
     private var allKeyboardButtonList: [BaseKeyboardButton] {
-        return primaryKeyboardView.allButtonList
+        return primaryKeyboardViews.flatMap(\.allButtonList)
         + symbolKeyboardView.allButtonList
         + numericKeyboardView.allButtonList
         + tenkeyKeyboardView.allButtonList
     }
     /// 기본/숫자 키보드 입력 버튼 배열
     private var primaryAndNumericTextInteractableButtonList: [TextInteractable] {
-        return primaryKeyboardView.totalTextInterableButtonList
+        return primaryKeyboardViews.flatMap(\.totalTextInterableButtonList)
         + numericKeyboardView.totalTextInterableButtonList
     }
 
@@ -93,8 +92,8 @@ open class BaseKeyboardViewController: UIInputViewController {
     /// 키보드 전환 버튼 제스처 컨트롤러
     private lazy var switchGestureController = SwitchGestureController(
         keyboardHStackView: keyboardHStackView,
-        hangeulKeyboardView: primaryKeyboardView as SwitchGestureHandling,
-        englishKeyboardView: primaryKeyboardView as SwitchGestureHandling,
+        hangeulKeyboardView: hangeulSwitchGestureKeyboardView,
+        englishKeyboardView: englishSwitchGestureKeyboardView,
         symbolKeyboardView: symbolKeyboardView,
         numericKeyboardView: numericKeyboardView,
         getCurrentKeyboard: { [weak self] in return self?.currentKeyboard ?? .naratgeul },
@@ -149,6 +148,8 @@ open class BaseKeyboardViewController: UIInputViewController {
     private var isDrainingPendingDeleteInteractions = false
     /// 현재 host text input의 식별자입니다.
     private var currentTextInputIdentifier: ObjectIdentifier?
+    /// host text input 변경 hook에 마지막으로 전달한 식별자입니다.
+    private var lastNotifiedTextInputIdentifier: ObjectIdentifier?
     /// host 입력 변경 callback에서 마지막으로 확인한 자동 수정 설정입니다.
     private var currentAutocorrectionType: UITextAutocorrectionType?
     /// host 입력 변경 callback에서 마지막으로 확인한 수식 자동완성 허용 상태입니다.
@@ -175,7 +176,7 @@ open class BaseKeyboardViewController: UIInputViewController {
     // MARK: - UI Components
 
     private lazy var keyboardView: KeyboardView = {
-        return KeyboardView.loadFromNib(primaryKeyboardView: primaryKeyboardView)
+        return KeyboardView.loadFromNib(primaryKeyboardViews: primaryKeyboardViews)
     }()
     /// 자동완성 툴바
     private lazy var suggestionBarView = keyboardView.suggestionBarView
@@ -185,6 +186,12 @@ open class BaseKeyboardViewController: UIInputViewController {
     private lazy var leftChevronButton = keyboardView.leftChevronButton
     /// 주 키보드(오버라이딩 필요)
     open var primaryKeyboardView: PrimaryKeyboardRepresentable { fatalError("프로퍼티가 오버라이딩 되지 않았습니다.") }
+    /// 설치할 주 키보드 목록
+    open var primaryKeyboardViews: [PrimaryKeyboardRepresentable] { [primaryKeyboardView] }
+    /// 한글 전환 제스처를 처리할 키보드
+    open var hangeulSwitchGestureKeyboardView: SwitchGestureHandling { primaryKeyboardView }
+    /// 영어 전환 제스처를 처리할 키보드
+    open var englishSwitchGestureKeyboardView: SwitchGestureHandling { primaryKeyboardView }
     /// 기호 키보드
     final public lazy var symbolKeyboardView: SymbolKeyboardLayoutProvider = keyboardView.symbolKeyboardView
     /// 숫자 키보드
@@ -304,6 +311,11 @@ open class BaseKeyboardViewController: UIInputViewController {
     open override func textWillChange(_ textInput: (any UITextInput)?) {
         super.textWillChange(textInput)
         logger.debug("textWillChange")
+        let inputIdentifier = textInputIdentifier(for: textInput)
+        if inputIdentifier != lastNotifiedTextInputIdentifier {
+            lastNotifiedTextInputIdentifier = inputIdentifier
+            textInputDidChange(textInput)
+        }
         synchronizeTextInputTraits()
         synchronizeDeleteInteractionInputIdentifier(textInput)
         undoRedoSession.prepareForTextWillChange(
@@ -363,6 +375,7 @@ open class BaseKeyboardViewController: UIInputViewController {
         super.viewWillDisappear(animated)
         stopRepeatInputTracking()
         currentTextInputIdentifier = nil
+        lastNotifiedTextInputIdentifier = nil
         undoRedoSession.removeAll()
         updateUndoRedoControls()
         resetInputBuffer()
@@ -375,6 +388,9 @@ open class BaseKeyboardViewController: UIInputViewController {
         updateShowingKeyboard()
         updateReturnButtonType()
     }
+
+    /// 현재 host text input이 바뀐 뒤 실행되는 메서드
+    open func textInputDidChange(_ textInput: (any UITextInput)?) {}
 
     /// `UIKeyboardType`에 맞는 키보드 레이아웃으로 업데이트하는 메서드
     open func updateKeyboardType() { fatalError("메서드가 오버라이딩 되지 않았습니다.") }
@@ -915,7 +931,11 @@ private extension BaseKeyboardViewController {
     }
 
     func setNextKeyboardButton() {
-        [primaryKeyboardView, symbolKeyboardView, numericKeyboardView].forEach {
+        primaryKeyboardViews.forEach {
+            $0.updateNextKeyboardButton(needsInputModeSwitchKey: self.needsInputModeSwitchKey,
+                                        nextKeyboardAction: #selector(self.handleInputModeList(from:with:)))
+        }
+        [symbolKeyboardView, numericKeyboardView].forEach {
             $0.updateNextKeyboardButton(needsInputModeSwitchKey: self.needsInputModeSwitchKey,
                                         nextKeyboardAction: #selector(self.handleInputModeList(from:with:)))
         }
@@ -1099,13 +1119,17 @@ private extension BaseKeyboardViewController {
     }
 
     func setSwitchButtonAction() {
-        let switchToSymbolKeyboard = UIAction { [weak self] action in
-            guard let self else { return }
-            guard let currentPressedButton = buttonStateController.currentPressedButton,
-                  currentPressedButton == primaryKeyboardView.switchButton else { return }
-            currentKeyboard = .symbol
+        primaryKeyboardViews.forEach { primaryKeyboardView in
+            let switchButton = primaryKeyboardView.switchButton
+            let switchToSymbolKeyboard = UIAction { [weak self, weak switchButton] action in
+                guard let self, let switchButton,
+                      let sender = action.sender as? SwitchButton,
+                      sender === switchButton,
+                      buttonStateController.currentPressedButton === switchButton else { return }
+                currentKeyboard = .symbol
+            }
+            switchButton.addAction(switchToSymbolKeyboard, for: .touchUpInside)
         }
-        primaryKeyboardView.switchButton.addAction(switchToSymbolKeyboard, for: .touchUpInside)
 
         let switchToPrimaryKeyboardForSymbol = UIAction { [weak self] _ in
             guard let self else { return }
@@ -1123,9 +1147,9 @@ private extension BaseKeyboardViewController {
         }
         numericKeyboardView.switchButton.addAction(switchToPrimaryKeyboardForNumeric, for: .touchUpInside)
 
-        [primaryKeyboardView.switchButton,
-         symbolKeyboardView.switchButton,
-         numericKeyboardView.switchButton].forEach { addGesturesToSwitchButton($0) }
+        (primaryKeyboardViews.map(\.switchButton)
+         + [symbolKeyboardView.switchButton, numericKeyboardView.switchButton])
+            .forEach { addGesturesToSwitchButton($0) }
     }
 
     func addGesturesToSwitchButton(_ button: SwitchButton) {
@@ -1202,7 +1226,10 @@ private extension BaseKeyboardViewController {
     }
 
     func updateShowingKeyboard() {
-        primaryKeyboardView.isHidden = (currentKeyboard != primaryKeyboardView.keyboard)
+        primaryKeyboardViews.forEach { $0.isHidden = true }
+        if currentKeyboard == primaryKeyboardView.keyboard {
+            primaryKeyboardView.isHidden = false
+        }
         symbolKeyboardView.isHidden = (currentKeyboard != .symbol)
         symbolKeyboardView.initShiftButton()
         isSymbolInput = false
