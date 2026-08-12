@@ -408,7 +408,7 @@ git commit -m "feat: #108 - 기호 키보드 모드별 레이아웃 복원"
 - Consumes: `symbolKeyboardView.currentSymbolKeyboardMode`
 - Preserves: 각 ViewController의 기존 primary/TenKey 선택 switch
 
-- [ ] **Step 1: 두 ViewController가 공통 모드 매핑을 사용하도록 연결**
+- [x] **Step 1: 두 ViewController가 공통 모드 매핑을 사용하도록 연결**
 
 두 `updateKeyboardType()`의 guard 다음, 기존 switch 앞에 같은 코드를 추가한다.
 모드 매핑 자체는 Task 1에서 RED/GREEN 검증한 production policy를 사용하며 별도
@@ -419,7 +419,7 @@ let symbolKeyboardMode = SymbolKeyboardMode(keyboardType: textDocumentProxy.keyb
 symbolKeyboardView.currentSymbolKeyboardMode = symbolKeyboardMode
 ```
 
-- [ ] **Step 2: 관련 정책·뷰 테스트 재실행**
+- [x] **Step 2: 관련 정책·뷰 테스트 재실행**
 
 ```sh
 xcodebuild test \
@@ -432,7 +432,7 @@ xcodebuild test \
 
 Expected: 기호 레이아웃과 Smart Punctuation 관련 테스트 전체 PASS.
 
-- [ ] **Step 3: 전체 테스트 실행**
+- [x] **Step 3: 전체 테스트 실행**
 
 ```sh
 xcodebuild test \
@@ -443,7 +443,7 @@ xcodebuild test \
 
 Expected: exit 0, 실패 0. 고유 테스트 개수와 xcresult 경로를 기록한다.
 
-- [ ] **Step 4: 앱과 두 키보드 extension 빌드**
+- [x] **Step 4: 앱과 두 키보드 extension 빌드**
 
 ```sh
 xcodebuild build -project SYKeyboard.xcodeproj -scheme SYKeyboard \
@@ -456,7 +456,7 @@ xcodebuild build -project SYKeyboard.xcodeproj -scheme EnglishKeyboard \
 
 Expected: 세 scheme 모두 exit 0.
 
-- [ ] **Step 5: 실제 입력 화면 smoke test 또는 미확인 경로 기록**
+- [x] **Step 5: 실제 입력 화면 smoke test 또는 미확인 경로 기록**
 
 실제 입력 앱에서 한글·영문 키보드 각각 다음을 확인한다.
 
@@ -471,7 +471,7 @@ Expected: 세 scheme 모두 exit 0.
 키보드 extension 활성화나 host 앱 상태로 관찰하지 못하면 차단 경로를 정확히
 기록하고 완료 또는 production-ready로 표현하지 않는다.
 
-- [ ] **Step 6: 변경 범위 점검, 결과 기록 및 커밋**
+- [x] **Step 6: 변경 범위 점검, 결과 기록 및 커밋**
 
 ```sh
 git diff --check
@@ -488,3 +488,26 @@ git add \
   docs/superpowers/plans/2026-08-12-symbol-keyboard-layout-restoration.md
 git commit -m "feat: #108 - 한글·영문 기호 레이아웃 모드 연결"
 ```
+
+**Result:**
+
+- 관련 테스트: iPhone 13 mini / iOS 16.0에서
+  `KeyboardSymbolInputPolicyTests` 10개와 `KeyboardSmartInputPolicyTests` 13개,
+  고유 테스트 23개가 모두 통과했다(`xcodebuild` exit 0). xcresult는
+  `/Users/macmillan/Library/Developer/Xcode/DerivedData/SYKeyboard-hgprdtyustcuukabeovkjzrtclhy/Logs/Test/Test-SYKeyboard-2026.08.12_22-04-46-+0900.xcresult`다.
+- 전체 테스트: 같은 destination에서 총 383개가 통과했고 실패·스킵은 0개다
+  (`xcodebuild` exit 0). `xcresulttool` summary에서도 `result: Passed`,
+  `totalTestCount: 383`, `failedTests: 0`, `skippedTests: 0`을 확인했다.
+  xcresult는
+  `/Users/macmillan/Library/Developer/Xcode/DerivedData/SYKeyboard-hgprdtyustcuukabeovkjzrtclhy/Logs/Test/Test-SYKeyboard-2026.08.12_22-06-03-+0900.xcresult`다.
+- 빌드: iPhone 13 mini / iOS 16.0에서 `SYKeyboard`, `HangeulKeyboard`,
+  `EnglishKeyboard` scheme이 모두 성공했다(각 `xcodebuild` exit 0).
+  `SYKeyboard` 빌드에는 외부 `FBAudienceNetwork` 정적 라이브러리의 누락된
+  module cache 관련 디버그 정보 경고가 있었지만 빌드는 성공했다.
+- 실제 입력 화면: XcodeBuildMCP에서 사용 가능한 Simulator 51개가 모두
+  `Shutdown` 상태였다. `ios-debugger-agent` 지침에 따라 요청 없이 부팅하지 않아
+  한글·영문 extension의 기본/URL/이메일/웹 검색 필드별 표시, Shift 조작,
+  Smart Punctuation 입력, 런타임 Auto Layout 로그는 이번 실행에서 관찰하지
+  못했다. 따라서 실제 화면 검증과 production-ready 판정은 미완료 상태다.
+- 변경 범위: `git diff --check`가 통과했고, 커밋 전 작업 트리에는 두
+  ViewController와 이 계획 문서만 수정된 상태임을 확인했다.

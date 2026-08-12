@@ -64,6 +64,9 @@ open class EnglishKeyboardCoreViewController: BaseKeyboardViewController {
     
     open override func updateKeyboardType() {
         guard textDocumentProxy.keyboardType != oldKeyboardType else { return }
+        let symbolKeyboardMode = SymbolKeyboardMode(keyboardType: textDocumentProxy.keyboardType)
+        symbolKeyboardView.currentSymbolKeyboardMode = symbolKeyboardMode
+        
         switch textDocumentProxy.keyboardType {
         case .default, nil:
             englishKeyboardView.currentEnglishKeyboardMode = .default
