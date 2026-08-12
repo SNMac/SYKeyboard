@@ -103,7 +103,7 @@
 - Produces: `UserDefaultsManager.lastHangeulEnglishLanguageMode`
 - Consumes: BCP 47 language string from `UITextInputMode.primaryLanguage`
 
-- [ ] **Step 1: mode 판정과 저장 계약 실패 테스트 작성**
+- [x] **Step 1: mode 판정과 저장 계약 실패 테스트 작성**
 
 ```swift
 @Suite("한영 통합 키보드 시작 언어 정책")
@@ -142,7 +142,7 @@ struct KeyboardLanguageModePolicyTests {
 
 `UserDefaultsContractTests`에는 키 문자열, `.hangeul` 기본값, raw value round-trip과 손상 raw value fallback을 추가한다. 테스트는 shared storage 원래 값을 저장하고 `defer`에서 복구한다.
 
-- [ ] **Step 2: 기능 부재 RED 확인**
+- [x] **Step 2: 기능 부재 RED 확인**
 
 Run:
 
@@ -155,7 +155,7 @@ xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
 
 Expected: `HangeulEnglishLanguageMode`, `KeyboardLanguageModePolicy` 또는 새 storage symbol을 찾지 못해 test build가 실패한다. Simulator/permission 실패는 RED로 인정하지 않는다.
 
-- [ ] **Step 3: mode와 순수 정책 최소 구현**
+- [x] **Step 3: mode와 순수 정책 최소 구현**
 
 ```swift
 public enum HangeulEnglishLanguageMode: String, Codable, Equatable {
@@ -200,11 +200,11 @@ public var lastHangeulEnglishLanguageMode: HangeulEnglishLanguageMode
 
 새 SYKeyboardCore 파일은 synchronized group membership exception의 기존 Core 파일과 같은 target 범위에 추가한다.
 
-- [ ] **Step 4: GREEN 확인**
+- [x] **Step 4: GREEN 확인**
 
 Step 2 명령을 다시 실행한다. Expected: 두 suite 전체 PASS.
 
-- [ ] **Step 5: 결과 기록과 커밋**
+- [x] **Step 5: 결과 기록과 커밋**
 
 이 Task 아래 `**Result:**`를 추가해 RED/GREEN exit code, 고유 테스트 개수, destination과 `.xcresult` 경로를 기록한다.
 
@@ -220,6 +220,11 @@ git add Modules/SYKeyboardCore/Presentation/Utils/Enums/HangeulEnglishLanguageMo
   docs/superpowers/plans/2026-08-12-hangeul-english-keyboard.md
 git commit -m "feat: #46 - 통합 키보드 시작 언어 정책 추가"
 ```
+
+**Result:**
+
+- RED: `xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0' -only-testing:SYKeyboardTests/KeyboardLanguageModePolicyTests -only-testing:SYKeyboardTests/UserDefaultsContractTests`를 권한 있는 환경에서 실행해 exit 65를 확인했다. `KeyboardLanguageModePolicy`와 `HangeulEnglishLanguageMode`를 찾지 못해 test build가 실패했으며, 결과는 `/Users/macmillan/Library/Developer/Xcode/DerivedData/SYKeyboard-hgprdtyustcuukabeovkjzrtclhy/Logs/Test/Test-SYKeyboard-2026.08.13_00-29-32-+0900.xcresult`에 기록되었다. 기본 sandbox 실행은 Simulator/SwiftPM cache 권한 오류(exit 74)로 컴파일 전 중단되어 RED 근거로 사용하지 않았다.
+- GREEN: 같은 명령을 권한 있는 환경에서 다시 실행해 exit 0, 12/12 passed, failed 0, skipped 0을 확인했다. destination은 iPhone 13 mini / iOS 16.0 (arm64)이며 결과는 `/Users/macmillan/Library/Developer/Xcode/DerivedData/SYKeyboard-hgprdtyustcuukabeovkjzrtclhy/Logs/Test/Test-SYKeyboard-2026.08.13_00-30-55-+0900.xcresult`에 기록되었다.
 
 ### Task 2: 자동완성 언어 안전 전환
 

@@ -182,6 +182,9 @@ final public class UserDefaultsManager {
     /// 한 손 키보드 저장용
     @UserDefaultsRawRepresentableWrapper(key: UserDefaultsKeys.lastOneHandedMode, defaultValue: DefaultValues.lastOneHandedMode)
     public var lastOneHandedMode: OneHandedMode
+    /// 한영 통합 키보드 마지막 언어 mode 저장용
+    @UserDefaultsRawRepresentableWrapper(key: UserDefaultsKeys.lastHangeulEnglishLanguageMode, defaultValue: DefaultValues.lastHangeulEnglishLanguageMode)
+    public var lastHangeulEnglishLanguageMode: HangeulEnglishLanguageMode
     /// 전체 접근 허용 안내 오버레이 닫음 여부
     @UserDefaultsWrapper(key: UserDefaultsKeys.isRequestFullAccessOverlayClosed, defaultValue: DefaultValues.isRequestFullAccessOverlayClosed)
     public var isRequestFullAccessOverlayClosed: Bool
