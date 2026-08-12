@@ -257,6 +257,7 @@ open class BaseKeyboardViewController: UIInputViewController {
         logger.debug("viewDidLoad")
         resetInputBuffer()
         setupUI()
+        updateShowingKeyboard()
         if BaseKeyboardViewController.isPreview { updateReturnButtonType() }
 
         if keyboardSettingsManager.isOneHandedKeyboardEnabled { updateOneHandModekeyboard() }
@@ -312,7 +313,8 @@ open class BaseKeyboardViewController: UIInputViewController {
         super.textWillChange(textInput)
         logger.debug("textWillChange")
         let inputIdentifier = textInputIdentifier(for: textInput)
-        if inputIdentifier != lastNotifiedTextInputIdentifier {
+        if let inputIdentifier,
+           inputIdentifier != lastNotifiedTextInputIdentifier {
             lastNotifiedTextInputIdentifier = inputIdentifier
             textInputDidChange(textInput)
         }
