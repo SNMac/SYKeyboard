@@ -304,10 +304,12 @@ final class SuggestionController: SuggestionService {
             let engineLanguage = language
             let engine = engineFactory.makeNGramEngine(engineLanguage)
             engine.onLoadCompleted = { [weak self] in
-                guard let self,
-                      self.engineGeneration == generation,
-                      self.language == engineLanguage else { return }
-                self.refreshSuggestionsAfterNGramLoadIfNeeded()
+                Task { @MainActor [weak self] in
+                    guard let self,
+                          self.engineGeneration == generation,
+                          self.language == engineLanguage else { return }
+                    self.performRefreshSuggestionsAfterNGramLoadIfNeeded()
+                }
             }
             nGramEngine = engine
             signposter.endInterval("PrepareNGramEngine", state)

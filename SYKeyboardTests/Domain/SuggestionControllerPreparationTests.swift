@@ -110,6 +110,33 @@ struct SuggestionControllerPreparationTests {
         #expect(factory.textCheckerLanguages == ["ko-KR", "en-US"])
     }
 
+    @MainActor
+    @Test("현재 language 전환 요청은 엔진과 후보를 유지")
+    func testCurrentLanguageUpdateDoesNotResetEnginesOrSuggestions() async {
+        let factory = CountingSuggestionEngineFactory()
+        let delegate = RecordingSuggestionControllerDelegate()
+        let controller = SuggestionController(
+            language: "ko-KR",
+            engineFactory: factory.makeFactory()
+        )
+        controller.delegate = delegate
+        controller.isPredictiveTextEnabled = true
+        controller.updateSuggestions(for: "", selectedText: nil, mathExpressionText: "")
+        let koreanEngine = factory.lastNGramProvider
+        koreanEngine?.completeLoad(suggestions: ["오늘"])
+        await waitForMainQueue()
+        let updateCount = delegate.updates.count
+
+        controller.updateLanguage(to: "ko-KR")
+        controller.preparePredictiveEnginesIfNeeded()
+
+        #expect(koreanEngine?.saveCount == 0)
+        #expect(factory.nGramLanguages == ["ko-KR"])
+        #expect(factory.textCheckerLanguages == ["ko-KR"])
+        #expect(delegate.updates.count == updateCount)
+        #expect(controller.nGramSuggestionText(at: 0) == "오늘")
+    }
+
     @Test("이전 language load callback은 새 후보를 갱신하지 않음")
     func testStaleLanguageLoadCallbackIsIgnored() {
         let factory = CountingSuggestionEngineFactory()
@@ -128,6 +155,41 @@ struct SuggestionControllerPreparationTests {
         koreanEngine?.completeLoad(suggestions: ["오래된 후보"])
 
         #expect(delegate.updates.count == updateCount)
+    }
+
+    @Test("background 이전 language load callback은 언어 전환 뒤 후보를 재갱신하지 않음")
+    func testBackgroundStaleLanguageLoadCallbackIsIgnoredAfterLanguageChange() async {
+        let factory = CountingSuggestionEngineFactory()
+        let delegate = RecordingSuggestionControllerDelegate()
+        let controller = SuggestionController(
+            language: "ko-KR",
+            engineFactory: factory.makeFactory()
+        )
+        controller.delegate = delegate
+        controller.isPredictiveTextEnabled = true
+        controller.updateSuggestions(for: "", selectedText: nil, mathExpressionText: "")
+        let koreanEngine = factory.lastNGramProvider
+        let completionReturned = DispatchSemaphore(value: 0)
+
+        let updateCount = await MainActor.run {
+            DispatchQueue.global(qos: .userInitiated).async {
+                koreanEngine?.completeLoad(suggestions: ["오래된 후보"])
+                completionReturned.signal()
+            }
+            #expect(completionReturned.wait(timeout: .now() + 1) == .success)
+
+            controller.updateLanguage(to: "en-US")
+            controller.updateSuggestions(for: "", selectedText: nil, mathExpressionText: "")
+            return delegate.updates.count
+        }
+
+        await Task.yield()
+        await waitForMainQueue()
+
+        await MainActor.run {
+            #expect(delegate.updates.count == updateCount)
+            #expect(delegate.updates.last?.suggestions == [])
+        }
     }
 
     @Test("n-gram 로딩 완료 후 마지막 후보 갱신을 다시 수행")
