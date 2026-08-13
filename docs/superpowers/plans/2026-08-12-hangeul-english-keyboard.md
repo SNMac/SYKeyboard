@@ -691,9 +691,10 @@ git commit -m "refactor: #46 - 한글 입력 상태 어댑터 분리"
 - Produces: Shift/caps 입력·reset·autocapitalization API
 - Preserves: English controller의 Smart Punctuation과 auto-capitalization 결과
 
-- [ ] **Step 1: Shift/caps 어댑터 실패 테스트 작성**
+- [x] **Step 1: Shift/caps 어댑터 실패 테스트 작성**
 
 ```swift
+@MainActor
 @Suite("영어 입력 어댑터")
 struct EnglishKeyboardInputAdapterTests {
     @Test("대문자 입력 후 임시 Shift는 해제")
@@ -728,7 +729,7 @@ struct EnglishKeyboardInputAdapterTests {
 }
 ```
 
-- [ ] **Step 2: 어댑터 부재 RED 확인**
+- [x] **Step 2: 어댑터 부재 RED 확인**
 
 ```sh
 xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
@@ -739,7 +740,7 @@ xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
 
 Expected: `EnglishKeyboardInputAdapter` 부재로 test build 실패.
 
-- [ ] **Step 3: 영어 view state 어댑터 구현**
+- [x] **Step 3: 영어 view state 어댑터 구현**
 
 ```swift
 public final class EnglishKeyboardInputAdapter {
@@ -763,17 +764,17 @@ public final class EnglishKeyboardInputAdapter {
 
 `EnglishKeyboardView` initializer/access는 adapter가 소유할 수 있는 최소 수준만 public으로 연다. `finishForLanguageChange()`는 view의 `initShiftButton()`을 사용해 `isShifted`, `wasShifted`, `isCapsLocked`, `willCapsLock`을 함께 초기화한다.
 
-- [ ] **Step 4: 기존 영어 controller를 adapter routing으로 전환**
+- [x] **Step 4: 기존 영어 controller를 adapter routing으로 전환**
 
 - 기존 `isUppercaseInput`과 `englishKeyboardView` 저장 property를 adapter로 교체한다.
 - `primaryKeyboardView`, `updateKeyboardType`, `textInteractionDidPerform`, `repeatTextInteractionDidPerform`, `textWillChange`는 adapter 진입점을 호출한다.
 - `treatsDefaultSmartQuotesAsEnabled == false`, `.englishSystem`, `insertTypedText` 경로와 기존 `super` 호출 순서는 유지한다.
 
-- [ ] **Step 5: 영어 adapter·Smart Punctuation GREEN 확인**
+- [x] **Step 5: 영어 adapter·Smart Punctuation GREEN 확인**
 
 Step 2 명령을 다시 실행한다. Expected: 두 suite 모두 PASS.
 
-- [ ] **Step 6: 영어 extension build와 결과 기록/커밋**
+- [x] **Step 6: 영어 extension build와 결과 기록/커밋**
 
 ```sh
 xcodebuild build -project SYKeyboard.xcodeproj -scheme EnglishKeyboard \
@@ -787,6 +788,14 @@ git add Modules/EnglishKeyboardCore/EnglishKeyboard/Presentation/Input/EnglishKe
   docs/superpowers/plans/2026-08-12-hangeul-english-keyboard.md
 git commit -m "refactor: #46 - 영어 입력 상태 어댑터 분리"
 ```
+
+**Result:**
+
+- RED: 지정 adapter/Smart Punctuation 명령의 기본 sandbox 실행은 CoreSimulator와 SwiftPM cache 권한 오류로 컴파일 전에 중단되어 exit 74였고 RED 근거로 사용하지 않았다. 같은 명령을 권한 있는 환경에서 다시 실행해 exit 65와 `Cannot find 'EnglishKeyboardInputAdapter' in scope`를 확인했다. 전체 로그는 `/Users/macmillan/Library/Application Support/rtk/tee/1786554015_xcodebuild_test_-project_SYKeyboard_xcod.log`에 기록되었다.
+- 중간 진단: 구현 후 첫 runtime 실행에서 `KeyboardSmartInputPolicyTests` 13개는 통과했지만 실제 UIKit view를 생성하는 adapter 테스트 3개가 0.000초에 공통 실패하고 runner가 재시작했다. 기존 UIKit view suite와 비교해 누락된 `@MainActor` 격리를 추가했다. 실패 결과는 `/Users/macmillan/Library/Developer/Xcode/DerivedData/SYKeyboard-hgprdtyustcuukabeovkjzrtclhy/Logs/Test/Test-SYKeyboard-2026.08.13_02-05-08-+0900.xcresult`, 전체 로그는 `/Users/macmillan/Library/Application Support/rtk/tee/1786554473_xcodebuild_test_-project_SYKeyboard_xcod.log`에 기록되었다.
+- GREEN: `xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0' -only-testing:SYKeyboardTests/EnglishKeyboardInputAdapterTests -only-testing:SYKeyboardTests/KeyboardSmartInputPolicyTests`를 권한 있는 환경에서 실행해 exit 0, 고유 16/16 passed, failed 0, skipped 0을 확인했다. destination은 iPhone 13 mini / iOS 16.0 (arm64)이며 최종 결과는 `/Users/macmillan/Library/Developer/Xcode/DerivedData/SYKeyboard-hgprdtyustcuukabeovkjzrtclhy/Logs/Test/Test-SYKeyboard-2026.08.13_20-28-46-+0900.xcresult`에 기록되었다.
+- BUILD: `xcodebuild build -project SYKeyboard.xcodeproj -scheme EnglishKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0'`를 권한 있는 환경에서 실행해 exit 0과 `** BUILD SUCCEEDED **`를 확인했다. 최종 build log는 `/Users/macmillan/Library/Application Support/rtk/tee/1786620655_xcodebuild_build_-project_SYKeyboard_xco.log`에 기록되었다.
+- 구현: controller의 `isUppercaseInput`과 concrete view 저장 상태를 `EnglishKeyboardInputAdapter`로 완전히 교체했다. 기존 Smart Quotes default/rule, `insertTypedText`, `super` 호출 순서, Shift pressed guard와 keyboard type별 표시 동작을 유지했다. adapter가 같은 모듈의 concrete view를 소유하므로 `EnglishKeyboardView`와 `EnglishKeyboardLayoutProvider`의 접근 수준은 추가로 열지 않았다.
 
 ### Task 6: 한/영 버튼, 독립 muted 색상과 동적 SwitchButton
 

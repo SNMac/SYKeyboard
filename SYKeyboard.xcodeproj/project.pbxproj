@@ -248,6 +248,7 @@
 		5BCECD522F26C3B800A7F562 /* Exceptions for "Modules" folder in "SYKeyboard" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				EnglishKeyboardCore/EnglishKeyboard/Presentation/Input/EnglishKeyboardInputAdapter.swift,
 				EnglishKeyboardCore/EnglishKeyboard/Presentation/Utils/Enums/EnglishKeyboardMode.swift,
 				EnglishKeyboardCore/EnglishKeyboard/Presentation/View/EnglishKeyboardView.swift,
 				EnglishKeyboardCore/EnglishKeyboard/Presentation/View/Protocols/EnglishKeyboardLayoutProvider.swift,
@@ -443,6 +444,7 @@
 		5BCECD542F26C3B800A7F562 /* Exceptions for "Modules" folder in "EnglishKeyboardCore" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				EnglishKeyboardCore/EnglishKeyboard/Presentation/Input/EnglishKeyboardInputAdapter.swift,
 				EnglishKeyboardCore/EnglishKeyboard/Presentation/Utils/Enums/EnglishKeyboardMode.swift,
 				EnglishKeyboardCore/EnglishKeyboard/Presentation/View/EnglishKeyboardView.swift,
 				EnglishKeyboardCore/EnglishKeyboard/Presentation/View/Protocols/EnglishKeyboardLayoutProvider.swift,
