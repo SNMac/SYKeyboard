@@ -1289,7 +1289,7 @@ xcrun xcresulttool get test-results summary --path '<actual.xcresult>'
 - `xcrun xcresulttool get test-results summary --path /private/tmp/task8-SYKeyboard-tests-escalated.xcresult`를 권한 있는 환경에서 실행해 total 412, passed 412, failed 0, skipped 0, expected failures 0을 확인했다.
 - 전체 테스트 로그는 `/Users/macmillan/Library/Application Support/rtk/tee/1786626056_xcodebuild_test_-project_SYKeyboard_xcod.log`이며, `error:`와 `Unable to simultaneously satisfy constraints`/`unsatisfiable`/`Auto Layout` 문자열은 발견되지 않았다. `Crashlytics` 문자열은 target dependency와 정상 build phase 메시지뿐이었다.
 
-- [ ] **Step 2: app과 세 extension build**
+- [x] **Step 2: app과 세 extension build**
 
 ```sh
 xcodebuild build -project SYKeyboard.xcodeproj -scheme SYKeyboard \
@@ -1303,6 +1303,17 @@ xcodebuild build -project SYKeyboard.xcodeproj -scheme HangeulEnglishKeyboard \
 ```
 
 Expected: 네 build exit 0. 앱 산출물의 `PlugIns/HangeulEnglishKeyboard.appex` 존재와 built extension `Info.plist`의 `PrimaryLanguage = mul`을 확인한다.
+
+**Result:**
+
+- 권한 있는 환경에서 아래 네 명령을 iPhone 13 mini / iOS 16.0 (arm64, device id `CBD992D3-5364-4F69-AC5F-0077ADF1A292`) 대상으로 각각 실행해 모두 exit 0과 `** BUILD SUCCEEDED **`를 확인했다.
+  - `xcodebuild build -project SYKeyboard.xcodeproj -scheme SYKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0'`
+  - `xcodebuild build -project SYKeyboard.xcodeproj -scheme HangeulKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0'`
+  - `xcodebuild build -project SYKeyboard.xcodeproj -scheme EnglishKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0'`
+  - `xcodebuild build -project SYKeyboard.xcodeproj -scheme HangeulEnglishKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0'`
+- 실제 app 산출물은 `/Users/macmillan/Library/Developer/Xcode/DerivedData/SYKeyboard-hgprdtyustcuukabeovkjzrtclhy/Build/Products/Debug-iphonesimulator/SYKeyboard.app`이며, `stat`으로 앱 내부 `/Users/macmillan/Library/Developer/Xcode/DerivedData/SYKeyboard-hgprdtyustcuukabeovkjzrtclhy/Build/Products/Debug-iphonesimulator/SYKeyboard.app/PlugIns/HangeulEnglishKeyboard.appex`가 directory로 존재함을 확인했다.
+- 독립 built extension은 `/Users/macmillan/Library/Developer/Xcode/DerivedData/SYKeyboard-hgprdtyustcuukabeovkjzrtclhy/Build/Products/Debug-iphonesimulator/HangeulEnglishKeyboard.appex`이다. `plutil -extract NSExtension.NSExtensionAttributes.PrimaryLanguage raw -o - '<Info.plist>'`를 독립 built appex와 app 내부 embedded appex의 `Info.plist`에 각각 실행해 두 값 모두 `mul`임을 확인했다.
+- 네 build 로그는 `/Users/macmillan/Library/Application Support/rtk/tee/1786626183_xcodebuild_build_-project_SYKeyboard_xco.log`, `/Users/macmillan/Library/Application Support/rtk/tee/1786626199_xcodebuild_build_-project_SYKeyboard_xco.log`, `/Users/macmillan/Library/Application Support/rtk/tee/1786626223_xcodebuild_build_-project_SYKeyboard_xco.log`, `/Users/macmillan/Library/Application Support/rtk/tee/1786626238_xcodebuild_build_-project_SYKeyboard_xco.log`이다. 네 로그에서 `error:`와 `Unable to simultaneously satisfy constraints`/`unsatisfiable`/`Auto Layout` 문자열은 발견되지 않았다.
 
 - [ ] **Step 3: iOS 16 실제 입력 smoke test**
 
