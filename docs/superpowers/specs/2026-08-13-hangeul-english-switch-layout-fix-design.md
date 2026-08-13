@@ -42,7 +42,9 @@ primary view로 한정된 설계 문제다.
 ```
 
 - `!#1` 버튼 너비는 같은 view의 Shift 버튼 너비와 같게 한다.
-- 한/영 버튼과 지구본 버튼은 첫 구현에서 같은 secondary slot 너비를 사용한다.
+- 한/영 버튼은 가능하면 같은 secondary slot 너비를 사용하되 두벌식·쿼티의
+  primary 글자 key 너비보다 작아지지 않는다.
+- 지구본 버튼은 첫 구현에서 같은 secondary slot 너비를 사용한다.
 - 지구본이 표시될 때 modifier 영역이 그 너비만큼 늘어나고, 유연한 스페이스
   영역이 같은 양만큼 줄어든다.
 - 지구본이 숨겨지면 해당 arranged subview가 빠지고 스페이스가 그 너비를
@@ -63,6 +65,8 @@ primary view로 한정된 설계 문제다.
 - 지구본이 숨겨지면 한/영과 `!#1`이 기존 modifier 영역을 2등분한다.
 - 천지인·나랏글에는 Shift 기준 너비가 없으므로 기존 modifier 영역 바깥의
   숫자·문자 key 폭은 변경하지 않는다.
+- 천지인·나랏글은 사용자가 실기기에서 타협점을 확인할 수 있도록 두벌식·쿼티
+  primary 글자 key 최소 너비 규칙에서 제외한다.
 
 ### symbol 키보드
 
@@ -73,6 +77,7 @@ primary view로 한정된 설계 문제다.
 ```
 
 - `한글/ABC` 복귀 버튼 너비는 symbol Shift인 `1/2` 버튼 너비와 같게 한다.
+- 한/영 버튼은 symbol primary 글자 key 너비보다 작아지지 않는다.
 - 현재 mode에 따라 복귀 버튼은 기존처럼 `한글` 또는 `ABC`를 표시한다.
 - symbol 화면에서 한/영을 전환해도 화면은 symbol에 유지된다.
 - 다시 primary 화면으로 돌아가면 선택한 언어의 키보드가 표시된다.
@@ -145,6 +150,8 @@ base 계층의 기존 modifier row 구성 지점에서 처리한다. 전용 cont
 
 - 통합 primary view의 한/영 버튼이 `SwitchButton`과 독립된 버튼이다.
 - 두벌식·쿼티의 `!#1` layout width가 Shift layout width와 같다.
+- 두벌식·쿼티·symbol의 한/영 버튼 layout width가 해당 primary 글자 key보다
+  작지 않다.
 - 통합 primary view를 전달한 `KeyboardView`의 symbol view에는 한/영 버튼이 있다.
 - 전용 primary view를 전달한 경우 symbol view에는 한/영 버튼이 없다.
 - 전용 한글·영어 adapter의 primary modifier row는 한/영 버튼 없이 기존 순서와

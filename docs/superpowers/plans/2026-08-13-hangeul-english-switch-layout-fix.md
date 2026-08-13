@@ -15,7 +15,9 @@
 - 한글·영어 전용 extension과 통합 extension은 같은 shared base/view 구현을 사용한다. concrete view나 controller에 레이아웃 코드를 복사하지 않는다.
 - `showsLanguageSwitchButton == false`는 전용 한글·영어 keyboard의 기존 button 구성과 입력 action을 유지한다.
 - 두벌식·쿼티·symbol의 통합 modifier row는 독립 arranged subview를 사용한다. `LanguageSwitchButton`을 `SwitchButton` 위에 overlay하지 않는다.
+- 두벌식·쿼티·symbol의 `LanguageSwitchButton`은 해당 primary 글자 key 너비보다 작아지지 않는다.
 - 천지인·나랏글 통합 modifier 순서는 화면 왼쪽부터 `지구본 → 한/영 → !#1`이다.
+- 천지인·나랏글은 primary 글자 key 최소 너비 규칙에서 제외하고 기존 modifier 영역을 그대로 3등분한다.
 - `NumericKeyboardView`와 `TenkeyKeyboardView`에는 한/영 버튼을 추가하지 않는다.
 - `/` glyph를 쓰지 않고 `CAShapeLayer` divider를 `layoutSubviews()`에서 현재 bounds에 맞춰 갱신한다.
 - exact color, font, SF Symbol, private subview 계층은 unit test로 고정하지 않고 실기기에서 확인한다.
@@ -206,7 +208,9 @@ struct KeyboardModifierLayoutTests {
         view.layoutIfNeeded()
 
         let languageButton = try #require(view.languageSwitchButton)
+        let primaryKeyButton = try #require(view.primaryButtonList.first)
         #expect(abs(view.switchButton.frame.width - view.shiftButton.frame.width) < 0.5)
+        #expect(languageButton.frame.width + 0.5 >= primaryKeyButton.frame.width)
         #expect(view.switchButton.frame.maxX <= languageButton.frame.minX)
         #expect(languageButton.frame.maxX <= view.nextKeyboardButton.frame.minX)
     }
@@ -320,7 +324,7 @@ let modifierButtons: [SecondaryButton] = [nextKeyboardButton]
 modifierButtons.forEach(fourthRowRightSecondaryButtonHStackView.addArrangedSubview)
 ```
 
-container의 기존 outer width와 `.fillEqually`는 유지해 지구본 표시 시 3등분, hidden 시 2등분되게 한다. concrete `NaratgeulKeyboardView`와 `CheonjiinKeyboardView`에는 코드를 추가하지 않는다.
+container의 기존 outer width와 `.fillEqually`는 유지해 지구본 표시 시 3등분, hidden 시 2등분되게 한다. 천지인·나랏글에는 Standard primary key 최소 너비를 적용하지 않는다. concrete `NaratgeulKeyboardView`와 `CheonjiinKeyboardView`에는 코드를 추가하지 않는다.
 
 - [ ] **Step 6: GREEN과 전용 adapter 회귀 test를 실행한다**
 
@@ -396,8 +400,15 @@ func testUnifiedPrimaryViewsOptInSymbolLanguageButton() throws {
 
     let view = KeyboardView.loadFromNib(primaryKeyboardViews: [first, second])
     let button = try #require(view.symbolKeyboardView.languageSwitchButton)
+    let symbolView = try #require(view.symbolKeyboardView as? UIView)
+    let primaryKeyButton = try #require(view.symbolKeyboardView.primaryButtonList.first)
+
+    view.frame = CGRect(x: 0, y: 0, width: 390, height: 216)
+    symbolView.isHidden = false
+    view.layoutIfNeeded()
 
     #expect(view.symbolKeyboardView.allButtonList.contains { $0 === button })
+    #expect(button.frame.width + 0.5 >= primaryKeyButton.frame.width)
     button.updateLanguageMode(.english)
     #expect(button.accessibilityValue == "영어")
 }
@@ -463,6 +474,8 @@ public private(set) lazy var languageSwitchButton: LanguageSwitchButton? = {
 - `secondaryButtonList`에 optional button을 포함한다.
 - 전용 false는 기존 `[switchButton, nextKeyboardButton]`와 25% container width를 유지한다.
 - 통합 true는 `[switchButton, languageSwitchButton, nextKeyboardButton]` 순서, `.fill`, 세 button을 symbol Shift 너비에 연결한다. globe width constraint만 priority 999로 두어 hidden arranged subview와 충돌하지 않게 한다.
+- symbol Shift 너비가 primary 글자 key보다 크므로 이 equality는 한/영 버튼의 최소
+  primary key 너비 계약도 충족한다.
 
 - [ ] **Step 4: primary opt-in을 `KeyboardView`에서 symbol 생성에 전달한다**
 
