@@ -13,7 +13,9 @@
 2. symbol 키보드에 한/영 버튼이 없는 문제
 3. `!#1` 모서리의 `123`과 우측 화살표 안내가 한/영 버튼에 가려진 문제
 
-기존 한글·영어 전용 extension의 레이아웃과 입력 동작은 유지한다.
+기존 한글·영어 전용 extension의 레이아웃과 입력 동작도 회귀 없이 동작해야 한다.
+이를 위해 전용·통합 구현을 복사해 분기하지 않고 기존 shared base/view를 한 번만
+수정한다. 통합 여부는 기존 `showsLanguageSwitchButton` opt-in으로만 결정한다.
 
 ## 확인된 원인
 
@@ -118,6 +120,11 @@ VoiceOver에는 시각적 세 요소를 개별 노출하지 않고 버튼 하나
 기존처럼 버튼 없이 생성된다. 통합 controller의 기존 `applyLanguageMode` 순서,
 조합 종료, suggestion 언어 경계, symbol 화면 유지 로직은 바꾸지 않는다.
 
+두벌식과 쿼티의 modifier 배치는 공통 `StandardKeyboardView`에만 구현하고 각 concrete
+view에 복사하지 않는다. 천지인과 나랏글도 각각 구현하지 않고 현재 공유하는 4×4
+base 계층의 기존 modifier row 구성 지점에서 처리한다. 전용 controller나 adapter에
+통합 전용 레이아웃 코드를 복제하지 않는다.
+
 ## 숫자 전환 안내와 gesture
 
 `123`과 우측 화살표는 기존 `SwitchButton.keyboardSelectLabel`과
@@ -140,6 +147,8 @@ VoiceOver에는 시각적 세 요소를 개별 노출하지 않고 버튼 하나
 - 두벌식·쿼티의 `!#1` layout width가 Shift layout width와 같다.
 - 통합 primary view를 전달한 `KeyboardView`의 symbol view에는 한/영 버튼이 있다.
 - 전용 primary view를 전달한 경우 symbol view에는 한/영 버튼이 없다.
+- 전용 한글·영어 adapter의 primary modifier row는 한/영 버튼 없이 기존 순서와
+  `SwitchButton` full visible area를 유지한다.
 - symbol 한/영 버튼이 mode 변경을 반영하고 secondary feedback 목록에 포함된다.
 - 지구본 표시 여부가 바뀌어도 버튼 순서와 Auto Layout이 유효하다.
 
@@ -162,4 +171,3 @@ constraint만 조정한다. 입력 action과 mode 전환 흐름은 함께 변경
 - `SuggestionButtonLabelColor` 변경
 - `LanguageSwitchMutedLabelColor`의 RGB 재조정
 - 키보드 입력·조합·삭제·자동완성 정책 변경
-
