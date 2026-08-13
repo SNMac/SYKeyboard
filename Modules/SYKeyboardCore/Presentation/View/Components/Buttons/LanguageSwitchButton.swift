@@ -14,9 +14,9 @@ public final class LanguageSwitchButton: SecondaryButton {
 
     // MARK: - Properties
 
-    public private(set) var attributedTitleForCurrentMode = NSAttributedString(string: "한/영")
-    public private(set) var activeTitleRange = NSRange(location: 0, length: 2)
-    public private(set) var mutedTitleRange = NSRange(location: 2, length: 1)
+    private let hangeulLabel = UILabel()
+    private let englishLabel = UILabel()
+    private let dividerLayer = CAShapeLayer()
 
     // MARK: - Initializer
 
@@ -30,9 +30,16 @@ public final class LanguageSwitchButton: SecondaryButton {
     init(mode: HangeulEnglishLanguageMode, keyboard: SYKeyboardType) {
         super.init(keyboard: keyboard)
 
-        primaryKeyListLabel.font = .systemFont(ofSize: FontSize.stringKeyMedium)
-        primaryKeyListLabel.adjustsFontSizeToFitWidth = true
-        primaryKeyListLabel.minimumScaleFactor = 0.5
+        primaryKeyListLabel.isHidden = true
+        hangeulLabel.text = "한"
+        englishLabel.text = "영"
+        accessibilityLabel = "한영 전환"
+        dividerLayer.fillColor = UIColor.clear.cgColor
+        dividerLayer.lineCap = .round
+        dividerLayer.lineWidth = 1.5
+        backgroundView.layer.addSublayer(dividerLayer)
+        [hangeulLabel, englishLabel].forEach(addSubview)
+        setupLabels()
         updateLanguageMode(mode)
     }
 
@@ -47,26 +54,44 @@ public final class LanguageSwitchButton: SecondaryButton {
         FeedbackManager.shared.playModifierSound()
     }
 
+    public override func layoutSubviews() {
+        super.layoutSubviews()
+
+        dividerLayer.frame = backgroundView.bounds
+        dividerLayer.strokeColor = UIColor.label.cgColor
+        let bounds = backgroundView.bounds
+        let path = UIBezierPath()
+        path.move(to: CGPoint(x: bounds.midX - 4, y: bounds.midY + 7))
+        path.addLine(to: CGPoint(x: bounds.midX + 4, y: bounds.midY - 7))
+        dividerLayer.path = path.cgPath
+    }
+
     // MARK: - Public Methods
 
     public func updateLanguageMode(_ mode: HangeulEnglishLanguageMode) {
-        switch mode {
-        case .hangeul:
-            activeTitleRange = NSRange(location: 0, length: 2)
-            mutedTitleRange = NSRange(location: 2, length: 1)
-        case .english:
-            activeTitleRange = NSRange(location: 1, length: 2)
-            mutedTitleRange = NSRange(location: 0, length: 1)
+        hangeulLabel.textColor = mode == .hangeul ? .label : .languageSwitchMutedLabel
+        englishLabel.textColor = mode == .english ? .label : .languageSwitchMutedLabel
+        accessibilityValue = mode == .hangeul ? "한글" : "영어"
+    }
+}
+
+// MARK: - UI Methods
+
+private extension LanguageSwitchButton {
+    func setupLabels() {
+        [hangeulLabel, englishLabel].forEach {
+            $0.translatesAutoresizingMaskIntoConstraints = false
+            $0.font = .systemFont(ofSize: FontSize.stringKeyMedium)
+            $0.adjustsFontSizeToFitWidth = true
+            $0.minimumScaleFactor = 0.5
         }
 
-        let title = NSMutableAttributedString(string: "한/영")
-        title.addAttribute(.foregroundColor, value: UIColor.label, range: activeTitleRange)
-        title.addAttribute(
-            .foregroundColor,
-            value: UIColor.languageSwitchMutedLabel,
-            range: mutedTitleRange
-        )
-        attributedTitleForCurrentMode = title
-        primaryKeyListLabel.attributedText = title
+        NSLayoutConstraint.activate([
+            hangeulLabel.topAnchor.constraint(equalTo: backgroundView.topAnchor),
+            hangeulLabel.leadingAnchor.constraint(equalTo: backgroundView.leadingAnchor),
+            hangeulLabel.trailingAnchor.constraint(lessThanOrEqualTo: englishLabel.leadingAnchor),
+            englishLabel.bottomAnchor.constraint(equalTo: backgroundView.bottomAnchor),
+            englishLabel.trailingAnchor.constraint(equalTo: backgroundView.trailingAnchor)
+        ])
     }
 }

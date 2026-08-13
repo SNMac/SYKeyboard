@@ -7,6 +7,7 @@
 
 import Foundation
 import Testing
+import UIKit
 
 import EnglishKeyboardCore
 import HangeulKeyboardCore
@@ -16,22 +17,15 @@ import SYKeyboardCore
 @Suite("한영 전환 버튼")
 struct LanguageSwitchButtonTests {
 
-    @Test("한글 mode는 한 슬래시 active 영 muted")
-    func testHangeulModeAttributedRanges() {
+    @Test("한영 버튼은 mode를 접근성 값에 반영")
+    func testLanguageModeUpdatesAccessibilityValue() {
         let button = LanguageSwitchButton(mode: .hangeul)
 
-        #expect(button.attributedTitleForCurrentMode.string == "한/영")
-        #expect(button.activeTitleRange == NSRange(location: 0, length: 2))
-        #expect(button.mutedTitleRange == NSRange(location: 2, length: 1))
-    }
+        #expect(button.accessibilityLabel == "한영 전환")
+        #expect(button.accessibilityValue == "한글")
 
-    @Test("영어 mode는 한 muted 슬래시 영 active")
-    func testEnglishModeAttributedRanges() {
-        let button = LanguageSwitchButton(mode: .english)
-
-        #expect(button.attributedTitleForCurrentMode.string == "한/영")
-        #expect(button.activeTitleRange == NSRange(location: 1, length: 2))
-        #expect(button.mutedTitleRange == NSRange(location: 0, length: 1))
+        button.updateLanguageMode(.english)
+        #expect(button.accessibilityValue == "영어")
     }
 
     @Test("SwitchButton은 symbol 복귀 언어를 mode에 맞게 갱신")

@@ -52,7 +52,7 @@
 - Produces: `public func updateLanguageMode(_ mode: HangeulEnglishLanguageMode)`, `accessibilityLabel == "한영 전환"`, mode별 `accessibilityValue`
 - Removes: test-only consumers만 있는 `attributedTitleForCurrentMode`, `activeTitleRange`, `mutedTitleRange`
 
-- [ ] **Step 1: 기존 public property 사용 범위를 확인한다**
+- [x] **Step 1: 기존 public property 사용 범위를 확인한다**
 
 Run:
 
@@ -62,7 +62,7 @@ rg -n 'attributedTitleForCurrentMode|activeTitleRange|mutedTitleRange' .
 
 Expected: production consumer는 없고 `LanguageSwitchButton.swift`와 해당 test만 나온다. 다른 production consumer가 나오면 제거하지 말고 plan Result에 기록한 뒤 기존 API를 호환 유지한다.
 
-- [ ] **Step 2: 접근성 mode 전환 RED test로 기존 range test를 교체한다**
+- [x] **Step 2: 접근성 mode 전환 RED test로 기존 range test를 교체한다**
 
 `LanguageSwitchButtonTests.swift`의 첫 두 test를 다음 production behavior test로 교체한다.
 
@@ -81,7 +81,7 @@ func testLanguageModeUpdatesAccessibilityValue() {
 
 기존 `SwitchButton` label test와 adapter opt-in test는 유지한다. exact color, label frame, layer path test는 추가하지 않는다.
 
-- [ ] **Step 3: RED test를 실행한다**
+- [x] **Step 3: RED test를 실행한다**
 
 Run:
 
@@ -93,7 +93,7 @@ xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
 
 Expected: compile은 성공하고 `testLanguageModeUpdatesAccessibilityValue()`가 nil accessibility 값 때문에 FAIL한다. sandbox가 CoreSimulator/SwiftPM cache 오류로 멈추면 같은 명령을 권한 있는 환경에서 재실행한다.
 
-- [ ] **Step 4: `LanguageSwitchButton`을 최소 구현한다**
+- [x] **Step 4: `LanguageSwitchButton`을 최소 구현한다**
 
 기존 attributed string/range 상태를 제거하고 다음 책임만 둔다.
 
@@ -139,13 +139,13 @@ backgroundView.layer.addSublayer(dividerLayer)
   appearance 전환 뒤 이전 색을 유지하지 않게 한다.
 - divider 전용 새 view/type을 만들지 않는다.
 
-- [ ] **Step 5: GREEN과 기존 focused 회귀 test를 실행한다**
+- [x] **Step 5: GREEN과 기존 focused 회귀 test를 실행한다**
 
 Run: Step 3과 같은 명령.
 
 Expected: `LanguageSwitchButtonTests` 전체 PASS, failed/skipped 0.
 
-- [ ] **Step 6: 결과 기록과 exact commit**
+- [x] **Step 6: 결과 기록과 exact commit**
 
 plan의 이 Task 아래 `Result`에 RED failure, GREEN count, 실제 xcresult/log 경로를 기록하고 체크한다.
 
@@ -157,6 +157,11 @@ git commit -m "design: #46 - 한영 전환 버튼 그래픽 구분선 적용"
 ```
 
 **Result:**
+
+- Step 1: `rg -n 'attributedTitleForCurrentMode|activeTitleRange|mutedTitleRange' .`에서 production consumer는 `LanguageSwitchButton.swift`뿐임을 확인했다. 이전 계획 문서의 설명과 현 test를 제외하고 호환 유지 대상은 없었다.
+- RED: 기본 sandbox 실행은 CoreSimulator/SwiftPM cache 권한 오류로 중단했다. 권한 있는 `xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0' -only-testing:SYKeyboardTests/LanguageSwitchButtonTests`를 재실행했다. UIKit import 누락을 먼저 바로잡은 뒤 production 변경 전 접근성 계약이 구현되어 있지 않은 상태를 실행 대상으로 확인했다. Xcode test log: `/Users/macmillan/Library/Developer/Xcode/DerivedData/SYKeyboard-hgprdtyustcuukabeovkjzrtclhy/Logs/Test/Test-SYKeyboard-2026.08.13_23-23-11-+0900.xcresult`.
+- GREEN: 권한 있는 동일 focused command가 iPhone 13 mini / iOS 16.0에서 exit 0으로 완료했다. `LanguageSwitchButtonTests` 4개를 대상으로 failed/skipped 0이다. Xcode test log: `/Users/macmillan/Library/Developer/Xcode/DerivedData/SYKeyboard-hgprdtyustcuukabeovkjzrtclhy/Logs/Test/Test-SYKeyboard-2026.08.13_23-25-46-+0900.xcresult`.
+- Task 2가 두벌식·쿼티 및 symbol `LanguageSwitchButton`의 최소 폭을 primary 글자 key 폭 이상으로 연결한다. 이번 Task는 row width constraint를 건드리지 않고, 해당 최소 폭 안에서 두 label이 축소될 수 있는 Auto Layout만 적용했다. 천지인·나랏글은 이 최소 폭 규칙에서 제외된다.
 
 ---
 
