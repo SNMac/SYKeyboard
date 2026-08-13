@@ -19,6 +19,8 @@ public protocol NormalKeyboardLayoutProvider: BaseKeyboardLayoutProvider, Switch
     var switchButton: SwitchButton { get }
     /// iPhone SE용 키보드 전환 버튼
     var nextKeyboardButton: NextKeyboardButton { get }
+
+    func updateNextKeyboardButton(needsInputModeSwitchKey: Bool, nextKeyboardAction: Selector)
 }
 
 // MARK: - Protocol Properties & Methods

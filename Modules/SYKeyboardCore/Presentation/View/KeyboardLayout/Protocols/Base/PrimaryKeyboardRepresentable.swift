@@ -14,7 +14,6 @@ public protocol PrimaryKeyboardRepresentable: NormalKeyboardLayoutProvider {
     var returnButton: ReturnButton { get }
     var totalTextInterableButtonList: [TextInteractable] { get }
     
-    func updateNextKeyboardButton(needsInputModeSwitchKey: Bool, nextKeyboardAction: Selector)
     func initShiftButton()
     func updateShiftButton(to isShifted: Bool)
     func updateSpaceButtonImage(systemName: String)

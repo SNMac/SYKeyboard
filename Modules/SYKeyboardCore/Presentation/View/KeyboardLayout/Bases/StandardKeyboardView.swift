@@ -8,7 +8,7 @@
 import UIKit
 import OSLog
 
-open class StandardKeyboardView: UIView {
+open class StandardKeyboardView: UIView, NormalKeyboardLayoutProvider {
     
     // MARK: - Properties
     
@@ -41,6 +41,8 @@ open class StandardKeyboardView: UIView {
     
     /// `periodButton`의 너비 제약 조건을 저장하는 변수
     public var periodButtonWidthConstraint: NSLayoutConstraint?
+    /// 통합 키보드 modifier 영역의 너비 제약
+    private var fourthRowModifierWidthConstraint: NSLayoutConstraint?
     
     // Initializer Injection
     public let getIsShiftedLetterInput: () -> Bool
@@ -310,6 +312,7 @@ private extension StandardKeyboardView {
             let globeWidth = nextKeyboardButton.widthAnchor.constraint(equalTo: shiftButton.widthAnchor)
             globeWidth.priority = .init(999)
             globeWidth.isActive = true
+            updateFourthRowModifierWidthConstraint(needsInputModeSwitchKey: true)
         } else if let superview = fourthRowLeftSecondaryButtonHStackView.superview {
             fourthRowLeftSecondaryButtonHStackView.widthAnchor
                 .constraint(equalTo: superview.widthAnchor, multiplier: 0.25)
@@ -377,11 +380,33 @@ private extension StandardKeyboardView {
         ])
     }
 
+    func updateFourthRowModifierWidthConstraint(needsInputModeSwitchKey: Bool) {
+        let visibleModifierCount = 2 + (needsInputModeSwitchKey ? 1 : 0)
+        fourthRowModifierWidthConstraint?.isActive = false
+        fourthRowModifierWidthConstraint = fourthRowLeftSecondaryButtonHStackView.widthAnchor.constraint(
+            equalTo: shiftButton.widthAnchor,
+            multiplier: CGFloat(visibleModifierCount)
+        )
+        fourthRowModifierWidthConstraint?.isActive = true
+    }
+
 }
 
 // MARK: - Update Methods
 
 extension StandardKeyboardView {
+    final public func updateNextKeyboardButton(
+        needsInputModeSwitchKey: Bool,
+        nextKeyboardAction: Selector
+    ) {
+        nextKeyboardButton.addTarget(nil, action: nextKeyboardAction, for: .allTouchEvents)
+        nextKeyboardButton.isHidden = !needsInputModeSwitchKey
+
+        guard languageSwitchButton != nil else { return }
+        updateFourthRowModifierWidthConstraint(needsInputModeSwitchKey: needsInputModeSwitchKey)
+        setNeedsLayout()
+    }
+
     /// `periodButton`의 너비 제약 조건을 업데이트합니다.
     /// - Parameter multiplier: 설정할 비율 (`nil`인 경우 제약 조건 비활성화)
     final public func updatePeriodButtonWidthConstraint(multiplier: CGFloat?) {

@@ -48,6 +48,37 @@ struct KeyboardModifierLayoutTests {
         #expect(languageButton.frame.maxX <= view.nextKeyboardButton.frame.minX + 0.5)
     }
 
+    @Test("통합 쿼티의 숨겨진 globe는 접히고 flexible space가 넓어짐")
+    func testUnifiedQwertyHiddenGlobeCollapsesIntoFlexibleSpace() throws {
+        let view = EnglishKeyboardView(
+            getIsShiftedLetterInput: { false },
+            setIsShiftedLetterInput: { _ in },
+            showsLanguageSwitchButton: true
+        )
+        view.frame = CGRect(x: 0, y: 0, width: 390, height: 216)
+        view.layoutIfNeeded()
+
+        let languageButton = try #require(view.languageSwitchButton)
+        let primaryKeyButton = try #require(view.primaryButtonList.first)
+        let visibleGlobeWidth = view.nextKeyboardButton.frame.width
+        let visibleSpaceWidth = view.spaceButtonHStackView.frame.width
+
+        let primaryView: PrimaryKeyboardRepresentable = view
+        primaryView.updateNextKeyboardButton(
+            needsInputModeSwitchKey: false,
+            nextKeyboardAction: NSSelectorFromString("unusedNextKeyboardAction:")
+        )
+        view.layoutIfNeeded()
+
+        #expect(view.nextKeyboardButton.isHidden)
+        #expect(
+            view.spaceButtonHStackView.frame.width
+            >= visibleSpaceWidth + visibleGlobeWidth - 0.5
+        )
+        #expect(view.switchButton.frame.maxX <= languageButton.frame.minX + 0.5)
+        #expect(languageButton.frame.width + 0.5 >= primaryKeyButton.frame.width)
+    }
+
     @Test("전용 쿼티는 Language 없이 기존 Switch와 globe만 유지")
     func testDedicatedQwertyDoesNotCreateLanguageButton() {
         let view = EnglishKeyboardView(
@@ -55,8 +86,22 @@ struct KeyboardModifierLayoutTests {
             setIsShiftedLetterInput: { _ in },
             showsLanguageSwitchButton: false
         )
+        view.frame = CGRect(x: 0, y: 0, width: 390, height: 216)
+        view.layoutIfNeeded()
+
+        let visibleModifierWidth = view.fourthRowLeftSecondaryButtonHStackView.frame.width
+        let primaryView: PrimaryKeyboardRepresentable = view
+        primaryView.updateNextKeyboardButton(
+            needsInputModeSwitchKey: false,
+            nextKeyboardAction: NSSelectorFromString("unusedNextKeyboardAction:")
+        )
+        view.layoutIfNeeded()
 
         #expect(view.languageSwitchButton == nil)
+        #expect(view.nextKeyboardButton.isHidden)
+        #expect(
+            abs(view.fourthRowLeftSecondaryButtonHStackView.frame.width - visibleModifierWidth) < 0.5
+        )
     }
 
     @Test("전용 두벌식은 Language 버튼을 만들지 않음")
