@@ -595,7 +595,7 @@ git commit -m "feat: #46 - 기호 키보드 한영 전환 버튼 연결"
 - Produces: 재현 가능한 전체 test/build evidence
 - Preserves: untracked 실기기 체크리스트와 미완료 Task 8 수동 검증 상태
 
-- [ ] **Step 1: 전체 test를 fresh 실행한다**
+- [x] **Step 1: 전체 test를 fresh 실행한다**
 
 Run:
 
@@ -616,7 +616,7 @@ xcrun xcresulttool get test-results summary \
 
 Expected: failed 0, skipped 0. total/pass 개수를 실제 값으로 Result에 기록한다.
 
-- [ ] **Step 2: app과 세 extension을 fresh build한다**
+- [x] **Step 2: app과 세 extension을 fresh build한다**
 
 Run:
 
@@ -633,7 +633,7 @@ xcodebuild build -project SYKeyboard.xcodeproj -scheme HangeulEnglishKeyboard \
 
 Expected: 네 build exit 0과 `BUILD SUCCEEDED`.
 
-- [ ] **Step 3: logs와 변경 범위를 판독한다**
+- [x] **Step 3: logs와 변경 범위를 판독한다**
 
 Run:
 
@@ -651,7 +651,7 @@ Expected:
 - 실기기 체크리스트는 `??` untracked 한 줄로 남고 staged되지 않음
 - Auto Layout conflict와 새 compiler error 없음
 
-- [ ] **Step 4: 자동 검증 Result만 기록하고 commit한다**
+- [x] **Step 4: 자동 검증 Result만 기록하고 commit한다**
 
 실제 test 개수, xcresult, 네 build log, sandbox/권한 실행 차이를 이 Task `Result`에 기록한다. 실제 기기 UI를 보지 않았으면 `!#1` 화살표, divider 모양, 버튼 너비와 touch는 확인 완료로 쓰지 않는다.
 
@@ -661,6 +661,11 @@ git commit -m "docs: #46 - 전환 버튼 전체 회귀 검증 결과 기록"
 ```
 
 **Result:**
+
+- Step 1: 권한 있는 환경에서 `iPhone 13 mini / iOS 16.0` 대상으로 full `SYKeyboard` test를 fresh 실행했다. `/private/tmp/task4-full-20260814-001.xcresult`의 `xcrun xcresulttool get test-results summary` 결과는 422 tests / 424 parameterized runs, passed 422 (424 runs) / failed 0 / skipped 0, exit 0이다. RTK log는 `1786640179_xcodebuild_-quiet_test_-project_SYKeyboa.log`이며 `error:`, `Unable to simultaneously satisfy constraints`, `unsatisfiable`, `Auto Layout` 검색 결과는 0건이었다. 기존 Crashlytics dSYM 및 vendor module debug warning은 검증 실패와 구분했다.
+- Step 2: 네 scheme을 서로 다른 fresh DerivedData에서 순차 build했고 모두 exit 0이었다. `SYKeyboard`: `/private/tmp/task4-dd-sykeyboard-20260814-001`, log `1786640289_xcodebuild_-quiet_build_-project_SYKeybo.log`; `HangeulKeyboard`: `/private/tmp/task4-dd-hangeul-20260814-001`, log `1786640347_xcodebuild_-quiet_build_-project_SYKeybo.log`; `EnglishKeyboard`: `/private/tmp/task4-dd-english-20260814-001`, log `1786640409_xcodebuild_-quiet_build_-project_SYKeybo.log`; `HangeulEnglishKeyboard`: `/private/tmp/task4-dd-unified-20260814-001`, log `1786640468_xcodebuild_-quiet_build_-project_SYKeybo.log`. 각 실행은 180초 상한 안에 끝났다.
+- Step 3: full test와 네 build log에서 `error:`, `Unable to simultaneously satisfy constraints`, `unsatisfiable`, `Auto Layout` 검색 결과는 모두 0건이었다. 경고는 기존 Crashlytics `DEBUG_INFORMATION_FORMAT`/dSYM, GoogleMobileAds umbrella header, vendor module debug 정보 경고뿐이었고 이번 source compile/runtime error와 구분했다. `git diff --check`는 통과했으며 tracked working-tree 변경은 이 plan 한 파일뿐이다. 사용자 체크리스트 `docs/superpowers/plans/2026-08-12-hangeul-english-keyboard-device-checklist.md`는 `??` untracked/unstaged 한 줄로 유지했다. `git diff --stat 72e9312..HEAD`는 계획된 16 files, 1112 insertions / 116 deletions 범위다.
+- Step 4: 자동 test/build만 수행했다. 실제 기기에서 `!#1`의 `123` 우측 화살표와 pan overlay, divider 모양·색·가독성, 두벌식·쿼티·천지인·나랏글·symbol의 실제 버튼 너비, 한/영 및 globe touch 영역, symbol의 실제 tap 후 mode 유지, URL/email/webSearch actual frame은 확인하지 않았으며 사용자 체크리스트에서 검증해야 한다.
 
 ---
 
