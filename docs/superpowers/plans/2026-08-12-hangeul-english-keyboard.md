@@ -1269,7 +1269,7 @@ git commit -m "feat: #46 - 한영 통합 키보드 입력 전환 연결"
 - Produces: 재현 가능한 자동/수동 검증 기록
 - Preserves: 코드 변경 없는 검증 step도 문서 커밋으로 남김
 
-- [ ] **Step 1: 전체 테스트 실행**
+- [x] **Step 1: 전체 테스트 실행**
 
 ```sh
 xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
@@ -1281,6 +1281,13 @@ Expected: exit 0, 실패·스킵 0. `.xcresult`에 대해 다음을 실행해 �
 ```sh
 xcrun xcresulttool get test-results summary --path '<actual.xcresult>'
 ```
+
+**Result:**
+
+- 기본 sandbox에서 `xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0' -resultBundlePath /private/tmp/task8-SYKeyboard-tests.xcresult`를 실행했으나 CoreSimulator 연결과 SwiftPM/clang cache 권한 오류로 컴파일 전에 exit 74로 중단되었다. 이 실행은 테스트 결과로 사용하지 않았다.
+- 같은 테스트를 권한 있는 환경에서 result bundle 경로만 `/private/tmp/task8-SYKeyboard-tests-escalated.xcresult`로 바꿔 실행해 exit 0을 확인했다. 실제 destination은 iPhone 13 mini / iOS 16.0 (arm64, device id `CBD992D3-5364-4F69-AC5F-0077ADF1A292`)이다.
+- `xcrun xcresulttool get test-results summary --path /private/tmp/task8-SYKeyboard-tests-escalated.xcresult`를 권한 있는 환경에서 실행해 total 412, passed 412, failed 0, skipped 0, expected failures 0을 확인했다.
+- 전체 테스트 로그는 `/Users/macmillan/Library/Application Support/rtk/tee/1786626056_xcodebuild_test_-project_SYKeyboard_xcod.log`이며, `error:`와 `Unable to simultaneously satisfy constraints`/`unsatisfiable`/`Auto Layout` 문자열은 발견되지 않았다. `Crashlytics` 문자열은 target dependency와 정상 build phase 메시지뿐이었다.
 
 - [ ] **Step 2: app과 세 extension build**
 
