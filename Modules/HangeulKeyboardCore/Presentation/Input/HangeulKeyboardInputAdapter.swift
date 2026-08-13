@@ -180,13 +180,11 @@ public final class HangeulKeyboardInputAdapter {
         is글자Input = false
     }
 
-    // MARK: - Internal Methods
-
-    func recordTextInteraction() {
+    public func recordTextInteraction() {
         is글자Input = true
     }
 
-    func clearLetterInputState() {
+    public func clearLetterInputState() {
         is글자Input = false
     }
 }

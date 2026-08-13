@@ -967,6 +967,7 @@ git commit -m "design: #46 - 한영 전환 버튼과 전용 강조 색상 추가
 - Create: `SYKeyboardTests/Utils/KeyboardLanguageSegmentTrackerTests.swift`
 - Create: `Modules/SYKeyboardCore/Presentation/Utils/Coordinators/HangeulEnglishKeyboardModeCoordinator.swift`
 - Modify: `Modules/SYKeyboardCore/Presentation/ViewController/Bases/BaseKeyboardViewController.swift`
+- Modify: `Modules/HangeulKeyboardCore/Presentation/Input/HangeulKeyboardInputAdapter.swift`
 - Modify: `docs/superpowers/plans/2026-08-12-hangeul-english-keyboard.md`
 
 **Interfaces:**
@@ -976,7 +977,7 @@ git commit -m "design: #46 - 한영 전환 버튼과 전용 강조 색상 추가
 - Consumes: Task 1 policy/storage, Task 2 suggestion API, Tasks 4–5 adapters, Task 6 buttons
 - Produces: actual `HangeulEnglishKeyboardViewController: BaseKeyboardViewController`
 
-- [ ] **Step 1: 동일 focus 수동 mode 보존 실패 테스트 작성**
+- [x] **Step 1: 동일 focus 수동 mode 보존 실패 테스트 작성**
 
 ```swift
 @Suite("한영 통합 키보드 mode coordinator")
@@ -1008,7 +1009,7 @@ struct HangeulEnglishKeyboardModeCoordinatorTests {
 }
 ```
 
-- [ ] **Step 2: coordinator 부재 RED 확인**
+- [x] **Step 2: coordinator 부재 RED 확인**
 
 ```sh
 xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
@@ -1018,7 +1019,7 @@ xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
 
 Expected: coordinator symbol 부재로 test build 실패.
 
-- [ ] **Step 3: coordinator 최소 구현과 GREEN**
+- [x] **Step 3: coordinator 최소 구현과 GREEN**
 
 ```swift
 public final class HangeulEnglishKeyboardModeCoordinator {
@@ -1049,7 +1050,7 @@ public final class HangeulEnglishKeyboardModeCoordinator {
 
 Step 2 명령을 다시 실행한다. Expected: suite PASS.
 
-- [ ] **Step 4: 언어별 suggestion segment 실패 테스트와 최소 구현**
+- [x] **Step 4: 언어별 suggestion segment 실패 테스트와 최소 구현**
 
 기존 `inputBuffer`의 document session 동기화는 유지하되, mode 전환 뒤 입력한 suffix만 suggestion/n-gram에 전달하도록 production tracker를 추가한다.
 
@@ -1127,7 +1128,7 @@ xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
 
 Expected RED: tracker symbol 부재. 구현 후 같은 명령 PASS.
 
-- [ ] **Step 5: 템플릿 controller를 실제 통합 controller로 교체**
+- [x] **Step 5: 템플릿 controller를 실제 통합 controller로 교체**
 
 Controller 구성:
 
@@ -1190,18 +1191,18 @@ public final func markCurrentInputBufferAsLanguageBoundary()
 public final func stopInputInteractionsForLanguageChange()
 ```
 
-- [ ] **Step 6: 한/영 button action 단일 연결**
+- [x] **Step 6: 한/영 button action 단일 연결**
 
 각 primary view의 non-nil `languageSwitchButton`에 `.touchUpInside` `UIAction`을 setup 시 한 번 추가한다. action은 current mode의 반대값을 계산해 `applyLanguageMode(_:persist: true)`에 전달하고, coordinator 갱신은 해당 메서드의 공통 순서에서만 수행한다. mode 전환마다 action을 다시 추가하지 않는다.
 
-- [ ] **Step 7: extension lifecycle·overlay와 scheme 연결**
+- [x] **Step 7: extension lifecycle·overlay와 scheme 연결**
 
 - 기존 한글/영문 extension의 Crashlytics/전체 접근 overlay 초기화 패턴을 읽고 동일 lifecycle hook만 통합 controller에 적용한다.
 - `HangeulEnglishKeyboard` shared scheme을 다른 shared extension scheme과 같은 Build/Test configuration으로 추가한다.
 - `xcodebuild -list -project SYKeyboard.xcodeproj`에서 scheme이 보여야 한다.
 - project target dependency와 app embed는 기존 값을 유지한다.
 
-- [ ] **Step 8: 관련 정책 테스트와 네 scheme build**
+- [x] **Step 8: 관련 정책 테스트와 네 scheme build**
 
 ```sh
 xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
@@ -1222,7 +1223,7 @@ xcodebuild build -project SYKeyboard.xcodeproj -scheme EnglishKeyboard \
 
 Expected: 지정 테스트와 세 extension build 모두 성공.
 
-- [ ] **Step 9: 결과 기록과 커밋**
+- [x] **Step 9: 결과 기록과 커밋**
 
 ```sh
 git add Modules/SYKeyboardCore/Presentation/Utils/Coordinators/HangeulEnglishKeyboardModeCoordinator.swift \
@@ -1235,6 +1236,18 @@ git add Modules/SYKeyboardCore/Presentation/Utils/Coordinators/HangeulEnglishKey
   docs/superpowers/plans/2026-08-12-hangeul-english-keyboard.md
 git commit -m "feat: #46 - 한영 통합 키보드 입력 전환 연결"
 ```
+
+**Result (2026-08-13):**
+
+- TDD RED: 최초 sandbox 실행은 `CoreSimulatorService`/SwiftPM cache 접근 오류(exit 74)로 코드까지 도달하지 못했다. 권한 있는 동일 명령 재실행에서 coordinator 부재(exit 65, `/Users/macmillan/Library/Application Support/rtk/tee/1786622852_xcodebuild_test_-project_SYKeyboard_xcod.log`)와 segment tracker 부재(exit 65, `/Users/macmillan/Library/Application Support/rtk/tee/1786623011_xcodebuild_test_-project_SYKeyboard_xcod.log`) compile failure를 각각 확인했다.
+- TDD GREEN: coordinator focused suite와 segment tracker focused suite가 iPhone 13 mini / iOS 16.0에서 각각 성공했다. xcresult는 `Test-SYKeyboard-2026.08.13_21-08-15-+0900.xcresult`, `Test-SYKeyboard-2026.08.13_21-10-35-+0900.xcresult`이며 전체 로그는 `/Users/macmillan/Library/Application Support/rtk/tee/1786622966_xcodebuild_test_-project_SYKeyboard_xcod.log`, `/Users/macmillan/Library/Application Support/rtk/tee/1786623097_xcodebuild_test_-project_SYKeyboard_xcod.log`다.
+- FINAL TEST: Step 8의 여섯 focused suite를 권한 있는 환경에서 실행해 19/19 passed, failed 0, skipped 0을 확인했다. destination은 iPhone 13 mini / iOS 16.0 (arm64), xcresult는 `/Users/macmillan/Library/Developer/Xcode/DerivedData/SYKeyboard-hgprdtyustcuukabeovkjzrtclhy/Logs/Test/Test-SYKeyboard-2026.08.13_21-23-56-+0900.xcresult`, 전체 로그는 `/Users/macmillan/Library/Application Support/rtk/tee/1786623912_xcodebuild_test_-project_SYKeyboard_xcod.log`다.
+- BUILD: `HangeulEnglishKeyboard`, `HangeulKeyboard`, `EnglishKeyboard` scheme을 같은 destination에서 fresh build해 모두 exit 0과 `** BUILD SUCCEEDED **`를 확인했다. 전체 로그는 각각 `/Users/macmillan/Library/Application Support/rtk/tee/1786624036_xcodebuild_build_-project_SYKeyboard_xco.log`, `/Users/macmillan/Library/Application Support/rtk/tee/1786624051_xcodebuild_build_-project_SYKeyboard_xco.log`, `/Users/macmillan/Library/Application Support/rtk/tee/1786624067_xcodebuild_build_-project_SYKeyboard_xco.log`다. Firebase dSYM/AppIntents/Meta binary의 기존 경고는 남지만 error는 없었다.
+- 통합: focus identity가 바뀐 경우에만 document `ko`/`en` hint를 판정하고 같은 focus의 수동 선택과 nil identity에서는 현재 mode를 유지한다. 두 adapter view는 한 번 구성한 뒤 active keyboard만 전환하며, symbol/numeric/TenKey 표시와 시스템 globe 동작은 유지한다. mode 전환은 상호작용 종료, outgoing adapter reset, deferred Hangul undo 확정, coordinator/storage/`primaryLanguage`/suggestion/button/view/layout 갱신, 언어 segment 경계 표시 순서로 연결했다.
+- segment: Base의 기존 edit wrapper에서 tracker를 함께 갱신하고 suggestion/n-gram/문장 종료에는 현재 언어 suffix만 전달한다. 전용 keyboard는 경계를 표시하지 않아 기존 전체 `inputBuffer`를 계속 사용한다. private suggestion/input buffer는 공개하지 않고 네 목적 제한 forwarding API만 추가했다.
+- 파일 범위: 통합 controller가 전용 한글 controller와 같은 입력 완료 타이밍을 adapter production API로 호출해야 하므로, 승인된 최소 의존성 수정으로 `HangeulKeyboardInputAdapter.recordTextInteraction()`과 `clearLetterInputState()`만 public으로 전환했다. 내부 flag/state는 공개하지 않았고 이 파일을 Task 7 범위에 추가했다.
+- scheme: `xcodebuild -list -project SYKeyboard.xcodeproj`에서 shared `HangeulEnglishKeyboard` scheme을 확인했고 `/usr/bin/xmllint --noout`도 성공했다. `project.pbxproj` 변경은 coordinator의 app 제외/Core 포함 membership 두 줄뿐이며 기존 target dependency, app embed, Firebase, entitlement, bundle ID는 변경하지 않았다.
+- 수동 미확인: 실제 host 앱에서의 focus 전환 callback/hint, 한/영 버튼 touch·햅틱·사운드, 조합 중 전환, symbol/TenKey 표시 유지, 전체 접근 overlay는 Task 8 실제 입력 화면 검증 대상으로 남겼다.
 
 ### Task 8: 전체 회귀, 실제 입력 화면과 안내 문구 판정
 
