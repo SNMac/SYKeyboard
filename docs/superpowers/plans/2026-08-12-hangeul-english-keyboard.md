@@ -1249,6 +1249,15 @@ git commit -m "feat: #46 - 한영 통합 키보드 입력 전환 연결"
 - scheme: `xcodebuild -list -project SYKeyboard.xcodeproj`에서 shared `HangeulEnglishKeyboard` scheme을 확인했고 `/usr/bin/xmllint --noout`도 성공했다. `project.pbxproj` 변경은 coordinator의 app 제외/Core 포함 membership 두 줄뿐이며 기존 target dependency, app embed, Firebase, entitlement, bundle ID는 변경하지 않았다.
 - 수동 미확인: 실제 host 앱에서의 focus 전환 callback/hint, 한/영 버튼 touch·햅틱·사운드, 조합 중 전환, symbol/TenKey 표시 유지, 전체 접근 overlay는 Task 8 실제 입력 화면 검증 대상으로 남겼다.
 
+#### Formal review fix round 1/5 (2026-08-13)
+
+- 수정: `LanguageSwitchButton`은 Base의 `allKeyboardButtonList`를 통해 `ButtonStateController`의 `.touchDown` feedback action을 이미 받으므로, 통합 controller의 `.touchUpInside` action에서 중복 호출하던 `playFeedback()`과 불필요한 weak button capture를 제거했다. mode 전환 action은 기존처럼 `.touchUpInside` 하나만 유지했다.
+- TEST 명령: `xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0' -only-testing:SYKeyboardTests/HangeulEnglishKeyboardModeCoordinatorTests -only-testing:SYKeyboardTests/KeyboardLanguageSegmentTrackerTests -only-testing:SYKeyboardTests/KeyboardLanguageModePolicyTests -only-testing:SYKeyboardTests/HangeulKeyboardInputAdapterTests -only-testing:SYKeyboardTests/EnglishKeyboardInputAdapterTests -only-testing:SYKeyboardTests/LanguageSwitchButtonTests`
+- TEST 결과: iPhone 13 mini / iOS 16.0 (arm64), 19/19 passed, failed 0, skipped 0. xcresult는 `/Users/macmillan/Library/Developer/Xcode/DerivedData/SYKeyboard-hgprdtyustcuukabeovkjzrtclhy/Logs/Test/Test-SYKeyboard-2026.08.13_21-51-46-+0900.xcresult`, 전체 로그는 `/Users/macmillan/Library/Application Support/rtk/tee/1786625582_xcodebuild_test_-project_SYKeyboard_xcod.log`다.
+- BUILD 명령: `xcodebuild build -project SYKeyboard.xcodeproj -scheme HangeulEnglishKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0'`, `xcodebuild build -project SYKeyboard.xcodeproj -scheme HangeulKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0'`, `xcodebuild build -project SYKeyboard.xcodeproj -scheme EnglishKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0'`.
+- BUILD 결과: 세 scheme 모두 exit 0과 `** BUILD SUCCEEDED **`. 전체 로그는 `/Users/macmillan/Library/Application Support/rtk/tee/1786625626_xcodebuild_build_-project_SYKeyboard_xco.log`, `/Users/macmillan/Library/Application Support/rtk/tee/1786625648_xcodebuild_build_-project_SYKeyboard_xco.log`, `/Users/macmillan/Library/Application Support/rtk/tee/1786625663_xcodebuild_build_-project_SYKeyboard_xco.log`다.
+- 테스트 경계: exact haptic/sound unit test는 추가하지 않았다. 자동 회귀는 기존 `LanguageSwitchButtonTests`를 포함한 focused suites로 확인했고 실제 feedback은 Task 8 수동 관찰 대상으로 유지한다.
+
 ### Task 8: 전체 회귀, 실제 입력 화면과 안내 문구 판정
 
 **Files:**

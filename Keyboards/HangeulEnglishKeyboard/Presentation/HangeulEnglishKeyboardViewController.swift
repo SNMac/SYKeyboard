@@ -447,9 +447,8 @@ private extension HangeulEnglishKeyboardViewController {
     func setupLanguageSwitchActions() {
         primaryKeyboardViews.compactMap(\.languageSwitchButton).forEach { button in
             button.addAction(
-                UIAction { [weak self, weak button] _ in
+                UIAction { [weak self] _ in
                     guard let self else { return }
-                    button?.playFeedback()
                     let newMode: HangeulEnglishLanguageMode =
                         modeCoordinator.currentMode == .hangeul ? .english : .hangeul
                     applyLanguageMode(newMode, persist: true)
