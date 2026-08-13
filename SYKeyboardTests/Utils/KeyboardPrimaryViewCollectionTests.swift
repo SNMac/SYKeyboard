@@ -29,6 +29,106 @@ struct KeyboardPrimaryViewCollectionTests {
         #expect(second.translatesAutoresizingMaskIntoConstraints == false)
     }
 
+    @Test("통합 primary collection은 symbol 언어 버튼도 opt-in")
+    func testUnifiedPrimaryViewsOptInSymbolLanguageButton() throws {
+        let first = TestPrimaryKeyboardView(keyboard: .dubeolsik, showsLanguageSwitchButton: true)
+        let second = TestPrimaryKeyboardView(keyboard: .qwerty, showsLanguageSwitchButton: true)
+
+        let view = KeyboardView.loadFromNib(primaryKeyboardViews: [first, second])
+        let button = try #require(view.symbolKeyboardView.languageSwitchButton)
+        let symbolView = view.symbolKeyboardView
+        let primaryKeyButton = try #require(view.symbolKeyboardView.primaryButtonList.first)
+
+        view.frame = CGRect(x: 0, y: 0, width: 390, height: 216)
+        symbolView.isHidden = false
+        view.layoutIfNeeded()
+
+        #expect(view.symbolKeyboardView.allButtonList.contains { $0 === button })
+        #expect(button.frame.width + 0.5 >= primaryKeyButton.frame.width)
+        #expect(view.symbolKeyboardView.switchButton.frame.maxX <= button.frame.minX + 0.5)
+        #expect(button.frame.maxX <= view.symbolKeyboardView.nextKeyboardButton.frame.minX + 0.5)
+        button.updateLanguageMode(.english)
+        #expect(button.accessibilityValue == "영어")
+    }
+
+    @Test("통합 symbol은 숨겨진 globe 폭을 space로 반환")
+    func testUnifiedSymbolHiddenGlobeCollapsesIntoFlexibleSpace() throws {
+        let primary = TestPrimaryKeyboardView(keyboard: .qwerty, showsLanguageSwitchButton: true)
+        let view = KeyboardView.loadFromNib(primaryKeyboardViews: [primary])
+        let symbolView = view.symbolKeyboardView
+
+        view.frame = CGRect(x: 0, y: 0, width: 390, height: 216)
+        symbolView.isHidden = false
+        view.layoutIfNeeded()
+
+        let visibleGlobeWidth = view.symbolKeyboardView.nextKeyboardButton.frame.width
+        let visibleSpaceWidth = view.symbolKeyboardView.spaceButtonHStackView.frame.width
+        view.symbolKeyboardView.updateNextKeyboardButton(
+            needsInputModeSwitchKey: false,
+            nextKeyboardAction: NSSelectorFromString("unusedNextKeyboardAction:")
+        )
+        symbolView.layoutIfNeeded()
+
+        #expect(view.symbolKeyboardView.nextKeyboardButton.isHidden)
+        #expect(
+            view.symbolKeyboardView.spaceButtonHStackView.frame.width
+            >= visibleSpaceWidth + visibleGlobeWidth - 0.5
+        )
+    }
+
+    @Test("통합 symbol은 동일 globe 상태 반복 갱신 시 레이아웃을 다시 무효화하지 않음")
+    func testUnifiedSymbolRepeatedGlobeStateDoesNotInvalidateLayout() throws {
+        let primary = TestPrimaryKeyboardView(keyboard: .qwerty, showsLanguageSwitchButton: true)
+        let view = KeyboardView.loadFromNib(primaryKeyboardViews: [primary])
+        let symbolView = view.symbolKeyboardView
+
+        view.frame = CGRect(x: 0, y: 0, width: 390, height: 216)
+        symbolView.isHidden = false
+        view.layoutIfNeeded()
+
+        view.symbolKeyboardView.updateNextKeyboardButton(
+            needsInputModeSwitchKey: false,
+            nextKeyboardAction: NSSelectorFromString("unusedNextKeyboardAction:")
+        )
+        symbolView.layoutIfNeeded()
+
+        #expect(!symbolView.layer.needsLayout())
+
+        view.symbolKeyboardView.updateNextKeyboardButton(
+            needsInputModeSwitchKey: false,
+            nextKeyboardAction: NSSelectorFromString("unusedNextKeyboardAction:")
+        )
+
+        #expect(!symbolView.layer.needsLayout())
+    }
+
+    @Test("전용 primary collection은 symbol 언어 버튼과 modifier 폭을 유지")
+    func testDedicatedPrimaryViewDoesNotOptInSymbolLanguageButton() throws {
+        let primary = TestPrimaryKeyboardView(keyboard: .qwerty, showsLanguageSwitchButton: false)
+        let view = KeyboardView.loadFromNib(primaryKeyboardViews: [primary])
+        let symbolView = view.symbolKeyboardView
+
+        view.frame = CGRect(x: 0, y: 0, width: 390, height: 216)
+        symbolView.isHidden = false
+        view.layoutIfNeeded()
+
+        let visibleModifierWidth = view.symbolKeyboardView.fourthRowLeftSecondaryButtonHStackView.frame.width
+        view.symbolKeyboardView.updateNextKeyboardButton(
+            needsInputModeSwitchKey: false,
+            nextKeyboardAction: NSSelectorFromString("unusedNextKeyboardAction:")
+        )
+        symbolView.layoutIfNeeded()
+
+        #expect(view.symbolKeyboardView.languageSwitchButton == nil)
+        #expect(view.symbolKeyboardView.nextKeyboardButton.isHidden)
+        #expect(
+            abs(
+                view.symbolKeyboardView.fourthRowLeftSecondaryButtonHStackView.frame.width
+                - visibleModifierWidth
+            ) < 0.5
+        )
+    }
+
     @Test("초기 setup은 active primary만 표시")
     func testInitialSetupShowsOnlyActivePrimaryView() {
         let controller = TestMultiplePrimaryViewController()
@@ -127,11 +227,12 @@ private final class TestPrimaryKeyboardView: StandardKeyboardView, PrimaryKeyboa
         ]
     }
 
-    init(keyboard: SYKeyboardType) {
+    init(keyboard: SYKeyboardType, showsLanguageSwitchButton: Bool = false) {
         self.keyboardType = keyboard
         super.init(
             getIsShiftedLetterInput: { false },
-            setIsShiftedLetterInput: { _ in }
+            setIsShiftedLetterInput: { _ in },
+            showsLanguageSwitchButton: showsLanguageSwitchButton
         )
     }
 

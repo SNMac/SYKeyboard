@@ -390,6 +390,8 @@ git commit -m "fix: #46 - 주 키보드 전환 버튼 독립 배치"
 ### Task 3: symbol 한/영 버튼 opt-in과 action 연결
 
 **Files:**
+- Modify: `Modules/SYKeyboardCore/Presentation/View/KeyboardLayout/Protocols/Base/NormalKeyboardLayoutProvider.swift`
+- Modify: `Modules/SYKeyboardCore/Presentation/View/KeyboardLayout/Bases/StandardKeyboardView.swift`
 - Modify: `Modules/SYKeyboardCore/Presentation/View/KeyboardLayout/Protocols/SymbolKeyboardLayoutProvider.swift`
 - Modify: `Modules/SYKeyboardCore/Presentation/View/KeyboardLayout/SymbolKeyboardView.swift`
 - Modify: `Modules/SYKeyboardCore/Presentation/View/KeyboardView.swift`
@@ -402,7 +404,7 @@ git commit -m "fix: #46 - 주 키보드 전환 버튼 독립 배치"
 - Consumes: primary `languageSwitchButton != nil` as the single integrated-keyboard opt-in signal
 - Preserves: existing `applyLanguageMode(_:persist:outgoingMode:)` ordering and symbol/numeric/TenKey display guard
 
-- [ ] **Step 1: `KeyboardView.loadFromNib` production-entry RED tests를 작성한다**
+- [x] **Step 1: `KeyboardView.loadFromNib` production-entry RED tests를 작성한다**
 
 `KeyboardPrimaryViewCollectionTests.swift`에 다음 tests를 추가한다.
 
@@ -450,7 +452,7 @@ init(keyboard: SYKeyboardType, showsLanguageSwitchButton: Bool = false) {
 }
 ```
 
-- [ ] **Step 2: RED test를 실행한다**
+- [x] **Step 2: RED test를 실행한다**
 
 Run:
 
@@ -462,7 +464,7 @@ xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
 
 Expected: `SymbolKeyboardLayoutProvider`에 `languageSwitchButton`이 없어 compile RED가 발생한다.
 
-- [ ] **Step 3: symbol view opt-in을 최소 구현한다**
+- [x] **Step 3: symbol view opt-in을 최소 구현한다**
 
 protocol에 optional property와 전용 경로용 default를 추가한다.
 
@@ -491,7 +493,7 @@ public private(set) lazy var languageSwitchButton: LanguageSwitchButton? = {
 - symbol Shift 너비가 primary 글자 key보다 크므로 이 equality는 한/영 버튼의 최소
   primary key 너비 계약도 충족한다.
 
-- [ ] **Step 4: primary opt-in을 `KeyboardView`에서 symbol 생성에 전달한다**
+- [x] **Step 4: primary opt-in을 `KeyboardView`에서 symbol 생성에 전달한다**
 
 `KeyboardView.symbolKeyboardView` lazy closure만 변경한다.
 
@@ -510,7 +512,7 @@ lazy var symbolKeyboardView: SymbolKeyboardLayoutProvider = {
 
 별도 통합 keyboard flag나 UserDefaults key를 추가하지 않는다.
 
-- [ ] **Step 5: controller의 action/update 대상을 한 목록으로 합친다**
+- [x] **Step 5: controller의 action/update 대상을 한 목록으로 합친다**
 
 통합 controller에 다음 computed property를 추가해 setup과 mode update의 중복 순회를 제거한다.
 
@@ -523,7 +525,7 @@ var languageSwitchButtons: [LanguageSwitchButton] {
 
 `setupLanguageSwitchActions()`와 `applyLanguageMode`의 primary-only 순회를 모두 `languageSwitchButtons`로 교체한다. action은 기존 `.touchUpInside` 하나와 `applyLanguageMode(newMode, persist: true)`를 그대로 사용한다. 별도 feedback 호출을 추가하지 않는다.
 
-- [ ] **Step 6: GREEN과 mode 갱신 회귀 test를 실행한다**
+- [x] **Step 6: GREEN과 mode 갱신 회귀 test를 실행한다**
 
 Step 1의 production symbol button test가 `updateLanguageMode(.english)` 후 접근성
 값까지 확인하므로 별도 helper나 generic button 중복 test를 추가하지 않는다.
@@ -542,7 +544,7 @@ xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
 
 Expected: 모두 PASS, failed/skipped 0, Auto Layout conflict 0.
 
-- [ ] **Step 7: 세 extension build로 shared code 회귀를 확인한다**
+- [x] **Step 7: 세 extension build로 shared code 회귀를 확인한다**
 
 Run:
 
@@ -557,10 +559,12 @@ xcodebuild build -project SYKeyboard.xcodeproj -scheme EnglishKeyboard \
 
 Expected: 세 build exit 0.
 
-- [ ] **Step 8: 결과 기록과 exact commit**
+- [x] **Step 8: 결과 기록과 exact commit**
 
 ```sh
-git add Modules/SYKeyboardCore/Presentation/View/KeyboardLayout/Protocols/SymbolKeyboardLayoutProvider.swift \
+git add Modules/SYKeyboardCore/Presentation/View/KeyboardLayout/Protocols/Base/NormalKeyboardLayoutProvider.swift \
+  Modules/SYKeyboardCore/Presentation/View/KeyboardLayout/Bases/StandardKeyboardView.swift \
+  Modules/SYKeyboardCore/Presentation/View/KeyboardLayout/Protocols/SymbolKeyboardLayoutProvider.swift \
   Modules/SYKeyboardCore/Presentation/View/KeyboardLayout/SymbolKeyboardView.swift \
   Modules/SYKeyboardCore/Presentation/View/KeyboardView.swift \
   Keyboards/HangeulEnglishKeyboard/Presentation/HangeulEnglishKeyboardViewController.swift \
@@ -570,6 +574,14 @@ git commit -m "feat: #46 - 기호 키보드 한영 전환 버튼 연결"
 ```
 
 **Result:**
+
+- RED: 기본 sandbox 실행은 CoreSimulator/SwiftPM cache 권한 오류로 중단했다. 권한 있는 동일 suite 명령은 `/private/tmp/task3-red-20260814-002.xcresult`에서 `SymbolKeyboardLayoutProvider.languageSwitchButton` 부재로 compile RED(exit 65)를 확인했다.
+- `KeyboardView.loadFromNib(primaryKeyboardViews:)` production 진입점으로 통합 symbol의 opt-in, 독립 `switch → language → globe` frame 순서, Shift 기준 너비, `allButtonList`, mode 갱신, globe 숨김 시 space 폭 회수, 동일 globe 상태 반복 갱신, 전용 symbol nil/기존 modifier 폭을 검증했다. method-level filter 결과 `/private/tmp/task3-symbol-space-green-20260814-001.xcresult`는 total 0이어서 GREEN 근거에서 제외했다.
+- shared globe lifecycle은 `NormalKeyboardLayoutProvider.updateNextKeyboardButton` 한 곳에 `addTarget`/hidden 상태 변경/중복 상태 guard를 유지하고, 실제 visibility 변경 시 호출하는 default no-op hook만 추가했다. `StandardKeyboardView`와 `SymbolKeyboardView`는 통합 modifier constraint 갱신만 hook으로 제공한다. 이로써 primary와 symbol에 lifecycle 코드를 복사하지 않았고 numeric 및 전용 false 경로는 default no-op을 사용한다.
+- production-entry suite GREEN: `/private/tmp/task3-primary-suite-green-20260814-001.xcresult`, 8 tests, passed 8 / failed 0 / skipped 0. 첫 layout 실행 `/private/tmp/task3-primary-green-20260814-005.xcresult`은 parent에 `layoutIfNeeded()`를 호출해 symbol 자신의 pending layout이 반영되지 않은 test boundary를 드러냈고, production receiver인 symbol view에 `layoutIfNeeded()`를 호출하도록 바로잡았다.
+- focused GREEN: `/private/tmp/task3-focused-green-20260814-001.xcresult`, 24 tests / 26 parameterized runs, passed 24 (26 runs) / failed 0 / skipped 0. RTK log `1786639568_xcodebuild_-quiet_test_-project_SYKeyboa.log`에서 Auto Layout conflict, unsatisfiable constraint, compiler error는 0건이고 기존 Crashlytics dSYM warning만 확인했다.
+- iPhone 13 mini / iOS 16.0 Simulator에서 `HangeulEnglishKeyboard`, `HangeulKeyboard`, `EnglishKeyboard`를 순차 build했고 모두 exit 0이었다. 통합 build RTK log는 `1786639596_xcodebuild_-quiet_build_-project_SYKeybo.log`이며, 기존 Crashlytics dSYM 및 vendor module debug warning 외 compile/link error와 Auto Layout conflict는 없었다.
+- Context7의 UIKit 문서에서 hidden arranged subview가 stack layout 계산에서 빠지고 `UIStackView`가 `isHidden` 변경에 맞춰 layout을 갱신하며, `layoutIfNeeded()`는 receiver의 pending layout을 즉시 반영한다는 계약을 확인해 테스트와 구현 경계에 적용했다.
 
 ---
 

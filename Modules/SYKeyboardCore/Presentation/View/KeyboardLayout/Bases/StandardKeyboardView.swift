@@ -395,16 +395,8 @@ private extension StandardKeyboardView {
 // MARK: - Update Methods
 
 extension StandardKeyboardView {
-    final public func updateNextKeyboardButton(
-        needsInputModeSwitchKey: Bool,
-        nextKeyboardAction: Selector
-    ) {
-        let wasNextKeyboardButtonHidden = nextKeyboardButton.isHidden
-        nextKeyboardButton.addTarget(nil, action: nextKeyboardAction, for: .allTouchEvents)
-        nextKeyboardButton.isHidden = !needsInputModeSwitchKey
-
-        guard languageSwitchButton != nil,
-              wasNextKeyboardButtonHidden != nextKeyboardButton.isHidden else { return }
+    final public func nextKeyboardButtonVisibilityDidChange(needsInputModeSwitchKey: Bool) {
+        guard languageSwitchButton != nil else { return }
         updateFourthRowModifierWidthConstraint(needsInputModeSwitchKey: needsInputModeSwitchKey)
         setNeedsLayout()
     }

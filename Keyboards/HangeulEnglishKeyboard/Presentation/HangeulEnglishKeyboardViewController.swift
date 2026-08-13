@@ -444,8 +444,13 @@ final class HangeulEnglishKeyboardViewController: BaseKeyboardViewController {
 // MARK: - Language Mode
 
 private extension HangeulEnglishKeyboardViewController {
+    var languageSwitchButtons: [LanguageSwitchButton] {
+        primaryKeyboardViews.compactMap(\.languageSwitchButton)
+        + [symbolKeyboardView.languageSwitchButton].compactMap { $0 }
+    }
+
     func setupLanguageSwitchActions() {
-        primaryKeyboardViews.compactMap(\.languageSwitchButton).forEach { button in
+        languageSwitchButtons.forEach { button in
             button.addAction(
                 UIAction { [weak self] _ in
                     guard let self else { return }
@@ -481,7 +486,7 @@ private extension HangeulEnglishKeyboardViewController {
         primaryLanguage = mode.languageIdentifier
         updateSuggestionLanguage(to: mode.languageIdentifier)
 
-        primaryKeyboardViews.compactMap(\.languageSwitchButton).forEach {
+        languageSwitchButtons.forEach {
             $0.updateLanguageMode(mode)
         }
         symbolKeyboardView.switchButton.updatePrimaryLanguageMode(mode)

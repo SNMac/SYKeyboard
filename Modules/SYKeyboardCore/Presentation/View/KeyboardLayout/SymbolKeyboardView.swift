@@ -21,6 +21,7 @@ final class SymbolKeyboardView: UIView, SymbolKeyboardLayoutProvider {
     public private(set) lazy var allButtonList: [BaseKeyboardButton] = primaryButtonList + secondaryButtonList
     public private(set) lazy var primaryButtonList: [PrimaryButton] = firstRowPrimaryKeyButtonList + secondRowPrimaryKeyButtonList + thirdRowPrimaryKeyButtonList + [spaceButton, atButton, periodButton, slashButton, dotComButton]
     public private(set) lazy var secondaryButtonList: [SecondaryButton] = [shiftButton, deleteButton, switchButton, returnButton, nextKeyboardButton]
+    + [languageSwitchButton].compactMap { $0 as SecondaryButton? }
     public private(set) lazy var totalTextInterableButtonList: [TextInteractable] = firstRowPrimaryKeyButtonList + secondRowPrimaryKeyButtonList + thirdRowPrimaryKeyButtonList
     + [deleteButton, spaceButton, atButton, periodButton, slashButton, dotComButton, returnButton]
     
@@ -41,6 +42,10 @@ final class SymbolKeyboardView: UIView, SymbolKeyboardLayoutProvider {
     
     /// `periodButton`의 너비 제약 조건
     public var periodButtonWidthConstraint: NSLayoutConstraint?
+    /// 통합 키보드 modifier 영역의 너비 제약
+    private var fourthRowModifierWidthConstraint: NSLayoutConstraint?
+
+    private let showsLanguageSwitchButton: Bool
     
     // MARK: - UI Components
     
@@ -96,6 +101,10 @@ final class SymbolKeyboardView: UIView, SymbolKeyboardLayoutProvider {
     public private(set) var shiftButton = ShiftButton(keyboard: .symbol)
     public private(set) var deleteButton = DeleteButton(keyboard: .symbol)
     public private(set) var switchButton = SwitchButton(keyboard: .symbol)
+    public private(set) lazy var languageSwitchButton: LanguageSwitchButton? = {
+        guard showsLanguageSwitchButton else { return nil }
+        return LanguageSwitchButton(mode: .hangeul, keyboard: .symbol)
+    }()
     
     public private(set) var spaceButton = SpaceButton(keyboard: .symbol)
     public private(set) var atButton = PrimaryKeyButton(keyboard: .symbol, button: .keyButton(primary: ["@"], secondary: nil))
@@ -121,8 +130,9 @@ final class SymbolKeyboardView: UIView, SymbolKeyboardLayoutProvider {
     
     // MARK: - Initializer
     
-    override init(frame: CGRect) {
-        super.init(frame: frame)
+    init(showsLanguageSwitchButton: Bool = false) {
+        self.showsLanguageSwitchButton = showsLanguageSwitchButton
+        super.init(frame: .zero)
         setupUI()
         updateLayoutToDefault()
     }
@@ -172,7 +182,10 @@ private extension SymbolKeyboardView {
         thirdRowPrimaryKeyButtonList.forEach { thirdRowInsideHStackView.addArrangedSubview($0) }
         
         [fourthRowLeftSecondaryButtonHStackView, spaceButtonHStackView, returnButton].forEach { fourthRowHStackView.addArrangedSubview($0) }
-        [switchButton, nextKeyboardButton].forEach { fourthRowLeftSecondaryButtonHStackView.addArrangedSubview($0) }
+        let modifierButtons: [SecondaryButton] = [switchButton]
+        + [languageSwitchButton].compactMap { $0 }
+        + [nextKeyboardButton]
+        modifierButtons.forEach(fourthRowLeftSecondaryButtonHStackView.addArrangedSubview)
         [spaceButton, atButton, periodButton, slashButton, dotComButton].forEach { spaceButtonHStackView.addArrangedSubview($0) }
     }
     
@@ -219,13 +232,22 @@ private extension SymbolKeyboardView {
         }
         
         fourthRowLeftSecondaryButtonHStackView.translatesAutoresizingMaskIntoConstraints = false
-        if let superview = fourthRowLeftSecondaryButtonHStackView.superview {
+        if let languageSwitchButton {
+            fourthRowLeftSecondaryButtonHStackView.distribution = .fill
+            switchButton.widthAnchor.constraint(equalTo: shiftButton.widthAnchor).isActive = true
+            languageSwitchButton.widthAnchor.constraint(equalTo: shiftButton.widthAnchor).isActive = true
+            let globeWidth = nextKeyboardButton.widthAnchor.constraint(equalTo: shiftButton.widthAnchor)
+            globeWidth.priority = .init(999)
+            globeWidth.isActive = true
+            updateFourthRowModifierWidthConstraint(needsInputModeSwitchKey: true)
+        } else if let superview = fourthRowLeftSecondaryButtonHStackView.superview {
             fourthRowLeftSecondaryButtonHStackView.widthAnchor.constraint(equalTo: superview.widthAnchor,
                                                                           multiplier: 0.25).isActive = true
         }
         
         spaceButtonHStackView.translatesAutoresizingMaskIntoConstraints = false
-        if let superview = spaceButtonHStackView.superview {
+        if languageSwitchButton == nil,
+           let superview = spaceButtonHStackView.superview {
             spaceButtonHStackView.widthAnchor.constraint(equalTo: superview.widthAnchor,
                                                         multiplier: 0.5).isActive = true
         }
@@ -284,6 +306,16 @@ private extension SymbolKeyboardView {
             oneHandedModeSelectOverlayView.heightAnchor.constraint(equalToConstant: KeyboardLayoutFigure.selectOverlayHeight)
         ])
     }
+
+    func updateFourthRowModifierWidthConstraint(needsInputModeSwitchKey: Bool) {
+        let visibleModifierCount = 2 + (needsInputModeSwitchKey ? 1 : 0)
+        fourthRowModifierWidthConstraint?.isActive = false
+        fourthRowModifierWidthConstraint = fourthRowLeftSecondaryButtonHStackView.widthAnchor.constraint(
+            equalTo: shiftButton.widthAnchor,
+            multiplier: CGFloat(visibleModifierCount)
+        )
+        fourthRowModifierWidthConstraint?.isActive = true
+    }
 }
 
 // MARK: - Action Methods
@@ -325,6 +357,12 @@ private extension SymbolKeyboardView {
 // MARK: - Internal Methods
 
 extension SymbolKeyboardView {
+    func nextKeyboardButtonVisibilityDidChange(needsInputModeSwitchKey: Bool) {
+        guard languageSwitchButton != nil else { return }
+        updateFourthRowModifierWidthConstraint(needsInputModeSwitchKey: needsInputModeSwitchKey)
+        setNeedsLayout()
+    }
+
     func updatePeriodButtonWidthConstraint(multiplier: CGFloat?) {
         periodButtonWidthConstraint?.isActive = false
         

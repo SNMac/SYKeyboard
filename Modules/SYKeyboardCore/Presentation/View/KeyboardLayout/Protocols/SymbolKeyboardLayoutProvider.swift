@@ -9,6 +9,8 @@ import UIKit
 
 /// 기호 키보드 레이아웃 프로토콜
 public protocol SymbolKeyboardLayoutProvider: NormalKeyboardLayoutProvider {
+    /// 한영 전환 버튼
+    var languageSwitchButton: LanguageSwitchButton? { get }
     /// 현재 기호 키보드 모드
     var currentSymbolKeyboardMode: SymbolKeyboardMode { get set }
     /// Shift 상태
@@ -49,7 +51,9 @@ public protocol SymbolKeyboardLayoutProvider: NormalKeyboardLayoutProvider {
 
 // MARK: - Protocol Properties & Methods
 
-extension SymbolKeyboardLayoutProvider {
+public extension SymbolKeyboardLayoutProvider {
+    var languageSwitchButton: LanguageSwitchButton? { nil }
+
     var keyboard: SYKeyboardType { .symbol }
     
     func updateLayoutForCurrentSymbolKeyboardMode(oldMode: SymbolKeyboardMode) {

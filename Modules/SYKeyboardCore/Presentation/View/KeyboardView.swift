@@ -67,7 +67,12 @@ final public class KeyboardView: UIInputView {
     
     /// 기호 키보드
     lazy var symbolKeyboardView: SymbolKeyboardLayoutProvider = {
-        let symbolKeyboardView = SymbolKeyboardView()
+        let showsLanguageSwitchButton = primaryKeyboardViews.contains {
+            $0.languageSwitchButton != nil
+        }
+        let symbolKeyboardView = SymbolKeyboardView(
+            showsLanguageSwitchButton: showsLanguageSwitchButton
+        )
         symbolKeyboardView.isHidden = true
         
         return symbolKeyboardView
