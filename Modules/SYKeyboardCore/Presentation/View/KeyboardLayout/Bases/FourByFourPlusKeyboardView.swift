@@ -169,8 +169,10 @@ private extension FourByFourPlusKeyboardView {
         
         [fourthRowPrimaryKeyButtonList[0], fourthRowPrimaryKeyButtonList[1]].forEach { fourthRowLeftPrimaryButtonHStackView.addArrangedSubview($0) }
         [fourthRowPrimaryKeyButtonList[3], fourthRowPrimaryKeyButtonList[4]].forEach { fourthRowRightPrimaryButtonHStackView.addArrangedSubview($0) }
-        [nextKeyboardButton, switchButton].forEach { fourthRowRightSecondaryButtonHStackView.addArrangedSubview($0) }
-        addLanguageSwitchButtonIfNeeded()
+        let modifierButtons: [SecondaryButton] = [nextKeyboardButton]
+        + [languageSwitchButton].compactMap { $0 }
+        + [switchButton]
+        modifierButtons.forEach(fourthRowRightSecondaryButtonHStackView.addArrangedSubview)
     }
     
     func setConstraints() {
@@ -199,18 +201,4 @@ private extension FourByFourPlusKeyboardView {
         ])
     }
 
-    func addLanguageSwitchButtonIfNeeded() {
-        guard let languageSwitchButton else { return }
-
-        switchButton.configureVisibleAreaForLanguageSwitchButton(onLeadingEdge: true)
-        fourthRowRightSecondaryButtonHStackView.addSubview(languageSwitchButton)
-        languageSwitchButton.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([
-            languageSwitchButton.topAnchor.constraint(equalTo: switchButton.topAnchor),
-            languageSwitchButton.leadingAnchor.constraint(equalTo: switchButton.leadingAnchor),
-            languageSwitchButton.trailingAnchor.constraint(equalTo: switchButton.centerXAnchor),
-            languageSwitchButton.bottomAnchor.constraint(equalTo: switchButton.bottomAnchor)
-        ])
-        fourthRowRightSecondaryButtonHStackView.bringSubviewToFront(languageSwitchButton)
-    }
 }

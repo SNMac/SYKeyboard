@@ -182,7 +182,7 @@ git commit -m "design: #46 - 한영 전환 버튼 그래픽 구분선 적용"
 - Produces: Standard order `switch → language → next`, 4×4 order `next → language → switch`, independent button frames
 - Preserves: dedicated `showsLanguageSwitchButton == false` hierarchy and `SwitchButton` numeric/one-handed labels and gestures
 
-- [ ] **Step 1: production view frame RED tests를 작성한다**
+- [x] **Step 1: production view frame RED tests를 작성한다**
 
 새 `KeyboardModifierLayoutTests.swift`는 실제 production concrete view를 사용한다.
 
@@ -261,7 +261,7 @@ struct KeyboardModifierLayoutTests {
 
 한글 전용 나랏글·천지인도 `showsLanguageSwitchButton: false`에서 nil임을 같은 suite에 추가한다. helper가 layout 결과를 대신 계산하게 만들지 않는다.
 
-- [ ] **Step 2: RED test를 실행한다**
+- [x] **Step 2: RED test를 실행한다**
 
 Run:
 
@@ -273,7 +273,7 @@ xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
 
 Expected: 기존 overlay 때문에 qwerty의 독립 frame/Shift 너비와 4×4 순서가 FAIL한다. 새 file이 synchronized test group에 자동 포함되지 않으면 production 변경 전에 `project.pbxproj`에 test target membership만 추가하고 그 이유를 Result에 기록한다.
 
-- [ ] **Step 3: `SwitchButton` split-visible-area 경로를 제거한다**
+- [x] **Step 3: `SwitchButton` split-visible-area 경로를 제거한다**
 
 다음 메서드와 그 호출을 제거한다.
 
@@ -283,7 +283,7 @@ func configureVisibleAreaForLanguageSwitchButton(onLeadingEdge: Bool)
 
 `SwitchButton`의 기본 `visualConstraints`, `keyboardSelectLabel` trailing/leading anchor, `createKeyboardSelectAttributedText`, pan 강조 코드는 변경하지 않는다. 이로써 전용 keyboard와 통합 keyboard가 같은 full `SwitchButton` 구현을 사용한다.
 
-- [ ] **Step 4: Standard modifier row를 opt-in 한 곳에서 구성한다**
+- [x] **Step 4: Standard modifier row를 opt-in 한 곳에서 구성한다**
 
 `StandardKeyboardView.setHierarchy()`에서 overlay sibling 추가를 제거하고 다음 순서로 arranged subview를 넣는다.
 
@@ -313,7 +313,7 @@ if let languageSwitchButton {
 
 `UIStackView`가 hidden arranged subview의 레이아웃을 자동 갱신하므로 `needsInputModeSwitchKey` 상태를 복제하지 않는다. 지구본이 숨겨지면 flexible space 영역이 남은 너비를 받는다.
 
-- [ ] **Step 5: 4×4 base의 기존 modifier 영역 안에서 순서만 구성한다**
+- [x] **Step 5: 4×4 base의 기존 modifier 영역 안에서 순서만 구성한다**
 
 두 base의 overlay 메서드를 제거한다. `showsLanguageSwitchButton == true`일 때만 기존 container에 `next → language → switch` 순서로 추가한다.
 
@@ -326,7 +326,7 @@ modifierButtons.forEach(fourthRowRightSecondaryButtonHStackView.addArrangedSubvi
 
 container의 기존 outer width와 `.fillEqually`는 유지해 지구본 표시 시 3등분, hidden 시 2등분되게 한다. 천지인·나랏글에는 Standard primary key 최소 너비를 적용하지 않는다. concrete `NaratgeulKeyboardView`와 `CheonjiinKeyboardView`에는 코드를 추가하지 않는다.
 
-- [ ] **Step 6: GREEN과 전용 adapter 회귀 test를 실행한다**
+- [x] **Step 6: GREEN과 전용 adapter 회귀 test를 실행한다**
 
 Run:
 
@@ -342,7 +342,7 @@ xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
 
 Expected: 새 layout suite와 기존 전용 adapter/gesture suite 모두 PASS, failed/skipped 0. 로그에 `Unable to simultaneously satisfy constraints`가 없어야 한다.
 
-- [ ] **Step 7: 전용 extension 두 개를 build한다**
+- [x] **Step 7: 전용 extension 두 개를 build한다**
 
 Run:
 
@@ -355,7 +355,7 @@ xcodebuild build -project SYKeyboard.xcodeproj -scheme EnglishKeyboard \
 
 Expected: 두 build exit 0. 기존 외부 dependency warning과 실제 error를 구분해 Result에 기록한다.
 
-- [ ] **Step 8: 결과 기록과 exact commit**
+- [x] **Step 8: 결과 기록과 exact commit**
 
 ```sh
 git add Modules/SYKeyboardCore/Presentation/View/Components/Buttons/SwitchButton.swift \
@@ -370,6 +370,12 @@ git commit -m "fix: #46 - 주 키보드 전환 버튼 독립 배치"
 `project.pbxproj` membership 수정이 실제로 필요했을 때만 exact path에 추가한다.
 
 **Result:**
+
+- `KeyboardModifierLayoutTests.swift`는 synchronized test group에 자동 포함되어 `project.pbxproj`를 수정하지 않았다. 실제 concrete view와 frame을 사용했고, test-local `FourByFourFixture: Sendable`는 나랫글·천지인 concrete view 선택만 담당한다.
+- 샌드박스 RED 실행은 CoreSimulator/SwiftPM cache 권한 오류로 exit 74였고, 권한 있는 동일 명령은 exit 65로 예상 RED를 확인했다. `Test-SYKeyboard-2026.08.13_23-35-40-+0900.xcresult`: 5 tests / 7 parameterized runs, passed 3 / failed 2 (3 runs) / skipped 0. 통합 QWERTY의 Switch–Shift 너비 차이는 4.0pt였고, 4×4 overlay에서 Language maxX 72.9999가 Switch minX 48.6666을 약 24.33pt 침범해 순서 계약을 실제로 위반했다.
+- 버튼 인접 경계는 `CGFloat` 소수점 오차(1e-14pt 수준)를 불합격시켜 0.5pt 허용치를 적용했다. RED의 4.0pt 너비 차이와 약 24.33pt 4×4 overlap은 같은 단언에서 여전히 실패하므로 회귀 감지력을 유지한다.
+- 권한 있는 focused GREEN: `Test-SYKeyboard-2026.08.13_23-42-50-+0900.xcresult`, 21 tests / 23 parameterized runs, passed 21 (23 runs) / failed 0 / skipped 0. RTK full log `1786632251_xcodebuild_test_-project_SYKeyboard_xcod.log`에서 `Unable to simultaneously satisfy constraints`, `unsatisfiable`, 새 test warning/error는 0건이었다.
+- 전용 extension은 `iPhone 13 mini / iOS 16.0` Simulator에서 순차 fresh build했다. `HangeulKeyboard`(RTK log `1786632330_xcodebuild_build_-project_SYKeyboard_xco.log`) 및 `EnglishKeyboard`(`1786632346_xcodebuild_build_-project_SYKeyboard_xco.log`) 모두 exit 0 / `BUILD SUCCEEDED`. 두 log의 경고는 기존 Crashlytics `DEBUG_INFORMATION_FORMAT`/dSYM 구성 경고였고 실제 compile/link error와 Auto Layout conflict는 없었다. 최초 공유 DerivedData 병렬 build 중 Hangeul 실행은 코드 error 없이 exit 65를 반환했으며 원인은 별도로 특정하지 않았다. 최종 검증은 순차 동일 명령의 성공 결과로 대체했다.
 
 ---
 

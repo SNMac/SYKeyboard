@@ -114,24 +114,6 @@ final public class SwitchButton: SecondaryButton {
         keyboardSelectLabel.attributedText = createKeyboardSelectAttributedText(needToEmphasize: needToEmphasize)
     }
 
-    func configureVisibleAreaForLanguageSwitchButton(onLeadingEdge: Bool) {
-        NSLayoutConstraint.deactivate(visualConstraints)
-
-        let top = backgroundView.topAnchor.constraint(equalTo: topAnchor, constant: insetDy)
-        let bottom = backgroundView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -insetDy)
-        let leading: NSLayoutConstraint
-        let trailing: NSLayoutConstraint
-        if onLeadingEdge {
-            leading = backgroundView.leadingAnchor.constraint(equalTo: centerXAnchor, constant: insetDx)
-            trailing = backgroundView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -insetDx)
-        } else {
-            leading = backgroundView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: insetDx)
-            trailing = backgroundView.trailingAnchor.constraint(equalTo: centerXAnchor, constant: -insetDx)
-        }
-
-        visualConstraints = [top, leading, trailing, bottom]
-        NSLayoutConstraint.activate(visualConstraints)
-    }
 }
 
 // MARK: - UI Methods

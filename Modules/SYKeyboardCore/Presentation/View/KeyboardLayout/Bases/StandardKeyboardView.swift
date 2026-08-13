@@ -229,8 +229,10 @@ private extension StandardKeyboardView {
         thirdRowPrimaryKeyButtonList.forEach { thirdRowInsideHStackView.addArrangedSubview($0) }
         
         [fourthRowLeftSecondaryButtonHStackView, spaceButtonHStackView, returnButtonHStackView].forEach { fourthRowHStackView.addArrangedSubview($0) }
-        [switchButton, nextKeyboardButton].forEach { fourthRowLeftSecondaryButtonHStackView.addArrangedSubview($0) }
-        addLanguageSwitchButtonIfNeeded()
+        let modifierButtons: [SecondaryButton] = [switchButton]
+        + [languageSwitchButton].compactMap { $0 }
+        + [nextKeyboardButton]
+        modifierButtons.forEach(fourthRowLeftSecondaryButtonHStackView.addArrangedSubview)
         [spaceButton, atButton, periodButton, slashButton, dotComButton].forEach { spaceButtonHStackView.addArrangedSubview($0) }
         [returnButton, secondaryAtButton, secondarySharpButton].forEach { returnButtonHStackView.addArrangedSubview($0) }
     }
@@ -301,8 +303,17 @@ private extension StandardKeyboardView {
         }
         
         fourthRowLeftSecondaryButtonHStackView.translatesAutoresizingMaskIntoConstraints = false
-        if let superview = fourthRowLeftSecondaryButtonHStackView.superview {
-            fourthRowLeftSecondaryButtonHStackView.widthAnchor.constraint(equalTo: superview.widthAnchor, multiplier: 0.25).isActive = true
+        if let languageSwitchButton {
+            fourthRowLeftSecondaryButtonHStackView.distribution = .fill
+            switchButton.widthAnchor.constraint(equalTo: shiftButton.widthAnchor).isActive = true
+            languageSwitchButton.widthAnchor.constraint(equalTo: shiftButton.widthAnchor).isActive = true
+            let globeWidth = nextKeyboardButton.widthAnchor.constraint(equalTo: shiftButton.widthAnchor)
+            globeWidth.priority = .init(999)
+            globeWidth.isActive = true
+        } else if let superview = fourthRowLeftSecondaryButtonHStackView.superview {
+            fourthRowLeftSecondaryButtonHStackView.widthAnchor
+                .constraint(equalTo: superview.widthAnchor, multiplier: 0.25)
+                .isActive = true
         }
         
         atButton.translatesAutoresizingMaskIntoConstraints = false
@@ -366,20 +377,6 @@ private extension StandardKeyboardView {
         ])
     }
 
-    func addLanguageSwitchButtonIfNeeded() {
-        guard let languageSwitchButton else { return }
-
-        switchButton.configureVisibleAreaForLanguageSwitchButton(onLeadingEdge: false)
-        fourthRowLeftSecondaryButtonHStackView.addSubview(languageSwitchButton)
-        languageSwitchButton.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([
-            languageSwitchButton.topAnchor.constraint(equalTo: switchButton.topAnchor),
-            languageSwitchButton.leadingAnchor.constraint(equalTo: switchButton.centerXAnchor),
-            languageSwitchButton.trailingAnchor.constraint(equalTo: switchButton.trailingAnchor),
-            languageSwitchButton.bottomAnchor.constraint(equalTo: switchButton.bottomAnchor)
-        ])
-        fourthRowLeftSecondaryButtonHStackView.bringSubviewToFront(languageSwitchButton)
-    }
 }
 
 // MARK: - Update Methods
