@@ -399,10 +399,12 @@ extension StandardKeyboardView {
         needsInputModeSwitchKey: Bool,
         nextKeyboardAction: Selector
     ) {
+        let wasNextKeyboardButtonHidden = nextKeyboardButton.isHidden
         nextKeyboardButton.addTarget(nil, action: nextKeyboardAction, for: .allTouchEvents)
         nextKeyboardButton.isHidden = !needsInputModeSwitchKey
 
-        guard languageSwitchButton != nil else { return }
+        guard languageSwitchButton != nil,
+              wasNextKeyboardButtonHidden != nextKeyboardButton.isHidden else { return }
         updateFourthRowModifierWidthConstraint(needsInputModeSwitchKey: needsInputModeSwitchKey)
         setNeedsLayout()
     }

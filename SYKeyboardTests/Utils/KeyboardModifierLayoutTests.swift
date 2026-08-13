@@ -79,6 +79,33 @@ struct KeyboardModifierLayoutTests {
         #expect(languageButton.frame.width + 0.5 >= primaryKeyButton.frame.width)
     }
 
+    @Test("통합 쿼티는 동일 globe 상태 반복 갱신 시 레이아웃을 다시 무효화하지 않음")
+    func testUnifiedQwertyRepeatedGlobeStateDoesNotInvalidateLayout() throws {
+        let view = EnglishKeyboardView(
+            getIsShiftedLetterInput: { false },
+            setIsShiftedLetterInput: { _ in },
+            showsLanguageSwitchButton: true
+        )
+        view.frame = CGRect(x: 0, y: 0, width: 390, height: 216)
+        view.layoutIfNeeded()
+
+        let primaryView: PrimaryKeyboardRepresentable = view
+        primaryView.updateNextKeyboardButton(
+            needsInputModeSwitchKey: false,
+            nextKeyboardAction: NSSelectorFromString("unusedNextKeyboardAction:")
+        )
+        view.layoutIfNeeded()
+
+        #expect(!view.layer.needsLayout())
+
+        primaryView.updateNextKeyboardButton(
+            needsInputModeSwitchKey: false,
+            nextKeyboardAction: NSSelectorFromString("unusedNextKeyboardAction:")
+        )
+
+        #expect(!view.layer.needsLayout())
+    }
+
     @Test("전용 쿼티는 Language 없이 기존 Switch와 globe만 유지")
     func testDedicatedQwertyDoesNotCreateLanguageButton() {
         let view = EnglishKeyboardView(
