@@ -27,8 +27,11 @@ open class FourByFourKeyboardView: UIView {
     public private(set) lazy var allButtonList: [BaseKeyboardButton] = primaryButtonList + secondaryButtonList
     public private(set) lazy var primaryButtonList: [PrimaryButton] = firstRowPrimaryKeyButtonList + secondRowPrimaryKeyButtonList + thirdRowPrimaryKeyButtonList + fourthRowPrimaryKeyButtonList + [spaceButton]
     public private(set) lazy var secondaryButtonList: [SecondaryButton] = [deleteButton, returnButton, secondaryAtButton, secondarySharpButton, switchButton, nextKeyboardButton]
+    + [languageSwitchButton].compactMap { $0 as SecondaryButton? }
     public private(set) lazy var totalTextInterableButtonList: [TextInteractable] = firstRowPrimaryKeyButtonList + secondRowPrimaryKeyButtonList + thirdRowPrimaryKeyButtonList + fourthRowPrimaryKeyButtonList
     + [deleteButton, spaceButton, returnButton, secondaryAtButton, secondarySharpButton]
+
+    private let showsLanguageSwitchButton: Bool
     
     // MARK: - UI Components
     
@@ -86,6 +89,10 @@ open class FourByFourKeyboardView: UIView {
     public private(set) lazy var secondarySharpButton = SecondaryKeyButton(keyboard: keyboard, button: .keyButton(primary: ["#"], secondary: nil))
     
     public private(set) lazy var switchButton = SwitchButton(keyboard: keyboard)
+    public private(set) lazy var languageSwitchButton: LanguageSwitchButton? = {
+        guard showsLanguageSwitchButton else { return nil }
+        return LanguageSwitchButton(mode: .hangeul, keyboard: keyboard)
+    }()
     public private(set) lazy var nextKeyboardButton = NextKeyboardButton(keyboard: keyboard)
     
     public private(set) lazy var keyboardSelectOverlayView: KeyboardSelectOverlayView = {
@@ -103,8 +110,9 @@ open class FourByFourKeyboardView: UIView {
     
     // MARK: - Initializer
     
-    public override init(frame: CGRect) {
-        super.init(frame: frame)
+    public init(showsLanguageSwitchButton: Bool = false) {
+        self.showsLanguageSwitchButton = showsLanguageSwitchButton
+        super.init(frame: .zero)
         setupUI()
     }
     
@@ -153,6 +161,7 @@ private extension FourByFourKeyboardView {
         fourthRowPrimaryKeyButtonList.forEach { fourthRowHStackView.addArrangedSubview($0) }
         fourthRowHStackView.addArrangedSubview(fourthRowRightSecondaryButtonHStackView)
         [nextKeyboardButton, switchButton].forEach { fourthRowRightSecondaryButtonHStackView.addArrangedSubview($0) }
+        addLanguageSwitchButtonIfNeeded()
     }
     
     func setConstraints() {
@@ -179,5 +188,20 @@ private extension FourByFourKeyboardView {
             oneHandedModeSelectOverlayView.widthAnchor.constraint(equalToConstant: KeyboardLayoutFigure.oneHandedModeSelectOverlayWidth),
             oneHandedModeSelectOverlayView.heightAnchor.constraint(equalToConstant: KeyboardLayoutFigure.selectOverlayHeight)
         ])
+    }
+
+    func addLanguageSwitchButtonIfNeeded() {
+        guard let languageSwitchButton else { return }
+
+        switchButton.configureVisibleAreaForLanguageSwitchButton(onLeadingEdge: true)
+        fourthRowRightSecondaryButtonHStackView.addSubview(languageSwitchButton)
+        languageSwitchButton.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            languageSwitchButton.topAnchor.constraint(equalTo: switchButton.topAnchor),
+            languageSwitchButton.leadingAnchor.constraint(equalTo: switchButton.leadingAnchor),
+            languageSwitchButton.trailingAnchor.constraint(equalTo: switchButton.centerXAnchor),
+            languageSwitchButton.bottomAnchor.constraint(equalTo: switchButton.bottomAnchor)
+        ])
+        fourthRowRightSecondaryButtonHStackView.bringSubviewToFront(languageSwitchButton)
     }
 }

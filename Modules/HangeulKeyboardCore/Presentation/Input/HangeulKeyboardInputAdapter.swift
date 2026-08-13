@@ -15,6 +15,7 @@ public final class HangeulKeyboardInputAdapter {
     // MARK: - Properties
 
     private let selectedKeyboard: HangeulKeyboardType
+    private let showsLanguageSwitchButton: Bool
     private var compositionState = HangeulCompositionState()
     private var is글자Input = false
 
@@ -34,11 +35,16 @@ public final class HangeulKeyboardInputAdapter {
         }
     }
 
-    private lazy var naratgeulKeyboardView: HangeulKeyboardLayoutProvider = NaratgeulKeyboardView()
-    private lazy var cheonjiinKeyboardView: HangeulKeyboardLayoutProvider = CheonjiinKeyboardView()
+    private lazy var naratgeulKeyboardView: HangeulKeyboardLayoutProvider = NaratgeulKeyboardView(
+        showsLanguageSwitchButton: showsLanguageSwitchButton
+    )
+    private lazy var cheonjiinKeyboardView: HangeulKeyboardLayoutProvider = CheonjiinKeyboardView(
+        showsLanguageSwitchButton: showsLanguageSwitchButton
+    )
     private lazy var dubeolsikKeyboardView: HangeulKeyboardLayoutProvider = DubeolsikKeyboardView(
         getIsShiftedLetterInput: { [weak self] in self?.is글자Input ?? false },
-        setIsShiftedLetterInput: { [weak self] in self?.is글자Input = $0 }
+        setIsShiftedLetterInput: { [weak self] in self?.is글자Input = $0 },
+        showsLanguageSwitchButton: showsLanguageSwitchButton
     )
 
     private var hangeulKeyboardView: HangeulKeyboardLayoutProvider {
@@ -79,7 +85,7 @@ public final class HangeulKeyboardInputAdapter {
         showsLanguageSwitchButton: Bool = false
     ) {
         self.selectedKeyboard = selectedKeyboard
-        _ = showsLanguageSwitchButton
+        self.showsLanguageSwitchButton = showsLanguageSwitchButton
     }
 
     // MARK: - Public Methods

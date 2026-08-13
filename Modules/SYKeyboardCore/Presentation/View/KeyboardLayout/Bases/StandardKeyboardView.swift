@@ -27,6 +27,7 @@ open class StandardKeyboardView: UIView {
     public private(set) lazy var allButtonList: [BaseKeyboardButton] = primaryButtonList + secondaryButtonList
     public private(set) lazy var primaryButtonList: [PrimaryButton] = firstRowPrimaryKeyButtonList + secondRowPrimaryKeyButtonList + thirdRowPrimaryKeyButtonList + [spaceButton, atButton, periodButton, slashButton, dotComButton]
     public private(set) lazy var secondaryButtonList: [SecondaryButton] = [shiftButton, deleteButton, switchButton, returnButton, secondaryAtButton, secondarySharpButton, nextKeyboardButton]
+    + [languageSwitchButton].compactMap { $0 as SecondaryButton? }
     public private(set) lazy var totalTextInterableButtonList: [TextInteractable] = firstRowPrimaryKeyButtonList + secondRowPrimaryKeyButtonList + thirdRowPrimaryKeyButtonList
     + [deleteButton, spaceButton, atButton, periodButton, slashButton, dotComButton, returnButton, secondaryAtButton, secondarySharpButton]
     
@@ -44,6 +45,7 @@ open class StandardKeyboardView: UIView {
     // Initializer Injection
     public let getIsShiftedLetterInput: () -> Bool
     public let setIsShiftedLetterInput: (Bool) -> ()
+    private let showsLanguageSwitchButton: Bool
     
     // MARK: - UI Components
     
@@ -114,6 +116,11 @@ open class StandardKeyboardView: UIView {
     public lazy var shiftButton = ShiftButton(keyboard: keyboard)
     public private(set) lazy var deleteButton = DeleteButton(keyboard: keyboard)
     public private(set) lazy var switchButton = SwitchButton(keyboard: keyboard)
+    public private(set) lazy var languageSwitchButton: LanguageSwitchButton? = {
+        guard showsLanguageSwitchButton else { return nil }
+        let mode: HangeulEnglishLanguageMode = keyboard == .qwerty ? .english : .hangeul
+        return LanguageSwitchButton(mode: mode, keyboard: keyboard)
+    }()
     
     // 스페이스 버튼 위치
     public private(set) lazy var spaceButton = SpaceButton(keyboard: keyboard)
@@ -146,10 +153,12 @@ open class StandardKeyboardView: UIView {
     
     public init(
         getIsShiftedLetterInput: @escaping () -> Bool,
-        setIsShiftedLetterInput: @escaping (Bool) -> ()
+        setIsShiftedLetterInput: @escaping (Bool) -> (),
+        showsLanguageSwitchButton: Bool = false
     ) {
         self.getIsShiftedLetterInput = getIsShiftedLetterInput
         self.setIsShiftedLetterInput = setIsShiftedLetterInput
+        self.showsLanguageSwitchButton = showsLanguageSwitchButton
         super.init(frame: .zero)
         
         setupUI()
@@ -221,6 +230,7 @@ private extension StandardKeyboardView {
         
         [fourthRowLeftSecondaryButtonHStackView, spaceButtonHStackView, returnButtonHStackView].forEach { fourthRowHStackView.addArrangedSubview($0) }
         [switchButton, nextKeyboardButton].forEach { fourthRowLeftSecondaryButtonHStackView.addArrangedSubview($0) }
+        addLanguageSwitchButtonIfNeeded()
         [spaceButton, atButton, periodButton, slashButton, dotComButton].forEach { spaceButtonHStackView.addArrangedSubview($0) }
         [returnButton, secondaryAtButton, secondarySharpButton].forEach { returnButtonHStackView.addArrangedSubview($0) }
     }
@@ -354,6 +364,21 @@ private extension StandardKeyboardView {
             oneHandedModeSelectOverlayView.widthAnchor.constraint(equalToConstant: KeyboardLayoutFigure.oneHandedModeSelectOverlayWidth),
             oneHandedModeSelectOverlayView.heightAnchor.constraint(equalToConstant: KeyboardLayoutFigure.selectOverlayHeight)
         ])
+    }
+
+    func addLanguageSwitchButtonIfNeeded() {
+        guard let languageSwitchButton else { return }
+
+        switchButton.configureVisibleAreaForLanguageSwitchButton(onLeadingEdge: false)
+        fourthRowLeftSecondaryButtonHStackView.addSubview(languageSwitchButton)
+        languageSwitchButton.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            languageSwitchButton.topAnchor.constraint(equalTo: switchButton.topAnchor),
+            languageSwitchButton.leadingAnchor.constraint(equalTo: switchButton.centerXAnchor),
+            languageSwitchButton.trailingAnchor.constraint(equalTo: switchButton.trailingAnchor),
+            languageSwitchButton.bottomAnchor.constraint(equalTo: switchButton.bottomAnchor)
+        ])
+        fourthRowLeftSecondaryButtonHStackView.bringSubviewToFront(languageSwitchButton)
     }
 }
 

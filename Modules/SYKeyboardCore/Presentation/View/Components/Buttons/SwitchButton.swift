@@ -21,7 +21,7 @@ final public class SwitchButton: SecondaryButton {
     public static var previewPrimaryLanguage: String = "ko-KR"
     
     private let keyboard: SYKeyboardType
-    private let title: String
+    public private(set) var titleForCurrentKeyboard: String
     
     // MARK: - UI Components
     
@@ -49,7 +49,7 @@ final public class SwitchButton: SecondaryButton {
         self.keyboard = keyboard
         switch keyboard {
         case .naratgeul, .cheonjiin, .dubeolsik, .qwerty:
-            self.title = "!#1"
+            self.titleForCurrentKeyboard = "!#1"
         case .symbol, .numeric:
             let primaryLanguage: String
             if Bundle.primaryLanguage != nil {
@@ -60,16 +60,18 @@ final public class SwitchButton: SecondaryButton {
             }
             
             if primaryLanguage == "ko-KR" {
-                self.title = "한글"
+                self.titleForCurrentKeyboard = "한글"
             } else if primaryLanguage == "en-US" {
-                self.title = "ABC"
+                self.titleForCurrentKeyboard = "ABC"
+            } else if primaryLanguage == "mul" {
+                self.titleForCurrentKeyboard = "한글"
             } else {
                 assertionFailure("구현이 필요한 키보드입니다.")
-                self.title = "한글"
+                self.titleForCurrentKeyboard = "한글"
             }
         case .tenKey:
             assertionFailure("도달할 수 없는 case입니다.")
-            self.title = ""
+            self.titleForCurrentKeyboard = ""
         }
         super.init(keyboard: keyboard)
         
@@ -85,7 +87,7 @@ final public class SwitchButton: SecondaryButton {
     public override func layoutSubviews() {
         super.layoutSubviews()
         
-        primaryKeyListLabel.text = title
+        primaryKeyListLabel.text = titleForCurrentKeyboard
         if backgroundView.bounds.width < 38 {
             primaryKeyListLabel.font = .monospacedDigitSystemFont(ofSize: FontSize.stringKeyMedium - 4, weight: .regular)
         } else if backgroundView.bounds.width < 44 {
@@ -111,6 +113,25 @@ final public class SwitchButton: SecondaryButton {
     func configureKeyboardSelectComponent(needToEmphasize: Bool) {
         keyboardSelectLabel.attributedText = createKeyboardSelectAttributedText(needToEmphasize: needToEmphasize)
     }
+
+    func configureVisibleAreaForLanguageSwitchButton(onLeadingEdge: Bool) {
+        NSLayoutConstraint.deactivate(visualConstraints)
+
+        let top = backgroundView.topAnchor.constraint(equalTo: topAnchor, constant: insetDy)
+        let bottom = backgroundView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -insetDy)
+        let leading: NSLayoutConstraint
+        let trailing: NSLayoutConstraint
+        if onLeadingEdge {
+            leading = backgroundView.leadingAnchor.constraint(equalTo: centerXAnchor, constant: insetDx)
+            trailing = backgroundView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -insetDx)
+        } else {
+            leading = backgroundView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: insetDx)
+            trailing = backgroundView.trailingAnchor.constraint(equalTo: centerXAnchor, constant: -insetDx)
+        }
+
+        visualConstraints = [top, leading, trailing, bottom]
+        NSLayoutConstraint.activate(visualConstraints)
+    }
 }
 
 // MARK: - UI Methods
@@ -123,7 +144,7 @@ private extension SwitchButton {
     }
     
     func setStyles() {
-        primaryKeyListLabel.text = title
+        primaryKeyListLabel.text = titleForCurrentKeyboard
         primaryKeyListLabel.font = .monospacedDigitSystemFont(ofSize: FontSize.stringKeyMedium, weight: .regular)
     }
     
@@ -153,6 +174,18 @@ private extension SwitchButton {
         }
         
         NSLayoutConstraint.activate(constraints)
+    }
+}
+
+// MARK: - Update Methods
+
+public extension SwitchButton {
+    func updatePrimaryLanguageMode(_ mode: HangeulEnglishLanguageMode) {
+        guard keyboard == .symbol || keyboard == .numeric else { return }
+
+        titleForCurrentKeyboard = mode == .hangeul ? "한글" : "ABC"
+        primaryKeyListLabel.text = titleForCurrentKeyboard
+        setNeedsLayout()
     }
 }
 

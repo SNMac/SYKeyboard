@@ -44,6 +44,11 @@ public extension UIColor {
     static var returnButtonDisabledLabel: UIColor {
         return UIColor(named: "ReturnButtonDisabledLabelColor", in: SYKBDAssets.bundle, compatibleWith: nil)!
     }
+
+    /// LanguageSwitchMutedLabelColor
+    static var languageSwitchMutedLabel: UIColor {
+        return UIColor(named: "LanguageSwitchMutedLabelColor", in: SYKBDAssets.bundle, compatibleWith: nil)!
+    }
     
     // MARK: - Chevron Button
     

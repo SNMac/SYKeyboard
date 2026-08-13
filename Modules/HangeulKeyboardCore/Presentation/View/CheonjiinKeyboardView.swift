@@ -44,8 +44,8 @@ final class CheonjiinKeyboardView: FourByFourPlusKeyboardView, HangeulKeyboardLa
     
     // MARK: - Initializer
     
-    init() {
-        super.init(frame: .zero)
+    override init(showsLanguageSwitchButton: Bool = false) {
+        super.init(showsLanguageSwitchButton: showsLanguageSwitchButton)
         updateLayoutToDefault()
     }
     

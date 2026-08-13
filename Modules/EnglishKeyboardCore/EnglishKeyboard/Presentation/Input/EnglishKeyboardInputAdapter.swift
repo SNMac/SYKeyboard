@@ -15,10 +15,12 @@ public final class EnglishKeyboardInputAdapter {
     // MARK: - Properties
 
     private var isUppercaseInput = false
+    private let showsLanguageSwitchButton: Bool
 
     private lazy var englishKeyboardView: EnglishKeyboardLayoutProvider = EnglishKeyboardView(
         getIsShiftedLetterInput: { [weak self] in self?.isUppercaseInput ?? false },
-        setIsShiftedLetterInput: { [weak self] in self?.isUppercaseInput = $0 }
+        setIsShiftedLetterInput: { [weak self] in self?.isUppercaseInput = $0 },
+        showsLanguageSwitchButton: showsLanguageSwitchButton
     )
 
     public var primaryKeyboardView: PrimaryKeyboardRepresentable {
@@ -36,7 +38,7 @@ public final class EnglishKeyboardInputAdapter {
     // MARK: - Initializer
 
     public init(showsLanguageSwitchButton: Bool = false) {
-        _ = showsLanguageSwitchButton
+        self.showsLanguageSwitchButton = showsLanguageSwitchButton
     }
 
     // MARK: - Public Methods

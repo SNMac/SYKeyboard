@@ -826,7 +826,7 @@ git commit -m "refactor: #46 - 영어 입력 상태 어댑터 분리"
 - Produces: `public func updatePrimaryLanguageMode(_ mode: HangeulEnglishLanguageMode)` on `SwitchButton`
 - Produces: `UIColor.languageSwitchMutedLabel`
 
-- [ ] **Step 1: attributed 의미와 SwitchButton label 실패 테스트 작성**
+- [x] **Step 1: attributed 의미와 SwitchButton label 실패 테스트 작성**
 
 버튼 private label tree를 Mirror로 읽지 않는다. `LanguageSwitchButton.attributedTitleForCurrentMode`, `activeTitleRange`, `mutedTitleRange`를 production 계산 결과로 공개 read-only 처리한다. unit test는 exact color 값이 아니라 active/muted 의미 범위를 검증하고 실제 semantic color 적용은 iOS 16/26 화면에서 확인한다.
 
@@ -868,7 +868,7 @@ func testSwitchButtonUsesActiveLanguageMode() {
 }
 ```
 
-- [ ] **Step 2: 새 UI API 부재 RED 확인**
+- [x] **Step 2: 새 UI API 부재 RED 확인**
 
 ```sh
 xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
@@ -878,7 +878,7 @@ xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
 
 Expected: 새 button/color/API 부재로 test build 실패.
 
-- [ ] **Step 3: SYKeyboardAssets 전용 색상과 버튼 구현**
+- [x] **Step 3: SYKeyboardAssets 전용 색상과 버튼 구현**
 
 `LanguageSwitchMutedLabelColor`의 light/dark component는 현재 `SuggestionButtonLabelColor` 값과 동일하게 시작한다.
 
@@ -894,7 +894,7 @@ static var languageSwitchMutedLabel: UIColor {
 
 `LanguageSwitchButton`은 `.label`과 `.languageSwitchMutedLabel`로 `한/영` attributed string을 만들고 `primaryKeyListLabel.attributedText`에 반영한다. `playFeedback()`은 다른 secondary modifier와 같은 haptic/modifier sound를 사용한다.
 
-- [ ] **Step 4: 세 primary base에 opt-in 배치 추가**
+- [x] **Step 4: 세 primary base에 opt-in 배치 추가**
 
 - `PrimaryKeyboardRepresentable`에 optional `languageSwitchButton`을 추가하고 기본 구현은 `nil`이다.
 - `StandardKeyboardView`, `FourByFourKeyboardView`, `FourByFourPlusKeyboardView` initializer에 `showsLanguageSwitchButton: Bool = false`를 추가한다.
@@ -905,7 +905,7 @@ static var languageSwitchMutedLabel: UIColor {
 - `SwitchButton`의 전체 `UIButton` frame은 기존 slot을 유지하고, `backgroundView`/`shadowView`의 visible trailing/leading inset만 언어 버튼 폭만큼 줄인다.
 - 기존 keyboard/one-handed overlay anchor는 `SwitchButton` 기준을 유지한다.
 
-- [ ] **Step 5: `SwitchButton` 동적 title 구현**
+- [x] **Step 5: `SwitchButton` 동적 title 구현**
 
 ```swift
 public private(set) var titleForCurrentKeyboard: String
@@ -920,11 +920,11 @@ public func updatePrimaryLanguageMode(_ mode: HangeulEnglishLanguageMode) {
 
 기존 한글/영문 전용 extension은 초기 bundle language로 현재 title을 유지한다. `mul`은 assertion을 발생시키지 않고 `.hangeul` 기본 표시 후 통합 controller가 실제 mode를 즉시 주입한다.
 
-- [ ] **Step 6: UI 의미 GREEN과 Auto Layout 로그 확인**
+- [x] **Step 6: UI 의미 GREEN과 Auto Layout 로그 확인**
 
 Step 2 명령 실행. Expected: suite PASS, `Unable to simultaneously satisfy constraints` 없음. `SuggestionButtonLabelColor` 파일과 `.suggestionButtonLabel` 사용처가 변경되지 않았는지 `git diff`로 확인한다.
 
-- [ ] **Step 7: asset package build와 결과 기록/커밋**
+- [x] **Step 7: asset package build와 결과 기록/커밋**
 
 ```sh
 xcodebuild build -project SYKeyboard.xcodeproj -scheme SYKeyboardAssets \
@@ -948,6 +948,14 @@ git add Modules/SYKeyboardCore/Presentation/View/Components/Buttons/LanguageSwit
   docs/superpowers/plans/2026-08-12-hangeul-english-keyboard.md
 git commit -m "design: #46 - 한영 전환 버튼과 전용 강조 색상 추가"
 ```
+
+**Result (2026-08-13):**
+
+- RED: focused test 최초 실행은 sandbox의 `CoreSimulatorService`/SwiftPM cache 접근 오류로 exit 74에서 중단됐다. 같은 명령을 권한 있는 환경에서 재실행해 새 `LanguageSwitchButton`, `updatePrimaryLanguageMode(_:)`, `languageSwitchButton` API 부재 compile failure(exit 65)를 확인했다. 5개 테스트 기준 RED 전체 로그는 `/Users/macmillan/Library/Application Support/rtk/tee/1786621394_xcodebuild_test_-project_SYKeyboard_xcod.log`에 기록됐다.
+- GREEN: `xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0' -only-testing:SYKeyboardTests/LanguageSwitchButtonTests`를 권한 있는 환경에서 실행해 5/5 passed, failed 0, skipped 0을 확인했다. destination은 iPhone 13 mini / iOS 16.0 (arm64)이며 결과는 `/Users/macmillan/Library/Developer/Xcode/DerivedData/SYKeyboard-hgprdtyustcuukabeovkjzrtclhy/Logs/Test/Test-SYKeyboard-2026.08.13_20-49-03-+0900.xcresult`, 전체 로그는 `/Users/macmillan/Library/Application Support/rtk/tee/1786621811_xcodebuild_test_-project_SYKeyboard_xcod.log`에 기록됐다. 로그에 `Unable to simultaneously satisfy constraints`는 없었다.
+- BUILD: `xcodebuild build -project SYKeyboard.xcodeproj -scheme SYKeyboardAssets -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0'`를 권한 있는 환경에서 실행해 exit 0과 `** BUILD SUCCEEDED **`를 확인했다. 전체 build log는 `/Users/macmillan/Library/Application Support/rtk/tee/1786621884_xcodebuild_build_-project_SYKeyboard_xco.log`에 기록됐다.
+- 구현: `LanguageSwitchButton`의 `한/영` semantic 범위와 독립 muted asset/accessor를 추가했다. opt-in primary view에서만 언어 버튼을 기존 `SwitchButton` slot의 frontmost sibling으로 겹치고 `SwitchButton` frame/overlay anchor는 유지한 채 visual background/shadow 영역만 줄였다. symbol/numeric 복귀 title은 active mode로 갱신되며 `mul`은 한글 기본 title로 assertion 없이 시작한다.
+- 회귀 경계: `SuggestionButtonLabelColor.colorset/Contents.json`은 HEAD와 diff가 없고 `.suggestionButtonLabel` accessor와 `SuggestionButtonView` 사용처도 변경하지 않았다. iOS 16/26 실제 입력 화면의 색상·touch 분리·햅틱·사운드는 Task 8 수동 검증 대상으로 남겼다.
 
 ### Task 7: 통합 ViewController, focus 정책과 shared scheme 연결
 
