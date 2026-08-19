@@ -116,11 +116,13 @@ final class HangeulEnglishKeyboardViewController: BaseKeyboardViewController {
 
     override func textInputDidChange(_ textInput: (any UITextInput)?) {
         let previousMode = modeCoordinator.currentMode
+        let documentPrimaryLanguage = textDocumentProxy.documentInputMode?.primaryLanguage
         let mode = modeCoordinator.modeForTextInputChange(
             identifier: textInput.map { ObjectIdentifier($0 as AnyObject) },
-            documentPrimaryLanguage: textDocumentProxy.documentInputMode?.primaryLanguage,
+            documentPrimaryLanguage: documentPrimaryLanguage,
             lastMode: keyboardSettingsManager.lastHangeulEnglishLanguageMode
         )
+        recordLanguageModeDecision(documentPrimaryLanguage: documentPrimaryLanguage, resolved: mode)
 
         applyLanguageMode(
             mode,
@@ -454,6 +456,22 @@ private extension HangeulEnglishKeyboardViewController {
         ].compactMap { $0 }
     }
 
+    /// 시작 언어 판정 근거를 기록한다.
+    /// 입력한 텍스트는 남기지 않고 필드 특성만 남긴다
+    func recordLanguageModeDecision(
+        documentPrimaryLanguage: String?,
+        resolved: HangeulEnglishLanguageMode
+    ) {
+        let language = documentPrimaryLanguage ?? "nil"
+        let keyboardType = textDocumentProxy.keyboardType?.rawValue ?? -1
+        let message = "languageMode documentPrimaryLanguage=\(language)"
+        + " keyboardType=\(keyboardType) resolved=\(resolved)"
+
+        logger.info("\(message)")
+        Crashlytics.crashlytics().setCustomValue(language, forKey: "document_primary_language")
+        Crashlytics.crashlytics().log(message)
+    }
+
     func setupLanguageSwitchActions() {
         languageSwitchButtons.forEach { button in
             button.addAction(
@@ -615,6 +633,11 @@ private extension HangeulEnglishKeyboardViewController {
         Crashlytics.crashlytics().setUserID(
             UIDevice.current.identifierForVendor?.uuidString
         )
+
+        // 진단 기록 연결. 입력한 텍스트는 전달되지 않는다(`KeyboardDiagnostics` 참고)
+        KeyboardDiagnostics.record = { message in
+            Crashlytics.crashlytics().log(message)
+        }
     }
 
     func openURL(_ url: URL) {

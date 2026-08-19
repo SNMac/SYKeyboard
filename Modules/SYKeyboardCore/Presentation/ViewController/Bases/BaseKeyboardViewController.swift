@@ -164,6 +164,8 @@ open class BaseKeyboardViewController: UIInputViewController {
     private var timer: AnyCancellable?
     /// 현재 반복 입력 동작 중인지 확인하는 플래그
     public private(set) var isRepeatingInput: Bool = false
+    /// 진단용 반복 입력 tick 수. 구간으로만 기록한다
+    private var repeatInputTickCount: Int = 0
     /// 키보드 세션 동안만 유지되는 undo/redo 상태 관리자
     private var undoRedoSession = KeyboardUndoRedoSession()
     /// 첫 표시 이후 자동완성 준비를 한 번만 시작했는지 여부
@@ -335,6 +337,7 @@ open class BaseKeyboardViewController: UIInputViewController {
         defer { performanceSignposter.endInterval("KeyboardViewDidAppear", state) }
 
         super.viewDidAppear(animated)
+        KeyboardDiagnostics.log("keyboard appeared")
         updateEdgeTouchSystemGesturePolicy()
         startDeferredSuggestionPreparationIfNeeded()
     }
@@ -411,6 +414,7 @@ open class BaseKeyboardViewController: UIInputViewController {
 
     open override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
+        KeyboardDiagnostics.log("keyboard will disappear")
         stopRepeatInputTracking()
         currentTextInputIdentifier = nil
         lastNotifiedTextInputIdentifier = nil
@@ -1531,6 +1535,7 @@ private extension BaseKeyboardViewController {
     }
 
     func performRepeatDeleteTextInteraction(for button: TextInteractable) {
+        repeatInputTickCount += 1
         let action = deleteMutationLifecycle.actionForNextRepeat(
             currentContext: currentTextContextSnapshot(),
             currentSelectedText: textDocumentProxy.selectedText
@@ -1883,6 +1888,10 @@ private extension BaseKeyboardViewController {
     }
 
     func stopRepeatInputTracking(preservingTouchDown: Bool = false) {
+        KeyboardDiagnostics.log(
+            "repeatInput stop ticks=\(KeyboardDiagnostics.bucket(repeatInputTickCount))"
+            + " preservingTouchDown=\(preservingTouchDown)"
+        )
         cancelTimer()
         if preservingTouchDown {
             deleteMutationLifecycle.finishRepeatTracking()
@@ -1893,6 +1902,7 @@ private extension BaseKeyboardViewController {
     }
 
     func finishRepeatDeleteWithoutDeletion() {
+        KeyboardDiagnostics.log("repeatDelete exhausted")
         guard deleteMutationLifecycle.completeWithoutDeletion() == .noDeletion else { return }
 
         stopRepeatInputTracking()
@@ -2192,6 +2202,10 @@ private extension BaseKeyboardViewController {
     func startRepeatInputTimer(for button: TextInteractable) {
         let repeatTimerInterval = KeyboardTextInteractionPolicy.repeatTimerInterval(
             repeatRate: keyboardSettingsManager.repeatRate
+        )
+        repeatInputTickCount = 0
+        KeyboardDiagnostics.log(
+            "repeatInput start button=\(String(describing: type(of: button))) interval=\(repeatTimerInterval)"
         )
         let startedInputIdentifier = currentTextInputIdentifier
         timer = Timer.publish(every: repeatTimerInterval, on: .main, in: .common)
