@@ -199,6 +199,11 @@ xcodebuild test \
 - `-only-testing:SYKeyboardTests/<SuiteName>/<testFunctionName>`으로 단일 테스트까지 좁힌다.
   suite 이름은 `@Suite(...)`의 표시 이름이 아니라 **타입 이름**을 쓴다.
 - `-only-testing`이나 code coverage 옵션을 쓴 뒤 extension scheme을 빌드할 때는 옵션을 반드시 비운다.
+- **`Modules/`에 새 파일을 추가하면 `SYKeyboard.xcodeproj/project.pbxproj`를 함께 고쳐야 한다.**
+  `Modules`는 `PBXFileSystemSynchronizedRootGroup`이지만 세 모듈 타깃이 한 폴더를 공유하므로
+  타깃별 `membershipExceptions`가 실제 소속 목록 역할을 한다. 등록하지 않으면 같은 모듈 안에서도
+  `cannot find ... in scope`로 컴파일이 실패한다. 새 파일 경로를 해당 모듈 타깃과 `SYKeyboard`
+  타깃의 예외 목록에 알파벳 순서로 추가한다.
 - `SYKeyboard/Resources/Configs/Secrets.xcconfig`는 gitignore 대상이고 앱 타깃의 Debug/Release xcconfig가
   `#include`한다. Xcode Cloud에서는 `ci_scripts/ci_post_clone.sh`가 환경변수로 생성한다.
   로컬에서 이 파일을 새로 만들거나 커밋하지 않는다.
