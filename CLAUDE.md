@@ -1,6 +1,8 @@
-# AGENTS.md
+# CLAUDE.md
 
-이 문서는 이 저장소에서 Codex가 작업할 때 따라야 할 프로젝트별 지침이다. 답변보다 실제 완료를 우선하고, 변경 전후의 동작을 가능한 한 검증한다.
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+이 문서는 이 저장소에서 Claude Code가 작업할 때 따라야 할 프로젝트별 지침이다. 답변보다 실제 완료를 우선하고, 변경 전후의 동작을 가능한 한 검증한다.
 
 ## 프로젝트 개요
 
@@ -12,6 +14,50 @@
 - 영문 키보드 로직은 `Modules/EnglishKeyboardCore/`에 있다.
 - 공통 XIB, 색상, 리소스는 로컬 SPM 패키지 `SYKeyboardAssets/`에서 제공한다.
 - 외부 의존성은 SPM으로 관리하며 Firebase, Google Mobile Ads, Meta mediation이 포함된다.
+
+## 아키텍처
+
+**두 키보드 extension이 하나의 Base 컨트롤러를 공유한다.**
+
+```
+UIInputViewController
+└── BaseKeyboardViewController          (SYKeyboardCore, 입력 흐름의 중심)
+    ├── HangeulKeyboardCoreViewController → HangeulKeyboardViewController
+    └── EnglishKeyboardCoreViewController → EnglishKeyboardViewController
+```
+
+`BaseKeyboardViewController`가 텍스트 프록시 조작, 제스처, 자동완성, undo/redo, 높이·한손 모드,
+`textWillChange`/`textDidChange` 동기화를 전담한다. 각 하위 VC는 `open` 프로퍼티/메서드
+(`primaryKeyboardView`, `updateKeyboardType()`, `shouldDeferUndoRedoCommit`, `smartQuoteRule` 등)를
+오버라이드해 언어별 차이만 주입한다. **언어 공통 동작을 하위 VC에 복제하지 말고
+Base에 두거나 Policy로 분리한다.**
+
+**한글 입력 로직은 Processor와 Automata에서 끝난다.**
+`HangeulKeyboardCoreViewController`가 나랏글/천지인/두벌식 `HangeulProcessable` 구현체를 들고
+설정에 따라 골라 쓰며, 조합 상태 전이는 `HangeulCompositionState`가 관리한다.
+Processor는 `HangeulAutomata`에 위임하고
+`CompositionResult`(committed/composing/consumedCommittedCount) · `DeleteResult` · `SpaceInputResult`를 반환한다.
+VC는 이 값만 보고 프록시를 갱신하므로, 조합 규칙 변경은 Processor/Automata에서 끝내야 한다.
+
+**분기 로직은 Policy로 뽑혀 있다.**
+`Modules/SYKeyboardCore/Presentation/Utils/Policies/`의 `KeyboardHeightPolicy`,
+`KeyboardGesturePolicy`, `KeyboardSmartInputPolicy`, `KeyboardPeriodShortcutPolicy`,
+`CursorDragAccelerationPolicy`, `KeyboardSuggestionSelectionPolicy` 등은 UI 의존 없는 순수 타입이고
+각각 대응하는 테스트가 있다. **새 규칙/임계값은 VC 안에 if로 넣지 말고 Policy에 추가하고 테스트한다.**
+
+**자동완성은 `SuggestionController` 한 곳으로 모인다.**
+`LexiconPredictiveTextEngine`(UILexicon), `TextCheckerPredictiveTextEngine`(UITextChecker),
+`NGramPredictiveTextEngine`(학습형), `MathExpressionCompletionEvaluator`(수식)가
+`PredictiveTextProvider`로 붙고 `SuggestionBarView`가 표시한다.
+
+**뷰 계층**: `KeyboardView`(XIB, `SYKeyboardAssets` 번들에서 로드) 안에 `SuggestionBarView` +
+primary/symbol/numeric/tenkey 레이아웃이 들어간다. 레이아웃은 `*KeyboardLayoutProvider` 프로토콜 구현체이며
+`StandardKeyboardView` / `FourByFourKeyboardView` / `FourByFourPlusKeyboardView`를 베이스로 한다.
+
+**저장소**: 앱과 2개 extension은 App Group(`DefaultValues.groupBundleID`) suite의 `UserDefaults`를
+`UserDefaultsManager`로 공유한다. 모듈별 `UserDefaultsKeys+Extension` / `DefaultValues+Extension`으로 확장하며,
+`SYKeyboardTests/Storage/UserDefaultsContractTests.swift`가 키 계약을 지킨다.
+extension 프로세스 로컬 상태는 `KeyboardExtensionLocalStateStore`에 둔다.
 
 ## 작업 원칙
 
@@ -34,11 +80,11 @@
   유지하고, 사용자가 다시 요청하지 않는 한 스크롤 컨테이너나 제스처 중재를
   재도입하지 않는다.
 
-## Codex 작업 인프라
+## 작업 인프라
 
 - 라이브러리/API 문서 확인, 코드 생성, 설정 또는 구성 단계가 필요한 작업에서는 사용자가 명시적으로 요청하지 않아도 항상 Context7 MCP를 먼저 사용해 현재 문서와 권장 사용법을 확인한다.
 - Context7 MCP가 응답하지 않거나 사용량 초과 등으로 사용할 수 없거나 필요한 정보를 찾지 못해도 작업을 중단하지 않는다. 우선 기존 지식을 바탕으로 계속 진행하고, 기존 지식만으로 해결하기 어려울 때 공식 문서를 확인한다. 최종 응답에는 Context7을 사용하지 못한 이유와, 대체 출처를 확인했다면 실제로 확인한 출처를 명시한다.
-- Claude Code 전용 `.claude/hooks`나 `.claude/settings.json` 패턴을 그대로 이식하지 않는다. Codex에서는 `AGENTS.md`, 프로젝트 문서, 명시적 검증 명령으로 같은 목적을 달성한다.
+- 이 문서가 저장소 에이전트 지침의 단일 기준이다. `.github/copilot-instructions.md`는 GitHub Copilot 코드 리뷰 지침이며 프로젝트 구조와 일반 개발 규칙은 이 문서를 참조하므로, 이 문서의 규칙을 바꾸면 해당 항목도 함께 확인한다.
 
 ### Superpowers 계획 실행
 
@@ -51,13 +97,14 @@
   산출물 경로와 결과 추출 명령도 함께 기록해 다른 작업자가 같은 결과를
   재확인할 수 있게 한다.
 - step 커밋은 이 문서의 커밋 메시지 규칙을 따르며, 계획에 명시된 파일 범위 밖의 사용자 변경을 포함하지 않는다.
+- `docs/superpowers/plans/`, `docs/superpowers/specs/`는 과거 계획·설계 기록이므로 **현재 제품 요구사항이나 현재 동작의 권위 있는 근거로 사용하지 않는다.** 사용자나 PR 설명이 특정 문서를 구현 기준으로 명시한 경우에만 요구사항으로 사용한다.
 
 ## 이슈 관리
 
 - 현재 작업 관리와 진행 추적은 Linear를 사용한다.
 - 새 이슈 등록은 GitHub Issue에만 한다.
 - Linear에는 GitHub Issue에서 파생된 작업 추적, 상태 관리, 연결 정보 정리에 집중한다.
-- Codex가 새 이슈 생성을 요청받으면 기본 생성 위치를 GitHub Issue로 판단하고, Linear 이슈 생성은 사용자가 명시적으로 요청한 경우에만 한다.
+- 새 이슈 생성을 요청받으면 기본 생성 위치를 GitHub Issue로 판단하고, Linear 이슈 생성은 사용자가 명시적으로 요청한 경우에만 한다.
 
 ## 코드 스타일
 
@@ -83,11 +130,13 @@
 - `Keyboards/EnglishKeyboard/`: 영문 키보드 extension 진입점과 리소스.
 - `Keyboards/Common/`: 키보드 확장 공통 UI와 오류 타입.
 - `Modules/SYKeyboardCore/`: 공통 키보드 UI, 버튼, 제스처, 자동완성, 저장소 기본 타입.
+  - `Presentation/Utils/Policies/`: UI 의존 없는 순수 정책 타입.
 - `Modules/HangeulKeyboardCore/`: 한글 오토마타, 입력 Processor, 한글 키보드 View.
 - `Modules/EnglishKeyboardCore/`: 영문 키보드 View와 저장소 확장.
-- `SYKeyboardTests/`: Swift Testing 기반 한글 오토마타/Processor/Controller 테스트.
+- `SYKeyboardTests/`: Swift Testing 기반 한글 오토마타/Processor/Controller/Policy 테스트.
 - `SYKeyboardAssets/`: XIB와 색상 asset을 제공하는 로컬 SPM 패키지.
 - `Common/Firebase/`: Debug/Release Firebase plist. 민감 설정 변경에 주의한다.
+- `docs/superpowers/`: 과거 계획·설계 기록. 현재 동작의 근거로 사용하지 않는다.
 
 ## 빌드와 테스트
 
@@ -118,11 +167,28 @@ xcodebuild build \
   -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0'
 ```
 
-프로젝트 scheme는 `SYKeyboard`, `HangeulKeyboard`, `EnglishKeyboard`, `SYKeyboardCore`, `HangeulKeyboardCore`, `EnglishKeyboardCore`, `SYKeyboardAssets`가 공유되어 있다. `SYKeyboard`/키보드 extension scheme의 TestAction은 `SYKeyboardTests`를 포함한다.
+공유 scheme은 `SYKeyboard`, `HangeulKeyboard`, `EnglishKeyboard` 3개다. `SYKeyboard`/키보드 extension scheme의 TestAction은 `SYKeyboardTests`를 포함한다.
 
-### Codex 샌드박스와 Xcode 검증
+특정 suite나 단일 테스트만 실행:
 
-Codex의 기본 샌드박스에서는 Xcode/SwiftPM 캐시, CoreSimulator 로그, 사용자 프로비저닝 프로파일, `~/Library/Developer/Xcode/DerivedData`, `~/Library/Caches`, `~/.cache/clang` 접근이 제한될 수 있다. 이 경우 프로젝트 코드 문제가 아니어도 `xcodebuild`가 아래와 같은 환경 오류로 멈출 수 있다.
+```sh
+xcodebuild test \
+  -project SYKeyboard.xcodeproj \
+  -scheme SYKeyboard \
+  -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0' \
+  -only-testing:SYKeyboardTests/NaratgeulProcessorTests
+```
+
+- `-only-testing:SYKeyboardTests/<SuiteName>/<testFunctionName>`으로 단일 테스트까지 좁힌다.
+  suite 이름은 `@Suite(...)`의 표시 이름이 아니라 **타입 이름**을 쓴다.
+- `-only-testing`이나 code coverage 옵션을 쓴 뒤 extension scheme을 빌드할 때는 옵션을 반드시 비운다.
+- `SYKeyboard/Resources/Configs/Secrets.xcconfig`는 gitignore 대상이고 앱 타깃의 Debug/Release xcconfig가
+  `#include`한다. Xcode Cloud에서는 `ci_scripts/ci_post_clone.sh`가 환경변수로 생성한다.
+  로컬에서 이 파일을 새로 만들거나 커밋하지 않는다.
+
+### 환경 오류와 코드 실패 구분
+
+샌드박스나 권한 제약이 있는 실행 환경에서는 Xcode/SwiftPM 캐시, CoreSimulator, 사용자 프로비저닝 프로파일, `~/Library/Developer/Xcode/DerivedData`, `~/Library/Caches`, `~/.cache/clang` 접근이 막힐 수 있다. 이 경우 프로젝트 코드 문제가 아니어도 `xcodebuild`가 아래와 같은 오류로 멈춘다.
 
 - `CoreSimulatorService connection became invalid`
 - `Operation not permitted`
@@ -130,14 +196,9 @@ Codex의 기본 샌드박스에서는 Xcode/SwiftPM 캐시, CoreSimulator 로그
 - `cannot open ... ManifestLoading`
 - `.xcresult` 접근 또는 삭제 권한 오류
 
-이 문제는 저장소 설정만으로 안정적으로 해결할 수 있는 범위가 아니며, Codex가 테스트를 실행할 때 권한 있는 실행으로 재시도해야 한다. `xcodebuild`가 위와 같은 권한/캐시/시뮬레이터 접근 오류로 실패하면, 같은 명령을 `require_escalated`로 재실행해 코드 실패와 환경 실패를 분리한다. 최종 응답에는 샌드박스 실패 여부와 권한 있는 환경에서의 실제 검증 결과를 구분해서 기록한다.
+이 오류들은 저장소 설정만으로 해결할 수 있는 범위가 아니다. 위 패턴으로 실패하면 **코드 실패로 기록하지 않는다.** 샌드박스를 벗어난 실행 허용을 요청하거나, 사용자에게 프롬프트에서 `! <명령>`으로 직접 실행하도록 안내해 같은 명령을 다시 확인한다. 최종 응답에는 환경 실패 여부와 권한 있는 환경에서의 실제 검증 결과를 구분해서 기록한다.
 
-XcodeBuildMCP를 사용할 때는 첫 build/test 전에 `session_show_defaults`로 project,
-scheme, simulator, `extraArgs`를 확인한다. 테스트에서 사용한 code coverage나
-`-only-testing` 옵션이 extension 빌드에 남을 수 있으므로 scheme을 전환할 때
-`extraArgs`를 명시적으로 비우거나 다시 설정한다. 세션 설정 때문에 컴파일 전에
-중단된 실행은 코드 실패로 기록하지 않고, 설정을 바로잡은 같은 명령의 결과를
-검증 근거로 사용한다.
+XcodeBuildMCP를 사용하는 경우 첫 build/test 전에 `session_show_defaults`로 project, scheme, simulator, `extraArgs`를 확인한다. 테스트에서 사용한 code coverage나 `-only-testing` 옵션이 extension 빌드에 남을 수 있으므로 scheme을 전환할 때 `extraArgs`를 명시적으로 비우거나 다시 설정한다. 세션 설정 때문에 컴파일 전에 중단된 실행은 코드 실패로 기록하지 않고, 설정을 바로잡은 같은 명령의 결과를 검증 근거로 사용한다.
 
 ## 테스트 지침
 
@@ -223,7 +284,7 @@ scheme, simulator, `extraArgs`를 확인한다. 테스트에서 사용한 code c
   - `fix`: 일반 버그 수정
   - `hotfix`: 긴급 수정이나 릴리스 직전/운영 영향 버그 수정
   - `refactor`: 동작 변경 없는 구조 개선
-  - `docs`: README, AGENTS, 개발 문서, 주석 중심 변경
+  - `docs`: README, 개발 문서, 주석 중심 변경
   - `chore`: 빌드 번호, 설정, 의존성, 유지보수 작업
   - `design`: UI 수치, 색상, 레이아웃 같은 시각 조정
   - `remove`: 불필요한 파일이나 코드 제거
