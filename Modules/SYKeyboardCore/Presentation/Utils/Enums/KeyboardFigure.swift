@@ -31,6 +31,13 @@ public enum KeyboardLayoutFigure {
     static let shiftAndDeleteButtonWidthMultiplier: CGFloat = 1.35
     /// 리턴 버튼 영역이 차지하는 열 너비 비율
     static let returnButtonWidthMultiplier: CGFloat = 0.25
+    /// 한영 전환 버튼 곱하기 계수. 글자 버튼과 같은 너비를 사용한다
+    static let languageSwitchButtonWidthMultiplier: CGFloat = 1.0
+    /// 통합 키보드에서 한영 전환 버튼과 합친 너비가 리턴 버튼과 같아지는 `switchButton` 곱하기 계수
+    /// - Parameter columnCount: 글자 버튼 열 개수
+    static func switchButtonWidthMultiplier(columnCount: Int) -> CGFloat {
+        returnButtonWidthMultiplier * CGFloat(columnCount) - languageSwitchButtonWidthMultiplier
+    }
     /// 기호 키보드 세번째 열 버튼 곱하기 계수
     static let symbolThirdRowButtonWidthMultiplier: CGFloat = 1.4
     /// 키보드 레이아웃 선택 오버레이 너비

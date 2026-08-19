@@ -232,11 +232,21 @@ private extension SymbolKeyboardView {
         }
         
         fourthRowLeftSecondaryButtonHStackView.translatesAutoresizingMaskIntoConstraints = false
-        if let languageSwitchButton {
+        if let languageSwitchButton,
+           let referenceView = firstRowPrimaryKeyButtonList.first {
             fourthRowLeftSecondaryButtonHStackView.distribution = .fill
-            switchButton.widthAnchor.constraint(equalTo: shiftButton.widthAnchor).isActive = true
-            languageSwitchButton.widthAnchor.constraint(equalTo: shiftButton.widthAnchor).isActive = true
-            let globeWidth = nextKeyboardButton.widthAnchor.constraint(equalTo: shiftButton.widthAnchor)
+            languageSwitchButton.widthAnchor.constraint(
+                equalTo: referenceView.widthAnchor,
+                multiplier: KeyboardLayoutFigure.languageSwitchButtonWidthMultiplier
+            ).isActive = true
+            switchButton.widthAnchor.constraint(
+                equalTo: referenceView.widthAnchor,
+                multiplier: switchButtonWidthMultiplier
+            ).isActive = true
+            let globeWidth = nextKeyboardButton.widthAnchor.constraint(
+                equalTo: referenceView.widthAnchor,
+                multiplier: KeyboardLayoutFigure.shiftAndDeleteButtonWidthMultiplier
+            )
             globeWidth.priority = .init(999)
             globeWidth.isActive = true
             updateFourthRowModifierWidthConstraint(needsInputModeSwitchKey: true)
@@ -286,8 +296,10 @@ private extension SymbolKeyboardView {
         
         returnButton.translatesAutoresizingMaskIntoConstraints = false
         if let superview = returnButton.superview {
-            returnButton.widthAnchor.constraint(equalTo: superview.widthAnchor,
-                                                multiplier: 0.25).isActive = true
+            returnButton.widthAnchor.constraint(
+                equalTo: superview.widthAnchor,
+                multiplier: KeyboardLayoutFigure.returnButtonWidthMultiplier
+            ).isActive = true
         }
         
         keyboardSelectOverlayView.translatesAutoresizingMaskIntoConstraints = false
@@ -307,12 +319,23 @@ private extension SymbolKeyboardView {
         ])
     }
 
+    /// `switchButton`과 한영 전환 버튼의 합이 리턴 버튼 너비와 같아지는 `switchButton` 계수
+    var switchButtonWidthMultiplier: CGFloat {
+        KeyboardLayoutFigure.switchButtonWidthMultiplier(columnCount: firstRowPrimaryKeyButtonList.count)
+    }
+
     func updateFourthRowModifierWidthConstraint(needsInputModeSwitchKey: Bool) {
-        let visibleModifierCount = 2 + (needsInputModeSwitchKey ? 1 : 0)
+        guard let referenceView = firstRowPrimaryKeyButtonList.first else { return }
+
+        let globeMultiplier = needsInputModeSwitchKey
+        ? KeyboardLayoutFigure.shiftAndDeleteButtonWidthMultiplier
+        : 0
         fourthRowModifierWidthConstraint?.isActive = false
         fourthRowModifierWidthConstraint = fourthRowLeftSecondaryButtonHStackView.widthAnchor.constraint(
-            equalTo: shiftButton.widthAnchor,
-            multiplier: CGFloat(visibleModifierCount)
+            equalTo: referenceView.widthAnchor,
+            multiplier: switchButtonWidthMultiplier
+            + KeyboardLayoutFigure.languageSwitchButtonWidthMultiplier
+            + globeMultiplier
         )
         fourthRowModifierWidthConstraint?.isActive = true
     }

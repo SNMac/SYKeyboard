@@ -308,7 +308,10 @@ private extension StandardKeyboardView {
         if let languageSwitchButton,
            let referenceView = firstRowPrimaryKeyButtonList.first {
             fourthRowLeftSecondaryButtonHStackView.distribution = .fill
-            languageSwitchButton.widthAnchor.constraint(equalTo: referenceView.widthAnchor).isActive = true
+            languageSwitchButton.widthAnchor.constraint(
+                equalTo: referenceView.widthAnchor,
+                multiplier: KeyboardLayoutFigure.languageSwitchButtonWidthMultiplier
+            ).isActive = true
             switchButton.widthAnchor.constraint(
                 equalTo: referenceView.widthAnchor,
                 multiplier: switchButtonWidthMultiplier
@@ -391,8 +394,7 @@ private extension StandardKeyboardView {
 
     /// `switchButton`과 한영 전환 버튼의 합이 리턴 버튼 너비와 같아지는 `switchButton` 계수
     var switchButtonWidthMultiplier: CGFloat {
-        let columnCount = CGFloat(firstRowPrimaryKeyButtonList.count)
-        return KeyboardLayoutFigure.returnButtonWidthMultiplier * columnCount - 1
+        KeyboardLayoutFigure.switchButtonWidthMultiplier(columnCount: firstRowPrimaryKeyButtonList.count)
     }
 
     func updateFourthRowModifierWidthConstraint(needsInputModeSwitchKey: Bool) {
@@ -404,7 +406,9 @@ private extension StandardKeyboardView {
         fourthRowModifierWidthConstraint?.isActive = false
         fourthRowModifierWidthConstraint = fourthRowLeftSecondaryButtonHStackView.widthAnchor.constraint(
             equalTo: referenceView.widthAnchor,
-            multiplier: switchButtonWidthMultiplier + 1 + globeMultiplier
+            multiplier: switchButtonWidthMultiplier
+            + KeyboardLayoutFigure.languageSwitchButtonWidthMultiplier
+            + globeMultiplier
         )
         fourthRowModifierWidthConstraint?.isActive = true
     }

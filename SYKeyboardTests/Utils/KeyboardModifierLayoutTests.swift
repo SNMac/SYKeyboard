@@ -147,6 +147,64 @@ struct KeyboardModifierLayoutTests {
         #expect(view.languageSwitchButton == nil)
     }
 
+    @Test("통합 기호 화면의 Language는 글자 버튼 너비이고 Switch와 합쳐 리턴 너비")
+    func testUnifiedSymbolModifierFrames() throws {
+        let view = SymbolKeyboardView(showsLanguageSwitchButton: true)
+        view.frame = CGRect(x: 0, y: 0, width: 390, height: 216)
+        view.layoutIfNeeded()
+
+        let languageButton = try #require(view.languageSwitchButton)
+        let primaryKeyButton = try #require(view.primaryButtonList.first)
+        #expect(abs(languageButton.frame.width - primaryKeyButton.frame.width) < 0.5)
+        #expect(
+            abs(
+                view.switchButton.frame.width + languageButton.frame.width
+                - view.returnButton.frame.width
+            ) < 0.5
+        )
+        #expect(view.switchButton.frame.maxX <= languageButton.frame.minX + 0.5)
+        #expect(languageButton.frame.maxX <= view.nextKeyboardButton.frame.minX + 0.5)
+    }
+
+    @Test("통합 기호 화면의 숨겨진 globe는 접히고 flexible space가 넓어짐")
+    func testUnifiedSymbolHiddenGlobeCollapsesIntoFlexibleSpace() throws {
+        let view = SymbolKeyboardView(showsLanguageSwitchButton: true)
+        view.frame = CGRect(x: 0, y: 0, width: 390, height: 216)
+        view.layoutIfNeeded()
+
+        let languageButton = try #require(view.languageSwitchButton)
+        let primaryKeyButton = try #require(view.primaryButtonList.first)
+        let visibleGlobeWidth = view.nextKeyboardButton.frame.width
+        let visibleSpaceWidth = view.spaceButtonHStackView.frame.width
+
+        let symbolView: SymbolKeyboardLayoutProvider = view
+        symbolView.updateNextKeyboardButton(
+            needsInputModeSwitchKey: false,
+            nextKeyboardAction: NSSelectorFromString("unusedNextKeyboardAction:")
+        )
+        view.layoutIfNeeded()
+
+        #expect(view.nextKeyboardButton.isHidden)
+        #expect(
+            view.spaceButtonHStackView.frame.width
+            >= visibleSpaceWidth + visibleGlobeWidth - 0.5
+        )
+        #expect(abs(languageButton.frame.width - primaryKeyButton.frame.width) < 0.5)
+        #expect(
+            abs(
+                view.switchButton.frame.width + languageButton.frame.width
+                - view.returnButton.frame.width
+            ) < 0.5
+        )
+    }
+
+    @Test("전용 기호 화면은 Language 버튼을 만들지 않음")
+    func testDedicatedSymbolDoesNotCreateLanguageButton() {
+        let view = SymbolKeyboardView(showsLanguageSwitchButton: false)
+
+        #expect(view.languageSwitchButton == nil)
+    }
+
     @Test(arguments: [FourByFourFixture.naratgeul, .cheonjiin])
     func testFourByFourModifierOrder(_ fixture: FourByFourFixture) throws {
         let primaryView = fixture.makeView(showsLanguageSwitchButton: true)
