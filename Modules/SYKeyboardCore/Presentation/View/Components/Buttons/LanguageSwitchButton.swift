@@ -19,11 +19,13 @@ public final class LanguageSwitchButton: SecondaryButton {
     private let dividerLayer = CAShapeLayer()
 
     /// 글자가 버튼 가장자리에 붙지 않도록 하는 여백
-    private let labelInset: CGFloat = 3.0
+    private let labelInset: CGFloat = 4.0
+    /// 두 글자가 나란히 들어가도 축소되지 않는 글자 크기
+    private let labelFontSize: CGFloat = 14.0
     /// 구분선 가로 반길이의 버튼 너비 대비 비율
     private let dividerWidthRatio: CGFloat = 0.22
     /// 구분선 세로 반길이의 버튼 높이 대비 비율
-    private let dividerHeightRatio: CGFloat = 0.34
+    private let dividerHeightRatio: CGFloat = 0.20
 
     // MARK: - Initializer
 
@@ -90,7 +92,7 @@ private extension LanguageSwitchButton {
     func setupLabels() {
         [hangeulLabel, englishLabel].forEach {
             $0.translatesAutoresizingMaskIntoConstraints = false
-            $0.font = .systemFont(ofSize: FontSize.stringKeyMedium)
+            $0.font = .systemFont(ofSize: labelFontSize)
             $0.adjustsFontSizeToFitWidth = true
             $0.minimumScaleFactor = 0.5
         }
