@@ -19,8 +19,8 @@ public final class LanguageSwitchButton: SecondaryButton {
     private let englishLabel = UILabel()
     private let dividerLayer = CAShapeLayer()
 
-    /// 글자 크기
-    private let labelFontSize: CGFloat = 14.0
+    /// 기본 글자 크기
+    private let maximumLabelFontSize: CGFloat = 14.0
     /// 구분선과 글자 사이 간격. 버튼 크기와 무관하게 고정한다
     private let dividerLabelSpacing: CGFloat = 3.0
     /// 글자가 버튼 밖으로 밀려나지 않게 하는 최소 여백
@@ -29,10 +29,16 @@ public final class LanguageSwitchButton: SecondaryButton {
     private let dividerWidthRatio: CGFloat = 0.22
     /// 구분선 세로 반길이의 버튼 높이 대비 비율
     private let dividerHeightRatio: CGFloat = 0.20
+    /// 버튼 너비 대비 글자 크기 비율
+    static let labelFontSizeToWidthRatio: CGFloat = 0.38
+    /// 글자 크기 대비 구분선 두께 비율. 기본 글자 크기에서 1.5가 되도록 맞춘다
+    static let dividerLineWidthToFontSizeRatio: CGFloat = 1.5 / 14.0
 
+    /// 현재 적용된 글자 크기
+    private var appliedLabelFontSize: CGFloat = 0
     /// 글자 프레임 안에서 실제 글자가 그려지는 영역까지의 여백
-    private lazy var hangeulInkInsets = Self.inkInsets(of: hangeulLabel)
-    private lazy var englishInkInsets = Self.inkInsets(of: englishLabel)
+    private var hangeulInkInsets: UIEdgeInsets = .zero
+    private var englishInkInsets: UIEdgeInsets = .zero
 
     // MARK: - Initializer
 
@@ -52,10 +58,9 @@ public final class LanguageSwitchButton: SecondaryButton {
         accessibilityLabel = "한영 전환"
         dividerLayer.fillColor = UIColor.clear.cgColor
         dividerLayer.lineCap = .round
-        dividerLayer.lineWidth = 1.5
         backgroundView.layer.addSublayer(dividerLayer)
         [hangeulLabel, englishLabel].forEach(addSubview)
-        setupLabels()
+        applyLabelFont(size: maximumLabelFontSize)
         updateLanguageMode(mode)
     }
 
@@ -73,10 +78,13 @@ public final class LanguageSwitchButton: SecondaryButton {
     public override func layoutSubviews() {
         super.layoutSubviews()
 
-        dividerLayer.frame = backgroundView.bounds
-        dividerLayer.strokeColor = UIColor.label.cgColor
-
         let keyBounds = backgroundView.bounds
+        updateLabelFontIfNeeded(forKeyWidth: keyBounds.width)
+
+        dividerLayer.frame = keyBounds
+        dividerLayer.strokeColor = UIColor.label.cgColor
+        dividerLayer.lineWidth = Self.dividerLineWidth(forFontSize: appliedLabelFontSize)
+
         let halfWidth = keyBounds.width * dividerWidthRatio
         let halfHeight = keyBounds.height * dividerHeightRatio
 
@@ -97,13 +105,43 @@ public final class LanguageSwitchButton: SecondaryButton {
     }
 }
 
+// MARK: - Internal Methods
+
+extension LanguageSwitchButton {
+    /// 버튼 너비에 맞는 글자 크기.
+    ///
+    /// 기본 크기를 상한으로 두고, 버튼이 좁아지면 너비에 비례해 줄입니다.
+    /// 구분선 길이도 너비 비례라 함께 줄어들어 글자와 구분선이 겹치지 않습니다.
+    static func labelFontSize(forKeyWidth width: CGFloat, maximum: CGFloat) -> CGFloat {
+        guard width > 0 else { return maximum }
+
+        return min(maximum, width * labelFontSizeToWidthRatio)
+    }
+
+    /// 글자 크기에 맞는 구분선 두께.
+    /// 글자와 함께 줄어들어야 마크 전체의 비례가 유지됩니다.
+    static func dividerLineWidth(forFontSize fontSize: CGFloat) -> CGFloat {
+        return fontSize * dividerLineWidthToFontSizeRatio
+    }
+}
+
 // MARK: - UI Methods
 
 private extension LanguageSwitchButton {
-    func setupLabels() {
-        [hangeulLabel, englishLabel].forEach {
-            $0.font = .systemFont(ofSize: labelFontSize)
-        }
+    /// 버튼 너비에 맞춰 글자 크기를 정한다.
+    /// 한 손 키보드처럼 버튼이 좁아지면 글자가 구분선과 겹치므로 함께 줄인다
+    func updateLabelFontIfNeeded(forKeyWidth width: CGFloat) {
+        applyLabelFont(size: Self.labelFontSize(forKeyWidth: width, maximum: maximumLabelFontSize))
+    }
+
+    func applyLabelFont(size: CGFloat) {
+        guard size > 0, abs(size - appliedLabelFontSize) > 0.01 else { return }
+
+        appliedLabelFontSize = size
+        let font = UIFont.systemFont(ofSize: size)
+        [hangeulLabel, englishLabel].forEach { $0.font = font }
+        hangeulInkInsets = Self.inkInsets(of: hangeulLabel)
+        englishInkInsets = Self.inkInsets(of: englishLabel)
     }
 
     /// 구분선을 기준으로 두 글자를 배치한다.
