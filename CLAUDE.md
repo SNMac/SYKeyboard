@@ -8,7 +8,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 - SY키보드는 iOS 16+용 한글/영문 커스텀 키보드 앱이다.
 - 메인 앱(`SYKeyboard/`)은 SwiftUI 기반 설정/안내 화면이다.
-- 키보드 확장(`Keyboards/HangeulKeyboard/`, `Keyboards/EnglishKeyboard/`)은 UIKit 기반이다.
+- 키보드 확장(`Keyboards/HangeulKeyboard/`, `Keyboards/EnglishKeyboard/`, `Keyboards/HangeulEnglishKeyboard/`)은 UIKit 기반이다.
 - 공통 키보드 UI와 입력 보조 기능은 `Modules/SYKeyboardCore/`에 있다.
 - 한글 입력 조합 로직은 `Modules/HangeulKeyboardCore/Domain/`에 있으며, 나랏글/천지인/두벌식 Processor와 Automata 테스트가 중요하다.
 - 영문 키보드 로직은 `Modules/EnglishKeyboardCore/`에 있다.
@@ -17,27 +17,33 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 아키텍처
 
-**두 키보드 extension이 하나의 Base 컨트롤러를 공유한다.**
+**세 개의 키보드 extension이 하나의 Base 컨트롤러를 공유한다.**
 
 ```
 UIInputViewController
-└── BaseKeyboardViewController          (SYKeyboardCore, 입력 흐름의 중심)
+└── BaseKeyboardViewController          (SYKeyboardCore, ~2400줄, 입력 흐름의 중심)
     ├── HangeulKeyboardCoreViewController → HangeulKeyboardViewController
-    └── EnglishKeyboardCoreViewController → EnglishKeyboardViewController
+    ├── EnglishKeyboardCoreViewController → EnglishKeyboardViewController
+    └── HangeulEnglishKeyboardViewController   (Core VC 없이 Base를 직접 상속)
 ```
 
 `BaseKeyboardViewController`가 텍스트 프록시 조작, 제스처, 자동완성, undo/redo, 높이·한손 모드,
 `textWillChange`/`textDidChange` 동기화를 전담한다. 각 하위 VC는 `open` 프로퍼티/메서드
-(`primaryKeyboardView`, `updateKeyboardType()`, `shouldDeferUndoRedoCommit`, `smartQuoteRule` 등)를
-오버라이드해 언어별 차이만 주입한다. **언어 공통 동작을 하위 VC에 복제하지 말고
+(`primaryKeyboardView`, `primaryKeyboardViews`, `updateKeyboardType()`, `shouldDeferUndoRedoCommit`,
+`smartQuoteRule` 등)를 오버라이드해 언어별 차이만 주입한다. **언어 공통 동작을 하위 VC에 복제하지 말고
 Base에 두거나 Policy로 분리한다.**
 
-**한글 입력 로직은 Processor와 Automata에서 끝난다.**
-`HangeulKeyboardCoreViewController`가 나랏글/천지인/두벌식 `HangeulProcessable` 구현체를 들고
-설정에 따라 골라 쓰며, 조합 상태 전이는 `HangeulCompositionState`가 관리한다.
-Processor는 `HangeulAutomata`에 위임하고
+**언어별 입력 로직은 Adapter를 통해 들어온다.**
+`HangeulKeyboardInputAdapter` / `EnglishKeyboardInputAdapter`가 VC와 Domain 사이의 유일한 경계다.
+한글 Adapter는 `HangeulProcessable`(나랏글/천지인/두벌식 Processor) → `HangeulAutomata` 순으로 위임하고,
 `CompositionResult`(committed/composing/consumedCommittedCount) · `DeleteResult` · `SpaceInputResult`를 반환한다.
 VC는 이 값만 보고 프록시를 갱신하므로, 조합 규칙 변경은 Processor/Automata에서 끝내야 한다.
+
+**한영 통합 키보드는 어댑터 2개 + Coordinator 조합이다.**
+`HangeulEnglishKeyboardViewController`가 두 Adapter를 함께 들고,
+`HangeulEnglishKeyboardModeCoordinator`(+ `KeyboardLanguageModePolicy`)가 현재 언어 모드를 결정한다.
+`primaryKeyboardView`는 모드에 따라 다른 Adapter의 뷰를 돌려주고, `primaryKeyboardViews`는 양쪽 전부를 돌려준다
+(전환 버튼·레이아웃 갱신이 이 차이에 의존한다).
 
 **분기 로직은 Policy로 뽑혀 있다.**
 `Modules/SYKeyboardCore/Presentation/Utils/Policies/`의 `KeyboardHeightPolicy`,
@@ -54,7 +60,7 @@ VC는 이 값만 보고 프록시를 갱신하므로, 조합 규칙 변경은 Pr
 primary/symbol/numeric/tenkey 레이아웃이 들어간다. 레이아웃은 `*KeyboardLayoutProvider` 프로토콜 구현체이며
 `StandardKeyboardView` / `FourByFourKeyboardView` / `FourByFourPlusKeyboardView`를 베이스로 한다.
 
-**저장소**: 앱과 2개 extension은 App Group(`DefaultValues.groupBundleID`) suite의 `UserDefaults`를
+**저장소**: 앱과 3개 extension은 App Group(`DefaultValues.groupBundleID`) suite의 `UserDefaults`를
 `UserDefaultsManager`로 공유한다. 모듈별 `UserDefaultsKeys+Extension` / `DefaultValues+Extension`으로 확장하며,
 `SYKeyboardTests/Storage/UserDefaultsContractTests.swift`가 키 계약을 지킨다.
 extension 프로세스 로컬 상태는 `KeyboardExtensionLocalStateStore`에 둔다.
@@ -130,11 +136,13 @@ extension 프로세스 로컬 상태는 `KeyboardExtensionLocalStateStore`에 �
 - `SYKeyboard/Storage/`: 앱 타깃의 UserDefaults 확장.
 - `Keyboards/HangeulKeyboard/`: 한글 키보드 extension 진입점과 리소스.
 - `Keyboards/EnglishKeyboard/`: 영문 키보드 extension 진입점과 리소스.
+- `Keyboards/HangeulEnglishKeyboard/`: 한영 통합 키보드 extension 진입점과 리소스.
 - `Keyboards/Common/`: 키보드 확장 공통 UI와 오류 타입.
 - `Modules/SYKeyboardCore/`: 공통 키보드 UI, 버튼, 제스처, 자동완성, 저장소 기본 타입.
-  - `Presentation/Utils/Policies/`: UI 의존 없는 순수 정책 타입.
+  - `Presentation/Utils/Policies/`, `Presentation/Utils/Coordinators/`: UI 의존 없는 순수 정책·모드 결정 타입.
 - `Modules/HangeulKeyboardCore/`: 한글 오토마타, 입력 Processor, 한글 키보드 View.
 - `Modules/EnglishKeyboardCore/`: 영문 키보드 View와 저장소 확장.
+- `Modules/*/Presentation/Input/`: VC와 Domain의 경계인 InputAdapter.
 - `SYKeyboardTests/`: Swift Testing 기반 한글 오토마타/Processor/Controller/Policy 테스트.
 - `SYKeyboardAssets/`: XIB와 색상 asset을 제공하는 로컬 SPM 패키지.
 - `Common/Firebase/`: Debug/Release Firebase plist. 민감 설정 변경에 주의한다.
@@ -169,7 +177,14 @@ xcodebuild build \
   -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0'
 ```
 
-공유 scheme은 `SYKeyboard`, `HangeulKeyboard`, `EnglishKeyboard` 3개다. `SYKeyboard`/키보드 extension scheme의 TestAction은 `SYKeyboardTests`를 포함한다.
+```sh
+xcodebuild build \
+  -project SYKeyboard.xcodeproj \
+  -scheme HangeulEnglishKeyboard \
+  -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0'
+```
+
+공유 scheme은 `SYKeyboard`, `HangeulKeyboard`, `EnglishKeyboard`, `HangeulEnglishKeyboard` 4개다. `SYKeyboard`/키보드 extension scheme의 TestAction은 `SYKeyboardTests`를 포함한다.
 
 특정 suite나 단일 테스트만 실행:
 
