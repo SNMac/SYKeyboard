@@ -81,6 +81,9 @@ final class HangeulEnglishKeyboardViewController: BaseKeyboardViewController {
         SwitchButton.previewPrimaryLanguage = mode.languageIdentifier
         super.init(language: mode.languageIdentifier)
         primaryLanguage = mode.languageIdentifier
+
+        // loadView와 viewDidLoad에서 발생하는 크래시도 기록되도록 가장 먼저 설정한다
+        setupFirebase()
     }
 
     required init?(coder: NSCoder) {
@@ -94,7 +97,6 @@ final class HangeulEnglishKeyboardViewController: BaseKeyboardViewController {
 
         setupLanguageSwitchActions()
         applyLanguageMode(modeCoordinator.currentMode, persist: false)
-        setupFirebase()
 
         if needToShowFullAccessGuide {
             setupRequestFullAccessOverlayView()

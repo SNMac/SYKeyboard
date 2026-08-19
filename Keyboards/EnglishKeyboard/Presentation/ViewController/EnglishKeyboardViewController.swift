@@ -28,12 +28,23 @@ final class EnglishKeyboardViewController: EnglishKeyboardCoreViewController {
     /// 전체 접근 허용 안내 오버레이
     private lazy var requestFullAccessOverlayView = RequestFullAccessOverlayView()
     
+    // MARK: - Initializer
+    
+    override init() {
+        super.init()
+        
+        // loadView와 viewDidLoad에서 발생하는 크래시도 기록되도록 가장 먼저 설정한다
+        setupFirebase()
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
     // MARK: - Lifecycle
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
-        setupFirebase()
         
         if needToShowFullAccessGuide {
             setupRequestFullAccessOverlayView()
