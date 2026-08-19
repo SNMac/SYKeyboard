@@ -29,6 +29,8 @@ public enum KeyboardLayoutFigure {
     static let undoRedoButtonWidth: CGFloat = 44.0
     /// Shift 버튼과 삭제 버튼 곱하기 계수
     static let shiftAndDeleteButtonWidthMultiplier: CGFloat = 1.35
+    /// 리턴 버튼 영역이 차지하는 열 너비 비율
+    static let returnButtonWidthMultiplier: CGFloat = 0.25
     /// 기호 키보드 세번째 열 버튼 곱하기 계수
     static let symbolThirdRowButtonWidthMultiplier: CGFloat = 1.4
     /// 키보드 레이아웃 선택 오버레이 너비

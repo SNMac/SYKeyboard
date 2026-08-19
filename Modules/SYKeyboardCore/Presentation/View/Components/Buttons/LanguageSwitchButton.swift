@@ -18,6 +18,13 @@ public final class LanguageSwitchButton: SecondaryButton {
     private let englishLabel = UILabel()
     private let dividerLayer = CAShapeLayer()
 
+    /// 글자가 버튼 가장자리에 붙지 않도록 하는 여백
+    private let labelInset: CGFloat = 3.0
+    /// 구분선 가로 반길이의 버튼 너비 대비 비율
+    private let dividerWidthRatio: CGFloat = 0.22
+    /// 구분선 세로 반길이의 버튼 높이 대비 비율
+    private let dividerHeightRatio: CGFloat = 0.34
+
     // MARK: - Initializer
 
     public convenience init(mode: HangeulEnglishLanguageMode) {
@@ -60,9 +67,11 @@ public final class LanguageSwitchButton: SecondaryButton {
         dividerLayer.frame = backgroundView.bounds
         dividerLayer.strokeColor = UIColor.label.cgColor
         let bounds = backgroundView.bounds
+        let halfWidth = bounds.width * dividerWidthRatio
+        let halfHeight = bounds.height * dividerHeightRatio
         let path = UIBezierPath()
-        path.move(to: CGPoint(x: bounds.midX - 4, y: bounds.midY + 7))
-        path.addLine(to: CGPoint(x: bounds.midX + 4, y: bounds.midY - 7))
+        path.move(to: CGPoint(x: bounds.midX - halfWidth, y: bounds.midY + halfHeight))
+        path.addLine(to: CGPoint(x: bounds.midX + halfWidth, y: bounds.midY - halfHeight))
         dividerLayer.path = path.cgPath
     }
 
@@ -87,11 +96,11 @@ private extension LanguageSwitchButton {
         }
 
         NSLayoutConstraint.activate([
-            hangeulLabel.topAnchor.constraint(equalTo: backgroundView.topAnchor),
-            hangeulLabel.leadingAnchor.constraint(equalTo: backgroundView.leadingAnchor),
+            hangeulLabel.topAnchor.constraint(equalTo: backgroundView.topAnchor, constant: labelInset),
+            hangeulLabel.leadingAnchor.constraint(equalTo: backgroundView.leadingAnchor, constant: labelInset),
             hangeulLabel.trailingAnchor.constraint(lessThanOrEqualTo: englishLabel.leadingAnchor),
-            englishLabel.bottomAnchor.constraint(equalTo: backgroundView.bottomAnchor),
-            englishLabel.trailingAnchor.constraint(equalTo: backgroundView.trailingAnchor)
+            englishLabel.bottomAnchor.constraint(equalTo: backgroundView.bottomAnchor, constant: -labelInset),
+            englishLabel.trailingAnchor.constraint(equalTo: backgroundView.trailingAnchor, constant: -labelInset)
         ])
     }
 }

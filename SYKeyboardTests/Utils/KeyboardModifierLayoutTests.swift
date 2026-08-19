@@ -30,7 +30,7 @@ enum FourByFourFixture: Sendable {
 @MainActor
 @Suite("키보드 modifier row 레이아웃")
 struct KeyboardModifierLayoutTests {
-    @Test("통합 쿼티의 Switch와 Language는 독립 frame이며 Switch는 Shift 너비")
+    @Test("통합 쿼티의 Language는 글자 버튼 너비이고 Switch와 합쳐 리턴 너비")
     func testUnifiedQwertyModifierFrames() throws {
         let view = EnglishKeyboardView(
             getIsShiftedLetterInput: { false },
@@ -42,8 +42,13 @@ struct KeyboardModifierLayoutTests {
 
         let languageButton = try #require(view.languageSwitchButton)
         let primaryKeyButton = try #require(view.primaryButtonList.first)
-        #expect(abs(view.switchButton.frame.width - view.shiftButton.frame.width) < 0.5)
-        #expect(languageButton.frame.width + 0.5 >= primaryKeyButton.frame.width)
+        #expect(abs(languageButton.frame.width - primaryKeyButton.frame.width) < 0.5)
+        #expect(
+            abs(
+                view.switchButton.frame.width + languageButton.frame.width
+                - view.returnButtonHStackView.frame.width
+            ) < 0.5
+        )
         #expect(view.switchButton.frame.maxX <= languageButton.frame.minX + 0.5)
         #expect(languageButton.frame.maxX <= view.nextKeyboardButton.frame.minX + 0.5)
     }
@@ -76,7 +81,7 @@ struct KeyboardModifierLayoutTests {
             >= visibleSpaceWidth + visibleGlobeWidth - 0.5
         )
         #expect(view.switchButton.frame.maxX <= languageButton.frame.minX + 0.5)
-        #expect(languageButton.frame.width + 0.5 >= primaryKeyButton.frame.width)
+        #expect(abs(languageButton.frame.width - primaryKeyButton.frame.width) < 0.5)
     }
 
     @Test("통합 쿼티는 동일 globe 상태 반복 갱신 시 레이아웃을 다시 무효화하지 않음")
