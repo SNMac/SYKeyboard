@@ -32,8 +32,10 @@ final class HangeulEnglishKeyboardViewController: BaseKeyboardViewController {
     private let englishAdapter = EnglishKeyboardInputAdapter(
         showsLanguageSwitchButton: true
     )
+    /// 키보드가 뜰 때 결정한 시작 언어
+    private let initialLanguageMode: HangeulEnglishLanguageMode
     private lazy var modeCoordinator = HangeulEnglishKeyboardModeCoordinator(
-        initialMode: keyboardSettingsManager.lastHangeulEnglishLanguageMode
+        initialMode: initialLanguageMode
     )
 
     // MARK: - UI Components
@@ -77,7 +79,14 @@ final class HangeulEnglishKeyboardViewController: BaseKeyboardViewController {
     // MARK: - Initializer
 
     init() {
-        let mode = UserDefaultsManager.shared.lastHangeulEnglishLanguageMode
+        // 저장된 언어가 없으면 OS 언어 설정을 따른다.
+        // 이 시점에는 textDocumentProxy에 접근하지 않는다(수명주기 크래시 경로)
+        let mode = KeyboardLanguageModePolicy.initialMode(
+            requiresLatinInput: false,
+            lastMode: Self.storedLanguageMode(),
+            preferredLanguages: Locale.preferredLanguages
+        )
+        initialLanguageMode = mode
         SwitchButton.previewPrimaryLanguage = mode.languageIdentifier
         super.init(language: mode.languageIdentifier)
         primaryLanguage = mode.languageIdentifier
@@ -116,17 +125,22 @@ final class HangeulEnglishKeyboardViewController: BaseKeyboardViewController {
 
     override func textInputDidChange(_ textInput: (any UITextInput)?) {
         let previousMode = modeCoordinator.currentMode
-        let documentPrimaryLanguage = textDocumentProxy.documentInputMode?.primaryLanguage
+        let requiresLatinInput = KeyboardLanguageModePolicy.requiresLatinInput(
+            keyboardType: textDocumentProxy.keyboardType,
+            textContentType: textDocumentProxy.textContentType
+        )
         let mode = modeCoordinator.modeForTextInputChange(
             identifier: textInput.map { ObjectIdentifier($0 as AnyObject) },
-            documentPrimaryLanguage: documentPrimaryLanguage,
-            lastMode: keyboardSettingsManager.lastHangeulEnglishLanguageMode
+            requiresLatinInput: requiresLatinInput,
+            lastMode: Self.storedLanguageMode(),
+            preferredLanguages: Locale.preferredLanguages
         )
-        recordLanguageModeDecision(documentPrimaryLanguage: documentPrimaryLanguage, resolved: mode)
+        recordLanguageModeDecision(requiresLatinInput: requiresLatinInput, resolved: mode)
 
+        // 필드가 강제한 영어는 사용자의 선택이 아니므로 마지막 언어로 저장하지 않는다
         applyLanguageMode(
             mode,
-            persist: true,
+            persist: !requiresLatinInput,
             outgoingMode: previousMode
         )
     }
@@ -456,16 +470,26 @@ private extension HangeulEnglishKeyboardViewController {
         ].compactMap { $0 }
     }
 
+    /// 저장된 마지막 언어. 한 번도 저장된 적이 없으면 `nil`
+    static func storedLanguageMode() -> HangeulEnglishLanguageMode? {
+        let manager = UserDefaultsManager.shared
+        guard manager.hasLastHangeulEnglishLanguageMode else { return nil }
+
+        return manager.lastHangeulEnglishLanguageMode
+    }
+
     /// 시작 언어 판정 근거를 기록한다.
     /// 입력한 텍스트는 남기지 않고 필드 특성만 남긴다
     func recordLanguageModeDecision(
-        documentPrimaryLanguage: String?,
+        requiresLatinInput: Bool,
         resolved: HangeulEnglishLanguageMode
     ) {
-        let language = documentPrimaryLanguage ?? "nil"
+        let language = textDocumentProxy.documentInputMode?.primaryLanguage ?? "nil"
         let keyboardType = textDocumentProxy.keyboardType?.rawValue ?? -1
+        let contentType = textDocumentProxy.textContentType?.rawValue ?? "nil"
         let message = "languageMode documentPrimaryLanguage=\(language)"
-        + " keyboardType=\(keyboardType) resolved=\(resolved)"
+        + " keyboardType=\(keyboardType) textContentType=\(contentType)"
+        + " requiresLatinInput=\(requiresLatinInput) resolved=\(resolved)"
 
         logger.info("\(message)")
         Crashlytics.crashlytics().setCustomValue(language, forKey: "document_primary_language")

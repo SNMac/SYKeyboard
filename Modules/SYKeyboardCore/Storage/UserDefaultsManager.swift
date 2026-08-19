@@ -188,4 +188,11 @@ final public class UserDefaultsManager {
     /// 전체 접근 허용 안내 오버레이 닫음 여부
     @UserDefaultsWrapper(key: UserDefaultsKeys.isRequestFullAccessOverlayClosed, defaultValue: DefaultValues.isRequestFullAccessOverlayClosed)
     public var isRequestFullAccessOverlayClosed: Bool
+
+    /// 한영 통합 키보드의 마지막 언어가 저장되어 있는지 여부
+    ///
+    /// 저장값이 없을 때와 기본값이 저장된 경우를 구분하기 위해 키 존재만 확인합니다.
+    public var hasLastHangeulEnglishLanguageMode: Bool {
+        storage.object(forKey: UserDefaultsKeys.lastHangeulEnglishLanguageMode) != nil
+    }
 }

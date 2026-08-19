@@ -23,16 +23,18 @@ public final class HangeulEnglishKeyboardModeCoordinator {
 
     public func modeForTextInputChange(
         identifier: ObjectIdentifier?,
-        documentPrimaryLanguage: String?,
-        lastMode: HangeulEnglishLanguageMode?
+        requiresLatinInput: Bool,
+        lastMode: HangeulEnglishLanguageMode?,
+        preferredLanguages: [String]
     ) -> HangeulEnglishLanguageMode {
         guard let identifier else { return currentMode }
         guard identifier != currentTextInputIdentifier else { return currentMode }
 
         currentTextInputIdentifier = identifier
         return KeyboardLanguageModePolicy.initialMode(
-            documentPrimaryLanguage: documentPrimaryLanguage,
-            lastMode: lastMode
+            requiresLatinInput: requiresLatinInput,
+            lastMode: lastMode,
+            preferredLanguages: preferredLanguages
         )
     }
 
