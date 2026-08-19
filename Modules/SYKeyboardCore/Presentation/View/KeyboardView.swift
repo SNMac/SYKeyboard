@@ -65,11 +65,13 @@ final public class KeyboardView: UIInputView {
     /// 주 키보드 목록
     private(set) var primaryKeyboardViews: [PrimaryKeyboardRepresentable] = []
     
+    /// 주 키보드에 한영 전환 버튼이 있는지 여부
+    private var showsLanguageSwitchButton: Bool {
+        primaryKeyboardViews.contains { $0.languageSwitchButton != nil }
+    }
+    
     /// 기호 키보드
     lazy var symbolKeyboardView: SymbolKeyboardLayoutProvider = {
-        let showsLanguageSwitchButton = primaryKeyboardViews.contains {
-            $0.languageSwitchButton != nil
-        }
         let symbolKeyboardView = SymbolKeyboardView(
             showsLanguageSwitchButton: showsLanguageSwitchButton
         )
@@ -80,7 +82,9 @@ final public class KeyboardView: UIInputView {
     
     /// 숫자 키보드
     lazy var numericKeyboardView: NumericKeyboardLayoutProvider = {
-        let numericKeyboardView = NumericKeyboardView()
+        let numericKeyboardView = NumericKeyboardView(
+            showsLanguageSwitchButton: showsLanguageSwitchButton
+        )
         numericKeyboardView.isHidden = true
         
         return numericKeyboardView

@@ -51,6 +51,35 @@ struct KeyboardPrimaryViewCollectionTests {
         #expect(button.accessibilityValue == "영어")
     }
 
+    @Test("통합 primary collection은 numeric 언어 버튼도 opt-in")
+    func testUnifiedPrimaryViewsOptInNumericLanguageButton() throws {
+        let first = TestPrimaryKeyboardView(keyboard: .dubeolsik, showsLanguageSwitchButton: true)
+        let second = TestPrimaryKeyboardView(keyboard: .qwerty, showsLanguageSwitchButton: true)
+
+        let view = KeyboardView.loadFromNib(primaryKeyboardViews: [first, second])
+        let button = try #require(view.numericKeyboardView.languageSwitchButton)
+        let numericView = view.numericKeyboardView
+
+        view.frame = CGRect(x: 0, y: 0, width: 390, height: 216)
+        numericView.isHidden = false
+        view.layoutIfNeeded()
+
+        #expect(numericView.allButtonList.contains { $0 === button })
+        #expect(numericView.nextKeyboardButton.frame.maxX <= button.frame.minX + 0.5)
+        #expect(button.frame.maxX <= numericView.switchButton.frame.minX + 0.5)
+        button.updateLanguageMode(.english)
+        #expect(button.accessibilityValue == "영어")
+    }
+
+    @Test("전용 primary collection은 numeric 언어 버튼도 만들지 않음")
+    func testDedicatedPrimaryViewDoesNotOptInNumericLanguageButton() {
+        let primary = TestPrimaryKeyboardView(keyboard: .qwerty, showsLanguageSwitchButton: false)
+
+        let view = KeyboardView.loadFromNib(primaryKeyboardViews: [primary])
+
+        #expect(view.numericKeyboardView.languageSwitchButton == nil)
+    }
+
     @Test("통합 symbol은 숨겨진 globe 폭을 space로 반환")
     func testUnifiedSymbolHiddenGlobeCollapsesIntoFlexibleSpace() throws {
         let primary = TestPrimaryKeyboardView(keyboard: .qwerty, showsLanguageSwitchButton: true)

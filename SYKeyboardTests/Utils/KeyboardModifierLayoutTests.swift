@@ -198,6 +198,26 @@ struct KeyboardModifierLayoutTests {
         )
     }
 
+    @Test("통합 숫자 화면은 globe → 한/영 → 전환 순서로 균등 분할")
+    func testUnifiedNumericModifierOrder() throws {
+        let view = NumericKeyboardView(showsLanguageSwitchButton: true)
+        view.frame = CGRect(x: 0, y: 0, width: 390, height: 216)
+        view.layoutIfNeeded()
+
+        let languageButton = try #require(view.languageSwitchButton)
+        #expect(view.nextKeyboardButton.frame.maxX <= languageButton.frame.minX + 0.5)
+        #expect(languageButton.frame.maxX <= view.switchButton.frame.minX + 0.5)
+        #expect(abs(languageButton.frame.width - view.switchButton.frame.width) < 0.5)
+        #expect(view.allButtonList.contains { $0 === languageButton })
+    }
+
+    @Test("전용 숫자 화면은 Language 버튼을 만들지 않음")
+    func testDedicatedNumericDoesNotCreateLanguageButton() {
+        let view = NumericKeyboardView(showsLanguageSwitchButton: false)
+
+        #expect(view.languageSwitchButton == nil)
+    }
+
     @Test("전용 기호 화면은 Language 버튼을 만들지 않음")
     func testDedicatedSymbolDoesNotCreateLanguageButton() {
         let view = SymbolKeyboardView(showsLanguageSwitchButton: false)

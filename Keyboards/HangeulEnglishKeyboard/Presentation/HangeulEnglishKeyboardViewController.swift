@@ -448,7 +448,10 @@ final class HangeulEnglishKeyboardViewController: BaseKeyboardViewController {
 private extension HangeulEnglishKeyboardViewController {
     var languageSwitchButtons: [LanguageSwitchButton] {
         primaryKeyboardViews.compactMap(\.languageSwitchButton)
-        + [symbolKeyboardView.languageSwitchButton].compactMap { $0 }
+        + [
+            symbolKeyboardView.languageSwitchButton,
+            numericKeyboardView.languageSwitchButton
+        ].compactMap { $0 }
     }
 
     func setupLanguageSwitchActions() {
