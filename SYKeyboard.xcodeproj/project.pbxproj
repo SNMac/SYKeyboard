@@ -2012,6 +2012,7 @@
 				CODE_SIGN_ENTITLEMENTS = "Keyboards/HangeulEnglishKeyboard/Resources//HangeulEnglishKeyboard.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = "$(BUILD_NUMBER)";
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Keyboards/HangeulEnglishKeyboard/Resources/Info.plist;
