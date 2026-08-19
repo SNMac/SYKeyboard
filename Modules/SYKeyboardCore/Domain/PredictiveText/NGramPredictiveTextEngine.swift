@@ -211,20 +211,24 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
             }
             
             let applyLoadedData = { [weak self] in
-                guard let self else { return }
-                guard self.currentStorageGeneration() == generation else {
-                    signposter.endInterval("NGramBackgroundLoad", loadState)
-                    return
+                // 로딩 반영까지만 측정하고, 완료 알림은 구간 밖에서 보낸다.
+                // 중간에 빠져나가도 defer가 interval을 닫는다
+                do {
+                    defer { signposter.endInterval("NGramBackgroundLoad", loadState) }
+
+                    guard let self else { return }
+                    guard self.currentStorageGeneration() == generation else { return }
+
+                    self.unigramStore = loaded.unigram
+                    self.bigramStore = loaded.bigram
+                    self.trigramStore = loaded.trigram
+                    self.needsLegacyCleanup = needsCleanup
+                    self.isLoaded = true
+                    self.flushPendingEvents()
+                    self.logger.debug("[NGram/\(self.language)] 디스크 로딩 완료")
                 }
-                self.unigramStore = loaded.unigram
-                self.bigramStore = loaded.bigram
-                self.trigramStore = loaded.trigram
-                self.needsLegacyCleanup = needsCleanup
-                self.isLoaded = true
-                self.flushPendingEvents()
-                self.logger.debug("[NGram/\(self.language)] 디스크 로딩 완료")
-                signposter.endInterval("NGramBackgroundLoad", loadState)
-                self.onLoadCompleted?()
+
+                self?.onLoadCompleted?()
             }
 
             if let loadApplyDelay = self.loadApplyDelay {
