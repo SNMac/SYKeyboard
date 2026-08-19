@@ -155,5 +155,7 @@ GoogleService-Info.plist
 Secrets.xcconfig
 
 # AI
+.claude/cache/
+.claude/settings.local.json
 .codex/
 .superpowers/
