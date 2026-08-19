@@ -103,6 +103,12 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
     private let fileURL: URL
     /// 테스트에서 비동기 load 적용 지연을 재현하기 위한 값
     private let loadApplyDelay: Duration?
+
+    /// 성능 계측용 signposter. 인스턴스마다 만들 필요가 없어 타입 프로퍼티로 공유한다
+    private static let signposter = OSSignposter(
+        subsystem: Bundle.main.bundleIdentifier ?? "Unknown Bundle",
+        category: "NGramPredictiveTextEngine"
+    )
     
     /// 백그라운드 저장용 직렬 큐
     private let saveQueue = DispatchQueue(label: "com.snmac.sykeyboard.ngram.save", qos: .utility)
@@ -150,11 +156,7 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
     ///
     /// - Parameter language: 언어 식별자 (예: "ko-KR", "en-US")
     public convenience init(language: String) {
-        let signposter = OSSignposter(
-            subsystem: Bundle.main.bundleIdentifier ?? "Unknown Bundle",
-            category: "NGramPredictiveTextEngine"
-        )
-        let initState = signposter.beginInterval("NGramInit")
+        let initState = Self.signposter.beginInterval("NGramInit")
         
         guard let containerURL = FileManager.default.containerURL(
             forSecurityApplicationGroupIdentifier: DefaultValues.groupBundleID
@@ -165,7 +167,7 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
         guard let legacyStorage = UserDefaults(suiteName: DefaultValues.groupBundleID) else {
             fatalError("UserDefaults를 suiteName으로 불러오는 데 실패했습니다.")
         }
-        signposter.endInterval("NGramInit", initState)
+        Self.signposter.endInterval("NGramInit", initState)
 
         self.init(
             language: language,
@@ -189,10 +191,7 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
     }
 
     private func startBackgroundLoad() {
-        let signposter = OSSignposter(
-            subsystem: Bundle.main.bundleIdentifier ?? "Unknown Bundle",
-            category: "NGramPredictiveTextEngine"
-        )
+        let signposter = Self.signposter
         let generation = currentStorageGeneration()
 
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
