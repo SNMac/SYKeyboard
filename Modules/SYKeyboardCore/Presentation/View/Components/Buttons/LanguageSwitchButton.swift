@@ -5,6 +5,7 @@
 //  Created by Codex on 8/13/26.
 //
 
+import CoreText
 import UIKit
 
 import SYKeyboardAssets
@@ -18,14 +19,20 @@ public final class LanguageSwitchButton: SecondaryButton {
     private let englishLabel = UILabel()
     private let dividerLayer = CAShapeLayer()
 
-    /// 글자가 버튼 가장자리에 붙지 않도록 하는 여백
-    private let labelInset: CGFloat = 4.0
-    /// 두 글자가 나란히 들어가도 축소되지 않는 글자 크기
+    /// 글자 크기
     private let labelFontSize: CGFloat = 14.0
+    /// 구분선과 글자 사이 간격. 버튼 크기와 무관하게 고정한다
+    private let dividerLabelSpacing: CGFloat = 3.0
+    /// 글자가 버튼 밖으로 밀려나지 않게 하는 최소 여백
+    private let minimumEdgeInset: CGFloat = 3.0
     /// 구분선 가로 반길이의 버튼 너비 대비 비율
     private let dividerWidthRatio: CGFloat = 0.22
     /// 구분선 세로 반길이의 버튼 높이 대비 비율
     private let dividerHeightRatio: CGFloat = 0.20
+
+    /// 글자 프레임 안에서 실제 글자가 그려지는 영역까지의 여백
+    private lazy var hangeulInkInsets = Self.inkInsets(of: hangeulLabel)
+    private lazy var englishInkInsets = Self.inkInsets(of: englishLabel)
 
     // MARK: - Initializer
 
@@ -68,13 +75,17 @@ public final class LanguageSwitchButton: SecondaryButton {
 
         dividerLayer.frame = backgroundView.bounds
         dividerLayer.strokeColor = UIColor.label.cgColor
-        let bounds = backgroundView.bounds
-        let halfWidth = bounds.width * dividerWidthRatio
-        let halfHeight = bounds.height * dividerHeightRatio
+
+        let keyBounds = backgroundView.bounds
+        let halfWidth = keyBounds.width * dividerWidthRatio
+        let halfHeight = keyBounds.height * dividerHeightRatio
+
         let path = UIBezierPath()
-        path.move(to: CGPoint(x: bounds.midX - halfWidth, y: bounds.midY + halfHeight))
-        path.addLine(to: CGPoint(x: bounds.midX + halfWidth, y: bounds.midY - halfHeight))
+        path.move(to: CGPoint(x: keyBounds.midX - halfWidth, y: keyBounds.midY + halfHeight))
+        path.addLine(to: CGPoint(x: keyBounds.midX + halfWidth, y: keyBounds.midY - halfHeight))
         dividerLayer.path = path.cgPath
+
+        layoutLabels(halfWidth: halfWidth, halfHeight: halfHeight)
     }
 
     // MARK: - Public Methods
@@ -91,18 +102,86 @@ public final class LanguageSwitchButton: SecondaryButton {
 private extension LanguageSwitchButton {
     func setupLabels() {
         [hangeulLabel, englishLabel].forEach {
-            $0.translatesAutoresizingMaskIntoConstraints = false
             $0.font = .systemFont(ofSize: labelFontSize)
-            $0.adjustsFontSizeToFitWidth = true
-            $0.minimumScaleFactor = 0.5
         }
+    }
 
-        NSLayoutConstraint.activate([
-            hangeulLabel.topAnchor.constraint(equalTo: backgroundView.topAnchor, constant: labelInset),
-            hangeulLabel.leadingAnchor.constraint(equalTo: backgroundView.leadingAnchor, constant: labelInset),
-            hangeulLabel.trailingAnchor.constraint(lessThanOrEqualTo: englishLabel.leadingAnchor),
-            englishLabel.bottomAnchor.constraint(equalTo: backgroundView.bottomAnchor, constant: -labelInset),
-            englishLabel.trailingAnchor.constraint(equalTo: backgroundView.trailingAnchor, constant: -labelInset)
-        ])
+    /// 구분선을 기준으로 두 글자를 배치한다.
+    /// 글자는 구분선에서 `dividerLabelSpacing`만큼 수직으로 떨어지고,
+    /// 남는 공간이 그대로 버튼 여백이 된다.
+    func layoutLabels(halfWidth: CGFloat, halfHeight: CGFloat) {
+        let length = hypot(halfWidth, halfHeight)
+        guard length > 0 else { return }
+
+        // 구분선에 수직이며 왼쪽 위를 향하는 단위 벡터. `한`이 놓이는 방향이다
+        let normalX = -halfHeight / length
+        let normalY = -halfWidth / length
+
+        // `backgroundView`는 버튼 안쪽에 들어가 있으므로 버튼 좌표계로 계산한다
+        let keyFrame = backgroundView.frame
+        let safeArea = keyFrame.insetBy(dx: minimumEdgeInset, dy: minimumEdgeInset)
+
+        let hangeulSize = hangeulLabel.intrinsicContentSize
+        let hangeulShift = dividerLabelSpacing
+        + abs((hangeulSize.width / 2 - hangeulInkInsets.right) * normalX
+              + (hangeulSize.height / 2 - hangeulInkInsets.bottom) * normalY)
+        hangeulLabel.frame = clampedFrame(
+            size: hangeulSize,
+            center: CGPoint(x: keyFrame.midX + normalX * hangeulShift,
+                            y: keyFrame.midY + normalY * hangeulShift),
+            inkInsets: hangeulInkInsets,
+            in: safeArea
+        )
+
+        let englishSize = englishLabel.intrinsicContentSize
+        let englishShift = dividerLabelSpacing
+        + abs((englishSize.width / 2 - englishInkInsets.left) * normalX
+              + (englishSize.height / 2 - englishInkInsets.top) * normalY)
+        englishLabel.frame = clampedFrame(
+            size: englishSize,
+            center: CGPoint(x: keyFrame.midX - normalX * englishShift,
+                            y: keyFrame.midY - normalY * englishShift),
+            inkInsets: englishInkInsets,
+            in: safeArea
+        )
+    }
+
+    /// 글자가 `safeArea` 밖으로 나가지 않도록 위치를 보정한 프레임
+    func clampedFrame(
+        size: CGSize,
+        center: CGPoint,
+        inkInsets: UIEdgeInsets,
+        in safeArea: CGRect
+    ) -> CGRect {
+        var frame = CGRect(
+            origin: CGPoint(x: center.x - size.width / 2, y: center.y - size.height / 2),
+            size: size
+        )
+        let ink = frame.inset(by: inkInsets)
+
+        frame.origin.x += max(0, safeArea.minX - ink.minX) - max(0, ink.maxX - safeArea.maxX)
+        frame.origin.y += max(0, safeArea.minY - ink.minY) - max(0, ink.maxY - safeArea.maxY)
+
+        return frame
+    }
+
+    /// 글자 프레임과 실제 글자가 그려지는 영역 사이의 여백.
+    /// `UILabel` 프레임에는 글꼴의 위아래 여백이 포함되어 있어 그대로 쓰면 간격이 어긋난다
+    static func inkInsets(of label: UILabel) -> UIEdgeInsets {
+        guard let font = label.font,
+              let text = label.text,
+              !text.isEmpty else { return .zero }
+
+        let attributedText = NSAttributedString(string: text, attributes: [.font: font])
+        let line = CTLineCreateWithAttributedString(attributedText)
+        let ink = CTLineGetBoundsWithOptions(line, .useGlyphPathBounds)
+        let size = label.intrinsicContentSize
+
+        return UIEdgeInsets(
+            top: font.ascender - ink.maxY,
+            left: ink.minX,
+            bottom: size.height - (font.ascender - ink.minY),
+            right: size.width - ink.maxX
+        )
     }
 }
