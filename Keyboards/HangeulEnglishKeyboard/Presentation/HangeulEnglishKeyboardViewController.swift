@@ -456,7 +456,7 @@ private extension HangeulEnglishKeyboardViewController {
                     guard let self else { return }
                     let newMode: HangeulEnglishLanguageMode =
                         modeCoordinator.currentMode == .hangeul ? .english : .hangeul
-                    applyLanguageMode(newMode, persist: true)
+                    applyLanguageMode(newMode, persist: true, isManualSwitch: true)
                 },
                 for: .touchUpInside
             )
@@ -466,7 +466,8 @@ private extension HangeulEnglishKeyboardViewController {
     func applyLanguageMode(
         _ mode: HangeulEnglishLanguageMode,
         persist: Bool,
-        outgoingMode: HangeulEnglishLanguageMode? = nil
+        outgoingMode: HangeulEnglishLanguageMode? = nil,
+        isManualSwitch: Bool = false
     ) {
         let previousMode = outgoingMode ?? modeCoordinator.currentMode
 
@@ -492,9 +493,10 @@ private extension HangeulEnglishKeyboardViewController {
         symbolKeyboardView.switchButton.updatePrimaryLanguageMode(mode)
         numericKeyboardView.switchButton.updatePrimaryLanguageMode(mode)
 
-        if currentKeyboard != .symbol
-            && currentKeyboard != .numeric
-            && currentKeyboard != .tenKey {
+        if KeyboardLanguageModePolicy.shouldReturnToPrimaryKeyboard(
+            isManualSwitch: isManualSwitch,
+            currentKeyboard: currentKeyboard
+        ) {
             currentKeyboard = primaryKeyboardView.keyboard
         }
 

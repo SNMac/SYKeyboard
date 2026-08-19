@@ -47,4 +47,34 @@ struct KeyboardLanguageModePolicyTests {
         #expect(HangeulEnglishLanguageMode.hangeul.languageIdentifier == "ko-KR")
         #expect(HangeulEnglishLanguageMode.english.languageIdentifier == "en-US")
     }
+
+    @Test("수동 전환은 숫자·기호 화면에서도 문자 키보드로 돌아감")
+    func testManualSwitchAlwaysReturnsToPrimaryKeyboard() {
+        for keyboard in [SYKeyboardType.symbol, .numeric, .tenKey, .dubeolsik, .qwerty] {
+            #expect(KeyboardLanguageModePolicy.shouldReturnToPrimaryKeyboard(
+                isManualSwitch: true,
+                currentKeyboard: keyboard
+            ))
+        }
+    }
+
+    @Test("자동 전환은 숫자·기호 화면을 유지")
+    func testAutomaticSwitchKeepsSymbolAndNumericKeyboard() {
+        for keyboard in [SYKeyboardType.symbol, .numeric, .tenKey] {
+            #expect(!KeyboardLanguageModePolicy.shouldReturnToPrimaryKeyboard(
+                isManualSwitch: false,
+                currentKeyboard: keyboard
+            ))
+        }
+    }
+
+    @Test("자동 전환이라도 문자 화면이면 새 언어의 문자 키보드로 갱신")
+    func testAutomaticSwitchUpdatesPrimaryKeyboard() {
+        for keyboard in [SYKeyboardType.naratgeul, .cheonjiin, .dubeolsik, .qwerty] {
+            #expect(KeyboardLanguageModePolicy.shouldReturnToPrimaryKeyboard(
+                isManualSwitch: false,
+                currentKeyboard: keyboard
+            ))
+        }
+    }
 }
