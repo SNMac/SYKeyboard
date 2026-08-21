@@ -33,6 +33,8 @@ public enum KeyboardLayoutFigure {
     static let returnButtonWidthMultiplier: CGFloat = 0.25
     /// 한영 전환 버튼 곱하기 계수. 글자 버튼과 같은 너비를 사용한다
     static let languageSwitchButtonWidthMultiplier: CGFloat = 1.0
+    /// 지구본 버튼 곱하기 계수. 한영 전환 버튼과 같은 너비를 사용한다
+    static let nextKeyboardButtonWidthMultiplier: CGFloat = languageSwitchButtonWidthMultiplier
     /// 통합 키보드에서 한영 전환 버튼과 합친 너비가 리턴 버튼과 같아지는 `switchButton` 곱하기 계수
     /// - Parameter columnCount: 글자 버튼 열 개수
     static func switchButtonWidthMultiplier(columnCount: Int) -> CGFloat {

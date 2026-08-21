@@ -318,7 +318,7 @@ private extension StandardKeyboardView {
             ).isActive = true
             let globeWidth = nextKeyboardButton.widthAnchor.constraint(
                 equalTo: referenceView.widthAnchor,
-                multiplier: KeyboardLayoutFigure.shiftAndDeleteButtonWidthMultiplier
+                multiplier: KeyboardLayoutFigure.nextKeyboardButtonWidthMultiplier
             )
             globeWidth.priority = .init(999)
             globeWidth.isActive = true
@@ -401,7 +401,7 @@ private extension StandardKeyboardView {
         guard let referenceView = firstRowPrimaryKeyButtonList.first else { return }
 
         let globeMultiplier = needsInputModeSwitchKey
-        ? KeyboardLayoutFigure.shiftAndDeleteButtonWidthMultiplier
+        ? KeyboardLayoutFigure.nextKeyboardButtonWidthMultiplier
         : 0
         fourthRowModifierWidthConstraint?.isActive = false
         fourthRowModifierWidthConstraint = fourthRowLeftSecondaryButtonHStackView.widthAnchor.constraint(
