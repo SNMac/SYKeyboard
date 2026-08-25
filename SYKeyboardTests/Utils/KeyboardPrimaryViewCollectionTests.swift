@@ -234,13 +234,18 @@ private final class TestPrimaryKeyboardView: StandardKeyboardView, PrimaryKeyboa
 
     override var keyboard: SYKeyboardType { keyboardType }
 
+    // 열 개수가 `switchButtonWidthMultiplier` 계산에 쓰이므로 실제 쿼티와 같은 10/9/7을 유지한다
     override var primaryKeyList: [[[[String]]]] {
         [
             [
-                [["a"]], [["b"]], [["c"]]
+                [ ["q"], ["w"], ["e"], ["r"], ["t"], ["y"], ["u"], ["i"], ["o"], ["p"] ],
+                [ ["a"], ["s"], ["d"], ["f"], ["g"], ["h"], ["j"], ["k"], ["l"] ],
+                [ ["z"], ["x"], ["c"], ["v"], ["b"], ["n"], ["m"] ]
             ],
             [
-                [["A"]], [["B"]], [["C"]]
+                [ ["Q"], ["W"], ["E"], ["R"], ["T"], ["Y"], ["U"], ["I"], ["O"], ["P"] ],
+                [ ["A"], ["S"], ["D"], ["F"], ["G"], ["H"], ["J"], ["K"], ["L"] ],
+                [ ["Z"], ["X"], ["C"], ["V"], ["B"], ["N"], ["M"] ]
             ]
         ]
     }
@@ -248,10 +253,14 @@ private final class TestPrimaryKeyboardView: StandardKeyboardView, PrimaryKeyboa
     override var secondaryKeyList: [[[[String]]]] {
         [
             [
-                [[]], [[]], [[]]
+                [ [], [], [], [], [], [], [], [], [], [] ],
+                [ [], [], [], [], [], [], [], [], [] ],
+                [ [], [], [], [], [], [], [] ]
             ],
             [
-                [[]], [[]], [[]]
+                [ [], [], [], [], [], [], [], [], [], [] ],
+                [ [], [], [], [], [], [], [], [], [] ],
+                [ [], [], [], [], [], [], [] ]
             ]
         ]
     }
