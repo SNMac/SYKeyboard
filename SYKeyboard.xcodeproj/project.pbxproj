@@ -196,6 +196,7 @@
 				"HangeulEnglishKeyboard/Resources/Configs/DebugConfig-HangeulEnglishKeyboard.xcconfig",
 				"HangeulEnglishKeyboard/Resources/Configs/ReleaseConfig-HangeulEnglishKeyboard.xcconfig",
 				HangeulEnglishKeyboard/Resources/Info.plist,
+				HangeulEnglishKeyboard/Resources/InfoPlist.xcstrings,
 				HangeulKeyboard/Presentation/ViewController/HangeulKeyboardViewController.swift,
 				"HangeulKeyboard/Resources/Configs/DebugConfig-HangeulKeyboard.xcconfig",
 				"HangeulKeyboard/Resources/Configs/ReleaseConfig-HangeulKeyboard.xcconfig",
@@ -242,6 +243,7 @@
 				Common/Errors/KeyboardError.swift,
 				Common/View/RequestFullAccessOverlayView.swift,
 				HangeulEnglishKeyboard/Presentation/HangeulEnglishKeyboardViewController.swift,
+				HangeulEnglishKeyboard/Resources/InfoPlist.xcstrings,
 			);
 			target = 5BC304122FF15A030064DC60 /* HangeulEnglishKeyboard */;
 		};
