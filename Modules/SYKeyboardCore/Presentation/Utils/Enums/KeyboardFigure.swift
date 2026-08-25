@@ -42,8 +42,19 @@ public enum KeyboardLayoutFigure {
     }
     /// 기호 키보드 세번째 열 버튼 곱하기 계수
     static let symbolThirdRowButtonWidthMultiplier: CGFloat = 1.4
-    /// 키보드 레이아웃 선택 오버레이 너비
-    static let keyboardSelectOverlayWidth: CGFloat = 180.0
+    /// 키보드 레이아웃 선택 오버레이의 목표(숫자·기호) 영역 너비.
+    ///
+    /// 취소 영역 너비는 `switchButton` 크기를 따라 변하므로, 목표 영역을 고정해
+    /// 오버레이 전체 너비가 취소 영역만큼만 늘고 줄게 한다
+    static let keyboardSelectTargetWidth: CGFloat = 78.0
+    /// 선택 취소 영역의 경계선을 `switchButton` 바깥 모서리에서 안쪽으로 들여놓는 폭.
+    ///
+    /// 오버레이는 손가락이 `switchButton` 밖으로 나갈 때 열리므로, 경계선을 모서리에
+    /// 정확히 맞추면 열리는 순간 손가락이 경계 위에 놓여 미세한 흔들림마다 선택이 뒤집힌다.
+    /// 이만큼 들여놓으면 열리는 시점에 이미 목표 쪽으로 들어와 있다
+    static let keyboardSelectBoundaryInset: CGFloat = 4.0
+    /// 선택 취소 영역 최소 너비. `switchButton`이 좁아도 아이콘이 잘리지 않게 한다
+    static let keyboardSelectCancelMinWidth: CGFloat = 32.0
     /// 한 손 키보드 선택 오버레이 너비
     static let oneHandedModeSelectOverlayWidth: CGFloat = 240.0
     /// 선택 오버레이 높이
