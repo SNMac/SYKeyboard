@@ -331,6 +331,12 @@ open class BaseKeyboardViewController: UIInputViewController {
         updateEdgeTouchSystemGesturePolicy()
     }
     
+    open override func didReceiveMemoryWarning() {
+        super.didReceiveMemoryWarning()
+        // 언어별로 캐시해 둔 예측 엔진 중 지금 쓰지 않는 것부터 버린다
+        suggestionController.releaseInactiveLanguageEngines()
+    }
+
     open override func viewWillLayoutSubviews() {
         // `needsInputModeSwitchKey`는 호스트 연결 전에는 부정확하므로 레이아웃 시점에 확인한다.
         // 다만 매 레이아웃 패스마다 action 재등록과 App Group 저장이 일어나지 않도록

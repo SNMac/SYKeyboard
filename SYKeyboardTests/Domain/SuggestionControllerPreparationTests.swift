@@ -137,6 +137,70 @@ struct SuggestionControllerPreparationTests {
         #expect(controller.nGramSuggestionText(at: 0) == "오늘")
     }
 
+    @Test("이전에 사용한 language로 돌아오면 엔진을 다시 만들지 않음")
+    func test언어를오가도_엔진은언어별로한번만생성() {
+        let factory = CountingSuggestionEngineFactory()
+        let controller = SuggestionController(
+            language: "ko-KR",
+            engineFactory: factory.makeFactory()
+        )
+        controller.isPredictiveTextEnabled = true
+        controller.preparePredictiveEnginesIfNeeded()
+
+        for language in ["en-US", "ko-KR", "en-US", "ko-KR"] {
+            controller.updateLanguage(to: language)
+            controller.preparePredictiveEnginesIfNeeded()
+        }
+
+        #expect(factory.nGramLanguages == ["ko-KR", "en-US"])
+        #expect(factory.textCheckerLanguages == ["ko-KR", "en-US"])
+    }
+
+    @Test("비활성 언어 엔진만 해제하면 현재 언어 엔진은 유지")
+    func test비활성언어엔진해제는_현재언어엔진을유지() {
+        let factory = CountingSuggestionEngineFactory()
+        let controller = SuggestionController(
+            language: "ko-KR",
+            engineFactory: factory.makeFactory()
+        )
+        controller.isPredictiveTextEnabled = true
+        controller.preparePredictiveEnginesIfNeeded()
+        controller.updateLanguage(to: "en-US")
+        controller.preparePredictiveEnginesIfNeeded()
+
+        controller.releaseInactiveLanguageEngines()
+
+        // 현재 언어(en-US)는 그대로 재사용
+        controller.preparePredictiveEnginesIfNeeded()
+        #expect(factory.nGramLanguages == ["ko-KR", "en-US"])
+
+        // 해제된 언어(ko-KR)로 돌아가면 다시 생성
+        controller.updateLanguage(to: "ko-KR")
+        controller.preparePredictiveEnginesIfNeeded()
+        #expect(factory.nGramLanguages == ["ko-KR", "en-US", "ko-KR"])
+    }
+
+    @Test("자동완성을 끄면 언어별 엔진 캐시를 해제")
+    func test자동완성끄면_언어별엔진캐시해제() {
+        let factory = CountingSuggestionEngineFactory()
+        let controller = SuggestionController(
+            language: "ko-KR",
+            engineFactory: factory.makeFactory()
+        )
+        controller.isPredictiveTextEnabled = true
+        controller.preparePredictiveEnginesIfNeeded()
+        controller.updateLanguage(to: "en-US")
+        controller.preparePredictiveEnginesIfNeeded()
+
+        controller.isPredictiveTextEnabled = false
+        controller.isPredictiveTextEnabled = true
+        controller.preparePredictiveEnginesIfNeeded()
+        controller.updateLanguage(to: "ko-KR")
+        controller.preparePredictiveEnginesIfNeeded()
+
+        #expect(factory.nGramLanguages == ["ko-KR", "en-US", "en-US", "ko-KR"])
+    }
+
     @Test("이전 language load callback은 새 후보를 갱신하지 않음")
     func testStaleLanguageLoadCallbackIsIgnored() {
         let factory = CountingSuggestionEngineFactory()

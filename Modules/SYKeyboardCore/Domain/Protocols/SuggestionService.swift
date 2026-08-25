@@ -75,6 +75,11 @@ protocol SuggestionService: AnyObject {
     /// 자동완성 예측 엔진을 필요한 시점에 준비합니다.
     func preparePredictiveEnginesIfNeeded()
 
+    /// 현재 언어가 아닌 예측 엔진 캐시를 해제합니다.
+    ///
+    /// 메모리 경고처럼 여유가 없을 때는 디스크 재로드 비용보다 메모리 확보가 우선입니다.
+    func releaseInactiveLanguageEngines()
+
     /// `UILexicon` 기반 엔진을 필요한 시점에 준비합니다.
     func prepareLexiconEngineIfNeeded()
 
