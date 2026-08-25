@@ -113,6 +113,15 @@ extension 프로세스 로컬 상태는 `KeyboardExtensionLocalStateStore`에 �
 - 새 이슈 등록은 GitHub Issue에만 한다.
 - Linear에는 GitHub Issue에서 파생된 작업 추적, 상태 관리, 연결 정보 정리에 집중한다.
 - 새 이슈 생성을 요청받으면 기본 생성 위치를 GitHub Issue로 판단하고, Linear 이슈 생성은 사용자가 명시적으로 요청한 경우에만 한다.
+- GitHub Issue는 `.github/ISSUE_TEMPLATE/feature-issue-template.md` 템플릿을 사용한다.
+
+## PR 규칙
+
+- PR 제목은 `Type/#이슈번호 제목` 형식을 사용한다. `Type`은 커밋 메시지 타입을 그대로 쓰되 첫 글자를 대문자로 한다.
+  - `Feat/#46 한영 통합 키보드 추가`
+  - `Fix/#44 NGram 단어 중복 저장 수정`
+- PR 본문은 `.github/pull_request_template.md` 템플릿을 사용하고, 연관된 이슈·작업 내용·검증·스크린샷 항목을 채운다.
+- 검증 항목에는 실제 실행한 빌드/테스트 명령과 결과를 적고, 실행하지 못한 항목은 이유를 함께 남긴다.
 
 ## 코드 스타일
 
