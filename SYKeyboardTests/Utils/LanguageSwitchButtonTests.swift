@@ -17,15 +17,14 @@ import SYKeyboardCore
 @Suite("한영 전환 버튼")
 struct LanguageSwitchButtonTests {
 
-    @Test("한영 버튼은 mode를 접근성 값에 반영")
-    func testLanguageModeUpdatesAccessibilityValue() {
+    @Test("한영 버튼은 갱신한 mode를 상태로 유지")
+    func testLanguageModeUpdatesButtonState() {
         let button = LanguageSwitchButton(mode: .hangeul)
 
-        #expect(button.accessibilityLabel == "한영 전환")
-        #expect(button.accessibilityValue == "한글")
+        #expect(button.languageMode == .hangeul)
 
         button.updateLanguageMode(.english)
-        #expect(button.accessibilityValue == "영어")
+        #expect(button.languageMode == .english)
     }
 
     @Test("SwitchButton은 symbol 복귀 언어를 mode에 맞게 갱신")

@@ -15,6 +15,9 @@ public final class LanguageSwitchButton: SecondaryButton {
 
     // MARK: - Properties
 
+    /// 현재 표시 중인 언어 모드
+    public private(set) var languageMode: HangeulEnglishLanguageMode = .hangeul
+
     private let hangeulLabel = UILabel()
     private let englishLabel = UILabel()
     private let dividerLayer = CAShapeLayer()
@@ -55,7 +58,6 @@ public final class LanguageSwitchButton: SecondaryButton {
         primaryKeyListLabel.isHidden = true
         hangeulLabel.text = "한"
         englishLabel.text = "A"
-        accessibilityLabel = "한영 전환"
         dividerLayer.fillColor = UIColor.clear.cgColor
         dividerLayer.lineCap = .round
         backgroundView.layer.addSublayer(dividerLayer)
@@ -99,9 +101,9 @@ public final class LanguageSwitchButton: SecondaryButton {
     // MARK: - Public Methods
 
     public func updateLanguageMode(_ mode: HangeulEnglishLanguageMode) {
+        languageMode = mode
         hangeulLabel.textColor = mode == .hangeul ? .label : .languageSwitchMutedLabel
         englishLabel.textColor = mode == .english ? .label : .languageSwitchMutedLabel
-        accessibilityValue = mode == .hangeul ? "한글" : "영어"
     }
 }
 

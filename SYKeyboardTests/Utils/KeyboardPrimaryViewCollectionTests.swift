@@ -48,7 +48,7 @@ struct KeyboardPrimaryViewCollectionTests {
         #expect(view.symbolKeyboardView.switchButton.frame.maxX <= button.frame.minX + 0.5)
         #expect(button.frame.maxX <= view.symbolKeyboardView.nextKeyboardButton.frame.minX + 0.5)
         button.updateLanguageMode(.english)
-        #expect(button.accessibilityValue == "영어")
+        #expect(button.languageMode == .english)
     }
 
     @Test("통합 primary collection은 numeric 언어 버튼도 opt-in")
@@ -68,7 +68,7 @@ struct KeyboardPrimaryViewCollectionTests {
         #expect(numericView.nextKeyboardButton.frame.maxX <= button.frame.minX + 0.5)
         #expect(button.frame.maxX <= numericView.switchButton.frame.minX + 0.5)
         button.updateLanguageMode(.english)
-        #expect(button.accessibilityValue == "영어")
+        #expect(button.languageMode == .english)
     }
 
     @Test("전용 primary collection은 numeric 언어 버튼도 만들지 않음")
