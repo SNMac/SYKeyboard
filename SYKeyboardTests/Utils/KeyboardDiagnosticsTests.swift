@@ -9,7 +9,8 @@ import Testing
 
 @testable import SYKeyboardCore
 
-@Suite("진단 기록 개인정보 보호")
+/// `KeyboardDiagnostics.record`가 전역 static이라 병렬 실행 시 서로 덮어쓴다
+@Suite("진단 기록 개인정보 보호", .serialized)
 struct KeyboardDiagnosticsTests {
 
     @Test("반복 횟수는 정확한 값이 아니라 구간으로 기록된다")
@@ -31,10 +32,17 @@ struct KeyboardDiagnosticsTests {
         #expect(KeyboardDiagnostics.bucket(201) == KeyboardDiagnostics.bucket(9_999))
     }
 
-    @Test("리포터를 연결하지 않으면 아무 것도 기록하지 않는다")
+    @Test("리포터 연결을 해제하면 더 이상 기록되지 않는다")
     func testNoReporterIsSafe() {
-        KeyboardDiagnostics.record = nil
+        var received: [String] = []
+        KeyboardDiagnostics.record = { received.append($0) }
         KeyboardDiagnostics.log("repeatInput start")
+        #expect(received == ["repeatInput start"])
+
+        KeyboardDiagnostics.record = nil
+        KeyboardDiagnostics.log("repeatInput stop")
+
+        #expect(received == ["repeatInput start"])
     }
 
     @Test("연결한 리포터로 메시지가 전달된다")
