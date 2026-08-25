@@ -829,16 +829,6 @@ private extension SuggestionController {
         )
     }
 
-    func refreshSuggestionsAfterNGramLoadIfNeeded() {
-        if Thread.isMainThread {
-            performRefreshSuggestionsAfterNGramLoadIfNeeded()
-        } else {
-            DispatchQueue.main.async { [weak self] in
-                self?.performRefreshSuggestionsAfterNGramLoadIfNeeded()
-            }
-        }
-    }
-
     func performRefreshSuggestionsAfterNGramLoadIfNeeded() {
         guard isPredictiveTextEnabled, !isSuspended else { return }
         guard let lastSuggestionBaseText,
