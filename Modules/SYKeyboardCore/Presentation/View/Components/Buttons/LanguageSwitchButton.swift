@@ -54,7 +54,7 @@ public final class LanguageSwitchButton: SecondaryButton {
 
         primaryKeyListLabel.isHidden = true
         hangeulLabel.text = "한"
-        englishLabel.text = "영"
+        englishLabel.text = "A"
         accessibilityLabel = "한영 전환"
         dividerLayer.fillColor = UIColor.clear.cgColor
         dividerLayer.lineCap = .round
