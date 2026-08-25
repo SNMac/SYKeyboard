@@ -264,7 +264,7 @@ private extension SwitchGestureController {
             }
             
             if lockedPanDirection == config.keyboardSelectTargetDirection {
-                startkeyboardSelect(config: config, switchButton: switchButton)
+                startkeyboardSelect(gesture, config: config, switchButton: switchButton)
             }
             
         } else if !keyboardSelectOverlayView.isHidden && oneHandedModeSelectOverlayView.isHidden {
@@ -556,8 +556,12 @@ private extension SwitchGestureController {
         }
     }
     
-    func startkeyboardSelect(config: PanConfig, switchButton: SwitchButton) {
-        config.gestureHandler.showKeyboardSelectOverlay(needToEmphasizeTarget: true)
+    func startkeyboardSelect(_ gesture: UIGestureRecognizer, config: PanConfig, switchButton: SwitchButton) {
+        // 강조 상태를 고정값으로 열면, 다음 pan 이벤트에서 위치 기반으로 다시 계산되며
+        // 곧바로 뒤집힌다. 손을 뗄 때의 판정도 위치 기반이므로 처음부터 같은 계산을 쓴다
+        let keyboardSelectOverlayView = config.gestureHandler.keyboardSelectOverlayView
+        keyboardSelectOverlayView.layoutIfNeeded()
+        selectKeyboard(keyboardSelectOverlayView, gesture: gesture, config: config)
         switchButton.configureKeyboardSelectComponent(needToEmphasize: true)
     }
     
