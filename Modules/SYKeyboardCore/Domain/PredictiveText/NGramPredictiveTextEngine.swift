@@ -95,7 +95,10 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
     private let maxPredictions = 3
     
     /// n-gram 키 최대 항목 수 (이 수를 초과하면 빈도 낮은 항목부터 정리)
-    private let maxEntriesPerKey = 50
+    ///
+    /// 실제로 노출하는 후보는 `maxPredictions`개뿐이고 나머지는 순위 변동을 위한 빈도 기록이다.
+    /// 키보드 확장은 메모리에 민감하므로 여유를 남기는 선에서 상한을 둔다
+    private let maxEntriesPerKey = 24
     /// 전체 키 최대 개수
     private let maxKeys = 5000
     
