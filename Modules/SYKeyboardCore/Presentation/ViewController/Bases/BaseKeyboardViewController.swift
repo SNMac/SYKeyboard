@@ -155,6 +155,11 @@ open class BaseKeyboardViewController: UIInputViewController {
     }
     private var smartQuoteState = KeyboardSmartQuoteState()
 
+    /// 키보드 전환 버튼에 마지막으로 반영한 `needsInputModeSwitchKey`.
+    /// 이 값은 호스트 연결 이후에야 정확해지므로 레이아웃 시점에 확인하되,
+    /// 바뀌지 않았으면 다시 반영하지 않는다
+    private var appliedNeedsInputModeSwitchKey: Bool?
+
     /// `KeyboardView` 높이 제약 조건
     private var keyboardViewHeightConstraint: NSLayoutConstraint?
     /// `keyboardHStackView` 높이 제약 조건
@@ -327,7 +332,12 @@ open class BaseKeyboardViewController: UIInputViewController {
     }
     
     open override func viewWillLayoutSubviews() {
-        setNextKeyboardButton()
+        // `needsInputModeSwitchKey`는 호스트 연결 전에는 부정확하므로 레이아웃 시점에 확인한다.
+        // 다만 매 레이아웃 패스마다 action 재등록과 App Group 저장이 일어나지 않도록
+        // 값이 바뀐 경우에만 반영한다
+        if appliedNeedsInputModeSwitchKey != needsInputModeSwitchKey {
+            setNextKeyboardButton()
+        }
         super.viewWillLayoutSubviews()
     }
 
@@ -1000,16 +1010,20 @@ private extension BaseKeyboardViewController {
     }
 
     func setNextKeyboardButton() {
+        // 뷰마다 다시 조회하면 호스트 연결 전 경고 로그가 그만큼 반복되므로 한 번만 읽는다
+        let needsInputModeSwitchKey = self.needsInputModeSwitchKey
+        appliedNeedsInputModeSwitchKey = needsInputModeSwitchKey
+
         primaryKeyboardViews.forEach {
-            $0.updateNextKeyboardButton(needsInputModeSwitchKey: self.needsInputModeSwitchKey,
+            $0.updateNextKeyboardButton(needsInputModeSwitchKey: needsInputModeSwitchKey,
                                         nextKeyboardAction: #selector(self.handleInputModeList(from:with:)))
         }
         [symbolKeyboardView, numericKeyboardView].forEach {
-            $0.updateNextKeyboardButton(needsInputModeSwitchKey: self.needsInputModeSwitchKey,
+            $0.updateNextKeyboardButton(needsInputModeSwitchKey: needsInputModeSwitchKey,
                                         nextKeyboardAction: #selector(self.handleInputModeList(from:with:)))
         }
 
-        keyboardSettingsManager.needsInputModeSwitchKey = self.needsInputModeSwitchKey
+        keyboardSettingsManager.needsInputModeSwitchKey = needsInputModeSwitchKey
     }
 }
 
