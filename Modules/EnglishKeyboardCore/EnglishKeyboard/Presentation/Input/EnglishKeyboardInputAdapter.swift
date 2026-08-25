@@ -49,15 +49,10 @@ public final class EnglishKeyboardInputAdapter {
         }
     }
 
-    public func updateShiftAfterInput(isShiftButtonPressed: Bool) {
-        guard !isShiftButtonPressed else { return }
-
-        if isUppercaseInput {
-            englishKeyboardView.updateShiftButton(to: false)
-        }
-        isUppercaseInput = false
-    }
-
+    /// 자동 대문자 정책에 따라 shift 상태를 정하고 임시 대문자 입력 플래그를 해제합니다.
+    ///
+    /// 글자 입력 직후 shift 해제도 이 메서드가 함께 처리합니다.
+    /// 나눠서 호출하면 같은 결과를 위해 키 라벨 전체 갱신이 두 번 돕니다.
     public func updateAutocapitalization(
         type: UITextAutocapitalizationType,
         documentContextBeforeInput: String?,

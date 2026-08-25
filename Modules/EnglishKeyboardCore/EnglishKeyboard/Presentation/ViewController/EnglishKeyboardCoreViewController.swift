@@ -143,7 +143,6 @@ private extension EnglishKeyboardCoreViewController {
     /// Shift 버튼을 상황에 맞게 업데이트하는 메서드
     func updateShiftButton() {
         let isShiftButtonPressed = buttonStateController.isShiftButtonPressed
-        inputAdapter.updateShiftAfterInput(isShiftButtonPressed: isShiftButtonPressed)
         inputAdapter.updateAutocapitalization(
             type: textDocumentProxy.autocapitalizationType ?? .none,
             documentContextBeforeInput: textDocumentProxy.documentContextBeforeInput,

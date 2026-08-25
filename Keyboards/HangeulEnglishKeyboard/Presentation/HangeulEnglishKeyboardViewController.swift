@@ -600,9 +600,6 @@ private extension HangeulEnglishKeyboardViewController {
 
     func updateEnglishShiftButton() {
         let isShiftButtonPressed = buttonStateController.isShiftButtonPressed
-        englishAdapter.updateShiftAfterInput(
-            isShiftButtonPressed: isShiftButtonPressed
-        )
         englishAdapter.updateAutocapitalization(
             type: textDocumentProxy.autocapitalizationType ?? .none,
             documentContextBeforeInput: textDocumentProxy.documentContextBeforeInput,

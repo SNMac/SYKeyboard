@@ -20,7 +20,12 @@ struct EnglishKeyboardInputAdapterTests {
         let adapter = EnglishKeyboardInputAdapter()
         adapter.primaryKeyboardView.updateShiftButton(to: true)
         adapter.recordInsertedText("A")
-        adapter.updateShiftAfterInput(isShiftButtonPressed: false)
+        adapter.updateAutocapitalization(
+            type: .sentences,
+            documentContextBeforeInput: "A",
+            isEnabled: true,
+            isShiftButtonPressed: false
+        )
 
         #expect(adapter.isShifted == false)
     }
