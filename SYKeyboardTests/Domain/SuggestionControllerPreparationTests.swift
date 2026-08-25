@@ -239,10 +239,13 @@ struct SuggestionControllerPreparationTests {
             // stale callback이 언어 전환보다 먼저 실행되지 않도록 main을 붙잡은 채 기다린다.
             // 이때 GCD 전역 큐를 쓰면 병렬 테스트로 스레드 풀이 포화됐을 때 블록 시작이
             // 지연될 수 있어 전용 스레드를 쓴다. 타임아웃은 실제 정지를 잡기 위한 상한이다
-            Thread.detachNewThread {
+            let staleCallbackThread = Thread {
                 koreanEngine?.completeLoad(suggestions: ["오래된 후보"])
                 completionReturned.signal()
             }
+            // main(user-interactive)이 이 스레드를 기다리므로 QoS를 맞춰 priority inversion을 피한다
+            staleCallbackThread.qualityOfService = .userInteractive
+            staleCallbackThread.start()
             #expect(completionReturned.wait(timeout: .now() + 30) == .success)
 
             controller.updateLanguage(to: "en-US")
