@@ -1870,11 +1870,20 @@ private extension BaseKeyboardViewController {
     }
 
     func handlePeriodShortcutOnDelete() {
+        // 정책이 커서 앞 텍스트를 실제로 보는 상태에서만 프록시를 조회한다.
+        // 삭제 tick마다 무효화된 텍스트 입력 세션에 접근할 여지를 줄이고, 프록시 왕복도 줄인다
+        let requiresDocumentContext = KeyboardPeriodShortcutPolicy.requiresDocumentContextAfterDelete(
+            isPeriodShortcutEnabled: keyboardSettingsManager.isPeriodShortcutEnabled,
+            performedPeriodShortcut: performedPeriodShortcut,
+            preventsNextPeriodShortcut: preventNextPeriodShortcut
+        )
         let state = KeyboardPeriodShortcutPolicy.stateAfterDelete(
             isPeriodShortcutEnabled: keyboardSettingsManager.isPeriodShortcutEnabled,
             performedPeriodShortcut: performedPeriodShortcut,
             preventsNextPeriodShortcut: preventNextPeriodShortcut,
-            documentContextBeforeInput: textDocumentProxy.documentContextBeforeInput
+            documentContextBeforeInput: requiresDocumentContext
+            ? textDocumentProxy.documentContextBeforeInput
+            : nil
         )
 
         performedPeriodShortcut = state.performedPeriodShortcut
