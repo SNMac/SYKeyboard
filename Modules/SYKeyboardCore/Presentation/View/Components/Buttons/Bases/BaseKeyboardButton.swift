@@ -157,7 +157,7 @@ private extension BaseKeyboardButton {
         let trailing = backgroundView.trailingAnchor.constraint(equalTo: self.trailingAnchor, constant: -insetDx)
         let bottom = backgroundView.bottomAnchor.constraint(equalTo: self.bottomAnchor, constant: -insetDy)
         visualConstraints = [top, leading, trailing, bottom]
-        NSLayoutConstraint.activate(visualConstraints)
+        activateVisualConstraints()
         
         primaryKeyListLabel.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
@@ -180,6 +180,12 @@ private extension BaseKeyboardButton {
 // MARK: - Update Methods
 
 private extension BaseKeyboardButton {
+    /// 버튼이 stack에서 접혀 폭이 0이 되면 좌우 인셋 합(`insetDx * 2`)을 만족할 수 없으므로 required보다 낮춘다
+    func activateVisualConstraints() {
+        visualConstraints.forEach { $0.priority = .init(999) }
+        NSLayoutConstraint.activate(visualConstraints)
+    }
+
     func remakeConstraintsForVisuals(referenceView: UIView?, multiplier: CGFloat) {
         NSLayoutConstraint.deactivate(visualConstraints)
         visualConstraints.removeAll()
@@ -211,6 +217,6 @@ private extension BaseKeyboardButton {
             visualConstraints.append(contentsOf: [leading, trailing])
         }
         
-        NSLayoutConstraint.activate(visualConstraints)
+        activateVisualConstraints()
     }
 }

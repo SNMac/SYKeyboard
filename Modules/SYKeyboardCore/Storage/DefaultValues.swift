@@ -70,6 +70,8 @@ public enum DefaultValues {
     public static let needsInputModeSwitchKey: Bool = true
     /// 한 손 키보드 저장용 기본값
     public static let lastOneHandedMode: OneHandedMode = .center
+    /// 한영 통합 키보드 마지막 언어 mode 기본값
+    public static let lastHangeulEnglishLanguageMode: HangeulEnglishLanguageMode = .hangeul
     /// 전체 접근 허용 안내 오버레이 닫음 여부 기본값
     public static let isRequestFullAccessOverlayClosed: Bool = false
 }

@@ -29,10 +29,37 @@ public enum KeyboardLayoutFigure {
     static let undoRedoButtonWidth: CGFloat = 44.0
     /// Shift 버튼과 삭제 버튼 곱하기 계수
     static let shiftAndDeleteButtonWidthMultiplier: CGFloat = 1.35
+    /// 리턴 버튼 영역이 차지하는 열 너비 비율
+    static let returnButtonWidthMultiplier: CGFloat = 0.25
+    /// 한영 전환 버튼 곱하기 계수. 글자 버튼과 같은 너비를 사용한다
+    static let languageSwitchButtonWidthMultiplier: CGFloat = 1.0
+    /// 4x4 계열에서 한영 전환 버튼이 차지하는 전체 폭 대비 비율.
+    ///
+    /// 열 개수가 달라도 두벌식·쿼티의 한영 전환 버튼(글자 버튼 한 칸 = 전체 폭의 1/10)과
+    /// 같은 크기로 보이게 맞춘다. 남는 너비는 지구본 버튼과 `switchButton`이 나눠 갖는다
+    static let languageSwitchButtonWidthRatio: CGFloat = languageSwitchButtonWidthMultiplier / 10.0
+    /// 지구본 버튼 곱하기 계수. 한영 전환 버튼과 같은 너비를 사용한다
+    static let nextKeyboardButtonWidthMultiplier: CGFloat = languageSwitchButtonWidthMultiplier
+    /// 통합 키보드에서 한영 전환 버튼과 합친 너비가 리턴 버튼과 같아지는 `switchButton` 곱하기 계수
+    /// - Parameter columnCount: 글자 버튼 열 개수
+    static func switchButtonWidthMultiplier(columnCount: Int) -> CGFloat {
+        returnButtonWidthMultiplier * CGFloat(columnCount) - languageSwitchButtonWidthMultiplier
+    }
     /// 기호 키보드 세번째 열 버튼 곱하기 계수
     static let symbolThirdRowButtonWidthMultiplier: CGFloat = 1.4
-    /// 키보드 레이아웃 선택 오버레이 너비
-    static let keyboardSelectOverlayWidth: CGFloat = 180.0
+    /// 키보드 레이아웃 선택 오버레이의 목표(숫자·기호) 영역 너비.
+    ///
+    /// 취소 영역 너비는 `switchButton` 크기를 따라 변하므로, 목표 영역을 고정해
+    /// 오버레이 전체 너비가 취소 영역만큼만 늘고 줄게 한다
+    static let keyboardSelectTargetWidth: CGFloat = 78.0
+    /// 선택 취소 영역의 경계선을 `switchButton` 바깥 모서리에서 안쪽으로 들여놓는 폭.
+    ///
+    /// 오버레이는 손가락이 `switchButton` 밖으로 나갈 때 열리므로, 경계선을 모서리에
+    /// 정확히 맞추면 열리는 순간 손가락이 경계 위에 놓여 미세한 흔들림마다 선택이 뒤집힌다.
+    /// 이만큼 들여놓으면 열리는 시점에 이미 목표 쪽으로 들어와 있다
+    static let keyboardSelectBoundaryInset: CGFloat = 4.0
+    /// 선택 취소 영역 최소 너비. `switchButton`이 좁아도 아이콘이 잘리지 않게 한다
+    static let keyboardSelectCancelMinWidth: CGFloat = 32.0
     /// 한 손 키보드 선택 오버레이 너비
     static let oneHandedModeSelectOverlayWidth: CGFloat = 240.0
     /// 선택 오버레이 높이

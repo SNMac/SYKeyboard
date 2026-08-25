@@ -27,6 +27,18 @@ enum KeyboardPeriodShortcutPolicy {
         return lastCharacter.isLetter || lastCharacter.isNumber
     }
 
+    /// `stateAfterDelete`가 `documentContextBeforeInput`을 실제로 사용하는 상태인지 여부.
+    ///
+    /// 이 값이 `false`면 어떤 커서 앞 텍스트를 넘겨도 결과가 같으므로,
+    /// 호출부는 `UITextDocumentProxy` 조회를 건너뛸 수 있다.
+    static func requiresDocumentContextAfterDelete(
+        isPeriodShortcutEnabled: Bool,
+        performedPeriodShortcut: Bool,
+        preventsNextPeriodShortcut: Bool
+    ) -> Bool {
+        return isPeriodShortcutEnabled && !performedPeriodShortcut && preventsNextPeriodShortcut
+    }
+
     static func stateAfterDelete(
         isPeriodShortcutEnabled: Bool,
         performedPeriodShortcut: Bool,

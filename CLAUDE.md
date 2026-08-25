@@ -8,7 +8,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 - SY키보드는 iOS 16+용 한글/영문 커스텀 키보드 앱이다.
 - 메인 앱(`SYKeyboard/`)은 SwiftUI 기반 설정/안내 화면이다.
-- 키보드 확장(`Keyboards/HangeulKeyboard/`, `Keyboards/EnglishKeyboard/`)은 UIKit 기반이다.
+- 키보드 확장(`Keyboards/HangeulKeyboard/`, `Keyboards/EnglishKeyboard/`, `Keyboards/HangeulEnglishKeyboard/`)은 UIKit 기반이다.
 - 공통 키보드 UI와 입력 보조 기능은 `Modules/SYKeyboardCore/`에 있다.
 - 한글 입력 조합 로직은 `Modules/HangeulKeyboardCore/Domain/`에 있으며, 나랏글/천지인/두벌식 Processor와 Automata 테스트가 중요하다.
 - 영문 키보드 로직은 `Modules/EnglishKeyboardCore/`에 있다.
@@ -17,27 +17,33 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 아키텍처
 
-**두 키보드 extension이 하나의 Base 컨트롤러를 공유한다.**
+**세 개의 키보드 extension이 하나의 Base 컨트롤러를 공유한다.**
 
 ```
 UIInputViewController
-└── BaseKeyboardViewController          (SYKeyboardCore, 입력 흐름의 중심)
+└── BaseKeyboardViewController          (SYKeyboardCore, ~2400줄, 입력 흐름의 중심)
     ├── HangeulKeyboardCoreViewController → HangeulKeyboardViewController
-    └── EnglishKeyboardCoreViewController → EnglishKeyboardViewController
+    ├── EnglishKeyboardCoreViewController → EnglishKeyboardViewController
+    └── HangeulEnglishKeyboardViewController   (Core VC 없이 Base를 직접 상속)
 ```
 
 `BaseKeyboardViewController`가 텍스트 프록시 조작, 제스처, 자동완성, undo/redo, 높이·한손 모드,
 `textWillChange`/`textDidChange` 동기화를 전담한다. 각 하위 VC는 `open` 프로퍼티/메서드
-(`primaryKeyboardView`, `updateKeyboardType()`, `shouldDeferUndoRedoCommit`, `smartQuoteRule` 등)를
-오버라이드해 언어별 차이만 주입한다. **언어 공통 동작을 하위 VC에 복제하지 말고
+(`primaryKeyboardView`, `primaryKeyboardViews`, `updateKeyboardType()`, `shouldDeferUndoRedoCommit`,
+`smartQuoteRule` 등)를 오버라이드해 언어별 차이만 주입한다. **언어 공통 동작을 하위 VC에 복제하지 말고
 Base에 두거나 Policy로 분리한다.**
 
-**한글 입력 로직은 Processor와 Automata에서 끝난다.**
-`HangeulKeyboardCoreViewController`가 나랏글/천지인/두벌식 `HangeulProcessable` 구현체를 들고
-설정에 따라 골라 쓰며, 조합 상태 전이는 `HangeulCompositionState`가 관리한다.
-Processor는 `HangeulAutomata`에 위임하고
+**언어별 입력 로직은 Adapter를 통해 들어온다.**
+`HangeulKeyboardInputAdapter` / `EnglishKeyboardInputAdapter`가 VC와 Domain 사이의 유일한 경계다.
+한글 Adapter는 `HangeulProcessable`(나랏글/천지인/두벌식 Processor) → `HangeulAutomata` 순으로 위임하고,
 `CompositionResult`(committed/composing/consumedCommittedCount) · `DeleteResult` · `SpaceInputResult`를 반환한다.
 VC는 이 값만 보고 프록시를 갱신하므로, 조합 규칙 변경은 Processor/Automata에서 끝내야 한다.
+
+**한영 통합 키보드는 어댑터 2개 + Coordinator 조합이다.**
+`HangeulEnglishKeyboardViewController`가 두 Adapter를 함께 들고,
+`HangeulEnglishKeyboardModeCoordinator`(+ `KeyboardLanguageModePolicy`)가 현재 언어 모드를 결정한다.
+`primaryKeyboardView`는 모드에 따라 다른 Adapter의 뷰를 돌려주고, `primaryKeyboardViews`는 양쪽 전부를 돌려준다
+(전환 버튼·레이아웃 갱신이 이 차이에 의존한다).
 
 **분기 로직은 Policy로 뽑혀 있다.**
 `Modules/SYKeyboardCore/Presentation/Utils/Policies/`의 `KeyboardHeightPolicy`,
@@ -54,7 +60,7 @@ VC는 이 값만 보고 프록시를 갱신하므로, 조합 규칙 변경은 Pr
 primary/symbol/numeric/tenkey 레이아웃이 들어간다. 레이아웃은 `*KeyboardLayoutProvider` 프로토콜 구현체이며
 `StandardKeyboardView` / `FourByFourKeyboardView` / `FourByFourPlusKeyboardView`를 베이스로 한다.
 
-**저장소**: 앱과 2개 extension은 App Group(`DefaultValues.groupBundleID`) suite의 `UserDefaults`를
+**저장소**: 앱과 3개 extension은 App Group(`DefaultValues.groupBundleID`) suite의 `UserDefaults`를
 `UserDefaultsManager`로 공유한다. 모듈별 `UserDefaultsKeys+Extension` / `DefaultValues+Extension`으로 확장하며,
 `SYKeyboardTests/Storage/UserDefaultsContractTests.swift`가 키 계약을 지킨다.
 extension 프로세스 로컬 상태는 `KeyboardExtensionLocalStateStore`에 둔다.
@@ -64,6 +70,8 @@ extension 프로세스 로컬 상태는 `KeyboardExtensionLocalStateStore`에 �
 - **기존 구조와 네이밍을 먼저 따른다. 불필요한 아키텍처 변경이나 대규모 이동은 하지 않는다.**
 - 파일을 수정하기 전에 관련 파일과 인접 구현을 읽는다.
 - **기존 키보드 기능, 입력 흐름, 버튼 이벤트 타이밍은 명시 요청 없이 바꾸지 않는다. 기능 추가나 버그 수정은 현재 동작을 보존하는 방식으로 먼저 설계하고, 기존 동작 변경이 꼭 필요하면 사용자에게 확인한다.**
+- **롤백·복원 작업은 기준 커밋과 그 이전 이력에서 실제 동작을 확인하고, 요청된 범위만 복원한다. 이전부터 존재한 버그·제약이나 개선 가능성은 이번 변경으로 생긴 회귀와 구분하며, 사용자가 명시적으로 요청하지 않은 기존 동작 개선을 같은 작업에 포함하지 않는다.**
+- 코드 리뷰에서 더 안전하거나 일관된 구현이 제안되어도 바로 수정하지 않는다. 먼저 해당 동작이 이번 diff에서 발생한 회귀인지 과거 커밋과 실제 재현으로 확인하고, 기존 동작이었다면 별도 변경으로 분리하거나 사용자에게 범위 확대를 확인한다.
 - **한글 입력, 삭제, 조합 상태, 커서 이동, 스페이스/리턴 동작 변경은 회귀 위험이 높으므로 테스트를 추가하거나 기존 테스트를 실행한다.**
 - **현재 확인된 환경에서 `UIInputViewController.selectionWillChange(_:)`와 `selectionDidChange(_:)`는 호출되는 경우를 관찰하지 못했다. 커서/selection 상태 동기화를 이 콜백에만 의존하지 않는다. iOS 자체 문제이거나 아직 확인하지 못한 호출 조건일 수 있으므로, 관련 동작을 변경할 때는 실제 입력 앱에서 다시 확인한다.**
 - **현재 확인된 환경에서 focus 중인 텍스트 필드 변경, 사용자의 텍스트 필드 탭, 커서 이동 시 `UIInputViewController.textWillChange(_:)`와 `textDidChange(_:)`가 호출된다. 외부 텍스트 컨텍스트 변경에 따른 `inputBuffer`, 자동완성 후보, undo/redo 상태 동기화는 이 콜백 경로를 함께 확인한다.**
@@ -105,6 +113,15 @@ extension 프로세스 로컬 상태는 `KeyboardExtensionLocalStateStore`에 �
 - 새 이슈 등록은 GitHub Issue에만 한다.
 - Linear에는 GitHub Issue에서 파생된 작업 추적, 상태 관리, 연결 정보 정리에 집중한다.
 - 새 이슈 생성을 요청받으면 기본 생성 위치를 GitHub Issue로 판단하고, Linear 이슈 생성은 사용자가 명시적으로 요청한 경우에만 한다.
+- GitHub Issue는 `.github/ISSUE_TEMPLATE/feature-issue-template.md` 템플릿을 사용한다.
+
+## PR 규칙
+
+- PR 제목은 `Type/#이슈번호 제목` 형식을 사용한다. `Type`은 커밋 메시지 타입을 그대로 쓰되 첫 글자를 대문자로 한다.
+  - `Feat/#46 한영 통합 키보드 추가`
+  - `Fix/#44 NGram 단어 중복 저장 수정`
+- PR 본문은 `.github/pull_request_template.md` 템플릿을 사용하고, 연관된 이슈·작업 내용·검증·스크린샷 항목을 채운다.
+- 검증 항목에는 실제 실행한 빌드/테스트 명령과 결과를 적고, 실행하지 못한 항목은 이유를 함께 남긴다.
 
 ## 코드 스타일
 
@@ -128,11 +145,13 @@ extension 프로세스 로컬 상태는 `KeyboardExtensionLocalStateStore`에 �
 - `SYKeyboard/Storage/`: 앱 타깃의 UserDefaults 확장.
 - `Keyboards/HangeulKeyboard/`: 한글 키보드 extension 진입점과 리소스.
 - `Keyboards/EnglishKeyboard/`: 영문 키보드 extension 진입점과 리소스.
+- `Keyboards/HangeulEnglishKeyboard/`: 한영 통합 키보드 extension 진입점과 리소스.
 - `Keyboards/Common/`: 키보드 확장 공통 UI와 오류 타입.
 - `Modules/SYKeyboardCore/`: 공통 키보드 UI, 버튼, 제스처, 자동완성, 저장소 기본 타입.
-  - `Presentation/Utils/Policies/`: UI 의존 없는 순수 정책 타입.
+  - `Presentation/Utils/Policies/`, `Presentation/Utils/Coordinators/`: UI 의존 없는 순수 정책·모드 결정 타입.
 - `Modules/HangeulKeyboardCore/`: 한글 오토마타, 입력 Processor, 한글 키보드 View.
 - `Modules/EnglishKeyboardCore/`: 영문 키보드 View와 저장소 확장.
+- `Modules/*/Presentation/Input/`: VC와 Domain의 경계인 InputAdapter.
 - `SYKeyboardTests/`: Swift Testing 기반 한글 오토마타/Processor/Controller/Policy 테스트.
 - `SYKeyboardAssets/`: XIB와 색상 asset을 제공하는 로컬 SPM 패키지.
 - `Common/Firebase/`: Debug/Release Firebase plist. 민감 설정 변경에 주의한다.
@@ -167,7 +186,14 @@ xcodebuild build \
   -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0'
 ```
 
-공유 scheme은 `SYKeyboard`, `HangeulKeyboard`, `EnglishKeyboard` 3개다. `SYKeyboard`/키보드 extension scheme의 TestAction은 `SYKeyboardTests`를 포함한다.
+```sh
+xcodebuild build \
+  -project SYKeyboard.xcodeproj \
+  -scheme HangeulEnglishKeyboard \
+  -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0'
+```
+
+공유 scheme은 `SYKeyboard`, `HangeulKeyboard`, `EnglishKeyboard`, `HangeulEnglishKeyboard` 4개다. `SYKeyboard`/키보드 extension scheme의 TestAction은 `SYKeyboardTests`를 포함한다.
 
 특정 suite나 단일 테스트만 실행:
 
@@ -182,6 +208,11 @@ xcodebuild test \
 - `-only-testing:SYKeyboardTests/<SuiteName>/<testFunctionName>`으로 단일 테스트까지 좁힌다.
   suite 이름은 `@Suite(...)`의 표시 이름이 아니라 **타입 이름**을 쓴다.
 - `-only-testing`이나 code coverage 옵션을 쓴 뒤 extension scheme을 빌드할 때는 옵션을 반드시 비운다.
+- **`Modules/`에 새 파일을 추가하면 `SYKeyboard.xcodeproj/project.pbxproj`를 함께 고쳐야 한다.**
+  `Modules`는 `PBXFileSystemSynchronizedRootGroup`이지만 세 모듈 타깃이 한 폴더를 공유하므로
+  타깃별 `membershipExceptions`가 실제 소속 목록 역할을 한다. 등록하지 않으면 같은 모듈 안에서도
+  `cannot find ... in scope`로 컴파일이 실패한다. 새 파일 경로를 해당 모듈 타깃과 `SYKeyboard`
+  타깃의 예외 목록에 알파벳 순서로 추가한다.
 - `SYKeyboard/Resources/Configs/Secrets.xcconfig`는 gitignore 대상이고 앱 타깃의 Debug/Release xcconfig가
   `#include`한다. Xcode Cloud에서는 `ci_scripts/ci_post_clone.sh`가 환경변수로 생성한다.
   로컬에서 이 파일을 새로 만들거나 커밋하지 않는다.
@@ -301,6 +332,8 @@ XcodeBuildMCP를 사용하는 경우 첫 build/test 전에 `session_show_default
 - 관련 모듈과 인접 테스트를 읽었는가?
 - 변경 대상이 앱 설정, 키보드 extension, Core 모듈 중 어디까지 영향을 주는가?
 - 현재 키보드 기능, 입력 흐름, 버튼 이벤트 타이밍을 유지하는가? 바뀐다면 사용자가 명시적으로 요청했거나 확인했는가?
+- 롤백·복원 작업이라면 각 변경이 기준 커밋 이전 동작의 복원인지 확인했는가? 기존부터 존재한 동작 개선을 섞고 있지는 않은가?
+- 코드 리뷰 지적을 반영하기 전에 이번 diff의 회귀인지, 과거에도 동일했던 동작인지 이력과 재현으로 구분했는가?
 - 저장소 키, 기본값, 로컬라이징, 미리보기, 테스트가 함께 필요한가?
 - Firebase/AdMob/권한/번들 설정 같은 외부 영향 파일을 건드리고 있지는 않은가?
 

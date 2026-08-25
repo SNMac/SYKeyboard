@@ -19,15 +19,24 @@ public protocol NormalKeyboardLayoutProvider: BaseKeyboardLayoutProvider, Switch
     var switchButton: SwitchButton { get }
     /// iPhone SE용 키보드 전환 버튼
     var nextKeyboardButton: NextKeyboardButton { get }
+
+    func updateNextKeyboardButton(needsInputModeSwitchKey: Bool, nextKeyboardAction: Selector)
+    func nextKeyboardButtonVisibilityDidChange(needsInputModeSwitchKey: Bool)
 }
 
 // MARK: - Protocol Properties & Methods
 
 public extension NormalKeyboardLayoutProvider {
     func updateNextKeyboardButton(needsInputModeSwitchKey: Bool, nextKeyboardAction: Selector) {
+        let wasNextKeyboardButtonHidden = nextKeyboardButton.isHidden
         nextKeyboardButton.addTarget(nil, action: nextKeyboardAction, for: .allTouchEvents)
         nextKeyboardButton.isHidden = !needsInputModeSwitchKey
+
+        guard wasNextKeyboardButtonHidden != nextKeyboardButton.isHidden else { return }
+        nextKeyboardButtonVisibilityDidChange(needsInputModeSwitchKey: needsInputModeSwitchKey)
     }
+
+    func nextKeyboardButtonVisibilityDidChange(needsInputModeSwitchKey: Bool) {}
     
     func enableAllButtonUserInteraction() {
         allButtonList.forEach { $0.isUserInteractionEnabled = true }

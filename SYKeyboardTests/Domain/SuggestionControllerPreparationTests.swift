@@ -90,6 +90,178 @@ struct SuggestionControllerPreparationTests {
         #expect(factory.lexiconCreationCount == 1)
     }
 
+    @Test("language 전환은 이전 ngram을 저장하고 새 엔진을 지연 생성")
+    func testLanguageChangeSavesOldEngineAndDefersNewCreation() {
+        let factory = CountingSuggestionEngineFactory()
+        let controller = SuggestionController(
+            language: "ko-KR",
+            engineFactory: factory.makeFactory()
+        )
+        controller.isPredictiveTextEnabled = true
+        controller.preparePredictiveEnginesIfNeeded()
+        let koreanEngine = factory.lastNGramProvider
+
+        controller.updateLanguage(to: "en-US")
+
+        #expect(koreanEngine?.saveCount == 1)
+        #expect(factory.nGramLanguages == ["ko-KR"])
+        controller.preparePredictiveEnginesIfNeeded()
+        #expect(factory.nGramLanguages == ["ko-KR", "en-US"])
+        #expect(factory.textCheckerLanguages == ["ko-KR", "en-US"])
+    }
+
+    @MainActor
+    @Test("현재 language 전환 요청은 엔진과 후보를 유지")
+    func testCurrentLanguageUpdateDoesNotResetEnginesOrSuggestions() async {
+        let factory = CountingSuggestionEngineFactory()
+        let delegate = RecordingSuggestionControllerDelegate()
+        let controller = SuggestionController(
+            language: "ko-KR",
+            engineFactory: factory.makeFactory()
+        )
+        controller.delegate = delegate
+        controller.isPredictiveTextEnabled = true
+        controller.updateSuggestions(for: "", selectedText: nil, mathExpressionText: "")
+        let koreanEngine = factory.lastNGramProvider
+        koreanEngine?.completeLoad(suggestions: ["오늘"])
+        await waitForMainQueue()
+        let updateCount = delegate.updates.count
+
+        controller.updateLanguage(to: "ko-KR")
+        controller.preparePredictiveEnginesIfNeeded()
+
+        #expect(koreanEngine?.saveCount == 0)
+        #expect(factory.nGramLanguages == ["ko-KR"])
+        #expect(factory.textCheckerLanguages == ["ko-KR"])
+        #expect(delegate.updates.count == updateCount)
+        #expect(controller.nGramSuggestionText(at: 0) == "오늘")
+    }
+
+    @Test("이전에 사용한 language로 돌아오면 엔진을 다시 만들지 않음")
+    func test언어를오가도_엔진은언어별로한번만생성() {
+        let factory = CountingSuggestionEngineFactory()
+        let controller = SuggestionController(
+            language: "ko-KR",
+            engineFactory: factory.makeFactory()
+        )
+        controller.isPredictiveTextEnabled = true
+        controller.preparePredictiveEnginesIfNeeded()
+
+        for language in ["en-US", "ko-KR", "en-US", "ko-KR"] {
+            controller.updateLanguage(to: language)
+            controller.preparePredictiveEnginesIfNeeded()
+        }
+
+        #expect(factory.nGramLanguages == ["ko-KR", "en-US"])
+        #expect(factory.textCheckerLanguages == ["ko-KR", "en-US"])
+    }
+
+    @Test("비활성 언어 엔진만 해제하면 현재 언어 엔진은 유지")
+    func test비활성언어엔진해제는_현재언어엔진을유지() {
+        let factory = CountingSuggestionEngineFactory()
+        let controller = SuggestionController(
+            language: "ko-KR",
+            engineFactory: factory.makeFactory()
+        )
+        controller.isPredictiveTextEnabled = true
+        controller.preparePredictiveEnginesIfNeeded()
+        controller.updateLanguage(to: "en-US")
+        controller.preparePredictiveEnginesIfNeeded()
+
+        controller.releaseInactiveLanguageEngines()
+
+        // 현재 언어(en-US)는 그대로 재사용
+        controller.preparePredictiveEnginesIfNeeded()
+        #expect(factory.nGramLanguages == ["ko-KR", "en-US"])
+
+        // 해제된 언어(ko-KR)로 돌아가면 다시 생성
+        controller.updateLanguage(to: "ko-KR")
+        controller.preparePredictiveEnginesIfNeeded()
+        #expect(factory.nGramLanguages == ["ko-KR", "en-US", "ko-KR"])
+    }
+
+    @Test("자동완성을 끄면 언어별 엔진 캐시를 해제")
+    func test자동완성끄면_언어별엔진캐시해제() {
+        let factory = CountingSuggestionEngineFactory()
+        let controller = SuggestionController(
+            language: "ko-KR",
+            engineFactory: factory.makeFactory()
+        )
+        controller.isPredictiveTextEnabled = true
+        controller.preparePredictiveEnginesIfNeeded()
+        controller.updateLanguage(to: "en-US")
+        controller.preparePredictiveEnginesIfNeeded()
+
+        controller.isPredictiveTextEnabled = false
+        controller.isPredictiveTextEnabled = true
+        controller.preparePredictiveEnginesIfNeeded()
+        controller.updateLanguage(to: "ko-KR")
+        controller.preparePredictiveEnginesIfNeeded()
+
+        #expect(factory.nGramLanguages == ["ko-KR", "en-US", "en-US", "ko-KR"])
+    }
+
+    @Test("이전 language load callback은 새 후보를 갱신하지 않음")
+    func testStaleLanguageLoadCallbackIsIgnored() {
+        let factory = CountingSuggestionEngineFactory()
+        let delegate = RecordingSuggestionControllerDelegate()
+        let controller = SuggestionController(
+            language: "ko-KR",
+            engineFactory: factory.makeFactory()
+        )
+        controller.delegate = delegate
+        controller.isPredictiveTextEnabled = true
+        controller.updateSuggestions(for: "", selectedText: nil, mathExpressionText: "")
+        let koreanEngine = factory.lastNGramProvider
+
+        controller.updateLanguage(to: "en-US")
+        let updateCount = delegate.updates.count
+        koreanEngine?.completeLoad(suggestions: ["오래된 후보"])
+
+        #expect(delegate.updates.count == updateCount)
+    }
+
+    @Test("background 이전 language load callback은 언어 전환 뒤 후보를 재갱신하지 않음")
+    func testBackgroundStaleLanguageLoadCallbackIsIgnoredAfterLanguageChange() async {
+        let factory = CountingSuggestionEngineFactory()
+        let delegate = RecordingSuggestionControllerDelegate()
+        let controller = SuggestionController(
+            language: "ko-KR",
+            engineFactory: factory.makeFactory()
+        )
+        controller.delegate = delegate
+        controller.isPredictiveTextEnabled = true
+        controller.updateSuggestions(for: "", selectedText: nil, mathExpressionText: "")
+        let koreanEngine = factory.lastNGramProvider
+        let completionReturned = DispatchSemaphore(value: 0)
+
+        let updateCount = await MainActor.run {
+            // stale callback이 언어 전환보다 먼저 실행되지 않도록 main을 붙잡은 채 기다린다.
+            // 이때 GCD 전역 큐를 쓰면 병렬 테스트로 스레드 풀이 포화됐을 때 블록 시작이
+            // 지연될 수 있어 전용 스레드를 쓴다. 타임아웃은 실제 정지를 잡기 위한 상한이다
+            let staleCallbackThread = Thread {
+                koreanEngine?.completeLoad(suggestions: ["오래된 후보"])
+                completionReturned.signal()
+            }
+            // main(user-interactive)이 이 스레드를 기다리므로 QoS를 맞춰 priority inversion을 피한다
+            staleCallbackThread.qualityOfService = .userInteractive
+            staleCallbackThread.start()
+            #expect(completionReturned.wait(timeout: .now() + 30) == .success)
+
+            controller.updateLanguage(to: "en-US")
+            controller.updateSuggestions(for: "", selectedText: nil, mathExpressionText: "")
+            return delegate.updates.count
+        }
+
+        await Task.yield()
+        await waitForMainQueue()
+
+        await MainActor.run {
+            #expect(delegate.updates.count == updateCount)
+            #expect(delegate.updates.last?.suggestions == [])
+        }
+    }
+
     @Test("n-gram 로딩 완료 후 마지막 후보 갱신을 다시 수행")
     func testNGram로딩완료후_마지막후보갱신을다시수행() async {
         let factory = CountingSuggestionEngineFactory()
@@ -167,6 +339,9 @@ private final class CountingSuggestionEngineFactory {
     private(set) var lexiconCreationCount = 0
     private(set) var textCheckerCreationCount = 0
     private(set) var nGramCreationCount = 0
+    private(set) var textCheckerLanguages: [String] = []
+    private(set) var nGramLanguages: [String] = []
+    private(set) var nGramProviders: [StubNGramPredictiveTextProvider] = []
     private(set) var lastNGramProvider: StubNGramPredictiveTextProvider?
 
     // MARK: - Internal Methods
@@ -177,13 +352,16 @@ private final class CountingSuggestionEngineFactory {
                 self?.lexiconCreationCount += 1
                 return LexiconPredictiveTextEngine()
             },
-            makeTextCheckerEngine: { [weak self] _ in
+            makeTextCheckerEngine: { [weak self] language in
                 self?.textCheckerCreationCount += 1
+                self?.textCheckerLanguages.append(language)
                 return StubPredictiveTextProvider()
             },
-            makeNGramEngine: { [weak self] _ in
+            makeNGramEngine: { [weak self] language in
                 self?.nGramCreationCount += 1
+                self?.nGramLanguages.append(language)
                 let provider = StubNGramPredictiveTextProvider()
+                self?.nGramProviders.append(provider)
                 self?.lastNGramProvider = provider
                 return provider
             }
@@ -199,6 +377,7 @@ private final class StubPredictiveTextProvider: PredictiveTextProvider {
 private final class StubNGramPredictiveTextProvider: NGramPredictiveTextProviding, @unchecked Sendable {
     var onLoadCompleted: (() -> Void)?
     var currentSentenceWordsCount: Int { recordedWords.count }
+    private(set) var saveCount = 0
 
     private var recordedWords: [String] = []
     private var loadedSuggestions: [String] = []
@@ -217,7 +396,9 @@ private final class StubNGramPredictiveTextProvider: NGramPredictiveTextProvidin
     func resetSentenceBuffer() {
         recordedWords.removeAll()
     }
-    func saveToDisk() {}
+    func saveToDisk() {
+        saveCount += 1
+    }
     func completeLoad(suggestions: [String]) {
         loadedSuggestions = suggestions
         onLoadCompleted?()

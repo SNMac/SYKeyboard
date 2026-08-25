@@ -8,7 +8,7 @@
 import UIKit
 import OSLog
 
-open class StandardKeyboardView: UIView {
+open class StandardKeyboardView: UIView, NormalKeyboardLayoutProvider {
     
     // MARK: - Properties
     
@@ -27,6 +27,7 @@ open class StandardKeyboardView: UIView {
     public private(set) lazy var allButtonList: [BaseKeyboardButton] = primaryButtonList + secondaryButtonList
     public private(set) lazy var primaryButtonList: [PrimaryButton] = firstRowPrimaryKeyButtonList + secondRowPrimaryKeyButtonList + thirdRowPrimaryKeyButtonList + [spaceButton, atButton, periodButton, slashButton, dotComButton]
     public private(set) lazy var secondaryButtonList: [SecondaryButton] = [shiftButton, deleteButton, switchButton, returnButton, secondaryAtButton, secondarySharpButton, nextKeyboardButton]
+    + [languageSwitchButton].compactMap { $0 as SecondaryButton? }
     public private(set) lazy var totalTextInterableButtonList: [TextInteractable] = firstRowPrimaryKeyButtonList + secondRowPrimaryKeyButtonList + thirdRowPrimaryKeyButtonList
     + [deleteButton, spaceButton, atButton, periodButton, slashButton, dotComButton, returnButton, secondaryAtButton, secondarySharpButton]
     
@@ -40,10 +41,13 @@ open class StandardKeyboardView: UIView {
     
     /// `periodButton`의 너비 제약 조건을 저장하는 변수
     public var periodButtonWidthConstraint: NSLayoutConstraint?
+    /// 통합 키보드 modifier 영역의 너비 제약
+    private var fourthRowModifierWidthConstraint: NSLayoutConstraint?
     
     // Initializer Injection
     public let getIsShiftedLetterInput: () -> Bool
     public let setIsShiftedLetterInput: (Bool) -> ()
+    private let showsLanguageSwitchButton: Bool
     
     // MARK: - UI Components
     
@@ -114,6 +118,11 @@ open class StandardKeyboardView: UIView {
     public lazy var shiftButton = ShiftButton(keyboard: keyboard)
     public private(set) lazy var deleteButton = DeleteButton(keyboard: keyboard)
     public private(set) lazy var switchButton = SwitchButton(keyboard: keyboard)
+    public private(set) lazy var languageSwitchButton: LanguageSwitchButton? = {
+        guard showsLanguageSwitchButton else { return nil }
+        let mode: HangeulEnglishLanguageMode = keyboard == .qwerty ? .english : .hangeul
+        return LanguageSwitchButton(mode: mode, keyboard: keyboard)
+    }()
     
     // 스페이스 버튼 위치
     public private(set) lazy var spaceButton = SpaceButton(keyboard: keyboard)
@@ -146,10 +155,12 @@ open class StandardKeyboardView: UIView {
     
     public init(
         getIsShiftedLetterInput: @escaping () -> Bool,
-        setIsShiftedLetterInput: @escaping (Bool) -> ()
+        setIsShiftedLetterInput: @escaping (Bool) -> (),
+        showsLanguageSwitchButton: Bool = false
     ) {
         self.getIsShiftedLetterInput = getIsShiftedLetterInput
         self.setIsShiftedLetterInput = setIsShiftedLetterInput
+        self.showsLanguageSwitchButton = showsLanguageSwitchButton
         super.init(frame: .zero)
         
         setupUI()
@@ -220,7 +231,10 @@ private extension StandardKeyboardView {
         thirdRowPrimaryKeyButtonList.forEach { thirdRowInsideHStackView.addArrangedSubview($0) }
         
         [fourthRowLeftSecondaryButtonHStackView, spaceButtonHStackView, returnButtonHStackView].forEach { fourthRowHStackView.addArrangedSubview($0) }
-        [switchButton, nextKeyboardButton].forEach { fourthRowLeftSecondaryButtonHStackView.addArrangedSubview($0) }
+        let modifierButtons: [SecondaryButton] = [switchButton]
+        + [languageSwitchButton].compactMap { $0 }
+        + [nextKeyboardButton]
+        modifierButtons.forEach(fourthRowLeftSecondaryButtonHStackView.addArrangedSubview)
         [spaceButton, atButton, periodButton, slashButton, dotComButton].forEach { spaceButtonHStackView.addArrangedSubview($0) }
         [returnButton, secondaryAtButton, secondarySharpButton].forEach { returnButtonHStackView.addArrangedSubview($0) }
     }
@@ -291,8 +305,28 @@ private extension StandardKeyboardView {
         }
         
         fourthRowLeftSecondaryButtonHStackView.translatesAutoresizingMaskIntoConstraints = false
-        if let superview = fourthRowLeftSecondaryButtonHStackView.superview {
-            fourthRowLeftSecondaryButtonHStackView.widthAnchor.constraint(equalTo: superview.widthAnchor, multiplier: 0.25).isActive = true
+        if let languageSwitchButton,
+           let referenceView = firstRowPrimaryKeyButtonList.first {
+            fourthRowLeftSecondaryButtonHStackView.distribution = .fill
+            languageSwitchButton.widthAnchor.constraint(
+                equalTo: referenceView.widthAnchor,
+                multiplier: KeyboardLayoutFigure.languageSwitchButtonWidthMultiplier
+            ).isActive = true
+            switchButton.widthAnchor.constraint(
+                equalTo: referenceView.widthAnchor,
+                multiplier: switchButtonWidthMultiplier
+            ).isActive = true
+            let globeWidth = nextKeyboardButton.widthAnchor.constraint(
+                equalTo: referenceView.widthAnchor,
+                multiplier: KeyboardLayoutFigure.nextKeyboardButtonWidthMultiplier
+            )
+            globeWidth.priority = .init(999)
+            globeWidth.isActive = true
+            updateFourthRowModifierWidthConstraint(needsInputModeSwitchKey: true)
+        } else if let superview = fourthRowLeftSecondaryButtonHStackView.superview {
+            fourthRowLeftSecondaryButtonHStackView.widthAnchor
+                .constraint(equalTo: superview.widthAnchor, multiplier: 0.25)
+                .isActive = true
         }
         
         atButton.translatesAutoresizingMaskIntoConstraints = false
@@ -335,16 +369,31 @@ private extension StandardKeyboardView {
         
         returnButtonHStackView.translatesAutoresizingMaskIntoConstraints = false
         if let superview = returnButtonHStackView.superview {
-            returnButtonHStackView.widthAnchor.constraint(equalTo: superview.widthAnchor,
-                                                          multiplier: 0.25).isActive = true
+            returnButtonHStackView.widthAnchor.constraint(
+                equalTo: superview.widthAnchor,
+                multiplier: KeyboardLayoutFigure.returnButtonWidthMultiplier
+            ).isActive = true
         }
         
         keyboardSelectOverlayView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             keyboardSelectOverlayView.leadingAnchor.constraint(equalTo: self.leadingAnchor, constant: 4),
             keyboardSelectOverlayView.bottomAnchor.constraint(equalTo: switchButton.topAnchor, constant: -4),
-            keyboardSelectOverlayView.widthAnchor.constraint(equalToConstant: KeyboardLayoutFigure.keyboardSelectOverlayWidth),
             keyboardSelectOverlayView.heightAnchor.constraint(equalToConstant: KeyboardLayoutFigure.selectOverlayHeight)
+        ])
+
+        // 취소 영역의 경계선을 `switchButton` 오른쪽 모서리보다 안쪽에 둔다.
+        // 오버레이가 열리는 순간 손가락이 이미 목표 쪽에 있게 된다
+        let cancelBoundary = keyboardSelectOverlayView.xmarkImageContainerView.trailingAnchor.constraint(
+            equalTo: switchButton.trailingAnchor,
+            constant: -KeyboardLayoutFigure.keyboardSelectBoundaryInset
+        )
+        cancelBoundary.priority = .init(999)
+        NSLayoutConstraint.activate([
+            cancelBoundary,
+            keyboardSelectOverlayView.xmarkImageContainerView.widthAnchor.constraint(
+                greaterThanOrEqualToConstant: KeyboardLayoutFigure.keyboardSelectCancelMinWidth
+            )
         ])
         
         oneHandedModeSelectOverlayView.translatesAutoresizingMaskIntoConstraints = false
@@ -355,11 +404,39 @@ private extension StandardKeyboardView {
             oneHandedModeSelectOverlayView.heightAnchor.constraint(equalToConstant: KeyboardLayoutFigure.selectOverlayHeight)
         ])
     }
+
+    /// `switchButton`과 한영 전환 버튼의 합이 리턴 버튼 너비와 같아지는 `switchButton` 계수
+    var switchButtonWidthMultiplier: CGFloat {
+        KeyboardLayoutFigure.switchButtonWidthMultiplier(columnCount: firstRowPrimaryKeyButtonList.count)
+    }
+
+    func updateFourthRowModifierWidthConstraint(needsInputModeSwitchKey: Bool) {
+        guard let referenceView = firstRowPrimaryKeyButtonList.first else { return }
+
+        let globeMultiplier = needsInputModeSwitchKey
+        ? KeyboardLayoutFigure.nextKeyboardButtonWidthMultiplier
+        : 0
+        fourthRowModifierWidthConstraint?.isActive = false
+        fourthRowModifierWidthConstraint = fourthRowLeftSecondaryButtonHStackView.widthAnchor.constraint(
+            equalTo: referenceView.widthAnchor,
+            multiplier: switchButtonWidthMultiplier
+            + KeyboardLayoutFigure.languageSwitchButtonWidthMultiplier
+            + globeMultiplier
+        )
+        fourthRowModifierWidthConstraint?.isActive = true
+    }
+
 }
 
 // MARK: - Update Methods
 
 extension StandardKeyboardView {
+    final public func nextKeyboardButtonVisibilityDidChange(needsInputModeSwitchKey: Bool) {
+        guard languageSwitchButton != nil else { return }
+        updateFourthRowModifierWidthConstraint(needsInputModeSwitchKey: needsInputModeSwitchKey)
+        setNeedsLayout()
+    }
+
     /// `periodButton`의 너비 제약 조건을 업데이트합니다.
     /// - Parameter multiplier: 설정할 비율 (`nil`인 경우 제약 조건 비활성화)
     final public func updatePeriodButtonWidthConstraint(multiplier: CGFloat?) {

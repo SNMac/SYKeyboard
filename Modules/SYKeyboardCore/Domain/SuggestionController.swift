@@ -107,7 +107,9 @@ final class SuggestionController: SuggestionService {
     weak var delegate: SuggestionControllerDelegate?
 
     /// 엔진 재생성 시 사용할 언어 코드
-    private let language: String
+    private var language: String
+    /// 비동기 n-gram 로드 콜백을 식별하는 엔진 세대
+    private var engineGeneration = 0
     /// 예측 엔진 생성 팩토리
     private let engineFactory: SuggestionControllerEngineFactory
     /// 성능 계측용 signposter
@@ -124,8 +126,8 @@ final class SuggestionController: SuggestionService {
         didSet {
             guard oldValue != isPredictiveTextEnabled else { return }
             if !isPredictiveTextEnabled {
-                textCheckerEngine = nil
-                nGramEngine = nil
+                textCheckerEngines.removeAll()
+                nGramEngines.removeAll()
                 clearSuggestions()
             }
             releaseLexiconEngineIfUnused()
@@ -213,14 +215,28 @@ final class SuggestionController: SuggestionService {
     ///
     /// 자동완성과 텍스트 대치 양쪽에서 사용되므로, 둘 다 꺼졌을 때만 `nil`이 됩니다.
     private var lexiconEngine: LexiconSuggestionProviding?
+    /// 언어별 `UITextChecker` 기반 엔진 캐시
+    private var textCheckerEngines: [String: PredictiveTextProvider] = [:]
+    /// 언어별 n-gram 엔진 캐시.
+    ///
+    /// 한영 통합 키보드는 한 세션에서 두 언어를 오가므로, 언어를 바꿀 때마다
+    /// 엔진을 버리면 그때마다 디스크 로드를 다시 한다. 사용한 언어의 엔진만 들고 있는다
+    private var nGramEngines: [String: NGramPredictiveTextProviding] = [:]
+
     /// `UITextChecker` 기반 엔진 (시스템 사전)
     ///
     /// `isPredictiveTextEnabled`가 `false`이면 `nil`이 됩니다.
-    private var textCheckerEngine: PredictiveTextProvider?
+    private var textCheckerEngine: PredictiveTextProvider? {
+        get { textCheckerEngines[language] }
+        set { textCheckerEngines[language] = newValue }
+    }
     /// n-gram 기반 엔진 (다음 단어 예측)
     ///
     /// `isPredictiveTextEnabled`가 `false`이면 `nil`이 됩니다.
-    private var nGramEngine: NGramPredictiveTextProviding?
+    private var nGramEngine: NGramPredictiveTextProviding? {
+        get { nGramEngines[language] }
+        set { nGramEngines[language] = newValue }
+    }
     /// 마지막으로 자동완성 갱신을 요청한 텍스트
     private var lastSuggestionBaseText: String?
     /// 마지막으로 수식 탐지를 요청한 텍스트
@@ -271,6 +287,22 @@ final class SuggestionController: SuggestionService {
 
     // MARK: - Lexicon Loading
 
+    func updateLanguage(to language: String) {
+        guard self.language != language else { return }
+
+        // 전환 전 언어의 학습 결과는 즉시 보존하되, 엔진 자체는 캐시에 남겨
+        // 같은 언어로 돌아왔을 때 디스크 로드를 반복하지 않는다
+        nGramEngine?.saveToDisk()
+        engineGeneration += 1
+        self.language = language
+        lastSuggestionBaseText = nil
+        lastMathExpressionText = nil
+        lastSuggestionOrigin = nil
+        currentMathCompletion = nil
+        currentMathSuggestionOrigin = nil
+        clearSuggestions()
+    }
+
     func preparePredictiveEnginesIfNeeded() {
         guard isPredictiveTextEnabled else { return }
 
@@ -282,13 +314,33 @@ final class SuggestionController: SuggestionService {
 
         if nGramEngine == nil {
             let state = signposter.beginInterval("PrepareNGramEngine")
-            let engine = engineFactory.makeNGramEngine(language)
+            let generation = engineGeneration
+            let engineLanguage = language
+            let engine = engineFactory.makeNGramEngine(engineLanguage)
+            // 이 콜백은 엔진이 이미 main으로 넘겨 호출하므로 동기로 갱신할 수도 있지만,
+            // 그러면 엔진의 로딩 완료 클로저 안에서 후보 갱신이 엔진으로 재진입한다.
+            // 한 프레임을 아끼는 대신 재진입 위험을 지는 거래라 비동기를 유지한다
             engine.onLoadCompleted = { [weak self] in
-                self?.refreshSuggestionsAfterNGramLoadIfNeeded()
+                Task { @MainActor [weak self] in
+                    guard let self,
+                          self.engineGeneration == generation,
+                          self.language == engineLanguage else { return }
+                    self.performRefreshSuggestionsAfterNGramLoadIfNeeded()
+                }
             }
             nGramEngine = engine
             signposter.endInterval("PrepareNGramEngine", state)
         }
+    }
+
+    /// 현재 언어가 아닌 예측 엔진 캐시를 해제합니다.
+    ///
+    /// 비활성 언어 엔진은 전환 시점에 이미 `saveToDisk()`로 저장했고
+    /// 그 뒤로는 학습을 받지 않으므로, 저장 없이 버려도 유실되는 기록이 없습니다.
+    func releaseInactiveLanguageEngines() {
+        let activeLanguage = language
+        nGramEngines = nGramEngines.filter { $0.key == activeLanguage }
+        textCheckerEngines = textCheckerEngines.filter { $0.key == activeLanguage }
     }
 
     func prepareLexiconEngineIfNeeded() {
@@ -775,16 +827,6 @@ private extension SuggestionController {
             didUpdateCurrentWord: currentWord.isEmpty ? nil : currentWord,
             suggestions: currentSuggestions.map { $0.text }
         )
-    }
-
-    func refreshSuggestionsAfterNGramLoadIfNeeded() {
-        if Thread.isMainThread {
-            performRefreshSuggestionsAfterNGramLoadIfNeeded()
-        } else {
-            DispatchQueue.main.async { [weak self] in
-                self?.performRefreshSuggestionsAfterNGramLoadIfNeeded()
-            }
-        }
     }
 
     func performRefreshSuggestionsAfterNGramLoadIfNeeded() {

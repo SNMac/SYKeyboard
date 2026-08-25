@@ -27,8 +27,11 @@ open class FourByFourKeyboardView: UIView {
     public private(set) lazy var allButtonList: [BaseKeyboardButton] = primaryButtonList + secondaryButtonList
     public private(set) lazy var primaryButtonList: [PrimaryButton] = firstRowPrimaryKeyButtonList + secondRowPrimaryKeyButtonList + thirdRowPrimaryKeyButtonList + fourthRowPrimaryKeyButtonList + [spaceButton]
     public private(set) lazy var secondaryButtonList: [SecondaryButton] = [deleteButton, returnButton, secondaryAtButton, secondarySharpButton, switchButton, nextKeyboardButton]
+    + [languageSwitchButton].compactMap { $0 as SecondaryButton? }
     public private(set) lazy var totalTextInterableButtonList: [TextInteractable] = firstRowPrimaryKeyButtonList + secondRowPrimaryKeyButtonList + thirdRowPrimaryKeyButtonList + fourthRowPrimaryKeyButtonList
     + [deleteButton, spaceButton, returnButton, secondaryAtButton, secondarySharpButton]
+
+    private let showsLanguageSwitchButton: Bool
     
     // MARK: - UI Components
     
@@ -86,6 +89,10 @@ open class FourByFourKeyboardView: UIView {
     public private(set) lazy var secondarySharpButton = SecondaryKeyButton(keyboard: keyboard, button: .keyButton(primary: ["#"], secondary: nil))
     
     public private(set) lazy var switchButton = SwitchButton(keyboard: keyboard)
+    public private(set) lazy var languageSwitchButton: LanguageSwitchButton? = {
+        guard showsLanguageSwitchButton else { return nil }
+        return LanguageSwitchButton(mode: .hangeul, keyboard: keyboard)
+    }()
     public private(set) lazy var nextKeyboardButton = NextKeyboardButton(keyboard: keyboard)
     
     public private(set) lazy var keyboardSelectOverlayView: KeyboardSelectOverlayView = {
@@ -103,8 +110,9 @@ open class FourByFourKeyboardView: UIView {
     
     // MARK: - Initializer
     
-    public override init(frame: CGRect) {
-        super.init(frame: frame)
+    public init(showsLanguageSwitchButton: Bool = false) {
+        self.showsLanguageSwitchButton = showsLanguageSwitchButton
+        super.init(frame: .zero)
         setupUI()
     }
     
@@ -152,7 +160,10 @@ private extension FourByFourKeyboardView {
         
         fourthRowPrimaryKeyButtonList.forEach { fourthRowHStackView.addArrangedSubview($0) }
         fourthRowHStackView.addArrangedSubview(fourthRowRightSecondaryButtonHStackView)
-        [nextKeyboardButton, switchButton].forEach { fourthRowRightSecondaryButtonHStackView.addArrangedSubview($0) }
+        let modifierButtons: [SecondaryButton] = [nextKeyboardButton]
+        + [languageSwitchButton].compactMap { $0 }
+        + [switchButton]
+        modifierButtons.forEach(fourthRowRightSecondaryButtonHStackView.addArrangedSubview)
     }
     
     func setConstraints() {
@@ -163,13 +174,39 @@ private extension FourByFourKeyboardView {
             layoutVStackView.trailingAnchor.constraint(equalTo: self.trailingAnchor),
             layoutVStackView.bottomAnchor.constraint(equalTo: self.bottomAnchor)
         ])
+
+        if let languageSwitchButton {
+            fourthRowRightSecondaryButtonHStackView.distribution = .fill
+            languageSwitchButton.translatesAutoresizingMaskIntoConstraints = false
+            languageSwitchButton.widthAnchor.constraint(
+                equalTo: self.widthAnchor,
+                multiplier: KeyboardLayoutFigure.languageSwitchButtonWidthRatio
+            ).isActive = true
+            // 지구본 버튼이 숨겨지면 stack이 폭을 회수해야 하므로 required보다 낮춘다
+            let modifierWidth = nextKeyboardButton.widthAnchor.constraint(equalTo: switchButton.widthAnchor)
+            modifierWidth.priority = .init(999)
+            modifierWidth.isActive = true
+        }
         
         keyboardSelectOverlayView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             keyboardSelectOverlayView.trailingAnchor.constraint(equalTo: self.trailingAnchor, constant: -4),
             keyboardSelectOverlayView.bottomAnchor.constraint(equalTo: switchButton.topAnchor, constant: -4),
-            keyboardSelectOverlayView.widthAnchor.constraint(equalToConstant: KeyboardLayoutFigure.keyboardSelectOverlayWidth),
             keyboardSelectOverlayView.heightAnchor.constraint(equalToConstant: KeyboardLayoutFigure.selectOverlayHeight)
+        ])
+
+        // 취소 영역의 경계선을 `switchButton` 왼쪽 모서리보다 안쪽에 둔다.
+        // 오버레이가 열리는 순간 손가락이 이미 목표 쪽에 있게 된다
+        let cancelBoundary = keyboardSelectOverlayView.xmarkImageContainerView.leadingAnchor.constraint(
+            equalTo: switchButton.leadingAnchor,
+            constant: KeyboardLayoutFigure.keyboardSelectBoundaryInset
+        )
+        cancelBoundary.priority = .init(999)
+        NSLayoutConstraint.activate([
+            cancelBoundary,
+            keyboardSelectOverlayView.xmarkImageContainerView.widthAnchor.constraint(
+                greaterThanOrEqualToConstant: KeyboardLayoutFigure.keyboardSelectCancelMinWidth
+            )
         ])
         
         oneHandedModeSelectOverlayView.translatesAutoresizingMaskIntoConstraints = false
@@ -180,4 +217,5 @@ private extension FourByFourKeyboardView {
             oneHandedModeSelectOverlayView.heightAnchor.constraint(equalToConstant: KeyboardLayoutFigure.selectOverlayHeight)
         ])
     }
+
 }

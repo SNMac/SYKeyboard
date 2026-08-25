@@ -95,7 +95,10 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
     private let maxPredictions = 3
     
     /// n-gram 키 최대 항목 수 (이 수를 초과하면 빈도 낮은 항목부터 정리)
-    private let maxEntriesPerKey = 50
+    ///
+    /// 실제로 노출하는 후보는 `maxPredictions`개뿐이고 나머지는 순위 변동을 위한 빈도 기록이다.
+    /// 키보드 확장은 메모리에 민감하므로 여유를 남기는 선에서 상한을 둔다
+    private let maxEntriesPerKey = 24
     /// 전체 키 최대 개수
     private let maxKeys = 5000
     
@@ -103,6 +106,12 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
     private let fileURL: URL
     /// 테스트에서 비동기 load 적용 지연을 재현하기 위한 값
     private let loadApplyDelay: Duration?
+
+    /// 성능 계측용 signposter. 인스턴스마다 만들 필요가 없어 타입 프로퍼티로 공유한다
+    private static let signposter = OSSignposter(
+        subsystem: Bundle.main.bundleIdentifier ?? "Unknown Bundle",
+        category: "NGramPredictiveTextEngine"
+    )
     
     /// 백그라운드 저장용 직렬 큐
     private let saveQueue = DispatchQueue(label: "com.snmac.sykeyboard.ngram.save", qos: .utility)
@@ -150,11 +159,7 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
     ///
     /// - Parameter language: 언어 식별자 (예: "ko-KR", "en-US")
     public convenience init(language: String) {
-        let signposter = OSSignposter(
-            subsystem: Bundle.main.bundleIdentifier ?? "Unknown Bundle",
-            category: "NGramPredictiveTextEngine"
-        )
-        let initState = signposter.beginInterval("NGramInit")
+        let initState = Self.signposter.beginInterval("NGramInit")
         
         guard let containerURL = FileManager.default.containerURL(
             forSecurityApplicationGroupIdentifier: DefaultValues.groupBundleID
@@ -165,7 +170,7 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
         guard let legacyStorage = UserDefaults(suiteName: DefaultValues.groupBundleID) else {
             fatalError("UserDefaults를 suiteName으로 불러오는 데 실패했습니다.")
         }
-        signposter.endInterval("NGramInit", initState)
+        Self.signposter.endInterval("NGramInit", initState)
 
         self.init(
             language: language,
@@ -189,10 +194,7 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
     }
 
     private func startBackgroundLoad() {
-        let signposter = OSSignposter(
-            subsystem: Bundle.main.bundleIdentifier ?? "Unknown Bundle",
-            category: "NGramPredictiveTextEngine"
-        )
+        let signposter = Self.signposter
         let generation = currentStorageGeneration()
 
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
@@ -212,20 +214,24 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
             }
             
             let applyLoadedData = { [weak self] in
-                guard let self else { return }
-                guard self.currentStorageGeneration() == generation else {
-                    signposter.endInterval("NGramBackgroundLoad", loadState)
-                    return
+                // 로딩 반영까지만 측정하고, 완료 알림은 구간 밖에서 보낸다.
+                // 중간에 빠져나가도 defer가 interval을 닫는다
+                do {
+                    defer { signposter.endInterval("NGramBackgroundLoad", loadState) }
+
+                    guard let self else { return }
+                    guard self.currentStorageGeneration() == generation else { return }
+
+                    self.unigramStore = loaded.unigram
+                    self.bigramStore = loaded.bigram
+                    self.trigramStore = loaded.trigram
+                    self.needsLegacyCleanup = needsCleanup
+                    self.isLoaded = true
+                    self.flushPendingEvents()
+                    self.logger.debug("[NGram/\(self.language)] 디스크 로딩 완료")
                 }
-                self.unigramStore = loaded.unigram
-                self.bigramStore = loaded.bigram
-                self.trigramStore = loaded.trigram
-                self.needsLegacyCleanup = needsCleanup
-                self.isLoaded = true
-                self.flushPendingEvents()
-                self.logger.debug("[NGram/\(self.language)] 디스크 로딩 완료")
-                signposter.endInterval("NGramBackgroundLoad", loadState)
-                self.onLoadCompleted?()
+
+                self?.onLoadCompleted?()
             }
 
             if let loadApplyDelay = self.loadApplyDelay {

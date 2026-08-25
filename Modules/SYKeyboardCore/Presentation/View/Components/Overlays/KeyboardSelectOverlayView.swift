@@ -134,7 +134,17 @@ private extension KeyboardSelectOverlayView {
     func setStyles() {
         self.axis = .horizontal
         self.spacing = 8
-        self.distribution = .fillEqually
+        // 취소 영역의 경계선을 `switchButton` 모서리에 맞춰야 하므로 균등 분배를 쓰지 않는다.
+        // 남는 너비는 목표 라벨이 가져간다
+        self.distribution = .fill
+        [numericLabel, symbolLabel].forEach {
+            $0.setContentHuggingPriority(.defaultLow, for: .horizontal)
+            $0.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+            // 취소 영역 폭은 `switchButton` 크기를 따라가므로 목표 라벨 폭도 함께 변한다.
+            // 계산상 여유가 있지만 좁아지는 경우에도 글자가 잘리지 않게 한다
+            $0.adjustsFontSizeToFitWidth = true
+            $0.minimumScaleFactor = 0.5
+        }
         self.backgroundColor = .clear
         
         self.isLayoutMarginsRelativeArrangement = true
@@ -169,6 +179,13 @@ private extension KeyboardSelectOverlayView {
             blurView.trailingAnchor.constraint(equalTo: self.trailingAnchor),
             blurView.bottomAnchor.constraint(equalTo: self.bottomAnchor)
         ])
+        
+        [numericLabel, symbolLabel].forEach {
+            $0.translatesAutoresizingMaskIntoConstraints = false
+            $0.widthAnchor.constraint(
+                equalToConstant: KeyboardLayoutFigure.keyboardSelectTargetWidth
+            ).isActive = true
+        }
         
         xmarkImageView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
