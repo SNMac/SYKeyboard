@@ -33,6 +33,11 @@ public enum KeyboardLayoutFigure {
     static let returnButtonWidthMultiplier: CGFloat = 0.25
     /// 한영 전환 버튼 곱하기 계수. 글자 버튼과 같은 너비를 사용한다
     static let languageSwitchButtonWidthMultiplier: CGFloat = 1.0
+    /// 4x4 계열에서 한영 전환 버튼이 차지하는 전체 폭 대비 비율.
+    ///
+    /// 열 개수가 달라도 두벌식·쿼티의 한영 전환 버튼(글자 버튼 한 칸 = 전체 폭의 1/10)과
+    /// 같은 크기로 보이게 맞춘다. 남는 너비는 지구본 버튼과 `switchButton`이 나눠 갖는다
+    static let languageSwitchButtonWidthRatio: CGFloat = languageSwitchButtonWidthMultiplier / 10.0
     /// 지구본 버튼 곱하기 계수. 한영 전환 버튼과 같은 너비를 사용한다
     static let nextKeyboardButtonWidthMultiplier: CGFloat = languageSwitchButtonWidthMultiplier
     /// 통합 키보드에서 한영 전환 버튼과 합친 너비가 리턴 버튼과 같아지는 `switchButton` 곱하기 계수

@@ -198,16 +198,24 @@ struct KeyboardModifierLayoutTests {
         )
     }
 
-    @Test("통합 숫자 화면은 globe → 한/영 → 전환 순서로 균등 분할")
+    @Test("통합 숫자 화면은 globe → 한/영 → 전환 순서이고 한/영은 두벌식과 같은 너비")
     func testUnifiedNumericModifierOrder() throws {
+        let width: CGFloat = 390
         let view = NumericKeyboardView(showsLanguageSwitchButton: true)
-        view.frame = CGRect(x: 0, y: 0, width: 390, height: 216)
+        view.frame = CGRect(x: 0, y: 0, width: width, height: 216)
         view.layoutIfNeeded()
 
         let languageButton = try #require(view.languageSwitchButton)
         #expect(view.nextKeyboardButton.frame.maxX <= languageButton.frame.minX + 0.5)
         #expect(languageButton.frame.maxX <= view.switchButton.frame.minX + 0.5)
-        #expect(abs(languageButton.frame.width - view.switchButton.frame.width) < 0.5)
+        // 열 개수와 무관하게 두벌식 한/영 버튼(글자 버튼 한 칸)과 같은 너비
+        #expect(
+            abs(languageButton.frame.width
+                - width * KeyboardLayoutFigure.languageSwitchButtonWidthRatio) < 0.5
+        )
+        // 남는 너비는 globe와 전환 버튼이 나눠 갖는다.
+        // 홀수 폭을 둘로 나누면 픽셀 정렬로 한 칸(최대 1pt) 차이가 날 수 있다
+        #expect(abs(view.nextKeyboardButton.frame.width - view.switchButton.frame.width) < 1.0)
         #expect(view.allButtonList.contains { $0 === languageButton })
     }
 
@@ -272,6 +280,17 @@ struct KeyboardModifierLayoutTests {
         let languageButton = try #require(primaryView.languageSwitchButton)
         #expect(primaryView.nextKeyboardButton.frame.maxX <= languageButton.frame.minX + 0.5)
         #expect(languageButton.frame.maxX <= primaryView.switchButton.frame.minX + 0.5)
+        // 4열 레이아웃이어도 두벌식 한/영 버튼과 같은 너비를 유지한다
+        #expect(
+            abs(languageButton.frame.width
+                - view.frame.width * KeyboardLayoutFigure.languageSwitchButtonWidthRatio) < 0.5
+        )
+        // 남는 너비는 globe와 전환 버튼이 나눠 갖는다.
+        // 홀수 폭을 둘로 나누면 픽셀 정렬로 한 칸(최대 1pt) 차이가 날 수 있다
+        #expect(
+            abs(primaryView.nextKeyboardButton.frame.width
+                - primaryView.switchButton.frame.width) < 1.0
+        )
     }
 
     @Test(arguments: [FourByFourFixture.naratgeul, .cheonjiin])

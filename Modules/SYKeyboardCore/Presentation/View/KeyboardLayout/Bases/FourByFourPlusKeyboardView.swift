@@ -183,6 +183,19 @@ private extension FourByFourPlusKeyboardView {
             layoutVStackView.trailingAnchor.constraint(equalTo: self.trailingAnchor),
             layoutVStackView.bottomAnchor.constraint(equalTo: self.bottomAnchor)
         ])
+
+        if let languageSwitchButton {
+            fourthRowRightSecondaryButtonHStackView.distribution = .fill
+            languageSwitchButton.translatesAutoresizingMaskIntoConstraints = false
+            languageSwitchButton.widthAnchor.constraint(
+                equalTo: self.widthAnchor,
+                multiplier: KeyboardLayoutFigure.languageSwitchButtonWidthRatio
+            ).isActive = true
+            // 지구본 버튼이 숨겨지면 stack이 폭을 회수해야 하므로 required보다 낮춘다
+            let modifierWidth = nextKeyboardButton.widthAnchor.constraint(equalTo: switchButton.widthAnchor)
+            modifierWidth.priority = .init(999)
+            modifierWidth.isActive = true
+        }
         
         keyboardSelectOverlayView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
