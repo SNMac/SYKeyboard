@@ -340,4 +340,32 @@ struct KeyboardModifierLayoutTests {
 
         #expect(primaryView.languageSwitchButton == nil)
     }
+
+    @Test("globe 표시 전환을 반복해도 한/영 고정 폭과 균등 분배가 함께 활성화되지 않음",
+          arguments: [FourByFourFixture.naratgeul, .cheonjiin])
+    func testFourByFourGlobeToggleKeepsDistributionConsistent(_ fixture: FourByFourFixture) throws {
+        let primaryView = fixture.makeView(showsLanguageSwitchButton: true)
+        let view = primaryView
+        view.frame = CGRect(x: 0, y: 0, width: 420, height: 216)
+        view.layoutIfNeeded()
+
+        let languageButton = try #require(primaryView.languageSwitchButton)
+        let action = NSSelectorFromString("unusedNextKeyboardAction:")
+
+        for visible in [false, true, false, true] {
+            primaryView.updateNextKeyboardButton(needsInputModeSwitchKey: visible,
+                                                 nextKeyboardAction: action)
+            view.layoutIfNeeded()
+
+            if visible {
+                // 균등 분배 상태에서는 세 버튼 폭이 같아야 한다
+                #expect(abs(languageButton.frame.width
+                            - primaryView.switchButton.frame.width) < 1.0)
+            } else {
+                #expect(abs(languageButton.frame.width
+                            - view.frame.width
+                            * KeyboardLayoutFigure.languageSwitchButtonWidthRatio) < 0.5)
+            }
+        }
+    }
 }

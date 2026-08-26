@@ -54,8 +54,6 @@ open class FourByFourPlusKeyboardView: UIView {
     private let fourthRowRightPrimaryButtonHStackView = KeyboardRowHStackView()
     /// 키보드 네번째 우측 `SecondaryButton` 행
     private let fourthRowRightSecondaryButtonHStackView = KeyboardRowHStackView()
-    /// 지구본이 숨겨졌을 때만 적용하는 한영 전환 버튼 고정 폭 제약
-    private var languageSwitchWidthConstraint: NSLayoutConstraint?
     
     /// 키보드 첫번째 행 `PrimaryKeyButton` 배열
     private lazy var firstRowPrimaryKeyButtonList = zip(primaryKeyList[0], secondaryKeyList[0]).map { (primary, secondary) in
@@ -136,12 +134,17 @@ open class FourByFourPlusKeyboardView: UIView {
 extension FourByFourPlusKeyboardView {
     /// 지구본 표시 여부가 바뀌면 modifier 영역의 폭 분배를 다시 정합니다.
     public func nextKeyboardButtonVisibilityDidChange(needsInputModeSwitchKey: Bool) {
-        guard let languageSwitchWidthConstraint else { return }
-        fourthRowRightSecondaryButtonHStackView.updateModifierDistribution(
-            languageSwitchWidthConstraint: languageSwitchWidthConstraint,
-            isNextKeyboardButtonVisible: needsInputModeSwitchKey
-        )
+        guard languageSwitchButton != nil else { return }
+        updateModifierDistribution(isNextKeyboardButtonVisible: needsInputModeSwitchKey)
         setNeedsLayout()
+    }
+
+    /// 4x4 계열은 4행 스택이 전체 폭을 4등분해 modifier 영역 폭이 고정이다.
+    /// 지구본이 표시되면 세 버튼이 그 폭을 균등하게 나눠 갖고,
+    /// 숨겨지면 한영 전환 버튼이 고정 폭을 쓰고 나머지는 전환 버튼이 채운다
+    func updateModifierDistribution(isNextKeyboardButtonVisible: Bool) {
+        fourthRowRightSecondaryButtonHStackView.distribution =
+        isNextKeyboardButtonVisible ? .fillEqually : .fill
     }
 }
 
@@ -206,11 +209,11 @@ private extension FourByFourPlusKeyboardView {
                 equalTo: self.widthAnchor,
                 multiplier: KeyboardLayoutFigure.languageSwitchButtonWidthRatio
             )
-            languageSwitchWidthConstraint = languageSwitchWidth
-            fourthRowRightSecondaryButtonHStackView.updateModifierDistribution(
-                languageSwitchWidthConstraint: languageSwitchWidth,
-                isNextKeyboardButtonVisible: !nextKeyboardButton.isHidden
-            )
+            // 지구본이 보이면 stack의 균등 분배(required)가 이기고 이 제약은 양보해야 하므로
+            // required보다 낮춘다. 지구본이 숨겨지면 경쟁하는 제약이 없어 그대로 성립한다
+            languageSwitchWidth.priority = .init(999)
+            languageSwitchWidth.isActive = true
+            updateModifierDistribution(isNextKeyboardButtonVisible: !nextKeyboardButton.isHidden)
         }
         
         keyboardSelectOverlayView.translatesAutoresizingMaskIntoConstraints = false
