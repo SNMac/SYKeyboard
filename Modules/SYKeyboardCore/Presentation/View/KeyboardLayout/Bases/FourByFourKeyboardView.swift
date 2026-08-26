@@ -50,6 +50,8 @@ open class FourByFourKeyboardView: UIView {
     private let fourthRowHStackView = KeyboardRowHStackView()
     /// 키보드 네번째 우측 `SecondaryButton` 행
     private let fourthRowRightSecondaryButtonHStackView = KeyboardRowHStackView()
+    /// 지구본이 숨겨졌을 때만 적용하는 한영 전환 버튼 고정 폭 제약
+    private var languageSwitchWidthConstraint: NSLayoutConstraint?
     
     /// 키보드 첫번째 행 `PrimaryKeyButton` 배열
     private lazy var firstRowPrimaryKeyButtonList = zip(primaryKeyList[0], secondaryKeyList[0]).map { (primary, secondary) in
@@ -125,6 +127,20 @@ open class FourByFourKeyboardView: UIView {
     }
 }
 
+// MARK: - Update Methods
+
+extension FourByFourKeyboardView {
+    /// 지구본 표시 여부가 바뀌면 modifier 영역의 폭 분배를 다시 정합니다.
+    public func nextKeyboardButtonVisibilityDidChange(needsInputModeSwitchKey: Bool) {
+        guard let languageSwitchWidthConstraint else { return }
+        fourthRowRightSecondaryButtonHStackView.updateModifierDistribution(
+            languageSwitchWidthConstraint: languageSwitchWidthConstraint,
+            isNextKeyboardButtonVisible: needsInputModeSwitchKey
+        )
+        setNeedsLayout()
+    }
+}
+
 // MARK: - UI Methods
 
 private extension FourByFourKeyboardView {
@@ -176,16 +192,16 @@ private extension FourByFourKeyboardView {
         ])
 
         if let languageSwitchButton {
-            fourthRowRightSecondaryButtonHStackView.distribution = .fill
             languageSwitchButton.translatesAutoresizingMaskIntoConstraints = false
-            languageSwitchButton.widthAnchor.constraint(
+            let languageSwitchWidth = languageSwitchButton.widthAnchor.constraint(
                 equalTo: self.widthAnchor,
                 multiplier: KeyboardLayoutFigure.languageSwitchButtonWidthRatio
-            ).isActive = true
-            // 지구본 버튼이 숨겨지면 stack이 폭을 회수해야 하므로 required보다 낮춘다
-            let modifierWidth = nextKeyboardButton.widthAnchor.constraint(equalTo: switchButton.widthAnchor)
-            modifierWidth.priority = .init(999)
-            modifierWidth.isActive = true
+            )
+            languageSwitchWidthConstraint = languageSwitchWidth
+            fourthRowRightSecondaryButtonHStackView.updateModifierDistribution(
+                languageSwitchWidthConstraint: languageSwitchWidth,
+                isNextKeyboardButtonVisible: !nextKeyboardButton.isHidden
+            )
         }
         
         keyboardSelectOverlayView.translatesAutoresizingMaskIntoConstraints = false

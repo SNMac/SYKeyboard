@@ -208,15 +208,35 @@ struct KeyboardModifierLayoutTests {
         let languageButton = try #require(view.languageSwitchButton)
         #expect(view.nextKeyboardButton.frame.maxX <= languageButton.frame.minX + 0.5)
         #expect(languageButton.frame.maxX <= view.switchButton.frame.minX + 0.5)
+        // modifier 영역 폭이 고정이므로 globe가 보이면 세 버튼이 균등하게 나눠 갖는다.
+        // 폭을 셋으로 나누면 픽셀 정렬로 한 칸(최대 1pt) 차이가 날 수 있다
+        #expect(abs(view.nextKeyboardButton.frame.width - languageButton.frame.width) < 1.0)
+        #expect(abs(languageButton.frame.width - view.switchButton.frame.width) < 1.0)
+        #expect(view.allButtonList.contains { $0 === languageButton })
+    }
+
+    @Test("숨겨진 globe 상태의 숫자 화면은 한/영이 두벌식과 같은 너비")
+    func testUnifiedNumericHiddenGlobeRestoresLanguageButtonWidth() throws {
+        let width: CGFloat = 390
+        let view = NumericKeyboardView(showsLanguageSwitchButton: true)
+        view.frame = CGRect(x: 0, y: 0, width: width, height: 216)
+        view.layoutIfNeeded()
+
+        let languageButton = try #require(view.languageSwitchButton)
+        view.updateNextKeyboardButton(
+            needsInputModeSwitchKey: false,
+            nextKeyboardAction: NSSelectorFromString("unusedNextKeyboardAction:")
+        )
+        view.layoutIfNeeded()
+
+        #expect(view.nextKeyboardButton.isHidden)
         // 열 개수와 무관하게 두벌식 한/영 버튼(글자 버튼 한 칸)과 같은 너비
         #expect(
             abs(languageButton.frame.width
                 - width * KeyboardLayoutFigure.languageSwitchButtonWidthRatio) < 0.5
         )
-        // 남는 너비는 globe와 전환 버튼이 나눠 갖는다.
-        // 홀수 폭을 둘로 나누면 픽셀 정렬로 한 칸(최대 1pt) 차이가 날 수 있다
-        #expect(abs(view.nextKeyboardButton.frame.width - view.switchButton.frame.width) < 1.0)
-        #expect(view.allButtonList.contains { $0 === languageButton })
+        // 남는 너비는 전환 버튼이 채운다
+        #expect(languageButton.frame.width < view.switchButton.frame.width)
     }
 
     @Test("전용 숫자 화면은 Language 버튼을 만들지 않음")
@@ -280,17 +300,38 @@ struct KeyboardModifierLayoutTests {
         let languageButton = try #require(primaryView.languageSwitchButton)
         #expect(primaryView.nextKeyboardButton.frame.maxX <= languageButton.frame.minX + 0.5)
         #expect(languageButton.frame.maxX <= primaryView.switchButton.frame.minX + 0.5)
-        // 4열 레이아웃이어도 두벌식 한/영 버튼과 같은 너비를 유지한다
+        // modifier 영역 폭이 고정이므로 globe가 보이면 세 버튼이 균등하게 나눠 갖는다.
+        // 폭을 셋으로 나누면 픽셀 정렬로 한 칸(최대 1pt) 차이가 날 수 있다
+        #expect(
+            abs(primaryView.nextKeyboardButton.frame.width - languageButton.frame.width) < 1.0
+        )
+        #expect(
+            abs(languageButton.frame.width - primaryView.switchButton.frame.width) < 1.0
+        )
+    }
+
+    @Test(arguments: [FourByFourFixture.naratgeul, .cheonjiin])
+    func testFourByFourHiddenGlobeRestoresLanguageButtonWidth(_ fixture: FourByFourFixture) throws {
+        let primaryView = fixture.makeView(showsLanguageSwitchButton: true)
+        let view = primaryView
+        view.frame = CGRect(x: 0, y: 0, width: 390, height: 216)
+        view.layoutIfNeeded()
+
+        let languageButton = try #require(primaryView.languageSwitchButton)
+        primaryView.updateNextKeyboardButton(
+            needsInputModeSwitchKey: false,
+            nextKeyboardAction: NSSelectorFromString("unusedNextKeyboardAction:")
+        )
+        view.layoutIfNeeded()
+
+        #expect(primaryView.nextKeyboardButton.isHidden)
+        // globe가 빠지면 4열 레이아웃도 두벌식 한/영 버튼과 같은 너비로 돌아온다
         #expect(
             abs(languageButton.frame.width
                 - view.frame.width * KeyboardLayoutFigure.languageSwitchButtonWidthRatio) < 0.5
         )
-        // 남는 너비는 globe와 전환 버튼이 나눠 갖는다.
-        // 홀수 폭을 둘로 나누면 픽셀 정렬로 한 칸(최대 1pt) 차이가 날 수 있다
-        #expect(
-            abs(primaryView.nextKeyboardButton.frame.width
-                - primaryView.switchButton.frame.width) < 1.0
-        )
+        // 남는 너비는 전환 버튼이 채운다
+        #expect(languageButton.frame.width < primaryView.switchButton.frame.width)
     }
 
     @Test(arguments: [FourByFourFixture.naratgeul, .cheonjiin])
