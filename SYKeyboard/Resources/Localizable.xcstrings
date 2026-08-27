@@ -71,6 +71,16 @@
         }
       }
     },
+    "'획'을 'ㆍ', '쌍'을 'ᆢ'로 표시" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show “획” as “ㆍ” and “쌍” as “ᆢ”"
+          }
+        }
+      }
+    },
     "%.1f" : {
       "shouldTranslate" : false
     },
@@ -826,6 +836,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Activation Drag Distance"
+          }
+        }
+      }
+    },
+    "획·쌍 버튼 점 표기" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dot Labels for Stroke and Double Keys"
           }
         }
       }
