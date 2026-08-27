@@ -22,6 +22,8 @@ final public class PrimaryKeyButton: PrimaryButton, TextInteractable {
     private var keyAlignment: KeyAlignment = .center
     
     /// 나랏글 획/쌍 키의 점 기호 표기(`ㆍ` U+318D, `ᆢ` U+11A2)
+    ///
+    /// 나랏글 전용 매핑이다. 다른 레이아웃에 `"획"`, `"쌍"` 키가 생기면 keyboard 타입으로 게이트해야 한다.
     private static let naratgeulDotLabels: [String: String] = ["획": "\u{318D}", "쌍": "\u{11A2}"]
     
     public private(set) var type: TextInteractableType {
@@ -80,8 +82,8 @@ final public class PrimaryKeyButton: PrimaryButton, TextInteractable {
     ///
     /// 입력 식별자(`NaratgeulProcessor`가 비교하는 `"획"`, `"쌍"`)는 그대로 두고 표기만 바꾼다.
     static func displayLabel(for primaryKey: String) -> String {
-        guard UserDefaultsManager.shared.isNaratgeulDotLabelEnabled,
-              let dotLabel = naratgeulDotLabels[primaryKey] else { return primaryKey }
+        guard let dotLabel = naratgeulDotLabels[primaryKey],
+              UserDefaultsManager.shared.isNaratgeulDotLabelEnabled else { return primaryKey }
         return dotLabel
     }
 }
