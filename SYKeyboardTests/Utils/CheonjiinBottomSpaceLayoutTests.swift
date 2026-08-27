@@ -134,4 +134,88 @@ struct CheonjiinBottomSpaceLayoutTests {
         #expect(view.switchButton.frame.maxX <= languageButton.frame.minX + 0.5)
         #expect(languageButton.frame.maxX <= view.nextKeyboardButton.frame.minX + 0.5)
     }
+
+    @Test("켜짐 상태의 키보드 선택 오버레이는 좌측에서 시작하고 취소 경계가 !#1 우측 모서리 안쪽")
+    func testBottomSpaceLayoutKeyboardSelectOverlayAnchors() {
+        let view = Self.makeView(usesBottomSpaceLayout: true)
+        view.keyboardSelectOverlayView.isHidden = false
+        view.layoutIfNeeded()
+        // 취소 경계(우선순위 999)는 `switchButton`이 최소 폭 32보다 넉넉할 때만 성립한다.
+        // 지구본이 보이면 modifier 칸이 3등분되어 버튼이 ~32.5pt로 좁아지고 999가 양보하므로,
+        // 이 파일의 다른 테스트들과 같이 지구본을 숨긴 상태에서 검증한다
+        let primaryView: PrimaryKeyboardRepresentable = view
+        primaryView.updateNextKeyboardButton(
+            needsInputModeSwitchKey: false,
+            nextKeyboardAction: NSSelectorFromString("unusedNextKeyboardAction:")
+        )
+        view.layoutIfNeeded()
+
+        let overlay = view.keyboardSelectOverlayView
+        let switchRect = Self.rect(view.switchButton, in: view)
+        // 오버레이는 키보드 뷰의 직접 subview라 frame이 이미 뷰 좌표계다
+        #expect(abs(overlay.frame.minX - 4) < 0.5)
+        #expect(overlay.frame.maxY <= switchRect.minY - 4 + 0.5)
+
+        let xmarkInView = overlay.convert(overlay.xmarkImageContainerView.frame, to: view)
+        #expect(
+            abs(xmarkInView.maxX
+                - (switchRect.maxX - KeyboardLayoutFigure.keyboardSelectBoundaryInset)) < 0.5
+        )
+        #expect(xmarkInView.width >= KeyboardLayoutFigure.keyboardSelectCancelMinWidth - 0.5)
+        // `.right` 방향이면 X가 스택의 첫 칸이라 오버레이 왼쪽 끝에 붙는다
+        #expect(
+            abs(overlay.xmarkImageContainerView.frame.minX
+                - overlay.directionalLayoutMargins.leading) < 0.5
+        )
+    }
+
+    @Test("켜짐 상태의 한 손 모드 오버레이는 !#1 위 좌측에 놓임")
+    func testBottomSpaceLayoutOneHandedOverlayAnchors() {
+        let view = Self.makeView(usesBottomSpaceLayout: true)
+        view.oneHandedModeSelectOverlayView.isHidden = false
+        view.layoutIfNeeded()
+        let primaryView: PrimaryKeyboardRepresentable = view
+        primaryView.updateNextKeyboardButton(
+            needsInputModeSwitchKey: false,
+            nextKeyboardAction: NSSelectorFromString("unusedNextKeyboardAction:")
+        )
+        view.layoutIfNeeded()
+
+        let overlay = view.oneHandedModeSelectOverlayView
+        let switchRect = Self.rect(view.switchButton, in: view)
+        #expect(abs(overlay.frame.minX - 4) < 0.5)
+        #expect(overlay.frame.maxY <= switchRect.minY - 4 + 0.5)
+        #expect(abs(overlay.frame.width - KeyboardLayoutFigure.oneHandedModeSelectOverlayWidth) < 0.5)
+    }
+
+    @Test("꺼짐 상태의 오버레이는 기존처럼 우측 정렬을 유지")
+    func testDefaultLayoutOverlayKeepsTrailingAnchor() {
+        let view = Self.makeView(usesBottomSpaceLayout: false)
+        view.keyboardSelectOverlayView.isHidden = false
+        view.layoutIfNeeded()
+        // 취소 경계(우선순위 999)는 `switchButton`이 최소 폭 32보다 넉넉할 때만 성립한다.
+        // 지구본이 보이면 modifier 칸이 3등분되어 버튼이 ~32.5pt로 좁아지고 999가 양보하므로,
+        // 이 파일의 다른 테스트들과 같이 지구본을 숨긴 상태에서 검증한다
+        let primaryView: PrimaryKeyboardRepresentable = view
+        primaryView.updateNextKeyboardButton(
+            needsInputModeSwitchKey: false,
+            nextKeyboardAction: NSSelectorFromString("unusedNextKeyboardAction:")
+        )
+        view.layoutIfNeeded()
+
+        let overlay = view.keyboardSelectOverlayView
+        let switchRect = Self.rect(view.switchButton, in: view)
+        #expect(abs(overlay.frame.maxX - (Self.keyboardWidth - 4)) < 0.5)
+
+        let xmarkInView = overlay.convert(overlay.xmarkImageContainerView.frame, to: view)
+        #expect(
+            abs(xmarkInView.minX
+                - (switchRect.minX + KeyboardLayoutFigure.keyboardSelectBoundaryInset)) < 0.5
+        )
+        // `.left` 방향이면 X가 스택의 마지막 칸이라 오버레이 오른쪽 끝에 붙는다
+        #expect(
+            abs(overlay.xmarkImageContainerView.frame.maxX
+                - (overlay.bounds.width - overlay.directionalLayoutMargins.trailing)) < 0.5
+        )
+    }
 }
