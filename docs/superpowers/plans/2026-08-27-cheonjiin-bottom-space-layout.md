@@ -1297,7 +1297,7 @@ git commit -m "test: #114 - 천지인 하단 배치의 UIKeyboardType 모드별 
 **Files:**
 - Modify: `docs/superpowers/plans/2026-08-27-cheonjiin-bottom-space-layout.md` (결과 기록)
 
-- [ ] **Step 1: 전체 테스트를 실행한다**
+- [x] **Step 1: 전체 테스트를 실행한다** — 완료. `** TEST SUCCEEDED **`, 479 고유 / 495 전개 / 0 failed. 기준선 464(전개) 대비 감소 없음
 
 ```bash
 xcodebuild test \
@@ -1308,7 +1308,7 @@ xcodebuild test \
 
 Expected: `** TEST SUCCEEDED **`. 테스트 개수를 Task 0 Step 2 기준선과 비교해 **증가분만 있고 감소는 없어야** 한다.
 
-- [ ] **Step 2: 세 키보드 extension을 빌드한다**
+- [x] **Step 2: 세 키보드 extension을 빌드한다** — 완료. `HangeulKeyboard`, `EnglishKeyboard`, `HangeulEnglishKeyboard` 전부 `** BUILD SUCCEEDED **` (exit 0)
 
 `-only-testing`이나 coverage 옵션이 남아 있지 않은 새 명령으로 실행한다.
 
@@ -1323,7 +1323,7 @@ done
 
 Expected: 세 scheme 모두 `** BUILD SUCCEEDED **`
 
-- [ ] **Step 3: 변경 범위를 확인한다**
+- [x] **Step 3: 변경 범위를 확인한다** — 완료. `git diff --stat 0a6167b4...HEAD` 결과 19개 파일. 범위 초과 대상(`FourByFourKeyboardView`, `NaratgeulKeyboardView`, `DubeolsikKeyboardView`, `EnglishKeyboardView`, `StandardKeyboardView`, `NumericKeyboardView`, `SymbolKeyboardView`, `GoogleService-Info`, `Secrets.xcconfig`, entitlements, `Info.plist`) **0건**. `git status --short` 비어 있음
 
 ```bash
 git status --short
@@ -1332,11 +1332,11 @@ git diff --stat develop...HEAD
 
 Expected: 계획에 나열한 파일만 나타난다. `FourByFourKeyboardView.swift`, `NaratgeulKeyboardView.swift`, `DubeolsikKeyboardView.swift`, `EnglishKeyboardView.swift`, `StandardKeyboardView.swift`, `NumericKeyboardView.swift`, `SymbolKeyboardView.swift`가 diff에 있으면 **범위 초과이므로 되돌린다.**
 
-- [ ] **Step 4: 계획 문서에 검증 결과를 기록한다**
+- [x] **Step 4: 계획 문서에 검증 결과를 기록한다** — 완료. 아래 검증 기록 표
 
 이 문서 하단의 "검증 기록"에 실제 실행한 명령, 시뮬레이터 기기명·OS, 테스트 개수, 빌드 결과를 적는다. `.xcresult`에서 결과를 읽었다면 산출물 경로와 추출 명령도 함께 남긴다.
 
-- [ ] **Step 5: 문서 커밋**
+- [x] **Step 5: 문서 커밋** — 완료
 
 ```bash
 git add docs/superpowers/plans/2026-08-27-cheonjiin-bottom-space-layout.md
@@ -1367,13 +1367,46 @@ git commit -m "docs: #114 - 천지인 하단 배치 계획 검증 결과 기록"
 
 > Task 7 Step 4에서 채운다. 실행하지 못한 항목은 이유와 함께 남긴다.
 
+실행 환경: **iPhone 13 mini / iOS 16.0 시뮬레이터** (계획서 기준 환경 그대로), macOS 26.5.2, 2026-08-28 02:21 KST, HEAD `632a11c3`.
+
 | 항목 | 명령 | 결과 | 비고 |
 |---|---|---|---|
-| 전체 테스트 | | | |
-| HangeulKeyboard 빌드 | | | |
-| EnglishKeyboard 빌드 | | | |
-| HangeulEnglishKeyboard 빌드 | | | |
-| 수동 확인 | | | |
+| 전체 테스트 | `xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0'` | `** TEST SUCCEEDED **` · **479 고유 / 495 전개 / 0 failed** | 로그 `<workspace>/final-test.log`, xcresult `DerivedData/SYKeyboard-hgprdtyustcuukabeovkjzrtclhy/Logs/Test/Test-SYKeyboard-2026.08.28_02-21-15-+0900.xcresult` |
+| HangeulKeyboard 빌드 | `xcodebuild build -scheme HangeulKeyboard -destination '...iPhone 13 mini,OS=16.0'` | `** BUILD SUCCEEDED **` (exit 0) | 로그 `<workspace>/build-HangeulKeyboard.log` |
+| EnglishKeyboard 빌드 | `xcodebuild build -scheme EnglishKeyboard -destination '...iPhone 13 mini,OS=16.0'` | `** BUILD SUCCEEDED **` (exit 0) | 로그 `<workspace>/build-EnglishKeyboard.log` |
+| HangeulEnglishKeyboard 빌드 | `xcodebuild build -scheme HangeulEnglishKeyboard -destination '...iPhone 13 mini,OS=16.0'` | `** BUILD SUCCEEDED **` (exit 0) | 로그 `<workspace>/build-HangeulEnglishKeyboard.log` |
+| 변경 범위 | `git diff --stat 0a6167b4...HEAD` / `git status --short` | 19개 파일, 범위 초과 0건, 워킹 트리 clean | 나랏글·두벌식·쿼티·기호·숫자 키보드 무변경 |
+| 수동 확인 | — | **미실행** | Step 6 체크리스트. 실기기/시뮬레이터에서 키보드 확장을 활성화해야 하므로 자동화로 대체 불가 |
+
+테스트 개수 추출 명령:
+
+```sh
+RES=$(ls -td ~/Library/Developer/Xcode/DerivedData/SYKeyboard-*/Logs/Test/*.xcresult | head -1)
+xcrun xcresulttool get test-results summary --path "$RES"
+```
+
+최상위 `passedTests`가 고유 테스트 수(479), `devicesAndConfigurations[].passedTests`가 파라미터 전개 포함 실행 수(495)다.
+
+### task별 테스트 증가 추이
+
+| 시점 | 커밋 | 고유 | 전개 |
+|---|---|---|---|
+| 기준선(develop) | `0a6167b4` | 460 | 464 |
+| Task 1 | `560e268a` | 461 | 465 |
+| Task 2 | `5dee8001` | 466 | 475 |
+| Task 2 fix | `93899f83` | 467 | 479 |
+| Task 3 (리팩터, 테스트 미추가) | `b4ff99c6` | 467 | 479 |
+| Task 4 | `0e0b6c0c` | 473 | 486 |
+| Task 5 | `6099784d` | 476 | 489 |
+| Task 6 | `632a11c3` | 479 | 495 |
+
+감소 구간 없음. Task 3에서 개수가 유지된 것은 테스트를 추가하지 않는 동작 불변 리팩터였기 때문이다.
+
+### 알려진 기존 제약 (이번 변경과 무관, 수정하지 않음)
+
+Task 5 구현 중 발견했다. 지구본(`nextKeyboardButton`)이 표시되는 기기에서는 modifier 영역이 `.fillEqually`로 3등분되어 `switchButton`이 약 32.5pt로 좁아진다. 이때 취소 경계 제약(우선순위 999)이 required인 `keyboardSelectCancelMinWidth`(32)와 동시에 성립할 수 없어 Auto Layout이 999를 버리고, 취소 경계가 `switchButton` 모서리보다 **15.67pt 바깥**에 놓인다.
+
+`develop`에서도 동일하게 재현되며 하단 배치 설정과 무관하다. 이번 변경이 이 제약을 악화시키지 않았음은 Task 5 리뷰가 확인했다(경쟁 제약쌍 구조가 원본과 동일, 새 제약 없음). CLAUDE.md의 "기존부터 존재한 제약과 이번 변경으로 생긴 회귀를 구분하고, 요청되지 않은 기존 동작 개선을 같은 작업에 포함하지 않는다"에 따라 별도 이슈로 남긴다.
 
 ---
 
