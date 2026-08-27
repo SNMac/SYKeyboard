@@ -14,6 +14,7 @@ final public class KeyboardSelectOverlayView: UIStackView {
     
     private let keyboard: SYKeyboardType
     private var isEmphasizingTarget: Bool?
+    private let keyboardSelectDirection: PanDirection
     
     // MARK: - UI Components
     
@@ -64,10 +65,14 @@ final public class KeyboardSelectOverlayView: UIStackView {
     
     // MARK: - Initializer
     
-    public init(keyboard: SYKeyboardType) {
+    public init(keyboard: SYKeyboardType, usesBottomSpaceLayout: Bool = false) {
         self.keyboard = keyboard
+        self.keyboardSelectDirection = KeyboardSelectDirectionPolicy.targetDirection(
+            for: keyboard,
+            usesBottomSpaceLayout: usesBottomSpaceLayout
+        )
         super.init(frame: .zero)
-        
+
         setupUI()
     }
     
@@ -156,18 +161,26 @@ private extension KeyboardSelectOverlayView {
     
     func setHierarchy() {
         self.addSubview(blurView)
-        
+
         xmarkImageContainerView.addSubview(xmarkImageView)
-        
+
+        let targetLabel: UILabel
         switch keyboard {
-        case .naratgeul, .cheonjiin:
-            [numericLabel, xmarkImageContainerView].forEach { self.addArrangedSubview($0) }
-        case .dubeolsik, .qwerty, .symbol:
-            [xmarkImageContainerView, numericLabel].forEach { self.addArrangedSubview($0) }
+        case .naratgeul, .cheonjiin, .dubeolsik, .qwerty, .symbol:
+            targetLabel = numericLabel
         case .numeric:
-            [symbolLabel, xmarkImageContainerView].forEach { self.addArrangedSubview($0) }
+            targetLabel = symbolLabel
         default:
             assertionFailure("구현되지 않은 case입니다.")
+            return
+        }
+
+        // 목표 라벨은 손가락이 향하는 쪽에, 취소(X)는 `switchButton` 위에 놓인다
+        switch keyboardSelectDirection {
+        case .right:
+            [xmarkImageContainerView, targetLabel].forEach { self.addArrangedSubview($0) }
+        default:
+            [targetLabel, xmarkImageContainerView].forEach { self.addArrangedSubview($0) }
         }
     }
     
