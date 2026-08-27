@@ -218,4 +218,50 @@ struct CheonjiinBottomSpaceLayoutTests {
                 - (overlay.bounds.width - overlay.directionalLayoutMargins.trailing)) < 0.5
         )
     }
+
+    @Test("하단 배치에서도 리턴 표시 모드 4종은 스페이스·리턴을 함께 노출",
+          arguments: [HangeulKeyboardMode.default, .URL, .emailAddress, .webSearch])
+    func testBottomSpaceLayoutReturnVisibleModes(_ mode: HangeulKeyboardMode) {
+        let view = Self.makeView(usesBottomSpaceLayout: true)
+
+        view.currentHangeulKeyboardMode = .twitter
+        view.currentHangeulKeyboardMode = mode
+        view.layoutIfNeeded()
+
+        #expect(!view.spaceButton.isHidden)
+        #expect(!view.returnButton.isHidden)
+        #expect(view.secondaryAtButton.isHidden)
+        #expect(view.secondarySharpButton.isHidden)
+    }
+
+    @Test("하단 배치의 twitter 모드는 리턴 대신 @·#을 2행에 노출")
+    func testBottomSpaceLayoutTwitterMode() {
+        let view = Self.makeView(usesBottomSpaceLayout: true)
+
+        view.currentHangeulKeyboardMode = .twitter
+        view.layoutIfNeeded()
+
+        #expect(!view.spaceButton.isHidden)
+        #expect(view.returnButton.isHidden)
+        #expect(!view.secondaryAtButton.isHidden)
+        #expect(!view.secondarySharpButton.isHidden)
+        // @·#은 리턴이 있던 2행 우측 칸에 그대로 남고 스페이스보다 위에 있다
+        #expect(Self.rect(view.secondaryAtButton, in: view).midY
+                < Self.rect(view.spaceButton, in: view).midY)
+        // 둘은 같은 returnButtonHStackView 안이라 변환 없이 비교한다
+        #expect(view.secondaryAtButton.frame.maxX <= view.secondarySharpButton.frame.minX + 0.5)
+    }
+
+    @Test("꺼짐 상태의 twitter 모드는 기존처럼 @·#이 스페이스보다 아래")
+    func testDefaultLayoutTwitterMode() {
+        let view = Self.makeView(usesBottomSpaceLayout: false)
+
+        view.currentHangeulKeyboardMode = .twitter
+        view.layoutIfNeeded()
+
+        #expect(view.returnButton.isHidden)
+        #expect(!view.secondaryAtButton.isHidden)
+        #expect(Self.rect(view.secondaryAtButton, in: view).midY
+                > Self.rect(view.spaceButton, in: view).midY)
+    }
 }
