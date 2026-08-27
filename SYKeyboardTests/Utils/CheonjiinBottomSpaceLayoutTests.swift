@@ -59,7 +59,7 @@ struct CheonjiinBottomSpaceLayoutTests {
         #expect(abs(switchRect.minX) < 0.5)
     }
 
-    @Test("켜짐 상태의 리턴은 2행, 마침표·쉼표는 3행")
+    @Test("켜짐 상태의 리턴은 2행, 물음표·느낌표는 3행, 마침표·쉼표는 4행")
     func testBottomSpaceLayoutRowAssignment() throws {
         let view = Self.makeView(usesBottomSpaceLayout: true)
         let keyButtons = view.primaryButtonList.compactMap { $0 as? PrimaryKeyButton }
@@ -72,13 +72,13 @@ struct CheonjiinBottomSpaceLayoutTests {
         let space = Self.rect(view.spaceButton, in: view)
         let questionRect = Self.rect(questionButton, in: view)
 
-        // 1행(삭제) < 2행(리턴) < 3행(마침표) < 4행(스페이스)
+        // 1행(삭제) < 2행(리턴) < 3행(물음표) < 4행(스페이스)
         #expect(deleteRect.midY < returnRect.midY)
-        #expect(returnRect.midY < periodRect.midY)
-        #expect(periodRect.midY < space.midY)
-        // '?'·'!'는 4행 우측 끝에 남는다
-        #expect(abs(questionRect.midY - space.midY) < 0.5)
-        #expect(questionRect.minX >= space.maxX - 0.5)
+        #expect(returnRect.midY < questionRect.midY)
+        #expect(questionRect.midY < space.midY)
+        // '.'·','가 4행 우측 끝으로 내려온다
+        #expect(abs(periodRect.midY - space.midY) < 0.5)
+        #expect(periodRect.minX >= space.maxX - 0.5)
     }
 
     @Test("꺼짐 상태의 스페이스는 2행, 리턴은 3행, 마침표·물음표는 4행")

@@ -194,16 +194,17 @@ private extension FourByFourPlusKeyboardView {
         
         let modifierButtons: [SecondaryButton]
         if usesBottomSpaceLayout {
-            // 스페이스가 4행으로 내려가면서 리턴 영역이 2행, 좌측 글자 스택('.', ',')이
-            // 3행 우측 칸으로 올라가고 우측 글자 스택('?', '!')만 4행 끝에 남는다.
+            // 스페이스가 4행으로 내려가면서 리턴 영역이 2행, 우측 글자 스택('?', '!')이
+            // 3행 우측 칸으로 올라가고 좌측 글자 스택('.', ',')이 4행 끝으로 간다.
+            // 자주 쓰는 '.', ','를 엄지에 가까운 아래쪽에 둔다.
             // 모든 행은 그대로 4칸 균등 분할이다
             secondRowHStackView.addArrangedSubview(returnButtonHStackView)
-            thirdRowHStackView.addArrangedSubview(fourthRowLeftPrimaryButtonHStackView)
+            thirdRowHStackView.addArrangedSubview(fourthRowRightPrimaryButtonHStackView)
             
             [fourthRowRightSecondaryButtonHStackView,
              fourthRowPrimaryKeyButtonList[2],
              spaceButton,
-             fourthRowRightPrimaryButtonHStackView].forEach { fourthRowHStackView.addArrangedSubview($0) }
+             fourthRowLeftPrimaryButtonHStackView].forEach { fourthRowHStackView.addArrangedSubview($0) }
             
             modifierButtons = [switchButton]
             + [languageSwitchButton].compactMap { $0 }

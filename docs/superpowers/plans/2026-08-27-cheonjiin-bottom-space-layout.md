@@ -35,8 +35,8 @@
 |---|---|
 | 배치안 | **안 A**(기존 천지인 배치 재현) |
 | 적용 범위 | **천지인만.** 나랏글은 대상 아님 |
-| 3행 우측 칸 | `.` / `,` (기존 `fourthRowLeftPrimaryButtonHStackView`를 그대로 재부모화) |
-| 4행 우측 끝 칸 | `?` / `!` (기존 `fourthRowRightPrimaryButtonHStackView` 유지) |
+| 3행 우측 칸 | `?` / `!` (기존 `fourthRowRightPrimaryButtonHStackView`를 재부모화) |
+| 4행 우측 끝 칸 | `.` / `,` (기존 `fourthRowLeftPrimaryButtonHStackView`를 재부모화). 자주 쓰는 마침표·쉼표를 엄지에 가까운 아래쪽에 둔다 |
 | 4행 첫 칸 | modifier 스택. 좌→우 `!#1` → `한/영` → `🌐` |
 | modifier 폭 분배 | **현재 계약 그대로.** 지구본 숨김 → `.fill`(한/영 `0.1W` 고정 + `!#1`이 나머지), 지구본 표시 → `.fillEqually`(3등분) |
 | 선택 오버레이 방향 | **`targetDirection`까지 `.right`로 반전.** 오버레이가 `!#1` 오른쪽으로 열리고, 코너 힌트도 `123▶` 형태로 미러링 |
@@ -48,8 +48,8 @@
 [꺼짐 = 현재]                        [켜짐]
 ㅣ    ㆍ    ㅡ    ⌫                 ㅣ    ㆍ    ㅡ    ⌫
 ㄱㅋ  ㄴㄹ  ㄷㅌ  space              ㄱㅋ  ㄴㄹ  ㄷㅌ  ↵ @ #
-ㅂㅍ  ㅅㅎ  ㅈㅊ  ↵ @ #              ㅂㅍ  ㅅㅎ  ㅈㅊ  . ,
-. ,  ㅇㅁ  ? !   🌐 한/영 !#1        !#1 한/영 🌐  ㅇㅁ  space  ? !
+ㅂㅍ  ㅅㅎ  ㅈㅊ  ↵ @ #              ㅂㅍ  ㅅㅎ  ㅈㅊ  ? !
+. ,  ㅇㅁ  ? !   🌐 한/영 !#1        !#1 한/영 🌐  ㅇㅁ  space  . ,
 ```
 
 두 배치 모두 **네 행 전부가 4칸 균등 분할**을 유지한다. 어떤 칸도 폭 계약이 바뀌지 않으므로 `KeyboardRowHStackView` 자체는 손대지 않는다.
@@ -804,7 +804,7 @@ struct CheonjiinBottomSpaceLayoutTests {
         #expect(switchRect.maxX <= space.minX + 0.5)
     }
 
-    @Test("켜짐 상태의 리턴은 2행, 마침표·쉼표는 3행")
+    @Test("켜짐 상태의 리턴은 2행, 물음표·느낌표는 3행, 마침표·쉼표는 4행")
     func testBottomSpaceLayoutRowAssignment() throws {
         let view = Self.makeView(usesBottomSpaceLayout: true)
         let keyButtons = view.primaryButtonList.compactMap { $0 as? PrimaryKeyButton }
@@ -817,13 +817,13 @@ struct CheonjiinBottomSpaceLayoutTests {
         let space = Self.rect(view.spaceButton, in: view)
         let questionRect = Self.rect(questionButton, in: view)
 
-        // 1행(삭제) < 2행(리턴) < 3행(마침표) < 4행(스페이스)
+        // 1행(삭제) < 2행(리턴) < 3행(물음표) < 4행(스페이스)
         #expect(deleteRect.midY < returnRect.midY)
-        #expect(returnRect.midY < periodRect.midY)
-        #expect(periodRect.midY < space.midY)
-        // '?'·'!'는 4행 우측 끝에 남는다
-        #expect(abs(questionRect.midY - space.midY) < 0.5)
-        #expect(questionRect.minX >= space.maxX - 0.5)
+        #expect(returnRect.midY < questionRect.midY)
+        #expect(questionRect.midY < space.midY)
+        // '.'·','가 4행 우측 끝으로 내려온다
+        #expect(abs(periodRect.midY - space.midY) < 0.5)
+        #expect(periodRect.minX >= space.maxX - 0.5)
     }
 
     @Test("두 배치 모두 삭제·스페이스 버튼이 한 칸 폭을 유지",
@@ -970,16 +970,17 @@ Expected: 컴파일 에러 `extra argument 'usesBottomSpaceLayout' in call`
         
         let modifierButtons: [SecondaryButton]
         if usesBottomSpaceLayout {
-            // 스페이스가 4행으로 내려가면서 리턴 영역이 2행, 좌측 글자 스택('.', ',')이
-            // 3행 우측 칸으로 올라가고 우측 글자 스택('?', '!')만 4행 끝에 남는다.
+            // 스페이스가 4행으로 내려가면서 리턴 영역이 2행, 우측 글자 스택('?', '!')이
+            // 3행 우측 칸으로 올라가고 좌측 글자 스택('.', ',')이 4행 끝으로 간다.
+            // 자주 쓰는 '.', ','를 엄지에 가까운 아래쪽에 둔다.
             // 모든 행은 그대로 4칸 균등 분할이다
             secondRowHStackView.addArrangedSubview(returnButtonHStackView)
-            thirdRowHStackView.addArrangedSubview(fourthRowLeftPrimaryButtonHStackView)
+            thirdRowHStackView.addArrangedSubview(fourthRowRightPrimaryButtonHStackView)
             
             [fourthRowRightSecondaryButtonHStackView,
              fourthRowPrimaryKeyButtonList[2],
              spaceButton,
-             fourthRowRightPrimaryButtonHStackView].forEach { fourthRowHStackView.addArrangedSubview($0) }
+             fourthRowLeftPrimaryButtonHStackView].forEach { fourthRowHStackView.addArrangedSubview($0) }
             
             modifierButtons = [switchButton]
             + [languageSwitchButton].compactMap { $0 }
@@ -1016,7 +1017,7 @@ Expected: 컴파일 에러 `extra argument 'usesBottomSpaceLayout' in call`
 
 `HangeulKeyboardInputAdapter`는 `CheonjiinKeyboardView(showsLanguageSwitchButton:)`만 호출하므로, 기본 인자가 설정값을 집어와 별도 배관이 필요 없다.
 
-**네이밍 주의:** 하단 배치에서 `fourthRowLeftPrimaryButtonHStackView`는 3행에 붙는다. 이름이 위치와 어긋나지만, 두 배치가 같은 스택 객체를 공유하므로 어느 쪽 이름을 써도 한쪽에서는 어긋난다. 기존 이름을 유지하고 위 주석으로 의도를 남긴다. 이름 변경은 이번 변경 범위 밖이다.
+**네이밍 주의:** 하단 배치에서 `fourthRowRightPrimaryButtonHStackView`는 3행에 붙는다. 이름이 위치와 어긋나지만, 두 배치가 같은 스택 객체를 공유하므로 어느 쪽 이름을 써도 한쪽에서는 어긋난다. 기존 이름을 유지하고 위 주석으로 의도를 남긴다. 이름 변경은 이번 변경 범위 밖이다.
 
 - [x] **Step 6: 배치 테스트가 통과하는지 확인한다** — 완료. `CheonjiinBottomSpaceLayoutTests` 6개 + `KeyboardModifierLayoutTests` 전부 통과
 
