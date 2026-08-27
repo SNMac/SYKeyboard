@@ -23,6 +23,7 @@
 - `Modules/`에 새 `.swift` 파일을 추가하면 `SYKeyboard.xcodeproj/project.pbxproj`의 **두 개** `membershipExceptions` 목록(`SYKeyboard` 타깃 블록, `SYKeyboardCore` 타깃 블록)에 알파벳 순으로 등록해야 한다. `SYKeyboardTests/`는 동기화 그룹이라 등록이 필요 없다.
 - 검증 기준 시뮬레이터: `iPhone 13 mini / iOS 16.0`. 해당 런타임이 없으면 가장 가까운 iOS 16+ 시뮬레이터로 조정하고 최종 보고에 실제 기기명과 OS를 적는다.
 - `-only-testing`이나 code coverage 옵션을 쓴 뒤 extension scheme을 빌드할 때는 옵션을 반드시 비운다.
+- **버튼 프레임은 각자의 행 스택 좌표계에 있다.** `deleteButton`, `spaceButton`, `returnButton`, `switchButton`은 서로 다른 `KeyboardRowHStackView` 안에 있어 `frame.midY`가 전부 27.0(행 높이 54의 중앙)으로 같다. **행을 가로지르는 위치 비교는 반드시 키보드 뷰 좌표계로 변환한다**: `subview.convert(subview.bounds, to: view)`. 같은 컨테이너 안의 비교(`switchButton` vs `languageSwitchButton`, `@` vs `#`)와 폭 비교는 변환이 필요 없다.
 
 ---
 
@@ -768,39 +769,57 @@ struct CheonjiinBottomSpaceLayoutTests {
         return view
     }
 
+    /// 버튼 프레임은 각자의 행 스택 좌표계에 있어 `midY`가 전부 같다.
+    /// 행을 가로질러 비교하려면 키보드 뷰 좌표계로 변환해야 한다
+    @MainActor
+    private static func rect(_ subview: UIView, in view: UIView) -> CGRect {
+        subview.convert(subview.bounds, to: view)
+    }
+
     @Test("꺼짐 상태는 스페이스가 리턴보다 위, !#1이 우측 끝")
     func testDefaultLayoutKeepsSpaceAboveReturn() {
         let view = Self.makeView(usesBottomSpaceLayout: false)
+        let space = Self.rect(view.spaceButton, in: view)
+        let returnRect = Self.rect(view.returnButton, in: view)
+        let switchRect = Self.rect(view.switchButton, in: view)
 
-        #expect(view.spaceButton.frame.midY < view.returnButton.frame.midY)
-        #expect(view.returnButton.frame.midY < view.switchButton.frame.midY)
-        #expect(view.switchButton.frame.maxX > view.spaceButton.frame.maxX)
+        #expect(space.midY < returnRect.midY)
+        #expect(returnRect.midY < switchRect.midY)
+        #expect(switchRect.maxX > space.maxX)
     }
 
     @Test("켜짐 상태는 리턴이 스페이스보다 위, 스페이스가 !#1과 같은 행")
     func testBottomSpaceLayoutMovesSpaceToLastRow() {
         let view = Self.makeView(usesBottomSpaceLayout: true)
+        let space = Self.rect(view.spaceButton, in: view)
+        let returnRect = Self.rect(view.returnButton, in: view)
+        let switchRect = Self.rect(view.switchButton, in: view)
 
-        #expect(view.returnButton.frame.midY < view.spaceButton.frame.midY)
-        #expect(abs(view.spaceButton.frame.midY - view.switchButton.frame.midY) < 0.5)
-        #expect(view.switchButton.frame.maxX <= view.spaceButton.frame.minX + 0.5)
+        #expect(returnRect.midY < space.midY)
+        #expect(abs(space.midY - switchRect.midY) < 0.5)
+        #expect(switchRect.maxX <= space.minX + 0.5)
     }
 
     @Test("켜짐 상태의 리턴은 2행, 마침표·쉼표는 3행")
     func testBottomSpaceLayoutRowAssignment() throws {
         let view = Self.makeView(usesBottomSpaceLayout: true)
-
         let keyButtons = view.primaryButtonList.compactMap { $0 as? PrimaryKeyButton }
         let periodButton = try #require(keyButtons.first { $0.type.primaryKeyList.first == "." })
         let questionButton = try #require(keyButtons.first { $0.type.primaryKeyList.first == "?" })
 
+        let deleteRect = Self.rect(view.deleteButton, in: view)
+        let returnRect = Self.rect(view.returnButton, in: view)
+        let periodRect = Self.rect(periodButton, in: view)
+        let space = Self.rect(view.spaceButton, in: view)
+        let questionRect = Self.rect(questionButton, in: view)
+
         // 1행(삭제) < 2행(리턴) < 3행(마침표) < 4행(스페이스)
-        #expect(view.deleteButton.frame.midY < view.returnButton.frame.midY)
-        #expect(view.returnButton.frame.midY < periodButton.frame.midY)
-        #expect(periodButton.frame.midY < view.spaceButton.frame.midY)
+        #expect(deleteRect.midY < returnRect.midY)
+        #expect(returnRect.midY < periodRect.midY)
+        #expect(periodRect.midY < space.midY)
         // '?'·'!'는 4행 우측 끝에 남는다
-        #expect(abs(questionButton.frame.midY - view.spaceButton.frame.midY) < 0.5)
-        #expect(questionButton.frame.minX >= view.spaceButton.frame.maxX - 0.5)
+        #expect(abs(questionRect.midY - space.midY) < 0.5)
+        #expect(questionRect.minX >= space.maxX - 0.5)
     }
 
     @Test("두 배치 모두 네 행이 4칸 균등 분할을 유지",
@@ -809,6 +828,7 @@ struct CheonjiinBottomSpaceLayoutTests {
         let view = Self.makeView(usesBottomSpaceLayout: usesBottomSpaceLayout)
         let columnWidth = Self.keyboardWidth / 4
 
+        // 폭은 좌표계와 무관하므로 변환이 필요 없다
         #expect(abs(view.deleteButton.frame.width - columnWidth) < 0.5)
         #expect(abs(view.spaceButton.frame.width - columnWidth) < 0.5)
     }
@@ -818,7 +838,8 @@ struct CheonjiinBottomSpaceLayoutTests {
         let view = Self.makeView(usesBottomSpaceLayout: true)
         let languageButton = try #require(view.languageSwitchButton)
 
-        view.updateNextKeyboardButton(
+        let primaryView: PrimaryKeyboardRepresentable = view
+        primaryView.updateNextKeyboardButton(
             needsInputModeSwitchKey: false,
             nextKeyboardAction: NSSelectorFromString("unusedNextKeyboardAction:")
         )
@@ -831,7 +852,7 @@ struct CheonjiinBottomSpaceLayoutTests {
         )
         // 남는 너비는 전환 버튼이 채운다
         #expect(languageButton.frame.width < view.switchButton.frame.width)
-        // 좌→우 !#1 → 한/영 → 🌐
+        // 같은 modifier 스택 안이라 변환 없이 비교한다. 좌→우 !#1 → 한/영
         #expect(view.switchButton.frame.maxX <= languageButton.frame.minX + 0.5)
     }
 
@@ -840,14 +861,17 @@ struct CheonjiinBottomSpaceLayoutTests {
         let view = Self.makeView(usesBottomSpaceLayout: true)
         let languageButton = try #require(view.languageSwitchButton)
 
-        view.updateNextKeyboardButton(
+        let primaryView: PrimaryKeyboardRepresentable = view
+        primaryView.updateNextKeyboardButton(
             needsInputModeSwitchKey: true,
             nextKeyboardAction: NSSelectorFromString("unusedNextKeyboardAction:")
         )
         view.layoutIfNeeded()
 
+        #expect(!view.nextKeyboardButton.isHidden)
         #expect(abs(view.switchButton.frame.width - languageButton.frame.width) < 1.0)
         #expect(abs(languageButton.frame.width - view.nextKeyboardButton.frame.width) < 1.0)
+        // 좌→우 !#1 → 한/영 → 🌐
         #expect(view.switchButton.frame.maxX <= languageButton.frame.minX + 0.5)
         #expect(languageButton.frame.maxX <= view.nextKeyboardButton.frame.minX + 0.5)
     }
@@ -1038,15 +1062,22 @@ git commit -m "feat: #114 - 천지인 하단 배치에서 스페이스와 리턴
         view.layoutIfNeeded()
 
         let overlay = view.keyboardSelectOverlayView
+        let switchRect = Self.rect(view.switchButton, in: view)
+        // 오버레이는 키보드 뷰의 직접 subview라 frame이 이미 뷰 좌표계다
         #expect(abs(overlay.frame.minX - 4) < 0.5)
-        #expect(overlay.frame.maxY <= view.switchButton.frame.minY - 4 + 0.5)
+        #expect(overlay.frame.maxY <= switchRect.minY - 4 + 0.5)
 
         let xmarkInView = overlay.convert(overlay.xmarkImageContainerView.frame, to: view)
         #expect(
             abs(xmarkInView.maxX
-                - (view.switchButton.frame.maxX - KeyboardLayoutFigure.keyboardSelectBoundaryInset)) < 0.5
+                - (switchRect.maxX - KeyboardLayoutFigure.keyboardSelectBoundaryInset)) < 0.5
         )
         #expect(xmarkInView.width >= KeyboardLayoutFigure.keyboardSelectCancelMinWidth - 0.5)
+        // `.right` 방향이면 X가 스택의 첫 칸이라 오버레이 왼쪽 끝에 붙는다
+        #expect(
+            abs(overlay.xmarkImageContainerView.frame.minX
+                - overlay.directionalLayoutMargins.leading) < 0.5
+        )
     }
 
     @Test("켜짐 상태의 한 손 모드 오버레이는 !#1 위 좌측에 놓임")
@@ -1056,8 +1087,9 @@ git commit -m "feat: #114 - 천지인 하단 배치에서 스페이스와 리턴
         view.layoutIfNeeded()
 
         let overlay = view.oneHandedModeSelectOverlayView
+        let switchRect = Self.rect(view.switchButton, in: view)
         #expect(abs(overlay.frame.minX - 4) < 0.5)
-        #expect(overlay.frame.maxY <= view.switchButton.frame.minY - 4 + 0.5)
+        #expect(overlay.frame.maxY <= switchRect.minY - 4 + 0.5)
         #expect(abs(overlay.frame.width - KeyboardLayoutFigure.oneHandedModeSelectOverlayWidth) < 0.5)
     }
 
@@ -1068,12 +1100,18 @@ git commit -m "feat: #114 - 천지인 하단 배치에서 스페이스와 리턴
         view.layoutIfNeeded()
 
         let overlay = view.keyboardSelectOverlayView
+        let switchRect = Self.rect(view.switchButton, in: view)
         #expect(abs(overlay.frame.maxX - (Self.keyboardWidth - 4)) < 0.5)
 
         let xmarkInView = overlay.convert(overlay.xmarkImageContainerView.frame, to: view)
         #expect(
             abs(xmarkInView.minX
-                - (view.switchButton.frame.minX + KeyboardLayoutFigure.keyboardSelectBoundaryInset)) < 0.5
+                - (switchRect.minX + KeyboardLayoutFigure.keyboardSelectBoundaryInset)) < 0.5
+        )
+        // `.left` 방향이면 X가 스택의 마지막 칸이라 오버레이 오른쪽 끝에 붙는다
+        #expect(
+            abs(overlay.xmarkImageContainerView.frame.maxX
+                - (overlay.bounds.width - overlay.directionalLayoutMargins.trailing)) < 0.5
         )
     }
 ```
@@ -1205,7 +1243,9 @@ git commit -m "feat: #114 - 천지인 하단 배치에서 선택 오버레이 �
         #expect(!view.secondaryAtButton.isHidden)
         #expect(!view.secondarySharpButton.isHidden)
         // @·#은 리턴이 있던 2행 우측 칸에 그대로 남고 스페이스보다 위에 있다
-        #expect(view.secondaryAtButton.frame.midY < view.spaceButton.frame.midY)
+        #expect(Self.rect(view.secondaryAtButton, in: view).midY
+                < Self.rect(view.spaceButton, in: view).midY)
+        // 둘은 같은 returnButtonHStackView 안이라 변환 없이 비교한다
         #expect(view.secondaryAtButton.frame.maxX <= view.secondarySharpButton.frame.minX + 0.5)
     }
 
@@ -1218,7 +1258,8 @@ git commit -m "feat: #114 - 천지인 하단 배치에서 선택 오버레이 �
 
         #expect(view.returnButton.isHidden)
         #expect(!view.secondaryAtButton.isHidden)
-        #expect(view.secondaryAtButton.frame.midY > view.spaceButton.frame.midY)
+        #expect(Self.rect(view.secondaryAtButton, in: view).midY
+                > Self.rect(view.spaceButton, in: view).midY)
     }
 ```
 
