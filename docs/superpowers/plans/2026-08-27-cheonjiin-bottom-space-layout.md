@@ -91,7 +91,7 @@
 
 **Files:** 없음
 
-- [x] **Step 1: `develop`에서 작업 브랜치를 만든다** — 완료. `feat/#114-cheonjiin-bottom-space` 생성(base `a6a34477`의 부모 `0a6167b4`), `git status --short` 출력 없음
+- [x] **Step 1: `develop`에서 작업 브랜치를 만든다** — 완료. `feat/#114-cheonjiin-bottom-space` 생성(base `a6a34477`의 부모 `c7aa4fa8`), `git status --short` 출력 없음
 
 ```bash
 git switch develop
@@ -276,7 +276,7 @@ xcodebuild build \
 
 Expected: `** BUILD SUCCEEDED **`
 
-- [x] **Step 9: 커밋한다** — 완료. 커밋 `560e268a`. 전체 465 고유 / 0 failed
+- [x] **Step 9: 커밋한다** — 완료. 커밋 `18f8b9dd`. 전체 465 고유 / 0 failed
 
 ```bash
 git add Modules/SYKeyboardCore/Storage/UserDefaultsKeys.swift \
@@ -444,7 +444,7 @@ xcodebuild test \
 
 Expected: `** TEST SUCCEEDED **`, 10개 테스트 통과(파라미터 조합 포함)
 
-- [x] **Step 6: 커밋한다** — 완료. 커밋 `5dee8001`. 전체 466 고유 / 0 failed
+- [x] **Step 6: 커밋한다** — 완료. 커밋 `0fa2cac3`. 전체 466 고유 / 0 failed
 
 ```bash
 git add Modules/SYKeyboardCore/Presentation/Utils/Policies/KeyboardSelectDirectionPolicy.swift \
@@ -453,7 +453,7 @@ git add Modules/SYKeyboardCore/Presentation/Utils/Policies/KeyboardSelectDirecti
 git commit -m "feat: #114 - 키보드 선택 오버레이 방향 정책 타입 추가"
 ```
 
-- [x] **Step 7(추가): 리뷰 지적에 따른 `.tenKey` 분기 검증 추가** — 완료. 커밋 `93899f83`
+- [x] **Step 7(추가): 리뷰 지적에 따른 `.tenKey` 분기 검증 추가** — 완료. 커밋 `7f17c79d`
 
 계획에는 없던 step이다. Task 2 리뷰가 "Global Constraints 표는 `.tenKey → .left`를 명시하는데 브리프의 테스트 파일이 그 조합을 빠뜨렸다"는 plan-mandated Important를 올렸고, 컨트롤러가 수정하기로 판정했다. `KeyboardSelectDirectionPolicyTests`에 두 플래그 값 모두에서 `.left`를 반환하는지 확인하는 테스트를 추가했다. 전체 467 고유 / 479 전개 / 0 failed.
 
@@ -714,7 +714,7 @@ xcodebuild test \
 
 Expected: `** TEST SUCCEEDED **`. Task 0 Step 2에서 기록한 테스트 개수와 같아야 하고(Task 1·2에서 추가된 것만 증가), 실패가 하나도 없어야 한다.
 
-- [x] **Step 7: 커밋한다** — 완료. 커밋 `b4ff99c6`
+- [x] **Step 7: 커밋한다** — 완료. 커밋 `51273347`
 
 ```bash
 git add Modules/SYKeyboardCore/Presentation/View/Components/Buttons/SwitchButton.swift \
@@ -740,7 +740,7 @@ git commit -m "refactor: #114 - 키보드 선택 방향 분기를 정책 타입�
   - `FourByFourPlusKeyboardView.usesBottomSpaceLayout: Bool` (public stored let, `SwitchGestureHandling` 요구사항 충족)
   - `CheonjiinKeyboardView.init(showsLanguageSwitchButton: Bool = false, usesBottomSpaceLayout: Bool = UserDefaultsManager.shared.isCheonjiinBottomSpaceEnabled)`
 
-- [x] **Step 1: 실패하는 배치 테스트를 쓴다** — 완료. **계획 정정 반영**: 버튼 프레임이 각자의 행 스택 좌표계라 행 간 비교가 불가능해 `Self.rect(_:in:)` 변환 헬퍼 도입(정정 커밋 `93758fb2`). 추가로 `#expect(switchRect.maxX > space.maxX)`가 꺼짐 배치에서 실측 390.0 > 390.0으로 성립 불가여서, 키보드 폭에 직접 거는 형태(꺼짐 `maxX == 390`, 켜짐 `minX == 0`)로 교체
+- [x] **Step 1: 실패하는 배치 테스트를 쓴다** — 완료. **계획 정정 반영**: 버튼 프레임이 각자의 행 스택 좌표계라 행 간 비교가 불가능해 `Self.rect(_:in:)` 변환 헬퍼 도입(정정 커밋 `e59dc717`). 추가로 `#expect(switchRect.maxX > space.maxX)`가 꺼짐 배치에서 실측 390.0 > 390.0으로 성립 불가여서, 키보드 폭에 직접 거는 형태(꺼짐 `maxX == 390`, 켜짐 `minX == 0`)로 교체
 
 `SYKeyboardTests/Utils/CheonjiinBottomSpaceLayoutTests.swift`를 새로 만든다.
 행 판정은 `deleteButton`(1행)과 `switchButton`(4행)을 기준점으로 삼아 내부 스택 구조가 바뀌어도 사용자 동작이 같으면 통과하게 한다.
@@ -826,9 +826,9 @@ struct CheonjiinBottomSpaceLayoutTests {
         #expect(questionRect.minX >= space.maxX - 0.5)
     }
 
-    @Test("두 배치 모두 네 행이 4칸 균등 분할을 유지",
+    @Test("두 배치 모두 삭제·스페이스 버튼이 한 칸 폭을 유지",
           arguments: [false, true])
-    func testAllRowsKeepFourEqualColumns(_ usesBottomSpaceLayout: Bool) {
+    func testDeleteAndSpaceKeepSingleColumnWidth(_ usesBottomSpaceLayout: Bool) {
         let view = Self.makeView(usesBottomSpaceLayout: usesBottomSpaceLayout)
         let columnWidth = Self.keyboardWidth / 4
 
@@ -1031,7 +1031,7 @@ xcodebuild test \
 
 Expected: `** TEST SUCCEEDED **`. `KeyboardModifierLayoutTests`의 기존 천지인 테스트도 함께 통과해야 한다(기본값 꺼짐이므로 영향 없음).
 
-- [x] **Step 7: 커밋한다** — 완료. 커밋 `0e0b6c0c`. 전체 473 고유 / 486 전개 / 0 failed, Auto Layout 경고 0건
+- [x] **Step 7: 커밋한다** — 완료. 커밋 `284c5a73`. 전체 473 고유 / 486 전개 / 0 failed, Auto Layout 경고 0건
 
 ```bash
 git add Modules/SYKeyboardCore/Presentation/View/KeyboardLayout/Bases/FourByFourPlusKeyboardView.swift \
@@ -1193,7 +1193,7 @@ xcodebuild test \
 
 Expected: `** TEST SUCCEEDED **`, 오버레이 테스트 3개 모두 통과
 
-- [x] **Step 5: 커밋한다** — 완료. 커밋 `6099784d`. 전체 476 고유 / 489 전개 / 0 failed, Auto Layout 경고 0건. **컨트롤러 판정으로 범위 추가**: `KeyboardModifierLayoutTests.swift`의 `FourByFourFixture.cheonjiin`이 새 기본 인자를 통해 영속 설정값을 읽게 되어 flaky해지므로 `usesBottomSpaceLayout: false`를 명시
+- [x] **Step 5: 커밋한다** — 완료. 커밋 `0b7bf055`. 전체 476 고유 / 489 전개 / 0 failed, Auto Layout 경고 0건. **컨트롤러 판정으로 범위 추가**: `KeyboardModifierLayoutTests.swift`의 `FourByFourFixture.cheonjiin`이 새 기본 인자를 통해 영속 설정값을 읽게 되어 flaky해지므로 `usesBottomSpaceLayout: false`를 명시
 
 ```bash
 git add Modules/SYKeyboardCore/Presentation/View/KeyboardLayout/Bases/FourByFourPlusKeyboardView.swift \
@@ -1225,6 +1225,10 @@ git commit -m "feat: #114 - 천지인 하단 배치에서 선택 오버레이 �
     func testBottomSpaceLayoutReturnVisibleModes(_ mode: HangeulKeyboardMode) {
         let view = Self.makeView(usesBottomSpaceLayout: true)
 
+        // `currentHangeulKeyboardMode`의 초기값이 `.default`이고 `didSet`이
+        // `guard oldMode != currentHangeulKeyboardMode`로 시작하므로,
+        // `.default`를 그대로 넣으면 레이아웃 갱신이 일어나지 않는다.
+        // 다른 모드를 한 번 거쳐 실제 전이를 만든다
         view.currentHangeulKeyboardMode = .twitter
         view.currentHangeulKeyboardMode = mode
         view.layoutIfNeeded()
@@ -1283,7 +1287,7 @@ Expected: `** TEST SUCCEEDED **`
 
 실패하면 Task 4의 `setHierarchy()` 분기에서 `returnButtonHStackView`가 2행에 붙지 않았거나, `secondaryAtButton`/`secondarySharpButton`이 스택에서 빠진 것이다. `HangeulKeyboardLayoutProvider`의 모드 메서드는 수정하지 않는다.
 
-- [x] **Step 3: 커밋한다** — 완료. 커밋 `632a11c3`. 전체 479 고유 / 495 전개 / 0 failed
+- [x] **Step 3: 커밋한다** — 완료. 커밋 `74d0c1b8`. 전체 479 고유 / 495 전개 / 0 failed
 
 ```bash
 git add SYKeyboardTests/Utils/CheonjiinBottomSpaceLayoutTests.swift
@@ -1323,7 +1327,7 @@ done
 
 Expected: 세 scheme 모두 `** BUILD SUCCEEDED **`
 
-- [x] **Step 3: 변경 범위를 확인한다** — 완료. `git diff --stat 0a6167b4...HEAD` 결과 19개 파일. 범위 초과 대상(`FourByFourKeyboardView`, `NaratgeulKeyboardView`, `DubeolsikKeyboardView`, `EnglishKeyboardView`, `StandardKeyboardView`, `NumericKeyboardView`, `SymbolKeyboardView`, `GoogleService-Info`, `Secrets.xcconfig`, entitlements, `Info.plist`) **0건**. `git status --short` 비어 있음
+- [x] **Step 3: 변경 범위를 확인한다** — 완료. `git diff --stat c7aa4fa8...HEAD` 결과 19개 파일. 범위 초과 대상(`FourByFourKeyboardView`, `NaratgeulKeyboardView`, `DubeolsikKeyboardView`, `EnglishKeyboardView`, `StandardKeyboardView`, `NumericKeyboardView`, `SymbolKeyboardView`, `GoogleService-Info`, `Secrets.xcconfig`, entitlements, `Info.plist`) **0건**. `git status --short` 비어 있음
 
 ```bash
 git status --short
@@ -1367,7 +1371,9 @@ git commit -m "docs: #114 - 천지인 하단 배치 계획 검증 결과 기록"
 
 > Task 7 Step 4에서 채운다. 실행하지 못한 항목은 이유와 함께 남긴다.
 
-실행 환경: **iPhone 13 mini / iOS 16.0 시뮬레이터** (계획서 기준 환경 그대로), macOS 26.5.2, 2026-08-28 02:21 KST, HEAD `632a11c3`.
+실행 환경: **iPhone 13 mini / iOS 16.0 시뮬레이터** (계획서 기준 환경 그대로), macOS 26.5.2, 2026-08-28 KST.
+
+이 브랜치는 `develop`의 `c7aa4fa8`(#113 문구 변경) 위로 rebase되었다. 아래 표의 SHA는 rebase 후 값이며, 최종 검증은 rebase 후 HEAD에서 다시 실행했다.
 
 | 항목 | 명령 | 결과 | 비고 |
 |---|---|---|---|
@@ -1375,7 +1381,7 @@ git commit -m "docs: #114 - 천지인 하단 배치 계획 검증 결과 기록"
 | HangeulKeyboard 빌드 | `xcodebuild build -scheme HangeulKeyboard -destination '...iPhone 13 mini,OS=16.0'` | `** BUILD SUCCEEDED **` (exit 0) | 로그 `<workspace>/build-HangeulKeyboard.log` |
 | EnglishKeyboard 빌드 | `xcodebuild build -scheme EnglishKeyboard -destination '...iPhone 13 mini,OS=16.0'` | `** BUILD SUCCEEDED **` (exit 0) | 로그 `<workspace>/build-EnglishKeyboard.log` |
 | HangeulEnglishKeyboard 빌드 | `xcodebuild build -scheme HangeulEnglishKeyboard -destination '...iPhone 13 mini,OS=16.0'` | `** BUILD SUCCEEDED **` (exit 0) | 로그 `<workspace>/build-HangeulEnglishKeyboard.log` |
-| 변경 범위 | `git diff --stat 0a6167b4...HEAD` / `git status --short` | 19개 파일, 범위 초과 0건, 워킹 트리 clean | 나랏글·두벌식·쿼티·기호·숫자 키보드 무변경 |
+| 변경 범위 | `git diff --stat c7aa4fa8...HEAD` / `git status --short` | 19개 파일, 범위 초과 0건, 워킹 트리 clean | 나랏글·두벌식·쿼티·기호·숫자 키보드 무변경 |
 | 수동 확인 | — | **미실행** | Step 6 체크리스트. 실기기/시뮬레이터에서 키보드 확장을 활성화해야 하므로 자동화로 대체 불가 |
 
 테스트 개수 추출 명령:
@@ -1391,14 +1397,14 @@ xcrun xcresulttool get test-results summary --path "$RES"
 
 | 시점 | 커밋 | 고유 | 전개 |
 |---|---|---|---|
-| 기준선(develop) | `0a6167b4` | 460 | 464 |
-| Task 1 | `560e268a` | 461 | 465 |
-| Task 2 | `5dee8001` | 466 | 475 |
-| Task 2 fix | `93899f83` | 467 | 479 |
-| Task 3 (리팩터, 테스트 미추가) | `b4ff99c6` | 467 | 479 |
-| Task 4 | `0e0b6c0c` | 473 | 486 |
-| Task 5 | `6099784d` | 476 | 489 |
-| Task 6 | `632a11c3` | 479 | 495 |
+| 기준선(develop) | `c7aa4fa8` | 460 | 464 |
+| Task 1 | `18f8b9dd` | 461 | 465 |
+| Task 2 | `0fa2cac3` | 466 | 475 |
+| Task 2 fix | `7f17c79d` | 467 | 479 |
+| Task 3 (리팩터, 테스트 미추가) | `51273347` | 467 | 479 |
+| Task 4 | `284c5a73` | 473 | 486 |
+| Task 5 | `0b7bf055` | 476 | 489 |
+| Task 6 | `74d0c1b8` | 479 | 495 |
 
 감소 구간 없음. Task 3에서 개수가 유지된 것은 테스트를 추가하지 않는 동작 불변 리팩터였기 때문이다.
 

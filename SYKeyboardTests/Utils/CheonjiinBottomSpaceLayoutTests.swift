@@ -81,13 +81,15 @@ struct CheonjiinBottomSpaceLayoutTests {
         #expect(questionRect.minX >= space.maxX - 0.5)
     }
 
-    @Test("두 배치 모두 네 행이 4칸 균등 분할을 유지",
+    @Test("두 배치 모두 삭제·스페이스 버튼이 한 칸 폭을 유지",
           arguments: [false, true])
-    func testAllRowsKeepFourEqualColumns(_ usesBottomSpaceLayout: Bool) {
+    func testDeleteAndSpaceKeepSingleColumnWidth(_ usesBottomSpaceLayout: Bool) {
         let view = Self.makeView(usesBottomSpaceLayout: usesBottomSpaceLayout)
         let columnWidth = Self.keyboardWidth / 4
 
-        // 폭은 좌표계와 무관하므로 변환이 필요 없다
+        // 폭은 좌표계와 무관하므로 변환이 필요 없다.
+        // 삭제는 항상 1행, 스페이스는 꺼짐 2행 / 켜짐 4행이므로
+        // 두 배치에서 서로 다른 행이 한 칸 폭을 유지하는지 확인한다
         #expect(abs(view.deleteButton.frame.width - columnWidth) < 0.5)
         #expect(abs(view.spaceButton.frame.width - columnWidth) < 0.5)
     }
@@ -224,6 +226,10 @@ struct CheonjiinBottomSpaceLayoutTests {
     func testBottomSpaceLayoutReturnVisibleModes(_ mode: HangeulKeyboardMode) {
         let view = Self.makeView(usesBottomSpaceLayout: true)
 
+        // `currentHangeulKeyboardMode`의 초기값이 `.default`이고 `didSet`이
+        // `guard oldMode != currentHangeulKeyboardMode`로 시작하므로,
+        // `.default`를 그대로 넣으면 레이아웃 갱신이 일어나지 않는다.
+        // 다른 모드를 한 번 거쳐 실제 전이를 만든다
         view.currentHangeulKeyboardMode = .twitter
         view.currentHangeulKeyboardMode = mode
         view.layoutIfNeeded()
