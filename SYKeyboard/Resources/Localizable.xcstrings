@@ -180,6 +180,26 @@
         }
       }
     },
+    "나랏글 키보드의 '획'을 'ㆍ', '쌍'을 'ᆢ'로 표시" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show “획” as “ㆍ” and “쌍” as “ᆢ” on the Naratgeul keyboard"
+          }
+        }
+      }
+    },
+    "나랏글 획·쌍 버튼 점 표기" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dot Labels for Naratgeul Stroke and Double Keys"
+          }
+        }
+      }
+    },
     "단말기 모델" : {
       "localizations" : {
         "en" : {

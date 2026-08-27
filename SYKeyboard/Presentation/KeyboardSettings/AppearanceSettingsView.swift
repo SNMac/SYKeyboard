@@ -21,6 +21,9 @@ struct AppearanceSettingsView: View {
     @AppStorage(UserDefaultsKeys.isOneHandedKeyboardEnabled, store: UserDefaultsManager.shared.storage)
     private var isOneHandedKeyboardEnabled = DefaultValues.isOneHandedKeyboardEnabled
     
+    @AppStorage(UserDefaultsKeys.isNaratgeulDotLabelEnabled, store: UserDefaultsManager.shared.storage)
+    private var isNaratgeulDotLabelEnabled = DefaultValues.isNaratgeulDotLabelEnabled
+    
     // MARK: - Content
     
     var body: some View {
@@ -62,6 +65,21 @@ struct AppearanceSettingsView: View {
             NavigationLink("한 손 키보드 너비") {
                 OneHandedKeyboardWidthSettingsView()
             }
+        }
+        
+        Toggle(isOn: $isNaratgeulDotLabelEnabled, label: {
+            Text("나랏글 획·쌍 버튼 점 표기")
+            Text("나랏글 키보드의 '획'을 'ㆍ', '쌍'을 'ᆢ'로 표시")
+                .font(.caption)
+        })
+        .onChange(of: isNaratgeulDotLabelEnabled) { newValue in
+            Analytics.setUserProperty(newValue.analyticsValue,
+                                      forName: "pref_naratgeul_dot_label")
+            Analytics.logEvent("naratgeul_dot_label", parameters: [
+                "view": "AppearanceSettingsView",
+                "enabled": newValue.analyticsValue
+            ])
+            hideKeyboard()
         }
     }
 }

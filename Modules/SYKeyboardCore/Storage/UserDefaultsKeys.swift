@@ -59,6 +59,8 @@ public enum UserDefaultsKeys {
     public static let isOneHandedKeyboardEnabled = "isOneHandedKeyboardEnabled"
     /// 한 손 키보드 너비
     public static let oneHandedKeyboardWidth = "oneHandedKeyboardWidth"
+    /// 나랏글 '획', '쌍' 버튼을 'ㆍ', 'ᆢ'로 표기
+    public static let isNaratgeulDotLabelEnabled = "isNaratgeulDotLabelEnabled"
     
     // MARK: - 기타 설정
     /// 키보드 전환 버튼(􀆪) 표시 설정용

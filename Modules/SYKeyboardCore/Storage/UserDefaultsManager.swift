@@ -173,6 +173,9 @@ final public class UserDefaultsManager {
     /// 한 손 키보드 너비
     @UserDefaultsWrapper(key: UserDefaultsKeys.oneHandedKeyboardWidth, defaultValue: DefaultValues.oneHandedKeyboardWidth)
     public var oneHandedKeyboardWidth: Double
+    /// 나랏글 '획', '쌍' 버튼 점 기호 표기
+    @UserDefaultsWrapper(key: UserDefaultsKeys.isNaratgeulDotLabelEnabled, defaultValue: DefaultValues.isNaratgeulDotLabelEnabled)
+    public var isNaratgeulDotLabelEnabled: Bool
     
     // MARK: 기타 설정
     

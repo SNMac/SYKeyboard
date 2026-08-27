@@ -63,6 +63,8 @@ public enum DefaultValues {
     public static let isOneHandedKeyboardEnabled: Bool = true
     /// 한 손 키보드 너비 기본값
     public static let oneHandedKeyboardWidth: Double = 320.0
+    /// 나랏글 '획', '쌍' 버튼 점 기호 표기 여부 기본값
+    public static let isNaratgeulDotLabelEnabled: Bool = false
     
     // MARK: - 기타 설정
 

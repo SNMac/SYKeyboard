@@ -21,6 +21,9 @@ final public class PrimaryKeyButton: PrimaryButton, TextInteractable {
     
     private var keyAlignment: KeyAlignment = .center
     
+    /// 나랏글 획/쌍 키의 점 기호 표기(`ㆍ` U+318D, `ᆢ` U+11A2)
+    private static let naratgeulDotLabels: [String: String] = ["획": "\u{318D}", "쌍": "\u{11A2}"]
+    
     public private(set) var type: TextInteractableType {
         didSet {
             if type.primaryKeyList.isEmpty {
@@ -36,7 +39,7 @@ final public class PrimaryKeyButton: PrimaryButton, TextInteractable {
     
     // MARK: - UI Components
     
-    private let secondaryKeyLabel: UILabel = {
+    let secondaryKeyLabel: UILabel = {
         let label = UILabel()
         label.font = .monospacedDigitSystemFont(ofSize: FontSize.stringKeySmall, weight: .regular)
         label.textColor = .secondaryLabel
@@ -72,6 +75,15 @@ final public class PrimaryKeyButton: PrimaryButton, TextInteractable {
     func update(buttonType: TextInteractableType) {
         self.type = buttonType
     }
+    
+    /// 입력 식별자를 화면에 표시할 문자로 변환합니다.
+    ///
+    /// 입력 식별자(`NaratgeulProcessor`가 비교하는 `"획"`, `"쌍"`)는 그대로 두고 표기만 바꾼다.
+    static func displayLabel(for primaryKey: String) -> String {
+        guard UserDefaultsManager.shared.isNaratgeulDotLabelEnabled,
+              let dotLabel = naratgeulDotLabels[primaryKey] else { return primaryKey }
+        return dotLabel
+    }
 }
 
 // MARK: - UI Methods
@@ -103,7 +115,7 @@ private extension PrimaryKeyButton {
 private extension PrimaryKeyButton {
     func updatePrimaryKeyListLabel() {
         if type.primaryKeyList.count == 1 {
-            guard let primaryKey = type.primaryKeyList.first else { return }
+            guard let primaryKey = type.primaryKeyList.first.map(Self.displayLabel(for:)) else { return }
             primaryKeyListLabel.text = primaryKey
             
             if primaryKey.count == 1 {
@@ -116,14 +128,16 @@ private extension PrimaryKeyButton {
                 primaryKeyListLabel.font = .systemFont(ofSize: FontSize.stringKeyMedium)
             }
         } else {
-            primaryKeyListLabel.text = type.primaryKeyList.joined(separator: "")
+            primaryKeyListLabel.text = type.primaryKeyList.map(Self.displayLabel(for:)).joined(separator: "")
             primaryKeyListLabel.font = .systemFont(ofSize: FontSize.charKeyMedium)
         }
     }
     
+    /// 코너 라벨은 주 키 표기가 아닌 입력 식별자와 비교한다.
+    /// 표기 설정으로 라벨이 바뀌어도(`획` -> `ㆍ`) 중복 노출되지 않도록 하기 위함.
     func updateSecondaryKeyListLabel() {
         guard let secondaryKey = type.secondaryKey else { return }
-        if primaryKeyListLabel.text == secondaryKey {
+        if type.primaryKeyList.joined(separator: "") == secondaryKey {
             secondaryKeyLabel.text = ""
         } else {
             secondaryKeyLabel.text = secondaryKey
