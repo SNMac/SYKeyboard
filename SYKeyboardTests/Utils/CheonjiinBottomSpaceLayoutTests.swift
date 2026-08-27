@@ -81,6 +81,32 @@ struct CheonjiinBottomSpaceLayoutTests {
         #expect(questionRect.minX >= space.maxX - 0.5)
     }
 
+    @Test("꺼짐 상태의 스페이스는 2행, 리턴은 3행, 마침표·물음표는 4행")
+    func testDefaultLayoutRowAssignment() throws {
+        let view = Self.makeView(usesBottomSpaceLayout: false)
+        let keyButtons = view.primaryButtonList.compactMap { $0 as? PrimaryKeyButton }
+        let periodButton = try #require(keyButtons.first { $0.type.primaryKeyList.first == "." })
+        let jamoButton = try #require(keyButtons.first { $0.type.primaryKeyList.first == "ㅇ" })
+        let questionButton = try #require(keyButtons.first { $0.type.primaryKeyList.first == "?" })
+
+        let deleteRect = Self.rect(view.deleteButton, in: view)
+        let space = Self.rect(view.spaceButton, in: view)
+        let returnRect = Self.rect(view.returnButton, in: view)
+        let periodRect = Self.rect(periodButton, in: view)
+        let jamoRect = Self.rect(jamoButton, in: view)
+        let questionRect = Self.rect(questionButton, in: view)
+        let switchRect = Self.rect(view.switchButton, in: view)
+
+        // 1행(삭제) < 2행(스페이스) < 3행(리턴) < 4행(마침표)
+        #expect(deleteRect.midY < space.midY)
+        #expect(space.midY < returnRect.midY)
+        #expect(returnRect.midY < periodRect.midY)
+        // 4행 안에서 좌→우 '.' → 'ㅇㅁ' → '?' → modifier 스택
+        #expect(periodRect.maxX <= jamoRect.minX + 0.5)
+        #expect(jamoRect.maxX <= questionRect.minX + 0.5)
+        #expect(questionRect.maxX <= switchRect.minX + 0.5)
+    }
+
     @Test("두 배치 모두 삭제·스페이스 버튼이 한 칸 폭을 유지",
           arguments: [false, true])
     func testDeleteAndSpaceKeepSingleColumnWidth(_ usesBottomSpaceLayout: Bool) {
@@ -163,7 +189,7 @@ struct CheonjiinBottomSpaceLayoutTests {
             abs(xmarkInView.maxX
                 - (switchRect.maxX - KeyboardLayoutFigure.keyboardSelectBoundaryInset)) < 0.5
         )
-        #expect(xmarkInView.width >= KeyboardLayoutFigure.keyboardSelectCancelMinWidth - 0.5)
+        #expect(xmarkInView.width >= KeyboardLayoutFigure.keyboardSelectCancelMinWidth)
         // `.right` 방향이면 X가 스택의 첫 칸이라 오버레이 왼쪽 끝에 붙는다
         #expect(
             abs(overlay.xmarkImageContainerView.frame.minX
@@ -176,16 +202,23 @@ struct CheonjiinBottomSpaceLayoutTests {
         let view = Self.makeView(usesBottomSpaceLayout: true)
         view.oneHandedModeSelectOverlayView.isHidden = false
         view.layoutIfNeeded()
-        let primaryView: PrimaryKeyboardRepresentable = view
-        primaryView.updateNextKeyboardButton(
-            needsInputModeSwitchKey: false,
-            nextKeyboardAction: NSSelectorFromString("unusedNextKeyboardAction:")
-        )
-        view.layoutIfNeeded()
 
         let overlay = view.oneHandedModeSelectOverlayView
         let switchRect = Self.rect(view.switchButton, in: view)
         #expect(abs(overlay.frame.minX - 4) < 0.5)
+        #expect(overlay.frame.maxY <= switchRect.minY - 4 + 0.5)
+        #expect(abs(overlay.frame.width - KeyboardLayoutFigure.oneHandedModeSelectOverlayWidth) < 0.5)
+    }
+
+    @Test("꺼짐 상태의 한 손 모드 오버레이는 !#1 위 우측에 놓임")
+    func testDefaultLayoutOneHandedOverlayAnchors() {
+        let view = Self.makeView(usesBottomSpaceLayout: false)
+        view.oneHandedModeSelectOverlayView.isHidden = false
+        view.layoutIfNeeded()
+
+        let overlay = view.oneHandedModeSelectOverlayView
+        let switchRect = Self.rect(view.switchButton, in: view)
+        #expect(abs(overlay.frame.maxX - (Self.keyboardWidth - 4)) < 0.5)
         #expect(overlay.frame.maxY <= switchRect.minY - 4 + 0.5)
         #expect(abs(overlay.frame.width - KeyboardLayoutFigure.oneHandedModeSelectOverlayWidth) < 0.5)
     }
@@ -214,6 +247,7 @@ struct CheonjiinBottomSpaceLayoutTests {
             abs(xmarkInView.minX
                 - (switchRect.minX + KeyboardLayoutFigure.keyboardSelectBoundaryInset)) < 0.5
         )
+        #expect(xmarkInView.width >= KeyboardLayoutFigure.keyboardSelectCancelMinWidth)
         // `.left` 방향이면 X가 스택의 마지막 칸이라 오버레이 오른쪽 끝에 붙는다
         #expect(
             abs(overlay.xmarkImageContainerView.frame.maxX
