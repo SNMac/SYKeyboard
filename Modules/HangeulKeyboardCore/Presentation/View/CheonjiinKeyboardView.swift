@@ -44,8 +44,10 @@ final class CheonjiinKeyboardView: FourByFourPlusKeyboardView, HangeulKeyboardLa
     
     // MARK: - Initializer
     
-    override init(showsLanguageSwitchButton: Bool = false) {
-        super.init(showsLanguageSwitchButton: showsLanguageSwitchButton)
+    override init(showsLanguageSwitchButton: Bool = false,
+                  usesBottomSpaceLayout: Bool = UserDefaultsManager.shared.isCheonjiinBottomSpaceEnabled) {
+        super.init(showsLanguageSwitchButton: showsLanguageSwitchButton,
+                   usesBottomSpaceLayout: usesBottomSpaceLayout)
         updateLayoutToDefault()
     }
     

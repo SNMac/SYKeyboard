@@ -32,6 +32,9 @@ open class FourByFourPlusKeyboardView: UIView {
     + [deleteButton, spaceButton, returnButton, secondaryAtButton, secondarySharpButton]
 
     private let showsLanguageSwitchButton: Bool
+    /// 스페이스를 맨 아랫줄로 내리는 배치 사용 여부.
+    /// `SwitchGestureHandling` 요구사항이므로 `public`이어야 한다
+    public let usesBottomSpaceLayout: Bool
     
     // MARK: - UI Components
     
@@ -92,7 +95,10 @@ open class FourByFourPlusKeyboardView: UIView {
     public private(set) lazy var secondaryAtButton = SecondaryKeyButton(keyboard: keyboard, button: .keyButton(primary: ["@"], secondary: nil))
     public private(set) lazy var secondarySharpButton = SecondaryKeyButton(keyboard: keyboard, button: .keyButton(primary: ["#"], secondary: nil))
     
-    public private(set) lazy var switchButton = SwitchButton(keyboard: keyboard)
+    public private(set) lazy var switchButton = SwitchButton(
+        keyboard: keyboard,
+        usesBottomSpaceLayout: usesBottomSpaceLayout
+    )
     public private(set) lazy var languageSwitchButton: LanguageSwitchButton? = {
         guard showsLanguageSwitchButton else { return nil }
         return LanguageSwitchButton(mode: .hangeul, keyboard: keyboard)
@@ -100,7 +106,10 @@ open class FourByFourPlusKeyboardView: UIView {
     public private(set) lazy var nextKeyboardButton = NextKeyboardButton(keyboard: keyboard)
     
     public private(set) lazy var keyboardSelectOverlayView: KeyboardSelectOverlayView = {
-        let overlayView = KeyboardSelectOverlayView(keyboard: keyboard)
+        let overlayView = KeyboardSelectOverlayView(
+            keyboard: keyboard,
+            usesBottomSpaceLayout: usesBottomSpaceLayout
+        )
         overlayView.isHidden = true
         
         return overlayView
@@ -114,8 +123,10 @@ open class FourByFourPlusKeyboardView: UIView {
     
     // MARK: - Initializer
     
-    public init(showsLanguageSwitchButton: Bool = false) {
+    public init(showsLanguageSwitchButton: Bool = false,
+                usesBottomSpaceLayout: Bool = false) {
         self.showsLanguageSwitchButton = showsLanguageSwitchButton
+        self.usesBottomSpaceLayout = usesBottomSpaceLayout
         super.init(frame: .zero)
         setupUI()
     }
@@ -175,22 +186,41 @@ private extension FourByFourPlusKeyboardView {
         firstRowHStackView.addArrangedSubview(deleteButton)
         
         secondRowPrimaryKeyButtonList.forEach { secondRowHStackView.addArrangedSubview($0) }
-        secondRowHStackView.addArrangedSubview(spaceButton)
-        
         thirdRowPrimaryKeyButtonList.forEach { thirdRowHStackView.addArrangedSubview($0) }
+        
         [returnButton, secondaryAtButton, secondarySharpButton].forEach { returnButtonHStackView.addArrangedSubview($0) }
-        thirdRowHStackView.addArrangedSubview(returnButtonHStackView)
-        
-        [fourthRowLeftPrimaryButtonHStackView,
-         fourthRowPrimaryKeyButtonList[2],
-         fourthRowRightPrimaryButtonHStackView,
-         fourthRowRightSecondaryButtonHStackView].forEach { fourthRowHStackView.addArrangedSubview($0) }
-        
         [fourthRowPrimaryKeyButtonList[0], fourthRowPrimaryKeyButtonList[1]].forEach { fourthRowLeftPrimaryButtonHStackView.addArrangedSubview($0) }
         [fourthRowPrimaryKeyButtonList[3], fourthRowPrimaryKeyButtonList[4]].forEach { fourthRowRightPrimaryButtonHStackView.addArrangedSubview($0) }
-        let modifierButtons: [SecondaryButton] = [nextKeyboardButton]
-        + [languageSwitchButton].compactMap { $0 }
-        + [switchButton]
+        
+        let modifierButtons: [SecondaryButton]
+        if usesBottomSpaceLayout {
+            // 스페이스가 4행으로 내려가면서 리턴 영역이 2행, 좌측 글자 스택('.', ',')이
+            // 3행 우측 칸으로 올라가고 우측 글자 스택('?', '!')만 4행 끝에 남는다.
+            // 모든 행은 그대로 4칸 균등 분할이다
+            secondRowHStackView.addArrangedSubview(returnButtonHStackView)
+            thirdRowHStackView.addArrangedSubview(fourthRowLeftPrimaryButtonHStackView)
+            
+            [fourthRowRightSecondaryButtonHStackView,
+             fourthRowPrimaryKeyButtonList[2],
+             spaceButton,
+             fourthRowRightPrimaryButtonHStackView].forEach { fourthRowHStackView.addArrangedSubview($0) }
+            
+            modifierButtons = [switchButton]
+            + [languageSwitchButton].compactMap { $0 }
+            + [nextKeyboardButton]
+        } else {
+            secondRowHStackView.addArrangedSubview(spaceButton)
+            thirdRowHStackView.addArrangedSubview(returnButtonHStackView)
+            
+            [fourthRowLeftPrimaryButtonHStackView,
+             fourthRowPrimaryKeyButtonList[2],
+             fourthRowRightPrimaryButtonHStackView,
+             fourthRowRightSecondaryButtonHStackView].forEach { fourthRowHStackView.addArrangedSubview($0) }
+            
+            modifierButtons = [nextKeyboardButton]
+            + [languageSwitchButton].compactMap { $0 }
+            + [switchButton]
+        }
         modifierButtons.forEach(fourthRowRightSecondaryButtonHStackView.addArrangedSubview)
     }
     
