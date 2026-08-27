@@ -457,31 +457,34 @@ private extension SwitchGestureController {
         
         let currentKeyboard = getCurrentKeyboard()
         switch currentKeyboard {
-        case .naratgeul, .cheonjiin:
+        case .naratgeul, .cheonjiin, .dubeolsik:
             guard let hangeulKeyboardView else { fatalError("옵셔널 바인딩 실패 - hangeulKeyboardView가 nil입니다.") }
             config = (gestureHandler: hangeulKeyboardView,
                       keyboardSelectTargetkeyboard: .numeric,
-                      keyboardSelectTargetDirection: .left)
-        case .dubeolsik:
-            guard let hangeulKeyboardView else { fatalError("옵셔널 바인딩 실패 - hangeulKeyboardView가 nil입니다.") }
-            config = (gestureHandler: hangeulKeyboardView,
-                      keyboardSelectTargetkeyboard: .numeric,
-                      keyboardSelectTargetDirection: .right)
+                      keyboardSelectTargetDirection: KeyboardSelectDirectionPolicy.targetDirection(
+                        for: currentKeyboard,
+                        usesBottomSpaceLayout: hangeulKeyboardView.usesBottomSpaceLayout))
         case .qwerty:
             guard let englishKeyboardView else { fatalError("옵셔널 바인딩 실패 - englishKeyboardView가 nil입니다.") }
             config = (gestureHandler: englishKeyboardView,
                       keyboardSelectTargetkeyboard: .numeric,
-                      keyboardSelectTargetDirection: .right)
+                      keyboardSelectTargetDirection: KeyboardSelectDirectionPolicy.targetDirection(
+                        for: currentKeyboard,
+                        usesBottomSpaceLayout: englishKeyboardView.usesBottomSpaceLayout))
         case .symbol:
             guard let symbolKeyboardView else { fatalError("옵셔널 바인딩 실패 - symbolKeyboardView가 nil입니다.") }
             config = (gestureHandler: symbolKeyboardView,
                       keyboardSelectTargetkeyboard: .numeric,
-                      keyboardSelectTargetDirection: .right)
+                      keyboardSelectTargetDirection: KeyboardSelectDirectionPolicy.targetDirection(
+                        for: currentKeyboard,
+                        usesBottomSpaceLayout: symbolKeyboardView.usesBottomSpaceLayout))
         case .numeric:
             guard let numericKeyboardView else { fatalError("옵셔널 바인딩 실패 - numericKeyboardView가 nil입니다.") }
             config = (gestureHandler: numericKeyboardView,
                       keyboardSelectTargetkeyboard: .symbol,
-                      keyboardSelectTargetDirection: .left)
+                      keyboardSelectTargetDirection: KeyboardSelectDirectionPolicy.targetDirection(
+                        for: currentKeyboard,
+                        usesBottomSpaceLayout: numericKeyboardView.usesBottomSpaceLayout))
         case .tenKey:
             fatalError("도달할 수 없는 case입니다.")
         }

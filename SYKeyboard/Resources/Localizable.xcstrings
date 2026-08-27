@@ -380,6 +380,26 @@
         }
       }
     },
+    "스페이스 하단 배치" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bottom Space Bar"
+          }
+        }
+      }
+    },
+    "스페이스를 맨 아랫줄로 옮기고 리턴을 위로 올림" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Move the space bar to the bottom row and the return key up"
+          }
+        }
+      }
+    },
     "시스템 설정 이동" : {
       "localizations" : {
         "en" : {

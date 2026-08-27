@@ -176,7 +176,10 @@ final public class UserDefaultsManager {
     /// 나랏글 '획', '쌍' 버튼 점 기호 표기
     @UserDefaultsWrapper(key: UserDefaultsKeys.isNaratgeulDotLabelEnabled, defaultValue: DefaultValues.isNaratgeulDotLabelEnabled)
     public var isNaratgeulDotLabelEnabled: Bool
-    
+    /// 천지인 스페이스 버튼 하단 배치
+    @UserDefaultsWrapper(key: UserDefaultsKeys.isCheonjiinBottomSpaceEnabled, defaultValue: DefaultValues.isCheonjiinBottomSpaceEnabled)
+    public var isCheonjiinBottomSpaceEnabled: Bool
+
     // MARK: 기타 설정
     
     /// 키보드 전환 버튼(􀆪) 표시 설정용

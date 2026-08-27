@@ -65,7 +65,9 @@ public enum DefaultValues {
     public static let oneHandedKeyboardWidth: Double = 320.0
     /// 나랏글 '획', '쌍' 버튼 점 기호 표기 여부 기본값
     public static let isNaratgeulDotLabelEnabled: Bool = false
-    
+    /// 천지인 스페이스 버튼 하단 배치 여부 기본값
+    public static let isCheonjiinBottomSpaceEnabled: Bool = false
+
     // MARK: - 기타 설정
 
     /// 키보드 전환 버튼(􀆪) 표시 설정용 기본값

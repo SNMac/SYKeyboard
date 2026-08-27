@@ -21,7 +21,10 @@ struct HangeulKeyboardSelectView: View {
     
     @AppStorage(UserDefaultsKeys.isNaratgeulDotLabelEnabled, store: UserDefaultsManager.shared.storage)
     private var isNaratgeulDotLabelEnabled = DefaultValues.isNaratgeulDotLabelEnabled
-    
+
+    @AppStorage(UserDefaultsKeys.isCheonjiinBottomSpaceEnabled, store: UserDefaultsManager.shared.storage)
+    private var isCheonjiinBottomSpaceEnabled = DefaultValues.isCheonjiinBottomSpaceEnabled
+
     enum HangeulKeyboard: Int, CaseIterable {
         case naratgeul
         case cheonjiin
@@ -84,6 +87,23 @@ struct HangeulKeyboardSelectView: View {
                 Analytics.setUserProperty(newValue.analyticsValue,
                                           forName: "pref_naratgeul_dot_label")
                 Analytics.logEvent("naratgeul_dot_label", parameters: [
+                    "view": "HangeulKeyboardSelectView",
+                    "enabled": newValue.analyticsValue
+                ])
+                hideKeyboard()
+            }
+        }
+
+        if selectedHangeulKeyboard == .cheonjiin {
+            Toggle(isOn: $isCheonjiinBottomSpaceEnabled, label: {
+                Text("스페이스 하단 배치")
+                Text("스페이스를 맨 아랫줄로 옮기고 리턴을 위로 올림")
+                    .font(.caption)
+            })
+            .onChange(of: isCheonjiinBottomSpaceEnabled) { newValue in
+                Analytics.setUserProperty(newValue.analyticsValue,
+                                          forName: "pref_cheonjiin_bottom_space")
+                Analytics.logEvent("cheonjiin_bottom_space", parameters: [
                     "view": "HangeulKeyboardSelectView",
                     "enabled": newValue.analyticsValue
                 ])

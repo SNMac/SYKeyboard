@@ -21,6 +21,7 @@ final public class SwitchButton: SecondaryButton {
     public static var previewPrimaryLanguage: String = "ko-KR"
     
     private let keyboard: SYKeyboardType
+    private let keyboardSelectDirection: PanDirection
     public private(set) var titleForCurrentKeyboard: String
 
     /// 보조 라벨이 기본 크기 그대로 들어가는 최소 키 폭.
@@ -55,8 +56,12 @@ final public class SwitchButton: SecondaryButton {
     
     // MARK: - Initializer
     
-    public override init(keyboard: SYKeyboardType) {
+    public init(keyboard: SYKeyboardType, usesBottomSpaceLayout: Bool = false) {
         self.keyboard = keyboard
+        self.keyboardSelectDirection = KeyboardSelectDirectionPolicy.targetDirection(
+            for: keyboard,
+            usesBottomSpaceLayout: usesBottomSpaceLayout
+        )
         switch keyboard {
         case .naratgeul, .cheonjiin, .dubeolsik, .qwerty:
             self.titleForCurrentKeyboard = "!#1"
@@ -175,11 +180,12 @@ private extension SwitchButton {
             keyboardSelectLabel.bottomAnchor.constraint(equalTo: self.bottomAnchor, constant: -offsetY)
         ]
         
-        switch keyboard {
-        case .dubeolsik, .qwerty, .symbol:
+        // 목표 라벨이 오른쪽에 있으면 힌트도 오른쪽 아래 모서리에 붙는다
+        switch keyboardSelectDirection {
+        case .right:
             constraints.append(oneHandedLabel.leadingAnchor.constraint(equalTo: self.leadingAnchor, constant: offsetX))
             constraints.append(keyboardSelectLabel.trailingAnchor.constraint(equalTo: self.trailingAnchor, constant: -offsetX))
-            
+
         default:
             constraints.append(oneHandedLabel.trailingAnchor.constraint(equalTo: self.trailingAnchor, constant: -offsetX))
             constraints.append(keyboardSelectLabel.leadingAnchor.constraint(equalTo: self.leadingAnchor, constant: offsetX))
@@ -214,12 +220,15 @@ private extension SwitchButton {
         
         let fullString: NSMutableAttributedString?
         switch keyboard {
-        case .naratgeul, .cheonjiin, .numeric:
-            fullString = NSMutableAttributedString(attachment: attachment)
-            fullString?.append(NSAttributedString(attachment: arrowtriangleUp))
-        case .dubeolsik, .qwerty, .symbol:
-            fullString = NSMutableAttributedString(attachment: arrowtriangleUp)
-            fullString?.append(NSAttributedString(attachment: attachment))
+        case .naratgeul, .cheonjiin, .dubeolsik, .qwerty, .symbol, .numeric:
+            switch keyboardSelectDirection {
+            case .right:
+                fullString = NSMutableAttributedString(attachment: arrowtriangleUp)
+                fullString?.append(NSAttributedString(attachment: attachment))
+            default:
+                fullString = NSMutableAttributedString(attachment: attachment)
+                fullString?.append(NSAttributedString(attachment: arrowtriangleUp))
+            }
         default:
             fullString = nil
         }
@@ -232,35 +241,30 @@ private extension SwitchButton {
                                                          .foregroundColor: UIColor.label]
         
         let text: String
-        let arrowtriangle = NSTextAttachment()
-        let fullString: NSMutableAttributedString?
-        
         switch keyboard {
-        case .naratgeul, .cheonjiin:
+        case .naratgeul, .cheonjiin, .dubeolsik, .qwerty, .symbol:
             text = "123"
-            arrowtriangle.image = UIImage(systemName: needToEmphasize ? "arrowtriangle.left.fill" : "arrowtriangle.left")?.withConfiguration(imageConfig).withTintColor(.label, renderingMode: .alwaysOriginal)
-            
-            let textAttributedString = NSAttributedString(string: text, attributes: attributes)
-            fullString = NSMutableAttributedString(attachment: arrowtriangle)
-            fullString?.append(textAttributedString)
-        case .dubeolsik, .qwerty, .symbol:
-            text = "123"
-            arrowtriangle.image = UIImage(systemName: needToEmphasize ? "arrowtriangle.right.fill" : "arrowtriangle.right")?.withConfiguration(imageConfig).withTintColor(.label, renderingMode: .alwaysOriginal)
-            
-            let textAttributedString = NSAttributedString(string: text, attributes: attributes)
-            fullString = NSMutableAttributedString(attributedString: textAttributedString)
-            fullString?.append(NSAttributedString(attachment: arrowtriangle))
         case .numeric:
             text = "!#1"
-            arrowtriangle.image = UIImage(systemName: needToEmphasize ? "arrowtriangle.left.fill" : "arrowtriangle.left")?.withConfiguration(imageConfig).withTintColor(.label, renderingMode: .alwaysOriginal)
-            
-            let textAttributedString = NSAttributedString(string: text, attributes: attributes)
-            fullString = NSMutableAttributedString(attachment: arrowtriangle)
-            fullString?.append(textAttributedString)
         default:
-            fullString = nil
+            return nil
         }
-        
+
+        let arrowtriangle = NSTextAttachment()
+        let textAttributedString = NSAttributedString(string: text, attributes: attributes)
+        let fullString: NSMutableAttributedString
+
+        switch keyboardSelectDirection {
+        case .right:
+            arrowtriangle.image = UIImage(systemName: needToEmphasize ? "arrowtriangle.right.fill" : "arrowtriangle.right")?.withConfiguration(imageConfig).withTintColor(.label, renderingMode: .alwaysOriginal)
+            fullString = NSMutableAttributedString(attributedString: textAttributedString)
+            fullString.append(NSAttributedString(attachment: arrowtriangle))
+        default:
+            arrowtriangle.image = UIImage(systemName: needToEmphasize ? "arrowtriangle.left.fill" : "arrowtriangle.left")?.withConfiguration(imageConfig).withTintColor(.label, renderingMode: .alwaysOriginal)
+            fullString = NSMutableAttributedString(attachment: arrowtriangle)
+            fullString.append(textAttributedString)
+        }
+
         return fullString
     }
 }
