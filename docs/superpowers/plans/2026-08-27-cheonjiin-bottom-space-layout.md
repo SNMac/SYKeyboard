@@ -100,7 +100,7 @@ git status --short   # 출력이 비어 있어야 한다. 사용자 변경이 �
 git switch -c feat/#114-cheonjiin-bottom-space
 ```
 
-- [ ] **Step 2: 기준 상태에서 전체 테스트가 통과하는지 확인한다**
+- [x] **Step 2: 기준 상태에서 전체 테스트가 통과하는지 확인한다** — 완료. 464 passed / 0 failed (iPhone 13 mini, iOS 16.0). xcresult: `Test-SYKeyboard-2026.08.27_23-12-13-+0900`
 
 ```bash
 xcodebuild test \
@@ -132,7 +132,7 @@ Expected: `** TEST SUCCEEDED **`. 이 결과가 이후 회귀 판정의 기준�
   - `DefaultValues.isCheonjiinBottomSpaceEnabled: Bool` (값 `false`)
   - `UserDefaultsManager.shared.isCheonjiinBottomSpaceEnabled: Bool`
 
-- [ ] **Step 1: 실패하는 계약 테스트를 쓴다**
+- [x] **Step 1: 실패하는 계약 테스트를 쓴다** — 완료. `testCheonjiinBottomSpaceDefaultFallbackAndKey` 추가
 
 `SYKeyboardTests/Storage/UserDefaultsContractTests.swift`에서 `testNaratgeulDotLabelDefaultFallbackAndKey` 바로 아래에 추가한다.
 
@@ -152,7 +152,7 @@ Expected: `** TEST SUCCEEDED **`. 이 결과가 이후 회귀 판정의 기준�
     }
 ```
 
-- [ ] **Step 2: 컴파일이 실패하는지 확인한다**
+- [x] **Step 2: 컴파일이 실패하는지 확인한다** — 완료. `type 'UserDefaultsKeys' has no member 'isCheonjiinBottomSpaceEnabled'`로 컴파일 실패 확인
 
 ```bash
 xcodebuild test \
@@ -164,7 +164,7 @@ xcodebuild test \
 
 Expected: 컴파일 에러 `type 'UserDefaultsKeys' has no member 'isCheonjiinBottomSpaceEnabled'`
 
-- [ ] **Step 3: 키와 기본값을 추가한다**
+- [x] **Step 3: 키와 기본값을 추가한다** — 완료
 
 `Modules/SYKeyboardCore/Storage/UserDefaultsKeys.swift` — 외형 설정 구역의 `isNaratgeulDotLabelEnabled` 바로 아래:
 
@@ -188,7 +188,7 @@ Expected: 컴파일 에러 `type 'UserDefaultsKeys' has no member 'isCheonjiinBo
     public var isCheonjiinBottomSpaceEnabled: Bool
 ```
 
-- [ ] **Step 4: 테스트가 통과하는지 확인한다**
+- [x] **Step 4: 테스트가 통과하는지 확인한다** — 완료
 
 ```bash
 xcodebuild test \
@@ -200,7 +200,7 @@ xcodebuild test \
 
 Expected: `** TEST SUCCEEDED **`
 
-- [ ] **Step 5: 설정 화면에 스위치를 추가한다**
+- [x] **Step 5: 설정 화면에 스위치를 추가한다** — 완료. `selectedHangeulKeyboard == .cheonjiin` 조건부 `Toggle`
 
 `SYKeyboard/Presentation/KeyboardSettings/HangeulKeyboardSelectView.swift`의 `@AppStorage` 블록에 추가한다.
 
@@ -230,7 +230,7 @@ Expected: `** TEST SUCCEEDED **`
         }
 ```
 
-- [ ] **Step 6: Analytics User Property 초기화를 추가한다**
+- [x] **Step 6: Analytics User Property 초기화를 추가한다** — 완료
 
 `SYKeyboard/App/SYKeyboardApp.swift`의 `setAnalyticsProperty(keyboardSettingsManager.isNaratgeulDotLabelEnabled, forName: "pref_naratgeul_dot_label")` 바로 아래:
 
@@ -238,7 +238,7 @@ Expected: `** TEST SUCCEEDED **`
         setAnalyticsProperty(keyboardSettingsManager.isCheonjiinBottomSpaceEnabled, forName: "pref_cheonjiin_bottom_space")
 ```
 
-- [ ] **Step 7: 로컬라이징 문자열을 추가한다**
+- [x] **Step 7: 로컬라이징 문자열을 추가한다** — 완료. 사전순 위치·no-trailing-newline 유지, JSON 유효성 확인
 
 `SYKeyboard/Resources/Localizable.xcstrings`의 `"strings"` 객체에 키 사전순 위치로 두 항목을 넣는다. 파일 끝에 개행이 없는 형식을 유지한다.
 
@@ -265,7 +265,7 @@ Expected: `** TEST SUCCEEDED **`
     },
 ```
 
-- [ ] **Step 8: 앱 타깃 빌드를 확인한다**
+- [x] **Step 8: 앱 타깃 빌드를 확인한다** — 완료. `** BUILD SUCCEEDED **`
 
 ```bash
 xcodebuild build \
@@ -276,7 +276,7 @@ xcodebuild build \
 
 Expected: `** BUILD SUCCEEDED **`
 
-- [ ] **Step 9: 커밋한다**
+- [x] **Step 9: 커밋한다** — 완료. 커밋 `560e268a`. 전체 465 고유 / 0 failed
 
 ```bash
 git add Modules/SYKeyboardCore/Storage/UserDefaultsKeys.swift \
@@ -304,7 +304,7 @@ git commit -m "feat: #114 - 천지인 스페이스 하단 배치 설정 키와 �
 - Consumes: `SYKeyboardType`(public enum: `.naratgeul`, `.cheonjiin`, `.dubeolsik`, `.qwerty`, `.symbol`, `.numeric`, `.tenKey`), `PanDirection`(internal enum: `.up`, `.left`, `.right`, `.down`, `.center`)
 - Produces: `KeyboardSelectDirectionPolicy.targetDirection(for:usesBottomSpaceLayout:) -> PanDirection` (internal, `SYKeyboardCore` 모듈 내부 + `@testable` 접근)
 
-- [ ] **Step 1: 실패하는 테스트를 쓴다**
+- [x] **Step 1: 실패하는 테스트를 쓴다** — 완료. 5개 테스트 작성
 
 `SYKeyboardTests/Utils/KeyboardSelectDirectionPolicyTests.swift`를 새로 만든다.
 
@@ -365,7 +365,7 @@ struct KeyboardSelectDirectionPolicyTests {
 
 `PanDirection`에 `Equatable` 준수가 필요하다. `enum PanDirection { case up, left, right, down, center }`처럼 associated value가 없으면 Swift가 `Equatable`을 자동 합성하므로 `==`가 그대로 동작한다. 컴파일 에러가 나면 그때만 `enum PanDirection: Equatable`로 바꾼다.
 
-- [ ] **Step 2: 컴파일이 실패하는지 확인한다**
+- [x] **Step 2: 컴파일이 실패하는지 확인한다** — 완료. `cannot find 'KeyboardSelectDirectionPolicy' in scope`로 컴파일 실패 확인
 
 ```bash
 xcodebuild test \
@@ -377,7 +377,7 @@ xcodebuild test \
 
 Expected: 컴파일 에러 `cannot find 'KeyboardSelectDirectionPolicy' in scope`
 
-- [ ] **Step 3: policy를 만든다**
+- [x] **Step 3: policy를 만든다** — 완료
 
 `Modules/SYKeyboardCore/Presentation/Utils/Policies/KeyboardSelectDirectionPolicy.swift`:
 
@@ -416,7 +416,7 @@ enum KeyboardSelectDirectionPolicy {
 }
 ```
 
-- [ ] **Step 4: pbxproj에 등록한다**
+- [x] **Step 4: pbxproj에 등록한다** — 완료. `grep -c` = 2 (SYKeyboard 타깃 블록, SYKeyboardCore 타깃 블록)
 
 `SYKeyboard.xcodeproj/project.pbxproj`에서 `SYKeyboardCore/Presentation/Utils/Policies/KeyboardPresentationStatePolicy.swift,` 줄을 찾으면 두 곳(각각 `SYKeyboard` 타깃 블록과 `SYKeyboardCore` 타깃 블록)이 나온다. **두 곳 모두** 그 바로 아래에 아래 줄을 넣는다. 들여쓰기는 탭 4개로 주변 줄과 맞춘다.
 
@@ -432,7 +432,7 @@ grep -c "Policies/KeyboardSelectDirectionPolicy.swift" SYKeyboard.xcodeproj/proj
 
 Expected: `2`
 
-- [ ] **Step 5: 테스트가 통과하는지 확인한다**
+- [x] **Step 5: 테스트가 통과하는지 확인한다** — 완료
 
 ```bash
 xcodebuild test \
@@ -444,7 +444,7 @@ xcodebuild test \
 
 Expected: `** TEST SUCCEEDED **`, 10개 테스트 통과(파라미터 조합 포함)
 
-- [ ] **Step 6: 커밋한다**
+- [x] **Step 6: 커밋한다** — 완료. 커밋 `5dee8001`. 전체 466 고유 / 0 failed
 
 ```bash
 git add Modules/SYKeyboardCore/Presentation/Utils/Policies/KeyboardSelectDirectionPolicy.swift \
@@ -452,6 +452,10 @@ git add Modules/SYKeyboardCore/Presentation/Utils/Policies/KeyboardSelectDirecti
         SYKeyboard.xcodeproj/project.pbxproj
 git commit -m "feat: #114 - 키보드 선택 오버레이 방향 정책 타입 추가"
 ```
+
+- [x] **Step 7(추가): 리뷰 지적에 따른 `.tenKey` 분기 검증 추가** — 완료. 커밋 `93899f83`
+
+계획에는 없던 step이다. Task 2 리뷰가 "Global Constraints 표는 `.tenKey → .left`를 명시하는데 브리프의 테스트 파일이 그 조합을 빠뜨렸다"는 plan-mandated Important를 올렸고, 컨트롤러가 수정하기로 판정했다. `KeyboardSelectDirectionPolicyTests`에 두 플래그 값 모두에서 `.left`를 반환하는지 확인하는 테스트를 추가했다. 전체 467 고유 / 479 전개 / 0 failed.
 
 ---
 
@@ -472,7 +476,7 @@ git commit -m "feat: #114 - 키보드 선택 오버레이 방향 정책 타입 �
   - `KeyboardSelectOverlayView.init(keyboard: SYKeyboardType, usesBottomSpaceLayout: Bool = false)`
   - `SwitchGestureHandling.usesBottomSpaceLayout: Bool` (프로토콜 요구사항, extension 기본값 `false`)
 
-- [ ] **Step 1: `SwitchGestureHandling`에 플래그를 추가한다**
+- [x] **Step 1: `SwitchGestureHandling`에 플래그를 추가한다** — 완료
 
 `Modules/SYKeyboardCore/Presentation/Utils/GestureControllers/Protocols/SwitchGestureHandling.swift`의 프로토콜 본문 맨 위(`switchButton` 선언 위)에 추가한다.
 
@@ -488,7 +492,7 @@ git commit -m "feat: #114 - 키보드 선택 오버레이 방향 정책 타입 �
     var usesBottomSpaceLayout: Bool { false }
 ```
 
-- [ ] **Step 2: 빌드해서 기존 채택 타입이 모두 기본값으로 컴파일되는지 확인한다**
+- [x] **Step 2: 빌드해서 기존 채택 타입이 모두 기본값으로 컴파일되는지 확인한다** — 완료. `** BUILD SUCCEEDED **`
 
 ```bash
 xcodebuild build \
@@ -499,7 +503,7 @@ xcodebuild build \
 
 Expected: `** BUILD SUCCEEDED **`
 
-- [ ] **Step 3: `SwitchGestureController.setPanConfig()`의 방향 리터럴을 policy 호출로 바꾼다**
+- [x] **Step 3: `SwitchGestureController.setPanConfig()`의 방향 리터럴을 policy 호출로 바꾼다** — 완료. **컨트롤러 판정 R1로 브리프 수정**: `.dubeolsik`을 별도 case로 두지 않고 `case .naratgeul, .cheonjiin, .dubeolsik:`으로 병합(policy 도입 후 본문이 동일해지고 분리 근거가 추측뿐이었음)
 
 `Modules/SYKeyboardCore/Presentation/Utils/GestureControllers/SwitchGestureController.swift`의 `setPanConfig()` 전체를 아래로 교체한다.
 
@@ -553,7 +557,7 @@ Expected: `** BUILD SUCCEEDED **`
 
 `.dubeolsik`은 `.naratgeul, .cheonjiin`과 본문이 같아졌지만, 각 case가 서로 다른 `keyboardSelectTargetkeyboard`를 갖게 되는 향후 변경에 대비해 기존 case 구분을 그대로 둔다.
 
-- [ ] **Step 4: `KeyboardSelectOverlayView`가 policy를 쓰게 한다**
+- [x] **Step 4: `KeyboardSelectOverlayView`가 policy를 쓰게 한다** — 완료
 
 `Modules/SYKeyboardCore/Presentation/View/Components/Overlays/KeyboardSelectOverlayView.swift`
 
@@ -607,7 +611,7 @@ Expected: `** BUILD SUCCEEDED **`
     }
 ```
 
-- [ ] **Step 5: `SwitchButton`이 policy를 쓰게 한다**
+- [x] **Step 5: `SwitchButton`이 policy를 쓰게 한다** — 완료
 
 `Modules/SYKeyboardCore/Presentation/View/Components/Buttons/SwitchButton.swift`
 
@@ -699,7 +703,7 @@ Expected: `** BUILD SUCCEEDED **`
 
 기존 함수 시그니처가 `-> NSAttributedString?`이므로 `return fullString` 그대로 동작한다. 함수 상단의 `let arrowtriangle = NSTextAttachment()`와 `let fullString: NSMutableAttributedString?` 선언이 중복되지 않도록 위 블록으로 완전히 대체한다.
 
-- [ ] **Step 6: 동작이 바뀌지 않았는지 전체 테스트로 확인한다**
+- [x] **Step 6: 동작이 바뀌지 않았는지 전체 테스트로 확인한다** — 완료. 467 고유 / 479 전개 / 0 failed — Task 2 종료 시점과 동일(테스트 미추가 리팩터의 기대 결과)
 
 ```bash
 xcodebuild test \
@@ -710,7 +714,7 @@ xcodebuild test \
 
 Expected: `** TEST SUCCEEDED **`. Task 0 Step 2에서 기록한 테스트 개수와 같아야 하고(Task 1·2에서 추가된 것만 증가), 실패가 하나도 없어야 한다.
 
-- [ ] **Step 7: 커밋한다**
+- [x] **Step 7: 커밋한다** — 완료. 커밋 `b4ff99c6`
 
 ```bash
 git add Modules/SYKeyboardCore/Presentation/View/Components/Buttons/SwitchButton.swift \
@@ -736,7 +740,7 @@ git commit -m "refactor: #114 - 키보드 선택 방향 분기를 정책 타입�
   - `FourByFourPlusKeyboardView.usesBottomSpaceLayout: Bool` (public stored let, `SwitchGestureHandling` 요구사항 충족)
   - `CheonjiinKeyboardView.init(showsLanguageSwitchButton: Bool = false, usesBottomSpaceLayout: Bool = UserDefaultsManager.shared.isCheonjiinBottomSpaceEnabled)`
 
-- [ ] **Step 1: 실패하는 배치 테스트를 쓴다**
+- [x] **Step 1: 실패하는 배치 테스트를 쓴다** — 완료. **계획 정정 반영**: 버튼 프레임이 각자의 행 스택 좌표계라 행 간 비교가 불가능해 `Self.rect(_:in:)` 변환 헬퍼 도입(정정 커밋 `93758fb2`). 추가로 `#expect(switchRect.maxX > space.maxX)`가 꺼짐 배치에서 실측 390.0 > 390.0으로 성립 불가여서, 키보드 폭에 직접 거는 형태(꺼짐 `maxX == 390`, 켜짐 `minX == 0`)로 교체
 
 `SYKeyboardTests/Utils/CheonjiinBottomSpaceLayoutTests.swift`를 새로 만든다.
 행 판정은 `deleteButton`(1행)과 `switchButton`(4행)을 기준점으로 삼아 내부 스택 구조가 바뀌어도 사용자 동작이 같으면 통과하게 한다.
@@ -882,7 +886,7 @@ struct CheonjiinBottomSpaceLayoutTests {
 
 `PrimaryKeyButton.type`은 `public private(set) var type: TextInteractableType`이고 `TextInteractableType.primaryKeyList`는 `public`이므로 위 접근자가 그대로 동작한다. `primaryButtonList`의 원소 타입은 `PrimaryButton`이라 `PrimaryKeyButton`으로 다운캐스팅해야 한다(`spaceButton`은 `PrimaryKeyButton`이 아니므로 `compactMap`에서 자연스럽게 걸러진다).
 
-- [ ] **Step 2: 컴파일이 실패하는지 확인한다**
+- [x] **Step 2: 컴파일이 실패하는지 확인한다** — 완료. `extra argument 'usesBottomSpaceLayout' in call`로 컴파일 실패 확인
 
 ```bash
 xcodebuild test \
@@ -894,7 +898,7 @@ xcodebuild test \
 
 Expected: 컴파일 에러 `extra argument 'usesBottomSpaceLayout' in call`
 
-- [ ] **Step 3: `FourByFourPlusKeyboardView`에 플래그를 넣고 하위 컴포넌트에 전달한다**
+- [x] **Step 3: `FourByFourPlusKeyboardView`에 플래그를 넣고 하위 컴포넌트에 전달한다** — 완료
 
 `Modules/SYKeyboardCore/Presentation/View/KeyboardLayout/Bases/FourByFourPlusKeyboardView.swift`
 
@@ -939,7 +943,7 @@ Expected: 컴파일 에러 `extra argument 'usesBottomSpaceLayout' in call`
     }
 ```
 
-- [ ] **Step 4: `setHierarchy()`를 분기한다**
+- [x] **Step 4: `setHierarchy()`를 분기한다** — 완료
 
 같은 파일의 `setHierarchy()` 전체를 교체한다.
 
@@ -997,7 +1001,7 @@ Expected: 컴파일 에러 `extra argument 'usesBottomSpaceLayout' in call`
     }
 ```
 
-- [ ] **Step 5: `CheonjiinKeyboardView`가 설정을 읽게 한다**
+- [x] **Step 5: `CheonjiinKeyboardView`가 설정을 읽게 한다** — 완료
 
 `Modules/HangeulKeyboardCore/Presentation/View/CheonjiinKeyboardView.swift`의 `init`을 교체한다.
 
@@ -1014,7 +1018,7 @@ Expected: 컴파일 에러 `extra argument 'usesBottomSpaceLayout' in call`
 
 **네이밍 주의:** 하단 배치에서 `fourthRowLeftPrimaryButtonHStackView`는 3행에 붙는다. 이름이 위치와 어긋나지만, 두 배치가 같은 스택 객체를 공유하므로 어느 쪽 이름을 써도 한쪽에서는 어긋난다. 기존 이름을 유지하고 위 주석으로 의도를 남긴다. 이름 변경은 이번 변경 범위 밖이다.
 
-- [ ] **Step 6: 배치 테스트가 통과하는지 확인한다**
+- [x] **Step 6: 배치 테스트가 통과하는지 확인한다** — 완료. `CheonjiinBottomSpaceLayoutTests` 6개 + `KeyboardModifierLayoutTests` 전부 통과
 
 ```bash
 xcodebuild test \
@@ -1027,7 +1031,7 @@ xcodebuild test \
 
 Expected: `** TEST SUCCEEDED **`. `KeyboardModifierLayoutTests`의 기존 천지인 테스트도 함께 통과해야 한다(기본값 꺼짐이므로 영향 없음).
 
-- [ ] **Step 7: 커밋한다**
+- [x] **Step 7: 커밋한다** — 완료. 커밋 `0e0b6c0c`. 전체 473 고유 / 486 전개 / 0 failed, Auto Layout 경고 0건
 
 ```bash
 git add Modules/SYKeyboardCore/Presentation/View/KeyboardLayout/Bases/FourByFourPlusKeyboardView.swift \
@@ -1050,7 +1054,7 @@ git commit -m "feat: #114 - 천지인 하단 배치에서 스페이스와 리턴
 - Consumes: `FourByFourPlusKeyboardView.usesBottomSpaceLayout` (Task 4), `KeyboardSelectOverlayView.xmarkImageContainerView`, `KeyboardLayoutFigure.keyboardSelectBoundaryInset`(4.0), `KeyboardLayoutFigure.keyboardSelectCancelMinWidth`(32.0), `KeyboardLayoutFigure.selectOverlayHeight`(60.0), `KeyboardLayoutFigure.oneHandedModeSelectOverlayWidth`(240.0)
 - Produces: 없음(내부 제약만 변경)
 
-- [ ] **Step 1: 실패하는 앵커 테스트를 쓴다**
+- [x] **Step 1: 실패하는 앵커 테스트를 쓴다** — 완료
 
 `SYKeyboardTests/Utils/CheonjiinBottomSpaceLayoutTests.swift` 마지막 테스트 아래에 추가한다.
 
@@ -1116,7 +1120,7 @@ git commit -m "feat: #114 - 천지인 하단 배치에서 스페이스와 리턴
     }
 ```
 
-- [ ] **Step 2: 테스트가 실패하는지 확인한다**
+- [x] **Step 2: 테스트가 실패하는지 확인한다** — 완료. 방향 불일치 테스트 2개는 예상대로 실패. **`testDefaultLayoutOverlayKeepsTrailingAnchor`도 production 무변경 상태에서 실패** — 지구본이 보이면 modifier 칸이 `.fillEqually`로 3등분되어 `switchButton`이 ~32.5pt가 되고, 우선순위 999인 취소 경계가 required인 `keyboardSelectCancelMinWidth`(32)와 동시에 성립할 수 없어 Auto Layout이 999를 버린다(실측 오차 15.67pt). `develop`에도 있던 기존 제약이며 이번 브랜치 회귀 아님. **컨트롤러 판정**: 3개 테스트 모두 단언 전에 `updateNextKeyboardButton(needsInputModeSwitchKey: false, ...)`로 지구본을 숨긴다(같은 파일 기존 테스트의 관례)
 
 ```bash
 xcodebuild test \
@@ -1128,7 +1132,7 @@ xcodebuild test \
 
 Expected: `testBottomSpaceLayoutKeyboardSelectOverlayAnchors`와 `testBottomSpaceLayoutOneHandedOverlayAnchors`가 실패한다(오버레이가 여전히 우측 정렬). `testDefaultLayoutOverlayKeepsTrailingAnchor`는 통과한다.
 
-- [ ] **Step 3: `setConstraints()`의 오버레이 제약을 분기한다**
+- [x] **Step 3: `setConstraints()`의 오버레이 제약을 분기한다** — 완료
 
 `Modules/SYKeyboardCore/Presentation/View/KeyboardLayout/Bases/FourByFourPlusKeyboardView.swift`의 `setConstraints()`에서 `keyboardSelectOverlayView.translatesAutoresizingMaskIntoConstraints = false`부터 함수 끝까지를 교체한다.
 
@@ -1177,7 +1181,7 @@ Expected: `testBottomSpaceLayoutKeyboardSelectOverlayAnchors`와 `testBottomSpac
     }
 ```
 
-- [ ] **Step 4: 테스트가 통과하는지 확인한다**
+- [x] **Step 4: 테스트가 통과하는지 확인한다** — 완료
 
 ```bash
 xcodebuild test \
@@ -1189,7 +1193,7 @@ xcodebuild test \
 
 Expected: `** TEST SUCCEEDED **`, 오버레이 테스트 3개 모두 통과
 
-- [ ] **Step 5: 커밋한다**
+- [x] **Step 5: 커밋한다** — 완료. 커밋 `6099784d`. 전체 476 고유 / 489 전개 / 0 failed, Auto Layout 경고 0건. **컨트롤러 판정으로 범위 추가**: `KeyboardModifierLayoutTests.swift`의 `FourByFourFixture.cheonjiin`이 새 기본 인자를 통해 영속 설정값을 읽게 되어 flaky해지므로 `usesBottomSpaceLayout: false`를 명시
 
 ```bash
 git add Modules/SYKeyboardCore/Presentation/View/KeyboardLayout/Bases/FourByFourPlusKeyboardView.swift \
@@ -1210,7 +1214,7 @@ git commit -m "feat: #114 - 천지인 하단 배치에서 선택 오버레이 �
 - Consumes: `CheonjiinKeyboardView.currentHangeulKeyboardMode: HangeulKeyboardMode`(`.default`, `.URL`, `.emailAddress`, `.twitter`, `.webSearch`), `spaceButton.isHidden`, `returnButton.isHidden`, `secondaryAtButton.isHidden`, `secondarySharpButton.isHidden`
 - Produces: 없음
 
-- [ ] **Step 1: 5종 모드 테스트를 쓴다**
+- [x] **Step 1: 5종 모드 테스트를 쓴다** — 완료. `arguments:`가 그대로 컴파일되어 대안 형태 불필요
 
 `SYKeyboardTests/Utils/CheonjiinBottomSpaceLayoutTests.swift` 마지막에 추가한다.
 `.default`는 `CheonjiinKeyboardView`의 초기 모드이므로 `didSet` 기반 갱신이 걸리지 않는다. 다른 모드를 거쳤다 돌아오는 방식으로 검증한다.
@@ -1265,7 +1269,7 @@ git commit -m "feat: #114 - 천지인 하단 배치에서 선택 오버레이 �
 
 `HangeulKeyboardMode`가 `CaseIterable`이 아니어도 위처럼 명시 배열을 쓰면 된다. 파라미터 배열에 쓰려면 `HangeulKeyboardMode`가 `Sendable`이어야 하므로, 컴파일 에러가 나면 `arguments:` 대신 4개 모드를 순회하는 단일 테스트로 바꾼다.
 
-- [ ] **Step 2: 테스트를 실행한다**
+- [x] **Step 2: 테스트를 실행한다** — 완료
 
 ```bash
 xcodebuild test \
@@ -1279,7 +1283,7 @@ Expected: `** TEST SUCCEEDED **`
 
 실패하면 Task 4의 `setHierarchy()` 분기에서 `returnButtonHStackView`가 2행에 붙지 않았거나, `secondaryAtButton`/`secondarySharpButton`이 스택에서 빠진 것이다. `HangeulKeyboardLayoutProvider`의 모드 메서드는 수정하지 않는다.
 
-- [ ] **Step 3: 커밋한다**
+- [x] **Step 3: 커밋한다** — 완료. 커밋 `632a11c3`. 전체 479 고유 / 495 전개 / 0 failed
 
 ```bash
 git add SYKeyboardTests/Utils/CheonjiinBottomSpaceLayoutTests.swift
