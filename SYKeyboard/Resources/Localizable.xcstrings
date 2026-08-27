@@ -71,12 +71,12 @@
         }
       }
     },
-    "'획'을 'ㆍ', '쌍'을 'ᆢ'로 표시" : {
+    "'획' ➡️ 'ㆍ', '쌍' ➡️ 'ᆢ'" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Show “획” as “ㆍ” and “쌍” as “ᆢ”"
+            "value" : "“획” ➡️ “ㆍ”, “쌍” ➡️ “ᆢ”"
           }
         }
       }
@@ -840,12 +840,12 @@
         }
       }
     },
-    "획·쌍 버튼 점 표기" : {
+    "획·쌍 버튼 기호 표기" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Dot Labels for Stroke and Double Keys"
+            "value" : "Symbol Labels for Stroke and Double Keys"
           }
         }
       }
