@@ -101,6 +101,8 @@ struct CheonjiinBottomSpaceLayoutTests {
         #expect(deleteRect.midY < space.midY)
         #expect(space.midY < returnRect.midY)
         #expect(returnRect.midY < periodRect.midY)
+        // '?'도 '.'과 같은 4행에 있다
+        #expect(abs(questionRect.midY - periodRect.midY) < 0.5)
         // 4행 안에서 좌→우 '.' → 'ㅇㅁ' → '?' → modifier 스택
         #expect(periodRect.maxX <= jamoRect.minX + 0.5)
         #expect(jamoRect.maxX <= questionRect.minX + 0.5)
