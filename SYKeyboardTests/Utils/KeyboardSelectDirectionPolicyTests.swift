@@ -49,4 +49,16 @@ struct KeyboardSelectDirectionPolicyTests {
                                                           usesBottomSpaceLayout: usesBottomSpaceLayout) == .right
         )
     }
+
+    // 텐키는 SwitchButton을 생성하지 않아 이 분기가 현재 호출되지 않지만,
+    // exhaustive switch의 .tenKey 반환값(.left)이 나중에 실제로 연결될 때
+    // 회귀를 잡을 수 있도록 검증해 둔다
+    @Test("텐키는 하단 배치 플래그와 무관하게 항상 왼쪽",
+          arguments: [false, true])
+    func testTenKeyAlwaysOpensLeft(_ usesBottomSpaceLayout: Bool) {
+        #expect(
+            KeyboardSelectDirectionPolicy.targetDirection(for: .tenKey,
+                                                          usesBottomSpaceLayout: usesBottomSpaceLayout) == .left
+        )
+    }
 }
