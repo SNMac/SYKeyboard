@@ -69,6 +69,20 @@ struct UserDefaultsContractTests {
         #expect(UserDefaultsManager.shared.isNaratgeulDotLabelEnabled == false)
     }
 
+    @Test("천지인 스페이스 하단 배치는 저장값이 없으면 false를 반환하고 공유 저장소 키를 유지")
+    func testCheonjiinBottomSpaceDefaultFallbackAndKey() {
+        let storage = UserDefaultsManager.shared.storage
+        let key = UserDefaultsKeys.isCheonjiinBottomSpaceEnabled
+        let originalValue = storage.object(forKey: key)
+
+        storage.removeObject(forKey: key)
+        defer { restore(originalValue, forKey: key, in: storage) }
+
+        #expect(key == "isCheonjiinBottomSpaceEnabled")
+        #expect(DefaultValues.isCheonjiinBottomSpaceEnabled == false)
+        #expect(UserDefaultsManager.shared.isCheonjiinBottomSpaceEnabled == false)
+    }
+
     @Test("한영 통합 키보드 마지막 mode는 기본값과 raw value 계약을 유지")
     func testLastHangeulEnglishLanguageModeDefaultAndRawValueRoundTrip() {
         let storage = UserDefaultsManager.shared.storage

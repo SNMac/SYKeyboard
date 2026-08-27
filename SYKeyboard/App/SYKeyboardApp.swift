@@ -99,6 +99,7 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
         setAnalyticsProperty(keyboardSettingsManager.isOneHandedKeyboardEnabled, forName: "pref_one_handed_keyboard")
         setAnalyticsProperty(keyboardSettingsManager.oneHandedKeyboardWidth, format: "%.1f", forName: "pref_one_handed_width")
         setAnalyticsProperty(keyboardSettingsManager.isNaratgeulDotLabelEnabled, forName: "pref_naratgeul_dot_label")
+        setAnalyticsProperty(keyboardSettingsManager.isCheonjiinBottomSpaceEnabled, forName: "pref_cheonjiin_bottom_space")
 
         logger.debug("Firebase Analytics User Properties 초기화 완료")
     }
