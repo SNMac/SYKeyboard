@@ -54,35 +54,43 @@
 `fourthRowLeftPrimaryButtonHStackView` = `-` `,`, `fourthRowPrimaryKeyButtonList[2]` = `0`,
 `fourthRowRightPrimaryButtonHStackView` = `.` `/`.
 
-### 켜짐 배치 (미결 사항 D1 확정 후 확정)
+### 켜짐 배치 (D1 확정 완료)
 
 ```
 1     2     3     ⌫
 4     5     6     ↵
-7     8     9     [A]
-한글 한/영 🌐  0  space  [B]
+7     8     9     -  /
+한글 한/영 🌐  0  space  .  ,
 ```
 
-`A`/`B`에 `-`·`,` 스택과 `.`·`/` 스택 중 무엇을 둘지는 아래 D1에서 정한다.
-어느 쪽이든 **네 행 모두 4칸 균등 분할이 유지**되므로 새 레이아웃 클래스 없이 기존 스택 객체의 부모만 바꾼다.
+**네 행 모두 4칸 균등 분할이 유지**되므로 새 레이아웃 클래스 없이 기존 스택 객체의
+부모와 멤버십만 바꾼다.
 
 ---
 
-## 미결 사항 (착수 전 사용자 확정 필요)
+## ~~미결 사항~~ (전부 확정 완료)
 
-### D1 — 3행 우측과 4행 끝에 어느 문장부호 스택을 둘 것인가
+### ~~D1 — 3행 우측과 4행 끝에 어느 문장부호 스택을 둘 것인가~~ (완료)
 
-이슈 #114에서는 실기기 확인 후 **자주 쓰는 `.`·`,`를 엄지에 가까운 4행 끝**으로 내렸다. 숫자 키패드는 두 스택이 모두 문장부호라 같은 논리가 자동으로 적용되지 않는다.
+**D1-c로 확정 (2026-08-28, 사용자 결정).** 3행 우측 `-` `/`, 4행 끝 `.` `,`.
 
-| 안 | 3행 우측 | 4행 끝 | 코드 변경 | 비고 |
-|---|---|---|---|---|
-| **D1-a** | `.` `/` | `-` `,` | `thirdRow ← Right`, `fourthRow 끝 ← Left` | #114와 **같은 코드 형태**(좌측 스택이 내려감) |
-| **D1-b** | `-` `,` | `.` `/` | `thirdRow ← Left`, `fourthRow 끝 ← Right` | 소수점 `.`을 엄지 가까이 |
-| **D1-c** | 재구성 | 재구성 | 스택 내용물 변경 | `,`·`.`를 한 스택으로 묶는 등. **범위가 커지므로 비권장** |
+숫자 입력 맥락에서 가장 빈번한 `.`과 `,`를 엄지에 가까운 4행 끝에 함께 둔다.
+D1-a/D1-b는 두 키가 위아래로 갈라지므로 채택하지 않았다.
 
-숫자 입력 맥락에서는 소수점 `.`과 천 단위 `,`가 가장 빈번하다. 두 키가 서로 다른 스택에 있어 **어느 안을 골라도 한쪽은 위, 한쪽은 아래로 갈린다.** D1-c는 그 문제를 풀지만 키 배열 자체를 바꾸는 일이라 이 계획의 범위를 넘는다.
+**범위 재평가:** 계획 초안은 D1-c를 "키 배열 자체를 바꾸는 일"로 보아 비권장했으나,
+실제 코드에서 `numericKeyList`는 `NumericKeyboardView` private 상수이고
+`fourthRowLeft/RightPrimaryButtonHStackView`는 순수 레이아웃 컨테이너다.
+`fourthRowPrimaryKeyButtonList`의 **순서와 원소는 그대로 두고** 켜짐 분기에서
+어느 버튼이 어느 스택에 들어가는지만 바꾸면 되므로, 변경 규모는 D1-a와 같다.
 
-**권장: D1-a.** #114와 코드 형태가 같아 리뷰·회귀 판단이 쉽고, 실기기 확인 후 D1-b로 뒤집는 비용이 한 줄이다. #114도 실기기 확인 후 한 번 뒤집었다.
+| 스택 | 꺼짐(현행 유지) | 켜짐 |
+|---|---|---|
+| `fourthRowLeftPrimaryButtonHStackView` | `[0]`=`-`, `[1]`=`,` (4행 좌측) | `[3]`=`.`, `[1]`=`,` (4행 끝) |
+| `fourthRowRightPrimaryButtonHStackView` | `[3]`=`.`, `[4]`=`/` (4행 우측) | `[0]`=`-`, `[4]`=`/` (3행 우측) |
+
+`allButtonList` / `primaryButtonList` / `totalTextInterableButtonList`는
+`fourthRowPrimaryKeyButtonList`를 그대로 이어 붙이므로 **두 배치에서 동일하다.**
+스택 멤버십은 시각 위치에만 영향을 준다.
 
 ### ~~D2 — 이슈 등록~~ (완료)
 
@@ -139,11 +147,10 @@
 
 [#117](https://github.com/SNMac/SYKeyboard/issues/117)로 등록했다. 본문에 "확정된 설계 결정" 표와 D1 선택지가 들어 있다.
 
-- [ ] **Step 2: D1을 확정한다** ← **새 세션에서 가장 먼저 할 일**
+- [x] **Step 2: D1을 확정한다** — 완료
 
-이 문서에서 유일하게 사용자 답변이 필요한 항목이다. D1-a / D1-b 중 확정을 받고 "켜짐 배치" 그림의 `A`/`B`를 채운다.
-Task 3 Step 4의 코드는 **D1-a 기준**으로 쓰여 있으므로, D1-b로 확정되면 `Left`/`Right`를 서로 바꾼다.
-**확정 전에는 Task 3을 시작하지 않는다.**
+**D1-c 확정 (2026-08-28).** 3행 우측 `-` `/`, 4행 끝 `.` `,`.
+"켜짐 배치" 그림과 Task 3 Step 4 코드에 반영했다.
 
 - [x] **Step 3: `develop`에서 작업 브랜치를 만든다** — 완료
 
@@ -533,7 +540,66 @@ struct NumericBottomSpaceLayoutTests {
 }
 ```
 
-**D1 확정 후 추가할 테스트:** 3행 우측과 4행 끝의 문장부호 스택 위치를 고정하는 테스트를 `CheonjiinBottomSpaceLayoutTests.testBottomSpaceLayoutRowAssignment`와 같은 형태로 넣는다. `numericKeyList[3]`의 원소를 `PrimaryKeyButton.type.primaryKeyList.first`로 찾는다.
+**D1-c 확정에 따른 행 배치 테스트를 같은 파일에 함께 넣는다.** `CheonjiinBottomSpaceLayoutTests.testBottomSpaceLayoutRowAssignment` / `testDefaultLayoutRowAssignment`와 같은 형태다. `numericKeyList[3]`의 원소를 `PrimaryKeyButton.type.primaryKeyList.first`로 찾는다.
+
+```swift
+    /// `numericKeyList[3]`의 문장부호 버튼을 표시 문자로 찾는다
+    @MainActor
+    private static func keyButton(_ key: String, in view: NumericKeyboardView) throws -> PrimaryKeyButton {
+        let keyButtons = view.primaryButtonList.compactMap { $0 as? PrimaryKeyButton }
+
+        return try #require(keyButtons.first { $0.type.primaryKeyList.first == key })
+    }
+
+    @Test("켜짐 상태는 '-'·'/'가 3행 우측, '.'·','가 4행 끝")
+    func testBottomSpaceLayoutRowAssignment() throws {
+        let view = Self.makeView(usesBottomSpaceLayout: true)
+        let hyphen = Self.rect(try Self.keyButton("-", in: view), in: view)
+        let slash = Self.rect(try Self.keyButton("/", in: view), in: view)
+        let period = Self.rect(try Self.keyButton(".", in: view), in: view)
+        let comma = Self.rect(try Self.keyButton(",", in: view), in: view)
+        let zero = Self.rect(try Self.keyButton("0", in: view), in: view)
+        let space = Self.rect(view.spaceButton, in: view)
+        let returnRect = Self.rect(view.returnButton, in: view)
+
+        // 2행(리턴) < 3행('-'·'/') < 4행('.'·',')
+        #expect(returnRect.midY < hyphen.midY)
+        #expect(hyphen.midY < period.midY)
+        // 3행 우측 칸 안에서 좌→우 '-' → '/'
+        #expect(abs(slash.midY - hyphen.midY) < 0.5)
+        #expect(hyphen.maxX <= slash.minX + 0.5)
+        #expect(abs(slash.maxX - Self.keyboardWidth) < 0.5)
+        // 4행 안에서 좌→우 modifier → '0' → space → '.' → ','
+        #expect(abs(comma.midY - period.midY) < 0.5)
+        #expect(abs(zero.midY - period.midY) < 0.5)
+        #expect(zero.maxX <= space.minX + 0.5)
+        #expect(space.maxX <= period.minX + 0.5)
+        #expect(period.maxX <= comma.minX + 0.5)
+        #expect(abs(comma.maxX - Self.keyboardWidth) < 0.5)
+    }
+
+    @Test("꺼짐 상태는 4행이 좌→우 '-' ',' '0' '.' '/' modifier 순서를 유지")
+    func testDefaultLayoutRowAssignment() throws {
+        let view = Self.makeView(usesBottomSpaceLayout: false)
+        let hyphen = Self.rect(try Self.keyButton("-", in: view), in: view)
+        let comma = Self.rect(try Self.keyButton(",", in: view), in: view)
+        let zero = Self.rect(try Self.keyButton("0", in: view), in: view)
+        let period = Self.rect(try Self.keyButton(".", in: view), in: view)
+        let slash = Self.rect(try Self.keyButton("/", in: view), in: view)
+        let switchRect = Self.rect(view.switchButton, in: view)
+        let returnRect = Self.rect(view.returnButton, in: view)
+
+        // 다섯 글자 버튼이 모두 4행이고 리턴(3행)보다 아래다
+        #expect(returnRect.midY < hyphen.midY)
+        [comma, zero, period, slash].forEach { #expect(abs($0.midY - hyphen.midY) < 0.5) }
+        #expect(abs(hyphen.minX) < 0.5)
+        #expect(hyphen.maxX <= comma.minX + 0.5)
+        #expect(comma.maxX <= zero.minX + 0.5)
+        #expect(zero.maxX <= period.minX + 0.5)
+        #expect(period.maxX <= slash.minX + 0.5)
+        #expect(slash.maxX <= switchRect.minX + 0.5)
+    }
+```
 
 - [ ] **Step 2: 컴파일이 실패하는지 확인한다**
 
@@ -584,7 +650,8 @@ Expected: `extra argument 'usesBottomSpaceLayout' in call`
 
 - [ ] **Step 4: `setHierarchy()`를 분기한다**
 
-D1-a 기준 코드다. **D1-b로 확정되면 `Left`/`Right`를 서로 바꾼다.**
+D1-c 확정 코드다. 스택 객체 두 개는 그대로 쓰고, **어느 버튼이 어느 스택에 들어가는지**를
+분기 안으로 옮긴다. 꺼짐 분기의 멤버십·순서는 현행과 한 글자도 다르지 않아야 한다.
 
 ```swift
     func setHierarchy() {
@@ -603,14 +670,16 @@ D1-a 기준 코드다. **D1-b로 확정되면 `Left`/`Right`를 서로 바꾼다
         secondRowPrimaryKeyButtonList.forEach { secondRowHStackView.addArrangedSubview($0) }
         thirdRowPrimaryKeyButtonList.forEach { thirdRowHStackView.addArrangedSubview($0) }
 
-        [fourthRowPrimaryKeyButtonList[0], fourthRowPrimaryKeyButtonList[1]].forEach { fourthRowLeftPrimaryButtonHStackView.addArrangedSubview($0) }
-        [fourthRowPrimaryKeyButtonList[3], fourthRowPrimaryKeyButtonList[4]].forEach { fourthRowRightPrimaryButtonHStackView.addArrangedSubview($0) }
-
         let modifierButtons: [SecondaryButton]
         if usesBottomSpaceLayout {
             // 스페이스가 4행으로 내려가면서 리턴이 2행, 우측 글자 스택이 3행 우측 칸으로
             // 올라가고 좌측 글자 스택이 4행 끝으로 간다.
-            // 모든 행은 그대로 4칸 균등 분할이다
+            // 모든 행은 그대로 4칸 균등 분할이다.
+            // 숫자 입력에서 가장 잦은 '.'과 ','를 엄지에 가까운 4행 끝에 모으고
+            // '-'와 '/'를 3행 우측으로 올린다
+            [fourthRowPrimaryKeyButtonList[3], fourthRowPrimaryKeyButtonList[1]].forEach { fourthRowLeftPrimaryButtonHStackView.addArrangedSubview($0) }
+            [fourthRowPrimaryKeyButtonList[0], fourthRowPrimaryKeyButtonList[4]].forEach { fourthRowRightPrimaryButtonHStackView.addArrangedSubview($0) }
+
             secondRowHStackView.addArrangedSubview(returnButton)
             thirdRowHStackView.addArrangedSubview(fourthRowRightPrimaryButtonHStackView)
 
@@ -623,6 +692,9 @@ D1-a 기준 코드다. **D1-b로 확정되면 `Left`/`Right`를 서로 바꾼다
             + [languageSwitchButton].compactMap { $0 }
             + [nextKeyboardButton]
         } else {
+            [fourthRowPrimaryKeyButtonList[0], fourthRowPrimaryKeyButtonList[1]].forEach { fourthRowLeftPrimaryButtonHStackView.addArrangedSubview($0) }
+            [fourthRowPrimaryKeyButtonList[3], fourthRowPrimaryKeyButtonList[4]].forEach { fourthRowRightPrimaryButtonHStackView.addArrangedSubview($0) }
+
             secondRowHStackView.addArrangedSubview(spaceButton)
             thirdRowHStackView.addArrangedSubview(returnButton)
 
