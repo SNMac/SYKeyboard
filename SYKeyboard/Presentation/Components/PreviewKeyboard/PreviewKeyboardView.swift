@@ -15,6 +15,7 @@ struct PreviewKeyboardView: View {
     
     @Binding var keyboardHeight: Double
     @Binding var oneHandedKeyboardWidth: Double
+    @Binding var letterColumnWidthMultiplier: Double
     @Binding var needsInputModeSwitchKey: Bool
     @Binding var previewKeyboardLanguage: PreviewKeyboardLanguage
     @Binding var oneHandedMode: OneHandedMode
@@ -46,6 +47,7 @@ private extension PreviewKeyboardView {
     var previewHangeulKeyboard: some View {
         PreviewHangeulKeyboardViewController(keyboardHeight: $keyboardHeight,
                                              oneHandedKeyboardWidth: $oneHandedKeyboardWidth,
+                                             letterColumnWidthMultiplier: $letterColumnWidthMultiplier,
                                              oneHandedMode: $oneHandedMode)
         .frame(height: keyboardHeight)
         .background(.keyboardBackground)
@@ -55,6 +57,7 @@ private extension PreviewKeyboardView {
     var previewEnglishKeyboard: some View {
         PreviewEnglishKeyboardViewController(keyboardHeight: $keyboardHeight,
                                              oneHandedKeyboardWidth: $oneHandedKeyboardWidth,
+                                             letterColumnWidthMultiplier: $letterColumnWidthMultiplier,
                                              oneHandedMode: $oneHandedMode)
         .frame(height: keyboardHeight)
         .background(.keyboardBackground)

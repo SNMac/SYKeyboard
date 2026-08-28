@@ -654,6 +654,15 @@ open class BaseKeyboardViewController: UIInputViewController {
         updateOneHandModekeyboard()
         self.view.layoutIfNeeded()
     }
+
+    /// 미리보기에서 글자 열 너비 배율을 실시간으로 반영합니다.
+    ///
+    /// 숫자 키패드는 `primaryKeyboardViews`에 포함되지 않으므로 따로 갱신합니다
+    public func updateLetterColumnWidthForPreview(to multiplier: Double) {
+        primaryKeyboardViews.forEach { $0.updateLetterColumnWidthMultiplier(multiplier) }
+        numericKeyboardView.updateLetterColumnWidthMultiplier(multiplier)
+        self.view.layoutIfNeeded()
+    }
 }
 
 // MARK: - Text Proxy Wrapper Methods
