@@ -95,12 +95,21 @@ GitHub Issue #112에 따라 4열 격자를 쓰는 키보드에서 좌측 3열(�
 | --- | --- | --- | --- |
 | 글자 열 1개 | `0.25 × clamp(r)` | `0.2500` | `0.3000` |
 | 기능 열 | `1 − 3 × 글자 열` | `0.2500` | `0.1000` |
-| 한영 전환 버튼 | `기능 열 × 0.4` | `0.1000` | `0.0400` |
+| 한영 전환 버튼 | `자기 열 × 0.4` | `0.1000` | (열 폭에 비례) |
 
 - `clamp(r)`은 `1.00...1.20`으로 자른다.
 - 한영 전환 버튼 몫 `0.4`는 상수를 새로 박지 않고 기존 값에서 유도한다.
   `languageSwitchButtonWidthRatio(0.1) ÷ 0.25 = 0.4`이므로, 기본 배율에서
   한영 전환 버튼 폭이 지금과 **구조적으로** 같아진다(우연한 일치가 아니다).
+- 한영 전환 버튼 폭은 전체 폭이 아니라 **버튼이 속한 열(modifier 스택) 폭의 40%**로
+  정한다. 기본 배율에서 `0.4 × 0.25W = 0.1W`이므로 기존
+  `languageSwitchButtonWidthRatio`와 같은 폭이다.
+- 전체 폭을 기준으로 삼으면 하단 스페이스 배치에서 역전이 생긴다. 이 배치의
+  modifier 스택은 배율을 올리면 넓어지는 1열에 오는데, 전체 폭 기준 비율은
+  기능 열을 따라 줄어들어 열은 넓어지고 버튼만 좁아진다.
+- 이 제약의 multiplier는 배율과 무관한 상수
+  `KeyboardLayoutFigure.languageSwitchButtonFunctionColumnShare`이므로
+  별도의 정책 함수를 두지 않는다.
 - 이 연동이 없으면 기능 열이 `0.10`이 될 때 고정 폭 `0.1`인 한영 전환 버튼이
   열 전체를 차지해 `switchButton` 폭이 0이 된다.
 - 상수(열 개수 `4`, 배율 범위 `1.00...1.20`, 한영 전환 버튼 몫)는
@@ -120,8 +129,9 @@ GitHub Issue #112에 따라 4열 격자를 쓰는 키보드에서 좌측 3열(�
 - 행마다 4열에
   `widthAnchor.constraint(equalTo: row.widthAnchor, multiplier: 기능 열 비율)`
   1개를 건다. **이 4개만 프로퍼티로 보관한다.**
-- 한영 전환 버튼 제약의 multiplier를 정책 값으로 교체한다. 기존 priority 999와
-  `updateModifierDistribution` 동작은 유지한다.
+- 한영 전환 버튼 제약의 기준을 버튼이 속한 상위 스택(자기 열)으로 바꾸고
+  multiplier는 상수 `languageSwitchButtonFunctionColumnShare`를 쓴다. 기존
+  priority 999와 `updateModifierDistribution` 동작은 유지한다.
 
 4열 + 등폭 2개 + 스택의 `.fill`이 만드는 "폭 합 = 행 폭" 관계로 미지수 4개가
 모두 결정되므로 Auto Layout 모호성이 없다. `r = 1.00`이면 결과가
@@ -204,7 +214,7 @@ GitHub Issue #112에 따라 4열 격자를 쓰는 키보드에서 좌측 3열(�
 - `KeyboardColumnWidthPolicyTests` (신규)
   - 범위 밖 입력 clamp
   - 글자 열 3개 + 기능 열 합이 1.0
-  - `r = 1.00`에서 모든 열이 `0.25`이고 한영 전환 비율이
+  - `r = 1.00`에서 모든 열이 `0.25`이고, 기능 열 × 한영 전환 버튼 몫이
     `KeyboardLayoutFigure.languageSwitchButtonWidthRatio`와 같음
 - `FourByFourColumnWidthLayoutTests` (신규)
   - `CheonjiinBottomSpaceLayoutTests` 하네스를 따라 실제
@@ -234,7 +244,7 @@ GitHub Issue #112에 따라 4열 격자를 쓰는 키보드에서 좌측 3열(�
 
 1. **숫자 키패드(`NumericKeyboardView`)도 적용 대상에 포함한다.** 이슈는
    나랏글·천지인만 언급했으나 같은 4열 격자다.
-2. **한영 전환 버튼 폭 계산식이 기능 열에 연동된다.** 기본값에서 값은 동일하다.
+2. **한영 전환 버튼 폭이 자기 열 폭의 40%로 바뀐다.** 기본값에서 값은 동일하다.
 3. **행 스택 `distribution`을 `.fill`로 바꾼다.** `fillEqually`의 등폭 제약이
    required라 제약만 추가하면 충돌한다.
 4. **`NormalKeyboardLayoutProvider`에 메서드 1개 추가** (기본 no-op).
@@ -251,7 +261,7 @@ GitHub Issue #112에 따라 4열 격자를 쓰는 키보드에서 좌측 3열(�
 | 숫자 키패드 하단 스페이스 배치 | 3행 `'-' '/'`, 4행 `'.' ','` 축소 / 모디파이어 열 확대 |
 | 한영 통합 키보드 | 나랏글·천지인 모드와 숫자 키패드에 동일 적용 |
 | 두벌식·영문 사용자 | 주 키보드는 그대로, **숫자 키패드만** 바뀜 |
-| 한영 전환·지구본·전환 버튼 | 기능 열과 함께 축소 |
+| 한영 전환·지구본·전환 버튼 | 자기 열과 함께 축소 또는 확대 |
 | 키보드 선택 오버레이 | 취소 영역이 기존 최소폭 32pt 가드에 걸릴 수 있음 |
 
 변하지 않는 것:
