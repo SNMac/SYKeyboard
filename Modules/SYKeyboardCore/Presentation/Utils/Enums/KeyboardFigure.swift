@@ -38,6 +38,18 @@ public enum KeyboardLayoutFigure {
     /// 열 개수가 달라도 두벌식·쿼티의 한영 전환 버튼(글자 버튼 한 칸 = 전체 폭의 1/10)과
     /// 같은 크기로 보이게 맞춘다. 남는 너비는 지구본 버튼과 `switchButton`이 나눠 갖는다
     static let languageSwitchButtonWidthRatio: CGFloat = languageSwitchButtonWidthMultiplier / 10.0
+    /// 4x4 계열 키보드의 열 개수
+    static let fourColumnCount: Int = 4
+    /// 4x4 계열 글자 열 너비 배율 범위.
+    ///
+    /// `1.0`이 현재의 균등 분할이고, 값이 커질수록 글자 열이 넓어지고 기능 열이 좁아진다
+    public static let letterColumnWidthMultiplierRange: ClosedRange<Double> = 1.0...1.2
+    /// 기능 열 안에서 한영 전환 버튼이 차지하는 몫.
+    ///
+    /// 기본 배율에서 `languageSwitchButtonWidthRatio`와 같은 폭이 되도록 기존 값에서 유도한다.
+    /// 기능 열이 좁아지면 한영 전환 버튼도 같이 좁아져 `switchButton` 폭이 0이 되는 것을 막는다
+    static let languageSwitchButtonFunctionColumnShare: CGFloat =
+    languageSwitchButtonWidthRatio * CGFloat(fourColumnCount)
     /// 지구본 버튼 곱하기 계수. 한영 전환 버튼과 같은 너비를 사용한다
     static let nextKeyboardButtonWidthMultiplier: CGFloat = languageSwitchButtonWidthMultiplier
     /// 통합 키보드에서 한영 전환 버튼과 합친 너비가 리턴 버튼과 같아지는 `switchButton` 곱하기 계수
