@@ -84,7 +84,7 @@
   - `KeyboardLayoutFigure.languageSwitchButtonFunctionColumnShare: CGFloat` (internal)
   - `enum KeyboardColumnWidthPolicy` (internal) — `clamped(_:) -> Double`, `letterColumnRatio(multiplier:) -> CGFloat`, `functionColumnRatio(multiplier:) -> CGFloat`, `languageSwitchButtonRatio(multiplier:) -> CGFloat`. 모두 `static`, 인자는 `Double`
 
-- [ ] **Step 1: 실패하는 테스트 작성**
+- [x] **Step 1: 실패하는 테스트 작성**
 
 `SYKeyboardTests/Utils/KeyboardColumnWidthPolicyTests.swift` 생성:
 
@@ -163,7 +163,7 @@ struct KeyboardColumnWidthPolicyTests {
 }
 ```
 
-- [ ] **Step 2: 테스트가 실패하는지 확인**
+- [x] **Step 2: 테스트가 실패하는지 확인**
 
 ```sh
 xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
@@ -173,7 +173,7 @@ xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
 
 기대: 컴파일 실패. `cannot find 'KeyboardColumnWidthPolicy' in scope`
 
-- [ ] **Step 3: `KeyboardLayoutFigure`에 상수 추가**
+- [x] **Step 3: `KeyboardLayoutFigure`에 상수 추가**
 
 `Modules/SYKeyboardCore/Presentation/Utils/Enums/KeyboardFigure.swift`의 `languageSwitchButtonWidthRatio` 선언 **바로 아래**에 추가한다:
 
@@ -192,7 +192,7 @@ xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
     languageSwitchButtonWidthRatio * CGFloat(fourColumnCount)
 ```
 
-- [ ] **Step 4: `KeyboardColumnWidthPolicy` 작성**
+- [x] **Step 4: `KeyboardColumnWidthPolicy` 작성**
 
 `Modules/SYKeyboardCore/Presentation/Utils/Policies/KeyboardColumnWidthPolicy.swift` 생성:
 
@@ -234,7 +234,7 @@ enum KeyboardColumnWidthPolicy {
 }
 ```
 
-- [ ] **Step 5: `project.pbxproj`에 새 파일 등록**
+- [x] **Step 5: `project.pbxproj`에 새 파일 등록**
 
 두 `membershipExceptions` 블록 각각에서 `SYKeyboardCore/Presentation/Utils/Policies/CursorDragAccelerationPolicy.swift,` 줄 **바로 다음**에 아래 줄을 삽입한다. 들여쓰기는 주변 줄과 동일하게 탭 4개다.
 
@@ -250,7 +250,7 @@ grep -c "Policies/KeyboardColumnWidthPolicy.swift" SYKeyboard.xcodeproj/project.
 
 기대: `2`
 
-- [ ] **Step 6: 테스트 통과 확인**
+- [x] **Step 6: 테스트 통과 확인**
 
 ```sh
 xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
@@ -260,7 +260,7 @@ xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
 
 기대: 6개 테스트 통과
 
-- [ ] **Step 7: 커밋**
+- [x] **Step 7: 커밋**
 
 ```bash
 git add Modules/SYKeyboardCore/Presentation/Utils/Enums/KeyboardFigure.swift \
@@ -270,7 +270,11 @@ git add Modules/SYKeyboardCore/Presentation/Utils/Enums/KeyboardFigure.swift \
 git commit -m "feat: #112 - 4열 격자 열 너비 계산 정책 추가"
 ```
 
-**결과:** (실행 후 기록)
+**결과:** 완료. `xcodebuild test -only-testing:SYKeyboardTests/KeyboardColumnWidthPolicyTests`
+(iPhone 13 mini / iOS 16.0, `CBD992D3-5364-4F69-AC5F-0077ADF1A292`) — Step 2에서 `cannot find
+'KeyboardColumnWidthPolicy' in scope` 컴파일 실패를 확인한 뒤, Step 6에서 **6/6 통과
+(TEST SUCCEEDED)**. `grep -c "Policies/KeyboardColumnWidthPolicy.swift" project.pbxproj` = `2`.
+커밋 `7fc14984`.
 
 ---
 
@@ -290,7 +294,7 @@ git commit -m "feat: #112 - 4열 격자 열 너비 계산 정책 추가"
   - `DefaultValues.letterColumnWidthMultiplier: Double` = `1.0` (public)
   - `UserDefaultsManager.shared.letterColumnWidthMultiplier: Double` (public, 읽기·쓰기)
 
-- [ ] **Step 1: 실패하는 테스트 작성**
+- [x] **Step 1: 실패하는 테스트 작성**
 
 `SYKeyboardTests/Storage/UserDefaultsContractTests.swift`의 마지막 `@Test` 뒤, `restore` helper 앞에 추가:
 
@@ -310,7 +314,7 @@ git commit -m "feat: #112 - 4열 격자 열 너비 계산 정책 추가"
     }
 ```
 
-- [ ] **Step 2: 테스트가 실패하는지 확인**
+- [x] **Step 2: 테스트가 실패하는지 확인**
 
 ```sh
 xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
@@ -320,7 +324,7 @@ xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
 
 기대: 컴파일 실패. `type 'UserDefaultsKeys' has no member 'letterColumnWidthMultiplier'`
 
-- [ ] **Step 3: 세 저장소 파일에 항목 추가**
+- [x] **Step 3: 세 저장소 파일에 항목 추가**
 
 `UserDefaultsKeys.swift`의 `// MARK: - 외형 설정` 구역, `oneHandedKeyboardWidth` 줄 바로 아래:
 
@@ -344,7 +348,7 @@ xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
     public var letterColumnWidthMultiplier: Double
 ```
 
-- [ ] **Step 4: 테스트 통과 확인**
+- [x] **Step 4: 테스트 통과 확인**
 
 ```sh
 xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
@@ -354,7 +358,7 @@ xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
 
 기대: 기존 테스트 + 새 테스트 1개 모두 통과
 
-- [ ] **Step 5: 커밋**
+- [x] **Step 5: 커밋**
 
 ```bash
 git add Modules/SYKeyboardCore/Storage/UserDefaultsKeys.swift \
@@ -364,7 +368,10 @@ git add Modules/SYKeyboardCore/Storage/UserDefaultsKeys.swift \
 git commit -m "feat: #112 - 글자 열 너비 배율 설정 키 추가"
 ```
 
-**결과:** (실행 후 기록)
+**결과:** 완료. `xcodebuild test -only-testing:SYKeyboardTests/UserDefaultsContractTests`
+(iPhone 13 mini / iOS 16.0) — Step 2에서 `type 'UserDefaultsKeys' has no member
+'letterColumnWidthMultiplier'` 컴파일 실패를 확인한 뒤, Step 4에서 **12/12 통과**
+(기존 11 + 신규 1). `project.pbxproj` 변경 없음(새 파일 없음). 커밋 `579c2c2c`.
 
 ---
 
@@ -384,7 +391,7 @@ git commit -m "feat: #112 - 글자 열 너비 배율 설정 키 추가"
   - `func install(rows: [UIStackView], languageSwitchButton: UIView?, referenceView: UIView, multiplier: Double)`
   - `func update(multiplier: Double)`
 
-- [ ] **Step 1: 실패하는 테스트 작성**
+- [x] **Step 1: 실패하는 테스트 작성**
 
 `SYKeyboardTests/Utils/FourColumnWidthLayoutTests.swift` 생성:
 
@@ -508,7 +515,7 @@ struct FourColumnWidthLayoutTests {
 }
 ```
 
-- [ ] **Step 2: 테스트가 실패하는지 확인**
+- [x] **Step 2: 테스트가 실패하는지 확인**
 
 ```sh
 xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
@@ -518,7 +525,7 @@ xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
 
 기대: 컴파일 실패. `cannot find 'FourColumnWidthLayoutController' in scope`
 
-- [ ] **Step 3: 컨트롤러 작성**
+- [x] **Step 3: 컨트롤러 작성**
 
 `Modules/SYKeyboardCore/Presentation/View/Components/Frames/FourColumnWidthLayoutController.swift` 생성:
 
@@ -623,7 +630,7 @@ private extension FourColumnWidthLayoutController {
 }
 ```
 
-- [ ] **Step 4: `project.pbxproj`에 새 파일 등록**
+- [x] **Step 4: `project.pbxproj`에 새 파일 등록**
 
 두 `membershipExceptions` 블록 각각에서 `SYKeyboardCore/Presentation/View/Components/Frames/KeyboardLayoutVStackView.swift,` 줄 **바로 앞**에 아래 줄을 삽입한다(`F` < `K` 이므로 알파벳 순).
 
@@ -639,7 +646,7 @@ grep -c "Frames/FourColumnWidthLayoutController.swift" SYKeyboard.xcodeproj/proj
 
 기대: `2`
 
-- [ ] **Step 5: 테스트 통과 확인**
+- [x] **Step 5: 테스트 통과 확인**
 
 ```sh
 xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
@@ -649,7 +656,7 @@ xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
 
 기대: 4개 테스트 통과. Auto Layout 충돌 경고(`Unable to simultaneously satisfy constraints`)가 로그에 나오면 실패로 간주하고 원인을 찾는다.
 
-- [ ] **Step 6: 커밋**
+- [x] **Step 6: 커밋**
 
 ```bash
 git add Modules/SYKeyboardCore/Presentation/View/Components/Frames/FourColumnWidthLayoutController.swift \
@@ -658,7 +665,28 @@ git add Modules/SYKeyboardCore/Presentation/View/Components/Frames/FourColumnWid
 git commit -m "feat: #112 - 4열 격자 폭 제약 컨트롤러 추가"
 ```
 
-**결과:** (실행 후 기록)
+**결과:** 완료. `xcodebuild test -only-testing:SYKeyboardTests/FourColumnWidthLayoutTests
+-resultBundlePath /tmp/task3-verify.xcresult` (iPhone 13 mini / iOS 16.0, build 20A360) —
+`xcresulttool get test-results summary` 기준 `result: Passed`, `totalTestCount: 4`,
+`passedTests: 4`, `failedTests: 0`. Auto Layout 충돌 경고
+(`Unable to simultaneously satisfy constraints`) **0건**.
+`grep -c "Frames/FourColumnWidthLayoutController.swift" project.pbxproj` = `2`. 커밋 `95023df4`.
+
+**계획 정정 (실행 중 확정):** Step 3의 `update(multiplier:)`에 결함이 있었다. 제약만 교체하고
+레이아웃을 무효화하지 않아 `update()` 후 프레임이 갱신 전 값에 머물렀다(4열 폭 100 유지, 기대 40;
+한영 전환 버튼 40.0 유지, 기대 40 미만). Auto Layout 충돌 경고가 0건이었으므로 옛 제약이 남아
+경쟁한 것이 아니라 레이아웃이 재실행되지 않은 것이다. 제약 변경을 소유한 컨트롤러가 무효화도
+소유해야 하므로 `update()` 끝에 아래를 추가했다.
+
+```swift
+        rows.forEach { $0.setNeedsLayout() }
+        referenceView?.setNeedsLayout()
+```
+
+**이월된 minor 2건:** (1) `update()`는 `setNeedsLayout()`까지만 하고 `layoutIfNeeded()`는
+호출자에게 맡긴다 — Task 4~6 연결 시 실제 반영 확인 필요. (2) `install()`을 두 번 호출하면
+이전 `ratioConstraints`가 비활성화되지 않고 남는다 — 현재 호출부는 `setConstraints()`에서
+1회만 호출하므로 발생하지 않는다.
 
 ---
 
