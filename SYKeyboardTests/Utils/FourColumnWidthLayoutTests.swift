@@ -194,3 +194,95 @@ struct NaratgeulColumnWidthLayoutTests {
         #expect(abs(Self.rect(view.deleteButton, in: view).width - Self.keyboardWidth / 4) < Self.tolerance)
     }
 }
+
+@MainActor
+@Suite("천지인 열 너비 레이아웃")
+struct CheonjiinColumnWidthLayoutTests {
+    private static let keyboardWidth: CGFloat = 390
+    private static let keyboardHeight: CGFloat = 216
+    private static let tolerance: CGFloat = 0.5
+
+    @MainActor
+    private static func makeView(usesBottomSpaceLayout: Bool, multiplier: Double) -> CheonjiinKeyboardView {
+        let view = CheonjiinKeyboardView(showsLanguageSwitchButton: true,
+                                        usesBottomSpaceLayout: usesBottomSpaceLayout)
+        view.frame = CGRect(x: 0, y: 0, width: keyboardWidth, height: keyboardHeight)
+        view.updateLetterColumnWidthMultiplier(multiplier)
+        view.layoutIfNeeded()
+
+        return view
+    }
+
+    @MainActor
+    private static func rect(_ subview: UIView, in view: UIView) -> CGRect {
+        subview.convert(subview.bounds, to: view)
+    }
+
+    @MainActor
+    private static func keyButton(_ view: CheonjiinKeyboardView, primary: String) throws -> PrimaryKeyButton {
+        let keyButtons = view.primaryButtonList.compactMap { $0 as? PrimaryKeyButton }
+        return try #require(keyButtons.first { $0.type.primaryKeyList.first == primary })
+    }
+
+    @Test("기본 배율은 두 배치 모두 네 열을 균등 분할한다")
+    func testDefaultMultiplierKeepsEqualColumns() {
+        let expected = Self.keyboardWidth / 4
+
+        for usesBottomSpaceLayout in [false, true] {
+            let view = Self.makeView(usesBottomSpaceLayout: usesBottomSpaceLayout, multiplier: 1.0)
+            #expect(abs(Self.rect(view.deleteButton, in: view).width - expected) < Self.tolerance)
+        }
+    }
+
+    @Test("기본 배치에서 배율을 올리면 기능 열이 좁아지고 열 경계가 일치한다")
+    func testDefaultLayoutNarrowsFunctionColumn() {
+        let view = Self.makeView(usesBottomSpaceLayout: false, multiplier: 1.2)
+        let expectedFunctionWidth = Self.keyboardWidth * 0.1
+        let expectedColumnStart = Self.keyboardWidth * 0.9
+
+        let delete = Self.rect(view.deleteButton, in: view)
+        let space = Self.rect(view.spaceButton, in: view)
+        let returnStack = Self.rect(view.returnButtonHStackView, in: view)
+        let nextKeyboard = Self.rect(view.nextKeyboardButton, in: view)
+
+        #expect(abs(delete.width - expectedFunctionWidth) < Self.tolerance)
+        #expect(abs(space.width - expectedFunctionWidth) < Self.tolerance)
+        #expect(abs(returnStack.width - expectedFunctionWidth) < Self.tolerance)
+        #expect(abs(delete.minX - expectedColumnStart) < Self.tolerance)
+        #expect(abs(space.minX - expectedColumnStart) < Self.tolerance)
+        #expect(abs(returnStack.minX - expectedColumnStart) < Self.tolerance)
+        #expect(abs(nextKeyboard.minX - expectedColumnStart) < Self.tolerance)
+    }
+
+    @Test("하단 스페이스 배치도 위치 기준으로 4열이 좁아지고 열 경계가 일치한다")
+    func testBottomSpaceLayoutNarrowsFourthColumnByPosition() throws {
+        let view = Self.makeView(usesBottomSpaceLayout: true, multiplier: 1.2)
+        let expectedColumnStart = Self.keyboardWidth * 0.9
+
+        let delete = Self.rect(view.deleteButton, in: view)
+        let returnStack = Self.rect(view.returnButtonHStackView, in: view)
+        // 3행 4열은 '?' '!' 글자 스택, 4행 4열은 '.' ',' 글자 스택이다
+        let question = Self.rect(try Self.keyButton(view, primary: "?"), in: view)
+        let period = Self.rect(try Self.keyButton(view, primary: "."), in: view)
+
+        #expect(abs(delete.minX - expectedColumnStart) < Self.tolerance)
+        #expect(abs(returnStack.minX - expectedColumnStart) < Self.tolerance)
+        #expect(abs(question.minX - expectedColumnStart) < Self.tolerance)
+        #expect(abs(period.minX - expectedColumnStart) < Self.tolerance)
+
+        // 4행 1열의 modifier 스택은 넓어진 열에 놓인다
+        #expect(abs(Self.rect(view.switchButton, in: view).minX) < Self.tolerance)
+    }
+
+    @Test("배율을 되돌리면 두 배치 모두 균등 분할로 돌아온다")
+    func testUpdatingBackRestoresEqualColumns() {
+        for usesBottomSpaceLayout in [false, true] {
+            let view = Self.makeView(usesBottomSpaceLayout: usesBottomSpaceLayout, multiplier: 1.2)
+
+            view.updateLetterColumnWidthMultiplier(1.0)
+            view.layoutIfNeeded()
+
+            #expect(abs(Self.rect(view.deleteButton, in: view).width - Self.keyboardWidth / 4) < Self.tolerance)
+        }
+    }
+}
