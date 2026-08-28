@@ -184,6 +184,19 @@ struct NaratgeulColumnWidthLayoutTests {
         #expect(abs(widenedKey.frame.width - Self.keyboardWidth * 0.3) < Self.tolerance)
     }
 
+    @Test("프로토콜 타입으로 호출해도 배율이 적용된다")
+    func testUpdateThroughProtocolDispatch() {
+        let view = Self.makeView(multiplier: 1.0)
+        let provider: PrimaryKeyboardRepresentable = view
+
+        provider.updateLetterColumnWidthMultiplier(1.2)
+        view.layoutIfNeeded()
+
+        // 기본 no-op 구현이 witness로 잡히면 이 단언이 실패한다
+        #expect(abs(Self.rect(view.deleteButton, in: view).width
+                    - Self.keyboardWidth * 0.1) < Self.tolerance)
+    }
+
     @Test("배율을 되돌리면 균등 분할로 돌아온다")
     func testUpdatingBackRestoresEqualColumns() {
         let view = Self.makeView(multiplier: 1.2)
@@ -272,6 +285,26 @@ struct CheonjiinColumnWidthLayoutTests {
 
         // 4행 1열의 modifier 스택은 넓어진 열에 놓인다
         #expect(abs(Self.rect(view.switchButton, in: view).minX) < Self.tolerance)
+    }
+
+    @Test("하단 스페이스 배치에서 한영 전환 버튼은 자기 열 폭에 비례한다")
+    func testBottomSpaceLayoutScalesLanguageSwitchButtonWithItsColumn() throws {
+        let view = Self.makeView(usesBottomSpaceLayout: true, multiplier: 1.2)
+        let languageSwitchButton = try #require(view.languageSwitchButton)
+        // 지구본이 숨겨져야 stack의 균등 분배가 아니라 폭 제약이 성립한다
+        view.nextKeyboardButton.isHidden = true
+        view.nextKeyboardButtonVisibilityDidChange(needsInputModeSwitchKey: false)
+        view.layoutIfNeeded()
+
+        // 하단 스페이스 배치의 modifier 스택은 4행 1열이므로 배율을 올리면 넓어진다
+        let column = Self.rect(view.switchButton, in: view).union(Self.rect(languageSwitchButton, in: view))
+        let buttonWidth = Self.rect(languageSwitchButton, in: view).width
+
+        #expect(abs(column.width - Self.keyboardWidth * 0.3) < Self.tolerance)
+        #expect(abs(buttonWidth - column.width
+                    * KeyboardLayoutFigure.languageSwitchButtonFunctionColumnShare) < Self.tolerance)
+        // 열이 넓어졌으므로 버튼도 기본 배율(0.1W)보다 넓어야 한다
+        #expect(buttonWidth > Self.keyboardWidth * KeyboardLayoutFigure.languageSwitchButtonWidthRatio)
     }
 
     @Test("배율을 되돌리면 두 배치 모두 균등 분할로 돌아온다")

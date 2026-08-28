@@ -21,11 +21,12 @@ struct KeyboardColumnWidthPolicyTests {
         #expect(abs(function - 0.25) < Self.tolerance)
     }
 
-    @Test("기본 배율의 한영 전환 버튼 비율은 기존 상수와 같다")
-    func testDefaultLanguageSwitchRatioMatchesExistingConstant() {
-        let ratio = KeyboardColumnWidthPolicy.languageSwitchButtonRatio(multiplier: 1.0)
+    @Test("기본 배율에서 기능 열 안의 한영 전환 버튼 몫은 기존 상수와 같은 폭을 만든다")
+    func testLanguageSwitchShareMatchesExistingConstantAtDefaultMultiplier() {
+        let functionColumn = KeyboardColumnWidthPolicy.functionColumnRatio(multiplier: 1.0)
+        let width = functionColumn * KeyboardLayoutFigure.languageSwitchButtonFunctionColumnShare
 
-        #expect(abs(ratio - KeyboardLayoutFigure.languageSwitchButtonWidthRatio) < Self.tolerance)
+        #expect(abs(width - KeyboardLayoutFigure.languageSwitchButtonWidthRatio) < Self.tolerance)
     }
 
     @Test("글자 열 3개와 기능 열의 합은 항상 1이다")
@@ -47,15 +48,6 @@ struct KeyboardColumnWidthPolicyTests {
                 > KeyboardColumnWidthPolicy.letterColumnRatio(multiplier: 1.0))
         #expect(KeyboardColumnWidthPolicy.functionColumnRatio(multiplier: 1.2)
                 < KeyboardColumnWidthPolicy.functionColumnRatio(multiplier: 1.0))
-    }
-
-    @Test("한영 전환 버튼 비율은 기능 열보다 좁고 기능 열과 함께 줄어든다")
-    func testLanguageSwitchRatioShrinksWithFunctionColumn() {
-        let function = KeyboardColumnWidthPolicy.functionColumnRatio(multiplier: 1.2)
-        let languageSwitch = KeyboardColumnWidthPolicy.languageSwitchButtonRatio(multiplier: 1.2)
-
-        #expect(languageSwitch < function)
-        #expect(languageSwitch < KeyboardColumnWidthPolicy.languageSwitchButtonRatio(multiplier: 1.0))
     }
 
     @Test("범위 밖 배율은 허용 범위로 잘린다")

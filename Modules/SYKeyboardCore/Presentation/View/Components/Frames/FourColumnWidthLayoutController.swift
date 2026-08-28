@@ -19,6 +19,8 @@ final class FourColumnWidthLayoutController {
     private weak var referenceView: UIView?
     /// 배율이 바뀌면 다시 만들어야 하는 제약
     private var ratioConstraints: [NSLayoutConstraint] = []
+    /// 마지막으로 적용한 배율. 값이 그대로면 제약을 다시 만들지 않는다
+    private var currentMultiplier: Double?
 
     // MARK: - Internal Methods
 
@@ -45,13 +47,16 @@ final class FourColumnWidthLayoutController {
             guard columns.count == KeyboardLayoutFigure.fourColumnCount else { continue }
 
             row.distribution = .fill
-            // 1~3열은 배율과 무관하게 서로 등폭이다
+            // 1~3열은 배율과 무관하게 서로 등폭이다.
+            // 행 간격이 0이므로(`KeyboardRowHStackView.spacing == 0`)
+            // 배율 1.0에서 이 제약들의 해는 `.fillEqually`와 정확히 같다
             NSLayoutConstraint.activate([
                 columns[0].widthAnchor.constraint(equalTo: columns[1].widthAnchor),
                 columns[1].widthAnchor.constraint(equalTo: columns[2].widthAnchor)
             ])
         }
 
+        currentMultiplier = multiplier
         activateRatioConstraints(multiplier: multiplier)
     }
 
@@ -60,6 +65,9 @@ final class FourColumnWidthLayoutController {
     /// `NSLayoutConstraint.multiplier`가 읽기 전용이므로 재생성이 필요합니다.
     /// 제약만 바꾸면 프레임이 갱신되지 않으므로 영향받는 뷰의 레이아웃을 함께 무효화합니다
     func update(multiplier: Double) {
+        guard multiplier != currentMultiplier else { return }
+        currentMultiplier = multiplier
+
         NSLayoutConstraint.deactivate(ratioConstraints)
         ratioConstraints.removeAll()
         activateRatioConstraints(multiplier: multiplier)
@@ -87,9 +95,13 @@ private extension FourColumnWidthLayoutController {
 
         if let languageSwitchButton, let referenceView {
             languageSwitchButton.translatesAutoresizingMaskIntoConstraints = false
+            // 한영 전환 버튼은 자기가 속한 열의 폭에 비례해야 한다.
+            // 하단 스페이스 배치에서는 modifier 스택이 1열(배율을 올리면 넓어지는 열)에 오므로,
+            // 전체 폭을 기준으로 삼으면 열은 넓어지는데 버튼만 좁아진다
+            let columnView = languageSwitchButton.superview ?? referenceView
             let languageSwitchWidth = languageSwitchButton.widthAnchor.constraint(
-                equalTo: referenceView.widthAnchor,
-                multiplier: KeyboardColumnWidthPolicy.languageSwitchButtonRatio(multiplier: multiplier)
+                equalTo: columnView.widthAnchor,
+                multiplier: KeyboardLayoutFigure.languageSwitchButtonFunctionColumnShare
             )
             // 지구본이 보이면 stack의 균등 분배(required)가 이기고 이 제약은 양보해야 하므로
             // required보다 낮춘다. 지구본이 숨겨지면 경쟁하는 제약이 없어 그대로 성립한다

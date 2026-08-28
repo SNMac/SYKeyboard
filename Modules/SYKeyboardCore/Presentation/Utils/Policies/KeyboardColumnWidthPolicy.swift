@@ -26,10 +26,4 @@ enum KeyboardColumnWidthPolicy {
         let letterColumnCount = CGFloat(KeyboardLayoutFigure.fourColumnCount - 1)
         return 1.0 - letterColumnCount * letterColumnRatio(multiplier: multiplier)
     }
-
-    /// 한영 전환 버튼이 차지하는 비율. 기능 열 폭에 연동된다
-    static func languageSwitchButtonRatio(multiplier: Double) -> CGFloat {
-        functionColumnRatio(multiplier: multiplier)
-        * KeyboardLayoutFigure.languageSwitchButtonFunctionColumnShare
-    }
 }
