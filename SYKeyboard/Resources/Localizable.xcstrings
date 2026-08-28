@@ -190,6 +190,16 @@
         }
       }
     },
+    "나랏글 획·쌍 버튼 기호 표기" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Symbol Labels for Naratgeul Stroke and Double Keys"
+          }
+        }
+      }
+    },
     "단말기 모델" : {
       "localizations" : {
         "en" : {
@@ -345,7 +355,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bottom Space Bar on Number Pad"
+            "value" : "Bottom Space Bar on Numeric Keypad"
           }
         }
       }
@@ -386,16 +396,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Double tapping the space bar will insert a period followed by a space"
-          }
-        }
-      }
-    },
-    "스페이스 하단 배치" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bottom Space Bar"
           }
         }
       }
@@ -586,6 +586,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Cheonjiin"
+          }
+        }
+      }
+    },
+    "천지인 스페이스 하단 배치" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bottom Space Bar on Cheonjiin"
           }
         }
       }
@@ -866,16 +876,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Activation Drag Distance"
-          }
-        }
-      }
-    },
-    "획·쌍 버튼 기호 표기" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Symbol Labels for Stroke and Double Keys"
           }
         }
       }
