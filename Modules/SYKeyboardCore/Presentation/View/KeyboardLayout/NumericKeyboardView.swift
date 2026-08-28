@@ -30,6 +30,9 @@ final class NumericKeyboardView: UIView, NumericKeyboardLayoutProvider {
     /// `SwitchGestureHandling` 요구사항이므로 `public`이어야 한다
     public let usesBottomSpaceLayout: Bool
 
+    /// 4열 폭 비율 제약 관리자
+    private let columnWidthLayoutController = FourColumnWidthLayoutController()
+
     /// 숫자 키보드 키 배열
     private let numericKeyList = [
         [ ["1"], ["2"], ["3"] ],
@@ -140,6 +143,12 @@ extension NumericKeyboardView {
         fourthRowRightSecondaryButtonHStackView.distribution =
         isNextKeyboardButtonVisible ? .fillEqually : .fill
     }
+
+    /// 글자 열 너비 배율을 다시 적용합니다.
+    public func updateLetterColumnWidthMultiplier(_ multiplier: Double) {
+        columnWidthLayoutController.update(multiplier: multiplier)
+        setNeedsLayout()
+    }
 }
 
 // MARK: - UI Methods
@@ -220,19 +229,22 @@ private extension NumericKeyboardView {
             layoutVStackView.bottomAnchor.constraint(equalTo: self.bottomAnchor)
         ])
 
-        if let languageSwitchButton {
-            languageSwitchButton.translatesAutoresizingMaskIntoConstraints = false
-            let languageSwitchWidth = languageSwitchButton.widthAnchor.constraint(
-                equalTo: self.widthAnchor,
-                multiplier: KeyboardLayoutFigure.languageSwitchButtonWidthRatio
-            )
-            // 지구본이 보이면 stack의 균등 분배(required)가 이기고 이 제약은 양보해야 하므로
-            // required보다 낮춘다. 지구본이 숨겨지면 경쟁하는 제약이 없어 그대로 성립한다
-            languageSwitchWidth.priority = .init(999)
-            languageSwitchWidth.isActive = true
+        // 4열 폭 비율은 컨트롤러가 관리한다.
+        // 한영 전환 버튼 폭도 기능 열에 연동되므로 함께 넘긴다
+        columnWidthLayoutController.install(
+            rows: [firstRowHStackView,
+                   secondRowHStackView,
+                   thirdRowHStackView,
+                   fourthRowHStackView],
+            languageSwitchButton: languageSwitchButton,
+            referenceView: self,
+            multiplier: UserDefaultsManager.shared.letterColumnWidthMultiplier
+        )
+
+        if languageSwitchButton != nil {
             updateModifierDistribution(isNextKeyboardButtonVisible: !nextKeyboardButton.isHidden)
         }
-        
+
         keyboardSelectOverlayView.translatesAutoresizingMaskIntoConstraints = false
         oneHandedModeSelectOverlayView.translatesAutoresizingMaskIntoConstraints = false
 
