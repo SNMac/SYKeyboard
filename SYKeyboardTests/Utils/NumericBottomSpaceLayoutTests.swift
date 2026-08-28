@@ -196,6 +196,19 @@ struct NumericBottomSpaceLayoutTests {
         #expect(abs(overlay.frame.width - KeyboardLayoutFigure.oneHandedModeSelectOverlayWidth) < 0.5)
     }
 
+    @Test("꺼짐 상태의 한 손 모드 오버레이는 전환 버튼 위 우측에 놓임")
+    func testDefaultLayoutOneHandedOverlayAnchors() {
+        let view = Self.makeView(usesBottomSpaceLayout: false)
+        view.oneHandedModeSelectOverlayView.isHidden = false
+        view.layoutIfNeeded()
+
+        let overlay = view.oneHandedModeSelectOverlayView
+        let switchRect = Self.rect(view.switchButton, in: view)
+        #expect(abs(overlay.frame.maxX - (Self.keyboardWidth - 4)) < 0.5)
+        #expect(overlay.frame.maxY <= switchRect.minY - 4 + 0.5)
+        #expect(abs(overlay.frame.width - KeyboardLayoutFigure.oneHandedModeSelectOverlayWidth) < 0.5)
+    }
+
     @Test("꺼짐 상태의 오버레이는 기존처럼 우측 정렬을 유지")
     func testDefaultLayoutOverlayKeepsTrailingAnchor() {
         let view = Self.makeView(usesBottomSpaceLayout: false)

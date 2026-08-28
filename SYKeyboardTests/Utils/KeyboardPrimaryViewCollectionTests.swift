@@ -53,6 +53,14 @@ struct KeyboardPrimaryViewCollectionTests {
 
     @Test("통합 primary collection은 numeric 언어 버튼도 opt-in")
     func testUnifiedPrimaryViewsOptInNumericLanguageButton() throws {
+        // numericKeyboardView는 isNumericKeypadBottomSpaceEnabled 저장값에 따라
+        // modifier 순서가 달라지므로, 이 테스트가 기대하는 꺼짐 순서로 고정한다
+        let storage = UserDefaultsManager.shared.storage
+        let key = UserDefaultsKeys.isNumericKeypadBottomSpaceEnabled
+        let originalValue = storage.object(forKey: key)
+        storage.set(false, forKey: key)
+        defer { restore(originalValue, forKey: key, in: storage) }
+
         let first = TestPrimaryKeyboardView(keyboard: .dubeolsik, showsLanguageSwitchButton: true)
         let second = TestPrimaryKeyboardView(keyboard: .qwerty, showsLanguageSwitchButton: true)
 
@@ -196,6 +204,18 @@ struct KeyboardPrimaryViewCollectionTests {
         controller.textWillChange(second)
 
         #expect(controller.notifiedTextInputIdentifiers == [firstIdentifier, secondIdentifier])
+    }
+}
+
+// MARK: - Test Helpers
+
+private extension KeyboardPrimaryViewCollectionTests {
+    func restore(_ value: Any?, forKey key: String, in storage: UserDefaults) {
+        if let value {
+            storage.set(value, forKey: key)
+        } else {
+            storage.removeObject(forKey: key)
+        }
     }
 }
 
