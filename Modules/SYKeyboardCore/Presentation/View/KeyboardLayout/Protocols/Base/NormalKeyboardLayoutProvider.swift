@@ -22,6 +22,7 @@ public protocol NormalKeyboardLayoutProvider: BaseKeyboardLayoutProvider, Switch
 
     func updateNextKeyboardButton(needsInputModeSwitchKey: Bool, nextKeyboardAction: Selector)
     func nextKeyboardButtonVisibilityDidChange(needsInputModeSwitchKey: Bool)
+    func updateLetterColumnWidthMultiplier(_ multiplier: Double)
 }
 
 // MARK: - Protocol Properties & Methods
@@ -37,7 +38,10 @@ public extension NormalKeyboardLayoutProvider {
     }
 
     func nextKeyboardButtonVisibilityDidChange(needsInputModeSwitchKey: Bool) {}
-    
+
+    /// 4열 격자가 아닌 키보드는 글자 열 너비 배율의 영향을 받지 않는다
+    func updateLetterColumnWidthMultiplier(_ multiplier: Double) {}
+
     func enableAllButtonUserInteraction() {
         allButtonList.forEach { $0.isUserInteractionEnabled = true }
     }

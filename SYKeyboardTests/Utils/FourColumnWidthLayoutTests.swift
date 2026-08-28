@@ -7,6 +7,7 @@ import Testing
 import UIKit
 
 @testable import SYKeyboardCore
+@testable import HangeulKeyboardCore
 
 @MainActor
 @Suite("4열 격자 열 너비 레이아웃")
@@ -113,5 +114,83 @@ struct FourColumnWidthLayoutTests {
         #expect(languageSwitchButton.frame.width < Self.rowWidth * KeyboardLayoutFigure.languageSwitchButtonWidthRatio)
         #expect(languageSwitchButton.frame.width < modifierStack.frame.width)
         #expect(modifierStack.arrangedSubviews[1].frame.width > 0)
+    }
+}
+
+@MainActor
+@Suite("나랏글 열 너비 레이아웃")
+struct NaratgeulColumnWidthLayoutTests {
+    private static let keyboardWidth: CGFloat = 390
+    private static let keyboardHeight: CGFloat = 216
+    private static let tolerance: CGFloat = 0.5
+
+    @MainActor
+    private static func makeView(multiplier: Double) -> NaratgeulKeyboardView {
+        let view = NaratgeulKeyboardView(showsLanguageSwitchButton: true)
+        view.frame = CGRect(x: 0, y: 0, width: keyboardWidth, height: keyboardHeight)
+        view.updateLetterColumnWidthMultiplier(multiplier)
+        view.layoutIfNeeded()
+
+        return view
+    }
+
+    /// 버튼 프레임은 각자의 행 스택 좌표계에 있어 행을 가로질러 비교하려면 변환해야 한다
+    @MainActor
+    private static func rect(_ subview: UIView, in view: UIView) -> CGRect {
+        subview.convert(subview.bounds, to: view)
+    }
+
+    @Test("기본 배율은 네 열을 균등 분할한다")
+    func testDefaultMultiplierKeepsEqualColumns() {
+        let view = Self.makeView(multiplier: 1.0)
+        let expected = Self.keyboardWidth / 4
+
+        #expect(abs(Self.rect(view.deleteButton, in: view).width - expected) < Self.tolerance)
+        #expect(abs(Self.rect(view.spaceButton, in: view).width - expected) < Self.tolerance)
+        #expect(abs(Self.rect(view.returnButtonHStackView, in: view).width - expected) < Self.tolerance)
+    }
+
+    @Test("배율을 올리면 기능 열이 좁아지고 열 경계가 행마다 일치한다")
+    func testHigherMultiplierNarrowsFunctionColumn() {
+        let view = Self.makeView(multiplier: 1.2)
+        let expectedFunctionWidth = Self.keyboardWidth * 0.1
+        let expectedColumnStart = Self.keyboardWidth * 0.9
+
+        let delete = Self.rect(view.deleteButton, in: view)
+        let space = Self.rect(view.spaceButton, in: view)
+        let returnStack = Self.rect(view.returnButtonHStackView, in: view)
+        let nextKeyboard = Self.rect(view.nextKeyboardButton, in: view)
+
+        #expect(abs(delete.width - expectedFunctionWidth) < Self.tolerance)
+        #expect(abs(space.width - expectedFunctionWidth) < Self.tolerance)
+        #expect(abs(returnStack.width - expectedFunctionWidth) < Self.tolerance)
+
+        // 1~4행 모두 4열이 같은 x에서 시작한다
+        #expect(abs(delete.minX - expectedColumnStart) < Self.tolerance)
+        #expect(abs(space.minX - expectedColumnStart) < Self.tolerance)
+        #expect(abs(returnStack.minX - expectedColumnStart) < Self.tolerance)
+        #expect(abs(nextKeyboard.minX - expectedColumnStart) < Self.tolerance)
+    }
+
+    @Test("배율을 올리면 글자 버튼이 넓어진다")
+    func testHigherMultiplierWidensKeyButtons() throws {
+        let defaultView = Self.makeView(multiplier: 1.0)
+        let widenedView = Self.makeView(multiplier: 1.2)
+
+        let defaultKey = try #require(defaultView.primaryButtonList.first as? PrimaryKeyButton)
+        let widenedKey = try #require(widenedView.primaryButtonList.first as? PrimaryKeyButton)
+
+        #expect(widenedKey.frame.width > defaultKey.frame.width)
+        #expect(abs(widenedKey.frame.width - Self.keyboardWidth * 0.3) < Self.tolerance)
+    }
+
+    @Test("배율을 되돌리면 균등 분할로 돌아온다")
+    func testUpdatingBackRestoresEqualColumns() {
+        let view = Self.makeView(multiplier: 1.2)
+
+        view.updateLetterColumnWidthMultiplier(1.0)
+        view.layoutIfNeeded()
+
+        #expect(abs(Self.rect(view.deleteButton, in: view).width - Self.keyboardWidth / 4) < Self.tolerance)
     }
 }
