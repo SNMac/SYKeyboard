@@ -938,28 +938,30 @@ git diff --stat develop...HEAD
 
 실제 명령, 시뮬레이터 기기명·OS, 테스트 개수(고유/전개), 빌드 결과, `.xcresult` 경로와 추출 명령을 남긴다.
 
-- [ ] **Step 5: 실제 입력 앱에서 수동 확인한다 (자동 테스트로 대체 불가)** — **미수행**
+- [x] **Step 5: 실제 입력 앱에서 수동 확인한다 (자동 테스트로 대체 불가)** — **사용자 직접 확인 완료 (2026-08-28)**
 
-> 이 세션에서는 수행하지 않았다. 실제 기기/시뮬레이터에서 호스트 앱을 열고 키보드 확장을
-> 활성화한 뒤 레이아웃·제스처·오버레이를 직접 관찰해야 하는 작업이라 CLI 세션에서는
-> 수행할 수 없다. 아래 체크박스는 전부 미확인 상태로 남긴다. 특히 자동 테스트가
-> 원리적으로 검증할 수 없는 두 가지 — (1) 켜짐 배치 선택 오버레이의 실제 화면 외형과
-> 드래그 취소 제스처 방향, (2) 전환 버튼 코너 힌트 화살표가 실제 제스처 방향과 일치하는지 —
-> 는 사람이 직접 확인해야 한다.
+> **확인 주체는 사용자다.** CLI 세션에서는 호스트 앱에서 키보드 확장을 활성화하고
+> 레이아웃·제스처·오버레이를 관찰할 수 없으므로, 사용자가 실기기에서 직접 확인한 뒤
+> 문제 없음을 보고했다. 자동 테스트가 원리적으로 검증할 수 없는 두 가지 —
+> (1) 켜짐 배치 선택 오버레이의 실제 화면 외형과 드래그 취소 제스처 방향,
+> (2) 전환 버튼 코너 힌트 화살표가 실제 제스처 방향과 일치하는지 — 도 여기에 포함된다.
+>
+> 아래 표의 ☑은 **사용자의 전체 확인 보고를 근거로 한 일괄 표기**이며, 세션에서 항목별로
+> 관찰 결과를 개별 기록한 것이 아니다. 항목별 근거가 필요하면 사용자에게 재확인해야 한다.
 
 | 확인 항목 | 꺼짐 | 켜짐 |
 |---|---|---|
-| 외형 설정에서 `숫자 키패드 활성화`가 켜졌을 때만 새 스위치가 보임 | ☐ | ☐ |
-| 숫자 키패드 진입(`!#1`/`한글` 드래그) 후 배치 | ☐ | ☐ |
-| 스페이스 입력·길게 눌러 커서 드래그 | ☐ | ☐ |
-| 리턴 입력 | ☐ | ☐ |
-| 전환 버튼에서 목표 방향 드래그 → 기호 키보드 전환 | ☐ 왼쪽 | ☐ 오른쪽 |
-| 전환 버튼 코너 힌트 화살표가 실제 제스처 방향과 일치 | ☐ | ☐ |
-| 전환 버튼 위로 드래그 → 한 손 모드 오버레이가 버튼 위에 뜸 | ☐ | ☐ |
-| 한 손 키보드 좌/우 모드에서 오버레이가 화면 밖으로 잘리지 않음 | ☐ | ☐ |
-| 한 손 최소 폭 × 켜짐 × 지구본 표시 조합에서 4행이 깨지지 않음 | ☐ | ☐ |
-| 한영 통합 키보드에서 한/영 버튼 폭과 순서 | ☐ | ☐ |
-| 천지인 하단 배치 설정과 **독립적으로** 동작(한쪽만 켜도 다른 쪽 불변) | ☐ | ☐ |
+| 외형 설정에서 `숫자 키패드 활성화`가 켜졌을 때만 새 스위치가 보임 | ☑ | ☑ |
+| 숫자 키패드 진입(`!#1`/`한글` 드래그) 후 배치 | ☑ | ☑ |
+| 스페이스 입력·길게 눌러 커서 드래그 | ☑ | ☑ |
+| 리턴 입력 | ☑ | ☑ |
+| 전환 버튼에서 목표 방향 드래그 → 기호 키보드 전환 | ☑ 왼쪽 | ☑ 오른쪽 |
+| 전환 버튼 코너 힌트 화살표가 실제 제스처 방향과 일치 | ☑ | ☑ |
+| 전환 버튼 위로 드래그 → 한 손 모드 오버레이가 버튼 위에 뜸 | ☑ | ☑ |
+| 한 손 키보드 좌/우 모드에서 오버레이가 화면 밖으로 잘리지 않음 | ☑ | ☑ |
+| 한 손 최소 폭 × 켜짐 × 지구본 표시 조합에서 4행이 깨지지 않음 | ☑ | ☑ |
+| 한영 통합 키보드에서 한/영 버튼 폭과 순서 | ☑ | ☑ |
+| 천지인 하단 배치 설정과 **독립적으로** 동작(한쪽만 켜도 다른 쪽 불변) | ☑ | ☑ |
 
 ---
 
@@ -975,7 +977,7 @@ git diff --stat develop...HEAD
 | EnglishKeyboard 빌드 (Task 5 Step 2) | `xcodebuild build -project SYKeyboard.xcodeproj -scheme EnglishKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0'` | `** BUILD SUCCEEDED **` | 별도 foreground 호출 |
 | HangeulEnglishKeyboard 빌드 (Task 5 Step 2) | `xcodebuild build -project SYKeyboard.xcodeproj -scheme HangeulEnglishKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0'` | `** BUILD SUCCEEDED **` | 별도 foreground 호출. Task 4에서도 이미 한 차례 빌드 확인함(리뷰 지시로 선반영) |
 | 변경 범위 (Task 5 Step 3) | `git status --short` / `git diff --stat 4894613b...HEAD` (`4894613b`는 `develop`과의 merge-base, `develop...HEAD`와 동일한 diff) | `git status --short` 출력 없음(클린). `git diff --stat` 14개 파일 변경: `KeyboardSelectDirectionPolicy.swift`, `NumericKeyboardView.swift`, `DefaultValues.swift`, `UserDefaultsKeys.swift`, `UserDefaultsManager.swift`, `SYKeyboardApp.swift`, `AppearanceSettingsView.swift`, `Localizable.xcstrings`, `UserDefaultsContractTests.swift`, `KeyboardModifierLayoutTests.swift`, `KeyboardPrimaryViewCollectionTests.swift`, `KeyboardSelectDirectionPolicyTests.swift`, `NumericBottomSpaceLayoutTests.swift`(신규), 계획 문서 자신(신규) | **범위 초과 없음.** 브리프가 금지한 9개 파일(`FourByFourPlusKeyboardView.swift` 등, `project.pbxproj` 포함) 전부 diff에 없음. `.superpowers/`는 git-ignored라 diff에 없음(의도대로) |
-| 수동 확인 (Task 5 Step 5) | (해당 없음 — 실행하지 않음) | **미수행.** 아래 체크리스트 전부 미확인(☐) 상태로 남김 | 이유: 호스트 앱에서 키보드 확장을 활성화하고 레이아웃·제스처·오버레이를 직접 관찰해야 하는 수동 작업이라 CLI 세션에서 수행 불가. 특히 자동 테스트로 증명 불가능한 두 항목 — (1) 켜짐 배치 선택 오버레이의 실제 외형과 드래그 취소 제스처 방향, (2) 전환 버튼 코너 힌트 화살표와 실제 제스처 방향의 일치 — 는 사람이 직접 확인해야 함 |
+| 수동 확인 (Task 5 Step 5) | (CLI 명령 없음 — 사용자가 실기기에서 직접 확인) | **사용자 확인 완료 (2026-08-28).** 사용자가 실기기에서 확인 후 문제 없음을 보고함 | 세션이 관찰한 것이 아니라 사용자 보고를 옮긴 기록이다. 체크리스트의 ☑은 전체 확인 보고에 따른 일괄 표기이며 항목별 관찰 로그가 아니다. 자동 테스트로 증명 불가능한 두 항목 — (1) 켜짐 배치 선택 오버레이의 실제 외형과 드래그 취소 제스처 방향, (2) 전환 버튼 코너 힌트 화살표와 실제 제스처 방향의 일치 — 도 이 확인에 포함된다 |
 
 ### 최종 리뷰 fix wave 이후 재검증
 
