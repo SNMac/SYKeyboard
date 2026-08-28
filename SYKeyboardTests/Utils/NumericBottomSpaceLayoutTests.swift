@@ -122,6 +122,8 @@ struct NumericBottomSpaceLayoutTests {
         #expect(space.maxX <= period.minX + 0.5)
         #expect(period.maxX <= comma.minX + 0.5)
         #expect(abs(comma.maxX - Self.keyboardWidth) < 0.5)
+        // '-'·'/' 쌍은 3행 4칸 중 4분의 3 지점(우측 칸)에서 시작한다
+        #expect(abs(hyphen.minX - Self.keyboardWidth * 0.75) < 0.5)
     }
 
     @Test("꺼짐 상태는 4행이 좌→우 '-' ',' '0' '.' '/' modifier 순서를 유지")
@@ -143,6 +145,83 @@ struct NumericBottomSpaceLayoutTests {
         #expect(comma.maxX <= zero.minX + 0.5)
         #expect(zero.maxX <= period.minX + 0.5)
         #expect(period.maxX <= slash.minX + 0.5)
-        #expect(slash.maxX <= switchRect.minX + 0.5)
+        // modifier 스택의 첫 버튼(nextKeyboardButton)을 경계로 써야
+        // 스택 내부 순서가 바뀌어도 실제로 경계를 고정한다
+        #expect(slash.maxX <= Self.rect(view.nextKeyboardButton, in: view).minX + 0.5)
+    }
+
+    @Test("켜짐 상태의 키보드 선택 오버레이는 좌측에서 시작하고 취소 경계가 전환 버튼 우측 모서리 안쪽")
+    func testBottomSpaceLayoutKeyboardSelectOverlayAnchors() {
+        let view = Self.makeView(usesBottomSpaceLayout: true)
+        view.keyboardSelectOverlayView.isHidden = false
+        view.layoutIfNeeded()
+
+        // 취소 경계(우선순위 999)는 `switchButton`이 최소 폭 32보다 넉넉할 때만 성립한다.
+        // 지구본이 보이면 modifier 칸이 3등분되어 버튼이 좁아지고 999가 양보하므로 숨긴다
+        view.updateNextKeyboardButton(
+            needsInputModeSwitchKey: false,
+            nextKeyboardAction: NSSelectorFromString("unusedNextKeyboardAction:")
+        )
+        view.layoutIfNeeded()
+
+        let overlay = view.keyboardSelectOverlayView
+        let switchRect = Self.rect(view.switchButton, in: view)
+        // 오버레이는 키보드 뷰의 직접 subview라 frame이 이미 뷰 좌표계다
+        #expect(abs(overlay.frame.minX - 4) < 0.5)
+        #expect(overlay.frame.maxY <= switchRect.minY - 4 + 0.5)
+
+        let xmarkInView = overlay.convert(overlay.xmarkImageContainerView.frame, to: view)
+        #expect(
+            abs(xmarkInView.maxX
+                - (switchRect.maxX - KeyboardLayoutFigure.keyboardSelectBoundaryInset)) < 0.5
+        )
+        #expect(xmarkInView.width >= KeyboardLayoutFigure.keyboardSelectCancelMinWidth)
+        // `.right` 방향이면 X가 스택의 첫 칸이라 오버레이 왼쪽 끝에 붙는다
+        #expect(
+            abs(overlay.xmarkImageContainerView.frame.minX
+                - overlay.directionalLayoutMargins.leading) < 0.5
+        )
+    }
+
+    @Test("켜짐 상태의 한 손 모드 오버레이는 전환 버튼 위 좌측에 놓임")
+    func testBottomSpaceLayoutOneHandedOverlayAnchors() {
+        let view = Self.makeView(usesBottomSpaceLayout: true)
+        view.oneHandedModeSelectOverlayView.isHidden = false
+        view.layoutIfNeeded()
+
+        let overlay = view.oneHandedModeSelectOverlayView
+        let switchRect = Self.rect(view.switchButton, in: view)
+        #expect(abs(overlay.frame.minX - 4) < 0.5)
+        #expect(overlay.frame.maxY <= switchRect.minY - 4 + 0.5)
+        #expect(abs(overlay.frame.width - KeyboardLayoutFigure.oneHandedModeSelectOverlayWidth) < 0.5)
+    }
+
+    @Test("꺼짐 상태의 오버레이는 기존처럼 우측 정렬을 유지")
+    func testDefaultLayoutOverlayKeepsTrailingAnchor() {
+        let view = Self.makeView(usesBottomSpaceLayout: false)
+        view.keyboardSelectOverlayView.isHidden = false
+        view.layoutIfNeeded()
+
+        view.updateNextKeyboardButton(
+            needsInputModeSwitchKey: false,
+            nextKeyboardAction: NSSelectorFromString("unusedNextKeyboardAction:")
+        )
+        view.layoutIfNeeded()
+
+        let overlay = view.keyboardSelectOverlayView
+        let switchRect = Self.rect(view.switchButton, in: view)
+        #expect(abs(overlay.frame.maxX - (Self.keyboardWidth - 4)) < 0.5)
+
+        let xmarkInView = overlay.convert(overlay.xmarkImageContainerView.frame, to: view)
+        #expect(
+            abs(xmarkInView.minX
+                - (switchRect.minX + KeyboardLayoutFigure.keyboardSelectBoundaryInset)) < 0.5
+        )
+        #expect(xmarkInView.width >= KeyboardLayoutFigure.keyboardSelectCancelMinWidth)
+        // `.left` 방향이면 X가 스택의 마지막 칸이라 오버레이 오른쪽 끝에 붙는다
+        #expect(
+            abs(overlay.xmarkImageContainerView.frame.maxX
+                - (overlay.bounds.width - overlay.directionalLayoutMargins.trailing)) < 0.5
+        )
     }
 }

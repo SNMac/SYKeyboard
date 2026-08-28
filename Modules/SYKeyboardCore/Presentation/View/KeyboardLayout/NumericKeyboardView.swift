@@ -234,32 +234,45 @@ private extension NumericKeyboardView {
         }
         
         keyboardSelectOverlayView.translatesAutoresizingMaskIntoConstraints = false
+        oneHandedModeSelectOverlayView.translatesAutoresizingMaskIntoConstraints = false
+
         NSLayoutConstraint.activate([
-            keyboardSelectOverlayView.trailingAnchor.constraint(equalTo: self.trailingAnchor, constant: -4),
             keyboardSelectOverlayView.bottomAnchor.constraint(equalTo: switchButton.topAnchor, constant: -4),
-            keyboardSelectOverlayView.heightAnchor.constraint(equalToConstant: KeyboardLayoutFigure.selectOverlayHeight)
+            keyboardSelectOverlayView.heightAnchor.constraint(equalToConstant: KeyboardLayoutFigure.selectOverlayHeight),
+            oneHandedModeSelectOverlayView.bottomAnchor.constraint(equalTo: switchButton.topAnchor, constant: -4),
+            oneHandedModeSelectOverlayView.widthAnchor.constraint(equalToConstant: KeyboardLayoutFigure.oneHandedModeSelectOverlayWidth),
+            oneHandedModeSelectOverlayView.heightAnchor.constraint(equalToConstant: KeyboardLayoutFigure.selectOverlayHeight)
         ])
 
-        // 취소 영역의 경계선을 `switchButton` 왼쪽 모서리보다 안쪽에 둔다.
+        // 취소 영역의 경계선을 `switchButton`의 바깥 모서리보다 안쪽에 둔다.
         // 오버레이가 열리는 순간 손가락이 이미 목표 쪽에 있게 된다
-        let cancelBoundary = keyboardSelectOverlayView.xmarkImageContainerView.leadingAnchor.constraint(
-            equalTo: switchButton.leadingAnchor,
-            constant: KeyboardLayoutFigure.keyboardSelectBoundaryInset
-        )
+        let cancelBoundary: NSLayoutConstraint
+        if usesBottomSpaceLayout {
+            // `switchButton`이 4행 좌측 끝이므로 오버레이는 오른쪽으로 펼쳐진다
+            NSLayoutConstraint.activate([
+                keyboardSelectOverlayView.leadingAnchor.constraint(equalTo: self.leadingAnchor, constant: 4),
+                oneHandedModeSelectOverlayView.leadingAnchor.constraint(equalTo: self.leadingAnchor, constant: 4)
+            ])
+            cancelBoundary = keyboardSelectOverlayView.xmarkImageContainerView.trailingAnchor.constraint(
+                equalTo: switchButton.trailingAnchor,
+                constant: -KeyboardLayoutFigure.keyboardSelectBoundaryInset
+            )
+        } else {
+            NSLayoutConstraint.activate([
+                keyboardSelectOverlayView.trailingAnchor.constraint(equalTo: self.trailingAnchor, constant: -4),
+                oneHandedModeSelectOverlayView.trailingAnchor.constraint(equalTo: self.trailingAnchor, constant: -4)
+            ])
+            cancelBoundary = keyboardSelectOverlayView.xmarkImageContainerView.leadingAnchor.constraint(
+                equalTo: switchButton.leadingAnchor,
+                constant: KeyboardLayoutFigure.keyboardSelectBoundaryInset
+            )
+        }
         cancelBoundary.priority = .init(999)
         NSLayoutConstraint.activate([
             cancelBoundary,
             keyboardSelectOverlayView.xmarkImageContainerView.widthAnchor.constraint(
                 greaterThanOrEqualToConstant: KeyboardLayoutFigure.keyboardSelectCancelMinWidth
             )
-        ])
-        
-        oneHandedModeSelectOverlayView.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([
-            oneHandedModeSelectOverlayView.trailingAnchor.constraint(equalTo: self.trailingAnchor, constant: -4),
-            oneHandedModeSelectOverlayView.bottomAnchor.constraint(equalTo: switchButton.topAnchor, constant: -4),
-            oneHandedModeSelectOverlayView.widthAnchor.constraint(equalToConstant: KeyboardLayoutFigure.oneHandedModeSelectOverlayWidth),
-            oneHandedModeSelectOverlayView.heightAnchor.constraint(equalToConstant: KeyboardLayoutFigure.selectOverlayHeight)
         ])
     }
 }
