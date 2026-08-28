@@ -705,7 +705,7 @@ git commit -m "feat: #112 - 4열 격자 폭 제약 컨트롤러 추가"
   - `NormalKeyboardLayoutProvider.updateLetterColumnWidthMultiplier(_ multiplier: Double)` — 프로토콜 요구사항 + extension 기본 no-op
   - `FourByFourKeyboardView.updateLetterColumnWidthMultiplier(_:)` — `public func`, 오버라이드 구현
 
-- [ ] **Step 1: 실패하는 테스트 작성**
+- [x] **Step 1: 실패하는 테스트 작성**
 
 `SYKeyboardTests/Utils/FourColumnWidthLayoutTests.swift` 상단 import에 추가:
 
@@ -795,7 +795,7 @@ struct NaratgeulColumnWidthLayoutTests {
 }
 ```
 
-- [ ] **Step 2: 테스트가 실패하는지 확인**
+- [x] **Step 2: 테스트가 실패하는지 확인**
 
 ```sh
 xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
@@ -805,7 +805,7 @@ xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
 
 기대: 컴파일 실패. `value of type 'NaratgeulKeyboardView' has no member 'updateLetterColumnWidthMultiplier'`
 
-- [ ] **Step 3: 프로토콜에 메서드 추가**
+- [x] **Step 3: 프로토콜에 메서드 추가**
 
 `Modules/SYKeyboardCore/Presentation/View/KeyboardLayout/Protocols/Base/NormalKeyboardLayoutProvider.swift`의 프로토콜 본문에서 `func nextKeyboardButtonVisibilityDidChange(needsInputModeSwitchKey: Bool)` 바로 아래에 추가:
 
@@ -820,7 +820,7 @@ xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
     func updateLetterColumnWidthMultiplier(_ multiplier: Double) {}
 ```
 
-- [ ] **Step 4: `FourByFourKeyboardView`에 컨트롤러 연결**
+- [x] **Step 4: `FourByFourKeyboardView`에 컨트롤러 연결**
 
 `Modules/SYKeyboardCore/Presentation/View/KeyboardLayout/Bases/FourByFourKeyboardView.swift`
 
@@ -878,7 +878,7 @@ xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
         }
 ```
 
-- [ ] **Step 5: 테스트 통과 확인**
+- [x] **Step 5: 테스트 통과 확인**
 
 ```sh
 xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
@@ -889,7 +889,7 @@ xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
 
 기대: 새 테스트 4개 통과, 기존 `KeyboardModifierLayoutTests`도 수정 없이 통과
 
-- [ ] **Step 6: 커밋**
+- [x] **Step 6: 커밋**
 
 ```bash
 git add Modules/SYKeyboardCore/Presentation/View/KeyboardLayout/Protocols/Base/NormalKeyboardLayoutProvider.swift \
@@ -898,7 +898,23 @@ git add Modules/SYKeyboardCore/Presentation/View/KeyboardLayout/Protocols/Base/N
 git commit -m "feat: #112 - 나랏글 키보드 글자 열 너비 비율 적용"
 ```
 
-**결과:** (실행 후 기록)
+**결과:** 완료. `xcodebuild test -only-testing:SYKeyboardTests/NaratgeulColumnWidthLayoutTests
+-only-testing:SYKeyboardTests/KeyboardModifierLayoutTests -resultBundlePath /tmp/task4.xcresult`
+(iPhone 13 mini / iOS 16.0, `CBD992D3-5364-4F69-AC5F-0077ADF1A292`, build 20A360) —
+`xcresulttool get test-results summary` 기준 `totalTestCount: 21`, `passedTests: 21`,
+`failedTests: 0` (파라미터화 확장 포함 25 runs). Auto Layout 충돌 경고는
+`xcresulttool get log --type action` 출력에서 **0건**. 기존 `KeyboardModifierLayoutTests`는
+수정 없이 통과했다. `project.pbxproj` 변경 없음. 커밋 `aff74de1`.
+
+Step 2에서 `value of type 'NaratgeulKeyboardView' has no member
+'updateLetterColumnWidthMultiplier'` 컴파일 실패를 먼저 확인했다.
+
+`FourColumnWidthLayoutTests` suite는 그대로 두고 `NaratgeulColumnWidthLayoutTests`를 파일 끝에
+append했다(리뷰에서 확인).
+
+**미확인:** 실제 입력 앱에서 기본 배율(1.0) 화면이 기존과 동일한지는 유닛 테스트의 프레임 비교로만
+확인했고 육안 확인은 하지 않았다. 이 Task는 배율 조정 UI가 아직 연결되지 않은 배선 단계다.
+Task 9의 수동 확인 항목으로 남아 있다.
 
 ---
 
