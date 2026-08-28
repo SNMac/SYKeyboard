@@ -156,7 +156,7 @@ D1-a/D1-b는 두 키가 위아래로 갈라지므로 채택하지 않았다.
 
 브랜치명은 **`feat/#117-numeric-keypad-bottom-space`**다. 기준 커밋은 `4894613b`(PR #116 머지).
 
-- [ ] **Step 4: 기준선 전체 테스트를 기록한다**
+- [x] **Step 4: 기준선 전체 테스트를 기록한다** — 완료
 
 ```bash
 xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
@@ -194,7 +194,7 @@ xcrun xcresulttool get test-results summary --path "$RES"
 
 **참고 이력:** 커밋 `18f8b9dd`(#114 Task 1)가 동일한 형태다. `git show 18f8b9dd`로 확인하고 그 패턴을 그대로 따른다.
 
-- [ ] **Step 1: 실패하는 계약 테스트를 쓴다**
+- [x] **Step 1: 실패하는 계약 테스트를 쓴다** — 완료
 
 `SYKeyboardTests/Storage/UserDefaultsContractTests.swift`의 `testCheonjiinBottomSpaceDefaultFallbackAndKey` 아래에 추가한다.
 
@@ -214,7 +214,7 @@ xcrun xcresulttool get test-results summary --path "$RES"
     }
 ```
 
-- [ ] **Step 2: 컴파일이 실패하는지 확인한다**
+- [x] **Step 2: 컴파일이 실패하는지 확인한다** — 완료 (report: 3건 컴파일 에러, 기대와 일치)
 
 ```bash
 xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
@@ -224,7 +224,7 @@ xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
 
 Expected: `type 'UserDefaultsKeys' has no member 'isNumericKeypadBottomSpaceEnabled'`
 
-- [ ] **Step 3: 키와 기본값을 추가한다**
+- [x] **Step 3: 키와 기본값을 추가한다** — 완료
 
 `UserDefaultsKeys.swift` — 외형 설정 구역의 `isCheonjiinBottomSpaceEnabled` 아래:
 
@@ -248,11 +248,11 @@ Expected: `type 'UserDefaultsKeys' has no member 'isNumericKeypadBottomSpaceEnab
     public var isNumericKeypadBottomSpaceEnabled: Bool
 ```
 
-- [ ] **Step 4: 테스트가 통과하는지 확인한다**
+- [x] **Step 4: 테스트가 통과하는지 확인한다** — 완료 (`UserDefaultsContractTests` 11개 전부 통과)
 
 Step 2와 같은 명령. Expected: `** TEST SUCCEEDED **`
 
-- [ ] **Step 5: 설정 화면에 스위치를 추가한다**
+- [x] **Step 5: 설정 화면에 스위치를 추가한다** — 완료
 
 `AppearanceSettingsView.swift`의 `@AppStorage` 블록에 추가한다.
 
@@ -282,7 +282,7 @@ Step 2와 같은 명령. Expected: `** TEST SUCCEEDED **`
         }
 ```
 
-- [ ] **Step 6: Analytics User Property 초기화를 추가한다**
+- [x] **Step 6: Analytics User Property 초기화를 추가한다** — 완료
 
 `SYKeyboardApp.swift`의 `setAnalyticsProperty(keyboardSettingsManager.isCheonjiinBottomSpaceEnabled, forName: "pref_cheonjiin_bottom_space")` 아래:
 
@@ -290,7 +290,7 @@ Step 2와 같은 명령. Expected: `** TEST SUCCEEDED **`
         setAnalyticsProperty(keyboardSettingsManager.isNumericKeypadBottomSpaceEnabled, forName: "pref_numeric_keypad_bottom_space")
 ```
 
-- [ ] **Step 7: 로컬라이징 문자열을 추가한다**
+- [x] **Step 7: 로컬라이징 문자열을 추가한다** — 완료 (stale 없음, 89 → 90)
 
 `Localizable.xcstrings`의 `"strings"` 객체에 키 사전순 위치로 넣는다. 파일 끝에 개행이 없는 형식을 유지한다. 캡션 `"스페이스를 맨 아랫줄로 옮기고 리턴을 위로 올림"`은 #114가 이미 등록했으므로 **재사용하고 새로 추가하지 않는다.**
 
@@ -315,14 +315,14 @@ python3 -c "import json;d=json.load(open('SYKeyboard/Resources/Localizable.xcstr
 
 Expected: stale 목록이 비어 있어야 한다.
 
-- [ ] **Step 8: 앱 타깃 빌드를 확인한다**
+- [x] **Step 8: 앱 타깃 빌드를 확인한다** — 완료 (`** BUILD SUCCEEDED **`)
 
 ```bash
 xcodebuild build -project SYKeyboard.xcodeproj -scheme SYKeyboard \
   -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0'
 ```
 
-- [ ] **Step 9: 커밋한다**
+- [x] **Step 9: 커밋한다** — 완료 (커밋 `70d36749`)
 
 ```bash
 git add Modules/SYKeyboardCore/Storage/UserDefaultsKeys.swift \
@@ -369,7 +369,7 @@ git commit -m "feat: #117 - 숫자 키패드 스페이스 하단 배치 설정 �
 
 `.naratgeul`은 하단 배치 대상이 아니므로 플래그를 무시한다. 이 이중 방어를 유지한다.
 
-- [ ] **Step 1: 실패하는 테스트를 쓴다**
+- [x] **Step 1: 실패하는 테스트를 쓴다** — 완료
 
 `KeyboardSelectDirectionPolicyTests.swift`의 기존 `testNumericAlwaysOpensLeft`를 **교체**한다. 이름이 더 이상 사실이 아니므로 남겨두면 안 된다.
 
@@ -399,19 +399,23 @@ xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
 
 Expected: `testNumericBottomSpaceOpensRight`가 `.left`를 받아 실패한다.
 
-- [ ] **Step 3: policy를 고친다**
+> **미완료 (task-2-report.md 자체 기록):** policy 수정을 먼저 적용한 뒤 이 단계를 실행해
+> red 상태를 직접 캡처하지 못했다. 대신 scoped 실행에서 두 테스트가 모두 통과함을 확인해
+> 정책 변경이 실제로 필요했음을 간접 확인했다. 이 체크박스는 실행하지 않은 것으로 남긴다.
+
+- [x] **Step 3: policy를 고친다** — 완료
 
 위 "변경 후" 코드로 교체한다.
 
-- [ ] **Step 4: 테스트가 통과하는지 확인한다**
+- [x] **Step 4: 테스트가 통과하는지 확인한다** — 완료 (scoped 실행 `** TEST SUCCEEDED **`, 신규 테스트 2개 통과)
 
 Step 2와 같은 명령. Expected: `** TEST SUCCEEDED **`
 
-- [ ] **Step 5: 전체 테스트로 회귀가 없는지 확인한다**
+- [x] **Step 5: 전체 테스트로 회귀가 없는지 확인한다** — 완료
 
 `-only-testing`을 비우고 전체를 돌린다. 이 시점에는 아직 아무도 `.numeric`에 `true`를 넘기지 않으므로 **동작이 바뀌지 않아야 한다.** 기준선 대비 개수 증가분만 있어야 한다.
 
-- [ ] **Step 6: 커밋한다**
+- [x] **Step 6: 커밋한다** — 완료 (커밋 `169a8d0b`)
 
 ```bash
 git add Modules/SYKeyboardCore/Presentation/Utils/Policies/KeyboardSelectDirectionPolicy.swift \
@@ -442,7 +446,7 @@ git commit -m "feat: #117 - 방향 정책이 숫자 키보드 하단 배치를 �
 - `usesBottomSpaceLayout`은 stored property이므로 `super.init(frame:)` 이전에 대입되어야 하고, `setupUI()`와 lazy var(`languageSwitchButton`)가 그 값을 읽는다.
 - `switchButton`과 `keyboardSelectOverlayView`는 현재 `var`(비-lazy)로 즉시 초기화된다. `usesBottomSpaceLayout`을 넘기려면 **`lazy var`로 바꿔야 한다.** `FourByFourPlusKeyboardView`가 이미 그 형태다.
 
-- [ ] **Step 1: 실패하는 배치 테스트를 쓴다**
+- [x] **Step 1: 실패하는 배치 테스트를 쓴다** — 완료
 
 `SYKeyboardTests/Utils/NumericBottomSpaceLayoutTests.swift`를 새로 만든다. `CheonjiinBottomSpaceLayoutTests.swift`의 구조를 그대로 따른다.
 
@@ -601,11 +605,11 @@ struct NumericBottomSpaceLayoutTests {
     }
 ```
 
-- [ ] **Step 2: 컴파일이 실패하는지 확인한다**
+- [x] **Step 2: 컴파일이 실패하는지 확인한다** — 완료 (기대한 문구와 정확히 일치, 0개 실행 허위 성공 아님을 확인)
 
 Expected: `extra argument 'usesBottomSpaceLayout' in call`
 
-- [ ] **Step 3: `NumericKeyboardView`에 플래그를 넣고 하위 컴포넌트에 전달한다**
+- [x] **Step 3: `NumericKeyboardView`에 플래그를 넣고 하위 컴포넌트에 전달한다** — 완료
 
 `private let showsLanguageSwitchButton: Bool` 아래에 추가:
 
@@ -648,7 +652,7 @@ Expected: `extra argument 'usesBottomSpaceLayout' in call`
     }
 ```
 
-- [ ] **Step 4: `setHierarchy()`를 분기한다**
+- [x] **Step 4: `setHierarchy()`를 분기한다** — 완료 (꺼짐 분기 컨테이너별 순서를 `169a8d0b` 원본과 대조해 일치 확인)
 
 D1-c 확정 코드다. 스택 객체 두 개는 그대로 쓰고, **어느 버튼이 어느 스택에 들어가는지**를
 분기 안으로 옮긴다. 꺼짐 분기의 멤버십·순서는 현행과 한 글자도 다르지 않아야 한다.
@@ -713,7 +717,7 @@ D1-c 확정 코드다. 스택 객체 두 개는 그대로 쓰고, **어느 버�
 
 **꺼짐 분기 검증:** `git show <기준커밋>:Modules/SYKeyboardCore/Presentation/View/KeyboardLayout/NumericKeyboardView.swift`의 원본 `setHierarchy()`와 컨테이너별 `arrangedSubviews` 순서를 대조한다. 호출 순서가 아니라 **부모별 결과 순서**가 기준이다.
 
-- [ ] **Step 5: 배치 테스트가 통과하는지 확인한다**
+- [x] **Step 5: 배치 테스트가 통과하는지 확인한다** — 완료 (`NumericBottomSpaceLayoutTests` 6개 + `KeyboardModifierLayoutTests` 숫자 관련 3개 전부 통과)
 
 ```bash
 xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
@@ -726,7 +730,7 @@ xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
 
 **주의:** 그 3개는 `NumericKeyboardView(showsLanguageSwitchButton:)`만 호출하므로 새 기본 인자를 통해 영속 `UserDefaults`를 읽게 된다. #114에서 `FourByFourFixture.cheonjiin`이 같은 문제로 `usesBottomSpaceLayout: false`를 명시하도록 고쳤다(커밋 `0b7bf055`). **세 곳 모두 `usesBottomSpaceLayout: false`를 명시하도록 함께 고친다.**
 
-- [ ] **Step 6: 커밋한다**
+- [x] **Step 6: 커밋한다** — 완료 (커밋 `73f5ab9b`)
 
 ```bash
 git add Modules/SYKeyboardCore/Presentation/View/KeyboardLayout/NumericKeyboardView.swift \
@@ -749,7 +753,7 @@ git commit -m "feat: #117 - 숫자 키패드 하단 배치에서 스페이스와
 
 **참고 이력:** 커밋 `0b7bf055`(#114 Task 5)가 동일한 변환이다.
 
-- [ ] **Step 1: 실패하는 앵커 테스트를 쓴다**
+- [x] **Step 1: 실패하는 앵커 테스트를 쓴다** — 완료
 
 `NumericBottomSpaceLayoutTests.swift` 끝에 추가한다.
 
@@ -832,11 +836,11 @@ git commit -m "feat: #117 - 숫자 키패드 하단 배치에서 스페이스와
     }
 ```
 
-- [ ] **Step 2: 테스트가 실패하는지 확인한다**
+- [x] **Step 2: 테스트가 실패하는지 확인한다** — 완료 (`testBottomSpaceLayoutKeyboardSelectOverlayAnchors`/`testBottomSpaceLayoutOneHandedOverlayAnchors` FAIL, 나머지 PASS — 기대와 일치)
 
 Expected: 켜짐 앵커 테스트 2개가 실패하고 꺼짐 테스트는 통과한다.
 
-- [ ] **Step 3: `setConstraints()`의 오버레이 제약을 분기한다**
+- [x] **Step 3: `setConstraints()`의 오버레이 제약을 분기한다** — 완료
 
 `keyboardSelectOverlayView.translatesAutoresizingMaskIntoConstraints = false`부터 함수 끝까지를 교체한다. 공통 제약을 분기 밖으로 빼고 분기 안에는 정렬만 남긴다. **취소 경계의 우선순위 999는 두 분기 모두 유지한다** — 분기 밖 단일 지점에서 설정하면 누락이 구조적으로 불가능하다.
 
@@ -885,11 +889,11 @@ Expected: 켜짐 앵커 테스트 2개가 실패하고 꺼짐 테스트는 통�
     }
 ```
 
-- [ ] **Step 4: 테스트가 통과하는지 확인한다**
+- [x] **Step 4: 테스트가 통과하는지 확인한다** — 완료 (`NumericBottomSpaceLayoutTests` 10개 전부 PASS, `HangeulEnglishKeyboard` 빌드도 확인)
 
 Expected: `** TEST SUCCEEDED **`, 앵커 테스트 3개 모두 통과
 
-- [ ] **Step 5: 커밋한다**
+- [x] **Step 5: 커밋한다** — 완료 (커밋 `396920cc`)
 
 ```bash
 git add Modules/SYKeyboardCore/Presentation/View/KeyboardLayout/NumericKeyboardView.swift \
@@ -901,7 +905,7 @@ git commit -m "feat: #117 - 숫자 키패드 하단 배치에서 선택 오버�
 
 ## Task 5: 전체 검증
 
-- [ ] **Step 1: 전체 테스트를 실행한다**
+- [x] **Step 1: 전체 테스트를 실행한다** — 완료
 
 ```bash
 xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
@@ -910,7 +914,7 @@ xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
 
 기준선(Task 0 Step 4) 대비 **증가분만 있고 감소는 없어야 한다.**
 
-- [ ] **Step 2: 세 키보드 extension을 빌드한다**
+- [x] **Step 2: 세 키보드 extension을 빌드한다** — 완료
 
 `-only-testing`이나 coverage 옵션이 남지 않은 새 명령으로 실행한다.
 
@@ -921,7 +925,7 @@ for scheme in HangeulKeyboard EnglishKeyboard HangeulEnglishKeyboard; do
 done
 ```
 
-- [ ] **Step 3: 변경 범위를 확인한다**
+- [x] **Step 3: 변경 범위를 확인한다** — 완료 (범위 초과 없음)
 
 ```bash
 git status --short
@@ -930,11 +934,18 @@ git diff --stat develop...HEAD
 
 `FourByFourPlusKeyboardView.swift`, `FourByFourKeyboardView.swift`, `CheonjiinKeyboardView.swift`, `NaratgeulKeyboardView.swift`, `DubeolsikKeyboardView.swift`, `EnglishKeyboardView.swift`, `StandardKeyboardView.swift`, `SymbolKeyboardView.swift`, `project.pbxproj`가 diff에 있으면 **범위 초과다.**
 
-- [ ] **Step 4: 계획 문서에 검증 결과를 기록하고 커밋한다**
+- [x] **Step 4: 계획 문서에 검증 결과를 기록하고 커밋한다** — 완료 (본 절, 아래 검증 기록 표)
 
 실제 명령, 시뮬레이터 기기명·OS, 테스트 개수(고유/전개), 빌드 결과, `.xcresult` 경로와 추출 명령을 남긴다.
 
-- [ ] **Step 5: 실제 입력 앱에서 수동 확인한다 (자동 테스트로 대체 불가)**
+- [ ] **Step 5: 실제 입력 앱에서 수동 확인한다 (자동 테스트로 대체 불가)** — **미수행**
+
+> 이 세션에서는 수행하지 않았다. 실제 기기/시뮬레이터에서 호스트 앱을 열고 키보드 확장을
+> 활성화한 뒤 레이아웃·제스처·오버레이를 직접 관찰해야 하는 작업이라 CLI 세션에서는
+> 수행할 수 없다. 아래 체크박스는 전부 미확인 상태로 남긴다. 특히 자동 테스트가
+> 원리적으로 검증할 수 없는 두 가지 — (1) 켜짐 배치 선택 오버레이의 실제 화면 외형과
+> 드래그 취소 제스처 방향, (2) 전환 버튼 코너 힌트 화살표가 실제 제스처 방향과 일치하는지 —
+> 는 사람이 직접 확인해야 한다.
 
 | 확인 항목 | 꺼짐 | 켜짐 |
 |---|---|---|
@@ -958,13 +969,25 @@ git diff --stat develop...HEAD
 
 | 항목 | 명령 | 결과 | 비고 |
 |---|---|---|---|
-| 기준선 테스트 | | | |
-| 최종 전체 테스트 | | | |
-| HangeulKeyboard 빌드 | | | |
-| EnglishKeyboard 빌드 | | | |
-| HangeulEnglishKeyboard 빌드 | | | |
-| 변경 범위 | | | |
-| 수동 확인 | | | |
+| 기준선 테스트 (Task 0 Step 4, 브랜치 시작 시점) | `xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0'` | `** TEST SUCCEEDED **`. 고유 481 / 전개 497, 실패 0. 시뮬레이터: iPhone 13 mini / iOS 16.0 | `.xcresult`: `~/Library/Developer/Xcode/DerivedData/SYKeyboard-hgprdtyustcuukabeovkjzrtclhy/Logs/Test/Test-SYKeyboard-2026.08.28_21-17-22-+0900.xcresult` (`progress.md` 기록). 추출: `RES=$(ls -td ~/Library/Developer/Xcode/DerivedData/SYKeyboard-*/Logs/Test/*.xcresult \| head -1); xcrun xcresulttool get test-results summary --path "$RES"` |
+| 최종 전체 테스트 (Task 5 Step 1, 이 세션) | 위와 동일 명령, foreground, timeout 600000ms | `** TEST SUCCEEDED **`. 고유(top-level `passedTests`) 492, 전개(`devicesAndConfigurations[0].passedTests`) 508, `failedTests` 0, `result: "Passed"`. 시뮬레이터: iPhone 13 mini / iOS 16.0 | `.xcresult`: `/Users/macmillan/Library/Developer/Xcode/DerivedData/SYKeyboard-hgprdtyustcuukabeovkjzrtclhy/Logs/Test/Test-SYKeyboard-2026.08.28_22-16-47-+0900.xcresult`. 추출 명령은 위와 동일. 기준선(481/497) 대비 증가만 있고 감소 없음(+11 unique / +11 expanded, 감소분 없음). Task 1→2→3→4 진행에 따른 고유 개수: 481→482→483→489→492, 이 세션에서 신규 테스트 추가 없이 동일하게 492 확인 |
+| HangeulKeyboard 빌드 (Task 5 Step 2) | `xcodebuild build -project SYKeyboard.xcodeproj -scheme HangeulKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0'` | `** BUILD SUCCEEDED **` | `-only-testing`/coverage 옵션 없는 별도 foreground 호출 |
+| EnglishKeyboard 빌드 (Task 5 Step 2) | `xcodebuild build -project SYKeyboard.xcodeproj -scheme EnglishKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0'` | `** BUILD SUCCEEDED **` | 별도 foreground 호출 |
+| HangeulEnglishKeyboard 빌드 (Task 5 Step 2) | `xcodebuild build -project SYKeyboard.xcodeproj -scheme HangeulEnglishKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0'` | `** BUILD SUCCEEDED **` | 별도 foreground 호출. Task 4에서도 이미 한 차례 빌드 확인함(리뷰 지시로 선반영) |
+| 변경 범위 (Task 5 Step 3) | `git status --short` / `git diff --stat 4894613b...HEAD` (`4894613b`는 `develop`과의 merge-base, `develop...HEAD`와 동일한 diff) | `git status --short` 출력 없음(클린). `git diff --stat` 13개 파일 변경: `KeyboardSelectDirectionPolicy.swift`, `NumericKeyboardView.swift`, `DefaultValues.swift`, `UserDefaultsKeys.swift`, `UserDefaultsManager.swift`, `SYKeyboardApp.swift`, `AppearanceSettingsView.swift`, `Localizable.xcstrings`, `UserDefaultsContractTests.swift`, `KeyboardModifierLayoutTests.swift`, `KeyboardSelectDirectionPolicyTests.swift`, `NumericBottomSpaceLayoutTests.swift`(신규), 계획 문서 자신(신규, 981줄) | **범위 초과 없음.** 브리프가 금지한 9개 파일(`FourByFourPlusKeyboardView.swift` 등, `project.pbxproj` 포함) 전부 diff에 없음. `.superpowers/`는 git-ignored라 diff에 없음(의도대로) |
+| 수동 확인 (Task 5 Step 5) | (해당 없음 — 실행하지 않음) | **미수행.** 아래 체크리스트 전부 미확인(☐) 상태로 남김 | 이유: 호스트 앱에서 키보드 확장을 활성화하고 레이아웃·제스처·오버레이를 직접 관찰해야 하는 수동 작업이라 CLI 세션에서 수행 불가. 특히 자동 테스트로 증명 불가능한 두 항목 — (1) 켜짐 배치 선택 오버레이의 실제 외형과 드래그 취소 제스처 방향, (2) 전환 버튼 코너 힌트 화살표와 실제 제스처 방향의 일치 — 는 사람이 직접 확인해야 함 |
+
+### 알려진 보류 항목 (비고)
+
+- **`KeyboardSelectDirectionPolicy.swift` 문서 정확성.** 타입 헤더 주석이 오버레이 앵커를
+  `FourByFourPlusKeyboardView`로만 지칭하고, `usesBottomSpaceLayout` 파라미터 문서도
+  "천지인 ... 여부"로 남아 있다. `.numeric`이 같은 분기를 공유하게 된 지금은 부정확하다.
+  동작에는 영향 없는 문서 전용 이슈이며, Task 2 완료 시점부터 `progress.md`에 보류로
+  기록돼 있었다(최종 리뷰 fix wave로 미룸).
+- **커밋 `396920cc`의 목적 혼합.** 오버레이 방향 반전(Task 4 본 변경)과 Task 3 리뷰에서
+  나온 테스트 강화 후속 조치 2건(OFF 경계를 `nextKeyboardButton`에 고정, ON 3행 `-`/`/`
+  칸 폭 4분할 단언)이 한 커밋에 같이 들어갔다. 저장소 관례(커밋 1개 = 목적 1개)와
+  어긋나지만, 히스토리 재작성 비용이 이득보다 크다고 판단해 그대로 둔다.
 
 ---
 
