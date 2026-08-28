@@ -974,16 +974,34 @@ git diff --stat develop...HEAD
 | HangeulKeyboard 빌드 (Task 5 Step 2) | `xcodebuild build -project SYKeyboard.xcodeproj -scheme HangeulKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0'` | `** BUILD SUCCEEDED **` | `-only-testing`/coverage 옵션 없는 별도 foreground 호출 |
 | EnglishKeyboard 빌드 (Task 5 Step 2) | `xcodebuild build -project SYKeyboard.xcodeproj -scheme EnglishKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0'` | `** BUILD SUCCEEDED **` | 별도 foreground 호출 |
 | HangeulEnglishKeyboard 빌드 (Task 5 Step 2) | `xcodebuild build -project SYKeyboard.xcodeproj -scheme HangeulEnglishKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0'` | `** BUILD SUCCEEDED **` | 별도 foreground 호출. Task 4에서도 이미 한 차례 빌드 확인함(리뷰 지시로 선반영) |
-| 변경 범위 (Task 5 Step 3) | `git status --short` / `git diff --stat 4894613b...HEAD` (`4894613b`는 `develop`과의 merge-base, `develop...HEAD`와 동일한 diff) | `git status --short` 출력 없음(클린). `git diff --stat` 13개 파일 변경: `KeyboardSelectDirectionPolicy.swift`, `NumericKeyboardView.swift`, `DefaultValues.swift`, `UserDefaultsKeys.swift`, `UserDefaultsManager.swift`, `SYKeyboardApp.swift`, `AppearanceSettingsView.swift`, `Localizable.xcstrings`, `UserDefaultsContractTests.swift`, `KeyboardModifierLayoutTests.swift`, `KeyboardSelectDirectionPolicyTests.swift`, `NumericBottomSpaceLayoutTests.swift`(신규), 계획 문서 자신(신규, 981줄) | **범위 초과 없음.** 브리프가 금지한 9개 파일(`FourByFourPlusKeyboardView.swift` 등, `project.pbxproj` 포함) 전부 diff에 없음. `.superpowers/`는 git-ignored라 diff에 없음(의도대로) |
+| 변경 범위 (Task 5 Step 3) | `git status --short` / `git diff --stat 4894613b...HEAD` (`4894613b`는 `develop`과의 merge-base, `develop...HEAD`와 동일한 diff) | `git status --short` 출력 없음(클린). `git diff --stat` 14개 파일 변경: `KeyboardSelectDirectionPolicy.swift`, `NumericKeyboardView.swift`, `DefaultValues.swift`, `UserDefaultsKeys.swift`, `UserDefaultsManager.swift`, `SYKeyboardApp.swift`, `AppearanceSettingsView.swift`, `Localizable.xcstrings`, `UserDefaultsContractTests.swift`, `KeyboardModifierLayoutTests.swift`, `KeyboardPrimaryViewCollectionTests.swift`, `KeyboardSelectDirectionPolicyTests.swift`, `NumericBottomSpaceLayoutTests.swift`(신규), 계획 문서 자신(신규) | **범위 초과 없음.** 브리프가 금지한 9개 파일(`FourByFourPlusKeyboardView.swift` 등, `project.pbxproj` 포함) 전부 diff에 없음. `.superpowers/`는 git-ignored라 diff에 없음(의도대로) |
 | 수동 확인 (Task 5 Step 5) | (해당 없음 — 실행하지 않음) | **미수행.** 아래 체크리스트 전부 미확인(☐) 상태로 남김 | 이유: 호스트 앱에서 키보드 확장을 활성화하고 레이아웃·제스처·오버레이를 직접 관찰해야 하는 수동 작업이라 CLI 세션에서 수행 불가. 특히 자동 테스트로 증명 불가능한 두 항목 — (1) 켜짐 배치 선택 오버레이의 실제 외형과 드래그 취소 제스처 방향, (2) 전환 버튼 코너 힌트 화살표와 실제 제스처 방향의 일치 — 는 사람이 직접 확인해야 함 |
+
+### 최종 리뷰 fix wave 이후 재검증
+
+브랜치 전체 리뷰(`4894613b..c1d933d0`)에서 Important 1건이 나와 fix wave를 한 차례 돌렸다.
+
+| 항목 | 명령 | 결과 | 비고 |
+|---|---|---|---|
+| fix wave 후 전체 테스트 | `xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0'` | `** TEST SUCCEEDED **`. 고유 493 / 전개 509, 실패 0 | `.xcresult`: `~/Library/Developer/Xcode/DerivedData/SYKeyboard-hgprdtyustcuukabeovkjzrtclhy/Logs/Test/Test-SYKeyboard-2026.08.28_22-46-01-+0900.xcresult`. 추출 명령은 위와 동일. 492 → 493의 +1은 신규 `testDefaultLayoutOneHandedOverlayAnchors` |
+
+수정한 내용은 커밋 `afd8f169`(test), `94ed2056`(docs) 두 개다.
+
+- **`KeyboardPrimaryViewCollectionTests`가 새 설정 OFF에 암묵 의존.** `KeyboardView.loadFromNib(...)`이
+  `numericKeyboardView`를 새 기본 인자로 lazy 생성하므로, 사용자가 앱에서 설정을 켠 시뮬레이터에서는
+  modifier 순서 단언이 실패해 제품 회귀처럼 보인다. `UserDefaultsContractTests`의
+  `restore(_:forKey:in:)` 관용구로 값을 `false`로 고정하고 `defer`로 복원하도록 고쳤다.
+  계획서 함정 목록 4번과 같은 유형인데, 뷰가 간접 생성돼 `KeyboardModifierLayoutTests` 수정 때 놓쳤다.
+- **OFF 상태 `oneHandedModeSelectOverlayView` 앵커 회귀 테스트 부재.** Task 4에서 한 손 오버레이 제약이
+  분기 블록으로 옮겨졌는데 OFF 쪽 trailing 앵커를 고정하는 테스트가 없었다.
+  `testDefaultLayoutOneHandedOverlayAnchors`를 추가했다.
+- **`KeyboardSelectDirectionPolicy.swift` 주석 정확성.** 아래 보류 항목에 있던 문서 부정확을 함께 해소했다.
 
 ### 알려진 보류 항목 (비고)
 
-- **`KeyboardSelectDirectionPolicy.swift` 문서 정확성.** 타입 헤더 주석이 오버레이 앵커를
-  `FourByFourPlusKeyboardView`로만 지칭하고, `usesBottomSpaceLayout` 파라미터 문서도
-  "천지인 ... 여부"로 남아 있다. `.numeric`이 같은 분기를 공유하게 된 지금은 부정확하다.
-  동작에는 영향 없는 문서 전용 이슈이며, Task 2 완료 시점부터 `progress.md`에 보류로
-  기록돼 있었다(최종 리뷰 fix wave로 미룸).
+- **~~`KeyboardSelectDirectionPolicy.swift` 문서 정확성~~ (해소).** 타입 헤더 주석이 오버레이 앵커를
+  `FourByFourPlusKeyboardView`로만 지칭하고 `usesBottomSpaceLayout` 파라미터 문서도
+  "천지인 ... 여부"로 남아 있던 문제를 커밋 `94ed2056`에서 고쳤다.
 - **커밋 `396920cc`의 목적 혼합.** 오버레이 방향 반전(Task 4 본 변경)과 Task 3 리뷰에서
   나온 테스트 강화 후속 조치 2건(OFF 경계를 `nextKeyboardButton`에 고정, ON 3행 `-`/`/`
   칸 폭 4분할 단언)이 한 커밋에 같이 들어갔다. 저장소 관례(커밋 1개 = 목적 1개)와
