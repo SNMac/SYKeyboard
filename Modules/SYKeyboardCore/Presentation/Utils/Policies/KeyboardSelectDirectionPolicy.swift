@@ -7,12 +7,12 @@
 ///
 /// 이 방향은 네 곳이 함께 지켜야 한다.
 /// 제스처 판정(`SwitchGestureController`), 오버레이 내부 배치(`KeyboardSelectOverlayView`),
-/// 코너 힌트 라벨(`SwitchButton`), 오버레이 앵커(`FourByFourPlusKeyboardView`).
+/// 코너 힌트 라벨(`SwitchButton`), 오버레이 앵커(`FourByFourPlusKeyboardView`, `NumericKeyboardView`).
 /// 어긋나면 힌트와 실제 제스처 방향이 달라지므로 한 곳에서만 정한다
 enum KeyboardSelectDirectionPolicy {
     /// - Parameters:
     ///   - keyboard: 현재 키보드 종류
-    ///   - usesBottomSpaceLayout: 천지인 스페이스 하단 배치 사용 여부
+    ///   - usesBottomSpaceLayout: 천지인·숫자 키패드의 스페이스 하단 배치 사용 여부
     static func targetDirection(for keyboard: SYKeyboardType,
                                 usesBottomSpaceLayout: Bool) -> PanDirection {
         switch keyboard {
