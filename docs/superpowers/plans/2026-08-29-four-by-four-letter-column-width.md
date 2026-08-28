@@ -1489,7 +1489,7 @@ brief대로 이 Task는 UI 배선이라 새 단위 테스트를 추가하지 않
 - Consumes: `KeyboardLayoutFigure.letterColumnWidthMultiplierRange` (Task 1), `UserDefaultsKeys.letterColumnWidthMultiplier` / `DefaultValues.letterColumnWidthMultiplier` (Task 2), `PreviewKeyboardView`의 새 시그니처 (Task 7)
 - Produces: `struct LetterColumnWidthSettingsView: View`
 
-- [ ] **Step 1: 설정 화면 작성**
+- [x] **Step 1: 설정 화면 작성**
 
 `SYKeyboard/Presentation/KeyboardSettings/LetterColumnWidthSettingsView.swift` 생성:
 
@@ -1623,7 +1623,7 @@ private extension LetterColumnWidthSettingsView {
 }
 ```
 
-- [ ] **Step 2: `AppearanceSettingsView`에 진입점 추가**
+- [x] **Step 2: `AppearanceSettingsView`에 진입점 추가**
 
 (2-1) `import SYKeyboardCore` 아래에 추가:
 
@@ -1666,7 +1666,7 @@ import HangeulKeyboardCore
     }
 ```
 
-- [ ] **Step 3: 로컬라이징 문자열 추가**
+- [x] **Step 3: 로컬라이징 문자열 추가**
 
 `SYKeyboard/Resources/Localizable.xcstrings`의 `strings` 객체에 아래 3개 키를 추가한다. 기존 항목과 같은 형식이며, `sourceLanguage`가 `ko`이므로 한국어 키에 영어 번역만 넣는다.
 
@@ -1706,7 +1706,7 @@ for k in ['글자 열 너비', '나랏글·천지인·숫자 키패드에 적용
 
 기대: 5개 키 모두 `True`
 
-- [ ] **Step 4: 앱 빌드 확인**
+- [x] **Step 4: 앱 빌드 확인**
 
 ```sh
 xcodebuild build -project SYKeyboard.xcodeproj -scheme SYKeyboard \
@@ -1715,7 +1715,7 @@ xcodebuild build -project SYKeyboard.xcodeproj -scheme SYKeyboard \
 
 기대: BUILD SUCCEEDED
 
-- [ ] **Step 5: 커밋**
+- [x] **Step 5: 커밋**
 
 ```bash
 git add SYKeyboard/Presentation/KeyboardSettings/LetterColumnWidthSettingsView.swift \
@@ -1724,7 +1724,26 @@ git add SYKeyboard/Presentation/KeyboardSettings/LetterColumnWidthSettingsView.s
 git commit -m "feat: #112 - 글자 열 너비 설정 화면 추가"
 ```
 
-**결과:** (실행 후 기록)
+**결과:** 완료. `xcodebuild build -scheme SYKeyboard`
+(iPhone 13 mini / iOS 16.0, `CBD992D3-5364-4F69-AC5F-0077ADF1A292`) — **BUILD SUCCEEDED** (1회 시도).
+`Localizable.xcstrings`는 `python3 -c "json.load(...)"`로 파싱 검증했고 총 92개 키다.
+신규 2개(`글자 열 너비`, `나랏글·천지인·숫자 키패드에 적용`)만 추가했고 `취소`·`리셋`·`저장`은
+기존 항목을 재사용했다(순수 삽입 20줄, 삭제 0줄). `project.pbxproj` 변경 없음. 커밋 `1879ccbc`.
+
+**리뷰에서 확인한 항목:**
+- 슬라이더가 `KeyboardLayoutFigure.letterColumnWidthMultiplierRange`를 참조하고 범위를 직접 박지
+  않았다. step `0.01`, 표시는 `Int((temp * 100).rounded())`로 100~120이 정확히 나온다.
+  `.rounded()`를 써서 `114.999999998` 같은 이진 부동소수점 오차를 흡수한다.
+- 진입점 노출 조건에 세 갈래(`.naratgeul`, `.cheonjiin`, `isNumericKeypadEnabled`)가 모두 있다.
+- 슬라이더는 `@State`만 조작하고 `저장`에서만 `@AppStorage`에 쓴다. `취소`는 반영하지 않는다.
+  미리보기에는 임시값(`$tempLetterColumnWidthMultiplier`)이 전달된다.
+- `onAppear`에서 임시 상태를 저장값으로 초기화한다.
+- `AppearanceSettingsView`의 `HangeulKeyboardCore` import와 `@AppStorage` 사용은
+  `HangeulKeyboardSelectView`의 기존 패턴과 동일하다.
+
+**미확인:** 진입점이 `selectedHangeulKeyboard`/`isNumericKeypadEnabled` 변경에 따라 실제로
+나타나고 사라지는지, 슬라이더 드래그·저장·취소 상호작용, 미리보기 실시간 반영은 실행 환경에서
+관찰하지 않았다. Task 9의 수동 확인 항목이다.
 
 ---
 
