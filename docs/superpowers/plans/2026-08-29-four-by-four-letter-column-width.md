@@ -1137,7 +1137,7 @@ Task 4에서 추가된 것을 재사용했고 중복 추가하지 않았다(리�
 - Consumes: Task 3의 `FourColumnWidthLayoutController`, Task 4의 프로토콜 메서드
 - Produces: `NumericKeyboardView.updateLetterColumnWidthMultiplier(_:)` — `public func`
 
-- [ ] **Step 1: 실패하는 테스트 작성**
+- [x] **Step 1: 실패하는 테스트 작성**
 
 `SYKeyboardTests/Utils/FourColumnWidthLayoutTests.swift`에 새 `@Suite` 추가:
 
@@ -1233,7 +1233,7 @@ struct NumericColumnWidthLayoutTests {
 }
 ```
 
-- [ ] **Step 2: 테스트가 실패하는지 확인**
+- [x] **Step 2: 테스트가 실패하는지 확인**
 
 ```sh
 xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
@@ -1243,7 +1243,7 @@ xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
 
 기대: 컴파일 실패. `value of type 'NumericKeyboardView' has no member 'updateLetterColumnWidthMultiplier'`
 
-- [ ] **Step 3: `NumericKeyboardView`에 컨트롤러 연결**
+- [x] **Step 3: `NumericKeyboardView`에 컨트롤러 연결**
 
 (3-1) `public let usesBottomSpaceLayout: Bool` 바로 아래에 프로퍼티 추가:
 
@@ -1282,7 +1282,7 @@ xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
         }
 ```
 
-- [ ] **Step 4: 테스트 통과 확인**
+- [x] **Step 4: 테스트 통과 확인**
 
 ```sh
 xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
@@ -1293,7 +1293,7 @@ xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
 
 기대: 새 테스트 4개 통과, 기존 `NumericBottomSpaceLayoutTests`도 수정 없이 통과
 
-- [ ] **Step 5: 커밋**
+- [x] **Step 5: 커밋**
 
 ```bash
 git add Modules/SYKeyboardCore/Presentation/View/KeyboardLayout/NumericKeyboardView.swift \
@@ -1301,7 +1301,26 @@ git add Modules/SYKeyboardCore/Presentation/View/KeyboardLayout/NumericKeyboardV
 git commit -m "feat: #112 - 숫자 키패드 글자 열 너비 비율 적용"
 ```
 
-**결과:** (실행 후 기록)
+**결과:** 완료. `xcodebuild test -only-testing:SYKeyboardTests/NumericColumnWidthLayoutTests
+-only-testing:SYKeyboardTests/NumericBottomSpaceLayoutTests -resultBundlePath /tmp/task6.xcresult`
+(iPhone 13 mini / iOS 16.0, `CBD992D3-5364-4F69-AC5F-0077ADF1A292`) —
+`xcresulttool get test-results summary` 기준 `result: Passed`, `totalTestCount: 14`,
+`passedTests: 14`, `failedTests: 0`, `skippedTests: 0` (parameterized 포함 15회 실행).
+Auto Layout 충돌 경고 **0건**. 기존 `NumericBottomSpaceLayoutTests` 9개는 수정 없이 통과했다.
+`project.pbxproj` 변경 없음. 커밋 `2048eb0e`.
+
+기존 세 suite를 그대로 두고 `NumericColumnWidthLayoutTests`를 파일 끝에 append했다.
+`@testable import SYKeyboardCore`가 이미 있어 새 import는 추가하지 않았다.
+
+**키 배열 대조(리뷰):** `numericKeyList[3] = ["-", ",", "0", ".", "/"]`이고 하단 스페이스 분기에서
+`fourthRowLeftPrimaryButtonHStackView = [list[3], list[1]] = [".", ","]`,
+`fourthRowRightPrimaryButtonHStackView = [list[0], list[4]] = ["-", "/"]`이다.
+따라서 3행 4열의 첫 요소가 `'-'`, 4행 4열의 첫 요소가 `'.'`이며 테스트 단언과 일치한다.
+숫자 키패드의 `returnButton`은 중첩 스택이 아니라 행의 직속 자식(2행 또는 3행)이므로
+프레임을 바로 비교하는 것이 맞다.
+
+**미확인:** 실기기 렌더링은 Task 9의 수동 확인 항목이다. 설정값 변경을 런타임에 반영하는 배선은
+Task 7 범위다.
 
 ---
 
