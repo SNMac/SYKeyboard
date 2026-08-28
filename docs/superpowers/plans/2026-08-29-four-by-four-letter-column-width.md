@@ -1754,7 +1754,7 @@ git commit -m "feat: #112 - 글자 열 너비 설정 화면 추가"
 **Files:**
 - Modify: `docs/superpowers/plans/2026-08-29-four-by-four-letter-column-width.md` (이 문서의 "결과" 줄)
 
-- [ ] **Step 1: 전체 테스트 실행**
+- [x] **Step 1: 전체 테스트 실행**
 
 `-only-testing`과 code coverage 옵션이 남아 있지 않은지 확인하고 실행한다.
 
@@ -1769,7 +1769,7 @@ xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
 - `NumericBottomSpaceLayoutTests`
 - `UserDefaultsContractTests`
 
-- [ ] **Step 2: 세 extension 빌드 확인**
+- [x] **Step 2: 세 extension 빌드 확인**
 
 ```sh
 xcodebuild build -project SYKeyboard.xcodeproj -scheme HangeulKeyboard \
@@ -1788,7 +1788,7 @@ xcodebuild build -project SYKeyboard.xcodeproj -scheme HangeulEnglishKeyboard \
 
 기대: 3개 모두 BUILD SUCCEEDED
 
-- [ ] **Step 3: 변경 범위 확인**
+- [x] **Step 3: 변경 범위 확인**
 
 ```sh
 git status --short
@@ -1797,7 +1797,7 @@ git diff --stat develop...HEAD
 
 기대: 이 계획의 File Structure 표에 있는 파일만 변경되어 있다. 사용자가 만든 무관한 변경이 섞여 있으면 되돌리지 않고 사용자에게 알린다.
 
-- [ ] **Step 4: 수동 확인 항목을 미확인으로 기록**
+- [x] **Step 4: 수동 확인 항목을 미확인으로 기록**
 
 아래 항목은 자동 테스트로 판정할 수 없다. 실제 기기에서 확인하기 전에는 **완료로 표시하지 않는다.** 확인했다면 결과를, 확인하지 못했다면 차단 사유를 이 문서에 적는다.
 
@@ -1810,7 +1810,7 @@ git diff --stat develop...HEAD
 - [ ] 설정 화면 미리보기에서 `!#1`을 드래그해 숫자 키패드로 전환한 뒤 슬라이더가 반영되는지
 - [ ] 한영 통합 키보드에서 한영 전환 버튼과 지구본 버튼의 폭
 
-- [ ] **Step 5: 이 문서의 "결과" 줄 갱신 후 커밋**
+- [x] **Step 5: 이 문서의 "결과" 줄 갱신 후 커밋**
 
 각 Task의 "결과" 줄에 실제 실행한 명령, 사용한 시뮬레이터 기기명·OS 버전, 테스트 개수와 통과 여부를 적는다.
 
@@ -1819,7 +1819,25 @@ git add docs/superpowers/plans/2026-08-29-four-by-four-letter-column-width.md
 git commit -m "docs: #112 - 구현 계획에 검증 결과 반영"
 ```
 
-**결과:** (실행 후 기록)
+**결과:** 완료. iPhone 13 mini / iOS 16.0 (`CBD992D3-5364-4F69-AC5F-0077ADF1A292`).
+
+- **전체 테스트**: `xcodebuild test -scheme SYKeyboard -resultBundlePath /tmp/task9-test.xcresult`
+  → `xcresulttool get test-results summary` 기준 `totalTestCount: 516`, `passedTests: 516`,
+  `failedTests: 0`, `skippedTests: 0` (device 레벨 532/532). `-only-testing`·coverage 옵션 없이
+  실행했다.
+- **기존 suite 회귀 없음**: `KeyboardModifierLayoutTests`, `CheonjiinBottomSpaceLayoutTests`,
+  `NumericBottomSpaceLayoutTests`, `UserDefaultsContractTests` 네 개 모두 수정 없이 전부 통과.
+- **extension 빌드**: `HangeulKeyboard`, `EnglishKeyboard`, `HangeulEnglishKeyboard` 세 개 모두
+  `** BUILD SUCCEEDED **`.
+- **변경 범위**: `git status --short` 출력 없음(clean). `git diff --stat develop...HEAD`는
+  25개 파일, 3030 insertions(+), 43 deletions(-)이며 위 File Structure 표의 목록과 일치한다.
+  계획 밖 파일 없음.
+- 환경 실패(`CoreSimulatorService`, 권한 오류 등) 없이 모든 검증이 첫 시도에 완료되었다.
+
+**수동 확인 항목은 전부 미확인 상태다.** 아래 8개는 자동 테스트로 판정할 수 없고, 실행 환경에서
+관찰하지 않았다. 차단 사유: 실기기 또는 시뮬레이터에서 키보드 확장을 활성화하고 실제 입력 앱을
+열어 조작해야 하는데, 이번 실행 범위에 포함하지 않았다. **이 항목들이 확인되기 전까지 이 기능을
+production-ready로 표시하지 않는다.**
 
 ---
 
