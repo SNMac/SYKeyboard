@@ -79,7 +79,7 @@ struct HangeulKeyboardSelectView: View {
         
         if selectedHangeulKeyboard == .naratgeul {
             Toggle(isOn: $isNaratgeulDotLabelEnabled, label: {
-                Text("획·쌍 버튼 기호 표기")
+                Text("나랏글 획·쌍 버튼 기호 표기")
                 Text("'획' ➡️ 'ㆍ', '쌍' ➡️ 'ᆢ'")
                     .font(.caption)
             })
@@ -96,7 +96,7 @@ struct HangeulKeyboardSelectView: View {
 
         if selectedHangeulKeyboard == .cheonjiin {
             Toggle(isOn: $isCheonjiinBottomSpaceEnabled, label: {
-                Text("스페이스 하단 배치")
+                Text("천지인 스페이스 하단 배치")
                 Text("스페이스를 맨 아랫줄로 옮기고 리턴을 위로 올림")
                     .font(.caption)
             })

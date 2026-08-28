@@ -203,7 +203,9 @@ struct KeyboardModifierLayoutTests {
     @Test("통합 숫자 화면은 globe → 한/영 → 전환 순서이고 한/영은 두벌식과 같은 너비")
     func testUnifiedNumericModifierOrder() throws {
         let width: CGFloat = 390
-        let view = NumericKeyboardView(showsLanguageSwitchButton: true)
+        // 기본 인자가 영속 설정값(App Group UserDefaults)을 읽으므로
+        // 기존 배치를 검증하는 이 테스트는 값을 명시해 시뮬레이터 상태와 무관하게 만든다
+        let view = NumericKeyboardView(showsLanguageSwitchButton: true, usesBottomSpaceLayout: false)
         view.frame = CGRect(x: 0, y: 0, width: width, height: 216)
         view.layoutIfNeeded()
 
@@ -220,7 +222,9 @@ struct KeyboardModifierLayoutTests {
     @Test("숨겨진 globe 상태의 숫자 화면은 한/영이 두벌식과 같은 너비")
     func testUnifiedNumericHiddenGlobeRestoresLanguageButtonWidth() throws {
         let width: CGFloat = 390
-        let view = NumericKeyboardView(showsLanguageSwitchButton: true)
+        // 기본 인자가 영속 설정값(App Group UserDefaults)을 읽으므로
+        // 기존 배치를 검증하는 이 테스트는 값을 명시해 시뮬레이터 상태와 무관하게 만든다
+        let view = NumericKeyboardView(showsLanguageSwitchButton: true, usesBottomSpaceLayout: false)
         view.frame = CGRect(x: 0, y: 0, width: width, height: 216)
         view.layoutIfNeeded()
 
@@ -243,7 +247,9 @@ struct KeyboardModifierLayoutTests {
 
     @Test("전용 숫자 화면은 Language 버튼을 만들지 않음")
     func testDedicatedNumericDoesNotCreateLanguageButton() {
-        let view = NumericKeyboardView(showsLanguageSwitchButton: false)
+        // 기본 인자가 영속 설정값(App Group UserDefaults)을 읽으므로
+        // 기존 배치를 검증하는 이 테스트는 값을 명시해 시뮬레이터 상태와 무관하게 만든다
+        let view = NumericKeyboardView(showsLanguageSwitchButton: false, usesBottomSpaceLayout: false)
 
         #expect(view.languageSwitchButton == nil)
     }

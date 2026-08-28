@@ -83,6 +83,20 @@ struct UserDefaultsContractTests {
         #expect(UserDefaultsManager.shared.isCheonjiinBottomSpaceEnabled == false)
     }
 
+    @Test("숫자 키패드 스페이스 하단 배치는 저장값이 없으면 false를 반환하고 공유 저장소 키를 유지")
+    func testNumericKeypadBottomSpaceDefaultFallbackAndKey() {
+        let storage = UserDefaultsManager.shared.storage
+        let key = UserDefaultsKeys.isNumericKeypadBottomSpaceEnabled
+        let originalValue = storage.object(forKey: key)
+
+        storage.removeObject(forKey: key)
+        defer { restore(originalValue, forKey: key, in: storage) }
+
+        #expect(key == "isNumericKeypadBottomSpaceEnabled")
+        #expect(DefaultValues.isNumericKeypadBottomSpaceEnabled == false)
+        #expect(UserDefaultsManager.shared.isNumericKeypadBottomSpaceEnabled == false)
+    }
+
     @Test("한영 통합 키보드 마지막 mode는 기본값과 raw value 계약을 유지")
     func testLastHangeulEnglishLanguageModeDefaultAndRawValueRoundTrip() {
         let storage = UserDefaultsManager.shared.storage

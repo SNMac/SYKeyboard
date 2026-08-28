@@ -179,6 +179,9 @@ final public class UserDefaultsManager {
     /// 천지인 스페이스 버튼 하단 배치
     @UserDefaultsWrapper(key: UserDefaultsKeys.isCheonjiinBottomSpaceEnabled, defaultValue: DefaultValues.isCheonjiinBottomSpaceEnabled)
     public var isCheonjiinBottomSpaceEnabled: Bool
+    /// 숫자 키패드 스페이스 버튼 하단 배치
+    @UserDefaultsWrapper(key: UserDefaultsKeys.isNumericKeypadBottomSpaceEnabled, defaultValue: DefaultValues.isNumericKeypadBottomSpaceEnabled)
+    public var isNumericKeypadBottomSpaceEnabled: Bool
 
     // MARK: 기타 설정
     

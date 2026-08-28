@@ -32,12 +32,17 @@ struct KeyboardSelectDirectionPolicyTests {
         )
     }
 
-    @Test("숫자 키보드는 하단 배치 플래그와 무관하게 항상 왼쪽",
-          arguments: [false, true])
-    func testNumericAlwaysOpensLeft(_ usesBottomSpaceLayout: Bool) {
+    @Test("숫자 키보드 기본 배치는 왼쪽으로 열린다")
+    func testNumericDefaultOpensLeft() {
         #expect(
-            KeyboardSelectDirectionPolicy.targetDirection(for: .numeric,
-                                                          usesBottomSpaceLayout: usesBottomSpaceLayout) == .left
+            KeyboardSelectDirectionPolicy.targetDirection(for: .numeric, usesBottomSpaceLayout: false) == .left
+        )
+    }
+
+    @Test("숫자 키보드 하단 배치는 오른쪽으로 열린다")
+    func testNumericBottomSpaceOpensRight() {
+        #expect(
+            KeyboardSelectDirectionPolicy.targetDirection(for: .numeric, usesBottomSpaceLayout: true) == .right
         )
     }
 

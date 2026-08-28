@@ -17,7 +17,10 @@ struct AppearanceSettingsView: View {
     
     @AppStorage(UserDefaultsKeys.isNumericKeypadEnabled, store: UserDefaultsManager.shared.storage)
     private var isNumericKeypadEnabled = DefaultValues.isNumericKeypadEnabled
-    
+
+    @AppStorage(UserDefaultsKeys.isNumericKeypadBottomSpaceEnabled, store: UserDefaultsManager.shared.storage)
+    private var isNumericKeypadBottomSpaceEnabled = DefaultValues.isNumericKeypadBottomSpaceEnabled
+
     @AppStorage(UserDefaultsKeys.isOneHandedKeyboardEnabled, store: UserDefaultsManager.shared.storage)
     private var isOneHandedKeyboardEnabled = DefaultValues.isOneHandedKeyboardEnabled
     
@@ -42,7 +45,24 @@ struct AppearanceSettingsView: View {
             ])
             hideKeyboard()
         }
-        
+
+        if isNumericKeypadEnabled {
+            Toggle(isOn: $isNumericKeypadBottomSpaceEnabled, label: {
+                Text("숫자 키패드 스페이스 하단 배치")
+                Text("스페이스를 맨 아랫줄로 옮기고 리턴을 위로 올림")
+                    .font(.caption)
+            })
+            .onChange(of: isNumericKeypadBottomSpaceEnabled) { newValue in
+                Analytics.setUserProperty(newValue.analyticsValue,
+                                          forName: "pref_numeric_keypad_bottom_space")
+                Analytics.logEvent("numeric_keypad_bottom_space", parameters: [
+                    "view": "AppearanceSettingsView",
+                    "enabled": newValue.analyticsValue
+                ])
+                hideKeyboard()
+            }
+        }
+
         Toggle(isOn: $isOneHandedKeyboardEnabled, label: {
             Text("한 손 키보드 활성화")
             Text("'!#1', '한글' 또는 'ABC' 버튼을 위로 드래그하거나 길게 눌러 변경")
