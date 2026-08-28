@@ -1345,7 +1345,7 @@ Task 7 범위다.
 
 이 Task는 UI 배선이라 단위 테스트를 추가하지 않는다. 검증은 빌드 통과와 Task 9의 수동 확인으로 한다.
 
-- [ ] **Step 1: `BaseKeyboardViewController`에 갱신 메서드 추가**
+- [x] **Step 1: `BaseKeyboardViewController`에 갱신 메서드 추가**
 
 `// MARK: - Public Methods` 안, `updateOneHandedModeForPreview(to:)` 바로 아래에 추가:
 
@@ -1360,7 +1360,7 @@ Task 7 범위다.
     }
 ```
 
-- [ ] **Step 2: `PreviewKeyboardView`에 바인딩 추가**
+- [x] **Step 2: `PreviewKeyboardView`에 바인딩 추가**
 
 `@Binding var oneHandedKeyboardWidth: Double` 바로 아래에 추가:
 
@@ -1384,7 +1384,7 @@ Task 7 범위다.
                                              oneHandedMode: $oneHandedMode)
 ```
 
-- [ ] **Step 3: 두 Preview Representable에 바인딩 전달**
+- [x] **Step 3: 두 Preview Representable에 바인딩 전달**
 
 `PreviewHangeulKeyboardViewController.swift`와 `PreviewEnglishKeyboardViewController.swift` **양쪽 모두**에 같은 변경을 한다. 영문 키보드도 같은 숫자 키패드를 공유하므로 빠뜨리면 안 된다.
 
@@ -1406,7 +1406,7 @@ Task 7 범위다.
 /// - 글자 열 너비 배율은 `updateLetterColumnWidthForPreview` 메서드로 조정
 ```
 
-- [ ] **Step 4: 기존 호출부 2곳 갱신**
+- [x] **Step 4: 기존 호출부 2곳 갱신**
 
 `KeyboardHeightSettingsView.swift`와 `OneHandedKeyboardWidthSettingsView.swift`의 `PreviewKeyboardView(...)` 호출에 인자를 추가한다. 두 화면은 배율을 편집하지 않으므로 저장된 값을 그대로 넘겨 현재 동작을 유지한다.
 
@@ -1430,7 +1430,7 @@ Task 7 범위다.
 
 `OneHandedKeyboardWidthSettingsView`는 두 번째 인자가 `$tempOneHandedKeyboardWidth`이므로 그 부분은 바꾸지 않는다.
 
-- [ ] **Step 5: 앱 빌드 확인**
+- [x] **Step 5: 앱 빌드 확인**
 
 ```sh
 xcodebuild build -project SYKeyboard.xcodeproj -scheme SYKeyboard \
@@ -1439,7 +1439,7 @@ xcodebuild build -project SYKeyboard.xcodeproj -scheme SYKeyboard \
 
 기대: BUILD SUCCEEDED
 
-- [ ] **Step 6: 커밋**
+- [x] **Step 6: 커밋**
 
 ```bash
 git add Modules/SYKeyboardCore/Presentation/ViewController/Bases/BaseKeyboardViewController.swift \
@@ -1451,7 +1451,28 @@ git add Modules/SYKeyboardCore/Presentation/ViewController/Bases/BaseKeyboardVie
 git commit -m "feat: #112 - 미리보기에 글자 열 너비 배율 반영 경로 추가"
 ```
 
-**결과:** (실행 후 기록)
+**결과:** 완료. `xcodebuild build -scheme SYKeyboard`
+(iPhone 13 mini / iOS 16.0, `CBD992D3-5364-4F69-AC5F-0077ADF1A292`) — **BUILD SUCCEEDED**.
+추가로 배선이 기존 테스트를 깨지 않았는지 확인하기 위해 네 개 레이아웃 suite
+(`FourColumnWidthLayoutTests`, `Naratgeul/Cheonjiin/NumericColumnWidthLayoutTests`)를
+`-resultBundlePath /tmp/task7.xcresult`로 실행해 **16/16 통과**했다.
+`project.pbxproj` 변경 없음. 커밋 `0caf8c0b`.
+
+brief대로 이 Task는 UI 배선이라 새 단위 테스트를 추가하지 않았다.
+
+**리뷰에서 확인한 핵심 배선:**
+- `updateLetterColumnWidthForPreview(to:)`가 `primaryKeyboardViews`와 `numericKeyboardView`
+  **양쪽**을 갱신한다. 숫자 키패드는 `primaryKeyboardViews`에 없어 따로 호출해야 한다.
+- `PreviewHangeulKeyboardViewController`와 `PreviewEnglishKeyboardViewController` **양쪽**에
+  바인딩과 호출이 추가되었다. 영문 미리보기도 같은 숫자 키패드를 공유하기 때문이다.
+- `OneHandedKeyboardWidthSettingsView`의 두 번째 인자는 여전히 `$tempOneHandedKeyboardWidth`로,
+  한 손 너비 설정의 실시간 미리보기가 보존되었다.
+- 세 호출부의 인자 순서가 일치한다(Task 8이 같은 순서를 쓴다).
+
+**이월된 minor 1건:** 두 Preview Representable 파일에서 기존 trailing whitespace가 함께 제거되었다
+(로직 무관, 순수 공백).
+
+**미확인:** 슬라이더 UI가 아직 없으므로 실제 실시간 반영은 Task 8 이후 수동 확인 항목이다.
 
 ---
 
