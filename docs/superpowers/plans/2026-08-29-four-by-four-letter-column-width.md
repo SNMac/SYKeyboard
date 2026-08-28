@@ -930,7 +930,7 @@ Task 9의 수동 확인 항목으로 남아 있다.
 - Consumes: Task 3의 `FourColumnWidthLayoutController`, Task 4의 프로토콜 메서드
 - Produces: `FourByFourPlusKeyboardView.updateLetterColumnWidthMultiplier(_:)` — `public func`
 
-- [ ] **Step 1: 실패하는 테스트 작성**
+- [x] **Step 1: 실패하는 테스트 작성**
 
 `SYKeyboardTests/Utils/FourColumnWidthLayoutTests.swift`에 새 `@Suite` 추가:
 
@@ -1028,7 +1028,7 @@ struct CheonjiinColumnWidthLayoutTests {
 }
 ```
 
-- [ ] **Step 2: 테스트가 실패하는지 확인**
+- [x] **Step 2: 테스트가 실패하는지 확인**
 
 ```sh
 xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
@@ -1038,7 +1038,7 @@ xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
 
 기대: 컴파일 실패. `value of type 'CheonjiinKeyboardView' has no member 'updateLetterColumnWidthMultiplier'`
 
-- [ ] **Step 3: `FourByFourPlusKeyboardView`에 컨트롤러 연결**
+- [x] **Step 3: `FourByFourPlusKeyboardView`에 컨트롤러 연결**
 
 Task 4 Step 4와 동일한 세 가지 변경을 `FourByFourPlusKeyboardView.swift`에 적용한다.
 
@@ -1079,7 +1079,7 @@ Task 4 Step 4와 동일한 세 가지 변경을 `FourByFourPlusKeyboardView.swif
         }
 ```
 
-- [ ] **Step 4: 테스트 통과 확인**
+- [x] **Step 4: 테스트 통과 확인**
 
 ```sh
 xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
@@ -1090,7 +1090,7 @@ xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
 
 기대: 새 테스트 4개 통과, 기존 `CheonjiinBottomSpaceLayoutTests`도 수정 없이 통과
 
-- [ ] **Step 5: 커밋**
+- [x] **Step 5: 커밋**
 
 ```bash
 git add Modules/SYKeyboardCore/Presentation/View/KeyboardLayout/Bases/FourByFourPlusKeyboardView.swift \
@@ -1098,7 +1098,30 @@ git add Modules/SYKeyboardCore/Presentation/View/KeyboardLayout/Bases/FourByFour
 git commit -m "feat: #112 - 천지인 키보드 글자 열 너비 비율 적용"
 ```
 
-**결과:** (실행 후 기록)
+**결과:** 완료. `xcodebuild test -only-testing:SYKeyboardTests/CheonjiinColumnWidthLayoutTests
+-only-testing:SYKeyboardTests/CheonjiinBottomSpaceLayoutTests -resultBundlePath /tmp/task5.xcresult`
+(iPhone 13 mini / iOS 16.0, `CBD992D3-5364-4F69-AC5F-0077ADF1A292`) —
+`xcresulttool get test-results summary` 기준 `totalTestCount: 18`, `passedTests: 18`,
+`failedTests: 0` (기기별 파라미터화 확장 포함 22 runs). Auto Layout 충돌 경고 **0건**.
+기존 `CheonjiinBottomSpaceLayoutTests`는 수정 없이 통과했다.
+`project.pbxproj` 변경 없음. 커밋 `ee2ae1d5`.
+
+`FourColumnWidthLayoutTests`·`NaratgeulColumnWidthLayoutTests` suite는 그대로 두고
+`CheonjiinColumnWidthLayoutTests`를 파일 끝에 append했다. `@testable import HangeulKeyboardCore`는
+Task 4에서 추가된 것을 재사용했고 중복 추가하지 않았다(리뷰에서 확인).
+
+**위치 기준 적용 확인(리뷰):** `setHierarchy()`의 하단 스페이스 분기에서 3행 4열이
+`fourthRowRightPrimaryButtonHStackView`(`'?'`,`'!'`), 4행 1열이 modifier 스택, 4행 4열이
+`fourthRowLeftPrimaryButtonHStackView`(`'.'`,`','`)임을 저장소 코드와 대조했다.
+`install()`이 `arrangedSubviews`의 인덱스만 보고 제약을 걸므로 의미 분기 없이 위치 기준으로
+동작한다. 오버레이 제약(`keyboardSelectOverlayView`, `oneHandedModeSelectOverlayView`,
+`cancelBoundary`)은 미변경이다.
+
+**이월된 minor 1건:** `testBottomSpaceLayoutNarrowsFourthColumnByPosition`의
+`switchButton.minX ≈ 0` 단언은 1열이 실제로 넓어졌는지를 검증하지 못한다(계획 단계의 설계 여지).
+같은 테스트의 `'?'`·`'.'` `minX` 단언이 4열 축소를 검증하므로 커버리지 공백은 아니다.
+
+**미확인:** 실기기 렌더링과 하단 스페이스 배치의 체감 사용성은 Task 9의 수동 확인 항목이다.
 
 ---
 
