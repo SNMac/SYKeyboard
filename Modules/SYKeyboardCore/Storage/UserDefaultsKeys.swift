@@ -63,6 +63,8 @@ public enum UserDefaultsKeys {
     public static let isNaratgeulDotLabelEnabled = "isNaratgeulDotLabelEnabled"
     /// 천지인 스페이스 버튼 하단 배치
     public static let isCheonjiinBottomSpaceEnabled = "isCheonjiinBottomSpaceEnabled"
+    /// 숫자 키패드 스페이스 버튼 하단 배치
+    public static let isNumericKeypadBottomSpaceEnabled = "isNumericKeypadBottomSpaceEnabled"
 
     // MARK: - 기타 설정
     /// 키보드 전환 버튼(􀆪) 표시 설정용

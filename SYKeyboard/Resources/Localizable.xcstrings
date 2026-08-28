@@ -340,6 +340,16 @@
         }
       }
     },
+    "숫자 키패드 스페이스 하단 배치" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bottom Space Bar on Number Pad"
+          }
+        }
+      }
+    },
     "숫자 키패드 전환 방법" : {
       "localizations" : {
         "en" : {
