@@ -16,11 +16,11 @@ enum KeyboardSelectDirectionPolicy {
     static func targetDirection(for keyboard: SYKeyboardType,
                                 usesBottomSpaceLayout: Bool) -> PanDirection {
         switch keyboard {
-        case .cheonjiin:
+        case .cheonjiin, .numeric:
             // 하단 배치에서는 `switchButton`이 4행 좌측 끝으로 가므로
             // 오버레이가 펼쳐질 공간이 오른쪽밖에 없다
             return usesBottomSpaceLayout ? .right : .left
-        case .naratgeul, .numeric:
+        case .naratgeul:
             return .left
         case .dubeolsik, .qwerty, .symbol:
             return .right
