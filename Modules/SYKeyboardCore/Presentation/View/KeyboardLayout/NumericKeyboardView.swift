@@ -25,7 +25,11 @@ final class NumericKeyboardView: UIView, NumericKeyboardLayoutProvider {
     public private(set) lazy var totalTextInterableButtonList: [TextInteractable] = firstRowPrimaryKeyButtonList + secondRowPrimaryKeyButtonList + thirdRowPrimaryKeyButtonList + fourthRowPrimaryKeyButtonList + [deleteButton, spaceButton, returnButton]
     
     private let showsLanguageSwitchButton: Bool
-    
+
+    /// 스페이스를 맨 아랫줄로 내리는 배치 사용 여부.
+    /// `SwitchGestureHandling` 요구사항이므로 `public`이어야 한다
+    public let usesBottomSpaceLayout: Bool
+
     /// 숫자 키보드 키 배열
     private let numericKeyList = [
         [ ["1"], ["2"], ["3"] ],
@@ -74,17 +78,23 @@ final class NumericKeyboardView: UIView, NumericKeyboardLayoutProvider {
     public private(set) var deleteButton = DeleteButton(keyboard: .numeric)
     public private(set) var spaceButton = SpaceButton(keyboard: .numeric)
     public private(set) var returnButton = ReturnButton(keyboard: .numeric)
-    public private(set) var switchButton = SwitchButton(keyboard: .numeric)
+    public private(set) lazy var switchButton = SwitchButton(
+        keyboard: .numeric,
+        usesBottomSpaceLayout: usesBottomSpaceLayout
+    )
     public private(set) lazy var languageSwitchButton: LanguageSwitchButton? = {
         guard showsLanguageSwitchButton else { return nil }
         return LanguageSwitchButton(mode: .hangeul, keyboard: .numeric)
     }()
     public private(set) var nextKeyboardButton = NextKeyboardButton(keyboard: .numeric)
-    
-    private(set) var keyboardSelectOverlayView: KeyboardSelectOverlayView = {
-        let overlayView = KeyboardSelectOverlayView(keyboard: .numeric)
+
+    private(set) lazy var keyboardSelectOverlayView: KeyboardSelectOverlayView = {
+        let overlayView = KeyboardSelectOverlayView(
+            keyboard: .numeric,
+            usesBottomSpaceLayout: usesBottomSpaceLayout
+        )
         overlayView.isHidden = true
-        
+
         return overlayView
     }()
     private(set) var oneHandedModeSelectOverlayView: OneHandedModeSelectOverlayView = {
@@ -96,8 +106,10 @@ final class NumericKeyboardView: UIView, NumericKeyboardLayoutProvider {
     
     // MARK: - Initializer
     
-    init(showsLanguageSwitchButton: Bool = false) {
+    init(showsLanguageSwitchButton: Bool = false,
+         usesBottomSpaceLayout: Bool = UserDefaultsManager.shared.isNumericKeypadBottomSpaceEnabled) {
         self.showsLanguageSwitchButton = showsLanguageSwitchButton
+        self.usesBottomSpaceLayout = usesBottomSpaceLayout
         super.init(frame: .zero)
         setupUI()
     }
@@ -155,23 +167,47 @@ private extension NumericKeyboardView {
         
         firstRowPrimaryKeyButtonList.forEach { firstRowHStackView.addArrangedSubview($0) }
         firstRowHStackView.addArrangedSubview(deleteButton)
-        
+
         secondRowPrimaryKeyButtonList.forEach { secondRowHStackView.addArrangedSubview($0) }
-        secondRowHStackView.addArrangedSubview(spaceButton)
-        
         thirdRowPrimaryKeyButtonList.forEach { thirdRowHStackView.addArrangedSubview($0) }
-        thirdRowHStackView.addArrangedSubview(returnButton)
-        
-        [fourthRowLeftPrimaryButtonHStackView,
-         fourthRowPrimaryKeyButtonList[2],
-         fourthRowRightPrimaryButtonHStackView,
-         fourthRowRightSecondaryButtonHStackView].forEach { fourthRowHStackView.addArrangedSubview($0) }
-        
-        [fourthRowPrimaryKeyButtonList[0], fourthRowPrimaryKeyButtonList[1]].forEach { fourthRowLeftPrimaryButtonHStackView.addArrangedSubview($0) }
-        [fourthRowPrimaryKeyButtonList[3], fourthRowPrimaryKeyButtonList[4]].forEach { fourthRowRightPrimaryButtonHStackView.addArrangedSubview($0) }
-        let modifierButtons: [SecondaryButton] = [nextKeyboardButton]
-        + [languageSwitchButton].compactMap { $0 }
-        + [switchButton]
+
+        let modifierButtons: [SecondaryButton]
+        if usesBottomSpaceLayout {
+            // 스페이스가 4행으로 내려가면서 리턴이 2행, 우측 글자 스택이 3행 우측 칸으로
+            // 올라가고 좌측 글자 스택이 4행 끝으로 간다.
+            // 모든 행은 그대로 4칸 균등 분할이다.
+            // 숫자 입력에서 가장 잦은 '.'과 ','를 엄지에 가까운 4행 끝에 모으고
+            // '-'와 '/'를 3행 우측으로 올린다
+            [fourthRowPrimaryKeyButtonList[3], fourthRowPrimaryKeyButtonList[1]].forEach { fourthRowLeftPrimaryButtonHStackView.addArrangedSubview($0) }
+            [fourthRowPrimaryKeyButtonList[0], fourthRowPrimaryKeyButtonList[4]].forEach { fourthRowRightPrimaryButtonHStackView.addArrangedSubview($0) }
+
+            secondRowHStackView.addArrangedSubview(returnButton)
+            thirdRowHStackView.addArrangedSubview(fourthRowRightPrimaryButtonHStackView)
+
+            [fourthRowRightSecondaryButtonHStackView,
+             fourthRowPrimaryKeyButtonList[2],
+             spaceButton,
+             fourthRowLeftPrimaryButtonHStackView].forEach { fourthRowHStackView.addArrangedSubview($0) }
+
+            modifierButtons = [switchButton]
+            + [languageSwitchButton].compactMap { $0 }
+            + [nextKeyboardButton]
+        } else {
+            [fourthRowPrimaryKeyButtonList[0], fourthRowPrimaryKeyButtonList[1]].forEach { fourthRowLeftPrimaryButtonHStackView.addArrangedSubview($0) }
+            [fourthRowPrimaryKeyButtonList[3], fourthRowPrimaryKeyButtonList[4]].forEach { fourthRowRightPrimaryButtonHStackView.addArrangedSubview($0) }
+
+            secondRowHStackView.addArrangedSubview(spaceButton)
+            thirdRowHStackView.addArrangedSubview(returnButton)
+
+            [fourthRowLeftPrimaryButtonHStackView,
+             fourthRowPrimaryKeyButtonList[2],
+             fourthRowRightPrimaryButtonHStackView,
+             fourthRowRightSecondaryButtonHStackView].forEach { fourthRowHStackView.addArrangedSubview($0) }
+
+            modifierButtons = [nextKeyboardButton]
+            + [languageSwitchButton].compactMap { $0 }
+            + [switchButton]
+        }
         modifierButtons.forEach(fourthRowRightSecondaryButtonHStackView.addArrangedSubview)
     }
     
