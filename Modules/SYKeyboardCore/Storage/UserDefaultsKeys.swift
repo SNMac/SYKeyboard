@@ -59,6 +59,8 @@ public enum UserDefaultsKeys {
     public static let isOneHandedKeyboardEnabled = "isOneHandedKeyboardEnabled"
     /// 한 손 키보드 너비
     public static let oneHandedKeyboardWidth = "oneHandedKeyboardWidth"
+    /// 4x4 계열 글자 열 너비 배율
+    public static let letterColumnWidthMultiplier = "letterColumnWidthMultiplier"
     /// 나랏글 '획', '쌍' 버튼을 'ㆍ', 'ᆢ'로 표기
     public static let isNaratgeulDotLabelEnabled = "isNaratgeulDotLabelEnabled"
     /// 천지인 스페이스 버튼 하단 배치

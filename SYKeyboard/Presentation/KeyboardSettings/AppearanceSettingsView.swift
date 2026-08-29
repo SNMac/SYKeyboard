@@ -8,6 +8,7 @@
 import SwiftUI
 
 import SYKeyboardCore
+import HangeulKeyboardCore
 
 import FirebaseAnalytics
 
@@ -15,6 +16,9 @@ struct AppearanceSettingsView: View {
     
     // MARK: - Properties
     
+    @AppStorage(UserDefaultsKeys.selectedHangeulKeyboard, store: UserDefaultsManager.shared.storage)
+    private var selectedHangeulKeyboard = DefaultValues.selectedHangeulKeyboard
+
     @AppStorage(UserDefaultsKeys.isNumericKeypadEnabled, store: UserDefaultsManager.shared.storage)
     private var isNumericKeypadEnabled = DefaultValues.isNumericKeypadEnabled
 
@@ -30,7 +34,20 @@ struct AppearanceSettingsView: View {
         NavigationLink("키보드 높이") {
             KeyboardHeightSettingsView()
         }
-        
+
+        if showsLetterColumnWidthSettings {
+            NavigationLink {
+                LetterColumnWidthSettingsView()
+            } label: {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("글자 열 너비")
+                    Text("나랏글·천지인·숫자 키패드에 적용")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+        }
+
         Toggle(isOn: $isNumericKeypadEnabled, label: {
             Text("숫자 키패드 활성화")
             Text("'!#1', '한글' 또는 'ABC' 버튼을 화살표 방향으로 드래그하여 전환")
@@ -83,6 +100,13 @@ struct AppearanceSettingsView: View {
                 OneHandedKeyboardWidthSettingsView()
             }
         }
+    }
+
+    /// 4열 격자 키보드를 하나라도 쓰는 사용자에게만 노출한다
+    private var showsLetterColumnWidthSettings: Bool {
+        selectedHangeulKeyboard == .naratgeul
+        || selectedHangeulKeyboard == .cheonjiin
+        || isNumericKeypadEnabled
     }
 }
 

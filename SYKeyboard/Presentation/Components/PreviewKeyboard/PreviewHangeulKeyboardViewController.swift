@@ -13,12 +13,14 @@ import HangeulKeyboardCore
 /// 한글 키보드 Preview
 /// - 높이는 SwiftUI에서 `frame`으로 조정
 /// - 한 손 키보드 너비는 `updateOneHandedWidthForPreview` 메서드로 조정
+/// - 글자 열 너비 배율은 `updateLetterColumnWidthForPreview` 메서드로 조정
 struct PreviewHangeulKeyboardViewController: UIViewControllerRepresentable {
-    
+
     // MARK: - Properties
-    
+
     @Binding var keyboardHeight: Double
     @Binding var oneHandedKeyboardWidth: Double
+    @Binding var letterColumnWidthMultiplier: Double
     @Binding var oneHandedMode: OneHandedMode
     
     class Coordinator: NSObject {
@@ -59,6 +61,7 @@ struct PreviewHangeulKeyboardViewController: UIViewControllerRepresentable {
         context.coordinator.parent = self
         
         uiViewController.updateOneHandedWidthForPreview(to: oneHandedKeyboardWidth)
+        uiViewController.updateLetterColumnWidthForPreview(to: letterColumnWidthMultiplier)
         if uiViewController.previewOneHandedMode != oneHandedMode {
             uiViewController.updateOneHandedModeForPreview(to: oneHandedMode)
         }

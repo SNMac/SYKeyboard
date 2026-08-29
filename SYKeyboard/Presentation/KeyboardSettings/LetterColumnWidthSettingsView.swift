@@ -1,8 +1,8 @@
 //
-//  OneHandedKeyboardWidthSettingsView.swift
+//  LetterColumnWidthSettingsView.swift
 //  SYKeyboard
 //
-//  Created by 서동환 on 11/17/24.
+//  Created by 서동환 on 8/29/26.
 //
 
 import SwiftUI
@@ -11,15 +11,15 @@ import SYKeyboardCore
 
 import FirebaseAnalytics
 
-struct OneHandedKeyboardWidthSettingsView: View {
-    
+struct LetterColumnWidthSettingsView: View {
+
     // MARK: - Properties
-    
+
     @Environment(\.dismiss) private var dismiss
-    
+
     @AppStorage(UserDefaultsKeys.keyboardHeight, store: UserDefaultsManager.shared.storage)
     private var keyboardHeight = DefaultValues.keyboardHeight
-    
+
     @AppStorage(UserDefaultsKeys.oneHandedKeyboardWidth, store: UserDefaultsManager.shared.storage)
     private var oneHandedKeyboardWidth = DefaultValues.oneHandedKeyboardWidth
 
@@ -28,49 +28,58 @@ struct OneHandedKeyboardWidthSettingsView: View {
 
     @AppStorage(UserDefaultsKeys.isPredictiveTextEnabled, store: UserDefaultsManager.shared.storage)
     private var isPredictiveTextEnabled = DefaultValues.isPredictiveTextEnabled
-    
+
     @AppStorage(UserDefaultsKeys.needsInputModeSwitchKey, store: UserDefaultsManager.shared.storage)
     private var needsInputModeSwitchKey = DefaultValues.needsInputModeSwitchKey
-    
+
     @AppStorage("previewKeyboardLanguage") private var previewKeyboardLanguage: PreviewKeyboardLanguage = .hangeul
-    
-    @State private var previewOneHandedMode: OneHandedMode = .right
+
+    @State private var previewOneHandedMode: OneHandedMode = .center
     @State private var previewKeyboardHeight: Double = DefaultValues.keyboardHeight
-    @State private var tempOneHandedKeyboardWidth: Double = DefaultValues.oneHandedKeyboardWidth
-    
+    @State private var tempLetterColumnWidthMultiplier: Double = DefaultValues.letterColumnWidthMultiplier
+
     // MARK: - Content
-    
+
     var body: some View {
         NavigationStack {
-            oneHandedKeyboardWidthSettings
-            
+            letterColumnWidthSettings
+
             Spacer()
-            
+
             PreviewKeyboardView(keyboardHeight: $previewKeyboardHeight,
-                                oneHandedKeyboardWidth: $tempOneHandedKeyboardWidth,
-                                letterColumnWidthMultiplier: $letterColumnWidthMultiplier,
+                                oneHandedKeyboardWidth: $oneHandedKeyboardWidth,
+                                letterColumnWidthMultiplier: $tempLetterColumnWidthMultiplier,
                                 needsInputModeSwitchKey: $needsInputModeSwitchKey,
                                 previewKeyboardLanguage: $previewKeyboardLanguage,
                                 oneHandedMode: $previewOneHandedMode)
         }.onAppear {
-            tempOneHandedKeyboardWidth = oneHandedKeyboardWidth
+            tempLetterColumnWidthMultiplier = letterColumnWidthMultiplier
             updatePreviewKeyboardHeight()
-            updatePreviewLanguageBasedOnSystem()
         }.requestReviewOnDetailSettingsReturn()
     }
 }
 
 // MARK: - UI Components
 
-private extension OneHandedKeyboardWidthSettingsView {
-    var oneHandedKeyboardWidthSettings: some View {
+private extension LetterColumnWidthSettingsView {
+    /// 슬라이더용 정수 바인딩. 실수 step의 부동소수점 오차를 피한다
+    var letterColumnWidthPercent: Binding<Double> {
+        Binding(
+            get: { (tempLetterColumnWidthMultiplier * 100).rounded() },
+            set: { tempLetterColumnWidthMultiplier = $0 / 100 }
+        )
+    }
+
+    var letterColumnWidthSettings: some View {
         VStack {
-            Text("\(Int(tempOneHandedKeyboardWidth) - (Int(DefaultValues.oneHandedKeyboardWidth) - 100))")
+            Text("\(Int((tempLetterColumnWidthMultiplier * 100).rounded()))")
                 .padding(EdgeInsets(top: 10, leading: 0, bottom: 0, trailing: 0))
-            Slider(value: $tempOneHandedKeyboardWidth, in: 300...340, step: 1)
+            Slider(value: letterColumnWidthPercent,
+                   in: KeyboardLayoutFigure.letterColumnWidthPercentRange,
+                   step: 1)
                 .padding(EdgeInsets(top: 0, leading: 30, bottom: 0, trailing: 30))
         }
-        .navigationTitle("한 손 키보드 너비")
+        .navigationTitle("글자 열 너비")
         .navigationBarTitleDisplayMode(.inline)
         .navigationBarBackButtonHidden()
         .toolbar {
@@ -83,21 +92,21 @@ private extension OneHandedKeyboardWidthSettingsView {
             }
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
-                    tempOneHandedKeyboardWidth = DefaultValues.oneHandedKeyboardWidth
+                    tempLetterColumnWidthMultiplier = DefaultValues.letterColumnWidthMultiplier
                 } label: {
                     Text("리셋")
                 }
             }
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
-                    oneHandedKeyboardWidth = tempOneHandedKeyboardWidth
-                    Analytics.setUserProperty(String(format: "%.1f", oneHandedKeyboardWidth),
-                                              forName: "pref_one_handed_width")
-                    Analytics.logEvent("one_handed_keyboard_width", parameters: [
-                        "view": "OneHandedKeyboardWidthSettingsView",
-                        "value": oneHandedKeyboardWidth
+                    letterColumnWidthMultiplier = tempLetterColumnWidthMultiplier
+                    Analytics.setUserProperty(String(format: "%.2f", letterColumnWidthMultiplier),
+                                              forName: "pref_letter_column_width")
+                    Analytics.logEvent("letter_column_width", parameters: [
+                        "view": "LetterColumnWidthSettingsView",
+                        "value": letterColumnWidthMultiplier
                     ])
-                    
+
                     dismiss()
                 } label: {
                     Text("저장")
@@ -110,27 +119,17 @@ private extension OneHandedKeyboardWidthSettingsView {
 
 // MARK: - Private Methods
 
-private extension OneHandedKeyboardWidthSettingsView {
+private extension LetterColumnWidthSettingsView {
     func updatePreviewKeyboardHeight() {
         let suggestionBarHeight = isPredictiveTextEnabled
         ? KeyboardLayoutFigure.suggestionBarHeightWithTopSpacing + KeyboardLayoutFigure.keyboardFrameSpacing
         : 0
         previewKeyboardHeight = keyboardHeight + suggestionBarHeight
     }
-    
-    func updatePreviewLanguageBasedOnSystem() {
-        let currentLanguageCode = Bundle.main.preferredLocalizations.first ?? "ko"
-        
-        if currentLanguageCode.hasPrefix("ko") {
-            previewKeyboardLanguage = .hangeul
-        } else {
-            previewKeyboardLanguage = .english
-        }
-    }
 }
 
 // MARK: - Preview
 
 #Preview {
-    OneHandedKeyboardWidthSettingsView()
+    LetterColumnWidthSettingsView()
 }

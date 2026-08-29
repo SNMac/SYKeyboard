@@ -216,6 +216,20 @@ xcodebuild test \
 - `SYKeyboard/Resources/Configs/Secrets.xcconfig`는 gitignore 대상이고 앱 타깃의 Debug/Release xcconfig가
   `#include`한다. Xcode Cloud에서는 `ci_scripts/ci_post_clone.sh`가 환경변수로 생성한다.
   로컬에서 이 파일을 새로 만들거나 커밋하지 않는다.
+- **`SYKeyboard.xcodeproj/xcshareddata/xcschemes/*.xcscheme`의 `RemotePath` 변경은 커밋하지 않는다.**
+  keyboard extension scheme을 빌드하면 Xcode가 `RemotePath`의 호스트 앱 경로를 그 머신의
+  시뮬레이터 런타임 절대 경로로 덮어쓴다. 사용자가 의도한 변경이 아니라 빌드 부수 효과이며,
+  공유 scheme이라 커밋하면 다른 머신과 Xcode Cloud에서 깨진다. 예:
+
+  ```diff
+  - RemotePath = "/Applications/MobileSMS.app"
+  + RemotePath = "/Library/Developer/CoreSimulator/Volumes/iOS_.../Applications/MobileSMS.app"
+  ```
+
+  빌드 후 `git status --short`에 `.xcscheme`이 보이면 내용을 확인하고 `RemotePath`만 바뀐
+  경우 되돌린다. `git checkout -- SYKeyboard.xcodeproj/xcshareddata/xcschemes/<이름>.xcscheme`.
+  이는 "무관한 변경은 되돌리지 않는다" 원칙의 예외다. 사용자 변경이 아니라 방금 실행한
+  빌드가 만든 것이기 때문이다. `RemotePath` 외의 항목이 바뀌었다면 되돌리지 말고 사용자에게 알린다.
 
 ### 환경 오류와 코드 실패 구분
 

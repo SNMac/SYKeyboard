@@ -140,6 +140,16 @@
         }
       }
     },
+    "글자 열 너비" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Letter Column Width"
+          }
+        }
+      }
+    },
     "기호 키보드 입력 후 스페이스/리턴 ➡️ 한글 키보드" : {
       "localizations" : {
         "en" : {
@@ -176,6 +186,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Delay until Long Press"
+          }
+        }
+      }
+    },
+    "나랏글·천지인·숫자 키패드에 적용" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Applies to Naratgeul, Cheonjiin, and the numeric keypad"
           }
         }
       }

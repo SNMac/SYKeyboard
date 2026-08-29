@@ -63,6 +63,8 @@ public enum DefaultValues {
     public static let isOneHandedKeyboardEnabled: Bool = true
     /// 한 손 키보드 너비 기본값
     public static let oneHandedKeyboardWidth: Double = 320.0
+    /// 4x4 계열 글자 열 너비 배율 기본값. 현재의 균등 분할과 같다
+    public static let letterColumnWidthMultiplier: Double = 1.0
     /// 나랏글 '획', '쌍' 버튼 점 기호 표기 여부 기본값
     public static let isNaratgeulDotLabelEnabled: Bool = false
     /// 천지인 스페이스 버튼 하단 배치 여부 기본값

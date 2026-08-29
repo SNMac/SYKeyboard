@@ -22,7 +22,10 @@ struct KeyboardHeightSettingsView: View {
     
     @AppStorage(UserDefaultsKeys.oneHandedKeyboardWidth, store: UserDefaultsManager.shared.storage)
     private var oneHandedKeyboardWidth = DefaultValues.oneHandedKeyboardWidth
-    
+
+    @AppStorage(UserDefaultsKeys.letterColumnWidthMultiplier, store: UserDefaultsManager.shared.storage)
+    private var letterColumnWidthMultiplier = DefaultValues.letterColumnWidthMultiplier
+
     @AppStorage(UserDefaultsKeys.isPredictiveTextEnabled, store: UserDefaultsManager.shared.storage)
     private var isPredictiveTextEnabled = DefaultValues.isPredictiveTextEnabled
     
@@ -45,6 +48,7 @@ struct KeyboardHeightSettingsView: View {
             
             PreviewKeyboardView(keyboardHeight: $previewKeyboardHeight,
                                 oneHandedKeyboardWidth: $oneHandedKeyboardWidth,
+                                letterColumnWidthMultiplier: $letterColumnWidthMultiplier,
                                 needsInputModeSwitchKey: $needsInputModeSwitchKey,
                                 previewKeyboardLanguage: $previewKeyboardLanguage,
                                 oneHandedMode: $previewOneHandedMode)

@@ -20,6 +20,8 @@ struct CheonjiinBottomSpaceLayoutTests {
         let view = CheonjiinKeyboardView(showsLanguageSwitchButton: true,
                                         usesBottomSpaceLayout: usesBottomSpaceLayout)
         view.frame = CGRect(x: 0, y: 0, width: keyboardWidth, height: keyboardHeight)
+        // 저장된 사용자 설정과 무관하게 기본 배율로 고정한다
+        view.updateLetterColumnWidthMultiplier(1.0)
         view.layoutIfNeeded()
 
         return view
@@ -122,8 +124,8 @@ struct CheonjiinBottomSpaceLayoutTests {
         #expect(abs(view.spaceButton.frame.width - columnWidth) < 0.5)
     }
 
-    @Test("켜짐 상태에서도 지구본 숨김 시 한/영이 글자 버튼 한 칸 너비")
-    func testBottomSpaceLayoutKeepsLanguageSwitchWidthContract() throws {
+    @Test("켜짐 상태에서 지구본을 숨기면 modifier 두 버튼이 스택을 균등 분배")
+    func testBottomSpaceLayoutSplitsModifierStackEqually() throws {
         let view = Self.makeView(usesBottomSpaceLayout: true)
         let languageButton = try #require(view.languageSwitchButton)
 
@@ -134,13 +136,17 @@ struct CheonjiinBottomSpaceLayoutTests {
         )
         view.layoutIfNeeded()
 
+        let modifierStack = try #require(languageButton.superview)
+        // 지구본이 숨겨져 한/영과 전환 버튼 2개만 남는다
+        let visibleButtonCount: CGFloat = 2
+
         #expect(view.nextKeyboardButton.isHidden)
         #expect(
-            abs(languageButton.frame.width
-                - Self.keyboardWidth * KeyboardLayoutFigure.languageSwitchButtonWidthRatio) < 0.5
+            abs(languageButton.frame.width - modifierStack.frame.width / visibleButtonCount) < 0.5
         )
-        // 남는 너비는 전환 버튼이 채운다
-        #expect(languageButton.frame.width < view.switchButton.frame.width)
+        #expect(
+            abs(view.switchButton.frame.width - modifierStack.frame.width / visibleButtonCount) < 0.5
+        )
         // 같은 modifier 스택 안이라 변환 없이 비교한다. 좌→우 !#1 → 한/영
         #expect(view.switchButton.frame.maxX <= languageButton.frame.minX + 0.5)
     }

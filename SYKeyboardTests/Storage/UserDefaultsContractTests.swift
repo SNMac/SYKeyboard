@@ -169,6 +169,20 @@ struct UserDefaultsContractTests {
         #expect(localStorage.bool(forKey: key) == true)
         #expect(sharedStorage.object(forKey: key) == nil)
     }
+
+    @Test("글자 열 너비 배율은 저장값이 없으면 1.0을 반환하고 공유 저장소 키를 유지")
+    func testLetterColumnWidthMultiplierDefaultFallbackAndKey() {
+        let storage = UserDefaultsManager.shared.storage
+        let key = UserDefaultsKeys.letterColumnWidthMultiplier
+        let originalValue = storage.object(forKey: key)
+
+        storage.removeObject(forKey: key)
+        defer { restore(originalValue, forKey: key, in: storage) }
+
+        #expect(key == "letterColumnWidthMultiplier")
+        #expect(DefaultValues.letterColumnWidthMultiplier == 1.0)
+        #expect(UserDefaultsManager.shared.letterColumnWidthMultiplier == 1.0)
+    }
 }
 
 private extension UserDefaultsContractTests {
