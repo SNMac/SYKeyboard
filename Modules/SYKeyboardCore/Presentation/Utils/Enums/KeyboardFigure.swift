@@ -46,6 +46,14 @@ public enum KeyboardLayoutFigure {
     /// `0.01` 단위 실수 step은 이진 부동소수점 오차로 스텝 수가 잘려 상한에 닿지 못한다.
     /// 슬라이더는 정수 스텝을 쓰고 저장할 때 100으로 나눈다
     public static let letterColumnWidthPercentRange: ClosedRange<Double> = (letterColumnWidthMultiplierRange.lowerBound * 100).rounded()...(letterColumnWidthMultiplierRange.upperBound * 100).rounded()
+    /// 저장된 배율을 슬라이더가 표시할 정수 퍼센트로 바꾼다
+    public static func letterColumnWidthPercent(fromMultiplier multiplier: Double) -> Double {
+        return (multiplier * 100).rounded()
+    }
+    /// 슬라이더가 준 정수 퍼센트를 저장할 배율로 바꾼다
+    public static func letterColumnWidthMultiplier(fromPercent percent: Double) -> Double {
+        return percent / 100
+    }
     /// 지구본 버튼 곱하기 계수. 한영 전환 버튼과 같은 너비를 사용한다
     static let nextKeyboardButtonWidthMultiplier: CGFloat = languageSwitchButtonWidthMultiplier
     /// 통합 키보드에서 한영 전환 버튼과 합친 너비가 리턴 버튼과 같아지는 `switchButton` 곱하기 계수
