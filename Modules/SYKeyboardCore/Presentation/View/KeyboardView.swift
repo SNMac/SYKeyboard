@@ -194,8 +194,12 @@ private extension KeyboardView {
         
         keyboardLayoutView.translatesAutoresizingMaskIntoConstraints = false
         let minWidth = UserDefaultsManager.shared.oneHandedKeyboardWidth
-        keyboardLayoutWidthConstraint = keyboardLayoutView.widthAnchor.constraint(greaterThanOrEqualToConstant: minWidth)
-        keyboardLayoutWidthConstraint?.isActive = true
+        let widthConstraint = keyboardLayoutView.widthAnchor.constraint(greaterThanOrEqualToConstant: minWidth)
+        // 회전 도중 키보드 폭이 일시적으로 최소 너비보다 좁아진다.
+        // 의도는 "가능하면 최소 너비 이상"이므로 required보다 낮춰 Auto Layout이 양보하게 한다
+        widthConstraint.priority = .init(999)
+        widthConstraint.isActive = true
+        keyboardLayoutWidthConstraint = widthConstraint
         
         (primaryKeyboardViews.map { $0 as UIView }
          + [symbolKeyboardView, numericKeyboardView, tenkeyKeyboardView]).forEach {
