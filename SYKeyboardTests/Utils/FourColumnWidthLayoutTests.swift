@@ -34,7 +34,6 @@ struct FourColumnWidthLayoutTests {
 
         let controller = FourColumnWidthLayoutController()
         controller.install(rows: [row],
-                           languageSwitchButton: nil,
                            referenceView: container,
                            multiplier: multiplier)
         container.layoutIfNeeded()
@@ -73,47 +72,6 @@ struct FourColumnWidthLayoutTests {
         controller.update(multiplier: 1.0)
         container.layoutIfNeeded()
         #expect(abs(row.arrangedSubviews[3].frame.width - Self.rowWidth / 4) < Self.tolerance)
-    }
-
-    @Test("한영 전환 버튼 폭은 기능 열에 연동된다")
-    func testLanguageSwitchButtonWidthFollowsFunctionColumn() {
-        let container = UIView(frame: CGRect(x: 0, y: 0, width: Self.rowWidth, height: Self.rowHeight))
-        let row = KeyboardRowHStackView()
-        container.addSubview(row)
-        row.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([
-            row.topAnchor.constraint(equalTo: container.topAnchor),
-            row.leadingAnchor.constraint(equalTo: container.leadingAnchor),
-            row.trailingAnchor.constraint(equalTo: container.trailingAnchor),
-            row.bottomAnchor.constraint(equalTo: container.bottomAnchor)
-        ])
-        (0..<3).forEach { _ in row.addArrangedSubview(UIView()) }
-
-        let modifierStack = KeyboardRowHStackView()
-        modifierStack.distribution = .fill
-        let languageSwitchButton = UIView()
-        modifierStack.addArrangedSubview(languageSwitchButton)
-        modifierStack.addArrangedSubview(UIView())
-        row.addArrangedSubview(modifierStack)
-
-        let controller = FourColumnWidthLayoutController()
-        controller.install(rows: [row],
-                           languageSwitchButton: languageSwitchButton,
-                           referenceView: container,
-                           multiplier: 1.0)
-        container.layoutIfNeeded()
-
-        // 기본 배율에서는 기존 상수와 같은 폭이다
-        #expect(abs(languageSwitchButton.frame.width
-                    - Self.rowWidth * KeyboardLayoutFigure.languageSwitchButtonWidthRatio) < Self.tolerance)
-
-        controller.update(multiplier: 1.15)
-        container.layoutIfNeeded()
-
-        // 기능 열이 좁아지면 한영 전환 버튼도 좁아지고, 같은 열의 다른 버튼 폭이 남는다
-        #expect(languageSwitchButton.frame.width < Self.rowWidth * KeyboardLayoutFigure.languageSwitchButtonWidthRatio)
-        #expect(languageSwitchButton.frame.width < modifierStack.frame.width)
-        #expect(modifierStack.arrangedSubviews[1].frame.width > 0)
     }
 }
 
@@ -287,24 +245,28 @@ struct CheonjiinColumnWidthLayoutTests {
         #expect(abs(Self.rect(view.switchButton, in: view).minX) < Self.tolerance)
     }
 
-    @Test("하단 스페이스 배치에서 한영 전환 버튼은 자기 열 폭에 비례한다")
-    func testBottomSpaceLayoutScalesLanguageSwitchButtonWithItsColumn() throws {
+    @Test("하단 스페이스 배치에서 modifier 두 버튼이 스택을 균등 분배하고 붕괴하지 않는다")
+    func testBottomSpaceLayoutSplitsModifierStackEqually() throws {
         let view = Self.makeView(usesBottomSpaceLayout: true, multiplier: 1.15)
         let languageSwitchButton = try #require(view.languageSwitchButton)
-        // 지구본이 숨겨져야 stack의 균등 분배가 아니라 폭 제약이 성립한다
+        // 지구본을 숨기면 modifier 스택에 한/영과 전환 버튼 2개만 남는다
         view.nextKeyboardButton.isHidden = true
-        view.nextKeyboardButtonVisibilityDidChange(needsInputModeSwitchKey: false)
+        // 프로덕션은 `viewWillLayoutSubviews`에서 지구본 상태를 반영한 뒤 레이아웃 패스를 돌린다.
+        // 오프스크린 뷰는 그 패스가 자동으로 돌지 않으므로 명시적으로 레이아웃을 무효화한다
+        view.setNeedsLayout()
         view.layoutIfNeeded()
 
-        // 하단 스페이스 배치의 modifier 스택은 4행 1열이므로 배율을 올리면 넓어진다
-        let column = Self.rect(view.switchButton, in: view).union(Self.rect(languageSwitchButton, in: view))
-        let buttonWidth = Self.rect(languageSwitchButton, in: view).width
+        let modifierStack = try #require(languageSwitchButton.superview)
+        let visibleButtonCount: CGFloat = 2
+        let buttonWidth = languageSwitchButton.frame.width
 
-        #expect(abs(column.width - Self.keyboardWidth * 0.2875) < Self.tolerance)
-        #expect(abs(buttonWidth - column.width
-                    * KeyboardLayoutFigure.languageSwitchButtonFunctionColumnShare) < Self.tolerance)
-        // 열이 넓어졌으므로 버튼도 기본 배율(0.1W)보다 넓어야 한다
-        #expect(buttonWidth > Self.keyboardWidth * KeyboardLayoutFigure.languageSwitchButtonWidthRatio)
+        // 하단 스페이스 배치의 modifier 스택은 4행 1열이므로 배율을 올리면 넓어진다
+        #expect(abs(modifierStack.frame.width - Self.keyboardWidth * 0.2875) < Self.tolerance)
+        #expect(abs(buttonWidth - modifierStack.frame.width / visibleButtonCount) < Self.tolerance)
+        #expect(abs(view.switchButton.frame.width
+                    - modifierStack.frame.width / visibleButtonCount) < Self.tolerance)
+        // 붕괴 회귀 방지: 이전 구현에서는 한/영이 6pt까지 눌렸다
+        #expect(buttonWidth > 10)
     }
 
     @Test("배율을 되돌리면 두 배치 모두 균등 분할로 돌아온다")
@@ -407,5 +369,29 @@ struct NumericColumnWidthLayoutTests {
 
         #expect(widenedKey.frame.width > defaultKey.frame.width)
         #expect(abs(widenedKey.frame.width - Self.keyboardWidth * 0.2875) < Self.tolerance)
+    }
+
+    @Test("기본 배치 최대 배율에서도 modifier 두 버튼이 균등 분배되고 붕괴하지 않는다")
+    func testHigherMultiplierKeepsModifierStackFromCollapsing() throws {
+        let view = Self.makeView(usesBottomSpaceLayout: false, multiplier: 1.15)
+        let languageSwitchButton = try #require(view.languageSwitchButton)
+        // 지구본을 숨기면 modifier 스택에 한/영과 전환 버튼 2개만 남는다
+        view.nextKeyboardButton.isHidden = true
+        // 프로덕션은 `viewWillLayoutSubviews`에서 지구본 상태를 반영한 뒤 레이아웃 패스를 돌린다.
+        // 오프스크린 뷰는 그 패스가 자동으로 돌지 않으므로 명시적으로 레이아웃을 무효화한다
+        view.setNeedsLayout()
+        view.layoutIfNeeded()
+
+        let modifierStack = try #require(languageSwitchButton.superview)
+        let visibleButtonCount: CGFloat = 2
+        let buttonWidth = languageSwitchButton.frame.width
+
+        #expect(abs(buttonWidth - view.switchButton.frame.width) < Self.tolerance)
+        #expect(abs(buttonWidth + view.switchButton.frame.width
+                    - modifierStack.frame.width) < Self.tolerance)
+        #expect(abs(buttonWidth - modifierStack.frame.width / visibleButtonCount) < Self.tolerance)
+        // 붕괴 회귀 방지: 전환 버튼이 라벨 때문에 45.7pt 아래로 눌리지 않아
+        // 이전 비율 폭 제약에서는 한/영이 6pt로 붕괴했다
+        #expect(buttonWidth > 10)
     }
 }

@@ -77,8 +77,8 @@ struct NumericBottomSpaceLayoutTests {
         #expect(abs(view.spaceButton.frame.width - columnWidth) < 0.5)
     }
 
-    @Test("켜짐 상태에서도 지구본 숨김 시 한/영이 글자 버튼 한 칸 너비")
-    func testBottomSpaceLayoutKeepsLanguageSwitchWidthContract() throws {
+    @Test("켜짐 상태에서 지구본을 숨기면 modifier 두 버튼이 스택을 균등 분배")
+    func testBottomSpaceLayoutSplitsModifierStackEqually() throws {
         let view = Self.makeView(usesBottomSpaceLayout: true)
         let languageButton = try #require(view.languageSwitchButton)
 
@@ -86,12 +86,21 @@ struct NumericBottomSpaceLayoutTests {
             needsInputModeSwitchKey: false,
             nextKeyboardAction: NSSelectorFromString("unusedNextKeyboardAction:")
         )
+        // 프로덕션은 `viewWillLayoutSubviews`에서 지구본 상태를 반영한 뒤 레이아웃 패스를 돌린다.
+        // 오프스크린 뷰는 그 패스가 자동으로 돌지 않으므로 명시적으로 레이아웃을 무효화한다
+        view.setNeedsLayout()
         view.layoutIfNeeded()
+
+        let modifierStack = try #require(languageButton.superview)
+        // 지구본이 숨겨져 한/영과 전환 버튼 2개만 남는다
+        let visibleButtonCount: CGFloat = 2
 
         #expect(view.nextKeyboardButton.isHidden)
         #expect(
-            abs(languageButton.frame.width
-                - Self.keyboardWidth * KeyboardLayoutFigure.languageSwitchButtonWidthRatio) < 0.5
+            abs(languageButton.frame.width - modifierStack.frame.width / visibleButtonCount) < 0.5
+        )
+        #expect(
+            abs(view.switchButton.frame.width - modifierStack.frame.width / visibleButtonCount) < 0.5
         )
         // 같은 modifier 스택 안이라 변환 없이 비교한다. 좌→우 전환 → 한/영
         #expect(view.switchButton.frame.maxX <= languageButton.frame.minX + 0.5)
@@ -162,6 +171,9 @@ struct NumericBottomSpaceLayoutTests {
             needsInputModeSwitchKey: false,
             nextKeyboardAction: NSSelectorFromString("unusedNextKeyboardAction:")
         )
+        // 프로덕션은 `viewWillLayoutSubviews`에서 지구본 상태를 반영한 뒤 레이아웃 패스를 돌린다.
+        // 오프스크린 뷰는 그 패스가 자동으로 돌지 않으므로 명시적으로 레이아웃을 무효화한다
+        view.setNeedsLayout()
         view.layoutIfNeeded()
 
         let overlay = view.keyboardSelectOverlayView
@@ -219,6 +231,9 @@ struct NumericBottomSpaceLayoutTests {
             needsInputModeSwitchKey: false,
             nextKeyboardAction: NSSelectorFromString("unusedNextKeyboardAction:")
         )
+        // 프로덕션은 `viewWillLayoutSubviews`에서 지구본 상태를 반영한 뒤 레이아웃 패스를 돌린다.
+        // 오프스크린 뷰는 그 패스가 자동으로 돌지 않으므로 명시적으로 레이아웃을 무효화한다
+        view.setNeedsLayout()
         view.layoutIfNeeded()
 
         let overlay = view.keyboardSelectOverlayView

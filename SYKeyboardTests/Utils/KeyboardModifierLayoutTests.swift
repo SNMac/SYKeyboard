@@ -219,8 +219,8 @@ struct KeyboardModifierLayoutTests {
         #expect(view.allButtonList.contains { $0 === languageButton })
     }
 
-    @Test("숨겨진 globe 상태의 숫자 화면은 한/영이 두벌식과 같은 너비")
-    func testUnifiedNumericHiddenGlobeRestoresLanguageButtonWidth() throws {
+    @Test("숨겨진 globe 상태의 숫자 화면은 modifier 두 버튼이 균등 분배")
+    func testUnifiedNumericHiddenGlobeSplitsModifierStackEqually() throws {
         let width: CGFloat = 390
         // 기본 인자가 영속 설정값(App Group UserDefaults)을 읽으므로
         // 기존 배치를 검증하는 이 테스트는 값을 명시해 시뮬레이터 상태와 무관하게 만든다
@@ -233,16 +233,22 @@ struct KeyboardModifierLayoutTests {
             needsInputModeSwitchKey: false,
             nextKeyboardAction: NSSelectorFromString("unusedNextKeyboardAction:")
         )
+        // 프로덕션은 `viewWillLayoutSubviews`에서 지구본 상태를 반영한 뒤 레이아웃 패스를 돌린다.
+        // 오프스크린 뷰는 그 패스가 자동으로 돌지 않으므로 명시적으로 레이아웃을 무효화한다
+        view.setNeedsLayout()
         view.layoutIfNeeded()
 
+        let modifierStack = try #require(languageButton.superview)
+        // 지구본이 숨겨져 한/영과 전환 버튼 2개만 남는다
+        let visibleButtonCount: CGFloat = 2
+
         #expect(view.nextKeyboardButton.isHidden)
-        // 열 개수와 무관하게 두벌식 한/영 버튼(글자 버튼 한 칸)과 같은 너비
         #expect(
-            abs(languageButton.frame.width
-                - width * KeyboardLayoutFigure.languageSwitchButtonWidthRatio) < 0.5
+            abs(languageButton.frame.width - modifierStack.frame.width / visibleButtonCount) < 0.5
         )
-        // 남는 너비는 전환 버튼이 채운다
-        #expect(languageButton.frame.width < view.switchButton.frame.width)
+        #expect(
+            abs(view.switchButton.frame.width - modifierStack.frame.width / visibleButtonCount) < 0.5
+        )
     }
 
     @Test("전용 숫자 화면은 Language 버튼을 만들지 않음")
@@ -319,7 +325,7 @@ struct KeyboardModifierLayoutTests {
     }
 
     @Test(arguments: [FourByFourFixture.naratgeul, .cheonjiin])
-    func testFourByFourHiddenGlobeRestoresLanguageButtonWidth(_ fixture: FourByFourFixture) throws {
+    func testFourByFourHiddenGlobeSplitsModifierStackEqually(_ fixture: FourByFourFixture) throws {
         let primaryView = fixture.makeView(showsLanguageSwitchButton: true)
         let view = primaryView
         view.frame = CGRect(x: 0, y: 0, width: 390, height: 216)
@@ -330,16 +336,23 @@ struct KeyboardModifierLayoutTests {
             needsInputModeSwitchKey: false,
             nextKeyboardAction: NSSelectorFromString("unusedNextKeyboardAction:")
         )
+        // 프로덕션은 `viewWillLayoutSubviews`에서 지구본 상태를 반영한 뒤 레이아웃 패스를 돌린다.
+        // 오프스크린 뷰는 그 패스가 자동으로 돌지 않으므로 명시적으로 레이아웃을 무효화한다
+        view.setNeedsLayout()
         view.layoutIfNeeded()
 
+        let modifierStack = try #require(languageButton.superview)
+        // globe가 빠지면 한/영과 전환 버튼 2개가 modifier 스택을 균등하게 나눈다
+        let visibleButtonCount: CGFloat = 2
+
         #expect(primaryView.nextKeyboardButton.isHidden)
-        // globe가 빠지면 4열 레이아웃도 두벌식 한/영 버튼과 같은 너비로 돌아온다
         #expect(
-            abs(languageButton.frame.width
-                - view.frame.width * KeyboardLayoutFigure.languageSwitchButtonWidthRatio) < 0.5
+            abs(languageButton.frame.width - modifierStack.frame.width / visibleButtonCount) < 0.5
         )
-        // 남는 너비는 전환 버튼이 채운다
-        #expect(languageButton.frame.width < primaryView.switchButton.frame.width)
+        #expect(
+            abs(primaryView.switchButton.frame.width
+                - modifierStack.frame.width / visibleButtonCount) < 0.5
+        )
     }
 
     @Test(arguments: [FourByFourFixture.naratgeul, .cheonjiin])
@@ -349,7 +362,7 @@ struct KeyboardModifierLayoutTests {
         #expect(primaryView.languageSwitchButton == nil)
     }
 
-    @Test("globe 표시 전환을 반복해도 한/영 고정 폭과 균등 분배가 함께 활성화되지 않음",
+    @Test("globe 표시를 전환해도 modifier 스택은 보이는 버튼끼리 균등 분배",
           arguments: [FourByFourFixture.naratgeul, .cheonjiin])
     func testFourByFourGlobeToggleKeepsDistributionConsistent(_ fixture: FourByFourFixture) throws {
         let primaryView = fixture.makeView(showsLanguageSwitchButton: true)
@@ -358,22 +371,24 @@ struct KeyboardModifierLayoutTests {
         view.layoutIfNeeded()
 
         let languageButton = try #require(primaryView.languageSwitchButton)
+        let modifierStack = try #require(languageButton.superview)
         let action = NSSelectorFromString("unusedNextKeyboardAction:")
 
         for visible in [false, true, false, true] {
             primaryView.updateNextKeyboardButton(needsInputModeSwitchKey: visible,
                                                  nextKeyboardAction: action)
+            // 프로덕션은 `viewWillLayoutSubviews`에서 지구본 상태를 반영한 뒤 레이아웃 패스를 돌린다.
+            // 오프스크린 뷰는 그 패스가 자동으로 돌지 않으므로 명시적으로 레이아웃을 무효화한다
+            view.setNeedsLayout()
             view.layoutIfNeeded()
 
-            if visible {
-                // 균등 분배 상태에서는 세 버튼 폭이 같아야 한다
-                #expect(abs(languageButton.frame.width
-                            - primaryView.switchButton.frame.width) < 1.0)
-            } else {
-                #expect(abs(languageButton.frame.width
-                            - view.frame.width
-                            * KeyboardLayoutFigure.languageSwitchButtonWidthRatio) < 0.5)
-            }
+            // 지구본이 보이면 세 버튼, 숨겨지면 두 버튼이 스택을 나눠 갖는다.
+            // 폭을 셋으로 나누면 픽셀 정렬로 한 칸(최대 1pt) 차이가 날 수 있다
+            let visibleButtonCount: CGFloat = visible ? 3 : 2
+            let expected = modifierStack.frame.width / visibleButtonCount
+
+            #expect(abs(languageButton.frame.width - expected) < 1.0)
+            #expect(abs(primaryView.switchButton.frame.width - expected) < 1.0)
         }
     }
 }

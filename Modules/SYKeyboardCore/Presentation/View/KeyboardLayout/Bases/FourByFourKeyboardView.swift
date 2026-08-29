@@ -130,21 +130,6 @@ open class FourByFourKeyboardView: UIView {
 // MARK: - Update Methods
 
 extension FourByFourKeyboardView {
-    /// 지구본 표시 여부가 바뀌면 modifier 영역의 폭 분배를 다시 정합니다.
-    public func nextKeyboardButtonVisibilityDidChange(needsInputModeSwitchKey: Bool) {
-        guard languageSwitchButton != nil else { return }
-        updateModifierDistribution(isNextKeyboardButtonVisible: needsInputModeSwitchKey)
-        setNeedsLayout()
-    }
-
-    /// 4x4 계열은 4행 스택이 전체 폭을 4등분해 modifier 영역 폭이 고정이다.
-    /// 지구본이 표시되면 세 버튼이 그 폭을 균등하게 나눠 갖고,
-    /// 숨겨지면 한영 전환 버튼이 고정 폭을 쓰고 나머지는 전환 버튼이 채운다
-    func updateModifierDistribution(isNextKeyboardButtonVisible: Bool) {
-        fourthRowRightSecondaryButtonHStackView.distribution =
-        isNextKeyboardButtonVisible ? .fillEqually : .fill
-    }
-
     /// 글자 열 너비 배율을 다시 적용합니다.
     public func updateLetterColumnWidthMultiplier(_ multiplier: Double) {
         columnWidthLayoutController.update(multiplier: multiplier)
@@ -202,21 +187,15 @@ private extension FourByFourKeyboardView {
             layoutVStackView.bottomAnchor.constraint(equalTo: self.bottomAnchor)
         ])
 
-        // 4열 폭 비율은 컨트롤러가 관리한다.
-        // 한영 전환 버튼 폭도 기능 열에 연동되므로 함께 넘긴다
+        // 4열 폭 비율은 컨트롤러가 관리한다
         columnWidthLayoutController.install(
             rows: [firstRowHStackView,
                    secondRowHStackView,
                    thirdRowHStackView,
                    fourthRowHStackView],
-            languageSwitchButton: languageSwitchButton,
             referenceView: self,
             multiplier: UserDefaultsManager.shared.letterColumnWidthMultiplier
         )
-
-        if languageSwitchButton != nil {
-            updateModifierDistribution(isNextKeyboardButtonVisible: !nextKeyboardButton.isHidden)
-        }
 
         keyboardSelectOverlayView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([

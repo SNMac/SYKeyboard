@@ -21,14 +21,6 @@ struct KeyboardColumnWidthPolicyTests {
         #expect(abs(function - 0.25) < Self.tolerance)
     }
 
-    @Test("기본 배율에서 기능 열 안의 한영 전환 버튼 몫은 기존 상수와 같은 폭을 만든다")
-    func testLanguageSwitchShareMatchesExistingConstantAtDefaultMultiplier() {
-        let functionColumn = KeyboardColumnWidthPolicy.functionColumnRatio(multiplier: 1.0)
-        let width = functionColumn * KeyboardLayoutFigure.languageSwitchButtonFunctionColumnShare
-
-        #expect(abs(width - KeyboardLayoutFigure.languageSwitchButtonWidthRatio) < Self.tolerance)
-    }
-
     @Test("글자 열 3개와 기능 열의 합은 항상 1이다")
     func testColumnRatiosAlwaysSumToOne() {
         for step in 0...20 {
