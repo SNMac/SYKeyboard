@@ -14,7 +14,9 @@ import UIKit
 struct FourColumnWidthLayoutTests {
     static let rowWidth: CGFloat = 400
     static let rowHeight: CGFloat = 50
-    static let tolerance: CGFloat = 0.5
+    /// @2x 기기에서 열 폭이 픽셀 그리드에 반올림되면 형제 버튼 사이에 최대 0.5pt 차이가
+    /// 생긴다(53.625 → 53.5 → 26.5/27.0). 레이아웃 오류가 아니므로 그보다 크게 잡는다
+    static let tolerance: CGFloat = 1.0
 
     /// 4열 스택 하나를 만들고 컨트롤러로 폭 제약을 설치한 뒤 레이아웃한다
     @MainActor
@@ -80,7 +82,7 @@ struct FourColumnWidthLayoutTests {
 struct NaratgeulColumnWidthLayoutTests {
     private static let keyboardWidth: CGFloat = 390
     private static let keyboardHeight: CGFloat = 216
-    private static let tolerance: CGFloat = 0.5
+    private static let tolerance: CGFloat = 1.0
 
     @MainActor
     private static func makeView(multiplier: Double) -> NaratgeulKeyboardView {
@@ -171,7 +173,7 @@ struct NaratgeulColumnWidthLayoutTests {
 struct CheonjiinColumnWidthLayoutTests {
     private static let keyboardWidth: CGFloat = 390
     private static let keyboardHeight: CGFloat = 216
-    private static let tolerance: CGFloat = 0.5
+    private static let tolerance: CGFloat = 1.0
 
     @MainActor
     private static func makeView(usesBottomSpaceLayout: Bool, multiplier: Double) -> CheonjiinKeyboardView {
@@ -285,7 +287,7 @@ struct CheonjiinColumnWidthLayoutTests {
 struct NumericColumnWidthLayoutTests {
     private static let keyboardWidth: CGFloat = 390
     private static let keyboardHeight: CGFloat = 216
-    private static let tolerance: CGFloat = 0.5
+    private static let tolerance: CGFloat = 1.0
 
     @MainActor
     private static func makeView(usesBottomSpaceLayout: Bool, multiplier: Double) -> NumericKeyboardView {
