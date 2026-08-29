@@ -42,8 +42,15 @@ public enum KeyboardLayoutFigure {
     static let fourColumnCount: Int = 4
     /// 4x4 계열 글자 열 너비 배율 범위.
     ///
-    /// `1.0`이 현재의 균등 분할이고, 값이 커질수록 글자 열이 넓어지고 기능 열이 좁아진다
-    public static let letterColumnWidthMultiplierRange: ClosedRange<Double> = 1.0...1.2
+    /// `1.0`이 현재의 균등 분할이고, 값이 커질수록 글자 열이 넓어지고 기능 열이 좁아진다.
+    /// 상한 `1.15`는 한 손 키보드 기본 폭(320pt)에서 기능 열이 정확히 44pt로
+    /// Apple HIG 최소 터치 타깃을 유지하는 값이다
+    public static let letterColumnWidthMultiplierRange: ClosedRange<Double> = 1.0...1.15
+    /// 슬라이더 표시용 정수 범위(100 단위).
+    ///
+    /// `0.01` 단위 실수 step은 이진 부동소수점 오차로 스텝 수가 잘려 상한에 닿지 못한다.
+    /// 슬라이더는 정수 스텝을 쓰고 저장할 때 100으로 나눈다
+    public static let letterColumnWidthPercentRange: ClosedRange<Double> = (letterColumnWidthMultiplierRange.lowerBound * 100).rounded()...(letterColumnWidthMultiplierRange.upperBound * 100).rounded()
     /// 기능 열 안에서 한영 전환 버튼이 차지하는 몫.
     ///
     /// 기본 배율에서 `languageSwitchButtonWidthRatio`와 같은 폭이 되도록 기존 값에서 유도한다.

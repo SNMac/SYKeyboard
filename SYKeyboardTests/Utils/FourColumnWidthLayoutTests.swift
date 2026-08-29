@@ -52,13 +52,13 @@ struct FourColumnWidthLayoutTests {
 
     @Test("배율을 올리면 1~3열이 등폭으로 넓어지고 4열이 좁아진다")
     func testHigherMultiplierWidensFirstThreeColumns() {
-        let (_, row, _) = Self.makeRow(multiplier: 1.2)
+        let (_, row, _) = Self.makeRow(multiplier: 1.15)
         let widths = row.arrangedSubviews.map(\.frame.width)
 
         #expect(abs(widths[0] - widths[1]) < Self.tolerance)
         #expect(abs(widths[1] - widths[2]) < Self.tolerance)
-        #expect(abs(widths[0] - Self.rowWidth * 0.3) < Self.tolerance)
-        #expect(abs(widths[3] - Self.rowWidth * 0.1) < Self.tolerance)
+        #expect(abs(widths[0] - Self.rowWidth * 0.2875) < Self.tolerance)
+        #expect(abs(widths[3] - Self.rowWidth * 0.1375) < Self.tolerance)
         #expect(abs(widths.reduce(0, +) - Self.rowWidth) < Self.tolerance)
     }
 
@@ -66,9 +66,9 @@ struct FourColumnWidthLayoutTests {
     func testUpdateRecalculatesWidths() {
         let (container, row, controller) = Self.makeRow(multiplier: 1.0)
 
-        controller.update(multiplier: 1.2)
+        controller.update(multiplier: 1.15)
         container.layoutIfNeeded()
-        #expect(abs(row.arrangedSubviews[3].frame.width - Self.rowWidth * 0.1) < Self.tolerance)
+        #expect(abs(row.arrangedSubviews[3].frame.width - Self.rowWidth * 0.1375) < Self.tolerance)
 
         controller.update(multiplier: 1.0)
         container.layoutIfNeeded()
@@ -107,7 +107,7 @@ struct FourColumnWidthLayoutTests {
         #expect(abs(languageSwitchButton.frame.width
                     - Self.rowWidth * KeyboardLayoutFigure.languageSwitchButtonWidthRatio) < Self.tolerance)
 
-        controller.update(multiplier: 1.2)
+        controller.update(multiplier: 1.15)
         container.layoutIfNeeded()
 
         // 기능 열이 좁아지면 한영 전환 버튼도 좁아지고, 같은 열의 다른 버튼 폭이 남는다
@@ -152,9 +152,9 @@ struct NaratgeulColumnWidthLayoutTests {
 
     @Test("배율을 올리면 기능 열이 좁아지고 열 경계가 행마다 일치한다")
     func testHigherMultiplierNarrowsFunctionColumn() {
-        let view = Self.makeView(multiplier: 1.2)
-        let expectedFunctionWidth = Self.keyboardWidth * 0.1
-        let expectedColumnStart = Self.keyboardWidth * 0.9
+        let view = Self.makeView(multiplier: 1.15)
+        let expectedFunctionWidth = Self.keyboardWidth * 0.1375
+        let expectedColumnStart = Self.keyboardWidth * 0.8625
 
         let delete = Self.rect(view.deleteButton, in: view)
         let space = Self.rect(view.spaceButton, in: view)
@@ -175,13 +175,13 @@ struct NaratgeulColumnWidthLayoutTests {
     @Test("배율을 올리면 글자 버튼이 넓어진다")
     func testHigherMultiplierWidensKeyButtons() throws {
         let defaultView = Self.makeView(multiplier: 1.0)
-        let widenedView = Self.makeView(multiplier: 1.2)
+        let widenedView = Self.makeView(multiplier: 1.15)
 
         let defaultKey = try #require(defaultView.primaryButtonList.first as? PrimaryKeyButton)
         let widenedKey = try #require(widenedView.primaryButtonList.first as? PrimaryKeyButton)
 
         #expect(widenedKey.frame.width > defaultKey.frame.width)
-        #expect(abs(widenedKey.frame.width - Self.keyboardWidth * 0.3) < Self.tolerance)
+        #expect(abs(widenedKey.frame.width - Self.keyboardWidth * 0.2875) < Self.tolerance)
     }
 
     @Test("프로토콜 타입으로 호출해도 배율이 적용된다")
@@ -189,17 +189,17 @@ struct NaratgeulColumnWidthLayoutTests {
         let view = Self.makeView(multiplier: 1.0)
         let provider: PrimaryKeyboardRepresentable = view
 
-        provider.updateLetterColumnWidthMultiplier(1.2)
+        provider.updateLetterColumnWidthMultiplier(1.15)
         view.layoutIfNeeded()
 
         // 기본 no-op 구현이 witness로 잡히면 이 단언이 실패한다
         #expect(abs(Self.rect(view.deleteButton, in: view).width
-                    - Self.keyboardWidth * 0.1) < Self.tolerance)
+                    - Self.keyboardWidth * 0.1375) < Self.tolerance)
     }
 
     @Test("배율을 되돌리면 균등 분할로 돌아온다")
     func testUpdatingBackRestoresEqualColumns() {
-        let view = Self.makeView(multiplier: 1.2)
+        let view = Self.makeView(multiplier: 1.15)
 
         view.updateLetterColumnWidthMultiplier(1.0)
         view.layoutIfNeeded()
@@ -249,9 +249,9 @@ struct CheonjiinColumnWidthLayoutTests {
 
     @Test("기본 배치에서 배율을 올리면 기능 열이 좁아지고 열 경계가 일치한다")
     func testDefaultLayoutNarrowsFunctionColumn() {
-        let view = Self.makeView(usesBottomSpaceLayout: false, multiplier: 1.2)
-        let expectedFunctionWidth = Self.keyboardWidth * 0.1
-        let expectedColumnStart = Self.keyboardWidth * 0.9
+        let view = Self.makeView(usesBottomSpaceLayout: false, multiplier: 1.15)
+        let expectedFunctionWidth = Self.keyboardWidth * 0.1375
+        let expectedColumnStart = Self.keyboardWidth * 0.8625
 
         let delete = Self.rect(view.deleteButton, in: view)
         let space = Self.rect(view.spaceButton, in: view)
@@ -269,8 +269,8 @@ struct CheonjiinColumnWidthLayoutTests {
 
     @Test("하단 스페이스 배치도 위치 기준으로 4열이 좁아지고 열 경계가 일치한다")
     func testBottomSpaceLayoutNarrowsFourthColumnByPosition() throws {
-        let view = Self.makeView(usesBottomSpaceLayout: true, multiplier: 1.2)
-        let expectedColumnStart = Self.keyboardWidth * 0.9
+        let view = Self.makeView(usesBottomSpaceLayout: true, multiplier: 1.15)
+        let expectedColumnStart = Self.keyboardWidth * 0.8625
 
         let delete = Self.rect(view.deleteButton, in: view)
         let returnStack = Self.rect(view.returnButtonHStackView, in: view)
@@ -289,7 +289,7 @@ struct CheonjiinColumnWidthLayoutTests {
 
     @Test("하단 스페이스 배치에서 한영 전환 버튼은 자기 열 폭에 비례한다")
     func testBottomSpaceLayoutScalesLanguageSwitchButtonWithItsColumn() throws {
-        let view = Self.makeView(usesBottomSpaceLayout: true, multiplier: 1.2)
+        let view = Self.makeView(usesBottomSpaceLayout: true, multiplier: 1.15)
         let languageSwitchButton = try #require(view.languageSwitchButton)
         // 지구본이 숨겨져야 stack의 균등 분배가 아니라 폭 제약이 성립한다
         view.nextKeyboardButton.isHidden = true
@@ -300,7 +300,7 @@ struct CheonjiinColumnWidthLayoutTests {
         let column = Self.rect(view.switchButton, in: view).union(Self.rect(languageSwitchButton, in: view))
         let buttonWidth = Self.rect(languageSwitchButton, in: view).width
 
-        #expect(abs(column.width - Self.keyboardWidth * 0.3) < Self.tolerance)
+        #expect(abs(column.width - Self.keyboardWidth * 0.2875) < Self.tolerance)
         #expect(abs(buttonWidth - column.width
                     * KeyboardLayoutFigure.languageSwitchButtonFunctionColumnShare) < Self.tolerance)
         // 열이 넓어졌으므로 버튼도 기본 배율(0.1W)보다 넓어야 한다
@@ -310,7 +310,7 @@ struct CheonjiinColumnWidthLayoutTests {
     @Test("배율을 되돌리면 두 배치 모두 균등 분할로 돌아온다")
     func testUpdatingBackRestoresEqualColumns() {
         for usesBottomSpaceLayout in [false, true] {
-            let view = Self.makeView(usesBottomSpaceLayout: usesBottomSpaceLayout, multiplier: 1.2)
+            let view = Self.makeView(usesBottomSpaceLayout: usesBottomSpaceLayout, multiplier: 1.15)
 
             view.updateLetterColumnWidthMultiplier(1.0)
             view.layoutIfNeeded()
@@ -361,9 +361,9 @@ struct NumericColumnWidthLayoutTests {
 
     @Test("기본 배치에서 배율을 올리면 기능 열이 좁아지고 열 경계가 일치한다")
     func testDefaultLayoutNarrowsFunctionColumn() {
-        let view = Self.makeView(usesBottomSpaceLayout: false, multiplier: 1.2)
-        let expectedFunctionWidth = Self.keyboardWidth * 0.1
-        let expectedColumnStart = Self.keyboardWidth * 0.9
+        let view = Self.makeView(usesBottomSpaceLayout: false, multiplier: 1.15)
+        let expectedFunctionWidth = Self.keyboardWidth * 0.1375
+        let expectedColumnStart = Self.keyboardWidth * 0.8625
 
         let delete = Self.rect(view.deleteButton, in: view)
         let space = Self.rect(view.spaceButton, in: view)
@@ -381,8 +381,8 @@ struct NumericColumnWidthLayoutTests {
 
     @Test("하단 스페이스 배치도 위치 기준으로 4열이 좁아지고 열 경계가 일치한다")
     func testBottomSpaceLayoutNarrowsFourthColumnByPosition() throws {
-        let view = Self.makeView(usesBottomSpaceLayout: true, multiplier: 1.2)
-        let expectedColumnStart = Self.keyboardWidth * 0.9
+        let view = Self.makeView(usesBottomSpaceLayout: true, multiplier: 1.15)
+        let expectedColumnStart = Self.keyboardWidth * 0.8625
 
         let delete = Self.rect(view.deleteButton, in: view)
         let returnRect = Self.rect(view.returnButton, in: view)
@@ -400,12 +400,12 @@ struct NumericColumnWidthLayoutTests {
     @Test("배율을 올리면 숫자 버튼이 넓어진다")
     func testHigherMultiplierWidensKeyButtons() throws {
         let defaultView = Self.makeView(usesBottomSpaceLayout: false, multiplier: 1.0)
-        let widenedView = Self.makeView(usesBottomSpaceLayout: false, multiplier: 1.2)
+        let widenedView = Self.makeView(usesBottomSpaceLayout: false, multiplier: 1.15)
 
         let defaultKey = try Self.keyButton(defaultView, primary: "1")
         let widenedKey = try Self.keyButton(widenedView, primary: "1")
 
         #expect(widenedKey.frame.width > defaultKey.frame.width)
-        #expect(abs(widenedKey.frame.width - Self.keyboardWidth * 0.3) < Self.tolerance)
+        #expect(abs(widenedKey.frame.width - Self.keyboardWidth * 0.2875) < Self.tolerance)
     }
 }

@@ -62,13 +62,21 @@ struct LetterColumnWidthSettingsView: View {
 // MARK: - UI Components
 
 private extension LetterColumnWidthSettingsView {
+    /// 슬라이더용 정수 바인딩. 실수 step의 부동소수점 오차를 피한다
+    var letterColumnWidthPercent: Binding<Double> {
+        Binding(
+            get: { (tempLetterColumnWidthMultiplier * 100).rounded() },
+            set: { tempLetterColumnWidthMultiplier = $0 / 100 }
+        )
+    }
+
     var letterColumnWidthSettings: some View {
         VStack {
             Text("\(Int((tempLetterColumnWidthMultiplier * 100).rounded()))")
                 .padding(EdgeInsets(top: 10, leading: 0, bottom: 0, trailing: 0))
-            Slider(value: $tempLetterColumnWidthMultiplier,
-                   in: KeyboardLayoutFigure.letterColumnWidthMultiplierRange,
-                   step: 0.01)
+            Slider(value: letterColumnWidthPercent,
+                   in: KeyboardLayoutFigure.letterColumnWidthPercentRange,
+                   step: 1)
                 .padding(EdgeInsets(top: 0, leading: 30, bottom: 0, trailing: 30))
         }
         .navigationTitle("글자 열 너비")
