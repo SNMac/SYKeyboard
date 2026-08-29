@@ -23,8 +23,12 @@ struct KeyboardColumnWidthPolicyTests {
 
     @Test("글자 열 3개와 기능 열의 합은 항상 1이다")
     func testColumnRatiosAlwaysSumToOne() {
-        for step in 0...20 {
-            let multiplier = 1.0 + Double(step) * 0.01
+        let range = KeyboardLayoutFigure.letterColumnWidthMultiplierRange
+        // 상한 밖은 clamp돼 같은 값을 반복 검증할 뿐이므로 허용 범위 안만 돈다
+        let lastStep = Int(((range.upperBound - range.lowerBound) * 100).rounded())
+
+        for step in 0...lastStep {
+            let multiplier = range.lowerBound + Double(step) * 0.01
             let total = 3 * KeyboardColumnWidthPolicy.letterColumnRatio(multiplier: multiplier)
             + KeyboardColumnWidthPolicy.functionColumnRatio(multiplier: multiplier)
 
