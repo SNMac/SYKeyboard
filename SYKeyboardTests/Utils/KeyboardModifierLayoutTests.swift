@@ -413,14 +413,24 @@ struct SwitchButtonSubLabelFontSizeTests {
 
     @Test("세로 모드 키 크기에서는 기본 크기를 유지한다")
     func testPortraitKeepsFullSize() {
-        // 세로 4x4: 버튼 48 - insetDy 2 * 2 = 44, 세로 쿼티: 48 - 4 * 2 = 40
+        // 임계값(40) 이상이면 어떤 크기든 상한을 유지하는지 보는 순수 함수 검증값이다.
+        // 실제 세로 배경 높이는 4x4 56pt, 쿼티 52pt다 (testPortraitBackgroundHeightsKeepFullSize 참고)
         #expect(abs(SwitchButton.subLabelFontSize(forKeyWidth: 39.7, keyHeight: 44) - Self.fullSize) < 0.01)
         #expect(abs(SwitchButton.subLabelFontSize(forKeyWidth: 33.0, keyHeight: 40) - Self.fullSize) < 0.01)
     }
 
+    @Test("실제 세로 모드 배경 크기에서도 기본 크기를 유지한다")
+    func testPortraitBackgroundHeightsKeepFullSize() {
+        // 기본 keyboardHeight(240)에서 세로 모드 행 높이는 60pt.
+        // 세로 4x4 배경: 60 - insetDy 2 * 2 = 56, 세로 쿼티 배경: 60 - insetDy 4 * 2 = 52
+        #expect(abs(SwitchButton.subLabelFontSize(forKeyWidth: 42.75, keyHeight: 56) - Self.fullSize) < 0.01)
+        #expect(abs(SwitchButton.subLabelFontSize(forKeyWidth: 33, keyHeight: 52) - Self.fullSize) < 0.01)
+    }
+
     @Test("가로 모드 낮은 키에서는 높이에 비례해 줄인다")
     func testLandscapeShrinksWithHeight() {
-        // 가로 4x4: 35 - 2 * 2 = 31, 가로 쿼티: 35 - 4 * 2 = 27
+        // 순수 함수 임계값 검증값이다. 실제 가로 모드 배경 높이는 행 높이 36pt 기준으로
+        // 4x4 36 - 2 * 2 = 32, 쿼티 36 - 4 * 2 = 28에 더 가깝다
         let fourByFour = SwitchButton.subLabelFontSize(forKeyWidth: 200, keyHeight: 31)
         let qwerty = SwitchButton.subLabelFontSize(forKeyWidth: 200, keyHeight: 27)
 
@@ -461,24 +471,57 @@ struct LanguageSwitchButtonDividerTests {
         return atan2(extents.height, extents.width) * 180 / .pi
     }
 
-    @Test("세로 키에서 사선 각도는 45도다")
-    func testPortraitAngleIsFixed() {
-        #expect(abs(Self.angleInDegrees(forKeySize: CGSize(width: 39.7, height: 44)) - 45) < 0.01)
-        #expect(abs(Self.angleInDegrees(forKeySize: CGSize(width: 33, height: 40)) - 45) < 0.01)
+    @Test("세로 모드 배경 크기에서는 비율 그대로 나온다")
+    func testPortraitExtentsMatchRatiosExactly() {
+        // 기본 keyboardHeight(240)에서 세로 모드 행 높이는 60pt.
+        // 세로 modifier 배경은 globe 숨김 42.75×56, globe 표시 26.5×56이며
+        // 원래 각도(50.0°, 62.5°)가 이미 45° 이상이라 비율 그대로 나와야 한다(회귀 가드)
+        for size in [CGSize(width: 42.75, height: 56), CGSize(width: 26.5, height: 56)] {
+            let extents = LanguageSwitchButton.dividerHalfExtents(forKeySize: size)
+
+            #expect(abs(extents.width - size.width * 0.22) < 0.001)
+            #expect(abs(extents.height - size.height * 0.20) < 0.001)
+        }
     }
 
-    @Test("가로처럼 낮은 키에서도 각도가 눕지 않는다")
-    func testLandscapeKeepsSameAngle() {
-        #expect(abs(Self.angleInDegrees(forKeySize: CGSize(width: 200, height: 31)) - 45) < 0.01)
-        #expect(abs(Self.angleInDegrees(forKeySize: CGSize(width: 200, height: 27)) - 45) < 0.01)
+    @Test("각도는 45도 아래로 내려가지 않는다")
+    func testAngleNeverGoesBelow45Degrees() {
+        // 세로 modifier 배경(42.75×56, 26.5×56), 가로 modifier 배경(행 높이 36pt에서
+        // 42.75×32, 26.5×32), 그리고 극단적으로 좁거나 넓은 키(20×60, 200×27)까지
+        // 포함해 45° 바닥이 지켜지는지 확인한다
+        for size in [CGSize(width: 42.75, height: 56), CGSize(width: 26.5, height: 56),
+                     CGSize(width: 42.75, height: 32), CGSize(width: 26.5, height: 32),
+                     CGSize(width: 20, height: 60), CGSize(width: 200, height: 27)] {
+            #expect(Self.angleInDegrees(forKeySize: size) >= 45 - 0.01)
+        }
+    }
+
+    @Test("가로 모드처럼 낮고 넓은 키는 45도로 잘린다")
+    func testWideShortKeyIsClampedTo45Degrees() {
+        // 가로 모드 globe 숨김 배경(42.75×32)은 원래 각도가 34.2°라 45°보다 누우므로
+        // 가로 반길이가 세로 반길이(32 * 0.20)까지 줄어들어 정확히 45°가 된다
+        let size = CGSize(width: 42.75, height: 32)
+        let extents = LanguageSwitchButton.dividerHalfExtents(forKeySize: size)
+
+        #expect(abs(extents.width - 32 * 0.20) < 0.01)
+        #expect(abs(extents.height - 32 * 0.20) < 0.01)
+    }
+
+    @Test("이미 45도 이상인 키는 그대로 유지된다")
+    func testKeyAboveThresholdIsUntouched() {
+        // 가로 모드 globe 표시 배경(26.5×32)은 원래 각도가 47.7°로 이미 45° 이상이라 바뀌지 않는다
+        let size = CGSize(width: 26.5, height: 32)
+        let extents = LanguageSwitchButton.dividerHalfExtents(forKeySize: size)
+
+        #expect(abs(extents.width - 26.5 * 0.22) < 0.001)
+        #expect(abs(extents.height - 32 * 0.20) < 0.001)
     }
 
     @Test("반길이는 너비·높이 비율 박스를 넘지 않는다")
     func testHalfExtentsStayInsideRatioBox() {
-        for size in [CGSize(width: 39.7, height: 44),
-                     CGSize(width: 33, height: 40),
-                     CGSize(width: 200, height: 27),
-                     CGSize(width: 20, height: 60)] {
+        for size in [CGSize(width: 42.75, height: 56), CGSize(width: 26.5, height: 56),
+                     CGSize(width: 42.75, height: 32), CGSize(width: 26.5, height: 32),
+                     CGSize(width: 20, height: 60), CGSize(width: 200, height: 27)] {
             let extents = LanguageSwitchButton.dividerHalfExtents(forKeySize: size)
 
             #expect(extents.width <= size.width * 0.22 + 0.001)
@@ -486,22 +529,6 @@ struct LanguageSwitchButtonDividerTests {
             #expect(extents.width > 0)
             #expect(extents.height > 0)
         }
-    }
-
-    @Test("낮은 키에서는 높이 비율이 반길이를 결정한다")
-    func testShortKeyIsLimitedByHeight() {
-        let extents = LanguageSwitchButton.dividerHalfExtents(forKeySize: CGSize(width: 200, height: 27))
-
-        #expect(abs(extents.height - 27 * 0.20) < 0.01)
-        #expect(abs(extents.width - 27 * 0.20) < 0.01)
-    }
-
-    @Test("좁은 키에서는 너비 비율이 반길이를 결정한다")
-    func testNarrowKeyIsLimitedByWidth() {
-        let extents = LanguageSwitchButton.dividerHalfExtents(forKeySize: CGSize(width: 20, height: 60))
-
-        #expect(abs(extents.width - 20 * 0.22) < 0.01)
-        #expect(abs(extents.height - 20 * 0.22) < 0.01)
     }
 
     @Test("크기가 0이면 반길이도 0이다")

@@ -127,25 +127,13 @@ extension LanguageSwitchButton {
         return fontSize * dividerLineWidthToFontSizeRatio
     }
 
-    /// 구분선 기울기(라디안).
-    ///
-    /// 예전에는 버튼 종횡비가 그대로 각도가 돼 행 높이가 낮은 가로 모드에서 사선이 누웠다.
-    /// 세로 모드에서 나오던 각도(4x4 45.2°, 쿼티 47.8°)를 45°로 고정해 방향을 통일한다
-    static let dividerAngle: CGFloat = .pi / 4
-
-    /// 고정 기울기를 유지하면서 키 안에 들어가는 구분선 반길이.
-    ///
-    /// 기울기가 고정이므로 가로·세로 반길이 비가 항상 같고, 길이만 두 비율 상한 중
-    /// 좁은 쪽에 맞춰 잘린다. 낮은 키에서는 높이가, 좁은 키에서는 너비가 길이를 정한다
+    /// 구분선 반길이. 세로 모드 비율은 그대로 두고, 가로 모드처럼 키가 낮아져
+    /// 사선이 45°보다 눕는 경우에만 가로 반길이를 세로 반길이까지 줄인다
     static func dividerHalfExtents(forKeySize size: CGSize) -> CGSize {
-        let cosine = cos(dividerAngle)
-        let sine = sin(dividerAngle)
-        guard size.width > 0, size.height > 0, cosine > 0, sine > 0 else { return .zero }
+        guard size.width > 0, size.height > 0 else { return .zero }
 
-        let length = min(size.width * dividerWidthRatio / cosine,
-                         size.height * dividerHeightRatio / sine)
-
-        return CGSize(width: length * cosine, height: length * sine)
+        let halfHeight = size.height * dividerHeightRatio
+        return CGSize(width: min(size.width * dividerWidthRatio, halfHeight), height: halfHeight)
     }
 }
 
