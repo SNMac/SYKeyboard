@@ -25,9 +25,10 @@ GitHub Issue #112에 따라 4열 격자를 쓰는 키보드에서 좌측 3열(�
 
 `NumericKeyboardView`는 `FourByFourPlusKeyboardView`를 상속하지 않지만 구조가
 사실상 같다. 3행×3숫자 + 4열 기능 열, 동일한 `usesBottomSpaceLayout` 변형,
-동일한 `fourthRowRightSecondaryButtonHStackView` modifier 스택, 동일한
-`updateModifierDistribution`, 동일한 `languageSwitchButtonWidthRatio` 사용,
-그리고 "4x4 계열은 4행 스택이 전체 폭을 4등분해"라는 같은 주석까지 공유한다.
+동일한 `fourthRowRightSecondaryButtonHStackView` modifier 스택, 그리고
+"4x4 계열은 4행 스택이 전체 폭을 4등분해"라는 같은 주석까지 공유한다.
+(당시 공유하던 `updateModifierDistribution`과 `languageSwitchButtonWidthRatio`는
+아래 modifier 균등 분배 전환으로 제거되었다.)
 
 `TenkeyKeyboardView`는 제외한다. 1~3행이 3버튼, 4행이 4버튼인 구조여서
 "글자 3열 + 기능 1열" 격자가 아니고, `BaseKeyboardViewController` 1294행에서
@@ -218,8 +219,9 @@ GitHub Issue #112에 따라 4열 격자를 쓰는 키보드에서 좌측 3열(�
 - `KeyboardColumnWidthPolicyTests` (신규)
   - 범위 밖 입력 clamp
   - 글자 열 3개 + 기능 열 합이 1.0
-  - `r = 1.00`에서 모든 열이 `0.25`이고, 기능 열 × 한영 전환 버튼 몫이
-    `KeyboardLayoutFigure.languageSwitchButtonWidthRatio`와 같음
+  - `r = 1.00`에서 모든 열이 `0.25`임
+  - 슬라이더 정수 범위(`letterColumnWidthPercentRange`)가 배율 범위와 일치하고
+    스텝이 정수로 떨어짐
 - `FourByFourColumnWidthLayoutTests` (신규)
   - `CheonjiinBottomSpaceLayoutTests` 하네스를 따라 실제
     `NaratgeulKeyboardView`, `CheonjiinKeyboardView`(양쪽 배치),
@@ -230,9 +232,14 @@ GitHub Issue #112에 따라 4열 격자를 쓰는 키보드에서 좌측 3열(�
     경계가 정렬되는지**(1~3행과 4행의 열 경계 x좌표 일치) 검증한다.
 - `UserDefaultsContractTests`에 새 키를 추가한다.
 - 기존 `KeyboardModifierLayoutTests`, `CheonjiinBottomSpaceLayoutTests`,
-  `NumericBottomSpaceLayoutTests`는 `languageSwitchButtonWidthRatio` 값이
-  기본 배율에서 바뀌지 않으므로 수정 없이 통과할 것으로 예상한다. 실제 실행으로
-  확인한다.
+  `NumericBottomSpaceLayoutTests`는 처음에는 수정 없이 통과했으나, 이후 modifier
+  균등 분배 전환으로 한영 전환 버튼 폭 계약이 바뀌면서 함께 갱신했다. 세 파일 모두
+  옛 계약(`≈ 전체 폭 × 0.1`) 대신 균등 분배(`≈ modifier 스택 폭 / 보이는 버튼 수`)를
+  단언한다.
+- 이 세 파일과 4x4 계열 뷰를 만드는 모든 테스트는 helper에서
+  `updateLetterColumnWidthMultiplier(1.0)`으로 배율을 명시한다. 뷰가
+  `setConstraints()`에서 `UserDefaultsManager`를 읽으므로, 명시하지 않으면 기기에
+  저장된 사용자 설정에 따라 결과가 달라진다.
 
 ## 변경 요약
 
