@@ -251,9 +251,7 @@ struct CheonjiinColumnWidthLayoutTests {
         let languageSwitchButton = try #require(view.languageSwitchButton)
         // 지구본을 숨기면 modifier 스택에 한/영과 전환 버튼 2개만 남는다
         view.nextKeyboardButton.isHidden = true
-        // 프로덕션은 `viewWillLayoutSubviews`에서 지구본 상태를 반영한 뒤 레이아웃 패스를 돌린다.
-        // 오프스크린 뷰는 그 패스가 자동으로 돌지 않으므로 명시적으로 레이아웃을 무효화한다
-        view.setNeedsLayout()
+        view.nextKeyboardButtonVisibilityDidChange(needsInputModeSwitchKey: false)
         view.layoutIfNeeded()
 
         let modifierStack = try #require(languageSwitchButton.superview)
@@ -377,9 +375,7 @@ struct NumericColumnWidthLayoutTests {
         let languageSwitchButton = try #require(view.languageSwitchButton)
         // 지구본을 숨기면 modifier 스택에 한/영과 전환 버튼 2개만 남는다
         view.nextKeyboardButton.isHidden = true
-        // 프로덕션은 `viewWillLayoutSubviews`에서 지구본 상태를 반영한 뒤 레이아웃 패스를 돌린다.
-        // 오프스크린 뷰는 그 패스가 자동으로 돌지 않으므로 명시적으로 레이아웃을 무효화한다
-        view.setNeedsLayout()
+        view.nextKeyboardButtonVisibilityDidChange(needsInputModeSwitchKey: false)
         view.layoutIfNeeded()
 
         let modifierStack = try #require(languageSwitchButton.superview)

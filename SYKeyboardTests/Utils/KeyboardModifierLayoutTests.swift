@@ -207,6 +207,8 @@ struct KeyboardModifierLayoutTests {
         // 기존 배치를 검증하는 이 테스트는 값을 명시해 시뮬레이터 상태와 무관하게 만든다
         let view = NumericKeyboardView(showsLanguageSwitchButton: true, usesBottomSpaceLayout: false)
         view.frame = CGRect(x: 0, y: 0, width: width, height: 216)
+        // 저장된 사용자 설정과 무관하게 기본 배율로 고정한다
+        view.updateLetterColumnWidthMultiplier(1.0)
         view.layoutIfNeeded()
 
         let languageButton = try #require(view.languageSwitchButton)
@@ -226,6 +228,8 @@ struct KeyboardModifierLayoutTests {
         // 기존 배치를 검증하는 이 테스트는 값을 명시해 시뮬레이터 상태와 무관하게 만든다
         let view = NumericKeyboardView(showsLanguageSwitchButton: true, usesBottomSpaceLayout: false)
         view.frame = CGRect(x: 0, y: 0, width: width, height: 216)
+        // 저장된 사용자 설정과 무관하게 기본 배율로 고정한다
+        view.updateLetterColumnWidthMultiplier(1.0)
         view.layoutIfNeeded()
 
         let languageButton = try #require(view.languageSwitchButton)
@@ -233,9 +237,6 @@ struct KeyboardModifierLayoutTests {
             needsInputModeSwitchKey: false,
             nextKeyboardAction: NSSelectorFromString("unusedNextKeyboardAction:")
         )
-        // 프로덕션은 `viewWillLayoutSubviews`에서 지구본 상태를 반영한 뒤 레이아웃 패스를 돌린다.
-        // 오프스크린 뷰는 그 패스가 자동으로 돌지 않으므로 명시적으로 레이아웃을 무효화한다
-        view.setNeedsLayout()
         view.layoutIfNeeded()
 
         let modifierStack = try #require(languageButton.superview)
@@ -309,6 +310,8 @@ struct KeyboardModifierLayoutTests {
         let primaryView = fixture.makeView(showsLanguageSwitchButton: true)
         let view = primaryView
         view.frame = CGRect(x: 0, y: 0, width: 390, height: 216)
+        // 저장된 사용자 설정과 무관하게 기본 배율로 고정한다
+        view.updateLetterColumnWidthMultiplier(1.0)
         view.layoutIfNeeded()
 
         let languageButton = try #require(primaryView.languageSwitchButton)
@@ -329,6 +332,8 @@ struct KeyboardModifierLayoutTests {
         let primaryView = fixture.makeView(showsLanguageSwitchButton: true)
         let view = primaryView
         view.frame = CGRect(x: 0, y: 0, width: 390, height: 216)
+        // 저장된 사용자 설정과 무관하게 기본 배율로 고정한다
+        view.updateLetterColumnWidthMultiplier(1.0)
         view.layoutIfNeeded()
 
         let languageButton = try #require(primaryView.languageSwitchButton)
@@ -336,9 +341,6 @@ struct KeyboardModifierLayoutTests {
             needsInputModeSwitchKey: false,
             nextKeyboardAction: NSSelectorFromString("unusedNextKeyboardAction:")
         )
-        // 프로덕션은 `viewWillLayoutSubviews`에서 지구본 상태를 반영한 뒤 레이아웃 패스를 돌린다.
-        // 오프스크린 뷰는 그 패스가 자동으로 돌지 않으므로 명시적으로 레이아웃을 무효화한다
-        view.setNeedsLayout()
         view.layoutIfNeeded()
 
         let modifierStack = try #require(languageButton.superview)
@@ -368,6 +370,8 @@ struct KeyboardModifierLayoutTests {
         let primaryView = fixture.makeView(showsLanguageSwitchButton: true)
         let view = primaryView
         view.frame = CGRect(x: 0, y: 0, width: 420, height: 216)
+        // 저장된 사용자 설정과 무관하게 기본 배율로 고정한다
+        view.updateLetterColumnWidthMultiplier(1.0)
         view.layoutIfNeeded()
 
         let languageButton = try #require(primaryView.languageSwitchButton)
@@ -377,9 +381,6 @@ struct KeyboardModifierLayoutTests {
         for visible in [false, true, false, true] {
             primaryView.updateNextKeyboardButton(needsInputModeSwitchKey: visible,
                                                  nextKeyboardAction: action)
-            // 프로덕션은 `viewWillLayoutSubviews`에서 지구본 상태를 반영한 뒤 레이아웃 패스를 돌린다.
-            // 오프스크린 뷰는 그 패스가 자동으로 돌지 않으므로 명시적으로 레이아웃을 무효화한다
-            view.setNeedsLayout()
             view.layoutIfNeeded()
 
             // 지구본이 보이면 세 버튼, 숨겨지면 두 버튼이 스택을 나눠 갖는다.

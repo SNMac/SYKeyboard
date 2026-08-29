@@ -19,6 +19,8 @@ struct NumericBottomSpaceLayoutTests {
         let view = NumericKeyboardView(showsLanguageSwitchButton: true,
                                        usesBottomSpaceLayout: usesBottomSpaceLayout)
         view.frame = CGRect(x: 0, y: 0, width: keyboardWidth, height: keyboardHeight)
+        // 저장된 사용자 설정과 무관하게 기본 배율로 고정한다
+        view.updateLetterColumnWidthMultiplier(1.0)
         view.layoutIfNeeded()
 
         return view
@@ -86,9 +88,6 @@ struct NumericBottomSpaceLayoutTests {
             needsInputModeSwitchKey: false,
             nextKeyboardAction: NSSelectorFromString("unusedNextKeyboardAction:")
         )
-        // 프로덕션은 `viewWillLayoutSubviews`에서 지구본 상태를 반영한 뒤 레이아웃 패스를 돌린다.
-        // 오프스크린 뷰는 그 패스가 자동으로 돌지 않으므로 명시적으로 레이아웃을 무효화한다
-        view.setNeedsLayout()
         view.layoutIfNeeded()
 
         let modifierStack = try #require(languageButton.superview)
@@ -171,9 +170,6 @@ struct NumericBottomSpaceLayoutTests {
             needsInputModeSwitchKey: false,
             nextKeyboardAction: NSSelectorFromString("unusedNextKeyboardAction:")
         )
-        // 프로덕션은 `viewWillLayoutSubviews`에서 지구본 상태를 반영한 뒤 레이아웃 패스를 돌린다.
-        // 오프스크린 뷰는 그 패스가 자동으로 돌지 않으므로 명시적으로 레이아웃을 무효화한다
-        view.setNeedsLayout()
         view.layoutIfNeeded()
 
         let overlay = view.keyboardSelectOverlayView
@@ -231,9 +227,6 @@ struct NumericBottomSpaceLayoutTests {
             needsInputModeSwitchKey: false,
             nextKeyboardAction: NSSelectorFromString("unusedNextKeyboardAction:")
         )
-        // 프로덕션은 `viewWillLayoutSubviews`에서 지구본 상태를 반영한 뒤 레이아웃 패스를 돌린다.
-        // 오프스크린 뷰는 그 패스가 자동으로 돌지 않으므로 명시적으로 레이아웃을 무효화한다
-        view.setNeedsLayout()
         view.layoutIfNeeded()
 
         let overlay = view.keyboardSelectOverlayView

@@ -145,6 +145,14 @@ open class FourByFourPlusKeyboardView: UIView {
 // MARK: - Update Methods
 
 extension FourByFourPlusKeyboardView {
+    /// 지구본 표시 여부가 바뀌면 modifier 영역을 다시 배치합니다.
+    ///
+    /// modifier 스택은 항상 균등 분배이므로 분배 방식을 바꿀 필요는 없지만,
+    /// 숨김 상태 변경이 같은 레이아웃 패스에 반영되도록 무효화는 해야 한다
+    public func nextKeyboardButtonVisibilityDidChange(needsInputModeSwitchKey: Bool) {
+        setNeedsLayout()
+    }
+
     /// 글자 열 너비 배율을 다시 적용합니다.
     public func updateLetterColumnWidthMultiplier(_ multiplier: Double) {
         columnWidthLayoutController.update(multiplier: multiplier)
