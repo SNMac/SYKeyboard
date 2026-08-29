@@ -1987,3 +1987,16 @@ production-ready로 표시하지 않는다.**
   예외이며 사용자가 승인했다. 다른 키보드와 다른 열은 계약을 그대로 지킨다.
 - 옛 계약("한/영 = 전체 폭의 10%")을 단언하던 기존 테스트를 균등 분배 계약으로 갱신하고,
   붕괴 회귀 방지 테스트를 추가했다.
+
+## 균등 분배 전환 후속 수정 (2026-08-29)
+
+- **레이아웃 무효화 복원**: 균등 분배로 전환하면서 `nextKeyboardButtonVisibilityDidChange`
+  오버라이드를 통째로 제거했는데, 그 안의 `setNeedsLayout()`은 여전히 필요했다. 지구본
+  숨김 변경이 같은 레이아웃 패스에 반영되지 않아 숨긴 버튼이 계속 스택 자리를 차지했다.
+  세 뷰에 `setNeedsLayout()`만 하는 오버라이드를 되살리고, 그 대신 테스트에 넣었던 수동
+  `setNeedsLayout()` 호출을 제거해 production 경로를 타게 했다.
+- **테스트 결정성 확보**: 세 뷰가 `setConstraints()`에서
+  `UserDefaultsManager.shared.letterColumnWidthMultiplier`를 읽으므로, 배율을 명시하지
+  않는 테스트가 기기에 저장된 사용자 설정에 좌우됐다. 실제로 저장값이 1.1인 상태에서
+  배율 1.0을 전제하는 기존 테스트 7개가 실패했다. 4x4 계열 뷰를 만드는 테스트 helper가
+  `updateLetterColumnWidthMultiplier(1.0)`으로 배율을 명시하도록 고쳤다.
