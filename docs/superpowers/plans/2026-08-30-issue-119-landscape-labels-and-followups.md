@@ -26,8 +26,10 @@
 
 | 대상 | 세로 기준값 | 근거 |
 |---|---|---|
-| `SwitchButton` 보조 라벨 크기 | `FontSize.stringKeySmall` = 8.0pt | 4x4 키 높이 44, 쿼티 키 높이 40 모두 상한에 걸린다 |
-| `LanguageSwitchButton` 사선 각도 | 약 45° | 세로 4x4 키(39.7 × 44)에서 현행 45.2°, 세로 쿼티(33 × 40)에서 47.8° |
+| `SwitchButton` 보조 라벨 크기 | `FontSize.stringKeySmall` = 8.0pt | 실제 세로 배경 높이는 4x4 56, 쿼티 52로 모두 상한(40)을 넘어 8.0에 걸린다 |
+| `LanguageSwitchButton` 사선 각도 | 세로 실측값 그대로(45° 미만으로 내려가지 않게 하는 바닥일 뿐, 45°로 고정하지 않는다) | 실제 세로 modifier 배경은 globe 숨김 42.75×56에서 50.0°, globe 표시 26.5×56에서 62.5°다 |
+
+> **정정 (최종 코드 리뷰):** 이 계획은 세로 모드 행 높이를 48pt, 가로 모드 행 높이를 35pt로 잘못 계산했고, "세로 각도가 이미 ~45°"라고 잘못 전제했다. `KeyboardHeightPolicy.height(...)`에 따르면 기본 `keyboardHeight`(240)에서 세로 행 높이는 **60pt**, `landscapeKeyboardHeight`(188) 기준 가로 행 높이는 **36pt**다. 이 오차 때문에 Task 4에서 세로 각도를 45°로 고정하는 구현(`f82d3602`)이 채택됐고, 이는 실제로는 45°가 아니었던 세로 각도(50.0°/62.5°)를 45°로 눕혀 라벨 위치까지 바꾸는 회귀였다. 최종 수정은 세로 값을 그대로 두고 **각도가 45° 아래로 내려가는 경우에만** 가로 반길이를 세로 반길이까지 줄이는 45°-바닥 규칙으로 교체했다. 자세한 내용은 Task 3·Task 4 본문의 정정 블록과 최종 구현(`LanguageSwitchButton.dividerHalfExtents(forKeySize:)`, `SwitchButton.subLabelFullSizeKeyHeight` 주석)을 참고한다.
 
 ---
 
@@ -222,14 +224,16 @@ git commit -m "fix: #119 - 회전 중 한 손 키보드 최소 너비 제약 충
 
 **상수 근거** — `subLabelFullSizeKeyHeight = 40.0`
 
-| 상황 | 버튼 높이 | `insetDy` | `backgroundView` 높이 | 결과 크기 |
-|---|---|---|---|---|
-| 세로 4x4 (나랏글·천지인·숫자) | 48 | 2 | 44 | `min(8, 8×44/40)` = **8.0** (현행 유지) |
-| 세로 쿼티·두벌식·기호 | 48 | 4 | 40 | `min(8, 8×40/40)` = **8.0** (현행 유지) |
-| 가로 4x4 | 35 | 2 | 31 | `8×31/40` = **6.2** |
-| 가로 쿼티·두벌식·기호 | 35 | 4 | 27 | `8×27/40` = **5.4** |
+> **정정 (최종 코드 리뷰):** 아래 표의 버튼 높이 48/35는 잘못된 값이다. `KeyboardHeightPolicy.height(...)`를 보면 세로는 `keyboardHStackViewHeight = keyboardSettingsHeight`(자동완성 바는 그 위에 얹힌다), 가로는 `keyboardHStackViewHeight = landscapeKeyboardHeight − visibleSuggestionBarHeight`다. 기본 `keyboardHeight`(240)에서 세로 행 높이는 4행으로 나눈 **60**, `landscapeKeyboardHeight`(188) − 자동완성 바(44) = 144를 4행으로 나눈 가로 행 높이는 **36**이다. 결과 크기 열은 실제로도 8.0으로 상한에 걸려 있었으므로(48이든 60이든 40 이상이면 결과가 같다) 값 자체는 우연히 맞았지만, 가로 6.2/5.4는 실제로는 6.4/5.6이다.
 
-가로 행 높이 35pt는 `landscapeKeyboardHeight` 188 − 자동완성 바 `suggestionBarHeightWithTopSpacing` 44 − `keyboardFrameSpacing` 4 = 140을 4행으로 나눈 값이다. 세로는 `DefaultValues.keyboardHeight` 240 기준으로 48이다.
+| 상황 | 버튼 높이(정정) | `insetDy` | `backgroundView` 높이(정정) | 결과 크기 |
+|---|---|---|---|---|
+| 세로 4x4 (나랏글·천지인·숫자) | 60 | 2 | 56 | `min(8, 8×56/40)` = **8.0** (현행 유지) |
+| 세로 쿼티·두벌식·기호 | 60 | 4 | 52 | `min(8, 8×52/40)` = **8.0** (현행 유지) |
+| 가로 4x4 | 36 | 2 | 32 | `8×32/40` = **6.4** |
+| 가로 쿼티·두벌식·기호 | 36 | 4 | 28 | `8×28/40` = **5.6** |
+
+가로 행 높이 36pt는 `landscapeKeyboardHeight` 188 − 자동완성 바 `suggestionBarHeightWithTopSpacing` 44 = 144를 4행으로 나눈 값이다(별도의 `keyboardFrameSpacing` 차감은 없다). 세로는 `DefaultValues.keyboardHeight` 240 기준으로 60이다.
 
 - [x] **Step 1: 실패하는 테스트를 쓴다**
 
@@ -376,14 +380,16 @@ git commit -m "fix: #119 - 가로 모드에서 전환 버튼 힌트 라벨이 �
 
 현재 `layoutSubviews()`가 `halfWidth = 너비 × 0.22`, `halfHeight = 높이 × 0.20`으로 사선을 그려 **버튼 종횡비가 그대로 각도가 된다.** 가로 모드에서 키가 낮아지면 사선이 눕는다.
 
-사용자 결정: **세로 모드 기준 각도를 가로에서도 유지한다.** 실측한 세로 각도는 4x4 45.2°(39.7 × 44), 쿼티 47.8°(33 × 40)이므로 **45°로 고정**하고, 반길이는 두 비율이 만드는 박스 안에 들어가도록 클램프한다. 각도는 상수로 빼서 나중에 조정할 수 있게 한다.
+사용자 결정(초안, 이후 정정됨): ~~세로 모드 기준 각도를 가로에서도 유지한다. 실측한 세로 각도는 4x4 45.2°(39.7 × 44), 쿼티 47.8°(33 × 40)이므로 45°로 고정하고, 반길이는 두 비율이 만드는 박스 안에 들어가도록 클램프한다.~~
 
-| 상황 | 현행 (halfW, halfH) → 각도 | 변경 후 (halfW, halfH) → 각도 |
+> **정정 (최종 코드 리뷰):** 위 문단은 잘못된 세로 배경 크기(39.7×44, 33×40 — 48pt 행 높이 가정)로 세로 각도를 45.2°/47.8°라고 잘못 계산했고, 이를 근거로 세로 각도까지 45°로 **고정**하는 구현(`f82d3602`)을 채택했다. 실제 세로 modifier 배경은 globe 숨김 42.75×56, globe 표시 26.5×56이며 각도는 **50.0°/62.5°**로 이미 45° 이상이다. 즉 세로는 원래부터 45°가 아니었고, "45°로 고정"은 세로 각도를 45°까지 눕히는 회귀였다. 최종 결정은 **세로 값을 그대로 두고, 각도가 45° 아래로 내려가는 경우에만(가로 4x4 34.2°) 가로 반길이를 세로 반길이까지 줄이는 45°-바닥** 규칙이다. `dividerAngle` 상수와 삼각함수는 모두 삭제했다 — 도달 가능한 각도가 45° 하나뿐이라 별도 상수로 뺄 이유가 없었다.
+
+| 상황 | 실제 (halfW, halfH) → 각도 | 45°-바닥 적용 후 (halfW, halfH) → 각도 |
 |---|---|---|
-| 세로 4x4 (39.7 × 44) | (8.73, 8.80) → 45.2° | (8.73, 8.73) → **45°** |
-| 세로 쿼티 (33 × 40) | (7.26, 8.00) → 47.8° | (7.26, 7.26) → **45°** |
-| 가로 4x4 (200 × 31) | (44.0, 6.20) → 8.0° | (6.20, 6.20) → **45°** |
-| 가로 쿼티 (200 × 27) | (44.0, 5.40) → 7.0° | (5.40, 5.40) → **45°** |
+| 세로 4x4, globe 숨김 (42.75 × 56) | (9.405, 11.20) → 50.0° | (9.405, 11.20) → **50.0°** (변화 없음) |
+| 세로 4x4/쿼티, globe 표시 (26.5 × 56) | (5.83, 11.20) → 62.5° | (5.83, 11.20) → **62.5°** (변화 없음) |
+| 가로 4x4, globe 숨김 (42.75 × 32) | (9.405, 6.40) → 34.2° | (6.40, 6.40) → **45.0°** |
+| 가로 4x4/쿼티, globe 표시 (26.5 × 32) | (5.83, 6.40) → 47.7° | (5.83, 6.40) → **47.7°** (변화 없음, 이미 45° 이상) |
 
 `layoutLabels(halfWidth:halfHeight:)`가 `hypot`으로 법선을 구하므로, 두 반길이가 같아지면 법선이 `(-1/√2, -1/√2)`로 고정되고 `한`·`A` 라벨도 함께 45° 축에 정렬된다. **라벨 배치 코드는 손대지 않는다.**
 
@@ -394,7 +400,7 @@ git commit -m "fix: #119 - 가로 모드에서 전환 버튼 힌트 라벨이 �
 **Interfaces:**
 - Consumes: 없음
 - Produces:
-  - `LanguageSwitchButton.dividerAngle: CGFloat` (internal static, 라디안)
+  - ~~`LanguageSwitchButton.dividerAngle: CGFloat` (internal static, 라디안)~~ — 정정 후 삭제됨. 도달 가능한 각도가 45° 하나뿐이라 상수로 뺄 이유가 없었다
   - `LanguageSwitchButton.dividerHalfExtents(forKeySize: CGSize) -> CGSize` (internal static)
   - `dividerWidthRatio` / `dividerHeightRatio` 는 instance `private let` → `private static let` 으로 옮긴다. 값(0.22 / 0.20)은 그대로다.
 
@@ -1304,7 +1310,7 @@ git commit -m "docs: #119 - 대응 계획 실행 결과와 실기기 확인 내�
 **타입 일관성 확인**
 
 - `SwitchButton.subLabelFontSize(forKeyWidth:keyHeight:)` — Task 3에서 정의, Task 3 테스트에서만 호출.
-- `LanguageSwitchButton.dividerHalfExtents(forKeySize:)` → `CGSize`, `dividerAngle` → `CGFloat` — Task 4에서 정의, Task 4 테스트에서만 호출.
+- `LanguageSwitchButton.dividerHalfExtents(forKeySize:)` → `CGSize` — Task 4에서 정의, Task 4 테스트에서만 호출. (`dividerAngle`은 최종 코드 리뷰에서 45°-바닥 규칙으로 교체되며 삭제됨)
 - `KeyboardLayoutFigure.letterColumnWidthPercent(fromMultiplier:)` / `letterColumnWidthMultiplier(fromPercent:)` → `Double` — Task 8에서 정의, 같은 task의 뷰와 테스트에서 호출.
 - Task 6의 절대값은 배율에 따라 달라지므로 task 안의 표로 테스트별 기대값을 고정했다.
 
