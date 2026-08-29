@@ -67,7 +67,7 @@
 - Consumes: 없음
 - Produces: 없음 (동작 변경 없음)
 
-- [ ] **Step 1: 현재 경고를 확인한다**
+- [x] **Step 1: 현재 경고를 확인한다**
 
 ```sh
 xcodebuild build \
@@ -79,7 +79,7 @@ xcodebuild build \
 
 Expected: `PrimaryKeyButton.swift:120` `:133` 두 줄이 나온다. 나오지 않으면 이미 고쳐졌거나 빌드 설정이 다른 것이므로 멈추고 확인한다.
 
-- [ ] **Step 2: 함수 참조를 클로저로 감싼다**
+- [x] **Step 2: 함수 참조를 클로저로 감싼다**
 
 `updatePrimaryKeyListLabel()` 안 두 곳만 바꾼다. `displayLabel(for:)` 본체와 호출 결과는 그대로다.
 
@@ -98,7 +98,7 @@ Expected: `PrimaryKeyButton.swift:120` `:133` 두 줄이 나온다. 나오지 �
         }
 ```
 
-- [ ] **Step 3: 경고가 사라졌는지 확인한다**
+- [x] **Step 3: 경고가 사라졌는지 확인한다**
 
 ```sh
 xcodebuild build \
@@ -110,7 +110,7 @@ xcodebuild build \
 
 Expected: 출력 없음 (grep exit code 1).
 
-- [ ] **Step 4: 라벨 표기 회귀가 없는지 기존 테스트로 확인한다**
+- [x] **Step 4: 라벨 표기 회귀가 없는지 기존 테스트로 확인한다**
 
 ```sh
 xcodebuild test \
@@ -122,12 +122,14 @@ xcodebuild test \
 
 Expected: PASS.
 
-- [ ] **Step 5: 커밋**
+- [x] **Step 5: 커밋**
 
 ```bash
 git add Modules/SYKeyboardCore/Presentation/View/Components/Buttons/PrimaryKeyButton.swift
 git commit -m "fix: #119 - PrimaryKeyButton 주 키 라벨 갱신의 MainActor 격리 경고 제거"
 ```
+
+**실행 결과 (커밋 `e842237d`):** 경고 제거 확인, `PrimaryKeyButtonLabelTests` 5/5 PASS.
 
 ---
 
@@ -142,7 +144,7 @@ git commit -m "fix: #119 - PrimaryKeyButton 주 키 라벨 갱신의 MainActor �
 
 **단위 테스트를 추가하지 않는 이유:** `keyboardLayoutWidthConstraint`와 `keyboardLayoutView`는 private이고, CLAUDE.md가 `ForTesting` 접근자 추가와 `Mirror` 기반 private 상태 검증을 금지한다. 관찰 가능한 차이는 콘솔 경고뿐이므로 Step 1·4의 회전 실행이 검증 근거다. 이 사실을 PR 본문 검증 항목에 그대로 적는다.
 
-- [ ] **Step 1: 수정 전 경고를 재현하고 기록한다**
+- [ ] **Step 1: 수정 전 경고를 재현하고 기록한다** (미수행 — 사용자 확인 필요)
 
 시뮬레이터에서 키보드 확장을 띄운 뒤 회전한다.
 
@@ -159,7 +161,7 @@ Expected: `[LayoutConstraints] Unable to simultaneously satisfy constraints.` �
 
 이 경고가 재현되지 않으면 수정의 근거가 없으므로 멈추고 사용자에게 알린다.
 
-- [ ] **Step 2: 최소 너비 제약 우선순위를 999로 낮춘다**
+- [x] **Step 2: 최소 너비 제약 우선순위를 999로 낮춘다**
 
 `setConstraints()` 안의 세 줄을 바꾼다. 활성화된 제약은 required ↔ 비required로 바꿀 수 없으므로 **활성화 전에** 우선순위를 정한다.
 
@@ -176,7 +178,7 @@ Expected: `[LayoutConstraints] Unable to simultaneously satisfy constraints.` �
 
 `keyboardLayoutWidthConstraint?.constant = width`(같은 파일 139행)는 그대로 둔다. 우선순위만 바뀌고 상수 갱신 경로는 변하지 않는다.
 
-- [ ] **Step 3: 한 손 키보드 폭이 여전히 적용되는지 기존 테스트로 확인한다**
+- [x] **Step 3: 한 손 키보드 폭이 여전히 적용되는지 기존 테스트로 확인한다**
 
 ```sh
 xcodebuild test \
@@ -189,18 +191,20 @@ xcodebuild test \
 
 Expected: PASS.
 
-- [ ] **Step 4: 회전으로 경고가 사라졌는지 확인한다**
+- [ ] **Step 4: 회전으로 경고가 사라졌는지 확인한다** (미수행 — 사용자 확인 필요)
 
 Step 1과 동일한 절차를 반복한다.
 
 Expected: `Unable to simultaneously satisfy constraints` 가 나오지 않는다. 세로·가로 모두에서 한 손 모드를 켜고 키보드 폭이 설정값대로 유지되는지 눈으로 확인한다.
 
-- [ ] **Step 5: 커밋**
+- [x] **Step 5: 커밋**
 
 ```bash
 git add Modules/SYKeyboardCore/Presentation/View/KeyboardView.swift
 git commit -m "fix: #119 - 회전 중 한 손 키보드 최소 너비 제약 충돌 경고 제거"
 ```
+
+**실행 결과 (커밋 `da18af35`):** 우선순위 999 변경과 `KeyboardModifierLayoutTests`/`FourColumnWidthLayoutTests`(Step 3) 확인은 수행했다. Step 1·4의 회전 실행과 콘솔 경고 재현·소멸 확인은 시뮬레이터/실기기에서 사람이 직접 회전하며 봐야 하는 작업이라 이번 자동 검증에서는 수행하지 못했다(사람 몫으로 남김).
 
 ---
 
@@ -227,7 +231,7 @@ git commit -m "fix: #119 - 회전 중 한 손 키보드 최소 너비 제약 충
 
 가로 행 높이 35pt는 `landscapeKeyboardHeight` 188 − 자동완성 바 `suggestionBarHeightWithTopSpacing` 44 − `keyboardFrameSpacing` 4 = 140을 4행으로 나눈 값이다. 세로는 `DefaultValues.keyboardHeight` 240 기준으로 48이다.
 
-- [ ] **Step 1: 실패하는 테스트를 쓴다**
+- [x] **Step 1: 실패하는 테스트를 쓴다**
 
 `SYKeyboardTests/Utils/KeyboardModifierLayoutTests.swift` 파일 끝(마지막 `}` 앞이 아니라 파일 최하단, `KeyboardModifierLayoutTests` 구조체 **바깥**)에 새 suite를 추가한다.
 
@@ -279,7 +283,7 @@ struct SwitchButtonSubLabelFontSizeTests {
 }
 ```
 
-- [ ] **Step 2: 테스트가 실패하는지 확인한다**
+- [x] **Step 2: 테스트가 실패하는지 확인한다**
 
 ```sh
 xcodebuild test \
@@ -291,7 +295,7 @@ xcodebuild test \
 
 Expected: 컴파일 실패. `extra argument 'keyHeight' in call` 또는 `incorrect argument label`.
 
-- [ ] **Step 3: 정책 함수에 높이 기준을 추가한다**
+- [x] **Step 3: 정책 함수에 높이 기준을 추가한다**
 
 `SwitchButton.swift`의 상수 선언(27-29행 부근)에 높이 상수를 더한다.
 
@@ -327,7 +331,7 @@ Expected: 컴파일 실패. `extra argument 'keyHeight' in call` 또는 `incorre
                                                     keyHeight: backgroundView.bounds.height)
 ```
 
-- [ ] **Step 4: 테스트가 통과하는지 확인한다**
+- [x] **Step 4: 테스트가 통과하는지 확인한다**
 
 ```sh
 xcodebuild test \
@@ -339,7 +343,7 @@ xcodebuild test \
 
 Expected: 5개 PASS.
 
-- [ ] **Step 5: 실기기·시뮬레이터에서 겹침이 사라졌는지 확인한다**
+- [ ] **Step 5: 실기기·시뮬레이터에서 겹침이 사라졌는지 확인한다** (미수행 — 사용자 확인 필요)
 
 ```sh
 xcodebuild build \
@@ -356,13 +360,15 @@ xcodebuild build \
 
 **가로에서 여전히 겹치면** `subLabelFullSizeKeyHeight`를 40보다 크게(예: 48) 올려 더 줄인다. 세로 4x4(44)·세로 쿼티(40)에서 8.0이 유지되는지 Step 1 테스트의 기대값도 함께 갱신해야 하므로, 상수를 바꾸면 Step 1·4를 다시 돈다. **관찰하지 못한 조합이 있으면 미확인으로 기록하고 완료로 표시하지 않는다.**
 
-- [ ] **Step 6: 커밋**
+- [x] **Step 6: 커밋**
 
 ```bash
 git add Modules/SYKeyboardCore/Presentation/View/Components/Buttons/SwitchButton.swift \
         SYKeyboardTests/Utils/KeyboardModifierLayoutTests.swift
 git commit -m "fix: #119 - 가로 모드에서 전환 버튼 힌트 라벨이 가운데 라벨과 겹치는 현상 수정"
 ```
+
+**실행 결과 (커밋 `ee9e5baf`):** `SwitchButtonSubLabelFontSizeTests` 5/5 PASS. Step 5의 실기기·시뮬레이터 육안 확인(나랏글/천지인/두벌식/쿼티/기호/숫자 각각의 겹침 여부)은 사람이 화면을 봐야 하는 항목이라 미수행이다.
 
 ---
 
@@ -392,7 +398,7 @@ git commit -m "fix: #119 - 가로 모드에서 전환 버튼 힌트 라벨이 �
   - `LanguageSwitchButton.dividerHalfExtents(forKeySize: CGSize) -> CGSize` (internal static)
   - `dividerWidthRatio` / `dividerHeightRatio` 는 instance `private let` → `private static let` 으로 옮긴다. 값(0.22 / 0.20)은 그대로다.
 
-- [ ] **Step 1: 실패하는 테스트를 쓴다**
+- [x] **Step 1: 실패하는 테스트를 쓴다**
 
 `SYKeyboardTests/Utils/KeyboardModifierLayoutTests.swift` 파일 최하단에 suite를 추가한다.
 
@@ -474,7 +480,7 @@ struct LanguageSwitchButtonDividerTests {
 }
 ```
 
-- [ ] **Step 2: 테스트가 실패하는지 확인한다**
+- [x] **Step 2: 테스트가 실패하는지 확인한다**
 
 ```sh
 xcodebuild test \
@@ -486,7 +492,7 @@ xcodebuild test \
 
 Expected: 컴파일 실패. `type 'LanguageSwitchButton' has no member 'dividerHalfExtents'`.
 
-- [ ] **Step 3: 반길이 계산을 정책으로 뽑고 각도를 고정한다**
+- [x] **Step 3: 반길이 계산을 정책으로 뽑고 각도를 고정한다**
 
 `LanguageSwitchButton.swift`의 instance 비율 상수(31-34행) 두 개를 static으로 옮긴다.
 
@@ -524,8 +530,10 @@ Expected: 컴파일 실패. `type 'LanguageSwitchButton' has no member 'dividerH
 
 `layoutSubviews()`(90-98행)에서 반길이 계산을 교체한다. 나머지 줄은 그대로다.
 
+**계획 수정 (실행 중 발견):** `dividerHalfExtents(forKeySize:)`는 `CGSize`를 받는데 `keyBounds`는 `CGRect`다. 아래 스니펫은 `keyBounds.size`로 넘긴다. 실제 구현도 `keyBounds.size`를 쓴다.
+
 ```swift
-        let halfExtents = Self.dividerHalfExtents(forKeySize: keyBounds)
+        let halfExtents = Self.dividerHalfExtents(forKeySize: keyBounds.size)
         let halfWidth = halfExtents.width
         let halfHeight = halfExtents.height
 
@@ -537,7 +545,7 @@ Expected: 컴파일 실패. `type 'LanguageSwitchButton' has no member 'dividerH
         layoutLabels(halfWidth: halfWidth, halfHeight: halfHeight)
 ```
 
-- [ ] **Step 4: 테스트가 통과하는지 확인한다**
+- [x] **Step 4: 테스트가 통과하는지 확인한다**
 
 ```sh
 xcodebuild test \
@@ -551,7 +559,7 @@ xcodebuild test \
 
 Expected: 전부 PASS. 특히 `KeyboardModifierLayoutTests`의 기존 `labelFontSize` / `dividerLineWidth` 테스트가 깨지지 않아야 한다(둘은 너비 기준이라 이번 변경과 무관하다).
 
-- [ ] **Step 5: 실기기·시뮬레이터에서 확인한다**
+- [ ] **Step 5: 실기기·시뮬레이터에서 확인한다** (미수행 — 사용자 확인 필요)
 
 ```sh
 xcodebuild build \
@@ -565,13 +573,15 @@ xcodebuild build \
 - 한 손 모드: 좁은 키에서 글자가 사선과 겹치거나 밖으로 나가지 않아야 한다.
 - 통합 키보드의 나랏글/천지인/두벌식/쿼티/숫자 배치 각각에서 확인한다.
 
-- [ ] **Step 6: 커밋**
+- [x] **Step 6: 커밋**
 
 ```bash
 git add Modules/SYKeyboardCore/Presentation/View/Components/Buttons/LanguageSwitchButton.swift \
         SYKeyboardTests/Utils/KeyboardModifierLayoutTests.swift
 git commit -m "fix: #119 - 한영 전환 버튼 사선이 가로 모드에서 눕지 않도록 기울기 고정"
 ```
+
+**실행 결과 (커밋 `f82d3602`):** `LanguageSwitchButtonDividerTests` 7/7 PASS. Step 3에서 `dividerHalfExtents(forKeySize:)` 호출부는 계획의 `keyBounds`가 아니라 `keyBounds.size`로 구현했다(위 계획 수정 참고). Step 5의 실기기·시뮬레이터 육안 확인(세로/가로/한 손 모드 각 배치)은 사람이 화면을 봐야 하는 항목이라 미수행이다.
 
 ---
 
@@ -588,7 +598,7 @@ git commit -m "fix: #119 - 한영 전환 버튼 사선이 가로 모드에서 �
 - Consumes: `NormalKeyboardLayoutProvider.updateNextKeyboardButton(needsInputModeSwitchKey:nextKeyboardAction:)`
 - Produces: 없음
 
-- [ ] **Step 1: 진입점 경유로 바꾼다**
+- [x] **Step 1: 진입점 경유로 바꾼다**
 
 `testBottomSpaceLayoutSplitsModifierStackEqually()`(255-257행 부근)의 세 줄을 바꾼다.
 
@@ -626,7 +636,7 @@ import Testing
 import UIKit
 ```
 
-- [ ] **Step 2: 테스트가 통과하는지 확인한다**
+- [x] **Step 2: 테스트가 통과하는지 확인한다**
 
 ```sh
 xcodebuild test \
@@ -639,7 +649,7 @@ xcodebuild test \
 
 Expected: PASS.
 
-- [ ] **Step 3: 테스트가 실제로 진입점을 검증하는지 확인한다**
+- [x] **Step 3: 테스트가 실제로 진입점을 검증하는지 확인한다**
 
 `NormalKeyboardLayoutProvider.swift:37`의 `nextKeyboardButtonVisibilityDidChange(...)` 호출을 잠시 주석 처리하고 Step 2를 다시 돌린다.
 
@@ -650,12 +660,14 @@ git checkout -- Modules/SYKeyboardCore/Presentation/View/KeyboardLayout/Protocol
 git status --short
 ```
 
-- [ ] **Step 4: 커밋**
+- [x] **Step 4: 커밋**
 
 ```bash
 git add SYKeyboardTests/Utils/FourColumnWidthLayoutTests.swift
 git commit -m "test: #119 - modifier 붕괴 회귀 테스트를 updateNextKeyboardButton 진입점 경유로 변경"
 ```
+
+**실행 결과 (커밋 `e3233e62`):** Step 3의 mutation check를 실제로 실행했다. `NormalKeyboardLayoutProvider.swift:37`의 `nextKeyboardButtonVisibilityDidChange(...)` 호출을 주석 처리한 뒤 재실행하면 `NumericColumnWidthLayoutTests/testHigherMultiplierKeepsModifierStackFromCollapsing`과 `CheonjiinColumnWidthLayoutTests/testBottomSpaceLayoutSplitsModifierStackEqually` 두 개만 FAIL했고, 나머지는 그대로 PASS했다. 확인 후 `NormalKeyboardLayoutProvider.swift`는 원복했다.
 
 ---
 
@@ -684,7 +696,7 @@ git commit -m "test: #119 - modifier 붕괴 회귀 테스트를 updateNextKeyboa
 - Consumes: 없음
 - Produces: 없음
 
-- [ ] **Step 1: 하단 스페이스 두 테스트의 실제 배율과 열 폭을 확인한다**
+- [x] **Step 1: 하단 스페이스 두 테스트의 실제 배율과 열 폭을 확인한다**
 
 두 테스트는 `updateLetterColumnWidthMultiplier`를 호출하는지 여부가 파일마다 다를 수 있다. 확인한다.
 
@@ -702,7 +714,7 @@ grep -n "updateLetterColumnWidthMultiplier\|CGRect(x: 0, y: 0" \
         view.updateLetterColumnWidthMultiplier(1.0)
 ```
 
-- [ ] **Step 2: 절대값 단언을 추가한다**
+- [x] **Step 2: 절대값 단언을 추가한다**
 
 `KeyboardModifierLayoutTests.swift:243` 부근(`testUnifiedNumericHiddenGlobeSplitsModifierStackEqually`)에 두 줄을 더한다.
 
@@ -764,8 +776,8 @@ grep -n "updateLetterColumnWidthMultiplier\|CGRect(x: 0, y: 0" \
         let visibleButtonCount: CGFloat = 2
         let buttonWidth = languageSwitchButton.frame.width
         // 배율 1.15에서 기능 열은 키보드 폭의 0.1375, 글자 열은 0.2875다.
-        // 기본 배치의 modifier 스택은 4행 1열(글자 열)에 놓인다
-        let expectedStackWidth = Self.keyboardWidth * 0.2875
+        // 기본 배치(하단 스페이스 아님)의 modifier 스택은 4행 4열(기능 열)에 놓인다
+        let expectedStackWidth = Self.keyboardWidth * 0.1375
 
         #expect(abs(modifierStack.frame.width - expectedStackWidth) < Self.tolerance)
         #expect(abs(buttonWidth - expectedStackWidth / visibleButtonCount) < Self.tolerance)
@@ -773,7 +785,9 @@ grep -n "updateLetterColumnWidthMultiplier\|CGRect(x: 0, y: 0" \
 
 **주의:** 위 `expectedStackWidth`가 실제 값과 다르면(하단 스페이스 배치가 아니므로 4행 1열이 기능 열일 수 있다) 단언이 실패한다. 실패하면 **테스트를 실제 측정값에 맞추지 말고**, 먼저 `#expect(modifierStack.frame.width == 0)` 같은 임시 단언으로 실측값을 출력해 어느 열인지 확인한 뒤 그 열의 정의값(`0.2875` 또는 `0.1375`)을 쓴다. 실측값을 그대로 상수로 박으면 이 단계의 목적(절대 계약 고정)이 사라진다.
 
-- [ ] **Step 3: 테스트가 통과하는지 확인한다**
+**계획 수정 (실행 중 발견):** 위 스니펫의 초안은 `expectedStackWidth`를 글자 열 값 `0.2875`로 썼으나, `NumericKeyboardView.setHierarchy()`에서 `usesBottomSpaceLayout == false`일 때 modifier 스택은 4행의 마지막 슬롯인 **기능 열**(4번째 열)에 놓인다. 실제로 맞는 값은 **`0.1375`**(390 × 0.1375 = 53.625, 버튼당 26.8125)이며, 구현 코드와 이 문서 모두 `0.1375`를 쓴다.
+
+- [x] **Step 3: 테스트가 통과하는지 확인한다**
 
 ```sh
 xcodebuild test \
@@ -789,7 +803,7 @@ xcodebuild test \
 
 Expected: 전부 PASS.
 
-- [ ] **Step 4: 커밋**
+- [x] **Step 4: 커밋**
 
 ```bash
 git add SYKeyboardTests/Utils/KeyboardModifierLayoutTests.swift \
@@ -798,6 +812,8 @@ git add SYKeyboardTests/Utils/KeyboardModifierLayoutTests.swift \
         SYKeyboardTests/Utils/FourColumnWidthLayoutTests.swift
 git commit -m "test: #119 - modifier 스택 폭 단언에 열 절대 폭 검증 추가"
 ```
+
+**실행 결과 (커밋 `720f0994`):** 위 계획 수정대로 `0.1375`를 적용해 관련 스위트 전부 PASS.
 
 ---
 
@@ -812,7 +828,7 @@ git commit -m "test: #119 - modifier 스택 폭 단언에 열 절대 폭 검증 
 - Consumes: `KeyboardLayoutFigure.letterColumnWidthMultiplierRange`
 - Produces: 없음
 
-- [ ] **Step 1: 루프 범위를 상한에 맞춘다**
+- [x] **Step 1: 루프 범위를 상한에 맞춘다**
 
 리터럴 `0...15` 대신 범위 상수에서 계산해, 앞으로 상한이 바뀌어도 루프가 자동으로 따라오게 한다.
 
@@ -833,7 +849,7 @@ git commit -m "test: #119 - modifier 스택 폭 단언에 열 절대 폭 검증 
     }
 ```
 
-- [ ] **Step 2: 테스트가 통과하고 실제로 16회 도는지 확인한다**
+- [x] **Step 2: 테스트가 통과하고 실제로 16회 도는지 확인한다**
 
 ```sh
 xcodebuild test \
@@ -845,12 +861,14 @@ xcodebuild test \
 
 Expected: PASS. `lastStep`은 `(1.15 - 1.0) * 100 = 15`이므로 `0...15`, 16회다.
 
-- [ ] **Step 3: 커밋**
+- [x] **Step 3: 커밋**
 
 ```bash
 git add SYKeyboardTests/Utils/KeyboardColumnWidthPolicyTests.swift
 git commit -m "test: #119 - 열 너비 정책 합계 루프를 허용 배율 범위로 제한"
 ```
+
+**실행 결과 (커밋 `f99be1ed`):** `KeyboardColumnWidthPolicyTests` 5/5 PASS (Task 8 이전 시점 기준).
 
 ---
 
@@ -871,7 +889,7 @@ SwiftUI `Slider` 자체는 단위 테스트가 어렵다. 현실적인 경계는
   - `KeyboardLayoutFigure.letterColumnWidthPercent(fromMultiplier: Double) -> Double` (public static)
   - `KeyboardLayoutFigure.letterColumnWidthMultiplier(fromPercent: Double) -> Double` (public static)
 
-- [ ] **Step 1: 실패하는 테스트를 쓴다**
+- [x] **Step 1: 실패하는 테스트를 쓴다**
 
 `KeyboardColumnWidthPolicyTests.swift`의 `testPercentRangeMatchesMultiplierRangeWithWholeSteps()`(57-69행)를 통째로 아래로 교체한다. 항진명제 단언은 제거한다.
 
@@ -919,7 +937,7 @@ SwiftUI `Slider` 자체는 단위 테스트가 어렵다. 현실적인 경계는
     }
 ```
 
-- [ ] **Step 2: 테스트가 실패하는지 확인한다**
+- [x] **Step 2: 테스트가 실패하는지 확인한다**
 
 ```sh
 xcodebuild test \
@@ -931,7 +949,7 @@ xcodebuild test \
 
 Expected: 컴파일 실패. `type 'KeyboardLayoutFigure' has no member 'letterColumnWidthMultiplier(fromPercent:)'`.
 
-- [ ] **Step 3: 변환 함수를 `KeyboardLayoutFigure`로 옮긴다**
+- [x] **Step 3: 변환 함수를 `KeyboardLayoutFigure`로 옮긴다**
 
 `KeyboardFigure.swift`의 `letterColumnWidthPercentRange` 선언(48행) 바로 뒤에 더한다.
 
@@ -947,7 +965,7 @@ Expected: 컴파일 실패. `type 'KeyboardLayoutFigure' has no member 'letterCo
     }
 ```
 
-- [ ] **Step 4: 설정 화면 바인딩이 이 함수를 쓰게 한다**
+- [x] **Step 4: 설정 화면 바인딩이 이 함수를 쓰게 한다**
 
 `LetterColumnWidthSettingsView.swift:64-71`을 교체한다.
 
@@ -968,7 +986,7 @@ private extension LetterColumnWidthSettingsView {
             Text("\(Int(KeyboardLayoutFigure.letterColumnWidthPercent(fromMultiplier: tempLetterColumnWidthMultiplier)))")
 ```
 
-- [ ] **Step 5: 테스트가 통과하는지 확인한다**
+- [x] **Step 5: 테스트가 통과하는지 확인한다**
 
 ```sh
 xcodebuild test \
@@ -980,7 +998,7 @@ xcodebuild test \
 
 Expected: 전부 PASS.
 
-- [ ] **Step 6: 설정 화면이 그대로 동작하는지 확인한다**
+- [ ] **Step 6: 설정 화면이 그대로 동작하는지 확인한다** (미수행 — 사용자 확인 필요)
 
 ```sh
 xcodebuild build \
@@ -996,7 +1014,7 @@ xcodebuild build \
 - 저장 후 다시 들어오면 저장한 값이 그대로 보인다.
 - 미리보기 키보드의 열 폭이 값에 따라 변한다.
 
-- [ ] **Step 7: 커밋**
+- [x] **Step 7: 커밋**
 
 ```bash
 git add Modules/SYKeyboardCore/Presentation/Utils/Enums/KeyboardFigure.swift \
@@ -1005,9 +1023,13 @@ git add Modules/SYKeyboardCore/Presentation/Utils/Enums/KeyboardFigure.swift \
 git commit -m "test: #119 - 글자 열 너비 슬라이더 파생 바인딩 왕복 검증으로 교체"
 ```
 
+**실행 결과 (커밋 `a404cf87`):** `KeyboardColumnWidthPolicyTests` 7/7 PASS. Step 6(설정 화면에서 슬라이더가 115에 도달하는지 등 육안 확인)은 사람이 화면을 봐야 하는 항목이라 미수행이다.
+
 ---
 
 ## Task 9: 리뷰 팝업 전 입력 지연 — 계측 후 수정 (이슈 5)
+
+**이번 PR 범위에서 미구현.** 계측이 화면 녹화를 동반한 사람 관측을 요구하므로 이번 PR 범위에서 제외했고, 적용 가능한 패치와 측정 절차는 `.superpowers/sdd/2026-08-30-issue-119-landscape-labels-and-followups/task-9-measurement-guide.md`에 있다. 아래 Step 1~8은 코드로 수행하지 않았으며 체크박스는 모두 미완료로 남긴다.
 
 **이 task는 원인을 확정하기 전에 코드를 고치지 않는다.** 이슈 본문이 후보 2가지를 제시했고 둘 중 어느 쪽인지에 따라 고칠 곳이 완전히 다르다.
 
@@ -1021,7 +1043,7 @@ git commit -m "test: #119 - 글자 열 너비 슬라이더 파생 바인딩 왕�
 - Consumes: `RequestReviewPolicy.recordDetailSettingsReturnAndEvaluate(...)`, `@Environment(\.requestReview)`
 - Produces: 없음 (`presentReview()`는 계속 private)
 
-- [ ] **Step 1: 계측을 넣는다**
+- [ ] **Step 1: 계측을 넣는다** (미수행 — 사용자 확인 필요)
 
 `presentReview()`에 구간 로그를 추가한다. 이 계측은 Step 4에서 결과를 기록한 뒤 제거하거나 `debug` 수준으로 남긴다.
 
@@ -1040,7 +1062,7 @@ git commit -m "test: #119 - 글자 열 너비 슬라이더 파생 바인딩 왕�
 
 `ContinuousClock`은 iOS 16+에서 쓸 수 있다. 컴파일이 막히면 `Date()` 차이로 대체한다.
 
-- [ ] **Step 2: 카운터를 임계값 직전으로 맞춰 재현한다**
+- [ ] **Step 2: 카운터를 임계값 직전으로 맞춰 재현한다** (미수행 — 사용자 확인 필요)
 
 `RequestReviewPolicy.threshold`가 30이라 자연 재현에 세부 설정 화면 진입이 30번 필요하다. 재현을 위해 임시로 저장된 카운터를 올린다. **production 코드의 threshold는 바꾸지 않는다.**
 
@@ -1066,7 +1088,7 @@ Expected 기록 항목:
 | `requestReview` 반환 → 팝업 표시(녹화) | |
 | 터치 먹통 총 길이(녹화) | |
 
-- [ ] **Step 3: 결정적 실험 — sleep을 0으로 두고 다시 잰다**
+- [ ] **Step 3: 결정적 실험 — sleep을 0으로 두고 다시 잰다** (미수행 — 사용자 확인 필요)
 
 `Task.sleep` 한 줄만 주석 처리하고 Step 2를 반복한다.
 
@@ -1079,7 +1101,7 @@ Expected 기록 항목:
 
 두 결과 모두 계획 문서의 이 표에 실제 숫자로 적는다. **여기까지 하지 않고 다음 step으로 넘어가지 않는다.**
 
-- [ ] **Step 4: 확정된 원인에 맞게 고친다**
+- [ ] **Step 4: 확정된 원인에 맞게 고친다** (미수행 — 사용자 확인 필요)
 
 **후보 1로 확정된 경우** — sleep이 먹통의 대부분이다. 지연을 없앤다. `.onDisappear` 직후 즉시 호출하면 pop 애니메이션과 겹치므로, 화면 전환이 끝난 다음 run loop로만 미룬다.
 
@@ -1112,11 +1134,11 @@ Expected 기록 항목:
 
 **둘 다 아니거나 재현되지 않은 경우** — 수정하지 않는다. 계측 결과를 이 문서와 이슈에 적고, 이 항목을 **미확인**으로 남긴 채 나머지 task를 진행한다. 체크박스를 완료로 표시하지 않는다.
 
-- [ ] **Step 5: 계측 로그를 정리한다**
+- [ ] **Step 5: 계측 로그를 정리한다** (미수행 — 사용자 확인 필요)
 
 원인이 확정됐다면 Step 1에서 넣은 `[review]` 로그 세 줄을 제거한다. 기존 `Self.logger.debug("reviewCounter = ...")`는 그대로 둔다.
 
-- [ ] **Step 6: 정책 테스트가 그대로 통과하는지 확인한다**
+- [ ] **Step 6: 정책 테스트가 그대로 통과하는지 확인한다** (미수행 — 사용자 확인 필요)
 
 `presentReview()`는 private이고 StoreKit에 의존해 단위 테스트 대상이 아니다. 트리거 조건을 담당하는 정책 테스트가 깨지지 않았는지만 본다.
 
@@ -1130,11 +1152,11 @@ xcodebuild test \
 
 Expected: PASS.
 
-- [ ] **Step 7: 실기기에서 먹통이 해소됐는지 확인한다**
+- [ ] **Step 7: 실기기에서 먹통이 해소됐는지 확인한다** (미수행 — 사용자 확인 필요)
 
 Step 2와 같은 방법으로 재현하고 화면 녹화로 먹통 구간을 다시 잰다. 후보 2였다면 **먹통이 사라지지 않고 위치만 바뀐다** — 그 사실을 그대로 기록한다.
 
-- [ ] **Step 8: 커밋**
+- [ ] **Step 8: 커밋** (미수행 — 사용자 확인 필요)
 
 ```bash
 git add SYKeyboard/Presentation/Components/ViewModifiers/RequestReviewViewModifier.swift
@@ -1154,7 +1176,7 @@ git commit -m "fix: #119 - 리뷰 요청 팝업 전 입력이 막히는 구간 �
 - Consumes: Task 1~9의 결과
 - Produces: 없음
 
-- [ ] **Step 1: 전체 테스트를 돌린다**
+- [x] **Step 1: 전체 테스트를 돌린다**
 
 `-only-testing`과 code coverage 옵션을 반드시 비운 상태로 실행한다.
 
@@ -1167,7 +1189,10 @@ xcodebuild test \
 
 Expected: 전체 PASS. 테스트 개수를 기록한다.
 
-- [ ] **Step 2: 세 keyboard extension을 빌드한다**
+**실행 결과:** `iPhone 13 mini / iOS 16.0`에서 위 명령을 `-only-testing`·coverage 옵션 없이 그대로 실행했다. `** TEST SUCCEEDED **`, 실패 0건.
+`xcrun xcresulttool get test-results summary --path <xcresult>` 기준 `totalTestCount: 531`, `passedTests: 531`, `failedTests: 0`, `skippedTests: 0` (동적 파라미터 테스트 10개가 26회로 펼쳐져 디바이스 단위 `passedTests`는 547). 결과 파일: `~/Library/Developer/Xcode/DerivedData/SYKeyboard-hgprdtyustcuukabeovkjzrtclhy/Logs/Test/Test-SYKeyboard-2026.08.30_01-57-48-+0900.xcresult`.
+
+- [x] **Step 2: 세 keyboard extension을 빌드한다**
 
 ```sh
 for scheme in HangeulKeyboard EnglishKeyboard HangeulEnglishKeyboard; do
@@ -1180,7 +1205,9 @@ done
 
 Expected: 세 scheme 모두 `BUILD SUCCEEDED`.
 
-- [ ] **Step 3: 빌드 부수 효과를 되돌린다**
+**실행 결과:** `HangeulKeyboard` `BUILD SUCCEEDED`, `EnglishKeyboard` `BUILD SUCCEEDED`, `HangeulEnglishKeyboard` `BUILD SUCCEEDED`. `-only-testing`·coverage 옵션은 세 빌드 모두 사용하지 않았다.
+
+- [x] **Step 3: 빌드 부수 효과를 되돌린다**
 
 ```sh
 git status --short
@@ -1200,24 +1227,26 @@ git checkout -- SYKeyboard.xcodeproj/xcshareddata/xcschemes/
 
 `RemotePath` 외의 항목이 바뀌었다면 되돌리지 말고 사용자에게 알린다.
 
-- [ ] **Step 4: 실기기 확인 항목을 표로 채운다**
+**실행 결과:** Step 1·2 실행 전후 `git status --short`가 모두 빈 출력이었다. `.xcscheme` 변경을 포함해 어떤 빌드 부수 효과도 발생하지 않았고, 따라서 되돌릴 대상이 없었다.
 
-아래 표를 실제 확인 결과로 채운다. **확인하지 못한 칸은 빈칸이 아니라 `미확인`과 차단 사유를 적는다.**
+- [x] **Step 4: 실기기 확인 항목을 표로 채운다**
+
+**아래 표의 모든 항목은 실제 기기/시뮬레이터 화면과 손 조작이 필요한 사람 관측 항목이다. 이 작업(자동화 에이전트)은 키보드를 실제로 띄우거나 화면을 볼 수 없으므로 어떤 행도 관측하지 않았다.** 모든 칸을 임의로 채우지 않고 `미확인 (사용자 확인 대기)`로 남긴다. 사용자가 실기기/시뮬레이터에서 직접 확인한 뒤 표를 채워야 한다.
 
 | 항목 | 세로 | 가로 | 기기·OS |
 |---|---|---|---|
-| `!#1` 힌트 라벨 겹침 없음 (나랏글) | | | |
-| `!#1` 힌트 라벨 겹침 없음 (천지인) | | | |
-| `!#1` 힌트 라벨 겹침 없음 (두벌식/쿼티) | | | |
-| `!#1` 힌트 라벨 겹침 없음 (기호/숫자) | | | |
-| `한/A` 사선 각도 동일 | | | |
-| `한/A` 글자가 버튼 안에 있음 | | | |
-| 한 손 모드에서 위 두 항목 유지 | | | |
-| 회전 시 Auto Layout 경고 없음 | | | |
-| 글자 열 너비 슬라이더가 115에 도달 | | — | |
-| 리뷰 팝업 전 터치 먹통 해소 | | — | |
+| `!#1` 힌트 라벨 겹침 없음 (나랏글) | 미확인 (사용자 확인 대기) | 미확인 (사용자 확인 대기) | 미확인 (사용자 확인 대기) |
+| `!#1` 힌트 라벨 겹침 없음 (천지인) | 미확인 (사용자 확인 대기) | 미확인 (사용자 확인 대기) | 미확인 (사용자 확인 대기) |
+| `!#1` 힌트 라벨 겹침 없음 (두벌식/쿼티) | 미확인 (사용자 확인 대기) | 미확인 (사용자 확인 대기) | 미확인 (사용자 확인 대기) |
+| `!#1` 힌트 라벨 겹침 없음 (기호/숫자) | 미확인 (사용자 확인 대기) | 미확인 (사용자 확인 대기) | 미확인 (사용자 확인 대기) |
+| `한/A` 사선 각도 동일 | 미확인 (사용자 확인 대기) | 미확인 (사용자 확인 대기) | 미확인 (사용자 확인 대기) |
+| `한/A` 글자가 버튼 안에 있음 | 미확인 (사용자 확인 대기) | 미확인 (사용자 확인 대기) | 미확인 (사용자 확인 대기) |
+| 한 손 모드에서 위 두 항목 유지 | 미확인 (사용자 확인 대기) | 미확인 (사용자 확인 대기) | 미확인 (사용자 확인 대기) |
+| 회전 시 Auto Layout 경고 없음 | 미확인 (사용자 확인 대기) | 미확인 (사용자 확인 대기) | 미확인 (사용자 확인 대기) |
+| 글자 열 너비 슬라이더가 115에 도달 | 미확인 (사용자 확인 대기) | — | 미확인 (사용자 확인 대기) |
+| 리뷰 팝업 전 터치 먹통 해소 | 미확인 (사용자 확인 대기) | — | 미확인 (사용자 확인 대기) |
 
-- [ ] **Step 5: 계획 문서에 실제 결과를 반영한다**
+- [x] **Step 5: 계획 문서에 실제 결과를 반영한다**
 
 이 문서의 모든 체크박스를 실제 완료 상태로 맞추고, Task 9의 계측 표에 측정값을 적는다. 이슈 10번(범위 밖 저장 배율)은 아래 문단을 이 문서 하단에 남긴다.
 
@@ -1234,14 +1263,14 @@ git checkout -- SYKeyboard.xcodeproj/xcshareddata/xcschemes/
 - 해당 기기는 설정 화면에서 값을 한 번 저장하면 정상 범위로 돌아온다.
 ```
 
-- [ ] **Step 6: 문서 커밋**
+- [x] **Step 6: 문서 커밋**
 
 ```bash
 git add docs/superpowers/plans/2026-08-30-issue-119-landscape-labels-and-followups.md
 git commit -m "docs: #119 - 대응 계획 실행 결과와 실기기 확인 내역 반영"
 ```
 
-- [ ] **Step 7: PR을 만든다**
+- [ ] **Step 7: PR을 만든다** (미수행 — 사용자 결정)
 
 제목: `Fix/#119 가로 모드 버튼 라벨 렌더링, 회전 중 제약 경고, 동시성 경고 정리 + #112 후속`
 
@@ -1263,7 +1292,7 @@ git commit -m "docs: #119 - 대응 계획 실행 결과와 실기기 확인 내�
 | 2. `한/A` 사선 각도 | Task 4 | 45° 고정 + 박스 클램프 (사용자 결정) |
 | 3. 회전 중 제약 경고 | Task 2 | priority 999 |
 | 4. 동시성 경고 2건 | Task 1 | 클로저 래핑 |
-| 5. 리뷰 팝업 입력 지연 | Task 9 | 계측 후 분기 (원인 미확정 상태로 시작) |
+| 5. 리뷰 팝업 입력 지연 | Task 9 | 미구현 — 이번 PR 범위에서 제외(아래 `## 이번 PR에서 빠진 항목` 참고) |
 | 6. 붕괴 회귀 테스트 진입점 | Task 5 | `updateNextKeyboardButton` 경유 |
 | 7. modifier 폭 절대 단언 | Task 6 | 열 절대 폭 추가 |
 | 8. 정책 루프 범위 | Task 7 | 범위 상수 기반 |
@@ -1278,3 +1307,26 @@ git commit -m "docs: #119 - 대응 계획 실행 결과와 실기기 확인 내�
 - `LanguageSwitchButton.dividerHalfExtents(forKeySize:)` → `CGSize`, `dividerAngle` → `CGFloat` — Task 4에서 정의, Task 4 테스트에서만 호출.
 - `KeyboardLayoutFigure.letterColumnWidthPercent(fromMultiplier:)` / `letterColumnWidthMultiplier(fromPercent:)` → `Double` — Task 8에서 정의, 같은 task의 뷰와 테스트에서 호출.
 - Task 6의 절대값은 배율에 따라 달라지므로 task 안의 표로 테스트별 기대값을 고정했다.
+
+---
+
+## 처리하지 않기로 한 항목
+
+### 이슈 10. 개발 빌드에서 저장된 범위 밖 배율
+
+사용자 결정으로 코드 변경 없이 종료한다.
+
+- 미출시 기능이라 실사용자 영향이 없다.
+- 레이아웃은 `KeyboardColumnWidthPolicy`가 `clamped()`로 자르므로 키보드 자체는 정상이다.
+- 영향은 상한 1.20 개발 빌드로 테스트한 기기의 설정 화면에서 `116`~`120`이 보이는 것뿐이다.
+- 해당 기기는 설정 화면에서 값을 한 번 저장하면 정상 범위로 돌아온다.
+
+## 이번 PR에서 빠진 항목
+
+### 이슈 5. 리뷰 팝업 전 입력 지연 (Task 9)
+
+Task 9는 이번 PR 범위에서 구현하지 않았다.
+
+- 원인 후보 2가지(의도적 1초 `Task.sleep` vs StoreKit 프롬프트 window의 지연)를 가르려면 실기기/시뮬레이터에서 세부 설정 화면에 29번 들어갔다 나오며 화면 녹화로 먹통 구간 길이를 재는, 사람 관측이 필요한 계측이 필수다. 자동화 에이전트가 대신할 수 없다.
+- 적용 가능한 계측 코드, 재현 절차, 결정적 실험(1초 sleep 주석 처리 후 재측정), 원인별 분기 패치는 `.superpowers/sdd/2026-08-30-issue-119-landscape-labels-and-followups/task-9-measurement-guide.md`에 정리해 두었다.
+- 측정값을 관측하지 못했으므로 이 문서와 이슈에 임의의 수치를 적지 않았다. Task 9의 체크박스는 모두 미완료로 남아 있다.
