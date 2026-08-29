@@ -28,10 +28,10 @@ public final class LanguageSwitchButton: SecondaryButton {
     private let dividerLabelSpacing: CGFloat = 3.0
     /// 글자가 버튼 밖으로 밀려나지 않게 하는 최소 여백
     private let minimumEdgeInset: CGFloat = 3.0
-    /// 구분선 가로 반길이의 버튼 너비 대비 비율
-    private let dividerWidthRatio: CGFloat = 0.22
-    /// 구분선 세로 반길이의 버튼 높이 대비 비율
-    private let dividerHeightRatio: CGFloat = 0.20
+    /// 구분선 가로 반길이의 버튼 너비 대비 상한
+    private static let dividerWidthRatio: CGFloat = 0.22
+    /// 구분선 세로 반길이의 버튼 높이 대비 상한
+    private static let dividerHeightRatio: CGFloat = 0.20
     /// 버튼 너비 대비 글자 크기 비율
     static let labelFontSizeToWidthRatio: CGFloat = 0.38
     /// 글자 크기 대비 구분선 두께 비율. 기본 글자 크기에서 1.5가 되도록 맞춘다
@@ -87,8 +87,9 @@ public final class LanguageSwitchButton: SecondaryButton {
         dividerLayer.strokeColor = UIColor.label.cgColor
         dividerLayer.lineWidth = Self.dividerLineWidth(forFontSize: appliedLabelFontSize)
 
-        let halfWidth = keyBounds.width * dividerWidthRatio
-        let halfHeight = keyBounds.height * dividerHeightRatio
+        let halfExtents = Self.dividerHalfExtents(forKeySize: keyBounds.size)
+        let halfWidth = halfExtents.width
+        let halfHeight = halfExtents.height
 
         let path = UIBezierPath()
         path.move(to: CGPoint(x: keyBounds.midX - halfWidth, y: keyBounds.midY + halfHeight))
@@ -124,6 +125,27 @@ extension LanguageSwitchButton {
     /// 글자와 함께 줄어들어야 마크 전체의 비례가 유지됩니다.
     static func dividerLineWidth(forFontSize fontSize: CGFloat) -> CGFloat {
         return fontSize * dividerLineWidthToFontSizeRatio
+    }
+
+    /// 구분선 기울기(라디안).
+    ///
+    /// 예전에는 버튼 종횡비가 그대로 각도가 돼 행 높이가 낮은 가로 모드에서 사선이 누웠다.
+    /// 세로 모드에서 나오던 각도(4x4 45.2°, 쿼티 47.8°)를 45°로 고정해 방향을 통일한다
+    static let dividerAngle: CGFloat = .pi / 4
+
+    /// 고정 기울기를 유지하면서 키 안에 들어가는 구분선 반길이.
+    ///
+    /// 기울기가 고정이므로 가로·세로 반길이 비가 항상 같고, 길이만 두 비율 상한 중
+    /// 좁은 쪽에 맞춰 잘린다. 낮은 키에서는 높이가, 좁은 키에서는 너비가 길이를 정한다
+    static func dividerHalfExtents(forKeySize size: CGSize) -> CGSize {
+        let cosine = cos(dividerAngle)
+        let sine = sin(dividerAngle)
+        guard size.width > 0, size.height > 0, cosine > 0, sine > 0 else { return .zero }
+
+        let length = min(size.width * dividerWidthRatio / cosine,
+                         size.height * dividerHeightRatio / sine)
+
+        return CGSize(width: length * cosine, height: length * sine)
     }
 }
 

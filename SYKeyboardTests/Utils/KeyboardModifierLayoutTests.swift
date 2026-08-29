@@ -439,3 +439,79 @@ struct SwitchButtonSubLabelFontSizeTests {
         #expect(SwitchButton.subLabelFontSize(forKeyWidth: 39.7, keyHeight: 0) == Self.fullSize)
     }
 }
+
+@MainActor
+@Suite("한영 전환 버튼 구분선 기울기")
+struct LanguageSwitchButtonDividerTests {
+    /// `dividerHalfExtents`가 만드는 사선의 각도(도)
+    private static func angleInDegrees(forKeySize size: CGSize) -> CGFloat {
+        let extents = LanguageSwitchButton.dividerHalfExtents(forKeySize: size)
+        return atan2(extents.height, extents.width) * 180 / .pi
+    }
+
+    @Test("세로 키에서 사선 각도는 45도다")
+    func testPortraitAngleIsFixed() {
+        #expect(abs(Self.angleInDegrees(forKeySize: CGSize(width: 39.7, height: 44)) - 45) < 0.01)
+        #expect(abs(Self.angleInDegrees(forKeySize: CGSize(width: 33, height: 40)) - 45) < 0.01)
+    }
+
+    @Test("가로처럼 낮은 키에서도 각도가 눕지 않는다")
+    func testLandscapeKeepsSameAngle() {
+        #expect(abs(Self.angleInDegrees(forKeySize: CGSize(width: 200, height: 31)) - 45) < 0.01)
+        #expect(abs(Self.angleInDegrees(forKeySize: CGSize(width: 200, height: 27)) - 45) < 0.01)
+    }
+
+    @Test("반길이는 너비·높이 비율 박스를 넘지 않는다")
+    func testHalfExtentsStayInsideRatioBox() {
+        for size in [CGSize(width: 39.7, height: 44),
+                     CGSize(width: 33, height: 40),
+                     CGSize(width: 200, height: 27),
+                     CGSize(width: 20, height: 60)] {
+            let extents = LanguageSwitchButton.dividerHalfExtents(forKeySize: size)
+
+            #expect(extents.width <= size.width * 0.22 + 0.001)
+            #expect(extents.height <= size.height * 0.20 + 0.001)
+            #expect(extents.width > 0)
+            #expect(extents.height > 0)
+        }
+    }
+
+    @Test("낮은 키에서는 높이 비율이 반길이를 결정한다")
+    func testShortKeyIsLimitedByHeight() {
+        let extents = LanguageSwitchButton.dividerHalfExtents(forKeySize: CGSize(width: 200, height: 27))
+
+        #expect(abs(extents.height - 27 * 0.20) < 0.01)
+        #expect(abs(extents.width - 27 * 0.20) < 0.01)
+    }
+
+    @Test("좁은 키에서는 너비 비율이 반길이를 결정한다")
+    func testNarrowKeyIsLimitedByWidth() {
+        let extents = LanguageSwitchButton.dividerHalfExtents(forKeySize: CGSize(width: 20, height: 60))
+
+        #expect(abs(extents.width - 20 * 0.22) < 0.01)
+        #expect(abs(extents.height - 20 * 0.22) < 0.01)
+    }
+
+    @Test("크기가 0이면 반길이도 0이다")
+    func testZeroSizeYieldsZeroExtents() {
+        #expect(LanguageSwitchButton.dividerHalfExtents(forKeySize: .zero) == .zero)
+    }
+
+    @Test("낮은 키에서도 두 글자가 버튼 안에 남는다")
+    func testLabelsStayInsideShortKey() throws {
+        let button = LanguageSwitchButton(mode: .hangeul)
+        // 가로 모드 쿼티 키에 가까운 크기
+        button.frame = CGRect(x: 0, y: 0, width: 39, height: 35)
+        button.layoutIfNeeded()
+
+        let labels = button.subviews.compactMap { $0 as? UILabel }.filter { $0.text == "한" || $0.text == "A" }
+        #expect(labels.count == 2)
+
+        for label in labels {
+            #expect(label.frame.minX >= -0.5)
+            #expect(label.frame.minY >= -0.5)
+            #expect(label.frame.maxX <= button.bounds.width + 0.5)
+            #expect(label.frame.maxY <= button.bounds.height + 0.5)
+        }
+    }
+}
