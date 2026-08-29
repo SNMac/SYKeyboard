@@ -139,8 +139,14 @@ struct CheonjiinBottomSpaceLayoutTests {
         let modifierStack = try #require(languageButton.superview)
         // 지구본이 숨겨져 한/영과 전환 버튼 2개만 남는다
         let visibleButtonCount: CGFloat = 2
+        // 열 자체가 무너져도 두 버튼이 반씩 나눠 가지면 상대 단언은 통과한다.
+        // 배율 1.0에서 modifier 열은 키보드 폭의 1/4이므로 절대값을 함께 고정한다
+        let expectedButtonWidth = Self.keyboardWidth / CGFloat(4) / visibleButtonCount
 
         #expect(view.nextKeyboardButton.isHidden)
+        #expect(abs(modifierStack.frame.width - Self.keyboardWidth / 4) < 0.5)
+        #expect(abs(languageButton.frame.width - expectedButtonWidth) < 0.5)
+        #expect(abs(view.switchButton.frame.width - expectedButtonWidth) < 0.5)
         #expect(
             abs(languageButton.frame.width - modifierStack.frame.width / visibleButtonCount) < 0.5
         )

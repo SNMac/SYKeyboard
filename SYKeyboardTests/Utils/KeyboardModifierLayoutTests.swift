@@ -242,8 +242,14 @@ struct KeyboardModifierLayoutTests {
         let modifierStack = try #require(languageButton.superview)
         // 지구본이 숨겨져 한/영과 전환 버튼 2개만 남는다
         let visibleButtonCount: CGFloat = 2
+        // 열 자체가 무너져도 두 버튼이 반씩 나눠 가지면 상대 단언은 통과한다.
+        // 배율 1.0에서 modifier 열은 키보드 폭의 1/4이므로 절대값을 함께 고정한다
+        let expectedButtonWidth = width / CGFloat(4) / visibleButtonCount
 
         #expect(view.nextKeyboardButton.isHidden)
+        #expect(abs(modifierStack.frame.width - width / 4) < 0.5)
+        #expect(abs(languageButton.frame.width - expectedButtonWidth) < 0.5)
+        #expect(abs(view.switchButton.frame.width - expectedButtonWidth) < 0.5)
         #expect(
             abs(languageButton.frame.width - modifierStack.frame.width / visibleButtonCount) < 0.5
         )
@@ -329,9 +335,10 @@ struct KeyboardModifierLayoutTests {
 
     @Test(arguments: [FourByFourFixture.naratgeul, .cheonjiin])
     func testFourByFourHiddenGlobeSplitsModifierStackEqually(_ fixture: FourByFourFixture) throws {
+        let width: CGFloat = 390
         let primaryView = fixture.makeView(showsLanguageSwitchButton: true)
         let view = primaryView
-        view.frame = CGRect(x: 0, y: 0, width: 390, height: 216)
+        view.frame = CGRect(x: 0, y: 0, width: width, height: 216)
         // 저장된 사용자 설정과 무관하게 기본 배율로 고정한다
         view.updateLetterColumnWidthMultiplier(1.0)
         view.layoutIfNeeded()
@@ -346,8 +353,13 @@ struct KeyboardModifierLayoutTests {
         let modifierStack = try #require(languageButton.superview)
         // globe가 빠지면 한/영과 전환 버튼 2개가 modifier 스택을 균등하게 나눈다
         let visibleButtonCount: CGFloat = 2
+        // 배율 1.0에서 modifier 열은 키보드 폭의 1/4이다. 열 붕괴를 잡으려면 절대값이 필요하다
+        let expectedButtonWidth = width / CGFloat(4) / visibleButtonCount
 
         #expect(primaryView.nextKeyboardButton.isHidden)
+        #expect(abs(modifierStack.frame.width - width / 4) < 0.5)
+        #expect(abs(languageButton.frame.width - expectedButtonWidth) < 0.5)
+        #expect(abs(primaryView.switchButton.frame.width - expectedButtonWidth) < 0.5)
         #expect(
             abs(languageButton.frame.width - modifierStack.frame.width / visibleButtonCount) < 0.5
         )
