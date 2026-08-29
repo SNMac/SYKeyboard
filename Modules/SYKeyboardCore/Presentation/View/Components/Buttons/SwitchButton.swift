@@ -28,6 +28,11 @@ final public class SwitchButton: SecondaryButton {
     /// 한 손 키보드처럼 이보다 좁아지면 글자가 키 밖으로 나가므로 너비에 비례해 줄인다
     private static let subLabelFullSizeKeyWidth: CGFloat = 25.0
 
+    /// 보조 라벨이 기본 크기 그대로 들어가는 최소 키 높이.
+    /// 가로 모드는 행 높이가 낮아(약 35pt) 모서리 힌트가 가운데 라벨과 겹치므로 높이에도 비례해 줄인다.
+    /// 세로 모드 최소 키 높이(쿼티 40pt)를 기준값으로 잡아 세로 크기는 그대로 둔다
+    private static let subLabelFullSizeKeyHeight: CGFloat = 40.0
+
     /// 현재 보조 라벨에 적용된 글자 크기
     private var appliedSubLabelFontSize: CGFloat = FontSize.stringKeySmall
     /// 보조 라벨 강조 상태. 너비가 바뀌어 다시 만들 때도 유지해야 한다
@@ -111,7 +116,8 @@ final public class SwitchButton: SecondaryButton {
             primaryKeyListLabel.font = .monospacedDigitSystemFont(ofSize: FontSize.stringKeyMedium, weight: .regular)
         }
 
-        let subLabelFontSize = Self.subLabelFontSize(forKeyWidth: backgroundView.bounds.width)
+        let subLabelFontSize = Self.subLabelFontSize(forKeyWidth: backgroundView.bounds.width,
+                                                    keyHeight: backgroundView.bounds.height)
         guard abs(subLabelFontSize - appliedSubLabelFontSize) > 0.01 else { return }
 
         appliedSubLabelFontSize = subLabelFontSize
@@ -138,12 +144,14 @@ final public class SwitchButton: SecondaryButton {
         keyboardSelectLabel.attributedText = createKeyboardSelectAttributedText(needToEmphasize: needToEmphasize)
     }
 
-    /// 키 너비에 맞는 보조 라벨 글자 크기.
-    /// 기본 크기를 상한으로 두고, 키가 좁아지면 너비에 비례해 줄인다
-    static func subLabelFontSize(forKeyWidth width: CGFloat) -> CGFloat {
-        guard width > 0 else { return FontSize.stringKeySmall }
+    /// 키 크기에 맞는 보조 라벨 글자 크기.
+    /// 기본 크기를 상한으로 두고, 키가 좁거나 낮아지면 좁은 쪽 기준으로 줄인다
+    static func subLabelFontSize(forKeyWidth width: CGFloat, keyHeight height: CGFloat) -> CGFloat {
+        guard width > 0, height > 0 else { return FontSize.stringKeySmall }
 
-        return min(FontSize.stringKeySmall, FontSize.stringKeySmall * width / subLabelFullSizeKeyWidth)
+        return min(FontSize.stringKeySmall,
+                   FontSize.stringKeySmall * width / subLabelFullSizeKeyWidth,
+                   FontSize.stringKeySmall * height / subLabelFullSizeKeyHeight)
     }
 
 }

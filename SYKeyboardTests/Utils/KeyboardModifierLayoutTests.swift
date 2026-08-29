@@ -393,3 +393,49 @@ struct KeyboardModifierLayoutTests {
         }
     }
 }
+
+@MainActor
+@Suite("전환 버튼 보조 라벨 크기")
+struct SwitchButtonSubLabelFontSizeTests {
+    private static let fullSize: CGFloat = 8.0
+
+    @Test("세로 모드 키 크기에서는 기본 크기를 유지한다")
+    func testPortraitKeepsFullSize() {
+        // 세로 4x4: 버튼 48 - insetDy 2 * 2 = 44, 세로 쿼티: 48 - 4 * 2 = 40
+        #expect(abs(SwitchButton.subLabelFontSize(forKeyWidth: 39.7, keyHeight: 44) - Self.fullSize) < 0.01)
+        #expect(abs(SwitchButton.subLabelFontSize(forKeyWidth: 33.0, keyHeight: 40) - Self.fullSize) < 0.01)
+    }
+
+    @Test("가로 모드 낮은 키에서는 높이에 비례해 줄인다")
+    func testLandscapeShrinksWithHeight() {
+        // 가로 4x4: 35 - 2 * 2 = 31, 가로 쿼티: 35 - 4 * 2 = 27
+        let fourByFour = SwitchButton.subLabelFontSize(forKeyWidth: 200, keyHeight: 31)
+        let qwerty = SwitchButton.subLabelFontSize(forKeyWidth: 200, keyHeight: 27)
+
+        #expect(abs(fourByFour - Self.fullSize * 31 / 40) < 0.01)
+        #expect(abs(qwerty - Self.fullSize * 27 / 40) < 0.01)
+        #expect(qwerty < fourByFour)
+        #expect(fourByFour < Self.fullSize)
+    }
+
+    @Test("좁은 키에서는 너비 기준 축소가 그대로 유지된다")
+    func testNarrowKeyStillShrinksByWidth() {
+        // 한 손 키보드처럼 좁은 키는 높이가 넉넉해도 너비 때문에 줄어야 한다
+        let narrow = SwitchButton.subLabelFontSize(forKeyWidth: 20, keyHeight: 44)
+
+        #expect(abs(narrow - Self.fullSize * 20 / 25) < 0.01)
+        #expect(narrow < Self.fullSize)
+    }
+
+    @Test("너비와 높이 중 좁은 쪽이 결과를 결정한다")
+    func testUsesSmallerOfWidthAndHeightRule() {
+        // 너비 20 -> 6.4, 높이 27 -> 5.4. 더 작은 5.4가 나와야 한다
+        #expect(abs(SwitchButton.subLabelFontSize(forKeyWidth: 20, keyHeight: 27) - Self.fullSize * 27 / 40) < 0.01)
+    }
+
+    @Test("크기가 0이면 기본 크기로 되돌린다")
+    func testNonPositiveSizeFallsBackToFullSize() {
+        #expect(SwitchButton.subLabelFontSize(forKeyWidth: 0, keyHeight: 44) == Self.fullSize)
+        #expect(SwitchButton.subLabelFontSize(forKeyWidth: 39.7, keyHeight: 0) == Self.fullSize)
+    }
+}
