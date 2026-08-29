@@ -3,6 +3,7 @@
 //  SYKeyboardTests
 //
 
+import Foundation
 import Testing
 import UIKit
 
@@ -251,10 +252,15 @@ struct CheonjiinColumnWidthLayoutTests {
     func testBottomSpaceLayoutSplitsModifierStackEqually() throws {
         let view = Self.makeView(usesBottomSpaceLayout: true, multiplier: 1.15)
         let languageSwitchButton = try #require(view.languageSwitchButton)
-        // 지구본을 숨기면 modifier 스택에 한/영과 전환 버튼 2개만 남는다
-        view.nextKeyboardButton.isHidden = true
-        view.nextKeyboardButtonVisibilityDidChange(needsInputModeSwitchKey: false)
+        // 지구본을 숨기면 modifier 스택에 한/영과 전환 버튼 2개만 남는다.
+        // production 진입점을 그대로 호출해 isHidden 설정과 재배치 콜백을 함께 검증한다
+        view.updateNextKeyboardButton(
+            needsInputModeSwitchKey: false,
+            nextKeyboardAction: NSSelectorFromString("unusedNextKeyboardAction:")
+        )
         view.layoutIfNeeded()
+
+        #expect(view.nextKeyboardButton.isHidden)
 
         let modifierStack = try #require(languageSwitchButton.superview)
         let visibleButtonCount: CGFloat = 2
@@ -375,10 +381,15 @@ struct NumericColumnWidthLayoutTests {
     func testHigherMultiplierKeepsModifierStackFromCollapsing() throws {
         let view = Self.makeView(usesBottomSpaceLayout: false, multiplier: 1.15)
         let languageSwitchButton = try #require(view.languageSwitchButton)
-        // 지구본을 숨기면 modifier 스택에 한/영과 전환 버튼 2개만 남는다
-        view.nextKeyboardButton.isHidden = true
-        view.nextKeyboardButtonVisibilityDidChange(needsInputModeSwitchKey: false)
+        // 지구본을 숨기면 modifier 스택에 한/영과 전환 버튼 2개만 남는다.
+        // production 진입점을 그대로 호출해 isHidden 설정과 재배치 콜백을 함께 검증한다
+        view.updateNextKeyboardButton(
+            needsInputModeSwitchKey: false,
+            nextKeyboardAction: NSSelectorFromString("unusedNextKeyboardAction:")
+        )
         view.layoutIfNeeded()
+
+        #expect(view.nextKeyboardButton.isHidden)
 
         let modifierStack = try #require(languageSwitchButton.superview)
         let visibleButtonCount: CGFloat = 2
