@@ -34,7 +34,8 @@ struct InfoView: View {
             isShowingInstructions = true
         } label: {
             HStack {
-                Image(.textPage)
+                // SF Symbols 6의 `text.rectangle.page`는 iOS 18부터라 같은 심볼의 레거시 이름을 쓴다.
+                Image(systemName: "doc.text.image")
                     .resizable()
                     .scaledToFit()
                     .frame(width: 20, height: 20)
@@ -110,6 +111,7 @@ struct InfoView: View {
             OpenSourceLicenseView()
         } label: {
             HStack {
+                // SF Symbols 6의 `text.document`는 iOS 18부터라 같은 심볼의 레거시 이름을 쓴다.
                 Image(systemName: "doc.text")
                     .resizable()
                     .scaledToFit()
