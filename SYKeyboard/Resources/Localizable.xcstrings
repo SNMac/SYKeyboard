@@ -190,16 +190,6 @@
         }
       }
     },
-    "나랏글·천지인·숫자 키패드에 적용" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Applies to Naratgeul, Cheonjiin, and the numeric keypad"
-          }
-        }
-      }
-    },
     "나랏글" : {
       "localizations" : {
         "en" : {
@@ -216,6 +206,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Symbol Labels for Naratgeul Stroke and Double Keys"
+          }
+        }
+      }
+    },
+    "나랏글·천지인·숫자 키패드에 적용" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Applies to Naratgeul, Cheonjiin, and the numeric keypad"
           }
         }
       }
@@ -260,6 +260,26 @@
         }
       }
     },
+    "라이선스 전문" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "License Texts"
+          }
+        }
+      }
+    },
+    "라이선스 정보를 불러오지 못했습니다." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Failed to load license information."
+          }
+        }
+      }
+    },
     "리뷰 및 별점 주기" : {
       "localizations" : {
         "en" : {
@@ -286,6 +306,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Inquiry"
+          }
+        }
+      }
+    },
+    "바이너리 SDK 이용 약관" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Terms for Binary SDKs"
           }
         }
       }
@@ -326,6 +356,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Disabled"
+          }
+        }
+      }
+    },
+    "사용 중인 오픈소스" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open Source in Use"
           }
         }
       }
@@ -506,6 +546,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Error occurred"
+          }
+        }
+      }
+    },
+    "오픈소스 라이선스" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open Source Licenses"
           }
         }
       }
@@ -896,56 +946,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Activation Drag Distance"
-          }
-        }
-      }
-    },
-    "오픈소스 라이선스" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Open Source Licenses"
-          }
-        }
-      }
-    },
-    "라이선스 정보를 불러오지 못했습니다." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Failed to load license information."
-          }
-        }
-      }
-    },
-    "사용 중인 오픈소스" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Open Source in Use"
-          }
-        }
-      }
-    },
-    "라이선스 전문" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "License Texts"
-          }
-        }
-      }
-    },
-    "바이너리 SDK 이용 약관" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Terms for Binary SDKs"
           }
         }
       }
