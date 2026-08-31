@@ -407,8 +407,8 @@ struct KeyboardModifierLayoutTests {
 }
 
 @MainActor
-@Suite("전환 버튼 보조 라벨 크기")
-struct SwitchButtonSubLabelFontSizeTests {
+@Suite("전환 버튼 라벨 크기")
+struct SwitchButtonLabelFontSizeTests {
     private static let fullSize: CGFloat = 8.0
 
     @Test("세로 모드 키 크기에서는 기본 크기를 유지한다")
@@ -459,6 +459,38 @@ struct SwitchButtonSubLabelFontSizeTests {
     func testNonPositiveSizeFallsBackToFullSize() {
         #expect(SwitchButton.subLabelFontSize(forKeyWidth: 0, keyHeight: 44) == Self.fullSize)
         #expect(SwitchButton.subLabelFontSize(forKeyWidth: 39.7, keyHeight: 0) == Self.fullSize)
+    }
+
+    @Test("세로 모드 높이에서는 너비 사다리를 그대로 유지한다")
+    func testPrimaryLabelKeepsWidthLadderInPortrait() {
+        #expect(SwitchButton.primaryLabelFontSize(forKeyWidth: 49.6, keyHeight: 56) == 16)
+        #expect(SwitchButton.primaryLabelFontSize(forKeyWidth: 40, keyHeight: 56) == 14)
+        #expect(SwitchButton.primaryLabelFontSize(forKeyWidth: 36, keyHeight: 56) == 12)
+    }
+
+    @Test("슬라이더 최소값의 세로 모드 높이(39.5)는 줄지 않는다")
+    func testPrimaryLabelNotReducedAtSliderMinimumPortraitHeight() {
+        // 39.5는 keyboardHeight 슬라이더 최하단(190), 쿼티 계열, insetDy 4에서 나오는
+        // 가장 작은 세로 모드 배경 높이다
+        #expect(SwitchButton.primaryLabelFontSize(forKeyWidth: 44, keyHeight: 39.5) == 16)
+    }
+
+    @Test("가로 모드 높이에서는 한 단계 낮춘 크기를 쓴다")
+    func testPrimaryLabelDropsOneRungInLandscape() {
+        #expect(SwitchButton.primaryLabelFontSize(forKeyWidth: 49.6, keyHeight: 32) == 14)
+        #expect(SwitchButton.primaryLabelFontSize(forKeyWidth: 40, keyHeight: 32) == 12)
+        #expect(SwitchButton.primaryLabelFontSize(forKeyWidth: 36, keyHeight: 32) == 10)
+    }
+
+    @Test("임계값 36은 포함되지 않고, 그 아래인 35.9는 낮춘다")
+    func testPrimaryLabelThresholdIsExclusive() {
+        #expect(SwitchButton.primaryLabelFontSize(forKeyWidth: 44, keyHeight: 36) == 16)
+        #expect(SwitchButton.primaryLabelFontSize(forKeyWidth: 44, keyHeight: 35.9) == 14)
+    }
+
+    @Test("높이가 0 이하면 사다리 크기로 되돌린다")
+    func testPrimaryLabelFallsBackToLadderForNonPositiveHeight() {
+        #expect(SwitchButton.primaryLabelFontSize(forKeyWidth: 44, keyHeight: 0) == 16)
     }
 }
 
