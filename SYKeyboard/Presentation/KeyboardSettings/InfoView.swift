@@ -74,7 +74,7 @@ struct InfoView: View {
             }
         } label: {
             HStack {
-                Image(.questionmarkBubble)
+                Image(systemName: "questionmark.bubble")
                     .resizable()
                     .scaledToFit()
                     .frame(width: 20, height: 20)
@@ -99,7 +99,7 @@ struct InfoView: View {
             openURL(url)
         } label: {
             HStack {
-                Image(.pencilLine)
+                Image(systemName: "pencil.line")
                     .resizable()
                     .scaledToFit()
                     .frame(width: 20, height: 20)
