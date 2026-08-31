@@ -3,7 +3,8 @@
 # SY키보드
 > SY키보드는 가볍고, 사용하기 간편한 한글, 영어 키보드입니다.
 > - 한글 키보드: 나랏글, 천지인, 두벌식
-> - 영어 키보드: QWERTY  
+> - 영어 키보드: QWERTY
+> - 한영 통합 키보드: 한글·영어 키보드를 한영 전환 버튼으로 오가는 단일 키보드  
 > 
 > [Figma](https://www.figma.com/design/0i3sNlaez0LG0QMfw80yJ4/SY%ED%82%A4%EB%B3%B4%EB%93%9C?node-id=0-1&t=L8rArjkBX9MJ3UJD-1)
 > 
@@ -34,11 +35,11 @@
 | :-------: | :----------------------------------------------------------- |
 | 의존성 관리 도구 | `SPM`                                                        |
 | 형상 관리 도구  | `Git`, `GitHub`                                              |
-|  디자인 패턴   | `Delegate`, `Singleton`                                      |
+|  디자인 패턴   | `Delegate`, `Singleton`, `Adapter`                           |
 |   인터페이스   | `UIKit`, `SwiftUI`                                           |
-|  활용 API   | `Firebase Analytics`, `Firebase Crashlytics`, `Google AdMob` |
-|  내부 저장소   | `UserDefaults`                                               |
-| 자동완성 텍스트  | `UILexicon`, `UITextChecker`                                 |
+|  활용 API   | `Firebase Analytics`, `Firebase Crashlytics`, `Google AdMob`(+ `Meta Audience Network` 미디에이션) |
+|  내부 저장소   | `UserDefaults`(App Group), 바이너리 plist 파일                    |
+| 자동완성 텍스트  | `UILexicon`, `UITextChecker`, 자체 n-gram 엔진                   |
 |   로컬라이징   | `String Catalog`                                             |
 |    테스트    | `Swift Testing`                                              |
 
@@ -49,7 +50,7 @@
 ![Static Badge|67](https://img.shields.io/badge/Swift%205-%23F05138?logo=swift&logoColor=white)
 ![Static Badge|55](https://img.shields.io/badge/16%20~%20-%23000000?logo=ios&logoColor=white)
 
-로컬 SPM 패키지는 `swift-tools-version: 6.0` manifest를 기준으로 한다.
+빌드는 Xcode 26 이상을 기준으로 하며, 로컬 SPM 패키지는 `swift-tools-version: 6.0` manifest를 기준으로 한다.
 
 <br><br>
 
@@ -423,8 +424,63 @@ func setKeyboardHeight() {
 
 <br>
 
+## 📚 문서
+구현 구조와 동작 원리를 설명하는 아키텍처 문서는 [docs/architecture](docs/architecture/README.md)에 있다.
+- 전체 아키텍처 · 한글 입력 로직 · 자동완성 로직 · 삭제와 실행취소 로직 · 한영 통합 키보드
+
+<br><br>
+
+
 ## 📊 다이어그램
-### 키보드 종류 구조
+### 전체 구조
+아래 상세 다이어그램들이 어떻게 연결되는지 나타낸 최상위 구조이다.
+자동완성을 포함한 각 영역의 동작 원리는 [docs/architecture](docs/architecture/README.md) 문서에 정리되어 있다.
+
+``` mermaid
+%%{
+  init: {
+    "theme": "default",
+    "fontFamily": "monospace"
+  }
+}%%
+flowchart TB
+    subgraph VCA["ViewController · InputAdapter 구조"]
+        direction LR
+        FinalVC["언어별 ViewController<br/>(한글 · 영어 · 한영 통합)"] -->|상속| BaseVC["BaseKeyboardViewController"]
+        FinalVC -->|입력 위임| Adapter["InputAdapter<br/>(한글 · 영어)"]
+    end
+
+    subgraph HD["한글 입력 도메인 구조"]
+        Domain["HangeulCompositionState<br/>Processor · Automata"]
+    end
+
+    subgraph LO["키보드 레이아웃 구조"]
+        Layout["KeyboardView<br/>*KeyboardLayoutProvider 구현 View"]
+    end
+
+    subgraph GS["제스처 구조"]
+        Gesture["TextInteractionGestureController<br/>SwitchGestureController"]
+    end
+
+    subgraph BT["키보드 버튼 구조"]
+        Button["BaseKeyboardButton 계열<br/>(TextInteractable)"]
+    end
+
+    Suggestion["자동완성<br/>SuggestionController · 예측 엔진"]
+    Host["호스트 앱 텍스트 필드<br/>(textDocumentProxy)"]
+
+    Adapter -->|조합 위임| Domain
+    Adapter -->|현재 키보드 View 제공| Layout
+    Layout -->|버튼 배치| Button
+    Button -->|UIAction| BaseVC
+    BaseVC -->|터치/드래그| Gesture
+    BaseVC -->|후보 조회 · 학습| Suggestion
+    BaseVC -->|insert/delete| Host
+```
+
+---
+
+### ViewController · InputAdapter 구조
 ``` mermaid
 %%{
   init: {
@@ -443,65 +499,95 @@ func setKeyboardHeight() {
 }%%
 classDiagram
 direction LR
-    %% Keyboard Type
-    namespace KeyboardGestureController {
-      class TextInteractionGestureController
-      class SwitchGestureController
-    }
-
-    namespace KeyboardGestureProtocol {
-      class SwitchGestureHandling
-    }
-
-    namespace KeyboardTypeLayoutProtocol {
-      class HangeulKeyboardLayoutProvider
-      class EnglishKeyboardLayoutProvider
-      class SymbolKeyboardLayoutProvider
-      class NumericKeyboardLayoutProvider
-      class TenkeyKeyboardLayoutProvider
-    }
-
+    %% ViewController & InputAdapter
     namespace ParentKeyboardViewController {
       class BaseKeyboardViewController
+      class HangeulKeyboardCoreViewController
+      class EnglishKeyboardCoreViewController
     }
 
     namespace FinalKeyboardViewController {
       class HangeulKeyboardViewController
       class EnglishKeyboardViewController
+      class HangeulEnglishKeyboardViewController
     }
 
-    class NormalKeyboardLayoutProvider:::SYKeyboard_primary { <<protocol>> }
+    namespace KeyboardInputAdapter {
+      class HangeulKeyboardInputAdapter
+      class EnglishKeyboardInputAdapter
+    }
+
     class PrimaryKeyboardRepresentable:::SYKeyboard_primary { <<protocol>> }
-    class HangeulKeyboardLayoutProvider:::SYKeyboard_primary { <<protocol>> }
-    class EnglishKeyboardLayoutProvider:::SYKeyboard_primary { <<protocol>> }
     class SymbolKeyboardLayoutProvider:::SYKeyboard_primary { <<protocol>> }
     class NumericKeyboardLayoutProvider:::SYKeyboard_primary { <<protocol>> }
     class TenkeyKeyboardLayoutProvider:::SYKeyboard_primary { <<protocol>> }
-    class SwitchGestureHandling:::SYKeyboard_primary { <<protocol>> }
 
     BaseKeyboardViewController --> PrimaryKeyboardRepresentable: Association
     BaseKeyboardViewController *-- SymbolKeyboardLayoutProvider: Composition
     BaseKeyboardViewController *-- NumericKeyboardLayoutProvider: Composition
     BaseKeyboardViewController *-- TenkeyKeyboardLayoutProvider: Composition
 
-    NormalKeyboardLayoutProvider <|-- PrimaryKeyboardRepresentable: Inheritance
-    NormalKeyboardLayoutProvider <|-- SymbolKeyboardLayoutProvider: Inheritance
-    NormalKeyboardLayoutProvider <|-- NumericKeyboardLayoutProvider: Inheritance
+    BaseKeyboardViewController <|-- HangeulKeyboardCoreViewController: Inheritance
+    BaseKeyboardViewController <|-- EnglishKeyboardCoreViewController: Inheritance
+    BaseKeyboardViewController <|-- HangeulEnglishKeyboardViewController: Inheritance
+    HangeulKeyboardCoreViewController <|-- HangeulKeyboardViewController: Inheritance
+    EnglishKeyboardCoreViewController <|-- EnglishKeyboardViewController: Inheritance
 
-    BaseKeyboardViewController *-- TextInteractionGestureController: Composition
-    BaseKeyboardViewController *-- SwitchGestureController: Composition
+    HangeulKeyboardCoreViewController *-- HangeulKeyboardInputAdapter: Composition
+    EnglishKeyboardCoreViewController *-- EnglishKeyboardInputAdapter: Composition
+    HangeulEnglishKeyboardViewController *-- HangeulKeyboardInputAdapter: Composition
+    HangeulEnglishKeyboardViewController *-- EnglishKeyboardInputAdapter: Composition
+    HangeulEnglishKeyboardViewController *-- HangeulEnglishKeyboardModeCoordinator: Composition
 
-    SwitchGestureHandling <|-- NormalKeyboardLayoutProvider: Inheritance
-    SwitchGestureController --> SwitchGestureHandling: Association
+    HangeulKeyboardInputAdapter --> PrimaryKeyboardRepresentable: Association
+    EnglishKeyboardInputAdapter --> PrimaryKeyboardRepresentable: Association
 
-    BaseKeyboardViewController <|-- HangeulKeyboardViewController: Inheritance
-    BaseKeyboardViewController <|-- EnglishKeyboardViewController: Inheritance
+    classDef SYKeyboard_primary fill:#ffa6ed
+```
 
-    HangeulKeyboardViewController *-- HangeulKeyboardLayoutProvider: Composition
-    PrimaryKeyboardRepresentable <|-- HangeulKeyboardLayoutProvider: Inheritance
+---
 
-    EnglishKeyboardViewController *-- EnglishKeyboardLayoutProvider: Composition
-    PrimaryKeyboardRepresentable <|-- EnglishKeyboardLayoutProvider: Inheritance
+### 한글 입력 도메인 구조
+``` mermaid
+%%{
+  init: {
+    "theme": "default",
+    "fontFamily": "monospace",
+    "elk": {
+        "mergeEdges": false,
+        "nodePlacementStrategy": "BRANDES_KOEPF",
+        "forceNodeModelOrder": false,
+        "considerModelOrder": "NODES_AND_EDGES"
+    },
+    "class": {
+        "hideEmptyMembersBox": true
+    }
+  }
+}%%
+classDiagram
+direction LR
+    %% Hangeul Input Domain
+    namespace HangeulInputDomain {
+      class HangeulCompositionState
+      class NaratgeulProcessor
+      class CheonjiinProcessor
+      class DubeolsikProcessor
+      class HangeulAutomata
+    }
+
+    class HangeulProcessable:::SYKeyboard_primary { <<protocol>> }
+    class HangeulAutomataProtocol:::SYKeyboard_primary { <<protocol>> }
+
+    HangeulKeyboardInputAdapter *-- HangeulCompositionState: Composition
+    HangeulKeyboardInputAdapter *-- HangeulProcessable: Composition
+    HangeulCompositionState --> HangeulProcessable: Association
+
+    HangeulProcessable <|.. NaratgeulProcessor: Implementation
+    HangeulProcessable <|.. CheonjiinProcessor: Implementation
+    HangeulProcessable <|.. DubeolsikProcessor: Implementation
+
+    HangeulProcessable --> HangeulAutomataProtocol: Association
+    HangeulAutomataProtocol <|.. HangeulAutomata: Implementation
 
     classDef SYKeyboard_primary fill:#ffa6ed
 ```
@@ -572,7 +658,7 @@ direction LR
 
     NormalKeyboardLayoutProvider <|-- PrimaryKeyboardRepresentable: Inheritance
 
-    TenkeyKeyboardLayoutProvider ..|> TenkeyKeyboardView: Implementation
+    TenkeyKeyboardLayoutProvider <|.. TenkeyKeyboardView: Implementation
 
     PrimaryKeyboardRepresentable <|-- HangeulKeyboardLayoutProvider: Inheritance
 
@@ -585,15 +671,57 @@ direction LR
 
     PrimaryKeyboardRepresentable <|-- EnglishKeyboardLayoutProvider: Inheritance
 
-    EnglishKeyboardLayoutProvider ..|> EnglishKeyboardView: Implementation
+    EnglishKeyboardLayoutProvider <|.. EnglishKeyboardView: Implementation
     StandardKeyboardView <|-- EnglishKeyboardView: Inheritance
 
     NormalKeyboardLayoutProvider <|-- SymbolKeyboardLayoutProvider: Inheritance
-    SymbolKeyboardLayoutProvider ..|> SymbolKeyboardView: Implementation
+    SymbolKeyboardLayoutProvider <|.. SymbolKeyboardView: Implementation
 
     NormalKeyboardLayoutProvider <|-- NumericKeyboardLayoutProvider: Inheritance
-    NumericKeyboardLayoutProvider ..|> NumericKeyboardView: Implementation
+    NumericKeyboardLayoutProvider <|.. NumericKeyboardView: Implementation
     
+    classDef SYKeyboard_primary fill:#ffa6ed
+```
+
+---
+
+### 제스처 구조
+``` mermaid
+%%{
+  init: {
+    "theme": "default",
+    "fontFamily": "monospace",
+    "elk": {
+        "mergeEdges": false,
+        "nodePlacementStrategy": "BRANDES_KOEPF",
+        "forceNodeModelOrder": false,
+        "considerModelOrder": "NODES_AND_EDGES"
+    },
+    "class": {
+        "hideEmptyMembersBox": true
+    }
+  }
+}%%
+classDiagram
+direction LR
+    %% Keyboard Gesture
+    namespace KeyboardGestureController {
+      class TextInteractionGestureController
+      class SwitchGestureController
+    }
+
+    namespace KeyboardGestureProtocol {
+      class SwitchGestureHandling
+    }
+
+    class SwitchGestureHandling:::SYKeyboard_primary { <<protocol>> }
+    class TextInteractable:::SYKeyboard_primary { <<protocol>> }
+
+    BaseKeyboardViewController *-- TextInteractionGestureController: Composition
+    BaseKeyboardViewController *-- SwitchGestureController: Composition
+    TextInteractionGestureController --> TextInteractable: Association
+    SwitchGestureController --> SwitchGestureHandling: Association
+
     classDef SYKeyboard_primary fill:#ffa6ed
 ```
 
@@ -636,6 +764,7 @@ direction LR
       class ShiftButton
       class DeleteButton
       class SwitchButton
+      class LanguageSwitchButton
       class NextKeyboardButton
       class ReturnButton
     }
@@ -652,6 +781,7 @@ direction LR
     PrimaryKeyButton ..|> TextInteractable: Implementation
 
     SecondaryButton <|-- DeleteButton: Inheritance
+    SecondaryButton <|-- LanguageSwitchButton: Inheritance
     SecondaryButton <|-- NextKeyboardButton: Inheritance
     SecondaryButton <|-- ReturnButton: Inheritance
     SecondaryButton <|-- SecondaryKeyButton: Inheritance
