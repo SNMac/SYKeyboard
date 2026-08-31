@@ -25,7 +25,7 @@ struct OpenSourceLicenseView: View {
     var body: some View {
         ScrollView([.vertical, .horizontal]) {
             Text(licenseText)
-                .font(.system(size: 11, design: .monospaced))
+                .font(.system(.caption2, design: .monospaced))
                 .textSelection(.enabled)
                 .padding()
         }
@@ -39,14 +39,12 @@ struct OpenSourceLicenseView: View {
     // MARK: - Methods
 
     private static func loadLicenseText() -> String {
-        guard let url = Bundle.main.url(forResource: "LICENSES", withExtension: "txt") else {
+        do {
+            return try OpenSourceLicenseTextLoader.loadText()
+        } catch OpenSourceLicenseTextLoader.LoadError.resourceNotFound {
             assertionFailure("LICENSES.txt가 앱 번들에 존재하지 않습니다.")
             logger.error("LICENSES.txt를 앱 번들에서 찾을 수 없습니다.")
             return String(localized: "라이선스 정보를 불러오지 못했습니다.")
-        }
-
-        do {
-            return try String(contentsOf: url, encoding: .utf8)
         } catch {
             logger.error("LICENSES.txt를 읽지 못했습니다: \(error.localizedDescription)")
             return String(localized: "라이선스 정보를 불러오지 못했습니다.")

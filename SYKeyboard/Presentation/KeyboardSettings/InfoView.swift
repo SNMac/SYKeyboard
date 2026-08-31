@@ -119,6 +119,12 @@ struct InfoView: View {
                 Text("오픈소스 라이선스")
             }
         }
+        // NavigationLink에는 action 클로저가 없어 다른 항목과 달리 탭 제스처로 로깅한다.
+        .simultaneousGesture(TapGesture().onEnded {
+            Analytics.logEvent("open_licenses", parameters: [
+                "view": "InfoView",
+            ])
+        })
 
         HStack {
             Text("버전")
