@@ -23,8 +23,12 @@ struct KeyboardColumnWidthPolicyTests {
 
     @Test("글자 열 3개와 기능 열의 합은 항상 1이다")
     func testColumnRatiosAlwaysSumToOne() {
-        for step in 0...20 {
-            let multiplier = 1.0 + Double(step) * 0.01
+        let range = KeyboardLayoutFigure.letterColumnWidthMultiplierRange
+        // 상한 밖은 clamp돼 같은 값을 반복 검증할 뿐이므로 허용 범위 안만 돈다
+        let lastStep = Int(((range.upperBound - range.lowerBound) * 100).rounded())
+
+        for step in 0...lastStep {
+            let multiplier = range.lowerBound + Double(step) * 0.01
             let total = 3 * KeyboardColumnWidthPolicy.letterColumnRatio(multiplier: multiplier)
             + KeyboardColumnWidthPolicy.functionColumnRatio(multiplier: multiplier)
 
@@ -54,17 +58,45 @@ struct KeyboardColumnWidthPolicyTests {
         #expect(range.upperBound == 1.15)
     }
 
-    @Test("슬라이더 정수 범위는 배율 범위와 일치하고 스텝 수가 정수로 떨어진다")
-    func testPercentRangeMatchesMultiplierRangeWithWholeSteps() {
+    @Test("슬라이더 정수 범위는 배율 범위와 일치한다")
+    func testPercentRangeMatchesMultiplierRange() {
         let percent = KeyboardLayoutFigure.letterColumnWidthPercentRange
         let multiplier = KeyboardLayoutFigure.letterColumnWidthMultiplierRange
 
         #expect(percent.lowerBound == 100)
         #expect(percent.upperBound == 115)
-        // 실수 step은 부동소수점 오차로 상한에 닿지 못한다. 정수 step은 정확히 떨어져야 한다
-        #expect((percent.upperBound - percent.lowerBound).truncatingRemainder(dividingBy: 1) == 0)
-        // 정수 범위를 100으로 나누면 배율 범위와 같아야 한다
         #expect(abs(percent.lowerBound / 100 - multiplier.lowerBound) < 0.0001)
         #expect(abs(percent.upperBound / 100 - multiplier.upperBound) < 0.0001)
+    }
+
+    @Test("슬라이더 파생 바인딩은 전 구간에서 값을 잃지 않고 왕복한다")
+    func testSliderBindingRoundTripsAcrossWholeRange() {
+        let percentRange = KeyboardLayoutFigure.letterColumnWidthPercentRange
+
+        for step in 0...Int(percentRange.upperBound - percentRange.lowerBound) {
+            let percent = percentRange.lowerBound + Double(step)
+
+            // set: 슬라이더가 준 정수 퍼센트 -> 저장할 배율
+            let multiplier = KeyboardLayoutFigure.letterColumnWidthMultiplier(fromPercent: percent)
+            // get: 저장된 배율 -> 슬라이더가 표시할 정수 퍼센트
+            let roundTripped = KeyboardLayoutFigure.letterColumnWidthPercent(fromMultiplier: multiplier)
+
+            #expect(abs(roundTripped - percent) < 0.0001)
+            // 실수 step에서 상한에 닿지 못하던 버그의 회귀 방지: 정수로 정확히 떨어져야 한다
+            #expect(roundTripped == roundTripped.rounded())
+            #expect(percentRange.contains(roundTripped))
+        }
+    }
+
+    @Test("상한 배율은 슬라이더 상한 퍼센트로 정확히 표시된다")
+    func testUpperBoundMultiplierMapsToUpperBoundPercent() {
+        let multiplierRange = KeyboardLayoutFigure.letterColumnWidthMultiplierRange
+        let percentRange = KeyboardLayoutFigure.letterColumnWidthPercentRange
+
+        // 실수 step 시절 상한에 닿지 못해 115 대신 114에서 멈추던 지점이다
+        #expect(KeyboardLayoutFigure.letterColumnWidthPercent(fromMultiplier: multiplierRange.upperBound)
+                == percentRange.upperBound)
+        #expect(KeyboardLayoutFigure.letterColumnWidthMultiplier(fromPercent: percentRange.upperBound)
+                == multiplierRange.upperBound)
     }
 }

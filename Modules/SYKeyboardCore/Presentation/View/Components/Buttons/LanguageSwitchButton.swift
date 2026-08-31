@@ -28,10 +28,13 @@ public final class LanguageSwitchButton: SecondaryButton {
     private let dividerLabelSpacing: CGFloat = 3.0
     /// 글자가 버튼 밖으로 밀려나지 않게 하는 최소 여백
     private let minimumEdgeInset: CGFloat = 3.0
-    /// 구분선 가로 반길이의 버튼 너비 대비 비율
-    private let dividerWidthRatio: CGFloat = 0.22
-    /// 구분선 세로 반길이의 버튼 높이 대비 비율
-    private let dividerHeightRatio: CGFloat = 0.20
+    /// 구분선 가로 반길이의 버튼 너비 대비 상한
+    private static let dividerWidthRatio: CGFloat = 0.22
+    /// 구분선 세로 반길이의 버튼 높이 대비 상한
+    private static let dividerHeightRatio: CGFloat = 0.20
+    /// 45° 하한이 걸리는 낮은 키에서 쓰는 세로 예산 배수.
+    /// 세로 예산(`dividerHeightRatio`)만으로 자르면 획이 세로 모드보다 짧아져 뭉툭해 보인다
+    private static let dividerClampedHeightBoost: CGFloat = 1.5
     /// 버튼 너비 대비 글자 크기 비율
     static let labelFontSizeToWidthRatio: CGFloat = 0.38
     /// 글자 크기 대비 구분선 두께 비율. 기본 글자 크기에서 1.5가 되도록 맞춘다
@@ -87,8 +90,9 @@ public final class LanguageSwitchButton: SecondaryButton {
         dividerLayer.strokeColor = UIColor.label.cgColor
         dividerLayer.lineWidth = Self.dividerLineWidth(forFontSize: appliedLabelFontSize)
 
-        let halfWidth = keyBounds.width * dividerWidthRatio
-        let halfHeight = keyBounds.height * dividerHeightRatio
+        let halfExtents = Self.dividerHalfExtents(forKeySize: keyBounds.size)
+        let halfWidth = halfExtents.width
+        let halfHeight = halfExtents.height
 
         let path = UIBezierPath()
         path.move(to: CGPoint(x: keyBounds.midX - halfWidth, y: keyBounds.midY + halfHeight))
@@ -124,6 +128,24 @@ extension LanguageSwitchButton {
     /// 글자와 함께 줄어들어야 마크 전체의 비례가 유지됩니다.
     static func dividerLineWidth(forFontSize fontSize: CGFloat) -> CGFloat {
         return fontSize * dividerLineWidthToFontSizeRatio
+    }
+
+    /// 구분선 반길이.
+    ///
+    /// 세로 모드처럼 키가 높으면 두 비율을 그대로 쓴다.
+    /// 가로 모드처럼 키가 낮아 사선이 45°보다 누울 때만 두 반길이를 같게 맞추고,
+    /// 이때는 세로 예산을 `dividerClampedHeightBoost`배까지 써서 획이 짧아지지 않게 한다
+    static func dividerHalfExtents(forKeySize size: CGSize) -> CGSize {
+        guard size.width > 0, size.height > 0 else { return .zero }
+
+        let halfWidth = size.width * dividerWidthRatio
+        let halfHeight = size.height * dividerHeightRatio
+        guard halfWidth >= halfHeight else {
+            return CGSize(width: halfWidth, height: halfHeight)
+        }
+
+        let clamped = min(halfWidth, halfHeight * dividerClampedHeightBoost)
+        return CGSize(width: clamped, height: clamped)
     }
 }
 

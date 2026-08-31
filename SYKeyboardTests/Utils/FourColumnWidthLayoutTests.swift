@@ -3,6 +3,7 @@
 //  SYKeyboardTests
 //
 
+import Foundation
 import Testing
 import UIKit
 
@@ -251,10 +252,15 @@ struct CheonjiinColumnWidthLayoutTests {
     func testBottomSpaceLayoutSplitsModifierStackEqually() throws {
         let view = Self.makeView(usesBottomSpaceLayout: true, multiplier: 1.15)
         let languageSwitchButton = try #require(view.languageSwitchButton)
-        // 지구본을 숨기면 modifier 스택에 한/영과 전환 버튼 2개만 남는다
-        view.nextKeyboardButton.isHidden = true
-        view.nextKeyboardButtonVisibilityDidChange(needsInputModeSwitchKey: false)
+        // 지구본을 숨기면 modifier 스택에 한/영과 전환 버튼 2개만 남는다.
+        // production 진입점을 그대로 호출해 isHidden 설정과 재배치 콜백을 함께 검증한다
+        view.updateNextKeyboardButton(
+            needsInputModeSwitchKey: false,
+            nextKeyboardAction: NSSelectorFromString("unusedNextKeyboardAction:")
+        )
         view.layoutIfNeeded()
+
+        #expect(view.nextKeyboardButton.isHidden)
 
         let modifierStack = try #require(languageSwitchButton.superview)
         let visibleButtonCount: CGFloat = 2
@@ -375,19 +381,29 @@ struct NumericColumnWidthLayoutTests {
     func testHigherMultiplierKeepsModifierStackFromCollapsing() throws {
         let view = Self.makeView(usesBottomSpaceLayout: false, multiplier: 1.15)
         let languageSwitchButton = try #require(view.languageSwitchButton)
-        // 지구본을 숨기면 modifier 스택에 한/영과 전환 버튼 2개만 남는다
-        view.nextKeyboardButton.isHidden = true
-        view.nextKeyboardButtonVisibilityDidChange(needsInputModeSwitchKey: false)
+        // 지구본을 숨기면 modifier 스택에 한/영과 전환 버튼 2개만 남는다.
+        // production 진입점을 그대로 호출해 isHidden 설정과 재배치 콜백을 함께 검증한다
+        view.updateNextKeyboardButton(
+            needsInputModeSwitchKey: false,
+            nextKeyboardAction: NSSelectorFromString("unusedNextKeyboardAction:")
+        )
         view.layoutIfNeeded()
+
+        #expect(view.nextKeyboardButton.isHidden)
 
         let modifierStack = try #require(languageSwitchButton.superview)
         let visibleButtonCount: CGFloat = 2
         let buttonWidth = languageSwitchButton.frame.width
+        // 배율 1.15에서 기능 열은 키보드 폭의 0.1375다.
+        // 기본 배치의 modifier 스택은 4행 4열(기능 열)에 놓인다
+        let expectedStackWidth = Self.keyboardWidth * 0.1375
 
         #expect(abs(buttonWidth - view.switchButton.frame.width) < Self.tolerance)
         #expect(abs(buttonWidth + view.switchButton.frame.width
                     - modifierStack.frame.width) < Self.tolerance)
         #expect(abs(buttonWidth - modifierStack.frame.width / visibleButtonCount) < Self.tolerance)
+        #expect(abs(modifierStack.frame.width - expectedStackWidth) < Self.tolerance)
+        #expect(abs(buttonWidth - expectedStackWidth / visibleButtonCount) < Self.tolerance)
         // 붕괴 회귀 방지: 전환 버튼이 라벨 때문에 45.7pt 아래로 눌리지 않아
         // 이전 비율 폭 제약에서는 한/영이 6pt로 붕괴했다
         #expect(buttonWidth > 10)

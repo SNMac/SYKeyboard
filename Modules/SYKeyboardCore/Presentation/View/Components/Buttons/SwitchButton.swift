@@ -28,6 +28,19 @@ final public class SwitchButton: SecondaryButton {
     /// 한 손 키보드처럼 이보다 좁아지면 글자가 키 밖으로 나가므로 너비에 비례해 줄인다
     private static let subLabelFullSizeKeyWidth: CGFloat = 25.0
 
+    /// 보조 라벨이 기본 크기 그대로 들어가는 최소 키 높이.
+    /// 기본 `keyboardHeight`(240)에서 세로 모드 행 높이는 60pt, 가로 모드는 36pt로 낮아
+    /// 모서리 힌트가 가운데 라벨과 겹치므로 높이에도 비례해 줄인다.
+    /// 40.0을 기준값으로 세로 모드의 높이(4x4 56pt, 기본 높이 240에서 쿼티 52pt)가 기본 크기 8.0pt로 유지되도록 한다.
+    /// `keyboardHeight` 슬라이더 최소값(190)에서는 세로 쿼티 키 높이가 39.5pt로
+    /// 살짝 낮아져 힌트 글자 크기가 8.0이 아닌 7.9가 되는 의도된 0.1pt 오차가 있다
+    private static let subLabelFullSizeKeyHeight: CGFloat = 40.0
+
+    /// 주 라벨이 기본 사다리 크기를 그대로 쓰는 최소 키 높이.
+    /// 가로 모드처럼 행이 낮으면(배경 32pt 안팎) 모서리 힌트와 겹치므로 한 단계 줄인다.
+    /// 세로 모드 최소 배경 높이는 `keyboardHeight` 슬라이더 최하단에서도 39.5pt라 영향받지 않는다
+    private static let primaryLabelFullSizeKeyHeight: CGFloat = 36.0
+
     /// 현재 보조 라벨에 적용된 글자 크기
     private var appliedSubLabelFontSize: CGFloat = FontSize.stringKeySmall
     /// 보조 라벨 강조 상태. 너비가 바뀌어 다시 만들 때도 유지해야 한다
@@ -103,15 +116,14 @@ final public class SwitchButton: SecondaryButton {
         super.layoutSubviews()
         
         primaryKeyListLabel.text = titleForCurrentKeyboard
-        if backgroundView.bounds.width < 38 {
-            primaryKeyListLabel.font = .monospacedDigitSystemFont(ofSize: FontSize.stringKeyMedium - 4, weight: .regular)
-        } else if backgroundView.bounds.width < 44 {
-            primaryKeyListLabel.font = .monospacedDigitSystemFont(ofSize: FontSize.stringKeyMedium - 2, weight: .regular)
-        } else {
-            primaryKeyListLabel.font = .monospacedDigitSystemFont(ofSize: FontSize.stringKeyMedium, weight: .regular)
-        }
+        primaryKeyListLabel.font = .monospacedDigitSystemFont(
+            ofSize: Self.primaryLabelFontSize(forKeyWidth: backgroundView.bounds.width,
+                                               keyHeight: backgroundView.bounds.height),
+            weight: .regular
+        )
 
-        let subLabelFontSize = Self.subLabelFontSize(forKeyWidth: backgroundView.bounds.width)
+        let subLabelFontSize = Self.subLabelFontSize(forKeyWidth: backgroundView.bounds.width,
+                                                    keyHeight: backgroundView.bounds.height)
         guard abs(subLabelFontSize - appliedSubLabelFontSize) > 0.01 else { return }
 
         appliedSubLabelFontSize = subLabelFontSize
@@ -138,12 +150,31 @@ final public class SwitchButton: SecondaryButton {
         keyboardSelectLabel.attributedText = createKeyboardSelectAttributedText(needToEmphasize: needToEmphasize)
     }
 
-    /// 키 너비에 맞는 보조 라벨 글자 크기.
-    /// 기본 크기를 상한으로 두고, 키가 좁아지면 너비에 비례해 줄인다
-    static func subLabelFontSize(forKeyWidth width: CGFloat) -> CGFloat {
-        guard width > 0 else { return FontSize.stringKeySmall }
+    /// 키 크기에 맞는 보조 라벨 글자 크기.
+    /// 기본 크기를 상한으로 두고, 키가 좁거나 낮아지면 좁은 쪽 기준으로 줄인다
+    static func subLabelFontSize(forKeyWidth width: CGFloat, keyHeight height: CGFloat) -> CGFloat {
+        guard width > 0, height > 0 else { return FontSize.stringKeySmall }
 
-        return min(FontSize.stringKeySmall, FontSize.stringKeySmall * width / subLabelFullSizeKeyWidth)
+        return min(FontSize.stringKeySmall,
+                   FontSize.stringKeySmall * width / subLabelFullSizeKeyWidth,
+                   FontSize.stringKeySmall * height / subLabelFullSizeKeyHeight)
+    }
+
+    /// 키 크기에 맞는 주 라벨 글자 크기.
+    /// 기존 너비 사다리를 그대로 쓰되, 키가 낮으면 모서리 힌트와 겹치지 않게 한 단계 내린다
+    static func primaryLabelFontSize(forKeyWidth width: CGFloat, keyHeight height: CGFloat) -> CGFloat {
+        let ladderSize: CGFloat
+        if width < 38 {
+            ladderSize = FontSize.stringKeyMedium - 4
+        } else if width < 44 {
+            ladderSize = FontSize.stringKeyMedium - 2
+        } else {
+            ladderSize = FontSize.stringKeyMedium
+        }
+
+        guard height > 0, height < primaryLabelFullSizeKeyHeight else { return ladderSize }
+
+        return ladderSize - 2
     }
 
 }

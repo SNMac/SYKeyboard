@@ -117,7 +117,8 @@ private extension PrimaryKeyButton {
 private extension PrimaryKeyButton {
     func updatePrimaryKeyListLabel() {
         if type.primaryKeyList.count == 1 {
-            guard let primaryKey = type.primaryKeyList.first.map(Self.displayLabel(for:)) else { return }
+            // 함수 참조는 비격리 클로저로 전달돼 @MainActor 경고가 난다. 클로저로 감싸 격리를 유지한다
+            guard let primaryKey = type.primaryKeyList.first.map({ Self.displayLabel(for: $0) }) else { return }
             primaryKeyListLabel.text = primaryKey
             
             if primaryKey.count == 1 {
@@ -130,7 +131,7 @@ private extension PrimaryKeyButton {
                 primaryKeyListLabel.font = .systemFont(ofSize: FontSize.stringKeyMedium)
             }
         } else {
-            primaryKeyListLabel.text = type.primaryKeyList.map(Self.displayLabel(for:)).joined(separator: "")
+            primaryKeyListLabel.text = type.primaryKeyList.map { Self.displayLabel(for: $0) }.joined(separator: "")
             primaryKeyListLabel.font = .systemFont(ofSize: FontSize.charKeyMedium)
         }
     }
