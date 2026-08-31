@@ -671,6 +671,9 @@ private extension SuggestionController {
         let currentWord = extractLastWord(from: baseText)
         guard !currentWord.isEmpty else { return nil }
 
+        let matchState = signposter.beginInterval("TextReplacementMatch")
+        defer { signposter.endInterval("TextReplacementMatch", matchState) }
+
         let matchingEntries = lexiconEngine.textReplacementEntries.filter { entry in
             let isMatch = currentWord.lowercased() == entry.userInput.lowercased()
 
@@ -866,8 +869,13 @@ private extension SuggestionController {
     ///   - currentWord: 현재 입력 중인 단어
     /// - Returns: 중복 제거된 후보 배열 (최대 2개)
     func mergeSuggestions(for text: String, currentWord: String) -> [SuggestionItem] {
+        let lexiconState = signposter.beginInterval("LexiconSuggestions")
         let lexiconResults = lexiconEngine?.suggestions(for: text) ?? []
+        signposter.endInterval("LexiconSuggestions", lexiconState)
+
+        let checkerState = signposter.beginInterval("TextCheckerSuggestions")
         let checkerResults = textCheckerEngine?.suggestions(for: text) ?? []
+        signposter.endInterval("TextCheckerSuggestions", checkerState)
 
         var seen = Set<String>()
         seen.insert(currentWord.lowercased())

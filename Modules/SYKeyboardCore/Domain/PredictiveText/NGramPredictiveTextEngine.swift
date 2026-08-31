@@ -327,7 +327,10 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
             return
         }
         currentSentenceWords.append(word)
+        // 직전 saveToDisk의 스냅샷이 살아있으면 이 기록에서 CoW 복사가 발생하므로 구간으로 관측한다
+        let recordState = Self.signposter.beginInterval("NGramRecord")
         recordNGrams()
+        Self.signposter.endInterval("NGramRecord", recordState)
         scheduleSave()
     }
     
@@ -375,17 +378,23 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
         guard isLoaded else { return }
         
         let generation = currentStorageGeneration()
+        let snapshotState = Self.signposter.beginInterval("NGramSaveSnapshot")
         let snapshot = NGramData(
             unigram: unigramStore,
             bigram: bigramStore,
             trigram: trigramStore
         )
+        Self.signposter.endInterval("NGramSaveSnapshot", snapshotState)
         let url = fileURL
         let shouldCleanupLegacy = needsLegacyCleanup
-        
+
         saveQueue.async { [weak self] in
             guard let self else { return }
             guard self.currentStorageGeneration() == generation else { return }
+
+            // 실패로 빠져나가도 defer가 interval을 닫는다
+            let encodeState = Self.signposter.beginInterval("NGramSaveEncode")
+            defer { Self.signposter.endInterval("NGramSaveEncode", encodeState) }
 
             do {
                 let encoder = PropertyListEncoder()
@@ -555,6 +564,8 @@ private extension NGramPredictiveTextEngine {
     ///
     /// - Returns: 빈도순으로 정렬된 단어 배열 (최대 `maxPredictions`개)
     func rankedUnigramCandidates() -> [String] {
+        let state = Self.signposter.beginInterval("RankedUnigramCandidates")
+        defer { Self.signposter.endInterval("RankedUnigramCandidates", state) }
         return unigramStore
             .sorted { $0.value > $1.value }
             .prefix(maxPredictions)

@@ -34,6 +34,12 @@ final public class TextCheckerPredictiveTextEngine: PredictiveTextProvider {
     
     private let checker = UITextChecker()
     private let language: String
+
+    /// 성능 계측용 signposter. 인스턴스마다 만들 필요가 없어 타입 프로퍼티로 공유한다
+    private static let signposter = OSSignposter(
+        subsystem: Bundle.main.bundleIdentifier ?? "Unknown Bundle",
+        category: "TextCheckerPredictiveTextEngine"
+    )
     
     private static let learnedWordsKey = "com.snmac.sykeyboard.textchecker.learnedWords"
     
@@ -78,11 +84,13 @@ final public class TextCheckerPredictiveTextEngine: PredictiveTextProvider {
         var merged: [String] = []
         
         // 1순위: completions (접두어 자동완성)
+        let completionsState = Self.signposter.beginInterval("TextCheckerCompletions")
         let completions = checker.completions(
             forPartialWordRange: range,
             in: lastWord,
             language: language
         ) ?? []
+        Self.signposter.endInterval("TextCheckerCompletions", completionsState)
         
         for word in completions {
             let lowered = word.lowercased()
@@ -93,11 +101,13 @@ final public class TextCheckerPredictiveTextEngine: PredictiveTextProvider {
         }
         
         // 2순위: guesses (오타 교정, 중복 제거하여 보충)
+        let guessesState = Self.signposter.beginInterval("TextCheckerGuesses")
         let guesses = checker.guesses(
             forWordRange: range,
             in: lastWord,
             language: language
         ) ?? []
+        Self.signposter.endInterval("TextCheckerGuesses", guessesState)
         
         for word in guesses {
             let lowered = word.lowercased()
