@@ -899,6 +899,26 @@
           }
         }
       }
+    },
+    "오픈소스 라이선스" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open Source Licenses"
+          }
+        }
+      }
+    },
+    "라이선스 정보를 불러오지 못했습니다." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Failed to load license information."
+          }
+        }
+      }
     }
   },
   "version" : "1.0"

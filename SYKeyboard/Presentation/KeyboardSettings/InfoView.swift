@@ -106,6 +106,18 @@ struct InfoView: View {
             }
         }
         
+        NavigationLink {
+            OpenSourceLicenseView()
+        } label: {
+            HStack {
+                Image(systemName: "doc.text")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 20, height: 20)
+                Text("오픈소스 라이선스")
+            }
+        }
+
         HStack {
             Text("버전")
             
