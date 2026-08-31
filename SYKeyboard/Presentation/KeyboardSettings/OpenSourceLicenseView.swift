@@ -18,6 +18,7 @@ struct OpenSourceLicenseView: View {
     )
 
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.openURL) private var openURL
 
     @State private var licenseData: OpenSourceLicenseData?
 
@@ -60,9 +61,8 @@ struct OpenSourceLicenseView: View {
         }
     }
 
-    @ViewBuilder
     private func libraryRow(_ library: OpenSourceLicenseData.Library) -> some View {
-        let content = VStack(alignment: .leading, spacing: 3) {
+        VStack(alignment: .leading, spacing: 3) {
             Text(library.name)
             Text(library.copyright)
                 .font(.caption)
@@ -70,18 +70,25 @@ struct OpenSourceLicenseView: View {
             Text(library.licenses.joined(separator: ", "))
                 .font(.caption)
                 .foregroundStyle(.secondary)
-            Text(library.url)
-                .font(.caption)
-                .foregroundStyle(.tint)
+
+            // List 행에 기본 스타일 컨트롤이 하나만 있으면 행 전체가 탭 영역이 된다.
+            // borderless 스타일은 탭 영역을 라벨로 한정하면서 눌린 효과도 준다.
+            if let linkURL = library.linkURL {
+                Button {
+                    openURL(linkURL)
+                } label: {
+                    Text(library.url)
+                        .font(.caption)
+                }
+                .buttonStyle(.borderless)
+                .accessibilityAddTraits(.isLink)
+            } else {
+                Text(library.url)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-
-        if let linkURL = library.linkURL {
-            Link(destination: linkURL) { content }
-                .foregroundStyle(.primary)
-        } else {
-            content
-        }
     }
 
     private func licenseSection(_ licenses: [OpenSourceLicenseData.License]) -> some View {
