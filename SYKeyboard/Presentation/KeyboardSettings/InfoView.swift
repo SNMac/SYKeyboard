@@ -22,6 +22,7 @@ struct InfoView: View {
     @Environment(\.openURL) private var openURL
     @State private var isShowingInstructions = false
     @State private var isShowingMailErrorAlert = false
+    @State private var isShowingLicenses = false
     
     // MARK: - Content
     
@@ -107,8 +108,12 @@ struct InfoView: View {
             }
         }
         
-        NavigationLink {
-            OpenSourceLicenseView()
+        Button {
+            Analytics.logEvent("open_licenses", parameters: [
+                "view": "InfoView",
+            ])
+
+            isShowingLicenses = true
         } label: {
             HStack {
                 // SF Symbols 6의 `text.document`는 iOS 18부터라 같은 심볼의 레거시 이름을 쓴다.
@@ -119,12 +124,9 @@ struct InfoView: View {
                 Text("오픈소스 라이선스")
             }
         }
-        // NavigationLink에는 action 클로저가 없어 다른 항목과 달리 탭 제스처로 로깅한다.
-        .simultaneousGesture(TapGesture().onEnded {
-            Analytics.logEvent("open_licenses", parameters: [
-                "view": "InfoView",
-            ])
-        })
+        .fullScreenCover(isPresented: $isShowingLicenses) {
+            OpenSourceLicenseView()
+        }
 
         HStack {
             Text("버전")
