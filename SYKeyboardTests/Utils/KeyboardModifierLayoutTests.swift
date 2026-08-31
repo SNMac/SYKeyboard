@@ -491,20 +491,43 @@ struct LanguageSwitchButtonDividerTests {
         // 포함해 45° 바닥이 지켜지는지 확인한다
         for size in [CGSize(width: 42.75, height: 56), CGSize(width: 26.5, height: 56),
                      CGSize(width: 42.75, height: 32), CGSize(width: 26.5, height: 32),
-                     CGSize(width: 20, height: 60), CGSize(width: 200, height: 27)] {
+                     CGSize(width: 20, height: 60), CGSize(width: 200, height: 27),
+                     CGSize(width: 49.6, height: 32)] {
             #expect(Self.angleInDegrees(forKeySize: size) >= 45 - 0.01)
         }
     }
 
-    @Test("가로 모드처럼 낮고 넓은 키는 45도로 잘린다")
+    @Test("가로 모드처럼 낮고 넓은 키는 45도로 잘리되, 너비·높이 예산 중 더 작은 쪽에 맞춘다")
     func testWideShortKeyIsClampedTo45Degrees() {
-        // 가로 모드 globe 숨김 배경(42.75×32)은 원래 각도가 34.2°라 45°보다 누우므로
-        // 가로 반길이가 세로 반길이(32 * 0.20)까지 줄어들어 정확히 45°가 된다
-        let size = CGSize(width: 42.75, height: 32)
-        let extents = LanguageSwitchButton.dividerHalfExtents(forKeySize: size)
+        // 가로 모드 globe 숨김 배경(42.75×32)은 원래 각도가 34.2°라 45°보다 누우므로 잘린다.
+        // 세로 예산에 1.5배(다음 테스트의 dividerClampedHeightBoost)를 줘도 너비 예산(42.75 * 0.22)이
+        // 더 작아 너비가 상한이 된다
+        let widthBound = CGSize(width: 42.75, height: 32)
+        let widthBoundExtents = LanguageSwitchButton.dividerHalfExtents(forKeySize: widthBound)
 
-        #expect(abs(extents.width - 32 * 0.20) < 0.01)
-        #expect(abs(extents.height - 32 * 0.20) < 0.01)
+        #expect(abs(widthBoundExtents.width - 42.75 * 0.22) < 0.01)
+        #expect(abs(widthBoundExtents.height - 42.75 * 0.22) < 0.01)
+
+        // 실제 랜드스케이프 한/영 배경(49.6×32)은 반대로 세로 예산(32 * 0.20 * 1.5)이 더 작아
+        // 세로 예산이 상한이 된다
+        let heightBound = CGSize(width: 49.6, height: 32)
+        let heightBoundExtents = LanguageSwitchButton.dividerHalfExtents(forKeySize: heightBound)
+
+        #expect(abs(heightBoundExtents.width - 32 * 0.20 * 1.5) < 0.01)
+        #expect(abs(heightBoundExtents.height - 32 * 0.20 * 1.5) < 0.01)
+    }
+
+    @Test("가로 모드 실기기 배경 크기에서는 획이 세로 예산 단순 클램프보다 길다")
+    func testLandscapeStrokeIsLongerThanPlainHeightClamp() {
+        // 회귀 가드: dividerClampedHeightBoost 도입 전에는 49.6×32 배경에서
+        // 반길이가 32 * 0.20(=6.4)까지만 잘려 획이 세로 모드(25.0pt)보다 훨씬 짧은
+        // 18.1pt로 뭉툭해 보였다. boost 적용 후에는 이 단순 클램프 값보다 커야 한다
+        let size = CGSize(width: 49.6, height: 32)
+        let extents = LanguageSwitchButton.dividerHalfExtents(forKeySize: size)
+        let plainClamp = size.height * 0.20
+
+        #expect(extents.height > plainClamp + 0.01)
+        #expect(extents.width > plainClamp + 0.01)
     }
 
     @Test("이미 45도 이상인 키는 그대로 유지된다")
@@ -517,7 +540,7 @@ struct LanguageSwitchButtonDividerTests {
         #expect(abs(extents.height - 32 * 0.20) < 0.001)
     }
 
-    @Test("반길이는 너비·높이 비율 박스를 넘지 않는다")
+    @Test("반길이는 너비·높이 비율 박스를 넘지 않고, 획은 키 안에 머문다")
     func testHalfExtentsStayInsideRatioBox() {
         for size in [CGSize(width: 42.75, height: 56), CGSize(width: 26.5, height: 56),
                      CGSize(width: 42.75, height: 32), CGSize(width: 26.5, height: 32),
@@ -525,9 +548,13 @@ struct LanguageSwitchButtonDividerTests {
             let extents = LanguageSwitchButton.dividerHalfExtents(forKeySize: size)
 
             #expect(extents.width <= size.width * 0.22 + 0.001)
-            #expect(extents.height <= size.height * 0.20 + 0.001)
+            // 클램프 분기는 세로 예산에 dividerClampedHeightBoost(1.5)를 곱한 값까지 쓴다
+            #expect(extents.height <= size.height * 0.20 * 1.5 + 0.001)
             #expect(extents.width > 0)
             #expect(extents.height > 0)
+            // 확대된 획이라도 키 경계를 넘어서는 안 된다
+            #expect(extents.height * 2 < size.height)
+            #expect(extents.width * 2 < size.width)
         }
     }
 
