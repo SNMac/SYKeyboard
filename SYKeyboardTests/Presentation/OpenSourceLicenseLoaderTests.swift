@@ -44,12 +44,15 @@ struct OpenSourceLicenseLoaderTests {
         }
     }
 
+    /// 전문 길이에 하한을 두면 짧은 라이선스가 추가될 때 정상 데이터가 실패한다.
+    /// 실제로 막으려는 것은 빈 문자열이나 공백뿐인 항목이다.
     @Test("라이선스 전문이 비어 있지 않다")
     func testEveryLicenseHasText() throws {
         let data = try OpenSourceLicenseLoader.load()
 
         for license in data.licenses {
-            #expect(license.text.count > 500, "\(license.name) 전문이 너무 짧습니다.")
+            let trimmed = license.text.trimmingCharacters(in: .whitespacesAndNewlines)
+            #expect(trimmed.isEmpty == false, "\(license.name) 전문이 비어 있습니다.")
         }
     }
 }
