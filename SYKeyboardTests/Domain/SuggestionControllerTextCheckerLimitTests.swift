@@ -12,13 +12,15 @@ import Testing
 struct SuggestionControllerTextCheckerLimitTests {
 
     @Test("입력 중 TextChecker는 후보 슬롯 수를 limit으로 받음")
-    func test입력중TextChecker는_후보슬롯수를limit으로받음() {
+    func test입력중TextChecker는_후보슬롯수를limit으로받음() async {
         let checker = RecordingPredictiveTextProvider(results: ["hello", "help", "helmet"])
         let delegate = RecordingSuggestionControllerDelegate()
-        let controller = makeController(checker: checker, lexiconEntries: [])
-        controller.delegate = delegate
+        let harness = makeController(checker: checker, lexiconEntries: [])
+        harness.controller.delegate = delegate
 
-        controller.updateSuggestions(for: "hel")
+        harness.controller.updateSuggestions(for: "hel")
+        harness.queue.sync {}
+        await waitForMainQueue()
 
         #expect(checker.receivedLimits == [2])
         #expect(delegate.updates.last?.currentWord == "hel")
@@ -26,42 +28,54 @@ struct SuggestionControllerTextCheckerLimitTests {
     }
 
     @Test("lexicon이 슬롯을 다 채우면 TextChecker를 조회하지 않음")
-    func testLexicon이슬롯을다채우면_TextChecker를조회하지않음() {
+    func testLexicon이슬롯을다채우면_TextChecker를조회하지않음() async {
         let checker = RecordingPredictiveTextProvider(results: ["hello"])
         let delegate = RecordingSuggestionControllerDelegate()
-        let controller = makeController(
+        let harness = makeController(
             checker: checker,
             lexiconEntries: [
                 TextReplacementEntry(userInput: "hel", documentText: "first"),
                 TextReplacementEntry(userInput: "hel", documentText: "second")
             ]
         )
-        controller.delegate = delegate
+        harness.controller.delegate = delegate
 
-        controller.updateSuggestions(for: "hel")
+        harness.controller.updateSuggestions(for: "hel")
+        harness.queue.sync {}
+        await waitForMainQueue()
 
         #expect(checker.callCount == 0)
         #expect(delegate.updates.last?.suggestions == ["first", "second"])
     }
 
+    private struct Harness {
+        let controller: SuggestionController
+        let queue: DispatchQueue
+    }
+
     private func makeController(
         checker: RecordingPredictiveTextProvider,
         lexiconEntries: [TextReplacementEntry]
-    ) -> SuggestionController {
+    ) -> Harness {
         let lexicon = StubLexiconSuggestionProvider(entries: lexiconEntries)
         let factory = SuggestionControllerEngineFactory(
             makeLexiconEngine: { lexicon },
             makeTextCheckerEngine: { _ in checker },
             makeNGramEngine: { _ in StubNGramPredictiveTextProvider() }
         )
-        let controller = SuggestionController(language: "en-US", engineFactory: factory)
+        let queue = DispatchQueue(label: "SYKeyboardTests.suggestion.textchecker.limit")
+        let controller = SuggestionController(
+            language: "en-US",
+            engineFactory: factory,
+            textCheckerQueue: queue
+        )
         controller.isPredictiveTextEnabled = true
         controller.isTextReplacementEnabled = true
-        return controller
+        return Harness(controller: controller, queue: queue)
     }
 }
 
-private final class RecordingPredictiveTextProvider: PredictiveTextProvider {
+private final class RecordingPredictiveTextProvider: PredictiveTextProvider, @unchecked Sendable {
     private let results: [String]
     private(set) var callCount = 0
     private(set) var receivedLimits: [Int] = []
@@ -131,5 +145,13 @@ private final class RecordingSuggestionControllerDelegate: SuggestionControllerD
         suggestions: [String]
     ) {
         updates.append(Update(currentWord: currentWord, suggestions: suggestions))
+    }
+}
+
+private func waitForMainQueue() async {
+    await withCheckedContinuation { continuation in
+        DispatchQueue.main.async {
+            continuation.resume()
+        }
     }
 }

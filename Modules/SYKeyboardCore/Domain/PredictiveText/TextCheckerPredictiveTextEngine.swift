@@ -32,6 +32,9 @@ final public class TextCheckerPredictiveTextEngine: PredictiveTextProvider {
         category: "\(String(describing: type(of: self))) <\(Unmanaged.passUnretained(self).toOpaque())>"
     )
     
+    /// `SuggestionController`의 TextChecker 큐에서만 접근한다.
+    /// `UITextChecker`는 스레드 안전성이 문서화되지 않았으므로 다른 스레드에서 사용하지 않는다.
+    /// `learn(word:)`가 쓰는 `UITextChecker.learnWord` 같은 클래스 메서드는 인스턴스와 무관하게 main에서 호출한다
     private let checker = UITextChecker()
     private let language: String
 

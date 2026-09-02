@@ -117,6 +117,10 @@ final class SuggestionController: SuggestionService {
         subsystem: Bundle.main.bundleIdentifier ?? "Unknown Bundle",
         category: "SuggestionController"
     )
+    /// TextChecker 조회 전용 직렬 큐. `UITextChecker` 인스턴스는 이 큐에서만 접근한다
+    private let textCheckerQueue: DispatchQueue
+    /// 비동기 TextChecker 조회 결과가 낡았는지 판별하는 요청 세대
+    private var textCheckerRequestGeneration = 0
 
     /// 자동완성 사용자 설정
     ///
@@ -279,10 +283,15 @@ final class SuggestionController: SuggestionService {
     /// - Parameter language: `UITextChecker`, NGram엔진에서 사용할 언어 코드 (기본값: "ko-KR")
     init(
         language: String = "ko-KR",
-        engineFactory: SuggestionControllerEngineFactory = .live
+        engineFactory: SuggestionControllerEngineFactory = .live,
+        textCheckerQueue: DispatchQueue = DispatchQueue(
+            label: "com.snmac.sykeyboard.suggestion.textchecker",
+            qos: .userInteractive
+        )
     ) {
         self.language = language
         self.engineFactory = engineFactory
+        self.textCheckerQueue = textCheckerQueue
     }
 
     // MARK: - Lexicon Loading
@@ -427,6 +436,8 @@ final class SuggestionController: SuggestionService {
     }
 
     func clearSuggestions() {
+        // 진행 중인 TextChecker 조회 결과가 뒤늦게 반영되지 않도록 세대를 올린다
+        textCheckerRequestGeneration += 1
         lastSuggestionBaseText = nil
         lastMathExpressionText = nil
         lastSuggestionOrigin = nil
@@ -821,12 +832,55 @@ private extension SuggestionController {
 
         currentMode = .typing
         let currentWord = extractLastWord(from: baseText)
-        currentSuggestions = mergeSuggestions(for: baseText, currentWord: currentWord)
+        textCheckerRequestGeneration += 1
+        let generation = textCheckerRequestGeneration
+        let maxSuggestionSlots = maxSuggestions - 1
+
+        let lexiconState = signposter.beginInterval("LexiconSuggestions")
+        let lexiconResults = lexiconEngine?.suggestions(for: baseText) ?? []
+        signposter.endInterval("LexiconSuggestions", lexiconState)
+
+        // lexicon 결과로 먼저 갱신하고 TextChecker 결과는 도착하면 다시 병합한다.
+        // 이전 후보를 유지하지 않는 이유: 직전 모드가 n-gram이면 이전 후보는 다음 단어 예측이라
+        // 입력 중 모드에서 탭되면 현재 단어를 잘못 교체한다
+        currentSuggestions = mergeSuggestions(
+            lexiconResults: lexiconResults,
+            checkerResults: [],
+            currentWord: currentWord
+        )
         delegate?.suggestionController(
             self,
             didUpdateCurrentWord: currentWord.isEmpty ? nil : currentWord,
             suggestions: currentSuggestions.map { $0.text }
         )
+
+        // lexicon이 슬롯을 다 채웠으면 TextChecker 조회가 결과에 기여할 수 없다
+        guard currentSuggestions.count < maxSuggestionSlots,
+              let textCheckerEngine else { return }
+
+        let signposter = signposter
+        textCheckerQueue.async { [weak self] in
+            let checkerState = signposter.beginInterval("TextCheckerSuggestions")
+            let checkerResults = textCheckerEngine.suggestions(for: baseText, limit: maxSuggestionSlots)
+            signposter.endInterval("TextCheckerSuggestions", checkerState)
+
+            DispatchQueue.main.async {
+                // 세대 검사는 delegate 호출 전에 있어야 낡은 후보가 표시되지 않는다
+                guard let self,
+                      self.textCheckerRequestGeneration == generation,
+                      self.currentMode == .typing else { return }
+                self.currentSuggestions = self.mergeSuggestions(
+                    lexiconResults: lexiconResults,
+                    checkerResults: checkerResults,
+                    currentWord: currentWord
+                )
+                self.delegate?.suggestionController(
+                    self,
+                    didUpdateCurrentWord: currentWord.isEmpty ? nil : currentWord,
+                    suggestions: self.currentSuggestions.map { $0.text }
+                )
+            }
+        }
     }
 
     func performRefreshSuggestionsAfterNGramLoadIfNeeded() {
@@ -856,20 +910,21 @@ private extension SuggestionController {
         }
     }
 
-    /// `UILexicon`과 `UITextChecker`의 결과를 병합합니다.
+    /// lexicon 결과와 TextChecker 결과를 병합합니다.
     ///
     /// 현재 입력 중인 단어와 동일한 후보는 제외하고,
-    /// `UILexicon` 결과를 먼저 배치하여 사용자 개인화 데이터를 우선시합니다.
+    /// lexicon 결과를 먼저 배치하여 사용자 개인화 데이터를 우선시합니다.
     ///
     /// - Parameters:
-    ///   - text: 자동완성을 제공할 텍스트
+    ///   - lexiconResults: `UILexicon` 후보
+    ///   - checkerResults: `UITextChecker` 후보 (아직 도착하지 않았으면 빈 배열)
     ///   - currentWord: 현재 입력 중인 단어
     /// - Returns: 중복 제거된 후보 배열 (최대 2개)
-    func mergeSuggestions(for text: String, currentWord: String) -> [SuggestionItem] {
-        let lexiconState = signposter.beginInterval("LexiconSuggestions")
-        let lexiconResults = lexiconEngine?.suggestions(for: text) ?? []
-        signposter.endInterval("LexiconSuggestions", lexiconState)
-
+    func mergeSuggestions(
+        lexiconResults: [String],
+        checkerResults: [String],
+        currentWord: String
+    ) -> [SuggestionItem] {
         var seen = Set<String>()
         seen.insert(currentWord.lowercased())
         var merged: [SuggestionItem] = []
@@ -883,12 +938,6 @@ private extension SuggestionController {
             merged.append(SuggestionItem(text: suggestion, source: .lexicon))
             if merged.count >= maxSuggestionSlots { return merged }
         }
-
-        // 아래 루프는 각 항목을 슬롯에 넣거나 lexicon 중복으로 건너뛰므로 목록의 앞
-        // maxSuggestionSlots개만 읽는다. 따라서 limit이 그 값이어도 결과가 같다
-        let checkerState = signposter.beginInterval("TextCheckerSuggestions")
-        let checkerResults = textCheckerEngine?.suggestions(for: text, limit: maxSuggestionSlots) ?? []
-        signposter.endInterval("TextCheckerSuggestions", checkerState)
 
         for suggestion in checkerResults {
             let lowered = suggestion.lowercased()
