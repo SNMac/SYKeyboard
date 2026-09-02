@@ -82,7 +82,14 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
     private var pendingEvents: [PendingEvent] = []
     
     /// unigram 저장소: "단어" → 빈도수
-    private var unigramStore: [String: Int] = [:]
+    ///
+    /// 변이 경로(디스크 로드 반영, reset, 기록, prune)가 모두 이 프로퍼티를 거치므로
+    /// `didSet` 한 곳에서 순위 캐시를 무효화한다
+    private var unigramStore: [String: Int] = [:] {
+        didSet { rankedUnigramCache = nil }
+    }
+    /// `rankedUnigramCandidates()` 결과 캐시. unigram이 바뀌지 않은 연속 스페이스 입력에서 계산을 건너뛴다
+    private var rankedUnigramCache: [String]?
     /// bigram 저장소: "직전 단어" → ["다음 단어": 빈도수]
     private var bigramStore: [String: [String: Int]] = [:]
     /// trigram 저장소: "직전 2단어" → ["다음 단어": 빈도수]
@@ -100,7 +107,7 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
     /// 키보드 확장은 메모리에 민감하므로 여유를 남기는 선에서 상한을 둔다
     private let maxEntriesPerKey = 24
     /// 전체 키 최대 개수
-    private let maxKeys = 5000
+    private let maxKeys: Int
     
     /// 바이너리 plist 파일 경로
     private let fileURL: URL
@@ -184,12 +191,14 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
         language: String,
         fileURL: URL,
         legacyStorage: UserDefaults,
-        loadApplyDelay: Duration? = nil
+        loadApplyDelay: Duration? = nil,
+        maxKeys: Int = 5000
     ) {
         self.language = language
         self.fileURL = fileURL
         self.legacyStorage = legacyStorage
         self.loadApplyDelay = loadApplyDelay
+        self.maxKeys = maxKeys
         startBackgroundLoad()
     }
 
@@ -564,12 +573,25 @@ private extension NGramPredictiveTextEngine {
     ///
     /// - Returns: 빈도순으로 정렬된 단어 배열 (최대 `maxPredictions`개)
     func rankedUnigramCandidates() -> [String] {
+        if let rankedUnigramCache { return rankedUnigramCache }
+
         let state = Self.signposter.beginInterval("RankedUnigramCandidates")
         defer { Self.signposter.endInterval("RankedUnigramCandidates", state) }
-        return unigramStore
-            .sorted { $0.value > $1.value }
-            .prefix(maxPredictions)
-            .map { $0.key }
+
+        // 전체 정렬 대신 상위 maxPredictions개만 유지한다. 동률 순서는 정렬 시절과 마찬가지로 정의하지 않는다
+        var top: [(key: String, value: Int)] = []
+        for entry in unigramStore {
+            guard top.count < maxPredictions || entry.value > top[top.count - 1].value else { continue }
+            let insertIndex = top.firstIndex { entry.value > $0.value } ?? top.count
+            top.insert(entry, at: insertIndex)
+            if top.count > maxPredictions {
+                top.removeLast()
+            }
+        }
+
+        let ranked = top.map(\.key)
+        rankedUnigramCache = ranked
+        return ranked
     }
     
     /// 빈도순으로 정렬된 후보를 반환합니다.
@@ -591,9 +613,19 @@ private extension NGramPredictiveTextEngine {
     ///
     /// `maxKeys`를 초과할 때 빈도가 낮은 순서대로 제거합니다.
     func pruneUnigram() {
-        guard unigramStore.count > maxKeys else { return }
-        let sorted = unigramStore.sorted { $0.value < $1.value }
         let removeCount = unigramStore.count - maxKeys
+        guard removeCount > 0 else { return }
+
+        // 정상 경로는 기록마다 최대 1개 초과라 최소 빈도 1개만 찾는다. 2개 이상 초과(상한을 넘긴
+        // 마이그레이션 데이터 등)는 드물어 기존 정렬 방식을 유지한다
+        if removeCount == 1 {
+            if let lowest = unigramStore.min(by: { $0.value < $1.value }) {
+                unigramStore.removeValue(forKey: lowest.key)
+            }
+            return
+        }
+
+        let sorted = unigramStore.sorted { $0.value < $1.value }
         for i in 0..<removeCount {
             unigramStore.removeValue(forKey: sorted[i].key)
         }
