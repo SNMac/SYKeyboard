@@ -1567,6 +1567,39 @@ Expected: 출력 없음. `.xcscheme`가 보이면 `RemotePath`만 바뀐 경우 
 
 ---
 
+## 기준선 측정 (2026-09-02)
+
+- 기기: iPhone 15 Pro Max, iOS 27.0 (24A5430a), 실기기. 커밋 `b60a275b`(계측만 포함). 프로세스 `HangeulEnglishKeyboard`.
+- 입력 스크립트: 애국가 1절(개행 섞음) → 알파벳 a~z 3~4회 반복(스페이스 섞음, z 뒤 개행) → 개행 10회 → 스페이스 10회 → 스페이스 길게 누르기 10초. 총 68.5초.
+- trace: `~/Documents/baseline-iPhone15ProMax-iOS27.trace`. 추출 명령:
+
+```sh
+xcrun xctrace export --input baseline-iPhone15ProMax-iOS27.trace \
+  --xpath '/trace-toc/run[@number="1"]/data/table[@schema="OSSignpostIntervals"]' \
+  --output baseline-intervals.xml
+```
+
+`subsystem`에 `SYKeyboard`가 포함된 행의 `duration`을 구간 이름별로 모아 count / p50 / p95 / max를 계산했다(xctrace XML은 반복 값을 `ref="id"`로 가리키므로 파서가 id를 해석해야 한다).
+
+| 구간 | count | p50 ms | p95 ms | max ms | 스레드 |
+| --- | --- | --- | --- | --- | --- |
+| `TextCheckerSuggestions` | 69 | 11.93 | 17.37 | 21.92 | 메인 |
+| `TextCheckerCompletions` | 69 | 6.43 | 10.97 | 12.64 | 메인 |
+| `TextCheckerGuesses` | 69 | 5.98 | 11.16 | 12.35 | 메인 |
+| `NGramSaveEncode` | 24 | 9.90 | 11.97 | 12.03 | 백그라운드 |
+| `LexiconSuggestions` | 69 | 0.08 | 0.11 | 0.21 | 메인 |
+| `TextReplacementMatch` | 82 | 0.04 | 0.08 | 0.19 | 메인 |
+| `RankedUnigramCandidates` | 57 | 0.04 | 0.06 | 0.08 | 메인 |
+| `NGramRecord` | 16 | 0.01 | 0.02 | 0.02 | 메인 |
+| `NGramSaveSnapshot` | 24 | 0.00 | 0.01 | 0.01 | 메인 |
+
+판단:
+
+- 지원 기기 중 최상위급에서도 키 입력당 TextChecker가 메인 스레드를 12~22 ms 점유한다. spec의 1-b 적용 기준(p95 ≥ 8 ms)을 두 배 이상 넘으므로 Task 5는 실험이 아니라 핵심 개선으로 진행한다. 커밋 격리는 그대로 유지한다.
+- `completions`와 `guesses` 비용이 거의 같아 Task 4(1-a)의 절감은 최대 절반이다. 적용 후 `TextCheckerGuesses` count가 `TextCheckerCompletions` count보다 얼마나 줄었는지로 효과를 확인한다.
+- Task 1~3은 이 사용자의 lexicon·unigram이 작아 기준선에서는 비용이 미미하다. 비용 상한을 없애는 목적이며, Task 3은 리턴 연타 10회의 중복 `NGramSaveEncode`(각 ~10 ms, 백그라운드)를 없애는 효과가 실측으로 확인된다.
+- Task 6 Step 4의 "Task 4 상태에서 재측정 후 1-b 판단"은 기준선이 이미 기준을 넘었으므로 생략 가능하다. Task 5 적용 후 같은 스크립트로 재측정해 전후 비교만 남긴다.
+
 ## Self-Review 기록
 
 - Spec 커버리지: 항목 2 → Task 1, 항목 3(`pruneUnigram` 포함, `maxKeys` 주입) → Task 2, 항목 4(`saveQueue` 주입, 실패 재시도, 레거시 정리 통과) → Task 3, 항목 1-a(프로토콜 기본 구현, lexicon 충족 시 미호출) → Task 4, 항목 1-b(격리, 세대 검사, `clearSuggestions` 무효화, 큐 주입, 큐 한정 주석) → Task 5, 검증·실기기 측정·Info.plist 확인 → Task 6.
