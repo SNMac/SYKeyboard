@@ -62,7 +62,7 @@ xcodebuild test \
 - Consumes: 없음
 - Produces: `LexiconSuggestionProviding.textReplacementEntries(matching lowercasedWord: String) -> [TextReplacementEntry]` (기존 `var textReplacementEntries: [TextReplacementEntry]` 제거). Task 4·5의 테스트 stub도 이 시그니처를 구현한다.
 
-- [ ] **Step 1: 보존 계약 테스트 2개를 기존 suite에 추가**
+- [x] **Step 1: 보존 계약 테스트 2개를 기존 suite에 추가**
 
 `SYKeyboardTests/Domain/SuggestionControllerTextReplacementTests.swift`의 `makeController` 위(마지막 `@Test` 뒤)에 추가한다. 이 두 테스트는 변경 전에도 통과해야 한다. 변경 전 통과를 먼저 확인해 "현재 동작"을 고정하는 용도다.
 
@@ -97,12 +97,12 @@ xcodebuild test \
     }
 ```
 
-- [ ] **Step 2: 변경 전 테스트 실행으로 현재 동작 확인**
+- [x] **Step 2: 변경 전 테스트 실행으로 현재 동작 확인**
 
 Run: `-only-testing:SYKeyboardTests/SuggestionControllerTextReplacementTests`
 Expected: 기존 10개 + 신규 2개 모두 PASS. (첫 테스트는 `max(by:)`가 동률에서 첫 요소를 유지하는 현재 동작을 고정한다.)
 
-- [ ] **Step 3: `LexiconPredictiveTextEngine`을 인덱스 기반으로 변경**
+- [x] **Step 3: `LexiconPredictiveTextEngine`을 인덱스 기반으로 변경**
 
 `LexiconPredictiveTextEngine.swift`의 프로토콜과 클래스를 아래로 교체한다. `TextReplacementEntry` 구조체와 `LexiconLoadableSuggestionProviding`, 파일 하단 `private extension`의 `currentWord(from:)`은 그대로 둔다.
 
@@ -176,7 +176,7 @@ final class LexiconPredictiveTextEngine: LexiconLoadableSuggestionProviding {
 }
 ```
 
-- [ ] **Step 4: `SuggestionController.textReplacementMatch`를 인덱스 조회로 변경**
+- [x] **Step 4: `SuggestionController.textReplacementMatch`를 인덱스 조회로 변경**
 
 `SuggestionController.swift`에서 아래 블록을
 
@@ -203,7 +203,7 @@ final class LexiconPredictiveTextEngine: LexiconLoadableSuggestionProviding {
             }
 ```
 
-- [ ] **Step 5: 테스트 stub을 새 프로토콜에 맞게 갱신**
+- [x] **Step 5: 테스트 stub을 새 프로토콜에 맞게 갱신**
 
 `SuggestionControllerTextReplacementTests.swift`의 `StubLexiconSuggestionProvider`를 교체한다.
 
@@ -237,12 +237,12 @@ private final class StubLexiconSuggestionProvider: LexiconSuggestionProviding {
 }
 ```
 
-- [ ] **Step 6: 테스트 실행**
+- [x] **Step 6: 테스트 실행**
 
 Run: `-only-testing:SYKeyboardTests/SuggestionControllerTextReplacementTests`
 Expected: 12개 모두 PASS.
 
-- [ ] **Step 7: `HangeulKeyboard` scheme 빌드로 production 컴파일 확인**
+- [x] **Step 7: `HangeulKeyboard` scheme 빌드로 production 컴파일 확인**
 
 ```sh
 xcodebuild build -project SYKeyboard.xcodeproj -scheme HangeulKeyboard \
@@ -250,7 +250,7 @@ xcodebuild build -project SYKeyboard.xcodeproj -scheme HangeulKeyboard \
 ```
 Expected: `** BUILD SUCCEEDED **`. 이어서 `git status --short`를 확인하고 `.xcscheme`·`Info.plist` 부수 변경이 있으면 복원한다.
 
-- [ ] **Step 8: 커밋**
+- [x] **Step 8: 커밋**
 
 ```bash
 git add Modules/SYKeyboardCore/Domain/PredictiveText/LexiconPredictiveTextEngine.swift \
@@ -271,7 +271,7 @@ git commit -m "refactor: #123 - lexicon 텍스트 대치 조회를 인덱스 기
 - Consumes: 없음
 - Produces: `NGramPredictiveTextEngine.init(language:fileURL:legacyStorage:loadApplyDelay:maxKeys:)` — `maxKeys: Int = 5000` 파라미터 추가. Task 3이 같은 init에 `saveQueue`를 추가한다.
 
-- [ ] **Step 1: 실패하는 테스트 작성**
+- [x] **Step 1: 실패하는 테스트 작성**
 
 `SYKeyboardTests/Domain/NGramPredictiveTextEngineRankingTests.swift`를 새로 만든다.
 
@@ -364,12 +364,12 @@ private func record(_ engine: NGramPredictiveTextEngine, word: String, times: In
 
 빈도를 모두 다르게 둔 이유: 동률 순서는 spec대로 정의하지 않으므로 테스트가 동률에 의존하면 안 된다. prune 테스트에서 `delta`(1)는 기록 직후 유일한 최소 빈도라 제거가 결정적이다.
 
-- [ ] **Step 2: 컴파일 실패 확인**
+- [x] **Step 2: 컴파일 실패 확인**
 
 Run: `-only-testing:SYKeyboardTests/NGramPredictiveTextEngineRankingTests`
 Expected: 컴파일 에러 `extra argument 'maxKeys' in call` (아직 init에 파라미터가 없다).
 
-- [ ] **Step 3: `maxKeys` init 파라미터와 캐시 프로퍼티 추가**
+- [x] **Step 3: `maxKeys` init 파라미터와 캐시 프로퍼티 추가**
 
 `NGramPredictiveTextEngine.swift` 프로퍼티 영역에서
 
@@ -413,7 +413,7 @@ Expected: 컴파일 에러 `extra argument 'maxKeys' in call` (아직 init에 �
 
 `convenience init(language:)`의 `self.init(...)` 호출은 `maxKeys`를 넘기지 않아 기본값 5000을 쓴다.
 
-- [ ] **Step 4: `rankedUnigramCandidates()`를 부분 선택 + 캐시로 교체**
+- [x] **Step 4: `rankedUnigramCandidates()`를 부분 선택 + 캐시로 교체**
 
 ```swift
     func rankedUnigramCandidates() -> [String] {
@@ -439,7 +439,7 @@ Expected: 컴파일 에러 `extra argument 'maxKeys' in call` (아직 init에 �
     }
 ```
 
-- [ ] **Step 5: `pruneUnigram()`을 초과 1개 경로에서 O(n)으로 교체**
+- [x] **Step 5: `pruneUnigram()`을 초과 1개 경로에서 O(n)으로 교체**
 
 ```swift
     func pruneUnigram() {
@@ -462,12 +462,12 @@ Expected: 컴파일 에러 `extra argument 'maxKeys' in call` (아직 init에 �
     }
 ```
 
-- [ ] **Step 6: 테스트 실행**
+- [x] **Step 6: 테스트 실행**
 
 Run: `-only-testing:SYKeyboardTests/NGramPredictiveTextEngineRankingTests -only-testing:SYKeyboardTests/NGramPredictiveTextEngineLoadingTests`
 Expected: 신규 4개 + 기존 2개 모두 PASS.
 
-- [ ] **Step 7: 커밋**
+- [x] **Step 7: 커밋**
 
 ```bash
 git add Modules/SYKeyboardCore/Domain/PredictiveText/NGramPredictiveTextEngine.swift \
@@ -487,7 +487,7 @@ git commit -m "refactor: #123 - unigram 후보 선택과 prune을 부분 선택�
 - Consumes: Task 2의 init 시그니처
 - Produces: `NGramPredictiveTextEngine.init(language:fileURL:legacyStorage:loadApplyDelay:maxKeys:saveQueue:)` — `saveQueue: DispatchQueue` 파라미터 추가(기본값: 기존 전용 직렬 큐)
 
-- [ ] **Step 1: 실패하는 테스트 작성**
+- [x] **Step 1: 실패하는 테스트 작성**
 
 `SYKeyboardTests/Domain/NGramPredictiveTextEnginePersistenceTests.swift`를 새로 만든다.
 
@@ -567,12 +567,12 @@ private func makeLoadedFixture(name: String) async -> EngineFixture {
 
 `saveQueue.sync {}`는 직렬 큐에 먼저 들어간 쓰기 블록이 끝난 뒤 반환되므로, 파일 부재 단언이 "아직 안 썼을 뿐"으로 거짓 통과하지 않는다.
 
-- [ ] **Step 2: 컴파일 실패 확인**
+- [x] **Step 2: 컴파일 실패 확인**
 
 Run: `-only-testing:SYKeyboardTests/NGramPredictiveTextEnginePersistenceTests`
 Expected: 컴파일 에러 `extra argument 'saveQueue' in call`.
 
-- [ ] **Step 3: `saveQueue` 주입과 `hasUnsavedChanges` 프로퍼티 추가**
+- [x] **Step 3: `saveQueue` 주입과 `hasUnsavedChanges` 프로퍼티 추가**
 
 프로퍼티 영역에서
 
@@ -611,7 +611,7 @@ Expected: 컴파일 에러 `extra argument 'saveQueue' in call`.
     }
 ```
 
-- [ ] **Step 4: 변이·초기화 경로에서 플래그 갱신**
+- [x] **Step 4: 변이·초기화 경로에서 플래그 갱신**
 
 로드 반영 클로저(`applyLoadedData`)에서 `self.needsLegacyCleanup = needsCleanup` 다음 줄, `self.isLoaded = true` 앞에 추가한다. `flushPendingEvents()`보다 앞이어야 보류 이벤트 재생이 다시 `true`로 만들 수 있다.
 
@@ -637,7 +637,7 @@ Expected: 컴파일 에러 `extra argument 'saveQueue' in call`.
         hasUnsavedChanges = false
 ```
 
-- [ ] **Step 5: `saveToDisk()`에 가드·플래그 해제·실패 복구 추가**
+- [x] **Step 5: `saveToDisk()`에 가드·플래그 해제·실패 복구 추가**
 
 `saveToDisk()`를 다음으로 교체한다. 계측 구간은 그대로 유지한다.
 
@@ -693,12 +693,12 @@ Expected: 컴파일 에러 `extra argument 'saveQueue' in call`.
     }
 ```
 
-- [ ] **Step 6: 테스트 실행**
+- [x] **Step 6: 테스트 실행**
 
 Run: `-only-testing:SYKeyboardTests/NGramPredictiveTextEnginePersistenceTests -only-testing:SYKeyboardTests/NGramPredictiveTextEngineRankingTests -only-testing:SYKeyboardTests/NGramPredictiveTextEngineLoadingTests`
 Expected: 3 + 4 + 2 모두 PASS. 특히 "변경이 없으면 저장을 건너뜀"과 "초기화 후에는 …"은 변경 전에는 빈 plist가 써져 FAIL하던 테스트다.
 
-- [ ] **Step 7: 커밋**
+- [x] **Step 7: 커밋**
 
 ```bash
 git add Modules/SYKeyboardCore/Domain/PredictiveText/NGramPredictiveTextEngine.swift \
@@ -720,7 +720,7 @@ git commit -m "refactor: #123 - NGram 저장을 변경이 있을 때만 수행�
 - Consumes: Task 1의 `LexiconSuggestionProviding.textReplacementEntries(matching:)` (테스트 stub)
 - Produces: `PredictiveTextProvider.suggestions(for baseText: String, limit: Int) -> [String]` (protocol extension 기본 구현 있음). Task 5가 이를 큐에서 호출한다.
 
-- [ ] **Step 1: 실패하는 테스트 작성**
+- [x] **Step 1: 실패하는 테스트 작성**
 
 `SYKeyboardTests/Domain/SuggestionControllerTextCheckerLimitTests.swift`를 새로 만든다.
 
@@ -862,12 +862,12 @@ private final class RecordingSuggestionControllerDelegate: SuggestionControllerD
 }
 ```
 
-- [ ] **Step 2: 실패 확인**
+- [x] **Step 2: 실패 확인**
 
 Run: `-only-testing:SYKeyboardTests/SuggestionControllerTextCheckerLimitTests`
 Expected: `RecordingPredictiveTextProvider`의 `suggestions(for:limit:)`가 프로토콜 요구사항이 아니라 컴파일은 되지만, 첫 테스트는 `receivedLimits == []`로 FAIL, 둘째 테스트는 `callCount == 1`로 FAIL (현재는 lexicon 결과와 무관하게 TextChecker를 먼저 호출한다).
 
-- [ ] **Step 3: 프로토콜에 `limit` 조회 추가**
+- [x] **Step 3: 프로토콜에 `limit` 조회 추가**
 
 `PredictiveTextProvider.swift`를 다음으로 교체한다.
 
@@ -912,7 +912,7 @@ extension PredictiveTextProvider {
 }
 ```
 
-- [ ] **Step 4: `TextCheckerPredictiveTextEngine`에서 `limit` 도달 시 `guesses` 생략**
+- [x] **Step 4: `TextCheckerPredictiveTextEngine`에서 `limit` 도달 시 `guesses` 생략**
 
 `suggestions(for:)` 메서드 전체를 다음 두 메서드로 교체한다. 계측 구간은 그대로다.
 
@@ -968,7 +968,7 @@ extension PredictiveTextProvider {
     }
 ```
 
-- [ ] **Step 5: `mergeSuggestions`에서 TextChecker를 필요할 때만 `limit`으로 조회**
+- [x] **Step 5: `mergeSuggestions`에서 TextChecker를 필요할 때만 `limit`으로 조회**
 
 `SuggestionController.mergeSuggestions(for:currentWord:)`를 다음으로 교체한다.
 
@@ -1010,12 +1010,12 @@ extension PredictiveTextProvider {
     }
 ```
 
-- [ ] **Step 6: 테스트 실행**
+- [x] **Step 6: 테스트 실행**
 
 Run: `-only-testing:SYKeyboardTests/SuggestionControllerTextCheckerLimitTests -only-testing:SYKeyboardTests/SuggestionControllerTextReplacementTests -only-testing:SYKeyboardTests/SuggestionControllerPreparationTests -only-testing:SYKeyboardTests/SuggestionControllerMathResultsTests`
 Expected: 모두 PASS.
 
-- [ ] **Step 7: `HangeulKeyboard` scheme 빌드**
+- [x] **Step 7: `HangeulKeyboard` scheme 빌드**
 
 ```sh
 xcodebuild build -project SYKeyboard.xcodeproj -scheme HangeulKeyboard \
@@ -1023,7 +1023,7 @@ xcodebuild build -project SYKeyboard.xcodeproj -scheme HangeulKeyboard \
 ```
 Expected: `** BUILD SUCCEEDED **`. `git status --short`로 부수 변경 확인.
 
-- [ ] **Step 8: 커밋**
+- [x] **Step 8: 커밋**
 
 ```bash
 git add Modules/SYKeyboardCore/Domain/PredictiveText/Protocols/PredictiveTextProvider.swift \
@@ -1049,7 +1049,7 @@ git commit -m "refactor: #123 - completions로 슬롯이 차면 guesses 호출 �
 - Consumes: Task 4의 `PredictiveTextProvider.suggestions(for:limit:)`, Task 1의 `LexiconSuggestionProviding`
 - Produces: `SuggestionController.init(language:engineFactory:textCheckerQueue:)` — `textCheckerQueue: DispatchQueue` 파라미터(기본값: 전용 직렬 큐)
 
-- [ ] **Step 1: 실패하는 테스트 작성**
+- [x] **Step 1: 실패하는 테스트 작성**
 
 `SYKeyboardTests/Domain/SuggestionControllerAsyncTextCheckerTests.swift`를 새로 만든다.
 
@@ -1246,12 +1246,12 @@ private func waitForMainQueue() async {
 
 첫 테스트에서 최종 후보가 `["Helsinki", "hello"]`인 이유: lexicon 1개가 슬롯 하나를 채우고 TextChecker는 `limit: 2`로 `["hello", "help"]`를 돌려주지만 남은 슬롯이 1개라 `hello`만 들어간다.
 
-- [ ] **Step 2: 실패 확인**
+- [x] **Step 2: 실패 확인**
 
 Run: `-only-testing:SYKeyboardTests/SuggestionControllerAsyncTextCheckerTests`
 Expected: 컴파일 에러 `extra argument 'textCheckerQueue' in call`.
 
-- [ ] **Step 3: `SuggestionController`에 큐·세대 프로퍼티와 init 파라미터 추가**
+- [x] **Step 3: `SuggestionController`에 큐·세대 프로퍼티와 init 파라미터 추가**
 
 프로퍼티 영역의 `private let signposter = OSSignposter(...)` 선언 뒤에 추가한다.
 
@@ -1279,7 +1279,7 @@ init을 다음으로 교체한다.
     }
 ```
 
-- [ ] **Step 4: `clearSuggestions()`에서 진행 중 요청 무효화**
+- [x] **Step 4: `clearSuggestions()`에서 진행 중 요청 무효화**
 
 `clearSuggestions()` 첫 줄에 추가한다.
 
@@ -1290,7 +1290,7 @@ init을 다음으로 교체한다.
         lastSuggestionBaseText = nil
 ```
 
-- [ ] **Step 5: `mergeSuggestions`를 조회 없는 순수 병합으로 바꾸고 `.typing` 분기를 비동기화**
+- [x] **Step 5: `mergeSuggestions`를 조회 없는 순수 병합으로 바꾸고 `.typing` 분기를 비동기화**
 
 `mergeSuggestions(for:currentWord:)`를 다음으로 교체한다(조회는 호출자가 한다).
 
@@ -1405,7 +1405,7 @@ init을 다음으로 교체한다.
         }
 ```
 
-- [ ] **Step 6: `TextCheckerPredictiveTextEngine`의 `checker` 프로퍼티에 큐 한정 주석 추가**
+- [x] **Step 6: `TextCheckerPredictiveTextEngine`의 `checker` 프로퍼티에 큐 한정 주석 추가**
 
 ```swift
     /// `SuggestionController`의 TextChecker 큐에서만 접근한다.
@@ -1414,7 +1414,7 @@ init을 다음으로 교체한다.
     private let checker = UITextChecker()
 ```
 
-- [ ] **Step 7: Task 4 테스트를 비동기 경로에 맞게 갱신**
+- [x] **Step 7: Task 4 테스트를 비동기 경로에 맞게 갱신**
 
 `SuggestionControllerTextCheckerLimitTests.swift`에서:
 
@@ -1509,12 +1509,12 @@ private func waitForMainQueue() async {
 }
 ```
 
-- [ ] **Step 8: 테스트 실행**
+- [x] **Step 8: 테스트 실행**
 
 Run: `-only-testing:SYKeyboardTests/SuggestionControllerAsyncTextCheckerTests -only-testing:SYKeyboardTests/SuggestionControllerTextCheckerLimitTests -only-testing:SYKeyboardTests/SuggestionControllerTextReplacementTests -only-testing:SYKeyboardTests/SuggestionControllerPreparationTests -only-testing:SYKeyboardTests/SuggestionControllerMathResultsTests`
 Expected: 모두 PASS. `SuggestionControllerTextReplacementTests`의 "텍스트 대치 preview 인덱스는 …" 테스트는 lexicon 결과가 즉시 반영되므로 동기 단언이 그대로 통과해야 한다.
 
-- [ ] **Step 9: 커밋**
+- [x] **Step 9: 커밋**
 
 ```bash
 git add Modules/SYKeyboardCore/Domain/SuggestionController.swift \
@@ -1530,7 +1530,7 @@ git commit -m "feat: #123 - TextChecker 조회를 백그라운드 큐로 분리 
 
 **Files:** 코드 변경 없음. 검증 결과는 이 계획 문서의 아래 체크박스에 기록한다.
 
-- [ ] **Step 1: 전체 테스트 실행**
+- [x] **Step 1: 전체 테스트 실행**
 
 ```sh
 xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
@@ -1538,7 +1538,7 @@ xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
 ```
 Expected: `** TEST SUCCEEDED **`, `✘` 없음.
 
-- [ ] **Step 2: 3개 extension scheme 빌드 (`-only-testing` 옵션 없이)**
+- [x] **Step 2: 3개 extension scheme 빌드 (`-only-testing` 옵션 없이)**
 
 ```sh
 for scheme in HangeulKeyboard EnglishKeyboard HangeulEnglishKeyboard; do
@@ -1548,7 +1548,7 @@ done
 ```
 Expected: 세 번 모두 `** BUILD SUCCEEDED **`.
 
-- [ ] **Step 3: 빌드 부수 효과 확인**
+- [x] **Step 3: 빌드 부수 효과 확인**
 
 ```sh
 git status --short
@@ -1563,9 +1563,29 @@ Expected: 출력 없음. `.xcscheme`가 보이면 `RemotePath`만 바뀐 경우 
 - 영문 단어 입력 중 `TextCheckerSuggestions`, `TextCheckerGuesses`, `TextCheckerCompletions`의 count / avg / max를 기록한다. `TextCheckerGuesses` count가 `TextCheckerCompletions` count보다 작으면 Task 4의 생략이 동작하는 것이다.
 - 스페이스 입력 시 `RankedUnigramCandidates`가 연속 스페이스에서 발생하지 않으면 Task 2 캐시가 동작하는 것이다.
 - 후보 바 깜빡임, 키 하이라이트 애니메이션 끊김, 빠른 연속 입력 시 후보 갱신 여부를 관찰한다.
+- 후보 탭 직후 이전 단어의 후보가 잠깐 표시되지 않는지 관찰한다.
+- 키 입력마다 후보 바가 lexicon 결과 → TextChecker 결과로 두 번 갱신되므로 reflow가 눈에 띄는지 관찰한다.
 - 판단: Task 5 revert 전 상태(`git stash` 없이 `git checkout <Task 4 커밋>`으로 빌드)에서 `TextCheckerSuggestions` p95 ≥ 8 ms(또는 p50 ≥ 3 ms)이면 Task 5 유지, 한 자릿수 ms이면 `git revert <Task 5 커밋>`. 측정값을 이슈에 남긴다.
 
+**Step 4 진행 상태**: 코멘트 초안을 `.superpowers/sdd/2026-09-02-autocomplete-performance-improvements/issue-123-measurement-comment.md`에 작성했다. 사용자 확인 후에만 이슈 #123에 게시하므로, 실기기 측정과 게시가 끝나기 전까지 이 Step은 미완료로 남긴다.
+
 ---
+
+## 실행 기록 (2026-09-02)
+
+- Task 1 `af477efa` refactor: lexicon 텍스트 대치 조회를 인덱스 기반으로 변경 — `SuggestionControllerTextReplacementTests` 12/12 통과.
+- Task 2 `0bf2fd1b` refactor: unigram 후보 선택과 prune을 부분 선택·캐시로 변경 — `NGramPredictiveTextEngineRankingTests` 4 + `NGramPredictiveTextEngineLoadingTests` 2 = 6/6 통과. RED 단계에서 `extra argument 'maxKeys'` 컴파일 실패로 실패 확인.
+- Task 3 `4ae0f4c1` refactor: NGram 저장을 변경이 있을 때만 수행하도록 변경 — `NGramPredictiveTextEnginePersistenceTests` 3 + Ranking 4 + Loading 2 = 9/9 통과. RED 단계에서 `extra argument 'saveQueue'` 컴파일 실패로 실패 확인.
+- Task 4 `f2af8890` refactor: completions로 슬롯이 차면 guesses 호출 생략 — 관련 4개 suite 통과, `HangeulKeyboard` scheme 빌드 성공. RED 단계에서 `receivedLimits == []`, `callCount == 1` 단언 실패로 실패 확인.
+- Task 5 `6029d998` feat: TextChecker 조회를 백그라운드 큐로 분리(실험) + `0664c8e5` test: 두 번째 delegate 호출 고정 — 관련 5개 suite 110/110 통과. RED 단계에서 `extra argument 'textCheckerQueue'` 컴파일 실패로 실패 확인. 테스트 단언이 약하다는 리뷰 지적을 받아 `0664c8e5`로 보강 후 재리뷰 통과.
+- Task 1~5는 각각 spec 리뷰와 quality 리뷰를 통과했고, Task 5만 위 테스트 단언 보강 1회의 수정 라운드를 거쳤다.
+
+Task 6 결과:
+
+- Step 1 전체 테스트: `xcodebuild test -scheme SYKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0'` → `** TEST SUCCEEDED **`. 로그에서 `passed on` 572건, `✘` 0건, `error:` 0건, 실패(`failed on`) 0건 확인(xcresult: `Test-SYKeyboard-2026.09.02_23-52-43-+0900.xcresult`). 병렬 클론 두 개가 stdout에 동시에 써서 5364번째 줄 경계에서 문자 단위로 섞이는 표시 문제가 있었으나 xcresult 요약(`** TEST SUCCEEDED **`)과 개별 테스트 케이스 라인은 모두 온전했다.
+- Step 2 extension 빌드: `HangeulKeyboard`, `EnglishKeyboard`, `HangeulEnglishKeyboard` 순서로(-only-testing 없이) 하나씩 실행, 세 번 모두 `** BUILD SUCCEEDED **`.
+- Step 3 `git status --short` 출력 없음. 되돌릴 부수 효과 없음.
+- Step 4는 실기기 측정과 이슈 게시가 남아 있어 미완료 상태로 둔다(코멘트 초안만 작성).
 
 ## 기준선 측정 (2026-09-02)
 
