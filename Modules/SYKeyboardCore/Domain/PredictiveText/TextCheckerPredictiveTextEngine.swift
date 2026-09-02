@@ -76,13 +76,29 @@ final public class TextCheckerPredictiveTextEngine: PredictiveTextProvider {
     // MARK: - PredictiveTextProvider Methods
     
     func suggestions(for baseText: String) -> [String] {
+        suggestions(for: baseText, limit: .max)
+    }
+
+    func suggestions(for baseText: String, limit: Int) -> [String] {
         let lastWord = currentWord(from: baseText)
-        guard !lastWord.isEmpty else { return [] }
-        
+        guard !lastWord.isEmpty, limit > 0 else { return [] }
+
         let range = NSRange(location: 0, length: lastWord.utf16.count)
+        let loweredLastWord = lastWord.lowercased()
         var seen = Set<String>()
         var merged: [String] = []
-        
+
+        func append(_ words: [String]) {
+            for word in words {
+                let lowered = word.lowercased()
+                guard lowered != loweredLastWord,
+                      !seen.contains(lowered) else { continue }
+                seen.insert(lowered)
+                merged.append(word)
+                if merged.count >= limit { return }
+            }
+        }
+
         // 1순위: completions (접두어 자동완성)
         let completionsState = Self.signposter.beginInterval("TextCheckerCompletions")
         let completions = checker.completions(
@@ -91,15 +107,11 @@ final public class TextCheckerPredictiveTextEngine: PredictiveTextProvider {
             language: language
         ) ?? []
         Self.signposter.endInterval("TextCheckerCompletions", completionsState)
-        
-        for word in completions {
-            let lowered = word.lowercased()
-            guard lowered != lastWord.lowercased(),
-                  !seen.contains(lowered) else { continue }
-            seen.insert(lowered)
-            merged.append(word)
-        }
-        
+        append(completions)
+
+        // completions만으로 limit이 차면 guesses는 결과에 기여할 수 없으므로 호출하지 않는다
+        guard merged.count < limit else { return merged }
+
         // 2순위: guesses (오타 교정, 중복 제거하여 보충)
         let guessesState = Self.signposter.beginInterval("TextCheckerGuesses")
         let guesses = checker.guesses(
@@ -108,15 +120,8 @@ final public class TextCheckerPredictiveTextEngine: PredictiveTextProvider {
             language: language
         ) ?? []
         Self.signposter.endInterval("TextCheckerGuesses", guessesState)
-        
-        for word in guesses {
-            let lowered = word.lowercased()
-            guard lowered != lastWord.lowercased(),
-                  !seen.contains(lowered) else { continue }
-            seen.insert(lowered)
-            merged.append(word)
-        }
-        
+        append(guesses)
+
         return merged
     }
     

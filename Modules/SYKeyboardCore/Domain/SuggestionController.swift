@@ -870,10 +870,6 @@ private extension SuggestionController {
         let lexiconResults = lexiconEngine?.suggestions(for: text) ?? []
         signposter.endInterval("LexiconSuggestions", lexiconState)
 
-        let checkerState = signposter.beginInterval("TextCheckerSuggestions")
-        let checkerResults = textCheckerEngine?.suggestions(for: text) ?? []
-        signposter.endInterval("TextCheckerSuggestions", checkerState)
-
         var seen = Set<String>()
         seen.insert(currentWord.lowercased())
         var merged: [SuggestionItem] = []
@@ -887,6 +883,12 @@ private extension SuggestionController {
             merged.append(SuggestionItem(text: suggestion, source: .lexicon))
             if merged.count >= maxSuggestionSlots { return merged }
         }
+
+        // 아래 루프는 각 항목을 슬롯에 넣거나 lexicon 중복으로 건너뛰므로 목록의 앞
+        // maxSuggestionSlots개만 읽는다. 따라서 limit이 그 값이어도 결과가 같다
+        let checkerState = signposter.beginInterval("TextCheckerSuggestions")
+        let checkerResults = textCheckerEngine?.suggestions(for: text, limit: maxSuggestionSlots) ?? []
+        signposter.endInterval("TextCheckerSuggestions", checkerState)
 
         for suggestion in checkerResults {
             let lowered = suggestion.lowercased()
