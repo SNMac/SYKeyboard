@@ -22,7 +22,6 @@ struct InfoView: View {
     @Environment(\.openURL) private var openURL
     @State private var isShowingInstructions = false
     @State private var isShowingMailErrorAlert = false
-    @State private var isShowingLicenses = false
     
     // MARK: - Content
     
@@ -35,13 +34,17 @@ struct InfoView: View {
             isShowingInstructions = true
         } label: {
             HStack {
-                // SF Symbols 6의 `text.rectangle.page`는 iOS 18부터라 같은 심볼의 레거시 이름을 쓴다.
                 Image(systemName: "doc.text.image")
                     .resizable()
                     .scaledToFit()
                     .frame(width: 20, height: 20)
                 Text("키보드 사용 안내")
             }
+        }
+        .sheet(isPresented: $isShowingInstructions) {
+            InstructionsTabView()
+                .presentationDragIndicator(.visible)
+                .presentationDetents([.fraction(0.8)])
         }
         
         Button {
@@ -106,40 +109,6 @@ struct InfoView: View {
                     .frame(width: 20, height: 20)
                 Text("리뷰 및 별점 주기")
             }
-        }
-        
-        Button {
-            Analytics.logEvent("open_licenses", parameters: [
-                "view": "InfoView",
-            ])
-
-            isShowingLicenses = true
-        } label: {
-            HStack {
-                // SF Symbols 6의 `text.document`는 iOS 18부터라 같은 심볼의 레거시 이름을 쓴다.
-                Image(systemName: "doc.text")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 20, height: 20)
-                Text("오픈소스 라이선스")
-            }
-        }
-        .fullScreenCover(isPresented: $isShowingLicenses) {
-            OpenSourceLicenseView()
-        }
-
-        HStack {
-            Text("버전")
-            
-            Spacer()
-            
-            Text(Bundle.appVersion ?? "Unknown")
-                .foregroundStyle(.gray)
-        }
-        .sheet(isPresented: $isShowingInstructions) {
-            InstructionsTabView()
-                .presentationDragIndicator(.visible)
-                .presentationDetents([.fraction(0.8)])
         }
     }
 }
