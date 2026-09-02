@@ -73,6 +73,9 @@ struct SuggestionControllerAsyncTextCheckerTests {
         harness.queue.sync {}
         await waitForMainQueue()
 
+        // 즉시 전달과 TextChecker 전달 두 번이 있었는지 먼저 고정해야
+        // 비동기 전달이 사라져도 통과하는 단언이 되지 않는다
+        #expect(harness.delegate.updates.count == 2)
         #expect(harness.delegate.updateIsMainThread.last == true)
     }
 
