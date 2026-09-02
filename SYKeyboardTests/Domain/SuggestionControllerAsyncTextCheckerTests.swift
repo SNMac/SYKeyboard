@@ -79,6 +79,75 @@ struct SuggestionControllerAsyncTextCheckerTests {
         #expect(harness.delegate.updateIsMainThread.last == true)
     }
 
+    @Test("연속 입력 중에는 TextChecker 결과 도착 전 직전 TextChecker 후보를 유지")
+    func test연속입력중에는_TextChecker결과도착전_직전TextChecker후보를유지() async {
+        let checker = GatedPredictiveTextProvider(results: [
+            "he": ["hey"],
+            "hel": ["hello", "help"]
+        ])
+        let harness = makeHarness(checker: checker, lexiconEntries: [])
+
+        harness.controller.updateSuggestions(for: "he")
+        checker.gate.signal()
+        harness.queue.sync {}
+        await waitForMainQueue()
+        #expect(harness.delegate.updates.last == .init(currentWord: "he", suggestions: ["hey"]))
+
+        // 다음 글자를 입력한 직후에는 새 조회가 끝나지 않았지만 빈 후보를 그리지 않는다
+        harness.controller.updateSuggestions(for: "hel")
+        #expect(harness.delegate.updates.last == .init(currentWord: "hel", suggestions: ["hey"]))
+
+        checker.gate.signal()
+        harness.queue.sync {}
+        await waitForMainQueue()
+        #expect(harness.delegate.updates.last == .init(currentWord: "hel", suggestions: ["hello", "help"]))
+    }
+
+    @Test("n-gram 후보는 입력 중 모드로 넘어올 때 유지하지 않음")
+    func testNGram후보는_입력중모드로넘어올때_유지하지않음() async {
+        let checker = GatedPredictiveTextProvider(results: ["hel": ["hello", "help"]])
+        let harness = makeHarness(
+            checker: checker,
+            lexiconEntries: [],
+            nGramResults: ["next"]
+        )
+
+        harness.controller.updateSuggestions(for: "")
+        #expect(harness.delegate.updates.last == .init(currentWord: nil, suggestions: ["next"]))
+
+        harness.controller.updateSuggestions(for: "hel")
+        #expect(harness.delegate.updates.last == .init(currentWord: "hel", suggestions: []))
+
+        // 대기 중인 조회를 풀어 큐 스레드를 남기지 않는다
+        checker.gate.signal()
+        harness.queue.sync {}
+    }
+
+    @Test("큐에 쌓인 낡은 요청은 조회를 건너뜀")
+    func test큐에쌓인_낡은요청은_조회를건너뜀() async {
+        let checker = GatedPredictiveTextProvider(results: [
+            "he": ["hey"],
+            "hel": ["hello", "help"]
+        ])
+        let harness = makeHarness(checker: checker, lexiconEntries: [])
+
+        // 큐를 먼저 잡아 두 요청이 모두 쌓인 뒤 실행되게 한다
+        let blocker = DispatchSemaphore(value: 0)
+        harness.queue.async { blocker.wait() }
+
+        harness.controller.updateSuggestions(for: "he")
+        harness.controller.updateSuggestions(for: "hel")
+
+        blocker.signal()
+        // 낡은 요청은 gate 앞에서 반환되므로 살아 있는 요청 하나만 signal하면 된다
+        checker.gate.signal()
+        harness.queue.sync {}
+        await waitForMainQueue()
+
+        #expect(checker.calledBaseTexts == ["hel"])
+        #expect(harness.delegate.updates.last == .init(currentWord: "hel", suggestions: ["hello", "help"]))
+    }
+
     private struct Harness {
         let controller: SuggestionController
         let delegate: RecordingSuggestionControllerDelegate
@@ -87,13 +156,14 @@ struct SuggestionControllerAsyncTextCheckerTests {
 
     private func makeHarness(
         checker: GatedPredictiveTextProvider,
-        lexiconEntries: [TextReplacementEntry]
+        lexiconEntries: [TextReplacementEntry],
+        nGramResults: [String] = []
     ) -> Harness {
         let lexicon = StubLexiconSuggestionProvider(entries: lexiconEntries)
         let factory = SuggestionControllerEngineFactory(
             makeLexiconEngine: { lexicon },
             makeTextCheckerEngine: { _ in checker },
-            makeNGramEngine: { _ in StubNGramPredictiveTextProvider() }
+            makeNGramEngine: { _ in StubNGramPredictiveTextProvider(results: nGramResults) }
         )
         let queue = DispatchQueue(label: "SYKeyboardTests.suggestion.textchecker")
         let controller = SuggestionController(
@@ -112,6 +182,8 @@ struct SuggestionControllerAsyncTextCheckerTests {
 /// `gate.signal()`이 올 때까지 조회를 막아 결과 도착 순서를 테스트가 제어한다
 private final class GatedPredictiveTextProvider: PredictiveTextProvider, @unchecked Sendable {
     let gate = DispatchSemaphore(value: 0)
+    /// 실제로 조회가 시작된 텍스트. 낡은 요청이 건너뛰어졌는지 확인한다
+    private(set) var calledBaseTexts: [String] = []
     private let results: [String: [String]]
 
     init(results: [String: [String]]) {
@@ -123,6 +195,7 @@ private final class GatedPredictiveTextProvider: PredictiveTextProvider, @unchec
     }
 
     func suggestions(for baseText: String, limit: Int) -> [String] {
+        calledBaseTexts.append(baseText)
         gate.wait()
         return Array((results[baseText] ?? []).prefix(limit))
     }
@@ -154,7 +227,13 @@ private final class StubNGramPredictiveTextProvider: NGramPredictiveTextProvidin
     var onLoadCompleted: (() -> Void)?
     var currentSentenceWordsCount: Int { 0 }
 
-    func suggestions(for baseText: String) -> [String] { [] }
+    private let results: [String]
+
+    init(results: [String] = []) {
+        self.results = results
+    }
+
+    func suggestions(for baseText: String) -> [String] { results }
     func learn(word: String) {}
     func addWord(_ word: String) {}
     func endSentence() {}

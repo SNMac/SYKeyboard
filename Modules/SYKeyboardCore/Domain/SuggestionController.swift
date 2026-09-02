@@ -7,6 +7,7 @@
 
 import UIKit
 import OSLog
+import os
 
 /// n-gram 예측 엔진에 필요한 기록/저장 기능 계약
 protocol NGramPredictiveTextProviding: PredictiveTextProvider {
@@ -120,7 +121,9 @@ final class SuggestionController: SuggestionService {
     /// TextChecker 조회 전용 직렬 큐. `UITextChecker` 인스턴스는 이 큐에서만 접근한다
     private let textCheckerQueue: DispatchQueue
     /// 비동기 TextChecker 조회 결과가 낡았는지 판별하는 요청 세대
-    private var textCheckerRequestGeneration = 0
+    ///
+    /// main 외 스레드가 읽는 유일한 상태라 lock으로 한정한다
+    private let textCheckerRequestGeneration = OSAllocatedUnfairLock(initialState: 0)
 
     /// 자동완성 사용자 설정
     ///
@@ -286,7 +289,7 @@ final class SuggestionController: SuggestionService {
         engineFactory: SuggestionControllerEngineFactory = .live,
         textCheckerQueue: DispatchQueue = DispatchQueue(
             label: "com.snmac.sykeyboard.suggestion.textchecker",
-            qos: .userInteractive
+            qos: .userInitiated
         )
     ) {
         self.language = language
@@ -437,7 +440,7 @@ final class SuggestionController: SuggestionService {
 
     func clearSuggestions() {
         // 진행 중인 TextChecker 조회 결과가 뒤늦게 반영되지 않도록 세대를 올린다
-        textCheckerRequestGeneration += 1
+        textCheckerRequestGeneration.withLock { $0 += 1 }
         lastSuggestionBaseText = nil
         lastMathExpressionText = nil
         lastSuggestionOrigin = nil
@@ -830,22 +833,30 @@ private extension SuggestionController {
             return
         }
 
+        // 직전에도 입력 중이었다면 TextChecker 후보만 이어받는다.
+        // TextChecker 조회는 한 프레임보다 오래 걸려 유지하지 않으면 타이핑 내내
+        // 빈 후보 프레임이 한 번씩 그려진다.
+        // lexicon·n-gram·수식 후보를 이어받지 않는 이유: n-gram 후보는 다음 단어 예측이라
+        // 입력 중 모드에서 탭되면 현재 단어를 잘못 교체하고, lexicon 후보는 이번 입력의
+        // 조회 결과로 대치되어야 `textReplacementPreviewSuggestionIndex`가 어긋나지 않는다
+        let previousCheckerTexts = currentMode == .typing
+            ? currentSuggestions.filter { $0.source == .textChecker }.map(\.text)
+            : []
+
         currentMode = .typing
         let currentWord = extractLastWord(from: baseText)
-        textCheckerRequestGeneration += 1
-        let generation = textCheckerRequestGeneration
+        let generation = textCheckerRequestGeneration.withLock { $0 += 1; return $0 }
         let maxSuggestionSlots = maxSuggestions - 1
 
         let lexiconState = signposter.beginInterval("LexiconSuggestions")
         let lexiconResults = lexiconEngine?.suggestions(for: baseText) ?? []
         signposter.endInterval("LexiconSuggestions", lexiconState)
 
-        // lexicon 결과로 먼저 갱신하고 TextChecker 결과는 도착하면 다시 병합한다.
-        // 이전 후보를 유지하지 않는 이유: 직전 모드가 n-gram이면 이전 후보는 다음 단어 예측이라
-        // 입력 중 모드에서 탭되면 현재 단어를 잘못 교체한다
+        // 새 lexicon 결과를 앞에 두고 직전 TextChecker 후보로 남은 슬롯을 채워 먼저 갱신한다.
+        // TextChecker 결과가 도착하면 그 결과로 다시 병합한다
         currentSuggestions = mergeSuggestions(
             lexiconResults: lexiconResults,
-            checkerResults: [],
+            checkerResults: previousCheckerTexts,
             currentWord: currentWord
         )
         delegate?.suggestionController(
@@ -854,12 +865,18 @@ private extension SuggestionController {
             suggestions: currentSuggestions.map { $0.text }
         )
 
-        // lexicon이 슬롯을 다 채웠으면 TextChecker 조회가 결과에 기여할 수 없다
-        guard currentSuggestions.count < maxSuggestionSlots,
+        // lexicon이 슬롯을 다 채웠으면 TextChecker 조회가 결과에 기여할 수 없다.
+        // 이어받은 후보는 이번 조회 결과로 대치될 값이라 세지 않는다
+        guard currentSuggestions.filter({ $0.source == .lexicon }).count < maxSuggestionSlots,
               let textCheckerEngine else { return }
 
         let signposter = signposter
+        let requestGeneration = textCheckerRequestGeneration
         textCheckerQueue.async { [weak self] in
+            // 큐에 밀려 있는 동안 새 입력이 들어왔으면 조회 자체를 건너뛴다.
+            // 조회 한 번이 12~22ms라 쌓인 요청을 전부 수행하면 마지막 결과가 그만큼 늦어진다
+            guard requestGeneration.withLock({ $0 }) == generation else { return }
+
             let checkerState = signposter.beginInterval("TextCheckerSuggestions")
             let checkerResults = textCheckerEngine.suggestions(for: baseText, limit: maxSuggestionSlots)
             signposter.endInterval("TextCheckerSuggestions", checkerState)
@@ -867,7 +884,7 @@ private extension SuggestionController {
             DispatchQueue.main.async {
                 // 세대 검사는 delegate 호출 전에 있어야 낡은 후보가 표시되지 않는다
                 guard let self,
-                      self.textCheckerRequestGeneration == generation,
+                      self.textCheckerRequestGeneration.withLock({ $0 }) == generation,
                       self.currentMode == .typing else { return }
                 self.currentSuggestions = self.mergeSuggestions(
                     lexiconResults: lexiconResults,
