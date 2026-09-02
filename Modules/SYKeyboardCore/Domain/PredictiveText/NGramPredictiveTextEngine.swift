@@ -121,8 +121,10 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
     )
     
     /// 백그라운드 저장용 직렬 큐
-    private let saveQueue = DispatchQueue(label: "com.snmac.sykeyboard.ngram.save", qos: .utility)
-    
+    private let saveQueue: DispatchQueue
+    /// 마지막 저장 스냅샷 이후 학습으로 저장소가 바뀌었는지 여부. 변경이 없으면 저장을 건너뛴다
+    private var hasUnsavedChanges = false
+
     /// 디스크 저장 디바운스용 카운터
     private var writeCounter: Int = 0
     /// 디스크 저장 주기 (n번 기록마다 1회 저장)
@@ -192,13 +194,15 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
         fileURL: URL,
         legacyStorage: UserDefaults,
         loadApplyDelay: Duration? = nil,
-        maxKeys: Int = 5000
+        maxKeys: Int = 5000,
+        saveQueue: DispatchQueue = DispatchQueue(label: "com.snmac.sykeyboard.ngram.save", qos: .utility)
     ) {
         self.language = language
         self.fileURL = fileURL
         self.legacyStorage = legacyStorage
         self.loadApplyDelay = loadApplyDelay
         self.maxKeys = maxKeys
+        self.saveQueue = saveQueue
         startBackgroundLoad()
     }
 
@@ -235,6 +239,8 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
                     self.bigramStore = loaded.bigram
                     self.trigramStore = loaded.trigram
                     self.needsLegacyCleanup = needsCleanup
+                    // 메모리와 파일이 일치하는 시점. 이후 flushPendingEvents가 기록하면 다시 true가 된다
+                    self.hasUnsavedChanges = false
                     self.isLoaded = true
                     self.flushPendingEvents()
                     self.logger.debug("[NGram/\(self.language)] 디스크 로딩 완료")
@@ -384,8 +390,9 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
     /// 디스크 로딩이 완료되지 않은 경우 빈 데이터로 덮어쓰는 것을 방지하기 위해
     /// 저장을 건너뜁니다.
     func saveToDisk() {
-        guard isLoaded else { return }
-        
+        // 보류된 레거시 정리는 이 경로에서만 수행되므로 dirty가 아니어도 통과시킨다
+        guard isLoaded, hasUnsavedChanges || needsLegacyCleanup else { return }
+
         let generation = currentStorageGeneration()
         let snapshotState = Self.signposter.beginInterval("NGramSaveSnapshot")
         let snapshot = NGramData(
@@ -394,6 +401,7 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
             trigram: trigramStore
         )
         Self.signposter.endInterval("NGramSaveSnapshot", snapshotState)
+        hasUnsavedChanges = false
         let url = fileURL
         let shouldCleanupLegacy = needsLegacyCleanup
 
@@ -410,7 +418,7 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
                 encoder.outputFormat = .binary
                 let data = try encoder.encode(snapshot)
                 try data.write(to: url, options: .atomic)
-                
+
                 if shouldCleanupLegacy {
                     self.legacyStorage.removeObject(forKey: self.legacyUnigramKey)
                     self.legacyStorage.removeObject(forKey: self.legacyBigramKey)
@@ -422,6 +430,11 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
                 }
             } catch {
                 self.logger.error("[NGram] 디스크 저장 실패: \(error.localizedDescription)")
+                // 다음 저장 기회에 재시도할 수 있도록 되돌린다. reset 이후라면 버려진 데이터이므로 되돌리지 않는다
+                DispatchQueue.main.async {
+                    guard self.currentStorageGeneration() == generation else { return }
+                    self.hasUnsavedChanges = true
+                }
             }
         }
     }
@@ -436,7 +449,9 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
         currentSentenceWords = []
         pendingEvents = []
         writeCounter = 0
-        
+        // 파일을 지우고 저장소도 비우므로 메모리와 디스크가 일치한다
+        hasUnsavedChanges = false
+
         // 파일 삭제
         try? FileManager.default.removeItem(at: fileURL)
         
@@ -563,6 +578,7 @@ private extension NGramPredictiveTextEngine {
         
         pruneKeys(in: &bigramStore)
         pruneKeys(in: &trigramStore)
+        hasUnsavedChanges = true
     }
     
     // MARK: Ranking
