@@ -20,16 +20,14 @@ enum CursorDragIndicatorEffectFactory {
 
 /// 커서 드래그 표시 레이어의 SF Symbol 생성 정책
 enum CursorDragIndicatorSymbolFactory {
+    /// 커서 드래그 표시 심볼. iOS 14.5+라 배포 타깃 iOS 16에서 항상 해석된다.
     static let symbolName = "character.cursor.ibeam"
+    /// 삭제 드래그 표시 심볼. iOS 15.0+라 배포 타깃 iOS 16에서 항상 해석된다.
     static let deleteSymbolName = "delete.backward"
-    static let fallbackSymbolName = "text.cursor"
 
-    static func image(
-        symbolName: String = symbolName,
-        fallbackSymbolName: String = fallbackSymbolName
-    ) -> UIImage? {
+    static func image(symbolName: String = symbolName) -> UIImage? {
         let imageConfig = UIImage.SymbolConfiguration(pointSize: FontSize.overlayLarge, weight: .regular)
-        return (UIImage(systemName: symbolName) ?? UIImage(systemName: fallbackSymbolName))?
+        return UIImage(systemName: symbolName)?
             .withConfiguration(imageConfig)
             .withRenderingMode(.alwaysTemplate)
     }
@@ -51,7 +49,6 @@ final class CursorDragIndicatorView: UIView {
     // MARK: - Properties
 
     private let symbolName: String
-    private let fallbackSymbolName: String
 
     // MARK: - UI Components
 
@@ -59,10 +56,7 @@ final class CursorDragIndicatorView: UIView {
     private lazy var vibrancyView = UIVisualEffectView(effect: CursorDragIndicatorVibrancyEffectFactory.effect())
     private lazy var imageView: UIImageView = {
         let imageView = UIImageView()
-        imageView.image = CursorDragIndicatorSymbolFactory.image(
-            symbolName: symbolName,
-            fallbackSymbolName: fallbackSymbolName
-        )
+        imageView.image = CursorDragIndicatorSymbolFactory.image(symbolName: symbolName)
         imageView.tintColor = .secondaryLabel
         imageView.contentMode = .center
 
@@ -73,11 +67,9 @@ final class CursorDragIndicatorView: UIView {
 
     init(
         symbolName: String = CursorDragIndicatorSymbolFactory.symbolName,
-        fallbackSymbolName: String = CursorDragIndicatorSymbolFactory.fallbackSymbolName,
         frame: CGRect = .zero
     ) {
         self.symbolName = symbolName
-        self.fallbackSymbolName = fallbackSymbolName
         super.init(frame: frame)
         setupUI()
     }

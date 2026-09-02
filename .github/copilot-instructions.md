@@ -35,3 +35,4 @@
 - 테스트가 production 진입점을 호출하지 않거나 production 로직을 테스트 내부에서 복제하면 회귀 검증으로 인정하지 않는다.
 - exact color, font, SF Symbol, corner radius, private subview 구조처럼 명시적 제품 계약이 아닌 시각 구현 세부사항을 단위 테스트로 고정하도록 요구하지 않는다.
 - 자동완성 후보 UI에 가로 스크롤이나 제스처 중재를 다시 추가하도록 제안하지 않는다.
+- `Package.resolved`에 새 의존성이 추가되었는데 `SYKeyboard/Resources/opensource_license.json`에 해당 라이브러리 고지가 없으면 지적한다. 버전만 바뀐 경우는 해당하지 않는다.

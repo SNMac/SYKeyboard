@@ -148,7 +148,6 @@ struct NumericBottomSpaceLayoutTests {
         let zero = Self.rect(try Self.keyButton("0", in: view), in: view)
         let period = Self.rect(try Self.keyButton(".", in: view), in: view)
         let slash = Self.rect(try Self.keyButton("/", in: view), in: view)
-        let switchRect = Self.rect(view.switchButton, in: view)
         let returnRect = Self.rect(view.returnButton, in: view)
 
         // 다섯 글자 버튼이 모두 4행이고 리턴(3행)보다 아래다

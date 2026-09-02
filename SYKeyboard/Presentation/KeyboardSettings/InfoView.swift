@@ -22,6 +22,7 @@ struct InfoView: View {
     @Environment(\.openURL) private var openURL
     @State private var isShowingInstructions = false
     @State private var isShowingMailErrorAlert = false
+    @State private var isShowingLicenses = false
     
     // MARK: - Content
     
@@ -34,7 +35,8 @@ struct InfoView: View {
             isShowingInstructions = true
         } label: {
             HStack {
-                Image(.textPage)
+                // SF Symbols 6의 `text.rectangle.page`는 iOS 18부터라 같은 심볼의 레거시 이름을 쓴다.
+                Image(systemName: "doc.text.image")
                     .resizable()
                     .scaledToFit()
                     .frame(width: 20, height: 20)
@@ -73,7 +75,7 @@ struct InfoView: View {
             }
         } label: {
             HStack {
-                Image(.questionmarkBubble)
+                Image(systemName: "questionmark.bubble")
                     .resizable()
                     .scaledToFit()
                     .frame(width: 20, height: 20)
@@ -98,7 +100,7 @@ struct InfoView: View {
             openURL(url)
         } label: {
             HStack {
-                Image(.pencilLine)
+                Image(systemName: "pencil.line")
                     .resizable()
                     .scaledToFit()
                     .frame(width: 20, height: 20)
@@ -106,6 +108,26 @@ struct InfoView: View {
             }
         }
         
+        Button {
+            Analytics.logEvent("open_licenses", parameters: [
+                "view": "InfoView",
+            ])
+
+            isShowingLicenses = true
+        } label: {
+            HStack {
+                // SF Symbols 6의 `text.document`는 iOS 18부터라 같은 심볼의 레거시 이름을 쓴다.
+                Image(systemName: "doc.text")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 20, height: 20)
+                Text("오픈소스 라이선스")
+            }
+        }
+        .fullScreenCover(isPresented: $isShowingLicenses) {
+            OpenSourceLicenseView()
+        }
+
         HStack {
             Text("버전")
             
