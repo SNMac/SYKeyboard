@@ -79,6 +79,9 @@ struct OpenSourceLicenseView: View {
                 } label: {
                     Text(library.url)
                         .font(.caption)
+                        // Button은 라벨을 가운데 정렬한다. 큰 글자 크기에서 URL이
+                        // 감싸지면 마지막 줄만 가운데로 떠 위 세 줄과 어긋난다.
+                        .multilineTextAlignment(.leading)
                 }
                 .buttonStyle(.borderless)
                 .accessibilityAddTraits(.isLink)
