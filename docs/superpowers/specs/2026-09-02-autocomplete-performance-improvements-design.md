@@ -15,7 +15,7 @@ GitHub Issue #123에 따라 자동완성 키 입력 경로에서 확인된 성�
 
 ## 확인한 기준
 
-- 작업 브랜치: `chore/#123-autocomplete-perf-signposts`. 계측 커밋 `f3e66f0e`
+- 작업 브랜치: `chore/#123-autocomplete-perf-signposts`. 계측 커밋 `a978c070`
   (`chore: #123 - 자동완성 성능 계측용 OSSignposter 구간 추가`) 위에 이어서 작업한다.
 - 계측 구간: `TextCheckerCompletions`, `TextCheckerGuesses`, `LexiconSuggestions`,
   `TextCheckerSuggestions`, `TextReplacementMatch`, `RankedUnigramCandidates`,
@@ -236,8 +236,11 @@ GitHub Issue #123에 따라 자동완성 키 입력 경로에서 확인된 성�
 
 ### 설계
 
-- `SuggestionController`에 전용 직렬 큐(`qos: .userInteractive`)와 요청 세대 카운터를 둔다.
-  `updateSuggestions` 진입마다 세대를 올린다.
+- `SuggestionController`에 전용 직렬 큐(`qos: .userInitiated`)와 요청 세대 카운터를 둔다.
+  `performUpdateSuggestions`의 `.typing` 분기 진입마다 세대를 올린다. 세대는 큐 스레드도
+  읽으므로 `OSAllocatedUnfairLock`으로 한정한다.
+- 큐 블록은 조회 전에 세대를 확인해 이미 낡은 요청이면 조회 자체를 건너뛴다. 빠른 연속
+  입력으로 요청이 쌓여도 마지막 요청 하나만 `completions`/`guesses`를 수행한다.
 - `mergeSuggestions` 경로에서 lexicon 조회는 동기로 두고 TextChecker 조회만 큐로 보낸다.
 - 완료 시 main으로 돌아와 세대가 최신이고 `lastSuggestionBaseText`가 그대로일 때만 병합하고
   delegate를 호출한다. 낡은 결과는 버린다. 세대 검사는 delegate 호출 전에 있어야 한다.
@@ -245,12 +248,16 @@ GitHub Issue #123에 따라 자동완성 키 입력 경로에서 확인된 성�
 - `UITextChecker` 인스턴스는 스레드 안전성이 문서화되지 않았으므로 그 큐에서만 접근한다.
   `UITextChecker.learnWord` 같은 클래스 메서드는 현재처럼 main에서 호출하고 이 분리를
   주석으로 남긴다.
-- 결과 대기 중에는 lexicon 결과만으로 병합한 후보와 `currentWord`를 즉시 delegate에 전달하고,
-  TextChecker 결과가 도착하면 다시 병합해 전달한다. 이전 후보를 유지하지 않는 이유는 직전
-  모드가 n-gram이면 이전 후보가 다음 단어 예측이라 입력 중 모드에서 탭되면 현재 단어를
-  잘못 교체하기 때문이다. TextChecker 조회가 한 프레임 안에 끝나면 중간 상태는 렌더링되지
-  않으므로 깜빡임은 조회가 느린 기기에서만 나타난다. 실기기에서 깜빡임이 보이면 직전
-  `.textChecker` 출처 후보만 유지하는 규칙을 후속으로 검토한다.
+- 결과 대기 중에는 새 lexicon 결과와 직전 `.typing` 모드의 `.textChecker` 후보를 병합한
+  후보와 `currentWord`를 즉시 delegate에 전달하고, TextChecker 결과가 도착하면 그 결과로
+  다시 병합해 전달한다. 기준선 측정에서 TextChecker 조회가 12~22 ms라 60 Hz 한 프레임
+  (16.7 ms)을 넘으므로, 이어받지 않으면 빈 후보 중간 상태가 입력마다 렌더링된다.
+- 이어받는 대상을 직전 `.typing` 모드의 `.textChecker` 후보로 한정하고 lexicon·n-gram·수식
+  후보는 유지하지 않는다. n-gram 후보는 다음 단어 예측이라 입력 중 모드에서 탭되면 현재
+  단어를 잘못 교체하고, lexicon 후보는 이번 입력의 조회 결과로 대치되어야
+  `textReplacementPreviewSuggestionIndex`가 어긋나지 않는다.
+- 조회 생략 판정(`lexicon`이 슬롯을 다 채웠는가)은 이어받은 후보를 제외한 `.lexicon` 출처
+  후보 수로 한다. 이어받은 후보까지 세면 새 조회가 영영 실행되지 않는다.
 - `clearSuggestions()`는 요청 세대를 올려 진행 중인 조회 결과를 무효화한다. 일시 중단,
   자동완성 해제, 언어 전환이 이 경로를 지난다.
 - 테스트가 큐를 비울 수 있도록 `SuggestionController.init`에 `textCheckerQueue`를
@@ -274,8 +281,9 @@ Instruments os_signpost를 실행해 단어 입력 중 `TextCheckerSuggestions` 
 
 ### 테스트
 
-- stub 엔진으로 세대 검사(낡은 결과 폐기)와 결과 도착 전 이전 후보 유지를 production 경로로
-  검증한다.
+- stub 엔진으로 세대 검사(낡은 결과 폐기), 낡은 요청의 조회 생략, 결과 도착 전 직전
+  `.typing` 모드의 `.textChecker` 후보 유지를 production 경로로 검증한다. n-gram·수식 후보를
+  이어받지 않는다는 것도 함께 확인한다.
 - 실기기 체감(후보 바 깜빡임, 키 애니메이션)은 수동 관찰 항목으로 기록한다.
 
 ## 커밋 계획
