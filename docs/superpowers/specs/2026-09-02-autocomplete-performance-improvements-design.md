@@ -169,6 +169,9 @@ GitHub Issue #123에 따라 자동완성 키 입력 경로에서 확인된 성�
 ### 테스트
 
 임시 `fileURL`을 주입하는 기존 `NGramPredictiveTextEngineLoadingTests` 방식을 따른다.
+백그라운드 쓰기 완료를 기다릴 수 있도록 `saveQueue`도 init 파라미터(기본값: 기존 전용
+직렬 큐)로 주입하고 테스트에서 `sync {}`로 비운다. 파일 부재 단언이 "아직 쓰지 않았을 뿐"으로
+거짓 통과하지 않게 하기 위해서다.
 
 - 파일이 없는 상태로 로드 완료 후 `saveToDisk()`를 호출하면 파일이 생성되지 않는다.
   현재는 빈 plist가 써지므로 이 변경의 결정적이고 관찰 가능한 차이다.
@@ -194,8 +197,9 @@ GitHub Issue #123에 따라 자동완성 키 입력 경로에서 확인된 성�
   제거하며 모으다 `merged.count >= limit`이면 `guesses`를 호출하지 않고 반환한다. 부족할
   때만 `guesses`를 호출하고 `limit`에 도달하면 중단한다. 기존 `suggestions(for:)`는
   `limit: Int.max`로 위임한다.
-- `SuggestionController.mergeSuggestions`는 `textCheckerEngine`을
-  `suggestions(for:limit: maxSuggestionSlots)`로 호출한다.
+- `SuggestionController.mergeSuggestions`는 lexicon 결과로 슬롯이 다 차면 반환한 뒤에야
+  `textCheckerEngine`을 `suggestions(for:limit: maxSuggestionSlots)`로 호출한다. 현재는
+  lexicon 결과와 무관하게 먼저 호출하고 버리므로, 이 순서 변경도 출력에 영향이 없다.
 
 ### 보존 증명
 
@@ -241,8 +245,17 @@ GitHub Issue #123에 따라 자동완성 키 입력 경로에서 확인된 성�
 - `UITextChecker` 인스턴스는 스레드 안전성이 문서화되지 않았으므로 그 큐에서만 접근한다.
   `UITextChecker.learnWord` 같은 클래스 메서드는 현재처럼 main에서 호출하고 이 분리를
   주석으로 남긴다.
-- 결과 대기 중에는 이전 후보를 유지하고 `currentWord`만 즉시 갱신한다. 빈 상태로
-  깜빡였다가 채워지는 것을 피하기 위한 선택이며 실기기에서 다시 확인한다.
+- 결과 대기 중에는 lexicon 결과만으로 병합한 후보와 `currentWord`를 즉시 delegate에 전달하고,
+  TextChecker 결과가 도착하면 다시 병합해 전달한다. 이전 후보를 유지하지 않는 이유는 직전
+  모드가 n-gram이면 이전 후보가 다음 단어 예측이라 입력 중 모드에서 탭되면 현재 단어를
+  잘못 교체하기 때문이다. TextChecker 조회가 한 프레임 안에 끝나면 중간 상태는 렌더링되지
+  않으므로 깜빡임은 조회가 느린 기기에서만 나타난다. 실기기에서 깜빡임이 보이면 직전
+  `.textChecker` 출처 후보만 유지하는 규칙을 후속으로 검토한다.
+- `clearSuggestions()`는 요청 세대를 올려 진행 중인 조회 결과를 무효화한다. 일시 중단,
+  자동완성 해제, 언어 전환이 이 경로를 지난다.
+- 테스트가 큐를 비울 수 있도록 `SuggestionController.init`에 `textCheckerQueue`를
+  주입 가능한 파라미터(기본값: 전용 직렬 큐)로 둔다. 항목 4의 `saveQueue` 주입과 같은
+  방식이다.
 
 ### 바뀌는 동작
 
