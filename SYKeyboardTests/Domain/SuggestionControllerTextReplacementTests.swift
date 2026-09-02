@@ -244,6 +244,35 @@ struct SuggestionControllerTextReplacementTests {
         )
     }
 
+    @Test("같은 단축어가 대소문자만 다르게 여러 개면 첫 엔트리를 대치")
+    func test같은단축어가_대소문자만다르게여러개면_첫엔트리를대치() {
+        let controller = makeController(
+            entries: [
+                TextReplacementEntry(userInput: "Id", documentText: "first"),
+                TextReplacementEntry(userInput: "id", documentText: "second")
+            ]
+        )
+        controller.isTextReplacementEnabled = true
+        controller.prepareLexiconEngineIfNeeded()
+
+        let replacement = controller.attemptTextReplacement(baseText: "id")
+        #expect(replacement?.deleteCount == 2)
+        #expect(replacement?.insertText == "first")
+    }
+
+    @Test("m을 M으로 바꾸는 시스템 기본 대치는 제외")
+    func testM대문자대치는_제외() {
+        let controller = makeController(
+            entries: [
+                TextReplacementEntry(userInput: "m", documentText: "M")
+            ]
+        )
+        controller.isTextReplacementEnabled = true
+        controller.prepareLexiconEngineIfNeeded()
+
+        #expect(controller.attemptTextReplacement(baseText: "m") == nil)
+    }
+
     private func makeController(entries: [TextReplacementEntry]) -> SuggestionController {
         let provider = StubLexiconSuggestionProvider(entries: entries)
         let factory = SuggestionControllerEngineFactory(
@@ -259,21 +288,24 @@ private final class StubLexiconSuggestionProvider: LexiconSuggestionProviding {
 
     // MARK: - Properties
 
-    let textReplacementEntries: [TextReplacementEntry]
+    private let entries: [TextReplacementEntry]
     var hasLoadedLexicon: Bool { true }
 
     // MARK: - Initializer
 
     init(entries: [TextReplacementEntry]) {
-        self.textReplacementEntries = entries
+        self.entries = entries
     }
 
     // MARK: - Internal Methods
 
+    func textReplacementEntries(matching lowercasedWord: String) -> [TextReplacementEntry] {
+        entries.filter { $0.userInput.lowercased() == lowercasedWord }
+    }
+
     func suggestions(for baseText: String) -> [String] {
         let currentWord = baseText.split(whereSeparator: { $0.isWhitespace }).last.map(String.init) ?? ""
-        return textReplacementEntries
-            .filter { $0.userInput.lowercased() == currentWord.lowercased() }
+        return textReplacementEntries(matching: currentWord.lowercased())
             .map(\.documentText)
     }
 

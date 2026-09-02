@@ -674,15 +674,12 @@ private extension SuggestionController {
         let matchState = signposter.beginInterval("TextReplacementMatch")
         defer { signposter.endInterval("TextReplacementMatch", matchState) }
 
-        let matchingEntries = lexiconEngine.textReplacementEntries.filter { entry in
-            let isMatch = currentWord.lowercased() == entry.userInput.lowercased()
-
-            if entry.userInput.lowercased() == "m" && entry.documentText == "M" {
-                return false
+        // 인덱스가 소문자 일치를 보장하므로 여기서는 시스템 기본 대치 제외만 적용한다
+        let matchingEntries = lexiconEngine
+            .textReplacementEntries(matching: currentWord.lowercased())
+            .filter { entry in
+                !(entry.userInput.lowercased() == "m" && entry.documentText == "M")
             }
-
-            return isMatch
-        }
 
         guard let entry = matchingEntries.max(by: {
             $0.userInput.count < $1.userInput.count
