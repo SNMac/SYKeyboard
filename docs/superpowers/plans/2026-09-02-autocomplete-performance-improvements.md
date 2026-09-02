@@ -1587,6 +1587,13 @@ Task 6 결과:
 - Step 3 `git status --short` 출력 없음. 되돌릴 부수 효과 없음.
 - Step 4는 실기기 측정과 이슈 게시가 남아 있어 미완료 상태로 둔다(코멘트 초안만 작성).
 
+브랜치 전체 최종 리뷰(2026-09-03) 결과와 수정:
+
+- Task 1~4는 지적 없이 merge 가능 판정. Task 5에 Important 2건: (1) 기준선에서 TextChecker가 12~22 ms라 lexicon 결과만 즉시 표시하면 매 키 입력마다 빈 중간 상태가 한 프레임 이상 렌더링됨, (2) 빠른 연타 시 큐에 쌓인 낡은 조회를 건너뛰지 않아 중복 조회 발생.
+- `af112d9d` feat: TextChecker 비동기 경로에 이전 후보 유지와 낡은 요청 건너뛰기 추가 — 직전 `.typing` 모드의 `.textChecker` 후보만 즉시 갱신에 이어 붙이고(lexicon·n-gram·수식 후보는 제외), 요청 세대를 `OSAllocatedUnfairLock<Int>`로 바꿔 큐 블록 진입 시 낡은 요청을 건너뛰며, 조회 생략 가드는 `.lexicon` 출처 개수만 세도록 수정(유지된 후보가 슬롯을 채워 새 조회가 영구 억제되는 결함 방지), 큐 QoS `.userInitiated`. 관련 5개 suite 116/116 통과, `HangeulKeyboard` 빌드 성공.
+- `13483413` docs: 설계 문서를 위 구현과 일치시킴(계측 커밋 해시, 1-b 유지 규칙·세대 위치·QoS, 중간 상태 렌더링 사실).
+- 범위 한정 재리뷰 통과. 보류한 Minor: backlog 테스트가 production 가드 제거 시 실패 대신 hang함(`gate.wait(timeout:)`로 전환 가능), `.lexicon` 개수 가드에 대한 회귀 테스트 없음(유지 후보 2개로 슬롯이 찬 뒤 다음 키에서 재조회를 단언하면 고정 가능). 실기기 관찰 추가 항목: `learnWord`(main)와 `completions`(큐)의 동시 호출은 문서화되지 않은 영역.
+
 ## 기준선 측정 (2026-09-02)
 
 - 기기: iPhone 15 Pro Max, iOS 27.0 (24A5430a), 실기기. 커밋 `b60a275b`(계측만 포함). 프로세스 `HangeulEnglishKeyboard`.
