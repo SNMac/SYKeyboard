@@ -140,8 +140,9 @@ final class ClipboardHistoryPanelView: UIView {
 
     // MARK: - Internal Methods
 
-    /// 패널 상태를 갱신합니다. 편집 모드는 유지하되 항목이 없어지면 해제합니다.
+    /// 패널 상태를 갱신합니다. 상세 뷰는 닫고, 편집 모드는 유지하되 항목이 없어지면 해제합니다.
     func configure(state: State) {
+        hideDetail()
         switch state {
         case .fullAccessRequired:
             items = []
@@ -362,7 +363,9 @@ extension ClipboardHistoryPanelView: UITableViewDataSource, UITableViewDelegate 
         ) { [weak self] _, _, completion in
             guard let self else { completion(false); return }
             self.delegate?.clipboardPanel(self, didDeleteItemsAt: [indexPath.row])
-            completion(true)
+            // 목록 갱신은 소유자의 configure()/reloadData() 단일 경로로만 일어나므로
+            // UIKit이 자체 삭제 애니메이션을 수행하지 않도록 completion(false)를 전달한다
+            completion(false)
         }
 
         return UISwipeActionsConfiguration(actions: [deleteAction])

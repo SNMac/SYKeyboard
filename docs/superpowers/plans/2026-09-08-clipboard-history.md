@@ -1587,7 +1587,7 @@ Expected: 각각 `2`
 Run: `-only-testing:SYKeyboardTests/ClipboardHistoryPanelViewTests`
 Expected: 7개 PASS
 
-- [ ] **Step 8: 커밋**
+- [x] **Step 8: 커밋**
 
 ```sh
 git add Modules/SYKeyboardCore/Resources/Localizable.xcstrings \
