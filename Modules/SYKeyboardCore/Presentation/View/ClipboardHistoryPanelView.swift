@@ -112,8 +112,8 @@ final class ClipboardHistoryPanelView: UIView {
     }
 
     /// 텍스트가 유일하므로 텍스트를 행 식별자로 쓴다. 스냅샷 차이로 삭제·삽입·이동을 애니메이션한다
-    private lazy var dataSource = ClipboardHistoryDataSource(tableView: tableView) { [weak self] tableView, indexPath, _ in
-        self?.makeCell(in: tableView, at: indexPath) ?? UITableViewCell()
+    private lazy var dataSource = ClipboardHistoryDataSource(tableView: tableView) { [weak self] tableView, indexPath, text in
+        self?.makeCell(in: tableView, at: indexPath, text: text) ?? UITableViewCell()
     }
 
     /// 테스트에서 `UITableViewDelegate` 메서드를 직접 호출할 수 있도록 internal로 둔다
@@ -186,8 +186,9 @@ final class ClipboardHistoryPanelView: UIView {
         case .items(let newItems):
             items = newItems
         }
-        applySnapshot(from: previousItems, animated: !self.isHidden && !previousItems.isEmpty)
+        // 편집 모드 해제 애니메이션이 행 갱신 애니메이션과 겹치지 않도록 먼저 끝낸다
         if items.isEmpty { endItemEditing() }
+        applySnapshot(from: previousItems, animated: !self.isHidden && !previousItems.isEmpty)
         updateHeader()
     }
 
@@ -359,7 +360,8 @@ private extension ClipboardHistoryPanelView {
         var snapshot = NSDiffableDataSourceSnapshot<Int, String>()
         snapshot.appendSections([0])
         snapshot.appendItems(items.map(\.text))
-        let previousPinState = Dictionary(uniqueKeysWithValues: previousItems.map { ($0.text, $0.isPinned) })
+        // 파일이 손상돼 텍스트가 중복돼도 crash하지 않도록 첫 값을 쓴다
+        let previousPinState = Dictionary(previousItems.map { ($0.text, $0.isPinned) }, uniquingKeysWith: { first, _ in first })
         let pinStateChanged = items
             .filter { item in previousPinState[item.text].map { $0 != item.isPinned } ?? false }
             .map(\.text)
@@ -370,19 +372,22 @@ private extension ClipboardHistoryPanelView {
             guard let self else { return }
             self.messageLabel.isHidden = !self.items.isEmpty
             self.tableView.isHidden = self.items.isEmpty
+            // 애니메이션 중 선택 상태가 바뀔 수 있으므로 헤더를 다시 맞춘다
+            self.updateHeader()
         }
     }
 
-    func makeCell(in tableView: UITableView, at indexPath: IndexPath) -> UITableViewCell {
+    /// 스냅샷 식별자(텍스트)로 항목을 찾는다. 애니메이션 중에는 이전 스냅샷의 indexPath가 넘어올 수 있어 인덱스를 쓰지 않는다
+    func makeCell(in tableView: UITableView, at indexPath: IndexPath, text: String) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: ClipboardHistoryPanelView.cellIdentifier, for: indexPath)
-        guard items.indices.contains(indexPath.row) else { return cell }
+        guard let item = items.first(where: { $0.text == text }) else { return cell }
         var content = cell.defaultContentConfiguration()
-        content.text = items[indexPath.row].text
+        content.text = item.text
         content.textProperties.font = .systemFont(ofSize: 15)
         content.textProperties.numberOfLines = 2
         content.textProperties.lineBreakMode = .byTruncatingTail
         cell.contentConfiguration = content
-        cell.accessoryView = items[indexPath.row].isPinned ? makePinAccessoryView() : nil
+        cell.accessoryView = item.isPinned ? makePinAccessoryView() : nil
         cell.backgroundColor = .clear
         let selectedBackgroundView = UIView()
         selectedBackgroundView.backgroundColor = .suggestionButtonPressed
@@ -412,6 +417,7 @@ private extension ClipboardHistoryPanelView {
 // MARK: - UITableViewDelegate
 
 extension ClipboardHistoryPanelView: UITableViewDelegate {
+    // 델리게이트 메서드의 indexPath.row는 사용자 터치 시점에만 쓰이므로 애니메이션이 끝난 items와 일치한다
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         if tableView.isEditing {
             updateHeader()

@@ -164,6 +164,13 @@ struct ClipboardHistoryPolicyTests {
         #expect(ClipboardHistoryPolicy.insertingPinned("new", into: pinnedFull, now: now) == nil)
     }
 
+    @Test("복사 시각이 같으면 텍스트 순으로 정렬해 순서를 고정")
+    func test시각이같으면_텍스트순() {
+        let items = [item("b", createdAt: 5), item("a", createdAt: 5), item("c", createdAt: 9)]
+
+        #expect(ClipboardHistoryPolicy.sorted(items).map(\.text) == ["c", "a", "b"])
+    }
+
     @Test("범위 밖 인덱스의 고정 토글은 nil")
     func test범위밖인덱스_고정토글은_nil() {
         #expect(ClipboardHistoryPolicy.togglingPin(at: 5, in: [item("a")], now: now) == nil)

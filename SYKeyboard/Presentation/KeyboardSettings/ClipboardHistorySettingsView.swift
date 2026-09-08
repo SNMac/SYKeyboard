@@ -16,8 +16,7 @@ struct ClipboardHistorySettingsView: View {
 
     @Environment(\.scenePhase) private var scenePhase
 
-    /// body가 다시 계산될 때마다 App Group 컨테이너를 다시 찾지 않도록 한 번만 만든다
-    @State private var store = ClipboardHistoryStore()
+    private let store = ClipboardHistoryStore()
 
     /// 저장 순서 그대로(고정 최신순 → 미고정 최신순). 텍스트는 정책상 중복이 없어 id로 쓴다
     @State private var items: [ClipboardHistoryItem] = []

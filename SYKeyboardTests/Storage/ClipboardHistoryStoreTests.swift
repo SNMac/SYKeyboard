@@ -112,6 +112,19 @@ struct ClipboardHistoryStoreTests {
         #expect(items.first?.isPinned == false)
     }
 
+    @Test("파일에 같은 텍스트가 중복돼 있어도 첫 항목만 읽음")
+    func test중복텍스트파일은_첫항목만읽음() throws {
+        let fixture = makeFixture(name: "duplicate")
+        let duplicated = [ClipboardHistoryItem(text: "dup", createdAt: Date(timeIntervalSince1970: 2)),
+                          ClipboardHistoryItem(text: "dup", createdAt: Date(timeIntervalSince1970: 1))]
+        try PropertyListEncoder().encode(duplicated).write(to: fixture.url)
+
+        let items = fixture.store.load()
+
+        #expect(items.map(\.text) == ["dup"])
+        #expect(items.first?.createdAt == Date(timeIntervalSince1970: 2))
+    }
+
     @Test("손상된 파일이면 빈 배열을 반환하고 crash하지 않음")
     func test손상된파일이면_빈배열() throws {
         let fixture = makeFixture(name: "corrupt")

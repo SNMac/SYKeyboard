@@ -41,9 +41,13 @@ public final class ClipboardHistoryStore {
     // MARK: - Public Methods
 
     /// 저장된 기록(최신순). 파일이 없거나 손상됐으면 빈 배열
+    ///
+    /// 텍스트는 정책상 유일해야 하며 패널과 앱 목록이 이를 식별자로 쓴다. 손상된 파일에 중복이 있어도 첫 항목만 남긴다
     public func load() -> [ClipboardHistoryItem] {
-        guard let data = try? Data(contentsOf: fileURL) else { return [] }
-        return (try? PropertyListDecoder().decode([ClipboardHistoryItem].self, from: data)) ?? []
+        guard let data = try? Data(contentsOf: fileURL),
+              let items = try? PropertyListDecoder().decode([ClipboardHistoryItem].self, from: data) else { return [] }
+        var seen = Set<String>()
+        return items.filter { seen.insert($0.text).inserted }
     }
 
     /// `text`를 기록 맨 앞에 저장한다. 정책상 저장 대상이 아니면 아무것도 하지 않는다

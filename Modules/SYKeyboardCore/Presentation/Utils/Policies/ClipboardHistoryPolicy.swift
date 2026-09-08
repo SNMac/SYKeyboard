@@ -108,11 +108,13 @@ public enum ClipboardHistoryPolicy {
 
     /// 고정은 고정 시각 최신순으로 앞에, 미고정은 복사 시각 최신순으로 뒤에. 시각이 같으면 텍스트 순으로 고정한다
     static func sorted(_ items: [ClipboardHistoryItem]) -> [ClipboardHistoryItem] {
-        let pinned = items.filter(\.isPinned).sorted {
-            ($0.pinnedAt ?? .distantPast, $1.text) > ($1.pinnedAt ?? .distantPast, $0.text)
+        let pinned = items.filter(\.isPinned).sorted { lhs, rhs in
+            let lhsDate = lhs.pinnedAt ?? .distantPast
+            let rhsDate = rhs.pinnedAt ?? .distantPast
+            return lhsDate != rhsDate ? lhsDate > rhsDate : lhs.text < rhs.text
         }
-        let unpinned = items.filter { !$0.isPinned }.sorted {
-            ($0.createdAt, $1.text) > ($1.createdAt, $0.text)
+        let unpinned = items.filter { !$0.isPinned }.sorted { lhs, rhs in
+            lhs.createdAt != rhs.createdAt ? lhs.createdAt > rhs.createdAt : lhs.text < rhs.text
         }
         return pinned + unpinned
     }

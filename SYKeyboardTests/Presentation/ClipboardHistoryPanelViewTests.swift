@@ -112,6 +112,19 @@ struct ClipboardHistoryPanelViewTests {
         #expect(unpinnedActions == nil)
     }
 
+    @Test("다시 configure하면 남은 행 수와 인덱스가 새 목록을 따름")
+    func test다시configure하면_행수와인덱스가새목록기준() {
+        let (panel, spy) = makePanel(texts: ["a", "b", "c"])
+
+        panel.configure(state: .items(["b", "c"].map { ClipboardHistoryItem(text: $0, createdAt: Date()) }))
+        panel.layoutIfNeeded()
+        panel.tableView(panel.tableView, didSelectRowAt: IndexPath(row: 0, section: 0))
+
+        #expect(panel.tableView.numberOfRows(inSection: 0) == 2)
+        #expect(spy.selectedIndices == [0])
+        #expect(panel.items[0].text == "b")
+    }
+
     @Test("resetPresentation은 편집 모드를 해제")
     func testResetPresentation은_편집모드해제() {
         let (panel, _) = makePanel(texts: ["a"])

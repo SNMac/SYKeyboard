@@ -2429,7 +2429,7 @@ extension BaseKeyboardViewController: ClipboardHistoryPanelDelegate {
 
     /// 항목을 시스템 pasteboard에 복사한다. 우리가 쓴 값을 다음 동기화에서 다시 기록하지 않도록 changeCount를 갱신한다
     final func clipboardPanel(_ panel: ClipboardHistoryPanelView, didRequestCopyAt index: Int) {
-        guard hasFullAccess, panel.items.indices.contains(index) else { return }
+        guard isClipboardHistoryAvailable, panel.items.indices.contains(index) else { return }
         let pasteboard = UIPasteboard.general
         pasteboard.string = panel.items[index].text
         keyboardSettingsManager.lastSeenPasteboardChangeCount = pasteboard.changeCount
