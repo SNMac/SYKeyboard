@@ -8,7 +8,10 @@
 import Foundation
 
 /// 클립보드 기록 한 항목
-public struct ClipboardHistoryItem: Codable, Equatable {
+public struct ClipboardHistoryItem: Codable, Equatable, Identifiable {
+    /// 정책이 텍스트 중복을 허용하지 않으므로 텍스트가 곧 식별자다
+    public var id: String { text }
+
     public let text: String
     public let createdAt: Date
     /// 고정한 시각. `nil`이면 미고정. 이 키가 없는 기존 파일은 미고정으로 읽힌다

@@ -25,6 +25,8 @@ struct ClipboardHistorySettingsView: View {
     @State private var editMode: EditMode = .inactive
     @State private var isAddSheetPresented = false
     @State private var newText = ""
+    /// 원문 시트에 표시할 항목
+    @State private var detailItem: ClipboardHistoryItem?
 
     private var canPin: Bool { ClipboardHistoryPolicy.canPin(items) }
     private var isAllSelected: Bool { !items.isEmpty && selection.count == items.count }
@@ -44,10 +46,15 @@ struct ClipboardHistorySettingsView: View {
             .navigationTitle("클립보드 기록")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar { toolbarContent }
-            // EditButton과 List가 같은 편집 상태를 보도록 toolbar 바깥에 둔다
+            // 편집 버튼과 List가 같은 편집 상태를 보도록 toolbar 바깥에 둔다
             .environment(\.editMode, $editMode)
             // 시트가 떠 있는 동안 키보드가 기록을 바꿀 수 있으므로 닫힐 때 다시 읽는다
             .sheet(isPresented: $isAddSheetPresented, onDismiss: reload) { addSheet }
+            .sheet(item: $detailItem) { item in
+                ClipboardHistoryDetailView(text: item.text)
+                    .presentationDetents([.medium, .large])
+                    .presentationDragIndicator(.visible)
+            }
             .onAppear(perform: reload)
             .onChange(of: scenePhase) { phase in
                 if phase == .active { reload() }
@@ -62,12 +69,15 @@ struct ClipboardHistorySettingsView: View {
 private extension ClipboardHistorySettingsView {
     var historyList: some View {
         List(selection: $selection) {
-            ForEach(items, id: \.text) { item in
-                NavigationLink {
-                    ClipboardHistoryDetailView(text: item.text)
+            ForEach(items) { item in
+                Button {
+                    detailItem = item
                 } label: {
                     row(for: item)
                 }
+                .buttonStyle(.plain)
+                // 편집 모드에서는 탭이 행 선택으로 가도록 버튼이 터치를 가로채지 않게 한다
+                .allowsHitTesting(!editMode.isEditing)
                 .swipeActions(edge: .leading) {
                     if item.isPinned || canPin {
                         Button {
@@ -96,19 +106,25 @@ private extension ClipboardHistorySettingsView {
         HStack {
             Text(item.text)
                 .lineLimit(2)
+            Spacer()
             if item.isPinned {
-                Spacer()
                 Image(systemName: "pin.circle.fill")
                     .foregroundStyle(.secondary)
             }
         }
+        .contentShape(Rectangle())
     }
 
     @ToolbarContentBuilder
     var toolbarContent: some ToolbarContent {
         ToolbarItemGroup(placement: .navigationBarTrailing) {
             if !items.isEmpty {
-                EditButton()
+                Button(editMode.isEditing ? "완료" : "편집") {
+                    withAnimation {
+                        editMode = editMode.isEditing ? .inactive : .active
+                    }
+                    selection.removeAll()
+                }
             }
             Button {
                 newText = ""
@@ -199,19 +215,21 @@ private extension ClipboardHistorySettingsView {
 
 // MARK: - Detail
 
-/// 항목의 원문 전체를 스크롤로 보여주는 화면
+/// 항목의 원문 전체를 하프 시트에서 스크롤로 보여주는 화면. 위로 밀어 올리면 전체 높이가 된다
 private struct ClipboardHistoryDetailView: View {
     let text: String
 
     var body: some View {
-        ScrollView {
-            Text(text)
-                .textSelection(.enabled)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding()
+        NavigationStack {
+            ScrollView {
+                Text(text)
+                    .textSelection(.enabled)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding()
+            }
+            .navigationTitle("원문")
+            .navigationBarTitleDisplayMode(.inline)
         }
-        .navigationTitle("원문")
-        .navigationBarTitleDisplayMode(.inline)
     }
 }
 
