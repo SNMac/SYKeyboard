@@ -162,8 +162,11 @@ final class ClipboardHistoryPanelView: UIView {
     // MARK: - Internal Methods
 
     /// 패널 상태를 갱신합니다. 상세 뷰는 닫고, 편집 모드는 유지하되 항목이 없어지면 해제합니다.
+    ///
+    /// 패널이 보이는 중이면 바뀐 행만 삭제·삽입 애니메이션으로 반영하고, 숨겨진 상태면 전체를 다시 그립니다.
     func configure(state: State) {
         hideDetail()
+        let previousItems = items
         switch state {
         case .fullAccessRequired:
             items = []
@@ -174,10 +177,14 @@ final class ClipboardHistoryPanelView: UIView {
         case .items(let newItems):
             items = newItems
         }
-        messageLabel.isHidden = !items.isEmpty
-        tableView.isHidden = items.isEmpty
+        if !self.isHidden, !previousItems.isEmpty {
+            applyAnimatedUpdate(from: previousItems)
+        } else {
+            messageLabel.isHidden = !items.isEmpty
+            tableView.isHidden = items.isEmpty
+            tableView.reloadData()
+        }
         if items.isEmpty { endItemEditing() }
-        tableView.reloadData()
         updateHeader()
     }
 
@@ -344,6 +351,27 @@ private extension ClipboardHistoryPanelView {
         }
     }
 
+    /// 텍스트가 유일하므로 텍스트 차이로 삭제·삽입 행을 구해 애니메이션한다. 고정 토글은 삭제 후 삽입으로 보인다
+    func applyAnimatedUpdate(from previousItems: [ClipboardHistoryItem]) {
+        let difference = items.map(\.text).difference(from: previousItems.map(\.text))
+        let removals = difference.removals.compactMap { change -> IndexPath? in
+            guard case .remove(let offset, _, _) = change else { return nil }
+            return IndexPath(row: offset, section: 0)
+        }
+        let insertions = difference.insertions.compactMap { change -> IndexPath? in
+            guard case .insert(let offset, _, _) = change else { return nil }
+            return IndexPath(row: offset, section: 0)
+        }
+        tableView.performBatchUpdates({
+            tableView.deleteRows(at: removals, with: .automatic)
+            tableView.insertRows(at: insertions, with: .automatic)
+        }, completion: { [weak self] _ in
+            guard let self else { return }
+            self.messageLabel.isHidden = !self.items.isEmpty
+            self.tableView.isHidden = self.items.isEmpty
+        })
+    }
+
     func makePinAccessoryView() -> UIView {
         let imageView = UIImageView(image: UIImage(systemName: ClipboardHistoryPanelView.pinnedAccessorySymbolName))
         imageView.tintColor = .secondaryLabel
@@ -416,9 +444,9 @@ extension ClipboardHistoryPanelView: UITableViewDataSource, UITableViewDelegate 
             : String(localized: "고정", bundle: .sykeyboardCore)
         ) { [weak self] _, _, completion in
             guard let self else { completion(false); return }
+            // 소유자가 configure()로 행 이동을 애니메이션한 뒤 액션을 닫는다
             self.delegate?.clipboardPanel(self, didTogglePinAt: indexPath.row)
-            // 삭제와 같은 이유로 목록 갱신은 소유자의 configure()에 맡긴다
-            completion(false)
+            completion(true)
         }
         pinAction.backgroundColor = .systemOrange
         pinAction.image = UIImage(
@@ -439,10 +467,9 @@ extension ClipboardHistoryPanelView: UITableViewDataSource, UITableViewDelegate 
             title: String(localized: "삭제", bundle: .sykeyboardCore)
         ) { [weak self] _, _, completion in
             guard let self else { completion(false); return }
+            // 소유자가 configure()에서 deleteRows로 행을 지운 뒤 액션을 닫는다. Apple의 삭제 액션 관례와 같다
             self.delegate?.clipboardPanel(self, didDeleteItemsAt: [indexPath.row])
-            // 목록 갱신은 소유자의 configure()/reloadData() 단일 경로로만 일어나므로
-            // UIKit이 자체 삭제 애니메이션을 수행하지 않도록 completion(false)를 전달한다
-            completion(false)
+            completion(true)
         }
 
         return UISwipeActionsConfiguration(actions: [deleteAction])
