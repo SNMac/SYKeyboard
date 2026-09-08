@@ -669,7 +669,7 @@ git commit -m "feat: #54 - 자동완성 바 클립보드 버튼 표시 정책 �
   - `SuggestionBarDelegate.suggestionBarDidTapClipboard(_ bar: SuggestionBarView)`
   - `SuggestionBarView.updateClipboardControl(isVisible: Bool, isPanelVisible: Bool)`
 
-- [ ] **Step 1: 테스트 추가**
+- [x] **Step 1: 테스트 추가**
 
 `SuggestionBarViewPreviewHighlightTests.swift`의 spy를 다음으로 교체:
 
@@ -742,12 +742,12 @@ struct 안 `test긴후보에서시작한드래그도_종료위치후보를선택
     }
 ```
 
-- [ ] **Step 2: 실패 확인**
+- [x] **Step 2: 실패 확인**
 
 Run: `-only-testing:SYKeyboardTests/SuggestionBarViewPreviewHighlightTests`
 Expected: 컴파일 실패 `has no member 'updateClipboardControl'`
 
-- [ ] **Step 3: SuggestionBarView 수정**
+- [x] **Step 3: SuggestionBarView 수정**
 
 (a) 델리게이트 프로토콜에 메서드 추가 (`suggestionBarDidTapRedo` 뒤):
 
@@ -873,12 +873,12 @@ Expected: 컴파일 실패 `has no member 'updateClipboardControl'`
     }
 ```
 
-- [ ] **Step 4: 통과 확인**
+- [x] **Step 4: 통과 확인**
 
 Run: `-only-testing:SYKeyboardTests/SuggestionBarViewPreviewHighlightTests`
 Expected: 4개 PASS. 이어서 `-only-testing:SYKeyboardTests/SuggestionHighlightPolicyTests`도 PASS(정책 변경 없음 확인).
 
-- [ ] **Step 5: 커밋**
+- [x] **Step 5: 커밋**
 
 ```sh
 git add Modules/SYKeyboardCore/Presentation/View/SuggestionBarView.swift \

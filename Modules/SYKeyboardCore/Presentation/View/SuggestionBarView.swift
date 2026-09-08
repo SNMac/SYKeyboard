@@ -21,6 +21,8 @@ protocol SuggestionBarDelegate: AnyObject {
     func suggestionBarDidTapUndo(_ bar: SuggestionBarView)
     /// redo 버튼이 탭되었을 때 호출됩니다.
     func suggestionBarDidTapRedo(_ bar: SuggestionBarView)
+    /// 클립보드 버튼이 탭되었을 때 호출됩니다.
+    func suggestionBarDidTapClipboard(_ bar: SuggestionBarView)
 }
 
 /// 자동완성 후보 단어와 맞춤법 검사 버튼을 표시하는 툴바
@@ -52,10 +54,18 @@ final class SuggestionBarView: UIView {
         return [undoRedoLeadingDivider, undoButton, undoRedoMiddleDivider, redoButton]
     }
 
-    private var undoRedoButtons: [SuggestionActionButtonView] {
-        return [undoButton, redoButton]
+    private var clipboardViews: [UIView] {
+        return [clipboardButton, clipboardDivider]
     }
-    
+
+    /// 히트테스트·하이라이트 대상 accessory 버튼. 인덱스가 `SuggestionHighlightPolicy`의 action 인덱스다
+    private var actionButtons: [SuggestionActionButtonView] {
+        return [clipboardButton, undoButton, redoButton]
+    }
+
+    private static let clipboardClosedSymbolName = "doc.on.clipboard"
+    private static let clipboardOpenSymbolName = "keyboard"
+
     // MARK: - UI Components
     
     private let buttonContainerHStackView: UIStackView = {
@@ -68,7 +78,21 @@ final class SuggestionBarView: UIView {
         
         return stackView
     }()
-    
+
+    private lazy var clipboardButton: SuggestionActionButtonView = {
+        let button = makeActionButton(systemName: SuggestionBarView.clipboardClosedSymbolName)
+
+        return button
+    }()
+
+    private let clipboardDivider: UIView = {
+        let view = UIView()
+        view.backgroundColor = .suggestionDividerColor
+        view.isHidden = true
+
+        return view
+    }()
+
     private lazy var suggestionButton1: SuggestionButtonView = {
         let button = SuggestionButtonView()
         button.trailingDivider = leftDivider
@@ -114,7 +138,7 @@ final class SuggestionBarView: UIView {
     }()
 
     private lazy var undoButton: SuggestionActionButtonView = {
-        let button = makeUndoRedoButton(systemName: "arrow.uturn.backward")
+        let button = makeActionButton(systemName: "arrow.uturn.backward")
 
         return button
     }()
@@ -128,7 +152,7 @@ final class SuggestionBarView: UIView {
     }()
 
     private lazy var redoButton: SuggestionActionButtonView = {
-        let button = makeUndoRedoButton(systemName: "arrow.uturn.forward")
+        let button = makeActionButton(systemName: "arrow.uturn.forward")
 
         return button
     }()
@@ -189,8 +213,10 @@ final class SuggestionBarView: UIView {
                 didSelectSuggestionAt: index
             )
             playSelectionFeedbackIfNeeded(playsFeedback)
-        } else if let action = undoRedoButton(at: point) {
+        } else if let action = actionButton(at: point) {
             switch action {
+            case clipboardButton:
+                suggestionDelegate?.suggestionBarDidTapClipboard(self)
             case undoButton:
                 suggestionDelegate?.suggestionBarDidTapUndo(self)
             case redoButton:
@@ -276,6 +302,20 @@ final class SuggestionBarView: UIView {
         updateDividers()
     }
 
+    /// 자동완성 바 좌측의 클립보드 버튼 표시와 아이콘을 갱신합니다.
+    ///
+    /// 패널이 열려 있으면 키보드 아이콘으로 바꿔 다시 탭하면 자판으로 돌아감을 알립니다.
+    func updateClipboardControl(isVisible: Bool, isPanelVisible: Bool) {
+        clipboardViews.forEach { $0.isHidden = !isVisible }
+        clipboardButton.isEnabled = isVisible
+        clipboardButton.updateImage(
+            systemName: isPanelVisible
+            ? SuggestionBarView.clipboardOpenSymbolName
+            : SuggestionBarView.clipboardClosedSymbolName
+        )
+        updateDividers()
+    }
+
 }
 
 // MARK: - UI Methods
@@ -294,7 +334,9 @@ private extension SuggestionBarView {
     func setHierarchy() {
         self.addSubview(buttonContainerHStackView)
         
-        [suggestionButton1,
+        [clipboardButton,
+         clipboardDivider,
+         suggestionButton1,
          leftDivider,
          suggestionButton2,
          rightDivider,
@@ -316,7 +358,7 @@ private extension SuggestionBarView {
             buttonContainerHStackView.bottomAnchor.constraint(equalTo: self.bottomAnchor, constant: 0)
         ])
         
-        [leftDivider, rightDivider, undoRedoLeadingDivider, undoRedoMiddleDivider].forEach {
+        [clipboardDivider, leftDivider, rightDivider, undoRedoLeadingDivider, undoRedoMiddleDivider].forEach {
             $0.translatesAutoresizingMaskIntoConstraints = false
             $0.widthAnchor.constraint(equalToConstant: 1).isActive = true
             $0.heightAnchor.constraint(equalToConstant: KeyboardLayoutFigure.suggestionButtonDividerHeight).isActive = true
@@ -333,7 +375,7 @@ private extension SuggestionBarView {
             suggestionButton3.heightAnchor.constraint(equalTo: buttonContainerHStackView.heightAnchor)
         ])
 
-        [undoButton, redoButton].forEach {
+        [clipboardButton, undoButton, redoButton].forEach {
             $0.translatesAutoresizingMaskIntoConstraints = false
             $0.widthAnchor.constraint(equalToConstant: KeyboardLayoutFigure.undoRedoButtonWidth).isActive = true
             $0.heightAnchor.constraint(equalTo: buttonContainerHStackView.heightAnchor).isActive = true
@@ -345,7 +387,7 @@ private extension SuggestionBarView {
 // MARK: - Private Methods
 
 private extension SuggestionBarView {
-    func makeUndoRedoButton(systemName: String) -> SuggestionActionButtonView {
+    func makeActionButton(systemName: String) -> SuggestionActionButtonView {
         let button = SuggestionActionButtonView(systemName: systemName)
         button.isHidden = true
 
@@ -363,8 +405,8 @@ private extension SuggestionBarView {
         return nil
     }
 
-    func undoRedoButton(at point: CGPoint) -> SuggestionActionButtonView? {
-        for button in undoRedoButtons {
+    func actionButton(at point: CGPoint) -> SuggestionActionButtonView? {
+        for button in actionButtons {
             guard !button.isHidden, button.isEnabled else { continue }
             let buttonFrame = button.convert(button.bounds, to: self)
             if buttonFrame.contains(point) {
@@ -378,9 +420,9 @@ private extension SuggestionBarView {
         let hit = suggestionButton(at: point)
         touchedSuggestionIndex = hit?.0
 
-        let actionHit = undoRedoButton(at: point)
+        let actionHit = actionButton(at: point)
         touchedActionIndex = actionHit.flatMap { actionButton in
-            undoRedoButtons.firstIndex { $0 === actionButton }
+            actionButtons.firstIndex { $0 === actionButton }
         }
         applyHighlights()
         updateDividers()
@@ -399,14 +441,14 @@ private extension SuggestionBarView {
             touchedSuggestionIndex: touchedSuggestionIndex,
             touchedActionIndex: touchedActionIndex,
             suggestionCount: suggestionButtons.count,
-            actionCount: undoRedoButtons.count
+            actionCount: actionButtons.count
         )
 
         for (index, button) in suggestionButtons.enumerated() {
             button.isHighlighted = state.highlightedSuggestionIndex == index
         }
 
-        for (index, button) in undoRedoButtons.enumerated() {
+        for (index, button) in actionButtons.enumerated() {
             button.isHighlighted = state.highlightedActionIndex == index
         }
     }
@@ -415,7 +457,10 @@ private extension SuggestionBarView {
         let btn1Highlighted = suggestionButton1.isHighlighted
         let btn2Highlighted = suggestionButton2.isHighlighted
         let btn3Highlighted = suggestionButton3.isHighlighted
-        
+
+        clipboardDivider.backgroundColor = (clipboardButton.isHighlighted || btn1Highlighted)
+        ? .clear
+        : .suggestionDividerColor
         leftDivider.backgroundColor = (btn1Highlighted || btn2Highlighted)
         ? .clear
         : .suggestionDividerColor
@@ -483,6 +528,10 @@ private final class SuggestionActionButtonView: UIView {
         super.init(frame: .zero)
         imageView.image = UIImage(systemName: systemName)
         setupUI()
+    }
+
+    func updateImage(systemName: String) {
+        imageView.image = UIImage(systemName: systemName)
     }
 
     required init?(coder: NSCoder) {

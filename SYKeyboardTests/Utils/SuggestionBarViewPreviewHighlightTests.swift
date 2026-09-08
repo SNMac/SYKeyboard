@@ -66,6 +66,50 @@ struct SuggestionBarViewPreviewHighlightTests {
         #expect(keyboardHStackView.isUserInteractionEnabled)
     }
 
+    @Test("클립보드 버튼 탭은 delegate에 전달되고 후보 하이라이트를 만들지 않음")
+    func test클립보드버튼탭은_delegate전달_후보하이라이트없음() {
+        let keyboardHStackView = UIStackView()
+        let bar = SuggestionBarView(keyboardHStackView: keyboardHStackView)
+        let delegate = SuggestionBarRollbackDelegateSpy()
+        bar.suggestionDelegate = delegate
+        bar.frame = CGRect(x: 0, y: 0, width: 300, height: 44)
+        bar.updateSuggestions(currentWord: nil, suggestions: ["가", "나", "다"])
+        bar.updateClipboardControl(isVisible: true, isPanelVisible: false)
+        bar.layoutIfNeeded()
+
+        let buttons = typedSuggestionButtonViews(in: bar)
+        // 클립보드 버튼은 bar 왼쪽 끝 44pt 영역을 차지한다
+        let point = CGPoint(x: KeyboardLayoutFigure.undoRedoButtonWidth / 2, y: 24)
+
+        bar.beginTouchInteraction(at: point)
+
+        #expect(buttons.allSatisfy { !$0.isHighlighted })
+
+        bar.endTouchInteraction(at: point, playsFeedback: false)
+
+        #expect(delegate.clipboardTapCount == 1)
+        #expect(delegate.selectedIndexes.isEmpty)
+        #expect(keyboardHStackView.isUserInteractionEnabled)
+    }
+
+    @Test("클립보드 버튼이 숨겨져 있으면 같은 위치 탭은 첫 후보를 선택")
+    func test클립보드버튼숨김시_같은위치탭은_첫후보선택() {
+        let bar = SuggestionBarView(keyboardHStackView: UIStackView())
+        let delegate = SuggestionBarRollbackDelegateSpy()
+        bar.suggestionDelegate = delegate
+        bar.frame = CGRect(x: 0, y: 0, width: 300, height: 44)
+        bar.updateSuggestions(currentWord: nil, suggestions: ["가", "나", "다"])
+        bar.updateClipboardControl(isVisible: false, isPanelVisible: false)
+        bar.layoutIfNeeded()
+
+        let point = CGPoint(x: KeyboardLayoutFigure.undoRedoButtonWidth / 2, y: 24)
+        bar.beginTouchInteraction(at: point)
+        bar.endTouchInteraction(at: point, playsFeedback: false)
+
+        #expect(delegate.clipboardTapCount == 0)
+        #expect(delegate.selectedIndexes == [0])
+    }
+
     private func suggestionLabels(in view: UIView) -> [UILabel] {
         var result: [UILabel] = []
 
@@ -115,6 +159,7 @@ private func center(of button: UIView, in bar: UIView) -> CGPoint {
 @MainActor
 private final class SuggestionBarRollbackDelegateSpy: SuggestionBarDelegate {
     private(set) var selectedIndexes: [Int] = []
+    private(set) var clipboardTapCount = 0
 
     func suggestionBar(
         _ bar: SuggestionBarView,
@@ -125,4 +170,7 @@ private final class SuggestionBarRollbackDelegateSpy: SuggestionBarDelegate {
 
     func suggestionBarDidTapUndo(_ bar: SuggestionBarView) {}
     func suggestionBarDidTapRedo(_ bar: SuggestionBarView) {}
+    func suggestionBarDidTapClipboard(_ bar: SuggestionBarView) {
+        clipboardTapCount += 1
+    }
 }

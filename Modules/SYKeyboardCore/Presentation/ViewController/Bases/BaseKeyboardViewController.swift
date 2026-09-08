@@ -2284,6 +2284,9 @@ extension BaseKeyboardViewController: SuggestionBarDelegate {
     final func suggestionBarDidTapRedo(_ bar: SuggestionBarView) {
         performRedo()
     }
+
+    // TODO: Task 7에서 클립보드 기록 패널 토글 구현
+    final func suggestionBarDidTapClipboard(_ bar: SuggestionBarView) {}
 }
 
 private extension BaseKeyboardViewController {
