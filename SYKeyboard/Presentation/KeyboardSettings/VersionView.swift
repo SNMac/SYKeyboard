@@ -29,7 +29,7 @@ struct VersionView: View {
         
         Button {
             Analytics.logEvent("open_licenses", parameters: [
-                "view": "InfoView",
+                "view": "VersionView",
             ])
             
             isShowingLicenses = true
