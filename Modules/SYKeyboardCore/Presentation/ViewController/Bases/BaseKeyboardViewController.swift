@@ -2327,9 +2327,6 @@ extension BaseKeyboardViewController: SuggestionBarDelegate {
 
 private extension BaseKeyboardViewController {
 
-    /// 비밀번호 관리자가 비밀 항목에 붙이는 pasteboard 타입. 이 타입이 있으면 기록하지 않는다
-    static let concealedPasteboardType = "org.nspasteboard.ConcealedType"
-
     /// 클립보드 기록 기능 사용 가능 여부. 설정 ON, Full Access, 미리보기 아님
     var isClipboardHistoryAvailable: Bool {
         return keyboardSettingsManager.isClipboardHistoryEnabled
@@ -2339,22 +2336,11 @@ private extension BaseKeyboardViewController {
 
     /// pasteboard의 `changeCount`가 마지막 확인값과 다를 때만 텍스트를 읽어 기록에 저장합니다.
     ///
-    /// `changeCount`와 `hasStrings` 확인은 iOS 16 붙여넣기 권한 알림을 띄우지 않고, `.string` 읽기만 띄울 수 있습니다.
     /// 호출 시점: `viewWillAppear`, `textWillChange`, 클립보드 버튼 탭. `textDidChange`와 selection 콜백은 쓰지 않습니다.
+    /// 앱도 활성화 시 같은 `ClipboardHistoryPasteboardSynchronizer`를 호출한다.
     func synchronizeClipboardHistoryIfNeeded() {
         guard isClipboardHistoryAvailable, let clipboardHistoryStore else { return }
-
-        let pasteboard = UIPasteboard.general
-        let changeCount = pasteboard.changeCount
-        guard changeCount != keyboardSettingsManager.lastSeenPasteboardChangeCount else { return }
-        // 읽기 실패나 저장 제외여도 같은 값을 반복해 읽지 않도록 먼저 갱신한다
-        keyboardSettingsManager.lastSeenPasteboardChangeCount = changeCount
-
-        // 비밀번호 관리자가 org.nspasteboard.ConcealedType로 표시한 항목은 저장하지 않는다. 타입 확인은 권한 알림을 띄우지 않는다
-        guard pasteboard.hasStrings,
-              !pasteboard.contains(pasteboardTypes: [BaseKeyboardViewController.concealedPasteboardType]),
-              let text = pasteboard.string else { return }
-        clipboardHistoryStore.record(text)
+        ClipboardHistoryPasteboardSynchronizer.synchronizeIfNeeded(store: clipboardHistoryStore)
     }
 
     /// 클립보드 버튼 탭. 열려 있으면 닫고, 닫혀 있으면 동기화 후 엽니다.

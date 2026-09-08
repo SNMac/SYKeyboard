@@ -134,6 +134,8 @@ struct SYKeyboardApp: App {
                     }
                 }
                 .onReceive(NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)) { _ in
+                    synchronizeClipboardHistoryIfNeeded()
+
                     let result = AppTrackingAuthorizationPolicy.evaluateDidBecomeActive(
                         isTrackingAuthorizationNotDetermined: ATTrackingManager.trackingAuthorizationStatus == .notDetermined,
                         isOnboarding: isOnboarding,
@@ -161,5 +163,14 @@ struct SYKeyboardApp: App {
                     }
                 }
         }
+    }
+
+    // MARK: - Private Methods
+
+    /// 앱이 활성화될 때도 키보드와 같은 규칙으로 클립보드 기록을 동기화한다. 설정이 꺼져 있으면 pasteboard를 읽지 않는다
+    private func synchronizeClipboardHistoryIfNeeded() {
+        guard UserDefaultsManager.shared.isClipboardHistoryEnabled,
+              let store = ClipboardHistoryStore() else { return }
+        ClipboardHistoryPasteboardSynchronizer.synchronizeIfNeeded(store: store)
     }
 }

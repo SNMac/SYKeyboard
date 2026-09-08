@@ -204,6 +204,10 @@ private extension ClipboardHistorySettingsView {
 
 private extension ClipboardHistorySettingsView {
     func reload() {
+        // 앱 활성화 알림과 순서가 보장되지 않으므로 화면에서도 먼저 동기화한다. changeCount가 같으면 즉시 반환한다
+        if let store, UserDefaultsManager.shared.isClipboardHistoryEnabled {
+            ClipboardHistoryPasteboardSynchronizer.synchronizeIfNeeded(store: store)
+        }
         // SwiftUI가 id(텍스트) 차이로 행 삽입·삭제·이동을 애니메이션한다
         withAnimation {
             items = store?.load() ?? []

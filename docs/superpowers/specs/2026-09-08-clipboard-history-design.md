@@ -148,6 +148,12 @@ var isClipboardPanelVisible = false
   `isClipboardPanelVisible`이면 `closeClipboardPanel()`도 호출한다.
 - 클립보드 버튼 탭: 패널을 열기 직전.
 - `viewWillDisappear`: 동기화는 하지 않고 패널만 닫는다.
+- 앱: `UIApplication.didBecomeActiveNotification`(앱 실행·포그라운드 복귀)과 클립보드 기록 관리
+  화면의 `reload()`에서도 같은 규칙으로 동기화한다. 동기화 로직은
+  `ClipboardHistoryPasteboardSynchronizer`(Core, public)에 있고 키보드와 앱이 공유한다.
+  `lastSeenPasteboardChangeCount`를 공유하므로 같은 클립보드를 두 번 읽지 않는다.
+  앱에서 `.string`을 읽을 때도 iOS 16 권한 배너가 뜰 수 있으며 '다른 앱에서 붙여넣기' 설정은
+  앱과 extension이 공유한다.
 
 ### Full Access가 꺼진 경우
 
