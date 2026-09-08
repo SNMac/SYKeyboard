@@ -1804,6 +1804,7 @@ private extension BaseKeyboardViewController {
         let shouldShowClipboard = KeyboardPresentationStatePolicy.shouldShowClipboardControl(
             isSuggestionBarHidden: suggestionBarView.isHidden,
             isClipboardHistoryEnabled: keyboardSettingsManager.isClipboardHistoryEnabled
+            && !BaseKeyboardViewController.isPreview
         )
         suggestionBarView.updateClipboardControl(
             isVisible: shouldShowClipboard,

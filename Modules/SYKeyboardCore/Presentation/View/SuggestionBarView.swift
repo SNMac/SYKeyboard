@@ -65,6 +65,7 @@ final class SuggestionBarView: UIView {
 
     private static let clipboardClosedSymbolName = "doc.on.clipboard"
     private static let clipboardOpenSymbolName = "keyboard"
+    private var isClipboardPanelVisible = false
 
     // MARK: - UI Components
     
@@ -308,11 +309,14 @@ final class SuggestionBarView: UIView {
     func updateClipboardControl(isVisible: Bool, isPanelVisible: Bool) {
         clipboardViews.forEach { $0.isHidden = !isVisible }
         clipboardButton.isEnabled = isVisible
-        clipboardButton.updateImage(
-            systemName: isPanelVisible
-            ? SuggestionBarView.clipboardOpenSymbolName
-            : SuggestionBarView.clipboardClosedSymbolName
-        )
+        if isClipboardPanelVisible != isPanelVisible {
+            isClipboardPanelVisible = isPanelVisible
+            clipboardButton.updateImage(
+                systemName: isPanelVisible
+                ? SuggestionBarView.clipboardOpenSymbolName
+                : SuggestionBarView.clipboardClosedSymbolName
+            )
+        }
         updateDividers()
     }
 
