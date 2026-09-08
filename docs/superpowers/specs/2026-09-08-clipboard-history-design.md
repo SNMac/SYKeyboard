@@ -117,8 +117,10 @@ enum ClipboardHistoryPolicy {
 
 ## 2. pasteboard 동기화 흐름
 
-`Modules/SYKeyboardCore/Presentation/ViewController/Bases/BaseKeyboardViewController+ClipboardHistory.swift`.
-Base 본체에는 저장 프로퍼티 두 개만 추가한다.
+`BaseKeyboardViewController.swift` 안의 `// MARK: - Clipboard History` `private extension`에 둔다.
+`updateShowingKeyboard()`·`updateSuggestions()`·`cancelPendingDeleteInteractions()` 등 필요한
+helper가 모두 같은 파일의 `private extension`에 있어 별도 파일에서는 호출할 수 없다.
+Base 본체에 추가하는 저장 프로퍼티는 다음 둘이다.
 
 ```swift
 final let clipboardHistoryStore = ClipboardHistoryStore()   // Optional
@@ -340,7 +342,6 @@ Swift Testing, `SYKeyboardTests/`.
 
 - `Presentation/Utils/Policies/ClipboardHistoryPolicy.swift`
 - `Presentation/View/ClipboardHistoryPanelView.swift`
-- `Presentation/ViewController/Bases/BaseKeyboardViewController+ClipboardHistory.swift`
 - `Resources/Localizable.xcstrings`
 - `Storage/ClipboardHistoryStore.swift`
 
