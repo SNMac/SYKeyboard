@@ -63,7 +63,7 @@ final class SuggestionBarView: UIView {
         return [clipboardButton, undoButton, redoButton]
     }
 
-    private static let clipboardClosedSymbolName = "doc.on.clipboard"
+    private static let clipboardClosedSymbolName = "list.clipboard"
     private static let clipboardOpenSymbolName = "keyboard"
     private var isClipboardPanelVisible = false
 
