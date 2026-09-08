@@ -14,7 +14,7 @@ import OSLog
 /// 공유하므로 캐시가 있으면 다른 extension이 바꾼 내용을 놓친다. 최대 20개 × 2,000자라
 /// 메인 스레드 동기 처리로 충분하다.
 // ponytail: 매 연산 파일 I/O. 항목 수·길이 한도를 올리면 캐시 + 백그라운드 저장으로 전환
-final class ClipboardHistoryStore {
+public final class ClipboardHistoryStore {
 
     // MARK: - Properties
 
@@ -26,40 +26,40 @@ final class ClipboardHistoryStore {
 
     // MARK: - Initializer
 
-    init(fileURL: URL) {
+    public init(fileURL: URL) {
         self.fileURL = fileURL
     }
 
     /// App Group 컨테이너를 얻지 못하면 `nil`. 호출 측은 기능을 비활성 상태로 둔다
-    convenience init?() {
+    public convenience init?() {
         guard let containerURL = FileManager.default.containerURL(
             forSecurityApplicationGroupIdentifier: DefaultValues.groupBundleID
         ) else { return nil }
         self.init(fileURL: containerURL.appendingPathComponent("clipboard_history.plist"))
     }
 
-    // MARK: - Internal Methods
+    // MARK: - Public Methods
 
     /// 저장된 기록(최신순). 파일이 없거나 손상됐으면 빈 배열
-    func load() -> [ClipboardHistoryItem] {
+    public func load() -> [ClipboardHistoryItem] {
         guard let data = try? Data(contentsOf: fileURL) else { return [] }
         return (try? PropertyListDecoder().decode([ClipboardHistoryItem].self, from: data)) ?? []
     }
 
     /// `text`를 기록 맨 앞에 저장한다. 정책상 저장 대상이 아니면 아무것도 하지 않는다
-    func record(_ text: String, now: Date = Date()) {
+    public func record(_ text: String, now: Date = Date()) {
         guard let items = ClipboardHistoryPolicy.inserting(text, into: load(), now: now) else { return }
         save(items)
     }
 
     /// 지정한 인덱스 항목의 고정을 토글한다. 범위 밖이거나 고정 한도에 걸리면 아무것도 하지 않는다
-    func togglePin(at index: Int, now: Date = Date()) {
+    public func togglePin(at index: Int, now: Date = Date()) {
         guard let items = ClipboardHistoryPolicy.togglingPin(at: index, in: load(), now: now) else { return }
         save(items)
     }
 
     /// 지정한 인덱스의 항목을 삭제한다. 범위 밖 인덱스는 무시한다
-    func remove(at indices: [Int]) {
+    public func remove(at indices: [Int]) {
         let removing = Set(indices)
         let remaining = load().enumerated()
             .filter { !removing.contains($0.offset) }
@@ -67,7 +67,7 @@ final class ClipboardHistoryStore {
         save(remaining)
     }
 
-    func removeAll() {
+    public func removeAll() {
         save([])
     }
 }
