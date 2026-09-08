@@ -232,6 +232,15 @@ private struct ClipboardHistoryDetailView: View {
             }
             .navigationTitle("원문")
             .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button {
+                        UIPasteboard.general.string = text
+                    } label: {
+                        Label("복사", systemImage: "doc.on.doc")
+                    }
+                }
+            }
         }
     }
 }

@@ -390,6 +390,16 @@
         }
       }
     },
+    "복사" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copy"
+          }
+        }
+      }
+    },
     "복사한 텍스트가 여기에 표시됩니다" : {
       "localizations" : {
         "en" : {
@@ -640,6 +650,7 @@
         }
       }
     },
+    "완료" : {},
     "외형 설정" : {
       "localizations" : {
         "en" : {
@@ -970,6 +981,7 @@
         }
       }
     },
+    "편집" : {},
     "피드백 설정" : {
       "localizations" : {
         "en" : {

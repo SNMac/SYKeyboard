@@ -19,6 +19,8 @@ protocol ClipboardHistoryPanelDelegate: AnyObject {
     func clipboardPanelDidDeleteAll(_ panel: ClipboardHistoryPanelView)
     /// leading swipe 또는 상세 뷰에서 항목의 고정을 토글했을 때 호출됩니다.
     func clipboardPanel(_ panel: ClipboardHistoryPanelView, didTogglePinAt index: Int)
+    /// 상세 뷰의 붙여넣기 직전에 호출됩니다. 소유자는 항목을 시스템 pasteboard에 복사합니다.
+    func clipboardPanel(_ panel: ClipboardHistoryPanelView, didRequestCopyAt index: Int)
 }
 
 /// 클립보드 기록 목록을 자판 영역에 표시하는 패널
@@ -138,6 +140,8 @@ final class ClipboardHistoryPanelView: UIView {
             guard let self, let index = self.detailIndex else { return }
             // 붙여넣기 직후 패널이 닫히므로 상세 뷰는 즉시 숨긴다
             self.hideDetail(animated: false)
+            // 상세 뷰에서 붙여넣은 항목은 현재 클립보드가 되도록 복사도 한다
+            self.delegate?.clipboardPanel(self, didRequestCopyAt: index)
             self.delegate?.clipboardPanel(self, didSelectItemAt: index)
         }
         view.onTogglePin = { [weak self] in
