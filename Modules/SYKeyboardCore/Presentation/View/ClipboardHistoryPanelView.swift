@@ -25,7 +25,7 @@ protocol ClipboardHistoryPanelDelegate: AnyObject {
 ///
 /// ## 동작
 /// - 평소: 행 탭은 붙여넣기, trailing swipe는 개별 삭제, 길게 누르기는 원문 상세 뷰
-/// - 편집 모드(`UITableView.isEditing`): 행 탭은 선택 토글, "전체 선택"·"삭제 (n)"·"완료"
+/// - 편집 모드(`UITableView.isEditing`): 행 탭은 선택 토글, "전체 선택"·"n개 삭제"·"완료"
 final class ClipboardHistoryPanelView: UIView {
 
     enum State: Equatable {
@@ -77,6 +77,15 @@ final class ClipboardHistoryPanelView: UIView {
             self?.deleteSelectedItems()
         }
         button.configuration?.baseForegroundColor = .systemRed
+        // 선택 개수가 바뀌어도 버튼 폭이 흔들리지 않도록 숫자를 고정폭으로 표시한다
+        button.configuration?.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { attributes in
+            var attributes = attributes
+            attributes.font = UIFont.monospacedDigitSystemFont(
+                ofSize: UIFont.preferredFont(forTextStyle: .body).pointSize,
+                weight: .regular
+            )
+            return attributes
+        }
 
         return button
     }()
@@ -281,7 +290,7 @@ private extension ClipboardHistoryPanelView {
         selectAllButton.configuration?.title = isAllSelected
         ? String(localized: "선택 해제", bundle: .sykeyboardCore)
         : String(localized: "전체 선택", bundle: .sykeyboardCore)
-        deleteButton.configuration?.title = String(localized: "삭제", bundle: .sykeyboardCore) + " (\(selectedCount))"
+        deleteButton.configuration?.title = String(localized: "\(selectedCount)개 삭제", bundle: .sykeyboardCore)
         deleteButton.isEnabled = selectedCount > 0
     }
 
