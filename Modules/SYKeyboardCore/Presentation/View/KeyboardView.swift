@@ -20,6 +20,9 @@ final public class KeyboardView: UIInputView {
     )
     
     private var keyboardLayoutWidthConstraint: NSLayoutConstraint?
+
+    /// 사용자가 설정한 한 손 키보드 너비
+    private var configuredOneHandedWidth = CGFloat(UserDefaultsManager.shared.oneHandedKeyboardWidth)
     
     // MARK: - UI Components
     
@@ -116,6 +119,13 @@ final public class KeyboardView: UIInputView {
         logger.debug("\(String(describing: type(of: self))) deinit")
     }
     
+    // MARK: - Lifecycle
+    
+    public override func layoutSubviews() {
+        super.layoutSubviews()
+        updateKeyboardLayoutWidthConstraint()
+    }
+    
     // MARK: - Internal Methods
     
     static func loadFromNib(primaryKeyboardViews: [PrimaryKeyboardRepresentable]) -> KeyboardView {
@@ -136,7 +146,8 @@ final public class KeyboardView: UIInputView {
     
     /// 한 손 키보드 너비 업데이트를 업데이트하는 메서드
     func updateOneHandedWidth(_ width: Double) {
-        keyboardLayoutWidthConstraint?.constant = width
+        configuredOneHandedWidth = CGFloat(width)
+        updateKeyboardLayoutWidthConstraint()
         self.layoutIfNeeded()
     }
 
@@ -193,11 +204,11 @@ private extension KeyboardView {
         suggestionBarHeightConstraint.isActive = true
         
         keyboardLayoutView.translatesAutoresizingMaskIntoConstraints = false
-        let minWidth = UserDefaultsManager.shared.oneHandedKeyboardWidth
-        let widthConstraint = keyboardLayoutView.widthAnchor.constraint(greaterThanOrEqualToConstant: minWidth)
-        // 회전 도중 키보드 폭이 일시적으로 최소 너비보다 좁아진다.
-        // 의도는 "가능하면 최소 너비 이상"이므로 required보다 낮춰 Auto Layout이 양보하게 한다
-        widthConstraint.priority = .init(999)
+        // required가 아니면 `keyboardHStackView`의 내부 제약에 밀려 조용히 무시된다.
+        // 회전 도중의 제약 충돌은 `updateKeyboardLayoutWidthConstraint()`가 상수를 가용 폭으로 낮춰 막는다
+        let widthConstraint = keyboardLayoutView.widthAnchor.constraint(
+            greaterThanOrEqualToConstant: configuredOneHandedWidth
+        )
         widthConstraint.isActive = true
         keyboardLayoutWidthConstraint = widthConstraint
         
@@ -211,5 +222,19 @@ private extension KeyboardView {
                 $0.bottomAnchor.constraint(equalTo: keyboardLayoutView.bottomAnchor)
             ])
         }
+    }
+
+    /// 한 손 키보드 최소 폭 제약의 상수를 현재 가용 폭 안으로 제한하는 메서드
+    func updateKeyboardLayoutWidthConstraint() {
+        guard let keyboardLayoutWidthConstraint else { return }
+
+        // `keyboardHStackView`는 항상 `KeyboardView` 전체 폭을 차지하지만
+        // 하위 레이아웃 순서상 이 시점에 bounds가 비어 있을 수 있어 자기 폭을 사용한다
+        let minWidth = KeyboardPresentationStatePolicy.oneHandedKeyboardMinimumWidth(
+            configuredWidth: configuredOneHandedWidth,
+            availableWidth: self.bounds.width
+        )
+        guard keyboardLayoutWidthConstraint.constant != minWidth else { return }
+        keyboardLayoutWidthConstraint.constant = minWidth
     }
 }

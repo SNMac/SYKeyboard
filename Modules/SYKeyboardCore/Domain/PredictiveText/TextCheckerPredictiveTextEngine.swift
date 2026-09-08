@@ -32,8 +32,17 @@ final public class TextCheckerPredictiveTextEngine: PredictiveTextProvider {
         category: "\(String(describing: type(of: self))) <\(Unmanaged.passUnretained(self).toOpaque())>"
     )
     
+    /// `SuggestionController`의 TextChecker 큐에서만 접근한다.
+    /// `UITextChecker`는 스레드 안전성이 문서화되지 않았으므로 다른 스레드에서 사용하지 않는다.
+    /// `learn(word:)`가 쓰는 `UITextChecker.learnWord` 같은 클래스 메서드는 인스턴스와 무관하게 main에서 호출한다
     private let checker = UITextChecker()
     private let language: String
+
+    /// 성능 계측용 signposter. 인스턴스마다 만들 필요가 없어 타입 프로퍼티로 공유한다
+    private static let signposter = OSSignposter(
+        subsystem: Bundle.main.bundleIdentifier ?? "Unknown Bundle",
+        category: "TextCheckerPredictiveTextEngine"
+    )
     
     private static let learnedWordsKey = "com.snmac.sykeyboard.textchecker.learnedWords"
     
@@ -70,43 +79,52 @@ final public class TextCheckerPredictiveTextEngine: PredictiveTextProvider {
     // MARK: - PredictiveTextProvider Methods
     
     func suggestions(for baseText: String) -> [String] {
+        suggestions(for: baseText, limit: .max)
+    }
+
+    func suggestions(for baseText: String, limit: Int) -> [String] {
         let lastWord = currentWord(from: baseText)
-        guard !lastWord.isEmpty else { return [] }
-        
+        guard !lastWord.isEmpty, limit > 0 else { return [] }
+
         let range = NSRange(location: 0, length: lastWord.utf16.count)
+        let loweredLastWord = lastWord.lowercased()
         var seen = Set<String>()
         var merged: [String] = []
-        
+
+        func append(_ words: [String]) {
+            for word in words {
+                let lowered = word.lowercased()
+                guard lowered != loweredLastWord,
+                      !seen.contains(lowered) else { continue }
+                seen.insert(lowered)
+                merged.append(word)
+                if merged.count >= limit { return }
+            }
+        }
+
         // 1순위: completions (접두어 자동완성)
+        let completionsState = Self.signposter.beginInterval("TextCheckerCompletions")
         let completions = checker.completions(
             forPartialWordRange: range,
             in: lastWord,
             language: language
         ) ?? []
-        
-        for word in completions {
-            let lowered = word.lowercased()
-            guard lowered != lastWord.lowercased(),
-                  !seen.contains(lowered) else { continue }
-            seen.insert(lowered)
-            merged.append(word)
-        }
-        
+        Self.signposter.endInterval("TextCheckerCompletions", completionsState)
+        append(completions)
+
+        // completions만으로 limit이 차면 guesses는 결과에 기여할 수 없으므로 호출하지 않는다
+        guard merged.count < limit else { return merged }
+
         // 2순위: guesses (오타 교정, 중복 제거하여 보충)
+        let guessesState = Self.signposter.beginInterval("TextCheckerGuesses")
         let guesses = checker.guesses(
             forWordRange: range,
             in: lastWord,
             language: language
         ) ?? []
-        
-        for word in guesses {
-            let lowered = word.lowercased()
-            guard lowered != lastWord.lowercased(),
-                  !seen.contains(lowered) else { continue }
-            seen.insert(lowered)
-            merged.append(word)
-        }
-        
+        Self.signposter.endInterval("TextCheckerGuesses", guessesState)
+        append(guesses)
+
         return merged
     }
     

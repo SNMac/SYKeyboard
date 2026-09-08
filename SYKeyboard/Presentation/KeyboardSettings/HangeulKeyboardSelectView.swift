@@ -80,7 +80,7 @@ struct HangeulKeyboardSelectView: View {
         if selectedHangeulKeyboard == .naratgeul {
             Toggle(isOn: $isNaratgeulDotLabelEnabled, label: {
                 Text("나랏글 획·쌍 버튼 기호 표기")
-                Text("'획' ➡️ 'ㆍ', '쌍' ➡️ 'ᆢ'")
+                Text("'획' → 'ㆍ', '쌍' → 'ᆢ'")
                     .font(.caption)
             })
             .onChange(of: isNaratgeulDotLabelEnabled) { newValue in

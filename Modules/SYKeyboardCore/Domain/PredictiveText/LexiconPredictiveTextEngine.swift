@@ -21,7 +21,8 @@ struct TextReplacementEntry: Equatable {
 
 protocol LexiconSuggestionProviding: PredictiveTextProvider {
     var hasLoadedLexicon: Bool { get }
-    var textReplacementEntries: [TextReplacementEntry] { get }
+    /// 소문자로 정규화한 단어와 `userInput`이 정확히 일치하는 엔트리를 lexicon의 원래 순서대로 반환합니다.
+    func textReplacementEntries(matching lowercasedWord: String) -> [TextReplacementEntry]
 }
 
 protocol LexiconLoadableSuggestionProviding: LexiconSuggestionProviding {
@@ -29,57 +30,59 @@ protocol LexiconLoadableSuggestionProviding: LexiconSuggestionProviding {
 }
 
 final class LexiconPredictiveTextEngine: LexiconLoadableSuggestionProviding {
-    
+
     // MARK: - Properties
-    
+
     private(set) var lexicon: UILexicon?
+    /// `userInput.lowercased()` → 엔트리(원래 순서). 키 입력마다 전체를 순회하지 않도록 로드 시 한 번 만든다
+    private var entriesByLowercasedInput: [String: [TextReplacementEntry]] = [:]
 
     var hasLoadedLexicon: Bool {
         lexicon != nil
     }
 
-    var textReplacementEntries: [TextReplacementEntry] {
-        lexicon?.entries.map {
-            TextReplacementEntry(userInput: $0.userInput, documentText: $0.documentText)
-        } ?? []
-    }
-    
     // MARK: - Internal Methods
-    
-    /// `UILexicon`을 설정합니다.
+
+    /// `UILexicon`을 설정하고 조회 인덱스를 만듭니다.
     ///
     /// `UIInputViewController.requestSupplementaryLexicon`의 결과를 전달받아 저장합니다.
     ///
     /// - Parameter lexicon: 로드된 `UILexicon` 객체
     func setLexicon(_ lexicon: UILexicon) {
         self.lexicon = lexicon
+        var index: [String: [TextReplacementEntry]] = [:]
+        for entry in lexicon.entries {
+            index[entry.userInput.lowercased(), default: []].append(
+                TextReplacementEntry(userInput: entry.userInput, documentText: entry.documentText)
+            )
+        }
+        entriesByLowercasedInput = index
     }
-    
+
+    func textReplacementEntries(matching lowercasedWord: String) -> [TextReplacementEntry] {
+        entriesByLowercasedInput[lowercasedWord] ?? []
+    }
+
     // MARK: - PredictiveTextService Methods
-    
+
     /// 현재 입력된 단어와 정확히 일치하는 텍스트 대치 후보만 반환합니다.
     ///
     /// - Parameter baseText: 자동완성을 제공할 텍스트
     /// - Returns: 정확히 매칭된 대치 결과 배열
     func suggestions(for baseText: String) -> [String] {
-        guard let lexicon = lexicon else { return [] }
-        
+        guard hasLoadedLexicon else { return [] }
+
         let lastWord = currentWord(from: baseText)
         guard !lastWord.isEmpty else { return [] }
-        
+
         let lowered = lastWord.lowercased()
-        
-        return lexicon.entries.compactMap { entry in
-            let entryInput = entry.userInput.lowercased()
-            let entryDoc = entry.documentText.lowercased()
-            
-            guard entryInput == lowered,
-                  entryDoc != lowered else { return nil }
-            
-            return entry.documentText
+
+        // 이 필터는 검색어에 의존하므로 인덱스에 미리 넣지 않는다
+        return textReplacementEntries(matching: lowered).compactMap { entry in
+            entry.documentText.lowercased() != lowered ? entry.documentText : nil
         }
     }
-    
+
     // UILexicon은 시스템이 관리하므로 학습 불필요
     func learn(word: String) {}
 }

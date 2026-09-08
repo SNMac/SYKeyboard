@@ -19,6 +19,9 @@ struct KeyboardSettingsView: View {
 
     var body: some View {
         List {
+            
+            // MARK: - 키보드 추가 및 권한 설정
+            
             Section {
                 InitialSettingsView()
             } header: {
@@ -30,8 +33,14 @@ struct KeyboardSettingsView: View {
             .alignmentGuide(.listRowSeparatorLeading) { dimensions in
                 dimensions[.leading]
             }
-
-            HangeulKeyboardSelectView()
+            
+            // MARK: - 한글 키보드
+            
+            Section {
+                HangeulKeyboardSelectView()
+            }
+            
+            // MARK: - 키보드 세부 설정
 
             if isKeyboardExtensionEnabled {
                 Section {
@@ -64,6 +73,8 @@ struct KeyboardSettingsView: View {
                     Text("SY키보드를 설정에서 추가하시면 세부 설정이 가능합니다.")
                 }
             }
+            
+            // MARK: - 정보
 
             Section {
                 InfoView()
@@ -72,6 +83,10 @@ struct KeyboardSettingsView: View {
             }
             .alignmentGuide(.listRowSeparatorLeading) { dimensions in
                 dimensions[.leading]
+            }
+            
+            Section {
+                VersionView()
             }
         }
         .ignoresSafeArea(.keyboard, edges: .all)
