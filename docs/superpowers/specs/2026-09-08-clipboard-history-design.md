@@ -53,7 +53,7 @@ pasteboard의 최신 텍스트를 App Group 로컬 저장소에 누적 저장하
 
 - 시스템 복사 이벤트 직접 수신, 기능 활성화 이전의 iOS 클립보드 기록 가져오기.
 - 이미지·파일·색상·URL 객체 저장(#55). `Item`에 대비 필드를 미리 넣지 않는다.
-- `UIPasteControl`, 온보딩 페이지 추가, 앱 안의 기록 화면, 앱 설정에서 기록 삭제.
+- `UIPasteControl`, 온보딩 페이지 추가. (앱 안의 기록 화면과 기록 삭제는 6-1절로 범위에 들어왔다.)
 - App Store 개인정보 표시(privacy nutrition label) 갱신은 코드 밖 작업이며 PR 본문의
   확인 항목으로만 남긴다.
 
@@ -304,6 +304,22 @@ Core에는 String Catalog가 없으므로
   ➡️ '다른 앱에서 붙여넣기'를 '허용'으로 바꾸면 확인 알림 없이 저장됩니다".
 - 기존 토글과 같은 `Analytics.setUserProperty`/`logEvent`와 `hideKeyboard()`.
 - 토글을 꺼도 기록은 지우지 않는다.
+
+## 6-1. 앱의 클립보드 기록 관리 화면
+
+`SYKeyboard/Presentation/KeyboardSettings/ClipboardHistorySettingsView.swift`.
+클립보드 기록 토글이 ON일 때만 그 아래에 `NavigationLink("클립보드 기록 관리")`가 보인다.
+
+- 키보드 패널과 같은 목록(고정 최신순 → 미고정 최신순), 고정 행은 `pin.circle.fill`.
+  행 탭은 원문 전체를 보는 상세 화면이다(붙여넣기는 없다).
+- leading swipe 고정/해제, trailing swipe 삭제, `EditButton` 다중 선택과 하단 툴바의
+  "전체 선택"·"n개 삭제". 규칙은 키보드 패널과 같다.
+- 툴바 `+`("추가") → "고정 항목 추가" 시트의 `TextEditor`에 직접 입력해 저장한다.
+  저장한 항목은 `recordPinned`로 고정 항목이 되어 맨 위에 온다. 공백만이거나 2,000자
+  초과면 저장이 비활성이고, 고정 20개가 차면 "추가" 자체가 비활성이다.
+- 목록은 `onAppear`와 앱 재활성화 시 `store.load()`로 다시 읽는다.
+- 앱은 `SYKeyboardCore`를 framework로 링크하므로 `ClipboardHistoryStore`·`ClipboardHistoryItem`·
+  `ClipboardHistoryPolicy`는 `public`이다.
 
 ## 7. 오류 처리
 
