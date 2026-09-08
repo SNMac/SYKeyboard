@@ -205,7 +205,7 @@ git commit -m "feat: #54 - 클립보드 기록 설정 키와 마지막 pasteboar
   - `struct ClipboardHistoryItem: Codable, Equatable { let text: String; let createdAt: Date; init(text:createdAt:) }`
   - `enum ClipboardHistoryPolicy { static let maxItemCount = 20; static let maxTextLength = 2_000; static func inserting(_ text: String, into items: [ClipboardHistoryItem], now: Date) -> [ClipboardHistoryItem]? }`
 
-- [ ] **Step 1: 정책 테스트 작성**
+- [x] **Step 1: 정책 테스트 작성**
 
 `SYKeyboardTests/Utils/ClipboardHistoryPolicyTests.swift`:
 
@@ -278,12 +278,12 @@ struct ClipboardHistoryPolicyTests {
 }
 ```
 
-- [ ] **Step 2: 실패 확인**
+- [x] **Step 2: 실패 확인**
 
 Run: `-only-testing:SYKeyboardTests/ClipboardHistoryPolicyTests`
 Expected: 컴파일 실패 `cannot find 'ClipboardHistoryPolicy' in scope`
 
-- [ ] **Step 3: 정책 파일 작성**
+- [x] **Step 3: 정책 파일 작성**
 
 `Modules/SYKeyboardCore/Presentation/Utils/Policies/ClipboardHistoryPolicy.swift`:
 
@@ -336,7 +336,7 @@ enum ClipboardHistoryPolicy {
 }
 ```
 
-- [ ] **Step 4: pbxproj 두 예외 목록에 등록**
+- [x] **Step 4: pbxproj 두 예외 목록에 등록**
 
 `CursorDragAccelerationPolicy.swift` 줄 바로 앞에 같은 들여쓰기로 삽입한다. 두 목록 모두에 있어야 하므로 `/g`로 두 번 치환된다:
 
@@ -347,12 +347,12 @@ grep -c "Policies/ClipboardHistoryPolicy.swift" SYKeyboard.xcodeproj/project.pbx
 
 Expected: `2`
 
-- [ ] **Step 5: 통과 확인**
+- [x] **Step 5: 통과 확인**
 
 Run: `-only-testing:SYKeyboardTests/ClipboardHistoryPolicyTests`
 Expected: 5개 PASS
 
-- [ ] **Step 6: 커밋**
+- [x] **Step 6: 커밋**
 
 ```sh
 git add Modules/SYKeyboardCore/Presentation/Utils/Policies/ClipboardHistoryPolicy.swift \
