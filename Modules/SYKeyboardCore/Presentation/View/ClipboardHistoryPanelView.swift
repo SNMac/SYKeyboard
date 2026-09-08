@@ -111,6 +111,11 @@ final class ClipboardHistoryPanelView: UIView {
         self?.endItemEditing()
     }
 
+    /// 텍스트가 유일하므로 텍스트를 행 식별자로 쓴다. 스냅샷 차이로 삭제·삽입·이동을 애니메이션한다
+    private lazy var dataSource = ClipboardHistoryDataSource(tableView: tableView) { [weak self] tableView, indexPath, _ in
+        self?.makeCell(in: tableView, at: indexPath) ?? UITableViewCell()
+    }
+
     /// 테스트에서 `UITableViewDelegate` 메서드를 직접 호출할 수 있도록 internal로 둔다
     let tableView: UITableView = {
         let tableView = UITableView(frame: .zero, style: .plain)
@@ -181,13 +186,7 @@ final class ClipboardHistoryPanelView: UIView {
         case .items(let newItems):
             items = newItems
         }
-        if !self.isHidden, !previousItems.isEmpty {
-            applyAnimatedUpdate(from: previousItems)
-        } else {
-            messageLabel.isHidden = !items.isEmpty
-            tableView.isHidden = items.isEmpty
-            tableView.reloadData()
-        }
+        applySnapshot(from: previousItems, animated: !self.isHidden && !previousItems.isEmpty)
         if items.isEmpty { endItemEditing() }
         updateHeader()
     }
@@ -245,7 +244,7 @@ private extension ClipboardHistoryPanelView {
         setStyles()
         setHierarchy()
         setConstraints()
-        tableView.dataSource = self
+        tableView.dataSource = dataSource
         tableView.delegate = self
         tableView.addGestureRecognizer(
             UILongPressGestureRecognizer(target: self, action: #selector(handleLongPress(_:)))
@@ -355,25 +354,41 @@ private extension ClipboardHistoryPanelView {
         }
     }
 
-    /// 텍스트가 유일하므로 텍스트 차이로 삭제·삽입 행을 구해 애니메이션한다. 고정 토글은 삭제 후 삽입으로 보인다
-    func applyAnimatedUpdate(from previousItems: [ClipboardHistoryItem]) {
-        let difference = items.map(\.text).difference(from: previousItems.map(\.text))
-        let removals = difference.removals.compactMap { change -> IndexPath? in
-            guard case .remove(let offset, _, _) = change else { return nil }
-            return IndexPath(row: offset, section: 0)
-        }
-        let insertions = difference.insertions.compactMap { change -> IndexPath? in
-            guard case .insert(let offset, _, _) = change else { return nil }
-            return IndexPath(row: offset, section: 0)
-        }
-        tableView.performBatchUpdates({
-            tableView.deleteRows(at: removals, with: .automatic)
-            tableView.insertRows(at: insertions, with: .automatic)
-        }, completion: { [weak self] _ in
+    /// 현재 `items`로 스냅샷을 만들어 적용한다. 고정 여부만 바뀐 행은 식별자가 같으므로 다시 구성한다
+    func applySnapshot(from previousItems: [ClipboardHistoryItem], animated: Bool) {
+        var snapshot = NSDiffableDataSourceSnapshot<Int, String>()
+        snapshot.appendSections([0])
+        snapshot.appendItems(items.map(\.text))
+        let previousPinState = Dictionary(uniqueKeysWithValues: previousItems.map { ($0.text, $0.isPinned) })
+        let pinStateChanged = items
+            .filter { item in previousPinState[item.text].map { $0 != item.isPinned } ?? false }
+            .map(\.text)
+        snapshot.reconfigureItems(pinStateChanged)
+
+        // 마지막 행이 사라지는 애니메이션이 끝난 뒤에 테이블을 숨긴다
+        dataSource.apply(snapshot, animatingDifferences: animated) { [weak self] in
             guard let self else { return }
             self.messageLabel.isHidden = !self.items.isEmpty
             self.tableView.isHidden = self.items.isEmpty
-        })
+        }
+    }
+
+    func makeCell(in tableView: UITableView, at indexPath: IndexPath) -> UITableViewCell {
+        let cell = tableView.dequeueReusableCell(withIdentifier: ClipboardHistoryPanelView.cellIdentifier, for: indexPath)
+        guard items.indices.contains(indexPath.row) else { return cell }
+        var content = cell.defaultContentConfiguration()
+        content.text = items[indexPath.row].text
+        content.textProperties.font = .systemFont(ofSize: 15)
+        content.textProperties.numberOfLines = 2
+        content.textProperties.lineBreakMode = .byTruncatingTail
+        cell.contentConfiguration = content
+        cell.accessoryView = items[indexPath.row].isPinned ? makePinAccessoryView() : nil
+        cell.backgroundColor = .clear
+        let selectedBackgroundView = UIView()
+        selectedBackgroundView.backgroundColor = .suggestionButtonPressed
+        cell.selectedBackgroundView = selectedBackgroundView
+
+        return cell
     }
 
     func makePinAccessoryView() -> UIView {
@@ -394,30 +409,9 @@ private extension ClipboardHistoryPanelView {
     }
 }
 
-// MARK: - UITableViewDataSource, UITableViewDelegate
+// MARK: - UITableViewDelegate
 
-extension ClipboardHistoryPanelView: UITableViewDataSource, UITableViewDelegate {
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return items.count
-    }
-
-    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: ClipboardHistoryPanelView.cellIdentifier, for: indexPath)
-        var content = cell.defaultContentConfiguration()
-        content.text = items[indexPath.row].text
-        content.textProperties.font = .systemFont(ofSize: 15)
-        content.textProperties.numberOfLines = 2
-        content.textProperties.lineBreakMode = .byTruncatingTail
-        cell.contentConfiguration = content
-        cell.accessoryView = items[indexPath.row].isPinned ? makePinAccessoryView() : nil
-        cell.backgroundColor = .clear
-        let selectedBackgroundView = UIView()
-        selectedBackgroundView.backgroundColor = .suggestionButtonPressed
-        cell.selectedBackgroundView = selectedBackgroundView
-
-        return cell
-    }
-
+extension ClipboardHistoryPanelView: UITableViewDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         if tableView.isEditing {
             updateHeader()
@@ -477,6 +471,15 @@ extension ClipboardHistoryPanelView: UITableViewDataSource, UITableViewDelegate 
         }
 
         return UISwipeActionsConfiguration(actions: [deleteAction])
+    }
+}
+
+// MARK: - Supporting Types
+
+/// `UITableViewDiffableDataSource`는 기본적으로 편집을 막으므로 스와이프·편집 모드가 동작하도록 허용한다
+private final class ClipboardHistoryDataSource: UITableViewDiffableDataSource<Int, String> {
+    override func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
+        return true
     }
 }
 
