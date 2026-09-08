@@ -114,6 +114,12 @@ struct PredictiveTextSettingsView: View {
                 ])
                 hideKeyboard()
             }
+
+            if isClipboardHistoryEnabled {
+                NavigationLink("클립보드 기록 관리") {
+                    ClipboardHistorySettingsView()
+                }
+            }
         }
 
         Button(role: .destructive) {

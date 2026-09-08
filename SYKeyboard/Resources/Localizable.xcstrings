@@ -10,6 +10,16 @@
     "%lld" : {
       "shouldTranslate" : false
     },
+    "%lld개 삭제" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete %lld"
+          }
+        }
+      }
+    },
     "'!#1', '한글' 또는 'ABC' 버튼을 위로 드래그하거나 길게 누르기" : {
       "localizations" : {
         "en" : {
@@ -136,6 +146,36 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "In landscape mode, it displays at the same height as the iOS default keyboard."
+          }
+        }
+      }
+    },
+    "고정" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pin"
+          }
+        }
+      }
+    },
+    "고정 항목 추가" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add Pinned Item"
+          }
+        }
+      }
+    },
+    "고정 해제" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unpin"
           }
         }
       }
@@ -350,6 +390,16 @@
         }
       }
     },
+    "복사한 텍스트가 여기에 표시됩니다" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copied text will appear here"
+          }
+        }
+      }
+    },
     "복사한 텍스트를 키보드 상단 클립보드 버튼으로 붙여넣기\n(설정 ➡️ SY키보드 ➡️ '다른 앱에서 붙여넣기'를 '허용'으로 바꾸면 확인 알림 없이 저장됩니다)" : {
       "localizations" : {
         "en" : {
@@ -376,6 +426,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Open Source in Use"
+          }
+        }
+      }
+    },
+    "삭제" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete"
+          }
+        }
+      }
+    },
+    "선택 해제" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deselect All"
           }
         }
       }
@@ -580,6 +650,16 @@
         }
       }
     },
+    "원문" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Full Text"
+          }
+        }
+      }
+    },
     "이동 드래그 간격" : {
       "localizations" : {
         "en" : {
@@ -640,6 +720,16 @@
         }
       }
     },
+    "전체 선택" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Select All"
+          }
+        }
+      }
+    },
     "점선 아래에 내용을 입력해 주세요. (상기된 정보가 정확하지 않을 경우 수정해 주세요!)" : {
       "localizations" : {
         "en" : {
@@ -680,6 +770,16 @@
         }
       }
     },
+    "추가" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add"
+          }
+        }
+      }
+    },
     "취소" : {
       "localizations" : {
         "en" : {
@@ -716,6 +816,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Clipboard History"
+          }
+        }
+      }
+    },
+    "클립보드 기록 관리" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Manage Clipboard History"
           }
         }
       }
