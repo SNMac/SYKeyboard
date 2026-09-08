@@ -131,7 +131,8 @@ final class ClipboardHistoryPanelView: UIView {
         view.onClose = { [weak self] in self?.hideDetail() }
         view.onPaste = { [weak self] in
             guard let self, let index = self.detailIndex else { return }
-            self.hideDetail()
+            // 붙여넣기 직후 패널이 닫히므로 상세 뷰는 즉시 숨긴다
+            self.hideDetail(animated: false)
             self.delegate?.clipboardPanel(self, didSelectItemAt: index)
         }
         view.onTogglePin = { [weak self] in
@@ -177,7 +178,7 @@ final class ClipboardHistoryPanelView: UIView {
 
     /// 편집 모드와 상세 뷰를 닫고 스크롤을 맨 위로 되돌립니다. 패널을 닫을 때 호출합니다.
     func resetPresentation() {
-        hideDetail()
+        hideDetail(animated: false)
         endItemEditing()
         tableView.setContentOffset(.zero, animated: false)
     }
@@ -314,12 +315,24 @@ private extension ClipboardHistoryPanelView {
         guard items.indices.contains(index) else { return }
         detailIndex = index
         detailView.update(text: items[index].text, isPinned: items[index].isPinned)
-        detailView.isHidden = false
+        setDetailHidden(false, animated: true)
     }
 
-    func hideDetail() {
+    /// 패널을 닫을 때는 자판 복귀와 겹치지 않도록 애니메이션 없이 숨긴다
+    func hideDetail(animated: Bool = true) {
         detailIndex = nil
-        detailView.isHidden = true
+        setDetailHidden(true, animated: animated)
+    }
+
+    func setDetailHidden(_ isHidden: Bool, animated: Bool) {
+        guard detailView.isHidden != isHidden else { return }
+        guard animated else {
+            detailView.isHidden = isHidden
+            return
+        }
+        UIView.transition(with: self, duration: 0.2, options: .transitionCrossDissolve) {
+            self.detailView.isHidden = isHidden
+        }
     }
 
     func makePinAccessoryView() -> UIView {
