@@ -1,0 +1,484 @@
+//
+//  ClipboardHistoryPanelView.swift
+//  SYKeyboardCore
+//
+//  Created by Claude on 9/8/26.
+//
+
+import UIKit
+
+import SYKeyboardAssets
+
+/// `ClipboardHistoryPanelView`의 사용자 상호작용을 수신하는 델리게이트
+protocol ClipboardHistoryPanelDelegate: AnyObject {
+    /// 항목을 탭하거나 상세 뷰에서 붙여넣기를 눌렀을 때 호출됩니다.
+    func clipboardPanel(_ panel: ClipboardHistoryPanelView, didSelectItemAt index: Int)
+    /// 스와이프 삭제 또는 편집 모드에서 일부 항목을 삭제했을 때 호출됩니다. 인덱스는 오름차순입니다.
+    func clipboardPanel(_ panel: ClipboardHistoryPanelView, didDeleteItemsAt indices: [Int])
+    /// 편집 모드에서 전체 선택 후 삭제했을 때 호출됩니다.
+    func clipboardPanelDidDeleteAll(_ panel: ClipboardHistoryPanelView)
+}
+
+/// 클립보드 기록 목록을 자판 영역에 표시하는 패널
+///
+/// 저장소를 모르는 표시 전용 뷰다. 상태는 `configure(state:)`로 받고 결정은 델리게이트가 한다.
+///
+/// ## 동작
+/// - 평소: 행 탭은 붙여넣기, trailing swipe는 개별 삭제, 길게 누르기는 원문 상세 뷰
+/// - 편집 모드(`UITableView.isEditing`): 행 탭은 선택 토글, "전체 선택"·"삭제 (n)"·"완료"
+final class ClipboardHistoryPanelView: UIView {
+
+    enum State: Equatable {
+        case fullAccessRequired
+        case empty
+        case items([ClipboardHistoryItem])
+    }
+
+    // MARK: - Properties
+
+    weak var delegate: ClipboardHistoryPanelDelegate?
+
+    /// 현재 표시 중인 항목(최신순). 델리게이트 인덱스는 이 배열 기준이다
+    private(set) var items: [ClipboardHistoryItem] = []
+
+    private var detailIndex: Int?
+
+    private static let cellIdentifier = "ClipboardHistoryCell"
+    private static let headerHeight: CGFloat = 36
+
+    // MARK: - UI Components
+
+    private let headerStackView: UIStackView = {
+        let stackView = UIStackView()
+        stackView.axis = .horizontal
+        stackView.alignment = .center
+        stackView.spacing = 4
+        stackView.layoutMargins = UIEdgeInsets(top: 0, left: 12, bottom: 0, right: 4)
+        stackView.isLayoutMarginsRelativeArrangement = true
+
+        return stackView
+    }()
+
+    private let titleLabel: UILabel = {
+        let label = UILabel()
+        label.text = String(localized: "클립보드 기록", bundle: .sykeyboardCore)
+        label.font = .systemFont(ofSize: 15, weight: .semibold)
+        label.textColor = .label
+
+        return label
+    }()
+
+    private lazy var selectAllButton = makeHeaderButton(title: "") { [weak self] in
+        self?.toggleSelectAll()
+    }
+
+    private lazy var deleteButton: UIButton = {
+        let button = makeHeaderButton(title: "") { [weak self] in
+            self?.deleteSelectedItems()
+        }
+        button.configuration?.baseForegroundColor = .systemRed
+
+        return button
+    }()
+
+    private lazy var editButton = makeHeaderButton(
+        title: String(localized: "편집", bundle: .sykeyboardCore)
+    ) { [weak self] in
+        self?.beginItemEditing()
+    }
+
+    private lazy var doneButton = makeHeaderButton(
+        title: String(localized: "완료", bundle: .sykeyboardCore)
+    ) { [weak self] in
+        self?.endItemEditing()
+    }
+
+    /// 테스트에서 `UITableViewDelegate` 메서드를 직접 호출할 수 있도록 internal로 둔다
+    let tableView: UITableView = {
+        let tableView = UITableView(frame: .zero, style: .plain)
+        tableView.backgroundColor = .clear
+        tableView.allowsMultipleSelectionDuringEditing = true
+        tableView.register(UITableViewCell.self, forCellReuseIdentifier: ClipboardHistoryPanelView.cellIdentifier)
+
+        return tableView
+    }()
+
+    private let messageLabel: UILabel = {
+        let label = UILabel()
+        label.font = .systemFont(ofSize: 15)
+        label.textColor = .secondaryLabel
+        label.textAlignment = .center
+        label.numberOfLines = 0
+        label.isHidden = true
+
+        return label
+    }()
+
+    private lazy var detailView: ClipboardHistoryDetailView = {
+        let view = ClipboardHistoryDetailView()
+        view.isHidden = true
+        view.onClose = { [weak self] in self?.hideDetail() }
+        view.onPaste = { [weak self] in
+            guard let self, let index = self.detailIndex else { return }
+            self.hideDetail()
+            self.delegate?.clipboardPanel(self, didSelectItemAt: index)
+        }
+
+        return view
+    }()
+
+    // MARK: - Initializer
+
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        setupUI()
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
+    // MARK: - Internal Methods
+
+    /// 패널 상태를 갱신합니다. 편집 모드는 유지하되 항목이 없어지면 해제합니다.
+    func configure(state: State) {
+        switch state {
+        case .fullAccessRequired:
+            items = []
+            messageLabel.text = String(localized: "전체 접근 허용이 필요합니다", bundle: .sykeyboardCore)
+        case .empty:
+            items = []
+            messageLabel.text = String(localized: "복사한 텍스트가 여기에 표시됩니다", bundle: .sykeyboardCore)
+        case .items(let newItems):
+            items = newItems
+        }
+        messageLabel.isHidden = !items.isEmpty
+        tableView.isHidden = items.isEmpty
+        if items.isEmpty { endItemEditing() }
+        tableView.reloadData()
+        updateHeader()
+    }
+
+    /// 편집 모드와 상세 뷰를 닫고 스크롤을 맨 위로 되돌립니다. 패널을 닫을 때 호출합니다.
+    func resetPresentation() {
+        hideDetail()
+        endItemEditing()
+        tableView.setContentOffset(.zero, animated: false)
+    }
+
+    // 헤더 버튼 동작. 테스트에서 직접 호출할 수 있도록 internal로 둔다
+
+    func beginItemEditing() {
+        guard !items.isEmpty, !tableView.isEditing else { return }
+        tableView.setEditing(true, animated: true)
+        updateHeader()
+    }
+
+    func endItemEditing() {
+        guard tableView.isEditing else { return }
+        tableView.setEditing(false, animated: true)
+        updateHeader()
+    }
+
+    func toggleSelectAll() {
+        guard tableView.isEditing else { return }
+        if isAllSelected {
+            tableView.indexPathsForSelectedRows?.forEach { tableView.deselectRow(at: $0, animated: false) }
+        } else {
+            (0..<items.count).forEach {
+                tableView.selectRow(at: IndexPath(row: $0, section: 0), animated: false, scrollPosition: .none)
+            }
+        }
+        updateHeader()
+    }
+
+    func deleteSelectedItems() {
+        guard tableView.isEditing else { return }
+        let indices = (tableView.indexPathsForSelectedRows ?? []).map(\.row).sorted()
+        guard !indices.isEmpty else { return }
+
+        if indices.count == items.count {
+            delegate?.clipboardPanelDidDeleteAll(self)
+        } else {
+            delegate?.clipboardPanel(self, didDeleteItemsAt: indices)
+        }
+    }
+}
+
+// MARK: - UI Methods
+
+private extension ClipboardHistoryPanelView {
+    func setupUI() {
+        setStyles()
+        setHierarchy()
+        setConstraints()
+        tableView.dataSource = self
+        tableView.delegate = self
+        tableView.addGestureRecognizer(
+            UILongPressGestureRecognizer(target: self, action: #selector(handleLongPress(_:)))
+        )
+        updateHeader()
+    }
+
+    func setStyles() {
+        self.backgroundColor = .clear
+    }
+
+    func setHierarchy() {
+        let spacer = UIView()
+        spacer.setContentHuggingPriority(.defaultLow, for: .horizontal)
+        [titleLabel, selectAllButton, spacer, deleteButton, editButton, doneButton].forEach {
+            headerStackView.addArrangedSubview($0)
+        }
+        [headerStackView, tableView, messageLabel, detailView].forEach { self.addSubview($0) }
+    }
+
+    func setConstraints() {
+        [headerStackView, tableView, messageLabel, detailView].forEach {
+            $0.translatesAutoresizingMaskIntoConstraints = false
+        }
+        NSLayoutConstraint.activate([
+            headerStackView.topAnchor.constraint(equalTo: self.topAnchor),
+            headerStackView.leadingAnchor.constraint(equalTo: self.leadingAnchor),
+            headerStackView.trailingAnchor.constraint(equalTo: self.trailingAnchor),
+            headerStackView.heightAnchor.constraint(equalToConstant: ClipboardHistoryPanelView.headerHeight),
+
+            tableView.topAnchor.constraint(equalTo: headerStackView.bottomAnchor),
+            tableView.leadingAnchor.constraint(equalTo: self.leadingAnchor),
+            tableView.trailingAnchor.constraint(equalTo: self.trailingAnchor),
+            tableView.bottomAnchor.constraint(equalTo: self.bottomAnchor),
+
+            messageLabel.centerXAnchor.constraint(equalTo: self.centerXAnchor),
+            messageLabel.centerYAnchor.constraint(equalTo: self.centerYAnchor),
+            messageLabel.leadingAnchor.constraint(greaterThanOrEqualTo: self.leadingAnchor, constant: 16),
+            messageLabel.trailingAnchor.constraint(lessThanOrEqualTo: self.trailingAnchor, constant: -16),
+
+            detailView.topAnchor.constraint(equalTo: self.topAnchor),
+            detailView.leadingAnchor.constraint(equalTo: self.leadingAnchor),
+            detailView.trailingAnchor.constraint(equalTo: self.trailingAnchor),
+            detailView.bottomAnchor.constraint(equalTo: self.bottomAnchor)
+        ])
+    }
+}
+
+// MARK: - Private Methods
+
+private extension ClipboardHistoryPanelView {
+    var isAllSelected: Bool {
+        !items.isEmpty && (tableView.indexPathsForSelectedRows?.count ?? 0) == items.count
+    }
+
+    func updateHeader() {
+        let isEditing = tableView.isEditing
+        titleLabel.isHidden = isEditing
+        editButton.isHidden = isEditing || items.isEmpty
+        selectAllButton.isHidden = !isEditing
+        deleteButton.isHidden = !isEditing
+        doneButton.isHidden = !isEditing
+
+        let selectedCount = tableView.indexPathsForSelectedRows?.count ?? 0
+        selectAllButton.configuration?.title = isAllSelected
+        ? String(localized: "선택 해제", bundle: .sykeyboardCore)
+        : String(localized: "전체 선택", bundle: .sykeyboardCore)
+        deleteButton.configuration?.title = String(localized: "삭제", bundle: .sykeyboardCore) + " (\(selectedCount))"
+        deleteButton.isEnabled = selectedCount > 0
+    }
+
+    func makeHeaderButton(title: String, handler: @escaping () -> Void) -> UIButton {
+        var config = UIButton.Configuration.plain()
+        config.title = title
+        config.contentInsets = NSDirectionalEdgeInsets(top: 4, leading: 8, bottom: 4, trailing: 8)
+        let button = UIButton(configuration: config, primaryAction: UIAction { _ in handler() })
+        button.setContentCompressionResistancePriority(.required, for: .horizontal)
+
+        return button
+    }
+
+    func showDetail(at index: Int) {
+        guard items.indices.contains(index) else { return }
+        detailIndex = index
+        detailView.update(text: items[index].text)
+        detailView.isHidden = false
+    }
+
+    func hideDetail() {
+        detailIndex = nil
+        detailView.isHidden = true
+    }
+
+    @objc func handleLongPress(_ recognizer: UILongPressGestureRecognizer) {
+        guard recognizer.state == .began, !tableView.isEditing else { return }
+        let point = recognizer.location(in: tableView)
+        guard let indexPath = tableView.indexPathForRow(at: point) else { return }
+        FeedbackManager.shared.playHaptic()
+        showDetail(at: indexPath.row)
+    }
+}
+
+// MARK: - UITableViewDataSource, UITableViewDelegate
+
+extension ClipboardHistoryPanelView: UITableViewDataSource, UITableViewDelegate {
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return items.count
+    }
+
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = tableView.dequeueReusableCell(withIdentifier: ClipboardHistoryPanelView.cellIdentifier, for: indexPath)
+        var content = cell.defaultContentConfiguration()
+        content.text = items[indexPath.row].text
+        content.textProperties.font = .systemFont(ofSize: 15)
+        content.textProperties.numberOfLines = 2
+        content.textProperties.lineBreakMode = .byTruncatingTail
+        cell.contentConfiguration = content
+        cell.backgroundColor = .clear
+        let selectedBackgroundView = UIView()
+        selectedBackgroundView.backgroundColor = .suggestionButtonPressed
+        cell.selectedBackgroundView = selectedBackgroundView
+
+        return cell
+    }
+
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        if tableView.isEditing {
+            updateHeader()
+            return
+        }
+        tableView.deselectRow(at: indexPath, animated: false)
+        FeedbackManager.shared.playHaptic()
+        delegate?.clipboardPanel(self, didSelectItemAt: indexPath.row)
+    }
+
+    func tableView(_ tableView: UITableView, didDeselectRowAt indexPath: IndexPath) {
+        if tableView.isEditing { updateHeader() }
+    }
+
+    func tableView(
+        _ tableView: UITableView,
+        trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath
+    ) -> UISwipeActionsConfiguration? {
+        let deleteAction = UIContextualAction(
+            style: .destructive,
+            title: String(localized: "삭제", bundle: .sykeyboardCore)
+        ) { [weak self] _, _, completion in
+            guard let self else { completion(false); return }
+            self.delegate?.clipboardPanel(self, didDeleteItemsAt: [indexPath.row])
+            completion(true)
+        }
+
+        return UISwipeActionsConfiguration(actions: [deleteAction])
+    }
+}
+
+// MARK: - Supporting Views
+
+/// 길게 누른 항목의 원문 전체를 스크롤로 보여주는 상세 뷰
+private final class ClipboardHistoryDetailView: UIView {
+
+    // MARK: - Properties
+
+    var onClose: (() -> Void)?
+    var onPaste: (() -> Void)?
+
+    // MARK: - UI Components
+
+    private let blurView = UIVisualEffectView(effect: UIBlurEffect(style: .systemThickMaterial))
+
+    private let headerStackView: UIStackView = {
+        let stackView = UIStackView()
+        stackView.axis = .horizontal
+        stackView.alignment = .center
+        stackView.layoutMargins = UIEdgeInsets(top: 0, left: 12, bottom: 0, right: 4)
+        stackView.isLayoutMarginsRelativeArrangement = true
+
+        return stackView
+    }()
+
+    private let titleLabel: UILabel = {
+        let label = UILabel()
+        label.text = String(localized: "원문", bundle: .sykeyboardCore)
+        label.font = .systemFont(ofSize: 15, weight: .semibold)
+        label.textColor = .label
+
+        return label
+    }()
+
+    private lazy var closeButton: UIButton = {
+        var config = UIButton.Configuration.plain()
+        config.title = String(localized: "닫기", bundle: .sykeyboardCore)
+        config.contentInsets = NSDirectionalEdgeInsets(top: 4, leading: 8, bottom: 4, trailing: 8)
+
+        return UIButton(configuration: config, primaryAction: UIAction { [weak self] _ in self?.onClose?() })
+    }()
+
+    private let textView: UITextView = {
+        let textView = UITextView()
+        textView.isEditable = false
+        textView.isSelectable = false
+        textView.backgroundColor = .clear
+        textView.font = .systemFont(ofSize: 15)
+        textView.textColor = .label
+        textView.textContainerInset = UIEdgeInsets(top: 4, left: 8, bottom: 4, right: 8)
+
+        return textView
+    }()
+
+    private lazy var pasteButton: UIButton = {
+        var config = UIButton.Configuration.filled()
+        config.title = String(localized: "붙여넣기", bundle: .sykeyboardCore)
+        config.contentInsets = NSDirectionalEdgeInsets(top: 6, leading: 20, bottom: 6, trailing: 20)
+
+        return UIButton(configuration: config, primaryAction: UIAction { [weak self] _ in self?.onPaste?() })
+    }()
+
+    // MARK: - Initializer
+
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        setupUI()
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
+    // MARK: - Internal Methods
+
+    func update(text: String) {
+        textView.text = text
+        textView.setContentOffset(.zero, animated: false)
+    }
+}
+
+// MARK: - UI Methods
+
+private extension ClipboardHistoryDetailView {
+    func setupUI() {
+        let spacer = UIView()
+        spacer.setContentHuggingPriority(.defaultLow, for: .horizontal)
+        [titleLabel, spacer, closeButton].forEach { headerStackView.addArrangedSubview($0) }
+        [blurView, headerStackView, textView, pasteButton].forEach {
+            self.addSubview($0)
+            $0.translatesAutoresizingMaskIntoConstraints = false
+        }
+
+        NSLayoutConstraint.activate([
+            blurView.topAnchor.constraint(equalTo: self.topAnchor),
+            blurView.leadingAnchor.constraint(equalTo: self.leadingAnchor),
+            blurView.trailingAnchor.constraint(equalTo: self.trailingAnchor),
+            blurView.bottomAnchor.constraint(equalTo: self.bottomAnchor),
+
+            headerStackView.topAnchor.constraint(equalTo: self.topAnchor),
+            headerStackView.leadingAnchor.constraint(equalTo: self.leadingAnchor),
+            headerStackView.trailingAnchor.constraint(equalTo: self.trailingAnchor),
+            headerStackView.heightAnchor.constraint(equalToConstant: 36),
+
+            textView.topAnchor.constraint(equalTo: headerStackView.bottomAnchor),
+            textView.leadingAnchor.constraint(equalTo: self.leadingAnchor, constant: 4),
+            textView.trailingAnchor.constraint(equalTo: self.trailingAnchor, constant: -4),
+            textView.bottomAnchor.constraint(equalTo: pasteButton.topAnchor, constant: -4),
+
+            pasteButton.centerXAnchor.constraint(equalTo: self.centerXAnchor),
+            pasteButton.bottomAnchor.constraint(equalTo: self.bottomAnchor, constant: -8)
+        ])
+    }
+}

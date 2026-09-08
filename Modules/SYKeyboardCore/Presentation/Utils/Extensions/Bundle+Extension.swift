@@ -14,4 +14,7 @@ extension Bundle {
               let attributesDict = nsExtensionDict["NSExtensionAttributes"] as? [String: Any] else { return nil }
         return attributesDict["PrimaryLanguage"] as? String
     }
+
+    /// SYKeyboardCore framework 번들. Core의 String Catalog를 읽을 때 사용한다
+    static let sykeyboardCore = Bundle(for: KeyboardView.self)
 }

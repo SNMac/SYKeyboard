@@ -905,7 +905,7 @@ git commit -m "feat: #54 - 자동완성 바 왼쪽에 클립보드 버튼 추가
   - `final class ClipboardHistoryPanelView: UIView { enum State { case fullAccessRequired, empty, items([ClipboardHistoryItem]) }; weak var delegate; private(set) var items; let tableView: UITableView; func configure(state:); func resetPresentation(); func beginItemEditing(); func endItemEditing(); func toggleSelectAll(); func deleteSelectedItems() }`
   - `Bundle.sykeyboardCore: Bundle`
 
-- [ ] **Step 1: 패널 테스트 작성**
+- [x] **Step 1: 패널 테스트 작성**
 
 `SYKeyboardTests/Presentation/ClipboardHistoryPanelViewTests.swift`:
 
@@ -1034,12 +1034,12 @@ private final class ClipboardHistoryPanelDelegateSpy: ClipboardHistoryPanelDeleg
 }
 ```
 
-- [ ] **Step 2: 실패 확인**
+- [x] **Step 2: 실패 확인**
 
 Run: `-only-testing:SYKeyboardTests/ClipboardHistoryPanelViewTests`
 Expected: 컴파일 실패 `cannot find 'ClipboardHistoryPanelView' in scope`
 
-- [ ] **Step 3: Core String Catalog 생성**
+- [x] **Step 3: Core String Catalog 생성**
 
 ```sh
 python3 - <<'PY'
@@ -1071,7 +1071,7 @@ path.write_text(json.dumps(catalog, ensure_ascii=False, indent=2, separators=(",
 PY
 ```
 
-- [ ] **Step 4: Bundle 헬퍼 추가**
+- [x] **Step 4: Bundle 헬퍼 추가**
 
 `Bundle+Extension.swift`의 `primaryLanguage` 프로퍼티 뒤(extension 닫는 `}` 앞)에:
 
@@ -1080,7 +1080,7 @@ PY
     static let sykeyboardCore = Bundle(for: KeyboardView.self)
 ```
 
-- [ ] **Step 5: 패널 뷰 작성**
+- [x] **Step 5: 패널 뷰 작성**
 
 `Modules/SYKeyboardCore/Presentation/View/ClipboardHistoryPanelView.swift`:
 
@@ -1571,7 +1571,7 @@ private extension ClipboardHistoryDetailView {
 }
 ```
 
-- [ ] **Step 6: pbxproj 등록 (3개 경로)**
+- [x] **Step 6: pbxproj 등록 (3개 경로)**
 
 ```sh
 perl -0pi -e 's#(\t+)(SYKeyboardCore/Presentation/View/Components/Buttons/Bases/BaseKeyboardButton\.swift,\n)#$1SYKeyboardCore/Presentation/View/ClipboardHistoryPanelView.swift,\n$1$2#g' SYKeyboard.xcodeproj/project.pbxproj
@@ -1582,7 +1582,7 @@ grep -c "SYKeyboardCore/Resources/Localizable.xcstrings" SYKeyboard.xcodeproj/pr
 
 Expected: 각각 `2`
 
-- [ ] **Step 7: 통과 확인**
+- [x] **Step 7: 통과 확인**
 
 Run: `-only-testing:SYKeyboardTests/ClipboardHistoryPanelViewTests`
 Expected: 7개 PASS
