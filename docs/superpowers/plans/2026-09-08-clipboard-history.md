@@ -1858,7 +1858,7 @@ git commit -m "feat: #54 - 키보드에 클립보드 기록 패널 연결과 pas
 **Interfaces:**
 - Consumes: `UserDefaultsKeys.isClipboardHistoryEnabled`, `DefaultValues.isClipboardHistoryEnabled`
 
-- [ ] **Step 1: 토글 추가**
+- [x] **Step 1: 토글 추가**
 
 `PredictiveTextSettingsView.swift`의 `isShowMathResultsEnabled` `@AppStorage` 뒤에:
 
@@ -1886,7 +1886,7 @@ git commit -m "feat: #54 - 키보드에 클립보드 기록 패널 연결과 pas
             }
 ```
 
-- [ ] **Step 2: 앱 String Catalog에 en 추가**
+- [x] **Step 2: 앱 String Catalog에 en 추가**
 
 ```sh
 python3 - <<'PY'
@@ -1907,7 +1907,7 @@ git diff --stat SYKeyboard/Resources/Localizable.xcstrings
 
 Expected: 두 키가 추가된다. 정렬 차이로 다른 줄이 움직여도 기존 값은 바뀌지 않아야 한다(`git diff`에서 `-`로 사라지는 `"value"` 줄이 없어야 함).
 
-- [ ] **Step 3: 앱 빌드와 계약 테스트**
+- [x] **Step 3: 앱 빌드와 계약 테스트**
 
 ```sh
 xcodebuild build -project SYKeyboard.xcodeproj -scheme SYKeyboard \
@@ -1916,7 +1916,7 @@ xcodebuild build -project SYKeyboard.xcodeproj -scheme SYKeyboard \
 
 Expected: `BUILD SUCCEEDED`. 이어서 `-only-testing:SYKeyboardTests/UserDefaultsContractTests` PASS.
 
-- [ ] **Step 4: 커밋**
+- [x] **Step 4: 커밋**
 
 ```sh
 git add SYKeyboard/Presentation/KeyboardSettings/PredictiveTextSettingsView.swift \

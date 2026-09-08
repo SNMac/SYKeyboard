@@ -1,15 +1,14 @@
 {
   "sourceLanguage" : "ko",
   "strings" : {
-    "‼️ SY키보드 추가 필요 ‼️" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "‼️ Requires adding SYKeyboard ‼️"
-          }
-        }
-      }
+    "%.1f" : {
+      "shouldTranslate" : false
+    },
+    "%.2f" : {
+      "shouldTranslate" : false
+    },
+    "%lld" : {
+      "shouldTranslate" : false
     },
     "'!#1', '한글' 또는 'ABC' 버튼을 위로 드래그하거나 길게 누르기" : {
       "localizations" : {
@@ -51,16 +50,6 @@
         }
       }
     },
-    "'.' 단축키" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "“.” Shortcut"
-          }
-        }
-      }
-    },
     "'' → ‘’, \"\" → “”, -- → —, ... → … 으로 변경\n(지원하는 텍스트 필드에 한정)" : {
       "localizations" : {
         "en" : {
@@ -71,31 +60,22 @@
         }
       }
     },
+    "'.' 단축키" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“.” Shortcut"
+          }
+        }
+      }
+    },
     "'획' → 'ㆍ', '쌍' → 'ᆢ'" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "“획” → “ㆍ”, “쌍” → “ᆢ”"
-          }
-        }
-      }
-    },
-    "%.1f" : {
-      "shouldTranslate" : false
-    },
-    "%.2f" : {
-      "shouldTranslate" : false
-    },
-    "%lld" : {
-      "shouldTranslate" : false
-    },
-    "iOS 버전" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "iOS Version"
           }
         }
       }
@@ -126,6 +106,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Undo/Redo Feature"
+          }
+        }
+      }
+    },
+    "iOS 버전" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iOS Version"
+          }
+        }
+      }
+    },
+    "‼️ SY키보드 추가 필요 ‼️" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "‼️ Requires adding SYKeyboard ‼️"
           }
         }
       }
@@ -346,6 +346,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Version"
+          }
+        }
+      }
+    },
+    "복사한 텍스트를 키보드 상단 클립보드 버튼으로 붙여넣기\n(설정 ➡️ SY키보드 ➡️ '다른 앱에서 붙여넣기'를 '허용'으로 바꾸면 확인 알림 없이 저장됩니다)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paste copied text with the clipboard button above the keyboard\n(Settings ➡️ SYKeyboard ➡️ set “Paste from Other Apps” to “Allow” to save without confirmation alerts)"
           }
         }
       }
@@ -696,6 +706,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "How to Move Cursor"
+          }
+        }
+      }
+    },
+    "클립보드 기록" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Clipboard History"
           }
         }
       }
