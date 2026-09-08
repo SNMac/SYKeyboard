@@ -375,7 +375,7 @@ git commit -m "feat: #54 - 클립보드 기록 항목 모델과 저장 정책 �
 - Consumes: `ClipboardHistoryPolicy.inserting(_:into:now:)`, `ClipboardHistoryItem`, `DefaultValues.groupBundleID`
 - Produces: `final class ClipboardHistoryStore { init(fileURL: URL); convenience init?(); func load() -> [ClipboardHistoryItem]; func record(_ text: String, now: Date = Date()); func remove(at indices: [Int]); func removeAll() }`
 
-- [ ] **Step 1: 저장소 테스트 작성**
+- [x] **Step 1: 저장소 테스트 작성**
 
 `SYKeyboardTests/Storage/ClipboardHistoryStoreTests.swift`:
 
@@ -459,12 +459,12 @@ private func makeFixture(name: String) -> StoreFixture {
 }
 ```
 
-- [ ] **Step 2: 실패 확인**
+- [x] **Step 2: 실패 확인**
 
 Run: `-only-testing:SYKeyboardTests/ClipboardHistoryStoreTests`
 Expected: 컴파일 실패 `cannot find 'ClipboardHistoryStore' in scope`
 
-- [ ] **Step 3: 저장소 작성**
+- [x] **Step 3: 저장소 작성**
 
 `Modules/SYKeyboardCore/Storage/ClipboardHistoryStore.swift`:
 
@@ -554,7 +554,7 @@ private extension ClipboardHistoryStore {
 }
 ```
 
-- [ ] **Step 4: pbxproj 등록**
+- [x] **Step 4: pbxproj 등록**
 
 ```sh
 perl -0pi -e 's#(\t+)(SYKeyboardCore/Storage/DefaultValues\.swift,\n)#$1SYKeyboardCore/Storage/ClipboardHistoryStore.swift,\n$1$2#g' SYKeyboard.xcodeproj/project.pbxproj
@@ -563,12 +563,12 @@ grep -c "Storage/ClipboardHistoryStore.swift" SYKeyboard.xcodeproj/project.pbxpr
 
 Expected: `2`
 
-- [ ] **Step 5: 통과 확인**
+- [x] **Step 5: 통과 확인**
 
 Run: `-only-testing:SYKeyboardTests/ClipboardHistoryStoreTests`
 Expected: 5개 PASS
 
-- [ ] **Step 6: 커밋**
+- [x] **Step 6: 커밋**
 
 ```sh
 git add Modules/SYKeyboardCore/Storage/ClipboardHistoryStore.swift \

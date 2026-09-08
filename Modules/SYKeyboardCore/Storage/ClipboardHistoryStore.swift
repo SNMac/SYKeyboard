@@ -1,0 +1,83 @@
+//
+//  ClipboardHistoryStore.swift
+//  SYKeyboardCore
+//
+//  Created by Claude on 9/8/26.
+//
+
+import Foundation
+import OSLog
+
+/// 클립보드 텍스트 기록을 App Group 컨테이너의 plist 파일에 저장하는 저장소
+///
+/// 메모리 캐시 없이 매 연산마다 파일을 읽고 쓴다. 세 keyboard extension이 같은 파일을
+/// 공유하므로 캐시가 있으면 다른 extension이 바꾼 내용을 놓친다. 최대 20개 × 2,000자라
+/// 메인 스레드 동기 처리로 충분하다.
+// ponytail: 매 연산 파일 I/O. 항목 수·길이 한도를 올리면 캐시 + 백그라운드 저장으로 전환
+final class ClipboardHistoryStore {
+
+    // MARK: - Properties
+
+    private let fileURL: URL
+    private let logger = Logger(
+        subsystem: Bundle.main.bundleIdentifier ?? "Unknown Bundle",
+        category: "ClipboardHistoryStore"
+    )
+
+    // MARK: - Initializer
+
+    init(fileURL: URL) {
+        self.fileURL = fileURL
+    }
+
+    /// App Group 컨테이너를 얻지 못하면 `nil`. 호출 측은 기능을 비활성 상태로 둔다
+    convenience init?() {
+        guard let containerURL = FileManager.default.containerURL(
+            forSecurityApplicationGroupIdentifier: DefaultValues.groupBundleID
+        ) else { return nil }
+        self.init(fileURL: containerURL.appendingPathComponent("clipboard_history.plist"))
+    }
+
+    // MARK: - Internal Methods
+
+    /// 저장된 기록(최신순). 파일이 없거나 손상됐으면 빈 배열
+    func load() -> [ClipboardHistoryItem] {
+        guard let data = try? Data(contentsOf: fileURL) else { return [] }
+        return (try? PropertyListDecoder().decode([ClipboardHistoryItem].self, from: data)) ?? []
+    }
+
+    /// `text`를 기록 맨 앞에 저장한다. 정책상 저장 대상이 아니면 아무것도 하지 않는다
+    func record(_ text: String, now: Date = Date()) {
+        guard let items = ClipboardHistoryPolicy.inserting(text, into: load(), now: now) else { return }
+        save(items)
+    }
+
+    /// 지정한 인덱스의 항목을 삭제한다. 범위 밖 인덱스는 무시한다
+    func remove(at indices: [Int]) {
+        let removing = Set(indices)
+        let remaining = load().enumerated()
+            .filter { !removing.contains($0.offset) }
+            .map(\.element)
+        save(remaining)
+    }
+
+    func removeAll() {
+        save([])
+    }
+}
+
+// MARK: - Private Methods
+
+private extension ClipboardHistoryStore {
+    func save(_ items: [ClipboardHistoryItem]) {
+        let encoder = PropertyListEncoder()
+        encoder.outputFormat = .binary
+        do {
+            let data = try encoder.encode(items)
+            try data.write(to: fileURL, options: .atomic)
+        } catch {
+            // 쓰기 실패는 무시하고 다음 기회에 다시 쓴다. changeCount는 이미 갱신됐으므로 같은 텍스트를 재시도하지 않는다
+            logger.error("클립보드 기록 저장 실패: \(error.localizedDescription)")
+        }
+    }
+}
