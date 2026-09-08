@@ -183,6 +183,39 @@ struct UserDefaultsContractTests {
         #expect(DefaultValues.letterColumnWidthMultiplier == 1.0)
         #expect(UserDefaultsManager.shared.letterColumnWidthMultiplier == 1.0)
     }
+
+    @Test("클립보드 기록은 저장값이 없으면 false를 반환하고 공유 저장소 키를 유지")
+    func testClipboardHistoryDefaultFallbackAndKey() {
+        let storage = UserDefaultsManager.shared.storage
+        let key = UserDefaultsKeys.isClipboardHistoryEnabled
+        let originalValue = storage.object(forKey: key)
+
+        storage.removeObject(forKey: key)
+        defer { restore(originalValue, forKey: key, in: storage) }
+
+        #expect(key == "isClipboardHistoryEnabled")
+        #expect(DefaultValues.isClipboardHistoryEnabled == false)
+        #expect(UserDefaultsManager.shared.isClipboardHistoryEnabled == false)
+    }
+
+    @Test("마지막 pasteboard changeCount는 저장값이 없으면 -1을 반환하고 공유 저장소 키를 유지")
+    func testLastSeenPasteboardChangeCountDefaultFallbackAndKey() {
+        let storage = UserDefaultsManager.shared.storage
+        let key = UserDefaultsKeys.lastSeenPasteboardChangeCount
+        let originalValue = storage.object(forKey: key)
+
+        storage.removeObject(forKey: key)
+        defer { restore(originalValue, forKey: key, in: storage) }
+
+        #expect(key == "lastSeenPasteboardChangeCount")
+        #expect(DefaultValues.lastSeenPasteboardChangeCount == -1)
+        #expect(UserDefaultsManager.shared.lastSeenPasteboardChangeCount == -1)
+
+        UserDefaultsManager.shared.lastSeenPasteboardChangeCount = 7
+
+        #expect(storage.integer(forKey: key) == 7)
+        #expect(UserDefaultsManager.shared.lastSeenPasteboardChangeCount == 7)
+    }
 }
 
 private extension UserDefaultsContractTests {

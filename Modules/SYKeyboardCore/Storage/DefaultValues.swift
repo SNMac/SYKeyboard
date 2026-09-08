@@ -28,7 +28,9 @@ public enum DefaultValues {
     public static let isUndoRedoEnabled: Bool = true
     /// 수식 결과 표시 기본값
     public static let isShowMathResultsEnabled: Bool = true
-    
+    /// 클립보드 기록 기본값. 클립보드 내용을 저장하므로 사용자가 직접 켠다
+    public static let isClipboardHistoryEnabled: Bool = false
+
     // MARK: - 입력 설정
     
     /// 선택한 길게 누르기 동작
@@ -82,4 +84,6 @@ public enum DefaultValues {
     public static let lastHangeulEnglishLanguageMode: HangeulEnglishLanguageMode = .hangeul
     /// 전체 접근 허용 안내 오버레이 닫음 여부 기본값
     public static let isRequestFullAccessOverlayClosed: Bool = false
+    /// 마지막으로 확인한 pasteboard changeCount 기본값. 아직 확인한 적 없음을 뜻한다
+    public static let lastSeenPasteboardChangeCount: Int = -1
 }

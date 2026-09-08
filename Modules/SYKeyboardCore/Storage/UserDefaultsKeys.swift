@@ -25,7 +25,9 @@ public enum UserDefaultsKeys {
     public static let isUndoRedoEnabled = "isUndoRedoEnabled"
     /// 수식 결과 표시
     public static let isShowMathResultsEnabled = "isShowMathResultsEnabled"
-    
+    /// 클립보드 기록
+    public static let isClipboardHistoryEnabled = "isClipboardHistoryEnabled"
+
     // MARK: - 입력 설정
     
     /// 선택한 길게 누르기 동작
@@ -77,4 +79,6 @@ public enum UserDefaultsKeys {
     public static let lastHangeulEnglishLanguageMode = "lastHangeulEnglishLanguageMode"
     /// 전체 접근 허용 안내 오버레이 닫음 여부
     public static let isRequestFullAccessOverlayClosed = "isRequestFullAccessOverlayClosed"
+    /// 마지막으로 확인한 pasteboard changeCount 저장용
+    public static let lastSeenPasteboardChangeCount = "lastSeenPasteboardChangeCount"
 }

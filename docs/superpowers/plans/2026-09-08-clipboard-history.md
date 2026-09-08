@@ -85,7 +85,7 @@ done
 **Interfaces:**
 - Produces: `UserDefaultsKeys.isClipboardHistoryEnabled: String`, `UserDefaultsKeys.lastSeenPasteboardChangeCount: String`, `DefaultValues.isClipboardHistoryEnabled: Bool = false`, `DefaultValues.lastSeenPasteboardChangeCount: Int = -1`, `UserDefaultsManager.shared.isClipboardHistoryEnabled: Bool`, `UserDefaultsManager.shared.lastSeenPasteboardChangeCount: Int`
 
-- [ ] **Step 1: 계약 테스트 추가**
+- [x] **Step 1: 계약 테스트 추가**
 
 `UserDefaultsContractTests.swift`의 `testLetterColumnWidthMultiplierDefaultFallbackAndKey` 뒤(struct 닫는 `}` 앞)에 추가:
 
@@ -124,12 +124,12 @@ done
     }
 ```
 
-- [ ] **Step 2: 실패 확인**
+- [x] **Step 2: 실패 확인**
 
 Run: 위 테스트 명령에 `-only-testing:SYKeyboardTests/UserDefaultsContractTests`
 Expected: 컴파일 실패 `type 'UserDefaultsKeys' has no member 'isClipboardHistoryEnabled'`
 
-- [ ] **Step 3: 키·기본값·wrapper 추가**
+- [x] **Step 3: 키·기본값·wrapper 추가**
 
 `UserDefaultsKeys.swift`의 `isShowMathResultsEnabled` 선언 바로 뒤에:
 
@@ -175,12 +175,12 @@ Expected: 컴파일 실패 `type 'UserDefaultsKeys' has no member 'isClipboardHi
     public var lastSeenPasteboardChangeCount: Int
 ```
 
-- [ ] **Step 4: 통과 확인**
+- [x] **Step 4: 통과 확인**
 
 Run: 같은 명령
 Expected: `UserDefaultsContractTests` 전체 PASS (기존 12개 + 신규 2개)
 
-- [ ] **Step 5: 커밋**
+- [x] **Step 5: 커밋**
 
 ```sh
 git add Modules/SYKeyboardCore/Storage/UserDefaultsKeys.swift \
