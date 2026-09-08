@@ -1932,7 +1932,7 @@ git commit -m "feat: #54 - 앱 설정에 클립보드 기록 토글 추가"
 **Files:**
 - Modify: `docs/superpowers/plans/2026-09-08-clipboard-history.md`
 
-- [ ] **Step 1: 전체 테스트와 네 scheme 빌드**
+- [x] **Step 1: 전체 테스트와 네 scheme 빌드**
 
 ```sh
 xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
@@ -1948,11 +1948,11 @@ git status --short
 
 Expected: `TEST SUCCEEDED`, 세 scheme `BUILD SUCCEEDED`. `.xcscheme` `RemotePath` 변경은 복원한다.
 
-- [ ] **Step 2: 결과 기록**
+- [x] **Step 2: 결과 기록**
 
 아래 "검증 결과" 절에 실제 실행 명령, 기기명/OS, 테스트 실행 개수와 통과 여부, 빌드 결과를 적는다. 실기기 확인 항목은 확인하지 못했으면 "미확인"과 차단 이유를 그대로 남긴다.
 
-- [ ] **Step 3: 커밋**
+- [x] **Step 3: 커밋**
 
 ```sh
 git add docs/superpowers/plans/2026-09-08-clipboard-history.md
@@ -1963,15 +1963,26 @@ git commit -m "docs: #54 - 구현 계획에 검증 결과 기록"
 
 ## 검증 결과
 
-(Task 9에서 채운다)
-
-- 시뮬레이터:
-- `xcodebuild test -scheme SYKeyboard`:
-- `HangeulKeyboard` 빌드:
-- `EnglishKeyboard` 빌드:
-- `HangeulEnglishKeyboard` 빌드:
+- 시뮬레이터: iPhone 13 mini, iOS 16.0
+- 실행 명령:
+  ```sh
+  xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
+    -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0'
+  for scheme in HangeulKeyboard EnglishKeyboard HangeulEnglishKeyboard; do
+    xcodebuild build -project SYKeyboard.xcodeproj -scheme "$scheme" \
+      -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0'
+  done
+  ```
+- `xcodebuild test -scheme SYKeyboard`: 이번 Xcode 버전 출력에는 고전적인 `Executed N tests` 요약 줄이 없어 `' passed on'` / `' failed on'` 줄 수를 직접 집계했다. 602개 테스트 케이스 모두 통과(`passed`), 실패(`failed`) 0건, `error:` 0건, `** TEST SUCCEEDED **`
+- `HangeulKeyboard` 빌드: `error:` 0건, `** BUILD SUCCEEDED **`
+- `EnglishKeyboard` 빌드: `error:` 0건, `** BUILD SUCCEEDED **`
+- `HangeulEnglishKeyboard` 빌드: `error:` 0건, `** BUILD SUCCEEDED **`
+- 위 네 실행 직후 `git status --short`는 변경 없음(clean) — extension 빌드가 `.xcscheme`의 `RemotePath`를 덮어쓰지 않았으므로 복원할 파일이 없었다.
+- 이번 세션에서는 `.xcresult`나 로그 파일을 저장소나 영구 위치에 보관하지 않았다(터미널 출력만 확인).
 
 ### 실기기 확인 항목 (자동 테스트로 대체 불가)
+
+이번 세션은 실기기를 사용하지 않아 아래 항목을 관찰하지 못했다. 모두 "미확인"으로 남긴다.
 
 | 항목 | 결과 |
 | --- | --- |
