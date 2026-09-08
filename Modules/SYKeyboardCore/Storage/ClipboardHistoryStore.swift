@@ -26,7 +26,7 @@ public final class ClipboardHistoryStore {
 
     // MARK: - Initializer
 
-    public init(fileURL: URL) {
+    init(fileURL: URL) {
         self.fileURL = fileURL
     }
 
@@ -47,7 +47,7 @@ public final class ClipboardHistoryStore {
     }
 
     /// `text`를 기록 맨 앞에 저장한다. 정책상 저장 대상이 아니면 아무것도 하지 않는다
-    public func record(_ text: String, now: Date = Date()) {
+    func record(_ text: String, now: Date = Date()) {
         guard let items = ClipboardHistoryPolicy.inserting(text, into: load(), now: now) else { return }
         save(items)
     }

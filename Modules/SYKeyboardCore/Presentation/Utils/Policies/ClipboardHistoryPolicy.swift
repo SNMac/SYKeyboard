@@ -28,9 +28,9 @@ public struct ClipboardHistoryItem: Codable, Equatable {
 /// 배열 순서가 곧 표시 순서다. 고정 항목이 고정 시각 최신순으로 앞에, 미고정 항목이 복사 시각 최신순으로 뒤에 온다.
 public enum ClipboardHistoryPolicy {
     /// 보관하는 최대 미고정 항목 수. 고정 항목은 자동으로 정리하지 않는다
-    public static let maxItemCount = 20
+    static let maxItemCount = 20
     /// 고정할 수 있는 최대 항목 수. 꽉 차면 해제 전까지 더 고정할 수 없다
-    public static let maxPinnedCount = 20
+    static let maxPinnedCount = 20
     /// 항목 하나의 최대 문자 수. 초과하면 잘라 저장하지 않고 버린다.
     /// 잘라서 저장하면 붙여넣기 결과가 원본과 달라진다
     public static let maxTextLength = 2_000
@@ -41,7 +41,7 @@ public enum ClipboardHistoryPolicy {
     /// - 고정 항목과 같은 텍스트면 고정을 유지하고 `nil`
     /// - 미고정에 같은 텍스트가 있으면 제거한 뒤 맨 앞에 넣는다
     /// - 미고정이 `maxItemCount`를 넘으면 뒤에서 버린다
-    public static func inserting(
+    static func inserting(
         _ text: String,
         into items: [ClipboardHistoryItem],
         now: Date
@@ -51,16 +51,18 @@ public enum ClipboardHistoryPolicy {
               !items.contains(where: { $0.isPinned && $0.text == text }) else { return nil }
 
         let pinned = items.filter(\.isPinned)
-        var unpinned = items.filter { !$0.isPinned && $0.text != text }
-        unpinned.insert(ClipboardHistoryItem(text: text, createdAt: now), at: 0)
-        return sorted(pinned + unpinned.prefix(maxItemCount))
+        let unpinned = items.filter { !$0.isPinned && $0.text != text }
+            + [ClipboardHistoryItem(text: text, createdAt: now)]
+        // 입력 순서에 기대지 않도록 정렬한 뒤 오래된 미고정 항목을 버린다
+        let trimmedUnpinned = sorted(unpinned).prefix(maxItemCount)
+        return sorted(pinned + trimmedUnpinned)
     }
 
     /// 사용자가 직접 입력한 `text`를 고정 항목으로 맨 앞에 넣은 결과. 저장하지 않을 텍스트면 `nil`
     ///
     /// - 빈 문자열, 공백·개행만 있는 문자열, `maxTextLength` 초과, 고정 한도 초과는 `nil`
     /// - 같은 텍스트가 이미 고정이면 `nil`, 미고정이면 그 항목을 제거하고 고정으로 대체한다
-    public static func insertingPinned(
+    static func insertingPinned(
         _ text: String,
         into items: [ClipboardHistoryItem],
         now: Date
@@ -81,8 +83,9 @@ public enum ClipboardHistoryPolicy {
 
     /// `index` 항목의 고정을 토글하고 정렬한 결과. 범위 밖이거나 고정 한도에 걸리면 `nil`
     ///
-    /// 해제한 항목은 원래 복사 시각 순서의 미고정 자리로 돌아간다
-    public static func togglingPin(
+    /// 해제한 항목은 원래 복사 시각 순서의 미고정 자리로 돌아간다. 이때 미고정이 잠시 `maxItemCount`를
+    /// 넘을 수 있으며 다음 `inserting`에서 정리된다
+    static func togglingPin(
         at index: Int,
         in items: [ClipboardHistoryItem],
         now: Date
@@ -100,12 +103,14 @@ public enum ClipboardHistoryPolicy {
         return sorted(result)
     }
 
-    /// 고정은 고정 시각 최신순으로 앞에, 미고정은 복사 시각 최신순으로 뒤에
-    public static func sorted(_ items: [ClipboardHistoryItem]) -> [ClipboardHistoryItem] {
-        let pinned = items.filter(\.isPinned)
-            .sorted { ($0.pinnedAt ?? .distantPast) > ($1.pinnedAt ?? .distantPast) }
-        let unpinned = items.filter { !$0.isPinned }
-            .sorted { $0.createdAt > $1.createdAt }
+    /// 고정은 고정 시각 최신순으로 앞에, 미고정은 복사 시각 최신순으로 뒤에. 시각이 같으면 텍스트 순으로 고정한다
+    static func sorted(_ items: [ClipboardHistoryItem]) -> [ClipboardHistoryItem] {
+        let pinned = items.filter(\.isPinned).sorted {
+            ($0.pinnedAt ?? .distantPast, $1.text) > ($1.pinnedAt ?? .distantPast, $0.text)
+        }
+        let unpinned = items.filter { !$0.isPinned }.sorted {
+            ($0.createdAt, $1.text) > ($1.createdAt, $0.text)
+        }
         return pinned + unpinned
     }
 }

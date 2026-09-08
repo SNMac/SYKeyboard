@@ -75,6 +75,18 @@ struct ClipboardHistoryStoreTests {
         #expect(fixture.store.load().allSatisfy { !$0.isPinned })
     }
 
+    @Test("고정으로 순서가 바뀐 뒤에도 패널 인덱스로 삭제하면 그 항목이 지워짐")
+    func test고정재정렬후_인덱스삭제는_해당항목제거() {
+        let fixture = makeFixture(name: "pin-then-remove")
+        fixture.store.record("a", now: Date(timeIntervalSince1970: 1))
+        fixture.store.record("b", now: Date(timeIntervalSince1970: 2))
+
+        fixture.store.togglePin(at: 1, now: Date(timeIntervalSince1970: 3))
+        fixture.store.remove(at: [0])
+
+        #expect(fixture.store.load().map(\.text) == ["b"])
+    }
+
     @Test("직접 추가한 항목은 고정 상태로 파일에 저장")
     func test직접추가는_고정상태로저장() {
         let fixture = makeFixture(name: "record-pinned")

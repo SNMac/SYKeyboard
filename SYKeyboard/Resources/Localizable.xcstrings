@@ -15,7 +15,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Delete %lld"
+            "value" : "Delete (%lld)"
           }
         }
       }

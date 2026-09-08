@@ -51,7 +51,9 @@ struct ClipboardHistoryPolicyTests {
 
     @Test("최대 개수를 넘으면 가장 오래된 항목을 버림")
     func test최대개수초과시_가장오래된항목제거() {
-        let items = (0..<ClipboardHistoryPolicy.maxItemCount).map { item("\($0)") }
+        let items = (0..<ClipboardHistoryPolicy.maxItemCount).map {
+            item("\($0)", createdAt: TimeInterval(ClipboardHistoryPolicy.maxItemCount - $0))
+        }
 
         let result = ClipboardHistoryPolicy.inserting("new", into: items, now: now)
 
