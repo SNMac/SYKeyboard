@@ -135,8 +135,9 @@ var isClipboardPanelVisible = false
    반환한다. 이 비교는 권한 배너를 띄우지 않는다.
 3. 다르면 먼저 `lastSeenPasteboardChangeCount`를 갱신한다. 이후 읽기가 실패하거나
    저장 대상이 아니어도 같은 값을 반복해 읽지 않는다.
-4. `UIPasteboard.general.hasStrings`가 true일 때만 `.string`을 읽고
-   `clipboardHistoryStore?.record(text)`를 호출한다.
+4. `UIPasteboard.general.hasStrings`가 true이고 pasteboard가
+   `org.nspasteboard.ConcealedType` 타입을 포함하지 않을 때만(비밀번호 관리자의
+   비밀 항목 제외) `.string`을 읽고 `clipboardHistoryStore?.record(text)`를 호출한다.
 
 ### 호출 시점
 

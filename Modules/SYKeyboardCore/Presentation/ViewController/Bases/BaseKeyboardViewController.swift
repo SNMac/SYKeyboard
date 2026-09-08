@@ -2326,6 +2326,9 @@ extension BaseKeyboardViewController: SuggestionBarDelegate {
 
 private extension BaseKeyboardViewController {
 
+    /// 비밀번호 관리자가 비밀 항목에 붙이는 pasteboard 타입. 이 타입이 있으면 기록하지 않는다
+    static let concealedPasteboardType = "org.nspasteboard.ConcealedType"
+
     /// 클립보드 기록 기능 사용 가능 여부. 설정 ON, Full Access, 미리보기 아님
     var isClipboardHistoryAvailable: Bool {
         return keyboardSettingsManager.isClipboardHistoryEnabled
@@ -2346,7 +2349,10 @@ private extension BaseKeyboardViewController {
         // 읽기 실패나 저장 제외여도 같은 값을 반복해 읽지 않도록 먼저 갱신한다
         keyboardSettingsManager.lastSeenPasteboardChangeCount = changeCount
 
-        guard pasteboard.hasStrings, let text = pasteboard.string else { return }
+        // 비밀번호 관리자가 org.nspasteboard.ConcealedType로 표시한 항목은 저장하지 않는다. 타입 확인은 권한 알림을 띄우지 않는다
+        guard pasteboard.hasStrings,
+              !pasteboard.contains(pasteboardTypes: [BaseKeyboardViewController.concealedPasteboardType]),
+              let text = pasteboard.string else { return }
         clipboardHistoryStore.record(text)
     }
 
