@@ -160,12 +160,32 @@
         }
       }
     },
+    "고정 %lld/%lld · 최근 %lld/%lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pinned %lld/%lld · Recent %lld/%lld"
+          }
+        }
+      }
+    },
     "고정 항목 추가" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Add Pinned Item"
+          }
+        }
+      }
+    },
+    "고정 항목은 직접 삭제할 때까지 유지되고, 최근 항목은 %lld개를 넘으면 오래된 것부터 지워집니다." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pinned items stay until you delete them. Recent items beyond %lld are removed oldest first."
           }
         }
       }
@@ -400,12 +420,12 @@
         }
       }
     },
-    "복사한 텍스트가 여기에 표시됩니다" : {
+    "복사한 텍스트가 여기에 표시됩니다." : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Copied text will appear here"
+            "value" : "Copied text will appear here."
           }
         }
       }

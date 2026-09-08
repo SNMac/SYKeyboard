@@ -29,6 +29,8 @@ struct ClipboardHistorySettingsView: View {
     @State private var detailItem: ClipboardHistoryItem?
 
     private var canPin: Bool { ClipboardHistoryPolicy.canPin(items) }
+    private var pinnedCount: Int { items.filter(\.isPinned).count }
+    private var recentCount: Int { items.count - pinnedCount }
     private var isAllSelected: Bool { !items.isEmpty && selection.count == items.count }
 
     // MARK: - Content
@@ -37,8 +39,14 @@ struct ClipboardHistorySettingsView: View {
         NavigationStack {
             Group {
                 if items.isEmpty {
-                    Text("복사한 텍스트가 여기에 표시됩니다")
-                        .foregroundStyle(.secondary)
+                    VStack(spacing: 8) {
+                        Text("복사한 텍스트가 여기에 표시됩니다.")
+                        limitDescription
+                    }
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 24)
                 } else {
                     historyList
                 }
@@ -69,34 +77,51 @@ struct ClipboardHistorySettingsView: View {
 private extension ClipboardHistorySettingsView {
     var historyList: some View {
         List(selection: $selection) {
-            ForEach(items) { item in
-                Button {
-                    detailItem = item
-                } label: {
-                    row(for: item)
+            Section {
+                itemRows
+            } footer: {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("고정 \(pinnedCount)/\(ClipboardHistoryPolicy.maxPinnedCount) · 최근 \(recentCount)/\(ClipboardHistoryPolicy.maxItemCount)")
+                        .monospacedDigit()
+                    limitDescription
                 }
-                .buttonStyle(.plain)
-                // 편집 모드에서는 탭이 행 선택으로 가도록 버튼이 터치를 가로채지 않게 한다
-                .allowsHitTesting(!editMode.isEditing)
-                .swipeActions(edge: .leading) {
-                    if item.isPinned || canPin {
-                        Button {
-                            togglePin(item)
-                        } label: {
-                            Label(
-                                item.isPinned ? "고정 해제" : "고정",
-                                systemImage: item.isPinned ? "pin.slash.fill" : "pin.fill"
-                            )
-                        }
-                        .tint(.orange)
-                    }
-                }
-                .swipeActions(edge: .trailing) {
-                    Button(role: .destructive) {
-                        remove([item])
+            }
+        }
+    }
+
+    /// 개수 제한 규칙 안내. 목록 footer와 빈 상태에서 함께 쓴다
+    var limitDescription: some View {
+        Text("고정 항목은 직접 삭제할 때까지 유지되고, 최근 항목은 \(ClipboardHistoryPolicy.maxItemCount)개를 넘으면 오래된 것부터 지워집니다.")
+    }
+
+    var itemRows: some View {
+        ForEach(items) { item in
+            Button {
+                detailItem = item
+            } label: {
+                row(for: item)
+            }
+            .buttonStyle(.plain)
+            // 편집 모드에서는 탭이 행 선택으로 가도록 버튼이 터치를 가로채지 않게 한다
+            .allowsHitTesting(!editMode.isEditing)
+            .swipeActions(edge: .leading) {
+                if item.isPinned || canPin {
+                    Button {
+                        togglePin(item)
                     } label: {
-                        Label("삭제", systemImage: "trash.fill")
+                        Label(
+                            item.isPinned ? "고정 해제" : "고정",
+                            systemImage: item.isPinned ? "pin.slash.fill" : "pin.fill"
+                        )
                     }
+                    .tint(.orange)
+                }
+            }
+            .swipeActions(edge: .trailing) {
+                Button(role: .destructive) {
+                    remove([item])
+                } label: {
+                    Label("삭제", systemImage: "trash.fill")
                 }
             }
         }

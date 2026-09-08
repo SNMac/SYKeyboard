@@ -31,9 +31,9 @@ public struct ClipboardHistoryItem: Codable, Equatable, Identifiable {
 /// 배열 순서가 곧 표시 순서다. 고정 항목이 고정 시각 최신순으로 앞에, 미고정 항목이 복사 시각 최신순으로 뒤에 온다.
 public enum ClipboardHistoryPolicy {
     /// 보관하는 최대 미고정 항목 수. 고정 항목은 자동으로 정리하지 않는다
-    static let maxItemCount = 20
+    public static let maxItemCount = 20
     /// 고정할 수 있는 최대 항목 수. 꽉 차면 해제 전까지 더 고정할 수 없다
-    static let maxPinnedCount = 20
+    public static let maxPinnedCount = 20
     /// 항목 하나의 최대 문자 수. 초과하면 잘라 저장하지 않고 버린다.
     /// 잘라서 저장하면 붙여넣기 결과가 원본과 달라진다
     public static let maxTextLength = 2_000

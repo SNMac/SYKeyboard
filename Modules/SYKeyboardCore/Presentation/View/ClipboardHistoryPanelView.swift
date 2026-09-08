@@ -182,7 +182,7 @@ final class ClipboardHistoryPanelView: UIView {
             messageLabel.text = String(localized: "전체 접근 허용이 필요합니다", bundle: .sykeyboardCore)
         case .empty:
             items = []
-            messageLabel.text = String(localized: "복사한 텍스트가 여기에 표시됩니다", bundle: .sykeyboardCore)
+            messageLabel.text = String(localized: "복사한 텍스트가 여기에 표시됩니다.", bundle: .sykeyboardCore)
         case .items(let newItems):
             items = newItems
         }

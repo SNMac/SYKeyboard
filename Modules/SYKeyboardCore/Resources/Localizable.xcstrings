@@ -41,12 +41,12 @@
         }
       }
     },
-    "복사한 텍스트가 여기에 표시됩니다" : {
+    "복사한 텍스트가 여기에 표시됩니다." : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Copied text will appear here"
+            "value" : "Copied text will appear here."
           }
         }
       }
