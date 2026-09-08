@@ -1,21 +1,12 @@
 {
   "sourceLanguage" : "ko",
   "strings" : {
-    "%.1f" : {
-      "shouldTranslate" : false
-    },
-    "%.2f" : {
-      "shouldTranslate" : false
-    },
-    "%lld" : {
-      "shouldTranslate" : false
-    },
-    "%lld개 삭제" : {
+    "‼️ SY키보드 추가 필요 ‼️" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Delete (%lld)"
+            "value" : "‼️ Requires adding SYKeyboard ‼️"
           }
         }
       }
@@ -60,16 +51,6 @@
         }
       }
     },
-    "'' → ‘’, \"\" → “”, -- → —, ... → … 으로 변경\n(지원하는 텍스트 필드에 한정)" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Change '' → ‘’, \"\" → “”, -- → —, ... → …\n(Limited to supported text fields)"
-          }
-        }
-      }
-    },
     "'.' 단축키" : {
       "localizations" : {
         "en" : {
@@ -80,12 +61,51 @@
         }
       }
     },
+    "'' → ‘’, \"\" → “”, -- → —, ... → … 으로 변경\n(지원하는 텍스트 필드에 한정)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Change '' → ‘’, \"\" → “”, -- → —, ... → …\n(Limited to supported text fields)"
+          }
+        }
+      }
+    },
     "'획' → 'ㆍ', '쌍' → 'ᆢ'" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "“획” → “ㆍ”, “쌍” → “ᆢ”"
+          }
+        }
+      }
+    },
+    "%.1f" : {
+      "shouldTranslate" : false
+    },
+    "%.2f" : {
+      "shouldTranslate" : false
+    },
+    "%lld" : {
+      "shouldTranslate" : false
+    },
+    "%lld개 삭제" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete (%lld)"
+          }
+        }
+      }
+    },
+    "iOS 버전" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iOS Version"
           }
         }
       }
@@ -116,26 +136,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Undo/Redo Feature"
-          }
-        }
-      }
-    },
-    "iOS 버전" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "iOS Version"
-          }
-        }
-      }
-    },
-    "‼️ SY키보드 추가 필요 ‼️" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "‼️ Requires adding SYKeyboard ‼️"
           }
         }
       }
@@ -670,7 +670,16 @@
         }
       }
     },
-    "완료" : {},
+    "완료" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Done"
+          }
+        }
+      }
+    },
     "외형 설정" : {
       "localizations" : {
         "en" : {
@@ -1001,7 +1010,16 @@
         }
       }
     },
-    "편집" : {},
+    "편집" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Edit"
+          }
+        }
+      }
+    },
     "피드백 설정" : {
       "localizations" : {
         "en" : {
