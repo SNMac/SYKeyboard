@@ -1615,7 +1615,7 @@ git commit -m "feat: #54 - 클립보드 기록 패널 뷰와 Core String Catalog
 `updateShowingKeyboard()`·`updateSuggestions()`·`updateReturnButtonEnabled()`·`cancelPendingDeleteInteractions()`·`updateUndoRedoControls()`는
 모두 Base 파일의 `private extension`에 있으므로 클립보드 흐름도 같은 파일에 둔다. 새 파일을 만들지 않는다.
 
-- [ ] **Step 1: KeyboardView에 패널 추가**
+- [x] **Step 1: KeyboardView에 패널 추가**
 
 `KeyboardView.swift`의 `tenkeyKeyboardView` 선언 뒤에:
 
@@ -1631,7 +1631,7 @@ git commit -m "feat: #54 - 클립보드 기록 패널 뷰와 Core String Catalog
 
 `setHierarchy()`와 `setConstraints()` 두 곳의 `+ [symbolKeyboardView, numericKeyboardView, tenkeyKeyboardView]`를 모두 `+ [symbolKeyboardView, numericKeyboardView, tenkeyKeyboardView, clipboardHistoryPanelView]`로 바꾼다.
 
-- [ ] **Step 2: BaseKeyboardViewController 본체 수정**
+- [x] **Step 2: BaseKeyboardViewController 본체 수정**
 
 (a) `// MARK: - UI Components`의 `tenkeyKeyboardView` 선언 뒤에:
 
@@ -1720,7 +1720,7 @@ git commit -m "feat: #54 - 클립보드 기록 패널 뷰와 Core String Catalog
     }
 ```
 
-- [ ] **Step 3: 클립보드 흐름을 Base 본체에 추가**
+- [x] **Step 3: 클립보드 흐름을 Base 본체에 추가**
 
 `extension BaseKeyboardViewController: SuggestionBarDelegate { ... }` 블록 바로 뒤, `private extension BaseKeyboardViewController { func synchronizeTextInputTraits()` 앞에 다음 두 블록을 넣는다:
 
@@ -1820,17 +1820,17 @@ extension BaseKeyboardViewController: ClipboardHistoryPanelDelegate {
 }
 ```
 
-- [ ] **Step 4: 세 extension scheme 빌드**
+- [x] **Step 4: 세 extension scheme 빌드**
 
 Run: Global Constraints의 extension 빌드 명령
 Expected: 세 scheme 모두 `BUILD SUCCEEDED`
 
-- [ ] **Step 5: 전체 테스트**
+- [x] **Step 5: 전체 테스트**
 
 Run: `-only-testing` 없이 `xcodebuild test -scheme SYKeyboard ...`
 Expected: `TEST SUCCEEDED`. 실패가 있으면 이 Task 변경과의 관련을 확인하고 고친 뒤 다시 실행한다.
 
-- [ ] **Step 6: scheme 부수 변경 확인**
+- [x] **Step 6: scheme 부수 변경 확인**
 
 ```sh
 git status --short
@@ -1838,7 +1838,7 @@ git status --short
 
 `.xcscheme`이 보이면 `git diff`로 `RemotePath`만 바뀌었는지 확인하고 `git checkout -- <파일>`로 복원한다.
 
-- [ ] **Step 7: 커밋**
+- [x] **Step 7: 커밋**
 
 ```sh
 git add Modules/SYKeyboardCore/Presentation/View/KeyboardView.swift \

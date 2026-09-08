@@ -97,10 +97,18 @@ final public class KeyboardView: UIInputView {
     lazy var tenkeyKeyboardView: TenkeyKeyboardLayoutProvider = {
         let tenkeyKeyboardView = TenkeyKeyboardView()
         tenkeyKeyboardView.isHidden = true
-        
+
         return tenkeyKeyboardView
     }()
-    
+
+    /// 클립보드 기록 패널. 자판 자리에 겹쳐 두고 `isHidden`으로 전환한다
+    lazy var clipboardHistoryPanelView: ClipboardHistoryPanelView = {
+        let panelView = ClipboardHistoryPanelView()
+        panelView.isHidden = true
+
+        return panelView
+    }()
+
     /// 한 손 키보드 해제 버튼(왼손 모드)
     let rightChevronButton: ChevronButton = {
         let chevronButton = ChevronButton(direction: .right)
@@ -181,7 +189,7 @@ private extension KeyboardView {
         [leftChevronButton, keyboardLayoutView, rightChevronButton].forEach { keyboardHStackView.addArrangedSubview($0) }
         
         (primaryKeyboardViews.map { $0 as UIView }
-         + [symbolKeyboardView, numericKeyboardView, tenkeyKeyboardView])
+         + [symbolKeyboardView, numericKeyboardView, tenkeyKeyboardView, clipboardHistoryPanelView])
             .forEach { keyboardLayoutView.addSubview($0) }
     }
     
@@ -213,7 +221,7 @@ private extension KeyboardView {
         keyboardLayoutWidthConstraint = widthConstraint
         
         (primaryKeyboardViews.map { $0 as UIView }
-         + [symbolKeyboardView, numericKeyboardView, tenkeyKeyboardView]).forEach {
+         + [symbolKeyboardView, numericKeyboardView, tenkeyKeyboardView, clipboardHistoryPanelView]).forEach {
             $0.translatesAutoresizingMaskIntoConstraints = false
             NSLayoutConstraint.activate([
                 $0.topAnchor.constraint(equalTo: keyboardLayoutView.topAnchor),
