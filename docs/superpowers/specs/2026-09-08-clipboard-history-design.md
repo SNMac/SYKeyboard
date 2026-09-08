@@ -45,8 +45,9 @@ pasteboard의 최신 텍스트를 App Group 로컬 저장소에 누적 저장하
 | 개별 삭제 | 평소 모드에서 trailing swipe. 편집 모드에서는 iOS 기본 동작대로 스와이프가 막힌다. |
 | 다중·전체 삭제 | 헤더의 "편집"으로 편집 모드 진입. 시스템 다중 선택 컨트롤(체크마크)을 쓰고 "전체 선택"·"n개 삭제"·"완료" 버튼을 둔다. 확인 알림은 없다. |
 | 원문 전체 보기 | 행 길게 누르기 → 패널 위 상세 뷰(스크롤 가능한 읽기 전용 `UITextView` + "붙여넣기"·"닫기"). |
+| 항목 고정 | leading swipe(또는 상세 뷰 버튼)로 고정/해제. 고정 항목은 고정 시각 최신순으로 맨 위에 오고 자동 정리에서 제외되며, 사용자가 직접 삭제(스와이프·편집 모드)할 때만 지워진다. 고정은 최대 20개이고 꽉 차면 미고정 행에 고정 액션을 만들지 않는다. 고정된 텍스트를 다시 복사해도 바뀌지 않는다. 해제하면 원래 복사 시각 순서의 미고정 자리로 돌아간다. |
 | 기본값 | `isClipboardHistoryEnabled = false`. |
-| 한도 | 최근 20개, 항목당 2,000자. 초과 텍스트는 잘라 저장하지 않고 버린다. |
+| 한도 | 미고정 최근 20개 + 고정 20개, 항목당 2,000자. 초과 텍스트는 잘라 저장하지 않고 버린다. |
 
 ## 범위 밖
 
@@ -80,7 +81,7 @@ enum ClipboardHistoryPolicy {
 
 ### `ClipboardHistoryItem`
 
-`Codable` struct. 필드는 `text: String`, `createdAt: Date` 둘뿐이다.
+`Codable` struct. 필드는 `text: String`, `createdAt: Date`, `pinnedAt: Date?`다. `pinnedAt`이 `nil`이면 미고정이며, 키가 없는 기존 파일은 미고정으로 읽힌다. 배열 순서가 표시 순서다(고정 최신순 → 미고정 최신순).
 
 ### `ClipboardHistoryStore`
 

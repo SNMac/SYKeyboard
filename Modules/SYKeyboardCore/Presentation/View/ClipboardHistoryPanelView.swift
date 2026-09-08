@@ -17,6 +17,8 @@ protocol ClipboardHistoryPanelDelegate: AnyObject {
     func clipboardPanel(_ panel: ClipboardHistoryPanelView, didDeleteItemsAt indices: [Int])
     /// 편집 모드에서 전체 선택 후 삭제했을 때 호출됩니다.
     func clipboardPanelDidDeleteAll(_ panel: ClipboardHistoryPanelView)
+    /// leading swipe 또는 상세 뷰에서 항목의 고정을 토글했을 때 호출됩니다.
+    func clipboardPanel(_ panel: ClipboardHistoryPanelView, didTogglePinAt index: Int)
 }
 
 /// 클립보드 기록 목록을 자판 영역에 표시하는 패널
@@ -24,7 +26,7 @@ protocol ClipboardHistoryPanelDelegate: AnyObject {
 /// 저장소를 모르는 표시 전용 뷰다. 상태는 `configure(state:)`로 받고 결정은 델리게이트가 한다.
 ///
 /// ## 동작
-/// - 평소: 행 탭은 붙여넣기, trailing swipe는 개별 삭제, 길게 누르기는 원문 상세 뷰
+/// - 평소: 행 탭은 붙여넣기, trailing swipe는 개별 삭제, leading swipe는 고정/해제, 길게 누르기는 원문 상세 뷰
 /// - 편집 모드(`UITableView.isEditing`): 행 탭은 선택 토글, "전체 선택"·"n개 삭제"·"완료"
 final class ClipboardHistoryPanelView: UIView {
 
@@ -131,6 +133,10 @@ final class ClipboardHistoryPanelView: UIView {
             guard let self, let index = self.detailIndex else { return }
             self.hideDetail()
             self.delegate?.clipboardPanel(self, didSelectItemAt: index)
+        }
+        view.onTogglePin = { [weak self] in
+            guard let self, let index = self.detailIndex else { return }
+            self.delegate?.clipboardPanel(self, didTogglePinAt: index)
         }
 
         return view
@@ -307,13 +313,22 @@ private extension ClipboardHistoryPanelView {
     func showDetail(at index: Int) {
         guard items.indices.contains(index) else { return }
         detailIndex = index
-        detailView.update(text: items[index].text)
+        detailView.update(text: items[index].text, isPinned: items[index].isPinned)
         detailView.isHidden = false
     }
 
     func hideDetail() {
         detailIndex = nil
         detailView.isHidden = true
+    }
+
+    func makePinAccessoryView() -> UIView {
+        let imageView = UIImageView(image: UIImage(systemName: "pin.fill"))
+        imageView.tintColor = .secondaryLabel
+        imageView.contentMode = .scaleAspectFit
+        imageView.frame = CGRect(x: 0, y: 0, width: 16, height: 16)
+
+        return imageView
     }
 
     @objc func handleLongPress(_ recognizer: UILongPressGestureRecognizer) {
@@ -340,6 +355,7 @@ extension ClipboardHistoryPanelView: UITableViewDataSource, UITableViewDelegate 
         content.textProperties.numberOfLines = 2
         content.textProperties.lineBreakMode = .byTruncatingTail
         cell.contentConfiguration = content
+        cell.accessoryView = items[indexPath.row].isPinned ? makePinAccessoryView() : nil
         cell.backgroundColor = .clear
         let selectedBackgroundView = UIView()
         selectedBackgroundView.backgroundColor = .suggestionButtonPressed
@@ -360,6 +376,31 @@ extension ClipboardHistoryPanelView: UITableViewDataSource, UITableViewDelegate 
 
     func tableView(_ tableView: UITableView, didDeselectRowAt indexPath: IndexPath) {
         if tableView.isEditing { updateHeader() }
+    }
+
+    func tableView(
+        _ tableView: UITableView,
+        leadingSwipeActionsConfigurationForRowAt indexPath: IndexPath
+    ) -> UISwipeActionsConfiguration? {
+        guard items.indices.contains(indexPath.row) else { return nil }
+        let isPinned = items[indexPath.row].isPinned
+        // 고정 한도가 찼으면 미고정 행에는 고정 액션을 만들지 않는다
+        guard isPinned || ClipboardHistoryPolicy.canPin(items) else { return nil }
+
+        let pinAction = UIContextualAction(
+            style: .normal,
+            title: isPinned
+            ? String(localized: "고정 해제", bundle: .sykeyboardCore)
+            : String(localized: "고정", bundle: .sykeyboardCore)
+        ) { [weak self] _, _, completion in
+            guard let self else { completion(false); return }
+            self.delegate?.clipboardPanel(self, didTogglePinAt: indexPath.row)
+            // 삭제와 같은 이유로 목록 갱신은 소유자의 configure()에 맡긴다
+            completion(false)
+        }
+        pinAction.backgroundColor = .systemOrange
+
+        return UISwipeActionsConfiguration(actions: [pinAction])
     }
 
     func tableView(
@@ -390,6 +431,7 @@ private final class ClipboardHistoryDetailView: UIView {
 
     var onClose: (() -> Void)?
     var onPaste: (() -> Void)?
+    var onTogglePin: (() -> Void)?
 
     // MARK: - UI Components
 
@@ -412,6 +454,13 @@ private final class ClipboardHistoryDetailView: UIView {
         label.textColor = .label
 
         return label
+    }()
+
+    private lazy var pinButton: UIButton = {
+        var config = UIButton.Configuration.plain()
+        config.contentInsets = NSDirectionalEdgeInsets(top: 4, leading: 8, bottom: 4, trailing: 8)
+
+        return UIButton(configuration: config, primaryAction: UIAction { [weak self] _ in self?.onTogglePin?() })
     }()
 
     private lazy var closeButton: UIButton = {
@@ -455,9 +504,12 @@ private final class ClipboardHistoryDetailView: UIView {
 
     // MARK: - Internal Methods
 
-    func update(text: String) {
+    func update(text: String, isPinned: Bool) {
         textView.text = text
         textView.setContentOffset(.zero, animated: false)
+        pinButton.configuration?.title = isPinned
+        ? String(localized: "고정 해제", bundle: .sykeyboardCore)
+        : String(localized: "고정", bundle: .sykeyboardCore)
     }
 }
 
@@ -467,7 +519,7 @@ private extension ClipboardHistoryDetailView {
     func setupUI() {
         let spacer = UIView()
         spacer.setContentHuggingPriority(.defaultLow, for: .horizontal)
-        [titleLabel, spacer, closeButton].forEach { headerStackView.addArrangedSubview($0) }
+        [titleLabel, spacer, pinButton, closeButton].forEach { headerStackView.addArrangedSubview($0) }
         [blurView, headerStackView, textView, pasteButton].forEach {
             self.addSubview($0)
             $0.translatesAutoresizingMaskIntoConstraints = false

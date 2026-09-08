@@ -56,6 +56,38 @@ struct ClipboardHistoryStoreTests {
         #expect(fixture.store.load().isEmpty)
     }
 
+    @Test("고정 토글은 파일에 반영되고 고정 항목이 맨 앞으로 이동")
+    func test고정토글은_파일에반영() {
+        let fixture = makeFixture(name: "pin")
+        fixture.store.record("a", now: Date(timeIntervalSince1970: 1))
+        fixture.store.record("b", now: Date(timeIntervalSince1970: 2))
+
+        fixture.store.togglePin(at: 1, now: Date(timeIntervalSince1970: 3))
+
+        let items = fixture.store.load()
+        #expect(items.map(\.text) == ["a", "b"])
+        #expect(items[0].pinnedAt == Date(timeIntervalSince1970: 3))
+        #expect(items[1].pinnedAt == nil)
+
+        fixture.store.togglePin(at: 0, now: Date(timeIntervalSince1970: 4))
+
+        #expect(fixture.store.load().map(\.text) == ["b", "a"])
+        #expect(fixture.store.load().allSatisfy { !$0.isPinned })
+    }
+
+    @Test("pinnedAt 키가 없는 기존 파일은 미고정 항목으로 읽힘")
+    func test기존파일은_미고정으로읽힘() throws {
+        let fixture = makeFixture(name: "legacy")
+        let legacy: [[String: Any]] = [["text": "old", "createdAt": Date(timeIntervalSince1970: 1)]]
+        let data = try PropertyListSerialization.data(fromPropertyList: legacy, format: .binary, options: 0)
+        try data.write(to: fixture.url)
+
+        let items = fixture.store.load()
+
+        #expect(items.map(\.text) == ["old"])
+        #expect(items.first?.isPinned == false)
+    }
+
     @Test("손상된 파일이면 빈 배열을 반환하고 crash하지 않음")
     func test손상된파일이면_빈배열() throws {
         let fixture = makeFixture(name: "corrupt")

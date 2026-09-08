@@ -2421,6 +2421,11 @@ extension BaseKeyboardViewController: ClipboardHistoryPanelDelegate {
         clipboardHistoryStore?.removeAll()
         reloadClipboardPanel()
     }
+
+    final func clipboardPanel(_ panel: ClipboardHistoryPanelView, didTogglePinAt index: Int) {
+        clipboardHistoryStore?.togglePin(at: index)
+        reloadClipboardPanel()
+    }
 }
 
 private extension BaseKeyboardViewController {

@@ -52,6 +52,12 @@ final class ClipboardHistoryStore {
         save(items)
     }
 
+    /// 지정한 인덱스 항목의 고정을 토글한다. 범위 밖이거나 고정 한도에 걸리면 아무것도 하지 않는다
+    func togglePin(at index: Int, now: Date = Date()) {
+        guard let items = ClipboardHistoryPolicy.togglingPin(at: index, in: load(), now: now) else { return }
+        save(items)
+    }
+
     /// 지정한 인덱스의 항목을 삭제한다. 범위 밖 인덱스는 무시한다
     func remove(at indices: [Int]) {
         let removing = Set(indices)

@@ -11,6 +11,26 @@
         }
       }
     },
+    "고정" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pin"
+          }
+        }
+      }
+    },
+    "고정 해제" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unpin"
+          }
+        }
+      }
+    },
     "닫기" : {
       "localizations" : {
         "en" : {

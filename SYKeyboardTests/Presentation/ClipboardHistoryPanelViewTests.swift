@@ -80,6 +80,38 @@ struct ClipboardHistoryPanelViewTests {
         #expect(panel.tableView.isEditing == false)
     }
 
+    @Test("leading swipe는 고정 여부와 무관하게 고정 토글 액션 하나를 제공")
+    func testLeadingSwipe는_고정토글액션제공() {
+        let panel = ClipboardHistoryPanelView(frame: CGRect(x: 0, y: 0, width: 320, height: 240))
+        panel.configure(state: .items([
+            ClipboardHistoryItem(text: "p", createdAt: Date(), pinnedAt: Date()),
+            ClipboardHistoryItem(text: "a", createdAt: Date())
+        ]))
+        panel.layoutIfNeeded()
+
+        let pinnedActions = panel.tableView(panel.tableView, leadingSwipeActionsConfigurationForRowAt: IndexPath(row: 0, section: 0))
+        let unpinnedActions = panel.tableView(panel.tableView, leadingSwipeActionsConfigurationForRowAt: IndexPath(row: 1, section: 0))
+
+        #expect(pinnedActions?.actions.count == 1)
+        #expect(unpinnedActions?.actions.count == 1)
+    }
+
+    @Test("고정 한도가 차면 미고정 행에는 leading swipe가 없고 고정 행에는 있음")
+    func test고정한도차면_미고정행은_leadingSwipe없음() {
+        let panel = ClipboardHistoryPanelView(frame: CGRect(x: 0, y: 0, width: 320, height: 240))
+        let pinned = (0..<ClipboardHistoryPolicy.maxPinnedCount).map {
+            ClipboardHistoryItem(text: "p\($0)", createdAt: Date(), pinnedAt: Date(timeIntervalSince1970: TimeInterval($0)))
+        }
+        panel.configure(state: .items(pinned + [ClipboardHistoryItem(text: "a", createdAt: Date())]))
+        panel.layoutIfNeeded()
+
+        let pinnedActions = panel.tableView(panel.tableView, leadingSwipeActionsConfigurationForRowAt: IndexPath(row: 0, section: 0))
+        let unpinnedActions = panel.tableView(panel.tableView, leadingSwipeActionsConfigurationForRowAt: IndexPath(row: pinned.count, section: 0))
+
+        #expect(pinnedActions?.actions.count == 1)
+        #expect(unpinnedActions == nil)
+    }
+
     @Test("resetPresentation은 편집 모드를 해제")
     func testResetPresentation은_편집모드해제() {
         let (panel, _) = makePanel(texts: ["a"])
@@ -107,6 +139,7 @@ private final class ClipboardHistoryPanelDelegateSpy: ClipboardHistoryPanelDeleg
     private(set) var selectedIndices: [Int] = []
     private(set) var deletedIndices: [[Int]] = []
     private(set) var deleteAllCount = 0
+    private(set) var toggledPinIndices: [Int] = []
 
     func clipboardPanel(_ panel: ClipboardHistoryPanelView, didSelectItemAt index: Int) {
         selectedIndices.append(index)
@@ -118,5 +151,9 @@ private final class ClipboardHistoryPanelDelegateSpy: ClipboardHistoryPanelDeleg
 
     func clipboardPanelDidDeleteAll(_ panel: ClipboardHistoryPanelView) {
         deleteAllCount += 1
+    }
+
+    func clipboardPanel(_ panel: ClipboardHistoryPanelView, didTogglePinAt index: Int) {
+        toggledPinIndices.append(index)
     }
 }
