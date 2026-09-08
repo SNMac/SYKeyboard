@@ -139,6 +139,7 @@ var isClipboardPanelVisible = false
 4. `UIPasteboard.general.hasStrings`가 true이고 pasteboard가
    `org.nspasteboard.ConcealedType` 타입을 포함하지 않을 때만(비밀번호 관리자의
    비밀 항목 제외) `.string`을 읽고 `clipboardHistoryStore?.record(text)`를 호출한다.
+   iOS 기본 '암호' 앱은 이 타입 없이 `public.utf8-plain-text`만 넣는 것을 실기기 로그로 확인했다(만료 시간은 공개 API로 읽을 수 없다). 따라서 '암호' 앱에서 복사한 비밀번호는 제외하지 못하며, 이 제한을 앱 설정 caption과 PR에 명시한다.
 
 ### 호출 시점
 
