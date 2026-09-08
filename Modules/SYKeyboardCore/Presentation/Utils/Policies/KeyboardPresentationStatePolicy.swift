@@ -64,4 +64,12 @@ enum KeyboardPresentationStatePolicy {
     ) -> Bool {
         return isPredictiveTextEnabled && isUndoRedoEnabled
     }
+
+    /// suggestion bar가 보일 때는 자동완성이 켜져 있으므로 클립보드 설정만 추가로 본다
+    static func shouldShowClipboardControl(
+        isSuggestionBarHidden: Bool,
+        isClipboardHistoryEnabled: Bool
+    ) -> Bool {
+        return !isSuggestionBarHidden && isClipboardHistoryEnabled
+    }
 }

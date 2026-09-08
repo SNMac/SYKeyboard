@@ -589,7 +589,7 @@ git commit -m "feat: #54 - App Group plist 기반 클립보드 기록 저장소 
 **Interfaces:**
 - Produces: `KeyboardPresentationStatePolicy.shouldShowClipboardControl(isSuggestionBarHidden: Bool, isClipboardHistoryEnabled: Bool) -> Bool`
 
-- [ ] **Step 1: 테스트 추가**
+- [x] **Step 1: 테스트 추가**
 
 `KeyboardPresentationStatePolicyTests.swift`의 `testUndoRedo기능활성화조건` 뒤에:
 
@@ -623,12 +623,12 @@ git commit -m "feat: #54 - App Group plist 기반 클립보드 기록 저장소 
     }
 ```
 
-- [ ] **Step 2: 실패 확인**
+- [x] **Step 2: 실패 확인**
 
 Run: `-only-testing:SYKeyboardTests/KeyboardPresentationStatePolicyTests`
 Expected: 컴파일 실패 `has no member 'shouldShowClipboardControl'`
 
-- [ ] **Step 3: 정책 추가**
+- [x] **Step 3: 정책 추가**
 
 `KeyboardPresentationStatePolicy.swift`의 `isUndoRedoFeatureAvailable` 함수 뒤(enum 닫는 `}` 앞)에:
 
@@ -642,12 +642,12 @@ Expected: 컴파일 실패 `has no member 'shouldShowClipboardControl'`
     }
 ```
 
-- [ ] **Step 4: 통과 확인**
+- [x] **Step 4: 통과 확인**
 
 Run: 같은 명령
 Expected: suite 전체 PASS
 
-- [ ] **Step 5: 커밋**
+- [x] **Step 5: 커밋**
 
 ```sh
 git add Modules/SYKeyboardCore/Presentation/Utils/Policies/KeyboardPresentationStatePolicy.swift \
