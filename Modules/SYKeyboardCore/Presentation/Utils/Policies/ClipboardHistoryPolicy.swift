@@ -56,6 +56,24 @@ public enum ClipboardHistoryPolicy {
         return sorted(pinned + unpinned.prefix(maxItemCount))
     }
 
+    /// 사용자가 직접 입력한 `text`를 고정 항목으로 맨 앞에 넣은 결과. 저장하지 않을 텍스트면 `nil`
+    ///
+    /// - 빈 문자열, 공백·개행만 있는 문자열, `maxTextLength` 초과, 고정 한도 초과는 `nil`
+    /// - 같은 텍스트가 이미 고정이면 `nil`, 미고정이면 그 항목을 제거하고 고정으로 대체한다
+    public static func insertingPinned(
+        _ text: String,
+        into items: [ClipboardHistoryItem],
+        now: Date
+    ) -> [ClipboardHistoryItem]? {
+        guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+              text.count <= maxTextLength,
+              canPin(items),
+              !items.contains(where: { $0.isPinned && $0.text == text }) else { return nil }
+
+        let remaining = items.filter { $0.text != text }
+        return sorted(remaining + [ClipboardHistoryItem(text: text, createdAt: now, pinnedAt: now)])
+    }
+
     /// 고정 한도에 여유가 있는지
     public static func canPin(_ items: [ClipboardHistoryItem]) -> Bool {
         return items.filter(\.isPinned).count < maxPinnedCount

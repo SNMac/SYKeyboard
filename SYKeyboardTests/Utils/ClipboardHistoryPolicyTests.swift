@@ -130,6 +130,38 @@ struct ClipboardHistoryPolicyTests {
         #expect(ClipboardHistoryPolicy.togglingPin(at: 0, in: items, now: now)?.filter(\.isPinned).count == ClipboardHistoryPolicy.maxPinnedCount - 1)
     }
 
+    @Test("직접 추가한 텍스트는 고정 항목으로 맨 앞에 들어감")
+    func test직접추가는_고정항목으로_맨앞() {
+        let items = [item("p", createdAt: 0, pinnedAt: 100), item("a", createdAt: 1)]
+
+        let result = ClipboardHistoryPolicy.insertingPinned("new", into: items, now: Date(timeIntervalSince1970: 200))
+
+        #expect(result?.map(\.text) == ["new", "p", "a"])
+        #expect(result?[0].pinnedAt == Date(timeIntervalSince1970: 200))
+        #expect(result?[0].createdAt == Date(timeIntervalSince1970: 200))
+    }
+
+    @Test("직접 추가한 텍스트가 미고정에 있으면 그 항목을 고정으로 대체")
+    func test직접추가가_미고정중복이면_고정으로대체() {
+        let items = [item("a", createdAt: 2), item("b", createdAt: 1)]
+
+        let result = ClipboardHistoryPolicy.insertingPinned("b", into: items, now: Date(timeIntervalSince1970: 3))
+
+        #expect(result?.map(\.text) == ["b", "a"])
+        #expect(result?.map(\.isPinned) == [true, false])
+    }
+
+    @Test("직접 추가는 빈 텍스트·이미 고정된 텍스트·고정 한도 초과면 nil")
+    func test직접추가_거부조건() {
+        let pinnedFull = (0..<ClipboardHistoryPolicy.maxPinnedCount).map {
+            item("p\($0)", createdAt: 0, pinnedAt: TimeInterval(100 + $0))
+        }
+
+        #expect(ClipboardHistoryPolicy.insertingPinned(" \n", into: [], now: now) == nil)
+        #expect(ClipboardHistoryPolicy.insertingPinned("p0", into: [item("p0", createdAt: 0, pinnedAt: 1)], now: now) == nil)
+        #expect(ClipboardHistoryPolicy.insertingPinned("new", into: pinnedFull, now: now) == nil)
+    }
+
     @Test("범위 밖 인덱스의 고정 토글은 nil")
     func test범위밖인덱스_고정토글은_nil() {
         #expect(ClipboardHistoryPolicy.togglingPin(at: 5, in: [item("a")], now: now) == nil)

@@ -52,6 +52,12 @@ public final class ClipboardHistoryStore {
         save(items)
     }
 
+    /// 사용자가 직접 입력한 `text`를 고정 항목으로 저장한다. 정책상 저장 대상이 아니면 아무것도 하지 않는다
+    public func recordPinned(_ text: String, now: Date = Date()) {
+        guard let items = ClipboardHistoryPolicy.insertingPinned(text, into: load(), now: now) else { return }
+        save(items)
+    }
+
     /// 지정한 인덱스 항목의 고정을 토글한다. 범위 밖이거나 고정 한도에 걸리면 아무것도 하지 않는다
     public func togglePin(at index: Int, now: Date = Date()) {
         guard let items = ClipboardHistoryPolicy.togglingPin(at: index, in: load(), now: now) else { return }

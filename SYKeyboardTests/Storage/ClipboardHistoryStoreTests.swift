@@ -75,6 +75,18 @@ struct ClipboardHistoryStoreTests {
         #expect(fixture.store.load().allSatisfy { !$0.isPinned })
     }
 
+    @Test("직접 추가한 항목은 고정 상태로 파일에 저장")
+    func test직접추가는_고정상태로저장() {
+        let fixture = makeFixture(name: "record-pinned")
+        fixture.store.record("a", now: Date(timeIntervalSince1970: 1))
+
+        fixture.store.recordPinned("manual", now: Date(timeIntervalSince1970: 2))
+
+        let items = fixture.store.load()
+        #expect(items.map(\.text) == ["manual", "a"])
+        #expect(items[0].isPinned)
+    }
+
     @Test("pinnedAt 키가 없는 기존 파일은 미고정 항목으로 읽힘")
     func test기존파일은_미고정으로읽힘() throws {
         let fixture = makeFixture(name: "legacy")
