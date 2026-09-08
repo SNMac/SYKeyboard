@@ -1567,7 +1567,7 @@ Expected: 출력 없음. `.xcscheme`가 보이면 `RemotePath`만 바뀐 경우 
 - 키 입력마다 후보 바가 lexicon 결과 → TextChecker 결과로 두 번 갱신되므로 reflow가 눈에 띄는지 관찰한다.
 - 판단: Task 5 revert 전 상태(`git stash` 없이 `git checkout <Task 4 커밋>`으로 빌드)에서 `TextCheckerSuggestions` p95 ≥ 8 ms(또는 p50 ≥ 3 ms)이면 Task 5 유지, 한 자릿수 ms이면 `git revert <Task 5 커밋>`. 측정값을 이슈에 남긴다.
 
-**Step 4 진행 상태**: 코멘트 초안을 `.superpowers/sdd/2026-09-02-autocomplete-performance-improvements/issue-123-measurement-comment.md`에 작성했다. 사용자 확인 후에만 이슈 #123에 게시하므로, 실기기 측정과 게시가 끝나기 전까지 이 Step은 미완료로 남긴다.
+**Step 4 진행 상태**: 실기기 재측정은 2026-09-08에 완료했다(아래 "적용 후 측정" 참고). 판단은 Task 5 유지. 이슈 #123 코멘트는 사용자 확인 후에만 게시하므로 게시 전까지 이 Step은 미완료로 남긴다.
 
 ---
 
@@ -1626,6 +1626,44 @@ xcrun xctrace export --input baseline-iPhone15ProMax-iOS27.trace \
 - `completions`와 `guesses` 비용이 거의 같아 Task 4(1-a)의 절감은 최대 절반이다. 적용 후 `TextCheckerGuesses` count가 `TextCheckerCompletions` count보다 얼마나 줄었는지로 효과를 확인한다.
 - Task 1~3은 이 사용자의 lexicon·unigram이 작아 기준선에서는 비용이 미미하다. 비용 상한을 없애는 목적이며, Task 3은 리턴 연타 10회의 중복 `NGramSaveEncode`(각 ~10 ms, 백그라운드)를 없애는 효과가 실측으로 확인된다.
 - Task 6 Step 4의 "Task 4 상태에서 재측정 후 1-b 판단"은 기준선이 이미 기준을 넘었으므로 생략 가능하다. Task 5 적용 후 같은 스크립트로 재측정해 전후 비교만 남긴다.
+
+## 적용 후 측정 (2026-09-08)
+
+- 기기: iPhone 15 Pro Max, iOS 27.0, 실기기. 커밋 `047c45d9`(Task 1~5와 수정 웨이브 포함). 프로세스 `HangeulEnglishKeyboard`. 기준선과 같은 입력 앱.
+- 입력 스크립트: 기준선 스크립트(애국가 1절 → 알파벳 a~z 3~4회 → 개행 10회 → 스페이스 10회 → 스페이스 길게 10초)에 **빠른 연타 a~z 1회**와 **후보 탭 확정 구간 2회**(1회차는 단어마다 개행, 2회차는 띄어쓰기)를 추가. 녹화 158.5초, 키보드 signpost는 103.1~153.0초 구간에만 있다(한글 구간은 signpost를 내지 않는다. 기준선도 동일).
+- 사용자 관찰: 후보 바 깜빡임·reflow, 키 애니메이션 끊김, 연타 시 후보 지연, 후보 탭 직후 이전 단어 후보 잔상 모두 "신경 쓰이는 것 없음".
+- Instruments 경고: 녹화 종료 시점(02:39.46)에 `Data stream: 63 log/signpost messages lost due to high rates`. 마지막 키보드 signpost(02:33.0)보다 뒤이고 녹화 길이(158.45초)를 넘긴 시점이라 비교 구간에는 영향이 없다고 판단했다. 다음 측정부터는 os_signpost 계측기의 대상을 `HangeulEnglishKeyboard` 프로세스로 한정한다.
+- trace: `~/Documents/after-iPhone15ProMax-iOS27.trace`. 추출·집계 명령(기준선과 동일 파서):
+
+```sh
+xcrun xctrace export --input after-iPhone15ProMax-iOS27.trace \
+  --xpath '/trace-toc/run[@number="1"]/data/table[@schema="OSSignpostIntervals"]' \
+  --output after-intervals.xml
+python3 signpost_stats.py baseline-intervals.xml after-intervals.xml
+```
+
+기준선 열은 같은 파서로 다시 계산한 값이라 위 기준선 표와 p95가 소수점에서 다를 수 있다(보간 방식 차이).
+
+| 구간 | 기준선 count / p50 / p95 / max | 적용 후 count / p50 / p95 / max | 적용 후 메인 스레드 호출 |
+| --- | --- | --- | --- |
+| `TextCheckerSuggestions` | 69 / 11.93 / 17.08 / 21.92 | 75 / 7.67 / 15.32 / 22.89 | **0 / 75** (전부 전용 큐) |
+| `TextCheckerCompletions` | 69 / 6.43 / 10.93 / 12.64 | 75 / 7.11 / 10.58 / 14.94 | 0 |
+| `TextCheckerGuesses` | 69 / 5.98 / 10.90 / 12.35 | **7** / 11.37 / 15.43 / 16.60 | 0 |
+| `NGramSaveEncode` | 24 / 9.72 / 11.93 / 12.03 | **9** / 9.60 / 12.56 / 13.73 | 0 |
+| `LexiconSuggestions` | 69 / 0.08 / 0.11 / 0.21 | 75 / 0.01 / 0.03 / 0.04 | 75 |
+| `TextReplacementMatch` | 82 / 0.04 / 0.08 / 0.19 | 179 / 0.00 / 0.01 / 0.02 | 179 |
+| `RankedUnigramCandidates` | 57 / 0.04 / 0.06 / 0.08 | 35 / 0.02 / 0.03 / 0.13 | 35 |
+| `NGramRecord` | 16 / 0.01 / 0.02 / 0.02 | 36 / 0.01 / 0.02 / 0.03 | 36 |
+| `NGramSaveSnapshot` | 24 / 0.00 / 0.01 / 0.01 | 9 / 0.00 / 0.00 / 0.01 | 9 |
+
+판단:
+
+- **1-b(Task 5) 유지.** 키 입력당 메인 스레드 점유가 12~22 ms에서 0.05 ms 미만(lexicon + 텍스트 대치 + unigram 합)으로 내려갔고 사용자가 시각적 부작용을 관찰하지 못했다. TextChecker 자체 비용(p95 15 ms)은 그대로지만 전용 큐에서 소비된다.
+- 1-a(Task 4) 동작 확인: `TextCheckerGuesses` 호출이 69회에서 7회로 줄었다. `completions`가 슬롯을 채우지 못한 7회만 `guesses`까지 조회했고, 그 결과 `TextCheckerSuggestions` p50이 11.93 ms에서 7.67 ms로 줄었다.
+- Task 2 캐시 동작 확인: 기준선에서 스페이스 연타·길게 누르기 구간(90~110초)에 `RankedUnigramCandidates`가 32회 찍혔으나 적용 후에는 같은 구간의 연속 호출이 사라져 총 57회 → 35회.
+- Task 3 dirty flag 동작 확인: `NGramSaveEncode` 24회 → 9회. 개행 연타처럼 변경이 없는 저장이 생략됐다.
+- `TextReplacementMatch` 호출이 82회 → 179회로 늘어난 것은 1-b가 키 입력당 즉시 병합과 큐 결과 병합의 두 번 호출하기 때문이며 호출당 0.00~0.02 ms라 비용은 무시할 수준이다.
+- 이 trace로 구간 D(빠른 연타)의 세대 검사 발동 횟수는 분리해 셀 수 없다. 낡은 요청 건너뛰기는 자동 테스트(`SuggestionControllerAsyncTextCheckerTests`)로만 검증된 상태다.
 
 ## Self-Review 기록
 
