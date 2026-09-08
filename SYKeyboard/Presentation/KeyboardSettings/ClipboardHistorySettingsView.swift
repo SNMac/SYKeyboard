@@ -180,7 +180,10 @@ private extension ClipboardHistorySettingsView {
 
 private extension ClipboardHistorySettingsView {
     func reload() {
-        items = store?.load() ?? []
+        // SwiftUI가 id(텍스트) 차이로 행 삽입·삭제·이동을 애니메이션한다
+        withAnimation {
+            items = store?.load() ?? []
+        }
         selection = selection.intersection(items.map(\.text))
         if items.isEmpty { editMode = .inactive }
     }
