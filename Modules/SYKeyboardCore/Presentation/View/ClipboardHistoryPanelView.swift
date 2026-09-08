@@ -501,6 +501,8 @@ private final class ClipboardHistoryDetailView: UIView {
     var onPaste: (() -> Void)?
     var onTogglePin: (() -> Void)?
 
+    private static let pasteButtonBottomSpacing: CGFloat = 8
+
     // MARK: - UI Components
 
     private let blurView = UIVisualEffectView(effect: UIBlurEffect(style: .systemThickMaterial))
@@ -570,6 +572,16 @@ private final class ClipboardHistoryDetailView: UIView {
         fatalError("init(coder:) has not been implemented")
     }
 
+    // MARK: - Lifecycle
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        // 텍스트가 붙여넣기 버튼 뒤로 이어지되, 끝까지 스크롤하면 버튼 위로 올라오도록 버튼 높이만큼 여백을 둔다
+        let bottomInset = pasteButton.bounds.height + ClipboardHistoryDetailView.pasteButtonBottomSpacing * 2
+        textView.contentInset.bottom = bottomInset
+        textView.verticalScrollIndicatorInsets.bottom = bottomInset
+    }
+
     // MARK: - Internal Methods
 
     /// 고정 한도가 찼으면 미고정 항목의 고정 버튼을 숨긴다. 스와이프 액션과 같은 규칙이다
@@ -609,10 +621,13 @@ private extension ClipboardHistoryDetailView {
             textView.topAnchor.constraint(equalTo: headerStackView.bottomAnchor),
             textView.leadingAnchor.constraint(equalTo: self.leadingAnchor, constant: 4),
             textView.trailingAnchor.constraint(equalTo: self.trailingAnchor, constant: -4),
-            textView.bottomAnchor.constraint(equalTo: pasteButton.topAnchor, constant: -4),
+            textView.bottomAnchor.constraint(equalTo: self.bottomAnchor),
 
             pasteButton.centerXAnchor.constraint(equalTo: self.centerXAnchor),
-            pasteButton.bottomAnchor.constraint(equalTo: self.bottomAnchor, constant: -8)
+            pasteButton.bottomAnchor.constraint(
+                equalTo: self.bottomAnchor,
+                constant: -ClipboardHistoryDetailView.pasteButtonBottomSpacing
+            )
         ])
     }
 }
