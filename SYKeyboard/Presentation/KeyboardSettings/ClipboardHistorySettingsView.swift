@@ -16,7 +16,8 @@ struct ClipboardHistorySettingsView: View {
 
     @Environment(\.scenePhase) private var scenePhase
 
-    private let store = ClipboardHistoryStore()
+    /// body가 다시 계산될 때마다 App Group 컨테이너를 다시 찾지 않도록 한 번만 만든다
+    @State private var store = ClipboardHistoryStore()
 
     /// 저장 순서 그대로(고정 최신순 → 미고정 최신순). 텍스트는 정책상 중복이 없어 id로 쓴다
     @State private var items: [ClipboardHistoryItem] = []
@@ -43,7 +44,10 @@ struct ClipboardHistorySettingsView: View {
             .navigationTitle("클립보드 기록")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar { toolbarContent }
-            .sheet(isPresented: $isAddSheetPresented) { addSheet }
+            // EditButton과 List가 같은 편집 상태를 보도록 toolbar 바깥에 둔다
+            .environment(\.editMode, $editMode)
+            // 시트가 떠 있는 동안 키보드가 기록을 바꿀 수 있으므로 닫힐 때 다시 읽는다
+            .sheet(isPresented: $isAddSheetPresented, onDismiss: reload) { addSheet }
             .onAppear(perform: reload)
             .onChange(of: scenePhase) { phase in
                 if phase == .active { reload() }
@@ -86,7 +90,6 @@ private extension ClipboardHistorySettingsView {
                 }
             }
         }
-        .environment(\.editMode, $editMode)
     }
 
     func row(for item: ClipboardHistoryItem) -> some View {
@@ -166,13 +169,16 @@ private extension ClipboardHistorySettingsView {
         if items.isEmpty { editMode = .inactive }
     }
 
+    /// 인덱스는 파일 순서 기준이므로 조작 직전에 다시 읽어 키보드가 바꾼 내용과 어긋나지 않게 한다
     func togglePin(_ item: ClipboardHistoryItem) {
+        reload()
         guard let index = items.firstIndex(where: { $0.text == item.text }) else { return }
         store?.togglePin(at: index)
         reload()
     }
 
     func remove(_ removing: [ClipboardHistoryItem]) {
+        reload()
         let texts = Set(removing.map(\.text))
         let indices = items.indices.filter { texts.contains(items[$0].text) }
         guard !indices.isEmpty else { return }

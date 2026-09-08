@@ -86,6 +86,7 @@ final class ClipboardHistoryPanelView: UIView {
         // 선택 개수가 바뀌어도 버튼 폭이 흔들리지 않도록 숫자를 고정폭으로 표시한다
         button.configuration?.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { attributes in
             var attributes = attributes
+            // 제목이 갱신될 때마다 현재 Dynamic Type 크기를 읽는다
             attributes.font = UIFont.monospacedDigitSystemFont(
                 ofSize: UIFont.preferredFont(forTextStyle: .body).pointSize,
                 weight: .regular
@@ -318,7 +319,11 @@ private extension ClipboardHistoryPanelView {
     func showDetail(at index: Int) {
         guard items.indices.contains(index) else { return }
         detailIndex = index
-        detailView.update(text: items[index].text, isPinned: items[index].isPinned)
+        detailView.update(
+            text: items[index].text,
+            isPinned: items[index].isPinned,
+            canPin: ClipboardHistoryPolicy.canPin(items)
+        )
         setDetailHidden(false, animated: true)
     }
 
@@ -526,9 +531,11 @@ private final class ClipboardHistoryDetailView: UIView {
 
     // MARK: - Internal Methods
 
-    func update(text: String, isPinned: Bool) {
+    /// 고정 한도가 찼으면 미고정 항목의 고정 버튼을 숨긴다. 스와이프 액션과 같은 규칙이다
+    func update(text: String, isPinned: Bool, canPin: Bool) {
         textView.text = text
         textView.setContentOffset(.zero, animated: false)
+        pinButton.isHidden = !isPinned && !canPin
         pinButton.configuration?.title = isPinned
         ? String(localized: "고정 해제", bundle: .sykeyboardCore)
         : String(localized: "고정", bundle: .sykeyboardCore)
