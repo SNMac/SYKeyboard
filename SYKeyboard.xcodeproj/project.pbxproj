@@ -185,13 +185,13 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Common/Errors/KeyboardError.swift,
+				Common/Resources/Localizable.xcstrings,
 				Common/View/RequestFullAccessOverlayView.swift,
 				EnglishKeyboard/Presentation/ViewController/EnglishKeyboardViewController.swift,
 				"EnglishKeyboard/Resources/Configs/DebugConfig-EnglishKeyboard.xcconfig",
 				"EnglishKeyboard/Resources/Configs/ReleaseConfig-EnglishKeyboard.xcconfig",
 				EnglishKeyboard/Resources/Info.plist,
 				EnglishKeyboard/Resources/InfoPlist.xcstrings,
-				EnglishKeyboard/Resources/Localizable.xcstrings,
 				HangeulEnglishKeyboard/Presentation/HangeulEnglishKeyboardViewController.swift,
 				"HangeulEnglishKeyboard/Resources/Configs/DebugConfig-HangeulEnglishKeyboard.xcconfig",
 				"HangeulEnglishKeyboard/Resources/Configs/ReleaseConfig-HangeulEnglishKeyboard.xcconfig",
@@ -202,7 +202,6 @@
 				"HangeulKeyboard/Resources/Configs/ReleaseConfig-HangeulKeyboard.xcconfig",
 				HangeulKeyboard/Resources/Info.plist,
 				HangeulKeyboard/Resources/InfoPlist.xcstrings,
-				HangeulKeyboard/Resources/Localizable.xcstrings,
 			);
 			target = 5B7B3F552C569B7800F7C093 /* SYKeyboard */;
 		};
@@ -210,10 +209,10 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Common/Errors/KeyboardError.swift,
+				Common/Resources/Localizable.xcstrings,
 				Common/View/RequestFullAccessOverlayView.swift,
 				HangeulKeyboard/Presentation/ViewController/HangeulKeyboardViewController.swift,
 				HangeulKeyboard/Resources/InfoPlist.xcstrings,
-				HangeulKeyboard/Resources/Localizable.xcstrings,
 			);
 			target = 5B7B3F6A2C569B8200F7C093 /* HangeulKeyboard */;
 		};
@@ -221,10 +220,10 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Common/Errors/KeyboardError.swift,
+				Common/Resources/Localizable.xcstrings,
 				Common/View/RequestFullAccessOverlayView.swift,
 				EnglishKeyboard/Presentation/ViewController/EnglishKeyboardViewController.swift,
 				EnglishKeyboard/Resources/InfoPlist.xcstrings,
-				EnglishKeyboard/Resources/Localizable.xcstrings,
 			);
 			target = 5B82846C2E6EEE04006425C7 /* EnglishKeyboard */;
 		};
@@ -241,6 +240,7 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Common/Errors/KeyboardError.swift,
+				Common/Resources/Localizable.xcstrings,
 				Common/View/RequestFullAccessOverlayView.swift,
 				HangeulEnglishKeyboard/Presentation/HangeulEnglishKeyboardViewController.swift,
 				HangeulEnglishKeyboard/Resources/InfoPlist.xcstrings,
