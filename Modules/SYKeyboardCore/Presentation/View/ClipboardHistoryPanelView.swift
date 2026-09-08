@@ -351,22 +351,32 @@ private extension ClipboardHistoryPanelView {
         }
     }
 
-    /// 텍스트가 유일하므로 텍스트 차이로 삭제·삽입 행을 구해 애니메이션한다. 고정 토글은 삭제 후 삽입으로 보인다
+    /// 텍스트가 유일하므로 텍스트 차이로 삭제·삽입·이동 행을 구해 애니메이션한다. 고정 토글은 행 이동으로 보인다
     func applyAnimatedUpdate(from previousItems: [ClipboardHistoryItem]) {
-        let difference = items.map(\.text).difference(from: previousItems.map(\.text))
-        let removals = difference.removals.compactMap { change -> IndexPath? in
-            guard case .remove(let offset, _, _) = change else { return nil }
-            return IndexPath(row: offset, section: 0)
-        }
-        let insertions = difference.insertions.compactMap { change -> IndexPath? in
-            guard case .insert(let offset, _, _) = change else { return nil }
-            return IndexPath(row: offset, section: 0)
+        let difference = items.map(\.text).difference(from: previousItems.map(\.text)).inferringMoves()
+        var removals: [IndexPath] = []
+        var insertions: [IndexPath] = []
+        var moves: [(from: IndexPath, to: IndexPath)] = []
+        for change in difference {
+            switch change {
+            case .remove(let offset, _, let associatedWith):
+                if associatedWith == nil { removals.append(IndexPath(row: offset, section: 0)) }
+            case .insert(let offset, _, let associatedWith):
+                if let associatedWith {
+                    moves.append((IndexPath(row: associatedWith, section: 0), IndexPath(row: offset, section: 0)))
+                } else {
+                    insertions.append(IndexPath(row: offset, section: 0))
+                }
+            }
         }
         tableView.performBatchUpdates({
             tableView.deleteRows(at: removals, with: .automatic)
             tableView.insertRows(at: insertions, with: .automatic)
+            moves.forEach { tableView.moveRow(at: $0.from, to: $0.to) }
         }, completion: { [weak self] _ in
             guard let self else { return }
+            // 이동한 행은 셀이 재사용되므로 고정 아이콘을 다시 그린다
+            self.tableView.reloadRows(at: moves.map(\.to), with: .none)
             self.messageLabel.isHidden = !self.items.isEmpty
             self.tableView.isHidden = self.items.isEmpty
         })
