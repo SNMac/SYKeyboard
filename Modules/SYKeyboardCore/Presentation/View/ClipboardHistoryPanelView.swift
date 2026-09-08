@@ -46,6 +46,10 @@ final class ClipboardHistoryPanelView: UIView {
     private var detailIndex: Int?
 
     private static let cellIdentifier = "ClipboardHistoryCell"
+    /// 스와이프 액션은 색 배경 위에 뜨므로 채운 변형을 쓴다
+    private static let pinActionSymbolName = "pin.fill"
+    private static let unpinActionSymbolName = "pin.slash.fill"
+    private static let pinnedAccessorySymbolName = "pin.circle.fill"
     private static let headerHeight: CGFloat = 36
 
     // MARK: - UI Components
@@ -336,7 +340,7 @@ private extension ClipboardHistoryPanelView {
     }
 
     func makePinAccessoryView() -> UIView {
-        let imageView = UIImageView(image: UIImage(systemName: "pin.fill"))
+        let imageView = UIImageView(image: UIImage(systemName: ClipboardHistoryPanelView.pinnedAccessorySymbolName))
         imageView.tintColor = .secondaryLabel
         imageView.contentMode = .scaleAspectFit
         imageView.frame = CGRect(x: 0, y: 0, width: 16, height: 16)
@@ -412,6 +416,11 @@ extension ClipboardHistoryPanelView: UITableViewDataSource, UITableViewDelegate 
             completion(false)
         }
         pinAction.backgroundColor = .systemOrange
+        pinAction.image = UIImage(
+            systemName: isPinned
+            ? ClipboardHistoryPanelView.unpinActionSymbolName
+            : ClipboardHistoryPanelView.pinActionSymbolName
+        )
 
         return UISwipeActionsConfiguration(actions: [pinAction])
     }
