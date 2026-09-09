@@ -318,7 +318,7 @@ private extension ClipboardHistoryPanelView {
 
         let selectedCount = tableView.indexPathsForSelectedRows?.count ?? 0
         selectAllButton.configuration?.title = isAllSelected
-        ? String(localized: "선택 해제", bundle: SYKBDAssets.bundle)
+        ? String(localized: "전체 선택 해제", bundle: SYKBDAssets.bundle)
         : String(localized: "전체 선택", bundle: SYKBDAssets.bundle)
         deleteButton.configuration?.title = String(localized: "\(selectedCount)개 삭제", bundle: SYKBDAssets.bundle)
         deleteButton.isEnabled = selectedCount > 0
