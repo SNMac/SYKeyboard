@@ -237,10 +237,10 @@ func resetPresentation()   // 편집 모드 해제, 상세 뷰 닫기, 스크롤
   아이콘, 제목 "삭제"는 접근성용) → `delegate.clipboardPanel(_:didDeleteItemsAt: [index])`.
 - 평소 모드 행 길게 누르기(`UILongPressGestureRecognizer`, `minimumPressDuration` 기본값)
   → 상세 뷰 표시. 편집 모드에서는 무시한다.
-- 상세 뷰 헤더의 "브라우저에서 열기"(`safari` 아이콘)는 항목 전체가 http/https URL 하나일 때만
-  보인다(`ClipboardHistoryPolicy.openableURL(in:)`). 누르면
+- 항목 전체가 http/https URL 하나이면(`ClipboardHistoryPolicy.openableURL(in:)`) 상세 뷰 본문을
+  일반 링크처럼 파란 밑줄로 그리고, 본문을 탭하면
   `delegate.clipboardPanel(_:didRequestOpenURLAt:)` → Base가 설정 이동과 같은 responder chain
-  경로로 `UIApplication.open`을 호출한다. 브라우저가 뜨면 호스트 앱을 떠나므로 키보드는
+  경로로 `UIApplication.open`을 호출한다. 별도 버튼은 없다. 브라우저가 뜨면 호스트 앱을 떠나므로 키보드는
   시스템이 내린다. 이 경로는 Apple 문서에 없는 동작이며 설정 이동 버튼과 같은 수준으로 취급한다.
 - 상세 뷰 "붙여넣기" → 먼저 `didTogglePin`과 같은 경로의 `didRequestCopyAt`으로 항목을 시스템
   pasteboard에 복사한 뒤(Full Access 필요, `changeCount`를 갱신해 재기록하지 않음) 행 탭과 같은
@@ -359,8 +359,8 @@ Assets 카탈로그의 항목은 `extractionState`를 `manual`로 둔다. 패키
   확인받고, 미고정만이면 바로 지운다. 키보드 패널의 확인 방식은 별도로 정한다.
   상단 툴바는 `+`(추가) 오른쪽에 "편집"/"완료"를 두고, "완료"는 semibold다. 두 문구 중 넓은
   폭으로 고정해 전환할 때 위치가 흔들리지 않게 한다.
-- 원문 하프 시트의 툴바에는 항목 전체가 http/https URL일 때만 "브라우저에서 열기"(`safari`)를
-  복사 버튼 왼쪽에 두고 `openURL` 환경값으로 연다. 왼쪽 상단에는 `ShareLink`로 공유 버튼
+- 원문 하프 시트도 항목 전체가 http/https URL이면 본문을 `AttributedString`의 `link`로 그려
+  파란 밑줄 링크가 되고, 탭하면 SwiftUI가 `openURL`로 연다. 별도 버튼은 없다. 왼쪽 상단에는 `ShareLink`로 공유 버튼
   (`square.and.arrow.up`)을 둔다. 키보드 extension은 공유 시트를 띄울 수 없어 앱에만 둔다.
 - 복사 버튼 오른쪽의 "편집"(`pencil`)을 누르면 같은 시트가 `TextEditor`로 바뀌고 "취소"/"저장"만
   남는다. 저장은 `ClipboardHistoryPolicy.replacingText(_:with:in:)`가 허용할 때만 가능하며
