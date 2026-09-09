@@ -149,11 +149,18 @@ private extension ClipboardHistorySettingsView {
     var toolbarContent: some ToolbarContent {
         ToolbarItemGroup(placement: .navigationBarTrailing) {
             if !items.isEmpty {
-                Button(editMode.isEditing ? "완료" : "편집") {
+                Button {
                     withAnimation {
                         editMode = editMode.isEditing ? .inactive : .active
                     }
                     selection.removeAll()
+                } label: {
+                    // 두 문구의 폭이 달라 버튼 위치가 흔들리지 않도록 넓은 쪽으로 폭을 고정한다
+                    ZStack {
+                        Text("편집").hidden()
+                        Text("완료").hidden()
+                        Text(editMode.isEditing ? "완료" : "편집")
+                    }
                 }
             }
             Button {
@@ -182,6 +189,8 @@ private extension ClipboardHistorySettingsView {
                 Text("\(selection.count)개 삭제")
                     .monospacedDigit()
             }
+            // 하단 바에서는 destructive role만으로 빨간색이 되지 않는다
+            .tint(.red)
             .disabled(selection.isEmpty)
         }
     }
