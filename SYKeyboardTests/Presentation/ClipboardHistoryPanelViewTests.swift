@@ -59,6 +59,39 @@ struct ClipboardHistoryPanelViewTests {
         #expect(spy.deleteAllCount == 0)
     }
 
+    @Test("고정 항목이 섞인 삭제는 확인 전에는 요청하지 않고, 확인하면 요청")
+    func test고정포함삭제는_확인후요청() {
+        let (panel, spy) = makePanel(items: [pinned("p"), unpinned("a")])
+
+        panel.requestDelete(at: [0, 1], deleteAll: true)
+        #expect(spy.deleteAllCount == 0)
+        #expect(spy.deletedIndices.isEmpty)
+
+        panel.confirmPendingDeletion()
+        #expect(spy.deleteAllCount == 1)
+    }
+
+    @Test("고정 항목이 섞인 삭제를 취소하면 요청하지 않고 다시 확인해도 없음")
+    func test고정포함삭제_취소하면_요청없음() {
+        let (panel, spy) = makePanel(items: [pinned("p"), unpinned("a")])
+
+        panel.requestDelete(at: [0], deleteAll: false)
+        panel.cancelPendingDeletion()
+        panel.confirmPendingDeletion()
+
+        #expect(spy.deletedIndices.isEmpty)
+        #expect(spy.deleteAllCount == 0)
+    }
+
+    @Test("미고정만 삭제하면 확인 없이 바로 요청")
+    func test미고정만삭제는_바로요청() {
+        let (panel, spy) = makePanel(items: [pinned("p"), unpinned("a")])
+
+        panel.requestDelete(at: [1], deleteAll: false)
+
+        #expect(spy.deletedIndices == [[1]])
+    }
+
     @Test("선택이 없으면 삭제를 요청하지 않음")
     func test선택없으면_삭제요청없음() {
         let (panel, spy) = makePanel(texts: ["a"])
@@ -138,13 +171,25 @@ struct ClipboardHistoryPanelViewTests {
 
 @MainActor
 private func makePanel(texts: [String]) -> (ClipboardHistoryPanelView, ClipboardHistoryPanelDelegateSpy) {
+    makePanel(items: texts.map(unpinned))
+}
+
+@MainActor
+private func makePanel(items: [ClipboardHistoryItem]) -> (ClipboardHistoryPanelView, ClipboardHistoryPanelDelegateSpy) {
     let panel = ClipboardHistoryPanelView(frame: CGRect(x: 0, y: 0, width: 320, height: 240))
     let spy = ClipboardHistoryPanelDelegateSpy()
     panel.delegate = spy
-    let items = texts.map { ClipboardHistoryItem(text: $0, createdAt: Date()) }
     panel.configure(state: items.isEmpty ? .empty : .items(items))
     panel.layoutIfNeeded()
     return (panel, spy)
+}
+
+private func unpinned(_ text: String) -> ClipboardHistoryItem {
+    ClipboardHistoryItem(text: text, createdAt: Date())
+}
+
+private func pinned(_ text: String) -> ClipboardHistoryItem {
+    ClipboardHistoryItem(text: text, createdAt: Date(), pinnedAt: Date())
 }
 
 @MainActor

@@ -23,6 +23,17 @@
         }
       }
     },
+    "고정 항목 %lld개를 삭제할까요?" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete %lld pinned items?"
+          }
+        }
+      }
+    },
     "고정 해제" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -74,6 +85,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Delete"
+          }
+        }
+      }
+    },
+    "삭제한 고정 항목은 복구할 수 없습니다." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deleted pinned items can't be recovered."
           }
         }
       }
@@ -162,6 +184,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Requires Allow Full Access"
+          }
+        }
+      }
+    },
+    "취소" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cancel"
           }
         }
       }

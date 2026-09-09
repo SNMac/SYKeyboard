@@ -48,6 +48,8 @@ final class ClipboardHistoryPanelView: UIView {
     private(set) var items: [ClipboardHistoryItem] = []
 
     private var detailIndex: Int?
+    /// 고정 항목이 섞여 확인을 기다리는 삭제. 인덱스는 `items` 기준이다
+    private var pendingDeletion: (indices: [Int], deleteAll: Bool)?
 
     private static let cellIdentifier = "ClipboardHistoryCell"
     /// 스와이프 액션은 색 배경 위에 뜨므로 채운 변형을 쓴다
@@ -165,6 +167,16 @@ final class ClipboardHistoryPanelView: UIView {
         return view
     }()
 
+    /// 키보드 extension은 시스템 알림을 띄울 수 없어 패널 안에서 확인받는다
+    private lazy var deleteConfirmView: ClipboardHistoryDeleteConfirmView = {
+        let view = ClipboardHistoryDeleteConfirmView()
+        view.isHidden = true
+        view.onCancel = { [weak self] in self?.cancelPendingDeletion() }
+        view.onConfirm = { [weak self] in self?.confirmPendingDeletion() }
+
+        return view
+    }()
+
     // MARK: - Initializer
 
     override init(frame: CGRect) {
@@ -183,6 +195,7 @@ final class ClipboardHistoryPanelView: UIView {
     /// 패널이 보이는 중이면 바뀐 행만 삭제·삽입 애니메이션으로 반영하고, 숨겨진 상태면 전체를 다시 그립니다.
     func configure(state: State) {
         hideDetail()
+        hideDeleteConfirmation()
         let previousItems = items
         switch state {
         case .fullAccessRequired:
@@ -203,6 +216,7 @@ final class ClipboardHistoryPanelView: UIView {
     /// 편집 모드와 상세 뷰를 닫고 스크롤을 맨 위로 되돌립니다. 패널을 닫을 때 호출합니다.
     func resetPresentation() {
         hideDetail(animated: false)
+        hideDeleteConfirmation(animated: false)
         endItemEditing()
         tableView.setContentOffset(.zero, animated: false)
     }
@@ -238,11 +252,30 @@ final class ClipboardHistoryPanelView: UIView {
         let indices = (tableView.indexPathsForSelectedRows ?? []).map(\.row).sorted()
         guard !indices.isEmpty else { return }
 
-        if indices.count == items.count {
-            delegate?.clipboardPanelDidDeleteAll(self)
-        } else {
-            delegate?.clipboardPanel(self, didDeleteItemsAt: indices)
+        requestDelete(at: indices, deleteAll: indices.count == items.count)
+    }
+
+    /// 고정 항목이 섞여 있으면 패널 안 확인 뷰를 띄우고, 미고정만이면 바로 델리게이트에 넘긴다.
+    /// 앱 관리 화면의 삭제 알림과 같은 규칙이다
+    func requestDelete(at indices: [Int], deleteAll: Bool) {
+        let pinnedCount = indices.filter { items.indices.contains($0) && items[$0].isPinned }.count
+        guard pinnedCount > 0 else {
+            performDelete(at: indices, deleteAll: deleteAll)
+            return
         }
+        pendingDeletion = (indices, deleteAll)
+        deleteConfirmView.update(pinnedCount: pinnedCount)
+        setOverlayHidden(deleteConfirmView, false, animated: true)
+    }
+
+    func confirmPendingDeletion() {
+        guard let pendingDeletion else { return }
+        hideDeleteConfirmation(animated: false)
+        performDelete(at: pendingDeletion.indices, deleteAll: pendingDeletion.deleteAll)
+    }
+
+    func cancelPendingDeletion() {
+        hideDeleteConfirmation()
     }
 }
 
@@ -271,11 +304,11 @@ private extension ClipboardHistoryPanelView {
         [titleLabel, selectAllButton, spacer, deleteButton, editButton, doneButton].forEach {
             headerStackView.addArrangedSubview($0)
         }
-        [headerStackView, tableView, messageLabel, detailView].forEach { self.addSubview($0) }
+        [headerStackView, tableView, messageLabel, detailView, deleteConfirmView].forEach { self.addSubview($0) }
     }
 
     func setConstraints() {
-        [headerStackView, tableView, messageLabel, detailView].forEach {
+        [headerStackView, tableView, messageLabel, detailView, deleteConfirmView].forEach {
             $0.translatesAutoresizingMaskIntoConstraints = false
         }
         NSLayoutConstraint.activate([
@@ -297,7 +330,12 @@ private extension ClipboardHistoryPanelView {
             detailView.topAnchor.constraint(equalTo: self.topAnchor),
             detailView.leadingAnchor.constraint(equalTo: self.leadingAnchor),
             detailView.trailingAnchor.constraint(equalTo: self.trailingAnchor),
-            detailView.bottomAnchor.constraint(equalTo: self.bottomAnchor)
+            detailView.bottomAnchor.constraint(equalTo: self.bottomAnchor),
+
+            deleteConfirmView.topAnchor.constraint(equalTo: self.topAnchor),
+            deleteConfirmView.leadingAnchor.constraint(equalTo: self.leadingAnchor),
+            deleteConfirmView.trailingAnchor.constraint(equalTo: self.trailingAnchor),
+            deleteConfirmView.bottomAnchor.constraint(equalTo: self.bottomAnchor)
         ])
     }
 }
@@ -369,13 +407,31 @@ private extension ClipboardHistoryPanelView {
     }
 
     func setDetailHidden(_ isHidden: Bool, animated: Bool) {
-        guard detailView.isHidden != isHidden else { return }
+        setOverlayHidden(detailView, isHidden, animated: animated)
+    }
+
+    func hideDeleteConfirmation(animated: Bool = true) {
+        pendingDeletion = nil
+        setOverlayHidden(deleteConfirmView, true, animated: animated)
+    }
+
+    func performDelete(at indices: [Int], deleteAll: Bool) {
+        if deleteAll {
+            delegate?.clipboardPanelDidDeleteAll(self)
+        } else {
+            delegate?.clipboardPanel(self, didDeleteItemsAt: indices)
+        }
+    }
+
+    /// 상세 뷰와 삭제 확인 뷰는 패널 전체를 덮으며 크로스페이드로 나타난다
+    func setOverlayHidden(_ overlay: UIView, _ isHidden: Bool, animated: Bool) {
+        guard overlay.isHidden != isHidden else { return }
         guard animated else {
-            detailView.isHidden = isHidden
+            overlay.isHidden = isHidden
             return
         }
         UIView.transition(with: self, duration: 0.2, options: .transitionCrossDissolve) {
-            self.detailView.isHidden = isHidden
+            overlay.isHidden = isHidden
         }
     }
 
@@ -495,8 +551,9 @@ extension ClipboardHistoryPanelView: UITableViewDelegate {
             title: String(localized: "삭제", bundle: SYKBDAssets.bundle)
         ) { [weak self] _, _, completion in
             guard let self else { completion(false); return }
-            // 소유자가 configure()에서 deleteRows로 행을 지운 뒤 액션을 닫는다. Apple의 삭제 액션 관례와 같다
-            self.delegate?.clipboardPanel(self, didDeleteItemsAt: [indexPath.row])
+            // 소유자가 configure()에서 deleteRows로 행을 지운 뒤 액션을 닫는다. Apple의 삭제 액션 관례와 같다.
+            // 고정 행이면 확인 뷰만 뜨고 행은 남는다
+            self.requestDelete(at: [indexPath.row], deleteAll: false)
             completion(true)
         }
         deleteAction.image = UIImage(systemName: ClipboardHistoryPanelView.deleteActionSymbolName)
@@ -671,6 +728,119 @@ private extension ClipboardHistoryDetailView {
                 equalTo: self.bottomAnchor,
                 constant: -ClipboardHistoryDetailView.pasteButtonBottomSpacing
             )
+        ])
+    }
+}
+
+// MARK: - Delete Confirmation
+
+/// 고정 항목이 포함된 삭제를 패널 안에서 확인받는 뷰. 앱의 알림과 같은 문구를 쓴다
+private final class ClipboardHistoryDeleteConfirmView: UIView {
+
+    // MARK: - Properties
+
+    var onCancel: (() -> Void)?
+    var onConfirm: (() -> Void)?
+
+    // MARK: - UI Components
+
+    private let blurView = UIVisualEffectView(effect: UIBlurEffect(style: .systemThickMaterial))
+
+    private let titleLabel: UILabel = {
+        let label = UILabel()
+        label.font = .systemFont(ofSize: 15, weight: .semibold)
+        label.textColor = .label
+        label.textAlignment = .center
+        label.numberOfLines = 0
+
+        return label
+    }()
+
+    private let messageLabel: UILabel = {
+        let label = UILabel()
+        label.text = String(localized: "삭제한 고정 항목은 복구할 수 없습니다.", bundle: SYKBDAssets.bundle)
+        label.font = .systemFont(ofSize: 13)
+        label.textColor = .secondaryLabel
+        label.textAlignment = .center
+        label.numberOfLines = 0
+
+        return label
+    }()
+
+    private lazy var cancelButton: UIButton = {
+        var config = UIButton.Configuration.gray()
+        config.title = String(localized: "취소", bundle: SYKBDAssets.bundle)
+        config.contentInsets = NSDirectionalEdgeInsets(top: 6, leading: 20, bottom: 6, trailing: 20)
+
+        return UIButton(configuration: config, primaryAction: UIAction { [weak self] _ in self?.onCancel?() })
+    }()
+
+    private lazy var confirmButton: UIButton = {
+        var config = UIButton.Configuration.filled()
+        config.title = String(localized: "삭제", bundle: SYKBDAssets.bundle)
+        config.baseBackgroundColor = .systemRed
+        config.contentInsets = NSDirectionalEdgeInsets(top: 6, leading: 20, bottom: 6, trailing: 20)
+
+        return UIButton(configuration: config, primaryAction: UIAction { [weak self] _ in self?.onConfirm?() })
+    }()
+
+    private let contentStackView: UIStackView = {
+        let stackView = UIStackView()
+        stackView.axis = .vertical
+        stackView.alignment = .center
+        stackView.spacing = 8
+
+        return stackView
+    }()
+
+    private let buttonStackView: UIStackView = {
+        let stackView = UIStackView()
+        stackView.axis = .horizontal
+        stackView.spacing = 12
+
+        return stackView
+    }()
+
+    // MARK: - Initializer
+
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        setupUI()
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
+    // MARK: - Internal Methods
+
+    func update(pinnedCount: Int) {
+        titleLabel.text = String(localized: "고정 항목 \(pinnedCount)개를 삭제할까요?", bundle: SYKBDAssets.bundle)
+    }
+}
+
+// MARK: - UI Methods
+
+private extension ClipboardHistoryDeleteConfirmView {
+    func setupUI() {
+        [cancelButton, confirmButton].forEach { buttonStackView.addArrangedSubview($0) }
+        [titleLabel, messageLabel, buttonStackView].forEach { contentStackView.addArrangedSubview($0) }
+        contentStackView.setCustomSpacing(16, after: messageLabel)
+        [blurView, contentStackView].forEach {
+            self.addSubview($0)
+            $0.translatesAutoresizingMaskIntoConstraints = false
+        }
+
+        NSLayoutConstraint.activate([
+            blurView.topAnchor.constraint(equalTo: self.topAnchor),
+            blurView.leadingAnchor.constraint(equalTo: self.leadingAnchor),
+            blurView.trailingAnchor.constraint(equalTo: self.trailingAnchor),
+            blurView.bottomAnchor.constraint(equalTo: self.bottomAnchor),
+
+            contentStackView.centerXAnchor.constraint(equalTo: self.centerXAnchor),
+            contentStackView.centerYAnchor.constraint(equalTo: self.centerYAnchor),
+            contentStackView.leadingAnchor.constraint(greaterThanOrEqualTo: self.leadingAnchor, constant: 16),
+            contentStackView.trailingAnchor.constraint(lessThanOrEqualTo: self.trailingAnchor, constant: -16)
         ])
     }
 }
