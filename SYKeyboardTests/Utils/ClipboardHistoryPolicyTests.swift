@@ -160,7 +160,10 @@ struct ClipboardHistoryPolicyTests {
         }
 
         #expect(ClipboardHistoryPolicy.insertingPinned(" \n", into: [], now: now) == nil)
-        #expect(ClipboardHistoryPolicy.insertingPinned("p0", into: [item("p0", createdAt: 0, pinnedAt: 1)], now: now) == nil)
+        let alreadyPinned = [item("p1", pinnedAt: 2), item("p0", pinnedAt: 1)]
+        let repinned = ClipboardHistoryPolicy.insertingPinned("p0", into: alreadyPinned, now: now)
+        #expect(repinned?.map(\.text) == ["p0", "p1"])
+        #expect(repinned?.first?.pinnedAt == now)
         #expect(ClipboardHistoryPolicy.insertingPinned("new", into: pinnedFull, now: now) == nil)
     }
 
@@ -269,17 +272,28 @@ struct ClipboardHistoryPolicyTests {
         #expect(ClipboardHistoryPolicy.replacingText("zzz", with: "c", in: items, now: now) == nil)
     }
 
-    @Test("편집한 내용이 다른 항목과 같으면 편집 항목을 지우고 기존 항목을 최근 복사한 것처럼 맨 위로")
+    @Test("편집한 내용이 다른 항목과 같으면 하나만 남기고, 둘 다 미고정이면 최근 복사한 것처럼 미고정 맨 위로")
     func test내용편집이_중복이면_기존항목을맨위로() {
         let items = [item("p", pinnedAt: 100), item("c", createdAt: 3), item("b", createdAt: 2), item("a", createdAt: 1)]
 
         let merged = ClipboardHistoryPolicy.replacingText("c", with: "a", in: items, now: now)
-        let mergedIntoPinned = ClipboardHistoryPolicy.replacingText("c", with: "p", in: items, now: now)
 
         #expect(merged?.map(\.text) == ["p", "a", "b"])
         #expect(merged?[1].createdAt == now)
-        #expect(mergedIntoPinned?.map(\.text) == ["p", "b", "a"])
-        #expect(mergedIntoPinned?.first?.pinnedAt == Date(timeIntervalSince1970: 100))
+        #expect(merged?[1].isPinned == false)
+    }
+
+    @Test("편집 중복 병합에서 어느 쪽이든 고정이었으면 남는 항목이 지금 고정한 것처럼 고정 맨 위로")
+    func test내용편집_중복병합은_고정을유지하고맨위로() {
+        let items = [item("p2", pinnedAt: 200), item("p1", pinnedAt: 100), item("b", createdAt: 2), item("a", createdAt: 1)]
+
+        let intoPinned = ClipboardHistoryPolicy.replacingText("b", with: "p1", in: items, now: now)
+        let fromPinned = ClipboardHistoryPolicy.replacingText("p1", with: "a", in: items, now: now)
+
+        #expect(intoPinned?.map(\.text) == ["p1", "p2", "a"])
+        #expect(intoPinned?.first?.pinnedAt == now)
+        #expect(fromPinned?.map(\.text) == ["a", "p2", "b"])
+        #expect(fromPinned?.first?.pinnedAt == now)
     }
 
     @Test("범위 밖 인덱스의 고정 토글은 nil")

@@ -63,20 +63,33 @@ public enum ClipboardHistoryPolicy {
 
     /// 사용자가 직접 입력한 `text`를 고정 항목으로 맨 앞에 넣은 결과. 저장하지 않을 텍스트면 `nil`
     ///
-    /// - 빈 문자열, 공백·개행만 있는 문자열, `maxTextLength` 초과, 고정 한도 초과는 `nil`
-    /// - 같은 텍스트가 이미 고정이면 `nil`, 미고정이면 그 항목을 제거하고 고정으로 대체한다
+    /// - 빈 문자열, 공백·개행만 있는 문자열, `maxTextLength` 초과는 `nil`
+    /// - 같은 텍스트가 이미 고정이면 그 항목을 지금 고정한 것처럼 고정 맨 위로 올린다(한도와 무관)
+    /// - 같은 텍스트가 미고정이면 그 항목을 제거하고 고정으로 대체한다. 새로 고정하는 경우 고정 한도 초과는 `nil`
     static func insertingPinned(
         _ text: String,
         into items: [ClipboardHistoryItem],
         now: Date
     ) -> [ClipboardHistoryItem]? {
         guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
-              text.count <= maxTextLength,
-              canPin(items),
-              !items.contains(where: { $0.isPinned && $0.text == text }) else { return nil }
+              text.count <= maxTextLength else { return nil }
+
+        if let existing = items.first(where: { $0.text == text }), existing.isPinned {
+            return repinning(text, in: items, now: now)
+        }
+        guard canPin(items) else { return nil }
 
         let remaining = items.filter { $0.text != text }
         return sorted(remaining + [ClipboardHistoryItem(text: text, createdAt: now, pinnedAt: now)])
+    }
+
+    /// `text` 항목의 고정 시각을 `now`로 바꿔 고정 맨 위로 올린 결과. 미고정 항목이면 그대로
+    static func repinning(_ text: String, in items: [ClipboardHistoryItem], now: Date) -> [ClipboardHistoryItem] {
+        let result = items.map { item -> ClipboardHistoryItem in
+            guard item.text == text, item.isPinned else { return item }
+            return ClipboardHistoryItem(text: item.text, createdAt: item.createdAt, pinnedAt: now)
+        }
+        return sorted(result)
     }
 
     /// 텍스트 전체가 http/https URL 하나일 때 그 URL. 앞뒤 공백·개행은 무시하고, 중간에 공백이 있으면 `nil`
@@ -94,8 +107,8 @@ public enum ClipboardHistoryPolicy {
     ///
     /// - 빈 문자열, 공백·개행만, `maxTextLength` 초과, 원문과 같음, `oldText` 항목이 없으면 `nil`
     /// - 다른 항목과 중복이 아니면 자리·고정 상태·시각을 그대로 두고 텍스트만 바꾼다
-    /// - 다른 항목과 중복이면 편집한 항목을 지우고, 기존 항목을 최근 복사한 것처럼 미고정 맨 위로 올린다
-    ///   (기존 항목이 고정이면 그대로 둔다)
+    /// - 다른 항목과 중복이면 편집한 항목을 지우고 기존 항목 하나만 남긴다. 둘 중 하나라도 고정이었으면
+    ///   남는 항목은 지금 고정한 것처럼 고정 맨 위로, 둘 다 미고정이면 최근 복사한 것처럼 미고정 맨 위로 온다
     public static func replacingText(
         _ oldText: String,
         with newText: String,
@@ -108,16 +121,16 @@ public enum ClipboardHistoryPolicy {
               let index = items.firstIndex(where: { $0.text == oldText }) else { return nil }
 
         var result = items
+        let target = items[index]
         if let existingIndex = items.firstIndex(where: { $0.text == newText }) {
             let existing = items[existingIndex]
-            if !existing.isPinned {
-                result[existingIndex] = ClipboardHistoryItem(text: newText, createdAt: now)
-            }
+            result[existingIndex] = target.isPinned || existing.isPinned
+                ? ClipboardHistoryItem(text: newText, createdAt: existing.createdAt, pinnedAt: now)
+                : ClipboardHistoryItem(text: newText, createdAt: now)
             result.remove(at: index)
             return sorted(result)
         }
 
-        let target = items[index]
         result[index] = ClipboardHistoryItem(text: newText, createdAt: target.createdAt, pinnedAt: target.pinnedAt)
         return result
     }
