@@ -200,14 +200,14 @@ private extension ClipboardHistorySettingsView {
             } label: {
                 Label(
                     pinBatch.isUnpinning ? "\(pinBatch.targets.count)개 고정 해제" : "\(pinBatch.targets.count)개 고정",
-                    systemImage: pinBatch.isUnpinning ? "pin.slash.fill" : "pin.fill"
+                    systemImage: pinBatch.isUnpinning ? "pin.slash" : "pin"
                 )
             }
             .disabled(!pinBatch.isAllowed)
             Button(role: .destructive) {
                 remove(selectedItems)
             } label: {
-                Label("\(selection.count)개 삭제", systemImage: "trash.fill")
+                Label("\(selection.count)개 삭제", systemImage: "trash")
             }
             // 하단 바에서는 destructive role만으로 빨간색이 되지 않는다
             .tint(.red)

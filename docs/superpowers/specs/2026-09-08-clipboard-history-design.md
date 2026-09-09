@@ -343,7 +343,7 @@ Assets 카탈로그의 항목은 `extractionState`를 `manual`로 둔다. 패키
   행 탭은 원문 전체를 보는 상세 화면이다(붙여넣기는 없다).
 - leading swipe 고정/해제, trailing swipe 삭제(`trash.fill`), 편집 모드 다중 선택과 하단
   툴바의 "전체 선택"(`checklist.checked`, 모두 선택되면 "선택 해제" `checklist.unchecked`) ·
-  "n개 고정"(`pin.fill`/`pin.slash.fill`) · "n개 삭제"(`trash.fill`). 하단 툴바는 아이콘만 보이고
+  "n개 고정"(`pin`/`pin.slash`) · "n개 삭제"(`trash`). 하단 툴바는 outline 아이콘만 보이고
   문구는 접근성 라벨이다. 편집 모드에서 선택이 있으면 화면 제목이 "n개 선택"으로 바뀐다.
   규칙은 키보드 패널과 같다.
 - "n개 고정"은 선택 중 미고정 항목만 고정하며 n은 그 개수다(선택 수를 세는 "n개 삭제"와
