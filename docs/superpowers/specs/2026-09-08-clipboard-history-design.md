@@ -356,7 +356,8 @@ Assets 카탈로그의 항목은 `extractionState`를 `manual`로 둔다. 패키
   상단 툴바는 `+`(추가) 오른쪽에 "편집"/"완료"를 두고, "완료"는 semibold다. 두 문구 중 넓은
   폭으로 고정해 전환할 때 위치가 흔들리지 않게 한다.
 - 원문 하프 시트의 툴바에는 항목 전체가 http/https URL일 때만 "브라우저에서 열기"(`safari`)를
-  복사 버튼 왼쪽에 두고 `openURL` 환경값으로 연다.
+  복사 버튼 왼쪽에 두고 `openURL` 환경값으로 연다. 왼쪽 상단에는 `ShareLink`로 공유 버튼
+  (`square.and.arrow.up`)을 둔다. 키보드 extension은 공유 시트를 띄울 수 없어 앱에만 둔다.
 - Core 코드가 쓰는 문자열은 "로컬라이징" 절에 따라 Assets 카탈로그에 `manual`로 둔다.
 - 툴바 `+`("추가") → "고정 항목 추가" 시트의 `TextEditor`에 직접 입력해 저장한다.
   저장한 항목은 `recordPinned`로 고정 항목이 되어 맨 위에 온다. 공백만이거나 2,000자
