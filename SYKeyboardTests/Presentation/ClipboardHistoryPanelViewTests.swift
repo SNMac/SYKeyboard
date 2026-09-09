@@ -92,6 +92,19 @@ struct ClipboardHistoryPanelViewTests {
         #expect(spy.deletedIndices == [[1]])
     }
 
+    @Test("스와이프로 tableView가 편집 상태여도 configure 뒤 편집 모드로 들어가지 않음")
+    func test스와이프중configure는_편집모드로바뀌지않음() {
+        let (panel, spy) = makePanel(texts: ["a", "b"])
+
+        // UIKit은 스와이프 액션이 열려 있는 동안 tableView.isEditing을 true로 둔다
+        panel.tableView.setEditing(true, animated: false)
+        panel.configure(state: .items([unpinned("a")]))
+        panel.deleteSelectedItems()
+
+        #expect(panel.isItemEditing == false)
+        #expect(spy.deletedIndices.isEmpty)
+    }
+
     @Test("선택이 없으면 삭제를 요청하지 않음")
     func test선택없으면_삭제요청없음() {
         let (panel, spy) = makePanel(texts: ["a"])

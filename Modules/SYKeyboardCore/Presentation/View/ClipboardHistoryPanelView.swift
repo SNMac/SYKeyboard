@@ -31,7 +31,8 @@ protocol ClipboardHistoryPanelDelegate: AnyObject {
 ///
 /// ## 동작
 /// - 평소: 행 탭은 붙여넣기, trailing swipe는 개별 삭제, leading swipe는 고정/해제, 길게 누르기는 원문 상세 뷰
-/// - 편집 모드(`UITableView.isEditing`): 행 탭은 선택 토글, "전체 선택"·"n개 삭제"·"완료"
+/// - 편집 모드(`isItemEditing`): 행 탭은 선택 토글, "전체 선택"·"n개 삭제"·"완료".
+///   `UITableView.isEditing`은 스와이프 액션이 열려 있는 동안에도 true가 되므로 판단에 쓰지 않는다
 final class ClipboardHistoryPanelView: UIView {
 
     enum State: Equatable {
@@ -48,6 +49,8 @@ final class ClipboardHistoryPanelView: UIView {
     private(set) var items: [ClipboardHistoryItem] = []
 
     private var detailIndex: Int?
+    /// 사용자가 "편집"으로 들어간 다중 선택 모드인지. 스와이프 중에도 true가 되는 `tableView.isEditing`과 구분한다
+    private(set) var isItemEditing = false
     /// 고정 항목이 섞여 확인을 기다리는 삭제. 인덱스는 `items` 기준이다
     private var pendingDeletion: (indices: [Int], deleteAll: Bool)?
 
@@ -96,7 +99,7 @@ final class ClipboardHistoryPanelView: UIView {
             // 제목이 갱신될 때마다 현재 Dynamic Type 크기를 읽는다
             attributes.font = UIFont.monospacedDigitSystemFont(
                 ofSize: UIFont.preferredFont(forTextStyle: .body).pointSize,
-                weight: .semibold
+                weight: .regular
             )
             return attributes
         }
@@ -224,19 +227,21 @@ final class ClipboardHistoryPanelView: UIView {
     // 헤더 버튼 동작. 테스트에서 직접 호출할 수 있도록 internal로 둔다
 
     func beginItemEditing() {
-        guard !items.isEmpty, !tableView.isEditing else { return }
+        guard !items.isEmpty, !isItemEditing else { return }
+        isItemEditing = true
         tableView.setEditing(true, animated: true)
         updateHeader()
     }
 
     func endItemEditing() {
-        guard tableView.isEditing else { return }
+        guard isItemEditing else { return }
+        isItemEditing = false
         tableView.setEditing(false, animated: true)
         updateHeader()
     }
 
     func toggleSelectAll() {
-        guard tableView.isEditing else { return }
+        guard isItemEditing else { return }
         if isAllSelected {
             tableView.indexPathsForSelectedRows?.forEach { tableView.deselectRow(at: $0, animated: false) }
         } else {
@@ -248,7 +253,7 @@ final class ClipboardHistoryPanelView: UIView {
     }
 
     func deleteSelectedItems() {
-        guard tableView.isEditing else { return }
+        guard isItemEditing else { return }
         let indices = (tableView.indexPathsForSelectedRows ?? []).map(\.row).sorted()
         guard !indices.isEmpty else { return }
 
@@ -348,7 +353,7 @@ private extension ClipboardHistoryPanelView {
     }
 
     func updateHeader() {
-        let isEditing = tableView.isEditing
+        let isEditing = isItemEditing
         titleLabel.isHidden = isEditing
         editButton.isHidden = isEditing || items.isEmpty
         selectAllButton.isHidden = !isEditing
@@ -363,7 +368,7 @@ private extension ClipboardHistoryPanelView {
         deleteButton.isEnabled = selectedCount > 0
     }
 
-    /// 편집 모드를 끝내는 "완료"와 "n개 삭제"는 iOS 편집 툴바처럼 semibold로 강조한다
+    /// 편집 모드를 끝내는 "완료"는 iOS 편집 툴바처럼 semibold로 강조한다
     func makeHeaderButton(
         title: String,
         weight: UIFont.Weight = .regular,
@@ -486,7 +491,7 @@ private extension ClipboardHistoryPanelView {
     }
 
     @objc func handleLongPress(_ recognizer: UILongPressGestureRecognizer) {
-        guard recognizer.state == .began, !tableView.isEditing else { return }
+        guard recognizer.state == .began, !isItemEditing else { return }
         let point = recognizer.location(in: tableView)
         guard let indexPath = tableView.indexPathForRow(at: point) else { return }
         FeedbackManager.shared.playHaptic()
@@ -499,7 +504,7 @@ private extension ClipboardHistoryPanelView {
 extension ClipboardHistoryPanelView: UITableViewDelegate {
     // 델리게이트 메서드의 indexPath.row는 사용자 터치 시점에만 쓰이므로 애니메이션이 끝난 items와 일치한다
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        if tableView.isEditing {
+        if isItemEditing {
             updateHeader()
             return
         }
@@ -509,7 +514,7 @@ extension ClipboardHistoryPanelView: UITableViewDelegate {
     }
 
     func tableView(_ tableView: UITableView, didDeselectRowAt indexPath: IndexPath) {
-        if tableView.isEditing { updateHeader() }
+        if isItemEditing { updateHeader() }
     }
 
     func tableView(
