@@ -300,6 +300,11 @@ private struct ClipboardHistoryDetailView: View {
             .navigationTitle("원문")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    ShareLink(item: text) {
+                        Label("공유", systemImage: "square.and.arrow.up")
+                    }
+                }
                 ToolbarItemGroup(placement: .navigationBarTrailing) {
                     if let url = ClipboardHistoryPolicy.openableURL(in: text) {
                         Button {

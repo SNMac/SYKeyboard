@@ -233,6 +233,17 @@
         }
       }
     },
+    "공유" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Share"
+          }
+        }
+      }
+    },
     "글자 열 너비" : {
       "localizations" : {
         "en" : {
