@@ -94,7 +94,7 @@ final class ClipboardHistoryPanelView: UIView {
             // 제목이 갱신될 때마다 현재 Dynamic Type 크기를 읽는다
             attributes.font = UIFont.monospacedDigitSystemFont(
                 ofSize: UIFont.preferredFont(forTextStyle: .body).pointSize,
-                weight: .regular
+                weight: .semibold
             )
             return attributes
         }
@@ -109,7 +109,8 @@ final class ClipboardHistoryPanelView: UIView {
     }
 
     private lazy var doneButton = makeHeaderButton(
-        title: String(localized: "완료", bundle: SYKBDAssets.bundle)
+        title: String(localized: "완료", bundle: SYKBDAssets.bundle),
+        weight: .semibold
     ) { [weak self] in
         self?.endItemEditing()
     }
@@ -324,10 +325,25 @@ private extension ClipboardHistoryPanelView {
         deleteButton.isEnabled = selectedCount > 0
     }
 
-    func makeHeaderButton(title: String, handler: @escaping () -> Void) -> UIButton {
+    /// 편집 모드를 끝내는 "완료"와 "n개 삭제"는 iOS 편집 툴바처럼 semibold로 강조한다
+    func makeHeaderButton(
+        title: String,
+        weight: UIFont.Weight = .regular,
+        handler: @escaping () -> Void
+    ) -> UIButton {
         var config = UIButton.Configuration.plain()
         config.title = title
         config.contentInsets = NSDirectionalEdgeInsets(top: 4, leading: 8, bottom: 4, trailing: 8)
+        if weight != .regular {
+            config.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { attributes in
+                var attributes = attributes
+                attributes.font = UIFont.systemFont(
+                    ofSize: UIFont.preferredFont(forTextStyle: .body).pointSize,
+                    weight: weight
+                )
+                return attributes
+            }
+        }
         let button = UIButton(configuration: config, primaryAction: UIAction { _ in handler() })
         button.setContentCompressionResistancePriority(.required, for: .horizontal)
 
