@@ -69,8 +69,8 @@ public final class ClipboardHistoryStore {
     }
 
     /// 항목의 내용을 바꾼다. 정책상 바꿀 수 없으면 아무것도 하지 않는다
-    public func replaceText(_ oldText: String, with newText: String) {
-        guard let items = ClipboardHistoryPolicy.replacingText(oldText, with: newText, in: load()) else { return }
+    public func replaceText(_ oldText: String, with newText: String, now: Date = Date()) {
+        guard let items = ClipboardHistoryPolicy.replacingText(oldText, with: newText, in: load(), now: now) else { return }
         save(items)
     }
 

@@ -251,23 +251,35 @@ struct ClipboardHistoryPolicyTests {
     func test내용편집은_자리와고정유지() {
         let items = [item("p", createdAt: 1, pinnedAt: 100), item("b", createdAt: 3), item("a", createdAt: 2)]
 
-        let result = ClipboardHistoryPolicy.replacingText("b", with: "b2", in: items)
+        let result = ClipboardHistoryPolicy.replacingText("b", with: "b2", in: items, now: now)
 
         #expect(result?.map(\.text) == ["p", "b2", "a"])
         #expect(result?[1].createdAt == Date(timeIntervalSince1970: 3))
-        #expect(ClipboardHistoryPolicy.replacingText("p", with: "p2", in: items)?.first?.pinnedAt == Date(timeIntervalSince1970: 100))
+        #expect(ClipboardHistoryPolicy.replacingText("p", with: "p2", in: items, now: now)?.first?.pinnedAt == Date(timeIntervalSince1970: 100))
     }
 
-    @Test("내용 편집은 빈 값·길이 초과·원문과 같음·다른 항목과 중복·없는 항목이면 nil")
+    @Test("내용 편집은 빈 값·길이 초과·원문과 같음·없는 항목이면 nil")
     func test내용편집_불가조건은_nil() {
         let items = [item("a"), item("b")]
         let over = String(repeating: "가", count: ClipboardHistoryPolicy.maxTextLength + 1)
 
-        #expect(ClipboardHistoryPolicy.replacingText("a", with: " \n", in: items) == nil)
-        #expect(ClipboardHistoryPolicy.replacingText("a", with: over, in: items) == nil)
-        #expect(ClipboardHistoryPolicy.replacingText("a", with: "a", in: items) == nil)
-        #expect(ClipboardHistoryPolicy.replacingText("a", with: "b", in: items) == nil)
-        #expect(ClipboardHistoryPolicy.replacingText("zzz", with: "c", in: items) == nil)
+        #expect(ClipboardHistoryPolicy.replacingText("a", with: " \n", in: items, now: now) == nil)
+        #expect(ClipboardHistoryPolicy.replacingText("a", with: over, in: items, now: now) == nil)
+        #expect(ClipboardHistoryPolicy.replacingText("a", with: "a", in: items, now: now) == nil)
+        #expect(ClipboardHistoryPolicy.replacingText("zzz", with: "c", in: items, now: now) == nil)
+    }
+
+    @Test("편집한 내용이 다른 항목과 같으면 편집 항목을 지우고 기존 항목을 최근 복사한 것처럼 맨 위로")
+    func test내용편집이_중복이면_기존항목을맨위로() {
+        let items = [item("p", pinnedAt: 100), item("c", createdAt: 3), item("b", createdAt: 2), item("a", createdAt: 1)]
+
+        let merged = ClipboardHistoryPolicy.replacingText("c", with: "a", in: items, now: now)
+        let mergedIntoPinned = ClipboardHistoryPolicy.replacingText("c", with: "p", in: items, now: now)
+
+        #expect(merged?.map(\.text) == ["p", "a", "b"])
+        #expect(merged?[1].createdAt == now)
+        #expect(mergedIntoPinned?.map(\.text) == ["p", "b", "a"])
+        #expect(mergedIntoPinned?.first?.pinnedAt == Date(timeIntervalSince1970: 100))
     }
 
     @Test("범위 밖 인덱스의 고정 토글은 nil")

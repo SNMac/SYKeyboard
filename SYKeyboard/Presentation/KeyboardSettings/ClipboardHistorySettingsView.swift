@@ -84,7 +84,7 @@ struct ClipboardHistorySettingsView: View {
                     ClipboardHistoryDetailView(
                         item: item,
                         canPin: canPin,
-                        canSave: { ClipboardHistoryPolicy.replacingText(item.text, with: $0, in: items) != nil },
+                        canSave: { ClipboardHistoryPolicy.replacingText(item.text, with: $0, in: items, now: Date()) != nil },
                         onTogglePin: { togglePinFromDetail(item) },
                         onCopy: { copyFromDetail(item) },
                         onSave: { replaceText(of: item, with: $0) }

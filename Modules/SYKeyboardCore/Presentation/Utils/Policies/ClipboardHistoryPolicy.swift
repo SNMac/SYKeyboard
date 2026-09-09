@@ -90,22 +90,33 @@ public enum ClipboardHistoryPolicy {
         return url
     }
 
-    /// `oldText` 항목의 내용을 `newText`로 바꾼 결과. 자리·고정 상태·시각은 그대로 둔다. 바꿀 수 없으면 `nil`
+    /// `oldText` 항목의 내용을 `newText`로 바꾼 결과. 바꿀 수 없으면 `nil`
     ///
-    /// - 빈 문자열, 공백·개행만, `maxTextLength` 초과, 원문과 같음, 다른 항목과 중복이면 `nil`
-    /// - `oldText` 항목이 없어도 `nil`
+    /// - 빈 문자열, 공백·개행만, `maxTextLength` 초과, 원문과 같음, `oldText` 항목이 없으면 `nil`
+    /// - 다른 항목과 중복이 아니면 자리·고정 상태·시각을 그대로 두고 텍스트만 바꾼다
+    /// - 다른 항목과 중복이면 편집한 항목을 지우고, 기존 항목을 최근 복사한 것처럼 미고정 맨 위로 올린다
+    ///   (기존 항목이 고정이면 그대로 둔다)
     public static func replacingText(
         _ oldText: String,
         with newText: String,
-        in items: [ClipboardHistoryItem]
+        in items: [ClipboardHistoryItem],
+        now: Date
     ) -> [ClipboardHistoryItem]? {
         guard !newText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
               newText.count <= maxTextLength,
               newText != oldText,
-              !items.contains(where: { $0.text == newText }),
               let index = items.firstIndex(where: { $0.text == oldText }) else { return nil }
 
         var result = items
+        if let existingIndex = items.firstIndex(where: { $0.text == newText }) {
+            let existing = items[existingIndex]
+            if !existing.isPinned {
+                result[existingIndex] = ClipboardHistoryItem(text: newText, createdAt: now)
+            }
+            result.remove(at: index)
+            return sorted(result)
+        }
+
         let target = items[index]
         result[index] = ClipboardHistoryItem(text: newText, createdAt: target.createdAt, pinnedAt: target.pinnedAt)
         return result
