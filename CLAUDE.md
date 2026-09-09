@@ -243,6 +243,30 @@ xcodebuild test \
 
 이 오류들은 저장소 설정만으로 해결할 수 있는 범위가 아니다. 위 패턴으로 실패하면 **코드 실패로 기록하지 않는다.** 샌드박스를 벗어난 실행 허용을 요청하거나, 사용자에게 프롬프트에서 `! <명령>`으로 직접 실행하도록 안내해 같은 명령을 다시 확인한다. 최종 응답에는 환경 실패 여부와 권한 있는 환경에서의 실제 검증 결과를 구분해서 기록한다.
 
+#### 붙여넣기 권한 알림으로 테스트가 끝나지 않는 경우
+
+테스트 호스트 앱 `SYKeyboard`는 활성화될 때 `synchronizeClipboardHistoryIfNeeded()` →
+`ClipboardHistoryPasteboardSynchronizer.synchronizeIfNeeded(...)` → `UIPasteboard.general.string`을
+읽는다. `changeCount`와 `hasStrings` 확인은 알림을 띄우지 않지만 `.string` 읽기는 띄운다.
+따라서 클립보드 기록 설정이 켜져 있고 `changeCount`가 마지막 확인값과 다르면 iOS 16 붙여넣기 권한
+알림이 뜬다. Mac과 시뮬레이터가 클립보드를 공유하므로 **Mac에서 무언가 복사한 뒤 처음 실행하는
+테스트**에서 자주 발생한다.
+
+알림에 응답하지 않으면 앱이 그 자리에서 멈추고 테스트 러너가 준비 단계에서 타임아웃한다. 컴파일
+오류 없이 아래 형태로 실패한다.
+
+- `The test runner timed out while preparing to run tests.` (`XCTHTestOperationCoordinatorErrorDomain Code=14`)
+- 병렬 실행이면 시뮬레이터 클론마다 같은 오류가 반복되고, 실패 후 `simctl diagnose`가 최대 10분간 진단 로그를 수집한다
+- 실패 원인은 `<xcresult>/Staging/1_Test/Diagnostics/.../scheduling.log`에서 확인한다
+
+**코드 실패로 기록하지 않는다.** 시뮬레이터 화면을 직접 확인해 알림에 응답하고 같은 명령을 다시
+실행한다. 화면을 볼 수 없는 실행 환경이라면 사용자에게 프롬프트에서 `! <명령>`으로 직접 실행하도록
+안내한다. `-parallel-testing-enabled NO`를 쓰면 클론이 하나만 떠서 알림도 한 번만 뜬다.
+
+같은 로그에 보이는 `[Sandbox] Could not enable Mach bootstrap, errno = 22`는 시뮬레이터에서 흔히
+나오는 노이즈다. 이 줄만 보고 샌드박스 제약으로 단정하지 말고 위 `scheduling.log`와 실제 시뮬레이터
+화면을 확인한다.
+
 XcodeBuildMCP를 사용하는 경우 첫 build/test 전에 `session_show_defaults`로 project, scheme, simulator, `extraArgs`를 확인한다. 테스트에서 사용한 code coverage나 `-only-testing` 옵션이 extension 빌드에 남을 수 있으므로 scheme을 전환할 때 `extraArgs`를 명시적으로 비우거나 다시 설정한다. 세션 설정 때문에 컴파일 전에 중단된 실행은 코드 실패로 기록하지 않고, 설정을 바로잡은 같은 명령의 결과를 검증 근거로 사용한다.
 
 ## 테스트 지침
