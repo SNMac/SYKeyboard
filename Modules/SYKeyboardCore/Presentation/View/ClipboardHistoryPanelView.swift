@@ -51,6 +51,7 @@ final class ClipboardHistoryPanelView: UIView {
     /// 스와이프 액션은 색 배경 위에 뜨므로 채운 변형을 쓴다
     private static let pinActionSymbolName = "pin.fill"
     private static let unpinActionSymbolName = "pin.slash.fill"
+    private static let deleteActionSymbolName = "trash.fill"
     private static let pinnedAccessorySymbolName = "pin.circle.fill"
     private static let headerHeight: CGFloat = 36
 
@@ -475,6 +476,7 @@ extension ClipboardHistoryPanelView: UITableViewDelegate {
             self.delegate?.clipboardPanel(self, didDeleteItemsAt: [indexPath.row])
             completion(true)
         }
+        deleteAction.image = UIImage(systemName: ClipboardHistoryPanelView.deleteActionSymbolName)
 
         return UISwipeActionsConfiguration(actions: [deleteAction])
     }
