@@ -38,8 +38,9 @@ struct PreviewEnglishKeyboardViewController: UIViewControllerRepresentable {
     }
     
     func makeUIViewController(context: Context) -> EnglishKeyboardCoreViewController {
-        let keyboard = EnglishKeyboardCoreViewController()
+        // Base가 viewDidLoad에서 전체 접근 허용 안내를 띄우지 않도록 view를 만들기 전에 표시한다
         EnglishKeyboardCoreViewController.isPreview = true
+        let keyboard = EnglishKeyboardCoreViewController()
         keyboard.previewOneHandedMode = oneHandedMode
         
         let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene

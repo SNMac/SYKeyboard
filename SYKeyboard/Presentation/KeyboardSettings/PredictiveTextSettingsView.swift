@@ -26,7 +26,10 @@ struct PredictiveTextSettingsView: View {
 
     @AppStorage(UserDefaultsKeys.isShowMathResultsEnabled, store: UserDefaultsManager.shared.storage)
     private var isShowMathResultsEnabled = DefaultValues.isShowMathResultsEnabled
-    
+
+    @AppStorage(UserDefaultsKeys.isClipboardHistoryEnabled, store: UserDefaultsManager.shared.storage)
+    private var isClipboardHistoryEnabled = DefaultValues.isClipboardHistoryEnabled
+
     @State private var showResetLearnedWordsAlert = false
     @State private var showResetNGramAlert = false
     @State private var showResetAllAlert = false
@@ -96,8 +99,30 @@ struct PredictiveTextSettingsView: View {
                 ])
                 hideKeyboard()
             }
+
+            Toggle(isOn: $isClipboardHistoryEnabled, label: {
+                Text("클립보드 기록")
+                Text("복사한 텍스트를 키보드 상단 클립보드 버튼으로 붙여넣기\n(설정 ➡️ SY키보드 ➡️ '다른 앱에서 붙여넣기'를 '허용'으로 바꾸면 확인 알림 없이 저장됩니다)")
+                    .font(.caption)
+            })
+            .onChange(of: isClipboardHistoryEnabled) { newValue in
+                Analytics.setUserProperty(newValue.analyticsValue,
+                                          forName: "pref_clipboard_history")
+                Analytics.logEvent("clipboard_history", parameters: [
+                    "view": "InputSettingsView",
+                    "enabled": newValue.analyticsValue
+                ])
+                hideKeyboard()
+            }
+
+            if isClipboardHistoryEnabled {
+                // 목적지 init이 저장소를 읽으므로 링크를 누를 때만 만든다
+                NavigationLink("클립보드 기록 관리") {
+                    LazyView(ClipboardHistorySettingsView())
+                }
+            }
         }
-        
+
         Button(role: .destructive) {
             showResetAllAlert = true
         } label: {

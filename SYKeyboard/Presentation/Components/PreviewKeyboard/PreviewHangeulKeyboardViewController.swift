@@ -38,8 +38,9 @@ struct PreviewHangeulKeyboardViewController: UIViewControllerRepresentable {
     }
     
     func makeUIViewController(context: Context) -> HangeulKeyboardCoreViewController {
-        let keyboard = HangeulKeyboardCoreViewController()
+        // Base가 viewDidLoad에서 전체 접근 허용 안내를 띄우지 않도록 view를 만들기 전에 표시한다
         HangeulKeyboardCoreViewController.isPreview = true
+        let keyboard = HangeulKeyboardCoreViewController()
         keyboard.previewOneHandedMode = oneHandedMode
         
         let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene

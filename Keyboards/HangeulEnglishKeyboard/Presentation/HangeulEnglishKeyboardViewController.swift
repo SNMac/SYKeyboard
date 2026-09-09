@@ -38,10 +38,6 @@ final class HangeulEnglishKeyboardViewController: BaseKeyboardViewController {
         initialMode: initialLanguageMode
     )
 
-    // MARK: - UI Components
-
-    private lazy var requestFullAccessOverlayView = RequestFullAccessOverlayView()
-
     override var primaryKeyboardViews: [PrimaryKeyboardRepresentable] {
         return hangeulAdapter.primaryKeyboardViews + [englishAdapter.primaryKeyboardView]
     }
@@ -106,10 +102,6 @@ final class HangeulEnglishKeyboardViewController: BaseKeyboardViewController {
 
         setupLanguageSwitchActions()
         applyLanguageMode(modeCoordinator.currentMode, persist: false)
-
-        if needToShowFullAccessGuide {
-            setupRequestFullAccessOverlayView()
-        }
     }
 
     override func didReceiveMemoryWarning() {
@@ -609,43 +601,9 @@ private extension HangeulEnglishKeyboardViewController {
     }
 }
 
-// MARK: - Extension UI
+// MARK: - Private Methods
 
 private extension HangeulEnglishKeyboardViewController {
-    func setupRequestFullAccessOverlayView() {
-        view.addSubview(requestFullAccessOverlayView)
-
-        requestFullAccessOverlayView.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([
-            requestFullAccessOverlayView.topAnchor.constraint(equalTo: view.topAnchor),
-            requestFullAccessOverlayView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            requestFullAccessOverlayView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            requestFullAccessOverlayView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
-        ])
-
-        requestFullAccessOverlayView.closeButton.addAction(
-            UIAction { [weak self] _ in
-                self?.keyboardExtensionLocalStateStore.isClosed = true
-                self?.requestFullAccessOverlayView.isHidden = true
-            },
-            for: .touchUpInside
-        )
-        requestFullAccessOverlayView.goToSettingsButton.addAction(
-            UIAction { [weak self] _ in
-                let urlString = "sykeyboard://"
-                guard let url = URL(string: urlString) else {
-                    assertionFailure("올바르지 않은 URL 형식입니다.")
-                    Crashlytics.crashlytics().record(
-                        error: KeyboardError.invalidSettingsURL(url: urlString)
-                    )
-                    return
-                }
-                self?.openURL(url)
-            },
-            for: .touchUpInside
-        )
-    }
-
     func setupFirebase() {
         if FirebaseApp.app() == nil {
             FirebaseApp.configure()
@@ -658,17 +616,6 @@ private extension HangeulEnglishKeyboardViewController {
         // 진단 기록 연결. 입력한 텍스트는 전달되지 않는다(`KeyboardDiagnostics` 참고)
         KeyboardDiagnostics.record = { message in
             Crashlytics.crashlytics().log(message)
-        }
-    }
-
-    func openURL(_ url: URL) {
-        var responder: UIResponder? = self
-        while responder != nil {
-            if let application = responder as? UIApplication {
-                application.open(url)
-                return
-            }
-            responder = responder?.next
         }
     }
 }

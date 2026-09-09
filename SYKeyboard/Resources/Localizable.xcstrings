@@ -90,6 +90,49 @@
     "%lld" : {
       "shouldTranslate" : false
     },
+    "%lld개 삭제" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete (%lld)"
+          }
+        }
+      }
+    },
+    "%lld개 선택" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld Selected"
+          }
+        }
+      }
+    },
+    "%lld개 고정" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pin (%lld)"
+          }
+        }
+      }
+    },
+    "%lld개 고정 해제" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unpin (%lld)"
+          }
+        }
+      }
+    },
     "iOS 버전" : {
       "localizations" : {
         "en" : {
@@ -136,6 +179,113 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "In landscape mode, it displays at the same height as the iOS default keyboard."
+          }
+        }
+      }
+    },
+    "고정" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pin"
+          }
+        }
+      }
+    },
+    "고정 %lld/%lld · 최근 %lld/%lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pinned %lld/%lld · Recent %lld/%lld"
+          }
+        }
+      }
+    },
+    "고정 항목 %lld개가 포함되어 있습니다. 삭제한 고정 항목은 복구할 수 없습니다." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Includes %lld pinned item. Deleted pinned items can't be recovered."
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Includes %lld pinned items. Deleted pinned items can't be recovered."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "고정 항목 %lld개를 삭제할까요?" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Delete %lld pinned item?"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Delete %lld pinned items?"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "고정 항목 추가" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add Pinned Item"
+          }
+        }
+      }
+    },
+    "고정 항목은 직접 삭제할 때까지 유지되고, 최근 항목은 %lld개를 넘으면 오래된 것부터 지워집니다." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pinned items stay until you delete them. Recent items beyond %lld are removed oldest first."
+          }
+        }
+      }
+    },
+    "고정 해제" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unpin"
+          }
+        }
+      }
+    },
+    "공유" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Share"
           }
         }
       }
@@ -350,6 +500,36 @@
         }
       }
     },
+    "복사" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copy"
+          }
+        }
+      }
+    },
+    "복사한 텍스트가 여기에 표시됩니다." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copied text will appear here."
+          }
+        }
+      }
+    },
+    "복사한 텍스트를 키보드 상단 클립보드 버튼으로 붙여넣기\n(설정 ➡️ SY키보드 ➡️ '다른 앱에서 붙여넣기'를 '허용'으로 바꾸면 확인 알림 없이 저장됩니다)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paste copied text with the clipboard button above the keyboard\n(Settings ➡️ SYKeyboard ➡️ set “Paste from Other Apps” to “Allow” to save without confirmation alerts)"
+          }
+        }
+      }
+    },
     "비활성화" : {
       "localizations" : {
         "en" : {
@@ -366,6 +546,48 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Open Source in Use"
+          }
+        }
+      }
+    },
+    "삭제" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete"
+          }
+        }
+      }
+    },
+    "삭제한 고정 항목은 복구할 수 없습니다." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deleted pinned items can't be recovered."
+          }
+        }
+      }
+    },
+    "선택" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Select"
+          }
+        }
+      }
+    },
+    "선택 해제" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deselect All"
           }
         }
       }
@@ -560,12 +782,43 @@
         }
       }
     },
+    "완료" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Done"
+          }
+        }
+      }
+    },
     "외형 설정" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Appearance Settings"
+          }
+        }
+      }
+    },
+    "원문" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Full Text"
+          }
+        }
+      }
+    },
+    "원문 편집" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Edit Text"
           }
         }
       }
@@ -630,6 +883,16 @@
         }
       }
     },
+    "전체 선택" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Select All"
+          }
+        }
+      }
+    },
     "점선 아래에 내용을 입력해 주세요. (상기된 정보가 정확하지 않을 경우 수정해 주세요!)" : {
       "localizations" : {
         "en" : {
@@ -670,6 +933,16 @@
         }
       }
     },
+    "추가" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add"
+          }
+        }
+      }
+    },
     "취소" : {
       "localizations" : {
         "en" : {
@@ -696,6 +969,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "How to Move Cursor"
+          }
+        }
+      }
+    },
+    "클립보드 기록" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Clipboard History"
+          }
+        }
+      }
+    },
+    "클립보드 기록 관리" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Manage Clipboard History"
           }
         }
       }
@@ -840,6 +1133,16 @@
         }
       }
     },
+    "편집" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Edit"
+          }
+        }
+      }
+    },
     "피드백 설정" : {
       "localizations" : {
         "en" : {
@@ -916,6 +1219,29 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Auto-Change to Hangeul Keyboard"
+          }
+        }
+      }
+    },
+    "항목 %lld개를 삭제할까요?" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Delete %lld item?"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Delete %lld items?"
+                }
+              }
+            }
           }
         }
       }

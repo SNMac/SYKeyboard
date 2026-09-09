@@ -37,6 +37,9 @@ open class BaseKeyboardViewController: UIInputViewController {
     /// Keyboard extension별 local 상태 저장소
     final public let keyboardExtensionLocalStateStore = KeyboardExtensionLocalStateStore()
 
+    /// 전체 접근 허용 안내 오버레이. Full Access가 꺼져 있고 사용자가 닫지 않았을 때만 만든다
+    private lazy var requestFullAccessOverlayView = RequestFullAccessOverlayView()
+
     final public lazy var oldKeyboardType: UIKeyboardType? = textDocumentProxy.keyboardType
 
     /// 현재 표시되는 키보드
@@ -209,6 +212,12 @@ open class BaseKeyboardViewController: UIInputViewController {
     final public lazy var numericKeyboardView: NumericKeyboardLayoutProvider = keyboardView.numericKeyboardView
     /// 텐키 키보드
     final public lazy var tenkeyKeyboardView: TenkeyKeyboardLayoutProvider = keyboardView.tenkeyKeyboardView
+    /// 클립보드 기록 패널
+    final lazy var clipboardHistoryPanelView: ClipboardHistoryPanelView = keyboardView.clipboardHistoryPanelView
+    /// 클립보드 기록 저장소. App Group 컨테이너를 얻지 못하면 `nil`이고 기능은 비활성 상태다
+    final let clipboardHistoryStore: ClipboardHistoryStore? = ClipboardHistoryStore()
+    /// 클립보드 기록 패널 표시 여부
+    final var isClipboardPanelVisible = false
     /// 한 손 키보드 해제 버튼(왼손 모드)
     private lazy var rightChevronButton = keyboardView.rightChevronButton
     /// 커서 드래그 활성 상태를 표시하는 overlay
@@ -286,6 +295,11 @@ open class BaseKeyboardViewController: UIInputViewController {
 
         updateSuggestionBarHidden()
         updateEdgeTouchSystemGesturePolicy()
+
+        // 키보드 뷰 위에 덮어야 하므로 마지막에 올린다. 앱 미리보기에서는 표시하지 않는다
+        if !BaseKeyboardViewController.isPreview, needToShowFullAccessGuide {
+            setupRequestFullAccessOverlayView()
+        }
     }
 
     open override func viewWillAppear(_ animated: Bool) {
@@ -295,6 +309,7 @@ open class BaseKeyboardViewController: UIInputViewController {
         super.viewWillAppear(animated)
         logger.debug("viewWillAppear")
         if !BaseKeyboardViewController.isPreview { setKeyboardHeight() }
+        synchronizeClipboardHistoryIfNeeded()
         FeedbackManager.shared.prepareHaptic()
         updateEdgeTouchSystemGesturePolicy()
     }
@@ -352,6 +367,8 @@ open class BaseKeyboardViewController: UIInputViewController {
         updateReturnButtonType()
         updateReturnButtonEnabled()
         updateSuggestionBarHidden()
+        closeClipboardPanelIfNeeded()
+        synchronizeClipboardHistoryIfNeeded()
     }
 
     open override func textDidChange(_ textInput: (any UITextInput)?) {
@@ -400,6 +417,7 @@ open class BaseKeyboardViewController: UIInputViewController {
         super.viewWillDisappear(animated)
         KeyboardDiagnostics.log("keyboard will disappear")
         stopRepeatInputTracking()
+        closeClipboardPanelIfNeeded()
         currentTextInputIdentifier = nil
         lastNotifiedTextInputIdentifier = nil
         undoRedoSession.removeAll()
@@ -451,7 +469,9 @@ open class BaseKeyboardViewController: UIInputViewController {
     /// > 하위 클래스에서 오버라이드 시 반드시 `super`로 호출 필요
     open func suggestionDidApply() {}
 
-    /// undo/redo로 텍스트가 직접 변경된 후 내부 입력 상태를 동기화하기 위한 hook입니다.
+    /// undo/redo 또는 클립보드 붙여넣기로 텍스트가 직접 변경된 후 내부 입력 상태를 동기화하기 위한 hook입니다.
+    ///
+    /// 한글 VC는 이 hook에서 조합 상태를 비운다. 붙여넣기 뒤에 다음 자모가 새 글자로 시작하는 근거다.
     ///
     /// > 하위 클래스에서 오버라이드 시 반드시 `super`로 호출 필요
     open func undoRedoEditDidApply() {
@@ -883,6 +903,7 @@ private extension BaseKeyboardViewController {
         switchGestureController.delegate = self
         suggestionController.delegate = self
         suggestionBarView.suggestionDelegate = self
+        clipboardHistoryPanelView.delegate = self
     }
 
     func setActions() {
@@ -1301,6 +1322,13 @@ private extension BaseKeyboardViewController {
         isSymbolInput = false
         numericKeyboardView.isHidden = (currentKeyboard != .numeric)
         tenkeyKeyboardView.isHidden = (currentKeyboard != .tenKey)
+        if isClipboardPanelVisible {
+            primaryKeyboardViews.forEach { $0.isHidden = true }
+            symbolKeyboardView.isHidden = true
+            numericKeyboardView.isHidden = true
+            tenkeyKeyboardView.isHidden = true
+        }
+        clipboardHistoryPanelView.isHidden = !isClipboardPanelVisible
     }
 
     func updateReturnButtonType() {
@@ -1776,6 +1804,19 @@ private extension BaseKeyboardViewController {
             isVisible: shouldShowUndoRedo,
             canUndo: undoRedoSession.canApplyUndo(from: currentContext),
             canRedo: undoRedoSession.canApplyRedo(from: currentContext)
+        )
+        updateClipboardControl()
+    }
+
+    func updateClipboardControl() {
+        let shouldShowClipboard = KeyboardPresentationStatePolicy.shouldShowClipboardControl(
+            isSuggestionBarHidden: suggestionBarView.isHidden,
+            isClipboardHistoryEnabled: keyboardSettingsManager.isClipboardHistoryEnabled
+            && !BaseKeyboardViewController.isPreview
+        )
+        suggestionBarView.updateClipboardControl(
+            isVisible: shouldShowClipboard,
+            isPanelVisible: isClipboardPanelVisible
         )
     }
 
@@ -2284,6 +2325,122 @@ extension BaseKeyboardViewController: SuggestionBarDelegate {
     final func suggestionBarDidTapRedo(_ bar: SuggestionBarView) {
         performRedo()
     }
+
+    final func suggestionBarDidTapClipboard(_ bar: SuggestionBarView) {
+        toggleClipboardPanel()
+    }
+}
+
+// MARK: - Clipboard History
+
+private extension BaseKeyboardViewController {
+
+    /// 클립보드 기록 기능 사용 가능 여부. 설정 ON, Full Access, 미리보기 아님
+    var isClipboardHistoryAvailable: Bool {
+        return keyboardSettingsManager.isClipboardHistoryEnabled
+        && hasFullAccess
+        && !BaseKeyboardViewController.isPreview
+    }
+
+    /// pasteboard의 `changeCount`가 마지막 확인값과 다를 때만 텍스트를 읽어 기록에 저장합니다.
+    ///
+    /// 호출 시점: `viewWillAppear`, `textWillChange`, 클립보드 버튼 탭. `textDidChange`와 selection 콜백은 쓰지 않습니다.
+    /// 앱도 활성화 시 같은 `ClipboardHistoryPasteboardSynchronizer`를 호출한다.
+    func synchronizeClipboardHistoryIfNeeded() {
+        guard isClipboardHistoryAvailable, let clipboardHistoryStore else { return }
+        ClipboardHistoryPasteboardSynchronizer.synchronizeIfNeeded(store: clipboardHistoryStore)
+    }
+
+    /// 클립보드 버튼 탭. 열려 있으면 닫고, 닫혀 있으면 동기화 후 엽니다.
+    func toggleClipboardPanel() {
+        if isClipboardPanelVisible {
+            closeClipboardPanelIfNeeded()
+        } else {
+            openClipboardPanel()
+        }
+    }
+
+    /// 패널을 닫고 자판으로 돌아갑니다. 이미 닫혀 있으면 아무것도 하지 않습니다.
+    func closeClipboardPanelIfNeeded() {
+        guard isClipboardPanelVisible else { return }
+        isClipboardPanelVisible = false
+        clipboardHistoryPanelView.resetPresentation()
+        updateShowingKeyboard()
+        updateClipboardControl()
+    }
+
+    func openClipboardPanel() {
+        cancelPendingDeleteInteractions()
+        synchronizeClipboardHistoryIfNeeded()
+        reloadClipboardPanel()
+        isClipboardPanelVisible = true
+        updateShowingKeyboard()
+        updateClipboardControl()
+    }
+
+    func reloadClipboardPanel() {
+        guard hasFullAccess, let clipboardHistoryStore else {
+            clipboardHistoryPanelView.configure(state: .fullAccessRequired)
+            return
+        }
+        let items = clipboardHistoryStore.load()
+        clipboardHistoryPanelView.configure(state: items.isEmpty ? .empty : .items(items))
+    }
+}
+
+// MARK: - ClipboardHistoryPanelDelegate
+
+extension BaseKeyboardViewController: ClipboardHistoryPanelDelegate {
+    final func clipboardPanel(_ panel: ClipboardHistoryPanelView, didSelectItemAt index: Int) {
+        guard panel.items.indices.contains(index) else { return }
+        let text = panel.items[index].text
+
+        // 붙여넣기를 undo 1단위로 만든다: 앞선 입력 그룹을 닫고, 삽입 후 다시 닫는다
+        commitUndoRedoGroupIgnoringCompositionDeferral()
+        insertText(text)
+        undoRedoEditDidApply()
+        commitUndoRedoGroupIgnoringCompositionDeferral()
+
+        // 방금 쓴 항목을 최근 복사한 것처럼 미고정 맨 위로 올린다. 고정 항목은 정책상 그대로다.
+        // 시스템 pasteboard는 바꾸지 않는다
+        clipboardHistoryStore?.record(text)
+
+        closeClipboardPanelIfNeeded()
+        updateReturnButtonEnabled()
+        updateSuggestions()
+    }
+
+    final func clipboardPanel(_ panel: ClipboardHistoryPanelView, didDeleteItemsAt indices: [Int]) {
+        // 인덱스는 패널이 보여준 목록 기준이므로 텍스트로 바꿔 지운다. 파일 순서가 그사이 바뀌어도 안전하다
+        let texts = Set(indices.compactMap { panel.items.indices.contains($0) ? panel.items[$0].text : nil })
+        clipboardHistoryStore?.remove(texts: texts)
+        reloadClipboardPanel()
+    }
+
+    final func clipboardPanelDidDeleteAll(_ panel: ClipboardHistoryPanelView) {
+        clipboardHistoryStore?.removeAll()
+        reloadClipboardPanel()
+    }
+
+    final func clipboardPanel(_ panel: ClipboardHistoryPanelView, didTogglePinAt index: Int) {
+        clipboardHistoryStore?.togglePin(at: index)
+        reloadClipboardPanel()
+    }
+
+    /// 항목을 시스템 pasteboard에 복사한다. 우리가 쓴 값을 다음 동기화에서 다시 기록하지 않도록 changeCount를 갱신한다
+    final func clipboardPanel(_ panel: ClipboardHistoryPanelView, didRequestCopyAt index: Int) {
+        guard isClipboardHistoryAvailable, panel.items.indices.contains(index) else { return }
+        let pasteboard = UIPasteboard.general
+        pasteboard.string = panel.items[index].text
+        keyboardSettingsManager.lastSeenPasteboardChangeCount = pasteboard.changeCount
+    }
+
+    /// 브라우저가 열리면 호스트 앱을 떠나므로 키보드는 시스템이 내린다. 설정 이동과 같은 responder chain 경로다
+    final func clipboardPanel(_ panel: ClipboardHistoryPanelView, didRequestOpenURLAt index: Int) {
+        guard panel.items.indices.contains(index),
+              let url = ClipboardHistoryPolicy.openableURL(in: panel.items[index].text) else { return }
+        openURL(url)
+    }
 }
 
 private extension BaseKeyboardViewController {
@@ -2431,5 +2588,54 @@ private extension BaseKeyboardViewController {
 
         suggestionDidApply()
         updateSuggestions()
+    }
+}
+
+// MARK: - Full Access Guide
+
+private extension BaseKeyboardViewController {
+    func setupRequestFullAccessOverlayView() {
+        view.addSubview(requestFullAccessOverlayView)
+
+        requestFullAccessOverlayView.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            requestFullAccessOverlayView.topAnchor.constraint(equalTo: view.topAnchor),
+            requestFullAccessOverlayView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            requestFullAccessOverlayView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            requestFullAccessOverlayView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
+        ])
+
+        requestFullAccessOverlayView.closeButton.addAction(
+            UIAction { [weak self] _ in
+                self?.keyboardExtensionLocalStateStore.isClosed = true
+                self?.requestFullAccessOverlayView.isHidden = true
+            },
+            for: .touchUpInside
+        )
+        requestFullAccessOverlayView.goToSettingsButton.addAction(
+            UIAction { [weak self] _ in
+                let urlString = "sykeyboard://"
+                guard let url = URL(string: urlString) else {
+                    assertionFailure("올바르지 않은 URL 형식입니다.")
+                    // Core는 Firebase에 의존하지 않으므로 non-fatal 대신 진단 로그로만 남긴다. 상수 URL이라 실제로는 오지 않는 분기다
+                    KeyboardDiagnostics.log("Invalid settings URL: \(urlString)")
+                    return
+                }
+                self?.openURL(url)
+            },
+            for: .touchUpInside
+        )
+    }
+
+    /// extension은 `UIApplication`을 직접 쓸 수 없으므로 responder chain을 따라 올라가 연다
+    func openURL(_ url: URL) {
+        var responder: UIResponder? = self
+        while responder != nil {
+            if let application = responder as? UIApplication {
+                application.open(url)
+                return
+            }
+            responder = responder?.next
+        }
     }
 }

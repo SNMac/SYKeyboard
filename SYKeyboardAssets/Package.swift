@@ -5,6 +5,7 @@ import PackageDescription
 
 let package = Package(
     name: "SYKeyboardAssets",
+    defaultLocalization: "ko",
     platforms: [
         .iOS(.v16)
     ],

@@ -1,11 +1,12 @@
 //
 //  RequestFullAccessOverlayView.swift
-//  HangeulKeyboard, EnglishKeyboard
+//  SYKeyboardCore
 //
 //  Created by 서동환 on 11/24/25.
 //
 
 import UIKit
+import SYKeyboardAssets
 
 /// 전체 접근 허용 안내 오버레이
 final class RequestFullAccessOverlayView: UIView {
@@ -21,7 +22,7 @@ final class RequestFullAccessOverlayView: UIView {
     
     private let warningLabel: UILabel = {
         let label = UILabel()
-        label.text = String(localized: "전체 접근 허용 활성화 필요")
+        label.text = String(localized: "전체 접근 허용 활성화 필요", bundle: SYKBDAssets.bundle)
         label.font = .systemFont(ofSize: 15, weight: .bold)
         
         return label
@@ -29,7 +30,7 @@ final class RequestFullAccessOverlayView: UIView {
     
     private let descriptionLabel: UILabel = {
         let label = UILabel()
-        label.text = String(localized: "전체 접근 허용이 비활성화 되어있는 경우 일부 기능이 작동하지 않을 수 있습니다.")
+        label.text = String(localized: "전체 접근 허용이 비활성화 되어있는 경우 일부 기능이 작동하지 않을 수 있습니다.", bundle: SYKBDAssets.bundle)
         label.font = .systemFont(ofSize: 13)
         label.numberOfLines = 0
         
@@ -38,7 +39,7 @@ final class RequestFullAccessOverlayView: UIView {
     
     private let guideLabel: UILabel = {
         let label = UILabel()
-        label.text = String(localized: "활성화 방법: 설정 ➡️ 일반 ➡️ 키보드 ➡️ 키보드 ➡️ SY키보드 ➡️ '전체 접근 허용' 활성화")
+        label.text = String(localized: "활성화 방법: 설정 ➡️ 일반 ➡️ 키보드 ➡️ 키보드 ➡️ SY키보드 ➡️ '전체 접근 허용' 활성화", bundle: SYKBDAssets.bundle)
         label.font = .systemFont(ofSize: 13)
         label.numberOfLines = 0
         
@@ -57,7 +58,7 @@ final class RequestFullAccessOverlayView: UIView {
     let closeButton: UIButton = {
         let button = UIButton()
         var buttonConfig = UIButton.Configuration.gray()
-        buttonConfig.attributedTitle = AttributedString(String(localized: "닫기"), attributes: .init([.font: UIFont.systemFont(ofSize: 15)]))
+        buttonConfig.attributedTitle = AttributedString(String(localized: "닫기", bundle: SYKBDAssets.bundle), attributes: .init([.font: UIFont.systemFont(ofSize: 15)]))
         
         button.configuration = buttonConfig
         button.layer.cornerRadius = 4.6
@@ -70,7 +71,7 @@ final class RequestFullAccessOverlayView: UIView {
         var buttonConfig = UIButton.Configuration.filled()
         let imageConfig = UIImage.SymbolConfiguration(pointSize: 15, weight: .regular)
         buttonConfig.image = UIImage(systemName: "gear")?.withConfiguration(imageConfig)
-        buttonConfig.attributedTitle = AttributedString(String(localized: "시스템 설정 이동"), attributes: .init([.font: UIFont.systemFont(ofSize: 15)]))
+        buttonConfig.attributedTitle = AttributedString(String(localized: "시스템 설정 이동", bundle: SYKBDAssets.bundle), attributes: .init([.font: UIFont.systemFont(ofSize: 15)]))
         buttonConfig.imagePadding = 4
         
         button.configuration = buttonConfig

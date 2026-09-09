@@ -164,6 +164,34 @@ struct KeyboardPresentationStatePolicyTests {
         )
     }
 
+    @Test("클립보드 버튼은 suggestion bar가 보이고 클립보드 기록 설정이 켜진 경우에만 표시")
+    func test클립보드버튼표시조건() {
+        #expect(
+            KeyboardPresentationStatePolicy.shouldShowClipboardControl(
+                isSuggestionBarHidden: false,
+                isClipboardHistoryEnabled: true
+            ) == true
+        )
+        #expect(
+            KeyboardPresentationStatePolicy.shouldShowClipboardControl(
+                isSuggestionBarHidden: true,
+                isClipboardHistoryEnabled: true
+            ) == false
+        )
+        #expect(
+            KeyboardPresentationStatePolicy.shouldShowClipboardControl(
+                isSuggestionBarHidden: false,
+                isClipboardHistoryEnabled: false
+            ) == false
+        )
+        #expect(
+            KeyboardPresentationStatePolicy.shouldShowClipboardControl(
+                isSuggestionBarHidden: true,
+                isClipboardHistoryEnabled: false
+            ) == false
+        )
+    }
+
     @Test("수식 결과는 사용자 설정과 host 허용 상태가 모두 켜진 경우에만 표시")
     func test수식결과표시조건() {
         #expect(

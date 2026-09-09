@@ -115,7 +115,10 @@ final public class UserDefaultsManager {
     /// 수식 결과 표시
     @UserDefaultsWrapper(key: UserDefaultsKeys.isShowMathResultsEnabled, defaultValue: DefaultValues.isShowMathResultsEnabled)
     public var isShowMathResultsEnabled: Bool
-    
+    /// 클립보드 기록
+    @UserDefaultsWrapper(key: UserDefaultsKeys.isClipboardHistoryEnabled, defaultValue: DefaultValues.isClipboardHistoryEnabled)
+    public var isClipboardHistoryEnabled: Bool
+
     // MARK: 입력 설정
     
     /// 선택한 길게 누르기 동작
@@ -200,6 +203,9 @@ final public class UserDefaultsManager {
     /// 전체 접근 허용 안내 오버레이 닫음 여부
     @UserDefaultsWrapper(key: UserDefaultsKeys.isRequestFullAccessOverlayClosed, defaultValue: DefaultValues.isRequestFullAccessOverlayClosed)
     public var isRequestFullAccessOverlayClosed: Bool
+    /// 마지막으로 확인한 pasteboard changeCount
+    @UserDefaultsWrapper(key: UserDefaultsKeys.lastSeenPasteboardChangeCount, defaultValue: DefaultValues.lastSeenPasteboardChangeCount)
+    public var lastSeenPasteboardChangeCount: Int
 
     /// 한영 통합 키보드의 마지막 언어가 저장되어 있는지 여부
     ///

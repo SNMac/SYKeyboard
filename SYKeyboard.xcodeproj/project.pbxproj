@@ -184,14 +184,11 @@
 		5B53F8172E1E56BD0083F7CA /* Exceptions for "Keyboards" folder in "SYKeyboard" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				Common/Errors/KeyboardError.swift,
-				Common/View/RequestFullAccessOverlayView.swift,
 				EnglishKeyboard/Presentation/ViewController/EnglishKeyboardViewController.swift,
 				"EnglishKeyboard/Resources/Configs/DebugConfig-EnglishKeyboard.xcconfig",
 				"EnglishKeyboard/Resources/Configs/ReleaseConfig-EnglishKeyboard.xcconfig",
 				EnglishKeyboard/Resources/Info.plist,
 				EnglishKeyboard/Resources/InfoPlist.xcstrings,
-				EnglishKeyboard/Resources/Localizable.xcstrings,
 				HangeulEnglishKeyboard/Presentation/HangeulEnglishKeyboardViewController.swift,
 				"HangeulEnglishKeyboard/Resources/Configs/DebugConfig-HangeulEnglishKeyboard.xcconfig",
 				"HangeulEnglishKeyboard/Resources/Configs/ReleaseConfig-HangeulEnglishKeyboard.xcconfig",
@@ -202,29 +199,22 @@
 				"HangeulKeyboard/Resources/Configs/ReleaseConfig-HangeulKeyboard.xcconfig",
 				HangeulKeyboard/Resources/Info.plist,
 				HangeulKeyboard/Resources/InfoPlist.xcstrings,
-				HangeulKeyboard/Resources/Localizable.xcstrings,
 			);
 			target = 5B7B3F552C569B7800F7C093 /* SYKeyboard */;
 		};
 		5B53F8182E1E56BD0083F7CA /* Exceptions for "Keyboards" folder in "HangeulKeyboard" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				Common/Errors/KeyboardError.swift,
-				Common/View/RequestFullAccessOverlayView.swift,
 				HangeulKeyboard/Presentation/ViewController/HangeulKeyboardViewController.swift,
 				HangeulKeyboard/Resources/InfoPlist.xcstrings,
-				HangeulKeyboard/Resources/Localizable.xcstrings,
 			);
 			target = 5B7B3F6A2C569B8200F7C093 /* HangeulKeyboard */;
 		};
 		5B8284822E6EEED8006425C7 /* Exceptions for "Keyboards" folder in "EnglishKeyboard" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				Common/Errors/KeyboardError.swift,
-				Common/View/RequestFullAccessOverlayView.swift,
 				EnglishKeyboard/Presentation/ViewController/EnglishKeyboardViewController.swift,
 				EnglishKeyboard/Resources/InfoPlist.xcstrings,
-				EnglishKeyboard/Resources/Localizable.xcstrings,
 			);
 			target = 5B82846C2E6EEE04006425C7 /* EnglishKeyboard */;
 		};
@@ -240,8 +230,6 @@
 		5BC304232FF15A0D0064DC60 /* Exceptions for "Keyboards" folder in "HangeulEnglishKeyboard" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				Common/Errors/KeyboardError.swift,
-				Common/View/RequestFullAccessOverlayView.swift,
 				HangeulEnglishKeyboard/Presentation/HangeulEnglishKeyboardViewController.swift,
 				HangeulEnglishKeyboard/Resources/InfoPlist.xcstrings,
 			);
@@ -303,6 +291,7 @@
 				SYKeyboardCore/Presentation/Utils/GestureControllers/TextInteractionGestureController.swift,
 				SYKeyboardCore/Presentation/Utils/KeyboardDiagnostics.swift,
 				SYKeyboardCore/Presentation/Utils/KeyboardUndoRedoManager.swift,
+				SYKeyboardCore/Presentation/Utils/Policies/ClipboardHistoryPolicy.swift,
 				SYKeyboardCore/Presentation/Utils/Policies/CursorDragAccelerationPolicy.swift,
 				SYKeyboardCore/Presentation/Utils/Policies/KeyboardColumnWidthPolicy.swift,
 				SYKeyboardCore/Presentation/Utils/Policies/KeyboardGesturePolicy.swift,
@@ -317,6 +306,7 @@
 				SYKeyboardCore/Presentation/Utils/Policies/KeyboardSymbolInputPolicy.swift,
 				SYKeyboardCore/Presentation/Utils/Policies/KeyboardTextInteractionPolicy.swift,
 				SYKeyboardCore/Presentation/Utils/Policies/SuggestionHighlightPolicy.swift,
+				SYKeyboardCore/Presentation/View/ClipboardHistoryPanelView.swift,
 				SYKeyboardCore/Presentation/View/Components/Buttons/Bases/BaseKeyboardButton.swift,
 				SYKeyboardCore/Presentation/View/Components/Buttons/Bases/ButtonBackgroundView.swift,
 				SYKeyboardCore/Presentation/View/Components/Buttons/Bases/ButtonShadowView.swift,
@@ -341,6 +331,7 @@
 				SYKeyboardCore/Presentation/View/Components/Overlays/CursorDragIndicatorView.swift,
 				SYKeyboardCore/Presentation/View/Components/Overlays/KeyboardSelectOverlayView.swift,
 				SYKeyboardCore/Presentation/View/Components/Overlays/OneHandedModeSelectOverlayView.swift,
+				SYKeyboardCore/Presentation/View/Components/Overlays/RequestFullAccessOverlayView.swift,
 				SYKeyboardCore/Presentation/View/KeyboardLayout/Bases/FourByFourKeyboardView.swift,
 				SYKeyboardCore/Presentation/View/KeyboardLayout/Bases/FourByFourPlusKeyboardView.swift,
 				SYKeyboardCore/Presentation/View/KeyboardLayout/Bases/StandardKeyboardView.swift,
@@ -356,6 +347,8 @@
 				SYKeyboardCore/Presentation/View/KeyboardView.swift,
 				SYKeyboardCore/Presentation/View/SuggestionBarView.swift,
 				SYKeyboardCore/Presentation/ViewController/Bases/BaseKeyboardViewController.swift,
+				SYKeyboardCore/Storage/ClipboardHistoryPasteboardSynchronizer.swift,
+				SYKeyboardCore/Storage/ClipboardHistoryStore.swift,
 				SYKeyboardCore/Storage/DefaultValues.swift,
 				SYKeyboardCore/Storage/Enums/LongPressAction.swift,
 				SYKeyboardCore/Storage/Enums/OneHandedMode.swift,
@@ -394,6 +387,7 @@
 				SYKeyboardCore/Presentation/Utils/GestureControllers/TextInteractionGestureController.swift,
 				SYKeyboardCore/Presentation/Utils/KeyboardDiagnostics.swift,
 				SYKeyboardCore/Presentation/Utils/KeyboardUndoRedoManager.swift,
+				SYKeyboardCore/Presentation/Utils/Policies/ClipboardHistoryPolicy.swift,
 				SYKeyboardCore/Presentation/Utils/Policies/CursorDragAccelerationPolicy.swift,
 				SYKeyboardCore/Presentation/Utils/Policies/KeyboardColumnWidthPolicy.swift,
 				SYKeyboardCore/Presentation/Utils/Policies/KeyboardGesturePolicy.swift,
@@ -408,6 +402,7 @@
 				SYKeyboardCore/Presentation/Utils/Policies/KeyboardSymbolInputPolicy.swift,
 				SYKeyboardCore/Presentation/Utils/Policies/KeyboardTextInteractionPolicy.swift,
 				SYKeyboardCore/Presentation/Utils/Policies/SuggestionHighlightPolicy.swift,
+				SYKeyboardCore/Presentation/View/ClipboardHistoryPanelView.swift,
 				SYKeyboardCore/Presentation/View/Components/Buttons/Bases/BaseKeyboardButton.swift,
 				SYKeyboardCore/Presentation/View/Components/Buttons/Bases/ButtonBackgroundView.swift,
 				SYKeyboardCore/Presentation/View/Components/Buttons/Bases/ButtonShadowView.swift,
@@ -432,6 +427,7 @@
 				SYKeyboardCore/Presentation/View/Components/Overlays/CursorDragIndicatorView.swift,
 				SYKeyboardCore/Presentation/View/Components/Overlays/KeyboardSelectOverlayView.swift,
 				SYKeyboardCore/Presentation/View/Components/Overlays/OneHandedModeSelectOverlayView.swift,
+				SYKeyboardCore/Presentation/View/Components/Overlays/RequestFullAccessOverlayView.swift,
 				SYKeyboardCore/Presentation/View/KeyboardLayout/Bases/FourByFourKeyboardView.swift,
 				SYKeyboardCore/Presentation/View/KeyboardLayout/Bases/FourByFourPlusKeyboardView.swift,
 				SYKeyboardCore/Presentation/View/KeyboardLayout/Bases/StandardKeyboardView.swift,
@@ -447,6 +443,8 @@
 				SYKeyboardCore/Presentation/View/KeyboardView.swift,
 				SYKeyboardCore/Presentation/View/SuggestionBarView.swift,
 				SYKeyboardCore/Presentation/ViewController/Bases/BaseKeyboardViewController.swift,
+				SYKeyboardCore/Storage/ClipboardHistoryPasteboardSynchronizer.swift,
+				SYKeyboardCore/Storage/ClipboardHistoryStore.swift,
 				SYKeyboardCore/Storage/DefaultValues.swift,
 				SYKeyboardCore/Storage/Enums/LongPressAction.swift,
 				SYKeyboardCore/Storage/Enums/OneHandedMode.swift,
