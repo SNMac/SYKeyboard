@@ -203,6 +203,17 @@
         }
       }
     },
+    "고정 항목 %lld개를 삭제할까요?" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete %lld pinned items?"
+          }
+        }
+      }
+    },
     "고정 항목 추가" : {
       "localizations" : {
         "en" : {
@@ -525,6 +536,17 @@
         }
       }
     },
+    "삭제한 고정 항목은 복구할 수 없습니다." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deleted pinned items can't be recovered."
+          }
+        }
+      }
+    },
     "선택 해제" : {
       "localizations" : {
         "en" : {
@@ -751,6 +773,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Full Text"
+          }
+        }
+      }
+    },
+    "원문 편집" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Edit Text"
           }
         }
       }

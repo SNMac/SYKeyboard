@@ -25,8 +25,10 @@ struct ClipboardHistorySettingsView: View {
     @State private var editMode: EditMode = .inactive
     @State private var isAddSheetPresented = false
     @State private var newText = ""
-    /// 원문 시트에 표시할 항목
+    /// 원문 시트에 표시할 항목. 시트 안에서 내용을 편집하면 바뀌므로 identity가 아니라 표시 여부로 시트를 연다
     @State private var detailItem: ClipboardHistoryItem?
+    /// 고정 항목이 포함돼 확인 알림을 기다리는 삭제 대상
+    @State private var pendingDeletion: [ClipboardHistoryItem]?
 
     // MARK: - Initializer
 
@@ -75,10 +77,26 @@ struct ClipboardHistorySettingsView: View {
             .environment(\.editMode, $editMode)
             // 시트가 떠 있는 동안 키보드가 기록을 바꿀 수 있으므로 닫힐 때 다시 읽는다
             .sheet(isPresented: $isAddSheetPresented, onDismiss: synchronizeAndReload) { addSheet }
-            .sheet(item: $detailItem) { item in
-                ClipboardHistoryDetailView(text: item.text)
+            .sheet(isPresented: isDetailPresented) {
+                if let item = detailItem {
+                    ClipboardHistoryDetailView(
+                        item: item,
+                        canSave: { ClipboardHistoryPolicy.replacingText(item.text, with: $0, in: items) != nil },
+                        onSave: { replaceText(of: item, with: $0) }
+                    )
                     .presentationDetents([.medium, .large])
                     .presentationDragIndicator(.visible)
+                }
+            }
+            .alert(
+                Text("고정 항목 \(pendingDeletion?.filter(\.isPinned).count ?? 0)개를 삭제할까요?"),
+                isPresented: isDeletionAlertPresented,
+                presenting: pendingDeletion
+            ) { removing in
+                Button("삭제", role: .destructive) { remove(removing) }
+                Button("취소", role: .cancel) {}
+            } message: { _ in
+                Text("삭제한 고정 항목은 복구할 수 없습니다.")
             }
             .onAppear(perform: synchronizeAndReload)
             .onChange(of: scenePhase) { phase in
@@ -136,7 +154,7 @@ private extension ClipboardHistorySettingsView {
             }
             .swipeActions(edge: .trailing) {
                 Button(role: .destructive) {
-                    remove([item])
+                    requestRemove([item])
                 } label: {
                     Label("삭제", systemImage: "trash.fill")
                 }
@@ -205,7 +223,7 @@ private extension ClipboardHistorySettingsView {
             }
             .disabled(!pinBatch.isAllowed)
             Button(role: .destructive) {
-                remove(selectedItems)
+                requestRemove(selectedItems)
             } label: {
                 Label("\(selection.count)개 삭제", systemImage: "trash")
             }
@@ -229,6 +247,14 @@ private extension ClipboardHistorySettingsView {
                     }
                 }
         }
+    }
+
+    var isDetailPresented: Binding<Bool> {
+        Binding(get: { detailItem != nil }, set: { if !$0 { detailItem = nil } })
+    }
+
+    var isDeletionAlertPresented: Binding<Bool> {
+        Binding(get: { pendingDeletion != nil }, set: { if !$0 { pendingDeletion = nil } })
     }
 
     var canSaveNewItem: Bool {
@@ -266,6 +292,15 @@ private extension ClipboardHistorySettingsView {
     }
 
     /// 인덱스는 파일 순서 기준이므로 조작 직전에 다시 읽어 키보드가 바꾼 내용과 어긋나지 않게 한다
+    /// 고정 항목이 섞여 있으면 알림으로 확인받고, 아니면 바로 지운다
+    func requestRemove(_ removing: [ClipboardHistoryItem]) {
+        if removing.contains(where: \.isPinned) {
+            pendingDeletion = removing
+        } else {
+            remove(removing)
+        }
+    }
+
     func remove(_ removing: [ClipboardHistoryItem]) {
         reload()
         let texts = Set(removing.map(\.text))
@@ -279,6 +314,13 @@ private extension ClipboardHistorySettingsView {
         reload()
     }
 
+    /// 원문 시트에서 편집한 내용을 저장하고, 시트가 새 내용을 보이도록 표시 항목을 바꾼다
+    func replaceText(of item: ClipboardHistoryItem, with newText: String) {
+        store?.replaceText(item.text, with: newText)
+        reload()
+        detailItem = items.first { $0.text == newText } ?? detailItem
+    }
+
     func saveNewItem() {
         store?.recordPinned(newText)
         isAddSheetPresented = false
@@ -288,40 +330,72 @@ private extension ClipboardHistorySettingsView {
 
 // MARK: - Detail
 
-/// 항목의 원문 전체를 하프 시트에서 스크롤로 보여주는 화면. 위로 밀어 올리면 전체 높이가 된다
+/// 항목의 원문 전체를 하프 시트에서 스크롤로 보여주는 화면. 위로 밀어 올리면 전체 높이가 된다.
+/// "편집"을 누르면 같은 시트 안에서 내용을 고쳐 저장한다. 키보드 패널에는 편집이 없다
 private struct ClipboardHistoryDetailView: View {
-    let text: String
+    let item: ClipboardHistoryItem
+    /// 정책상 저장할 수 있는 내용인지(빈 값·길이·중복·원문과 같음)
+    let canSave: (String) -> Bool
+    let onSave: (String) -> Void
 
     @Environment(\.openURL) private var openURL
+    @State private var isEditing = false
+    @State private var draft = ""
 
     var body: some View {
         NavigationStack {
-            ScrollView {
-                Text(text)
-                    .textSelection(.enabled)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding()
-            }
-            .navigationTitle("원문")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    ShareLink(item: text) {
-                        Label("공유", systemImage: "square.and.arrow.up")
+            Group {
+                if isEditing {
+                    TextEditor(text: $draft)
+                        .padding(.horizontal)
+                } else {
+                    ScrollView {
+                        Text(item.text)
+                            .textSelection(.enabled)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding()
                     }
                 }
-                ToolbarItemGroup(placement: .navigationBarTrailing) {
-                    if let url = ClipboardHistoryPolicy.openableURL(in: text) {
-                        Button {
-                            openURL(url)
-                        } label: {
-                            Label("브라우저에서 열기", systemImage: "safari")
+            }
+            .navigationTitle(isEditing ? "원문 편집" : "원문")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                if isEditing {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button("취소") { isEditing = false }
+                    }
+                    ToolbarItem(placement: .confirmationAction) {
+                        Button("저장") {
+                            onSave(draft)
+                            isEditing = false
+                        }
+                        .disabled(!canSave(draft))
+                    }
+                } else {
+                    ToolbarItem(placement: .navigationBarLeading) {
+                        ShareLink(item: item.text) {
+                            Label("공유", systemImage: "square.and.arrow.up")
                         }
                     }
-                    Button {
-                        UIPasteboard.general.string = text
-                    } label: {
-                        Label("복사", systemImage: "doc.on.doc")
+                    ToolbarItemGroup(placement: .navigationBarTrailing) {
+                        if let url = ClipboardHistoryPolicy.openableURL(in: item.text) {
+                            Button {
+                                openURL(url)
+                            } label: {
+                                Label("브라우저에서 열기", systemImage: "safari")
+                            }
+                        }
+                        Button {
+                            UIPasteboard.general.string = item.text
+                        } label: {
+                            Label("복사", systemImage: "doc.on.doc")
+                        }
+                        Button {
+                            draft = item.text
+                            isEditing = true
+                        } label: {
+                            Label("편집", systemImage: "pencil")
+                        }
                     }
                 }
             }

@@ -247,6 +247,29 @@ struct ClipboardHistoryPolicyTests {
         #expect(ClipboardHistoryPolicy.openableURL(in: "") == nil)
     }
 
+    @Test("내용 편집은 자리·고정 상태·시각을 유지하고 텍스트만 바꿈")
+    func test내용편집은_자리와고정유지() {
+        let items = [item("p", createdAt: 1, pinnedAt: 100), item("b", createdAt: 3), item("a", createdAt: 2)]
+
+        let result = ClipboardHistoryPolicy.replacingText("b", with: "b2", in: items)
+
+        #expect(result?.map(\.text) == ["p", "b2", "a"])
+        #expect(result?[1].createdAt == Date(timeIntervalSince1970: 3))
+        #expect(ClipboardHistoryPolicy.replacingText("p", with: "p2", in: items)?.first?.pinnedAt == Date(timeIntervalSince1970: 100))
+    }
+
+    @Test("내용 편집은 빈 값·길이 초과·원문과 같음·다른 항목과 중복·없는 항목이면 nil")
+    func test내용편집_불가조건은_nil() {
+        let items = [item("a"), item("b")]
+        let over = String(repeating: "가", count: ClipboardHistoryPolicy.maxTextLength + 1)
+
+        #expect(ClipboardHistoryPolicy.replacingText("a", with: " \n", in: items) == nil)
+        #expect(ClipboardHistoryPolicy.replacingText("a", with: over, in: items) == nil)
+        #expect(ClipboardHistoryPolicy.replacingText("a", with: "a", in: items) == nil)
+        #expect(ClipboardHistoryPolicy.replacingText("a", with: "b", in: items) == nil)
+        #expect(ClipboardHistoryPolicy.replacingText("zzz", with: "c", in: items) == nil)
+    }
+
     @Test("범위 밖 인덱스의 고정 토글은 nil")
     func test범위밖인덱스_고정토글은_nil() {
         #expect(ClipboardHistoryPolicy.togglingPin(at: 5, in: [item("a")], now: now) == nil)

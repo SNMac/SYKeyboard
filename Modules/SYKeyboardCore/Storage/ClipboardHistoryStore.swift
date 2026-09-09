@@ -68,6 +68,12 @@ public final class ClipboardHistoryStore {
         save(items)
     }
 
+    /// 항목의 내용을 바꾼다. 정책상 바꿀 수 없으면 아무것도 하지 않는다
+    public func replaceText(_ oldText: String, with newText: String) {
+        guard let items = ClipboardHistoryPolicy.replacingText(oldText, with: newText, in: load()) else { return }
+        save(items)
+    }
+
     /// 선택한 텍스트의 항목을 한 번에 고정/해제한다. 정책이 허용하지 않으면 아무것도 하지 않는다
     public func togglePins(selectedTexts: Set<String>, now: Date = Date()) {
         guard let items = ClipboardHistoryPolicy.togglingPins(selectedTexts: selectedTexts, in: load(), now: now) else { return }

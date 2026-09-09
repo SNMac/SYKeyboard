@@ -113,6 +113,18 @@ struct ClipboardHistoryStoreTests {
         #expect(items.map(\.isPinned) == [true, true, false])
     }
 
+    @Test("내용을 바꾸면 같은 자리에 새 텍스트로 저장되고 중복이면 그대로")
+    func test내용편집은_같은자리에저장() {
+        let fixture = makeFixture(name: "replace")
+        fixture.store.record("a", now: Date(timeIntervalSince1970: 1))
+        fixture.store.record("b", now: Date(timeIntervalSince1970: 2))
+
+        fixture.store.replaceText("a", with: "a2")
+        fixture.store.replaceText("b", with: "a2")
+
+        #expect(fixture.store.load().map(\.text) == ["b", "a2"])
+    }
+
     @Test("pinnedAt 키가 없는 기존 파일은 미고정 항목으로 읽힘")
     func test기존파일은_미고정으로읽힘() throws {
         let fixture = makeFixture(name: "legacy")

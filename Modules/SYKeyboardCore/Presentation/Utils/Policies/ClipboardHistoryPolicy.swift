@@ -90,6 +90,27 @@ public enum ClipboardHistoryPolicy {
         return url
     }
 
+    /// `oldText` 항목의 내용을 `newText`로 바꾼 결과. 자리·고정 상태·시각은 그대로 둔다. 바꿀 수 없으면 `nil`
+    ///
+    /// - 빈 문자열, 공백·개행만, `maxTextLength` 초과, 원문과 같음, 다른 항목과 중복이면 `nil`
+    /// - `oldText` 항목이 없어도 `nil`
+    public static func replacingText(
+        _ oldText: String,
+        with newText: String,
+        in items: [ClipboardHistoryItem]
+    ) -> [ClipboardHistoryItem]? {
+        guard !newText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+              newText.count <= maxTextLength,
+              newText != oldText,
+              !items.contains(where: { $0.text == newText }),
+              let index = items.firstIndex(where: { $0.text == oldText }) else { return nil }
+
+        var result = items
+        let target = items[index]
+        result[index] = ClipboardHistoryItem(text: newText, createdAt: target.createdAt, pinnedAt: target.pinnedAt)
+        return result
+    }
+
     /// 고정 한도에 여유가 있는지
     public static func canPin(_ items: [ClipboardHistoryItem]) -> Bool {
         return items.filter(\.isPinned).count < maxPinnedCount
