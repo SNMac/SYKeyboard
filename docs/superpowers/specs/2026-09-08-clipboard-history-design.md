@@ -232,8 +232,8 @@ func resetPresentation()   // 편집 모드 해제, 상세 뷰 닫기, 스크롤
 동작:
 
 - 평소 모드 행 탭 → `delegate.clipboardPanel(_:didSelectItemAt:)`.
-- 평소 모드 trailing swipe → `UIContextualAction(style: .destructive)` →
-  `delegate.clipboardPanel(_:didDeleteItemsAt: [index])`.
+- 평소 모드 trailing swipe → `UIContextualAction(style: .destructive)`(`trash.fill`
+  아이콘, 제목 "삭제"는 접근성용) → `delegate.clipboardPanel(_:didDeleteItemsAt: [index])`.
 - 평소 모드 행 길게 누르기(`UILongPressGestureRecognizer`, `minimumPressDuration` 기본값)
   → 상세 뷰 표시. 편집 모드에서는 무시한다.
 - 상세 뷰 "붙여넣기" → 먼저 `didTogglePin`과 같은 경로의 `didRequestCopyAt`으로 항목을 시스템
@@ -326,8 +326,13 @@ String Catalog는 extension·앱 번들에 복사되지 않고, `Bundle(for:)`�
 
 - 키보드 패널과 같은 목록(고정 최신순 → 미고정 최신순), 고정 행은 `pin.circle.fill`.
   행 탭은 원문 전체를 보는 상세 화면이다(붙여넣기는 없다).
-- leading swipe 고정/해제, trailing swipe 삭제, `EditButton` 다중 선택과 하단 툴바의
-  "전체 선택"·"n개 삭제". 규칙은 키보드 패널과 같다.
+- leading swipe 고정/해제, trailing swipe 삭제(`trash.fill`), 편집 모드 다중 선택과 하단
+  툴바의 "전체 선택" · "n개 고정" · "n개 삭제". 규칙은 키보드 패널과 같다.
+- "n개 고정"은 선택 중 미고정 항목만 고정하며 n은 그 개수다. 선택이 전부 고정이면
+  "n개 고정 해제"로 바뀌어 모두 해제한다. 대상이 없거나 고정 한도를 넘기면 비활성.
+  선택은 유지된다. 키보드 패널에는 두지 않는다.
+- Core 코드가 쓰는 문자열은 extension·앱 타깃의 Xcode 추출기가 보지 못하므로 카탈로그에서
+  `extractionState`를 `manual`로 둔다. 비워 두면 빌드 때 `stale`로 표시된다.
 - 툴바 `+`("추가") → "고정 항목 추가" 시트의 `TextEditor`에 직접 입력해 저장한다.
   저장한 항목은 `recordPinned`로 고정 항목이 되어 맨 위에 온다. 공백만이거나 2,000자
   초과면 저장이 비활성이고, 고정 20개가 차면 "추가" 자체가 비활성이다.
