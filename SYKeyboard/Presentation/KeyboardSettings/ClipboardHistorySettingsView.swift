@@ -412,12 +412,7 @@ private struct ClipboardHistoryDetailView: View {
                         .disabled(!canSave(draft))
                     }
                 } else {
-                    ToolbarItem(placement: .navigationBarLeading) {
-                        ShareLink(item: item.text) {
-                            Label("공유", systemImage: "square.and.arrow.up")
-                        }
-                    }
-                    ToolbarItemGroup(placement: .navigationBarTrailing) {
+                    ToolbarItemGroup(placement: .navigationBarLeading) {
                         if item.isPinned || canPin {
                             Button(action: onTogglePin) {
                                 // 현재 상태를 보여준다: 고정이면 채운 핀, 아니면 빈 핀
@@ -427,6 +422,11 @@ private struct ClipboardHistoryDetailView: View {
                                 )
                             }
                         }
+                        ShareLink(item: item.text) {
+                            Label("공유", systemImage: "square.and.arrow.up")
+                        }
+                    }
+                    ToolbarItemGroup(placement: .navigationBarTrailing) {
                         Button(action: onCopy) {
                             Label("복사", systemImage: "doc.on.doc")
                         }
