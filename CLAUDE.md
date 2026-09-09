@@ -12,7 +12,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - 공통 키보드 UI와 입력 보조 기능은 `Modules/SYKeyboardCore/`에 있다.
 - 한글 입력 조합 로직은 `Modules/HangeulKeyboardCore/Domain/`에 있으며, 나랏글/천지인/두벌식 Processor와 Automata 테스트가 중요하다.
 - 영문 키보드 로직은 `Modules/EnglishKeyboardCore/`에 있다.
-- 공통 XIB, 색상, 리소스는 로컬 SPM 패키지 `SYKeyboardAssets/`에서 제공한다.
+- 공통 XIB, 색상, 리소스는 로컬 SPM 패키지 `SYKeyboardAssets/`에서 제공한다. Core 코드가 쓰는 로컬라이징
+  문자열도 이 패키지의 `Localizable.xcstrings`에 두고 `SYKBDAssets.bundle`로 읽는다.
 - 외부 의존성은 SPM으로 관리하며 Firebase, Google Mobile Ads, Meta mediation이 포함된다.
 
 ## 아키텍처
@@ -146,7 +147,6 @@ extension 프로세스 로컬 상태는 `KeyboardExtensionLocalStateStore`에 �
 - `Keyboards/HangeulKeyboard/`: 한글 키보드 extension 진입점과 리소스.
 - `Keyboards/EnglishKeyboard/`: 영문 키보드 extension 진입점과 리소스.
 - `Keyboards/HangeulEnglishKeyboard/`: 한영 통합 키보드 extension 진입점과 리소스.
-- `Keyboards/Common/`: 키보드 확장 공통 UI와 오류 타입.
 - `Modules/SYKeyboardCore/`: 공통 키보드 UI, 버튼, 제스처, 자동완성, 저장소 기본 타입.
   - `Presentation/Utils/Policies/`, `Presentation/Utils/Coordinators/`: UI 의존 없는 순수 정책·모드 결정 타입.
 - `Modules/HangeulKeyboardCore/`: 한글 오토마타, 입력 Processor, 한글 키보드 View.

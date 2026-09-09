@@ -24,11 +24,6 @@ final class HangeulKeyboardViewController: HangeulKeyboardCoreViewController {
         category: "\(String(describing: type(of: self))) <\(Unmanaged.passUnretained(self).toOpaque())>"
     )
     
-    // MARK: - UI Components
-    
-    /// 전체 접근 허용 안내 오버레이
-    private lazy var requestFullAccessOverlayView = RequestFullAccessOverlayView()
-    
     // MARK: - Initializer
     
     override init() {
@@ -44,14 +39,6 @@ final class HangeulKeyboardViewController: HangeulKeyboardCoreViewController {
     
     // MARK: - Lifecycle
     
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        
-        if needToShowFullAccessGuide {
-            setupRequestFullAccessOverlayView()
-        }
-    }
-    
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         
@@ -61,41 +48,6 @@ final class HangeulKeyboardViewController: HangeulKeyboardCoreViewController {
         // 메모리 경고 발생 시 Crashlytics에 로그 남기기
         Crashlytics.crashlytics().log(msg)
         Crashlytics.crashlytics().setCustomValue(true, forKey: "did_receive_memory_warning")
-    }
-}
-
-// MARK: - UI Methods
-
-private extension HangeulKeyboardViewController {
-    func setupRequestFullAccessOverlayView() {
-        self.view.addSubview(requestFullAccessOverlayView)
-        
-        requestFullAccessOverlayView.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([
-            requestFullAccessOverlayView.topAnchor.constraint(equalTo: self.view.topAnchor),
-            requestFullAccessOverlayView.leadingAnchor.constraint(equalTo: self.view.leadingAnchor),
-            requestFullAccessOverlayView.trailingAnchor.constraint(equalTo: self.view.trailingAnchor),
-            requestFullAccessOverlayView.bottomAnchor.constraint(equalTo: self.view.bottomAnchor)
-        ])
-        
-        let closeOverlayAction = UIAction { [weak self] _ in
-            self?.keyboardExtensionLocalStateStore.isClosed = true
-            self?.requestFullAccessOverlayView.isHidden = true
-        }
-        requestFullAccessOverlayView.closeButton.addAction(closeOverlayAction, for: .touchUpInside)
-        
-        let redirectToSettingsAction = UIAction { [weak self] _ in
-            let urlString = "sykeyboard://"
-            guard let url = URL(string: urlString) else {
-                assertionFailure("올바르지 않은 URL 형식입니다.")
-                
-                let error = KeyboardError.invalidSettingsURL(url: urlString)
-                Crashlytics.crashlytics().record(error: error)
-                return
-            }
-            self?.openURL(url)
-        }
-        requestFullAccessOverlayView.goToSettingsButton.addAction(redirectToSettingsAction, for: .touchUpInside)
     }
 }
 
@@ -115,17 +67,6 @@ private extension HangeulKeyboardViewController {
         // 진단 기록 연결. 입력한 텍스트는 전달되지 않는다(`KeyboardDiagnostics` 참고)
         KeyboardDiagnostics.record = { message in
             Crashlytics.crashlytics().log(message)
-        }
-    }
-    
-    func openURL(_ url: URL) {
-        var responder: UIResponder? = self
-        while responder != nil {
-            if let application = responder as? UIApplication {
-                application.open(url)
-                return
-            }
-            responder = responder?.next
         }
     }
 }
