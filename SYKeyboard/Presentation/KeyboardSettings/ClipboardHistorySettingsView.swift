@@ -29,6 +29,8 @@ struct ClipboardHistorySettingsView: View {
     @State private var detailItem: ClipboardHistoryItem?
     /// 고정 항목이 포함돼 확인 알림을 기다리는 삭제 대상
     @State private var pendingDeletion: [ClipboardHistoryItem]?
+    /// 시트 제목에 쓰는 고정 개수. 시트가 닫히는 동안 `pendingDeletion`이 먼저 비워져도 제목이 "0개"로 바뀌지 않게 따로 둔다
+    @State private var deletionTitleCount = 0
 
     // MARK: - Initializer
 
@@ -93,7 +95,7 @@ struct ClipboardHistorySettingsView: View {
             }
             // 스와이프·편집 모드 삭제는 사용자가 의도한 동작이므로 HIG대로 알림이 아니라 action sheet로 확인한다. 취소는 시스템이 붙인다
             .confirmationDialog(
-                Text("고정 항목 \(pendingDeletion?.filter(\.isPinned).count ?? 0)개를 삭제할까요?"),
+                Text("고정 항목 \(deletionTitleCount)개를 삭제할까요?"),
                 isPresented: isDeletionAlertPresented,
                 titleVisibility: .visible,
                 presenting: pendingDeletion
@@ -298,6 +300,7 @@ private extension ClipboardHistorySettingsView {
     /// 고정 항목이 섞여 있으면 알림으로 확인받고, 아니면 바로 지운다
     func requestRemove(_ removing: [ClipboardHistoryItem]) {
         if removing.contains(where: \.isPinned) {
+            deletionTitleCount = removing.filter(\.isPinned).count
             pendingDeletion = removing
         } else {
             remove(removing)

@@ -116,8 +116,9 @@ struct PredictiveTextSettingsView: View {
             }
 
             if isClipboardHistoryEnabled {
+                // 목적지 init이 저장소를 읽으므로 링크를 누를 때만 만든다
                 NavigationLink("클립보드 기록 관리") {
-                    ClipboardHistorySettingsView()
+                    LazyView(ClipboardHistorySettingsView())
                 }
             }
         }
