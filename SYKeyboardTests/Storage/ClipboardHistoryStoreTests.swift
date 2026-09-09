@@ -99,6 +99,20 @@ struct ClipboardHistoryStoreTests {
         #expect(items[0].isPinned)
     }
 
+    @Test("선택한 텍스트를 한 번에 고정하면 파일에 목록 순서대로 고정 저장")
+    func test일괄고정은_파일에저장() {
+        let fixture = makeFixture(name: "toggle-pins")
+        fixture.store.record("a", now: Date(timeIntervalSince1970: 1))
+        fixture.store.record("b", now: Date(timeIntervalSince1970: 2))
+        fixture.store.record("c", now: Date(timeIntervalSince1970: 3))
+
+        fixture.store.togglePins(selectedTexts: ["c", "a"], now: Date(timeIntervalSince1970: 10))
+
+        let items = fixture.store.load()
+        #expect(items.map(\.text) == ["c", "a", "b"])
+        #expect(items.map(\.isPinned) == [true, true, false])
+    }
+
     @Test("pinnedAt 키가 없는 기존 파일은 미고정 항목으로 읽힘")
     func test기존파일은_미고정으로읽힘() throws {
         let fixture = makeFixture(name: "legacy")

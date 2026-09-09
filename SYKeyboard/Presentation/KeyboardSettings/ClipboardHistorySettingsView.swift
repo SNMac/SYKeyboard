@@ -32,14 +32,8 @@ struct ClipboardHistorySettingsView: View {
     private var recentCount: Int { items.count - pinnedCount }
     private var isAllSelected: Bool { !items.isEmpty && selection.count == items.count }
     private var selectedItems: [ClipboardHistoryItem] { items.filter { selection.contains($0.text) } }
-    /// 선택이 전부 고정이면 해제, 아니면 미고정만 고정한다
-    private var isUnpinningSelection: Bool { !selectedItems.isEmpty && selectedItems.allSatisfy(\.isPinned) }
-    private var pinTargets: [ClipboardHistoryItem] {
-        isUnpinningSelection ? selectedItems : selectedItems.filter { !$0.isPinned }
-    }
-    private var canPinTargets: Bool {
-        !pinTargets.isEmpty
-        && (isUnpinningSelection || pinnedCount + pinTargets.count <= ClipboardHistoryPolicy.maxPinnedCount)
+    private var pinBatch: ClipboardHistoryPolicy.PinBatch {
+        ClipboardHistoryPolicy.pinBatch(selectedTexts: selection, in: items)
     }
 
     // MARK: - Content
@@ -68,15 +62,15 @@ struct ClipboardHistorySettingsView: View {
             // 편집 버튼과 List가 같은 편집 상태를 보도록 toolbar 바깥에 둔다
             .environment(\.editMode, $editMode)
             // 시트가 떠 있는 동안 키보드가 기록을 바꿀 수 있으므로 닫힐 때 다시 읽는다
-            .sheet(isPresented: $isAddSheetPresented, onDismiss: reload) { addSheet }
+            .sheet(isPresented: $isAddSheetPresented, onDismiss: synchronizeAndReload) { addSheet }
             .sheet(item: $detailItem) { item in
                 ClipboardHistoryDetailView(text: item.text)
                     .presentationDetents([.medium, .large])
                     .presentationDragIndicator(.visible)
             }
-            .onAppear(perform: reload)
+            .onAppear(perform: synchronizeAndReload)
             .onChange(of: scenePhase) { phase in
-                if phase == .active { reload() }
+                if phase == .active { synchronizeAndReload() }
             }
             .requestReviewOnDetailSettingsReturn()
         }
@@ -118,7 +112,7 @@ private extension ClipboardHistorySettingsView {
             .swipeActions(edge: .leading) {
                 if item.isPinned || canPin {
                     Button {
-                        togglePins([item])
+                        togglePins(selectedTexts: [item.text])
                     } label: {
                         Label(
                             item.isPinned ? "고정 해제" : "고정",
@@ -176,12 +170,12 @@ private extension ClipboardHistorySettingsView {
             }
             Spacer()
             Button {
-                togglePins(pinTargets)
+                togglePins(selectedTexts: selection)
             } label: {
-                Text(isUnpinningSelection ? "\(pinTargets.count)개 고정 해제" : "\(pinTargets.count)개 고정")
+                Text(pinBatch.isUnpinning ? "\(pinBatch.targets.count)개 고정 해제" : "\(pinBatch.targets.count)개 고정")
                     .monospacedDigit()
             }
-            .disabled(!canPinTargets)
+            .disabled(!pinBatch.isAllowed)
             Button(role: .destructive) {
                 remove(selectedItems)
             } label: {
@@ -220,11 +214,16 @@ private extension ClipboardHistorySettingsView {
 // MARK: - Private Methods
 
 private extension ClipboardHistorySettingsView {
-    func reload() {
-        // 앱 활성화 알림과 순서가 보장되지 않으므로 화면에서도 먼저 동기화한다. changeCount가 같으면 즉시 반환한다
+    /// 화면에 들어오거나 돌아올 때. 앱 활성화 알림과 순서가 보장되지 않으므로 여기서도 동기화한다
+    func synchronizeAndReload() {
         if let store, UserDefaultsManager.shared.isClipboardHistoryEnabled {
             ClipboardHistoryPasteboardSynchronizer.synchronizeIfNeeded(store: store)
         }
+        reload()
+    }
+
+    /// 파일을 다시 읽는다. 조작 경로에서는 동기화하지 않아 새 항목이 끼어들며 대상이 밀려나지 않게 한다
+    func reload() {
         // SwiftUI가 id(텍스트) 차이로 행 삽입·삭제·이동을 애니메이션한다
         withAnimation {
             items = store?.load() ?? []
@@ -233,18 +232,13 @@ private extension ClipboardHistorySettingsView {
         if items.isEmpty { editMode = .inactive }
     }
 
-    /// 인덱스는 파일 순서 기준이므로 조작 직전에 다시 읽어 키보드가 바꾼 내용과 어긋나지 않게 한다.
-    /// 토글할 때마다 정렬이 바뀌므로 매번 다시 읽은 목록에서 인덱스를 찾는다
-    func togglePins(_ toggling: [ClipboardHistoryItem]) {
-        guard let store else { return }
-        reload()
-        for item in toggling {
-            guard let index = store.load().firstIndex(where: { $0.text == item.text }) else { continue }
-            store.togglePin(at: index)
-        }
+    /// 저장소가 파일을 다시 읽어 판단하므로 키보드가 그사이 바꾼 내용과 어긋나지 않는다
+    func togglePins(selectedTexts: Set<String>) {
+        store?.togglePins(selectedTexts: selectedTexts)
         reload()
     }
 
+    /// 인덱스는 파일 순서 기준이므로 조작 직전에 다시 읽어 키보드가 바꾼 내용과 어긋나지 않게 한다
     func remove(_ removing: [ClipboardHistoryItem]) {
         reload()
         let texts = Set(removing.map(\.text))

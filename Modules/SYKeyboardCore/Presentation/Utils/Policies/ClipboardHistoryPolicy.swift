@@ -106,6 +106,53 @@ public enum ClipboardHistoryPolicy {
         return sorted(result)
     }
 
+    /// 편집 모드에서 선택한 항목을 한 번에 고정/해제할 때의 대상과 허용 여부
+    public struct PinBatch: Equatable {
+        /// 바뀔 항목. 목록 순서를 유지한다
+        public let targets: [ClipboardHistoryItem]
+        /// 선택이 전부 고정이면 모두 해제, 아니면 미고정만 고정한다
+        public let isUnpinning: Bool
+        /// 대상이 있고, 고정이라면 고정 한도를 넘지 않는지
+        public let isAllowed: Bool
+    }
+
+    /// `selectedTexts`에 해당하는 항목의 일괄 고정/해제 계획
+    public static func pinBatch(
+        selectedTexts: Set<String>,
+        in items: [ClipboardHistoryItem]
+    ) -> PinBatch {
+        let selected = items.filter { selectedTexts.contains($0.text) }
+        let isUnpinning = !selected.isEmpty && selected.allSatisfy(\.isPinned)
+        let targets = isUnpinning ? selected : selected.filter { !$0.isPinned }
+        let pinnedCount = items.filter(\.isPinned).count
+        let isAllowed = !targets.isEmpty
+            && (isUnpinning || pinnedCount + targets.count <= maxPinnedCount)
+        return PinBatch(targets: targets, isUnpinning: isUnpinning, isAllowed: isAllowed)
+    }
+
+    /// `pinBatch`를 적용하고 정렬한 결과. 허용되지 않으면 `nil`
+    ///
+    /// 고정 시각은 목록 순서대로 1ms씩 앞당겨, 함께 고정한 항목이 목록에서 보던 순서 그대로 위에 온다
+    static func togglingPins(
+        selectedTexts: Set<String>,
+        in items: [ClipboardHistoryItem],
+        now: Date
+    ) -> [ClipboardHistoryItem]? {
+        let batch = pinBatch(selectedTexts: selectedTexts, in: items)
+        guard batch.isAllowed else { return nil }
+
+        let targetTexts = batch.targets.map(\.text)
+        let result = items.map { item -> ClipboardHistoryItem in
+            guard let offset = targetTexts.firstIndex(of: item.text) else { return item }
+            return ClipboardHistoryItem(
+                text: item.text,
+                createdAt: item.createdAt,
+                pinnedAt: batch.isUnpinning ? nil : now.addingTimeInterval(-Double(offset) / 1_000)
+            )
+        }
+        return sorted(result)
+    }
+
     /// 고정은 고정 시각 최신순으로 앞에, 미고정은 복사 시각 최신순으로 뒤에. 시각이 같으면 텍스트 순으로 고정한다
     static func sorted(_ items: [ClipboardHistoryItem]) -> [ClipboardHistoryItem] {
         let pinned = items.filter(\.isPinned).sorted { lhs, rhs in

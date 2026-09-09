@@ -68,6 +68,12 @@ public final class ClipboardHistoryStore {
         save(items)
     }
 
+    /// 선택한 텍스트의 항목을 한 번에 고정/해제한다. 정책이 허용하지 않으면 아무것도 하지 않는다
+    public func togglePins(selectedTexts: Set<String>, now: Date = Date()) {
+        guard let items = ClipboardHistoryPolicy.togglingPins(selectedTexts: selectedTexts, in: load(), now: now) else { return }
+        save(items)
+    }
+
     /// 지정한 인덱스의 항목을 삭제한다. 범위 밖 인덱스는 무시한다
     public func remove(at indices: [Int]) {
         let removing = Set(indices)

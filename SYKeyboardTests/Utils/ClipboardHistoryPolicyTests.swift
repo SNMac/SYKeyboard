@@ -171,6 +171,71 @@ struct ClipboardHistoryPolicyTests {
         #expect(ClipboardHistoryPolicy.sorted(items).map(\.text) == ["c", "a", "b"])
     }
 
+    @Test("선택에 미고정이 섞이면 미고정만 고정 대상")
+    func test선택에미고정이섞이면_미고정만고정대상() {
+        let items = [item("p", pinnedAt: 100), item("a", createdAt: 2), item("b", createdAt: 1)]
+
+        let batch = ClipboardHistoryPolicy.pinBatch(selectedTexts: ["p", "a", "b"], in: items)
+
+        #expect(batch.targets.map(\.text) == ["a", "b"])
+        #expect(batch.isUnpinning == false)
+        #expect(batch.isAllowed)
+    }
+
+    @Test("선택이 전부 고정이면 모두 해제 대상")
+    func test선택이전부고정이면_해제대상() {
+        let items = [item("p1", pinnedAt: 101), item("p2", pinnedAt: 100), item("a")]
+
+        let batch = ClipboardHistoryPolicy.pinBatch(selectedTexts: ["p1", "p2"], in: items)
+
+        #expect(batch.targets.map(\.text) == ["p1", "p2"])
+        #expect(batch.isUnpinning)
+        #expect(batch.isAllowed)
+    }
+
+    @Test("선택이 없거나 목록에 없는 텍스트뿐이면 불허")
+    func test선택없으면_불허() {
+        let items = [item("a")]
+
+        #expect(ClipboardHistoryPolicy.pinBatch(selectedTexts: [], in: items).isAllowed == false)
+        #expect(ClipboardHistoryPolicy.pinBatch(selectedTexts: ["zzz"], in: items).isAllowed == false)
+        #expect(ClipboardHistoryPolicy.togglingPins(selectedTexts: [], in: items, now: now) == nil)
+    }
+
+    @Test("일괄 고정은 현재 고정 수와 합쳐 한도까지만 허용")
+    func test일괄고정은_한도경계까지허용() {
+        let pinned = (0..<(ClipboardHistoryPolicy.maxPinnedCount - 1)).map {
+            item("p\($0)", pinnedAt: TimeInterval(100 + $0))
+        }
+        let items = pinned + [item("a", createdAt: 2), item("b", createdAt: 1)]
+
+        #expect(ClipboardHistoryPolicy.pinBatch(selectedTexts: ["a"], in: items).isAllowed)
+        #expect(ClipboardHistoryPolicy.pinBatch(selectedTexts: ["a", "b"], in: items).isAllowed == false)
+        #expect(ClipboardHistoryPolicy.togglingPins(selectedTexts: ["a", "b"], in: items, now: now) == nil)
+    }
+
+    @Test("함께 고정한 항목은 목록에서 보던 순서대로 위에 옴")
+    func test일괄고정은_목록순서유지() {
+        let items = [item("c", createdAt: 3), item("b", createdAt: 2), item("a", createdAt: 1), item("x", createdAt: 0)]
+
+        let result = ClipboardHistoryPolicy.togglingPins(selectedTexts: ["c", "b", "a"], in: items, now: now)
+
+        #expect(result?.map(\.text) == ["c", "b", "a", "x"])
+        #expect(result?.prefix(3).allSatisfy(\.isPinned) == true)
+        #expect(result?.first?.pinnedAt == now)
+        #expect(result?[1].pinnedAt == now.addingTimeInterval(-0.001))
+    }
+
+    @Test("일괄 해제한 항목은 복사 시각 순서의 미고정 자리로 돌아감")
+    func test일괄해제는_미고정자리로복귀() {
+        let items = [item("p1", createdAt: 1, pinnedAt: 101), item("p2", createdAt: 3, pinnedAt: 100), item("a", createdAt: 2)]
+
+        let result = ClipboardHistoryPolicy.togglingPins(selectedTexts: ["p1", "p2"], in: items, now: now)
+
+        #expect(result?.map(\.text) == ["p2", "a", "p1"])
+        #expect(result?.contains(where: \.isPinned) == false)
+    }
+
     @Test("범위 밖 인덱스의 고정 토글은 nil")
     func test범위밖인덱스_고정토글은_nil() {
         #expect(ClipboardHistoryPolicy.togglingPin(at: 5, in: [item("a")], now: now) == nil)
