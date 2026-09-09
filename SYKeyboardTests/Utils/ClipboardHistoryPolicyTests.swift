@@ -153,18 +153,31 @@ struct ClipboardHistoryPolicyTests {
         #expect(result?.map(\.isPinned) == [true, false])
     }
 
-    @Test("직접 추가는 빈 텍스트·이미 고정된 텍스트·고정 한도 초과면 nil")
+    @Test("직접 추가는 빈 텍스트이거나 새 고정이 고정 한도를 넘으면 nil")
     func test직접추가_거부조건() {
         let pinnedFull = (0..<ClipboardHistoryPolicy.maxPinnedCount).map {
             item("p\($0)", createdAt: 0, pinnedAt: TimeInterval(100 + $0))
         }
 
         #expect(ClipboardHistoryPolicy.insertingPinned(" \n", into: [], now: now) == nil)
+        #expect(ClipboardHistoryPolicy.insertingPinned("new", into: pinnedFull, now: now) == nil)
+    }
+
+    @Test("이미 고정된 텍스트를 직접 추가하면 한도가 가득 차 있어도 지금 고정한 것처럼 고정 맨 위로")
+    func test직접추가_이미고정된텍스트는_한도와무관하게_맨위로() {
         let alreadyPinned = [item("p1", pinnedAt: 2), item("p0", pinnedAt: 1)]
+        let pinnedFull = (0..<ClipboardHistoryPolicy.maxPinnedCount).map {
+            item("p\($0)", createdAt: 0, pinnedAt: TimeInterval(100 + $0))
+        }
+
         let repinned = ClipboardHistoryPolicy.insertingPinned("p0", into: alreadyPinned, now: now)
+        let repinnedAtLimit = ClipboardHistoryPolicy.insertingPinned("p0", into: pinnedFull, now: now)
+
         #expect(repinned?.map(\.text) == ["p0", "p1"])
         #expect(repinned?.first?.pinnedAt == now)
-        #expect(ClipboardHistoryPolicy.insertingPinned("new", into: pinnedFull, now: now) == nil)
+        #expect(repinnedAtLimit?.first?.text == "p0")
+        #expect(repinnedAtLimit?.first?.pinnedAt == now)
+        #expect(repinnedAtLimit?.count == ClipboardHistoryPolicy.maxPinnedCount)
     }
 
     @Test("복사 시각이 같으면 텍스트 순으로 정렬해 순서를 고정")
@@ -289,11 +302,14 @@ struct ClipboardHistoryPolicyTests {
 
         let intoPinned = ClipboardHistoryPolicy.replacingText("b", with: "p1", in: items, now: now)
         let fromPinned = ClipboardHistoryPolicy.replacingText("p1", with: "a", in: items, now: now)
+        let bothPinned = ClipboardHistoryPolicy.replacingText("p1", with: "p2", in: items, now: now)
 
         #expect(intoPinned?.map(\.text) == ["p1", "p2", "a"])
         #expect(intoPinned?.first?.pinnedAt == now)
         #expect(fromPinned?.map(\.text) == ["a", "p2", "b"])
         #expect(fromPinned?.first?.pinnedAt == now)
+        #expect(bothPinned?.map(\.text) == ["p2", "b", "a"])
+        #expect(bothPinned?.first?.pinnedAt == now)
     }
 
     @Test("범위 밖 인덱스의 고정 토글은 nil")
