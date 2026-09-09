@@ -79,6 +79,17 @@ public enum ClipboardHistoryPolicy {
         return sorted(remaining + [ClipboardHistoryItem(text: text, createdAt: now, pinnedAt: now)])
     }
 
+    /// 텍스트 전체가 http/https URL 하나일 때 그 URL. 앞뒤 공백·개행은 무시하고, 중간에 공백이 있으면 `nil`
+    public static func openableURL(in text: String) -> URL? {
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty,
+              trimmed.rangeOfCharacter(from: .whitespacesAndNewlines) == nil,
+              let url = URL(string: trimmed),
+              let scheme = url.scheme?.lowercased(), scheme == "http" || scheme == "https",
+              let host = url.host, !host.isEmpty else { return nil }
+        return url
+    }
+
     /// 고정 한도에 여유가 있는지
     public static func canPin(_ items: [ClipboardHistoryItem]) -> Bool {
         return items.filter(\.isPinned).count < maxPinnedCount

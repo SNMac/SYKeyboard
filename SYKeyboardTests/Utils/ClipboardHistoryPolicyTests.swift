@@ -236,6 +236,17 @@ struct ClipboardHistoryPolicyTests {
         #expect(result?.contains(where: \.isPinned) == false)
     }
 
+    @Test("텍스트 전체가 http/https URL 하나일 때만 열 수 있는 URL을 돌려줌")
+    func test전체가URL일때만_열기가능() {
+        #expect(ClipboardHistoryPolicy.openableURL(in: "https://example.com/a?b=1")?.absoluteString == "https://example.com/a?b=1")
+        #expect(ClipboardHistoryPolicy.openableURL(in: " HTTP://example.com\n")?.host == "example.com")
+        #expect(ClipboardHistoryPolicy.openableURL(in: "https://example.com 참고") == nil)
+        #expect(ClipboardHistoryPolicy.openableURL(in: "example.com") == nil)
+        #expect(ClipboardHistoryPolicy.openableURL(in: "ftp://example.com") == nil)
+        #expect(ClipboardHistoryPolicy.openableURL(in: "https://") == nil)
+        #expect(ClipboardHistoryPolicy.openableURL(in: "") == nil)
+    }
+
     @Test("범위 밖 인덱스의 고정 토글은 nil")
     func test범위밖인덱스_고정토글은_nil() {
         #expect(ClipboardHistoryPolicy.togglingPin(at: 5, in: [item("a")], now: now) == nil)

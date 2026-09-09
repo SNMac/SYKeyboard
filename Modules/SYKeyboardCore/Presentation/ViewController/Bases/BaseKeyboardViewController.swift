@@ -2428,6 +2428,13 @@ extension BaseKeyboardViewController: ClipboardHistoryPanelDelegate {
         pasteboard.string = panel.items[index].text
         keyboardSettingsManager.lastSeenPasteboardChangeCount = pasteboard.changeCount
     }
+
+    /// 브라우저가 열리면 호스트 앱을 떠나므로 키보드는 시스템이 내린다. 설정 이동과 같은 responder chain 경로다
+    final func clipboardPanel(_ panel: ClipboardHistoryPanelView, didRequestOpenURLAt index: Int) {
+        guard panel.items.indices.contains(index),
+              let url = ClipboardHistoryPolicy.openableURL(in: panel.items[index].text) else { return }
+        openURL(url)
+    }
 }
 
 private extension BaseKeyboardViewController {

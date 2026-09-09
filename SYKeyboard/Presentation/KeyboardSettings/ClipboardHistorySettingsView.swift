@@ -265,6 +265,8 @@ private extension ClipboardHistorySettingsView {
 private struct ClipboardHistoryDetailView: View {
     let text: String
 
+    @Environment(\.openURL) private var openURL
+
     var body: some View {
         NavigationStack {
             ScrollView {
@@ -276,7 +278,14 @@ private struct ClipboardHistoryDetailView: View {
             .navigationTitle("원문")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
+                ToolbarItemGroup(placement: .navigationBarTrailing) {
+                    if let url = ClipboardHistoryPolicy.openableURL(in: text) {
+                        Button {
+                            openURL(url)
+                        } label: {
+                            Label("브라우저에서 열기", systemImage: "safari")
+                        }
+                    }
                     Button {
                         UIPasteboard.general.string = text
                     } label: {

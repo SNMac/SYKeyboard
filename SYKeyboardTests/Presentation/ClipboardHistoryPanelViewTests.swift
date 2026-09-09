@@ -174,4 +174,6 @@ private final class ClipboardHistoryPanelDelegateSpy: ClipboardHistoryPanelDeleg
     func clipboardPanel(_ panel: ClipboardHistoryPanelView, didRequestCopyAt index: Int) {
         copiedIndices.append(index)
     }
+
+    func clipboardPanel(_ panel: ClipboardHistoryPanelView, didRequestOpenURLAt index: Int) {}
 }
