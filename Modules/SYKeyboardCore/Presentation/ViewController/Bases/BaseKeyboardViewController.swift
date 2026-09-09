@@ -275,6 +275,7 @@ open class BaseKeyboardViewController: UIInputViewController {
 
         super.viewDidLoad()
         logger.debug("viewDidLoad")
+        KeyboardDiagnostics.installConstraintConflictLogging()
         resetInputBuffer()
         setupUI()
         updateShowingKeyboard()
