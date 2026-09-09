@@ -18,14 +18,21 @@ struct ClipboardHistorySettingsView: View {
 
     private let store = ClipboardHistoryStore()
 
-    /// 저장 순서 그대로(고정 최신순 → 미고정 최신순). 텍스트는 정책상 중복이 없어 id로 쓴다
-    @State private var items: [ClipboardHistoryItem] = []
+    /// 저장 순서 그대로(고정 최신순 → 미고정 최신순). 텍스트는 정책상 중복이 없어 id로 쓴다.
+    /// 화면 전환 중 빈 상태와 편집 버튼 없는 툴바가 먼저 보이지 않도록 첫 렌더링 전에 읽는다
+    @State private var items: [ClipboardHistoryItem]
     @State private var selection = Set<String>()
     @State private var editMode: EditMode = .inactive
     @State private var isAddSheetPresented = false
     @State private var newText = ""
     /// 원문 시트에 표시할 항목
     @State private var detailItem: ClipboardHistoryItem?
+
+    // MARK: - Initializer
+
+    init() {
+        _items = State(initialValue: store?.load() ?? [])
+    }
 
     private var canPin: Bool { ClipboardHistoryPolicy.canPin(items) }
     private var pinnedCount: Int { items.filter(\.isPinned).count }
