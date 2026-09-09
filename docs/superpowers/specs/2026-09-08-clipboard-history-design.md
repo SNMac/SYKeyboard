@@ -250,6 +250,11 @@ func resetPresentation()   // 편집 모드 해제, 상세 뷰 닫기, 스크롤
   "닫기" → 상세 뷰만 닫는다.
 - 편집 모드 행 탭 → 선택 토글(붙여넣기 안 함). "n개 삭제" → 전부 선택이면
   `delegate.clipboardPanelDidDeleteAll(_:)`, 아니면 `didDeleteItemsAt:`(선택 인덱스).
+- 삭제 대상(스와이프·편집 모드)에 고정 항목이 있으면 델리게이트를 바로 부르지 않고 패널을 덮는
+  확인 뷰(`ClipboardHistoryDeleteConfirmView`, 블러 + "고정 항목 n개를 삭제할까요?" + "취소"/"삭제")를
+  크로스페이드로 띄운다. "삭제"를 누르면 그때 델리게이트를 부르고, "취소"나 `configure`·
+  `resetPresentation`은 확인을 버린다. 키보드 extension은 시스템 알림을 띄울 수 없어 패널 안에서
+  받으며, 앱 관리 화면의 알림과 문구가 같다.
   "완료" → 편집 모드 해제.
 
 델리게이트:
@@ -358,14 +363,17 @@ Assets 카탈로그의 항목은 `extractionState`를 `manual`로 둔다. 패키
 - "n개 삭제"는 `role: .destructive`만 준다. iOS 16 하단 바에서는 빨간색이 되지 않지만 tint를
   주지 않기로 했다(실기기 확인 후 결정).
 - 삭제 대상에 고정 항목이 있으면(스와이프·편집 모드 모두) "고정 항목 n개를 삭제할까요?" 알림으로
-  확인받고, 미고정만이면 바로 지운다. 키보드 패널의 확인 방식은 별도로 정한다.
+  확인받고, 미고정만이면 바로 지운다. 키보드 패널은 4절의 패널 안 확인 뷰를 쓴다.
   상단 툴바는 `+`(추가) 오른쪽에 "편집"/"완료"를 두고, "완료"는 semibold다. 두 문구 중 넓은
   폭으로 고정해 전환할 때 위치가 흔들리지 않게 한다.
 - 원문 하프 시트도 항목 전체가 http/https URL이면 본문을 `AttributedString`의 `link`로 그려
   파란 밑줄 링크가 되고, 탭하면 SwiftUI가 `openURL`로 연다. 별도 버튼은 없다. 왼쪽 상단에는 `ShareLink`로 공유 버튼
   (`square.and.arrow.up`)을 둔다. 키보드 extension은 공유 시트를 띄울 수 없어 앱에만 둔다.
+- 복사 버튼 왼쪽에는 고정/해제(고정이면 `pin.fill`, 아니면 `pin`. 한도가 차면 미고정 항목에서 숨김)를 두고 누르면
+  시트가 열린 채 목록과 시트가 갱신된다. 복사는 pasteboard에 쓰고 `changeCount`를 맞춘 뒤
+  `store.record`로 항목을 미고정 맨 위에 올려 시트 뒤 목록에 바로 반영한다(고정 항목은 그대로).
 - 복사 버튼 오른쪽의 "편집"(`pencil`)을 누르면 같은 시트가 `TextEditor`로 바뀌고 "취소"/"저장"만
-  남는다. 저장은 `ClipboardHistoryPolicy.replacingText(_:with:in:)`가 허용할 때만 가능하며
+  남는다. 편집기는 `scrollContentBackground(.hidden)`으로 시트 배경 위에 흰 사각형이 뜨지 않게 한다. 저장은 `ClipboardHistoryPolicy.replacingText(_:with:in:)`가 허용할 때만 가능하며
   (빈 값·2,000자 초과·원문과 같음·다른 항목과 중복이면 비활성) 자리·고정 상태·시각은 유지된다.
   텍스트가 id라 시트는 identity가 아니라 표시 여부로 열어 저장 후에도 닫히지 않는다. 키보드
   패널에는 편집이 없다.
