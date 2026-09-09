@@ -69,7 +69,7 @@ final class ClipboardHistoryPanelView: UIView {
 
     private let titleLabel: UILabel = {
         let label = UILabel()
-        label.text = String(localized: "클립보드 기록", bundle: .sykeyboardCore)
+        label.text = String(localized: "클립보드 기록")
         label.font = .systemFont(ofSize: 15, weight: .semibold)
         label.textColor = .label
 
@@ -100,13 +100,13 @@ final class ClipboardHistoryPanelView: UIView {
     }()
 
     private lazy var editButton = makeHeaderButton(
-        title: String(localized: "편집", bundle: .sykeyboardCore)
+        title: String(localized: "편집")
     ) { [weak self] in
         self?.beginItemEditing()
     }
 
     private lazy var doneButton = makeHeaderButton(
-        title: String(localized: "완료", bundle: .sykeyboardCore)
+        title: String(localized: "완료")
     ) { [weak self] in
         self?.endItemEditing()
     }
@@ -179,10 +179,10 @@ final class ClipboardHistoryPanelView: UIView {
         switch state {
         case .fullAccessRequired:
             items = []
-            messageLabel.text = String(localized: "전체 접근 허용이 필요합니다", bundle: .sykeyboardCore)
+            messageLabel.text = String(localized: "전체 접근 허용이 필요합니다")
         case .empty:
             items = []
-            messageLabel.text = String(localized: "복사한 텍스트가 여기에 표시됩니다.", bundle: .sykeyboardCore)
+            messageLabel.text = String(localized: "복사한 텍스트가 여기에 표시됩니다.")
         case .items(let newItems):
             items = newItems
         }
@@ -311,9 +311,9 @@ private extension ClipboardHistoryPanelView {
 
         let selectedCount = tableView.indexPathsForSelectedRows?.count ?? 0
         selectAllButton.configuration?.title = isAllSelected
-        ? String(localized: "선택 해제", bundle: .sykeyboardCore)
-        : String(localized: "전체 선택", bundle: .sykeyboardCore)
-        deleteButton.configuration?.title = String(localized: "\(selectedCount)개 삭제", bundle: .sykeyboardCore)
+        ? String(localized: "선택 해제")
+        : String(localized: "전체 선택")
+        deleteButton.configuration?.title = String(localized: "\(selectedCount)개 삭제")
         deleteButton.isEnabled = selectedCount > 0
     }
 
@@ -444,8 +444,8 @@ extension ClipboardHistoryPanelView: UITableViewDelegate {
         let pinAction = UIContextualAction(
             style: .normal,
             title: isPinned
-            ? String(localized: "고정 해제", bundle: .sykeyboardCore)
-            : String(localized: "고정", bundle: .sykeyboardCore)
+            ? String(localized: "고정 해제")
+            : String(localized: "고정")
         ) { [weak self] _, _, completion in
             guard let self else { completion(false); return }
             // 소유자가 configure()로 행 이동을 애니메이션한 뒤 액션을 닫는다
@@ -468,7 +468,7 @@ extension ClipboardHistoryPanelView: UITableViewDelegate {
     ) -> UISwipeActionsConfiguration? {
         let deleteAction = UIContextualAction(
             style: .destructive,
-            title: String(localized: "삭제", bundle: .sykeyboardCore)
+            title: String(localized: "삭제")
         ) { [weak self] _, _, completion in
             guard let self else { completion(false); return }
             // 소유자가 configure()에서 deleteRows로 행을 지운 뒤 액션을 닫는다. Apple의 삭제 액션 관례와 같다
@@ -518,7 +518,7 @@ private final class ClipboardHistoryDetailView: UIView {
 
     private let titleLabel: UILabel = {
         let label = UILabel()
-        label.text = String(localized: "원문", bundle: .sykeyboardCore)
+        label.text = String(localized: "원문")
         label.font = .systemFont(ofSize: 15, weight: .semibold)
         label.textColor = .label
 
@@ -534,7 +534,7 @@ private final class ClipboardHistoryDetailView: UIView {
 
     private lazy var closeButton: UIButton = {
         var config = UIButton.Configuration.plain()
-        config.title = String(localized: "닫기", bundle: .sykeyboardCore)
+        config.title = String(localized: "닫기")
         config.contentInsets = NSDirectionalEdgeInsets(top: 4, leading: 8, bottom: 4, trailing: 8)
 
         return UIButton(configuration: config, primaryAction: UIAction { [weak self] _ in self?.onClose?() })
@@ -554,7 +554,7 @@ private final class ClipboardHistoryDetailView: UIView {
 
     private lazy var pasteButton: UIButton = {
         var config = UIButton.Configuration.filled()
-        config.title = String(localized: "붙여넣기", bundle: .sykeyboardCore)
+        config.title = String(localized: "붙여넣기")
         config.contentInsets = NSDirectionalEdgeInsets(top: 6, leading: 20, bottom: 6, trailing: 20)
 
         return UIButton(configuration: config, primaryAction: UIAction { [weak self] _ in self?.onPaste?() })
@@ -589,8 +589,8 @@ private final class ClipboardHistoryDetailView: UIView {
         textView.setContentOffset(.zero, animated: false)
         pinButton.isHidden = !isPinned && !canPin
         pinButton.configuration?.title = isPinned
-        ? String(localized: "고정 해제", bundle: .sykeyboardCore)
-        : String(localized: "고정", bundle: .sykeyboardCore)
+        ? String(localized: "고정 해제")
+        : String(localized: "고정")
     }
 }
 

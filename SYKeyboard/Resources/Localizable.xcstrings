@@ -440,6 +440,16 @@
         }
       }
     },
+    "붙여넣기" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paste"
+          }
+        }
+      }
+    },
     "비활성화" : {
       "localizations" : {
         "en" : {
@@ -766,6 +776,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Select All"
+          }
+        }
+      }
+    },
+    "전체 접근 허용이 필요합니다" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Requires Allow Full Access"
           }
         }
       }
