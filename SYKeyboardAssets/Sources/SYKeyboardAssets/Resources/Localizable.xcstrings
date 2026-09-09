@@ -122,6 +122,17 @@
         }
       }
     },
+    "선택 해제" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deselect All"
+          }
+        }
+      }
+    },
     "시스템 설정 이동" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -162,17 +173,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Select All"
-          }
-        }
-      }
-    },
-    "전체 선택 해제" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Deselect All"
           }
         }
       }
