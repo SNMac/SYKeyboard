@@ -67,17 +67,6 @@
         }
       }
     },
-    "브라우저에서 열기" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Open in Browser"
-          }
-        }
-      }
-    },
     "삭제" : {
       "extractionState" : "manual",
       "localizations" : {

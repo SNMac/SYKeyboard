@@ -338,9 +338,17 @@ private struct ClipboardHistoryDetailView: View {
     let canSave: (String) -> Bool
     let onSave: (String) -> Void
 
-    @Environment(\.openURL) private var openURL
     @State private var isEditing = false
     @State private var draft = ""
+
+    private var linkStyledText: AttributedString {
+        var text = AttributedString(item.text)
+        if let url = ClipboardHistoryPolicy.openableURL(in: item.text) {
+            text.link = url
+            text.underlineStyle = .single
+        }
+        return text
+    }
 
     var body: some View {
         NavigationStack {
@@ -350,7 +358,8 @@ private struct ClipboardHistoryDetailView: View {
                         .padding(.horizontal)
                 } else {
                     ScrollView {
-                        Text(item.text)
+                        // 텍스트 전체가 URL이면 일반 링크처럼 파란 밑줄로 보이고 탭하면 브라우저로 연다
+                        Text(linkStyledText)
                             .textSelection(.enabled)
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .padding()
@@ -378,13 +387,6 @@ private struct ClipboardHistoryDetailView: View {
                         }
                     }
                     ToolbarItemGroup(placement: .navigationBarTrailing) {
-                        if let url = ClipboardHistoryPolicy.openableURL(in: item.text) {
-                            Button {
-                                openURL(url)
-                            } label: {
-                                Label("브라우저에서 열기", systemImage: "safari")
-                            }
-                        }
                         Button {
                             UIPasteboard.general.string = item.text
                         } label: {

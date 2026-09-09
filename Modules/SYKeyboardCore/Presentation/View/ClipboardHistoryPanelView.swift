@@ -21,7 +21,7 @@ protocol ClipboardHistoryPanelDelegate: AnyObject {
     func clipboardPanel(_ panel: ClipboardHistoryPanelView, didTogglePinAt index: Int)
     /// 상세 뷰의 붙여넣기 직전에 호출됩니다. 소유자는 항목을 시스템 pasteboard에 복사합니다.
     func clipboardPanel(_ panel: ClipboardHistoryPanelView, didRequestCopyAt index: Int)
-    /// 상세 뷰에서 "브라우저에서 열기"를 눌렀을 때 호출됩니다. 항목 전체가 http/https URL일 때만 버튼이 보입니다.
+    /// 상세 뷰에서 링크로 표시된 본문을 탭했을 때 호출됩니다. 항목 전체가 http/https URL일 때만 링크가 됩니다.
     func clipboardPanel(_ panel: ClipboardHistoryPanelView, didRequestOpenURLAt index: Int)
 }
 
@@ -526,7 +526,6 @@ private final class ClipboardHistoryDetailView: UIView {
     var onTogglePin: (() -> Void)?
     var onOpenURL: (() -> Void)?
 
-    private static let openURLSymbolName = "safari"
     private static let pasteButtonBottomSpacing: CGFloat = 8
 
     // MARK: - UI Components
@@ -559,17 +558,6 @@ private final class ClipboardHistoryDetailView: UIView {
         return UIButton(configuration: config, primaryAction: UIAction { [weak self] _ in self?.onTogglePin?() })
     }()
 
-    private lazy var openURLButton: UIButton = {
-        var config = UIButton.Configuration.plain()
-        config.image = UIImage(systemName: ClipboardHistoryDetailView.openURLSymbolName)
-        config.contentInsets = NSDirectionalEdgeInsets(top: 4, leading: 8, bottom: 4, trailing: 8)
-
-        let button = UIButton(configuration: config, primaryAction: UIAction { [weak self] _ in self?.onOpenURL?() })
-        button.accessibilityLabel = String(localized: "브라우저에서 열기", bundle: SYKBDAssets.bundle)
-
-        return button
-    }()
-
     private lazy var closeButton: UIButton = {
         var config = UIButton.Configuration.plain()
         config.title = String(localized: "닫기", bundle: SYKBDAssets.bundle)
@@ -589,6 +577,8 @@ private final class ClipboardHistoryDetailView: UIView {
 
         return textView
     }()
+
+    private lazy var openURLTapGesture = UITapGestureRecognizer(target: self, action: #selector(handleOpenURLTap))
 
     private lazy var pasteButton: UIButton = {
         var config = UIButton.Configuration.filled()
@@ -622,12 +612,21 @@ private final class ClipboardHistoryDetailView: UIView {
     // MARK: - Internal Methods
 
     /// 고정 한도가 찼으면 미고정 항목의 고정 버튼을 숨긴다. 스와이프 액션과 같은 규칙이다.
-    /// 열기 버튼은 항목 전체가 URL일 때만 보인다
+    /// 항목 전체가 URL이면 본문을 링크처럼 그리고 탭을 받는다
     func update(text: String, isPinned: Bool, canPin: Bool, canOpenURL: Bool) {
-        textView.text = text
+        // 텍스트 전체가 URL이면 일반 링크처럼 파란 밑줄로 그리고, 본문 탭으로 연다
+        var attributes: [NSAttributedString.Key: Any] = [
+            .font: UIFont.systemFont(ofSize: 15),
+            .foregroundColor: UIColor.label
+        ]
+        if canOpenURL {
+            attributes[.foregroundColor] = UIColor.link
+            attributes[.underlineStyle] = NSUnderlineStyle.single.rawValue
+        }
+        textView.attributedText = NSAttributedString(string: text, attributes: attributes)
         textView.setContentOffset(.zero, animated: false)
+        openURLTapGesture.isEnabled = canOpenURL
         pinButton.isHidden = !isPinned && !canPin
-        openURLButton.isHidden = !canOpenURL
         pinButton.configuration?.title = isPinned
         ? String(localized: "고정 해제", bundle: SYKBDAssets.bundle)
         : String(localized: "고정", bundle: SYKBDAssets.bundle)
@@ -637,10 +636,15 @@ private final class ClipboardHistoryDetailView: UIView {
 // MARK: - UI Methods
 
 private extension ClipboardHistoryDetailView {
+    @objc func handleOpenURLTap() {
+        onOpenURL?()
+    }
+
     func setupUI() {
         let spacer = UIView()
         spacer.setContentHuggingPriority(.defaultLow, for: .horizontal)
-        [titleLabel, spacer, openURLButton, pinButton, closeButton].forEach { headerStackView.addArrangedSubview($0) }
+        [titleLabel, spacer, pinButton, closeButton].forEach { headerStackView.addArrangedSubview($0) }
+        textView.addGestureRecognizer(openURLTapGesture)
         [blurView, headerStackView, textView, pasteButton].forEach {
             self.addSubview($0)
             $0.translatesAutoresizingMaskIntoConstraints = false
