@@ -319,6 +319,10 @@ private extension ClipboardHistorySettingsView {
         }
         selection = selection.intersection(items.map(\.text))
         if items.isEmpty { editMode = .inactive }
+        // 시트를 띄운 행이 다시 읽는 사이 사라졌으면 대기 중인 삭제도 버린다. 같은 텍스트가 돌아올 때 시트가 저절로 뜨지 않게 한다
+        if case .row(let text)? = pendingDeletion?.source, !items.contains(where: { $0.text == text }) {
+            pendingDeletion = nil
+        }
     }
 
     /// 저장소가 파일을 다시 읽어 판단하므로 키보드가 그사이 바꾼 내용과 어긋나지 않는다
