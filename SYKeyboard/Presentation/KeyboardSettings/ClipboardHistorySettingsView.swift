@@ -91,13 +91,14 @@ struct ClipboardHistorySettingsView: View {
                     .presentationDragIndicator(.visible)
                 }
             }
-            .alert(
+            // 스와이프·편집 모드 삭제는 사용자가 의도한 동작이므로 HIG대로 알림이 아니라 action sheet로 확인한다. 취소는 시스템이 붙인다
+            .confirmationDialog(
                 Text("고정 항목 \(pendingDeletion?.filter(\.isPinned).count ?? 0)개를 삭제할까요?"),
                 isPresented: isDeletionAlertPresented,
+                titleVisibility: .visible,
                 presenting: pendingDeletion
             ) { removing in
                 Button("삭제", role: .destructive) { remove(removing) }
-                Button("취소", role: .cancel) {}
             } message: { _ in
                 Text("삭제한 고정 항목은 복구할 수 없습니다.")
             }
