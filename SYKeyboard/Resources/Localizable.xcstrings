@@ -536,6 +536,17 @@
         }
       }
     },
+    "선택" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Select"
+          }
+        }
+      }
+    },
     "선택 해제" : {
       "localizations" : {
         "en" : {

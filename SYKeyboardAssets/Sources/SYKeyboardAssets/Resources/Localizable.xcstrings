@@ -100,6 +100,17 @@
         }
       }
     },
+    "선택" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Select"
+          }
+        }
+      }
+    },
     "시스템 설정 이동" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -206,17 +217,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Clipboard History"
-          }
-        }
-      }
-    },
-    "편집" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Edit"
           }
         }
       }

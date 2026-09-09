@@ -198,9 +198,9 @@ private extension ClipboardHistorySettingsView {
                 } label: {
                     // 두 문구의 폭이 달라 버튼 위치가 흔들리지 않도록 넓은 쪽으로 폭을 고정한다
                     ZStack {
-                        Text("편집").hidden()
+                        Text("선택").hidden()
                         Text("완료").fontWeight(.semibold).hidden()
-                        Text(editMode.isEditing ? "완료" : "편집")
+                        Text(editMode.isEditing ? "완료" : "선택")
                             .fontWeight(editMode.isEditing ? .semibold : .regular)
                     }
                 }
@@ -434,7 +434,7 @@ private struct ClipboardHistoryDetailView: View {
                             draft = item.text
                             isEditing = true
                         } label: {
-                            Label("편집", systemImage: "pencil")
+                            Label("편집", systemImage: "pencil.line")
                         }
                     }
                 }

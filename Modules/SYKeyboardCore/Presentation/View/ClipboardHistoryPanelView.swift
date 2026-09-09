@@ -49,7 +49,7 @@ final class ClipboardHistoryPanelView: UIView {
     private(set) var items: [ClipboardHistoryItem] = []
 
     private var detailIndex: Int?
-    /// 사용자가 "편집"으로 들어간 다중 선택 모드인지. 스와이프 중에도 true가 되는 `tableView.isEditing`과 구분한다
+    /// 사용자가 "선택"으로 들어간 다중 선택 모드인지. 스와이프 중에도 true가 되는 `tableView.isEditing`과 구분한다
     private(set) var isItemEditing = false
     /// 고정 항목이 섞여 확인을 기다리는 삭제. 인덱스는 `items` 기준이다
     private var pendingDeletion: (indices: [Int], deleteAll: Bool)?
@@ -108,7 +108,7 @@ final class ClipboardHistoryPanelView: UIView {
     }()
 
     private lazy var editButton = makeHeaderButton(
-        title: String(localized: "편집", bundle: SYKBDAssets.bundle)
+        title: String(localized: "선택", bundle: SYKBDAssets.bundle)
     ) { [weak self] in
         self?.beginItemEditing()
     }
