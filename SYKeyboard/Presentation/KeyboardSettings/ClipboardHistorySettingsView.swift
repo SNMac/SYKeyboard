@@ -53,6 +53,8 @@ struct ClipboardHistorySettingsView: View {
             .navigationTitle("클립보드 기록")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar { toolbarContent }
+            // iOS 16은 bottomBar 항목을 나중에 추가하면 바가 안 뜨므로 항목은 두고 표시만 토글한다
+            .toolbar(editMode.isEditing ? .visible : .hidden, for: .bottomBar)
             // 편집 버튼과 List가 같은 편집 상태를 보도록 toolbar 바깥에 둔다
             .environment(\.editMode, $editMode)
             // 시트가 떠 있는 동안 키보드가 기록을 바꿀 수 있으므로 닫힐 때 다시 읽는다
@@ -159,19 +161,17 @@ private extension ClipboardHistorySettingsView {
             .disabled(!canPin)
         }
         ToolbarItemGroup(placement: .bottomBar) {
-            if editMode.isEditing {
-                Button(isAllSelected ? "선택 해제" : "전체 선택") {
-                    selection = isAllSelected ? [] : Set(items.map(\.text))
-                }
-                Spacer()
-                Button(role: .destructive) {
-                    remove(items.filter { selection.contains($0.text) })
-                } label: {
-                    Text("\(selection.count)개 삭제")
-                        .monospacedDigit()
-                }
-                .disabled(selection.isEmpty)
+            Button(isAllSelected ? "선택 해제" : "전체 선택") {
+                selection = isAllSelected ? [] : Set(items.map(\.text))
             }
+            Spacer()
+            Button(role: .destructive) {
+                remove(items.filter { selection.contains($0.text) })
+            } label: {
+                Text("\(selection.count)개 삭제")
+                    .monospacedDigit()
+            }
+            .disabled(selection.isEmpty)
         }
     }
 
