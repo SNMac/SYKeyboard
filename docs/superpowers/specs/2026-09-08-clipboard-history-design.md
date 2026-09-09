@@ -245,6 +245,8 @@ func resetPresentation()   // 편집 모드 해제, 상세 뷰 닫기, 스크롤
 - 상세 뷰 "붙여넣기" → 먼저 `didTogglePin`과 같은 경로의 `didRequestCopyAt`으로 항목을 시스템
   pasteboard에 복사한 뒤(Full Access 필요, `changeCount`를 갱신해 재기록하지 않음) 행 탭과 같은
   `didSelectItemAt`으로 붙여넣는다. 붙여넣은 항목이 현재 클립보드가 된다. 행 탭은 복사하지 않는다.
+  행 탭·상세 뷰 붙여넣기 모두 붙여넣은 텍스트를 `store.record`로 미고정 맨 위에 올려 최근 복사한
+  것처럼 보이게 한다(고정 항목은 그대로). 다음에 패널을 열 때 반영된다.
   "닫기" → 상세 뷰만 닫는다.
 - 편집 모드 행 탭 → 선택 토글(붙여넣기 안 함). "n개 삭제" → 전부 선택이면
   `delegate.clipboardPanelDidDeleteAll(_:)`, 아니면 `didDeleteItemsAt:`(선택 인덱스).

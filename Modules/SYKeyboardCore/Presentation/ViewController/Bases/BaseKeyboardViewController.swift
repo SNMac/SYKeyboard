@@ -2401,6 +2401,10 @@ extension BaseKeyboardViewController: ClipboardHistoryPanelDelegate {
         undoRedoEditDidApply()
         commitUndoRedoGroupIgnoringCompositionDeferral()
 
+        // 방금 쓴 항목을 최근 복사한 것처럼 미고정 맨 위로 올린다. 고정 항목은 정책상 그대로다.
+        // 시스템 pasteboard는 바꾸지 않는다
+        clipboardHistoryStore?.record(text)
+
         closeClipboardPanelIfNeeded()
         updateReturnButtonEnabled()
         updateSuggestions()
