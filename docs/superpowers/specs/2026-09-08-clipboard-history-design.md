@@ -210,7 +210,7 @@ bar가 보일 때는 자동완성 ON이 보장되므로 중첩 설정 조건이 
 
 - 헤더 줄(높이 고정): 평소에는 왼쪽 "클립보드 기록" 라벨, 오른쪽 "선택" 버튼.
   편집 모드에서는 왼쪽 "전체 선택"(모두 선택되면 "전체 선택 해제"), 오른쪽 "n개 삭제"와
-  "완료". "n개 삭제"는 선택 0개면 비활성. 항목이 0개면 "선택"도 비활성. "완료"만 semibold다.
+  "완료". "n개 삭제"는 선택 0개면 비활성. 항목이 0개면 "선택"을 숨긴다. "완료"만 semibold다.
   편집 모드 여부는 패널 자체 플래그(`isItemEditing`)로 판단한다. `UITableView.isEditing`은
   스와이프 액션이 열린 동안에도 true라, 스와이프 삭제 뒤 `configure`가 헤더를 편집 모드로
   바꾸는 문제가 있었다.
@@ -240,7 +240,7 @@ func resetPresentation()   // 편집 모드 해제, 상세 뷰 닫기, 스크롤
 - 평소 모드 행 길게 누르기(`UILongPressGestureRecognizer`, `minimumPressDuration` 기본값)
   → 상세 뷰 표시. 편집 모드에서는 무시한다.
 - 항목 전체가 http/https URL 하나이면(`ClipboardHistoryPolicy.openableURL(in:)`) 상세 뷰 본문을
-  일반 링크처럼 파란 밑줄로 그리고, 본문을 탭하면
+  일반 링크처럼 파란 밑줄로 그리고, 글자가 있는 영역을 탭하면(빈 여백은 무시)
   `delegate.clipboardPanel(_:didRequestOpenURLAt:)` → Base가 설정 이동과 같은 responder chain
   경로로 `UIApplication.open`을 호출한다. 별도 버튼은 없다. 브라우저가 뜨면 호스트 앱을 떠나므로 키보드는
   시스템이 내린다. 이 경로는 Apple 문서에 없는 동작이며 설정 이동 버튼과 같은 수준으로 취급한다.
@@ -255,7 +255,8 @@ func resetPresentation()   // 편집 모드 해제, 상세 뷰 닫기, 스크롤
 - 삭제 대상(스와이프·편집 모드)에 고정 항목이 있으면 델리게이트를 바로 부르지 않고 패널을 덮는
   확인 뷰(`ClipboardHistoryDeleteConfirmView`, 블러 + "고정 항목 n개를 삭제할까요?" + "취소"/"삭제")를
   크로스페이드로 띄운다. "삭제"를 누르면 그때 델리게이트를 부르고, "취소"나 `configure`·
-  `resetPresentation`은 확인을 버린다. 키보드 extension은 시스템 알림을 띄울 수 없어 패널 안에서
+  `resetPresentation`은 확인을 버린다. 스와이프 액션의 completion에는 확인 대기면 `false`를 넘겨
+  행이 그대로 남게 한다. `resetPresentation`은 열린 스와이프 액션도 닫는다. 키보드 extension은 시스템 알림을 띄울 수 없어 패널 안에서
   받으며, 앱 관리 화면의 알림과 문구가 같다.
   "완료" → 편집 모드 해제.
 
@@ -352,7 +353,8 @@ Assets 카탈로그의 항목은 `extractionState`를 `manual`로 둔다. 패키
 - 키보드 패널과 같은 목록(고정 최신순 → 미고정 최신순), 고정 행은 `pin.circle.fill`.
   행 탭은 원문 전체를 보는 상세 화면이다(붙여넣기는 없다).
 - leading swipe 고정/해제, trailing swipe 삭제(`trash.fill`), 편집 모드 다중 선택과 하단
-  툴바의 "전체 선택"(`checklist.checked`, 모두 선택되면 "선택 해제" `checklist.unchecked`) ·
+  툴바의 "전체 선택"(`checklist.checked`, 모두 선택되면 "선택 해제" `checklist.unchecked`. 키보드 패널의
+  "전체 선택 해제"와 달리 아이콘만 보이는 접근성 라벨이라 짧게 둔다) ·
   "n개 고정"(`pin`/`pin.slash`) · "n개 삭제"(`trash`). 하단 툴바는 outline 아이콘만 보이고
   문구는 접근성 라벨이다. 편집 모드에서 선택이 있으면 화면 제목이 "n개 선택"으로 바뀐다.
   규칙은 키보드 패널과 같다.

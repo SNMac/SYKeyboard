@@ -164,7 +164,9 @@ public enum ClipboardHistoryPolicy {
 
     /// `pinBatch`를 적용하고 정렬한 결과. 허용되지 않으면 `nil`
     ///
-    /// 고정 시각은 목록 순서대로 1ms씩 앞당겨, 함께 고정한 항목이 목록에서 보던 순서 그대로 위에 온다
+    /// 고정 시각은 목록 순서대로 1ms씩 앞당겨, 함께 고정한 항목이 목록에서 보던 순서 그대로 위에 온다.
+    /// 일괄 해제한 항목은 미고정 자리로 돌아가며, 이때 미고정이 잠시 `maxItemCount`를 넘을 수 있고
+    /// 다음 `inserting`에서 오래된 것부터 정리된다(단건 `togglingPin`과 같은 규칙)
     static func togglingPins(
         selectedTexts: Set<String>,
         in items: [ClipboardHistoryItem],
