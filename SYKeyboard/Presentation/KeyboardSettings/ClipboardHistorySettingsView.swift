@@ -141,6 +141,8 @@ private extension ClipboardHistorySettingsView {
             // Button으로 두면 시트를 띄우는 탭 뒤에 눌린 표시가 남는 일이 있어 탭 제스처만 받는다
             row(for: item)
                 .onTapGesture { detailItem = item }
+                // Button이 아니므로 보조 기술에 탭 가능함을 알린다
+                .accessibilityAddTraits(.isButton)
                 // 편집 모드에서는 탭이 행 선택으로 가도록 제스처가 터치를 가로채지 않게 한다
                 .allowsHitTesting(!editMode.isEditing)
             .swipeActions(edge: .leading) {
