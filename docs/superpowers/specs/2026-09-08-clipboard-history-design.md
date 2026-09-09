@@ -261,14 +261,24 @@ SF Symbol 이름은 테스트로 고정하지 않는다.
 
 `SYKeyboardCore`는 정적 라이브러리(`MACH_O_TYPE = staticlib`)라 Core 타깃에 둔
 String Catalog는 extension·앱 번들에 복사되지 않고, `Bundle(for:)`도 호스트의 main
-번들을 돌려준다. 그래서 Core 전용 카탈로그를 두지 않고 패널 문자열을 extension 공용
-`Keyboards/Common/Resources/Localizable.xcstrings`와 앱의
-`SYKeyboard/Resources/Localizable.xcstrings` 양쪽에 넣으며, Core 코드는 기본 main 번들로
-`String(localized:)`를 호출한다. 모든 새 문자열에 en 번역을 추가한다.
+번들을 돌려준다. 그래서 Core 코드가 쓰는 문자열은 Core가 XIB를 읽는 곳과 같은 로컬 SPM
+패키지 `SYKeyboardAssets`의 `Sources/SYKeyboardAssets/Resources/Localizable.xcstrings`에
+두고 `String(localized:bundle: SYKBDAssets.bundle)`로 읽는다. SPM은 정적 링크여도 리소스
+번들(`SYKeyboardAssets_SYKeyboardAssets.bundle`)을 앱과 세 extension에 각각 복사하므로
+배포 문제가 없고, `Package.swift`에는 `defaultLocalization: "ko"`가 필요하다. 앱 설정
+화면이 직접 쓰는 문자열은 앱의 `Localizable.xcstrings`에 넣는다. 모든 새 문자열에 en
+번역을 추가한다.
+
+Assets 카탈로그의 항목은 `extractionState`를 `manual`로 둔다. 패키지 타깃의 소스는
+번들 접근자뿐이라 Xcode 추출기가 사용처(Core)를 보지 못하고, 비워 두면 빌드 때
+`stale`로 표시된다.
 
 (초안은 `Modules/SYKeyboardCore/Resources/Localizable.xcstrings`를 만들어
-`Bundle(for:)`로 읽는 방식이었으나, 영어 기기에서 세 키보드 모두 한국어로만 표시되는
-문제가 실기기에서 확인되어 위 방식으로 바꿨다.)
+`Bundle(for:)`로 읽는 방식이었으나 영어 기기에서 세 키보드 모두 한국어로만 표시됐고,
+그다음 extension 공용 `Keyboards/Common` 카탈로그와 앱 카탈로그에 중복해 넣는 방식을
+거쳐 위 방식으로 정리했다. 같은 이유로 extension마다 두던 전체 접근 허용 안내
+`RequestFullAccessOverlayView`와 그 설정 코드도 Core(`BaseKeyboardViewController`)로
+옮겨 `Keyboards/Common`을 없앴다.)
 
 ## 5. `KeyboardView`·`BaseKeyboardViewController` 연결
 
@@ -331,8 +341,7 @@ String Catalog는 extension·앱 번들에 복사되지 않고, `Bundle(for:)`�
 - "n개 고정"은 선택 중 미고정 항목만 고정하며 n은 그 개수다. 선택이 전부 고정이면
   "n개 고정 해제"로 바뀌어 모두 해제한다. 대상이 없거나 고정 한도를 넘기면 비활성.
   선택은 유지된다. 키보드 패널에는 두지 않는다.
-- Core 코드가 쓰는 문자열은 extension·앱 타깃의 Xcode 추출기가 보지 못하므로 카탈로그에서
-  `extractionState`를 `manual`로 둔다. 비워 두면 빌드 때 `stale`로 표시된다.
+- Core 코드가 쓰는 문자열은 "로컬라이징" 절대로 Assets 카탈로그에 `manual`로 둔다.
 - 툴바 `+`("추가") → "고정 항목 추가" 시트의 `TextEditor`에 직접 입력해 저장한다.
   저장한 항목은 `recordPinned`로 고정 항목이 되어 맨 위에 온다. 공백만이거나 2,000자
   초과면 저장이 비활성이고, 고정 20개가 차면 "추가" 자체가 비활성이다.
