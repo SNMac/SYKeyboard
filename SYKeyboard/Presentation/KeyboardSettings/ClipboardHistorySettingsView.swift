@@ -81,7 +81,10 @@ struct ClipboardHistorySettingsView: View {
                 if let item = detailItem {
                     ClipboardHistoryDetailView(
                         item: item,
+                        canPin: canPin,
                         canSave: { ClipboardHistoryPolicy.replacingText(item.text, with: $0, in: items) != nil },
+                        onTogglePin: { togglePinFromDetail(item) },
+                        onCopy: { copyFromDetail(item) },
                         onSave: { replaceText(of: item, with: $0) }
                     )
                     .presentationDetents([.medium, .large])
@@ -318,7 +321,28 @@ private extension ClipboardHistorySettingsView {
     func replaceText(of item: ClipboardHistoryItem, with newText: String) {
         store?.replaceText(item.text, with: newText)
         reload()
-        detailItem = items.first { $0.text == newText } ?? detailItem
+        refreshDetailItem(text: newText)
+    }
+
+    func togglePinFromDetail(_ item: ClipboardHistoryItem) {
+        store?.togglePins(selectedTexts: [item.text])
+        reload()
+        refreshDetailItem(text: item.text)
+    }
+
+    /// 복사한 항목을 최근 복사한 것처럼 목록 맨 위로 올린다. 동기화가 방금 쓴 pasteboard를 다시 읽지 않도록 changeCount를 맞춘다
+    func copyFromDetail(_ item: ClipboardHistoryItem) {
+        let pasteboard = UIPasteboard.general
+        pasteboard.string = item.text
+        UserDefaultsManager.shared.lastSeenPasteboardChangeCount = pasteboard.changeCount
+        store?.record(item.text)
+        reload()
+        refreshDetailItem(text: item.text)
+    }
+
+    /// 시트가 열린 채로 저장소가 바뀌면 표시 항목을 새 값으로 바꾼다. 항목이 사라졌으면 그대로 둔다
+    func refreshDetailItem(text: String) {
+        detailItem = items.first { $0.text == text } ?? detailItem
     }
 
     func saveNewItem() {
@@ -334,8 +358,12 @@ private extension ClipboardHistorySettingsView {
 /// "편집"을 누르면 같은 시트 안에서 내용을 고쳐 저장한다. 키보드 패널에는 편집이 없다
 private struct ClipboardHistoryDetailView: View {
     let item: ClipboardHistoryItem
+    /// 고정 한도에 여유가 있는지. 없으면 미고정 항목의 고정 버튼을 숨긴다
+    let canPin: Bool
     /// 정책상 저장할 수 있는 내용인지(빈 값·길이·중복·원문과 같음)
     let canSave: (String) -> Bool
+    let onTogglePin: () -> Void
+    let onCopy: () -> Void
     let onSave: (String) -> Void
 
     @State private var isEditing = false
@@ -355,6 +383,8 @@ private struct ClipboardHistoryDetailView: View {
             Group {
                 if isEditing {
                     TextEditor(text: $draft)
+                        // 시트 배경 위에 흰 사각형이 뜨지 않도록 편집기 배경을 비운다
+                        .scrollContentBackground(.hidden)
                         .padding(.horizontal)
                 } else {
                     ScrollView {
@@ -387,9 +417,16 @@ private struct ClipboardHistoryDetailView: View {
                         }
                     }
                     ToolbarItemGroup(placement: .navigationBarTrailing) {
-                        Button {
-                            UIPasteboard.general.string = item.text
-                        } label: {
+                        if item.isPinned || canPin {
+                            Button(action: onTogglePin) {
+                                // 현재 상태를 보여준다: 고정이면 채운 핀, 아니면 빈 핀
+                                Label(
+                                    item.isPinned ? "고정 해제" : "고정",
+                                    systemImage: item.isPinned ? "pin.fill" : "pin"
+                                )
+                            }
+                        }
+                        Button(action: onCopy) {
                             Label("복사", systemImage: "doc.on.doc")
                         }
                         Button {
