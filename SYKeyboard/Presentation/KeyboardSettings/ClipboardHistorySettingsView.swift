@@ -31,6 +31,16 @@ struct ClipboardHistorySettingsView: View {
     private var pinnedCount: Int { items.filter(\.isPinned).count }
     private var recentCount: Int { items.count - pinnedCount }
     private var isAllSelected: Bool { !items.isEmpty && selection.count == items.count }
+    private var selectedItems: [ClipboardHistoryItem] { items.filter { selection.contains($0.text) } }
+    /// 선택이 전부 고정이면 해제, 아니면 미고정만 고정한다
+    private var isUnpinningSelection: Bool { !selectedItems.isEmpty && selectedItems.allSatisfy(\.isPinned) }
+    private var pinTargets: [ClipboardHistoryItem] {
+        isUnpinningSelection ? selectedItems : selectedItems.filter { !$0.isPinned }
+    }
+    private var canPinTargets: Bool {
+        !pinTargets.isEmpty
+        && (isUnpinningSelection || pinnedCount + pinTargets.count <= ClipboardHistoryPolicy.maxPinnedCount)
+    }
 
     // MARK: - Content
 
@@ -108,7 +118,7 @@ private extension ClipboardHistorySettingsView {
             .swipeActions(edge: .leading) {
                 if item.isPinned || canPin {
                     Button {
-                        togglePin(item)
+                        togglePins([item])
                     } label: {
                         Label(
                             item.isPinned ? "고정 해제" : "고정",
@@ -165,8 +175,15 @@ private extension ClipboardHistorySettingsView {
                 selection = isAllSelected ? [] : Set(items.map(\.text))
             }
             Spacer()
+            Button {
+                togglePins(pinTargets)
+            } label: {
+                Text(isUnpinningSelection ? "\(pinTargets.count)개 고정 해제" : "\(pinTargets.count)개 고정")
+                    .monospacedDigit()
+            }
+            .disabled(!canPinTargets)
             Button(role: .destructive) {
-                remove(items.filter { selection.contains($0.text) })
+                remove(selectedItems)
             } label: {
                 Text("\(selection.count)개 삭제")
                     .monospacedDigit()
@@ -216,11 +233,15 @@ private extension ClipboardHistorySettingsView {
         if items.isEmpty { editMode = .inactive }
     }
 
-    /// 인덱스는 파일 순서 기준이므로 조작 직전에 다시 읽어 키보드가 바꾼 내용과 어긋나지 않게 한다
-    func togglePin(_ item: ClipboardHistoryItem) {
+    /// 인덱스는 파일 순서 기준이므로 조작 직전에 다시 읽어 키보드가 바꾼 내용과 어긋나지 않게 한다.
+    /// 토글할 때마다 정렬이 바뀌므로 매번 다시 읽은 목록에서 인덱스를 찾는다
+    func togglePins(_ toggling: [ClipboardHistoryItem]) {
+        guard let store else { return }
         reload()
-        guard let index = items.firstIndex(where: { $0.text == item.text }) else { return }
-        store?.togglePin(at: index)
+        for item in toggling {
+            guard let index = store.load().firstIndex(where: { $0.text == item.text }) else { continue }
+            store.togglePin(at: index)
+        }
         reload()
     }
 
