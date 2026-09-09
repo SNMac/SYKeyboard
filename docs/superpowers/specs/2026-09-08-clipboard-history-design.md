@@ -353,7 +353,7 @@ Assets 카탈로그의 항목은 `extractionState`를 `manual`로 둔다. 패키
   규칙은 `ClipboardHistoryPolicy.pinBatch(selectedTexts:in:)`에 있고 뷰는 결과만 읽는다.
   저장은 `ClipboardHistoryStore.togglePins(selectedTexts:)`가 파일을 한 번 읽고 한 번 쓴다.
   함께 고정한 항목은 고정 시각을 목록 순서대로 1ms씩 앞당겨 목록에서 보던 순서 그대로 위에 온다.
-- "n개 삭제"는 하단 바에서 `role: .destructive`만으로 빨간색이 되지 않으므로 `.tint(.red)`를 준다.
+- "n개 삭제"는 `role: .destructive`만 주고 색은 시스템에 맡긴다.
   상단 툴바는 `+`(추가) 오른쪽에 "편집"/"완료"를 두고, "완료"는 semibold다. 두 문구 중 넓은
   폭으로 고정해 전환할 때 위치가 흔들리지 않게 한다.
 - 원문 하프 시트의 툴바에는 항목 전체가 http/https URL일 때만 "브라우저에서 열기"(`safari`)를

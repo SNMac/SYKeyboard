@@ -209,8 +209,6 @@ private extension ClipboardHistorySettingsView {
             } label: {
                 Label("\(selection.count)개 삭제", systemImage: "trash")
             }
-            // 하단 바에서는 destructive role만으로 빨간색이 되지 않는다
-            .tint(.red)
             .disabled(selection.isEmpty)
         }
     }
