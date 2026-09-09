@@ -28,7 +28,18 @@ struct ClipboardHistorySettingsView: View {
     /// 원문 시트에 표시할 항목. 시트 안에서 내용을 편집하면 바뀌므로 identity가 아니라 표시 여부로 시트를 연다
     @State private var detailItem: ClipboardHistoryItem?
     /// 고정 항목이 포함돼 확인 알림을 기다리는 삭제 대상
-    @State private var pendingDeletion: [ClipboardHistoryItem]?
+    @State private var pendingDeletion: PendingDeletion?
+
+    /// 확인 시트를 어디에 붙일지. 스와이프 삭제는 그 행에서, 편집 모드 삭제는 하단 바 삭제 버튼에서 뜬다
+    fileprivate enum DeletionSource: Equatable {
+        case row(String)
+        case toolbar
+    }
+
+    fileprivate struct PendingDeletion {
+        let items: [ClipboardHistoryItem]
+        let source: DeletionSource
+    }
     /// 시트 문구에 쓰는 개수. 시트가 닫히는 동안 `pendingDeletion`이 먼저 비워져도 제목이 "0개"로 바뀌지 않게 따로 둔다
     @State private var deletionCounts = (pinned: 0, total: 0)
 
@@ -94,16 +105,6 @@ struct ClipboardHistorySettingsView: View {
                 }
             }
             // 스와이프·편집 모드 삭제는 사용자가 의도한 동작이므로 HIG대로 알림이 아니라 action sheet로 확인한다. 취소는 시스템이 붙인다
-            .confirmationDialog(
-                deletionTitle,
-                isPresented: isDeletionAlertPresented,
-                titleVisibility: .visible,
-                presenting: pendingDeletion
-            ) { removing in
-                Button("삭제", role: .destructive) { remove(removing) }
-            } message: { _ in
-                deletionMessage
-            }
             .onAppear(perform: synchronizeAndReload)
             .onChange(of: scenePhase) { phase in
                 if phase == .active { synchronizeAndReload() }
@@ -157,11 +158,13 @@ private extension ClipboardHistorySettingsView {
             }
             .swipeActions(edge: .trailing) {
                 Button(role: .destructive) {
-                    requestRemove([item])
+                    requestRemove([item], source: .row(item.text))
                 } label: {
                     Label("삭제", systemImage: "trash.fill")
                 }
             }
+            // 스와이프 삭제의 확인 시트는 그 행에 붙여, 지원하는 OS에서는 행 근처에서 뜬다
+            .deletionConfirmation(self, source: .row(item.text))
         }
     }
 
@@ -226,11 +229,13 @@ private extension ClipboardHistorySettingsView {
             }
             .disabled(!pinBatch.isAllowed)
             Button(role: .destructive) {
-                requestRemove(selectedItems)
+                requestRemove(selectedItems, source: .toolbar)
             } label: {
                 Label("\(selection.count)개 삭제", systemImage: "trash")
             }
             .disabled(selection.isEmpty)
+            // 편집 모드 삭제의 확인 시트는 삭제 버튼에 붙인다
+            .deletionConfirmation(self, source: .toolbar)
         }
     }
 
@@ -252,6 +257,8 @@ private extension ClipboardHistorySettingsView {
         }
     }
 
+    var pendingDeletionItems: [ClipboardHistoryItem]? { pendingDeletion?.items }
+
     /// 전부 고정이면 고정 항목 개수를, 미고정이 섞였으면 전체 개수를 제목에 쓰고 고정 개수는 설명에 쓴다
     var deletionTitle: Text {
         deletionCounts.pinned == deletionCounts.total
@@ -269,8 +276,14 @@ private extension ClipboardHistorySettingsView {
         Binding(get: { detailItem != nil }, set: { if !$0 { detailItem = nil } })
     }
 
-    var isDeletionAlertPresented: Binding<Bool> {
-        Binding(get: { pendingDeletion != nil }, set: { if !$0 { pendingDeletion = nil } })
+    /// 해당 출처의 확인 시트 표시 여부. 닫히면 대기 중인 삭제를 버린다
+    func isDeletionPresented(for source: DeletionSource) -> Binding<Bool> {
+        Binding(
+            get: { pendingDeletion?.source == source },
+            set: { isPresented in
+                if !isPresented, pendingDeletion?.source == source { pendingDeletion = nil }
+            }
+        )
     }
 
     var canSaveNewItem: Bool {
@@ -308,10 +321,10 @@ private extension ClipboardHistorySettingsView {
     }
 
     /// 고정 항목이 섞여 있으면 알림으로 확인받고, 아니면 바로 지운다
-    func requestRemove(_ removing: [ClipboardHistoryItem]) {
+    func requestRemove(_ removing: [ClipboardHistoryItem], source: DeletionSource) {
         if removing.contains(where: \.isPinned) {
             deletionCounts = (removing.filter(\.isPinned).count, removing.count)
-            pendingDeletion = removing
+            pendingDeletion = PendingDeletion(items: removing, source: source)
         } else {
             remove(removing)
         }
@@ -356,6 +369,27 @@ private extension ClipboardHistorySettingsView {
         store?.recordPinned(newText)
         isAddSheetPresented = false
         reload()
+    }
+}
+
+// MARK: - Deletion Confirmation
+
+private extension View {
+    /// 고정 항목이 섞인 삭제의 확인 시트. `source`에 해당하는 요청일 때만 이 뷰에서 뜬다
+    func deletionConfirmation(
+        _ screen: ClipboardHistorySettingsView,
+        source: ClipboardHistorySettingsView.DeletionSource
+    ) -> some View {
+        confirmationDialog(
+            screen.deletionTitle,
+            isPresented: screen.isDeletionPresented(for: source),
+            titleVisibility: .visible,
+            presenting: screen.pendingDeletionItems
+        ) { removing in
+            Button("삭제", role: .destructive) { screen.remove(removing) }
+        } message: { _ in
+            screen.deletionMessage
+        }
     }
 }
 
