@@ -83,6 +83,21 @@ struct ClipboardHistoryPanelViewTests {
         #expect(spy.deleteAllCount == 0)
     }
 
+    @Test("trailing swipe 삭제는 미고정 행이면 수행하고, 고정 행이면 확인 대기로 미수행을 알림")
+    func testTrailingSwipe삭제는_고정행이면_미수행() {
+        let (panel, spy) = makePanel(items: [pinned("p"), unpinned("a")])
+        var performed: [Bool] = []
+
+        for row in 0..<2 {
+            let actions = panel.tableView(panel.tableView, trailingSwipeActionsConfigurationForRowAt: IndexPath(row: row, section: 0))
+            let action = try! #require(actions?.actions.first)
+            action.handler(action, UIView()) { performed.append($0) }
+        }
+
+        #expect(performed == [false, true])
+        #expect(spy.deletedIndices == [[1]])
+    }
+
     @Test("미고정만 삭제하면 확인 없이 바로 요청")
     func test미고정만삭제는_바로요청() {
         let (panel, spy) = makePanel(items: [pinned("p"), unpinned("a")])

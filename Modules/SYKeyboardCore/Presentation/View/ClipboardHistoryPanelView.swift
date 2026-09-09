@@ -221,6 +221,8 @@ final class ClipboardHistoryPanelView: UIView {
         hideDetail(animated: false)
         hideDeleteConfirmation(animated: false)
         endItemEditing()
+        // 열린 스와이프 액션도 닫는다. 스와이프 중에는 tableView.isEditing만 true라 endItemEditing이 건너뛴다
+        tableView.setEditing(false, animated: false)
         tableView.setContentOffset(.zero, animated: false)
     }
 
@@ -229,6 +231,8 @@ final class ClipboardHistoryPanelView: UIView {
     func beginItemEditing() {
         guard !items.isEmpty, !isItemEditing else { return }
         isItemEditing = true
+        // 열린 스와이프가 있으면 먼저 닫아 헤더와 테이블이 함께 편집 모드로 들어간다
+        tableView.setEditing(false, animated: false)
         tableView.setEditing(true, animated: true)
         updateHeader()
     }
@@ -261,16 +265,18 @@ final class ClipboardHistoryPanelView: UIView {
     }
 
     /// 고정 항목이 섞여 있으면 패널 안 확인 뷰를 띄우고, 미고정만이면 바로 델리게이트에 넘긴다.
-    /// 앱 관리 화면의 삭제 알림과 같은 규칙이다
-    func requestDelete(at indices: [Int], deleteAll: Bool) {
+    /// 앱 관리 화면의 삭제 알림과 같은 규칙이다. 바로 지웠으면 `true`, 확인 대기로 갔으면 `false`
+    @discardableResult
+    func requestDelete(at indices: [Int], deleteAll: Bool) -> Bool {
         let pinnedCount = indices.filter { items.indices.contains($0) && items[$0].isPinned }.count
         guard pinnedCount > 0 else {
             performDelete(at: indices, deleteAll: deleteAll)
-            return
+            return true
         }
         pendingDeletion = (indices, deleteAll)
         deleteConfirmView.update(pinnedCount: pinnedCount)
         setOverlayHidden(deleteConfirmView, false, animated: true)
+        return false
     }
 
     func confirmPendingDeletion() {
@@ -557,9 +563,8 @@ extension ClipboardHistoryPanelView: UITableViewDelegate {
         ) { [weak self] _, _, completion in
             guard let self else { completion(false); return }
             // 소유자가 configure()에서 deleteRows로 행을 지운 뒤 액션을 닫는다. Apple의 삭제 액션 관례와 같다.
-            // 고정 행이면 확인 뷰만 뜨고 행은 남는다
-            self.requestDelete(at: [indexPath.row], deleteAll: false)
-            completion(true)
+            // 고정 행이면 확인 뷰만 뜨고 행은 남으므로 수행하지 않았다고 알린다
+            completion(self.requestDelete(at: [indexPath.row], deleteAll: false))
         }
         deleteAction.image = UIImage(systemName: ClipboardHistoryPanelView.deleteActionSymbolName)
 
@@ -640,7 +645,7 @@ private final class ClipboardHistoryDetailView: UIView {
         return textView
     }()
 
-    private lazy var openURLTapGesture = UITapGestureRecognizer(target: self, action: #selector(handleOpenURLTap))
+    private lazy var openURLTapGesture = UITapGestureRecognizer(target: self, action: #selector(handleOpenURLTap(_:)))
 
     private lazy var pasteButton: UIButton = {
         var config = UIButton.Configuration.filled()
@@ -698,7 +703,13 @@ private final class ClipboardHistoryDetailView: UIView {
 // MARK: - UI Methods
 
 private extension ClipboardHistoryDetailView {
-    @objc func handleOpenURLTap() {
+    /// 브라우저가 열리면 키보드가 내려가므로 글자가 있는 영역을 탭했을 때만 연다. 빈 여백 탭은 무시한다
+    @objc func handleOpenURLTap(_ recognizer: UITapGestureRecognizer) {
+        let point = recognizer.location(in: textView)
+        let inset = textView.textContainerInset
+        let usedRect = textView.layoutManager.usedRect(for: textView.textContainer)
+            .offsetBy(dx: inset.left, dy: inset.top)
+        guard usedRect.contains(point) else { return }
         onOpenURL?()
     }
 
