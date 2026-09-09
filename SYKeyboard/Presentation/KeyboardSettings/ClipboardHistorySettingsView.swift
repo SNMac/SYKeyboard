@@ -137,14 +137,11 @@ private extension ClipboardHistorySettingsView {
 
     var itemRows: some View {
         ForEach(items) { item in
-            Button {
-                detailItem = item
-            } label: {
-                row(for: item)
-            }
-            .buttonStyle(.plain)
-            // 편집 모드에서는 탭이 행 선택으로 가도록 버튼이 터치를 가로채지 않게 한다
-            .allowsHitTesting(!editMode.isEditing)
+            // Button으로 두면 시트를 띄우는 탭 뒤에 눌린 표시가 남는 일이 있어 탭 제스처만 받는다
+            row(for: item)
+                .onTapGesture { detailItem = item }
+                // 편집 모드에서는 탭이 행 선택으로 가도록 제스처가 터치를 가로채지 않게 한다
+                .allowsHitTesting(!editMode.isEditing)
             .swipeActions(edge: .leading) {
                 if item.isPinned || canPin {
                     Button {

@@ -318,7 +318,21 @@ private extension ClipboardHistoryPanelView {
         [headerStackView, tableView, messageLabel, detailView, deleteConfirmView].forEach { self.addSubview($0) }
     }
 
+    /// "전체 선택"과 "전체 선택 해제" 중 넓은 폭으로 고정해, 제목이 짧아질 때 버튼이 줄며 글자가 잘리지 않게 한다
+    func selectAllButtonMinimumWidth() -> CGFloat {
+        let titles = [
+            String(localized: "전체 선택", bundle: SYKBDAssets.bundle),
+            String(localized: "전체 선택 해제", bundle: SYKBDAssets.bundle)
+        ]
+        return titles.map { title in
+            var config = selectAllButton.configuration ?? UIButton.Configuration.plain()
+            config.title = title
+            return UIButton(configuration: config).intrinsicContentSize.width
+        }.max() ?? 0
+    }
+
     func setConstraints() {
+        selectAllButton.widthAnchor.constraint(greaterThanOrEqualToConstant: selectAllButtonMinimumWidth()).isActive = true
         [headerStackView, tableView, messageLabel, detailView, deleteConfirmView].forEach {
             $0.translatesAutoresizingMaskIntoConstraints = false
         }
