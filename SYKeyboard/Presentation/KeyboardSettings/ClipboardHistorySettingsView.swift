@@ -95,7 +95,8 @@ struct ClipboardHistorySettingsView: View {
                     ClipboardHistoryDetailView(
                         item: item,
                         canPin: canPin,
-                        canSave: { ClipboardHistoryPolicy.replacingText(item.text, with: $0, in: items, now: Date()) != nil },
+                        // 저장 가능 여부만 보므로 시각은 결과에 영향이 없다. body마다 Date()를 만들지 않도록 고정값을 넘긴다
+                        canSave: { ClipboardHistoryPolicy.replacingText(item.text, with: $0, in: items, now: .distantPast) != nil },
                         onTogglePin: { togglePinFromDetail(item) },
                         onCopy: { copyFromDetail(item) },
                         onSave: { replaceText(of: item, with: $0) }
@@ -145,31 +146,32 @@ private extension ClipboardHistorySettingsView {
                 .accessibilityAddTraits(.isButton)
                 // 편집 모드에서는 탭이 행 선택으로 가도록 제스처가 터치를 가로채지 않게 한다
                 .allowsHitTesting(!editMode.isEditing)
-            .swipeActions(edge: .leading) {
-                if item.isPinned || canPin {
-                    Button {
-                        togglePins(selectedTexts: [item.text])
-                    } label: {
-                        Label(
-                            item.isPinned ? "고정 해제" : "고정",
-                            systemImage: item.isPinned ? "pin.slash.fill" : "pin.fill"
-                        )
+                .swipeActions(edge: .leading) {
+                    if item.isPinned || canPin {
+                        Button {
+                            togglePins(selectedTexts: [item.text])
+                        } label: {
+                            Label(
+                                item.isPinned ? "고정 해제" : "고정",
+                                systemImage: item.isPinned ? "pin.slash.fill" : "pin.fill"
+                            )
+                        }
+                        .tint(.orange)
                     }
-                    .tint(.orange)
                 }
-            }
-            .swipeActions(edge: .trailing) {
-                // destructive role은 누르는 순간 행 제거 애니메이션을 시작해 행에 붙인 확인 시트를 닫아 버린다.
-                // 삭제 여부는 확인 시트가 결정하므로 role 없이 색만 준다
-                Button {
-                    requestRemove([item], source: .row(item.text))
-                } label: {
-                    Label("삭제", systemImage: "trash.fill")
+                .swipeActions(edge: .trailing) {
+                    // destructive role은 누르는 순간 행 제거 애니메이션을 시작해 행에 붙인 확인 시트를 닫아 버린다.
+                    // 삭제 여부는 확인 시트가 결정하므로 role 없이 색만 준다
+                    Button {
+                        requestRemove([item], source: .row(item.text))
+                    } label: {
+                        Label("삭제", systemImage: "trash.fill")
+                    }
+                    .tint(.red)
                 }
-                .tint(.red)
-            }
-            // 스와이프 삭제의 확인 시트는 그 행에 붙여, 지원하는 OS에서는 행 근처에서 뜬다
-            .deletionConfirmation(self, source: .row(item.text))
+                // 스와이프 삭제의 확인 시트는 그 행에 붙여, 지원하는 OS에서는 행 근처에서 뜬다.
+                // 행마다 하나씩 설치되지만 한 번에 하나만 열리고, 표시 시점에 조건부로 붙이면 SwiftUI가 띄우지 못한다
+                .deletionConfirmation(self, source: .row(item.text))
         }
     }
 

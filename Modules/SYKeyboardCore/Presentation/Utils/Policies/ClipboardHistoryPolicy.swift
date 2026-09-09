@@ -75,22 +75,16 @@ public enum ClipboardHistoryPolicy {
         guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
               text.count <= maxTextLength else { return nil }
 
-        if let existing = items.first(where: { $0.text == text }), existing.isPinned {
-            return repinning(text, in: items, now: now)
+        if items.contains(where: { $0.text == text && $0.isPinned }) {
+            // 고정 시각만 지금으로 바꿔 고정 맨 위로 올린다
+            return sorted(items.map {
+                $0.text == text ? ClipboardHistoryItem(text: $0.text, createdAt: $0.createdAt, pinnedAt: now) : $0
+            })
         }
         guard canPin(items) else { return nil }
 
         let remaining = items.filter { $0.text != text }
         return sorted(remaining + [ClipboardHistoryItem(text: text, createdAt: now, pinnedAt: now)])
-    }
-
-    /// `text` 항목의 고정 시각을 `now`로 바꿔 고정 맨 위로 올린 결과. 미고정 항목이면 그대로
-    static func repinning(_ text: String, in items: [ClipboardHistoryItem], now: Date) -> [ClipboardHistoryItem] {
-        let result = items.map { item -> ClipboardHistoryItem in
-            guard item.text == text, item.isPinned else { return item }
-            return ClipboardHistoryItem(text: item.text, createdAt: item.createdAt, pinnedAt: now)
-        }
-        return sorted(result)
     }
 
     /// 텍스트 전체가 http/https URL 하나일 때 그 URL. 앞뒤 공백·개행은 무시하고, 중간에 공백이 있으면 `nil`
