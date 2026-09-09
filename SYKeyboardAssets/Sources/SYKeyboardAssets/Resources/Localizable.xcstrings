@@ -23,6 +23,17 @@
         }
       }
     },
+    "고정 항목 %lld개가 포함되어 있습니다. 삭제한 고정 항목은 복구할 수 없습니다." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Includes %lld pinned items. Deleted pinned items can't be recovered."
+          }
+        }
+      }
+    },
     "고정 항목 %lld개를 삭제할까요?" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -217,6 +228,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Clipboard History"
+          }
+        }
+      }
+    },
+    "항목 %lld개를 삭제할까요?" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete %lld items?"
           }
         }
       }

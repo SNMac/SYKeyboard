@@ -29,8 +29,8 @@ struct ClipboardHistorySettingsView: View {
     @State private var detailItem: ClipboardHistoryItem?
     /// 고정 항목이 포함돼 확인 알림을 기다리는 삭제 대상
     @State private var pendingDeletion: [ClipboardHistoryItem]?
-    /// 시트 제목에 쓰는 고정 개수. 시트가 닫히는 동안 `pendingDeletion`이 먼저 비워져도 제목이 "0개"로 바뀌지 않게 따로 둔다
-    @State private var deletionTitleCount = 0
+    /// 시트 문구에 쓰는 개수. 시트가 닫히는 동안 `pendingDeletion`이 먼저 비워져도 제목이 "0개"로 바뀌지 않게 따로 둔다
+    @State private var deletionCounts = (pinned: 0, total: 0)
 
     // MARK: - Initializer
 
@@ -95,14 +95,14 @@ struct ClipboardHistorySettingsView: View {
             }
             // 스와이프·편집 모드 삭제는 사용자가 의도한 동작이므로 HIG대로 알림이 아니라 action sheet로 확인한다. 취소는 시스템이 붙인다
             .confirmationDialog(
-                Text("고정 항목 \(deletionTitleCount)개를 삭제할까요?"),
+                deletionTitle,
                 isPresented: isDeletionAlertPresented,
                 titleVisibility: .visible,
                 presenting: pendingDeletion
             ) { removing in
                 Button("삭제", role: .destructive) { remove(removing) }
             } message: { _ in
-                Text("삭제한 고정 항목은 복구할 수 없습니다.")
+                deletionMessage
             }
             .onAppear(perform: synchronizeAndReload)
             .onChange(of: scenePhase) { phase in
@@ -255,6 +255,19 @@ private extension ClipboardHistorySettingsView {
         }
     }
 
+    /// 전부 고정이면 고정 항목 개수를, 미고정이 섞였으면 전체 개수를 제목에 쓰고 고정 개수는 설명에 쓴다
+    var deletionTitle: Text {
+        deletionCounts.pinned == deletionCounts.total
+        ? Text("고정 항목 \(deletionCounts.pinned)개를 삭제할까요?")
+        : Text("항목 \(deletionCounts.total)개를 삭제할까요?")
+    }
+
+    var deletionMessage: Text {
+        deletionCounts.pinned == deletionCounts.total
+        ? Text("삭제한 고정 항목은 복구할 수 없습니다.")
+        : Text("고정 항목 \(deletionCounts.pinned)개가 포함되어 있습니다. 삭제한 고정 항목은 복구할 수 없습니다.")
+    }
+
     var isDetailPresented: Binding<Bool> {
         Binding(get: { detailItem != nil }, set: { if !$0 { detailItem = nil } })
     }
@@ -300,7 +313,7 @@ private extension ClipboardHistorySettingsView {
     /// 고정 항목이 섞여 있으면 알림으로 확인받고, 아니면 바로 지운다
     func requestRemove(_ removing: [ClipboardHistoryItem]) {
         if removing.contains(where: \.isPinned) {
-            deletionTitleCount = removing.filter(\.isPinned).count
+            deletionCounts = (removing.filter(\.isPinned).count, removing.count)
             pendingDeletion = removing
         } else {
             remove(removing)

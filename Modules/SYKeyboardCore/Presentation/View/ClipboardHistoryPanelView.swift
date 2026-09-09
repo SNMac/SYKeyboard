@@ -274,7 +274,7 @@ final class ClipboardHistoryPanelView: UIView {
             return true
         }
         pendingDeletion = (indices, deleteAll)
-        deleteConfirmView.update(pinnedCount: pinnedCount)
+        deleteConfirmView.update(pinnedCount: pinnedCount, totalCount: indices.count)
         setOverlayHidden(deleteConfirmView, false, animated: true)
         return false
     }
@@ -774,7 +774,6 @@ private final class ClipboardHistoryDeleteConfirmView: UIView {
 
     private let messageLabel: UILabel = {
         let label = UILabel()
-        label.text = String(localized: "삭제한 고정 항목은 복구할 수 없습니다.", bundle: SYKBDAssets.bundle)
         label.font = .systemFont(ofSize: 13)
         label.textColor = .secondaryLabel
         label.textAlignment = .center
@@ -830,8 +829,18 @@ private final class ClipboardHistoryDeleteConfirmView: UIView {
 
     // MARK: - Internal Methods
 
-    func update(pinnedCount: Int) {
-        titleLabel.text = String(localized: "고정 항목 \(pinnedCount)개를 삭제할까요?", bundle: SYKBDAssets.bundle)
+    /// 전부 고정이면 고정 항목 개수를, 미고정이 섞였으면 전체 개수를 제목에 쓰고 고정 개수는 설명에 쓴다
+    func update(pinnedCount: Int, totalCount: Int) {
+        if pinnedCount == totalCount {
+            titleLabel.text = String(localized: "고정 항목 \(pinnedCount)개를 삭제할까요?", bundle: SYKBDAssets.bundle)
+            messageLabel.text = String(localized: "삭제한 고정 항목은 복구할 수 없습니다.", bundle: SYKBDAssets.bundle)
+        } else {
+            titleLabel.text = String(localized: "항목 \(totalCount)개를 삭제할까요?", bundle: SYKBDAssets.bundle)
+            messageLabel.text = String(
+                localized: "고정 항목 \(pinnedCount)개가 포함되어 있습니다. 삭제한 고정 항목은 복구할 수 없습니다.",
+                bundle: SYKBDAssets.bundle
+            )
+        }
     }
 }
 
