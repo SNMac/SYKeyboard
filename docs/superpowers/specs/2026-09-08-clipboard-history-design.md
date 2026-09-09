@@ -236,6 +236,11 @@ func resetPresentation()   // 편집 모드 해제, 상세 뷰 닫기, 스크롤
   아이콘, 제목 "삭제"는 접근성용) → `delegate.clipboardPanel(_:didDeleteItemsAt: [index])`.
 - 평소 모드 행 길게 누르기(`UILongPressGestureRecognizer`, `minimumPressDuration` 기본값)
   → 상세 뷰 표시. 편집 모드에서는 무시한다.
+- 상세 뷰 헤더의 "브라우저에서 열기"(`safari` 아이콘)는 항목 전체가 http/https URL 하나일 때만
+  보인다(`ClipboardHistoryPolicy.openableURL(in:)`). 누르면
+  `delegate.clipboardPanel(_:didRequestOpenURLAt:)` → Base가 설정 이동과 같은 responder chain
+  경로로 `UIApplication.open`을 호출한다. 브라우저가 뜨면 호스트 앱을 떠나므로 키보드는
+  시스템이 내린다. 이 경로는 Apple 문서에 없는 동작이며 설정 이동 버튼과 같은 수준으로 취급한다.
 - 상세 뷰 "붙여넣기" → 먼저 `didTogglePin`과 같은 경로의 `didRequestCopyAt`으로 항목을 시스템
   pasteboard에 복사한 뒤(Full Access 필요, `changeCount`를 갱신해 재기록하지 않음) 행 탭과 같은
   `didSelectItemAt`으로 붙여넣는다. 붙여넣은 항목이 현재 클립보드가 된다. 행 탭은 복사하지 않는다.
@@ -344,6 +349,10 @@ Assets 카탈로그의 항목은 `extractionState`를 `manual`로 둔다. 패키
   규칙은 `ClipboardHistoryPolicy.pinBatch(selectedTexts:in:)`에 있고 뷰는 결과만 읽는다.
   저장은 `ClipboardHistoryStore.togglePins(selectedTexts:)`가 파일을 한 번 읽고 한 번 쓴다.
   함께 고정한 항목은 고정 시각을 목록 순서대로 1ms씩 앞당겨 목록에서 보던 순서 그대로 위에 온다.
+- "n개 삭제"는 하단 바에서 `role: .destructive`만으로 빨간색이 되지 않으므로 `.tint(.red)`를 준다.
+  "편집"/"완료" 버튼은 두 문구 중 넓은 폭으로 고정해 전환할 때 위치가 흔들리지 않게 한다.
+- 원문 하프 시트의 툴바에는 항목 전체가 http/https URL일 때만 "브라우저에서 열기"(`safari`)를
+  복사 버튼 왼쪽에 두고 `openURL` 환경값으로 연다.
 - Core 코드가 쓰는 문자열은 "로컬라이징" 절에 따라 Assets 카탈로그에 `manual`로 둔다.
 - 툴바 `+`("추가") → "고정 항목 추가" 시트의 `TextEditor`에 직접 입력해 저장한다.
   저장한 항목은 `recordPinned`로 고정 항목이 되어 맨 위에 온다. 공백만이거나 2,000자
