@@ -51,6 +51,7 @@ struct ClipboardHistoryPasteboardSynchronizerTests {
 
 private struct SyncFixture {
     let store: ClipboardHistoryStore
+    let fileURL: URL
     let pasteboard: UIPasteboard
     let originalChangeCount: Any?
 
@@ -62,6 +63,7 @@ private struct SyncFixture {
             storage.removeObject(forKey: UserDefaultsKeys.lastSeenPasteboardChangeCount)
         }
         UIPasteboard.remove(withName: pasteboard.name)
+        try? FileManager.default.removeItem(at: fileURL)
     }
 }
 
@@ -72,5 +74,5 @@ private func makeFixture(name: String) -> SyncFixture {
     let storage = UserDefaultsManager.shared.storage
     let original = storage.object(forKey: UserDefaultsKeys.lastSeenPasteboardChangeCount)
     storage.removeObject(forKey: UserDefaultsKeys.lastSeenPasteboardChangeCount)
-    return SyncFixture(store: ClipboardHistoryStore(fileURL: url), pasteboard: pasteboard, originalChangeCount: original)
+    return SyncFixture(store: ClipboardHistoryStore(fileURL: url), fileURL: url, pasteboard: pasteboard, originalChangeCount: original)
 }

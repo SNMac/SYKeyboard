@@ -2604,6 +2604,7 @@ private extension BaseKeyboardViewController {
                 let urlString = "sykeyboard://"
                 guard let url = URL(string: urlString) else {
                     assertionFailure("올바르지 않은 URL 형식입니다.")
+                    // Core는 Firebase에 의존하지 않으므로 non-fatal 대신 진단 로그로만 남긴다. 상수 URL이라 실제로는 오지 않는 분기다
                     KeyboardDiagnostics.log("Invalid settings URL: \(urlString)")
                     return
                 }
