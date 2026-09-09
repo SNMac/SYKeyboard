@@ -100,6 +100,17 @@
         }
       }
     },
+    "%lld개 선택" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld Selected"
+          }
+        }
+      }
+    },
     "%lld개 고정" : {
       "extractionState" : "manual",
       "localizations" : {

@@ -54,7 +54,12 @@ struct ClipboardHistorySettingsView: View {
                     historyList
                 }
             }
-            .navigationTitle("클립보드 기록")
+            // 편집 모드에서 선택이 있으면 제목이 선택 수를 보여준다
+            .navigationTitle(
+                editMode.isEditing && !selection.isEmpty
+                ? Text("\(selection.count)개 선택")
+                : Text("클립보드 기록")
+            )
             .navigationBarTitleDisplayMode(.inline)
             .toolbar { toolbarContent }
             // iOS 16은 bottomBar 항목을 나중에 추가하면 바가 안 뜨므로 항목은 두고 표시만 토글한다
@@ -148,6 +153,13 @@ private extension ClipboardHistorySettingsView {
     @ToolbarContentBuilder
     var toolbarContent: some ToolbarContent {
         ToolbarItemGroup(placement: .navigationBarTrailing) {
+            Button {
+                newText = ""
+                isAddSheetPresented = true
+            } label: {
+                Label("추가", systemImage: "plus")
+            }
+            .disabled(!canPin)
             if !items.isEmpty {
                 Button {
                     withAnimation {
@@ -158,36 +170,37 @@ private extension ClipboardHistorySettingsView {
                     // 두 문구의 폭이 달라 버튼 위치가 흔들리지 않도록 넓은 쪽으로 폭을 고정한다
                     ZStack {
                         Text("편집").hidden()
-                        Text("완료").hidden()
+                        Text("완료").fontWeight(.semibold).hidden()
                         Text(editMode.isEditing ? "완료" : "편집")
+                            .fontWeight(editMode.isEditing ? .semibold : .regular)
                     }
                 }
             }
-            Button {
-                newText = ""
-                isAddSheetPresented = true
-            } label: {
-                Label("추가", systemImage: "plus")
-            }
-            .disabled(!canPin)
         }
+        // 툴바의 Label은 아이콘만 보이고 제목은 접근성에 쓰인다. 개수는 제목의 "n개 선택"이 보여준다
         ToolbarItemGroup(placement: .bottomBar) {
-            Button(isAllSelected ? "선택 해제" : "전체 선택") {
+            Button {
                 selection = isAllSelected ? [] : Set(items.map(\.text))
+            } label: {
+                Label(
+                    isAllSelected ? "선택 해제" : "전체 선택",
+                    systemImage: isAllSelected ? "checklist.unchecked" : "checklist.checked"
+                )
             }
             Spacer()
             Button {
                 togglePins(selectedTexts: selection)
             } label: {
-                Text(pinBatch.isUnpinning ? "\(pinBatch.targets.count)개 고정 해제" : "\(pinBatch.targets.count)개 고정")
-                    .monospacedDigit()
+                Label(
+                    pinBatch.isUnpinning ? "\(pinBatch.targets.count)개 고정 해제" : "\(pinBatch.targets.count)개 고정",
+                    systemImage: pinBatch.isUnpinning ? "pin.slash.fill" : "pin.fill"
+                )
             }
             .disabled(!pinBatch.isAllowed)
             Button(role: .destructive) {
                 remove(selectedItems)
             } label: {
-                Text("\(selection.count)개 삭제")
-                    .monospacedDigit()
+                Label("\(selection.count)개 삭제", systemImage: "trash.fill")
             }
             // 하단 바에서는 destructive role만으로 빨간색이 되지 않는다
             .tint(.red)
