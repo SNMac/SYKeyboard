@@ -259,12 +259,16 @@ SF Symbol 이름은 테스트로 고정하지 않는다.
 
 ### 로컬라이징
 
-Core에는 String Catalog가 없으므로
-`Modules/SYKeyboardCore/Resources/Localizable.xcstrings`를 새로 만들고 pbxproj의
-`SYKeyboardCore`·`SYKeyboard` 예외 목록에 등록한다. 패널 문자열은
-`String(localized:bundle:)`에 `Bundle(for: ClipboardHistoryPanelView.self)`를 넘겨
-읽는다. 앱 설정 문자열은 앱의 `Localizable.xcstrings`에 넣는다. 모든 새 문자열에 en
-번역을 추가한다.
+`SYKeyboardCore`는 정적 라이브러리(`MACH_O_TYPE = staticlib`)라 Core 타깃에 둔
+String Catalog는 extension·앱 번들에 복사되지 않고, `Bundle(for:)`도 호스트의 main
+번들을 돌려준다. 그래서 Core 전용 카탈로그를 두지 않고 패널 문자열을 extension 공용
+`Keyboards/Common/Resources/Localizable.xcstrings`와 앱의
+`SYKeyboard/Resources/Localizable.xcstrings` 양쪽에 넣으며, Core 코드는 기본 main 번들로
+`String(localized:)`를 호출한다. 모든 새 문자열에 en 번역을 추가한다.
+
+(초안은 `Modules/SYKeyboardCore/Resources/Localizable.xcstrings`를 만들어
+`Bundle(for:)`로 읽는 방식이었으나, 영어 기기에서 세 키보드 모두 한국어로만 표시되는
+문제가 실기기에서 확인되어 위 방식으로 바꿨다.)
 
 ## 5. `KeyboardView`·`BaseKeyboardViewController` 연결
 
