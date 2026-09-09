@@ -210,8 +210,10 @@ bar가 보일 때는 자동완성 ON이 보장되므로 중첩 설정 조건이 
 
 - 헤더 줄(높이 고정): 평소에는 왼쪽 "클립보드 기록" 라벨, 오른쪽 "편집" 버튼.
   편집 모드에서는 왼쪽 "전체 선택"(모두 선택되면 "전체 선택 해제"), 오른쪽 "n개 삭제"와
-  "완료". "n개 삭제"는 선택 0개면 비활성. 항목이 0개면 "편집"도 비활성. "완료"와
-  "n개 삭제"는 semibold다.
+  "완료". "n개 삭제"는 선택 0개면 비활성. 항목이 0개면 "편집"도 비활성. "완료"만 semibold다.
+  편집 모드 여부는 패널 자체 플래그(`isItemEditing`)로 판단한다. `UITableView.isEditing`은
+  스와이프 액션이 열린 동안에도 true라, 스와이프 삭제 뒤 `configure`가 헤더를 편집 모드로
+  바꾸는 문제가 있었다.
 - `UITableView`(plain, 배경 투명). 셀은 `UIListContentConfiguration`으로 텍스트 2줄
   tail 생략. `allowsMultipleSelectionDuringEditing = true`.
 - 상세 뷰(패널 전체를 덮는 subview, 기본 숨김): 상단 "원문" 라벨과 "닫기", 가운데
