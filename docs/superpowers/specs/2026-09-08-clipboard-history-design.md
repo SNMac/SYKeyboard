@@ -353,12 +353,20 @@ Assets 카탈로그의 항목은 `extractionState`를 `manual`로 둔다. 패키
   규칙은 `ClipboardHistoryPolicy.pinBatch(selectedTexts:in:)`에 있고 뷰는 결과만 읽는다.
   저장은 `ClipboardHistoryStore.togglePins(selectedTexts:)`가 파일을 한 번 읽고 한 번 쓴다.
   함께 고정한 항목은 고정 시각을 목록 순서대로 1ms씩 앞당겨 목록에서 보던 순서 그대로 위에 온다.
-- "n개 삭제"는 `role: .destructive`만 주고 색은 시스템에 맡긴다.
+- "n개 삭제"는 `role: .destructive`만 준다. iOS 16 하단 바에서는 빨간색이 되지 않지만 tint를
+  주지 않기로 했다(실기기 확인 후 결정).
+- 삭제 대상에 고정 항목이 있으면(스와이프·편집 모드 모두) "고정 항목 n개를 삭제할까요?" 알림으로
+  확인받고, 미고정만이면 바로 지운다. 키보드 패널의 확인 방식은 별도로 정한다.
   상단 툴바는 `+`(추가) 오른쪽에 "편집"/"완료"를 두고, "완료"는 semibold다. 두 문구 중 넓은
   폭으로 고정해 전환할 때 위치가 흔들리지 않게 한다.
 - 원문 하프 시트의 툴바에는 항목 전체가 http/https URL일 때만 "브라우저에서 열기"(`safari`)를
   복사 버튼 왼쪽에 두고 `openURL` 환경값으로 연다. 왼쪽 상단에는 `ShareLink`로 공유 버튼
   (`square.and.arrow.up`)을 둔다. 키보드 extension은 공유 시트를 띄울 수 없어 앱에만 둔다.
+- 복사 버튼 오른쪽의 "편집"(`pencil`)을 누르면 같은 시트가 `TextEditor`로 바뀌고 "취소"/"저장"만
+  남는다. 저장은 `ClipboardHistoryPolicy.replacingText(_:with:in:)`가 허용할 때만 가능하며
+  (빈 값·2,000자 초과·원문과 같음·다른 항목과 중복이면 비활성) 자리·고정 상태·시각은 유지된다.
+  텍스트가 id라 시트는 identity가 아니라 표시 여부로 열어 저장 후에도 닫히지 않는다. 키보드
+  패널에는 편집이 없다.
 - Core 코드가 쓰는 문자열은 "로컬라이징" 절에 따라 Assets 카탈로그에 `manual`로 둔다.
 - 툴바 `+`("추가") → "고정 항목 추가" 시트의 `TextEditor`에 직접 입력해 저장한다.
   저장한 항목은 `recordPinned`로 고정 항목이 되어 맨 위에 온다. 공백만이거나 2,000자
