@@ -157,11 +157,14 @@ private extension ClipboardHistorySettingsView {
                 }
             }
             .swipeActions(edge: .trailing) {
-                Button(role: .destructive) {
+                // destructive role은 누르는 순간 행 제거 애니메이션을 시작해 행에 붙인 확인 시트를 닫아 버린다.
+                // 삭제 여부는 확인 시트가 결정하므로 role 없이 색만 준다
+                Button {
                     requestRemove([item], source: .row(item.text))
                 } label: {
                     Label("삭제", systemImage: "trash.fill")
                 }
+                .tint(.red)
             }
             // 스와이프 삭제의 확인 시트는 그 행에 붙여, 지원하는 OS에서는 행 근처에서 뜬다
             .deletionConfirmation(self, source: .row(item.text))
