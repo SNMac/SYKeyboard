@@ -34,14 +34,14 @@ struct ClipboardHistoryStoreTests {
         #expect(fixture.store.load().isEmpty)
     }
 
-    @Test("인덱스 삭제는 해당 항목만 제거하고 범위 밖 인덱스는 무시")
-    func test인덱스삭제는_해당항목만제거() {
+    @Test("텍스트 삭제는 해당 항목만 제거하고 없는 텍스트는 무시")
+    func test텍스트삭제는_해당항목만제거() {
         let fixture = makeFixture(name: "remove")
         fixture.store.record("a", now: Date(timeIntervalSince1970: 1))
         fixture.store.record("b", now: Date(timeIntervalSince1970: 2))
         fixture.store.record("c", now: Date(timeIntervalSince1970: 3))
 
-        fixture.store.remove(at: [1, 99])
+        fixture.store.remove(texts: ["b", "zzz"])
 
         #expect(fixture.store.load().map(\.text) == ["c", "a"])
     }
@@ -75,14 +75,14 @@ struct ClipboardHistoryStoreTests {
         #expect(fixture.store.load().allSatisfy { !$0.isPinned })
     }
 
-    @Test("고정으로 순서가 바뀐 뒤에도 패널 인덱스로 삭제하면 그 항목이 지워짐")
-    func test고정재정렬후_인덱스삭제는_해당항목제거() {
+    @Test("고정으로 순서가 바뀐 뒤에도 텍스트로 삭제하면 그 항목이 지워짐")
+    func test고정재정렬후_텍스트삭제는_해당항목제거() {
         let fixture = makeFixture(name: "pin-then-remove")
         fixture.store.record("a", now: Date(timeIntervalSince1970: 1))
         fixture.store.record("b", now: Date(timeIntervalSince1970: 2))
 
         fixture.store.togglePin(at: 1, now: Date(timeIntervalSince1970: 3))
-        fixture.store.remove(at: [0])
+        fixture.store.remove(texts: ["a"])
 
         #expect(fixture.store.load().map(\.text) == ["b"])
     }

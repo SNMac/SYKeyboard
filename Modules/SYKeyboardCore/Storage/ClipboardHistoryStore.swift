@@ -80,13 +80,10 @@ public final class ClipboardHistoryStore {
         save(items)
     }
 
-    /// 지정한 인덱스의 항목을 삭제한다. 범위 밖 인덱스는 무시한다
-    public func remove(at indices: [Int]) {
-        let removing = Set(indices)
-        let remaining = load().enumerated()
-            .filter { !removing.contains($0.offset) }
-            .map(\.element)
-        save(remaining)
+    /// 지정한 텍스트의 항목을 삭제한다. 없는 텍스트는 무시한다.
+    /// 인덱스가 아니라 텍스트로 받아, 확인을 기다리는 사이 파일 순서가 바뀌어도 다른 항목을 지우지 않는다
+    public func remove(texts: Set<String>) {
+        save(load().filter { !texts.contains($0.text) })
     }
 
     public func removeAll() {

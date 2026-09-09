@@ -295,7 +295,6 @@ private extension ClipboardHistorySettingsView {
         reload()
     }
 
-    /// 인덱스는 파일 순서 기준이므로 조작 직전에 다시 읽어 키보드가 바꾼 내용과 어긋나지 않게 한다
     /// 고정 항목이 섞여 있으면 알림으로 확인받고, 아니면 바로 지운다
     func requestRemove(_ removing: [ClipboardHistoryItem]) {
         if removing.contains(where: \.isPinned) {
@@ -305,16 +304,10 @@ private extension ClipboardHistorySettingsView {
         }
     }
 
+    /// 저장소가 텍스트로 지우므로 파일을 미리 다시 읽을 필요가 없다
     func remove(_ removing: [ClipboardHistoryItem]) {
-        reload()
-        let texts = Set(removing.map(\.text))
-        let indices = items.indices.filter { texts.contains(items[$0].text) }
-        guard !indices.isEmpty else { return }
-        if indices.count == items.count {
-            store?.removeAll()
-        } else {
-            store?.remove(at: indices)
-        }
+        guard !removing.isEmpty else { return }
+        store?.remove(texts: Set(removing.map(\.text)))
         reload()
     }
 

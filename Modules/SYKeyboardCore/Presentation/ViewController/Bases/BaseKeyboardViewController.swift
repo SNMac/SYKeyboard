@@ -2411,7 +2411,9 @@ extension BaseKeyboardViewController: ClipboardHistoryPanelDelegate {
     }
 
     final func clipboardPanel(_ panel: ClipboardHistoryPanelView, didDeleteItemsAt indices: [Int]) {
-        clipboardHistoryStore?.remove(at: indices)
+        // 인덱스는 패널이 보여준 목록 기준이므로 텍스트로 바꿔 지운다. 파일 순서가 그사이 바뀌어도 안전하다
+        let texts = Set(indices.compactMap { panel.items.indices.contains($0) ? panel.items[$0].text : nil })
+        clipboardHistoryStore?.remove(texts: texts)
         reloadClipboardPanel()
     }
 
