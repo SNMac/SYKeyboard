@@ -216,11 +216,13 @@ private extension ClipboardHistorySettingsView {
     func thumbnail(for reference: ClipboardImageReference) -> some View {
         if let url = store?.imageStore?.thumbnailURL(for: reference),
            let image = UIImage(contentsOfFile: url.path) {
+            // 키보드 패널의 `UIListContentConfiguration`(maximumSize 44×44, aspect fit)과 같은 비율로 보이도록
+            // 원본 비율을 유지하고 44×44 안에 맞춘다. 자르지 않는다
             Image(uiImage: image)
                 .resizable()
-                .scaledToFill()
-                .frame(width: 44, height: 44)
+                .scaledToFit()
                 .clipShape(RoundedRectangle(cornerRadius: 4))
+                .frame(width: 44, height: 44)
         } else {
             Image(systemName: "photo")
                 .frame(width: 44, height: 44)
