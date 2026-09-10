@@ -18,7 +18,7 @@ struct ClipboardHistorySettingsView: View {
 
     private let store = ClipboardHistoryStore()
 
-    /// 저장 순서 그대로(고정 최신순 → 미고정 최신순). 텍스트는 정책상 중복이 없어 id로 쓴다.
+    /// 저장 순서 그대로(고정 최신순 → 미고정 최신순). id는 정책상 중복이 없다.
     /// 화면 전환 중 빈 상태와 편집 버튼 없는 툴바가 먼저 보이지 않도록 첫 렌더링 전에 읽는다
     @State private var items: [ClipboardHistoryItem]
     @State private var selection = Set<String>()
@@ -53,9 +53,9 @@ struct ClipboardHistorySettingsView: View {
     private var pinnedCount: Int { items.filter(\.isPinned).count }
     private var recentCount: Int { items.count - pinnedCount }
     private var isAllSelected: Bool { !items.isEmpty && selection.count == items.count }
-    private var selectedItems: [ClipboardHistoryItem] { items.filter { selection.contains($0.text) } }
+    private var selectedItems: [ClipboardHistoryItem] { items.filter { selection.contains($0.id) } }
     private var pinBatch: ClipboardHistoryPolicy.PinBatch {
-        ClipboardHistoryPolicy.pinBatch(selectedTexts: selection, in: items)
+        ClipboardHistoryPolicy.pinBatch(selectedIDs: selection, in: items)
     }
 
     // MARK: - Content
@@ -96,7 +96,7 @@ struct ClipboardHistorySettingsView: View {
                         item: item,
                         canPin: canPin,
                         // 저장 가능 여부만 보므로 시각은 결과에 영향이 없다. body마다 Date()를 만들지 않도록 고정값을 넘긴다
-                        canSave: { ClipboardHistoryPolicy.replacingText(item.text, with: $0, in: items, now: .distantPast) != nil },
+                        canSave: { newText in item.text.flatMap { ClipboardHistoryPolicy.replacingText($0, with: newText, in: items, now: .distantPast) } != nil },
                         onTogglePin: { togglePinFromDetail(item) },
                         onCopy: { copyFromDetail(item) },
                         onSave: { replaceText(of: item, with: $0) }
@@ -149,7 +149,7 @@ private extension ClipboardHistorySettingsView {
                 .swipeActions(edge: .leading) {
                     if item.isPinned || canPin {
                         Button {
-                            togglePins(selectedTexts: [item.text])
+                            togglePins(selectedIDs: [item.id])
                         } label: {
                             Label(
                                 item.isPinned ? "고정 해제" : "고정",
@@ -163,7 +163,7 @@ private extension ClipboardHistorySettingsView {
                     // destructive role은 누르는 순간 행 제거 애니메이션을 시작해 행에 붙인 확인 시트를 닫아 버린다.
                     // 삭제 여부는 확인 시트가 결정하므로 role 없이 색만 준다
                     Button {
-                        requestRemove([item], source: .row(item.text))
+                        requestRemove([item], source: .row(item.id))
                     } label: {
                         Label("삭제", systemImage: "trash.fill")
                     }
@@ -171,13 +171,13 @@ private extension ClipboardHistorySettingsView {
                 }
                 // 스와이프 삭제의 확인 시트는 그 행에 붙여, 지원하는 OS에서는 행 근처에서 뜬다.
                 // 행마다 하나씩 설치되지만 한 번에 하나만 열리고, 표시 시점에 조건부로 붙이면 SwiftUI가 띄우지 못한다
-                .deletionConfirmation(self, source: .row(item.text))
+                .deletionConfirmation(self, source: .row(item.id))
         }
     }
 
     func row(for item: ClipboardHistoryItem) -> some View {
         HStack {
-            Text(item.text)
+            Text(item.text ?? "")
                 .lineLimit(2)
             Spacer()
             if item.isPinned {
@@ -218,7 +218,7 @@ private extension ClipboardHistorySettingsView {
         // 툴바의 Label은 아이콘만 보이고 제목은 접근성에 쓰인다. 개수는 제목의 "n개 선택"이 보여준다
         ToolbarItemGroup(placement: .bottomBar) {
             Button {
-                selection = isAllSelected ? [] : Set(items.map(\.text))
+                selection = isAllSelected ? [] : Set(items.map(\.id))
             } label: {
                 Label(
                     isAllSelected ? "선택 해제" : "전체 선택",
@@ -227,7 +227,7 @@ private extension ClipboardHistorySettingsView {
             }
             Spacer()
             Button {
-                togglePins(selectedTexts: selection)
+                togglePins(selectedIDs: selection)
             } label: {
                 Label(
                     pinBatch.isUnpinning ? "\(pinBatch.targets.count)개 고정 해제" : "\(pinBatch.targets.count)개 고정",
@@ -317,17 +317,17 @@ private extension ClipboardHistorySettingsView {
         withAnimation {
             items = store?.load() ?? []
         }
-        selection = selection.intersection(items.map(\.text))
+        selection = selection.intersection(items.map(\.id))
         if items.isEmpty { editMode = .inactive }
-        // 시트를 띄운 행이 다시 읽는 사이 사라졌으면 대기 중인 삭제도 버린다. 같은 텍스트가 돌아올 때 시트가 저절로 뜨지 않게 한다
-        if case .row(let text)? = pendingDeletion?.source, !items.contains(where: { $0.text == text }) {
+        // 시트를 띄운 행이 다시 읽는 사이 사라졌으면 대기 중인 삭제도 버린다. 같은 id가 돌아올 때 시트가 저절로 뜨지 않게 한다
+        if case .row(let id)? = pendingDeletion?.source, !items.contains(where: { $0.id == id }) {
             pendingDeletion = nil
         }
     }
 
     /// 저장소가 파일을 다시 읽어 판단하므로 키보드가 그사이 바꾼 내용과 어긋나지 않는다
-    func togglePins(selectedTexts: Set<String>) {
-        store?.togglePins(selectedTexts: selectedTexts)
+    func togglePins(selectedIDs: Set<String>) {
+        store?.togglePins(selectedIDs: selectedIDs)
         reload()
     }
 
@@ -341,39 +341,41 @@ private extension ClipboardHistorySettingsView {
         }
     }
 
-    /// 저장소가 텍스트로 지우므로 파일을 미리 다시 읽을 필요가 없다
+    /// 저장소가 id로 지우므로 파일을 미리 다시 읽을 필요가 없다
     func remove(_ removing: [ClipboardHistoryItem]) {
         guard !removing.isEmpty else { return }
-        store?.remove(texts: Set(removing.map(\.text)))
+        store?.remove(ids: Set(removing.map(\.id)))
         reload()
     }
 
     /// 원문 시트에서 편집한 내용을 저장하고, 시트가 새 내용을 보이도록 표시 항목을 바꾼다
     func replaceText(of item: ClipboardHistoryItem, with newText: String) {
-        store?.replaceText(item.text, with: newText)
+        guard let oldText = item.text else { return }
+        store?.replaceText(oldText, with: newText)
         reload()
-        refreshDetailItem(text: newText)
+        refreshDetailItem(id: newText)
     }
 
     func togglePinFromDetail(_ item: ClipboardHistoryItem) {
-        store?.togglePins(selectedTexts: [item.text])
+        store?.togglePins(selectedIDs: [item.id])
         reload()
-        refreshDetailItem(text: item.text)
+        refreshDetailItem(id: item.id)
     }
 
     /// 복사한 항목을 최근 복사한 것처럼 목록 맨 위로 올린다. 동기화가 방금 쓴 pasteboard를 다시 읽지 않도록 changeCount를 맞춘다
     func copyFromDetail(_ item: ClipboardHistoryItem) {
+        guard let text = item.text else { return }
         let pasteboard = UIPasteboard.general
-        pasteboard.string = item.text
+        pasteboard.string = text
         UserDefaultsManager.shared.lastSeenPasteboardChangeCount = pasteboard.changeCount
-        store?.record(item.text)
+        store?.record(text)
         reload()
-        refreshDetailItem(text: item.text)
+        refreshDetailItem(id: item.id)
     }
 
     /// 시트가 열린 채로 저장소가 바뀌면 표시 항목을 새 값으로 바꾼다. 항목이 사라졌으면 그대로 둔다
-    func refreshDetailItem(text: String) {
-        detailItem = items.first { $0.text == text } ?? detailItem
+    func refreshDetailItem(id: String) {
+        detailItem = items.first { $0.id == id } ?? detailItem
     }
 
     func saveNewItem() {
@@ -421,13 +423,15 @@ private struct ClipboardHistoryDetailView: View {
     @State private var isEditing = false
     @State private var draft = ""
 
+    private var text: String { item.text ?? "" }
+
     private var linkStyledText: AttributedString {
-        var text = AttributedString(item.text)
-        if let url = ClipboardHistoryPolicy.openableURL(in: item.text) {
-            text.link = url
-            text.underlineStyle = .single
+        var attributed = AttributedString(text)
+        if let url = ClipboardHistoryPolicy.openableURL(in: text) {
+            attributed.link = url
+            attributed.underlineStyle = .single
         }
-        return text
+        return attributed
     }
 
     var body: some View {
@@ -473,7 +477,7 @@ private struct ClipboardHistoryDetailView: View {
                                 )
                             }
                         }
-                        ShareLink(item: item.text) {
+                        ShareLink(item: text) {
                             Label("공유", systemImage: "square.and.arrow.up")
                         }
                     }
@@ -482,7 +486,7 @@ private struct ClipboardHistoryDetailView: View {
                             Label("복사", systemImage: "doc.on.doc")
                         }
                         Button {
-                            draft = item.text
+                            draft = text
                             isEditing = true
                         } label: {
                             Label("편집", systemImage: "pencil.line")

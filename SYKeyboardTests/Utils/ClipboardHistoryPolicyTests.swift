@@ -191,7 +191,7 @@ struct ClipboardHistoryPolicyTests {
     func test선택에미고정이섞이면_미고정만고정대상() {
         let items = [item("p", pinnedAt: 100), item("a", createdAt: 2), item("b", createdAt: 1)]
 
-        let batch = ClipboardHistoryPolicy.pinBatch(selectedTexts: ["p", "a", "b"], in: items)
+        let batch = ClipboardHistoryPolicy.pinBatch(selectedIDs: ["p", "a", "b"], in: items)
 
         #expect(batch.targets.map(\.text) == ["a", "b"])
         #expect(batch.isUnpinning == false)
@@ -202,7 +202,7 @@ struct ClipboardHistoryPolicyTests {
     func test선택이전부고정이면_해제대상() {
         let items = [item("p1", pinnedAt: 101), item("p2", pinnedAt: 100), item("a")]
 
-        let batch = ClipboardHistoryPolicy.pinBatch(selectedTexts: ["p1", "p2"], in: items)
+        let batch = ClipboardHistoryPolicy.pinBatch(selectedIDs: ["p1", "p2"], in: items)
 
         #expect(batch.targets.map(\.text) == ["p1", "p2"])
         #expect(batch.isUnpinning)
@@ -213,9 +213,9 @@ struct ClipboardHistoryPolicyTests {
     func test선택없으면_불허() {
         let items = [item("a")]
 
-        #expect(ClipboardHistoryPolicy.pinBatch(selectedTexts: [], in: items).isAllowed == false)
-        #expect(ClipboardHistoryPolicy.pinBatch(selectedTexts: ["zzz"], in: items).isAllowed == false)
-        #expect(ClipboardHistoryPolicy.togglingPins(selectedTexts: [], in: items, now: now) == nil)
+        #expect(ClipboardHistoryPolicy.pinBatch(selectedIDs: [], in: items).isAllowed == false)
+        #expect(ClipboardHistoryPolicy.pinBatch(selectedIDs: ["zzz"], in: items).isAllowed == false)
+        #expect(ClipboardHistoryPolicy.togglingPins(selectedIDs: [], in: items, now: now) == nil)
     }
 
     @Test("일괄 고정은 현재 고정 수와 합쳐 한도까지만 허용")
@@ -225,16 +225,16 @@ struct ClipboardHistoryPolicyTests {
         }
         let items = pinned + [item("a", createdAt: 2), item("b", createdAt: 1)]
 
-        #expect(ClipboardHistoryPolicy.pinBatch(selectedTexts: ["a"], in: items).isAllowed)
-        #expect(ClipboardHistoryPolicy.pinBatch(selectedTexts: ["a", "b"], in: items).isAllowed == false)
-        #expect(ClipboardHistoryPolicy.togglingPins(selectedTexts: ["a", "b"], in: items, now: now) == nil)
+        #expect(ClipboardHistoryPolicy.pinBatch(selectedIDs: ["a"], in: items).isAllowed)
+        #expect(ClipboardHistoryPolicy.pinBatch(selectedIDs: ["a", "b"], in: items).isAllowed == false)
+        #expect(ClipboardHistoryPolicy.togglingPins(selectedIDs: ["a", "b"], in: items, now: now) == nil)
     }
 
     @Test("함께 고정한 항목은 목록에서 보던 순서대로 위에 옴")
     func test일괄고정은_목록순서유지() {
         let items = [item("c", createdAt: 3), item("b", createdAt: 2), item("a", createdAt: 1), item("x", createdAt: 0)]
 
-        let result = ClipboardHistoryPolicy.togglingPins(selectedTexts: ["c", "b", "a"], in: items, now: now)
+        let result = ClipboardHistoryPolicy.togglingPins(selectedIDs: ["c", "b", "a"], in: items, now: now)
 
         #expect(result?.map(\.text) == ["c", "b", "a", "x"])
         #expect(result?.prefix(3).allSatisfy(\.isPinned) == true)
@@ -246,7 +246,7 @@ struct ClipboardHistoryPolicyTests {
     func test일괄해제는_미고정자리로복귀() {
         let items = [item("p1", createdAt: 1, pinnedAt: 101), item("p2", createdAt: 3, pinnedAt: 100), item("a", createdAt: 2)]
 
-        let result = ClipboardHistoryPolicy.togglingPins(selectedTexts: ["p1", "p2"], in: items, now: now)
+        let result = ClipboardHistoryPolicy.togglingPins(selectedIDs: ["p1", "p2"], in: items, now: now)
 
         #expect(result?.map(\.text) == ["p2", "a", "p1"])
         #expect(result?.contains(where: \.isPinned) == false)
@@ -317,6 +317,56 @@ struct ClipboardHistoryPolicyTests {
         #expect(ClipboardHistoryPolicy.togglingPin(at: 5, in: [item("a")], now: now) == nil)
     }
 
+    @Test("같은 이미지를 다시 넣으면 기존 항목이 맨 앞으로 오고 고정 이미지는 바뀌지 않음")
+    func test이미지중복은_맨앞이동_고정이면변경없음() {
+        let items = [item("a", createdAt: 3), imageItem("h1", createdAt: 2), item("b", createdAt: 1)]
+
+        let result = ClipboardHistoryPolicy.inserting(.image(reference("h1")), into: items, now: now)
+        #expect(result?.map(\.id) == ["image/h1", "a", "b"])
+        #expect(result?.first?.createdAt == now)
+
+        let pinnedImage = [imageItem("h1", createdAt: 2, pinnedAt: 100), item("a", createdAt: 3)]
+        #expect(ClipboardHistoryPolicy.inserting(.image(reference("h1")), into: pinnedImage, now: now) == nil)
+    }
+
+    @Test("이미지 content는 항상 저장 가능하고 텍스트 규칙은 그대로")
+    func test이미지content는_저장가능() {
+        #expect(ClipboardHistoryPolicy.isStorable(.image(reference("h1"))))
+        #expect(ClipboardHistoryPolicy.isStorable(.text("  ")) == false)
+        #expect(ClipboardHistoryPolicy.isStorable(.text("a")))
+    }
+
+    @Test("텍스트와 이미지가 섞여도 미고정 한도는 함께 세고 오래된 것부터 버림")
+    func test혼합목록_미고정한도공유() {
+        var items: [ClipboardHistoryItem] = []
+        for index in 0..<ClipboardHistoryPolicy.maxItemCount {
+            items.append(index.isMultiple(of: 2) ? item("t\(index)", createdAt: TimeInterval(index)) : imageItem("h\(index)", createdAt: TimeInterval(index)))
+        }
+
+        let result = ClipboardHistoryPolicy.inserting(.image(reference("new")), into: items, now: now)
+
+        #expect(result?.count == ClipboardHistoryPolicy.maxItemCount)
+        #expect(result?.first?.id == "image/new")
+        #expect(result?.contains(where: { $0.id == "t0" }) == false)
+    }
+
+    @Test("이미지 항목은 id로 일괄 고정·해제되고 내용 편집은 nil")
+    func test이미지항목_일괄고정과_편집불가() {
+        let items = [item("a", createdAt: 2), imageItem("h1", createdAt: 1)]
+
+        let pinned = ClipboardHistoryPolicy.togglingPins(selectedIDs: ["image/h1"], in: items, now: now)
+        #expect(pinned?.map(\.id) == ["image/h1", "a"])
+        #expect(pinned?.first?.isPinned == true)
+        #expect(ClipboardHistoryPolicy.replacingText("image/h1", with: "x", in: items, now: now) == nil)
+    }
+
+    @Test("복사 시각이 같으면 id 순으로 정렬해 텍스트·이미지 순서를 고정")
+    func test시각같으면_id순정렬() {
+        let items = [item("b"), imageItem("h1"), item("a")]
+
+        #expect(ClipboardHistoryPolicy.sorted(items).map(\.id) == ["a", "b", "image/h1"])
+    }
+
     private func item(
         _ text: String,
         createdAt: TimeInterval = 0,
@@ -324,6 +374,22 @@ struct ClipboardHistoryPolicyTests {
     ) -> ClipboardHistoryItem {
         ClipboardHistoryItem(
             text: text,
+            createdAt: Date(timeIntervalSince1970: createdAt),
+            pinnedAt: pinnedAt.map { Date(timeIntervalSince1970: $0) }
+        )
+    }
+
+    private func reference(_ hash: String) -> ClipboardImageReference {
+        ClipboardImageReference(hash: hash, typeIdentifier: "public.png", byteSize: 1_024, pixelWidth: 10, pixelHeight: 10)
+    }
+
+    private func imageItem(
+        _ hash: String,
+        createdAt: TimeInterval = 0,
+        pinnedAt: TimeInterval? = nil
+    ) -> ClipboardHistoryItem {
+        ClipboardHistoryItem(
+            content: .image(reference(hash)),
             createdAt: Date(timeIntervalSince1970: createdAt),
             pinnedAt: pinnedAt.map { Date(timeIntervalSince1970: $0) }
         )

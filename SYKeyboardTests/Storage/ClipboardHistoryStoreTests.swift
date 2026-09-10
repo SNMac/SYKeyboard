@@ -41,7 +41,7 @@ struct ClipboardHistoryStoreTests {
         fixture.store.record("b", now: Date(timeIntervalSince1970: 2))
         fixture.store.record("c", now: Date(timeIntervalSince1970: 3))
 
-        fixture.store.remove(texts: ["b", "zzz"])
+        fixture.store.remove(ids: ["b", "zzz"])
 
         #expect(fixture.store.load().map(\.text) == ["c", "a"])
     }
@@ -82,7 +82,7 @@ struct ClipboardHistoryStoreTests {
         fixture.store.record("b", now: Date(timeIntervalSince1970: 2))
 
         fixture.store.togglePin(at: 1, now: Date(timeIntervalSince1970: 3))
-        fixture.store.remove(texts: ["a"])
+        fixture.store.remove(ids: ["a"])
 
         #expect(fixture.store.load().map(\.text) == ["b"])
     }
@@ -106,7 +106,7 @@ struct ClipboardHistoryStoreTests {
         fixture.store.record("b", now: Date(timeIntervalSince1970: 2))
         fixture.store.record("c", now: Date(timeIntervalSince1970: 3))
 
-        fixture.store.togglePins(selectedTexts: ["c", "a"], now: Date(timeIntervalSince1970: 10))
+        fixture.store.togglePins(selectedIDs: ["c", "a"], now: Date(timeIntervalSince1970: 10))
 
         let items = fixture.store.load()
         #expect(items.map(\.text) == ["c", "a", "b"])
@@ -158,6 +158,48 @@ struct ClipboardHistoryStoreTests {
         try Data("not a plist".utf8).write(to: fixture.url)
 
         #expect(fixture.store.load().isEmpty)
+    }
+
+    @Test("이미지 항목은 image 키로 저장되고 다시 읽으면 같은 참조와 id로 돌아옴")
+    func test이미지항목_왕복저장() {
+        let fixture = makeFixture(name: "image-roundtrip")
+        let reference = ClipboardImageReference(hash: "abc", typeIdentifier: "public.jpeg", byteSize: 2_048, pixelWidth: 40, pixelHeight: 30)
+
+        fixture.store.record("text", now: Date(timeIntervalSince1970: 1))
+        fixture.store.record(.image(reference), now: Date(timeIntervalSince1970: 2))
+
+        let items = fixture.store.load()
+        #expect(items.map(\.id) == ["image/abc", "text"])
+        #expect(items.first?.image == reference)
+        #expect(items.first?.text == nil)
+        #expect(items.last?.image == nil)
+    }
+
+    @Test("text 키만 있는 기존 파일과 image 키가 있는 파일을 함께 읽음")
+    func test기존텍스트파일과_이미지항목_혼합읽기() throws {
+        let fixture = makeFixture(name: "mixed-legacy")
+        let legacy: [[String: Any]] = [
+            ["text": "old", "createdAt": Date(timeIntervalSince1970: 1)],
+            ["image": ["hash": "h", "typeIdentifier": "public.png", "byteSize": 10, "pixelWidth": 1, "pixelHeight": 1],
+             "createdAt": Date(timeIntervalSince1970: 2)]
+        ]
+        let data = try PropertyListSerialization.data(fromPropertyList: legacy, format: .binary, options: 0)
+        try data.write(to: fixture.url)
+
+        #expect(fixture.store.load().map(\.id) == ["old", "image/h"])
+    }
+
+    @Test("id로 삭제하면 텍스트·이미지 항목이 함께 지워짐")
+    func testId삭제는_텍스트이미지_함께제거() {
+        let fixture = makeFixture(name: "remove-ids")
+        let reference = ClipboardImageReference(hash: "h", typeIdentifier: "public.png", byteSize: 10, pixelWidth: 1, pixelHeight: 1)
+        fixture.store.record("a", now: Date(timeIntervalSince1970: 1))
+        fixture.store.record(.image(reference), now: Date(timeIntervalSince1970: 2))
+        fixture.store.record("b", now: Date(timeIntervalSince1970: 3))
+
+        fixture.store.remove(ids: ["image/h", "a"])
+
+        #expect(fixture.store.load().map(\.id) == ["b"])
     }
 }
 

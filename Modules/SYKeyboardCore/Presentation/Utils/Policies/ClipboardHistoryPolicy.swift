@@ -7,22 +7,101 @@
 
 import Foundation
 
+/// 클립보드 기록의 이미지 항목이 가리키는 파일. 경로는 해시와 타입에서 유도하므로 저장하지 않는다
+public struct ClipboardImageReference: Codable, Equatable {
+    /// 원본 바이트의 SHA-256 hex. 파일명이자 식별자
+    public let hash: String
+    /// `public.jpeg` / `public.heic` / `public.png`
+    public let typeIdentifier: String
+    public let byteSize: Int
+    /// EXIF 회전을 적용한 표시 기준 크기
+    public let pixelWidth: Int
+    public let pixelHeight: Int
+
+    public init(hash: String, typeIdentifier: String, byteSize: Int, pixelWidth: Int, pixelHeight: Int) {
+        self.hash = hash
+        self.typeIdentifier = typeIdentifier
+        self.byteSize = byteSize
+        self.pixelWidth = pixelWidth
+        self.pixelHeight = pixelHeight
+    }
+
+    /// 목록 행에 보여주는 "1920×1080 · 1.2 MB"
+    public var sizeDescription: String {
+        let bytes = ByteCountFormatter.string(fromByteCount: Int64(byteSize), countStyle: .file)
+        return "\(pixelWidth)×\(pixelHeight) · \(bytes)"
+    }
+}
+
 /// 클립보드 기록 한 항목
 public struct ClipboardHistoryItem: Codable, Equatable, Identifiable {
-    /// 정책이 텍스트 중복을 허용하지 않으므로 텍스트가 곧 식별자다
-    public var id: String { text }
+    public enum Content: Equatable {
+        case text(String)
+        case image(ClipboardImageReference)
 
-    public let text: String
+        /// 텍스트는 텍스트 자체, 이미지는 "image/<hash>". 정책이 content 중복을 허용하지 않으므로 유일하다
+        public var id: String {
+            switch self {
+            case .text(let text): return text
+            case .image(let reference): return "image/" + reference.hash
+            }
+        }
+    }
+
+    public let content: Content
     public let createdAt: Date
     /// 고정한 시각. `nil`이면 미고정. 이 키가 없는 기존 파일은 미고정으로 읽힌다
     public let pinnedAt: Date?
 
+    public var id: String { content.id }
     public var isPinned: Bool { pinnedAt != nil }
+    /// `.text`일 때만 값이 있다
+    public var text: String? {
+        if case .text(let text) = content { return text }
+        return nil
+    }
+    /// `.image`일 때만 값이 있다
+    public var image: ClipboardImageReference? {
+        if case .image(let reference) = content { return reference }
+        return nil
+    }
 
-    public init(text: String, createdAt: Date, pinnedAt: Date? = nil) {
-        self.text = text
+    public init(content: Content, createdAt: Date, pinnedAt: Date? = nil) {
+        self.content = content
         self.createdAt = createdAt
         self.pinnedAt = pinnedAt
+    }
+
+    public init(text: String, createdAt: Date, pinnedAt: Date? = nil) {
+        self.init(content: .text(text), createdAt: createdAt, pinnedAt: pinnedAt)
+    }
+
+    // MARK: - Codable
+
+    /// `image` 키가 있으면 이미지, 없으면 `text`를 읽는다. `text` 키만 있는 #54 파일은 그대로 읽힌다
+    private enum CodingKeys: String, CodingKey {
+        case text, image, createdAt, pinnedAt
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        if let image = try container.decodeIfPresent(ClipboardImageReference.self, forKey: .image) {
+            content = .image(image)
+        } else {
+            content = .text(try container.decode(String.self, forKey: .text))
+        }
+        createdAt = try container.decode(Date.self, forKey: .createdAt)
+        pinnedAt = try container.decodeIfPresent(Date.self, forKey: .pinnedAt)
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        switch content {
+        case .text(let text): try container.encode(text, forKey: .text)
+        case .image(let reference): try container.encode(reference, forKey: .image)
+        }
+        try container.encode(createdAt, forKey: .createdAt)
+        try container.encodeIfPresent(pinnedAt, forKey: .pinnedAt)
     }
 }
 
@@ -38,27 +117,40 @@ public enum ClipboardHistoryPolicy {
     /// 잘라서 저장하면 붙여넣기 결과가 원본과 달라진다
     public static let maxTextLength = 2_000
 
-    /// `text`를 미고정 기록 맨 앞에 넣은 결과. 저장하지 않을 텍스트면 `nil`
+    /// `content`를 미고정 기록 맨 앞에 넣은 결과. 저장하지 않을 내용이면 `nil`
     ///
-    /// - 빈 문자열, 공백·개행만 있는 문자열, `maxTextLength` 초과는 `nil`
-    /// - 고정 항목과 같은 텍스트면 고정을 유지하고 `nil`
-    /// - 미고정에 같은 텍스트가 있으면 제거한 뒤 맨 앞에 넣는다
+    /// - 텍스트의 빈 문자열·공백·`maxTextLength` 초과는 `nil`. 이미지는 한도를 파일 저장소가 검사하므로 항상 저장 가능
+    /// - 고정 항목과 같은 content면 고정을 유지하고 `nil`
+    /// - 미고정에 같은 content가 있으면 제거한 뒤 맨 앞에 넣는다
     /// - 미고정이 `maxItemCount`를 넘으면 뒤에서 버린다
     static func inserting(
-        _ text: String,
+        _ content: ClipboardHistoryItem.Content,
         into items: [ClipboardHistoryItem],
         now: Date
     ) -> [ClipboardHistoryItem]? {
-        guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
-              text.count <= maxTextLength,
-              !items.contains(where: { $0.isPinned && $0.text == text }) else { return nil }
+        guard isStorable(content),
+              !items.contains(where: { $0.isPinned && $0.content == content }) else { return nil }
 
         let pinned = items.filter(\.isPinned)
-        let unpinned = items.filter { !$0.isPinned && $0.text != text }
-            + [ClipboardHistoryItem(text: text, createdAt: now)]
+        let unpinned = items.filter { !$0.isPinned && $0.content != content }
+            + [ClipboardHistoryItem(content: content, createdAt: now)]
         // 입력 순서에 기대지 않도록 정렬한 뒤 오래된 미고정 항목을 버린다
         let trimmedUnpinned = sorted(unpinned).prefix(maxItemCount)
         return sorted(pinned + trimmedUnpinned)
+    }
+
+    static func inserting(_ text: String, into items: [ClipboardHistoryItem], now: Date) -> [ClipboardHistoryItem]? {
+        return inserting(.text(text), into: items, now: now)
+    }
+
+    /// 텍스트는 빈 값·공백·길이 초과가 아니어야 하고, 이미지는 항상 저장 가능하다
+    public static func isStorable(_ content: ClipboardHistoryItem.Content) -> Bool {
+        switch content {
+        case .text(let text):
+            return !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && text.count <= maxTextLength
+        case .image:
+            return true
+        }
     }
 
     /// 사용자가 직접 입력한 `text`를 고정 항목으로 맨 앞에 넣은 결과. 저장하지 않을 텍스트면 `nil`
@@ -75,15 +167,15 @@ public enum ClipboardHistoryPolicy {
         guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
               text.count <= maxTextLength else { return nil }
 
-        if items.contains(where: { $0.text == text && $0.isPinned }) {
+        if items.contains(where: { $0.content == .text(text) && $0.isPinned }) {
             // 고정 시각만 지금으로 바꿔 고정 맨 위로 올린다
             return sorted(items.map {
-                $0.text == text ? ClipboardHistoryItem(text: $0.text, createdAt: $0.createdAt, pinnedAt: now) : $0
+                $0.content == .text(text) ? ClipboardHistoryItem(text: text, createdAt: $0.createdAt, pinnedAt: now) : $0
             })
         }
         guard canPin(items) else { return nil }
 
-        let remaining = items.filter { $0.text != text }
+        let remaining = items.filter { $0.content != .text(text) }
         return sorted(remaining + [ClipboardHistoryItem(text: text, createdAt: now, pinnedAt: now)])
     }
 
@@ -150,7 +242,7 @@ public enum ClipboardHistoryPolicy {
 
         var result = items
         result[index] = ClipboardHistoryItem(
-            text: target.text,
+            content: target.content,
             createdAt: target.createdAt,
             pinnedAt: target.isPinned ? nil : now
         )
@@ -167,12 +259,12 @@ public enum ClipboardHistoryPolicy {
         public let isAllowed: Bool
     }
 
-    /// `selectedTexts`에 해당하는 항목의 일괄 고정/해제 계획
+    /// `selectedIDs`에 해당하는 항목의 일괄 고정/해제 계획
     public static func pinBatch(
-        selectedTexts: Set<String>,
+        selectedIDs: Set<String>,
         in items: [ClipboardHistoryItem]
     ) -> PinBatch {
-        let selected = items.filter { selectedTexts.contains($0.text) }
+        let selected = items.filter { selectedIDs.contains($0.id) }
         let isUnpinning = !selected.isEmpty && selected.allSatisfy(\.isPinned)
         let targets = isUnpinning ? selected : selected.filter { !$0.isPinned }
         let pinnedCount = items.filter(\.isPinned).count
@@ -187,18 +279,18 @@ public enum ClipboardHistoryPolicy {
     /// 일괄 해제한 항목은 미고정 자리로 돌아가며, 이때 미고정이 잠시 `maxItemCount`를 넘을 수 있고
     /// 다음 `inserting`에서 오래된 것부터 정리된다(단건 `togglingPin`과 같은 규칙)
     static func togglingPins(
-        selectedTexts: Set<String>,
+        selectedIDs: Set<String>,
         in items: [ClipboardHistoryItem],
         now: Date
     ) -> [ClipboardHistoryItem]? {
-        let batch = pinBatch(selectedTexts: selectedTexts, in: items)
+        let batch = pinBatch(selectedIDs: selectedIDs, in: items)
         guard batch.isAllowed else { return nil }
 
-        let targetTexts = batch.targets.map(\.text)
+        let targetIDs = batch.targets.map(\.id)
         let result = items.map { item -> ClipboardHistoryItem in
-            guard let offset = targetTexts.firstIndex(of: item.text) else { return item }
+            guard let offset = targetIDs.firstIndex(of: item.id) else { return item }
             return ClipboardHistoryItem(
-                text: item.text,
+                content: item.content,
                 createdAt: item.createdAt,
                 pinnedAt: batch.isUnpinning ? nil : now.addingTimeInterval(-Double(offset) / 1_000)
             )
@@ -206,15 +298,15 @@ public enum ClipboardHistoryPolicy {
         return sorted(result)
     }
 
-    /// 고정은 고정 시각 최신순으로 앞에, 미고정은 복사 시각 최신순으로 뒤에. 시각이 같으면 텍스트 순으로 고정한다
+    /// 고정은 고정 시각 최신순으로 앞에, 미고정은 복사 시각 최신순으로 뒤에. 시각이 같으면 id 순으로 고정한다
     static func sorted(_ items: [ClipboardHistoryItem]) -> [ClipboardHistoryItem] {
         let pinned = items.filter(\.isPinned).sorted { lhs, rhs in
             let lhsDate = lhs.pinnedAt ?? .distantPast
             let rhsDate = rhs.pinnedAt ?? .distantPast
-            return lhsDate != rhsDate ? lhsDate > rhsDate : lhs.text < rhs.text
+            return lhsDate != rhsDate ? lhsDate > rhsDate : lhs.id < rhs.id
         }
         let unpinned = items.filter { !$0.isPinned }.sorted { lhs, rhs in
-            lhs.createdAt != rhs.createdAt ? lhs.createdAt > rhs.createdAt : lhs.text < rhs.text
+            lhs.createdAt != rhs.createdAt ? lhs.createdAt > rhs.createdAt : lhs.id < rhs.id
         }
         return pinned + unpinned
     }
