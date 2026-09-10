@@ -120,9 +120,9 @@ final class ClipboardHistoryPanelView: UIView {
         self?.endItemEditing()
     }
 
-    /// 텍스트가 유일하므로 텍스트를 행 식별자로 쓴다. 스냅샷 차이로 삭제·삽입·이동을 애니메이션한다
-    private lazy var dataSource = ClipboardHistoryDataSource(tableView: tableView) { [weak self] tableView, indexPath, text in
-        self?.makeCell(in: tableView, at: indexPath, text: text) ?? UITableViewCell()
+    /// id가 유일하므로 id를 행 식별자로 쓴다. 스냅샷 차이로 삭제·삽입·이동을 애니메이션한다
+    private lazy var dataSource = ClipboardHistoryDataSource(tableView: tableView) { [weak self] tableView, indexPath, id in
+        self?.makeCell(in: tableView, at: indexPath, id: id) ?? UITableViewCell()
     }
 
     /// 테스트에서 `UITableViewDelegate` 메서드를 직접 호출할 수 있도록 internal로 둔다
@@ -403,10 +403,10 @@ private extension ClipboardHistoryPanelView {
         guard items.indices.contains(index) else { return }
         detailIndex = index
         detailView.update(
-            text: items[index].text,
+            text: items[index].text ?? "",
             isPinned: items[index].isPinned,
             canPin: ClipboardHistoryPolicy.canPin(items),
-            canOpenURL: ClipboardHistoryPolicy.openableURL(in: items[index].text) != nil
+            canOpenURL: items[index].text.flatMap(ClipboardHistoryPolicy.openableURL) != nil
         )
         setDetailHidden(false, animated: true)
     }
@@ -450,12 +450,12 @@ private extension ClipboardHistoryPanelView {
     func applySnapshot(from previousItems: [ClipboardHistoryItem], animated: Bool) {
         var snapshot = NSDiffableDataSourceSnapshot<Int, String>()
         snapshot.appendSections([0])
-        snapshot.appendItems(items.map(\.text))
-        // 파일이 손상돼 텍스트가 중복돼도 crash하지 않도록 첫 값을 쓴다
-        let previousPinState = Dictionary(previousItems.map { ($0.text, $0.isPinned) }, uniquingKeysWith: { first, _ in first })
+        snapshot.appendItems(items.map(\.id))
+        // 파일이 손상돼 id가 중복돼도 crash하지 않도록 첫 값을 쓴다
+        let previousPinState = Dictionary(previousItems.map { ($0.id, $0.isPinned) }, uniquingKeysWith: { first, _ in first })
         let pinStateChanged = items
-            .filter { item in previousPinState[item.text].map { $0 != item.isPinned } ?? false }
-            .map(\.text)
+            .filter { item in previousPinState[item.id].map { $0 != item.isPinned } ?? false }
+            .map(\.id)
         snapshot.reconfigureItems(pinStateChanged)
 
         // 마지막 행이 사라지는 애니메이션이 끝난 뒤에 테이블을 숨긴다
@@ -468,10 +468,10 @@ private extension ClipboardHistoryPanelView {
         }
     }
 
-    /// 스냅샷 식별자(텍스트)로 항목을 찾는다. 애니메이션 중에는 이전 스냅샷의 indexPath가 넘어올 수 있어 인덱스를 쓰지 않는다
-    func makeCell(in tableView: UITableView, at indexPath: IndexPath, text: String) -> UITableViewCell {
+    /// 스냅샷 식별자(id)로 항목을 찾는다. 애니메이션 중에는 이전 스냅샷의 indexPath가 넘어올 수 있어 인덱스를 쓰지 않는다
+    func makeCell(in tableView: UITableView, at indexPath: IndexPath, id: String) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: ClipboardHistoryPanelView.cellIdentifier, for: indexPath)
-        guard let item = items.first(where: { $0.text == text }) else { return cell }
+        guard let item = items.first(where: { $0.id == id }) else { return cell }
         var content = cell.defaultContentConfiguration()
         content.text = item.text
         content.textProperties.font = .systemFont(ofSize: 15)

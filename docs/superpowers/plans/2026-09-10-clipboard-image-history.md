@@ -353,7 +353,7 @@ git commit -m "feat: #55 - 이미지 저장 한도·타입 정책 추가"
   - `ClipboardHistoryPolicy.inserting(_ content: Content, into:now:)`, `isStorable(_ content:)`, `pinBatch(selectedIDs:in:)`, `togglingPins(selectedIDs:in:now:)`
   - `ClipboardHistoryStore.record(_ content: Content, now:)`, `remove(ids: Set<String>)`, `togglePins(selectedIDs:now:)`; `record(_ text: String, now:)`는 유지
 
-- [ ] **Step 1: 정책 테스트 갱신·추가**
+- [x] **Step 1: 정책 테스트 갱신·추가**
 
 `ClipboardHistoryPolicyTests.swift`에서 `selectedTexts:`를 전부 `selectedIDs:`로 바꾼다(텍스트 항목의 `id`는 텍스트라 값은 그대로다). 파일 끝 `item(_:createdAt:pinnedAt:)` helper 아래에 이미지 helper를 추가하고, 다음 테스트를 `test범위밖인덱스_고정토글은_nil` 뒤에 넣는다.
 
@@ -427,7 +427,7 @@ git commit -m "feat: #55 - 이미지 저장 한도·타입 정책 추가"
 
 기존 `test복사시각이같으면_텍스트순으로정렬` 계열 테스트(`sorted(items).map(\.text) == ["c", "a", "b"]`)는 결과가 같으므로 그대로 둔다.
 
-- [ ] **Step 2: 저장소 테스트 갱신·추가**
+- [x] **Step 2: 저장소 테스트 갱신·추가**
 
 `ClipboardHistoryStoreTests.swift`에서 `remove(texts:` → `remove(ids:`, `togglePins(selectedTexts:` → `togglePins(selectedIDs:`로 바꾼다. 다음 테스트를 `test손상된파일이면_빈배열` 뒤에 넣는다.
 
@@ -475,12 +475,12 @@ git commit -m "feat: #55 - 이미지 저장 한도·타입 정책 추가"
     }
 ```
 
-- [ ] **Step 3: 실패 확인**
+- [x] **Step 3: 실패 확인**
 
 Run: `-only-testing:SYKeyboardTests/ClipboardHistoryPolicyTests`
 Expected: 컴파일 실패 `cannot find 'ClipboardImageReference' in scope`
 
-- [ ] **Step 4: 모델과 정책 수정**
+- [x] **Step 4: 모델과 정책 수정**
 
 `ClipboardHistoryPolicy.swift`의 `ClipboardHistoryItem` 정의를 다음으로 바꾼다.
 
@@ -635,7 +635,7 @@ public struct ClipboardHistoryItem: Codable, Equatable, Identifiable {
 
 `sorted`: 동률 비교 `lhs.text < rhs.text` 두 곳 → `lhs.id < rhs.id`. doc comment "텍스트 순" → "id 순".
 
-- [ ] **Step 5: 저장소 수정**
+- [x] **Step 5: 저장소 수정**
 
 `ClipboardHistoryStore.swift`:
 
@@ -666,7 +666,7 @@ public struct ClipboardHistoryItem: Codable, Equatable, Identifiable {
     }
 ```
 
-- [ ] **Step 6: 호출부 컴파일 수정 (동작 변화 없음)**
+- [x] **Step 6: 호출부 컴파일 수정 (동작 변화 없음)**
 
 `ClipboardHistoryPanelView.swift`:
 - `dataSource` 클로저 파라미터 `text` → `id`, `makeCell(in:at:text:)` → `makeCell(in:at:id:)`, 본문 `items.first(where: { $0.text == text })` → `items.first(where: { $0.id == id })`. `content.text = item.text`는 옵셔널 대입이라 그대로 컴파일된다. doc comment "텍스트가 유일하므로 텍스트를 행 식별자로" → "id가 유일하므로 id를 행 식별자로".
@@ -694,12 +694,12 @@ public struct ClipboardHistoryItem: Codable, Equatable, Identifiable {
 - 시트의 `canSave: { ClipboardHistoryPolicy.replacingText(item.text, ...) }` → `canSave: { newText in item.text.flatMap { ClipboardHistoryPolicy.replacingText($0, with: newText, in: items, now: .distantPast) } != nil }`.
 - `ClipboardHistoryDetailView`(앱 하단 private struct): `private var text: String { item.text ?? "" }`를 추가하고 `item.text` 사용처(`linkStyledText`의 `AttributedString(item.text)`·`openableURL(in: item.text)`, `ShareLink(item: item.text)`, `draft = item.text`)를 `text`로 바꾼다.
 
-- [ ] **Step 7: 통과 확인**
+- [x] **Step 7: 통과 확인**
 
 Run: `-only-testing:SYKeyboardTests/ClipboardHistoryPolicyTests -only-testing:SYKeyboardTests/ClipboardHistoryStoreTests -only-testing:SYKeyboardTests/ClipboardHistoryPanelViewTests -only-testing:SYKeyboardTests/ClipboardHistoryPasteboardSynchronizerTests`
 Expected: 전부 `passed`, `TEST SUCCEEDED`. 앱 타깃도 함께 컴파일되므로 `error:` 0건.
 
-- [ ] **Step 8: 커밋**
+- [x] **Step 8: 커밋**
 
 ```sh
 git add Modules/SYKeyboardCore/Presentation/Utils/Policies/ClipboardHistoryPolicy.swift \

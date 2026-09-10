@@ -2416,8 +2416,7 @@ private extension BaseKeyboardViewController {
 
 extension BaseKeyboardViewController: ClipboardHistoryPanelDelegate {
     final func clipboardPanel(_ panel: ClipboardHistoryPanelView, didSelectItemAt index: Int) {
-        guard panel.items.indices.contains(index) else { return }
-        let text = panel.items[index].text
+        guard panel.items.indices.contains(index), let text = panel.items[index].text else { return }
 
         // 붙여넣기를 undo 1단위로 만든다: 앞선 입력 그룹을 닫고, 삽입 후 다시 닫는다
         commitUndoRedoGroupIgnoringCompositionDeferral()
@@ -2435,9 +2434,9 @@ extension BaseKeyboardViewController: ClipboardHistoryPanelDelegate {
     }
 
     final func clipboardPanel(_ panel: ClipboardHistoryPanelView, didDeleteItemsAt indices: [Int]) {
-        // 인덱스는 패널이 보여준 목록 기준이므로 텍스트로 바꿔 지운다. 파일 순서가 그사이 바뀌어도 안전하다
-        let texts = Set(indices.compactMap { panel.items.indices.contains($0) ? panel.items[$0].text : nil })
-        clipboardHistoryStore?.remove(texts: texts)
+        // 인덱스는 패널이 보여준 목록 기준이므로 id로 바꿔 지운다. 파일 순서가 그사이 바뀌어도 안전하다
+        let ids = Set(indices.compactMap { panel.items.indices.contains($0) ? panel.items[$0].id : nil })
+        clipboardHistoryStore?.remove(ids: ids)
         reloadClipboardPanel()
     }
 
@@ -2453,16 +2452,18 @@ extension BaseKeyboardViewController: ClipboardHistoryPanelDelegate {
 
     /// 항목을 시스템 pasteboard에 복사한다. 우리가 쓴 값을 다음 동기화에서 다시 기록하지 않도록 changeCount를 갱신한다
     final func clipboardPanel(_ panel: ClipboardHistoryPanelView, didRequestCopyAt index: Int) {
-        guard isClipboardHistoryAvailable, panel.items.indices.contains(index) else { return }
+        guard isClipboardHistoryAvailable, panel.items.indices.contains(index),
+              let text = panel.items[index].text else { return }
         let pasteboard = UIPasteboard.general
-        pasteboard.string = panel.items[index].text
+        pasteboard.string = text
         keyboardSettingsManager.lastSeenPasteboardChangeCount = pasteboard.changeCount
     }
 
     /// 브라우저가 열리면 호스트 앱을 떠나므로 키보드는 시스템이 내린다. 설정 이동과 같은 responder chain 경로다
     final func clipboardPanel(_ panel: ClipboardHistoryPanelView, didRequestOpenURLAt index: Int) {
         guard panel.items.indices.contains(index),
-              let url = ClipboardHistoryPolicy.openableURL(in: panel.items[index].text) else { return }
+              let text = panel.items[index].text,
+              let url = ClipboardHistoryPolicy.openableURL(in: text) else { return }
         openURL(url)
     }
 }

@@ -8,7 +8,7 @@
 import Foundation
 import OSLog
 
-/// 클립보드 텍스트 기록을 App Group 컨테이너의 plist 파일에 저장하는 저장소
+/// 클립보드 텍스트·이미지 기록을 App Group 컨테이너의 plist 파일에 저장하는 저장소
 ///
 /// 메모리 캐시 없이 매 연산마다 파일을 읽고 쓴다. 세 keyboard extension이 같은 파일을
 /// 공유하므로 캐시가 있으면 다른 extension이 바꾼 내용을 놓친다. 최대 20개 × 2,000자라
@@ -42,18 +42,22 @@ public final class ClipboardHistoryStore {
 
     /// 저장된 기록(최신순). 파일이 없거나 손상됐으면 빈 배열
     ///
-    /// 텍스트는 정책상 유일해야 하며 패널과 앱 목록이 이를 식별자로 쓴다. 손상된 파일에 중복이 있어도 첫 항목만 남긴다
+    /// id는 정책상 유일해야 하며 패널과 앱 목록이 이를 식별자로 쓴다. 손상된 파일에 중복이 있어도 첫 항목만 남긴다
     public func load() -> [ClipboardHistoryItem] {
         guard let data = try? Data(contentsOf: fileURL),
               let items = try? PropertyListDecoder().decode([ClipboardHistoryItem].self, from: data) else { return [] }
         var seen = Set<String>()
-        return items.filter { seen.insert($0.text).inserted }
+        return items.filter { seen.insert($0.id).inserted }
     }
 
-    /// `text`를 기록 맨 앞에 저장한다. 정책상 저장 대상이 아니면 아무것도 하지 않는다
-    public func record(_ text: String, now: Date = Date()) {
-        guard let items = ClipboardHistoryPolicy.inserting(text, into: load(), now: now) else { return }
+    /// `content`를 기록 맨 앞에 저장한다. 정책상 저장 대상이 아니면 아무것도 하지 않는다
+    public func record(_ content: ClipboardHistoryItem.Content, now: Date = Date()) {
+        guard let items = ClipboardHistoryPolicy.inserting(content, into: load(), now: now) else { return }
         save(items)
+    }
+
+    public func record(_ text: String, now: Date = Date()) {
+        record(.text(text), now: now)
     }
 
     /// 사용자가 직접 입력한 `text`를 고정 항목으로 저장한다. 정책상 저장 대상이 아니면 아무것도 하지 않는다
@@ -74,16 +78,16 @@ public final class ClipboardHistoryStore {
         save(items)
     }
 
-    /// 선택한 텍스트의 항목을 한 번에 고정/해제한다. 정책이 허용하지 않으면 아무것도 하지 않는다
-    public func togglePins(selectedTexts: Set<String>, now: Date = Date()) {
-        guard let items = ClipboardHistoryPolicy.togglingPins(selectedTexts: selectedTexts, in: load(), now: now) else { return }
+    /// 선택한 id의 항목을 한 번에 고정/해제한다. 정책이 허용하지 않으면 아무것도 하지 않는다
+    public func togglePins(selectedIDs: Set<String>, now: Date = Date()) {
+        guard let items = ClipboardHistoryPolicy.togglingPins(selectedIDs: selectedIDs, in: load(), now: now) else { return }
         save(items)
     }
 
-    /// 지정한 텍스트의 항목을 삭제한다. 없는 텍스트는 무시한다.
-    /// 인덱스가 아니라 텍스트로 받아, 확인을 기다리는 사이 파일 순서가 바뀌어도 다른 항목을 지우지 않는다
-    public func remove(texts: Set<String>) {
-        save(load().filter { !texts.contains($0.text) })
+    /// 지정한 id의 항목을 삭제한다. 없는 id는 무시한다.
+    /// 인덱스가 아니라 id로 받아, 확인을 기다리는 사이 파일 순서가 바뀌어도 다른 항목을 지우지 않는다
+    public func remove(ids: Set<String>) {
+        save(load().filter { !ids.contains($0.id) })
     }
 
     public func removeAll() {
