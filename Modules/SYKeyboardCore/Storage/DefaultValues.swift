@@ -30,6 +30,8 @@ public enum DefaultValues {
     public static let isShowMathResultsEnabled: Bool = true
     /// 클립보드 기록 기본값. 클립보드 내용을 저장하므로 사용자가 직접 켠다
     public static let isClipboardHistoryEnabled: Bool = false
+    /// 이미지 클립보드 기록 기본값. 클립보드 기록이 켜져 있으면 이미지도 함께 저장한다
+    public static let isClipboardImageHistoryEnabled: Bool = true
 
     // MARK: - 입력 설정
     

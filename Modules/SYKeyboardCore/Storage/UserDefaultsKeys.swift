@@ -27,6 +27,8 @@ public enum UserDefaultsKeys {
     public static let isShowMathResultsEnabled = "isShowMathResultsEnabled"
     /// 클립보드 기록
     public static let isClipboardHistoryEnabled = "isClipboardHistoryEnabled"
+    /// 클립보드 기록에 이미지도 저장
+    public static let isClipboardImageHistoryEnabled = "isClipboardImageHistoryEnabled"
 
     // MARK: - 입력 설정
     

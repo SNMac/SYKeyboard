@@ -198,6 +198,25 @@ struct UserDefaultsContractTests {
         #expect(UserDefaultsManager.shared.isClipboardHistoryEnabled == false)
     }
 
+    @Test("이미지 클립보드 기록은 저장값이 없으면 true를 반환하고 공유 저장소 키를 유지")
+    func testClipboardImageHistoryDefaultFallbackAndKey() {
+        let storage = UserDefaultsManager.shared.storage
+        let key = UserDefaultsKeys.isClipboardImageHistoryEnabled
+        let originalValue = storage.object(forKey: key)
+
+        storage.removeObject(forKey: key)
+        defer { restore(originalValue, forKey: key, in: storage) }
+
+        #expect(key == "isClipboardImageHistoryEnabled")
+        #expect(DefaultValues.isClipboardImageHistoryEnabled == true)
+        #expect(UserDefaultsManager.shared.isClipboardImageHistoryEnabled == true)
+
+        UserDefaultsManager.shared.isClipboardImageHistoryEnabled = false
+
+        #expect(storage.bool(forKey: key) == false)
+        #expect(UserDefaultsManager.shared.isClipboardImageHistoryEnabled == false)
+    }
+
     @Test("마지막 pasteboard changeCount는 저장값이 없으면 -1을 반환하고 공유 저장소 키를 유지")
     func testLastSeenPasteboardChangeCountDefaultFallbackAndKey() {
         let storage = UserDefaultsManager.shared.storage

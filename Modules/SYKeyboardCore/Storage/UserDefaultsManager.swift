@@ -118,6 +118,9 @@ final public class UserDefaultsManager {
     /// 클립보드 기록
     @UserDefaultsWrapper(key: UserDefaultsKeys.isClipboardHistoryEnabled, defaultValue: DefaultValues.isClipboardHistoryEnabled)
     public var isClipboardHistoryEnabled: Bool
+    /// 클립보드 기록에 이미지도 저장
+    @UserDefaultsWrapper(key: UserDefaultsKeys.isClipboardImageHistoryEnabled, defaultValue: DefaultValues.isClipboardImageHistoryEnabled)
+    public var isClipboardImageHistoryEnabled: Bool
 
     // MARK: 입력 설정
     
