@@ -1320,7 +1320,7 @@ git commit -m "feat: #55 - App Group 이미지 파일 저장소와 항목 삭제
 - Consumes: `ClipboardHistoryStore.imageStore`, `ClipboardImageStore.store(temporaryFileURL:typeIdentifier:)`(Task 4), `ClipboardImagePolicy.storableType`/`hasEnoughMemory`(Task 2), `UserDefaultsManager.isClipboardImageHistoryEnabled`(Task 1)
 - Produces: `synchronizeIfNeeded(store:pasteboard:settings:availableMemory:onImageRecorded:)`. 기존 호출 `synchronizeIfNeeded(store:)`는 기본값으로 그대로 컴파일된다. `onImageRecorded`는 이미지 항목이 기록된 직후 메인 큐에서 한 번 호출된다
 
-- [ ] **Step 1: 테스트 추가**
+- [x] **Step 1: 테스트 추가**
 
 `ClipboardHistoryPasteboardSynchronizerTests.swift`의 fixture를 이미지 저장소와 설정 복원까지 다루도록 바꾼다.
 
@@ -1457,12 +1457,12 @@ private func makePNGData() -> Data {
 
 기존 두 테스트는 `imageStore`가 있어도 동작이 같으므로 그대로 둔다.
 
-- [ ] **Step 2: 실패 확인**
+- [x] **Step 2: 실패 확인**
 
 Run: `-only-testing:SYKeyboardTests/ClipboardHistoryPasteboardSynchronizerTests`
 Expected: 컴파일 실패 `extra arguments at positions #3, #4 in call`
 
-- [ ] **Step 3: 동기화 구현**
+- [x] **Step 3: 동기화 구현**
 
 `ClipboardHistoryPasteboardSynchronizer.swift` 전체를 다음으로 바꾼다.
 
@@ -1534,14 +1534,14 @@ public enum ClipboardHistoryPasteboardSynchronizer {
 
 `os_proc_available_memory`가 `import os`로 보이지 않으면 `import Darwin`으로 바꾼다(둘 다 시스템 모듈이며 의존성 추가가 아니다).
 
-- [ ] **Step 4: 통과 확인**
+- [x] **Step 4: 통과 확인**
 
 Run: `-only-testing:SYKeyboardTests/ClipboardHistoryPasteboardSynchronizerTests`
 Expected: 6개 `passed`, `TEST SUCCEEDED`
 
 `test이미지만있으면_이미지항목기록`이 완료 콜백 없이 멈추거나 `url`이 `nil`로 오면 `loadFileRepresentation`이 이 pasteboard 항목을 지원하지 않는 경우다. 그때는 `itemProvider.loadDataRepresentation(forTypeIdentifier:)`로 받아 `FileManager.default.temporaryDirectory` 아래 UUID 이름 파일에 쓴 뒤 같은 `imageStore.store(...)`를 부르는 것으로 바꾸고, 이 경우 바이트가 프로세스 메모리에 한 번 올라오므로 `hasEnoughMemory` 안전장치를 유지한다는 주석을 남긴다. 어느 쪽을 썼는지 검증 결과에 기록한다.
 
-- [ ] **Step 5: 커밋**
+- [x] **Step 5: 커밋**
 
 ```sh
 git add Modules/SYKeyboardCore/Storage/ClipboardHistoryPasteboardSynchronizer.swift \
