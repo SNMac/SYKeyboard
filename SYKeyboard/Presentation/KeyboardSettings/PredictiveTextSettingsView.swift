@@ -21,14 +21,8 @@ struct PredictiveTextSettingsView: View {
     @AppStorage(UserDefaultsKeys.isPredictiveTextEnabled, store: UserDefaultsManager.shared.storage)
     private var isPredictiveTextEnabled = DefaultValues.isPredictiveTextEnabled
     
-    @AppStorage(UserDefaultsKeys.isUndoRedoEnabled, store: UserDefaultsManager.shared.storage)
-    private var isUndoRedoEnabled = DefaultValues.isUndoRedoEnabled
-
     @AppStorage(UserDefaultsKeys.isShowMathResultsEnabled, store: UserDefaultsManager.shared.storage)
     private var isShowMathResultsEnabled = DefaultValues.isShowMathResultsEnabled
-
-    @AppStorage(UserDefaultsKeys.isClipboardHistoryEnabled, store: UserDefaultsManager.shared.storage)
-    private var isClipboardHistoryEnabled = DefaultValues.isClipboardHistoryEnabled
 
     @State private var showResetLearnedWordsAlert = false
     @State private var showResetNGramAlert = false
@@ -85,44 +79,7 @@ struct PredictiveTextSettingsView: View {
                 hideKeyboard()
             }
         }
-        
-        Toggle(isOn: $isUndoRedoEnabled, label: {
-            Text("Undo/Redo 기능")
-            Text("키보드 상단에 Undo/Redo 버튼을 표시\n(일부 앱에서는 정상적으로 동작하지 않을 수 있습니다)")
-                .font(.caption)
-        })
-        .onChange(of: isUndoRedoEnabled) { newValue in
-            Analytics.setUserProperty(newValue.analyticsValue,
-                                      forName: "pref_undo_redo")
-            Analytics.logEvent("undo_redo", parameters: [
-                "view": "InputSettingsView",
-                "enabled": newValue.analyticsValue
-            ])
-            hideKeyboard()
-        }
-        
-        Toggle(isOn: $isClipboardHistoryEnabled, label: {
-            Text("클립보드 기록")
-            Text("복사한 텍스트를 키보드 상단 클립보드 버튼으로 붙여넣기\n(설정 ➡️ SY키보드 ➡️ '다른 앱에서 붙여넣기'를 '허용'으로 바꾸면 확인 알림 없이 저장됩니다)")
-                .font(.caption)
-        })
-        .onChange(of: isClipboardHistoryEnabled) { newValue in
-            Analytics.setUserProperty(newValue.analyticsValue,
-                                      forName: "pref_clipboard_history")
-            Analytics.logEvent("clipboard_history", parameters: [
-                "view": "InputSettingsView",
-                "enabled": newValue.analyticsValue
-            ])
-            hideKeyboard()
-        }
-        
-        if isClipboardHistoryEnabled {
-            // 목적지 init이 저장소를 읽으므로 링크를 누를 때만 만든다
-            NavigationLink("클립보드 기록 관리") {
-                LazyView(ClipboardHistorySettingsView())
-            }
-        }
-        
+
         Button(role: .destructive) {
             showResetAllAlert = true
         } label: {
