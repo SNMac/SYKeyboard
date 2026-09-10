@@ -107,7 +107,8 @@ struct ClipboardHistorySettingsView: View {
                         onCopy: { copyFromDetail(item) },
                         onSave: { replaceText(of: item, with: $0) }
                     )
-                    .presentationDetents([.medium, .large])
+                    // 이미지는 스크롤 없이 한눈에 보이도록 가장 큰 시트 하나만 쓴다. 텍스트는 하프 시트에서 시작한다
+                    .presentationDetents(item.image != nil ? [.large] : [.medium, .large])
                     .presentationDragIndicator(.visible)
                 }
             }
@@ -502,19 +503,20 @@ private struct ClipboardHistoryDetailView: View {
                         .scrollContentBackground(.hidden)
                         .padding(.horizontal)
                 } else if item.image != nil {
-                    ScrollView {
+                    // 스크롤 없이 시트 안에 이미지 전체가 들어오도록 남은 영역에 맞춘다
+                    Group {
                         if let previewImage {
                             Image(uiImage: previewImage)
                                 .resizable()
                                 .scaledToFit()
-                                .padding()
                         } else {
                             Image(systemName: "photo")
                                 .font(.largeTitle)
                                 .foregroundStyle(.secondary)
-                                .padding()
                         }
                     }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .padding()
                 } else {
                     ScrollView {
                         // 텍스트 전체가 URL이면 일반 링크처럼 파란 밑줄로 보이고 탭하면 브라우저로 연다
