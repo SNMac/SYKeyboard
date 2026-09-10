@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import os
 
 import SYKeyboardAssets
 
@@ -47,6 +48,9 @@ final class ClipboardHistoryPanelView: UIView {
 
     /// 썸네일·미리보기 파일을 찾는 저장소. 소유자가 설정한다. `nil`이면 이미지 행에 자리표시 아이콘만 보인다
     var imageStore: ClipboardImageStore?
+
+    /// 상세 미리보기 디코드 전 남은 메모리(바이트) 확인. 테스트에서 대체할 수 있도록 저장 프로퍼티로 둔다
+    var availableMemory: () -> Int = { Int(os_proc_available_memory()) }
 
     /// 해시별 썸네일. 같은 해시는 같은 바이트라 무효화가 필요 없다. 메모리 경고 시 소유자가 `purgeThumbnailCache()`로 비운다
     private let thumbnailCache: NSCache<NSString, UIImage> = {
@@ -170,9 +174,11 @@ final class ClipboardHistoryPanelView: UIView {
         view.onClose = { [weak self] in self?.hideDetail() }
         view.onPaste = { [weak self] in
             guard let self, let index = self.detailIndex else { return }
-            // 붙여넣기(텍스트) 또는 복사(이미지) 직후 패널이 닫히므로 상세 뷰는 즉시 숨긴다
+            // 붙여넣기(텍스트)는 이 직후 패널이 닫히지만, 복사(이미지)는 패널이 열린 채 유지된다.
+            // 상세 뷰는 여기서 먼저 숨기고, 이미지 쪽은 이어지는 configure() 갱신으로 다시 숨김 상태가 반영된다
             self.hideDetail(animated: false)
-            // 상세 뷰에서 붙여넣은 항목은 현재 클립보드가 되도록 복사도 한다
+            // 호출 순서가 동작을 가른다: 텍스트는 didRequestCopyAt에서 먼저 pasteboard로 복사되고,
+            // 이미지는 didSelectItemAt에서 소유자가 pasteboard를 복원하므로 이 순서를 바꾸면 안 된다
             self.delegate?.clipboardPanel(self, didRequestCopyAt: index)
             self.delegate?.clipboardPanel(self, didSelectItemAt: index)
         }
@@ -327,6 +333,39 @@ final class ClipboardHistoryPanelView: UIView {
     func purgeThumbnailCache() {
         thumbnailCache.removeAllObjects()
     }
+
+    /// 상세 뷰가 보이는 중인지. 테스트에서 `showDetail(at:)` 결과를 확인하는 용도
+    var isDetailVisible: Bool { !detailView.isHidden }
+
+    /// `index` 항목의 상세 뷰를 연다. 테스트에서 `handleLongPress`를 거치지 않고 바로 부를 수 있도록 internal로 둔다.
+    /// 이미지는 PNG가 ImageIO에서 원본 전체로 디코드될 수 있어(24 MP에서 최대 약 96 MB) 메모리가
+    /// 부족하면 미리보기 디코드를 건너뛰고 목록에 쓰던 캐시 썸네일로 대신한다(없으면 자리표시 아이콘)
+    func showDetail(at index: Int) {
+        guard items.indices.contains(index) else { return }
+        detailIndex = index
+        let item = items[index]
+        let canPin = ClipboardHistoryPolicy.canPin(items)
+        switch item.content {
+        case .text(let text):
+            detailView.update(
+                text: text,
+                isPinned: item.isPinned,
+                canPin: canPin,
+                canOpenURL: ClipboardHistoryPolicy.openableURL(in: text) != nil
+            )
+        case .image(let reference):
+            let preview: UIImage?
+            if ClipboardImagePolicy.hasEnoughMemory(available: availableMemory()) {
+                preview = imageStore?
+                    .previewImage(for: reference, maxPixelSize: ClipboardImagePolicy.keyboardPreviewMaxPixelSize)
+                    .map { UIImage(cgImage: $0) }
+            } else {
+                preview = thumbnail(for: reference)
+            }
+            detailView.update(image: preview, isPinned: item.isPinned, canPin: canPin)
+        }
+        setDetailHidden(false, animated: true)
+    }
 }
 
 // MARK: - UI Methods
@@ -452,29 +491,6 @@ private extension ClipboardHistoryPanelView {
         button.setContentCompressionResistancePriority(.required, for: .horizontal)
 
         return button
-    }
-
-    func showDetail(at index: Int) {
-        guard items.indices.contains(index) else { return }
-        detailIndex = index
-        let item = items[index]
-        let canPin = ClipboardHistoryPolicy.canPin(items)
-        switch item.content {
-        case .text(let text):
-            detailView.update(
-                text: text,
-                isPinned: item.isPinned,
-                canPin: canPin,
-                canOpenURL: ClipboardHistoryPolicy.openableURL(in: text) != nil
-            )
-        case .image(let reference):
-            // 원본을 상세 뷰 크기까지만 디코드한다. 파일이 없으면 자리표시 아이콘
-            let preview = imageStore?
-                .previewImage(for: reference, maxPixelSize: ClipboardImagePolicy.keyboardPreviewMaxPixelSize)
-                .map { UIImage(cgImage: $0) }
-            detailView.update(image: preview, isPinned: item.isPinned, canPin: canPin)
-        }
-        setDetailHidden(false, animated: true)
     }
 
     /// 패널을 닫을 때는 자판 복귀와 겹치지 않도록 애니메이션 없이 숨긴다
