@@ -732,7 +732,7 @@ git commit -m "feat: #55 - 클립보드 기록 항목에 이미지 content와 id
   - `removeFiles(for hashes: Set<String>)`, `removeAllFiles()`
   - `ClipboardHistoryStore.imageStore: ClipboardImageStore?`, `init(fileURL:imageStore:)`
 
-- [ ] **Step 1: 이미지 저장소 테스트 파일 작성**
+- [x] **Step 1: 이미지 저장소 테스트 파일 작성**
 
 `SYKeyboardTests/Storage/ClipboardImageStoreTests.swift`:
 
@@ -919,7 +919,7 @@ private func makeImageFile(width: Int, height: Int, type: UTType, name: String, 
 }
 ```
 
-- [ ] **Step 2: 저장소 파일 정리 테스트 추가**
+- [x] **Step 2: 저장소 파일 정리 테스트 추가**
 
 `ClipboardHistoryStoreTests.swift`의 `makeFixture(name:)`를 `imageStore`를 받도록 바꾸고 파일 정리 테스트를 추가한다.
 
@@ -1008,12 +1008,12 @@ private func makeStoredImage(hash: String, in fixture: StoreFixture) throws -> C
     }
 ```
 
-- [ ] **Step 3: 실패 확인**
+- [x] **Step 3: 실패 확인**
 
 Run: `-only-testing:SYKeyboardTests/ClipboardImageStoreTests`
 Expected: 컴파일 실패 `cannot find 'ClipboardImageStore' in scope`
 
-- [ ] **Step 4: 이미지 저장소 작성과 pbxproj 등록**
+- [x] **Step 4: 이미지 저장소 작성과 pbxproj 등록**
 
 `Modules/SYKeyboardCore/Storage/ClipboardImageStore.swift`:
 
@@ -1202,7 +1202,7 @@ private extension ClipboardImageStore {
 
 확인: `grep -c "ClipboardImageStore.swift" SYKeyboard.xcodeproj/project.pbxproj` → `2`
 
-- [ ] **Step 5: `ClipboardHistoryStore`에 파일 정리 연결**
+- [x] **Step 5: `ClipboardHistoryStore`에 파일 정리 연결**
 
 ```swift
     // MARK: - Properties
@@ -1294,12 +1294,12 @@ private extension ClipboardHistoryStore {
 }
 ```
 
-- [ ] **Step 6: 통과 확인**
+- [x] **Step 6: 통과 확인**
 
 Run: `-only-testing:SYKeyboardTests/ClipboardImageStoreTests -only-testing:SYKeyboardTests/ClipboardHistoryStoreTests`
 Expected: 전부 `passed`, `TEST SUCCEEDED`
 
-- [ ] **Step 7: 커밋**
+- [x] **Step 7: 커밋**
 
 ```sh
 git add Modules/SYKeyboardCore/Storage/ClipboardImageStore.swift Modules/SYKeyboardCore/Storage/ClipboardHistoryStore.swift \

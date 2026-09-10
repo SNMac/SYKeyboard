@@ -201,15 +201,83 @@ struct ClipboardHistoryStoreTests {
 
         #expect(fixture.store.load().map(\.id) == ["b"])
     }
+
+    @Test("이미지 항목을 지우면 원본·썸네일 파일도 지워지고 남은 항목의 파일은 유지")
+    func test이미지항목삭제는_파일도삭제() throws {
+        let fixture = makeFixture(name: "delete-files")
+        let keep = try makeStoredImage(hash: "keep", in: fixture)
+        let gone = try makeStoredImage(hash: "gone", in: fixture)
+        fixture.store.record(.image(keep), now: Date(timeIntervalSince1970: 1))
+        fixture.store.record(.image(gone), now: Date(timeIntervalSince1970: 2))
+
+        fixture.store.remove(ids: ["image/gone"])
+
+        #expect(fixture.store.load().map(\.id) == ["image/keep"])
+        #expect(try fixture.imageFiles() == ["keep.png", "keep.thumb.jpg"])
+    }
+
+    @Test("미고정 한도에 밀려난 이미지 항목의 파일도 지워짐")
+    func test트리밍된이미지는_파일도삭제() throws {
+        let fixture = makeFixture(name: "trim-files")
+        let oldest = try makeStoredImage(hash: "oldest", in: fixture)
+        fixture.store.record(.image(oldest), now: Date(timeIntervalSince1970: 0))
+        for index in 1...ClipboardHistoryPolicy.maxItemCount {
+            fixture.store.record("t\(index)", now: Date(timeIntervalSince1970: TimeInterval(index)))
+        }
+
+        #expect(fixture.store.load().contains(where: { $0.id == "image/oldest" }) == false)
+        #expect(try fixture.imageFiles().isEmpty)
+    }
+
+    @Test("전체 삭제는 이미지 디렉터리도 비움")
+    func test전체삭제는_이미지파일도삭제() throws {
+        let fixture = makeFixture(name: "remove-all-files")
+        let reference = try makeStoredImage(hash: "h", in: fixture)
+        fixture.store.record(.image(reference))
+        fixture.store.record("a")
+
+        fixture.store.removeAll()
+
+        #expect(fixture.store.load().isEmpty)
+        #expect(try fixture.imageFiles().isEmpty)
+    }
+
+    @Test("텍스트만 바뀐 저장은 이미지 파일을 건드리지 않음")
+    func test텍스트만변경은_이미지파일유지() throws {
+        let fixture = makeFixture(name: "text-only-save")
+        let reference = try makeStoredImage(hash: "h", in: fixture)
+        fixture.store.record(.image(reference), now: Date(timeIntervalSince1970: 1))
+
+        fixture.store.record("a", now: Date(timeIntervalSince1970: 2))
+        fixture.store.remove(ids: ["a"])
+
+        #expect(try fixture.imageFiles() == ["h.png", "h.thumb.jpg"])
+    }
 }
 
 private struct StoreFixture {
     let store: ClipboardHistoryStore
     let url: URL
+    let imageDirectoryURL: URL
+
+    func imageFiles() throws -> [String] {
+        ((try? FileManager.default.contentsOfDirectory(atPath: imageDirectoryURL.path)) ?? []).sorted()
+    }
 }
 
 private func makeFixture(name: String) -> StoreFixture {
-    let url = FileManager.default.temporaryDirectory
-        .appendingPathComponent("SYKeyboardTests-\(UUID().uuidString)-\(name).plist")
-    return StoreFixture(store: ClipboardHistoryStore(fileURL: url), url: url)
+    let base = "SYKeyboardTests-\(UUID().uuidString)-\(name)"
+    let url = FileManager.default.temporaryDirectory.appendingPathComponent("\(base).plist")
+    let imageDirectoryURL = FileManager.default.temporaryDirectory.appendingPathComponent(base, isDirectory: true)
+    let imageStore = ClipboardImageStore(directoryURL: imageDirectoryURL)
+    return StoreFixture(store: ClipboardHistoryStore(fileURL: url, imageStore: imageStore), url: url, imageDirectoryURL: imageDirectoryURL)
+}
+
+/// 이미지 저장소 디렉터리에 해시 이름의 원본·썸네일 빈 파일을 만들어 실제 저장을 흉내 낸다
+private func makeStoredImage(hash: String, in fixture: StoreFixture) throws -> ClipboardImageReference {
+    try FileManager.default.createDirectory(at: fixture.imageDirectoryURL, withIntermediateDirectories: true)
+    let reference = ClipboardImageReference(hash: hash, typeIdentifier: "public.png", byteSize: 10, pixelWidth: 1, pixelHeight: 1)
+    try Data("o".utf8).write(to: fixture.store.imageStore!.originalURL(for: reference))
+    try Data("t".utf8).write(to: fixture.store.imageStore!.thumbnailURL(for: reference))
+    return reference
 }

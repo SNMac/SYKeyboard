@@ -19,6 +19,8 @@ public final class ClipboardHistoryStore {
     // MARK: - Properties
 
     private let fileURL: URL
+    /// 이미지 원본·썸네일 저장소. App Group 컨테이너를 못 얻었으면 `nil`이고 이미지 항목은 저장되지 않는다
+    public let imageStore: ClipboardImageStore?
     private let logger = Logger(
         subsystem: Bundle.main.bundleIdentifier ?? "Unknown Bundle",
         category: "ClipboardHistoryStore"
@@ -26,8 +28,9 @@ public final class ClipboardHistoryStore {
 
     // MARK: - Initializer
 
-    init(fileURL: URL) {
+    init(fileURL: URL, imageStore: ClipboardImageStore? = nil) {
         self.fileURL = fileURL
+        self.imageStore = imageStore
     }
 
     /// App Group 컨테이너를 얻지 못하면 `nil`. 호출 측은 기능을 비활성 상태로 둔다
@@ -35,7 +38,7 @@ public final class ClipboardHistoryStore {
         guard let containerURL = FileManager.default.containerURL(
             forSecurityApplicationGroupIdentifier: DefaultValues.groupBundleID
         ) else { return nil }
-        self.init(fileURL: containerURL.appendingPathComponent("clipboard_history.plist"))
+        self.init(fileURL: containerURL.appendingPathComponent("clipboard_history.plist"), imageStore: ClipboardImageStore())
     }
 
     // MARK: - Public Methods
@@ -52,8 +55,9 @@ public final class ClipboardHistoryStore {
 
     /// `content`를 기록 맨 앞에 저장한다. 정책상 저장 대상이 아니면 아무것도 하지 않는다
     public func record(_ content: ClipboardHistoryItem.Content, now: Date = Date()) {
-        guard let items = ClipboardHistoryPolicy.inserting(content, into: load(), now: now) else { return }
-        save(items)
+        let previous = load()
+        guard let items = ClipboardHistoryPolicy.inserting(content, into: previous, now: now) else { return }
+        save(items, previous: previous)
     }
 
     public func record(_ text: String, now: Date = Date()) {
@@ -62,51 +66,61 @@ public final class ClipboardHistoryStore {
 
     /// 사용자가 직접 입력한 `text`를 고정 항목으로 저장한다. 정책상 저장 대상이 아니면 아무것도 하지 않는다
     public func recordPinned(_ text: String, now: Date = Date()) {
-        guard let items = ClipboardHistoryPolicy.insertingPinned(text, into: load(), now: now) else { return }
-        save(items)
+        let previous = load()
+        guard let items = ClipboardHistoryPolicy.insertingPinned(text, into: previous, now: now) else { return }
+        save(items, previous: previous)
     }
 
     /// 지정한 인덱스 항목의 고정을 토글한다. 범위 밖이거나 고정 한도에 걸리면 아무것도 하지 않는다
     public func togglePin(at index: Int, now: Date = Date()) {
-        guard let items = ClipboardHistoryPolicy.togglingPin(at: index, in: load(), now: now) else { return }
-        save(items)
+        let previous = load()
+        guard let items = ClipboardHistoryPolicy.togglingPin(at: index, in: previous, now: now) else { return }
+        save(items, previous: previous)
     }
 
     /// 항목의 내용을 바꾼다. 정책상 바꿀 수 없으면 아무것도 하지 않는다
     public func replaceText(_ oldText: String, with newText: String, now: Date = Date()) {
-        guard let items = ClipboardHistoryPolicy.replacingText(oldText, with: newText, in: load(), now: now) else { return }
-        save(items)
+        let previous = load()
+        guard let items = ClipboardHistoryPolicy.replacingText(oldText, with: newText, in: previous, now: now) else { return }
+        save(items, previous: previous)
     }
 
     /// 선택한 id의 항목을 한 번에 고정/해제한다. 정책이 허용하지 않으면 아무것도 하지 않는다
     public func togglePins(selectedIDs: Set<String>, now: Date = Date()) {
-        guard let items = ClipboardHistoryPolicy.togglingPins(selectedIDs: selectedIDs, in: load(), now: now) else { return }
-        save(items)
+        let previous = load()
+        guard let items = ClipboardHistoryPolicy.togglingPins(selectedIDs: selectedIDs, in: previous, now: now) else { return }
+        save(items, previous: previous)
     }
 
     /// 지정한 id의 항목을 삭제한다. 없는 id는 무시한다.
     /// 인덱스가 아니라 id로 받아, 확인을 기다리는 사이 파일 순서가 바뀌어도 다른 항목을 지우지 않는다
     public func remove(ids: Set<String>) {
-        save(load().filter { !ids.contains($0.id) })
+        let previous = load()
+        save(previous.filter { !ids.contains($0.id) }, previous: previous)
     }
 
     public func removeAll() {
-        save([])
+        save([], previous: load())
+        imageStore?.removeAllFiles()
     }
 }
 
 // MARK: - Private Methods
 
 private extension ClipboardHistoryStore {
-    func save(_ items: [ClipboardHistoryItem]) {
+    /// 목록을 쓰고, 목록에서 사라진 이미지의 파일을 지운다. 어느 경로로 항목이 빠지든 여기서 한 번에 정리된다
+    func save(_ items: [ClipboardHistoryItem], previous: [ClipboardHistoryItem]) {
         let encoder = PropertyListEncoder()
         encoder.outputFormat = .binary
         do {
             let data = try encoder.encode(items)
             try data.write(to: fileURL, options: .atomic)
         } catch {
-            // 쓰기 실패는 무시하고 다음 기회에 다시 쓴다. changeCount는 이미 갱신됐으므로 같은 텍스트를 재시도하지 않는다
+            // 쓰기 실패는 무시하고 다음 기회에 다시 쓴다. changeCount는 이미 갱신됐으므로 같은 내용을 재시도하지 않는다
             logger.error("클립보드 기록 저장 실패: \(error.localizedDescription)")
+            return
         }
+        let removedHashes = Set(previous.compactMap(\.image?.hash)).subtracting(items.compactMap(\.image?.hash))
+        imageStore?.removeFiles(for: removedHashes)
     }
 }
