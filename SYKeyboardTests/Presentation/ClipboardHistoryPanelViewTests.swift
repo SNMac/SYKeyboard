@@ -195,6 +195,56 @@ struct ClipboardHistoryPanelViewTests {
 
         #expect(panel.tableView.isEditing == false)
     }
+
+    @Test("이미지 행을 탭하면 텍스트 행과 같은 델리게이트로 인덱스를 전달")
+    func test이미지행탭은_인덱스전달() {
+        let (panel, spy) = makePanel(items: [unpinned("a"), imageItem("h1")])
+
+        panel.tableView(panel.tableView, didSelectRowAt: IndexPath(row: 1, section: 0))
+
+        #expect(spy.selectedIndices == [1])
+        #expect(panel.tableView.numberOfRows(inSection: 0) == 2)
+    }
+
+    @Test("헤더 안내는 제목 자리에 보였다가 configure·resetPresentation에서 즉시 제목으로 돌아옴")
+    func test헤더안내_표시와_즉시복구() {
+        let (panel, _) = makePanel(items: [imageItem("h1")])
+        let title = panel.titleLabel.text
+
+        panel.showTransientMessage("copied")
+        #expect(panel.titleLabel.text == "copied")
+
+        panel.configure(state: .items([imageItem("h1")]))
+        #expect(panel.titleLabel.text == title)
+
+        panel.showTransientMessage("copied")
+        panel.resetPresentation()
+        #expect(panel.titleLabel.text == title)
+    }
+
+    @Test("편집 모드에서는 헤더 안내를 띄우지 않음")
+    func test편집모드는_헤더안내없음() {
+        let (panel, _) = makePanel(items: [imageItem("h1")])
+        let title = panel.titleLabel.text
+
+        panel.beginItemEditing()
+        panel.showTransientMessage("copied")
+
+        #expect(panel.titleLabel.text == title)
+    }
+
+    @Test("텍스트·이미지가 섞인 목록에서 일부를 지우고 다시 configure해도 행 수가 새 목록을 따름")
+    func test혼합목록_삭제후configure() {
+        let (panel, spy) = makePanel(items: [unpinned("a"), imageItem("h1"), unpinned("b")])
+
+        panel.requestDelete(at: [1], deleteAll: false)
+        panel.configure(state: .items([unpinned("a"), unpinned("b")]))
+        panel.layoutIfNeeded()
+
+        #expect(spy.deletedIndices == [[1]])
+        #expect(panel.tableView.numberOfRows(inSection: 0) == 2)
+        #expect(panel.items.map(\.id) == ["a", "b"])
+    }
 }
 
 @MainActor
@@ -218,6 +268,13 @@ private func unpinned(_ text: String) -> ClipboardHistoryItem {
 
 private func pinned(_ text: String) -> ClipboardHistoryItem {
     ClipboardHistoryItem(text: text, createdAt: Date(), pinnedAt: Date())
+}
+
+private func imageItem(_ hash: String) -> ClipboardHistoryItem {
+    ClipboardHistoryItem(
+        content: .image(ClipboardImageReference(hash: hash, typeIdentifier: "public.png", byteSize: 1_024, pixelWidth: 8, pixelHeight: 8)),
+        createdAt: Date()
+    )
 }
 
 @MainActor
