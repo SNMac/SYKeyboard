@@ -91,13 +91,46 @@
         }
       }
     },
-    "복사한 텍스트가 여기에 표시됩니다." : {
+    "복사" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Copied text will appear here."
+            "value" : "Copy"
+          }
+        }
+      }
+    },
+    "복사한 텍스트나 이미지가 여기에 표시됩니다." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copied text and images will appear here."
+          }
+        }
+      }
+    },
+    "이미지" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Image"
+          }
+        }
+      }
+    },
+    "이미지를 복사했습니다. 입력창을 길게 눌러 붙여넣기" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Image copied. Long-press the text field to paste"
           }
         }
       }

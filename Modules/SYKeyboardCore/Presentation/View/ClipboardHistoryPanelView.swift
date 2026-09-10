@@ -30,7 +30,7 @@ protocol ClipboardHistoryPanelDelegate: AnyObject {
 /// 저장소를 모르는 표시 전용 뷰다. 상태는 `configure(state:)`로 받고 결정은 델리게이트가 한다.
 ///
 /// ## 동작
-/// - 평소: 행 탭은 붙여넣기, trailing swipe는 개별 삭제, leading swipe는 고정/해제, 길게 누르기는 원문 상세 뷰
+/// - 평소: 행 탭은 붙여넣기(텍스트) 또는 pasteboard 복원(이미지), trailing swipe는 개별 삭제, leading swipe는 고정/해제, 길게 누르기는 원문 상세 뷰
 /// - 편집 모드(`isItemEditing`): 행 탭은 선택 토글, "전체 선택"·"n개 삭제"·"완료".
 ///   `UITableView.isEditing`은 스와이프 액션이 열려 있는 동안에도 true가 되므로 판단에 쓰지 않는다
 final class ClipboardHistoryPanelView: UIView {
@@ -44,6 +44,22 @@ final class ClipboardHistoryPanelView: UIView {
     // MARK: - Properties
 
     weak var delegate: ClipboardHistoryPanelDelegate?
+
+    /// 썸네일·미리보기 파일을 찾는 저장소. 소유자가 설정한다. `nil`이면 이미지 행에 자리표시 아이콘만 보인다
+    var imageStore: ClipboardImageStore?
+
+    /// 해시별 썸네일. 같은 해시는 같은 바이트라 무효화가 필요 없다. 메모리 경고 시 소유자가 `purgeThumbnailCache()`로 비운다
+    private let thumbnailCache: NSCache<NSString, UIImage> = {
+        let cache = NSCache<NSString, UIImage>()
+        cache.countLimit = ClipboardHistoryPolicy.maxItemCount + ClipboardHistoryPolicy.maxPinnedCount
+        return cache
+    }()
+    /// 헤더 안내를 제목으로 되돌리는 예약 작업
+    private var pendingTitleRestore: DispatchWorkItem?
+
+    private static let transientMessageDuration: TimeInterval = 2
+    private static let thumbnailSize = CGSize(width: 44, height: 44)
+    private static let imagePlaceholderSymbolName = "photo"
 
     /// 현재 표시 중인 항목(최신순). 델리게이트 인덱스는 이 배열 기준이다
     private(set) var items: [ClipboardHistoryItem] = []
@@ -75,11 +91,13 @@ final class ClipboardHistoryPanelView: UIView {
         return stackView
     }()
 
-    private let titleLabel: UILabel = {
+    let titleLabel: UILabel = {
         let label = UILabel()
         label.text = String(localized: "클립보드 기록", bundle: SYKBDAssets.bundle)
         label.font = .systemFont(ofSize: 15, weight: .semibold)
         label.textColor = .label
+        label.adjustsFontSizeToFitWidth = true
+        label.minimumScaleFactor = 0.7
 
         return label
     }()
@@ -152,7 +170,7 @@ final class ClipboardHistoryPanelView: UIView {
         view.onClose = { [weak self] in self?.hideDetail() }
         view.onPaste = { [weak self] in
             guard let self, let index = self.detailIndex else { return }
-            // 붙여넣기 직후 패널이 닫히므로 상세 뷰는 즉시 숨긴다
+            // 붙여넣기(텍스트) 또는 복사(이미지) 직후 패널이 닫히므로 상세 뷰는 즉시 숨긴다
             self.hideDetail(animated: false)
             // 상세 뷰에서 붙여넣은 항목은 현재 클립보드가 되도록 복사도 한다
             self.delegate?.clipboardPanel(self, didRequestCopyAt: index)
@@ -199,6 +217,7 @@ final class ClipboardHistoryPanelView: UIView {
     func configure(state: State) {
         hideDetail()
         hideDeleteConfirmation()
+        restoreTitle()
         let previousItems = items
         switch state {
         case .fullAccessRequired:
@@ -206,7 +225,7 @@ final class ClipboardHistoryPanelView: UIView {
             messageLabel.text = String(localized: "전체 접근 허용이 필요합니다", bundle: SYKBDAssets.bundle)
         case .empty:
             items = []
-            messageLabel.text = String(localized: "복사한 텍스트가 여기에 표시됩니다.", bundle: SYKBDAssets.bundle)
+            messageLabel.text = String(localized: "복사한 텍스트나 이미지가 여기에 표시됩니다.", bundle: SYKBDAssets.bundle)
         case .items(let newItems):
             items = newItems
         }
@@ -220,6 +239,7 @@ final class ClipboardHistoryPanelView: UIView {
     func resetPresentation() {
         hideDetail(animated: false)
         hideDeleteConfirmation(animated: false)
+        restoreTitle()
         endItemEditing()
         // 열린 스와이프 액션도 닫는다. 스와이프 중에는 tableView.isEditing만 true라 endItemEditing이 건너뛴다
         tableView.setEditing(false, animated: false)
@@ -230,6 +250,7 @@ final class ClipboardHistoryPanelView: UIView {
 
     func beginItemEditing() {
         guard !items.isEmpty, !isItemEditing else { return }
+        restoreTitle()
         isItemEditing = true
         // 열린 스와이프가 있으면 먼저 닫아 헤더와 테이블이 함께 편집 모드로 들어간다
         tableView.setEditing(false, animated: false)
@@ -287,6 +308,24 @@ final class ClipboardHistoryPanelView: UIView {
 
     func cancelPendingDeletion() {
         hideDeleteConfirmation()
+    }
+
+    /// 헤더 제목 자리에 `message`를 잠깐 보여준 뒤 되돌린다. 이미지 복원처럼 패널을 유지한 채 결과를 알릴 때 쓴다.
+    /// 편집 모드에서는 제목이 숨겨져 있으므로 띄우지 않는다
+    func showTransientMessage(_ message: String) {
+        guard !isItemEditing else { return }
+        pendingTitleRestore?.cancel()
+        titleLabel.text = message
+        let workItem = DispatchWorkItem { [weak self] in self?.restoreTitle() }
+        pendingTitleRestore = workItem
+        DispatchQueue.main.asyncAfter(
+            deadline: .now() + ClipboardHistoryPanelView.transientMessageDuration,
+            execute: workItem
+        )
+    }
+
+    func purgeThumbnailCache() {
+        thumbnailCache.removeAllObjects()
     }
 }
 
@@ -358,6 +397,22 @@ private extension ClipboardHistoryPanelView {
         !items.isEmpty && (tableView.indexPathsForSelectedRows?.count ?? 0) == items.count
     }
 
+    func restoreTitle() {
+        pendingTitleRestore?.cancel()
+        pendingTitleRestore = nil
+        titleLabel.text = String(localized: "클립보드 기록", bundle: SYKBDAssets.bundle)
+    }
+
+    /// 캐시에 없으면 썸네일 파일을 읽어 넣는다. 파일이 없으면 `nil`
+    func thumbnail(for reference: ClipboardImageReference) -> UIImage? {
+        let key = reference.hash as NSString
+        if let cached = thumbnailCache.object(forKey: key) { return cached }
+        guard let url = imageStore?.thumbnailURL(for: reference),
+              let image = UIImage(contentsOfFile: url.path) else { return nil }
+        thumbnailCache.setObject(image, forKey: key)
+        return image
+    }
+
     func updateHeader() {
         let isEditing = isItemEditing
         titleLabel.isHidden = isEditing
@@ -402,12 +457,23 @@ private extension ClipboardHistoryPanelView {
     func showDetail(at index: Int) {
         guard items.indices.contains(index) else { return }
         detailIndex = index
-        detailView.update(
-            text: items[index].text ?? "",
-            isPinned: items[index].isPinned,
-            canPin: ClipboardHistoryPolicy.canPin(items),
-            canOpenURL: items[index].text.flatMap(ClipboardHistoryPolicy.openableURL) != nil
-        )
+        let item = items[index]
+        let canPin = ClipboardHistoryPolicy.canPin(items)
+        switch item.content {
+        case .text(let text):
+            detailView.update(
+                text: text,
+                isPinned: item.isPinned,
+                canPin: canPin,
+                canOpenURL: ClipboardHistoryPolicy.openableURL(in: text) != nil
+            )
+        case .image(let reference):
+            // 원본을 상세 뷰 크기까지만 디코드한다. 파일이 없으면 자리표시 아이콘
+            let preview = imageStore?
+                .previewImage(for: reference, maxPixelSize: ClipboardImagePolicy.keyboardPreviewMaxPixelSize)
+                .map { UIImage(cgImage: $0) }
+            detailView.update(image: preview, isPinned: item.isPinned, canPin: canPin)
+        }
         setDetailHidden(false, animated: true)
     }
 
@@ -473,10 +539,24 @@ private extension ClipboardHistoryPanelView {
         let cell = tableView.dequeueReusableCell(withIdentifier: ClipboardHistoryPanelView.cellIdentifier, for: indexPath)
         guard let item = items.first(where: { $0.id == id }) else { return cell }
         var content = cell.defaultContentConfiguration()
-        content.text = item.text
         content.textProperties.font = .systemFont(ofSize: 15)
-        content.textProperties.numberOfLines = 2
-        content.textProperties.lineBreakMode = .byTruncatingTail
+        switch item.content {
+        case .text(let text):
+            content.text = text
+            content.textProperties.numberOfLines = 2
+            content.textProperties.lineBreakMode = .byTruncatingTail
+        case .image(let reference):
+            // 썸네일만 읽는다. 원본은 목록에서 열지 않는다
+            content.image = thumbnail(for: reference)
+                ?? UIImage(systemName: ClipboardHistoryPanelView.imagePlaceholderSymbolName)
+            content.imageProperties.maximumSize = ClipboardHistoryPanelView.thumbnailSize
+            content.imageProperties.reservedLayoutSize = ClipboardHistoryPanelView.thumbnailSize
+            content.imageProperties.cornerRadius = 4
+            content.text = String(localized: "이미지", bundle: SYKBDAssets.bundle)
+            content.secondaryText = reference.sizeDescription
+            content.secondaryTextProperties.font = .systemFont(ofSize: 12)
+            content.secondaryTextProperties.color = .secondaryLabel
+        }
         cell.contentConfiguration = content
         cell.accessoryView = item.isPinned ? makePinAccessoryView() : nil
         cell.backgroundColor = .clear
@@ -645,6 +725,14 @@ private final class ClipboardHistoryDetailView: UIView {
         return textView
     }()
 
+    private let imageView: UIImageView = {
+        let imageView = UIImageView()
+        imageView.contentMode = .scaleAspectFit
+        imageView.isHidden = true
+
+        return imageView
+    }()
+
     private lazy var openURLTapGesture = UITapGestureRecognizer(target: self, action: #selector(handleOpenURLTap(_:)))
 
     private lazy var pasteButton: UIButton = {
@@ -681,6 +769,7 @@ private final class ClipboardHistoryDetailView: UIView {
     /// 고정 한도가 찼으면 미고정 항목의 고정 버튼을 숨긴다. 스와이프 액션과 같은 규칙이다.
     /// 항목 전체가 URL이면 본문을 링크처럼 그리고 탭을 받는다
     func update(text: String, isPinned: Bool, canPin: Bool, canOpenURL: Bool) {
+        setImageMode(false)
         // 텍스트 전체가 URL이면 일반 링크처럼 파란 밑줄로 그리고, 본문 탭으로 연다
         var attributes: [NSAttributedString.Key: Any] = [
             .font: UIFont.systemFont(ofSize: 15),
@@ -693,6 +782,17 @@ private final class ClipboardHistoryDetailView: UIView {
         textView.attributedText = NSAttributedString(string: text, attributes: attributes)
         textView.setContentOffset(.zero, animated: false)
         openURLTapGesture.isEnabled = canOpenURL
+        pinButton.isHidden = !isPinned && !canPin
+        pinButton.configuration?.title = isPinned
+        ? String(localized: "고정 해제", bundle: SYKBDAssets.bundle)
+        : String(localized: "고정", bundle: SYKBDAssets.bundle)
+    }
+
+    /// 이미지 항목. 본문 대신 미리보기를 보여주고, 버튼은 "복사"가 된다(키보드는 입력창에 이미지를 넣을 수 없다)
+    func update(image: UIImage?, isPinned: Bool, canPin: Bool) {
+        setImageMode(true)
+        imageView.image = image ?? UIImage(systemName: "photo")
+        openURLTapGesture.isEnabled = false
         pinButton.isHidden = !isPinned && !canPin
         pinButton.configuration?.title = isPinned
         ? String(localized: "고정 해제", bundle: SYKBDAssets.bundle)
@@ -718,7 +818,7 @@ private extension ClipboardHistoryDetailView {
         spacer.setContentHuggingPriority(.defaultLow, for: .horizontal)
         [titleLabel, spacer, pinButton, closeButton].forEach { headerStackView.addArrangedSubview($0) }
         textView.addGestureRecognizer(openURLTapGesture)
-        [blurView, headerStackView, textView, pasteButton].forEach {
+        [blurView, headerStackView, textView, imageView, pasteButton].forEach {
             self.addSubview($0)
             $0.translatesAutoresizingMaskIntoConstraints = false
         }
@@ -739,12 +839,29 @@ private extension ClipboardHistoryDetailView {
             textView.trailingAnchor.constraint(equalTo: self.trailingAnchor, constant: -4),
             textView.bottomAnchor.constraint(equalTo: self.bottomAnchor),
 
+            imageView.topAnchor.constraint(equalTo: headerStackView.bottomAnchor, constant: 4),
+            imageView.leadingAnchor.constraint(equalTo: self.leadingAnchor, constant: 12),
+            imageView.trailingAnchor.constraint(equalTo: self.trailingAnchor, constant: -12),
+            imageView.bottomAnchor.constraint(
+                equalTo: pasteButton.topAnchor,
+                constant: -ClipboardHistoryDetailView.pasteButtonBottomSpacing
+            ),
+
             pasteButton.centerXAnchor.constraint(equalTo: self.centerXAnchor),
             pasteButton.bottomAnchor.constraint(
                 equalTo: self.bottomAnchor,
                 constant: -ClipboardHistoryDetailView.pasteButtonBottomSpacing
             )
         ])
+    }
+
+    func setImageMode(_ isImage: Bool) {
+        imageView.isHidden = !isImage
+        textView.isHidden = isImage
+        if !isImage { imageView.image = nil }
+        pasteButton.configuration?.title = isImage
+        ? String(localized: "복사", bundle: SYKBDAssets.bundle)
+        : String(localized: "붙여넣기", bundle: SYKBDAssets.bundle)
     }
 }
 

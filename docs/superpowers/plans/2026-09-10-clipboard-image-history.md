@@ -1568,7 +1568,7 @@ git commit -m "feat: #55 - pasteboard 이미지 항목을 파일로 받아 기�
   - `titleLabel`은 테스트가 읽도록 `private(set)`가 아닌 internal `let`으로 둔다(값 검증만 한다)
   - 상세 뷰 `onPaste`는 이미지에서도 `didRequestCopyAt` → `didSelectItemAt` 순서로 델리게이트를 부른다(Task 7이 복원으로 처리)
 
-- [ ] **Step 1: 패널 테스트 추가**
+- [x] **Step 1: 패널 테스트 추가**
 
 `ClipboardHistoryPanelViewTests.swift`의 helper 아래에 이미지 helper를 추가하고 테스트 4개를 `testResetPresentation은_편집모드해제` 뒤에 넣는다.
 
@@ -1633,12 +1633,12 @@ private func imageItem(_ hash: String) -> ClipboardHistoryItem {
     }
 ```
 
-- [ ] **Step 2: 실패 확인**
+- [x] **Step 2: 실패 확인**
 
 Run: `-only-testing:SYKeyboardTests/ClipboardHistoryPanelViewTests`
 Expected: 컴파일 실패 `'titleLabel' is inaccessible due to 'private' protection level` 또는 `has no member 'showTransientMessage'`
 
-- [ ] **Step 3: 패널 구현**
+- [x] **Step 3: 패널 구현**
 
 `ClipboardHistoryPanelView.swift`:
 
@@ -1841,7 +1841,7 @@ private extension에 추가:
 
 (e) `ClipboardHistoryPanelView` 클래스 doc의 "행 탭은 붙여넣기"를 "행 탭은 붙여넣기(텍스트) 또는 pasteboard 복원(이미지)"으로 고친다.
 
-- [ ] **Step 4: Core 문자열 추가**
+- [x] **Step 4: Core 문자열 추가**
 
 `SYKeyboardAssets/Sources/SYKeyboardAssets/Resources/Localizable.xcstrings`의 `"strings"` 객체에 다음 세 항목을 넣는다(키 정렬은 Xcode가 다시 맞춘다). `"복사"` 키가 이미 있으면 추가하지 않는다.
 
@@ -1894,12 +1894,12 @@ private extension에 추가:
 
 `"복사한 텍스트가 여기에 표시됩니다."` 항목은 더 이상 쓰지 않으므로 삭제한다. 확인: `python3 -c "import json;json.load(open('SYKeyboardAssets/Sources/SYKeyboardAssets/Resources/Localizable.xcstrings'))"`가 오류 없이 끝난다.
 
-- [ ] **Step 5: 통과 확인**
+- [x] **Step 5: 통과 확인**
 
 Run: `-only-testing:SYKeyboardTests/ClipboardHistoryPanelViewTests`
 Expected: 기존 15개 + 새 4개 전부 `passed`, `TEST SUCCEEDED`
 
-- [ ] **Step 6: 커밋**
+- [x] **Step 6: 커밋**
 
 ```sh
 git add Modules/SYKeyboardCore/Presentation/View/ClipboardHistoryPanelView.swift \
