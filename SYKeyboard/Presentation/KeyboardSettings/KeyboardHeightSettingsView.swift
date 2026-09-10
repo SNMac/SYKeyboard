@@ -28,6 +28,12 @@ struct KeyboardHeightSettingsView: View {
 
     @AppStorage(UserDefaultsKeys.isPredictiveTextEnabled, store: UserDefaultsManager.shared.storage)
     private var isPredictiveTextEnabled = DefaultValues.isPredictiveTextEnabled
+
+    @AppStorage(UserDefaultsKeys.isUndoRedoEnabled, store: UserDefaultsManager.shared.storage)
+    private var isUndoRedoEnabled = DefaultValues.isUndoRedoEnabled
+
+    @AppStorage(UserDefaultsKeys.isClipboardHistoryEnabled, store: UserDefaultsManager.shared.storage)
+    private var isClipboardHistoryEnabled = DefaultValues.isClipboardHistoryEnabled
     
     @AppStorage(UserDefaultsKeys.needsInputModeSwitchKey, store: UserDefaultsManager.shared.storage)
     private var needsInputModeSwitchKey = true
@@ -118,7 +124,12 @@ private extension KeyboardHeightSettingsView {
 
 private extension KeyboardHeightSettingsView {
     func updatePreviewKeyboardHeight() {
-        let suggestionBarHeight = isPredictiveTextEnabled
+        let isSuggestionBarVisible = KeyboardPresentationStatePolicy.isSuggestionBarVisibleForSettingsPreview(
+            isPredictiveTextEnabled: isPredictiveTextEnabled,
+            isUndoRedoEnabled: isUndoRedoEnabled,
+            isClipboardHistoryEnabled: isClipboardHistoryEnabled
+        )
+        let suggestionBarHeight = isSuggestionBarVisible
         ? KeyboardLayoutFigure.suggestionBarHeightWithTopSpacing + KeyboardLayoutFigure.keyboardFrameSpacing
         : 0
         previewKeyboardHeight = tempKeyboardHeight + suggestionBarHeight

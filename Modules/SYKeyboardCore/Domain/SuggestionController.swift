@@ -166,8 +166,14 @@ final class SuggestionController: SuggestionService {
     ///
     /// `autocorrectionType == .no`인 텍스트 필드 등에서 `true`로 설정합니다.
     /// 엔진을 해제하지 않고 조회·기록만 건너뜁니다.
+    ///
+    /// 후보를 비우는 것은 `false` -> `true` 전이에서 한 번뿐입니다.
+    /// 억제 중에는 후보를 채우는 경로가 모두 `!isSuspended` 가드로 막혀 있고,
+    /// 억제 이전에 발행된 TextChecker 요청은 전이 시점의 세대 증가로 무효화되므로
+    /// 같은 값이 다시 대입돼도 지울 대상이 없습니다.
     var isSuspended: Bool = false {
         didSet {
+            guard oldValue != isSuspended else { return }
             if isSuspended { clearSuggestions() }
         }
     }

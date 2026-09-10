@@ -58,6 +58,11 @@ final class SuggestionBarView: UIView {
         return [clipboardButton, clipboardDivider]
     }
 
+    /// 후보 영역이 숨겨질 때 함께 사라지는 후보 사이 divider
+    private var suggestionAreaDividers: [UIView] {
+        return [leftDivider, rightDivider]
+    }
+
     /// 히트테스트·하이라이트 대상 accessory 버튼. 인덱스가 `SuggestionHighlightPolicy`의 action 인덱스다
     private var actionButtons: [SuggestionActionButtonView] {
         return [clipboardButton, undoButton, redoButton]
@@ -293,6 +298,14 @@ final class SuggestionBarView: UIView {
         }
         applyHighlights()
         updateDividers()
+    }
+
+    /// 후보 영역 표시 여부를 갱신합니다.
+    ///
+    /// 후보 라벨은 `SuggestionController.isSuspended`가 비우므로 여기서는 후보 사이 divider만 숨겨
+    /// 액션 버튼 위치를 그대로 둔 채 가운데를 빈 상태로 만듭니다.
+    func updateSuggestionArea(isVisible: Bool) {
+        suggestionAreaDividers.forEach { $0.isHidden = !isVisible }
     }
 
     /// 자동완성 바 우측의 undo/redo 버튼 표시와 활성 상태를 갱신합니다.

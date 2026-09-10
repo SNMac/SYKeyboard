@@ -37,8 +37,8 @@ final public class KeyboardView: UIInputView {
     
     /// 자동완성 툴바
     lazy var suggestionBarView: SuggestionBarView = {
+        // 표시 여부는 viewDidLoad의 updateSuggestionBarHidden()이 첫 표시 전에 정한다
         let suggestionBar = SuggestionBarView(keyboardHStackView: keyboardHStackView)
-        suggestionBar.isHidden = !UserDefaultsManager.shared.isPredictiveTextEnabled
         
         return suggestionBar
     }()

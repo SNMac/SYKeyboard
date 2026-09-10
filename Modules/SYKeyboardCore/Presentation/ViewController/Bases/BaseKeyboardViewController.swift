@@ -168,12 +168,29 @@ open class BaseKeyboardViewController: UIInputViewController {
     private var currentAutocorrectionType: UITextAutocorrectionType?
     /// host 입력 변경 callback에서 마지막으로 확인한 수식 자동완성 허용 상태입니다.
     private var isMathExpressionCompletionAllowed = true
-    /// 자동완성과 undo/redo 설정이 모두 켜진 경우에만 기능을 활성화합니다.
-    private var isUndoRedoFeatureAvailable: Bool {
-        return KeyboardPresentationStatePolicy.isUndoRedoFeatureAvailable(
+    /// suggestion bar 전체를 숨겨야 하는지 여부
+    private var shouldHideSuggestionBar: Bool {
+        return KeyboardPresentationStatePolicy.shouldHideSuggestionBar(
             isPredictiveTextEnabled: keyboardSettingsManager.isPredictiveTextEnabled,
-            isUndoRedoEnabled: keyboardSettingsManager.isUndoRedoEnabled
+            autocorrectionType: currentAutocorrectionType,
+            currentKeyboard: currentKeyboard,
+            isUndoRedoEnabled: keyboardSettingsManager.isUndoRedoEnabled,
+            isClipboardHistoryEnabled: isClipboardControlAvailable
         )
+    }
+
+    /// 클립보드 버튼을 표시할 설정 상태
+    ///
+    /// 바 표시 판정과 버튼 표시 판정이 같은 값을 봐야 버튼 없는 빈 바가 생기지 않는다.
+    /// 앱 미리보기도 실제 키보드와 같은 모습을 보여야 하므로 여기서 제외하지 않고,
+    /// 탭 동작만 `suggestionBarDidTapClipboard`에서 막는다.
+    private var isClipboardControlAvailable: Bool {
+        return keyboardSettingsManager.isClipboardHistoryEnabled
+    }
+
+    /// undo/redo 기능 사용 가능 여부. 자동완성 설정과 독립이다
+    private var isUndoRedoFeatureAvailable: Bool {
+        return keyboardSettingsManager.isUndoRedoEnabled
     }
 
     /// 삭제 버튼 팬 제스처로 인해 임시로 삭제된 내용을 저장하는 변수
@@ -933,11 +950,7 @@ private extension BaseKeyboardViewController {
         let windowScene = window.windowScene
         let orientation = windowScene?.effectiveGeometry.interfaceOrientation ?? .unknown
 
-        let isSuggestionBarVisible = !KeyboardPresentationStatePolicy.shouldHideSuggestionBar(
-            isPredictiveTextEnabled: suggestionController.isPredictiveTextEnabled,
-            autocorrectionType: currentAutocorrectionType,
-            currentKeyboard: currentKeyboard
-        )
+        let isSuggestionBarVisible = !shouldHideSuggestionBar
 
         let isPortrait = KeyboardHeightPolicy.isPortrait(
             orientation: orientation,
@@ -1348,19 +1361,27 @@ private extension BaseKeyboardViewController {
     }
 
     func updateSuggestionBarHidden() {
+        // VC가 살아 있는 동안 설정이 바뀔 수 있으므로 컨트롤러 쪽 값을 함께 맞춘다.
+        // didSet에 idempotence 가드가 있어 값이 같으면 비용이 없다.
+        // 설정이 바뀌면 엔진은 다음 updateSuggestions에서 재생성되지만 UILexicon 재로드는 하지 않는다
+        suggestionController.isPredictiveTextEnabled = keyboardSettingsManager.isPredictiveTextEnabled
+
         let prevSuggestionHiddenState = suggestionBarView.isHidden
 
-        let shouldHideSuggestions = KeyboardPresentationStatePolicy.shouldHideSuggestionBar(
-            isPredictiveTextEnabled: suggestionController.isPredictiveTextEnabled,
-            autocorrectionType: currentAutocorrectionType,
-            currentKeyboard: currentKeyboard
+        let shouldHideBar = shouldHideSuggestionBar
+        // 바가 남아 있어도 autocorrection이 막혀 있으면 후보 영역만 비운다
+        let shouldHideSuggestions = KeyboardPresentationStatePolicy.shouldHideSuggestionButtons(
+            isSuggestionBarHidden: shouldHideBar,
+            isPredictiveTextEnabled: keyboardSettingsManager.isPredictiveTextEnabled,
+            autocorrectionType: currentAutocorrectionType
         )
 
-        suggestionBarView.isHidden = shouldHideSuggestions
+        suggestionBarView.isHidden = shouldHideBar
+        suggestionBarView.updateSuggestionArea(isVisible: !shouldHideSuggestions)
         suggestionController.isSuspended = shouldHideSuggestions
         updateUndoRedoControls()
 
-        if prevSuggestionHiddenState != shouldHideSuggestions {
+        if prevSuggestionHiddenState != shouldHideBar {
             DispatchQueue.main.async { [weak self] in
                 guard let self else { return }
 
@@ -1812,8 +1833,7 @@ private extension BaseKeyboardViewController {
     func updateClipboardControl() {
         let shouldShowClipboard = KeyboardPresentationStatePolicy.shouldShowClipboardControl(
             isSuggestionBarHidden: suggestionBarView.isHidden,
-            isClipboardHistoryEnabled: keyboardSettingsManager.isClipboardHistoryEnabled
-            && !BaseKeyboardViewController.isPreview
+            isClipboardHistoryEnabled: isClipboardControlAvailable
         )
         suggestionBarView.updateClipboardControl(
             isVisible: shouldShowClipboard,
@@ -2328,6 +2348,9 @@ extension BaseKeyboardViewController: SuggestionBarDelegate {
     }
 
     final func suggestionBarDidTapClipboard(_ bar: SuggestionBarView) {
+        // 미리보기는 실제 키보드와 같은 모습을 보여주는 것이 목적이라 버튼을 비활성으로 만들지 않고,
+        // 패널만 열지 않는다. undo/redo가 미리보기에서 회색인 것은 세션이 비어 canUndo가 false이기 때문이다
+        guard !BaseKeyboardViewController.isPreview else { return }
         toggleClipboardPanel()
     }
 }

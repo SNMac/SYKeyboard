@@ -29,6 +29,12 @@ struct LetterColumnWidthSettingsView: View {
     @AppStorage(UserDefaultsKeys.isPredictiveTextEnabled, store: UserDefaultsManager.shared.storage)
     private var isPredictiveTextEnabled = DefaultValues.isPredictiveTextEnabled
 
+    @AppStorage(UserDefaultsKeys.isUndoRedoEnabled, store: UserDefaultsManager.shared.storage)
+    private var isUndoRedoEnabled = DefaultValues.isUndoRedoEnabled
+
+    @AppStorage(UserDefaultsKeys.isClipboardHistoryEnabled, store: UserDefaultsManager.shared.storage)
+    private var isClipboardHistoryEnabled = DefaultValues.isClipboardHistoryEnabled
+
     @AppStorage(UserDefaultsKeys.needsInputModeSwitchKey, store: UserDefaultsManager.shared.storage)
     private var needsInputModeSwitchKey = DefaultValues.needsInputModeSwitchKey
 
@@ -121,7 +127,12 @@ private extension LetterColumnWidthSettingsView {
 
 private extension LetterColumnWidthSettingsView {
     func updatePreviewKeyboardHeight() {
-        let suggestionBarHeight = isPredictiveTextEnabled
+        let isSuggestionBarVisible = KeyboardPresentationStatePolicy.isSuggestionBarVisibleForSettingsPreview(
+            isPredictiveTextEnabled: isPredictiveTextEnabled,
+            isUndoRedoEnabled: isUndoRedoEnabled,
+            isClipboardHistoryEnabled: isClipboardHistoryEnabled
+        )
+        let suggestionBarHeight = isSuggestionBarVisible
         ? KeyboardLayoutFigure.suggestionBarHeightWithTopSpacing + KeyboardLayoutFigure.keyboardFrameSpacing
         : 0
         previewKeyboardHeight = keyboardHeight + suggestionBarHeight

@@ -56,6 +56,12 @@ struct KeyboardSettingsView: View {
                 }
 
                 Section {
+                    KeyboardToolbarSettingsView()
+                } header: {
+                    Text("키보드 툴바 설정")
+                }
+
+                Section {
                     InputSettingsView()
                 } header: {
                     Text("입력 설정")
