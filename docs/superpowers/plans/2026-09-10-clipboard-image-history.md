@@ -10,12 +10,12 @@
 
 **Spec:** `docs/superpowers/specs/2026-09-10-clipboard-image-history-design.md`
 
-**Spec과의 차이:** spec 3절의 `synchronizeIfNeeded(store:imageStore:...)`는 `imageStore` 파라미터 없이 `store.imageStore`를 쓴다. `ClipboardHistoryStore`가 `ClipboardImageStore`를 만들어 `public let imageStore`로 노출하므로 키보드·앱이 같은 저장소를 따로 주입할 필요가 없다. `onImageRecorded`는 `@MainActor` 주석 없이 메인 큐에서 호출하는 `(() -> Void)?`다. spec 4절의 `configure(state:thumbnailURL:)`는 패널의 `imageStore: ClipboardImageStore?` 프로퍼티로 대신한다(썸네일 경로와 상세 미리보기 디코드를 한 저장소가 제공한다). 미리보기 디코드는 `ClipboardImageStore.previewImage(for:maxPixelSize:)`로 Core에 두고 키보드·앱이 함께 쓴다.
+**Spec과의 차이:** 리베이스(develop `23e2d22e`, #129 병합) 후 클립보드 토글이 `KeyboardToolbarSettingsView`로 옮겨졌다. spec 3절의 `synchronizeIfNeeded(store:imageStore:...)`는 `imageStore` 파라미터 없이 `store.imageStore`를 쓴다. `ClipboardHistoryStore`가 `ClipboardImageStore`를 만들어 `public let imageStore`로 노출하므로 키보드·앱이 같은 저장소를 따로 주입할 필요가 없다. `onImageRecorded`는 `@MainActor` 주석 없이 메인 큐에서 호출하는 `(() -> Void)?`다. spec 4절의 `configure(state:thumbnailURL:)`는 패널의 `imageStore: ClipboardImageStore?` 프로퍼티로 대신한다(썸네일 경로와 상세 미리보기 디코드를 한 저장소가 제공한다). 미리보기 디코드는 `ClipboardImageStore.previewImage(for:maxPixelSize:)`로 Core에 두고 키보드·앱이 함께 쓴다.
 
 ## Global Constraints
 
 - iOS 16+ / Swift 5 / Xcode 26. deprecated API 신규 사용 금지(`UIScreen.main` 포함).
-- 작업 브랜치 `feat/#55-clipboard-image-history`. spec 커밋 `de65dc70` 뒤에 이어서 커밋한다.
+- 작업 브랜치 `feat/#55-clipboard-image-history`(develop `23e2d22e` 기준). plan 커밋 뒤에 이어서 커밋한다.
 - 커밋 메시지는 `type: #55 - subject` 형식, 한국어, 마침표 없음. 코드 Task는 `feat`, 검증 기록 Task는 `docs`. 커밋 본문 끝에 세션의 attribution 두 줄을 붙인다.
 - 각 Task는 코드·테스트·이 계획 문서의 체크박스 갱신을 **하나의 커밋**으로 남긴다. 실행하지 않았거나 실패한 step을 미리 완료로 표시하지 않는다. 다음 Task는 직전 Task의 커밋 뒤에 시작한다.
 - `Modules/SYKeyboardCore/`에 새 파일을 추가할 때마다 `SYKeyboard.xcodeproj/project.pbxproj`의 두 예외 목록(`SYKeyboardCore` 타깃, `SYKeyboard` 타깃)에 같은 경로를 알파벳순으로 넣는다. `SYKeyboardTests/`는 동기화 폴더라 테스트 파일은 등록이 필요 없다.
@@ -72,7 +72,7 @@ done
 | `SYKeyboardAssets/Sources/SYKeyboardAssets/Resources/Localizable.xcstrings` (수정) | Core 문구 ko/en | 6 |
 | `SYKeyboardTests/Presentation/ClipboardHistoryPanelViewTests.swift` (수정) | 이미지 행 탭·헤더 안내·혼합 삭제 | 6 |
 | `SYKeyboard/App/SYKeyboardApp.swift` (수정) | 변경 없음(`store.imageStore` 사용으로 호출부 동일). 확인만 한다 | 7 |
-| `SYKeyboard/Presentation/KeyboardSettings/PredictiveTextSettingsView.swift` (수정) | "이미지도 기록" 하위 토글 | 8 |
+| `SYKeyboard/Presentation/KeyboardSettings/KeyboardToolbarSettingsView.swift` (수정) | "이미지도 기록" 하위 토글 | 8 |
 | `SYKeyboard/Resources/Localizable.xcstrings` (수정) | 앱 문구 en | 8 |
 | `SYKeyboard.xcodeproj/project.pbxproj` (수정) | 신규 Core 파일 2개 등록 | 2, 4 |
 | `docs/superpowers/plans/2026-09-10-clipboard-image-history.md` (수정) | 검증 결과 기록 | 9 |
@@ -341,7 +341,7 @@ git commit -m "feat: #55 - 이미지 저장 한도·타입 정책 추가"
 - Modify: `Modules/SYKeyboardCore/Presentation/Utils/Policies/ClipboardHistoryPolicy.swift`
 - Modify: `Modules/SYKeyboardCore/Storage/ClipboardHistoryStore.swift`
 - Modify: `Modules/SYKeyboardCore/Presentation/View/ClipboardHistoryPanelView.swift` (snapshot 식별자, `makeCell`, `showDetail`)
-- Modify: `Modules/SYKeyboardCore/Presentation/ViewController/Bases/BaseKeyboardViewController.swift:2392-2444` (델리게이트 5개)
+- Modify: `Modules/SYKeyboardCore/Presentation/ViewController/Bases/BaseKeyboardViewController.swift` (`ClipboardHistoryPanelDelegate` 확장의 델리게이트 5개, `// MARK: - Clipboard History` 아래)
 - Modify: `SYKeyboard/Presentation/KeyboardSettings/ClipboardHistorySettingsView.swift` (선택·삭제·시트 식별을 `id`로)
 - Test: `SYKeyboardTests/Utils/ClipboardHistoryPolicyTests.swift`, `SYKeyboardTests/Storage/ClipboardHistoryStoreTests.swift`
 
@@ -2060,7 +2060,7 @@ git commit -m "feat: #55 - 키보드에서 이미지 항목 선택 시 pasteboar
 
 **Files:**
 - Modify: `SYKeyboard/Presentation/KeyboardSettings/ClipboardHistorySettingsView.swift`
-- Modify: `SYKeyboard/Presentation/KeyboardSettings/PredictiveTextSettingsView.swift:103-123`
+- Modify: `SYKeyboard/Presentation/KeyboardSettings/KeyboardToolbarSettingsView.swift` (`isClipboardHistoryEnabled` 토글과 `NavigationLink` 사이)
 - Modify: `SYKeyboard/Resources/Localizable.xcstrings`
 
 **Interfaces:**
@@ -2248,14 +2248,14 @@ private struct ClipboardHistoryDetailView: View {
 
 - [ ] **Step 4: 설정 토글**
 
-`PredictiveTextSettingsView`의 `isClipboardHistoryEnabled` `@AppStorage` 아래에 추가:
+`KeyboardToolbarSettingsView`의 `isClipboardHistoryEnabled` `@AppStorage` 아래에 추가:
 
 ```swift
     @AppStorage(UserDefaultsKeys.isClipboardImageHistoryEnabled, store: UserDefaultsManager.shared.storage)
     private var isClipboardImageHistoryEnabled = DefaultValues.isClipboardImageHistoryEnabled
 ```
 
-`if isClipboardHistoryEnabled {` 블록 안, `NavigationLink` 앞에 추가:
+`if isClipboardHistoryEnabled {` 블록 안, `NavigationLink` 앞에 추가(기존 토글처럼 `hideKeyboard()`를 부른다):
 
 ```swift
                 Toggle(isOn: $isClipboardImageHistoryEnabled, label: {
@@ -2267,9 +2267,10 @@ private struct ClipboardHistoryDetailView: View {
                     Analytics.setUserProperty(newValue.analyticsValue,
                                               forName: "pref_clipboard_image_history")
                     Analytics.logEvent("clipboard_image_history", parameters: [
-                        "view": "InputSettingsView",
+                        "view": "KeyboardToolbarSettingsView",
                         "enabled": newValue.analyticsValue
                     ])
+                    hideKeyboard()
                 }
 ```
 
@@ -2337,7 +2338,7 @@ Expected: `BUILD SUCCEEDED`, `error:` 0건
 
 ```sh
 git add SYKeyboard/Presentation/KeyboardSettings/ClipboardHistorySettingsView.swift \
-  SYKeyboard/Presentation/KeyboardSettings/PredictiveTextSettingsView.swift \
+  SYKeyboard/Presentation/KeyboardSettings/KeyboardToolbarSettingsView.swift \
   SYKeyboard/Resources/Localizable.xcstrings docs/superpowers/plans/2026-09-10-clipboard-image-history.md
 git commit -m "feat: #55 - 앱 관리 화면 이미지 항목과 이미지 기록 토글 추가"
 ```

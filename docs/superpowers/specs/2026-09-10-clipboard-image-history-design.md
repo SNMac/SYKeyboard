@@ -338,7 +338,7 @@ synchronizeAndReload()`는 `onImageRecorded`에서 `reload()`를 불러 화면�
 - 앱의 복사 버튼도 키보드와 같은 규칙으로 `setData` 후 `lastSeenPasteboardChangeCount`를
   갱신하고 `record`로 맨 위에 올린다.
 
-### 설정 토글 `PredictiveTextSettingsView`
+### 설정 토글 `KeyboardToolbarSettingsView`
 
 "클립보드 기록" 토글이 켜져 있을 때 그 아래에 "이미지도 기록" 토글을
 `@AppStorage(UserDefaultsKeys.isClipboardImageHistoryEnabled, store:)`로 둔다. 캡션은
@@ -428,7 +428,7 @@ Core 문구는 `SYKeyboardAssets/Sources/SYKeyboardAssets/Resources/Localizable.
 - `Modules/SYKeyboardCore/Presentation/ViewController/Bases/BaseKeyboardViewController.swift`
 - `SYKeyboard/App/SYKeyboardApp.swift`
 - `SYKeyboard/Presentation/KeyboardSettings/ClipboardHistorySettingsView.swift`
-- `SYKeyboard/Presentation/KeyboardSettings/PredictiveTextSettingsView.swift`
+- `SYKeyboard/Presentation/KeyboardSettings/KeyboardToolbarSettingsView.swift`
 - `SYKeyboardAssets/Sources/SYKeyboardAssets/Resources/Localizable.xcstrings`
 - `SYKeyboard/Resources/Localizable.xcstrings`
 - `SYKeyboard.xcodeproj/project.pbxproj`
