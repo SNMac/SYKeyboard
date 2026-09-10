@@ -5,8 +5,11 @@
 //  Created by Claude on 9/8/26.
 //
 
+import CoreGraphics
+import ImageIO
 import UIKit
 import Testing
+import UniformTypeIdentifiers
 
 @testable import SYKeyboardCore
 
@@ -245,6 +248,26 @@ struct ClipboardHistoryPanelViewTests {
         #expect(panel.tableView.numberOfRows(inSection: 0) == 2)
         #expect(panel.items.map(\.id) == ["a", "b"])
     }
+
+    @Test("메모리가 부족하면 상세 미리보기는 원본을 디코드하지 않고 목록 썸네일로 대체")
+    func test메모리부족시_상세미리보기는_썸네일로대체() throws {
+        let directoryURL = FileManager.default.temporaryDirectory
+            .appendingPathComponent("SYKeyboardTests-\(UUID().uuidString)-panel-preview", isDirectory: true)
+        defer { try? FileManager.default.removeItem(at: directoryURL) }
+        let imageStore = ClipboardImageStore(directoryURL: directoryURL)
+        let reference = try makeStoredImageReference(in: imageStore)
+
+        let panel = ClipboardHistoryPanelView(frame: CGRect(x: 0, y: 0, width: 320, height: 240))
+        panel.imageStore = imageStore
+        panel.configure(state: .items([ClipboardHistoryItem(content: .image(reference), createdAt: Date())]))
+        panel.layoutIfNeeded()
+        // 실기기 메모리 상태와 무관하게 가드를 확정적으로 검증하기 위해 부족한 값으로 고정한다
+        panel.availableMemory = { 0 }
+
+        panel.showDetail(at: 0)
+
+        #expect(panel.isDetailVisible)
+    }
 }
 
 @MainActor
@@ -268,6 +291,22 @@ private func unpinned(_ text: String) -> ClipboardHistoryItem {
 
 private func pinned(_ text: String) -> ClipboardHistoryItem {
     ClipboardHistoryItem(text: text, createdAt: Date(), pinnedAt: Date())
+}
+
+/// 단색 PNG를 ImageIO로 인코드해 `imageStore`에 실제로 저장하고 참조를 돌려준다
+private func makeStoredImageReference(in imageStore: ClipboardImageStore) throws -> ClipboardImageReference {
+    let context = try #require(CGContext(
+        data: nil, width: 4, height: 4, bitsPerComponent: 8, bytesPerRow: 0,
+        space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
+    ))
+    context.setFillColor(red: 0.2, green: 0.5, blue: 0.9, alpha: 1)
+    context.fill(CGRect(x: 0, y: 0, width: 4, height: 4))
+    let image = try #require(context.makeImage())
+    let url = FileManager.default.temporaryDirectory.appendingPathComponent("\(UUID().uuidString).png")
+    let destination = try #require(CGImageDestinationCreateWithURL(url as CFURL, UTType.png.identifier as CFString, 1, nil))
+    CGImageDestinationAddImage(destination, image, nil)
+    #expect(CGImageDestinationFinalize(destination))
+    return try #require(imageStore.store(temporaryFileURL: url, typeIdentifier: "public.png"))
 }
 
 private func imageItem(_ hash: String) -> ClipboardHistoryItem {
