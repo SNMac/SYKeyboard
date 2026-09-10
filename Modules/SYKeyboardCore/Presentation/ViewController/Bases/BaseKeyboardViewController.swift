@@ -1362,7 +1362,8 @@ private extension BaseKeyboardViewController {
 
     func updateSuggestionBarHidden() {
         // VC가 살아 있는 동안 설정이 바뀔 수 있으므로 컨트롤러 쪽 값을 함께 맞춘다.
-        // didSet에 idempotence 가드가 있어 값이 같으면 비용이 없다
+        // didSet에 idempotence 가드가 있어 값이 같으면 비용이 없다.
+        // 설정이 바뀌면 엔진은 다음 updateSuggestions에서 재생성되지만 UILexicon 재로드는 하지 않는다
         suggestionController.isPredictiveTextEnabled = keyboardSettingsManager.isPredictiveTextEnabled
 
         let prevSuggestionHiddenState = suggestionBarView.isHidden
@@ -2347,7 +2348,8 @@ extension BaseKeyboardViewController: SuggestionBarDelegate {
     }
 
     final func suggestionBarDidTapClipboard(_ bar: SuggestionBarView) {
-        // 미리보기는 모습만 보여주므로 패널을 열지 않는다
+        // 미리보기는 실제 키보드와 같은 모습을 보여주는 것이 목적이라 버튼을 비활성으로 만들지 않고,
+        // 패널만 열지 않는다. undo/redo가 미리보기에서 회색인 것은 세션이 비어 canUndo가 false이기 때문이다
         guard !BaseKeyboardViewController.isPreview else { return }
         toggleClipboardPanel()
     }
