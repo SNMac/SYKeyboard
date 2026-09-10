@@ -8,6 +8,7 @@
 import UIKit
 import Combine
 import OSLog
+import SYKeyboardAssets
 
 open class BaseKeyboardViewController: UIInputViewController {
 
@@ -336,6 +337,8 @@ open class BaseKeyboardViewController: UIInputViewController {
         super.didReceiveMemoryWarning()
         // 언어별로 캐시해 둔 예측 엔진 중 지금 쓰지 않는 것부터 버린다
         suggestionController.releaseInactiveLanguageEngines()
+        // 클립보드 패널 썸네일은 파일에서 다시 읽을 수 있다
+        clipboardHistoryPanelView.purgeThumbnailCache()
     }
 
     open override func viewWillLayoutSubviews() {
@@ -922,6 +925,7 @@ private extension BaseKeyboardViewController {
         suggestionController.delegate = self
         suggestionBarView.suggestionDelegate = self
         clipboardHistoryPanelView.delegate = self
+        clipboardHistoryPanelView.imageStore = clipboardHistoryStore?.imageStore
     }
 
     func setActions() {
@@ -2366,13 +2370,17 @@ private extension BaseKeyboardViewController {
         && !BaseKeyboardViewController.isPreview
     }
 
-    /// pasteboard의 `changeCount`가 마지막 확인값과 다를 때만 텍스트를 읽어 기록에 저장합니다.
+    /// pasteboard의 `changeCount`가 마지막 확인값과 다를 때만 텍스트 또는 이미지를 읽어 기록에 저장합니다.
     ///
     /// 호출 시점: `viewWillAppear`, `textWillChange`, 클립보드 버튼 탭. `textDidChange`와 selection 콜백은 쓰지 않습니다.
     /// 앱도 활성화 시 같은 `ClipboardHistoryPasteboardSynchronizer`를 호출한다.
+    /// 이미지는 백그라운드에서 파일로 저장된 뒤 기록되므로, 그사이 패널이 열려 있으면 완료 시 다시 읽는다
     func synchronizeClipboardHistoryIfNeeded() {
         guard isClipboardHistoryAvailable, let clipboardHistoryStore else { return }
-        ClipboardHistoryPasteboardSynchronizer.synchronizeIfNeeded(store: clipboardHistoryStore)
+        ClipboardHistoryPasteboardSynchronizer.synchronizeIfNeeded(store: clipboardHistoryStore) { [weak self] in
+            guard let self, self.isClipboardPanelVisible else { return }
+            self.reloadClipboardPanel()
+        }
     }
 
     /// 클립보드 버튼 탭. 열려 있으면 닫고, 닫혀 있으면 동기화 후 엽니다.
@@ -2410,27 +2418,55 @@ private extension BaseKeyboardViewController {
         let items = clipboardHistoryStore.load()
         clipboardHistoryPanelView.configure(state: items.isEmpty ? .empty : .items(items))
     }
+
+    /// 이미지 항목은 입력창에 넣을 수 없으므로 시스템 pasteboard에 원본 바이트를 복원하고 패널을 유지한 채 안내한다.
+    /// 우리가 쓴 값을 다음 동기화에서 다시 기록하지 않도록 changeCount를 갱신한다
+    func restoreImageToPasteboard(_ reference: ClipboardImageReference) {
+        guard isClipboardHistoryAvailable,
+              let clipboardHistoryStore,
+              let imageStore = clipboardHistoryStore.imageStore else { return }
+        // 메모리 맵으로 열어 힙에 올리지 않는다. 앱에서 지운 뒤 키보드가 옛 목록을 들고 있으면 항목을 정리한다
+        guard let data = try? Data(contentsOf: imageStore.originalURL(for: reference), options: .mappedIfSafe) else {
+            clipboardHistoryStore.remove(ids: [ClipboardHistoryItem.Content.image(reference).id])
+            reloadClipboardPanel()
+            return
+        }
+        let pasteboard = UIPasteboard.general
+        pasteboard.setData(data, forPasteboardType: reference.typeIdentifier)
+        keyboardSettingsManager.lastSeenPasteboardChangeCount = pasteboard.changeCount
+
+        // 방금 쓴 항목을 최근 복사한 것처럼 미고정 맨 위로 올린다. 고정 항목은 정책상 그대로다
+        clipboardHistoryStore.record(.image(reference))
+        reloadClipboardPanel()
+        clipboardHistoryPanelView.showTransientMessage(
+            String(localized: "이미지를 복사했습니다. 입력창을 길게 눌러 붙여넣기", bundle: SYKBDAssets.bundle)
+        )
+    }
 }
 
 // MARK: - ClipboardHistoryPanelDelegate
 
 extension BaseKeyboardViewController: ClipboardHistoryPanelDelegate {
     final func clipboardPanel(_ panel: ClipboardHistoryPanelView, didSelectItemAt index: Int) {
-        guard panel.items.indices.contains(index), let text = panel.items[index].text else { return }
+        guard panel.items.indices.contains(index) else { return }
+        switch panel.items[index].content {
+        case .image(let reference):
+            restoreImageToPasteboard(reference)
+        case .text(let text):
+            // 붙여넣기를 undo 1단위로 만든다: 앞선 입력 그룹을 닫고, 삽입 후 다시 닫는다
+            commitUndoRedoGroupIgnoringCompositionDeferral()
+            insertText(text)
+            undoRedoEditDidApply()
+            commitUndoRedoGroupIgnoringCompositionDeferral()
 
-        // 붙여넣기를 undo 1단위로 만든다: 앞선 입력 그룹을 닫고, 삽입 후 다시 닫는다
-        commitUndoRedoGroupIgnoringCompositionDeferral()
-        insertText(text)
-        undoRedoEditDidApply()
-        commitUndoRedoGroupIgnoringCompositionDeferral()
+            // 방금 쓴 항목을 최근 복사한 것처럼 미고정 맨 위로 올린다. 고정 항목은 정책상 그대로다.
+            // 시스템 pasteboard는 바꾸지 않는다
+            clipboardHistoryStore?.record(text)
 
-        // 방금 쓴 항목을 최근 복사한 것처럼 미고정 맨 위로 올린다. 고정 항목은 정책상 그대로다.
-        // 시스템 pasteboard는 바꾸지 않는다
-        clipboardHistoryStore?.record(text)
-
-        closeClipboardPanelIfNeeded()
-        updateReturnButtonEnabled()
-        updateSuggestions()
+            closeClipboardPanelIfNeeded()
+            updateReturnButtonEnabled()
+            updateSuggestions()
+        }
     }
 
     final func clipboardPanel(_ panel: ClipboardHistoryPanelView, didDeleteItemsAt indices: [Int]) {
@@ -2450,7 +2486,8 @@ extension BaseKeyboardViewController: ClipboardHistoryPanelDelegate {
         reloadClipboardPanel()
     }
 
-    /// 항목을 시스템 pasteboard에 복사한다. 우리가 쓴 값을 다음 동기화에서 다시 기록하지 않도록 changeCount를 갱신한다
+    /// 텍스트 항목을 시스템 pasteboard에 복사한다. 이미지는 이어지는 `didSelectItemAt`의 복원 경로가 처리한다.
+    /// 우리가 쓴 값을 다음 동기화에서 다시 기록하지 않도록 changeCount를 갱신한다
     final func clipboardPanel(_ panel: ClipboardHistoryPanelView, didRequestCopyAt index: Int) {
         guard isClipboardHistoryAvailable, panel.items.indices.contains(index),
               let text = panel.items[index].text else { return }
