@@ -46,14 +46,14 @@ struct LongPressSettingsView: View {
             Analytics.setUserProperty(String(format: "%.2f", longPressDuration),
                                       forName: "pref_long_press_duration")
             Analytics.logEvent("long_press_duration", parameters: [
-                "view": "KeyRepeatSettingsView",
+                "view": "LongPressSettingsView",
                 "value": longPressDuration,
             ])
             
             Analytics.setUserProperty(String(format: "%.3f", repeatRate),
                                       forName: "pref_repeat_rate")
             Analytics.logEvent("repeat_rate", parameters: [
-                "view": "KeyRepeatSettingsView",
+                "view": "LongPressSettingsView",
                 "value": repeatRate
             ])
         }

@@ -36,7 +36,7 @@ struct KeyboardToolbarSettingsView: View {
             Analytics.setUserProperty(newValue.analyticsValue,
                                       forName: "pref_undo_redo")
             Analytics.logEvent("undo_redo", parameters: [
-                "view": "InputSettingsView",
+                "view": "KeyboardToolbarSettingsView",
                 "enabled": newValue.analyticsValue
             ])
             hideKeyboard()
@@ -51,7 +51,7 @@ struct KeyboardToolbarSettingsView: View {
             Analytics.setUserProperty(newValue.analyticsValue,
                                       forName: "pref_clipboard_history")
             Analytics.logEvent("clipboard_history", parameters: [
-                "view": "InputSettingsView",
+                "view": "KeyboardToolbarSettingsView",
                 "enabled": newValue.analyticsValue
             ])
             hideKeyboard()

@@ -42,7 +42,7 @@ struct PredictiveTextSettingsView: View {
             Analytics.setUserProperty(newValue.analyticsValue,
                                       forName: "pref_text_replacement")
             Analytics.logEvent("text_replacement", parameters: [
-                "view": "InputSettingsView",
+                "view": "PredictiveTextSettingsView",
                 "enabled": newValue.analyticsValue
             ])
             hideKeyboard()
@@ -57,7 +57,7 @@ struct PredictiveTextSettingsView: View {
             Analytics.setUserProperty(newValue.analyticsValue,
                                       forName: "pref_predictive_text")
             Analytics.logEvent("predictive_text", parameters: [
-                "view": "InputSettingsView",
+                "view": "PredictiveTextSettingsView",
                 "enabled": newValue.analyticsValue
             ])
             hideKeyboard()
@@ -73,7 +73,7 @@ struct PredictiveTextSettingsView: View {
                 Analytics.setUserProperty(newValue.analyticsValue,
                                           forName: "pref_math_results")
                 Analytics.logEvent("show_math_results", parameters: [
-                    "view": "InputSettingsView",
+                    "view": "PredictiveTextSettingsView",
                     "enabled": newValue.analyticsValue
                 ])
                 hideKeyboard()
