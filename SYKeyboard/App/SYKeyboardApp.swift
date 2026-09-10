@@ -171,9 +171,9 @@ struct SYKeyboardApp: App {
     private func synchronizeClipboardHistoryIfNeeded() {
         guard UserDefaultsManager.shared.isClipboardHistoryEnabled,
               let store = ClipboardHistoryStore() else { return }
-        // 앱은 메모리 여유가 커서 키보드가 건너뛴 큰 PNG도 여기서 저장한다
+        // 앱은 메모리 여유가 커서 키보드가 예산 초과로 건너뛴 큰 PNG도 여기서 다시 시도해 저장한다
         ClipboardHistoryPasteboardSynchronizer.synchronizeIfNeeded(
-            store: store, decodeMemoryBudget: ClipboardImagePolicy.appDecodeMemoryBudget
+            store: store, decodeMemoryBudget: ClipboardImagePolicy.appDecodeMemoryBudget, retriesBudgetSkipped: true
         )
     }
 }

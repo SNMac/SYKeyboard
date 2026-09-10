@@ -235,6 +235,25 @@ struct UserDefaultsContractTests {
         #expect(storage.integer(forKey: key) == 7)
         #expect(UserDefaultsManager.shared.lastSeenPasteboardChangeCount == 7)
     }
+
+    @Test("예산 초과로 건너뛴 pasteboard changeCount는 저장값이 없으면 -1을 반환하고 공유 저장소 키를 유지")
+    func testBudgetSkippedPasteboardChangeCountDefaultFallbackAndKey() {
+        let storage = UserDefaultsManager.shared.storage
+        let key = UserDefaultsKeys.budgetSkippedPasteboardChangeCount
+        let originalValue = storage.object(forKey: key)
+
+        storage.removeObject(forKey: key)
+        defer { restore(originalValue, forKey: key, in: storage) }
+
+        #expect(key == "budgetSkippedPasteboardChangeCount")
+        #expect(DefaultValues.budgetSkippedPasteboardChangeCount == -1)
+        #expect(UserDefaultsManager.shared.budgetSkippedPasteboardChangeCount == -1)
+
+        UserDefaultsManager.shared.budgetSkippedPasteboardChangeCount = 9
+
+        #expect(storage.integer(forKey: key) == 9)
+        #expect(UserDefaultsManager.shared.budgetSkippedPasteboardChangeCount == 9)
+    }
 }
 
 private extension UserDefaultsContractTests {

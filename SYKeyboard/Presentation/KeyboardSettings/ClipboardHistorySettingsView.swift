@@ -349,7 +349,10 @@ private extension ClipboardHistorySettingsView {
     func synchronizeAndReload() {
         if let store, UserDefaultsManager.shared.isClipboardHistoryEnabled {
             ClipboardHistoryPasteboardSynchronizer.synchronizeIfNeeded(
-                store: store, decodeMemoryBudget: ClipboardImagePolicy.appDecodeMemoryBudget, onImageRecorded: reload
+                store: store,
+                decodeMemoryBudget: ClipboardImagePolicy.appDecodeMemoryBudget,
+                retriesBudgetSkipped: true,
+                onImageRecorded: reload
             )
         }
         reload()

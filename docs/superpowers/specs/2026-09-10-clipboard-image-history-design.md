@@ -55,7 +55,7 @@ GitHub Issue #55에 따라 #54의 텍스트 클립보드 기록을 확장해, �
 | 설정 | "클립보드 기록" 아래 "이미지도 기록" 하위 토글, 기본 켜짐. 끄면 새 이미지만 저장하지 않고 기존 이미지 항목은 유지한다. 삭제는 관리 화면에서 한다. |
 | 키보드 패널 이미지 탭 | pasteboard에 복원하고 패널을 유지한다. 헤더의 "클립보드 기록" 제목 자리에 안내 문구를 약 2초 보여준 뒤 되돌린다. 항목은 맨 위로 올라간다. 입력창 탭 시 기존 `textWillChange` 경로로 패널이 닫힌다. |
 | 썸네일 | 긴 변 240 px JPEG. 패널은 썸네일만 읽고 해시 키 `NSCache`(상한 40)에 둔다. 메모리 경고 시 비운다. |
-| 메모리 안전장치 | 헤더의 픽셀 수로 예상 디코드 메모리(PNG: 픽셀 × 4바이트 + 8 MB, JPEG·HEIC: 24 MB 고정)를 구해 프로세스별 고정 예산(키보드 32 MB, 앱 256 MB)을 넘으면 저장·미리보기를 건너뛴다. 런타임 남은 메모리는 조회하지 않는다. 키보드가 건너뛴 이미지는 앱이 활성화될 때 같은 코드로 저장한다. `changeCount`는 갱신하므로 키보드는 재시도하지 않는다. |
+| 메모리 안전장치 | 헤더의 픽셀 수로 예상 디코드 메모리(PNG: 픽셀 × 4바이트 + 8 MB, JPEG·HEIC: 24 MB 고정)를 구해 프로세스별 고정 예산(키보드 32 MB, 앱 256 MB)을 넘으면 저장·미리보기를 건너뛴다. 런타임 남은 메모리는 조회하지 않는다. 키보드가 예산 초과로 건너뛰면 그 `changeCount`를 `budgetSkippedPasteboardChangeCount`에 남기고, 앱은 활성화·관리 화면 진입 시 `retriesBudgetSkipped: true`로 그 pasteboard를 앱 예산으로 다시 읽어 저장한다(표시는 그때 소비). 키보드는 재시도하지 않는다. |
 | 파일 정리 | `ClipboardHistoryStore.save`가 저장 전후 이미지 해시 차집합의 원본·썸네일을 지운다. |
 
 ## 범위 밖
@@ -165,6 +165,10 @@ public enum ClipboardImagePolicy {
 - `UserDefaultsKeys.isClipboardImageHistoryEnabled = "isClipboardImageHistoryEnabled"`
 - `DefaultValues.isClipboardImageHistoryEnabled: Bool = true`
 - `UserDefaultsManager.isClipboardImageHistoryEnabled` (`@UserDefaultsWrapper`)
+- `UserDefaultsKeys.budgetSkippedPasteboardChangeCount = "budgetSkippedPasteboardChangeCount"`,
+  `DefaultValues.budgetSkippedPasteboardChangeCount = -1`,
+  `UserDefaultsManager.budgetSkippedPasteboardChangeCount`. 키보드가 예산 초과로 건너뛴 pasteboard의
+  `changeCount`이며 앱이 다시 시도할 때 소비한다.
 - `UserDefaultsContractTests`에 키·기본값 계약을 추가한다.
 
 ## 2. 이미지 파일 저장소 `ClipboardImageStore`
@@ -257,7 +261,8 @@ public static func synchronizeIfNeeded(
 )
 ```
 
-1. `changeCount` 비교·갱신. 기존과 같다.
+1. `changeCount` 비교·갱신. `retriesBudgetSkipped`가 참이고 `changeCount == budgetSkippedPasteboardChangeCount`면
+   이미 확인한 값이어도 통과한다. 통과 시 `lastSeen`을 갱신하고 건너뜀 표시를 `-1`로 되돌린다.
 2. concealed 타입 검사. 기존과 같다.
 3. `hasStrings`면 텍스트를 기록하고 끝낸다. 기존과 같다.
 4. 텍스트가 없고 `hasImages`이며 `settings.isClipboardImageHistoryEnabled`이고 `imageStore`가
@@ -269,9 +274,11 @@ public static func synchronizeIfNeeded(
    끝나면 사라지므로, 그 안에서는 `ClipboardImageStore.stage(temporaryFileURL:typeIdentifier:)`로
    우리 tmp에 옮기기만 한다(rename 한 번).
 8. 해시·썸네일 생성(`imageStore.store(temporaryFileURL:typeIdentifier:)`)은 `.utility` QoS
-   직렬 큐에서 한 번에 하나씩 처리해 자판 입력(main)과 경쟁하지 않게 한다. `store`는 헤더의
+   직렬 큐에서 한 번에 하나씩 처리해 자판 입력(main)과 경쟁하지 않게 한다. `storeOutcome`은 헤더의
    픽셀 수로 예상 디코드 메모리를 구해 `decodeMemoryBudget`(키보드 32 MB, 앱 256 MB)을 넘으면
-   저장하지 않고, 거부·중복·실패 어느 경우든 옮겨 둔 임시 파일을 지운다.
+   `.skippedForBudget`, 손상·한도 초과·저장 실패면 `.rejected`를 돌려주고, 어느 경우든 옮겨 둔 임시
+   파일을 지운다. `.skippedForBudget`이면 메인에서 `budgetSkippedPasteboardChangeCount = changeCount`를
+   남긴다(다시 시도하는 앱 호출에서는 남기지 않아 활성화마다 반복하지 않는다).
 9. 참조를 얻으면 메인 큐로 넘어가 `store.record(.image(reference))`를 부르고
    `onImageRecorded`를 호출한다. 파일 저장만 백그라운드에서 하고 plist 기록은 메인에서
    해 같은 프로세스 안의 연산 순서를 단순하게 유지한다.

@@ -75,30 +75,51 @@ public final class ClipboardImageStore {
         typeIdentifier: String,
         decodeMemoryBudget: Int = ClipboardImagePolicy.keyboardDecodeMemoryBudget
     ) -> ClipboardImageReference? {
+        if case .stored(let reference) = storeOutcome(
+            temporaryFileURL: temporaryFileURL, typeIdentifier: typeIdentifier, decodeMemoryBudget: decodeMemoryBudget
+        ) { return reference }
+        return nil
+    }
+
+    /// `store`의 결과. 예산 초과 건너뜀은 다른 거부와 구분해, 키보드가 건너뛴 이미지를 앱이 다시 시도할 수 있게 한다
+    public enum StoreOutcome: Equatable {
+        case stored(ClipboardImageReference)
+        /// 한도 안이지만 이 프로세스의 디코드 예산을 넘어 건너뛰었다. 예산이 큰 프로세스(앱)에서는 저장될 수 있다
+        case skippedForBudget
+        /// 손상·한도 초과·저장 실패. 어느 프로세스에서도 저장되지 않는다
+        case rejected
+    }
+
+    /// `store`와 같되 거부 사유를 돌려준다. 입력 임시 파일은 어느 경로로 끝나든 남기지 않는다
+    public func storeOutcome(
+        temporaryFileURL: URL,
+        typeIdentifier: String,
+        decodeMemoryBudget: Int = ClipboardImagePolicy.keyboardDecodeMemoryBudget
+    ) -> StoreOutcome {
         // 어느 경로로 끝나든 입력 임시 파일을 남기지 않는다. 옮겨진 뒤라면 이미 없으므로 실패해도 무방하다
         defer { try? FileManager.default.removeItem(at: temporaryFileURL) }
         // 1. 파일 크기. 바이트를 메모리에 올리지 않는다
         guard let attributes = try? FileManager.default.attributesOfItem(atPath: temporaryFileURL.path),
               let byteSize = attributes[.size] as? Int,
-              byteSize > 0, byteSize <= maxByteSize else { return nil }
+              byteSize > 0, byteSize <= maxByteSize else { return .rejected }
 
         // 2. 헤더의 픽셀 크기. 회전(5~8)이면 표시 기준으로 폭·높이를 바꾼다
         guard let source = CGImageSourceCreateWithURL(temporaryFileURL as CFURL, nil),
               let properties = CGImageSourceCopyPropertiesAtIndex(source, 0, nil) as? [CFString: Any],
               let rawWidth = properties[kCGImagePropertyPixelWidth] as? Int,
-              let rawHeight = properties[kCGImagePropertyPixelHeight] as? Int else { return nil }
+              let rawHeight = properties[kCGImagePropertyPixelHeight] as? Int else { return .rejected }
         let orientation = properties[kCGImagePropertyOrientation] as? Int ?? 1
         let (pixelWidth, pixelHeight) = orientation >= 5 ? (rawHeight, rawWidth) : (rawWidth, rawHeight)
-        guard pixelWidth > 0, pixelHeight > 0, pixelWidth * pixelHeight <= maxPixelCount else { return nil }
+        guard pixelWidth > 0, pixelHeight > 0, pixelWidth * pixelHeight <= maxPixelCount else { return .rejected }
         // 썸네일을 만들 때 이 프로세스의 예산 안에 드는 크기인지
         let bitDepth = properties[kCGImagePropertyDepth] as? Int ?? 8
         guard ClipboardImagePolicy.canDecode(
             typeIdentifier: typeIdentifier, pixelWidth: pixelWidth, pixelHeight: pixelHeight,
             bitDepth: bitDepth, budget: decodeMemoryBudget
-        ) else { return nil }
+        ) else { return .skippedForBudget }
 
         // 3. 스트리밍 해시
-        guard let hash = ClipboardImageStore.sha256Hex(of: temporaryFileURL) else { return nil }
+        guard let hash = ClipboardImageStore.sha256Hex(of: temporaryFileURL) else { return .rejected }
         let reference = ClipboardImageReference(
             hash: hash,
             typeIdentifier: typeIdentifier,
@@ -118,7 +139,7 @@ public final class ClipboardImageStore {
                 // 다른 프로세스가 먼저 저장했으면 성공으로 본다
                 guard FileManager.default.fileExists(atPath: originalURL.path) else {
                     logger.error("클립보드 이미지 원본 저장 실패: \(error.localizedDescription)")
-                    return nil
+                    return .rejected
                 }
             }
         }
@@ -129,10 +150,10 @@ public final class ClipboardImageStore {
            !writeThumbnail(from: originalURL, to: thumbnailURL) {
             if !originalExisted { try? FileManager.default.removeItem(at: originalURL) }
             logger.error("클립보드 이미지 썸네일 생성 실패")
-            return nil
+            return .rejected
         }
 
-        return reference
+        return .stored(reference)
     }
 
     public func originalURL(for reference: ClipboardImageReference) -> URL {
