@@ -97,6 +97,36 @@ struct ClipboardImageStoreTests {
         #expect(files.allSatisfy { $0.hasSuffix(".jpg") })
     }
 
+    @Test("stage는 시스템 임시 파일을 우리 tmp로 옮기고, 거부된 파일은 store가 지움")
+    func testStage후_거부되면_임시파일정리() throws {
+        let fixture = makeFixture(name: "stage", maxByteSize: 64)
+        defer { fixture.cleanUp() }
+        let systemTemporary = try makeImageFile(width: 400, height: 400, type: .png, name: "sys")
+
+        let staged = try #require(ClipboardImageStore.stage(temporaryFileURL: systemTemporary, typeIdentifier: "public.png"))
+
+        #expect(staged.pathExtension == "png")
+        #expect(FileManager.default.fileExists(atPath: systemTemporary.path) == false)
+        #expect(FileManager.default.fileExists(atPath: staged.path))
+
+        #expect(fixture.store.store(temporaryFileURL: staged, typeIdentifier: "public.png") == nil)
+        #expect(FileManager.default.fileExists(atPath: staged.path) == false)
+        #expect(((try? FileManager.default.contentsOfDirectory(atPath: fixture.directoryURL.path)) ?? []).isEmpty)
+    }
+
+    @Test("같은 바이트를 다시 저장하면 두 번째 임시 파일도 지움")
+    func test중복저장은_두번째임시파일도정리() throws {
+        let fixture = makeFixture(name: "dedupe-cleanup")
+        defer { fixture.cleanUp() }
+        let first = try makeImageFile(width: 20, height: 20, type: .jpeg, name: "a")
+        let second = try makeImageFile(width: 20, height: 20, type: .jpeg, name: "b")
+
+        _ = try #require(fixture.store.store(temporaryFileURL: first, typeIdentifier: "public.jpeg"))
+        _ = try #require(fixture.store.store(temporaryFileURL: second, typeIdentifier: "public.jpeg"))
+
+        #expect(FileManager.default.fileExists(atPath: second.path) == false)
+    }
+
     @Test("이미지가 아닌 파일은 저장하지 않음")
     func test손상파일은_저장안함() throws {
         let fixture = makeFixture(name: "corrupt")

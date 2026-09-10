@@ -54,9 +54,27 @@ public final class ClipboardImageStore {
 
     // MARK: - Public Methods
 
+    /// `loadFileRepresentation`의 시스템 임시 파일을 우리 tmp로 옮겨 둔다. 완료 클로저가 끝나면 시스템 파일이
+    /// 사라지므로 클로저 안에서는 이 이동(rename 한 번)만 하고, 무거운 해시·썸네일은 나중에 낮은 우선순위 큐에서 한다.
+    /// 옮긴 파일은 `store(temporaryFileURL:)`가 성공·실패와 무관하게 정리한다. 실패하면 `nil`
+    public static func stage(temporaryFileURL: URL, typeIdentifier: String) -> URL? {
+        let stagedURL = FileManager.default.temporaryDirectory.appendingPathComponent(
+            "clipboard-image-\(UUID().uuidString).\(ClipboardImagePolicy.fileExtension(for: typeIdentifier))"
+        )
+        do {
+            try FileManager.default.moveItem(at: temporaryFileURL, to: stagedURL)
+        } catch {
+            // 다른 볼륨이면 이동이 실패할 수 있으므로 복사로 대신한다
+            guard (try? FileManager.default.copyItem(at: temporaryFileURL, to: stagedURL)) != nil else { return nil }
+        }
+        return stagedURL
+    }
+
     /// 임시 파일의 이미지를 검사·해시·저장하고 참조를 돌려준다. 저장 대상이 아니면 `nil`이고 새 파일을 남기지 않는다.
-    /// 백그라운드 스레드에서 부른다. 임시 파일은 성공 시 옮겨져 사라진다
+    /// 백그라운드 스레드에서 부른다. 입력 임시 파일은 성공하면 옮겨지고, 거부되거나 중복이면 지운다
     public func store(temporaryFileURL: URL, typeIdentifier: String) -> ClipboardImageReference? {
+        // 어느 경로로 끝나든 입력 임시 파일을 남기지 않는다. 옮겨진 뒤라면 이미 없으므로 실패해도 무방하다
+        defer { try? FileManager.default.removeItem(at: temporaryFileURL) }
         // 1. 파일 크기. 바이트를 메모리에 올리지 않는다
         guard let attributes = try? FileManager.default.attributesOfItem(atPath: temporaryFileURL.path),
               let byteSize = attributes[.size] as? Int,
