@@ -1922,7 +1922,7 @@ VC 델리게이트는 순수 타입이 아니고 `UIInputViewController` 없이 
 **Interfaces:**
 - Consumes: `ClipboardHistoryPanelView.imageStore`/`showTransientMessage`/`purgeThumbnailCache`(Task 6), `ClipboardHistoryStore.imageStore`/`record(_ content:)`/`remove(ids:)`(Task 3·4), `synchronizeIfNeeded(store:onImageRecorded:)`(Task 5)
 
-- [ ] **Step 1: 패널 연결과 메모리 경고**
+- [x] **Step 1: 패널 연결과 메모리 경고**
 
 `clipboardHistoryPanelView.delegate = self` 줄 바로 아래:
 
@@ -1942,7 +1942,7 @@ VC 델리게이트는 순수 타입이 아니고 `UIInputViewController` 없이 
     }
 ```
 
-- [ ] **Step 2: 동기화 완료 시 패널 갱신**
+- [x] **Step 2: 동기화 완료 시 패널 갱신**
 
 `synchronizeClipboardHistoryIfNeeded()`를 다음으로 바꾼다.
 
@@ -1961,7 +1961,7 @@ VC 델리게이트는 순수 타입이 아니고 `UIInputViewController` 없이 
     }
 ```
 
-- [ ] **Step 3: 복원 경로**
+- [x] **Step 3: 복원 경로**
 
 `Clipboard History` private extension의 `reloadClipboardPanel()` 뒤에 추가:
 
@@ -1993,7 +1993,7 @@ VC 델리게이트는 순수 타입이 아니고 `UIInputViewController` 없이 
 
 `BaseKeyboardViewController.swift` 상단에 `import SYKeyboardAssets`가 없으면 추가한다(`SYKBDAssets.bundle` 사용).
 
-- [ ] **Step 4: 델리게이트 분기**
+- [x] **Step 4: 델리게이트 분기**
 
 `clipboardPanel(_:didSelectItemAt:)`:
 
@@ -2028,7 +2028,7 @@ VC 델리게이트는 순수 타입이 아니고 `UIInputViewController` 없이 
     /// 우리가 쓴 값을 다음 동기화에서 다시 기록하지 않도록 changeCount를 갱신한다
 ```
 
-- [ ] **Step 5: 빌드 확인**
+- [x] **Step 5: 빌드 확인**
 
 Run(테스트 전체 + 세 extension 빌드):
 
@@ -2046,7 +2046,7 @@ git status --short
 
 Expected: `TEST SUCCEEDED`, 세 scheme `BUILD SUCCEEDED`, `error:` 0건. `.xcscheme` `RemotePath` 변경이 보이면 복원한다.
 
-- [ ] **Step 6: 커밋**
+- [x] **Step 6: 커밋**
 
 ```sh
 git add Modules/SYKeyboardCore/Presentation/ViewController/Bases/BaseKeyboardViewController.swift \
