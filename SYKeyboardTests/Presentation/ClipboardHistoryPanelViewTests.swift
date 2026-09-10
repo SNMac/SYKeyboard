@@ -261,8 +261,8 @@ struct ClipboardHistoryPanelViewTests {
         panel.imageStore = imageStore
         panel.configure(state: .items([ClipboardHistoryItem(content: .image(reference), createdAt: Date())]))
         panel.layoutIfNeeded()
-        // 실기기 메모리 상태와 무관하게 가드를 확정적으로 검증하기 위해 부족한 값으로 고정한다
-        panel.availableMemory = { 0 }
+        // 예산을 0으로 줄여 미리보기 디코드를 건너뛰는 경로를 확정적으로 검증한다
+        panel.decodeMemoryBudget = 0
 
         panel.showDetail(at: 0)
 

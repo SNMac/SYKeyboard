@@ -83,18 +83,22 @@ struct ClipboardImageStoreTests {
         #expect(((try? FileManager.default.contentsOfDirectory(atPath: fixture.directoryURL.path)) ?? []).isEmpty)
     }
 
-    @Test("PNG 전용 픽셀 한도는 PNG에만 적용되고 JPEG는 일반 한도를 따름")
-    func testPNG전용픽셀한도() throws {
-        let fixture = makeFixture(name: "png-pixels", maxPixelCount: 1_000, maxPNGPixelCount: 100)
+    @Test("예상 디코드 메모리가 예산을 넘으면 저장하지 않고 파일을 남기지 않음")
+    func test디코드예산초과는_저장안함() throws {
+        let fixture = makeFixture(name: "decode-budget")
         defer { fixture.cleanUp() }
         let png = try makeImageFile(width: 20, height: 20, type: .png, name: "png")
-        let jpeg = try makeImageFile(width: 20, height: 20, type: .jpeg, name: "jpeg")
+        let pngRequired = ClipboardImagePolicy.requiredDecodeMemory(typeIdentifier: "public.png", pixelWidth: 20, pixelHeight: 20)
 
-        #expect(fixture.store.store(temporaryFileURL: png, typeIdentifier: "public.png") == nil)
-        #expect(fixture.store.store(temporaryFileURL: jpeg, typeIdentifier: "public.jpeg") != nil)
-        let files = try FileManager.default.contentsOfDirectory(atPath: fixture.directoryURL.path)
-        #expect(files.count == 2)
-        #expect(files.allSatisfy { $0.hasSuffix(".jpg") })
+        #expect(fixture.store.store(temporaryFileURL: png, typeIdentifier: "public.png", decodeMemoryBudget: pngRequired - 1) == nil)
+        #expect(FileManager.default.fileExists(atPath: png.path) == false)
+        #expect(((try? FileManager.default.contentsOfDirectory(atPath: fixture.directoryURL.path)) ?? []).isEmpty)
+
+        let pngAgain = try makeImageFile(width: 20, height: 20, type: .png, name: "png2")
+        #expect(fixture.store.store(temporaryFileURL: pngAgain, typeIdentifier: "public.png", decodeMemoryBudget: pngRequired) != nil)
+
+        let jpeg = try makeImageFile(width: 20, height: 20, type: .jpeg, name: "jpeg")
+        #expect(fixture.store.store(temporaryFileURL: jpeg, typeIdentifier: "public.jpeg", decodeMemoryBudget: ClipboardImagePolicy.scaledDecodeMemory - 1) == nil)
     }
 
     @Test("stage는 시스템 임시 파일을 우리 tmp로 옮기고, 거부된 파일은 store가 지움")
@@ -194,13 +198,12 @@ private struct ImageStoreFixture {
 private func makeFixture(
     name: String,
     maxByteSize: Int = ClipboardImagePolicy.maxByteSize,
-    maxPixelCount: Int = ClipboardImagePolicy.maxPixelCount,
-    maxPNGPixelCount: Int = ClipboardImagePolicy.maxPNGPixelCount
+    maxPixelCount: Int = ClipboardImagePolicy.maxPixelCount
 ) -> ImageStoreFixture {
     let directoryURL = FileManager.default.temporaryDirectory
         .appendingPathComponent("SYKeyboardTests-\(UUID().uuidString)-\(name)", isDirectory: true)
     return ImageStoreFixture(
-        store: ClipboardImageStore(directoryURL: directoryURL, maxByteSize: maxByteSize, maxPixelCount: maxPixelCount, maxPNGPixelCount: maxPNGPixelCount),
+        store: ClipboardImageStore(directoryURL: directoryURL, maxByteSize: maxByteSize, maxPixelCount: maxPixelCount),
         directoryURL: directoryURL
     )
 }

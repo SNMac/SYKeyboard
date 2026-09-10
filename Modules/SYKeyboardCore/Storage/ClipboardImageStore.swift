@@ -22,7 +22,6 @@ public final class ClipboardImageStore {
     private let directoryURL: URL
     private let maxByteSize: Int
     private let maxPixelCount: Int
-    private let maxPNGPixelCount: Int
     private let logger = Logger(
         subsystem: Bundle.main.bundleIdentifier ?? "Unknown Bundle",
         category: "ClipboardImageStore"
@@ -35,13 +34,11 @@ public final class ClipboardImageStore {
     init(
         directoryURL: URL,
         maxByteSize: Int = ClipboardImagePolicy.maxByteSize,
-        maxPixelCount: Int = ClipboardImagePolicy.maxPixelCount,
-        maxPNGPixelCount: Int = ClipboardImagePolicy.maxPNGPixelCount
+        maxPixelCount: Int = ClipboardImagePolicy.maxPixelCount
     ) {
         self.directoryURL = directoryURL
         self.maxByteSize = maxByteSize
         self.maxPixelCount = maxPixelCount
-        self.maxPNGPixelCount = maxPNGPixelCount
     }
 
     /// App Group 컨테이너를 얻지 못하면 `nil`. 호출 측은 이미지 저장을 건너뛴다
@@ -71,8 +68,13 @@ public final class ClipboardImageStore {
     }
 
     /// 임시 파일의 이미지를 검사·해시·저장하고 참조를 돌려준다. 저장 대상이 아니면 `nil`이고 새 파일을 남기지 않는다.
-    /// 백그라운드 스레드에서 부른다. 입력 임시 파일은 성공하면 옮겨지고, 거부되거나 중복이면 지운다
-    public func store(temporaryFileURL: URL, typeIdentifier: String) -> ClipboardImageReference? {
+    /// 백그라운드 스레드에서 부른다. 입력 임시 파일은 성공하면 옮겨지고, 거부되거나 중복이면 지운다.
+    /// `decodeMemoryBudget`은 이 프로세스가 썸네일 디코드에 쓸 수 있는 예산이며, 이 이미지의 예상 디코드 메모리가 넘으면 저장하지 않는다
+    public func store(
+        temporaryFileURL: URL,
+        typeIdentifier: String,
+        decodeMemoryBudget: Int = ClipboardImagePolicy.keyboardDecodeMemoryBudget
+    ) -> ClipboardImageReference? {
         // 어느 경로로 끝나든 입력 임시 파일을 남기지 않는다. 옮겨진 뒤라면 이미 없으므로 실패해도 무방하다
         defer { try? FileManager.default.removeItem(at: temporaryFileURL) }
         // 1. 파일 크기. 바이트를 메모리에 올리지 않는다
@@ -87,9 +89,11 @@ public final class ClipboardImageStore {
               let rawHeight = properties[kCGImagePropertyPixelHeight] as? Int else { return nil }
         let orientation = properties[kCGImagePropertyOrientation] as? Int ?? 1
         let (pixelWidth, pixelHeight) = orientation >= 5 ? (rawHeight, rawWidth) : (rawWidth, rawHeight)
-        // PNG는 썸네일 생성 시 전체 디코드될 수 있어 더 낮은 상한을 쓴다
-        let pixelLimit = typeIdentifier == "public.png" ? maxPNGPixelCount : maxPixelCount
-        guard pixelWidth > 0, pixelHeight > 0, pixelWidth * pixelHeight <= pixelLimit else { return nil }
+        guard pixelWidth > 0, pixelHeight > 0, pixelWidth * pixelHeight <= maxPixelCount else { return nil }
+        // 썸네일을 만들 때 이 프로세스의 예산 안에 드는 크기인지. 키보드가 못 하면 앱이 활성화될 때 저장한다
+        guard ClipboardImagePolicy.canDecode(
+            typeIdentifier: typeIdentifier, pixelWidth: pixelWidth, pixelHeight: pixelHeight, budget: decodeMemoryBudget
+        ) else { return nil }
 
         // 3. 스트리밍 해시
         guard let hash = ClipboardImageStore.sha256Hex(of: temporaryFileURL) else { return nil }

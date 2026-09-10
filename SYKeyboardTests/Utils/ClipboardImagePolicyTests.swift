@@ -22,35 +22,41 @@ struct ClipboardImagePolicyTests {
         #expect(ClipboardImagePolicy.storableType(in: []) == nil)
     }
 
-    @Test("바이트 한도는 24 MB까지, JPEG·HEIC 픽셀 한도는 48,000,000까지 저장 가능")
+    @Test("바이트 한도는 24 MB까지, 픽셀 한도는 타입과 무관하게 48,000,000까지 저장 가능")
     func test바이트픽셀한도_경계값() {
         let bytes = ClipboardImagePolicy.maxByteSize
         #expect(bytes == 24 * 1_024 * 1_024)
         #expect(ClipboardImagePolicy.maxPixelCount == 48_000_000)
-        #expect(ClipboardImagePolicy.isStorable(byteSize: bytes, pixelWidth: 6_000, pixelHeight: 8_000, typeIdentifier: "public.jpeg"))
-        #expect(ClipboardImagePolicy.isStorable(byteSize: bytes, pixelWidth: 6_000, pixelHeight: 8_000, typeIdentifier: "public.heic"))
-        #expect(ClipboardImagePolicy.isStorable(byteSize: bytes + 1, pixelWidth: 100, pixelHeight: 100, typeIdentifier: "public.jpeg") == false)
-        #expect(ClipboardImagePolicy.isStorable(byteSize: 1, pixelWidth: 6_000, pixelHeight: 8_001, typeIdentifier: "public.jpeg") == false)
-        #expect(ClipboardImagePolicy.isStorable(byteSize: 0, pixelWidth: 1, pixelHeight: 1, typeIdentifier: "public.jpeg") == false)
-        #expect(ClipboardImagePolicy.isStorable(byteSize: 1, pixelWidth: 0, pixelHeight: 1, typeIdentifier: "public.jpeg") == false)
+        #expect(ClipboardImagePolicy.isStorable(byteSize: bytes, pixelWidth: 6_000, pixelHeight: 8_000))
+        #expect(ClipboardImagePolicy.isStorable(byteSize: bytes + 1, pixelWidth: 100, pixelHeight: 100) == false)
+        #expect(ClipboardImagePolicy.isStorable(byteSize: 1, pixelWidth: 6_000, pixelHeight: 8_001) == false)
+        #expect(ClipboardImagePolicy.isStorable(byteSize: 0, pixelWidth: 1, pixelHeight: 1) == false)
+        #expect(ClipboardImagePolicy.isStorable(byteSize: 1, pixelWidth: 0, pixelHeight: 1) == false)
     }
 
-    @Test("PNG는 전체 디코드 위험 때문에 12,000,000픽셀까지만 저장 가능")
-    func testPNG픽셀한도_경계값() {
-        #expect(ClipboardImagePolicy.maxPNGPixelCount == 12_000_000)
-        #expect(ClipboardImagePolicy.maxPixelCount(for: "public.png") == 12_000_000)
-        #expect(ClipboardImagePolicy.maxPixelCount(for: "public.jpeg") == 48_000_000)
-        #expect(ClipboardImagePolicy.isStorable(byteSize: 1, pixelWidth: 3_000, pixelHeight: 4_000, typeIdentifier: "public.png"))
-        #expect(ClipboardImagePolicy.isStorable(byteSize: 1, pixelWidth: 3_000, pixelHeight: 4_001, typeIdentifier: "public.png") == false)
-        #expect(ClipboardImagePolicy.isStorable(byteSize: 1, pixelWidth: 3_000, pixelHeight: 4_001, typeIdentifier: "public.jpeg"))
+    @Test("PNG 디코드 메모리는 픽셀 × 4바이트 + 여유이고, JPEG·HEIC는 고정 24 MB")
+    func test디코드메모리_타입별() {
+        let margin = ClipboardImagePolicy.decodeMemoryMargin
+        #expect(margin == 8 * 1_024 * 1_024)
+        // iPad Pro 13" 스크린샷 2752×2064 ≈ 22.7 MB + 여유
+        let ipad = ClipboardImagePolicy.requiredDecodeMemory(typeIdentifier: "public.png", pixelWidth: 2_752, pixelHeight: 2_064)
+        #expect(ipad == 2_752 * 2_064 * 4 + margin)
+        #expect(ClipboardImagePolicy.requiredDecodeMemory(typeIdentifier: "public.jpeg", pixelWidth: 8_000, pixelHeight: 6_000) == ClipboardImagePolicy.scaledDecodeMemory)
+        #expect(ClipboardImagePolicy.requiredDecodeMemory(typeIdentifier: "public.heic", pixelWidth: 8_000, pixelHeight: 6_000) == ClipboardImagePolicy.scaledDecodeMemory)
+        #expect(ClipboardImagePolicy.scaledDecodeMemory == 24 * 1_024 * 1_024)
     }
 
-    @Test("남은 메모리가 디코드 여유 24 MB 이상일 때만 캡처·미리보기 디코드")
-    func test메모리여유판정() {
-        let required = 24 * 1_024 * 1_024
-        #expect(ClipboardImagePolicy.requiredAvailableMemory == required)
-        #expect(ClipboardImagePolicy.hasEnoughMemory(available: required))
-        #expect(ClipboardImagePolicy.hasEnoughMemory(available: required - 1) == false)
+    @Test("키보드 예산 32 MB는 iPad Pro 13\" PNG 스크린샷은 받고 MacBook Pro 16\" PNG는 건너뛰며, 앱 예산은 둘 다 받음")
+    func test디코드예산_기기별() {
+        let keyboard = ClipboardImagePolicy.keyboardDecodeMemoryBudget
+        let app = ClipboardImagePolicy.appDecodeMemoryBudget
+        #expect(keyboard == 32 * 1_024 * 1_024)
+        #expect(ClipboardImagePolicy.canDecode(typeIdentifier: "public.png", pixelWidth: 2_752, pixelHeight: 2_064, budget: keyboard))
+        #expect(ClipboardImagePolicy.canDecode(typeIdentifier: "public.png", pixelWidth: 3_456, pixelHeight: 2_234, budget: keyboard) == false)
+        #expect(ClipboardImagePolicy.canDecode(typeIdentifier: "public.png", pixelWidth: 3_456, pixelHeight: 2_234, budget: app))
+        // JPEG·HEIC는 축소 디코드라 48 MP도 키보드 예산 안
+        #expect(ClipboardImagePolicy.canDecode(typeIdentifier: "public.jpeg", pixelWidth: 8_000, pixelHeight: 6_000, budget: keyboard))
+        #expect(ClipboardImagePolicy.canDecode(typeIdentifier: "public.jpeg", pixelWidth: 8_000, pixelHeight: 6_000, budget: ClipboardImagePolicy.scaledDecodeMemory - 1) == false)
     }
 
     @Test("원본 파일 확장자는 타입에서 유도")

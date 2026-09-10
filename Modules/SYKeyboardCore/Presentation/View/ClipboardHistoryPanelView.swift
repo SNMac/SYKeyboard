@@ -6,7 +6,6 @@
 //
 
 import UIKit
-import os
 
 import SYKeyboardAssets
 
@@ -49,8 +48,8 @@ final class ClipboardHistoryPanelView: UIView {
     /// 썸네일·미리보기 파일을 찾는 저장소. 소유자가 설정한다. `nil`이면 이미지 행에 자리표시 아이콘만 보인다
     var imageStore: ClipboardImageStore?
 
-    /// 상세 미리보기 디코드 전 남은 메모리(바이트) 확인. 테스트에서 대체할 수 있도록 저장 프로퍼티로 둔다
-    var availableMemory: () -> Int = { Int(os_proc_available_memory()) }
+    /// 상세 미리보기 디코드에 쓸 수 있는 예산. 테스트에서 줄여 가드를 확정적으로 검증한다
+    var decodeMemoryBudget = ClipboardImagePolicy.keyboardDecodeMemoryBudget
 
     /// 해시별 썸네일. 같은 해시는 같은 바이트라 무효화가 필요 없다. 메모리 경고 시 소유자가 `purgeThumbnailCache()`로 비운다
     private let thumbnailCache: NSCache<NSString, UIImage> = {
@@ -338,7 +337,7 @@ final class ClipboardHistoryPanelView: UIView {
     var isDetailVisible: Bool { !detailView.isHidden }
 
     /// `index` 항목의 상세 뷰를 연다. 테스트에서 `handleLongPress`를 거치지 않고 바로 부를 수 있도록 internal로 둔다.
-    /// 이미지는 PNG가 ImageIO에서 원본 전체로 디코드될 수 있어(PNG 상한 12 MP에서 최대 약 48 MB) 메모리가
+    /// 이미지는 PNG가 ImageIO에서 원본 전체로 디코드될 수 있어(픽셀 × 4바이트) 이 이미지의 예상 디코드 메모리가 키보드 예산을
     /// 부족하면 미리보기 디코드를 건너뛰고 목록에 쓰던 캐시 썸네일로 대신한다(없으면 자리표시 아이콘)
     func showDetail(at index: Int) {
         guard items.indices.contains(index) else { return }
@@ -355,7 +354,12 @@ final class ClipboardHistoryPanelView: UIView {
             )
         case .image(let reference):
             let preview: UIImage?
-            if ClipboardImagePolicy.hasEnoughMemory(available: availableMemory()) {
+            if ClipboardImagePolicy.canDecode(
+                typeIdentifier: reference.typeIdentifier,
+                pixelWidth: reference.pixelWidth,
+                pixelHeight: reference.pixelHeight,
+                budget: decodeMemoryBudget
+            ) {
                 preview = imageStore?
                     .previewImage(for: reference, maxPixelSize: ClipboardImagePolicy.keyboardPreviewMaxPixelSize)
                     .map { UIImage(cgImage: $0) }
