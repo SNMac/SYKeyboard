@@ -2068,7 +2068,7 @@ git commit -m "feat: #55 - 키보드에서 이미지 항목 선택 시 pasteboar
 
 SwiftUI 뷰는 단위 테스트 대상이 아니다(저장소 규칙). 앱 빌드와 Task 9의 실기기 확인으로 검증한다.
 
-- [ ] **Step 1: 목록 행**
+- [x] **Step 1: 목록 행**
 
 `ClipboardHistorySettingsView`의 `row(for:)`를 다음으로 바꾼다.
 
@@ -2116,7 +2116,7 @@ SwiftUI 뷰는 단위 테스트 대상이 아니다(저장소 규칙). 앱 빌�
 
 빈 상태 문구 `Text("복사한 텍스트가 여기에 표시됩니다.")`를 `Text("복사한 텍스트나 이미지가 여기에 표시됩니다.")`로 바꾼다.
 
-- [ ] **Step 2: 복사(복원)**
+- [x] **Step 2: 복사(복원)**
 
 `copyFromDetail(_:)`을 다음으로 바꾼다.
 
@@ -2151,7 +2151,7 @@ SwiftUI 뷰는 단위 테스트 대상이 아니다(저장소 규칙). 앱 빌�
     }
 ```
 
-- [ ] **Step 3: 원문 시트의 이미지 모드**
+- [x] **Step 3: 원문 시트의 이미지 모드**
 
 private `ClipboardHistoryDetailView`에 프로퍼티와 미리보기를 추가한다. `init`은 memberwise라 호출부(`ClipboardHistoryDetailView(item:canPin:canSave:onTogglePin:onCopy:onSave:)`)에 `imageStore: store?.imageStore`를 `item:` 다음 인자로 넣는다.
 
@@ -2246,7 +2246,7 @@ private struct ClipboardHistoryDetailView: View {
                     }
 ```
 
-- [ ] **Step 4: 설정 토글**
+- [x] **Step 4: 설정 토글**
 
 `KeyboardToolbarSettingsView`의 `isClipboardHistoryEnabled` `@AppStorage` 아래에 추가:
 
@@ -2276,7 +2276,7 @@ private struct ClipboardHistoryDetailView: View {
 
 기존 "클립보드 기록" 캡션의 "복사한 텍스트를"은 그대로 둔다(텍스트 기록의 설명이고 이미지는 하위 토글이 설명한다).
 
-- [ ] **Step 5: 앱 문자열 추가**
+- [x] **Step 5: 앱 문자열 추가**
 
 `SYKeyboard/Resources/Localizable.xcstrings`의 `"strings"`에 추가한다(앱 카탈로그는 `extractionState` 없이 자동 추출 형식이다). 이미 있는 키("이미지", "복사")는 건너뛴다.
 
@@ -2325,7 +2325,7 @@ private struct ClipboardHistoryDetailView: View {
 
 `"복사한 텍스트가 여기에 표시됩니다."` 앱 항목은 삭제한다. 확인: `python3 -c "import json;json.load(open('SYKeyboard/Resources/Localizable.xcstrings'))"`.
 
-- [ ] **Step 6: 빌드 확인**
+- [x] **Step 6: 빌드 확인**
 
 ```sh
 xcodebuild build -project SYKeyboard.xcodeproj -scheme SYKeyboard \
@@ -2334,7 +2334,7 @@ xcodebuild build -project SYKeyboard.xcodeproj -scheme SYKeyboard \
 
 Expected: `BUILD SUCCEEDED`, `error:` 0건
 
-- [ ] **Step 7: 커밋**
+- [x] **Step 7: 커밋**
 
 ```sh
 git add SYKeyboard/Presentation/KeyboardSettings/ClipboardHistorySettingsView.swift \
