@@ -90,27 +90,6 @@
     "%lld" : {
       "shouldTranslate" : false
     },
-    "%lld개 삭제" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Delete (%lld)"
-          }
-        }
-      }
-    },
-    "%lld개 선택" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld Selected"
-          }
-        }
-      }
-    },
     "%lld개 고정" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -129,6 +108,27 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Unpin (%lld)"
+          }
+        }
+      }
+    },
+    "%lld개 삭제" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete (%lld)"
+          }
+        }
+      }
+    },
+    "%lld개 선택" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld Selected"
           }
         }
       }
@@ -1079,6 +1079,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Add Keyboard and Set Permission"
+          }
+        }
+      }
+    },
+    "키보드 툴바 설정" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keyboard Toolbar Settings"
           }
         }
       }
