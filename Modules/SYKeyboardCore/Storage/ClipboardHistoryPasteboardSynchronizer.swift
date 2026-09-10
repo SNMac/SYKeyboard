@@ -6,7 +6,6 @@
 //
 
 import UIKit
-import os
 
 /// 시스템 pasteboard의 최신 텍스트 또는 이미지를 클립보드 기록에 반영한다. 키보드 extension과 앱이 함께 쓴다
 ///
@@ -27,13 +26,13 @@ public enum ClipboardHistoryPasteboardSynchronizer {
     /// pasteboard의 `changeCount`가 마지막 확인값과 다를 때만 내용을 읽어 `store`에 기록한다
     ///
     /// - Parameters:
-    ///   - availableMemory: 캡처 전 남은 메모리(바이트). 기본은 `os_proc_available_memory()`
+    ///   - decodeMemoryBudget: 이 프로세스가 썸네일 디코드에 쓸 수 있는 예산. 키보드는 기본값, 앱은 `appDecodeMemoryBudget`을 넘긴다
     ///   - onImageRecorded: 이미지 항목이 기록된 직후 메인 큐에서 한 번 호출된다. 텍스트 기록이나 건너뜀에서는 부르지 않는다
     public static func synchronizeIfNeeded(
         store: ClipboardHistoryStore,
         pasteboard: UIPasteboard = .general,
         settings: UserDefaultsManager = .shared,
-        availableMemory: @escaping () -> Int = { Int(os_proc_available_memory()) },
+        decodeMemoryBudget: Int = ClipboardImagePolicy.keyboardDecodeMemoryBudget,
         onImageRecorded: (() -> Void)? = nil
     ) {
         let changeCount = pasteboard.changeCount
@@ -52,7 +51,6 @@ public enum ClipboardHistoryPasteboardSynchronizer {
               settings.isClipboardImageHistoryEnabled,
               let imageStore = store.imageStore,
               let typeIdentifier = ClipboardImagePolicy.storableType(in: pasteboard.types),
-              ClipboardImagePolicy.hasEnoughMemory(available: availableMemory()),
               let itemProvider = pasteboard.itemProviders.first else { return }
 
         // 파일로 받아 프로세스 메모리에 바이트를 올리지 않는다. 완료 클로저는 시스템이 정한 백그라운드 스레드에서 오며
@@ -62,12 +60,10 @@ public enum ClipboardHistoryPasteboardSynchronizer {
             guard let url,
                   let stagedURL = ClipboardImageStore.stage(temporaryFileURL: url, typeIdentifier: typeIdentifier) else { return }
             imageProcessingQueue.async {
-                // 큐에서 기다리는 사이 상황이 바뀔 수 있으므로 무거운 디코드 직전에 다시 확인한다
-                guard ClipboardImagePolicy.hasEnoughMemory(available: availableMemory()) else {
-                    try? FileManager.default.removeItem(at: stagedURL)
-                    return
-                }
-                guard let reference = imageStore.store(temporaryFileURL: stagedURL, typeIdentifier: typeIdentifier) else { return }
+                // 헤더의 픽셀 수로 예상 디코드 메모리를 구해 이 프로세스의 예산 안일 때만 썸네일을 만든다
+                guard let reference = imageStore.store(
+                    temporaryFileURL: stagedURL, typeIdentifier: typeIdentifier, decodeMemoryBudget: decodeMemoryBudget
+                ) else { return }
                 DispatchQueue.main.async {
                     store.record(.image(reference))
                     onImageRecorded?()

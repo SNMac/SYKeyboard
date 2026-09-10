@@ -31,7 +31,8 @@ GitHub Issue #55에 따라 #54의 텍스트 클립보드 기록을 확장해, �
   API는 Context7에 없어 WWDC18 Image and Graphics Best Practices의 downsampling 기법을
   기준으로 삼았다.
 - 키보드 extension 메모리 상한은 기기별로 다르지만 수십 MB 수준이고 초과 시 즉시
-  종료된다. `os_proc_available_memory()`(iOS 13+)로 남은 메모리를 알 수 있다.
+  종료된다. `os_proc_available_memory()`(iOS 13+)가 있지만 extension에서의 정확도를 실측하지
+  않았으므로 판정에는 쓰지 않고 고정 예산을 쓴다.
 - `BaseKeyboardViewController.didReceiveMemoryWarning`은 예측 엔진 캐시를 해제하는
   훅이 이미 있다.
 - `NGramPredictiveTextEngine`이 백그라운드 큐에서 App Group 파일을 저장하는 선례가
@@ -48,13 +49,13 @@ GitHub Issue #55에 따라 #54의 텍스트 클립보드 기록을 확장해, �
 | 결합 구조 | 단일 목록. `ClipboardHistoryItem`에 `content` enum(text/image)을 넣고 식별자를 `id`로 일반화한다. 이미지도 고정·일괄 고정 대상이다. |
 | 이미지 식별 | 원본 바이트의 SHA-256(스트리밍 계산). 바이트가 같은 이미지를 다시 복사하면 텍스트와 같은 규칙으로 기존 항목이 맨 위로 오고 고정 항목은 그대로다. 파일명도 해시라 중복 파일이 생기지 않는다. 시각적 유사 판별은 하지 않는다. |
 | 개수 한도 | 텍스트와 공유. 미고정 20개·고정 20개 안에 텍스트와 이미지가 함께 들어간다. |
-| 이미지당 한도 | 파일 24 MB. 픽셀은 JPEG·HEIC 48,000,000, PNG 12,000,000(전체 디코드 위험). 초과하면 저장하지 않는다. |
+| 이미지당 한도 | 파일 24 MB, 48,000,000픽셀(타입 무관). 초과하면 저장하지 않는다. 디코드 가능 여부는 픽셀 상한이 아니라 런타임 메모리 판정(`requiredDecodeMemory`)으로 정한다. |
 | 혼합 우선순위 | pasteboard에 텍스트가 있으면 텍스트만 저장한다. 텍스트가 없고 이미지가 있을 때만 이미지를 저장한다. |
 | 저장 타입 | `public.jpeg` → `public.heic` → `public.png` 우선순위로 하나. TIFF·GIF 등은 받지 않는다. |
 | 설정 | "클립보드 기록" 아래 "이미지도 기록" 하위 토글, 기본 켜짐. 끄면 새 이미지만 저장하지 않고 기존 이미지 항목은 유지한다. 삭제는 관리 화면에서 한다. |
 | 키보드 패널 이미지 탭 | pasteboard에 복원하고 패널을 유지한다. 헤더의 "클립보드 기록" 제목 자리에 안내 문구를 약 2초 보여준 뒤 되돌린다. 항목은 맨 위로 올라간다. 입력창 탭 시 기존 `textWillChange` 경로로 패널이 닫힌다. |
 | 썸네일 | 긴 변 240 px JPEG. 패널은 썸네일만 읽고 해시 키 `NSCache`(상한 40)에 둔다. 메모리 경고 시 비운다. |
-| 메모리 안전장치 | 캡처 전 `os_proc_available_memory()`가 한도의 2배 + 여유보다 작으면 이번 캡처를 건너뛴다. `changeCount`는 갱신하므로 재시도하지 않는다. |
+| 메모리 안전장치 | 헤더의 픽셀 수로 예상 디코드 메모리(PNG: 픽셀 × 4바이트 + 8 MB, JPEG·HEIC: 24 MB 고정)를 구해 프로세스별 고정 예산(키보드 32 MB, 앱 256 MB)을 넘으면 저장·미리보기를 건너뛴다. 런타임 남은 메모리는 조회하지 않는다. 키보드가 건너뛴 이미지는 앱이 활성화될 때 같은 코드로 저장한다. `changeCount`는 갱신하므로 키보드는 재시도하지 않는다. |
 | 파일 정리 | `ClipboardHistoryStore.save`가 저장 전후 이미지 해시 차집합의 원본·썸네일을 지운다. |
 
 ## 범위 밖
@@ -134,21 +135,26 @@ public struct ClipboardHistoryItem: Codable, Equatable, Identifiable {
 ```swift
 public enum ClipboardImagePolicy {
     public static let maxByteSize = 24 * 1_024 * 1_024
-    public static let maxPixelCount = 48_000_000      // JPEG·HEIC
-    public static let maxPNGPixelCount = 12_000_000   // PNG는 전체 디코드될 수 있어 별도 상한
+    public static let maxPixelCount = 48_000_000      // 타입 무관 저장 상한
     public static let thumbnailMaxPixelSize = 240
     public static let preferredTypeIdentifiers = ["public.jpeg", "public.heic", "public.png"]
-    /// 캡처(썸네일 생성)·키보드 미리보기 디코드 전에 남아 있어야 하는 메모리. 캡처는 파일로 받아
-    /// 바이트를 프로세스에 올리지 않으므로 파일 크기와 무관한 디코드 여유 고정값이다
-    public static let requiredAvailableMemory = 24 * 1_024 * 1_024
+    /// JPEG·HEIC 디코드(썸네일·미리보기) 예상 메모리(고정). 축소 디코드라 픽셀 수와 무관하다
+    public static let scaledDecodeMemory = 24 * 1_024 * 1_024
+    /// PNG 전체 디코드 비트맵(픽셀 × 4바이트) 위에 더하는 여유
+    public static let decodeMemoryMargin = 8 * 1_024 * 1_024
+    /// 키보드 extension의 디코드 예산. iPad Pro 13" PNG 스크린샷(약 30.7 MB)까지 들어온다
+    public static let keyboardDecodeMemoryBudget = 32 * 1_024 * 1_024
+    /// 앱의 디코드 예산. 키보드가 건너뛴 큰 PNG를 앱이 저장한다
+    public static let appDecodeMemoryBudget = 256 * 1_024 * 1_024
 
     /// pasteboard 타입 목록에서 저장할 타입 하나. 우선순위 앞쪽부터 고르고 없으면 nil
     public static func storableType(in types: [String]) -> String?
-    /// 타입별 픽셀 한도. PNG만 `maxPNGPixelCount`
-    public static func maxPixelCount(for typeIdentifier: String) -> Int
-    /// 바이트·픽셀 한도 안인지. 0 이하 값은 저장 불가. 픽셀 한도는 타입에 따라 다르다
-    public static func isStorable(byteSize: Int, pixelWidth: Int, pixelHeight: Int, typeIdentifier: String) -> Bool
-    public static func hasEnoughMemory(available: Int) -> Bool
+    /// 바이트·픽셀 한도 안인지. 0 이하 값은 저장 불가
+    public static func isStorable(byteSize: Int, pixelWidth: Int, pixelHeight: Int) -> Bool
+    /// 이 이미지를 디코드할 때 필요한 메모리. PNG는 픽셀 × 4 + 여유, JPEG·HEIC는 `scaledDecodeMemory`
+    public static func requiredDecodeMemory(typeIdentifier: String, pixelWidth: Int, pixelHeight: Int) -> Int
+    /// 예상 디코드 메모리가 `budget` 안인지
+    public static func canDecode(typeIdentifier: String, pixelWidth: Int, pixelHeight: Int, budget: Int) -> Bool
     /// 원본 파일 확장자. jpg / heic / png
     public static func fileExtension(for typeIdentifier: String) -> String
 }
@@ -232,7 +238,7 @@ public final class ClipboardImageStore {
 ### 메모리
 
 이 클래스가 한 번에 올리는 것은 64 KB 해시 버퍼와 썸네일 디코드뿐이다. JPEG·HEIC는
-축소 디코드라 작고, PNG는 ImageIO가 전체 디코드할 수 있어 PNG 상한 12 MP에서 약 48 MB 피크가
+축소 디코드라 작고, PNG는 ImageIO가 전체 디코드할 수 있어 픽셀 × 4바이트 피크(iPad Pro 13" 스크린샷 약 23 MB, MacBook Pro 16" 약 31 MB)가
 날 수 있다. 실기기 계측(6절)에서 종료가 확인되면 PNG 전용 픽셀 상한 상수를 추가한다.
 
 ## 3. 동기화·복원 흐름
@@ -245,7 +251,7 @@ public static func synchronizeIfNeeded(
     imageStore: ClipboardImageStore?,
     pasteboard: UIPasteboard = .general,
     settings: UserDefaultsManager = .shared,
-    availableMemory: () -> Int = { Int(os_proc_available_memory()) },
+    decodeMemoryBudget: Int = ClipboardImagePolicy.keyboardDecodeMemoryBudget,
     onImageRecorded: (@MainActor () -> Void)? = nil
 )
 ```
@@ -256,15 +262,15 @@ public static func synchronizeIfNeeded(
 4. 텍스트가 없고 `hasImages`이며 `settings.isClipboardImageHistoryEnabled`이고 `imageStore`가
    있을 때만 이미지 경로로 간다.
 5. `ClipboardImagePolicy.storableType(in: pasteboard.types)`로 타입을 고른다. 없으면 끝낸다.
-6. `ClipboardImagePolicy.hasEnoughMemory(available: availableMemory())`가 거짓이면 끝낸다.
+6. (예산 판정은 파일을 받은 뒤 8단계에서 헤더의 픽셀 수로 한다.)
 7. `pasteboard.itemProviders.first?.loadFileRepresentation(forTypeIdentifier:)`를 부른다.
    완료 클로저는 시스템이 정한 백그라운드 스레드에서 오며 시스템 임시 파일은 클로저가
    끝나면 사라지므로, 그 안에서는 `ClipboardImageStore.stage(temporaryFileURL:typeIdentifier:)`로
    우리 tmp에 옮기기만 한다(rename 한 번).
 8. 해시·썸네일 생성(`imageStore.store(temporaryFileURL:typeIdentifier:)`)은 `.utility` QoS
-   직렬 큐에서 한 번에 하나씩 처리해 자판 입력(main)과 경쟁하지 않게 한다. 큐에서 기다린
-   뒤 무거운 디코드 직전에 `hasEnoughMemory`를 다시 확인하고, 거부·중복·실패 어느 경우든
-   옮겨 둔 임시 파일을 지운다.
+   직렬 큐에서 한 번에 하나씩 처리해 자판 입력(main)과 경쟁하지 않게 한다. `store`는 헤더의
+   픽셀 수로 예상 디코드 메모리를 구해 `decodeMemoryBudget`(키보드 32 MB, 앱 256 MB)을 넘으면
+   저장하지 않고, 거부·중복·실패 어느 경우든 옮겨 둔 임시 파일을 지운다.
 9. 참조를 얻으면 메인 큐로 넘어가 `store.record(.image(reference))`를 부르고
    `onImageRecorded`를 호출한다. 파일 저장만 백그라운드에서 하고 plist 기록은 메인에서
    해 같은 프로세스 안의 연산 순서를 단순하게 유지한다.
@@ -330,8 +336,8 @@ synchronizeAndReload()`는 `onImageRecorded`에서 `reload()`를 불러 화면�
   버튼을 숨기고 복사·고정·닫기만 둔다. 미리보기는 원본을
   `CGImageSourceCreateThumbnailAtIndex`로 긴 변 600 px까지만 디코드한다(최대 약 1.4 MB).
   이 수치는 출력 비트맵 크기일 뿐이며, 다운샘플 과정에서 PNG 원본은 ImageIO가 전체
-  디코드할 수 있다(2절 메모리 참고). 그래서 키보드는 미리보기를 디코드하기 전에
-  `hasEnoughMemory`로 남은 메모리를 확인한다.
+  디코드할 수 있다(2절 메모리 참고). 그래서 키보드는 미리보기를 디코드하기 전에 이 이미지의
+  예상 디코드 메모리가 `keyboardDecodeMemoryBudget` 안인지 확인하고, 아니면 썸네일로 대신한다.
 - 편집 모드의 선택·일괄 삭제·일괄 고정·스와이프 액션은 인덱스 기반이라 그대로다.
 - 빈 상태 문구는 "복사한 텍스트나 이미지가 여기에 표시됩니다."로 바꾼다.
 
@@ -354,7 +360,7 @@ synchronizeAndReload()`는 `onImageRecorded`에서 `reload()`를 불러 화면�
 "클립보드 기록" 토글이 켜져 있을 때 그 아래에 "이미지도 기록" 토글을
 `@AppStorage(UserDefaultsKeys.isClipboardImageHistoryEnabled, store:)`로 둔다. 캡션은
 "복사한 이미지를 저장하고 탭하면 클립보드로 복원합니다"만 둔다. 이미지당 한도(24 MB·
-48메가픽셀, PNG 12메가픽셀)와 토글 OFF 규칙 설명은 "클립보드 기록 관리" 화면의 목록 최하단(footer)과
+48메가픽셀)와 토글 OFF 규칙 설명은 "클립보드 기록 관리" 화면의 목록 최하단(footer)과
 빈 상태에 두고, "이미지도 기록"이 켜져 있을 때만 보인다(`ClipboardHistorySettingsView.
 imageLimitDescription`). 기존 토글처럼 Analytics 이벤트(`clipboard_image_history`)를 남긴다.
 
@@ -388,7 +394,7 @@ Core 문구는 `SYKeyboardAssets/Sources/SYKeyboardAssets/Resources/Localizable.
 
 | Suite | 검증 |
 | --- | --- |
-| `ClipboardImagePolicyTests` (신규) | 타입 우선순위(JPEG > HEIC > PNG, TIFF·GIF 제외), 바이트 24 MB·픽셀 48 MP(PNG 12 MP) 경계값, 남은 메모리 판정, 확장자 유도 |
+| `ClipboardImagePolicyTests` (신규) | 타입 우선순위(JPEG > HEIC > PNG, TIFF·GIF 제외), 바이트 24 MB·픽셀 48 MP 경계값, 타입별 디코드 메모리, 기기별 디코드 예산 판정, 확장자 유도 |
 | `ClipboardHistoryPolicyTests` (확장) | 이미지 content 재삽입 시 맨 위 이동, 고정 이미지 재복사 유지, 텍스트·이미지 혼합 정렬과 미고정 트리밍, 이미지 항목 `replacingText`가 `nil`, `id` 기준 일괄 고정·해제와 한도 |
 | `ClipboardHistoryStoreTests` (확장) | `text` 키만 있는 기존 파일 디코드, 이미지 항목 왕복 저장, 이미지 항목 삭제·트리밍·전체 삭제 시 원본·썸네일 파일 삭제, 텍스트만 바뀐 저장은 파일 삭제 없음 |
 | `ClipboardImageStoreTests` (신규) | 테스트에서 `CGImageDestination`으로 만든 작은 PNG·JPEG 임시 파일 저장 → 해시 파일명·썸네일 생성·참조 값, 같은 파일 두 번 저장 시 파일 하나, 한도 초과는 `nil`이고 파일 미생성, 손상 파일은 `nil`, 회전 메타데이터의 폭·높이 교환 |

@@ -60,7 +60,7 @@ struct ClipboardHistoryPasteboardSynchronizerTests {
             ClipboardHistoryPasteboardSynchronizer.synchronizeIfNeeded(
                 store: fixture.store,
                 pasteboard: fixture.pasteboard,
-                availableMemory: { .max },
+                decodeMemoryBudget: .max,
                 onImageRecorded: { continuation.resume() }
             )
         }
@@ -82,7 +82,7 @@ struct ClipboardHistoryPasteboardSynchronizerTests {
         fixture.pasteboard.setItems([["public.utf8-plain-text": "hello", "public.png": makePNGData()]])
 
         ClipboardHistoryPasteboardSynchronizer.synchronizeIfNeeded(
-            store: fixture.store, pasteboard: fixture.pasteboard, availableMemory: { .max }
+            store: fixture.store, pasteboard: fixture.pasteboard, decodeMemoryBudget: .max
         )
 
         #expect(fixture.store.load().map(\.id) == ["hello"])
@@ -96,22 +96,24 @@ struct ClipboardHistoryPasteboardSynchronizerTests {
         fixture.pasteboard.setData(makePNGData(), forPasteboardType: "public.png")
 
         ClipboardHistoryPasteboardSynchronizer.synchronizeIfNeeded(
-            store: fixture.store, pasteboard: fixture.pasteboard, availableMemory: { .max }
+            store: fixture.store, pasteboard: fixture.pasteboard, decodeMemoryBudget: .max
         )
 
         #expect(fixture.store.load().isEmpty)
         #expect(UserDefaultsManager.shared.lastSeenPasteboardChangeCount == fixture.pasteboard.changeCount)
     }
 
-    @Test("남은 메모리가 부족하면 이미지를 기록하지 않고 changeCount만 갱신")
-    func test메모리부족은_기록없음() {
-        let fixture = makeFixture(name: "low-memory")
+    @Test("예상 디코드 메모리가 예산을 넘으면 이미지를 기록하지 않고 changeCount만 갱신")
+    func test디코드예산초과는_기록없음() async {
+        let fixture = makeFixture(name: "low-budget")
         defer { fixture.restore() }
         fixture.pasteboard.setData(makePNGData(), forPasteboardType: "public.png")
 
         ClipboardHistoryPasteboardSynchronizer.synchronizeIfNeeded(
-            store: fixture.store, pasteboard: fixture.pasteboard, availableMemory: { 0 }
+            store: fixture.store, pasteboard: fixture.pasteboard, decodeMemoryBudget: 0
         )
+        // 파일 받기·예산 판정은 백그라운드에서 끝나므로 잠시 양보한 뒤 확인한다. 기록되지 않아야 하므로 콜백은 오지 않는다
+        try? await Task.sleep(nanoseconds: 500_000_000)
 
         #expect(fixture.store.load().isEmpty)
         #expect(UserDefaultsManager.shared.lastSeenPasteboardChangeCount == fixture.pasteboard.changeCount)
