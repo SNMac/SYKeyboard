@@ -99,17 +99,22 @@ public final class ClipboardHistoryStore {
         save(previous.filter { !ids.contains($0.id) }, previous: previous)
     }
 
+    /// plist 쓰기가 성공했을 때만 이미지 디렉터리를 비운다. 쓰기가 실패하면 목록은 그대로 남아 있으므로
+    /// 파일을 먼저 지우면 목록이 가리키는 이미지가 사라져 불일치가 생긴다
     public func removeAll() {
-        save([], previous: load())
-        imageStore?.removeAllFiles()
+        if save([], previous: load()) {
+            imageStore?.removeAllFiles()
+        }
     }
 }
 
 // MARK: - Private Methods
 
 private extension ClipboardHistoryStore {
-    /// 목록을 쓰고, 목록에서 사라진 이미지의 파일을 지운다. 어느 경로로 항목이 빠지든 여기서 한 번에 정리된다
-    func save(_ items: [ClipboardHistoryItem], previous: [ClipboardHistoryItem]) {
+    /// 목록을 쓰고, 목록에서 사라진 이미지의 파일을 지운다. 어느 경로로 항목이 빠지든 여기서 한 번에 정리된다.
+    /// 쓰기 성공 여부를 돌려줘 `removeAll()`처럼 성공했을 때만 후속 파일 정리를 하는 호출이 판단할 수 있게 한다
+    @discardableResult
+    func save(_ items: [ClipboardHistoryItem], previous: [ClipboardHistoryItem]) -> Bool {
         let encoder = PropertyListEncoder()
         encoder.outputFormat = .binary
         do {
@@ -118,9 +123,10 @@ private extension ClipboardHistoryStore {
         } catch {
             // 쓰기 실패는 무시하고 다음 기회에 다시 쓴다. changeCount는 이미 갱신됐으므로 같은 내용을 재시도하지 않는다
             logger.error("클립보드 기록 저장 실패: \(error.localizedDescription)")
-            return
+            return false
         }
         let removedHashes = Set(previous.compactMap(\.image?.hash)).subtracting(items.compactMap(\.image?.hash))
         imageStore?.removeFiles(for: removedHashes)
+        return true
     }
 }

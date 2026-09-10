@@ -253,6 +253,40 @@ struct ClipboardHistoryStoreTests {
 
         #expect(try fixture.imageFiles() == ["h.png", "h.thumb.jpg"])
     }
+
+    @Test("plist 쓰기가 실패하면 전체 삭제여도 이미지 파일을 지우지 않음")
+    func test전체삭제_쓰기실패시_이미지파일유지() throws {
+        // 부모 디렉터리가 없으면 Data.write(..., options: .atomic)이 실패한다. 같은 imageStore를 공유하는
+        // 쓰기 불가능한 store로 removeAll()을 호출해, plist 쓰기 실패 시 파일 정리를 건너뛰는지 확인한다
+        let fixture = makeFixture(name: "remove-all-write-fails")
+        _ = try makeStoredImage(hash: "h", in: fixture)
+        let unwritableURL = FileManager.default.temporaryDirectory
+            .appendingPathComponent("SYKeyboardTests-\(UUID().uuidString)-missing-parent", isDirectory: true)
+            .appendingPathComponent("history.plist")
+        let unwritableStore = ClipboardHistoryStore(fileURL: unwritableURL, imageStore: fixture.store.imageStore)
+
+        unwritableStore.removeAll()
+
+        #expect(try fixture.imageFiles() == ["h.png", "h.thumb.jpg"])
+    }
+
+    @Test("id가 같은 텍스트 항목과 이미지 항목이 섞인 파일은 첫 항목만 읽음")
+    func testId충돌파일은_첫항목만읽음() throws {
+        let fixture = makeFixture(name: "id-collision")
+        // text가 "image/h"인 텍스트 항목의 id는 이미지 항목 hash "h"의 id "image/h"와 충돌한다
+        let legacy: [[String: Any]] = [
+            ["text": "image/h", "createdAt": Date(timeIntervalSince1970: 1)],
+            ["image": ["hash": "h", "typeIdentifier": "public.png", "byteSize": 10, "pixelWidth": 1, "pixelHeight": 1],
+             "createdAt": Date(timeIntervalSince1970: 2)]
+        ]
+        let data = try PropertyListSerialization.data(fromPropertyList: legacy, format: .binary, options: 0)
+        try data.write(to: fixture.url)
+
+        let items = fixture.store.load()
+
+        #expect(items.count == 1)
+        #expect(items.first?.text == "image/h")
+    }
 }
 
 private struct StoreFixture {
