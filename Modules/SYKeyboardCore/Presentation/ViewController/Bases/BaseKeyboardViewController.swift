@@ -179,11 +179,13 @@ open class BaseKeyboardViewController: UIInputViewController {
         )
     }
 
-    /// 클립보드 버튼을 쓸 수 있는 설정 상태
+    /// 클립보드 버튼을 표시할 설정 상태
     ///
     /// 바 표시 판정과 버튼 표시 판정이 같은 값을 봐야 버튼 없는 빈 바가 생기지 않는다.
+    /// 앱 미리보기도 실제 키보드와 같은 모습을 보여야 하므로 여기서 제외하지 않고,
+    /// 탭 동작만 `suggestionBarDidTapClipboard`에서 막는다.
     private var isClipboardControlAvailable: Bool {
-        return keyboardSettingsManager.isClipboardHistoryEnabled && !BaseKeyboardViewController.isPreview
+        return keyboardSettingsManager.isClipboardHistoryEnabled
     }
 
     /// undo/redo 기능 사용 가능 여부. 자동완성 설정과 독립이다
@@ -2345,6 +2347,8 @@ extension BaseKeyboardViewController: SuggestionBarDelegate {
     }
 
     final func suggestionBarDidTapClipboard(_ bar: SuggestionBarView) {
+        // 미리보기는 모습만 보여주므로 패널을 열지 않는다
+        guard !BaseKeyboardViewController.isPreview else { return }
         toggleClipboardPanel()
     }
 }
