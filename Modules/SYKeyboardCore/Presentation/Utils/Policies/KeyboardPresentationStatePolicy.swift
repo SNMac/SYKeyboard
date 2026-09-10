@@ -52,9 +52,14 @@ enum KeyboardPresentationStatePolicy {
         return !isUndoRedoEnabled && !isClipboardHistoryEnabled
     }
 
-    /// suggestion bar 안의 후보 영역만 숨길지 판단한다.
-    static func shouldHideSuggestionButtons(autocorrectionType: UITextAutocorrectionType?) -> Bool {
-        return autocorrectionType == .no
+    /// suggestion bar 안의 후보 영역을 숨길지 판단한다.
+    ///
+    /// 바 자체가 숨겨졌으면 후보 영역도 숨김으로 본다.
+    static func shouldHideSuggestionButtons(
+        isSuggestionBarHidden: Bool,
+        autocorrectionType: UITextAutocorrectionType?
+    ) -> Bool {
+        return isSuggestionBarHidden || autocorrectionType == .no
     }
 
     static func shouldShowMathResults(

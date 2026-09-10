@@ -150,6 +150,15 @@ struct KeyboardPresentationStatePolicyTests {
                 isClipboardHistoryEnabled: true
             ) == false
         )
+        #expect(
+            KeyboardPresentationStatePolicy.shouldHideSuggestionBar(
+                isPredictiveTextEnabled: true,
+                autocorrectionType: .no,
+                currentKeyboard: .naratgeul,
+                isUndoRedoEnabled: true,
+                isClipboardHistoryEnabled: true
+            ) == false
+        )
         // 텐키는 undo redo나 클립보드가 켜져 있어도 숨긴다
         #expect(
             KeyboardPresentationStatePolicy.shouldHideSuggestionBar(
@@ -162,27 +171,44 @@ struct KeyboardPresentationStatePolicyTests {
         )
     }
 
-    @Test("후보 영역은 autocorrection이 no일 때만 숨김")
+    @Test("후보 영역은 바가 숨겨졌거나 autocorrection이 no일 때 숨김")
     func testSuggestionButtons숨김조건() {
         #expect(
             KeyboardPresentationStatePolicy.shouldHideSuggestionButtons(
+                isSuggestionBarHidden: false,
                 autocorrectionType: .no
             ) == true
         )
         #expect(
             KeyboardPresentationStatePolicy.shouldHideSuggestionButtons(
+                isSuggestionBarHidden: false,
                 autocorrectionType: .default
             ) == false
         )
         #expect(
             KeyboardPresentationStatePolicy.shouldHideSuggestionButtons(
+                isSuggestionBarHidden: false,
                 autocorrectionType: .yes
             ) == false
         )
         #expect(
             KeyboardPresentationStatePolicy.shouldHideSuggestionButtons(
+                isSuggestionBarHidden: false,
                 autocorrectionType: nil
             ) == false
+        )
+        // 바가 숨겨졌으면 autocorrection과 무관하게 후보 영역도 숨김
+        #expect(
+            KeyboardPresentationStatePolicy.shouldHideSuggestionButtons(
+                isSuggestionBarHidden: true,
+                autocorrectionType: .default
+            ) == true
+        )
+        #expect(
+            KeyboardPresentationStatePolicy.shouldHideSuggestionButtons(
+                isSuggestionBarHidden: true,
+                autocorrectionType: nil
+            ) == true
         )
     }
 

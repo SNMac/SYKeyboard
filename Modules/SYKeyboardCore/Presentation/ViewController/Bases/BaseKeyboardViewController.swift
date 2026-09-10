@@ -172,13 +172,19 @@ open class BaseKeyboardViewController: UIInputViewController {
     /// suggestion bar 전체를 숨겨야 하는지 여부
     private var shouldHideSuggestionBar: Bool {
         return KeyboardPresentationStatePolicy.shouldHideSuggestionBar(
-            isPredictiveTextEnabled: suggestionController.isPredictiveTextEnabled,
+            isPredictiveTextEnabled: keyboardSettingsManager.isPredictiveTextEnabled,
             autocorrectionType: currentAutocorrectionType,
             currentKeyboard: currentKeyboard,
             isUndoRedoEnabled: keyboardSettingsManager.isUndoRedoEnabled,
-            isClipboardHistoryEnabled: keyboardSettingsManager.isClipboardHistoryEnabled
-            && !BaseKeyboardViewController.isPreview
+            isClipboardHistoryEnabled: isClipboardControlAvailable
         )
+    }
+
+    /// 클립보드 버튼을 쓸 수 있는 설정 상태
+    ///
+    /// 바 표시 판정과 버튼 표시 판정이 같은 값을 봐야 버튼 없는 빈 바가 생기지 않는다.
+    private var isClipboardControlAvailable: Bool {
+        return keyboardSettingsManager.isClipboardHistoryEnabled && !BaseKeyboardViewController.isPreview
     }
 
     private var isUndoRedoFeatureAvailable: Bool {
@@ -1360,8 +1366,8 @@ private extension BaseKeyboardViewController {
 
         let shouldHideBar = shouldHideSuggestionBar
         // 바가 남아 있어도 autocorrection이 막혀 있으면 후보 영역만 비운다
-        let shouldHideSuggestions = shouldHideBar
-        || KeyboardPresentationStatePolicy.shouldHideSuggestionButtons(
+        let shouldHideSuggestions = KeyboardPresentationStatePolicy.shouldHideSuggestionButtons(
+            isSuggestionBarHidden: shouldHideBar,
             autocorrectionType: currentAutocorrectionType
         )
 
@@ -1822,8 +1828,7 @@ private extension BaseKeyboardViewController {
     func updateClipboardControl() {
         let shouldShowClipboard = KeyboardPresentationStatePolicy.shouldShowClipboardControl(
             isSuggestionBarHidden: suggestionBarView.isHidden,
-            isClipboardHistoryEnabled: keyboardSettingsManager.isClipboardHistoryEnabled
-            && !BaseKeyboardViewController.isPreview
+            isClipboardHistoryEnabled: isClipboardControlAvailable
         )
         suggestionBarView.updateClipboardControl(
             isVisible: shouldShowClipboard,
