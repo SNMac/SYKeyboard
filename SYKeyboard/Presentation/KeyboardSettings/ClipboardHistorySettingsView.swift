@@ -18,6 +18,10 @@ struct ClipboardHistorySettingsView: View {
 
     private let store = ClipboardHistoryStore()
 
+    /// 이미지 제약 안내는 "이미지도 기록"이 켜져 있을 때만 보인다
+    @AppStorage(UserDefaultsKeys.isClipboardImageHistoryEnabled, store: UserDefaultsManager.shared.storage)
+    private var isClipboardImageHistoryEnabled = DefaultValues.isClipboardImageHistoryEnabled
+
     /// 저장 순서 그대로(고정 최신순 → 미고정 최신순). id는 정책상 중복이 없다.
     /// 화면 전환 중 빈 상태와 편집 버튼 없는 툴바가 먼저 보이지 않도록 첫 렌더링 전에 읽는다
     @State private var items: [ClipboardHistoryItem]
@@ -67,6 +71,7 @@ struct ClipboardHistorySettingsView: View {
                     VStack(spacing: 8) {
                         Text("복사한 텍스트나 이미지가 여기에 표시됩니다.")
                         limitDescription
+                        if isClipboardImageHistoryEnabled { imageLimitDescription }
                     }
                     .font(.footnote)
                     .foregroundStyle(.secondary)
@@ -128,6 +133,7 @@ private extension ClipboardHistorySettingsView {
                     Text("고정 \(pinnedCount)/\(ClipboardHistoryPolicy.maxPinnedCount) · 최근 \(recentCount)/\(ClipboardHistoryPolicy.maxItemCount)")
                         .monospacedDigit()
                     limitDescription
+                    if isClipboardImageHistoryEnabled { imageLimitDescription }
                 }
             }
         }
@@ -136,6 +142,11 @@ private extension ClipboardHistorySettingsView {
     /// 개수 제한 규칙 안내. 목록 footer와 빈 상태에서 함께 쓴다
     var limitDescription: some View {
         Text("고정 항목은 직접 삭제할 때까지 유지되고, 최근 항목은 \(ClipboardHistoryPolicy.maxItemCount)개를 넘으면 오래된 것부터 지워집니다.")
+    }
+
+    /// 이미지 저장 한도와 토글 OFF 규칙 안내. 목록 최하단(footer)과 빈 상태에서 "이미지도 기록"이 켜져 있을 때만 보인다
+    var imageLimitDescription: some View {
+        Text("이미지는 한 장에 \(ClipboardImagePolicy.maxByteSize / (1_024 * 1_024)) MB · \(ClipboardImagePolicy.maxPixelCount / 1_000_000)메가픽셀까지 저장합니다. '이미지도 기록'을 끄면 새로 복사한 이미지는 저장하지 않으며, 이미 저장된 이미지는 여기서 삭제할 수 있습니다.")
     }
 
     var itemRows: some View {
