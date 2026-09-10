@@ -175,7 +175,7 @@ git commit -m "feat: #55 - 이미지 클립보드 기록 설정 키와 기본값
   - `hasEnoughMemory(available: Int) -> Bool`
   - `fileExtension(for typeIdentifier: String) -> String`
 
-- [x] **Step 1: 테스트 파일 작성**
+- [ ] **Step 1: 테스트 파일 작성**
 
 `SYKeyboardTests/Utils/ClipboardImagePolicyTests.swift`:
 
@@ -240,12 +240,12 @@ struct ClipboardImagePolicyTests {
 }
 ```
 
-- [x] **Step 2: 실패 확인**
+- [ ] **Step 2: 실패 확인**
 
 Run: `-only-testing:SYKeyboardTests/ClipboardImagePolicyTests`
 Expected: 컴파일 실패 `cannot find 'ClipboardImagePolicy' in scope`
 
-- [x] **Step 3: 정책 파일 작성과 pbxproj 등록**
+- [ ] **Step 3: 정책 파일 작성과 pbxproj 등록**
 
 `Modules/SYKeyboardCore/Presentation/Utils/Policies/ClipboardImagePolicy.swift`:
 
@@ -317,12 +317,12 @@ public enum ClipboardImagePolicy {
 
 확인: `grep -c "ClipboardImagePolicy.swift" SYKeyboard.xcodeproj/project.pbxproj` → `2`
 
-- [x] **Step 4: 통과 확인**
+- [ ] **Step 4: 통과 확인**
 
 Run: `-only-testing:SYKeyboardTests/ClipboardImagePolicyTests`
 Expected: 5개 `passed`, `TEST SUCCEEDED`
 
-- [x] **Step 5: 커밋**
+- [ ] **Step 5: 커밋**
 
 ```sh
 git add Modules/SYKeyboardCore/Presentation/Utils/Policies/ClipboardImagePolicy.swift \
@@ -353,7 +353,7 @@ git commit -m "feat: #55 - 이미지 저장 한도·타입 정책 추가"
   - `ClipboardHistoryPolicy.inserting(_ content: Content, into:now:)`, `isStorable(_ content:)`, `pinBatch(selectedIDs:in:)`, `togglingPins(selectedIDs:in:now:)`
   - `ClipboardHistoryStore.record(_ content: Content, now:)`, `remove(ids: Set<String>)`, `togglePins(selectedIDs:now:)`; `record(_ text: String, now:)`는 유지
 
-- [x] **Step 1: 정책 테스트 갱신·추가**
+- [ ] **Step 1: 정책 테스트 갱신·추가**
 
 `ClipboardHistoryPolicyTests.swift`에서 `selectedTexts:`를 전부 `selectedIDs:`로 바꾼다(텍스트 항목의 `id`는 텍스트라 값은 그대로다). 파일 끝 `item(_:createdAt:pinnedAt:)` helper 아래에 이미지 helper를 추가하고, 다음 테스트를 `test범위밖인덱스_고정토글은_nil` 뒤에 넣는다.
 
@@ -427,7 +427,7 @@ git commit -m "feat: #55 - 이미지 저장 한도·타입 정책 추가"
 
 기존 `test복사시각이같으면_텍스트순으로정렬` 계열 테스트(`sorted(items).map(\.text) == ["c", "a", "b"]`)는 결과가 같으므로 그대로 둔다.
 
-- [x] **Step 2: 저장소 테스트 갱신·추가**
+- [ ] **Step 2: 저장소 테스트 갱신·추가**
 
 `ClipboardHistoryStoreTests.swift`에서 `remove(texts:` → `remove(ids:`, `togglePins(selectedTexts:` → `togglePins(selectedIDs:`로 바꾼다. 다음 테스트를 `test손상된파일이면_빈배열` 뒤에 넣는다.
 
@@ -475,12 +475,12 @@ git commit -m "feat: #55 - 이미지 저장 한도·타입 정책 추가"
     }
 ```
 
-- [x] **Step 3: 실패 확인**
+- [ ] **Step 3: 실패 확인**
 
 Run: `-only-testing:SYKeyboardTests/ClipboardHistoryPolicyTests`
 Expected: 컴파일 실패 `cannot find 'ClipboardImageReference' in scope`
 
-- [x] **Step 4: 모델과 정책 수정**
+- [ ] **Step 4: 모델과 정책 수정**
 
 `ClipboardHistoryPolicy.swift`의 `ClipboardHistoryItem` 정의를 다음으로 바꾼다.
 
@@ -635,7 +635,7 @@ public struct ClipboardHistoryItem: Codable, Equatable, Identifiable {
 
 `sorted`: 동률 비교 `lhs.text < rhs.text` 두 곳 → `lhs.id < rhs.id`. doc comment "텍스트 순" → "id 순".
 
-- [x] **Step 5: 저장소 수정**
+- [ ] **Step 5: 저장소 수정**
 
 `ClipboardHistoryStore.swift`:
 
@@ -732,7 +732,7 @@ git commit -m "feat: #55 - 클립보드 기록 항목에 이미지 content와 id
   - `removeFiles(for hashes: Set<String>)`, `removeAllFiles()`
   - `ClipboardHistoryStore.imageStore: ClipboardImageStore?`, `init(fileURL:imageStore:)`
 
-- [x] **Step 1: 이미지 저장소 테스트 파일 작성**
+- [ ] **Step 1: 이미지 저장소 테스트 파일 작성**
 
 `SYKeyboardTests/Storage/ClipboardImageStoreTests.swift`:
 
@@ -919,7 +919,7 @@ private func makeImageFile(width: Int, height: Int, type: UTType, name: String, 
 }
 ```
 
-- [x] **Step 2: 저장소 파일 정리 테스트 추가**
+- [ ] **Step 2: 저장소 파일 정리 테스트 추가**
 
 `ClipboardHistoryStoreTests.swift`의 `makeFixture(name:)`를 `imageStore`를 받도록 바꾸고 파일 정리 테스트를 추가한다.
 
@@ -1008,12 +1008,12 @@ private func makeStoredImage(hash: String, in fixture: StoreFixture) throws -> C
     }
 ```
 
-- [x] **Step 3: 실패 확인**
+- [ ] **Step 3: 실패 확인**
 
 Run: `-only-testing:SYKeyboardTests/ClipboardImageStoreTests`
 Expected: 컴파일 실패 `cannot find 'ClipboardImageStore' in scope`
 
-- [x] **Step 4: 이미지 저장소 작성과 pbxproj 등록**
+- [ ] **Step 4: 이미지 저장소 작성과 pbxproj 등록**
 
 `Modules/SYKeyboardCore/Storage/ClipboardImageStore.swift`:
 
@@ -1202,7 +1202,7 @@ private extension ClipboardImageStore {
 
 확인: `grep -c "ClipboardImageStore.swift" SYKeyboard.xcodeproj/project.pbxproj` → `2`
 
-- [x] **Step 5: `ClipboardHistoryStore`에 파일 정리 연결**
+- [ ] **Step 5: `ClipboardHistoryStore`에 파일 정리 연결**
 
 ```swift
     // MARK: - Properties
@@ -1320,7 +1320,7 @@ git commit -m "feat: #55 - App Group 이미지 파일 저장소와 항목 삭제
 - Consumes: `ClipboardHistoryStore.imageStore`, `ClipboardImageStore.store(temporaryFileURL:typeIdentifier:)`(Task 4), `ClipboardImagePolicy.storableType`/`hasEnoughMemory`(Task 2), `UserDefaultsManager.isClipboardImageHistoryEnabled`(Task 1)
 - Produces: `synchronizeIfNeeded(store:pasteboard:settings:availableMemory:onImageRecorded:)`. 기존 호출 `synchronizeIfNeeded(store:)`는 기본값으로 그대로 컴파일된다. `onImageRecorded`는 이미지 항목이 기록된 직후 메인 큐에서 한 번 호출된다
 
-- [x] **Step 1: 테스트 추가**
+- [ ] **Step 1: 테스트 추가**
 
 `ClipboardHistoryPasteboardSynchronizerTests.swift`의 fixture를 이미지 저장소와 설정 복원까지 다루도록 바꾼다.
 
@@ -1457,12 +1457,12 @@ private func makePNGData() -> Data {
 
 기존 두 테스트는 `imageStore`가 있어도 동작이 같으므로 그대로 둔다.
 
-- [x] **Step 2: 실패 확인**
+- [ ] **Step 2: 실패 확인**
 
 Run: `-only-testing:SYKeyboardTests/ClipboardHistoryPasteboardSynchronizerTests`
 Expected: 컴파일 실패 `extra arguments at positions #3, #4 in call`
 
-- [x] **Step 3: 동기화 구현**
+- [ ] **Step 3: 동기화 구현**
 
 `ClipboardHistoryPasteboardSynchronizer.swift` 전체를 다음으로 바꾼다.
 
@@ -1534,14 +1534,14 @@ public enum ClipboardHistoryPasteboardSynchronizer {
 
 `os_proc_available_memory`가 `import os`로 보이지 않으면 `import Darwin`으로 바꾼다(둘 다 시스템 모듈이며 의존성 추가가 아니다).
 
-- [x] **Step 4: 통과 확인**
+- [ ] **Step 4: 통과 확인**
 
 Run: `-only-testing:SYKeyboardTests/ClipboardHistoryPasteboardSynchronizerTests`
 Expected: 6개 `passed`, `TEST SUCCEEDED`
 
 `test이미지만있으면_이미지항목기록`이 완료 콜백 없이 멈추거나 `url`이 `nil`로 오면 `loadFileRepresentation`이 이 pasteboard 항목을 지원하지 않는 경우다. 그때는 `itemProvider.loadDataRepresentation(forTypeIdentifier:)`로 받아 `FileManager.default.temporaryDirectory` 아래 UUID 이름 파일에 쓴 뒤 같은 `imageStore.store(...)`를 부르는 것으로 바꾸고, 이 경우 바이트가 프로세스 메모리에 한 번 올라오므로 `hasEnoughMemory` 안전장치를 유지한다는 주석을 남긴다. 어느 쪽을 썼는지 검증 결과에 기록한다.
 
-- [x] **Step 5: 커밋**
+- [ ] **Step 5: 커밋**
 
 ```sh
 git add Modules/SYKeyboardCore/Storage/ClipboardHistoryPasteboardSynchronizer.swift \
@@ -1568,7 +1568,7 @@ git commit -m "feat: #55 - pasteboard 이미지 항목을 파일로 받아 기�
   - `titleLabel`은 테스트가 읽도록 `private(set)`가 아닌 internal `let`으로 둔다(값 검증만 한다)
   - 상세 뷰 `onPaste`는 이미지에서도 `didRequestCopyAt` → `didSelectItemAt` 순서로 델리게이트를 부른다(Task 7이 복원으로 처리)
 
-- [x] **Step 1: 패널 테스트 추가**
+- [ ] **Step 1: 패널 테스트 추가**
 
 `ClipboardHistoryPanelViewTests.swift`의 helper 아래에 이미지 helper를 추가하고 테스트 4개를 `testResetPresentation은_편집모드해제` 뒤에 넣는다.
 
@@ -1633,12 +1633,12 @@ private func imageItem(_ hash: String) -> ClipboardHistoryItem {
     }
 ```
 
-- [x] **Step 2: 실패 확인**
+- [ ] **Step 2: 실패 확인**
 
 Run: `-only-testing:SYKeyboardTests/ClipboardHistoryPanelViewTests`
 Expected: 컴파일 실패 `'titleLabel' is inaccessible due to 'private' protection level` 또는 `has no member 'showTransientMessage'`
 
-- [x] **Step 3: 패널 구현**
+- [ ] **Step 3: 패널 구현**
 
 `ClipboardHistoryPanelView.swift`:
 
@@ -1841,7 +1841,7 @@ private extension에 추가:
 
 (e) `ClipboardHistoryPanelView` 클래스 doc의 "행 탭은 붙여넣기"를 "행 탭은 붙여넣기(텍스트) 또는 pasteboard 복원(이미지)"으로 고친다.
 
-- [x] **Step 4: Core 문자열 추가**
+- [ ] **Step 4: Core 문자열 추가**
 
 `SYKeyboardAssets/Sources/SYKeyboardAssets/Resources/Localizable.xcstrings`의 `"strings"` 객체에 다음 세 항목을 넣는다(키 정렬은 Xcode가 다시 맞춘다). `"복사"` 키가 이미 있으면 추가하지 않는다.
 
@@ -1894,7 +1894,7 @@ private extension에 추가:
 
 `"복사한 텍스트가 여기에 표시됩니다."` 항목은 더 이상 쓰지 않으므로 삭제한다. 확인: `python3 -c "import json;json.load(open('SYKeyboardAssets/Sources/SYKeyboardAssets/Resources/Localizable.xcstrings'))"`가 오류 없이 끝난다.
 
-- [x] **Step 5: 통과 확인**
+- [ ] **Step 5: 통과 확인**
 
 Run: `-only-testing:SYKeyboardTests/ClipboardHistoryPanelViewTests`
 Expected: 기존 15개 + 새 4개 전부 `passed`, `TEST SUCCEEDED`
@@ -1922,7 +1922,7 @@ VC 델리게이트는 순수 타입이 아니고 `UIInputViewController` 없이 
 **Interfaces:**
 - Consumes: `ClipboardHistoryPanelView.imageStore`/`showTransientMessage`/`purgeThumbnailCache`(Task 6), `ClipboardHistoryStore.imageStore`/`record(_ content:)`/`remove(ids:)`(Task 3·4), `synchronizeIfNeeded(store:onImageRecorded:)`(Task 5)
 
-- [x] **Step 1: 패널 연결과 메모리 경고**
+- [ ] **Step 1: 패널 연결과 메모리 경고**
 
 `clipboardHistoryPanelView.delegate = self` 줄 바로 아래:
 
@@ -1942,7 +1942,7 @@ VC 델리게이트는 순수 타입이 아니고 `UIInputViewController` 없이 
     }
 ```
 
-- [x] **Step 2: 동기화 완료 시 패널 갱신**
+- [ ] **Step 2: 동기화 완료 시 패널 갱신**
 
 `synchronizeClipboardHistoryIfNeeded()`를 다음으로 바꾼다.
 
@@ -1961,7 +1961,7 @@ VC 델리게이트는 순수 타입이 아니고 `UIInputViewController` 없이 
     }
 ```
 
-- [x] **Step 3: 복원 경로**
+- [ ] **Step 3: 복원 경로**
 
 `Clipboard History` private extension의 `reloadClipboardPanel()` 뒤에 추가:
 
@@ -1993,7 +1993,7 @@ VC 델리게이트는 순수 타입이 아니고 `UIInputViewController` 없이 
 
 `BaseKeyboardViewController.swift` 상단에 `import SYKeyboardAssets`가 없으면 추가한다(`SYKBDAssets.bundle` 사용).
 
-- [x] **Step 4: 델리게이트 분기**
+- [ ] **Step 4: 델리게이트 분기**
 
 `clipboardPanel(_:didSelectItemAt:)`:
 
@@ -2028,7 +2028,7 @@ VC 델리게이트는 순수 타입이 아니고 `UIInputViewController` 없이 
     /// 우리가 쓴 값을 다음 동기화에서 다시 기록하지 않도록 changeCount를 갱신한다
 ```
 
-- [x] **Step 5: 빌드 확인**
+- [ ] **Step 5: 빌드 확인**
 
 Run(테스트 전체 + 세 extension 빌드):
 
@@ -2068,7 +2068,7 @@ git commit -m "feat: #55 - 키보드에서 이미지 항목 선택 시 pasteboar
 
 SwiftUI 뷰는 단위 테스트 대상이 아니다(저장소 규칙). 앱 빌드와 Task 9의 실기기 확인으로 검증한다.
 
-- [x] **Step 1: 목록 행**
+- [ ] **Step 1: 목록 행**
 
 `ClipboardHistorySettingsView`의 `row(for:)`를 다음으로 바꾼다.
 
@@ -2116,7 +2116,7 @@ SwiftUI 뷰는 단위 테스트 대상이 아니다(저장소 규칙). 앱 빌�
 
 빈 상태 문구 `Text("복사한 텍스트가 여기에 표시됩니다.")`를 `Text("복사한 텍스트나 이미지가 여기에 표시됩니다.")`로 바꾼다.
 
-- [x] **Step 2: 복사(복원)**
+- [ ] **Step 2: 복사(복원)**
 
 `copyFromDetail(_:)`을 다음으로 바꾼다.
 
@@ -2151,7 +2151,7 @@ SwiftUI 뷰는 단위 테스트 대상이 아니다(저장소 규칙). 앱 빌�
     }
 ```
 
-- [x] **Step 3: 원문 시트의 이미지 모드**
+- [ ] **Step 3: 원문 시트의 이미지 모드**
 
 private `ClipboardHistoryDetailView`에 프로퍼티와 미리보기를 추가한다. `init`은 memberwise라 호출부(`ClipboardHistoryDetailView(item:canPin:canSave:onTogglePin:onCopy:onSave:)`)에 `imageStore: store?.imageStore`를 `item:` 다음 인자로 넣는다.
 
@@ -2246,7 +2246,7 @@ private struct ClipboardHistoryDetailView: View {
                     }
 ```
 
-- [x] **Step 4: 설정 토글**
+- [ ] **Step 4: 설정 토글**
 
 `KeyboardToolbarSettingsView`의 `isClipboardHistoryEnabled` `@AppStorage` 아래에 추가:
 
@@ -2276,7 +2276,7 @@ private struct ClipboardHistoryDetailView: View {
 
 기존 "클립보드 기록" 캡션의 "복사한 텍스트를"은 그대로 둔다(텍스트 기록의 설명이고 이미지는 하위 토글이 설명한다).
 
-- [x] **Step 5: 앱 문자열 추가**
+- [ ] **Step 5: 앱 문자열 추가**
 
 `SYKeyboard/Resources/Localizable.xcstrings`의 `"strings"`에 추가한다(앱 카탈로그는 `extractionState` 없이 자동 추출 형식이다). 이미 있는 키("이미지", "복사")는 건너뛴다.
 
@@ -2350,7 +2350,7 @@ git commit -m "feat: #55 - 앱 관리 화면 이미지 항목과 이미지 기�
 **Files:**
 - Modify: `docs/superpowers/plans/2026-09-10-clipboard-image-history.md`
 
-- [x] **Step 1: 전체 테스트와 네 scheme 빌드**
+- [ ] **Step 1: 전체 테스트와 네 scheme 빌드**
 
 ```sh
 xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
@@ -2366,11 +2366,11 @@ git status --short
 
 Expected: `TEST SUCCEEDED`, `failed on` 0건, 세 scheme `BUILD SUCCEEDED`. `.xcscheme` `RemotePath` 변경은 복원한다.
 
-- [x] **Step 2: 결과 기록**
+- [ ] **Step 2: 결과 기록**
 
 아래 "검증 결과" 절에 실제 실행 명령, 기기명/OS, `passed on` 줄 수(테스트 개수)와 `failed on` 줄 수, 빌드 결과, Task 5에서 `loadFileRepresentation`과 `loadDataRepresentation` 중 무엇을 썼는지를 적는다. 실기기 확인 항목은 확인하지 못했으면 "미확인"과 차단 이유를 그대로 남긴다.
 
-- [x] **Step 3: 커밋**
+- [ ] **Step 3: 커밋**
 
 ```sh
 git add docs/superpowers/plans/2026-09-10-clipboard-image-history.md
