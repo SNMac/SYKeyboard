@@ -81,41 +81,107 @@ struct KeyboardPresentationStatePolicyTests {
         )
     }
 
-    @Test("자동완성이 꺼졌거나 autocorrection이 no이거나 tenKey이면 suggestion bar를 숨김")
+    @Test("자동완성이 꺼졌거나 tenKey이면 suggestion bar를 숨김")
     func testSuggestionBar숨김조건() {
         #expect(
             KeyboardPresentationStatePolicy.shouldHideSuggestionBar(
                 isPredictiveTextEnabled: false,
                 autocorrectionType: .default,
-                currentKeyboard: .naratgeul
-            ) == true
-        )
-        #expect(
-            KeyboardPresentationStatePolicy.shouldHideSuggestionBar(
-                isPredictiveTextEnabled: true,
-                autocorrectionType: .no,
-                currentKeyboard: .naratgeul
-            ) == true
-        )
-        #expect(
-            KeyboardPresentationStatePolicy.shouldHideSuggestionBar(
-                isPredictiveTextEnabled: true,
-                autocorrectionType: .default,
-                currentKeyboard: .tenKey
+                currentKeyboard: .naratgeul,
+                isUndoRedoEnabled: true,
+                isClipboardHistoryEnabled: true
             ) == true
         )
         #expect(
             KeyboardPresentationStatePolicy.shouldHideSuggestionBar(
                 isPredictiveTextEnabled: true,
                 autocorrectionType: .default,
-                currentKeyboard: .qwerty
+                currentKeyboard: .tenKey,
+                isUndoRedoEnabled: true,
+                isClipboardHistoryEnabled: true
+            ) == true
+        )
+        #expect(
+            KeyboardPresentationStatePolicy.shouldHideSuggestionBar(
+                isPredictiveTextEnabled: true,
+                autocorrectionType: .default,
+                currentKeyboard: .qwerty,
+                isUndoRedoEnabled: false,
+                isClipboardHistoryEnabled: false
             ) == false
         )
         #expect(
             KeyboardPresentationStatePolicy.shouldHideSuggestionBar(
                 isPredictiveTextEnabled: true,
                 autocorrectionType: nil,
-                currentKeyboard: .qwerty
+                currentKeyboard: .qwerty,
+                isUndoRedoEnabled: false,
+                isClipboardHistoryEnabled: false
+            ) == false
+        )
+    }
+
+    @Test("autocorrection이 no여도 undo redo나 클립보드가 켜져 있으면 suggestion bar를 유지")
+    func testSuggestionBarAutocorrection차단시표시조건() {
+        #expect(
+            KeyboardPresentationStatePolicy.shouldHideSuggestionBar(
+                isPredictiveTextEnabled: true,
+                autocorrectionType: .no,
+                currentKeyboard: .naratgeul,
+                isUndoRedoEnabled: false,
+                isClipboardHistoryEnabled: false
+            ) == true
+        )
+        #expect(
+            KeyboardPresentationStatePolicy.shouldHideSuggestionBar(
+                isPredictiveTextEnabled: true,
+                autocorrectionType: .no,
+                currentKeyboard: .naratgeul,
+                isUndoRedoEnabled: true,
+                isClipboardHistoryEnabled: false
+            ) == false
+        )
+        #expect(
+            KeyboardPresentationStatePolicy.shouldHideSuggestionBar(
+                isPredictiveTextEnabled: true,
+                autocorrectionType: .no,
+                currentKeyboard: .naratgeul,
+                isUndoRedoEnabled: false,
+                isClipboardHistoryEnabled: true
+            ) == false
+        )
+        // 텐키는 undo redo나 클립보드가 켜져 있어도 숨긴다
+        #expect(
+            KeyboardPresentationStatePolicy.shouldHideSuggestionBar(
+                isPredictiveTextEnabled: true,
+                autocorrectionType: .no,
+                currentKeyboard: .tenKey,
+                isUndoRedoEnabled: true,
+                isClipboardHistoryEnabled: true
+            ) == true
+        )
+    }
+
+    @Test("후보 영역은 autocorrection이 no일 때만 숨김")
+    func testSuggestionButtons숨김조건() {
+        #expect(
+            KeyboardPresentationStatePolicy.shouldHideSuggestionButtons(
+                autocorrectionType: .no
+            ) == true
+        )
+        #expect(
+            KeyboardPresentationStatePolicy.shouldHideSuggestionButtons(
+                autocorrectionType: .default
+            ) == false
+        )
+        #expect(
+            KeyboardPresentationStatePolicy.shouldHideSuggestionButtons(
+                autocorrectionType: .yes
+            ) == false
+        )
+        #expect(
+            KeyboardPresentationStatePolicy.shouldHideSuggestionButtons(
+                autocorrectionType: nil
             ) == false
         )
     }

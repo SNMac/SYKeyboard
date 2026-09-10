@@ -34,14 +34,27 @@ enum KeyboardPresentationStatePolicy {
         || documentContextAfterInput?.isEmpty == false
     }
 
+    /// suggestion bar 전체를 숨길지 판단한다.
+    ///
+    /// `autocorrectionType == .no`이면 후보는 못 쓰지만 undo/redo나 클립보드는 여전히 쓸 수 있으므로,
+    /// 둘 중 하나라도 켜져 있으면 바를 유지하고 후보 영역만 비운다.
+    /// 텐키는 후보 이외의 기능도 쓰지 않으므로 그대로 숨긴다.
     static func shouldHideSuggestionBar(
         isPredictiveTextEnabled: Bool,
         autocorrectionType: UITextAutocorrectionType?,
-        currentKeyboard: SYKeyboardType
+        currentKeyboard: SYKeyboardType,
+        isUndoRedoEnabled: Bool,
+        isClipboardHistoryEnabled: Bool
     ) -> Bool {
-        return !isPredictiveTextEnabled
-        || autocorrectionType == .no
-        || currentKeyboard == .tenKey
+        guard isPredictiveTextEnabled, currentKeyboard != .tenKey else { return true }
+        guard autocorrectionType == .no else { return false }
+
+        return !isUndoRedoEnabled && !isClipboardHistoryEnabled
+    }
+
+    /// suggestion bar 안의 후보 영역만 숨길지 판단한다.
+    static func shouldHideSuggestionButtons(autocorrectionType: UITextAutocorrectionType?) -> Bool {
+        return autocorrectionType == .no
     }
 
     static func shouldShowMathResults(

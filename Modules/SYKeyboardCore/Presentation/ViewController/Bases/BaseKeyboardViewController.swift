@@ -169,6 +169,18 @@ open class BaseKeyboardViewController: UIInputViewController {
     /// host 입력 변경 callback에서 마지막으로 확인한 수식 자동완성 허용 상태입니다.
     private var isMathExpressionCompletionAllowed = true
     /// 자동완성과 undo/redo 설정이 모두 켜진 경우에만 기능을 활성화합니다.
+    /// suggestion bar 전체를 숨겨야 하는지 여부
+    private var shouldHideSuggestionBar: Bool {
+        return KeyboardPresentationStatePolicy.shouldHideSuggestionBar(
+            isPredictiveTextEnabled: suggestionController.isPredictiveTextEnabled,
+            autocorrectionType: currentAutocorrectionType,
+            currentKeyboard: currentKeyboard,
+            isUndoRedoEnabled: keyboardSettingsManager.isUndoRedoEnabled,
+            isClipboardHistoryEnabled: keyboardSettingsManager.isClipboardHistoryEnabled
+            && !BaseKeyboardViewController.isPreview
+        )
+    }
+
     private var isUndoRedoFeatureAvailable: Bool {
         return KeyboardPresentationStatePolicy.isUndoRedoFeatureAvailable(
             isPredictiveTextEnabled: keyboardSettingsManager.isPredictiveTextEnabled,
@@ -933,11 +945,7 @@ private extension BaseKeyboardViewController {
         let windowScene = window.windowScene
         let orientation = windowScene?.effectiveGeometry.interfaceOrientation ?? .unknown
 
-        let isSuggestionBarVisible = !KeyboardPresentationStatePolicy.shouldHideSuggestionBar(
-            isPredictiveTextEnabled: suggestionController.isPredictiveTextEnabled,
-            autocorrectionType: currentAutocorrectionType,
-            currentKeyboard: currentKeyboard
-        )
+        let isSuggestionBarVisible = !shouldHideSuggestionBar
 
         let isPortrait = KeyboardHeightPolicy.isPortrait(
             orientation: orientation,
@@ -1350,17 +1358,19 @@ private extension BaseKeyboardViewController {
     func updateSuggestionBarHidden() {
         let prevSuggestionHiddenState = suggestionBarView.isHidden
 
-        let shouldHideSuggestions = KeyboardPresentationStatePolicy.shouldHideSuggestionBar(
-            isPredictiveTextEnabled: suggestionController.isPredictiveTextEnabled,
-            autocorrectionType: currentAutocorrectionType,
-            currentKeyboard: currentKeyboard
+        let shouldHideBar = shouldHideSuggestionBar
+        // 바가 남아 있어도 autocorrection이 막혀 있으면 후보 영역만 비운다
+        let shouldHideSuggestions = shouldHideBar
+        || KeyboardPresentationStatePolicy.shouldHideSuggestionButtons(
+            autocorrectionType: currentAutocorrectionType
         )
 
-        suggestionBarView.isHidden = shouldHideSuggestions
+        suggestionBarView.isHidden = shouldHideBar
+        suggestionBarView.updateSuggestionArea(isVisible: !shouldHideSuggestions)
         suggestionController.isSuspended = shouldHideSuggestions
         updateUndoRedoControls()
 
-        if prevSuggestionHiddenState != shouldHideSuggestions {
+        if prevSuggestionHiddenState != shouldHideBar {
             DispatchQueue.main.async { [weak self] in
                 guard let self else { return }
 
