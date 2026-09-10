@@ -23,7 +23,7 @@
 - 세 extension VC, Firebase/AdMob, entitlements, `Info.plist`, `Secrets.xcconfig`, `.xcscheme`은 건드리지 않는다.
 - 이미지당 한도: 파일 `12 * 1_024 * 1_024` 바이트, `24_000_000` 픽셀. 썸네일 긴 변 `240` px. 저장 타입 우선순위 `["public.jpeg", "public.heic", "public.png"]`.
 - 텍스트 항목의 기존 동작(탭 삽입 후 패널 닫힘, 편집, URL 열기, 고정 규칙)은 바꾸지 않는다.
-- 기준 시뮬레이터: iPhone 13 mini / iOS 16.0 (로컬에 존재, UDID `CBD992D3-5364-4F69-AC5F-0077ADF1A292`).
+- 기준 시뮬레이터: iPhone 13 mini / iOS 18.6 (UDID `82146144-24DE-4F91-B25D-23D147A91142`). 로컬 Xcode 27.0에서 iOS 16.0 런타임은 XCTest 로딩이 실패(`dyld: Symbol not found: _os_log_compare_enablement`, 테스트 러너 `Early unexpected exit`)해 가장 가까운 iOS 16+ 런타임으로 조정했다. 최종 응답에 이 기기명·OS를 명시한다.
 - 테스트 호스트가 iOS 16 붙여넣기 권한 알림으로 멈추면(`The test runner timed out while preparing to run tests`) 코드 실패로 기록하지 않고 시뮬레이터 화면에서 알림에 응답한 뒤 같은 명령을 다시 실행한다(CLAUDE.md "붙여넣기 권한 알림" 절).
 - 빌드·테스트 뒤 `git status --short`에서 `.xcscheme`의 `RemotePath` 변경이 보이면 `git checkout -- SYKeyboard.xcodeproj/xcshareddata/xcschemes/<이름>.xcscheme`로 복원한다.
 - 정확한 색·폰트·SF Symbol 이름·private subview 구조는 테스트로 고정하지 않는다. 2초 뒤 헤더 복구는 시간 경과 테스트를 만들지 않는다.
@@ -35,7 +35,7 @@
 xcodebuild test \
   -project SYKeyboard.xcodeproj \
   -scheme SYKeyboard \
-  -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0' \
+  -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=18.6' \
   -only-testing:SYKeyboardTests/<SuiteTypeName> 2>&1 | grep -E "Test Suite|passed on|failed on|error:|TEST (SUCCEEDED|FAILED)"
 ```
 
@@ -44,7 +44,7 @@ extension 빌드 명령(Task 7·9에서 사용, `-only-testing` 없이):
 ```sh
 for scheme in HangeulKeyboard EnglishKeyboard HangeulEnglishKeyboard; do
   xcodebuild build -project SYKeyboard.xcodeproj -scheme "$scheme" \
-    -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0' 2>&1 \
+    -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=18.6' 2>&1 \
     | grep -E "error:|BUILD (SUCCEEDED|FAILED)"
 done
 ```
@@ -2034,11 +2034,11 @@ Run(테스트 전체 + 세 extension 빌드):
 
 ```sh
 xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
-  -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0' 2>&1 \
+  -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=18.6' 2>&1 \
   | grep -E "failed on|error:|TEST (SUCCEEDED|FAILED)"
 for scheme in HangeulKeyboard EnglishKeyboard HangeulEnglishKeyboard; do
   xcodebuild build -project SYKeyboard.xcodeproj -scheme "$scheme" \
-    -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0' 2>&1 \
+    -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=18.6' 2>&1 \
     | grep -E "error:|BUILD (SUCCEEDED|FAILED)"
 done
 git status --short
@@ -2329,7 +2329,7 @@ private struct ClipboardHistoryDetailView: View {
 
 ```sh
 xcodebuild build -project SYKeyboard.xcodeproj -scheme SYKeyboard \
-  -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0' 2>&1 | grep -E "error:|BUILD (SUCCEEDED|FAILED)"
+  -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=18.6' 2>&1 | grep -E "error:|BUILD (SUCCEEDED|FAILED)"
 ```
 
 Expected: `BUILD SUCCEEDED`, `error:` 0건
@@ -2354,11 +2354,11 @@ git commit -m "feat: #55 - 앱 관리 화면 이미지 항목과 이미지 기�
 
 ```sh
 xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
-  -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0' 2>&1 \
+  -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=18.6' 2>&1 \
   | grep -E "passed on|failed on|error:|TEST (SUCCEEDED|FAILED)" | sort | uniq -c | sort -rn | head
 for scheme in HangeulKeyboard EnglishKeyboard HangeulEnglishKeyboard; do
   xcodebuild build -project SYKeyboard.xcodeproj -scheme "$scheme" \
-    -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0' 2>&1 \
+    -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=18.6' 2>&1 \
     | grep -E "error:|BUILD (SUCCEEDED|FAILED)"
 done
 git status --short
