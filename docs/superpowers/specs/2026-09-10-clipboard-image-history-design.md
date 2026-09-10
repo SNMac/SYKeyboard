@@ -321,6 +321,9 @@ synchronizeAndReload()`는 `onImageRecorded`에서 `reload()`를 불러 화면�
   이미지면 `textView`를 숨기고 aspect fit `UIImageView`에 미리보기를 보여주며 붙여넣기
   버튼을 숨기고 복사·고정·닫기만 둔다. 미리보기는 원본을
   `CGImageSourceCreateThumbnailAtIndex`로 긴 변 600 px까지만 디코드한다(최대 약 1.4 MB).
+  이 수치는 출력 비트맵 크기일 뿐이며, 다운샘플 과정에서 PNG 원본은 ImageIO가 전체
+  디코드할 수 있다(2절 메모리 참고). 그래서 키보드는 미리보기를 디코드하기 전에
+  `hasEnoughMemory`로 남은 메모리를 확인한다.
 - 편집 모드의 선택·일괄 삭제·일괄 고정·스와이프 액션은 인덱스 기반이라 그대로다.
 - 빈 상태 문구는 "복사한 텍스트나 이미지가 여기에 표시됩니다."로 바꾼다.
 
