@@ -28,6 +28,9 @@ struct KeyboardHeightSettingsView: View {
 
     @AppStorage(UserDefaultsKeys.isPredictiveTextEnabled, store: UserDefaultsManager.shared.storage)
     private var isPredictiveTextEnabled = DefaultValues.isPredictiveTextEnabled
+
+    @AppStorage(UserDefaultsKeys.isUndoRedoEnabled, store: UserDefaultsManager.shared.storage)
+    private var isUndoRedoEnabled = DefaultValues.isUndoRedoEnabled
     
     @AppStorage(UserDefaultsKeys.needsInputModeSwitchKey, store: UserDefaultsManager.shared.storage)
     private var needsInputModeSwitchKey = true
@@ -118,7 +121,9 @@ private extension KeyboardHeightSettingsView {
 
 private extension KeyboardHeightSettingsView {
     func updatePreviewKeyboardHeight() {
-        let suggestionBarHeight = isPredictiveTextEnabled
+        // 미리보기에는 클립보드 버튼을 표시하지 않으므로 클립보드 설정은 보지 않는다
+        let isSuggestionBarVisible = isPredictiveTextEnabled || isUndoRedoEnabled
+        let suggestionBarHeight = isSuggestionBarVisible
         ? KeyboardLayoutFigure.suggestionBarHeightWithTopSpacing + KeyboardLayoutFigure.keyboardFrameSpacing
         : 0
         previewKeyboardHeight = tempKeyboardHeight + suggestionBarHeight
