@@ -239,7 +239,8 @@ public final class ClipboardImageStore {
 
 이 클래스가 한 번에 올리는 것은 64 KB 해시 버퍼와 썸네일 디코드뿐이다. JPEG·HEIC는
 축소 디코드라 작고, PNG는 ImageIO가 전체 디코드할 수 있어 픽셀 × 4바이트 피크(iPad Pro 13" 스크린샷 약 23 MB, MacBook Pro 16" 약 31 MB)가
-날 수 있다. 실기기 계측(6절)에서 종료가 확인되면 PNG 전용 픽셀 상한 상수를 추가한다.
+날 수 있다. 실기기 계측(6절)에서 종료가 확인되면 `keyboardDecodeMemoryBudget`을 낮춘다. HEIC는
+`heicScaledDecodeMaxPixelCount`(24 MP)까지만 축소 디코드로 가정하고 그 위는 PNG처럼 계산한다.
 
 ## 3. 동기화·복원 흐름
 
@@ -276,7 +277,7 @@ public static func synchronizeIfNeeded(
    해 같은 프로세스 안의 연산 순서를 단순하게 유지한다.
 
 `loadFileRepresentation`이 pasteboard 항목에서 우리 프로세스 메모리를 거치지 않는지는
-문서로 확정되지 않는다. 6단계의 메모리 안전장치와 6절의 실기기 계측으로 보완한다.
+문서로 확정되지 않는다. 8단계의 고정 예산 판정과 6절의 실기기 계측으로 보완한다.
 
 ### 키보드 `BaseKeyboardViewController`
 
@@ -347,8 +348,9 @@ synchronizeAndReload()`는 `onImageRecorded`에서 `reload()`를 불러 화면�
   집합으로 store를 부른다.
 - `row(for:)`: 이미지면 썸네일 44 pt `Image(uiImage:)`를 왼쪽에 두고 "이미지" + 크기
   캡션을 보여준다. 앱 프로세스는 메모리 여유가 있어 캐시 없이 동기 로드한다.
-- 상세 시트: 이미지면 `ScrollView` 안에 긴 변이 화면 폭 × scale인 다운샘플 이미지를
-  보여주고, 툴바는 고정·`ShareLink(item: originalURL)`·복사(복원)만 둔다. 편집 버튼은
+- 상세 시트: 이미지면 가장 큰 detent(`.large`) 하나로 열고, 스크롤 없이 남은 영역에
+  다운샘플 이미지(`appPreviewMaxPixelSize`)를 aspect fit으로 맞춘다. 텍스트 시트는 그대로
+  `.medium`/`.large`다. 툴바는 고정·`ShareLink(item: originalURL)`·복사(복원)만 둔다. 편집 버튼은
   숨긴다.
 - 원문 편집 `replaceText`와 `+` 추가 시트는 텍스트 전용 그대로다. 삭제 확인 문구는
   개수 기준이라 그대로다.
@@ -397,8 +399,8 @@ Core 문구는 `SYKeyboardAssets/Sources/SYKeyboardAssets/Resources/Localizable.
 | `ClipboardImagePolicyTests` (신규) | 타입 우선순위(JPEG > HEIC > PNG, TIFF·GIF 제외), 바이트 24 MB·픽셀 48 MP 경계값, 타입별 디코드 메모리, 기기별 디코드 예산 판정, 확장자 유도 |
 | `ClipboardHistoryPolicyTests` (확장) | 이미지 content 재삽입 시 맨 위 이동, 고정 이미지 재복사 유지, 텍스트·이미지 혼합 정렬과 미고정 트리밍, 이미지 항목 `replacingText`가 `nil`, `id` 기준 일괄 고정·해제와 한도 |
 | `ClipboardHistoryStoreTests` (확장) | `text` 키만 있는 기존 파일 디코드, 이미지 항목 왕복 저장, 이미지 항목 삭제·트리밍·전체 삭제 시 원본·썸네일 파일 삭제, 텍스트만 바뀐 저장은 파일 삭제 없음 |
-| `ClipboardImageStoreTests` (신규) | 테스트에서 `CGImageDestination`으로 만든 작은 PNG·JPEG 임시 파일 저장 → 해시 파일명·썸네일 생성·참조 값, 같은 파일 두 번 저장 시 파일 하나, 한도 초과는 `nil`이고 파일 미생성, 손상 파일은 `nil`, 회전 메타데이터의 폭·높이 교환 |
-| `ClipboardHistoryPasteboardSynchronizerTests` (확장) | 이미지만 있는 pasteboard(`setData`)에서 이미지 기록(완료 콜백을 `withCheckedContinuation`으로 대기), 텍스트+이미지는 텍스트만, 이미지 설정 OFF면 기록 없음, 메모리 부족 판정 시 기록 없이 `changeCount`만 갱신 |
+| `ClipboardImageStoreTests` (신규) | 테스트에서 `CGImageDestination`으로 만든 작은 PNG·JPEG 임시 파일 저장 → 해시 파일명·썸네일 생성·참조 값, 같은 파일 두 번 저장 시 파일 하나, 한도 초과는 `nil`이고 파일 미생성, 손상 파일은 `nil`, 회전 메타데이터의 폭·높이 교환, `stage` 후 거부·중복 시 임시 파일 정리, 디코드 예산 초과 거부 |
+| `ClipboardHistoryPasteboardSynchronizerTests` (확장) | 이미지만 있는 pasteboard(`setData`)에서 이미지 기록(완료 콜백을 `withCheckedContinuation`으로 대기), 텍스트+이미지는 텍스트만, 이미지 설정 OFF면 기록 없음, 이미지 경로 진입 시 `changeCount`만 즉시 갱신(예산 초과 저장 거부는 `ClipboardImageStoreTests`) |
 | `ClipboardHistoryPanelViewTests` (확장) | 이미지 항목 `configure` 후 셀 구성, 탭 시 `didSelectItemAt` 인덱스, `showTransientMessage` 직후 제목 변경과 `configure`/`resetPresentation` 시 즉시 복구, 텍스트·이미지 혼합 삭제 스냅샷 crash 없음 |
 | `UserDefaultsContractTests` (확장) | `isClipboardImageHistoryEnabled` 키·기본값 |
 
