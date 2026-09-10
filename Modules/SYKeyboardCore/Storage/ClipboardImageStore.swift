@@ -154,8 +154,7 @@ private extension ClipboardImageStore {
         return [
             kCGImageSourceThumbnailMaxPixelSize: maxPixelSize,
             kCGImageSourceCreateThumbnailFromImageAlways: true,
-            kCGImageSourceCreateThumbnailWithTransform: true,
-            kCGImageSourceShouldCacheImmediately: false
+            kCGImageSourceCreateThumbnailWithTransform: true
         ] as CFDictionary
     }
 
