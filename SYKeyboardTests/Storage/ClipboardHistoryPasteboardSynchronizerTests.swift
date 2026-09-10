@@ -103,8 +103,9 @@ struct ClipboardHistoryPasteboardSynchronizerTests {
         #expect(UserDefaultsManager.shared.lastSeenPasteboardChangeCount == fixture.pasteboard.changeCount)
     }
 
-    @Test("예상 디코드 메모리가 예산을 넘으면 이미지를 기록하지 않고 changeCount만 갱신")
-    func test디코드예산초과는_기록없음() async {
+    @Test("이미지 경로에 들어가면 저장 결과와 무관하게 changeCount를 즉시 갱신하고 동기적으로는 기록하지 않음")
+    func test이미지경로진입은_changeCount만즉시갱신() {
+        // 예산 초과 시 저장하지 않는 동작 자체는 ClipboardImageStoreTests.test디코드예산초과는_저장안함이 검증한다
         let fixture = makeFixture(name: "low-budget")
         defer { fixture.restore() }
         fixture.pasteboard.setData(makePNGData(), forPasteboardType: "public.png")
@@ -112,8 +113,6 @@ struct ClipboardHistoryPasteboardSynchronizerTests {
         ClipboardHistoryPasteboardSynchronizer.synchronizeIfNeeded(
             store: fixture.store, pasteboard: fixture.pasteboard, decodeMemoryBudget: 0
         )
-        // 파일 받기·예산 판정은 백그라운드에서 끝나므로 잠시 양보한 뒤 확인한다. 기록되지 않아야 하므로 콜백은 오지 않는다
-        try? await Task.sleep(nanoseconds: 500_000_000)
 
         #expect(fixture.store.load().isEmpty)
         #expect(UserDefaultsManager.shared.lastSeenPasteboardChangeCount == fixture.pasteboard.changeCount)
