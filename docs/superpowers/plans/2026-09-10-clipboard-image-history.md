@@ -175,7 +175,7 @@ git commit -m "feat: #55 - 이미지 클립보드 기록 설정 키와 기본값
   - `hasEnoughMemory(available: Int) -> Bool`
   - `fileExtension(for typeIdentifier: String) -> String`
 
-- [ ] **Step 1: 테스트 파일 작성**
+- [x] **Step 1: 테스트 파일 작성**
 
 `SYKeyboardTests/Utils/ClipboardImagePolicyTests.swift`:
 
@@ -240,12 +240,12 @@ struct ClipboardImagePolicyTests {
 }
 ```
 
-- [ ] **Step 2: 실패 확인**
+- [x] **Step 2: 실패 확인**
 
 Run: `-only-testing:SYKeyboardTests/ClipboardImagePolicyTests`
 Expected: 컴파일 실패 `cannot find 'ClipboardImagePolicy' in scope`
 
-- [ ] **Step 3: 정책 파일 작성과 pbxproj 등록**
+- [x] **Step 3: 정책 파일 작성과 pbxproj 등록**
 
 `Modules/SYKeyboardCore/Presentation/Utils/Policies/ClipboardImagePolicy.swift`:
 
@@ -317,12 +317,12 @@ public enum ClipboardImagePolicy {
 
 확인: `grep -c "ClipboardImagePolicy.swift" SYKeyboard.xcodeproj/project.pbxproj` → `2`
 
-- [ ] **Step 4: 통과 확인**
+- [x] **Step 4: 통과 확인**
 
 Run: `-only-testing:SYKeyboardTests/ClipboardImagePolicyTests`
 Expected: 5개 `passed`, `TEST SUCCEEDED`
 
-- [ ] **Step 5: 커밋**
+- [x] **Step 5: 커밋**
 
 ```sh
 git add Modules/SYKeyboardCore/Presentation/Utils/Policies/ClipboardImagePolicy.swift \
