@@ -338,7 +338,7 @@ final class ClipboardHistoryPanelView: UIView {
     var isDetailVisible: Bool { !detailView.isHidden }
 
     /// `index` 항목의 상세 뷰를 연다. 테스트에서 `handleLongPress`를 거치지 않고 바로 부를 수 있도록 internal로 둔다.
-    /// 이미지는 PNG가 ImageIO에서 원본 전체로 디코드될 수 있어(24 MP에서 최대 약 96 MB) 메모리가
+    /// 이미지는 PNG가 ImageIO에서 원본 전체로 디코드될 수 있어(PNG 상한 12 MP에서 최대 약 48 MB) 메모리가
     /// 부족하면 미리보기 디코드를 건너뛰고 목록에 쓰던 캐시 썸네일로 대신한다(없으면 자리표시 아이콘)
     func showDetail(at index: Int) {
         guard items.indices.contains(index) else { return }

@@ -146,7 +146,7 @@ private extension ClipboardHistorySettingsView {
 
     /// 이미지 저장 한도와 토글 OFF 규칙 안내. 목록 최하단(footer)과 빈 상태에서 "이미지도 기록"이 켜져 있을 때만 보인다
     var imageLimitDescription: some View {
-        Text("이미지는 한 장에 \(ClipboardImagePolicy.maxByteSize / (1_024 * 1_024)) MB · \(ClipboardImagePolicy.maxPixelCount / 1_000_000)메가픽셀까지 저장합니다. '이미지도 기록'을 끄면 새로 복사한 이미지는 저장하지 않으며, 이미 저장된 이미지는 여기서 삭제할 수 있습니다.")
+        Text("이미지는 한 장에 \(ClipboardImagePolicy.maxByteSize / (1_024 * 1_024)) MB · \(ClipboardImagePolicy.maxPixelCount / 1_000_000)메가픽셀(PNG는 \(ClipboardImagePolicy.maxPNGPixelCount / 1_000_000)메가픽셀)까지 저장합니다. '이미지도 기록'을 끄면 새로 복사한 이미지는 저장하지 않으며, 이미 저장된 이미지는 여기서 삭제할 수 있습니다.")
     }
 
     var itemRows: some View {

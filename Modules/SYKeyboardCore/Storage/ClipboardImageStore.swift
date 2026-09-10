@@ -22,6 +22,7 @@ public final class ClipboardImageStore {
     private let directoryURL: URL
     private let maxByteSize: Int
     private let maxPixelCount: Int
+    private let maxPNGPixelCount: Int
     private let logger = Logger(
         subsystem: Bundle.main.bundleIdentifier ?? "Unknown Bundle",
         category: "ClipboardImageStore"
@@ -34,11 +35,13 @@ public final class ClipboardImageStore {
     init(
         directoryURL: URL,
         maxByteSize: Int = ClipboardImagePolicy.maxByteSize,
-        maxPixelCount: Int = ClipboardImagePolicy.maxPixelCount
+        maxPixelCount: Int = ClipboardImagePolicy.maxPixelCount,
+        maxPNGPixelCount: Int = ClipboardImagePolicy.maxPNGPixelCount
     ) {
         self.directoryURL = directoryURL
         self.maxByteSize = maxByteSize
         self.maxPixelCount = maxPixelCount
+        self.maxPNGPixelCount = maxPNGPixelCount
     }
 
     /// App Group 컨테이너를 얻지 못하면 `nil`. 호출 측은 이미지 저장을 건너뛴다
@@ -66,7 +69,9 @@ public final class ClipboardImageStore {
               let rawHeight = properties[kCGImagePropertyPixelHeight] as? Int else { return nil }
         let orientation = properties[kCGImagePropertyOrientation] as? Int ?? 1
         let (pixelWidth, pixelHeight) = orientation >= 5 ? (rawHeight, rawWidth) : (rawWidth, rawHeight)
-        guard pixelWidth > 0, pixelHeight > 0, pixelWidth * pixelHeight <= maxPixelCount else { return nil }
+        // PNG는 썸네일 생성 시 전체 디코드될 수 있어 더 낮은 상한을 쓴다
+        let pixelLimit = typeIdentifier == "public.png" ? maxPNGPixelCount : maxPixelCount
+        guard pixelWidth > 0, pixelHeight > 0, pixelWidth * pixelHeight <= pixelLimit else { return nil }
 
         // 3. 스트리밍 해시
         guard let hash = ClipboardImageStore.sha256Hex(of: temporaryFileURL) else { return nil }
