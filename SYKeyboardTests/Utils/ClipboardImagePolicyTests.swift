@@ -42,7 +42,12 @@ struct ClipboardImagePolicyTests {
         let ipad = ClipboardImagePolicy.requiredDecodeMemory(typeIdentifier: "public.png", pixelWidth: 2_752, pixelHeight: 2_064)
         #expect(ipad == 2_752 * 2_064 * 4 + margin)
         #expect(ClipboardImagePolicy.requiredDecodeMemory(typeIdentifier: "public.jpeg", pixelWidth: 8_000, pixelHeight: 6_000) == ClipboardImagePolicy.scaledDecodeMemory)
-        #expect(ClipboardImagePolicy.requiredDecodeMemory(typeIdentifier: "public.heic", pixelWidth: 8_000, pixelHeight: 6_000) == ClipboardImagePolicy.scaledDecodeMemory)
+        // HEIC는 24 MP까지만 축소 디코드로 보고, 그 위는 PNG처럼 전체 디코드로 계산한다
+        #expect(ClipboardImagePolicy.heicScaledDecodeMaxPixelCount == 24_000_000)
+        #expect(ClipboardImagePolicy.requiredDecodeMemory(typeIdentifier: "public.heic", pixelWidth: 6_000, pixelHeight: 4_000) == ClipboardImagePolicy.scaledDecodeMemory)
+        #expect(ClipboardImagePolicy.requiredDecodeMemory(typeIdentifier: "public.heic", pixelWidth: 8_000, pixelHeight: 6_000) == 8_000 * 6_000 * 4 + margin)
+        // 16비트 PNG는 픽셀당 8바이트
+        #expect(ClipboardImagePolicy.requiredDecodeMemory(typeIdentifier: "public.png", pixelWidth: 100, pixelHeight: 100, bitDepth: 16) == 100 * 100 * 8 + margin)
         #expect(ClipboardImagePolicy.scaledDecodeMemory == 24 * 1_024 * 1_024)
     }
 
@@ -54,8 +59,10 @@ struct ClipboardImagePolicyTests {
         #expect(ClipboardImagePolicy.canDecode(typeIdentifier: "public.png", pixelWidth: 2_752, pixelHeight: 2_064, budget: keyboard))
         #expect(ClipboardImagePolicy.canDecode(typeIdentifier: "public.png", pixelWidth: 3_456, pixelHeight: 2_234, budget: keyboard) == false)
         #expect(ClipboardImagePolicy.canDecode(typeIdentifier: "public.png", pixelWidth: 3_456, pixelHeight: 2_234, budget: app))
-        // JPEG·HEIC는 축소 디코드라 48 MP도 키보드 예산 안
+        // JPEG는 축소 디코드라 48 MP도 키보드 예산 안. 48 MP HEIC는 실측 전이라 키보드에서 건너뛰고 앱이 받는다
         #expect(ClipboardImagePolicy.canDecode(typeIdentifier: "public.jpeg", pixelWidth: 8_000, pixelHeight: 6_000, budget: keyboard))
+        #expect(ClipboardImagePolicy.canDecode(typeIdentifier: "public.heic", pixelWidth: 8_000, pixelHeight: 6_000, budget: keyboard) == false)
+        #expect(ClipboardImagePolicy.canDecode(typeIdentifier: "public.heic", pixelWidth: 8_000, pixelHeight: 6_000, budget: app))
         #expect(ClipboardImagePolicy.canDecode(typeIdentifier: "public.jpeg", pixelWidth: 8_000, pixelHeight: 6_000, budget: ClipboardImagePolicy.scaledDecodeMemory - 1) == false)
     }
 

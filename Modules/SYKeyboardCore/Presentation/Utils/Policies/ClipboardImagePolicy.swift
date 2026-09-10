@@ -15,7 +15,7 @@ public enum ClipboardImagePolicy {
     /// 이미지 파일 하나의 최대 바이트. 초과하면 저장하지 않는다. 48 MP JPEG(10~20 MB)를 받기 위한 값
     public static let maxByteSize = 24 * 1_024 * 1_024
     /// 이미지 하나의 최대 픽셀 수(가로 × 세로). 타입과 무관한 저장 상한이며, 실제로 디코드할 수 있는지는
-    /// `requiredDecodeMemory`와 남은 메모리로 그때그때 판정한다
+    /// `requiredDecodeMemory`와 프로세스별 고정 예산으로 판정한다
     public static let maxPixelCount = 48_000_000
     /// 목록 행 썸네일의 긴 변 픽셀
     public static let thumbnailMaxPixelSize = 240
@@ -27,6 +27,9 @@ public enum ClipboardImagePolicy {
     public static let preferredTypeIdentifiers = ["public.jpeg", "public.heic", "public.png"]
     /// JPEG·HEIC 디코드(썸네일·미리보기)에 드는 예상 메모리. ImageIO가 축소 디코드하므로 픽셀 수와 무관한 고정값이다
     public static let scaledDecodeMemory = 24 * 1_024 * 1_024
+    /// HEIC를 축소 디코드로 간주하는 픽셀 상한. iPhone 기본 사진(24 MP)까지만 실측 없이 가정하고, 그 위는 PNG처럼 전체 디코드로 계산한다
+    // ponytail: 실기기에서 48 MP HEIC 썸네일 생성 메모리를 계측하면 이 값을 올리거나 없앤다
+    public static let heicScaledDecodeMaxPixelCount = 24_000_000
     /// PNG 전체 디코드 비트맵 위에 더하는 여유
     public static let decodeMemoryMargin = 8 * 1_024 * 1_024
     /// 키보드 extension이 이미지 하나를 디코드하는 데 쓸 수 있는 예산. 프로세스의 남은 메모리를 조회하지 않고 이 고정값으로 판정한다.
@@ -49,16 +52,23 @@ public enum ClipboardImagePolicy {
     }
 
     /// 이 이미지를 디코드(썸네일·미리보기)할 때 드는 예상 메모리.
-    /// PNG는 ImageIO가 축소 디코드를 못 해 원본 전체 비트맵(픽셀 × 4바이트)이 잡히므로 픽셀 수에 비례하고,
-    /// JPEG·HEIC는 축소 디코드라 고정값이다
-    public static func requiredDecodeMemory(typeIdentifier: String, pixelWidth: Int, pixelHeight: Int) -> Int {
-        guard typeIdentifier == "public.png" else { return scaledDecodeMemory }
-        return pixelWidth * pixelHeight * 4 + decodeMemoryMargin
+    /// PNG는 ImageIO가 축소 디코드를 못 해 원본 전체 비트맵(픽셀 × 채널당 바이트 × 4)이 잡히므로 픽셀 수에 비례하고,
+    /// JPEG와 `heicScaledDecodeMaxPixelCount` 이하 HEIC는 축소 디코드라 고정값이다. `bitDepth`는 채널당 비트(16비트 PNG는 8바이트/픽셀)
+    public static func requiredDecodeMemory(typeIdentifier: String, pixelWidth: Int, pixelHeight: Int, bitDepth: Int = 8) -> Int {
+        let pixelCount = pixelWidth * pixelHeight
+        switch typeIdentifier {
+        case "public.jpeg":
+            return scaledDecodeMemory
+        case "public.heic" where pixelCount <= heicScaledDecodeMaxPixelCount:
+            return scaledDecodeMemory
+        default:
+            return pixelCount * (bitDepth > 8 ? 8 : 4) + decodeMemoryMargin
+        }
     }
 
     /// 이 이미지의 예상 디코드 메모리가 `budget` 안에 드는지. 키보드는 `keyboardDecodeMemoryBudget`, 앱은 `appDecodeMemoryBudget`
-    public static func canDecode(typeIdentifier: String, pixelWidth: Int, pixelHeight: Int, budget: Int) -> Bool {
-        return requiredDecodeMemory(typeIdentifier: typeIdentifier, pixelWidth: pixelWidth, pixelHeight: pixelHeight) <= budget
+    public static func canDecode(typeIdentifier: String, pixelWidth: Int, pixelHeight: Int, bitDepth: Int = 8, budget: Int) -> Bool {
+        return requiredDecodeMemory(typeIdentifier: typeIdentifier, pixelWidth: pixelWidth, pixelHeight: pixelHeight, bitDepth: bitDepth) <= budget
     }
 
     /// 원본 파일 확장자. 저장 대상이 아닌 타입은 `img`

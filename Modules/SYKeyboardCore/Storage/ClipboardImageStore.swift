@@ -90,9 +90,11 @@ public final class ClipboardImageStore {
         let orientation = properties[kCGImagePropertyOrientation] as? Int ?? 1
         let (pixelWidth, pixelHeight) = orientation >= 5 ? (rawHeight, rawWidth) : (rawWidth, rawHeight)
         guard pixelWidth > 0, pixelHeight > 0, pixelWidth * pixelHeight <= maxPixelCount else { return nil }
-        // 썸네일을 만들 때 이 프로세스의 예산 안에 드는 크기인지. 키보드가 못 하면 앱이 활성화될 때 저장한다
+        // 썸네일을 만들 때 이 프로세스의 예산 안에 드는 크기인지
+        let bitDepth = properties[kCGImagePropertyDepth] as? Int ?? 8
         guard ClipboardImagePolicy.canDecode(
-            typeIdentifier: typeIdentifier, pixelWidth: pixelWidth, pixelHeight: pixelHeight, budget: decodeMemoryBudget
+            typeIdentifier: typeIdentifier, pixelWidth: pixelWidth, pixelHeight: pixelHeight,
+            bitDepth: bitDepth, budget: decodeMemoryBudget
         ) else { return nil }
 
         // 3. 스트리밍 해시
