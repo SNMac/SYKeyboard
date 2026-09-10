@@ -73,14 +73,28 @@ struct ClipboardImageStoreTests {
         #expect(((try? FileManager.default.contentsOfDirectory(atPath: fixture.directoryURL.path)) ?? []).isEmpty)
     }
 
-    @Test("픽셀 한도를 넘는 이미지는 헤더만 읽고 저장하지 않음")
+    @Test("픽셀 한도를 넘는 JPEG는 헤더만 읽고 저장하지 않음")
     func test픽셀한도초과는_저장안함() throws {
         let fixture = makeFixture(name: "too-many-pixels", maxPixelCount: 100)
         defer { fixture.cleanUp() }
-        let temporary = try makeImageFile(width: 20, height: 20, type: .png, name: "pixels")
+        let temporary = try makeImageFile(width: 20, height: 20, type: .jpeg, name: "pixels")
 
-        #expect(fixture.store.store(temporaryFileURL: temporary, typeIdentifier: "public.png") == nil)
+        #expect(fixture.store.store(temporaryFileURL: temporary, typeIdentifier: "public.jpeg") == nil)
         #expect(((try? FileManager.default.contentsOfDirectory(atPath: fixture.directoryURL.path)) ?? []).isEmpty)
+    }
+
+    @Test("PNG 전용 픽셀 한도는 PNG에만 적용되고 JPEG는 일반 한도를 따름")
+    func testPNG전용픽셀한도() throws {
+        let fixture = makeFixture(name: "png-pixels", maxPixelCount: 1_000, maxPNGPixelCount: 100)
+        defer { fixture.cleanUp() }
+        let png = try makeImageFile(width: 20, height: 20, type: .png, name: "png")
+        let jpeg = try makeImageFile(width: 20, height: 20, type: .jpeg, name: "jpeg")
+
+        #expect(fixture.store.store(temporaryFileURL: png, typeIdentifier: "public.png") == nil)
+        #expect(fixture.store.store(temporaryFileURL: jpeg, typeIdentifier: "public.jpeg") != nil)
+        let files = try FileManager.default.contentsOfDirectory(atPath: fixture.directoryURL.path)
+        #expect(files.count == 2)
+        #expect(files.allSatisfy { $0.hasSuffix(".jpg") })
     }
 
     @Test("이미지가 아닌 파일은 저장하지 않음")
@@ -150,12 +164,13 @@ private struct ImageStoreFixture {
 private func makeFixture(
     name: String,
     maxByteSize: Int = ClipboardImagePolicy.maxByteSize,
-    maxPixelCount: Int = ClipboardImagePolicy.maxPixelCount
+    maxPixelCount: Int = ClipboardImagePolicy.maxPixelCount,
+    maxPNGPixelCount: Int = ClipboardImagePolicy.maxPNGPixelCount
 ) -> ImageStoreFixture {
     let directoryURL = FileManager.default.temporaryDirectory
         .appendingPathComponent("SYKeyboardTests-\(UUID().uuidString)-\(name)", isDirectory: true)
     return ImageStoreFixture(
-        store: ClipboardImageStore(directoryURL: directoryURL, maxByteSize: maxByteSize, maxPixelCount: maxPixelCount),
+        store: ClipboardImageStore(directoryURL: directoryURL, maxByteSize: maxByteSize, maxPixelCount: maxPixelCount, maxPNGPixelCount: maxPNGPixelCount),
         directoryURL: directoryURL
     )
 }
