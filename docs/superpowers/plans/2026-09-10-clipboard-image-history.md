@@ -2350,7 +2350,7 @@ git commit -m "feat: #55 - 앱 관리 화면 이미지 항목과 이미지 기�
 **Files:**
 - Modify: `docs/superpowers/plans/2026-09-10-clipboard-image-history.md`
 
-- [ ] **Step 1: 전체 테스트와 네 scheme 빌드**
+- [x] **Step 1: 전체 테스트와 네 scheme 빌드**
 
 ```sh
 xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
@@ -2366,11 +2366,11 @@ git status --short
 
 Expected: `TEST SUCCEEDED`, `failed on` 0건, 세 scheme `BUILD SUCCEEDED`. `.xcscheme` `RemotePath` 변경은 복원한다.
 
-- [ ] **Step 2: 결과 기록**
+- [x] **Step 2: 결과 기록**
 
 아래 "검증 결과" 절에 실제 실행 명령, 기기명/OS, `passed on` 줄 수(테스트 개수)와 `failed on` 줄 수, 빌드 결과, Task 5에서 `loadFileRepresentation`과 `loadDataRepresentation` 중 무엇을 썼는지를 적는다. 실기기 확인 항목은 확인하지 못했으면 "미확인"과 차단 이유를 그대로 남긴다.
 
-- [ ] **Step 3: 커밋**
+- [x] **Step 3: 커밋**
 
 ```sh
 git add docs/superpowers/plans/2026-09-10-clipboard-image-history.md
@@ -2381,22 +2381,50 @@ git commit -m "docs: #55 - 구현 계획에 검증 결과 기록"
 
 ## 검증 결과
 
-(Task 9에서 기록)
+- 검증 기기/OS: `iPhone 13 mini / iOS 18.6` 시뮬레이터. Xcode 27.0에서 iOS 16.0 런타임은 XCTest 로딩이 실패(`dyld: Symbol not found: _os_log_compare_enablement`)하므로 사용하지 않음.
+- 실행 명령:
+  ```sh
+  xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
+    -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=18.6' \
+    -parallel-testing-enabled NO > /tmp/task9-test.log 2>&1
+
+  xcodebuild build -project SYKeyboard.xcodeproj -scheme HangeulKeyboard \
+    -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=18.6' \
+    > /tmp/task9-build-HangeulKeyboard.log 2>&1
+
+  xcodebuild build -project SYKeyboard.xcodeproj -scheme EnglishKeyboard \
+    -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=18.6' \
+    > /tmp/task9-build-EnglishKeyboard.log 2>&1
+
+  xcodebuild build -project SYKeyboard.xcodeproj -scheme HangeulEnglishKeyboard \
+    -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=18.6' \
+    > /tmp/task9-build-HangeulEnglishKeyboard.log 2>&1
+
+  git status --short
+  ```
+- 테스트 결과: `/tmp/task9-test.log`. `grep -E "TEST (SUCCEEDED|FAILED)" /tmp/task9-test.log` → `** TEST SUCCEEDED **`. `grep -c "✔ Test" /tmp/task9-test.log` → 667건(통과). `grep -c "✘ Test" /tmp/task9-test.log` → 0건(실패).
+- 빌드 결과 (각 로그에서 `grep -E "BUILD (SUCCEEDED|FAILED)"`, `grep -c "error:"`):
+  - `HangeulKeyboard`: `/tmp/task9-build-HangeulKeyboard.log` → `** BUILD SUCCEEDED **`, `error:` 0건
+  - `EnglishKeyboard`: `/tmp/task9-build-EnglishKeyboard.log` → `** BUILD SUCCEEDED **`, `error:` 0건
+  - `HangeulEnglishKeyboard`: `/tmp/task9-build-HangeulEnglishKeyboard.log` → `** BUILD SUCCEEDED **`, `error:` 0건
+- `git status --short`: 출력 없음(clean). `.xcscheme` `RemotePath` 변경 없음, 복원 작업 불필요.
+- 이미지 캡처 경로: 최종 코드는 `Modules/SYKeyboardCore/Storage/ClipboardHistoryPasteboardSynchronizer.swift`에서 `NSItemProvider.loadFileRepresentation(forTypeIdentifier:)`만 사용하고 `loadDataRepresentation` 폴백은 도입하지 않았다. `SYKeyboardTests/Storage/ClipboardHistoryPasteboardSynchronizerTests.swift`의 `test이미지만있으면_이미지항목기록`이 이 경로로 통과함을 확인했다.
+- 이번 세션은 실기기를 사용하지 않음(자동 테스트·시뮬레이터 빌드만 수행). 아래 "실기기 확인 항목" 표는 전부 미확인이다.
 
 ### 실기기 확인 항목 (자동 테스트로 대체 불가)
 
 | 항목 | 결과 |
 | --- | --- |
-| 사진 앱에서 12 MP 사진 복사 → 키보드 열기 → 패널에 썸네일·크기 표시 → 메시지 앱에서 입력창 길게 눌러 붙여넣기 성공 | 미확인 |
-| 스크린샷(PNG) 복사 → 저장 확인 | 미확인 |
-| 20 MP 이상 PNG 복사 → Xcode 메모리 게이지로 키보드 피크 확인. 종료되면 PNG 전용 픽셀 상한 도입 | 미확인 |
-| 웹페이지에서 텍스트+이미지 영역 복사 → 텍스트만 저장 | 미확인 |
-| 이미지 탭 → pasteboard 복원, 헤더 안내 약 2초 표시 후 제목 복구(좁은 화면에서 문구가 잘리지 않고 축소), 입력창 탭 시 패널 닫힘 | 미확인 |
-| 이미지 paste 미지원 입력 필드(검색창 등)에서 붙여넣기 메뉴 동작 기록 | 미확인 |
-| "이미지도 기록" OFF → 새 이미지 미저장, 기존 이미지 항목 유지 | 미확인 |
-| 앱 관리 화면에서 이미지 항목 삭제 → App Group `ClipboardImages/` 원본·썸네일 삭제 확인 | 미확인 |
-| 앱 원문 시트에서 이미지 미리보기·공유(파일)·복사(복원)·고정 동작, 편집 버튼 없음 | 미확인 |
-| iOS 16 기기에서 이미지 캡처 시 붙여넣기 권한 알림이 텍스트와 같은 방식으로 뜸 | 미확인 |
-| 키보드 상세 뷰(길게 누르기)에서 이미지 미리보기와 "복사" 버튼 → 복원·헤더 안내 | 미확인 |
-| 같은 이미지 재복사 시 항목이 맨 위로 이동하고 파일이 늘지 않음, 고정 이미지는 자리 유지 | 미확인 |
-| 영어 기기에서 이미지 관련 패널·앱 문구가 영문 표시 | 미확인 |
+| 사진 앱에서 12 MP 사진 복사 → 키보드 열기 → 패널에 썸네일·크기 표시 → 메시지 앱에서 입력창 길게 눌러 붙여넣기 성공 | 미확인 — 이번 세션은 실기기를 사용하지 않음 |
+| 스크린샷(PNG) 복사 → 저장 확인 | 미확인 — 이번 세션은 실기기를 사용하지 않음 |
+| 20 MP 이상 PNG 복사 → Xcode 메모리 게이지로 키보드 피크 확인. 종료되면 PNG 전용 픽셀 상한 도입 | 미확인 — 이번 세션은 실기기를 사용하지 않음 |
+| 웹페이지에서 텍스트+이미지 영역 복사 → 텍스트만 저장 | 미확인 — 이번 세션은 실기기를 사용하지 않음 |
+| 이미지 탭 → pasteboard 복원, 헤더 안내 약 2초 표시 후 제목 복구(좁은 화면에서 문구가 잘리지 않고 축소), 입력창 탭 시 패널 닫힘 | 미확인 — 이번 세션은 실기기를 사용하지 않음 |
+| 이미지 paste 미지원 입력 필드(검색창 등)에서 붙여넣기 메뉴 동작 기록 | 미확인 — 이번 세션은 실기기를 사용하지 않음 |
+| "이미지도 기록" OFF → 새 이미지 미저장, 기존 이미지 항목 유지 | 미확인 — 이번 세션은 실기기를 사용하지 않음 |
+| 앱 관리 화면에서 이미지 항목 삭제 → App Group `ClipboardImages/` 원본·썸네일 삭제 확인 | 미확인 — 이번 세션은 실기기를 사용하지 않음 |
+| 앱 원문 시트에서 이미지 미리보기·공유(파일)·복사(복원)·고정 동작, 편집 버튼 없음 | 미확인 — 이번 세션은 실기기를 사용하지 않음 |
+| iOS 16 기기에서 이미지 캡처 시 붙여넣기 권한 알림이 텍스트와 같은 방식으로 뜸 | 미확인 — 이번 세션은 실기기를 사용하지 않음 |
+| 키보드 상세 뷰(길게 누르기)에서 이미지 미리보기와 "복사" 버튼 → 복원·헤더 안내 | 미확인 — 이번 세션은 실기기를 사용하지 않음 |
+| 같은 이미지 재복사 시 항목이 맨 위로 이동하고 파일이 늘지 않음, 고정 이미지는 자리 유지 | 미확인 — 이번 세션은 실기기를 사용하지 않음 |
+| 영어 기기에서 이미지 관련 패널·앱 문구가 영문 표시 | 미확인 — 이번 세션은 실기기를 사용하지 않음 |
