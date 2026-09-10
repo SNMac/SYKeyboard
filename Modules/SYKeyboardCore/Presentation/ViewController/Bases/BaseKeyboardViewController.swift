@@ -168,7 +168,6 @@ open class BaseKeyboardViewController: UIInputViewController {
     private var currentAutocorrectionType: UITextAutocorrectionType?
     /// host 입력 변경 callback에서 마지막으로 확인한 수식 자동완성 허용 상태입니다.
     private var isMathExpressionCompletionAllowed = true
-    /// 자동완성과 undo/redo 설정이 모두 켜진 경우에만 기능을 활성화합니다.
     /// suggestion bar 전체를 숨겨야 하는지 여부
     private var shouldHideSuggestionBar: Bool {
         return KeyboardPresentationStatePolicy.shouldHideSuggestionBar(
@@ -187,11 +186,9 @@ open class BaseKeyboardViewController: UIInputViewController {
         return keyboardSettingsManager.isClipboardHistoryEnabled && !BaseKeyboardViewController.isPreview
     }
 
+    /// undo/redo 기능 사용 가능 여부. 자동완성 설정과 독립이다
     private var isUndoRedoFeatureAvailable: Bool {
-        return KeyboardPresentationStatePolicy.isUndoRedoFeatureAvailable(
-            isPredictiveTextEnabled: keyboardSettingsManager.isPredictiveTextEnabled,
-            isUndoRedoEnabled: keyboardSettingsManager.isUndoRedoEnabled
-        )
+        return keyboardSettingsManager.isUndoRedoEnabled
     }
 
     /// 삭제 버튼 팬 제스처로 인해 임시로 삭제된 내용을 저장하는 변수
@@ -1362,12 +1359,17 @@ private extension BaseKeyboardViewController {
     }
 
     func updateSuggestionBarHidden() {
+        // VC가 살아 있는 동안 설정이 바뀔 수 있으므로 컨트롤러 쪽 값을 함께 맞춘다.
+        // didSet에 idempotence 가드가 있어 값이 같으면 비용이 없다
+        suggestionController.isPredictiveTextEnabled = keyboardSettingsManager.isPredictiveTextEnabled
+
         let prevSuggestionHiddenState = suggestionBarView.isHidden
 
         let shouldHideBar = shouldHideSuggestionBar
         // 바가 남아 있어도 autocorrection이 막혀 있으면 후보 영역만 비운다
         let shouldHideSuggestions = KeyboardPresentationStatePolicy.shouldHideSuggestionButtons(
             isSuggestionBarHidden: shouldHideBar,
+            isPredictiveTextEnabled: keyboardSettingsManager.isPredictiveTextEnabled,
             autocorrectionType: currentAutocorrectionType
         )
 
