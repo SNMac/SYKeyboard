@@ -118,7 +118,11 @@ private extension OneHandedKeyboardWidthSettingsView {
 
 private extension OneHandedKeyboardWidthSettingsView {
     func updatePreviewKeyboardHeight() {
-        let isSuggestionBarVisible = isPredictiveTextEnabled || isUndoRedoEnabled || isClipboardHistoryEnabled
+        let isSuggestionBarVisible = KeyboardPresentationStatePolicy.isSuggestionBarVisibleForSettingsPreview(
+            isPredictiveTextEnabled: isPredictiveTextEnabled,
+            isUndoRedoEnabled: isUndoRedoEnabled,
+            isClipboardHistoryEnabled: isClipboardHistoryEnabled
+        )
         let suggestionBarHeight = isSuggestionBarVisible
         ? KeyboardLayoutFigure.suggestionBarHeightWithTopSpacing + KeyboardLayoutFigure.keyboardFrameSpacing
         : 0

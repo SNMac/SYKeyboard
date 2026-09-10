@@ -7,7 +7,7 @@
 
 import UIKit
 
-enum KeyboardPresentationStatePolicy {
+public enum KeyboardPresentationStatePolicy {
 
     /// 한 손 키보드 최소 폭을 현재 가용 폭 안으로 제한한 값
     ///
@@ -48,12 +48,31 @@ enum KeyboardPresentationStatePolicy {
     ) -> Bool {
         guard currentKeyboard != .tenKey else { return true }
 
-        let isSuggestionAreaUsable = isSuggestionAreaUsable(
+        return !isSuggestionAreaUsable(
             isPredictiveTextEnabled: isPredictiveTextEnabled,
             autocorrectionType: autocorrectionType
         )
+        && !isUndoRedoEnabled
+        && !isClipboardHistoryEnabled
+    }
 
-        return !isSuggestionAreaUsable && !isUndoRedoEnabled && !isClipboardHistoryEnabled
+    /// 앱 설정 미리보기에서 suggestion bar 자리를 잡을지 판단한다.
+    ///
+    /// 텍스트 필드와 현재 자판을 모르는 호출자를 위한 진입점이다.
+    /// 미리보기 높이가 실제 키보드 높이와 어긋나지 않도록 같은 규칙을 위임해서 쓴다.
+    public static func isSuggestionBarVisibleForSettingsPreview(
+        isPredictiveTextEnabled: Bool,
+        isUndoRedoEnabled: Bool,
+        isClipboardHistoryEnabled: Bool
+    ) -> Bool {
+        return !shouldHideSuggestionBar(
+            isPredictiveTextEnabled: isPredictiveTextEnabled,
+            // 미리보기는 특정 텍스트 필드에 붙지 않고 텐키로 전환되지도 않는다
+            autocorrectionType: nil,
+            currentKeyboard: .naratgeul,
+            isUndoRedoEnabled: isUndoRedoEnabled,
+            isClipboardHistoryEnabled: isClipboardHistoryEnabled
+        )
     }
 
     /// suggestion bar 안의 후보 영역을 숨길지 판단한다.
