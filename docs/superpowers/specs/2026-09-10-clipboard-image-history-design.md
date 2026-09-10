@@ -258,10 +258,14 @@ public static func synchronizeIfNeeded(
 5. `ClipboardImagePolicy.storableType(in: pasteboard.types)`로 타입을 고른다. 없으면 끝낸다.
 6. `ClipboardImagePolicy.hasEnoughMemory(available: availableMemory())`가 거짓이면 끝낸다.
 7. `pasteboard.itemProviders.first?.loadFileRepresentation(forTypeIdentifier:)`를 부른다.
-   완료 클로저는 백그라운드 스레드에서 오며 시스템 임시 파일은 클로저가 끝나면
-   사라지므로, 그 안에서 `imageStore.store(temporaryFileURL:typeIdentifier:)`를 실행해
-   이동까지 마친다.
-8. 참조를 얻으면 메인 큐로 넘어가 `store.record(.image(reference))`를 부르고
+   완료 클로저는 시스템이 정한 백그라운드 스레드에서 오며 시스템 임시 파일은 클로저가
+   끝나면 사라지므로, 그 안에서는 `ClipboardImageStore.stage(temporaryFileURL:typeIdentifier:)`로
+   우리 tmp에 옮기기만 한다(rename 한 번).
+8. 해시·썸네일 생성(`imageStore.store(temporaryFileURL:typeIdentifier:)`)은 `.utility` QoS
+   직렬 큐에서 한 번에 하나씩 처리해 자판 입력(main)과 경쟁하지 않게 한다. 큐에서 기다린
+   뒤 무거운 디코드 직전에 `hasEnoughMemory`를 다시 확인하고, 거부·중복·실패 어느 경우든
+   옮겨 둔 임시 파일을 지운다.
+9. 참조를 얻으면 메인 큐로 넘어가 `store.record(.image(reference))`를 부르고
    `onImageRecorded`를 호출한다. 파일 저장만 백그라운드에서 하고 plist 기록은 메인에서
    해 같은 프로세스 안의 연산 순서를 단순하게 유지한다.
 

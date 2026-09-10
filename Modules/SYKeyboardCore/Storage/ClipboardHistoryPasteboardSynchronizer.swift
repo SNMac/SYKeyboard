@@ -18,6 +18,12 @@ public enum ClipboardHistoryPasteboardSynchronizer {
     /// 비밀번호 관리자가 비밀 항목에 붙이는 pasteboard 타입. 이 타입이 있으면 기록하지 않는다
     public static let concealedPasteboardType = "org.nspasteboard.ConcealedType"
 
+    /// 해시·썸네일 생성을 자판 입력(main)과 경쟁하지 않는 낮은 우선순위로, 한 번에 하나씩 처리한다
+    private static let imageProcessingQueue = DispatchQueue(
+        label: "com.snmac.sykeyboard.clipboard-image-processing",
+        qos: .utility
+    )
+
     /// pasteboard의 `changeCount`가 마지막 확인값과 다를 때만 내용을 읽어 `store`에 기록한다
     ///
     /// - Parameters:
@@ -27,7 +33,7 @@ public enum ClipboardHistoryPasteboardSynchronizer {
         store: ClipboardHistoryStore,
         pasteboard: UIPasteboard = .general,
         settings: UserDefaultsManager = .shared,
-        availableMemory: () -> Int = { Int(os_proc_available_memory()) },
+        availableMemory: @escaping () -> Int = { Int(os_proc_available_memory()) },
         onImageRecorded: (() -> Void)? = nil
     ) {
         let changeCount = pasteboard.changeCount
@@ -49,14 +55,23 @@ public enum ClipboardHistoryPasteboardSynchronizer {
               ClipboardImagePolicy.hasEnoughMemory(available: availableMemory()),
               let itemProvider = pasteboard.itemProviders.first else { return }
 
-        // 파일로 받아 프로세스 메모리에 바이트를 올리지 않는다. 완료 클로저는 백그라운드 스레드에서 오며
-        // 시스템 임시 파일은 클로저가 끝나면 사라지므로 그 안에서 이동까지 끝낸다
+        // 파일로 받아 프로세스 메모리에 바이트를 올리지 않는다. 완료 클로저는 시스템이 정한 백그라운드 스레드에서 오며
+        // 시스템 임시 파일은 클로저가 끝나면 사라지므로 그 안에서는 우리 tmp로 옮기기만 하고(rename 한 번),
+        // 해시·썸네일은 utility 큐에서 순차 처리해 키보드 입력 응답에 영향을 주지 않게 한다
         itemProvider.loadFileRepresentation(forTypeIdentifier: typeIdentifier) { url, _ in
             guard let url,
-                  let reference = imageStore.store(temporaryFileURL: url, typeIdentifier: typeIdentifier) else { return }
-            DispatchQueue.main.async {
-                store.record(.image(reference))
-                onImageRecorded?()
+                  let stagedURL = ClipboardImageStore.stage(temporaryFileURL: url, typeIdentifier: typeIdentifier) else { return }
+            imageProcessingQueue.async {
+                // 큐에서 기다리는 사이 상황이 바뀔 수 있으므로 무거운 디코드 직전에 다시 확인한다
+                guard ClipboardImagePolicy.hasEnoughMemory(available: availableMemory()) else {
+                    try? FileManager.default.removeItem(at: stagedURL)
+                    return
+                }
+                guard let reference = imageStore.store(temporaryFileURL: stagedURL, typeIdentifier: typeIdentifier) else { return }
+                DispatchQueue.main.async {
+                    store.record(.image(reference))
+                    onImageRecorded?()
+                }
             }
         }
     }
