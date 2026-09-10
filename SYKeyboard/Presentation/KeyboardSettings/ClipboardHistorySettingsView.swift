@@ -65,7 +65,7 @@ struct ClipboardHistorySettingsView: View {
             Group {
                 if items.isEmpty {
                     VStack(spacing: 8) {
-                        Text("복사한 텍스트가 여기에 표시됩니다.")
+                        Text("복사한 텍스트나 이미지가 여기에 표시됩니다.")
                         limitDescription
                     }
                     .font(.footnote)
@@ -94,6 +94,7 @@ struct ClipboardHistorySettingsView: View {
                 if let item = detailItem {
                     ClipboardHistoryDetailView(
                         item: item,
+                        imageStore: store?.imageStore,
                         canPin: canPin,
                         // 저장 가능 여부만 보므로 시각은 결과에 영향이 없다. body마다 Date()를 만들지 않도록 고정값을 넘긴다
                         canSave: { newText in item.text.flatMap { ClipboardHistoryPolicy.replacingText($0, with: newText, in: items, now: .distantPast) } != nil },
@@ -177,8 +178,19 @@ private extension ClipboardHistorySettingsView {
 
     func row(for item: ClipboardHistoryItem) -> some View {
         HStack {
-            Text(item.text ?? "")
-                .lineLimit(2)
+            switch item.content {
+            case .text(let text):
+                Text(text)
+                    .lineLimit(2)
+            case .image(let reference):
+                thumbnail(for: reference)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("이미지")
+                    Text(reference.sizeDescription)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
             Spacer()
             if item.isPinned {
                 Image(systemName: "pin.circle.fill")
@@ -186,6 +198,22 @@ private extension ClipboardHistorySettingsView {
             }
         }
         .contentShape(Rectangle())
+    }
+
+    /// 썸네일 파일만 읽는다. 앱 프로세스는 메모리 여유가 있어 캐시 없이 동기 로드한다
+    @ViewBuilder
+    func thumbnail(for reference: ClipboardImageReference) -> some View {
+        if let url = store?.imageStore?.thumbnailURL(for: reference),
+           let image = UIImage(contentsOfFile: url.path) {
+            Image(uiImage: image)
+                .resizable()
+                .scaledToFill()
+                .frame(width: 44, height: 44)
+                .clipShape(RoundedRectangle(cornerRadius: 4))
+        } else {
+            Image(systemName: "photo")
+                .frame(width: 44, height: 44)
+        }
     }
 
     @ToolbarContentBuilder
@@ -306,7 +334,7 @@ private extension ClipboardHistorySettingsView {
     /// 화면에 들어오거나 돌아올 때. 앱 활성화 알림과 순서가 보장되지 않으므로 여기서도 동기화한다
     func synchronizeAndReload() {
         if let store, UserDefaultsManager.shared.isClipboardHistoryEnabled {
-            ClipboardHistoryPasteboardSynchronizer.synchronizeIfNeeded(store: store)
+            ClipboardHistoryPasteboardSynchronizer.synchronizeIfNeeded(store: store, onImageRecorded: reload)
         }
         reload()
     }
@@ -362,13 +390,20 @@ private extension ClipboardHistorySettingsView {
         refreshDetailItem(id: item.id)
     }
 
-    /// 복사한 항목을 최근 복사한 것처럼 목록 맨 위로 올린다. 동기화가 방금 쓴 pasteboard를 다시 읽지 않도록 changeCount를 맞춘다
+    /// 복사한 항목을 최근 복사한 것처럼 목록 맨 위로 올린다. 동기화가 방금 쓴 pasteboard를 다시 읽지 않도록 changeCount를 맞춘다.
+    /// 이미지는 원본 바이트를 그대로 pasteboard에 놓는다. 파일이 없으면 아무것도 하지 않는다
     func copyFromDetail(_ item: ClipboardHistoryItem) {
-        guard let text = item.text else { return }
         let pasteboard = UIPasteboard.general
-        pasteboard.string = text
+        switch item.content {
+        case .text(let text):
+            pasteboard.string = text
+        case .image(let reference):
+            guard let url = store?.imageStore?.originalURL(for: reference),
+                  let data = try? Data(contentsOf: url, options: .mappedIfSafe) else { return }
+            pasteboard.setData(data, forPasteboardType: reference.typeIdentifier)
+        }
         UserDefaultsManager.shared.lastSeenPasteboardChangeCount = pasteboard.changeCount
-        store?.record(text)
+        store?.record(item.content)
         reload()
         refreshDetailItem(id: item.id)
     }
@@ -412,6 +447,7 @@ private extension View {
 /// "편집"을 누르면 같은 시트 안에서 내용을 고쳐 저장한다. 키보드 패널에는 편집이 없다
 private struct ClipboardHistoryDetailView: View {
     let item: ClipboardHistoryItem
+    let imageStore: ClipboardImageStore?
     /// 고정 한도에 여유가 있는지. 없으면 미고정 항목의 고정 버튼을 숨긴다
     let canPin: Bool
     /// 정책상 저장할 수 있는 내용인지(빈 값·길이·중복·원문과 같음)
@@ -424,6 +460,14 @@ private struct ClipboardHistoryDetailView: View {
     @State private var draft = ""
 
     private var text: String { item.text ?? "" }
+
+    /// 원본을 시트 폭에 맞는 크기까지만 디코드한다
+    private var previewImage: UIImage? {
+        guard let reference = item.image else { return nil }
+        return imageStore?
+            .previewImage(for: reference, maxPixelSize: ClipboardImagePolicy.appPreviewMaxPixelSize)
+            .map { UIImage(cgImage: $0) }
+    }
 
     private var linkStyledText: AttributedString {
         var attributed = AttributedString(text)
@@ -442,6 +486,20 @@ private struct ClipboardHistoryDetailView: View {
                         // 시트 배경 위에 흰 사각형이 뜨지 않도록 편집기 배경을 비운다
                         .scrollContentBackground(.hidden)
                         .padding(.horizontal)
+                } else if item.image != nil {
+                    ScrollView {
+                        if let previewImage {
+                            Image(uiImage: previewImage)
+                                .resizable()
+                                .scaledToFit()
+                                .padding()
+                        } else {
+                            Image(systemName: "photo")
+                                .font(.largeTitle)
+                                .foregroundStyle(.secondary)
+                                .padding()
+                        }
+                    }
                 } else {
                     ScrollView {
                         // 텍스트 전체가 URL이면 일반 링크처럼 파란 밑줄로 보이고 탭하면 브라우저로 연다
@@ -452,7 +510,7 @@ private struct ClipboardHistoryDetailView: View {
                     }
                 }
             }
-            .navigationTitle(isEditing ? "원문 편집" : "원문")
+            .navigationTitle(isEditing ? "원문 편집" : (item.image != nil ? "이미지" : "원문"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 if isEditing {
@@ -477,19 +535,28 @@ private struct ClipboardHistoryDetailView: View {
                                 )
                             }
                         }
-                        ShareLink(item: text) {
-                            Label("공유", systemImage: "square.and.arrow.up")
+                        if let reference = item.image, let url = imageStore?.originalURL(for: reference) {
+                            ShareLink(item: url) {
+                                Label("공유", systemImage: "square.and.arrow.up")
+                            }
+                        } else {
+                            ShareLink(item: text) {
+                                Label("공유", systemImage: "square.and.arrow.up")
+                            }
                         }
                     }
                     ToolbarItemGroup(placement: .navigationBarTrailing) {
                         Button(action: onCopy) {
                             Label("복사", systemImage: "doc.on.doc")
                         }
-                        Button {
-                            draft = text
-                            isEditing = true
-                        } label: {
-                            Label("편집", systemImage: "pencil.line")
+                        // 이미지는 편집하지 않는다
+                        if item.image == nil {
+                            Button {
+                                draft = text
+                                isEditing = true
+                            } label: {
+                                Label("편집", systemImage: "pencil.line")
+                            }
                         }
                     }
                 }

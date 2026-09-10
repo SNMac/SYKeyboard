@@ -510,12 +510,22 @@
         }
       }
     },
-    "복사한 텍스트가 여기에 표시됩니다." : {
+    "복사한 이미지를 저장하고 탭하면 클립보드로 복원합니다. 이미지당 12 MB까지. 끄면 새로 복사한 이미지를 저장하지 않으며, 저장된 이미지는 클립보드 기록 관리에서 삭제할 수 있습니다." : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Copied text will appear here."
+            "value" : "Saves copied images and restores one to the clipboard when tapped. Up to 12 MB per image. When off, newly copied images are not saved; saved images can be deleted in Manage Clipboard History."
+          }
+        }
+      }
+    },
+    "복사한 텍스트나 이미지가 여기에 표시됩니다." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copied text and images will appear here."
           }
         }
       }
@@ -819,6 +829,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Edit Text"
+          }
+        }
+      }
+    },
+    "이미지" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Image"
+          }
+        }
+      }
+    },
+    "이미지도 기록" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Include Images"
           }
         }
       }
