@@ -159,7 +159,7 @@ extension 프로세스 로컬 상태는 `KeyboardExtensionLocalStateStore`에 �
 
 ## 빌드와 테스트
 
-가능하면 변경 범위에 맞춰 아래 명령을 실행한다. 기본 검증 기준은 `iPhone 13 mini / iOS 16.0`이며, 해당 런타임이 없는 로컬 환경에서는 가장 가까운 iOS 16+ 시뮬레이터로 조정하고 최종 응답에 실제 기기명과 OS 버전을 명시한다.
+가능하면 변경 범위에 맞춰 아래 명령을 실행한다. 기본 검증 기준은 `iPhone 13 mini / iOS 18.6`이다. Xcode 27부터 iOS 16.0 시뮬레이터 런타임은 XCTest 로딩이 실패(`dyld: Symbol not found: _os_log_compare_enablement`, 테스트 러너 `Early unexpected exit`)하므로 테스트 대상으로 쓰지 않는다. 해당 런타임이 없는 로컬 환경에서는 가장 가까운 iOS 16+ 시뮬레이터로 조정하고 최종 응답에 실제 기기명과 OS 버전을 명시한다.
 
 ```sh
 xcodebuild -list -project SYKeyboard.xcodeproj
@@ -169,28 +169,28 @@ xcodebuild -list -project SYKeyboard.xcodeproj
 xcodebuild test \
   -project SYKeyboard.xcodeproj \
   -scheme SYKeyboard \
-  -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0'
+  -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=18.6'
 ```
 
 ```sh
 xcodebuild build \
   -project SYKeyboard.xcodeproj \
   -scheme HangeulKeyboard \
-  -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0'
+  -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=18.6'
 ```
 
 ```sh
 xcodebuild build \
   -project SYKeyboard.xcodeproj \
   -scheme EnglishKeyboard \
-  -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0'
+  -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=18.6'
 ```
 
 ```sh
 xcodebuild build \
   -project SYKeyboard.xcodeproj \
   -scheme HangeulEnglishKeyboard \
-  -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0'
+  -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=18.6'
 ```
 
 공유 scheme은 `SYKeyboard`, `HangeulKeyboard`, `EnglishKeyboard`, `HangeulEnglishKeyboard` 4개다. `SYKeyboard`/키보드 extension scheme의 TestAction은 `SYKeyboardTests`를 포함한다.
@@ -201,7 +201,7 @@ xcodebuild build \
 xcodebuild test \
   -project SYKeyboard.xcodeproj \
   -scheme SYKeyboard \
-  -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=16.0' \
+  -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=18.6' \
   -only-testing:SYKeyboardTests/NaratgeulProcessorTests
 ```
 

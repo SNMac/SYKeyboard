@@ -390,7 +390,7 @@ Core 문구는 `SYKeyboardAssets/Sources/SYKeyboardAssets/Resources/Localizable.
 ### 빌드
 
 `SYKeyboard` 테스트 실행 후 `HangeulKeyboard`·`EnglishKeyboard`·`HangeulEnglishKeyboard`
-세 scheme 빌드. 기준은 iPhone 13 mini / iOS 16.0이고 없으면 가장 가까운 iOS 16+
+세 scheme 빌드. 기준은 iPhone 13 mini / iOS 18.6이고 없으면 가장 가까운 iOS 16+
 시뮬레이터로 조정해 기록한다. 빌드 후 `.xcscheme`의 `RemotePath` 변경은 되돌린다.
 
 ### 실기기 수동 확인 (자동 테스트로 대체 불가)
