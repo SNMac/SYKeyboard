@@ -131,6 +131,23 @@ struct ClipboardImageStoreTests {
         #expect(FileManager.default.fileExists(atPath: second.path) == false)
     }
 
+    @Test("storeOutcome은 예산 초과 건너뜀과 손상 파일 거부를 구분")
+    func testStoreOutcome_예산초과와거부구분() throws {
+        let fixture = makeFixture(name: "outcome")
+        defer { fixture.cleanUp() }
+        let png = try makeImageFile(width: 20, height: 20, type: .png, name: "png")
+        let corrupt = FileManager.default.temporaryDirectory.appendingPathComponent("\(UUID().uuidString).png")
+        try Data("not an image".utf8).write(to: corrupt)
+
+        #expect(fixture.store.storeOutcome(temporaryFileURL: png, typeIdentifier: "public.png", decodeMemoryBudget: 0) == .skippedForBudget)
+        #expect(fixture.store.storeOutcome(temporaryFileURL: corrupt, typeIdentifier: "public.png") == .rejected)
+        let stored = try makeImageFile(width: 20, height: 20, type: .png, name: "png2")
+        guard case .stored(let reference) = fixture.store.storeOutcome(temporaryFileURL: stored, typeIdentifier: "public.png") else {
+            Issue.record("저장되어야 한다"); return
+        }
+        #expect(reference.pixelWidth == 20)
+    }
+
     @Test("이미지가 아닌 파일은 저장하지 않음")
     func test손상파일은_저장안함() throws {
         let fixture = makeFixture(name: "corrupt")

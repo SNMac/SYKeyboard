@@ -103,19 +103,77 @@ struct ClipboardHistoryPasteboardSynchronizerTests {
         #expect(UserDefaultsManager.shared.lastSeenPasteboardChangeCount == fixture.pasteboard.changeCount)
     }
 
-    @Test("이미지 경로에 들어가면 저장 결과와 무관하게 changeCount를 즉시 갱신하고 동기적으로는 기록하지 않음")
-    func test이미지경로진입은_changeCount만즉시갱신() {
-        // 예산 초과 시 저장하지 않는 동작 자체는 ClipboardImageStoreTests.test디코드예산초과는_저장안함이 검증한다
+    @Test("키보드가 예산 초과로 건너뛰면 기록하지 않고 changeCount를 갱신하며 건너뛴 changeCount를 남김")
+    func test키보드예산초과는_건너뛴changeCount를남김() async {
         let fixture = makeFixture(name: "low-budget")
         defer { fixture.restore() }
         fixture.pasteboard.setData(makePNGData(), forPasteboardType: "public.png")
 
-        ClipboardHistoryPasteboardSynchronizer.synchronizeIfNeeded(
-            store: fixture.store, pasteboard: fixture.pasteboard, decodeMemoryBudget: 0
-        )
+        await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
+            ClipboardHistoryPasteboardSynchronizer.synchronizeIfNeeded(
+                store: fixture.store,
+                pasteboard: fixture.pasteboard,
+                decodeMemoryBudget: 0,
+                onImageSkippedForBudget: { continuation.resume() }
+            )
+        }
 
         #expect(fixture.store.load().isEmpty)
         #expect(UserDefaultsManager.shared.lastSeenPasteboardChangeCount == fixture.pasteboard.changeCount)
+        #expect(UserDefaultsManager.shared.budgetSkippedPasteboardChangeCount == fixture.pasteboard.changeCount)
+    }
+
+    @Test("키보드가 건너뛴 pasteboard를 앱 예산으로 다시 시도하면 기록하고 건너뜀 표시를 지움")
+    func test앱은_건너뛴이미지를_다시시도해기록() async throws {
+        let fixture = makeFixture(name: "budget-retry")
+        defer { fixture.restore() }
+        fixture.pasteboard.setData(makePNGData(), forPasteboardType: "public.png")
+        // 키보드가 이미 확인했고 예산 초과로 건너뛴 상태
+        UserDefaultsManager.shared.lastSeenPasteboardChangeCount = fixture.pasteboard.changeCount
+        UserDefaultsManager.shared.budgetSkippedPasteboardChangeCount = fixture.pasteboard.changeCount
+
+        // 다시 시도 플래그가 없으면(키보드) 같은 changeCount는 건너뛴다
+        ClipboardHistoryPasteboardSynchronizer.synchronizeIfNeeded(
+            store: fixture.store, pasteboard: fixture.pasteboard, decodeMemoryBudget: .max
+        )
+        #expect(fixture.store.load().isEmpty)
+        #expect(UserDefaultsManager.shared.budgetSkippedPasteboardChangeCount == fixture.pasteboard.changeCount)
+
+        await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
+            ClipboardHistoryPasteboardSynchronizer.synchronizeIfNeeded(
+                store: fixture.store,
+                pasteboard: fixture.pasteboard,
+                decodeMemoryBudget: ClipboardImagePolicy.appDecodeMemoryBudget,
+                retriesBudgetSkipped: true,
+                onImageRecorded: { continuation.resume() }
+            )
+        }
+
+        let reference = try #require(fixture.store.load().first?.image)
+        #expect(reference.pixelWidth == 8)
+        #expect(UserDefaultsManager.shared.budgetSkippedPasteboardChangeCount == DefaultValues.budgetSkippedPasteboardChangeCount)
+    }
+
+    @Test("앱이 다시 시도하는 pasteboard를 또 예산 초과로 건너뛰면 표시를 남기지 않아 반복하지 않음")
+    func test앱재시도에서_또건너뛰면_표시없음() async {
+        let fixture = makeFixture(name: "budget-retry-skip")
+        defer { fixture.restore() }
+        fixture.pasteboard.setData(makePNGData(), forPasteboardType: "public.png")
+        UserDefaultsManager.shared.lastSeenPasteboardChangeCount = fixture.pasteboard.changeCount
+        UserDefaultsManager.shared.budgetSkippedPasteboardChangeCount = fixture.pasteboard.changeCount
+
+        await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
+            ClipboardHistoryPasteboardSynchronizer.synchronizeIfNeeded(
+                store: fixture.store,
+                pasteboard: fixture.pasteboard,
+                decodeMemoryBudget: 0,
+                retriesBudgetSkipped: true,
+                onImageSkippedForBudget: { continuation.resume() }
+            )
+        }
+
+        #expect(fixture.store.load().isEmpty)
+        #expect(UserDefaultsManager.shared.budgetSkippedPasteboardChangeCount == DefaultValues.budgetSkippedPasteboardChangeCount)
     }
 }
 
@@ -125,6 +183,7 @@ private struct SyncFixture {
     let imageDirectoryURL: URL
     let pasteboard: UIPasteboard
     let originalChangeCount: Any?
+    let originalBudgetSkipped: Any?
     let originalImageEnabled: Any?
 
     func restore() {
@@ -133,6 +192,11 @@ private struct SyncFixture {
             storage.set(originalChangeCount, forKey: UserDefaultsKeys.lastSeenPasteboardChangeCount)
         } else {
             storage.removeObject(forKey: UserDefaultsKeys.lastSeenPasteboardChangeCount)
+        }
+        if let originalBudgetSkipped {
+            storage.set(originalBudgetSkipped, forKey: UserDefaultsKeys.budgetSkippedPasteboardChangeCount)
+        } else {
+            storage.removeObject(forKey: UserDefaultsKeys.budgetSkippedPasteboardChangeCount)
         }
         if let originalImageEnabled {
             storage.set(originalImageEnabled, forKey: UserDefaultsKeys.isClipboardImageHistoryEnabled)
@@ -152,13 +216,16 @@ private func makeFixture(name: String) -> SyncFixture {
     let pasteboard = UIPasteboard(name: UIPasteboard.Name("SYKeyboardTests.\(name).\(UUID().uuidString)"), create: true)!
     let storage = UserDefaultsManager.shared.storage
     let originalChangeCount = storage.object(forKey: UserDefaultsKeys.lastSeenPasteboardChangeCount)
+    let originalBudgetSkipped = storage.object(forKey: UserDefaultsKeys.budgetSkippedPasteboardChangeCount)
     let originalImageEnabled = storage.object(forKey: UserDefaultsKeys.isClipboardImageHistoryEnabled)
     storage.removeObject(forKey: UserDefaultsKeys.lastSeenPasteboardChangeCount)
+    storage.removeObject(forKey: UserDefaultsKeys.budgetSkippedPasteboardChangeCount)
     storage.removeObject(forKey: UserDefaultsKeys.isClipboardImageHistoryEnabled)
     let store = ClipboardHistoryStore(fileURL: url, imageStore: ClipboardImageStore(directoryURL: imageDirectoryURL))
     return SyncFixture(
         store: store, fileURL: url, imageDirectoryURL: imageDirectoryURL, pasteboard: pasteboard,
-        originalChangeCount: originalChangeCount, originalImageEnabled: originalImageEnabled
+        originalChangeCount: originalChangeCount, originalBudgetSkipped: originalBudgetSkipped,
+        originalImageEnabled: originalImageEnabled
     )
 }
 

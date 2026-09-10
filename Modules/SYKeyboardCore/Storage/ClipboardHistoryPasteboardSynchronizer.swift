@@ -25,20 +25,29 @@ public enum ClipboardHistoryPasteboardSynchronizer {
 
     /// pasteboard의 `changeCount`가 마지막 확인값과 다를 때만 내용을 읽어 `store`에 기록한다
     ///
+    /// 키보드가 디코드 예산 초과로 건너뛴 이미지는 `budgetSkippedPasteboardChangeCount`에 남고, `retriesBudgetSkipped`가 참인
+    /// 호출(앱)은 그 changeCount를 이미 확인했더라도 한 번 더 읽어 앱 예산으로 저장한다.
+    ///
     /// - Parameters:
     ///   - decodeMemoryBudget: 이 프로세스가 썸네일 디코드에 쓸 수 있는 예산. 키보드는 기본값, 앱은 `appDecodeMemoryBudget`을 넘긴다
+    ///   - retriesBudgetSkipped: 키보드가 예산 초과로 건너뛴 pasteboard를 다시 시도할지. 앱만 참을 넘긴다
     ///   - onImageRecorded: 이미지 항목이 기록된 직후 메인 큐에서 한 번 호출된다. 텍스트 기록이나 건너뜀에서는 부르지 않는다
+    ///   - onImageSkippedForBudget: 이미지가 예산 초과로 건너뛰어진 직후 메인 큐에서 한 번 호출된다
     public static func synchronizeIfNeeded(
         store: ClipboardHistoryStore,
         pasteboard: UIPasteboard = .general,
         settings: UserDefaultsManager = .shared,
         decodeMemoryBudget: Int = ClipboardImagePolicy.keyboardDecodeMemoryBudget,
-        onImageRecorded: (() -> Void)? = nil
+        retriesBudgetSkipped: Bool = false,
+        onImageRecorded: (() -> Void)? = nil,
+        onImageSkippedForBudget: (() -> Void)? = nil
     ) {
         let changeCount = pasteboard.changeCount
-        guard changeCount != settings.lastSeenPasteboardChangeCount else { return }
-        // 읽기 실패나 저장 제외여도 같은 값을 반복해 읽지 않도록 먼저 갱신한다
+        let isBudgetRetry = retriesBudgetSkipped && changeCount == settings.budgetSkippedPasteboardChangeCount
+        guard changeCount != settings.lastSeenPasteboardChangeCount || isBudgetRetry else { return }
+        // 읽기 실패나 저장 제외여도 같은 값을 반복해 읽지 않도록 먼저 갱신한다. 건너뜀 표시도 여기서 소비한다
         settings.lastSeenPasteboardChangeCount = changeCount
+        settings.budgetSkippedPasteboardChangeCount = DefaultValues.budgetSkippedPasteboardChangeCount
 
         guard !pasteboard.contains(pasteboardTypes: [concealedPasteboardType]) else { return }
 
@@ -61,12 +70,21 @@ public enum ClipboardHistoryPasteboardSynchronizer {
                   let stagedURL = ClipboardImageStore.stage(temporaryFileURL: url, typeIdentifier: typeIdentifier) else { return }
             imageProcessingQueue.async {
                 // 헤더의 픽셀 수로 예상 디코드 메모리를 구해 이 프로세스의 예산 안일 때만 썸네일을 만든다
-                guard let reference = imageStore.store(
+                let outcome = imageStore.storeOutcome(
                     temporaryFileURL: stagedURL, typeIdentifier: typeIdentifier, decodeMemoryBudget: decodeMemoryBudget
-                ) else { return }
+                )
                 DispatchQueue.main.async {
-                    store.record(.image(reference))
-                    onImageRecorded?()
+                    switch outcome {
+                    case .stored(let reference):
+                        store.record(.image(reference))
+                        onImageRecorded?()
+                    case .skippedForBudget:
+                        // 다시 시도하는 쪽(앱)이 또 건너뛰면 표시하지 않아 활성화마다 반복하지 않는다
+                        if !retriesBudgetSkipped { settings.budgetSkippedPasteboardChangeCount = changeCount }
+                        onImageSkippedForBudget?()
+                    case .rejected:
+                        break
+                    }
                 }
             }
         }

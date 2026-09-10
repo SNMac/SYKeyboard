@@ -88,4 +88,6 @@ public enum DefaultValues {
     public static let isRequestFullAccessOverlayClosed: Bool = false
     /// 마지막으로 확인한 pasteboard changeCount 기본값. 아직 확인한 적 없음을 뜻한다
     public static let lastSeenPasteboardChangeCount: Int = -1
+    /// 키보드가 예산 초과로 건너뛴 changeCount 기본값. 건너뛴 것이 없음을 뜻한다
+    public static let budgetSkippedPasteboardChangeCount: Int = -1
 }
