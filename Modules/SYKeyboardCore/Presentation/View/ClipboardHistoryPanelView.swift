@@ -266,15 +266,24 @@ final class ClipboardHistoryPanelView: UIView {
         longPressRecognizer.delaysTouchesBegan = true
         // 열린 스와이프가 있으면 먼저 닫아 헤더와 테이블이 함께 편집 모드로 들어간다
         tableView.setEditing(false, animated: false)
-        tableView.setEditing(true, animated: true)
+        setTableEditingAnimated(true)
         updateHeader()
+    }
+
+    /// 편집 모드 전환을 UIKit 내부 애니메이션 대신 터치를 막지 않는 우리 애니메이션으로 수행한다.
+    /// `setEditing(_:animated: true)`는 애니메이션 동안 터치를 통째로 무시해 그사이 스크롤·탭·길게 누르기가 되지 않는다
+    private func setTableEditingAnimated(_ editing: Bool) {
+        UIView.animate(withDuration: 0.3, delay: 0, options: [.allowUserInteraction, .curveEaseInOut]) {
+            self.tableView.setEditing(editing, animated: false)
+            self.tableView.layoutIfNeeded()
+        }
     }
 
     func endItemEditing() {
         guard isItemEditing else { return }
         isItemEditing = false
         longPressRecognizer.delaysTouchesBegan = false
-        tableView.setEditing(false, animated: true)
+        setTableEditingAnimated(false)
         updateHeader()
     }
 
