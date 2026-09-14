@@ -27,6 +27,9 @@ struct ClipboardHistorySettingsView: View {
     @State private var newText = ""
     /// 원문 시트에 표시할 항목. 시트 안에서 내용을 편집하면 바뀌므로 identity가 아니라 표시 여부로 시트를 연다
     @State private var detailItem: ClipboardHistoryItem?
+    /// 시트 표시 여부를 항목과 분리한다. 액션에서 항목을 바로 nil로 만들면 닫히는 애니메이션 동안 시트가 비어 보이므로,
+    /// 닫을 때는 이 값만 내리고 항목은 완전히 닫힌 뒤(onDismiss) 비운다
+    @State private var isDetailPresented = false
     /// 고정 항목이 포함돼 확인 알림을 기다리는 삭제 대상
     @State private var pendingDeletion: PendingDeletion?
 
@@ -91,7 +94,7 @@ struct ClipboardHistorySettingsView: View {
             .environment(\.editMode, $editMode)
             // 시트가 떠 있는 동안 키보드가 기록을 바꿀 수 있으므로 닫힐 때 다시 읽는다
             .sheet(isPresented: $isAddSheetPresented, onDismiss: synchronizeAndReload) { addSheet }
-            .sheet(isPresented: isDetailPresented) {
+            .sheet(isPresented: $isDetailPresented, onDismiss: { detailItem = nil }) {
                 if let item = detailItem {
                     ClipboardHistoryDetailView(
                         item: item,
@@ -156,7 +159,7 @@ private extension ClipboardHistorySettingsView {
             // 행 전체를 버튼으로 둔다. 기본(automatic) 스타일은 List 행 강조를 쓰며 시트를 띄우는 탭 뒤에 강조가 남는 일이 있어,
             // 누르는 동안 라벨만 살짝 흐려지는 plain 스타일을 쓴다. 라벨은 contentShape(Rectangle())라 행 내용 영역 전체가 터치 범위다.
             // 행 구조는 편집 모드와 무관하게 같아야 선택 UI가 들어오는 전환이 매끄럽다
-            Button { detailItem = item } label: { row(for: item) }
+            Button { presentDetail(item) } label: { row(for: item) }
                 .buttonStyle(.plain)
                 // 편집 모드에서는 탭이 List 행 선택으로 가도록 버튼이 터치를 가로채지 않게 한다
                 .allowsHitTesting(!editMode.isEditing)
@@ -164,11 +167,11 @@ private extension ClipboardHistorySettingsView {
                 // 편집 모드에서 길게 누르면 선택을 바꾸지 않고 원본 시트를 연다. 평소에는 버튼이 처리하므로 아무것도 하지 않는다
                 .simultaneousGesture(
                     LongPressGesture().onEnded { _ in
-                        if editMode.isEditing { detailItem = item }
+                        if editMode.isEditing { presentDetail(item) }
                     }
                 )
                 // 보조 기술에서는 길게 누르기 대신 이 액션으로 편집 모드에서도 원본을 연다
-                .accessibilityAction(named: Text("원본 보기")) { detailItem = item }
+                .accessibilityAction(named: Text("원본 보기")) { presentDetail(item) }
                 .swipeActions(edge: .leading) {
                     if item.isPinned || canPin {
                         Button {
@@ -331,10 +334,6 @@ private extension ClipboardHistorySettingsView {
         : Text("고정 항목 \(deletionCounts.pinned)개가 포함되어 있습니다. 삭제한 고정 항목은 복구할 수 없습니다.")
     }
 
-    var isDetailPresented: Binding<Bool> {
-        Binding(get: { detailItem != nil }, set: { if !$0 { detailItem = nil } })
-    }
-
     /// 해당 출처의 확인 시트 표시 여부. 닫히면 대기 중인 삭제를 버린다
     func isDeletionPresented(for source: DeletionSource) -> Binding<Bool> {
         Binding(
@@ -412,14 +411,22 @@ private extension ClipboardHistorySettingsView {
         refreshDetailItem(id: newText)
     }
 
+    func presentDetail(_ item: ClipboardHistoryItem) {
+        detailItem = item
+        isDetailPresented = true
+    }
+
+    /// 고정을 바꾸면 시트를 닫는다. 목록에서 행이 고정 영역으로 옮겨지는(또는 빠지는) 것이 결과 피드백이다.
+    /// 그사이 키보드가 고정 한도를 채웠으면 정책이 변경을 거부해 변화 없이 닫힌다
     func togglePinFromDetail(_ item: ClipboardHistoryItem) {
         store?.togglePins(selectedIDs: [item.id])
         reload()
-        refreshDetailItem(id: item.id)
+        isDetailPresented = false
     }
 
-    /// 복사한 항목을 최근 복사한 것처럼 목록 맨 위로 올린다. 동기화가 방금 쓴 pasteboard를 다시 읽지 않도록 changeCount를 맞춘다.
-    /// 이미지는 원본 바이트를 그대로 pasteboard에 놓는다. 파일이 없으면 아무것도 하지 않는다
+    /// 복사한 항목을 최근 복사한 것처럼 목록 맨 위로 올리고 시트를 닫는다. 맨 위로 올라간 행이 결과 피드백이다.
+    /// 동기화가 방금 쓴 pasteboard를 다시 읽지 않도록 changeCount를 맞춘다. 이미지는 원본 바이트를 그대로 pasteboard에 놓는다.
+    /// 파일이 없으면 아무것도 하지 않는다
     func copyFromDetail(_ item: ClipboardHistoryItem) {
         let pasteboard = UIPasteboard.general
         switch item.content {
@@ -433,7 +440,7 @@ private extension ClipboardHistorySettingsView {
         UserDefaultsManager.shared.lastSeenPasteboardChangeCount = pasteboard.changeCount
         store?.record(item.content)
         reload()
-        refreshDetailItem(id: item.id)
+        isDetailPresented = false
     }
 
     /// 시트가 열린 채로 저장소가 바뀌면 표시 항목을 새 값으로 바꾼다. 항목이 사라졌으면 그대로 둔다
