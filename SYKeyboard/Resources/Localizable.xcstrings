@@ -525,7 +525,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Each image is saved up to %1$lld MB and %2$lld megapixels. When Include Images is off, newly copied images are not saved; saved images can be deleted here."
+            "value" : "Each image is saved up to %1$lld MB and %2$lld megapixels. When “Include Images” is off, newly copied images are not saved; saved images can be deleted here."
           }
         }
       }
