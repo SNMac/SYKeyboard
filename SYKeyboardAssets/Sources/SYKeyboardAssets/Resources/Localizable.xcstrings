@@ -223,6 +223,17 @@
         }
       }
     },
+    "원본" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Original"
+          }
+        }
+      }
+    },
     "전체 선택" : {
       "extractionState" : "manual",
       "localizations" : {
