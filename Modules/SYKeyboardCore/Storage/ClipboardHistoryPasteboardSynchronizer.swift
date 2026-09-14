@@ -16,6 +16,9 @@ public enum ClipboardHistoryPasteboardSynchronizer {
 
     /// 비밀번호 관리자가 비밀 항목에 붙이는 pasteboard 타입. 이 타입이 있으면 기록하지 않는다
     public static let concealedPasteboardType = "org.nspasteboard.ConcealedType"
+    /// 이미지 항목이 기록된 직후 main 스레드에서 게시한다. 앱은 활성화 동기화(`SYKeyboardApp`)와 목록 화면이 분리돼
+    /// 있어 콜백이 닿지 않으므로 화면은 이 알림으로 목록을 다시 읽는다
+    public static let didRecordImageNotification = Notification.Name("ClipboardHistoryPasteboardSynchronizer.didRecordImage")
 
     /// 해시·썸네일 생성을 자판 입력(main)과 경쟁하지 않는 낮은 우선순위로, 한 번에 하나씩 처리한다
     private static let imageProcessingQueue = DispatchQueue(
@@ -77,6 +80,7 @@ public enum ClipboardHistoryPasteboardSynchronizer {
                     switch outcome {
                     case .stored(let reference):
                         store.record(.image(reference))
+                        NotificationCenter.default.post(name: didRecordImageNotification, object: nil)
                         onImageRecorded?()
                     case .skippedForBudget:
                         // 다시 시도하는 쪽(앱)이 또 건너뛰면 표시하지 않아 활성화마다 반복하지 않는다

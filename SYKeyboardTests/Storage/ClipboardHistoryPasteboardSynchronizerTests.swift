@@ -50,11 +50,16 @@ struct ClipboardHistoryPasteboardSynchronizerTests {
         #expect(UserDefaultsManager.shared.lastSeenPasteboardChangeCount == fixture.pasteboard.changeCount)
     }
 
-    @Test("텍스트 없이 이미지만 있으면 파일로 받아 이미지 항목을 기록하고 완료 콜백을 부름")
+    @Test("텍스트 없이 이미지만 있으면 파일로 받아 이미지 항목을 기록하고 알림 게시 뒤 완료 콜백을 부름")
     func test이미지만있으면_이미지항목기록() async throws {
         let fixture = makeFixture(name: "image")
         defer { fixture.restore() }
         fixture.pasteboard.setData(makePNGData(), forPasteboardType: "public.png")
+        var didReceiveNotification = false
+        let observer = NotificationCenter.default.addObserver(
+            forName: ClipboardHistoryPasteboardSynchronizer.didRecordImageNotification, object: nil, queue: nil
+        ) { _ in didReceiveNotification = true }
+        defer { NotificationCenter.default.removeObserver(observer) }
 
         await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
             ClipboardHistoryPasteboardSynchronizer.synchronizeIfNeeded(
@@ -67,6 +72,7 @@ struct ClipboardHistoryPasteboardSynchronizerTests {
 
         let items = fixture.store.load()
         let reference = try #require(items.first?.image)
+        #expect(didReceiveNotification)
         #expect(items.count == 1)
         #expect(reference.typeIdentifier == "public.png")
         #expect(reference.pixelWidth == 8)

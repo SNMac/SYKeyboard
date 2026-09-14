@@ -115,6 +115,11 @@ struct ClipboardHistorySettingsView: View {
             .onChange(of: scenePhase) { phase in
                 if phase == .active { synchronizeAndReload() }
             }
+            // 앱 활성화 동기화(SYKeyboardApp)가 먼저 changeCount를 소비하면 이 화면의 동기화는 건너뛰므로,
+            // 백그라운드 저장이 끝난 이미지는 알림으로 받아 목록을 다시 읽는다
+            .onReceive(NotificationCenter.default.publisher(for: ClipboardHistoryPasteboardSynchronizer.didRecordImageNotification)) { _ in
+                reload()
+            }
             .requestReviewOnDetailSettingsReturn()
         }
     }
@@ -349,8 +354,7 @@ private extension ClipboardHistorySettingsView {
             ClipboardHistoryPasteboardSynchronizer.synchronizeIfNeeded(
                 store: store,
                 decodeMemoryBudget: ClipboardImagePolicy.appDecodeMemoryBudget,
-                retriesBudgetSkipped: true,
-                onImageRecorded: reload
+                retriesBudgetSkipped: true
             )
         }
         reload()
