@@ -2377,10 +2377,10 @@ private extension BaseKeyboardViewController {
     /// 이미지는 백그라운드에서 파일로 저장된 뒤 기록되므로, 그사이 패널이 열려 있으면 완료 시 다시 읽는다
     func synchronizeClipboardHistoryIfNeeded() {
         guard isClipboardHistoryAvailable, let clipboardHistoryStore else { return }
-        ClipboardHistoryPasteboardSynchronizer.synchronizeIfNeeded(store: clipboardHistoryStore) { [weak self] in
+        ClipboardHistoryPasteboardSynchronizer.synchronizeIfNeeded(store: clipboardHistoryStore, onImageRecorded: { [weak self] in
             guard let self, self.isClipboardPanelVisible else { return }
             self.reloadClipboardPanel()
-        }
+        })
     }
 
     /// 클립보드 버튼 탭. 열려 있으면 닫고, 닫혀 있으면 동기화 후 엽니다.
