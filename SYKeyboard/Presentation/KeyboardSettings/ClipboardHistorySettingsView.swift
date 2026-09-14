@@ -19,8 +19,6 @@ struct ClipboardHistorySettingsView: View {
     private let store = ClipboardHistoryStore()
 
     /// 이미지 제약 안내는 "이미지도 기록"이 켜져 있을 때만 보인다
-    @AppStorage(UserDefaultsKeys.isClipboardImageHistoryEnabled, store: UserDefaultsManager.shared.storage)
-    private var isClipboardImageHistoryEnabled = DefaultValues.isClipboardImageHistoryEnabled
 
     /// 저장 순서 그대로(고정 최신순 → 미고정 최신순). id는 정책상 중복이 없다.
     /// 화면 전환 중 빈 상태와 편집 버튼 없는 툴바가 먼저 보이지 않도록 첫 렌더링 전에 읽는다
@@ -71,7 +69,7 @@ struct ClipboardHistorySettingsView: View {
                     VStack(spacing: 8) {
                         Text("복사한 텍스트나 이미지가 여기에 표시됩니다.")
                         limitDescription
-                        if isClipboardImageHistoryEnabled { imageLimitDescription }
+                        imageLimitDescription
                     }
                     .font(.footnote)
                     .foregroundStyle(.secondary)
@@ -134,7 +132,7 @@ private extension ClipboardHistorySettingsView {
                     Text("고정 \(pinnedCount)/\(ClipboardHistoryPolicy.maxPinnedCount) · 최근 \(recentCount)/\(ClipboardHistoryPolicy.maxItemCount)")
                         .monospacedDigit()
                     limitDescription
-                    if isClipboardImageHistoryEnabled { imageLimitDescription }
+                    imageLimitDescription
                 }
             }
         }
