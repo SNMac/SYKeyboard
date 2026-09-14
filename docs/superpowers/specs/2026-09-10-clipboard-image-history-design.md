@@ -373,7 +373,7 @@ synchronizeAndReload()`는 `onImageRecorded`에서 `reload()`를 불러 화면�
 "클립보드 기록" 토글이 켜져 있을 때 그 아래에 "이미지도 기록" 토글을
 `@AppStorage(UserDefaultsKeys.isClipboardImageHistoryEnabled, store:)`로 둔다. 캡션은
 "복사한 이미지를 저장하고 탭하면 클립보드로 복원합니다"만 둔다. 이미지당 한도(24 MB·
-50메가픽셀)와 토글 OFF 규칙 설명은 "클립보드 기록 관리" 화면의 목록 최하단(footer)과
+50 MP)와 토글 OFF 규칙 설명은 "클립보드 기록 관리" 화면의 목록 최하단(footer)과
 빈 상태에 항상 둔다(`ClipboardHistorySettingsView.imageLimitDescription`. 처음에는 토글 ON일 때만
 보였으나 실기기 확인 뒤 항상 표시로 바꿈). 기존 토글처럼 Analytics 이벤트(`clipboard_image_history`)를 남긴다.
 
