@@ -173,16 +173,12 @@ struct ClipboardHistoryPasteboardSynchronizerTests {
     }
 }
 
-/// `body`를 실행하고 `name` 알림이 한 번 올 때까지 기다린다. 동기화기의 백그라운드 이미지 저장이 끝나는 시점을 잡는다
+/// `body`를 실행하고 `name` 알림이 한 번 올 때까지 기다린다. 동기화기의 백그라운드 이미지 저장이 끝나는 시점을 잡는다.
+/// 반복자를 `body`보다 먼저 만들어 알림을 놓치지 않는다
 private func performAndWait(for name: Notification.Name, _ body: () -> Void) async {
-    await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
-        var token: NSObjectProtocol?
-        token = NotificationCenter.default.addObserver(forName: name, object: nil, queue: nil) { _ in
-            if let token { NotificationCenter.default.removeObserver(token) }
-            continuation.resume()
-        }
-        body()
-    }
+    let notifications = NotificationCenter.default.notifications(named: name).makeAsyncIterator()
+    body()
+    _ = await notifications.next()
 }
 
 private struct SyncFixture {
