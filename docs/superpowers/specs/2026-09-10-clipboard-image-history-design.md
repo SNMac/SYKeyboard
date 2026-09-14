@@ -181,7 +181,7 @@ UniformTypeIdentifiers만 쓰고 UIKit은 쓰지 않는다.
 App Group 컨테이너 아래 `Library/Application Support/ClipboardImages/` 하나다. Apple의 "Using the file system
 effectively" 지침대로 사용자에게 보이지 않는 앱 데이터는 Application Support에 둔다(백업 포함, Caches와 달리
 시스템이 지우지 않음). `clipboard_history.plist`도 `main`에 배포된 적이 없어 마이그레이션 없이 같은 위치로 옮긴다.
-NGram 파일(`ngram_<lang>.plist`)은 `main`(2026-03-19)에 이미 배포된 경로라 옮기려면 별도 이슈에서 마이그레이션이 필요하다.
+NGram 파일(`ngram_<lang>.plist`)은 `main`(2026-03-19)에 이미 배포된 경로라 마이그레이션이 필요하며 #131에서 따로 진행한다.
 
 ```
 Library/Application Support/ClipboardImages/

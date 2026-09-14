@@ -2411,22 +2411,24 @@ git commit -m "docs: #55 - 구현 계획에 검증 결과 기록"
 - 이미지 캡처 경로: 최종 코드는 `Modules/SYKeyboardCore/Storage/ClipboardHistoryPasteboardSynchronizer.swift`에서 `NSItemProvider.loadFileRepresentation(forTypeIdentifier:)`만 사용하고 `loadDataRepresentation` 폴백은 도입하지 않았다. `SYKeyboardTests/Storage/ClipboardHistoryPasteboardSynchronizerTests.swift`의 `test이미지만있으면_이미지항목기록`이 이 경로로 통과함을 확인했다.
 - 2026-09-14 사용자가 iPhone 15 Pro Max(iOS 27)에서 확인한 결과를 아래 표에 반영했다. 발견된 이상 2건(패널 실시간 갱신 안 됨, 48 MP HEIF 미저장)과 개선 1건(키보드 미리보기 해상도)은 같은 날 수정했고 "재확인 필요"로 표시했다.
 
+- 2026-09-15 통합 전 최종 검증(HEAD `5d58247a`, iPhone 13 mini / iOS 18.6): `xcodebuild test -scheme SYKeyboard -parallel-testing-enabled NO` → `** TEST SUCCEEDED **`, `✔ Test` 678건, `✘ Test` 0건. `HangeulKeyboard`·`EnglishKeyboard`·`HangeulEnglishKeyboard` 빌드 모두 `** BUILD SUCCEEDED **`. `.xcscheme` 변경 없음.
+
 ### 실기기 확인 항목 (자동 테스트로 대체 불가)
 
 | 항목 | 결과 |
 | --- | --- |
-| 사진 앱에서 12 MP 사진 복사 → 키보드 열기 → 패널에 썸네일·크기 표시 → 메시지 앱에서 입력창 길게 눌러 붙여넣기 성공 | 확인 — 2026-09-14 iPhone 15 Pro Max(iOS 27) 정상. 단, 이미지 행을 탭하면 가끔 눌린 표시(회색)가 남음 → `didSelectRowAt` 안에서 행 이동 스냅샷을 적용하던 것을 다음 런루프로 미룸. 이때 재조회의 `restoreTitle()`이 헤더 안내문을 바로 지우는 회귀가 생겨 안내문을 재조회 뒤에 띄우도록 수정(재확인 필요) |
+| 사진 앱에서 12 MP 사진 복사 → 키보드 열기 → 패널에 썸네일·크기 표시 → 메시지 앱에서 입력창 길게 눌러 붙여넣기 성공 | 확인 — 2026-09-14 iPhone 15 Pro Max(iOS 27) 정상. 단, 이미지 행을 탭하면 가끔 눌린 표시(회색)가 남음 → `didSelectRowAt` 안에서 행 이동 스냅샷을 적용하던 것을 다음 런루프로 미룸. 이때 재조회의 `restoreTitle()`이 헤더 안내문을 바로 지우는 회귀가 생겨 안내문을 재조회 뒤에 띄우도록 수정. 재확인: 안내문 약 2초 유지, 회색 행 잔류 없음 |
 | 스크린샷(PNG) 복사 → 저장 확인 | 확인 — iPhone 15 Pro Max 스크린샷 저장됨 |
 | 웹페이지에서 텍스트+이미지 영역 복사 → 텍스트만 저장 | 확인 — 텍스트만 저장됨 |
 | 이미지 탭 → pasteboard 복원, 헤더 안내 약 2초 표시 후 제목 복구(좁은 화면에서 문구가 잘리지 않고 축소), 입력창 탭 시 패널 닫힘 | 확인 — 정상 |
 | 이미지 paste 미지원 입력 필드(검색창 등)에서 붙여넣기 메뉴 동작 기록 | 확인 — 이상 없음 |
 | "이미지도 기록" OFF → 새 이미지 미저장, 기존 이미지 항목 유지 | 확인 — 정상. 관리 화면 하단 제약 안내는 사용자 요청으로 토글과 무관하게 항상 표시로 변경 |
-| 앱 관리 화면에서 이미지 항목 삭제 → App Group `ClipboardImages/` 원본·썸네일 삭제 확인 | 미확인 — Xcode 27은 Devices and Simulators 창이 없고, `xcrun devicectl device info files --domain-type appGroupDataContainer`는 컨테이너 루트를 읽지 못함(`Access restricted: … outside the allowed container directories (Library, Documents, tmp)`). 사용자 결정으로 저장 위치를 `Library/Application Support/ClipboardImages`로 옮김. 확인 명령: `xcrun devicectl device info files --device <UDID> --domain-type appGroupDataContainer --domain-identifier group.github.com-SNMac.SYKeyboard --subdirectory "Library/Application Support/ClipboardImages"` (재확인 필요) |
-| 앱 원문 시트에서 이미지 미리보기·공유(파일)·복사(복원)·고정 동작, 편집 버튼 없음 | 확인 — 정상 |
-| 앱 관리 화면을 연 채 다른 앱에서 이미지 복사 후 돌아오면 목록에 바로 나타남 | 이상 → 수정 — 앱 활성화 시 `SYKeyboardApp` 동기화가 먼저 changeCount를 소비해 화면 콜백이 닿지 않았음. `didRecordImageNotification`으로 목록 재조회(재확인 필요) |
+| 앱 관리 화면에서 이미지 항목 삭제 → App Group `ClipboardImages/` 원본·썸네일 삭제 확인 | 확인 — Xcode 27은 Devices and Simulators 창이 없고, `xcrun devicectl device info files --domain-type appGroupDataContainer`는 컨테이너 루트를 읽지 못함(`Access restricted: … outside the allowed container directories (Library, Documents, tmp)`). 사용자 결정으로 저장 위치를 `Library/Application Support/ClipboardImages`로 옮김. 2026-09-15 사용자가 새 위치에서 캡처·복원·삭제 정상 확인. devicectl(`xcrun devicectl device info files --device <UDID> --domain-type appGroupDataContainer --domain-identifier group.github.com-SNMac.SYKeyboard --subdirectory "Library/Application Support"`)로 목록을 읽고 `clipboard_history.plist`를 복사해 대조: 이미지 항목 3개 ↔ 원본 3개 + 썸네일 3개, 고아 파일·누락 파일 없음 |
+| 앱 원문 시트에서 이미지 미리보기·공유(파일)·복사(복원)·고정 동작, 편집 버튼 없음 | 확인 — 동작 정상. 미리보기가 1200 px라 큰 시트에서 흐려 `appPreviewMaxPixelSize`를 화면 해상도(3000 px)로 올리고 `.task`에서 한 번만 백그라운드 디코드. 재확인: 스크린샷·48 MP 사진 선명, 시트 열릴 때 끊김 없음 |
+| 앱 관리 화면을 연 채 다른 앱에서 이미지 복사 후 돌아오면 목록에 바로 나타남 | 이상 → 수정 — 앱 활성화 시 `SYKeyboardApp` 동기화가 먼저 changeCount를 소비해 화면 콜백이 닿지 않았음. `didRecordImageNotification`으로 목록 재조회. 재확인: 목록 갱신됨 |
 | iOS 16 기기에서 이미지 캡처 시 붙여넣기 권한 알림이 텍스트와 같은 방식으로 뜸 | 확인(iOS 27) — 알림이 텍스트와 같은 방식으로 뜸. iOS 16 기기는 없음(알림 메커니즘은 iOS 16 이후 동일) |
-| 키보드 상세 뷰(길게 누르기)에서 이미지 미리보기와 "복사" 버튼 → 복원·헤더 안내 | 확인 — 동작 정상. 미리보기가 600 px라 흐려 `keyboardPreviewMaxPixelSize`를 1200으로 올림, 재확인에서 선명해짐 |
-| 같은 이미지 재복사 시 항목이 맨 위로 이동하고 파일이 늘지 않음, 고정 이미지는 자리 유지 | 확인 — 정상. 단, 패널을 연 채 사진 앱에서 복사하고 돌아오면 실시간 갱신 안 됨 → 1차: `onImageRecorded:` 라벨 수정으로는 해결 안 됨(호스트 복귀 시 `viewWillAppear`가 오지 않아 동기화 자체가 안 됨). 2차: `NSExtensionHostDidBecomeActive` 관찰로 동기화·패널 재조회 추가(재확인 필요) |
+| 키보드 상세 뷰(길게 누르기)에서 이미지 미리보기와 "복사" 버튼 → 복원·헤더 안내 | 확인 — 동작 정상. (한때 `keyboardPreviewMaxPixelSize`를 1200으로 올렸으나 사용자 지적이 앱 시트에 대한 것이어서 600으로 되돌림) |
+| 같은 이미지 재복사 시 항목이 맨 위로 이동하고 파일이 늘지 않음, 고정 이미지는 자리 유지 | 확인 — 정상. 단, 패널을 연 채 사진 앱에서 복사하고 돌아오면 실시간 갱신 안 됨 → 1차: `onImageRecorded:` 라벨 수정으로는 해결 안 됨(호스트 복귀 시 `viewWillAppear`가 오지 않아 동기화 자체가 안 됨). 2차: `NSExtensionHostDidBecomeActive` 관찰로 동기화·패널 재조회 추가. 사용자의 원래 지적은 앱 화면이었고(별도 행), 키보드 경로 자체는 실기기 재확인하지 않음 |
 | 키보드 extension을 Xcode에 attach한 평상시 메모리와, iPad Pro 13" PNG 스크린샷(2752×2064) 복사 후 키보드를 열었을 때의 피크. 종료되면 `keyboardDecodeMemoryBudget`(32 MB)을 낮춤 | 확인(일부) — iPhone 15 Pro Max 디버그 빌드 스크린샷(1290×2796 PNG) 복사 후 키보드 열기 정상, 메모리 51 MB 이내. iPad Pro 13"은 기기 없음 |
 | MacBook 스크린샷(3456×2234 PNG)을 Universal Clipboard로 복사 → 키보드에서는 항목이 생기지 않고, SY키보드 앱을 열면 관리 화면에 이미지가 나타남(예산 초과 건너뜀 → 앱 재시도) | 확인 — 키보드 미저장 → 앱 열면 저장됨 |
 | 48 MP JPEG/HEIC(사진 앱에서 고해상도 촬영본) 복사 → 키보드 썸네일 생성 시간과 패널 갱신(HEIC는 24 MP 초과 시 키보드 건너뜀·앱 저장) | 확인 — 24 MP HEIF는 저장되나 48 MP HEIF(5 MB)는 키보드·앱 모두 미저장이었음. 원인: 8064×6048 = 48,771,072픽셀이 `maxPixelCount` 48,000,000 초과로 거부. 50,000,000으로 올린 뒤 재확인에서 저장됨 |
