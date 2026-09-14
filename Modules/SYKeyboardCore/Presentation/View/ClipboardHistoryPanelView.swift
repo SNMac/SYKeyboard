@@ -31,7 +31,7 @@ protocol ClipboardHistoryPanelDelegate: AnyObject {
 ///
 /// ## 동작
 /// - 평소: 행 탭은 붙여넣기(텍스트) 또는 pasteboard 복원(이미지), trailing swipe는 개별 삭제, leading swipe는 고정/해제, 길게 누르기는 원문 상세 뷰
-/// - 편집 모드(`isItemEditing`): 행 탭은 선택 토글, "전체 선택"·"n개 삭제"·"완료".
+/// - 편집 모드(`isItemEditing`): 행 탭은 선택 토글, 길게 누르기는 선택을 바꾸지 않고 원문 상세 뷰, "전체 선택"·"n개 삭제"·"완료".
 ///   `UITableView.isEditing`은 스와이프 액션이 열려 있는 동안에도 true가 되므로 판단에 쓰지 않는다
 final class ClipboardHistoryPanelView: UIView {
 
@@ -74,6 +74,10 @@ final class ClipboardHistoryPanelView: UIView {
     private var pendingDeletion: (indices: [Int], deleteAll: Bool)?
 
     private static let cellIdentifier = "ClipboardHistoryCell"
+
+    /// 길게 누르기 → 원문 상세 뷰. 편집 모드에서는 인식이 끝날 때까지 셀에 터치를 넘기지 않아(`delaysTouchesBegan`)
+    /// 다중 선택 셀의 눌림(회색·체크 표시)이 먼저 그려지지 않는다. 짧은 탭은 인식 실패 시점에 전달돼 선택이 토글된다
+    private lazy var longPressRecognizer = UILongPressGestureRecognizer(target: self, action: #selector(handleLongPress(_:)))
     /// 스와이프 액션은 색 배경 위에 뜨므로 채운 변형을 쓴다
     private static let pinActionSymbolName = "pin.fill"
     private static let unpinActionSymbolName = "pin.slash.fill"
@@ -259,6 +263,7 @@ final class ClipboardHistoryPanelView: UIView {
         guard !items.isEmpty, !isItemEditing else { return }
         restoreTitle()
         isItemEditing = true
+        longPressRecognizer.delaysTouchesBegan = true
         // 열린 스와이프가 있으면 먼저 닫아 헤더와 테이블이 함께 편집 모드로 들어간다
         tableView.setEditing(false, animated: false)
         tableView.setEditing(true, animated: true)
@@ -268,6 +273,7 @@ final class ClipboardHistoryPanelView: UIView {
     func endItemEditing() {
         guard isItemEditing else { return }
         isItemEditing = false
+        longPressRecognizer.delaysTouchesBegan = false
         tableView.setEditing(false, animated: true)
         updateHeader()
     }
@@ -383,9 +389,7 @@ private extension ClipboardHistoryPanelView {
         setConstraints()
         tableView.dataSource = dataSource
         tableView.delegate = self
-        tableView.addGestureRecognizer(
-            UILongPressGestureRecognizer(target: self, action: #selector(handleLongPress(_:)))
-        )
+        tableView.addGestureRecognizer(longPressRecognizer)
         updateHeader()
     }
 
@@ -598,8 +602,9 @@ private extension ClipboardHistoryPanelView {
         return imageView
     }
 
+    /// 편집 모드에서도 연다. 인식되는 순간 테이블 터치가 취소되므로 행 선택은 바뀌지 않는다
     @objc func handleLongPress(_ recognizer: UILongPressGestureRecognizer) {
-        guard recognizer.state == .began, !isItemEditing else { return }
+        guard recognizer.state == .began else { return }
         let point = recognizer.location(in: tableView)
         guard let indexPath = tableView.indexPathForRow(at: point) else { return }
         FeedbackManager.shared.playHaptic()
