@@ -50,29 +50,22 @@ struct ClipboardHistoryPasteboardSynchronizerTests {
         #expect(UserDefaultsManager.shared.lastSeenPasteboardChangeCount == fixture.pasteboard.changeCount)
     }
 
-    @Test("텍스트 없이 이미지만 있으면 파일로 받아 이미지 항목을 기록하고 알림 게시 뒤 완료 콜백을 부름")
+    @Test("텍스트 없이 이미지만 있으면 파일로 받아 이미지 항목을 기록하고 완료 알림을 게시")
     func test이미지만있으면_이미지항목기록() async throws {
         let fixture = makeFixture(name: "image")
         defer { fixture.restore() }
         fixture.pasteboard.setData(makePNGData(), forPasteboardType: "public.png")
-        var didReceiveNotification = false
-        let observer = NotificationCenter.default.addObserver(
-            forName: ClipboardHistoryPasteboardSynchronizer.didRecordImageNotification, object: nil, queue: nil
-        ) { _ in didReceiveNotification = true }
-        defer { NotificationCenter.default.removeObserver(observer) }
 
-        await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
+        await performAndWait(for: ClipboardHistoryPasteboardSynchronizer.didRecordImageNotification) {
             ClipboardHistoryPasteboardSynchronizer.synchronizeIfNeeded(
                 store: fixture.store,
                 pasteboard: fixture.pasteboard,
-                decodeMemoryBudget: .max,
-                onImageRecorded: { continuation.resume() }
+                decodeMemoryBudget: .max
             )
         }
 
         let items = fixture.store.load()
         let reference = try #require(items.first?.image)
-        #expect(didReceiveNotification)
         #expect(items.count == 1)
         #expect(reference.typeIdentifier == "public.png")
         #expect(reference.pixelWidth == 8)
@@ -115,12 +108,11 @@ struct ClipboardHistoryPasteboardSynchronizerTests {
         defer { fixture.restore() }
         fixture.pasteboard.setData(makePNGData(), forPasteboardType: "public.png")
 
-        await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
+        await performAndWait(for: ClipboardHistoryPasteboardSynchronizer.didSkipImageForBudgetNotification) {
             ClipboardHistoryPasteboardSynchronizer.synchronizeIfNeeded(
                 store: fixture.store,
                 pasteboard: fixture.pasteboard,
-                decodeMemoryBudget: 0,
-                onImageSkippedForBudget: { continuation.resume() }
+                decodeMemoryBudget: 0
             )
         }
 
@@ -145,13 +137,12 @@ struct ClipboardHistoryPasteboardSynchronizerTests {
         #expect(fixture.store.load().isEmpty)
         #expect(UserDefaultsManager.shared.budgetSkippedPasteboardChangeCount == fixture.pasteboard.changeCount)
 
-        await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
+        await performAndWait(for: ClipboardHistoryPasteboardSynchronizer.didRecordImageNotification) {
             ClipboardHistoryPasteboardSynchronizer.synchronizeIfNeeded(
                 store: fixture.store,
                 pasteboard: fixture.pasteboard,
                 decodeMemoryBudget: ClipboardImagePolicy.appDecodeMemoryBudget,
-                retriesBudgetSkipped: true,
-                onImageRecorded: { continuation.resume() }
+                retriesBudgetSkipped: true
             )
         }
 
@@ -168,18 +159,29 @@ struct ClipboardHistoryPasteboardSynchronizerTests {
         UserDefaultsManager.shared.lastSeenPasteboardChangeCount = fixture.pasteboard.changeCount
         UserDefaultsManager.shared.budgetSkippedPasteboardChangeCount = fixture.pasteboard.changeCount
 
-        await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
+        await performAndWait(for: ClipboardHistoryPasteboardSynchronizer.didSkipImageForBudgetNotification) {
             ClipboardHistoryPasteboardSynchronizer.synchronizeIfNeeded(
                 store: fixture.store,
                 pasteboard: fixture.pasteboard,
                 decodeMemoryBudget: 0,
-                retriesBudgetSkipped: true,
-                onImageSkippedForBudget: { continuation.resume() }
+                retriesBudgetSkipped: true
             )
         }
 
         #expect(fixture.store.load().isEmpty)
         #expect(UserDefaultsManager.shared.budgetSkippedPasteboardChangeCount == DefaultValues.budgetSkippedPasteboardChangeCount)
+    }
+}
+
+/// `body`를 실행하고 `name` 알림이 한 번 올 때까지 기다린다. 동기화기의 백그라운드 이미지 저장이 끝나는 시점을 잡는다
+private func performAndWait(for name: Notification.Name, _ body: () -> Void) async {
+    await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
+        var token: NSObjectProtocol?
+        token = NotificationCenter.default.addObserver(forName: name, object: nil, queue: nil) { _ in
+            if let token { NotificationCenter.default.removeObserver(token) }
+            continuation.resume()
+        }
+        body()
     }
 }
 

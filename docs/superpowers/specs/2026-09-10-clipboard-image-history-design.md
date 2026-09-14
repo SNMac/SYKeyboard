@@ -260,9 +260,13 @@ public static func synchronizeIfNeeded(
     pasteboard: UIPasteboard = .general,
     settings: UserDefaultsManager = .shared,
     decodeMemoryBudget: Int = ClipboardImagePolicy.keyboardDecodeMemoryBudget,
-    onImageRecorded: (@MainActor () -> Void)? = nil
+    retriesBudgetSkipped: Bool = false
 )
 ```
+
+결과 콜백은 두지 않는다. 이미지 저장이 끝나면 메인 큐에서 `didRecordImageNotification`(기록됨) 또는
+`didSkipImageForBudgetNotification`(예산 초과 건너뜀)을 게시하고, 키보드 패널·앱 화면·테스트가 이 알림을 듣는다.
+앱은 활성화 동기화(`SYKeyboardApp`)와 목록 화면이 분리돼 있어 콜백으로는 화면에 닿지 않기 때문이다.
 
 1. `changeCount` 비교·갱신. `retriesBudgetSkipped`가 참이고 `changeCount == budgetSkippedPasteboardChangeCount`면
    이미 확인한 값이어도 통과한다. 통과 시 `lastSeen`을 갱신하고 건너뜀 표시를 `-1`로 되돌린다.
@@ -281,9 +285,10 @@ public static func synchronizeIfNeeded(
    픽셀 수로 예상 디코드 메모리를 구해 `decodeMemoryBudget`(키보드 32 MB, 앱 256 MB)을 넘으면
    `.skippedForBudget`, 손상·한도 초과·저장 실패면 `.rejected`를 돌려주고, 어느 경우든 옮겨 둔 임시
    파일을 지운다. `.skippedForBudget`이면 메인에서 `budgetSkippedPasteboardChangeCount = changeCount`를
-   남긴다(다시 시도하는 앱 호출에서는 남기지 않아 활성화마다 반복하지 않는다).
+   남기고 `didSkipImageForBudgetNotification`을 게시한다(다시 시도하는 앱 호출에서는 표시를 남기지 않아
+   활성화마다 반복하지 않는다).
 9. 참조를 얻으면 메인 큐로 넘어가 `store.record(.image(reference))`를 부르고
-   `onImageRecorded`를 호출한다. 파일 저장만 백그라운드에서 하고 plist 기록은 메인에서
+   `didRecordImageNotification`을 게시한다. 파일 저장만 백그라운드에서 하고 plist 기록은 메인에서
    해 같은 프로세스 안의 연산 순서를 단순하게 유지한다.
 
 `loadFileRepresentation`이 pasteboard 항목에서 우리 프로세스 메모리를 거치지 않는지는
@@ -293,8 +298,8 @@ public static func synchronizeIfNeeded(
 
 - `clipboardImageStore: ClipboardImageStore?`를 `clipboardHistoryStore` 옆에 두고
   `ClipboardHistoryStore(imageStore:)`로 주입한다.
-- `synchronizeClipboardHistoryIfNeeded()`는 `onImageRecorded`에서 `isClipboardPanelVisible`이면
-  `reloadClipboardPanel()`을 부른다. 패널이 닫혀 있으면 다음에 열 때 읽는다.
+- `viewDidLoad`에서 `didRecordImageNotification`을 관찰하고(`clipboardImageDidRecord`),
+  `isClipboardPanelVisible`이면 `reloadClipboardPanel()`을 부른다. 패널이 닫혀 있으면 다음에 열 때 읽는다.
 - `reloadClipboardPanel()`은 `configure(state:thumbnailURL:)`에 `clipboardImageStore`의
   썸네일 경로 클로저를 넘긴다.
 - `didReceiveMemoryWarning`에 `clipboardHistoryPanelView.purgeThumbnailCache()`를 추가한다.
@@ -320,8 +325,8 @@ public static func synchronizeIfNeeded(
 
 ### 앱 `SYKeyboardApp`·`ClipboardHistorySettingsView`
 
-앱 활성화 시 동기화 호출에 `imageStore`를 함께 넘긴다. `ClipboardHistorySettingsView.
-synchronizeAndReload()`는 `onImageRecorded`에서 `reload()`를 불러 화면이 열려 있는 동안
+앱 활성화 시 동기화 호출에 `imageStore`를 함께 넘긴다. `ClipboardHistorySettingsView`는
+`didRecordImageNotification`을 `.onReceive`로 받아 `reload()`를 불러 화면이 열려 있는 동안
 저장이 끝나면 목록을 갱신한다.
 
 ## 4. UI

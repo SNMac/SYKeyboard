@@ -16,9 +16,11 @@ public enum ClipboardHistoryPasteboardSynchronizer {
 
     /// 비밀번호 관리자가 비밀 항목에 붙이는 pasteboard 타입. 이 타입이 있으면 기록하지 않는다
     public static let concealedPasteboardType = "org.nspasteboard.ConcealedType"
-    /// 이미지 항목이 기록된 직후 main 스레드에서 게시한다. 앱은 활성화 동기화(`SYKeyboardApp`)와 목록 화면이 분리돼
-    /// 있어 콜백이 닿지 않으므로 화면은 이 알림으로 목록을 다시 읽는다
+    /// 이미지 항목이 기록된 직후 main 스레드에서 게시한다. 저장은 백그라운드에서 끝나므로 키보드 패널과 앱 목록 화면은
+    /// 이 알림으로 목록을 다시 읽는다. 앱은 활성화 동기화(`SYKeyboardApp`)와 목록 화면이 분리돼 있어 콜백으로는 닿지 않는다
     public static let didRecordImageNotification = Notification.Name("ClipboardHistoryPasteboardSynchronizer.didRecordImage")
+    /// 이미지가 예산 초과로 건너뛰어진 직후 main 스레드에서 게시한다. 현재는 테스트가 완료 시점을 잡는 데만 쓴다
+    public static let didSkipImageForBudgetNotification = Notification.Name("ClipboardHistoryPasteboardSynchronizer.didSkipImageForBudget")
 
     /// 해시·썸네일 생성을 자판 입력(main)과 경쟁하지 않는 낮은 우선순위로, 한 번에 하나씩 처리한다
     private static let imageProcessingQueue = DispatchQueue(
@@ -34,16 +36,15 @@ public enum ClipboardHistoryPasteboardSynchronizer {
     /// - Parameters:
     ///   - decodeMemoryBudget: 이 프로세스가 썸네일 디코드에 쓸 수 있는 예산. 키보드는 기본값, 앱은 `appDecodeMemoryBudget`을 넘긴다
     ///   - retriesBudgetSkipped: 키보드가 예산 초과로 건너뛴 pasteboard를 다시 시도할지. 앱만 참을 넘긴다
-    ///   - onImageRecorded: 이미지 항목이 기록된 직후 메인 큐에서 한 번 호출된다. 텍스트 기록이나 건너뜀에서는 부르지 않는다
-    ///   - onImageSkippedForBudget: 이미지가 예산 초과로 건너뛰어진 직후 메인 큐에서 한 번 호출된다
+    ///
+    /// 이미지 저장은 백그라운드에서 끝나며 결과는 `didRecordImageNotification`·`didSkipImageForBudgetNotification`으로 알린다.
+    /// 텍스트 기록은 동기라 알림이 없다
     public static func synchronizeIfNeeded(
         store: ClipboardHistoryStore,
         pasteboard: UIPasteboard = .general,
         settings: UserDefaultsManager = .shared,
         decodeMemoryBudget: Int = ClipboardImagePolicy.keyboardDecodeMemoryBudget,
-        retriesBudgetSkipped: Bool = false,
-        onImageRecorded: (() -> Void)? = nil,
-        onImageSkippedForBudget: (() -> Void)? = nil
+        retriesBudgetSkipped: Bool = false
     ) {
         let changeCount = pasteboard.changeCount
         let isBudgetRetry = retriesBudgetSkipped && changeCount == settings.budgetSkippedPasteboardChangeCount
@@ -81,11 +82,10 @@ public enum ClipboardHistoryPasteboardSynchronizer {
                     case .stored(let reference):
                         store.record(.image(reference))
                         NotificationCenter.default.post(name: didRecordImageNotification, object: nil)
-                        onImageRecorded?()
                     case .skippedForBudget:
                         // 다시 시도하는 쪽(앱)이 또 건너뛰면 표시하지 않아 활성화마다 반복하지 않는다
                         if !retriesBudgetSkipped { settings.budgetSkippedPasteboardChangeCount = changeCount }
-                        onImageSkippedForBudget?()
+                        NotificationCenter.default.post(name: didSkipImageForBudgetNotification, object: nil)
                     case .rejected:
                         break
                     }

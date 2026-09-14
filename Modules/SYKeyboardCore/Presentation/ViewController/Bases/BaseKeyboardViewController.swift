@@ -300,6 +300,11 @@ open class BaseKeyboardViewController: UIInputViewController {
         NotificationCenter.default.addObserver(
             self, selector: #selector(hostDidBecomeActive), name: .NSExtensionHostDidBecomeActive, object: nil
         )
+        // 이미지는 백그라운드에서 파일로 저장된 뒤 기록되므로, 그사이 패널이 열려 있으면 완료 알림에서 다시 읽는다
+        NotificationCenter.default.addObserver(
+            self, selector: #selector(clipboardImageDidRecord),
+            name: ClipboardHistoryPasteboardSynchronizer.didRecordImageNotification, object: nil
+        )
         updateShowingKeyboard()
         if BaseKeyboardViewController.isPreview { updateReturnButtonType() }
 
@@ -2378,13 +2383,16 @@ private extension BaseKeyboardViewController {
     ///
     /// 호출 시점: `viewWillAppear`, 호스트 앱 재활성화, `textWillChange`, 클립보드 버튼 탭. `textDidChange`와 selection 콜백은 쓰지 않습니다.
     /// 앱도 활성화 시 같은 `ClipboardHistoryPasteboardSynchronizer`를 호출한다.
-    /// 이미지는 백그라운드에서 파일로 저장된 뒤 기록되므로, 그사이 패널이 열려 있으면 완료 시 다시 읽는다
+    /// 이미지 저장 완료는 `didRecordImageNotification`으로 받는다(`clipboardImageDidRecord`)
     func synchronizeClipboardHistoryIfNeeded() {
         guard isClipboardHistoryAvailable, let clipboardHistoryStore else { return }
-        ClipboardHistoryPasteboardSynchronizer.synchronizeIfNeeded(store: clipboardHistoryStore, onImageRecorded: { [weak self] in
-            guard let self, self.isClipboardPanelVisible else { return }
-            self.reloadClipboardPanel()
-        })
+        ClipboardHistoryPasteboardSynchronizer.synchronizeIfNeeded(store: clipboardHistoryStore)
+    }
+
+    /// 백그라운드 이미지 저장이 끝나 기록됐을 때. 패널이 열려 있으면 새 항목이 보이도록 다시 읽는다
+    @objc func clipboardImageDidRecord() {
+        guard isClipboardPanelVisible else { return }
+        reloadClipboardPanel()
     }
 
     /// 호스트 앱이 다시 활성화되면 그사이 다른 앱에서 복사한 내용을 반영한다.
