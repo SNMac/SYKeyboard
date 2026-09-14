@@ -359,7 +359,8 @@ synchronizeAndReload()`는 `onImageRecorded`에서 `reload()`를 불러 화면�
 - `row(for:)`: 이미지면 썸네일 44 pt `Image(uiImage:)`를 왼쪽에 두고 "이미지" + 크기
   캡션을 보여준다. 앱 프로세스는 메모리 여유가 있어 캐시 없이 동기 로드한다.
 - 상세 시트: 이미지면 가장 큰 detent(`.large`) 하나로 열고, 스크롤 없이 남은 영역에
-  다운샘플 이미지(`appPreviewMaxPixelSize`)를 aspect fit으로 맞춘다. 텍스트 시트는 그대로
+  다운샘플 이미지(`appPreviewMaxPixelSize` 3000 px, 모든 Apple 기기 화면의 긴 변 이상이라 원본과 구분되지 않음)를
+  `.task`에서 백그라운드로 한 번 디코드해 aspect fit으로 맞춘다. 텍스트 시트는 그대로
   `.medium`/`.large`다. 툴바는 고정·`ShareLink(item: originalURL)`·복사(복원)만 둔다. 편집 버튼은
   숨긴다.
 - 원문 편집 `replaceText`와 `+` 추가 시트는 텍스트 전용 그대로다. 삭제 확인 문구는

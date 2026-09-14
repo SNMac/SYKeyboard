@@ -80,6 +80,6 @@ struct ClipboardImagePolicyTests {
     func test썸네일미리보기크기() {
         #expect(ClipboardImagePolicy.thumbnailMaxPixelSize == 240)
         #expect(ClipboardImagePolicy.keyboardPreviewMaxPixelSize == 600)
-        #expect(ClipboardImagePolicy.appPreviewMaxPixelSize == 1_200)
+        #expect(ClipboardImagePolicy.appPreviewMaxPixelSize == 3_000)
     }
 }

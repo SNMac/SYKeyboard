@@ -21,8 +21,9 @@ public enum ClipboardImagePolicy {
     public static let thumbnailMaxPixelSize = 240
     /// 키보드 상세 뷰 미리보기의 긴 변 픽셀. 디코드 시 최대 약 1.4 MB
     public static let keyboardPreviewMaxPixelSize = 600
-    /// 앱 원문 시트 미리보기의 긴 변 픽셀
-    public static let appPreviewMaxPixelSize = 1_200
+    /// 앱 원문 시트 미리보기의 긴 변 픽셀. Apple 기기 화면의 긴 변(iPhone 17 Pro Max 2868, iPad Pro 13" 2752)을 덮는 값이라
+    /// 어느 기기에서도 원본을 그대로 띄운 것과 같게 보인다. 디코드 시 최대 약 36 MB(3000×3000)
+    public static let appPreviewMaxPixelSize = 3_000
     /// 저장에 쓸 pasteboard 타입 우선순위. 작은 쪽을 먼저 고르고 TIFF·GIF 등은 받지 않는다
     public static let preferredTypeIdentifiers = ["public.jpeg", "public.heic", "public.png"]
     /// JPEG·HEIC 디코드(썸네일·미리보기)에 드는 예상 메모리. ImageIO가 축소 디코드하므로 픽셀 수와 무관한 고정값이다

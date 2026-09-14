@@ -479,15 +479,19 @@ private struct ClipboardHistoryDetailView: View {
 
     @State private var isEditing = false
     @State private var draft = ""
+    /// 화면 해상도까지 디코드한 원본. body 평가마다 다시 디코드하지 않도록 한 번만 읽어 둔다
+    @State private var previewImage: UIImage?
 
     private var text: String { item.text ?? "" }
 
-    /// 원본을 시트 폭에 맞는 크기까지만 디코드한다
-    private var previewImage: UIImage? {
-        guard let reference = item.image else { return nil }
-        return imageStore?
-            .previewImage(for: reference, maxPixelSize: ClipboardImagePolicy.appPreviewMaxPixelSize)
-            .map { UIImage(cgImage: $0) }
+    /// 원본을 화면 해상도(`appPreviewMaxPixelSize`)까지 백그라운드에서 디코드한다. 시트 표시 애니메이션을 막지 않는다
+    private func loadPreviewImage() async -> UIImage? {
+        guard let reference = item.image, let imageStore else { return nil }
+        return await Task.detached(priority: .userInitiated) {
+            imageStore
+                .previewImage(for: reference, maxPixelSize: ClipboardImagePolicy.appPreviewMaxPixelSize)
+                .map { UIImage(cgImage: $0) }
+        }.value
     }
 
     private var linkStyledText: AttributedString {
@@ -534,6 +538,7 @@ private struct ClipboardHistoryDetailView: View {
             }
             .navigationTitle(isEditing ? "원문 편집" : (item.image != nil ? "이미지" : "원문"))
             .navigationBarTitleDisplayMode(.inline)
+            .task(id: item.id) { previewImage = await loadPreviewImage() }
             .toolbar {
                 if isEditing {
                     ToolbarItem(placement: .cancellationAction) {
