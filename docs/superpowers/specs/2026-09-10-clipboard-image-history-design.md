@@ -315,8 +315,8 @@ public static func synchronizeIfNeeded(
    쓴 값을 다음 동기화에서 다시 캡처하지 않는다. 기존 `didRequestCopyAt`과 같은 규칙이다.
 4. `clipboardHistoryStore.record(.image(reference))`로 맨 위로 올린다. 고정 항목은 정책상
    그대로다.
-5. `reloadClipboardPanel()` 후 `clipboardHistoryPanelView.showTransientMessage(...)`로 헤더
-   안내를 띄운다. 패널은 닫지 않고 `updateSuggestions()`도 부르지 않는다.
+5. `reloadClipboardPanel()` 후 `clipboardHistoryPanelView.showTransientMessage(...)`로 하단
+   토스트 안내를 띄운다. 패널은 닫지 않고 `updateSuggestions()`도 부르지 않는다.
 6. 파일 읽기에 실패하면(앱에서 지운 뒤 키보드가 옛 목록을 들고 있는 경우) 해당 항목을
    `remove(ids:)`로 지우고 패널을 다시 읽는다.
 
@@ -343,10 +343,12 @@ public static func synchronizeIfNeeded(
 - 썸네일 캐시: 해시 키 `NSCache<NSString, UIImage>`, `countLimit = 40`. 없으면
   `UIImage(contentsOfFile:)`로 읽어 넣는다. `purgeThumbnailCache()`가 비운다. 같은 해시는
   같은 바이트이므로 삭제된 해시를 따로 빼지 않는다.
-- `showTransientMessage(_ text: String)`: `titleLabel.text`를 바꾸고 2초 뒤
-  `DispatchWorkItem`으로 되돌린다. `configure`, `resetPresentation`, `beginItemEditing`은
-  대기 중인 복구를 취소하고 즉시 제목으로 되돌린다. 편집 모드에서는 `titleLabel`이
-  숨겨지므로 안내를 띄우지 않는다.
+- `showTransientMessage(_ text: String)`: 패널 하단 중앙(아래 여백 12 pt, 좌우 최소 16 pt)에
+  `.systemThickMaterial` 알약 토스트를 0.15초 페이드인으로 띄우고 2초 뒤 0.25초 페이드아웃한다. 글자는
+  13 pt regular `label` 색, 최대 2줄이며 터치는 통과시킨다. 안내 문구는 문장 사이에 줄바꿈을 넣어 모든 기기에서 같은 두 줄로 보인다. 편집 모드에서도 뜨고,
+  표시 중에 다시 부르면 문구를 바꾸고 시간을 새로 센다. `configure`는 토스트를 건드리지 않고
+  `resetPresentation`이 즉시 숨긴다. 처음에는 헤더 제목 라벨을 바꾸는 방식이었으나 편집 모드에서 보이지 않고
+  재조회에 지워지는 문제가 있어 실기기 확인 뒤 토스트로 바꿨다. 헤더 제목은 항상 "클립보드 기록"이다.
 - 상세 뷰 `ClipboardHistoryDetailView`: `update(item:preview:isPinned:canPin:canOpenURL:)`.
   이미지면 `textView`를 숨기고 aspect fit `UIImageView`에 미리보기를 보여주며 붙여넣기
   버튼을 숨기고 복사·고정·닫기만 둔다. 미리보기는 원본을
@@ -401,7 +403,7 @@ public static func synchronizeIfNeeded(
 Core 문구는 `SYKeyboardAssets/Sources/SYKeyboardAssets/Resources/Localizable.xcstrings`,
 앱 문구는 `SYKeyboard/Resources/Localizable.xcstrings`에 한/영을 넣는다.
 
-- Core: "이미지", "이미지를 복사했습니다. 입력창을 길게 눌러 붙여넣기",
+- Core: "이미지", "이미지를 복사했습니다.\n입력창을 길게 눌러 붙여넣기 해주세요.",
   "복사한 텍스트나 이미지가 여기에 표시됩니다."
 - 앱: "이미지도 기록"과 캡션, "이미지"
 
@@ -431,7 +433,7 @@ Core 문구는 `SYKeyboardAssets/Sources/SYKeyboardAssets/Resources/Localizable.
 | `ClipboardHistoryStoreTests` (확장) | `text` 키만 있는 기존 파일 디코드, 이미지 항목 왕복 저장, 이미지 항목 삭제·트리밍·전체 삭제 시 원본·썸네일 파일 삭제, 텍스트만 바뀐 저장은 파일 삭제 없음 |
 | `ClipboardImageStoreTests` (신규) | 테스트에서 `CGImageDestination`으로 만든 작은 PNG·JPEG 임시 파일 저장 → 해시 파일명·썸네일 생성·참조 값, 같은 파일 두 번 저장 시 파일 하나, 한도 초과는 `nil`이고 파일 미생성, 손상 파일은 `nil`, 회전 메타데이터의 폭·높이 교환, `stage` 후 거부·중복 시 임시 파일 정리, 디코드 예산 초과 거부 |
 | `ClipboardHistoryPasteboardSynchronizerTests` (확장) | 이미지만 있는 pasteboard(`setData`)에서 이미지 기록(완료 콜백을 `withCheckedContinuation`으로 대기), 텍스트+이미지는 텍스트만, 이미지 설정 OFF면 기록 없음, 이미지 경로 진입 시 `changeCount`만 즉시 갱신(예산 초과 저장 거부는 `ClipboardImageStoreTests`) |
-| `ClipboardHistoryPanelViewTests` (확장) | 이미지 항목 `configure` 후 셀 구성, 탭 시 `didSelectItemAt` 인덱스, `showTransientMessage` 직후 제목 변경과 `configure`/`resetPresentation` 시 즉시 복구, 텍스트·이미지 혼합 삭제 스냅샷 crash 없음 |
+| `ClipboardHistoryPanelViewTests` (확장) | 이미지 항목 `configure` 후 셀 구성, 탭 시 `didSelectItemAt` 인덱스, `showTransientMessage` 토스트 표시·`configure` 후 유지·`resetPresentation` 시 숨김·편집 모드 표시, 텍스트·이미지 혼합 삭제 스냅샷 crash 없음 |
 | `UserDefaultsContractTests` (확장) | `isClipboardImageHistoryEnabled` 키·기본값 |
 
 2초 뒤 자동 복구는 시간 경과 테스트를 금지하는 지침에 따라 단위 테스트로 고정하지

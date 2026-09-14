@@ -209,31 +209,43 @@ struct ClipboardHistoryPanelViewTests {
         #expect(panel.tableView.numberOfRows(inSection: 0) == 2)
     }
 
-    @Test("헤더 안내는 제목 자리에 보였다가 configure·resetPresentation에서 즉시 제목으로 돌아옴")
-    func test헤더안내_표시와_즉시복구() {
+    @Test("안내 토스트는 제목을 바꾸지 않고 떠서 configure에도 유지되며 resetPresentation에서 숨겨짐")
+    func test안내토스트_표시와_숨김() {
         let (panel, _) = makePanel(items: [imageItem("h1")])
         let title = panel.titleLabel.text
 
         panel.showTransientMessage("copied")
-        #expect(panel.titleLabel.text == "copied")
+        #expect(panel.isTransientMessageVisible)
+        #expect(panel.transientMessageText == "copied")
+        #expect(panel.titleLabel.text == title)
 
         panel.configure(state: .items([imageItem("h1")]))
-        #expect(panel.titleLabel.text == title)
+        #expect(panel.isTransientMessageVisible)
 
-        panel.showTransientMessage("copied")
         panel.resetPresentation()
-        #expect(panel.titleLabel.text == title)
+        #expect(panel.isTransientMessageVisible == false)
     }
 
-    @Test("편집 모드에서는 헤더 안내를 띄우지 않음")
-    func test편집모드는_헤더안내없음() {
+    @Test("표시 중에 안내 토스트를 다시 띄우면 문구만 바뀌고 계속 보임")
+    func test안내토스트_재표시() {
         let (panel, _) = makePanel(items: [imageItem("h1")])
-        let title = panel.titleLabel.text
+
+        panel.showTransientMessage("first")
+        panel.showTransientMessage("second")
+
+        #expect(panel.isTransientMessageVisible)
+        #expect(panel.transientMessageText == "second")
+    }
+
+    @Test("편집 모드에서도 안내 토스트가 뜸")
+    func test편집모드에서도_안내토스트() {
+        let (panel, _) = makePanel(items: [imageItem("h1")])
 
         panel.beginItemEditing()
         panel.showTransientMessage("copied")
 
-        #expect(panel.titleLabel.text == title)
+        #expect(panel.isTransientMessageVisible)
+        #expect(panel.isItemEditing)
     }
 
     @Test("텍스트·이미지가 섞인 목록에서 일부를 지우고 다시 configure해도 행 수가 새 목록을 따름")

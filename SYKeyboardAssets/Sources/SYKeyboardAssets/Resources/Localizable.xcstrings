@@ -124,13 +124,13 @@
         }
       }
     },
-    "이미지를 복사했습니다. 입력창을 길게 눌러 붙여넣기" : {
+    "이미지를 복사했습니다.\n입력창을 길게 눌러 붙여넣기 해주세요." : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Image copied. Long-press the text field to paste"
+            "value" : "Image copied.\nLong-press the text field to paste."
           }
         }
       }

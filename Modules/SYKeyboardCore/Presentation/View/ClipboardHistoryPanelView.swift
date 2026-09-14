@@ -30,7 +30,8 @@ protocol ClipboardHistoryPanelDelegate: AnyObject {
 /// 저장소를 모르는 표시 전용 뷰다. 상태는 `configure(state:)`로 받고 결정은 델리게이트가 한다.
 ///
 /// ## 동작
-/// - 평소: 행 탭은 붙여넣기(텍스트) 또는 pasteboard 복원(이미지), trailing swipe는 개별 삭제, leading swipe는 고정/해제, 길게 누르기는 원문 상세 뷰
+/// - 평소: 행 탭은 붙여넣기(텍스트) 또는 pasteboard 복원(이미지), trailing swipe는 개별 삭제, leading swipe는 고정/해제, 길게 누르기는 원문 상세 뷰.
+///   이미지 복원 결과 같은 안내는 하단 중앙 토스트(`showTransientMessage`)로 2초간 띄운다
 /// - 편집 모드(`isItemEditing`): 행 탭은 선택 토글, 길게 누르기는 선택을 바꾸지 않고 원문 상세 뷰, "전체 선택"·"n개 삭제"·"완료".
 ///   `UITableView.isEditing`은 스와이프 액션이 열려 있는 동안에도 true가 되므로 판단에 쓰지 않는다
 final class ClipboardHistoryPanelView: UIView {
@@ -57,10 +58,14 @@ final class ClipboardHistoryPanelView: UIView {
         cache.countLimit = ClipboardHistoryPolicy.maxItemCount + ClipboardHistoryPolicy.maxPinnedCount
         return cache
     }()
-    /// 헤더 안내를 제목으로 되돌리는 예약 작업
-    private var pendingTitleRestore: DispatchWorkItem?
+    /// 안내 토스트를 숨기는 예약 작업
+    private var pendingToastHide: DispatchWorkItem?
+    /// 토스트 표시 세대. 페이드아웃 완료 시점에 그사이 다시 띄워졌는지 구분한다
+    private var toastGeneration = 0
 
     private static let transientMessageDuration: TimeInterval = 2
+    private static let toastFadeInDuration: TimeInterval = 0.15
+    private static let toastFadeOutDuration: TimeInterval = 0.25
     private static let thumbnailSize = CGSize(width: 44, height: 44)
     private static let imagePlaceholderSymbolName = "photo"
 
@@ -171,6 +176,31 @@ final class ClipboardHistoryPanelView: UIView {
         return label
     }()
 
+    /// 결과 안내 토스트. 패널 하단 중앙에 material 알약으로 잠깐 떠서 편집 모드와 무관하게 보이고 터치는 통과시킨다.
+    /// 목록 행 위에 겹치므로 상세 뷰와 같은 thick material로 글자 뒤를 충분히 가린다
+    private let toastView: UIVisualEffectView = {
+        let view = UIVisualEffectView(effect: UIBlurEffect(style: .systemThickMaterial))
+        view.layer.cornerRadius = 16
+        view.clipsToBounds = true
+        view.isHidden = true
+        view.isUserInteractionEnabled = false
+
+        return view
+    }()
+
+    /// 안내 문구는 문장 사이에 줄바꿈을 넣어 모든 기기에서 같은 두 줄로 보인다(375 pt 기기에서도 각 줄이 폭 안에 든다).
+    /// 글자 색은 material 위에서 라이트·다크 모두 대비가 맞는 시스템 label 색이다
+    private let toastLabel: UILabel = {
+        let label = UILabel()
+        label.font = .systemFont(ofSize: 13)
+        label.textColor = .label
+        label.textAlignment = .center
+        label.numberOfLines = 2
+        label.lineBreakStrategy = .hangulWordPriority
+
+        return label
+    }()
+
     private lazy var detailView: ClipboardHistoryDetailView = {
         let view = ClipboardHistoryDetailView()
         view.isHidden = true
@@ -226,7 +256,6 @@ final class ClipboardHistoryPanelView: UIView {
     func configure(state: State) {
         hideDetail()
         hideDeleteConfirmation()
-        restoreTitle()
         let previousItems = items
         switch state {
         case .fullAccessRequired:
@@ -248,7 +277,7 @@ final class ClipboardHistoryPanelView: UIView {
     func resetPresentation() {
         hideDetail(animated: false)
         hideDeleteConfirmation(animated: false)
-        restoreTitle()
+        hideTransientMessage(animated: false)
         endItemEditing()
         // 열린 스와이프 액션도 닫는다. 스와이프 중에는 tableView.isEditing만 true라 endItemEditing이 건너뛴다
         tableView.setEditing(false, animated: false)
@@ -259,7 +288,6 @@ final class ClipboardHistoryPanelView: UIView {
 
     func beginItemEditing() {
         guard !items.isEmpty, !isItemEditing else { return }
-        restoreTitle()
         isItemEditing = true
         longPressRecognizer.delaysTouchesBegan = true
         // 열린 스와이프가 있으면 먼저 닫아 헤더와 테이블이 함께 편집 모드로 들어간다
@@ -330,19 +358,49 @@ final class ClipboardHistoryPanelView: UIView {
         hideDeleteConfirmation()
     }
 
-    /// 헤더 제목 자리에 `message`를 잠깐 보여준 뒤 되돌린다. 이미지 복원처럼 패널을 유지한 채 결과를 알릴 때 쓴다.
-    /// 편집 모드에서는 제목이 숨겨져 있으므로 띄우지 않는다
+    /// 패널 하단에 `message` 토스트를 페이드인으로 띄우고 2초 뒤 페이드아웃한다. 이미지 복원처럼 패널을 유지한 채
+    /// 결과를 알릴 때 쓴다. 편집 모드에서도 뜨며, 표시 중에 다시 부르면 문구를 바꾸고 시간을 새로 센다.
+    /// 목록 재조회(`configure`)는 토스트를 건드리지 않는다
     func showTransientMessage(_ message: String) {
-        guard !isItemEditing else { return }
-        pendingTitleRestore?.cancel()
-        titleLabel.text = message
-        let workItem = DispatchWorkItem { [weak self] in self?.restoreTitle() }
-        pendingTitleRestore = workItem
+        pendingToastHide?.cancel()
+        toastGeneration += 1
+        toastLabel.text = message
+        if toastView.isHidden {
+            toastView.alpha = 0
+            toastView.isHidden = false
+        }
+        UIView.animate(withDuration: ClipboardHistoryPanelView.toastFadeInDuration) { self.toastView.alpha = 1 }
+        UIAccessibility.post(notification: .announcement, argument: message)
+
+        let workItem = DispatchWorkItem { [weak self] in self?.hideTransientMessage(animated: true) }
+        pendingToastHide = workItem
         DispatchQueue.main.asyncAfter(
             deadline: .now() + ClipboardHistoryPanelView.transientMessageDuration,
             execute: workItem
         )
     }
+
+    private func hideTransientMessage(animated: Bool) {
+        pendingToastHide?.cancel()
+        pendingToastHide = nil
+        guard !toastView.isHidden else { return }
+        guard animated else {
+            toastView.isHidden = true
+            return
+        }
+        let generation = toastGeneration
+        UIView.animate(withDuration: ClipboardHistoryPanelView.toastFadeOutDuration, animations: {
+            self.toastView.alpha = 0
+        }, completion: { [weak self] _ in
+            // 페이드아웃 중에 새 안내가 떴으면 그대로 둔다
+            guard let self, self.toastGeneration == generation else { return }
+            self.toastView.isHidden = true
+        })
+    }
+
+    /// 안내 토스트가 보이는 중인지. 페이드아웃이 진행 중인 동안도 `true`다. 테스트에서 `showTransientMessage` 결과를 확인하는 용도
+    var isTransientMessageVisible: Bool { !toastView.isHidden }
+    var transientMessageText: String? { toastLabel.text }
 
     func purgeThumbnailCache() {
         thumbnailCache.removeAllObjects()
@@ -412,11 +470,12 @@ private extension ClipboardHistoryPanelView {
         [titleLabel, selectAllButton, spacer, deleteButton, editButton, doneButton].forEach {
             headerStackView.addArrangedSubview($0)
         }
-        [headerStackView, tableView, messageLabel, detailView, deleteConfirmView].forEach { self.addSubview($0) }
+        toastView.contentView.addSubview(toastLabel)
+        [headerStackView, tableView, messageLabel, toastView, detailView, deleteConfirmView].forEach { self.addSubview($0) }
     }
 
     func setConstraints() {
-        [headerStackView, tableView, messageLabel, detailView, deleteConfirmView].forEach {
+        [headerStackView, tableView, messageLabel, toastView, toastLabel, detailView, deleteConfirmView].forEach {
             $0.translatesAutoresizingMaskIntoConstraints = false
         }
         NSLayoutConstraint.activate([
@@ -434,6 +493,16 @@ private extension ClipboardHistoryPanelView {
             messageLabel.centerYAnchor.constraint(equalTo: self.centerYAnchor),
             messageLabel.leadingAnchor.constraint(greaterThanOrEqualTo: self.leadingAnchor, constant: 16),
             messageLabel.trailingAnchor.constraint(lessThanOrEqualTo: self.trailingAnchor, constant: -16),
+
+            // 하단 중앙 고정 여백이라 어떤 키보드 높이에서도 패널 안에 들어온다
+            toastView.centerXAnchor.constraint(equalTo: self.centerXAnchor),
+            toastView.bottomAnchor.constraint(equalTo: self.bottomAnchor, constant: -12),
+            toastView.leadingAnchor.constraint(greaterThanOrEqualTo: self.leadingAnchor, constant: 16),
+            toastView.trailingAnchor.constraint(lessThanOrEqualTo: self.trailingAnchor, constant: -16),
+            toastLabel.topAnchor.constraint(equalTo: toastView.contentView.topAnchor, constant: 8),
+            toastLabel.bottomAnchor.constraint(equalTo: toastView.contentView.bottomAnchor, constant: -8),
+            toastLabel.leadingAnchor.constraint(equalTo: toastView.contentView.leadingAnchor, constant: 14),
+            toastLabel.trailingAnchor.constraint(equalTo: toastView.contentView.trailingAnchor, constant: -14),
 
             detailView.topAnchor.constraint(equalTo: self.topAnchor),
             detailView.leadingAnchor.constraint(equalTo: self.leadingAnchor),
@@ -453,12 +522,6 @@ private extension ClipboardHistoryPanelView {
 private extension ClipboardHistoryPanelView {
     var isAllSelected: Bool {
         !items.isEmpty && (tableView.indexPathsForSelectedRows?.count ?? 0) == items.count
-    }
-
-    func restoreTitle() {
-        pendingTitleRestore?.cancel()
-        pendingTitleRestore = nil
-        titleLabel.text = String(localized: "클립보드 기록", bundle: SYKBDAssets.bundle)
     }
 
     /// 캐시에 없으면 썸네일 파일을 읽어 넣는다. 파일이 없으면 `nil`

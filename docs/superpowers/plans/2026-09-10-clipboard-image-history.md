@@ -1879,7 +1879,7 @@ private extension에 추가:
         }
       }
     },
-    "이미지를 복사했습니다. 입력창을 길게 눌러 붙여넣기" : {
+    "이미지를 복사했습니다.\n입력창을 길게 눌러 붙여넣기 해주세요." : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
@@ -1986,7 +1986,7 @@ VC 델리게이트는 순수 타입이 아니고 `UIInputViewController` 없이 
         clipboardHistoryStore.record(.image(reference))
         reloadClipboardPanel()
         clipboardHistoryPanelView.showTransientMessage(
-            String(localized: "이미지를 복사했습니다. 입력창을 길게 눌러 붙여넣기", bundle: SYKBDAssets.bundle)
+            String(localized: "이미지를 복사했습니다.\n입력창을 길게 눌러 붙여넣기 해주세요.", bundle: SYKBDAssets.bundle)
         )
     }
 ```
@@ -2436,6 +2436,7 @@ git commit -m "docs: #55 - 구현 계획에 검증 결과 기록"
 | 키보드 extension을 Xcode에 attach한 평상시 메모리와, iPad Pro 13" PNG 스크린샷(2752×2064) 복사 후 키보드를 열었을 때의 피크. 종료되면 `keyboardDecodeMemoryBudget`(32 MB)을 낮춤 | 확인(일부) — iPhone 15 Pro Max 디버그 빌드 스크린샷(1290×2796 PNG) 복사 후 키보드 열기 정상, 메모리 51 MB 이내. iPad Pro 13"은 기기 없음 |
 | MacBook 스크린샷(3456×2234 PNG)을 Universal Clipboard로 복사 → 키보드에서는 항목이 생기지 않고, SY키보드 앱을 열면 관리 화면에 이미지가 나타남(예산 초과 건너뜀 → 앱 재시도) | 확인 — 키보드 미저장 → 앱 열면 저장됨 |
 | 48 MP JPEG/HEIC(사진 앱에서 고해상도 촬영본) 복사 → 키보드 썸네일 생성 시간과 패널 갱신(HEIC는 24 MP 초과 시 키보드 건너뜀·앱 저장) | 확인 — 24 MP HEIF는 저장되나 48 MP HEIF(5 MB)는 키보드·앱 모두 미저장이었음. 원인: 8064×6048 = 48,771,072픽셀이 `maxPixelCount` 48,000,000 초과로 거부. 50,000,000으로 올린 뒤 재확인에서 저장됨. devicectl 대조 결과 사진 앱이 `public.jpeg`를 함께 제공해 키보드가 JPEG(6048×8064, 8.9 MB)로 저장한 것이며, HEIC 원본이 앱 예산 경로로 저장된 사례는 아직 없음 |
+| 키보드 안내를 헤더 제목 대신 하단 중앙 material 토스트로 표시(편집 모드 포함, 페이드 0.15/0.25초, 2초 유지) | 재확인 필요 — 라이트·다크 대비, 문장 사이 줄바꿈으로 모든 기기에서 두 줄 표시, 편집 모드에서 이미지 상세 "복사" 후 토스트 표시 |
 | 앱 목록 행을 `.plain` Button으로: 누르는 동안 라벨이 흐려지고 시트가 뜬 뒤 흔적이 남지 않음, "선택" 진입·해제 애니메이션 유지 | 확인 — 2026-09-15 iPhone 15 Pro Max. 선택 바인딩을 편집 모드에서만 넘기면 진입 애니메이션이 사라져 되돌림 |
 | 앱 편집 모드에서 길게 누르면 원본 시트, 탭은 선택으로만 | 확인 — 정상. 비편집 모드에서 길게 눌렀다 뗐을 때 버튼이 시트를 여는지, "원본 보기" 접근성 액션은 미확인 |
 | 키보드 패널 편집 모드에서 길게 누르면 상세 뷰(선택 변경 없음), 닫은 뒤 선택 유지 | 확인 — 처음엔 인식 전 0.5초 동안 회색·체크가 먼저 보여 `delaysTouchesBegan`으로 수정 후 정상. 편집 모드 텍스트 행 탭의 눌림 표시가 손 뗄 때 나타나는 변화와, 상세에서 고정 토글 뒤 이동한 행의 체크 상태는 미확인 |

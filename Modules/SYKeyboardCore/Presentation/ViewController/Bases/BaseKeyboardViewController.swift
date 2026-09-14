@@ -2461,13 +2461,13 @@ private extension BaseKeyboardViewController {
 
         // 방금 쓴 항목을 최근 복사한 것처럼 미고정 맨 위로 올린다. 고정 항목은 정책상 그대로다.
         // 탭 처리(didSelectRowAt) 안에서 행 이동 애니메이션을 시작하면 눌린 표시가 남을 수 있어 다음 런루프에서 다시 읽는다.
-        // configure(state:)가 제목을 되돌리므로 안내문은 재조회 뒤에 띄운다
+        // 안내 토스트는 재조회와 무관하지만 새 목록이 그려진 뒤에 띄워 순서를 분명히 한다
         clipboardHistoryStore.record(.image(reference))
         DispatchQueue.main.async { [weak self] in
             guard let self else { return }
             self.reloadClipboardPanel()
             self.clipboardHistoryPanelView.showTransientMessage(
-                String(localized: "이미지를 복사했습니다. 입력창을 길게 눌러 붙여넣기", bundle: SYKBDAssets.bundle)
+                String(localized: "이미지를 복사했습니다.\n입력창을 길게 눌러 붙여넣기 해주세요.", bundle: SYKBDAssets.bundle)
             )
         }
     }
