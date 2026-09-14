@@ -137,6 +137,8 @@ extension 프로세스 로컬 상태는 `KeyboardExtensionLocalStateStore`에 �
 - UIKit 키보드 UI는 `BaseKeyboardViewController`, `ButtonStateController`, gesture controller, layout provider 프로토콜의 책임을 유지한다.
 - 입력 로직은 UI에 섞지 말고 `HangeulProcessable`, `HangeulAutomata`, 각 Processor 쪽에 둔다.
 - 로컬라이징 문자열은 가능한 한 String Catalog(`.xcstrings`)를 사용한다.
+- 문자열 안에서 설정·버튼 이름을 인용할 때 한국어(원문 키)는 작은따옴표 `'이미지도 기록'`, 영어 값은
+  둥근 큰따옴표 `“Include Images”`를 쓴다. 영어에 곧은따옴표(`'`, `"`)를 인용 용도로 쓰지 않는다.
 - 새 설정값을 추가할 때는 관련 `UserDefaultsKeys`, `DefaultValues`, 앱 설정 화면, 키보드 런타임 반영 위치를 함께 확인한다.
 
 ## 주요 디렉터리
