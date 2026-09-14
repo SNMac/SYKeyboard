@@ -20,7 +20,7 @@ GitHub Issue #55에 따라 #54의 텍스트 클립보드 기록을 확장해, �
 - `ClipboardHistoryStore`는 캐시 없이 매 연산마다 App Group의 `clipboard_history.plist`를
   읽고 쓴다. 세 extension과 앱이 같은 파일을 공유한다.
 - `ClipboardHistoryPasteboardSynchronizer.synchronizeIfNeeded`는 `changeCount` →
-  concealed 타입 → `hasStrings` → `string` 순으로 확인하며 키보드(`viewWillAppear`,
+  concealed 타입 → `hasStrings` → `string` 순으로 확인하며 키보드(`viewWillAppear`, 호스트 앱 재활성화 `NSExtensionHostDidBecomeActive`,
   `textWillChange`, 클립보드 버튼 탭)와 앱(활성화 시)이 함께 호출한다.
 - `UIPasteboard.hasImages`·`changeCount`·`types`·`itemProviders` 확인은 iOS 16 붙여넣기
   권한 알림을 띄우지 않는다. 이미지 데이터 읽기는 텍스트 읽기와 같은 알림 대상이다.

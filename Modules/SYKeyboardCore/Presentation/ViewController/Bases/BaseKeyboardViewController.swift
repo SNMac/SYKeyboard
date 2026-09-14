@@ -296,6 +296,10 @@ open class BaseKeyboardViewController: UIInputViewController {
         KeyboardDiagnostics.installConstraintConflictLogging()
         resetInputBuffer()
         setupUI()
+        // 호스트 앱이 다른 앱(사진 등)을 거쳐 돌아올 때는 viewWillAppear가 다시 오지 않으므로 여기서 pasteboard를 확인한다
+        NotificationCenter.default.addObserver(
+            self, selector: #selector(hostDidBecomeActive), name: .NSExtensionHostDidBecomeActive, object: nil
+        )
         updateShowingKeyboard()
         if BaseKeyboardViewController.isPreview { updateReturnButtonType() }
 
@@ -2372,7 +2376,7 @@ private extension BaseKeyboardViewController {
 
     /// pasteboard의 `changeCount`가 마지막 확인값과 다를 때만 텍스트 또는 이미지를 읽어 기록에 저장합니다.
     ///
-    /// 호출 시점: `viewWillAppear`, `textWillChange`, 클립보드 버튼 탭. `textDidChange`와 selection 콜백은 쓰지 않습니다.
+    /// 호출 시점: `viewWillAppear`, 호스트 앱 재활성화, `textWillChange`, 클립보드 버튼 탭. `textDidChange`와 selection 콜백은 쓰지 않습니다.
     /// 앱도 활성화 시 같은 `ClipboardHistoryPasteboardSynchronizer`를 호출한다.
     /// 이미지는 백그라운드에서 파일로 저장된 뒤 기록되므로, 그사이 패널이 열려 있으면 완료 시 다시 읽는다
     func synchronizeClipboardHistoryIfNeeded() {
@@ -2381,6 +2385,18 @@ private extension BaseKeyboardViewController {
             guard let self, self.isClipboardPanelVisible else { return }
             self.reloadClipboardPanel()
         })
+    }
+
+    /// 호스트 앱이 다시 활성화되면 그사이 다른 앱에서 복사한 내용을 반영한다.
+    /// 텍스트는 동기 저장이라 패널이 열려 있으면 바로 다시 읽고, 이미지는 저장 완료 콜백이 다시 읽는다.
+    /// 제어 센터·알림 센터를 내렸다 올려도 오므로, 목록이 실제로 바뀐 경우에만 다시 구성해 열린 상세 뷰·삭제 확인·안내문을 지우지 않는다
+    @objc func hostDidBecomeActive() {
+        // 키보드가 내려간 뒤 프로세스만 남아 있을 때는 읽지 않는다. 보이지 않는 키보드가 붙여넣기 권한 알림을 띄우지 않게 한다
+        guard viewIfLoaded?.window != nil else { return }
+        synchronizeClipboardHistoryIfNeeded()
+        guard isClipboardPanelVisible, isClipboardHistoryAvailable, let clipboardHistoryStore,
+              clipboardHistoryStore.load() != clipboardHistoryPanelView.items else { return }
+        reloadClipboardPanel()
     }
 
     /// 클립보드 버튼 탭. 열려 있으면 닫고, 닫혀 있으면 동기화 후 엽니다.
