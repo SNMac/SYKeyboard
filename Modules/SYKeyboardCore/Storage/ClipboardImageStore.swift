@@ -16,7 +16,7 @@ import UniformTypeIdentifiers
 ///
 /// UIKit을 쓰지 않는다. 한 번에 올리는 메모리는 64 KB 해시 버퍼와 썸네일 디코드뿐이다.
 /// 세 keyboard extension과 앱이 같은 디렉터리를 쓰며, 파일명이 해시라 동시에 같은 이미지를 저장해도 같은 파일이다
-public final class ClipboardImageStore {
+public final class ClipboardImageStore: Sendable {
 
     // MARK: - Properties
 
