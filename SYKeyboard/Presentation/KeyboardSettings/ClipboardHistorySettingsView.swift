@@ -18,8 +18,6 @@ struct ClipboardHistorySettingsView: View {
 
     private let store = ClipboardHistoryStore()
 
-    /// 이미지 제약 안내는 "이미지도 기록"이 켜져 있을 때만 보인다
-
     /// 저장 순서 그대로(고정 최신순 → 미고정 최신순). id는 정책상 중복이 없다.
     /// 화면 전환 중 빈 상태와 편집 버튼 없는 툴바가 먼저 보이지 않도록 첫 렌더링 전에 읽는다
     @State private var items: [ClipboardHistoryItem]
@@ -148,7 +146,7 @@ private extension ClipboardHistorySettingsView {
         Text("고정 항목은 직접 삭제할 때까지 유지되고, 최근 항목은 \(ClipboardHistoryPolicy.maxItemCount)개를 넘으면 오래된 것부터 지워집니다.")
     }
 
-    /// 이미지 저장 한도와 토글 OFF 규칙 안내. 목록 최하단(footer)과 빈 상태에서 "이미지도 기록"이 켜져 있을 때만 보인다
+    /// 이미지 저장 한도와 토글 OFF 규칙 안내. 목록 최하단(footer)과 빈 상태에 토글과 무관하게 항상 보인다
     var imageLimitDescription: some View {
         Text("이미지는 한 장에 \(ClipboardImagePolicy.maxByteSize / (1_024 * 1_024)) MB · \(ClipboardImagePolicy.maxPixelCount / 1_000_000) MP까지 저장합니다. '이미지도 기록'을 끄면 새로 복사한 이미지는 저장하지 않으며, 이미 저장된 이미지는 여기서 삭제할 수 있습니다.")
     }
@@ -538,7 +536,12 @@ private struct ClipboardHistoryDetailView: View {
             }
             .navigationTitle(isEditing ? "원문 편집" : (item.image != nil ? "이미지" : "원문"))
             .navigationBarTitleDisplayMode(.inline)
-            .task(id: item.id) { previewImage = await loadPreviewImage() }
+            .task(id: item.id) {
+                let image = await loadPreviewImage()
+                // 항목이 바뀌어 취소된 디코드 결과가 새 항목을 덮어쓰지 않게 한다
+                guard !Task.isCancelled else { return }
+                previewImage = image
+            }
             .toolbar {
                 if isEditing {
                     ToolbarItem(placement: .cancellationAction) {
