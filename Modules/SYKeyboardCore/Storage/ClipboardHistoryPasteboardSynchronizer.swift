@@ -19,7 +19,7 @@ public enum ClipboardHistoryPasteboardSynchronizer {
     /// 이미지 항목이 기록된 직후 main 스레드에서 게시한다. 저장은 백그라운드에서 끝나므로 키보드 패널과 앱 목록 화면은
     /// 이 알림으로 목록을 다시 읽는다. 앱은 활성화 동기화(`SYKeyboardApp`)와 목록 화면이 분리돼 있어 콜백으로는 닿지 않는다
     public static let didRecordImageNotification = Notification.Name("ClipboardHistoryPasteboardSynchronizer.didRecordImage")
-    /// 이미지가 예산 초과로 건너뛰어진 직후 main 스레드에서 게시한다. 현재는 테스트가 완료 시점을 잡는 데만 쓴다
+    /// 이미지가 예산 초과로 건너뛰어져 앱의 재시도에 맡겨진 직후 main 스레드에서 게시한다. 기록 알림의 짝이 되는 결과 이벤트다
     public static let didSkipImageForBudgetNotification = Notification.Name("ClipboardHistoryPasteboardSynchronizer.didSkipImageForBudget")
 
     /// 해시·썸네일 생성을 자판 입력(main)과 경쟁하지 않는 낮은 우선순위로, 한 번에 하나씩 처리한다
@@ -81,11 +81,12 @@ public enum ClipboardHistoryPasteboardSynchronizer {
                     switch outcome {
                     case .stored(let reference):
                         store.record(.image(reference))
-                        NotificationCenter.default.post(name: didRecordImageNotification, object: nil)
+                        // object는 기록한 store. 같은 프로세스에서 다른 store(테스트 호스트 앱)가 게시한 알림과 구분할 수 있게 한다
+                        NotificationCenter.default.post(name: didRecordImageNotification, object: store)
                     case .skippedForBudget:
                         // 다시 시도하는 쪽(앱)이 또 건너뛰면 표시하지 않아 활성화마다 반복하지 않는다
                         if !retriesBudgetSkipped { settings.budgetSkippedPasteboardChangeCount = changeCount }
-                        NotificationCenter.default.post(name: didSkipImageForBudgetNotification, object: nil)
+                        NotificationCenter.default.post(name: didSkipImageForBudgetNotification, object: store)
                     case .rejected:
                         break
                     }

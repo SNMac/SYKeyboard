@@ -56,7 +56,7 @@ struct ClipboardHistoryPasteboardSynchronizerTests {
         defer { fixture.restore() }
         fixture.pasteboard.setData(makePNGData(), forPasteboardType: "public.png")
 
-        await performAndWait(for: ClipboardHistoryPasteboardSynchronizer.didRecordImageNotification) {
+        await performAndWait(for: ClipboardHistoryPasteboardSynchronizer.didRecordImageNotification, from: fixture.store) {
             ClipboardHistoryPasteboardSynchronizer.synchronizeIfNeeded(
                 store: fixture.store,
                 pasteboard: fixture.pasteboard,
@@ -108,7 +108,7 @@ struct ClipboardHistoryPasteboardSynchronizerTests {
         defer { fixture.restore() }
         fixture.pasteboard.setData(makePNGData(), forPasteboardType: "public.png")
 
-        await performAndWait(for: ClipboardHistoryPasteboardSynchronizer.didSkipImageForBudgetNotification) {
+        await performAndWait(for: ClipboardHistoryPasteboardSynchronizer.didSkipImageForBudgetNotification, from: fixture.store) {
             ClipboardHistoryPasteboardSynchronizer.synchronizeIfNeeded(
                 store: fixture.store,
                 pasteboard: fixture.pasteboard,
@@ -137,7 +137,7 @@ struct ClipboardHistoryPasteboardSynchronizerTests {
         #expect(fixture.store.load().isEmpty)
         #expect(UserDefaultsManager.shared.budgetSkippedPasteboardChangeCount == fixture.pasteboard.changeCount)
 
-        await performAndWait(for: ClipboardHistoryPasteboardSynchronizer.didRecordImageNotification) {
+        await performAndWait(for: ClipboardHistoryPasteboardSynchronizer.didRecordImageNotification, from: fixture.store) {
             ClipboardHistoryPasteboardSynchronizer.synchronizeIfNeeded(
                 store: fixture.store,
                 pasteboard: fixture.pasteboard,
@@ -159,7 +159,7 @@ struct ClipboardHistoryPasteboardSynchronizerTests {
         UserDefaultsManager.shared.lastSeenPasteboardChangeCount = fixture.pasteboard.changeCount
         UserDefaultsManager.shared.budgetSkippedPasteboardChangeCount = fixture.pasteboard.changeCount
 
-        await performAndWait(for: ClipboardHistoryPasteboardSynchronizer.didSkipImageForBudgetNotification) {
+        await performAndWait(for: ClipboardHistoryPasteboardSynchronizer.didSkipImageForBudgetNotification, from: fixture.store) {
             ClipboardHistoryPasteboardSynchronizer.synchronizeIfNeeded(
                 store: fixture.store,
                 pasteboard: fixture.pasteboard,
@@ -173,10 +173,10 @@ struct ClipboardHistoryPasteboardSynchronizerTests {
     }
 }
 
-/// `body`를 실행하고 `name` 알림이 한 번 올 때까지 기다린다. 동기화기의 백그라운드 이미지 저장이 끝나는 시점을 잡는다.
-/// 반복자를 `body`보다 먼저 만들어 알림을 놓치지 않는다
-private func performAndWait(for name: Notification.Name, _ body: () -> Void) async {
-    let notifications = NotificationCenter.default.notifications(named: name).makeAsyncIterator()
+/// `body`를 실행하고 `store`가 게시한 `name` 알림이 한 번 올 때까지 기다린다. 동기화기의 백그라운드 이미지 저장이 끝나는 시점을 잡는다.
+/// 반복자를 `body`보다 먼저 만들어 알림을 놓치지 않고, object를 store로 한정해 테스트 호스트 앱이 실제 store로 게시한 알림에 깨어나지 않는다
+private func performAndWait(for name: Notification.Name, from store: ClipboardHistoryStore, _ body: () -> Void) async {
+    let notifications = NotificationCenter.default.notifications(named: name, object: store).makeAsyncIterator()
     body()
     _ = await notifications.next()
 }
