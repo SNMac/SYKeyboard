@@ -153,13 +153,12 @@ private extension ClipboardHistorySettingsView {
 
     var itemRows: some View {
         ForEach(items) { item in
-            // Button으로 두면 시트를 띄우는 탭 뒤에 눌린 표시가 남는 일이 있어 탭 제스처만 받는다
-            row(for: item)
-                .onTapGesture { detailItem = item }
-                // Button이 아니므로 보조 기술에 탭 가능함을 알린다
-                .accessibilityAddTraits(.isButton)
-                // 편집 모드에서는 탭이 행 선택으로 가도록 제스처가 터치를 가로채지 않게 한다
-                .allowsHitTesting(!editMode.isEditing)
+            // 행 전체를 버튼으로 둔다. 기본(automatic) 스타일은 List 행 강조를 쓰며 시트를 띄우는 탭 뒤에 강조가 남는 일이 있어,
+            // 누르는 동안 라벨만 살짝 흐려지는 plain 스타일을 쓴다. 라벨은 contentShape(Rectangle())라 행 내용 영역 전체가 터치 범위다
+            Button { detailItem = item } label: { row(for: item) }
+                .buttonStyle(.plain)
+            // 편집 모드에서는 탭이 행 선택으로 가도록 버튼이 터치를 가로채지 않게 한다
+            .allowsHitTesting(!editMode.isEditing)
                 .swipeActions(edge: .leading) {
                     if item.isPinned || canPin {
                         Button {
