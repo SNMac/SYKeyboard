@@ -152,8 +152,8 @@ private extension ClipboardHistorySettingsView {
                         if editMode.isEditing { presentDetail(item) }
                     }
                 )
-                // 보조 기술에서는 길게 누르기 대신 이 액션으로 편집 모드에서도 원본을 연다
-                .accessibilityAction(named: Text("원본 보기")) { presentDetail(item) }
+                // 보조 기술에서는 길게 누르기 대신 이 액션으로 편집 모드에서도 상세를 연다
+                .accessibilityAction(named: Text("상세 보기")) { presentDetail(item) }
                 .swipeActions(edge: .leading) {
                     if item.isPinned || canPin {
                         Button {
@@ -555,7 +555,7 @@ private struct ClipboardHistoryDetailView: View {
                     }
                 }
             }
-            .navigationTitle(isEditing ? "원문 편집" : (item.image != nil ? "이미지" : "원문"))
+            .navigationTitle(isEditing ? "편집" : (item.image != nil ? "이미지" : "상세"))
             .navigationBarTitleDisplayMode(.inline)
             .task(id: item.id) {
                 let image = await loadPreviewImage()

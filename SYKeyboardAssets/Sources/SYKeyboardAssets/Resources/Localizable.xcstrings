@@ -212,24 +212,13 @@
         }
       }
     },
-    "원문" : {
+    "상세" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Full Text"
-          }
-        }
-      }
-    },
-    "원본" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Original"
+            "value" : "Details"
           }
         }
       }

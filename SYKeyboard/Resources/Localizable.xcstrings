@@ -822,33 +822,22 @@
         }
       }
     },
-    "원본 보기" : {
+    "상세 보기" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Show Original"
+            "value" : "Show Details"
           }
         }
       }
     },
-    "원문" : {
+    "상세" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Full Text"
-          }
-        }
-      }
-    },
-    "원문 편집" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Edit Text"
+            "value" : "Details"
           }
         }
       }

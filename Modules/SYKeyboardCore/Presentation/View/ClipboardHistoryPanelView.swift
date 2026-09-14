@@ -793,7 +793,7 @@ private final class ClipboardHistoryDetailView: UIView {
 
     private let titleLabel: UILabel = {
         let label = UILabel()
-        label.text = String(localized: "원문", bundle: SYKBDAssets.bundle)
+        label.text = String(localized: "상세", bundle: SYKBDAssets.bundle)
         label.font = .systemFont(ofSize: 15, weight: .semibold)
         label.textColor = .label
 
@@ -966,9 +966,6 @@ private extension ClipboardHistoryDetailView {
         imageView.isHidden = !isImage
         textView.isHidden = isImage
         if !isImage { imageView.image = nil }
-        titleLabel.text = isImage
-        ? String(localized: "원본", bundle: SYKBDAssets.bundle)
-        : String(localized: "원문", bundle: SYKBDAssets.bundle)
         pasteButton.configuration?.title = isImage
         ? String(localized: "복사", bundle: SYKBDAssets.bundle)
         : String(localized: "붙여넣기", bundle: SYKBDAssets.bundle)
