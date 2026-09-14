@@ -312,7 +312,7 @@ public static func synchronizeIfNeeded(
 1. `Data(contentsOf: originalURL, options: .mappedIfSafe)`로 원본을 메모리 맵으로 연다.
 2. `UIPasteboard.general.setData(data, forPasteboardType: reference.typeIdentifier)`.
 3. `keyboardSettingsManager.lastSeenPasteboardChangeCount = pasteboard.changeCount`. 우리가
-   쓴 값을 다음 동기화에서 다시 캡처하지 않는다. 기존 `didRequestCopyAt`과 같은 규칙이다.
+   쓴 값을 다음 동기화에서 다시 캡처하지 않는다. 텍스트 복사(`copyTextToPasteboard`)와 같은 규칙이다.
 4. `clipboardHistoryStore.record(.image(reference))`로 맨 위로 올린다. 고정 항목은 정책상
    그대로다.
 5. `reloadClipboardPanel()` 후 `clipboardHistoryPanelView.showTransientMessage(...)`로 하단
@@ -320,8 +320,18 @@ public static func synchronizeIfNeeded(
 6. 파일 읽기에 실패하면(앱에서 지운 뒤 키보드가 옛 목록을 들고 있는 경우) 해당 항목을
    `remove(ids:)`로 지우고 패널을 다시 읽는다.
 
-`didRequestCopyAt`(상세 뷰의 복사 버튼)도 이미지면 같은 복원 경로를 탄다.
+상세 뷰의 붙여넣기(텍스트)·복사(이미지) 버튼도 행 탭과 같은 `didSelectItemAt` 경로를 탄다.
 `didRequestOpenURLAt`과 편집은 이미지에서 호출되지 않는다.
+
+텍스트 행 탭(실기기 확인 뒤 결정, #54 동작 변경): 입력창에 삽입하면서 시스템 pasteboard에도 복사한다. macOS Tahoe
+Spotlight 클립보드 기록이 고른 항목을 붙여넣으며 현재 클립보드로 올리는 것과 같은 기대를 따른다(Windows Win+V도
+같은 동작으로 알려져 있으나 공식 문서로 확인하지는 못함). 키보드가 뜰 때 동기화가
+기록한 내용은 목록에 남으므로 덮어써도 잃지 않지만, 동기화가 기록하지 않는 내용은 덮어써져 복구할 수 없다.
+이미지 기록 OFF 상태의 이미지, 키보드 예산 초과로 앱 재시도를 기다리던 이미지(덮어쓰면 changeCount가 달라져 재시도도
+되지 않음), concealed 타입, 문자열이 없는 파일·URL 전용 항목, 저장 대상이 아닌 타입이거나 바이트·픽셀 한도로 거부된 이미지가 그렇다.
+동기화가 끝나기 전(파일 수신 중)에 덮어쓴 이미지도 저장이 실패할 수 있다(미확인). Spotlight
+클립보드 기록과 같은 한계로 수용한다. 종전의 `didRequestCopyAt`(상세 뷰 전용 복사)은 이 경로로 흡수돼 제거했다.
+별도 설정은 두지 않는다.
 
 ### 앱 `SYKeyboardApp`·`ClipboardHistorySettingsView`
 
@@ -374,6 +384,10 @@ public static func synchronizeIfNeeded(
   남는 일이 있어 쓰지 않는다. 편집 모드에서는 버튼의 hit testing을 꺼 탭이 List 행 선택으로 가고, 바깥의
   `simultaneousGesture(LongPressGesture)`가 길게 누르기만 받아 선택을 바꾸지 않고 원본 시트를 연다. 행 구조는 편집
   모드와 무관하게 같아 선택 UI 전환 애니메이션이 유지된다. 보조 기술용으로 "원본 보기" 접근성 액션을 둔다.
+- 원문 시트의 복사·고정(실기기 확인 뒤 변경, 텍스트 항목에도 적용): 동작 직후 시트를 닫는다. 복사는 맨 위로 올라간 행이,
+  고정은 고정 영역으로 옮겨진 행이 결과 피드백이다. 그사이 키보드가 고정 한도를 채웠으면 변화 없이 닫힌다. 공유(시스템
+  시트)와 편집 저장(시트 안에서 수정 내용을 계속 보여 줌)은 그대로다. 시트 표시 여부(`isDetailPresented`)는 표시 항목과
+  분리해, 닫을 때 항목을 바로 비우면 닫힘 애니메이션 동안 시트가 비어 보이는 SwiftUI 증상을 피한다.
 
 - `selection: Set<String>`은 `id`를 담는다. `togglePins`, `requestRemove`, `remove`는 `id`
   집합으로 store를 부른다.
