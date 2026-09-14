@@ -2421,6 +2421,8 @@ git commit -m "docs: #55 - 구현 계획에 검증 결과 기록"
 
 - 2026-09-15 이미지 행 첫 탭 빈 시트 수정·Sendable·제목 변경 후 검증(HEAD `3252ffbc`, iPhone 13 mini / iOS 18.6): 전체 테스트 `** TEST SUCCEEDED **`, `✔ Test` 679건, `✘ Test` 0건. 확장 3개 빌드 모두 `** BUILD SUCCEEDED **`.
 
+- 2026-09-15 삭제 알림·Analytics 로깅·사용자 속성 정리·6차 리뷰 반영 후 검증(HEAD `b4c6938d`, iPhone 13 mini / iOS 18.6): 전체 테스트 `** TEST SUCCEEDED **`, `✔ Test` 680건, `✘ Test` 0건. 확장 3개 빌드 모두 `** BUILD SUCCEEDED **`. 검증한 트리는 squash 전후 동일.
+
 ### 실기기 확인 항목 (자동 테스트로 대체 불가)
 
 | 항목 | 결과 |
