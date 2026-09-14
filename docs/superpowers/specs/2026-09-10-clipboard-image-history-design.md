@@ -421,6 +421,12 @@ Spotlight 클립보드 기록이 고른 항목을 붙여넣으며 현재 클립�
 빈 상태에 항상 둔다(`ClipboardHistorySettingsView.imageLimitDescription`. 처음에는 토글 ON일 때만
 보였으나 실기기 확인 뒤 항상 표시로 바꿈). 기존 토글처럼 Analytics 이벤트(`clipboard_image_history`)를 남긴다.
 
+### Analytics
+
+앱이 활성화되어 클립보드 동기화를 마친 직후 `clipboard_history_status` 이벤트를 남긴다. 매개변수는 `text_count`,
+`image_count`, `pinned_text_count`, `pinned_image_count`, `storage_kb`(plist + 이미지 원본·썸네일 파일 크기 합,
+`ClipboardHistoryStore.storageByteSize()`). 키보드 확장에는 Analytics가 없으므로 앱에서만 남긴다.
+
 ### 로컬라이징
 
 Core 문구는 `SYKeyboardAssets/Sources/SYKeyboardAssets/Resources/Localizable.xcstrings`,

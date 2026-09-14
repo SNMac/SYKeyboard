@@ -175,5 +175,20 @@ struct SYKeyboardApp: App {
         ClipboardHistoryPasteboardSynchronizer.synchronizeIfNeeded(
             store: store, decodeMemoryBudget: ClipboardImagePolicy.appDecodeMemoryBudget, retriesBudgetSkipped: true
         )
+        logClipboardHistoryStatus(store)
+    }
+
+    /// 기록의 텍스트·이미지·고정 개수와 저장 용량을 활성화마다 Analytics에 남긴다.
+    /// 용량은 plist와 이미지 원본·썸네일 파일의 합이고, 직전 동기화가 백그라운드에서 저장 중인 이미지는 다음 활성화에 잡힌다
+    private func logClipboardHistoryStatus(_ store: ClipboardHistoryStore) {
+        let items = store.load()
+        let images = items.filter { $0.image != nil }
+        Analytics.logEvent("clipboard_history_status", parameters: [
+            "text_count": items.count - images.count,
+            "image_count": images.count,
+            "pinned_text_count": items.filter { $0.isPinned && $0.image == nil }.count,
+            "pinned_image_count": images.filter(\.isPinned).count,
+            "storage_kb": store.storageByteSize() / 1_024
+        ])
     }
 }

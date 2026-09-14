@@ -272,6 +272,16 @@ struct ClipboardHistoryStoreTests {
         #expect(try fixture.imageFiles() == ["h.png", "h.thumb.jpg"])
     }
 
+    @Test("저장 용량은 plist와 이미지 원본·썸네일 파일 크기의 합")
+    func test저장용량_파일크기합() throws {
+        let fixture = makeFixture(name: "storage-size")
+        fixture.store.record("hello")
+        _ = try makeStoredImage(hash: "h", in: fixture)   // 원본 "o"(1바이트) + 썸네일 "t"(1바이트)
+        let plistSize = try #require(FileManager.default.attributesOfItem(atPath: fixture.url.path)[.size] as? Int)
+
+        #expect(fixture.store.storageByteSize() == plistSize + 2)
+    }
+
     @Test("id가 같은 텍스트 항목과 이미지 항목이 섞인 파일은 첫 항목만 읽음")
     func testId충돌파일은_첫항목만읽음() throws {
         let fixture = makeFixture(name: "id-collision")

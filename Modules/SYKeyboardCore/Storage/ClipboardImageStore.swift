@@ -185,6 +185,14 @@ public final class ClipboardImageStore: Sendable {
     public func removeAllFiles() {
         try? FileManager.default.removeItem(at: directoryURL)
     }
+
+    /// 디렉터리 안 원본·썸네일 파일 크기의 합(바이트). 디렉터리가 없으면 0
+    public func totalFileByteSize() -> Int {
+        guard let urls = try? FileManager.default.contentsOfDirectory(
+            at: directoryURL, includingPropertiesForKeys: [.fileSizeKey]
+        ) else { return 0 }
+        return urls.reduce(0) { $0 + ((try? $1.resourceValues(forKeys: [.fileSizeKey]).fileSize) ?? 0) }
+    }
 }
 
 // MARK: - Private Methods
