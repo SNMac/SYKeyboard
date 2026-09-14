@@ -2414,6 +2414,7 @@ git commit -m "docs: #55 - 구현 계획에 검증 결과 기록"
 - 2026-09-15 코드 리뷰 반영 후 콜백→알림 통일(`68fa4b09`): 동기화·패널 suite 29/0, HangeulKeyboard 빌드 성공.
 - 2026-09-15 통합 전 최종 검증(HEAD `5d58247a`, iPhone 13 mini / iOS 18.6): `xcodebuild test -scheme SYKeyboard -parallel-testing-enabled NO` → `** TEST SUCCEEDED **`, `✔ Test` 678건, `✘ Test` 0건. `HangeulKeyboard`·`EnglishKeyboard`·`HangeulEnglishKeyboard` 빌드 모두 `** BUILD SUCCEEDED **`. `.xcscheme` 변경 없음.
 
+- 2026-09-15 2차 코드 리뷰(`c7c6b11e..2084fffb`) 반영 후: 동기화·패널 suite 29/0, HangeulKeyboard 빌드 성공. 통합 전 전체 테스트는 아래 최종 검증에 다시 기록한다.
 - 2026-09-15 squash·리뷰 반영·키보드 미리보기 1200 px 이후 최종 검증(HEAD `fd73ca87`, iPhone 13 mini / iOS 18.6): 전체 테스트 `** TEST SUCCEEDED **`, `✔ Test` 678건, `✘ Test` 0건. 확장 3개 빌드 모두 `** BUILD SUCCEEDED **`.
 
 ### 실기기 확인 항목 (자동 테스트로 대체 불가)
@@ -2435,4 +2436,8 @@ git commit -m "docs: #55 - 구현 계획에 검증 결과 기록"
 | 키보드 extension을 Xcode에 attach한 평상시 메모리와, iPad Pro 13" PNG 스크린샷(2752×2064) 복사 후 키보드를 열었을 때의 피크. 종료되면 `keyboardDecodeMemoryBudget`(32 MB)을 낮춤 | 확인(일부) — iPhone 15 Pro Max 디버그 빌드 스크린샷(1290×2796 PNG) 복사 후 키보드 열기 정상, 메모리 51 MB 이내. iPad Pro 13"은 기기 없음 |
 | MacBook 스크린샷(3456×2234 PNG)을 Universal Clipboard로 복사 → 키보드에서는 항목이 생기지 않고, SY키보드 앱을 열면 관리 화면에 이미지가 나타남(예산 초과 건너뜀 → 앱 재시도) | 확인 — 키보드 미저장 → 앱 열면 저장됨 |
 | 48 MP JPEG/HEIC(사진 앱에서 고해상도 촬영본) 복사 → 키보드 썸네일 생성 시간과 패널 갱신(HEIC는 24 MP 초과 시 키보드 건너뜀·앱 저장) | 확인 — 24 MP HEIF는 저장되나 48 MP HEIF(5 MB)는 키보드·앱 모두 미저장이었음. 원인: 8064×6048 = 48,771,072픽셀이 `maxPixelCount` 48,000,000 초과로 거부. 50,000,000으로 올린 뒤 재확인에서 저장됨. devicectl 대조 결과 사진 앱이 `public.jpeg`를 함께 제공해 키보드가 JPEG(6048×8064, 8.9 MB)로 저장한 것이며, HEIC 원본이 앱 예산 경로로 저장된 사례는 아직 없음 |
+| 앱 목록 행을 `.plain` Button으로: 누르는 동안 라벨이 흐려지고 시트가 뜬 뒤 흔적이 남지 않음, "선택" 진입·해제 애니메이션 유지 | 확인 — 2026-09-15 iPhone 15 Pro Max. 선택 바인딩을 편집 모드에서만 넘기면 진입 애니메이션이 사라져 되돌림 |
+| 앱 편집 모드에서 길게 누르면 원본 시트, 탭은 선택으로만 | 확인 — 정상. 비편집 모드에서 길게 눌렀다 뗐을 때 버튼이 시트를 여는지, "원본 보기" 접근성 액션은 미확인 |
+| 키보드 패널 편집 모드에서 길게 누르면 상세 뷰(선택 변경 없음), 닫은 뒤 선택 유지 | 확인 — 처음엔 인식 전 0.5초 동안 회색·체크가 먼저 보여 `delaysTouchesBegan`으로 수정 후 정상. 편집 모드 텍스트 행 탭의 눌림 표시가 손 뗄 때 나타나는 변화와, 상세에서 고정 토글 뒤 이동한 행의 체크 상태는 미확인 |
+| 키보드 패널 편집 모드 전환 애니메이션 중 스크롤·탭·길게 누르기 | 확인 — UIKit `setEditing(animated:)`는 애니메이션 동안 터치를 통째로 무시(스크롤·탭도 안 됨). `.allowUserInteraction` 애니메이션 블록으로 바꾼 뒤 동작·모양 모두 정상 |
 | 영어 기기에서 이미지 관련 패널·앱 문구가 영문 표시 | 확인 — 실기기 영어 설정에서 영문 표시됨. 문구 수정: 앱 안내의 `When 'Include Images' is off` 따옴표, 키보드 상세 뷰 이미지 제목 "원본"/"Original". 시뮬레이터는 `Embedded binary is not signed with the same certificate as the parent app`로 실행 불가(서명 설정은 이 브랜치에서 변경하지 않음) |

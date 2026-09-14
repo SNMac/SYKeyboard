@@ -354,10 +354,24 @@ public static func synchronizeIfNeeded(
   이 수치는 출력 비트맵 크기일 뿐이며, 다운샘플 과정에서 PNG 원본은 ImageIO가 전체
   디코드할 수 있다(2절 메모리 참고). 그래서 키보드는 미리보기를 디코드하기 전에 이 이미지의
   예상 디코드 메모리가 `keyboardDecodeMemoryBudget` 안인지 확인하고, 아니면 썸네일로 대신한다.
+  상세 뷰가 닫히면(닫기·고정 토글·재구성·패널 닫힘) 전환 완료 후 미리보기를 놓고, 메모리 경고 시 숨은 상세 뷰의
+  미리보기도 놓는다.
 - 편집 모드의 선택·일괄 삭제·일괄 고정·스와이프 액션은 인덱스 기반이라 그대로다.
+- 편집 모드 길게 누르기(실기기 확인 뒤 추가, 텍스트 항목에도 적용): 편집 모드에서도 길게 누르면 선택을 바꾸지 않고
+  상세 뷰를 연다. 편집 모드에서는 길게 누르기 인식기의 `delaysTouchesBegan`을 켜 인식이 끝날 때까지 셀에 터치를
+  넘기지 않으므로 다중 선택 셀의 눌림(회색·체크)이 먼저 그려지지 않고, 짧은 탭은 인식 실패 시점에 전달돼 선택이
+  토글된다. 편집 모드 전환은 `setEditing(_:animated: true)` 대신 `.allowUserInteraction` 옵션의 0.3초 애니메이션
+  블록 안에서 `setEditing(_:animated: false)` + `layoutIfNeeded()`로 수행한다. UIKit 내부 전환은 애니메이션 동안
+  터치를 통째로 무시해 그사이 스크롤·탭·길게 누르기가 되지 않았기 때문이다.
 - 빈 상태 문구는 "복사한 텍스트나 이미지가 여기에 표시됩니다."로 바꾼다.
 
 ### 앱 관리 화면 `ClipboardHistorySettingsView`
+
+- 목록 행(실기기 확인 뒤 변경, 텍스트 항목에도 적용): `.onTapGesture` 대신 `.plain` 스타일 `Button`으로 두어 누르는 동안
+  라벨이 살짝 흐려지는 눌림 효과를 준다. 기본(automatic) 스타일은 List 행 강조를 쓰며 시트를 띄우는 탭 뒤에 강조가
+  남는 일이 있어 쓰지 않는다. 편집 모드에서는 버튼의 hit testing을 꺼 탭이 List 행 선택으로 가고, 바깥의
+  `simultaneousGesture(LongPressGesture)`가 길게 누르기만 받아 선택을 바꾸지 않고 원본 시트를 연다. 행 구조는 편집
+  모드와 무관하게 같아 선택 UI 전환 애니메이션이 유지된다. 보조 기술용으로 "원본 보기" 접근성 액션을 둔다.
 
 - `selection: Set<String>`은 `id`를 담는다. `togglePins`, `requestRemove`, `remove`는 `id`
   집합으로 store를 부른다.
