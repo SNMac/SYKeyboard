@@ -822,6 +822,16 @@
         }
       }
     },
+    "원본 보기" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show Original"
+          }
+        }
+      }
+    },
     "원문" : {
       "localizations" : {
         "en" : {

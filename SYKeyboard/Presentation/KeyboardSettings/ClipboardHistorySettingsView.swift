@@ -167,6 +167,8 @@ private extension ClipboardHistorySettingsView {
                         if editMode.isEditing { detailItem = item }
                     }
                 )
+                // 보조 기술에서는 길게 누르기 대신 이 액션으로 편집 모드에서도 원본을 연다
+                .accessibilityAction(named: Text("원본 보기")) { detailItem = item }
                 .swipeActions(edge: .leading) {
                     if item.isPinned || canPin {
                         Button {
