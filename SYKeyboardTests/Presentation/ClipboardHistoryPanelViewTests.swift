@@ -334,7 +334,6 @@ private final class ClipboardHistoryPanelDelegateSpy: ClipboardHistoryPanelDeleg
     private(set) var deletedIndices: [[Int]] = []
     private(set) var deleteAllCount = 0
     private(set) var toggledPinIndices: [Int] = []
-    private(set) var copiedIndices: [Int] = []
 
     func clipboardPanel(_ panel: ClipboardHistoryPanelView, didSelectItemAt index: Int) {
         selectedIndices.append(index)
@@ -352,9 +351,6 @@ private final class ClipboardHistoryPanelDelegateSpy: ClipboardHistoryPanelDeleg
         toggledPinIndices.append(index)
     }
 
-    func clipboardPanel(_ panel: ClipboardHistoryPanelView, didRequestCopyAt index: Int) {
-        copiedIndices.append(index)
-    }
 
     func clipboardPanel(_ panel: ClipboardHistoryPanelView, didRequestOpenURLAt index: Int) {}
 }

@@ -11,7 +11,8 @@ import SYKeyboardAssets
 
 /// `ClipboardHistoryPanelView`의 사용자 상호작용을 수신하는 델리게이트
 protocol ClipboardHistoryPanelDelegate: AnyObject {
-    /// 항목을 탭하거나 상세 뷰에서 붙여넣기를 눌렀을 때 호출됩니다.
+    /// 항목을 탭하거나 상세 뷰에서 붙여넣기(텍스트)·복사(이미지)를 눌렀을 때 호출됩니다.
+    /// 소유자는 텍스트를 입력창에 넣고 시스템 pasteboard에도 복사하며, 이미지는 pasteboard에 복원합니다.
     func clipboardPanel(_ panel: ClipboardHistoryPanelView, didSelectItemAt index: Int)
     /// 스와이프 삭제 또는 편집 모드에서 일부 항목을 삭제했을 때 호출됩니다. 인덱스는 오름차순입니다.
     func clipboardPanel(_ panel: ClipboardHistoryPanelView, didDeleteItemsAt indices: [Int])
@@ -19,8 +20,6 @@ protocol ClipboardHistoryPanelDelegate: AnyObject {
     func clipboardPanelDidDeleteAll(_ panel: ClipboardHistoryPanelView)
     /// leading swipe 또는 상세 뷰에서 항목의 고정을 토글했을 때 호출됩니다.
     func clipboardPanel(_ panel: ClipboardHistoryPanelView, didTogglePinAt index: Int)
-    /// 상세 뷰의 붙여넣기 직전에 호출됩니다. 소유자는 항목을 시스템 pasteboard에 복사합니다.
-    func clipboardPanel(_ panel: ClipboardHistoryPanelView, didRequestCopyAt index: Int)
     /// 상세 뷰에서 링크로 표시된 본문을 탭했을 때 호출됩니다. 항목 전체가 http/https URL일 때만 링크가 됩니다.
     func clipboardPanel(_ panel: ClipboardHistoryPanelView, didRequestOpenURLAt index: Int)
 }
@@ -210,9 +209,7 @@ final class ClipboardHistoryPanelView: UIView {
             // 붙여넣기(텍스트)는 이 직후 패널이 닫히지만, 복사(이미지)는 패널이 열린 채 유지된다.
             // 상세 뷰는 여기서 먼저 숨기고, 이미지 쪽은 이어지는 configure() 갱신으로 다시 숨김 상태가 반영된다
             self.hideDetail(animated: false)
-            // 호출 순서가 동작을 가른다: 텍스트는 didRequestCopyAt에서 먼저 pasteboard로 복사되고,
-            // 이미지는 didSelectItemAt에서 소유자가 pasteboard를 복원하므로 이 순서를 바꾸면 안 된다
-            self.delegate?.clipboardPanel(self, didRequestCopyAt: index)
+            // 행 탭과 같은 경로다. 텍스트는 삽입 + pasteboard 복사, 이미지는 pasteboard 복원
             self.delegate?.clipboardPanel(self, didSelectItemAt: index)
         }
         view.onTogglePin = { [weak self] in

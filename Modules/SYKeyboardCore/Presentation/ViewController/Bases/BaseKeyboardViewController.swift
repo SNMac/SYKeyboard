@@ -2471,6 +2471,14 @@ private extension BaseKeyboardViewController {
             )
         }
     }
+
+    /// 텍스트를 시스템 pasteboard에 복사한다. 우리가 쓴 값을 다음 동기화에서 다시 기록하지 않도록 changeCount를 갱신한다
+    func copyTextToPasteboard(_ text: String) {
+        guard isClipboardHistoryAvailable else { return }
+        let pasteboard = UIPasteboard.general
+        pasteboard.string = text
+        keyboardSettingsManager.lastSeenPasteboardChangeCount = pasteboard.changeCount
+    }
 }
 
 // MARK: - ClipboardHistoryPanelDelegate
@@ -2488,8 +2496,10 @@ extension BaseKeyboardViewController: ClipboardHistoryPanelDelegate {
             undoRedoEditDidApply()
             commitUndoRedoGroupIgnoringCompositionDeferral()
 
-            // 방금 쓴 항목을 최근 복사한 것처럼 미고정 맨 위로 올린다. 고정 항목은 정책상 그대로다.
-            // 시스템 pasteboard는 바꾸지 않는다
+            // macOS Spotlight 클립보드 기록처럼 고른 항목을 현재 클립보드로도 올린다. 동기화가 기록한 내용은 목록에 남지만,
+            // 기록되지 않는 내용(이미지 기록 OFF·저장 거부 이미지·예산 초과로 앱 재시도 대기 중인 이미지·concealed·문자열 없는 항목)은 덮어써진다
+            copyTextToPasteboard(text)
+            // 방금 쓴 항목을 최근 복사한 것처럼 미고정 맨 위로 올린다. 고정 항목은 정책상 그대로다
             clipboardHistoryStore?.record(text)
 
             closeClipboardPanelIfNeeded()
@@ -2515,15 +2525,6 @@ extension BaseKeyboardViewController: ClipboardHistoryPanelDelegate {
         reloadClipboardPanel()
     }
 
-    /// 텍스트 항목을 시스템 pasteboard에 복사한다. 이미지는 이어지는 `didSelectItemAt`의 복원 경로가 처리한다.
-    /// 우리가 쓴 값을 다음 동기화에서 다시 기록하지 않도록 changeCount를 갱신한다
-    final func clipboardPanel(_ panel: ClipboardHistoryPanelView, didRequestCopyAt index: Int) {
-        guard isClipboardHistoryAvailable, panel.items.indices.contains(index),
-              let text = panel.items[index].text else { return }
-        let pasteboard = UIPasteboard.general
-        pasteboard.string = text
-        keyboardSettingsManager.lastSeenPasteboardChangeCount = pasteboard.changeCount
-    }
 
     /// 브라우저가 열리면 호스트 앱을 떠나므로 키보드는 시스템이 내린다. 설정 이동과 같은 responder chain 경로다
     final func clipboardPanel(_ panel: ClipboardHistoryPanelView, didRequestOpenURLAt index: Int) {
