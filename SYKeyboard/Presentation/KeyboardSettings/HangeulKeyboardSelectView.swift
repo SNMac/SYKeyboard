@@ -101,8 +101,7 @@ struct HangeulKeyboardSelectView: View {
                     .font(.caption)
             })
             .onChange(of: isCheonjiinBottomSpaceEnabled) { newValue in
-                Analytics.setUserProperty(newValue.analyticsValue,
-                                          forName: "pref_cheonjiin_bottom_space")
+                // 사용자 속성 25개 한도 때문에 이벤트로만 남긴다
                 Analytics.logEvent("cheonjiin_bottom_space", parameters: [
                     "view": "HangeulKeyboardSelectView",
                     "enabled": newValue.analyticsValue

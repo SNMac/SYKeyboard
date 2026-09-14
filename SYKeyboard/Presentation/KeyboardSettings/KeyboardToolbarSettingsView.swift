@@ -68,7 +68,7 @@ struct KeyboardToolbarSettingsView: View {
             })
             .onChange(of: isClipboardImageHistoryEnabled) { newValue in
                 Analytics.setUserProperty(newValue.analyticsValue,
-                                          forName: "pref_clipboard_image_history")
+                                          forName: "pref_clipboard_images")  // 사용자 속성 이름은 24자 이하
                 Analytics.logEvent("clipboard_image_history", parameters: [
                     "view": "KeyboardToolbarSettingsView",
                     "enabled": newValue.analyticsValue
