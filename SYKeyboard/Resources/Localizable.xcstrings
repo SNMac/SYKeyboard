@@ -1182,6 +1182,16 @@
         }
       }
     },
+    "항목이 삭제되었습니다" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This item was deleted."
+          }
+        }
+      }
+    },
     "편집" : {
       "localizations" : {
         "en" : {

@@ -28,6 +28,9 @@ struct ClipboardHistorySettingsView: View {
     /// 원문 시트에 넘기는 항목. `sheet(item:)`은 첫 표시에 항목을 직접 받고 닫힘 애니메이션 동안 내용을 유지한다.
     /// `id`는 열 때의 항목 id로 고정해 편집 저장으로 텍스트(= 항목 id)가 바뀌어도 시트가 닫혔다 다시 뜨지 않게 한다
     @State private var detailPresentation: DetailPresentation?
+    /// 시트가 열린 사이 키보드가 그 항목을 지운 경우 시트 안에 바로 띄우는 알림. 확인하면 시트가 닫힌다.
+    /// 시트는 알림을 띄우는 시점에 편집을 끝내, 알림이 닫히며 편집기가 포커스를 되찾아 키보드가 시트를 밀어 올리는 튐을 막는다
+    @State private var isDeletedItemAlertPresented = false
     /// 고정 항목이 포함돼 확인 알림을 기다리는 삭제 대상
     @State private var pendingDeletion: PendingDeletion?
 
@@ -92,7 +95,7 @@ struct ClipboardHistorySettingsView: View {
             .environment(\.editMode, $editMode)
             // 시트가 떠 있는 동안 키보드가 기록을 바꿀 수 있으므로 닫힐 때 다시 읽는다
             .sheet(isPresented: $isAddSheetPresented, onDismiss: synchronizeAndReload) { addSheet }
-            .sheet(item: $detailPresentation) { detailSheet(for: $0.item) }
+            .sheet(item: $detailPresentation, onDismiss: { isDeletedItemAlertPresented = false }) { detailSheet(for: $0.item) }
             // 스와이프·편집 모드 삭제는 사용자가 의도한 동작이므로 HIG대로 알림이 아니라 action sheet로 확인한다. 취소는 시스템이 붙인다
             .onAppear(perform: synchronizeAndReload)
             .onChange(of: scenePhase) { phase in
@@ -349,7 +352,7 @@ private extension ClipboardHistorySettingsView {
     }
 
     /// 파일을 다시 읽는다. 조작 경로에서는 동기화하지 않아 새 항목이 끼어들며 대상이 밀려나지 않게 한다
-    func reload() {
+    func reload(checksPresentedItem: Bool = true) {
         // SwiftUI가 id(텍스트) 차이로 행 삽입·삭제·이동을 애니메이션한다
         withAnimation {
             items = store?.load() ?? []
@@ -360,8 +363,15 @@ private extension ClipboardHistorySettingsView {
         if case .row(let id)? = pendingDeletion?.source, !items.contains(where: { $0.id == id }) {
             pendingDeletion = nil
         }
-        // 시트가 열린 사이 키보드가 바꾼 고정 상태 등을 시트에도 반영한다. 항목이 사라졌으면 그대로 두고 저장 시 알림이 처리한다
-        if let presented = detailPresentation { refreshDetailItem(id: presented.item.id) }
+        // 시트가 열린 사이 키보드가 바꾼 고정 상태 등을 시트에도 반영한다. 항목이 사라졌으면 시트 안에 삭제 알림을 띄운다.
+        // 편집 저장은 id(텍스트)가 바뀌므로 그 경로는 호출자가 새 id로 직접 갱신한다
+        if checksPresentedItem, let presented = detailPresentation {
+            if items.contains(where: { $0.id == presented.item.id }) {
+                refreshDetailItem(id: presented.item.id)
+            } else {
+                isDeletedItemAlertPresented = true
+            }
+        }
     }
 
     /// 저장소가 파일을 다시 읽어 판단하므로 키보드가 그사이 바꾼 내용과 어긋나지 않는다
@@ -388,11 +398,18 @@ private extension ClipboardHistorySettingsView {
     }
 
     /// 원문 시트에서 편집한 내용을 저장하고, 시트가 새 내용을 보이도록 표시 항목을 바꾼다
-    func replaceText(of item: ClipboardHistoryItem, with newText: String) {
-        guard let oldText = item.text else { return }
+    /// 편집한 내용을 저장한다. 시트가 열린 사이 키보드가 그 항목을 지웠으면 정책이 저장을 거부하므로,
+    /// 다시 읽은 목록에 새 텍스트가 없으면 실패를 돌려준다(시트가 알림을 띄우고 닫는다)
+    func replaceText(of item: ClipboardHistoryItem, with newText: String) -> Bool {
+        guard let oldText = item.text else { return false }
         store?.replaceText(oldText, with: newText)
-        reload()
+        reload(checksPresentedItem: false)
+        guard items.contains(where: { $0.id == newText }) else {
+            isDeletedItemAlertPresented = true
+            return false
+        }
         refreshDetailItem(id: newText)
+        return true
     }
 
     func presentDetail(_ item: ClipboardHistoryItem) {
@@ -404,11 +421,18 @@ private extension ClipboardHistorySettingsView {
             item: item,
             imageStore: store?.imageStore,
             canPin: canPin,
-            // 저장 가능 여부만 보므로 시각은 결과에 영향이 없다. body마다 Date()를 만들지 않도록 고정값을 넘긴다
-            canSave: { newText in item.text.flatMap { ClipboardHistoryPolicy.replacingText($0, with: newText, in: items, now: .distantPast) } != nil },
+            // 저장 가능 여부만 보므로 시각은 결과에 영향이 없다. body마다 Date()를 만들지 않도록 고정값을 넘긴다.
+            // 시트가 열린 사이 지워진 항목(앱이 활성인 채로 지워지면 재조회 알림이 없다)은 빈 값·길이 검사만 통과하면
+            // 버튼을 살려 두어, 저장을 누르면 삭제 알림으로 잇는다
+            canSave: { newText in
+                guard let oldText = item.text else { return false }
+                guard items.contains(where: { $0.id == oldText }) else { return ClipboardHistoryPolicy.isStorable(.text(newText)) }
+                return ClipboardHistoryPolicy.replacingText(oldText, with: newText, in: items, now: .distantPast) != nil
+            },
             onTogglePin: { togglePinFromDetail(item) },
             onCopy: { copyFromDetail(item) },
-            onSave: { replaceText(of: item, with: $0) }
+            onSave: { replaceText(of: item, with: $0) },
+            isItemDeletedAlertPresented: $isDeletedItemAlertPresented
         )
         // 이미지는 스크롤 없이 한눈에 보이도록 가장 큰 시트 하나만 쓴다. 텍스트는 하프 시트에서 시작한다
         .presentationDetents(item.image != nil ? [.large] : [.medium, .large])
@@ -496,10 +520,14 @@ private struct ClipboardHistoryDetailView: View {
     let canSave: (String) -> Bool
     let onTogglePin: () -> Void
     let onCopy: () -> Void
-    let onSave: (String) -> Void
+    /// 저장 성공 여부를 돌려준다. 실패하면 항목이 이미 지워진 것이고 소유자가 삭제 알림을 켠다
+    let onSave: (String) -> Bool
+    /// 시트가 열린 사이 항목이 지워졌음을 소유자가 알려 준다. 뜨는 순간 편집을 끝내고, 확인하면 시트를 닫는다
+    @Binding var isItemDeletedAlertPresented: Bool
 
     @State private var isEditing = false
     @State private var draft = ""
+    @Environment(\.dismiss) private var dismiss
     /// 화면 해상도까지 디코드한 원본. body 평가마다 다시 디코드하지 않도록 한 번만 읽어 둔다
     @State private var previewImage: UIImage?
 
@@ -559,6 +587,12 @@ private struct ClipboardHistoryDetailView: View {
             }
             .navigationTitle(isEditing ? "편집" : (item.image != nil ? "이미지" : "상세"))
             .navigationBarTitleDisplayMode(.inline)
+            // 시트가 열린 사이 키보드가 항목을 지운 경우. 알림이 뜨는 시점에 편집기를 없애 두어야 알림이 닫힐 때 편집기가 포커스를
+            // 되찾아 키보드가 시트를 밀어 올렸다 내려가는 튐이 생기지 않는다. 확인하면 더 보여줄 것이 없으므로 시트를 닫는다
+            .onChange(of: isItemDeletedAlertPresented) { if $0 { isEditing = false } }
+            .alert("항목이 삭제되었습니다", isPresented: $isItemDeletedAlertPresented) {
+                Button("확인") { dismiss() }
+            }
             .task(id: item.id) {
                 let image = await loadPreviewImage()
                 // 항목이 바뀌어 취소된 디코드 결과가 새 항목을 덮어쓰지 않게 한다
@@ -572,8 +606,8 @@ private struct ClipboardHistoryDetailView: View {
                     }
                     ToolbarItem(placement: .confirmationAction) {
                         Button("저장") {
-                            onSave(draft)
-                            isEditing = false
+                            // 거부되면(앱이 활성인 채로 항목이 지워진 경우) 소유자가 삭제 알림을 켠다
+                            if onSave(draft) { isEditing = false }
                         }
                         .disabled(!canSave(draft))
                     }
