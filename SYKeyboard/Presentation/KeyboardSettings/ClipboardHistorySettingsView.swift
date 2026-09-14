@@ -25,11 +25,9 @@ struct ClipboardHistorySettingsView: View {
     @State private var editMode: EditMode = .inactive
     @State private var isAddSheetPresented = false
     @State private var newText = ""
-    /// 원문 시트에 표시할 항목. 시트 안에서 내용을 편집하면 바뀌므로 identity가 아니라 표시 여부로 시트를 연다
-    @State private var detailItem: ClipboardHistoryItem?
-    /// 시트 표시 여부를 항목과 분리한다. 액션에서 항목을 바로 nil로 만들면 닫히는 애니메이션 동안 시트가 비어 보이므로,
-    /// 닫을 때는 이 값만 내리고 항목은 완전히 닫힌 뒤(onDismiss) 비운다
-    @State private var isDetailPresented = false
+    /// 원문 시트에 넘기는 항목. `sheet(item:)`은 첫 표시에 항목을 직접 받고 닫힘 애니메이션 동안 내용을 유지한다.
+    /// `id`는 열 때의 항목 id로 고정해 편집 저장으로 텍스트(= 항목 id)가 바뀌어도 시트가 닫혔다 다시 뜨지 않게 한다
+    @State private var detailPresentation: DetailPresentation?
     /// 고정 항목이 포함돼 확인 알림을 기다리는 삭제 대상
     @State private var pendingDeletion: PendingDeletion?
 
@@ -94,23 +92,7 @@ struct ClipboardHistorySettingsView: View {
             .environment(\.editMode, $editMode)
             // 시트가 떠 있는 동안 키보드가 기록을 바꿀 수 있으므로 닫힐 때 다시 읽는다
             .sheet(isPresented: $isAddSheetPresented, onDismiss: synchronizeAndReload) { addSheet }
-            .sheet(isPresented: $isDetailPresented, onDismiss: { detailItem = nil }) {
-                if let item = detailItem {
-                    ClipboardHistoryDetailView(
-                        item: item,
-                        imageStore: store?.imageStore,
-                        canPin: canPin,
-                        // 저장 가능 여부만 보므로 시각은 결과에 영향이 없다. body마다 Date()를 만들지 않도록 고정값을 넘긴다
-                        canSave: { newText in item.text.flatMap { ClipboardHistoryPolicy.replacingText($0, with: newText, in: items, now: .distantPast) } != nil },
-                        onTogglePin: { togglePinFromDetail(item) },
-                        onCopy: { copyFromDetail(item) },
-                        onSave: { replaceText(of: item, with: $0) }
-                    )
-                    // 이미지는 스크롤 없이 한눈에 보이도록 가장 큰 시트 하나만 쓴다. 텍스트는 하프 시트에서 시작한다
-                    .presentationDetents(item.image != nil ? [.large] : [.medium, .large])
-                    .presentationDragIndicator(.visible)
-                }
-            }
+            .sheet(item: $detailPresentation) { detailSheet(for: $0.item) }
             // 스와이프·편집 모드 삭제는 사용자가 의도한 동작이므로 HIG대로 알림이 아니라 action sheet로 확인한다. 취소는 시스템이 붙인다
             .onAppear(perform: synchronizeAndReload)
             .onChange(of: scenePhase) { phase in
@@ -412,8 +394,23 @@ private extension ClipboardHistorySettingsView {
     }
 
     func presentDetail(_ item: ClipboardHistoryItem) {
-        detailItem = item
-        isDetailPresented = true
+        detailPresentation = DetailPresentation(id: item.id, item: item)
+    }
+
+    func detailSheet(for item: ClipboardHistoryItem) -> some View {
+        ClipboardHistoryDetailView(
+            item: item,
+            imageStore: store?.imageStore,
+            canPin: canPin,
+            // 저장 가능 여부만 보므로 시각은 결과에 영향이 없다. body마다 Date()를 만들지 않도록 고정값을 넘긴다
+            canSave: { newText in item.text.flatMap { ClipboardHistoryPolicy.replacingText($0, with: newText, in: items, now: .distantPast) } != nil },
+            onTogglePin: { togglePinFromDetail(item) },
+            onCopy: { copyFromDetail(item) },
+            onSave: { replaceText(of: item, with: $0) }
+        )
+        // 이미지는 스크롤 없이 한눈에 보이도록 가장 큰 시트 하나만 쓴다. 텍스트는 하프 시트에서 시작한다
+        .presentationDetents(item.image != nil ? [.large] : [.medium, .large])
+        .presentationDragIndicator(.visible)
     }
 
     /// 고정을 바꾸면 시트를 닫는다. 목록에서 행이 고정 영역으로 옮겨지는(또는 빠지는) 것이 결과 피드백이다.
@@ -421,7 +418,7 @@ private extension ClipboardHistorySettingsView {
     func togglePinFromDetail(_ item: ClipboardHistoryItem) {
         store?.togglePins(selectedIDs: [item.id])
         reload()
-        isDetailPresented = false
+        detailPresentation = nil
     }
 
     /// 복사한 항목을 최근 복사한 것처럼 목록 맨 위로 올리고 시트를 닫는다. 맨 위로 올라간 행이 결과 피드백이다.
@@ -440,12 +437,12 @@ private extension ClipboardHistorySettingsView {
         UserDefaultsManager.shared.lastSeenPasteboardChangeCount = pasteboard.changeCount
         store?.record(item.content)
         reload()
-        isDetailPresented = false
+        detailPresentation = nil
     }
 
     /// 시트가 열린 채로 저장소가 바뀌면 표시 항목을 새 값으로 바꾼다. 항목이 사라졌으면 그대로 둔다
     func refreshDetailItem(id: String) {
-        detailItem = items.first { $0.id == id } ?? detailItem
+        if let updated = items.first(where: { $0.id == id }) { detailPresentation?.item = updated }
     }
 
     func saveNewItem() {
@@ -453,6 +450,14 @@ private extension ClipboardHistorySettingsView {
         isAddSheetPresented = false
         reload()
     }
+}
+
+// MARK: - Detail Presentation
+
+/// 원문 시트의 표시 단위. `id`는 시트를 연 시점의 항목 id로 고정한다
+private struct DetailPresentation: Identifiable {
+    let id: String
+    var item: ClipboardHistoryItem
 }
 
 // MARK: - Deletion Confirmation
