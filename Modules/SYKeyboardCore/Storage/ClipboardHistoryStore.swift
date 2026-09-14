@@ -11,8 +11,8 @@ import OSLog
 /// 클립보드 텍스트·이미지 기록을 App Group 컨테이너의 plist 파일에 저장하는 저장소
 ///
 /// 메모리 캐시 없이 매 연산마다 파일을 읽고 쓴다. 세 keyboard extension이 같은 파일을
-/// 공유하므로 캐시가 있으면 다른 extension이 바꾼 내용을 놓친다. 최대 20개 × 2,000자라
-/// 메인 스레드 동기 처리로 충분하다.
+/// 공유하므로 캐시가 있으면 다른 extension이 바꾼 내용을 놓친다. 최대 40개(최근 20 + 고정 20) × 10,000자,
+/// 바이너리 plist 최악 약 800 KB라 메인 스레드 동기 처리로 충분하다.
 // ponytail: 매 연산 파일 I/O. 항목 수·길이 한도를 올리면 캐시 + 백그라운드 저장으로 전환
 public final class ClipboardHistoryStore {
 

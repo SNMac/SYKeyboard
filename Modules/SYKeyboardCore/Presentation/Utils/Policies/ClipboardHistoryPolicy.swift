@@ -115,7 +115,7 @@ public enum ClipboardHistoryPolicy {
     public static let maxPinnedCount = 20
     /// 항목 하나의 최대 문자 수. 초과하면 잘라 저장하지 않고 버린다.
     /// 잘라서 저장하면 붙여넣기 결과가 원본과 달라진다
-    public static let maxTextLength = 2_000
+    public static let maxTextLength = 10_000
 
     /// `content`를 미고정 기록 맨 앞에 넣은 결과. 저장하지 않을 내용이면 `nil`
     ///
