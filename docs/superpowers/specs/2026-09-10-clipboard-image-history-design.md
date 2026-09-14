@@ -49,7 +49,7 @@ GitHub Issue #55에 따라 #54의 텍스트 클립보드 기록을 확장해, �
 | 결합 구조 | 단일 목록. `ClipboardHistoryItem`에 `content` enum(text/image)을 넣고 식별자를 `id`로 일반화한다. 이미지도 고정·일괄 고정 대상이다. |
 | 이미지 식별 | 원본 바이트의 SHA-256(스트리밍 계산). 바이트가 같은 이미지를 다시 복사하면 텍스트와 같은 규칙으로 기존 항목이 맨 위로 오고 고정 항목은 그대로다. 파일명도 해시라 중복 파일이 생기지 않는다. 시각적 유사 판별은 하지 않는다. |
 | 개수 한도 | 텍스트와 공유. 미고정 20개·고정 20개 안에 텍스트와 이미지가 함께 들어간다. |
-| 이미지당 한도 | 파일 24 MB, 48,000,000픽셀(타입 무관). 초과하면 저장하지 않는다. 디코드 가능 여부는 픽셀 상한이 아니라 런타임 메모리 판정(`requiredDecodeMemory`)으로 정한다. |
+| 이미지당 한도 | 파일 24 MB, 50,000,000픽셀(타입 무관, iPhone 48 MP 촬영본 8064×6048 = 48,771,072픽셀 포함). 초과하면 저장하지 않는다. 디코드 가능 여부는 픽셀 상한이 아니라 런타임 메모리 판정(`requiredDecodeMemory`)으로 정한다. |
 | 혼합 우선순위 | pasteboard에 텍스트가 있으면 텍스트만 저장한다. 텍스트가 없고 이미지가 있을 때만 이미지를 저장한다. |
 | 저장 타입 | `public.jpeg` → `public.heic` → `public.png` 우선순위로 하나. TIFF·GIF 등은 받지 않는다. |
 | 설정 | "클립보드 기록" 아래 "이미지도 기록" 하위 토글, 기본 켜짐. 끄면 새 이미지만 저장하지 않고 기존 이미지 항목은 유지한다. 삭제는 관리 화면에서 한다. |
@@ -135,7 +135,7 @@ public struct ClipboardHistoryItem: Codable, Equatable, Identifiable {
 ```swift
 public enum ClipboardImagePolicy {
     public static let maxByteSize = 24 * 1_024 * 1_024
-    public static let maxPixelCount = 48_000_000      // 타입 무관 저장 상한
+    public static let maxPixelCount = 50_000_000      // 타입 무관 저장 상한(iPhone 48 MP = 8064×6048 포함)
     public static let thumbnailMaxPixelSize = 240
     public static let preferredTypeIdentifiers = ["public.jpeg", "public.heic", "public.png"]
     /// JPEG·HEIC 디코드(썸네일·미리보기) 예상 메모리(고정). 축소 디코드라 픽셀 수와 무관하다
@@ -369,7 +369,7 @@ synchronizeAndReload()`는 `onImageRecorded`에서 `reload()`를 불러 화면�
 "클립보드 기록" 토글이 켜져 있을 때 그 아래에 "이미지도 기록" 토글을
 `@AppStorage(UserDefaultsKeys.isClipboardImageHistoryEnabled, store:)`로 둔다. 캡션은
 "복사한 이미지를 저장하고 탭하면 클립보드로 복원합니다"만 둔다. 이미지당 한도(24 MB·
-48메가픽셀)와 토글 OFF 규칙 설명은 "클립보드 기록 관리" 화면의 목록 최하단(footer)과
+50메가픽셀)와 토글 OFF 규칙 설명은 "클립보드 기록 관리" 화면의 목록 최하단(footer)과
 빈 상태에 두고, "이미지도 기록"이 켜져 있을 때만 보인다(`ClipboardHistorySettingsView.
 imageLimitDescription`). 기존 토글처럼 Analytics 이벤트(`clipboard_image_history`)를 남긴다.
 
@@ -403,7 +403,7 @@ Core 문구는 `SYKeyboardAssets/Sources/SYKeyboardAssets/Resources/Localizable.
 
 | Suite | 검증 |
 | --- | --- |
-| `ClipboardImagePolicyTests` (신규) | 타입 우선순위(JPEG > HEIC > PNG, TIFF·GIF 제외), 바이트 24 MB·픽셀 48 MP 경계값, 타입별 디코드 메모리, 기기별 디코드 예산 판정, 확장자 유도 |
+| `ClipboardImagePolicyTests` (신규) | 타입 우선순위(JPEG > HEIC > PNG, TIFF·GIF 제외), 바이트 24 MB·픽셀 50 MP 경계값(8064×6048 포함), 타입별 디코드 메모리, 기기별 디코드 예산 판정, 확장자 유도 |
 | `ClipboardHistoryPolicyTests` (확장) | 이미지 content 재삽입 시 맨 위 이동, 고정 이미지 재복사 유지, 텍스트·이미지 혼합 정렬과 미고정 트리밍, 이미지 항목 `replacingText`가 `nil`, `id` 기준 일괄 고정·해제와 한도 |
 | `ClipboardHistoryStoreTests` (확장) | `text` 키만 있는 기존 파일 디코드, 이미지 항목 왕복 저장, 이미지 항목 삭제·트리밍·전체 삭제 시 원본·썸네일 파일 삭제, 텍스트만 바뀐 저장은 파일 삭제 없음 |
 | `ClipboardImageStoreTests` (신규) | 테스트에서 `CGImageDestination`으로 만든 작은 PNG·JPEG 임시 파일 저장 → 해시 파일명·썸네일 생성·참조 값, 같은 파일 두 번 저장 시 파일 하나, 한도 초과는 `nil`이고 파일 미생성, 손상 파일은 `nil`, 회전 메타데이터의 폭·높이 교환, `stage` 후 거부·중복 시 임시 파일 정리, 디코드 예산 초과 거부 |

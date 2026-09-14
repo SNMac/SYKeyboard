@@ -26,10 +26,12 @@ struct ClipboardImagePolicyTests {
     func test바이트픽셀한도_경계값() {
         let bytes = ClipboardImagePolicy.maxByteSize
         #expect(bytes == 24 * 1_024 * 1_024)
-        #expect(ClipboardImagePolicy.maxPixelCount == 48_000_000)
-        #expect(ClipboardImagePolicy.isStorable(byteSize: bytes, pixelWidth: 6_000, pixelHeight: 8_000))
+        #expect(ClipboardImagePolicy.maxPixelCount == 50_000_000)
+        // iPhone 48 MP 촬영본(8064×6048 = 48,771,072픽셀)이 들어와야 한다
+        #expect(ClipboardImagePolicy.isStorable(byteSize: bytes, pixelWidth: 8_064, pixelHeight: 6_048))
+        #expect(ClipboardImagePolicy.isStorable(byteSize: bytes, pixelWidth: 5_000, pixelHeight: 10_000))
         #expect(ClipboardImagePolicy.isStorable(byteSize: bytes + 1, pixelWidth: 100, pixelHeight: 100) == false)
-        #expect(ClipboardImagePolicy.isStorable(byteSize: 1, pixelWidth: 6_000, pixelHeight: 8_001) == false)
+        #expect(ClipboardImagePolicy.isStorable(byteSize: 1, pixelWidth: 5_000, pixelHeight: 10_001) == false)
         #expect(ClipboardImagePolicy.isStorable(byteSize: 0, pixelWidth: 1, pixelHeight: 1) == false)
         #expect(ClipboardImagePolicy.isStorable(byteSize: 1, pixelWidth: 0, pixelHeight: 1) == false)
     }

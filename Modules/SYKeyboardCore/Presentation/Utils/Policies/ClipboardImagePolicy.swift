@@ -15,8 +15,8 @@ public enum ClipboardImagePolicy {
     /// 이미지 파일 하나의 최대 바이트. 초과하면 저장하지 않는다. 48 MP JPEG(10~20 MB)를 받기 위한 값
     public static let maxByteSize = 24 * 1_024 * 1_024
     /// 이미지 하나의 최대 픽셀 수(가로 × 세로). 타입과 무관한 저장 상한이며, 실제로 디코드할 수 있는지는
-    /// `requiredDecodeMemory`와 프로세스별 고정 예산으로 판정한다
-    public static let maxPixelCount = 48_000_000
+    /// `requiredDecodeMemory`와 프로세스별 고정 예산으로 판정한다. iPhone 48 MP 촬영본은 8064×6048 = 48,771,072픽셀이라 50 MP로 둔다
+    public static let maxPixelCount = 50_000_000
     /// 목록 행 썸네일의 긴 변 픽셀
     public static let thumbnailMaxPixelSize = 240
     /// 키보드 상세 뷰 미리보기의 긴 변 픽셀. 디코드 시 최대 약 1.4 MB
