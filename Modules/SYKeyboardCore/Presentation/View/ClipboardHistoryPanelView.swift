@@ -243,6 +243,8 @@ final class ClipboardHistoryPanelView: UIView {
     /// 편집 모드와 상세 뷰를 닫고 스크롤을 맨 위로 되돌립니다. 패널을 닫을 때 호출합니다.
     func resetPresentation() {
         hideDetail(animated: false)
+        // 상세 미리보기(최대 약 5.8 MB)는 패널이 닫히면 더 쓰지 않으므로 놓는다
+        detailView.releasePreviewImage()
         hideDeleteConfirmation(animated: false)
         restoreTitle()
         endItemEditing()
@@ -809,6 +811,11 @@ private final class ClipboardHistoryDetailView: UIView {
     }
 
     /// 이미지 항목. 본문 대신 미리보기를 보여주고, 버튼은 "복사"가 된다(키보드는 입력창에 이미지를 넣을 수 없다)
+    /// 패널이 닫힐 때 디코드해 둔 미리보기를 놓는다. 다시 열면 원본에서 다시 디코드한다
+    func releasePreviewImage() {
+        imageView.image = nil
+    }
+
     func update(image: UIImage?, isPinned: Bool, canPin: Bool) {
         setImageMode(true)
         imageView.image = image ?? UIImage(systemName: "photo")

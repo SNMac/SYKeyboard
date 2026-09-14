@@ -350,7 +350,7 @@ public static func synchronizeIfNeeded(
 - 상세 뷰 `ClipboardHistoryDetailView`: `update(item:preview:isPinned:canPin:canOpenURL:)`.
   이미지면 `textView`를 숨기고 aspect fit `UIImageView`에 미리보기를 보여주며 붙여넣기
   버튼을 숨기고 복사·고정·닫기만 둔다. 미리보기는 원본을
-  `CGImageSourceCreateThumbnailAtIndex`로 긴 변 600 px까지만 디코드한다(최대 약 1.4 MB).
+  `CGImageSourceCreateThumbnailAtIndex`로 긴 변 1200 px까지만 디코드한다(3배 화면의 상세 뷰 폭에 맞춘 값, 최대 약 5.8 MB). 패널이 닫힐 때 미리보기를 놓는다.
   이 수치는 출력 비트맵 크기일 뿐이며, 다운샘플 과정에서 PNG 원본은 ImageIO가 전체
   디코드할 수 있다(2절 메모리 참고). 그래서 키보드는 미리보기를 디코드하기 전에 이 이미지의
   예상 디코드 메모리가 `keyboardDecodeMemoryBudget` 안인지 확인하고, 아니면 썸네일로 대신한다.

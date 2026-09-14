@@ -19,8 +19,9 @@ public enum ClipboardImagePolicy {
     public static let maxPixelCount = 50_000_000
     /// 목록 행 썸네일의 긴 변 픽셀
     public static let thumbnailMaxPixelSize = 240
-    /// 키보드 상세 뷰 미리보기의 긴 변 픽셀. 디코드 시 최대 약 1.4 MB
-    public static let keyboardPreviewMaxPixelSize = 600
+    /// 키보드 상세 뷰 미리보기의 긴 변 픽셀. 3배 화면의 상세 뷰 폭(약 1218 px)에 맞춰 가로 사진이 확대되지 않게 한다.
+    /// 디코드 시 최대 약 5.8 MB이며 패널이 닫힐 때 놓는다
+    public static let keyboardPreviewMaxPixelSize = 1_200
     /// 앱 원문 시트 미리보기의 긴 변 픽셀. Apple 기기 화면의 긴 변(iPhone 17 Pro Max 2868, iPad Pro 13" 2752)을 덮는 값이라
     /// 어느 기기에서도 원본을 그대로 띄운 것과 같게 보인다. 디코드 시 최대 약 36 MB(3000×3000)
     public static let appPreviewMaxPixelSize = 3_000
