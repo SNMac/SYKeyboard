@@ -38,7 +38,11 @@ public final class ClipboardHistoryStore {
         guard let containerURL = FileManager.default.containerURL(
             forSecurityApplicationGroupIdentifier: DefaultValues.groupBundleID
         ) else { return nil }
-        self.init(fileURL: containerURL.appendingPathComponent("clipboard_history.plist"), imageStore: ClipboardImageStore())
+        // 이미지 폴더와 같은 Apple 지침 위치. #54 경로(컨테이너 루트)는 배포 전이라 마이그레이션 없이 옮긴다
+        self.init(
+            fileURL: containerURL.appendingPathComponent("Library/Application Support/clipboard_history.plist"),
+            imageStore: ClipboardImageStore()
+        )
     }
 
     // MARK: - Public Methods
@@ -119,6 +123,10 @@ private extension ClipboardHistoryStore {
         encoder.outputFormat = .binary
         do {
             let data = try encoder.encode(items)
+            // App Group 컨테이너에는 Application Support가 기본으로 없다
+            try FileManager.default.createDirectory(
+                at: fileURL.deletingLastPathComponent(), withIntermediateDirectories: true
+            )
             try data.write(to: fileURL, options: .atomic)
         } catch {
             // 쓰기 실패는 무시하고 다음 기회에 다시 쓴다. changeCount는 이미 갱신됐으므로 같은 내용을 재시도하지 않는다

@@ -256,13 +256,15 @@ struct ClipboardHistoryStoreTests {
 
     @Test("plist 쓰기가 실패하면 전체 삭제여도 이미지 파일을 지우지 않음")
     func test전체삭제_쓰기실패시_이미지파일유지() throws {
-        // 부모 디렉터리가 없으면 Data.write(..., options: .atomic)이 실패한다. 같은 imageStore를 공유하는
-        // 쓰기 불가능한 store로 removeAll()을 호출해, plist 쓰기 실패 시 파일 정리를 건너뛰는지 확인한다
+        // 부모 경로가 디렉터리가 아니라 일반 파일이면 디렉터리 생성과 Data.write가 모두 실패한다. 같은 imageStore를
+        // 공유하는 쓰기 불가능한 store로 removeAll()을 호출해, plist 쓰기 실패 시 파일 정리를 건너뛰는지 확인한다
         let fixture = makeFixture(name: "remove-all-write-fails")
         _ = try makeStoredImage(hash: "h", in: fixture)
-        let unwritableURL = FileManager.default.temporaryDirectory
-            .appendingPathComponent("SYKeyboardTests-\(UUID().uuidString)-missing-parent", isDirectory: true)
-            .appendingPathComponent("history.plist")
+        let blockerURL = FileManager.default.temporaryDirectory
+            .appendingPathComponent("SYKeyboardTests-\(UUID().uuidString)-blocker")
+        try Data().write(to: blockerURL)
+        defer { try? FileManager.default.removeItem(at: blockerURL) }
+        let unwritableURL = blockerURL.appendingPathComponent("history.plist")
         let unwritableStore = ClipboardHistoryStore(fileURL: unwritableURL, imageStore: fixture.store.imageStore)
 
         unwritableStore.removeAll()

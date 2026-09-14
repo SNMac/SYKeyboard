@@ -2421,7 +2421,7 @@ git commit -m "docs: #55 - 구현 계획에 검증 결과 기록"
 | 이미지 탭 → pasteboard 복원, 헤더 안내 약 2초 표시 후 제목 복구(좁은 화면에서 문구가 잘리지 않고 축소), 입력창 탭 시 패널 닫힘 | 확인 — 정상 |
 | 이미지 paste 미지원 입력 필드(검색창 등)에서 붙여넣기 메뉴 동작 기록 | 확인 — 이상 없음 |
 | "이미지도 기록" OFF → 새 이미지 미저장, 기존 이미지 항목 유지 | 확인 — 정상. 관리 화면 하단 제약 안내는 사용자 요청으로 토글과 무관하게 항상 표시로 변경 |
-| 앱 관리 화면에서 이미지 항목 삭제 → App Group `ClipboardImages/` 원본·썸네일 삭제 확인 | 미확인 — Xcode 27은 Devices and Simulators 창이 없고, `xcrun devicectl device info files --domain-type appGroupDataContainer`는 컨테이너 루트를 읽지 못함(`Access restricted: … outside the allowed container directories (Library, Documents, tmp)`). 대안: 설정 → 저장 공간 용량 변화 확인, 또는 저장 위치를 `Library/Application Support/ClipboardImages`로 옮겨 devicectl로 확인 |
+| 앱 관리 화면에서 이미지 항목 삭제 → App Group `ClipboardImages/` 원본·썸네일 삭제 확인 | 미확인 — Xcode 27은 Devices and Simulators 창이 없고, `xcrun devicectl device info files --domain-type appGroupDataContainer`는 컨테이너 루트를 읽지 못함(`Access restricted: … outside the allowed container directories (Library, Documents, tmp)`). 사용자 결정으로 저장 위치를 `Library/Application Support/ClipboardImages`로 옮김. 확인 명령: `xcrun devicectl device info files --device <UDID> --domain-type appGroupDataContainer --domain-identifier group.github.com-SNMac.SYKeyboard --subdirectory "Library/Application Support/ClipboardImages"` (재확인 필요) |
 | 앱 원문 시트에서 이미지 미리보기·공유(파일)·복사(복원)·고정 동작, 편집 버튼 없음 | 확인 — 정상 |
 | 앱 관리 화면을 연 채 다른 앱에서 이미지 복사 후 돌아오면 목록에 바로 나타남 | 이상 → 수정 — 앱 활성화 시 `SYKeyboardApp` 동기화가 먼저 changeCount를 소비해 화면 콜백이 닿지 않았음. `didRecordImageNotification`으로 목록 재조회(재확인 필요) |
 | iOS 16 기기에서 이미지 캡처 시 붙여넣기 권한 알림이 텍스트와 같은 방식으로 뜸 | 확인(iOS 27) — 알림이 텍스트와 같은 방식으로 뜸. iOS 16 기기는 없음(알림 메커니즘은 iOS 16 이후 동일) |

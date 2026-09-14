@@ -17,7 +17,7 @@ GitHub Issue #55에 따라 #54의 텍스트 클립보드 기록을 확장해, �
 - #54 구현은 `text`가 곧 항목 식별자다. `ClipboardHistoryItem.id`, diffable snapshot
   식별자, 텍스트 기준 삭제(`remove(texts:)`), 편집 병합(`replacingText`), 앱 관리 화면의
   `Set<String>` 선택이 모두 텍스트에 기댄다.
-- `ClipboardHistoryStore`는 캐시 없이 매 연산마다 App Group의 `clipboard_history.plist`를
+- `ClipboardHistoryStore`는 캐시 없이 매 연산마다 App Group의 `Library/Application Support/clipboard_history.plist`를
   읽고 쓴다. 세 extension과 앱이 같은 파일을 공유한다.
 - `ClipboardHistoryPasteboardSynchronizer.synchronizeIfNeeded`는 `changeCount` →
   concealed 타입 → `hasStrings` → `string` 순으로 확인하며 키보드(`viewWillAppear`, 호스트 앱 재활성화 `NSExtensionHostDidBecomeActive`,
@@ -178,10 +178,13 @@ UniformTypeIdentifiers만 쓰고 UIKit은 쓰지 않는다.
 
 ### 파일 배치
 
-App Group 컨테이너 아래 `ClipboardImages/` 하나다.
+App Group 컨테이너 아래 `Library/Application Support/ClipboardImages/` 하나다. Apple의 "Using the file system
+effectively" 지침대로 사용자에게 보이지 않는 앱 데이터는 Application Support에 둔다(백업 포함, Caches와 달리
+시스템이 지우지 않음). `clipboard_history.plist`도 `main`에 배포된 적이 없어 마이그레이션 없이 같은 위치로 옮긴다.
+NGram 파일(`ngram_<lang>.plist`)은 `main`(2026-03-19)에 이미 배포된 경로라 옮기려면 별도 이슈에서 마이그레이션이 필요하다.
 
 ```
-ClipboardImages/
+Library/Application Support/ClipboardImages/
   <hash>.jpg          원본 (확장자는 typeIdentifier에서 유도)
   <hash>.thumb.jpg    썸네일 (항상 JPEG, 긴 변 240 px, 품질 0.7)
 ```
@@ -431,7 +434,7 @@ Core 문구는 `SYKeyboardAssets/Sources/SYKeyboardAssets/Resources/Localizable.
 5. 이미지 탭 후 헤더 안내 2초 표시와 복구, 입력창 탭 시 패널 닫힘.
 6. 이미지 paste 미지원 입력 필드(예: 검색창)에서 붙여넣기 메뉴 동작 기록.
 7. "이미지도 기록" OFF → 새 이미지 미저장, 기존 이미지 항목 유지.
-8. 앱 관리 화면에서 이미지 항목 삭제 → App Group `ClipboardImages/` 파일 삭제 확인.
+8. 앱 관리 화면에서 이미지 항목 삭제 → App Group `Library/Application Support/ClipboardImages/` 파일 삭제 확인.
 9. 앱 원문 시트에서 공유·복사·고정 동작.
 10. iOS 16 기기에서 이미지 캡처 시 붙여넣기 권한 알림이 텍스트와 같은 방식으로 뜨는지.
 

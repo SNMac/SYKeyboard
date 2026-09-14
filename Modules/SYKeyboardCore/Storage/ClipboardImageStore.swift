@@ -11,7 +11,8 @@ import ImageIO
 import OSLog
 import UniformTypeIdentifiers
 
-/// 클립보드 이미지의 원본과 썸네일을 App Group 컨테이너의 `ClipboardImages/`에 해시 이름으로 저장하는 저장소
+/// 클립보드 이미지의 원본과 썸네일을 App Group 컨테이너의 `Library/Application Support/ClipboardImages/`에 해시 이름으로 저장하는 저장소.
+/// Apple 지침대로 사용자에게 보이지 않는 앱 데이터는 Application Support에 두며, 백업에 포함되고 Caches처럼 지워지지 않는다
 ///
 /// UIKit을 쓰지 않는다. 한 번에 올리는 메모리는 64 KB 해시 버퍼와 썸네일 디코드뿐이다.
 /// 세 keyboard extension과 앱이 같은 디렉터리를 쓰며, 파일명이 해시라 동시에 같은 이미지를 저장해도 같은 파일이다
@@ -46,7 +47,7 @@ public final class ClipboardImageStore {
         guard let containerURL = FileManager.default.containerURL(
             forSecurityApplicationGroupIdentifier: DefaultValues.groupBundleID
         ) else { return nil }
-        self.init(directoryURL: containerURL.appendingPathComponent("ClipboardImages", isDirectory: true))
+        self.init(directoryURL: containerURL.appendingPathComponent("Library/Application Support/ClipboardImages", isDirectory: true))
     }
 
     // MARK: - Public Methods
