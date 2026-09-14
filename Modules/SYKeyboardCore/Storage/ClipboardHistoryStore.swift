@@ -50,12 +50,6 @@ public final class ClipboardHistoryStore: Sendable {
     /// 저장된 기록(최신순). 파일이 없거나 손상됐으면 빈 배열
     ///
     /// id는 정책상 유일해야 하며 패널과 앱 목록이 이를 식별자로 쓴다. 손상된 파일에 중복이 있어도 첫 항목만 남긴다
-    /// 기록이 차지하는 용량(바이트). plist 파일과 이미지 원본·썸네일 파일의 합이며 Analytics 기록용이다
-    public func storageByteSize() -> Int {
-        let plistSize = (try? fileURL.resourceValues(forKeys: [.fileSizeKey]).fileSize) ?? 0
-        return plistSize + (imageStore?.totalFileByteSize() ?? 0)
-    }
-
     public func load() -> [ClipboardHistoryItem] {
         guard let data = try? Data(contentsOf: fileURL),
               let items = try? PropertyListDecoder().decode([ClipboardHistoryItem].self, from: data) else { return [] }
@@ -89,10 +83,18 @@ public final class ClipboardHistoryStore: Sendable {
     }
 
     /// 항목의 내용을 바꾼다. 정책상 바꿀 수 없으면 아무것도 하지 않는다
-    public func replaceText(_ oldText: String, with newText: String, now: Date = Date()) {
+    /// 정책이 거부하거나(옛 텍스트가 없음 등) 쓰기에 실패하면 `false`
+    @discardableResult
+    public func replaceText(_ oldText: String, with newText: String, now: Date = Date()) -> Bool {
         let previous = load()
-        guard let items = ClipboardHistoryPolicy.replacingText(oldText, with: newText, in: previous, now: now) else { return }
-        save(items, previous: previous)
+        guard let items = ClipboardHistoryPolicy.replacingText(oldText, with: newText, in: previous, now: now) else { return false }
+        return save(items, previous: previous)
+    }
+
+    /// 기록이 차지하는 용량(바이트). plist 파일과 이미지 원본·썸네일 파일의 합이며 Analytics 기록용이다
+    public func storageByteSize() -> Int {
+        let plistSize = (try? fileURL.resourceValues(forKeys: [.fileSizeKey]).fileSize) ?? 0
+        return plistSize + (imageStore?.totalFileByteSize() ?? 0)
     }
 
     /// 선택한 id의 항목을 한 번에 고정/해제한다. 정책이 허용하지 않으면 아무것도 하지 않는다

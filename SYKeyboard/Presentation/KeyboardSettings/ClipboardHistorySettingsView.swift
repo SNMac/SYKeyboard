@@ -401,13 +401,12 @@ private extension ClipboardHistorySettingsView {
     /// 편집한 내용을 저장한다. 시트가 열린 사이 키보드가 그 항목을 지웠으면 정책이 저장을 거부하므로,
     /// 다시 읽은 목록에 새 텍스트가 없으면 실패를 돌려준다(시트가 알림을 띄우고 닫는다)
     func replaceText(of item: ClipboardHistoryItem, with newText: String) -> Bool {
-        guard let oldText = item.text else { return false }
-        store?.replaceText(oldText, with: newText)
-        reload(checksPresentedItem: false)
-        guard items.contains(where: { $0.id == newText }) else {
+        guard let oldText = item.text, store?.replaceText(oldText, with: newText) == true else {
+            // 시트가 열린 사이 키보드가 항목을 지운 경우(앱이 활성인 채라 재조회 알림이 없었음)
             isDeletedItemAlertPresented = true
             return false
         }
+        reload(checksPresentedItem: false)
         refreshDetailItem(id: newText)
         return true
     }
@@ -422,13 +421,8 @@ private extension ClipboardHistorySettingsView {
             imageStore: store?.imageStore,
             canPin: canPin,
             // 저장 가능 여부만 보므로 시각은 결과에 영향이 없다. body마다 Date()를 만들지 않도록 고정값을 넘긴다.
-            // 시트가 열린 사이 지워진 항목(앱이 활성인 채로 지워지면 재조회 알림이 없다)은 빈 값·길이 검사만 통과하면
-            // 버튼을 살려 두어, 저장을 누르면 삭제 알림으로 잇는다
-            canSave: { newText in
-                guard let oldText = item.text else { return false }
-                guard items.contains(where: { $0.id == oldText }) else { return ClipboardHistoryPolicy.isStorable(.text(newText)) }
-                return ClipboardHistoryPolicy.replacingText(oldText, with: newText, in: items, now: .distantPast) != nil
-            },
+            // 앱이 활성인 채로 키보드가 항목을 지우면 items는 아직 그 항목을 들고 있어 버튼이 유지되고, 저장 시 store의 거부가 알림으로 이어진다
+            canSave: { newText in item.text.flatMap { ClipboardHistoryPolicy.replacingText($0, with: newText, in: items, now: .distantPast) } != nil },
             onTogglePin: { togglePinFromDetail(item) },
             onCopy: { copyFromDetail(item) },
             onSave: { replaceText(of: item, with: $0) },
@@ -443,7 +437,7 @@ private extension ClipboardHistorySettingsView {
     /// 그사이 키보드가 고정 한도를 채웠으면 정책이 변경을 거부해 변화 없이 닫힌다
     func togglePinFromDetail(_ item: ClipboardHistoryItem) {
         store?.togglePins(selectedIDs: [item.id])
-        reload()
+        reload(checksPresentedItem: false)
         detailPresentation = nil
     }
 
@@ -462,7 +456,7 @@ private extension ClipboardHistorySettingsView {
         }
         UserDefaultsManager.shared.lastSeenPasteboardChangeCount = pasteboard.changeCount
         store?.record(item.content)
-        reload()
+        reload(checksPresentedItem: false)
         detailPresentation = nil
     }
 
