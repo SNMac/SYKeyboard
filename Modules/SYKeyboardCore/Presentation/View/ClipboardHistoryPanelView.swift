@@ -247,8 +247,6 @@ final class ClipboardHistoryPanelView: UIView {
     /// 편집 모드와 상세 뷰를 닫고 스크롤을 맨 위로 되돌립니다. 패널을 닫을 때 호출합니다.
     func resetPresentation() {
         hideDetail(animated: false)
-        // 상세 미리보기(최대 약 5.8 MB)는 패널이 닫히면 더 쓰지 않으므로 놓는다
-        detailView.releasePreviewImage()
         hideDeleteConfirmation(animated: false)
         restoreTitle()
         endItemEditing()
@@ -348,6 +346,8 @@ final class ClipboardHistoryPanelView: UIView {
 
     func purgeThumbnailCache() {
         thumbnailCache.removeAllObjects()
+        // 닫힌 상세 뷰가 들고 있던 미리보기(최대 약 5.8 MB)도 놓는다. 보이는 중이면 유지한다
+        if detailView.isHidden { detailView.releasePreviewImage() }
     }
 
     /// 상세 뷰가 보이는 중인지. 테스트에서 `showDetail(at:)` 결과를 확인하는 용도
@@ -513,13 +513,18 @@ private extension ClipboardHistoryPanelView {
     }
 
     /// 패널을 닫을 때는 자판 복귀와 겹치지 않도록 애니메이션 없이 숨긴다
+    /// 닫힌 뒤에는 디코드해 둔 미리보기(최대 약 5.8 MB)를 놓는다. 다시 열면 `showDetail(at:)`이 원본에서 다시 디코드한다
     func hideDetail(animated: Bool = true) {
         detailIndex = nil
-        setDetailHidden(true, animated: animated)
+        setDetailHidden(true, animated: animated) { [weak self] in
+            // 전환 중에 다른 항목의 상세가 다시 열렸으면 그 이미지는 유지한다
+            guard let self, self.detailView.isHidden else { return }
+            self.detailView.releasePreviewImage()
+        }
     }
 
-    func setDetailHidden(_ isHidden: Bool, animated: Bool) {
-        setOverlayHidden(detailView, isHidden, animated: animated)
+    func setDetailHidden(_ isHidden: Bool, animated: Bool, completion: (() -> Void)? = nil) {
+        setOverlayHidden(detailView, isHidden, animated: animated, completion: completion)
     }
 
     func hideDeleteConfirmation(animated: Bool = true) {
@@ -536,15 +541,16 @@ private extension ClipboardHistoryPanelView {
     }
 
     /// 상세 뷰와 삭제 확인 뷰는 패널 전체를 덮으며 크로스페이드로 나타난다
-    func setOverlayHidden(_ overlay: UIView, _ isHidden: Bool, animated: Bool) {
-        guard overlay.isHidden != isHidden else { return }
+    func setOverlayHidden(_ overlay: UIView, _ isHidden: Bool, animated: Bool, completion: (() -> Void)? = nil) {
+        guard overlay.isHidden != isHidden else { completion?(); return }
         guard animated else {
             overlay.isHidden = isHidden
+            completion?()
             return
         }
-        UIView.transition(with: self, duration: 0.2, options: .transitionCrossDissolve) {
+        UIView.transition(with: self, duration: 0.2, options: .transitionCrossDissolve, animations: {
             overlay.isHidden = isHidden
-        }
+        }, completion: { _ in completion?() })
     }
 
     /// 현재 `items`로 스냅샷을 만들어 적용한다. 고정 여부만 바뀐 행은 식별자가 같으므로 다시 구성한다
