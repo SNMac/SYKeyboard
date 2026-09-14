@@ -24,6 +24,9 @@ struct KeyboardToolbarSettingsView: View {
     @AppStorage(UserDefaultsKeys.isClipboardHistoryEnabled, store: UserDefaultsManager.shared.storage)
     private var isClipboardHistoryEnabled = DefaultValues.isClipboardHistoryEnabled
 
+    @AppStorage(UserDefaultsKeys.isClipboardImageHistoryEnabled, store: UserDefaultsManager.shared.storage)
+    private var isClipboardImageHistoryEnabled = DefaultValues.isClipboardImageHistoryEnabled
+
     // MARK: - Content
 
     var body: some View {
@@ -58,6 +61,21 @@ struct KeyboardToolbarSettingsView: View {
         }
 
         if isClipboardHistoryEnabled {
+            Toggle(isOn: $isClipboardImageHistoryEnabled, label: {
+                Text("이미지도 기록")
+                Text("복사한 이미지를 저장하고 탭하면 클립보드로 복원합니다")
+                    .font(.caption)
+            })
+            .onChange(of: isClipboardImageHistoryEnabled) { newValue in
+                Analytics.setUserProperty(newValue.analyticsValue,
+                                          forName: "pref_clipboard_images")  // 사용자 속성 이름은 24자 이하
+                Analytics.logEvent("clipboard_image_history", parameters: [
+                    "view": "KeyboardToolbarSettingsView",
+                    "enabled": newValue.analyticsValue
+                ])
+                hideKeyboard()
+            }
+
             // 목적지 init이 저장소를 읽으므로 링크를 누를 때만 만든다
             NavigationLink("클립보드 기록 관리") {
                 LazyView(ClipboardHistorySettingsView())

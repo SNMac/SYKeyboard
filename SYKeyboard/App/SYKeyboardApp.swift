@@ -99,8 +99,17 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
         setAnalyticsProperty(keyboardSettingsManager.isOneHandedKeyboardEnabled, forName: "pref_one_handed_keyboard")
         setAnalyticsProperty(keyboardSettingsManager.oneHandedKeyboardWidth, format: "%.1f", forName: "pref_one_handed_width")
         setAnalyticsProperty(keyboardSettingsManager.isNaratgeulDotLabelEnabled, forName: "pref_naratgeul_dot_label")
-        setAnalyticsProperty(keyboardSettingsManager.isCheonjiinBottomSpaceEnabled, forName: "pref_cheonjiin_bottom_space")
-        setAnalyticsProperty(keyboardSettingsManager.isNumericKeypadBottomSpaceEnabled, forName: "pref_numeric_keypad_bottom_space")
+        // 사용자 속성은 이름 24자 이하, 앱당 25개까지만 SDK가 전송한다. 천지인·숫자 키패드 하단 공백은 한도 때문에 이벤트로만 남긴다
+        setAnalyticsProperty(keyboardSettingsManager.letterColumnWidthMultiplier, format: "%.2f", forName: "pref_letter_column_width")
+
+        // 입력·자동완성
+        setAnalyticsProperty(keyboardSettingsManager.isSmartPunctuationEnabled, forName: "pref_smart_punctuation")
+        setAnalyticsProperty(keyboardSettingsManager.isPredictiveTextEnabled, forName: "pref_predictive_text")
+
+        // 키보드 툴바
+        setAnalyticsProperty(keyboardSettingsManager.isUndoRedoEnabled, forName: "pref_undo_redo")
+        setAnalyticsProperty(keyboardSettingsManager.isClipboardHistoryEnabled, forName: "pref_clipboard_history")
+        setAnalyticsProperty(keyboardSettingsManager.isClipboardImageHistoryEnabled, forName: "pref_clipboard_images")
 
         logger.debug("Firebase Analytics User Properties 초기화 완료")
     }
@@ -171,6 +180,24 @@ struct SYKeyboardApp: App {
     private func synchronizeClipboardHistoryIfNeeded() {
         guard UserDefaultsManager.shared.isClipboardHistoryEnabled,
               let store = ClipboardHistoryStore() else { return }
-        ClipboardHistoryPasteboardSynchronizer.synchronizeIfNeeded(store: store)
+        // 앱은 메모리 여유가 커서 키보드가 예산 초과로 건너뛴 큰 PNG도 여기서 다시 시도해 저장한다
+        ClipboardHistoryPasteboardSynchronizer.synchronizeIfNeeded(
+            store: store, decodeMemoryBudget: ClipboardImagePolicy.appDecodeMemoryBudget, retriesBudgetSkipped: true
+        )
+        logClipboardHistoryStatus(store)
+    }
+
+    /// 기록의 텍스트·이미지·고정 개수와 저장 용량을 활성화마다 Analytics에 남긴다.
+    /// 용량은 plist와 이미지 원본·썸네일 파일의 합이고, 직전 동기화가 백그라운드에서 저장 중인 이미지는 다음 활성화에 잡힌다
+    private func logClipboardHistoryStatus(_ store: ClipboardHistoryStore) {
+        let items = store.load()
+        let images = items.filter { $0.image != nil }
+        Analytics.logEvent("clipboard_history_status", parameters: [
+            "text_count": items.count - images.count,
+            "image_count": images.count,
+            "pinned_text_count": items.filter { $0.isPinned && $0.image == nil }.count,
+            "pinned_image_count": images.filter(\.isPinned).count,
+            "storage_kb": store.storageByteSize() / 1_024
+        ])
     }
 }

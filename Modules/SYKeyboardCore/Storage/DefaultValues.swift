@@ -30,6 +30,8 @@ public enum DefaultValues {
     public static let isShowMathResultsEnabled: Bool = true
     /// 클립보드 기록 기본값. 클립보드 내용을 저장하므로 사용자가 직접 켠다
     public static let isClipboardHistoryEnabled: Bool = false
+    /// 이미지 클립보드 기록 기본값. 클립보드 기록이 켜져 있으면 이미지도 함께 저장한다
+    public static let isClipboardImageHistoryEnabled: Bool = true
 
     // MARK: - 입력 설정
     
@@ -86,4 +88,6 @@ public enum DefaultValues {
     public static let isRequestFullAccessOverlayClosed: Bool = false
     /// 마지막으로 확인한 pasteboard changeCount 기본값. 아직 확인한 적 없음을 뜻한다
     public static let lastSeenPasteboardChangeCount: Int = -1
+    /// 키보드가 예산 초과로 건너뛴 changeCount 기본값. 건너뛴 것이 없음을 뜻한다
+    public static let budgetSkippedPasteboardChangeCount: Int = -1
 }

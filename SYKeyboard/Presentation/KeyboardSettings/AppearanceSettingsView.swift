@@ -70,8 +70,7 @@ struct AppearanceSettingsView: View {
                     .font(.caption)
             })
             .onChange(of: isNumericKeypadBottomSpaceEnabled) { newValue in
-                Analytics.setUserProperty(newValue.analyticsValue,
-                                          forName: "pref_numeric_keypad_bottom_space")
+                // 사용자 속성 25개 한도 때문에 이벤트로만 남긴다
                 Analytics.logEvent("numeric_keypad_bottom_space", parameters: [
                     "view": "AppearanceSettingsView",
                     "enabled": newValue.analyticsValue

@@ -18,15 +18,19 @@ struct ClipboardHistorySettingsView: View {
 
     private let store = ClipboardHistoryStore()
 
-    /// 저장 순서 그대로(고정 최신순 → 미고정 최신순). 텍스트는 정책상 중복이 없어 id로 쓴다.
+    /// 저장 순서 그대로(고정 최신순 → 미고정 최신순). id는 정책상 중복이 없다.
     /// 화면 전환 중 빈 상태와 편집 버튼 없는 툴바가 먼저 보이지 않도록 첫 렌더링 전에 읽는다
     @State private var items: [ClipboardHistoryItem]
     @State private var selection = Set<String>()
     @State private var editMode: EditMode = .inactive
     @State private var isAddSheetPresented = false
     @State private var newText = ""
-    /// 원문 시트에 표시할 항목. 시트 안에서 내용을 편집하면 바뀌므로 identity가 아니라 표시 여부로 시트를 연다
-    @State private var detailItem: ClipboardHistoryItem?
+    /// 원문 시트에 넘기는 항목. `sheet(item:)`은 첫 표시에 항목을 직접 받고 닫힘 애니메이션 동안 내용을 유지한다.
+    /// `id`는 열 때의 항목 id로 고정해 편집 저장으로 텍스트(= 항목 id)가 바뀌어도 시트가 닫혔다 다시 뜨지 않게 한다
+    @State private var detailPresentation: DetailPresentation?
+    /// 시트가 열린 사이 키보드가 그 항목을 지운 경우 시트 안에 바로 띄우는 알림. 확인하면 시트가 닫힌다.
+    /// 시트는 알림을 띄우는 시점에 편집을 끝내, 알림이 닫히며 편집기가 포커스를 되찾아 키보드가 시트를 밀어 올리는 튐을 막는다
+    @State private var isDeletedItemAlertPresented = false
     /// 고정 항목이 포함돼 확인 알림을 기다리는 삭제 대상
     @State private var pendingDeletion: PendingDeletion?
 
@@ -53,9 +57,9 @@ struct ClipboardHistorySettingsView: View {
     private var pinnedCount: Int { items.filter(\.isPinned).count }
     private var recentCount: Int { items.count - pinnedCount }
     private var isAllSelected: Bool { !items.isEmpty && selection.count == items.count }
-    private var selectedItems: [ClipboardHistoryItem] { items.filter { selection.contains($0.text) } }
+    private var selectedItems: [ClipboardHistoryItem] { items.filter { selection.contains($0.id) } }
     private var pinBatch: ClipboardHistoryPolicy.PinBatch {
-        ClipboardHistoryPolicy.pinBatch(selectedTexts: selection, in: items)
+        ClipboardHistoryPolicy.pinBatch(selectedIDs: selection, in: items)
     }
 
     // MARK: - Content
@@ -65,8 +69,9 @@ struct ClipboardHistorySettingsView: View {
             Group {
                 if items.isEmpty {
                     VStack(spacing: 8) {
-                        Text("복사한 텍스트가 여기에 표시됩니다.")
+                        Text("복사한 텍스트나 이미지가 여기에 표시됩니다.")
                         limitDescription
+                        imageLimitDescription
                     }
                     .font(.footnote)
                     .foregroundStyle(.secondary)
@@ -90,25 +95,16 @@ struct ClipboardHistorySettingsView: View {
             .environment(\.editMode, $editMode)
             // 시트가 떠 있는 동안 키보드가 기록을 바꿀 수 있으므로 닫힐 때 다시 읽는다
             .sheet(isPresented: $isAddSheetPresented, onDismiss: synchronizeAndReload) { addSheet }
-            .sheet(isPresented: isDetailPresented) {
-                if let item = detailItem {
-                    ClipboardHistoryDetailView(
-                        item: item,
-                        canPin: canPin,
-                        // 저장 가능 여부만 보므로 시각은 결과에 영향이 없다. body마다 Date()를 만들지 않도록 고정값을 넘긴다
-                        canSave: { ClipboardHistoryPolicy.replacingText(item.text, with: $0, in: items, now: .distantPast) != nil },
-                        onTogglePin: { togglePinFromDetail(item) },
-                        onCopy: { copyFromDetail(item) },
-                        onSave: { replaceText(of: item, with: $0) }
-                    )
-                    .presentationDetents([.medium, .large])
-                    .presentationDragIndicator(.visible)
-                }
-            }
+            .sheet(item: $detailPresentation, onDismiss: { isDeletedItemAlertPresented = false }) { detailSheet(for: $0.item) }
             // 스와이프·편집 모드 삭제는 사용자가 의도한 동작이므로 HIG대로 알림이 아니라 action sheet로 확인한다. 취소는 시스템이 붙인다
             .onAppear(perform: synchronizeAndReload)
             .onChange(of: scenePhase) { phase in
                 if phase == .active { synchronizeAndReload() }
+            }
+            // 앱 활성화 동기화(SYKeyboardApp)가 먼저 changeCount를 소비하면 이 화면의 동기화는 건너뛰므로,
+            // 백그라운드 저장이 끝난 이미지는 알림으로 받아 목록을 다시 읽는다
+            .onReceive(NotificationCenter.default.publisher(for: ClipboardHistoryPasteboardSynchronizer.didRecordImageNotification)) { _ in
+                reload()
             }
             .requestReviewOnDetailSettingsReturn()
         }
@@ -127,6 +123,7 @@ private extension ClipboardHistorySettingsView {
                     Text("고정 \(pinnedCount)/\(ClipboardHistoryPolicy.maxPinnedCount) · 최근 \(recentCount)/\(ClipboardHistoryPolicy.maxItemCount)")
                         .monospacedDigit()
                     limitDescription
+                    imageLimitDescription
                 }
             }
         }
@@ -137,19 +134,33 @@ private extension ClipboardHistorySettingsView {
         Text("고정 항목은 직접 삭제할 때까지 유지되고, 최근 항목은 \(ClipboardHistoryPolicy.maxItemCount)개를 넘으면 오래된 것부터 지워집니다.")
     }
 
+    /// 이미지 저장 한도와 토글 OFF 규칙 안내. 목록 최하단(footer)과 빈 상태에 토글과 무관하게 항상 보인다
+    var imageLimitDescription: some View {
+        Text("이미지는 한 장에 \(ClipboardImagePolicy.maxByteSize / (1_024 * 1_024)) MB · \(ClipboardImagePolicy.maxPixelCount / 1_000_000) MP까지 저장합니다. '이미지도 기록'을 끄면 새로 복사한 이미지는 저장하지 않으며, 이미 저장된 이미지는 여기서 삭제할 수 있습니다.")
+    }
+
     var itemRows: some View {
         ForEach(items) { item in
-            // Button으로 두면 시트를 띄우는 탭 뒤에 눌린 표시가 남는 일이 있어 탭 제스처만 받는다
-            row(for: item)
-                .onTapGesture { detailItem = item }
-                // Button이 아니므로 보조 기술에 탭 가능함을 알린다
-                .accessibilityAddTraits(.isButton)
-                // 편집 모드에서는 탭이 행 선택으로 가도록 제스처가 터치를 가로채지 않게 한다
+            // 행 전체를 버튼으로 둔다. 기본(automatic) 스타일은 List 행 강조를 쓰며 시트를 띄우는 탭 뒤에 강조가 남는 일이 있어,
+            // 누르는 동안 라벨만 살짝 흐려지는 plain 스타일을 쓴다. 라벨은 contentShape(Rectangle())라 행 내용 영역 전체가 터치 범위다.
+            // 행 구조는 편집 모드와 무관하게 같아야 선택 UI가 들어오는 전환이 매끄럽다
+            Button { presentDetail(item) } label: { row(for: item) }
+                .buttonStyle(.plain)
+                // 편집 모드에서는 탭이 List 행 선택으로 가도록 버튼이 터치를 가로채지 않게 한다
                 .allowsHitTesting(!editMode.isEditing)
+                .contentShape(Rectangle())
+                // 편집 모드에서 길게 누르면 선택을 바꾸지 않고 원본 시트를 연다. 평소에는 버튼이 처리하므로 아무것도 하지 않는다
+                .simultaneousGesture(
+                    LongPressGesture().onEnded { _ in
+                        if editMode.isEditing { presentDetail(item) }
+                    }
+                )
+                // 보조 기술에서는 길게 누르기 대신 이 액션으로 편집 모드에서도 상세를 연다
+                .accessibilityAction(named: Text("상세 보기")) { presentDetail(item) }
                 .swipeActions(edge: .leading) {
                     if item.isPinned || canPin {
                         Button {
-                            togglePins(selectedTexts: [item.text])
+                            togglePins(selectedIDs: [item.id])
                         } label: {
                             Label(
                                 item.isPinned ? "고정 해제" : "고정",
@@ -163,7 +174,7 @@ private extension ClipboardHistorySettingsView {
                     // destructive role은 누르는 순간 행 제거 애니메이션을 시작해 행에 붙인 확인 시트를 닫아 버린다.
                     // 삭제 여부는 확인 시트가 결정하므로 role 없이 색만 준다
                     Button {
-                        requestRemove([item], source: .row(item.text))
+                        requestRemove([item], source: .row(item.id))
                     } label: {
                         Label("삭제", systemImage: "trash.fill")
                     }
@@ -171,14 +182,25 @@ private extension ClipboardHistorySettingsView {
                 }
                 // 스와이프 삭제의 확인 시트는 그 행에 붙여, 지원하는 OS에서는 행 근처에서 뜬다.
                 // 행마다 하나씩 설치되지만 한 번에 하나만 열리고, 표시 시점에 조건부로 붙이면 SwiftUI가 띄우지 못한다
-                .deletionConfirmation(self, source: .row(item.text))
+                .deletionConfirmation(self, source: .row(item.id))
         }
     }
 
     func row(for item: ClipboardHistoryItem) -> some View {
         HStack {
-            Text(item.text)
-                .lineLimit(2)
+            switch item.content {
+            case .text(let text):
+                Text(text)
+                    .lineLimit(2)
+            case .image(let reference):
+                thumbnail(for: reference)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("이미지")
+                    Text(reference.sizeDescription)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
             Spacer()
             if item.isPinned {
                 Image(systemName: "pin.circle.fill")
@@ -186,6 +208,24 @@ private extension ClipboardHistorySettingsView {
             }
         }
         .contentShape(Rectangle())
+    }
+
+    /// 썸네일 파일만 읽는다. 앱 프로세스는 메모리 여유가 있어 캐시 없이 동기 로드한다
+    @ViewBuilder
+    func thumbnail(for reference: ClipboardImageReference) -> some View {
+        if let url = store?.imageStore?.thumbnailURL(for: reference),
+           let image = UIImage(contentsOfFile: url.path) {
+            // 키보드 패널의 `UIListContentConfiguration`(maximumSize 44×44, aspect fit)과 같은 비율로 보이도록
+            // 원본 비율을 유지하고 44×44 안에 맞춘다. 자르지 않는다
+            Image(uiImage: image)
+                .resizable()
+                .scaledToFit()
+                .clipShape(RoundedRectangle(cornerRadius: 4))
+                .frame(width: 44, height: 44)
+        } else {
+            Image(systemName: "photo")
+                .frame(width: 44, height: 44)
+        }
     }
 
     @ToolbarContentBuilder
@@ -218,7 +258,7 @@ private extension ClipboardHistorySettingsView {
         // 툴바의 Label은 아이콘만 보이고 제목은 접근성에 쓰인다. 개수는 제목의 "n개 선택"이 보여준다
         ToolbarItemGroup(placement: .bottomBar) {
             Button {
-                selection = isAllSelected ? [] : Set(items.map(\.text))
+                selection = isAllSelected ? [] : Set(items.map(\.id))
             } label: {
                 Label(
                     isAllSelected ? "선택 해제" : "전체 선택",
@@ -227,7 +267,7 @@ private extension ClipboardHistorySettingsView {
             }
             Spacer()
             Button {
-                togglePins(selectedTexts: selection)
+                togglePins(selectedIDs: selection)
             } label: {
                 Label(
                     pinBatch.isUnpinning ? "\(pinBatch.targets.count)개 고정 해제" : "\(pinBatch.targets.count)개 고정",
@@ -279,10 +319,6 @@ private extension ClipboardHistorySettingsView {
         : Text("고정 항목 \(deletionCounts.pinned)개가 포함되어 있습니다. 삭제한 고정 항목은 복구할 수 없습니다.")
     }
 
-    var isDetailPresented: Binding<Bool> {
-        Binding(get: { detailItem != nil }, set: { if !$0 { detailItem = nil } })
-    }
-
     /// 해당 출처의 확인 시트 표시 여부. 닫히면 대기 중인 삭제를 버린다
     func isDeletionPresented(for source: DeletionSource) -> Binding<Bool> {
         Binding(
@@ -306,28 +342,41 @@ private extension ClipboardHistorySettingsView {
     /// 화면에 들어오거나 돌아올 때. 앱 활성화 알림과 순서가 보장되지 않으므로 여기서도 동기화한다
     func synchronizeAndReload() {
         if let store, UserDefaultsManager.shared.isClipboardHistoryEnabled {
-            ClipboardHistoryPasteboardSynchronizer.synchronizeIfNeeded(store: store)
+            ClipboardHistoryPasteboardSynchronizer.synchronizeIfNeeded(
+                store: store,
+                decodeMemoryBudget: ClipboardImagePolicy.appDecodeMemoryBudget,
+                retriesBudgetSkipped: true
+            )
         }
         reload()
     }
 
     /// 파일을 다시 읽는다. 조작 경로에서는 동기화하지 않아 새 항목이 끼어들며 대상이 밀려나지 않게 한다
-    func reload() {
+    func reload(checksPresentedItem: Bool = true) {
         // SwiftUI가 id(텍스트) 차이로 행 삽입·삭제·이동을 애니메이션한다
         withAnimation {
             items = store?.load() ?? []
         }
-        selection = selection.intersection(items.map(\.text))
+        selection = selection.intersection(items.map(\.id))
         if items.isEmpty { editMode = .inactive }
-        // 시트를 띄운 행이 다시 읽는 사이 사라졌으면 대기 중인 삭제도 버린다. 같은 텍스트가 돌아올 때 시트가 저절로 뜨지 않게 한다
-        if case .row(let text)? = pendingDeletion?.source, !items.contains(where: { $0.text == text }) {
+        // 시트를 띄운 행이 다시 읽는 사이 사라졌으면 대기 중인 삭제도 버린다. 같은 id가 돌아올 때 시트가 저절로 뜨지 않게 한다
+        if case .row(let id)? = pendingDeletion?.source, !items.contains(where: { $0.id == id }) {
             pendingDeletion = nil
+        }
+        // 시트가 열린 사이 키보드가 바꾼 고정 상태 등을 시트에도 반영한다. 항목이 사라졌으면 시트 안에 삭제 알림을 띄운다.
+        // 편집 저장은 id(텍스트)가 바뀌므로 그 경로는 호출자가 새 id로 직접 갱신한다
+        if checksPresentedItem, let presented = detailPresentation {
+            if items.contains(where: { $0.id == presented.item.id }) {
+                refreshDetailItem(id: presented.item.id)
+            } else {
+                isDeletedItemAlertPresented = true
+            }
         }
     }
 
     /// 저장소가 파일을 다시 읽어 판단하므로 키보드가 그사이 바꾼 내용과 어긋나지 않는다
-    func togglePins(selectedTexts: Set<String>) {
-        store?.togglePins(selectedTexts: selectedTexts)
+    func togglePins(selectedIDs: Set<String>) {
+        store?.togglePins(selectedIDs: selectedIDs)
         reload()
     }
 
@@ -341,39 +390,79 @@ private extension ClipboardHistorySettingsView {
         }
     }
 
-    /// 저장소가 텍스트로 지우므로 파일을 미리 다시 읽을 필요가 없다
+    /// 저장소가 id로 지우므로 파일을 미리 다시 읽을 필요가 없다
     func remove(_ removing: [ClipboardHistoryItem]) {
         guard !removing.isEmpty else { return }
-        store?.remove(texts: Set(removing.map(\.text)))
+        store?.remove(ids: Set(removing.map(\.id)))
         reload()
     }
 
     /// 원문 시트에서 편집한 내용을 저장하고, 시트가 새 내용을 보이도록 표시 항목을 바꾼다
-    func replaceText(of item: ClipboardHistoryItem, with newText: String) {
-        store?.replaceText(item.text, with: newText)
-        reload()
-        refreshDetailItem(text: newText)
+    /// 편집한 내용을 저장한다. 시트가 열린 사이 키보드가 그 항목을 지웠으면 정책이 저장을 거부하므로,
+    /// 다시 읽은 목록에 새 텍스트가 없으면 실패를 돌려준다(시트가 알림을 띄우고 닫는다)
+    func replaceText(of item: ClipboardHistoryItem, with newText: String) -> Bool {
+        guard let oldText = item.text, store?.replaceText(oldText, with: newText) == true else {
+            // 시트가 열린 사이 키보드가 항목을 지운 경우(앱이 활성인 채라 재조회 알림이 없었음)
+            isDeletedItemAlertPresented = true
+            return false
+        }
+        reload(checksPresentedItem: false)
+        refreshDetailItem(id: newText)
+        return true
     }
 
+    func presentDetail(_ item: ClipboardHistoryItem) {
+        detailPresentation = DetailPresentation(id: item.id, item: item)
+    }
+
+    func detailSheet(for item: ClipboardHistoryItem) -> some View {
+        ClipboardHistoryDetailView(
+            item: item,
+            imageStore: store?.imageStore,
+            canPin: canPin,
+            // 저장 가능 여부만 보므로 시각은 결과에 영향이 없다. body마다 Date()를 만들지 않도록 고정값을 넘긴다.
+            // 앱이 활성인 채로 키보드가 항목을 지우면 items는 아직 그 항목을 들고 있어 버튼이 유지되고, 저장 시 store의 거부가 알림으로 이어진다
+            canSave: { newText in item.text.flatMap { ClipboardHistoryPolicy.replacingText($0, with: newText, in: items, now: .distantPast) } != nil },
+            onTogglePin: { togglePinFromDetail(item) },
+            onCopy: { copyFromDetail(item) },
+            onSave: { replaceText(of: item, with: $0) },
+            isItemDeletedAlertPresented: $isDeletedItemAlertPresented
+        )
+        // 이미지는 스크롤 없이 한눈에 보이도록 가장 큰 시트 하나만 쓴다. 텍스트는 하프 시트에서 시작한다
+        .presentationDetents(item.image != nil ? [.large] : [.medium, .large])
+        .presentationDragIndicator(.visible)
+    }
+
+    /// 고정을 바꾸면 시트를 닫는다. 목록에서 행이 고정 영역으로 옮겨지는(또는 빠지는) 것이 결과 피드백이다.
+    /// 그사이 키보드가 고정 한도를 채웠으면 정책이 변경을 거부해 변화 없이 닫힌다
     func togglePinFromDetail(_ item: ClipboardHistoryItem) {
-        store?.togglePins(selectedTexts: [item.text])
-        reload()
-        refreshDetailItem(text: item.text)
+        store?.togglePins(selectedIDs: [item.id])
+        reload(checksPresentedItem: false)
+        detailPresentation = nil
     }
 
-    /// 복사한 항목을 최근 복사한 것처럼 목록 맨 위로 올린다. 동기화가 방금 쓴 pasteboard를 다시 읽지 않도록 changeCount를 맞춘다
+    /// 복사한 항목을 최근 복사한 것처럼 목록 맨 위로 올리고 시트를 닫는다. 맨 위로 올라간 행이 결과 피드백이다.
+    /// 동기화가 방금 쓴 pasteboard를 다시 읽지 않도록 changeCount를 맞춘다. 이미지는 원본 바이트를 그대로 pasteboard에 놓는다.
+    /// 파일이 없으면 아무것도 하지 않는다
     func copyFromDetail(_ item: ClipboardHistoryItem) {
         let pasteboard = UIPasteboard.general
-        pasteboard.string = item.text
+        switch item.content {
+        case .text(let text):
+            pasteboard.string = text
+        case .image(let reference):
+            guard let url = store?.imageStore?.originalURL(for: reference),
+                  let data = try? Data(contentsOf: url, options: .mappedIfSafe) else { return }
+            pasteboard.setData(data, forPasteboardType: reference.typeIdentifier)
+        }
         UserDefaultsManager.shared.lastSeenPasteboardChangeCount = pasteboard.changeCount
-        store?.record(item.text)
-        reload()
-        refreshDetailItem(text: item.text)
+        store?.record(item.content)
+        reload(checksPresentedItem: false)
+        detailPresentation = nil
     }
 
     /// 시트가 열린 채로 저장소가 바뀌면 표시 항목을 새 값으로 바꾼다. 항목이 사라졌으면 그대로 둔다
-    func refreshDetailItem(text: String) {
-        detailItem = items.first { $0.text == text } ?? detailItem
+    func refreshDetailItem(id: String) {
+        if let updated = items.first(where: { $0.id == id }) { detailPresentation?.item = updated }
     }
 
     func saveNewItem() {
@@ -381,6 +470,14 @@ private extension ClipboardHistorySettingsView {
         isAddSheetPresented = false
         reload()
     }
+}
+
+// MARK: - Detail Presentation
+
+/// 원문 시트의 표시 단위. `id`는 시트를 연 시점의 항목 id로 고정한다
+private struct DetailPresentation: Identifiable {
+    let id: String
+    var item: ClipboardHistoryItem
 }
 
 // MARK: - Deletion Confirmation
@@ -410,24 +507,43 @@ private extension View {
 /// "편집"을 누르면 같은 시트 안에서 내용을 고쳐 저장한다. 키보드 패널에는 편집이 없다
 private struct ClipboardHistoryDetailView: View {
     let item: ClipboardHistoryItem
+    let imageStore: ClipboardImageStore?
     /// 고정 한도에 여유가 있는지. 없으면 미고정 항목의 고정 버튼을 숨긴다
     let canPin: Bool
     /// 정책상 저장할 수 있는 내용인지(빈 값·길이·중복·원문과 같음)
     let canSave: (String) -> Bool
     let onTogglePin: () -> Void
     let onCopy: () -> Void
-    let onSave: (String) -> Void
+    /// 저장 성공 여부를 돌려준다. 실패하면 항목이 이미 지워진 것이고 소유자가 삭제 알림을 켠다
+    let onSave: (String) -> Bool
+    /// 시트가 열린 사이 항목이 지워졌음을 소유자가 알려 준다. 뜨는 순간 편집을 끝내고, 확인하면 시트를 닫는다
+    @Binding var isItemDeletedAlertPresented: Bool
 
     @State private var isEditing = false
     @State private var draft = ""
+    @Environment(\.dismiss) private var dismiss
+    /// 화면 해상도까지 디코드한 원본. body 평가마다 다시 디코드하지 않도록 한 번만 읽어 둔다
+    @State private var previewImage: UIImage?
+
+    private var text: String { item.text ?? "" }
+
+    /// 원본을 화면 해상도(`appPreviewMaxPixelSize`)까지 백그라운드에서 디코드한다. 시트 표시 애니메이션을 막지 않는다
+    private func loadPreviewImage() async -> UIImage? {
+        guard let reference = item.image, let imageStore else { return nil }
+        return await Task.detached(priority: .userInitiated) {
+            imageStore
+                .previewImage(for: reference, maxPixelSize: ClipboardImagePolicy.appPreviewMaxPixelSize)
+                .map { UIImage(cgImage: $0) }
+        }.value
+    }
 
     private var linkStyledText: AttributedString {
-        var text = AttributedString(item.text)
-        if let url = ClipboardHistoryPolicy.openableURL(in: item.text) {
-            text.link = url
-            text.underlineStyle = .single
+        var attributed = AttributedString(text)
+        if let url = ClipboardHistoryPolicy.openableURL(in: text) {
+            attributed.link = url
+            attributed.underlineStyle = .single
         }
-        return text
+        return attributed
     }
 
     var body: some View {
@@ -438,6 +554,21 @@ private struct ClipboardHistoryDetailView: View {
                         // 시트 배경 위에 흰 사각형이 뜨지 않도록 편집기 배경을 비운다
                         .scrollContentBackground(.hidden)
                         .padding(.horizontal)
+                } else if item.image != nil {
+                    // 스크롤 없이 시트 안에 이미지 전체가 들어오도록 남은 영역에 맞춘다
+                    Group {
+                        if let previewImage {
+                            Image(uiImage: previewImage)
+                                .resizable()
+                                .scaledToFit()
+                        } else {
+                            Image(systemName: "photo")
+                                .font(.largeTitle)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .padding()
                 } else {
                     ScrollView {
                         // 텍스트 전체가 URL이면 일반 링크처럼 파란 밑줄로 보이고 탭하면 브라우저로 연다
@@ -448,8 +579,20 @@ private struct ClipboardHistoryDetailView: View {
                     }
                 }
             }
-            .navigationTitle(isEditing ? "원문 편집" : "원문")
+            .navigationTitle(isEditing ? "편집" : (item.image != nil ? "이미지" : "상세"))
             .navigationBarTitleDisplayMode(.inline)
+            // 시트가 열린 사이 키보드가 항목을 지운 경우. 알림이 뜨는 시점에 편집기를 없애 두어야 알림이 닫힐 때 편집기가 포커스를
+            // 되찾아 키보드가 시트를 밀어 올렸다 내려가는 튐이 생기지 않는다. 확인하면 더 보여줄 것이 없으므로 시트를 닫는다
+            .onChange(of: isItemDeletedAlertPresented) { if $0 { isEditing = false } }
+            .alert("항목이 삭제되었습니다", isPresented: $isItemDeletedAlertPresented) {
+                Button("확인") { dismiss() }
+            }
+            .task(id: item.id) {
+                let image = await loadPreviewImage()
+                // 항목이 바뀌어 취소된 디코드 결과가 새 항목을 덮어쓰지 않게 한다
+                guard !Task.isCancelled else { return }
+                previewImage = image
+            }
             .toolbar {
                 if isEditing {
                     ToolbarItem(placement: .cancellationAction) {
@@ -457,8 +600,8 @@ private struct ClipboardHistoryDetailView: View {
                     }
                     ToolbarItem(placement: .confirmationAction) {
                         Button("저장") {
-                            onSave(draft)
-                            isEditing = false
+                            // 거부되면(앱이 활성인 채로 항목이 지워진 경우) 소유자가 삭제 알림을 켠다
+                            if onSave(draft) { isEditing = false }
                         }
                         .disabled(!canSave(draft))
                     }
@@ -473,19 +616,28 @@ private struct ClipboardHistoryDetailView: View {
                                 )
                             }
                         }
-                        ShareLink(item: item.text) {
-                            Label("공유", systemImage: "square.and.arrow.up")
+                        if let reference = item.image, let url = imageStore?.originalURL(for: reference) {
+                            ShareLink(item: url) {
+                                Label("공유", systemImage: "square.and.arrow.up")
+                            }
+                        } else {
+                            ShareLink(item: text) {
+                                Label("공유", systemImage: "square.and.arrow.up")
+                            }
                         }
                     }
                     ToolbarItemGroup(placement: .navigationBarTrailing) {
                         Button(action: onCopy) {
                             Label("복사", systemImage: "doc.on.doc")
                         }
-                        Button {
-                            draft = item.text
-                            isEditing = true
-                        } label: {
-                            Label("편집", systemImage: "pencil.line")
+                        // 이미지는 편집하지 않는다
+                        if item.image == nil {
+                            Button {
+                                draft = text
+                                isEditing = true
+                            } label: {
+                                Label("편집", systemImage: "pencil.line")
+                            }
                         }
                     }
                 }

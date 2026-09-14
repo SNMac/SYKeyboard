@@ -7,29 +7,91 @@
 
 import UIKit
 
-/// 시스템 pasteboard의 최신 텍스트를 클립보드 기록에 반영한다. 키보드 extension과 앱이 함께 쓴다
+/// 시스템 pasteboard의 최신 텍스트 또는 이미지를 클립보드 기록에 반영한다. 키보드 extension과 앱이 함께 쓴다
 ///
-/// `changeCount`와 `hasStrings`·타입 확인은 iOS 16 붙여넣기 권한 알림을 띄우지 않고, `.string` 읽기만 띄울 수 있다.
-/// 설정 ON·Full Access·미리보기 여부 확인은 호출 측 책임이다.
+/// `changeCount`와 `hasStrings`·`hasImages`·`types` 확인은 iOS 16 붙여넣기 권한 알림을 띄우지 않고,
+/// `.string` 읽기와 이미지 데이터 읽기만 띄울 수 있다. 설정 ON·Full Access·미리보기 여부 확인은 호출 측 책임이다.
+/// 텍스트가 있으면 텍스트만 기록하고, 텍스트가 없을 때만 이미지를 기록한다
 public enum ClipboardHistoryPasteboardSynchronizer {
 
     /// 비밀번호 관리자가 비밀 항목에 붙이는 pasteboard 타입. 이 타입이 있으면 기록하지 않는다
     public static let concealedPasteboardType = "org.nspasteboard.ConcealedType"
+    /// 이미지 항목이 기록된 직후 main 스레드에서 게시한다. 저장은 백그라운드에서 끝나므로 키보드 패널과 앱 목록 화면은
+    /// 이 알림으로 목록을 다시 읽는다. 앱은 활성화 동기화(`SYKeyboardApp`)와 목록 화면이 분리돼 있어 콜백으로는 닿지 않는다
+    public static let didRecordImageNotification = Notification.Name("ClipboardHistoryPasteboardSynchronizer.didRecordImage")
+    /// 이미지가 예산 초과로 건너뛰어져 앱의 재시도에 맡겨진 직후 main 스레드에서 게시한다. 기록 알림의 짝이 되는 결과 이벤트다
+    public static let didSkipImageForBudgetNotification = Notification.Name("ClipboardHistoryPasteboardSynchronizer.didSkipImageForBudget")
 
-    /// pasteboard의 `changeCount`가 마지막 확인값과 다를 때만 텍스트를 읽어 `store`에 기록한다
+    /// 해시·썸네일 생성을 자판 입력(main)과 경쟁하지 않는 낮은 우선순위로, 한 번에 하나씩 처리한다
+    private static let imageProcessingQueue = DispatchQueue(
+        label: "com.snmac.sykeyboard.clipboard-image-processing",
+        qos: .utility
+    )
+
+    /// pasteboard의 `changeCount`가 마지막 확인값과 다를 때만 내용을 읽어 `store`에 기록한다
+    ///
+    /// 키보드가 디코드 예산 초과로 건너뛴 이미지는 `budgetSkippedPasteboardChangeCount`에 남고, `retriesBudgetSkipped`가 참인
+    /// 호출(앱)은 그 changeCount를 이미 확인했더라도 한 번 더 읽어 앱 예산으로 저장한다.
+    ///
+    /// - Parameters:
+    ///   - decodeMemoryBudget: 이 프로세스가 썸네일 디코드에 쓸 수 있는 예산. 키보드는 기본값, 앱은 `appDecodeMemoryBudget`을 넘긴다
+    ///   - retriesBudgetSkipped: 키보드가 예산 초과로 건너뛴 pasteboard를 다시 시도할지. 앱만 참을 넘긴다
+    ///
+    /// 이미지 저장은 백그라운드에서 끝나며 결과는 `didRecordImageNotification`·`didSkipImageForBudgetNotification`으로 알린다.
+    /// 텍스트 기록은 동기라 알림이 없다
     public static func synchronizeIfNeeded(
         store: ClipboardHistoryStore,
         pasteboard: UIPasteboard = .general,
-        settings: UserDefaultsManager = .shared
+        settings: UserDefaultsManager = .shared,
+        decodeMemoryBudget: Int = ClipboardImagePolicy.keyboardDecodeMemoryBudget,
+        retriesBudgetSkipped: Bool = false
     ) {
         let changeCount = pasteboard.changeCount
-        guard changeCount != settings.lastSeenPasteboardChangeCount else { return }
-        // 읽기 실패나 저장 제외여도 같은 값을 반복해 읽지 않도록 먼저 갱신한다
+        let isBudgetRetry = retriesBudgetSkipped && changeCount == settings.budgetSkippedPasteboardChangeCount
+        guard changeCount != settings.lastSeenPasteboardChangeCount || isBudgetRetry else { return }
+        // 읽기 실패나 저장 제외여도 같은 값을 반복해 읽지 않도록 먼저 갱신한다. 건너뜀 표시도 여기서 소비한다
         settings.lastSeenPasteboardChangeCount = changeCount
+        settings.budgetSkippedPasteboardChangeCount = DefaultValues.budgetSkippedPasteboardChangeCount
 
-        guard pasteboard.hasStrings,
-              !pasteboard.contains(pasteboardTypes: [concealedPasteboardType]),
-              let text = pasteboard.string else { return }
-        store.record(text)
+        guard !pasteboard.contains(pasteboardTypes: [concealedPasteboardType]) else { return }
+
+        if pasteboard.hasStrings {
+            if let text = pasteboard.string { store.record(text) }
+            return
+        }
+
+        guard pasteboard.hasImages,
+              settings.isClipboardImageHistoryEnabled,
+              let imageStore = store.imageStore,
+              let typeIdentifier = ClipboardImagePolicy.storableType(in: pasteboard.types),
+              let itemProvider = pasteboard.itemProviders.first else { return }
+
+        // 파일로 받아 프로세스 메모리에 바이트를 올리지 않는다. 완료 클로저는 시스템이 정한 백그라운드 스레드에서 오며
+        // 시스템 임시 파일은 클로저가 끝나면 사라지므로 그 안에서는 우리 tmp로 옮기기만 하고(rename 한 번),
+        // 해시·썸네일은 utility 큐에서 순차 처리해 키보드 입력 응답에 영향을 주지 않게 한다
+        itemProvider.loadFileRepresentation(forTypeIdentifier: typeIdentifier) { url, _ in
+            guard let url,
+                  let stagedURL = ClipboardImageStore.stage(temporaryFileURL: url, typeIdentifier: typeIdentifier) else { return }
+            imageProcessingQueue.async {
+                // 헤더의 픽셀 수로 예상 디코드 메모리를 구해 이 프로세스의 예산 안일 때만 썸네일을 만든다
+                let outcome = imageStore.storeOutcome(
+                    temporaryFileURL: stagedURL, typeIdentifier: typeIdentifier, decodeMemoryBudget: decodeMemoryBudget
+                )
+                DispatchQueue.main.async {
+                    switch outcome {
+                    case .stored(let reference):
+                        store.record(.image(reference))
+                        // object는 기록한 store. 같은 프로세스에서 다른 store(테스트 호스트 앱)가 게시한 알림과 구분할 수 있게 한다
+                        NotificationCenter.default.post(name: didRecordImageNotification, object: store)
+                    case .skippedForBudget:
+                        // 다시 시도하는 쪽(앱)이 또 건너뛰면 표시하지 않아 활성화마다 반복하지 않는다
+                        if !retriesBudgetSkipped { settings.budgetSkippedPasteboardChangeCount = changeCount }
+                        NotificationCenter.default.post(name: didSkipImageForBudgetNotification, object: store)
+                    case .rejected:
+                        break
+                    }
+                }
+            }
+        }
     }
 }

@@ -27,6 +27,8 @@ public enum UserDefaultsKeys {
     public static let isShowMathResultsEnabled = "isShowMathResultsEnabled"
     /// 클립보드 기록
     public static let isClipboardHistoryEnabled = "isClipboardHistoryEnabled"
+    /// 클립보드 기록에 이미지도 저장
+    public static let isClipboardImageHistoryEnabled = "isClipboardImageHistoryEnabled"
 
     // MARK: - 입력 설정
     
@@ -81,4 +83,6 @@ public enum UserDefaultsKeys {
     public static let isRequestFullAccessOverlayClosed = "isRequestFullAccessOverlayClosed"
     /// 마지막으로 확인한 pasteboard changeCount 저장용
     public static let lastSeenPasteboardChangeCount = "lastSeenPasteboardChangeCount"
+    /// 키보드가 디코드 예산 초과로 저장을 건너뛴 pasteboard changeCount. 앱이 같은 값을 보면 앱 예산으로 다시 시도한다
+    public static let budgetSkippedPasteboardChangeCount = "budgetSkippedPasteboardChangeCount"
 }

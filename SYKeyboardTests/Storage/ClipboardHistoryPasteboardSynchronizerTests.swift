@@ -6,8 +6,10 @@
 //
 
 import Foundation
+import ImageIO
 import Testing
 import UIKit
+import UniformTypeIdentifiers
 
 @testable import SYKeyboardCore
 
@@ -47,13 +49,146 @@ struct ClipboardHistoryPasteboardSynchronizerTests {
         #expect(fixture.store.load().isEmpty)
         #expect(UserDefaultsManager.shared.lastSeenPasteboardChangeCount == fixture.pasteboard.changeCount)
     }
+
+    @Test("텍스트 없이 이미지만 있으면 파일로 받아 이미지 항목을 기록하고 완료 알림을 게시")
+    func test이미지만있으면_이미지항목기록() async throws {
+        let fixture = makeFixture(name: "image")
+        defer { fixture.restore() }
+        fixture.pasteboard.setData(makePNGData(), forPasteboardType: "public.png")
+
+        await performAndWait(for: ClipboardHistoryPasteboardSynchronizer.didRecordImageNotification, from: fixture.store) {
+            ClipboardHistoryPasteboardSynchronizer.synchronizeIfNeeded(
+                store: fixture.store,
+                pasteboard: fixture.pasteboard,
+                decodeMemoryBudget: .max
+            )
+        }
+
+        let items = fixture.store.load()
+        let reference = try #require(items.first?.image)
+        #expect(items.count == 1)
+        #expect(reference.typeIdentifier == "public.png")
+        #expect(reference.pixelWidth == 8)
+        #expect(FileManager.default.fileExists(atPath: fixture.store.imageStore!.originalURL(for: reference).path))
+        #expect(FileManager.default.fileExists(atPath: fixture.store.imageStore!.thumbnailURL(for: reference).path))
+        #expect(UserDefaultsManager.shared.lastSeenPasteboardChangeCount == fixture.pasteboard.changeCount)
+    }
+
+    @Test("텍스트와 이미지가 함께 있으면 텍스트만 기록")
+    func test텍스트와이미지_함께면_텍스트만기록() {
+        let fixture = makeFixture(name: "text-and-image")
+        defer { fixture.restore() }
+        fixture.pasteboard.setItems([["public.utf8-plain-text": "hello", "public.png": makePNGData()]])
+
+        ClipboardHistoryPasteboardSynchronizer.synchronizeIfNeeded(
+            store: fixture.store, pasteboard: fixture.pasteboard, decodeMemoryBudget: .max
+        )
+
+        #expect(fixture.store.load().map(\.id) == ["hello"])
+    }
+
+    @Test("이미지 기록 설정이 꺼져 있으면 이미지를 기록하지 않고 changeCount만 갱신")
+    func test이미지설정OFF는_기록없음() {
+        let fixture = makeFixture(name: "image-disabled")
+        defer { fixture.restore() }
+        UserDefaultsManager.shared.isClipboardImageHistoryEnabled = false
+        fixture.pasteboard.setData(makePNGData(), forPasteboardType: "public.png")
+
+        ClipboardHistoryPasteboardSynchronizer.synchronizeIfNeeded(
+            store: fixture.store, pasteboard: fixture.pasteboard, decodeMemoryBudget: .max
+        )
+
+        #expect(fixture.store.load().isEmpty)
+        #expect(UserDefaultsManager.shared.lastSeenPasteboardChangeCount == fixture.pasteboard.changeCount)
+    }
+
+    @Test("키보드가 예산 초과로 건너뛰면 기록하지 않고 changeCount를 갱신하며 건너뛴 changeCount를 남김")
+    func test키보드예산초과는_건너뛴changeCount를남김() async {
+        let fixture = makeFixture(name: "low-budget")
+        defer { fixture.restore() }
+        fixture.pasteboard.setData(makePNGData(), forPasteboardType: "public.png")
+
+        await performAndWait(for: ClipboardHistoryPasteboardSynchronizer.didSkipImageForBudgetNotification, from: fixture.store) {
+            ClipboardHistoryPasteboardSynchronizer.synchronizeIfNeeded(
+                store: fixture.store,
+                pasteboard: fixture.pasteboard,
+                decodeMemoryBudget: 0
+            )
+        }
+
+        #expect(fixture.store.load().isEmpty)
+        #expect(UserDefaultsManager.shared.lastSeenPasteboardChangeCount == fixture.pasteboard.changeCount)
+        #expect(UserDefaultsManager.shared.budgetSkippedPasteboardChangeCount == fixture.pasteboard.changeCount)
+    }
+
+    @Test("키보드가 건너뛴 pasteboard를 앱 예산으로 다시 시도하면 기록하고 건너뜀 표시를 지움")
+    func test앱은_건너뛴이미지를_다시시도해기록() async throws {
+        let fixture = makeFixture(name: "budget-retry")
+        defer { fixture.restore() }
+        fixture.pasteboard.setData(makePNGData(), forPasteboardType: "public.png")
+        // 키보드가 이미 확인했고 예산 초과로 건너뛴 상태
+        UserDefaultsManager.shared.lastSeenPasteboardChangeCount = fixture.pasteboard.changeCount
+        UserDefaultsManager.shared.budgetSkippedPasteboardChangeCount = fixture.pasteboard.changeCount
+
+        // 다시 시도 플래그가 없으면(키보드) 같은 changeCount는 건너뛴다
+        ClipboardHistoryPasteboardSynchronizer.synchronizeIfNeeded(
+            store: fixture.store, pasteboard: fixture.pasteboard, decodeMemoryBudget: .max
+        )
+        #expect(fixture.store.load().isEmpty)
+        #expect(UserDefaultsManager.shared.budgetSkippedPasteboardChangeCount == fixture.pasteboard.changeCount)
+
+        await performAndWait(for: ClipboardHistoryPasteboardSynchronizer.didRecordImageNotification, from: fixture.store) {
+            ClipboardHistoryPasteboardSynchronizer.synchronizeIfNeeded(
+                store: fixture.store,
+                pasteboard: fixture.pasteboard,
+                decodeMemoryBudget: ClipboardImagePolicy.appDecodeMemoryBudget,
+                retriesBudgetSkipped: true
+            )
+        }
+
+        let reference = try #require(fixture.store.load().first?.image)
+        #expect(reference.pixelWidth == 8)
+        #expect(UserDefaultsManager.shared.budgetSkippedPasteboardChangeCount == DefaultValues.budgetSkippedPasteboardChangeCount)
+    }
+
+    @Test("앱이 다시 시도하는 pasteboard를 또 예산 초과로 건너뛰면 표시를 남기지 않아 반복하지 않음")
+    func test앱재시도에서_또건너뛰면_표시없음() async {
+        let fixture = makeFixture(name: "budget-retry-skip")
+        defer { fixture.restore() }
+        fixture.pasteboard.setData(makePNGData(), forPasteboardType: "public.png")
+        UserDefaultsManager.shared.lastSeenPasteboardChangeCount = fixture.pasteboard.changeCount
+        UserDefaultsManager.shared.budgetSkippedPasteboardChangeCount = fixture.pasteboard.changeCount
+
+        await performAndWait(for: ClipboardHistoryPasteboardSynchronizer.didSkipImageForBudgetNotification, from: fixture.store) {
+            ClipboardHistoryPasteboardSynchronizer.synchronizeIfNeeded(
+                store: fixture.store,
+                pasteboard: fixture.pasteboard,
+                decodeMemoryBudget: 0,
+                retriesBudgetSkipped: true
+            )
+        }
+
+        #expect(fixture.store.load().isEmpty)
+        #expect(UserDefaultsManager.shared.budgetSkippedPasteboardChangeCount == DefaultValues.budgetSkippedPasteboardChangeCount)
+    }
+}
+
+/// `body`를 실행하고 `store`가 게시한 `name` 알림이 한 번 올 때까지 기다린다. 동기화기의 백그라운드 이미지 저장이 끝나는 시점을 잡는다.
+/// 반복자를 `body`보다 먼저 만들어 알림을 놓치지 않고, object를 store로 한정해 테스트 호스트 앱이 실제 store로 게시한 알림에 깨어나지 않는다
+private func performAndWait(for name: Notification.Name, from store: ClipboardHistoryStore, _ body: () -> Void) async {
+    let notifications = NotificationCenter.default.notifications(named: name, object: store).makeAsyncIterator()
+    body()
+    _ = await notifications.next()
 }
 
 private struct SyncFixture {
     let store: ClipboardHistoryStore
     let fileURL: URL
+    let imageDirectoryURL: URL
     let pasteboard: UIPasteboard
     let originalChangeCount: Any?
+    let originalBudgetSkipped: Any?
+    let originalImageEnabled: Any?
 
     func restore() {
         let storage = UserDefaultsManager.shared.storage
@@ -62,17 +197,53 @@ private struct SyncFixture {
         } else {
             storage.removeObject(forKey: UserDefaultsKeys.lastSeenPasteboardChangeCount)
         }
+        if let originalBudgetSkipped {
+            storage.set(originalBudgetSkipped, forKey: UserDefaultsKeys.budgetSkippedPasteboardChangeCount)
+        } else {
+            storage.removeObject(forKey: UserDefaultsKeys.budgetSkippedPasteboardChangeCount)
+        }
+        if let originalImageEnabled {
+            storage.set(originalImageEnabled, forKey: UserDefaultsKeys.isClipboardImageHistoryEnabled)
+        } else {
+            storage.removeObject(forKey: UserDefaultsKeys.isClipboardImageHistoryEnabled)
+        }
         UIPasteboard.remove(withName: pasteboard.name)
         try? FileManager.default.removeItem(at: fileURL)
+        try? FileManager.default.removeItem(at: imageDirectoryURL)
     }
 }
 
 private func makeFixture(name: String) -> SyncFixture {
-    let url = FileManager.default.temporaryDirectory
-        .appendingPathComponent("SYKeyboardTests-\(UUID().uuidString)-\(name).plist")
+    let base = "SYKeyboardTests-\(UUID().uuidString)-\(name)"
+    let url = FileManager.default.temporaryDirectory.appendingPathComponent("\(base).plist")
+    let imageDirectoryURL = FileManager.default.temporaryDirectory.appendingPathComponent(base, isDirectory: true)
     let pasteboard = UIPasteboard(name: UIPasteboard.Name("SYKeyboardTests.\(name).\(UUID().uuidString)"), create: true)!
     let storage = UserDefaultsManager.shared.storage
-    let original = storage.object(forKey: UserDefaultsKeys.lastSeenPasteboardChangeCount)
+    let originalChangeCount = storage.object(forKey: UserDefaultsKeys.lastSeenPasteboardChangeCount)
+    let originalBudgetSkipped = storage.object(forKey: UserDefaultsKeys.budgetSkippedPasteboardChangeCount)
+    let originalImageEnabled = storage.object(forKey: UserDefaultsKeys.isClipboardImageHistoryEnabled)
     storage.removeObject(forKey: UserDefaultsKeys.lastSeenPasteboardChangeCount)
-    return SyncFixture(store: ClipboardHistoryStore(fileURL: url), fileURL: url, pasteboard: pasteboard, originalChangeCount: original)
+    storage.removeObject(forKey: UserDefaultsKeys.budgetSkippedPasteboardChangeCount)
+    storage.removeObject(forKey: UserDefaultsKeys.isClipboardImageHistoryEnabled)
+    let store = ClipboardHistoryStore(fileURL: url, imageStore: ClipboardImageStore(directoryURL: imageDirectoryURL))
+    return SyncFixture(
+        store: store, fileURL: url, imageDirectoryURL: imageDirectoryURL, pasteboard: pasteboard,
+        originalChangeCount: originalChangeCount, originalBudgetSkipped: originalBudgetSkipped,
+        originalImageEnabled: originalImageEnabled
+    )
+}
+
+/// 8×8 PNG 바이트. ImageIO로 인코드해 pasteboard에 넣는다
+private func makePNGData() -> Data {
+    let context = CGContext(
+        data: nil, width: 8, height: 8, bitsPerComponent: 8, bytesPerRow: 0,
+        space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
+    )!
+    context.setFillColor(red: 1, green: 0, blue: 0, alpha: 1)
+    context.fill(CGRect(x: 0, y: 0, width: 8, height: 8))
+    let data = NSMutableData()
+    let destination = CGImageDestinationCreateWithData(data, UTType.png.identifier as CFString, 1, nil)!
+    CGImageDestinationAddImage(destination, context.makeImage()!, nil)
+    CGImageDestinationFinalize(destination)
+    return data as Data
 }

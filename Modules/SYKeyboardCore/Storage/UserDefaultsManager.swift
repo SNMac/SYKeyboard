@@ -118,6 +118,9 @@ final public class UserDefaultsManager {
     /// 클립보드 기록
     @UserDefaultsWrapper(key: UserDefaultsKeys.isClipboardHistoryEnabled, defaultValue: DefaultValues.isClipboardHistoryEnabled)
     public var isClipboardHistoryEnabled: Bool
+    /// 클립보드 기록에 이미지도 저장
+    @UserDefaultsWrapper(key: UserDefaultsKeys.isClipboardImageHistoryEnabled, defaultValue: DefaultValues.isClipboardImageHistoryEnabled)
+    public var isClipboardImageHistoryEnabled: Bool
 
     // MARK: 입력 설정
     
@@ -206,6 +209,9 @@ final public class UserDefaultsManager {
     /// 마지막으로 확인한 pasteboard changeCount
     @UserDefaultsWrapper(key: UserDefaultsKeys.lastSeenPasteboardChangeCount, defaultValue: DefaultValues.lastSeenPasteboardChangeCount)
     public var lastSeenPasteboardChangeCount: Int
+    /// 키보드가 디코드 예산 초과로 저장을 건너뛴 pasteboard changeCount
+    @UserDefaultsWrapper(key: UserDefaultsKeys.budgetSkippedPasteboardChangeCount, defaultValue: DefaultValues.budgetSkippedPasteboardChangeCount)
+    public var budgetSkippedPasteboardChangeCount: Int
 
     /// 한영 통합 키보드의 마지막 언어가 저장되어 있는지 여부
     ///
