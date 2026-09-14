@@ -360,6 +360,8 @@ private extension ClipboardHistorySettingsView {
         if case .row(let id)? = pendingDeletion?.source, !items.contains(where: { $0.id == id }) {
             pendingDeletion = nil
         }
+        // 시트가 열린 사이 키보드가 바꾼 고정 상태 등을 시트에도 반영한다. 항목이 사라졌으면 그대로 두고 저장 시 알림이 처리한다
+        if let presented = detailPresentation { refreshDetailItem(id: presented.item.id) }
     }
 
     /// 저장소가 파일을 다시 읽어 판단하므로 키보드가 그사이 바꾼 내용과 어긋나지 않는다
