@@ -273,6 +273,7 @@ private extension ClipboardHistorySettingsView {
             Spacer()
             Button {
                 togglePins(selectedIDs: selection)
+                finishEditing()
             } label: {
                 Label(
                     pinBatch.isUnpinning ? "\(pinBatch.targets.count)개 고정 해제" : "\(pinBatch.targets.count)개 고정",
@@ -379,6 +380,12 @@ private extension ClipboardHistorySettingsView {
         }
     }
 
+    /// 편집 모드 하단 바의 고정·삭제가 끝나면 일반 모드로 돌아간다. "완료" 버튼과 같은 동작이다
+    func finishEditing() {
+        withAnimation { editMode = .inactive }
+        selection.removeAll()
+    }
+
     /// 저장소가 파일을 다시 읽어 판단하므로 키보드가 그사이 바꾼 내용과 어긋나지 않는다
     func togglePins(selectedIDs: Set<String>) {
         store?.togglePins(selectedIDs: selectedIDs)
@@ -391,14 +398,15 @@ private extension ClipboardHistorySettingsView {
             deletionCounts = (removing.filter(\.isPinned).count, removing.count)
             pendingDeletion = PendingDeletion(items: removing, source: source)
         } else {
-            remove(removing)
+            remove(removing, source: source)
         }
     }
 
-    /// 저장소가 id로 지우므로 파일을 미리 다시 읽을 필요가 없다
-    func remove(_ removing: [ClipboardHistoryItem]) {
+    /// 저장소가 id로 지우므로 파일을 미리 다시 읽을 필요가 없다. 편집 모드 하단 바에서 지웠으면 일반 모드로 돌아간다
+    func remove(_ removing: [ClipboardHistoryItem], source: DeletionSource) {
         guard !removing.isEmpty else { return }
         store?.remove(ids: Set(removing.map(\.id)))
+        if source == .toolbar { finishEditing() }
         reload()
     }
 
@@ -499,7 +507,7 @@ private extension View {
             titleVisibility: .visible,
             presenting: screen.pendingDeletionItems
         ) { removing in
-            Button("삭제", role: .destructive) { screen.remove(removing) }
+            Button("삭제", role: .destructive) { screen.remove(removing, source: source) }
         } message: { _ in
             screen.deletionMessage
         }

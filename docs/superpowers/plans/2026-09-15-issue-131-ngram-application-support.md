@@ -1859,7 +1859,10 @@ git commit -m "feat: #131 - 키보드 클립보드 편집 모드에 고정 버�
 **Files:**
 - Modify: `SYKeyboard/Presentation/KeyboardSettings/ClipboardHistorySettingsView.swift`
 
-- [ ] **Step 1: 구현**
+- [x] **Step 1: 구현**
+
+브리프대로 (a)~(d) 적용. `grep -n 'remove(' SYKeyboard/Presentation/KeyboardSettings/ClipboardHistorySettingsView.swift`로
+호출부를 모두 확인해 `remove(removing, source: source)`(2곳: `requestRemove`, `deletionConfirmation` 클로저)로 통일.
 
 (a) `private extension ClipboardHistorySettingsView`(Private Methods)의 `togglePins(selectedIDs:)` 앞에 추가:
 
@@ -1896,15 +1899,20 @@ git commit -m "feat: #131 - 키보드 클립보드 편집 모드에 고정 버�
 
 `remove(`를 부르는 곳이 더 있는지 `grep -n 'remove(' SYKeyboard/Presentation/KeyboardSettings/ClipboardHistorySettingsView.swift`로 확인하고 모두 출처를 넘긴다.
 
-- [ ] **Step 2: 빌드**
+- [x] **Step 2: 빌드**
 
 SYKeyboard app scheme을 iOS 18.6 destination으로 빌드한다. Expected: `BUILD SUCCEEDED`. (SwiftUI 화면이라 unit test 없음, Task 10·12와 한 빌드로 설치)
 
-- [ ] **Step 3: 수동 확인(사용자 조작 필요)**
+결과: `platform=iOS Simulator,name=iPhone 13 mini,OS=18.6`에서 `BUILD SUCCEEDED`. UDID `82146144-24DE-4F91-B25D-23D147A91142`에 설치 확인
+(`xcrun simctl get_app_container`로 컨테이너 경로 확인). Task 10·11·12를 한 빌드로 설치.
+
+- [x] **Step 3: 수동 확인(사용자 조작 필요)**
 
 1. 키보드 앱 클립보드 기록 관리 편집 모드에서 항목을 선택해 고정/고정 해제하면 일반 모드로 돌아간다.
 2. 미고정만 삭제하면 일반 모드로 돌아간다. 고정 항목이 섞이면 확인 창 취소 시 편집 모드와 선택이 유지되고, 삭제하면 일반 모드로 돌아간다.
 3. 스와이프 고정·삭제(확인 창 포함)는 기존과 같다.
+
+실행 결과(2026-09-15, 사용자 수행): 1~3 정상.
 
 - [ ] **Step 4: 커밋**
 
