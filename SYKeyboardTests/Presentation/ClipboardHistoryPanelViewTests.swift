@@ -156,6 +156,54 @@ struct ClipboardHistoryPanelViewTests {
         #expect(cell.isHighlighted)
     }
 
+    @Test("기본 configure는 열린 상세를 닫음")
+    func test기본configure는_상세를닫음() {
+        let items = [unpinned("a"), unpinned("b")]
+        let (panel, _) = makePanel(items: items)
+
+        panel.showDetail(at: 1)
+        panel.configure(state: .items(items))
+
+        #expect(panel.isDetailVisible == false)
+    }
+
+    @Test("상세를 유지하는 갱신에서 앞에 새 항목이 들어오면 붙여넣기는 보던 항목의 새 인덱스를 요청")
+    func test상세유지갱신후_붙여넣기는보던항목() {
+        let items = [unpinned("a"), unpinned("b")]
+        let (panel, spy) = makePanel(items: items)
+
+        panel.showDetail(at: 1)
+        panel.configure(state: .items([unpinned("new")] + items), keepsDetail: true)
+
+        #expect(panel.isDetailVisible)
+        panel.pasteDetailItem()
+        #expect(spy.selectedIndices == [2])
+    }
+
+    @Test("상세를 유지하는 갱신에서 보던 항목이 다시 기록돼 앞으로 오면 고정은 그 항목을 요청")
+    func test같은내용이다시기록되면_고정은그항목() {
+        let (panel, spy) = makePanel(items: [unpinned("a"), unpinned("b")])
+
+        panel.showDetail(at: 1)
+        panel.configure(state: .items([unpinned("b"), unpinned("a")]), keepsDetail: true)
+
+        #expect(panel.isDetailVisible)
+        panel.toggleDetailItemPin()
+        #expect(spy.toggledPinIndices == [0])
+    }
+
+    @Test("상세를 유지하는 갱신이어도 보던 항목이 사라지면 상세를 닫고 요청하지 않음")
+    func test보던항목이사라지면_상세를닫음() {
+        let (panel, spy) = makePanel(items: [unpinned("a"), unpinned("b")])
+
+        panel.showDetail(at: 1)
+        panel.configure(state: .items([unpinned("a")]), keepsDetail: true)
+        panel.pasteDetailItem()
+
+        #expect(panel.isDetailVisible == false)
+        #expect(spy.selectedIndices.isEmpty)
+    }
+
     @Test("선택이 없으면 삭제를 요청하지 않음")
     func test선택없으면_삭제요청없음() {
         let (panel, spy) = makePanel(texts: ["a"])

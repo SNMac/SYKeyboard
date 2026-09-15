@@ -72,7 +72,13 @@ final class ClipboardHistoryPanelView: UIView {
     /// 현재 표시 중인 항목(최신순). 델리게이트 인덱스는 이 배열 기준이다
     private(set) var items: [ClipboardHistoryItem] = []
 
-    private var detailIndex: Int?
+    /// 상세 뷰가 보여주는 항목의 id. 목록이 갱신돼 순서가 바뀌어도 같은 항목을 가리킨다
+    private var detailItemID: String?
+    /// 상세 뷰가 보여주는 항목의 현재 인덱스. 목록에서 사라졌으면 `nil`
+    private var detailItemIndex: Int? {
+        guard let detailItemID else { return nil }
+        return items.firstIndex { $0.id == detailItemID }
+    }
     /// 사용자가 "선택"으로 들어간 다중 선택 모드인지. 스와이프 중에도 true가 되는 `tableView.isEditing`과 구분한다
     private(set) var isItemEditing = false
     /// 고정 항목이 섞여 확인을 기다리는 삭제. 인덱스는 `items` 기준이다
@@ -211,20 +217,10 @@ final class ClipboardHistoryPanelView: UIView {
         let view = ClipboardHistoryDetailView()
         view.isHidden = true
         view.onClose = { [weak self] in self?.hideDetail() }
-        view.onPaste = { [weak self] in
-            guard let self, let index = self.detailIndex else { return }
-            // 붙여넣기(텍스트)는 이 직후 패널이 닫히지만, 복사(이미지)는 패널이 열린 채 유지된다.
-            // 상세 뷰는 여기서 먼저 숨기고, 이미지 쪽은 이어지는 configure() 갱신으로 다시 숨김 상태가 반영된다
-            self.hideDetail(animated: false)
-            // 행 탭과 같은 경로다. 텍스트는 삽입 + pasteboard 복사, 이미지는 pasteboard 복원
-            self.delegate?.clipboardPanel(self, didSelectItemAt: index)
-        }
-        view.onTogglePin = { [weak self] in
-            guard let self, let index = self.detailIndex else { return }
-            self.delegate?.clipboardPanel(self, didTogglePinAt: index)
-        }
+        view.onPaste = { [weak self] in self?.pasteDetailItem() }
+        view.onTogglePin = { [weak self] in self?.toggleDetailItemPin() }
         view.onOpenURL = { [weak self] in
-            guard let self, let index = self.detailIndex else { return }
+            guard let self, let index = self.detailItemIndex else { return }
             self.delegate?.clipboardPanel(self, didRequestOpenURLAt: index)
         }
 
@@ -256,9 +252,12 @@ final class ClipboardHistoryPanelView: UIView {
 
     /// 패널 상태를 갱신합니다. 상세 뷰는 닫고, 편집 모드는 유지하되 항목이 없어지면 해제합니다.
     ///
+    /// `keepsDetail`이면 상세 뷰를 닫지 않고 보던 항목을 새 목록에서 다시 가리킵니다. 그 항목이 사라졌으면 닫습니다.
+    /// 상세 뷰에서 일부를 복사해 기록이 늘어난 경우처럼 사용자가 상세를 보는 중인 갱신에 씁니다.
+    ///
     /// 패널이 보이는 중이면 바뀐 행만 삭제·삽입 애니메이션으로 반영하고, 숨겨진 상태면 전체를 다시 그립니다.
-    func configure(state: State) {
-        hideDetail()
+    func configure(state: State, keepsDetail: Bool = false) {
+        if !keepsDetail { hideDetail() }
         hideDeleteConfirmation()
         let previousItems = items
         switch state {
@@ -271,6 +270,7 @@ final class ClipboardHistoryPanelView: UIView {
         case .items(let newItems):
             items = newItems
         }
+        if keepsDetail, detailItemID != nil, detailItemIndex == nil { hideDetail() }
         // 편집 모드 해제 애니메이션이 행 갱신 애니메이션과 겹치지 않도록 먼저 끝낸다
         if items.isEmpty { endItemEditing() }
         applySnapshot(from: previousItems, animated: !self.isHidden && !previousItems.isEmpty)
@@ -420,7 +420,7 @@ final class ClipboardHistoryPanelView: UIView {
     /// 넘으면 미리보기 디코드를 건너뛰고 목록에 쓰던 캐시 썸네일로 대신한다(없으면 자리표시 아이콘)
     func showDetail(at index: Int) {
         guard items.indices.contains(index) else { return }
-        detailIndex = index
+        detailItemID = items[index].id
         let item = items[index]
         let canPin = ClipboardHistoryPolicy.canPin(items)
         switch item.content {
@@ -448,6 +448,21 @@ final class ClipboardHistoryPanelView: UIView {
             detailView.update(image: preview, isPinned: item.isPinned, canPin: canPin)
         }
         setDetailHidden(false, animated: true)
+    }
+
+    /// 상세 뷰의 붙여넣기(텍스트)·복사(이미지). 행 탭과 같은 델리게이트 경로다. 테스트에서 직접 호출할 수 있도록 internal로 둔다
+    func pasteDetailItem() {
+        guard let index = detailItemIndex else { return }
+        // 붙여넣기(텍스트)는 이 직후 패널이 닫히지만, 복사(이미지)는 패널이 열린 채 유지된다.
+        // 상세 뷰는 여기서 먼저 숨기고, 이미지 쪽은 이어지는 configure() 갱신으로 다시 숨김 상태가 반영된다
+        hideDetail(animated: false)
+        delegate?.clipboardPanel(self, didSelectItemAt: index)
+    }
+
+    /// 상세 뷰의 고정/해제. 테스트에서 직접 호출할 수 있도록 internal로 둔다
+    func toggleDetailItemPin() {
+        guard let index = detailItemIndex else { return }
+        delegate?.clipboardPanel(self, didTogglePinAt: index)
     }
 }
 
@@ -583,7 +598,7 @@ private extension ClipboardHistoryPanelView {
     /// 패널을 닫을 때는 자판 복귀와 겹치지 않도록 애니메이션 없이 숨긴다
     /// 닫힌 뒤에는 디코드해 둔 미리보기(최대 약 5.8 MB)를 놓는다. 다시 열면 `showDetail(at:)`이 원본에서 다시 디코드한다
     func hideDetail(animated: Bool = true) {
-        detailIndex = nil
+        detailItemID = nil
         setDetailHidden(true, animated: animated) { [weak self] in
             // 전환 중에 다른 항목의 상세가 다시 열렸으면 그 이미지는 유지한다
             guard let self, self.detailView.isHidden else { return }
@@ -880,7 +895,8 @@ private final class ClipboardHistoryDetailView: UIView {
     private let textView: UITextView = {
         let textView = UITextView()
         textView.isEditable = false
-        textView.isSelectable = false
+        // 길게 누르거나 두 번 탭해 일부를 선택하고 시스템 메뉴로 복사한다. 편집은 막는다
+        textView.isSelectable = true
         textView.backgroundColor = .clear
         textView.font = .systemFont(ofSize: 15)
         textView.textColor = .label
@@ -928,6 +944,12 @@ private final class ClipboardHistoryDetailView: UIView {
         textView.verticalScrollIndicatorInsets.bottom = bottomInset
     }
 
+    /// 선택 영역이 있을 때의 탭은 선택 해제로 쓰이므로 링크를 열지 않는다
+    override func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
+        guard gestureRecognizer === openURLTapGesture else { return super.gestureRecognizerShouldBegin(gestureRecognizer) }
+        return textView.selectedRange.length == 0
+    }
+
     // MARK: - Internal Methods
 
     /// 고정 한도가 찼으면 미고정 항목의 고정 버튼을 숨긴다. 스와이프 액션과 같은 규칙이다.
@@ -944,6 +966,7 @@ private final class ClipboardHistoryDetailView: UIView {
             attributes[.underlineStyle] = NSUnderlineStyle.single.rawValue
         }
         textView.attributedText = NSAttributedString(string: text, attributes: attributes)
+        textView.selectedRange = NSRange(location: 0, length: 0)
         textView.setContentOffset(.zero, animated: false)
         openURLTapGesture.isEnabled = canOpenURL
         pinButton.isHidden = !isPinned && !canPin
@@ -986,6 +1009,7 @@ private extension ClipboardHistoryDetailView {
         let spacer = UIView()
         spacer.setContentHuggingPriority(.defaultLow, for: .horizontal)
         [titleLabel, spacer, pinButton, closeButton].forEach { headerStackView.addArrangedSubview($0) }
+        openURLTapGesture.delegate = self
         textView.addGestureRecognizer(openURLTapGesture)
         [blurView, headerStackView, textView, imageView, pasteButton].forEach {
             self.addSubview($0)
@@ -1031,6 +1055,18 @@ private extension ClipboardHistoryDetailView {
         pasteButton.configuration?.title = isImage
         ? String(localized: "복사", bundle: SYKBDAssets.bundle)
         : String(localized: "붙여넣기", bundle: SYKBDAssets.bundle)
+    }
+}
+
+// MARK: - UIGestureRecognizerDelegate
+
+extension ClipboardHistoryDetailView: UIGestureRecognizerDelegate {
+    /// 본문 선택용 텍스트 뷰 제스처(길게 누르기·두 번 탭)를 막지 않는다
+    func gestureRecognizer(
+        _ gestureRecognizer: UIGestureRecognizer,
+        shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer
+    ) -> Bool {
+        return gestureRecognizer === openURLTapGesture
     }
 }
 

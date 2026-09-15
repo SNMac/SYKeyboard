@@ -813,7 +813,7 @@ git commit -m "fix: #131 - 클립보드 기록 행을 끌다 놓으면 눌림 �
 **Interfaces:**
 - Produces: `ClipboardHistoryPanelView.configure(state: State, keepsDetail: Bool = false)`, `ClipboardHistoryPanelView.pasteDetailItem()`, `ClipboardHistoryPanelView.toggleDetailItemPin()`, `BaseKeyboardViewController.reloadClipboardPanel(keepsDetail: Bool = false)`.
 
-- [ ] **Step 1: 실패하는 테스트 작성**
+- [x] **Step 1: 실패하는 테스트 작성**
 
 `ClipboardHistoryPanelViewTests`에서 `test편집모드는_눌림정리안함` 뒤에 추가:
 
@@ -870,7 +870,18 @@ git commit -m "fix: #131 - 클립보드 기록 행을 끌다 놓으면 눌림 �
 Run: `-only-testing:SYKeyboardTests/ClipboardHistoryPanelViewTests`
 Expected: 컴파일 실패 `extra argument 'keepsDetail' in call` 또는 `value of type 'ClipboardHistoryPanelView' has no member 'pasteDetailItem'`
 
-- [ ] **Step 2: 패널이 상세 항목을 id로 가리키게 구현**
+**실제 결과(RED):** 위 명령을 실행해 컴파일 실패를 확인했다.
+```
+error: extra argument 'keepsDetail' in call
+error: value of type 'ClipboardHistoryPanelView' has no member 'pasteDetailItem'
+error: extra argument 'keepsDetail' in call
+error: value of type 'ClipboardHistoryPanelView' has no member 'toggleDetailItemPin'
+error: extra argument 'keepsDetail' in call
+error: value of type 'ClipboardHistoryPanelView' has no member 'pasteDetailItem'
+** TEST FAILED **
+```
+
+- [x] **Step 2: 패널이 상세 항목을 id로 가리키게 구현**
 
 `ClipboardHistoryPanelView.swift`에서:
 
@@ -947,12 +958,16 @@ Expected: 컴파일 실패 `extra argument 'keepsDetail' in call` 또는 `value 
 
 파일에 `detailIndex`가 남아 있지 않은지 `grep -n detailIndex Modules/SYKeyboardCore/Presentation/View/ClipboardHistoryPanelView.swift`로 확인한다.
 
-- [ ] **Step 3: 테스트 통과 확인**
+**실제 결과:** (a)~(f) 모두 반영했고 `grep -n detailIndex Modules/SYKeyboardCore/Presentation/View/ClipboardHistoryPanelView.swift`는 매치 없음(종료 코드 1)으로 확인했다.
+
+- [x] **Step 3: 테스트 통과 확인**
 
 Run: `-only-testing:SYKeyboardTests/ClipboardHistoryPanelViewTests`
 Expected: `TEST SUCCEEDED`, 새 테스트 4개 포함. 실제 개수를 기록한다.
 
-- [ ] **Step 4: 상세 본문 선택 허용**
+**실제 결과(GREEN):** `** TEST SUCCEEDED **`. `ClipboardHistoryPanelViewTests` 27개(기존 23 + 신규 4: `test기본configure는_상세를닫음`, `test상세유지갱신후_붙여넣기는보던항목`, `test같은내용이다시기록되면_고정은그항목`, `test보던항목이사라지면_상세를닫음`) 모두 통과.
+
+- [x] **Step 4: 상세 본문 선택 허용**
 
 `ClipboardHistoryPanelView.swift`의 `ClipboardHistoryDetailView`에서:
 
@@ -991,7 +1006,9 @@ extension ClipboardHistoryDetailView: UIGestureRecognizerDelegate {
 
 (d) `setupUI()`에서 `textView.addGestureRecognizer(openURLTapGesture)` 앞에 `openURLTapGesture.delegate = self`를 넣는다. `update(text:isPinned:canPin:canOpenURL:)`에서 `textView.attributedText = ...` 다음 줄에 이전 선택이 남지 않도록 `textView.selectedRange = NSRange(location: 0, length: 0)`을 넣는다.
 
-- [ ] **Step 5: 키보드가 pasteboard 변경을 받아 기록·목록 갱신**
+**실제 결과:** (a)~(d) 브리프 코드 그대로 적용했다.
+
+- [x] **Step 5: 키보드가 pasteboard 변경을 받아 기록·목록 갱신**
 
 `BaseKeyboardViewController.swift`에서:
 
@@ -1034,14 +1051,21 @@ extension ClipboardHistoryDetailView: UIGestureRecognizerDelegate {
     }
 ```
 
-- [ ] **Step 6: 테스트·빌드·설치**
+**실제 결과:** (a)~(c) 브리프 코드 그대로 적용했다.
+
+- [x] **Step 6: 테스트·빌드·설치**
 
 1. Run: `-only-testing:SYKeyboardTests/ClipboardHistoryPanelViewTests -only-testing:SYKeyboardTests/ClipboardHistoryPasteboardSynchronizerTests -only-testing:SYKeyboardTests/ClipboardHistoryStoreTests`
    Expected: `TEST SUCCEEDED`. 실제 개수를 기록한다.
 2. `HangeulKeyboard`, `EnglishKeyboard`, `HangeulEnglishKeyboard` scheme을 `-only-testing` 없이 빌드. Expected: 모두 `BUILD SUCCEEDED`.
 3. SYKeyboard app scheme을 iOS 18.6 destination으로 빌드해 시뮬레이터 `82146144-24DE-4F91-B25D-23D147A91142`에 설치한다(앱 삭제 금지). `.xcscheme` `RemotePath` 변경은 되돌린다.
 
-- [ ] **Step 7: 수동 확인(사용자 조작 필요)**
+**실제 결과:**
+1. `** TEST SUCCEEDED **`. 3개 suite 합계 57개 테스트 모두 통과(`ClipboardHistoryPanelViewTests` 27, `ClipboardHistoryStoreTests` 22, `ClipboardHistoryPasteboardSynchronizerTests` 8).
+2. `HangeulKeyboard`, `EnglishKeyboard`, `HangeulEnglishKeyboard` 세 scheme 모두 `** BUILD SUCCEEDED **`.
+3. `SYKeyboard` scheme `** BUILD SUCCEEDED **`. 빌드 산출물 `~/Library/Developer/Xcode/DerivedData/SYKeyboard-hgprdtyustcuukabeovkjzrtclhy/Build/Products/Debug-iphonesimulator/SYKeyboard.app`을 시뮬레이터 `82146144-24DE-4F91-B25D-23D147A91142`에 `xcrun simctl install`로 설치(삭제 없이 덮어 설치) 완료. 설치 전 해당 시뮬레이터가 Shutdown 상태라 `xcrun simctl boot`으로 부팅했다. `xcrun simctl terminate ... github.com-SNMac.SYKeyboard`는 "found nothing to terminate"(무시 대상). 빌드 후 `git status --short`에는 의도한 3개 파일만 남았고 `.xcscheme` 변경은 없었다(되돌릴 것 없음).
+
+- [x] **Step 7: 수동 확인(사용자 조작 필요)**
 
 클립보드 기록 설정 켜짐, 전체 접근 허용 상태에서 키보드 확장의 클립보드 기록 패널로 확인한다.
 1. 텍스트 항목을 길게 눌러 상세 화면을 연 뒤, 본문을 길게 눌러 일부를 선택하고 메뉴에서 복사한다. 붙여넣기 권한 알림이 뜨지 않고 상세 화면이 그대로 유지된다.
@@ -1054,6 +1078,8 @@ extension ClipboardHistoryDetailView: UIGestureRecognizerDelegate {
 8. 이미지 항목 상세의 "복사"는 기존처럼 안내 토스트가 뜨고 목록이 중복되지 않는다.
 
 확인하지 못한 항목은 체크하지 않고 이유를 적는다.
+
+실행 결과(2026-09-15, 사용자 수행, iPhone 13 mini / iOS 18.6 시뮬레이터 `82146144-24DE-4F91-B25D-23D147A91142`): 1~8 모두 정상. 리뷰 후 추가한 9. 본문을 선택한 채 "닫기"·클립보드 버튼으로 닫아도 편집 메뉴·선택 핸들이 남지 않음 — 정상. 1에서 키보드 확장 안에 복사 메뉴가 뜨고 붙여넣기 권한 알림은 뜨지 않음을 함께 확인했다.
 
 - [ ] **Step 8: 커밋**
 
