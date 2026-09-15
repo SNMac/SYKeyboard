@@ -814,7 +814,8 @@ extension ClipboardHistoryPanelView: UITableViewDelegate {
         if isItemEditing { updateHeader() }
     }
 
-    /// 손가락이 이미 떨어진 뒤의 눌림은 짧은 탭이면 곧바로 선택이 이어지고, 늦게 전달된 터치면 그대로 남는다
+    /// 손가락이 모두 떨어진 뒤에 걸린 눌림을 정리 대상으로 예약한다. 짧은 탭은 같은 이벤트 처리 안에서 선택이 이어져 정리할 것이 없고,
+    /// 스와이프가 끝난 뒤 늦게 전달된 터치의 눌림은 선택 없이 남으므로 다음 runloop에서 해제된다
     func tableView(_ tableView: UITableView, didHighlightRowAt indexPath: IndexPath) {
         guard touchObserver.activeTouchCount == 0 else { return }
         scheduleStaleHighlightCleanup()
@@ -900,6 +901,12 @@ private final class ClipboardHistoryTouchObserver: UIGestureRecognizer {
 
     override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent) {
         endTouches(touches)
+    }
+
+    /// 인식기가 초기화되면 추적하던 터치를 더 받지 못하므로 세던 수를 비운다. 정상 경로에서는 이미 0이다
+    override func reset() {
+        super.reset()
+        activeTouchCount = 0
     }
 
     override func canPrevent(_ preventedGestureRecognizer: UIGestureRecognizer) -> Bool { false }
