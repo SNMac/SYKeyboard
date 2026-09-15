@@ -404,7 +404,7 @@ if (!isCapsLocked && wasShifted) || getIsShiftedLetterInput() {
 - Modify: `Modules/EnglishKeyboardCore/EnglishKeyboard/Presentation/View/EnglishKeyboardView.swift:78`
 - Test: `SYKeyboardTests/Domain/EnglishKeyboardInputAdapterTests.swift`
 
-- [ ] **Step 1: 실패하는 테스트 작성**
+- [x] **Step 1: 실패하는 테스트 작성**
 
 `EnglishKeyboardInputAdapterTests`의 마지막 테스트 뒤에 추가:
 
@@ -455,12 +455,14 @@ private func typeLetterWhileShiftPressed(_ letter: String, adapter: EnglishKeybo
 }
 ```
 
-- [ ] **Step 2: 테스트가 실패하는지 확인**
+- [x] **Step 2: 테스트가 실패하는지 확인**
 
 Run: 위 명령에 `-only-testing:SYKeyboardTests/EnglishKeyboardInputAdapterTests`
 Expected: `testCapsLockHeldWhileTypingStaysLockedAfterRelease`만 `#expect(adapter.isShifted)`에서 실패(`isCapsLocked`는 true로 통과). `testShiftHeldWhileTypingReleasesAfterRelease`는 현재 동작 보존 확인용이라 통과.
 
-- [ ] **Step 3: 조건 수정**
+실제 결과: production 변경분만 `git stash`로 제외하고 실행. `TEST FAILED`. `testCapsLockHeldWhileTypingStaysLockedAfterRelease()`만 failed, 나머지 4건(`testAutocapitalizationUpdatesProductionView`, `testFinishForLanguageChangeResetsShiftAndCaps`, `testShiftHeldWhileTypingReleasesAfterRelease`, `testRecordedUppercaseInputResetsTemporaryShift`)은 passed. 기대한 RED와 일치. 확인 후 `git stash pop`으로 production 변경 복원.
+
+- [x] **Step 3: 조건 수정**
 
 `EnglishKeyboardView.swift`의 `disableShift`를 교체:
 
@@ -477,16 +479,20 @@ Expected: `testCapsLockHeldWhileTypingStaysLockedAfterRelease`만 `#expect(adapt
 
 caps lock 중에 남는 `isUppercaseInput == true`는 다음 글자 입력의 `updateAutocapitalization`(Shift 안 누른 상태)에서 false로 돌아가고, caps lock을 끄는 탭은 `wasShifted == true` 경로로 해제되므로 영향이 없다.
 
-- [ ] **Step 4: 테스트 통과 확인**
+- [x] **Step 4: 테스트 통과 확인**
 
 Run: `-only-testing:SYKeyboardTests/EnglishKeyboardInputAdapterTests -only-testing:SYKeyboardTests/ButtonStateControllerTests -only-testing:SYKeyboardTests/HangeulEnglishKeyboardModeCoordinatorTests`
 Expected: `TEST SUCCEEDED`. 실제 통과 개수를 기록한다.
 
-- [ ] **Step 5: extension 빌드**
+실제 결과: `TEST SUCCEEDED`, 12/12 통과 (`EnglishKeyboardInputAdapterTests` 5건 + `ButtonStateControllerTests` 4건 + `HangeulEnglishKeyboardModeCoordinatorTests` 3건). `testCapsLockHeldWhileTypingStaysLockedAfterRelease()` 포함 전부 passed.
+
+- [x] **Step 5: extension 빌드**
 
 `EnglishKeyboard`, `HangeulEnglishKeyboard` scheme을 `-only-testing` 없이 `xcodebuild build`. Expected: 둘 다 `BUILD SUCCEEDED`. `.xcscheme` `RemotePath` 변경은 되돌린다.
 
-- [ ] **Step 6: 커밋**
+실제 결과: `EnglishKeyboard` `BUILD SUCCEEDED`, `HangeulEnglishKeyboard` `BUILD SUCCEEDED`. 빌드 후 `git status --short`에 `.xcscheme` 변경 없음(되돌릴 항목 없음).
+
+- [x] **Step 6: 커밋**
 
 ```bash
 git add Modules/EnglishKeyboardCore/EnglishKeyboard/Presentation/View/EnglishKeyboardView.swift \
