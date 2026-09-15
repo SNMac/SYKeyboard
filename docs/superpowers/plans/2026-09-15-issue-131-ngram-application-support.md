@@ -33,7 +33,7 @@
 
 - iOS 16+ / Swift 5 / Xcode 26 이상. deprecated API 신규 사용 금지.
 - 작업 브랜치 `refactor/#131-ngram-application-support`(develop `ba93ae17` 기준).
-- 커밋 메시지 `type: #131 - subject`, 한국어, 마침표 없음. Task 1은 `refactor`, Task 2·3·5·6·7·8은 `fix`, Task 4·10·11은 `feat`, Task 9·12는 `design`, Task 13은 `docs`. 본문 끝에 세션 attribution을 붙인다.
+- 커밋 메시지 `type: #131 - subject`, 한국어, 마침표 없음. Task 1은 `refactor`, Task 2·3·5·6·7·8은 `fix`, Task 4·10·11은 `feat`, Task 9·12·13은 `design`, Task 14는 `docs`. 본문 끝에 세션 attribution을 붙인다.
 - 각 Task는 코드·테스트·이 문서의 체크박스 갱신을 하나의 커밋으로 남긴다. 실행하지 않았거나 실패한 step은 체크하지 않는다.
 - 새 production 파일은 만들지 않는다(`project.pbxproj` 수정 없음). `SYKeyboardTests/`는 동기화 폴더라 테스트 파일 등록이 필요 없다.
 - production 타입에 `ForTesting` 메서드를 추가하지 않는다. 테스트 seam은 기존 designated init 파라미터에 `legacyFileURL: URL? = nil`만 더한다.
@@ -1929,7 +1929,9 @@ git commit -m "feat: #131 - 키보드 앱 클립보드 편집 모드에서 고�
 **Files:**
 - Modify: `SYKeyboard/Presentation/KeyboardSettings/ClipboardHistorySettingsView.swift`
 
-- [ ] **Step 1: 구현**
+- [x] **Step 1: 구현**
+
+브리프대로 (a)(b) 적용.
 
 (a) 뷰의 프로퍼티 영역(`pinBatch` 계산 프로퍼티 뒤)에 추가:
 
@@ -1948,9 +1950,77 @@ git commit -m "feat: #131 - 키보드 앱 클립보드 편집 모드에서 고�
             .padding(.leading, Self.legacyBottomBarItemSpacing)
 ```
 
-- [ ] **Step 2: 빌드**
+- [x] **Step 2: 빌드**
 
 SYKeyboard app scheme 빌드. Expected: `BUILD SUCCEEDED`. iOS 16.0 시뮬레이터 확인을 위해 iPhone 13 mini / iOS 16.0 destination으로도 빌드해 그 시뮬레이터에 설치한다(앱 삭제 금지, iOS 16.0은 XCTest만 불가하고 앱 실행은 가능).
+
+결과: iOS 18.6(`id=82146144-24DE-4F91-B25D-23D147A91142`) `BUILD SUCCEEDED` + 설치 확인.
+iPhone 13 mini 이름의 iOS 16.0 시뮬레이터가 두 대(`CBD992D3-5364-4F69-AC5F-0077ADF1A292`,
+`583AC8EE-F478-4C04-A714-9497A9DC965C`)라 이름이 모호해 `-destination 'id=CBD992D3-5364-4F69-AC5F-0077ADF1A292'`로
+빌드, `BUILD SUCCEEDED`, 설치 확인. `BUILT_PRODUCTS_DIR`이 iOS 18.6·16.0 destination 모두
+`Debug-iphonesimulator` 한 경로로 동일함을 `-showBuildSettings`로 확인해, iPhone SE (3rd generation) / iOS 16.0
+(`id=8624855D-37E0-45B3-9E83-61B29DEE1731`, 이름도 여러 대라 id로 지정)에는 같은 빌드 산출물을 재사용해 설치.
+세 UDID 모두 `xcrun simctl get_app_container ... github.com-SNMac.SYKeyboard`로 설치 확인, 앱 삭제 없음.
+
+- [ ] **Step 2-1: 여백 대신 두 버튼을 HStack으로 묶기(1차 결과 반영)**
+
+1차 수동 확인(2026-09-15, 사용자): iPhone 13 mini / iOS 16.0과 iOS 18.6에서 `.padding(.leading:)`가 하단 바 간격에 반영되지 않음(iOS 26 기기는 기존 모양 정상). SwiftUI가 하단 바 버튼을 바 버튼 항목으로 바꾸며 여백을 무시하는 것으로 보인다. 사용자 승인으로 iOS 26 미만에서만 고정·삭제 버튼을 한 툴바 항목(`HStack`)으로 묶어 간격을 직접 준다. 색·비활성 표시·탭 영역이 바 버튼과 달라질 수 있어 Step 3에서 확인한다.
+
+`ClipboardHistorySettingsView.swift`에서:
+
+(a) Step 1(a)의 `legacyBottomBarItemSpacing` 계산 프로퍼티를 교체:
+
+```swift
+    /// iOS 26 미만 하단 바에서 고정·삭제 버튼 사이 간격. 사진 앱 선택 모드의 휴지통·더보기 간격에 맞춘다
+    private static let legacyBottomBarItemSpacing: CGFloat = 16
+```
+
+(b) `toolbarContent`의 하단 바 `ToolbarItemGroup`에서 `Spacer()` 뒤의 고정 버튼과 삭제 버튼(삭제 버튼에 붙은 `.disabled`, Step 1(b)의 `.padding`, 주석과 `.deletionConfirmation`까지)을 교체:
+
+```swift
+            if #available(iOS 26, *) {
+                bottomBarPinButton
+                bottomBarDeleteButton
+            } else {
+                // iOS 26 미만 SwiftUI 하단 바는 붙은 버튼 사이 고정 간격 API(`ToolbarSpacer`)가 없고 버튼에 준 여백도 무시한다.
+                // 두 버튼을 한 항목으로 묶어 간격을 직접 준다. 묶으면 툴바의 아이콘 전용 표시가 풀리므로 다시 지정한다
+                HStack(spacing: Self.legacyBottomBarItemSpacing) {
+                    bottomBarPinButton
+                    bottomBarDeleteButton
+                }
+                .labelStyle(.iconOnly)
+            }
+```
+
+(c) `toolbarContent` 바로 뒤(같은 extension)에 추가:
+
+```swift
+    var bottomBarPinButton: some View {
+        Button {
+            togglePins(selectedIDs: selection)
+            finishEditing()
+        } label: {
+            Label(
+                pinBatch.isUnpinning ? "\(pinBatch.targets.count)개 고정 해제" : "\(pinBatch.targets.count)개 고정",
+                systemImage: pinBatch.isUnpinning ? "pin.slash" : "pin"
+            )
+        }
+        .disabled(!pinBatch.isAllowed)
+    }
+
+    var bottomBarDeleteButton: some View {
+        Button(role: .destructive) {
+            requestRemove(selectedItems, source: .toolbar)
+        } label: {
+            Label("\(selection.count)개 삭제", systemImage: "trash")
+        }
+        .disabled(selection.isEmpty)
+        // 편집 모드 삭제의 확인 시트는 삭제 버튼에 붙인다
+        .deletionConfirmation(self, source: .toolbar)
+    }
+```
+
+`toolbarContent`가 있는 extension의 접근 수준 때문에 private 프로퍼티(`pinBatch`, `selection` 등)에 접근이 막히면 같은 extension에 두어 해결한다. SYKeyboard app을 iOS 18.6과 iOS 16.0(`id=CBD992D3-5364-4F69-AC5F-0077ADF1A292`) destination으로 빌드해 두 시뮬레이터에 설치하고 결과를 기록한다.
 
 - [ ] **Step 3: 수동 확인(사용자 조작 필요)**
 
@@ -1966,7 +2036,154 @@ git add SYKeyboard/Presentation/KeyboardSettings/ClipboardHistorySettingsView.sw
 git commit -m "design: #131 - 키보드 앱 클립보드 편집 모드 하단 바의 고정·삭제 버튼 간격을 iOS 26 미만에서 넓힘"
 ```
 
-### Task 13: 전체 검증과 결과 기록
+### Task 13: 키보드 확장 편집 모드 헤더 "전체 선택 (n)"과 버튼 폭 고정
+
+**배경:** Task 10 수동 확인 뒤 2026-09-15 사용자 요청(설계 승인). (1) 선택 개수를 삭제 버튼("n개 삭제") 대신 전체 선택 버튼에 괄호로 보인다: 선택이 없으면 "전체 선택", 일부 선택이면 "전체 선택 (n)", 모두 선택이면 "선택 해제 (n)". 삭제 버튼은 "삭제". (2) "고정 해제"에서 "고정"으로 돌아올 때 버튼이 줄며 글자가 잠깐 잘리는 현상을 막는다.
+
+**조사 결과:** 같은 현상을 `937e8f15`(#54)에서 전체 선택 버튼 최소 폭을 제목 후보 중 넓은 폭으로 고정해 고쳤고, `b172e271`에서 한국어 "전체 선택"/"선택 해제" 글자 수가 같아 되돌렸다(영어 "Select All"/"Deselect All"은 길이가 달라 같은 잘림이 남아 있을 수 있음, 미확인). 이번에 전체 선택 버튼은 숫자까지 붙어 폭이 바뀌므로 두 버튼 모두 폭을 고정하고, 숫자는 고정폭으로 표시한다(지금 삭제 버튼에 있던 방식). 키보드 앱은 하단 바가 아이콘뿐이고 제목에 "n개 선택"이 있어 바꾸지 않는다.
+
+**Files:**
+- Modify: `Modules/SYKeyboardCore/Presentation/View/ClipboardHistoryPanelView.swift`
+- Modify: `SYKeyboardAssets/Sources/SYKeyboardAssets/Resources/Localizable.xcstrings`
+
+- [ ] **Step 1: 문구와 카탈로그**
+
+(a) 카탈로그에 키를 추가한다(영어 번역 포함, `extractionState: manual`, 기존 항목 형식과 같게):
+- `"전체 선택 (%lld)"` → en `"Select All (%lld)"`
+- `"선택 해제 (%lld)"` → en `"Deselect All (%lld)"`
+
+(b) Step 2 이후 쓰이지 않는 `"%lld개 삭제"`, `"선택 해제"` 키를 지운다. 지우기 전에 `git grep -n '개 삭제\|"선택 해제"' -- Modules`로 다른 사용처가 없는지 확인한다(`SYKeyboard/Resources`의 앱 카탈로그는 건드리지 않는다). `python3 -m json.tool`로 JSON을 확인한다.
+
+- [ ] **Step 2: 헤더 구현**
+
+`ClipboardHistoryPanelView.swift`에서:
+
+(a) `selectAllButton` 선언을 교체:
+
+```swift
+    private lazy var selectAllButton: UIButton = {
+        let button = makeHeaderButton(title: "") { [weak self] in
+            self?.toggleSelectAll()
+        }
+        // 선택 개수가 바뀌어도 글자 폭이 흔들리지 않도록 숫자를 고정폭으로 표시한다
+        button.configuration?.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { attributes in
+            var attributes = attributes
+            // 제목이 갱신될 때마다 현재 Dynamic Type 크기를 읽는다
+            attributes.font = UIFont.monospacedDigitSystemFont(
+                ofSize: UIFont.preferredFont(forTextStyle: .body).pointSize,
+                weight: .regular
+            )
+            return attributes
+        }
+        // 최소 폭을 넓게 잡으므로 짧은 제목은 헤더 왼쪽 끝에 붙인다
+        button.contentHorizontalAlignment = .leading
+
+        return button
+    }()
+```
+
+(b) `pinButton` 선언을 교체:
+
+```swift
+    private lazy var pinButton: UIButton = {
+        let button = makeHeaderButton(title: "") { [weak self] in
+            self?.togglePinsOfSelectedItems()
+        }
+        // 최소 폭을 "고정 해제"에 맞추므로 "고정"은 삭제 버튼 쪽에 붙인다
+        button.contentHorizontalAlignment = .trailing
+
+        return button
+    }()
+```
+
+(c) `deleteButton` 선언을 교체(개수가 빠지므로 고정폭 숫자 설정을 지운다):
+
+```swift
+    private lazy var deleteButton: UIButton = {
+        let button = makeHeaderButton(title: String(localized: "삭제", bundle: SYKBDAssets.bundle)) { [weak self] in
+            self?.deleteSelectedItems()
+        }
+        button.configuration?.baseForegroundColor = .systemRed
+
+        return button
+    }()
+```
+
+(d) `updateHeader()`의 `selectAllButton.configuration?.title = ...`와 `deleteButton.configuration?.title = ...` 줄을 교체:
+
+```swift
+        selectAllButton.configuration?.title = ClipboardHistoryPanelView.selectAllTitle(
+            selectedCount: selectedCount, isAllSelected: isAllSelected
+        )
+```
+
+(e) private extension의 `updateHeader()` 앞에 추가:
+
+```swift
+    /// 선택이 없으면 "전체 선택", 일부면 선택 개수를 괄호로 붙인 "전체 선택 (n)", 모두 선택했으면 "선택 해제 (n)"
+    static func selectAllTitle(selectedCount: Int, isAllSelected: Bool) -> String {
+        if isAllSelected {
+            return String(localized: "선택 해제 (\(selectedCount))", bundle: SYKBDAssets.bundle)
+        }
+        if selectedCount == 0 {
+            return String(localized: "전체 선택", bundle: SYKBDAssets.bundle)
+        }
+        return String(localized: "전체 선택 (\(selectedCount))", bundle: SYKBDAssets.bundle)
+    }
+
+    /// 제목 후보 중 가장 넓은 폭. 제목이 짧아질 때 버튼이 줄며 긴 글자가 잘리는 순간이 보이지 않도록 최소 폭으로 쓴다(`937e8f15`와 같은 방식)
+    func headerButtonMinimumWidth(_ button: UIButton, titles: [String]) -> CGFloat {
+        titles.map { title in
+            var config = button.configuration ?? UIButton.Configuration.plain()
+            config.title = title
+            return UIButton(configuration: config).intrinsicContentSize.width
+        }.max() ?? 0
+    }
+```
+
+(f) `setConstraints()` 첫 줄 앞에 추가:
+
+```swift
+        // 숫자는 고정폭이라 최대 항목 수(두 자리)로 재면 모든 개수의 폭을 덮는다
+        let maxSelectableCount = ClipboardHistoryPolicy.maxItemCount + ClipboardHistoryPolicy.maxPinnedCount
+        selectAllButton.widthAnchor.constraint(greaterThanOrEqualToConstant: headerButtonMinimumWidth(selectAllButton, titles: [
+            ClipboardHistoryPanelView.selectAllTitle(selectedCount: 0, isAllSelected: false),
+            ClipboardHistoryPanelView.selectAllTitle(selectedCount: maxSelectableCount, isAllSelected: false),
+            ClipboardHistoryPanelView.selectAllTitle(selectedCount: maxSelectableCount, isAllSelected: true)
+        ])).isActive = true
+        pinButton.widthAnchor.constraint(greaterThanOrEqualToConstant: headerButtonMinimumWidth(pinButton, titles: [
+            String(localized: "고정", bundle: SYKBDAssets.bundle),
+            String(localized: "고정 해제", bundle: SYKBDAssets.bundle)
+        ])).isActive = true
+```
+
+(g) 클래스 상단 문서 주석의 `"전체 선택"·"n개 삭제"·"완료"`를 `"전체 선택 (n)"·"고정"·"삭제"·"완료"`로 고친다.
+
+`ClipboardHistoryPolicy.maxItemCount`·`maxPinnedCount`의 접근 수준이 막히면 기존 `thumbnailCache` 초기화처럼 같은 모듈 안이라 접근 가능한지 확인한다.
+
+- [ ] **Step 3: 회귀 테스트·빌드·설치**
+
+헤더 문구·폭은 시각 속성이라 unit test로 고정하지 않는다.
+1. Run: `-only-testing:SYKeyboardTests/ClipboardHistoryPanelViewTests`. Expected: `TEST SUCCEEDED`. suite별 실제 개수를 xcresult에서 확인해 기록한다.
+2. `HangeulKeyboard`, `EnglishKeyboard`, `HangeulEnglishKeyboard`, SYKeyboard app 빌드. 앱을 iPhone 13 mini / iOS 18.6과 iPhone SE (3rd generation) / iOS 16.0(`8624855D-37E0-45B3-9E83-61B29DEE1731`)에 설치한다(앱 삭제 금지).
+
+- [ ] **Step 4: 수동 확인(사용자 조작 필요)**
+
+1. 편집 모드 진입 시 "전체 선택", 한 개 선택 시 "전체 선택 (1)", 모두 선택 시 "선택 해제 (n)", 삭제 버튼은 "삭제"다. 선택이 없으면 고정·삭제 비활성.
+2. 선택을 바꿔 "고정"↔"고정 해제", "전체 선택 (n)"↔"선택 해제 (n)"이 바뀔 때 글자가 잘리는 순간이 없고 버튼 위치가 흔들리지 않는다.
+3. iPhone SE (3rd generation) / iOS 16.0과 iPhone 13 mini / iOS 18.6에서 헤더가 잘리거나 겹치지 않는다. 영어("Select All (n)", "Deselect All (n)", "Pin"/"Unpin", "Delete", "Done")도 확인한다.
+4. 일반 모드 헤더(제목·"선택")와 편집 모드 진입·종료 애니메이션이 기존과 같다.
+
+- [ ] **Step 5: 커밋**
+
+```bash
+git add Modules/SYKeyboardCore/Presentation/View/ClipboardHistoryPanelView.swift \
+  SYKeyboardAssets/Sources/SYKeyboardAssets/Resources/Localizable.xcstrings \
+  docs/superpowers/plans/2026-09-15-issue-131-ngram-application-support.md
+git commit -m "design: #131 - 키보드 클립보드 편집 모드 헤더에 선택 개수를 전체 선택 버튼으로 옮기고 버튼 폭을 고정"
+```
+
+### Task 14: 전체 검증과 결과 기록
 
 **Files:**
 - Modify: `docs/superpowers/plans/2026-09-15-issue-131-ngram-application-support.md`
