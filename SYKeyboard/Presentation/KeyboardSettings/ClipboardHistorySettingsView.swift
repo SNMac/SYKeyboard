@@ -106,6 +106,11 @@ struct ClipboardHistorySettingsView: View {
             .onReceive(NotificationCenter.default.publisher(for: ClipboardHistoryPasteboardSynchronizer.didRecordImageNotification)) { _ in
                 reload()
             }
+            // 상세 시트에서 본문 일부를 복사하는 등 앱 안에서 pasteboard가 바뀌면 목록에 바로 반영한다. 열린 시트는 reload가 유지한다.
+            // 시트의 "복사" 버튼은 쓴 직후 changeCount를 맞추므로, 그 갱신이 끝난 다음 runloop에서 확인해 중복 기록하지 않는다
+            .onReceive(NotificationCenter.default.publisher(for: UIPasteboard.changedNotification)) { _ in
+                DispatchQueue.main.async { synchronizeAndReload() }
+            }
             .requestReviewOnDetailSettingsReturn()
         }
     }

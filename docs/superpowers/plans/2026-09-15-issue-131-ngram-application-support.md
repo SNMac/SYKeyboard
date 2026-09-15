@@ -1350,7 +1350,7 @@ git commit -m "fix: #131 - 키보드 클립보드 패널 편집 모드에서 고
 **Files:**
 - Modify: `SYKeyboard/Presentation/KeyboardSettings/ClipboardHistorySettingsView.swift`
 
-- [ ] **Step 1: pasteboard 변경 구독**
+- [x] **Step 1: pasteboard 변경 구독**
 
 `body`에서 `didRecordImageNotification`을 받는 `.onReceive { ... reload() }` 바로 뒤에 추가:
 
@@ -1362,13 +1362,22 @@ git commit -m "fix: #131 - 키보드 클립보드 패널 편집 모드에서 고
             }
 ```
 
-- [ ] **Step 2: 회귀 테스트와 빌드**
+코드 적용 완료.
+
+- [x] **Step 2: 회귀 테스트와 빌드**
 
 SwiftUI 화면이라 기존에도 unit test가 없고, 동기화 규칙은 `ClipboardHistoryPasteboardSynchronizerTests`가 지킨다.
 1. Run: `-only-testing:SYKeyboardTests/ClipboardHistoryPasteboardSynchronizerTests -only-testing:SYKeyboardTests/ClipboardHistoryStoreTests`. Expected: `TEST SUCCEEDED`. 실제 개수를 기록한다.
 2. SYKeyboard app scheme을 iOS 18.6 destination으로 빌드해 시뮬레이터 `82146144-24DE-4F91-B25D-23D147A91142`에 설치한다(앱 삭제 금지). Expected: `BUILD SUCCEEDED`. `.xcscheme` `RemotePath` 변경은 되돌린다.
 
-- [ ] **Step 3: 수동 확인(사용자 조작 필요)**
+실제 결과: `** TEST SUCCEEDED **`, 총 30개 테스트 통과 (iPhone 13 mini, iOS 18.6, `-parallel-testing-enabled NO` 사용).
+- ClipboardHistoryPasteboardSynchronizerTests 8개 통과
+- ClipboardHistoryStoreTests 22개 통과
+- 산출물: `~/Library/Developer/Xcode/DerivedData/SYKeyboard-hgprdtyustcuukabeovkjzrtclhy/Logs/Test/Test-SYKeyboard-2026.09.15_19-21-51-+0900.xcresult` (`xcrun xcresulttool get test-results tests --path <xcresult>`로 suite별 개수 확인)
+
+빌드: `** BUILD SUCCEEDED **`. 설치 완료. `.xcscheme` 변경 없음(되돌릴 항목 없음).
+
+- [x] **Step 3: 수동 확인(사용자 조작 필요)**
 
 키보드 앱 → 클립보드 기록 관리(클립보드 기록 설정 켜짐)에서:
 1. 텍스트 항목 상세 시트에서 본문 일부를 선택해 복사하면 시트가 유지되고, 시트를 내리거나 절반 높이에서 보면 목록 맨 위에 복사한 텍스트가 있다.
@@ -1379,6 +1388,8 @@ SwiftUI 화면이라 기존에도 unit test가 없고, 동기화 규칙은 `Clip
 6. 다른 앱에서 복사하고 돌아왔을 때 기존처럼 반영된다.
 
 확인하지 못한 항목은 체크하지 않고 이유를 적는다.
+
+실행 결과(2026-09-15, 사용자 수행, iPhone 13 mini / iOS 18.6 시뮬레이터 `82146144-24DE-4F91-B25D-23D147A91142`): 1~6 모두 정상(붙여넣기 권한 알림 없음).
 
 - [ ] **Step 4: 커밋**
 
