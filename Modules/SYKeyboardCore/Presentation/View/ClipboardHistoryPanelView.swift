@@ -34,7 +34,7 @@ protocol ClipboardHistoryPanelDelegate: AnyObject {
 /// ## 동작
 /// - 평소: 행 탭은 붙여넣기(텍스트) 또는 pasteboard 복원(이미지), trailing swipe는 개별 삭제, leading swipe는 고정/해제, 길게 누르기는 원문 상세 뷰.
 ///   이미지 복원 결과 같은 안내는 하단 중앙 토스트(`showTransientMessage`)로 2초간 띄운다
-/// - 편집 모드(`isItemEditing`): 행 탭은 선택 토글, 길게 누르기는 선택을 바꾸지 않고 원문 상세 뷰, "전체 선택"·"n개 삭제"·"완료".
+/// - 편집 모드(`isItemEditing`): 행 탭은 선택 토글, 길게 누르기는 선택을 바꾸지 않고 원문 상세 뷰, "전체 선택 (n)"·"고정"·"삭제"·"완료".
 ///   `UITableView.isEditing`은 스와이프 액션이 열려 있는 동안에도 true가 되므로 판단에 쓰지 않는다
 final class ClipboardHistoryPanelView: UIView {
 
@@ -128,20 +128,11 @@ final class ClipboardHistoryPanelView: UIView {
         return label
     }()
 
-    private lazy var selectAllButton = makeHeaderButton(title: "") { [weak self] in
-        self?.toggleSelectAll()
-    }
-
-    private lazy var pinButton = makeHeaderButton(title: "") { [weak self] in
-        self?.togglePinsOfSelectedItems()
-    }
-
-    private lazy var deleteButton: UIButton = {
+    private lazy var selectAllButton: UIButton = {
         let button = makeHeaderButton(title: "") { [weak self] in
-            self?.deleteSelectedItems()
+            self?.toggleSelectAll()
         }
-        button.configuration?.baseForegroundColor = .systemRed
-        // 선택 개수가 바뀌어도 버튼 폭이 흔들리지 않도록 숫자를 고정폭으로 표시한다
+        // 선택 개수가 바뀌어도 글자 폭이 흔들리지 않도록 숫자를 고정폭으로 표시한다
         button.configuration?.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { attributes in
             var attributes = attributes
             // 제목이 갱신될 때마다 현재 Dynamic Type 크기를 읽는다
@@ -151,6 +142,27 @@ final class ClipboardHistoryPanelView: UIView {
             )
             return attributes
         }
+        // 최소 폭을 넓게 잡으므로 짧은 제목은 헤더 왼쪽 끝에 붙인다
+        button.contentHorizontalAlignment = .leading
+
+        return button
+    }()
+
+    private lazy var pinButton: UIButton = {
+        let button = makeHeaderButton(title: "") { [weak self] in
+            self?.togglePinsOfSelectedItems()
+        }
+        // 최소 폭을 "고정 해제"에 맞추므로 "고정"은 삭제 버튼 쪽에 붙인다
+        button.contentHorizontalAlignment = .trailing
+
+        return button
+    }()
+
+    private lazy var deleteButton: UIButton = {
+        let button = makeHeaderButton(title: String(localized: "삭제", bundle: SYKBDAssets.bundle)) { [weak self] in
+            self?.deleteSelectedItems()
+        }
+        button.configuration?.baseForegroundColor = .systemRed
 
         return button
     }()
@@ -513,6 +525,17 @@ private extension ClipboardHistoryPanelView {
     }
 
     func setConstraints() {
+        // 숫자는 고정폭이라 최대 항목 수(두 자리)로 재면 모든 개수의 폭을 덮는다
+        let maxSelectableCount = ClipboardHistoryPolicy.maxItemCount + ClipboardHistoryPolicy.maxPinnedCount
+        selectAllButton.widthAnchor.constraint(greaterThanOrEqualToConstant: headerButtonMinimumWidth(selectAllButton, titles: [
+            ClipboardHistoryPanelView.selectAllTitle(selectedCount: 0, isAllSelected: false),
+            ClipboardHistoryPanelView.selectAllTitle(selectedCount: maxSelectableCount, isAllSelected: false),
+            ClipboardHistoryPanelView.selectAllTitle(selectedCount: maxSelectableCount, isAllSelected: true)
+        ])).isActive = true
+        pinButton.widthAnchor.constraint(greaterThanOrEqualToConstant: headerButtonMinimumWidth(pinButton, titles: [
+            String(localized: "고정", bundle: SYKBDAssets.bundle),
+            String(localized: "고정 해제", bundle: SYKBDAssets.bundle)
+        ])).isActive = true
         [headerStackView, tableView, messageLabel, toastView, toastLabel, detailView, deleteConfirmView].forEach {
             $0.translatesAutoresizingMaskIntoConstraints = false
         }
@@ -576,6 +599,26 @@ private extension ClipboardHistoryPanelView {
         return image
     }
 
+    /// 선택이 없으면 "전체 선택", 일부면 선택 개수를 괄호로 붙인 "전체 선택 (n)", 모두 선택했으면 "선택 해제 (n)"
+    static func selectAllTitle(selectedCount: Int, isAllSelected: Bool) -> String {
+        if isAllSelected {
+            return String(localized: "선택 해제 (\(selectedCount))", bundle: SYKBDAssets.bundle)
+        }
+        if selectedCount == 0 {
+            return String(localized: "전체 선택", bundle: SYKBDAssets.bundle)
+        }
+        return String(localized: "전체 선택 (\(selectedCount))", bundle: SYKBDAssets.bundle)
+    }
+
+    /// 제목 후보 중 가장 넓은 폭. 제목이 짧아질 때 버튼이 줄며 긴 글자가 잘리는 순간이 보이지 않도록 최소 폭으로 쓴다(`937e8f15`와 같은 방식)
+    func headerButtonMinimumWidth(_ button: UIButton, titles: [String]) -> CGFloat {
+        titles.map { title in
+            var config = button.configuration ?? UIButton.Configuration.plain()
+            config.title = title
+            return UIButton(configuration: config).intrinsicContentSize.width
+        }.max() ?? 0
+    }
+
     func updateHeader() {
         let isEditing = isItemEditing
         titleLabel.isHidden = isEditing
@@ -586,10 +629,9 @@ private extension ClipboardHistoryPanelView {
         doneButton.isHidden = !isEditing
 
         let selectedCount = tableView.indexPathsForSelectedRows?.count ?? 0
-        selectAllButton.configuration?.title = isAllSelected
-        ? String(localized: "선택 해제", bundle: SYKBDAssets.bundle)
-        : String(localized: "전체 선택", bundle: SYKBDAssets.bundle)
-        deleteButton.configuration?.title = String(localized: "\(selectedCount)개 삭제", bundle: SYKBDAssets.bundle)
+        selectAllButton.configuration?.title = ClipboardHistoryPanelView.selectAllTitle(
+            selectedCount: selectedCount, isAllSelected: isAllSelected
+        )
         deleteButton.isEnabled = selectedCount > 0
 
         let pinBatch = ClipboardHistoryPolicy.pinBatch(selectedIDs: selectedItemIDs, in: items)

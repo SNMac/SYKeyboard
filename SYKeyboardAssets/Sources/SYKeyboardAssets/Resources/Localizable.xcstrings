@@ -1,17 +1,6 @@
 {
   "sourceLanguage" : "ko",
   "strings" : {
-    "%lld개 삭제" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Delete (%lld)"
-          }
-        }
-      }
-    },
     "고정" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -179,13 +168,13 @@
         }
       }
     },
-    "선택 해제" : {
+    "선택 해제 (%lld)" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Deselect All"
+            "value" : "Deselect All (%lld)"
           }
         }
       }
@@ -230,6 +219,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Select All"
+          }
+        }
+      }
+    },
+    "전체 선택 (%lld)" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Select All (%lld)"
           }
         }
       }

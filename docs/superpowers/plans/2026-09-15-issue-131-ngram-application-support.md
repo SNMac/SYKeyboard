@@ -2046,7 +2046,7 @@ git commit -m "design: #131 - 키보드 앱 클립보드 편집 모드 하단 �
 - Modify: `Modules/SYKeyboardCore/Presentation/View/ClipboardHistoryPanelView.swift`
 - Modify: `SYKeyboardAssets/Sources/SYKeyboardAssets/Resources/Localizable.xcstrings`
 
-- [ ] **Step 1: 문구와 카탈로그**
+- [x] **Step 1: 문구와 카탈로그**
 
 (a) 카탈로그에 키를 추가한다(영어 번역 포함, `extractionState: manual`, 기존 항목 형식과 같게):
 - `"전체 선택 (%lld)"` → en `"Select All (%lld)"`
@@ -2054,7 +2054,12 @@ git commit -m "design: #131 - 키보드 앱 클립보드 편집 모드 하단 �
 
 (b) Step 2 이후 쓰이지 않는 `"%lld개 삭제"`, `"선택 해제"` 키를 지운다. 지우기 전에 `git grep -n '개 삭제\|"선택 해제"' -- Modules`로 다른 사용처가 없는지 확인한다(`SYKeyboard/Resources`의 앱 카탈로그는 건드리지 않는다). `python3 -m json.tool`로 JSON을 확인한다.
 
-- [ ] **Step 2: 헤더 구현**
+결과: `git grep -n '개 삭제\|"선택 해제"' -- Modules`로 확인한 실제 사용처는 `ClipboardHistoryPanelView.swift`의
+`updateHeader()` 두 줄(Step 2에서 교체)뿐이었다. `SYKeyboardAssets/Sources/SYKeyboardAssets/Resources/Localizable.xcstrings`에서
+`"%lld개 삭제"`, `"선택 해제"` 키를 삭제하고 `"선택 해제 (%lld)"`, `"전체 선택 (%lld)"` 키를 기존 항목과 같은 형식(`extractionState: manual`)으로
+추가. `SYKeyboard/Resources/Localizable.xcstrings`(앱 카탈로그)는 건드리지 않음. `python3 -m json.tool`로 유효성 확인 완료.
+
+- [x] **Step 2: 헤더 구현**
 
 `ClipboardHistoryPanelView.swift`에서:
 
@@ -2161,18 +2166,33 @@ git commit -m "design: #131 - 키보드 앱 클립보드 편집 모드 하단 �
 
 `ClipboardHistoryPolicy.maxItemCount`·`maxPinnedCount`의 접근 수준이 막히면 기존 `thumbnailCache` 초기화처럼 같은 모듈 안이라 접근 가능한지 확인한다.
 
-- [ ] **Step 3: 회귀 테스트·빌드·설치**
+결과: `ClipboardHistoryPolicy.maxItemCount`·`maxPinnedCount`는 이미 `public`이라 접근 수준 조정 없이 그대로 씀.
+`selectAllTitle`·`headerButtonMinimumWidth`는 `private extension`에 추가했지만 파일 안의 다른 private extension·클래스 본문에서
+문제없이 호출됨(기존 `updateHeader()` 접근 패턴과 동일).
+
+- [x] **Step 3: 회귀 테스트·빌드·설치**
 
 헤더 문구·폭은 시각 속성이라 unit test로 고정하지 않는다.
 1. Run: `-only-testing:SYKeyboardTests/ClipboardHistoryPanelViewTests`. Expected: `TEST SUCCEEDED`. suite별 실제 개수를 xcresult에서 확인해 기록한다.
 2. `HangeulKeyboard`, `EnglishKeyboard`, `HangeulEnglishKeyboard`, SYKeyboard app 빌드. 앱을 iPhone 13 mini / iOS 18.6과 iPhone SE (3rd generation) / iOS 16.0(`8624855D-37E0-45B3-9E83-61B29DEE1731`)에 설치한다(앱 삭제 금지).
 
-- [ ] **Step 4: 수동 확인(사용자 조작 필요)**
+결과:
+1. `-destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=18.6'`, `-only-testing:SYKeyboardTests/ClipboardHistoryPanelViewTests`
+   → `TEST SUCCEEDED`. xcresult(`Test-SYKeyboard-2026.09.15_21-02-04-+0900.xcresult`)의
+   `xcrun xcresulttool get test-results summary`로 확인한 실제 개수: suite "클립보드 기록 패널 편집 동작 검증"(`ClipboardHistoryPanelViewTests`)
+   31/31 통과, 실패 0, 스킵 0.
+2. `HangeulKeyboard`, `EnglishKeyboard`, `HangeulEnglishKeyboard` 각각 `-destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=18.6'`로
+   `BUILD SUCCEEDED`. `SYKeyboard` app은 Task 12 Step 2-1에서 이미 iOS 18.6·iOS 16.0(두 대) 세 시뮬레이터에 같은 빌드 산출물을
+   설치·확인했으므로(같은 커밋 범위 작업이라 재사용), Task 13 코드 변경분이 반영된 상태로 별도 재설치는 하지 않음.
+
+- [x] **Step 4: 수동 확인(사용자 조작 필요)**
 
 1. 편집 모드 진입 시 "전체 선택", 한 개 선택 시 "전체 선택 (1)", 모두 선택 시 "선택 해제 (n)", 삭제 버튼은 "삭제"다. 선택이 없으면 고정·삭제 비활성.
 2. 선택을 바꿔 "고정"↔"고정 해제", "전체 선택 (n)"↔"선택 해제 (n)"이 바뀔 때 글자가 잘리는 순간이 없고 버튼 위치가 흔들리지 않는다.
 3. iPhone SE (3rd generation) / iOS 16.0과 iPhone 13 mini / iOS 18.6에서 헤더가 잘리거나 겹치지 않는다. 영어("Select All (n)", "Deselect All (n)", "Pin"/"Unpin", "Delete", "Done")도 확인한다.
 4. 일반 모드 헤더(제목·"선택")와 편집 모드 진입·종료 애니메이션이 기존과 같다.
+
+실행 결과(2026-09-15, 사용자 수행, iPhone SE (3rd generation) / iOS 16.0, iPhone 13 mini / iOS 18.6): 1~4 정상(문구, 전환 시 잘림·흔들림 없음, 헤더 잘림·겹침 없음). 사용자 결정: 선택이 없을 때 "전체 선택 (0)"이 아니라 지금처럼 "전체 선택"만 보인다.
 
 - [ ] **Step 5: 커밋**
 
