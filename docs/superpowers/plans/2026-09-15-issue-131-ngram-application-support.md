@@ -1336,6 +1336,58 @@ git add Modules/SYKeyboardCore/Presentation/View/ClipboardHistoryPanelView.swift
 git commit -m "fix: #131 - 키보드 클립보드 패널 편집 모드에서 고정 아이콘이 사라지는 현상 수정"
 ```
 
+### Task 8: 키보드 앱 상세 시트에서 복사하면 뒤 목록에 바로 반영
+
+**배경:** Task 5 수동 확인 2에서 사용자가 발견해 2026-09-15 #131에 추가했다(설계 승인). 키보드 앱 클립보드 기록 관리의 상세 시트에서 본문 일부를 복사해도 시트 뒤 목록이 바뀌지 않는다. 기존부터 있던 동작이다.
+
+**조사 결과:**
+- `ClipboardHistorySettingsView`의 동기화 시점은 `.onAppear`, `scenePhase == .active`, 추가 시트 `onDismiss`, `didRecordImageNotification`뿐이라 앱 안에서의 복사를 받지 못한다.
+- `reload()`는 상세 시트를 닫지 않고 `detailPresentation`의 표시 항목을 id로 갱신한다(`checksPresentedItem: true`). 시트는 `.sheet(item:)`의 id가 고정이라 유지된다.
+- 시트 "복사" 버튼(`copyFromDetail`)은 쓴 직후 `lastSeenPasteboardChangeCount`를 갱신하고 시트를 닫는다.
+
+**설계:** 화면이 `UIPasteboard.changedNotification`을 받으면 다음 runloop에서 기존 `synchronizeAndReload()`를 부른다. 키보드 확장(Task 4)과 같은 방식이라 앱 안의 모든 복사(편집·추가 시트의 `TextEditor` 포함)가 기록되고, 열린 시트와 편집 중 초안은 유지된다.
+
+**Files:**
+- Modify: `SYKeyboard/Presentation/KeyboardSettings/ClipboardHistorySettingsView.swift`
+
+- [ ] **Step 1: pasteboard 변경 구독**
+
+`body`에서 `didRecordImageNotification`을 받는 `.onReceive { ... reload() }` 바로 뒤에 추가:
+
+```swift
+            // 상세 시트에서 본문 일부를 복사하는 등 앱 안에서 pasteboard가 바뀌면 목록에 바로 반영한다. 열린 시트는 reload가 유지한다.
+            // 시트의 "복사" 버튼은 쓴 직후 changeCount를 맞추므로, 그 갱신이 끝난 다음 runloop에서 확인해 중복 기록하지 않는다
+            .onReceive(NotificationCenter.default.publisher(for: UIPasteboard.changedNotification)) { _ in
+                DispatchQueue.main.async { synchronizeAndReload() }
+            }
+```
+
+- [ ] **Step 2: 회귀 테스트와 빌드**
+
+SwiftUI 화면이라 기존에도 unit test가 없고, 동기화 규칙은 `ClipboardHistoryPasteboardSynchronizerTests`가 지킨다.
+1. Run: `-only-testing:SYKeyboardTests/ClipboardHistoryPasteboardSynchronizerTests -only-testing:SYKeyboardTests/ClipboardHistoryStoreTests`. Expected: `TEST SUCCEEDED`. 실제 개수를 기록한다.
+2. SYKeyboard app scheme을 iOS 18.6 destination으로 빌드해 시뮬레이터 `82146144-24DE-4F91-B25D-23D147A91142`에 설치한다(앱 삭제 금지). Expected: `BUILD SUCCEEDED`. `.xcscheme` `RemotePath` 변경은 되돌린다.
+
+- [ ] **Step 3: 수동 확인(사용자 조작 필요)**
+
+키보드 앱 → 클립보드 기록 관리(클립보드 기록 설정 켜짐)에서:
+1. 텍스트 항목 상세 시트에서 본문 일부를 선택해 복사하면 시트가 유지되고, 시트를 내리거나 절반 높이에서 보면 목록 맨 위에 복사한 텍스트가 있다.
+2. 붙여넣기 권한 알림이 뜨지 않는다.
+3. 시트의 "복사" 버튼은 기존처럼 시트를 닫고 항목이 맨 위로 올라가며 중복이 생기지 않는다.
+4. 상세 "편집" 중 편집기에서 일부를 복사해도 편집 중인 내용과 편집 상태가 유지되고, 저장·취소가 기존과 같다.
+5. "+" 추가 시트에서 입력 중 복사해도 입력 내용이 유지된다.
+6. 다른 앱에서 복사하고 돌아왔을 때 기존처럼 반영된다.
+
+확인하지 못한 항목은 체크하지 않고 이유를 적는다.
+
+- [ ] **Step 4: 커밋**
+
+```bash
+git add SYKeyboard/Presentation/KeyboardSettings/ClipboardHistorySettingsView.swift \
+  docs/superpowers/plans/2026-09-15-issue-131-ngram-application-support.md
+git commit -m "fix: #131 - 키보드 앱 클립보드 상세에서 복사하면 목록에 바로 반영"
+```
+
 ### Task 9: 전체 검증과 결과 기록
 
 **Files:**
