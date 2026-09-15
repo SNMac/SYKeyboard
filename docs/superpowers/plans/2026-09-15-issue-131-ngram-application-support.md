@@ -1962,9 +1962,9 @@ iPhone 13 mini 이름의 iOS 16.0 시뮬레이터가 두 대(`CBD992D3-5364-4F69
 (`id=8624855D-37E0-45B3-9E83-61B29DEE1731`, 이름도 여러 대라 id로 지정)에는 같은 빌드 산출물을 재사용해 설치.
 세 UDID 모두 `xcrun simctl get_app_container ... github.com-SNMac.SYKeyboard`로 설치 확인, 앱 삭제 없음.
 
-- [ ] **Step 2-1: 여백 대신 두 버튼을 HStack으로 묶기(1차 결과 반영)**
+- [x] **Step 2-1: 여백 대신 두 버튼을 HStack으로 묶기(1차 결과 반영)**
 
-1차 수동 확인(2026-09-15, 사용자): iPhone 13 mini / iOS 16.0과 iOS 18.6에서 `.padding(.leading:)`가 하단 바 간격에 반영되지 않음(iOS 26 기기는 기존 모양 정상). SwiftUI가 하단 바 버튼을 바 버튼 항목으로 바꾸며 여백을 무시하는 것으로 보인다. 사용자 승인으로 iOS 26 미만에서만 고정·삭제 버튼을 한 툴바 항목(`HStack`)으로 묶어 간격을 직접 준다. 색·비활성 표시·탭 영역이 바 버튼과 달라질 수 있어 Step 3에서 확인한다.
+1차 수동 확인(2026-09-15, 사용자): iPhone 13 mini / iOS 18.6에서 `.padding(.leading:)`가 하단 바 간격에 반영되지 않음(iOS 16.0 시뮬레이터는 사용자 Mac의 Xcode 27에서 화면 확인 불가로 미확인. iOS 26 미만은 같은 코드 경로)(iOS 26 기기는 기존 모양 정상). SwiftUI가 하단 바 버튼을 바 버튼 항목으로 바꾸며 여백을 무시하는 것으로 보인다. 사용자 승인으로 iOS 26 미만에서만 고정·삭제 버튼을 한 툴바 항목(`HStack`)으로 묶어 간격을 직접 준다. 색·비활성 표시·탭 영역이 바 버튼과 달라질 수 있어 Step 3에서 확인한다.
 
 `ClipboardHistorySettingsView.swift`에서:
 
@@ -2022,11 +2022,17 @@ iPhone 13 mini 이름의 iOS 16.0 시뮬레이터가 두 대(`CBD992D3-5364-4F69
 
 `toolbarContent`가 있는 extension의 접근 수준 때문에 private 프로퍼티(`pinBatch`, `selection` 등)에 접근이 막히면 같은 extension에 두어 해결한다. SYKeyboard app을 iOS 18.6과 iOS 16.0(`id=CBD992D3-5364-4F69-AC5F-0077ADF1A292`) destination으로 빌드해 두 시뮬레이터에 설치하고 결과를 기록한다.
 
-- [ ] **Step 3: 수동 확인(사용자 조작 필요)**
+결과: `bottomBarPinButton`·`bottomBarDeleteButton`은 `pinBatch`·`selection` 등 private 프로퍼티를 같은 파일의 private extension에서 바로 참조해 별도 접근 수준 조정 없이 컴파일됨. iOS 18.6(`id=82146144-24DE-4F91-B25D-23D147A91142`) `BUILD SUCCEEDED` + 설치 확인, iOS 16.0(`id=CBD992D3-5364-4F69-AC5F-0077ADF1A292`) `BUILD SUCCEEDED` + 설치 확인. `BUILT_PRODUCTS_DIR`이 두 destination 모두 동일해 iPhone SE (3rd generation) / iOS 16.0(`id=8624855D-37E0-45B3-9E83-61B29DEE1731`)에도 같은 산출물을 재사용해 설치. 세 UDID 모두 `xcrun simctl get_app_container ... github.com-SNMac.SYKeyboard`로 설치 확인, 앱 삭제 없음.
+간격 조정(2026-09-15, 사용자 스크린샷 측정): 16pt에서 두 아이콘 중심 거리가 약 56pt로 사진 앱(약 43pt)보다 넓어 3pt로 줄임(923px 폭 = 375pt, 1pt ≈ 2.46px 기준 눈대중 측정).
+오른쪽 보정(2026-09-15, 시뮬레이터 스크린샷 픽셀 측정, 1080px = 375pt): 간격 3pt에서 두 아이콘 중심 거리 43.3pt(사진 앱 42.6pt)로 맞았으나 휴지통 오른쪽 끝~화면 끝이 26.0pt(사진 앱 18.4pt)라, 묶은 HStack에 `.padding(.trailing, -8)`을 줌. 원인 추정: 묶은 SwiftUI 버튼은 최소 탭 크기 안에서 아이콘이 가운데 놓임(간격 16pt일 때 빈 간격 약 38pt → 버튼마다 양옆 약 11pt).
+
+- [x] **Step 3: 수동 확인(사용자 조작 필요)**
 
 1. iPhone 13 mini / iOS 16.0에서 편집 모드 하단 바의 고정·삭제 아이콘 간격이 사진 앱 선택 모드의 휴지통·더보기 간격과 비슷하다. 여백이 적용되지 않거나 버튼 모양·색이 바뀌면 멈추고 보고한다.
 2. iOS 18.6에서도 간격이 자연스럽고 버튼 탭 영역·비활성 표시가 정상이다.
 3. iOS 26 이상 기기(사용자 실기기)에서는 기존과 같은 모양이다.
+
+실행 결과(2026-09-15, 사용자 수행): iPhone 13 mini / iOS 18.6과 iPhone SE (3rd generation) / iOS 18.6에서 간격·색·비활성 표시·탭 영역·삭제 확인 창·고정 후 일반 모드 복귀 정상, iOS 26 이상 실기기는 기존 모양 유지. iOS 16.0 시뮬레이터는 사용자 Mac의 Xcode 27에서 화면 확인이 되지 않아 미확인(iOS 26 미만은 같은 코드 경로). 최종 측정(스크린샷 1080px = 375pt, 컨트롤러가 BMP 픽셀로 측정): 휴지통 오른쪽 끝~화면 끝 18.1pt(사진 앱 18.4pt), 고정·휴지통 중심 거리 43.4pt(사진 앱 42.6pt), 왼쪽 첫 아이콘 18.4pt(동일).
 
 - [ ] **Step 4: 커밋**
 

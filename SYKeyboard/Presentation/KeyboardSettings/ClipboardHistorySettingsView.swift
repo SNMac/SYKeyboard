@@ -61,6 +61,11 @@ struct ClipboardHistorySettingsView: View {
     private var pinBatch: ClipboardHistoryPolicy.PinBatch {
         ClipboardHistoryPolicy.pinBatch(selectedIDs: selection, in: items)
     }
+    /// iOS 26 미만 하단 바에서 고정·삭제 버튼 사이 간격. 묶은 버튼마다 좌우 여백이 붙어 이 값보다 넓게 보이므로, 사진 앱 선택 모드의 휴지통·더보기 중심 거리(약 43pt)에 맞춘 값이다
+    private static let legacyBottomBarItemSpacing: CGFloat = 3
+    /// iOS 26 미만에서 고정·삭제를 묶은 항목의 오른쪽 보정. 묶은 버튼은 최소 탭 크기 안에서 아이콘이 가운데 놓여
+    /// 휴지통 오른쪽에 빈 공간이 생기므로(사진 앱 대비 약 7.6pt), 탭 영역은 그대로 두고 아이콘 위치만 사진 앱에 맞춘다
+    private static let legacyBottomBarTrailingAdjustment: CGFloat = -8
 
     // MARK: - Content
 
@@ -271,25 +276,44 @@ private extension ClipboardHistorySettingsView {
                 )
             }
             Spacer()
-            Button {
-                togglePins(selectedIDs: selection)
-                finishEditing()
-            } label: {
-                Label(
-                    pinBatch.isUnpinning ? "\(pinBatch.targets.count)개 고정 해제" : "\(pinBatch.targets.count)개 고정",
-                    systemImage: pinBatch.isUnpinning ? "pin.slash" : "pin"
-                )
+            if #available(iOS 26, *) {
+                bottomBarPinButton
+                bottomBarDeleteButton
+            } else {
+                // iOS 26 미만 SwiftUI 하단 바는 붙은 버튼 사이 고정 간격 API(`ToolbarSpacer`)가 없고 버튼에 준 여백도 무시한다.
+                // 두 버튼을 한 항목으로 묶어 간격을 직접 준다. 묶으면 툴바의 아이콘 전용 표시가 풀리므로 다시 지정한다
+                HStack(spacing: Self.legacyBottomBarItemSpacing) {
+                    bottomBarPinButton
+                    bottomBarDeleteButton
+                }
+                .labelStyle(.iconOnly)
+                .padding(.trailing, Self.legacyBottomBarTrailingAdjustment)
             }
-            .disabled(!pinBatch.isAllowed)
-            Button(role: .destructive) {
-                requestRemove(selectedItems, source: .toolbar)
-            } label: {
-                Label("\(selection.count)개 삭제", systemImage: "trash")
-            }
-            .disabled(selection.isEmpty)
-            // 편집 모드 삭제의 확인 시트는 삭제 버튼에 붙인다
-            .deletionConfirmation(self, source: .toolbar)
         }
+    }
+
+    var bottomBarPinButton: some View {
+        Button {
+            togglePins(selectedIDs: selection)
+            finishEditing()
+        } label: {
+            Label(
+                pinBatch.isUnpinning ? "\(pinBatch.targets.count)개 고정 해제" : "\(pinBatch.targets.count)개 고정",
+                systemImage: pinBatch.isUnpinning ? "pin.slash" : "pin"
+            )
+        }
+        .disabled(!pinBatch.isAllowed)
+    }
+
+    var bottomBarDeleteButton: some View {
+        Button(role: .destructive) {
+            requestRemove(selectedItems, source: .toolbar)
+        } label: {
+            Label("\(selection.count)개 삭제", systemImage: "trash")
+        }
+        .disabled(selection.isEmpty)
+        // 편집 모드 삭제의 확인 시트는 삭제 버튼에 붙인다
+        .deletionConfirmation(self, source: .toolbar)
     }
 
     var addSheet: some View {
