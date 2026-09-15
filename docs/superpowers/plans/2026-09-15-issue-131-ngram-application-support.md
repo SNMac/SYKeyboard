@@ -1662,7 +1662,11 @@ git commit -m "design: #131 - 고정 항목 포함 삭제 확인 문구의 두 �
 **Interfaces:**
 - Produces: `ClipboardHistoryPanelDelegate.clipboardPanel(_:didTogglePinsOf ids: Set<String>)`, `ClipboardHistoryPanelView.togglePinsOfSelectedItems()`
 
-- [ ] **Step 1: 실패하는 테스트 작성**
+- [x] **Step 1: 실패하는 테스트 작성**
+
+실행 결과: `-only-testing:SYKeyboardTests/ClipboardHistoryPanelViewTests` → 컴파일 실패
+(`error: value of type 'ClipboardHistoryPanelView' has no member 'togglePinsOfSelectedItems'`,
+`SYKeyboardTests/Presentation/ClipboardHistoryPanelViewTests.swift:103,114`). 기대한 RED 확인.
 
 `ClipboardHistoryPanelViewTests`의 `test일부선택후삭제는_선택인덱스만요청` 뒤에 추가:
 
@@ -1738,7 +1742,9 @@ git commit -m "design: #131 - 고정 항목 포함 삭제 확인 문구의 두 �
 Run: `-only-testing:SYKeyboardTests/ClipboardHistoryPanelViewTests`
 Expected: 컴파일 실패(`togglePinsOfSelectedItems` 없음 또는 프로토콜에 없는 메서드).
 
-- [ ] **Step 2: 패널 구현**
+- [x] **Step 2: 패널 구현**
+
+브리프대로 (a)~(g) 모두 적용.
 
 `ClipboardHistoryPanelView.swift`에서:
 
@@ -1803,7 +1809,9 @@ Expected: 컴파일 실패(`togglePinsOfSelectedItems` 없음 또는 프로토�
         endItemEditing()
 ```
 
-- [ ] **Step 3: 키보드 VC가 일괄 고정을 처리**
+- [x] **Step 3: 키보드 VC가 일괄 고정을 처리**
+
+브리프대로 적용.
 
 `BaseKeyboardViewController.swift`의 `ClipboardHistoryPanelDelegate` extension에서 `didTogglePinAt` 구현 뒤에 추가:
 
@@ -1815,18 +1823,24 @@ Expected: 컴파일 실패(`togglePinsOfSelectedItems` 없음 또는 프로토�
     }
 ```
 
-- [ ] **Step 4: 테스트 통과 확인**
+- [x] **Step 4: 테스트 통과 확인**
 
 Run: `-only-testing:SYKeyboardTests/ClipboardHistoryPanelViewTests -only-testing:SYKeyboardTests/ClipboardHistoryPolicyTests`
-Expected: `TEST SUCCEEDED`, 새 테스트 4개 포함. 실제 개수를 기록한다.
+결과: `TEST SUCCEEDED`. `ClipboardHistoryPanelViewTests` 31개(새 테스트 4개 `test편집모드삭제후_편집모드종료`,
+`test고정포함편집삭제는_확인후편집모드종료`, `test편집모드고정은_선택id요청후편집모드종료`, `test선택없으면_고정요청없음` 포함) +
+`ClipboardHistoryPolicyTests` 33개, 총 64개 전부 통과(구현자 보고의 22·32는 오기로, 컨트롤러가 `~/Library/Developer/Xcode/DerivedData/SYKeyboard-hgprdtyustcuukabeovkjzrtclhy/Logs/Test/Test-SYKeyboard-2026.09.15_20-28-23-+0900.xcresult`를 `xcrun xcresulttool get test-results tests --path <xcresult>`로 suite별 확인). 시뮬레이터: iPhone 13 mini / iOS 18.6.
+빌드: `HangeulKeyboard`, `EnglishKeyboard`, `HangeulEnglishKeyboard` 세 scheme 모두
+`platform=iOS Simulator,name=iPhone 13 mini,OS=18.6`에서 `BUILD SUCCEEDED`.
 
-- [ ] **Step 5: 수동 확인(사용자 조작 필요, Task 11·12와 한 빌드)**
+- [x] **Step 5: 수동 확인(사용자 조작 필요, Task 11·12와 한 빌드)**
 
 1. 키보드 확장 편집 모드 헤더에 "선택 해제/전체 선택", "고정/고정 해제", "n개 삭제", "완료"가 보인다. 선택이 없으면 고정·삭제가 비활성, 선택이 모두 고정이면 "고정 해제", 섞이면 "고정".
 2. 고정을 누르면 선택 항목이 고정/해제되고 일반 모드로 돌아간다. 고정 한도가 차서 고정할 수 없으면 버튼이 비활성이다.
 3. 미고정만 삭제하면 바로 지워지고 일반 모드로 돌아간다. 고정 항목이 섞이면 확인 뷰가 뜨고, 취소하면 편집 모드 유지, 삭제하면 일반 모드로 돌아간다.
 4. 스와이프 삭제·고정은 기존과 같다.
 5. iPhone SE (3rd generation) / iOS 16.0 시뮬레이터(키보드 추가 필요)와 iPhone 13 mini / iOS 18.6에서 편집 모드 헤더 버튼이 잘리거나 겹치지 않는다. 가로 모드와 영어도 확인한다. 큰 글자 크기는 확인하지 못하면 이유를 적는다.
+
+실행 결과(2026-09-15, 사용자 수행): 1~5 정상(iPhone SE (3rd generation) / iOS 16.0, iPhone 13 mini / iOS 18.6 헤더 잘림·겹침 없음). 큰 글자 크기는 확인 항목으로 따로 요청하지 않아 미확인. 추가 관찰: "고정 해제"에서 "고정"으로 돌아올 때 버튼이 줄며 "고정 해제" 글자가 잠깐 잘림 — 기존 `937e8f15`(전체 선택 버튼 폭 고정)와 같은 원인, 후속 Task로 처리.
 
 - [ ] **Step 6: 커밋**
 

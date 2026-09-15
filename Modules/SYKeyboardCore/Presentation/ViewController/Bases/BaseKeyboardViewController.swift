@@ -2542,6 +2542,12 @@ extension BaseKeyboardViewController: ClipboardHistoryPanelDelegate {
         reloadClipboardPanel()
     }
 
+    final func clipboardPanel(_ panel: ClipboardHistoryPanelView, didTogglePinsOf ids: Set<String>) {
+        // 저장소가 파일을 다시 읽어 정책을 적용하므로 그사이 앱이 바꾼 내용과 어긋나지 않는다
+        clipboardHistoryStore?.togglePins(selectedIDs: ids)
+        reloadClipboardPanel()
+    }
+
 
     /// 브라우저가 열리면 호스트 앱을 떠나므로 키보드는 시스템이 내린다. 설정 이동과 같은 responder chain 경로다
     final func clipboardPanel(_ panel: ClipboardHistoryPanelView, didRequestOpenURLAt index: Int) {

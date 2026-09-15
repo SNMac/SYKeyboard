@@ -21,6 +21,8 @@ protocol ClipboardHistoryPanelDelegate: AnyObject {
     func clipboardPanelDidDeleteAll(_ panel: ClipboardHistoryPanelView)
     /// leading swipe 또는 상세 뷰에서 항목의 고정을 토글했을 때 호출됩니다.
     func clipboardPanel(_ panel: ClipboardHistoryPanelView, didTogglePinAt index: Int)
+    /// 편집 모드 헤더에서 선택한 항목을 한 번에 고정/해제했을 때 호출됩니다. 규칙은 `ClipboardHistoryPolicy.pinBatch`를 따릅니다.
+    func clipboardPanel(_ panel: ClipboardHistoryPanelView, didTogglePinsOf ids: Set<String>)
     /// 상세 뷰에서 링크로 표시된 본문을 탭했을 때 호출됩니다. 항목 전체가 http/https URL일 때만 링크가 됩니다.
     func clipboardPanel(_ panel: ClipboardHistoryPanelView, didRequestOpenURLAt index: Int)
 }
@@ -128,6 +130,10 @@ final class ClipboardHistoryPanelView: UIView {
 
     private lazy var selectAllButton = makeHeaderButton(title: "") { [weak self] in
         self?.toggleSelectAll()
+    }
+
+    private lazy var pinButton = makeHeaderButton(title: "") { [weak self] in
+        self?.togglePinsOfSelectedItems()
     }
 
     private lazy var deleteButton: UIButton = {
@@ -337,6 +343,16 @@ final class ClipboardHistoryPanelView: UIView {
         requestDelete(at: indices, deleteAll: indices.count == items.count)
     }
 
+    /// 편집 모드 헤더의 고정/해제. 선택한 항목을 id로 넘기고 편집 모드를 끝낸다. 테스트에서 직접 호출할 수 있도록 internal로 둔다
+    func togglePinsOfSelectedItems() {
+        guard isItemEditing else { return }
+        let ids = selectedItemIDs
+        guard ClipboardHistoryPolicy.pinBatch(selectedIDs: ids, in: items).isAllowed else { return }
+        // 편집 모드 해제 애니메이션이 행 이동 애니메이션과 겹치지 않도록 먼저 끝낸다. 해제하면 선택이 지워지므로 id는 먼저 구한다
+        endItemEditing()
+        delegate?.clipboardPanel(self, didTogglePinsOf: ids)
+    }
+
     /// 고정 항목이 섞여 있으면 패널 안 확인 뷰를 띄우고, 미고정만이면 바로 델리게이트에 넘긴다.
     /// 앱 관리 화면의 삭제 알림과 같은 규칙이다. 바로 지웠으면 `true`, 확인 대기로 갔으면 `false`
     @discardableResult
@@ -489,7 +505,7 @@ private extension ClipboardHistoryPanelView {
     func setHierarchy() {
         let spacer = UIView()
         spacer.setContentHuggingPriority(.defaultLow, for: .horizontal)
-        [titleLabel, selectAllButton, spacer, deleteButton, editButton, doneButton].forEach {
+        [titleLabel, selectAllButton, spacer, pinButton, deleteButton, editButton, doneButton].forEach {
             headerStackView.addArrangedSubview($0)
         }
         toastView.contentView.addSubview(toastLabel)
@@ -546,6 +562,10 @@ private extension ClipboardHistoryPanelView {
         !items.isEmpty && (tableView.indexPathsForSelectedRows?.count ?? 0) == items.count
     }
 
+    var selectedItemIDs: Set<String> {
+        Set((tableView.indexPathsForSelectedRows ?? []).compactMap { items.indices.contains($0.row) ? items[$0.row].id : nil })
+    }
+
     /// 캐시에 없으면 썸네일 파일을 읽어 넣는다. 파일이 없으면 `nil`
     func thumbnail(for reference: ClipboardImageReference) -> UIImage? {
         let key = reference.hash as NSString
@@ -561,6 +581,7 @@ private extension ClipboardHistoryPanelView {
         titleLabel.isHidden = isEditing
         editButton.isHidden = isEditing || items.isEmpty
         selectAllButton.isHidden = !isEditing
+        pinButton.isHidden = !isEditing
         deleteButton.isHidden = !isEditing
         doneButton.isHidden = !isEditing
 
@@ -570,6 +591,12 @@ private extension ClipboardHistoryPanelView {
         : String(localized: "전체 선택", bundle: SYKBDAssets.bundle)
         deleteButton.configuration?.title = String(localized: "\(selectedCount)개 삭제", bundle: SYKBDAssets.bundle)
         deleteButton.isEnabled = selectedCount > 0
+
+        let pinBatch = ClipboardHistoryPolicy.pinBatch(selectedIDs: selectedItemIDs, in: items)
+        pinButton.configuration?.title = pinBatch.isUnpinning
+        ? String(localized: "고정 해제", bundle: SYKBDAssets.bundle)
+        : String(localized: "고정", bundle: SYKBDAssets.bundle)
+        pinButton.isEnabled = pinBatch.isAllowed
     }
 
     /// 편집 모드를 끝내는 "완료"는 iOS 편집 툴바처럼 semibold로 강조한다
@@ -618,6 +645,9 @@ private extension ClipboardHistoryPanelView {
     }
 
     func performDelete(at indices: [Int], deleteAll: Bool) {
+        // 편집 모드에서 지웠으면 작업이 끝났으므로 일반 모드로 돌아간다. 행 삭제 애니메이션과 겹치지 않도록 먼저 끝낸다.
+        // 스와이프 삭제는 편집 모드가 아니라 아무 일도 하지 않는다
+        endItemEditing()
         if deleteAll {
             delegate?.clipboardPanelDidDeleteAll(self)
         } else {
