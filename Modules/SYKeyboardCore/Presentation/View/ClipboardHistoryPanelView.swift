@@ -474,6 +474,8 @@ private extension ClipboardHistoryPanelView {
         setHierarchy()
         setConstraints()
         tableView.dataSource = dataSource
+        // 셀·테이블 배경이 투명해 기본 애니메이션(.automatic)은 삭제되는 행과 밀려 올라오는 행이 겹쳐 보인다
+        dataSource.defaultRowAnimation = .fade
         tableView.delegate = self
         tableView.addGestureRecognizer(longPressRecognizer)
         tableView.addGestureRecognizer(touchObserver)

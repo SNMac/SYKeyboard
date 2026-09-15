@@ -1258,7 +1258,11 @@ git commit -m "fix: #131 - 키보드 앱 클립보드 상세에서 선택 밖을
 **Files:**
 - Modify: `Modules/SYKeyboardCore/Presentation/View/ClipboardHistoryPanelView.swift`
 
-- [ ] **Step 1: 가설 확인 빌드(사용자 조작 필요)**
+- [x] **Step 1: 가설 확인 빌드(사용자 조작 필요)**
+
+코드 라인은 적용해 아래 반영했고, Task 5와 같은 `SYKeyboard` app scheme 빌드·설치(위 Step 2 기록)에 포함되어
+시뮬레이터 `82146144-24DE-4F91-B25D-23D147A91142`에 이미 설치돼 있다. 겹침이 사라졌는지와 애니메이션이
+자연스러운지에 대한 실제 화면 확인은 사용자 몫이라 이 Step은 체크하지 않는다.
 
 `setupUI()`의 `tableView.dataSource = dataSource` 다음 줄에 아래를 넣고, SYKeyboard app scheme을 iOS 18.6 destination으로 빌드해 시뮬레이터 `82146144-24DE-4F91-B25D-23D147A91142`에 설치한다(앱 삭제 금지):
 
@@ -1271,12 +1275,16 @@ git commit -m "fix: #131 - 키보드 앱 클립보드 상세에서 선택 밖을
 - 겹침이 사라지면 Step 2로 간다.
 - 그대로면 이 줄을 되돌리고 멈춰 사용자에게 보고한다(원인 재조사).
 
-- [ ] **Step 2: 회귀 테스트와 빌드**
+실행 결과(2026-09-15, 사용자 수행, 같은 시뮬레이터): 편집 모드 다중 삭제의 겹침이 사라짐. 스와이프 삭제·스와이프 고정/해제 이동·고정 항목 포함 확인 후 삭제 애니메이션 모두 어색하지 않음.
+
+- [x] **Step 2: 회귀 테스트와 빌드**
 
 행 애니메이션 종류는 시각 속성이라 unit test로 고정하지 않는다(CLAUDE.md 테스트 경계). 기존 동작 회귀만 확인한다.
 
-1. Run: `-only-testing:SYKeyboardTests/ClipboardHistoryPanelViewTests`. Expected: `TEST SUCCEEDED`. 실제 개수를 기록한다.
-2. `HangeulKeyboard`, `EnglishKeyboard`, `HangeulEnglishKeyboard`를 `-only-testing` 없이 빌드. Expected: 모두 `BUILD SUCCEEDED`. `RemotePath` 변경은 되돌린다.
+1. Run: `-only-testing:SYKeyboardTests/ClipboardHistoryPanelViewTests`(Task 5 Step 2와 같은 실행에 포함). 결과:
+   `TEST SUCCEEDED`, `ClipboardHistoryPanelViewTests` 27개 전부 통과(iPhone 13 mini, iOS 18.6).
+2. `HangeulKeyboard`, `EnglishKeyboard`, `HangeulEnglishKeyboard`를 `-only-testing` 없이 각각 빌드: 모두
+   `BUILD SUCCEEDED`(iPhone 13 mini, iOS 18.6). 빌드 뒤 `git status --short`에 `.xcscheme` 변경 없음 — 되돌릴 대상 없었다.
 
 - [ ] **Step 3: 커밋**
 
