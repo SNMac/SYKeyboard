@@ -33,7 +33,7 @@
 
 - iOS 16+ / Swift 5 / Xcode 26 이상. deprecated API 신규 사용 금지.
 - 작업 브랜치 `refactor/#131-ngram-application-support`(develop `ba93ae17` 기준).
-- 커밋 메시지 `type: #131 - subject`, 한국어, 마침표 없음. Task 1은 `refactor`, Task 2·3·5·6은 `fix`, Task 4는 `feat`, Task 7은 `docs`. 본문 끝에 세션 attribution을 붙인다.
+- 커밋 메시지 `type: #131 - subject`, 한국어, 마침표 없음. Task 1은 `refactor`, Task 2·3·5·6·7·8은 `fix`, Task 4는 `feat`, Task 9는 `docs`. 본문 끝에 세션 attribution을 붙인다.
 - 각 Task는 코드·테스트·이 문서의 체크박스 갱신을 하나의 커밋으로 남긴다. 실행하지 않았거나 실패한 step은 체크하지 않는다.
 - 새 production 파일은 만들지 않는다(`project.pbxproj` 수정 없음). `SYKeyboardTests/`는 동기화 폴더라 테스트 파일 등록이 필요 없다.
 - production 타입에 `ForTesting` 메서드를 추가하지 않는다. 테스트 seam은 기존 designated init 파라미터에 `legacyFileURL: URL? = nil`만 더한다.
@@ -1294,7 +1294,49 @@ git add Modules/SYKeyboardCore/Presentation/View/ClipboardHistoryPanelView.swift
 git commit -m "fix: #131 - 클립보드 기록 행 삭제·이동 애니메이션에서 투명 배경 행이 겹쳐 보이는 현상 수정"
 ```
 
-### Task 7: 전체 검증과 결과 기록
+### Task 7: 키보드 확장 편집 모드에서 고정 아이콘이 사라지는 현상
+
+**배경:** Task 5·6 수동 확인 중 사용자가 발견해 2026-09-15 #131에 추가했다. 키보드 확장 클립보드 패널에서 "선택"(편집 모드)으로 들어가면 고정 항목의 고정 아이콘이 사라진다. 키보드 앱 관리 화면은 편집 모드에서도 보인다.
+
+**원인:** `makeCell`은 고정 아이콘을 `cell.accessoryView`로만 붙인다(`ClipboardHistoryPanelView.swift`의 `cell.accessoryView = item.isPinned ? makePinAccessoryView() : nil`). `UITableViewCell`은 편집 상태에서 `accessoryView` 대신 `editingAccessoryView`를 보여주는데 이 값이 비어 있다. 기존부터 있던 동작이다.
+
+**Files:**
+- Modify: `Modules/SYKeyboardCore/Presentation/View/ClipboardHistoryPanelView.swift`
+
+- [ ] **Step 1: 편집 상태 액세서리 지정**
+
+`makeCell(in:at:id:)`의 `cell.accessoryView = item.isPinned ? makePinAccessoryView() : nil` 줄을 교체:
+
+```swift
+        // 셀은 편집 모드에서 accessoryView 대신 editingAccessoryView를 보여주므로 둘 다 지정한다. 뷰 하나를 두 곳에 쓸 수 없어 따로 만든다
+        cell.accessoryView = item.isPinned ? makePinAccessoryView() : nil
+        cell.editingAccessoryView = item.isPinned ? makePinAccessoryView() : nil
+```
+
+- [ ] **Step 2: 회귀 테스트와 빌드**
+
+아이콘 표시는 시각 속성이라 unit test로 고정하지 않는다.
+1. Run: `-only-testing:SYKeyboardTests/ClipboardHistoryPanelViewTests`. Expected: `TEST SUCCEEDED`. 실제 개수를 기록한다.
+2. `HangeulKeyboard`, `EnglishKeyboard`, `HangeulEnglishKeyboard`를 `-only-testing` 없이 빌드. Expected: 모두 `BUILD SUCCEEDED`.
+3. SYKeyboard app scheme을 iOS 18.6 destination으로 빌드해 시뮬레이터 `82146144-24DE-4F91-B25D-23D147A91142`에 설치한다(앱 삭제 금지). `.xcscheme` `RemotePath` 변경은 되돌린다.
+
+- [ ] **Step 3: 수동 확인(사용자 조작 필요)**
+
+1. 키보드 확장 패널에서 "선택"을 누르면 고정 항목에 고정 아이콘이 계속 보이고 체크 표시·본문과 겹치지 않는다. 미고정 항목에는 아이콘이 없다.
+2. 편집 모드에서 전체 선택 → 고정 항목 포함 삭제 확인 창 → 취소 후에도 아이콘이 그대로다.
+3. "완료"로 편집 모드를 끝내도 아이콘이 그대로이고, 스와이프 고정/해제 후 아이콘이 올바르게 붙거나 사라진다.
+
+확인하지 못한 항목은 체크하지 않고 이유를 적는다.
+
+- [ ] **Step 4: 커밋**
+
+```bash
+git add Modules/SYKeyboardCore/Presentation/View/ClipboardHistoryPanelView.swift \
+  docs/superpowers/plans/2026-09-15-issue-131-ngram-application-support.md
+git commit -m "fix: #131 - 키보드 클립보드 패널 편집 모드에서 고정 아이콘이 사라지는 현상 수정"
+```
+
+### Task 9: 전체 검증과 결과 기록
 
 **Files:**
 - Modify: `docs/superpowers/plans/2026-09-15-issue-131-ngram-application-support.md`
