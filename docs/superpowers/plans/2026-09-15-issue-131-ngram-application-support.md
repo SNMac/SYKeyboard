@@ -33,7 +33,7 @@
 
 - iOS 16+ / Swift 5 / Xcode 26 이상. deprecated API 신규 사용 금지.
 - 작업 브랜치 `refactor/#131-ngram-application-support`(develop `ba93ae17` 기준).
-- 커밋 메시지 `type: #131 - subject`, 한국어, 마침표 없음. Task 1은 `refactor`, Task 2·3은 `fix`, Task 4는 `feat`, Task 5는 `docs`. 본문 끝에 세션 attribution을 붙인다.
+- 커밋 메시지 `type: #131 - subject`, 한국어, 마침표 없음. Task 1은 `refactor`, Task 2·3·5·6은 `fix`, Task 4는 `feat`, Task 7은 `docs`. 본문 끝에 세션 attribution을 붙인다.
 - 각 Task는 코드·테스트·이 문서의 체크박스 갱신을 하나의 커밋으로 남긴다. 실행하지 않았거나 실패한 step은 체크하지 않는다.
 - 새 production 파일은 만들지 않는다(`project.pbxproj` 수정 없음). `SYKeyboardTests/`는 동기화 폴더라 테스트 파일 등록이 필요 없다.
 - production 타입에 `ForTesting` 메서드를 추가하지 않는다. 테스트 seam은 기존 designated init 파라미터에 `legacyFileURL: URL? = nil`만 더한다.
@@ -1091,7 +1091,189 @@ git add Modules/SYKeyboardCore/Presentation/View/ClipboardHistoryPanelView.swift
 git commit -m "feat: #131 - 키보드 클립보드 상세 화면에서 본문 일부를 선택해 복사하고 기록에 바로 반영"
 ```
 
-### Task 5: 전체 검증과 결과 기록
+### Task 5: 키보드 앱 상세 시트에서 선택 밖을 탭하면 선택이 풀리게 하기
+
+**배경:** Task 4 수동 확인 중 사용자가 발견했다. 키보드 앱(메인 앱) 클립보드 기록 관리의 상세 시트는 SwiftUI `Text(...).textSelection(.enabled)`라서 (1) 일부 선택 후 다른 곳을 탭해도 선택이 풀리지 않고 (2) URL 항목에서 일부 선택 중 URL을 탭하면 바로 브라우저로 이동한다. Apple 문서(Context7 `/websites/developer_apple_swiftui`) 기준 `textSelection`에는 선택 범위를 읽거나 해제하는 binding이 없어 SwiftUI 설정만으로는 고칠 수 없다.
+
+**확정 규칙(2026-09-15 사용자 결정, 키보드 앱·키보드 확장 공통):**
+- 선택이 있을 때 선택 밖을 탭하면 URL 글자·일반 텍스트·여백 모두 선택만 풀린다. 링크는 열리지 않는다(다시 탭하면 열린다).
+- 선택이 없을 때 URL 항목의 글자 영역을 탭하면 링크를 연다.
+- 선택 영역 안을 탭하면 `UITextView` 기본 동작을 따른다.
+- 키보드 확장(`ClipboardHistoryDetailView`)은 Task 4에서 이미 이 규칙이다(수동 확인 6·9). 이 Task는 키보드 앱만 바꾼다.
+
+**Files:**
+- Modify: `SYKeyboard/Presentation/KeyboardSettings/ClipboardHistorySettingsView.swift` (앱 타깃은 동기화 폴더라 pbxproj 수정 없음. 새 파일을 만들지 않고 같은 파일의 private 타입으로 둔다)
+
+- [ ] **Step 1: 원문 본문을 `UITextView`로 교체**
+
+(a) `ClipboardHistoryDetailView`(SwiftUI, 이 파일의 private struct)에 환경값을 추가한다(`@Environment(\.dismiss)` 다음 줄):
+
+```swift
+    @Environment(\.openURL) private var openURL
+```
+
+(b) 더 이상 쓰지 않는 `linkStyledText` 계산 프로퍼티를 지운다.
+
+(c) `body`의 텍스트 분기(`ScrollView { Text(linkStyledText) ... }`)를 교체:
+
+```swift
+                } else {
+                    // SwiftUI Text의 선택은 코드로 해제할 수 없어 UITextView로 보여준다. 키보드 패널 상세와 같은 선택·링크 규칙이다
+                    ClipboardHistoryDetailTextView(
+                        text: text,
+                        url: ClipboardHistoryPolicy.openableURL(in: text),
+                        onOpenURL: { openURL($0) }
+                    )
+                }
+```
+
+(d) `// MARK: - Preview` 바로 앞에 추가:
+
+```swift
+// MARK: - Detail Text
+
+/// 원문 본문. 편집 없이 선택·복사만 허용한다.
+/// 선택이 있을 때 선택 밖을 탭하면 선택만 풀리고, 선택이 없을 때 본문 전체가 URL이면 글자 영역을 탭해 연다.
+/// 키보드 패널 상세(`ClipboardHistoryPanelView`의 상세 뷰)와 같은 규칙이다
+private struct ClipboardHistoryDetailTextView: UIViewRepresentable {
+    let text: String
+    let url: URL?
+    let onOpenURL: (URL) -> Void
+
+    func makeCoordinator() -> Coordinator { Coordinator() }
+
+    func makeUIView(context: Context) -> UITextView {
+        let textView = UITextView()
+        textView.isEditable = false
+        textView.isSelectable = true
+        textView.backgroundColor = .clear
+        textView.textContainerInset = UIEdgeInsets(top: 16, left: 12, bottom: 16, right: 12)
+        let tapGesture = UITapGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.handleTap(_:)))
+        tapGesture.delegate = context.coordinator
+        textView.addGestureRecognizer(tapGesture)
+        context.coordinator.textView = textView
+        return textView
+    }
+
+    func updateUIView(_ textView: UITextView, context: Context) {
+        context.coordinator.url = url
+        context.coordinator.onOpenURL = onOpenURL
+        var attributes: [NSAttributedString.Key: Any] = [
+            .font: UIFont.preferredFont(forTextStyle: .body),
+            .foregroundColor: UIColor.label
+        ]
+        if url != nil {
+            // 텍스트 전체가 URL이면 일반 링크처럼 파란 밑줄로 그린다
+            attributes[.foregroundColor] = UIColor.link
+            attributes[.underlineStyle] = NSUnderlineStyle.single.rawValue
+        }
+        let attributedText = NSAttributedString(string: text, attributes: attributes)
+        // SwiftUI가 다시 그릴 때마다 교체하면 선택이 풀리므로 내용이 바뀐 경우에만 넣는다
+        guard textView.attributedText != attributedText else { return }
+        textView.attributedText = attributedText
+    }
+
+    final class Coordinator: NSObject, UIGestureRecognizerDelegate {
+        weak var textView: UITextView?
+        var url: URL?
+        var onOpenURL: ((URL) -> Void)?
+
+        /// 글자가 있는 영역을 탭했을 때만 연다. 빈 여백 탭은 무시한다
+        @objc func handleTap(_ recognizer: UITapGestureRecognizer) {
+            guard let textView, let url else { return }
+            let point = recognizer.location(in: textView)
+            let inset = textView.textContainerInset
+            let usedRect = textView.layoutManager.usedRect(for: textView.textContainer)
+                .offsetBy(dx: inset.left, dy: inset.top)
+            guard usedRect.contains(point) else { return }
+            onOpenURL?(url)
+        }
+
+        /// 선택 영역이 있을 때의 탭은 선택 해제로 쓰이므로 링크를 열지 않는다
+        func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
+            return (textView?.selectedRange.length ?? 0) == 0
+        }
+
+        /// 본문 선택용 텍스트 뷰 제스처(길게 누르기·두 번 탭·선택 해제 탭)를 막지 않는다
+        func gestureRecognizer(
+            _ gestureRecognizer: UIGestureRecognizer,
+            shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer
+        ) -> Bool {
+            return true
+        }
+    }
+}
+```
+
+컴파일에 필요하면 파일 상단에 `import UIKit`을 추가한다(`SwiftUI`만으로 UIKit 타입이 보이면 추가하지 않는다).
+
+- [ ] **Step 2: 회귀 테스트와 빌드**
+
+선택·탭 동작은 UIKit 런타임 동작이라 unit test로 고정하지 않는다. 기존 회귀만 확인한다.
+1. Run: `-only-testing:SYKeyboardTests/ClipboardHistoryPolicyTests -only-testing:SYKeyboardTests/ClipboardHistoryStoreTests`. Expected: `TEST SUCCEEDED`. 실제 개수를 기록한다.
+2. SYKeyboard app scheme을 iOS 18.6 destination으로 빌드해 시뮬레이터 `82146144-24DE-4F91-B25D-23D147A91142`에 설치한다(앱 삭제 금지). Expected: `BUILD SUCCEEDED`. `.xcscheme` `RemotePath` 변경은 되돌린다.
+
+- [ ] **Step 3: 수동 확인(사용자 조작 필요)**
+
+키보드 앱 → 클립보드 기록 관리에서 항목을 눌러 상세 시트를 연다.
+1. 일반 텍스트: 길게 눌러 일부 선택 → 선택 밖의 다른 글자를 탭하면 선택이 풀린다. 여백을 탭해도 풀린다.
+2. 선택 후 시스템 메뉴의 복사가 동작한다.
+3. URL 항목: 선택이 없을 때 URL을 탭하면 브라우저가 열린다. 여백 탭은 아무 일도 없다.
+4. URL 항목: 일부 선택 중 선택 밖 URL을 탭하면 선택만 풀리고 브라우저는 열리지 않는다. 이어서 다시 탭하면 열린다.
+5. 긴 텍스트 스크롤, 다크 모드 글자 색, 글자 크기(Dynamic Type 변경 후 시트 다시 열기)가 자연스럽다.
+6. "편집"·저장·취소, "공유", "복사", 고정 버튼, 이미지 항목 미리보기가 기존과 같다.
+
+확인하지 못한 항목은 체크하지 않고 이유를 적는다.
+
+- [ ] **Step 4: 커밋**
+
+```bash
+git add SYKeyboard/Presentation/KeyboardSettings/ClipboardHistorySettingsView.swift \
+  docs/superpowers/plans/2026-09-15-issue-131-ngram-application-support.md
+git commit -m "fix: #131 - 키보드 앱 클립보드 상세에서 선택 밖을 탭하면 선택이 풀리고 선택 중 URL 탭은 해제만 하도록 수정"
+```
+
+### Task 6: 편집 모드 삭제 애니메이션에서 행이 겹쳐 보이는 현상
+
+**배경:** Task 3 수동 확인 7번에서 관찰했고, 2026-09-15 사용자 요청으로 #131에 추가했다. 편집 모드에서 항목을 삭제하면 지워지는 행이 위로 뭉개지며 체크 표시와 옆 행 글자가 겹쳐 보인다.
+
+**조사 결과:**
+- `26399d8b`(편집 모드 전환을 `UIView.animate` 안의 `setEditing(_:animated: false)`로 교체)를 되돌린 비교 빌드에서도 같은 현상이 재현돼 원인에서 제외했다.
+- 셀(`makeCell`의 `cell.backgroundColor = .clear`)과 테이블(`tableView.backgroundColor = .clear`) 배경은 #54 첫 구현 `590fb7ce`부터 투명이다. `UITableViewDiffableDataSource`의 기본 행 애니메이션(`.automatic`)은 삭제되는 행 위로 아래 행이 밀려 올라오는데, 불투명 배경이면 가려질 겹침이 투명 배경에서는 그대로 보인다는 가설(사용자 제기)이 유력하다.
+- 기존부터 있던 동작이다. 수정은 스와이프 삭제·고정 이동 등 같은 data source의 모든 행 애니메이션에 적용된다.
+
+**Files:**
+- Modify: `Modules/SYKeyboardCore/Presentation/View/ClipboardHistoryPanelView.swift`
+
+- [ ] **Step 1: 가설 확인 빌드(사용자 조작 필요)**
+
+`setupUI()`의 `tableView.dataSource = dataSource` 다음 줄에 아래를 넣고, SYKeyboard app scheme을 iOS 18.6 destination으로 빌드해 시뮬레이터 `82146144-24DE-4F91-B25D-23D147A91142`에 설치한다(앱 삭제 금지):
+
+```swift
+        // 셀·테이블 배경이 투명해 기본 애니메이션(.automatic)은 삭제되는 행과 밀려 올라오는 행이 겹쳐 보인다
+        dataSource.defaultRowAnimation = .fade
+```
+
+사용자가 편집 모드 다중 삭제, 스와이프 삭제, 스와이프 고정/해제(행 이동), 고정 항목 포함 삭제 확인 후 삭제를 해 보고 겹침이 사라졌는지와 애니메이션이 어색하지 않은지 확인한다.
+- 겹침이 사라지면 Step 2로 간다.
+- 그대로면 이 줄을 되돌리고 멈춰 사용자에게 보고한다(원인 재조사).
+
+- [ ] **Step 2: 회귀 테스트와 빌드**
+
+행 애니메이션 종류는 시각 속성이라 unit test로 고정하지 않는다(CLAUDE.md 테스트 경계). 기존 동작 회귀만 확인한다.
+
+1. Run: `-only-testing:SYKeyboardTests/ClipboardHistoryPanelViewTests`. Expected: `TEST SUCCEEDED`. 실제 개수를 기록한다.
+2. `HangeulKeyboard`, `EnglishKeyboard`, `HangeulEnglishKeyboard`를 `-only-testing` 없이 빌드. Expected: 모두 `BUILD SUCCEEDED`. `RemotePath` 변경은 되돌린다.
+
+- [ ] **Step 3: 커밋**
+
+```bash
+git add Modules/SYKeyboardCore/Presentation/View/ClipboardHistoryPanelView.swift \
+  docs/superpowers/plans/2026-09-15-issue-131-ngram-application-support.md
+git commit -m "fix: #131 - 클립보드 기록 행 삭제·이동 애니메이션에서 투명 배경 행이 겹쳐 보이는 현상 수정"
+```
+
+### Task 7: 전체 검증과 결과 기록
 
 **Files:**
 - Modify: `docs/superpowers/plans/2026-09-15-issue-131-ngram-application-support.md`
