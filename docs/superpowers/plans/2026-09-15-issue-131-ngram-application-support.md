@@ -33,7 +33,7 @@
 
 - iOS 16+ / Swift 5 / Xcode 26 이상. deprecated API 신규 사용 금지.
 - 작업 브랜치 `refactor/#131-ngram-application-support`(develop `ba93ae17` 기준).
-- 커밋 메시지 `type: #131 - subject`, 한국어, 마침표 없음. Task 1은 `refactor`, Task 2·3은 `fix`, Task 4는 `docs`. 본문 끝에 세션 attribution을 붙인다.
+- 커밋 메시지 `type: #131 - subject`, 한국어, 마침표 없음. Task 1은 `refactor`, Task 2·3은 `fix`, Task 4는 `feat`, Task 5는 `docs`. 본문 끝에 세션 attribution을 붙인다.
 - 각 Task는 코드·테스트·이 문서의 체크박스 갱신을 하나의 커밋으로 남긴다. 실행하지 않았거나 실패한 step은 체크하지 않는다.
 - 새 production 파일은 만들지 않는다(`project.pbxproj` 수정 없음). `SYKeyboardTests/`는 동기화 폴더라 테스트 파일 등록이 필요 없다.
 - production 타입에 `ForTesting` 메서드를 추가하지 않는다. 테스트 seam은 기존 designated init 파라미터에 `legacyFileURL: URL? = nil`만 더한다.
@@ -792,7 +792,280 @@ git add Modules/SYKeyboardCore/Presentation/View/ClipboardHistoryPanelView.swift
 git commit -m "fix: #131 - 클립보드 기록 행을 끌다 놓으면 눌림 배경이 남는 현상 수정"
 ```
 
-### Task 4: 전체 검증과 결과 기록
+### Task 4: 키보드 상세 화면에서 텍스트 일부 선택·복사와 기록 갱신
+
+**배경:** 2026-09-15 사용자 요청으로 #131에 추가했다. 앱 상세 시트(`ClipboardHistorySettingsView`의 `Text(...).textSelection(.enabled)`)처럼 키보드 확장의 상세 화면에서도 본문을 길게 눌러 일부를 선택·복사하고, 복사한 내용이 클립보드 기록에 바로 반영되게 한다. 승인된 설계:
+
+- 상세 본문 `UITextView`를 `isSelectable = true`로 바꾼다(편집 불가 유지). 전체가 URL인 항목의 탭으로 열기는 유지하되, 선택 영역이 있으면 탭으로 열지 않는다.
+- 키보드가 `UIPasteboard.changedNotification`을 받으면 패널이 열려 있을 때 기존 동기화를 돌리고, 목록이 바뀌었으면 **상세 화면을 닫지 않고** 뒤의 목록만 다시 읽는다.
+- 상세가 가리키는 항목을 인덱스(`detailIndex`)가 아니라 id로 들고 있어, 새 항목이 앞에 들어와도 붙여넣기·고정·URL 열기가 보던 항목에 적용된다. `ClipboardHistoryItem.id`는 내용에서 만든 값이라 같은 텍스트가 다시 기록돼도 id가 같다. 가리키던 항목이 목록에서 사라지면 지금처럼 상세를 닫는다.
+- 기존 갱신 경로(패널 열기, 삭제, 고정, 호스트 재활성화 등)는 지금처럼 `configure(state:)`에서 상세를 닫는다.
+
+**조사 결과:**
+- `ClipboardHistoryPanelView.configure(state:)`는 첫 줄에서 `hideDetail()`을 부른다. `detailIndex`는 `showDetail(at:)`에서 저장되고 `onPaste`/`onTogglePin`/`onOpenURL` 클로저가 쓴다.
+- `copyTextToPasteboard`와 `restoreImageToPasteboard`는 쓴 직후 `lastSeenPasteboardChangeCount`를 갱신하므로, 알림 처리를 다음 runloop로 미루면 이 두 경로는 동기화가 건너뛰어 중복 기록되지 않는다.
+
+**Files:**
+- Modify: `Modules/SYKeyboardCore/Presentation/View/ClipboardHistoryPanelView.swift`
+- Modify: `Modules/SYKeyboardCore/Presentation/ViewController/Bases/BaseKeyboardViewController.swift`
+- Test: `SYKeyboardTests/Presentation/ClipboardHistoryPanelViewTests.swift`
+
+**Interfaces:**
+- Produces: `ClipboardHistoryPanelView.configure(state: State, keepsDetail: Bool = false)`, `ClipboardHistoryPanelView.pasteDetailItem()`, `ClipboardHistoryPanelView.toggleDetailItemPin()`, `BaseKeyboardViewController.reloadClipboardPanel(keepsDetail: Bool = false)`.
+
+- [ ] **Step 1: 실패하는 테스트 작성**
+
+`ClipboardHistoryPanelViewTests`에서 `test편집모드는_눌림정리안함` 뒤에 추가:
+
+```swift
+    @Test("기본 configure는 열린 상세를 닫음")
+    func test기본configure는_상세를닫음() {
+        let items = [unpinned("a"), unpinned("b")]
+        let (panel, _) = makePanel(items: items)
+
+        panel.showDetail(at: 1)
+        panel.configure(state: .items(items))
+
+        #expect(panel.isDetailVisible == false)
+    }
+
+    @Test("상세를 유지하는 갱신에서 앞에 새 항목이 들어오면 붙여넣기는 보던 항목의 새 인덱스를 요청")
+    func test상세유지갱신후_붙여넣기는보던항목() {
+        let items = [unpinned("a"), unpinned("b")]
+        let (panel, spy) = makePanel(items: items)
+
+        panel.showDetail(at: 1)
+        panel.configure(state: .items([unpinned("new")] + items), keepsDetail: true)
+
+        #expect(panel.isDetailVisible)
+        panel.pasteDetailItem()
+        #expect(spy.selectedIndices == [2])
+    }
+
+    @Test("상세를 유지하는 갱신에서 보던 항목이 다시 기록돼 앞으로 오면 고정은 그 항목을 요청")
+    func test같은내용이다시기록되면_고정은그항목() {
+        let (panel, spy) = makePanel(items: [unpinned("a"), unpinned("b")])
+
+        panel.showDetail(at: 1)
+        panel.configure(state: .items([unpinned("b"), unpinned("a")]), keepsDetail: true)
+
+        #expect(panel.isDetailVisible)
+        panel.toggleDetailItemPin()
+        #expect(spy.toggledPinIndices == [0])
+    }
+
+    @Test("상세를 유지하는 갱신이어도 보던 항목이 사라지면 상세를 닫고 요청하지 않음")
+    func test보던항목이사라지면_상세를닫음() {
+        let (panel, spy) = makePanel(items: [unpinned("a"), unpinned("b")])
+
+        panel.showDetail(at: 1)
+        panel.configure(state: .items([unpinned("a")]), keepsDetail: true)
+        panel.pasteDetailItem()
+
+        #expect(panel.isDetailVisible == false)
+        #expect(spy.selectedIndices.isEmpty)
+    }
+```
+
+Run: `-only-testing:SYKeyboardTests/ClipboardHistoryPanelViewTests`
+Expected: 컴파일 실패 `extra argument 'keepsDetail' in call` 또는 `value of type 'ClipboardHistoryPanelView' has no member 'pasteDetailItem'`
+
+- [ ] **Step 2: 패널이 상세 항목을 id로 가리키게 구현**
+
+`ClipboardHistoryPanelView.swift`에서:
+
+(a) `private var detailIndex: Int?`를 교체:
+
+```swift
+    /// 상세 뷰가 보여주는 항목의 id. 목록이 갱신돼 순서가 바뀌어도 같은 항목을 가리킨다
+    private var detailItemID: String?
+    /// 상세 뷰가 보여주는 항목의 현재 인덱스. 목록에서 사라졌으면 `nil`
+    private var detailItemIndex: Int? {
+        guard let detailItemID else { return nil }
+        return items.firstIndex { $0.id == detailItemID }
+    }
+```
+
+(b) `detailView` 클로저를 교체:
+
+```swift
+        view.onClose = { [weak self] in self?.hideDetail() }
+        view.onPaste = { [weak self] in self?.pasteDetailItem() }
+        view.onTogglePin = { [weak self] in self?.toggleDetailItemPin() }
+        view.onOpenURL = { [weak self] in
+            guard let self, let index = self.detailItemIndex else { return }
+            self.delegate?.clipboardPanel(self, didRequestOpenURLAt: index)
+        }
+```
+
+(c) `configure(state:)`를 시그니처와 문서 주석, 첫 줄, 끝부분만 바꾼다:
+
+```swift
+    /// 패널 상태를 갱신합니다. 상세 뷰는 닫고, 편집 모드는 유지하되 항목이 없어지면 해제합니다.
+    ///
+    /// `keepsDetail`이면 상세 뷰를 닫지 않고 보던 항목을 새 목록에서 다시 가리킵니다. 그 항목이 사라졌으면 닫습니다.
+    /// 상세 뷰에서 일부를 복사해 기록이 늘어난 경우처럼 사용자가 상세를 보는 중인 갱신에 씁니다.
+    ///
+    /// 패널이 보이는 중이면 바뀐 행만 삭제·삽입 애니메이션으로 반영하고, 숨겨진 상태면 전체를 다시 그립니다.
+    func configure(state: State, keepsDetail: Bool = false) {
+        if !keepsDetail { hideDetail() }
+        hideDeleteConfirmation()
+```
+
+같은 메서드에서 `items`를 갱신하는 `switch` 바로 뒤(`if items.isEmpty { endItemEditing() }` 앞)에 추가:
+
+```swift
+        if keepsDetail, detailItemID != nil, detailItemIndex == nil { hideDetail() }
+```
+
+(d) `showDetail(at:)`의 `detailIndex = index`를 교체:
+
+```swift
+        detailItemID = items[index].id
+```
+
+(e) `showDetail(at:)` 바로 뒤(같은 internal 영역)에 추가:
+
+```swift
+    /// 상세 뷰의 붙여넣기(텍스트)·복사(이미지). 행 탭과 같은 델리게이트 경로다. 테스트에서 직접 호출할 수 있도록 internal로 둔다
+    func pasteDetailItem() {
+        guard let index = detailItemIndex else { return }
+        // 붙여넣기(텍스트)는 이 직후 패널이 닫히지만, 복사(이미지)는 패널이 열린 채 유지된다.
+        // 상세 뷰는 여기서 먼저 숨기고, 이미지 쪽은 이어지는 configure() 갱신으로 다시 숨김 상태가 반영된다
+        hideDetail(animated: false)
+        delegate?.clipboardPanel(self, didSelectItemAt: index)
+    }
+
+    /// 상세 뷰의 고정/해제. 테스트에서 직접 호출할 수 있도록 internal로 둔다
+    func toggleDetailItemPin() {
+        guard let index = detailItemIndex else { return }
+        delegate?.clipboardPanel(self, didTogglePinAt: index)
+    }
+```
+
+(f) `hideDetail(animated:)`의 `detailIndex = nil`을 `detailItemID = nil`로 바꾼다.
+
+파일에 `detailIndex`가 남아 있지 않은지 `grep -n detailIndex Modules/SYKeyboardCore/Presentation/View/ClipboardHistoryPanelView.swift`로 확인한다.
+
+- [ ] **Step 3: 테스트 통과 확인**
+
+Run: `-only-testing:SYKeyboardTests/ClipboardHistoryPanelViewTests`
+Expected: `TEST SUCCEEDED`, 새 테스트 4개 포함. 실제 개수를 기록한다.
+
+- [ ] **Step 4: 상세 본문 선택 허용**
+
+`ClipboardHistoryPanelView.swift`의 `ClipboardHistoryDetailView`에서:
+
+(a) `textView` 초기화의 `textView.isSelectable = false`를 교체:
+
+```swift
+        // 길게 누르거나 두 번 탭해 일부를 선택하고 시스템 메뉴로 복사한다. 편집은 막는다
+        textView.isSelectable = true
+```
+
+(b) `ClipboardHistoryDetailView` 클래스 본문의 `// MARK: - Lifecycle` 영역(`layoutSubviews()` 뒤)에 추가한다. `gestureRecognizerShouldBegin(_:)`은 `UIView`에 이미 있는 메서드라 extension이 아닌 클래스 본문에서 `override`로 둔다:
+
+```swift
+    /// 선택 영역이 있을 때의 탭은 선택 해제로 쓰이므로 링크를 열지 않는다
+    override func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
+        guard gestureRecognizer === openURLTapGesture else { return super.gestureRecognizerShouldBegin(gestureRecognizer) }
+        return textView.selectedRange.length == 0
+    }
+```
+
+(c) 파일의 `ClipboardHistoryDetailView` UI Methods extension 뒤에 추가:
+
+```swift
+// MARK: - UIGestureRecognizerDelegate
+
+extension ClipboardHistoryDetailView: UIGestureRecognizerDelegate {
+    /// 본문 선택용 텍스트 뷰 제스처(길게 누르기·두 번 탭)를 막지 않는다
+    func gestureRecognizer(
+        _ gestureRecognizer: UIGestureRecognizer,
+        shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer
+    ) -> Bool {
+        return gestureRecognizer === openURLTapGesture
+    }
+}
+```
+
+(d) `setupUI()`에서 `textView.addGestureRecognizer(openURLTapGesture)` 앞에 `openURLTapGesture.delegate = self`를 넣는다. `update(text:isPinned:canPin:canOpenURL:)`에서 `textView.attributedText = ...` 다음 줄에 이전 선택이 남지 않도록 `textView.selectedRange = NSRange(location: 0, length: 0)`을 넣는다.
+
+- [ ] **Step 5: 키보드가 pasteboard 변경을 받아 기록·목록 갱신**
+
+`BaseKeyboardViewController.swift`에서:
+
+(a) `viewDidLoad()`의 `clipboardImageDidRecord` 옵저버 등록 바로 뒤에 추가:
+
+```swift
+        // 상세 뷰에서 본문 일부를 복사하면 viewWillAppear 등 기존 동기화 시점이 오지 않으므로 여기서 기록한다
+        NotificationCenter.default.addObserver(
+            self, selector: #selector(pasteboardDidChange), name: UIPasteboard.changedNotification, object: nil
+        )
+```
+
+(b) `hostDidBecomeActive()` 뒤에 추가:
+
+```swift
+    /// 패널이 열린 채 이 키보드 안에서 pasteboard가 바뀌면(상세 뷰 일부 복사) 기록에 반영하고, 보던 상세 뷰는 유지한다.
+    /// 붙여넣기·이미지 복원은 쓴 직후 changeCount를 갱신하므로, 그 갱신이 끝난 다음 runloop에서 확인해 중복 기록하지 않는다
+    @objc func pasteboardDidChange() {
+        DispatchQueue.main.async { [weak self] in
+            guard let self, self.isClipboardPanelVisible, self.isClipboardHistoryAvailable,
+                  let clipboardHistoryStore = self.clipboardHistoryStore else { return }
+            self.synchronizeClipboardHistoryIfNeeded()
+            guard clipboardHistoryStore.load() != self.clipboardHistoryPanelView.items else { return }
+            self.reloadClipboardPanel(keepsDetail: true)
+        }
+    }
+```
+
+(c) `reloadClipboardPanel()`을 교체:
+
+```swift
+    /// `keepsDetail`은 `ClipboardHistoryPanelView.configure(state:keepsDetail:)`로 그대로 넘긴다
+    func reloadClipboardPanel(keepsDetail: Bool = false) {
+        guard hasFullAccess, let clipboardHistoryStore else {
+            clipboardHistoryPanelView.configure(state: .fullAccessRequired)
+            return
+        }
+        let items = clipboardHistoryStore.load()
+        clipboardHistoryPanelView.configure(state: items.isEmpty ? .empty : .items(items), keepsDetail: keepsDetail)
+    }
+```
+
+- [ ] **Step 6: 테스트·빌드·설치**
+
+1. Run: `-only-testing:SYKeyboardTests/ClipboardHistoryPanelViewTests -only-testing:SYKeyboardTests/ClipboardHistoryPasteboardSynchronizerTests -only-testing:SYKeyboardTests/ClipboardHistoryStoreTests`
+   Expected: `TEST SUCCEEDED`. 실제 개수를 기록한다.
+2. `HangeulKeyboard`, `EnglishKeyboard`, `HangeulEnglishKeyboard` scheme을 `-only-testing` 없이 빌드. Expected: 모두 `BUILD SUCCEEDED`.
+3. SYKeyboard app scheme을 iOS 18.6 destination으로 빌드해 시뮬레이터 `82146144-24DE-4F91-B25D-23D147A91142`에 설치한다(앱 삭제 금지). `.xcscheme` `RemotePath` 변경은 되돌린다.
+
+- [ ] **Step 7: 수동 확인(사용자 조작 필요)**
+
+클립보드 기록 설정 켜짐, 전체 접근 허용 상태에서 키보드 확장의 클립보드 기록 패널로 확인한다.
+1. 텍스트 항목을 길게 눌러 상세 화면을 연 뒤, 본문을 길게 눌러 일부를 선택하고 메뉴에서 복사한다. 붙여넣기 권한 알림이 뜨지 않고 상세 화면이 그대로 유지된다.
+2. 상세를 닫으면 복사한 일부 텍스트가 목록 맨 위에 있다.
+3. 1의 상세에서 복사 후 바로 "붙여넣기"를 누르면 상세에서 보던 원래 항목 전체가 입력된다.
+4. 1의 상세에서 복사 후 "고정"을 누르면 보던 원래 항목이 고정된다.
+5. 본문 전체를 선택해 복사해도 상세가 유지되고 목록에 같은 항목이 중복으로 생기지 않는다.
+6. 본문 전체가 URL인 항목: 탭하면 링크가 열리고, 길게 누르면 선택된다. 선택이 있는 상태에서 탭하면 선택만 해제되고 링크가 열리지 않는다.
+7. 행 탭 붙여넣기 뒤 목록에 같은 항목이 중복으로 생기지 않는다(기존 동작 유지).
+8. 이미지 항목 상세의 "복사"는 기존처럼 안내 토스트가 뜨고 목록이 중복되지 않는다.
+
+확인하지 못한 항목은 체크하지 않고 이유를 적는다.
+
+- [ ] **Step 8: 커밋**
+
+```bash
+git add Modules/SYKeyboardCore/Presentation/View/ClipboardHistoryPanelView.swift \
+  Modules/SYKeyboardCore/Presentation/ViewController/Bases/BaseKeyboardViewController.swift \
+  SYKeyboardTests/Presentation/ClipboardHistoryPanelViewTests.swift \
+  docs/superpowers/plans/2026-09-15-issue-131-ngram-application-support.md
+git commit -m "feat: #131 - 키보드 클립보드 상세 화면에서 본문 일부를 선택해 복사하고 기록에 바로 반영"
+```
+
+### Task 5: 전체 검증과 결과 기록
 
 **Files:**
 - Modify: `docs/superpowers/plans/2026-09-15-issue-131-ngram-application-support.md`
