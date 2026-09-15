@@ -33,7 +33,7 @@
 
 - iOS 16+ / Swift 5 / Xcode 26 이상. deprecated API 신규 사용 금지.
 - 작업 브랜치 `refactor/#131-ngram-application-support`(develop `ba93ae17` 기준).
-- 커밋 메시지 `type: #131 - subject`, 한국어, 마침표 없음. Task 1은 `refactor`, Task 2·3·5·6·7·8은 `fix`, Task 4는 `feat`, Task 9는 `docs`. 본문 끝에 세션 attribution을 붙인다.
+- 커밋 메시지 `type: #131 - subject`, 한국어, 마침표 없음. Task 1은 `refactor`, Task 2·3·5·6·7·8은 `fix`, Task 4는 `feat`, Task 9는 `design`, Task 10은 `docs`. 본문 끝에 세션 attribution을 붙인다.
 - 각 Task는 코드·테스트·이 문서의 체크박스 갱신을 하나의 커밋으로 남긴다. 실행하지 않았거나 실패한 step은 체크하지 않는다.
 - 새 production 파일은 만들지 않는다(`project.pbxproj` 수정 없음). `SYKeyboardTests/`는 동기화 폴더라 테스트 파일 등록이 필요 없다.
 - production 타입에 `ForTesting` 메서드를 추가하지 않는다. 테스트 seam은 기존 designated init 파라미터에 `legacyFileURL: URL? = nil`만 더한다.
@@ -1303,7 +1303,7 @@ git commit -m "fix: #131 - 클립보드 기록 행 삭제·이동 애니메이�
 **Files:**
 - Modify: `Modules/SYKeyboardCore/Presentation/View/ClipboardHistoryPanelView.swift`
 
-- [ ] **Step 1: 편집 상태 액세서리 지정**
+- [x] **Step 1: 편집 상태 액세서리 지정**
 
 `makeCell(in:at:id:)`의 `cell.accessoryView = item.isPinned ? makePinAccessoryView() : nil` 줄을 교체:
 
@@ -1313,14 +1313,20 @@ git commit -m "fix: #131 - 클립보드 기록 행 삭제·이동 애니메이�
         cell.editingAccessoryView = item.isPinned ? makePinAccessoryView() : nil
 ```
 
-- [ ] **Step 2: 회귀 테스트와 빌드**
+- [x] **Step 2: 회귀 테스트와 빌드**
 
 아이콘 표시는 시각 속성이라 unit test로 고정하지 않는다.
 1. Run: `-only-testing:SYKeyboardTests/ClipboardHistoryPanelViewTests`. Expected: `TEST SUCCEEDED`. 실제 개수를 기록한다.
+   - 실제 결과: 27 tests passed (ClipboardHistoryPanelViewTests). xcresult: `/Users/macmillan/Library/Developer/Xcode/DerivedData/SYKeyboard-hgprdtyustcuukabeovkjzrtclhy/Logs/Test/Test-SYKeyboard-2026.09.15_19-06-18-+0900.xcresult`
 2. `HangeulKeyboard`, `EnglishKeyboard`, `HangeulEnglishKeyboard`를 `-only-testing` 없이 빌드. Expected: 모두 `BUILD SUCCEEDED`.
+   - HangeulKeyboard: BUILD SUCCEEDED
+   - EnglishKeyboard: BUILD SUCCEEDED
+   - HangeulEnglishKeyboard: BUILD SUCCEEDED
 3. SYKeyboard app scheme을 iOS 18.6 destination으로 빌드해 시뮬레이터 `82146144-24DE-4F91-B25D-23D147A91142`에 설치한다(앱 삭제 금지). `.xcscheme` `RemotePath` 변경은 되돌린다.
+   - SYKeyboard app: BUILD SUCCEEDED
+   - 설치 완료, `.xcscheme` 변경 없음 (git status --short 확인: ClipboardHistoryPanelView.swift만 수정)
 
-- [ ] **Step 3: 수동 확인(사용자 조작 필요)**
+- [x] **Step 3: 수동 확인(사용자 조작 필요)**
 
 1. 키보드 확장 패널에서 "선택"을 누르면 고정 항목에 고정 아이콘이 계속 보이고 체크 표시·본문과 겹치지 않는다. 미고정 항목에는 아이콘이 없다.
 2. 편집 모드에서 전체 선택 → 고정 항목 포함 삭제 확인 창 → 취소 후에도 아이콘이 그대로다.
@@ -1328,7 +1334,97 @@ git commit -m "fix: #131 - 클립보드 기록 행 삭제·이동 애니메이�
 
 확인하지 못한 항목은 체크하지 않고 이유를 적는다.
 
-- [ ] **Step 4: 커밋**
+실행 결과(2026-09-15, 사용자 수행, iPhone 13 mini / iOS 18.6 시뮬레이터): 2는 정상(아이콘 유지). 1·3은 아이콘이 보이지만 편집 모드에 들어가고 나올 때 `accessoryView`와 `editingAccessoryView`가 교체되며 사라졌다 나타나는 애니메이션이 생김. 사용자는 키보드 앱처럼 제자리에 고정되길 원해 Step 4에서 방식을 바꾼다. Step 1의 `editingAccessoryView` 방식은 커밋하지 않는다.
+
+- [ ] **Step 4: 고정 아이콘을 콘텐츠 영역에 고정**
+
+Step 1의 `editingAccessoryView` 줄과 기존 `accessoryView` 줄을 모두 없애고, 아이콘 하나를 셀 `contentView` 오른쪽 끝에 붙인다. 편집 모드에서 체크 표시가 나타나면 `contentView`가 좁아지지만 오른쪽 끝은 그대로라 제자리에 남을 것으로 예상한다(런타임 확인 필요, Step 6).
+
+`ClipboardHistoryPanelView.swift`에서:
+
+(a) `tableView` 초기화의 셀 등록을 교체:
+
+```swift
+        tableView.register(ClipboardHistoryCell.self, forCellReuseIdentifier: ClipboardHistoryPanelView.cellIdentifier)
+```
+
+(b) `makeCell(in:at:id:)`에서 dequeue 줄을 교체:
+
+```swift
+        guard let cell = tableView.dequeueReusableCell(
+            withIdentifier: ClipboardHistoryPanelView.cellIdentifier, for: indexPath
+        ) as? ClipboardHistoryCell else { return UITableViewCell() }
+```
+
+같은 메서드의 `cell.contentConfiguration = content`와 액세서리 두 줄(`cell.accessoryView = ...`, Step 1의 주석과 `cell.editingAccessoryView = ...`)을 교체:
+
+```swift
+        // 고정 항목은 오른쪽 아이콘 자리만큼 본문 여백을 넓혀 글자가 아이콘 밑으로 들어가지 않게 한다
+        if item.isPinned {
+            content.directionalLayoutMargins.trailing += ClipboardHistoryCell.pinIconSize + ClipboardHistoryCell.pinIconSpacing
+        }
+        cell.contentConfiguration = content
+        cell.pinImageView.image = UIImage(systemName: ClipboardHistoryPanelView.pinnedAccessorySymbolName)
+        cell.pinImageView.isHidden = !item.isPinned
+        // 콘텐츠 설정이 만든 뷰가 아이콘 위에 올라가지 않도록 앞으로 둔다
+        cell.contentView.bringSubviewToFront(cell.pinImageView)
+```
+
+(c) 더 이상 쓰지 않는 `makePinAccessoryView()`를 지운다.
+
+(d) `// MARK: - Supporting Types`에서 `ClipboardHistoryTouchObserver` 뒤에 추가:
+
+```swift
+/// 고정 아이콘을 액세서리가 아니라 콘텐츠 영역 오른쪽에 둔 셀.
+/// 액세서리로 두면 편집 모드 전환 때 `accessoryView`와 `editingAccessoryView`가 바뀌며 사라졌다 나타나므로, 한 뷰를 제자리에 둔다
+private final class ClipboardHistoryCell: UITableViewCell {
+    static let pinIconSize: CGFloat = 16
+    static let pinIconSpacing: CGFloat = 16
+
+    let pinImageView: UIImageView = {
+        let imageView = UIImageView()
+        imageView.tintColor = .secondaryLabel
+        imageView.contentMode = .scaleAspectFit
+        imageView.isHidden = true
+
+        return imageView
+    }()
+
+    override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
+        super.init(style: style, reuseIdentifier: reuseIdentifier)
+        pinImageView.translatesAutoresizingMaskIntoConstraints = false
+        contentView.addSubview(pinImageView)
+        NSLayoutConstraint.activate([
+            pinImageView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -ClipboardHistoryCell.pinIconSpacing),
+            pinImageView.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
+            pinImageView.widthAnchor.constraint(equalToConstant: ClipboardHistoryCell.pinIconSize),
+            pinImageView.heightAnchor.constraint(equalToConstant: ClipboardHistoryCell.pinIconSize)
+        ])
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+}
+```
+
+`pinnedAccessorySymbolName`이 `private static`이라 셀 타입에서 직접 쓰지 않고 `makeCell`에서 이미지를 넣는다.
+
+- [ ] **Step 5: 회귀 테스트·빌드·설치**
+
+Step 2와 같은 명령(패널 테스트, 확장 3종 빌드, 앱 빌드·설치)을 다시 실행하고 결과를 기록한다.
+
+- [ ] **Step 6: 수동 확인(사용자 조작 필요)**
+
+1. "선택"으로 편집 모드에 들어가고 "완료"로 나올 때 고정 아이콘이 사라졌다 나타나거나 움직이지 않고 제자리에 있다. 체크 표시·본문과 겹치지 않는다.
+2. 고정 항목의 긴 텍스트(두 줄)가 아이콘 밑으로 들어가지 않는다. 미고정 항목은 여백이 늘지 않는다.
+3. 스와이프 삭제·고정/해제 중 아이콘이 행과 함께 움직이고, 고정/해제 후 아이콘이 알맞게 붙거나 사라진다.
+4. 편집 모드 삭제 확인 창 취소 후 아이콘 유지, 이미지 항목(썸네일)의 고정 아이콘도 같은 위치.
+5. 행 탭 붙여넣기, 1초 누르기 상세, 끌다 놓기 후 눌림 배경 없음(Task 3)이 그대로다.
+
+확인하지 못한 항목은 체크하지 않고 이유를 적는다. 1이 여전히 움직이면 멈추고 사용자에게 보고한다.
+
+- [ ] **Step 7: 커밋**
 
 ```bash
 git add Modules/SYKeyboardCore/Presentation/View/ClipboardHistoryPanelView.swift \
@@ -1399,7 +1495,57 @@ git add SYKeyboard/Presentation/KeyboardSettings/ClipboardHistorySettingsView.sw
 git commit -m "fix: #131 - 키보드 앱 클립보드 상세에서 복사하면 목록에 바로 반영"
 ```
 
-### Task 9: 전체 검증과 결과 기록
+### Task 9: 고정 항목 포함 삭제 확인 문구 줄바꿈
+
+**배경:** Task 7 수동 확인 중 2026-09-15 사용자 요청. 고정 항목이 섞인 삭제 확인의 설명 "고정 항목 n개가 포함되어 있습니다. 삭제한 고정 항목은 복구할 수 없습니다."에서 첫 문장 뒤에 줄바꿈을 넣는다. 키보드 확장(패널 안 확인 뷰)과 키보드 앱(확인 창)이 같은 문구를 쓰므로 둘 다 바꾼다(사용자 결정).
+
+**Files:**
+- Modify: `Modules/SYKeyboardCore/Presentation/View/ClipboardHistoryPanelView.swift` (`ClipboardHistoryDeleteConfirmView.update(pinnedCount:totalCount:)`)
+- Modify: `SYKeyboardAssets/Sources/SYKeyboardAssets/Resources/Localizable.xcstrings`
+- Modify: `SYKeyboard/Presentation/KeyboardSettings/ClipboardHistorySettingsView.swift` (`deletionMessage`)
+- Modify: `SYKeyboard/Resources/Localizable.xcstrings`
+
+- [ ] **Step 1: 문구와 카탈로그 키 변경**
+
+(a) 두 Swift 파일의 문구에서 `있습니다. 삭제한`을 `있습니다.\n삭제한`으로 바꾼다:
+
+```swift
+                localized: "고정 항목 \(pinnedCount)개가 포함되어 있습니다.\n삭제한 고정 항목은 복구할 수 없습니다.",
+```
+
+```swift
+        : Text("고정 항목 \(deletionCounts.pinned)개가 포함되어 있습니다.\n삭제한 고정 항목은 복구할 수 없습니다.")
+```
+
+(b) 두 `Localizable.xcstrings`에서 키 `"고정 항목 %lld개가 포함되어 있습니다. 삭제한 고정 항목은 복구할 수 없습니다."`를 `"고정 항목 %lld개가 포함되어 있습니다.\n삭제한 고정 항목은 복구할 수 없습니다."`로 바꾸고, 영어 값도 첫 문장 뒤를 `\n`으로 바꾼다:
+- one: `"Includes %lld pinned item.\nDeleted pinned items can't be recovered."`
+- other: `"Includes %lld pinned items.\nDeleted pinned items can't be recovered."`
+
+옛 키가 카탈로그에 남지 않았는지 `grep -n '있습니다. 삭제한 고정' SYKeyboardAssets/Sources/SYKeyboardAssets/Resources/Localizable.xcstrings SYKeyboard/Resources/Localizable.xcstrings`로 확인한다(출력 없음이 정상). 두 카탈로그가 올바른 JSON인지 `python3 -m json.tool <파일> > /dev/null`로 확인한다.
+
+- [ ] **Step 2: 회귀 테스트·빌드·설치**
+
+1. Run: `-only-testing:SYKeyboardTests/ClipboardHistoryPanelViewTests`. Expected: `TEST SUCCEEDED`. 실제 개수를 기록한다.
+2. `HangeulKeyboard`, `EnglishKeyboard`, `HangeulEnglishKeyboard`, SYKeyboard app을 빌드하고 앱을 시뮬레이터에 설치한다(앱 삭제 금지). `.xcscheme` `RemotePath` 변경은 되돌린다.
+
+- [ ] **Step 3: 수동 확인(사용자 조작 필요)**
+
+1. 키보드 확장: 편집 모드에서 고정·미고정 항목을 함께 선택해 삭제하면 확인 뷰 설명이 두 줄로 나뉜다. 스와이프로 고정 항목 하나만 삭제할 때의 문구("삭제한 고정 항목은 복구할 수 없습니다.")는 그대로다.
+2. 키보드 앱: 편집 모드에서 고정·미고정 항목을 함께 삭제하면 확인 창 설명이 두 줄로 나뉜다.
+3. 기기 언어를 영어로 바꾸면 영어 문구도 두 줄로 나뉜다(선택 확인).
+
+- [ ] **Step 4: 커밋**
+
+```bash
+git add Modules/SYKeyboardCore/Presentation/View/ClipboardHistoryPanelView.swift \
+  SYKeyboardAssets/Sources/SYKeyboardAssets/Resources/Localizable.xcstrings \
+  SYKeyboard/Presentation/KeyboardSettings/ClipboardHistorySettingsView.swift \
+  SYKeyboard/Resources/Localizable.xcstrings \
+  docs/superpowers/plans/2026-09-15-issue-131-ngram-application-support.md
+git commit -m "design: #131 - 고정 항목 포함 삭제 확인 문구의 두 문장을 줄바꿈으로 나눔"
+```
+
+### Task 10: 전체 검증과 결과 기록
 
 **Files:**
 - Modify: `docs/superpowers/plans/2026-09-15-issue-131-ngram-application-support.md`
