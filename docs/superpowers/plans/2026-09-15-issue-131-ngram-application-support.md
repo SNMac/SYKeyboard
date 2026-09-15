@@ -65,7 +65,7 @@ xcodebuild test \
 **Interfaces:**
 - Produces: `init(language:fileURL:legacyFileURL:legacyStorage:loadApplyDelay:maxKeys:saveQueue:)`. `legacyFileURL: URL? = nil`이라 기존 테스트의 호출은 그대로 컴파일된다.
 
-- [ ] **Step 1: 실패하는 테스트 작성**
+- [x] **Step 1: 실패하는 테스트 작성**
 
 `SYKeyboardTests/Domain/NGramPredictiveTextEngineFileMigrationTests.swift`:
 
@@ -212,12 +212,15 @@ private func waitForLoadCompletion(of engine: NGramPredictiveTextEngine) async {
 }
 ```
 
-- [ ] **Step 2: 테스트가 실패하는지 확인**
+- [x] **Step 2: 테스트가 실패하는지 확인**
 
 Run: 위 명령에 `-only-testing:SYKeyboardTests/NGramPredictiveTextEngineFileMigrationTests`
 Expected: 컴파일 실패 `extra argument 'legacyFileURL' in call`
 
-- [ ] **Step 3: 엔진 구현**
+실제 결과: 예상대로 컴파일 실패.
+`NGramPredictiveTextEngineFileMigrationTests.swift:119:30: error: extra argument 'legacyFileURL' in call` → `** TEST FAILED **`
+
+- [x] **Step 3: 엔진 구현**
 
 `NGramPredictiveTextEngine.swift`에서 아래를 바꾼다.
 
@@ -356,13 +359,19 @@ Expected: 컴파일 실패 `extra argument 'legacyFileURL' in call`
     }
 ```
 
-- [ ] **Step 4: 새 테스트와 기존 NGram 테스트 통과 확인**
+- [x] **Step 4: 새 테스트와 기존 NGram 테스트 통과 확인**
 
 Run: 위 명령에 아래 네 suite를 함께 지정
 `-only-testing:SYKeyboardTests/NGramPredictiveTextEngineFileMigrationTests -only-testing:SYKeyboardTests/NGramPredictiveTextEnginePersistenceTests -only-testing:SYKeyboardTests/NGramPredictiveTextEngineLoadingTests -only-testing:SYKeyboardTests/NGramPredictiveTextEngineRankingTests`
 Expected: `TEST SUCCEEDED`, 새 테스트 5개 포함 전부 통과. 실제 통과 개수를 이 step 아래에 기록한다.
 
-- [ ] **Step 5: 커밋**
+실제 결과: `** TEST SUCCEEDED **`, 총 14개 테스트 통과 (iPhone 13 mini, iOS 18.6).
+- `NGramPredictiveTextEngineFileMigrationTests` 5개 전부 통과
+- `NGramPredictiveTextEnginePersistenceTests` 3개 전부 통과
+- `NGramPredictiveTextEngineLoadingTests` 2개 전부 통과
+- `NGramPredictiveTextEngineRankingTests` 4개 전부 통과
+
+- [x] **Step 5: 커밋**
 
 ```bash
 git add Modules/SYKeyboardCore/Domain/PredictiveText/NGramPredictiveTextEngine.swift \
