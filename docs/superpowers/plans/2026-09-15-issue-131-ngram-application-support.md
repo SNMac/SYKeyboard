@@ -33,7 +33,7 @@
 
 - iOS 16+ / Swift 5 / Xcode 26 이상. deprecated API 신규 사용 금지.
 - 작업 브랜치 `refactor/#131-ngram-application-support`(develop `ba93ae17` 기준).
-- 커밋 메시지 `type: #131 - subject`, 한국어, 마침표 없음. Task 1은 `refactor`, Task 2·3·5·6·7·8은 `fix`, Task 4는 `feat`, Task 9는 `design`, Task 10은 `docs`. 본문 끝에 세션 attribution을 붙인다.
+- 커밋 메시지 `type: #131 - subject`, 한국어, 마침표 없음. Task 1은 `refactor`, Task 2·3·5·6·7·8은 `fix`, Task 4·10·11은 `feat`, Task 9·12는 `design`, Task 13은 `docs`. 본문 끝에 세션 attribution을 붙인다.
 - 각 Task는 코드·테스트·이 문서의 체크박스 갱신을 하나의 커밋으로 남긴다. 실행하지 않았거나 실패한 step은 체크하지 않는다.
 - 새 production 파일은 만들지 않는다(`project.pbxproj` 수정 없음). `SYKeyboardTests/`는 동기화 폴더라 테스트 파일 등록이 필요 없다.
 - production 타입에 `ForTesting` 메서드를 추가하지 않는다. 테스트 seam은 기존 designated init 파라미터에 `legacyFileURL: URL? = nil`만 더한다.
@@ -1643,7 +1643,308 @@ git add Modules/SYKeyboardCore/Presentation/View/ClipboardHistoryPanelView.swift
 git commit -m "design: #131 - 고정 항목 포함 삭제 확인 문구의 두 문장을 줄바꿈으로 나눔"
 ```
 
-### Task 10: 전체 검증과 결과 기록
+### Task 10: 키보드 확장 편집 모드 고정 버튼과 고정·삭제 후 일반 모드 복귀
+
+**배경:** Task 7·9 수동 확인 뒤 2026-09-15 사용자 요청(설계 승인). (1) 편집 모드에서 고정·삭제를 실행하면 일반 모드로 돌아간다. (2) 키보드 확장 편집 모드 헤더의 "n개 삭제" 왼쪽에 고정 버튼을 둔다. 버튼 모양은 텍스트("고정"/"고정 해제", 사용자 결정). 규칙은 키보드 앱 하단 바가 쓰는 `ClipboardHistoryPolicy.pinBatch(selectedIDs:in:)`를 그대로 따른다(선택이 전부 고정이면 해제, 아니면 미고정만 고정, 대상이 없거나 한도 초과면 비활성).
+
+**설계 메모:**
+- 고정 항목이 섞인 삭제는 확인 뷰에서 "삭제"를 눌렀을 때만 편집 모드를 끝내고, 취소하면 유지한다.
+- `endItemEditing()`은 delegate 호출(목록 재구성) **전에** 부른다. `configure(state:)`의 기존 주석대로 편집 모드 해제 애니메이션과 행 갱신 애니메이션이 겹치지 않게 하기 위함이다. 선택 인덱스·id는 해제 전에 계산한다(해제하면 선택이 지워진다).
+- 스와이프 삭제·고정은 편집 모드가 아니므로 `endItemEditing()`의 guard로 영향이 없다.
+- 헤더 폭: iOS 16 지원 iPhone SE(2·3세대)는 375pt. 기본 글자 크기에서 "선택 해제"+"고정 해제"+"20개 삭제"+"완료"가 약 325pt(영어 약 330pt)로 사용 가능 폭(약 359pt) 안이라는 추정이며, Step 5에서 실제로 확인한다.
+- 새 로컬라이징 문자열은 없다(`"고정"`, `"고정 해제"`는 `SYKeyboardAssets` 카탈로그에 이미 있음).
+
+**Files:**
+- Modify: `Modules/SYKeyboardCore/Presentation/View/ClipboardHistoryPanelView.swift`
+- Modify: `Modules/SYKeyboardCore/Presentation/ViewController/Bases/BaseKeyboardViewController.swift`
+- Test: `SYKeyboardTests/Presentation/ClipboardHistoryPanelViewTests.swift`
+
+**Interfaces:**
+- Produces: `ClipboardHistoryPanelDelegate.clipboardPanel(_:didTogglePinsOf ids: Set<String>)`, `ClipboardHistoryPanelView.togglePinsOfSelectedItems()`
+
+- [ ] **Step 1: 실패하는 테스트 작성**
+
+`ClipboardHistoryPanelViewTests`의 `test일부선택후삭제는_선택인덱스만요청` 뒤에 추가:
+
+```swift
+    @Test("편집 모드에서 미고정만 삭제하면 요청한 뒤 편집 모드를 끝냄")
+    func test편집모드삭제후_편집모드종료() {
+        let (panel, spy) = makePanel(texts: ["a", "b", "c"])
+
+        panel.beginItemEditing()
+        panel.tableView.selectRow(at: IndexPath(row: 1, section: 0), animated: false, scrollPosition: .none)
+        panel.deleteSelectedItems()
+
+        #expect(spy.deletedIndices == [[1]])
+        #expect(panel.isItemEditing == false)
+    }
+
+    @Test("편집 모드에서 고정 항목이 섞인 삭제는 확인 전에는 편집 모드를 유지하고 확인하면 끝냄")
+    func test고정포함편집삭제는_확인후편집모드종료() {
+        let (panel, spy) = makePanel(items: [pinned("p"), unpinned("a"), unpinned("b")])
+
+        panel.beginItemEditing()
+        panel.tableView.selectRow(at: IndexPath(row: 0, section: 0), animated: false, scrollPosition: .none)
+        panel.tableView.selectRow(at: IndexPath(row: 1, section: 0), animated: false, scrollPosition: .none)
+        panel.deleteSelectedItems()
+
+        #expect(spy.deletedIndices.isEmpty)
+        #expect(panel.isItemEditing)
+
+        panel.confirmPendingDeletion()
+
+        #expect(spy.deletedIndices == [[0, 1]])
+        #expect(panel.isItemEditing == false)
+    }
+
+    @Test("편집 모드 고정 버튼은 선택한 항목 id로 고정을 요청하고 편집 모드를 끝냄")
+    func test편집모드고정은_선택id요청후편집모드종료() {
+        let (panel, spy) = makePanel(texts: ["a", "b", "c"])
+        let expectedIDs: Set<String> = [panel.items[0].id, panel.items[2].id]
+
+        panel.beginItemEditing()
+        panel.tableView.selectRow(at: IndexPath(row: 0, section: 0), animated: false, scrollPosition: .none)
+        panel.tableView.selectRow(at: IndexPath(row: 2, section: 0), animated: false, scrollPosition: .none)
+        panel.togglePinsOfSelectedItems()
+
+        #expect(spy.toggledPinIDs == [expectedIDs])
+        #expect(panel.isItemEditing == false)
+    }
+
+    @Test("편집 모드에서 선택이 없으면 고정을 요청하지 않고 편집 모드를 유지")
+    func test선택없으면_고정요청없음() {
+        let (panel, spy) = makePanel(texts: ["a", "b"])
+
+        panel.beginItemEditing()
+        panel.togglePinsOfSelectedItems()
+
+        #expect(spy.toggledPinIDs.isEmpty)
+        #expect(panel.isItemEditing)
+    }
+```
+
+같은 파일의 `ClipboardHistoryPanelDelegateSpy`에 추가(`toggledPinIndices` 선언 다음, `didTogglePinAt` 메서드 다음):
+
+```swift
+    private(set) var toggledPinIDs: [Set<String>] = []
+```
+
+```swift
+    func clipboardPanel(_ panel: ClipboardHistoryPanelView, didTogglePinsOf ids: Set<String>) {
+        toggledPinIDs.append(ids)
+    }
+```
+
+Run: `-only-testing:SYKeyboardTests/ClipboardHistoryPanelViewTests`
+Expected: 컴파일 실패(`togglePinsOfSelectedItems` 없음 또는 프로토콜에 없는 메서드).
+
+- [ ] **Step 2: 패널 구현**
+
+`ClipboardHistoryPanelView.swift`에서:
+
+(a) `ClipboardHistoryPanelDelegate`의 `didTogglePinAt` 선언 뒤에 추가:
+
+```swift
+    /// 편집 모드 헤더에서 선택한 항목을 한 번에 고정/해제했을 때 호출됩니다. 규칙은 `ClipboardHistoryPolicy.pinBatch`를 따릅니다.
+    func clipboardPanel(_ panel: ClipboardHistoryPanelView, didTogglePinsOf ids: Set<String>)
+```
+
+(b) `deleteButton` 선언 앞에 추가:
+
+```swift
+    private lazy var pinButton = makeHeaderButton(title: "") { [weak self] in
+        self?.togglePinsOfSelectedItems()
+    }
+```
+
+(c) `setHierarchy()`의 헤더 배열을 교체:
+
+```swift
+        [titleLabel, selectAllButton, spacer, pinButton, deleteButton, editButton, doneButton].forEach {
+```
+
+(d) `deleteSelectedItems()` 뒤에 추가:
+
+```swift
+    /// 편집 모드 헤더의 고정/해제. 선택한 항목을 id로 넘기고 편집 모드를 끝낸다. 테스트에서 직접 호출할 수 있도록 internal로 둔다
+    func togglePinsOfSelectedItems() {
+        guard isItemEditing else { return }
+        let ids = selectedItemIDs
+        guard ClipboardHistoryPolicy.pinBatch(selectedIDs: ids, in: items).isAllowed else { return }
+        // 편집 모드 해제 애니메이션이 행 이동 애니메이션과 겹치지 않도록 먼저 끝낸다. 해제하면 선택이 지워지므로 id는 먼저 구한다
+        endItemEditing()
+        delegate?.clipboardPanel(self, didTogglePinsOf: ids)
+    }
+```
+
+(e) private extension의 `isAllSelected` 뒤에 추가:
+
+```swift
+    var selectedItemIDs: Set<String> {
+        Set((tableView.indexPathsForSelectedRows ?? []).compactMap { items.indices.contains($0.row) ? items[$0.row].id : nil })
+    }
+```
+
+(f) `updateHeader()`에서 `deleteButton.isHidden = !isEditing` 다음 줄에 `pinButton.isHidden = !isEditing`을 넣고, 메서드 끝(`deleteButton.isEnabled = selectedCount > 0` 다음)에 추가:
+
+```swift
+        let pinBatch = ClipboardHistoryPolicy.pinBatch(selectedIDs: selectedItemIDs, in: items)
+        pinButton.configuration?.title = pinBatch.isUnpinning
+        ? String(localized: "고정 해제", bundle: SYKBDAssets.bundle)
+        : String(localized: "고정", bundle: SYKBDAssets.bundle)
+        pinButton.isEnabled = pinBatch.isAllowed
+```
+
+(g) `performDelete(at:deleteAll:)` 첫 줄에 추가:
+
+```swift
+        // 편집 모드에서 지웠으면 작업이 끝났으므로 일반 모드로 돌아간다. 행 삭제 애니메이션과 겹치지 않도록 먼저 끝낸다.
+        // 스와이프 삭제는 편집 모드가 아니라 아무 일도 하지 않는다
+        endItemEditing()
+```
+
+- [ ] **Step 3: 키보드 VC가 일괄 고정을 처리**
+
+`BaseKeyboardViewController.swift`의 `ClipboardHistoryPanelDelegate` extension에서 `didTogglePinAt` 구현 뒤에 추가:
+
+```swift
+    final func clipboardPanel(_ panel: ClipboardHistoryPanelView, didTogglePinsOf ids: Set<String>) {
+        // 저장소가 파일을 다시 읽어 정책을 적용하므로 그사이 앱이 바꾼 내용과 어긋나지 않는다
+        clipboardHistoryStore?.togglePins(selectedIDs: ids)
+        reloadClipboardPanel()
+    }
+```
+
+- [ ] **Step 4: 테스트 통과 확인**
+
+Run: `-only-testing:SYKeyboardTests/ClipboardHistoryPanelViewTests -only-testing:SYKeyboardTests/ClipboardHistoryPolicyTests`
+Expected: `TEST SUCCEEDED`, 새 테스트 4개 포함. 실제 개수를 기록한다.
+
+- [ ] **Step 5: 수동 확인(사용자 조작 필요, Task 11·12와 한 빌드)**
+
+1. 키보드 확장 편집 모드 헤더에 "선택 해제/전체 선택", "고정/고정 해제", "n개 삭제", "완료"가 보인다. 선택이 없으면 고정·삭제가 비활성, 선택이 모두 고정이면 "고정 해제", 섞이면 "고정".
+2. 고정을 누르면 선택 항목이 고정/해제되고 일반 모드로 돌아간다. 고정 한도가 차서 고정할 수 없으면 버튼이 비활성이다.
+3. 미고정만 삭제하면 바로 지워지고 일반 모드로 돌아간다. 고정 항목이 섞이면 확인 뷰가 뜨고, 취소하면 편집 모드 유지, 삭제하면 일반 모드로 돌아간다.
+4. 스와이프 삭제·고정은 기존과 같다.
+5. iPhone SE (3rd generation) / iOS 16.0 시뮬레이터(키보드 추가 필요)와 iPhone 13 mini / iOS 18.6에서 편집 모드 헤더 버튼이 잘리거나 겹치지 않는다. 가로 모드와 영어도 확인한다. 큰 글자 크기는 확인하지 못하면 이유를 적는다.
+
+- [ ] **Step 6: 커밋**
+
+```bash
+git add Modules/SYKeyboardCore/Presentation/View/ClipboardHistoryPanelView.swift \
+  Modules/SYKeyboardCore/Presentation/ViewController/Bases/BaseKeyboardViewController.swift \
+  SYKeyboardTests/Presentation/ClipboardHistoryPanelViewTests.swift \
+  docs/superpowers/plans/2026-09-15-issue-131-ngram-application-support.md
+git commit -m "feat: #131 - 키보드 클립보드 편집 모드에 고정 버튼을 추가하고 고정·삭제 후 일반 모드로 돌아감"
+```
+
+### Task 11: 키보드 앱 편집 모드에서 고정·삭제 후 일반 모드 복귀
+
+**배경:** Task 10과 같은 사용자 요청의 키보드 앱 부분. 하단 바 "n개 고정"·"n개 삭제" 실행 뒤 일반 모드로 돌아간다. 고정 항목이 섞인 삭제는 확인 창에서 "삭제"를 눌렀을 때만 돌아가고 취소하면 유지한다. 스와이프 고정·삭제는 편집 모드가 아니므로 바뀌지 않는다.
+
+**Files:**
+- Modify: `SYKeyboard/Presentation/KeyboardSettings/ClipboardHistorySettingsView.swift`
+
+- [ ] **Step 1: 구현**
+
+(a) `private extension ClipboardHistorySettingsView`(Private Methods)의 `togglePins(selectedIDs:)` 앞에 추가:
+
+```swift
+    /// 편집 모드 하단 바의 고정·삭제가 끝나면 일반 모드로 돌아간다. "완료" 버튼과 같은 동작이다
+    func finishEditing() {
+        withAnimation { editMode = .inactive }
+        selection.removeAll()
+    }
+```
+
+(b) 하단 바 고정 버튼 action을 교체:
+
+```swift
+            Button {
+                togglePins(selectedIDs: selection)
+                finishEditing()
+            } label: {
+```
+
+(c) `remove(_:)`를 출처를 받도록 교체:
+
+```swift
+    /// 저장소가 id로 지우므로 파일을 미리 다시 읽을 필요가 없다. 편집 모드 하단 바에서 지웠으면 일반 모드로 돌아간다
+    func remove(_ removing: [ClipboardHistoryItem], source: DeletionSource) {
+        guard !removing.isEmpty else { return }
+        store?.remove(ids: Set(removing.map(\.id)))
+        if source == .toolbar { finishEditing() }
+        reload()
+    }
+```
+
+(d) 호출부 두 곳을 바꾼다: `requestRemove(_:source:)`의 `remove(removing)` → `remove(removing, source: source)`, `deletionConfirmation(_:source:)`의 `Button("삭제", role: .destructive) { screen.remove(removing) }` → `{ screen.remove(removing, source: source) }`.
+
+`remove(`를 부르는 곳이 더 있는지 `grep -n 'remove(' SYKeyboard/Presentation/KeyboardSettings/ClipboardHistorySettingsView.swift`로 확인하고 모두 출처를 넘긴다.
+
+- [ ] **Step 2: 빌드**
+
+SYKeyboard app scheme을 iOS 18.6 destination으로 빌드한다. Expected: `BUILD SUCCEEDED`. (SwiftUI 화면이라 unit test 없음, Task 10·12와 한 빌드로 설치)
+
+- [ ] **Step 3: 수동 확인(사용자 조작 필요)**
+
+1. 키보드 앱 클립보드 기록 관리 편집 모드에서 항목을 선택해 고정/고정 해제하면 일반 모드로 돌아간다.
+2. 미고정만 삭제하면 일반 모드로 돌아간다. 고정 항목이 섞이면 확인 창 취소 시 편집 모드와 선택이 유지되고, 삭제하면 일반 모드로 돌아간다.
+3. 스와이프 고정·삭제(확인 창 포함)는 기존과 같다.
+
+- [ ] **Step 4: 커밋**
+
+```bash
+git add SYKeyboard/Presentation/KeyboardSettings/ClipboardHistorySettingsView.swift \
+  docs/superpowers/plans/2026-09-15-issue-131-ngram-application-support.md
+git commit -m "feat: #131 - 키보드 앱 클립보드 편집 모드에서 고정·삭제 후 일반 모드로 돌아감"
+```
+
+### Task 12: 키보드 앱 iOS 26 미만 하단 바 고정·삭제 버튼 간격
+
+**배경:** 사용자 요청(스크린샷: iPhone 13 mini / iOS 16.0에서 하단 바의 고정·삭제 아이콘 간격이 사진 앱보다 좁음). 사진 앱은 UIKit `UIToolbar`에서 버튼 사이에 고정 간격 항목을 넣는다. SwiftUI 툴바의 고정 간격 API(`ToolbarSpacer`)는 iOS 26부터이고, iOS 26 이상은 유리 그룹이 여백을 줘 간격이 보인다. 그래서 iOS 26 미만에서만 삭제 버튼 앞에 여백을 준다. 이 방식이 SwiftUI 하단 바에서 실제로 적용되는지는 런타임 확인이 필요하다(Step 3에서 확인하고, 적용되지 않으면 멈추고 보고한다).
+
+**Files:**
+- Modify: `SYKeyboard/Presentation/KeyboardSettings/ClipboardHistorySettingsView.swift`
+
+- [ ] **Step 1: 구현**
+
+(a) 뷰의 프로퍼티 영역(`pinBatch` 계산 프로퍼티 뒤)에 추가:
+
+```swift
+    /// iOS 26 미만 SwiftUI 하단 바에는 버튼 사이 고정 간격 API(`ToolbarSpacer`)가 없어 붙은 버튼이 사진 앱보다 좁게 붙는다.
+    /// iOS 26부터는 유리 그룹이 여백을 주므로 그대로 둔다
+    private static var legacyBottomBarItemSpacing: CGFloat {
+        if #available(iOS 26, *) { return 0 }
+        return 12
+    }
+```
+
+(b) 하단 바 삭제 버튼의 `.disabled(selection.isEmpty)` 다음 줄에 추가:
+
+```swift
+            .padding(.leading, Self.legacyBottomBarItemSpacing)
+```
+
+- [ ] **Step 2: 빌드**
+
+SYKeyboard app scheme 빌드. Expected: `BUILD SUCCEEDED`. iOS 16.0 시뮬레이터 확인을 위해 iPhone 13 mini / iOS 16.0 destination으로도 빌드해 그 시뮬레이터에 설치한다(앱 삭제 금지, iOS 16.0은 XCTest만 불가하고 앱 실행은 가능).
+
+- [ ] **Step 3: 수동 확인(사용자 조작 필요)**
+
+1. iPhone 13 mini / iOS 16.0에서 편집 모드 하단 바의 고정·삭제 아이콘 간격이 사진 앱 선택 모드의 휴지통·더보기 간격과 비슷하다. 여백이 적용되지 않거나 버튼 모양·색이 바뀌면 멈추고 보고한다.
+2. iOS 18.6에서도 간격이 자연스럽고 버튼 탭 영역·비활성 표시가 정상이다.
+3. iOS 26 이상 기기(사용자 실기기)에서는 기존과 같은 모양이다.
+
+- [ ] **Step 4: 커밋**
+
+```bash
+git add SYKeyboard/Presentation/KeyboardSettings/ClipboardHistorySettingsView.swift \
+  docs/superpowers/plans/2026-09-15-issue-131-ngram-application-support.md
+git commit -m "design: #131 - 키보드 앱 클립보드 편집 모드 하단 바의 고정·삭제 버튼 간격을 iOS 26 미만에서 넓힘"
+```
+
+### Task 13: 전체 검증과 결과 기록
 
 **Files:**
 - Modify: `docs/superpowers/plans/2026-09-15-issue-131-ngram-application-support.md`
