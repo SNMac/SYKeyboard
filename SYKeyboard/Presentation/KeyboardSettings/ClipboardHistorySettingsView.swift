@@ -522,6 +522,7 @@ private struct ClipboardHistoryDetailView: View {
     @State private var isEditing = false
     @State private var draft = ""
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.openURL) private var openURL
     /// 화면 해상도까지 디코드한 원본. body 평가마다 다시 디코드하지 않도록 한 번만 읽어 둔다
     @State private var previewImage: UIImage?
 
@@ -535,15 +536,6 @@ private struct ClipboardHistoryDetailView: View {
                 .previewImage(for: reference, maxPixelSize: ClipboardImagePolicy.appPreviewMaxPixelSize)
                 .map { UIImage(cgImage: $0) }
         }.value
-    }
-
-    private var linkStyledText: AttributedString {
-        var attributed = AttributedString(text)
-        if let url = ClipboardHistoryPolicy.openableURL(in: text) {
-            attributed.link = url
-            attributed.underlineStyle = .single
-        }
-        return attributed
     }
 
     var body: some View {
@@ -570,13 +562,12 @@ private struct ClipboardHistoryDetailView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .padding()
                 } else {
-                    ScrollView {
-                        // 텍스트 전체가 URL이면 일반 링크처럼 파란 밑줄로 보이고 탭하면 브라우저로 연다
-                        Text(linkStyledText)
-                            .textSelection(.enabled)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding()
-                    }
+                    // SwiftUI Text의 선택은 코드로 해제할 수 없어 UITextView로 보여준다. 키보드 패널 상세와 같은 선택·링크 규칙이다
+                    ClipboardHistoryDetailTextView(
+                        text: text,
+                        url: ClipboardHistoryPolicy.openableURL(in: text),
+                        onOpenURL: { openURL($0) }
+                    )
                 }
             }
             .navigationTitle(isEditing ? "편집" : (item.image != nil ? "이미지" : "상세"))
@@ -642,6 +633,80 @@ private struct ClipboardHistoryDetailView: View {
                     }
                 }
             }
+        }
+    }
+}
+
+// MARK: - Detail Text
+
+/// 원문 본문. 편집 없이 선택·복사만 허용한다.
+/// 선택이 있을 때 선택 밖을 탭하면 선택만 풀리고, 선택이 없을 때 본문 전체가 URL이면 글자 영역을 탭해 연다.
+/// 키보드 패널 상세(`ClipboardHistoryPanelView`의 상세 뷰)와 같은 규칙이다
+private struct ClipboardHistoryDetailTextView: UIViewRepresentable {
+    let text: String
+    let url: URL?
+    let onOpenURL: (URL) -> Void
+
+    func makeCoordinator() -> Coordinator { Coordinator() }
+
+    func makeUIView(context: Context) -> UITextView {
+        let textView = UITextView()
+        textView.isEditable = false
+        textView.isSelectable = true
+        textView.backgroundColor = .clear
+        textView.textContainerInset = UIEdgeInsets(top: 16, left: 12, bottom: 16, right: 12)
+        let tapGesture = UITapGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.handleTap(_:)))
+        tapGesture.delegate = context.coordinator
+        textView.addGestureRecognizer(tapGesture)
+        context.coordinator.textView = textView
+        return textView
+    }
+
+    func updateUIView(_ textView: UITextView, context: Context) {
+        context.coordinator.url = url
+        context.coordinator.onOpenURL = onOpenURL
+        var attributes: [NSAttributedString.Key: Any] = [
+            .font: UIFont.preferredFont(forTextStyle: .body),
+            .foregroundColor: UIColor.label
+        ]
+        if url != nil {
+            // 텍스트 전체가 URL이면 일반 링크처럼 파란 밑줄로 그린다
+            attributes[.foregroundColor] = UIColor.link
+            attributes[.underlineStyle] = NSUnderlineStyle.single.rawValue
+        }
+        let attributedText = NSAttributedString(string: text, attributes: attributes)
+        // SwiftUI가 다시 그릴 때마다 교체하면 선택이 풀리므로 내용이 바뀐 경우에만 넣는다
+        guard textView.attributedText != attributedText else { return }
+        textView.attributedText = attributedText
+    }
+
+    final class Coordinator: NSObject, UIGestureRecognizerDelegate {
+        weak var textView: UITextView?
+        var url: URL?
+        var onOpenURL: ((URL) -> Void)?
+
+        /// 글자가 있는 영역을 탭했을 때만 연다. 빈 여백 탭은 무시한다
+        @objc func handleTap(_ recognizer: UITapGestureRecognizer) {
+            guard let textView, let url else { return }
+            let point = recognizer.location(in: textView)
+            let inset = textView.textContainerInset
+            let usedRect = textView.layoutManager.usedRect(for: textView.textContainer)
+                .offsetBy(dx: inset.left, dy: inset.top)
+            guard usedRect.contains(point) else { return }
+            onOpenURL?(url)
+        }
+
+        /// 선택 영역이 있을 때의 탭은 선택 해제로 쓰이므로 링크를 열지 않는다
+        func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
+            return (textView?.selectedRange.length ?? 0) == 0
+        }
+
+        /// 본문 선택용 텍스트 뷰 제스처(길게 누르기·두 번 탭·선택 해제 탭)를 막지 않는다
+        func gestureRecognizer(
+            _ gestureRecognizer: UIGestureRecognizer,
+            shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer
+        ) -> Bool {
+            return true
         }
     }
 }

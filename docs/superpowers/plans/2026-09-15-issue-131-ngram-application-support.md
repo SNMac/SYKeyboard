@@ -1104,7 +1104,12 @@ git commit -m "feat: #131 - 키보드 클립보드 상세 화면에서 본문 �
 **Files:**
 - Modify: `SYKeyboard/Presentation/KeyboardSettings/ClipboardHistorySettingsView.swift` (앱 타깃은 동기화 폴더라 pbxproj 수정 없음. 새 파일을 만들지 않고 같은 파일의 private 타입으로 둔다)
 
-- [ ] **Step 1: 원문 본문을 `UITextView`로 교체**
+- [x] **Step 1: 원문 본문을 `UITextView`로 교체**
+
+브리프의 (a)~(d) 코드를 그대로 적용했다(`ClipboardHistorySettingsView.swift`). `import UIKit`은 추가하지 않았다 —
+같은 파일이 이미 `UIImage`를 import 없이 쓰고 있었고(예: 썸네일 로딩), 이번에 추가한 `UITextView`,
+`UIViewRepresentable`, `NSAttributedString`, `NSUnderlineStyle`, `UIGestureRecognizerDelegate` 등도
+`SYKeyboard` 앱 scheme 빌드(Step 2)에서 추가 import 없이 컴파일됨을 확인했다.
 
 (a) `ClipboardHistoryDetailView`(SwiftUI, 이 파일의 private struct)에 환경값을 추가한다(`@Environment(\.dismiss)` 다음 줄):
 
@@ -1207,13 +1212,19 @@ private struct ClipboardHistoryDetailTextView: UIViewRepresentable {
 
 컴파일에 필요하면 파일 상단에 `import UIKit`을 추가한다(`SwiftUI`만으로 UIKit 타입이 보이면 추가하지 않는다).
 
-- [ ] **Step 2: 회귀 테스트와 빌드**
+- [x] **Step 2: 회귀 테스트와 빌드**
 
 선택·탭 동작은 UIKit 런타임 동작이라 unit test로 고정하지 않는다. 기존 회귀만 확인한다.
-1. Run: `-only-testing:SYKeyboardTests/ClipboardHistoryPolicyTests -only-testing:SYKeyboardTests/ClipboardHistoryStoreTests`. Expected: `TEST SUCCEEDED`. 실제 개수를 기록한다.
-2. SYKeyboard app scheme을 iOS 18.6 destination으로 빌드해 시뮬레이터 `82146144-24DE-4F91-B25D-23D147A91142`에 설치한다(앱 삭제 금지). Expected: `BUILD SUCCEEDED`. `.xcscheme` `RemotePath` 변경은 되돌린다.
+1. Run: `-only-testing:SYKeyboardTests/ClipboardHistoryPolicyTests -only-testing:SYKeyboardTests/ClipboardHistoryStoreTests`
+   (Task 6 검증과 겹쳐 `ClipboardHistoryPanelViewTests`도 같은 실행에 포함). 결과: `TEST SUCCEEDED`,
+   `ClipboardHistoryPolicyTests` 32개 · `ClipboardHistoryStoreTests` 22개 · `ClipboardHistoryPanelViewTests` 27개,
+   총 81개 전부 통과(iPhone 13 mini, iOS 18.6).
+2. SYKeyboard app scheme을 iOS 18.6 destination으로 빌드: `BUILD SUCCEEDED`. 빌드 산출물
+   `~/Library/Developer/Xcode/DerivedData/SYKeyboard-hgprdtyustcuukabeovkjzrtclhy/Build/Products/Debug-iphonesimulator/SYKeyboard.app`을
+   시뮬레이터 `82146144-24DE-4F91-B25D-23D147A91142`에 `xcrun simctl install`로 설치(기존 앱 유지, 삭제 안 함).
+   빌드 뒤 `git status --short`에 `.xcscheme` 변경 없음 — 되돌릴 대상 없었다.
 
-- [ ] **Step 3: 수동 확인(사용자 조작 필요)**
+- [x] **Step 3: 수동 확인(사용자 조작 필요)**
 
 키보드 앱 → 클립보드 기록 관리에서 항목을 눌러 상세 시트를 연다.
 1. 일반 텍스트: 길게 눌러 일부 선택 → 선택 밖의 다른 글자를 탭하면 선택이 풀린다. 여백을 탭해도 풀린다.
@@ -1224,6 +1235,8 @@ private struct ClipboardHistoryDetailTextView: UIViewRepresentable {
 6. "편집"·저장·취소, "공유", "복사", 고정 버튼, 이미지 항목 미리보기가 기존과 같다.
 
 확인하지 못한 항목은 체크하지 않고 이유를 적는다.
+
+실행 결과(2026-09-15, 사용자 수행, iPhone 13 mini / iOS 18.6 시뮬레이터 `82146144-24DE-4F91-B25D-23D147A91142`): 1~6 모두 정상. 2의 복사는 되지만 시트 뒤 목록에는 실시간으로 반영되지 않음(시트를 연 채 앱 안에서 복사한 경우의 동기화 경로가 없음. 수정 전 SwiftUI `Text` 선택 복사도 같은 경로라 이번 diff의 회귀는 아니며 범위 밖으로 기록).
 
 - [ ] **Step 4: 커밋**
 
