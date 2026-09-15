@@ -2214,16 +2214,20 @@ git commit -m "design: #131 - 키보드 클립보드 편집 모드 헤더에 선
 **Files:**
 - Modify: `docs/superpowers/plans/2026-09-15-issue-131-ngram-application-support.md`
 
-- [ ] **Step 1: 전체 테스트**
+- [x] **Step 1: 전체 테스트**
 
 Run: `xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=18.6' 2>&1 | grep -E "failed on|error:|TEST (SUCCEEDED|FAILED)|Test run with"`
 Expected: `TEST SUCCEEDED`. 실제 테스트 개수와 `.xcresult` 경로를 기록한다.
 
-- [ ] **Step 2: extension 3종 빌드**
+실행 결과(2026-09-15, 컨트롤러): 첫 실행(`-parallel-testing-enabled` 기본값)은 테스트 복제 시뮬레이터 "Clone 1 of iPhone 13 mini"에 iOS 붙여넣기 권한 알림이 떠 약 31분 멈춰 중단(환경 문제, CLAUDE.md 해당 절). 재실행: `xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard -destination 'id=82146144-24DE-4F91-B25D-23D147A91142' -parallel-testing-enabled NO` → `** TEST SUCCEEDED **`, `Test run with 696 tests in 72 suites passed`. xcresult: `~/Library/Developer/Xcode/DerivedData/SYKeyboard-hgprdtyustcuukabeovkjzrtclhy/Logs/Test/Test-SYKeyboard-2026.09.15_22-09-16-+0900.xcresult`, `xcrun xcresulttool get test-results summary --path <xcresult>` 결과 Passed, total 696, passed 696, failed 0, skipped 0. 시뮬레이터: iPhone 13 mini / iOS 18.6.
+
+- [x] **Step 2: extension 3종 빌드**
 
 `-only-testing` 없이 `HangeulKeyboard`, `EnglishKeyboard`, `HangeulEnglishKeyboard` scheme을 각각 `xcodebuild build`한다(CLAUDE.md 명령). Expected: 세 번 모두 `BUILD SUCCEEDED`. 이후 `git status --short`에서 `.xcscheme`의 `RemotePath` 변경만 있으면 되돌린다.
 
-- [ ] **Step 3: 실기기 업데이트 확인(사용자 수행)**
+실행 결과(2026-09-15, 컨트롤러): `xcodebuild build -project SYKeyboard.xcodeproj -scheme <HangeulKeyboard|EnglishKeyboard|HangeulEnglishKeyboard> -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=18.6'` 세 번 모두 `** BUILD SUCCEEDED **`. 이후 `git status --short` 변경 없음(`.xcscheme` RemotePath 변경 없음).
+
+- [x] **Step 3: 실기기 업데이트 확인(사용자 수행)**
 
 1. develop(`ba93ae17`) 빌드를 실기기에 설치하고 한글·영어 키보드에서 단어를 학습시켜 자동완성 후보가 뜨는 것을 확인한다.
 2. 이 브랜치 빌드를 덮어 설치(앱 삭제 금지)한다.
@@ -2232,7 +2236,9 @@ Expected: `TEST SUCCEEDED`. 실제 테스트 개수와 `.xcresult` 경로를 기
 
 자동 테스트로 대체하지 않는다. 확인하지 못했으면 체크하지 않고 이유를 적는다.
 
-- [ ] **Step 4: 실기기 Shift 확인(사용자 수행)**
+실행 결과(2026-09-15, 사용자 실기기): 개발 중 이 브랜치 빌드를 기존 설치 위에 여러 번 덮어 설치하는 동안 기존 자동완성 학습 후보가 그대로 떠 업데이트 후 데이터 유지를 확인(1~3의 develop 재설치·학습 절차는 따로 수행하지 않음). 4: 이 브랜치 빌드에서 "학습 데이터 초기화" 후 후보가 사라지고 키보드를 다시 열어도 되살아나지 않음. 이동 실패로 옛 파일이 남은 상태의 초기화는 실기기에서 재현하지 않았고 `NGramPredictiveTextEngineFileMigrationTests`로만 확인.
+
+- [x] **Step 4: 실기기 Shift 확인(사용자 수행)**
 
 영어 키보드와 한영 통합 키보드(영어 모드) 각각에서:
 1. Shift 두 번 탭 → caps lock 아이콘 → Shift를 누른 채 `ABC` 입력 → 떼기 → caps lock 아이콘과 대문자 라벨 유지, 이어서 `D` 입력 시 대문자.
@@ -2240,9 +2246,11 @@ Expected: `TEST SUCCEEDED`. 실제 테스트 개수와 `.xcresult` 경로를 기
 3. caps lock 상태에서 Shift 한 번 탭 → caps lock 해제.
 4. Shift 한 번 탭 → `A` 입력 → 소문자 복귀(기존 동작).
 
+실행 결과(2026-09-15, 사용자 실기기): 영어 키보드·한영 통합 키보드 영어 모드에서 1~4 모두 정상.
+
 - [ ] **Step 5: 커밋**
 
 ```bash
 git add docs/superpowers/plans/2026-09-15-issue-131-ngram-application-support.md
-git commit -m "docs: #131 - NGram 파일 이동·caps lock·클립보드 행 수정 검증 결과 기록"
+git commit -m "docs: #131 - 전체 테스트·확장 빌드·실기기 확인 결과 기록"
 ```
