@@ -38,8 +38,8 @@
 |  디자인 패턴   | `Delegate`, `Singleton`, `Adapter`                           |
 |   인터페이스   | `UIKit`, `SwiftUI`                                           |
 |  활용 API   | `Firebase Analytics`, `Firebase Crashlytics`, `Google AdMob`(+ `Meta Audience Network` 미디에이션) |
-|  내부 저장소   | `UserDefaults`(App Group), 바이너리 plist 파일                    |
-| 자동완성 텍스트  | `UILexicon`, `UITextChecker`, 자체 n-gram 엔진                   |
+|  내부 저장소   | `UserDefaults`(App Group), 바이너리 plist 파일(n-gram 학습 데이터 · 클립보드 기록), 클립보드 이미지 파일(App Group `Library/Application Support`) |
+| 자동완성 텍스트  | `UILexicon`, `UITextChecker`, 자체 n-gram 엔진, 수식 계산 후보(`MathExpressionCompletionEvaluator`) |
 |   로컬라이징   | `String Catalog`                                             |
 |    테스트    | `Swift Testing`                                              |
 
@@ -456,6 +456,8 @@ flowchart TB
 
     subgraph LO["키보드 레이아웃 구조"]
         Layout["KeyboardView<br/>*KeyboardLayoutProvider 구현 View"]
+        Toolbar["SuggestionBarView<br/>(후보 · undo/redo · 클립보드 버튼)"]
+        ClipboardPanel["ClipboardHistoryPanelView"]
     end
 
     subgraph GS["제스처 구조"]
@@ -467,14 +469,20 @@ flowchart TB
     end
 
     Suggestion["자동완성<br/>SuggestionController · 예측 엔진"]
+    ClipboardStore["클립보드 저장소<br/>ClipboardHistoryStore · ClipboardImageStore"]
     Host["호스트 앱 텍스트 필드<br/>(textDocumentProxy)"]
 
     Adapter -->|조합 위임| Domain
     Adapter -->|현재 키보드 View 제공| Layout
     Layout -->|버튼 배치| Button
+    Layout -->|상단 툴바| Toolbar
+    Layout -->|클립보드 패널| ClipboardPanel
     Button -->|UIAction| BaseVC
+    Toolbar -->|후보 탭 · undo/redo · 패널 열기| BaseVC
+    ClipboardPanel -->|항목 탭 · 편집| BaseVC
     BaseVC -->|터치/드래그| Gesture
     BaseVC -->|후보 조회 · 학습| Suggestion
+    BaseVC -->|기록 조회 · 저장| ClipboardStore
     BaseVC -->|insert/delete| Host
 ```
 
@@ -796,6 +804,7 @@ direction LR
 
     classDef SYKeyboard_primary fill:#ffa6ed
 ```
+> `BaseKeyboardButton` 계열이 아닌 `ChevronButton`(`UIButton`), `SuggestionButtonView`, `SuggestionActionButtonView`(`UIView`)는 위 다이어그램에 포함하지 않았다.
 
 ---
 
@@ -874,12 +883,42 @@ direction LR
 
 
 8. **다양하고 디테일한 키보드 설정**  
-길게 누르기 동작, 커서 이동, 키보드 높이 및 한 손 키보드 너비 조절 등 사용자의 편의에 맞게 키보드 설정이 가능합니다.
+길게 누르기 동작, 커서 이동, 키보드 높이 및 한 손 키보드 너비 조절, 키보드 툴바(Undo/Redo · 클립보드 기록 · 이미지도 기록) 등 사용자의 편의에 맞게 키보드 설정이 가능합니다.
 
 |    한국어    |   영어   |
 | :-------------: | :----------: |
 | <img width="300" alt="메인 앱 1" src="https://github.com/user-attachments/assets/9bb71497-459a-48b5-9937-f9946f9d56c2"> | <img width="300" alt="메인 앱 1 - 영어" src="https://github.com/user-attachments/assets/92645ff2-ab29-4666-85a1-98409299ee8a"> |
 | <img width="300" alt="메인 앱 2" src="https://github.com/user-attachments/assets/f7de1552-65ce-49cd-841e-0ea68b730093" width="300"> | <img width="300" alt="메인 앱 2 - 영어" src="https://github.com/user-attachments/assets/c5b59eda-dfe7-442e-8993-80dd7712d2ea" width="300"> |
 | <img width="300" alt="메인 앱 3" src="https://github.com/user-attachments/assets/c9ce4a05-0061-45ea-b5ae-46072c5ac976" width="300"> | <img width="300" alt="메인 앱 3 - 영어" src="https://github.com/user-attachments/assets/968b4cc3-562f-47d5-b097-bc055e932531" width="300"> |
+
+<br><br>
+
+
+9. **한영 통합 키보드**  
+한글 키보드와 영어 키보드를 한영 전환 버튼으로 오가는 단일 키보드입니다. 한글·영어 InputAdapter 2개와 `HangeulEnglishKeyboardModeCoordinator`가 현재 언어 모드를 결정합니다.
+
+<br><br>
+
+
+10. **클립보드 기록**  
+복사한 텍스트를 키보드 상단 클립보드 버튼으로 붙여넣을 수 있습니다. '이미지도 기록'을 켜면 복사한 이미지도 저장하고 탭하면 클립보드로 복원합니다. 기록은 메인 앱의 클립보드 기록 화면에서 고정·편집·삭제할 수 있습니다.
+
+<br><br>
+
+
+11. **Undo/Redo**  
+키보드 상단에 Undo/Redo 버튼을 표시해 입력을 되돌리거나 다시 실행할 수 있습니다.
+
+<br><br>
+
+
+12. **수식 결과 표시**  
+입력 중인 수식이나 선택한 수식의 계산 결과를 자동완성 후보로 보여줍니다.
+
+<br><br>
+
+
+13. **오픈소스 라이선스 고지**  
+메인 앱 정보 ➡️ 버전 화면에서 사용 중인 SPM 의존성의 라이선스 전문을 확인할 수 있습니다.
 
 <br><br>
