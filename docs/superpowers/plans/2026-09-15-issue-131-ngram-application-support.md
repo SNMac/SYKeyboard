@@ -1840,7 +1840,7 @@ Run: `-only-testing:SYKeyboardTests/ClipboardHistoryPanelViewTests -only-testing
 4. 스와이프 삭제·고정은 기존과 같다.
 5. iPhone SE (3rd generation) / iOS 16.0 시뮬레이터(키보드 추가 필요)와 iPhone 13 mini / iOS 18.6에서 편집 모드 헤더 버튼이 잘리거나 겹치지 않는다. 가로 모드와 영어도 확인한다. 큰 글자 크기는 확인하지 못하면 이유를 적는다.
 
-실행 결과(2026-09-15, 사용자 수행): 1~5 정상(iPhone SE (3rd generation) / iOS 16.0, iPhone 13 mini / iOS 18.6 헤더 잘림·겹침 없음). 큰 글자 크기는 확인 항목으로 따로 요청하지 않아 미확인. 추가 관찰: "고정 해제"에서 "고정"으로 돌아올 때 버튼이 줄며 "고정 해제" 글자가 잠깐 잘림 — 기존 `937e8f15`(전체 선택 버튼 폭 고정)와 같은 원인, 후속 Task로 처리.
+실행 결과(2026-09-15, 사용자 수행): 1~5 정상(iPhone SE (3rd generation) / iOS 18.6, iPhone 13 mini / iOS 18.6 헤더 잘림·겹침 없음). (정정 2026-09-15: 사용자 Mac의 Xcode 27에서는 iOS 16.0 시뮬레이터로 화면 확인이 되지 않아, 사용자가 만든 iPhone SE (3rd generation) / iOS 18.6 시뮬레이터 `477A3468-F8A3-4DB2-92CA-AD04D83767DB`로 확인했다. iOS 16 실제 화면은 미확인) 큰 글자 크기는 확인 항목으로 따로 요청하지 않아 미확인. 추가 관찰: "고정 해제"에서 "고정"으로 돌아올 때 버튼이 줄며 "고정 해제" 글자가 잠깐 잘림 — 기존 `937e8f15`(전체 선택 버튼 폭 고정)와 같은 원인, 후속 Task로 처리.
 
 - [ ] **Step 6: 커밋**
 
@@ -2192,7 +2192,7 @@ git commit -m "design: #131 - 키보드 앱 클립보드 편집 모드 하단 �
 3. iPhone SE (3rd generation) / iOS 16.0과 iPhone 13 mini / iOS 18.6에서 헤더가 잘리거나 겹치지 않는다. 영어("Select All (n)", "Deselect All (n)", "Pin"/"Unpin", "Delete", "Done")도 확인한다.
 4. 일반 모드 헤더(제목·"선택")와 편집 모드 진입·종료 애니메이션이 기존과 같다.
 
-실행 결과(2026-09-15, 사용자 수행, iPhone SE (3rd generation) / iOS 16.0, iPhone 13 mini / iOS 18.6): 1~4 정상(문구, 전환 시 잘림·흔들림 없음, 헤더 잘림·겹침 없음). 사용자 결정: 선택이 없을 때 "전체 선택 (0)"이 아니라 지금처럼 "전체 선택"만 보인다.
+실행 결과(2026-09-15, 사용자 수행, iPhone SE (3rd generation) / iOS 18.6, iPhone 13 mini / iOS 18.6): 1~4 정상 (기기 정정 2026-09-15: 사용자 Mac의 Xcode 27에서는 iOS 16.0 시뮬레이터로 화면 확인이 되지 않아, 사용자가 만든 iPhone SE (3rd generation) / iOS 18.6 시뮬레이터 `477A3468-F8A3-4DB2-92CA-AD04D83767DB`로 확인했다. iOS 16 실제 화면은 미확인)(문구, 전환 시 잘림·흔들림 없음, 헤더 잘림·겹침 없음). 사용자 결정: 선택이 없을 때 "전체 선택 (0)"이 아니라 지금처럼 "전체 선택"만 보인다.
 
 - [ ] **Step 5: 커밋**
 
