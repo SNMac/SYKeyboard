@@ -1200,11 +1200,11 @@ private final class ClipboardHistoryDeleteConfirmView: UIView {
     func update(pinnedCount: Int, totalCount: Int) {
         if pinnedCount == totalCount {
             titleLabel.text = String(localized: "고정 항목 \(pinnedCount)개를 삭제할까요?", bundle: SYKBDAssets.bundle)
-            messageLabel.text = String(localized: "삭제한 고정 항목은 복구할 수 없습니다.", bundle: SYKBDAssets.bundle)
+            messageLabel.text = String(localized: "삭제한 항목은 복구할 수 없습니다.", bundle: SYKBDAssets.bundle)
         } else {
             titleLabel.text = String(localized: "항목 \(totalCount)개를 삭제할까요?", bundle: SYKBDAssets.bundle)
             messageLabel.text = String(
-                localized: "고정 항목 \(pinnedCount)개가 포함되어 있습니다. 삭제한 고정 항목은 복구할 수 없습니다.",
+                localized: "고정 항목 \(pinnedCount)개가 포함되어 있습니다.\n삭제한 항목은 복구할 수 없습니다.",
                 bundle: SYKBDAssets.bundle
             )
         }

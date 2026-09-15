@@ -320,8 +320,8 @@ private extension ClipboardHistorySettingsView {
 
     var deletionMessage: Text {
         deletionCounts.pinned == deletionCounts.total
-        ? Text("삭제한 고정 항목은 복구할 수 없습니다.")
-        : Text("고정 항목 \(deletionCounts.pinned)개가 포함되어 있습니다. 삭제한 고정 항목은 복구할 수 없습니다.")
+        ? Text("삭제한 항목은 복구할 수 없습니다.")
+        : Text("고정 항목 \(deletionCounts.pinned)개가 포함되어 있습니다. 삭제한 항목은 복구할 수 없습니다.")
     }
 
     /// 해당 출처의 확인 시트 표시 여부. 닫히면 대기 중인 삭제를 버린다

@@ -1571,7 +1571,7 @@ git commit -m "fix: #131 - 키보드 앱 클립보드 상세에서 복사하면 
 - Modify: `SYKeyboard/Presentation/KeyboardSettings/ClipboardHistorySettingsView.swift` (`deletionMessage`)
 - Modify: `SYKeyboard/Resources/Localizable.xcstrings`
 
-- [ ] **Step 1: 문구와 카탈로그 키 변경**
+- [x] **Step 1: 문구와 카탈로그 키 변경**
 
 (a) 두 Swift 파일의 문구에서 `있습니다. 삭제한`을 `있습니다.\n삭제한`으로 바꾼다:
 
@@ -1589,16 +1589,48 @@ git commit -m "fix: #131 - 키보드 앱 클립보드 상세에서 복사하면 
 
 옛 키가 카탈로그에 남지 않았는지 `grep -n '있습니다. 삭제한 고정' SYKeyboardAssets/Sources/SYKeyboardAssets/Resources/Localizable.xcstrings SYKeyboard/Resources/Localizable.xcstrings`로 확인한다(출력 없음이 정상). 두 카탈로그가 올바른 JSON인지 `python3 -m json.tool <파일> > /dev/null`로 확인한다.
 
-- [ ] **Step 2: 회귀 테스트·빌드·설치**
+브리프대로 (a), (b)를 적용했다.
+
+**사용자 결정(문구 변경, 브리프 이후 추가 지시, 2026-09-15):** 회복 문장을 "삭제한 고정 항목은 복구할 수 없습니다."에서 "삭제한 항목은 복구할 수 없습니다."로 바꿨다. 두 곳 모두 적용했다.
+1. 혼합 삭제 문구(줄바꿈 포함): 두 Swift 파일과 두 카탈로그 키·영어 one/other 값에서 "삭제한 고정 항목은" → "삭제한 항목은"으로 변경.
+2. 전부 고정 삭제 시의 단독 문구: `ClipboardHistoryPanelView.swift`의 `String(localized: "삭제한 고정 항목은 복구할 수 없습니다.", ...)`와 `ClipboardHistorySettingsView.swift`의 `Text("삭제한 고정 항목은 복구할 수 없습니다.")`를 "삭제한 항목은 복구할 수 없습니다."로 바꾸고, 두 카탈로그의 해당 키를 같은 문자열로 rename, 영어 값을 "Deleted items can't be recovered."로 변경.
+
+검증: `git grep -n '삭제한 고정 항목은' -- ':!docs'` 출력 없음 확인. 두 카탈로그 모두 `python3 -m json.tool` 통과.
+
+**사용자 결정(줄바꿈 범위 축소, Task 7 Step 5-1 수정 작업 중 추가 지시, 2026-09-15):** 줄바꿈(`\n`)은 키보드 확장에만 남기고, 키보드 앱(메인 앱)의 혼합 삭제 문구는 `\n` 대신 공백으로 되돌리되 새 문구("삭제한 항목은")는 유지한다.
+- `SYKeyboard/Presentation/KeyboardSettings/ClipboardHistorySettingsView.swift`의 `deletionMessage`를
+  `Text("고정 항목 \(deletionCounts.pinned)개가 포함되어 있습니다. 삭제한 항목은 복구할 수 없습니다.")`(공백)로 되돌림.
+- `SYKeyboard/Resources/Localizable.xcstrings`의 해당 키를 `"고정 항목 %lld개가 포함되어 있습니다. 삭제한 항목은 복구할 수 없습니다."`(공백)로 rename하고
+  영어 one/other을 `"Includes %lld pinned item. Deleted items can't be recovered."` / `"Includes %lld pinned items. Deleted items can't be recovered."`로 변경.
+- `ClipboardHistoryPanelView.swift`와 `SYKeyboardAssets/Sources/SYKeyboardAssets/Resources/Localizable.xcstrings`(키보드 확장 쪽)는 `\n`을 유지해 변경하지 않음.
+- 전부 고정 삭제 시의 단독 문구("삭제한 항목은 복구할 수 없습니다.")는 앱·확장 모두 그대로 유지.
+
+검증: `python3 -m json.tool SYKeyboard/Resources/Localizable.xcstrings > /dev/null` 통과. Swift 리터럴과 앱 카탈로그 키가 정확히 일치함을 `grep`으로 확인(공백 버전). 확장 쪽 Swift·카탈로그는 `\n` 유지 확인.
+
+- [x] **Step 2: 회귀 테스트·빌드·설치**
 
 1. Run: `-only-testing:SYKeyboardTests/ClipboardHistoryPanelViewTests`. Expected: `TEST SUCCEEDED`. 실제 개수를 기록한다.
 2. `HangeulKeyboard`, `EnglishKeyboard`, `HangeulEnglishKeyboard`, SYKeyboard app을 빌드하고 앱을 시뮬레이터에 설치한다(앱 삭제 금지). `.xcscheme` `RemotePath` 변경은 되돌린다.
 
-- [ ] **Step 3: 수동 확인(사용자 조작 필요)**
+실제 결과(2026-09-15, Task 7 Step 5와 같은 실행으로 검증, 사용자 문구 변경 반영 후 최종본으로 재실행):
+- `-only-testing:SYKeyboardTests/ClipboardHistoryPanelViewTests`: `** TEST SUCCEEDED **`, 27개 테스트 통과.
+  xcresult: `/Users/macmillan/Library/Developer/Xcode/DerivedData/SYKeyboard-hgprdtyustcuukabeovkjzrtclhy/Logs/Test/Test-SYKeyboard-2026.09.15_19-53-14-+0900.xcresult`
+- HangeulKeyboard: `BUILD SUCCEEDED`
+- EnglishKeyboard: `BUILD SUCCEEDED`
+- HangeulEnglishKeyboard: `BUILD SUCCEEDED`
+- SYKeyboard app: `BUILD SUCCEEDED`, 시뮬레이터 `82146144-24DE-4F91-B25D-23D147A91142`에 설치 완료(기존 앱 삭제 없음).
+- `git status --short` 확인 결과 `.xcscheme` 변경 없음(되돌릴 항목 없음).
 
-1. 키보드 확장: 편집 모드에서 고정·미고정 항목을 함께 선택해 삭제하면 확인 뷰 설명이 두 줄로 나뉜다. 스와이프로 고정 항목 하나만 삭제할 때의 문구("삭제한 고정 항목은 복구할 수 없습니다.")는 그대로다.
-2. 키보드 앱: 편집 모드에서 고정·미고정 항목을 함께 삭제하면 확인 창 설명이 두 줄로 나뉜다.
+**참고:** 위 결과는 줄바꿈 범위 축소(사용자 결정, 바로 위 참고) 이전 상태 기준이다. 이후 Task 7 Step 5-1에서 같은 명령을 최종본(앱은 공백, 확장은 `\n`) 기준으로 다시 실행했고, 결과는 xcresult
+`/Users/macmillan/Library/Developer/Xcode/DerivedData/SYKeyboard-hgprdtyustcuukabeovkjzrtclhy/Logs/Test/Test-SYKeyboard-2026.09.15_20-04-26-+0900.xcresult`(27개 통과)와 확장 3종·앱 `BUILD SUCCEEDED`, 설치 완료로 Task 7 Step 5-1 항목에 기록돼 있다.
+
+- [x] **Step 3: 수동 확인(사용자 조작 필요)**
+
+1. 키보드 확장: 편집 모드에서 고정·미고정 항목을 함께 선택해 삭제하면 확인 뷰 설명이 "고정 항목 n개가 포함되어 있습니다." / "삭제한 항목은 복구할 수 없습니다." 두 줄로 나뉜다. 고정 항목만 삭제할 때(스와이프로 고정 항목 하나 삭제 포함)의 설명은 "삭제한 항목은 복구할 수 없습니다."다(사용자 결정으로 문구 변경).
+2. 키보드 앱: 편집 모드에서 고정·미고정 항목을 함께 삭제하면 확인 창 설명이 줄바꿈 없이 "고정 항목 n개가 포함되어 있습니다. 삭제한 항목은 복구할 수 없습니다."로 보인다(사용자 결정: 줄바꿈은 키보드 확장만).
 3. 기기 언어를 영어로 바꾸면 영어 문구도 두 줄로 나뉜다(선택 확인).
+
+실행 결과(2026-09-15, 사용자 수행, 같은 시뮬레이터): 키보드 확장 섞인 삭제 두 줄·고정만 삭제 문구, 키보드 앱 한 줄 문구, 영어 문구 모두 정상. 3의 "두 줄로 나뉜다"는 사용자 결정에 따라 키보드 확장만 해당한다.
 
 - [ ] **Step 4: 커밋**
 
