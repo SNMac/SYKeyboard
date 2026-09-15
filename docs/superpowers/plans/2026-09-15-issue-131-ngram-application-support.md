@@ -1336,7 +1336,7 @@ git commit -m "fix: #131 - 클립보드 기록 행 삭제·이동 애니메이�
 
 실행 결과(2026-09-15, 사용자 수행, iPhone 13 mini / iOS 18.6 시뮬레이터): 2는 정상(아이콘 유지). 1·3은 아이콘이 보이지만 편집 모드에 들어가고 나올 때 `accessoryView`와 `editingAccessoryView`가 교체되며 사라졌다 나타나는 애니메이션이 생김. 사용자는 키보드 앱처럼 제자리에 고정되길 원해 Step 4에서 방식을 바꾼다. Step 1의 `editingAccessoryView` 방식은 커밋하지 않는다.
 
-- [ ] **Step 4: 고정 아이콘을 콘텐츠 영역에 고정**
+- [x] **Step 4: 고정 아이콘을 콘텐츠 영역에 고정**
 
 Step 1의 `editingAccessoryView` 줄과 기존 `accessoryView` 줄을 모두 없애고, 아이콘 하나를 셀 `contentView` 오른쪽 끝에 붙인다. 편집 모드에서 체크 표시가 나타나면 `contentView`가 좁아지지만 오른쪽 끝은 그대로라 제자리에 남을 것으로 예상한다(런타임 확인 필요, Step 6).
 
@@ -1410,11 +1410,75 @@ private final class ClipboardHistoryCell: UITableViewCell {
 
 `pinnedAccessorySymbolName`이 `private static`이라 셀 타입에서 직접 쓰지 않고 `makeCell`에서 이미지를 넣는다.
 
-- [ ] **Step 5: 회귀 테스트·빌드·설치**
+브리프 코드를 그대로 적용했고 컴파일 실패는 없었다.
+
+- [x] **Step 5: 회귀 테스트·빌드·설치**
 
 Step 2와 같은 명령(패널 테스트, 확장 3종 빌드, 앱 빌드·설치)을 다시 실행하고 결과를 기록한다.
 
-- [ ] **Step 6: 수동 확인(사용자 조작 필요)**
+실제 결과(2026-09-15, Task 9 Step 1 변경과 함께 한 번에 검증):
+- `-only-testing:SYKeyboardTests/ClipboardHistoryPanelViewTests`: `** TEST SUCCEEDED **`, 27개 테스트 통과.
+  xcresult: `/Users/macmillan/Library/Developer/Xcode/DerivedData/SYKeyboard-hgprdtyustcuukabeovkjzrtclhy/Logs/Test/Test-SYKeyboard-2026.09.15_19-53-14-+0900.xcresult`
+- HangeulKeyboard: `BUILD SUCCEEDED`
+- EnglishKeyboard: `BUILD SUCCEEDED`
+- HangeulEnglishKeyboard: `BUILD SUCCEEDED`
+- SYKeyboard app: `BUILD SUCCEEDED`, 시뮬레이터 `82146144-24DE-4F91-B25D-23D147A91142`에 설치 완료(기존 앱 삭제 없음). `xcrun simctl terminate`는 "found nothing to terminate"(무시 대상).
+- `git status --short` 확인 결과 `.xcscheme` 변경 없음(되돌릴 항목 없음).
+
+- [x] **Step 5-1: 콘텐츠 설정이 contentView를 교체해 아이콘이 사라지는 문제 수정**
+
+Step 4·5 빌드의 1차 수동 확인(2026-09-15, 사용자): 고정 아이콘이 아예 보이지 않음. Apple 문서(Context7 `/websites/developer_apple_uikit`, `UITableViewCell.contentConfiguration`)에 따르면 콘텐츠 설정을 넣으면 셀이 기존 `contentView`를 설정이 만든 새 뷰로 교체할 수 있다. `init`에서 옛 `contentView`에 붙인 `pinImageView`가 첫 `contentConfiguration` 대입 때 함께 사라졌고, `bringSubviewToFront`는 새 `contentView`의 자식이 아니라 아무 일도 하지 않았다. 셀 자체에 붙이면 스와이프 때 행과 함께 움직이지 않으므로 쓰지 않는다.
+
+`ClipboardHistoryPanelView.swift`에서:
+
+(a) `ClipboardHistoryCell.init(style:reuseIdentifier:)`에서 `pinImageView`를 붙이고 제약을 거는 코드를 지우고(`super.init` 호출만 남긴다), 클래스에 메서드를 추가:
+
+```swift
+    /// 콘텐츠 설정을 넣은 뒤에 부른다. 설정은 `contentView`를 새 뷰로 바꿀 수 있어, 현재 `contentView`에 아이콘이 없으면 다시 붙인다
+    func updatePinIcon(isPinned: Bool, image: UIImage?) {
+        pinImageView.image = image
+        pinImageView.isHidden = !isPinned
+        if pinImageView.superview !== contentView {
+            pinImageView.removeFromSuperview()
+            pinImageView.translatesAutoresizingMaskIntoConstraints = false
+            contentView.addSubview(pinImageView)
+            NSLayoutConstraint.activate([
+                pinImageView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -ClipboardHistoryCell.pinIconSpacing),
+                pinImageView.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
+                pinImageView.widthAnchor.constraint(equalToConstant: ClipboardHistoryCell.pinIconSize),
+                pinImageView.heightAnchor.constraint(equalToConstant: ClipboardHistoryCell.pinIconSize)
+            ])
+        }
+        // 콘텐츠 설정이 만든 뷰가 아이콘 위에 올라가지 않도록 앞으로 둔다
+        contentView.bringSubviewToFront(pinImageView)
+    }
+```
+
+(b) `makeCell`에서 `cell.contentConfiguration = content` 뒤의 세 줄(`cell.pinImageView.image = ...`, `cell.pinImageView.isHidden = ...`, 주석과 `cell.contentView.bringSubviewToFront(...)`)을 교체:
+
+```swift
+        cell.updatePinIcon(
+            isPinned: item.isPinned,
+            image: UIImage(systemName: ClipboardHistoryPanelView.pinnedAccessorySymbolName)
+        )
+```
+
+Step 5와 같은 테스트·빌드·설치를 다시 실행하고 결과를 이 step 아래에 기록한다. 아이콘 표시는 private subview 구조라 unit test로 고정하지 않는다(CLAUDE.md).
+
+브리프 코드를 그대로 적용했고 컴파일 실패는 없었다.
+
+실제 결과(2026-09-15):
+- `-only-testing:SYKeyboardTests/ClipboardHistoryPanelViewTests`: `** TEST SUCCEEDED **`, 27개 테스트 통과.
+  xcresult: `/Users/macmillan/Library/Developer/Xcode/DerivedData/SYKeyboard-hgprdtyustcuukabeovkjzrtclhy/Logs/Test/Test-SYKeyboard-2026.09.15_20-04-26-+0900.xcresult`
+- HangeulKeyboard: `BUILD SUCCEEDED`
+- EnglishKeyboard: `BUILD SUCCEEDED`
+- HangeulEnglishKeyboard: `BUILD SUCCEEDED`
+- SYKeyboard app: `BUILD SUCCEEDED`, 시뮬레이터 `82146144-24DE-4F91-B25D-23D147A91142`(빌드 사이 Shutdown 상태였던 것을 재부팅)에 설치 완료(기존 앱 삭제 없음). `xcrun simctl terminate`는 "found nothing to terminate"(무시 대상).
+- `git status --short` 확인 결과 `.xcscheme` 변경 없음(되돌릴 항목 없음).
+
+수동 확인(Step 6)은 이번 작업 범위가 아니라 체크하지 않았다.
+
+- [x] **Step 6: 수동 확인(사용자 조작 필요)**
 
 1. "선택"으로 편집 모드에 들어가고 "완료"로 나올 때 고정 아이콘이 사라졌다 나타나거나 움직이지 않고 제자리에 있다. 체크 표시·본문과 겹치지 않는다.
 2. 고정 항목의 긴 텍스트(두 줄)가 아이콘 밑으로 들어가지 않는다. 미고정 항목은 여백이 늘지 않는다.
@@ -1423,6 +1487,8 @@ Step 2와 같은 명령(패널 테스트, 확장 3종 빌드, 앱 빌드·설치
 5. 행 탭 붙여넣기, 1초 누르기 상세, 끌다 놓기 후 눌림 배경 없음(Task 3)이 그대로다.
 
 확인하지 못한 항목은 체크하지 않고 이유를 적는다. 1이 여전히 움직이면 멈추고 사용자에게 보고한다.
+
+실행 결과(2026-09-15, 사용자 수행, iPhone 13 mini / iOS 18.6 시뮬레이터, Step 5-1 빌드): 아이콘 표시, 편집 모드 진입·종료 시 제자리 유지(애니메이션 없음), 두 줄 텍스트 여백, 스와이프 삭제·고정/해제, 스크롤 재사용·이미지 항목, 기존 탭·상세·눌림 배경 모두 정상.
 
 - [ ] **Step 7: 커밋**
 

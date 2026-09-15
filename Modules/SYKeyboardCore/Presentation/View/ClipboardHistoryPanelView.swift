@@ -172,7 +172,7 @@ final class ClipboardHistoryPanelView: UIView {
         let tableView = UITableView(frame: .zero, style: .plain)
         tableView.backgroundColor = .clear
         tableView.allowsMultipleSelectionDuringEditing = true
-        tableView.register(UITableViewCell.self, forCellReuseIdentifier: ClipboardHistoryPanelView.cellIdentifier)
+        tableView.register(ClipboardHistoryCell.self, forCellReuseIdentifier: ClipboardHistoryPanelView.cellIdentifier)
 
         return tableView
     }()
@@ -662,7 +662,9 @@ private extension ClipboardHistoryPanelView {
 
     /// 스냅샷 식별자(id)로 항목을 찾는다. 애니메이션 중에는 이전 스냅샷의 indexPath가 넘어올 수 있어 인덱스를 쓰지 않는다
     func makeCell(in tableView: UITableView, at indexPath: IndexPath, id: String) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: ClipboardHistoryPanelView.cellIdentifier, for: indexPath)
+        guard let cell = tableView.dequeueReusableCell(
+            withIdentifier: ClipboardHistoryPanelView.cellIdentifier, for: indexPath
+        ) as? ClipboardHistoryCell else { return UITableViewCell() }
         guard let item = items.first(where: { $0.id == id }) else { return cell }
         var content = cell.defaultContentConfiguration()
         content.textProperties.font = .systemFont(ofSize: 15)
@@ -683,23 +685,21 @@ private extension ClipboardHistoryPanelView {
             content.secondaryTextProperties.font = .systemFont(ofSize: 12)
             content.secondaryTextProperties.color = .secondaryLabel
         }
+        // 고정 항목은 오른쪽 아이콘 자리만큼 본문 여백을 넓혀 글자가 아이콘 밑으로 들어가지 않게 한다
+        if item.isPinned {
+            content.directionalLayoutMargins.trailing += ClipboardHistoryCell.pinIconSize + ClipboardHistoryCell.pinIconSpacing
+        }
         cell.contentConfiguration = content
-        cell.accessoryView = item.isPinned ? makePinAccessoryView() : nil
+        cell.updatePinIcon(
+            isPinned: item.isPinned,
+            image: UIImage(systemName: ClipboardHistoryPanelView.pinnedAccessorySymbolName)
+        )
         cell.backgroundColor = .clear
         let selectedBackgroundView = UIView()
         selectedBackgroundView.backgroundColor = .suggestionButtonPressed
         cell.selectedBackgroundView = selectedBackgroundView
 
         return cell
-    }
-
-    func makePinAccessoryView() -> UIView {
-        let imageView = UIImageView(image: UIImage(systemName: ClipboardHistoryPanelView.pinnedAccessorySymbolName))
-        imageView.tintColor = .secondaryLabel
-        imageView.contentMode = .scaleAspectFit
-        imageView.frame = CGRect(x: 0, y: 0, width: 16, height: 16)
-
-        return imageView
     }
 
     /// 같은 터치 도중 스와이프가 끝나면 스크롤 뷰가 붙잡아 둔 touchesBegan이 이미 취소된 터치로 다시 전달돼
@@ -839,6 +839,49 @@ private final class ClipboardHistoryTouchObserver: UIGestureRecognizer {
         onAllTouchesEnded?()
         // 인식하지 않으므로 실패로 끝내 다음 터치에서 다시 시작한다
         state = .failed
+    }
+}
+
+/// 고정 아이콘을 액세서리가 아니라 콘텐츠 영역 오른쪽에 둔 셀.
+/// 액세서리로 두면 편집 모드 전환 때 `accessoryView`와 `editingAccessoryView`가 바뀌며 사라졌다 나타나므로, 한 뷰를 제자리에 둔다
+private final class ClipboardHistoryCell: UITableViewCell {
+    static let pinIconSize: CGFloat = 16
+    static let pinIconSpacing: CGFloat = 16
+
+    let pinImageView: UIImageView = {
+        let imageView = UIImageView()
+        imageView.tintColor = .secondaryLabel
+        imageView.contentMode = .scaleAspectFit
+        imageView.isHidden = true
+
+        return imageView
+    }()
+
+    override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
+        super.init(style: style, reuseIdentifier: reuseIdentifier)
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
+    /// 콘텐츠 설정을 넣은 뒤에 부른다. 설정은 `contentView`를 새 뷰로 바꿀 수 있어, 현재 `contentView`에 아이콘이 없으면 다시 붙인다
+    func updatePinIcon(isPinned: Bool, image: UIImage?) {
+        pinImageView.image = image
+        pinImageView.isHidden = !isPinned
+        if pinImageView.superview !== contentView {
+            pinImageView.removeFromSuperview()
+            pinImageView.translatesAutoresizingMaskIntoConstraints = false
+            contentView.addSubview(pinImageView)
+            NSLayoutConstraint.activate([
+                pinImageView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -ClipboardHistoryCell.pinIconSpacing),
+                pinImageView.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
+                pinImageView.widthAnchor.constraint(equalToConstant: ClipboardHistoryCell.pinIconSize),
+                pinImageView.heightAnchor.constraint(equalToConstant: ClipboardHistoryCell.pinIconSize)
+            ])
+        }
+        // 콘텐츠 설정이 만든 뷰가 아이콘 위에 올라가지 않도록 앞으로 둔다
+        contentView.bringSubviewToFront(pinImageView)
     }
 }
 
