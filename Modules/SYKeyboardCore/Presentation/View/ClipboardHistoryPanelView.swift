@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import UIKit.UIGestureRecognizerSubclass
 
 import SYKeyboardAssets
 
@@ -82,6 +83,12 @@ final class ClipboardHistoryPanelView: UIView {
     /// 길게 누르기 → 원문 상세 뷰. 편집 모드에서는 인식이 끝날 때까지 셀에 터치를 넘기지 않아(`delaysTouchesBegan`)
     /// 다중 선택 셀의 눌림(회색·체크 표시)이 먼저 그려지지 않는다. 짧은 탭은 인식 실패 시점에 전달돼 선택이 토글된다
     private lazy var longPressRecognizer = UILongPressGestureRecognizer(target: self, action: #selector(handleLongPress(_:)))
+    /// 테이블 터치의 시작·끝을 지연 없이 관찰한다. 손가락이 모두 떨어진 뒤 남은 행 눌림을 정리하는 기준이다
+    private lazy var touchObserver: ClipboardHistoryTouchObserver = {
+        let recognizer = ClipboardHistoryTouchObserver()
+        recognizer.onAllTouchesEnded = { [weak self] in self?.scheduleStaleHighlightCleanup() }
+        return recognizer
+    }()
     /// 스와이프 액션은 색 배경 위에 뜨므로 채운 변형을 쓴다
     private static let pinActionSymbolName = "pin.fill"
     private static let unpinActionSymbolName = "pin.slash.fill"
@@ -454,6 +461,7 @@ private extension ClipboardHistoryPanelView {
         tableView.dataSource = dataSource
         tableView.delegate = self
         tableView.addGestureRecognizer(longPressRecognizer)
+        tableView.addGestureRecognizer(touchObserver)
         updateHeader()
     }
 
@@ -677,6 +685,18 @@ private extension ClipboardHistoryPanelView {
         return imageView
     }
 
+    /// 같은 터치 도중 스와이프가 끝나면 스크롤 뷰가 붙잡아 둔 touchesBegan이 이미 취소된 터치로 다시 전달돼
+    /// 눌림만 걸리고 끝 이벤트는 오지 않는다. 다음 runloop에서 손가락이 없고 선택 없이 눌림만 남은 행을 해제한다.
+    /// 짧은 탭은 같은 이벤트 처리 안에서 선택·해제가 끝나므로 영향이 없고, 편집 모드는 선택 표시를 쓰므로 건드리지 않는다
+    func scheduleStaleHighlightCleanup() {
+        DispatchQueue.main.async { [weak self] in
+            guard let self, !self.isItemEditing, self.touchObserver.activeTouchCount == 0 else { return }
+            for cell in self.tableView.visibleCells where cell.isHighlighted && !cell.isSelected {
+                cell.setHighlighted(false, animated: true)
+            }
+        }
+    }
+
     /// 편집 모드에서도 연다. 인식되는 순간 테이블 터치가 취소되므로 행 선택은 바뀌지 않는다
     @objc func handleLongPress(_ recognizer: UILongPressGestureRecognizer) {
         guard recognizer.state == .began else { return }
@@ -703,6 +723,12 @@ extension ClipboardHistoryPanelView: UITableViewDelegate {
 
     func tableView(_ tableView: UITableView, didDeselectRowAt indexPath: IndexPath) {
         if isItemEditing { updateHeader() }
+    }
+
+    /// 손가락이 이미 떨어진 뒤의 눌림은 짧은 탭이면 곧바로 선택이 이어지고, 늦게 전달된 터치면 그대로 남는다
+    func tableView(_ tableView: UITableView, didHighlightRowAt indexPath: IndexPath) {
+        guard touchObserver.activeTouchCount == 0 else { return }
+        scheduleStaleHighlightCleanup()
     }
 
     func tableView(
@@ -760,6 +786,42 @@ extension ClipboardHistoryPanelView: UITableViewDelegate {
 private final class ClipboardHistoryDataSource: UITableViewDiffableDataSource<Int, String> {
     override func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
         return true
+    }
+}
+
+/// 터치 수만 세는 인식기. 인식하지 않고, 다른 인식기를 막거나 막히지 않으며, 뷰로 가는 터치를 지연·취소하지 않는다
+private final class ClipboardHistoryTouchObserver: UIGestureRecognizer {
+    private(set) var activeTouchCount = 0
+    var onAllTouchesEnded: (() -> Void)?
+
+    init() {
+        super.init(target: nil, action: nil)
+        cancelsTouchesInView = false
+        delaysTouchesBegan = false
+        delaysTouchesEnded = false
+    }
+
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent) {
+        activeTouchCount += touches.count
+    }
+
+    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent) {
+        endTouches(touches)
+    }
+
+    override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent) {
+        endTouches(touches)
+    }
+
+    override func canPrevent(_ preventedGestureRecognizer: UIGestureRecognizer) -> Bool { false }
+    override func canBePrevented(by preventingGestureRecognizer: UIGestureRecognizer) -> Bool { false }
+
+    private func endTouches(_ touches: Set<UITouch>) {
+        activeTouchCount = max(0, activeTouchCount - touches.count)
+        guard activeTouchCount == 0 else { return }
+        onAllTouchesEnded?()
+        // 인식하지 않으므로 실패로 끝내 다음 터치에서 다시 시작한다
+        state = .failed
     }
 }
 

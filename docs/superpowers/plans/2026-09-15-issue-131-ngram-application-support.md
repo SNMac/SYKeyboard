@@ -503,13 +503,15 @@ git commit -m "fix: #131 - caps lock을 켠 채 Shift를 누르고 입력한 뒤
 
 ### Task 3: 클립보드 행을 끌다 놓으면 눌림 배경이 남는 현상
 
-**현재까지 확인한 것:** `ClipboardHistoryPanelView.makeCell`은 `selectedBackgroundView`(`.suggestionButtonPressed`, 다크 모드에서 흰색에 가까움)를 둔다. 이 배경은 셀이 highlighted이거나 selected일 때 보인다. 평소 모드의 `didSelectRowAt`은 곧바로 `deselectRow`하므로, 남는 배경은 (A) 스와이프 제스처가 시작·취소되며 highlight 해제가 누락되었거나 (B) `didSelectRowAt`을 거치지 않은 선택이 남은 경우다. 패널은 `didHighlight`/`didUnhighlight`/`willBeginEditingRowAt`/`didEndEditingRowAt`을 구현하지 않는다. 간헐적이고 손 조작이 필요해 코드만으로 A/B를 확정할 수 없으므로 증거부터 수집한다.
+**조사 시작 시점에 확인한 것:** `ClipboardHistoryPanelView.makeCell`은 `selectedBackgroundView`(`.suggestionButtonPressed`, 다크 모드에서 흰색에 가까움)를 둔다. 이 배경은 셀이 highlighted이거나 selected일 때 보인다. 평소 모드의 `didSelectRowAt`은 곧바로 `deselectRow`하므로, 남는 배경은 (A) 스와이프 제스처가 시작·취소되며 highlight 해제가 누락되었거나 (B) `didSelectRowAt`을 거치지 않은 선택이 남은 경우다. 패널은 `didHighlight`/`didUnhighlight`/`willBeginEditingRowAt`/`didEndEditingRowAt`을 구현하지 않는다. 간헐적이고 손 조작이 필요해 코드만으로 A/B를 확정할 수 없으므로 증거부터 수집한다.
 
 **Files:**
 - Modify: `Modules/SYKeyboardCore/Presentation/View/ClipboardHistoryPanelView.swift` (UITableViewDelegate extension)
 - Test: `SYKeyboardTests/Presentation/ClipboardHistoryPanelViewTests.swift`
 
-- [ ] **Step 1: 진단 로그 임시 추가(커밋하지 않음)**
+- [x] **Step 1: 진단 로그 임시 추가(커밋하지 않음)**
+
+실행 결과: 적용 후 SYKeyboard app scheme 빌드(확장 3종 포함)를 iPhone 13 mini / iOS 18.6(`82146144-24DE-4F91-B25D-23D147A91142`)에 설치. 이후 원인 추적을 위해 `didHighlightRowAt`·`didEndEditingRowAt`에 호출 스택(프레임별), 테이블 제스처 인식기 상태, `isTracking`/`isDragging` 로그를 차례로 더했다(모두 미커밋).
 
 파일 맨 위 `import UIKit` 아래에 `import OSLog`를 넣는다. optional delegate 메서드는 `UITableViewDelegate`를 채택한 extension 안에 있어야 Objective-C로 노출되어 UIKit이 호출하므로, 아래 네 메서드는 기존 `extension ClipboardHistoryPanelView: UITableViewDelegate` 안(`didDeselectRowAt` 뒤)에 넣는다:
 
@@ -556,7 +558,7 @@ extension ClipboardHistoryPanelView {
 
 기존 `didSelectRowAt`, `didDeselectRowAt` 첫 줄에도 `debugLog("didSelect \(indexPath.row)")` / `debugLog("didDeselect \(indexPath.row)")`를 넣는다.
 
-- [ ] **Step 2: 재현하며 로그 수집(사용자 조작 필요)**
+- [x] **Step 2: 재현하며 로그 수집(사용자 조작 필요)**
 
 1. `HangeulKeyboard` scheme을 시뮬레이터에서 실행하고 메모 등 입력 앱에서 키보드의 클립보드 기록 패널을 연다(텍스트 항목 3개 이상).
 2. 에이전트가 백그라운드로 로그를 받는다:
@@ -564,7 +566,22 @@ extension ClipboardHistoryPanelView {
 3. 사용자가 마우스로 행을 누른 채 좌우로 천천히 끌다 놓기를 재현될 때까지 반복한다. 시뮬레이터에서 재현되지 않으면 실기기에서 Console.app으로 같은 category를 필터링한다.
 4. 재현된 시도의 로그 묶음 전체를 이 step 아래에 붙인다.
 
-- [ ] **Step 3: 로그로 원인 판정**
+실행 결과: 로그 명령 `xcrun simctl spawn 82146144-24DE-4F91-B25D-23D147A91142 log stream --level debug --style compact --predicate 'subsystem == "SYKeyboardDebug"'`. 사용자가 한영 통합 키보드 패널에서 5회 시도해 4회 재현(1·2·3·5회차). 산출물은 git-ignored 작업 폴더 `.superpowers/sdd/2026-09-15-issue-131-ngram-application-support/clipboard-diag-run{1,2,3,5}.log`. 5회차 핵심 줄:
+
+```
+30.491 didHighlight 0
+30.755 didUnhighlight 0
+30.761 willBeginEditing 0
+32.337 didEndEditing 0   state: isTracking=true (손가락 누른 채 원위치로 끌어 스와이프만 끝남)
+32.458 didHighlight 0    state: isTracking=true, UIScrollViewDelayedTouchesBeganGestureRecognizer state=5
+32.648 willBeginEditing 0 (didUnhighlight 없음)
+34.448 didEndEditing 0   state: isTracking=false (손 뗌)
+35.080 after didEndEditing 0: selected=[] highlighted=[0]
+```
+
+3회차 늦은 `didHighlight` 호출 스택: `UIGestureDelayedEventComponentDispatcher sendDelayedTouches` → `UITableViewCell touchesBegan` → `UITableView touchesBegan` → `_highlightRowAtIndexPath`.
+
+- [x] **Step 3: 로그로 원인 판정**
 
 | 재현 시 로그 | 판정 | 다음 |
 |---|---|---|
@@ -574,69 +591,195 @@ extension ClipboardHistoryPanelView {
 
 판정 결과와 근거 로그 줄을 이 step 아래에 적는다.
 
-- [ ] **Step 4: 실패하는 테스트 작성(Step 3이 A/B일 때만)**
+판정: 표 1행(스와이프 종료 뒤 `highlighted=[0]`, `selected=[]`)이지만 원인은 A의 변형이다. 같은 터치 도중 스와이프가 끝나면 테이블 인식기 중 유일하게 활성·`delaysTouchesBegan=true`인 `UIScrollViewDelayedTouchesBeganGestureRecognizer`(`delaysContentTouches=true`)가 이미 취소된 터치의 `touchesBegan`을 다시 보내 눌림을 건다. 그 터치의 끝·취소는 테이블에 다시 오지 않아 이후 스와이프와 손 떼기로도 풀리지 않는다. 눌림은 `didEndEditingRowAt`보다 뒤에 걸리므로 원래 Step 4·5 안(스와이프 종료 시 해제)은 효과가 없어 폐기했다. 짧은 탭도 손을 뗄 때 지연 `touchesBegan`이 전달되지만(`didHighlight` `isTracking=false`) 2 ms 안에 `didSelect`가 이어진다. `delaysContentTouches=false`는 스크롤 시작 시 행이 잠깐 눌려 보이는 변화가 생겨 제외한다.
+
+- [x] **Step 4: 진단 코드 제거와 실패하는 테스트 작성**
+
+먼저 진단 코드를 모두 지운다: `git checkout -- Modules/SYKeyboardCore/Presentation/View/ClipboardHistoryPanelView.swift` 후 `git diff -- Modules/SYKeyboardCore/Presentation/View/ClipboardHistoryPanelView.swift`가 비어 있는지 확인한다(이 파일의 미커밋 변경은 진단 코드뿐이다).
 
 `ClipboardHistoryPanelViewTests`의 `test스와이프중configure는_편집모드로바뀌지않음` 뒤에 추가:
 
 ```swift
-    @Test("스와이프가 끝나면 편집 모드가 아닐 때 행의 선택·눌림 표시를 해제")
-    func test스와이프종료는_눌림표시해제() throws {
+    @Test("손가락 없이 걸린 행 눌림은 선택이 이어지지 않으면 다음 runloop에 해제")
+    func test손가락없이걸린눌림은_다음runloop에해제() async throws {
         let (panel, _) = makePanel(texts: ["a", "b"])
         let window = UIWindow(frame: panel.frame)
         window.addSubview(panel)
         panel.layoutIfNeeded()
         let indexPath = IndexPath(row: 0, section: 0)
-        panel.tableView.selectRow(at: indexPath, animated: false, scrollPosition: .none)
         let cell = try #require(panel.tableView.cellForRow(at: indexPath))
         cell.setHighlighted(true, animated: false)
 
-        panel.tableView(panel.tableView, didEndEditingRowAt: indexPath)
+        panel.tableView(panel.tableView, didHighlightRowAt: indexPath)
+        await drainMainQueue()
 
-        #expect(panel.tableView.indexPathsForSelectedRows == nil)
         #expect(cell.isHighlighted == false)
     }
 
-    @Test("편집 모드에서는 스와이프 종료가 선택을 해제하지 않음")
-    func test편집모드스와이프종료는_선택유지() {
+    @Test("편집 모드에서는 손가락 없이 걸린 눌림도 정리하지 않음")
+    func test편집모드는_눌림정리안함() async throws {
         let (panel, _) = makePanel(texts: ["a", "b"])
+        let window = UIWindow(frame: panel.frame)
+        window.addSubview(panel)
+        panel.layoutIfNeeded()
         let indexPath = IndexPath(row: 1, section: 0)
+        let cell = try #require(panel.tableView.cellForRow(at: indexPath))
 
         panel.beginItemEditing()
-        panel.tableView.selectRow(at: indexPath, animated: false, scrollPosition: .none)
-        panel.tableView(panel.tableView, didEndEditingRowAt: indexPath)
+        cell.setHighlighted(true, animated: false)
+        panel.tableView(panel.tableView, didHighlightRowAt: indexPath)
+        await drainMainQueue()
 
-        #expect(panel.tableView.indexPathsForSelectedRows == [indexPath])
+        #expect(cell.isHighlighted)
     }
 ```
 
-Step 1의 진단 코드를 먼저 모두 지운다(`import OSLog`, delegate 네 메서드, 맨 아래 extension, `didSelectRowAt`/`didDeselectRowAt`에 넣은 `debugLog` 줄). `git diff -- Modules/SYKeyboardCore/Presentation/View/ClipboardHistoryPanelView.swift`가 비어 있는지 확인한다. 지우지 않으면 진단용 `didEndEditingRowAt`이 테스트를 가린다.
-
-Run: `-only-testing:SYKeyboardTests/ClipboardHistoryPanelViewTests`
-Expected: 컴파일 실패 `value of type 'ClipboardHistoryPanelView' has no member 'tableView(_:didEndEditingRowAt:)'`
-
-- [ ] **Step 5: 수정 구현**
-
-`ClipboardHistoryPanelView.swift`의 `UITableViewDelegate` extension에서 `didDeselectRowAt` 뒤에 추가:
+파일 맨 아래 helper 영역(`private func makePanel` 근처)에 추가:
 
 ```swift
-    /// 스와이프를 조금 끌다 놓아 액션이 열리지 않고 끝나면 눌림 배경이 남는 경우가 있어 해제한다. 편집 모드 선택은 유지한다
-    func tableView(_ tableView: UITableView, didEndEditingRowAt indexPath: IndexPath?) {
-        guard !isItemEditing, let indexPath else { return }
-        tableView.deselectRow(at: indexPath, animated: false)
-        tableView.cellForRow(at: indexPath)?.setHighlighted(false, animated: true)
+/// 패널이 `DispatchQueue.main.async`로 예약한 작업이 끝날 때까지 기다린다
+@MainActor
+private func drainMainQueue() async {
+    await withCheckedContinuation { continuation in
+        DispatchQueue.main.async { continuation.resume() }
+    }
+}
+```
+
+Run: `-only-testing:SYKeyboardTests/ClipboardHistoryPanelViewTests`
+Expected: 컴파일 실패 `value of type 'ClipboardHistoryPanelView' has no member 'tableView(_:didHighlightRowAt:)'`
+
+실행 결과: 진단 코드는 `git checkout -- Modules/SYKeyboardCore/Presentation/View/ClipboardHistoryPanelView.swift`로 제거했고 이후 `git diff`가 비어 있음을 확인했다(진단 코드만 있던 상태였음을 재확인). 새 테스트 2개와 `drainMainQueue` helper 추가 후 실행:
+
+```sh
+xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
+  -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=18.6' \
+  -only-testing:SYKeyboardTests/ClipboardHistoryPanelViewTests
+```
+
+RED 확인. 컴파일 실패 메시지는 예상 문구와 정확히 같지 않지만 같은 원인이다:
+`SYKeyboardTests/Presentation/ClipboardHistoryPanelViewTests.swift:136:15: error: no exact matches in call to instance method 'tableView'`
+(`didHighlightRowAt` 오버로드가 아직 없어 `tableView(_:didSelectRowAt:)` 등 기존 오버로드와 매칭 실패). `** TEST FAILED **`.
+
+- [x] **Step 5: 수정 구현**
+
+(a) `ClipboardHistoryPanelView.swift` 맨 위 `import UIKit` 아래에 추가:
+
+```swift
+import UIKit.UIGestureRecognizerSubclass
+```
+
+(b) `longPressRecognizer` 프로퍼티 선언 바로 뒤에 추가:
+
+```swift
+    /// 테이블 터치의 시작·끝을 지연 없이 관찰한다. 손가락이 모두 떨어진 뒤 남은 행 눌림을 정리하는 기준이다
+    private lazy var touchObserver: ClipboardHistoryTouchObserver = {
+        let recognizer = ClipboardHistoryTouchObserver()
+        recognizer.onAllTouchesEnded = { [weak self] in self?.scheduleStaleHighlightCleanup() }
+        return recognizer
+    }()
+```
+
+(c) `setupUI()`의 `tableView.addGestureRecognizer(longPressRecognizer)` 다음 줄에 추가:
+
+```swift
+        tableView.addGestureRecognizer(touchObserver)
+```
+
+(d) `// MARK: - Private Methods`의 private extension에서 `handleLongPress` 앞에 추가:
+
+```swift
+    /// 같은 터치 도중 스와이프가 끝나면 스크롤 뷰가 붙잡아 둔 touchesBegan이 이미 취소된 터치로 다시 전달돼
+    /// 눌림만 걸리고 끝 이벤트는 오지 않는다. 다음 runloop에서 손가락이 없고 선택 없이 눌림만 남은 행을 해제한다.
+    /// 짧은 탭은 같은 이벤트 처리 안에서 선택·해제가 끝나므로 영향이 없고, 편집 모드는 선택 표시를 쓰므로 건드리지 않는다
+    func scheduleStaleHighlightCleanup() {
+        DispatchQueue.main.async { [weak self] in
+            guard let self, !self.isItemEditing, self.touchObserver.activeTouchCount == 0 else { return }
+            for cell in self.tableView.visibleCells where cell.isHighlighted && !cell.isSelected {
+                cell.setHighlighted(false, animated: true)
+            }
+        }
     }
 ```
 
-`beginItemEditing()`은 `isItemEditing = true` 뒤에 `setEditing(false)`로 열린 스와이프를 닫으므로 이 guard에 걸려 편집 모드 진입에는 영향이 없다.
+(e) `UITableViewDelegate` extension의 `didDeselectRowAt` 뒤에 추가:
 
-- [ ] **Step 6: 테스트 통과 확인**
+```swift
+    /// 손가락이 이미 떨어진 뒤의 눌림은 짧은 탭이면 곧바로 선택이 이어지고, 늦게 전달된 터치면 그대로 남는다
+    func tableView(_ tableView: UITableView, didHighlightRowAt indexPath: IndexPath) {
+        guard touchObserver.activeTouchCount == 0 else { return }
+        scheduleStaleHighlightCleanup()
+    }
+```
+
+(f) `// MARK: - Supporting Types`의 `ClipboardHistoryDataSource` 뒤에 추가:
+
+```swift
+/// 터치 수만 세는 인식기. 인식하지 않고, 다른 인식기를 막거나 막히지 않으며, 뷰로 가는 터치를 지연·취소하지 않는다
+private final class ClipboardHistoryTouchObserver: UIGestureRecognizer {
+    private(set) var activeTouchCount = 0
+    var onAllTouchesEnded: (() -> Void)?
+
+    init() {
+        super.init(target: nil, action: nil)
+        cancelsTouchesInView = false
+        delaysTouchesBegan = false
+        delaysTouchesEnded = false
+    }
+
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent) {
+        activeTouchCount += touches.count
+    }
+
+    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent) {
+        endTouches(touches)
+    }
+
+    override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent) {
+        endTouches(touches)
+    }
+
+    override func canPrevent(_ preventedGestureRecognizer: UIGestureRecognizer) -> Bool { false }
+    override func canBePrevented(by preventingGestureRecognizer: UIGestureRecognizer) -> Bool { false }
+
+    private func endTouches(_ touches: Set<UITouch>) {
+        activeTouchCount = max(0, activeTouchCount - touches.count)
+        guard activeTouchCount == 0 else { return }
+        onAllTouchesEnded?()
+        // 인식하지 않으므로 실패로 끝내 다음 터치에서 다시 시작한다
+        state = .failed
+    }
+}
+```
+
+브리프의 코드를 그대로 적용했다(변경 없음).
+
+- [x] **Step 6: 테스트 통과 확인**
 
 Run: `-only-testing:SYKeyboardTests/ClipboardHistoryPanelViewTests`
-Expected: `TEST SUCCEEDED`, 새 테스트 2개 포함. 실제 개수를 기록한다.
+Expected: `TEST SUCCEEDED`, 새 테스트 2개 포함. 실제 개수를 기록한다. 이어서 `HangeulKeyboard`, `HangeulEnglishKeyboard` scheme을 `-only-testing` 없이 빌드해 `BUILD SUCCEEDED`를 확인하고, SYKeyboard app scheme 빌드를 같은 iOS 18.6 시뮬레이터에 설치한다(앱 삭제 금지).
 
-- [ ] **Step 7: 재현 조작으로 수정 확인(사용자 조작 필요)**
+실행 결과:
 
-Step 2와 같은 환경에서 끌다 놓기를 20회 이상 반복해 눌림 배경이 남지 않는지, 행 탭 붙여넣기·스와이프 삭제·스와이프 고정·길게 누르기 상세·편집 모드 다중 선택이 그대로인지 확인한다. 여전히 남으면 수정을 되돌리고 Step 1로 돌아간다(추가 수정을 쌓지 않는다). 확인하지 못했으면 체크하지 않고 이유를 적는다.
+- 첫 실행이 `xcodebuild[38639]`에서 `The test runner hung before establishing connection.`으로 실패(`Testing failed`, exit 65). 원인 확인: `xcrun simctl list devices`로 확인한 결과 이전 병렬 테스트가 남긴 clone 시뮬레이터 2개(`CBD992D3-...`, `583AC8EE-...`)가 booted 상태였고, 그중 하나에 `Apple ID 확인` 시스템 알림이 떠 있었다(화면 캡처로 확인). CoreSimulatorService·리소스 경합에 따른 환경 문제로 판단해 코드 실패로 기록하지 않았다. `xcrun simctl shutdown`으로 두 clone을 모두 종료한 뒤 같은 명령을 재시도했다(재시도 1회, 지침 범위 내).
+- 재시도: `** TEST SUCCEEDED **`, 총 23개 테스트 모두 통과(새 테스트 2개 `test손가락없이걸린눌림은_다음runloop에해제`, `test편집모드는_눌림정리안함` 포함). 실패 0건.
+- `HangeulKeyboard` scheme 빌드(`-only-testing` 없이): `** BUILD SUCCEEDED **`.
+- `HangeulEnglishKeyboard` scheme 빌드(`-only-testing` 없이): `** BUILD SUCCEEDED **`.
+- `SYKeyboard` app scheme 빌드(iOS 18.6 시뮬레이터): `** BUILD SUCCEEDED **`.
+- 설치: DerivedData `SYKeyboard-hgprdtyustcuukabeovkjzrtclhy/Build/Products/Debug-iphonesimulator/SYKeyboard.app`을 대상 시뮬레이터(`82146144-24DE-4F91-B25D-23D147A91142`, 부팅 후)에 `xcrun simctl install`로 설치, 성공(exit 0). 앱은 삭제하지 않았다. 이어서 `xcrun simctl terminate ... github.com-SNMac.SYKeyboard`는 "found nothing to terminate"로 응답(지침에서 무시하도록 안내한 상황).
+
+- [x] **Step 7: 재현 조작으로 수정 확인(사용자 조작 필요)**
+
+Step 2와 같은 환경에서 끌다 놓기(특히 누른 채 원위치로 되돌렸다가 다시 끌기)를 20회 이상 반복해 눌림 배경이 남지 않는지, 행 짧은 탭 붙여넣기·1초 누르기 후 떼기·같은 행 재탭·스크롤·스와이프 삭제·스와이프 고정·길게 누르기 상세·편집 모드 다중 선택이 그대로인지 확인한다. 여전히 남으면 수정을 되돌리고 Step 1로 돌아간다(추가 수정을 쌓지 않는다). 확인하지 못했으면 체크하지 않고 이유를 적는다.
+
+실행 결과(2026-09-15, 사용자 수행, Step 6에서 설치한 빌드):
+1. 끌다 놓기 20회: 눌림 배경이 남지 않음. 수정 전에는 5회 중 4회 재현됐지만 간헐 현상이라 "20회 미재현"으로만 기록한다.
+2. 행 짧은 탭 붙여넣기: 정상.
+3. 끌다 놓기 직후 같은 행 재탭: 정상 붙여넣기.
+4. 1초 누르기: 길게 누르기(기본 0.5초)로 상세 화면이 열림(기존 동작). 상세를 닫으면 눌림 배경 없음.
+5. 스크롤: 정상.
+6. 스와이프 삭제·고정/해제: 정상.
+7. 편집 모드 다중 선택·삭제: 동작은 정상. 삭제 애니메이션에서 행이 위로 뭉개지며 체크 표시가 옆 행과 겹쳐 보이는 현상이 관찰됨. 이번 수정은 편집 모드에서 동작하지 않으므로(`isItemEditing` guard) 이번 diff의 회귀인지 기존 동작인지 별도로 확인한다(사용자가 `26399d8b` 영향 여부를 제기).
 
 - [ ] **Step 8: 커밋**
 
@@ -645,7 +788,7 @@ Step 2와 같은 환경에서 끌다 놓기를 20회 이상 반복해 눌림 배
 ```bash
 git add Modules/SYKeyboardCore/Presentation/View/ClipboardHistoryPanelView.swift \
   SYKeyboardTests/Presentation/ClipboardHistoryPanelViewTests.swift \
-  2026-09-15-issue-131-ngram-application-support.md
+  docs/superpowers/plans/2026-09-15-issue-131-ngram-application-support.md
 git commit -m "fix: #131 - 클립보드 기록 행을 끌다 놓으면 눌림 배경이 남는 현상 수정"
 ```
 

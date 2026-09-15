@@ -123,6 +123,39 @@ struct ClipboardHistoryPanelViewTests {
         #expect(spy.deletedIndices.isEmpty)
     }
 
+    @Test("손가락 없이 걸린 행 눌림은 선택이 이어지지 않으면 다음 runloop에 해제")
+    func test손가락없이걸린눌림은_다음runloop에해제() async throws {
+        let (panel, _) = makePanel(texts: ["a", "b"])
+        let window = UIWindow(frame: panel.frame)
+        window.addSubview(panel)
+        panel.layoutIfNeeded()
+        let indexPath = IndexPath(row: 0, section: 0)
+        let cell = try #require(panel.tableView.cellForRow(at: indexPath))
+        cell.setHighlighted(true, animated: false)
+
+        panel.tableView(panel.tableView, didHighlightRowAt: indexPath)
+        await drainMainQueue()
+
+        #expect(cell.isHighlighted == false)
+    }
+
+    @Test("편집 모드에서는 손가락 없이 걸린 눌림도 정리하지 않음")
+    func test편집모드는_눌림정리안함() async throws {
+        let (panel, _) = makePanel(texts: ["a", "b"])
+        let window = UIWindow(frame: panel.frame)
+        window.addSubview(panel)
+        panel.layoutIfNeeded()
+        let indexPath = IndexPath(row: 1, section: 0)
+        let cell = try #require(panel.tableView.cellForRow(at: indexPath))
+
+        panel.beginItemEditing()
+        cell.setHighlighted(true, animated: false)
+        panel.tableView(panel.tableView, didHighlightRowAt: indexPath)
+        await drainMainQueue()
+
+        #expect(cell.isHighlighted)
+    }
+
     @Test("선택이 없으면 삭제를 요청하지 않음")
     func test선택없으면_삭제요청없음() {
         let (panel, spy) = makePanel(texts: ["a"])
@@ -295,6 +328,14 @@ private func makePanel(items: [ClipboardHistoryItem]) -> (ClipboardHistoryPanelV
     panel.configure(state: items.isEmpty ? .empty : .items(items))
     panel.layoutIfNeeded()
     return (panel, spy)
+}
+
+/// 패널이 `DispatchQueue.main.async`로 예약한 작업이 끝날 때까지 기다린다
+@MainActor
+private func drainMainQueue() async {
+    await withCheckedContinuation { continuation in
+        DispatchQueue.main.async { continuation.resume() }
+    }
 }
 
 private func unpinned(_ text: String) -> ClipboardHistoryItem {
