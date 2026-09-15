@@ -61,6 +61,11 @@ struct ClipboardHistorySettingsView: View {
     private var pinBatch: ClipboardHistoryPolicy.PinBatch {
         ClipboardHistoryPolicy.pinBatch(selectedIDs: selection, in: items)
     }
+    /// iOS 26 미만 하단 바에서 고정·삭제 버튼 사이 간격. 묶은 버튼마다 좌우 여백이 붙어 이 값보다 넓게 보이므로, 사진 앱 선택 모드의 휴지통·더보기 중심 거리(약 43pt)에 맞춘 값이다
+    private static let legacyBottomBarItemSpacing: CGFloat = 3
+    /// iOS 26 미만에서 고정·삭제를 묶은 항목의 오른쪽 보정. 묶은 버튼은 최소 탭 크기 안에서 아이콘이 가운데 놓여
+    /// 휴지통 오른쪽에 빈 공간이 생기므로(사진 앱 대비 약 7.6pt), 탭 영역은 그대로 두고 아이콘 위치만 사진 앱에 맞춘다
+    private static let legacyBottomBarTrailingAdjustment: CGFloat = -8
 
     // MARK: - Content
 
@@ -105,6 +110,11 @@ struct ClipboardHistorySettingsView: View {
             // 백그라운드 저장이 끝난 이미지는 알림으로 받아 목록을 다시 읽는다
             .onReceive(NotificationCenter.default.publisher(for: ClipboardHistoryPasteboardSynchronizer.didRecordImageNotification)) { _ in
                 reload()
+            }
+            // 상세 시트에서 본문 일부를 복사하는 등 앱 안에서 pasteboard가 바뀌면 목록에 바로 반영한다. 열린 시트는 reload가 유지한다.
+            // 시트의 "복사" 버튼은 쓴 직후 changeCount를 맞추므로, 그 갱신이 끝난 다음 runloop에서 확인해 중복 기록하지 않는다
+            .onReceive(NotificationCenter.default.publisher(for: UIPasteboard.changedNotification)) { _ in
+                DispatchQueue.main.async { synchronizeAndReload() }
             }
             .requestReviewOnDetailSettingsReturn()
         }
@@ -266,24 +276,44 @@ private extension ClipboardHistorySettingsView {
                 )
             }
             Spacer()
-            Button {
-                togglePins(selectedIDs: selection)
-            } label: {
-                Label(
-                    pinBatch.isUnpinning ? "\(pinBatch.targets.count)개 고정 해제" : "\(pinBatch.targets.count)개 고정",
-                    systemImage: pinBatch.isUnpinning ? "pin.slash" : "pin"
-                )
+            if #available(iOS 26, *) {
+                bottomBarPinButton
+                bottomBarDeleteButton
+            } else {
+                // iOS 26 미만 SwiftUI 하단 바는 붙은 버튼 사이 고정 간격 API(`ToolbarSpacer`)가 없고 버튼에 준 여백도 무시한다.
+                // 두 버튼을 한 항목으로 묶어 간격을 직접 준다. 묶으면 툴바의 아이콘 전용 표시가 풀리므로 다시 지정한다
+                HStack(spacing: Self.legacyBottomBarItemSpacing) {
+                    bottomBarPinButton
+                    bottomBarDeleteButton
+                }
+                .labelStyle(.iconOnly)
+                .padding(.trailing, Self.legacyBottomBarTrailingAdjustment)
             }
-            .disabled(!pinBatch.isAllowed)
-            Button(role: .destructive) {
-                requestRemove(selectedItems, source: .toolbar)
-            } label: {
-                Label("\(selection.count)개 삭제", systemImage: "trash")
-            }
-            .disabled(selection.isEmpty)
-            // 편집 모드 삭제의 확인 시트는 삭제 버튼에 붙인다
-            .deletionConfirmation(self, source: .toolbar)
         }
+    }
+
+    var bottomBarPinButton: some View {
+        Button {
+            togglePins(selectedIDs: selection)
+            finishEditing()
+        } label: {
+            Label(
+                pinBatch.isUnpinning ? "\(pinBatch.targets.count)개 고정 해제" : "\(pinBatch.targets.count)개 고정",
+                systemImage: pinBatch.isUnpinning ? "pin.slash" : "pin"
+            )
+        }
+        .disabled(!pinBatch.isAllowed)
+    }
+
+    var bottomBarDeleteButton: some View {
+        Button(role: .destructive) {
+            requestRemove(selectedItems, source: .toolbar)
+        } label: {
+            Label("\(selection.count)개 삭제", systemImage: "trash")
+        }
+        .disabled(selection.isEmpty)
+        // 편집 모드 삭제의 확인 시트는 삭제 버튼에 붙인다
+        .deletionConfirmation(self, source: .toolbar)
     }
 
     var addSheet: some View {
@@ -315,8 +345,8 @@ private extension ClipboardHistorySettingsView {
 
     var deletionMessage: Text {
         deletionCounts.pinned == deletionCounts.total
-        ? Text("삭제한 고정 항목은 복구할 수 없습니다.")
-        : Text("고정 항목 \(deletionCounts.pinned)개가 포함되어 있습니다. 삭제한 고정 항목은 복구할 수 없습니다.")
+        ? Text("삭제한 항목은 복구할 수 없습니다.")
+        : Text("고정 항목 \(deletionCounts.pinned)개가 포함되어 있습니다. 삭제한 항목은 복구할 수 없습니다.")
     }
 
     /// 해당 출처의 확인 시트 표시 여부. 닫히면 대기 중인 삭제를 버린다
@@ -374,6 +404,12 @@ private extension ClipboardHistorySettingsView {
         }
     }
 
+    /// 편집 모드 하단 바의 고정·삭제가 끝나면 일반 모드로 돌아간다. "완료" 버튼과 같은 동작이다
+    func finishEditing() {
+        withAnimation { editMode = .inactive }
+        selection.removeAll()
+    }
+
     /// 저장소가 파일을 다시 읽어 판단하므로 키보드가 그사이 바꾼 내용과 어긋나지 않는다
     func togglePins(selectedIDs: Set<String>) {
         store?.togglePins(selectedIDs: selectedIDs)
@@ -386,14 +422,15 @@ private extension ClipboardHistorySettingsView {
             deletionCounts = (removing.filter(\.isPinned).count, removing.count)
             pendingDeletion = PendingDeletion(items: removing, source: source)
         } else {
-            remove(removing)
+            remove(removing, source: source)
         }
     }
 
-    /// 저장소가 id로 지우므로 파일을 미리 다시 읽을 필요가 없다
-    func remove(_ removing: [ClipboardHistoryItem]) {
+    /// 저장소가 id로 지우므로 파일을 미리 다시 읽을 필요가 없다. 편집 모드 하단 바에서 지웠으면 일반 모드로 돌아간다
+    func remove(_ removing: [ClipboardHistoryItem], source: DeletionSource) {
         guard !removing.isEmpty else { return }
         store?.remove(ids: Set(removing.map(\.id)))
+        if source == .toolbar { finishEditing() }
         reload()
     }
 
@@ -494,7 +531,7 @@ private extension View {
             titleVisibility: .visible,
             presenting: screen.pendingDeletionItems
         ) { removing in
-            Button("삭제", role: .destructive) { screen.remove(removing) }
+            Button("삭제", role: .destructive) { screen.remove(removing, source: source) }
         } message: { _ in
             screen.deletionMessage
         }
@@ -522,6 +559,7 @@ private struct ClipboardHistoryDetailView: View {
     @State private var isEditing = false
     @State private var draft = ""
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.openURL) private var openURL
     /// 화면 해상도까지 디코드한 원본. body 평가마다 다시 디코드하지 않도록 한 번만 읽어 둔다
     @State private var previewImage: UIImage?
 
@@ -535,15 +573,6 @@ private struct ClipboardHistoryDetailView: View {
                 .previewImage(for: reference, maxPixelSize: ClipboardImagePolicy.appPreviewMaxPixelSize)
                 .map { UIImage(cgImage: $0) }
         }.value
-    }
-
-    private var linkStyledText: AttributedString {
-        var attributed = AttributedString(text)
-        if let url = ClipboardHistoryPolicy.openableURL(in: text) {
-            attributed.link = url
-            attributed.underlineStyle = .single
-        }
-        return attributed
     }
 
     var body: some View {
@@ -570,13 +599,12 @@ private struct ClipboardHistoryDetailView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .padding()
                 } else {
-                    ScrollView {
-                        // 텍스트 전체가 URL이면 일반 링크처럼 파란 밑줄로 보이고 탭하면 브라우저로 연다
-                        Text(linkStyledText)
-                            .textSelection(.enabled)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding()
-                    }
+                    // SwiftUI Text의 선택은 코드로 해제할 수 없어 UITextView로 보여준다. 키보드 패널 상세와 같은 선택·링크 규칙이다
+                    ClipboardHistoryDetailTextView(
+                        text: text,
+                        url: ClipboardHistoryPolicy.openableURL(in: text),
+                        onOpenURL: { openURL($0) }
+                    )
                 }
             }
             .navigationTitle(isEditing ? "편집" : (item.image != nil ? "이미지" : "상세"))
@@ -642,6 +670,80 @@ private struct ClipboardHistoryDetailView: View {
                     }
                 }
             }
+        }
+    }
+}
+
+// MARK: - Detail Text
+
+/// 원문 본문. 편집 없이 선택·복사만 허용한다.
+/// 선택이 있을 때 선택 밖을 탭하면 선택만 풀리고, 선택이 없을 때 본문 전체가 URL이면 글자 영역을 탭해 연다.
+/// 키보드 패널 상세(`ClipboardHistoryPanelView`의 상세 뷰)와 같은 규칙이다
+private struct ClipboardHistoryDetailTextView: UIViewRepresentable {
+    let text: String
+    let url: URL?
+    let onOpenURL: (URL) -> Void
+
+    func makeCoordinator() -> Coordinator { Coordinator() }
+
+    func makeUIView(context: Context) -> UITextView {
+        let textView = UITextView()
+        textView.isEditable = false
+        textView.isSelectable = true
+        textView.backgroundColor = .clear
+        textView.textContainerInset = UIEdgeInsets(top: 16, left: 12, bottom: 16, right: 12)
+        let tapGesture = UITapGestureRecognizer(target: context.coordinator, action: #selector(Coordinator.handleTap(_:)))
+        tapGesture.delegate = context.coordinator
+        textView.addGestureRecognizer(tapGesture)
+        context.coordinator.textView = textView
+        return textView
+    }
+
+    func updateUIView(_ textView: UITextView, context: Context) {
+        context.coordinator.url = url
+        context.coordinator.onOpenURL = onOpenURL
+        var attributes: [NSAttributedString.Key: Any] = [
+            .font: UIFont.preferredFont(forTextStyle: .body),
+            .foregroundColor: UIColor.label
+        ]
+        if url != nil {
+            // 텍스트 전체가 URL이면 일반 링크처럼 파란 밑줄로 그린다
+            attributes[.foregroundColor] = UIColor.link
+            attributes[.underlineStyle] = NSUnderlineStyle.single.rawValue
+        }
+        let attributedText = NSAttributedString(string: text, attributes: attributes)
+        // SwiftUI가 다시 그릴 때마다 교체하면 선택이 풀리므로 내용이 바뀐 경우에만 넣는다
+        guard textView.attributedText != attributedText else { return }
+        textView.attributedText = attributedText
+    }
+
+    final class Coordinator: NSObject, UIGestureRecognizerDelegate {
+        weak var textView: UITextView?
+        var url: URL?
+        var onOpenURL: ((URL) -> Void)?
+
+        /// 글자가 있는 영역을 탭했을 때만 연다. 빈 여백 탭은 무시한다
+        @objc func handleTap(_ recognizer: UITapGestureRecognizer) {
+            guard let textView, let url else { return }
+            let point = recognizer.location(in: textView)
+            let inset = textView.textContainerInset
+            let usedRect = textView.layoutManager.usedRect(for: textView.textContainer)
+                .offsetBy(dx: inset.left, dy: inset.top)
+            guard usedRect.contains(point) else { return }
+            onOpenURL?(url)
+        }
+
+        /// 선택 영역이 있을 때의 탭은 선택 해제로 쓰이므로 링크를 열지 않는다
+        func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
+            return (textView?.selectedRange.length ?? 0) == 0
+        }
+
+        /// 본문 선택용 텍스트 뷰 제스처(길게 누르기·두 번 탭·선택 해제 탭)를 막지 않는다
+        func gestureRecognizer(
+            _ gestureRecognizer: UIGestureRecognizer,
+            shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer
+        ) -> Bool {
+            return true
         }
     }
 }

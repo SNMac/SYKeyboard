@@ -62,6 +62,61 @@ struct ClipboardHistoryPanelViewTests {
         #expect(spy.deleteAllCount == 0)
     }
 
+    @Test("편집 모드에서 미고정만 삭제하면 요청한 뒤 편집 모드를 끝냄")
+    func test편집모드삭제후_편집모드종료() {
+        let (panel, spy) = makePanel(texts: ["a", "b", "c"])
+
+        panel.beginItemEditing()
+        panel.tableView.selectRow(at: IndexPath(row: 1, section: 0), animated: false, scrollPosition: .none)
+        panel.deleteSelectedItems()
+
+        #expect(spy.deletedIndices == [[1]])
+        #expect(panel.isItemEditing == false)
+    }
+
+    @Test("편집 모드에서 고정 항목이 섞인 삭제는 확인 전에는 편집 모드를 유지하고 확인하면 끝냄")
+    func test고정포함편집삭제는_확인후편집모드종료() {
+        let (panel, spy) = makePanel(items: [pinned("p"), unpinned("a"), unpinned("b")])
+
+        panel.beginItemEditing()
+        panel.tableView.selectRow(at: IndexPath(row: 0, section: 0), animated: false, scrollPosition: .none)
+        panel.tableView.selectRow(at: IndexPath(row: 1, section: 0), animated: false, scrollPosition: .none)
+        panel.deleteSelectedItems()
+
+        #expect(spy.deletedIndices.isEmpty)
+        #expect(panel.isItemEditing)
+
+        panel.confirmPendingDeletion()
+
+        #expect(spy.deletedIndices == [[0, 1]])
+        #expect(panel.isItemEditing == false)
+    }
+
+    @Test("편집 모드 고정 버튼은 선택한 항목 id로 고정을 요청하고 편집 모드를 끝냄")
+    func test편집모드고정은_선택id요청후편집모드종료() {
+        let (panel, spy) = makePanel(texts: ["a", "b", "c"])
+        let expectedIDs: Set<String> = [panel.items[0].id, panel.items[2].id]
+
+        panel.beginItemEditing()
+        panel.tableView.selectRow(at: IndexPath(row: 0, section: 0), animated: false, scrollPosition: .none)
+        panel.tableView.selectRow(at: IndexPath(row: 2, section: 0), animated: false, scrollPosition: .none)
+        panel.togglePinsOfSelectedItems()
+
+        #expect(spy.toggledPinIDs == [expectedIDs])
+        #expect(panel.isItemEditing == false)
+    }
+
+    @Test("편집 모드에서 선택이 없으면 고정을 요청하지 않고 편집 모드를 유지")
+    func test선택없으면_고정요청없음() {
+        let (panel, spy) = makePanel(texts: ["a", "b"])
+
+        panel.beginItemEditing()
+        panel.togglePinsOfSelectedItems()
+
+        #expect(spy.toggledPinIDs.isEmpty)
+        #expect(panel.isItemEditing)
+    }
+
     @Test("고정 항목이 섞인 삭제는 확인 전에는 요청하지 않고, 확인하면 요청")
     func test고정포함삭제는_확인후요청() {
         let (panel, spy) = makePanel(items: [pinned("p"), unpinned("a")])
@@ -121,6 +176,87 @@ struct ClipboardHistoryPanelViewTests {
 
         #expect(panel.isItemEditing == false)
         #expect(spy.deletedIndices.isEmpty)
+    }
+
+    @Test("손가락 없이 걸린 행 눌림은 선택이 이어지지 않으면 다음 runloop에 해제")
+    func test손가락없이걸린눌림은_다음runloop에해제() async throws {
+        let (panel, _) = makePanel(texts: ["a", "b"])
+        let window = UIWindow(frame: panel.frame)
+        window.addSubview(panel)
+        panel.layoutIfNeeded()
+        let indexPath = IndexPath(row: 0, section: 0)
+        let cell = try #require(panel.tableView.cellForRow(at: indexPath))
+        cell.setHighlighted(true, animated: false)
+
+        panel.tableView(panel.tableView, didHighlightRowAt: indexPath)
+        await drainMainQueue()
+
+        #expect(cell.isHighlighted == false)
+    }
+
+    @Test("편집 모드에서는 손가락 없이 걸린 눌림도 정리하지 않음")
+    func test편집모드는_눌림정리안함() async throws {
+        let (panel, _) = makePanel(texts: ["a", "b"])
+        let window = UIWindow(frame: panel.frame)
+        window.addSubview(panel)
+        panel.layoutIfNeeded()
+        let indexPath = IndexPath(row: 1, section: 0)
+        let cell = try #require(panel.tableView.cellForRow(at: indexPath))
+
+        panel.beginItemEditing()
+        cell.setHighlighted(true, animated: false)
+        panel.tableView(panel.tableView, didHighlightRowAt: indexPath)
+        await drainMainQueue()
+
+        #expect(cell.isHighlighted)
+    }
+
+    @Test("기본 configure는 열린 상세를 닫음")
+    func test기본configure는_상세를닫음() {
+        let items = [unpinned("a"), unpinned("b")]
+        let (panel, _) = makePanel(items: items)
+
+        panel.showDetail(at: 1)
+        panel.configure(state: .items(items))
+
+        #expect(panel.isDetailVisible == false)
+    }
+
+    @Test("상세를 유지하는 갱신에서 앞에 새 항목이 들어오면 붙여넣기는 보던 항목의 새 인덱스를 요청")
+    func test상세유지갱신후_붙여넣기는보던항목() {
+        let items = [unpinned("a"), unpinned("b")]
+        let (panel, spy) = makePanel(items: items)
+
+        panel.showDetail(at: 1)
+        panel.configure(state: .items([unpinned("new")] + items), keepsDetail: true)
+
+        #expect(panel.isDetailVisible)
+        panel.pasteDetailItem()
+        #expect(spy.selectedIndices == [2])
+    }
+
+    @Test("상세를 유지하는 갱신에서 보던 항목이 다시 기록돼 앞으로 오면 고정은 그 항목을 요청")
+    func test같은내용이다시기록되면_고정은그항목() {
+        let (panel, spy) = makePanel(items: [unpinned("a"), unpinned("b")])
+
+        panel.showDetail(at: 1)
+        panel.configure(state: .items([unpinned("b"), unpinned("a")]), keepsDetail: true)
+
+        #expect(panel.isDetailVisible)
+        panel.toggleDetailItemPin()
+        #expect(spy.toggledPinIndices == [0])
+    }
+
+    @Test("상세를 유지하는 갱신이어도 보던 항목이 사라지면 상세를 닫고 요청하지 않음")
+    func test보던항목이사라지면_상세를닫음() {
+        let (panel, spy) = makePanel(items: [unpinned("a"), unpinned("b")])
+
+        panel.showDetail(at: 1)
+        panel.configure(state: .items([unpinned("a")]), keepsDetail: true)
+        panel.pasteDetailItem()
+
+        #expect(panel.isDetailVisible == false)
+        #expect(spy.selectedIndices.isEmpty)
     }
 
     @Test("선택이 없으면 삭제를 요청하지 않음")
@@ -297,6 +433,14 @@ private func makePanel(items: [ClipboardHistoryItem]) -> (ClipboardHistoryPanelV
     return (panel, spy)
 }
 
+/// 패널이 `DispatchQueue.main.async`로 예약한 작업이 끝날 때까지 기다린다
+@MainActor
+private func drainMainQueue() async {
+    await withCheckedContinuation { continuation in
+        DispatchQueue.main.async { continuation.resume() }
+    }
+}
+
 private func unpinned(_ text: String) -> ClipboardHistoryItem {
     ClipboardHistoryItem(text: text, createdAt: Date())
 }
@@ -334,6 +478,7 @@ private final class ClipboardHistoryPanelDelegateSpy: ClipboardHistoryPanelDeleg
     private(set) var deletedIndices: [[Int]] = []
     private(set) var deleteAllCount = 0
     private(set) var toggledPinIndices: [Int] = []
+    private(set) var toggledPinIDs: [Set<String>] = []
 
     func clipboardPanel(_ panel: ClipboardHistoryPanelView, didSelectItemAt index: Int) {
         selectedIndices.append(index)
@@ -351,6 +496,9 @@ private final class ClipboardHistoryPanelDelegateSpy: ClipboardHistoryPanelDeleg
         toggledPinIndices.append(index)
     }
 
+    func clipboardPanel(_ panel: ClipboardHistoryPanelView, didTogglePinsOf ids: Set<String>) {
+        toggledPinIDs.append(ids)
+    }
 
     func clipboardPanel(_ panel: ClipboardHistoryPanelView, didRequestOpenURLAt index: Int) {}
 }

@@ -305,6 +305,10 @@ open class BaseKeyboardViewController: UIInputViewController {
             self, selector: #selector(clipboardImageDidRecord),
             name: ClipboardHistoryPasteboardSynchronizer.didRecordImageNotification, object: nil
         )
+        // 상세 뷰에서 본문 일부를 복사하면 viewWillAppear 등 기존 동기화 시점이 오지 않으므로 여기서 기록한다
+        NotificationCenter.default.addObserver(
+            self, selector: #selector(pasteboardDidChange), name: UIPasteboard.changedNotification, object: nil
+        )
         updateShowingKeyboard()
         if BaseKeyboardViewController.isPreview { updateReturnButtonType() }
 
@@ -2407,6 +2411,18 @@ private extension BaseKeyboardViewController {
         reloadClipboardPanel()
     }
 
+    /// 패널이 열린 채 이 키보드 안에서 pasteboard가 바뀌면(상세 뷰 일부 복사) 기록에 반영하고, 보던 상세 뷰는 유지한다.
+    /// 붙여넣기·이미지 복원은 쓴 직후 changeCount를 갱신하므로, 그 갱신이 끝난 다음 runloop에서 확인해 중복 기록하지 않는다
+    @objc func pasteboardDidChange() {
+        DispatchQueue.main.async { [weak self] in
+            guard let self, self.isClipboardPanelVisible, self.isClipboardHistoryAvailable,
+                  let clipboardHistoryStore = self.clipboardHistoryStore else { return }
+            self.synchronizeClipboardHistoryIfNeeded()
+            guard clipboardHistoryStore.load() != self.clipboardHistoryPanelView.items else { return }
+            self.reloadClipboardPanel(keepsDetail: true)
+        }
+    }
+
     /// 클립보드 버튼 탭. 열려 있으면 닫고, 닫혀 있으면 동기화 후 엽니다.
     func toggleClipboardPanel() {
         if isClipboardPanelVisible {
@@ -2434,13 +2450,14 @@ private extension BaseKeyboardViewController {
         updateClipboardControl()
     }
 
-    func reloadClipboardPanel() {
+    /// `keepsDetail`은 `ClipboardHistoryPanelView.configure(state:keepsDetail:)`로 그대로 넘긴다
+    func reloadClipboardPanel(keepsDetail: Bool = false) {
         guard hasFullAccess, let clipboardHistoryStore else {
             clipboardHistoryPanelView.configure(state: .fullAccessRequired)
             return
         }
         let items = clipboardHistoryStore.load()
-        clipboardHistoryPanelView.configure(state: items.isEmpty ? .empty : .items(items))
+        clipboardHistoryPanelView.configure(state: items.isEmpty ? .empty : .items(items), keepsDetail: keepsDetail)
     }
 
     /// 이미지 항목은 입력창에 넣을 수 없으므로 시스템 pasteboard에 원본 바이트를 복원하고 패널을 유지한 채 안내한다.
@@ -2522,6 +2539,12 @@ extension BaseKeyboardViewController: ClipboardHistoryPanelDelegate {
 
     final func clipboardPanel(_ panel: ClipboardHistoryPanelView, didTogglePinAt index: Int) {
         clipboardHistoryStore?.togglePin(at: index)
+        reloadClipboardPanel()
+    }
+
+    final func clipboardPanel(_ panel: ClipboardHistoryPanelView, didTogglePinsOf ids: Set<String>) {
+        // 저장소가 파일을 다시 읽어 정책을 적용하므로 그사이 앱이 바꾼 내용과 어긋나지 않는다
+        clipboardHistoryStore?.togglePins(selectedIDs: ids)
         reloadClipboardPanel()
     }
 

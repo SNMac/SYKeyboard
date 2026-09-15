@@ -1,17 +1,6 @@
 {
   "sourceLanguage" : "ko",
   "strings" : {
-    "%lld개 삭제" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Delete (%lld)"
-          }
-        }
-      }
-    },
     "고정" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -23,7 +12,7 @@
         }
       }
     },
-    "고정 항목 %lld개가 포함되어 있습니다. 삭제한 고정 항목은 복구할 수 없습니다." : {
+    "고정 항목 %lld개가 포함되어 있습니다.\n삭제한 항목은 복구할 수 없습니다." : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
@@ -32,13 +21,13 @@
               "one" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "Includes %lld pinned item. Deleted pinned items can't be recovered."
+                  "value" : "Includes %lld pinned item.\nDeleted items can't be recovered."
                 }
               },
               "other" : {
                 "stringUnit" : {
                   "state" : "translated",
-                  "value" : "Includes %lld pinned items. Deleted pinned items can't be recovered."
+                  "value" : "Includes %lld pinned items.\nDeleted items can't be recovered."
                 }
               }
             }
@@ -157,13 +146,13 @@
         }
       }
     },
-    "삭제한 고정 항목은 복구할 수 없습니다." : {
+    "삭제한 항목은 복구할 수 없습니다." : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Deleted pinned items can't be recovered."
+            "value" : "Deleted items can't be recovered."
           }
         }
       }
@@ -179,13 +168,13 @@
         }
       }
     },
-    "선택 해제" : {
+    "선택 해제 (%lld)" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Deselect All"
+            "value" : "Deselect All (%lld)"
           }
         }
       }
@@ -230,6 +219,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Select All"
+          }
+        }
+      }
+    },
+    "전체 선택 (%lld)" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Select All (%lld)"
           }
         }
       }

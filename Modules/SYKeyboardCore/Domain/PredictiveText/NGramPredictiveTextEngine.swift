@@ -31,7 +31,7 @@ import OSLog
 /// ```
 ///
 /// ## 저장 구조
-/// - App Group 컨테이너에 언어별 바이너리 plist 파일로 영구 저장
+/// - App Group 컨테이너의 `Library/Application Support/`에 언어별 바이너리 plist 파일로 영구 저장
 /// - 파일명: `ngram_{language}.plist` (예: `ngram_ko.plist`)
 /// - 항목 수 제한으로 메모리 과다 사용 방지
 ///
@@ -45,8 +45,9 @@ import OSLog
 /// 빈 결과 반환 / 무시됩니다. 키보드 표시 속도에 영향을 주지 않습니다.
 ///
 /// ## 마이그레이션
-/// 기존 `UserDefaults`에 저장된 n-gram 데이터가 있는 경우,
-/// 초기 로딩 시 자동으로 파일로 마이그레이션한 뒤 UserDefaults에서 제거합니다.
+/// - 컨테이너 루트에 있던 옛 파일은 생성 시 새 위치로 한 번 옮깁니다. 옮기지 못하면 옛 파일을 계속 읽고 저장은 새 위치로 합니다.
+/// - 기존 `UserDefaults`에 저장된 n-gram 데이터가 있는 경우,
+///   초기 로딩 시 자동으로 파일로 마이그레이션한 뒤 UserDefaults에서 제거합니다.
 final public class NGramPredictiveTextEngine: PredictiveTextProvider {
     
     // MARK: - Storage Model
@@ -111,6 +112,8 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
     
     /// 바이너리 plist 파일 경로
     private let fileURL: URL
+    /// 컨테이너 루트에 있던 옛 파일 경로. 옮기지 못했을 때 읽기와 초기화에만 쓴다
+    private let legacyFileURL: URL?
     /// 테스트에서 비동기 load 적용 지연을 재현하기 위한 값
     private let loadApplyDelay: Duration?
 
@@ -175,7 +178,8 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
         ) else {
             fatalError("App Group 컨테이너 URL을 가져오는 데 실패했습니다.")
         }
-        let fileURL = containerURL.appendingPathComponent("ngram_\(language).plist")
+        let fileURL = containerURL.appendingPathComponent("Library/Application Support/ngram_\(language).plist")
+        let legacyFileURL = containerURL.appendingPathComponent("ngram_\(language).plist")
         guard let legacyStorage = UserDefaults(suiteName: DefaultValues.groupBundleID) else {
             fatalError("UserDefaults를 suiteName으로 불러오는 데 실패했습니다.")
         }
@@ -184,6 +188,7 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
         self.init(
             language: language,
             fileURL: fileURL,
+            legacyFileURL: legacyFileURL,
             legacyStorage: legacyStorage,
             loadApplyDelay: nil
         )
@@ -192,6 +197,7 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
     init(
         language: String,
         fileURL: URL,
+        legacyFileURL: URL? = nil,
         legacyStorage: UserDefaults,
         loadApplyDelay: Duration? = nil,
         maxKeys: Int = 5000,
@@ -199,10 +205,15 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
     ) {
         self.language = language
         self.fileURL = fileURL
+        self.legacyFileURL = legacyFileURL
         self.legacyStorage = legacyStorage
         self.loadApplyDelay = loadApplyDelay
         self.maxKeys = maxKeys
         self.saveQueue = saveQueue
+        // 로딩·초기화와 경쟁하지 않도록 백그라운드 로딩 전에 옮긴다. 같은 볼륨 안 rename이라 비용이 작다
+        if let legacyFileURL {
+            Self.moveLegacyFileIfNeeded(from: legacyFileURL, to: fileURL)
+        }
         startBackgroundLoad()
     }
 
@@ -414,10 +425,7 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
             defer { Self.signposter.endInterval("NGramSaveEncode", encodeState) }
 
             do {
-                let encoder = PropertyListEncoder()
-                encoder.outputFormat = .binary
-                let data = try encoder.encode(snapshot)
-                try data.write(to: url, options: .atomic)
+                try Self.write(snapshot, to: url)
 
                 if shouldCleanupLegacy {
                     self.legacyStorage.removeObject(forKey: self.legacyUnigramKey)
@@ -452,9 +460,12 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
         // 파일을 지우고 저장소도 비우므로 메모리와 디스크가 일치한다
         hasUnsavedChanges = false
 
-        // 파일 삭제
+        // 파일 삭제. 옮기지 못한 옛 파일이 남으면 다음 실행에서 되살아나므로 함께 지운다
         try? FileManager.default.removeItem(at: fileURL)
-        
+        if let legacyFileURL {
+            try? FileManager.default.removeItem(at: legacyFileURL)
+        }
+
         // 레거시 UserDefaults도 정리 (마이그레이션 전 사용자 대비)
         legacyStorage.removeObject(forKey: legacyUnigramKey)
         legacyStorage.removeObject(forKey: legacyBigramKey)
@@ -484,12 +495,41 @@ private extension NGramPredictiveTextEngine {
     
     /// 바이너리 plist 파일에서 n-gram 데이터를 로드합니다.
     ///
+    /// 새 위치를 먼저 읽고, 없으면 옮기지 못한 옛 위치를 읽습니다.
+    ///
     /// - Returns: 로드된 데이터, 파일이 없거나 파싱 실패 시 `nil`
     func loadFromFile() -> NGramData? {
-        guard let data = try? Data(contentsOf: fileURL) else { return nil }
-        return try? PropertyListDecoder().decode(NGramData.self, from: data)
+        for url in [fileURL, legacyFileURL].compactMap({ $0 }) {
+            guard let data = try? Data(contentsOf: url) else { continue }
+            return try? PropertyListDecoder().decode(NGramData.self, from: data)
+        }
+        return nil
     }
-    
+
+    /// 새 위치에 파일이 없고 옛 위치에 있을 때만 옮긴다.
+    /// 다른 프로세스가 먼저 옮겼거나 옮기지 못해도 로딩이 새 위치 → 옛 위치 순으로 읽으므로 실패는 기록만 한다
+    static func moveLegacyFileIfNeeded(from legacyURL: URL, to fileURL: URL) {
+        let fileManager = FileManager.default
+        guard !fileManager.fileExists(atPath: fileURL.path),
+              fileManager.fileExists(atPath: legacyURL.path) else { return }
+        do {
+            try fileManager.createDirectory(at: fileURL.deletingLastPathComponent(), withIntermediateDirectories: true)
+            try fileManager.moveItem(at: legacyURL, to: fileURL)
+        } catch {
+            Logger(subsystem: Bundle.main.bundleIdentifier ?? "Unknown Bundle", category: "NGramPredictiveTextEngine")
+                .error("[NGram] 옛 위치 파일 이동 실패: \(error.localizedDescription)")
+        }
+    }
+
+    /// App Group 컨테이너에는 `Library/Application Support`가 기본으로 없어 쓰기 전에 만든다
+    static func write(_ ngramData: NGramData, to url: URL) throws {
+        let encoder = PropertyListEncoder()
+        encoder.outputFormat = .binary
+        let data = try encoder.encode(ngramData)
+        try FileManager.default.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
+        try data.write(to: url, options: .atomic)
+    }
+
     // MARK: Migration
     
     /// 기존 `UserDefaults`에서 n-gram 데이터를 읽어 파일로 마이그레이션합니다.
@@ -512,10 +552,7 @@ private extension NGramPredictiveTextEngine {
         )
         
         do {
-            let encoder = PropertyListEncoder()
-            encoder.outputFormat = .binary
-            let data = try encoder.encode(migrated)
-            try data.write(to: fileURL, options: .atomic)
+            try Self.write(migrated, to: fileURL)
         } catch {
             logger.error("[NGram/\(self.language)] 마이그레이션 저장 실패: \(error.localizedDescription)")
             return (migrated, true)  // 데이터는 올리되, cleanup 보류

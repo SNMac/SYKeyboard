@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import UIKit.UIGestureRecognizerSubclass
 
 import SYKeyboardAssets
 
@@ -20,6 +21,8 @@ protocol ClipboardHistoryPanelDelegate: AnyObject {
     func clipboardPanelDidDeleteAll(_ panel: ClipboardHistoryPanelView)
     /// leading swipe 또는 상세 뷰에서 항목의 고정을 토글했을 때 호출됩니다.
     func clipboardPanel(_ panel: ClipboardHistoryPanelView, didTogglePinAt index: Int)
+    /// 편집 모드 헤더에서 선택한 항목을 한 번에 고정/해제했을 때 호출됩니다. 규칙은 `ClipboardHistoryPolicy.pinBatch`를 따릅니다.
+    func clipboardPanel(_ panel: ClipboardHistoryPanelView, didTogglePinsOf ids: Set<String>)
     /// 상세 뷰에서 링크로 표시된 본문을 탭했을 때 호출됩니다. 항목 전체가 http/https URL일 때만 링크가 됩니다.
     func clipboardPanel(_ panel: ClipboardHistoryPanelView, didRequestOpenURLAt index: Int)
 }
@@ -31,7 +34,7 @@ protocol ClipboardHistoryPanelDelegate: AnyObject {
 /// ## 동작
 /// - 평소: 행 탭은 붙여넣기(텍스트) 또는 pasteboard 복원(이미지), trailing swipe는 개별 삭제, leading swipe는 고정/해제, 길게 누르기는 원문 상세 뷰.
 ///   이미지 복원 결과 같은 안내는 하단 중앙 토스트(`showTransientMessage`)로 2초간 띄운다
-/// - 편집 모드(`isItemEditing`): 행 탭은 선택 토글, 길게 누르기는 선택을 바꾸지 않고 원문 상세 뷰, "전체 선택"·"n개 삭제"·"완료".
+/// - 편집 모드(`isItemEditing`): 행 탭은 선택 토글, 길게 누르기는 선택을 바꾸지 않고 원문 상세 뷰, "전체 선택 (n)"·"고정"·"삭제"·"완료".
 ///   `UITableView.isEditing`은 스와이프 액션이 열려 있는 동안에도 true가 되므로 판단에 쓰지 않는다
 final class ClipboardHistoryPanelView: UIView {
 
@@ -71,7 +74,13 @@ final class ClipboardHistoryPanelView: UIView {
     /// 현재 표시 중인 항목(최신순). 델리게이트 인덱스는 이 배열 기준이다
     private(set) var items: [ClipboardHistoryItem] = []
 
-    private var detailIndex: Int?
+    /// 상세 뷰가 보여주는 항목의 id. 목록이 갱신돼 순서가 바뀌어도 같은 항목을 가리킨다
+    private var detailItemID: String?
+    /// 상세 뷰가 보여주는 항목의 현재 인덱스. 목록에서 사라졌으면 `nil`
+    private var detailItemIndex: Int? {
+        guard let detailItemID else { return nil }
+        return items.firstIndex { $0.id == detailItemID }
+    }
     /// 사용자가 "선택"으로 들어간 다중 선택 모드인지. 스와이프 중에도 true가 되는 `tableView.isEditing`과 구분한다
     private(set) var isItemEditing = false
     /// 고정 항목이 섞여 확인을 기다리는 삭제. 인덱스는 `items` 기준이다
@@ -82,6 +91,12 @@ final class ClipboardHistoryPanelView: UIView {
     /// 길게 누르기 → 원문 상세 뷰. 편집 모드에서는 인식이 끝날 때까지 셀에 터치를 넘기지 않아(`delaysTouchesBegan`)
     /// 다중 선택 셀의 눌림(회색·체크 표시)이 먼저 그려지지 않는다. 짧은 탭은 인식 실패 시점에 전달돼 선택이 토글된다
     private lazy var longPressRecognizer = UILongPressGestureRecognizer(target: self, action: #selector(handleLongPress(_:)))
+    /// 테이블 터치의 시작·끝을 지연 없이 관찰한다. 손가락이 모두 떨어진 뒤 남은 행 눌림을 정리하는 기준이다
+    private lazy var touchObserver: ClipboardHistoryTouchObserver = {
+        let recognizer = ClipboardHistoryTouchObserver()
+        recognizer.onAllTouchesEnded = { [weak self] in self?.scheduleStaleHighlightCleanup() }
+        return recognizer
+    }()
     /// 스와이프 액션은 색 배경 위에 뜨므로 채운 변형을 쓴다
     private static let pinActionSymbolName = "pin.fill"
     private static let unpinActionSymbolName = "pin.slash.fill"
@@ -113,16 +128,11 @@ final class ClipboardHistoryPanelView: UIView {
         return label
     }()
 
-    private lazy var selectAllButton = makeHeaderButton(title: "") { [weak self] in
-        self?.toggleSelectAll()
-    }
-
-    private lazy var deleteButton: UIButton = {
+    private lazy var selectAllButton: UIButton = {
         let button = makeHeaderButton(title: "") { [weak self] in
-            self?.deleteSelectedItems()
+            self?.toggleSelectAll()
         }
-        button.configuration?.baseForegroundColor = .systemRed
-        // 선택 개수가 바뀌어도 버튼 폭이 흔들리지 않도록 숫자를 고정폭으로 표시한다
+        // 선택 개수가 바뀌어도 글자 폭이 흔들리지 않도록 숫자를 고정폭으로 표시한다
         button.configuration?.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { attributes in
             var attributes = attributes
             // 제목이 갱신될 때마다 현재 Dynamic Type 크기를 읽는다
@@ -132,6 +142,27 @@ final class ClipboardHistoryPanelView: UIView {
             )
             return attributes
         }
+        // 최소 폭을 넓게 잡으므로 짧은 제목은 헤더 왼쪽 끝에 붙인다
+        button.contentHorizontalAlignment = .leading
+
+        return button
+    }()
+
+    private lazy var pinButton: UIButton = {
+        let button = makeHeaderButton(title: "") { [weak self] in
+            self?.togglePinsOfSelectedItems()
+        }
+        // 최소 폭을 "고정 해제"에 맞추므로 "고정"은 삭제 버튼 쪽에 붙인다
+        button.contentHorizontalAlignment = .trailing
+
+        return button
+    }()
+
+    private lazy var deleteButton: UIButton = {
+        let button = makeHeaderButton(title: String(localized: "삭제", bundle: SYKBDAssets.bundle)) { [weak self] in
+            self?.deleteSelectedItems()
+        }
+        button.configuration?.baseForegroundColor = .systemRed
 
         return button
     }()
@@ -159,7 +190,7 @@ final class ClipboardHistoryPanelView: UIView {
         let tableView = UITableView(frame: .zero, style: .plain)
         tableView.backgroundColor = .clear
         tableView.allowsMultipleSelectionDuringEditing = true
-        tableView.register(UITableViewCell.self, forCellReuseIdentifier: ClipboardHistoryPanelView.cellIdentifier)
+        tableView.register(ClipboardHistoryCell.self, forCellReuseIdentifier: ClipboardHistoryPanelView.cellIdentifier)
 
         return tableView
     }()
@@ -204,20 +235,10 @@ final class ClipboardHistoryPanelView: UIView {
         let view = ClipboardHistoryDetailView()
         view.isHidden = true
         view.onClose = { [weak self] in self?.hideDetail() }
-        view.onPaste = { [weak self] in
-            guard let self, let index = self.detailIndex else { return }
-            // 붙여넣기(텍스트)는 이 직후 패널이 닫히지만, 복사(이미지)는 패널이 열린 채 유지된다.
-            // 상세 뷰는 여기서 먼저 숨기고, 이미지 쪽은 이어지는 configure() 갱신으로 다시 숨김 상태가 반영된다
-            self.hideDetail(animated: false)
-            // 행 탭과 같은 경로다. 텍스트는 삽입 + pasteboard 복사, 이미지는 pasteboard 복원
-            self.delegate?.clipboardPanel(self, didSelectItemAt: index)
-        }
-        view.onTogglePin = { [weak self] in
-            guard let self, let index = self.detailIndex else { return }
-            self.delegate?.clipboardPanel(self, didTogglePinAt: index)
-        }
+        view.onPaste = { [weak self] in self?.pasteDetailItem() }
+        view.onTogglePin = { [weak self] in self?.toggleDetailItemPin() }
         view.onOpenURL = { [weak self] in
-            guard let self, let index = self.detailIndex else { return }
+            guard let self, let index = self.detailItemIndex else { return }
             self.delegate?.clipboardPanel(self, didRequestOpenURLAt: index)
         }
 
@@ -249,9 +270,12 @@ final class ClipboardHistoryPanelView: UIView {
 
     /// 패널 상태를 갱신합니다. 상세 뷰는 닫고, 편집 모드는 유지하되 항목이 없어지면 해제합니다.
     ///
+    /// `keepsDetail`이면 상세 뷰를 닫지 않고 보던 항목을 새 목록에서 다시 가리킵니다. 그 항목이 사라졌으면 닫습니다.
+    /// 상세 뷰에서 일부를 복사해 기록이 늘어난 경우처럼 사용자가 상세를 보는 중인 갱신에 씁니다.
+    ///
     /// 패널이 보이는 중이면 바뀐 행만 삭제·삽입 애니메이션으로 반영하고, 숨겨진 상태면 전체를 다시 그립니다.
-    func configure(state: State) {
-        hideDetail()
+    func configure(state: State, keepsDetail: Bool = false) {
+        if !keepsDetail { hideDetail() }
         hideDeleteConfirmation()
         let previousItems = items
         switch state {
@@ -264,6 +288,7 @@ final class ClipboardHistoryPanelView: UIView {
         case .items(let newItems):
             items = newItems
         }
+        if keepsDetail, detailItemID != nil, detailItemIndex == nil { hideDetail() }
         // 편집 모드 해제 애니메이션이 행 갱신 애니메이션과 겹치지 않도록 먼저 끝낸다
         if items.isEmpty { endItemEditing() }
         applySnapshot(from: previousItems, animated: !self.isHidden && !previousItems.isEmpty)
@@ -328,6 +353,16 @@ final class ClipboardHistoryPanelView: UIView {
         guard !indices.isEmpty else { return }
 
         requestDelete(at: indices, deleteAll: indices.count == items.count)
+    }
+
+    /// 편집 모드 헤더의 고정/해제. 선택한 항목을 id로 넘기고 편집 모드를 끝낸다. 테스트에서 직접 호출할 수 있도록 internal로 둔다
+    func togglePinsOfSelectedItems() {
+        guard isItemEditing else { return }
+        let ids = selectedItemIDs
+        guard ClipboardHistoryPolicy.pinBatch(selectedIDs: ids, in: items).isAllowed else { return }
+        // 편집 모드 해제 애니메이션이 행 이동 애니메이션과 겹치지 않도록 먼저 끝낸다. 해제하면 선택이 지워지므로 id는 먼저 구한다
+        endItemEditing()
+        delegate?.clipboardPanel(self, didTogglePinsOf: ids)
     }
 
     /// 고정 항목이 섞여 있으면 패널 안 확인 뷰를 띄우고, 미고정만이면 바로 델리게이트에 넘긴다.
@@ -413,7 +448,7 @@ final class ClipboardHistoryPanelView: UIView {
     /// 넘으면 미리보기 디코드를 건너뛰고 목록에 쓰던 캐시 썸네일로 대신한다(없으면 자리표시 아이콘)
     func showDetail(at index: Int) {
         guard items.indices.contains(index) else { return }
-        detailIndex = index
+        detailItemID = items[index].id
         let item = items[index]
         let canPin = ClipboardHistoryPolicy.canPin(items)
         switch item.content {
@@ -442,6 +477,21 @@ final class ClipboardHistoryPanelView: UIView {
         }
         setDetailHidden(false, animated: true)
     }
+
+    /// 상세 뷰의 붙여넣기(텍스트)·복사(이미지). 행 탭과 같은 델리게이트 경로다. 테스트에서 직접 호출할 수 있도록 internal로 둔다
+    func pasteDetailItem() {
+        guard let index = detailItemIndex else { return }
+        // 붙여넣기(텍스트)는 이 직후 패널이 닫히지만, 복사(이미지)는 패널이 열린 채 유지된다.
+        // 상세 뷰는 여기서 먼저 숨기고, 이미지 쪽은 이어지는 configure() 갱신으로 다시 숨김 상태가 반영된다
+        hideDetail(animated: false)
+        delegate?.clipboardPanel(self, didSelectItemAt: index)
+    }
+
+    /// 상세 뷰의 고정/해제. 테스트에서 직접 호출할 수 있도록 internal로 둔다
+    func toggleDetailItemPin() {
+        guard let index = detailItemIndex else { return }
+        delegate?.clipboardPanel(self, didTogglePinAt: index)
+    }
 }
 
 // MARK: - UI Methods
@@ -452,8 +502,11 @@ private extension ClipboardHistoryPanelView {
         setHierarchy()
         setConstraints()
         tableView.dataSource = dataSource
+        // 셀·테이블 배경이 투명해 기본 애니메이션(.automatic)은 삭제되는 행과 밀려 올라오는 행이 겹쳐 보인다
+        dataSource.defaultRowAnimation = .fade
         tableView.delegate = self
         tableView.addGestureRecognizer(longPressRecognizer)
+        tableView.addGestureRecognizer(touchObserver)
         updateHeader()
     }
 
@@ -464,7 +517,7 @@ private extension ClipboardHistoryPanelView {
     func setHierarchy() {
         let spacer = UIView()
         spacer.setContentHuggingPriority(.defaultLow, for: .horizontal)
-        [titleLabel, selectAllButton, spacer, deleteButton, editButton, doneButton].forEach {
+        [titleLabel, selectAllButton, spacer, pinButton, deleteButton, editButton, doneButton].forEach {
             headerStackView.addArrangedSubview($0)
         }
         toastView.contentView.addSubview(toastLabel)
@@ -472,6 +525,17 @@ private extension ClipboardHistoryPanelView {
     }
 
     func setConstraints() {
+        // 숫자는 고정폭이라 최대 항목 수(두 자리)로 재면 모든 개수의 폭을 덮는다
+        let maxSelectableCount = ClipboardHistoryPolicy.maxItemCount + ClipboardHistoryPolicy.maxPinnedCount
+        selectAllButton.widthAnchor.constraint(greaterThanOrEqualToConstant: headerButtonMinimumWidth(selectAllButton, titles: [
+            ClipboardHistoryPanelView.selectAllTitle(selectedCount: 0, isAllSelected: false),
+            ClipboardHistoryPanelView.selectAllTitle(selectedCount: maxSelectableCount, isAllSelected: false),
+            ClipboardHistoryPanelView.selectAllTitle(selectedCount: maxSelectableCount, isAllSelected: true)
+        ])).isActive = true
+        pinButton.widthAnchor.constraint(greaterThanOrEqualToConstant: headerButtonMinimumWidth(pinButton, titles: [
+            String(localized: "고정", bundle: SYKBDAssets.bundle),
+            String(localized: "고정 해제", bundle: SYKBDAssets.bundle)
+        ])).isActive = true
         [headerStackView, tableView, messageLabel, toastView, toastLabel, detailView, deleteConfirmView].forEach {
             $0.translatesAutoresizingMaskIntoConstraints = false
         }
@@ -521,6 +585,10 @@ private extension ClipboardHistoryPanelView {
         !items.isEmpty && (tableView.indexPathsForSelectedRows?.count ?? 0) == items.count
     }
 
+    var selectedItemIDs: Set<String> {
+        Set((tableView.indexPathsForSelectedRows ?? []).compactMap { items.indices.contains($0.row) ? items[$0.row].id : nil })
+    }
+
     /// 캐시에 없으면 썸네일 파일을 읽어 넣는다. 파일이 없으면 `nil`
     func thumbnail(for reference: ClipboardImageReference) -> UIImage? {
         let key = reference.hash as NSString
@@ -531,20 +599,46 @@ private extension ClipboardHistoryPanelView {
         return image
     }
 
+    /// 선택이 없으면 "전체 선택", 일부면 선택 개수를 괄호로 붙인 "전체 선택 (n)", 모두 선택했으면 "선택 해제 (n)"
+    static func selectAllTitle(selectedCount: Int, isAllSelected: Bool) -> String {
+        if isAllSelected {
+            return String(localized: "선택 해제 (\(selectedCount))", bundle: SYKBDAssets.bundle)
+        }
+        if selectedCount == 0 {
+            return String(localized: "전체 선택", bundle: SYKBDAssets.bundle)
+        }
+        return String(localized: "전체 선택 (\(selectedCount))", bundle: SYKBDAssets.bundle)
+    }
+
+    /// 제목 후보 중 가장 넓은 폭. 제목이 짧아질 때 버튼이 줄며 긴 글자가 잘리는 순간이 보이지 않도록 최소 폭으로 쓴다(`937e8f15`와 같은 방식)
+    func headerButtonMinimumWidth(_ button: UIButton, titles: [String]) -> CGFloat {
+        titles.map { title in
+            var config = button.configuration ?? UIButton.Configuration.plain()
+            config.title = title
+            return UIButton(configuration: config).intrinsicContentSize.width
+        }.max() ?? 0
+    }
+
     func updateHeader() {
         let isEditing = isItemEditing
         titleLabel.isHidden = isEditing
         editButton.isHidden = isEditing || items.isEmpty
         selectAllButton.isHidden = !isEditing
+        pinButton.isHidden = !isEditing
         deleteButton.isHidden = !isEditing
         doneButton.isHidden = !isEditing
 
         let selectedCount = tableView.indexPathsForSelectedRows?.count ?? 0
-        selectAllButton.configuration?.title = isAllSelected
-        ? String(localized: "선택 해제", bundle: SYKBDAssets.bundle)
-        : String(localized: "전체 선택", bundle: SYKBDAssets.bundle)
-        deleteButton.configuration?.title = String(localized: "\(selectedCount)개 삭제", bundle: SYKBDAssets.bundle)
+        selectAllButton.configuration?.title = ClipboardHistoryPanelView.selectAllTitle(
+            selectedCount: selectedCount, isAllSelected: isAllSelected
+        )
         deleteButton.isEnabled = selectedCount > 0
+
+        let pinBatch = ClipboardHistoryPolicy.pinBatch(selectedIDs: selectedItemIDs, in: items)
+        pinButton.configuration?.title = pinBatch.isUnpinning
+        ? String(localized: "고정 해제", bundle: SYKBDAssets.bundle)
+        : String(localized: "고정", bundle: SYKBDAssets.bundle)
+        pinButton.isEnabled = pinBatch.isAllowed
     }
 
     /// 편집 모드를 끝내는 "완료"는 iOS 편집 툴바처럼 semibold로 강조한다
@@ -575,7 +669,7 @@ private extension ClipboardHistoryPanelView {
     /// 패널을 닫을 때는 자판 복귀와 겹치지 않도록 애니메이션 없이 숨긴다
     /// 닫힌 뒤에는 디코드해 둔 미리보기(최대 약 5.8 MB)를 놓는다. 다시 열면 `showDetail(at:)`이 원본에서 다시 디코드한다
     func hideDetail(animated: Bool = true) {
-        detailIndex = nil
+        detailItemID = nil
         setDetailHidden(true, animated: animated) { [weak self] in
             // 전환 중에 다른 항목의 상세가 다시 열렸으면 그 이미지는 유지한다
             guard let self, self.detailView.isHidden else { return }
@@ -593,6 +687,9 @@ private extension ClipboardHistoryPanelView {
     }
 
     func performDelete(at indices: [Int], deleteAll: Bool) {
+        // 편집 모드에서 지웠으면 작업이 끝났으므로 일반 모드로 돌아간다. 행 삭제 애니메이션과 겹치지 않도록 먼저 끝낸다.
+        // 스와이프 삭제는 편집 모드가 아니라 아무 일도 하지 않는다
+        endItemEditing()
         if deleteAll {
             delegate?.clipboardPanelDidDeleteAll(self)
         } else {
@@ -637,7 +734,9 @@ private extension ClipboardHistoryPanelView {
 
     /// 스냅샷 식별자(id)로 항목을 찾는다. 애니메이션 중에는 이전 스냅샷의 indexPath가 넘어올 수 있어 인덱스를 쓰지 않는다
     func makeCell(in tableView: UITableView, at indexPath: IndexPath, id: String) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: ClipboardHistoryPanelView.cellIdentifier, for: indexPath)
+        guard let cell = tableView.dequeueReusableCell(
+            withIdentifier: ClipboardHistoryPanelView.cellIdentifier, for: indexPath
+        ) as? ClipboardHistoryCell else { return UITableViewCell() }
         guard let item = items.first(where: { $0.id == id }) else { return cell }
         var content = cell.defaultContentConfiguration()
         content.textProperties.font = .systemFont(ofSize: 15)
@@ -658,8 +757,15 @@ private extension ClipboardHistoryPanelView {
             content.secondaryTextProperties.font = .systemFont(ofSize: 12)
             content.secondaryTextProperties.color = .secondaryLabel
         }
+        // 고정 항목은 오른쪽 아이콘 자리만큼 본문 여백을 넓혀 글자가 아이콘 밑으로 들어가지 않게 한다
+        if item.isPinned {
+            content.directionalLayoutMargins.trailing += ClipboardHistoryCell.pinIconSize + ClipboardHistoryCell.pinIconSpacing
+        }
         cell.contentConfiguration = content
-        cell.accessoryView = item.isPinned ? makePinAccessoryView() : nil
+        cell.updatePinIcon(
+            isPinned: item.isPinned,
+            image: UIImage(systemName: ClipboardHistoryPanelView.pinnedAccessorySymbolName)
+        )
         cell.backgroundColor = .clear
         let selectedBackgroundView = UIView()
         selectedBackgroundView.backgroundColor = .suggestionButtonPressed
@@ -668,13 +774,16 @@ private extension ClipboardHistoryPanelView {
         return cell
     }
 
-    func makePinAccessoryView() -> UIView {
-        let imageView = UIImageView(image: UIImage(systemName: ClipboardHistoryPanelView.pinnedAccessorySymbolName))
-        imageView.tintColor = .secondaryLabel
-        imageView.contentMode = .scaleAspectFit
-        imageView.frame = CGRect(x: 0, y: 0, width: 16, height: 16)
-
-        return imageView
+    /// 같은 터치 도중 스와이프가 끝나면 스크롤 뷰가 붙잡아 둔 touchesBegan이 이미 취소된 터치로 다시 전달돼
+    /// 눌림만 걸리고 끝 이벤트는 오지 않는다. 다음 runloop에서 손가락이 없고 선택 없이 눌림만 남은 행을 해제한다.
+    /// 짧은 탭은 같은 이벤트 처리 안에서 선택·해제가 끝나므로 영향이 없고, 편집 모드는 선택 표시를 쓰므로 건드리지 않는다
+    func scheduleStaleHighlightCleanup() {
+        DispatchQueue.main.async { [weak self] in
+            guard let self, !self.isItemEditing, self.touchObserver.activeTouchCount == 0 else { return }
+            for cell in self.tableView.visibleCells where cell.isHighlighted && !cell.isSelected {
+                cell.setHighlighted(false, animated: true)
+            }
+        }
     }
 
     /// 편집 모드에서도 연다. 인식되는 순간 테이블 터치가 취소되므로 행 선택은 바뀌지 않는다
@@ -703,6 +812,13 @@ extension ClipboardHistoryPanelView: UITableViewDelegate {
 
     func tableView(_ tableView: UITableView, didDeselectRowAt indexPath: IndexPath) {
         if isItemEditing { updateHeader() }
+    }
+
+    /// 손가락이 모두 떨어진 뒤에 걸린 눌림을 정리 대상으로 예약한다. 짧은 탭은 같은 이벤트 처리 안에서 선택이 이어져 정리할 것이 없고,
+    /// 스와이프가 끝난 뒤 늦게 전달된 터치의 눌림은 선택 없이 남으므로 다음 runloop에서 해제된다
+    func tableView(_ tableView: UITableView, didHighlightRowAt indexPath: IndexPath) {
+        guard touchObserver.activeTouchCount == 0 else { return }
+        scheduleStaleHighlightCleanup()
     }
 
     func tableView(
@@ -763,6 +879,91 @@ private final class ClipboardHistoryDataSource: UITableViewDiffableDataSource<In
     }
 }
 
+/// 터치 수만 세는 인식기. 인식하지 않고, 다른 인식기를 막거나 막히지 않으며, 뷰로 가는 터치를 지연·취소하지 않는다
+private final class ClipboardHistoryTouchObserver: UIGestureRecognizer {
+    private(set) var activeTouchCount = 0
+    var onAllTouchesEnded: (() -> Void)?
+
+    init() {
+        super.init(target: nil, action: nil)
+        cancelsTouchesInView = false
+        delaysTouchesBegan = false
+        delaysTouchesEnded = false
+    }
+
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent) {
+        activeTouchCount += touches.count
+    }
+
+    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent) {
+        endTouches(touches)
+    }
+
+    override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent) {
+        endTouches(touches)
+    }
+
+    /// 인식기가 초기화되면 추적하던 터치를 더 받지 못하므로 세던 수를 비운다. 정상 경로에서는 이미 0이다
+    override func reset() {
+        super.reset()
+        activeTouchCount = 0
+    }
+
+    override func canPrevent(_ preventedGestureRecognizer: UIGestureRecognizer) -> Bool { false }
+    override func canBePrevented(by preventingGestureRecognizer: UIGestureRecognizer) -> Bool { false }
+
+    private func endTouches(_ touches: Set<UITouch>) {
+        activeTouchCount = max(0, activeTouchCount - touches.count)
+        guard activeTouchCount == 0 else { return }
+        onAllTouchesEnded?()
+        // 인식하지 않으므로 실패로 끝내 다음 터치에서 다시 시작한다
+        state = .failed
+    }
+}
+
+/// 고정 아이콘을 액세서리가 아니라 콘텐츠 영역 오른쪽에 둔 셀.
+/// 액세서리로 두면 편집 모드 전환 때 `accessoryView`와 `editingAccessoryView`가 바뀌며 사라졌다 나타나므로, 한 뷰를 제자리에 둔다
+private final class ClipboardHistoryCell: UITableViewCell {
+    static let pinIconSize: CGFloat = 16
+    static let pinIconSpacing: CGFloat = 16
+
+    let pinImageView: UIImageView = {
+        let imageView = UIImageView()
+        imageView.tintColor = .secondaryLabel
+        imageView.contentMode = .scaleAspectFit
+        imageView.isHidden = true
+
+        return imageView
+    }()
+
+    override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
+        super.init(style: style, reuseIdentifier: reuseIdentifier)
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
+    /// 콘텐츠 설정을 넣은 뒤에 부른다. 설정은 `contentView`를 새 뷰로 바꿀 수 있어, 현재 `contentView`에 아이콘이 없으면 다시 붙인다
+    func updatePinIcon(isPinned: Bool, image: UIImage?) {
+        pinImageView.image = image
+        pinImageView.isHidden = !isPinned
+        if pinImageView.superview !== contentView {
+            pinImageView.removeFromSuperview()
+            pinImageView.translatesAutoresizingMaskIntoConstraints = false
+            contentView.addSubview(pinImageView)
+            NSLayoutConstraint.activate([
+                pinImageView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -ClipboardHistoryCell.pinIconSpacing),
+                pinImageView.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
+                pinImageView.widthAnchor.constraint(equalToConstant: ClipboardHistoryCell.pinIconSize),
+                pinImageView.heightAnchor.constraint(equalToConstant: ClipboardHistoryCell.pinIconSize)
+            ])
+        }
+        // 콘텐츠 설정이 만든 뷰가 아이콘 위에 올라가지 않도록 앞으로 둔다
+        contentView.bringSubviewToFront(pinImageView)
+    }
+}
+
 // MARK: - Supporting Views
 
 /// 길게 누른 항목의 원문 전체를 스크롤로 보여주는 상세 뷰
@@ -818,7 +1019,8 @@ private final class ClipboardHistoryDetailView: UIView {
     private let textView: UITextView = {
         let textView = UITextView()
         textView.isEditable = false
-        textView.isSelectable = false
+        // 길게 누르거나 두 번 탭해 일부를 선택하고 시스템 메뉴로 복사한다. 편집은 막는다
+        textView.isSelectable = true
         textView.backgroundColor = .clear
         textView.font = .systemFont(ofSize: 15)
         textView.textColor = .label
@@ -866,6 +1068,12 @@ private final class ClipboardHistoryDetailView: UIView {
         textView.verticalScrollIndicatorInsets.bottom = bottomInset
     }
 
+    /// 선택 영역이 있을 때의 탭은 선택 해제로 쓰이므로 링크를 열지 않는다
+    override func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
+        guard gestureRecognizer === openURLTapGesture else { return super.gestureRecognizerShouldBegin(gestureRecognizer) }
+        return textView.selectedRange.length == 0
+    }
+
     // MARK: - Internal Methods
 
     /// 고정 한도가 찼으면 미고정 항목의 고정 버튼을 숨긴다. 스와이프 액션과 같은 규칙이다.
@@ -882,6 +1090,7 @@ private final class ClipboardHistoryDetailView: UIView {
             attributes[.underlineStyle] = NSUnderlineStyle.single.rawValue
         }
         textView.attributedText = NSAttributedString(string: text, attributes: attributes)
+        textView.selectedRange = NSRange(location: 0, length: 0)
         textView.setContentOffset(.zero, animated: false)
         openURLTapGesture.isEnabled = canOpenURL
         pinButton.isHidden = !isPinned && !canPin
@@ -924,6 +1133,7 @@ private extension ClipboardHistoryDetailView {
         let spacer = UIView()
         spacer.setContentHuggingPriority(.defaultLow, for: .horizontal)
         [titleLabel, spacer, pinButton, closeButton].forEach { headerStackView.addArrangedSubview($0) }
+        openURLTapGesture.delegate = self
         textView.addGestureRecognizer(openURLTapGesture)
         [blurView, headerStackView, textView, imageView, pasteButton].forEach {
             self.addSubview($0)
@@ -969,6 +1179,18 @@ private extension ClipboardHistoryDetailView {
         pasteButton.configuration?.title = isImage
         ? String(localized: "복사", bundle: SYKBDAssets.bundle)
         : String(localized: "붙여넣기", bundle: SYKBDAssets.bundle)
+    }
+}
+
+// MARK: - UIGestureRecognizerDelegate
+
+extension ClipboardHistoryDetailView: UIGestureRecognizerDelegate {
+    /// 본문 선택용 텍스트 뷰 제스처(길게 누르기·두 번 탭)를 막지 않는다
+    func gestureRecognizer(
+        _ gestureRecognizer: UIGestureRecognizer,
+        shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer
+    ) -> Bool {
+        return gestureRecognizer === openURLTapGesture
     }
 }
 
@@ -1057,11 +1279,11 @@ private final class ClipboardHistoryDeleteConfirmView: UIView {
     func update(pinnedCount: Int, totalCount: Int) {
         if pinnedCount == totalCount {
             titleLabel.text = String(localized: "고정 항목 \(pinnedCount)개를 삭제할까요?", bundle: SYKBDAssets.bundle)
-            messageLabel.text = String(localized: "삭제한 고정 항목은 복구할 수 없습니다.", bundle: SYKBDAssets.bundle)
+            messageLabel.text = String(localized: "삭제한 항목은 복구할 수 없습니다.", bundle: SYKBDAssets.bundle)
         } else {
             titleLabel.text = String(localized: "항목 \(totalCount)개를 삭제할까요?", bundle: SYKBDAssets.bundle)
             messageLabel.text = String(
-                localized: "고정 항목 \(pinnedCount)개가 포함되어 있습니다. 삭제한 고정 항목은 복구할 수 없습니다.",
+                localized: "고정 항목 \(pinnedCount)개가 포함되어 있습니다.\n삭제한 항목은 복구할 수 없습니다.",
                 bundle: SYKBDAssets.bundle
             )
         }

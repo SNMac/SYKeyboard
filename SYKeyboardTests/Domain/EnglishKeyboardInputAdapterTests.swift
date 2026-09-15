@@ -54,4 +54,45 @@ struct EnglishKeyboardInputAdapterTests {
 
         #expect(adapter.isShifted)
     }
+
+    @Test("Shift를 두 번 눌러 caps lock을 켠 채 누르고 글자를 입력한 뒤 떼도 caps lock 유지")
+    func testCapsLockHeldWhileTypingStaysLockedAfterRelease() throws {
+        let adapter = EnglishKeyboardInputAdapter()
+        let shiftButton = try #require(adapter.primaryKeyboardView as? EnglishKeyboardLayoutProvider).shiftButton
+
+        shiftButton.sendActions(for: .touchDown)
+        shiftButton.sendActions(for: .touchUpInside)
+        shiftButton.sendActions(for: .touchDown)
+        shiftButton.sendActions(for: .touchDownRepeat)
+        typeLetterWhileShiftPressed("A", adapter: adapter)
+        shiftButton.sendActions(for: .touchUpInside)
+
+        #expect(adapter.isCapsLocked)
+        #expect(adapter.isShifted)
+    }
+
+    @Test("Shift를 한 번 누른 채 글자를 입력한 뒤 떼면 대문자 해제")
+    func testShiftHeldWhileTypingReleasesAfterRelease() throws {
+        let adapter = EnglishKeyboardInputAdapter()
+        let shiftButton = try #require(adapter.primaryKeyboardView as? EnglishKeyboardLayoutProvider).shiftButton
+
+        shiftButton.sendActions(for: .touchDown)
+        typeLetterWhileShiftPressed("A", adapter: adapter)
+        shiftButton.sendActions(for: .touchUpInside)
+
+        #expect(adapter.isCapsLocked == false)
+        #expect(adapter.isShifted == false)
+    }
+}
+
+/// `EnglishKeyboardCoreViewController.textInteractionDidPerform`이 Shift를 누른 채 글자를 입력했을 때 부르는 순서
+@MainActor
+private func typeLetterWhileShiftPressed(_ letter: String, adapter: EnglishKeyboardInputAdapter) {
+    adapter.recordInsertedText(letter)
+    adapter.updateAutocapitalization(
+        type: .sentences,
+        documentContextBeforeInput: letter,
+        isEnabled: true,
+        isShiftButtonPressed: true
+    )
 }
