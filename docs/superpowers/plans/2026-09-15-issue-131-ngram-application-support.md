@@ -781,7 +781,7 @@ Step 2와 같은 환경에서 끌다 놓기(특히 누른 채 원위치로 되�
 6. 스와이프 삭제·고정/해제: 정상.
 7. 편집 모드 다중 선택·삭제: 동작은 정상. 삭제 애니메이션에서 행이 위로 뭉개지며 체크 표시가 옆 행과 겹쳐 보이는 현상이 관찰됨. 이번 수정은 편집 모드에서 동작하지 않으므로(`isItemEditing` guard) 이번 diff의 회귀인지 기존 동작인지 별도로 확인한다(사용자가 `26399d8b` 영향 여부를 제기).
 
-- [ ] **Step 8: 커밋**
+- [x] **Step 8: 커밋** — `3c5826ff`
 
 `git diff`에 진단 코드가 없는지 확인한 뒤:
 
@@ -1081,7 +1081,7 @@ extension ClipboardHistoryDetailView: UIGestureRecognizerDelegate {
 
 실행 결과(2026-09-15, 사용자 수행, iPhone 13 mini / iOS 18.6 시뮬레이터 `82146144-24DE-4F91-B25D-23D147A91142`): 1~8 모두 정상. 리뷰 후 추가한 9. 본문을 선택한 채 "닫기"·클립보드 버튼으로 닫아도 편집 메뉴·선택 핸들이 남지 않음 — 정상. 1에서 키보드 확장 안에 복사 메뉴가 뜨고 붙여넣기 권한 알림은 뜨지 않음을 함께 확인했다.
 
-- [ ] **Step 8: 커밋**
+- [x] **Step 8: 커밋** — `54876e0a`
 
 ```bash
 git add Modules/SYKeyboardCore/Presentation/View/ClipboardHistoryPanelView.swift \
@@ -1238,7 +1238,7 @@ private struct ClipboardHistoryDetailTextView: UIViewRepresentable {
 
 실행 결과(2026-09-15, 사용자 수행, iPhone 13 mini / iOS 18.6 시뮬레이터 `82146144-24DE-4F91-B25D-23D147A91142`): 1~6 모두 정상. 2의 복사는 되지만 시트 뒤 목록에는 실시간으로 반영되지 않음(시트를 연 채 앱 안에서 복사한 경우의 동기화 경로가 없음. 수정 전 SwiftUI `Text` 선택 복사도 같은 경로라 이번 diff의 회귀는 아니며 범위 밖으로 기록).
 
-- [ ] **Step 4: 커밋**
+- [x] **Step 4: 커밋** — `0de14664`
 
 ```bash
 git add SYKeyboard/Presentation/KeyboardSettings/ClipboardHistorySettingsView.swift \
@@ -1286,7 +1286,7 @@ git commit -m "fix: #131 - 키보드 앱 클립보드 상세에서 선택 밖을
 2. `HangeulKeyboard`, `EnglishKeyboard`, `HangeulEnglishKeyboard`를 `-only-testing` 없이 각각 빌드: 모두
    `BUILD SUCCEEDED`(iPhone 13 mini, iOS 18.6). 빌드 뒤 `git status --short`에 `.xcscheme` 변경 없음 — 되돌릴 대상 없었다.
 
-- [ ] **Step 3: 커밋**
+- [x] **Step 3: 커밋** — `6eea63cc`
 
 ```bash
 git add Modules/SYKeyboardCore/Presentation/View/ClipboardHistoryPanelView.swift \
@@ -1490,7 +1490,7 @@ Step 5와 같은 테스트·빌드·설치를 다시 실행하고 결과를 이 
 
 실행 결과(2026-09-15, 사용자 수행, iPhone 13 mini / iOS 18.6 시뮬레이터, Step 5-1 빌드): 아이콘 표시, 편집 모드 진입·종료 시 제자리 유지(애니메이션 없음), 두 줄 텍스트 여백, 스와이프 삭제·고정/해제, 스크롤 재사용·이미지 항목, 기존 탭·상세·눌림 배경 모두 정상.
 
-- [ ] **Step 7: 커밋**
+- [x] **Step 7: 커밋** — `f9cb9794`
 
 ```bash
 git add Modules/SYKeyboardCore/Presentation/View/ClipboardHistoryPanelView.swift \
@@ -1553,7 +1553,7 @@ SwiftUI 화면이라 기존에도 unit test가 없고, 동기화 규칙은 `Clip
 
 실행 결과(2026-09-15, 사용자 수행, iPhone 13 mini / iOS 18.6 시뮬레이터 `82146144-24DE-4F91-B25D-23D147A91142`): 1~6 모두 정상(붙여넣기 권한 알림 없음).
 
-- [ ] **Step 4: 커밋**
+- [x] **Step 4: 커밋** — `e0de6459`
 
 ```bash
 git add SYKeyboard/Presentation/KeyboardSettings/ClipboardHistorySettingsView.swift \
@@ -1632,7 +1632,7 @@ git commit -m "fix: #131 - 키보드 앱 클립보드 상세에서 복사하면 
 
 실행 결과(2026-09-15, 사용자 수행, 같은 시뮬레이터): 키보드 확장 섞인 삭제 두 줄·고정만 삭제 문구, 키보드 앱 한 줄 문구, 영어 문구 모두 정상. 3의 "두 줄로 나뉜다"는 사용자 결정에 따라 키보드 확장만 해당한다.
 
-- [ ] **Step 4: 커밋**
+- [x] **Step 4: 커밋** — `0d6a9bff`
 
 ```bash
 git add Modules/SYKeyboardCore/Presentation/View/ClipboardHistoryPanelView.swift \
@@ -1842,7 +1842,7 @@ Run: `-only-testing:SYKeyboardTests/ClipboardHistoryPanelViewTests -only-testing
 
 실행 결과(2026-09-15, 사용자 수행): 1~5 정상(iPhone SE (3rd generation) / iOS 18.6, iPhone 13 mini / iOS 18.6 헤더 잘림·겹침 없음). (정정 2026-09-15: 사용자 Mac의 Xcode 27에서는 iOS 16.0 시뮬레이터로 화면 확인이 되지 않아, 사용자가 만든 iPhone SE (3rd generation) / iOS 18.6 시뮬레이터 `477A3468-F8A3-4DB2-92CA-AD04D83767DB`로 확인했다. iOS 16 실제 화면은 미확인) 큰 글자 크기는 확인 항목으로 따로 요청하지 않아 미확인. 추가 관찰: "고정 해제"에서 "고정"으로 돌아올 때 버튼이 줄며 "고정 해제" 글자가 잠깐 잘림 — 기존 `937e8f15`(전체 선택 버튼 폭 고정)와 같은 원인, 후속 Task로 처리.
 
-- [ ] **Step 6: 커밋**
+- [x] **Step 6: 커밋** — `b3f042be`
 
 ```bash
 git add Modules/SYKeyboardCore/Presentation/View/ClipboardHistoryPanelView.swift \
@@ -1914,7 +1914,7 @@ SYKeyboard app scheme을 iOS 18.6 destination으로 빌드한다. Expected: `BUI
 
 실행 결과(2026-09-15, 사용자 수행): 1~3 정상.
 
-- [ ] **Step 4: 커밋**
+- [x] **Step 4: 커밋** — `82df5c2d`
 
 ```bash
 git add SYKeyboard/Presentation/KeyboardSettings/ClipboardHistorySettingsView.swift \
@@ -2034,7 +2034,7 @@ iPhone 13 mini 이름의 iOS 16.0 시뮬레이터가 두 대(`CBD992D3-5364-4F69
 
 실행 결과(2026-09-15, 사용자 수행): iPhone 13 mini / iOS 18.6과 iPhone SE (3rd generation) / iOS 18.6에서 간격·색·비활성 표시·탭 영역·삭제 확인 창·고정 후 일반 모드 복귀 정상, iOS 26 이상 실기기는 기존 모양 유지. iOS 16.0 시뮬레이터는 사용자 Mac의 Xcode 27에서 화면 확인이 되지 않아 미확인(iOS 26 미만은 같은 코드 경로). 최종 측정(스크린샷 1080px = 375pt, 컨트롤러가 BMP 픽셀로 측정): 휴지통 오른쪽 끝~화면 끝 18.1pt(사진 앱 18.4pt), 고정·휴지통 중심 거리 43.4pt(사진 앱 42.6pt), 왼쪽 첫 아이콘 18.4pt(동일).
 
-- [ ] **Step 4: 커밋**
+- [x] **Step 4: 커밋** — `63d44524`
 
 ```bash
 git add SYKeyboard/Presentation/KeyboardSettings/ClipboardHistorySettingsView.swift \
@@ -2200,7 +2200,7 @@ git commit -m "design: #131 - 키보드 앱 클립보드 편집 모드 하단 �
 
 실행 결과(2026-09-15, 사용자 수행, iPhone SE (3rd generation) / iOS 18.6, iPhone 13 mini / iOS 18.6): 1~4 정상 (기기 정정 2026-09-15: 사용자 Mac의 Xcode 27에서는 iOS 16.0 시뮬레이터로 화면 확인이 되지 않아, 사용자가 만든 iPhone SE (3rd generation) / iOS 18.6 시뮬레이터 `477A3468-F8A3-4DB2-92CA-AD04D83767DB`로 확인했다. iOS 16 실제 화면은 미확인)(문구, 전환 시 잘림·흔들림 없음, 헤더 잘림·겹침 없음). 사용자 결정: 선택이 없을 때 "전체 선택 (0)"이 아니라 지금처럼 "전체 선택"만 보인다.
 
-- [ ] **Step 5: 커밋**
+- [x] **Step 5: 커밋** — `740102b8`
 
 ```bash
 git add Modules/SYKeyboardCore/Presentation/View/ClipboardHistoryPanelView.swift \
@@ -2248,9 +2248,17 @@ Expected: `TEST SUCCEEDED`. 실제 테스트 개수와 `.xcresult` 경로를 기
 
 실행 결과(2026-09-15, 사용자 실기기): 영어 키보드·한영 통합 키보드 영어 모드에서 1~4 모두 정상.
 
-- [ ] **Step 5: 커밋**
+- [x] **Step 5: 커밋** — `e43944db`
 
 ```bash
 git add docs/superpowers/plans/2026-09-15-issue-131-ngram-application-support.md
 git commit -m "docs: #131 - 전체 테스트·확장 빌드·실기기 확인 결과 기록"
 ```
+
+## 최종 리뷰
+
+- 전체 브랜치 리뷰(`ba93ae17..e43944db`, 2026-09-15): Critical·Important 없음, "수정 후 병합 가능".
+- 병합 전 수정: `ClipboardHistoryTouchObserver`에 `reset()` override를 추가해 인식기 초기화 시 터치 수를 비우고 `didHighlightRowAt` 주석을 명확히 함 — `07caa063`. 검증: `xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard -destination 'id=82146144-24DE-4F91-B25D-23D147A91142' -parallel-testing-enabled NO -only-testing:SYKeyboardTests/ClipboardHistoryPanelViewTests` → `Test-SYKeyboard-2026.09.15_22-19-58-+0900.xcresult` Passed 31/31, `HangeulKeyboard` 빌드 성공.
+- 계획 문서의 커밋 step 체크 누락을 실제 커밋 SHA와 함께 정리.
+- 미룬 사소한 항목: 키보드 앱 상세 `UITextView`가 실행 중 Dynamic Type 변경을 바로 반영하지 않음(시트를 다시 열면 반영), 같은 뷰의 `attributedText` 비교 가드, 코드 주석의 커밋 해시 표기, `ClipboardHistoryCell`의 불필요한 init, NGram 이동 실패 경로의 Logger 생성, 헤더 버튼 최소 폭을 초기화 때 한 번만 계산.
+- 미확인: iOS 16~17 실제 화면(Xcode 27에서 iOS 16.0 시뮬레이터 화면 확인 불가). iOS 26 미만은 iOS 18.6과 같은 코드 경로.
