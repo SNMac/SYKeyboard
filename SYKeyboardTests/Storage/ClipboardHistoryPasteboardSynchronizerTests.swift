@@ -13,7 +13,7 @@ import UniformTypeIdentifiers
 
 @testable import SYKeyboardCore
 
-@Suite("클립보드 pasteboard 동기화 검증", .serialized)
+@Suite("클립보드 pasteboard 동기화 검증", .serialized, .sharedUserDefaults)
 struct ClipboardHistoryPasteboardSynchronizerTests {
 
     @Test("changeCount가 바뀌었을 때만 pasteboard 텍스트를 기록")

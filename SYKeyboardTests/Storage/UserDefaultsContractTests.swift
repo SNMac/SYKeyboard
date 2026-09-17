@@ -12,7 +12,7 @@ import EnglishKeyboardCore
 import SYKeyboardCore
 @testable import SYKeyboard
 
-@Suite("UserDefaults 기본값 계약 검증", .serialized)
+@Suite("UserDefaults 기본값 계약 검증", .serialized, .sharedUserDefaults)
 struct UserDefaultsContractTests {
 
     @Test("자동 대문자는 저장값이 없으면 선언된 기본값을 반환")

@@ -12,7 +12,7 @@ import UIKit
 @testable import SYKeyboardCore
 
 @MainActor
-@Suite("나랏글 획·쌍 버튼 표기", .serialized)
+@Suite("나랏글 획·쌍 버튼 표기", .serialized, .sharedUserDefaults)
 struct PrimaryKeyButtonLabelTests {
 
     @Test("설정이 꺼져 있으면 기존 '획', '쌍' 표기를 유지")
