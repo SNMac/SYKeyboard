@@ -10,7 +10,7 @@ import UIKit
 
 @testable import SYKeyboardCore
 
-@Suite("주 키보드 view collection 검증")
+@Suite("주 키보드 view collection 검증", .sharedUserDefaults)
 @MainActor
 struct KeyboardPrimaryViewCollectionTests {
 
