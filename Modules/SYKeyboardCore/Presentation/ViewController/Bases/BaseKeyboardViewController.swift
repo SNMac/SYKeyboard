@@ -1546,6 +1546,7 @@ extension BaseKeyboardViewController {
         switch button.type {
         case .keyButton:
             repeatInsertPrimaryKeyText(from: button)
+            markSymbolInputAfterLongPressIfNeeded(for: button)
             button.playFeedback()
         case .deleteButton:
             assertionFailure("삭제 버튼은 semantic hook 경로에서 먼저 처리됩니다.")
@@ -2319,8 +2320,17 @@ private extension BaseKeyboardViewController {
 
     func performNumberInputLongPress(for button: TextInteractable) {
         performTextInteraction(for: button, insertSecondaryKeyIfAvailable: true)
+        markSymbolInputAfterLongPressIfNeeded(for: button)
         button.isGesturing = false
         textInteractionGestureController.releaseButtonGesture(for: button)
+    }
+
+    func markSymbolInputAfterLongPressIfNeeded(for button: TextInteractable) {
+        guard KeyboardSymbolInputPolicy.shouldMarkSymbolInputAfterLongPressInput(
+            buttonType: button.type,
+            currentKeyboard: currentKeyboard
+        ) else { return }
+        isSymbolInput = true
     }
 }
 

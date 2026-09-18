@@ -239,6 +239,46 @@ struct KeyboardSymbolInputPolicyTests {
         #expect(KeyboardSymbolInputPolicy.shouldMarkSymbolInput(buttonType: .spaceButton) == false)
         #expect(KeyboardSymbolInputPolicy.shouldMarkSymbolInput(buttonType: .returnButton) == false)
     }
+
+    @Test("기호 키보드에서 길게 누르기로 입력한 심볼 키도 심볼 입력 상태로 표시")
+    func test길게누르기입력심볼입력상태표시조건() {
+        #expect(
+            KeyboardSymbolInputPolicy.shouldMarkSymbolInputAfterLongPressInput(
+                buttonType: .keyButton(primary: ["!"], secondary: nil),
+                currentKeyboard: .symbol
+            )
+        )
+        #expect(
+            KeyboardSymbolInputPolicy.shouldMarkSymbolInputAfterLongPressInput(
+                buttonType: .keyButton(primary: ["’"], secondary: nil),
+                currentKeyboard: .symbol
+            ) == false
+        )
+        #expect(
+            KeyboardSymbolInputPolicy.shouldMarkSymbolInputAfterLongPressInput(
+                buttonType: .spaceButton,
+                currentKeyboard: .symbol
+            ) == false
+        )
+        #expect(
+            KeyboardSymbolInputPolicy.shouldMarkSymbolInputAfterLongPressInput(
+                buttonType: .deleteButton,
+                currentKeyboard: .symbol
+            ) == false
+        )
+        #expect(
+            KeyboardSymbolInputPolicy.shouldMarkSymbolInputAfterLongPressInput(
+                buttonType: .keyButton(primary: ["!"], secondary: nil),
+                currentKeyboard: .naratgeul
+            ) == false
+        )
+        #expect(
+            KeyboardSymbolInputPolicy.shouldMarkSymbolInputAfterLongPressInput(
+                buttonType: .keyButton(primary: ["1"], secondary: nil),
+                currentKeyboard: .numeric
+            ) == false
+        )
+    }
 }
 
 private extension SymbolKeyboardView {

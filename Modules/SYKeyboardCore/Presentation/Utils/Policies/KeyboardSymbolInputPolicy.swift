@@ -45,6 +45,14 @@ enum KeyboardSymbolInputPolicy {
         }
     }
 
+    /// 길게 누르기 입력은 터치가 취소되어 `touchUpInside`가 오지 않으므로 입력 시점에 따로 표시한다
+    static func shouldMarkSymbolInputAfterLongPressInput(
+        buttonType: TextInteractableType,
+        currentKeyboard: SYKeyboardType
+    ) -> Bool {
+        return currentKeyboard == .symbol && shouldMarkSymbolInput(buttonType: buttonType)
+    }
+
     static func isApostropheKey(_ buttonType: TextInteractableType) -> Bool {
         guard case .keyButton(let primary, nil) = buttonType,
               primary.count == 1,
