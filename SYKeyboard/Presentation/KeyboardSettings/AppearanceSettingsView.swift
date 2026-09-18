@@ -25,8 +25,8 @@ struct AppearanceSettingsView: View {
     @AppStorage(UserDefaultsKeys.isNumericKeypadEnabled, store: UserDefaultsManager.shared.storage)
     private var isNumericKeypadEnabled = DefaultValues.isNumericKeypadEnabled
 
-    @AppStorage(UserDefaultsKeys.isNumericKeypadBottomSpaceEnabled, store: UserDefaultsManager.shared.storage)
-    private var isNumericKeypadBottomSpaceEnabled = DefaultValues.isNumericKeypadBottomSpaceEnabled
+    @AppStorage(UserDefaultsKeys.isBottomSpaceEnabled, store: UserDefaultsManager.shared.storage)
+    private var isBottomSpaceEnabled = DefaultValues.isBottomSpaceEnabled
 
     @AppStorage(UserDefaultsKeys.isOneHandedKeyboardEnabled, store: UserDefaultsManager.shared.storage)
     private var isOneHandedKeyboardEnabled = DefaultValues.isOneHandedKeyboardEnabled
@@ -80,15 +80,15 @@ struct AppearanceSettingsView: View {
             hideKeyboard()
         }
 
-        if isNumericKeypadEnabled {
-            Toggle(isOn: $isNumericKeypadBottomSpaceEnabled, label: {
-                Text("숫자 키패드 스페이스 하단 배치")
-                Text("스페이스를 맨 아랫줄로 옮기고 리턴을 위로 올림")
+        if showsBottomSpaceSettings {
+            Toggle(isOn: $isBottomSpaceEnabled, label: {
+                Text("스페이스 하단 배치")
+                Text("천지인·숫자 키패드의 스페이스를 맨 아랫줄로 옮기고 리턴을 위로 올림")
                     .font(.caption)
             })
-            .onChange(of: isNumericKeypadBottomSpaceEnabled) { newValue in
+            .onChange(of: isBottomSpaceEnabled) { newValue in
                 // 사용자 속성 25개 한도 때문에 이벤트로만 남긴다
-                Analytics.logEvent("numeric_keypad_bottom_space", parameters: [
+                Analytics.logEvent("bottom_space", parameters: [
                     "view": "AppearanceSettingsView",
                     "enabled": newValue.analyticsValue
                 ])
@@ -123,6 +123,11 @@ struct AppearanceSettingsView: View {
         selectedHangeulKeyboard == .naratgeul
         || selectedHangeulKeyboard == .cheonjiin
         || isNumericKeypadEnabled
+    }
+
+    /// 스페이스 하단 배치가 적용되는 천지인·숫자 키패드 중 하나라도 쓰는 사용자에게만 노출한다
+    private var showsBottomSpaceSettings: Bool {
+        selectedHangeulKeyboard == .cheonjiin || isNumericKeypadEnabled
     }
 }
 

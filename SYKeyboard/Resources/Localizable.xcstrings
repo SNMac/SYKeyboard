@@ -652,16 +652,6 @@
         }
       }
     },
-    "숫자 키패드 스페이스 하단 배치" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bottom Space Bar on Numeric Keypad"
-          }
-        }
-      }
-    },
     "숫자 키패드 전환 방법" : {
       "localizations" : {
         "en" : {
@@ -722,12 +712,22 @@
         }
       }
     },
-    "스페이스를 맨 아랫줄로 옮기고 리턴을 위로 올림" : {
+    "스페이스 하단 배치" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Move the space bar to the bottom row and the return key up"
+            "value" : "Bottom Space Bar"
+          }
+        }
+      }
+    },
+    "천지인·숫자 키패드의 스페이스를 맨 아랫줄로 옮기고 리턴을 위로 올림" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Moves the space bar to the bottom row and the return key up on Cheonjiin and the numeric keypad"
           }
         }
       }
@@ -978,16 +978,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Cheonjiin"
-          }
-        }
-      }
-    },
-    "천지인 스페이스 하단 배치" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bottom Space Bar on Cheonjiin"
           }
         }
       }

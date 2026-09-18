@@ -188,12 +188,9 @@ final public class UserDefaultsManager {
     /// 나랏글 '획', '쌍' 버튼 점 기호 표기
     @UserDefaultsWrapper(key: UserDefaultsKeys.isNaratgeulDotLabelEnabled, defaultValue: DefaultValues.isNaratgeulDotLabelEnabled)
     public var isNaratgeulDotLabelEnabled: Bool
-    /// 천지인 스페이스 버튼 하단 배치
-    @UserDefaultsWrapper(key: UserDefaultsKeys.isCheonjiinBottomSpaceEnabled, defaultValue: DefaultValues.isCheonjiinBottomSpaceEnabled)
-    public var isCheonjiinBottomSpaceEnabled: Bool
-    /// 숫자 키패드 스페이스 버튼 하단 배치
-    @UserDefaultsWrapper(key: UserDefaultsKeys.isNumericKeypadBottomSpaceEnabled, defaultValue: DefaultValues.isNumericKeypadBottomSpaceEnabled)
-    public var isNumericKeypadBottomSpaceEnabled: Bool
+    /// 천지인·숫자 키패드 스페이스 하단 배치
+    @UserDefaultsWrapper(key: UserDefaultsKeys.isBottomSpaceEnabled, defaultValue: DefaultValues.isBottomSpaceEnabled)
+    public var isBottomSpaceEnabled: Bool
 
     // MARK: 기타 설정
     
