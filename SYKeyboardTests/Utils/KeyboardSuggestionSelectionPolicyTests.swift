@@ -12,6 +12,11 @@ import Testing
 @Suite("키보드 자동완성 선택 정책 검증")
 struct KeyboardSuggestionSelectionPolicyTests {
 
+    @Test("자동완성 후보 삭제 길게 누르기 시간은 0.7초")
+    func test자동완성후보삭제_길게누르기시간은_0점7초() {
+        #expect(KeyboardSuggestionSelectionPolicy.removalLongPressDuration == 0.7)
+    }
+
     @Test("n-gram 후보 앞 공백은 입력 버퍼가 비어 있지 않고 공백으로 끝나지 않을 때만 삽입")
     func testNGram후보앞공백삽입조건() {
         #expect(

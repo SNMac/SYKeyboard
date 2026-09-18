@@ -5,7 +5,15 @@
 //  Created by Codex on 6/1/26.
 //
 
+import Foundation
+
 enum KeyboardSuggestionSelectionPolicy {
+
+    /// 자동완성 후보 삭제 확인을 띄우는 길게 누르기 시간
+    ///
+    /// 사용자 설정 `longPressDuration`과 별개다. iOS 기본값 0.5초는 손가락을 댄 채
+    /// 옆 후보로 옮겨 고르는 드래그 선택 중에 넘기기 쉬워 조금 길게 둔다
+    static let removalLongPressDuration: TimeInterval = 0.7
 
     enum SuggestionUpdateAction: Equatable {
         case none
