@@ -1258,7 +1258,7 @@ Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>"
 **Interfaces:**
 - Consumes: `SuggestionService.removableSuggestionText(atBarIndex:)`, `removeSuggestionWord(_:)` (Task 3), `DeleteConfirmOverlayView` (Task 4), `shouldBeginRemovalAt` (Task 5)
 
-- [ ] **Step 1: 로컬라이징 문자열 추가**
+- [x] **Step 1: 로컬라이징 문자열 추가**
 
 Xcode가 쓰는 순서를 유지하도록 키 삽입 위치를 지정한다(Xcode를 열면 다시 정렬될 수 있다).
 
@@ -1290,7 +1290,11 @@ git diff --stat SYKeyboardAssets
 
 Expected: `Localizable.xcstrings`만 추가 줄로 변경
 
-- [ ] **Step 2: 프로퍼티 추가**
+결과: 스크립트대로 실행. `git diff --stat SYKeyboardAssets`가 `Localizable.xcstrings | 22 ++++++++++++++++++++++`,
+`1 file changed, 22 insertions(+)`만 보고. `git diff`로 삽입 위치 확인: `'%@'을(를) 자동완성에서 삭제할까요?`는
+`"고정"` 앞, `다시 입력하면 다시 학습됩니다.`는 `"닫기"` 앞에 추가됐고 기존 줄은 변경 없음.
+
+- [x] **Step 2: 프로퍼티 추가**
 
 `private lazy var requestFullAccessOverlayView = RequestFullAccessOverlayView()` 다음에:
 
@@ -1301,7 +1305,9 @@ Expected: `Localizable.xcstrings`만 추가 줄로 변경
     private var pendingSuggestionRemovalWord: String?
 ```
 
-- [ ] **Step 3: delegate 구현 교체**
+결과: `requestFullAccessOverlayView` 선언 다음에 그대로 추가.
+
+- [x] **Step 3: delegate 구현 교체**
 
 Task 5 Step 6의 임시 구현을 다음으로 바꾼다.
 
@@ -1314,7 +1320,9 @@ Task 5 Step 6의 임시 구현을 다음으로 바꾼다.
     }
 ```
 
-- [ ] **Step 4: 오버레이 표시·삭제·숨김 구현**
+결과: Task 5의 임시 `false` 반환 구현을 교체(같은 선언 하나만 유지, 중복 선언 없음).
+
+- [x] **Step 4: 오버레이 표시·삭제·숨김 구현**
 
 `// MARK: - Full Access Guide` 앞에 새 extension을 추가한다.
 
@@ -1369,7 +1377,9 @@ private extension BaseKeyboardViewController {
 
 ```
 
-- [ ] **Step 5: 키보드가 사라질 때 닫기**
+결과: `// MARK: - Full Access Guide` 앞에 `// MARK: - Suggestion Removal` extension을 그대로 추가.
+
+- [x] **Step 5: 키보드가 사라질 때 닫기**
 
 `viewWillDisappear(_:)`의 `closeClipboardPanelIfNeeded()` 다음 줄에 추가한다.
 
@@ -1377,7 +1387,9 @@ private extension BaseKeyboardViewController {
         hideSuggestionRemovalConfirmation()
 ```
 
-- [ ] **Step 6: 전체 테스트와 extension 빌드**
+결과: `viewWillDisappear(_:)`의 `closeClipboardPanelIfNeeded()` 다음 줄에 추가.
+
+- [x] **Step 6: 전체 테스트와 extension 빌드**
 
 ```sh
 xcodebuild test \
@@ -1388,19 +1400,27 @@ xcodebuild test \
 
 Expected: `** TEST SUCCEEDED **`. 전체 통과 개수를 기록한다.
 
+결과: 위 명령에 `-parallel-testing-enabled NO GADApplicationIdentifier='ca-app-pub-3940256099942544~1458002511'`를 추가해 실행.
+`Test run with 712 tests in 75 suites passed after 6.610 seconds.` `** TEST SUCCEEDED **`로 종료.
+시뮬레이터: iPhone 13 mini / iOS 18.6.
+
 ```sh
 for scheme in HangeulKeyboard EnglishKeyboard HangeulEnglishKeyboard; do
   xcodebuild build \
     -project SYKeyboard.xcodeproj \
     -scheme "$scheme" \
-    -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=18.6' 2>&1 | tail -3
+    -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=18.6' \
+    GADApplicationIdentifier='ca-app-pub-3940256099942544~1458002511' 2>&1 | tail -3
 done
 git status --short
 ```
 
 Expected: 세 번 모두 `** BUILD SUCCEEDED **`. `.xcscheme`이 보이면 `git diff`로 `RemotePath`만 바뀌었는지 확인하고 `git checkout -- SYKeyboard.xcodeproj/xcshareddata/xcschemes/<이름>.xcscheme`로 되돌린다.
 
-- [ ] **Step 7: 계획 체크 갱신 후 커밋**
+결과: HangeulKeyboard, EnglishKeyboard, HangeulEnglishKeyboard 세 스킴 모두 `** BUILD SUCCEEDED **`.
+빌드 후 `git status --short`에 `.xcscheme` 변경 없음(코드 두 파일만 modified 상태).
+
+- [x] **Step 7: 계획 체크 갱신 후 커밋**
 
 ```bash
 git add Modules/SYKeyboardCore/Presentation/ViewController/Bases/BaseKeyboardViewController.swift \

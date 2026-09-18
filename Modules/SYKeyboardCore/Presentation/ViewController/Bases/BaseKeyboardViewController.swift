@@ -41,6 +41,11 @@ open class BaseKeyboardViewController: UIInputViewController {
     /// 전체 접근 허용 안내 오버레이. Full Access가 꺼져 있고 사용자가 닫지 않았을 때만 만든다
     private lazy var requestFullAccessOverlayView = RequestFullAccessOverlayView()
 
+    /// 자동완성 후보 삭제 확인 오버레이. 처음 길게 누를 때 만든다
+    private var suggestionRemovalConfirmView: DeleteConfirmOverlayView?
+    /// 삭제 확인을 기다리는 자동완성 단어
+    private var pendingSuggestionRemovalWord: String?
+
     final public lazy var oldKeyboardType: UIKeyboardType? = textDocumentProxy.keyboardType
     /// 마지막으로 확인한 `textContentType`. `inputTraitsDidChange()` 판정에 쓰입니다
     final public lazy var oldTextContentType: UITextContentType? = textDocumentProxy.textContentType
@@ -463,6 +468,7 @@ open class BaseKeyboardViewController: UIInputViewController {
         KeyboardDiagnostics.log("keyboard will disappear")
         stopRepeatInputTracking()
         closeClipboardPanelIfNeeded()
+        hideSuggestionRemovalConfirmation()
         currentTextInputIdentifier = nil
         lastNotifiedTextInputIdentifier = nil
         undoRedoSession.removeAll()
@@ -2433,7 +2439,10 @@ extension BaseKeyboardViewController: SuggestionBarDelegate {
     }
 
     final func suggestionBar(_ bar: SuggestionBarView, shouldBeginRemovalAt index: Int) -> Bool {
-        false
+        guard !BaseKeyboardViewController.isPreview,
+              let word = suggestionController.removableSuggestionText(atBarIndex: index) else { return false }
+        showSuggestionRemovalConfirmation(for: word)
+        return true
     }
 
     final func suggestionBarDidTapUndo(_ bar: SuggestionBarView) {
@@ -2783,6 +2792,54 @@ private extension BaseKeyboardViewController {
 
         suggestionDidApply()
         updateSuggestions()
+    }
+}
+
+// MARK: - Suggestion Removal
+
+private extension BaseKeyboardViewController {
+    func showSuggestionRemovalConfirmation(for word: String) {
+        let overlay = suggestionRemovalConfirmView ?? makeSuggestionRemovalConfirmView()
+        pendingSuggestionRemovalWord = word
+        overlay.update(
+            title: String(localized: "'\(word)'을(를) 자동완성에서 삭제할까요?", bundle: SYKBDAssets.bundle),
+            message: String(localized: "다시 입력하면 다시 학습됩니다.", bundle: SYKBDAssets.bundle)
+        )
+        // 나중에 붙은 오버레이보다 위에 보이도록 매번 앞으로 가져온다
+        view.bringSubviewToFront(overlay)
+        overlay.isHidden = false
+        FeedbackManager.shared.playHaptic()
+    }
+
+    func confirmSuggestionRemoval() {
+        guard let word = pendingSuggestionRemovalWord else { return }
+        hideSuggestionRemovalConfirmation()
+        suggestionController.removeSuggestionWord(word)
+    }
+
+    func hideSuggestionRemovalConfirmation() {
+        pendingSuggestionRemovalWord = nil
+        suggestionRemovalConfirmView?.isHidden = true
+    }
+
+    /// 키보드 전체를 덮어 확인하는 동안 키 입력을 막는다
+    func makeSuggestionRemovalConfirmView() -> DeleteConfirmOverlayView {
+        let overlay = DeleteConfirmOverlayView()
+        overlay.isHidden = true
+        overlay.onCancel = { [weak self] in self?.hideSuggestionRemovalConfirmation() }
+        overlay.onConfirm = { [weak self] in self?.confirmSuggestionRemoval() }
+        view.addSubview(overlay)
+
+        overlay.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            overlay.topAnchor.constraint(equalTo: view.topAnchor),
+            overlay.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            overlay.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            overlay.bottomAnchor.constraint(equalTo: view.bottomAnchor)
+        ])
+
+        suggestionRemovalConfirmView = overlay
+        return overlay
     }
 }
 
