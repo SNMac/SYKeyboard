@@ -378,7 +378,7 @@ Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>"
   - `SuggestionService.removableSuggestionText(atBarIndex index: Int) -> String?`
   - `SuggestionService.removeSuggestionWord(_ word: String)`
 
-- [ ] **Step 1: 실패하는 테스트 작성**
+- [x] **Step 1: 실패하는 테스트 작성**
 
 `SYKeyboardTests/Domain/SuggestionControllerSuggestionRemovalTests.swift`:
 
@@ -613,12 +613,14 @@ private func waitForMainQueue() async {
 }
 ```
 
-- [ ] **Step 2: 실패 확인**
+- [x] **Step 2: 실패 확인**
 
 Run: `<Suite>` = `SuggestionControllerSuggestionRemovalTests`
 Expected: 컴파일 실패 `value of type 'SuggestionController' has no member 'removableSuggestionText'`
 
-- [ ] **Step 3: `PredictiveTextProvider`에 요구사항과 기본 구현 추가**
+Result: Confirmed — `xcodebuild test ... -only-testing:SYKeyboardTests/SuggestionControllerSuggestionRemovalTests -parallel-testing-enabled NO GADApplicationIdentifier='ca-app-pub-3940256099942544~1458002511'` 실행, `error: value of type 'SuggestionController' has no member 'removableSuggestionText'`가 테스트 파일 95, 96줄 등 호출부마다(요약에 총 7건) 발생, `Failed frontend command`로 컴파일 실패.
+
+- [x] **Step 3: `PredictiveTextProvider`에 요구사항과 기본 구현 추가**
 
 프로토콜의 `func learn(word: String)` 선언 다음에:
 
@@ -643,7 +645,7 @@ Expected: 컴파일 실패 `value of type 'SuggestionController' has no member '
     func unlearn(word: String) {}
 ```
 
-- [ ] **Step 4: `TextCheckerPredictiveTextEngine` 구현**
+- [x] **Step 4: `TextCheckerPredictiveTextEngine` 구현**
 
 `learn(word:)` 메서드 다음에:
 
@@ -661,7 +663,7 @@ Expected: 컴파일 실패 `value of type 'SuggestionController' has no member '
     }
 ```
 
-- [ ] **Step 5: `SuggestionService`에 메서드 선언 추가**
+- [x] **Step 5: `SuggestionService`에 메서드 선언 추가**
 
 `func nGramSuggestionText(at index: Int) -> String?` 선언 다음에:
 
@@ -681,7 +683,7 @@ Expected: 컴파일 실패 `value of type 'SuggestionController' has no member '
     func removeSuggestionWord(_ word: String)
 ```
 
-- [ ] **Step 6: `SuggestionController` 구현**
+- [x] **Step 6: `SuggestionController` 구현**
 
 `nGramSuggestionText(at:)` 구현 다음에:
 
@@ -720,7 +722,7 @@ Expected: 컴파일 실패 `value of type 'SuggestionController' has no member '
     }
 ```
 
-- [ ] **Step 7: 통과 확인**
+- [x] **Step 7: 통과 확인**
 
 Run:
 
@@ -739,7 +741,9 @@ xcodebuild test \
 
 Expected: `** TEST SUCCEEDED **`
 
-- [ ] **Step 8: 계획 체크 갱신 후 커밋**
+Result: Confirmed — `-parallel-testing-enabled NO GADApplicationIdentifier='ca-app-pub-3940256099942544~1458002511'`를 붙여 실행, 6개 지정 suite(자동완성 후보 삭제 판정·실행 검증 6개 포함) 64 tests in 6 suites passed, `** TEST SUCCEEDED **`.
+
+- [x] **Step 8: 계획 체크 갱신 후 커밋**
 
 ```bash
 git add Modules/SYKeyboardCore/Domain/PredictiveText/Protocols/PredictiveTextProvider.swift \

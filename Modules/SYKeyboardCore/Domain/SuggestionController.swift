@@ -489,6 +489,39 @@ final class SuggestionController: SuggestionService {
         return currentSuggestions[index].text
     }
 
+    func removableSuggestionText(atBarIndex index: Int) -> String? {
+        let itemIndex: Int
+        switch currentMode {
+        case .nGram:
+            itemIndex = index
+        case .typing:
+            // 0번 버튼은 현재 입력 단어라 후보 배열은 1번부터 시작한다
+            itemIndex = index - 1
+        case .mathExpression:
+            return nil
+        }
+        guard currentSuggestions.indices.contains(itemIndex) else { return nil }
+
+        let item = currentSuggestions[itemIndex]
+        switch item.source {
+        case .nGram:
+            return item.text
+        case .textChecker:
+            return textCheckerEngine?.canUnlearn(word: item.text) == true ? item.text : nil
+        default:
+            return nil
+        }
+    }
+
+    func removeSuggestionWord(_ word: String) {
+        nGramEngine?.removeWord(word)
+        textCheckerEngine?.unlearn(word: word)
+        // typing 모드는 직전 TextChecker 후보를 이어받으므로 지운 단어가 한 프레임 다시 보이지 않게 뺀다
+        currentSuggestions.removeAll { $0.text == word }
+        // 로딩 완료 후 갱신과 같은 마지막 요청값으로 다시 계산한다
+        performRefreshSuggestionsAfterNGramLoadIfNeeded()
+    }
+
     func mathResultAction(
         at index: Int,
         selectedText: String?

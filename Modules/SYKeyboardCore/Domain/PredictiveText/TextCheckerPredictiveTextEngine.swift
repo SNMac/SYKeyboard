@@ -135,7 +135,19 @@ final public class TextCheckerPredictiveTextEngine: PredictiveTextProvider {
         
         logger.debug("[TextChecker] 시스템 사전 학습: \(word)")
     }
-    
+
+    func canUnlearn(word: String) -> Bool {
+        UITextChecker.hasLearnedWord(word)
+    }
+
+    func unlearn(word: String) {
+        guard !word.isEmpty, UITextChecker.hasLearnedWord(word) else { return }
+        UITextChecker.unlearnWord(word)
+        learnedWords.remove(word)
+
+        logger.debug("[TextChecker] 시스템 사전 학습 해제: \(word)")
+    }
+
     // MARK: - Reset Methods
     
     /// 학습한 모든 단어를 시스템 사전에서 제거하고 저장소를 초기화합니다.

@@ -141,6 +141,19 @@ protocol SuggestionService: AnyObject {
     /// - Returns: 후보 텍스트, 유효하지 않거나 n-gram 출처가 아니면 `nil`
     func nGramSuggestionText(at index: Int) -> String?
 
+    /// 길게 눌러 삭제할 수 있는 후보면 그 단어를 반환합니다.
+    ///
+    /// n-gram 후보와 앱이 학습시킨 TextChecker 후보만 삭제할 수 있습니다.
+    ///
+    /// - Parameter index: 바에서 누른 후보 인덱스 (0~2). 입력 중 모드의 0번은 현재 단어다
+    /// - Returns: 삭제할 단어, 삭제할 수 없으면 `nil`
+    func removableSuggestionText(atBarIndex index: Int) -> String?
+
+    /// 앱 학습 데이터(n-gram, TextChecker)에서 단어를 지우고 후보를 다시 계산합니다.
+    ///
+    /// - Parameter word: 지울 단어
+    func removeSuggestionWord(_ word: String)
+
     /// 수식 결과 모드에서 현재 선택 텍스트를 반영한 후보 적용 action을 반환합니다.
     ///
     /// - Parameters:
