@@ -1081,17 +1081,17 @@ git commit -m "test: #138 - 두벌식 shift 짝 문자 조합 회귀 테스트 �
 **Files:**
 - Modify: `docs/superpowers/plans/2026-09-18-number-row.md` (결과 기록만)
 
-- [ ] **Step 1: 전체 테스트**
+- [x] **Step 1: 전체 테스트**
 
 Run:
 
 ```sh
-xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=18.6' -resultBundlePath /tmp/number-row-tests.xcresult
+xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=18.6' -resultBundlePath /path/to/worktree/.superpowers/sdd/2026-09-18-number-row/number-row-tests.xcresult GADApplicationIdentifier='ca-app-pub-3940256099942544~1458002511' -parallel-testing-enabled NO
 ```
 
-Expected: `** TEST SUCCEEDED **`. 통과·실패 개수는 `xcrun xcresulttool get test-results summary --path /tmp/number-row-tests.xcresult`로 읽어 기록한다.
+Expected: `** TEST SUCCEEDED **`. 통과·실패 개수는 `xcrun xcresulttool get test-results summary --path /path/to/worktree/.superpowers/sdd/2026-09-18-number-row/number-row-tests.xcresult`로 읽어 기록한다.
 
-- [ ] **Step 2: 네 scheme 빌드**
+- [x] **Step 2: 네 scheme 빌드**
 
 Run: Task 5 Step 2의 세 명령 + Task 6 Step 5의 `SYKeyboard` 빌드(옵션 없이)
 Expected: 모두 `** BUILD SUCCEEDED **`. `.xcscheme` `RemotePath` 변경은 되돌린다.
@@ -1100,20 +1100,37 @@ Expected: 모두 `** BUILD SUCCEEDED **`. `.xcscheme` `RemotePath` 변경은 되
 
 설정 앱에서 '숫자 행 표시'를 켜고 각 항목을 확인해 결과를 기록한다. 확인하지 못한 항목은 이유와 함께 미확인으로 남긴다.
 
-- [ ] 영어 키보드 세로: 숫자 행 표시, 탭하면 숫자 입력, 전체 높이가 꺼졌을 때보다 46.5pt 높음
-- [ ] 영어 키보드 가로: 숫자 행 표시, 전체 223pt(자동완성 바 표시 시)
-- [ ] 한글 키보드(두벌식 선택): 조합 중 숫자 탭 시 조합이 확정되고 숫자가 붙음
-- [ ] 한글 키보드(나랏글 선택): 숫자 행 없음, 높이 변화 없음
-- [ ] 한영 통합(나랏글 + 쿼티): 한영 전환 시 프레임 높이 유지, 4x4 행이 늘어남
-- [ ] 기호·숫자 자판 전환 시 프레임 높이 유지
-- [ ] 길게 누르기 '대문자·쌍자음 입력'(= `numberInput`): 쿼티 q → Q, shift 중 Q → q, 두벌식 ㅂ → ㅃ, 가+ㅅ 길게 → 갔, 키 모서리 힌트가 새 문자로 표시
-- [ ] 길게 누르기 '반복 입력': 기존처럼 반복 입력
-- [ ] 설정의 키보드 높이 미리보기: 두벌식·쿼티 미리보기에 숫자 행이 보이고 잘리지 않음
-- [ ] 숫자 행 끔: 기존과 같은 높이·레이아웃, 첫 줄 길게 누르기 숫자 입력
+- [ ] 영어 키보드 세로: 숫자 행 표시, 탭하면 숫자 입력, 전체 높이가 꺼졌을 때보다 46.5pt 높음 — 미확인 — 사용자 수동 확인 필요 (서브에이전트는 host 앱 화면을 관찰할 수 없음)
+- [ ] 영어 키보드 가로: 숫자 행 표시, 전체 223pt(자동완성 바 표시 시) — 미확인 — 사용자 수동 확인 필요 (서브에이전트는 host 앱 화면을 관찰할 수 없음)
+- [ ] 한글 키보드(두벌식 선택): 조합 중 숫자 탭 시 조합이 확정되고 숫자가 붙음 — 미확인 — 사용자 수동 확인 필요 (서브에이전트는 host 앱 화면을 관찰할 수 없음)
+- [ ] 한글 키보드(나랏글 선택): 숫자 행 없음, 높이 변화 없음 — 미확인 — 사용자 수동 확인 필요 (서브에이전트는 host 앱 화면을 관찰할 수 없음)
+- [ ] 한영 통합(나랏글 + 쿼티): 한영 전환 시 프레임 높이 유지, 4x4 행이 늘어남 — 미확인 — 사용자 수동 확인 필요 (서브에이전트는 host 앱 화면을 관찰할 수 없음)
+- [ ] 기호·숫자 자판 전환 시 프레임 높이 유지 — 미확인 — 사용자 수동 확인 필요 (서브에이전트는 host 앱 화면을 관찰할 수 없음)
+- [ ] 길게 누르기 '대문자·쌍자음 입력'(= `numberInput`): 쿼티 q → Q, shift 중 Q → q, 두벌식 ㅂ → ㅃ, 가+ㅅ 길게 → 갔, 키 모서리 힌트가 새 문자로 표시 — 미확인 — 사용자 수동 확인 필요 (서브에이전트는 host 앱 화면을 관찰할 수 없음)
+- [ ] 길게 누르기 '반복 입력': 기존처럼 반복 입력 — 미확인 — 사용자 수동 확인 필요 (서브에이전트는 host 앱 화면을 관찰할 수 없음)
+- [ ] 설정의 키보드 높이 미리보기: 두벌식·쿼티 미리보기에 숫자 행이 보이고 잘리지 않음 — 미확인 — 사용자 수동 확인 필요 (서브에이전트는 host 앱 화면을 관찰할 수 없음)
+- [ ] 숫자 행 끔: 기존과 같은 높이·레이아웃, 첫 줄 길게 누르기 숫자 입력 — 미확인 — 사용자 수동 확인 필요 (서브에이전트는 host 앱 화면을 관찰할 수 없음)
+- [ ] 설정 미리보기: 키보드 높이 슬라이더 최대 + 두벌식 + 숫자 행 켬 상태에서 작은 화면(iPhone 13 mini)에서 미리보기가 잘리지 않음 — 미확인 — 사용자 수동 확인 필요 (서브에이전트는 host 앱 화면을 관찰할 수 없음)
 
-- [ ] **Step 4: 결과 기록 후 커밋**
+- [x] **Step 4: 결과 기록 후 커밋**
 
 ```bash
 git add docs/superpowers/plans/2026-09-18-number-row.md
 git commit -m "docs: #138 - 숫자 행 전체 테스트·빌드·수동 확인 결과 기록"
 ```
+
+**결과:** Step 1: `-resultBundlePath`를 `/tmp` 대신 `.superpowers/sdd/2026-09-18-number-row/number-row-tests.xcresult`에 생성(컨트롤러 지시). `xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=18.6' -resultBundlePath <위 경로> GADApplicationIdentifier='ca-app-pub-3940256099942544~1458002511' -parallel-testing-enabled NO` → 콘솔에 `Test run with 716 tests in 73 suites passed`, `** TEST SUCCEEDED **`. `xcrun xcresulttool get test-results summary --path <위 경로>`로 재확인: `"result" : "Passed"`, `"passedTests" : 716`, `"failedTests" : 0`, `"skippedTests" : 0`, `"totalTestCount" : 716`. 실패 테스트 없음. 결과 번들은 `.superpowers/`가 gitignore 대상이므로 커밋하지 않음.
+
+Step 2: 네 scheme 모두 `GADApplicationIdentifier='ca-app-pub-3940256099942544~1458002511'`를 추가해(`build`이므로 `-parallel-testing-enabled` 제외) 순서대로 빌드.
+- `xcodebuild build -project SYKeyboard.xcodeproj -scheme HangeulKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=18.6' GADApplicationIdentifier=...` → `** BUILD SUCCEEDED **`
+- `xcodebuild build -project SYKeyboard.xcodeproj -scheme EnglishKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=18.6' GADApplicationIdentifier=...` → `** BUILD SUCCEEDED **`
+- `xcodebuild build -project SYKeyboard.xcodeproj -scheme HangeulEnglishKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=18.6' GADApplicationIdentifier=...` → `** BUILD SUCCEEDED **`
+- `xcodebuild build -project SYKeyboard.xcodeproj -scheme SYKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=18.6' GADApplicationIdentifier=...`(옵션 없이) → `** BUILD SUCCEEDED **`
+
+매 빌드 직후 `git status --short`로 확인 — 네 번 모두 출력 없음(`.xcscheme` 변경 없음, 되돌릴 것 없음).
+
+Step 3: 서브에이전트 실행 환경에서는 시뮬레이터 화면을 관찰하거나 host 앱(메모 앱 등)에서 실제 입력·제스처를 조작할 수 없다. 컨트롤러 지시에 따라 모든 항목을 미확인으로 남기고, 계획에 없던 "설정 미리보기 잘림" 항목 1개를 추가로 미확인 상태로 기록했다. 사용자가 실제 iPhone 13 mini(iOS 18.6) 시뮬레이터에서 위 11개 항목을 직접 확인해야 한다.
+
+Step 4: 이 문서만 커밋(`.xcresult` 번들은 `.superpowers/`가 gitignore 대상이라 추적되지 않음, `git status --short`로 확인).
+
+**전체 요약:** 자동 테스트 716개 전부 통과(실패 0), 빌드 4개(`SYKeyboard`/`HangeulKeyboard`/`EnglishKeyboard`/`HangeulEnglishKeyboard`) 전부 성공. 수동 확인 11개 항목은 모두 미확인 상태이며 사용자의 실제 기기/시뮬레이터 확인이 필요하다.
