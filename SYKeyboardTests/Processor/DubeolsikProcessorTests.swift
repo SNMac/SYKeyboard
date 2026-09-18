@@ -97,7 +97,26 @@ struct DubeolsikProcessorTests: HangeulProcessorTestable {
         
         #expect(c + p == "안녕")
     }
-    
+
+    @Test("shift 짝 입력: 쌍자음 ㅆ·ㄲ가 받침으로, ㅒ·ㅖ가 모음으로 조합")
+    func testShift짝입력_조합() {
+        var (c, p) = ("", "")
+        for 글자 in ["ㄱ", "ㅏ", "ㅆ"] { (c, p) = applyInput(글자, committed: c, composing: p) }
+        #expect(c + p == "갔")
+
+        (c, p) = ("", "")
+        for 글자 in ["ㄱ", "ㅏ", "ㄲ"] { (c, p) = applyInput(글자, committed: c, composing: p) }
+        #expect(c + p == "갂")
+
+        (c, p) = ("", "")
+        for 글자 in ["ㄱ", "ㅒ"] { (c, p) = applyInput(글자, committed: c, composing: p) }
+        #expect(c + p == "걔")
+
+        (c, p) = ("", "")
+        for 글자 in ["ㅅ", "ㅖ"] { (c, p) = applyInput(글자, committed: c, composing: p) }
+        #expect(c + p == "셰")
+    }
+
     // MARK: - 2. 스페이스바 및 특수문자 동작 테스트
     
     @Test("Space 입력: 항상 insertSpace 반환 및 공백 입력")

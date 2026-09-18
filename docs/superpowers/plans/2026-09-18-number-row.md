@@ -1015,12 +1015,21 @@ git commit -m "feat: #138 - 숫자 행 설정 토글과 미리보기 높이·길
 **Files:**
 - Test: `SYKeyboardTests/Processor/DubeolsikProcessorTests.swift` (`// MARK: - 2.` 섹션 위)
 
-- [ ] **Step 1: 기존 커버리지 확인**
+- [x] **Step 1: 기존 커버리지 확인**
 
 Run: `grep -n "ㅆ\|ㄲ\|ㅒ\|ㅖ" SYKeyboardTests/Processor/DubeolsikProcessorTests.swift`
 계획 작성 시점(`aa1116d4`)에는 328행 헬퍼의 모음 목록 외에 이 네 문자를 입력하는 테스트가 없었다. 결과를 계획 문서에 기록하고, 그 사이 같은 경우가 추가됐으면 Step 2에서 뺀다.
 
-- [ ] **Step 2: 회귀 테스트 추가**
+실제 출력(작업 시점):
+```
+26:    private let 초성Table = ["ㄱ", "ㄲ", "ㄴ", "ㄷ", "ㄸ", "ㄹ", "ㅁ", "ㅂ", "ㅃ", "ㅅ", "ㅆ", "ㅇ", "ㅈ", "ㅉ", "ㅊ", "ㅋ", "ㅌ", "ㅍ", "ㅎ"]
+27:    private let 중성Table = ["ㅏ", "ㅐ", "ㅑ", "ㅒ", "ㅓ", "ㅔ", "ㅕ", "ㅖ", "ㅗ", "ㅘ", "ㅙ", "ㅚ", "ㅛ", "ㅜ", "ㅝ", "ㅞ", "ㅟ", "ㅠ", "ㅡ", "ㅢ", "ㅣ"]
+28:    private let 종성Table = [" ", "ㄱ", "ㄲ", "ㄳ", "ㄴ", "ㄵ", "ㄶ", "ㄷ", "ㄹ", "ㄺ", "ㄻ", "ㄼ", "ㄽ", "ㄾ", "ㄿ", "ㅀ", "ㅁ", "ㅂ", "ㅄ", "ㅅ", "ㅆ", "ㅇ", "ㅈ", "ㅊ", "ㅋ", "ㅌ", "ㅍ", "ㅎ"]
+328:        if ["ㅐ", "ㅔ", "ㅒ", "ㅖ"].contains(모음) { return [모음] }
+```
+설명대로 초/중/종성 Table 리터럴과 328행 모음 헬퍼 외에 ㅆ/ㄲ/ㅒ/ㅖ를 실제 입력값으로 사용하는 테스트는 없었다. 중복 없음, Step 2 그대로 진행.
+
+- [x] **Step 2: 회귀 테스트 추가**
 
 ```swift
     @Test("shift 짝 입력: 쌍자음 ㅆ·ㄲ가 받침으로, ㅒ·ㅖ가 모음으로 조합")
@@ -1043,12 +1052,22 @@ Run: `grep -n "ㅆ\|ㄲ\|ㅒ\|ㅖ" SYKeyboardTests/Processor/DubeolsikProcessorT
     }
 ```
 
-- [ ] **Step 3: 테스트 실행**
+- [x] **Step 3: 테스트 실행**
 
 Run: 공통 명령, `DubeolsikProcessorTests`, 이어서 `HangeulAutomataTests`
 Expected: 두 suite 모두 `** TEST SUCCEEDED **`
 
-- [ ] **Step 4: 계획 문서 갱신 후 커밋**
+**결과:**
+```
+xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
+  -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=18.6' \
+  -only-testing:SYKeyboardTests/DubeolsikProcessorTests \
+  -only-testing:SYKeyboardTests/HangeulAutomataTests \
+  GADApplicationIdentifier='ca-app-pub-3940256099942544~1458002511' -parallel-testing-enabled NO
+```
+`두벌식 입력기 검증`(13개), `한글 오토마타 검증`(3개) — 총 18 tests, 2 suites, `** TEST SUCCEEDED **`. 새 테스트 `testShift짝입력_조합` 포함 전체 통과, 실패 0. 시뮬레이터: iPhone 13 mini / iOS 18.6.
+
+- [x] **Step 4: 계획 문서 갱신 후 커밋**
 
 ```bash
 git add SYKeyboardTests/Processor/DubeolsikProcessorTests.swift docs/superpowers/plans/2026-09-18-number-row.md
