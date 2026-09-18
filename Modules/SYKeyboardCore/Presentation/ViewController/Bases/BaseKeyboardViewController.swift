@@ -204,6 +204,8 @@ open class BaseKeyboardViewController: UIInputViewController {
 
     /// 기호 키보드에서 기호 입력 여부를 저장하는 변수
     private var isSymbolInput: Bool = false
+    /// 길게 누르기로 작은따옴표를 입력했는지 저장하는 변수 (손을 뗄 때 기본 키보드로 전환)
+    private var didInputApostropheByLongPress: Bool = false
 
     // MARK: - UI Components
 
@@ -2056,6 +2058,7 @@ extension BaseKeyboardViewController: TextInteractionGestureControllerDelegate {
 
     final func textInteractableButtonLongPressing(_ controller: TextInteractionGestureController, button: TextInteractable) {
         let isDeleteButton = button is DeleteButton
+        didInputApostropheByLongPress = false
 
         if KeyboardGesturePolicy.shouldPerformRepeatInputOnLongPress(
             selectedLongPressAction: keyboardSettingsManager.selectedLongPressAction,
@@ -2079,6 +2082,7 @@ extension BaseKeyboardViewController: TextInteractionGestureControllerDelegate {
         ) {
             repeatTextInteractionDidPerform(button: button)
         }
+        switchToPrimaryAfterApostropheLongPressIfNeeded(for: button)
     }
 }
 
@@ -2326,11 +2330,31 @@ private extension BaseKeyboardViewController {
     }
 
     func markSymbolInputAfterLongPressIfNeeded(for button: TextInteractable) {
-        guard KeyboardSymbolInputPolicy.shouldMarkSymbolInputAfterLongPressInput(
+        if KeyboardSymbolInputPolicy.shouldMarkSymbolInputAfterLongPressInput(
             buttonType: button.type,
             currentKeyboard: currentKeyboard
-        ) else { return }
-        isSymbolInput = true
+        ) {
+            isSymbolInput = true
+        } else if KeyboardSymbolInputPolicy.shouldRecordApostropheLongPressInput(
+            buttonType: button.type,
+            currentKeyboard: currentKeyboard
+        ) {
+            didInputApostropheByLongPress = true
+        }
+    }
+
+    /// 길게 누르기로 작은따옴표를 입력했다면 탭과 같은 조건으로 기본 키보드로 전환
+    func switchToPrimaryAfterApostropheLongPressIfNeeded(for button: TextInteractable) {
+        guard didInputApostropheByLongPress else { return }
+        didInputApostropheByLongPress = false
+
+        if KeyboardSymbolInputPolicy.shouldSwitchToPrimaryAfterApostropheInput(
+            buttonType: button.type,
+            keyboardType: textDocumentProxy.keyboardType ?? .default,
+            isAutoChangeToPrimaryEnabled: keyboardSettingsManager.isAutoChangeToPrimaryEnabled
+        ) {
+            currentKeyboard = primaryKeyboardView.keyboard
+        }
     }
 }
 

@@ -53,6 +53,14 @@ enum KeyboardSymbolInputPolicy {
         return currentKeyboard == .symbol && shouldMarkSymbolInput(buttonType: buttonType)
     }
 
+    /// 길게 누르기로 입력한 작은따옴표는 손을 뗄 때 탭과 같은 조건으로 전환하도록 기록한다
+    static func shouldRecordApostropheLongPressInput(
+        buttonType: TextInteractableType,
+        currentKeyboard: SYKeyboardType
+    ) -> Bool {
+        return currentKeyboard == .symbol && isApostropheKey(buttonType)
+    }
+
     static func isApostropheKey(_ buttonType: TextInteractableType) -> Bool {
         guard case .keyButton(let primary, nil) = buttonType,
               primary.count == 1,

@@ -279,6 +279,34 @@ struct KeyboardSymbolInputPolicyTests {
             ) == false
         )
     }
+
+    @Test("기호 키보드에서 길게 누르기로 입력한 작은따옴표만 손을 뗄 때 전환 대상으로 기록")
+    func test길게누르기작은따옴표입력기록조건() {
+        #expect(
+            KeyboardSymbolInputPolicy.shouldRecordApostropheLongPressInput(
+                buttonType: .keyButton(primary: ["’"], secondary: nil),
+                currentKeyboard: .symbol
+            )
+        )
+        #expect(
+            KeyboardSymbolInputPolicy.shouldRecordApostropheLongPressInput(
+                buttonType: .keyButton(primary: ["'"], secondary: nil),
+                currentKeyboard: .symbol
+            )
+        )
+        #expect(
+            KeyboardSymbolInputPolicy.shouldRecordApostropheLongPressInput(
+                buttonType: .keyButton(primary: ["!"], secondary: nil),
+                currentKeyboard: .symbol
+            ) == false
+        )
+        #expect(
+            KeyboardSymbolInputPolicy.shouldRecordApostropheLongPressInput(
+                buttonType: .keyButton(primary: ["'"], secondary: nil),
+                currentKeyboard: .qwerty
+            ) == false
+        )
+    }
 }
 
 private extension SymbolKeyboardView {
