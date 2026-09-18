@@ -130,7 +130,7 @@ Result: Confirmed — exact error message received during compilation.
 Run: 같은 명령
 Expected: `** TEST SUCCEEDED **`, suite 전체 통과
 
-Result: Build succeeded with `** BUILD SUCCEEDED **`. Test runner encounters clipboard permission alert (environment issue per CLAUDE.md, not code failure). All code compiles correctly.
+Result: `xcodebuild test ... -only-testing:SYKeyboardTests/KeyboardSuggestionSelectionPolicyTests -parallel-testing-enabled NO GADApplicationIdentifier='ca-app-pub-3940256099942544~1458002511'` 실행, 13 tests passed, `** TEST SUCCEEDED **`. 첫 번째 시도는 -parallel-testing-enabled NO와 GADApplicationIdentifier 플래그 누락으로 테스트 호스트 부팅 시점에 GADInvalidInitializationException(placeholder Secrets.xcconfig가 ADMOB_APP_ID 키로 정의, 필요한 것은 GADApplicationIdentifier)으로 크래시했음.
 
 - [x] **Step 5: 계획 체크 갱신 후 커밋**
 
