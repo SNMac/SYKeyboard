@@ -926,7 +926,7 @@ Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>"
   - `SuggestionBarDelegate.suggestionBar(_ bar: SuggestionBarView, shouldBeginRemovalAt index: Int) -> Bool`
   - `SuggestionBarView.handleRemovalLongPress()` (internal, 타이머 발동 시 호출)
 
-- [ ] **Step 1: 실패하는 테스트 작성**
+- [x] **Step 1: 실패하는 테스트 작성**
 
 `SYKeyboardTests/Utils/SuggestionBarViewRemovalLongPressTests.swift`:
 
@@ -1077,12 +1077,15 @@ private final class RemovalDelegateSpy: SuggestionBarDelegate {
 }
 ```
 
-- [ ] **Step 2: 실패 확인**
+- [x] **Step 2: 실패 확인**
 
 Run: `<Suite>` = `SuggestionBarViewRemovalLongPressTests`
 Expected: 컴파일 실패 `value of type 'SuggestionBarView' has no member 'handleRemovalLongPress'`
 
-- [ ] **Step 3: delegate 요구사항 추가**
+결과: `xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=18.6' -only-testing:SYKeyboardTests/SuggestionBarViewRemovalLongPressTests -parallel-testing-enabled NO GADApplicationIdentifier='ca-app-pub-3940256099942544~1458002511'` 실행. 예상대로 컴파일 실패:
+`SuggestionBarViewRemovalLongPressTests.swift:42:21: error: value of type 'SuggestionBarView' has no member 'handleRemovalLongPress'` (3곳, `handleRemovalLongPress()` 호출부마다 동일 오류). RED 확인 완료.
+
+- [x] **Step 3: delegate 요구사항 추가**
 
 `SuggestionBarDelegate`의 `didSelectSuggestionAt` 선언 다음에:
 
@@ -1105,7 +1108,7 @@ Expected: 컴파일 실패 `value of type 'SuggestionBarView' has no member 'han
     }
 ```
 
-- [ ] **Step 4: 프로퍼티 추가**
+- [x] **Step 4: 프로퍼티 추가**
 
 `private var previewHighlightIndex: Int?` 다음에:
 
@@ -1118,7 +1121,7 @@ Expected: 컴파일 실패 `value of type 'SuggestionBarView' has no member 'han
     private var isTouchConsumedByRemoval = false
 ```
 
-- [ ] **Step 5: 터치 흐름 수정**
+- [x] **Step 5: 터치 흐름 수정**
 
 `beginTouchInteraction(at:)`, `moveTouchInteraction(to:)`를 다음으로 바꾼다.
 
@@ -1198,7 +1201,7 @@ Expected: 컴파일 실패 `value of type 'SuggestionBarView' has no member 'han
     }
 ```
 
-- [ ] **Step 6: `BaseKeyboardViewController` 임시 준수**
+- [x] **Step 6: `BaseKeyboardViewController` 임시 준수**
 
 delegate 요구사항이 늘어 VC가 컴파일되지 않으므로, `extension BaseKeyboardViewController: SuggestionBarDelegate`의 `didSelectSuggestionAt` 다음에 Task 6에서 채울 최소 구현을 추가한다.
 
@@ -1209,7 +1212,7 @@ delegate 요구사항이 늘어 VC가 컴파일되지 않으므로, `extension B
     }
 ```
 
-- [ ] **Step 7: 통과 확인**
+- [x] **Step 7: 통과 확인**
 
 Run:
 
@@ -1225,7 +1228,13 @@ xcodebuild test \
 
 Expected: `** TEST SUCCEEDED **`
 
-- [ ] **Step 8: 계획 체크 갱신 후 커밋**
+결과: 위 명령에 `-parallel-testing-enabled NO GADApplicationIdentifier='ca-app-pub-3940256099942544~1458002511'`를 추가해 실행.
+`Test run with 21 tests in 3 suites passed after 0.107 seconds.` (`SuggestionBarViewRemovalLongPressTests` 4개,
+`SuggestionBarViewPreviewHighlightTests` 4개, `KeyboardSuggestionSelectionPolicyTests` 13개 전부 통과)
+`** TEST SUCCEEDED **`로 종료. 시뮬레이터: iPhone 13 mini / iOS 18.6.
+빌드 후 `git status --short`에 `.xcscheme` 변경 없음.
+
+- [x] **Step 8: 계획 체크 갱신 후 커밋**
 
 ```bash
 git add Modules/SYKeyboardCore/Presentation/View/SuggestionBarView.swift \

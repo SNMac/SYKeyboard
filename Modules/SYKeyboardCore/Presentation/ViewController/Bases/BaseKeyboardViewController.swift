@@ -2432,6 +2432,10 @@ extension BaseKeyboardViewController: SuggestionBarDelegate {
         handleInputBufferSuggestion(at: index)
     }
 
+    final func suggestionBar(_ bar: SuggestionBarView, shouldBeginRemovalAt index: Int) -> Bool {
+        false
+    }
+
     final func suggestionBarDidTapUndo(_ bar: SuggestionBarView) {
         performUndo()
     }

@@ -168,6 +168,10 @@ private final class SuggestionBarRollbackDelegateSpy: SuggestionBarDelegate {
         selectedIndexes.append(index)
     }
 
+    func suggestionBar(_ bar: SuggestionBarView, shouldBeginRemovalAt index: Int) -> Bool {
+        false
+    }
+
     func suggestionBarDidTapUndo(_ bar: SuggestionBarView) {}
     func suggestionBarDidTapRedo(_ bar: SuggestionBarView) {}
     func suggestionBarDidTapClipboard(_ bar: SuggestionBarView) {
