@@ -771,12 +771,23 @@ Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>"
 **Interfaces:**
 - Produces: `final class DeleteConfirmOverlayView: UIView` — `var onCancel: (() -> Void)?`, `var onConfirm: (() -> Void)?`, `func update(title: String, message: String)`
 
-- [ ] **Step 1: 기준선 확인**
+- [x] **Step 1: 기준선 확인**
 
 Run: `<Suite>` = `ClipboardHistoryPanelViewTests`
 Expected: `** TEST SUCCEEDED **`. 통과 개수를 기록해 둔다.
 
-- [ ] **Step 2: 클래스 이동 스크립트 실행**
+실행 명령:
+```sh
+xcodebuild test \
+  -project SYKeyboard.xcodeproj \
+  -scheme SYKeyboard \
+  -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=18.6' \
+  -only-testing:SYKeyboardTests/ClipboardHistoryPanelViewTests \
+  -parallel-testing-enabled NO GADApplicationIdentifier='ca-app-pub-3940256099942544~1458002511'
+```
+결과: `** TEST SUCCEEDED **`, `Test run with 31 tests in 1 suite passed` (iPhone 13 mini / iOS 18.6)
+
+- [x] **Step 2: 클래스 이동 스크립트 실행**
 
 ```sh
 python3 - <<'EOF'
@@ -818,7 +829,9 @@ open(target, "w").write(header + moved)
 EOF
 ```
 
-- [ ] **Step 3: 패널이 새 오버레이와 문구 계산을 쓰도록 수정**
+결과: assert 통과, `DeleteConfirmOverlayView.swift` 생성, 패널 파일 끝이 `// MARK: - Delete Confirmation` 이전에서 절단됨
+
+- [x] **Step 3: 패널이 새 오버레이와 문구 계산을 쓰도록 수정**
 
 `ClipboardHistoryPanelView.swift`의 `deleteConfirmView` 선언을 바꾼다.
 
@@ -856,7 +869,9 @@ EOF
 
 ```
 
-- [ ] **Step 4: pbxproj 등록**
+결과: `deleteConfirmView` 선언, `requestDelete(at:deleteAll:)`, `deleteConfirmationText` 모두 브리프대로 반영, 클래스 본문(extension 아님) 안에 위치
+
+- [x] **Step 4: pbxproj 등록**
 
 ```sh
 python3 - <<'EOF'
@@ -872,14 +887,19 @@ grep -n "DeleteConfirmOverlayView" SYKeyboard.xcodeproj/project.pbxproj
 
 Expected: 두 줄, 각각 `CursorDragIndicatorView.swift` 바로 다음
 
-- [ ] **Step 5: 회귀 확인**
+결과: `SYKeyboard.xcodeproj/project.pbxproj` 333번째, 432번째 줄 두 곳에 `CursorDragIndicatorView.swift` 바로 다음 줄로 등록됨(두 타깃 membershipExceptions)
+
+- [x] **Step 5: 회귀 확인**
 
 Run: `<Suite>` = `ClipboardHistoryPanelViewTests`
 Expected: `** TEST SUCCEEDED **`, Step 1과 같은 통과 개수
 
-확인: `grep -n "ClipboardHistoryDeleteConfirmView" -r Modules SYKeyboardTests` 출력 없음
+실행 명령: Step 1과 동일한 명령
+결과: `** TEST SUCCEEDED **`, `Test run with 31 tests in 1 suite passed` — Step 1과 동일한 31개로 회귀 없음
 
-- [ ] **Step 6: 계획 체크 갱신 후 커밋**
+확인: `grep -n "ClipboardHistoryDeleteConfirmView" -r Modules SYKeyboardTests` 출력 없음(종료 코드 1, 매치 없음) — 확인됨
+
+- [x] **Step 6: 계획 체크 갱신 후 커밋**
 
 ```bash
 git add Modules/SYKeyboardCore/Presentation/View/Components/Overlays/DeleteConfirmOverlayView.swift \
