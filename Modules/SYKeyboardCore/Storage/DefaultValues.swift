@@ -61,6 +61,8 @@ public enum DefaultValues {
     
     /// 키보드 높이 기본값
     public static let keyboardHeight: Double = 240.0
+    /// 두벌식·쿼티 숫자 행 표시 여부 기본값
+    public static let showsNumberRow: Bool = false
     /// 숫자 키보드 활성화 여부 기본값
     public static let isNumericKeypadEnabled: Bool = true
     /// 한 손 키보드 활성화 여부 기본값

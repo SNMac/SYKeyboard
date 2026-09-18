@@ -50,7 +50,9 @@ xcodebuild test \
 **Interfaces:**
 - Produces: `UserDefaultsKeys.showsNumberRow: String`, `DefaultValues.showsNumberRow: Bool`, `UserDefaultsManager.shared.showsNumberRow: Bool`
 
-- [ ] **Step 1: 실패하는 계약 테스트 작성**
+**결과:** (최초 시도 시점) 이 워크트리에는 `Common/Firebase/Debug/GoogleService-Info.plist`가 없어 4개 scheme 모두 `xcodebuild test`가 Firebase 스크립트 단계에서 실패했고, 대신 `SYKeyboardCore` scheme 빌드로 세 파일의 컴파일만 확인했다. **차단 해소 후 재검증:** 사용자가 승인한 gitignored symlink(`Common/Firebase/{Debug,Release}/GoogleService-Info.plist`, `SYKeyboard/Resources/Configs/Secrets.xcconfig` → 메인 체크아웃 실제 파일)가 워크트리에 추가된 뒤 다시 검증했다. RED: `git checkout e56c1eaf -- Modules/SYKeyboardCore/Storage/{UserDefaultsKeys,DefaultValues,UserDefaultsManager}.swift` 후 `xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=18.6' -only-testing:SYKeyboardTests/UserDefaultsContractTests` 실행 → `type 'UserDefaultsKeys' has no member 'showsNumberRow'` 등 예상한 컴파일 오류로 `** TEST FAILED **`. `git checkout HEAD -- <같은 세 파일>`로 복원, `git status --short` 클린 확인. GREEN: 동일 명령 + `-parallel-testing-enabled NO` + `GADApplicationIdentifier='ca-app-pub-3940256099942544~1458002511'`(symlink된 `Secrets.xcconfig` placeholder가 `ADMOB_APP_ID`라는 잘못된 키를 정의해 실제 필요한 `GADApplicationIdentifier`가 비어 `GADInvalidInitializationException`으로 테스트 호스트가 부팅 전 크래시하는 문제를 커맨드라인 빌드 설정 override로 우회, symlink 자체는 손대지 않음) → `Test run with 17 tests in 1 suite passed after 0.083 seconds.`, `showsNumberRow` 테스트 포함 17/17 통과, `** TEST SUCCEEDED **`. `git status --short` 재확인 클린(symlink·`.xcscheme` 변경 없음). Step 2·4 모두 체크. 남은 참고사항: `GADApplicationIdentifier` override는 커맨드라인 한정이라 이후 태스크의 `SYKeyboard`/`HangeulKeyboard`/`EnglishKeyboard`/`HangeulEnglishKeyboard` scheme 테스트도 동일 플래그가 필요하다(또는 placeholder `Secrets.xcconfig`의 키 이름 수정 필요, 이번 태스크 범위 밖).
+
+- [x] **Step 1: 실패하는 계약 테스트 작성**
 
 `UserDefaultsContractTests`의 기존 `testNaratgeulDotLabelDefaultFallbackAndKey` 아래에 추가한다.
 
@@ -70,12 +72,12 @@ xcodebuild test \
     }
 ```
 
-- [ ] **Step 2: 테스트가 컴파일 실패하는지 확인**
+- [x] **Step 2: 테스트가 컴파일 실패하는지 확인**
 
 Run: 공통 명령, `<SuiteTypeName>` = `UserDefaultsContractTests`
 Expected: `type 'UserDefaultsKeys' has no member 'showsNumberRow'` 컴파일 오류
 
-- [ ] **Step 3: 키·기본값·프로퍼티 추가**
+- [x] **Step 3: 키·기본값·프로퍼티 추가**
 
 `UserDefaultsKeys.swift`, `keyboardHeight` 줄 아래:
 
@@ -99,12 +101,12 @@ Expected: `type 'UserDefaultsKeys' has no member 'showsNumberRow'` 컴파일 오
     public var showsNumberRow: Bool
 ```
 
-- [ ] **Step 4: 테스트 통과 확인**
+- [x] **Step 4: 테스트 통과 확인**
 
 Run: 공통 명령, `UserDefaultsContractTests`
 Expected: `** TEST SUCCEEDED **`, 새 테스트 포함 전체 통과
 
-- [ ] **Step 5: 계획 문서 갱신 후 커밋**
+- [x] **Step 5: 계획 문서 갱신 후 커밋**
 
 ```bash
 git add Modules/SYKeyboardCore/Storage/UserDefaultsKeys.swift Modules/SYKeyboardCore/Storage/DefaultValues.swift Modules/SYKeyboardCore/Storage/UserDefaultsManager.swift SYKeyboardTests/Storage/UserDefaultsContractTests.swift docs/superpowers/plans/2026-09-18-number-row.md

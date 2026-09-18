@@ -170,6 +170,9 @@ final public class UserDefaultsManager {
     /// 키보드 높이
     @UserDefaultsWrapper(key: UserDefaultsKeys.keyboardHeight, defaultValue: DefaultValues.keyboardHeight)
     public var keyboardHeight: Double
+    /// 두벌식·쿼티 숫자 행 표시
+    @UserDefaultsWrapper(key: UserDefaultsKeys.showsNumberRow, defaultValue: DefaultValues.showsNumberRow)
+    public var showsNumberRow: Bool
     /// 숫자 키패드 활성화
     @UserDefaultsWrapper(key: UserDefaultsKeys.isNumericKeypadEnabled, defaultValue: DefaultValues.isNumericKeypadEnabled)
     public var isNumericKeypadEnabled: Bool

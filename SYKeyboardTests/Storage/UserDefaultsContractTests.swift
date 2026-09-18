@@ -69,6 +69,20 @@ struct UserDefaultsContractTests {
         #expect(UserDefaultsManager.shared.isNaratgeulDotLabelEnabled == false)
     }
 
+    @Test("숫자 행 표시는 저장값이 없으면 false를 반환하고 공유 저장소 키를 유지")
+    func testShowsNumberRowDefaultFallbackAndKey() {
+        let storage = UserDefaultsManager.shared.storage
+        let key = UserDefaultsKeys.showsNumberRow
+        let originalValue = storage.object(forKey: key)
+
+        storage.removeObject(forKey: key)
+        defer { restore(originalValue, forKey: key, in: storage) }
+
+        #expect(key == "showsNumberRow")
+        #expect(DefaultValues.showsNumberRow == false)
+        #expect(UserDefaultsManager.shared.showsNumberRow == false)
+    }
+
     @Test("천지인 스페이스 하단 배치는 저장값이 없으면 false를 반환하고 공유 저장소 키를 유지")
     func testCheonjiinBottomSpaceDefaultFallbackAndKey() {
         let storage = UserDefaultsManager.shared.storage
