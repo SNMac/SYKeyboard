@@ -518,8 +518,13 @@ final class SuggestionController: SuggestionService {
         textCheckerEngine?.unlearn(word: word)
         // typing 모드는 직전 TextChecker 후보를 이어받으므로 지운 단어가 한 프레임 다시 보이지 않게 뺀다
         currentSuggestions.removeAll { $0.text == word }
-        // 로딩 완료 후 갱신과 같은 마지막 요청값으로 다시 계산한다
-        performRefreshSuggestionsAfterNGramLoadIfNeeded()
+        // n-gram 모드에서는 lastSuggestionBaseText가 공백으로 끝나지 않아 typing 모드로 새는 것을 막는다
+        if currentMode == .nGram, let lastSuggestionBaseText {
+            updateSuggestionsAfterNGramSelection(inputBuffer: lastSuggestionBaseText)
+        } else {
+            // 로딩 완료 후 갱신과 같은 마지막 요청값으로 다시 계산한다
+            performRefreshSuggestionsAfterNGramLoadIfNeeded()
+        }
     }
 
     func mathResultAction(
