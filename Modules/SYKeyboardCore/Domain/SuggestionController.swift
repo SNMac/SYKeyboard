@@ -26,6 +26,8 @@ protocol NGramPredictiveTextProviding: PredictiveTextProvider {
     func resetSentenceBuffer()
     /// n-gram 데이터를 디스크에 저장합니다.
     func saveToDisk()
+    /// 단어를 모든 n-gram 저장소에서 지우고 저장합니다.
+    func removeWord(_ word: String)
 }
 
 extension NGramPredictiveTextEngine: NGramPredictiveTextProviding {}

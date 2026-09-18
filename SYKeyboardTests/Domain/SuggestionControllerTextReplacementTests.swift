@@ -328,4 +328,5 @@ private final class StubNGramPredictiveTextProvider: NGramPredictiveTextProvidin
     func removeLastWord() {}
     func resetSentenceBuffer() {}
     func saveToDisk() {}
+    func removeWord(_ word: String) {}
 }

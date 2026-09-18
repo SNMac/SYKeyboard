@@ -158,7 +158,7 @@ Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>"
 **Interfaces:**
 - Produces: `NGramPredictiveTextProviding.removeWord(_ word: String)` — 로딩 전이면 무시, 대소문자 무시, 즉시 `saveToDisk()`
 
-- [ ] **Step 1: 실패하는 테스트 작성**
+- [x] **Step 1: 실패하는 테스트 작성**
 
 `SYKeyboardTests/Domain/NGramPredictiveTextEngineRemovalTests.swift`:
 
@@ -251,12 +251,14 @@ private func makeLoadedFixture(name: String) async -> EngineFixture {
 }
 ```
 
-- [ ] **Step 2: 실패 확인**
+- [x] **Step 2: 실패 확인**
 
 Run: `<Suite>` = `NGramPredictiveTextEngineRemovalTests`
 Expected: 컴파일 실패 `value of type 'NGramPredictiveTextEngine' has no member 'removeWord'`
 
-- [ ] **Step 3: 엔진 구현**
+Result: Confirmed — `xcodebuild test ... -only-testing:SYKeyboardTests/NGramPredictiveTextEngineRemovalTests -parallel-testing-enabled NO GADApplicationIdentifier='ca-app-pub-3940256099942544~1458002511'` 실행, `error: value of type 'NGramPredictiveTextEngine' has no member 'removeWord'` 3곳(테스트 파일 22, 37, 57줄)에서 컴파일 실패, `** TEST FAILED **`.
+
+- [x] **Step 3: 엔진 구현**
 
 `NGramPredictiveTextEngine.swift`의 `resetSentenceBuffer()` 메서드 바로 다음에 추가한다.
 
@@ -295,7 +297,7 @@ Expected: 컴파일 실패 `value of type 'NGramPredictiveTextEngine' has no mem
     }
 ```
 
-- [ ] **Step 4: 프로토콜 요구사항 추가**
+- [x] **Step 4: 프로토콜 요구사항 추가**
 
 `SuggestionController.swift`의 `NGramPredictiveTextProviding`에서 `func saveToDisk()` 선언 다음에 추가한다.
 
@@ -304,7 +306,7 @@ Expected: 컴파일 실패 `value of type 'NGramPredictiveTextEngine' has no mem
     func removeWord(_ word: String)
 ```
 
-- [ ] **Step 5: 테스트 stub 4곳 갱신**
+- [x] **Step 5: 테스트 stub 4곳 갱신**
 
 아래 4개 파일의 `StubNGramPredictiveTextProvider`에서 `saveToDisk()` 메서드 바로 다음 줄에 추가한다.
 
@@ -319,7 +321,7 @@ Expected: 컴파일 실패 `value of type 'NGramPredictiveTextEngine' has no mem
 
 확인: `grep -c "func removeWord" SYKeyboardTests/Domain/SuggestionController*.swift`에서 위 4개 파일이 각각 1이어야 한다.
 
-- [ ] **Step 6: 통과 확인**
+- [x] **Step 6: 통과 확인**
 
 Run: `<Suite>` = `NGramPredictiveTextEngineRemovalTests`, 이어서 기존 NGram suite 회귀 확인:
 
@@ -333,12 +335,15 @@ xcodebuild test \
   -only-testing:SYKeyboardTests/NGramPredictiveTextEngineRankingTests \
   -only-testing:SYKeyboardTests/NGramPredictiveTextEngineLoadingTests \
   -only-testing:SYKeyboardTests/NGramPredictiveTextEngineFileMigrationTests \
-  -only-testing:SYKeyboardTests/SuggestionControllerPreparationTests 2>&1 | tail -40
+  -only-testing:SYKeyboardTests/SuggestionControllerPreparationTests \
+  -parallel-testing-enabled NO GADApplicationIdentifier='ca-app-pub-3940256099942544~1458002511' 2>&1 | tail -40
 ```
 
 Expected: `** TEST SUCCEEDED **`
 
-- [ ] **Step 7: 계획 체크 갱신 후 커밋**
+Result: Confirmed — 31 tests in 6 suites passed (신규 `NGramPredictiveTextEngineRemovalTests` 3개 포함), `** TEST SUCCEEDED **`.
+
+- [x] **Step 7: 계획 체크 갱신 후 커밋**
 
 ```bash
 git add Modules/SYKeyboardCore/Domain/PredictiveText/NGramPredictiveTextEngine.swift \
