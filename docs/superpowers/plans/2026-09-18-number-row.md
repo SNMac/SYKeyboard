@@ -325,7 +325,9 @@ git commit -m "feat: #138 - 숫자 행 높이를 키보드 높이 정책에 추�
   - 두 층 문자가 같은 자리는 `[]`(보조 키 없음)
   - 층이 2개가 아니면 모든 자리를 `[]`로 채운 같은 모양을 반환
 
-- [ ] **Step 1: 실패하는 테스트 작성**
+**결과:** `xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=18.6' -only-testing:SYKeyboardTests/KeyboardTextInteractionPolicyTests GADApplicationIdentifier='ca-app-pub-3940256099942544~1458002511' -parallel-testing-enabled NO` → RED: `type 'KeyboardTextInteractionPolicy' has no member 'shiftPairSecondaryKeyList'` 컴파일 오류 확인. GREEN: `Test run with 31 tests in 1 suite passed` (`** TEST SUCCEEDED **`), 신규 테스트 3개(`testShiftPairSecondaryKeyList_쿼티`, `testShiftPairSecondaryKeyList_두벌식`, `testShiftPairSecondaryKeyList_층불일치`) 포함 모두 통과. 확인하지 못한 항목 없음.
+
+- [x] **Step 1: 실패하는 테스트 작성**
 
 `KeyboardTextInteractionPolicyTests.swift` 709행의 `}`(첫 번째 suite `KeyboardTextInteractionPolicyTests`의 끝) 바로 위에 추가한다. 같은 파일 711행부터는 다른 suite(`삭제 mutation lifecycle 검증`)다.
 
@@ -370,12 +372,12 @@ git commit -m "feat: #138 - 숫자 행 높이를 키보드 높이 정책에 추�
     }
 ```
 
-- [ ] **Step 2: 테스트가 컴파일 실패하는지 확인**
+- [x] **Step 2: 테스트가 컴파일 실패하는지 확인**
 
 Run: 공통 명령, `KeyboardTextInteractionPolicyTests`
 Expected: `type 'KeyboardTextInteractionPolicy' has no member 'shiftPairSecondaryKeyList'` 컴파일 오류
 
-- [ ] **Step 3: 정책 구현**
+- [x] **Step 3: 정책 구현**
 
 `KeyboardTextInteractionPolicy.swift`의 `shouldInsertSecondaryKey(...)` 함수 바로 아래에 추가한다.
 
@@ -405,12 +407,12 @@ Expected: `type 'KeyboardTextInteractionPolicy' has no member 'shiftPairSecondar
     }
 ```
 
-- [ ] **Step 4: 테스트 통과 확인**
+- [x] **Step 4: 테스트 통과 확인**
 
 Run: 공통 명령, `KeyboardTextInteractionPolicyTests`
 Expected: `** TEST SUCCEEDED **`
 
-- [ ] **Step 5: 계획 문서 갱신 후 커밋**
+- [x] **Step 5: 계획 문서 갱신 후 커밋**
 
 ```bash
 git add Modules/SYKeyboardCore/Presentation/Utils/Policies/KeyboardTextInteractionPolicy.swift SYKeyboardTests/Utils/KeyboardTextInteractionPolicyTests.swift docs/superpowers/plans/2026-09-18-number-row.md

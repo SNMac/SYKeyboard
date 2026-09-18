@@ -916,6 +916,30 @@ enum KeyboardTextInteractionPolicy {
         return insertSecondaryKeyIfAvailable && secondaryKey != nil
     }
 
+    /// 숫자 행을 쓸 때 길게 누르기로 입력할 shift 짝 보조 키 목록.
+    ///
+    /// 비shift 층은 같은 자리의 shift 문자(대문자·쌍자음), shift 층은 비shift 문자를 보조 키로 쓴다.
+    /// 두 층의 문자가 같으면(두벌식 ㅁ, ㅛ 등) 보조 키를 두지 않는다
+    /// - Parameter primaryKeyList: `[shift 층][행][키][문자열]` 모양의 키 배열
+    static func shiftPairSecondaryKeyList(from primaryKeyList: [[[[String]]]]) -> [[[[String]]]] {
+        guard primaryKeyList.count == 2 else {
+            return primaryKeyList.map { $0.map { $0.map { _ in [] } } }
+        }
+
+        func pair(_ source: [[[String]]], with target: [[[String]]]) -> [[[String]]] {
+            zip(source, target).map { sourceRow, targetRow in
+                zip(sourceRow, targetRow).map { sourceKey, targetKey in
+                    sourceKey == targetKey ? [] : targetKey
+                }
+            }
+        }
+
+        return [
+            pair(primaryKeyList[0], with: primaryKeyList[1]),
+            pair(primaryKeyList[1], with: primaryKeyList[0])
+        ]
+    }
+
     static func temporaryDeletedCharactersForSingleDelete(
         selectedText: String?,
         documentContextBeforeInput: String?
