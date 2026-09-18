@@ -55,12 +55,14 @@ final class DubeolsikKeyboardView: StandardKeyboardView, HangeulKeyboardLayoutPr
     override init(
         getIsShiftedLetterInput: @escaping () -> Bool,
         setIsShiftedLetterInput: @escaping (Bool) -> (),
-        showsLanguageSwitchButton: Bool = false
+        showsLanguageSwitchButton: Bool = false,
+        showsNumberRow: Bool = UserDefaultsManager.shared.showsNumberRow
     ) {
         super.init(
             getIsShiftedLetterInput: getIsShiftedLetterInput,
             setIsShiftedLetterInput: setIsShiftedLetterInput,
-            showsLanguageSwitchButton: showsLanguageSwitchButton
+            showsLanguageSwitchButton: showsLanguageSwitchButton,
+            showsNumberRow: showsNumberRow
         )
         updateLayoutToDefault()
     }

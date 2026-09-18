@@ -31,14 +31,14 @@ final public class SwitchButton: SecondaryButton {
     /// 보조 라벨이 기본 크기 그대로 들어가는 최소 키 높이.
     /// 기본 `keyboardHeight`(240)에서 세로 모드 행 높이는 60pt, 가로 모드는 36pt로 낮아
     /// 모서리 힌트가 가운데 라벨과 겹치므로 높이에도 비례해 줄인다.
-    /// 40.0을 기준값으로 세로 모드의 높이(4x4 56pt, 기본 높이 240에서 쿼티 52pt)가 기본 크기 8.0pt로 유지되도록 한다.
-    /// `keyboardHeight` 슬라이더 최소값(190)에서는 세로 쿼티 키 높이가 39.5pt로
-    /// 살짝 낮아져 힌트 글자 크기가 8.0이 아닌 7.9가 되는 의도된 0.1pt 오차가 있다
+    /// 40.0을 기준값으로 세로 모드의 높이(4x4 55pt, 기본 높이 240에서 쿼티 51pt)가 기본 크기 8.0pt로 유지되도록 한다.
+    /// `keyboardHeight` 슬라이더 최소값(190)에서는 세로 쿼티 키 높이가 38.5pt로
+    /// 살짝 낮아져 힌트 글자 크기가 8.0이 아닌 7.7이 되는 의도된 오차가 있다
     private static let subLabelFullSizeKeyHeight: CGFloat = 40.0
 
     /// 주 라벨이 기본 사다리 크기를 그대로 쓰는 최소 키 높이.
     /// 가로 모드처럼 행이 낮으면(배경 32pt 안팎) 모서리 힌트와 겹치므로 한 단계 줄인다.
-    /// 세로 모드 최소 배경 높이는 `keyboardHeight` 슬라이더 최하단에서도 39.5pt라 영향받지 않는다
+    /// 세로 모드 최소 배경 높이는 `keyboardHeight` 슬라이더 최하단에서도 38.5pt라 영향받지 않는다
     private static let primaryLabelFullSizeKeyHeight: CGFloat = 36.0
 
     /// 현재 보조 라벨에 적용된 글자 크기

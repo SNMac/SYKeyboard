@@ -441,7 +441,9 @@ git commit -m "feat: #138 - 숫자 행용 shift 짝 보조 키 목록 정책 추
   - `DubeolsikKeyboardView`, `EnglishKeyboardView` init에도 같은 `showsNumberRow` 인자(같은 기본값) 추가
   - 숫자 행 버튼은 `totalTextInterableButtonList`와 `primaryButtonList`의 **맨 앞**에 들어간다
 
-- [ ] **Step 1: 기존 레이아웃 테스트 fixture를 설정값과 무관하게 고정**
+**결과:** RED 확인: `xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=18.6' -only-testing:SYKeyboardTests/KeyboardNumberRowLayoutTests GADApplicationIdentifier='ca-app-pub-3940256099942544~1458002511' -parallel-testing-enabled NO` → `value of type 'DubeolsikKeyboardView'/'EnglishKeyboardView' has no member 'showsNumberRow'`/`'updateNumberRowHeight'` 컴파일 오류로 예상대로 실패. 구현 후 GREEN: 동일 명령 재실행 → `Test run with 6 tests in 1 suite passed`(`KeyboardNumberRowLayoutTests`), 이어서 `-only-testing:SYKeyboardTests/KeyboardModifierLayoutTests` → `Test run with 17 tests in 1 suite passed`. 회귀 확인: `-only-testing:SYKeyboardTests/KeyboardHeightPolicyTests -only-testing:SYKeyboardTests/KeyboardTextInteractionPolicyTests` → `Test run with 47 tests in 2 suites passed`. `xcodebuild build -scheme SYKeyboard`(동일 destination)로 컴파일러 경고 없음을 확인(`AppIntents.framework` 관련 기존 무관 경고만 존재). `numberRowHeightConstraint`는 `.priority` 조정 없이도 레이아웃 테스트 전체가 경고 없이 통과해 브리프의 999 우선순위 예외를 적용하지 않았다. 미확인: HangeulKeyboard/EnglishKeyboard/HangeulEnglishKeyboard extension scheme 빌드와 실제 입력 앱 수동 확인은 Task 5(VC 높이 반영)·Task 8 범위이므로 이 Task에서는 실행하지 않았다.
+
+- [x] **Step 1: 기존 레이아웃 테스트 fixture를 설정값과 무관하게 고정**
 
 `KeyboardModifierLayoutTests.swift`의 `EnglishKeyboardView(`와 `DubeolsikKeyboardView(` 생성 5곳(37, 60, 91, 118, 143행 근처)에 `showsLanguageSwitchButton:` 인자 다음 줄로 `showsNumberRow: false`를 추가한다. 예:
 
@@ -454,7 +456,7 @@ git commit -m "feat: #138 - 숫자 행용 shift 짝 보조 키 목록 정책 추
         )
 ```
 
-- [ ] **Step 2: 실패하는 레이아웃·보조 키 테스트 작성**
+- [x] **Step 2: 실패하는 레이아웃·보조 키 테스트 작성**
 
 `SYKeyboardTests/Utils/KeyboardNumberRowLayoutTests.swift`:
 
@@ -575,12 +577,12 @@ struct KeyboardNumberRowLayoutTests {
 }
 ```
 
-- [ ] **Step 3: 테스트가 컴파일 실패하는지 확인**
+- [x] **Step 3: 테스트가 컴파일 실패하는지 확인**
 
 Run: 공통 명령, `KeyboardNumberRowLayoutTests`
 Expected: `extra argument 'showsNumberRow' in call` 컴파일 오류
 
-- [ ] **Step 4: 프로토콜 요구사항 추가**
+- [x] **Step 4: 프로토콜 요구사항 추가**
 
 `NormalKeyboardLayoutProvider.swift` 프로토콜 본문, `updateLetterColumnWidthMultiplier` 선언 아래:
 
@@ -600,7 +602,7 @@ Expected: `extra argument 'showsNumberRow' in call` 컴파일 오류
     func updateNumberRowHeight(_ height: CGFloat) {}
 ```
 
-- [ ] **Step 5: `StandardKeyboardView`에 숫자 행과 보조 키 교체 구현**
+- [x] **Step 5: `StandardKeyboardView`에 숫자 행과 보조 키 교체 구현**
 
 (1) Properties 섹션, `secondaryKeyList` 선언 아래:
 
@@ -736,7 +738,7 @@ Expected: `extra argument 'showsNumberRow' in call` 컴파일 오류
     }
 ```
 
-- [ ] **Step 6: 두벌식·쿼티 init에 인자 전달**
+- [x] **Step 6: 두벌식·쿼티 init에 인자 전달**
 
 `DubeolsikKeyboardView.swift`와 `EnglishKeyboardView.swift`의 `override init(...)`을 둘 다 아래 형태로 바꾼다(본문의 `updateLayoutToDefault()` 호출은 유지).
 
@@ -759,16 +761,16 @@ Expected: `extra argument 'showsNumberRow' in call` 컴파일 오류
 
 `EnglishKeyboardView.swift`가 `SYKeyboardCore`를 import하지 않으면 `UserDefaultsManager`를 찾지 못한다. 파일 상단 import를 확인하고 없으면 `import SYKeyboardCore`를 추가한다.
 
-- [ ] **Step 7: `SwitchButton` 주석 수치 정정**
+- [x] **Step 7: `SwitchButton` 주석 수치 정정**
 
 `SwitchButton.swift` 32~41행 주석에서 슬라이더 최소값(190)의 세로 쿼티 키 높이를 `39.5pt`에서 `38.5pt`로, "8.0이 아닌 7.9"를 실제 비율에 맞게 고친다. 계산식: 행 높이 `(190 - 4) / 4 = 46.5`, 키 배경 `46.5 - 4 × 2 = 38.5`, 힌트 글자 `8.0 × 38.5 / 40 = 7.7`. 세로 4x4 기본 높이 표기(56pt), 기본 높이 쿼티(52pt)도 같은 방식으로 다시 계산해 고친다: 기본 행 `(240 - 4) / 4 = 59`, 쿼티 키 `59 - 8 = 51`, 4x4 키 `59 - 4 = 55`. `primaryLabelFullSizeKeyHeight` 주석의 `39.5pt`도 `38.5pt`로 고친다. 상수 값(40.0, 36.0)은 바꾸지 않는다.
 
-- [ ] **Step 8: 테스트 통과 확인**
+- [x] **Step 8: 테스트 통과 확인**
 
 Run: 공통 명령, `KeyboardNumberRowLayoutTests`, 이어서 `KeyboardModifierLayoutTests`
 Expected: 두 suite 모두 `** TEST SUCCEEDED **`
 
-- [ ] **Step 9: 계획 문서 갱신 후 커밋**
+- [x] **Step 9: 계획 문서 갱신 후 커밋**
 
 ```bash
 git add Modules/SYKeyboardCore/Presentation/View/KeyboardLayout/Protocols/Base/NormalKeyboardLayoutProvider.swift Modules/SYKeyboardCore/Presentation/View/KeyboardLayout/Bases/StandardKeyboardView.swift Modules/HangeulKeyboardCore/Presentation/View/DubeolsikKeyboardView.swift Modules/EnglishKeyboardCore/EnglishKeyboard/Presentation/View/EnglishKeyboardView.swift Modules/SYKeyboardCore/Presentation/View/Components/Buttons/SwitchButton.swift SYKeyboardTests/Utils/KeyboardModifierLayoutTests.swift SYKeyboardTests/Utils/KeyboardNumberRowLayoutTests.swift docs/superpowers/plans/2026-09-18-number-row.md

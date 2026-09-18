@@ -37,7 +37,8 @@ struct KeyboardModifierLayoutTests {
         let view = EnglishKeyboardView(
             getIsShiftedLetterInput: { false },
             setIsShiftedLetterInput: { _ in },
-            showsLanguageSwitchButton: true
+            showsLanguageSwitchButton: true,
+            showsNumberRow: false
         )
         view.frame = CGRect(x: 0, y: 0, width: 390, height: 216)
         view.layoutIfNeeded()
@@ -60,7 +61,8 @@ struct KeyboardModifierLayoutTests {
         let view = EnglishKeyboardView(
             getIsShiftedLetterInput: { false },
             setIsShiftedLetterInput: { _ in },
-            showsLanguageSwitchButton: true
+            showsLanguageSwitchButton: true,
+            showsNumberRow: false
         )
         view.frame = CGRect(x: 0, y: 0, width: 390, height: 216)
         view.layoutIfNeeded()
@@ -91,7 +93,8 @@ struct KeyboardModifierLayoutTests {
         let view = EnglishKeyboardView(
             getIsShiftedLetterInput: { false },
             setIsShiftedLetterInput: { _ in },
-            showsLanguageSwitchButton: true
+            showsLanguageSwitchButton: true,
+            showsNumberRow: false
         )
         view.frame = CGRect(x: 0, y: 0, width: 390, height: 216)
         view.layoutIfNeeded()
@@ -118,7 +121,8 @@ struct KeyboardModifierLayoutTests {
         let view = EnglishKeyboardView(
             getIsShiftedLetterInput: { false },
             setIsShiftedLetterInput: { _ in },
-            showsLanguageSwitchButton: false
+            showsLanguageSwitchButton: false,
+            showsNumberRow: false
         )
         view.frame = CGRect(x: 0, y: 0, width: 390, height: 216)
         view.layoutIfNeeded()
@@ -143,7 +147,8 @@ struct KeyboardModifierLayoutTests {
         let view = DubeolsikKeyboardView(
             getIsShiftedLetterInput: { false },
             setIsShiftedLetterInput: { _ in },
-            showsLanguageSwitchButton: false
+            showsLanguageSwitchButton: false,
+            showsNumberRow: false
         )
 
         #expect(view.languageSwitchButton == nil)
