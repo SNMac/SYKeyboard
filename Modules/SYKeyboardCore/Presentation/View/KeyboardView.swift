@@ -48,7 +48,9 @@ final public class KeyboardView: UIInputView {
         let stackView = UIStackView()
         stackView.axis = .horizontal
         stackView.spacing = 0
-        stackView.layoutMargins = UIEdgeInsets(top: KeyboardLayoutFigure.keyboardFrameSpacing, left: 0, bottom: 0, right: 0)
+        // 상하단 간격을 같게 하려고 프레임 여백을 위아래로 나눈다 (전체 높이는 동일)
+        let verticalMargin = KeyboardLayoutFigure.keyboardFrameSpacing / 2
+        stackView.layoutMargins = UIEdgeInsets(top: verticalMargin, left: 0, bottom: verticalMargin, right: 0)
         stackView.isLayoutMarginsRelativeArrangement = true
         
         return stackView
