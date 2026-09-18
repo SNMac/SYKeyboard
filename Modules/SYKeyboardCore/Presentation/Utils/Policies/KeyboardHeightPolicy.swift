@@ -8,11 +8,42 @@
 import CoreGraphics
 import UIKit
 
-enum KeyboardHeightPolicy {
+public enum KeyboardHeightPolicy {
 
     struct Height {
         let keyboardViewHeight: CGFloat
         let keyboardHStackViewHeight: CGFloat
+    }
+
+    /// 세로 모드 숫자 행 높이. 키보드 높이 설정 최소값일 때의 글자 행 높이와 같다
+    public static let portraitNumberRowHeight: CGFloat = letterRowHeight(
+        keyboardAreaHeight: CGFloat(KeyboardLayoutFigure.keyboardHeightRange.lowerBound)
+    )
+    /// 가로 모드 숫자 행 높이. 자동완성 바가 보일 때의 가로 글자 행 높이와 같다.
+    /// 바가 숨겨져 글자 행이 커져도 숫자 행은 이 값을 유지한다
+    public static let landscapeNumberRowHeight: CGFloat = letterRowHeight(
+        keyboardAreaHeight: KeyboardLayoutFigure.landscapeKeyboardHeight
+        - KeyboardLayoutFigure.suggestionBarHeightWithTopSpacing
+    )
+
+    /// 키 영역 높이에서 프레임 여백을 빼고 4행으로 나눈 글자 행 높이
+    static func letterRowHeight(keyboardAreaHeight: CGFloat) -> CGFloat {
+        (keyboardAreaHeight - KeyboardLayoutFigure.keyboardFrameSpacing) / 4
+    }
+
+    /// 주 키보드 구성에 맞는 숫자 행 높이. 숫자 행이 없으면 0을 반환한다
+    /// - Parameters:
+    ///   - isEnabled: 숫자 행 설정 여부
+    ///   - primaryKeyboards: extension의 주 키보드 종류 목록
+    ///   - isPortrait: 세로 화면 여부
+    public static func numberRowHeight(
+        isEnabled: Bool,
+        primaryKeyboards: [SYKeyboardType],
+        isPortrait: Bool
+    ) -> CGFloat {
+        let hasNumberRowKeyboard = primaryKeyboards.contains { $0 == .dubeolsik || $0 == .qwerty }
+        guard isEnabled, hasNumberRowKeyboard else { return 0 }
+        return isPortrait ? portraitNumberRowHeight : landscapeNumberRowHeight
     }
 
     static func height(
@@ -20,19 +51,20 @@ enum KeyboardHeightPolicy {
         landscapeKeyboardHeight: CGFloat,
         suggestionBarHeight: CGFloat,
         isSuggestionBarVisible: Bool,
-        isPortrait: Bool
+        isPortrait: Bool,
+        numberRowHeight: CGFloat = 0
     ) -> Height {
         let visibleSuggestionBarHeight = isSuggestionBarVisible ? suggestionBarHeight : 0
 
         if isPortrait {
             return Height(
-                keyboardViewHeight: keyboardSettingsHeight + visibleSuggestionBarHeight,
-                keyboardHStackViewHeight: keyboardSettingsHeight
+                keyboardViewHeight: keyboardSettingsHeight + visibleSuggestionBarHeight + numberRowHeight,
+                keyboardHStackViewHeight: keyboardSettingsHeight + numberRowHeight
             )
         } else {
             return Height(
-                keyboardViewHeight: landscapeKeyboardHeight,
-                keyboardHStackViewHeight: landscapeKeyboardHeight - visibleSuggestionBarHeight
+                keyboardViewHeight: landscapeKeyboardHeight + numberRowHeight,
+                keyboardHStackViewHeight: landscapeKeyboardHeight - visibleSuggestionBarHeight + numberRowHeight
             )
         }
     }

@@ -117,6 +117,8 @@ git commit -m "feat: #138 - 숫자 행 표시 설정 키와 기본값 추가"
 
 ### Task 2: 숫자 행 높이 정책
 
+**결과:** `xcodebuild test -scheme SYKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=18.6' -only-testing:SYKeyboardTests/KeyboardHeightPolicyTests GADApplicationIdentifier='ca-app-pub-3940256099942544~1458002511' -parallel-testing-enabled NO` → `** TEST SUCCEEDED **`, `KeyboardHeightPolicyTests` 16개(기존 9 + 신규 7) 전부 통과. `xcodebuild build -scheme SYKeyboard ...`(HangeulKeyboard/EnglishKeyboard/HangeulEnglishKeyboard extension 포함) → `** BUILD SUCCEEDED **`, 변경 파일에서 새 경고 없음. 별도 extension별 build는 실행하지 않음(SYKeyboard scheme build가 세 extension을 임베드 빌드로 이미 포함).
+
 **Files:**
 - Modify: `Modules/SYKeyboardCore/Presentation/Utils/Enums/KeyboardFigure.swift` (`landscapeKeyboardHeight` 위)
 - Modify: `Modules/SYKeyboardCore/Presentation/Utils/Policies/KeyboardHeightPolicy.swift`
@@ -131,7 +133,7 @@ git commit -m "feat: #138 - 숫자 행 표시 설정 키와 기본값 추가"
   - `KeyboardHeightPolicy.numberRowHeight(isEnabled: Bool, primaryKeyboards: [SYKeyboardType], isPortrait: Bool) -> CGFloat` (public)
   - `KeyboardHeightPolicy.height(keyboardSettingsHeight:landscapeKeyboardHeight:suggestionBarHeight:isSuggestionBarVisible:isPortrait:numberRowHeight:)` — 마지막 인자 `numberRowHeight: CGFloat = 0` 추가, 기존 호출은 그대로 컴파일된다
 
-- [ ] **Step 1: 실패하는 테스트 작성**
+- [x] **Step 1: 실패하는 테스트 작성**
 
 `KeyboardHeightPolicyTests`의 마지막 테스트 뒤에 추가한다.
 
@@ -210,12 +212,12 @@ git commit -m "feat: #138 - 숫자 행 표시 설정 키와 기본값 추가"
     }
 ```
 
-- [ ] **Step 2: 테스트가 컴파일 실패하는지 확인**
+- [x] **Step 2: 테스트가 컴파일 실패하는지 확인**
 
 Run: 공통 명령, `KeyboardHeightPolicyTests`
 Expected: `type 'KeyboardLayoutFigure' has no member 'keyboardHeightRange'` 등 컴파일 오류
 
-- [ ] **Step 3: 범위 상수 추가**
+- [x] **Step 3: 범위 상수 추가**
 
 `KeyboardFigure.swift`, `/// 키보드 가로모드 높이` 줄 위:
 
@@ -224,7 +226,7 @@ Expected: `type 'KeyboardLayoutFigure' has no member 'keyboardHeightRange'` 등 
     public static let keyboardHeightRange: ClosedRange<Double> = 190...290
 ```
 
-- [ ] **Step 4: 높이 정책 구현**
+- [x] **Step 4: 높이 정책 구현**
 
 `KeyboardHeightPolicy.swift`에서 `enum KeyboardHeightPolicy {`를 `public enum KeyboardHeightPolicy {`로 바꾸고, `struct Height` 위에 추가한다.
 
@@ -288,7 +290,7 @@ Expected: `type 'KeyboardLayoutFigure' has no member 'keyboardHeightRange'` 등 
     }
 ```
 
-- [ ] **Step 5: 슬라이더가 범위 상수를 쓰도록 수정**
+- [x] **Step 5: 슬라이더가 범위 상수를 쓰도록 수정**
 
 `KeyboardHeightSettingsView.swift`:
 
@@ -296,12 +298,12 @@ Expected: `type 'KeyboardLayoutFigure' has no member 'keyboardHeightRange'` 등 
             Slider(value: $tempKeyboardHeight, in: KeyboardLayoutFigure.keyboardHeightRange, step: 1)
 ```
 
-- [ ] **Step 6: 테스트 통과 확인**
+- [x] **Step 6: 테스트 통과 확인**
 
 Run: 공통 명령, `KeyboardHeightPolicyTests`
 Expected: `** TEST SUCCEEDED **`, 기존 테스트와 새 테스트 7개 모두 통과
 
-- [ ] **Step 7: 계획 문서 갱신 후 커밋**
+- [x] **Step 7: 계획 문서 갱신 후 커밋**
 
 ```bash
 git add Modules/SYKeyboardCore/Presentation/Utils/Enums/KeyboardFigure.swift Modules/SYKeyboardCore/Presentation/Utils/Policies/KeyboardHeightPolicy.swift SYKeyboard/Presentation/KeyboardSettings/KeyboardHeightSettingsView.swift SYKeyboardTests/Utils/KeyboardHeightPolicyTests.swift docs/superpowers/plans/2026-09-18-number-row.md

@@ -17,6 +17,8 @@ public enum KeyboardLayoutFigure {
             return 4.6
         }
     }()
+    /// 키보드 높이 설정 슬라이더 범위
+    public static let keyboardHeightRange: ClosedRange<Double> = 190...290
     /// 키보드 가로모드 높이
     public static let landscapeKeyboardHeight: CGFloat = 188.0
     /// 키보드 프레임 내부 간격

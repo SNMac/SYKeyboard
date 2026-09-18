@@ -127,4 +127,77 @@ struct KeyboardHeightPolicyTests {
         #expect(height.keyboardViewHeight == 220)
         #expect(height.keyboardHStackViewHeight == 220)
     }
+
+    // MARK: - 숫자 행
+
+    @Test("키보드 높이 설정 범위는 190...290")
+    func test키보드높이범위() {
+        #expect(KeyboardLayoutFigure.keyboardHeightRange == 190...290)
+    }
+
+    @Test("숫자 행 높이는 세로 46.5, 가로 35로 고정")
+    func test숫자행높이_고정값() {
+        #expect(KeyboardHeightPolicy.portraitNumberRowHeight == 46.5)
+        #expect(KeyboardHeightPolicy.landscapeNumberRowHeight == 35)
+    }
+
+    @Test("숫자 행 설정이 꺼져 있으면 두벌식·쿼티여도 숫자 행 높이는 0")
+    func test숫자행_설정꺼짐() {
+        #expect(KeyboardHeightPolicy.numberRowHeight(isEnabled: false, primaryKeyboards: [.qwerty], isPortrait: true) == 0)
+        #expect(KeyboardHeightPolicy.numberRowHeight(isEnabled: false, primaryKeyboards: [.dubeolsik], isPortrait: false) == 0)
+    }
+
+    @Test("숫자 행 설정이 켜져 있어도 두벌식·쿼티가 없으면 0")
+    func test숫자행_4x4만있음() {
+        #expect(KeyboardHeightPolicy.numberRowHeight(isEnabled: true, primaryKeyboards: [.naratgeul], isPortrait: true) == 0)
+        #expect(KeyboardHeightPolicy.numberRowHeight(isEnabled: true, primaryKeyboards: [.cheonjiin], isPortrait: false) == 0)
+    }
+
+    @Test("두벌식·쿼티가 하나라도 있으면 방향별 숫자 행 높이를 반환")
+    func test숫자행_방향별높이() {
+        #expect(KeyboardHeightPolicy.numberRowHeight(isEnabled: true, primaryKeyboards: [.dubeolsik], isPortrait: true) == 46.5)
+        #expect(KeyboardHeightPolicy.numberRowHeight(isEnabled: true, primaryKeyboards: [.qwerty], isPortrait: false) == 35)
+        // 한영 통합: 4x4 한글 + 쿼티
+        #expect(KeyboardHeightPolicy.numberRowHeight(isEnabled: true, primaryKeyboards: [.naratgeul, .qwerty], isPortrait: true) == 46.5)
+    }
+
+    @Test("세로 화면 숫자 행은 설정 높이와 자동완성 바 위에 더함")
+    func test세로화면_숫자행높이계산() {
+        let height = KeyboardHeightPolicy.height(
+            keyboardSettingsHeight: 240,
+            landscapeKeyboardHeight: 188,
+            suggestionBarHeight: 44,
+            isSuggestionBarVisible: true,
+            isPortrait: true,
+            numberRowHeight: 46.5
+        )
+
+        #expect(height.keyboardViewHeight == 330.5)
+        #expect(height.keyboardHStackViewHeight == 286.5)
+    }
+
+    @Test("가로 화면 숫자 행은 고정 높이 188 위에 더하고 자동완성 바는 기존처럼 뺌")
+    func test가로화면_숫자행높이계산() {
+        let visible = KeyboardHeightPolicy.height(
+            keyboardSettingsHeight: 240,
+            landscapeKeyboardHeight: 188,
+            suggestionBarHeight: 44,
+            isSuggestionBarVisible: true,
+            isPortrait: false,
+            numberRowHeight: 35
+        )
+        #expect(visible.keyboardViewHeight == 223)
+        #expect(visible.keyboardHStackViewHeight == 179)
+
+        let hidden = KeyboardHeightPolicy.height(
+            keyboardSettingsHeight: 240,
+            landscapeKeyboardHeight: 188,
+            suggestionBarHeight: 44,
+            isSuggestionBarVisible: false,
+            isPortrait: false,
+            numberRowHeight: 35
+        )
+        #expect(hidden.keyboardViewHeight == 223)
+        #expect(hidden.keyboardHStackViewHeight == 223)
+    }
 }
