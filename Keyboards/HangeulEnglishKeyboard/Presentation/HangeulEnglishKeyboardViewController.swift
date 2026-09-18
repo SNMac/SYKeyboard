@@ -240,10 +240,16 @@ final class HangeulEnglishKeyboardViewController: BaseKeyboardViewController {
 
         if button is DeleteButton {
             performInitialRepeatDeleteTextInteraction(for: button)
+        }
+    }
+
+    override func performInitialRepeatTextInteraction(for button: TextInteractable) {
+        guard modeCoordinator.currentMode == .hangeul else {
+            super.performInitialRepeatTextInteraction(for: button)
             return
         }
 
-        super.performTextInteraction(for: button)
+        performTextInteraction(for: button)
         if hangeulAdapter.hasRepeatableInput || button is SpaceButton {
             button.playFeedback()
         }

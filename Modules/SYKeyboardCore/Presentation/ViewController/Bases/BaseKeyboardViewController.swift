@@ -537,6 +537,17 @@ open class BaseKeyboardViewController: UIInputViewController {
         // 방어 코드
         cancelTimer()
         isRepeatingInput = true
+
+        // 삭제 버튼은 첫 입력을 touchDown에서 처리하거나 하위 클래스가 별도 경로로 처리한다
+        guard !(button is DeleteButton) else { return }
+        performInitialRepeatTextInteraction(for: button)
+    }
+    /// 길게 누르기가 인식된 직후 첫 글자를 입력하는 메서드 (삭제 버튼 제외)
+    ///
+    /// 반복 타이머의 첫 tick을 기다리지 않고 인식 시점에 바로 입력한다
+    open func performInitialRepeatTextInteraction(for button: TextInteractable) {
+        performTextInteraction(for: button)
+        button.playFeedback()
     }
     /// 반복 텍스트 상호작용이 일어난 후 실행되는 메서드
     ///
@@ -1505,7 +1516,7 @@ extension BaseKeyboardViewController {
             } else {
                 insertPrimaryKeyText(from: button)
             }
-            // 한글 키보드는 길게 누르기가 인식되면 첫 글자를 이 경로로 바로 입력한다
+            // 길게 누르기가 인식되면 첫 글자를 이 경로로 바로 입력한다 (performInitialRepeatTextInteraction)
             if isRepeatingInput {
                 markSymbolInputAfterLongPressIfNeeded(for: button)
             }
