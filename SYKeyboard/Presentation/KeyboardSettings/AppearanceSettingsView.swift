@@ -19,6 +19,9 @@ struct AppearanceSettingsView: View {
     @AppStorage(UserDefaultsKeys.selectedHangeulKeyboard, store: UserDefaultsManager.shared.storage)
     private var selectedHangeulKeyboard = DefaultValues.selectedHangeulKeyboard
 
+    @AppStorage(UserDefaultsKeys.showsNumberRow, store: UserDefaultsManager.shared.storage)
+    private var showsNumberRow = DefaultValues.showsNumberRow
+
     @AppStorage(UserDefaultsKeys.isNumericKeypadEnabled, store: UserDefaultsManager.shared.storage)
     private var isNumericKeypadEnabled = DefaultValues.isNumericKeypadEnabled
 
@@ -33,6 +36,20 @@ struct AppearanceSettingsView: View {
     var body: some View {
         NavigationLink("키보드 높이") {
             KeyboardHeightSettingsView()
+        }
+
+        Toggle(isOn: $showsNumberRow, label: {
+            Text("숫자 행 표시")
+            Text("두벌식·쿼티 자판 맨 윗줄에 숫자 키 표시")
+                .font(.caption)
+        })
+        .onChange(of: showsNumberRow) { newValue in
+            // 사용자 속성 25개 한도 때문에 이벤트로만 남긴다
+            Analytics.logEvent("number_row", parameters: [
+                "view": "AppearanceSettingsView",
+                "enabled": newValue.analyticsValue
+            ])
+            hideKeyboard()
         }
 
         if showsLetterColumnWidthSettings {

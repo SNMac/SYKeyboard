@@ -18,7 +18,10 @@ struct InputSettingsView: View {
     
     @AppStorage(UserDefaultsKeys.selectedLongPressAction, store: UserDefaultsManager.shared.storage)
     private var selectedLongPressAction = DefaultValues.selectedLongPressAction
-    
+
+    @AppStorage(UserDefaultsKeys.showsNumberRow, store: UserDefaultsManager.shared.storage)
+    private var showsNumberRow = DefaultValues.showsNumberRow
+
     @AppStorage(UserDefaultsKeys.isAutoCapitalizationEnabled, store: UserDefaultsManager.shared.storage)
     private var isAutoCapitalizationEnabled = DefaultValues.isAutoCapitalizationEnabled
     
@@ -39,12 +42,15 @@ struct InputSettingsView: View {
         case numberInput
         case disabled
         
-        var displayStr: String {
+        /// 숫자 행이 켜져 있으면 두벌식·쿼티의 길게 누르기가 숫자 대신 shift 문자를 입력한다
+        func displayStr(showsNumberRow: Bool) -> String {
             switch self {
             case .repeatInput:
                 String(localized: "반복 입력")
             case .numberInput:
-                String(localized: "숫자 입력")
+                showsNumberRow
+                ? String(localized: "대문자·쌍자음 입력")
+                : String(localized: "숫자 입력")
             case .disabled:
                 String(localized: "비활성화")
             }
@@ -82,7 +88,7 @@ struct InputSettingsView: View {
     var body: some View {
         Picker("길게 누르기 동작", selection: longPressModeBinding) {
             ForEach(LongPressMode.allCases, id: \.self) {
-                Text($0.displayStr)
+                Text($0.displayStr(showsNumberRow: showsNumberRow))
             }
         }
         

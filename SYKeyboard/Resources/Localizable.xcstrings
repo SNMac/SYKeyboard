@@ -682,6 +682,36 @@
         }
       }
     },
+    "숫자 행 표시" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Number Row"
+          }
+        }
+      }
+    },
+    "두벌식·쿼티 자판 맨 윗줄에 숫자 키 표시" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show number keys above the Dubeolsik and QWERTY layouts"
+          }
+        }
+      }
+    },
+    "대문자·쌍자음 입력" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uppercase & Double Consonant Input"
+          }
+        }
+      }
+    },
     "스마트 구두점" : {
       "localizations" : {
         "en" : {

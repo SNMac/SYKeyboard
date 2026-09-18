@@ -847,7 +847,7 @@ git commit -m "feat: #138 - 숫자 행 높이를 키보드 extension 프레임 �
 **Interfaces:**
 - Consumes: `UserDefaultsKeys.showsNumberRow`, `DefaultValues.showsNumberRow`(Task 1), `KeyboardHeightPolicy.numberRowHeight(...)`(Task 2)
 
-- [ ] **Step 1: 외형 설정에 토글 추가**
+- [x] **Step 1: 외형 설정에 토글 추가**
 
 `AppearanceSettingsView.swift` Properties, `isNumericKeypadEnabled` 선언 위:
 
@@ -874,7 +874,7 @@ body의 `NavigationLink("키보드 높이") { ... }` 바로 아래:
         }
 ```
 
-- [ ] **Step 2: 길게 누르기 항목 이름 변경**
+- [x] **Step 2: 길게 누르기 항목 이름 변경**
 
 `InputSettingsView.swift` Properties, `selectedLongPressAction` 선언 아래:
 
@@ -903,7 +903,7 @@ body의 `NavigationLink("키보드 높이") { ... }` 바로 아래:
 
 Picker의 `Text($0.displayStr)`를 `Text($0.displayStr(showsNumberRow: showsNumberRow))`로 바꾼다. 다른 곳에서 `LongPressMode.displayStr`을 쓰는지 `grep -rn "displayStr" SYKeyboard`로 확인하고, 있으면 같은 방식으로 인자를 넘긴다. `analyticsValue`(`number_input`)는 바꾸지 않는다.
 
-- [ ] **Step 3: 미리보기 높이에 숫자 행 반영**
+- [x] **Step 3: 미리보기 높이에 숫자 행 반영**
 
 `PreviewKeyboardView.swift` 상단에 `import HangeulKeyboardCore`를 추가하고, Properties에:
 
@@ -940,7 +940,7 @@ UI Components extension에 추가:
 
 미리보기 VC는 `isPreview`라 `setKeyboardHeight()`를 거치지 않는다. 숫자 행 높이는 `StandardKeyboardView`의 초기 제약(세로 46.5)을 그대로 쓴다.
 
-- [ ] **Step 4: 영어 번역 추가**
+- [x] **Step 4: 영어 번역 추가**
 
 `SYKeyboard/Resources/Localizable.xcstrings`의 `"strings"` 객체에 아래 3개를 추가한다. 기존 항목 형식(`"key" : {`, 들여쓰기 2칸)을 그대로 따른다. 파일 전체를 다시 정렬·재포맷하지 않도록 Edit으로 넣고, `git diff --stat`이 이 파일에서 추가 줄만 보이는지 확인한다.
 
@@ -977,7 +977,7 @@ UI Components extension에 추가:
     },
 ```
 
-- [ ] **Step 5: 앱 빌드**
+- [x] **Step 5: 앱 빌드**
 
 Run:
 
@@ -987,12 +987,24 @@ xcodebuild build -project SYKeyboard.xcodeproj -scheme SYKeyboard -destination '
 
 Expected: `** BUILD SUCCEEDED **`. 빌드가 `Localizable.xcstrings`를 재정렬했다면 `git diff`로 새 3개 항목 외 변경이 없는지 확인하고, 순서만 바뀐 경우 그대로 둔다(Xcode 표준 형식).
 
-- [ ] **Step 6: 계획 문서 갱신 후 커밋**
+- [x] **Step 6: 계획 문서 갱신 후 커밋**
 
 ```bash
 git add SYKeyboard/Presentation/KeyboardSettings/AppearanceSettingsView.swift SYKeyboard/Presentation/KeyboardSettings/InputSettingsView.swift SYKeyboard/Presentation/Components/PreviewKeyboard/PreviewKeyboardView.swift SYKeyboard/Resources/Localizable.xcstrings docs/superpowers/plans/2026-09-18-number-row.md
 git commit -m "feat: #138 - 숫자 행 설정 토글과 미리보기 높이·길게 누르기 항목 이름 반영"
 ```
+
+**결과:**
+- Step 1~4: 브리프 코드 그대로 적용. `LongPressMode.displayStr`을 쓰는 다른 곳은
+  `HangeulKeyboardSelectView`, `PreviewKeyboardLanguage`뿐으로 둘 다 별개 타입의
+  동일 이름 프로퍼티라 영향 없음(`grep -rn "displayStr" SYKeyboard`로 확인).
+- Step 5: `xcodebuild build -project SYKeyboard.xcodeproj -scheme SYKeyboard
+  -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=18.6'
+  GADApplicationIdentifier='ca-app-pub-3940256099942544~1458002511'` →
+  `** BUILD SUCCEEDED **`. `grep -iE "warning:|error:"`로 새 경고 없음 확인.
+  `git diff --stat -- SYKeyboard/Resources/Localizable.xcstrings`는 추가 30줄만
+  표시, 재정렬·`.xcscheme` 변경 없음.
+- SwiftUI 뷰 변경이라 유닛 테스트는 대상이 아님(브리프대로 미실행).
 
 ---
 
