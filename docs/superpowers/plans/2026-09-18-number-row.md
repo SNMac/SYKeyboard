@@ -791,7 +791,9 @@ git commit -m "feat: #138 - 두벌식·쿼티 자판에 숫자 행과 shift 짝 
 
 VC 메서드는 단위 테스트 대상이 아니다. 계산은 Task 2 정책 테스트가, 뷰 반영은 Task 4 레이아웃 테스트가 검증한다. 이 Task는 빌드와 Task 8의 수동 확인으로 검증한다.
 
-- [ ] **Step 1: `setKeyboardHeight()`에서 숫자 행 높이 계산·반영**
+**결과:** Step 1~3 완료. `setKeyboardHeight()`에 브리프와 동일한 코드를 반영. 세 extension scheme 빌드 각각 `** BUILD SUCCEEDED **`(`xcodebuild build -project SYKeyboard.xcodeproj -scheme HangeulKeyboard|EnglishKeyboard|HangeulEnglishKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=18.6' GADApplicationIdentifier='ca-app-pub-3940256099942544~1458002511'`), 매 빌드 후 `git status --short`에 `.xcscheme` 변경 없음(되돌릴 필요 없었음). `KeyboardHeightPolicyTests` 재실행(`xcodebuild test ... -only-testing:SYKeyboardTests/KeyboardHeightPolicyTests -parallel-testing-enabled NO`) → `Test run with 16 tests in 1 suite passed`, `** TEST SUCCEEDED **`. 미확인: 실제 입력 앱에서의 높이 반영 수동 확인(Task 8 범위).
+
+- [x] **Step 1: `setKeyboardHeight()`에서 숫자 행 높이 계산·반영**
 
 `let isPortrait = KeyboardHeightPolicy.isPortrait(...)` 블록과 `let height = KeyboardHeightPolicy.height(...)` 사이에 추가한다.
 
@@ -808,7 +810,7 @@ VC 메서드는 단위 테스트 대상이 아니다. 계산은 Task 2 정책 �
 
 `KeyboardHeightPolicy.height(...)` 호출의 `isPortrait: isPortrait` 다음 줄에 `numberRowHeight: numberRowHeight`를 추가한다.
 
-- [ ] **Step 2: 세 extension 빌드**
+- [x] **Step 2: 세 extension 빌드**
 
 Run (차례로):
 
@@ -820,12 +822,12 @@ xcodebuild build -project SYKeyboard.xcodeproj -scheme HangeulEnglishKeyboard -d
 
 Expected: 세 번 모두 `** BUILD SUCCEEDED **`. 이후 `git status --short`에 `.xcscheme`이 보이면 `RemotePath`만 바뀌었는지 `git diff`로 확인하고 `git checkout -- SYKeyboard.xcodeproj/xcshareddata/xcschemes/<이름>.xcscheme`으로 되돌린다.
 
-- [ ] **Step 3: 높이 정책 테스트 재실행**
+- [x] **Step 3: 높이 정책 테스트 재실행**
 
 Run: 공통 명령, `KeyboardHeightPolicyTests`
 Expected: `** TEST SUCCEEDED **`
 
-- [ ] **Step 4: 계획 문서 갱신 후 커밋**
+- [x] **Step 4: 계획 문서 갱신 후 커밋**
 
 ```bash
 git add Modules/SYKeyboardCore/Presentation/ViewController/Bases/BaseKeyboardViewController.swift docs/superpowers/plans/2026-09-18-number-row.md

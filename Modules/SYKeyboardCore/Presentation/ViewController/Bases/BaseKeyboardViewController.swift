@@ -990,12 +990,22 @@ private extension BaseKeyboardViewController {
             verticalSizeClass: traitCollection.verticalSizeClass
         )
 
+        // 숫자 행 여부는 설정값이 아니라 실제로 만들어진 뷰를 기준으로 판단한다.
+        // extension이 살아 있는 동안 설정이 바뀌어도 뷰와 프레임 높이가 어긋나지 않는다
+        let numberRowHeight = KeyboardHeightPolicy.numberRowHeight(
+            isEnabled: primaryKeyboardViews.contains { $0.showsNumberRow },
+            primaryKeyboards: primaryKeyboardViews.map(\.keyboard),
+            isPortrait: isPortrait
+        )
+        primaryKeyboardViews.forEach { $0.updateNumberRowHeight(numberRowHeight) }
+
         let height = KeyboardHeightPolicy.height(
             keyboardSettingsHeight: keyboardSettingsManager.keyboardHeight,
             landscapeKeyboardHeight: KeyboardLayoutFigure.landscapeKeyboardHeight,
             suggestionBarHeight: KeyboardLayoutFigure.suggestionBarHeightWithTopSpacing,
             isSuggestionBarVisible: isSuggestionBarVisible,
-            isPortrait: isPortrait
+            isPortrait: isPortrait,
+            numberRowHeight: numberRowHeight
         )
 
         if let keyboardViewHeightConstraint {
