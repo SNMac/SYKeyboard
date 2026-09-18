@@ -148,10 +148,11 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
         super.repeatTextInteractionWillPerform(button: button)
         if button is DeleteButton {
             performInitialRepeatDeleteTextInteraction(for: button)
-            return
         }
+    }
 
-        super.performTextInteraction(for: button)
+    open override func performInitialRepeatTextInteraction(for button: TextInteractable) {
+        performTextInteraction(for: button)
         if inputAdapter.hasRepeatableInput || button is SpaceButton {
             button.playFeedback()
         }

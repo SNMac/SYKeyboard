@@ -239,6 +239,74 @@ struct KeyboardSymbolInputPolicyTests {
         #expect(KeyboardSymbolInputPolicy.shouldMarkSymbolInput(buttonType: .spaceButton) == false)
         #expect(KeyboardSymbolInputPolicy.shouldMarkSymbolInput(buttonType: .returnButton) == false)
     }
+
+    @Test("기호 키보드에서 길게 누르기로 입력한 심볼 키도 심볼 입력 상태로 표시")
+    func test길게누르기입력심볼입력상태표시조건() {
+        #expect(
+            KeyboardSymbolInputPolicy.shouldMarkSymbolInputAfterLongPressInput(
+                buttonType: .keyButton(primary: ["!"], secondary: nil),
+                currentKeyboard: .symbol
+            )
+        )
+        #expect(
+            KeyboardSymbolInputPolicy.shouldMarkSymbolInputAfterLongPressInput(
+                buttonType: .keyButton(primary: ["’"], secondary: nil),
+                currentKeyboard: .symbol
+            ) == false
+        )
+        #expect(
+            KeyboardSymbolInputPolicy.shouldMarkSymbolInputAfterLongPressInput(
+                buttonType: .spaceButton,
+                currentKeyboard: .symbol
+            ) == false
+        )
+        #expect(
+            KeyboardSymbolInputPolicy.shouldMarkSymbolInputAfterLongPressInput(
+                buttonType: .deleteButton,
+                currentKeyboard: .symbol
+            ) == false
+        )
+        #expect(
+            KeyboardSymbolInputPolicy.shouldMarkSymbolInputAfterLongPressInput(
+                buttonType: .keyButton(primary: ["!"], secondary: nil),
+                currentKeyboard: .naratgeul
+            ) == false
+        )
+        #expect(
+            KeyboardSymbolInputPolicy.shouldMarkSymbolInputAfterLongPressInput(
+                buttonType: .keyButton(primary: ["1"], secondary: nil),
+                currentKeyboard: .numeric
+            ) == false
+        )
+    }
+
+    @Test("기호 키보드에서 길게 누르기로 입력한 작은따옴표만 손을 뗄 때 전환 대상으로 기록")
+    func test길게누르기작은따옴표입력기록조건() {
+        #expect(
+            KeyboardSymbolInputPolicy.shouldRecordApostropheLongPressInput(
+                buttonType: .keyButton(primary: ["’"], secondary: nil),
+                currentKeyboard: .symbol
+            )
+        )
+        #expect(
+            KeyboardSymbolInputPolicy.shouldRecordApostropheLongPressInput(
+                buttonType: .keyButton(primary: ["'"], secondary: nil),
+                currentKeyboard: .symbol
+            )
+        )
+        #expect(
+            KeyboardSymbolInputPolicy.shouldRecordApostropheLongPressInput(
+                buttonType: .keyButton(primary: ["!"], secondary: nil),
+                currentKeyboard: .symbol
+            ) == false
+        )
+        #expect(
+            KeyboardSymbolInputPolicy.shouldRecordApostropheLongPressInput(
+                buttonType: .keyButton(primary: ["'"], secondary: nil),
+                currentKeyboard: .qwerty
+            ) == false
+        )
+    }
 }
 
 private extension SymbolKeyboardView {
