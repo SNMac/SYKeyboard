@@ -1505,6 +1505,10 @@ extension BaseKeyboardViewController {
             } else {
                 insertPrimaryKeyText(from: button)
             }
+            // 한글 키보드는 길게 누르기가 인식되면 첫 글자를 이 경로로 바로 입력한다
+            if isRepeatingInput {
+                markSymbolInputAfterLongPressIfNeeded(for: button)
+            }
         case .deleteButton:
             assertionFailure("삭제 버튼은 semantic hook 경로에서 먼저 처리됩니다.")
         case .spaceButton:
