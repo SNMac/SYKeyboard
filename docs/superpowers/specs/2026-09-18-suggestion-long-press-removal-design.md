@@ -68,7 +68,8 @@ static let removalLongPressDuration: TimeInterval = 0.7
 - `beginTouchInteraction(at:)`: 후보 버튼 위라면 그 인덱스를 기억하고 `removalLongPressDuration` 타이머를 시작한다.
 - `moveTouchInteraction(to:)`: 손가락이 처음 누른 후보 버튼을 벗어나면 타이머를 취소한다. 다른 버튼으로 옮겨 가도 타이머를 다시 시작하지 않는다.
 - 타이머가 발동하면 delegate에 삭제를 요청한다.
-  - delegate가 `true`를 반환하면(오버레이 표시됨) 이번 터치를 소비된 것으로 표시한다. 이때 햅틱을 한 번 재생하고 후보 하이라이트를 지운다.
+  - delegate가 `true`를 반환하면(오버레이 표시됨) 이번 터치를 소비된 것으로 표시하고 후보 하이라이트를 지운다. 햅틱은 오버레이를 띄운 VC가 재생한다.
+  - 소비된 터치는 이후 `touchesMoved`에서도 하이라이트를 다시 만들지 않는다.
   - `false`면 아무것도 하지 않는다. 손을 떼면 기존처럼 선택된다.
 - `endTouchInteraction(at:playsFeedback:)`: 소비된 터치면 선택을 건너뛰고 `resetTouchInteraction()`만 한다. 아니면 기존 선택 흐름을 그대로 탄다.
 - `resetTouchInteraction()`, `cancelTouchInteraction()`: 타이머를 무효화하고 소비 표시를 지운다.
@@ -95,17 +96,19 @@ func suggestionBar(_ bar: SuggestionBarView, shouldBeginRemovalAt index: Int) ->
 
 ```swift
 /// 길게 눌러 삭제할 수 있는 후보면 그 단어를, 아니면 nil을 반환합니다.
-func removableSuggestionText(at index: Int) -> String?
+func removableSuggestionText(atBarIndex index: Int) -> String?
 
 /// 앱 학습 데이터에서 단어를 지우고 후보를 다시 계산합니다.
 func removeSuggestionWord(_ word: String)
 ```
 
-- `index`는 `didSelectSuggestionAt`과 같은 바 인덱스 규칙을 따른다. typing 모드에서 button1(`"현재단어"`)은 `nil`을 반환한다.
-- 판정 기준은 위 범위 표를 따른다. `.textChecker`는 `UITextChecker.hasLearnedWord`로 확인한다.
+- `index`는 바 인덱스(0~2)다. nGram 모드는 후보 인덱스와 같고, typing 모드는 `index - 1`이 후보 인덱스다(button1은 `"현재단어"`라 `nil`). 수식 모드는 항상 `nil`이다.
+- 판정 기준은 위 범위 표를 따른다. `.textChecker`는 엔진의 `canUnlearn(word:)`로 확인한다.
+- 두 메서드는 `SuggestionService` 프로토콜에도 추가한다. VC가 이 프로토콜 타입으로 컨트롤러를 들고 있다.
 - `removeSuggestionWord`의 동작:
   - `nGramEngine?.removeWord(word)`를 호출한다.
-  - `textCheckerEngine`이 학습한 단어면 unlearn한다.
+  - `textCheckerEngine?.unlearn(word:)`를 호출한다. 앱이 학습하지 않은 단어면 엔진 안에서 아무것도 하지 않는다.
+  - 현재 후보 배열에서 같은 텍스트를 빼서, typing 모드가 직전 TextChecker 후보를 이어받을 때 지운 단어가 한 프레임 다시 보이지 않게 한다.
   - 마지막 요청값(`lastSuggestionBaseText` 등)으로 후보를 다시 계산해 delegate로 전달한다.
 - 출처와 관계없이 두 저장소 모두에서 지운다. NGram 후보로 떠 있던 단어가 앱이 학습한 단어이기도 하면 함께 unlearn된다.
 
@@ -113,6 +116,7 @@ func removeSuggestionWord(_ word: String)
 
 `NGramPredictiveTextProviding`에 추가한다.
 
+- 대소문자를 구분하지 않고 지운다. `suggestions(for:)`가 후보를 소문자 기준으로 중복 제거하므로, `hello`만 지우면 가려져 있던 `Hello`가 다시 떠서 삭제가 실패한 것처럼 보이기 때문이다.
 - 다음 항목을 모두 지운다.
   - `unigramStore[word]`
   - 모든 bigram/trigram 값 사전에서 `word` 항목
@@ -127,19 +131,21 @@ func removeSuggestionWord(_ word: String)
 ### 6. TextChecker unlearn — `TextCheckerPredictiveTextEngine`
 
 ```swift
+func canUnlearn(word: String) -> Bool
 func unlearn(word: String)
 ```
 
-- `UITextChecker.hasLearnedWord(word)`일 때만 `UITextChecker.unlearnWord(word)`를 호출하고 `learnedWords`에서 제거한다.
+- `canUnlearn`은 `UITextChecker.hasLearnedWord(word)`를 반환한다.
+- `unlearn`은 `UITextChecker.hasLearnedWord(word)`일 때만 `UITextChecker.unlearnWord(word)`를 호출하고 `learnedWords`에서 제거한다.
 - 기존 `unlearnAllWords()`와 같은 main 스레드 규칙을 따른다.
-- `PredictiveTextProvider`에 기본 구현이 비어 있는 `unlearn(word:)`를 추가한다. 이렇게 하면 NGram·Lexicon 엔진은 수정하지 않아도 된다.
+- `PredictiveTextProvider`에 두 메서드를 요구사항으로 추가하고, 기본 구현(`false` 반환, 아무것도 하지 않음)을 extension에 둔다. 이렇게 하면 NGram·Lexicon 엔진은 수정하지 않아도 되고, 테스트 stub은 `canUnlearn`을 재정의해 학습 여부를 흉내 낼 수 있다.
 
 ### 7. 연결 — `BaseKeyboardViewController`
 
 - `RequestFullAccessOverlayView`처럼 `view` 전체를 덮는 `DeleteConfirmOverlayView`를 lazy로 두고, 처음 쓸 때 추가한다. 기본은 `isHidden = true`다.
 - `shouldBeginRemovalAt`:
-  - `suggestionController.removableSuggestionText(at:)`가 `nil`이면 `false`를 반환한다.
-  - 단어가 있으면 삭제 대기 단어로 보관하고, 문구를 설정해 오버레이를 표시한 뒤 `true`를 반환한다.
+  - 미리보기(`BaseKeyboardViewController.isPreview`)거나 `suggestionController.removableSuggestionText(atBarIndex:)`가 `nil`이면 `false`를 반환한다.
+  - 단어가 있으면 삭제 대기 단어로 보관하고, 문구를 설정해 오버레이를 표시하고 햅틱을 한 번 재생한 뒤 `true`를 반환한다.
 - 오버레이 `onConfirm`: 대기 단어로 `removeSuggestionWord`를 호출하고 오버레이를 숨긴다.
 - 오버레이 `onCancel`: 대기 단어를 지우고 오버레이를 숨긴다.
 - 키보드가 사라질 때(`viewWillDisappear`)는 오버레이를 숨기고 대기 단어를 지운다.
@@ -164,8 +170,12 @@ Swift Testing으로 production 진입점을 호출한다.
   - 저장 후 새 엔진으로 다시 로드해도 없음
   - 다른 단어의 빈도는 그대로
 - `SuggestionController` (`SuggestionControllerEngineFactory` fake 사용)
-  - `removableSuggestionText(at:)`: nGram은 단어 반환, typing 모드 button1·lexicon·수식은 `nil`
+  - `removableSuggestionText(atBarIndex:)`: nGram은 단어 반환, typing 모드 button1·미학습 textChecker·lexicon·수식은 `nil`, 학습한 textChecker는 단어 반환
   - `removeSuggestionWord`가 NGram fake의 `removeWord`와 TextChecker fake의 `unlearn`을 호출하고 delegate로 갱신된 후보를 전달함
+- `SuggestionBarView`: 타이머가 호출하는 `handleRemovalLongPress()`를 직접 불러 확인
+  - delegate가 수락하면 손을 떼도 선택하지 않음
+  - delegate가 거절하면 기존처럼 선택함
+  - 누른 후보를 벗어난 뒤에는 삭제를 요청하지 않음
 - `KeyboardSuggestionSelectionPolicy`: `removalLongPressDuration == 0.7`
 - `UITextChecker.hasLearnedWord` 판정은 전역 사전 상태에 의존하므로 unit test로 고정하지 않는다.
 - 오버레이 분리 후 기존 클립보드 삭제 테스트가 그대로 통과해야 한다.
