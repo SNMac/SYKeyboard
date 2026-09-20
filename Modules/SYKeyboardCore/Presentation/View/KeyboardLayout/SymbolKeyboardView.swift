@@ -29,6 +29,7 @@ final class SymbolKeyboardView: UIView, SymbolKeyboardLayoutProvider {
         didSet(oldMode) {
             updateLayoutForCurrentSymbolKeyboardMode(oldMode: oldMode)
             isShifted = false
+            updateShiftButtonVisibility()
         }
     }
     
@@ -48,12 +49,20 @@ final class SymbolKeyboardView: UIView, SymbolKeyboardLayoutProvider {
     private var thirdRowWidthConstraints: [NSLayoutConstraint] = []
 
     private let showsLanguageSwitchButton: Bool
-    
+    private let showsNumberRowSetting: Bool
+    private var numberRowHeightConstraint: NSLayoutConstraint?
+
+    // MARK: - NormalKeyboardLayoutProvider
+
+    public var showsNumberRow: Bool { showsNumberRowSetting }
+
     // MARK: - UI Components
-    
+
     /// 키보드 레이아웃 수직 스택
     private let layoutVStackView = KeyboardLayoutVStackView()
-    
+
+    /// 키보드 숫자 행
+    private let numberRowHStackView = KeyboardRowHStackView()
     /// 키보드 첫번째 행
     private let firstRowHStackView = KeyboardRowHStackView()
     /// 키보드 두번째 행
@@ -87,16 +96,22 @@ final class SymbolKeyboardView: UIView, SymbolKeyboardLayoutProvider {
         return keyboardRowHStackView
     }()
     
+    /// 숫자 행 `PrimaryKeyButton` 배열. 숫자 행이 꺼져 있으면 비어 있다
+    private(set) lazy var numberRowPrimaryKeyButtonList: [PrimaryKeyButton] = showsNumberRowSetting
+    ? ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"].map {
+        PrimaryKeyButton(keyboard: .symbol, button: .keyButton(primary: [$0], secondary: nil))
+    }
+    : []
     /// 키보드 첫번째 행 `PrimaryKeyButton` 배열
-    private lazy var firstRowPrimaryKeyButtonList = currentSymbolKeyboardMode.keyList(usesNumberRow: false)[0][0].map {
+    private(set) lazy var firstRowPrimaryKeyButtonList = currentSymbolKeyboardMode.keyList(usesNumberRow: showsNumberRowSetting)[0][0].map {
         PrimaryKeyButton(keyboard: .symbol, button: .keyButton(primary: $0, secondary: nil))
     }
     /// 키보드 두번째 행 `PrimaryKeyButton` 배열
-    private lazy var secondRowPrimaryKeyButtonList = currentSymbolKeyboardMode.keyList(usesNumberRow: false)[0][1].map {
+    private lazy var secondRowPrimaryKeyButtonList = currentSymbolKeyboardMode.keyList(usesNumberRow: showsNumberRowSetting)[0][1].map {
         PrimaryKeyButton(keyboard: .symbol, button: .keyButton(primary: $0, secondary: nil))
     }
     /// 키보드 세번째 행 `PrimaryKeyButton` 배열
-    private(set) lazy var thirdRowPrimaryKeyButtonList = currentSymbolKeyboardMode.keyList(usesNumberRow: false)[0][2].map {
+    private(set) lazy var thirdRowPrimaryKeyButtonList = currentSymbolKeyboardMode.keyList(usesNumberRow: showsNumberRowSetting)[0][2].map {
         PrimaryKeyButton(keyboard: .symbol, button: .keyButton(primary: $0, secondary: nil))
     }
     
@@ -132,8 +147,9 @@ final class SymbolKeyboardView: UIView, SymbolKeyboardLayoutProvider {
     
     // MARK: - Initializer
     
-    init(showsLanguageSwitchButton: Bool = false) {
+    init(showsLanguageSwitchButton: Bool = false, showsNumberRow: Bool = false) {
         self.showsLanguageSwitchButton = showsLanguageSwitchButton
+        self.showsNumberRowSetting = showsNumberRow
         super.init(frame: .zero)
         setupUI()
         updateLayoutToDefault()
@@ -156,6 +172,7 @@ private extension SymbolKeyboardView {
         setActions()
         setHierarchy()
         setConstraints()
+        updateShiftButtonVisibility()
     }
     
     func setStyles() {
@@ -170,7 +187,12 @@ private extension SymbolKeyboardView {
         [layoutVStackView,
          keyboardSelectOverlayView,
          oneHandedModeSelectOverlayView].forEach { self.addSubview($0) }
-        
+
+        if showsNumberRowSetting {
+            self.addSubview(numberRowHStackView)
+            numberRowPrimaryKeyButtonList.forEach { numberRowHStackView.addArrangedSubview($0) }
+        }
+
         [firstRowHStackView,
          secondRowHStackView,
          thirdRowHStackView,
@@ -194,12 +216,27 @@ private extension SymbolKeyboardView {
     func setConstraints() {
         layoutVStackView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
-            layoutVStackView.topAnchor.constraint(equalTo: self.topAnchor),
             layoutVStackView.leadingAnchor.constraint(equalTo: self.leadingAnchor),
             layoutVStackView.trailingAnchor.constraint(equalTo: self.trailingAnchor),
             layoutVStackView.bottomAnchor.constraint(equalTo: self.bottomAnchor)
         ])
-        
+        if showsNumberRowSetting {
+            numberRowHStackView.translatesAutoresizingMaskIntoConstraints = false
+            let heightConstraint = numberRowHStackView.heightAnchor.constraint(
+                equalToConstant: KeyboardHeightPolicy.portraitNumberRowHeight
+            )
+            NSLayoutConstraint.activate([
+                numberRowHStackView.topAnchor.constraint(equalTo: self.topAnchor),
+                numberRowHStackView.leadingAnchor.constraint(equalTo: self.leadingAnchor),
+                numberRowHStackView.trailingAnchor.constraint(equalTo: self.trailingAnchor),
+                heightConstraint,
+                layoutVStackView.topAnchor.constraint(equalTo: numberRowHStackView.bottomAnchor)
+            ])
+            numberRowHeightConstraint = heightConstraint
+        } else {
+            layoutVStackView.topAnchor.constraint(equalTo: self.topAnchor).isActive = true
+        }
+
         updateThirdRowWidthConstraints()
         
         if let referenceView = firstRowPrimaryKeyButtonList.first {
@@ -365,11 +402,18 @@ private extension SymbolKeyboardView {
         let rowList = [firstRowPrimaryKeyButtonList, secondRowPrimaryKeyButtonList, thirdRowPrimaryKeyButtonList]
         for (rowIndex, buttonList) in rowList.enumerated() {
             for (buttonIndex, button) in buttonList.enumerated() {
-                let primaryKeyList = currentSymbolKeyboardMode.keyList(usesNumberRow: false)[symbolKeyListIndex][rowIndex][buttonIndex]
+                let primaryKeyList = currentSymbolKeyboardMode.keyList(usesNumberRow: showsNumberRowSetting)[symbolKeyListIndex][rowIndex][buttonIndex]
                 button.update(buttonType: TextInteractableType.keyButton(primary: primaryKeyList, secondary: nil))
             }
         }
         updateThirdRowWidthConstraints()
+    }
+
+    /// 합친 배열에서는 넘길 페이지가 없으므로 `⇧`를 숨긴다
+    func updateShiftButtonVisibility() {
+        let isMergedLayout = showsNumberRowSetting
+        && (currentSymbolKeyboardMode == .URL || currentSymbolKeyboardMode == .emailAddress)
+        shiftButton.isHidden = isMergedLayout
     }
 
     /// 셋째 줄에서 실제로 보이는 키만 대상으로 양 끝 정렬을 다시 잡는다.
@@ -416,6 +460,12 @@ extension SymbolKeyboardView {
         guard languageSwitchButton != nil else { return }
         updateFourthRowModifierWidthConstraint(needsInputModeSwitchKey: needsInputModeSwitchKey)
         setNeedsLayout()
+    }
+
+    func updateNumberRowHeight(_ height: CGFloat) {
+        guard let numberRowHeightConstraint,
+              numberRowHeightConstraint.constant != height else { return }
+        numberRowHeightConstraint.constant = height
     }
 
     func updatePeriodButtonWidthConstraint(multiplier: CGFloat?) {

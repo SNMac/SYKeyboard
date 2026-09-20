@@ -146,4 +146,58 @@ struct SymbolKeyboardLayoutTests {
         #expect(emailKeyList[0][0].map(\.first) == ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"])
         #expect(emailKeyList[1][0].map(\.first) == ["’", "|", "{", "}", "?", "%", "^", "*", "/", "’"])
     }
+
+    @Test("숫자 행을 켜면 숫자 키가 생기고 기본 자판 배열이 바뀐다")
+    func test기호자판_숫자행표시() throws {
+        let view = SymbolKeyboardView(showsLanguageSwitchButton: false, showsNumberRow: true)
+        view.updateNumberRowHeight(KeyboardHeightPolicy.portraitNumberRowHeight)
+        // keyboardHStackView(240 + 46.5)에서 프레임 여백 4를 뺀 높이
+        view.frame = CGRect(x: 0, y: 0, width: 375, height: 282.5)
+        view.layoutIfNeeded()
+
+        #expect(view.showsNumberRow)
+        #expect(view.numberRowPrimaryKeyButtonList.map(\.type.primaryKeyList)
+                == ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"].map { [$0] })
+        #expect(view.firstRowPrimaryKeyButtonList.map(\.type.primaryKeyList.first)
+                == ["-", "/", ":", ";", "(", ")", "₩", "&", "@", "”"])
+
+        let numberButton = try #require(view.numberRowPrimaryKeyButtonList.first)
+        #expect(abs(numberButton.frame.height - 46.5) < 0.5)
+    }
+
+    @Test("가로 높이를 주면 숫자 행만 35로 줄고 배열은 그대로다")
+    func test기호자판_가로높이() throws {
+        let view = SymbolKeyboardView(showsLanguageSwitchButton: false, showsNumberRow: true)
+        view.updateNumberRowHeight(KeyboardHeightPolicy.landscapeNumberRowHeight)
+        // 가로 keyboardHStackView(188 - 44 + 35)에서 프레임 여백 4를 뺀 높이
+        view.frame = CGRect(x: 0, y: 0, width: 667, height: 175)
+        view.layoutIfNeeded()
+
+        let numberButton = try #require(view.numberRowPrimaryKeyButtonList.first)
+        #expect(abs(numberButton.frame.height - 35) < 0.5)
+        #expect(view.firstRowPrimaryKeyButtonList.map(\.type.primaryKeyList.first)
+                == ["-", "/", ":", ";", "(", ")", "₩", "&", "@", "”"])
+    }
+
+    @Test("합친 URL·이메일 자판에서는 페이지 전환 버튼을 숨긴다")
+    func test기호자판_합친자판_shift숨김() {
+        let view = SymbolKeyboardView(showsLanguageSwitchButton: false, showsNumberRow: true)
+
+        view.currentSymbolKeyboardMode = .URL
+        #expect(view.shiftButton.isHidden)
+
+        view.currentSymbolKeyboardMode = .default
+        #expect(view.shiftButton.isHidden == false)
+
+        view.currentSymbolKeyboardMode = .emailAddress
+        #expect(view.shiftButton.isHidden)
+    }
+
+    @Test("숫자 행이 꺼져 있으면 URL 자판도 두 페이지라 전환 버튼을 유지한다")
+    func test기호자판_숫자행꺼짐_shift유지() {
+        let view = SymbolKeyboardView(showsLanguageSwitchButton: false, showsNumberRow: false)
+        view.currentSymbolKeyboardMode = .URL
+
+        #expect(view.shiftButton.isHidden == false)
+    }
 }
