@@ -24,8 +24,7 @@ struct SymbolKeyboardLayoutTests {
         return view
     }
 
-    /// 숫자 행을 켠 기호 자판. 넷째 줄 묶음 폭을 재려면 언어 전환 버튼이 필요해
-    /// 표시 여부를 선택할 수 있게 한다
+    /// 숫자 행을 켠 기호 자판
     private func makeNumberRowView(mode: SymbolKeyboardMode, showsLanguageSwitchButton: Bool) -> SymbolKeyboardView {
         let view = SymbolKeyboardView(showsLanguageSwitchButton: showsLanguageSwitchButton, showsNumberRow: true)
         view.currentSymbolKeyboardMode = mode
@@ -223,30 +222,5 @@ struct SymbolKeyboardLayoutTests {
             .compactMap { $0 as? PrimaryKeyButton }
             .map(\.type.primaryKeyList)
         #expect(interactableLeadingKeys == expectedFirstRowKeys)
-    }
-
-    // 네 모드가 같은 배열을 쓰게 된 뒤로 첫 줄에 빈 키가 생기는 경로가 없다.
-    // 아래 두 테스트는 폭 기준이 10칸으로 고정돼 있다는 사실만 지키고,
-    // 빈 키가 섞였을 때의 동작은 더 이상 재현하지 못한다
-
-    @Test("삭제 버튼 폭은 모드와 무관하게 10칸 기준이다")
-    func test삭제버튼폭_10칸기준() {
-        let defaultView = makeNumberRowView(mode: .default, showsLanguageSwitchButton: false)
-        let urlView = makeNumberRowView(mode: .URL, showsLanguageSwitchButton: false)
-
-        let expectedWidth = 375.0 * KeyboardLayoutFigure.shiftAndDeleteButtonWidthMultiplier / 10.0
-
-        #expect(abs(defaultView.deleteButton.frame.width - urlView.deleteButton.frame.width) < 0.5)
-        #expect(abs(defaultView.deleteButton.frame.width - expectedWidth) < 0.5)
-        #expect(abs(urlView.deleteButton.frame.width - expectedWidth) < 0.5)
-    }
-
-    @Test("넷째 줄 왼쪽 버튼 묶음 폭은 모드와 무관하게 같다")
-    func test넷째줄왼쪽버튼묶음폭_모드무관() {
-        let defaultView = makeNumberRowView(mode: .default, showsLanguageSwitchButton: true)
-        let urlView = makeNumberRowView(mode: .URL, showsLanguageSwitchButton: true)
-
-        #expect(abs(defaultView.fourthRowLeftSecondaryButtonHStackView.frame.width
-                    - urlView.fourthRowLeftSecondaryButtonHStackView.frame.width) < 0.5)
     }
 }

@@ -236,34 +236,33 @@ private extension SymbolKeyboardView {
         }
 
         updateThirdRowWidthConstraints()
-
-        // 첫 줄에 빈 키가 섞여도(URL·이메일 합친 배열 등) 폭이 흔들리지 않도록,
-        // "보이는 키 하나"가 아니라 "줄 너비의 1/10"을 기준으로 잡는다.
-        // `count`는 배열 개수라 빈 키를 포함해 항상 10이다
-        let columnWidthMultiplier = 1.0 / CGFloat(firstRowPrimaryKeyButtonList.count)
-        shiftButton.widthAnchor.constraint(
-            equalTo: firstRowHStackView.widthAnchor,
-            multiplier: columnWidthMultiplier * KeyboardLayoutFigure.shiftAndDeleteButtonWidthMultiplier
-        ).isActive = true
-        deleteButton.widthAnchor.constraint(
-            equalTo: firstRowHStackView.widthAnchor,
-            multiplier: columnWidthMultiplier * KeyboardLayoutFigure.shiftAndDeleteButtonWidthMultiplier
-        ).isActive = true
-
+        
+        if let referenceView = firstRowPrimaryKeyButtonList.first {
+            shiftButton.widthAnchor.constraint(
+                equalTo: referenceView.widthAnchor,
+                multiplier: KeyboardLayoutFigure.shiftAndDeleteButtonWidthMultiplier
+            ).isActive = true
+            deleteButton.widthAnchor.constraint(
+                equalTo: referenceView.widthAnchor,
+                multiplier: KeyboardLayoutFigure.shiftAndDeleteButtonWidthMultiplier
+            ).isActive = true
+        }
+        
         fourthRowLeftSecondaryButtonHStackView.translatesAutoresizingMaskIntoConstraints = false
-        if let languageSwitchButton {
+        if let languageSwitchButton,
+           let referenceView = firstRowPrimaryKeyButtonList.first {
             fourthRowLeftSecondaryButtonHStackView.distribution = .fill
             languageSwitchButton.widthAnchor.constraint(
-                equalTo: firstRowHStackView.widthAnchor,
-                multiplier: columnWidthMultiplier * KeyboardLayoutFigure.languageSwitchButtonWidthMultiplier
+                equalTo: referenceView.widthAnchor,
+                multiplier: KeyboardLayoutFigure.languageSwitchButtonWidthMultiplier
             ).isActive = true
             switchButton.widthAnchor.constraint(
-                equalTo: firstRowHStackView.widthAnchor,
-                multiplier: columnWidthMultiplier * switchButtonWidthMultiplier
+                equalTo: referenceView.widthAnchor,
+                multiplier: switchButtonWidthMultiplier
             ).isActive = true
             let globeWidth = nextKeyboardButton.widthAnchor.constraint(
-                equalTo: firstRowHStackView.widthAnchor,
-                multiplier: columnWidthMultiplier * KeyboardLayoutFigure.nextKeyboardButtonWidthMultiplier
+                equalTo: referenceView.widthAnchor,
+                multiplier: KeyboardLayoutFigure.nextKeyboardButtonWidthMultiplier
             )
             globeWidth.priority = .init(999)
             globeWidth.isActive = true
@@ -356,16 +355,17 @@ private extension SymbolKeyboardView {
     }
 
     func updateFourthRowModifierWidthConstraint(needsInputModeSwitchKey: Bool) {
-        let columnWidthMultiplier = 1.0 / CGFloat(firstRowPrimaryKeyButtonList.count)
+        guard let referenceView = firstRowPrimaryKeyButtonList.first else { return }
+
         let globeMultiplier = needsInputModeSwitchKey
         ? KeyboardLayoutFigure.nextKeyboardButtonWidthMultiplier
         : 0
         fourthRowModifierWidthConstraint?.isActive = false
         fourthRowModifierWidthConstraint = fourthRowLeftSecondaryButtonHStackView.widthAnchor.constraint(
-            equalTo: firstRowHStackView.widthAnchor,
-            multiplier: columnWidthMultiplier * (switchButtonWidthMultiplier
+            equalTo: referenceView.widthAnchor,
+            multiplier: switchButtonWidthMultiplier
             + KeyboardLayoutFigure.languageSwitchButtonWidthMultiplier
-            + globeMultiplier)
+            + globeMultiplier
         )
         fourthRowModifierWidthConstraint?.isActive = true
     }
