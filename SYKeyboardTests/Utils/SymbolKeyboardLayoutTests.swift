@@ -24,6 +24,19 @@ struct SymbolKeyboardLayoutTests {
         return view
     }
 
+    /// 숫자 행을 켠 기호 자판. 첫 줄에 빈 키가 섞이는 배열(URL·이메일)에서 폭 기준을
+    /// 검증하기 위해 언어 전환 버튼 표시 여부를 선택할 수 있게 한다
+    private func makeNumberRowView(mode: SymbolKeyboardMode, showsLanguageSwitchButton: Bool) -> SymbolKeyboardView {
+        let view = SymbolKeyboardView(showsLanguageSwitchButton: showsLanguageSwitchButton, showsNumberRow: true)
+        view.currentSymbolKeyboardMode = mode
+        view.updateNumberRowHeight(KeyboardHeightPolicy.portraitNumberRowHeight)
+        // keyboardHStackView(240 + 46.5)에서 프레임 여백 4를 뺀 높이
+        view.frame = CGRect(x: 0, y: 0, width: 375, height: 282.5)
+        view.layoutIfNeeded()
+
+        return view
+    }
+
     /// 셋째 줄에서 보이는 키들의 좌우 여백. 버튼 프레임이 아니라 실제로 그려지는
     /// `backgroundView` 기준이어야 한다. 프레임은 스택이 항상 꽉 채우므로 늘 0이 나온다
     private func thirdRowSideMargins(_ view: SymbolKeyboardView) -> (left: CGFloat, right: CGFloat)? {
@@ -265,5 +278,27 @@ struct SymbolKeyboardLayoutTests {
             .compactMap { $0 as? PrimaryKeyButton }
             .map(\.type.primaryKeyList)
         #expect(interactableLeadingKeys == expectedFirstRowKeys)
+    }
+
+    @Test("첫 줄에 빈 키가 섞여도 삭제 버튼 폭은 10칸 기준으로 유지된다")
+    func test삭제버튼폭_첫줄빈키영향없음() {
+        // 기본 자판은 첫 줄이 10칸 다 차 있고, URL 자판은 8칸만 차 있다(2칸은 빈 키)
+        let defaultView = makeNumberRowView(mode: .default, showsLanguageSwitchButton: false)
+        let urlView = makeNumberRowView(mode: .URL, showsLanguageSwitchButton: false)
+
+        let expectedWidth = 375.0 * KeyboardLayoutFigure.shiftAndDeleteButtonWidthMultiplier / 10.0
+
+        #expect(abs(defaultView.deleteButton.frame.width - urlView.deleteButton.frame.width) < 0.5)
+        #expect(abs(defaultView.deleteButton.frame.width - expectedWidth) < 0.5)
+        #expect(abs(urlView.deleteButton.frame.width - expectedWidth) < 0.5)
+    }
+
+    @Test("첫 줄에 빈 키가 섞여도 넷째 줄 왼쪽 버튼 묶음 폭은 10칸 기준으로 유지된다")
+    func test넷째줄왼쪽버튼묶음폭_첫줄빈키영향없음() {
+        let defaultView = makeNumberRowView(mode: .default, showsLanguageSwitchButton: true)
+        let urlView = makeNumberRowView(mode: .URL, showsLanguageSwitchButton: true)
+
+        #expect(abs(defaultView.fourthRowLeftSecondaryButtonHStackView.frame.width
+                    - urlView.fourthRowLeftSecondaryButtonHStackView.frame.width) < 0.5)
     }
 }
