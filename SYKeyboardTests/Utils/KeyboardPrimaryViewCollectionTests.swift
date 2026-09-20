@@ -166,6 +166,24 @@ struct KeyboardPrimaryViewCollectionTests {
         )
     }
 
+    @Test("기호 자판은 주 자판에 숫자 행이 있으면 숫자 행도 표시한다")
+    func test기호자판_주자판숫자행있으면_표시() {
+        let primary = TestPrimaryKeyboardView(keyboard: .qwerty, showsNumberRow: true)
+
+        let view = KeyboardView.loadFromNib(primaryKeyboardViews: [primary])
+
+        #expect(view.symbolKeyboardView.showsNumberRow)
+    }
+
+    @Test("기호 자판은 주 자판에 숫자 행이 없으면 숫자 행도 숨긴다")
+    func test기호자판_주자판숫자행없으면_숨김() {
+        let primary = TestPrimaryKeyboardView(keyboard: .qwerty, showsNumberRow: false)
+
+        let view = KeyboardView.loadFromNib(primaryKeyboardViews: [primary])
+
+        #expect(view.symbolKeyboardView.showsNumberRow == false)
+    }
+
     @Test("초기 setup은 active primary만 표시")
     func testInitialSetupShowsOnlyActivePrimaryView() {
         let controller = TestMultiplePrimaryViewController()
@@ -285,12 +303,13 @@ private final class TestPrimaryKeyboardView: StandardKeyboardView, PrimaryKeyboa
         ]
     }
 
-    init(keyboard: SYKeyboardType, showsLanguageSwitchButton: Bool = false) {
+    init(keyboard: SYKeyboardType, showsLanguageSwitchButton: Bool = false, showsNumberRow: Bool = false) {
         self.keyboardType = keyboard
         super.init(
             getIsShiftedLetterInput: { false },
             setIsShiftedLetterInput: { _ in },
-            showsLanguageSwitchButton: showsLanguageSwitchButton
+            showsLanguageSwitchButton: showsLanguageSwitchButton,
+            showsNumberRow: showsNumberRow
         )
     }
 
