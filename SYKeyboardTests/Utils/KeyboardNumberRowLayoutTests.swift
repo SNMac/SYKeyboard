@@ -69,18 +69,19 @@ struct KeyboardNumberRowLayoutTests {
         #expect(abs(letterButton.convert(letterButton.bounds, to: view).minY - 46.5) < 0.5)
     }
 
-    @Test("가로 숫자 행 높이로 갱신하면 숫자 행은 35")
-    func test숫자행_가로높이갱신() throws {
+    @Test("숫자 행 높이를 0으로 갱신하면 숫자 행이 숨겨짐")
+    func test숫자행_높이0이면숨김() throws {
         let view = makeQwerty(showsNumberRow: true)
-        view.updateNumberRowHeight(KeyboardHeightPolicy.landscapeNumberRowHeight)
-        // 가로 keyboardHStackView(188 - 44 + 35)에서 프레임 여백 4를 뺀 높이
-        view.frame = CGRect(x: 0, y: 0, width: 667, height: 175)
+        view.updateNumberRowHeight(0)
+        // 가로 keyboardHStackView(188 - 44)에서 프레임 여백 4를 뺀 높이
+        view.frame = CGRect(x: 0, y: 0, width: 667, height: 140)
         view.layoutIfNeeded()
 
         let numberButton = try #require(view.totalTextInterableButtonList.first)
         let letterButton = view.totalTextInterableButtonList[10]
-        #expect(abs(numberButton.frame.height - 35) < 0.5)
+        #expect(numberButton.frame.height == 0)
         #expect(abs(letterButton.frame.height - 35) < 0.5)
+        #expect(abs(letterButton.convert(letterButton.bounds, to: view).minY) < 0.5)
     }
 
     @Test("숫자 행이 켜진 쿼티는 길게 누르기 보조 키가 대문자, shift 중에는 소문자")
