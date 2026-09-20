@@ -211,4 +211,32 @@ struct SymbolKeyboardLayoutTests {
         #expect(withoutNumberRow.firstRowPrimaryKeyButtonList.map(\.type.primaryKeyList.first)
                 == ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"])
     }
+
+    @Test("숫자 행이 켜지면 숫자 키가 totalTextInterableButtonList와 primaryButtonList에 배선된다")
+    func test기호자판_숫자행켜짐_버튼배선() {
+        let view = SymbolKeyboardView(showsLanguageSwitchButton: false, showsNumberRow: true)
+        let expectedNumberKeys = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"].map { [$0] }
+
+        let interactableLeadingKeys = view.totalTextInterableButtonList.prefix(10)
+            .compactMap { $0 as? PrimaryKeyButton }
+            .map(\.type.primaryKeyList)
+        #expect(interactableLeadingKeys == expectedNumberKeys)
+
+        let primaryLeadingKeys = view.primaryButtonList.prefix(10)
+            .compactMap { $0 as? PrimaryKeyButton }
+            .map(\.type.primaryKeyList)
+        #expect(primaryLeadingKeys == expectedNumberKeys)
+    }
+
+    @Test("숫자 행이 꺼지면 배선 목록 앞부분은 첫째 줄 그대로다")
+    func test기호자판_숫자행꺼짐_버튼배선_첫째줄유지() {
+        let view = SymbolKeyboardView(showsLanguageSwitchButton: false, showsNumberRow: false)
+        #expect(view.numberRowPrimaryKeyButtonList.isEmpty)
+
+        let expectedFirstRowKeys = view.firstRowPrimaryKeyButtonList.map(\.type.primaryKeyList)
+        let interactableLeadingKeys = view.totalTextInterableButtonList.prefix(view.firstRowPrimaryKeyButtonList.count)
+            .compactMap { $0 as? PrimaryKeyButton }
+            .map(\.type.primaryKeyList)
+        #expect(interactableLeadingKeys == expectedFirstRowKeys)
+    }
 }
