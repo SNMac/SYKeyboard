@@ -81,11 +81,15 @@ extension DubeolsikKeyboardView {
         periodButton.isHidden = true
         slashButton.isHidden = true
         dotComButton.isHidden = true
-        
+
+        // URL 모드가 이 제약을 꺼 두므로 되살린다.
+        // 꺼진 채로 두면 스페이스 줄에 너비가 정해지지 않은 버튼이 둘이 되어 스페이스가 0으로 접힌다
+        updatePeriodButtonWidthConstraint(multiplier: 0.2)
+
         returnButton.isHidden = false
         secondaryAtButton.isHidden = true
         secondarySharpButton.isHidden = true
-        
+
         initShiftButton()
     }
     
