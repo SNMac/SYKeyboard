@@ -120,7 +120,23 @@ extension DubeolsikKeyboardView {
 
         initShiftButton()
     }
-    
+
+    func updateLayoutToTwitter() {
+        spaceButton.isHidden = false
+        atButton.isHidden = true
+        periodButton.isHidden = true
+        slashButton.isHidden = true
+        dotComButton.isHidden = true
+
+        updatePeriodButtonWidthConstraint(multiplier: 0.2)
+
+        returnButton.isHidden = true
+        secondaryAtButton.isHidden = false
+        secondarySharpButton.isHidden = false
+
+        initShiftButton()
+    }
+
     func updateLayoutToWebSearch() {
         spaceButton.isHidden = false
         atButton.isHidden = true
