@@ -2,9 +2,9 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** 가로모드에서 숫자 행을 감추고, 기호 자판에 숫자 행을 더해 비는 줄에 기호를 채우며, URL·이메일 자판을 한 페이지로 합치고, 기호 자판 셋째 줄 정렬 문제를 고친다.
+**Goal:** 기호 자판에 숫자 행을 더해 비는 줄에 기호를 채우고, URL·이메일 자판을 한 페이지로 합치며, 기호 자판 셋째 줄 정렬 문제를 고친다.
 
-**Architecture:** 숫자 행 표시 여부는 `KeyboardHeightPolicy.numberRowHeight(...)`가 내놓는 높이 하나로 결정한다. 0이면 숫자 행이 없다는 뜻이고, 뷰는 그 값을 받아 행을 숨기며 기호 자판은 그 신호로 배열까지 바꾼다. 기호 배열은 `SymbolKeyboardMode.keyList(usesNumberRow:)`가 돌려주고, 행별 버튼 개수는 어떤 배열이든 10 / 10 / 5개를 지킨다.
+**Architecture:** 기호 자판의 숫자 행은 두벌식·쿼티와 같은 조건, 같은 높이로 붙는다. 배열은 숫자 행 설정 하나로 정해지고 화면 방향과는 무관하므로 뷰를 만들 때 한 번 결정된다. 기호 배열은 `SymbolKeyboardMode.keyList(usesNumberRow:)`가 돌려주고, 행별 버튼 개수는 어떤 배열이든 10 / 10 / 5개를 지킨다.
 
 **Tech Stack:** Swift 5, UIKit, Swift Testing(`import Testing`, `@Suite`, `@Test`, `#expect`), Xcode 26 이상
 
@@ -20,159 +20,35 @@
 - 테스트 실행 시 `-parallel-testing-enabled NO`와 `GADApplicationIdentifier='ca-app-pub-3940256099942544~1458002511'`를 명령줄에 붙인다. `SYKeyboard/Resources/Configs/Secrets.xcconfig`는 **절대 만들거나 고치지 않는다.**
 - 빌드 후 `git status --short`에 `.xcscheme`이 보이면 내용을 확인하고 `RemotePath`만 바뀐 경우 `git checkout --`으로 되돌린다. 커밋하지 않는다.
 - `SYKeyboard/Presentation/Content/ContentView.swift`에 사용자의 미커밋 변경이 있다. **건드리지 않고 커밋에도 포함하지 않는다.**
-- 세로 숫자 행 높이는 46.5pt로 유지한다. 가로 숫자 행 높이는 0이다.
+- 숫자 행 높이는 세로 46.5pt, 가로 35pt다. 두 방향 모두 표시한다.
 
 ## 파일 구조
 
 | 파일 | 책임 | 변경 |
 |---|---|---|
-| `Modules/SYKeyboardCore/Presentation/Utils/Policies/KeyboardHeightPolicy.swift` | 높이 계산. 가로면 숫자 행 0 | 수정 |
-| `Modules/SYKeyboardCore/Presentation/View/KeyboardLayout/Bases/StandardKeyboardView.swift` | 높이 0이면 숫자 행 숨김 | 수정 |
 | `Modules/SYKeyboardCore/Presentation/Utils/Enums/KeyboardMode/SymbolKeyboardMode.swift` | 기호 배열 정의 | 수정 |
 | `Modules/SYKeyboardCore/Presentation/View/KeyboardLayout/SymbolKeyboardView.swift` | 기호 자판 숫자 행, 배열 전환, 셋째 줄 정렬 | 수정 |
 | `Modules/SYKeyboardCore/Presentation/View/KeyboardLayout/Protocols/SymbolKeyboardLayoutProvider.swift` | `⇧` 숨김 규칙 | 수정 |
 | `Modules/SYKeyboardCore/Presentation/View/KeyboardView.swift` | 기호 자판 생성 시 숫자 행 여부 주입 | 수정 |
 | `Modules/SYKeyboardCore/Presentation/ViewController/Bases/BaseKeyboardViewController.swift` | 기호 자판에도 숫자 행 높이 전달 | 수정 |
-| `SYKeyboardTests/Utils/KeyboardHeightPolicyTests.swift` | 높이 정책 테스트 | 수정 |
-| `SYKeyboardTests/Utils/KeyboardNumberRowLayoutTests.swift` | 두벌식·쿼티 숫자 행 테스트 | 수정 |
 | `SYKeyboardTests/Utils/SymbolKeyboardLayoutTests.swift` | 기호 자판 배열·정렬 테스트 | 생성 |
 
 ---
 
-### Task 1: 가로모드에서 숫자 행 숨기기
+### Task 1: 가로모드에서 숫자 행 숨기기 — 철회됨
 
-**Files:**
-- Modify: `Modules/SYKeyboardCore/Presentation/Utils/Policies/KeyboardHeightPolicy.swift:22-26`, `:38-48`
-- Modify: `Modules/SYKeyboardCore/Presentation/View/KeyboardLayout/Bases/StandardKeyboardView.swift:479-483`
-- Test: `SYKeyboardTests/Utils/KeyboardHeightPolicyTests.swift`, `SYKeyboardTests/Utils/KeyboardNumberRowLayoutTests.swift`
+**2026-09-20 철회.** 가로모드에서도 숫자 행을 그대로 표시하기로 했다. 이 Task는
+실행하지 않는다. 이미 구현·리뷰까지 끝난 커밋 `4130dbee`는 되돌린다.
 
-**Interfaces:**
-- Consumes: 없음
-- Produces: `KeyboardHeightPolicy.numberRowHeight(isEnabled:primaryKeyboards:isPortrait:) -> CGFloat`가 가로에서 항상 0. `StandardKeyboardView.updateNumberRowHeight(_ height: CGFloat)`가 높이 0이면 숫자 행을 숨긴다. `KeyboardHeightPolicy.landscapeNumberRowHeight`는 사라진다.
+되돌리면 아래가 복구된다.
 
-- [ ] **Step 1: 실패하는 테스트로 바꾸기**
+- `KeyboardHeightPolicy.landscapeNumberRowHeight` 상수 (35pt)
+- `numberRowHeight(...)`가 가로에서 `landscapeNumberRowHeight`를 반환하는 동작
+- `StandardKeyboardView.updateNumberRowHeight(_:)`의 숨김 처리 없는 원래 구현
+- 두 테스트 파일의 가로 기대값
 
-`SYKeyboardTests/Utils/KeyboardHeightPolicyTests.swift:141`의 아래 한 줄을 지운다.
-
-```swift
-#expect(KeyboardHeightPolicy.landscapeNumberRowHeight == 35)
-```
-
-`:159`를 아래처럼 고친다.
-
-```swift
-#expect(KeyboardHeightPolicy.numberRowHeight(isEnabled: true, primaryKeyboards: [.qwerty], isPortrait: false) == 0)
-```
-
-`:187`과 `:198`의 `numberRowHeight: 35`를 `numberRowHeight: 0`으로 바꾸고, 같은 `#expect`에서 기대하는 전체 높이도 35를 뺀 값으로 고친다. 두 곳 모두 가로 기준이므로 `keyboardViewHeight`는 `188`이 된다.
-
-같은 파일에 아래 테스트를 추가한다.
-
-```swift
-    @Test("설정이 켜져 있어도 가로에서는 숫자 행이 없다")
-    func test숫자행_가로에서없음() {
-        #expect(KeyboardHeightPolicy.numberRowHeight(isEnabled: true, primaryKeyboards: [.dubeolsik], isPortrait: false) == 0)
-        #expect(KeyboardHeightPolicy.numberRowHeight(isEnabled: true, primaryKeyboards: [.qwerty], isPortrait: false) == 0)
-        #expect(KeyboardHeightPolicy.numberRowHeight(isEnabled: true, primaryKeyboards: [.dubeolsik], isPortrait: true) == 46.5)
-    }
-```
-
-`SYKeyboardTests/Utils/KeyboardNumberRowLayoutTests.swift`의 `test숫자행_가로높이갱신()`을 통째로 아래로 교체한다.
-
-```swift
-    @Test("숫자 행 높이를 0으로 갱신하면 숫자 행이 숨겨짐")
-    func test숫자행_높이0이면숨김() throws {
-        let view = makeQwerty(showsNumberRow: true)
-        view.updateNumberRowHeight(0)
-        // 가로 keyboardHStackView(188 - 44)에서 프레임 여백 4를 뺀 높이
-        view.frame = CGRect(x: 0, y: 0, width: 667, height: 140)
-        view.layoutIfNeeded()
-
-        let numberButton = try #require(view.totalTextInterableButtonList.first)
-        let letterButton = view.totalTextInterableButtonList[10]
-        #expect(numberButton.frame.height == 0)
-        #expect(abs(letterButton.frame.height - 35) < 0.5)
-        #expect(abs(letterButton.convert(letterButton.bounds, to: view).minY) < 0.5)
-    }
-```
-
-- [ ] **Step 2: 테스트가 실패하는지 확인**
-
-```sh
-xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
-  -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=18.6' \
-  -parallel-testing-enabled NO \
-  GADApplicationIdentifier='ca-app-pub-3940256099942544~1458002511' \
-  -only-testing:SYKeyboardTests/KeyboardHeightPolicyTests \
-  -only-testing:SYKeyboardTests/KeyboardNumberRowLayoutTests
-```
-
-예상: `landscapeNumberRowHeight`를 지우기 전이므로 컴파일은 되고, 가로 기대값 테스트가 FAIL한다.
-
-- [ ] **Step 3: 정책에서 가로 숫자 행 제거**
-
-`KeyboardHeightPolicy.swift:22-26`의 아래 블록을 지운다.
-
-```swift
-    /// 가로 모드 숫자 행 높이. 자동완성 바가 보일 때의 가로 글자 행 높이와 같다.
-    /// 바가 숨겨져 글자 행이 커져도 숫자 행은 이 값을 유지한다
-    public static let landscapeNumberRowHeight: CGFloat = letterRowHeight(
-        keyboardAreaHeight: KeyboardLayoutFigure.landscapeKeyboardHeight
-        - KeyboardLayoutFigure.suggestionBarHeightWithTopSpacing
-    )
-```
-
-`numberRowHeight(...)`의 본문을 아래로 바꾼다. 문서 주석도 함께 고친다.
-
-```swift
-    /// 주 키보드 구성에 맞는 숫자 행 높이. 숫자 행이 없으면 0을 반환한다.
-    /// 가로 모드에서는 화면이 좁아 숫자 행을 표시하지 않는다
-    /// - Parameters:
-    ///   - isEnabled: 숫자 행 설정 여부
-    ///   - primaryKeyboards: extension의 주 키보드 종류 목록
-    ///   - isPortrait: 세로 화면 여부
-    public static func numberRowHeight(
-        isEnabled: Bool,
-        primaryKeyboards: [SYKeyboardType],
-        isPortrait: Bool
-    ) -> CGFloat {
-        let hasNumberRowKeyboard = primaryKeyboards.contains { $0 == .dubeolsik || $0 == .qwerty }
-        guard isEnabled, hasNumberRowKeyboard, isPortrait else { return 0 }
-        return portraitNumberRowHeight
-    }
-```
-
-- [ ] **Step 4: 높이 0이면 숫자 행 숨기기**
-
-`StandardKeyboardView.swift:479-483`의 `updateNumberRowHeight(_:)`를 아래로 바꾼다.
-
-```swift
-    final public func updateNumberRowHeight(_ height: CGFloat) {
-        guard let numberRowHeightConstraint,
-              numberRowHeightConstraint.constant != height else { return }
-        numberRowHeightConstraint.constant = height
-        // 높이만 0으로 두면 버튼이 찌그러진 채 남으므로 행 자체를 숨긴다
-        numberRowHStackView.isHidden = height == 0
-    }
-```
-
-- [ ] **Step 5: 테스트가 통과하는지 확인**
-
-Step 2와 같은 명령을 실행한다. 예상: 두 suite 모두 PASS.
-
-- [ ] **Step 6: 커밋**
-
-```bash
-git add Modules/SYKeyboardCore/Presentation/Utils/Policies/KeyboardHeightPolicy.swift \
-        Modules/SYKeyboardCore/Presentation/View/KeyboardLayout/Bases/StandardKeyboardView.swift \
-        SYKeyboardTests/Utils/KeyboardHeightPolicyTests.swift \
-        SYKeyboardTests/Utils/KeyboardNumberRowLayoutTests.swift
-git commit -F - <<'EOF'
-feat: #138 - 가로 모드에서 숫자 행을 표시하지 않도록 변경
-
-Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
-EOF
-```
+이 철회 덕분에 뒤 Task들이 단순해진다. 기호 자판 배열이 화면 방향에 의존하지 않게
+되어, 회전할 때 키 글자를 다시 적용할 필요가 없다.
 
 ---
 
@@ -654,24 +530,24 @@ EOF
 
 **Files:**
 - Modify: `Modules/SYKeyboardCore/Presentation/View/KeyboardLayout/SymbolKeyboardView.swift`
-- Modify: `Modules/SYKeyboardCore/Presentation/View/KeyboardLayout/Protocols/SymbolKeyboardLayoutProvider.swift`
 - Test: `SYKeyboardTests/Utils/SymbolKeyboardLayoutTests.swift`
 
 **Interfaces:**
 - Consumes: `SymbolKeyboardMode.keyList(usesNumberRow:)` (Task 3·4), `updateThirdRowWidthConstraints()` (Task 2)
-- Produces: `SymbolKeyboardView.init(showsLanguageSwitchButton: Bool = false, showsNumberRow: Bool = false)`. `NormalKeyboardLayoutProvider`의 `showsNumberRow`와 `updateNumberRowHeight(_:)`를 구현한다. 높이가 0보다 크면 숫자 행을 보이고 합친 배열을 쓴다. Task 6이 이 생성자와 메서드를 호출한다.
+- Produces: `SymbolKeyboardView.init(showsLanguageSwitchButton: Bool = false, showsNumberRow: Bool = false)`. `NormalKeyboardLayoutProvider`의 `showsNumberRow`와 `updateNumberRowHeight(_:)`를 구현한다. Task 6이 이 생성자와 메서드를 호출한다.
 
-**배경:** 숫자 행 유무는 설정뿐 아니라 화면 방향에도 달려 있다. 화면을 돌리면 배열을 다시 적용해야 한다. 가로에서 숫자 행이 사라지는데 기호 자판에도 숫자가 없으면 숫자를 칠 방법이 없어지기 때문이다. `updateNumberRowHeight(_:)`가 방향이 바뀔 때마다 불리므로 이 메서드 하나를 전환 지점으로 쓴다.
+**배경:** 숫자 행 표시 여부는 설정 하나로 정해진다. 화면 방향은 조건이 아니다. 숫자 행이 세로·가로 모두 보이므로, 기호 자판 배열도 뷰를 만들 때 한 번 정해지고 회전해도 바뀌지 않는다. 회전할 때 달라지는 것은 숫자 행 높이(46.5pt ↔ 35pt)뿐이고, 그건 `updateNumberRowHeight(_:)`가 제약 상수만 바꿔 처리한다.
 
 - [ ] **Step 1: 실패하는 테스트 작성**
 
 `SYKeyboardTests/Utils/SymbolKeyboardLayoutTests.swift`에 추가한다.
 
 ```swift
-    @Test("숫자 행을 켜고 높이를 주면 숫자 키가 생기고 배열이 바뀐다")
+    @Test("숫자 행을 켜면 숫자 키가 생기고 기본 자판 배열이 바뀐다")
     func test기호자판_숫자행표시() throws {
         let view = SymbolKeyboardView(showsLanguageSwitchButton: false, showsNumberRow: true)
         view.updateNumberRowHeight(KeyboardHeightPolicy.portraitNumberRowHeight)
+        // keyboardHStackView(240 + 46.5)에서 프레임 여백 4를 뺀 높이
         view.frame = CGRect(x: 0, y: 0, width: 375, height: 282.5)
         view.layoutIfNeeded()
 
@@ -685,23 +561,23 @@ EOF
         #expect(abs(numberButton.frame.height - 46.5) < 0.5)
     }
 
-    @Test("높이가 0이면 숫자 행이 숨겨지고 배열이 되돌아온다")
-    func test기호자판_가로에서되돌아옴() {
+    @Test("가로 높이를 주면 숫자 행만 35로 줄고 배열은 그대로다")
+    func test기호자판_가로높이() throws {
         let view = SymbolKeyboardView(showsLanguageSwitchButton: false, showsNumberRow: true)
-        view.updateNumberRowHeight(KeyboardHeightPolicy.portraitNumberRowHeight)
-        view.updateNumberRowHeight(0)
-        view.frame = CGRect(x: 0, y: 0, width: 667, height: 140)
+        view.updateNumberRowHeight(KeyboardHeightPolicy.landscapeNumberRowHeight)
+        // 가로 keyboardHStackView(188 - 44 + 35)에서 프레임 여백 4를 뺀 높이
+        view.frame = CGRect(x: 0, y: 0, width: 667, height: 175)
         view.layoutIfNeeded()
 
+        let numberButton = try #require(view.numberRowPrimaryKeyButtonList.first)
+        #expect(abs(numberButton.frame.height - 35) < 0.5)
         #expect(view.firstRowPrimaryKeyButtonList.map(\.type.primaryKeyList.first)
-                == ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"])
-        #expect(view.numberRowPrimaryKeyButtonList.first?.frame.height == 0)
+                == ["-", "/", ":", ";", "(", ")", "₩", "&", "@", "”"])
     }
 
-    @Test("합친 URL 자판에서는 페이지 전환 버튼을 숨긴다")
+    @Test("합친 URL·이메일 자판에서는 페이지 전환 버튼을 숨긴다")
     func test기호자판_합친자판_shift숨김() {
         let view = SymbolKeyboardView(showsLanguageSwitchButton: false, showsNumberRow: true)
-        view.updateNumberRowHeight(KeyboardHeightPolicy.portraitNumberRowHeight)
 
         view.currentSymbolKeyboardMode = .URL
         #expect(view.shiftButton.isHidden)
@@ -711,9 +587,13 @@ EOF
 
         view.currentSymbolKeyboardMode = .emailAddress
         #expect(view.shiftButton.isHidden)
+    }
 
-        // 가로로 돌아가면 두 페이지가 살아나므로 다시 보여야 한다
-        view.updateNumberRowHeight(0)
+    @Test("숫자 행이 꺼져 있으면 URL 자판도 두 페이지라 전환 버튼을 유지한다")
+    func test기호자판_숫자행꺼짐_shift유지() {
+        let view = SymbolKeyboardView(showsLanguageSwitchButton: false, showsNumberRow: false)
+        view.currentSymbolKeyboardMode = .URL
+
         #expect(view.shiftButton.isHidden == false)
     }
 ```
@@ -740,8 +620,6 @@ xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
 
 ```swift
     private let showsNumberRowSetting: Bool
-    /// 지금 화면에서 숫자 행을 실제로 쓰는지 여부. 세로에서만 참이다
-    private var usesNumberRow: Bool = false
     private var numberRowHeightConstraint: NSLayoutConstraint?
 ```
 
@@ -809,32 +687,20 @@ UI 구역:
                 layoutVStackView.topAnchor.constraint(equalTo: numberRowHStackView.bottomAnchor)
             ])
             numberRowHeightConstraint = heightConstraint
-            numberRowHStackView.isHidden = true
         } else {
             layoutVStackView.topAnchor.constraint(equalTo: self.topAnchor).isActive = true
         }
 ```
 
-- [ ] **Step 5: 배열 전환과 `⇧` 숨김 구현**
+- [ ] **Step 5: 배열 적용과 `⇧` 숨김 구현**
 
-`SymbolKeyboardView.swift`의 Update Methods 구역에 추가한다.
+높이 갱신은 제약 상수만 바꾼다. `StandardKeyboardView`와 같은 모양이다.
 
 ```swift
-    /// 숫자 행 높이를 받아 표시 여부와 배열을 함께 맞춘다.
-    /// 높이 0은 숫자 행이 없다는 뜻이므로 기존 배열로 되돌린다
     public func updateNumberRowHeight(_ height: CGFloat) {
-        guard showsNumberRowSetting else { return }
-
-        numberRowHeightConstraint?.constant = height
-        numberRowHStackView.isHidden = height == 0
-
-        let usesNumberRow = height > 0
-        guard self.usesNumberRow != usesNumberRow else { return }
-        self.usesNumberRow = usesNumberRow
-        // 합친 자판에서 돌아올 때 페이지 상태가 남지 않게 한다
-        isShifted = false
-        updateKeyButtonList()
-        updateShiftButtonVisibility()
+        guard let numberRowHeightConstraint,
+              numberRowHeightConstraint.constant != height else { return }
+        numberRowHeightConstraint.constant = height
     }
 ```
 
@@ -843,16 +709,22 @@ UI 구역:
 ```swift
     /// 합친 배열에서는 넘길 페이지가 없으므로 `⇧`를 숨긴다
     func updateShiftButtonVisibility() {
-        let isMergedLayout = usesNumberRow
+        let isMergedLayout = showsNumberRowSetting
         && (currentSymbolKeyboardMode == .URL || currentSymbolKeyboardMode == .emailAddress)
         shiftButton.isHidden = isMergedLayout
     }
 ```
 
-`updateKeyButtonList()`에서 배열을 읽는 줄을 아래로 바꾼다.
+Task 3 Step 4에서 `keyList(usesNumberRow: false)`로 임시 고정해 둔 네 곳을 모두 실제 값으로 바꾼다. 세 개의 행별 `lazy var`와 `updateKeyButtonList()` 안이다.
 
 ```swift
-                let primaryKeyList = currentSymbolKeyboardMode.keyList(usesNumberRow: usesNumberRow)[symbolKeyListIndex][rowIndex][buttonIndex]
+        currentSymbolKeyboardMode.keyList(usesNumberRow: showsNumberRowSetting)
+```
+
+`updateKeyButtonList()`에서 배열을 읽는 줄은 아래가 된다. **Task 2가 이 메서드 끝에 넣은 `updateThirdRowWidthConstraints()` 호출을 지우지 않는다.**
+
+```swift
+                let primaryKeyList = currentSymbolKeyboardMode.keyList(usesNumberRow: showsNumberRowSetting)[symbolKeyListIndex][rowIndex][buttonIndex]
 ```
 
 `currentSymbolKeyboardMode`의 `didSet`에 `updateShiftButtonVisibility()` 호출을 더한다.
@@ -867,7 +739,11 @@ UI 구역:
     }
 ```
 
-`firstRowPrimaryKeyButtonList` 등 세 줄의 `lazy var` 초기화는 생성 시점이라 `usesNumberRow`가 아직 거짓이다. Task 3 Step 4에서 넣은 `keyList(usesNumberRow: false)`를 그대로 둔다. 실제 배열은 `updateNumberRowHeight(_:)`가 처음 불릴 때 맞춰진다.
+`setupUI()` 끝에도 한 번 호출해 처음 상태를 맞춘다.
+
+```swift
+        updateShiftButtonVisibility()
+```
 
 - [ ] **Step 6: 테스트가 통과하는지 확인**
 
@@ -877,10 +753,9 @@ Step 2와 같은 명령을 실행한다. 예상: 이 suite의 모든 테스트�
 
 ```bash
 git add Modules/SYKeyboardCore/Presentation/View/KeyboardLayout/SymbolKeyboardView.swift \
-        Modules/SYKeyboardCore/Presentation/View/KeyboardLayout/Protocols/SymbolKeyboardLayoutProvider.swift \
         SYKeyboardTests/Utils/SymbolKeyboardLayoutTests.swift
 git commit -F - <<'EOF'
-feat: #138 - 기호 자판에 숫자 행과 방향별 배열 전환 추가
+feat: #138 - 기호 자판에 숫자 행 추가
 
 Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
 EOF
@@ -1016,27 +891,17 @@ EOF
 ### Task 7: 문서 갱신과 최종 검증
 
 **Files:**
-- Modify: `docs/superpowers/specs/2026-09-18-number-row-design.md`
 - Modify: `docs/superpowers/plans/2026-09-20-symbol-keyboard-number-row.md` (이 문서)
 
 **Interfaces:**
-- Consumes: Task 1~6의 결과
+- Consumes: Task 2~6의 결과
 - Produces: 없음
 
-- [ ] **Step 1: 이전 설계 문서에 뒤집힌 결정 표시**
-
-`docs/superpowers/specs/2026-09-18-number-row-design.md`의 "가로 모드 숫자 행은 가로 글자 행 높이와 같은 35pt" 항목 바로 아래에 한 줄을 넣는다. 항목 자체는 지우지 않는다. 과거 기록이기 때문이다.
-
-```markdown
-  - **2026-09-20 변경:** 가로 모드에서는 숫자 행을 표시하지 않기로 바꿨다.
-    `2026-09-20-symbol-keyboard-number-row-design.md`를 따른다.
-```
-
-- [ ] **Step 2: 계획 문서에 결과 기록**
+- [ ] **Step 1: 계획 문서에 결과 기록**
 
 이 문서의 각 Task 끝에 `**결과:**` 줄을 더해 실제 테스트 개수와 빌드 결과를 적는다. 확인하지 못한 항목은 미확인이라고 쓴다.
 
-- [ ] **Step 3: 전체 테스트 재실행**
+- [ ] **Step 2: 전체 테스트 재실행**
 
 ```sh
 xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
@@ -1052,13 +917,12 @@ xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
 xcrun xcresulttool get test-results summary --path /tmp/symbol-number-row-tests.xcresult
 ```
 
-- [ ] **Step 4: 커밋**
+- [ ] **Step 3: 커밋**
 
 ```bash
-git add docs/superpowers/specs/2026-09-18-number-row-design.md \
-        docs/superpowers/plans/2026-09-20-symbol-keyboard-number-row.md
+git add docs/superpowers/plans/2026-09-20-symbol-keyboard-number-row.md
 git commit -F - <<'EOF'
-docs: #138 - 기호 자판 숫자 행 작업 결과와 뒤집힌 가로 모드 결정 반영
+docs: #138 - 기호 자판 숫자 행 작업 결과 반영
 
 Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
 EOF
@@ -1075,8 +939,7 @@ EOF
 - [ ] `⇧`를 누르면 첫 줄이 `_ \ | ~ < > $ £ ¥ •`, 둘째 줄이 `※ ☆ ★ ○ ● □ ■ △ ▲ ♡`다
 - [ ] 도형 열 개가 모두 제 모양으로 보이고, `♡`가 빨간 이모지로 바뀌지 않는다
 - [ ] 자판을 전환해도(한영·기호·숫자) 전체 프레임 높이가 바뀌지 않는다
-- [ ] 가로로 돌리면 숫자 행이 사라지고 기호 자판 첫 줄이 숫자로 돌아온다
-- [ ] 다시 세로로 돌리면 숫자 행과 기호 배열이 함께 돌아온다
+- [ ] 가로로 돌려도 숫자 행이 그대로 있고 기호 배열도 같다. 숫자 행만 얇아진다(35pt)
 - [ ] URL 입력란에서 자판이 한 페이지로 보이고 `⇧`가 없다
 - [ ] 이메일 입력란에서 자판이 한 페이지로 보이고 `⇧`가 없다
 - [ ] URL·이메일 자판의 셋째 줄 키가 좌우 가운데에 놓인다
