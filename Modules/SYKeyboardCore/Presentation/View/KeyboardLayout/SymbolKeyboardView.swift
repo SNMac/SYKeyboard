@@ -44,6 +44,8 @@ final class SymbolKeyboardView: UIView, SymbolKeyboardLayoutProvider {
     public var periodButtonWidthConstraint: NSLayoutConstraint?
     /// 통합 키보드 modifier 영역의 너비 제약
     private var fourthRowModifierWidthConstraint: NSLayoutConstraint?
+    /// 셋째 줄 키 너비 제약. 배열이 바뀌면 다시 만든다
+    private var thirdRowWidthConstraints: [NSLayoutConstraint] = []
 
     private let showsLanguageSwitchButton: Bool
     
@@ -94,7 +96,7 @@ final class SymbolKeyboardView: UIView, SymbolKeyboardLayoutProvider {
         PrimaryKeyButton(keyboard: .symbol, button: .keyButton(primary: $0, secondary: nil))
     }
     /// 키보드 세번째 행 `PrimaryKeyButton` 배열
-    private lazy var thirdRowPrimaryKeyButtonList = currentSymbolKeyboardMode.keyList[0][2].map {
+    private(set) lazy var thirdRowPrimaryKeyButtonList = currentSymbolKeyboardMode.keyList[0][2].map {
         PrimaryKeyButton(keyboard: .symbol, button: .keyButton(primary: $0, secondary: nil))
     }
     
@@ -198,27 +200,7 @@ private extension SymbolKeyboardView {
             layoutVStackView.bottomAnchor.constraint(equalTo: self.bottomAnchor)
         ])
         
-        for (index, button) in thirdRowPrimaryKeyButtonList.enumerated() {
-            button.translatesAutoresizingMaskIntoConstraints = false
-            
-            let multiplier = 1.0 / CGFloat(firstRowPrimaryKeyButtonList.count) * KeyboardLayoutFigure.symbolThirdRowButtonWidthMultiplier
-            if index == 0 {
-                guard let lastButton = thirdRowPrimaryKeyButtonList.last else { fatalError("thirdRowPrimaryKeyButtonList가 비어있습니다.") }
-                button.widthAnchor.constraint(equalTo: lastButton.widthAnchor).isActive = true
-                button.updateKeyAlignment(.right,
-                                          referenceView: thirdRowHStackView,
-                                          multiplier: multiplier)
-                
-            } else if index == thirdRowPrimaryKeyButtonList.count - 1 {
-                button.updateKeyAlignment(.left,
-                                          referenceView: thirdRowHStackView,
-                                          multiplier: multiplier)
-                
-            } else {
-                button.widthAnchor.constraint(equalTo: thirdRowHStackView.widthAnchor,
-                                              multiplier: multiplier).isActive = true
-            }
-        }
+        updateThirdRowWidthConstraints()
         
         if let referenceView = firstRowPrimaryKeyButtonList.first {
             shiftButton.widthAnchor.constraint(
@@ -385,6 +367,43 @@ private extension SymbolKeyboardView {
             for (buttonIndex, button) in buttonList.enumerated() {
                 let primaryKeyList = currentSymbolKeyboardMode.keyList[symbolKeyListIndex][rowIndex][buttonIndex]
                 button.update(buttonType: TextInteractableType.keyButton(primary: primaryKeyList, secondary: nil))
+            }
+        }
+        updateThirdRowWidthConstraints()
+    }
+
+    /// 셋째 줄에서 실제로 보이는 키만 대상으로 양 끝 정렬을 다시 잡는다.
+    /// 빈 키는 `PrimaryKeyButton`이 숨겨 너비가 0이 되므로 기준으로 쓸 수 없다
+    func updateThirdRowWidthConstraints() {
+        NSLayoutConstraint.deactivate(thirdRowWidthConstraints)
+        thirdRowWidthConstraints.removeAll()
+
+        let visibleButtons = thirdRowPrimaryKeyButtonList.filter { !$0.isHidden }
+        guard let firstButton = visibleButtons.first,
+              let lastButton = visibleButtons.last else { return }
+
+        let multiplier = 1.0 / CGFloat(firstRowPrimaryKeyButtonList.count)
+        * KeyboardLayoutFigure.symbolThirdRowButtonWidthMultiplier
+
+        // 양 끝 버튼이 남는 폭을 똑같이 나눠 갖고, 시각 요소는 안쪽으로 붙인다
+        if firstButton !== lastButton {
+            thirdRowWidthConstraints.append(firstButton.widthAnchor.constraint(equalTo: lastButton.widthAnchor))
+        }
+        for button in visibleButtons where button !== firstButton && button !== lastButton {
+            thirdRowWidthConstraints.append(
+                button.widthAnchor.constraint(equalTo: thirdRowHStackView.widthAnchor, multiplier: multiplier)
+            )
+        }
+        NSLayoutConstraint.activate(thirdRowWidthConstraints)
+
+        for button in visibleButtons {
+            button.translatesAutoresizingMaskIntoConstraints = false
+            if button === firstButton {
+                button.updateKeyAlignment(.right, referenceView: thirdRowHStackView, multiplier: multiplier)
+            } else if button === lastButton {
+                button.updateKeyAlignment(.left, referenceView: thirdRowHStackView, multiplier: multiplier)
+            } else {
+                button.updateKeyAlignment(.center, referenceView: nil, multiplier: multiplier)
             }
         }
     }
