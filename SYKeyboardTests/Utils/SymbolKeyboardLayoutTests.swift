@@ -239,6 +239,11 @@ struct SymbolKeyboardLayoutTests {
 
         view.currentSymbolKeyboardMode = .emailAddress
         #expect(view.shiftButton.isHidden == false)
+
+        // 숫자 행이 꺼지면 합치지 않으므로 두 페이지가 그대로 살아 있다
+        let withoutNumberRow = SymbolKeyboardView(showsLanguageSwitchButton: false, showsNumberRow: false)
+        withoutNumberRow.currentSymbolKeyboardMode = .URL
+        #expect(withoutNumberRow.shiftButton.isHidden == false)
     }
 
     @Test("주 자판에 숫자 행이 없으면 기호 자판에도 숫자 행이 없다")
