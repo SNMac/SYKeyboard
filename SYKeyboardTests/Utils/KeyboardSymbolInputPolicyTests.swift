@@ -27,18 +27,18 @@ struct KeyboardSymbolInputPolicyTests {
     @Test("기호 키보드 모드는 일반과 Shift 키 배열을 제공")
     func test기호키보드모드별키배열() {
         #expect(
-            SymbolKeyboardMode.default.keyList[0][1].map { $0.first ?? "" } ==
+            SymbolKeyboardMode.default.keyList(usesNumberRow: false)[0][1].map { $0.first ?? "" } ==
             ["-", "/", ":", ";", "(", ")", "₩", "&", "@", "”"]
         )
         #expect(
-            SymbolKeyboardMode.URL.keyList[0][2].map { $0.first ?? "" } ==
+            SymbolKeyboardMode.URL.keyList(usesNumberRow: false)[0][2].map { $0.first ?? "" } ==
             ["_", ":", "-", "+", ""]
         )
         #expect(
-            SymbolKeyboardMode.emailAddress.keyList[0][2].map { $0.first ?? "" } ==
+            SymbolKeyboardMode.emailAddress.keyList(usesNumberRow: false)[0][2].map { $0.first ?? "" } ==
             [".", "_", "-", "+", ""]
         )
-        #expect(SymbolKeyboardMode.webSearch.keyList == SymbolKeyboardMode.default.keyList)
+        #expect(SymbolKeyboardMode.webSearch.keyList(usesNumberRow: false) == SymbolKeyboardMode.default.keyList(usesNumberRow: false))
     }
 
     @MainActor

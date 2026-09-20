@@ -88,15 +88,15 @@ final class SymbolKeyboardView: UIView, SymbolKeyboardLayoutProvider {
     }()
     
     /// 키보드 첫번째 행 `PrimaryKeyButton` 배열
-    private lazy var firstRowPrimaryKeyButtonList = currentSymbolKeyboardMode.keyList[0][0].map {
+    private lazy var firstRowPrimaryKeyButtonList = currentSymbolKeyboardMode.keyList(usesNumberRow: false)[0][0].map {
         PrimaryKeyButton(keyboard: .symbol, button: .keyButton(primary: $0, secondary: nil))
     }
     /// 키보드 두번째 행 `PrimaryKeyButton` 배열
-    private lazy var secondRowPrimaryKeyButtonList = currentSymbolKeyboardMode.keyList[0][1].map {
+    private lazy var secondRowPrimaryKeyButtonList = currentSymbolKeyboardMode.keyList(usesNumberRow: false)[0][1].map {
         PrimaryKeyButton(keyboard: .symbol, button: .keyButton(primary: $0, secondary: nil))
     }
     /// 키보드 세번째 행 `PrimaryKeyButton` 배열
-    private(set) lazy var thirdRowPrimaryKeyButtonList = currentSymbolKeyboardMode.keyList[0][2].map {
+    private(set) lazy var thirdRowPrimaryKeyButtonList = currentSymbolKeyboardMode.keyList(usesNumberRow: false)[0][2].map {
         PrimaryKeyButton(keyboard: .symbol, button: .keyButton(primary: $0, secondary: nil))
     }
     
@@ -365,7 +365,7 @@ private extension SymbolKeyboardView {
         let rowList = [firstRowPrimaryKeyButtonList, secondRowPrimaryKeyButtonList, thirdRowPrimaryKeyButtonList]
         for (rowIndex, buttonList) in rowList.enumerated() {
             for (buttonIndex, button) in buttonList.enumerated() {
-                let primaryKeyList = currentSymbolKeyboardMode.keyList[symbolKeyListIndex][rowIndex][buttonIndex]
+                let primaryKeyList = currentSymbolKeyboardMode.keyList(usesNumberRow: false)[symbolKeyListIndex][rowIndex][buttonIndex]
                 button.update(buttonType: TextInteractableType.keyButton(primary: primaryKeyList, secondary: nil))
             }
         }

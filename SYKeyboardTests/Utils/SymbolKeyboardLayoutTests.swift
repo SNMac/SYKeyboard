@@ -62,4 +62,46 @@ struct SymbolKeyboardLayoutTests {
         #expect(margins.left >= 0)
         #expect(abs(margins.left - margins.right) < 1)
     }
+
+    @Test("숫자 행이 꺼지면 기본 자판 배열은 그대로다")
+    func test기본자판_숫자행꺼짐() {
+        let keyList = SymbolKeyboardMode.default.keyList(usesNumberRow: false)
+
+        #expect(keyList[0][0].map(\.first) == ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"])
+        #expect(keyList[0][1].map(\.first) == ["-", "/", ":", ";", "(", ")", "₩", "&", "@", "”"])
+        #expect(keyList[1][0].map(\.first) == ["[", "]", "{", "}", "#", "%", "^", "*", "+", "="])
+    }
+
+    @Test("숫자 행이 켜지면 기본 자판 첫 줄이 기존 둘째 줄로 올라오고 도형 줄이 생김")
+    func test기본자판_숫자행켜짐() {
+        let keyList = SymbolKeyboardMode.default.keyList(usesNumberRow: true)
+
+        #expect(keyList[0][0].map(\.first) == ["-", "/", ":", ";", "(", ")", "₩", "&", "@", "”"])
+        #expect(keyList[0][1].map(\.first) == ["[", "]", "{", "}", "#", "%", "^", "*", "+", "="])
+        #expect(keyList[0][2].map(\.first) == [".", ",", "?", "!", "’"])
+        #expect(keyList[1][0].map(\.first) == ["_", "\\", "|", "~", "<", ">", "$", "£", "¥", "•"])
+        #expect(keyList[1][1].map(\.first) == ["※", "☆", "★", "○", "●", "□", "■", "△", "▲", "♡"])
+        #expect(keyList[1][2].map(\.first) == [".", ",", "?", "!", "’"])
+    }
+
+    @Test("웹 검색 자판은 기본 자판과 같은 배열을 쓴다")
+    func test웹검색자판_기본자판과동일() {
+        #expect(SymbolKeyboardMode.webSearch.keyList(usesNumberRow: true)
+                == SymbolKeyboardMode.default.keyList(usesNumberRow: true))
+        #expect(SymbolKeyboardMode.webSearch.keyList(usesNumberRow: false)
+                == SymbolKeyboardMode.default.keyList(usesNumberRow: false))
+    }
+
+    @Test("모든 배열이 행별 10·10·5개를 지킨다")
+    func test모든배열_행별키개수() {
+        let modes: [SymbolKeyboardMode] = [.default, .webSearch, .URL, .emailAddress]
+        for mode in modes {
+            for usesNumberRow in [true, false] {
+                let keyList = mode.keyList(usesNumberRow: usesNumberRow)
+                for layer in keyList {
+                    #expect(layer.map(\.count) == [10, 10, 5])
+                }
+            }
+        }
+    }
 }
