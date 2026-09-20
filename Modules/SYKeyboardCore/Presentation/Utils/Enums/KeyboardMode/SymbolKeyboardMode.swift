@@ -13,6 +13,14 @@ public enum SymbolKeyboardMode: Equatable {
     case emailAddress
     case webSearch
     
+    /// 주소 자판(URL·이메일)의 2페이지. 기본 자판 2페이지와 같은 구성이되
+    /// 1페이지와 겹치는 `_`, `|`, `~`, `$`를 `€`, `±`, `°`, `×`로 바꿨다
+    private static let addressSecondPageKeyList: [[[String]]] = [
+        [ ["€"], ["\\"], ["±"], ["°"], ["<"], [">"], ["×"], ["£"], ["¥"], ["•"] ],
+        [ ["※"], ["☆"], ["★"], ["○"], ["●"], ["□"], ["■"], ["△"], ["▲"], ["♡"] ],
+        [ ["."], [","], ["?"], ["!"], ["’"] ]
+    ]
+
     public init(keyboardType: UIKeyboardType?) {
         switch keyboardType {
         case .URL:
@@ -68,8 +76,7 @@ public enum SymbolKeyboardMode: Equatable {
                     [ ["*"], ["$"], ["#"], ["!"], ["’"], ["^"], ["~"], [";"], ["("], [")"] ],
                     [ ["_"], [":"], ["-"], ["+"], [] ]
                 ]
-                // `⇧`를 숨기므로 두 층이 같아도 인덱스 접근이 안전하다
-                return [merged, merged]
+                return [merged, Self.addressSecondPageKeyList]
             }
             return [
                 [
@@ -91,7 +98,7 @@ public enum SymbolKeyboardMode: Equatable {
                     [ ["’"], ["|"], ["{"], ["}"], ["?"], ["%"], ["^"], ["*"], ["/"], [] ],
                     [ ["."], ["_"], ["-"], ["+"], [] ]
                 ]
-                return [merged, merged]
+                return [merged, Self.addressSecondPageKeyList]
             }
             return [
                 [

@@ -112,7 +112,6 @@ struct SymbolKeyboardLayoutTests {
         #expect(keyList[0][0].map(\.first) == ["@", "&", "%", "?", ",", "=", "[", "]", nil, nil])
         #expect(keyList[0][1].map(\.first) == ["*", "$", "#", "!", "’", "^", "~", ";", "(", ")"])
         #expect(keyList[0][2].map(\.first) == ["_", ":", "-", "+", nil])
-        #expect(keyList[1] == keyList[0])
     }
 
     @Test("숫자 행이 켜지면 이메일 자판이 한 페이지로 합쳐진다")
@@ -122,15 +121,15 @@ struct SymbolKeyboardLayoutTests {
         #expect(keyList[0][0].map(\.first) == ["$", "!", "~", "&", "=", "#", "[", "]", nil, nil])
         #expect(keyList[0][1].map(\.first) == ["’", "|", "{", "}", "?", "%", "^", "*", "/", nil])
         #expect(keyList[0][2].map(\.first) == [".", "_", "-", "+", nil])
-        #expect(keyList[1] == keyList[0])
     }
 
-    @Test("합친 URL·이메일 자판은 기호를 더하거나 빼지 않는다")
+    @Test("합친 URL·이메일 자판의 1페이지는 주소용 기호를 더하거나 빼지 않는다")
     func test합친자판_기호집합유지() {
         for mode in [SymbolKeyboardMode.URL, .emailAddress] {
             let before = Set(mode.keyList(usesNumberRow: false).flatMap { $0.flatMap { $0.flatMap { $0 } } })
                 .subtracting(["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"])
-            let after = Set(mode.keyList(usesNumberRow: true).flatMap { $0.flatMap { $0.flatMap { $0 } } })
+            // 2페이지는 이제 주소용 기호가 아니라 일반 기호를 담으므로 1페이지만 비교한다
+            let after = Set(mode.keyList(usesNumberRow: true)[0].flatMap { $0.flatMap { $0 } })
 
             #expect(before == after)
         }
@@ -179,25 +178,53 @@ struct SymbolKeyboardLayoutTests {
                 == ["-", "/", ":", ";", "(", ")", "₩", "&", "@", "”"])
     }
 
-    @Test("합친 URL·이메일 자판에서는 페이지 전환 버튼을 숨긴다")
-    func test기호자판_합친자판_shift숨김() {
+    @Test("숫자 행이 켜진 URL·이메일 자판의 2페이지는 일반 기호 배열과 정확히 같다")
+    func test합친자판_2페이지_일반기호배열() {
+        let expected: [[[String]]] = [
+            [ ["€"], ["\\"], ["±"], ["°"], ["<"], [">"], ["×"], ["£"], ["¥"], ["•"] ],
+            [ ["※"], ["☆"], ["★"], ["○"], ["●"], ["□"], ["■"], ["△"], ["▲"], ["♡"] ],
+            [ ["."], [","], ["?"], ["!"], ["’"] ]
+        ]
+
+        #expect(SymbolKeyboardMode.URL.keyList(usesNumberRow: true)[1] == expected)
+        #expect(SymbolKeyboardMode.emailAddress.keyList(usesNumberRow: true)[1] == expected)
+    }
+
+    @Test("URL과 이메일의 2페이지는 서로 같다")
+    func test합친자판_URL이메일_2페이지동일() {
+        #expect(SymbolKeyboardMode.URL.keyList(usesNumberRow: true)[1]
+                == SymbolKeyboardMode.emailAddress.keyList(usesNumberRow: true)[1])
+    }
+
+    @Test("합친 URL·이메일 자판의 2페이지는 1페이지와 다르다")
+    func test합친자판_2페이지_1페이지와다름() {
+        #expect(SymbolKeyboardMode.URL.keyList(usesNumberRow: true)[0]
+                != SymbolKeyboardMode.URL.keyList(usesNumberRow: true)[1])
+        #expect(SymbolKeyboardMode.emailAddress.keyList(usesNumberRow: true)[0]
+                != SymbolKeyboardMode.emailAddress.keyList(usesNumberRow: true)[1])
+    }
+
+    @Test("2페이지 첫 줄에는 1페이지와 겹치던 문자가 없다")
+    func test합친자판_2페이지_겹침문자없음() {
+        let overlapping: Set<String> = ["_", "|", "~", "$"]
+
+        for mode in [SymbolKeyboardMode.URL, .emailAddress] {
+            let firstRowOfSecondPage = Set(mode.keyList(usesNumberRow: true)[1][0].compactMap(\.first))
+            #expect(firstRowOfSecondPage.isDisjoint(with: overlapping))
+        }
+    }
+
+    @Test("숫자 행이 켜진 URL·이메일 자판에서도 페이지 전환 버튼을 숨기지 않는다")
+    func test합친자판_shift유지() {
         let view = SymbolKeyboardView(showsLanguageSwitchButton: false, showsNumberRow: true)
 
         view.currentSymbolKeyboardMode = .URL
-        #expect(view.shiftButton.isHidden)
+        #expect(view.shiftButton.isHidden == false)
 
         view.currentSymbolKeyboardMode = .default
         #expect(view.shiftButton.isHidden == false)
 
         view.currentSymbolKeyboardMode = .emailAddress
-        #expect(view.shiftButton.isHidden)
-    }
-
-    @Test("숫자 행이 꺼져 있으면 URL 자판도 두 페이지라 전환 버튼을 유지한다")
-    func test기호자판_숫자행꺼짐_shift유지() {
-        let view = SymbolKeyboardView(showsLanguageSwitchButton: false, showsNumberRow: false)
-        view.currentSymbolKeyboardMode = .URL
-
         #expect(view.shiftButton.isHidden == false)
     }
 

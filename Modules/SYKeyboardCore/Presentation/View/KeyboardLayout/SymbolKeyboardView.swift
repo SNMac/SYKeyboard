@@ -29,7 +29,6 @@ final class SymbolKeyboardView: UIView, SymbolKeyboardLayoutProvider {
         didSet(oldMode) {
             updateLayoutForCurrentSymbolKeyboardMode(oldMode: oldMode)
             isShifted = false
-            updateShiftButtonVisibility()
         }
     }
     
@@ -172,7 +171,6 @@ private extension SymbolKeyboardView {
         setActions()
         setHierarchy()
         setConstraints()
-        updateShiftButtonVisibility()
     }
     
     func setStyles() {
@@ -407,13 +405,6 @@ private extension SymbolKeyboardView {
             }
         }
         updateThirdRowWidthConstraints()
-    }
-
-    /// 합친 배열에서는 넘길 페이지가 없으므로 `⇧`를 숨긴다
-    func updateShiftButtonVisibility() {
-        let isMergedLayout = showsNumberRowSetting
-        && (currentSymbolKeyboardMode == .URL || currentSymbolKeyboardMode == .emailAddress)
-        shiftButton.isHidden = isMergedLayout
     }
 
     /// 셋째 줄에서 실제로 보이는 키만 대상으로 양 끝 정렬을 다시 잡는다.
