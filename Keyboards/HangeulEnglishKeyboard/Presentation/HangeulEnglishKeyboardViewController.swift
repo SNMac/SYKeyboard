@@ -115,14 +115,13 @@ final class HangeulEnglishKeyboardViewController: BaseKeyboardViewController {
 
     // MARK: - Override Methods
 
-    override func textInputDidChange(_ textInput: (any UITextInput)?) {
+    override func inputTraitsDidChange() {
         let previousMode = modeCoordinator.currentMode
         let requiresLatinInput = KeyboardLanguageModePolicy.requiresLatinInput(
             keyboardType: textDocumentProxy.keyboardType,
             textContentType: textDocumentProxy.textContentType
         )
-        let mode = modeCoordinator.modeForTextInputChange(
-            identifier: textInput.map { ObjectIdentifier($0 as AnyObject) },
+        let mode = modeCoordinator.modeForInputTraitsChange(
             requiresLatinInput: requiresLatinInput,
             lastMode: Self.storedLanguageMode(),
             preferredLanguages: Locale.preferredLanguages

@@ -42,6 +42,8 @@ open class BaseKeyboardViewController: UIInputViewController {
     private lazy var requestFullAccessOverlayView = RequestFullAccessOverlayView()
 
     final public lazy var oldKeyboardType: UIKeyboardType? = textDocumentProxy.keyboardType
+    /// 마지막으로 확인한 `textContentType`. `inputTraitsDidChange()` 판정에 쓰입니다
+    final public lazy var oldTextContentType: UITextContentType? = textDocumentProxy.textContentType
 
     /// 현재 표시되는 키보드
     public lazy var currentKeyboard: SYKeyboardType = primaryKeyboardView.keyboard {
@@ -428,7 +430,14 @@ open class BaseKeyboardViewController: UIInputViewController {
         processDeleteMutationCallbackOutcome(deleteMutationOutcome)
         invalidateUndoRedoHistoryIfNeededAfterTextChange(textInput)
         updateKeyboardType()
+        // iOS는 키보드 확장에 textWillChange/textDidChange의 textInput을 항상 nil로 준다.
+        // 그래서 필드 객체 동일성으로는 포커스가 다른 필드로 옮겨졌는지 알 수 없다.
+        // keyboardType/textContentType 변화를 대신 신호로 써서 언어 재판정 같은 훅을 부른다
+        let inputTraitsDidChange = textDocumentProxy.keyboardType != oldKeyboardType
+            || textDocumentProxy.textContentType != oldTextContentType
         oldKeyboardType = textDocumentProxy.keyboardType
+        oldTextContentType = textDocumentProxy.textContentType
+        if inputTraitsDidChange { self.inputTraitsDidChange() }
         updateReturnButtonType()
         updateReturnButtonEnabled()
         updateSuggestionBarHidden()
@@ -471,6 +480,12 @@ open class BaseKeyboardViewController: UIInputViewController {
 
     /// 현재 host text input이 바뀐 뒤 실행되는 메서드
     open func textInputDidChange(_ textInput: (any UITextInput)?) {}
+
+    /// 입력 필드의 `keyboardType` 또는 `textContentType`이 바뀌면 호출된다.
+    ///
+    /// iOS는 키보드 확장에 `textWillChange`/`textDidChange`의 `textInput`을 nil로 주므로
+    /// 필드 객체의 동일성으로는 포커스 변경을 알 수 없다. trait 변화가 대신 쓸 수 있는 신호다
+    open func inputTraitsDidChange() {}
 
     /// `UIKeyboardType`에 맞는 키보드 레이아웃으로 업데이트하는 메서드
     open func updateKeyboardType() { fatalError("메서드가 오버라이딩 되지 않았습니다.") }
