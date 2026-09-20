@@ -998,6 +998,8 @@ private extension BaseKeyboardViewController {
             isPortrait: isPortrait
         )
         primaryKeyboardViews.forEach { $0.updateNumberRowHeight(numberRowHeight) }
+        // 기호 자판은 주 자판과 같은 높이를 써야 프레임과 어긋나지 않는다
+        keyboardView.symbolKeyboardView.updateNumberRowHeight(numberRowHeight)
 
         let height = KeyboardHeightPolicy.height(
             keyboardSettingsHeight: keyboardSettingsManager.keyboardHeight,

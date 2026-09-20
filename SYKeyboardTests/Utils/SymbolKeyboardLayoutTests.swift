@@ -200,4 +200,15 @@ struct SymbolKeyboardLayoutTests {
 
         #expect(view.shiftButton.isHidden == false)
     }
+
+    @Test("주 자판에 숫자 행이 없으면 기호 자판에도 숫자 행이 없다")
+    func test기호자판_주자판을따라감() {
+        let withoutNumberRow = SymbolKeyboardView(showsLanguageSwitchButton: false, showsNumberRow: false)
+        withoutNumberRow.updateNumberRowHeight(KeyboardHeightPolicy.portraitNumberRowHeight)
+
+        #expect(withoutNumberRow.showsNumberRow == false)
+        #expect(withoutNumberRow.numberRowPrimaryKeyButtonList.isEmpty)
+        #expect(withoutNumberRow.firstRowPrimaryKeyButtonList.map(\.type.primaryKeyList.first)
+                == ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"])
+    }
 }
