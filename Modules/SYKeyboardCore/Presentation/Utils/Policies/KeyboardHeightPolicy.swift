@@ -19,13 +19,19 @@ public enum KeyboardHeightPolicy {
     public static let portraitNumberRowHeight: CGFloat = letterRowHeight(
         keyboardAreaHeight: CGFloat(KeyboardLayoutFigure.keyboardHeightRange.lowerBound)
     )
+    /// 가로 모드 숫자 행 높이. 자동완성 바가 보일 때의 가로 글자 행 높이와 같다.
+    /// 바가 숨겨져 글자 행이 커져도 숫자 행은 이 값을 유지한다
+    public static let landscapeNumberRowHeight: CGFloat = letterRowHeight(
+        keyboardAreaHeight: KeyboardLayoutFigure.landscapeKeyboardHeight
+        - KeyboardLayoutFigure.suggestionBarHeightWithTopSpacing
+    )
+
     /// 키 영역 높이에서 프레임 여백을 빼고 4행으로 나눈 글자 행 높이
     static func letterRowHeight(keyboardAreaHeight: CGFloat) -> CGFloat {
         (keyboardAreaHeight - KeyboardLayoutFigure.keyboardFrameSpacing) / 4
     }
 
-    /// 주 키보드 구성에 맞는 숫자 행 높이. 숫자 행이 없으면 0을 반환한다.
-    /// 가로 모드에서는 화면이 좁아 숫자 행을 표시하지 않는다
+    /// 주 키보드 구성에 맞는 숫자 행 높이. 숫자 행이 없으면 0을 반환한다
     /// - Parameters:
     ///   - isEnabled: 숫자 행 설정 여부
     ///   - primaryKeyboards: extension의 주 키보드 종류 목록
@@ -36,8 +42,8 @@ public enum KeyboardHeightPolicy {
         isPortrait: Bool
     ) -> CGFloat {
         let hasNumberRowKeyboard = primaryKeyboards.contains { $0 == .dubeolsik || $0 == .qwerty }
-        guard isEnabled, hasNumberRowKeyboard, isPortrait else { return 0 }
-        return portraitNumberRowHeight
+        guard isEnabled, hasNumberRowKeyboard else { return 0 }
+        return isPortrait ? portraitNumberRowHeight : landscapeNumberRowHeight
     }
 
     static func height(

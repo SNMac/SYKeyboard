@@ -480,8 +480,6 @@ extension StandardKeyboardView {
         guard let numberRowHeightConstraint,
               numberRowHeightConstraint.constant != height else { return }
         numberRowHeightConstraint.constant = height
-        // 높이만 0으로 두면 버튼이 찌그러진 채 남으므로 행 자체를 숨긴다
-        numberRowHStackView.isHidden = height == 0
     }
 
     /// `periodButton`의 너비 제약 조건을 업데이트합니다.

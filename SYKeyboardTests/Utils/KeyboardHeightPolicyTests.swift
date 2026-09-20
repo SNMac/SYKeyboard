@@ -135,9 +135,10 @@ struct KeyboardHeightPolicyTests {
         #expect(KeyboardLayoutFigure.keyboardHeightRange == 190...290)
     }
 
-    @Test("세로 숫자 행 높이는 46.5로 고정")
+    @Test("숫자 행 높이는 세로 46.5, 가로 35로 고정")
     func test숫자행높이_고정값() {
         #expect(KeyboardHeightPolicy.portraitNumberRowHeight == 46.5)
+        #expect(KeyboardHeightPolicy.landscapeNumberRowHeight == 35)
     }
 
     @Test("숫자 행 설정이 꺼져 있으면 두벌식·쿼티여도 숫자 행 높이는 0")
@@ -155,16 +156,9 @@ struct KeyboardHeightPolicyTests {
     @Test("두벌식·쿼티가 하나라도 있으면 방향별 숫자 행 높이를 반환")
     func test숫자행_방향별높이() {
         #expect(KeyboardHeightPolicy.numberRowHeight(isEnabled: true, primaryKeyboards: [.dubeolsik], isPortrait: true) == 46.5)
-        #expect(KeyboardHeightPolicy.numberRowHeight(isEnabled: true, primaryKeyboards: [.qwerty], isPortrait: false) == 0)
+        #expect(KeyboardHeightPolicy.numberRowHeight(isEnabled: true, primaryKeyboards: [.qwerty], isPortrait: false) == 35)
         // 한영 통합: 4x4 한글 + 쿼티
         #expect(KeyboardHeightPolicy.numberRowHeight(isEnabled: true, primaryKeyboards: [.naratgeul, .qwerty], isPortrait: true) == 46.5)
-    }
-
-    @Test("설정이 켜져 있어도 가로에서는 숫자 행이 없다")
-    func test숫자행_가로에서없음() {
-        #expect(KeyboardHeightPolicy.numberRowHeight(isEnabled: true, primaryKeyboards: [.dubeolsik], isPortrait: false) == 0)
-        #expect(KeyboardHeightPolicy.numberRowHeight(isEnabled: true, primaryKeyboards: [.qwerty], isPortrait: false) == 0)
-        #expect(KeyboardHeightPolicy.numberRowHeight(isEnabled: true, primaryKeyboards: [.dubeolsik], isPortrait: true) == 46.5)
     }
 
     @Test("세로 화면 숫자 행은 설정 높이와 자동완성 바 위에 더함")
@@ -190,10 +184,10 @@ struct KeyboardHeightPolicyTests {
             suggestionBarHeight: 44,
             isSuggestionBarVisible: true,
             isPortrait: false,
-            numberRowHeight: 0
+            numberRowHeight: 35
         )
-        #expect(visible.keyboardViewHeight == 188)
-        #expect(visible.keyboardHStackViewHeight == 144)
+        #expect(visible.keyboardViewHeight == 223)
+        #expect(visible.keyboardHStackViewHeight == 179)
 
         let hidden = KeyboardHeightPolicy.height(
             keyboardSettingsHeight: 240,
@@ -201,9 +195,9 @@ struct KeyboardHeightPolicyTests {
             suggestionBarHeight: 44,
             isSuggestionBarVisible: false,
             isPortrait: false,
-            numberRowHeight: 0
+            numberRowHeight: 35
         )
-        #expect(hidden.keyboardViewHeight == 188)
-        #expect(hidden.keyboardHStackViewHeight == 188)
+        #expect(hidden.keyboardViewHeight == 223)
+        #expect(hidden.keyboardHStackViewHeight == 223)
     }
 }
