@@ -24,8 +24,8 @@ struct SymbolKeyboardLayoutTests {
         return view
     }
 
-    /// 숫자 행을 켠 기호 자판. 첫 줄에 빈 키가 섞이는 배열(URL·이메일)에서 폭 기준을
-    /// 검증하기 위해 언어 전환 버튼 표시 여부를 선택할 수 있게 한다
+    /// 숫자 행을 켠 기호 자판. 넷째 줄 묶음 폭을 재려면 언어 전환 버튼이 필요해
+    /// 표시 여부를 선택할 수 있게 한다
     private func makeNumberRowView(mode: SymbolKeyboardMode, showsLanguageSwitchButton: Bool) -> SymbolKeyboardView {
         let view = SymbolKeyboardView(showsLanguageSwitchButton: showsLanguageSwitchButton, showsNumberRow: true)
         view.currentSymbolKeyboardMode = mode
@@ -60,7 +60,7 @@ struct SymbolKeyboardLayoutTests {
         #expect(abs(margins.left - margins.right) < 1)
     }
 
-    @Test("셋째 줄에 빈 키가 있는 URL 자판도 좌우 여백이 같다")
+    @Test("URL 자판 셋째 줄도 좌우 여백이 같다")
     func test셋째줄_URL자판_좌우여백() throws {
         let margins = try #require(thirdRowSideMargins(makeView(mode: .URL)))
 
@@ -68,7 +68,7 @@ struct SymbolKeyboardLayoutTests {
         #expect(abs(margins.left - margins.right) < 1)
     }
 
-    @Test("셋째 줄에 빈 키가 있는 이메일 자판도 좌우 여백이 같다")
+    @Test("이메일 자판 셋째 줄도 좌우 여백이 같다")
     func test셋째줄_이메일자판_좌우여백() throws {
         let margins = try #require(thirdRowSideMargins(makeView(mode: .emailAddress)))
 
@@ -225,9 +225,12 @@ struct SymbolKeyboardLayoutTests {
         #expect(interactableLeadingKeys == expectedFirstRowKeys)
     }
 
-    @Test("첫 줄에 빈 키가 섞여도 삭제 버튼 폭은 10칸 기준으로 유지된다")
-    func test삭제버튼폭_첫줄빈키영향없음() {
-        // 기본 자판은 첫 줄이 10칸 다 차 있고, URL 자판은 8칸만 차 있다(2칸은 빈 키)
+    // 네 모드가 같은 배열을 쓰게 된 뒤로 첫 줄에 빈 키가 생기는 경로가 없다.
+    // 아래 두 테스트는 폭 기준이 10칸으로 고정돼 있다는 사실만 지키고,
+    // 빈 키가 섞였을 때의 동작은 더 이상 재현하지 못한다
+
+    @Test("삭제 버튼 폭은 모드와 무관하게 10칸 기준이다")
+    func test삭제버튼폭_10칸기준() {
         let defaultView = makeNumberRowView(mode: .default, showsLanguageSwitchButton: false)
         let urlView = makeNumberRowView(mode: .URL, showsLanguageSwitchButton: false)
 
@@ -238,8 +241,8 @@ struct SymbolKeyboardLayoutTests {
         #expect(abs(urlView.deleteButton.frame.width - expectedWidth) < 0.5)
     }
 
-    @Test("첫 줄에 빈 키가 섞여도 넷째 줄 왼쪽 버튼 묶음 폭은 10칸 기준으로 유지된다")
-    func test넷째줄왼쪽버튼묶음폭_첫줄빈키영향없음() {
+    @Test("넷째 줄 왼쪽 버튼 묶음 폭은 모드와 무관하게 같다")
+    func test넷째줄왼쪽버튼묶음폭_모드무관() {
         let defaultView = makeNumberRowView(mode: .default, showsLanguageSwitchButton: true)
         let urlView = makeNumberRowView(mode: .URL, showsLanguageSwitchButton: true)
 
