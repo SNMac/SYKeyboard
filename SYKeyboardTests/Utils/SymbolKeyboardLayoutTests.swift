@@ -104,4 +104,46 @@ struct SymbolKeyboardLayoutTests {
             }
         }
     }
+
+    @Test("숫자 행이 켜지면 URL 자판이 한 페이지로 합쳐진다")
+    func testURL자판_숫자행켜짐() {
+        let keyList = SymbolKeyboardMode.URL.keyList(usesNumberRow: true)
+
+        #expect(keyList[0][0].map(\.first) == ["@", "&", "%", "?", ",", "=", "[", "]", nil, nil])
+        #expect(keyList[0][1].map(\.first) == ["*", "$", "#", "!", "’", "^", "~", ";", "(", ")"])
+        #expect(keyList[0][2].map(\.first) == ["_", ":", "-", "+", nil])
+        #expect(keyList[1] == keyList[0])
+    }
+
+    @Test("숫자 행이 켜지면 이메일 자판이 한 페이지로 합쳐진다")
+    func test이메일자판_숫자행켜짐() {
+        let keyList = SymbolKeyboardMode.emailAddress.keyList(usesNumberRow: true)
+
+        #expect(keyList[0][0].map(\.first) == ["$", "!", "~", "&", "=", "#", "[", "]", nil, nil])
+        #expect(keyList[0][1].map(\.first) == ["’", "|", "{", "}", "?", "%", "^", "*", "/", nil])
+        #expect(keyList[0][2].map(\.first) == [".", "_", "-", "+", nil])
+        #expect(keyList[1] == keyList[0])
+    }
+
+    @Test("합친 URL·이메일 자판은 기호를 더하거나 빼지 않는다")
+    func test합친자판_기호집합유지() {
+        for mode in [SymbolKeyboardMode.URL, .emailAddress] {
+            let before = Set(mode.keyList(usesNumberRow: false).flatMap { $0.flatMap { $0.flatMap { $0 } } })
+                .subtracting(["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"])
+            let after = Set(mode.keyList(usesNumberRow: true).flatMap { $0.flatMap { $0.flatMap { $0 } } })
+
+            #expect(before == after)
+        }
+    }
+
+    @Test("숫자 행이 꺼지면 URL·이메일 자판은 두 페이지 그대로다")
+    func testURL이메일자판_숫자행꺼짐() {
+        let urlKeyList = SymbolKeyboardMode.URL.keyList(usesNumberRow: false)
+        #expect(urlKeyList[0][0].map(\.first) == ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"])
+        #expect(urlKeyList[1][0].map(\.first) == ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"])
+
+        let emailKeyList = SymbolKeyboardMode.emailAddress.keyList(usesNumberRow: false)
+        #expect(emailKeyList[0][0].map(\.first) == ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"])
+        #expect(emailKeyList[1][0].map(\.first) == ["’", "|", "{", "}", "?", "%", "^", "*", "/", "’"])
+    }
 }
