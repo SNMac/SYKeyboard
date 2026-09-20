@@ -24,21 +24,16 @@ struct KeyboardSymbolInputPolicyTests {
         #expect(SymbolKeyboardMode(keyboardType: .twitter) == .default)
     }
 
-    @Test("기호 키보드 모드는 일반과 Shift 키 배열을 제공")
-    func test기호키보드모드별키배열() {
+    @Test("기호 키보드는 일반과 Shift 키 배열을 제공")
+    func test기호키보드키배열() {
         #expect(
-            SymbolKeyboardMode.default.keyList(usesNumberRow: false)[0][1].map { $0.first ?? "" } ==
+            SymbolKeyboardMode.keyList(usesNumberRow: false)[0][1].map { $0.first ?? "" } ==
             ["-", "/", ":", ";", "(", ")", "₩", "&", "@", "”"]
         )
         #expect(
-            SymbolKeyboardMode.URL.keyList(usesNumberRow: false)[0][2].map { $0.first ?? "" } ==
-            ["_", ":", "-", "+", ""]
+            SymbolKeyboardMode.keyList(usesNumberRow: false)[0][2].map { $0.first ?? "" } ==
+            [".", ",", "?", "!", "’"]
         )
-        #expect(
-            SymbolKeyboardMode.emailAddress.keyList(usesNumberRow: false)[0][2].map { $0.first ?? "" } ==
-            [".", "_", "-", "+", ""]
-        )
-        #expect(SymbolKeyboardMode.webSearch.keyList(usesNumberRow: false) == SymbolKeyboardMode.default.keyList(usesNumberRow: false))
     }
 
     @MainActor
@@ -78,7 +73,7 @@ struct KeyboardSymbolInputPolicyTests {
         view.currentSymbolKeyboardMode = .URL
 
         #expect(view.isShifted == false)
-        #expect(Array(view.rowPrimaryKeyValues.suffix(5)) == ["_", ":", "-", "+", ""])
+        #expect(Array(view.rowPrimaryKeyValues.suffix(5)) == [".", ",", "?", "!", "’"])
         #expect(view.spaceButton.isHidden)
         #expect(view.atButton.isHidden)
         #expect(view.periodButton.isHidden == false)
@@ -86,7 +81,7 @@ struct KeyboardSymbolInputPolicyTests {
         #expect(view.dotComButton.isHidden == false)
 
         view.isShifted = true
-        #expect(Array(view.rowPrimaryKeyValues.suffix(5)) == ["~", ";", "(", ")", ""])
+        #expect(Array(view.rowPrimaryKeyValues.suffix(5)) == [".", ",", "?", "!", "’"])
     }
 
     @MainActor
@@ -95,7 +90,7 @@ struct KeyboardSymbolInputPolicyTests {
         let view = SymbolKeyboardView()
         view.currentSymbolKeyboardMode = .emailAddress
 
-        #expect(Array(view.rowPrimaryKeyValues.suffix(5)) == [".", "_", "-", "+", ""])
+        #expect(Array(view.rowPrimaryKeyValues.suffix(5)) == [".", ",", "?", "!", "’"])
         #expect(view.spaceButton.isHidden == false)
         #expect(view.atButton.isHidden == false)
         #expect(view.periodButton.isHidden == false)
@@ -105,7 +100,7 @@ struct KeyboardSymbolInputPolicyTests {
         view.isShifted = true
         #expect(
             Array(view.rowPrimaryKeyValues.prefix(10)) ==
-            ["’", "|", "{", "}", "?", "%", "^", "*", "/", "’"]
+            ["[", "]", "{", "}", "#", "%", "^", "*", "+", "="]
         )
     }
 
