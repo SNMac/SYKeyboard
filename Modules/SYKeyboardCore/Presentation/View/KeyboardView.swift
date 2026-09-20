@@ -74,14 +74,20 @@ final public class KeyboardView: UIInputView {
     private var showsLanguageSwitchButton: Bool {
         primaryKeyboardViews.contains { $0.languageSwitchButton != nil }
     }
-    
+
+    /// 주 키보드에 숫자 행이 있는지 여부
+    private var showsNumberRow: Bool {
+        primaryKeyboardViews.contains { $0.showsNumberRow }
+    }
+
     /// 기호 키보드
     lazy var symbolKeyboardView: SymbolKeyboardLayoutProvider = {
         let symbolKeyboardView = SymbolKeyboardView(
-            showsLanguageSwitchButton: showsLanguageSwitchButton
+            showsLanguageSwitchButton: showsLanguageSwitchButton,
+            showsNumberRow: showsNumberRow
         )
         symbolKeyboardView.isHidden = true
-        
+
         return symbolKeyboardView
     }()
     

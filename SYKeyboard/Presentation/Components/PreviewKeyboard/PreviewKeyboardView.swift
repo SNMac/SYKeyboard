@@ -8,18 +8,25 @@
 import SwiftUI
 
 import SYKeyboardCore
+import HangeulKeyboardCore
 
 struct PreviewKeyboardView: View {
-    
+
     // MARK: - Properties
-    
+
     @Binding var keyboardHeight: Double
     @Binding var oneHandedKeyboardWidth: Double
     @Binding var letterColumnWidthMultiplier: Double
     @Binding var needsInputModeSwitchKey: Bool
     @Binding var previewKeyboardLanguage: PreviewKeyboardLanguage
     @Binding var oneHandedMode: OneHandedMode
-    
+
+    @AppStorage(UserDefaultsKeys.showsNumberRow, store: UserDefaultsManager.shared.storage)
+    private var showsNumberRow = DefaultValues.showsNumberRow
+
+    @AppStorage(UserDefaultsKeys.selectedHangeulKeyboard, store: UserDefaultsManager.shared.storage)
+    private var selectedHangeulKeyboard = DefaultValues.selectedHangeulKeyboard
+
     // MARK: - Content
     
     var body: some View {
@@ -49,19 +56,36 @@ private extension PreviewKeyboardView {
                                              oneHandedKeyboardWidth: $oneHandedKeyboardWidth,
                                              letterColumnWidthMultiplier: $letterColumnWidthMultiplier,
                                              oneHandedMode: $oneHandedMode)
-        .frame(height: keyboardHeight)
+        .frame(height: previewFrameHeight(for: previewHangeulKeyboardType))
         .background(.keyboardBackground)
         .padding(.bottom, needsInputModeSwitchKey ? 0 : 40)
     }
-    
+
     var previewEnglishKeyboard: some View {
         PreviewEnglishKeyboardViewController(keyboardHeight: $keyboardHeight,
                                              oneHandedKeyboardWidth: $oneHandedKeyboardWidth,
                                              letterColumnWidthMultiplier: $letterColumnWidthMultiplier,
                                              oneHandedMode: $oneHandedMode)
-        .frame(height: keyboardHeight)
+        .frame(height: previewFrameHeight(for: .qwerty))
         .background(.keyboardBackground)
         .padding(.bottom, needsInputModeSwitchKey ? 0 : 40)
+    }
+
+    /// 미리보기는 항상 세로 화면이므로 세로 숫자 행 높이를 더한다
+    func previewFrameHeight(for keyboard: SYKeyboardType) -> CGFloat {
+        keyboardHeight + KeyboardHeightPolicy.numberRowHeight(
+            isEnabled: showsNumberRow,
+            primaryKeyboards: [keyboard],
+            isPortrait: true
+        )
+    }
+
+    var previewHangeulKeyboardType: SYKeyboardType {
+        switch selectedHangeulKeyboard {
+        case .naratgeul: .naratgeul
+        case .cheonjiin: .cheonjiin
+        case .dubeolsik: .dubeolsik
+        }
     }
 }
 

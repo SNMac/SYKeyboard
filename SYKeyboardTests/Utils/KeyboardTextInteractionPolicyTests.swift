@@ -706,6 +706,45 @@ struct KeyboardTextInteractionPolicyTests {
         expectRepeatTimerInterval(repeatRate: 0.10, expected: 0.01)
         expectRepeatTimerInterval(repeatRate: 0.20, expected: 0.01)
     }
+
+    @Test("shift 짝 보조 키: 쿼티는 모든 키가 대소문자로 짝지어짐")
+    func testShiftPairSecondaryKeyList_쿼티() {
+        let primary: [[[[String]]]] = [
+            [[["q"], ["w"]], [["a"]]],
+            [[["Q"], ["W"]], [["A"]]]
+        ]
+
+        let result = KeyboardTextInteractionPolicy.shiftPairSecondaryKeyList(from: primary)
+
+        #expect(result == [
+            [[["Q"], ["W"]], [["A"]]],
+            [[["q"], ["w"]], [["a"]]]
+        ])
+    }
+
+    @Test("shift 짝 보조 키: 두벌식은 쌍자음·ㅒㅖ 자리만 짝이 생기고 나머지는 보조 키 없음")
+    func testShiftPairSecondaryKeyList_두벌식() {
+        let primary: [[[[String]]]] = [
+            [[["ㅂ"], ["ㅛ"], ["ㅐ"]], [["ㅁ"]]],
+            [[["ㅃ"], ["ㅛ"], ["ㅒ"]], [["ㅁ"]]]
+        ]
+
+        let result = KeyboardTextInteractionPolicy.shiftPairSecondaryKeyList(from: primary)
+
+        #expect(result == [
+            [[["ㅃ"], [], ["ㅒ"]], [[]]],
+            [[["ㅂ"], [], ["ㅐ"]], [[]]]
+        ])
+    }
+
+    @Test("shift 짝 보조 키: 층이 2개가 아니면 보조 키 없이 같은 모양 반환")
+    func testShiftPairSecondaryKeyList_층불일치() {
+        let primary: [[[[String]]]] = [[[["q"], ["w"]]]]
+
+        let result = KeyboardTextInteractionPolicy.shiftPairSecondaryKeyList(from: primary)
+
+        #expect(result == [[[[], []]]])
+    }
 }
 
 @Suite("삭제 mutation lifecycle 검증")

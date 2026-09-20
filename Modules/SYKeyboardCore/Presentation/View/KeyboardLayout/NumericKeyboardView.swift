@@ -110,7 +110,7 @@ final class NumericKeyboardView: UIView, NumericKeyboardLayoutProvider {
     // MARK: - Initializer
     
     init(showsLanguageSwitchButton: Bool = false,
-         usesBottomSpaceLayout: Bool = UserDefaultsManager.shared.isNumericKeypadBottomSpaceEnabled) {
+         usesBottomSpaceLayout: Bool = UserDefaultsManager.shared.isBottomSpaceEnabled) {
         self.showsLanguageSwitchButton = showsLanguageSwitchButton
         self.usesBottomSpaceLayout = usesBottomSpaceLayout
         super.init(frame: .zero)

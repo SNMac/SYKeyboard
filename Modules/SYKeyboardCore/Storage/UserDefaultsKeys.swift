@@ -57,6 +57,8 @@ public enum UserDefaultsKeys {
     // MARK: - 외형 설정
     /// 키보드 높이
     public static let keyboardHeight = "keyboardHeight"
+    /// 두벌식·쿼티 숫자 행 표시
+    public static let showsNumberRow = "showsNumberRow"
     /// 숫자 키패드 활성화
     public static let isNumericKeypadEnabled = "isNumericKeypadEnabled"
     /// 한 손 키보드 활성화
@@ -67,10 +69,8 @@ public enum UserDefaultsKeys {
     public static let letterColumnWidthMultiplier = "letterColumnWidthMultiplier"
     /// 나랏글 '획', '쌍' 버튼을 'ㆍ', 'ᆢ'로 표기
     public static let isNaratgeulDotLabelEnabled = "isNaratgeulDotLabelEnabled"
-    /// 천지인 스페이스 버튼 하단 배치
-    public static let isCheonjiinBottomSpaceEnabled = "isCheonjiinBottomSpaceEnabled"
-    /// 숫자 키패드 스페이스 버튼 하단 배치
-    public static let isNumericKeypadBottomSpaceEnabled = "isNumericKeypadBottomSpaceEnabled"
+    /// 천지인·숫자 키패드 스페이스 하단 배치
+    public static let isBottomSpaceEnabled = "isBottomSpaceEnabled"
 
     // MARK: - 기타 설정
     /// 키보드 전환 버튼(􀆪) 표시 설정용

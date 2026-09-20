@@ -42,6 +42,8 @@ open class BaseKeyboardViewController: UIInputViewController {
     private lazy var requestFullAccessOverlayView = RequestFullAccessOverlayView()
 
     final public lazy var oldKeyboardType: UIKeyboardType? = textDocumentProxy.keyboardType
+    /// 마지막으로 확인한 `textContentType`. `inputTraitsDidChange()` 판정에 쓰입니다
+    final public lazy var oldTextContentType: UITextContentType? = textDocumentProxy.textContentType
 
     /// 현재 표시되는 키보드
     public lazy var currentKeyboard: SYKeyboardType = primaryKeyboardView.keyboard {
@@ -428,7 +430,14 @@ open class BaseKeyboardViewController: UIInputViewController {
         processDeleteMutationCallbackOutcome(deleteMutationOutcome)
         invalidateUndoRedoHistoryIfNeededAfterTextChange(textInput)
         updateKeyboardType()
+        // iOS는 키보드 확장에 textWillChange/textDidChange의 textInput을 항상 nil로 준다.
+        // 그래서 필드 객체 동일성으로는 포커스가 다른 필드로 옮겨졌는지 알 수 없다.
+        // keyboardType/textContentType 변화를 대신 신호로 써서 언어 재판정 같은 훅을 부른다
+        let inputTraitsDidChange = textDocumentProxy.keyboardType != oldKeyboardType
+            || textDocumentProxy.textContentType != oldTextContentType
         oldKeyboardType = textDocumentProxy.keyboardType
+        oldTextContentType = textDocumentProxy.textContentType
+        if inputTraitsDidChange { self.inputTraitsDidChange() }
         updateReturnButtonType()
         updateReturnButtonEnabled()
         updateSuggestionBarHidden()
@@ -471,6 +480,12 @@ open class BaseKeyboardViewController: UIInputViewController {
 
     /// 현재 host text input이 바뀐 뒤 실행되는 메서드
     open func textInputDidChange(_ textInput: (any UITextInput)?) {}
+
+    /// 입력 필드의 `keyboardType` 또는 `textContentType`이 바뀌면 호출된다.
+    ///
+    /// iOS는 키보드 확장에 `textWillChange`/`textDidChange`의 `textInput`을 nil로 주므로
+    /// 필드 객체의 동일성으로는 포커스 변경을 알 수 없다. trait 변화가 대신 쓸 수 있는 신호다
+    open func inputTraitsDidChange() {}
 
     /// `UIKeyboardType`에 맞는 키보드 레이아웃으로 업데이트하는 메서드
     open func updateKeyboardType() { fatalError("메서드가 오버라이딩 되지 않았습니다.") }
@@ -990,12 +1005,24 @@ private extension BaseKeyboardViewController {
             verticalSizeClass: traitCollection.verticalSizeClass
         )
 
+        // 숫자 행 여부는 설정값이 아니라 실제로 만들어진 뷰를 기준으로 판단한다.
+        // extension이 살아 있는 동안 설정이 바뀌어도 뷰와 프레임 높이가 어긋나지 않는다
+        let numberRowHeight = KeyboardHeightPolicy.numberRowHeight(
+            isEnabled: primaryKeyboardViews.contains { $0.showsNumberRow },
+            primaryKeyboards: primaryKeyboardViews.map(\.keyboard),
+            isPortrait: isPortrait
+        )
+        primaryKeyboardViews.forEach { $0.updateNumberRowHeight(numberRowHeight) }
+        // 기호 자판은 주 자판과 같은 높이를 써야 프레임과 어긋나지 않는다
+        keyboardView.symbolKeyboardView.updateNumberRowHeight(numberRowHeight)
+
         let height = KeyboardHeightPolicy.height(
             keyboardSettingsHeight: keyboardSettingsManager.keyboardHeight,
             landscapeKeyboardHeight: KeyboardLayoutFigure.landscapeKeyboardHeight,
             suggestionBarHeight: KeyboardLayoutFigure.suggestionBarHeightWithTopSpacing,
             isSuggestionBarVisible: isSuggestionBarVisible,
-            isPortrait: isPortrait
+            isPortrait: isPortrait,
+            numberRowHeight: numberRowHeight
         )
 
         if let keyboardViewHeightConstraint {

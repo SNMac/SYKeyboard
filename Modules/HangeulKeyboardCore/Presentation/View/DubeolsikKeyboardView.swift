@@ -55,12 +55,14 @@ final class DubeolsikKeyboardView: StandardKeyboardView, HangeulKeyboardLayoutPr
     override init(
         getIsShiftedLetterInput: @escaping () -> Bool,
         setIsShiftedLetterInput: @escaping (Bool) -> (),
-        showsLanguageSwitchButton: Bool = false
+        showsLanguageSwitchButton: Bool = false,
+        showsNumberRow: Bool = UserDefaultsManager.shared.showsNumberRow
     ) {
         super.init(
             getIsShiftedLetterInput: getIsShiftedLetterInput,
             setIsShiftedLetterInput: setIsShiftedLetterInput,
-            showsLanguageSwitchButton: showsLanguageSwitchButton
+            showsLanguageSwitchButton: showsLanguageSwitchButton,
+            showsNumberRow: showsNumberRow
         )
         updateLayoutToDefault()
     }
@@ -118,7 +120,21 @@ extension DubeolsikKeyboardView {
 
         initShiftButton()
     }
-    
+
+    func updateLayoutToTwitter() {
+        spaceButton.isHidden = false
+        atButton.isHidden = true
+        periodButton.isHidden = true
+        slashButton.isHidden = true
+        dotComButton.isHidden = true
+
+        returnButton.isHidden = true
+        secondaryAtButton.isHidden = false
+        secondarySharpButton.isHidden = false
+
+        initShiftButton()
+    }
+
     func updateLayoutToWebSearch() {
         spaceButton.isHidden = false
         atButton.isHidden = true

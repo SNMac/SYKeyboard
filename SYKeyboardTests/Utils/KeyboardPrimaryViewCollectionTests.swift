@@ -53,10 +53,10 @@ struct KeyboardPrimaryViewCollectionTests {
 
     @Test("통합 primary collection은 numeric 언어 버튼도 opt-in")
     func testUnifiedPrimaryViewsOptInNumericLanguageButton() throws {
-        // numericKeyboardView는 isNumericKeypadBottomSpaceEnabled 저장값에 따라
+        // numericKeyboardView는 isBottomSpaceEnabled 저장값에 따라
         // modifier 순서가 달라지므로, 이 테스트가 기대하는 꺼짐 순서로 고정한다
         let storage = UserDefaultsManager.shared.storage
-        let key = UserDefaultsKeys.isNumericKeypadBottomSpaceEnabled
+        let key = UserDefaultsKeys.isBottomSpaceEnabled
         let originalValue = storage.object(forKey: key)
         storage.set(false, forKey: key)
         defer { restore(originalValue, forKey: key, in: storage) }
@@ -164,6 +164,24 @@ struct KeyboardPrimaryViewCollectionTests {
                 - visibleModifierWidth
             ) < 0.5
         )
+    }
+
+    @Test("기호 자판은 주 자판에 숫자 행이 있으면 숫자 행도 표시한다")
+    func test기호자판_주자판숫자행있으면_표시() {
+        let primary = TestPrimaryKeyboardView(keyboard: .qwerty, showsNumberRow: true)
+
+        let view = KeyboardView.loadFromNib(primaryKeyboardViews: [primary])
+
+        #expect(view.symbolKeyboardView.showsNumberRow)
+    }
+
+    @Test("기호 자판은 주 자판에 숫자 행이 없으면 숫자 행도 숨긴다")
+    func test기호자판_주자판숫자행없으면_숨김() {
+        let primary = TestPrimaryKeyboardView(keyboard: .qwerty, showsNumberRow: false)
+
+        let view = KeyboardView.loadFromNib(primaryKeyboardViews: [primary])
+
+        #expect(view.symbolKeyboardView.showsNumberRow == false)
     }
 
     @Test("초기 setup은 active primary만 표시")
@@ -285,12 +303,13 @@ private final class TestPrimaryKeyboardView: StandardKeyboardView, PrimaryKeyboa
         ]
     }
 
-    init(keyboard: SYKeyboardType, showsLanguageSwitchButton: Bool = false) {
+    init(keyboard: SYKeyboardType, showsLanguageSwitchButton: Bool = false, showsNumberRow: Bool = false) {
         self.keyboardType = keyboard
         super.init(
             getIsShiftedLetterInput: { false },
             setIsShiftedLetterInput: { _ in },
-            showsLanguageSwitchButton: showsLanguageSwitchButton
+            showsLanguageSwitchButton: showsLanguageSwitchButton,
+            showsNumberRow: showsNumberRow
         )
     }
 

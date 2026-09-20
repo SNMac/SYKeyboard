@@ -99,7 +99,7 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
         setAnalyticsProperty(keyboardSettingsManager.isOneHandedKeyboardEnabled, forName: "pref_one_handed_keyboard")
         setAnalyticsProperty(keyboardSettingsManager.oneHandedKeyboardWidth, format: "%.1f", forName: "pref_one_handed_width")
         setAnalyticsProperty(keyboardSettingsManager.isNaratgeulDotLabelEnabled, forName: "pref_naratgeul_dot_label")
-        // 사용자 속성은 이름 24자 이하, 앱당 25개까지만 SDK가 전송한다. 천지인·숫자 키패드 하단 공백은 한도 때문에 이벤트로만 남긴다
+        // 사용자 속성은 이름 24자 이하, 앱당 25개까지만 SDK가 전송한다. 스페이스 하단 배치와 숫자 행 표시는 한도 때문에 이벤트로만 남긴다
         setAnalyticsProperty(keyboardSettingsManager.letterColumnWidthMultiplier, format: "%.2f", forName: "pref_letter_column_width")
 
         // 입력·자동완성

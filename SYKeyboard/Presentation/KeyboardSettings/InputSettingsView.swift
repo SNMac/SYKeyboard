@@ -18,7 +18,7 @@ struct InputSettingsView: View {
     
     @AppStorage(UserDefaultsKeys.selectedLongPressAction, store: UserDefaultsManager.shared.storage)
     private var selectedLongPressAction = DefaultValues.selectedLongPressAction
-    
+
     @AppStorage(UserDefaultsKeys.isAutoCapitalizationEnabled, store: UserDefaultsManager.shared.storage)
     private var isAutoCapitalizationEnabled = DefaultValues.isAutoCapitalizationEnabled
     
@@ -39,12 +39,13 @@ struct InputSettingsView: View {
         case numberInput
         case disabled
         
+        /// 보조 키 입력은 키 모서리에 표시된 문자(숫자, 숫자 행이 켜진 두벌식·쿼티는 대문자·쌍자음)를 입력한다
         var displayStr: String {
             switch self {
             case .repeatInput:
                 String(localized: "반복 입력")
             case .numberInput:
-                String(localized: "숫자 입력")
+                String(localized: "보조 키 입력")
             case .disabled:
                 String(localized: "비활성화")
             }
@@ -80,9 +81,15 @@ struct InputSettingsView: View {
     // MARK: - Content
     
     var body: some View {
-        Picker("길게 누르기 동작", selection: longPressModeBinding) {
+        Picker(selection: longPressModeBinding) {
             ForEach(LongPressMode.allCases, id: \.self) {
                 Text($0.displayStr)
+            }
+        } label: {
+            Text("길게 누르기 동작")
+            if longPressModeBinding.wrappedValue == .numberInput {
+                Text("키 모서리에 표시된 문자를 입력")
+                    .font(.caption)
             }
         }
         

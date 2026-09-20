@@ -38,6 +38,20 @@ public final class HangeulEnglishKeyboardModeCoordinator {
         )
     }
 
+    /// 입력 trait이 바뀌었을 때 쓸 언어를 다시 정한다.
+    /// 필드 객체를 알 수 없는 환경에서 `modeForTextInputChange` 대신 쓴다
+    public func modeForInputTraitsChange(
+        requiresLatinInput: Bool,
+        lastMode: HangeulEnglishLanguageMode?,
+        preferredLanguages: [String]
+    ) -> HangeulEnglishLanguageMode {
+        KeyboardLanguageModePolicy.initialMode(
+            requiresLatinInput: requiresLatinInput,
+            lastMode: lastMode,
+            preferredLanguages: preferredLanguages
+        )
+    }
+
     public func selectModeManually(_ mode: HangeulEnglishLanguageMode) {
         currentMode = mode
     }

@@ -61,6 +61,8 @@ public enum DefaultValues {
     
     /// 키보드 높이 기본값
     public static let keyboardHeight: Double = 240.0
+    /// 두벌식·쿼티 숫자 행 표시 여부 기본값
+    public static let showsNumberRow: Bool = false
     /// 숫자 키보드 활성화 여부 기본값
     public static let isNumericKeypadEnabled: Bool = true
     /// 한 손 키보드 활성화 여부 기본값
@@ -71,10 +73,8 @@ public enum DefaultValues {
     public static let letterColumnWidthMultiplier: Double = 1.0
     /// 나랏글 '획', '쌍' 버튼 점 기호 표기 여부 기본값
     public static let isNaratgeulDotLabelEnabled: Bool = false
-    /// 천지인 스페이스 버튼 하단 배치 여부 기본값
-    public static let isCheonjiinBottomSpaceEnabled: Bool = false
-    /// 숫자 키패드 스페이스 버튼 하단 배치 여부 기본값
-    public static let isNumericKeypadBottomSpaceEnabled: Bool = false
+    /// 천지인·숫자 키패드 스페이스 하단 배치 여부 기본값
+    public static let isBottomSpaceEnabled: Bool = false
 
     // MARK: - 기타 설정
 

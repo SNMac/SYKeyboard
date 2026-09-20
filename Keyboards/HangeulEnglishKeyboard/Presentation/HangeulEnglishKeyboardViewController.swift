@@ -115,14 +115,18 @@ final class HangeulEnglishKeyboardViewController: BaseKeyboardViewController {
 
     // MARK: - Override Methods
 
-    override func textInputDidChange(_ textInput: (any UITextInput)?) {
+    /// 이 훅은 `textDidChange`에서 `updateKeyboardType()` **뒤에** 불린다.
+    /// 그래서 `updateKeyboardType()`이 아직 바뀌기 전 언어로 `currentKeyboard`를 한 번 정하고,
+    /// 아래 `applyLanguageMode`가 새 언어로 다시 정한다. 두 번째가 항상 정정해 주는 근거는
+    /// `KeyboardLanguageModePolicy.shouldReturnToPrimaryKeyboard`가 문자 자판 네 종류 모두에
+    /// `true`를 돌려준다는 것이고, 그 성질은 `testAutomaticSwitchUpdatesPrimaryKeyboard`가 고정한다
+    override func inputTraitsDidChange() {
         let previousMode = modeCoordinator.currentMode
         let requiresLatinInput = KeyboardLanguageModePolicy.requiresLatinInput(
             keyboardType: textDocumentProxy.keyboardType,
             textContentType: textDocumentProxy.textContentType
         )
-        let mode = modeCoordinator.modeForTextInputChange(
-            identifier: textInput.map { ObjectIdentifier($0 as AnyObject) },
+        let mode = modeCoordinator.modeForInputTraitsChange(
             requiresLatinInput: requiresLatinInput,
             lastMode: Self.storedLanguageMode(),
             preferredLanguages: Locale.preferredLanguages

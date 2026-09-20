@@ -94,6 +94,18 @@ struct KeyboardSettingsView: View {
             Section {
                 VersionView()
             }
+
+#if DEBUG
+            // MARK: - 개발용
+
+            Section {
+                NavigationLink("키보드 타입 확인") {
+                    KeyboardTypeTestView()
+                }
+            } header: {
+                Text("개발용")
+            }
+#endif
         }
         .ignoresSafeArea(.keyboard, edges: .all)
         .scrollDismissesKeyboard(.immediately)

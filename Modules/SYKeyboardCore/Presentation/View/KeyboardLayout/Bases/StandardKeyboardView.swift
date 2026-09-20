@@ -25,10 +25,10 @@ open class StandardKeyboardView: UIView, NormalKeyboardLayoutProvider {
     open var secondaryKeyList: [[[[String]]]] { fatalError("프로퍼티가 오버라이딩 되지 않았습니다.") }
     
     public private(set) lazy var allButtonList: [BaseKeyboardButton] = primaryButtonList + secondaryButtonList
-    public private(set) lazy var primaryButtonList: [PrimaryButton] = firstRowPrimaryKeyButtonList + secondRowPrimaryKeyButtonList + thirdRowPrimaryKeyButtonList + [spaceButton, atButton, periodButton, slashButton, dotComButton]
+    public private(set) lazy var primaryButtonList: [PrimaryButton] = numberRowPrimaryKeyButtonList + firstRowPrimaryKeyButtonList + secondRowPrimaryKeyButtonList + thirdRowPrimaryKeyButtonList + [spaceButton, atButton, periodButton, slashButton, dotComButton]
     public private(set) lazy var secondaryButtonList: [SecondaryButton] = [shiftButton, deleteButton, switchButton, returnButton, secondaryAtButton, secondarySharpButton, nextKeyboardButton]
     + [languageSwitchButton].compactMap { $0 as SecondaryButton? }
-    public private(set) lazy var totalTextInterableButtonList: [TextInteractable] = firstRowPrimaryKeyButtonList + secondRowPrimaryKeyButtonList + thirdRowPrimaryKeyButtonList
+    public private(set) lazy var totalTextInterableButtonList: [TextInteractable] = numberRowPrimaryKeyButtonList + firstRowPrimaryKeyButtonList + secondRowPrimaryKeyButtonList + thirdRowPrimaryKeyButtonList
     + [deleteButton, spaceButton, atButton, periodButton, slashButton, dotComButton, returnButton, secondaryAtButton, secondarySharpButton]
     
     final public var isShifted: Bool = false {
@@ -43,17 +43,29 @@ open class StandardKeyboardView: UIView, NormalKeyboardLayoutProvider {
     public var periodButtonWidthConstraint: NSLayoutConstraint?
     /// 통합 키보드 modifier 영역의 너비 제약
     private var fourthRowModifierWidthConstraint: NSLayoutConstraint?
-    
+    /// 숫자 행 높이 제약. 방향에 따라 `updateNumberRowHeight(_:)`가 상수를 바꾼다
+    private var numberRowHeightConstraint: NSLayoutConstraint?
+
     // Initializer Injection
     public let getIsShiftedLetterInput: () -> Bool
     public let setIsShiftedLetterInput: (Bool) -> ()
     private let showsLanguageSwitchButton: Bool
-    
+    /// 두벌식·쿼티 숫자 행 표시 여부
+    public let showsNumberRow: Bool
+    /// 실제 버튼에 쓰는 보조 키 배열. 숫자 행이 켜져 있으면 숫자 대신 shift 짝 문자를 쓴다
+    private var resolvedSecondaryKeyList: [[[[String]]]] {
+        showsNumberRow
+        ? KeyboardTextInteractionPolicy.shiftPairSecondaryKeyList(from: primaryKeyList)
+        : secondaryKeyList
+    }
+
     // MARK: - UI Components
-    
+
     /// 키보드 레이아웃 수직 스택
     private let layoutVStackView = KeyboardLayoutVStackView()
-    
+
+    /// 숫자 행
+    private let numberRowHStackView = KeyboardRowHStackView()
     /// 키보드 첫번째 행
     private let firstRowHStackView = KeyboardRowHStackView()
     /// 키보드 두번째 행
@@ -93,22 +105,28 @@ open class StandardKeyboardView: UIView, NormalKeyboardLayoutProvider {
     }()
     public private(set) var returnButtonHStackView = KeyboardRowHStackView()
     
+    /// 숫자 행 `PrimaryKeyButton` 배열. 숫자 행이 꺼져 있으면 비어 있다
+    private lazy var numberRowPrimaryKeyButtonList: [PrimaryKeyButton] = showsNumberRow
+    ? ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"].map {
+        PrimaryKeyButton(keyboard: keyboard, button: .keyButton(primary: [$0], secondary: nil))
+    }
+    : []
     /// 키보드 첫번째 행 `PrimaryKeyButton` 배열
-    private lazy var firstRowPrimaryKeyButtonList = zip(primaryKeyList[0][0], secondaryKeyList[0][0]).map { (primary, secondary) in
+    private lazy var firstRowPrimaryKeyButtonList = zip(primaryKeyList[0][0], resolvedSecondaryKeyList[0][0]).map { (primary, secondary) in
         PrimaryKeyButton(
             keyboard: keyboard,
             button: .keyButton(primary: primary, secondary: secondary.first)
         )
     }
     /// 키보드 두번째 행 `PrimaryKeyButton` 배열
-    private lazy var secondRowPrimaryKeyButtonList = zip(primaryKeyList[0][1], secondaryKeyList[0][1]).map { (primary, secondary) in
+    private lazy var secondRowPrimaryKeyButtonList = zip(primaryKeyList[0][1], resolvedSecondaryKeyList[0][1]).map { (primary, secondary) in
         PrimaryKeyButton(
             keyboard: keyboard,
             button: .keyButton(primary: primary, secondary: secondary.first)
         )
     }
     /// 키보드 세번째 행 `PrimaryKeyButton` 배열
-    private lazy var thirdRowPrimaryKeyButtonList = zip(primaryKeyList[0][2], secondaryKeyList[0][2]).map { (primary, secondary) in
+    private lazy var thirdRowPrimaryKeyButtonList = zip(primaryKeyList[0][2], resolvedSecondaryKeyList[0][2]).map { (primary, secondary) in
         PrimaryKeyButton(
             keyboard: keyboard,
             button: .keyButton(primary: primary, secondary: secondary.first)
@@ -156,13 +174,15 @@ open class StandardKeyboardView: UIView, NormalKeyboardLayoutProvider {
     public init(
         getIsShiftedLetterInput: @escaping () -> Bool,
         setIsShiftedLetterInput: @escaping (Bool) -> (),
-        showsLanguageSwitchButton: Bool = false
+        showsLanguageSwitchButton: Bool = false,
+        showsNumberRow: Bool = UserDefaultsManager.shared.showsNumberRow
     ) {
         self.getIsShiftedLetterInput = getIsShiftedLetterInput
         self.setIsShiftedLetterInput = setIsShiftedLetterInput
         self.showsLanguageSwitchButton = showsLanguageSwitchButton
+        self.showsNumberRow = showsNumberRow
         super.init(frame: .zero)
-        
+
         setupUI()
     }
     
@@ -214,10 +234,14 @@ private extension StandardKeyboardView {
     }
     
     func setHierarchy() {
-        [layoutVStackView,
-         keyboardSelectOverlayView,
+        self.addSubview(layoutVStackView)
+        if showsNumberRow {
+            self.addSubview(numberRowHStackView)
+            numberRowPrimaryKeyButtonList.forEach { numberRowHStackView.addArrangedSubview($0) }
+        }
+        [keyboardSelectOverlayView,
          oneHandedModeSelectOverlayView].forEach { self.addSubview($0) }
-        
+
         [firstRowHStackView,
          secondRowHStackView,
          thirdRowHStackView,
@@ -242,12 +266,27 @@ private extension StandardKeyboardView {
     func setConstraints() {
         layoutVStackView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
-            layoutVStackView.topAnchor.constraint(equalTo: self.topAnchor),
             layoutVStackView.leadingAnchor.constraint(equalTo: self.leadingAnchor),
             layoutVStackView.trailingAnchor.constraint(equalTo: self.trailingAnchor),
             layoutVStackView.bottomAnchor.constraint(equalTo: self.bottomAnchor)
         ])
-        
+        if showsNumberRow {
+            numberRowHStackView.translatesAutoresizingMaskIntoConstraints = false
+            let heightConstraint = numberRowHStackView.heightAnchor.constraint(
+                equalToConstant: KeyboardHeightPolicy.portraitNumberRowHeight
+            )
+            NSLayoutConstraint.activate([
+                numberRowHStackView.topAnchor.constraint(equalTo: self.topAnchor),
+                numberRowHStackView.leadingAnchor.constraint(equalTo: self.leadingAnchor),
+                numberRowHStackView.trailingAnchor.constraint(equalTo: self.trailingAnchor),
+                heightConstraint,
+                layoutVStackView.topAnchor.constraint(equalTo: numberRowHStackView.bottomAnchor)
+            ])
+            numberRowHeightConstraint = heightConstraint
+        } else {
+            layoutVStackView.topAnchor.constraint(equalTo: self.topAnchor).isActive = true
+        }
+
         for (index, button) in secondRowPrimaryKeyButtonList.enumerated() {
             button.translatesAutoresizingMaskIntoConstraints = false
             guard let superview = button.superview else { continue }
@@ -437,6 +476,12 @@ extension StandardKeyboardView {
         setNeedsLayout()
     }
 
+    final public func updateNumberRowHeight(_ height: CGFloat) {
+        guard let numberRowHeightConstraint,
+              numberRowHeightConstraint.constant != height else { return }
+        numberRowHeightConstraint.constant = height
+    }
+
     /// `periodButton`의 너비 제약 조건을 업데이트합니다.
     /// - Parameter multiplier: 설정할 비율 (`nil`인 경우 제약 조건 비활성화)
     final public func updatePeriodButtonWidthConstraint(multiplier: CGFloat?) {
@@ -453,11 +498,12 @@ extension StandardKeyboardView {
     
     final public func updateKeyButtonList() {
         let keyListIndex = (isShifted ? 1 : 0)
+        let resolvedSecondaryKeyList = resolvedSecondaryKeyList
         let rowList = [firstRowPrimaryKeyButtonList, secondRowPrimaryKeyButtonList, thirdRowPrimaryKeyButtonList]
         for (rowIndex, buttonList) in rowList.enumerated() {
             for (buttonIndex, button) in buttonList.enumerated() {
                 let primaryKeyList = primaryKeyList[keyListIndex][rowIndex][buttonIndex]
-                let secondaryKeyList = secondaryKeyList[keyListIndex][rowIndex][buttonIndex]
+                let secondaryKeyList = resolvedSecondaryKeyList[keyListIndex][rowIndex][buttonIndex]
                 button.update(buttonType: TextInteractableType.keyButton(primary: primaryKeyList, secondary: secondaryKeyList.first))
             }
         }
