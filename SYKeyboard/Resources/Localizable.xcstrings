@@ -390,12 +390,22 @@
         }
       }
     },
-    "두벌식" : {
+    "두벌식·쿼티 자판 맨 윗줄에 숫자 키 표시" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Dubeolsik"
+            "value" : "Show number keys above the Dubeolsik and QWERTY layouts"
+          }
+        }
+      }
+    },
+    "두벌식(쿼티)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dubeolsik(QWERTY)"
           }
         }
       }
@@ -530,16 +540,6 @@
         }
       }
     },
-    "이미지는 한 장에 %lld MB · %lld MP까지 저장합니다. '이미지도 기록'을 끄면 새로 복사한 이미지는 저장하지 않으며, 이미 저장된 이미지는 여기서 삭제할 수 있습니다." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Each image is saved up to %1$lld MB and %2$lld MP. When “Include Images” is off, newly copied images are not saved; saved images can be deleted here."
-          }
-        }
-      }
-    },
     "복사한 텍스트나 이미지가 여기에 표시됩니다." : {
       "localizations" : {
         "en" : {
@@ -597,6 +597,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Deleted items can't be recovered."
+          }
+        }
+      }
+    },
+    "상세" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Details"
+          }
+        }
+      }
+    },
+    "상세 보기" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show Details"
           }
         }
       }
@@ -682,16 +702,6 @@
         }
       }
     },
-    "두벌식·쿼티 자판 맨 윗줄에 숫자 키 표시" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Show number keys above the Dubeolsik and QWERTY layouts"
-          }
-        }
-      }
-    },
     "스마트 구두점" : {
       "localizations" : {
         "en" : {
@@ -718,16 +728,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Bottom Space Bar"
-          }
-        }
-      }
-    },
-    "천지인·숫자 키패드의 스페이스를 맨 아랫줄로 옮기고 리턴을 위로 올림" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Moves the space bar to the bottom row and the return key up on Cheonjiin and the numeric keypad"
           }
         }
       }
@@ -842,22 +842,12 @@
         }
       }
     },
-    "상세 보기" : {
+    "이동 드래그 간격" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Show Details"
-          }
-        }
-      }
-    },
-    "상세" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Details"
+            "value" : "Movement Drag Interval"
           }
         }
       }
@@ -872,22 +862,22 @@
         }
       }
     },
+    "이미지는 한 장에 %lld MB · %lld MP까지 저장합니다. '이미지도 기록'을 끄면 새로 복사한 이미지는 저장하지 않으며, 이미 저장된 이미지는 여기서 삭제할 수 있습니다." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Each image is saved up to %1$lld MB and %2$lld MP. When “Include Images” is off, newly copied images are not saved; saved images can be deleted here."
+          }
+        }
+      }
+    },
     "이미지도 기록" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Include Images"
-          }
-        }
-      }
-    },
-    "이동 드래그 간격" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Movement Drag Interval"
           }
         }
       }
@@ -978,6 +968,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Cheonjiin"
+          }
+        }
+      }
+    },
+    "천지인·숫자 키패드의 스페이스를 맨 아랫줄로 옮기고 리턴을 위로 올림" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Moves the space bar to the bottom row and the return key up on Cheonjiin and the numeric keypad"
           }
         }
       }
@@ -1315,22 +1315,22 @@
         }
       }
     },
-    "햅틱 피드백" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Haptic Feedback"
-          }
-        }
-      }
-    },
     "항목이 삭제되었습니다" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "This item was deleted."
+          }
+        }
+      }
+    },
+    "햅틱 피드백" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Haptic Feedback"
           }
         }
       }
