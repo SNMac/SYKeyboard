@@ -38,7 +38,7 @@
 ### Task 1: 가로모드에서 숫자 행 숨기기 — 철회됨
 
 **2026-09-20 철회.** 가로모드에서도 숫자 행을 그대로 표시하기로 했다. 이 Task는
-실행하지 않는다. 이미 구현·리뷰까지 끝난 커밋 `4130dbee`는 되돌린다.
+실행하지 않는다. 이미 구현·리뷰까지 끝난 커밋 `4130dbee`는 `62b35866`으로 되돌렸다.
 
 되돌리면 아래가 복구된다.
 
@@ -64,7 +64,7 @@
 
 **배경:** 셋째 줄 첫 버튼의 너비를 배열의 **맨 마지막** 버튼에 묶어 놨다. URL·이메일 자판은 셋째 줄 마지막 칸이 빈 키라 `PrimaryKeyButton`이 `isHidden = true`로 접고, 너비가 0이 되면서 거기 묶인 첫 버튼도 0이 된다. 그래서 남는 폭이 전부 왼쪽에 쏠려 키들이 오른쪽으로 밀린다. 어느 칸이 비는지는 모드에 따라 달라지므로, 제약을 생성 시점에 한 번만 잡으면 안 되고 배열이 바뀔 때마다 다시 잡아야 한다.
 
-- [ ] **Step 1: 실패하는 테스트 작성**
+- [x] **Step 1: 실패하는 테스트 작성**
 
 `SYKeyboardTests/Utils/SymbolKeyboardLayoutTests.swift`를 새로 만든다.
 
@@ -145,7 +145,7 @@ struct SymbolKeyboardLayoutTests {
     }
 ```
 
-- [ ] **Step 2: 테스트가 실패하는지 확인**
+- [x] **Step 2: 테스트가 실패하는지 확인**
 
 ```sh
 xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
@@ -157,7 +157,7 @@ xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
 
 예상: 기본 자판은 PASS, URL·이메일은 FAIL. 첫 키의 시각 요소가 `⇧` 쪽으로 넘어가 왼쪽 여백이 음수로 나온다. Auto Layout 제약 충돌 로그가 함께 찍힐 수 있는데, 같은 원인이므로 수정 후 사라져야 한다.
 
-- [ ] **Step 3: 셋째 줄 제약을 다시 잡을 수 있게 고치기**
+- [x] **Step 3: 셋째 줄 제약을 다시 잡을 수 있게 고치기**
 
 `SymbolKeyboardView.swift`의 프로퍼티 선언부(`fourthRowModifierWidthConstraint` 아래, `:45` 근처)에 저장 공간을 추가한다.
 
@@ -218,11 +218,11 @@ xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
         updateThirdRowWidthConstraints()
 ```
 
-- [ ] **Step 4: 테스트가 통과하는지 확인**
+- [x] **Step 4: 테스트가 통과하는지 확인**
 
 Step 2와 같은 명령을 실행한다. 예상: 세 테스트 모두 PASS.
 
-- [ ] **Step 5: 커밋**
+- [x] **Step 5: 커밋**
 
 ```bash
 git add Modules/SYKeyboardCore/Presentation/View/KeyboardLayout/SymbolKeyboardView.swift \
@@ -233,6 +233,9 @@ fix: #138 - 기호 자판 셋째 줄에 빈 키가 있으면 키가 오른쪽으
 Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
 EOF
 ```
+
+**결과:** 완료 (커밋 `f7033e58`). 수정 전 URL·이메일 자판의 좌우 여백차 63.67pt로 FAIL 확인 후 수정.
+`SymbolKeyboardLayoutTests` 3건 PASS. 리뷰 Approved.
 
 ---
 
@@ -247,7 +250,7 @@ EOF
 - Consumes: 없음
 - Produces: `SymbolKeyboardMode.keyList(usesNumberRow: Bool) -> [[[[String]]]]`. 기존 `var keyList: [[[[String]]]]`는 사라지고, 호출부는 `keyList(usesNumberRow:)`를 쓴다. Task 5가 `usesNumberRow`를 넘긴다.
 
-- [ ] **Step 1: 실패하는 테스트 작성**
+- [x] **Step 1: 실패하는 테스트 작성**
 
 `SYKeyboardTests/Utils/SymbolKeyboardLayoutTests.swift`에 아래를 추가한다.
 
@@ -295,7 +298,7 @@ EOF
     }
 ```
 
-- [ ] **Step 2: 테스트가 실패하는지 확인**
+- [x] **Step 2: 테스트가 실패하는지 확인**
 
 ```sh
 xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
@@ -307,7 +310,7 @@ xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
 
 예상: `keyList(usesNumberRow:)`가 없어 컴파일 실패.
 
-- [ ] **Step 3: 기본·웹 검색 배열 구현**
+- [x] **Step 3: 기본·웹 검색 배열 구현**
 
 `SymbolKeyboardMode.swift`의 `var keyList: [[[[String]]]]` 선언을 아래 함수로 바꾼다. `case .URL`과 `case .emailAddress`의 본문은 Task 4에서 고치므로 지금은 기존 배열을 `usesNumberRow`와 무관하게 그대로 돌려준다.
 
@@ -375,7 +378,7 @@ xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
     }
 ```
 
-- [ ] **Step 4: 호출부 고치기**
+- [x] **Step 4: 호출부 고치기**
 
 `SymbolKeyboardView.swift`에서 `currentSymbolKeyboardMode.keyList[...]`를 쓰는 네 곳을 찾는다.
 
@@ -385,11 +388,11 @@ grep -n "currentSymbolKeyboardMode.keyList" Modules/SYKeyboardCore/Presentation/
 
 네 곳 모두 `currentSymbolKeyboardMode.keyList(usesNumberRow: false)[...]`로 바꾼다. Task 5에서 실제 값으로 바꾼다.
 
-- [ ] **Step 5: 테스트가 통과하는지 확인**
+- [x] **Step 5: 테스트가 통과하는지 확인**
 
 Step 2와 같은 명령을 실행한다. 예상: 이 suite의 모든 테스트가 PASS.
 
-- [ ] **Step 6: 커밋**
+- [x] **Step 6: 커밋**
 
 ```bash
 git add Modules/SYKeyboardCore/Presentation/Utils/Enums/KeyboardMode/SymbolKeyboardMode.swift \
@@ -401,6 +404,10 @@ feat: #138 - 숫자 행이 켜졌을 때의 기본 기호 자판 배열 추가
 Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
 EOF
 ```
+
+**결과:** 완료 (커밋 `c5bd601b`). 테스트 19건 PASS. 리뷰 Approved.
+계획이 빠뜨린 호출부가 있었다. `SYKeyboardTests/Utils/KeyboardSymbolInputPolicyTests.swift`도
+옛 `keyList` 프로퍼티를 4곳에서 써서 함께 고쳤다. 기대값은 바꾸지 않고 호출 형태만 바꿨다.
 
 ---
 
@@ -414,7 +421,7 @@ EOF
 - Consumes: `SymbolKeyboardMode.keyList(usesNumberRow: Bool) -> [[[[String]]]]` (Task 3)
 - Produces: `usesNumberRow == true`일 때 `.URL`과 `.emailAddress`의 두 층이 서로 같은 내용이다. Task 5가 이 성질을 보고 `⇧`를 숨긴다.
 
-- [ ] **Step 1: 실패하는 테스트 작성**
+- [x] **Step 1: 실패하는 테스트 작성**
 
 `SYKeyboardTests/Utils/SymbolKeyboardLayoutTests.swift`에 추가한다.
 
@@ -462,7 +469,7 @@ EOF
     }
 ```
 
-- [ ] **Step 2: 테스트가 실패하는지 확인**
+- [x] **Step 2: 테스트가 실패하는지 확인**
 
 ```sh
 xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
@@ -474,7 +481,7 @@ xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
 
 예상: 합친 배열 테스트 세 개가 FAIL.
 
-- [ ] **Step 3: 합친 배열 구현**
+- [x] **Step 3: 합친 배열 구현**
 
 `SymbolKeyboardMode.swift`의 `case .URL` 본문 맨 앞에 아래를 넣는다.
 
@@ -508,11 +515,11 @@ xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
             }
 ```
 
-- [ ] **Step 4: 테스트가 통과하는지 확인**
+- [x] **Step 4: 테스트가 통과하는지 확인**
 
 Step 2와 같은 명령을 실행한다. 예상: 이 suite의 모든 테스트가 PASS.
 
-- [ ] **Step 5: 커밋**
+- [x] **Step 5: 커밋**
 
 ```bash
 git add Modules/SYKeyboardCore/Presentation/Utils/Enums/KeyboardMode/SymbolKeyboardMode.swift \
@@ -523,6 +530,10 @@ feat: #138 - 숫자 행이 켜지면 URL·이메일 기호 자판을 한 페이�
 Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
 EOF
 ```
+
+**결과:** 완료 (커밋 `b4842fac`). 테스트 11건 PASS. 리뷰 Approved.
+구현 서브에이전트가 검증 도중 중단돼 Step 4~5를 컨트롤러가 마무리했다. 자세한 내용은
+`.superpowers/sdd/2026-09-20-symbol-keyboard-number-row/task-4-report.md` 참고.
 
 ---
 
@@ -538,7 +549,7 @@ EOF
 
 **배경:** 숫자 행 표시 여부는 설정 하나로 정해진다. 화면 방향은 조건이 아니다. 숫자 행이 세로·가로 모두 보이므로, 기호 자판 배열도 뷰를 만들 때 한 번 정해지고 회전해도 바뀌지 않는다. 회전할 때 달라지는 것은 숫자 행 높이(46.5pt ↔ 35pt)뿐이고, 그건 `updateNumberRowHeight(_:)`가 제약 상수만 바꿔 처리한다.
 
-- [ ] **Step 1: 실패하는 테스트 작성**
+- [x] **Step 1: 실패하는 테스트 작성**
 
 `SYKeyboardTests/Utils/SymbolKeyboardLayoutTests.swift`에 추가한다.
 
@@ -600,7 +611,7 @@ EOF
 
 테스트가 `numberRowPrimaryKeyButtonList`와 `firstRowPrimaryKeyButtonList`를 읽어야 하므로 두 선언의 `private`을 `private(set)`으로 바꾼다.
 
-- [ ] **Step 2: 테스트가 실패하는지 확인**
+- [x] **Step 2: 테스트가 실패하는지 확인**
 
 ```sh
 xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
@@ -612,7 +623,7 @@ xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
 
 예상: 새 생성자 인자가 없어 컴파일 실패.
 
-- [ ] **Step 3: 숫자 행 UI와 상태 추가**
+- [x] **Step 3: 숫자 행 UI와 상태 추가**
 
 `SymbolKeyboardView.swift`에 아래를 더한다. 위치는 `StandardKeyboardView`의 같은 이름 멤버와 맞춘다.
 
@@ -654,7 +665,7 @@ UI 구역:
     }
 ```
 
-- [ ] **Step 4: 계층과 제약 추가**
+- [x] **Step 4: 계층과 제약 추가**
 
 `setHierarchy()`의 `self.addSubview(layoutVStackView)` 다음에 넣는다.
 
@@ -692,7 +703,7 @@ UI 구역:
         }
 ```
 
-- [ ] **Step 5: 배열 적용과 `⇧` 숨김 구현**
+- [x] **Step 5: 배열 적용과 `⇧` 숨김 구현**
 
 높이 갱신은 제약 상수만 바꾼다. `StandardKeyboardView`와 같은 모양이다.
 
@@ -745,11 +756,11 @@ Task 3 Step 4에서 `keyList(usesNumberRow: false)`로 임시 고정해 둔 네 
         updateShiftButtonVisibility()
 ```
 
-- [ ] **Step 6: 테스트가 통과하는지 확인**
+- [x] **Step 6: 테스트가 통과하는지 확인**
 
 Step 2와 같은 명령을 실행한다. 예상: 이 suite의 모든 테스트가 PASS.
 
-- [ ] **Step 7: 커밋**
+- [x] **Step 7: 커밋**
 
 ```bash
 git add Modules/SYKeyboardCore/Presentation/View/KeyboardLayout/SymbolKeyboardView.swift \
@@ -760,6 +771,9 @@ feat: #138 - 기호 자판에 숫자 행 추가
 Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
 EOF
 ```
+
+**결과:** 완료 (커밋 `6f7a8d35`). `SymbolKeyboardLayoutTests` 15건 PASS,
+세 extension scheme BUILD SUCCEEDED. 리뷰 Approved.
 
 ---
 
@@ -776,7 +790,7 @@ EOF
 
 **배경:** 기호 자판의 숫자 행은 주 자판과 **같은 높이**를 써야 한다. 주 자판에 숫자 행이 없는데 기호 자판에만 있으면 전체 프레임 높이와 어긋난다. 그래서 설정값을 다시 읽지 않고, 주 자판 뷰가 실제로 숫자 행을 가졌는지로 판단한다.
 
-- [ ] **Step 1: 실패하는 테스트 작성**
+- [x] **Step 1: 실패하는 테스트 작성**
 
 `SYKeyboardTests/Utils/SymbolKeyboardLayoutTests.swift`에 추가한다.
 
@@ -793,7 +807,7 @@ EOF
     }
 ```
 
-- [ ] **Step 2: 테스트가 실패하는지 확인**
+- [x] **Step 2: 테스트가 실패하는지 확인**
 
 ```sh
 xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
@@ -805,7 +819,7 @@ xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
 
 예상: Task 5의 `guard showsNumberRowSetting else { return }` 덕분에 이미 PASS할 수 있다. PASS하면 회귀 방지용으로 남기고 Step 3으로 넘어간다.
 
-- [ ] **Step 3: `KeyboardView`에서 숫자 행 여부 주입**
+- [x] **Step 3: `KeyboardView`에서 숫자 행 여부 주입**
 
 `KeyboardView.swift:74-76`의 `showsLanguageSwitchButton` 아래에 같은 모양으로 추가한다.
 
@@ -830,7 +844,7 @@ xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
     }()
 ```
 
-- [ ] **Step 4: 뷰 컨트롤러에서 높이 전달**
+- [x] **Step 4: 뷰 컨트롤러에서 높이 전달**
 
 `BaseKeyboardViewController.swift`의 `setKeyboardHeight()`에서 아래 줄을 찾는다.
 
@@ -845,7 +859,7 @@ xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
         keyboardView.symbolKeyboardView.updateNumberRowHeight(numberRowHeight)
 ```
 
-- [ ] **Step 5: 전체 테스트와 네 scheme 빌드**
+- [x] **Step 5: 전체 테스트와 네 scheme 빌드**
 
 ```sh
 xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
@@ -873,7 +887,7 @@ git status --short
 git diff SYKeyboard.xcodeproj/xcshareddata/xcschemes/
 ```
 
-- [ ] **Step 6: 커밋**
+- [x] **Step 6: 커밋**
 
 ```bash
 git add Modules/SYKeyboardCore/Presentation/View/KeyboardView.swift \
@@ -886,6 +900,13 @@ Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
 EOF
 ```
 
+**결과:** 완료 (커밋 `3ff3154b`, 수정 라운드 `2baf7631`). 세 extension scheme BUILD SUCCEEDED.
+리뷰에서 "이 Task가 추가한 배선 자체가 테스트 밖"이라는 Important 지적이 나와, 주 자판의
+숫자 행 여부가 기호 자판에 전달되는지 검증하는 테스트 2건을 추가했다. 배선을 일부러
+끊어 FAIL을 확인한 뒤 되돌렸다. 재리뷰에서 해소 확인.
+**미확인:** `setKeyboardHeight()`가 실제로 기호 자판의 높이 갱신을 호출하는지는 뷰 컨트롤러
+하네스가 필요해 테스트하지 않았다.
+
 ---
 
 ### Task 7: 문서 갱신과 최종 검증
@@ -897,11 +918,11 @@ EOF
 - Consumes: Task 2~6의 결과
 - Produces: 없음
 
-- [ ] **Step 1: 계획 문서에 결과 기록**
+- [x] **Step 1: 계획 문서에 결과 기록**
 
 이 문서의 각 Task 끝에 `**결과:**` 줄을 더해 실제 테스트 개수와 빌드 결과를 적는다. 확인하지 못한 항목은 미확인이라고 쓴다.
 
-- [ ] **Step 2: 전체 테스트 재실행**
+- [x] **Step 2: 전체 테스트 재실행**
 
 ```sh
 xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
@@ -917,7 +938,7 @@ xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
 xcrun xcresulttool get test-results summary --path /tmp/symbol-number-row-tests.xcresult
 ```
 
-- [ ] **Step 3: 커밋**
+- [x] **Step 3: 커밋**
 
 ```bash
 git add docs/superpowers/plans/2026-09-20-symbol-keyboard-number-row.md
@@ -927,6 +948,34 @@ docs: #138 - 기호 자판 숫자 행 작업 결과 반영
 Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
 EOF
 ```
+
+---
+
+**결과:** 완료. 최종 전체 테스트를 `iPhone 13 mini / iOS 18.6`에서 실행해
+**749개 전부 PASS, 실패 0, 건너뜀 0**을 확인했다(2026-09-20).
+
+```sh
+xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
+  -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=18.6' \
+  -parallel-testing-enabled NO \
+  GADApplicationIdentifier='ca-app-pub-3940256099942544~1458002511' \
+  -resultBundlePath .superpowers/sdd/2026-09-20-symbol-keyboard-number-row/final-tests.xcresult
+```
+
+결과 판독 명령과 산출물 경로는 아래와 같다. 산출물 디렉터리는 gitignore 대상이라
+커밋되지 않으므로, 다시 확인하려면 위 명령을 재실행한다.
+
+```sh
+xcrun xcresulttool get test-results summary \
+  --path .superpowers/sdd/2026-09-20-symbol-keyboard-number-row/final-tests.xcresult
+```
+
+네 scheme 빌드는 Task 6에서 확인했다. `HangeulKeyboard`, `EnglishKeyboard`,
+`HangeulEnglishKeyboard` 모두 BUILD SUCCEEDED이고, `SYKeyboard` 앱은 위 테스트 실행에
+빌드가 포함된다.
+
+**2026-09-20 철회한 Task 1 관련:** `4130dbee`를 `62b35866`으로 되돌렸고, 설계·계획
+문서 수정은 `07e49fc2`에 있다.
 
 ---
 
@@ -945,3 +994,4 @@ EOF
 - [ ] URL·이메일 자판의 셋째 줄 키가 좌우 가운데에 놓인다
 - [ ] 숫자 행 설정을 끄면 기호 자판이 지금 배열로 돌아온다
 - [ ] 나랏글·천지인만 쓰는 한글 extension에서는 기호 자판에도 숫자 행이 없다
+- [ ] 자판 선택 오버레이와 한 손 모드 오버레이가 숫자 행을 가리지 않는다
