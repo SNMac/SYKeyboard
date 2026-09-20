@@ -34,7 +34,7 @@ struct HangeulKeyboardSelectView: View {
             case .cheonjiin:
                 String(localized: "천지인")
             case .dubeolsik:
-                String(localized: "두벌식(쿼티)")
+                String(localized: "두벌식")
             }
         }
         

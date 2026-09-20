@@ -390,22 +390,22 @@
         }
       }
     },
+    "두벌식" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dubeolsik"
+          }
+        }
+      }
+    },
     "두벌식·쿼티 자판 맨 윗줄에 숫자 키 표시" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Show number keys above the Dubeolsik and QWERTY layouts"
-          }
-        }
-      }
-    },
-    "두벌식(쿼티)" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Dubeolsik(QWERTY)"
           }
         }
       }
