@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** 자동완성 바 후보를 0.7초 길게 누르면 키보드 전체를 덮는 삭제 확인 오버레이를 띄우고, 확정하면 그 단어를 NGram 학습 데이터와 앱이 학습시킨 `UITextChecker` 단어에서 지운다.
+**Goal:** 자동완성 바 후보를 0.5초 길게 누르면 키보드 전체를 덮는 삭제 확인 오버레이를 띄우고, 확정하면 그 단어를 NGram 학습 데이터와 앱이 학습시킨 `UITextChecker` 단어에서 지운다.
 
 **Architecture:** 삭제 로직은 `NGramPredictiveTextEngine.removeWord(_:)`와 `PredictiveTextProvider.canUnlearn/unlearn`에 두고, `SuggestionController`가 후보 출처에 따라 삭제 가능 여부를 판정한다. `SuggestionBarView`는 기존 수동 터치 흐름에 `DispatchWorkItem` 타이머만 더해 길게 누르기를 감지하고, `BaseKeyboardViewController`가 클립보드에서 분리한 `DeleteConfirmOverlayView`를 띄운다.
 
@@ -14,7 +14,7 @@
 
 - 모든 경로는 워크트리 루트 `.claude/worktrees/feat-139-suggestion-removal` 기준이다. 절대 경로: `/Users/macmillan/Projects/XcodeProjects/SNMac/SYKeyboard/SYKeyboard/.claude/worktrees/feat-139-suggestion-removal`. develop 체크아웃(`/Users/macmillan/Projects/XcodeProjects/SNMac/SYKeyboard/SYKeyboard`)의 파일을 수정하지 않는다.
 - 브랜치: `feat/#139-suggestion-removal`. push하지 않는다.
-- 길게 누르기 시간은 `0.7`초 고정값이다. 사용자 설정 `longPressDuration`을 쓰지 않는다.
+- 길게 누르기 시간은 `0.5`초 고정값이다. 사용자 설정 `longPressDuration`을 쓰지 않는다. (구현 당시 `0.7`초였고, 2026-09-21 실기기 확인 후 `0.5`초로 조정했다.)
 - 짧은 탭·드래그 선택의 이벤트 타이밍과 결과를 바꾸지 않는다. `UILongPressGestureRecognizer`를 쓰지 않는다.
 - 삭제할 수 없는 후보(시스템 사전, `UILexicon`, 수식, typing 모드 button1)는 길게 눌러도 기존처럼 선택된다.
 - NGram 삭제는 대소문자를 구분하지 않는다. `currentSentenceWords`는 건드리지 않는다.
@@ -42,7 +42,7 @@ xcodebuild test \
 
 | 파일 | 책임 | Task |
 |---|---|---|
-| `Modules/SYKeyboardCore/Presentation/Utils/Policies/KeyboardSuggestionSelectionPolicy.swift` | 0.7초 상수 | 1 |
+| `Modules/SYKeyboardCore/Presentation/Utils/Policies/KeyboardSuggestionSelectionPolicy.swift` | 0.5초 상수 | 1 |
 | `Modules/SYKeyboardCore/Domain/PredictiveText/NGramPredictiveTextEngine.swift` | `removeWord(_:)` | 2 |
 | `Modules/SYKeyboardCore/Domain/SuggestionController.swift` | `NGramPredictiveTextProviding.removeWord` 요구사항, 삭제 판정·실행 | 2, 3 |
 | `Modules/SYKeyboardCore/Domain/PredictiveText/Protocols/PredictiveTextProvider.swift` | `canUnlearn`/`unlearn` 요구사항과 기본 구현 | 3 |
@@ -95,16 +95,16 @@ Expected: `git status --short` 출력 없음(gitignore 대상)
 - Test: `SYKeyboardTests/Utils/KeyboardSuggestionSelectionPolicyTests.swift`
 
 **Interfaces:**
-- Produces: `KeyboardSuggestionSelectionPolicy.removalLongPressDuration: TimeInterval` (= `0.7`)
+- Produces: `KeyboardSuggestionSelectionPolicy.removalLongPressDuration: TimeInterval` (= `0.5`)
 
 - [x] **Step 1: 실패하는 테스트 작성**
 
 `KeyboardSuggestionSelectionPolicyTests` 구조체 안 첫 테스트 앞에 추가한다.
 
 ```swift
-    @Test("자동완성 후보 삭제 길게 누르기 시간은 0.7초")
+    @Test("자동완성 후보 삭제 길게 누르기 시간은 0.5초")
     func test자동완성후보삭제_길게누르기시간은_0점7초() {
-        #expect(KeyboardSuggestionSelectionPolicy.removalLongPressDuration == 0.7)
+        #expect(KeyboardSuggestionSelectionPolicy.removalLongPressDuration == 0.5)
     }
 ```
 
@@ -124,7 +124,7 @@ Result: Confirmed — exact error message received during compilation.
     ///
     /// 사용자 설정 `longPressDuration`과 별개다. iOS 기본값 0.5초는 손가락을 댄 채
     /// 옆 후보로 옮겨 고르는 드래그 선택 중에 넘기기 쉬워 조금 길게 둔다
-    static let removalLongPressDuration: TimeInterval = 0.7
+    static let removalLongPressDuration: TimeInterval = 0.5
 ```
 
 - [x] **Step 4: 통과 확인**

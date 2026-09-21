@@ -11,9 +11,10 @@ enum KeyboardSuggestionSelectionPolicy {
 
     /// 자동완성 후보 삭제 확인을 띄우는 길게 누르기 시간
     ///
-    /// 사용자 설정 `longPressDuration`과 별개다. iOS 기본값 0.5초는 손가락을 댄 채
-    /// 옆 후보로 옮겨 고르는 드래그 선택 중에 넘기기 쉬워 조금 길게 둔다
-    static let removalLongPressDuration: TimeInterval = 0.7
+    /// 사용자 설정 `longPressDuration`과 별개인 고정값이다. 실기기 확인 결과 0.7초는
+    /// 길게 느껴져 0.5초로 조정했다. 드래그 선택은 다른 후보로 넘어갈 때 타이머를
+    /// 취소하므로 이 값에서도 오작동하지 않는다
+    static let removalLongPressDuration: TimeInterval = 0.5
 
     enum SuggestionUpdateAction: Equatable {
         case none
