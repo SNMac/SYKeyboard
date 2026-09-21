@@ -39,8 +39,9 @@ struct TextInteractionGestureControllerTests {
         #expect(inputCount == 1)
     }
 
-    @Test("취소된 짧은 pan은 입력하지 않고 눌린 버튼을 해제")
-    func test취소된짧은Pan() {
+    @Test("취소되거나 실패한 짧은 pan은 입력하지 않고 눌린 버튼을 해제",
+          arguments: [UIGestureRecognizer.State.cancelled, .failed])
+    func test확정되지않은짧은Pan(_ state: UIGestureRecognizer.State) {
         let keyboardHStackView = UIView()
         let button = PrimaryKeyButton(
             keyboard: .dubeolsik,
@@ -53,7 +54,7 @@ struct TextInteractionGestureControllerTests {
             getCurrentPressedButton: { currentPressedButton },
             setCurrentPressedButton: { currentPressedButton = $0 }
         )
-        let gesture = TestPanGestureRecognizer(state: .cancelled)
+        let gesture = TestPanGestureRecognizer(state: state)
 
         button.addAction(UIAction { _ in inputCount += 1 }, for: .touchUpInside)
         button.addGestureRecognizer(gesture)
@@ -89,31 +90,6 @@ struct TextInteractionGestureControllerTests {
         #expect(inputCount == 0)
         #expect(currentPressedButton == nil)
         #expect(delegate.deletePanStoppedCount == 1)
-    }
-
-    @Test("실패한 짧은 pan은 입력하지 않고 눌린 버튼을 해제")
-    func test실패한짧은Pan() {
-        let keyboardHStackView = UIView()
-        let button = PrimaryKeyButton(
-            keyboard: .dubeolsik,
-            button: .keyButton(primary: ["ㄱ"], secondary: nil)
-        )
-        var currentPressedButton: BaseKeyboardButton? = button
-        var inputCount = 0
-        let controller = TextInteractionGestureController(
-            keyboardHStackView: keyboardHStackView,
-            getCurrentPressedButton: { currentPressedButton },
-            setCurrentPressedButton: { currentPressedButton = $0 }
-        )
-        let gesture = TestPanGestureRecognizer(state: .failed)
-
-        button.addAction(UIAction { _ in inputCount += 1 }, for: .touchUpInside)
-        button.addGestureRecognizer(gesture)
-
-        controller.panGestureHandler(gesture)
-
-        #expect(inputCount == 0)
-        #expect(currentPressedButton == nil)
     }
 
     @Test("취소된 pan은 다른 현재 눌린 버튼을 해제하지 않음")

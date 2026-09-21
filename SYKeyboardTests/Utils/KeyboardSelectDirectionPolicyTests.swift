@@ -9,17 +9,14 @@ import Testing
 
 @Suite("키보드 선택 오버레이 방향 정책")
 struct KeyboardSelectDirectionPolicyTests {
-    @Test("천지인 기본 배치는 왼쪽으로 열린다")
-    func testCheonjiinDefaultOpensLeft() {
+    @Test("천지인·숫자 키보드는 기본 배치에서 왼쪽, 하단 배치에서 오른쪽으로 열린다",
+          arguments: [SYKeyboardType.cheonjiin, .numeric])
+    func testBottomSpaceLayoutFlipsDirection(_ keyboard: SYKeyboardType) {
         #expect(
-            KeyboardSelectDirectionPolicy.targetDirection(for: .cheonjiin, usesBottomSpaceLayout: false) == .left
+            KeyboardSelectDirectionPolicy.targetDirection(for: keyboard, usesBottomSpaceLayout: false) == .left
         )
-    }
-
-    @Test("천지인 하단 배치는 오른쪽으로 열린다")
-    func testCheonjiinBottomSpaceOpensRight() {
         #expect(
-            KeyboardSelectDirectionPolicy.targetDirection(for: .cheonjiin, usesBottomSpaceLayout: true) == .right
+            KeyboardSelectDirectionPolicy.targetDirection(for: keyboard, usesBottomSpaceLayout: true) == .right
         )
     }
 
@@ -29,20 +26,6 @@ struct KeyboardSelectDirectionPolicyTests {
         #expect(
             KeyboardSelectDirectionPolicy.targetDirection(for: .naratgeul,
                                                           usesBottomSpaceLayout: usesBottomSpaceLayout) == .left
-        )
-    }
-
-    @Test("숫자 키보드 기본 배치는 왼쪽으로 열린다")
-    func testNumericDefaultOpensLeft() {
-        #expect(
-            KeyboardSelectDirectionPolicy.targetDirection(for: .numeric, usesBottomSpaceLayout: false) == .left
-        )
-    }
-
-    @Test("숫자 키보드 하단 배치는 오른쪽으로 열린다")
-    func testNumericBottomSpaceOpensRight() {
-        #expect(
-            KeyboardSelectDirectionPolicy.targetDirection(for: .numeric, usesBottomSpaceLayout: true) == .right
         )
     }
 
