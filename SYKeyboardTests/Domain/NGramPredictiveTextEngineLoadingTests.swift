@@ -53,37 +53,7 @@ struct NGramPredictiveTextEngineLoadingTests {
     }
 }
 
-private struct TestNGramData: Codable {
-    var unigram: [String: Int]
-    var bigram: [String: [String: Int]]
-    var trigram: [String: [String: Int]]
-}
-
 private func temporaryFileURL(name: String) -> URL {
     FileManager.default.temporaryDirectory
         .appendingPathComponent("SYKeyboardTests-\(UUID().uuidString)-\(name)")
-}
-
-private func writeNGramData(
-    unigram: [String: Int],
-    bigram: [String: [String: Int]],
-    trigram: [String: [String: Int]],
-    to url: URL
-) throws {
-    let data = TestNGramData(
-        unigram: unigram,
-        bigram: bigram,
-        trigram: trigram
-    )
-    let encoder = PropertyListEncoder()
-    encoder.outputFormat = .binary
-    try encoder.encode(data).write(to: url, options: .atomic)
-}
-
-private func waitForLoadCompletion(of engine: NGramPredictiveTextEngine) async {
-    await withCheckedContinuation { continuation in
-        engine.onLoadCompleted = {
-            continuation.resume()
-        }
-    }
 }

@@ -86,12 +86,6 @@ private struct ContainerPaths {
     let legacyURL: URL
 }
 
-private struct TestNGramData: Codable {
-    var unigram: [String: Int]
-    var bigram: [String: [String: Int]]
-    var trigram: [String: [String: Int]]
-}
-
 private func makeContainer(name: String) throws -> ContainerPaths {
     let containerURL = FileManager.default.temporaryDirectory
         .appendingPathComponent("SYKeyboardTests-\(UUID().uuidString)-\(name)", isDirectory: true)
@@ -121,20 +115,4 @@ private func makeEngine(
         loadApplyDelay: .milliseconds(50),
         saveQueue: saveQueue
     )
-}
-
-private func writeNGramData(unigram: [String: Int], to url: URL) throws {
-    let encoder = PropertyListEncoder()
-    encoder.outputFormat = .binary
-    let data = try encoder.encode(TestNGramData(unigram: unigram, bigram: [:], trigram: [:]))
-    try FileManager.default.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
-    try data.write(to: url, options: .atomic)
-}
-
-private func waitForLoadCompletion(of engine: NGramPredictiveTextEngine) async {
-    await withCheckedContinuation { continuation in
-        engine.onLoadCompleted = {
-            continuation.resume()
-        }
-    }
 }

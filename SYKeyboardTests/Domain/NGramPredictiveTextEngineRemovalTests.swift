@@ -13,7 +13,7 @@ struct NGramPredictiveTextEngineRemovalTests {
 
     @Test("삭제한 단어는 unigram·bigram 예측에서 사라짐")
     func test삭제한단어는_unigram_bigram예측에서사라짐() async {
-        let fixture = await makeLoadedFixture(name: "removal-suggestions")
+        let fixture = await makeLoadedNGramFixture(name: "removal-suggestions")
         fixture.engine.addWord("오늘")
         fixture.engine.addWord("날씨")
         fixture.engine.endSentence()
@@ -27,7 +27,7 @@ struct NGramPredictiveTextEngineRemovalTests {
 
     @Test("삭제하면 값과 문맥 키에서 모두 지우고 바로 저장")
     func test삭제하면_값과문맥키에서모두지우고_바로저장() async throws {
-        let fixture = await makeLoadedFixture(name: "removal-file")
+        let fixture = await makeLoadedNGramFixture(name: "removal-file")
         fixture.engine.addWord("오늘")
         fixture.engine.addWord("날씨")
         fixture.engine.addWord("좋다")
@@ -48,7 +48,7 @@ struct NGramPredictiveTextEngineRemovalTests {
 
     @Test("대소문자가 다른 같은 단어도 함께 삭제")
     func test대소문자가다른같은단어도_함께삭제() async {
-        let fixture = await makeLoadedFixture(name: "removal-case")
+        let fixture = await makeLoadedNGramFixture(name: "removal-case")
         fixture.engine.addWord("Hello")
         fixture.engine.endSentence()
         fixture.engine.addWord("hello")
@@ -58,29 +58,4 @@ struct NGramPredictiveTextEngineRemovalTests {
 
         #expect(fixture.engine.suggestions(for: "") == [])
     }
-}
-
-private struct EngineFixture {
-    let engine: NGramPredictiveTextEngine
-    let url: URL
-    let saveQueue: DispatchQueue
-}
-
-private func makeLoadedFixture(name: String) async -> EngineFixture {
-    let url = FileManager.default.temporaryDirectory
-        .appendingPathComponent("SYKeyboardTests-\(UUID().uuidString)-\(name).plist")
-    let saveQueue = DispatchQueue(label: "SYKeyboardTests.ngram.save.\(name)")
-    let engine = NGramPredictiveTextEngine(
-        language: "test-\(name)",
-        fileURL: url,
-        legacyStorage: .standard,
-        loadApplyDelay: .milliseconds(50),
-        saveQueue: saveQueue
-    )
-    await withCheckedContinuation { continuation in
-        engine.onLoadCompleted = {
-            continuation.resume()
-        }
-    }
-    return EngineFixture(engine: engine, url: url, saveQueue: saveQueue)
 }
