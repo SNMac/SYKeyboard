@@ -52,7 +52,8 @@ protocol SuggestionControllerDelegate: AnyObject {
     /// - Parameters:
     ///   - controller: 이벤트를 발생시킨 `SuggestionController`
     ///   - currentWord: 현재 입력 중인 단어 (없으면 nil)
-    ///   - suggestions: 업데이트된 후보 단어 배열 (최대 2개, 텍스트 대치 우선)
+    ///   - suggestions: 업데이트된 후보 단어 배열 (입력 중 모드는 최대 `maxSuggestions - 1`개,
+    ///     n-gram 모드는 최대 `maxSuggestions`개. 텍스트 대치 우선)
     func suggestionController(_ controller: SuggestionController, didUpdateCurrentWord currentWord: String?, suggestions: [String])
 }
 
@@ -269,7 +270,7 @@ final class SuggestionController: SuggestionService {
     ///
     /// 후보 바가 가로로 스크롤되므로 화면에 보이는 3칸보다 많이 만든다.
     /// 입력 중 모드는 0번 칸이 `"현재단어"`라 엔진 몫이 `maxSuggestions - 1`이다.
-    /// 이 값을 3으로 되돌리면 스크롤과 가장자리 페이드가 함께 사라진다
+    /// 이 값을 3으로 되돌리면 후보가 뷰포트를 넘지 않아 스크롤이 사라진다
     private let maxSuggestions = 10
     /// 복구 가능한 텍스트 대치 이력 최대 개수
     private let maxReplacementHistoryCount = 20
@@ -986,7 +987,7 @@ private extension SuggestionController {
     ///   - lexiconResults: `UILexicon` 후보
     ///   - checkerResults: `UITextChecker` 후보 (아직 도착하지 않았으면 빈 배열)
     ///   - currentWord: 현재 입력 중인 단어
-    /// - Returns: 중복 제거된 후보 배열 (최대 2개)
+    /// - Returns: 중복 제거된 후보 배열 (최대 `maxSuggestions - 1`개. 0번 칸은 `"현재단어"` 몫이다)
     func mergeSuggestions(
         lexiconResults: [String],
         checkerResults: [String],

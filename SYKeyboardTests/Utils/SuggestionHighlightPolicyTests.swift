@@ -3,6 +3,25 @@ import CoreFoundation
 
 @testable import SYKeyboardCore
 
+@Suite("자동완성 divider 개수 정책 검증")
+struct SuggestionDividerPolicyTests {
+
+    @Test("후보가 열 격자를 채우지 못해도 divider는 3칸 격자를 따름")
+    func test후보가열격자를채우지못해도_divider는3칸격자를따름() {
+        // 빈 칸에 divider가 없으면 그 자리를 눌렀을 때 앞 후보가 적용될 것처럼 보인다
+        #expect(SuggestionDividerPolicy.dividerCount(forSuggestionCount: 0) == 2)
+        #expect(SuggestionDividerPolicy.dividerCount(forSuggestionCount: 1) == 2)
+        #expect(SuggestionDividerPolicy.dividerCount(forSuggestionCount: 2) == 2)
+    }
+
+    @Test("후보가 열 격자를 채우면 후보 사이에만 divider를 둠")
+    func test후보가열격자를채우면_후보사이에만divider를둠() {
+        // 맨 앞과 맨 뒤에는 divider를 두지 않는다
+        #expect(SuggestionDividerPolicy.dividerCount(forSuggestionCount: 3) == 2)
+        #expect(SuggestionDividerPolicy.dividerCount(forSuggestionCount: 10) == 9)
+    }
+}
+
 @Suite("자동완성 highlight 정책 검증")
 struct SuggestionHighlightPolicyTests {
 

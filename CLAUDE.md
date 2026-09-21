@@ -287,6 +287,41 @@ xcodebuild test \
 나오는 노이즈다. 이 줄만 보고 샌드박스 제약으로 단정하지 말고 위 `scheduling.log`와 실제 시뮬레이터
 화면을 확인한다.
 
+#### 호스트 앱이 뜨지도 않고 테스트가 매달리는 경우
+
+위 붙여넣기 알림과 증상이 비슷하지만 원인이 다르다. **알림 없이** CoreSimulator/`testmanagerd`가
+매달려 테스트 호스트 앱이 **실행조차 되지 않는다.** 평소 수십 초에 끝나는 명령이 몇 분씩 진행되지
+않으면 이 경우를 의심한다.
+
+구분하는 방법은 아래 순서다. 화면부터 본다.
+
+```sh
+xcrun simctl list devices booted
+xcrun simctl io <UDID> screenshot /tmp/simshot.png   # 캡처해서 직접 확인
+ps -eo etime,command | grep -E "xcodebuild test|testmanagerd" | grep -v grep
+xcrun simctl spawn <UDID> launchctl list | grep -i sykeyboard
+```
+
+- **붙여넣기 알림 케이스**: 캡처에 권한 알림이 떠 있고 호스트 앱이 그 뒤에서 멈춰 있다
+- **이 케이스**: 캡처가 **홈 화면**이고 `launchctl list`에 `SYKeyboard`가 **없다**.
+  `testmanagerd`만 오래 살아 있고, 만들어진 `.xcresult`는 `Data` 디렉터리만 있고 결과가 비어 있다
+
+**코드 실패로 기록하지 않는다.** 시뮬레이터를 재부팅하면 대개 풀린다. `erase`는 설치된 키보드
+확장과 전체 접근 허용 설정을 날리므로 쓰지 않는다.
+
+```sh
+pkill -f "xcodebuild test -project SYKeyboard.xcodeproj"
+xcrun simctl shutdown <UDID>
+xcrun simctl boot <UDID>
+```
+
+재부팅 뒤 같은 명령을 다시 돌려 정상 시간 안에 끝나는지 먼저 확인하고, 그 결과를 검증 근거로
+쓴다. 재부팅 후에도 매달리면 사용자에게 알리고 프롬프트에서 `! <명령>`으로 직접 실행하도록
+안내한다.
+
+서브에이전트에게 build/test를 맡길 때는 이 증상을 알려 두고, 몇 분씩 매달리면 기다리지 말고
+보고하도록 지시한다. 서브에이전트는 시뮬레이터 화면을 볼 수 없어 스스로 구분하지 못한다.
+
 XcodeBuildMCP를 사용하는 경우 첫 build/test 전에 `session_show_defaults`로 project, scheme, simulator, `extraArgs`를 확인한다. 테스트에서 사용한 code coverage나 `-only-testing` 옵션이 extension 빌드에 남을 수 있으므로 scheme을 전환할 때 `extraArgs`를 명시적으로 비우거나 다시 설정한다. 세션 설정 때문에 컴파일 전에 중단된 실행은 코드 실패로 기록하지 않고, 설정을 바로잡은 같은 명령의 결과를 검증 근거로 사용한다.
 
 ## 테스트 지침

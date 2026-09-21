@@ -100,15 +100,6 @@ final class SuggestionBarView: UIView {
             > suggestionScrollView.bounds.width + SuggestionBarView.scrollTolerance
     }
 
-    /// 지금 보이는 후보 사이 divider 개수. 후보가 3개보다 적어도 3칸으로 보이게 하는 표시 계약이다
-    var visibleSuggestionDividerCount: Int {
-        guard isSuggestionAreaVisible else { return 0 }
-        return min(
-            SuggestionBarView.dividerCount(forSuggestionCount: visibleSuggestionCount),
-            pooledDividers.count
-        )
-    }
-
     private var undoRedoViews: [UIView] {
         return [undoRedoLeadingDivider, undoButton, undoRedoMiddleDivider, redoButton]
     }
@@ -126,8 +117,6 @@ final class SuggestionBarView: UIView {
     private static let clipboardOpenSymbolName = "keyboard"
     private var isClipboardPanelVisible = false
 
-    /// 화면에 한 번에 보이는 후보 칸 수. 버튼 폭 계산 기준이다
-    private static let visibleSuggestionColumnCount = 3
     /// divider 두께
     private static let dividerWidth: CGFloat = 1
     /// 스크롤 발생 판정 허용 오차
@@ -502,7 +491,10 @@ private extension SuggestionBarView {
     func updateDividers() {
         let buttons = suggestionButtons
         let firstHighlighted = isVisibleAndHighlighted(buttons.first)
-        let lastHighlighted = isVisibleAndHighlighted(buttons.last)
+        // buttons.last가 곧 마지막 열은 아니다. 후보가 3칸을 채우지 못하면 마지막 후보는
+        // 오른쪽 끝 divider와 인접하지 않으므로 경계 판정에 쓰지 않는다
+        let lastHighlighted = buttons.count >= SuggestionDividerPolicy.visibleColumnCount
+            && isVisibleAndHighlighted(buttons.last)
 
         clipboardDivider.backgroundColor = (clipboardButton.isHighlighted || firstHighlighted)
         ? .clear
@@ -619,14 +611,6 @@ private extension SuggestionBarView {
         }
     }
     
-    /// 후보 `count`개를 그릴 때 필요한 divider 개수.
-    ///
-    /// 후보가 3개보다 적어도 후보 영역은 3칸으로 보여야 한다. 빈 칸에 divider가 없으면 그 자리를
-    /// 눌렀을 때 앞 후보가 적용될 것처럼 보인다. 맨 앞과 맨 뒤에는 그리지 않는다
-    static func dividerCount(forSuggestionCount count: Int) -> Int {
-        return max(count, visibleSuggestionColumnCount) - 1
-    }
-
     /// 풀에 버튼 `count`개와 divider를 열 격자에 맞는 개수만큼 채웁니다.
     func ensurePooledViews(count: Int) {
         while pooledButtons.count < count {
@@ -635,7 +619,7 @@ private extension SuggestionBarView {
             pooledButtons.append(button)
         }
 
-        let dividerCount = SuggestionBarView.dividerCount(forSuggestionCount: count)
+        let dividerCount = SuggestionDividerPolicy.dividerCount(forSuggestionCount: count)
         while pooledDividers.count < dividerCount {
             let divider = UIView()
             divider.backgroundColor = .suggestionDividerColor
@@ -659,7 +643,7 @@ private extension SuggestionBarView {
         guard viewportWidth > 0, viewportHeight > 0 else { return }
 
         let dividerWidth = SuggestionBarView.dividerWidth
-        let columnCount = CGFloat(SuggestionBarView.visibleSuggestionColumnCount)
+        let columnCount = CGFloat(SuggestionDividerPolicy.visibleColumnCount)
         let buttonWidth = (viewportWidth - dividerWidth * (columnCount - 1)) / columnCount
         let dividerHeight = KeyboardLayoutFigure.suggestionButtonDividerHeight
 
@@ -677,7 +661,7 @@ private extension SuggestionBarView {
 
         // 첫 updateSuggestions 전에는 풀이 비어 있다. 격자 개수가 아니라 실제로 가진 만큼만 배치한다
         let dividerCount = min(
-            SuggestionBarView.dividerCount(forSuggestionCount: visibleSuggestionCount),
+            SuggestionDividerPolicy.dividerCount(forSuggestionCount: visibleSuggestionCount),
             pooledDividers.count
         )
         for index in 0..<dividerCount {
@@ -703,7 +687,7 @@ private extension SuggestionBarView {
     }
 
     func applyDividerVisibility() {
-        let visibleDividerCount = SuggestionBarView.dividerCount(
+        let visibleDividerCount = SuggestionDividerPolicy.dividerCount(
             forSuggestionCount: visibleSuggestionCount
         )
 
