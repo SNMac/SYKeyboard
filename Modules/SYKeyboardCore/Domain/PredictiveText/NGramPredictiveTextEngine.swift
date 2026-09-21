@@ -390,7 +390,40 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
     func resetSentenceBuffer() {
         currentSentenceWords.removeAll()
     }
-    
+
+    /// 단어를 모든 n-gram 저장소에서 지우고 바로 저장합니다.
+    ///
+    /// 자동완성 후보를 길게 눌러 삭제할 때 호출합니다. 다시 입력하면 다시 기록됩니다.
+    /// `suggestions(for:)`가 소문자 기준으로 중복을 제거하므로 대소문자를 구분하지 않고 지웁니다.
+    /// 문장 버퍼는 `inputBuffer`와 단어 수를 맞추는 데 쓰이므로 건드리지 않습니다.
+    /// 디스크 로딩이 완료되지 않은 경우 무시됩니다.
+    ///
+    /// - Parameter word: 지울 단어
+    func removeWord(_ word: String) {
+        guard isLoaded, !word.isEmpty else { return }
+
+        let target = word.lowercased()
+        let matches: (String) -> Bool = { $0.lowercased() == target }
+        let droppingWord: ([String: Int]) -> [String: Int]? = { entries in
+            let kept = entries.filter { !matches($0.key) }
+            return kept.isEmpty ? nil : kept
+        }
+
+        unigramStore = unigramStore.filter { !matches($0.key) }
+        bigramStore = bigramStore
+            .filter { !matches($0.key) }
+            .compactMapValues(droppingWord)
+        trigramStore = trigramStore
+            .filter { entry in
+                !entry.key.split(separator: " ").contains { matches(String($0)) }
+            }
+            .compactMapValues(droppingWord)
+
+        hasUnsavedChanges = true
+        saveToDisk()
+        logger.debug("[NGram/\(self.language)] 단어 삭제: \"\(word)\"")
+    }
+
     // MARK: - Persistence
     
     /// n-gram 데이터를 백그라운드에서 디스크에 저장합니다.

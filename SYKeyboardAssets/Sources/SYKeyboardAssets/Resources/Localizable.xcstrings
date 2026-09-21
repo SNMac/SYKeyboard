@@ -1,6 +1,17 @@
 {
   "sourceLanguage" : "ko",
   "strings" : {
+    "'%@'을(를) 자동완성에서 삭제할까요?" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remove “%@” from suggestions?"
+          }
+        }
+      }
+    },
     "고정" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -65,6 +76,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Unpin"
+          }
+        }
+      }
+    },
+    "다시 입력하면 다시 학습됩니다." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "It will be learned again if you type it."
           }
         }
       }

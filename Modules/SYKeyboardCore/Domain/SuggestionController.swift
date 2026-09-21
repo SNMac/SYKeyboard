@@ -26,6 +26,8 @@ protocol NGramPredictiveTextProviding: PredictiveTextProvider {
     func resetSentenceBuffer()
     /// n-gram 데이터를 디스크에 저장합니다.
     func saveToDisk()
+    /// 단어를 모든 n-gram 저장소에서 지우고 저장합니다.
+    func removeWord(_ word: String)
 }
 
 extension NGramPredictiveTextEngine: NGramPredictiveTextProviding {}
@@ -485,6 +487,44 @@ final class SuggestionController: SuggestionService {
         guard index >= 0, index < currentSuggestions.count,
               currentSuggestions[index].source == .nGram else { return nil }
         return currentSuggestions[index].text
+    }
+
+    func removableSuggestionText(atBarIndex index: Int) -> String? {
+        let itemIndex: Int
+        switch currentMode {
+        case .nGram:
+            itemIndex = index
+        case .typing:
+            // 0번 버튼은 현재 입력 단어라 후보 배열은 1번부터 시작한다
+            itemIndex = index - 1
+        case .mathExpression:
+            return nil
+        }
+        guard currentSuggestions.indices.contains(itemIndex) else { return nil }
+
+        let item = currentSuggestions[itemIndex]
+        switch item.source {
+        case .nGram:
+            return item.text
+        case .textChecker:
+            return textCheckerEngine?.canUnlearn(word: item.text) == true ? item.text : nil
+        default:
+            return nil
+        }
+    }
+
+    func removeSuggestionWord(_ word: String) {
+        nGramEngine?.removeWord(word)
+        textCheckerEngine?.unlearn(word: word)
+        // typing 모드는 직전 TextChecker 후보를 이어받으므로 지운 단어가 한 프레임 다시 보이지 않게 뺀다
+        currentSuggestions.removeAll { $0.text == word }
+        // n-gram 모드에서는 lastSuggestionBaseText가 공백으로 끝나지 않아 typing 모드로 새는 것을 막는다
+        if currentMode == .nGram, let lastSuggestionBaseText {
+            updateSuggestionsAfterNGramSelection(inputBuffer: lastSuggestionBaseText)
+        } else {
+            // 로딩 완료 후 갱신과 같은 마지막 요청값으로 다시 계산한다
+            performRefreshSuggestionsAfterNGramLoadIfNeeded()
+        }
     }
 
     func mathResultAction(

@@ -17,6 +17,13 @@ protocol SuggestionBarDelegate: AnyObject {
     ///   - bar: 이벤트를 발생시킨 `SuggestionBarView`
     ///   - index: 선택된 후보의 인덱스 (0~2)
     func suggestionBar(_ bar: SuggestionBarView, didSelectSuggestionAt index: Int)
+    /// 후보를 길게 눌렀을 때 호출됩니다.
+    ///
+    /// - Parameters:
+    ///   - bar: 이벤트를 발생시킨 `SuggestionBarView`
+    ///   - index: 누른 후보의 인덱스 (0~2)
+    /// - Returns: 삭제 확인을 띄웠으면 `true`. 이때 이번 터치는 손을 떼도 후보를 선택하지 않습니다
+    func suggestionBar(_ bar: SuggestionBarView, shouldBeginRemovalAt index: Int) -> Bool
     /// undo 버튼이 탭되었을 때 호출됩니다.
     func suggestionBarDidTapUndo(_ bar: SuggestionBarView)
     /// redo 버튼이 탭되었을 때 호출됩니다.
@@ -45,7 +52,13 @@ final class SuggestionBarView: UIView {
     private var touchedSuggestionIndex: Int?
     private var touchedActionIndex: Int?
     private var previewHighlightIndex: Int?
-    
+    /// 삭제 길게 누르기 대상 후보 인덱스. 누른 후보를 벗어나거나 터치가 끝나면 `nil`이 된다
+    private var removalPressedIndex: Int?
+    /// 삭제 길게 누르기 타이머
+    private var removalLongPressWorkItem: DispatchWorkItem?
+    /// 길게 눌러 삭제 확인을 띄운 터치인지 여부. 손을 떼도 후보를 선택하지 않는다
+    private var isTouchConsumedByRemoval = false
+
     private var suggestionButtons: [SuggestionButtonView] {
         return [suggestionButton1, suggestionButton2, suggestionButton3]
     }
@@ -206,13 +219,23 @@ final class SuggestionBarView: UIView {
     func beginTouchInteraction(at point: CGPoint) {
         updateHighlight(at: point)
         keyboardHStackView?.isUserInteractionEnabled = false
+        scheduleRemovalLongPress(at: point)
     }
 
     func moveTouchInteraction(to point: CGPoint) {
+        guard !isTouchConsumedByRemoval else { return }
+        if suggestionButton(at: point)?.0 != removalPressedIndex {
+            cancelRemovalLongPress()
+        }
         updateHighlight(at: point)
     }
 
     func endTouchInteraction(at point: CGPoint, playsFeedback: Bool) {
+        guard !isTouchConsumedByRemoval else {
+            resetTouchInteraction()
+            return
+        }
+
         if let (index, _) = suggestionButton(at: point) {
             suggestionDelegate?.suggestionBar(
                 self,
@@ -240,6 +263,16 @@ final class SuggestionBarView: UIView {
         resetTouchInteraction()
     }
 
+    /// 삭제 길게 누르기 타이머가 발동했을 때 호출됩니다.
+    func handleRemovalLongPress() {
+        removalLongPressWorkItem = nil
+        guard let index = removalPressedIndex else { return }
+        removalPressedIndex = nil
+        guard suggestionDelegate?.suggestionBar(self, shouldBeginRemovalAt: index) == true else { return }
+        isTouchConsumedByRemoval = true
+        clearTouchHighlights()
+    }
+
     func playSelectionFeedbackIfNeeded(_ shouldPlay: Bool) {
         guard shouldPlay else { return }
         FeedbackManager.shared.playHaptic()
@@ -247,6 +280,8 @@ final class SuggestionBarView: UIView {
     }
 
     func resetTouchInteraction() {
+        cancelRemovalLongPress()
+        isTouchConsumedByRemoval = false
         clearTouchHighlights()
         keyboardHStackView?.isUserInteractionEnabled = true
     }
@@ -432,7 +467,27 @@ private extension SuggestionBarView {
         }
         return nil
     }
-    
+
+    func scheduleRemovalLongPress(at point: CGPoint) {
+        cancelRemovalLongPress()
+        guard let index = suggestionButton(at: point)?.0 else { return }
+        removalPressedIndex = index
+        let workItem = DispatchWorkItem { [weak self] in
+            self?.handleRemovalLongPress()
+        }
+        removalLongPressWorkItem = workItem
+        DispatchQueue.main.asyncAfter(
+            deadline: .now() + KeyboardSuggestionSelectionPolicy.removalLongPressDuration,
+            execute: workItem
+        )
+    }
+
+    func cancelRemovalLongPress() {
+        removalLongPressWorkItem?.cancel()
+        removalLongPressWorkItem = nil
+        removalPressedIndex = nil
+    }
+
     func updateHighlight(at point: CGPoint) {
         let hit = suggestionButton(at: point)
         touchedSuggestionIndex = hit?.0

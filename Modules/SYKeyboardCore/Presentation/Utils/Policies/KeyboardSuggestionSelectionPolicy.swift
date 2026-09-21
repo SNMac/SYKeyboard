@@ -5,7 +5,16 @@
 //  Created by Codex on 6/1/26.
 //
 
+import Foundation
+
 enum KeyboardSuggestionSelectionPolicy {
+
+    /// 자동완성 후보 삭제 확인을 띄우는 길게 누르기 시간
+    ///
+    /// 사용자 설정 `longPressDuration`과 별개인 고정값이다. 실기기 확인 결과 0.7초는
+    /// 길게 느껴져 0.5초로 조정했다. 드래그 선택은 다른 후보로 넘어갈 때 타이머를
+    /// 취소하므로 이 값에서도 오작동하지 않는다
+    static let removalLongPressDuration: TimeInterval = 0.5
 
     enum SuggestionUpdateAction: Equatable {
         case none

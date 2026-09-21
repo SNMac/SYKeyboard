@@ -399,6 +399,7 @@ private final class StubNGramPredictiveTextProvider: NGramPredictiveTextProvidin
     func saveToDisk() {
         saveCount += 1
     }
+    func removeWord(_ word: String) {}
     func completeLoad(suggestions: [String]) {
         loadedSuggestions = suggestions
         onLoadCompleted?()

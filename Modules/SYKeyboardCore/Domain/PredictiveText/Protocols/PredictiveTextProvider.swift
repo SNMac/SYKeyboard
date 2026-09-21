@@ -29,10 +29,23 @@ protocol PredictiveTextProvider: AnyObject {
     ///
     /// - Parameter word: 학습할 단어
     func learn(word: String)
+    /// 앱이 학습시킨 단어라 `unlearn(word:)`로 되돌릴 수 있는지 반환합니다.
+    ///
+    /// - Parameter word: 확인할 단어
+    /// - Returns: 되돌릴 수 있으면 `true`
+    func canUnlearn(word: String) -> Bool
+    /// 앱이 학습시킨 단어를 학습 데이터에서 제거합니다.
+    ///
+    /// - Parameter word: 제거할 단어
+    func unlearn(word: String)
 }
 
 extension PredictiveTextProvider {
     func suggestions(for baseText: String, limit: Int) -> [String] {
         suggestions(for: baseText)
     }
+
+    func canUnlearn(word: String) -> Bool { false }
+
+    func unlearn(word: String) {}
 }
