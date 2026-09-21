@@ -107,6 +107,25 @@ struct SuggestionControllerSuggestionRemovalTests {
         #expect(harness.delegate.updates.last == .init(currentWord: nil, suggestions: ["맑음"]))
     }
 
+    @Test("입력 중 10칸에서도 바 인덱스가 후보 배열의 앞 한 칸만큼 밀림")
+    func test입력중10칸에서도_바인덱스가_앞한칸만큼밀림() async {
+        let checkerResults = (1...9).map { "help\($0)" }
+        let harness = makeHarness(
+            checkerResults: checkerResults,
+            learnedWords: Set(checkerResults)
+        )
+
+        harness.controller.updateSuggestions(for: "hel")
+        harness.queue.sync {}
+        await waitForMainQueue()
+
+        #expect(harness.delegate.updates.last?.suggestions == checkerResults)
+        #expect(harness.controller.removableSuggestionText(atBarIndex: 0) == nil)
+        #expect(harness.controller.removableSuggestionText(atBarIndex: 1) == "help1")
+        #expect(harness.controller.removableSuggestionText(atBarIndex: 9) == "help9")
+        #expect(harness.controller.removableSuggestionText(atBarIndex: 10) == nil)
+    }
+
     private struct Harness {
         let controller: SuggestionController
         let delegate: RecordingSuggestionControllerDelegate

@@ -1028,7 +1028,7 @@ EOF
 - Consumes: 기존 `NGramPredictiveTextEngine(language:fileURL:legacyStorage:loadApplyDelay:maxKeys:)`, `addWord(_:)`, `suggestions(for:)`
 - Produces: 없음(상수 변경)
 
-- [ ] **Step 1: 실패하는 테스트를 쓴다**
+- [x] **Step 1: 실패하는 테스트를 쓴다**
 
 `NGramPredictiveTextEngineRankingTests.swift`에서 기존 두 테스트의 기대값을 10개
 상한에 맞춰 고치고, 경계 케이스 세 개를 더한다.
@@ -1084,7 +1084,7 @@ EOF
 `testUnigram상한을넘으면_최소빈도단어가제거`는 `maxKeys: 3`이라 저장소 자체가 3개만
 갖는다. 기대값을 바꾸지 않는다.
 
-- [ ] **Step 2: 테스트가 실패하는 것을 확인한다**
+- [x] **Step 2: 테스트가 실패하는 것을 확인한다**
 
 Run:
 
@@ -1101,7 +1101,11 @@ xcodebuild test \
 Expected: FAIL. `test항목수가상한보다적으면...`이 `["alpha", "bravo", "charlie"]`만
 돌려주고 5개를 기대한 단언이 깨진다.
 
-- [ ] **Step 3: 상한을 올린다**
+실제 결과: 예상대로 단언 실패 4건(추가한 경계 케이스 3개 + 기존
+`test학습으로순위가바뀌면_후보가갱신`). 컴파일은 통과했고 `testUnigram상한을넘으면_최소빈도단어가제거`,
+`test초기화후에는_후보가없음` 2개는 그대로 통과했다.
+
+- [x] **Step 3: 상한을 올린다**
 
 `NGramPredictiveTextEngine.swift:103` 근처를 고친다.
 
@@ -1121,13 +1125,17 @@ Expected: FAIL. `test항목수가상한보다적으면...`이 `["alpha", "bravo"
 `maxEntriesPerKey = 24`는 그대로 둔다. `maxPredictions`가 10이어도 24는 여전히
 "노출분 + 순위 변동 여유"라 주석 문구를 고칠 필요가 없다.
 
-- [ ] **Step 4: 테스트가 통과하는 것을 확인한다**
+- [x] **Step 4: 테스트가 통과하는 것을 확인한다**
 
 Run: Step 2와 같은 명령
 
 Expected: PASS
 
-- [ ] **Step 5: 커밋**
+실제 결과: 6 tests 전부 통과. 이어서 `-only-testing` 없이 전체 `SYKeyboardTests`를
+돌려 767 tests / 79 suites / 0 failures 확인(Task 3 종료 시점 765개에서 이번
+Task가 추가한 순증 2개 테스트만큼 늘었다). 범위 밖 실패 없음.
+
+- [x] **Step 5: 커밋**
 
 ```bash
 git add Modules/SYKeyboardCore/Domain/PredictiveText/NGramPredictiveTextEngine.swift \
@@ -1158,7 +1166,7 @@ EOF
 - Consumes: 기존 `SuggestionController(language:engineFactory:textCheckerQueue:)`, `updateSuggestions(for:)`, `removableSuggestionText(atBarIndex:)`
 - Produces: 없음(상수 변경)
 
-- [ ] **Step 1: 실패하는 테스트를 쓴다**
+- [x] **Step 1: 실패하는 테스트를 쓴다**
 
 `SuggestionControllerTextCheckerLimitTests.swift`의 기존 두 테스트를 9슬롯에 맞춰
 바꾸고 중복·현재 단어 제외 케이스를 더한다.
@@ -1254,7 +1262,7 @@ lexicon 항목을 9개로 늘린다.
     }
 ```
 
-- [ ] **Step 2: 테스트가 실패하는 것을 확인한다**
+- [x] **Step 2: 테스트가 실패하는 것을 확인한다**
 
 Run:
 
@@ -1271,7 +1279,7 @@ xcodebuild test \
 
 Expected: FAIL. `receivedLimits`가 `[2]`라 `[9]` 기대가 깨진다.
 
-- [ ] **Step 3: 상한을 올린다**
+- [x] **Step 3: 상한을 올린다**
 
 `SuggestionController.swift:269`를 고친다.
 
@@ -1284,13 +1292,13 @@ Expected: FAIL. `receivedLimits`가 `[2]`라 `[9]` 기대가 깨진다.
     private let maxSuggestions = 10
 ```
 
-- [ ] **Step 4: 테스트가 통과하는 것을 확인한다**
+- [x] **Step 4: 테스트가 통과하는 것을 확인한다**
 
 Run: Step 2와 같은 명령
 
 Expected: PASS
 
-- [ ] **Step 5: 커밋**
+- [x] **Step 5: 커밋**
 
 ```bash
 git add Modules/SYKeyboardCore/Domain/SuggestionController.swift \
@@ -1319,7 +1327,7 @@ EOF
 - Modify: `SYKeyboardTests/Utils/SuggestionBarViewRemovalLongPressTests.swift`
 - Modify: `docs/superpowers/plans/2026-09-21-issue-141-suggestion-bar-horizontal-scroll.md`
 
-- [ ] **Step 1: 이름이 실제 동작과 어긋난 테스트를 고친다**
+- [x] **Step 1: 이름이 실제 동작과 어긋난 테스트를 고친다**
 
 `SuggestionBarViewRemovalLongPressTests.swift`의
 `test누른후보를벗어나면_삭제를요청하지않고_드래그선택유지`는 이름에 "드래그 선택 유지"가
@@ -1342,7 +1350,7 @@ EOF
     }
 ```
 
-- [ ] **Step 2: 드래그 선택을 전제로 한 주석을 고친다**
+- [x] **Step 2: 드래그 선택을 전제로 한 주석을 고친다**
 
 `KeyboardSuggestionSelectionPolicy.swift`의 `removalLongPressDuration` 주석에서
 마지막 문장을 바꾼다.
@@ -1356,7 +1364,7 @@ EOF
     static let removalLongPressDuration: TimeInterval = 0.5
 ```
 
-- [ ] **Step 3: `CLAUDE.md`의 금지 조항을 갱신한다**
+- [x] **Step 3: `CLAUDE.md`의 금지 조항을 갱신한다**
 
 「작업 원칙」 마지막 항목을 아래로 바꾼다.
 
@@ -1377,7 +1385,7 @@ EOF
   후보 목록의 가로 스크롤 발생 조건(`contentSize.width > bounds.width`)
 ```
 
-- [ ] **Step 4: 자동완성 문서를 갱신한다**
+- [x] **Step 4: 자동완성 문서를 갱신한다**
 
 `docs/architecture/자동완성 로직.md`에서 두 곳을 고친다.
 
@@ -1399,7 +1407,7 @@ EOF
 같은 문서 「3-3」 쪽의 `4. 최대 2개 반환 (button2~3용, maxSuggestions(3) - 1)`도
 `4. 최대 9개 반환 (1번 칸부터, maxSuggestions(10) - 1)`로 고친다.
 
-- [ ] **Step 5: 전체 테스트를 돌린다**
+- [x] **Step 5: 전체 테스트를 돌린다**
 
 Run:
 
@@ -1415,7 +1423,7 @@ xcodebuild test \
 Expected: 전체 PASS. 통과한 테스트 개수와 실패 항목을 아래 「검증 결과」에 적는다.
 `.xcresult`에서 결과를 읽었다면 산출물 경로와 추출 명령도 함께 적는다.
 
-- [ ] **Step 6: 세 키보드 extension을 빌드한다**
+- [x] **Step 6: 세 키보드 extension을 빌드한다**
 
 `-only-testing`과 coverage 옵션이 남아 있지 않은 상태로 순서대로 돌린다.
 
@@ -1430,7 +1438,7 @@ xcodebuild build -project SYKeyboard.xcodeproj -scheme HangeulEnglishKeyboard \
 
 Expected: 세 개 모두 `BUILD SUCCEEDED`
 
-- [ ] **Step 7: 빌드 부수 효과를 되돌린다**
+- [x] **Step 7: 빌드 부수 효과를 되돌린다**
 
 ```bash
 git status --short
@@ -1446,7 +1454,7 @@ git checkout -- SYKeyboard.xcodeproj/xcshareddata/xcschemes/HangeulKeyboard.xcsc
 `SYKeyboard/Presentation/Content/ContentView.swift`의 ` M`은 사용자 변경이므로
 그대로 둔다.
 
-- [ ] **Step 8: 검증 결과를 계획 문서에 적고 커밋**
+- [x] **Step 8: 검증 결과를 계획 문서에 적고 커밋**
 
 아래 「검증 결과」 절에 실제 명령과 결과를 적는다.
 
@@ -1504,10 +1512,10 @@ Task 6에서 채운다.
 
 | 항목 | 명령 | 결과 |
 |---|---|---|
-| 전체 테스트 | (Task 6 Step 5) | 미실행 |
-| HangeulKeyboard 빌드 | (Task 6 Step 6) | 미실행 |
-| EnglishKeyboard 빌드 | (Task 6 Step 6) | 미실행 |
-| HangeulEnglishKeyboard 빌드 | (Task 6 Step 6) | 미실행 |
+| 전체 테스트 | `xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=18.6' -parallel-testing-enabled NO GADApplicationIdentifier='ca-app-pub-3940256099942544~1458002511'` | PASS — 770 tests, 79 suites, 0 failures (Task 5 종료 시점 기준선과 동일, 이번 Task는 테스트 이름만 바꿔 개수 변화 없음). `.xcresult`: `/Users/macmillan/Library/Developer/Xcode/DerivedData/SYKeyboard-hgprdtyustcuukabeovkjzrtclhy/Logs/Test/Test-SYKeyboard-2026.09.21_17-33-51-+0900.xcresult`. 콘솔 로그 말미 `Test run with 770 tests in 79 suites passed after 6.634 seconds.` / `** TEST SUCCEEDED **`로 확인 |
+| HangeulKeyboard 빌드 | `xcodebuild build -project SYKeyboard.xcodeproj -scheme HangeulKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=18.6'` | `** BUILD SUCCEEDED **` |
+| EnglishKeyboard 빌드 | `xcodebuild build -project SYKeyboard.xcodeproj -scheme EnglishKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=18.6'` | `** BUILD SUCCEEDED **` |
+| HangeulEnglishKeyboard 빌드 | `xcodebuild build -project SYKeyboard.xcodeproj -scheme HangeulEnglishKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=18.6'` | `** BUILD SUCCEEDED **` |
 
 ## 실기기 수동 확인
 
@@ -1522,6 +1530,9 @@ iPhone 13 mini / iOS 18.6, 실제 입력 앱. Task 7에서 채운다.
       (mask는 스크롤 뷰 `bounds` 좌표계라 `contentOffset`만큼 함께 움직인다. Task 3 리뷰의 ⚠️ 항목)
 - [ ] 반투명 키보드 배경에서도 페이드가 어색하지 않다
 - [ ] 클립보드·undo/redo 버튼이 스크롤과 무관하게 동작한다
+      (조건을 지켜 확인한다: **후보가 10개 차 있고 스크롤하지 않은 기본 상태**에서 undo/redo를
+      탭하고 길게 눌러 본다. 그 다음 **오른쪽으로 절반쯤 스크롤한 상태**에서 클립보드 버튼을 탭한다.
+      후보 3개 상태에서는 정상으로 보여 그냥 지나간다)
 - [ ] 클립보드 패널을 열고 닫아 후보 영역 폭이 바뀌어도 버튼 폭이 다시 맞는다
 - [ ] 후보와 undo/redo를 두 손가락으로 동시에 눌러도 액션이 한 번만 발생하고,
       먼저 누른 손가락을 떼기 전에 자판 입력이 다시 켜지지 않는다
@@ -1531,6 +1542,12 @@ iPhone 13 mini / iOS 18.6, 실제 입력 앱. Task 7에서 채운다.
 - [ ] 수식 후보 3칸이 스크롤되지 않는다
 - [ ] 가로 모드에서도 후보 폭과 스크롤이 정상이다
 - [ ] 타이핑 지연이 체감되지 않는다(신호 구간 실측값 기록)
+- [ ] 수식 후보 3칸에서 첫 칸을 누른 채 셋째 칸으로 끌어 떼면 아무것도 선택되지 않는다
+      (스크롤이 불가능한 상태에서도 탭 전용이 보장되는지. 자동 테스트가 덮지만 실기기 감각도 확인한다)
+- [ ] n-gram 이력이 없는 상태(새 설치·언어 전환 직후)에서 후보가 0~2개일 때 바 모양이 어색하지 않다
+      (가변 개수라 divider도 후보 수에 맞춰 줄어든다. 예전에는 빈 바도 3등분돼 보였다)
+- [ ] 후보 10개 상태에서 스페이스로 대치될 preview 하이라이트가 화면 밖에 있을 때,
+      대치가 예고 없이 일어나는 인상을 주지 않는지 확인한다 (자동 스크롤하지 않는 것이 결정이다)
 - [ ] 세 키보드(한글·영문·한영 통합) 모두에서 위 항목이 같다
 
 ## 되돌리는 법

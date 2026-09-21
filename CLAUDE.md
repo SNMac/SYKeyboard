@@ -84,10 +84,13 @@ extension 프로세스 로컬 상태는 `KeyboardExtensionLocalStateStore`에 �
   `reset`, 브랜치 전환, push, PR 생성 권한을 포함하지 않는다. 사용자가 명시한
   통합 순서와 브랜치/worktree 제약을 그대로 지키고, 다음 단계가 명시적으로
   요청되기 전에는 읽기 전용 확인에 머문다.
-- 자동완성 후보의 가로 스크롤과 scroll edge effect는 롤백된 상태가 현재
-  의도다. `SuggestionButtonView`의 기존 두 줄·글자 축소·중간 생략 동작을
-  유지하고, 사용자가 다시 요청하지 않는 한 스크롤 컨테이너나 제스처 중재를
-  재도입하지 않는다.
+- 자동완성 후보 목록은 #141부터 `UIScrollView` 가로 스크롤이다. 선택은 탭으로만
+  하고 끌면 스크롤한다. 터치 중재는 `UIScrollView` 기본 동작(`delaysContentTouches
+  = false`, `canCancelContentTouches`)에 맡기고, `setScrollOffsetX` 같은 offset 직접
+  조작이나 거리 임계값 기반 제스처 중재를 되살리지 않는다. 가장자리 페이드는
+  `CAGradientLayer` mask이며 `UIScrollEdgeEffect`는 쓰지 않는다(#98에서 롤백됨).
+  `SuggestionButtonView` **안의** 긴 텍스트는 여전히 스크롤하지 않는다. 두 줄·글자
+  축소·중간 생략 동작을 유지한다.
 
 ## 작업 인프라
 
@@ -323,7 +326,8 @@ XcodeBuildMCP를 사용하는 경우 첫 build/test 전에 `session_show_default
   제스처 취소 후 입력 복구
 - 제거하거나 실제 화면 검증으로 이동: 정확한 tint, blur/glass 구체 타입,
   SF Symbol 이름, private subview 구조
-- 명시적 UI 회귀 계약: 자동완성 후보의 스크롤 없음·두 줄·자동 축소·중간 생략
+- 명시적 UI 회귀 계약: 자동완성 후보 버튼 안 텍스트의 두 줄·자동 축소·중간 생략,
+  후보 목록의 가로 스크롤 발생 조건(`contentSize.width > bounds.width`)
 - 명명 예시: `HangeulCompositionState` harness의 committed/composing 검증은
   조합/상태 테스트이며 ViewController·자동완성 통합 테스트가 아님
 - 자동완성 통합 예시: controller 입력에서 `inputBuffer`를 거쳐

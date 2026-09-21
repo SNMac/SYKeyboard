@@ -25,7 +25,8 @@ struct SuggestionControllerAsyncTextCheckerTests {
         harness.queue.sync {}
         await waitForMainQueue()
 
-        #expect(harness.delegate.updates.last == .init(currentWord: "hel", suggestions: ["Helsinki", "hello"]))
+        // maxSuggestions 확장으로 checker 슬롯이 넓어져 "hello"·"help" 모두 들어간다
+        #expect(harness.delegate.updates.last == .init(currentWord: "hel", suggestions: ["Helsinki", "hello", "help"]))
     }
 
     @Test("새 입력이 들어오면 이전 입력의 TextChecker 결과는 버림")

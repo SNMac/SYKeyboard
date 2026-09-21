@@ -58,6 +58,11 @@ final class SuggestionBarView: UIView {
     private var removalLongPressWorkItem: DispatchWorkItem?
     /// 길게 눌러 삭제 확인을 띄운 터치인지 여부. 손을 떼도 후보를 선택하지 않는다
     private var isTouchConsumedByRemoval = false
+    /// 터치가 시작된 후보 인덱스. 시작한 후보에서 떼야만 선택한다(탭 전용)
+    ///
+    /// 후보가 3개 이하면 `UIScrollView`의 pan이 시작되지 않아 `touchesCancelled`가 오지 않는다.
+    /// 스크롤 가능 여부와 무관하게 끌어서 고르는 동작을 막으려면 시작 인덱스를 직접 들어야 한다
+    private var touchBeganSuggestionIndex: Int?
 
     /// 후보 버튼 재사용 풀. 한 번 만든 버튼은 버리지 않고 `isHidden`으로만 감춘다
     private var pooledButtons: [SuggestionButtonView] = []
@@ -246,6 +251,7 @@ final class SuggestionBarView: UIView {
     // MARK: - Internal Methods
 
     func beginTouchInteraction(at point: CGPoint) {
+        touchBeganSuggestionIndex = suggestionButton(at: point)?.0
         updateHighlight(at: point)
         keyboardHStackView?.isUserInteractionEnabled = false
         scheduleRemovalLongPress(at: point)
@@ -265,7 +271,7 @@ final class SuggestionBarView: UIView {
             return
         }
 
-        if let (index, _) = suggestionButton(at: point) {
+        if let (index, _) = suggestionButton(at: point), index == touchBeganSuggestionIndex {
             suggestionDelegate?.suggestionBar(
                 self,
                 didSelectSuggestionAt: index
@@ -310,6 +316,7 @@ final class SuggestionBarView: UIView {
 
     func resetTouchInteraction() {
         cancelRemovalLongPress()
+        touchBeganSuggestionIndex = nil
         isTouchConsumedByRemoval = false
         clearTouchHighlights()
         keyboardHStackView?.isUserInteractionEnabled = true
@@ -376,6 +383,8 @@ final class SuggestionBarView: UIView {
         undoButton.isEnabled = isVisible && canUndo
         redoButton.isEnabled = isVisible && canRedo
         updateDividers()
+        // 후보 버튼 폭은 기능 버튼이 남긴 뷰포트 폭에서 나온다. 표시가 바뀌면 다시 배치한다
+        setNeedsLayout()
     }
 
     /// 자동완성 바 좌측의 클립보드 버튼 표시와 아이콘을 갱신합니다.
@@ -393,38 +402,8 @@ final class SuggestionBarView: UIView {
             )
         }
         updateDividers()
-    }
-
-    func updateDividers() {
-        let buttons = suggestionButtons
-        let firstHighlighted = isVisibleAndHighlighted(buttons.first)
-        let lastHighlighted = isVisibleAndHighlighted(buttons.last)
-
-        clipboardDivider.backgroundColor = (clipboardButton.isHighlighted || firstHighlighted)
-        ? .clear
-        : .suggestionDividerColor
-        undoRedoLeadingDivider.backgroundColor = (lastHighlighted || undoButton.isHighlighted)
-        ? .clear
-        : .suggestionDividerColor
-        undoRedoMiddleDivider.backgroundColor = (undoButton.isHighlighted || redoButton.isHighlighted)
-        ? .clear
-        : .suggestionDividerColor
-
-        for index in pooledDividers.indices {
-            let leadingHighlighted = buttons.indices.contains(index) && buttons[index].isHighlighted
-            let trailingHighlighted = buttons.indices.contains(index + 1) && buttons[index + 1].isHighlighted
-            pooledDividers[index].backgroundColor = (leadingHighlighted || trailingHighlighted)
-            ? .clear
-            : .suggestionDividerColor
-        }
-    }
-
-    /// 경계 divider를 지울지 판단합니다.
-    ///
-    /// 스크롤로 뷰포트 밖에 완전히 나간 버튼 때문에 보이지도 않는 divider가 사라지는 것을 막는다
-    func isVisibleAndHighlighted(_ button: SuggestionButtonView?) -> Bool {
-        guard let button, button.isHighlighted else { return false }
-        return button.frame.intersects(suggestionScrollView.bounds)
+        // 후보 버튼 폭은 기능 버튼이 남긴 뷰포트 폭에서 나온다. 표시가 바뀌면 다시 배치한다
+        setNeedsLayout()
     }
 
 }
@@ -498,7 +477,44 @@ private extension SuggestionBarView {
         return button
     }
 
+    func updateDividers() {
+        let buttons = suggestionButtons
+        let firstHighlighted = isVisibleAndHighlighted(buttons.first)
+        let lastHighlighted = isVisibleAndHighlighted(buttons.last)
+
+        clipboardDivider.backgroundColor = (clipboardButton.isHighlighted || firstHighlighted)
+        ? .clear
+        : .suggestionDividerColor
+        undoRedoLeadingDivider.backgroundColor = (lastHighlighted || undoButton.isHighlighted)
+        ? .clear
+        : .suggestionDividerColor
+        undoRedoMiddleDivider.backgroundColor = (undoButton.isHighlighted || redoButton.isHighlighted)
+        ? .clear
+        : .suggestionDividerColor
+
+        for index in pooledDividers.indices {
+            let leadingHighlighted = buttons.indices.contains(index) && buttons[index].isHighlighted
+            let trailingHighlighted = buttons.indices.contains(index + 1) && buttons[index + 1].isHighlighted
+            pooledDividers[index].backgroundColor = (leadingHighlighted || trailingHighlighted)
+            ? .clear
+            : .suggestionDividerColor
+        }
+    }
+
+    /// 경계 divider를 지울지 판단합니다.
+    ///
+    /// 스크롤로 뷰포트 밖에 완전히 나간 버튼 때문에 보이지도 않는 divider가 사라지는 것을 막는다
+    func isVisibleAndHighlighted(_ button: SuggestionButtonView?) -> Bool {
+        guard let button, button.isHighlighted else { return false }
+        return button.frame.intersects(suggestionScrollView.bounds)
+    }
+
     func suggestionButton(at point: CGPoint) -> (Int, SuggestionButtonView)? {
+        // convert(_:to:)는 스크롤 offset은 반영하지만 클리핑은 반영하지 않는다.
+        // 뷰포트 밖으로 잘린 후보가 기능 버튼 영역을 덮지 않도록 여기서 한정한다
+        let viewport = suggestionScrollView.convert(suggestionScrollView.bounds, to: self)
+        guard viewport.contains(point) else { return nil }
+
         for (index, button) in suggestionButtons.enumerated() {
             guard button.hasText else { continue }
             let buttonFrame = button.convert(button.bounds, to: self)
@@ -541,8 +557,9 @@ private extension SuggestionBarView {
     }
 
     func updateHighlight(at point: CGPoint) {
+        // 시작한 후보를 벗어나면 하이라이트도 지운다. 떼어도 선택되지 않으므로 강조가 남으면 오인한다
         let hit = suggestionButton(at: point)
-        touchedSuggestionIndex = hit?.0
+        touchedSuggestionIndex = hit?.0 == touchBeganSuggestionIndex ? hit?.0 : nil
 
         let actionHit = actionButton(at: point)
         touchedActionIndex = actionHit.flatMap { actionButton in

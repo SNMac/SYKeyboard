@@ -97,7 +97,7 @@ protocol SuggestionService: AnyObject {
     /// 갱신 결과는 `delegate`의
     /// `SuggestionControllerDelegate/suggestionController(_:didUpdateCurrentWord:suggestions:)`를 통해 전달됩니다.
     ///
-    /// 입력 중일 때는 button1에 현재 단어, button2~3에 자동완성 후보를 표시하고,
+    /// 입력 중일 때는 0번 칸에 현재 단어, 그 뒤 칸에 자동완성 후보를 표시하고,
     /// 입력이 없거나 마지막 문자가 공백이면 n-gram 기반 다음 단어 예측을 표시합니다.
     ///
     /// - Parameters:
@@ -137,7 +137,7 @@ protocol SuggestionService: AnyObject {
     /// `selectSuggestion`은 마지막 문자가 공백일 때 `nil`을 반환하므로,
     /// n-gram 모드에서는 이 메서드로 후보를 직접 가져와 삽입합니다.
     ///
-    /// - Parameter index: 선택된 후보의 인덱스 (0~2)
+    /// - Parameter index: 선택된 후보의 인덱스
     /// - Returns: 후보 텍스트, 유효하지 않거나 n-gram 출처가 아니면 `nil`
     func nGramSuggestionText(at index: Int) -> String?
 
@@ -145,7 +145,7 @@ protocol SuggestionService: AnyObject {
     ///
     /// n-gram 후보와 앱이 학습시킨 TextChecker 후보만 삭제할 수 있습니다.
     ///
-    /// - Parameter index: 바에서 누른 후보 인덱스 (0~2). 입력 중 모드의 0번은 현재 단어다
+    /// - Parameter index: 바에서 누른 후보 인덱스. 입력 중 모드의 0번은 현재 단어다
     /// - Returns: 삭제할 단어, 삭제할 수 없으면 `nil`
     func removableSuggestionText(atBarIndex index: Int) -> String?
 
@@ -170,7 +170,7 @@ protocol SuggestionService: AnyObject {
     /// 이 메서드는 대치 이력을 변경하지 않는 preview 용도입니다.
     ///
     /// - Parameter baseText: 텍스트 대치를 제공할 텍스트
-    /// - Returns: SuggestionBar 후보 인덱스 (0~2), 대치 후보가 없으면 `nil`
+    /// - Returns: SuggestionBar 후보 인덱스, 대치 후보가 없으면 `nil`
     func textReplacementPreviewSuggestionIndex(baseText: String) -> Int?
 
     // MARK: - Learning

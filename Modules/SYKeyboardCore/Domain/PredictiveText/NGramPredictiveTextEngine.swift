@@ -100,7 +100,9 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
     private var currentSentenceWords: [String] = []
     
     /// 예측 최대 반환 개수
-    private let maxPredictions = 3
+    ///
+    /// 후보 바가 가로로 스크롤되므로 화면 밖 후보까지 만든다. `SuggestionController.maxSuggestions`와 같은 값이다
+    private let maxPredictions = 10
     
     /// n-gram 키 최대 항목 수 (이 수를 초과하면 빈도 낮은 항목부터 정리)
     ///
@@ -282,7 +284,7 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
     /// 디스크 로딩이 완료되지 않은 경우 빈 배열을 반환합니다.
     ///
     /// - Parameter baseText: 자동완성을 제공할 텍스트 (`inputBuffer`)
-    /// - Returns: 빈도순으로 정렬된 다음 단어 후보 배열 (최대 3개)
+    /// - Returns: 빈도순으로 정렬된 다음 단어 후보 배열 (최대 `maxPredictions`개)
     func suggestions(for baseText: String) -> [String] {
         guard isLoaded else { return [] }
         

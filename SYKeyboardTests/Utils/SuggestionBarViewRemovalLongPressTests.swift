@@ -46,8 +46,8 @@ struct SuggestionBarViewRemovalLongPressTests {
         #expect(fixture.delegate.selectedIndexes == [1])
     }
 
-    @Test("누른 후보를 벗어나면 삭제를 요청하지 않고 드래그 선택 유지")
-    func test누른후보를벗어나면_삭제를요청하지않고_드래그선택유지() {
+    @Test("누른 후보를 벗어나면 삭제를 요청하지 않음")
+    func test누른후보를벗어나면_삭제를요청하지않음() {
         let fixture = makeFixture(acceptsRemoval: true)
         let startPoint = center(of: fixture.buttons[0], in: fixture.bar)
         let endPoint = center(of: fixture.buttons[2], in: fixture.bar)
@@ -55,10 +55,8 @@ struct SuggestionBarViewRemovalLongPressTests {
         fixture.bar.beginTouchInteraction(at: startPoint)
         fixture.bar.moveTouchInteraction(to: endPoint)
         fixture.bar.handleRemovalLongPress()
-        fixture.bar.endTouchInteraction(at: endPoint, playsFeedback: false)
 
         #expect(fixture.delegate.removalRequestIndexes == [])
-        #expect(fixture.delegate.selectedIndexes == [2])
     }
 
     @Test("터치가 끝난 뒤 타이머가 늦게 불려도 삭제를 요청하지 않음")
@@ -72,27 +70,6 @@ struct SuggestionBarViewRemovalLongPressTests {
 
         #expect(fixture.delegate.selectedIndexes == [1])
         #expect(fixture.delegate.removalRequestIndexes == [])
-    }
-
-    @Test("후보 3개는 후보 영역이 스크롤되지 않음")
-    func test후보3개는_후보영역이스크롤되지않음() {
-        let fixture = makeFixture(acceptsRemoval: false)
-
-        // 레이아웃이 돌지 않아 폭이 0이면 아래 단언이 공허하게 통과한다
-        #expect(fixture.buttons[0].bounds.width > 0)
-        #expect(fixture.bar.isSuggestionAreaScrollable == false)
-    }
-
-    @Test("후보 버튼은 등폭을 유지")
-    func test후보버튼은_등폭을유지() {
-        let fixture = makeFixture(acceptsRemoval: false)
-        let widths = fixture.buttons.map { $0.bounds.width }
-
-        #expect(widths.count == 3)
-        for width in widths {
-            #expect(width > 0)
-            #expect(abs(width - widths[0]) < 0.5)
-        }
     }
 
     @Test("터치 취소는 하이라이트와 삭제 타이머를 함께 취소")
@@ -110,6 +87,42 @@ struct SuggestionBarViewRemovalLongPressTests {
         #expect(fixture.delegate.removalRequestIndexes == [])
         #expect(fixture.delegate.selectedIndexes == [])
         #expect(fixture.keyboardHStackView.isUserInteractionEnabled)
+    }
+}
+
+@Suite("자동완성 바 후보 표시·레이아웃 검증")
+@MainActor
+struct SuggestionBarViewLayoutTests {
+
+    @Test("후보 3개는 후보 영역이 스크롤되지 않음")
+    func test후보3개는_후보영역이스크롤되지않음() {
+        let fixture = makeFixture(acceptsRemoval: false)
+
+        // 레이아웃이 돌지 않아 폭이 0이면 아래 단언이 공허하게 통과한다
+        #expect(fixture.buttons[0].bounds.width > 0)
+        #expect(fixture.bar.isSuggestionAreaScrollable == false)
+    }
+
+    @Test("후보 3칸과 divider 2개가 후보 영역을 빈틈없이 채움")
+    func test후보3칸과divider2개가_후보영역을빈틈없이채움() {
+        let fixture = makeFixture(acceptsRemoval: false)
+        let widths = fixture.buttons.map { $0.bounds.width }
+
+        #expect(widths.count == 3)
+        for width in widths {
+            #expect(width > 0)
+            #expect(abs(width - widths[0]) < 0.5)
+        }
+
+        // 후보 3칸 + divider 2개가 후보 영역(뷰포트)을 정확히 채운다.
+        // 등폭만 보면 각 칸이 뷰포트의 1/6이어도 통과하므로 1/3임을 함께 고정한다
+        let frames = fixture.buttons.map { $0.convert($0.bounds, to: fixture.bar) }
+        let span = frames[2].maxX - frames[0].minX
+        let dividerTotal: CGFloat = 2
+        #expect(abs(widths.reduce(0, +) + dividerTotal - span) < 0.5)
+
+        // 기능 버튼이 모두 숨겨진 fixture라 뷰포트는 바 폭에서 스택 좌우 margin 1pt씩을 뺀 값이다
+        #expect(abs(span - (fixture.bar.bounds.width - 2)) < 0.5)
     }
 
     @Test("후보 수가 10 → 3 → 10으로 바뀌어도 이전 후보가 남지 않음")
@@ -154,28 +167,55 @@ struct SuggestionBarViewRemovalLongPressTests {
         #expect(fixture.bar.isSuggestionAreaScrollable == false)
     }
 
-    private struct Fixture {
-        let bar: SuggestionBarView
-        let keyboardHStackView: UIStackView
-        let delegate: RemovalDelegateSpy
-        let buttons: [SuggestionButtonView]
-    }
-
-    private func makeFixture(acceptsRemoval: Bool) -> Fixture {
-        let keyboardHStackView = UIStackView()
-        let bar = SuggestionBarView(keyboardHStackView: keyboardHStackView)
-        let delegate = RemovalDelegateSpy(acceptsRemoval: acceptsRemoval)
-        bar.suggestionDelegate = delegate
-        bar.frame = CGRect(x: 0, y: 0, width: 300, height: 44)
-        bar.updateSuggestions(currentWord: nil, suggestions: ["오늘", "날씨", "좋다"])
-        bar.layoutIfNeeded()
-        return Fixture(
-            bar: bar,
-            keyboardHStackView: keyboardHStackView,
-            delegate: delegate,
-            buttons: typedSuggestionButtonViews(in: bar)
+    @Test("후보가 10개여도 화면 밖 후보가 undo 버튼 탭을 가로채지 않음")
+    func test후보가10개여도_화면밖후보가_undo버튼탭을가로채지않음() {
+        let fixture = makeFixture(acceptsRemoval: true)
+        fixture.bar.updateSuggestions(
+            currentWord: nil,
+            suggestions: (1...10).map { "단어\($0)" }
         )
+        fixture.bar.updateUndoRedoControls(isVisible: true, canUndo: true, canRedo: true)
+        fixture.bar.layoutIfNeeded()
+
+        // undo 버튼 중심. 스크롤 뷰 오른쪽 바깥이라 잘린 후보가 덮고 있던 자리다
+        let undoCenter = CGPoint(
+            x: fixture.bar.bounds.maxX - 1 - KeyboardLayoutFigure.undoRedoButtonWidth * 1.5 - 1,
+            y: fixture.bar.bounds.midY
+        )
+
+        fixture.bar.beginTouchInteraction(at: undoCenter)
+        fixture.bar.handleRemovalLongPress()
+        fixture.bar.endTouchInteraction(at: undoCenter, playsFeedback: false)
+
+        #expect(fixture.delegate.selectedIndexes == [])
+        #expect(fixture.delegate.removalRequestIndexes == [])
+        #expect(fixture.delegate.undoTapCount == 1)
     }
+}
+
+@MainActor
+private struct Fixture {
+    let bar: SuggestionBarView
+    let keyboardHStackView: UIStackView
+    let delegate: RemovalDelegateSpy
+    let buttons: [SuggestionButtonView]
+}
+
+@MainActor
+private func makeFixture(acceptsRemoval: Bool) -> Fixture {
+    let keyboardHStackView = UIStackView()
+    let bar = SuggestionBarView(keyboardHStackView: keyboardHStackView)
+    let delegate = RemovalDelegateSpy(acceptsRemoval: acceptsRemoval)
+    bar.suggestionDelegate = delegate
+    bar.frame = CGRect(x: 0, y: 0, width: 300, height: 44)
+    bar.updateSuggestions(currentWord: nil, suggestions: ["오늘", "날씨", "좋다"])
+    bar.layoutIfNeeded()
+    return Fixture(
+        bar: bar,
+        keyboardHStackView: keyboardHStackView,
+        delegate: delegate,
+        buttons: typedSuggestionButtonViews(in: bar)
+    )
 }
 
 private func typedSuggestionButtonViews(
@@ -210,6 +250,7 @@ private final class RemovalDelegateSpy: SuggestionBarDelegate {
     private let acceptsRemoval: Bool
     private(set) var removalRequestIndexes: [Int] = []
     private(set) var selectedIndexes: [Int] = []
+    private(set) var undoTapCount = 0
 
     init(acceptsRemoval: Bool) {
         self.acceptsRemoval = acceptsRemoval
@@ -224,7 +265,10 @@ private final class RemovalDelegateSpy: SuggestionBarDelegate {
         return acceptsRemoval
     }
 
-    func suggestionBarDidTapUndo(_ bar: SuggestionBarView) {}
+    func suggestionBarDidTapUndo(_ bar: SuggestionBarView) {
+        undoTapCount += 1
+    }
+
     func suggestionBarDidTapRedo(_ bar: SuggestionBarView) {}
     func suggestionBarDidTapClipboard(_ bar: SuggestionBarView) {}
 }

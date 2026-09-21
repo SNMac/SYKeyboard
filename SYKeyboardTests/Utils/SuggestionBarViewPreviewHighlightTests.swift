@@ -38,8 +38,38 @@ struct SuggestionBarViewPreviewHighlightTests {
         #expect(labels.allSatisfy { $0.lineBreakMode == .byTruncatingMiddle })
     }
 
-    @Test("긴 후보에서 시작한 드래그도 종료 위치 후보를 선택")
-    func test긴후보에서시작한드래그도_종료위치후보를선택() {
+    @Test("긴 후보를 탭하면 그 후보를 선택")
+    func test긴후보를탭하면_그후보를선택() {
+        let keyboardHStackView = UIStackView()
+        let bar = SuggestionBarView(keyboardHStackView: keyboardHStackView)
+        let delegate = SuggestionBarRollbackDelegateSpy()
+        bar.suggestionDelegate = delegate
+        bar.frame = CGRect(x: 0, y: 0, width: 300, height: 44)
+        bar.updateSuggestions(
+            currentWord: nil,
+            suggestions: [
+                "123456789012345678901234567890",
+                "두번째",
+                "세번째"
+            ]
+        )
+        bar.layoutIfNeeded()
+
+        let buttons = typedSuggestionButtonViews(in: bar)
+        let point = center(of: buttons[0], in: bar)
+
+        bar.beginTouchInteraction(at: point)
+
+        #expect(buttons[0].isHighlighted)
+
+        bar.endTouchInteraction(at: point, playsFeedback: false)
+
+        #expect(delegate.selectedIndexes == [0])
+        #expect(keyboardHStackView.isUserInteractionEnabled)
+    }
+
+    @Test("시작한 후보를 벗어나 떼면 선택되지 않고 하이라이트도 남지 않음")
+    func test시작한후보를벗어나떼면_선택되지않고_하이라이트도남지않음() {
         let keyboardHStackView = UIStackView()
         let bar = SuggestionBarView(keyboardHStackView: keyboardHStackView)
         let delegate = SuggestionBarRollbackDelegateSpy()
@@ -62,11 +92,14 @@ struct SuggestionBarViewPreviewHighlightTests {
         bar.beginTouchInteraction(at: startPoint)
         bar.moveTouchInteraction(to: endPoint)
 
-        #expect(buttons[2].isHighlighted)
+        // 후보 3개는 contentSize가 뷰포트를 넘지 않아 UIScrollView가 터치를 가져가지 않는다.
+        // 그래도 끌어서 고르는 동작은 남지 않아야 한다
+        #expect(buttons[2].isHighlighted == false)
+        #expect(buttons[0].isHighlighted == false)
 
         bar.endTouchInteraction(at: endPoint, playsFeedback: false)
 
-        #expect(delegate.selectedIndexes == [2])
+        #expect(delegate.selectedIndexes == [])
         #expect(keyboardHStackView.isUserInteractionEnabled)
     }
 
