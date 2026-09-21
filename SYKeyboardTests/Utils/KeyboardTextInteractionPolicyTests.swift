@@ -1482,7 +1482,7 @@ struct DeleteMutationLifecycleTests {
     }
 
     @Test("released 요청의 관련 없는 callback은 cancelled outcome")
-    func testReleasedRequestUnrelatedCallbackCancelsGeneration() {
+    func testReleasedRequestUnrelatedCallbackIsCancelledOutcome() {
         var lifecycle = DeleteMutationLifecycle()
         let request = KeyboardTextContextSnapshot(beforeInput: "가", afterInput: "")
         _ = lifecycle.beginTouchDown(context: request, selectedText: nil)

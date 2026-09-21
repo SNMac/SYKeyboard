@@ -22,7 +22,7 @@ struct ClipboardImagePolicyTests {
         #expect(ClipboardImagePolicy.storableType(in: []) == nil)
     }
 
-    @Test("바이트 한도는 24 MB까지, 픽셀 한도는 타입과 무관하게 48,000,000까지 저장 가능")
+    @Test("바이트 한도는 24 MB까지, 픽셀 한도는 타입과 무관하게 50,000,000까지 저장 가능")
     func test바이트픽셀한도_경계값() {
         let bytes = ClipboardImagePolicy.maxByteSize
         #expect(bytes == 24 * 1_024 * 1_024)

@@ -118,17 +118,19 @@ struct KeyboardSmartInputPolicyTests {
         #expect(closingDouble.insertText == "”")
     }
 
-    @Test("quote 상태는 삭제 시 되돌리지 않고 다음 입력에 닫는 따옴표를 사용")
-    func testQuoteStateIsNotRevertedByDelete() {
+    @Test("여는 큰따옴표를 소비하면 다음 큰따옴표는 닫는 따옴표")
+    func testConsumingOpeningDoubleQuoteMakesNextOneClosing() {
         var state = KeyboardSmartQuoteState()
 
         let first = transform("\"", before: nil, nextOpening: state.nextDoubleQuoteIsOpening)
         state.consume(first)
 
-        let secondAfterDelete = transform("\"", before: nil, nextOpening: state.nextDoubleQuoteIsOpening)
+        #expect(state.nextDoubleQuoteIsOpening == false)
+
+        let second = transform("\"", before: nil, nextOpening: state.nextDoubleQuoteIsOpening)
 
         #expect(first.insertText == "“")
-        #expect(secondAfterDelete.insertText == "”")
+        #expect(second.insertText == "”")
     }
 
     @Test("smart dashes는 trait default 또는 yes에서 em dash와 ellipsis를 적용하고 no에서만 적용하지 않음")
