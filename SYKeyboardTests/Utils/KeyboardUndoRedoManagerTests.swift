@@ -70,17 +70,6 @@ struct KeyboardUndoRedoManagerTests {
         #expect(manager.redo() == nil)
     }
 
-    @Test("undo 이후 새 치환은 redo 기록을 비움")
-    func testUndo후_새치환_Redo초기화() {
-        var manager = KeyboardUndoRedoManager()
-
-        manager.record(deletedText: "ㄷ", insertedText: "돈", targetContext: nil)
-        _ = manager.undo()
-        manager.record(deletedText: "ㄴ", insertedText: "난", targetContext: nil)
-
-        #expect(manager.redo() == nil)
-    }
-
     @Test("치환은 삭제와 입력을 하나의 undo/redo 단위로 기록함")
     func test치환_undoRedo() {
         var manager = KeyboardUndoRedoManager()
@@ -403,11 +392,6 @@ struct KeyboardUndoRedoManagerTests {
 @Suite("키보드 undo/redo cursor context 검증")
 struct KeyboardTextContextNavigatorTests {
 
-    @Test("커서 복원 최대 거리는 256자임")
-    func testMaximumCursorRestoreDistance_256() {
-        #expect(KeyboardTextContextNavigator.maximumCursorRestoreDistance == 256)
-    }
-
     @Test("커서가 왼쪽으로 이동한 뒤 원래 편집 위치까지 오른쪽 offset을 반환함")
     func testCursorOffset_왼쪽이동후복원() {
         let current = KeyboardTextContextSnapshot(beforeInput: "ab", afterInput: "cdef")
@@ -458,19 +442,19 @@ struct KeyboardTextContextNavigatorTests {
 
     @Test("최대 복원 거리 안쪽의 커서 이동은 복원 offset을 반환함")
     func testCursorOffset_최대복원거리내_복원() {
-        let moveText = String(repeating: "a", count: KeyboardTextContextNavigator.maximumCursorRestoreDistance)
+        let moveText = String(repeating: "a", count: 256)
         let current = KeyboardTextContextSnapshot(beforeInput: moveText, afterInput: "tail")
         let target = KeyboardTextContextSnapshot(beforeInput: "", afterInput: moveText + "tail")
 
         #expect(
             KeyboardTextContextNavigator.cursorOffset(from: current, to: target)
-            == -KeyboardTextContextNavigator.maximumCursorRestoreDistance
+            == -256
         )
     }
 
     @Test("최대 복원 거리를 넘는 커서 이동은 탐색을 중단함")
     func testCursorOffset_최대복원거리초과_nil() {
-        let moveText = String(repeating: "a", count: KeyboardTextContextNavigator.maximumCursorRestoreDistance + 1)
+        let moveText = String(repeating: "a", count: 257)
         let current = KeyboardTextContextSnapshot(beforeInput: moveText, afterInput: "tail")
         let target = KeyboardTextContextSnapshot(beforeInput: "", afterInput: moveText + "tail")
 

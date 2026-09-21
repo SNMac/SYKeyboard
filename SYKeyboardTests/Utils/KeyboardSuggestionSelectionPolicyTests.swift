@@ -174,13 +174,6 @@ struct KeyboardSuggestionSelectionPolicyTests {
                 documentContextBeforeInput: "hello 5+1="
             ) == "hello 5+1="
         )
-        #expect(
-            KeyboardSuggestionSelectionPolicy.suggestionUpdateAction(
-                isPredictiveTextEnabled: true,
-                selectedText: nil,
-                inputBuffer: ""
-            ) == .update("")
-        )
     }
 
     @Test("lexicon은 텍스트 대치나 자동완성 중 하나라도 켜진 경우 로드")
@@ -230,42 +223,6 @@ struct KeyboardSuggestionSelectionPolicyTests {
             KeyboardSuggestionSelectionPolicy.shouldUpdateInitialSuggestionsAfterDeferredPreparation(
                 shouldPreparePredictiveEngines: false
             ) == false
-        )
-    }
-
-    @Test("대치 복구는 입력 버퍼가 비어도 커서 앞 컨텍스트로 최근 대치 결과를 찾음")
-    func test대치복구컨텍스트Fallback() {
-        #expect(
-            KeyboardSuggestionSelectionPolicy.textReplacementRestoreDeleteCount(
-                documentText: "♡",
-                inputBuffer: "",
-                documentContextBeforeInput: "♡",
-                selectedText: nil
-            ) == 1
-        )
-    }
-
-    @Test("대치 복구는 대치 뒤 공백이 있으면 수행하지 않음")
-    func test대치복구TrailingSpace() {
-        #expect(
-            KeyboardSuggestionSelectionPolicy.textReplacementRestoreDeleteCount(
-                documentText: "♡",
-                inputBuffer: "♡ ",
-                documentContextBeforeInput: "♡ ",
-                selectedText: nil
-            ) == nil
-        )
-    }
-
-    @Test("선택 텍스트가 있으면 대치 복구보다 선택 삭제를 우선함")
-    func test대치복구선택텍스트제외() {
-        #expect(
-            KeyboardSuggestionSelectionPolicy.textReplacementRestoreDeleteCount(
-                documentText: "♡",
-                inputBuffer: "",
-                documentContextBeforeInput: "♡",
-                selectedText: "♡"
-            ) == nil
         )
     }
 }

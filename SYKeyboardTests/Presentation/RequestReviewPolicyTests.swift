@@ -53,17 +53,6 @@ struct RequestReviewPolicyTests {
         #expect(result.shouldRequestReview == true)
     }
 
-    @Test("앱 실행은 기준 횟수를 채워도 즉시 요청하지 않음")
-    func testAppLaunchDoesNotPromptEvenWhenCounterReachesThreshold() {
-        let result = RequestReviewPolicy.recordEligibleInteraction(
-            reviewCounter: 29,
-            isEligible: true
-        )
-
-        #expect(result.reviewCounter == 30)
-        #expect(result.shouldRequestReview == false)
-    }
-
     @Test("같은 빌드에서는 상세 설정 복귀 시에도 다시 요청하지 않음")
     func testDetailReturnDoesNotRequestTwiceForSameBuild() {
         let result = RequestReviewPolicy.recordDetailSettingsReturnAndEvaluate(

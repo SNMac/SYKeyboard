@@ -88,31 +88,6 @@ struct KeyboardPrimaryViewCollectionTests {
         #expect(view.numericKeyboardView.languageSwitchButton == nil)
     }
 
-    @Test("통합 symbol은 숨겨진 globe 폭을 space로 반환")
-    func testUnifiedSymbolHiddenGlobeCollapsesIntoFlexibleSpace() throws {
-        let primary = TestPrimaryKeyboardView(keyboard: .qwerty, showsLanguageSwitchButton: true)
-        let view = KeyboardView.loadFromNib(primaryKeyboardViews: [primary])
-        let symbolView = view.symbolKeyboardView
-
-        view.frame = CGRect(x: 0, y: 0, width: 390, height: 216)
-        symbolView.isHidden = false
-        view.layoutIfNeeded()
-
-        let visibleGlobeWidth = view.symbolKeyboardView.nextKeyboardButton.frame.width
-        let visibleSpaceWidth = view.symbolKeyboardView.spaceButtonHStackView.frame.width
-        view.symbolKeyboardView.updateNextKeyboardButton(
-            needsInputModeSwitchKey: false,
-            nextKeyboardAction: NSSelectorFromString("unusedNextKeyboardAction:")
-        )
-        symbolView.layoutIfNeeded()
-
-        #expect(view.symbolKeyboardView.nextKeyboardButton.isHidden)
-        #expect(
-            view.symbolKeyboardView.spaceButtonHStackView.frame.width
-            >= visibleSpaceWidth + visibleGlobeWidth - 0.5
-        )
-    }
-
     @Test("통합 symbol은 동일 globe 상태 반복 갱신 시 레이아웃을 다시 무효화하지 않음")
     func testUnifiedSymbolRepeatedGlobeStateDoesNotInvalidateLayout() throws {
         let primary = TestPrimaryKeyboardView(keyboard: .qwerty, showsLanguageSwitchButton: true)

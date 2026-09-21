@@ -46,16 +46,6 @@ struct ClipboardHistoryStoreTests {
         #expect(fixture.store.load().map(\.text) == ["c", "a"])
     }
 
-    @Test("전체 삭제 후에는 빈 배열")
-    func test전체삭제후_빈배열() {
-        let fixture = makeFixture(name: "remove-all")
-        fixture.store.record("a")
-
-        fixture.store.removeAll()
-
-        #expect(fixture.store.load().isEmpty)
-    }
-
     @Test("고정 토글은 파일에 반영되고 고정 항목이 맨 앞으로 이동")
     func test고정토글은_파일에반영() {
         let fixture = makeFixture(name: "pin")

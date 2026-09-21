@@ -24,18 +24,6 @@ struct KeyboardSymbolInputPolicyTests {
         #expect(SymbolKeyboardMode(keyboardType: .twitter) == .default)
     }
 
-    @Test("기호 키보드는 일반과 Shift 키 배열을 제공")
-    func test기호키보드키배열() {
-        #expect(
-            SymbolKeyboardMode.keyList(usesNumberRow: false)[0][1].map { $0.first ?? "" } ==
-            ["-", "/", ":", ";", "(", ")", "₩", "&", "@", "”"]
-        )
-        #expect(
-            SymbolKeyboardMode.keyList(usesNumberRow: false)[0][2].map { $0.first ?? "" } ==
-            [".", ",", "?", "!", "’"]
-        )
-    }
-
     @MainActor
     @Test("기호 키보드 작은따옴표 키는 닫는 따옴표를 표시")
     func test기호키보드작은따옴표표시() {

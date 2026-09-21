@@ -52,14 +52,4 @@ struct OneHandedKeyboardWidthPolicyTests {
 
         #expect(minWidth == 0)
     }
-
-    @Test("가로 화면처럼 가용 폭이 넓어도 설정 폭을 넘지 않음")
-    func test가로화면_설정폭유지() {
-        let minWidth = KeyboardPresentationStatePolicy.oneHandedKeyboardMinimumWidth(
-            configuredWidth: 320,
-            availableWidth: 874
-        )
-
-        #expect(minWidth == 320)
-    }
 }

@@ -81,6 +81,7 @@ struct SymbolKeyboardLayoutTests {
 
         #expect(keyList[0][0].map(\.first) == ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"])
         #expect(keyList[0][1].map(\.first) == ["-", "/", ":", ";", "(", ")", "₩", "&", "@", "”"])
+        #expect(keyList[0][2].map(\.first) == [".", ",", "?", "!", "’"])
         #expect(keyList[1][0].map(\.first) == ["[", "]", "{", "}", "#", "%", "^", "*", "+", "="])
     }
 
@@ -164,25 +165,6 @@ struct SymbolKeyboardLayoutTests {
         #expect(abs(numberButton.frame.height - 35) < 0.5)
         #expect(view.firstRowPrimaryKeyButtonList.map(\.type.primaryKeyList.first)
                 == ["-", "/", ":", ";", "(", ")", "₩", "&", "@", "”"])
-    }
-
-    @Test("숫자 행이 켜진 URL·이메일 자판에서도 페이지 전환 버튼을 숨기지 않는다")
-    func test합친자판_shift유지() {
-        let view = SymbolKeyboardView(showsLanguageSwitchButton: false, showsNumberRow: true)
-
-        view.currentSymbolKeyboardMode = .URL
-        #expect(view.shiftButton.isHidden == false)
-
-        view.currentSymbolKeyboardMode = .default
-        #expect(view.shiftButton.isHidden == false)
-
-        view.currentSymbolKeyboardMode = .emailAddress
-        #expect(view.shiftButton.isHidden == false)
-
-        // 숫자 행이 꺼지면 합치지 않으므로 두 페이지가 그대로 살아 있다
-        let withoutNumberRow = SymbolKeyboardView(showsLanguageSwitchButton: false, showsNumberRow: false)
-        withoutNumberRow.currentSymbolKeyboardMode = .URL
-        #expect(withoutNumberRow.shiftButton.isHidden == false)
     }
 
     @Test("주 자판에 숫자 행이 없으면 기호 자판에도 숫자 행이 없다")

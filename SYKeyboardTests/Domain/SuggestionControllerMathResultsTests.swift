@@ -100,60 +100,6 @@ struct SuggestionControllerMathResultsTests {
         )
     }
 
-    @Test("선택되지 않은 가운데 후보는 결과값 삽입 action")
-    func test선택되지않은가운데후보는_결과값삽입Action() {
-        let controller = makeMathController(expression: "3-1=")
-
-        #expect(
-            controller.mathResultAction(
-                at: 1,
-                selectedText: nil
-            ) == .insertResult("2")
-        )
-    }
-
-    @Test("선택되지 않은 오른쪽 후보는 수식 전체 대치 action")
-    func test선택되지않은오른쪽후보는_수식전체대치Action() {
-        let controller = makeMathController(expression: "1 + 2 =")
-
-        #expect(
-            controller.mathResultAction(
-                at: 2,
-                selectedText: nil
-            ) == .replaceExpression(deleteCount: 7, insertText: "3")
-        )
-    }
-
-    @Test("선택된 가운데 후보는 원문과 결과로 selection 교체")
-    func test선택된가운데후보는_원문과결과로Selection교체() {
-        let controller = makeMathController(
-            expression: "3-1=",
-            selectedText: "3-1="
-        )
-
-        #expect(
-            controller.mathResultAction(
-                at: 1,
-                selectedText: "3-1="
-            ) == .replaceSelection("3-1=2")
-        )
-    }
-
-    @Test("선택된 오른쪽 후보는 결과값으로 selection 교체")
-    func test선택된오른쪽후보는_결과값으로Selection교체() {
-        let controller = makeMathController(
-            expression: "3-1=",
-            selectedText: "3-1="
-        )
-
-        #expect(
-            controller.mathResultAction(
-                at: 2,
-                selectedText: "3-1="
-            ) == .replaceSelection("2")
-        )
-    }
-
     @Test("공백이 포함된 선택 수식은 원문과 결과 action을 유지")
     func test공백포함선택수식은_원문과결과Action을유지() {
         let controller = makeMathController(

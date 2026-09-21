@@ -142,18 +142,6 @@ struct KeyboardModifierLayoutTests {
         )
     }
 
-    @Test("전용 두벌식은 Language 버튼을 만들지 않음")
-    func testDedicatedDubeolsikDoesNotCreateLanguageButton() {
-        let view = DubeolsikKeyboardView(
-            getIsShiftedLetterInput: { false },
-            setIsShiftedLetterInput: { _ in },
-            showsLanguageSwitchButton: false,
-            showsNumberRow: false
-        )
-
-        #expect(view.languageSwitchButton == nil)
-    }
-
     @Test("통합 기호 화면의 Language는 글자 버튼 너비이고 Switch와 합쳐 리턴 너비")
     func testUnifiedSymbolModifierFrames() throws {
         let view = SymbolKeyboardView(showsLanguageSwitchButton: true)
@@ -547,24 +535,13 @@ struct LanguageSwitchButtonDividerTests {
 
         // 실제 랜드스케이프 한/영 배경(49.6×32)은 반대로 세로 예산(32 * 0.20 * 1.5)이 더 작아
         // 세로 예산이 상한이 된다
+        // 회귀 가드: dividerClampedHeightBoost 도입 전에는 반길이가 32 * 0.20(=6.4)까지만 잘려
+        // 획이 세로 모드(25.0pt)보다 훨씬 짧은 18.1pt로 뭉툭해 보였다
         let heightBound = CGSize(width: 49.6, height: 32)
         let heightBoundExtents = LanguageSwitchButton.dividerHalfExtents(forKeySize: heightBound)
 
         #expect(abs(heightBoundExtents.width - 32 * 0.20 * 1.5) < 0.01)
         #expect(abs(heightBoundExtents.height - 32 * 0.20 * 1.5) < 0.01)
-    }
-
-    @Test("가로 모드 실기기 배경 크기에서는 획이 세로 예산 단순 클램프보다 길다")
-    func testLandscapeStrokeIsLongerThanPlainHeightClamp() {
-        // 회귀 가드: dividerClampedHeightBoost 도입 전에는 49.6×32 배경에서
-        // 반길이가 32 * 0.20(=6.4)까지만 잘려 획이 세로 모드(25.0pt)보다 훨씬 짧은
-        // 18.1pt로 뭉툭해 보였다. boost 적용 후에는 이 단순 클램프 값보다 커야 한다
-        let size = CGSize(width: 49.6, height: 32)
-        let extents = LanguageSwitchButton.dividerHalfExtents(forKeySize: size)
-        let plainClamp = size.height * 0.20
-
-        #expect(extents.height > plainClamp + 0.01)
-        #expect(extents.width > plainClamp + 0.01)
     }
 
     @Test("이미 45도 이상인 키는 그대로 유지된다")

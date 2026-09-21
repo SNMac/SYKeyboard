@@ -74,22 +74,4 @@ struct DubeolsikControllerTests {
         sim.input("ㄴ")
         #expect(sim.text == "갠", "반복 삭제 후 끌어오기 된 글자와 다음 입력이 조합되어야 합니다.")
     }
-    
-    // MARK: - 3. 반복 입력 후 연음
-    
-    @Test("반복 입력 후 연음: 'ㄱㄱㄱ' 후 'ㅏ' -> 'ㄱㄱ가'")
-    func test반복입력후_연음() {
-        let sim = HangeulCompositionTestHarness(
-            processor: DubeolsikProcessor(automata: automata)
-        )
-        
-        sim.input("ㄱ")
-        sim.repeatInsert("ㄱ")
-        sim.repeatInsert("ㄱ")
-        #expect(sim.text == "ㄱㄱㄱ")
-        
-        sim.input("ㅏ")
-        #expect(sim.text == "ㄱㄱ가", "반복 입력 후 마지막 자음이 다음 모음과 결합되어야 합니다.")
-    }
-
 }

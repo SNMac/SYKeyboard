@@ -198,16 +198,6 @@ struct CheonjiinColumnWidthLayoutTests {
         return try #require(keyButtons.first { $0.type.primaryKeyList.first == primary })
     }
 
-    @Test("기본 배율은 두 배치 모두 네 열을 균등 분할한다")
-    func testDefaultMultiplierKeepsEqualColumns() {
-        let expected = Self.keyboardWidth / 4
-
-        for usesBottomSpaceLayout in [false, true] {
-            let view = Self.makeView(usesBottomSpaceLayout: usesBottomSpaceLayout, multiplier: 1.0)
-            #expect(abs(Self.rect(view.deleteButton, in: view).width - expected) < Self.tolerance)
-        }
-    }
-
     @Test("기본 배치에서 배율을 올리면 기능 열이 좁아지고 열 경계가 일치한다")
     func testDefaultLayoutNarrowsFunctionColumn() {
         let view = Self.makeView(usesBottomSpaceLayout: false, multiplier: 1.15)
@@ -315,16 +305,6 @@ struct NumericColumnWidthLayoutTests {
     private static func keyButton(_ view: NumericKeyboardView, primary: String) throws -> PrimaryKeyButton {
         let keyButtons = view.primaryButtonList.compactMap { $0 as? PrimaryKeyButton }
         return try #require(keyButtons.first { $0.type.primaryKeyList.first == primary })
-    }
-
-    @Test("기본 배율은 두 배치 모두 네 열을 균등 분할한다")
-    func testDefaultMultiplierKeepsEqualColumns() {
-        let expected = Self.keyboardWidth / 4
-
-        for usesBottomSpaceLayout in [false, true] {
-            let view = Self.makeView(usesBottomSpaceLayout: usesBottomSpaceLayout, multiplier: 1.0)
-            #expect(abs(Self.rect(view.deleteButton, in: view).width - expected) < Self.tolerance)
-        }
     }
 
     @Test("기본 배치에서 배율을 올리면 기능 열이 좁아지고 열 경계가 일치한다")

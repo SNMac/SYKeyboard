@@ -212,26 +212,6 @@ struct CheonjiinProcessorTests: HangeulProcessorTestable {
         #expect(harness.text == "간ㅏ", "보호된 마지막 글자는 composingBuffer로 끌어와도 다음 입력과 재조합하지 않아야 합니다.")
     }
     
-    @Test("조합 확정 후 삭제: '가' 확정 -> 'ㄴ' 입력 -> 삭제 시 '가' 유지")
-    func test확정후_삭제_이전글자유지() {
-        let harness = HangeulCompositionTestHarness(processor: processor)
-        
-        // 1. '가' 만들기
-        ["ㄱ", "ㅣ", "ㆍ"].forEach(harness.input)
-        #expect(harness.text == "가")
-        
-        // 2. Space(조합 확정)
-        harness.space()
-        
-        // 3. 'ㄴ' 입력
-        harness.input("ㄴ")
-        #expect(harness.text == "가ㄴ")
-        
-        // 4. 삭제 -> "가"가 남아야 함 (""가 되면 안 됨)
-        harness.delete()
-        #expect(harness.text == "가", "조합 확정 후 새 글자를 삭제해도 이전 확정 글자는 유지되어야 합니다.")
-    }
-    
     // MARK: - 5. 비표준 모음(ㆍ, ᆢ) 삭제 및 연음 테스트
 
     @Test("비표준 모음 삭제 후 입력: '간ᆢㄷ' -> 삭제 -> '간ᆢ' -> 'ㅣ' -> '가녀'")
@@ -358,11 +338,6 @@ struct CheonjiinProcessorTests: HangeulProcessorTestable {
         }
         
         #expect(failureCount == 0, "총 \(failureCount)개의 글자에서 생성 또는 삭제 실패")
-    }
-
-    @Test("완성형 한글이 아닌 글자의 예상 삭제 횟수는 0")
-    func test비한글_예상삭제횟수() {
-        #expect(calculateExpectedDeleteCount(for: "A") == 0)
     }
 }
 

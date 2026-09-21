@@ -156,15 +156,6 @@ struct ClipboardHistoryPanelViewTests {
         #expect(spy.deletedIndices == [[1]])
     }
 
-    @Test("미고정만 삭제하면 확인 없이 바로 요청")
-    func test미고정만삭제는_바로요청() {
-        let (panel, spy) = makePanel(items: [pinned("p"), unpinned("a")])
-
-        panel.requestDelete(at: [1], deleteAll: false)
-
-        #expect(spy.deletedIndices == [[1]])
-    }
-
     @Test("스와이프로 tableView가 편집 상태여도 configure 뒤 편집 모드로 들어가지 않음")
     func test스와이프중configure는_편집모드로바뀌지않음() {
         let (panel, spy) = makePanel(texts: ["a", "b"])

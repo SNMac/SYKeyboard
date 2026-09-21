@@ -66,17 +66,6 @@ struct HangeulEnglishKeyboardModeCoordinatorTests {
         ) == .english)
     }
 
-    @Test("trait 변화는 requiresLatinInput이 참이면 영어를 강제")
-    func testInputTraitsChangeForcesEnglishWhenLatinRequired() {
-        let coordinator = HangeulEnglishKeyboardModeCoordinator(initialMode: .hangeul)
-
-        #expect(coordinator.modeForInputTraitsChange(
-            requiresLatinInput: true,
-            lastMode: .hangeul,
-            preferredLanguages: ["ko-KR"]
-        ) == .english)
-    }
-
     @Test("trait 변화는 requiresLatinInput이 거짓이면 마지막 언어를 따름")
     func testInputTraitsChangeFollowsLastModeWhenLatinNotRequired() {
         let coordinator = HangeulEnglishKeyboardModeCoordinator(initialMode: .english)

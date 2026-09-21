@@ -27,16 +27,11 @@ struct KeyboardDiagnosticsTests {
         #expect(KeyboardDiagnostics.bucket(100_000) == "200+")
     }
 
-    @Test("서로 다른 삭제 글자 수가 같은 구간으로 묶여 길이가 드러나지 않는다")
-    func testDifferentLengthsShareBucket() {
-        #expect(KeyboardDiagnostics.bucket(11) == KeyboardDiagnostics.bucket(48))
-        #expect(KeyboardDiagnostics.bucket(201) == KeyboardDiagnostics.bucket(9_999))
-    }
-
     @Test("리포터 연결을 해제하면 더 이상 기록되지 않는다")
     func testNoReporterIsSafe() {
         var received: [String] = []
         KeyboardDiagnostics.record = { received.append($0) }
+        defer { KeyboardDiagnostics.record = nil }
         KeyboardDiagnostics.log("repeatInput start")
         #expect(received == ["repeatInput start"])
 
@@ -44,17 +39,6 @@ struct KeyboardDiagnosticsTests {
         KeyboardDiagnostics.log("repeatInput stop")
 
         #expect(received == ["repeatInput start"])
-    }
-
-    @Test("연결한 리포터로 메시지가 전달된다")
-    func testReporterReceivesMessage() {
-        var received: [String] = []
-        KeyboardDiagnostics.record = { received.append($0) }
-        defer { KeyboardDiagnostics.record = nil }
-
-        KeyboardDiagnostics.log("repeatDelete exhausted")
-
-        #expect(received == ["repeatDelete exhausted"])
     }
 
     /// swizzle은 프로세스 전역이라 다른 suite의 뷰 충돌도 `record`로 들어온다. 전용 타입으로 걸러낸다
