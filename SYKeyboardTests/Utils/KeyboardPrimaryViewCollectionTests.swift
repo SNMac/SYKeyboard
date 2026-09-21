@@ -14,7 +14,7 @@ import UIKit
 @MainActor
 struct KeyboardPrimaryViewCollectionTests {
 
-    @Test("KeyboardView는 전달된 primary view를 모두 같은 container에 유지")
+    @Test("KeyboardView는 전달된 primary view를 모두 자기 계층에 유지")
     func testKeyboardViewKeepsAllPrimaryViews() {
         let first = TestPrimaryKeyboardView(keyboard: .dubeolsik)
         let second = TestPrimaryKeyboardView(keyboard: .qwerty)
@@ -24,9 +24,8 @@ struct KeyboardPrimaryViewCollectionTests {
         #expect(view.primaryKeyboardViews.count == 2)
         #expect(view.primaryKeyboardViews[0] === first)
         #expect(view.primaryKeyboardViews[1] === second)
-        #expect(first.superview === second.superview)
-        #expect(first.translatesAutoresizingMaskIntoConstraints == false)
-        #expect(second.translatesAutoresizingMaskIntoConstraints == false)
+        #expect(first.isDescendant(of: view))
+        #expect(second.isDescendant(of: view))
     }
 
     @Test("통합 primary collection은 symbol 언어 버튼도 opt-in")

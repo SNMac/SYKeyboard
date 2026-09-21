@@ -232,7 +232,6 @@ struct KeyboardModifierLayoutTests {
         )
         view.layoutIfNeeded()
 
-        let modifierStack = try #require(languageButton.superview)
         // 지구본이 숨겨져 한/영과 전환 버튼 2개만 남는다
         let visibleButtonCount: CGFloat = 2
         // 열 자체가 무너져도 두 버튼이 반씩 나눠 가지면 상대 단언은 통과한다.
@@ -240,15 +239,8 @@ struct KeyboardModifierLayoutTests {
         let expectedButtonWidth = width / CGFloat(4) / visibleButtonCount
 
         #expect(view.nextKeyboardButton.isHidden)
-        #expect(abs(modifierStack.frame.width - width / 4) < 0.5)
         #expect(abs(languageButton.frame.width - expectedButtonWidth) < 0.5)
         #expect(abs(view.switchButton.frame.width - expectedButtonWidth) < 0.5)
-        #expect(
-            abs(languageButton.frame.width - modifierStack.frame.width / visibleButtonCount) < 0.5
-        )
-        #expect(
-            abs(view.switchButton.frame.width - modifierStack.frame.width / visibleButtonCount) < 0.5
-        )
     }
 
     @Test("전용 숫자 화면은 Language 버튼을 만들지 않음")
@@ -343,23 +335,14 @@ struct KeyboardModifierLayoutTests {
         )
         view.layoutIfNeeded()
 
-        let modifierStack = try #require(languageButton.superview)
         // globe가 빠지면 한/영과 전환 버튼 2개가 modifier 스택을 균등하게 나눈다
         let visibleButtonCount: CGFloat = 2
         // 배율 1.0에서 modifier 열은 키보드 폭의 1/4이다. 열 붕괴를 잡으려면 절대값이 필요하다
         let expectedButtonWidth = width / CGFloat(4) / visibleButtonCount
 
         #expect(primaryView.nextKeyboardButton.isHidden)
-        #expect(abs(modifierStack.frame.width - width / 4) < 0.5)
         #expect(abs(languageButton.frame.width - expectedButtonWidth) < 0.5)
         #expect(abs(primaryView.switchButton.frame.width - expectedButtonWidth) < 0.5)
-        #expect(
-            abs(languageButton.frame.width - modifierStack.frame.width / visibleButtonCount) < 0.5
-        )
-        #expect(
-            abs(primaryView.switchButton.frame.width
-                - modifierStack.frame.width / visibleButtonCount) < 0.5
-        )
     }
 
     @Test(arguments: [FourByFourFixture.naratgeul, .cheonjiin])
@@ -380,7 +363,6 @@ struct KeyboardModifierLayoutTests {
         view.layoutIfNeeded()
 
         let languageButton = try #require(primaryView.languageSwitchButton)
-        let modifierStack = try #require(languageButton.superview)
         let action = NSSelectorFromString("unusedNextKeyboardAction:")
 
         for visible in [false, true, false, true] {
@@ -391,7 +373,8 @@ struct KeyboardModifierLayoutTests {
             // 지구본이 보이면 세 버튼, 숨겨지면 두 버튼이 스택을 나눠 갖는다.
             // 폭을 셋으로 나누면 픽셀 정렬로 한 칸(최대 1pt) 차이가 날 수 있다
             let visibleButtonCount: CGFloat = visible ? 3 : 2
-            let expected = modifierStack.frame.width / visibleButtonCount
+            // 배율 1.0에서 modifier 열은 키보드 폭(420)의 1/4이다
+            let expected = 420 / CGFloat(4) / visibleButtonCount
 
             #expect(abs(languageButton.frame.width - expected) < 1.0)
             #expect(abs(primaryView.switchButton.frame.width - expected) < 1.0)

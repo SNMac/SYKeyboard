@@ -10,7 +10,8 @@ import UIKit
 
 @testable import SYKeyboardCore
 
-@Suite("텍스트 상호작용 제스처 컨트롤러 검증")
+// cursorActiveDistance·cursorMoveInterval을 실제 App Group 저장소에서 바꿨다 되돌리므로 다른 suite와 겹치지 않게 한다
+@Suite("텍스트 상호작용 제스처 컨트롤러 검증", .serialized, .sharedUserDefaults)
 @MainActor
 struct TextInteractionGestureControllerTests {
 
