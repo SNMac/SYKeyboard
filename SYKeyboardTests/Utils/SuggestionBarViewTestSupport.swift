@@ -62,3 +62,29 @@ final class SuggestionBarDelegateSpy: SuggestionBarDelegate {
         clipboardTapCount += 1
     }
 }
+
+/// 후보 3개("오늘", "날씨", "좋다")를 표시하고 레이아웃까지 마친 300×44 bar
+@MainActor
+struct SuggestionBarFixture {
+    let bar: SuggestionBarView
+    let keyboardHStackView: UIStackView
+    let delegate: SuggestionBarDelegateSpy
+    let buttons: [SuggestionButtonView]
+}
+
+@MainActor
+func makeSuggestionBarFixture(acceptsRemoval: Bool) -> SuggestionBarFixture {
+    let keyboardHStackView = UIStackView()
+    let bar = SuggestionBarView(keyboardHStackView: keyboardHStackView)
+    let delegate = SuggestionBarDelegateSpy(acceptsRemoval: acceptsRemoval)
+    bar.suggestionDelegate = delegate
+    bar.frame = CGRect(x: 0, y: 0, width: 300, height: 44)
+    bar.updateSuggestions(currentWord: nil, suggestions: ["오늘", "날씨", "좋다"])
+    bar.layoutIfNeeded()
+    return SuggestionBarFixture(
+        bar: bar,
+        keyboardHStackView: keyboardHStackView,
+        delegate: delegate,
+        buttons: typedSuggestionButtonViews(in: bar)
+    )
+}
