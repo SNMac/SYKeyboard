@@ -14,8 +14,8 @@ struct SuggestionControllerMathResultsTests {
 
     @Test("수식 결과 설정이 켜져 있으면 좌중우 후보에 원문과 결과를 표시")
     func test수식결과설정이켜져있으면_좌중우후보에원문과결과를표시() {
-        let delegate = RecordingMathExpressionSuggestionDelegate()
-        let controller = SuggestionController()
+        let delegate = RecordingSuggestionControllerDelegate()
+        let controller = SuggestionController(engineFactory: .stub)
         controller.delegate = delegate
         controller.isPredictiveTextEnabled = true
         controller.isShowMathResultsEnabled = true
@@ -29,8 +29,8 @@ struct SuggestionControllerMathResultsTests {
 
     @Test("앞쪽 숫자 문맥 뒤 수식은 suffix 기준 후보와 action을 생성")
     func test앞쪽숫자문맥뒤수식은_Suffix기준후보와Action을생성() {
-        let delegate = RecordingMathExpressionSuggestionDelegate()
-        let controller = SuggestionController()
+        let delegate = RecordingSuggestionControllerDelegate()
+        let controller = SuggestionController(engineFactory: .stub)
         controller.delegate = delegate
         controller.isPredictiveTextEnabled = true
         controller.isShowMathResultsEnabled = true
@@ -72,8 +72,8 @@ struct SuggestionControllerMathResultsTests {
 
     @Test("커서 문맥 수식은 빈 일반 추천 기준과 분리해 후보와 action을 유지")
     func test커서문맥수식은_빈일반추천기준과분리해_후보와Action을유지() {
-        let delegate = RecordingMathExpressionSuggestionDelegate()
-        let controller = SuggestionController()
+        let delegate = RecordingSuggestionControllerDelegate()
+        let controller = SuggestionController(engineFactory: .stub)
         controller.delegate = delegate
         controller.isPredictiveTextEnabled = true
         controller.isShowMathResultsEnabled = true
@@ -374,8 +374,8 @@ struct SuggestionControllerMathResultsTests {
 
     @Test("수식 결과 설정이 꺼져 있으면 수식 후보를 표시하지 않음")
     func test수식결과설정이꺼져있으면_수식후보를표시하지않음() {
-        let delegate = RecordingMathExpressionSuggestionDelegate()
-        let controller = SuggestionController()
+        let delegate = RecordingSuggestionControllerDelegate()
+        let controller = SuggestionController(engineFactory: .stub)
         controller.delegate = delegate
         controller.isPredictiveTextEnabled = true
         controller.isShowMathResultsEnabled = false
@@ -397,8 +397,8 @@ struct SuggestionControllerMathResultsTests {
 
     @Test("괄호 수식은 좌중우 후보에 원문과 결과를 표시")
     func test괄호수식은_좌중우후보에원문과결과를표시() {
-        let delegate = RecordingMathExpressionSuggestionDelegate()
-        let controller = SuggestionController()
+        let delegate = RecordingSuggestionControllerDelegate()
+        let controller = SuggestionController(engineFactory: .stub)
         controller.delegate = delegate
         controller.isPredictiveTextEnabled = true
         controller.isShowMathResultsEnabled = true
@@ -423,8 +423,8 @@ struct SuggestionControllerMathResultsTests {
 
     @Test("부호가 연속된 수식은 수식 모드로 전환하지 않음")
     func test부호가연속된수식은_수식모드로전환하지않음() {
-        let delegate = RecordingMathExpressionSuggestionDelegate()
-        let controller = SuggestionController()
+        let delegate = RecordingSuggestionControllerDelegate()
+        let controller = SuggestionController(engineFactory: .stub)
         controller.delegate = delegate
         controller.isPredictiveTextEnabled = true
         controller.isShowMathResultsEnabled = true
@@ -439,7 +439,7 @@ private func makeMathController(
     expression: String,
     selectedText: String? = nil
 ) -> SuggestionController {
-    let controller = SuggestionController()
+    let controller = SuggestionController(engineFactory: .stub)
     controller.isPredictiveTextEnabled = true
     controller.isShowMathResultsEnabled = true
     controller.updateSuggestions(
@@ -447,21 +447,4 @@ private func makeMathController(
         selectedText: selectedText
     )
     return controller
-}
-
-private final class RecordingMathExpressionSuggestionDelegate: SuggestionControllerDelegate {
-    struct Update: Equatable {
-        let currentWord: String?
-        let suggestions: [String]
-    }
-
-    private(set) var updates: [Update] = []
-
-    func suggestionController(
-        _ controller: SuggestionController,
-        didUpdateCurrentWord currentWord: String?,
-        suggestions: [String]
-    ) {
-        updates.append(Update(currentWord: currentWord, suggestions: suggestions))
-    }
 }

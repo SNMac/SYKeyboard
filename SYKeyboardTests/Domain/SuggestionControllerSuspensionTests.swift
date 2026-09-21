@@ -14,7 +14,7 @@ struct SuggestionControllerSuspensionTests {
 
     @Test("억제로 전환될 때만 후보를 비우고, 같은 값 재대입은 후보 갱신을 보내지 않음")
     func test억제재대입은_후보갱신을보내지않음() {
-        let delegate = RecordingSuspensionDelegate()
+        let delegate = RecordingSuggestionControllerDelegate()
         let controller = SuggestionController()
         controller.delegate = delegate
 
@@ -31,7 +31,7 @@ struct SuggestionControllerSuspensionTests {
 
     @Test("억제를 해제했다가 다시 억제하면 후보를 다시 비움")
     func test억제해제후_재억제하면_후보를다시비움() {
-        let delegate = RecordingSuspensionDelegate()
+        let delegate = RecordingSuggestionControllerDelegate()
         let controller = SuggestionController()
         controller.delegate = delegate
 
@@ -44,24 +44,5 @@ struct SuggestionControllerSuspensionTests {
         controller.isSuspended = true
         #expect(delegate.updates.count == 2)
         #expect(delegate.updates.last?.suggestions == [])
-    }
-}
-
-// MARK: - Test Doubles
-
-private final class RecordingSuspensionDelegate: SuggestionControllerDelegate {
-    struct Update {
-        let currentWord: String?
-        let suggestions: [String]
-    }
-
-    private(set) var updates: [Update] = []
-
-    func suggestionController(
-        _ controller: SuggestionController,
-        didUpdateCurrentWord currentWord: String?,
-        suggestions: [String]
-    ) {
-        updates.append(Update(currentWord: currentWord, suggestions: suggestions))
     }
 }
