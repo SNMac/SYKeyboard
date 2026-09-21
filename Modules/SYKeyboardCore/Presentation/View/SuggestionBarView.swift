@@ -80,11 +80,11 @@ final class SuggestionBarView: UIView {
 
     /// 후보 영역이 가로로 넘쳐 스크롤될 수 있는 상태인지.
     ///
-    /// 스크롤과 가장자리 페이드의 유일한 발생 조건이다. 후보 개수로 분기하지 않는다.
-    /// 0.5pt는 부동소수 오차로 1pt도 안 되는 차이에 스크롤이 생기는 것을 막는 허용 오차다
+    /// 스크롤의 유일한 발생 조건이다. 후보 개수로 분기하지 않는다.
+    /// `scrollTolerance`는 부동소수 오차로 1pt도 안 되는 차이에 스크롤이 생기는 것을 막는 허용 오차다
     var isSuggestionAreaScrollable: Bool {
         return suggestionScrollView.contentSize.width
-            > suggestionScrollView.bounds.width + SuggestionScrollFadePolicy.edgeTolerance
+            > suggestionScrollView.bounds.width + SuggestionBarView.scrollTolerance
     }
 
     private var undoRedoViews: [UIView] {
@@ -108,8 +108,8 @@ final class SuggestionBarView: UIView {
     private static let visibleSuggestionColumnCount = 3
     /// divider 두께
     private static let dividerWidth: CGFloat = 1
-    /// 가장자리 페이드 폭
-    private static let edgeFadeWidth: CGFloat = 16
+    /// 스크롤 발생 판정 허용 오차
+    private static let scrollTolerance: CGFloat = 0.5
 
     // MARK: - UI Components
     
@@ -151,23 +151,19 @@ final class SuggestionBarView: UIView {
         scrollView.setContentHuggingPriority(.defaultLow - 1, for: .horizontal)
         scrollView.setContentCompressionResistancePriority(.defaultLow - 1, for: .horizontal)
         scrollView.delegate = self
+        // iOS 26부터 UIScrollView에 가장자리 효과가 기본으로 켜진 채(`isHidden` 기본값 false) 붙는다.
+        // 후보 바처럼 짧고 넓은 스크롤 뷰에서는 좌우 효과가 후보 대부분을 덮어 글자가 뭉개져 보이고,
+        // `.hard`·`.soft`·`.automatic` 어느 스타일로도 달라지지 않아 전부 숨긴다.
+        // 가장자리 표시는 두지 않는다. 정위치에서는 페이드 영역에 글자가 없어 아무것도 알리지 못하고,
+        // 스크롤 중에만 보이는 표시는 이미 스크롤 중인 사용자에게 정보가 되지 않는다
+        if #available(iOS 26.0, *) {
+            scrollView.leftEdgeEffect.isHidden = true
+            scrollView.rightEdgeEffect.isHidden = true
+            scrollView.topEdgeEffect.isHidden = true
+            scrollView.bottomEdgeEffect.isHidden = true
+        }
 
         return scrollView
-    }()
-
-    /// 스크롤 가장자리 페이드용 mask. 남은 방향에만 정지점을 넣어 흐리게 만든다
-    private let edgeFadeLayer: CAGradientLayer = {
-        let layer = CAGradientLayer()
-        layer.startPoint = CGPoint(x: 0, y: 0.5)
-        layer.endPoint = CGPoint(x: 1, y: 0.5)
-        layer.colors = [
-            UIColor.clear.cgColor,
-            UIColor.black.cgColor,
-            UIColor.black.cgColor,
-            UIColor.clear.cgColor
-        ]
-
-        return layer
     }()
 
     private lazy var suggestionContentView: SuggestionScrollContentView = {
@@ -419,7 +415,6 @@ private extension SuggestionBarView {
     
     func setStyles() {
         self.backgroundColor = .clear
-        suggestionScrollView.layer.mask = edgeFadeLayer
     }
     
     func setHierarchy() {
@@ -658,31 +653,6 @@ private extension SuggestionBarView {
             height: viewportHeight
         )
         suggestionScrollView.contentSize = suggestionContentView.bounds.size
-        updateEdgeFade()
-    }
-
-    /// 가장자리 페이드 mask의 프레임과 정지점을 갱신합니다.
-    ///
-    /// mask는 스크롤 뷰 `bounds` 좌표계라 `contentOffset`만큼 함께 움직인다. 매번 원점을 맞춘다
-    func updateEdgeFade() {
-        let bounds = suggestionScrollView.bounds
-        guard bounds.width > 0 else { return }
-
-        let state = SuggestionScrollFadePolicy.resolve(
-            contentOffsetX: suggestionScrollView.contentOffset.x,
-            viewportWidth: bounds.width,
-            contentWidth: suggestionScrollView.contentSize.width
-        )
-        let fraction = min(SuggestionBarView.edgeFadeWidth / bounds.width, 0.5)
-        let leading = NSNumber(value: state.showsLeadingFade ? Double(fraction) : 0)
-        let trailing = NSNumber(value: state.showsTrailingFade ? Double(1 - fraction) : 1)
-
-        // CALayer 암시적 애니메이션을 끄지 않으면 스크롤할 때마다 페이드가 늦게 따라온다
-        CATransaction.begin()
-        CATransaction.setDisableActions(true)
-        edgeFadeLayer.frame = bounds
-        edgeFadeLayer.locations = [NSNumber(value: 0.0), leading, trailing, NSNumber(value: 1.0)]
-        CATransaction.commit()
     }
 
     func applyDividerVisibility() {
@@ -697,7 +667,6 @@ private extension SuggestionBarView {
 
 extension SuggestionBarView: UIScrollViewDelegate {
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
-        updateEdgeFade()
         updateDividers()
     }
 }

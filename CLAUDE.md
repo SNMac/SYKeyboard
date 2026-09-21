@@ -87,8 +87,12 @@ extension 프로세스 로컬 상태는 `KeyboardExtensionLocalStateStore`에 �
 - 자동완성 후보 목록은 #141부터 `UIScrollView` 가로 스크롤이다. 선택은 탭으로만
   하고 끌면 스크롤한다. 터치 중재는 `UIScrollView` 기본 동작(`delaysContentTouches
   = false`, `canCancelContentTouches`)에 맡기고, `setScrollOffsetX` 같은 offset 직접
-  조작이나 거리 임계값 기반 제스처 중재를 되살리지 않는다. 가장자리 페이드는
-  `CAGradientLayer` mask이며 `UIScrollEdgeEffect`는 쓰지 않는다(#98에서 롤백됨).
+  조작이나 거리 임계값 기반 제스처 중재를 되살리지 않는다.
+  **가장자리 표시는 두지 않는다.** iOS 26 기본 `UIScrollEdgeEffect`는 네 방향 모두
+  `isHidden`으로 끈다. 스타일(`.automatic`/`.hard`/`.soft`)로는 달라지지 않고, 켜 두면
+  좌우 효과가 후보를 덮어 글자가 뭉개진다. `CAGradientLayer` mask 페이드도 실기기 확인
+  후 제거했다. 정위치에서는 페이드 영역에 글자가 없어 아무것도 알리지 못하고, 스크롤
+  중에만 보이는 표시는 이미 스크롤 중인 사용자에게 정보가 되지 않기 때문이다.
   `SuggestionButtonView` **안의** 긴 텍스트는 여전히 스크롤하지 않는다. 두 줄·글자
   축소·중간 생략 동작을 유지한다.
 
