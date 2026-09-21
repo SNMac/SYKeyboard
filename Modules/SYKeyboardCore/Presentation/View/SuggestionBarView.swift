@@ -58,11 +58,24 @@ final class SuggestionBarView: UIView {
     private var removalLongPressWorkItem: DispatchWorkItem?
     /// 길게 눌러 삭제 확인을 띄운 터치인지 여부. 손을 떼도 후보를 선택하지 않는다
     private var isTouchConsumedByRemoval = false
-    /// 터치가 시작된 후보 인덱스. 시작한 후보에서 떼야만 선택한다(탭 전용)
+    /// 터치가 진행 중인지 여부. 진행 중에는 preview 하이라이트를 숨긴다
     ///
-    /// 후보가 3개 이하면 `UIScrollView`의 pan이 시작되지 않아 `touchesCancelled`가 오지 않는다.
-    /// 스크롤 가능 여부와 무관하게 끌어서 고르는 동작을 막으려면 시작 인덱스를 직접 들어야 한다
+    /// 누른 후보를 벗어나면 탭 전용 규칙 때문에 눌린 하이라이트가 사라지는데, 이때 preview
+    /// 하이라이트가 드러나면 끌고 있는 동안 엉뚱한 칸이 선택된 것처럼 보인다
+    private var isTouchInteractionActive = false
+    /// 터치가 시작된 후보 인덱스
+    ///
+    /// 후보가 넘쳐 스크롤할 수 있으면 시작한 후보에서 떼야만 선택한다(탭 전용). 끄는 동작이
+    /// 스크롤이기 때문이다. 넘치지 않으면 `UIScrollView`의 pan이 시작되지 않아 끌어도 스크롤되지
+    /// 않으므로, 끌어서 고르던 기존 동작을 그대로 둔다
     private var touchBeganSuggestionIndex: Int?
+
+    /// 이번 터치에서 끌어서 고르기를 허용하는지. `beginTouchInteraction`에서 한 번 정한다
+    ///
+    /// 후보 개수는 TextChecker 결과가 뒤늦게 도착하며 터치 도중에도 바뀐다. 매번 다시 판정하면
+    /// 같은 터치가 시작할 때와 뗄 때 다른 규칙을 따라, 끌던 중 하이라이트가 꺼지고 손을 떼도
+    /// 아무것도 선택되지 않는다
+    private var allowsDragSelectionForCurrentTouch = false
 
     /// 후보 버튼 재사용 풀. 한 번 만든 버튼은 버리지 않고 `isHidden`으로만 감춘다
     private var pooledButtons: [SuggestionButtonView] = []
@@ -85,6 +98,15 @@ final class SuggestionBarView: UIView {
     var isSuggestionAreaScrollable: Bool {
         return suggestionScrollView.contentSize.width
             > suggestionScrollView.bounds.width + SuggestionBarView.scrollTolerance
+    }
+
+    /// 지금 보이는 후보 사이 divider 개수. 후보가 3개보다 적어도 3칸으로 보이게 하는 표시 계약이다
+    var visibleSuggestionDividerCount: Int {
+        guard isSuggestionAreaVisible else { return 0 }
+        return min(
+            SuggestionBarView.dividerCount(forSuggestionCount: visibleSuggestionCount),
+            pooledDividers.count
+        )
     }
 
     private var undoRedoViews: [UIView] {
@@ -247,6 +269,8 @@ final class SuggestionBarView: UIView {
     // MARK: - Internal Methods
 
     func beginTouchInteraction(at point: CGPoint) {
+        isTouchInteractionActive = true
+        allowsDragSelectionForCurrentTouch = !isSuggestionAreaScrollable
         touchBeganSuggestionIndex = suggestionButton(at: point)?.0
         updateHighlight(at: point)
         keyboardHStackView?.isUserInteractionEnabled = false
@@ -267,7 +291,8 @@ final class SuggestionBarView: UIView {
             return
         }
 
-        if let (index, _) = suggestionButton(at: point), index == touchBeganSuggestionIndex {
+        if let (index, _) = suggestionButton(at: point),
+           allowsDragSelectionForCurrentTouch || index == touchBeganSuggestionIndex {
             suggestionDelegate?.suggestionBar(
                 self,
                 didSelectSuggestionAt: index
@@ -312,6 +337,8 @@ final class SuggestionBarView: UIView {
 
     func resetTouchInteraction() {
         cancelRemovalLongPress()
+        isTouchInteractionActive = false
+        allowsDragSelectionForCurrentTouch = false
         touchBeganSuggestionIndex = nil
         isTouchConsumedByRemoval = false
         clearTouchHighlights()
@@ -552,9 +579,12 @@ private extension SuggestionBarView {
     }
 
     func updateHighlight(at point: CGPoint) {
-        // 시작한 후보를 벗어나면 하이라이트도 지운다. 떼어도 선택되지 않으므로 강조가 남으면 오인한다
+        // 탭 전용일 때 시작한 후보를 벗어나면 하이라이트도 지운다.
+        // 떼어도 선택되지 않으므로 강조가 남으면 선택될 것처럼 오인한다
         let hit = suggestionButton(at: point)
-        touchedSuggestionIndex = hit?.0 == touchBeganSuggestionIndex ? hit?.0 : nil
+        touchedSuggestionIndex = (allowsDragSelectionForCurrentTouch || hit?.0 == touchBeganSuggestionIndex)
+        ? hit?.0
+        : nil
 
         let actionHit = actionButton(at: point)
         touchedActionIndex = actionHit.flatMap { actionButton in
@@ -573,7 +603,7 @@ private extension SuggestionBarView {
 
     func applyHighlights() {
         let state = SuggestionHighlightPolicy.resolve(
-            previewSuggestionIndex: previewHighlightIndex,
+            previewSuggestionIndex: isTouchInteractionActive ? nil : previewHighlightIndex,
             touchedSuggestionIndex: touchedSuggestionIndex,
             touchedActionIndex: touchedActionIndex,
             suggestionCount: suggestionButtons.count,
@@ -589,7 +619,15 @@ private extension SuggestionBarView {
         }
     }
     
-    /// 풀에 버튼 `count`개와 divider `count - 1`개가 있도록 채웁니다.
+    /// 후보 `count`개를 그릴 때 필요한 divider 개수.
+    ///
+    /// 후보가 3개보다 적어도 후보 영역은 3칸으로 보여야 한다. 빈 칸에 divider가 없으면 그 자리를
+    /// 눌렀을 때 앞 후보가 적용될 것처럼 보인다. 맨 앞과 맨 뒤에는 그리지 않는다
+    static func dividerCount(forSuggestionCount count: Int) -> Int {
+        return max(count, visibleSuggestionColumnCount) - 1
+    }
+
+    /// 풀에 버튼 `count`개와 divider를 열 격자에 맞는 개수만큼 채웁니다.
     func ensurePooledViews(count: Int) {
         while pooledButtons.count < count {
             let button = SuggestionButtonView()
@@ -597,7 +635,7 @@ private extension SuggestionBarView {
             pooledButtons.append(button)
         }
 
-        let dividerCount = max(count - 1, 0)
+        let dividerCount = SuggestionBarView.dividerCount(forSuggestionCount: count)
         while pooledDividers.count < dividerCount {
             let divider = UIView()
             divider.backgroundColor = .suggestionDividerColor
@@ -625,27 +663,36 @@ private extension SuggestionBarView {
         let buttonWidth = (viewportWidth - dividerWidth * (columnCount - 1)) / columnCount
         let dividerHeight = KeyboardLayoutFigure.suggestionButtonDividerHeight
 
-        var offsetX: CGFloat = 0
+        // 버튼과 divider를 같은 열 격자에 올린다. divider는 후보가 3개보다 적어도 3칸 자리에 그려야
+        // 하므로 버튼 개수가 아니라 격자를 따라간다
+        let columnStride = buttonWidth + dividerWidth
         for index in 0..<visibleSuggestionCount {
             pooledButtons[index].frame = CGRect(
-                x: offsetX,
+                x: CGFloat(index) * columnStride,
                 y: 0,
                 width: buttonWidth,
                 height: viewportHeight
             )
-            offsetX += buttonWidth
+        }
 
-            guard index < visibleSuggestionCount - 1 else { continue }
+        // 첫 updateSuggestions 전에는 풀이 비어 있다. 격자 개수가 아니라 실제로 가진 만큼만 배치한다
+        let dividerCount = min(
+            SuggestionBarView.dividerCount(forSuggestionCount: visibleSuggestionCount),
+            pooledDividers.count
+        )
+        for index in 0..<dividerCount {
             pooledDividers[index].frame = CGRect(
-                x: offsetX,
+                x: CGFloat(index + 1) * columnStride - dividerWidth,
                 y: (viewportHeight - dividerHeight) / 2,
                 width: dividerWidth,
                 height: dividerHeight
             )
-            offsetX += dividerWidth
         }
 
-        let contentWidth = max(offsetX, viewportWidth)
+        let contentEnd = visibleSuggestionCount > 0
+        ? CGFloat(visibleSuggestionCount - 1) * columnStride + buttonWidth
+        : 0
+        let contentWidth = max(contentEnd, viewportWidth)
         suggestionContentView.frame = CGRect(
             x: 0,
             y: 0,
@@ -656,7 +703,10 @@ private extension SuggestionBarView {
     }
 
     func applyDividerVisibility() {
-        let visibleDividerCount = max(visibleSuggestionCount - 1, 0)
+        let visibleDividerCount = SuggestionBarView.dividerCount(
+            forSuggestionCount: visibleSuggestionCount
+        )
+
         for (index, divider) in pooledDividers.enumerated() {
             divider.isHidden = !isSuggestionAreaVisible || index >= visibleDividerCount
         }

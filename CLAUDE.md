@@ -84,10 +84,21 @@ extension 프로세스 로컬 상태는 `KeyboardExtensionLocalStateStore`에 �
   `reset`, 브랜치 전환, push, PR 생성 권한을 포함하지 않는다. 사용자가 명시한
   통합 순서와 브랜치/worktree 제약을 그대로 지키고, 다음 단계가 명시적으로
   요청되기 전에는 읽기 전용 확인에 머문다.
-- 자동완성 후보 목록은 #141부터 `UIScrollView` 가로 스크롤이다. 선택은 탭으로만
-  하고 끌면 스크롤한다. 터치 중재는 `UIScrollView` 기본 동작(`delaysContentTouches
-  = false`, `canCancelContentTouches`)에 맡기고, `setScrollOffsetX` 같은 offset 직접
-  조작이나 거리 임계값 기반 제스처 중재를 되살리지 않는다.
+- 자동완성 후보 목록은 #141부터 `UIScrollView` 가로 스크롤이다. 터치 중재는
+  `UIScrollView` 기본 동작(`delaysContentTouches = false`, `canCancelContentTouches`)에
+  맡기고, `setScrollOffsetX` 같은 offset 직접 조작이나 거리 임계값 기반 제스처 중재를
+  되살리지 않는다.
+  **선택 방식은 후보가 넘치는지로 갈린다.** 넘쳐서 스크롤할 수 있으면 끄는 동작이
+  스크롤이므로 시작한 후보에서 떼야만 선택하는 탭 전용이다. 넘치지 않으면(수식 3칸 포함)
+  pan이 시작되지 않아 끌어도 스크롤되지 않으므로, 끌어서 고르던 기존 동작을 그대로 둔다.
+  판단은 `SuggestionBarView.allowsDragSelection`(= `!isSuggestionAreaScrollable`) 하나뿐이고
+  후보 개수로 분기하지 않는다.
+  **후보 영역은 후보가 3개보다 적어도 3칸으로 보인다.** divider는 버튼 개수가 아니라 열
+  격자를 따라 그린다(`dividerCount(forSuggestionCount:)`). 빈 칸에 divider가 없으면 그
+  자리를 눌렀을 때 앞 후보가 적용될 것처럼 보인다. 맨 앞·맨 뒤에는 그리지 않는다.
+  **터치가 진행 중인 동안에는 preview 하이라이트를 숨긴다.** 탭 전용에서 시작한 후보를
+  벗어나면 눌린 하이라이트가 사라지는데, 그때 preview가 드러나면 끌고 있는 동안 엉뚱한
+  칸이 선택된 것처럼 보인다.
   **가장자리 표시는 두지 않는다.** iOS 26 기본 `UIScrollEdgeEffect`는 네 방향 모두
   `isHidden`으로 끈다. 스타일(`.automatic`/`.hard`/`.soft`)로는 달라지지 않고, 켜 두면
   좌우 효과가 후보를 덮어 글자가 뭉개진다. `CAGradientLayer` mask 페이드도 실기기 확인

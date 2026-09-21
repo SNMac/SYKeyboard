@@ -156,6 +156,43 @@ struct SuggestionBarViewLayoutTests {
         #expect(visibleSuggestionTexts(in: fixture.bar) == ["\"hel\"", "hello", "help"])
     }
 
+    @Test("후보가 3개보다 적어도 후보 영역은 3칸으로 보임")
+    func test후보가3개보다적어도_후보영역은3칸으로보임() {
+        let fixture = makeFixture(acceptsRemoval: false)
+
+        fixture.bar.updateSuggestions(currentWord: nil, suggestions: ["안농"])
+        fixture.bar.layoutIfNeeded()
+
+        // 빈 칸에 divider가 없으면 그 자리를 눌렀을 때 앞 후보가 적용될 것처럼 보인다
+        #expect(visibleSuggestionTexts(in: fixture.bar) == ["안농"])
+        #expect(fixture.bar.visibleSuggestionDividerCount == 2)
+    }
+
+    @Test("후보가 3개를 넘으면 후보 사이에만 divider를 둠")
+    func test후보가3개를넘으면_후보사이에만divider를둠() {
+        let fixture = makeFixture(acceptsRemoval: false)
+
+        fixture.bar.updateSuggestions(
+            currentWord: nil,
+            suggestions: (1...10).map { "단어\($0)" }
+        )
+        fixture.bar.layoutIfNeeded()
+
+        // 맨 앞과 맨 뒤에는 divider를 두지 않는다
+        #expect(fixture.bar.visibleSuggestionDividerCount == 9)
+    }
+
+    @Test("후보 영역이 숨겨지면 divider도 남지 않음")
+    func test후보영역이숨겨지면_divider도남지않음() {
+        let fixture = makeFixture(acceptsRemoval: false)
+
+        fixture.bar.updateSuggestions(currentWord: nil, suggestions: ["안농"])
+        fixture.bar.updateSuggestionArea(isVisible: false)
+        fixture.bar.layoutIfNeeded()
+
+        #expect(fixture.bar.visibleSuggestionDividerCount == 0)
+    }
+
     @Test("후보가 없으면 후보 칸이 하나도 남지 않음")
     func test후보가없으면_후보칸이하나도남지않음() {
         let fixture = makeFixture(acceptsRemoval: false)
