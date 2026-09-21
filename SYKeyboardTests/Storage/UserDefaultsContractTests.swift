@@ -145,6 +145,7 @@ struct UserDefaultsContractTests {
 
         let store = KeyboardExtensionLocalStateStore(storage: localStorage)
 
+        #expect(DefaultValues.isRequestFullAccessOverlayClosed == false)
         #expect(store.isClosed == false)
 
         store.isClosed = true
