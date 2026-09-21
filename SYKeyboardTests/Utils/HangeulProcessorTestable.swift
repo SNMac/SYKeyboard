@@ -50,5 +50,27 @@ extension HangeulProcessorTestable {
         c.append(result.committed)
         return (c, result.composing)
     }
-    
+
+    /// 완성형 한글 한 글자를 모두 지우기 위해 필요한 백스페이스 횟수를 계산
+    func calculateExpectedDeleteCount(for char: Character) -> Int {
+        guard let scalar = char.unicodeScalars.first,
+              (0xAC00...0xD7A3).contains(scalar.value) else { return 0 }
+        let code = Int(scalar.value) - 0xAC00
+
+        let 중성Index = (code % (21 * 28)) / 28
+        let 종성Index = code % 28
+
+        let 중성Deletes = [
+            1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 3, 2, 1, 1, 2, 3, 2, 1, 1, 2, 1
+        ]
+        let 겹받침Indices = Set([3, 5, 6, 9, 10, 11, 12, 13, 14, 15, 18])
+
+        var count = 1 + 중성Deletes[중성Index]
+
+        if 종성Index != 0 {
+            count += 겹받침Indices.contains(종성Index) ? 2 : 1
+        }
+
+        return count
+    }
 }

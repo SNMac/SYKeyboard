@@ -23,21 +23,6 @@ struct DubeolsikProcessorTests: HangeulProcessorTestable {
     let automata: HangeulAutomataProtocol = HangeulAutomata()
     let processor: HangeulProcessable
     
-    private let 초성Table = ["ㄱ", "ㄲ", "ㄴ", "ㄷ", "ㄸ", "ㄹ", "ㅁ", "ㅂ", "ㅃ", "ㅅ", "ㅆ", "ㅇ", "ㅈ", "ㅉ", "ㅊ", "ㅋ", "ㅌ", "ㅍ", "ㅎ"]
-    private let 중성Table = ["ㅏ", "ㅐ", "ㅑ", "ㅒ", "ㅓ", "ㅔ", "ㅕ", "ㅖ", "ㅗ", "ㅘ", "ㅙ", "ㅚ", "ㅛ", "ㅜ", "ㅝ", "ㅞ", "ㅟ", "ㅠ", "ㅡ", "ㅢ", "ㅣ"]
-    private let 종성Table = [" ", "ㄱ", "ㄲ", "ㄳ", "ㄴ", "ㄵ", "ㄶ", "ㄷ", "ㄹ", "ㄺ", "ㄻ", "ㄼ", "ㄽ", "ㄾ", "ㄿ", "ㅀ", "ㅁ", "ㅂ", "ㅄ", "ㅅ", "ㅆ", "ㅇ", "ㅈ", "ㅊ", "ㅋ", "ㅌ", "ㅍ", "ㅎ"]
-    
-    private let 겹모음조합Table: [(앞모음: String, 뒷모음: String, 겹모음: String)] = [
-        ("ㅗ", "ㅏ", "ㅘ"), ("ㅘ", "ㅣ", "ㅙ"), ("ㅗ", "ㅐ", "ㅙ"), ("ㅗ", "ㅣ", "ㅚ"),
-        ("ㅜ", "ㅓ", "ㅝ"), ("ㅜ", "ㅔ", "ㅞ"), ("ㅝ", "ㅣ", "ㅞ"), ("ㅜ", "ㅣ", "ㅟ"), ("ㅡ", "ㅣ", "ㅢ")
-    ]
-    
-    private let 겹자음조합Table: [(앞자음: String, 뒷자음: String, 겹자음: String)] = [
-        ("ㄱ", "ㅅ", "ㄳ"), ("ㄴ", "ㅈ", "ㄵ"), ("ㄴ", "ㅎ", "ㄶ"), ("ㄹ", "ㄱ", "ㄺ"),
-        ("ㄹ", "ㅁ", "ㄻ"), ("ㄹ", "ㅂ", "ㄼ"), ("ㄹ", "ㅅ", "ㄽ"), ("ㄹ", "ㅌ", "ㄾ"),
-        ("ㄹ", "ㅍ", "ㄿ"), ("ㄹ", "ㅎ", "ㅀ"), ("ㅂ", "ㅅ", "ㅄ")
-    ]
-    
     // MARK: - Initializer
     
     init() {
@@ -254,7 +239,7 @@ struct DubeolsikProcessorTests: HangeulProcessorTestable {
             let 목표글자String = String(목표글자Char)
             
             // 1. 두벌식 입력 시퀀스로 변환
-            let 입력키배열 = decompose두벌식키분해(char: 목표글자Char)
+            let 입력키배열 = DubeolsikKeyDecomposer.keys(for: 목표글자Char)
             
             // 2. 입력 시뮬레이션
             processor.reset한글조합()
@@ -283,53 +268,6 @@ struct DubeolsikProcessorTests: HangeulProcessorTestable {
         
         if 실패횟수 == 0 {
             Self.logger.info("[Swift Testing - \(#function)] 11,172자 검증 완료.")
-        }
-    }
-}
-
-// MARK: - Private Methods
-
-private extension DubeolsikProcessorTests {
-    
-    /// 완성된 한글 문자를 두벌식 키 입력 배열로 분해
-    func decompose두벌식키분해(char: Character) -> [String] {
-        guard let scalar = char.unicodeScalars.first else { return [] }
-        let 한글값 = Int(scalar.value) - 0xAC00
-        
-        let 초성Index = 한글값 / (21 * 28)
-        let 중성Index = (한글값 % (21 * 28)) / 28
-        let 종성Index = 한글값 % 28
-        
-        var 입력키배열: [String] = []
-        
-        입력키배열.append(초성Table[초성Index])
-        
-        let 중성Char = 중성Table[중성Index]
-        입력키배열.append(contentsOf: decompose모음_재귀(중성Char))
-        
-        if 종성Index != 0 {
-            let 종성Char = 종성Table[종성Index]
-            입력키배열.append(contentsOf: decompose자음_분해(종성Char))
-        }
-        
-        return 입력키배열
-    }
-    
-    func decompose모음_재귀(_ 모음: String) -> [String] {
-        if ["ㅐ", "ㅔ", "ㅒ", "ㅖ"].contains(모음) { return [모음] }
-        
-        if let 조합 = 겹모음조합Table.first(where: { $0.겹모음 == 모음 }) {
-            return decompose모음_재귀(조합.앞모음) + decompose모음_재귀(조합.뒷모음)
-        } else {
-            return [모음]
-        }
-    }
-    
-    func decompose자음_분해(_ 자음: String) -> [String] {
-        if let 조합 = 겹자음조합Table.first(where: { $0.겹자음 == 자음 }) {
-            return [조합.앞자음, 조합.뒷자음]
-        } else {
-            return [자음]
         }
     }
 }
