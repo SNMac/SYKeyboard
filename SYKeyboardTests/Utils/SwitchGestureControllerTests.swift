@@ -191,35 +191,3 @@ private final class SwitchGestureDelegateSpy: SwitchGestureControllerDelegate {
         changedOneHandedModes.append(newMode)
     }
 }
-
-// Xcode Cloud의 x86_64 simulator에서는 UIGestureRecognizer.state 직접 대입이
-// handler 호출 시점까지 안정적으로 유지되지 않아 종료 상태를 테스트 더블로 고정한다.
-private final class TestPanGestureRecognizer: UIPanGestureRecognizer {
-    private var forcedState: UIGestureRecognizer.State
-
-    init(state: UIGestureRecognizer.State = .possible) {
-        self.forcedState = state
-        super.init(target: nil, action: nil)
-    }
-
-    override var state: UIGestureRecognizer.State {
-        get { forcedState }
-        set { forcedState = newValue }
-    }
-}
-
-// Xcode Cloud의 x86_64 simulator에서는 UIGestureRecognizer.state 직접 대입이
-// handler 호출 시점까지 안정적으로 유지되지 않아 종료 상태를 테스트 더블로 고정한다.
-private final class TestLongPressGestureRecognizer: UILongPressGestureRecognizer {
-    private var forcedState: UIGestureRecognizer.State
-
-    init(state: UIGestureRecognizer.State = .possible) {
-        self.forcedState = state
-        super.init(target: nil, action: nil)
-    }
-
-    override var state: UIGestureRecognizer.State {
-        get { forcedState }
-        set { forcedState = newValue }
-    }
-}
