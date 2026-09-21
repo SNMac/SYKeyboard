@@ -100,9 +100,10 @@ extension 프로세스 로컬 상태는 `KeyboardExtensionLocalStateStore`에 �
   구분되게 하려는 것이다. 다만 후보가 3칸을 채우지 못하면 마지막 후보는 오른쪽 끝 divider와
   인접하지 않으므로 경계 판정에 쓰지 않는다(`buttons.count >= visibleColumnCount`).
   스크롤로 뷰포트 밖에 나간 버튼도 `isVisibleAndHighlighted(_:)`가 걸러낸다.
-  **후보가 갱신되면 divider 색도 함께 갱신한다.** `updateSuggestions(currentWord:suggestions:)`가
-  `applyHighlights()` 뒤에 `updateDividers()`를 부른다. 숨어 있던 divider가 새로 보일 때
-  직전 하이라이트의 `.clear`를 그대로 들고 나오는 것을 막는다.
+  **`applyHighlights()`를 부르면 그 뒤에 `updateDividers()`도 부른다.** 버튼의 `isHighlighted`가
+  확정된 뒤여야 divider 색이 옳게 나온다. `updateSuggestions(currentWord:suggestions:)`를 포함해
+  네 곳 모두 이 짝을 지킨다. 지금은 호출부가 `updateSuggestions` 직후 preview 갱신을 부르며
+  색을 다시 계산하므로 깨진 화면이 보이지는 않지만, 그 순서에 기대지 않는다.
   **터치가 진행 중인 동안에는 preview 하이라이트를 숨긴다.** 탭 전용에서 시작한 후보를
   벗어나면 눌린 하이라이트가 사라지는데, 그때 preview가 드러나면 끌고 있는 동안 엉뚱한
   칸이 선택된 것처럼 보인다.

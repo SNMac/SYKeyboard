@@ -5,6 +5,7 @@
 //  Created by 서동환 on 3/10/26.
 //
 
+import OSLog
 import UIKit
 
 import SYKeyboardAssets
@@ -121,6 +122,12 @@ final class SuggestionBarView: UIView {
     private static let dividerWidth: CGFloat = 1
     /// 스크롤 발생 판정 허용 오차
     private static let scrollTolerance: CGFloat = 0.5
+
+    /// 성능 계측용 signposter. 인스턴스마다 만들 필요가 없어 타입 프로퍼티로 공유한다
+    private static let signposter = OSSignposter(
+        subsystem: Bundle.main.bundleIdentifier ?? "Unknown Bundle",
+        category: "SuggestionBarView"
+    )
 
     // MARK: - UI Components
     
@@ -646,6 +653,15 @@ private extension SuggestionBarView {
     /// 버튼 폭은 뷰포트에 후보 3칸과 그 사이 divider 2개가 정확히 들어가는 값이다.
     /// 클립보드·undo/redo 버튼이 숨겨질 수 있어 뷰포트 폭이 변하므로 매 레이아웃마다 다시 계산한다
     func layoutSuggestionContent() {
+        // 후보 개수에 비례해 프레임을 계산하므로 상한 확장의 영향을 여기서 관측한다.
+        // 개수를 함께 남기지 않으면 측정한 구간이 3칸짜리인지 10칸짜리인지 구분할 수 없다
+        let layoutState = Self.signposter.beginInterval(
+            "LayoutSuggestionContent",
+            id: Self.signposter.makeSignpostID(),
+            "count=\(self.visibleSuggestionCount)"
+        )
+        defer { Self.signposter.endInterval("LayoutSuggestionContent", layoutState) }
+
         // 스크롤 뷰는 buttonContainerHStackView(스택)의 arranged subview라 스택 자신의
         // layoutSubviews()가 돌아야 프레임이 확정된다. bar의 layoutSubviews()는 스택보다
         // 먼저 호출되므로, 강제로 스택의 레이아웃을 먼저 끝내 확정된 뷰포트 폭을 읽는다

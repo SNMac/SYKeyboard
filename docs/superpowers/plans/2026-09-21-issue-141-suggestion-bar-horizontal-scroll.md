@@ -1483,14 +1483,16 @@ EOF
 **Files:**
 - Modify: `docs/superpowers/plans/2026-09-21-issue-141-suggestion-bar-horizontal-scroll.md`
 
-- [ ] **Step 1: 아래 「실기기 수동 확인」 항목을 하나씩 확인하고 결과를 적는다**
+- [x] **Step 1: 아래 「실기기 수동 확인」 항목을 하나씩 확인하고 결과를 적는다**
 
-- [ ] **Step 2: 타이핑 지연을 실측한다**
+- [x] **Step 2: 타이핑 지연을 실측한다**
 
-Instruments의 os_signpost로 `LexiconSuggestions`,
-`TextCheckerSuggestions`, `RankedUnigramCandidates` 구간을 본다. 상한을 올리기 전
-(`Task 4` 이전 커밋)과 후의 값을 각각 기록한다. 메인 스레드에 실제로 늘어나는 비용은
-버튼 레이아웃이므로 `SuggestionBarView.layoutSubviews` 구간도 함께 본다.
+Instruments의 os_signpost로 측정했다. 방법과 결과는 아래 「타이핑 지연 실측」에 적었다.
+계획 단계에서 적어 둔 "상한을 올리기 전 커밋과 후를 각각 기록한다"는 설계는 쓰지 않았다.
+두 빌드는 입력 타이밍과 n-gram 이력이 달라 차이의 원인을 분리할 수 없기 때문이다. 대신
+`layoutSuggestionContent()` signpost에 후보 개수를 실어 한 녹화 안에서 개수별로 비교했다.
+`SuggestionBarView.layoutSubviews` 대신 실제로 개수에 비례하는 `layoutSuggestionContent()`를
+계측 지점으로 잡았다(커밋 `7ef64c9b`).
 
 - [ ] **Step 3: 결과 기록을 커밋**
 
@@ -1568,12 +1570,68 @@ iOS 26+에서만 나타나는 증상은 실기기에서만 관찰된다.)
 - [x] 가로 모드에서도 후보 폭과 스크롤이 정상이다
 - [x] 세 키보드(한글·영문·한영 통합) 모두에서 위 항목이 같다
 
-### 남은 항목
+### 타이핑 지연 실측 (2026-09-21)
 
-- [ ] 타이핑 지연이 체감되지 않는다(신호 구간 실측값 기록)
-      — 코드 리뷰 반영이 끝난 뒤 측정한다. `OSSignposter` 구간 `LexiconSuggestions`,
-      `TextCheckerSuggestions`, `RankedUnigramCandidates`, `SuggestionBarView.layoutSubviews`를
-      상한 확장 전후로 비교한다
+- [x] 타이핑 지연이 체감되지 않는다
+
+**측정 방법.** 계획의 원래 설계는 `maxSuggestions`를 3으로 되돌린 빌드와 10인 빌드를
+따로 녹화해 비교하는 것이었으나, 두 빌드를 비교하면 입력 타이밍과 n-gram 이력이 달라져
+차이가 상한 때문인지 알 수 없다. 대신 `layoutSuggestionContent()`의 signpost에 그 호출이
+배치한 후보 개수를 메타데이터로 실어(`count=%ld`), **한 번의 녹화 안에서 개수별로 갈라
+비교**했다. 같은 입력·같은 이력 위에서 1칸과 10칸이 직접 비교된다.
+
+- 대상: `HangeulKeyboard.appex` Release, iPhone 15 Pro Max / iOS 27.0
+- 템플릿: Blank + os_signpost, Deferred, 24.3초
+- 입력: 애국가 2행(`동해물과 백두산이 마르고 닳도록` / `하느님이 보우하사 우리나라만세`)
+  → `ㄱ` 길게 누르기 약 1초 → 삭제 버튼 길게 누르기 1초
+- 산출물: 리포 바깥 `SNMac/SYKeyboard/issue141-suggestion-layout-iPhone15ProMax-iOS27.trace`,
+  커밋 `7ef64c9b` 기준
+  (같은 커밋에서 `xcodebuild test -scheme SYKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=18.6'
+  -parallel-testing-enabled NO` → `774 tests in 80 suites passed`. 앱 타깃이 세 키보드
+  확장을 `Embed Foundation Extensions`로 품으므로 이 한 번이 확장 셋의 컴파일까지 덮는다)
+- 판독:
+  `xcrun xctrace export --input <trace> --xpath '/trace-toc/run[@number="1"]/data/table[@schema="os-signpost"]'`
+  로 XML을 뽑아 `Begin`/`End`를 **(signpost 이름, identifier) 쌍**으로 맞춘다. 이 프로젝트의
+  signpost는 대부분 `OS_SIGNPOST_ID_EXCLUSIVE`라 identifier만으로 짝을 맞추면
+  `TextCheckerSuggestions` 안의 `TextCheckerCompletions`처럼 중첩된 구간이 서로 뒤섞인다.
+
+**결과 1 — 후보 개수는 레이아웃 비용을 좌우하지 않는다.**
+`LayoutSuggestionContent` 228회를 후보 개수로 나누고, 실제 재배치가 일어난 구간(>0.5ms)만
+추린 값이다. 단위 ms.
+
+| 후보 수 | n | 평균 | 최대 |
+|---:|---:|---:|---:|
+| 1 | 10 | 1.203 | 1.764 |
+| 9 | 11 | 1.256 | 1.594 |
+| 10 | 22 | 0.842 | 1.215 |
+
+10칸이 1칸보다 오히려 빠르다. 비용의 출처는 `buttonContainerHStackView.layoutIfNeeded()`가
+도는 Auto Layout 패스이고, 개수에 비례하는 frame 대입 루프가 아니다. 나머지 205회는 후보가
+바뀌지 않은 no-op으로 개수와 무관하게 0.009~0.036ms다.
+
+**결과 2 — 메인 스레드 자동완성 비용은 프레임 예산의 10% 안이다.** 단위 ms.
+
+| 구간 | n | 평균 | p95 | 최대 |
+|---|---:|---:|---:|---:|
+| `LayoutSuggestionContent` | 228 | 0.258 | — | 1.764 |
+| `RankedUnigramCandidates` | 8 | 0.024 | 0.037 | 0.037 |
+| `LexiconSuggestions` | 69 | 0.015 | 0.031 | 0.050 |
+| `TextReplacementMatch` | 143 | 0.006 | 0.012 | 0.029 |
+
+한 타의 메인 스레드 합계가 최악 약 1.8ms로, 60Hz 프레임 예산 16.7ms의 10% 수준이다.
+
+**결과 3 — 지배 비용인 `UITextChecker`는 상한과 무관하다.**
+`TextCheckerSuggestions` 69회가 평균 12.8ms, p95 33.7ms, 최대 125.4ms로 전체 signpost 시간의
+대부분을 쓴다. 다만 이번 변경과 무관하다.
+
+- trace의 thread 컬럼상 전부 `SuggestionController`의 TextChecker 전용 큐에서 돌고 메인을 막지 않는다
+- `UITextChecker.completions(forPartialWordRange:in:language:)`는 개수 상한 인자를 받지 않고
+  전부 돌려준다. 자르는 것은 그 뒤 `append(_:)`이므로 3이든 10이든 이 호출 시간은 같다
+- 상한이 실제로 바꾸는 것은 `merged.count < limit` 단축 경로로 `guesses` 호출을 건너뛸지뿐인데,
+  그 구간이 26회 평균 0.352ms다
+
+`maxSuggestions`를 3으로 되돌린 비교 빌드는 녹화하지 않았다. 위 세 결과로 상한 확장이 메인
+스레드에 더하는 비용이 측정 한계 안이라는 것이 정해지므로, 비교 녹화가 결론을 바꿀 수 없다.
 
 ## 실기기 확인에서 바뀐 결정 (2026-09-21)
 
@@ -1628,10 +1686,23 @@ iPhone / iOS 27에서 후보 글자가 뭉개져 보인다는 보고로 확인�
    조건으로 막고, 스크롤로 뷰포트 밖에 나간 버튼은 `isVisibleAndHighlighted(_:)`가 걸러낸다.
 
 8. **후보가 갱신되면 divider 색도 함께 갱신한다.** `updateSuggestions`가 `applyDividerVisibility()`
-   (isHidden)와 `applyHighlights()`만 부르고 `updateDividers()`(색)를 부르지 않아, 터치 중 후보가
-   갱신되면 숨어 있던 divider가 직전 하이라이트의 `.clear`를 들고 나올 수 있었다.
+   (isHidden)와 `applyHighlights()`만 부르고 `updateDividers()`(색)를 부르지 않았다.
    `applyHighlights()` 뒤에 `updateDividers()`를 더했다. 순서가 중요하다 — 버튼의
    `isHighlighted`가 확정된 뒤여야 옳은 색이 나온다.
+
+   **이 변경에는 재현 가능한 증상이 없다. 호출 순서 의존을 없앤 것이다.**
+   `suggestionBarView.updateSuggestions(...)`를 부르는 production 경로는
+   `BaseKeyboardViewController`의 `suggestionController(_:didUpdateCurrentWord:suggestions:)`
+   하나뿐이고, 그 메서드가 곧바로 `updateSuggestionPreviewHighlight()`를 부른다. 이것이
+   `SuggestionBarView.updatePreviewHighlight(index:)` → `applyHighlights()` + `updateDividers()`로
+   이어지므로, 이 변경이 없어도 divider 색은 한 호출 뒤에 다시 계산된다. 즉 화면에서 관찰할
+   수 있는 잘못된 색이 존재한 적이 없다.
+
+   그래서 실기기 확인 항목이 아니라 **불변식**으로 다룬다. `applyHighlights()`를 부르는 네
+   곳(`updateSuggestions`, `updatePreviewHighlight`, 터치 갱신 2곳)이 모두 `updateDividers()`와
+   짝을 이루게 맞췄고, 단위 테스트가 `updateSuggestions` 단독 호출 뒤의 divider 색을 고정한다.
+   이렇게 두지 않으면 나중에 preview 갱신을 걷어내거나 호출 순서를 바꾸는 변경이 조용히
+   회귀를 만든다.
 
 9. **후보 영역 폭이 세션 중에 바뀌는 경로는 없다 — 관련 우려를 닫는다.**
    `updateUndoRedoControls`/`updateClipboardControl`의 `isVisible`은 undo 이력이 아니라
