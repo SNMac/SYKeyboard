@@ -291,10 +291,22 @@ struct ClipboardHistoryStoreTests {
     }
 }
 
-private struct StoreFixture {
+/// 테스트가 끝나 fixture가 해제되면 임시 plist와 이미지 디렉터리를 지운다
+private final class StoreFixture {
     let store: ClipboardHistoryStore
     let url: URL
     let imageDirectoryURL: URL
+
+    init(store: ClipboardHistoryStore, url: URL, imageDirectoryURL: URL) {
+        self.store = store
+        self.url = url
+        self.imageDirectoryURL = imageDirectoryURL
+    }
+
+    deinit {
+        try? FileManager.default.removeItem(at: url)
+        try? FileManager.default.removeItem(at: imageDirectoryURL)
+    }
 
     func imageFiles() throws -> [String] {
         ((try? FileManager.default.contentsOfDirectory(atPath: imageDirectoryURL.path)) ?? []).sorted()
