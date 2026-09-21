@@ -84,125 +84,29 @@ struct KeyboardPresentationStatePolicyTests {
     @Test("텐키이거나 바 안에 쓸 수 있는 것이 없으면 suggestion bar를 숨김")
     func testSuggestionBar숨김조건() {
         // 텐키는 무엇이 켜져 있어도 숨긴다
-        #expect(
-            KeyboardPresentationStatePolicy.shouldHideSuggestionBar(
-                isPredictiveTextEnabled: true,
-                autocorrectionType: .default,
-                currentKeyboard: .tenKey,
-                isUndoRedoEnabled: true,
-                isClipboardHistoryEnabled: true
-            ) == true
-        )
+        #expect(hidesBar(predictive: true, autocorrection: .default, keyboard: .tenKey, undoRedo: true, clipboard: true) == true)
         // 셋 다 쓸 수 없으면 숨긴다
-        #expect(
-            KeyboardPresentationStatePolicy.shouldHideSuggestionBar(
-                isPredictiveTextEnabled: false,
-                autocorrectionType: .default,
-                currentKeyboard: .naratgeul,
-                isUndoRedoEnabled: false,
-                isClipboardHistoryEnabled: false
-            ) == true
-        )
-        #expect(
-            KeyboardPresentationStatePolicy.shouldHideSuggestionBar(
-                isPredictiveTextEnabled: true,
-                autocorrectionType: .no,
-                currentKeyboard: .naratgeul,
-                isUndoRedoEnabled: false,
-                isClipboardHistoryEnabled: false
-            ) == true
-        )
+        #expect(hidesBar(predictive: false, autocorrection: .default, keyboard: .naratgeul, undoRedo: false, clipboard: false) == true)
+        #expect(hidesBar(predictive: true, autocorrection: .no, keyboard: .naratgeul, undoRedo: false, clipboard: false) == true)
         // 후보 영역만 쓸 수 있어도 표시한다
-        #expect(
-            KeyboardPresentationStatePolicy.shouldHideSuggestionBar(
-                isPredictiveTextEnabled: true,
-                autocorrectionType: .default,
-                currentKeyboard: .qwerty,
-                isUndoRedoEnabled: false,
-                isClipboardHistoryEnabled: false
-            ) == false
-        )
-        #expect(
-            KeyboardPresentationStatePolicy.shouldHideSuggestionBar(
-                isPredictiveTextEnabled: true,
-                autocorrectionType: nil,
-                currentKeyboard: .qwerty,
-                isUndoRedoEnabled: false,
-                isClipboardHistoryEnabled: false
-            ) == false
-        )
+        #expect(hidesBar(predictive: true, autocorrection: .default, keyboard: .qwerty, undoRedo: false, clipboard: false) == false)
+        #expect(hidesBar(predictive: true, autocorrection: nil, keyboard: .qwerty, undoRedo: false, clipboard: false) == false)
     }
 
     @Test("자동완성이 꺼져 있어도 undo redo나 클립보드가 켜져 있으면 suggestion bar를 유지")
     func testSuggestionBar자동완성꺼짐시표시조건() {
-        #expect(
-            KeyboardPresentationStatePolicy.shouldHideSuggestionBar(
-                isPredictiveTextEnabled: false,
-                autocorrectionType: .default,
-                currentKeyboard: .naratgeul,
-                isUndoRedoEnabled: true,
-                isClipboardHistoryEnabled: false
-            ) == false
-        )
-        #expect(
-            KeyboardPresentationStatePolicy.shouldHideSuggestionBar(
-                isPredictiveTextEnabled: false,
-                autocorrectionType: .default,
-                currentKeyboard: .naratgeul,
-                isUndoRedoEnabled: false,
-                isClipboardHistoryEnabled: true
-            ) == false
-        )
+        #expect(hidesBar(predictive: false, autocorrection: .default, keyboard: .naratgeul, undoRedo: true, clipboard: false) == false)
+        #expect(hidesBar(predictive: false, autocorrection: .default, keyboard: .naratgeul, undoRedo: false, clipboard: true) == false)
         // 텐키는 예외 없이 숨긴다
-        #expect(
-            KeyboardPresentationStatePolicy.shouldHideSuggestionBar(
-                isPredictiveTextEnabled: false,
-                autocorrectionType: .default,
-                currentKeyboard: .tenKey,
-                isUndoRedoEnabled: true,
-                isClipboardHistoryEnabled: true
-            ) == true
-        )
+        #expect(hidesBar(predictive: false, autocorrection: .default, keyboard: .tenKey, undoRedo: true, clipboard: true) == true)
     }
 
     @Test("autocorrection이 no여도 undo redo나 클립보드가 켜져 있으면 suggestion bar를 유지")
     func testSuggestionBarAutocorrection차단시표시조건() {
-        #expect(
-            KeyboardPresentationStatePolicy.shouldHideSuggestionBar(
-                isPredictiveTextEnabled: true,
-                autocorrectionType: .no,
-                currentKeyboard: .naratgeul,
-                isUndoRedoEnabled: true,
-                isClipboardHistoryEnabled: false
-            ) == false
-        )
-        #expect(
-            KeyboardPresentationStatePolicy.shouldHideSuggestionBar(
-                isPredictiveTextEnabled: true,
-                autocorrectionType: .no,
-                currentKeyboard: .naratgeul,
-                isUndoRedoEnabled: false,
-                isClipboardHistoryEnabled: true
-            ) == false
-        )
-        #expect(
-            KeyboardPresentationStatePolicy.shouldHideSuggestionBar(
-                isPredictiveTextEnabled: true,
-                autocorrectionType: .no,
-                currentKeyboard: .naratgeul,
-                isUndoRedoEnabled: true,
-                isClipboardHistoryEnabled: true
-            ) == false
-        )
-        #expect(
-            KeyboardPresentationStatePolicy.shouldHideSuggestionBar(
-                isPredictiveTextEnabled: true,
-                autocorrectionType: .no,
-                currentKeyboard: .tenKey,
-                isUndoRedoEnabled: true,
-                isClipboardHistoryEnabled: true
-            ) == true
-        )
+        #expect(hidesBar(predictive: true, autocorrection: .no, keyboard: .naratgeul, undoRedo: true, clipboard: false) == false)
+        #expect(hidesBar(predictive: true, autocorrection: .no, keyboard: .naratgeul, undoRedo: false, clipboard: true) == false)
+        #expect(hidesBar(predictive: true, autocorrection: .no, keyboard: .naratgeul, undoRedo: true, clipboard: true) == false)
+        #expect(hidesBar(predictive: true, autocorrection: .no, keyboard: .tenKey, undoRedo: true, clipboard: true) == true)
     }
 
     @Test("후보 영역은 바가 숨겨졌거나 자동완성이 꺼졌거나 autocorrection이 no일 때 숨김")
@@ -321,6 +225,24 @@ struct KeyboardPresentationStatePolicyTests {
                 isSettingEnabled: false,
                 isHostCompletionAllowed: false
             ) == false
+        )
+    }
+
+    // MARK: - Helper
+
+    private func hidesBar(
+        predictive: Bool,
+        autocorrection: UITextAutocorrectionType?,
+        keyboard: SYKeyboardType,
+        undoRedo: Bool,
+        clipboard: Bool
+    ) -> Bool {
+        KeyboardPresentationStatePolicy.shouldHideSuggestionBar(
+            isPredictiveTextEnabled: predictive,
+            autocorrectionType: autocorrection,
+            currentKeyboard: keyboard,
+            isUndoRedoEnabled: undoRedo,
+            isClipboardHistoryEnabled: clipboard
         )
     }
 }

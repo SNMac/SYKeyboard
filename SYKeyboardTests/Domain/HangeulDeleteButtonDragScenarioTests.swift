@@ -14,6 +14,13 @@ struct HangeulDeleteButtonDragScenarioTests {
 
     // MARK: - Properties
 
+    /// 입력기마다 같은 시나리오를 돌리기 위한 구분
+    enum InputMethod: CaseIterable {
+        case dubeolsik
+        case cheonjiin
+        case naratgeul
+    }
+
     private let automata: HangeulAutomataProtocol = HangeulAutomata()
 
     private let 천 = "ㆍ"
@@ -22,46 +29,16 @@ struct HangeulDeleteButtonDragScenarioTests {
 
     // MARK: - 전체 삭제/복구 후 버퍼 동기화
 
-    @Test("두벌식 삭제 버튼 드래그 복구: '동해물과' 전체 삭제 후 복구")
-    func test두벌식_삭제버튼드래그_전체복구후_버퍼동기화() {
-        let sim = HangeulCompositionTestHarness(
-            processor: DubeolsikProcessor(automata: automata)
-        )
-
-        inputDubeolsik동해물과(into: sim)
-        assert전체복구후_버퍼동기화(sim)
-    }
-
-    @Test("천지인 삭제 버튼 드래그 복구: '동해물과' 전체 삭제 후 복구")
-    func test천지인_삭제버튼드래그_전체복구후_버퍼동기화() {
-        let sim = HangeulCompositionTestHarness(
-            processor: CheonjiinProcessor(automata: automata)
-        )
-
-        inputCheonjiin동해물과(into: sim)
-        assert전체복구후_버퍼동기화(sim)
-    }
-
-    @Test("나랏글 삭제 버튼 드래그 복구: '동해물과' 전체 삭제 후 복구")
-    func test나랏글_삭제버튼드래그_전체복구후_버퍼동기화() {
-        let sim = HangeulCompositionTestHarness(
-            processor: NaratgeulProcessor(automata: automata)
-        )
-
-        inputNaratgeul동해물과(into: sim)
-        assert전체복구후_버퍼동기화(sim)
+    @Test("삭제 버튼 드래그 복구: '동해물과' 전체 삭제 후 복구", arguments: InputMethod.allCases)
+    func test삭제버튼드래그_전체복구후_버퍼동기화(_ inputMethod: InputMethod) {
+        assert전체복구후_버퍼동기화(make동해물과Harness(inputMethod))
     }
 
     // MARK: - touchDown 선삭제 후 pan 복구 중복 방지
 
-    @Test("두벌식 삭제 버튼 드래그 복구: touchDown 선삭제 후 pan 복구가 중복되지 않음")
-    func test두벌식_삭제버튼드래그_touchDown선삭제후_복구중복방지() {
-        let sim = HangeulCompositionTestHarness(
-            processor: DubeolsikProcessor(automata: automata)
-        )
-
-        inputDubeolsik동해물과(into: sim)
-        assertTouchDown선삭제후_복구중복방지(sim)
+    @Test("삭제 버튼 드래그 복구: touchDown 선삭제 후 pan 복구가 중복되지 않음", arguments: InputMethod.allCases)
+    func test삭제버튼드래그_touchDown선삭제후_복구중복방지(_ inputMethod: InputMethod) {
+        assertTouchDown선삭제후_복구중복방지(make동해물과Harness(inputMethod))
     }
 
     @Test("두벌식 삭제 버튼 드래그 복구: '동해물고' touchDown 선삭제 후 전체 복구")
@@ -127,31 +104,28 @@ struct HangeulDeleteButtonDragScenarioTests {
         inputDubeolsik동해물거ㅓ(into: sim)
         assertTouchDown선삭제후_전체복구(sim, expectedTouchDownText: "동해물거", expectedRestoredText: "동해물거ㅓ")
     }
-
-    @Test("천지인 삭제 버튼 드래그 복구: touchDown 선삭제 후 pan 복구가 중복되지 않음")
-    func test천지인_삭제버튼드래그_touchDown선삭제후_복구중복방지() {
-        let sim = HangeulCompositionTestHarness(
-            processor: CheonjiinProcessor(automata: automata)
-        )
-
-        inputCheonjiin동해물과(into: sim)
-        assertTouchDown선삭제후_복구중복방지(sim)
-    }
-
-    @Test("나랏글 삭제 버튼 드래그 복구: touchDown 선삭제 후 pan 복구가 중복되지 않음")
-    func test나랏글_삭제버튼드래그_touchDown선삭제후_복구중복방지() {
-        let sim = HangeulCompositionTestHarness(
-            processor: NaratgeulProcessor(automata: automata)
-        )
-
-        inputNaratgeul동해물과(into: sim)
-        assertTouchDown선삭제후_복구중복방지(sim)
-    }
 }
 
 // MARK: - Assertions
 
 private extension HangeulDeleteButtonDragScenarioTests {
+    /// 해당 입력기의 키 입력으로 '동해물과'를 만든 harness
+    func make동해물과Harness(_ inputMethod: InputMethod) -> HangeulCompositionTestHarness {
+        switch inputMethod {
+        case .dubeolsik:
+            let sim = HangeulCompositionTestHarness(processor: DubeolsikProcessor(automata: automata))
+            inputDubeolsik동해물과(into: sim)
+            return sim
+        case .cheonjiin:
+            let sim = HangeulCompositionTestHarness(processor: CheonjiinProcessor(automata: automata))
+            inputCheonjiin동해물과(into: sim)
+            return sim
+        case .naratgeul:
+            let sim = HangeulCompositionTestHarness(processor: NaratgeulProcessor(automata: automata))
+            inputNaratgeul동해물과(into: sim)
+            return sim
+        }
+    }
 
     func assert전체복구후_버퍼동기화(_ sim: HangeulCompositionTestHarness) {
         #expect(sim.text == "동해물과")

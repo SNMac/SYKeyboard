@@ -46,46 +46,18 @@ struct DubeolsikProcessorTests: HangeulProcessorTestable {
     
     // MARK: - 1. 기본 입력 및 조합 테스트
     
-    @Test("기본 입력: '가' 생성 (ㄱ + ㅏ)")
-    func test기본입력_가() {
+    // 초성+중성 / 종성 / 복합 모음(ㅗ+ㅏ→ㅘ) / 겹받침(ㄹ+ㄱ→ㄺ)
+    @Test("한 음절 조합: 키 입력 순서대로 음절을 완성",
+          arguments: [(["ㄱ", "ㅏ"], "가"), (["ㄱ", "ㅏ", "ㄱ"], "각"), (["ㅇ", "ㅗ", "ㅏ"], "와"), (["ㄷ", "ㅏ", "ㄹ", "ㄱ"], "닭")])
+    func test한음절조합(keys: [String], expected: String) {
         var (c, p) = ("", "")
-        (c, p) = applyInput("ㄱ", committed: c, composing: p)
-        (c, p) = applyInput("ㅏ", committed: c, composing: p)
-        
-        #expect(c + p == "가")
+        for key in keys {
+            (c, p) = applyInput(key, committed: c, composing: p)
+        }
+
+        #expect(c + p == expected)
     }
-    
-    @Test("종성 입력: '각' 생성 (가 + ㄱ)")
-    func test기본입력_각() {
-        var (c, p) = ("", "")
-        (c, p) = applyInput("ㄱ", committed: c, composing: p)
-        (c, p) = applyInput("ㅏ", committed: c, composing: p) // 가
-        (c, p) = applyInput("ㄱ", committed: c, composing: p) // 각
-        
-        #expect(c + p == "각")
-    }
-    
-    @Test("복합 모음 입력: '와' 생성 (ㅇ + ㅗ + ㅏ)")
-    func test복합모음_와() {
-        var (c, p) = ("", "")
-        (c, p) = applyInput("ㅇ", committed: c, composing: p)
-        (c, p) = applyInput("ㅗ", committed: c, composing: p)
-        (c, p) = applyInput("ㅏ", committed: c, composing: p) // ㅗ + ㅏ -> ㅘ
-        
-        #expect(c + p == "와")
-    }
-    
-    @Test("겹받침 입력: '닭' 생성 (ㄷ + ㅏ + ㄹ + ㄱ)")
-    func test겹받침_닭() {
-        var (c, p) = ("", "")
-        (c, p) = applyInput("ㄷ", committed: c, composing: p)
-        (c, p) = applyInput("ㅏ", committed: c, composing: p)
-        (c, p) = applyInput("ㄹ", committed: c, composing: p) // 달
-        (c, p) = applyInput("ㄱ", committed: c, composing: p) // 닭
-        
-        #expect(c + p == "닭")
-    }
-    
+
     @Test("연음 입력: '안녕' (ㅇ+ㅏ+ㄴ+ㄴ+ㅕ+ㅇ)")
     func test연음입력_안녕() {
         var (c, p) = ("", "")
