@@ -274,7 +274,7 @@ struct SuggestionBarViewLayoutTests {
 private struct Fixture {
     let bar: SuggestionBarView
     let keyboardHStackView: UIStackView
-    let delegate: RemovalDelegateSpy
+    let delegate: SuggestionBarDelegateSpy
     let buttons: [SuggestionButtonView]
 }
 
@@ -282,7 +282,7 @@ private struct Fixture {
 private func makeFixture(acceptsRemoval: Bool) -> Fixture {
     let keyboardHStackView = UIStackView()
     let bar = SuggestionBarView(keyboardHStackView: keyboardHStackView)
-    let delegate = RemovalDelegateSpy(acceptsRemoval: acceptsRemoval)
+    let delegate = SuggestionBarDelegateSpy(acceptsRemoval: acceptsRemoval)
     bar.suggestionDelegate = delegate
     bar.frame = CGRect(x: 0, y: 0, width: 300, height: 44)
     bar.updateSuggestions(currentWord: nil, suggestions: ["오늘", "날씨", "좋다"])
@@ -293,22 +293,6 @@ private func makeFixture(acceptsRemoval: Bool) -> Fixture {
         delegate: delegate,
         buttons: typedSuggestionButtonViews(in: bar)
     )
-}
-
-private func typedSuggestionButtonViews(
-    in view: UIView
-) -> [SuggestionButtonView] {
-    var result: [SuggestionButtonView] = []
-    for subview in view.subviews {
-        if let button = subview as? SuggestionButtonView {
-            result.append(button)
-        }
-        result.append(contentsOf: typedSuggestionButtonViews(in: subview))
-    }
-    return result.sorted {
-        $0.convert($0.bounds, to: view).minX
-            < $1.convert($1.bounds, to: view).minX
-    }
 }
 
 /// 후보 영역 오른쪽에 붙은 바 끝 divider. 후보 스크롤 뷰의 형제 중 스크롤 뷰보다 오른쪽에 있는
@@ -339,39 +323,6 @@ private func visibleSuggestionTexts(in bar: UIView) -> [String] {
     return typedSuggestionButtonViews(in: bar)
         .filter { !$0.isHidden && $0.hasText }
         .compactMap { $0.text }
-}
-
-private func center(of button: UIView, in bar: UIView) -> CGPoint {
-    let frame = button.convert(button.bounds, to: bar)
-    return CGPoint(x: frame.midX, y: frame.midY)
-}
-
-@MainActor
-private final class RemovalDelegateSpy: SuggestionBarDelegate {
-    private let acceptsRemoval: Bool
-    private(set) var removalRequestIndexes: [Int] = []
-    private(set) var selectedIndexes: [Int] = []
-    private(set) var undoTapCount = 0
-
-    init(acceptsRemoval: Bool) {
-        self.acceptsRemoval = acceptsRemoval
-    }
-
-    func suggestionBar(_ bar: SuggestionBarView, didSelectSuggestionAt index: Int) {
-        selectedIndexes.append(index)
-    }
-
-    func suggestionBar(_ bar: SuggestionBarView, shouldBeginRemovalAt index: Int) -> Bool {
-        removalRequestIndexes.append(index)
-        return acceptsRemoval
-    }
-
-    func suggestionBarDidTapUndo(_ bar: SuggestionBarView) {
-        undoTapCount += 1
-    }
-
-    func suggestionBarDidTapRedo(_ bar: SuggestionBarView) {}
-    func suggestionBarDidTapClipboard(_ bar: SuggestionBarView) {}
 }
 
 /// 후보 스크롤 뷰. 아래 divider 헬퍼들의 기준점이다.
