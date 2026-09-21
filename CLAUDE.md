@@ -96,6 +96,13 @@ extension 프로세스 로컬 상태는 `KeyboardExtensionLocalStateStore`에 �
   **후보 영역은 후보가 3개보다 적어도 3칸으로 보인다.** divider는 버튼 개수가 아니라 열
   격자를 따라 그린다(`dividerCount(forSuggestionCount:)`). 빈 칸에 divider가 없으면 그
   자리를 눌렀을 때 앞 후보가 적용될 것처럼 보인다. 맨 앞·맨 뒤에는 그리지 않는다.
+  **경계 divider는 인접한 후보가 하이라이트되면 지운다.** 어느 쪽 끝 후보를 누르고 있는지
+  구분되게 하려는 것이다. 다만 후보가 3칸을 채우지 못하면 마지막 후보는 오른쪽 끝 divider와
+  인접하지 않으므로 경계 판정에 쓰지 않는다(`buttons.count >= visibleColumnCount`).
+  스크롤로 뷰포트 밖에 나간 버튼도 `isVisibleAndHighlighted(_:)`가 걸러낸다.
+  **후보가 갱신되면 divider 색도 함께 갱신한다.** `updateSuggestions(currentWord:suggestions:)`가
+  `applyHighlights()` 뒤에 `updateDividers()`를 부른다. 숨어 있던 divider가 새로 보일 때
+  직전 하이라이트의 `.clear`를 그대로 들고 나오는 것을 막는다.
   **터치가 진행 중인 동안에는 preview 하이라이트를 숨긴다.** 탭 전용에서 시작한 후보를
   벗어나면 눌린 하이라이트가 사라지는데, 그때 preview가 드러나면 끌고 있는 동안 엉뚱한
   칸이 선택된 것처럼 보인다.

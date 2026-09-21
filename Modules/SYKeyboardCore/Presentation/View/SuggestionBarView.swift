@@ -363,6 +363,10 @@ final class SuggestionBarView: UIView {
         suggestionScrollView.contentOffset = .zero
         setNeedsLayout()
         applyHighlights()
+        // 후보가 바뀌면 divider 색도 다시 정한다. applyHighlights()가 버튼의 isHighlighted를
+        // 확정한 뒤여야 옳은 색이 나온다. 숨어 있던 divider가 새로 보일 때 직전 하이라이트의
+        // .clear를 그대로 들고 나오는 것을 막는다
+        updateDividers()
     }
 
     /// 스페이스로 자동 적용될 후보의 preview 하이라이트를 갱신합니다.
@@ -614,7 +618,16 @@ private extension SuggestionBarView {
     /// 풀에 버튼 `count`개와 divider를 열 격자에 맞는 개수만큼 채웁니다.
     func ensurePooledViews(count: Int) {
         while pooledButtons.count < count {
-            let button = SuggestionButtonView()
+            // 프레임이 .zero면 autoresizing 제약(width == 0)이 라벨의 좌우 4pt 제약과 모순돼
+            // Auto Layout 경고가 찍힌다. 실제 크기는 layoutSuggestionContent()가 매번 덮어쓴다
+            let button = SuggestionButtonView(
+                frame: CGRect(
+                    x: 0,
+                    y: 0,
+                    width: KeyboardLayoutFigure.suggestionBarHeightWithTopSpacing,
+                    height: KeyboardLayoutFigure.suggestionBarHeightWithTopSpacing
+                )
+            )
             suggestionContentView.addSubview(button)
             pooledButtons.append(button)
         }

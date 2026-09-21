@@ -1619,6 +1619,30 @@ iPhone / iOS 27에서 후보 글자가 뭉개져 보인다는 보고로 확인�
    입력마다 도는 죽은 코드와 production 엔진이 만들 수 없는 상태를 검증하는 테스트가 남는다.
    **엔진의 인덱스 조회 방식이 정확 일치가 아니게 바뀌면 이 보장이 깨지므로, 그때 다시 본다.**
 
+7. **경계 divider는 인접한 후보가 하이라이트되면 지운다 — `develop`의 의미를 유지한다.**
+   사용자 결정이다. 한때 "경계 divider는 후보 하이라이트에 반응하지 않는다"로 단순화했다가
+   되돌렸다. 되돌린 이유는 **어느 쪽 끝 후보를 누르고 있는지 구분되지 않기 때문**이다.
+   다만 가변 개수에서 생긴 결함은 고친 채로 둔다. `develop`은 3칸 고정이라 `button3`이 곧
+   마지막 열이었지만, 이제는 후보가 1~2개면 `buttons.last`가 0번 열에 있어 인접하지 않은
+   오른쪽 끝 divider까지 지웠다. `buttons.count >= SuggestionDividerPolicy.visibleColumnCount`
+   조건으로 막고, 스크롤로 뷰포트 밖에 나간 버튼은 `isVisibleAndHighlighted(_:)`가 걸러낸다.
+
+8. **후보가 갱신되면 divider 색도 함께 갱신한다.** `updateSuggestions`가 `applyDividerVisibility()`
+   (isHidden)와 `applyHighlights()`만 부르고 `updateDividers()`(색)를 부르지 않아, 터치 중 후보가
+   갱신되면 숨어 있던 divider가 직전 하이라이트의 `.clear`를 들고 나올 수 있었다.
+   `applyHighlights()` 뒤에 `updateDividers()`를 더했다. 순서가 중요하다 — 버튼의
+   `isHighlighted`가 확정된 뒤여야 옳은 색이 나온다.
+
+9. **후보 영역 폭이 세션 중에 바뀌는 경로는 없다 — 관련 우려를 닫는다.**
+   `updateUndoRedoControls`/`updateClipboardControl`의 `isVisible`은 undo 이력이 아니라
+   `keyboardSettingsManager.isUndoRedoEnabled` / `isClipboardHistoryEnabled` 설정을 따른다
+   (`KeyboardPresentationStatePolicy.shouldShowUndoRedoControls` 등). 이력이 없으면 버튼은
+   `isEnabled = false`로 회색이 될 뿐 사라지지 않는다. 그리고 앱 설정 화면은 토글을 바꿀 때
+   `hideKeyboard()`를 불러 키보드를 닫는다(`SYKeyboard/Presentation/Utils/Extensions/View+Extension.swift`,
+   `InputSettingsView` 등에서 호출). 따라서 폭이 바뀐 채로 살아 있는 세션이 존재하지 않고,
+   다시 열릴 때 전체 레이아웃을 새로 돈다. 레이아웃 전환 프레임에 후보 버튼이 기능 버튼을
+   덮을 수 있다는 리뷰 지적은 **재현 경로가 없어 고치지 않는다.**
+
 ## 되돌리는 법
 
 `SuggestionController.maxSuggestions`를 `3`으로 되돌리면 후보가 3개를 넘지 않아
