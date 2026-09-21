@@ -242,7 +242,8 @@ private final class NotificationWaiter: @unchecked Sendable {
 /// 이미지 저장은 비동기라 "기록하지 않음"을 호출 직후에 단언하면 저장이 끝나기 전이라 늘 통과한다.
 /// 크기가 다른 이미지를 뒤이어 기록하고 그 완료를 기다려, 앞선 이미지 저장이 시작됐다면 끝났을 시점에 단언하게 한다.
 /// 같은 바이트면 해시가 같아 한 항목으로 합쳐지므로 크기를 다르게 한다.
-/// 같은 pasteboard의 내용을 바꾸면 진행 중이던 앞선 로드가 취소되어 잘못된 기록이 드러나지 않으므로 별도 pasteboard를 쓴다
+/// 같은 pasteboard의 내용을 바꾸면 진행 중이던 앞선 로드가 취소되어 잘못된 기록이 드러나지 않으므로 별도 pasteboard를 쓴다.
+/// 두 로드의 완료 순서는 시스템이 정하므로, 앞선 저장이 후속 이미지보다 늦게 끝나는 경우까지는 잡지 못한다
 private func recordFollowUpImage(in fixture: SyncFixture) async {
     let name = UIPasteboard.Name("SYKeyboardTests.follow-up.\(UUID().uuidString)")
     let followUpPasteboard = UIPasteboard(name: name, create: true)!

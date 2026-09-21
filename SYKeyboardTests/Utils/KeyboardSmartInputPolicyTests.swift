@@ -26,7 +26,7 @@ struct KeyboardSmartInputPolicyTests {
 
     @Test("smart quotes는 키보드별 default 해석이 enabled이면 default에서 적용")
     func testSmartQuotesDefaultEnabledByKeyboardPolicy() {
-        let defaultResult = transform("\"", quotes: .default)
+        let defaultResult = transform("\"", quotes: .default, defaultQuotes: true)
 
         #expect(defaultResult.insertText == "“")
     }
@@ -40,8 +40,8 @@ struct KeyboardSmartInputPolicyTests {
 
     @Test("smart quotes는 trait yes에서 항상 적용하고 no에서만 적용하지 않음")
     func testSmartQuotesExplicitTraitsOverrideKeyboardDefaultPolicy() {
-        let noResult = transform("“", quotes: .no)
-        let yesResult = transform("\"", defaultQuotes: false)
+        let noResult = transform("“", quotes: .no, defaultQuotes: true)
+        let yesResult = transform("\"", quotes: .yes, defaultQuotes: false)
 
         #expect(noResult.insertText == "\"")
         #expect(yesResult.insertText == "“")
