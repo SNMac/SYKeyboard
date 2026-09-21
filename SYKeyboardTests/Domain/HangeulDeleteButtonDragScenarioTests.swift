@@ -1,5 +1,5 @@
 //
-//  HangeulDeleteButtonDragControllerTests.swift
+//  HangeulDeleteButtonDragScenarioTests.swift
 //  SYKeyboardTests
 //
 //  Created by Codex on 5/21/26.
@@ -10,7 +10,7 @@ import Testing
 @testable import HangeulKeyboardCore
 
 @Suite("한글 삭제 버튼 드래그 HangeulCompositionState 기반 입력 상태 시나리오")
-struct HangeulDeleteButtonDragControllerTests {
+struct HangeulDeleteButtonDragScenarioTests {
 
     // MARK: - Properties
 
@@ -151,7 +151,7 @@ struct HangeulDeleteButtonDragControllerTests {
 
 // MARK: - Assertions
 
-private extension HangeulDeleteButtonDragControllerTests {
+private extension HangeulDeleteButtonDragScenarioTests {
 
     func assert전체복구후_버퍼동기화(_ sim: HangeulCompositionTestHarness) {
         #expect(sim.text == "동해물과")
@@ -217,7 +217,7 @@ private extension HangeulDeleteButtonDragControllerTests {
 
 // MARK: - Input Helpers
 
-private extension HangeulDeleteButtonDragControllerTests {
+private extension HangeulDeleteButtonDragScenarioTests {
 
     func inputDubeolsik동해물과(into sim: HangeulCompositionTestHarness) {
         ["ㄷ", "ㅗ", "ㅇ", "ㅎ", "ㅐ", "ㅁ", "ㅜ", "ㄹ", "ㄱ", "ㅗ", "ㅏ"].forEach {

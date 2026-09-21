@@ -1,5 +1,5 @@
 //
-//  CheonjiinControllerTests.swift
+//  CheonjiinCompositionScenarioTests.swift
 //  SYKeyboardTests
 //
 //  Created by 서동환 on 3/8/26.
@@ -10,7 +10,7 @@ import Testing
 @testable import HangeulKeyboardCore
 
 @Suite("천지인 HangeulCompositionState 기반 입력 상태 시나리오")
-struct CheonjiinControllerTests {
+struct CheonjiinCompositionScenarioTests {
     
     // MARK: - Properties
     

@@ -1,5 +1,5 @@
 //
-//  NaratgeulControllerTests.swift
+//  NaratgeulCompositionScenarioTests.swift
 //  SYKeyboardTests
 //
 //  Created by 서동환 on 3/8/26.
@@ -10,7 +10,7 @@ import Testing
 @testable import HangeulKeyboardCore
 
 @Suite("나랏글 HangeulCompositionState 기반 입력 상태 시나리오")
-struct NaratgeulControllerTests {
+struct NaratgeulCompositionScenarioTests {
     
     // MARK: - Properties
     
