@@ -93,7 +93,7 @@ subview다. 이 5개를 `UIScrollView` 하나로 바꾸고, 스크롤 뷰 안 co
   - `SuggestionBarView.pooledButtons: [SuggestionButtonView]`, `pooledDividers: [UIView]`, `visibleSuggestionCount: Int` (private). Task 2가 가변 개수로 확장한다.
   - `SuggestionBarView.layoutSuggestionContent()` (private) — 스크롤 content 프레임과 `contentSize` 계산 지점.
 
-- [ ] **Step 1: 실패하는 테스트를 쓴다**
+- [x] **Step 1: 실패하는 테스트를 쓴다**
 
 `SYKeyboardTests/Utils/SuggestionBarViewRemovalLongPressTests.swift`의 `struct` 안,
 마지막 `@Test` 아래에 붙인다.
@@ -136,7 +136,7 @@ subview다. 이 5개를 `UIScrollView` 하나로 바꾸고, 스크롤 뷰 안 co
     }
 ```
 
-- [ ] **Step 2: 테스트가 실패하는 것을 확인한다**
+- [x] **Step 2: 테스트가 실패하는 것을 확인한다**
 
 Run:
 
@@ -152,7 +152,7 @@ xcodebuild test \
 
 Expected: 컴파일 실패. `value of type 'SuggestionBarView' has no member 'isSuggestionAreaScrollable'`
 
-- [ ] **Step 3: 스크롤 뷰와 content view를 추가한다**
+- [x] **Step 3: 스크롤 뷰와 content view를 추가한다**
 
 `SuggestionBarView.swift`의 `// MARK: - Properties` 블록에서 `suggestionButtons`
 **computed property를 지우고** 아래 저장 프로퍼티로 바꾼다.
@@ -214,7 +214,7 @@ Expected: 컴파일 실패. `value of type 'SuggestionBarView' has no member 'is
     }()
 ```
 
-- [ ] **Step 4: 계층과 제약을 바꾼다**
+- [x] **Step 4: 계층과 제약을 바꾼다**
 
 `private extension SuggestionBarView`의 `setHierarchy()`를 아래로 바꾼다.
 
@@ -264,7 +264,7 @@ Expected: 컴파일 실패. `value of type 'SuggestionBarView' has no member 'is
     private static let dividerWidth: CGFloat = 1
 ```
 
-- [ ] **Step 5: 프레임 레이아웃과 풀 생성을 구현한다**
+- [x] **Step 5: 프레임 레이아웃과 풀 생성을 구현한다**
 
 `// MARK: - Lifecycle`의 `touchesBegan` 위에 넣는다.
 
@@ -340,7 +340,7 @@ Expected: 컴파일 실패. `value of type 'SuggestionBarView' has no member 'is
     }
 ```
 
-- [ ] **Step 6: `updateSuggestions`를 풀 기반으로 바꾼다**
+- [x] **Step 6: `updateSuggestions`를 풀 기반으로 바꾼다**
 
 `updateSuggestions(currentWord:suggestions:)` 본문을 아래로 바꾼다. 이 Task에서는
 표시 개수를 3으로 고정해 오늘과 같은 화면을 유지한다. 가변 개수는 Task 2에서 푼다.
@@ -390,7 +390,7 @@ Private Methods 확장에 넣는다.
     }
 ```
 
-- [ ] **Step 7: `updateDividers()`를 가변 개수로 일반화한다**
+- [x] **Step 7: `updateDividers()`를 가변 개수로 일반화한다**
 
 Private Methods 확장의 `updateDividers()`를 아래로 바꾼다.
 
@@ -428,7 +428,7 @@ Private Methods 확장의 `updateDividers()`를 아래로 바꾼다.
     }
 ```
 
-- [ ] **Step 8: content view의 터치 전달과 스크롤 델리게이트를 추가한다**
+- [x] **Step 8: content view의 터치 전달과 스크롤 델리게이트를 추가한다**
 
 파일 끝 `// MARK: - Supporting Views` 안, `SuggestionActionButtonView` 선언 위에
 넣는다. 새 파일을 만들지 않으므로 `project.pbxproj`를 고칠 필요가 없다.
@@ -497,7 +497,7 @@ extension SuggestionBarView: UIScrollViewDelegate {
 둔다. **`updateDividers()`와 `isVisibleAndHighlighted(_:)`를 타입 본문의
 Internal Methods 구역 끝으로 옮기는 쪽을 택한다.** 접근 수준은 기본(internal)으로 둔다.
 
-- [ ] **Step 9: 문서 주석을 고친다**
+- [x] **Step 9: 문서 주석을 고친다**
 
 같은 파일에서 아래 세 곳을 고친다.
 
@@ -508,7 +508,7 @@ Internal Methods 구역 끝으로 옮기는 쪽을 택한다.** 접근 수준은
 - `updateSuggestions(currentWord:suggestions:)`의 주석에서 `button1`, `button2~3`
   표기를 `0번 칸`, `그 뒤 칸`으로 바꾼다.
 
-- [ ] **Step 10: 테스트가 통과하는 것을 확인한다**
+- [x] **Step 10: 테스트가 통과하는 것을 확인한다**
 
 Run:
 
@@ -526,7 +526,7 @@ xcodebuild test \
 Expected: PASS. 기존 4개 테스트도 그대로 통과해야 한다. 기존 테스트가 깨지면
 스크롤 도입이 기존 동작을 바꾼 것이므로 구현을 고친다.
 
-- [ ] **Step 11: 커밋**
+- [x] **Step 11: 커밋**
 
 ```bash
 git add Modules/SYKeyboardCore/Presentation/View/SuggestionBarView.swift \
@@ -559,7 +559,7 @@ EOF
 - Produces:
   - `SuggestionButtonView.text: String?` — 현재 표시 중인 문자열. 테스트가 표시 결과를 공개 동작으로 읽는 경로다.
 
-- [ ] **Step 1: 실패하는 테스트를 쓴다**
+- [x] **Step 1: 실패하는 테스트를 쓴다**
 
 `SuggestionBarViewRemovalLongPressTests.swift`의 `struct` 안에 붙인다.
 
@@ -650,7 +650,7 @@ private func visibleSuggestionTexts(in bar: UIView) -> [String] {
     }
 ```
 
-- [ ] **Step 2: 테스트가 실패하는 것을 확인한다**
+- [x] **Step 2: 테스트가 실패하는 것을 확인한다**
 
 Run:
 
@@ -667,7 +667,7 @@ xcodebuild test \
 
 Expected: 컴파일 실패. `value of type 'SuggestionButtonView' has no member 'text'`
 
-- [ ] **Step 3: `SuggestionButtonView`에 표시 텍스트 접근자를 넣는다**
+- [x] **Step 3: `SuggestionButtonView`에 표시 텍스트 접근자를 넣는다**
 
 `SuggestionButtonView.swift`의 `hasText` 선언을 아래로 바꾸고, 바로 아래
 `leadingDivider`/`trailingDivider` 두 줄은 지운다. Task 1에서 대입하는 곳이
@@ -684,7 +684,7 @@ Expected: 컴파일 실패. `value of type 'SuggestionButtonView' has no member 
     }
 ```
 
-- [ ] **Step 4: 표시 개수를 후보 수에 맞춘다**
+- [x] **Step 4: 표시 개수를 후보 수에 맞춘다**
 
 `SuggestionBarView.updateSuggestions(currentWord:suggestions:)`에서 Task 1의
 고정 3칸 블록을 아래로 바꾼다.
@@ -702,7 +702,7 @@ Expected: 컴파일 실패. `value of type 'SuggestionButtonView' has no member 
 `let count = Int(SuggestionBarView.visibleSuggestionColumnCount)` 줄과 그 위 주석은
 지운다. `visibleSuggestionColumnCount`는 버튼 폭 계산에만 남는다.
 
-- [ ] **Step 5: preview 하이라이트 주석의 범위 표기를 고친다**
+- [x] **Step 5: preview 하이라이트 주석의 범위 표기를 고친다**
 
 `updatePreviewHighlight(index:)`의 주석을 고친다. 구현은 이미
 `suggestionButtons.indices`로 판정하므로 코드는 바꾸지 않는다.
@@ -715,13 +715,13 @@ Expected: 컴파일 실패. `value of type 'SuggestionButtonView' has no member 
     /// - Parameter index: 강조할 후보 인덱스, 없으면 `nil`
 ```
 
-- [ ] **Step 6: 테스트가 통과하는 것을 확인한다**
+- [x] **Step 6: 테스트가 통과하는 것을 확인한다**
 
 Run: Step 2와 같은 명령
 
 Expected: PASS
 
-- [ ] **Step 7: 커밋**
+- [x] **Step 7: 커밋**
 
 ```bash
 git add Modules/SYKeyboardCore/Presentation/View/SuggestionBarView.swift \
@@ -756,7 +756,7 @@ mask면 iOS 16부터 같은 결과를 얻는다.
   - `SuggestionScrollFadePolicy.State(showsLeadingFade: Bool, showsTrailingFade: Bool)`
   - `SuggestionScrollFadePolicy.resolve(contentOffsetX:viewportWidth:contentWidth:) -> State`
 
-- [ ] **Step 1: 실패하는 테스트를 쓴다**
+- [x] **Step 1: 실패하는 테스트를 쓴다**
 
 `SuggestionHighlightPolicyTests.swift` 파일 끝에 새 suite를 더한다. 새 파일을
 만들지 않으므로 `project.pbxproj`를 고칠 필요가 없다.
@@ -822,7 +822,7 @@ struct SuggestionScrollFadePolicyTests {
 }
 ```
 
-- [ ] **Step 2: 테스트가 실패하는 것을 확인한다**
+- [x] **Step 2: 테스트가 실패하는 것을 확인한다**
 
 Run:
 
@@ -838,7 +838,7 @@ xcodebuild test \
 
 Expected: 컴파일 실패. `cannot find 'SuggestionScrollFadePolicy' in scope`
 
-- [ ] **Step 3: 정책을 추가한다**
+- [x] **Step 3: 정책을 추가한다**
 
 `SuggestionHighlightPolicy.swift` 맨 위에 `import Foundation`이 없으면 더하고,
 파일 끝에 아래를 붙인다. `Presentation/Utils/Policies/`에 새 파일을 만들면
@@ -885,13 +885,13 @@ enum SuggestionScrollFadePolicy {
 `import Foundation`은 `CGFloat`를 위해 필요하다. 파일에 이미 다른 import가 없다면
 맨 위에 넣는다.
 
-- [ ] **Step 4: 테스트가 통과하는 것을 확인한다**
+- [x] **Step 4: 테스트가 통과하는 것을 확인한다**
 
 Run: Step 2와 같은 명령
 
 Expected: PASS
 
-- [ ] **Step 5: 스크롤 뷰에 mask를 건다**
+- [x] **Step 5: 스크롤 뷰에 mask를 건다**
 
 먼저 Task 1에서 리터럴로 둔 허용 오차를 정책 상수로 바꾼다.
 
@@ -978,7 +978,7 @@ extension SuggestionBarView: UIScrollViewDelegate {
 }
 ```
 
-- [ ] **Step 6: 바 테스트가 여전히 통과하는 것을 확인한다**
+- [x] **Step 6: 바 테스트가 여전히 통과하는 것을 확인한다**
 
 Run:
 
@@ -997,7 +997,7 @@ xcodebuild test \
 
 Expected: PASS. mask가 걸려도 버튼 프레임과 하이라이트 판정은 바뀌지 않는다.
 
-- [ ] **Step 7: 커밋**
+- [x] **Step 7: 커밋**
 
 ```bash
 git add Modules/SYKeyboardCore/Presentation/Utils/Policies/SuggestionHighlightPolicy.swift \
@@ -1518,9 +1518,16 @@ iPhone 13 mini / iOS 18.6, 실제 입력 앱. Task 7에서 채운다.
 - [ ] 스크롤 중에는 삭제 확인 오버레이가 뜨지 않는다
 - [ ] 제자리에서 0.5초 누르면 삭제 확인 오버레이가 뜬다(#139 회귀 확인)
 - [ ] 라이트/다크 모드에서 가장자리 페이드가 의도대로 보인다
+- [ ] 스크롤하는 동안 페이드가 지연 없이 따라온다
+      (mask는 스크롤 뷰 `bounds` 좌표계라 `contentOffset`만큼 함께 움직인다. Task 3 리뷰의 ⚠️ 항목)
 - [ ] 반투명 키보드 배경에서도 페이드가 어색하지 않다
 - [ ] 클립보드·undo/redo 버튼이 스크롤과 무관하게 동작한다
 - [ ] 클립보드 패널을 열고 닫아 후보 영역 폭이 바뀌어도 버튼 폭이 다시 맞는다
+- [ ] 후보와 undo/redo를 두 손가락으로 동시에 눌러도 액션이 한 번만 발생하고,
+      먼저 누른 손가락을 떼기 전에 자판 입력이 다시 켜지지 않는다
+      (Task 1 리뷰의 멀티터치 가드 수정. `UITouch`를 합성할 수 없어 자동 테스트로 덮이지 않는다)
+- [ ] 키보드 높이 조절과 한손 모드 전환 중 후보 버튼 폭이 한 프레임 어긋나지 않는다
+      (`layoutSuggestionContent()`의 `layoutIfNeeded()`가 조상 레이아웃과 겹치는 경로)
 - [ ] 수식 후보 3칸이 스크롤되지 않는다
 - [ ] 가로 모드에서도 후보 폭과 스크롤이 정상이다
 - [ ] 타이핑 지연이 체감되지 않는다(신호 구간 실측값 기록)

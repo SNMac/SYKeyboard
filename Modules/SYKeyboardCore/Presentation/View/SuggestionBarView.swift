@@ -15,13 +15,13 @@ protocol SuggestionBarDelegate: AnyObject {
     ///
     /// - Parameters:
     ///   - bar: 이벤트를 발생시킨 `SuggestionBarView`
-    ///   - index: 선택된 후보의 인덱스 (0~2)
+    ///   - index: 선택된 후보의 인덱스
     func suggestionBar(_ bar: SuggestionBarView, didSelectSuggestionAt index: Int)
     /// 후보를 길게 눌렀을 때 호출됩니다.
     ///
     /// - Parameters:
     ///   - bar: 이벤트를 발생시킨 `SuggestionBarView`
-    ///   - index: 누른 후보의 인덱스 (0~2)
+    ///   - index: 누른 후보의 인덱스
     /// - Returns: 삭제 확인을 띄웠으면 `true`. 이때 이번 터치는 손을 떼도 후보를 선택하지 않습니다
     func suggestionBar(_ bar: SuggestionBarView, shouldBeginRemovalAt index: Int) -> Bool
     /// undo 버튼이 탭되었을 때 호출됩니다.
@@ -34,13 +34,13 @@ protocol SuggestionBarDelegate: AnyObject {
 
 /// 자동완성 후보 단어와 맞춤법 검사 버튼을 표시하는 툴바
 ///
-/// 최대 3개의 후보 버튼과 1개의 맞춤법 검사 버튼으로 구성되며,
+/// 후보 버튼은 가로 스크롤 영역에 들어가고, 클립보드·undo/redo 버튼은 양옆에 고정되며,
 /// 각 버튼의 탭 이벤트는 `SuggestionBarDelegate`를 통해 전달됩니다.
 ///
 /// ## 표시 모드
-/// - **입력 중**: button1에 `"현재단어"`, button2~3에 자동완성 후보
-/// - **입력 없음 / 자동완성 후**: button1~3에 n-gram 다음 단어 예측
-/// - **수식 결과**: button1에 원문, button2에 원문+결과, button3에 결과 대치 후보
+/// - **입력 중**: 0번 칸에 `"현재단어"`, 그 뒤 칸에 자동완성 후보
+/// - **입력 없음 / 자동완성 후**: 0번 칸부터 n-gram 다음 단어 예측
+/// - **수식 결과**: 0번 칸에 원문, 1번에 원문+결과, 2번에 결과 대치 후보
 final class SuggestionBarView: UIView {
     
     // MARK: - Properties
@@ -59,8 +59,27 @@ final class SuggestionBarView: UIView {
     /// 길게 눌러 삭제 확인을 띄운 터치인지 여부. 손을 떼도 후보를 선택하지 않는다
     private var isTouchConsumedByRemoval = false
 
+    /// 후보 버튼 재사용 풀. 한 번 만든 버튼은 버리지 않고 `isHidden`으로만 감춘다
+    private var pooledButtons: [SuggestionButtonView] = []
+    /// 후보 사이 divider 재사용 풀. 버튼 N개에 divider N-1개를 쓴다
+    private var pooledDividers: [UIView] = []
+    /// 현재 표시 중인 후보 버튼 개수
+    private var visibleSuggestionCount = 0
+    /// 후보 영역 표시 여부. 숨겨져 있으면 후보 사이 divider를 모두 감춘다
+    private var isSuggestionAreaVisible = true
+
+    /// 하이라이트·히트테스트 대상 후보 버튼. 풀에서 지금 쓰는 앞쪽 N개만 본다
     private var suggestionButtons: [SuggestionButtonView] {
-        return [suggestionButton1, suggestionButton2, suggestionButton3]
+        return Array(pooledButtons.prefix(visibleSuggestionCount))
+    }
+
+    /// 후보 영역이 가로로 넘쳐 스크롤될 수 있는 상태인지.
+    ///
+    /// 스크롤과 가장자리 페이드의 유일한 발생 조건이다. 후보 개수로 분기하지 않는다.
+    /// 0.5pt는 부동소수 오차로 1pt도 안 되는 차이에 스크롤이 생기는 것을 막는 허용 오차다
+    var isSuggestionAreaScrollable: Bool {
+        return suggestionScrollView.contentSize.width
+            > suggestionScrollView.bounds.width + SuggestionScrollFadePolicy.edgeTolerance
     }
 
     private var undoRedoViews: [UIView] {
@@ -71,11 +90,6 @@ final class SuggestionBarView: UIView {
         return [clipboardButton, clipboardDivider]
     }
 
-    /// 후보 영역이 숨겨질 때 함께 사라지는 후보 사이 divider
-    private var suggestionAreaDividers: [UIView] {
-        return [leftDivider, rightDivider]
-    }
-
     /// 히트테스트·하이라이트 대상 accessory 버튼. 인덱스가 `SuggestionHighlightPolicy`의 action 인덱스다
     private var actionButtons: [SuggestionActionButtonView] {
         return [clipboardButton, undoButton, redoButton]
@@ -84,6 +98,13 @@ final class SuggestionBarView: UIView {
     private static let clipboardClosedSymbolName = "list.clipboard"
     private static let clipboardOpenSymbolName = "keyboard"
     private var isClipboardPanelVisible = false
+
+    /// 화면에 한 번에 보이는 후보 칸 수. 버튼 폭 계산 기준이다
+    private static let visibleSuggestionColumnCount = 3
+    /// divider 두께
+    private static let dividerWidth: CGFloat = 1
+    /// 가장자리 페이드 폭
+    private static let edgeFadeWidth: CGFloat = 16
 
     // MARK: - UI Components
     
@@ -112,40 +133,43 @@ final class SuggestionBarView: UIView {
         return view
     }()
 
-    private lazy var suggestionButton1: SuggestionButtonView = {
-        let button = SuggestionButtonView()
-        button.trailingDivider = leftDivider
-        
-        return button
+    private lazy var suggestionScrollView: UIScrollView = {
+        let scrollView = UIScrollView()
+        scrollView.showsHorizontalScrollIndicator = false
+        scrollView.showsVerticalScrollIndicator = false
+        scrollView.alwaysBounceHorizontal = false
+        scrollView.alwaysBounceVertical = false
+        scrollView.contentInsetAdjustmentBehavior = .never
+        // 키보드라 기본 150ms 지연을 쓸 수 없다. 손을 대는 즉시 하이라이트가 켜져야 한다
+        scrollView.delaysContentTouches = false
+        // 스택이 기능 버튼을 배치하고 남긴 공간을 이 뷰가 전부 가져간다
+        scrollView.setContentHuggingPriority(.defaultLow - 1, for: .horizontal)
+        scrollView.setContentCompressionResistancePriority(.defaultLow - 1, for: .horizontal)
+        scrollView.delegate = self
+
+        return scrollView
     }()
-    
-    private let leftDivider: UIView = {
-        let view = UIView()
-        view.backgroundColor = .suggestionDividerColor
-        
+
+    /// 스크롤 가장자리 페이드용 mask. 남은 방향에만 정지점을 넣어 흐리게 만든다
+    private let edgeFadeLayer: CAGradientLayer = {
+        let layer = CAGradientLayer()
+        layer.startPoint = CGPoint(x: 0, y: 0.5)
+        layer.endPoint = CGPoint(x: 1, y: 0.5)
+        layer.colors = [
+            UIColor.clear.cgColor,
+            UIColor.black.cgColor,
+            UIColor.black.cgColor,
+            UIColor.clear.cgColor
+        ]
+
+        return layer
+    }()
+
+    private lazy var suggestionContentView: SuggestionScrollContentView = {
+        let view = SuggestionScrollContentView()
+        view.forwardingTarget = self
+
         return view
-    }()
-    
-    private lazy var suggestionButton2: SuggestionButtonView = {
-        let button = SuggestionButtonView()
-        button.leadingDivider = leftDivider
-        button.trailingDivider = rightDivider
-        
-        return button
-    }()
-    
-    private let rightDivider: UIView = {
-        let view = UIView()
-        view.backgroundColor = .suggestionDividerColor
-        
-        return view
-    }()
-    
-    private lazy var suggestionButton3: SuggestionButtonView = {
-        let button = SuggestionButtonView()
-        button.leadingDivider = rightDivider
-        
-        return button
     }()
 
     private let undoRedoLeadingDivider: UIView = {
@@ -190,7 +214,12 @@ final class SuggestionBarView: UIView {
     }
     
     // MARK: - Lifecycle
-    
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        layoutSuggestionContent()
+    }
+
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         guard activeTouch == nil, let touch = touches.first else { return }
         activeTouch = touch
@@ -288,43 +317,40 @@ final class SuggestionBarView: UIView {
 
     /// 자동완성 바를 업데이트합니다.
     ///
-    /// `currentWord`가 있으면 button1에 따옴표로 감싸서 표시하고
-    /// button2~3에 자동완성 후보를 표시합니다.
-    /// `currentWord`가 없으면 button1~3에 다음 단어 예측 후보를 표시합니다.
+    /// `currentWord`가 있으면 0번 칸에 따옴표로 감싸서 표시하고
+    /// 그 뒤 칸에 자동완성 후보를 표시합니다.
+    /// `currentWord`가 없으면 0번 칸부터 n-gram 다음 단어 예측 후보를 표시합니다.
     ///
     /// - Parameters:
     ///   - currentWord: 현재 입력 중인 단어 (없으면 nil)
     ///   - suggestions: 자동완성 또는 예측 후보 배열
     func updateSuggestions(currentWord: String?, suggestions: [String]) {
+        var titles: [String] = []
         if let word = currentWord, !word.isEmpty {
-            // 입력 중: button1에 "현재단어", button2~3에 자동완성 후보
-            suggestionButton1.update(to: "\"\(word)\"")
-            
-            let suggestionButtons = [suggestionButton2, suggestionButton3]
-            for (index, button) in suggestionButtons.enumerated() {
-                if index < suggestions.count {
-                    button.update(to: suggestions[index])
-                } else {
-                    button.update(to: "")
-                }
-            }
-        } else {
-            // 입력 없음 / 자동완성 후: button1~3에 n-gram 예측 후보
-            let buttons = [suggestionButton1, suggestionButton2, suggestionButton3]
-            for (index, button) in buttons.enumerated() {
-                if index < suggestions.count {
-                    button.update(to: suggestions[index])
-                } else {
-                    button.update(to: "")
-                }
-            }
+            // 입력 중: 0번 칸이 "현재단어", 그 뒤가 자동완성 후보
+            titles.append("\"\(word)\"")
         }
+        titles.append(contentsOf: suggestions)
+
+        ensurePooledViews(count: titles.count)
+        for (index, button) in pooledButtons.enumerated() {
+            let title = index < titles.count ? titles[index] : ""
+            button.update(to: title)
+            button.isHidden = index >= titles.count
+        }
+        visibleSuggestionCount = titles.count
+
+        applyDividerVisibility()
+        suggestionScrollView.contentOffset = .zero
+        setNeedsLayout()
         applyHighlights()
     }
 
     /// 스페이스로 자동 적용될 후보의 preview 하이라이트를 갱신합니다.
     ///
-    /// - Parameter index: 강조할 후보 인덱스 (0~2), 없으면 `nil`
+    /// 유효 범위는 지금 표시 중인 후보 버튼 개수를 따른다. 대상이 스크롤 밖에 있어도 자동으로 스크롤하지 않는다
+    ///
+    /// - Parameter index: 강조할 후보 인덱스, 없으면 `nil`
     func updatePreviewHighlight(index: Int?) {
         if let index, !suggestionButtons.indices.contains(index) {
             previewHighlightIndex = nil
@@ -340,7 +366,8 @@ final class SuggestionBarView: UIView {
     /// 후보 라벨은 `SuggestionController.isSuspended`가 비우므로 여기서는 후보 사이 divider만 숨겨
     /// 액션 버튼 위치를 그대로 둔 채 가운데를 빈 상태로 만듭니다.
     func updateSuggestionArea(isVisible: Bool) {
-        suggestionAreaDividers.forEach { $0.isHidden = !isVisible }
+        isSuggestionAreaVisible = isVisible
+        applyDividerVisibility()
     }
 
     /// 자동완성 바 우측의 undo/redo 버튼 표시와 활성 상태를 갱신합니다.
@@ -368,6 +395,38 @@ final class SuggestionBarView: UIView {
         updateDividers()
     }
 
+    func updateDividers() {
+        let buttons = suggestionButtons
+        let firstHighlighted = isVisibleAndHighlighted(buttons.first)
+        let lastHighlighted = isVisibleAndHighlighted(buttons.last)
+
+        clipboardDivider.backgroundColor = (clipboardButton.isHighlighted || firstHighlighted)
+        ? .clear
+        : .suggestionDividerColor
+        undoRedoLeadingDivider.backgroundColor = (lastHighlighted || undoButton.isHighlighted)
+        ? .clear
+        : .suggestionDividerColor
+        undoRedoMiddleDivider.backgroundColor = (undoButton.isHighlighted || redoButton.isHighlighted)
+        ? .clear
+        : .suggestionDividerColor
+
+        for index in pooledDividers.indices {
+            let leadingHighlighted = buttons.indices.contains(index) && buttons[index].isHighlighted
+            let trailingHighlighted = buttons.indices.contains(index + 1) && buttons[index + 1].isHighlighted
+            pooledDividers[index].backgroundColor = (leadingHighlighted || trailingHighlighted)
+            ? .clear
+            : .suggestionDividerColor
+        }
+    }
+
+    /// 경계 divider를 지울지 판단합니다.
+    ///
+    /// 스크롤로 뷰포트 밖에 완전히 나간 버튼 때문에 보이지도 않는 divider가 사라지는 것을 막는다
+    func isVisibleAndHighlighted(_ button: SuggestionButtonView?) -> Bool {
+        guard let button, button.isHighlighted else { return false }
+        return button.frame.intersects(suggestionScrollView.bounds)
+    }
+
 }
 
 // MARK: - UI Methods
@@ -381,24 +440,23 @@ private extension SuggestionBarView {
     
     func setStyles() {
         self.backgroundColor = .clear
+        suggestionScrollView.layer.mask = edgeFadeLayer
     }
     
     func setHierarchy() {
         self.addSubview(buttonContainerHStackView)
-        
+
         [clipboardButton,
          clipboardDivider,
-         suggestionButton1,
-         leftDivider,
-         suggestionButton2,
-         rightDivider,
-         suggestionButton3,
+         suggestionScrollView,
          undoRedoLeadingDivider,
          undoButton,
          undoRedoMiddleDivider,
          redoButton].forEach {
             buttonContainerHStackView.addArrangedSubview($0)
         }
+
+        suggestionScrollView.addSubview(suggestionContentView)
     }
     
     func setConstraints() {
@@ -410,22 +468,16 @@ private extension SuggestionBarView {
             buttonContainerHStackView.bottomAnchor.constraint(equalTo: self.bottomAnchor, constant: 0)
         ])
         
-        [clipboardDivider, leftDivider, rightDivider, undoRedoLeadingDivider, undoRedoMiddleDivider].forEach {
+        [clipboardDivider, undoRedoLeadingDivider, undoRedoMiddleDivider].forEach {
             $0.translatesAutoresizingMaskIntoConstraints = false
-            $0.widthAnchor.constraint(equalToConstant: 1).isActive = true
+            $0.widthAnchor.constraint(equalToConstant: SuggestionBarView.dividerWidth).isActive = true
             $0.heightAnchor.constraint(equalToConstant: KeyboardLayoutFigure.suggestionButtonDividerHeight).isActive = true
         }
-        
-        suggestionButton1.translatesAutoresizingMaskIntoConstraints = false
-        suggestionButton2.translatesAutoresizingMaskIntoConstraints = false
-        suggestionButton3.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([
-            suggestionButton1.heightAnchor.constraint(equalTo: buttonContainerHStackView.heightAnchor),
-            suggestionButton2.widthAnchor.constraint(equalTo: suggestionButton1.widthAnchor),
-            suggestionButton2.heightAnchor.constraint(equalTo: buttonContainerHStackView.heightAnchor),
-            suggestionButton3.widthAnchor.constraint(equalTo: suggestionButton1.widthAnchor),
-            suggestionButton3.heightAnchor.constraint(equalTo: buttonContainerHStackView.heightAnchor)
-        ])
+
+        suggestionScrollView.translatesAutoresizingMaskIntoConstraints = false
+        suggestionScrollView.heightAnchor.constraint(
+            equalTo: buttonContainerHStackView.heightAnchor
+        ).isActive = true
 
         [clipboardButton, undoButton, redoButton].forEach {
             $0.translatesAutoresizingMaskIntoConstraints = false
@@ -525,30 +577,143 @@ private extension SuggestionBarView {
         }
     }
     
-    func updateDividers() {
-        let btn1Highlighted = suggestionButton1.isHighlighted
-        let btn2Highlighted = suggestionButton2.isHighlighted
-        let btn3Highlighted = suggestionButton3.isHighlighted
+    /// 풀에 버튼 `count`개와 divider `count - 1`개가 있도록 채웁니다.
+    func ensurePooledViews(count: Int) {
+        while pooledButtons.count < count {
+            let button = SuggestionButtonView()
+            suggestionContentView.addSubview(button)
+            pooledButtons.append(button)
+        }
 
-        clipboardDivider.backgroundColor = (clipboardButton.isHighlighted || btn1Highlighted)
-        ? .clear
-        : .suggestionDividerColor
-        leftDivider.backgroundColor = (btn1Highlighted || btn2Highlighted)
-        ? .clear
-        : .suggestionDividerColor
-        rightDivider.backgroundColor = (btn2Highlighted || btn3Highlighted)
-        ? .clear
-        : .suggestionDividerColor
-        undoRedoLeadingDivider.backgroundColor = (btn3Highlighted || undoButton.isHighlighted)
-        ? .clear
-        : .suggestionDividerColor
-        undoRedoMiddleDivider.backgroundColor = (undoButton.isHighlighted || redoButton.isHighlighted)
-        ? .clear
-        : .suggestionDividerColor
+        let dividerCount = max(count - 1, 0)
+        while pooledDividers.count < dividerCount {
+            let divider = UIView()
+            divider.backgroundColor = .suggestionDividerColor
+            suggestionContentView.addSubview(divider)
+            pooledDividers.append(divider)
+        }
+    }
+
+    /// 스크롤 content의 프레임과 `contentSize`를 갱신합니다.
+    ///
+    /// 버튼 폭은 뷰포트에 후보 3칸과 그 사이 divider 2개가 정확히 들어가는 값이다.
+    /// 클립보드·undo/redo 버튼이 숨겨질 수 있어 뷰포트 폭이 변하므로 매 레이아웃마다 다시 계산한다
+    func layoutSuggestionContent() {
+        // 스크롤 뷰는 buttonContainerHStackView(스택)의 arranged subview라 스택 자신의
+        // layoutSubviews()가 돌아야 프레임이 확정된다. bar의 layoutSubviews()는 스택보다
+        // 먼저 호출되므로, 강제로 스택의 레이아웃을 먼저 끝내 확정된 뷰포트 폭을 읽는다
+        buttonContainerHStackView.layoutIfNeeded()
+
+        let viewportWidth = suggestionScrollView.bounds.width
+        let viewportHeight = suggestionScrollView.bounds.height
+        guard viewportWidth > 0, viewportHeight > 0 else { return }
+
+        let dividerWidth = SuggestionBarView.dividerWidth
+        let columnCount = CGFloat(SuggestionBarView.visibleSuggestionColumnCount)
+        let buttonWidth = (viewportWidth - dividerWidth * (columnCount - 1)) / columnCount
+        let dividerHeight = KeyboardLayoutFigure.suggestionButtonDividerHeight
+
+        var offsetX: CGFloat = 0
+        for index in 0..<visibleSuggestionCount {
+            pooledButtons[index].frame = CGRect(
+                x: offsetX,
+                y: 0,
+                width: buttonWidth,
+                height: viewportHeight
+            )
+            offsetX += buttonWidth
+
+            guard index < visibleSuggestionCount - 1 else { continue }
+            pooledDividers[index].frame = CGRect(
+                x: offsetX,
+                y: (viewportHeight - dividerHeight) / 2,
+                width: dividerWidth,
+                height: dividerHeight
+            )
+            offsetX += dividerWidth
+        }
+
+        let contentWidth = max(offsetX, viewportWidth)
+        suggestionContentView.frame = CGRect(
+            x: 0,
+            y: 0,
+            width: contentWidth,
+            height: viewportHeight
+        )
+        suggestionScrollView.contentSize = suggestionContentView.bounds.size
+        updateEdgeFade()
+    }
+
+    /// 가장자리 페이드 mask의 프레임과 정지점을 갱신합니다.
+    ///
+    /// mask는 스크롤 뷰 `bounds` 좌표계라 `contentOffset`만큼 함께 움직인다. 매번 원점을 맞춘다
+    func updateEdgeFade() {
+        let bounds = suggestionScrollView.bounds
+        guard bounds.width > 0 else { return }
+
+        let state = SuggestionScrollFadePolicy.resolve(
+            contentOffsetX: suggestionScrollView.contentOffset.x,
+            viewportWidth: bounds.width,
+            contentWidth: suggestionScrollView.contentSize.width
+        )
+        let fraction = min(SuggestionBarView.edgeFadeWidth / bounds.width, 0.5)
+        let leading = NSNumber(value: state.showsLeadingFade ? Double(fraction) : 0)
+        let trailing = NSNumber(value: state.showsTrailingFade ? Double(1 - fraction) : 1)
+
+        // CALayer 암시적 애니메이션을 끄지 않으면 스크롤할 때마다 페이드가 늦게 따라온다
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        edgeFadeLayer.frame = bounds
+        edgeFadeLayer.locations = [NSNumber(value: 0.0), leading, trailing, NSNumber(value: 1.0)]
+        CATransaction.commit()
+    }
+
+    func applyDividerVisibility() {
+        let visibleDividerCount = max(visibleSuggestionCount - 1, 0)
+        for (index, divider) in pooledDividers.enumerated() {
+            divider.isHidden = !isSuggestionAreaVisible || index >= visibleDividerCount
+        }
+    }
+}
+
+// MARK: - UIScrollViewDelegate
+
+extension SuggestionBarView: UIScrollViewDelegate {
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        updateEdgeFade()
+        updateDividers()
     }
 }
 
 // MARK: - Supporting Views
+
+/// 스크롤 뷰 안에서 받은 터치를 `SuggestionBarView`의 터치 처리로 그대로 넘기는 content view
+///
+/// 터치 추적 상태를 따로 들지 않고 bar의 오버라이드를 그대로 부른다. 두 뷰가 각각 가드를 들면
+/// 후보와 기능 버튼을 동시에 누를 때 두 터치가 각각 통과해 액션이 두 번 발생한다.
+/// `UITouch.location(in:)`이 대상 뷰를 인자로 받으므로 어느 뷰가 터치를 받았든 바 좌표가 정확히 나온다.
+/// 덕분에 `beginTouchInteraction(at:)` 계열의 본문은 스크롤 도입 전과 같다.
+/// 손가락을 끌어 스크롤이 시작되면 `UIScrollView`가 여기로 `touchesCancelled`를 보낸다
+private final class SuggestionScrollContentView: UIView {
+
+    weak var forwardingTarget: SuggestionBarView?
+
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        forwardingTarget?.touchesBegan(touches, with: event)
+    }
+
+    override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
+        forwardingTarget?.touchesMoved(touches, with: event)
+    }
+
+    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
+        forwardingTarget?.touchesEnded(touches, with: event)
+    }
+
+    override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
+        forwardingTarget?.touchesCancelled(touches, with: event)
+    }
+}
 
 private final class SuggestionActionButtonView: UIView {
 

@@ -15,8 +15,13 @@ final class SuggestionButtonView: UIView {
     
     private let cornerRadius: CGFloat
     
+    /// 현재 표시 중인 후보 문자열
+    var text: String? {
+        return suggestionLabel.text
+    }
+
     var hasText: Bool {
-        return !(suggestionLabel.text?.isEmpty ?? true)
+        return !(text?.isEmpty ?? true)
     }
 
     var isHighlighted: Bool = false {
@@ -24,10 +29,7 @@ final class SuggestionButtonView: UIView {
             updateAppearance()
         }
     }
-    
-    weak var leadingDivider: UIView?
-    weak var trailingDivider: UIView?
-    
+
     // MARK: - UI Components
     
     private lazy var backgroundView: UIView = {

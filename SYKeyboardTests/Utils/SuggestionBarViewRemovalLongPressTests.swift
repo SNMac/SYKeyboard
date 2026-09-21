@@ -74,6 +74,86 @@ struct SuggestionBarViewRemovalLongPressTests {
         #expect(fixture.delegate.removalRequestIndexes == [])
     }
 
+    @Test("후보 3개는 후보 영역이 스크롤되지 않음")
+    func test후보3개는_후보영역이스크롤되지않음() {
+        let fixture = makeFixture(acceptsRemoval: false)
+
+        // 레이아웃이 돌지 않아 폭이 0이면 아래 단언이 공허하게 통과한다
+        #expect(fixture.buttons[0].bounds.width > 0)
+        #expect(fixture.bar.isSuggestionAreaScrollable == false)
+    }
+
+    @Test("후보 버튼은 등폭을 유지")
+    func test후보버튼은_등폭을유지() {
+        let fixture = makeFixture(acceptsRemoval: false)
+        let widths = fixture.buttons.map { $0.bounds.width }
+
+        #expect(widths.count == 3)
+        for width in widths {
+            #expect(width > 0)
+            #expect(abs(width - widths[0]) < 0.5)
+        }
+    }
+
+    @Test("터치 취소는 하이라이트와 삭제 타이머를 함께 취소")
+    func test터치취소는_하이라이트와삭제타이머를_함께취소() {
+        let fixture = makeFixture(acceptsRemoval: true)
+        let point = center(of: fixture.buttons[1], in: fixture.bar)
+
+        fixture.bar.beginTouchInteraction(at: point)
+        #expect(fixture.buttons[1].isHighlighted)
+
+        fixture.bar.cancelTouchInteraction()
+        fixture.bar.handleRemovalLongPress()
+
+        #expect(fixture.buttons[1].isHighlighted == false)
+        #expect(fixture.delegate.removalRequestIndexes == [])
+        #expect(fixture.delegate.selectedIndexes == [])
+        #expect(fixture.keyboardHStackView.isUserInteractionEnabled)
+    }
+
+    @Test("후보 수가 10 → 3 → 10으로 바뀌어도 이전 후보가 남지 않음")
+    func test후보수가10과3을오가도_이전후보가남지않음() {
+        let fixture = makeFixture(acceptsRemoval: false)
+        let tenWords = (1...10).map { "단어\($0)" }
+        let threeWords = ["가", "나", "다"]
+
+        fixture.bar.updateSuggestions(currentWord: nil, suggestions: tenWords)
+        fixture.bar.layoutIfNeeded()
+        #expect(visibleSuggestionTexts(in: fixture.bar) == tenWords)
+        #expect(fixture.bar.isSuggestionAreaScrollable)
+
+        fixture.bar.updateSuggestions(currentWord: nil, suggestions: threeWords)
+        fixture.bar.layoutIfNeeded()
+        #expect(visibleSuggestionTexts(in: fixture.bar) == threeWords)
+        #expect(fixture.bar.isSuggestionAreaScrollable == false)
+
+        fixture.bar.updateSuggestions(currentWord: nil, suggestions: tenWords)
+        fixture.bar.layoutIfNeeded()
+        #expect(visibleSuggestionTexts(in: fixture.bar) == tenWords)
+    }
+
+    @Test("입력 중에는 0번 칸이 현재 단어이고 나머지가 후보")
+    func test입력중에는_0번칸이현재단어이고_나머지가후보() {
+        let fixture = makeFixture(acceptsRemoval: false)
+
+        fixture.bar.updateSuggestions(currentWord: "hel", suggestions: ["hello", "help"])
+        fixture.bar.layoutIfNeeded()
+
+        #expect(visibleSuggestionTexts(in: fixture.bar) == ["\"hel\"", "hello", "help"])
+    }
+
+    @Test("후보가 없으면 후보 칸이 하나도 남지 않음")
+    func test후보가없으면_후보칸이하나도남지않음() {
+        let fixture = makeFixture(acceptsRemoval: false)
+
+        fixture.bar.updateSuggestions(currentWord: nil, suggestions: [])
+        fixture.bar.layoutIfNeeded()
+
+        #expect(visibleSuggestionTexts(in: fixture.bar) == [])
+        #expect(fixture.bar.isSuggestionAreaScrollable == false)
+    }
+
     private struct Fixture {
         let bar: SuggestionBarView
         let keyboardHStackView: UIStackView
@@ -112,6 +192,12 @@ private func typedSuggestionButtonViews(
         $0.convert($0.bounds, to: view).minX
             < $1.convert($1.bounds, to: view).minX
     }
+}
+
+private func visibleSuggestionTexts(in bar: UIView) -> [String] {
+    return typedSuggestionButtonViews(in: bar)
+        .filter { !$0.isHidden && $0.hasText }
+        .compactMap { $0.text }
 }
 
 private func center(of button: UIView, in bar: UIView) -> CGPoint {

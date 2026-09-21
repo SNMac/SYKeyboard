@@ -26,7 +26,11 @@ struct SuggestionBarViewPreviewHighlightTests {
 
         let labels = suggestionLabels(in: bar)
 
-        #expect(scrollViews(in: bar).isEmpty)
+        // 후보 목록은 #141부터 가로로 스크롤된다. 버튼 '안'의 긴 텍스트가
+        // 스크롤되지 않는다는 #98 롤백 계약만 그대로 지킨다
+        let buttons = typedSuggestionButtonViews(in: bar)
+        #expect(buttons.count == 3)
+        #expect(buttons.allSatisfy { scrollViews(in: $0).isEmpty })
         #expect(labels.count == 3)
         #expect(labels.allSatisfy { $0.numberOfLines == 2 })
         #expect(labels.allSatisfy { $0.adjustsFontSizeToFitWidth })
