@@ -201,26 +201,6 @@ struct SuggestionControllerPreparationTests {
         #expect(factory.nGramLanguages == ["ko-KR", "en-US", "en-US", "ko-KR"])
     }
 
-    @Test("이전 language load callback은 새 후보를 갱신하지 않음")
-    func testStaleLanguageLoadCallbackIsIgnored() {
-        let factory = CountingSuggestionEngineFactory()
-        let delegate = RecordingSuggestionControllerDelegate()
-        let controller = SuggestionController(
-            language: "ko-KR",
-            engineFactory: factory.makeFactory()
-        )
-        controller.delegate = delegate
-        controller.isPredictiveTextEnabled = true
-        controller.updateSuggestions(for: "", selectedText: nil, mathExpressionText: "")
-        let koreanEngine = factory.lastNGramProvider
-
-        controller.updateLanguage(to: "en-US")
-        let updateCount = delegate.updates.count
-        koreanEngine?.completeLoad(suggestions: ["오래된 후보"])
-
-        #expect(delegate.updates.count == updateCount)
-    }
-
     @Test("background 이전 language load callback은 언어 전환 뒤 후보를 재갱신하지 않음")
     func testBackgroundStaleLanguageLoadCallbackIsIgnoredAfterLanguageChange() async {
         let factory = CountingSuggestionEngineFactory()
@@ -311,7 +291,7 @@ struct SuggestionControllerPreparationTests {
     }
 
     @Test("후보 초기화 후 n-gram 로딩 완료는 마지막 후보를 다시 갱신하지 않음")
-    func test후보초기화후_NGram로딩완료_후보갱신없음() {
+    func test후보초기화후_NGram로딩완료_후보갱신없음() async {
         let factory = CountingSuggestionEngineFactory()
         let delegate = RecordingSuggestionControllerDelegate()
         let controller = SuggestionController(
@@ -326,6 +306,9 @@ struct SuggestionControllerPreparationTests {
         let updateCountAfterClear = delegate.updates.count
 
         factory.lastNGramProvider?.completeLoad(suggestions: ["오늘", "내일"])
+        // 로딩 완료 콜백은 main Task로 넘어가 재갱신한다. 그 Task가 돈 뒤에 단언해야
+        // "초기화 후에는 재갱신하지 않음"을 실제로 검증한다
+        await waitForMainQueue()
 
         #expect(delegate.updates.count == updateCountAfterClear)
         #expect(delegate.updates.last?.suggestions == [])

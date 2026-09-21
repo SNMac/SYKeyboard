@@ -24,9 +24,12 @@ struct HangeulKeyboardInputAdapterTests {
     }
 
     @Test("언어 전환 종료는 문서 edit 없이 조합 상태를 초기화")
-    func testFinishForLanguageChangeKeepsDocumentText() {
-        let adapter = HangeulKeyboardInputAdapter(selectedKeyboard: .dubeolsik)
+    func testFinishForLanguageChangeResetsCompositionState() {
+        // 두벌식은 조합 진행 플래그가 늘 false라 초기화를 구분하지 못한다. 플래그를 쓰는 천지인으로 검증한다
+        let adapter = HangeulKeyboardInputAdapter(selectedKeyboard: .cheonjiin)
         _ = adapter.input("ㄱ")
+        #expect(adapter.shouldDeferUndoRedoCommit)
+        #expect(adapter.isCompositionOngoing)
 
         adapter.finishForLanguageChange()
 

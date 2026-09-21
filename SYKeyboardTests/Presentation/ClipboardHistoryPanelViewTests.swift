@@ -264,11 +264,10 @@ struct ClipboardHistoryPanelViewTests {
     @Test("항목이 없으면 편집 모드로 들어가지 않음")
     func test항목없으면_편집모드진입없음() {
         let (panel, _) = makePanel(texts: [])
-        panel.configure(state: .empty)
 
         panel.beginItemEditing()
 
-        #expect(panel.tableView.isEditing == false)
+        #expect(panel.isItemEditing == false)
     }
 
     @Test("leading swipe는 고정 여부와 무관하게 고정 토글 액션 하나를 제공")
@@ -320,9 +319,12 @@ struct ClipboardHistoryPanelViewTests {
     func testResetPresentation은_편집모드해제() {
         let (panel, _) = makePanel(texts: ["a"])
         panel.beginItemEditing()
+        #expect(panel.isItemEditing)
 
         panel.resetPresentation()
 
+        // tableView.isEditing은 resetPresentation이 무조건 끄므로 편집 모드 해제를 구분하지 못한다
+        #expect(panel.isItemEditing == false)
         #expect(panel.tableView.isEditing == false)
     }
 
@@ -388,8 +390,9 @@ struct ClipboardHistoryPanelViewTests {
         #expect(panel.items.map(\.id) == ["a", "b"])
     }
 
-    @Test("메모리가 부족하면 상세 미리보기는 원본을 디코드하지 않고 목록 썸네일로 대체")
-    func test메모리부족시_상세미리보기는_썸네일로대체() throws {
+    // 썸네일로 대체됐는지는 공개된 관찰점이 없어 확인하지 못한다. 예산이 0이어도 상세가 열리는 것까지만 검증한다
+    @Test("디코드 예산이 0이어도 상세 미리보기는 열림")
+    func test디코드예산0에서도_상세미리보기열림() throws {
         let directoryURL = FileManager.default.temporaryDirectory
             .appendingPathComponent("SYKeyboardTests-\(UUID().uuidString)-panel-preview", isDirectory: true)
         defer { try? FileManager.default.removeItem(at: directoryURL) }

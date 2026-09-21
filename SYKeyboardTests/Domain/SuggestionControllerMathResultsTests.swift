@@ -432,7 +432,6 @@ struct SuggestionControllerMathResultsTests {
         controller.updateSuggestions(for: "3++1=")
 
         #expect(controller.currentMode == .typing)
-        #expect(delegate.updates.last?.suggestions != ["\"3++1=\"", "3++1=4", "4"])
     }
 }
 

@@ -65,28 +65,32 @@ struct CursorDragAccelerationPolicyTests {
         #expect(result?.steps == 3)
     }
 
-    @Test("650pt/s는 기본 interval에서 속도 보정을 만들지 않음")
-    func test650pts_속도보정없음() {
+    @Test("속도 보정은 900pt/s에서 +1, 1600pt/s에서 +2로 바뀜",
+          arguments: [(899, 1), (900, 2), (1599, 2), (1600, 3)])
+    func test속도보정_경계(velocity: Int, expectedSteps: Int) {
+        // 직전 속도를 10pt/s 아래로 두어 가속 보정이 섞이지 않게 한다
         let result = CursorDragAccelerationPolicy.movement(
             deltaX: 5,
-            velocity: 650,
-            previousVelocity: 640,
+            velocity: CGFloat(velocity),
+            previousVelocity: CGFloat(velocity - 10),
             cursorMoveInterval: 5
         )
 
-        #expect(result?.steps == 1)
+        #expect(result?.steps == expectedSteps)
     }
 
-    @Test("1200pt/s는 very fast가 아니라 fast 보정만 적용")
-    func test1200pts_fast보정만적용() {
+    @Test("직전 측정보다 900pt/s 이상 빨라지면 가속 보정 +1을 더함",
+          arguments: [(101, 2), (100, 3)])
+    func test가속보정_경계(previousVelocity: Int, expectedSteps: Int) {
+        // 1000pt/s는 fast 보정(+1)만 받는 속도라 차이는 가속 보정에서만 나온다
         let result = CursorDragAccelerationPolicy.movement(
             deltaX: 5,
-            velocity: 1200,
-            previousVelocity: 1100,
+            velocity: 1000,
+            previousVelocity: CGFloat(previousVelocity),
             cursorMoveInterval: 5
         )
 
-        #expect(result?.steps == 2)
+        #expect(result?.steps == expectedSteps)
     }
 
     @Test("첫 속도 측정은 가속 증가 보정을 적용하지 않음")
@@ -104,14 +108,15 @@ struct CursorDragAccelerationPolicyTests {
     @Test("가속 구간은 추가 보정을 적용하되 최대 step을 넘지 않음")
     func test가속구간_최대Step제한() {
         let result = CursorDragAccelerationPolicy.movement(
-            deltaX: 20,
+            deltaX: 10,
             velocity: 2000,
             previousVelocity: 1000,
             cursorMoveInterval: 5
         )
 
+        // 기본 2칸 + very fast 2 + 가속 1 = 5칸이 상한 4칸으로 잘린다
         #expect(result?.direction == .right)
-        #expect(result?.steps == CursorDragAccelerationPolicy.maximumStep)
+        #expect(result?.steps == 4)
     }
 
     @Test("가장 민감한 interval에서도 최대 step을 넘지 않음")
@@ -123,7 +128,7 @@ struct CursorDragAccelerationPolicyTests {
             cursorMoveInterval: 1
         )
 
-        #expect(result?.steps == CursorDragAccelerationPolicy.maximumStep)
+        #expect(result?.steps == 4)
     }
 
     @Test("방향 전환 중 interval 미만 이동은 step을 만들지 않음")

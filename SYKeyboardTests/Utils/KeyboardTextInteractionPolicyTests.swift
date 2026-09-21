@@ -662,7 +662,13 @@ struct KeyboardTextInteractionPolicyTests {
             request.completeAfterTextChange(
                 currentContext: deletedContext,
                 currentSelectedText: nil
-            ) != nil
+            ) == .mutations([
+                RepeatDeleteMutationDraft(
+                    deletedText: "\n",
+                    insertedText: "",
+                    reliability: .authoritative
+                )
+            ])
         )
         #expect(
             request.completeAfterTextChange(
@@ -991,32 +997,6 @@ struct DeleteMutationLifecycleTests {
             )
         )
         #expect(lifecycle.isPending == false)
-    }
-
-    @Test("일반 tap release의 미확인 요청은 다음 입력 전에 정리")
-    func testTouchDown_일반TapRelease_다음입력전Pending정리() {
-        var lifecycle = DeleteMutationLifecycle()
-        let context = KeyboardTextContextSnapshot(beforeInput: "", afterInput: "")
-        lifecycle.beginTouchDown(context: context, selectedText: nil)
-        _ = lifecycle.capture(
-            deletedText: "",
-            insertedText: "",
-            reliability: .proxyContext
-        )
-
-        _ = lifecycle.finishTouchDown(
-            currentContext: context,
-            currentSelectedText: nil
-        )
-        lifecycle.prepareForNonDeleteEdit()
-
-        #expect(lifecycle.isPending == false)
-        #expect(
-            lifecycle.completeAfterTextChange(
-                currentContext: context,
-                currentSelectedText: nil
-            ) == .noResolution
-        )
     }
 
     @Test("문서 시작점 tap release는 callback 없이 삭제 없음으로 확정")
@@ -1359,24 +1339,30 @@ struct DeleteMutationLifecycleTests {
     @Test("released touchDown 뒤 non-delete long press는 stale 삭제 요청을 먼저 정리")
     func testTouchDown_Release후NonDeleteLongPress_입력Capture분리() {
         var lifecycle = DeleteMutationLifecycle()
-        let context = KeyboardTextContextSnapshot(beforeInput: "", afterInput: "")
+        // 문맥이 아직 삭제를 반영하지 않은 상태로 손을 떼야 요청이 released로 남는다.
+        // 빈 문맥과 빈 draft는 finishTouchDown이 삭제 없음으로 바로 끝내 정리할 요청이 없다
+        let context = KeyboardTextContextSnapshot(beforeInput: "바", afterInput: "")
         #expect(
             lifecycle.beginTouchDown(context: context, selectedText: nil)
             == .started
         )
         _ = lifecycle.capture(
-            deletedText: "",
+            deletedText: "바",
             insertedText: "",
             reliability: .proxyContext
         )
-        _ = lifecycle.finishTouchDown(
-            currentContext: context,
-            currentSelectedText: nil
+        #expect(
+            lifecycle.finishTouchDown(
+                currentContext: context,
+                currentSelectedText: nil
+            ) == nil
         )
+        #expect(lifecycle.isPending)
 
         lifecycle.prepareForNonDeleteEdit()
+        #expect(lifecycle.isPending == false)
         let insertionOutcome = lifecycle.completeAfterTextChange(
-            currentContext: KeyboardTextContextSnapshot(beforeInput: "a", afterInput: ""),
+            currentContext: KeyboardTextContextSnapshot(beforeInput: "바a", afterInput: ""),
             currentSelectedText: nil
         )
         let insertionCapture = lifecycle.capture(

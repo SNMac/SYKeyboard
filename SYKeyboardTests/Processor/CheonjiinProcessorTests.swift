@@ -115,17 +115,23 @@ struct CheonjiinProcessorTests: HangeulProcessorTestable {
         #expect(c + p == "가니")
         
         // 3. 삭제 (ㅣ 삭제) -> '가ㄴ'이어야 함 ('간'으로 합쳐지면 안 됨)
-        // 프로세서 단위 테스트에서는 protectedCommittedCount가 없으므로
-        // isProtected: false로 전달하면 종성 복원이 동작할 수 있음.
-        // Space 확정 보호 상태 전이는 HangeulCompositionState 기반 시나리오에서 검증.
-        // 여기서는 isProtected를 전달한 프로세서의 composing 삭제 결과만 확인.
-        let deleteResult = processor.delete(
+        // 종성 복원은 deleteWithRestore종성에 있으므로 그 진입점으로 보호 여부를 대조한다.
+        // Space 확정 보호 상태 전이 자체는 HangeulCompositionState 기반 시나리오에서 검증한다
+        let protectedResult = processor.deleteWithRestore종성(
             composing: p,
             committedTail: String(c.suffix(2)),
             isProtected: true  // Space 확정 보호
         )
-        p = deleteResult.composing
-        #expect(c + p == "가ㄴ")
+        #expect(protectedResult.composing == "ㄴ")
+        #expect(protectedResult.consumedCommittedCount == 0)
+
+        let unprotectedResult = processor.deleteWithRestore종성(
+            composing: p,
+            committedTail: String(c.suffix(2)),
+            isProtected: false
+        )
+        #expect(unprotectedResult.composing == "간")
+        #expect(unprotectedResult.consumedCommittedCount == 1)
     }
     
     @Test("시나리오: '달거' -> 삭제 -> '닭'")

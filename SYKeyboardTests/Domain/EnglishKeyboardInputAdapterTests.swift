@@ -31,9 +31,18 @@ struct EnglishKeyboardInputAdapterTests {
     }
 
     @Test("언어 전환 종료는 Shift와 caps를 초기화")
-    func testFinishForLanguageChangeResetsShiftAndCaps() {
+    func testFinishForLanguageChangeResetsShiftAndCaps() throws {
         let adapter = EnglishKeyboardInputAdapter()
-        adapter.primaryKeyboardView.updateShiftButton(to: true)
+        let shiftButton = try #require(adapter.primaryKeyboardView as? EnglishKeyboardLayoutProvider).shiftButton
+
+        // Shift를 두 번 눌러 caps lock을 실제로 건 뒤에 초기화를 확인한다
+        shiftButton.sendActions(for: .touchDown)
+        shiftButton.sendActions(for: .touchUpInside)
+        shiftButton.sendActions(for: .touchDown)
+        shiftButton.sendActions(for: .touchDownRepeat)
+        shiftButton.sendActions(for: .touchUpInside)
+        #expect(adapter.isCapsLocked)
+        #expect(adapter.isShifted)
 
         adapter.finishForLanguageChange()
 

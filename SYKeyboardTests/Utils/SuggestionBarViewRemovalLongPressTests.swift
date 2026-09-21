@@ -246,8 +246,7 @@ struct SuggestionBarViewLayoutTests {
     }
 
     @Test("첫 updateSuggestions 전에 레이아웃해도 divider 풀을 넘겨 읽지 않음")
-    @MainActor
-    func layoutBeforeFirstUpdateDoesNotOverrunDividerPool() {
+    func test첫후보갱신전_레이아웃은_divider풀을넘겨읽지않음() throws {
         // 후보가 0개여도 후보 영역은 3칸으로 보여야 하므로 divider 격자는 2개를 요구한다.
         // 반면 풀은 updateSuggestions가 처음 불릴 때까지 비어 있다. layoutSuggestionContent()가
         // 격자 개수만 믿고 pooledDividers를 훑으면 여기서 인덱스 범위를 넘는다
@@ -260,12 +259,14 @@ struct SuggestionBarViewLayoutTests {
         // layoutSubviews()를 부르는 경로를 그대로 재현한다
         bar.layoutIfNeeded()
 
-        #expect(suggestionDividers(in: bar).isEmpty)
+        // 뷰포트 폭이 0이면 layoutSuggestionContent()가 divider 배치 전에 빠져나가
+        // 범위 초과 경로를 밟지 않은 채 통과한다. 실제로 배치까지 갔는지 먼저 확인한다
+        let scrollView = try #require(suggestionScrollView(in: bar))
+        #expect(scrollView.bounds.width > 0)
 
         // 후보가 0개면 content가 뷰포트를 넘지 않아 스크롤도 생기지 않는다.
         // 뷰포트 폭은 bar 폭에서 divider 자리를 뺀 값이라 bar 폭과 같지 않다
-        let scrollView = suggestionScrollView(in: bar)
-        #expect(scrollView?.contentSize.width == scrollView?.bounds.width)
+        #expect(scrollView.contentSize.width == scrollView.bounds.width)
     }
 }
 
