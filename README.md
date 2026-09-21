@@ -22,7 +22,7 @@
 
 ## 👥 대상 사용자
 - 나랏글/천지인 키보드를 사용 중이거나 입문하는 사람
--  키보드 앱을 찾는 사람
+- 키보드 앱을 찾는 사람
 - 키보드 자체 기능과 더불어 기본적인 편의 기능이 있는 키보드를 사용해 보고 싶은 사람
   - 한 손 키보드, 키보드 높이 조절, 자동완성 문구 추천 등
 - 한글 키보드를 사용해 보고 싶은 외국인
@@ -80,6 +80,8 @@ Keyboard Extension 부분은 SwiftUI에서 UIKit으로 리팩토링하는 작업
 SwiftUI에서는 `Button`의 `action`이 `touchUpInside` 기준으로 고정되어 있어서, Gesture를 사용하여 우회적으로 다른 이벤트들을 구현해야 했다.  
 하지만 UIKit에서는 `addTarget` 혹은 `addAction`의 `UIControlEvents`를 통해 `touchDown`, `touchUpInside`, `touchDownRepeat`로 세밀하게 제어할 수 있었다.  
 또한 버튼이 눌렸을 때(`highlighted`, `selected`)에 대한 상태 변경도 더 직관적이었다.  
+
+> 이 트러블 슈팅 절의 코드는 각 문제를 해결하던 당시의 코드이다. 이후 기능 추가로 현재 구현과는 다르며, 현재 구조는 [docs/architecture](docs/architecture/README.md)를 참조한다.
 
 <details>
     <summary>기존 SwiftUI</summary>
@@ -674,6 +676,7 @@ direction LR
     HangeulKeyboardLayoutProvider <|.. NaratgeulKeyboardView: Implementation
     FourByFourPlusKeyboardView <|-- CheonjiinKeyboardView: Inheritance
     HangeulKeyboardLayoutProvider <|.. CheonjiinKeyboardView: Implementation
+    NormalKeyboardLayoutProvider <|.. StandardKeyboardView: Implementation
     StandardKeyboardView <|-- DubeolsikKeyboardView: Inheritance
     HangeulKeyboardLayoutProvider <|.. DubeolsikKeyboardView: Implementation
 
@@ -873,7 +876,7 @@ direction LR
 
 
 7. **자동완성 문구**  
-입력한 단어에 맞는 자동완성 문구를 추천합니다.
+입력한 단어에 맞는 자동완성 문구를 추천합니다. 후보가 많으면 좌우로 스크롤해 최대 10개까지 볼 수 있고, 학습된 후보는 길게 눌러 자동완성에서 삭제할 수 있습니다.
 
 |    한국어    |   영어   |
 | :-------------: | :----------: |
@@ -883,7 +886,7 @@ direction LR
 
 
 8. **다양하고 디테일한 키보드 설정**  
-길게 누르기 동작, 커서 이동, 키보드 높이 및 한 손 키보드 너비 조절, 키보드 툴바(Undo/Redo · 클립보드 기록 · 이미지도 기록) 등 사용자의 편의에 맞게 키보드 설정이 가능합니다.
+길게 누르기 동작, 커서 이동, 키보드 높이 및 한 손 키보드 너비 조절, 숫자 행 표시(두벌식·쿼티), 키보드 툴바(Undo/Redo · 클립보드 기록 · 이미지도 기록) 등 사용자의 편의에 맞게 키보드 설정이 가능합니다.
 
 |    한국어    |   영어   |
 | :-------------: | :----------: |
