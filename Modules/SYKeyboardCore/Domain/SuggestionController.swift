@@ -52,17 +52,18 @@ protocol SuggestionControllerDelegate: AnyObject {
     /// - Parameters:
     ///   - controller: 이벤트를 발생시킨 `SuggestionController`
     ///   - currentWord: 현재 입력 중인 단어 (없으면 nil)
-    ///   - suggestions: 업데이트된 후보 단어 배열 (최대 2개, 텍스트 대치 우선)
+    ///   - suggestions: 업데이트된 후보 단어 배열 (입력 중 모드는 최대 `maxSuggestions - 1`개,
+    ///     n-gram 모드는 최대 `maxSuggestions`개. 텍스트 대치 우선)
     func suggestionController(_ controller: SuggestionController, didUpdateCurrentWord currentWord: String?, suggestions: [String])
 }
 
 /// 현재 SuggestionBar의 표시 모드
 enum SuggestionMode {
-    /// 입력 중: button1에 "현재단어", button2~3에 자동완성 후보
+    /// 입력 중: 0번 칸에 "현재단어", 그 뒤 칸에 자동완성 후보
     case typing
-    /// n-gram: button1~3에 다음 단어 예측
+    /// n-gram: 0번 칸부터 다음 단어 예측
     case nGram
-    /// 수식 결과: button1에 원문, button2에 원문+결과, button3에 결과 대치 후보
+    /// 수식 결과: 0번 칸에 원문, 1번에 원문+결과, 2번에 결과 대치 후보
     case mathExpression
 }
 
@@ -266,7 +267,11 @@ final class SuggestionController: SuggestionService {
     private var isLoadingLexicon = false
 
     /// 후보 최대 표시 개수
-    private let maxSuggestions = 3
+    ///
+    /// 후보 바가 가로로 스크롤되므로 화면에 보이는 3칸보다 많이 만든다.
+    /// 입력 중 모드는 0번 칸이 `"현재단어"`라 엔진 몫이 `maxSuggestions - 1`이다.
+    /// 이 값을 3으로 되돌리면 후보가 뷰포트를 넘지 않아 스크롤이 사라진다
+    private let maxSuggestions = 10
     /// 복구 가능한 텍스트 대치 이력 최대 개수
     private let maxReplacementHistoryCount = 20
 
@@ -964,7 +969,7 @@ private extension SuggestionController {
     /// 공백으로 끝나면 trigram → bigram → unigram 순으로 조회합니다.
     ///
     /// - Parameter inputBuffer: 현재 키보드 세션에서 직접 입력한 텍스트 버퍼
-    /// - Returns: n-gram 예측 후보 배열 (최대 3개)
+    /// - Returns: n-gram 예측 후보 배열 (최대 `maxSuggestions`개)
     func nGramSuggestions(for inputBuffer: String) -> [SuggestionItem] {
         guard let nGramEngine else { return [] }
         let results = nGramEngine.suggestions(for: inputBuffer)
@@ -982,7 +987,7 @@ private extension SuggestionController {
     ///   - lexiconResults: `UILexicon` 후보
     ///   - checkerResults: `UITextChecker` 후보 (아직 도착하지 않았으면 빈 배열)
     ///   - currentWord: 현재 입력 중인 단어
-    /// - Returns: 중복 제거된 후보 배열 (최대 2개)
+    /// - Returns: 중복 제거된 후보 배열 (최대 `maxSuggestions - 1`개. 0번 칸은 `"현재단어"` 몫이다)
     func mergeSuggestions(
         lexiconResults: [String],
         checkerResults: [String],

@@ -84,10 +84,36 @@ extension 프로세스 로컬 상태는 `KeyboardExtensionLocalStateStore`에 �
   `reset`, 브랜치 전환, push, PR 생성 권한을 포함하지 않는다. 사용자가 명시한
   통합 순서와 브랜치/worktree 제약을 그대로 지키고, 다음 단계가 명시적으로
   요청되기 전에는 읽기 전용 확인에 머문다.
-- 자동완성 후보의 가로 스크롤과 scroll edge effect는 롤백된 상태가 현재
-  의도다. `SuggestionButtonView`의 기존 두 줄·글자 축소·중간 생략 동작을
-  유지하고, 사용자가 다시 요청하지 않는 한 스크롤 컨테이너나 제스처 중재를
-  재도입하지 않는다.
+- 자동완성 후보 목록은 #141부터 `UIScrollView` 가로 스크롤이다. 터치 중재는
+  `UIScrollView` 기본 동작(`delaysContentTouches = false`, `canCancelContentTouches`)에
+  맡기고, `setScrollOffsetX` 같은 offset 직접 조작이나 거리 임계값 기반 제스처 중재를
+  되살리지 않는다.
+  **선택 방식은 후보가 넘치는지로 갈린다.** 넘쳐서 스크롤할 수 있으면 끄는 동작이
+  스크롤이므로 시작한 후보에서 떼야만 선택하는 탭 전용이다. 넘치지 않으면(수식 3칸 포함)
+  pan이 시작되지 않아 끌어도 스크롤되지 않으므로, 끌어서 고르던 기존 동작을 그대로 둔다.
+  판단은 `SuggestionBarView.allowsDragSelection`(= `!isSuggestionAreaScrollable`) 하나뿐이고
+  후보 개수로 분기하지 않는다.
+  **후보 영역은 후보가 3개보다 적어도 3칸으로 보인다.** divider는 버튼 개수가 아니라 열
+  격자를 따라 그린다(`dividerCount(forSuggestionCount:)`). 빈 칸에 divider가 없으면 그
+  자리를 눌렀을 때 앞 후보가 적용될 것처럼 보인다. 맨 앞·맨 뒤에는 그리지 않는다.
+  **경계 divider는 인접한 후보가 하이라이트되면 지운다.** 어느 쪽 끝 후보를 누르고 있는지
+  구분되게 하려는 것이다. 다만 후보가 3칸을 채우지 못하면 마지막 후보는 오른쪽 끝 divider와
+  인접하지 않으므로 경계 판정에 쓰지 않는다(`buttons.count >= visibleColumnCount`).
+  스크롤로 뷰포트 밖에 나간 버튼도 `isVisibleAndHighlighted(_:)`가 걸러낸다.
+  **`applyHighlights()`를 부르면 그 뒤에 `updateDividers()`도 부른다.** 버튼의 `isHighlighted`가
+  확정된 뒤여야 divider 색이 옳게 나온다. `updateSuggestions(currentWord:suggestions:)`를 포함해
+  네 곳 모두 이 짝을 지킨다. 지금은 호출부가 `updateSuggestions` 직후 preview 갱신을 부르며
+  색을 다시 계산하므로 깨진 화면이 보이지는 않지만, 그 순서에 기대지 않는다.
+  **터치가 진행 중인 동안에는 preview 하이라이트를 숨긴다.** 탭 전용에서 시작한 후보를
+  벗어나면 눌린 하이라이트가 사라지는데, 그때 preview가 드러나면 끌고 있는 동안 엉뚱한
+  칸이 선택된 것처럼 보인다.
+  **가장자리 표시는 두지 않는다.** iOS 26 기본 `UIScrollEdgeEffect`는 네 방향 모두
+  `isHidden`으로 끈다. 스타일(`.automatic`/`.hard`/`.soft`)로는 달라지지 않고, 켜 두면
+  좌우 효과가 후보를 덮어 글자가 뭉개진다. `CAGradientLayer` mask 페이드도 실기기 확인
+  후 제거했다. 정위치에서는 페이드 영역에 글자가 없어 아무것도 알리지 못하고, 스크롤
+  중에만 보이는 표시는 이미 스크롤 중인 사용자에게 정보가 되지 않기 때문이다.
+  `SuggestionButtonView` **안의** 긴 텍스트는 여전히 스크롤하지 않는다. 두 줄·글자
+  축소·중간 생략 동작을 유지한다.
 
 ## 작업 인프라
 
@@ -269,6 +295,41 @@ xcodebuild test \
 나오는 노이즈다. 이 줄만 보고 샌드박스 제약으로 단정하지 말고 위 `scheduling.log`와 실제 시뮬레이터
 화면을 확인한다.
 
+#### 호스트 앱이 뜨지도 않고 테스트가 매달리는 경우
+
+위 붙여넣기 알림과 증상이 비슷하지만 원인이 다르다. **알림 없이** CoreSimulator/`testmanagerd`가
+매달려 테스트 호스트 앱이 **실행조차 되지 않는다.** 평소 수십 초에 끝나는 명령이 몇 분씩 진행되지
+않으면 이 경우를 의심한다.
+
+구분하는 방법은 아래 순서다. 화면부터 본다.
+
+```sh
+xcrun simctl list devices booted
+xcrun simctl io <UDID> screenshot /tmp/simshot.png   # 캡처해서 직접 확인
+ps -eo etime,command | grep -E "xcodebuild test|testmanagerd" | grep -v grep
+xcrun simctl spawn <UDID> launchctl list | grep -i sykeyboard
+```
+
+- **붙여넣기 알림 케이스**: 캡처에 권한 알림이 떠 있고 호스트 앱이 그 뒤에서 멈춰 있다
+- **이 케이스**: 캡처가 **홈 화면**이고 `launchctl list`에 `SYKeyboard`가 **없다**.
+  `testmanagerd`만 오래 살아 있고, 만들어진 `.xcresult`는 `Data` 디렉터리만 있고 결과가 비어 있다
+
+**코드 실패로 기록하지 않는다.** 시뮬레이터를 재부팅하면 대개 풀린다. `erase`는 설치된 키보드
+확장과 전체 접근 허용 설정을 날리므로 쓰지 않는다.
+
+```sh
+pkill -f "xcodebuild test -project SYKeyboard.xcodeproj"
+xcrun simctl shutdown <UDID>
+xcrun simctl boot <UDID>
+```
+
+재부팅 뒤 같은 명령을 다시 돌려 정상 시간 안에 끝나는지 먼저 확인하고, 그 결과를 검증 근거로
+쓴다. 재부팅 후에도 매달리면 사용자에게 알리고 프롬프트에서 `! <명령>`으로 직접 실행하도록
+안내한다.
+
+서브에이전트에게 build/test를 맡길 때는 이 증상을 알려 두고, 몇 분씩 매달리면 기다리지 말고
+보고하도록 지시한다. 서브에이전트는 시뮬레이터 화면을 볼 수 없어 스스로 구분하지 못한다.
+
 XcodeBuildMCP를 사용하는 경우 첫 build/test 전에 `session_show_defaults`로 project, scheme, simulator, `extraArgs`를 확인한다. 테스트에서 사용한 code coverage나 `-only-testing` 옵션이 extension 빌드에 남을 수 있으므로 scheme을 전환할 때 `extraArgs`를 명시적으로 비우거나 다시 설정한다. 세션 설정 때문에 컴파일 전에 중단된 실행은 코드 실패로 기록하지 않고, 설정을 바로잡은 같은 명령의 결과를 검증 근거로 사용한다.
 
 ## 테스트 지침
@@ -323,7 +384,8 @@ XcodeBuildMCP를 사용하는 경우 첫 build/test 전에 `session_show_default
   제스처 취소 후 입력 복구
 - 제거하거나 실제 화면 검증으로 이동: 정확한 tint, blur/glass 구체 타입,
   SF Symbol 이름, private subview 구조
-- 명시적 UI 회귀 계약: 자동완성 후보의 스크롤 없음·두 줄·자동 축소·중간 생략
+- 명시적 UI 회귀 계약: 자동완성 후보 버튼 안 텍스트의 두 줄·자동 축소·중간 생략,
+  후보 목록의 가로 스크롤 발생 조건(`contentSize.width > bounds.width`)
 - 명명 예시: `HangeulCompositionState` harness의 committed/composing 검증은
   조합/상태 테스트이며 ViewController·자동완성 통합 테스트가 아님
 - 자동완성 통합 예시: controller 입력에서 `inputBuffer`를 거쳐
