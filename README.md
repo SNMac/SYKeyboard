@@ -56,6 +56,8 @@
 
 
 ## 👨‍💻 트러블 슈팅
+> 이 트러블 슈팅 절의 코드는 각 문제를 해결하던 당시의 코드이다. 이후 기능 추가로 현재 구현과는 다르며, 현재 구조는 [docs/architecture](docs/architecture/README.md)를 참조한다.
+
 ### 복잡했던 버튼 코드
 #### SwiftUI로 최초 개발
 첫 iOS 프로젝트인 SY키보드를 SwiftUI로 개발하여 1월에 출시하였다.  
@@ -80,8 +82,6 @@ Keyboard Extension 부분은 SwiftUI에서 UIKit으로 리팩토링하는 작업
 SwiftUI에서는 `Button`의 `action`이 `touchUpInside` 기준으로 고정되어 있어서, Gesture를 사용하여 우회적으로 다른 이벤트들을 구현해야 했다.  
 하지만 UIKit에서는 `addTarget` 혹은 `addAction`의 `UIControlEvents`를 통해 `touchDown`, `touchUpInside`, `touchDownRepeat`로 세밀하게 제어할 수 있었다.  
 또한 버튼이 눌렸을 때(`highlighted`, `selected`)에 대한 상태 변경도 더 직관적이었다.  
-
-> 이 트러블 슈팅 절의 코드는 각 문제를 해결하던 당시의 코드이다. 이후 기능 추가로 현재 구현과는 다르며, 현재 구조는 [docs/architecture](docs/architecture/README.md)를 참조한다.
 
 <details>
     <summary>기존 SwiftUI</summary>
