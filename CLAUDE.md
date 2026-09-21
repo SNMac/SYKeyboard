@@ -91,8 +91,8 @@ extension 프로세스 로컬 상태는 `KeyboardExtensionLocalStateStore`에 �
   **선택 방식은 후보가 넘치는지로 갈린다.** 넘쳐서 스크롤할 수 있으면 끄는 동작이
   스크롤이므로 시작한 후보에서 떼야만 선택하는 탭 전용이다. 넘치지 않으면(수식 3칸 포함)
   pan이 시작되지 않아 끌어도 스크롤되지 않으므로, 끌어서 고르던 기존 동작을 그대로 둔다.
-  판단은 `SuggestionBarView.allowsDragSelection`(= `!isSuggestionAreaScrollable`) 하나뿐이고
-  후보 개수로 분기하지 않는다.
+  판단은 `SuggestionBarView.allowsDragSelectionForCurrentTouch`(터치가 시작될 때의
+  `!isSuggestionAreaScrollable`) 하나뿐이고 후보 개수로 분기하지 않는다.
   **후보 영역은 후보가 3개보다 적어도 3칸으로 보인다.** divider는 버튼 개수가 아니라 열
   격자를 따라 그린다(`dividerCount(forSuggestionCount:)`). 빈 칸에 divider가 없으면 그
   자리를 눌렀을 때 앞 후보가 적용될 것처럼 보인다. 맨 앞·맨 뒤에는 그리지 않는다.
