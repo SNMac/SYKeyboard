@@ -11,7 +11,7 @@ import UIKit
 @testable import SYKeyboardCore
 
 @MainActor
-@Suite("기호 자판 배열과 정렬")
+@Suite("기호 자판 배열·정렬과 입력 모드별 키 표시")
 struct SymbolKeyboardLayoutTests {
 
     /// 세로 기본 높이(240)에서 프레임 여백 4를 뺀 키 영역
@@ -204,5 +204,111 @@ struct SymbolKeyboardLayoutTests {
             .compactMap { $0 as? PrimaryKeyButton }
             .map(\.type.primaryKeyList)
         #expect(interactableLeadingKeys == expectedFirstRowKeys)
+    }
+
+    // MARK: - 입력 모드별 키 표시
+
+    @Test("UIKeyboardType은 대응하는 기호 키보드 모드로 매핑")
+    func testUIKeyboardType별기호키보드모드() {
+        #expect(SymbolKeyboardMode(keyboardType: nil) == .default)
+        #expect(SymbolKeyboardMode(keyboardType: .default) == .default)
+        #expect(SymbolKeyboardMode(keyboardType: .numbersAndPunctuation) == .default)
+        #expect(SymbolKeyboardMode(keyboardType: .URL) == .URL)
+        #expect(SymbolKeyboardMode(keyboardType: .emailAddress) == .emailAddress)
+        #expect(SymbolKeyboardMode(keyboardType: .webSearch) == .webSearch)
+        #expect(SymbolKeyboardMode(keyboardType: .twitter) == .default)
+    }
+
+    @Test("기호 키보드 작은따옴표 키는 닫는 따옴표를 표시")
+    func test기호키보드작은따옴표표시() {
+        let symbolKeyboardView = SymbolKeyboardView()
+        let unshiftedApostrophe = symbolKeyboardView.lastPrimaryKeyButton?.type.primaryKeyList.first
+
+        symbolKeyboardView.isShifted = true
+        let shiftedApostrophe = symbolKeyboardView.lastPrimaryKeyButton?.type.primaryKeyList.first
+
+        #expect(unshiftedApostrophe == "’")
+        #expect(shiftedApostrophe == "’")
+    }
+
+    @Test("기본 기호 모드는 기본 배열과 스페이스를 표시")
+    func test기본기호키보드레이아웃() {
+        let view = SymbolKeyboardView()
+
+        #expect(
+            Array(view.rowPrimaryKeyValues[10..<20]) ==
+            ["-", "/", ":", ";", "(", ")", "₩", "&", "@", "”"]
+        )
+        #expect(view.spaceButton.isHidden == false)
+        #expect(view.atButton.isHidden)
+        #expect(view.periodButton.isHidden)
+        #expect(view.slashButton.isHidden)
+        #expect(view.dotComButton.isHidden)
+    }
+
+    @Test("URL 기호 모드는 전용 키 배열과 하단 키를 표시")
+    func testURL기호키보드레이아웃() {
+        let view = SymbolKeyboardView()
+        view.isShifted = true
+        view.currentSymbolKeyboardMode = .URL
+
+        #expect(view.isShifted == false)
+        #expect(Array(view.rowPrimaryKeyValues.suffix(5)) == [".", ",", "?", "!", "’"])
+        #expect(view.spaceButton.isHidden)
+        #expect(view.atButton.isHidden)
+        #expect(view.periodButton.isHidden == false)
+        #expect(view.slashButton.isHidden == false)
+        #expect(view.dotComButton.isHidden == false)
+
+        view.isShifted = true
+        #expect(Array(view.rowPrimaryKeyValues.suffix(5)) == [".", ",", "?", "!", "’"])
+    }
+
+    @Test("이메일 기호 모드는 전용 키 배열과 스페이스 골뱅이 마침표를 표시")
+    func test이메일기호키보드레이아웃() {
+        let view = SymbolKeyboardView()
+        view.currentSymbolKeyboardMode = .emailAddress
+
+        #expect(Array(view.rowPrimaryKeyValues.suffix(5)) == [".", ",", "?", "!", "’"])
+        #expect(view.spaceButton.isHidden == false)
+        #expect(view.atButton.isHidden == false)
+        #expect(view.periodButton.isHidden == false)
+        #expect(view.slashButton.isHidden)
+        #expect(view.dotComButton.isHidden)
+
+        view.isShifted = true
+        #expect(
+            Array(view.rowPrimaryKeyValues.prefix(10)) ==
+            ["[", "]", "{", "}", "#", "%", "^", "*", "+", "="]
+        )
+    }
+
+    @Test("웹 검색 기호 모드는 기본 배열과 스페이스 마침표를 표시")
+    func test웹검색기호키보드레이아웃() {
+        let view = SymbolKeyboardView()
+        view.currentSymbolKeyboardMode = .webSearch
+
+        #expect(
+            Array(view.rowPrimaryKeyValues[10..<20]) ==
+            ["-", "/", ":", ";", "(", ")", "₩", "&", "@", "”"]
+        )
+        #expect(view.spaceButton.isHidden == false)
+        #expect(view.atButton.isHidden)
+        #expect(view.periodButton.isHidden == false)
+        #expect(view.slashButton.isHidden)
+        #expect(view.dotComButton.isHidden)
+    }
+}
+
+private extension SymbolKeyboardView {
+    var rowPrimaryKeyValues: [String] {
+        primaryButtonList
+            .compactMap { $0 as? PrimaryKeyButton }
+            .prefix(25)
+            .map { $0.type.primaryKeyList.first ?? "" }
+    }
+
+    var lastPrimaryKeyButton: PrimaryKeyButton? {
+        primaryButtonList.compactMap { $0 as? PrimaryKeyButton }.prefix(25).last
     }
 }
