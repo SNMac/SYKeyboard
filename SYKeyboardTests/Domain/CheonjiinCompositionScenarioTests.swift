@@ -1,5 +1,5 @@
 //
-//  CheonjiinControllerTests.swift
+//  CheonjiinCompositionScenarioTests.swift
 //  SYKeyboardTests
 //
 //  Created by 서동환 on 3/8/26.
@@ -10,7 +10,7 @@ import Testing
 @testable import HangeulKeyboardCore
 
 @Suite("천지인 HangeulCompositionState 기반 입력 상태 시나리오")
-struct CheonjiinControllerTests {
+struct CheonjiinCompositionScenarioTests {
     
     // MARK: - Properties
     
@@ -96,8 +96,8 @@ struct CheonjiinControllerTests {
         sim.input("ㄴ"); sim.input(인) // 니
         
         // ㅣ 반복 입력으로 니ㅣㅣ 만들기
-        sim.repeatInsert("ㅣ") // 니 commit + ㅣ
-        sim.repeatInsert("ㅣ") // ㅣ commit + ㅣ
+        sim.repeatInsert() // 니 commit + ㅣ
+        sim.repeatInsert() // ㅣ commit + ㅣ
         #expect(sim.text == "가니ㅣㅣ")
         
         // 반복 삭제로 가니까지
@@ -120,8 +120,8 @@ struct CheonjiinControllerTests {
         sim.space()
         sim.input("ㄴ"); sim.input(인) // 니
         
-        sim.repeatInsert("ㅣ")
-        sim.repeatInsert("ㅣ")
+        sim.repeatInsert()
+        sim.repeatInsert()
         
         // 반복 삭제로 가까지
         sim.repeatDelete() // 가니ㅣ
@@ -144,16 +144,16 @@ struct CheonjiinControllerTests {
         // ㅣ 입력 후 ㆍ 길게 눌러 ㅏㅏㅏ 만들기
         sim.input(인) // ㅣ
         sim.repeatStart(천) // ㅣ + ㆍ = ㅏ (repeat 시작 시 조합)
-        sim.repeatInsert("ㅏ") // ㅏ commit + ㅏ
-        sim.repeatInsert("ㅏ") // ㅏ commit + ㅏ
+        sim.repeatInsert() // ㅏ commit + ㅏ
+        sim.repeatInsert() // ㅏ commit + ㅏ
         #expect(sim.text == "ㅏㅏㅏ")
         
         // 손 뗀 후 다시 ㆍ 길게 → 마지막 ㅏ가 ㅑ로 교체
         sim.repeatStart(천) // ㅏ + ㆍ = ㅑ
         #expect(sim.text == "ㅏㅏㅑ")
         
-        sim.repeatInsert("ㅑ")
-        sim.repeatInsert("ㅑ")
+        sim.repeatInsert()
+        sim.repeatInsert()
         #expect(sim.text == "ㅏㅏㅑㅑㅑ")
     }
     
@@ -167,8 +167,8 @@ struct CheonjiinControllerTests {
         
         // ㄱ 처음부터 길게 → ㄱㄱㄱ
         sim.input("ㄱ") // 첫 입력
-        sim.repeatInsert("ㄱ")
-        sim.repeatInsert("ㄱ")
+        sim.repeatInsert()
+        sim.repeatInsert()
         #expect(sim.text == "ㄱㄱㄱ")
         
         // ㅣ 입력 → 마지막 ㄱ과 조합

@@ -1,5 +1,5 @@
 //
-//  NaratgeulControllerTests.swift
+//  NaratgeulCompositionScenarioTests.swift
 //  SYKeyboardTests
 //
 //  Created by 서동환 on 3/8/26.
@@ -10,7 +10,7 @@ import Testing
 @testable import HangeulKeyboardCore
 
 @Suite("나랏글 HangeulCompositionState 기반 입력 상태 시나리오")
-struct NaratgeulControllerTests {
+struct NaratgeulCompositionScenarioTests {
     
     // MARK: - Properties
     
@@ -25,8 +25,8 @@ struct NaratgeulControllerTests {
         )
         
         sim.input("ㄱ")
-        sim.repeatInsert("ㄱ")
-        sim.repeatInsert("ㄱ")
+        sim.repeatInsert()
+        sim.repeatInsert()
         #expect(sim.text == "ㄱㄱㄱ")
         
         sim.input("ㅏ")
@@ -40,8 +40,8 @@ struct NaratgeulControllerTests {
         )
         
         sim.input("ㅏ")
-        sim.repeatInsert("ㅏ")
-        sim.repeatInsert("ㅏ")
+        sim.repeatInsert()
+        sim.repeatInsert()
         #expect(sim.text == "ㅏㅏㅏ")
         
         sim.input("ㄴ")
@@ -50,22 +50,21 @@ struct NaratgeulControllerTests {
     
     // MARK: - 2. 반복 삭제 후 끌어오기
     
-    @Test("반복 삭제 후 조합: 'ㄱㄱㄱㅏㅏ' -> 반복 삭제 -> 'ㄱ' -> 'ㅏ' -> '가'")
+    @Test("반복 삭제 후 조합: 'ㄱㄱ가ㅏ' -> 반복 삭제 -> 'ㄱ' -> 'ㅏ' -> '가'")
     func test반복삭제후_끌어오기_조합() {
         let sim = HangeulCompositionTestHarness(
             processor: NaratgeulProcessor(automata: automata)
         )
         
         sim.input("ㄱ")
-        sim.repeatInsert("ㄱ")
-        sim.repeatInsert("ㄱ")
-        sim.repeatInsert("ㅏ")
-        sim.repeatInsert("ㅏ")
-        #expect(sim.text == "ㄱㄱㄱㅏㅏ")
+        sim.repeatInsert()
+        sim.repeatInsert()
+        sim.input("ㅏ")   // ㄱㄱ가
+        sim.repeatInsert() // ㄱㄱ가ㅏ
+        #expect(sim.text == "ㄱㄱ가ㅏ")
         
         // 반복 삭제로 'ㄱ'까지
-        sim.repeatDelete() // ㄱㄱㄱㅏ
-        sim.repeatDelete() // ㄱㄱㄱ
+        sim.repeatDelete() // ㄱㄱ가
         sim.repeatDelete() // ㄱㄱ
         sim.repeatDelete() // ㄱ
         sim.finishRepeatDelete() // 끌어오기 → composing = "ㄱ"
@@ -83,8 +82,8 @@ struct NaratgeulControllerTests {
         )
         
         sim.input("ㄱ")
-        sim.repeatInsert("ㄱ")
-        sim.repeatInsert("ㄱ")
+        sim.repeatInsert()
+        sim.repeatInsert()
         #expect(sim.text == "ㄱㄱㄱ")
         
         sim.input("획")

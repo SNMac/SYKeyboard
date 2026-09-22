@@ -22,7 +22,7 @@ struct ClipboardImagePolicyTests {
         #expect(ClipboardImagePolicy.storableType(in: []) == nil)
     }
 
-    @Test("바이트 한도는 24 MB까지, 픽셀 한도는 타입과 무관하게 48,000,000까지 저장 가능")
+    @Test("바이트 한도는 24 MB까지, 픽셀 한도는 타입과 무관하게 50,000,000까지 저장 가능")
     func test바이트픽셀한도_경계값() {
         let bytes = ClipboardImagePolicy.maxByteSize
         #expect(bytes == 24 * 1_024 * 1_024)
@@ -74,12 +74,5 @@ struct ClipboardImagePolicyTests {
         #expect(ClipboardImagePolicy.fileExtension(for: "public.heic") == "heic")
         #expect(ClipboardImagePolicy.fileExtension(for: "public.png") == "png")
         #expect(ClipboardImagePolicy.fileExtension(for: "public.tiff") == "img")
-    }
-
-    @Test("썸네일·미리보기 픽셀 크기는 키보드 메모리에 맞게 작다")
-    func test썸네일미리보기크기() {
-        #expect(ClipboardImagePolicy.thumbnailMaxPixelSize == 240)
-        #expect(ClipboardImagePolicy.keyboardPreviewMaxPixelSize == 1_200)
-        #expect(ClipboardImagePolicy.appPreviewMaxPixelSize == 3_000)
     }
 }

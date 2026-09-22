@@ -42,7 +42,7 @@ struct SuggestionBarViewPreviewHighlightTests {
     func test터치중에는_preview하이라이트를표시하지않고_손을떼면되살림() {
         let keyboardHStackView = UIStackView()
         let bar = SuggestionBarView(keyboardHStackView: keyboardHStackView)
-        let delegate = SuggestionBarRollbackDelegateSpy()
+        let delegate = SuggestionBarDelegateSpy()
         bar.suggestionDelegate = delegate
         bar.frame = CGRect(x: 0, y: 0, width: 300, height: 44)
         bar.updateSuggestions(currentWord: nil, suggestions: ["원문", "원문과결과", "결과"])
@@ -77,7 +77,7 @@ struct SuggestionBarViewPreviewHighlightTests {
     func test긴후보를탭하면_그후보를선택() {
         let keyboardHStackView = UIStackView()
         let bar = SuggestionBarView(keyboardHStackView: keyboardHStackView)
-        let delegate = SuggestionBarRollbackDelegateSpy()
+        let delegate = SuggestionBarDelegateSpy()
         bar.suggestionDelegate = delegate
         bar.frame = CGRect(x: 0, y: 0, width: 300, height: 44)
         bar.updateSuggestions(
@@ -107,7 +107,7 @@ struct SuggestionBarViewPreviewHighlightTests {
     func test후보가3개면_끌어서고르기가유지됨() {
         let keyboardHStackView = UIStackView()
         let bar = SuggestionBarView(keyboardHStackView: keyboardHStackView)
-        let delegate = SuggestionBarRollbackDelegateSpy()
+        let delegate = SuggestionBarDelegateSpy()
         bar.suggestionDelegate = delegate
         bar.frame = CGRect(x: 0, y: 0, width: 300, height: 44)
         bar.updateSuggestions(currentWord: nil, suggestions: ["가", "나", "다"])
@@ -134,7 +134,7 @@ struct SuggestionBarViewPreviewHighlightTests {
     func test후보가넘치면_시작한후보를벗어나떼어도_선택되지않음() {
         let keyboardHStackView = UIStackView()
         let bar = SuggestionBarView(keyboardHStackView: keyboardHStackView)
-        let delegate = SuggestionBarRollbackDelegateSpy()
+        let delegate = SuggestionBarDelegateSpy()
         bar.suggestionDelegate = delegate
         bar.frame = CGRect(x: 0, y: 0, width: 300, height: 44)
         bar.updateSuggestions(
@@ -166,7 +166,7 @@ struct SuggestionBarViewPreviewHighlightTests {
     func test터치도중_후보가늘어나도_시작할때정한규칙을유지() {
         let keyboardHStackView = UIStackView()
         let bar = SuggestionBarView(keyboardHStackView: keyboardHStackView)
-        let delegate = SuggestionBarRollbackDelegateSpy()
+        let delegate = SuggestionBarDelegateSpy()
         bar.suggestionDelegate = delegate
         bar.frame = CGRect(x: 0, y: 0, width: 300, height: 44)
         bar.updateSuggestions(currentWord: nil, suggestions: ["가", "나", "다"])
@@ -201,7 +201,7 @@ struct SuggestionBarViewPreviewHighlightTests {
     func test클립보드버튼탭은_delegate전달_후보하이라이트없음() {
         let keyboardHStackView = UIStackView()
         let bar = SuggestionBarView(keyboardHStackView: keyboardHStackView)
-        let delegate = SuggestionBarRollbackDelegateSpy()
+        let delegate = SuggestionBarDelegateSpy()
         bar.suggestionDelegate = delegate
         bar.frame = CGRect(x: 0, y: 0, width: 300, height: 44)
         bar.updateSuggestions(currentWord: nil, suggestions: ["가", "나", "다"])
@@ -226,7 +226,7 @@ struct SuggestionBarViewPreviewHighlightTests {
     @Test("클립보드 버튼이 숨겨져 있으면 같은 위치 탭은 첫 후보를 선택")
     func test클립보드버튼숨김시_같은위치탭은_첫후보선택() {
         let bar = SuggestionBarView(keyboardHStackView: UIStackView())
-        let delegate = SuggestionBarRollbackDelegateSpy()
+        let delegate = SuggestionBarDelegateSpy()
         bar.suggestionDelegate = delegate
         bar.frame = CGRect(x: 0, y: 0, width: 300, height: 44)
         bar.updateSuggestions(currentWord: nil, suggestions: ["가", "나", "다"])
@@ -264,48 +264,4 @@ private func scrollViews(in view: UIView) -> [UIScrollView] {
         result.append(contentsOf: scrollViews(in: subview))
     }
     return result
-}
-
-private func typedSuggestionButtonViews(
-    in view: UIView
-) -> [SuggestionButtonView] {
-    var result: [SuggestionButtonView] = []
-    for subview in view.subviews {
-        if let button = subview as? SuggestionButtonView {
-            result.append(button)
-        }
-        result.append(contentsOf: typedSuggestionButtonViews(in: subview))
-    }
-    return result.sorted {
-        $0.convert($0.bounds, to: view).minX
-            < $1.convert($1.bounds, to: view).minX
-    }
-}
-
-private func center(of button: UIView, in bar: UIView) -> CGPoint {
-    let frame = button.convert(button.bounds, to: bar)
-    return CGPoint(x: frame.midX, y: frame.midY)
-}
-
-@MainActor
-private final class SuggestionBarRollbackDelegateSpy: SuggestionBarDelegate {
-    private(set) var selectedIndexes: [Int] = []
-    private(set) var clipboardTapCount = 0
-
-    func suggestionBar(
-        _ bar: SuggestionBarView,
-        didSelectSuggestionAt index: Int
-    ) {
-        selectedIndexes.append(index)
-    }
-
-    func suggestionBar(_ bar: SuggestionBarView, shouldBeginRemovalAt index: Int) -> Bool {
-        false
-    }
-
-    func suggestionBarDidTapUndo(_ bar: SuggestionBarView) {}
-    func suggestionBarDidTapRedo(_ bar: SuggestionBarView) {}
-    func suggestionBarDidTapClipboard(_ bar: SuggestionBarView) {
-        clipboardTapCount += 1
-    }
 }

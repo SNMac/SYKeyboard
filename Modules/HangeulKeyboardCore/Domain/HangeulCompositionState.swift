@@ -35,11 +35,6 @@ public struct HangeulCompositionTransition: Equatable {
     }
 }
 
-struct HangeulDeleteTouchDownResult: Equatable {
-    let deletedCharacter: Character?
-    let transition: HangeulCompositionTransition
-}
-
 public struct HangeulDeletePanResult: Equatable {
     public let character: Character
     public let shouldRestore: Bool
@@ -53,7 +48,6 @@ struct HangeulCompositionState {
     private(set) var committedBuffer: String = ""
     private(set) var composingBuffer: String = ""
     private(set) var lastInputText: String?
-    private(set) var temporaryDeletedCharacters: [Character] = []
 
     private var protectedCommittedCount: Int = 0
     private var isPulledFromProtected: Bool = false
@@ -216,26 +210,6 @@ struct HangeulCompositionState {
         return HangeulCompositionTransition(proxyEdit: .delete(count: 1))
     }
 
-    @discardableResult
-    mutating func deleteButtonTouchDown(
-        using processor: HangeulProcessable
-    ) -> HangeulDeleteTouchDownResult {
-        let deletedCharacter = text.last
-
-        if let deletedCharacter {
-            temporaryDeletedCharacters.append(deletedCharacter)
-        }
-
-        beginDeleteButtonTouchDown()
-        let transition = delete(using: processor)
-        endDeleteButtonTouchDown()
-
-        return HangeulDeleteTouchDownResult(
-            deletedCharacter: deletedCharacter,
-            transition: transition
-        )
-    }
-
     mutating func beginDeleteButtonTouchDown() {
         deleteTouchDownSnapshot = DeleteTouchDownSnapshot(
             hadComposingBeforeDelete: !composingBuffer.isEmpty,
@@ -282,9 +256,6 @@ struct HangeulCompositionState {
                 shouldRestoreDeletedCharacter = !shouldSkipRestore
             }
             deletedCharacter = character
-            if shouldRestoreDeletedCharacter {
-                temporaryDeletedCharacters.append(character)
-            }
             isPulledFromProtected = false
 
             if composingBuffer.isEmpty {
@@ -296,7 +267,6 @@ struct HangeulCompositionState {
             let character = committedBuffer.removeLast()
             deletedCharacter = character
             shouldRestoreDeletedCharacter = true
-            temporaryDeletedCharacters.append(character)
             protectedCommittedCount = min(protectedCommittedCount, committedBuffer.count)
             isPulledFromProtected = false
             processor.reset한글조합()
@@ -345,18 +315,9 @@ struct HangeulCompositionState {
         return HangeulCompositionTransition(proxyEdit: .insert(text))
     }
 
-    @discardableResult
-    mutating func deleteButtonPanRestoreLast(
-        using processor: HangeulProcessable
-    ) -> HangeulCompositionTransition? {
-        guard let character = temporaryDeletedCharacters.popLast() else { return nil }
-        return deleteButtonPanRestore(character, using: processor)
-    }
-
     mutating func finishDeleteButtonPan() {
         shouldSkipNextDeletePanRestore = false
         nextDeletePanRestoreReplacement = nil
-        temporaryDeletedCharacters.removeAll()
     }
 
     @discardableResult
@@ -392,23 +353,7 @@ struct HangeulCompositionState {
         shouldSkipNextDeletePanRestore = false
         nextDeletePanRestoreReplacement = nil
         deleteTouchDownSnapshot = nil
-        temporaryDeletedCharacters.removeAll()
         lastInputText = nil
-    }
-
-    mutating func setDeleteDragState(
-        committed: String,
-        composing: String,
-        deletedCharacters: [Character],
-        shouldSkipNextDeletePanRestore: Bool = true,
-        nextDeletePanRestoreReplacement: Character? = nil
-    ) {
-        committedBuffer = committed
-        composingBuffer = composing
-        temporaryDeletedCharacters = deletedCharacters
-        self.shouldSkipNextDeletePanRestore = shouldSkipNextDeletePanRestore
-        self.nextDeletePanRestoreReplacement = nextDeletePanRestoreReplacement
-        protectedCommittedCount = min(protectedCommittedCount, committedBuffer.count)
     }
 }
 

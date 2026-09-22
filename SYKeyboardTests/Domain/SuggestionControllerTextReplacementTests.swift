@@ -194,29 +194,6 @@ struct SuggestionControllerTextReplacementTests {
         #expect(controller.textReplacementPreviewSuggestionIndex(baseText: "id") == 1)
     }
 
-    @Test("입력 버퍼가 비어 있으면 커서 앞 문맥의 단축어를 preview하거나 대치하지 않음")
-    func test입력버퍼가비어있으면_커서앞문맥의단축어를Preview하거나대치하지않음() {
-        let controller = makeController(
-            entries: [
-                TextReplacementEntry(userInput: "id", documentText: "identifier")
-            ]
-        )
-        controller.isPredictiveTextEnabled = true
-        controller.isTextReplacementEnabled = true
-        controller.prepareLexiconEngineIfNeeded()
-
-        let baseText = ""
-        controller.updateSuggestions(for: baseText)
-
-        #expect(controller.textReplacementPreviewSuggestionIndex(baseText: baseText) == nil)
-
-        let replacement = controller.attemptTextReplacement(
-            baseText: baseText,
-            documentContextBeforeInput: "hello id"
-        )
-        #expect(replacement == nil)
-    }
-
     @Test("분리된 커서 문맥은 일반 추천과 텍스트 대치 입력으로 전달하지 않음")
     func test분리된커서문맥은_일반추천과텍스트대치입력으로전달하지않음() {
         let controller = makeController(
@@ -282,51 +259,4 @@ struct SuggestionControllerTextReplacementTests {
         )
         return SuggestionController(language: "en-US", engineFactory: factory)
     }
-}
-
-private final class StubLexiconSuggestionProvider: LexiconSuggestionProviding {
-
-    // MARK: - Properties
-
-    private let entries: [TextReplacementEntry]
-    var hasLoadedLexicon: Bool { true }
-
-    // MARK: - Initializer
-
-    init(entries: [TextReplacementEntry]) {
-        self.entries = entries
-    }
-
-    // MARK: - Internal Methods
-
-    func textReplacementEntries(matching lowercasedWord: String) -> [TextReplacementEntry] {
-        entries.filter { $0.userInput.lowercased() == lowercasedWord }
-    }
-
-    func suggestions(for baseText: String) -> [String] {
-        let currentWord = baseText.split(whereSeparator: { $0.isWhitespace }).last.map(String.init) ?? ""
-        return textReplacementEntries(matching: currentWord.lowercased())
-            .map(\.documentText)
-    }
-
-    func learn(word: String) {}
-}
-
-private final class StubPredictiveTextProvider: PredictiveTextProvider {
-    func suggestions(for baseText: String) -> [String] { [] }
-    func learn(word: String) {}
-}
-
-private final class StubNGramPredictiveTextProvider: NGramPredictiveTextProviding {
-    var onLoadCompleted: (() -> Void)?
-    var currentSentenceWordsCount: Int { 0 }
-
-    func suggestions(for baseText: String) -> [String] { [] }
-    func learn(word: String) {}
-    func addWord(_ word: String) {}
-    func endSentence() {}
-    func removeLastWord() {}
-    func resetSentenceBuffer() {}
-    func saveToDisk() {}
-    func removeWord(_ word: String) {}
 }

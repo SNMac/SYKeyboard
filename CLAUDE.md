@@ -91,17 +91,18 @@ extension 프로세스 로컬 상태는 `KeyboardExtensionLocalStateStore`에 �
   **선택 방식은 후보가 넘치는지로 갈린다.** 넘쳐서 스크롤할 수 있으면 끄는 동작이
   스크롤이므로 시작한 후보에서 떼야만 선택하는 탭 전용이다. 넘치지 않으면(수식 3칸 포함)
   pan이 시작되지 않아 끌어도 스크롤되지 않으므로, 끌어서 고르던 기존 동작을 그대로 둔다.
-  판단은 `SuggestionBarView.allowsDragSelection`(= `!isSuggestionAreaScrollable`) 하나뿐이고
-  후보 개수로 분기하지 않는다.
+  판단은 `SuggestionBarView.allowsDragSelectionForCurrentTouch`(터치가 시작될 때의
+  `!isSuggestionAreaScrollable`) 하나뿐이고 후보 개수로 분기하지 않는다.
   **후보 영역은 후보가 3개보다 적어도 3칸으로 보인다.** divider는 버튼 개수가 아니라 열
   격자를 따라 그린다(`dividerCount(forSuggestionCount:)`). 빈 칸에 divider가 없으면 그
   자리를 눌렀을 때 앞 후보가 적용될 것처럼 보인다. 맨 앞·맨 뒤에는 그리지 않는다.
   **경계 divider는 인접한 후보가 하이라이트되면 지운다.** 어느 쪽 끝 후보를 누르고 있는지
-  구분되게 하려는 것이다. 다만 후보가 3칸을 채우지 못하면 마지막 후보는 오른쪽 끝 divider와
-  인접하지 않으므로 경계 판정에 쓰지 않는다(`buttons.count >= visibleColumnCount`).
-  스크롤로 뷰포트 밖에 나간 버튼도 `isVisibleAndHighlighted(_:)`가 걸러낸다.
-  **`applyHighlights()`를 부르면 그 뒤에 `updateDividers()`도 부른다.** 버튼의 `isHighlighted`가
-  확정된 뒤여야 divider 색이 옳게 나온다. `updateSuggestions(currentWord:suggestions:)`를 포함해
+  구분되게 하려는 것이다. 어느 divider를 지울지는 `SuggestionDividerPolicy.clearedDividers(...)`가
+  정하고 뷰는 그 결과만 색으로 적용한다. 후보가 3칸을 채우지 못하면 마지막 후보는 오른쪽 끝
+  divider와 인접하지 않으므로 경계 판정에 쓰지 않고(`suggestionCount >= visibleColumnCount`),
+  스크롤로 뷰포트 밖에 나간 버튼은 뷰가 `isHighlightedSuggestionVisible: false`로 넘겨 걸러낸다.
+  **`applyHighlights()`를 부르면 그 뒤에 `updateDividers()`도 부른다.** `applyHighlights()`가
+  저장한 하이라이트 상태가 확정된 뒤여야 divider 색이 옳게 나온다. `updateSuggestions(currentWord:suggestions:)`를 포함해
   네 곳 모두 이 짝을 지킨다. 지금은 호출부가 `updateSuggestions` 직후 preview 갱신을 부르며
   색을 다시 계산하므로 깨진 화면이 보이지는 않지만, 그 순서에 기대지 않는다.
   **터치가 진행 중인 동안에는 preview 하이라이트를 숨긴다.** 탭 전용에서 시작한 후보를
@@ -180,7 +181,9 @@ extension 프로세스 로컬 상태는 `KeyboardExtensionLocalStateStore`에 �
 - `Modules/HangeulKeyboardCore/`: 한글 오토마타, 입력 Processor, 한글 키보드 View.
 - `Modules/EnglishKeyboardCore/`: 영문 키보드 View와 저장소 확장.
 - `Modules/*/Presentation/Input/`: VC와 Domain의 경계인 InputAdapter.
-- `SYKeyboardTests/`: Swift Testing 기반 한글 오토마타/Processor/Controller/Policy 테스트.
+- `SYKeyboardTests/`: Swift Testing 기반 한글 오토마타/Processor/조합 상태 시나리오/Policy/View/Controller 테스트.
+  `Domain/`(조합 상태·자동완성·NGram), `Processor/`, `Utils/`(Policy·제스처 컨트롤러), `View/`(키보드 뷰·레이아웃),
+  `Controller/`(`BaseKeyboardViewController`), `Storage/`, `Presentation/`(앱 타깃)으로 나뉜다.
 - `SYKeyboardAssets/`: XIB와 색상 asset을 제공하는 로컬 SPM 패키지.
 - `Common/Firebase/`: Debug/Release Firebase plist. 민감 설정 변경에 주의한다.
 - `docs/superpowers/`: 과거 계획·설계 기록. 현재 동작의 근거로 사용하지 않는다.

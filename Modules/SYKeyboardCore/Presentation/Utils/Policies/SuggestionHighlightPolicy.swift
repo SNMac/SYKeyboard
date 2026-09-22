@@ -13,6 +13,54 @@ enum SuggestionDividerPolicy {
     static func dividerCount(forSuggestionCount count: Int) -> Int {
         return max(count, visibleColumnCount) - 1
     }
+
+    /// 하이라이트된 버튼과 인접해 지울 divider. 어느 쪽 끝 후보를 누르고 있는지 구분되게 하려는 것이다
+    struct ClearedDividers: Equatable {
+        /// 클립보드 버튼과 후보 영역 사이
+        var leadingBoundary = false
+        /// 후보 영역과 undo 버튼 사이
+        var trailingBoundary = false
+        /// undo와 redo 사이
+        var undoRedoMiddle = false
+        /// 후보 사이. `i`는 `i`번과 `i+1`번 후보 사이 divider
+        var pooled: Set<Int> = []
+    }
+
+    /// 하이라이트 상태에서 지울 divider를 정한다.
+    ///
+    /// 경계 divider는 첫 후보·마지막 후보가 하이라이트될 때만 지운다. 다만 후보가 3칸을 채우지 못하면
+    /// 마지막 후보는 오른쪽 끝 divider와 인접하지 않으므로 경계 판정에 쓰지 않는다.
+    /// 스크롤로 뷰포트 밖에 나간 후보 때문에 보이지도 않는 경계 divider가 사라지지 않도록
+    /// `isHighlightedSuggestionVisible`이 `false`면 경계 divider는 남긴다.
+    /// action 인덱스는 `SuggestionHighlightPolicy`와 같다(0 클립보드, 1 undo, 2 redo)
+    static func clearedDividers(
+        highlight: SuggestionHighlightPolicy.State,
+        isHighlightedSuggestionVisible: Bool,
+        suggestionCount: Int
+    ) -> ClearedDividers {
+        var cleared = ClearedDividers()
+
+        if let index = highlight.highlightedSuggestionIndex {
+            let isLast = index == suggestionCount - 1 && suggestionCount >= visibleColumnCount
+            cleared.leadingBoundary = index == 0 && isHighlightedSuggestionVisible
+            cleared.trailingBoundary = isLast && isHighlightedSuggestionVisible
+            cleared.pooled = Set([index - 1, index].filter { $0 >= 0 })
+        }
+
+        switch highlight.highlightedActionIndex {
+        case 0:
+            cleared.leadingBoundary = true
+        case 1:
+            cleared.trailingBoundary = true
+            cleared.undoRedoMiddle = true
+        case 2:
+            cleared.undoRedoMiddle = true
+        default:
+            break
+        }
+
+        return cleared
+    }
 }
 
 // MARK: - SuggestionHighlightPolicy

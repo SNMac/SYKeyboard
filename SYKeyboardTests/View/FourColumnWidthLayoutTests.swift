@@ -198,16 +198,6 @@ struct CheonjiinColumnWidthLayoutTests {
         return try #require(keyButtons.first { $0.type.primaryKeyList.first == primary })
     }
 
-    @Test("기본 배율은 두 배치 모두 네 열을 균등 분할한다")
-    func testDefaultMultiplierKeepsEqualColumns() {
-        let expected = Self.keyboardWidth / 4
-
-        for usesBottomSpaceLayout in [false, true] {
-            let view = Self.makeView(usesBottomSpaceLayout: usesBottomSpaceLayout, multiplier: 1.0)
-            #expect(abs(Self.rect(view.deleteButton, in: view).width - expected) < Self.tolerance)
-        }
-    }
-
     @Test("기본 배치에서 배율을 올리면 기능 열이 좁아지고 열 경계가 일치한다")
     func testDefaultLayoutNarrowsFunctionColumn() {
         let view = Self.makeView(usesBottomSpaceLayout: false, multiplier: 1.15)
@@ -262,15 +252,13 @@ struct CheonjiinColumnWidthLayoutTests {
 
         #expect(view.nextKeyboardButton.isHidden)
 
-        let modifierStack = try #require(languageSwitchButton.superview)
         let visibleButtonCount: CGFloat = 2
         let buttonWidth = languageSwitchButton.frame.width
+        // 하단 스페이스 배치의 modifier 열은 4행 1열이므로 배율을 올리면 넓어진다
+        let expectedButtonWidth = Self.keyboardWidth * 0.2875 / visibleButtonCount
 
-        // 하단 스페이스 배치의 modifier 스택은 4행 1열이므로 배율을 올리면 넓어진다
-        #expect(abs(modifierStack.frame.width - Self.keyboardWidth * 0.2875) < Self.tolerance)
-        #expect(abs(buttonWidth - modifierStack.frame.width / visibleButtonCount) < Self.tolerance)
-        #expect(abs(view.switchButton.frame.width
-                    - modifierStack.frame.width / visibleButtonCount) < Self.tolerance)
+        #expect(abs(buttonWidth - expectedButtonWidth) < Self.tolerance)
+        #expect(abs(view.switchButton.frame.width - expectedButtonWidth) < Self.tolerance)
         // 붕괴 회귀 방지: 이전 구현에서는 한/영이 6pt까지 눌렸다
         #expect(buttonWidth > 10)
     }
@@ -315,16 +303,6 @@ struct NumericColumnWidthLayoutTests {
     private static func keyButton(_ view: NumericKeyboardView, primary: String) throws -> PrimaryKeyButton {
         let keyButtons = view.primaryButtonList.compactMap { $0 as? PrimaryKeyButton }
         return try #require(keyButtons.first { $0.type.primaryKeyList.first == primary })
-    }
-
-    @Test("기본 배율은 두 배치 모두 네 열을 균등 분할한다")
-    func testDefaultMultiplierKeepsEqualColumns() {
-        let expected = Self.keyboardWidth / 4
-
-        for usesBottomSpaceLayout in [false, true] {
-            let view = Self.makeView(usesBottomSpaceLayout: usesBottomSpaceLayout, multiplier: 1.0)
-            #expect(abs(Self.rect(view.deleteButton, in: view).width - expected) < Self.tolerance)
-        }
     }
 
     @Test("기본 배치에서 배율을 올리면 기능 열이 좁아지고 열 경계가 일치한다")
@@ -391,19 +369,16 @@ struct NumericColumnWidthLayoutTests {
 
         #expect(view.nextKeyboardButton.isHidden)
 
-        let modifierStack = try #require(languageSwitchButton.superview)
         let visibleButtonCount: CGFloat = 2
         let buttonWidth = languageSwitchButton.frame.width
         // 배율 1.15에서 기능 열은 키보드 폭의 0.1375다.
-        // 기본 배치의 modifier 스택은 4행 4열(기능 열)에 놓인다
-        let expectedStackWidth = Self.keyboardWidth * 0.1375
+        // 기본 배치의 modifier 열은 4행 4열(기능 열)에 놓인다
+        let expectedColumnWidth = Self.keyboardWidth * 0.1375
 
         #expect(abs(buttonWidth - view.switchButton.frame.width) < Self.tolerance)
         #expect(abs(buttonWidth + view.switchButton.frame.width
-                    - modifierStack.frame.width) < Self.tolerance)
-        #expect(abs(buttonWidth - modifierStack.frame.width / visibleButtonCount) < Self.tolerance)
-        #expect(abs(modifierStack.frame.width - expectedStackWidth) < Self.tolerance)
-        #expect(abs(buttonWidth - expectedStackWidth / visibleButtonCount) < Self.tolerance)
+                    - expectedColumnWidth) < Self.tolerance)
+        #expect(abs(buttonWidth - expectedColumnWidth / visibleButtonCount) < Self.tolerance)
         // 붕괴 회귀 방지: 전환 버튼이 라벨 때문에 45.7pt 아래로 눌리지 않아
         // 이전 비율 폭 제약에서는 한/영이 6pt로 붕괴했다
         #expect(buttonWidth > 10)

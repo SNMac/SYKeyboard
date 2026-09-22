@@ -82,6 +82,8 @@ final class SuggestionBarView: UIView {
     private var pooledButtons: [SuggestionButtonView] = []
     /// 후보 사이 divider 재사용 풀. 버튼 N개에 divider N-1개를 쓴다
     private var pooledDividers: [UIView] = []
+    /// `applyHighlights()`가 마지막으로 적용한 하이라이트. divider 색은 이 값에서 정한다
+    private var highlightState: SuggestionHighlightPolicy.State = .none
     /// 현재 표시 중인 후보 버튼 개수
     private var visibleSuggestionCount = 0
     /// 후보 영역 표시 여부. 숨겨져 있으면 후보 사이 divider를 모두 감춘다
@@ -370,8 +372,8 @@ final class SuggestionBarView: UIView {
         suggestionScrollView.contentOffset = .zero
         setNeedsLayout()
         applyHighlights()
-        // 후보가 바뀌면 divider 색도 다시 정한다. applyHighlights()가 버튼의 isHighlighted를
-        // 확정한 뒤여야 옳은 색이 나온다. 숨어 있던 divider가 새로 보일 때 직전 하이라이트의
+        // 후보가 바뀌면 divider 색도 다시 정한다. applyHighlights()가 저장한 하이라이트 상태가
+        // 확정된 뒤여야 옳은 색이 나온다. 숨어 있던 divider가 새로 보일 때 직전 하이라이트의
         // .clear를 그대로 들고 나오는 것을 막는다
         updateDividers()
     }
@@ -501,37 +503,22 @@ private extension SuggestionBarView {
 
     func updateDividers() {
         let buttons = suggestionButtons
-        let firstHighlighted = isVisibleAndHighlighted(buttons.first)
-        // buttons.last가 곧 마지막 열은 아니다. 후보가 3칸을 채우지 못하면 마지막 후보는
-        // 오른쪽 끝 divider와 인접하지 않으므로 경계 판정에 쓰지 않는다
-        let lastHighlighted = buttons.count >= SuggestionDividerPolicy.visibleColumnCount
-            && isVisibleAndHighlighted(buttons.last)
+        // 스크롤로 뷰포트 밖에 완전히 나간 버튼 때문에 보이지도 않는 경계 divider가 사라지는 것을 막는다
+        let isHighlightedVisible = highlightState.highlightedSuggestionIndex
+            .flatMap { buttons.indices.contains($0) ? buttons[$0] : nil }
+            .map { $0.frame.intersects(suggestionScrollView.bounds) } ?? false
+        let cleared = SuggestionDividerPolicy.clearedDividers(
+            highlight: highlightState,
+            isHighlightedSuggestionVisible: isHighlightedVisible,
+            suggestionCount: buttons.count
+        )
 
-        clipboardDivider.backgroundColor = (clipboardButton.isHighlighted || firstHighlighted)
-        ? .clear
-        : .suggestionDividerColor
-        undoRedoLeadingDivider.backgroundColor = (lastHighlighted || undoButton.isHighlighted)
-        ? .clear
-        : .suggestionDividerColor
-        undoRedoMiddleDivider.backgroundColor = (undoButton.isHighlighted || redoButton.isHighlighted)
-        ? .clear
-        : .suggestionDividerColor
-
-        for index in pooledDividers.indices {
-            let leadingHighlighted = buttons.indices.contains(index) && buttons[index].isHighlighted
-            let trailingHighlighted = buttons.indices.contains(index + 1) && buttons[index + 1].isHighlighted
-            pooledDividers[index].backgroundColor = (leadingHighlighted || trailingHighlighted)
-            ? .clear
-            : .suggestionDividerColor
+        clipboardDivider.backgroundColor = cleared.leadingBoundary ? .clear : .suggestionDividerColor
+        undoRedoLeadingDivider.backgroundColor = cleared.trailingBoundary ? .clear : .suggestionDividerColor
+        undoRedoMiddleDivider.backgroundColor = cleared.undoRedoMiddle ? .clear : .suggestionDividerColor
+        for (index, divider) in pooledDividers.enumerated() {
+            divider.backgroundColor = cleared.pooled.contains(index) ? .clear : .suggestionDividerColor
         }
-    }
-
-    /// 경계 divider를 지울지 판단합니다.
-    ///
-    /// 스크롤로 뷰포트 밖에 완전히 나간 버튼 때문에 보이지도 않는 divider가 사라지는 것을 막는다
-    func isVisibleAndHighlighted(_ button: SuggestionButtonView?) -> Bool {
-        guard let button, button.isHighlighted else { return false }
-        return button.frame.intersects(suggestionScrollView.bounds)
     }
 
     func suggestionButton(at point: CGPoint) -> (Int, SuggestionButtonView)? {
@@ -612,6 +599,7 @@ private extension SuggestionBarView {
             suggestionCount: suggestionButtons.count,
             actionCount: actionButtons.count
         )
+        highlightState = state
 
         for (index, button) in suggestionButtons.enumerated() {
             button.isHighlighted = state.highlightedSuggestionIndex == index

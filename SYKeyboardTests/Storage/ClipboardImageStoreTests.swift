@@ -44,7 +44,7 @@ struct ClipboardImageStoreTests {
         let properties = try #require(CGImageSourceCopyPropertiesAtIndex(source, 0, nil) as? [CFString: Any])
         let width = try #require(properties[kCGImagePropertyPixelWidth] as? Int)
         let height = try #require(properties[kCGImagePropertyPixelHeight] as? Int)
-        #expect(max(width, height) == ClipboardImagePolicy.thumbnailMaxPixelSize)
+        #expect(max(width, height) == 240)
         #expect(width > height)
     }
 

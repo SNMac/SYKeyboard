@@ -90,7 +90,6 @@ struct NumericBottomSpaceLayoutTests {
         )
         view.layoutIfNeeded()
 
-        let modifierStack = try #require(languageButton.superview)
         // 지구본이 숨겨져 한/영과 전환 버튼 2개만 남는다
         let visibleButtonCount: CGFloat = 2
         // 열 자체가 무너져도 두 버튼이 반씩 나눠 가지면 상대 단언은 통과한다.
@@ -98,17 +97,10 @@ struct NumericBottomSpaceLayoutTests {
         let expectedButtonWidth = Self.keyboardWidth / CGFloat(4) / visibleButtonCount
 
         #expect(view.nextKeyboardButton.isHidden)
-        #expect(abs(modifierStack.frame.width - Self.keyboardWidth / 4) < 0.5)
         #expect(abs(languageButton.frame.width - expectedButtonWidth) < 0.5)
         #expect(abs(view.switchButton.frame.width - expectedButtonWidth) < 0.5)
-        #expect(
-            abs(languageButton.frame.width - modifierStack.frame.width / visibleButtonCount) < 0.5
-        )
-        #expect(
-            abs(view.switchButton.frame.width - modifierStack.frame.width / visibleButtonCount) < 0.5
-        )
-        // 같은 modifier 스택 안이라 변환 없이 비교한다. 좌→우 전환 → 한/영
-        #expect(view.switchButton.frame.maxX <= languageButton.frame.minX + 0.5)
+        // 좌→우 전환 → 한/영
+        #expect(Self.rect(view.switchButton, in: view).maxX <= Self.rect(languageButton, in: view).minX + 0.5)
     }
 
     @Test("켜짐 상태는 '-'·'/'가 3행 우측, '.'·','가 4행 끝")

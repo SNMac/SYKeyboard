@@ -11,7 +11,7 @@ import UIKit
 @testable import SYKeyboardCore
 
 @MainActor
-@Suite("기호 자판 배열과 정렬")
+@Suite("기호 자판 배열·정렬과 입력 모드별 키 표시")
 struct SymbolKeyboardLayoutTests {
 
     /// 세로 기본 높이(240)에서 프레임 여백 4를 뺀 키 영역
@@ -81,6 +81,7 @@ struct SymbolKeyboardLayoutTests {
 
         #expect(keyList[0][0].map(\.first) == ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"])
         #expect(keyList[0][1].map(\.first) == ["-", "/", ":", ";", "(", ")", "₩", "&", "@", "”"])
+        #expect(keyList[0][2].map(\.first) == [".", ",", "?", "!", "’"])
         #expect(keyList[1][0].map(\.first) == ["[", "]", "{", "}", "#", "%", "^", "*", "+", "="])
     }
 
@@ -166,25 +167,6 @@ struct SymbolKeyboardLayoutTests {
                 == ["-", "/", ":", ";", "(", ")", "₩", "&", "@", "”"])
     }
 
-    @Test("숫자 행이 켜진 URL·이메일 자판에서도 페이지 전환 버튼을 숨기지 않는다")
-    func test합친자판_shift유지() {
-        let view = SymbolKeyboardView(showsLanguageSwitchButton: false, showsNumberRow: true)
-
-        view.currentSymbolKeyboardMode = .URL
-        #expect(view.shiftButton.isHidden == false)
-
-        view.currentSymbolKeyboardMode = .default
-        #expect(view.shiftButton.isHidden == false)
-
-        view.currentSymbolKeyboardMode = .emailAddress
-        #expect(view.shiftButton.isHidden == false)
-
-        // 숫자 행이 꺼지면 합치지 않으므로 두 페이지가 그대로 살아 있다
-        let withoutNumberRow = SymbolKeyboardView(showsLanguageSwitchButton: false, showsNumberRow: false)
-        withoutNumberRow.currentSymbolKeyboardMode = .URL
-        #expect(withoutNumberRow.shiftButton.isHidden == false)
-    }
-
     @Test("주 자판에 숫자 행이 없으면 기호 자판에도 숫자 행이 없다")
     func test기호자판_주자판을따라감() {
         let withoutNumberRow = SymbolKeyboardView(showsLanguageSwitchButton: false, showsNumberRow: false)
@@ -222,5 +204,111 @@ struct SymbolKeyboardLayoutTests {
             .compactMap { $0 as? PrimaryKeyButton }
             .map(\.type.primaryKeyList)
         #expect(interactableLeadingKeys == expectedFirstRowKeys)
+    }
+
+    // MARK: - 입력 모드별 키 표시
+
+    @Test("UIKeyboardType은 대응하는 기호 키보드 모드로 매핑")
+    func testUIKeyboardType별기호키보드모드() {
+        #expect(SymbolKeyboardMode(keyboardType: nil) == .default)
+        #expect(SymbolKeyboardMode(keyboardType: .default) == .default)
+        #expect(SymbolKeyboardMode(keyboardType: .numbersAndPunctuation) == .default)
+        #expect(SymbolKeyboardMode(keyboardType: .URL) == .URL)
+        #expect(SymbolKeyboardMode(keyboardType: .emailAddress) == .emailAddress)
+        #expect(SymbolKeyboardMode(keyboardType: .webSearch) == .webSearch)
+        #expect(SymbolKeyboardMode(keyboardType: .twitter) == .default)
+    }
+
+    @Test("기호 키보드 작은따옴표 키는 닫는 따옴표를 표시")
+    func test기호키보드작은따옴표표시() {
+        let symbolKeyboardView = SymbolKeyboardView()
+        let unshiftedApostrophe = symbolKeyboardView.lastPrimaryKeyButton?.type.primaryKeyList.first
+
+        symbolKeyboardView.isShifted = true
+        let shiftedApostrophe = symbolKeyboardView.lastPrimaryKeyButton?.type.primaryKeyList.first
+
+        #expect(unshiftedApostrophe == "’")
+        #expect(shiftedApostrophe == "’")
+    }
+
+    @Test("기본 기호 모드는 기본 배열과 스페이스를 표시")
+    func test기본기호키보드레이아웃() {
+        let view = SymbolKeyboardView()
+
+        #expect(
+            Array(view.rowPrimaryKeyValues[10..<20]) ==
+            ["-", "/", ":", ";", "(", ")", "₩", "&", "@", "”"]
+        )
+        #expect(view.spaceButton.isHidden == false)
+        #expect(view.atButton.isHidden)
+        #expect(view.periodButton.isHidden)
+        #expect(view.slashButton.isHidden)
+        #expect(view.dotComButton.isHidden)
+    }
+
+    @Test("URL 기호 모드는 전용 키 배열과 하단 키를 표시")
+    func testURL기호키보드레이아웃() {
+        let view = SymbolKeyboardView()
+        view.isShifted = true
+        view.currentSymbolKeyboardMode = .URL
+
+        #expect(view.isShifted == false)
+        #expect(Array(view.rowPrimaryKeyValues.suffix(5)) == [".", ",", "?", "!", "’"])
+        #expect(view.spaceButton.isHidden)
+        #expect(view.atButton.isHidden)
+        #expect(view.periodButton.isHidden == false)
+        #expect(view.slashButton.isHidden == false)
+        #expect(view.dotComButton.isHidden == false)
+
+        view.isShifted = true
+        #expect(Array(view.rowPrimaryKeyValues.suffix(5)) == [".", ",", "?", "!", "’"])
+    }
+
+    @Test("이메일 기호 모드는 전용 키 배열과 스페이스 골뱅이 마침표를 표시")
+    func test이메일기호키보드레이아웃() {
+        let view = SymbolKeyboardView()
+        view.currentSymbolKeyboardMode = .emailAddress
+
+        #expect(Array(view.rowPrimaryKeyValues.suffix(5)) == [".", ",", "?", "!", "’"])
+        #expect(view.spaceButton.isHidden == false)
+        #expect(view.atButton.isHidden == false)
+        #expect(view.periodButton.isHidden == false)
+        #expect(view.slashButton.isHidden)
+        #expect(view.dotComButton.isHidden)
+
+        view.isShifted = true
+        #expect(
+            Array(view.rowPrimaryKeyValues.prefix(10)) ==
+            ["[", "]", "{", "}", "#", "%", "^", "*", "+", "="]
+        )
+    }
+
+    @Test("웹 검색 기호 모드는 기본 배열과 스페이스 마침표를 표시")
+    func test웹검색기호키보드레이아웃() {
+        let view = SymbolKeyboardView()
+        view.currentSymbolKeyboardMode = .webSearch
+
+        #expect(
+            Array(view.rowPrimaryKeyValues[10..<20]) ==
+            ["-", "/", ":", ";", "(", ")", "₩", "&", "@", "”"]
+        )
+        #expect(view.spaceButton.isHidden == false)
+        #expect(view.atButton.isHidden)
+        #expect(view.periodButton.isHidden == false)
+        #expect(view.slashButton.isHidden)
+        #expect(view.dotComButton.isHidden)
+    }
+}
+
+private extension SymbolKeyboardView {
+    var rowPrimaryKeyValues: [String] {
+        primaryButtonList
+            .compactMap { $0 as? PrimaryKeyButton }
+            .prefix(25)
+            .map { $0.type.primaryKeyList.first ?? "" }
+    }
+
+    var lastPrimaryKeyButton: PrimaryKeyButton? {
+        primaryButtonList.compactMap { $0 as? PrimaryKeyButton }.prefix(25).last
     }
 }

@@ -431,31 +431,4 @@ private extension NaratgeulProcessorTests {
         
         return inputs
     }
-    
-    /// 글자를 지우기 위해 필요한 백스페이스 횟수를 계산
-    func calculateExpectedDeleteCount(for char: Character) -> Int {
-        guard let scalar = char.unicodeScalars.first else { return 0 }
-        let value = Int(scalar.value) - 0xAC00
-        
-        let 중성Index = (value % (21 * 28)) / 28
-        let 종성Index = value % 28
-        
-        var count = 1
-        
-        let 중성Deletes: [Int] = [
-            1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 3, 2, 1, 1, 2, 3, 2, 1, 1, 2, 1
-        ]
-        count += 중성Deletes[중성Index]
-        
-        if 종성Index != 0 {
-            let 겹받침List = [3, 5, 6, 9, 10, 11, 12, 13, 14, 15, 18]
-            if 겹받침List.contains(종성Index) {
-                count += 2
-            } else {
-                count += 1
-            }
-        }
-        
-        return count
-    }
 }

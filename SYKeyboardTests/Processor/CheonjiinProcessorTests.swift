@@ -115,17 +115,23 @@ struct CheonjiinProcessorTests: HangeulProcessorTestable {
         #expect(c + p == "가니")
         
         // 3. 삭제 (ㅣ 삭제) -> '가ㄴ'이어야 함 ('간'으로 합쳐지면 안 됨)
-        // 프로세서 단위 테스트에서는 protectedCommittedCount가 없으므로
-        // isProtected: false로 전달하면 종성 복원이 동작할 수 있음.
-        // Space 확정 보호 상태 전이는 HangeulCompositionState 기반 시나리오에서 검증.
-        // 여기서는 isProtected를 전달한 프로세서의 composing 삭제 결과만 확인.
-        let deleteResult = processor.delete(
+        // 종성 복원은 deleteWithRestore종성에 있으므로 그 진입점으로 보호 여부를 대조한다.
+        // Space 확정 보호 상태 전이 자체는 HangeulCompositionState 기반 시나리오에서 검증한다
+        let protectedResult = processor.deleteWithRestore종성(
             composing: p,
             committedTail: String(c.suffix(2)),
             isProtected: true  // Space 확정 보호
         )
-        p = deleteResult.composing
-        #expect(c + p == "가ㄴ")
+        #expect(protectedResult.composing == "ㄴ")
+        #expect(protectedResult.consumedCommittedCount == 0)
+
+        let unprotectedResult = processor.deleteWithRestore종성(
+            composing: p,
+            committedTail: String(c.suffix(2)),
+            isProtected: false
+        )
+        #expect(unprotectedResult.composing == "간")
+        #expect(unprotectedResult.consumedCommittedCount == 1)
     }
     
     @Test("시나리오: '달거' -> 삭제 -> '닭'")
@@ -210,26 +216,6 @@ struct CheonjiinProcessorTests: HangeulProcessorTestable {
         // 4. 보호된 마지막 글자를 composingBuffer로 끌어와도 다음 입력과 재조합하지 않음
         ["ㅣ", "ㆍ"].forEach(harness.input)
         #expect(harness.text == "간ㅏ", "보호된 마지막 글자는 composingBuffer로 끌어와도 다음 입력과 재조합하지 않아야 합니다.")
-    }
-    
-    @Test("조합 확정 후 삭제: '가' 확정 -> 'ㄴ' 입력 -> 삭제 시 '가' 유지")
-    func test확정후_삭제_이전글자유지() {
-        let harness = HangeulCompositionTestHarness(processor: processor)
-        
-        // 1. '가' 만들기
-        ["ㄱ", "ㅣ", "ㆍ"].forEach(harness.input)
-        #expect(harness.text == "가")
-        
-        // 2. Space(조합 확정)
-        harness.space()
-        
-        // 3. 'ㄴ' 입력
-        harness.input("ㄴ")
-        #expect(harness.text == "가ㄴ")
-        
-        // 4. 삭제 -> "가"가 남아야 함 (""가 되면 안 됨)
-        harness.delete()
-        #expect(harness.text == "가", "조합 확정 후 새 글자를 삭제해도 이전 확정 글자는 유지되어야 합니다.")
     }
     
     // MARK: - 5. 비표준 모음(ㆍ, ᆢ) 삭제 및 연음 테스트
@@ -359,11 +345,6 @@ struct CheonjiinProcessorTests: HangeulProcessorTestable {
         
         #expect(failureCount == 0, "총 \(failureCount)개의 글자에서 생성 또는 삭제 실패")
     }
-
-    @Test("완성형 한글이 아닌 글자의 예상 삭제 횟수는 0")
-    func test비한글_예상삭제횟수() {
-        #expect(calculateExpectedDeleteCount(for: "A") == 0)
-    }
 }
 
 // MARK: - Private Methods
@@ -417,9 +398,6 @@ private extension CheonjiinProcessorTests {
     }
     
     func get중성Keys(index: Int) -> [String] {
-        let 천 = "ㆍ"
-        let 지 = "ㅡ"
-        let 인 = "ㅣ"
         
         switch index {
         case 0: return [인, 천]
@@ -478,28 +456,5 @@ private extension CheonjiinProcessorTests {
         case 27: return ["ㅅ", "ㅅ"]
         default: return []
         }
-    }
-
-    /// 완성형 한글 한 글자를 모두 지우기 위해 필요한 백스페이스 횟수를 계산
-    func calculateExpectedDeleteCount(for char: Character) -> Int {
-        guard let scalar = char.unicodeScalars.first,
-              (0xAC00...0xD7A3).contains(scalar.value) else { return 0 }
-        let code = Int(scalar.value) - 0xAC00
-
-        let 중성Index = (code % (21 * 28)) / 28
-        let 종성Index = code % 28
-
-        let 중성Deletes = [
-            1, 2, 1, 2, 1, 2, 1, 2, 1, 2, 3, 2, 1, 1, 2, 3, 2, 1, 1, 2, 1
-        ]
-        let 겹받침Indices = Set([3, 5, 6, 9, 10, 11, 12, 13, 14, 15, 18])
-
-        var count = 1 + 중성Deletes[중성Index]
-
-        if 종성Index != 0 {
-            count += 겹받침Indices.contains(종성Index) ? 2 : 1
-        }
-
-        return count
     }
 }

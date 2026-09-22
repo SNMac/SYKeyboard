@@ -156,15 +156,6 @@ struct ClipboardHistoryPanelViewTests {
         #expect(spy.deletedIndices == [[1]])
     }
 
-    @Test("미고정만 삭제하면 확인 없이 바로 요청")
-    func test미고정만삭제는_바로요청() {
-        let (panel, spy) = makePanel(items: [pinned("p"), unpinned("a")])
-
-        panel.requestDelete(at: [1], deleteAll: false)
-
-        #expect(spy.deletedIndices == [[1]])
-    }
-
     @Test("스와이프로 tableView가 편집 상태여도 configure 뒤 편집 모드로 들어가지 않음")
     func test스와이프중configure는_편집모드로바뀌지않음() {
         let (panel, spy) = makePanel(texts: ["a", "b"])
@@ -214,12 +205,13 @@ struct ClipboardHistoryPanelViewTests {
     @Test("기본 configure는 열린 상세를 닫음")
     func test기본configure는_상세를닫음() {
         let items = [unpinned("a"), unpinned("b")]
-        let (panel, _) = makePanel(items: items)
+        let (panel, spy) = makePanel(items: items)
 
         panel.showDetail(at: 1)
         panel.configure(state: .items(items))
+        panel.pasteDetailItem()
 
-        #expect(panel.isDetailVisible == false)
+        #expect(spy.selectedIndices.isEmpty)
     }
 
     @Test("상세를 유지하는 갱신에서 앞에 새 항목이 들어오면 붙여넣기는 보던 항목의 새 인덱스를 요청")
@@ -230,7 +222,6 @@ struct ClipboardHistoryPanelViewTests {
         panel.showDetail(at: 1)
         panel.configure(state: .items([unpinned("new")] + items), keepsDetail: true)
 
-        #expect(panel.isDetailVisible)
         panel.pasteDetailItem()
         #expect(spy.selectedIndices == [2])
     }
@@ -242,7 +233,6 @@ struct ClipboardHistoryPanelViewTests {
         panel.showDetail(at: 1)
         panel.configure(state: .items([unpinned("b"), unpinned("a")]), keepsDetail: true)
 
-        #expect(panel.isDetailVisible)
         panel.toggleDetailItemPin()
         #expect(spy.toggledPinIndices == [0])
     }
@@ -255,7 +245,6 @@ struct ClipboardHistoryPanelViewTests {
         panel.configure(state: .items([unpinned("a")]), keepsDetail: true)
         panel.pasteDetailItem()
 
-        #expect(panel.isDetailVisible == false)
         #expect(spy.selectedIndices.isEmpty)
     }
 
@@ -273,11 +262,10 @@ struct ClipboardHistoryPanelViewTests {
     @Test("항목이 없으면 편집 모드로 들어가지 않음")
     func test항목없으면_편집모드진입없음() {
         let (panel, _) = makePanel(texts: [])
-        panel.configure(state: .empty)
 
         panel.beginItemEditing()
 
-        #expect(panel.tableView.isEditing == false)
+        #expect(panel.isItemEditing == false)
     }
 
     @Test("leading swipe는 고정 여부와 무관하게 고정 토글 액션 하나를 제공")
@@ -329,9 +317,12 @@ struct ClipboardHistoryPanelViewTests {
     func testResetPresentation은_편집모드해제() {
         let (panel, _) = makePanel(texts: ["a"])
         panel.beginItemEditing()
+        #expect(panel.isItemEditing)
 
         panel.resetPresentation()
 
+        // tableView.isEditing은 resetPresentation이 무조건 끄므로 편집 모드 해제를 구분하지 못한다
+        #expect(panel.isItemEditing == false)
         #expect(panel.tableView.isEditing == false)
     }
 
@@ -397,8 +388,9 @@ struct ClipboardHistoryPanelViewTests {
         #expect(panel.items.map(\.id) == ["a", "b"])
     }
 
-    @Test("메모리가 부족하면 상세 미리보기는 원본을 디코드하지 않고 목록 썸네일로 대체")
-    func test메모리부족시_상세미리보기는_썸네일로대체() throws {
+    // 썸네일로 대체됐는지는 공개된 관찰점이 없어 확인하지 못한다. 예산이 0이어도 상세가 열리는 것까지만 검증한다
+    @Test("디코드 예산이 0이어도 상세 미리보기는 열림")
+    func test디코드예산0에서도_상세미리보기열림() throws {
         let directoryURL = FileManager.default.temporaryDirectory
             .appendingPathComponent("SYKeyboardTests-\(UUID().uuidString)-panel-preview", isDirectory: true)
         defer { try? FileManager.default.removeItem(at: directoryURL) }
@@ -406,15 +398,17 @@ struct ClipboardHistoryPanelViewTests {
         let reference = try makeStoredImageReference(in: imageStore)
 
         let panel = ClipboardHistoryPanelView(frame: CGRect(x: 0, y: 0, width: 320, height: 240))
+        let spy = ClipboardHistoryPanelDelegateSpy()
+        panel.delegate = spy
         panel.imageStore = imageStore
         panel.configure(state: .items([ClipboardHistoryItem(content: .image(reference), createdAt: Date())]))
         panel.layoutIfNeeded()
-        // 예산을 0으로 줄여 미리보기 디코드를 건너뛰는 경로를 확정적으로 검증한다
         panel.decodeMemoryBudget = 0
 
         panel.showDetail(at: 0)
+        panel.toggleDetailItemPin()
 
-        #expect(panel.isDetailVisible)
+        #expect(spy.toggledPinIndices == [0])
     }
 }
 

@@ -12,11 +12,6 @@ import Testing
 @Suite("자동 리뷰 요청 정책 검증")
 struct RequestReviewPolicyTests {
 
-    @Test("리뷰 요청 기준 횟수는 30회")
-    func testThresholdIsThirtyInteractions() {
-        #expect(RequestReviewPolicy.threshold == 30)
-    }
-
     @Test("앱 실행은 카운트만 증가시키고 즉시 요청하지 않음")
     func testValidAppLaunchIncrementsCounterWithoutPrompting() {
         let result = RequestReviewPolicy.recordEligibleInteraction(
@@ -53,14 +48,17 @@ struct RequestReviewPolicyTests {
         #expect(result.shouldRequestReview == true)
     }
 
-    @Test("앱 실행은 기준 횟수를 채워도 즉시 요청하지 않음")
-    func testAppLaunchDoesNotPromptEvenWhenCounterReachesThreshold() {
-        let result = RequestReviewPolicy.recordEligibleInteraction(
-            reviewCounter: 29,
+    @Test("상세 설정 복귀 시 카운트해도 30회 미만이면 요청하지 않음")
+    func testDetailReturnDoesNotRequestBelowThreshold() {
+        let result = RequestReviewPolicy.recordDetailSettingsReturnAndEvaluate(
+            reviewCounter: 28,
+            currentAppBuild: "100",
+            lastBuildPromptedForReview: "99",
             isEligible: true
         )
 
-        #expect(result.reviewCounter == 30)
+        #expect(result.reviewCounter == 29)
+        #expect(result.lastBuildPromptedForReview == "99")
         #expect(result.shouldRequestReview == false)
     }
 

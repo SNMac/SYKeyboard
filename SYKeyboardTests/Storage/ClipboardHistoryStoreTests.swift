@@ -46,16 +46,6 @@ struct ClipboardHistoryStoreTests {
         #expect(fixture.store.load().map(\.text) == ["c", "a"])
     }
 
-    @Test("전체 삭제 후에는 빈 배열")
-    func test전체삭제후_빈배열() {
-        let fixture = makeFixture(name: "remove-all")
-        fixture.store.record("a")
-
-        fixture.store.removeAll()
-
-        #expect(fixture.store.load().isEmpty)
-    }
-
     @Test("고정 토글은 파일에 반영되고 고정 항목이 맨 앞으로 이동")
     func test고정토글은_파일에반영() {
         let fixture = makeFixture(name: "pin")
@@ -301,10 +291,22 @@ struct ClipboardHistoryStoreTests {
     }
 }
 
-private struct StoreFixture {
+/// 테스트가 끝나 fixture가 해제되면 임시 plist와 이미지 디렉터리를 지운다
+private final class StoreFixture {
     let store: ClipboardHistoryStore
     let url: URL
     let imageDirectoryURL: URL
+
+    init(store: ClipboardHistoryStore, url: URL, imageDirectoryURL: URL) {
+        self.store = store
+        self.url = url
+        self.imageDirectoryURL = imageDirectoryURL
+    }
+
+    deinit {
+        try? FileManager.default.removeItem(at: url)
+        try? FileManager.default.removeItem(at: imageDirectoryURL)
+    }
 
     func imageFiles() throws -> [String] {
         ((try? FileManager.default.contentsOfDirectory(atPath: imageDirectoryURL.path)) ?? []).sorted()

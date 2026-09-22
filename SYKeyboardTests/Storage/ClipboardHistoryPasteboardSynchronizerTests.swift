@@ -75,7 +75,7 @@ struct ClipboardHistoryPasteboardSynchronizerTests {
     }
 
     @Test("텍스트와 이미지가 함께 있으면 텍스트만 기록")
-    func test텍스트와이미지_함께면_텍스트만기록() {
+    func test텍스트와이미지_함께면_텍스트만기록() async {
         let fixture = makeFixture(name: "text-and-image")
         defer { fixture.restore() }
         fixture.pasteboard.setItems([["public.utf8-plain-text": "hello", "public.png": makePNGData()]])
@@ -83,12 +83,16 @@ struct ClipboardHistoryPasteboardSynchronizerTests {
         ClipboardHistoryPasteboardSynchronizer.synchronizeIfNeeded(
             store: fixture.store, pasteboard: fixture.pasteboard, decodeMemoryBudget: .max
         )
-
         #expect(fixture.store.load().map(\.id) == ["hello"])
+
+        await recordFollowUpImage(in: fixture)
+
+        // 8px 이미지가 잘못 저장됐다면 뒤따른 16px 이미지보다 먼저 기록되어 여기 함께 남는다
+        #expect(fixture.store.load().compactMap(\.image).map(\.pixelWidth) == [16])
     }
 
     @Test("이미지 기록 설정이 꺼져 있으면 이미지를 기록하지 않고 changeCount만 갱신")
-    func test이미지설정OFF는_기록없음() {
+    func test이미지설정OFF는_기록없음() async {
         let fixture = makeFixture(name: "image-disabled")
         defer { fixture.restore() }
         UserDefaultsManager.shared.isClipboardImageHistoryEnabled = false
@@ -100,6 +104,12 @@ struct ClipboardHistoryPasteboardSynchronizerTests {
 
         #expect(fixture.store.load().isEmpty)
         #expect(UserDefaultsManager.shared.lastSeenPasteboardChangeCount == fixture.pasteboard.changeCount)
+
+        UserDefaultsManager.shared.isClipboardImageHistoryEnabled = true
+        await recordFollowUpImage(in: fixture)
+
+        // 설정이 꺼진 동안의 8px 이미지가 잘못 저장됐다면 여기 함께 남는다
+        #expect(fixture.store.load().compactMap(\.image).map(\.pixelWidth) == [16])
     }
 
     @Test("키보드가 예산 초과로 건너뛰면 기록하지 않고 changeCount를 갱신하며 건너뛴 changeCount를 남김")
@@ -174,11 +184,81 @@ struct ClipboardHistoryPasteboardSynchronizerTests {
 }
 
 /// `body`를 실행하고 `store`가 게시한 `name` 알림이 한 번 올 때까지 기다린다. 동기화기의 백그라운드 이미지 저장이 끝나는 시점을 잡는다.
-/// 반복자를 `body`보다 먼저 만들어 알림을 놓치지 않고, object를 store로 한정해 테스트 호스트 앱이 실제 store로 게시한 알림에 깨어나지 않는다
-private func performAndWait(for name: Notification.Name, from store: ClipboardHistoryStore, _ body: () -> Void) async {
-    let notifications = NotificationCenter.default.notifications(named: name, object: store).makeAsyncIterator()
+/// observer를 `body`보다 먼저 등록해 알림을 놓치지 않고, object를 store로 한정해 테스트 호스트 앱이 실제 store로 게시한 알림에 깨어나지 않는다.
+/// 알림이 끝내 오지 않으면 테스트가 멈추는 대신 실패하도록 상한을 둔다. 상한은 성공 조건이 아니라 정지를 잡기 위한 값이다
+@discardableResult
+private func performAndWait(
+    for name: Notification.Name,
+    from store: ClipboardHistoryStore,
+    timeout: TimeInterval = 30,
+    _ body: () -> Void
+) async -> Bool {
+    let waiter = NotificationWaiter()
+    let observer = NotificationCenter.default.addObserver(forName: name, object: store, queue: nil) { _ in
+        waiter.finish(true)
+    }
+    defer { NotificationCenter.default.removeObserver(observer) }
+
     body()
-    _ = await notifications.next()
+    let didReceive = await withCheckedContinuation { continuation in
+        waiter.setContinuation(continuation)
+        DispatchQueue.global().asyncAfter(deadline: .now() + timeout) { waiter.finish(false) }
+    }
+    #expect(didReceive, "\(name.rawValue) 알림이 \(Int(timeout))초 안에 오지 않음")
+    return didReceive
+}
+
+/// 알림과 상한 중 먼저 온 쪽으로 continuation을 한 번만 재개한다
+private final class NotificationWaiter: @unchecked Sendable {
+    private let lock = NSLock()
+    private var continuation: CheckedContinuation<Bool, Never>?
+    private var result: Bool?
+
+    func setContinuation(_ continuation: CheckedContinuation<Bool, Never>) {
+        lock.lock()
+        if let result {
+            lock.unlock()
+            continuation.resume(returning: result)
+            return
+        }
+        self.continuation = continuation
+        lock.unlock()
+    }
+
+    func finish(_ value: Bool) {
+        lock.lock()
+        guard result == nil else {
+            lock.unlock()
+            return
+        }
+        result = value
+        let pending = continuation
+        continuation = nil
+        lock.unlock()
+        pending?.resume(returning: value)
+    }
+}
+
+/// 이미지 저장은 비동기라 "기록하지 않음"을 호출 직후에 단언하면 저장이 끝나기 전이라 늘 통과한다.
+/// 크기가 다른 이미지를 뒤이어 기록하고 그 완료를 기다려, 앞선 이미지 저장이 시작됐다면 끝났을 시점에 단언하게 한다.
+/// 같은 바이트면 해시가 같아 한 항목으로 합쳐지므로 크기를 다르게 한다.
+/// 같은 pasteboard의 내용을 바꾸면 진행 중이던 앞선 로드가 취소되어 잘못된 기록이 드러나지 않으므로 별도 pasteboard를 쓴다.
+/// 두 로드의 완료 순서는 시스템이 정하므로, 앞선 저장이 후속 이미지보다 늦게 끝나는 경우까지는 잡지 못한다
+private func recordFollowUpImage(in fixture: SyncFixture) async {
+    let name = UIPasteboard.Name("SYKeyboardTests.follow-up.\(UUID().uuidString)")
+    let followUpPasteboard = UIPasteboard(name: name, create: true)!
+    defer { UIPasteboard.remove(withName: name) }
+    followUpPasteboard.setData(makePNGData(side: 16), forPasteboardType: "public.png")
+    // 새 pasteboard의 changeCount가 마지막 확인값과 우연히 같아 건너뛰지 않게 한다
+    UserDefaultsManager.shared.storage.removeObject(forKey: UserDefaultsKeys.lastSeenPasteboardChangeCount)
+
+    await performAndWait(for: ClipboardHistoryPasteboardSynchronizer.didRecordImageNotification, from: fixture.store) {
+        ClipboardHistoryPasteboardSynchronizer.synchronizeIfNeeded(
+            store: fixture.store,
+            pasteboard: followUpPasteboard,
+            decodeMemoryBudget: .max
+        )
+    }
 }
 
 private struct SyncFixture {
@@ -233,14 +313,14 @@ private func makeFixture(name: String) -> SyncFixture {
     )
 }
 
-/// 8×8 PNG 바이트. ImageIO로 인코드해 pasteboard에 넣는다
-private func makePNGData() -> Data {
+/// 정사각형 PNG 바이트(기본 8×8). ImageIO로 인코드해 pasteboard에 넣는다
+private func makePNGData(side: Int = 8) -> Data {
     let context = CGContext(
-        data: nil, width: 8, height: 8, bitsPerComponent: 8, bytesPerRow: 0,
+        data: nil, width: side, height: side, bitsPerComponent: 8, bytesPerRow: 0,
         space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
     )!
     context.setFillColor(red: 1, green: 0, blue: 0, alpha: 1)
-    context.fill(CGRect(x: 0, y: 0, width: 8, height: 8))
+    context.fill(CGRect(x: 0, y: 0, width: side, height: side))
     let data = NSMutableData()
     let destination = CGImageDestinationCreateWithData(data, UTType.png.identifier as CFString, 1, nil)!
     CGImageDestinationAddImage(destination, context.makeImage()!, nil)

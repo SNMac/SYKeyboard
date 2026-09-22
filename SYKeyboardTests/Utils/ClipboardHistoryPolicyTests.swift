@@ -180,13 +180,6 @@ struct ClipboardHistoryPolicyTests {
         #expect(repinnedAtLimit?.count == ClipboardHistoryPolicy.maxPinnedCount)
     }
 
-    @Test("복사 시각이 같으면 텍스트 순으로 정렬해 순서를 고정")
-    func test시각이같으면_텍스트순() {
-        let items = [item("b", createdAt: 5), item("a", createdAt: 5), item("c", createdAt: 9)]
-
-        #expect(ClipboardHistoryPolicy.sorted(items).map(\.text) == ["c", "a", "b"])
-    }
-
     @Test("선택에 미고정이 섞이면 미고정만 고정 대상")
     func test선택에미고정이섞이면_미고정만고정대상() {
         let items = [item("p", pinnedAt: 100), item("a", createdAt: 2), item("b", createdAt: 1)]

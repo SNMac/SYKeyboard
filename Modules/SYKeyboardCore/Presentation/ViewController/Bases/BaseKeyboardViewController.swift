@@ -1813,13 +1813,10 @@ private extension BaseKeyboardViewController {
     func processDeleteMutationResolution(_ resolution: DeleteMutationResolution?) {
         guard let resolution else { return }
 
-        let confirmedPanBoundaryCharacters = KeyboardTextInteractionPolicy
-            .temporaryDeletedCharactersForConfirmedPanBoundary(resolution)
-        tempDeletedCharacters.append(contentsOf: confirmedPanBoundaryCharacters)
-        let shouldApplyMutationEffects =
-            resolution.origin != .panBoundary || !confirmedPanBoundaryCharacters.isEmpty
+        let effects = KeyboardTextInteractionPolicy.mutationResolutionEffects(resolution)
+        tempDeletedCharacters.append(contentsOf: effects.restorableCharacters)
 
-        if shouldApplyMutationEffects,
+        if effects.appliesMutationEffects,
            case .mutations(let drafts) = resolution.completion {
             for draft in drafts {
                 recordUndoRedoChange(
@@ -1828,14 +1825,12 @@ private extension BaseKeyboardViewController {
                 )
             }
         }
-        if shouldApplyMutationEffects && resolution.shouldPlayFeedback {
+        if effects.appliesMutationEffects && resolution.shouldPlayFeedback {
             FeedbackManager.shared.playHaptic()
             FeedbackManager.shared.playDeleteSound()
         }
-        let shouldDiscardLeadingPanLeft =
-            resolution.origin == .panBoundary && resolution.completion == .noDeletion
         resolvePendingDeleteInteractionsIfNeeded(
-            discardingLeadingNoOpPanLeft: shouldDiscardLeadingPanLeft
+            discardingLeadingNoOpPanLeft: effects.discardsLeadingNoOpPanLeft
         )
         drainPendingDeleteInteractionsIfPossible()
     }
@@ -2197,10 +2192,11 @@ private extension BaseKeyboardViewController {
 
     func synchronizeDeleteInteractionInputIdentifier(_ textInput: (any UITextInput)?) {
         let inputIdentifier = textInputIdentifier(for: textInput)
-        if let cancellation = deleteInteractionCoordinator.cancelIfInputIdentifierChanged(
-            to: inputIdentifier
+        if let cancellation = DeleteInteractionInputChangeBoundary.cancelIfInputIdentifierChanged(
+            to: inputIdentifier,
+            lifecycle: &deleteMutationLifecycle,
+            coordinator: &deleteInteractionCoordinator
         ) {
-            deleteMutationLifecycle.cancel()
             finishCancelledDeletePanIfNeeded(cancellation)
         }
         if let inputIdentifier {

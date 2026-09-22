@@ -16,8 +16,9 @@ struct NGramPredictiveTextEngineFileMigrationTests {
         let paths = try makeContainer(name: "legacy-only")
         try writeNGramData(unigram: ["legacy": 3], to: paths.legacyURL)
 
-        let engine = makeEngine(paths: paths, name: "legacy-only")
-        await waitForLoadCompletion(of: engine)
+        let gate = NGramLoadGate()
+        let engine = makeEngine(paths: paths, name: "legacy-only", gate: gate)
+        await gate.finishLoading()
 
         #expect(FileManager.default.fileExists(atPath: paths.fileURL.path))
         #expect(FileManager.default.fileExists(atPath: paths.legacyURL.path) == false)
@@ -30,8 +31,9 @@ struct NGramPredictiveTextEngineFileMigrationTests {
         try writeNGramData(unigram: ["legacy": 3], to: paths.legacyURL)
         try writeNGramData(unigram: ["new": 3], to: paths.fileURL)
 
-        let engine = makeEngine(paths: paths, name: "both")
-        await waitForLoadCompletion(of: engine)
+        let gate = NGramLoadGate()
+        let engine = makeEngine(paths: paths, name: "both", gate: gate)
+        await gate.finishLoading()
 
         #expect(FileManager.default.fileExists(atPath: paths.legacyURL.path))
         #expect(engine.suggestions(for: "") == ["new"])
@@ -42,8 +44,9 @@ struct NGramPredictiveTextEngineFileMigrationTests {
         let paths = try makeContainer(name: "none")
         let saveQueue = DispatchQueue(label: "SYKeyboardTests.ngram.migration.none")
 
-        let engine = makeEngine(paths: paths, name: "none", saveQueue: saveQueue)
-        await waitForLoadCompletion(of: engine)
+        let gate = NGramLoadGate()
+        let engine = makeEngine(paths: paths, name: "none", gate: gate, saveQueue: saveQueue)
+        await gate.finishLoading()
         engine.addWord("hello")
         engine.endSentence()
         saveQueue.sync {}
@@ -58,8 +61,9 @@ struct NGramPredictiveTextEngineFileMigrationTests {
         try writeNGramData(unigram: ["legacy": 3], to: paths.legacyURL)
         try blockApplicationSupportDirectory(in: paths)
 
-        let engine = makeEngine(paths: paths, name: "move-failed")
-        await waitForLoadCompletion(of: engine)
+        let gate = NGramLoadGate()
+        let engine = makeEngine(paths: paths, name: "move-failed", gate: gate)
+        await gate.finishLoading()
 
         #expect(FileManager.default.fileExists(atPath: paths.legacyURL.path))
         #expect(engine.suggestions(for: "") == ["legacy"])
@@ -86,12 +90,6 @@ private struct ContainerPaths {
     let legacyURL: URL
 }
 
-private struct TestNGramData: Codable {
-    var unigram: [String: Int]
-    var bigram: [String: [String: Int]]
-    var trigram: [String: [String: Int]]
-}
-
 private func makeContainer(name: String) throws -> ContainerPaths {
     let containerURL = FileManager.default.temporaryDirectory
         .appendingPathComponent("SYKeyboardTests-\(UUID().uuidString)-\(name)", isDirectory: true)
@@ -111,6 +109,7 @@ private func blockApplicationSupportDirectory(in paths: ContainerPaths) throws {
 private func makeEngine(
     paths: ContainerPaths,
     name: String,
+    gate: NGramLoadGate = NGramLoadGate(),
     saveQueue: DispatchQueue = DispatchQueue(label: "SYKeyboardTests.ngram.migration")
 ) -> NGramPredictiveTextEngine {
     NGramPredictiveTextEngine(
@@ -118,23 +117,7 @@ private func makeEngine(
         fileURL: paths.fileURL,
         legacyFileURL: paths.legacyURL,
         legacyStorage: .standard,
-        loadApplyDelay: .milliseconds(50),
+        loadApplyScheduler: gate.schedule,
         saveQueue: saveQueue
     )
-}
-
-private func writeNGramData(unigram: [String: Int], to url: URL) throws {
-    let encoder = PropertyListEncoder()
-    encoder.outputFormat = .binary
-    let data = try encoder.encode(TestNGramData(unigram: unigram, bigram: [:], trigram: [:]))
-    try FileManager.default.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
-    try data.write(to: url, options: .atomic)
-}
-
-private func waitForLoadCompletion(of engine: NGramPredictiveTextEngine) async {
-    await withCheckedContinuation { continuation in
-        engine.onLoadCompleted = {
-            continuation.resume()
-        }
-    }
 }

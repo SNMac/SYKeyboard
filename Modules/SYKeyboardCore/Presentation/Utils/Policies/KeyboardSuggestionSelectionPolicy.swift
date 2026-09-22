@@ -74,31 +74,6 @@ enum KeyboardSuggestionSelectionPolicy {
         return limitedDocumentContextBeforeInput(documentContextBeforeInput)
     }
 
-    static func textReplacementRestoreDeleteCount(
-        documentText: String,
-        inputBuffer: String,
-        documentContextBeforeInput: String?,
-        selectedText: String?
-    ) -> Int? {
-        guard !documentText.isEmpty else { return nil }
-        if selectedText?.isEmpty == false { return nil }
-
-        if let deleteCount = restoreDeleteCount(
-            in: inputBuffer,
-            documentText: documentText
-        ) {
-            return deleteCount
-        }
-
-        guard inputBuffer.isEmpty,
-              let documentContextBeforeInput else { return nil }
-
-        return restoreDeleteCount(
-            in: documentContextBeforeInput,
-            documentText: documentText
-        )
-    }
-
     static func suggestionUpdateAction(
         isPredictiveTextEnabled: Bool,
         selectedText: String?,
@@ -119,14 +94,4 @@ enum KeyboardSuggestionSelectionPolicy {
         return .update(inputBuffer)
     }
 
-}
-
-private extension KeyboardSuggestionSelectionPolicy {
-
-    static func restoreDeleteCount(
-        in text: String,
-        documentText: String
-    ) -> Int? {
-        return text.hasSuffix(documentText) ? documentText.count : nil
-    }
 }

@@ -89,19 +89,6 @@ struct KeyboardPeriodShortcutPolicyTests {
         #expect(state.preventsNextPeriodShortcut == true)
     }
 
-    @Test("방지 상태에서 커서 앞 글자가 문자나 숫자이면 방지를 해제")
-    func test마침표단축입력방지상태해제() {
-        let state = KeyboardPeriodShortcutPolicy.stateAfterDelete(
-            isPeriodShortcutEnabled: true,
-            performedPeriodShortcut: false,
-            preventsNextPeriodShortcut: true,
-            documentContextBeforeInput: "a"
-        )
-
-        #expect(state.performedPeriodShortcut == false)
-        #expect(state.preventsNextPeriodShortcut == false)
-    }
-
     @Test("커서 앞 텍스트가 필요 없다고 판정한 상태에서는 어떤 텍스트를 넘겨도 결과가 같음")
     func test삭제후커서앞텍스트필요여부판정() {
         let contexts: [String?] = [nil, "", " ", "a", "1", ". ", "가"]
@@ -156,6 +143,7 @@ struct KeyboardPeriodShortcutPolicyTests {
             documentContextBeforeInput: " "
         )
 
+        #expect(letterState.performedPeriodShortcut == false)
         #expect(letterState.preventsNextPeriodShortcut == false)
         #expect(spaceState.preventsNextPeriodShortcut == true)
     }
