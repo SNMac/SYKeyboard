@@ -225,6 +225,40 @@ struct DeleteInteractionCoordinatorTests {
         #expect(harness.coordinator.isWaitingForResolution == false)
     }
 
+    @Test("문서 시작 no-op pan 경계가 확정되면 보류된 선행 left는 버리고 right부터 재생")
+    func testNoOpPanBoundaryResolutionDiscardsLeadingLeftThroughHarness() {
+        var harness = DeleteInteractionStateHarness()
+        let context = KeyboardTextContextSnapshot(beforeInput: "", afterInput: "가나다")
+
+        let didBeginBoundary = harness.beginPanBoundary(context: context)
+        let dispositions = [
+            harness.enqueuePan(.left),
+            harness.enqueuePan(.right),
+            harness.enqueuePan(.left),
+            harness.enqueuePanStop()
+        ]
+        let releaseResolution = harness.lifecycle.finishPanBoundary(
+            currentContext: context,
+            currentSelectedText: nil
+        )
+        #expect(didBeginBoundary)
+        #expect(dispositions == [.enqueued, .enqueued, .enqueued, .enqueued])
+        #expect(releaseResolution == nil)
+
+        let resolution = harness.lifecycle.completeAtCheckpoint(
+            currentContext: context,
+            currentSelectedText: nil
+        )
+        #expect(resolution?.completion == .noDeletion)
+        if let resolution {
+            harness.process(.resolved(resolution))
+        }
+        harness.drain { _, _ in }
+
+        #expect(harness.observedEvents == ["pan:right", "pan:left", "panStop"])
+        #expect(harness.coordinator.currentGeneration == nil)
+    }
+
     @Test("pan boundary 확인 전 이벤트는 FIFO이고 noDeletion은 앞쪽 left만 폐기")
     func testPanBoundaryFIFOAndNoOpLeftDiscard() throws {
         var coordinator = DeleteInteractionCoordinator()

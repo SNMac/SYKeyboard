@@ -372,8 +372,8 @@ final class SuggestionBarView: UIView {
         suggestionScrollView.contentOffset = .zero
         setNeedsLayout()
         applyHighlights()
-        // 후보가 바뀌면 divider 색도 다시 정한다. applyHighlights()가 버튼의 isHighlighted를
-        // 확정한 뒤여야 옳은 색이 나온다. 숨어 있던 divider가 새로 보일 때 직전 하이라이트의
+        // 후보가 바뀌면 divider 색도 다시 정한다. applyHighlights()가 저장한 하이라이트 상태가
+        // 확정된 뒤여야 옳은 색이 나온다. 숨어 있던 divider가 새로 보일 때 직전 하이라이트의
         // .clear를 그대로 들고 나오는 것을 막는다
         updateDividers()
     }

@@ -117,23 +117,25 @@ struct HangeulCompositionStateTests {
         #expect(panDelete?.shouldRestore == false)
     }
 
-    @Test("delete pan 종료는 touchDown 경계 기록을 지워 다음 pan 삭제가 다시 복구 대상이 됨")
+    @Test("delete pan 종료는 touchDown 경계 기록을 지워 다음 pan 삭제가 화면 글자를 그대로 복구 대상으로 삼음")
     func testDeletePan종료_touchDown경계기록초기화() {
         var state = HangeulCompositionState()
         let processor = DubeolsikProcessor(automata: HangeulAutomata())
 
-        ["ㄷ", "ㅗ", "ㅇ", "ㅎ", "ㅐ", "ㅁ", "ㅜ", "ㄹ", "ㄱ", "ㅗ", "ㅏ"].forEach {
+        // '동해물고' → touchDown 삭제로 '동해묽'. 경계 기록은 다음 pan 복구 글자를 '물'로 바꾸도록 남는다
+        ["ㄷ", "ㅗ", "ㅇ", "ㅎ", "ㅐ", "ㅁ", "ㅜ", "ㄹ", "ㄱ", "ㅗ"].forEach {
             _ = state.input($0, using: processor)
         }
         state.beginDeleteButtonTouchDown()
         _ = state.delete(using: processor)
         state.endDeleteButtonTouchDown()
+        #expect(state.text == "동해묽")
 
         state.finishDeleteButtonPan()
         let panDelete = state.deleteButtonPanDelete(using: processor)
 
-        #expect(state.text == "동해물")
-        #expect(panDelete?.character == "고")
+        #expect(state.text == "동해")
+        #expect(panDelete?.character == "묽")
         #expect(panDelete?.shouldRestore == true)
     }
 }
