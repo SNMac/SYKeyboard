@@ -206,7 +206,7 @@ final public class UserDefaultsManager {
     /// 전체 접근 허용 안내 오버레이 닫음 여부
     @UserDefaultsWrapper(key: UserDefaultsKeys.isRequestFullAccessOverlayClosed, defaultValue: DefaultValues.isRequestFullAccessOverlayClosed)
     public var isRequestFullAccessOverlayClosed: Bool
-    /// 마지막으로 확인한 pasteboard changeCount
+    /// 앱·키보드가 pasteboard에 직접 쓴 직후의 changeCount. 동기화는 이 값을 쓰지 않고 비교만 한다
     @UserDefaultsWrapper(key: UserDefaultsKeys.lastSeenPasteboardChangeCount, defaultValue: DefaultValues.lastSeenPasteboardChangeCount)
     public var lastSeenPasteboardChangeCount: Int
     /// 키보드가 디코드 예산 초과로 저장을 건너뛴 pasteboard changeCount
