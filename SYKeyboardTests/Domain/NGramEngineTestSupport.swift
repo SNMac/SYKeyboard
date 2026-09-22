@@ -66,11 +66,17 @@ final class NGramLoadGate: @unchecked Sendable {
     /// 읽은 데이터를 main에서 메모리에 반영한다
     func finishLoading() async {
         await waitForRead()
+        let apply = takePendingApply()
+        await MainActor.run { apply?() }
+    }
+
+    /// async 문맥에서는 NSLock을 직접 잡을 수 없어 동기 함수로 분리한다
+    private func takePendingApply() -> (() -> Void)? {
         lock.lock()
+        defer { lock.unlock() }
         let apply = pendingApply
         pendingApply = nil
-        lock.unlock()
-        await MainActor.run { apply?() }
+        return apply
     }
 }
 
