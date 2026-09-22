@@ -116,8 +116,9 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
     private let fileURL: URL
     /// 컨테이너 루트에 있던 옛 파일 경로. 옮기지 못했을 때 읽기와 초기화에만 쓴다
     private let legacyFileURL: URL?
-    /// 테스트에서 비동기 load 적용 지연을 재현하기 위한 값
-    private let loadApplyDelay: Duration?
+    /// 디스크에서 읽은 데이터를 메모리에 반영할 시점을 정한다. nil이면 main queue에 넘긴다.
+    /// 테스트가 로딩·reset 순서를 고정할 때만 넘기며, 받은 클로저는 main에서 실행해야 한다
+    private let loadApplyScheduler: ((@escaping () -> Void) -> Void)?
 
     /// 성능 계측용 signposter. 인스턴스마다 만들 필요가 없어 타입 프로퍼티로 공유한다
     private static let signposter = OSSignposter(
@@ -192,7 +193,7 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
             fileURL: fileURL,
             legacyFileURL: legacyFileURL,
             legacyStorage: legacyStorage,
-            loadApplyDelay: nil
+            loadApplyScheduler: nil
         )
     }
 
@@ -201,7 +202,7 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
         fileURL: URL,
         legacyFileURL: URL? = nil,
         legacyStorage: UserDefaults,
-        loadApplyDelay: Duration? = nil,
+        loadApplyScheduler: ((@escaping () -> Void) -> Void)? = nil,
         maxKeys: Int = 5000,
         saveQueue: DispatchQueue = DispatchQueue(label: "com.snmac.sykeyboard.ngram.save", qos: .utility)
     ) {
@@ -209,7 +210,7 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
         self.fileURL = fileURL
         self.legacyFileURL = legacyFileURL
         self.legacyStorage = legacyStorage
-        self.loadApplyDelay = loadApplyDelay
+        self.loadApplyScheduler = loadApplyScheduler
         self.maxKeys = maxKeys
         self.saveQueue = saveQueue
         // 로딩·초기화와 경쟁하지 않도록 백그라운드 로딩 전에 옮긴다. 같은 볼륨 안 rename이라 비용이 작다
@@ -262,11 +263,8 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
                 self?.onLoadCompleted?()
             }
 
-            if let loadApplyDelay = self.loadApplyDelay {
-                Task { @MainActor in
-                    try? await Task.sleep(for: loadApplyDelay)
-                    applyLoadedData()
-                }
+            if let loadApplyScheduler = self.loadApplyScheduler {
+                loadApplyScheduler(applyLoadedData)
             } else {
                 DispatchQueue.main.async(execute: applyLoadedData)
             }

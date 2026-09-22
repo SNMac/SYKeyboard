@@ -16,15 +16,16 @@ struct NGramPredictiveTextEngineLoadingTests {
     @Test("로딩 전에 기록한 단어는 로딩 완료 후 학습에 반영")
     func test로딩전기록한단어는_로딩완료후_학습에반영() async throws {
         let url = temporaryFileURL(name: "pending-word.plist")
+        let gate = NGramLoadGate()
         let engine = NGramPredictiveTextEngine(
             language: "test-pending-word",
             fileURL: url,
             legacyStorage: .standard,
-            loadApplyDelay: .milliseconds(100)
+            loadApplyScheduler: gate.schedule
         )
 
         engine.addWord("hello")
-        await waitForLoadCompletion(of: engine)
+        await gate.finishLoading()
 
         #expect(engine.suggestions(for: "") == ["hello"])
     }
@@ -38,15 +39,18 @@ struct NGramPredictiveTextEngineLoadingTests {
             trigram: [:],
             to: url
         )
+        let gate = NGramLoadGate()
         let engine = NGramPredictiveTextEngine(
             language: "test-reset-generation",
             fileURL: url,
             legacyStorage: .standard,
-            loadApplyDelay: .milliseconds(100)
+            loadApplyScheduler: gate.schedule
         )
 
+        // 디스크를 읽은 뒤, 메모리에 반영하기 전에 초기화한다
+        await gate.waitForRead()
         engine.resetAllData()
-        try await Task.sleep(for: .milliseconds(200))
+        await gate.finishLoading()
 
         #expect(engine.suggestions(for: "") == [])
         #expect(FileManager.default.fileExists(atPath: url.path) == false)

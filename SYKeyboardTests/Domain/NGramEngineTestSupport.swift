@@ -20,23 +20,57 @@ func makeLoadedNGramFixture(name: String, maxKeys: Int = 5000) async -> NGramEng
     let url = FileManager.default.temporaryDirectory
         .appendingPathComponent("SYKeyboardTests-\(UUID().uuidString)-\(name).plist")
     let saveQueue = DispatchQueue(label: "SYKeyboardTests.ngram.save.\(name)")
+    let gate = NGramLoadGate()
     let engine = NGramPredictiveTextEngine(
         language: "test-\(name)",
         fileURL: url,
         legacyStorage: .standard,
-        loadApplyDelay: .milliseconds(50),
+        loadApplyScheduler: gate.schedule,
         maxKeys: maxKeys,
         saveQueue: saveQueue
     )
-    await waitForLoadCompletion(of: engine)
+    await gate.finishLoading()
     return NGramEngineFixture(engine: engine, url: url, saveQueue: saveQueue)
 }
 
-func waitForLoadCompletion(of engine: NGramPredictiveTextEngine) async {
-    await withCheckedContinuation { continuation in
-        engine.onLoadCompleted = {
-            continuation.resume()
+/// 엔진이 디스크를 읽은 뒤 메모리 반영을 테스트가 정한 시점까지 미룬다.
+/// `NGramPredictiveTextEngine(loadApplyScheduler: gate.schedule)`로 넘긴다
+final class NGramLoadGate: @unchecked Sendable {
+    private let lock = NSLock()
+    private var pendingApply: (() -> Void)?
+    private var readWaiter: CheckedContinuation<Void, Never>?
+
+    func schedule(_ apply: @escaping () -> Void) {
+        lock.lock()
+        pendingApply = apply
+        let waiter = readWaiter
+        readWaiter = nil
+        lock.unlock()
+        waiter?.resume()
+    }
+
+    /// 디스크 읽기가 끝날 때까지 기다린다. 아직 메모리에는 반영되지 않은 상태다
+    func waitForRead() async {
+        await withCheckedContinuation { continuation in
+            lock.lock()
+            if pendingApply != nil {
+                lock.unlock()
+                continuation.resume()
+            } else {
+                readWaiter = continuation
+                lock.unlock()
+            }
         }
+    }
+
+    /// 읽은 데이터를 main에서 메모리에 반영한다
+    func finishLoading() async {
+        await waitForRead()
+        lock.lock()
+        let apply = pendingApply
+        pendingApply = nil
+        lock.unlock()
+        await MainActor.run { apply?() }
     }
 }
 
