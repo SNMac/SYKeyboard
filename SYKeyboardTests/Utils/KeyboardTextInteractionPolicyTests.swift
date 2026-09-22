@@ -148,6 +148,68 @@ struct KeyboardTextInteractionPolicyTests {
         )
     }
 
+    @Test("pan boundary에서 아무것도 지우지 못한 resolution만 효과를 건너뛰고 선행 no-op left를 버림")
+    func testMutationResolutionEffects() {
+        let noDeletionAtPanBoundary = DeleteMutationResolution(
+            completion: .noDeletion,
+            origin: .panBoundary,
+            shouldPlayFeedback: false
+        )
+        let newlineAtPanBoundary = DeleteMutationResolution(
+            completion: .mutations([
+                RepeatDeleteMutationDraft(deletedText: "\n", insertedText: "", reliability: .authoritative)
+            ]),
+            origin: .panBoundary,
+            shouldPlayFeedback: true
+        )
+        let nonNewlineAtPanBoundary = DeleteMutationResolution(
+            completion: .mutations([
+                RepeatDeleteMutationDraft(deletedText: "가", insertedText: "", reliability: .authoritative)
+            ]),
+            origin: .panBoundary,
+            shouldPlayFeedback: true
+        )
+        let noDeletionAtTouchDown = DeleteMutationResolution(
+            completion: .noDeletion,
+            origin: .touchDown,
+            shouldPlayFeedback: false
+        )
+
+        #expect(
+            KeyboardTextInteractionPolicy.mutationResolutionEffects(noDeletionAtPanBoundary)
+            == DeleteMutationResolutionEffects(
+                restorableCharacters: [],
+                appliesMutationEffects: false,
+                discardsLeadingNoOpPanLeft: true
+            )
+        )
+        #expect(
+            KeyboardTextInteractionPolicy.mutationResolutionEffects(newlineAtPanBoundary)
+            == DeleteMutationResolutionEffects(
+                restorableCharacters: ["\n"],
+                appliesMutationEffects: true,
+                discardsLeadingNoOpPanLeft: false
+            )
+        )
+        // pan 경계 확정은 "\n" 한 건으로 확정된 경우에만 기록·피드백을 적용한다
+        #expect(
+            KeyboardTextInteractionPolicy.mutationResolutionEffects(nonNewlineAtPanBoundary)
+            == DeleteMutationResolutionEffects(
+                restorableCharacters: [],
+                appliesMutationEffects: false,
+                discardsLeadingNoOpPanLeft: false
+            )
+        )
+        #expect(
+            KeyboardTextInteractionPolicy.mutationResolutionEffects(noDeletionAtTouchDown)
+            == DeleteMutationResolutionEffects(
+                restorableCharacters: [],
+                appliesMutationEffects: true,
+                discardsLeadingNoOpPanLeft: false
+            )
+        )
+    }
+
     @Test("단일 삭제 기록 문자는 비어 있지 않은 선택 텍스트를 원문으로 우선 사용")
     func test단일삭제기록문자() {
         #expect(

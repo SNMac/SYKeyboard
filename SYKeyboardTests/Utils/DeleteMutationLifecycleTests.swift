@@ -763,7 +763,7 @@ struct DeleteMutationLifecycleTests {
     @MainActor
     @Test("active captured 요청의 관련 없는 callback은 generation과 FIFO를 취소")
     func testActiveCapturedRequestUnrelatedCallbackCancelsGeneration() {
-        var harness = DeleteInteractionIntegrationHarness()
+        var harness = DeleteInteractionStateHarness()
         let button = DeleteButton(keyboard: .dubeolsik)
         let request = KeyboardTextContextSnapshot(beforeInput: "가", afterInput: "")
         _ = harness.beginTouchDown(button: button, context: request)

@@ -145,7 +145,7 @@ struct DeleteInteractionCoordinatorTests {
 
     @Test("panStop 뒤 late callback이 줄바꿈을 확정한 후 tracking을 종료")
     func testPanStopBeforeLateCallbackConfirmsNewlineAndFinishesTracking() {
-        var harness = DeleteInteractionIntegrationHarness()
+        var harness = DeleteInteractionStateHarness()
         let requestContext = KeyboardTextContextSnapshot(beforeInput: "", afterInput: "라마바")
 
         let didBeginBoundary = harness.beginPanBoundary(context: requestContext)
@@ -175,7 +175,7 @@ struct DeleteInteractionCoordinatorTests {
             harness.panFinishCount += 1
         }
 
-        #expect(harness.temporaryDeletedCharacters == ["\n"])
+        #expect(harness.tempDeletedCharacters == ["\n"])
         #expect(harness.panFinishCount == 1)
         #expect(harness.lifecycle.isPending == false)
         #expect(harness.coordinator.currentGeneration == nil)
@@ -184,7 +184,7 @@ struct DeleteInteractionCoordinatorTests {
 
     @Test("문서 시작 panStop no-op은 후속 checkpoint에서 coordinator를 정리")
     func testDocumentStartPanStopNoOpCheckpointCleansCoordinator() {
-        var harness = DeleteInteractionIntegrationHarness()
+        var harness = DeleteInteractionStateHarness()
         let context = KeyboardTextContextSnapshot(beforeInput: "", afterInput: "가나다")
 
         let didBeginBoundary = harness.beginPanBoundary(context: context)
@@ -408,7 +408,7 @@ struct DeleteInteractionCoordinatorTests {
 
     @Test("non-delete mutation 경계는 lifecycle과 coordinator를 함께 취소")
     func testNonDeleteMutationBoundaryCancelsLifecycleAndCoordinator() {
-        var harness = DeleteInteractionIntegrationHarness()
+        var harness = DeleteInteractionStateHarness()
         let button = DeleteButton(keyboard: .dubeolsik)
         let context = KeyboardTextContextSnapshot(beforeInput: "가", afterInput: "")
         _ = harness.beginTouchDown(button: button, context: context)
@@ -432,7 +432,7 @@ struct DeleteInteractionCoordinatorTests {
 
     @Test("focus 변경 뒤 늦은 callback은 새 입력 대상을 mutate하지 않음")
     func testFocusChangeDoesNotMutateNewInputIdentifier() {
-        var harness = DeleteInteractionIntegrationHarness()
+        var harness = DeleteInteractionStateHarness()
         let button = DeleteButton(keyboard: .dubeolsik)
         let firstInput = DeleteButton(keyboard: .dubeolsik)
         let secondInput = DeleteButton(keyboard: .dubeolsik)
@@ -471,13 +471,19 @@ struct DeleteInteractionCoordinatorTests {
 
 /// `DeleteMutationLifecycleTests`의 통합 시나리오도 함께 쓰므로 파일 밖에서 보이게 둔다
 @MainActor
-struct DeleteInteractionIntegrationHarness {
+/// `DeleteInteractionCoordinator`와 `DeleteMutationLifecycle`을 VC와 같은 순서로 묶어 돌리는 조합 상태 harness.
+///
+/// proxy·피드백·undo 기록은 없다. resolution의 효과와 취소 경계는 VC와 같은 production policy
+/// (`KeyboardTextInteractionPolicy.mutationResolutionEffects`, `DeleteInteraction*Boundary`)로 계산한다
+struct DeleteInteractionStateHarness {
     var coordinator = DeleteInteractionCoordinator()
     var lifecycle = DeleteMutationLifecycle()
     var observedDispositions: [DeleteInteractionDisposition] = []
     var observedEvents: [String] = []
     var observedOutcomes: [DeleteMutationCallbackOutcome] = []
-    var temporaryDeletedCharacters: [Character] = []
+    /// VC의 `tempDeletedCharacters`에 해당
+    var tempDeletedCharacters: [Character] = []
+    /// production이 pan tracking 종료를 요구한 횟수(`shouldFinishPanTracking`과 재생된 panStop)
     var panFinishCount = 0
 
     private var isDraining = false
@@ -553,12 +559,13 @@ struct DeleteInteractionIntegrationHarness {
         case .noResolution:
             return
         case .resolved(let resolution):
-            temporaryDeletedCharacters.append(
-                contentsOf: KeyboardTextInteractionPolicy
-                    .temporaryDeletedCharactersForConfirmedPanBoundary(resolution)
-            )
+            let effects = KeyboardTextInteractionPolicy.mutationResolutionEffects(resolution)
+            tempDeletedCharacters.append(contentsOf: effects.restorableCharacters)
             guard let generation = coordinator.currentGeneration else { return }
-            _ = coordinator.resolve(generation)
+            _ = coordinator.resolve(
+                generation,
+                discardingLeadingNoOpPanLeft: effects.discardsLeadingNoOpPanLeft
+            )
         case .cancelled:
             cancel()
         }
@@ -574,10 +581,11 @@ struct DeleteInteractionIntegrationHarness {
     }
 
     mutating func cancelForInputIdentifierChange(to inputIdentifier: ObjectIdentifier?) {
-        guard let result = coordinator.cancelIfInputIdentifierChanged(to: inputIdentifier) else {
-            return
-        }
-        lifecycle.cancel()
+        guard let result = DeleteInteractionInputChangeBoundary.cancelIfInputIdentifierChanged(
+            to: inputIdentifier,
+            lifecycle: &lifecycle,
+            coordinator: &coordinator
+        ) else { return }
         finishPanIfNeeded(result)
     }
 
@@ -587,7 +595,7 @@ struct DeleteInteractionIntegrationHarness {
     }
 
     mutating func drain(
-        handle: (inout DeleteInteractionIntegrationHarness, PendingDeleteInteractionEvent) -> Void
+        handle: (inout DeleteInteractionStateHarness, PendingDeleteInteractionEvent) -> Void
     ) {
         guard !isDraining else { return }
 

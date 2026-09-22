@@ -35,6 +35,32 @@ enum DeleteInteractionNonDeleteMutationBoundary {
     }
 }
 
+/// 입력 대상이 바뀌면 진행 중인 삭제 요청을 함께 취소한다. 대상이 같으면 `nil`
+enum DeleteInteractionInputChangeBoundary {
+
+    static func cancelIfInputIdentifierChanged(
+        to inputIdentifier: ObjectIdentifier?,
+        lifecycle: inout DeleteMutationLifecycle,
+        coordinator: inout DeleteInteractionCoordinator
+    ) -> DeleteInteractionCancellationResult? {
+        guard let cancellation = coordinator.cancelIfInputIdentifierChanged(to: inputIdentifier) else {
+            return nil
+        }
+        lifecycle.cancel()
+        return cancellation
+    }
+}
+
+/// 확정된 삭제 mutation resolution이 VC에 요구하는 효과
+struct DeleteMutationResolutionEffects: Equatable {
+    /// pan 경계에서 확정된 줄바꿈처럼 복구 스택에 쌓을 글자
+    let restorableCharacters: [Character]
+    /// undo 기록과 피드백을 적용할지. pan 경계에서 아무것도 지우지 못했으면 적용하지 않는다
+    let appliesMutationEffects: Bool
+    /// coordinator를 resolve할 때 선행 no-op pan left를 버릴지
+    let discardsLeadingNoOpPanLeft: Bool
+}
+
 struct DeleteInteractionCoordinator {
 
     // MARK: - Properties
@@ -961,6 +987,17 @@ enum KeyboardTextInteractionPolicy {
         return hasText
             && (documentContextBeforeInput ?? "").isEmpty
             && (selectedText ?? "").isEmpty
+    }
+
+    static func mutationResolutionEffects(
+        _ resolution: DeleteMutationResolution
+    ) -> DeleteMutationResolutionEffects {
+        let restorableCharacters = temporaryDeletedCharactersForConfirmedPanBoundary(resolution)
+        return DeleteMutationResolutionEffects(
+            restorableCharacters: restorableCharacters,
+            appliesMutationEffects: resolution.origin != .panBoundary || !restorableCharacters.isEmpty,
+            discardsLeadingNoOpPanLeft: resolution.origin == .panBoundary && resolution.completion == .noDeletion
+        )
     }
 
     static func temporaryDeletedCharactersForConfirmedPanBoundary(
