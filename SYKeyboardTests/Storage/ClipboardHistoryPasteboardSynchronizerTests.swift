@@ -24,7 +24,9 @@ struct ClipboardHistoryPasteboardSynchronizerTests {
 
         ClipboardHistoryPasteboardSynchronizer.synchronizeIfNeeded(store: fixture.store, pasteboard: fixture.pasteboard)
         #expect(fixture.store.load().map(\.text) == ["hello"])
-        #expect(UserDefaultsManager.shared.lastSeenPasteboardChangeCount == fixture.pasteboard.changeCount)
+        #expect(ClipboardHistoryPasteboardSynchronizer.processLastSeenPasteboardChangeCount == fixture.pasteboard.changeCount)
+        // 공유 값은 직접 쓴 경우에만 맞춘다. 동기화가 쓰면 다른 프로세스가 자기 카운터와 비교해 새 복사를 건너뛸 수 있다
+        #expect(UserDefaultsManager.shared.lastSeenPasteboardChangeCount == DefaultValues.lastSeenPasteboardChangeCount)
 
         fixture.store.removeAll()
         ClipboardHistoryPasteboardSynchronizer.synchronizeIfNeeded(store: fixture.store, pasteboard: fixture.pasteboard)
@@ -33,6 +35,83 @@ struct ClipboardHistoryPasteboardSynchronizerTests {
         fixture.pasteboard.string = "world"
         ClipboardHistoryPasteboardSynchronizer.synchronizeIfNeeded(store: fixture.store, pasteboard: fixture.pasteboard)
         #expect(fixture.store.load().map(\.text) == ["world"])
+    }
+
+    @Test("다른 프로세스가 공유 확인값을 다른 changeCount로 덮어써도 이 프로세스가 이미 본 내용은 다시 읽지 않음")
+    func test다른프로세스가_공유확인값을덮어써도_다시읽지않음() {
+        let fixture = makeFixture(name: "other-process")
+        defer { fixture.restore() }
+        fixture.pasteboard.string = "hello"
+        ClipboardHistoryPasteboardSynchronizer.synchronizeIfNeeded(store: fixture.store, pasteboard: fixture.pasteboard)
+        fixture.store.removeAll()
+
+        // 키보드 extension이 자기에게 보인 다른 changeCount로 공유 값을 덮어쓴 상황
+        UserDefaultsManager.shared.lastSeenPasteboardChangeCount = fixture.pasteboard.changeCount + 100
+        ClipboardHistoryPasteboardSynchronizer.synchronizeIfNeeded(store: fixture.store, pasteboard: fixture.pasteboard)
+        #expect(fixture.store.load().isEmpty)
+
+        fixture.pasteboard.string = "world"
+        ClipboardHistoryPasteboardSynchronizer.synchronizeIfNeeded(store: fixture.store, pasteboard: fixture.pasteboard)
+        #expect(fixture.store.load().map(\.text) == ["world"])
+    }
+
+    @Test("다른 프로세스가 이미 읽은 changeCount여도 이 프로세스가 본 적 없으면 읽음")
+    func test다른프로세스가읽은값이어도_이프로세스는읽음() {
+        let fixture = makeFixture(name: "other-process-read")
+        defer { fixture.restore() }
+        fixture.pasteboard.string = "hello"
+        ClipboardHistoryPasteboardSynchronizer.synchronizeIfNeeded(store: fixture.store, pasteboard: fixture.pasteboard)
+        fixture.store.removeAll()
+
+        // 확인값이 없는 다른 프로세스(번들). 카운터가 프로세스마다 달라 이 값이 새 복사일 수 있으므로 건너뛰면 안 된다
+        UserDefaults.standard.removeObject(forKey: UserDefaultsKeys.processLastSeenPasteboardChangeCount)
+        ClipboardHistoryPasteboardSynchronizer.synchronizeIfNeeded(store: fixture.store, pasteboard: fixture.pasteboard)
+
+        #expect(fixture.store.load().map(\.text) == ["hello"])
+    }
+
+    @Test("다른 프로세스가 맞춰 둔 공유 확인값과 같으면 이 프로세스도 읽지 않음")
+    func test공유확인값과같으면_읽지않음() {
+        let fixture = makeFixture(name: "shared-seen")
+        defer { fixture.restore() }
+        fixture.pasteboard.string = "hello"
+        // 앱이나 키보드가 직접 복사한 뒤 공유 값을 맞춰 둔 상황
+        UserDefaultsManager.shared.lastSeenPasteboardChangeCount = fixture.pasteboard.changeCount
+
+        ClipboardHistoryPasteboardSynchronizer.synchronizeIfNeeded(store: fixture.store, pasteboard: fixture.pasteboard)
+
+        #expect(fixture.store.load().isEmpty)
+        #expect(ClipboardHistoryPasteboardSynchronizer.processLastSeenPasteboardChangeCount == fixture.pasteboard.changeCount)
+    }
+
+    @Test("이 프로세스의 확인값은 App Group이 아니라 프로세스별 standard 저장소의 키에 저장")
+    func test프로세스확인값_저장위치와키() {
+        let fixture = makeFixture(name: "process-key")
+        defer { fixture.restore() }
+        let key = UserDefaultsKeys.processLastSeenPasteboardChangeCount
+        #expect(key == "processLastSeenPasteboardChangeCount")
+        #expect(ClipboardHistoryPasteboardSynchronizer.processLastSeenPasteboardChangeCount == -1)
+
+        fixture.pasteboard.string = "hello"
+        ClipboardHistoryPasteboardSynchronizer.synchronizeIfNeeded(store: fixture.store, pasteboard: fixture.pasteboard)
+
+        #expect(UserDefaults.standard.integer(forKey: key) == fixture.pasteboard.changeCount)
+        #expect(UserDefaultsManager.shared.storage.object(forKey: key) == nil)
+    }
+
+    @Test("텍스트도 이미지도 없는 pasteboard는 확인값을 갱신하지 않음")
+    func test빈pasteboard는_확인값을갱신하지않음() {
+        let fixture = makeFixture(name: "empty")
+        defer { fixture.restore() }
+        fixture.pasteboard.string = "hello"
+        ClipboardHistoryPasteboardSynchronizer.synchronizeIfNeeded(store: fixture.store, pasteboard: fixture.pasteboard)
+        let seenChangeCount = fixture.pasteboard.changeCount
+
+        fixture.pasteboard.items = []
+        #expect(fixture.pasteboard.changeCount != seenChangeCount)
+        ClipboardHistoryPasteboardSynchronizer.synchronizeIfNeeded(store: fixture.store, pasteboard: fixture.pasteboard)
+
+        #expect(ClipboardHistoryPasteboardSynchronizer.processLastSeenPasteboardChangeCount == seenChangeCount)
     }
 
     @Test("concealed 타입이 있는 항목은 기록하지 않고 changeCount만 갱신")
@@ -47,7 +126,7 @@ struct ClipboardHistoryPasteboardSynchronizerTests {
         ClipboardHistoryPasteboardSynchronizer.synchronizeIfNeeded(store: fixture.store, pasteboard: fixture.pasteboard)
 
         #expect(fixture.store.load().isEmpty)
-        #expect(UserDefaultsManager.shared.lastSeenPasteboardChangeCount == fixture.pasteboard.changeCount)
+        #expect(ClipboardHistoryPasteboardSynchronizer.processLastSeenPasteboardChangeCount == fixture.pasteboard.changeCount)
     }
 
     @Test("텍스트 없이 이미지만 있으면 파일로 받아 이미지 항목을 기록하고 완료 알림을 게시")
@@ -71,7 +150,7 @@ struct ClipboardHistoryPasteboardSynchronizerTests {
         #expect(reference.pixelWidth == 8)
         #expect(FileManager.default.fileExists(atPath: fixture.store.imageStore!.originalURL(for: reference).path))
         #expect(FileManager.default.fileExists(atPath: fixture.store.imageStore!.thumbnailURL(for: reference).path))
-        #expect(UserDefaultsManager.shared.lastSeenPasteboardChangeCount == fixture.pasteboard.changeCount)
+        #expect(ClipboardHistoryPasteboardSynchronizer.processLastSeenPasteboardChangeCount == fixture.pasteboard.changeCount)
     }
 
     @Test("텍스트와 이미지가 함께 있으면 텍스트만 기록")
@@ -103,7 +182,7 @@ struct ClipboardHistoryPasteboardSynchronizerTests {
         )
 
         #expect(fixture.store.load().isEmpty)
-        #expect(UserDefaultsManager.shared.lastSeenPasteboardChangeCount == fixture.pasteboard.changeCount)
+        #expect(ClipboardHistoryPasteboardSynchronizer.processLastSeenPasteboardChangeCount == fixture.pasteboard.changeCount)
 
         UserDefaultsManager.shared.isClipboardImageHistoryEnabled = true
         await recordFollowUpImage(in: fixture)
@@ -127,7 +206,7 @@ struct ClipboardHistoryPasteboardSynchronizerTests {
         }
 
         #expect(fixture.store.load().isEmpty)
-        #expect(UserDefaultsManager.shared.lastSeenPasteboardChangeCount == fixture.pasteboard.changeCount)
+        #expect(ClipboardHistoryPasteboardSynchronizer.processLastSeenPasteboardChangeCount == fixture.pasteboard.changeCount)
         #expect(UserDefaultsManager.shared.budgetSkippedPasteboardChangeCount == fixture.pasteboard.changeCount)
     }
 
@@ -136,8 +215,8 @@ struct ClipboardHistoryPasteboardSynchronizerTests {
         let fixture = makeFixture(name: "budget-retry")
         defer { fixture.restore() }
         fixture.pasteboard.setData(makePNGData(), forPasteboardType: "public.png")
-        // 키보드가 이미 확인했고 예산 초과로 건너뛴 상태
-        UserDefaultsManager.shared.lastSeenPasteboardChangeCount = fixture.pasteboard.changeCount
+        // 이 프로세스가 이미 확인했고 키보드가 예산 초과로 건너뛴 상태
+        ClipboardHistoryPasteboardSynchronizer.processLastSeenPasteboardChangeCount = fixture.pasteboard.changeCount
         UserDefaultsManager.shared.budgetSkippedPasteboardChangeCount = fixture.pasteboard.changeCount
 
         // 다시 시도 플래그가 없으면(키보드) 같은 changeCount는 건너뛴다
@@ -166,7 +245,7 @@ struct ClipboardHistoryPasteboardSynchronizerTests {
         let fixture = makeFixture(name: "budget-retry-skip")
         defer { fixture.restore() }
         fixture.pasteboard.setData(makePNGData(), forPasteboardType: "public.png")
-        UserDefaultsManager.shared.lastSeenPasteboardChangeCount = fixture.pasteboard.changeCount
+        ClipboardHistoryPasteboardSynchronizer.processLastSeenPasteboardChangeCount = fixture.pasteboard.changeCount
         UserDefaultsManager.shared.budgetSkippedPasteboardChangeCount = fixture.pasteboard.changeCount
 
         await performAndWait(for: ClipboardHistoryPasteboardSynchronizer.didSkipImageForBudgetNotification, from: fixture.store) {
@@ -251,6 +330,7 @@ private func recordFollowUpImage(in fixture: SyncFixture) async {
     followUpPasteboard.setData(makePNGData(side: 16), forPasteboardType: "public.png")
     // 새 pasteboard의 changeCount가 마지막 확인값과 우연히 같아 건너뛰지 않게 한다
     UserDefaultsManager.shared.storage.removeObject(forKey: UserDefaultsKeys.lastSeenPasteboardChangeCount)
+    UserDefaults.standard.removeObject(forKey: UserDefaultsKeys.processLastSeenPasteboardChangeCount)
 
     await performAndWait(for: ClipboardHistoryPasteboardSynchronizer.didRecordImageNotification, from: fixture.store) {
         ClipboardHistoryPasteboardSynchronizer.synchronizeIfNeeded(
@@ -267,6 +347,7 @@ private struct SyncFixture {
     let imageDirectoryURL: URL
     let pasteboard: UIPasteboard
     let originalChangeCount: Any?
+    let originalProcessChangeCount: Any?
     let originalBudgetSkipped: Any?
     let originalImageEnabled: Any?
 
@@ -276,6 +357,11 @@ private struct SyncFixture {
             storage.set(originalChangeCount, forKey: UserDefaultsKeys.lastSeenPasteboardChangeCount)
         } else {
             storage.removeObject(forKey: UserDefaultsKeys.lastSeenPasteboardChangeCount)
+        }
+        if let originalProcessChangeCount {
+            UserDefaults.standard.set(originalProcessChangeCount, forKey: UserDefaultsKeys.processLastSeenPasteboardChangeCount)
+        } else {
+            UserDefaults.standard.removeObject(forKey: UserDefaultsKeys.processLastSeenPasteboardChangeCount)
         }
         if let originalBudgetSkipped {
             storage.set(originalBudgetSkipped, forKey: UserDefaultsKeys.budgetSkippedPasteboardChangeCount)
@@ -300,15 +386,18 @@ private func makeFixture(name: String) -> SyncFixture {
     let pasteboard = UIPasteboard(name: UIPasteboard.Name("SYKeyboardTests.\(name).\(UUID().uuidString)"), create: true)!
     let storage = UserDefaultsManager.shared.storage
     let originalChangeCount = storage.object(forKey: UserDefaultsKeys.lastSeenPasteboardChangeCount)
+    let originalProcessChangeCount = UserDefaults.standard.object(forKey: UserDefaultsKeys.processLastSeenPasteboardChangeCount)
     let originalBudgetSkipped = storage.object(forKey: UserDefaultsKeys.budgetSkippedPasteboardChangeCount)
     let originalImageEnabled = storage.object(forKey: UserDefaultsKeys.isClipboardImageHistoryEnabled)
     storage.removeObject(forKey: UserDefaultsKeys.lastSeenPasteboardChangeCount)
+    UserDefaults.standard.removeObject(forKey: UserDefaultsKeys.processLastSeenPasteboardChangeCount)
     storage.removeObject(forKey: UserDefaultsKeys.budgetSkippedPasteboardChangeCount)
     storage.removeObject(forKey: UserDefaultsKeys.isClipboardImageHistoryEnabled)
     let store = ClipboardHistoryStore(fileURL: url, imageStore: ClipboardImageStore(directoryURL: imageDirectoryURL))
     return SyncFixture(
         store: store, fileURL: url, imageDirectoryURL: imageDirectoryURL, pasteboard: pasteboard,
-        originalChangeCount: originalChangeCount, originalBudgetSkipped: originalBudgetSkipped,
+        originalChangeCount: originalChangeCount, originalProcessChangeCount: originalProcessChangeCount,
+        originalBudgetSkipped: originalBudgetSkipped,
         originalImageEnabled: originalImageEnabled
     )
 }

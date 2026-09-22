@@ -81,8 +81,10 @@ public enum UserDefaultsKeys {
     public static let lastHangeulEnglishLanguageMode = "lastHangeulEnglishLanguageMode"
     /// 전체 접근 허용 안내 오버레이 닫음 여부
     public static let isRequestFullAccessOverlayClosed = "isRequestFullAccessOverlayClosed"
-    /// 마지막으로 확인한 pasteboard changeCount 저장용
+    /// 앱·키보드가 pasteboard에 직접 쓴 직후의 changeCount. 동기화는 이 값을 쓰지 않고 비교만 한다
     public static let lastSeenPasteboardChangeCount = "lastSeenPasteboardChangeCount"
+    /// 이 프로세스가 마지막으로 확인한 pasteboard changeCount. App Group이 아니라 프로세스별 `UserDefaults.standard`에 저장한다
+    public static let processLastSeenPasteboardChangeCount = "processLastSeenPasteboardChangeCount"
     /// 키보드가 디코드 예산 초과로 저장을 건너뛴 pasteboard changeCount. 앱이 같은 값을 보면 앱 예산으로 다시 시도한다
     public static let budgetSkippedPasteboardChangeCount = "budgetSkippedPasteboardChangeCount"
 }

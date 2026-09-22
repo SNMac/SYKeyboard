@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import OSLog
 
 /// 시스템 pasteboard의 최신 텍스트 또는 이미지를 클립보드 기록에 반영한다. 키보드 extension과 앱이 함께 쓴다
 ///
@@ -22,13 +23,28 @@ public enum ClipboardHistoryPasteboardSynchronizer {
     /// 이미지가 예산 초과로 건너뛰어져 앱의 재시도에 맡겨진 직후 main 스레드에서 게시한다. 기록 알림의 짝이 되는 결과 이벤트다
     public static let didSkipImageForBudgetNotification = Notification.Name("ClipboardHistoryPasteboardSynchronizer.didSkipImageForBudget")
 
+    /// 이 프로세스가 마지막으로 확인한 changeCount. 프로세스마다 changeCount가 다르게 보일 수 있어
+    /// App Group이 아니라 프로세스(번들)별 `UserDefaults.standard`에 둔다
+    static var processLastSeenPasteboardChangeCount: Int {
+        get {
+            UserDefaults.standard.object(forKey: UserDefaultsKeys.processLastSeenPasteboardChangeCount) as? Int
+            ?? DefaultValues.lastSeenPasteboardChangeCount
+        }
+        set { UserDefaults.standard.set(newValue, forKey: UserDefaultsKeys.processLastSeenPasteboardChangeCount) }
+    }
+
+    private static let logger = Logger(
+        subsystem: Bundle.main.bundleIdentifier ?? "Unknown Bundle", category: "ClipboardHistoryPasteboardSynchronizer"
+    )
+
     /// 해시·썸네일 생성을 자판 입력(main)과 경쟁하지 않는 낮은 우선순위로, 한 번에 하나씩 처리한다
     private static let imageProcessingQueue = DispatchQueue(
         label: "com.snmac.sykeyboard.clipboard-image-processing",
         qos: .utility
     )
 
-    /// pasteboard의 `changeCount`가 마지막 확인값과 다를 때만 내용을 읽어 `store`에 기록한다
+    /// pasteboard의 `changeCount`가 이 프로세스가 마지막으로 확인한 값과도, 앱·키보드가 직접 쓴 값과도 다를 때만
+    /// 내용을 읽어 `store`에 기록한다
     ///
     /// 키보드가 디코드 예산 초과로 건너뛴 이미지는 `budgetSkippedPasteboardChangeCount`에 남고, `retriesBudgetSkipped`가 참인
     /// 호출(앱)은 그 changeCount를 이미 확인했더라도 한 번 더 읽어 앱 예산으로 저장한다.
@@ -48,9 +64,25 @@ public enum ClipboardHistoryPasteboardSynchronizer {
     ) {
         let changeCount = pasteboard.changeCount
         let isBudgetRetry = retriesBudgetSkipped && changeCount == settings.budgetSkippedPasteboardChangeCount
-        guard changeCount != settings.lastSeenPasteboardChangeCount || isBudgetRetry else { return }
+        // 앱과 키보드 extension은 같은 순간에도 서로 다른 changeCount를 본다(#145). 그래서 확인한 값은 이 프로세스에만
+        // 남긴다. 공유 값에 쓰면 다른 프로세스가 그 값을 자기 카운터와 비교해, 같은 내용을 다시 읽어 배너를 반복해 띄우거나
+        // 우연히 같은 값이 된 새 복사를 건너뛴다. 공유 값은 앱·키보드가 pasteboard에 직접 쓴 직후에만 맞춰 두고 여기서는 비교만 한다
+        let processLastSeen = processLastSeenPasteboardChangeCount
+        let hasSeen = changeCount == settings.lastSeenPasteboardChangeCount || changeCount == processLastSeen
+        guard !hasSeen || isBudgetRetry else {
+            if processLastSeen != changeCount { processLastSeenPasteboardChangeCount = changeCount }
+            return
+        }
+        // 텍스트도 이미지도 없게 보일 때는 확인한 값으로 치지 않는다. 키보드는 잠시 이렇게 보였다가 원래 값으로 돌아오는데,
+        // 이 값을 저장하면 돌아왔을 때 이미 기록한 내용을 다시 읽는다. 읽을 것이 없으므로 기록에는 영향이 없다
+        guard pasteboard.hasStrings || pasteboard.hasImages else { return }
+        // 내용이 있는데 이 프로세스가 본 값보다 작으면 재부팅이나 프로세스별 카운터 차이다. 확인값이 우연히 겹쳐
+        // 새 복사를 건너뛰는 일이 실제로 생길 수 있는지 보려고 남긴다(#145)
+        if processLastSeen >= 0, changeCount < processLastSeen {
+            logger.notice("changeCount 역행: \(processLastSeen) → \(changeCount)")
+        }
         // 읽기 실패나 저장 제외여도 같은 값을 반복해 읽지 않도록 먼저 갱신한다. 건너뜀 표시도 여기서 소비한다
-        settings.lastSeenPasteboardChangeCount = changeCount
+        processLastSeenPasteboardChangeCount = changeCount
         settings.budgetSkippedPasteboardChangeCount = DefaultValues.budgetSkippedPasteboardChangeCount
 
         guard !pasteboard.contains(pasteboardTypes: [concealedPasteboardType]) else { return }
