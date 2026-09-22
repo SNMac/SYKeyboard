@@ -51,29 +51,6 @@ struct HangeulDeleteButtonDragScenarioTests {
         assertTouchDown선삭제후_전체복구(sim, expectedTouchDownText: "동해묽", expectedRestoredText: "동해물고")
     }
 
-    @Test("두벌식 삭제 버튼 드래그 복구: '동해물고' touchDown 후 조합 버퍼의 '물'을 보존")
-    func test두벌식_삭제버튼드래그_동해물고_touchDown후_물누락방지() {
-        let sim = HangeulCompositionTestHarness(
-            processor: DubeolsikProcessor(automata: automata)
-        )
-
-        sim.setDeleteDragStateForTesting(
-            committed: "동해",
-            composing: "물ㄱ",
-            deletedCharacters: ["고"]
-        )
-
-        while !sim.text.isEmpty {
-            sim.dragDeleteLeft()
-        }
-        #expect(sim.text == "")
-
-        for _ in "동해물고" {
-            sim.dragRestoreRight()
-        }
-        #expect(sim.text == "동해물고", "touchDown으로 삭제된 '고'가 있어도 조합 버퍼의 '물'은 복구 대상에 포함되어야 합니다.")
-    }
-
     @Test("두벌식 삭제 버튼 드래그 복구: '동해물과' touchDown으로 생긴 '동해물고' 전체 복구")
     func test두벌식_삭제버튼드래그_동해물과_touchDown후_동해물고_전체복구() {
         let sim = HangeulCompositionTestHarness(

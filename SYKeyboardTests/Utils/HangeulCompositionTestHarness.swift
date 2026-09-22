@@ -8,16 +8,20 @@
 import Testing
 
 @testable import HangeulKeyboardCore
+@testable import SYKeyboardCore
 
 /// production `HangeulCompositionState` 기반 입력 상태 시나리오를 실행하는 테스트 harness
 ///
 /// `textDocumentProxy` 등 iOS 시스템 의존성 없이 production 조합 상태 전이를 직접 검증합니다.
+/// 삭제 드래그 복구 스택은 `BaseKeyboardViewController.tempDeletedCharacters`와 같은 규칙으로 쌓는다.
 final class HangeulCompositionTestHarness {
 
     // MARK: - Properties
 
     private let processor: HangeulProcessable
     private var state = HangeulCompositionState()
+    /// 삭제 드래그로 지운 글자. 오른쪽 드래그가 뒤에서부터 꺼내 복구한다
+    private var tempDeletedCharacters: [Character] = []
 
     /// 조합이 완료되어 더 이상 변경되지 않는 문자열
     var committedBuffer: String { state.committedBuffer }
@@ -48,9 +52,9 @@ final class HangeulCompositionTestHarness {
         state.delete(using: processor)
     }
 
-    /// 반복 입력
-    func repeatInsert(_ char: String) {
-        state.repeatInsert(char, using: processor)
+    /// 반복 입력. 마지막 입력 글자를 다시 넣는다
+    func repeatInsert() {
+        state.repeatInsert(using: processor)
     }
 
     /// 반복 삭제
@@ -58,36 +62,31 @@ final class HangeulCompositionTestHarness {
         state.repeatDelete(using: processor)
     }
 
-    /// 삭제 버튼 touchDown
+    /// 삭제 버튼 touchDown. 화면 마지막 글자를 복구 스택에 쌓고 단일 삭제한다
     func deleteButtonTouchDown() {
-        state.deleteButtonTouchDown(using: processor)
-    }
-
-    /// 삭제 버튼 드래그 중간 상태 세팅 (회귀 테스트용)
-    func setDeleteDragStateForTesting(
-        committed: String,
-        composing: String,
-        deletedCharacters: [Character],
-        shouldSkipNextDeletePanRestore: Bool = true,
-        nextDeletePanRestoreReplacement: Character? = nil
-    ) {
-        state.setDeleteDragState(
-            committed: committed,
-            composing: composing,
-            deletedCharacters: deletedCharacters,
-            shouldSkipNextDeletePanRestore: shouldSkipNextDeletePanRestore,
-            nextDeletePanRestoreReplacement: nextDeletePanRestoreReplacement
+        tempDeletedCharacters.append(
+            contentsOf: KeyboardTextInteractionPolicy.temporaryDeletedCharactersForSingleDelete(
+                selectedText: nil,
+                documentContextBeforeInput: text
+            )
         )
+        state.beginDeleteButtonTouchDown()
+        state.delete(using: processor)
+        state.endDeleteButtonTouchDown()
     }
 
     /// 삭제 버튼 왼쪽 드래그
     func dragDeleteLeft() {
-        state.deleteButtonPanDelete(using: processor)
+        guard let result = state.deleteButtonPanDelete(using: processor) else { return }
+        if result.shouldRestore {
+            tempDeletedCharacters.append(result.character)
+        }
     }
 
     /// 삭제 버튼 오른쪽 드래그
     func dragRestoreRight() {
-        state.deleteButtonPanRestoreLast(using: processor)
+        guard let character = tempDeletedCharacters.popLast() else { return }
+        state.deleteButtonPanRestore(character, using: processor)
     }
 
     /// 반복 삭제 종료 후 끌어오기

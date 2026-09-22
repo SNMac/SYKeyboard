@@ -98,25 +98,6 @@ struct HangeulCompositionStateTests {
         #expect(state.composingBuffer.isEmpty)
     }
 
-    @Test("delete touchDown 후 pan 삭제는 복구 문자를 한 번만 기록함")
-    func testDeleteTouchDown후Pan복구중복방지() {
-        var state = HangeulCompositionState()
-        let processor = DubeolsikProcessor(automata: HangeulAutomata())
-
-        _ = state.input("ㄷ", using: processor)
-        _ = state.input("ㅗ", using: processor)
-        _ = state.input("ㄴ", using: processor)
-
-        let touchDown = state.deleteButtonTouchDown(using: processor)
-        let panDelete = state.deleteButtonPanDelete(using: processor)
-
-        #expect(touchDown.deletedCharacter == "돈")
-        #expect(touchDown.transition.proxyEdit == .replace(deleteCount: 1, insertText: "도"))
-        #expect(panDelete?.character == "도")
-        #expect(panDelete?.shouldRestore == false)
-        #expect(state.temporaryDeletedCharacters == ["돈"])
-    }
-
     @Test("delete touchDown 경계 기록은 controller 삭제 흐름의 첫 pan 복구 정책을 보존함")
     func testDeleteTouchDown경계기록_첫Pan복구정책() {
         var state = HangeulCompositionState()
@@ -132,29 +113,27 @@ struct HangeulCompositionStateTests {
         let panDelete = state.deleteButtonPanDelete(using: processor)
 
         #expect(delete.proxyEdit == .replace(deleteCount: 1, insertText: "고"))
-        #expect(state.temporaryDeletedCharacters.isEmpty)
         #expect(panDelete?.character == "고")
         #expect(panDelete?.shouldRestore == false)
     }
 
-    @Test("delete pan 종료는 임시 복구 상태만 초기화함")
-    func testDeletePan종료_임시복구상태초기화() {
+    @Test("delete pan 종료는 touchDown 경계 기록을 지워 다음 pan 삭제가 다시 복구 대상이 됨")
+    func testDeletePan종료_touchDown경계기록초기화() {
         var state = HangeulCompositionState()
         let processor = DubeolsikProcessor(automata: HangeulAutomata())
 
-        state.setDeleteDragState(
-            committed: "가",
-            composing: "",
-            deletedCharacters: ["나"],
-            shouldSkipNextDeletePanRestore: true,
-            nextDeletePanRestoreReplacement: "다"
-        )
+        ["ㄷ", "ㅗ", "ㅇ", "ㅎ", "ㅐ", "ㅁ", "ㅜ", "ㄹ", "ㄱ", "ㅗ", "ㅏ"].forEach {
+            _ = state.input($0, using: processor)
+        }
+        state.beginDeleteButtonTouchDown()
+        _ = state.delete(using: processor)
+        state.endDeleteButtonTouchDown()
 
         state.finishDeleteButtonPan()
+        let panDelete = state.deleteButtonPanDelete(using: processor)
 
-        #expect(state.committedBuffer == "가")
-        #expect(state.composingBuffer == "")
-        #expect(state.temporaryDeletedCharacters.isEmpty)
-        #expect(state.deleteButtonPanRestoreLast(using: processor) == nil)
+        #expect(state.text == "동해물")
+        #expect(panDelete?.character == "고")
+        #expect(panDelete?.shouldRestore == true)
     }
 }

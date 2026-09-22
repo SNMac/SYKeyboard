@@ -25,8 +25,8 @@ struct DubeolsikCompositionScenarioTests {
         )
         
         sim.input("ㄱ")
-        sim.repeatInsert("ㄱ")
-        sim.repeatInsert("ㄱ")
+        sim.repeatInsert()
+        sim.repeatInsert()
         #expect(sim.text == "ㄱㄱㄱ")
         
         sim.input("ㅣ")
@@ -40,8 +40,8 @@ struct DubeolsikCompositionScenarioTests {
         )
         
         sim.input("ㅏ")
-        sim.repeatInsert("ㅏ")
-        sim.repeatInsert("ㅏ")
+        sim.repeatInsert()
+        sim.repeatInsert()
         #expect(sim.text == "ㅏㅏㅏ")
         
         sim.input("ㄴ")
@@ -50,7 +50,7 @@ struct DubeolsikCompositionScenarioTests {
     
     // MARK: - 2. 반복 삭제 후 끌어오기
     
-    @Test("반복 삭제 후 조합: '개ㅐㅐㅏㅏ' -> 반복 삭제 -> '개' -> 'ㄴ' -> '갠'")
+    @Test("반복 삭제 후 조합: '개ㅐㅏㅏ' -> 반복 삭제 -> '개' -> 'ㄴ' -> '갠'")
     func test반복삭제후_끌어오기_조합() {
         let sim = HangeulCompositionTestHarness(
             processor: DubeolsikProcessor(automata: automata)
@@ -59,10 +59,9 @@ struct DubeolsikCompositionScenarioTests {
         // '개' 입력
         sim.input("ㄱ"); sim.input("ㅐ") // 개
         
-        // ㅐ 반복 입력
-        sim.repeatInsert("ㅐ")
-        sim.repeatInsert("ㅏ")
-        sim.repeatInsert("ㅏ")
+        sim.repeatInsert() // 개ㅐ
+        sim.input("ㅏ")    // 개ㅐㅏ
+        sim.repeatInsert() // 개ㅐㅏㅏ
         #expect(sim.text == "개ㅐㅏㅏ")
         
         // 반복 삭제로 '개'까지
