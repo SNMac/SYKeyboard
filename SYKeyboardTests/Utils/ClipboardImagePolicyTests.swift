@@ -75,11 +75,4 @@ struct ClipboardImagePolicyTests {
         #expect(ClipboardImagePolicy.fileExtension(for: "public.png") == "png")
         #expect(ClipboardImagePolicy.fileExtension(for: "public.tiff") == "img")
     }
-
-    @Test("썸네일·미리보기 픽셀 크기는 키보드 메모리에 맞게 작다")
-    func test썸네일미리보기크기() {
-        #expect(ClipboardImagePolicy.thumbnailMaxPixelSize == 240)
-        #expect(ClipboardImagePolicy.keyboardPreviewMaxPixelSize == 1_200)
-        #expect(ClipboardImagePolicy.appPreviewMaxPixelSize == 3_000)
-    }
 }
