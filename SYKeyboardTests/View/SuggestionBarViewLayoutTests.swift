@@ -76,57 +76,6 @@ struct SuggestionBarViewLayoutTests {
         #expect(visibleSuggestionTexts(in: fixture.bar) == ["\"hel\"", "hello", "help"])
     }
 
-    @Test("후보가 3칸을 채워야 마지막 후보가 오른쪽 끝 구분선을 지움")
-    func test후보가3칸을채워야_마지막후보가_오른쪽끝구분선을지움() {
-        let fixture = makeSuggestionBarFixture(acceptsRemoval: false)
-        fixture.bar.updateUndoRedoControls(isVisible: true, canUndo: true, canRedo: true)
-        // 스택이 undo/redo 자리를 잡아야 후보 뷰포트 폭이 확정된다. 한 번의 레이아웃으로는
-        // 후보 버튼이 기능 버튼을 숨겼던 폭 그대로 남으므로 한 번 더 돌린다
-        fixture.bar.layoutIfNeeded()
-        fixture.bar.setNeedsLayout()
-        fixture.bar.layoutIfNeeded()
-
-        let divider = trailingSuggestionAreaDivider(in: fixture.bar)
-        #expect(divider != nil)
-
-        // 후보 3개: 마지막 후보가 오른쪽 끝 divider와 인접하므로 누르면 지운다
-        let lastOfThree = typedSuggestionButtonViews(in: fixture.bar)[2]
-        fixture.bar.beginTouchInteraction(at: center(of: lastOfThree, in: fixture.bar))
-        #expect(lastOfThree.isHighlighted)
-        #expect(divider?.backgroundColor == UIColor.clear)
-        fixture.bar.cancelTouchInteraction()
-
-        // 후보 1개: 그 후보는 0번 열이라 오른쪽 끝 divider와 인접하지 않는다
-        fixture.bar.updateSuggestions(currentWord: nil, suggestions: ["안농"])
-        fixture.bar.layoutIfNeeded()
-
-        let onlyButton = typedSuggestionButtonViews(in: fixture.bar)[0]
-        fixture.bar.beginTouchInteraction(at: center(of: onlyButton, in: fixture.bar))
-
-        #expect(onlyButton.isHighlighted)
-        #expect(divider?.backgroundColor == UIColor.suggestionDividerColor)
-    }
-
-    @Test("후보가 갱신되면 후보 사이 구분선 색도 함께 갱신됨")
-    func test후보가갱신되면_후보사이구분선색도함께갱신됨() {
-        let fixture = makeBoundaryFixture(suggestionCount: 3)
-        let buttons = typedSuggestionButtonViews(in: fixture.bar)
-
-        // 마지막 후보를 누르면 그 앞 divider가 지워진다
-        fixture.bar.beginTouchInteraction(at: center(of: buttons[2], in: fixture.bar))
-        #expect(buttons[2].isHighlighted)
-        #expect(suggestionDividers(in: fixture.bar)[1].backgroundColor == UIColor.clear)
-
-        // 후보가 1개로 줄면 눌린 인덱스가 범위를 벗어나 하이라이트가 사라진다.
-        // 빈 칸에도 divider는 남으므로(3칸 격자) 색이 낡은 채로 보이면 안 된다
-        fixture.bar.updateSuggestions(currentWord: nil, suggestions: ["안농"])
-
-        let dividers = suggestionDividers(in: fixture.bar)
-        #expect(dividers.count >= 2)
-        #expect(dividers[1].isHidden == false)
-        #expect(dividers[1].backgroundColor == UIColor.suggestionDividerColor)
-    }
-
     @Test("후보가 없으면 후보 칸이 하나도 남지 않음")
     func test후보가없으면_후보칸이하나도남지않음() {
         let fixture = makeSuggestionBarFixture(acceptsRemoval: false)
@@ -188,39 +137,15 @@ struct SuggestionBarViewLayoutTests {
     }
 }
 
-/// 후보 영역 오른쪽에 붙은 바 끝 divider. 후보 스크롤 뷰의 형제 중 스크롤 뷰보다 오른쪽에 있는
-/// 가장 가까운 순수 `UIView`다. undo/redo 버튼은 별도 타입이라 걸러진다
-private func trailingSuggestionAreaDivider(in bar: UIView) -> UIView? {
-    var scrollView: UIScrollView?
-    var stack: [UIView] = bar.subviews
-    while let view = stack.popLast() {
-        if let found = view as? UIScrollView {
-            scrollView = found
-            break
-        }
-        stack.append(contentsOf: view.subviews)
-    }
-
-    guard let scrollView, let container = scrollView.superview else { return nil }
-
-    return container.subviews
-        .filter {
-            type(of: $0) == UIView.self
-                && !$0.isHidden
-                && $0.frame.minX >= scrollView.frame.maxX
-        }
-        .min { $0.frame.minX < $1.frame.minX }
-}
-
 private func visibleSuggestionTexts(in bar: UIView) -> [String] {
     return typedSuggestionButtonViews(in: bar)
         .filter { !$0.isHidden && $0.hasText }
         .compactMap { $0.text }
 }
 
-/// 후보 스크롤 뷰. 아래 divider 헬퍼들의 기준점이다.
+/// 후보 스크롤 뷰.
 ///
-/// 이 헬퍼들은 production의 private subview 구조에 의존한다. 구조가 바뀌어 여기서 nil이 나오면
+/// production의 private subview 구조에 의존한다. 구조가 바뀌어 여기서 nil이 나오면
 /// 억지로 맞춰 고치지 말고 관련 테스트를 지우고 실기기 수동 확인으로 옮긴다
 private func suggestionScrollView(in bar: UIView) -> UIScrollView? {
     var stack: [UIView] = bar.subviews
@@ -231,38 +156,4 @@ private func suggestionScrollView(in bar: UIView) -> UIScrollView? {
         stack.append(contentsOf: view.subviews)
     }
     return nil
-}
-
-/// 클립보드·undo·redo 버튼과 경계 divider가 모두 보이는 fixture
-@MainActor
-private func makeBoundaryFixture(suggestionCount: Int) -> SuggestionBarFixture {
-    let fixture = makeSuggestionBarFixture(acceptsRemoval: false)
-    fixture.bar.updateSuggestions(
-        currentWord: nil,
-        suggestions: (1...suggestionCount).map { "단어\($0)" }
-    )
-    fixture.bar.updateClipboardControl(isVisible: true, isPanelVisible: false)
-    fixture.bar.updateUndoRedoControls(isVisible: true, canUndo: true, canRedo: true)
-    // 스택이 기능 버튼 자리를 잡아야 후보 뷰포트 폭이 확정된다. 한 번의 레이아웃으로는
-    // 후보 버튼이 기능 버튼을 숨겼던 폭 그대로 남으므로 한 번 더 돌린다
-    fixture.bar.layoutIfNeeded()
-    fixture.bar.setNeedsLayout()
-    fixture.bar.layoutIfNeeded()
-
-    return SuggestionBarFixture(
-        bar: fixture.bar,
-        keyboardHStackView: fixture.keyboardHStackView,
-        delegate: fixture.delegate,
-        buttons: typedSuggestionButtonViews(in: fixture.bar)
-    )
-}
-
-/// 후보 사이 divider. 스크롤 뷰 안의 순수 `UIView`를 왼쪽부터 돌려준다
-private func suggestionDividers(in bar: UIView) -> [UIView] {
-    guard let scrollView = suggestionScrollView(in: bar),
-          let content = scrollView.subviews.first else { return [] }
-
-    return content.subviews
-        .filter { type(of: $0) == UIView.self }
-        .sorted { $0.frame.minX < $1.frame.minX }
 }

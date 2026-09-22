@@ -20,6 +20,81 @@ struct SuggestionDividerPolicyTests {
         #expect(SuggestionDividerPolicy.dividerCount(forSuggestionCount: 3) == 2)
         #expect(SuggestionDividerPolicy.dividerCount(forSuggestionCount: 10) == 9)
     }
+
+    @Test("하이라이트된 후보 양옆 divider를 지우고, 첫·마지막 후보면 경계 divider도 지움")
+    func test하이라이트된후보양옆divider를지우고_첫마지막후보면경계도지움() {
+        #expect(
+            cleared(suggestion: 1, suggestionCount: 3)
+            == .init(leadingBoundary: false, trailingBoundary: false, undoRedoMiddle: false, pooled: [0, 1])
+        )
+        #expect(
+            cleared(suggestion: 0, suggestionCount: 3)
+            == .init(leadingBoundary: true, trailingBoundary: false, undoRedoMiddle: false, pooled: [0])
+        )
+        #expect(
+            cleared(suggestion: 2, suggestionCount: 3)
+            == .init(leadingBoundary: false, trailingBoundary: true, undoRedoMiddle: false, pooled: [1, 2])
+        )
+        #expect(
+            cleared(suggestion: 9, suggestionCount: 10)
+            == .init(leadingBoundary: false, trailingBoundary: true, undoRedoMiddle: false, pooled: [8, 9])
+        )
+    }
+
+    @Test("후보가 3칸을 채우지 못하면 마지막 후보는 오른쪽 끝 divider와 인접하지 않음")
+    func test후보가3칸을채우지못하면_마지막후보는오른쪽끝divider와인접하지않음() {
+        // 후보 1개: 0번 열이라 왼쪽 경계만 지운다
+        #expect(
+            cleared(suggestion: 0, suggestionCount: 1)
+            == .init(leadingBoundary: true, trailingBoundary: false, undoRedoMiddle: false, pooled: [0])
+        )
+        #expect(
+            cleared(suggestion: 1, suggestionCount: 2)
+            == .init(leadingBoundary: false, trailingBoundary: false, undoRedoMiddle: false, pooled: [0, 1])
+        )
+    }
+
+    @Test("뷰포트 밖에 나간 후보는 경계 divider를 지우지 않지만 후보 사이 divider는 지움")
+    func test뷰포트밖후보는_경계divider를지우지않음() {
+        #expect(
+            cleared(suggestion: 9, suggestionCount: 10, isVisible: false)
+            == .init(leadingBoundary: false, trailingBoundary: false, undoRedoMiddle: false, pooled: [8, 9])
+        )
+        #expect(
+            cleared(suggestion: 0, suggestionCount: 10, isVisible: false)
+            == .init(leadingBoundary: false, trailingBoundary: false, undoRedoMiddle: false, pooled: [0])
+        )
+    }
+
+    @Test("기능 버튼이 눌리면 그 버튼에 붙은 divider만 지움")
+    func test기능버튼이눌리면_그버튼에붙은divider만지움() {
+        #expect(
+            cleared(action: 0)
+            == .init(leadingBoundary: true, trailingBoundary: false, undoRedoMiddle: false, pooled: [])
+        )
+        #expect(
+            cleared(action: 1)
+            == .init(leadingBoundary: false, trailingBoundary: true, undoRedoMiddle: true, pooled: [])
+        )
+        #expect(
+            cleared(action: 2)
+            == .init(leadingBoundary: false, trailingBoundary: false, undoRedoMiddle: true, pooled: [])
+        )
+        #expect(cleared(action: nil) == .init())
+    }
+
+    private func cleared(
+        suggestion: Int? = nil,
+        action: Int? = nil,
+        suggestionCount: Int = 3,
+        isVisible: Bool = true
+    ) -> SuggestionDividerPolicy.ClearedDividers {
+        SuggestionDividerPolicy.clearedDividers(
+            highlight: .init(highlightedSuggestionIndex: suggestion, highlightedActionIndex: action),
+            isHighlightedSuggestionVisible: isVisible,
+            suggestionCount: suggestionCount
+        )
+    }
 }
 
 @Suite("자동완성 highlight 정책 검증")
