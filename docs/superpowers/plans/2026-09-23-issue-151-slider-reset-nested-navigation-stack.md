@@ -311,7 +311,7 @@ EOF
 )"
 ```
 
-- [ ] **Step 2: 길게 누르기 입력·커서 이동 화면의 스택을 걷어낸다**
+- [x] **Step 2: 길게 누르기 입력·커서 이동 화면의 스택을 걷어낸다**
 
 두 파일 모두 27번째 줄 `NavigationStack {` → `VStack {` 한 줄만 바꾼다. `List` 안쪽의 `.navigationTitle`·`.navigationBarTitleDisplayMode`·`.requestReviewOnDetailSettingsReturn()`과 바깥 `.onDisappear`는 그대로 둔다.
 
@@ -359,6 +359,8 @@ EOF
 ```
 
 빌드해 `exit=0`을 확인하고 커밋한다.
+
+결과: 같은 명령(iOS 18.6) → `exit=0`, `** BUILD SUCCEEDED **`, error 없음. `.xcscheme` 부수 변경 없음.
 
 ```sh
 git add SYKeyboard/Presentation/KeyboardSettings/LongPressSettingsView.swift \
