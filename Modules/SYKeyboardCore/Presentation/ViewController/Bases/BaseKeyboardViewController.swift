@@ -752,7 +752,8 @@ open class BaseKeyboardViewController: UIInputViewController {
         self.view.layoutIfNeeded()
     }
 
-    /// 미리보기는 `setKeyboardHeight()`를 거치지 않으므로 숫자 행 높이를 직접 갱신한다
+    /// 미리보기는 `setKeyboardHeight()`를 거치지 않으므로 숫자 행 높이를 직접 갱신한다.
+    /// 주 자판과 기호 자판에 같은 높이를 전달하며, 숫자 행이 없는 뷰는 무시한다
     public func updateNumberRowHeightForPreview(to height: CGFloat) {
         updateNumberRowHeight(height)
         self.view.layoutIfNeeded()
