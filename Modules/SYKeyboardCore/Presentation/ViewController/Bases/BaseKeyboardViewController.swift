@@ -1015,7 +1015,6 @@ private extension BaseKeyboardViewController {
         // extension이 살아 있는 동안 설정이 바뀌어도 뷰와 프레임 높이가 어긋나지 않는다
         let numberRowHeight = KeyboardHeightPolicy.numberRowHeight(
             isEnabled: primaryKeyboardViews.contains { $0.showsNumberRow },
-            primaryKeyboards: primaryKeyboardViews.map(\.keyboard),
             isPortrait: isPortrait
         )
         primaryKeyboardViews.forEach { $0.updateNumberRowHeight(numberRowHeight) }

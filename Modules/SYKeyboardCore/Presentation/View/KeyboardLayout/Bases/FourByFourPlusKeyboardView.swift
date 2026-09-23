@@ -25,13 +25,15 @@ open class FourByFourPlusKeyboardView: UIView {
     open var secondaryKeyList: [[[String]]] { fatalError("프로퍼티가 오버라이딩 되지 않았습니다.") }
     
     public private(set) lazy var allButtonList: [BaseKeyboardButton] = primaryButtonList + secondaryButtonList
-    public private(set) lazy var primaryButtonList: [PrimaryButton] = firstRowPrimaryKeyButtonList + secondRowPrimaryKeyButtonList + thirdRowPrimaryKeyButtonList + fourthRowPrimaryKeyButtonList + [spaceButton]
+    public private(set) lazy var primaryButtonList: [PrimaryButton] = numberRowPrimaryKeyButtonList + firstRowPrimaryKeyButtonList + secondRowPrimaryKeyButtonList + thirdRowPrimaryKeyButtonList + fourthRowPrimaryKeyButtonList + [spaceButton]
     public private(set) lazy var secondaryButtonList: [SecondaryButton] = [deleteButton, returnButton, secondaryAtButton, secondarySharpButton, switchButton, nextKeyboardButton]
     + [languageSwitchButton].compactMap { $0 as SecondaryButton? }
-    public private(set) lazy var totalTextInterableButtonList: [TextInteractable] = firstRowPrimaryKeyButtonList + secondRowPrimaryKeyButtonList + thirdRowPrimaryKeyButtonList + fourthRowPrimaryKeyButtonList
+    public private(set) lazy var totalTextInterableButtonList: [TextInteractable] = numberRowPrimaryKeyButtonList + firstRowPrimaryKeyButtonList + secondRowPrimaryKeyButtonList + thirdRowPrimaryKeyButtonList + fourthRowPrimaryKeyButtonList
     + [deleteButton, spaceButton, returnButton, secondaryAtButton, secondarySharpButton]
 
     private let showsLanguageSwitchButton: Bool
+    /// 숫자 행 표시 여부
+    public let showsNumberRow: Bool
     /// 스페이스를 맨 아랫줄로 내리는 배치 사용 여부.
     /// `SwitchGestureHandling` 요구사항이므로 `public`이어야 한다
     public let usesBottomSpaceLayout: Bool
@@ -60,6 +62,10 @@ open class FourByFourPlusKeyboardView: UIView {
     /// 키보드 네번째 우측 `SecondaryButton` 행
     private let fourthRowRightSecondaryButtonHStackView = KeyboardRowHStackView()
     
+    /// 숫자 행
+    private lazy var numberRow = KeyboardNumberRow(isEnabled: showsNumberRow)
+    /// 숫자 행 `PrimaryKeyButton` 배열. 숫자 행이 꺼져 있으면 비어 있다
+    private var numberRowPrimaryKeyButtonList: [PrimaryKeyButton] { numberRow.buttonList }
     /// 키보드 첫번째 행 `PrimaryKeyButton` 배열
     private lazy var firstRowPrimaryKeyButtonList = zip(primaryKeyList[0], secondaryKeyList[0]).map { (primary, secondary) in
         PrimaryKeyButton(
@@ -126,9 +132,11 @@ open class FourByFourPlusKeyboardView: UIView {
     // MARK: - Initializer
     
     public init(showsLanguageSwitchButton: Bool = false,
-                usesBottomSpaceLayout: Bool = false) {
+                usesBottomSpaceLayout: Bool = false,
+                showsNumberRow: Bool = UserDefaultsManager.shared.showsNumberRow) {
         self.showsLanguageSwitchButton = showsLanguageSwitchButton
         self.usesBottomSpaceLayout = usesBottomSpaceLayout
+        self.showsNumberRow = showsNumberRow
         super.init(frame: .zero)
         setupUI()
     }
@@ -151,6 +159,10 @@ extension FourByFourPlusKeyboardView {
     /// 숨김 상태 변경이 같은 레이아웃 패스에 반영되도록 무효화는 해야 한다
     public func nextKeyboardButtonVisibilityDidChange(needsInputModeSwitchKey: Bool) {
         setNeedsLayout()
+    }
+
+    public func updateNumberRowHeight(_ height: CGFloat) {
+        numberRow.updateHeight(height)
     }
 
     /// 글자 열 너비 배율을 다시 적용합니다.
@@ -229,11 +241,11 @@ private extension FourByFourPlusKeyboardView {
     func setConstraints() {
         layoutVStackView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
-            layoutVStackView.topAnchor.constraint(equalTo: self.topAnchor),
             layoutVStackView.leadingAnchor.constraint(equalTo: self.leadingAnchor),
             layoutVStackView.trailingAnchor.constraint(equalTo: self.trailingAnchor),
             layoutVStackView.bottomAnchor.constraint(equalTo: self.bottomAnchor)
         ])
+        numberRow.install(in: self, above: layoutVStackView)
 
         // 4열 폭 비율은 컨트롤러가 관리한다
         columnWidthLayoutController.install(

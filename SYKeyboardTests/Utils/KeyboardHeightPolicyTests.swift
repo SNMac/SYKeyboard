@@ -141,24 +141,16 @@ struct KeyboardHeightPolicyTests {
         #expect(KeyboardHeightPolicy.landscapeNumberRowHeight == 35)
     }
 
-    @Test("숫자 행 설정이 꺼져 있으면 두벌식·쿼티여도 숫자 행 높이는 0")
+    @Test("숫자 행 설정이 꺼져 있으면 숫자 행 높이는 0")
     func test숫자행_설정꺼짐() {
-        #expect(KeyboardHeightPolicy.numberRowHeight(isEnabled: false, primaryKeyboards: [.qwerty], isPortrait: true) == 0)
-        #expect(KeyboardHeightPolicy.numberRowHeight(isEnabled: false, primaryKeyboards: [.dubeolsik], isPortrait: false) == 0)
+        #expect(KeyboardHeightPolicy.numberRowHeight(isEnabled: false, isPortrait: true) == 0)
+        #expect(KeyboardHeightPolicy.numberRowHeight(isEnabled: false, isPortrait: false) == 0)
     }
 
-    @Test("숫자 행 설정이 켜져 있어도 두벌식·쿼티가 없으면 0")
-    func test숫자행_4x4만있음() {
-        #expect(KeyboardHeightPolicy.numberRowHeight(isEnabled: true, primaryKeyboards: [.naratgeul], isPortrait: true) == 0)
-        #expect(KeyboardHeightPolicy.numberRowHeight(isEnabled: true, primaryKeyboards: [.cheonjiin], isPortrait: false) == 0)
-    }
-
-    @Test("두벌식·쿼티가 하나라도 있으면 방향별 숫자 행 높이를 반환")
+    @Test("숫자 행 설정이 켜져 있으면 자판 종류와 상관없이 방향별 숫자 행 높이를 반환")
     func test숫자행_방향별높이() {
-        #expect(KeyboardHeightPolicy.numberRowHeight(isEnabled: true, primaryKeyboards: [.dubeolsik], isPortrait: true) == 46.5)
-        #expect(KeyboardHeightPolicy.numberRowHeight(isEnabled: true, primaryKeyboards: [.qwerty], isPortrait: false) == 35)
-        // 한영 통합: 4x4 한글 + 쿼티
-        #expect(KeyboardHeightPolicy.numberRowHeight(isEnabled: true, primaryKeyboards: [.naratgeul, .qwerty], isPortrait: true) == 46.5)
+        #expect(KeyboardHeightPolicy.numberRowHeight(isEnabled: true, isPortrait: true) == 46.5)
+        #expect(KeyboardHeightPolicy.numberRowHeight(isEnabled: true, isPortrait: false) == 35)
     }
 
     @Test("세로 화면 숫자 행은 설정 높이와 자동완성 바 위에 더함")

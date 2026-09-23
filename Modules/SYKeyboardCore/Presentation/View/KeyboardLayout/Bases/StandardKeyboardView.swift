@@ -43,14 +43,12 @@ open class StandardKeyboardView: UIView, NormalKeyboardLayoutProvider {
     public var periodButtonWidthConstraint: NSLayoutConstraint?
     /// 통합 키보드 modifier 영역의 너비 제약
     private var fourthRowModifierWidthConstraint: NSLayoutConstraint?
-    /// 숫자 행 높이 제약. 방향에 따라 `updateNumberRowHeight(_:)`가 상수를 바꾼다
-    private var numberRowHeightConstraint: NSLayoutConstraint?
 
     // Initializer Injection
     public let getIsShiftedLetterInput: () -> Bool
     public let setIsShiftedLetterInput: (Bool) -> ()
     private let showsLanguageSwitchButton: Bool
-    /// 두벌식·쿼티 숫자 행 표시 여부
+    /// 숫자 행 표시 여부
     public let showsNumberRow: Bool
     /// 실제 버튼에 쓰는 보조 키 배열. 숫자 행이 켜져 있으면 숫자 대신 shift 짝 문자를 쓴다
     private var resolvedSecondaryKeyList: [[[[String]]]] {
@@ -64,8 +62,6 @@ open class StandardKeyboardView: UIView, NormalKeyboardLayoutProvider {
     /// 키보드 레이아웃 수직 스택
     private let layoutVStackView = KeyboardLayoutVStackView()
 
-    /// 숫자 행
-    private let numberRowHStackView = KeyboardRowHStackView()
     /// 키보드 첫번째 행
     private let firstRowHStackView = KeyboardRowHStackView()
     /// 키보드 두번째 행
@@ -105,12 +101,10 @@ open class StandardKeyboardView: UIView, NormalKeyboardLayoutProvider {
     }()
     public private(set) var returnButtonHStackView = KeyboardRowHStackView()
     
+    /// 숫자 행
+    private lazy var numberRow = KeyboardNumberRow(isEnabled: showsNumberRow)
     /// 숫자 행 `PrimaryKeyButton` 배열. 숫자 행이 꺼져 있으면 비어 있다
-    private lazy var numberRowPrimaryKeyButtonList: [PrimaryKeyButton] = showsNumberRow
-    ? ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"].map {
-        PrimaryKeyButton(keyboard: keyboard, button: .keyButton(primary: [$0], secondary: nil))
-    }
-    : []
+    private var numberRowPrimaryKeyButtonList: [PrimaryKeyButton] { numberRow.buttonList }
     /// 키보드 첫번째 행 `PrimaryKeyButton` 배열
     private lazy var firstRowPrimaryKeyButtonList = zip(primaryKeyList[0][0], resolvedSecondaryKeyList[0][0]).map { (primary, secondary) in
         PrimaryKeyButton(
@@ -235,10 +229,6 @@ private extension StandardKeyboardView {
     
     func setHierarchy() {
         self.addSubview(layoutVStackView)
-        if showsNumberRow {
-            self.addSubview(numberRowHStackView)
-            numberRowPrimaryKeyButtonList.forEach { numberRowHStackView.addArrangedSubview($0) }
-        }
         [keyboardSelectOverlayView,
          oneHandedModeSelectOverlayView].forEach { self.addSubview($0) }
 
@@ -270,22 +260,7 @@ private extension StandardKeyboardView {
             layoutVStackView.trailingAnchor.constraint(equalTo: self.trailingAnchor),
             layoutVStackView.bottomAnchor.constraint(equalTo: self.bottomAnchor)
         ])
-        if showsNumberRow {
-            numberRowHStackView.translatesAutoresizingMaskIntoConstraints = false
-            let heightConstraint = numberRowHStackView.heightAnchor.constraint(
-                equalToConstant: KeyboardHeightPolicy.portraitNumberRowHeight
-            )
-            NSLayoutConstraint.activate([
-                numberRowHStackView.topAnchor.constraint(equalTo: self.topAnchor),
-                numberRowHStackView.leadingAnchor.constraint(equalTo: self.leadingAnchor),
-                numberRowHStackView.trailingAnchor.constraint(equalTo: self.trailingAnchor),
-                heightConstraint,
-                layoutVStackView.topAnchor.constraint(equalTo: numberRowHStackView.bottomAnchor)
-            ])
-            numberRowHeightConstraint = heightConstraint
-        } else {
-            layoutVStackView.topAnchor.constraint(equalTo: self.topAnchor).isActive = true
-        }
+        numberRow.install(in: self, above: layoutVStackView)
 
         for (index, button) in secondRowPrimaryKeyButtonList.enumerated() {
             button.translatesAutoresizingMaskIntoConstraints = false
@@ -477,9 +452,7 @@ extension StandardKeyboardView {
     }
 
     final public func updateNumberRowHeight(_ height: CGFloat) {
-        guard let numberRowHeightConstraint,
-              numberRowHeightConstraint.constant != height else { return }
-        numberRowHeightConstraint.constant = height
+        numberRow.updateHeight(height)
     }
 
     /// `periodButton`의 너비 제약 조건을 업데이트합니다.
