@@ -21,11 +21,6 @@ struct LongPressSettingsView: View {
     @AppStorage(UserDefaultsKeys.repeatRate, store: UserDefaultsManager.shared.storage)
     private var repeatRate = DefaultValues.repeatRate
     
-    /// 리셋할 때마다 바꿔 `Slider`를 새로 만든다. iOS 27 `Slider`는 놓은 직후 값이 바깥에서 바뀌면
-    /// 마지막 드래그 값을 다시 커밋하므로, 이전 슬라이더를 버려 그 커밋을 끊는다
-    @State private var longPressDurationResetCount = 0
-    @State private var repeatRateResetCount = 0
-    
     // MARK: - Content
     
     var body: some View {
@@ -76,10 +71,8 @@ private extension LongPressSettingsView {
             Slider(value: $longPressDuration, in: 0.1...0.9, step: 0.05) { _ in
                 hideKeyboard()
             }
-            .id(longPressDurationResetCount)
             Button {
                 longPressDuration = DefaultValues.longPressDuration
-                longPressDurationResetCount += 1
                 hideKeyboard()
             } label: {
                 Text("리셋")
@@ -96,10 +89,8 @@ private extension LongPressSettingsView {
             Slider(value: $repeatRate, in: 0.01...0.09, step: 0.005) { _ in
                 hideKeyboard()
             }
-            .id(repeatRateResetCount)
             Button {
                 repeatRate = DefaultValues.repeatRate
-                repeatRateResetCount += 1
                 hideKeyboard()
             } label: {
                 Text("리셋")

@@ -10,6 +10,8 @@
 
 **Spec:** GitHub Issue #151 (`gh issue view 151`). 별도 spec 문서는 없고 이슈 본문을 요구사항으로 쓴다.
 
+> **결정 변경 (2026-09-23)**: 슬라이더 리셋은 **수정하지 않는다.** Task 4에서 `.id` 교체로 iOS 27 재현이 0/5가 되는 것까지 확인했지만, 사용자가 iOS 버그로 판단해 코드를 되돌렸다(`revert: #151` 커밋). 근거: 앱 코드는 `@State`/`@AppStorage` 값을 `Slider(value:)`에 바인딩하고 리셋 버튼이 그 값을 바꾸는 표준 패턴이고, 리셋 뒤 사용자 터치 없이 `Slider`가 마지막 드래그 값을 다시 커밋하며, 같은 코드가 iOS 18.6에서는 재현되지 않는다(0/3, 0/5). 이 브랜치에 남는 변경은 중첩 `NavigationStack` 제거(Task 2·3)뿐이다. Task 4의 기록은 나중에 다시 필요할 때를 위해 남겨 둔다.
+
 ## Global Constraints
 
 - 작업 브랜치는 `fix/#151-slider-reset-nested-navigation-stack`이고 `origin/develop`(`3892d822`, #152 머지 커밋)에서 딴다. 로컬 `develop`은 뒤처져 있으므로 반드시 `origin/develop`에서 딴다.
@@ -820,6 +822,8 @@ EOF
 
 - [ ] **Step 4: iOS 18.6에서 회귀가 없는지 확인한다**
 
+**중단 (2026-09-23, 사용자 결정으로 슬라이더 수정을 되돌려 불필요)**: 중단 전까지 iPhone 13 mini / iOS 18.6 키보드 높이 화면에서 `slider_reset_repro.py`(매 회차 대조 포함) 0/5, `after_reset.py` 4항목 PASS를 확인했다. 나머지 화면은 확인하지 않았다. 확인 중 18.6 시뮬레이터의 `keyboardHeight`·`isClipboardHistoryEnabled`를 원래 값(290, 끔)으로 되돌렸다.
+
 iPhone 13 mini / iOS 18.6에 설치하고 수정한 화면마다 확인한다.
 
 - `slider_reset_repro.py`가 `재현 0/5` (18.6은 원래 재현되지 않았으므로 여전히 0이어야 한다)
@@ -842,6 +846,14 @@ Co-Authored-By: Claude Opus 5.5 (1M context) <noreply@anthropic.com>
 EOF
 )"
 ```
+
+---
+
+- [x] **Step 5 (계획 외, 사용자 결정): 슬라이더 수정 코드를 되돌린다**
+
+`git checkout eaea0b55 -- <Step 1~3에서 고친 Swift 파일 5개>`로 되돌려 `git diff --quiet eaea0b55 -- SYKeyboard`가 성공하는 것(스택 제거 직후와 같음)을 확인했다. `git revert`를 그대로 쓰면 수정 커밋에 함께 들어 있는 이 문서의 검증 기록까지 지워지므로 코드만 되돌렸다.
+
+**참고: 재현 스크립트 보강.** Step 4에서 `slider_reset_repro.py`에 매 회차 대조(밀기만 해서 끝값 1.0이 되는지, 리셋하면 기본값으로 돌아오는지)를 넣었다. 대조가 없으면 스와이프가 무시돼 값이 기본값에 머문 경우도 PASS로 보인다. 보강한 스크립트로도 변경 전 앱은 3/3 재현, `.id` 수정 빌드는 iOS 27 슬라이더 7개 모두 0/5였다.
 
 ---
 

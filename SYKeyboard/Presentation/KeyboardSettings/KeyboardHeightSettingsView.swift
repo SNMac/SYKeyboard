@@ -43,9 +43,6 @@ struct KeyboardHeightSettingsView: View {
     @State private var previewOneHandedMode: OneHandedMode = .center
     @State private var tempKeyboardHeight: Double = DefaultValues.keyboardHeight
     @State private var previewKeyboardHeight: Double = DefaultValues.keyboardHeight
-    /// 리셋할 때마다 바꿔 `Slider`를 새로 만든다. iOS 27 `Slider`는 놓은 직후 값이 바깥에서 바뀌면
-    /// 마지막 드래그 값을 다시 커밋하므로, 이전 슬라이더를 버려 그 커밋을 끊는다
-    @State private var sliderResetCount = 0
     
     // MARK: - Content
     
@@ -80,7 +77,6 @@ private extension KeyboardHeightSettingsView {
                 .padding(.top)
                 .padding(.horizontal)
             Slider(value: $tempKeyboardHeight, in: KeyboardLayoutFigure.keyboardHeightRange, step: 1)
-                .id(sliderResetCount)
                 .padding(EdgeInsets(top: 0, leading: 30, bottom: 0, trailing: 30))
             Text("가로 모드에선 iOS 기본 키보드와 동일한 높이로 표시됩니다.")
                 .font(.footnote)
@@ -101,7 +97,6 @@ private extension KeyboardHeightSettingsView {
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
                     tempKeyboardHeight = DefaultValues.keyboardHeight
-                    sliderResetCount += 1
                 } label: {
                     Text("리셋")
                 }

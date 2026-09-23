@@ -43,9 +43,6 @@ struct LetterColumnWidthSettingsView: View {
     @State private var previewOneHandedMode: OneHandedMode = .center
     @State private var previewKeyboardHeight: Double = DefaultValues.keyboardHeight
     @State private var tempLetterColumnWidthMultiplier: Double = DefaultValues.letterColumnWidthMultiplier
-    /// 리셋할 때마다 바꿔 `Slider`를 새로 만든다. iOS 27 `Slider`는 놓은 직후 값이 바깥에서 바뀌면
-    /// 마지막 드래그 값을 다시 커밋하므로, 이전 슬라이더를 버려 그 커밋을 끊는다
-    @State private var sliderResetCount = 0
 
     // MARK: - Content
 
@@ -87,7 +84,6 @@ private extension LetterColumnWidthSettingsView {
             Slider(value: letterColumnWidthPercent,
                    in: KeyboardLayoutFigure.letterColumnWidthPercentRange,
                    step: 1)
-                .id(sliderResetCount)
                 .padding(EdgeInsets(top: 0, leading: 30, bottom: 0, trailing: 30))
         }
         .navigationTitle("글자 열 너비")
@@ -104,7 +100,6 @@ private extension LetterColumnWidthSettingsView {
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
                     tempLetterColumnWidthMultiplier = DefaultValues.letterColumnWidthMultiplier
-                    sliderResetCount += 1
                 } label: {
                     Text("리셋")
                 }

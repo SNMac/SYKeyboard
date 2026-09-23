@@ -21,11 +21,6 @@ struct CursorMovementSettingsView: View {
     @AppStorage(UserDefaultsKeys.cursorMoveInterval, store: UserDefaultsManager.shared.storage)
     private var cursorMoveInterval = DefaultValues.cursorMoveInterval
     
-    /// 리셋할 때마다 바꿔 `Slider`를 새로 만든다. iOS 27 `Slider`는 놓은 직후 값이 바깥에서 바뀌면
-    /// 마지막 드래그 값을 다시 커밋하므로, 이전 슬라이더를 버려 그 커밋을 끊는다
-    @State private var cursorActiveDistanceResetCount = 0
-    @State private var cursorMoveIntervalResetCount = 0
-    
     // MARK: - Content
     
     var body: some View {
@@ -77,10 +72,8 @@ private extension CursorMovementSettingsView {
             Slider(value: $cursorActiveDistance, in: 10.0...50.0, step: 1.0) { _ in
                 hideKeyboard()
             }
-            .id(cursorActiveDistanceResetCount)
             Button {
                 cursorActiveDistance = DefaultValues.cursorActiveDistance
-                cursorActiveDistanceResetCount += 1
                 hideKeyboard()
             } label: {
                 Text("리셋")
@@ -97,10 +90,8 @@ private extension CursorMovementSettingsView {
             Slider(value: $cursorMoveInterval, in: 1.0...9.0, step: 0.5) { _ in
                 hideKeyboard()
             }
-            .id(cursorMoveIntervalResetCount)
             Button {
                 cursorMoveInterval = DefaultValues.cursorMoveInterval
-                cursorMoveIntervalResetCount += 1
                 hideKeyboard()
             } label: {
                 Text("리셋")
