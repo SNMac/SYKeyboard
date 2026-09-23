@@ -48,7 +48,7 @@ open class StandardKeyboardView: UIView, NormalKeyboardLayoutProvider {
     public let getIsShiftedLetterInput: () -> Bool
     public let setIsShiftedLetterInput: (Bool) -> ()
     private let showsLanguageSwitchButton: Bool
-    /// 두벌식·쿼티 숫자 행 표시 여부
+    /// 숫자 행 표시 여부
     public let showsNumberRow: Bool
     /// 실제 버튼에 쓰는 보조 키 배열. 숫자 행이 켜져 있으면 숫자 대신 shift 짝 문자를 쓴다
     private var resolvedSecondaryKeyList: [[[[String]]]] {

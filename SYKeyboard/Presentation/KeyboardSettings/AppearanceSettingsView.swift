@@ -40,7 +40,7 @@ struct AppearanceSettingsView: View {
 
         Toggle(isOn: $showsNumberRow, label: {
             Text("숫자 행 표시")
-            Text("두벌식·쿼티 자판 맨 윗줄에 숫자 키 표시")
+            Text("자판 맨 윗줄에 숫자 키 표시")
                 .font(.caption)
         })
         .onChange(of: showsNumberRow) { newValue in

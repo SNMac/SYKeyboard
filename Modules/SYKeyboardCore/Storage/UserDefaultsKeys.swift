@@ -57,7 +57,7 @@ public enum UserDefaultsKeys {
     // MARK: - 외형 설정
     /// 키보드 높이
     public static let keyboardHeight = "keyboardHeight"
-    /// 두벌식·쿼티 숫자 행 표시
+    /// 주 자판 숫자 행 표시
     public static let showsNumberRow = "showsNumberRow"
     /// 숫자 키패드 활성화
     public static let isNumericKeypadEnabled = "isNumericKeypadEnabled"
