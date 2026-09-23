@@ -20,11 +20,13 @@ enum FourByFourFixture: Sendable {
     func makeView(showsLanguageSwitchButton: Bool) -> PrimaryKeyboardRepresentable {
         switch self {
         case .naratgeul:
-            NaratgeulKeyboardView(showsLanguageSwitchButton: showsLanguageSwitchButton)
+            NaratgeulKeyboardView(showsLanguageSwitchButton: showsLanguageSwitchButton, showsNumberRow: false)
         case .cheonjiin:
             // 기본 인자가 영속 설정값(App Group UserDefaults)을 읽으므로
             // 기존 배치를 검증하는 이 fixture는 값을 명시해 시뮬레이터 상태와 무관하게 만든다
-            CheonjiinKeyboardView(showsLanguageSwitchButton: showsLanguageSwitchButton, usesBottomSpaceLayout: false)
+            CheonjiinKeyboardView(showsLanguageSwitchButton: showsLanguageSwitchButton,
+                                  usesBottomSpaceLayout: false,
+                                  showsNumberRow: false)
         }
     }
 }

@@ -18,7 +18,8 @@ struct CheonjiinBottomSpaceLayoutTests {
     @MainActor
     private static func makeView(usesBottomSpaceLayout: Bool) -> CheonjiinKeyboardView {
         let view = CheonjiinKeyboardView(showsLanguageSwitchButton: true,
-                                        usesBottomSpaceLayout: usesBottomSpaceLayout)
+                                        usesBottomSpaceLayout: usesBottomSpaceLayout,
+                                        showsNumberRow: false)
         view.frame = CGRect(x: 0, y: 0, width: keyboardWidth, height: keyboardHeight)
         // 저장된 사용자 설정과 무관하게 기본 배율로 고정한다
         view.updateLetterColumnWidthMultiplier(1.0)

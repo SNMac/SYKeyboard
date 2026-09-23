@@ -87,7 +87,7 @@ struct NaratgeulColumnWidthLayoutTests {
 
     @MainActor
     private static func makeView(multiplier: Double) -> NaratgeulKeyboardView {
-        let view = NaratgeulKeyboardView(showsLanguageSwitchButton: true)
+        let view = NaratgeulKeyboardView(showsLanguageSwitchButton: true, showsNumberRow: false)
         view.frame = CGRect(x: 0, y: 0, width: keyboardWidth, height: keyboardHeight)
         view.updateLetterColumnWidthMultiplier(multiplier)
         view.layoutIfNeeded()
@@ -179,7 +179,8 @@ struct CheonjiinColumnWidthLayoutTests {
     @MainActor
     private static func makeView(usesBottomSpaceLayout: Bool, multiplier: Double) -> CheonjiinKeyboardView {
         let view = CheonjiinKeyboardView(showsLanguageSwitchButton: true,
-                                        usesBottomSpaceLayout: usesBottomSpaceLayout)
+                                        usesBottomSpaceLayout: usesBottomSpaceLayout,
+                                        showsNumberRow: false)
         view.frame = CGRect(x: 0, y: 0, width: keyboardWidth, height: keyboardHeight)
         view.updateLetterColumnWidthMultiplier(multiplier)
         view.layoutIfNeeded()
