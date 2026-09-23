@@ -866,7 +866,7 @@ EOF
 - Consumes: Task 2~4의 결과
 - Produces: PR 본문 「검증」 절에 옮길 명령과 결과
 
-- [ ] **Step 1: 전체 테스트와 extension 빌드를 돌린다**
+- [x] **Step 1: 전체 테스트와 extension 빌드를 돌린다**
 
 앱 타깃만 바꿨지만 `SYKeyboardTests`는 앱 타깃(`SYKeyboardTests/Presentation/`)도 포함하므로 한 번 돌린다. 수 분 걸린다고 먼저 알린다.
 
@@ -894,7 +894,11 @@ xcodebuild build \
 git status --short   # .xcscheme RemotePath 부수 변경이면 되돌린다
 ```
 
-결과(테스트 개수·통과 여부, 빌드 exit, 로그 경로):
+결과(테스트 개수·통과 여부, 빌드 exit, 로그 경로) — 2026-09-23, 커밋 `09ebe9b3`(슬라이더 수정 되돌린 뒤):
+
+- `xcodebuild test ... -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=18.6' -parallel-testing-enabled NO GADApplicationIdentifier=...` → `exit=0`, `✔ Test run with 743 tests in 82 suites passed`, `** TEST SUCCEEDED **`. 로그: scratchpad `issue-151/test.log` (`grep -E "Test run with|TEST SUCCEEDED" test.log`)
+- `xcodebuild build -scheme HangeulEnglishKeyboard ...(iOS 18.6)` → `exit=0`, `** BUILD SUCCEEDED **`. 로그: scratchpad `issue-151/build-hek.log`
+- `git status --short` → 변경 없음(`.xcscheme` 부수 변경 없음)
 
 ```sh
 git add docs/superpowers/plans/2026-09-23-issue-151-slider-reset-nested-navigation-stack.md
