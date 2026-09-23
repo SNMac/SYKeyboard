@@ -425,7 +425,7 @@ EOF
 - Consumes: Task 1 Step 2의 클립보드 화면 캡처
 - Produces: `body`의 최상위가 `Group`이 된다. `addSheet`(320행)·`detailSheet`(579행)의 `NavigationStack`은 그대로다.
 
-- [ ] **Step 1: `body`의 바깥 스택만 걷어낸다**
+- [x] **Step 1: `body`의 바깥 스택만 걷어낸다**
 
 73행 `NavigationStack {`과 짝인 120행 `}`를 지우고 그 사이를 4칸 내어쓴다. modifier는 하나도 빼거나 옮기지 않는다. 결과:
 
@@ -491,6 +491,8 @@ EOF
 ```
 
 빌드해 `exit=0`을 확인하고 `git diff -w`로 들여쓰기 외 변경이 `NavigationStack {`·`}` 삭제와 `#Preview`뿐인지 본다.
+
+결과: `git diff -w` 기준 변경은 `NavigationStack {`·닫는 `}` 삭제와 `#Preview` 스택 감싸기뿐. 빌드(iOS 18.6) → `exit=0`, `** BUILD SUCCEEDED **`, error 없음.
 
 ```sh
 git diff -w --stat

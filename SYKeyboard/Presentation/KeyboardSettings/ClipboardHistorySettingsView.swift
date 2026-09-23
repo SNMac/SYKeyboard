@@ -70,54 +70,52 @@ struct ClipboardHistorySettingsView: View {
     // MARK: - Content
 
     var body: some View {
-        NavigationStack {
-            Group {
-                if items.isEmpty {
-                    VStack(spacing: 8) {
-                        Text("복사한 텍스트나 이미지가 여기에 표시됩니다.")
-                        limitDescription
-                        imageLimitDescription
-                    }
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal, 24)
-                } else {
-                    historyList
+        Group {
+            if items.isEmpty {
+                VStack(spacing: 8) {
+                    Text("복사한 텍스트나 이미지가 여기에 표시됩니다.")
+                    limitDescription
+                    imageLimitDescription
                 }
+                .font(.footnote)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 24)
+            } else {
+                historyList
             }
-            // 편집 모드에서 선택이 있으면 제목이 선택 수를 보여준다
-            .navigationTitle(
-                editMode.isEditing && !selection.isEmpty
-                ? Text("\(selection.count)개 선택")
-                : Text("클립보드 기록")
-            )
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar { toolbarContent }
-            // iOS 16은 bottomBar 항목을 나중에 추가하면 바가 안 뜨므로 항목은 두고 표시만 토글한다
-            .toolbar(editMode.isEditing ? .visible : .hidden, for: .bottomBar)
-            // 편집 버튼과 List가 같은 편집 상태를 보도록 toolbar 바깥에 둔다
-            .environment(\.editMode, $editMode)
-            // 시트가 떠 있는 동안 키보드가 기록을 바꿀 수 있으므로 닫힐 때 다시 읽는다
-            .sheet(isPresented: $isAddSheetPresented, onDismiss: synchronizeAndReload) { addSheet }
-            .sheet(item: $detailPresentation, onDismiss: { isDeletedItemAlertPresented = false }) { detailSheet(for: $0.item) }
-            // 스와이프·편집 모드 삭제는 사용자가 의도한 동작이므로 HIG대로 알림이 아니라 action sheet로 확인한다. 취소는 시스템이 붙인다
-            .onAppear(perform: synchronizeAndReload)
-            .onChange(of: scenePhase) { phase in
-                if phase == .active { synchronizeAndReload() }
-            }
-            // 앱 활성화 동기화(SYKeyboardApp)가 먼저 changeCount를 소비하면 이 화면의 동기화는 건너뛰므로,
-            // 백그라운드 저장이 끝난 이미지는 알림으로 받아 목록을 다시 읽는다
-            .onReceive(NotificationCenter.default.publisher(for: ClipboardHistoryPasteboardSynchronizer.didRecordImageNotification)) { _ in
-                reload()
-            }
-            // 상세 시트에서 본문 일부를 복사하는 등 앱 안에서 pasteboard가 바뀌면 목록에 바로 반영한다. 열린 시트는 reload가 유지한다.
-            // 시트의 "복사" 버튼은 쓴 직후 changeCount를 맞추므로, 그 갱신이 끝난 다음 runloop에서 확인해 중복 기록하지 않는다
-            .onReceive(NotificationCenter.default.publisher(for: UIPasteboard.changedNotification)) { _ in
-                DispatchQueue.main.async { synchronizeAndReload() }
-            }
-            .requestReviewOnDetailSettingsReturn()
         }
+        // 편집 모드에서 선택이 있으면 제목이 선택 수를 보여준다
+        .navigationTitle(
+            editMode.isEditing && !selection.isEmpty
+            ? Text("\(selection.count)개 선택")
+            : Text("클립보드 기록")
+        )
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar { toolbarContent }
+        // iOS 16은 bottomBar 항목을 나중에 추가하면 바가 안 뜨므로 항목은 두고 표시만 토글한다
+        .toolbar(editMode.isEditing ? .visible : .hidden, for: .bottomBar)
+        // 편집 버튼과 List가 같은 편집 상태를 보도록 toolbar 바깥에 둔다
+        .environment(\.editMode, $editMode)
+        // 시트가 떠 있는 동안 키보드가 기록을 바꿀 수 있으므로 닫힐 때 다시 읽는다
+        .sheet(isPresented: $isAddSheetPresented, onDismiss: synchronizeAndReload) { addSheet }
+        .sheet(item: $detailPresentation, onDismiss: { isDeletedItemAlertPresented = false }) { detailSheet(for: $0.item) }
+        // 스와이프·편집 모드 삭제는 사용자가 의도한 동작이므로 HIG대로 알림이 아니라 action sheet로 확인한다. 취소는 시스템이 붙인다
+        .onAppear(perform: synchronizeAndReload)
+        .onChange(of: scenePhase) { phase in
+            if phase == .active { synchronizeAndReload() }
+        }
+        // 앱 활성화 동기화(SYKeyboardApp)가 먼저 changeCount를 소비하면 이 화면의 동기화는 건너뛰므로,
+        // 백그라운드 저장이 끝난 이미지는 알림으로 받아 목록을 다시 읽는다
+        .onReceive(NotificationCenter.default.publisher(for: ClipboardHistoryPasteboardSynchronizer.didRecordImageNotification)) { _ in
+            reload()
+        }
+        // 상세 시트에서 본문 일부를 복사하는 등 앱 안에서 pasteboard가 바뀌면 목록에 바로 반영한다. 열린 시트는 reload가 유지한다.
+        // 시트의 "복사" 버튼은 쓴 직후 changeCount를 맞추므로, 그 갱신이 끝난 다음 runloop에서 확인해 중복 기록하지 않는다
+        .onReceive(NotificationCenter.default.publisher(for: UIPasteboard.changedNotification)) { _ in
+            DispatchQueue.main.async { synchronizeAndReload() }
+        }
+        .requestReviewOnDetailSettingsReturn()
     }
 }
 
@@ -751,5 +749,7 @@ private struct ClipboardHistoryDetailTextView: UIViewRepresentable {
 // MARK: - Preview
 
 #Preview {
-    ClipboardHistorySettingsView()
+    NavigationStack {
+        ClipboardHistorySettingsView()
+    }
 }
