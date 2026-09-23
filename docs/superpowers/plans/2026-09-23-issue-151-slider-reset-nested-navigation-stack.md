@@ -168,7 +168,7 @@ EOF
 )"
 ```
 
-- [ ] **Step 2: 변경 전 빌드로 화면·뒤로 가기·리셋 기준을 기록한다**
+- [x] **Step 2: 변경 전 빌드로 화면·뒤로 가기·리셋 기준을 기록한다**
 
 Global Constraints의 빌드·설치 명령으로 이 브랜치(아직 코드 변경 없음)를 **두 시뮬레이터 모두**에 설치한다. 각 기기에서 아래 6개 화면을 열어 확인하고 캡처를 `<scratchpad>/issue-151/before/<기기>-<화면>.png`로 남긴다.
 
@@ -191,16 +191,26 @@ Global Constraints의 빌드·설치 명령으로 이 브랜치(아직 코드 �
 
 | 화면 | iOS 27 뒤로 스와이프 | iOS 18.6 뒤로 스와이프 | iOS 27 리셋 재현 |
 |---|---|---|---|
-| 키보드 높이 |  |  | /5 |
-| 글자 열 너비 |  |  | /5 |
-| 한 손 키보드 너비 |  |  | /5 |
-| 길게 누르기 입력 (지연 시간 / 반복 속도) |  |  | /5, /5 |
-| 커서 이동 (활성화 거리 / 이동 간격) |  |  | /5, /5 |
-| 클립보드 기록 관리 |  |  | 해당 없음 |
+| 키보드 높이 | 안 됨 | 측정 불가 | 5/5 |
+| 글자 열 너비 | 안 됨 | 측정 불가 | 5/5 |
+| 한 손 키보드 너비 | 안 됨 | 측정 불가 | 5/5 |
+| 길게 누르기 입력 (지연 시간 / 반복 속도) | 됨 | 측정 불가 | 5/5, 5/5 |
+| 커서 이동 (활성화 거리 / 이동 간격) | 됨 | 측정 불가 | 5/5, 5/5 |
+| 클립보드 기록 관리 | 됨 | 측정 불가 | 해당 없음 |
 
-iOS 18.6 키보드 높이 리셋 재현: /3
+iOS 18.6 키보드 높이 리셋 재현: 0/3
 
-캡처 폴더 실제 경로:
+**실행 결과 (2026-09-23, 빌드 `1ef0298b` = 코드 변경 없음)**
+
+- 빌드: `xcodebuild build ... -destination 'platform=iOS Simulator,id=30C7D731-...'` → `exit=0`, `** BUILD SUCCEEDED **`. 같은 `.app`을 두 시뮬레이터에 설치했다.
+- iOS 27 뒤로 스와이프는 `idb ui swipe --duration 0.3 2 <y> 300 <y>`로 확인했다. 뒤로 버튼이 있는 길게 누르기·커서 이동·클립보드에서는 이 스와이프로 돌아가므로, 높이·글자 열·한 손 너비에서 돌아가지 않는 것은 실제 동작이다(`.navigationBarBackButtonHidden()`).
+- **iOS 18.6 뒤로 스와이프는 측정 불가**: 뒤로 버튼이 있는 커서 이동·클립보드에서도 `idb` 스와이프(시작 x 0~3, duration 0.2~1.0, delta 5·10)로 돌아가지 않았다. `idb` 한계인지 구분할 수 없으므로 Task 2·3에서 18.6 스와이프를 비교 기준으로 쓰지 않고, 스와이프는 Task 5 실기기(iOS 27) 확인 항목에 넣는다.
+- iOS 18.6에서는 `idb ui tap`이 가끔 먹지 않아 `--duration 0.1`을 붙였다.
+- iOS 18.6 시뮬레이터는 '클립보드 기록'이 꺼져 있어 관리 화면 링크가 없었다. 토글 탭이 먹지 않아 앱을 종료하고 `xcrun simctl spawn <UDID> defaults write <AppGroup>/Library/Preferences/group.github.com-SNMac.SYKeyboard isClipboardHistoryEnabled -bool YES`로 켰다. **Task 5 뒤에 `-bool NO`로 되돌린다.** 재실행 시 뜬 붙여넣기 알림은 Mac 클립보드가 기록에 들어가지 않도록 '허용 안 함'을 눌렀다.
+- 클립보드 기록 관리는 '키보드 툴바 설정' 화면이 아니라 메인 화면 목록에서 push된다(`KeyboardToolbarSettingsView`는 메인 목록의 한 섹션). 편집 모드 중 뒤로 가면 두 OS 모두 메인 화면으로 돌아가고 하단 바가 남지 않았다(`*-clipboard-backfromedit.png`).
+- 캡처는 키보드 높이·글자 열·한 손 너비를 '리셋'한 기본값 상태(저장하지 않음)에서 찍었다.
+
+캡처 폴더 실제 경로: `/private/tmp/claude-501/-Users-macmillan-Projects-XcodeProjects-SNMac-SYKeyboard-SYKeyboard/db2a51e0-7baf-4c19-bf78-a7e2c7fa1e63/scratchpad/issue-151/before/` (`air-*.png`, `mini-*.png`, 각 `*_s.png`는 800px 축소본). 변경 전 앱 사본: 같은 폴더 위 `before.app`. 도우미 스크립트 `ax.py`·`go.py`·`shot.sh`·`slider_reset_repro.py`도 `issue-151/`에 있다.
 
 ```sh
 git add docs/superpowers/plans/2026-09-23-issue-151-slider-reset-nested-navigation-stack.md
