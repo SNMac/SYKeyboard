@@ -237,7 +237,7 @@ EOF
 - Consumes: Task 1 Step 2의 기준표와 캡처
 - Produces: 각 화면 `body`의 최상위 컨테이너가 `VStack`이 된다. Task 4는 이 구조 위에서 `Slider`에 `.id`를 붙인다.
 
-- [ ] **Step 1: 키보드 높이·글자 열 너비·한 손 키보드 너비 화면의 스택을 걷어낸다**
+- [x] **Step 1: 키보드 높이·글자 열 너비·한 손 키보드 너비 화면의 스택을 걷어낸다**
 
 세 파일 모두 `body` 첫 줄의 `NavigationStack {`만 `VStack {`으로 바꾼다. 닫는 `}`과 뒤따르는 `.onAppear`·`.onChange`·`.requestReviewOnDetailSettingsReturn()`은 그대로 둔다.
 
@@ -295,6 +295,8 @@ EOF
 ```
 
 빌드한다(iOS 18.6 기기, Global Constraints의 `xcodebuild build`). `exit=0`과 `** BUILD SUCCEEDED **`를 확인하고 `git status --short`로 `.xcscheme` 부수 변경을 정리한다.
+
+결과: `xcodebuild build -scheme SYKeyboard -destination 'platform=iOS Simulator,id=82146144-...'`(iOS 18.6) → `exit=0`, `** BUILD SUCCEEDED **`, 새 warning 없음. `.xcscheme` 부수 변경 없음.
 
 ```sh
 git add SYKeyboard/Presentation/KeyboardSettings/KeyboardHeightSettingsView.swift \

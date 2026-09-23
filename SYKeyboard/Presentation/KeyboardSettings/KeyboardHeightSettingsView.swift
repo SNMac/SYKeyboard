@@ -47,7 +47,7 @@ struct KeyboardHeightSettingsView: View {
     // MARK: - Content
     
     var body: some View {
-        NavigationStack {
+        VStack {
             keyboardHeightSettings
             
             Spacer()
@@ -140,5 +140,7 @@ private extension KeyboardHeightSettingsView {
 // MARK: - Preview
 
 #Preview {
-    KeyboardHeightSettingsView()
+    NavigationStack {
+        KeyboardHeightSettingsView()
+    }
 }

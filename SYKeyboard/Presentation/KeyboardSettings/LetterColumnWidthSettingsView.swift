@@ -47,7 +47,7 @@ struct LetterColumnWidthSettingsView: View {
     // MARK: - Content
 
     var body: some View {
-        NavigationStack {
+        VStack {
             letterColumnWidthSettings
 
             Spacer()
@@ -143,5 +143,7 @@ private extension LetterColumnWidthSettingsView {
 // MARK: - Preview
 
 #Preview {
-    LetterColumnWidthSettingsView()
+    NavigationStack {
+        LetterColumnWidthSettingsView()
+    }
 }

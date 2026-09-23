@@ -47,7 +47,7 @@ struct OneHandedKeyboardWidthSettingsView: View {
     // MARK: - Content
     
     var body: some View {
-        NavigationStack {
+        VStack {
             oneHandedKeyboardWidthSettings
             
             Spacer()
@@ -144,5 +144,7 @@ private extension OneHandedKeyboardWidthSettingsView {
 // MARK: - Preview
 
 #Preview {
-    OneHandedKeyboardWidthSettingsView()
+    NavigationStack {
+        OneHandedKeyboardWidthSettingsView()
+    }
 }
