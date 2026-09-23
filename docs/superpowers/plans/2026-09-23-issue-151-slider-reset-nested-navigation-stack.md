@@ -646,7 +646,7 @@ EOF
 )"
 ```
 
-- [ ] **Step 2: 글자 열 너비·한 손 키보드 너비 화면에 같은 수정을 넣고 확인한다**
+- [x] **Step 2: 글자 열 너비·한 손 키보드 너비 화면에 같은 수정을 넣고 확인한다**
 
 `LetterColumnWidthSettingsView.swift` — `tempLetterColumnWidthMultiplier` 선언 아래:
 
@@ -700,8 +700,10 @@ EOF
 
 | 화면 | 재현 | 리셋 직후 드래그 | 리셋 후 저장·취소 |
 |---|---|---|---|
-| 글자 열 너비 | /5 |  |  |
-| 한 손 키보드 너비 | /5 |  |  |
+| 글자 열 너비 | 0/5 | 따라옴 (0.87) | 저장 → 기본값, 취소 → 저장값 유지 |
+| 한 손 키보드 너비 | 0/5 | 따라옴 (0.80) | 저장 → 기본값, 취소 → 저장값 유지 |
+
+결과 (2026-09-23, iPhone Air / iOS 27): 빌드 → `exit=0`, `** BUILD SUCCEEDED **`. `slider_reset_repro.py`·`after_reset.py` 모두 PASS, 끝에 기본값 복원 PASS.
 
 ```sh
 git add SYKeyboard/Presentation/KeyboardSettings/LetterColumnWidthSettingsView.swift \
