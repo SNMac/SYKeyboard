@@ -155,6 +155,22 @@ struct KeyboardHeightPolicyTests {
         #expect(KeyboardHeightPolicy.numberRowHeight(isEnabled: true, isPortrait: true, keyboardSettingsHeight: 290) == 59)
     }
 
+    @Test("설정 범위 전체에서 세로 숫자 행은 최소 높이 이상, 글자 행 이하")
+    func test숫자행_세로_설정범위불변식() {
+        for setting in stride(from: KeyboardLayoutFigure.keyboardHeightRange.lowerBound,
+                              through: KeyboardLayoutFigure.keyboardHeightRange.upperBound,
+                              by: 1) {
+            let numberRow = KeyboardHeightPolicy.numberRowHeight(
+                isEnabled: true,
+                isPortrait: true,
+                keyboardSettingsHeight: setting
+            )
+            let letterRow = KeyboardHeightPolicy.letterRowHeight(keyboardAreaHeight: setting)
+            #expect(numberRow >= KeyboardHeightPolicy.portraitNumberRowHeight, "설정 \(setting)")
+            #expect(numberRow <= letterRow, "설정 \(setting)")
+        }
+    }
+
     @Test("가로 숫자 행은 키보드 높이 설정과 무관하게 35")
     func test숫자행_가로_고정() {
         #expect(KeyboardHeightPolicy.numberRowHeight(isEnabled: true, isPortrait: false, keyboardSettingsHeight: 190) == 35)
