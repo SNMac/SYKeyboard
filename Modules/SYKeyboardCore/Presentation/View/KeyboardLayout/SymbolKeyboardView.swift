@@ -93,7 +93,7 @@ final class SymbolKeyboardView: UIView, SymbolKeyboardLayoutProvider {
     }()
     
     /// 키보드 숫자 행
-    private lazy var numberRow = KeyboardNumberRow(keyboard: .symbol, isEnabled: showsNumberRowSetting)
+    private lazy var numberRow = KeyboardNumberRow(isEnabled: showsNumberRowSetting)
     /// 숫자 행 `PrimaryKeyButton` 배열. 숫자 행이 꺼져 있으면 비어 있다
     var numberRowPrimaryKeyButtonList: [PrimaryKeyButton] { numberRow.buttonList }
     /// 키보드 첫번째 행 `PrimaryKeyButton` 배열

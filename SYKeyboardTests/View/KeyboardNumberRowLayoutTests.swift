@@ -199,4 +199,29 @@ struct KeyboardNumberRowLayoutTests {
             #expect(abs(letterButton.frame.height - 35) < 0.5)
         }
     }
+
+    @Test("나랏글·천지인 숫자 키는 기호 자판 숫자 키와 보이는 크기가 같다")
+    func test4x4_숫자키크기_기호자판과같음() throws {
+        let frame = CGRect(x: 0, y: 0, width: 375, height: 282.5)
+        let symbol = SymbolKeyboardView(showsLanguageSwitchButton: false, showsNumberRow: true)
+        symbol.frame = frame
+        symbol.layoutIfNeeded()
+        let symbolKey = try #require(symbol.numberRowPrimaryKeyButtonList.first).backgroundView.bounds.size
+
+        let views: [PrimaryKeyboardRepresentable] = [
+            makeNaratgeul(showsNumberRow: true),
+            makeCheonjiin(showsNumberRow: true)
+        ]
+        for view in views {
+            view.frame = frame
+            view.layoutIfNeeded()
+            let numberButton = try #require(view.totalTextInterableButtonList.first as? PrimaryKeyButton)
+            let key = numberButton.backgroundView.bounds.size
+
+            // 숫자 행 46.5에서 위아래 여백 4를 뺀 높이
+            #expect(abs(key.height - 38.5) < 0.5)
+            #expect(abs(key.height - symbolKey.height) < 0.5)
+            #expect(abs(key.width - symbolKey.width) < 0.5)
+        }
+    }
 }

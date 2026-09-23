@@ -56,7 +56,7 @@ open class FourByFourKeyboardView: UIView {
     private let fourthRowRightSecondaryButtonHStackView = KeyboardRowHStackView()
     
     /// 숫자 행
-    private lazy var numberRow = KeyboardNumberRow(keyboard: keyboard, isEnabled: showsNumberRow)
+    private lazy var numberRow = KeyboardNumberRow(isEnabled: showsNumberRow)
     /// 숫자 행 `PrimaryKeyButton` 배열. 숫자 행이 꺼져 있으면 비어 있다
     private var numberRowPrimaryKeyButtonList: [PrimaryKeyButton] { numberRow.buttonList }
     /// 키보드 첫번째 행 `PrimaryKeyButton` 배열

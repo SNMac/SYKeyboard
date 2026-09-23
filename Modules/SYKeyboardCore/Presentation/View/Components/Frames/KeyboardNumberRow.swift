@@ -28,11 +28,13 @@ final class KeyboardNumberRow {
 
     // MARK: - Initializer
 
-    init(keyboard: SYKeyboardType, isEnabled: Bool) {
+    init(isEnabled: Bool) {
         self.isEnabled = isEnabled
+        // 숫자 키는 어느 자판에 붙든 같은 크기로 보여야 한다.
+        // 버튼 여백은 자판 종류로 정해지므로, 4x4 자판에서도 기호 자판과 같은 여백을 쓰도록 `.symbol`로 만든다
         self.buttonList = isEnabled
         ? ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"].map {
-            PrimaryKeyButton(keyboard: keyboard, button: .keyButton(primary: [$0], secondary: nil))
+            PrimaryKeyButton(keyboard: .symbol, button: .keyButton(primary: [$0], secondary: nil))
         }
         : []
     }
