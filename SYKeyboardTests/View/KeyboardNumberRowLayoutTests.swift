@@ -224,4 +224,23 @@ struct KeyboardNumberRowLayoutTests {
             #expect(abs(key.width - symbolKey.width) < 0.5)
         }
     }
+
+    @Test("글자 열 너비 배율은 4열 글자 키에만 적용되고 숫자 행은 10칸 균등 분할을 유지한다")
+    func test4x4_글자열너비배율_숫자행미적용() throws {
+        let frame = CGRect(x: 0, y: 0, width: 390, height: 282.5)
+        let views: [PrimaryKeyboardRepresentable] = [
+            makeNaratgeul(showsNumberRow: true),
+            makeCheonjiin(showsNumberRow: true)
+        ]
+        for view in views {
+            view.frame = frame
+            view.updateLetterColumnWidthMultiplier(1.15)
+            view.layoutIfNeeded()
+
+            let numberButton = try #require(view.totalTextInterableButtonList.first)
+            let letterButton = view.totalTextInterableButtonList[10]
+            #expect(abs(numberButton.frame.width - 39) < 0.5)
+            #expect(abs(letterButton.frame.width - 390 * 0.2875) < 1.0)
+        }
+    }
 }
