@@ -179,16 +179,24 @@ struct KeyboardNumberRowLayoutTests {
         #expect(abs(letterButton.convert(letterButton.bounds, to: view).minY - 46.5) < 0.5)
     }
 
-    @Test("천지인 가로 숫자 행 높이로 갱신하면 숫자 행은 35")
-    func test천지인_숫자행_가로높이갱신() throws {
-        let view = makeCheonjiin(showsNumberRow: true)
-        view.updateNumberRowHeight(KeyboardHeightPolicy.landscapeNumberRowHeight)
-        view.frame = CGRect(x: 0, y: 0, width: 667, height: 175)
-        view.layoutIfNeeded()
+    @Test("나랏글·천지인도 프로토콜 타입으로 가로 숫자 행 높이를 갱신하면 숫자 행은 35")
+    func test4x4_프로토콜로_숫자행_가로높이갱신() throws {
+        // controller는 프로토콜 타입으로 호출하므로 기본 no-op 구현이 witness로 잡히면 실패해야 한다
+        let views: [PrimaryKeyboardRepresentable] = [
+            makeNaratgeul(showsNumberRow: true),
+            makeCheonjiin(showsNumberRow: true)
+        ]
 
-        let numberButton = try #require(view.totalTextInterableButtonList.first)
-        let letterButton = view.totalTextInterableButtonList[10]
-        #expect(abs(numberButton.frame.height - 35) < 0.5)
-        #expect(abs(letterButton.frame.height - 35) < 0.5)
+        for view in views {
+            #expect(view.showsNumberRow)
+            view.updateNumberRowHeight(KeyboardHeightPolicy.landscapeNumberRowHeight)
+            view.frame = CGRect(x: 0, y: 0, width: 667, height: 175)
+            view.layoutIfNeeded()
+
+            let numberButton = try #require(view.totalTextInterableButtonList.first)
+            let letterButton = view.totalTextInterableButtonList[10]
+            #expect(abs(numberButton.frame.height - 35) < 0.5)
+            #expect(abs(letterButton.frame.height - 35) < 0.5)
+        }
     }
 }
