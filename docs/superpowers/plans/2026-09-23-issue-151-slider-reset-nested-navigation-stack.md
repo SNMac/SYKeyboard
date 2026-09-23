@@ -591,7 +591,7 @@ EOF
 )"
 ```
 
-- [ ] **Step 1: 키보드 높이 화면에 `.id` 교체를 넣고 재현 스크립트로 확인한다**
+- [x] **Step 1: 키보드 높이 화면에 `.id` 교체를 넣고 재현 스크립트로 확인한다**
 
 `@State` 선언부(44~45행 부근, `tempKeyboardHeight` 아래)에 추가:
 
@@ -628,7 +628,12 @@ EOF
 
 **1이 0/5가 아니면 멈춘다.** 코드 변경을 `git checkout -- SYKeyboard/Presentation/KeyboardSettings/KeyboardHeightSettingsView.swift`로 되돌리고, 재현 결과를 아래에 적어 사용자에게 보고한다. 이슈의 나머지 후보(길이가 사실상 0인 편집 세션 무시, 드래그 직후 리셋 잠시 비활성화)는 동작·UX를 바꾸므로 사용자 결정 없이 시도하지 않는다.
 
-결과:
+결과 (2026-09-23, iPhone Air / iOS 27):
+
+- 빌드 → `exit=0`, `** BUILD SUCCEEDED **`
+- `slider_reset_repro.py ... 299 90 0 5` → **`재현 0/5`** (수정 전 같은 빌드 계열에서 5/5)
+- `after_reset.py`(scratchpad `issue-151/`): 빠른 리셋 뒤 저장 → 재진입 0.5(기본값) PASS, 최대값 저장 뒤 빠른 리셋 → 취소 → 재진입 1.0(저장값 유지) PASS, 기본값 복원 PASS
+- 리셋 직후 드래그: 3/4 지점으로 끌면 0.82. 리셋 없는 대조 드래그도 0.82·0.78이라 같은 동작이다(썸 여백으로 목표보다 조금 크게 나온다). 처음 스크립트는 허용 범위를 ±0.05로 잡아 FAIL로 찍혔고, 대조 결과를 근거로 0.7~0.9로 고쳤다.
 
 ```sh
 git add SYKeyboard/Presentation/KeyboardSettings/KeyboardHeightSettingsView.swift \
