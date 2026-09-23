@@ -31,18 +31,12 @@ public enum KeyboardHeightPolicy {
         (keyboardAreaHeight - KeyboardLayoutFigure.keyboardFrameSpacing) / 4
     }
 
-    /// 주 키보드 구성에 맞는 숫자 행 높이. 숫자 행이 없으면 0을 반환한다
+    /// 화면 방향에 맞는 숫자 행 높이. 숫자 행이 없으면 0을 반환한다
     /// - Parameters:
     ///   - isEnabled: 숫자 행 설정 여부
-    ///   - primaryKeyboards: extension의 주 키보드 종류 목록
     ///   - isPortrait: 세로 화면 여부
-    public static func numberRowHeight(
-        isEnabled: Bool,
-        primaryKeyboards: [SYKeyboardType],
-        isPortrait: Bool
-    ) -> CGFloat {
-        let hasNumberRowKeyboard = primaryKeyboards.contains { $0 == .dubeolsik || $0 == .qwerty }
-        guard isEnabled, hasNumberRowKeyboard else { return 0 }
+    public static func numberRowHeight(isEnabled: Bool, isPortrait: Bool) -> CGFloat {
+        guard isEnabled else { return 0 }
         return isPortrait ? portraitNumberRowHeight : landscapeNumberRowHeight
     }
 
