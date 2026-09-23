@@ -751,6 +751,12 @@ open class BaseKeyboardViewController: UIInputViewController {
         numericKeyboardView.updateLetterColumnWidthMultiplier(multiplier)
         self.view.layoutIfNeeded()
     }
+
+    /// 미리보기는 `setKeyboardHeight()`를 거치지 않으므로 숫자 행 높이를 직접 갱신한다
+    public func updateNumberRowHeightForPreview(to height: CGFloat) {
+        updateNumberRowHeight(height)
+        self.view.layoutIfNeeded()
+    }
 }
 
 // MARK: - Text Proxy Wrapper Methods
@@ -1015,11 +1021,10 @@ private extension BaseKeyboardViewController {
         // extension이 살아 있는 동안 설정이 바뀌어도 뷰와 프레임 높이가 어긋나지 않는다
         let numberRowHeight = KeyboardHeightPolicy.numberRowHeight(
             isEnabled: primaryKeyboardViews.contains { $0.showsNumberRow },
-            isPortrait: isPortrait
+            isPortrait: isPortrait,
+            keyboardSettingsHeight: keyboardSettingsManager.keyboardHeight
         )
-        primaryKeyboardViews.forEach { $0.updateNumberRowHeight(numberRowHeight) }
-        // 기호 자판은 주 자판과 같은 높이를 써야 프레임과 어긋나지 않는다
-        keyboardView.symbolKeyboardView.updateNumberRowHeight(numberRowHeight)
+        updateNumberRowHeight(numberRowHeight)
 
         let height = KeyboardHeightPolicy.height(
             keyboardSettingsHeight: keyboardSettingsManager.keyboardHeight,
@@ -1384,6 +1389,12 @@ private extension BaseKeyboardViewController {
 // MARK: - Update Methods
 
 private extension BaseKeyboardViewController {
+    func updateNumberRowHeight(_ height: CGFloat) {
+        primaryKeyboardViews.forEach { $0.updateNumberRowHeight(height) }
+        // 기호 자판은 주 자판과 같은 높이를 써야 프레임과 어긋나지 않는다
+        keyboardView.symbolKeyboardView.updateNumberRowHeight(height)
+    }
+
     func updateOneHandModekeyboard() {
         keyboardView.updateOneHandedMode(currentOneHandedMode)
     }

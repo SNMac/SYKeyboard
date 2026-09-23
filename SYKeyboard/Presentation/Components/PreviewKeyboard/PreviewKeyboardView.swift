@@ -14,7 +14,10 @@ struct PreviewKeyboardView: View {
 
     // MARK: - Properties
 
+    /// 자동완성 바를 포함한 글자 영역 미리보기 높이
     @Binding var keyboardHeight: Double
+    /// 키보드 높이 설정값. 숫자 행 높이 계산에 쓴다
+    let keyboardSettingsHeight: Double
     @Binding var oneHandedKeyboardWidth: Double
     @Binding var letterColumnWidthMultiplier: Double
     @Binding var needsInputModeSwitchKey: Bool
@@ -52,7 +55,8 @@ private extension PreviewKeyboardView {
         PreviewHangeulKeyboardViewController(keyboardHeight: $keyboardHeight,
                                              oneHandedKeyboardWidth: $oneHandedKeyboardWidth,
                                              letterColumnWidthMultiplier: $letterColumnWidthMultiplier,
-                                             oneHandedMode: $oneHandedMode)
+                                             oneHandedMode: $oneHandedMode,
+                                             numberRowHeight: numberRowHeight)
         .frame(height: previewFrameHeight)
         .background(.keyboardBackground)
         .padding(.bottom, needsInputModeSwitchKey ? 0 : 40)
@@ -62,15 +66,24 @@ private extension PreviewKeyboardView {
         PreviewEnglishKeyboardViewController(keyboardHeight: $keyboardHeight,
                                              oneHandedKeyboardWidth: $oneHandedKeyboardWidth,
                                              letterColumnWidthMultiplier: $letterColumnWidthMultiplier,
-                                             oneHandedMode: $oneHandedMode)
+                                             oneHandedMode: $oneHandedMode,
+                                             numberRowHeight: numberRowHeight)
         .frame(height: previewFrameHeight)
         .background(.keyboardBackground)
         .padding(.bottom, needsInputModeSwitchKey ? 0 : 40)
     }
 
-    /// 미리보기는 항상 세로 화면이므로 세로 숫자 행 높이를 더한다
+    /// 미리보기는 항상 세로 화면이므로 세로 숫자 행 높이를 쓴다
+    var numberRowHeight: CGFloat {
+        KeyboardHeightPolicy.numberRowHeight(
+            isEnabled: showsNumberRow,
+            isPortrait: true,
+            keyboardSettingsHeight: keyboardSettingsHeight
+        )
+    }
+
     var previewFrameHeight: CGFloat {
-        keyboardHeight + KeyboardHeightPolicy.numberRowHeight(isEnabled: showsNumberRow, isPortrait: true)
+        keyboardHeight + numberRowHeight
     }
 }
 
