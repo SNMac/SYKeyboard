@@ -16,7 +16,7 @@ final class KeyboardNumberRow {
     // MARK: - Properties
 
     /// 숫자 행 표시 여부
-    let isEnabled: Bool
+    private let isEnabled: Bool
     /// 숫자 키 `PrimaryKeyButton` 배열. 숫자 행이 꺼져 있으면 비어 있다
     let buttonList: [PrimaryKeyButton]
     /// 숫자 행 높이 제약. 방향에 따라 `updateHeight(_:)`가 상수를 바꾼다
@@ -42,14 +42,16 @@ final class KeyboardNumberRow {
     // MARK: - Methods
 
     /// 숫자 행을 `container` 맨 위에 붙이고 `contentView`를 그 아래에 둔다.
-    /// 꺼져 있으면 `contentView`를 `container` 맨 위에 붙인다
+    /// 꺼져 있으면 `contentView`를 `container` 맨 위에 붙인다.
+    /// `contentView`는 이미 `container`의 subview여야 한다
     func install(in container: UIView, above contentView: UIView) {
         guard isEnabled else {
             contentView.topAnchor.constraint(equalTo: container.topAnchor).isActive = true
             return
         }
 
-        container.addSubview(hStackView)
+        // 자판 선택·한 손 모드 오버레이가 숫자 행을 덮을 수 있도록 콘텐츠 바로 위에 둔다
+        container.insertSubview(hStackView, aboveSubview: contentView)
         buttonList.forEach { hStackView.addArrangedSubview($0) }
 
         hStackView.translatesAutoresizingMaskIntoConstraints = false
