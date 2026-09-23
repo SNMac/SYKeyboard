@@ -15,10 +15,13 @@ public enum KeyboardHeightPolicy {
         let keyboardHStackViewHeight: CGFloat
     }
 
-    /// 세로 모드 숫자 행 높이. 키보드 높이 설정 최소값일 때의 글자 행 높이와 같다
+    /// 세로 모드 숫자 행 최소 높이. 키보드 높이 설정 최소값일 때의 글자 행 높이와 같다
     public static let portraitNumberRowHeight: CGFloat = letterRowHeight(
         keyboardAreaHeight: CGFloat(KeyboardLayoutFigure.keyboardHeightRange.lowerBound)
     )
+    /// 세로 모드 숫자 행이 글자 행 증가폭 중 따라 커지는 비율.
+    /// 1보다 작게 둬 숫자 행이 항상 글자 행보다 낮은 보조 행으로 보이게 한다
+    static let portraitNumberRowGrowthRatio: CGFloat = 0.5
     /// 가로 모드 숫자 행 높이. 자동완성 바가 보일 때의 가로 글자 행 높이와 같다.
     /// 바가 숨겨져 글자 행이 커져도 숫자 행은 이 값을 유지한다
     public static let landscapeNumberRowHeight: CGFloat = letterRowHeight(
@@ -31,13 +34,24 @@ public enum KeyboardHeightPolicy {
         (keyboardAreaHeight - KeyboardLayoutFigure.keyboardFrameSpacing) / 4
     }
 
-    /// 화면 방향에 맞는 숫자 행 높이. 숫자 행이 없으면 0을 반환한다
+    /// 화면 방향에 맞는 숫자 행 높이. 숫자 행이 없으면 0을 반환한다.
+    ///
+    /// 세로 모드는 키보드 높이 설정을 따라 최소 높이에서 글자 행 증가폭의 일부만큼 커진다.
+    /// 가로 모드는 높이 설정이 적용되지 않으므로 고정값이다
     /// - Parameters:
     ///   - isEnabled: 숫자 행 설정 여부
     ///   - isPortrait: 세로 화면 여부
-    public static func numberRowHeight(isEnabled: Bool, isPortrait: Bool) -> CGFloat {
+    ///   - keyboardSettingsHeight: 키보드 높이 설정값
+    public static func numberRowHeight(
+        isEnabled: Bool,
+        isPortrait: Bool,
+        keyboardSettingsHeight: CGFloat
+    ) -> CGFloat {
         guard isEnabled else { return 0 }
-        return isPortrait ? portraitNumberRowHeight : landscapeNumberRowHeight
+        guard isPortrait else { return landscapeNumberRowHeight }
+
+        let letterRowGrowth = letterRowHeight(keyboardAreaHeight: keyboardSettingsHeight) - portraitNumberRowHeight
+        return portraitNumberRowHeight + letterRowGrowth * portraitNumberRowGrowthRatio
     }
 
     static func height(

@@ -135,22 +135,46 @@ struct KeyboardHeightPolicyTests {
         #expect(KeyboardLayoutFigure.keyboardHeightRange == 190...290)
     }
 
-    @Test("숫자 행 높이는 세로 46.5, 가로 35로 고정")
-    func test숫자행높이_고정값() {
+    @Test("숫자 행 높이 기준값은 세로 최소 46.5, 가로 35")
+    func test숫자행높이_기준값() {
         #expect(KeyboardHeightPolicy.portraitNumberRowHeight == 46.5)
         #expect(KeyboardHeightPolicy.landscapeNumberRowHeight == 35)
     }
 
     @Test("숫자 행 설정이 꺼져 있으면 숫자 행 높이는 0")
     func test숫자행_설정꺼짐() {
-        #expect(KeyboardHeightPolicy.numberRowHeight(isEnabled: false, isPortrait: true) == 0)
-        #expect(KeyboardHeightPolicy.numberRowHeight(isEnabled: false, isPortrait: false) == 0)
+        #expect(KeyboardHeightPolicy.numberRowHeight(isEnabled: false, isPortrait: true, keyboardSettingsHeight: 240) == 0)
+        #expect(KeyboardHeightPolicy.numberRowHeight(isEnabled: false, isPortrait: false, keyboardSettingsHeight: 240) == 0)
     }
 
-    @Test("숫자 행 설정이 켜져 있으면 자판 종류와 상관없이 방향별 숫자 행 높이를 반환")
-    func test숫자행_방향별높이() {
-        #expect(KeyboardHeightPolicy.numberRowHeight(isEnabled: true, isPortrait: true) == 46.5)
-        #expect(KeyboardHeightPolicy.numberRowHeight(isEnabled: true, isPortrait: false) == 35)
+    @Test("세로 숫자 행은 글자 행 증가폭의 절반만큼 키보드 높이 설정을 따라 커짐")
+    func test숫자행_세로_설정비례() {
+        // 글자 행 46.5 / 59 / 71.5에 대해 46.5 + (글자 행 - 46.5) * 0.5
+        #expect(KeyboardHeightPolicy.numberRowHeight(isEnabled: true, isPortrait: true, keyboardSettingsHeight: 190) == 46.5)
+        #expect(KeyboardHeightPolicy.numberRowHeight(isEnabled: true, isPortrait: true, keyboardSettingsHeight: 240) == 52.75)
+        #expect(KeyboardHeightPolicy.numberRowHeight(isEnabled: true, isPortrait: true, keyboardSettingsHeight: 290) == 59)
+    }
+
+    @Test("설정 범위 전체에서 세로 숫자 행은 최소 높이 이상, 글자 행 이하")
+    func test숫자행_세로_설정범위불변식() {
+        for setting in stride(from: KeyboardLayoutFigure.keyboardHeightRange.lowerBound,
+                              through: KeyboardLayoutFigure.keyboardHeightRange.upperBound,
+                              by: 1) {
+            let numberRow = KeyboardHeightPolicy.numberRowHeight(
+                isEnabled: true,
+                isPortrait: true,
+                keyboardSettingsHeight: setting
+            )
+            let letterRow = KeyboardHeightPolicy.letterRowHeight(keyboardAreaHeight: setting)
+            #expect(numberRow >= KeyboardHeightPolicy.portraitNumberRowHeight, "설정 \(setting)")
+            #expect(numberRow <= letterRow, "설정 \(setting)")
+        }
+    }
+
+    @Test("가로 숫자 행은 키보드 높이 설정과 무관하게 35")
+    func test숫자행_가로_고정() {
+        #expect(KeyboardHeightPolicy.numberRowHeight(isEnabled: true, isPortrait: false, keyboardSettingsHeight: 190) == 35)
+        #expect(KeyboardHeightPolicy.numberRowHeight(isEnabled: true, isPortrait: false, keyboardSettingsHeight: 290) == 35)
     }
 
     @Test("세로 화면 숫자 행은 설정 높이와 자동완성 바 위에 더함")
@@ -161,11 +185,11 @@ struct KeyboardHeightPolicyTests {
             suggestionBarHeight: 44,
             isSuggestionBarVisible: true,
             isPortrait: true,
-            numberRowHeight: 46.5
+            numberRowHeight: 52.75
         )
 
-        #expect(height.keyboardViewHeight == 330.5)
-        #expect(height.keyboardHStackViewHeight == 286.5)
+        #expect(height.keyboardViewHeight == 336.75)
+        #expect(height.keyboardHStackViewHeight == 292.75)
     }
 
     @Test("가로 화면 숫자 행은 고정 높이 188 위에 더하고 자동완성 바는 기존처럼 뺌")

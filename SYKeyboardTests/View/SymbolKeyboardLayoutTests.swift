@@ -14,6 +14,13 @@ import UIKit
 @Suite("기호 자판 배열·정렬과 입력 모드별 키 표시")
 struct SymbolKeyboardLayoutTests {
 
+    /// 기본 높이 설정(240)에서의 세로 숫자 행 높이(52.75). 실제 키보드처럼 정책 값으로 갱신한다
+    private static let defaultPortraitNumberRowHeight = KeyboardHeightPolicy.numberRowHeight(
+        isEnabled: true,
+        isPortrait: true,
+        keyboardSettingsHeight: DefaultValues.keyboardHeight
+    )
+
     /// 세로 기본 높이(240)에서 프레임 여백 4를 뺀 키 영역
     private func makeView(mode: SymbolKeyboardMode) -> SymbolKeyboardView {
         let view = SymbolKeyboardView(showsLanguageSwitchButton: false)
@@ -28,9 +35,9 @@ struct SymbolKeyboardLayoutTests {
     private func makeNumberRowView(mode: SymbolKeyboardMode, showsLanguageSwitchButton: Bool) -> SymbolKeyboardView {
         let view = SymbolKeyboardView(showsLanguageSwitchButton: showsLanguageSwitchButton, showsNumberRow: true)
         view.currentSymbolKeyboardMode = mode
-        view.updateNumberRowHeight(KeyboardHeightPolicy.portraitNumberRowHeight)
-        // keyboardHStackView(240 + 46.5)에서 프레임 여백 4를 뺀 높이
-        view.frame = CGRect(x: 0, y: 0, width: 375, height: 282.5)
+        view.updateNumberRowHeight(Self.defaultPortraitNumberRowHeight)
+        // keyboardHStackView(240 + 52.75)에서 프레임 여백 4를 뺀 높이
+        view.frame = CGRect(x: 0, y: 0, width: 375, height: 288.75)
         view.layoutIfNeeded()
 
         return view
@@ -138,9 +145,9 @@ struct SymbolKeyboardLayoutTests {
     @Test("숫자 행을 켜면 숫자 키가 생기고 기본 자판 배열이 바뀐다")
     func test기호자판_숫자행표시() throws {
         let view = SymbolKeyboardView(showsLanguageSwitchButton: false, showsNumberRow: true)
-        view.updateNumberRowHeight(KeyboardHeightPolicy.portraitNumberRowHeight)
-        // keyboardHStackView(240 + 46.5)에서 프레임 여백 4를 뺀 높이
-        view.frame = CGRect(x: 0, y: 0, width: 375, height: 282.5)
+        view.updateNumberRowHeight(Self.defaultPortraitNumberRowHeight)
+        // keyboardHStackView(240 + 52.75)에서 프레임 여백 4를 뺀 높이
+        view.frame = CGRect(x: 0, y: 0, width: 375, height: 288.75)
         view.layoutIfNeeded()
 
         #expect(view.showsNumberRow)
@@ -150,7 +157,7 @@ struct SymbolKeyboardLayoutTests {
                 == ["-", "/", ":", ";", "(", ")", "₩", "&", "@", "”"])
 
         let numberButton = try #require(view.numberRowPrimaryKeyButtonList.first)
-        #expect(abs(numberButton.frame.height - 46.5) < 0.5)
+        #expect(abs(numberButton.frame.height - 52.75) < 0.5)
     }
 
     @Test("가로 높이를 주면 숫자 행만 35로 줄고 배열은 그대로다")

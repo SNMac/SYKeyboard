@@ -53,6 +53,7 @@ struct OneHandedKeyboardWidthSettingsView: View {
             Spacer()
             
             PreviewKeyboardView(keyboardHeight: $previewKeyboardHeight,
+                                keyboardSettingsHeight: keyboardHeight,
                                 oneHandedKeyboardWidth: $tempOneHandedKeyboardWidth,
                                 letterColumnWidthMultiplier: $letterColumnWidthMultiplier,
                                 needsInputModeSwitchKey: $needsInputModeSwitchKey,

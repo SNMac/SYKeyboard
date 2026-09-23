@@ -16,6 +16,13 @@ import UIKit
 @Suite("주 자판 숫자 행 레이아웃과 보조 키")
 struct KeyboardNumberRowLayoutTests {
 
+    /// 기본 높이 설정(240)에서의 세로 숫자 행 높이(52.75). 실제 키보드처럼 정책 값으로 갱신한다
+    private static let defaultPortraitNumberRowHeight = KeyboardHeightPolicy.numberRowHeight(
+        isEnabled: true,
+        isPortrait: true,
+        keyboardSettingsHeight: DefaultValues.keyboardHeight
+    )
+
     private static let numberKeys = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"]
 
     private func makeDubeolsik(showsNumberRow: Bool) -> DubeolsikKeyboardView {
@@ -67,18 +74,19 @@ struct KeyboardNumberRowLayoutTests {
         #expect(view.showsNumberRow == false)
     }
 
-    @Test("세로 기본 높이에서 숫자 행은 46.5, 글자 행은 59")
+    @Test("세로 기본 높이 설정(240)에서 숫자 행은 52.75, 글자 행은 59")
     func test숫자행_세로높이() throws {
         let view = makeDubeolsik(showsNumberRow: true)
-        // keyboardHStackView(240 + 46.5)에서 프레임 여백 4를 뺀 높이
-        view.frame = CGRect(x: 0, y: 0, width: 375, height: 282.5)
+        view.updateNumberRowHeight(Self.defaultPortraitNumberRowHeight)
+        // keyboardHStackView(240 + 52.75)에서 프레임 여백 4를 뺀 높이
+        view.frame = CGRect(x: 0, y: 0, width: 375, height: 288.75)
         view.layoutIfNeeded()
 
         let numberButton = try #require(view.totalTextInterableButtonList.first)
         let letterButton = view.totalTextInterableButtonList[10]
-        #expect(abs(numberButton.frame.height - 46.5) < 0.5)
+        #expect(abs(numberButton.frame.height - 52.75) < 0.5)
         #expect(abs(letterButton.frame.height - 59) < 0.5)
-        #expect(abs(letterButton.convert(letterButton.bounds, to: view).minY - 46.5) < 0.5)
+        #expect(abs(letterButton.convert(letterButton.bounds, to: view).minY - 52.75) < 0.5)
     }
 
     @Test("가로 숫자 행 높이로 갱신하면 숫자 행은 35")
@@ -165,18 +173,19 @@ struct KeyboardNumberRowLayoutTests {
         #expect(cheonjiin.totalTextInterableButtonList.first?.type.primaryKeyList == ["ㅣ"])
     }
 
-    @Test("나랏글 세로 기본 높이에서 숫자 행은 46.5로 전체 너비를 10칸으로 나누고, 글자 행은 59")
+    @Test("나랏글 세로 기본 높이 설정(240)에서 숫자 행은 52.75로 전체 너비를 10칸으로 나누고, 글자 행은 59")
     func test나랏글_숫자행_세로높이() throws {
         let view = makeNaratgeul(showsNumberRow: true)
-        view.frame = CGRect(x: 0, y: 0, width: 375, height: 282.5)
+        view.updateNumberRowHeight(Self.defaultPortraitNumberRowHeight)
+        view.frame = CGRect(x: 0, y: 0, width: 375, height: 288.75)
         view.layoutIfNeeded()
 
         let numberButton = try #require(view.totalTextInterableButtonList.first)
         let letterButton = view.totalTextInterableButtonList[10]
-        #expect(abs(numberButton.frame.height - 46.5) < 0.5)
+        #expect(abs(numberButton.frame.height - 52.75) < 0.5)
         #expect(abs(numberButton.frame.width - 37.5) < 0.5)
         #expect(abs(letterButton.frame.height - 59) < 0.5)
-        #expect(abs(letterButton.convert(letterButton.bounds, to: view).minY - 46.5) < 0.5)
+        #expect(abs(letterButton.convert(letterButton.bounds, to: view).minY - 52.75) < 0.5)
     }
 
     @Test("나랏글·천지인도 프로토콜 타입으로 가로 숫자 행 높이를 갱신하면 숫자 행은 35")
@@ -202,8 +211,10 @@ struct KeyboardNumberRowLayoutTests {
 
     @Test("나랏글·천지인 숫자 키는 기호 자판 숫자 키와 보이는 크기가 같다")
     func test4x4_숫자키크기_기호자판과같음() throws {
-        let frame = CGRect(x: 0, y: 0, width: 375, height: 282.5)
+        let numberRowHeight = Self.defaultPortraitNumberRowHeight
+        let frame = CGRect(x: 0, y: 0, width: 375, height: 288.75)
         let symbol = SymbolKeyboardView(showsLanguageSwitchButton: false, showsNumberRow: true)
+        symbol.updateNumberRowHeight(numberRowHeight)
         symbol.frame = frame
         symbol.layoutIfNeeded()
         let symbolKey = try #require(symbol.numberRowPrimaryKeyButtonList.first).backgroundView.bounds.size
@@ -213,13 +224,14 @@ struct KeyboardNumberRowLayoutTests {
             makeCheonjiin(showsNumberRow: true)
         ]
         for view in views {
+            view.updateNumberRowHeight(numberRowHeight)
             view.frame = frame
             view.layoutIfNeeded()
             let numberButton = try #require(view.totalTextInterableButtonList.first as? PrimaryKeyButton)
             let key = numberButton.backgroundView.bounds.size
 
-            // 숫자 행 46.5에서 위아래 여백 4를 뺀 높이
-            #expect(abs(key.height - 38.5) < 0.5)
+            // 숫자 행 52.75에서 위아래 여백 4를 뺀 높이
+            #expect(abs(key.height - 44.75) < 0.5)
             #expect(abs(key.height - symbolKey.height) < 0.5)
             #expect(abs(key.width - symbolKey.width) < 0.5)
         }
