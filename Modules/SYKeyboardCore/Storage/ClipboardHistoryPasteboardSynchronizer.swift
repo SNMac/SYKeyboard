@@ -8,6 +8,20 @@
 import UIKit
 import OSLog
 
+/// 동기화기가 쓰는 pasteboard 읽기 동작. `UIPasteboard`가 그대로 만족하며, 접근이 거부된 상태처럼
+/// 실제 `UIPasteboard`로는 만들 수 없는 조합을 테스트에서 재현하기 위한 이음매다
+public protocol ClipboardPasteboard: AnyObject {
+    var changeCount: Int { get }
+    var hasStrings: Bool { get }
+    var hasImages: Bool { get }
+    var string: String? { get }
+    var types: [String] { get }
+    var itemProviders: [NSItemProvider] { get }
+    func contains(pasteboardTypes: [String]) -> Bool
+}
+
+extension UIPasteboard: ClipboardPasteboard {}
+
 /// 시스템 pasteboard의 최신 텍스트 또는 이미지를 클립보드 기록에 반영한다. 키보드 extension과 앱이 함께 쓴다
 ///
 /// `changeCount`와 `hasStrings`·`hasImages`·`types` 확인은 iOS 16 붙여넣기 권한 알림을 띄우지 않고,
@@ -47,23 +61,39 @@ public enum ClipboardHistoryPasteboardSynchronizer {
     /// 내용을 읽어 `store`에 기록한다
     ///
     /// 키보드가 디코드 예산 초과로 건너뛴 이미지는 `budgetSkippedPasteboardChangeCount`에 남고, `retriesBudgetSkipped`가 참인
-    /// 호출(앱)은 그 changeCount를 이미 확인했더라도 한 번 더 읽어 앱 예산으로 저장한다.
+    /// 호출(앱)은 그 changeCount를 이미 확인했더라도 한 번 더 읽어 앱 예산으로 저장하고, 건너뛴 이미지가 없으면 아예 읽지 않는다.
     ///
     /// - Parameters:
     ///   - decodeMemoryBudget: 이 프로세스가 썸네일 디코드에 쓸 수 있는 예산. 키보드는 기본값, 앱은 `appDecodeMemoryBudget`을 넘긴다
-    ///   - retriesBudgetSkipped: 키보드가 예산 초과로 건너뛴 pasteboard를 다시 시도할지. 앱만 참을 넘긴다
+    ///   - retriesBudgetSkipped: 건너뛴 이미지가 남아 있을 때만 읽고 앱 예산으로 다시 시도할지.
+    ///   pasteboard가 바뀌었다는 보장 없이 부르는 앱 경로(화면 진입·활성화)가 참을 넘긴다
     ///
     /// 이미지 저장은 백그라운드에서 끝나며 결과는 `didRecordImageNotification`·`didSkipImageForBudgetNotification`으로 알린다.
     /// 텍스트 기록은 동기라 알림이 없다
     public static func synchronizeIfNeeded(
         store: ClipboardHistoryStore,
-        pasteboard: UIPasteboard = .general,
+        pasteboard: any ClipboardPasteboard = UIPasteboard.general,
         settings: UserDefaultsManager = .shared,
         decodeMemoryBudget: Int = ClipboardImagePolicy.keyboardDecodeMemoryBudget,
         retriesBudgetSkipped: Bool = false
     ) {
         let changeCount = pasteboard.changeCount
-        let isBudgetRetry = retriesBudgetSkipped && changeCount == settings.budgetSkippedPasteboardChangeCount
+        // changeCount 0은 pasteboard 접근이 거부됐다는 신호다. 키보드 extension이 foreground가 되기 전에 읽으면
+        // pasted가 거부하는데(`PBErrorDomain Code=10`), 이때 changeCount는 0이면서 hasStrings는 참이라 내용 유무로는
+        // 걸러지지 않는다. 0을 확인값으로 저장하면 원래 값으로 돌아왔을 때 이미 기록한 내용을 다시 읽는다(#154).
+        // 재부팅 직후 changeCount가 0인 첫 복사 하나는 놓치지만, 그 대가로 거부 상태의 반복 읽기를 없앤다
+        guard changeCount != 0 else {
+            logger.notice("pasteboard 접근이 거부돼(changeCount 0) 동기화를 건너뜀")
+            return
+        }
+        let budgetSkippedChangeCount = settings.budgetSkippedPasteboardChangeCount
+        let isBudgetRetry = retriesBudgetSkipped && changeCount == budgetSkippedChangeCount
+        // pasteboard가 바뀌었다는 보장 없이 부르는 쪽(앱의 화면 진입·활성화)만 `retriesBudgetSkipped`를 넘긴다.
+        // 맥북에서 복사한 원격 항목은 프로세스마다 권한이 새로 필요해 읽을 때마다 배너가 뜨므로, 그런 호출은
+        // 키보드가 예산 초과로 건너뛴 이미지가 남아 있을 때만 읽는다(#154). 프로세스마다 changeCount가
+        // 다르게 보여(#145) 표시와 정확히 일치하지 않을 수 있으므로 표시의 유무만 본다
+        let hasBudgetSkippedImage = budgetSkippedChangeCount != DefaultValues.budgetSkippedPasteboardChangeCount
+        guard !retriesBudgetSkipped || hasBudgetSkippedImage else { return }
         // 앱과 키보드 extension은 같은 순간에도 서로 다른 changeCount를 본다(#145). 그래서 확인한 값은 이 프로세스에만
         // 남긴다. 공유 값에 쓰면 다른 프로세스가 그 값을 자기 카운터와 비교해, 같은 내용을 다시 읽어 배너를 반복해 띄우거나
         // 우연히 같은 값이 된 새 복사를 건너뛴다. 공유 값은 앱·키보드가 pasteboard에 직접 쓴 직후에만 맞춰 두고 여기서는 비교만 한다
