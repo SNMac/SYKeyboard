@@ -57,6 +57,12 @@ open class EnglishKeyboardCoreViewController: BaseKeyboardViewController {
         super.didSetCurrentKeyboard()
         updateShiftButton()
     }
+
+    /// 클립보드 붙여넣기·undo/redo로 커서 앞 문맥이 바뀌었으므로 자동 대문자를 다시 판단한다
+    open override func undoRedoEditDidApply() {
+        super.undoRedoEditDidApply()
+        updateShiftButton()
+    }
     
     open override func updateKeyboardType() {
         guard textDocumentProxy.keyboardType != oldKeyboardType else { return }
