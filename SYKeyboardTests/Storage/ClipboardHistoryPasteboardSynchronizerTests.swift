@@ -114,6 +114,22 @@ struct ClipboardHistoryPasteboardSynchronizerTests {
         #expect(ClipboardHistoryPasteboardSynchronizer.processLastSeenPasteboardChangeCount == seenChangeCount)
     }
 
+    @Test("접근이 거부돼 changeCount가 0으로 보이면 읽지 않고 확인값도 갱신하지 않음")
+    func test접근거부_changeCount0은_읽지않음() {
+        let fixture = makeFixture(name: "denied")
+        defer { fixture.restore() }
+        fixture.pasteboard.string = "hello"
+        ClipboardHistoryPasteboardSynchronizer.synchronizeIfNeeded(store: fixture.store, pasteboard: fixture.pasteboard)
+        let seenChangeCount = ClipboardHistoryPasteboardSynchronizer.processLastSeenPasteboardChangeCount
+
+        ClipboardHistoryPasteboardSynchronizer.synchronizeIfNeeded(
+            store: fixture.store, pasteboard: DeniedAccessPasteboard()
+        )
+
+        #expect(fixture.store.load().map(\.text) == ["hello"])
+        #expect(ClipboardHistoryPasteboardSynchronizer.processLastSeenPasteboardChangeCount == seenChangeCount)
+    }
+
     @Test("concealed 타입이 있는 항목은 기록하지 않고 changeCount만 갱신")
     func testConcealed항목은_기록하지않음() {
         let fixture = makeFixture(name: "concealed")
@@ -262,6 +278,18 @@ struct ClipboardHistoryPasteboardSynchronizerTests {
     }
 }
 
+/// 접근이 거부된 pasteboard. `pasted`가 거부하면 `changeCount`는 0으로 보이면서 `hasStrings`는 참을 돌려주는데,
+/// 실제 `UIPasteboard`로는 이 조합을 만들 수 없다
+private final class DeniedAccessPasteboard: ClipboardPasteboard {
+    let changeCount = 0
+    let hasStrings = true
+    let hasImages = false
+    let string: String? = "denied"
+    let types = ["public.utf8-plain-text"]
+    let itemProviders: [NSItemProvider] = []
+    func contains(pasteboardTypes: [String]) -> Bool { false }
+}
+
 /// `body`를 실행하고 `store`가 게시한 `name` 알림이 한 번 올 때까지 기다린다. 동기화기의 백그라운드 이미지 저장이 끝나는 시점을 잡는다.
 /// observer를 `body`보다 먼저 등록해 알림을 놓치지 않고, object를 store로 한정해 테스트 호스트 앱이 실제 store로 게시한 알림에 깨어나지 않는다.
 /// 알림이 끝내 오지 않으면 테스트가 멈추는 대신 실패하도록 상한을 둔다. 상한은 성공 조건이 아니라 정지를 잡기 위한 값이다
@@ -383,6 +411,8 @@ private func makeFixture(name: String) -> SyncFixture {
     let base = "SYKeyboardTests-\(UUID().uuidString)-\(name)"
     let url = FileManager.default.temporaryDirectory.appendingPathComponent("\(base).plist")
     let imageDirectoryURL = FileManager.default.temporaryDirectory.appendingPathComponent(base, isDirectory: true)
+    // 갓 만든 pasteboard는 changeCount가 0이고 동기화기는 0을 접근 거부로 보고 건너뛴다(#154).
+    // 내용을 쓰면 1 이상이 되므로, 쓰기 전에 동기화를 부르는 테스트는 아무 일도 하지 않는다
     let pasteboard = UIPasteboard(name: UIPasteboard.Name("SYKeyboardTests.\(name).\(UUID().uuidString)"), create: true)!
     let storage = UserDefaultsManager.shared.storage
     let originalChangeCount = storage.object(forKey: UserDefaultsKeys.lastSeenPasteboardChangeCount)
