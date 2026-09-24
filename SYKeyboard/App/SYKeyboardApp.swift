@@ -176,7 +176,9 @@ struct SYKeyboardApp: App {
 
     // MARK: - Private Methods
 
-    /// 앱이 활성화될 때도 키보드와 같은 규칙으로 클립보드 기록을 동기화한다. 설정이 꺼져 있으면 pasteboard를 읽지 않는다
+    /// 앱이 활성화될 때 클립보드 기록을 동기화한다. 설정이 꺼져 있으면 pasteboard를 읽지 않는다.
+    /// 활성화는 pasteboard가 바뀌었다는 보장이 없어 읽을 때마다 배너만 반복되므로, 키보드가 예산 초과로
+    /// 건너뛴 이미지가 남아 있을 때만 읽는다(#154)
     private func synchronizeClipboardHistoryIfNeeded() {
         guard UserDefaultsManager.shared.isClipboardHistoryEnabled,
               let store = ClipboardHistoryStore() else { return }

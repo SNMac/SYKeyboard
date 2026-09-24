@@ -130,6 +130,48 @@ struct ClipboardHistoryPasteboardSynchronizerTests {
         #expect(ClipboardHistoryPasteboardSynchronizer.processLastSeenPasteboardChangeCount == seenChangeCount)
     }
 
+    @Test("앱은 키보드가 건너뛴 이미지를 다시 시도할 때가 아니면 pasteboard를 읽지 않음")
+    func test앱은_재시도가아니면_읽지않음() {
+        let fixture = makeFixture(name: "app-idle")
+        defer { fixture.restore() }
+        fixture.pasteboard.string = "hello"
+
+        ClipboardHistoryPasteboardSynchronizer.synchronizeIfNeeded(
+            store: fixture.store,
+            pasteboard: fixture.pasteboard,
+            decodeMemoryBudget: ClipboardImagePolicy.appDecodeMemoryBudget,
+            retriesBudgetSkipped: true
+        )
+
+        #expect(fixture.store.load().isEmpty)
+        #expect(
+            ClipboardHistoryPasteboardSynchronizer.processLastSeenPasteboardChangeCount
+            == DefaultValues.lastSeenPasteboardChangeCount
+        )
+    }
+
+    @Test("건너뛴 이미지 표시가 남아 있으면 changeCount가 표시와 달라도 앱은 읽는다")
+    func test앱은_표시가남아있으면_changeCount가달라도읽음() {
+        let fixture = makeFixture(name: "app-mark-mismatch")
+        defer { fixture.restore() }
+        fixture.pasteboard.string = "hello"
+        // 키보드가 건너뛴 시점의 changeCount는 앱이 보는 값과 다를 수 있다(#145). 표시만 남아 있으면 읽어야 한다
+        UserDefaultsManager.shared.budgetSkippedPasteboardChangeCount = fixture.pasteboard.changeCount + 100
+
+        ClipboardHistoryPasteboardSynchronizer.synchronizeIfNeeded(
+            store: fixture.store,
+            pasteboard: fixture.pasteboard,
+            decodeMemoryBudget: ClipboardImagePolicy.appDecodeMemoryBudget,
+            retriesBudgetSkipped: true
+        )
+
+        #expect(fixture.store.load().map(\.text) == ["hello"])
+        #expect(
+            UserDefaultsManager.shared.budgetSkippedPasteboardChangeCount
+            == DefaultValues.budgetSkippedPasteboardChangeCount
+        )
+    }
+
     @Test("concealed 타입이 있는 항목은 기록하지 않고 changeCount만 갱신")
     func testConcealed항목은_기록하지않음() {
         let fixture = makeFixture(name: "concealed")

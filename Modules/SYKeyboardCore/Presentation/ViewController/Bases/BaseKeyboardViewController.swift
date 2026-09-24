@@ -2482,7 +2482,7 @@ private extension BaseKeyboardViewController {
     /// pasteboard의 `changeCount`가 마지막 확인값과 다를 때만 텍스트 또는 이미지를 읽어 기록에 저장합니다.
     ///
     /// 호출 시점: `viewWillAppear`, 호스트 앱 재활성화, `textWillChange`, 클립보드 버튼 탭. `textDidChange`와 selection 콜백은 쓰지 않습니다.
-    /// 앱도 활성화 시 같은 `ClipboardHistoryPasteboardSynchronizer`를 호출한다.
+    /// 앱도 같은 `ClipboardHistoryPasteboardSynchronizer`를 쓰지만, 활성화 시에는 키보드가 예산 초과로 건너뛴 이미지가 남아 있을 때만 읽는다(#154).
     /// 이미지 저장 완료는 `didRecordImageNotification`으로 받는다(`clipboardImageDidRecord`)
     func synchronizeClipboardHistoryIfNeeded() {
         guard isClipboardHistoryAvailable, let clipboardHistoryStore else { return }

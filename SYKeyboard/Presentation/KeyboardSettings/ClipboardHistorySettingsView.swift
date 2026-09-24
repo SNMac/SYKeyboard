@@ -98,12 +98,12 @@ struct ClipboardHistorySettingsView: View {
         // 편집 버튼과 List가 같은 편집 상태를 보도록 toolbar 바깥에 둔다
         .environment(\.editMode, $editMode)
         // 시트가 떠 있는 동안 키보드가 기록을 바꿀 수 있으므로 닫힐 때 다시 읽는다
-        .sheet(isPresented: $isAddSheetPresented, onDismiss: synchronizeAndReload) { addSheet }
+        .sheet(isPresented: $isAddSheetPresented, onDismiss: { synchronizeAndReload(retriesBudgetSkipped: true) }) { addSheet }
         .sheet(item: $detailPresentation, onDismiss: { isDeletedItemAlertPresented = false }) { detailSheet(for: $0.item) }
         // 스와이프·편집 모드 삭제는 사용자가 의도한 동작이므로 HIG대로 알림이 아니라 action sheet로 확인한다. 취소는 시스템이 붙인다
-        .onAppear(perform: synchronizeAndReload)
+        .onAppear { synchronizeAndReload(retriesBudgetSkipped: true) }
         .onChange(of: scenePhase) { phase in
-            if phase == .active { synchronizeAndReload() }
+            if phase == .active { synchronizeAndReload(retriesBudgetSkipped: true) }
         }
         // 앱 활성화 동기화(SYKeyboardApp)가 먼저 changeCount를 소비하면 이 화면의 동기화는 건너뛰므로,
         // 백그라운드 저장이 끝난 이미지는 알림으로 받아 목록을 다시 읽는다
@@ -113,7 +113,7 @@ struct ClipboardHistorySettingsView: View {
         // 상세 시트에서 본문 일부를 복사하는 등 앱 안에서 pasteboard가 바뀌면 목록에 바로 반영한다. 열린 시트는 reload가 유지한다.
         // 시트의 "복사" 버튼은 쓴 직후 changeCount를 맞추므로, 그 갱신이 끝난 다음 runloop에서 확인해 중복 기록하지 않는다
         .onReceive(NotificationCenter.default.publisher(for: UIPasteboard.changedNotification)) { _ in
-            DispatchQueue.main.async { synchronizeAndReload() }
+            DispatchQueue.main.async { synchronizeAndReload(retriesBudgetSkipped: false) }
         }
         .requestReviewOnDetailSettingsReturn()
     }
@@ -368,12 +368,16 @@ private extension ClipboardHistorySettingsView {
 
 private extension ClipboardHistorySettingsView {
     /// 화면에 들어오거나 돌아올 때. 앱 활성화 알림과 순서가 보장되지 않으므로 여기서도 동기화한다
-    func synchronizeAndReload() {
+    ///
+    /// - Parameter retriesBudgetSkipped: pasteboard가 바뀌었다는 보장이 없는 경로(화면 진입·활성화)는 참을 넘긴다.
+    ///   맥북에서 복사한 항목은 읽을 때마다 붙여넣기 배너가 떠서, 그런 경로는 키보드가 건너뛴 이미지 재시도만 읽는다(#154).
+    ///   `UIPasteboard.changedNotification`처럼 방금 바뀐 것이 확실한 경로는 거짓을 넘겨 그대로 읽는다
+    func synchronizeAndReload(retriesBudgetSkipped: Bool) {
         if let store, UserDefaultsManager.shared.isClipboardHistoryEnabled {
             ClipboardHistoryPasteboardSynchronizer.synchronizeIfNeeded(
                 store: store,
                 decodeMemoryBudget: ClipboardImagePolicy.appDecodeMemoryBudget,
-                retriesBudgetSkipped: true
+                retriesBudgetSkipped: retriesBudgetSkipped
             )
         }
         reload()

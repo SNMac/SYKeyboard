@@ -61,11 +61,12 @@ public enum ClipboardHistoryPasteboardSynchronizer {
     /// 내용을 읽어 `store`에 기록한다
     ///
     /// 키보드가 디코드 예산 초과로 건너뛴 이미지는 `budgetSkippedPasteboardChangeCount`에 남고, `retriesBudgetSkipped`가 참인
-    /// 호출(앱)은 그 changeCount를 이미 확인했더라도 한 번 더 읽어 앱 예산으로 저장한다.
+    /// 호출(앱)은 그 changeCount를 이미 확인했더라도 한 번 더 읽어 앱 예산으로 저장하고, 건너뛴 이미지가 없으면 아예 읽지 않는다.
     ///
     /// - Parameters:
     ///   - decodeMemoryBudget: 이 프로세스가 썸네일 디코드에 쓸 수 있는 예산. 키보드는 기본값, 앱은 `appDecodeMemoryBudget`을 넘긴다
-    ///   - retriesBudgetSkipped: 키보드가 예산 초과로 건너뛴 pasteboard를 다시 시도할지. 앱만 참을 넘긴다
+    ///   - retriesBudgetSkipped: 건너뛴 이미지가 남아 있을 때만 읽고 앱 예산으로 다시 시도할지.
+    ///   pasteboard가 바뀌었다는 보장 없이 부르는 앱 경로(화면 진입·활성화)가 참을 넘긴다
     ///
     /// 이미지 저장은 백그라운드에서 끝나며 결과는 `didRecordImageNotification`·`didSkipImageForBudgetNotification`으로 알린다.
     /// 텍스트 기록은 동기라 알림이 없다
@@ -85,7 +86,14 @@ public enum ClipboardHistoryPasteboardSynchronizer {
             logger.notice("pasteboard 접근이 거부돼(changeCount 0) 동기화를 건너뜀")
             return
         }
-        let isBudgetRetry = retriesBudgetSkipped && changeCount == settings.budgetSkippedPasteboardChangeCount
+        let budgetSkippedChangeCount = settings.budgetSkippedPasteboardChangeCount
+        let isBudgetRetry = retriesBudgetSkipped && changeCount == budgetSkippedChangeCount
+        // pasteboard가 바뀌었다는 보장 없이 부르는 쪽(앱의 화면 진입·활성화)만 `retriesBudgetSkipped`를 넘긴다.
+        // 맥북에서 복사한 원격 항목은 프로세스마다 권한이 새로 필요해 읽을 때마다 배너가 뜨므로, 그런 호출은
+        // 키보드가 예산 초과로 건너뛴 이미지가 남아 있을 때만 읽는다(#154). 프로세스마다 changeCount가
+        // 다르게 보여(#145) 표시와 정확히 일치하지 않을 수 있으므로 표시의 유무만 본다
+        let hasBudgetSkippedImage = budgetSkippedChangeCount != DefaultValues.budgetSkippedPasteboardChangeCount
+        guard !retriesBudgetSkipped || hasBudgetSkippedImage else { return }
         // 앱과 키보드 extension은 같은 순간에도 서로 다른 changeCount를 본다(#145). 그래서 확인한 값은 이 프로세스에만
         // 남긴다. 공유 값에 쓰면 다른 프로세스가 그 값을 자기 카운터와 비교해, 같은 내용을 다시 읽어 배너를 반복해 띄우거나
         // 우연히 같은 값이 된 새 복사를 건너뛴다. 공유 값은 앱·키보드가 pasteboard에 직접 쓴 직후에만 맞춰 두고 여기서는 비교만 한다
