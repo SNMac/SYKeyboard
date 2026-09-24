@@ -24,7 +24,7 @@ struct LongPressSettingsView: View {
     // MARK: - Content
     
     var body: some View {
-        NavigationStack {
+        VStack {
             KeyboardTestView()
             List {
                 Section {
@@ -103,5 +103,7 @@ private extension LongPressSettingsView {
 // MARK: - Preview
 
 #Preview {
-    LongPressSettingsView()
+    NavigationStack {
+        LongPressSettingsView()
+    }
 }

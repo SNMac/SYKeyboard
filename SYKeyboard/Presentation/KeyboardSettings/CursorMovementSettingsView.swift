@@ -24,7 +24,7 @@ struct CursorMovementSettingsView: View {
     // MARK: - Content
     
     var body: some View {
-        NavigationStack {
+        VStack {
             KeyboardTestView()
             
             List {
@@ -104,5 +104,7 @@ private extension CursorMovementSettingsView {
 // MARK: - Preview
 
 #Preview {
-    CursorMovementSettingsView()
+    NavigationStack {
+        CursorMovementSettingsView()
+    }
 }
