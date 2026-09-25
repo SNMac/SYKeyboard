@@ -14,8 +14,10 @@ import OSLog
 /// 문맥에 따른 다음 단어를 빈도순으로 예측합니다.
 /// 문맥이 없는 경우(키보드 처음 열림 등)에는 unigram으로 자주 사용한 단어를 추천합니다.
 ///
-/// 언어별로 데이터가 분리되어 저장됩니다. 생성 시 전달한 `language` 식별자에 따라
+/// 식별자별로 데이터가 분리되어 저장됩니다. 생성 시 전달한 `language` 식별자에 따라
 /// 한글 키보드는 한글 n-gram만, 영어 키보드는 영어 n-gram만 조회·기록합니다.
+/// 한영 통합 키보드는 `hangeulEnglishLanguage`(`"ko-en"`) 식별자 하나로 두 언어를
+/// 함께 기록·조회합니다(언어 전환 경계를 넘는 문맥 사용).
 ///
 /// ```swift
 /// let koEngine = NGramPredictiveTextEngine(language: "ko")
@@ -31,8 +33,8 @@ import OSLog
 /// ```
 ///
 /// ## 저장 구조
-/// - App Group 컨테이너의 `Library/Application Support/`에 언어별 바이너리 plist 파일로 영구 저장
-/// - 파일명: `ngram_{language}.plist` (예: `ngram_ko.plist`)
+/// - App Group 컨테이너의 `Library/Application Support/`에 식별자별 바이너리 plist 파일로 영구 저장
+/// - 파일명: `ngram_{language}.plist` (예: `ngram_ko.plist`, 한영 통합은 `ngram_ko-en.plist`)
 /// - 항목 수 제한으로 메모리 과다 사용 방지
 ///
 /// ## 동작 흐름
@@ -60,7 +62,18 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
     }
     
     // MARK: - Properties
-    
+
+    /// 한영 통합 키보드가 쓰는 통합 NGram 식별자. 파일은 `ngram_ko-en.plist`다
+    public static let hangeulEnglishLanguage = "ko-en"
+
+    /// 식별자별 전체 키 최대 개수.
+    ///
+    /// 통합 NGram은 두 언어가 한 파일을 나눠 쓰므로, 한영 키보드가 언어별 엔진 2개로
+    /// 쓰던 용량(5000 + 5000)과 메모리 최대치에 맞춘다
+    static func maxKeys(forLanguage language: String) -> Int {
+        language == hangeulEnglishLanguage ? 10000 : 5000
+    }
+
     private lazy var logger = Logger(
         subsystem: Bundle.main.bundleIdentifier ?? "Unknown Bundle",
         category: "\(String(describing: type(of: self))) <\(Unmanaged.passUnretained(self).toOpaque())>"
@@ -87,10 +100,11 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
     /// 변이 경로(디스크 로드 반영, reset, 기록, prune)가 모두 이 프로퍼티를 거치므로
     /// `didSet` 한 곳에서 순위 캐시를 무효화한다
     private var unigramStore: [String: Int] = [:] {
-        didSet { rankedUnigramCache = nil }
+        didSet { rankedUnigramCache.removeAll() }
     }
-    /// `rankedUnigramCandidates()` 결과 캐시. unigram이 바뀌지 않은 연속 스페이스 입력에서 계산을 건너뛴다
-    private var rankedUnigramCache: [String]?
+    /// 선호 문자 종류별 `rankedUnigramCandidates(preferredScript:)` 결과 캐시.
+    /// unigram이 바뀌지 않은 연속 스페이스 입력에서 계산을 건너뛴다
+    private var rankedUnigramCache: [PredictiveTextScript?: [String]] = [:]
     /// bigram 저장소: "직전 단어" → ["다음 단어": 빈도수]
     private var bigramStore: [String: [String: Int]] = [:]
     /// trigram 저장소: "직전 2단어" → ["다음 단어": 빈도수]
@@ -193,7 +207,8 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
             fileURL: fileURL,
             legacyFileURL: legacyFileURL,
             legacyStorage: legacyStorage,
-            loadApplyScheduler: nil
+            loadApplyScheduler: nil,
+            maxKeys: Self.maxKeys(forLanguage: language)
         )
     }
 
@@ -284,15 +299,25 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
     /// - Parameter baseText: 자동완성을 제공할 텍스트 (`inputBuffer`)
     /// - Returns: 빈도순으로 정렬된 다음 단어 후보 배열 (최대 `maxPredictions`개)
     func suggestions(for baseText: String) -> [String] {
+        suggestions(for: baseText, preferredScript: nil)
+    }
+
+    /// `preferredScript`가 있으면 unigram 후보(문맥 없음, 남은 칸 보충)만 그 문자 종류를 앞에 둡니다.
+    /// trigram·bigram 후보는 문자 종류와 무관하게 빈도순입니다.
+    ///
+    /// - Parameters:
+    ///   - baseText: 자동완성을 제공할 텍스트 (`inputBuffer`)
+    ///   - preferredScript: unigram 후보에서 먼저 보여줄 문자 종류. `nil`이면 빈도순만 따른다
+    func suggestions(for baseText: String, preferredScript: PredictiveTextScript?) -> [String] {
         guard isLoaded else { return [] }
-        
+
         let words = baseText
             .split(whereSeparator: { $0.isWhitespace })
             .map(String.init)
-        
+
         // 문맥이 없으면 unigram (자주 사용한 단어)
         if words.isEmpty {
-            return rankedUnigramCandidates()
+            return rankedUnigramCandidates(preferredScript: preferredScript)
         }
         
         var seen = Set<String>()
@@ -322,7 +347,7 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
         
         // 3순위: unigram (슬롯이 남아있으면 보충)
         if results.count < maxPredictions {
-            for word in rankedUnigramCandidates() {
+            for word in rankedUnigramCandidates(preferredScript: preferredScript) {
                 guard !seen.contains(word.lowercased()) else { continue }
                 seen.insert(word.lowercased())
                 results.append(word)
@@ -656,28 +681,40 @@ private extension NGramPredictiveTextEngine {
     /// 빈도순으로 정렬된 unigram 후보를 반환합니다.
     ///
     /// 문맥이 없거나 trigram/bigram 결과가 부족할 때 사용됩니다.
+    /// `preferredScript`가 있으면 그 문자 종류 상위 후보를 먼저, 나머지 상위 후보를 뒤에 둡니다.
     ///
-    /// - Returns: 빈도순으로 정렬된 단어 배열 (최대 `maxPredictions`개)
-    func rankedUnigramCandidates() -> [String] {
-        if let rankedUnigramCache { return rankedUnigramCache }
+    /// - Parameter preferredScript: 먼저 보여줄 문자 종류. `nil`이면 빈도순만 따른다
+    /// - Returns: 단어 배열 (최대 `maxPredictions`개)
+    func rankedUnigramCandidates(preferredScript: PredictiveTextScript? = nil) -> [String] {
+        if let cached = rankedUnigramCache[preferredScript] { return cached }
 
         let state = Self.signposter.beginInterval("RankedUnigramCandidates")
         defer { Self.signposter.endInterval("RankedUnigramCandidates", state) }
 
-        // 전체 정렬 대신 상위 maxPredictions개만 유지한다. 동률 순서는 정렬 시절과 마찬가지로 정의하지 않는다
-        var top: [(key: String, value: Int)] = []
+        // 전체 정렬 대신 묶음마다 상위 maxPredictions개만 유지한다. 동률 순서는 정렬 시절과 마찬가지로 정의하지 않는다
+        var preferred: [(key: String, value: Int)] = []
+        var others: [(key: String, value: Int)] = []
         for entry in unigramStore {
-            guard top.count < maxPredictions || entry.value > top[top.count - 1].value else { continue }
-            let insertIndex = top.firstIndex { entry.value > $0.value } ?? top.count
-            top.insert(entry, at: insertIndex)
-            if top.count > maxPredictions {
-                top.removeLast()
+            if let preferredScript, PredictiveTextScriptPolicy.script(of: entry.key) == preferredScript {
+                insertTopUnigram(entry, into: &preferred)
+            } else {
+                insertTopUnigram(entry, into: &others)
             }
         }
 
-        let ranked = top.map(\.key)
-        rankedUnigramCache = ranked
+        let ranked = Array((preferred + others).prefix(maxPredictions).map(\.key))
+        rankedUnigramCache[preferredScript] = ranked
         return ranked
+    }
+
+    /// 빈도 내림차순을 유지하며 상위 `maxPredictions`개 안에 들면 넣는다
+    func insertTopUnigram(_ entry: (key: String, value: Int), into top: inout [(key: String, value: Int)]) {
+        guard top.count < maxPredictions || entry.value > top[top.count - 1].value else { return }
+        let insertIndex = top.firstIndex { entry.value > $0.value } ?? top.count
+        top.insert(entry, at: insertIndex)
+        if top.count > maxPredictions {
+            top.removeLast()
+        }
     }
     
     /// 빈도순으로 정렬된 후보를 반환합니다.
@@ -735,13 +772,31 @@ private extension NGramPredictiveTextEngine {
     ///
     /// - Parameter store: n-gram 저장소
     func pruneKeys(in store: inout [String: [String: Int]]) {
-        guard store.count > maxKeys else { return }
-        
+        let removeCount = store.count - maxKeys
+        guard removeCount > 0 else { return }
+
+        // pruneUnigram과 같이 정상 경로는 기록마다 최대 1개 초과라 총 빈도가 가장 낮은 키 1개만 찾는다.
+        // 가득 찬 저장소에서는 trigram 새 문맥이 거의 매 스페이스마다 생겨 전체 정렬이 입력 지연이 된다
+        if removeCount == 1 {
+            var lowestKey: String?
+            var lowestTotal = Int.max
+            for (key, entries) in store {
+                let total = entries.values.reduce(0, +)
+                if total < lowestTotal {
+                    lowestTotal = total
+                    lowestKey = key
+                }
+            }
+            if let lowestKey {
+                store.removeValue(forKey: lowestKey)
+            }
+            return
+        }
+
         // 각 키의 총 빈도를 계산하여 낮은 순으로 제거
         let keysWithTotalFreq = store.map { (key: $0.key, total: $0.value.values.reduce(0, +)) }
         let sorted = keysWithTotalFreq.sorted { $0.total < $1.total }
-        
-        let removeCount = store.count - maxKeys
+
         for i in 0..<removeCount {
             store.removeValue(forKey: sorted[i].key)
         }

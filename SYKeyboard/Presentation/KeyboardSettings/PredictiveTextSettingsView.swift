@@ -29,7 +29,10 @@ struct PredictiveTextSettingsView: View {
     @State private var showResetAllAlert = false
     
     private let supportedLanguages = ["ko-KR", "en-US"]
-    
+
+    /// NGram은 한영 통합 키보드의 통합 파일까지 지운다
+    private let nGramLanguages = ["ko-KR", "en-US", NGramPredictiveTextEngine.hangeulEnglishLanguage]
+
     // MARK: - Content
     
     var body: some View {
@@ -112,11 +115,11 @@ private extension PredictiveTextSettingsView {
     }
     
     func resetNGramData() {
-        for lang in supportedLanguages {
+        for lang in nGramLanguages {
             let engine = NGramPredictiveTextEngine(language: lang)
             engine.resetAllData()
         }
-        
+
         Analytics.logEvent("reset_ngram_data", parameters: [
             "view": "PredictiveTextSettingsView"
         ])

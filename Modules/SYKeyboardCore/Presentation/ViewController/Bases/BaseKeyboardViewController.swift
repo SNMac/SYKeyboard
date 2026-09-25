@@ -128,10 +128,6 @@ open class BaseKeyboardViewController: UIInputViewController {
     /// 서브클래스에서는 `insertText`, `deleteText`, `replaceText`,
     /// `resetInputBuffer` 래핑 메서드를 통해 조작합니다.
     private var inputBuffer: String = ""
-    private var languageSegmentTracker = KeyboardLanguageSegmentTracker()
-    private var currentLanguageInputBuffer: String {
-        return languageSegmentTracker.currentSegment(in: inputBuffer)
-    }
     private var smartQuoteState = KeyboardSmartQuoteState()
 
     /// 키보드 전환 버튼에 마지막으로 반영한 `needsInputModeSwitchKey`.
@@ -269,8 +265,11 @@ open class BaseKeyboardViewController: UIInputViewController {
         super.init(nibName: nibNameOrNil, bundle: nibBundleOrNil)
     }
 
-    public init(language: String) {
-        self.suggestionController = SuggestionController(language: language)
+    /// - Parameters:
+    ///   - language: 키보드 언어. `UITextChecker` 언어로도 쓴다
+    ///   - nGramLanguage: NGram 엔진 식별자. `nil`이면 `language`를 따른다
+    public init(language: String, nGramLanguage: String? = nil) {
+        self.suggestionController = SuggestionController(language: language, nGramLanguage: nGramLanguage)
         super.init(nibName: nil, bundle: nil)
     }
 
@@ -638,7 +637,7 @@ open class BaseKeyboardViewController: UIInputViewController {
     open func insertSpaceText() {
         if BaseKeyboardViewController.isPreview { return }
 
-        suggestionController.recordUncommittedWords(from: currentLanguageInputBuffer)
+        suggestionController.recordUncommittedWords(from: inputBuffer)
 
         insertText(" ")
         commitUndoRedoGroupIfPossible()
@@ -649,7 +648,7 @@ open class BaseKeyboardViewController: UIInputViewController {
     open func insertReturnText() {
         if BaseKeyboardViewController.isPreview { return }
 
-        suggestionController.endSentence(inputBuffer: currentLanguageInputBuffer)
+        suggestionController.endSentence(inputBuffer: inputBuffer)
 
         textDocumentProxy.insertText("\n")
         recordUndoRedoChange(deletedText: "", insertedText: "\n")
@@ -772,7 +771,6 @@ extension BaseKeyboardViewController {
     public func insertText(_ text: String) {
         textDocumentProxy.insertText(text)
         inputBuffer.append(text)
-        languageSegmentTracker.insert(text)
         recordUndoRedoChange(deletedText: "", insertedText: text)
     }
 
@@ -802,7 +800,7 @@ extension BaseKeyboardViewController {
     /// `textDocumentProxy.deleteBackward()`를 직접 호출하는 대신 이 메서드를 사용하여
     /// 입력 버퍼가 항상 실제 입력과 일치하도록 보장합니다.
     public func deleteText() {
-        let wasSpaceAtEnd = currentLanguageInputBuffer.last?.isWhitespace == true
+        let wasSpaceAtEnd = inputBuffer.last?.isWhitespace == true
         let selectedText = textDocumentProxy.selectedText
         let deletedText = KeyboardTextInteractionPolicy.deletedTextForSingleBackward(
             selectedText: selectedText,
@@ -813,7 +811,6 @@ extension BaseKeyboardViewController {
         if !inputBuffer.isEmpty {
             inputBuffer.removeLast()
         }
-        languageSegmentTracker.delete(count: 1)
         let reliability: RepeatDeleteMutationReliability =
             selectedText?.isEmpty == false ? .authoritative : .proxyContext
         recordUndoRedoChange(
@@ -822,10 +819,10 @@ extension BaseKeyboardViewController {
             reliability: reliability
         )
 
-        if currentLanguageInputBuffer.isEmpty {
+        if inputBuffer.isEmpty {
             // 모든 입력을 지운 경우 → 문장 버퍼 전체 초기화
             suggestionController.resetSentenceBuffer()
-        } else if wasSpaceAtEnd && currentLanguageInputBuffer.last?.isWhitespace != true {
+        } else if wasSpaceAtEnd && inputBuffer.last?.isWhitespace != true {
             // 스페이스를 지워서 커밋된 단어 경계를 허문 경우 → n-gram 버퍼에서 pop
             suggestionController.removeLastRecordedWord()
         }
@@ -843,7 +840,6 @@ extension BaseKeyboardViewController {
         let deletedText = textBeforeCursorSuffix(count: deleteCount)
         replaceTextInDocument(deleteCount: deleteCount, insert: text)
         replaceInputBufferSuffix(deleteCount: deleteCount, insert: text)
-        languageSegmentTracker.replace(deleteCount: deleteCount, insertText: text)
         recordUndoRedoChange(deletedText: deletedText, insertedText: text)
     }
 
@@ -853,7 +849,6 @@ extension BaseKeyboardViewController {
     /// 어긋날 수 있는 상황에서 호출합니다.
     public func resetInputBuffer() {
         inputBuffer = ""
-        languageSegmentTracker.resetForExternalContext()
         smartQuoteState.reset()
         suggestionController.resetSentenceBuffer()
     }
@@ -861,17 +856,6 @@ extension BaseKeyboardViewController {
     /// 예측 엔진 언어만 갱신합니다.
     public final func updateSuggestionLanguage(to language: String) {
         suggestionController.updateLanguage(to: language)
-    }
-
-    /// 언어 전환 전 후보와 대치 이력을 비웁니다.
-    public final func clearSuggestionsForLanguageChange() {
-        suggestionController.clearSuggestions()
-        suggestionController.clearReplacementHistory()
-    }
-
-    /// 현재 입력 버퍼 위치를 새 언어 segment의 시작점으로 표시합니다.
-    public final func markCurrentInputBufferAsLanguageBoundary() {
-        languageSegmentTracker.markLanguageBoundary()
     }
 
     /// 언어 전환 전에 진행 중인 반복·삭제·버튼 상호작용을 종료합니다.
@@ -1475,7 +1459,7 @@ private extension BaseKeyboardViewController {
 
         suggestionBarView.updatePreviewHighlight(
             index: suggestionController.textReplacementPreviewSuggestionIndex(
-                baseText: currentLanguageInputBuffer
+                baseText: inputBuffer
             )
         )
     }
@@ -1574,7 +1558,7 @@ extension BaseKeyboardViewController {
                 // 수식 action을 적용한 경우 일반 텍스트 대치를 건너뜁니다.
             } else {
                 if let replacement = suggestionController.attemptTextReplacement(
-                    baseText: currentLanguageInputBuffer,
+                    baseText: inputBuffer,
                     documentContextBeforeInput: textDocumentProxy.documentContextBeforeInput
                 ) {
                     // 텍스트 대치: 래핑 메서드 사용
@@ -1705,7 +1689,7 @@ private extension BaseKeyboardViewController {
 
     func performDeleteButtonTextInteraction() {
         if let restore = suggestionController.attemptRestoreReplacement(
-            inputBuffer: currentLanguageInputBuffer,
+            inputBuffer: inputBuffer,
             documentContextBeforeInput: textDocumentProxy.documentContextBeforeInput,
             selectedText: textDocumentProxy.selectedText
         ) {
@@ -1979,12 +1963,12 @@ private extension BaseKeyboardViewController {
         let action = KeyboardSuggestionSelectionPolicy.suggestionUpdateAction(
             isPredictiveTextEnabled: suggestionController.isPredictiveTextEnabled,
             selectedText: selectedText,
-            inputBuffer: currentLanguageInputBuffer
+            inputBuffer: inputBuffer
         )
         let mathExpressionText = KeyboardSuggestionSelectionPolicy
             .mathExpressionDetectionText(
                 selectedText: selectedText,
-                inputBuffer: currentLanguageInputBuffer,
+                inputBuffer: inputBuffer,
                 documentContextBeforeInput: textDocumentProxy.documentContextBeforeInput
             )
 
@@ -2742,7 +2726,6 @@ private extension BaseKeyboardViewController {
     func replaceSelectedText(_ selectedText: String, with insertText: String) {
         textDocumentProxy.insertText(insertText)
         inputBuffer.append(insertText)
-        languageSegmentTracker.insert(insertText)
         recordUndoRedoChange(
             deletedText: selectedText,
             insertedText: insertText
@@ -2754,7 +2737,7 @@ private extension BaseKeyboardViewController {
         guard let word = suggestionController.nGramSuggestionText(at: index) else { return true }
 
         if KeyboardSuggestionSelectionPolicy.shouldInsertLeadingSpaceBeforeNGramSuggestion(
-            inputBuffer: currentLanguageInputBuffer
+            inputBuffer: inputBuffer
         ) {
             insertText(" ")
         }
@@ -2764,7 +2747,7 @@ private extension BaseKeyboardViewController {
         suggestionDidApply()
 
         suggestionController.updateSuggestionsAfterNGramSelection(
-            inputBuffer: currentLanguageInputBuffer
+            inputBuffer: inputBuffer
         )
         return true
     }
@@ -2773,7 +2756,7 @@ private extension BaseKeyboardViewController {
         guard index == 0 else { return false }
 
         let currentWord = KeyboardSuggestionSelectionPolicy.currentWordForConfirmation(
-            inputBuffer: currentLanguageInputBuffer
+            inputBuffer: inputBuffer
         )
         if !currentWord.isEmpty {
             suggestionController.learnWord(currentWord)
@@ -2787,7 +2770,7 @@ private extension BaseKeyboardViewController {
         let suggestionIndex = index - 1
         guard let result = suggestionController.selectSuggestion(
             at: suggestionIndex,
-            baseText: currentLanguageInputBuffer
+            baseText: inputBuffer
         ) else { return }
 
         replaceTextWithSmartInsertDeleteSpacing(
