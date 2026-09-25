@@ -1259,7 +1259,7 @@ EOF
 - Modify: `docs/architecture/자동완성 로직.md` (§2-3 표 「조회」 행, §3-3, §6-1 표 `removableSuggestionText` 행)
 - Modify: `docs/architecture/한영 통합 키보드.md` (「알려진 한계」 문단)
 
-- [ ] **Step 1: `자동완성 로직.md` §2-3 표에 완성 조회를 넣는다**
+- [x] **Step 1: `자동완성 로직.md` §2-3 표에 완성 조회를 넣는다**
 
 old:
 ```
@@ -1274,7 +1274,7 @@ new:
   끝의 천지인 ㆍ/ᆢ 제외, 입력 단어 자체 제외). 문자 종류 우선 정렬은 하지 않는다 |
 ```
 
-- [ ] **Step 2: §3-3 두 단계 갱신과 병합 규칙을 고친다**
+- [x] **Step 2: §3-3 두 단계 갱신과 병합 규칙을 고친다**
 
 old:
 ```
@@ -1333,7 +1333,7 @@ n-gram 단어 완성 후보를 고르면 다른 입력 중 후보와 같이 `sel
 [설계 문서](../superpowers/specs/2026-09-25-ngram-typing-completion-design.md) 1절에 있다.
 ```
 
-- [ ] **Step 3: §6-1 표의 삭제 대상 설명을 고친다**
+- [x] **Step 3: §6-1 표의 삭제 대상 설명을 고친다**
 
 old:
 ```
@@ -1344,7 +1344,7 @@ new:
 | `removableSuggestionText(atBarIndex:)` | n-gram 후보(입력 중 모드의 n-gram 단어 완성 포함), 그리고 `canUnlearn`이 true인 textChecker 후보만 단어를 반환.
 ```
 
-- [ ] **Step 4: `한영 통합 키보드.md`의 알려진 한계를 고친다**
+- [x] **Step 4: `한영 통합 키보드.md`의 알려진 한계를 고친다**
 
 old:
 ```
@@ -1359,12 +1359,12 @@ new:
 ([자동완성 로직 §3-3](자동완성%20로직.md)).
 ```
 
-- [ ] **Step 5: 문서 변경 범위를 확인한다**
+- [x] **Step 5: 문서 변경 범위를 확인한다**
 
 Run: `git diff --stat`
 Expected: `docs/architecture/자동완성 로직.md`, `docs/architecture/한영 통합 키보드.md`, 이 계획 문서만 바뀌었다.
 
-- [ ] **Step 6: 커밋**
+- [x] **Step 6: 커밋**
 
 ```bash
 git add "docs/architecture/자동완성 로직.md" "docs/architecture/한영 통합 키보드.md" docs/superpowers/plans/2026-09-25-issue-158-ngram-typing-completion.md
@@ -1375,6 +1375,8 @@ Co-Authored-By: Claude Opus 5.5 (1M context) <noreply@anthropic.com>
 EOF
 )"
 ```
+
+**결과:** `자동완성 로직.md` §2-3·§3-3·§6-1과 `한영 통합 키보드.md` 알려진 한계 문단 수정. `git diff --stat`으로 두 문서와 이 계획 문서만 바뀐 것 확인.
 
 ---
 
