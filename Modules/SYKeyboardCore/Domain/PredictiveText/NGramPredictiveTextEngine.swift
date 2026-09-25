@@ -358,6 +358,43 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
         return results
     }
     
+    /// 입력 중인 단어를 이어 쓴 학습 단어를 반환합니다.
+    ///
+    /// `previousWord` 뒤에 쓴 bigram 후보 중 맞는 것을 빈도순으로 먼저, 남은 칸은 unigram 빈도순으로 채웁니다.
+    /// 비교 규칙은 `PredictiveTextCompletionMatchPolicy`를 따르고, 입력 중인 단어 자체는 뺍니다.
+    /// 디스크 로딩이 완료되지 않은 경우 빈 배열을 반환합니다.
+    ///
+    /// - Parameters:
+    ///   - typedWord: 입력 중인 단어 (`inputBuffer`의 마지막 단어)
+    ///   - previousWord: 바로 앞 단어. 없으면 `nil`
+    ///   - limit: 최대 반환 개수 (`maxPredictions` 이하)
+    /// - Returns: 완성 후보 배열
+    func completions(forTypedWord typedWord: String, previousWord: String?, limit: Int) -> [String] {
+        guard isLoaded, limit > 0,
+              let policy = PredictiveTextCompletionMatchPolicy(typedWord: typedWord) else { return [] }
+
+        let state = Self.signposter.beginInterval("NGramCompletions")
+        defer { Self.signposter.endInterval("NGramCompletions", state) }
+
+        var seen: Set<String> = [typedWord.lowercased()]
+        var results: [String] = []
+
+        if let previousWord {
+            for word in rankedCandidates(from: bigramStore, key: previousWord) where policy.isCompletion(word) {
+                guard seen.insert(word.lowercased()).inserted else { continue }
+                results.append(word)
+                if results.count >= limit { return results }
+            }
+        }
+
+        // ponytail: 키 입력마다 unigram 전체(최대 10000개)를 훑는다. 실기기에서 느리면 소문자 키 캐시나 접두어 색인을 둔다
+        var top: [(key: String, value: Int)] = []
+        for entry in unigramStore where policy.isCompletion(entry.key) && !seen.contains(entry.key.lowercased()) {
+            insertTopUnigram(entry, into: &top)
+        }
+        return results + top.prefix(limit - results.count).map(\.key)
+    }
+
     /// n-gram에서는 단어 단위 학습을 사용하지 않습니다.
     ///
     /// 시퀀스 기록은 `addWord(_:)`를 통해 수행합니다.

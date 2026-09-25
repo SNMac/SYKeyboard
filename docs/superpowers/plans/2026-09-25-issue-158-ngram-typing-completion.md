@@ -475,7 +475,7 @@ EOF
 - Consumes: Task 1의 `PredictiveTextCompletionMatchPolicy`. 엔진 private extension의 기존 `rankedCandidates(from:key:)`, `insertTopUnigram(_:into:)`.
 - Produces: `NGramPredictiveTextEngine.completions(forTypedWord typedWord: String, previousWord: String?, limit: Int) -> [String]` (internal). Task 4가 프로토콜 요구사항으로 올린다.
 
-- [ ] **Step 1: 실패하는 테스트를 쓴다**
+- [x] **Step 1: 실패하는 테스트를 쓴다**
 
 `SYKeyboardTests/Domain/NGramPredictiveTextEngineCompletionTests.swift`:
 
@@ -590,12 +590,12 @@ private func recordPair(_ engine: NGramPredictiveTextEngine, _ first: String, _ 
 }
 ```
 
-- [ ] **Step 2: 테스트가 실패하는 것을 확인한다**
+- [x] **Step 2: 테스트가 실패하는 것을 확인한다**
 
 Global Constraints의 테스트 명령을 `-only-testing:SYKeyboardTests/NGramPredictiveTextEngineCompletionTests`, 로그 이름 `158-task3-red`로 실행한다.
 Expected: 컴파일 실패 `value of type 'NGramPredictiveTextEngine' has no member 'completions'`
 
-- [ ] **Step 3: 조회를 만든다**
+- [x] **Step 3: 조회를 만든다**
 
 `NGramPredictiveTextEngine.swift`에서 `suggestions(for baseText: String, preferredScript: PredictiveTextScript?) -> [String]` 메서드가 끝나는 `}` 바로 뒤, 아래 주석 앞에 넣는다.
 
@@ -647,12 +647,12 @@ Expected: 컴파일 실패 `value of type 'NGramPredictiveTextEngine' has no mem
 
 `insertTopUnigram(_:into:)`는 상위 `maxPredictions`(10)개를 유지하므로 `limit`이 10 이하면 그대로 쓸 수 있다. 호출자는 Task 4의 `SuggestionController`뿐이고 3을 넘긴다.
 
-- [ ] **Step 4: 테스트가 통과하는 것을 확인한다**
+- [x] **Step 4: 테스트가 통과하는 것을 확인한다**
 
 Step 2와 같은 명령을 로그 이름 `158-task3-green`으로 실행한다.
 Expected: 6개 테스트 통과, `** TEST SUCCEEDED **`
 
-- [ ] **Step 5: 기존 엔진 테스트가 그대로인지 확인한다**
+- [x] **Step 5: 기존 엔진 테스트가 그대로인지 확인한다**
 
 Global Constraints의 테스트 명령에 아래 `-only-testing`을 모두 붙여 로그 이름 `158-task3-engine`으로 실행한다.
 
@@ -666,7 +666,7 @@ Global Constraints의 테스트 명령에 아래 `-only-testing`을 모두 붙�
 
 Expected: 모두 통과
 
-- [ ] **Step 6: 커밋**
+- [x] **Step 6: 커밋**
 
 ```bash
 git add Modules/SYKeyboardCore/Domain/PredictiveText/NGramPredictiveTextEngine.swift SYKeyboardTests/Domain/NGramPredictiveTextEngineCompletionTests.swift docs/superpowers/plans/2026-09-25-issue-158-ngram-typing-completion.md
@@ -677,6 +677,8 @@ Co-Authored-By: Claude Opus 5.5 (1M context) <noreply@anthropic.com>
 EOF
 )"
 ```
+
+**결과:** RED는 `value of type 'NGramPredictiveTextEngine' has no member 'completions'` 컴파일 실패로 확인. Step 4·5를 한 번에 실행: `NGramPredictiveTextEngineCompletionTests` 6개와 기존 엔진 suite 5개를 합쳐 6개 suite 27개 테스트 통과(iPhone 13 mini / iOS 18.6).
 
 ---
 
