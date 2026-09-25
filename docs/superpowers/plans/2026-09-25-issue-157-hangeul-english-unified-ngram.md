@@ -2206,3 +2206,18 @@ bigram·trigram 문맥 키 상한 정리 테스트가 없어 `maxKeys: 3`에서 
 - 성능: 버리는 측정 테스트(`<scratchpad>/bench/ZZNGramPerfMeasureTests.swift`, 커밋하지 않음)를 `SWIFT_OPTIMIZATION_LEVEL=-O`
   `build-for-testing` 뒤 시나리오마다 `test-without-building -only-testing:SYKeyboardTests/ZZNGramPerfMeasureTests/<시나리오>()`로 실행.
   결과는 `<scratchpad>/perf-results-run3-prunefix.txt`, 수정 전은 `<scratchpad>/perf-results-run2.txt`. 요약은 설계 문서 6-2.
+
+### Task 15: 리뷰 반영 (871d7779..c8528242 리뷰의 Minor 2·4·5와 문서 감사)
+
+리뷰 결과는 머지 가능, Critical·Important 없음. Minor 2(수식 모드 no-op 테스트), 4(아키텍처 문서 문장), 5(설계 문서 4절 조건)를
+반영하고, 별도 문서 감사에서 나온 테스트 표·명령 누락 2건을 함께 고친다. Minor 3(step별 커밋)은 이 Task부터 지킨다.
+
+- [x] **Step 1: 수식 모드 no-op 테스트와 typing 테스트 경합 수정**
+
+`test수식후보를보이는중에는_언어를바꿔도_NGram후보로덮지않음` 추가(수식 후보 중 전환 뒤 delegate 전달 횟수·마지막 전달·`.mathExpression` 불변).
+guard를 `currentMode != .typing`으로 임시 변경한 코드에서 이 테스트만 실패하는 것을 확인하고 되돌렸다(`<scratchpad>/t15-mutant.log`).
+전체 실행 중 Task 13의 `test입력중후보를보이는중에는_언어를바꿔도_다시계산하지않음`이 한 번 실패했다(전달 3회, 기대 2회).
+`completeLoad` 뒤 `Task { @MainActor }` 재갱신이 `"sy"` 요청 뒤에 돌면 TextChecker 결과가 한 번 더 늦게 오는 테스트 경합이라
+`completeLoad` 뒤 `await waitForMainQueue()`를 넣었다.
+- `-only-testing:SYKeyboardTests/SuggestionControllerUnifiedNGramTests` 5회 연속 `Test run with 9 tests in 1 suite passed`
+- 전체 2회 연속 `Test run with 765 tests in 85 suites passed` (`<scratchpad>/t15-full1.log`, `t15-full2.log`)

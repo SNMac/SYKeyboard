@@ -133,6 +133,8 @@ struct SuggestionControllerUnifiedNGramTests {
         let controller = makeUnifiedController(factory: factory, textCheckerQueue: queue)
         controller.delegate = delegate
         factory.lastNGramProvider?.completeLoad(suggestions: [])
+        // 로딩 완료 콜백의 재갱신이 "sy" 요청 뒤에 돌면 TextChecker 결과가 한 번 더 늦게 온다
+        await waitForMainQueue()
         controller.updateSuggestions(for: "sy")
         // TextChecker 결과 전달까지 끝난 뒤의 횟수를 기준으로 삼는다
         queue.sync {}
@@ -147,6 +149,26 @@ struct SuggestionControllerUnifiedNGramTests {
         #expect(controller.currentMode == .typing)
         #expect(delegate.updates.count == updateCount)
         #expect(factory.lastNGramProvider?.queriedPreferredScripts.count == queryCount)
+    }
+
+    @Test("수식 후보를 보이는 중에는 언어를 바꿔도 NGram 후보로 덮지 않음")
+    func test수식후보를보이는중에는_언어를바꿔도_NGram후보로덮지않음() async {
+        let factory = CountingSuggestionEngineFactory()
+        let delegate = RecordingSuggestionControllerDelegate()
+        let controller = makeUnifiedController(factory: factory)
+        controller.delegate = delegate
+        controller.isShowMathResultsEnabled = true
+        factory.lastNGramProvider?.completeLoad(suggestions: ["ok"])
+        await waitForMainQueue()
+        controller.updateSuggestions(for: "3-1=")
+        let mathUpdate = delegate.updates.last
+        let updateCount = delegate.updates.count
+
+        controller.updateLanguage(to: "en-US")
+
+        #expect(controller.currentMode == .mathExpression)
+        #expect(delegate.updates.count == updateCount)
+        #expect(delegate.updates.last == mathUpdate)
     }
 }
 
