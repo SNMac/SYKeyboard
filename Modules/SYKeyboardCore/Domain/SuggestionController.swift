@@ -336,6 +336,7 @@ final class SuggestionController: SuggestionService {
         // NGram 엔진·문장 버퍼·후보·마지막 요청 상태는 그대로 둔다
         guard nGramLanguage == nil else {
             self.language = language
+            refreshNGramSuggestionsForLanguageModeChange()
             return
         }
 
@@ -974,6 +975,24 @@ private extension SuggestionController {
                 )
             }
         }
+    }
+
+    /// 통합 NGram 후보를 보이는 중이면 바뀐 언어 모드의 문자 종류 우선순위로 다시 정렬합니다.
+    ///
+    /// iOS는 한/A 전환 뒤 `textDidChange`를 보낼 때도, 안 보낼 때도 있어 여기서 직접 갱신한다.
+    /// 입력 중 후보는 자판만 바뀌어야 하므로 그대로 두고, 순서가 같으면 다시 보내지 않는다
+    private func refreshNGramSuggestionsForLanguageModeChange() {
+        guard isPredictiveTextEnabled, !isSuspended,
+              currentMode == .nGram,
+              let lastSuggestionBaseText else { return }
+        let refreshed = nGramSuggestions(for: lastSuggestionBaseText)
+        guard refreshed.map(\.text) != currentSuggestions.map(\.text) else { return }
+        currentSuggestions = refreshed
+        delegate?.suggestionController(
+            self,
+            didUpdateCurrentWord: nil,
+            suggestions: refreshed.map { $0.text }
+        )
     }
 
     func performRefreshSuggestionsAfterNGramLoadIfNeeded() {

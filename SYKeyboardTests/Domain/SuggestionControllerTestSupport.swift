@@ -47,6 +47,8 @@ final class StubNGramPredictiveTextProvider: NGramPredictiveTextProviding, @unch
     private(set) var queriedPreferredScripts: [PredictiveTextScript?] = []
     private var recordedWords: [String] = []
     private var loadedSuggestions: [String]
+    /// 선호 문자 종류별 결과. 없으면 `loadedSuggestions`를 돌려준다
+    var resultsByPreferredScript: [PredictiveTextScript: [String]] = [:]
 
     init(results: [String] = []) {
         self.loadedSuggestions = results
@@ -57,6 +59,9 @@ final class StubNGramPredictiveTextProvider: NGramPredictiveTextProviding, @unch
 
     func suggestions(for baseText: String, preferredScript: PredictiveTextScript?) -> [String] {
         queriedPreferredScripts.append(preferredScript)
+        if let preferredScript, let results = resultsByPreferredScript[preferredScript] {
+            return results
+        }
         return loadedSuggestions
     }
 

@@ -2137,3 +2137,43 @@ xcodebuild test \
 git add docs/superpowers/plans/2026-09-25-issue-157-hangeul-english-unified-ngram.md
 git commit -m "docs: #157 - 언어 전환 경계 제거 뒤 전체 검증 결과 기록" -m "Co-Authored-By: Claude Opus 5.5 (1M context) <noreply@anthropic.com>"
 ```
+
+### Task 13: 한/A 전환 시 NGram 후보를 새 언어 순서로 다시 정렬
+
+실기기 확인에서 "전환 직후 문자 종류 순서가 바로 바뀔 때와 안 바뀔 때가 있다"는 보고가 있었다. 임시 로그
+(커밋하지 않음)로 확인한 결과, `applyLanguageMode`는 후보를 다시 계산하지 않고 iOS가 전환 뒤
+`textWillChange`/`textDidChange`를 보낼 때만 `updateSuggestions()`가 돌았다. 시뮬레이터(iPhone 13 mini / iOS 18.6)에서
+필드 포커스·탭 직후에는 전환마다 약 15~20ms 뒤 콜백이 왔고, 키보드로 글자·스페이스·삭제를 입력한 뒤에는
+다음 필드 탭 전까지 오지 않았다. 사용자 확인 뒤 NGram 후보를 보이는 중에만 전환 시 직접 다시 정렬하기로 했다.
+
+**Files:**
+- Modify: `Modules/SYKeyboardCore/Domain/SuggestionController.swift` (`updateLanguage(to:)`, `refreshNGramSuggestionsForLanguageModeChange()`)
+- Modify: `SYKeyboardTests/Domain/SuggestionControllerTestSupport.swift` (stub `resultsByPreferredScript`)
+- Modify: `SYKeyboardTests/Domain/SuggestionControllerUnifiedNGramTests.swift`
+- Modify: `docs/architecture/한영 통합 키보드.md`, `docs/architecture/자동완성 로직.md`, 설계 문서 4절·변경 이력
+
+- [x] **Step 1: 실패하는 테스트**
+
+`test통합NGram후보를보이는중_언어를바꾸면_새언어순서로다시보냄`(한글 모드 `["아","ok"]` → 영어 전환 뒤 `["ok","아"]`)와
+`test입력중후보를보이는중에는_언어를바꿔도_다시계산하지않음`(typing 모드에서 전환 뒤 delegate 전달·NGram 조회 횟수 불변)을 추가했다.
+`-only-testing:SYKeyboardTests/SuggestionControllerUnifiedNGramTests` 결과 앞 테스트만 실패(`delegate.updates.last?.suggestions → ["아", "ok"]`).
+실패 뒤 xcodebuild가 `simctl diagnose`로 진단을 모으느라 끝나지 않아 프로세스를 종료했다(테스트 자체는 0.03초에 끝남).
+
+- [x] **Step 2: 구현**
+
+통합 NGram(`nGramLanguage != nil`)의 `updateLanguage(to:)`가 `language`를 바꾼 뒤
+`refreshNGramSuggestionsForLanguageModeChange()`를 부른다. 자동완성이 켜져 있고 일시 중단이 아니며
+`currentMode == .nGram`이고 `lastSuggestionBaseText`가 있을 때만 `nGramSuggestions(for:)`로 다시 조회하고,
+후보 텍스트 순서가 달라졌을 때만 `currentSuggestions`를 바꾸고 delegate로 보낸다.
+
+기존 `test통합NGram조회는_현재언어모드의문자종류를넘김`의 기대값은 전환 자체의 재조회가 더해져
+`[.hangeul, .latin, .latin]`이 되었다. typing 테스트는 비동기 TextChecker 결과가 늦게 도착해 횟수가 흔들렸으므로
+직렬 `textCheckerQueue`를 넣고 `queue.sync {}` 뒤 기준 횟수를 잡는다.
+
+- [x] **Step 3: 검증**
+
+- 같은 suite 3회 연속: `Test run with 8 tests in 1 suite passed` ×3
+- 전체: `xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=18.6' -parallel-testing-enabled NO GADApplicationIdentifier='ca-app-pub-3940256099942544~1458002511'`
+  → `** TEST SUCCEEDED **`, `Test run with 762 tests in 84 suites passed after 6.155 seconds.` 로그: `<scratchpad>/t13-full.log`
+- 시뮬레이터(idb, 확인 동안만 `isClipboardHistoryEnabled` false): 영어 'a' 스페이스 → 후보 `ok, sync, A` → 한/A 뒤 `아, 오늘, sy키보드`
+  → 한/A 뒤 `ok, sync, A`로 매번 바로 바뀜(수정 전에는 입력 뒤 전환에서 바뀌지 않음). 영어 'a' 입력 중 한/A 뒤에는 `"a", and, are` 그대로.
