@@ -80,6 +80,10 @@
   (상위 `maxPredictions`개 유지)을 재사용하고 `limit - 앞 결과 수`만큼 자른다. 동률 순서는 정의하지 않는다
   (`rankedUnigramCandidates`와 같다).
 - 중복은 소문자 기준으로 거른다. 입력 단어 자체도 처음부터 제외한다.
+- unigram은 대소문자만 다른 표기(`"hello"`·`"Hello"`)를 한 단어로 묶어 **합친 빈도**로 순위를 매기고 대표 표기 하나만
+  돌려준다. 소문자 표기가 있으면 첫 글자만 대문자인 표기는 문장 첫머리에서 학습된 것으로 보고 소문자 표기에 더한다
+  (문장 첫머리 대문자는 1절 표기 규칙이 다시 붙인다). 그 밖에는 더 자주 쓴 표기가 대표다(`"SY키보드"` 5 >
+  `"sy키보드"` 1). 소문자 표기가 없는 `"Seoul"`은 그대로 둔다. 동률이면 코드 포인트 순으로 앞선 표기다.
 - trigram은 보지 않는다.
 - signpost 구간 `"NGramCompletions"`로 계측한다.
 - `NGramPredictiveTextProviding` 프로토콜에 같은 시그니처를 추가한다.
@@ -146,3 +150,6 @@ scratchpad 측정(Apple M3 Pro, `swiftc -O`, 무작위 한글·영문 unigram 10
 - 2026-09-25 최종 리뷰 반영: 소문자로 학습한 단어가 문장 첫머리 대문자 입력(`"Hel"`)에 소문자 그대로(`"hello"`) 뜨고,
   같은 단어의 TextChecker 후보(`"Hello"`)는 중복으로 빠져 고르면 대문자가 사라졌다. 사용자 확인을 거쳐 1절의
   첫 글자 대문자 규칙(`PredictiveTextCompletionMatchPolicy.displayText(for:)`)을 추가했다.
+- 2026-09-25 사용자 확인 뒤 반영: 대소문자만 다른 학습 단어가 표기별로 따로 순위를 다퉈 완성 3칸 중 2칸을 차지했다가
+  병합 단계에서 중복으로 빠져 보이는 후보가 줄었다(시뮬레이터에서 `hello`·`Hello` 학습 시 'Hel'에 'Hello' 하나만 보임).
+  2절의 표기 묶기(`NGramPredictiveTextEngine.representativeSpelling(lowered:spellings:)`)를 추가했다.

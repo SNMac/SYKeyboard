@@ -80,6 +80,40 @@ struct NGramPredictiveTextEngineCompletionTests {
         #expect(engine.completions(forTypedWord: "Sy", previousWord: nil, limit: 3) == ["SY키보드"])
     }
 
+    @Test("문장 첫머리 대문자 표기는 소문자 표기와 한 단어로 묶어 합친 빈도로 순위를 매김")
+    func test문장첫머리대문자표기는_소문자표기와한단어로묶어_합친빈도로순위를매김() async {
+        let engine = await makeLoadedNGramFixture(name: "completion-case-group").engine
+        recordAlone(engine, "hello", times: 2)
+        recordAlone(engine, "Hello", times: 2)
+        recordAlone(engine, "helium", times: 3)
+        recordAlone(engine, "help", times: 1)
+
+        #expect(engine.completions(forTypedWord: "hel", previousWord: nil, limit: 3) == ["hello", "helium", "help"])
+        #expect(engine.completions(forTypedWord: "Hel", previousWord: nil, limit: 3) == ["Hello", "Helium", "Help"])
+    }
+
+    @Test("대문자가 섞인 고유 표기는 더 자주 쓴 표기 하나만 반환")
+    func test대문자가섞인고유표기는_더자주쓴표기하나만반환() async {
+        let engine = await makeLoadedNGramFixture(name: "completion-case-proper").engine
+        recordAlone(engine, "SY키보드", times: 5)
+        recordAlone(engine, "sy키보드", times: 1)
+        recordAlone(engine, "sync", times: 2)
+        recordAlone(engine, "Seoul", times: 1)
+
+        #expect(engine.completions(forTypedWord: "sy", previousWord: nil, limit: 3) == ["SY키보드", "sync"])
+        // 소문자 표기가 없으면 대문자로 시작하는 표기도 그대로 둔다
+        #expect(engine.completions(forTypedWord: "seo", previousWord: nil, limit: 3) == ["Seoul"])
+    }
+
+    @Test("bigram 후보로 나온 단어는 다른 대소문자 표기로 unigram에서 다시 나오지 않음")
+    func testBigram후보로나온단어는_다른대소문자표기로_unigram에서다시나오지않음() async {
+        let engine = await makeLoadedNGramFixture(name: "completion-case-bigram").engine
+        recordPair(engine, "오늘", "hello", times: 1)
+        recordAlone(engine, "Hello", times: 5)
+
+        #expect(engine.completions(forTypedWord: "hel", previousWord: "오늘", limit: 3) == ["hello"])
+    }
+
     @Test("디스크 로딩 전에는 빈 배열을 반환하고 로딩 뒤에 찾음")
     func test디스크로딩전에는_빈배열을반환하고_로딩뒤에찾음() async throws {
         let url = FileManager.default.temporaryDirectory

@@ -361,6 +361,7 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
     /// 입력 중인 단어를 이어 쓴 학습 단어를 반환합니다.
     ///
     /// `previousWord` 뒤에 쓴 bigram 후보 중 맞는 것을 빈도순으로 먼저, 남은 칸은 unigram 빈도순으로 채웁니다.
+    /// unigram은 대소문자만 다른 표기를 한 단어로 묶어 합친 빈도로 순위를 매기고 대표 표기 하나만 돌려줍니다.
     /// 비교·표기 규칙은 `PredictiveTextCompletionMatchPolicy`를 따르고, 입력 중인 단어 자체는 뺍니다.
     /// 디스크 로딩이 완료되지 않은 경우 빈 배열을 반환합니다.
     ///
@@ -388,9 +389,15 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
         }
 
         // ponytail: 키 입력마다 unigram 전체(최대 10000개)를 훑는다. 실기기에서 느리면 소문자 키 캐시나 접두어 색인을 둔다
+        var spellingGroups: [String: [String: Int]] = [:]
+        for entry in unigramStore where policy.isCompletion(entry.key) {
+            let lowered = entry.key.lowercased()
+            guard !seen.contains(lowered) else { continue }
+            spellingGroups[lowered, default: [:]][entry.key] = entry.value
+        }
         var top: [(key: String, value: Int)] = []
-        for entry in unigramStore where policy.isCompletion(entry.key) && !seen.contains(entry.key.lowercased()) {
-            insertTopUnigram(entry, into: &top)
+        for (lowered, spellings) in spellingGroups {
+            insertTopUnigram(representativeSpelling(lowered: lowered, spellings: spellings), into: &top)
         }
         return results + top.prefix(limit - results.count).map { policy.displayText(for: $0.key) }
     }
@@ -742,6 +749,24 @@ private extension NGramPredictiveTextEngine {
         let ranked = Array((preferred + others).prefix(maxPredictions).map(\.key))
         rankedUnigramCache[preferredScript] = ranked
         return ranked
+    }
+
+    /// 대소문자만 다른 표기 묶음에서 보여줄 표기와 합친 빈도를 고른다.
+    ///
+    /// 소문자 표기가 있으면 첫 글자만 대문자인 표기(문장 첫머리에서 학습된 `"Hello"`)를 그 빈도에 더한다.
+    /// 문장 첫머리 대문자는 `PredictiveTextCompletionMatchPolicy.displayText(for:)`가 입력에 맞춰 다시 붙인다.
+    /// 나머지는 더 자주 쓴 표기를 고른다(`"SY키보드"` 5 > `"sy키보드"` 1). 소문자 표기가 없는 `"Seoul"`은 그대로다
+    func representativeSpelling(lowered: String, spellings: [String: Int]) -> (key: String, value: Int) {
+        var spellings = spellings
+        if spellings[lowered] != nil, let first = lowered.first {
+            let sentenceStartSpelling = first.uppercased() + lowered.dropFirst()
+            if sentenceStartSpelling != lowered, let count = spellings.removeValue(forKey: sentenceStartSpelling) {
+                spellings[lowered, default: 0] += count
+            }
+        }
+        // 동률이면 코드 포인트 순으로 앞선 표기를 골라 결과가 매번 같게 한다
+        let representative = spellings.max { ($0.value, $1.key) < ($1.value, $0.key) }?.key ?? lowered
+        return (key: representative, value: spellings.values.reduce(0, +))
     }
 
     /// 빈도 내림차순을 유지하며 상위 `maxPredictions`개 안에 들면 넣는다
