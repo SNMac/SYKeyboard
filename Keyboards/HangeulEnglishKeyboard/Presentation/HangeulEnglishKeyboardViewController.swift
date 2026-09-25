@@ -552,8 +552,6 @@ private extension HangeulEnglishKeyboardViewController {
             currentKeyboard = primaryKeyboardView.keyboard
         }
 
-        clearSuggestionsForLanguageChange()
-        markCurrentInputBufferAsLanguageBoundary()
         updateShiftButtonForCurrentMode()
         updateHangeulSpaceButton()
     }

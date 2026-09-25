@@ -332,13 +332,17 @@ final class SuggestionController: SuggestionService {
     func updateLanguage(to language: String) {
         guard self.language != language else { return }
 
-        if nGramLanguage == nil {
-            // 전환 전 언어의 학습 결과는 즉시 보존하되, 엔진 자체는 캐시에 남겨
-            // 같은 언어로 돌아왔을 때 디스크 로드를 반복하지 않는다.
-            // 통합 NGram은 엔진이 바뀌지 않으므로 저장하지 않고 로딩 완료 콜백도 살려 둔다
-            nGramEngine?.saveToDisk()
-            engineGeneration += 1
+        // 통합 NGram(한영 키보드)은 한/A 전환에서 자판만 바뀌어야 하므로 TextChecker 언어만 바꾸고
+        // NGram 엔진·문장 버퍼·후보·마지막 요청 상태는 그대로 둔다
+        guard nGramLanguage == nil else {
+            self.language = language
+            return
         }
+
+        // 전환 전 언어의 학습 결과는 즉시 보존하되, 엔진 자체는 캐시에 남겨
+        // 같은 언어로 돌아왔을 때 디스크 로드를 반복하지 않는다
+        nGramEngine?.saveToDisk()
+        engineGeneration += 1
         self.language = language
         lastSuggestionBaseText = nil
         lastMathExpressionText = nil

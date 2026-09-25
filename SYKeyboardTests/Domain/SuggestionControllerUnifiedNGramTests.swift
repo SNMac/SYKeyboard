@@ -83,6 +83,24 @@ struct SuggestionControllerUnifiedNGramTests {
 
         #expect(factory.nGramCreationCount == 1)
     }
+
+    @Test("통합 NGram은 언어를 바꿔도 후보를 비우지 않음")
+    func test통합NGram은_언어를바꿔도_후보를비우지않음() async {
+        let factory = CountingSuggestionEngineFactory()
+        let delegate = RecordingSuggestionControllerDelegate()
+        let controller = makeUnifiedController(factory: factory)
+        controller.delegate = delegate
+        controller.updateSuggestions(for: "오늘 ")
+        factory.lastNGramProvider?.completeLoad(suggestions: ["meeting"])
+        await waitForMainQueue()
+        let updateCount = delegate.updates.count
+
+        controller.updateLanguage(to: "en-US")
+
+        #expect(delegate.updates.count == updateCount)
+        #expect(controller.currentMode == .nGram)
+        #expect(controller.nGramSuggestionText(at: 0) == "meeting")
+    }
 }
 
 // MARK: - Helpers
