@@ -269,8 +269,11 @@ open class BaseKeyboardViewController: UIInputViewController {
         super.init(nibName: nibNameOrNil, bundle: nibBundleOrNil)
     }
 
-    public init(language: String) {
-        self.suggestionController = SuggestionController(language: language)
+    /// - Parameters:
+    ///   - language: 키보드 언어. `UITextChecker` 언어로도 쓴다
+    ///   - nGramLanguage: NGram 엔진 식별자. `nil`이면 `language`를 따른다
+    public init(language: String, nGramLanguage: String? = nil) {
+        self.suggestionController = SuggestionController(language: language, nGramLanguage: nGramLanguage)
         super.init(nibName: nil, bundle: nil)
     }
 

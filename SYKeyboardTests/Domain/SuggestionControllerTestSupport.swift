@@ -44,6 +44,7 @@ final class StubNGramPredictiveTextProvider: NGramPredictiveTextProviding, @unch
     var currentSentenceWordsCount: Int { recordedWords.count }
 
     private(set) var saveCount = 0
+    private(set) var queriedPreferredScripts: [PredictiveTextScript?] = []
     private var recordedWords: [String] = []
     private var loadedSuggestions: [String]
 
@@ -53,6 +54,11 @@ final class StubNGramPredictiveTextProvider: NGramPredictiveTextProviding, @unch
 
     func suggestions(for baseText: String) -> [String] { loadedSuggestions }
     func learn(word: String) {}
+
+    func suggestions(for baseText: String, preferredScript: PredictiveTextScript?) -> [String] {
+        queriedPreferredScripts.append(preferredScript)
+        return loadedSuggestions
+    }
 
     func addWord(_ word: String) {
         recordedWords.append(word)
@@ -89,6 +95,44 @@ extension SuggestionControllerEngineFactory {
             makeLexiconEngine: { StubLexiconSuggestionProvider() },
             makeTextCheckerEngine: { _ in StubPredictiveTextProvider() },
             makeNGramEngine: { _ in StubNGramPredictiveTextProvider() }
+        )
+    }
+}
+
+/// 엔진 생성 횟수와 언어를 기록하는 factory
+final class CountingSuggestionEngineFactory {
+
+    // MARK: - Properties
+
+    private(set) var lexiconCreationCount = 0
+    private(set) var textCheckerCreationCount = 0
+    private(set) var nGramCreationCount = 0
+    private(set) var textCheckerLanguages: [String] = []
+    private(set) var nGramLanguages: [String] = []
+    private(set) var nGramProviders: [StubNGramPredictiveTextProvider] = []
+    private(set) var lastNGramProvider: StubNGramPredictiveTextProvider?
+
+    // MARK: - Internal Methods
+
+    func makeFactory() -> SuggestionControllerEngineFactory {
+        SuggestionControllerEngineFactory(
+            makeLexiconEngine: { [weak self] in
+                self?.lexiconCreationCount += 1
+                return LexiconPredictiveTextEngine()
+            },
+            makeTextCheckerEngine: { [weak self] language in
+                self?.textCheckerCreationCount += 1
+                self?.textCheckerLanguages.append(language)
+                return StubPredictiveTextProvider()
+            },
+            makeNGramEngine: { [weak self] language in
+                self?.nGramCreationCount += 1
+                self?.nGramLanguages.append(language)
+                let provider = StubNGramPredictiveTextProvider()
+                self?.nGramProviders.append(provider)
+                self?.lastNGramProvider = provider
+                return provider
+            }
         )
     }
 }

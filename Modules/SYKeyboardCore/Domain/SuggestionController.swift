@@ -28,6 +28,9 @@ protocol NGramPredictiveTextProviding: PredictiveTextProvider {
     func saveToDisk()
     /// 단어를 모든 n-gram 저장소에서 지우고 저장합니다.
     func removeWord(_ word: String)
+
+    /// 문맥으로 다음 단어를 예측합니다. `preferredScript`가 있으면 unigram 후보만 그 문자 종류를 앞에 둡니다.
+    func suggestions(for baseText: String, preferredScript: PredictiveTextScript?) -> [String]
 }
 
 extension NGramPredictiveTextEngine: NGramPredictiveTextProviding {}
@@ -112,6 +115,16 @@ final class SuggestionController: SuggestionService {
 
     /// 엔진 재생성 시 사용할 언어 코드
     private var language: String
+    /// NGram 엔진 식별자. `nil`이면 `language`를 따른다.
+    /// 한영 통합 키보드는 언어 모드와 무관하게 통합 엔진 하나를 쓴다
+    private let nGramLanguage: String?
+    /// 지금 쓰는 NGram 엔진 식별자
+    private var activeNGramLanguage: String { nGramLanguage ?? language }
+    /// 통합 NGram일 때만 현재 언어 모드의 문자 종류를 unigram 후보 앞에 둔다
+    private var nGramPreferredScript: PredictiveTextScript? {
+        guard nGramLanguage != nil else { return nil }
+        return PredictiveTextScriptPolicy.preferredScript(forLanguage: language)
+    }
     /// 비동기 n-gram 로드 콜백을 식별하는 엔진 세대
     private var engineGeneration = 0
     /// 예측 엔진 생성 팩토리
@@ -233,10 +246,10 @@ final class SuggestionController: SuggestionService {
     private var lexiconEngine: LexiconSuggestionProviding?
     /// 언어별 `UITextChecker` 기반 엔진 캐시
     private var textCheckerEngines: [String: PredictiveTextProvider] = [:]
-    /// 언어별 n-gram 엔진 캐시.
+    /// 식별자별 n-gram 엔진 캐시.
     ///
-    /// 한영 통합 키보드는 한 세션에서 두 언어를 오가므로, 언어를 바꿀 때마다
-    /// 엔진을 버리면 그때마다 디스크 로드를 다시 한다. 사용한 언어의 엔진만 들고 있는다
+    /// 언어별 NGram을 쓰는 키보드가 언어를 바꿀 때마다 엔진을 버리면 그때마다 디스크 로드를
+    /// 다시 한다. 사용한 식별자의 엔진만 들고 있는다. 통합 NGram은 항목이 하나뿐이다
     private var nGramEngines: [String: NGramPredictiveTextProviding] = [:]
 
     /// `UITextChecker` 기반 엔진 (시스템 사전)
@@ -250,8 +263,8 @@ final class SuggestionController: SuggestionService {
     ///
     /// `isPredictiveTextEnabled`가 `false`이면 `nil`이 됩니다.
     private var nGramEngine: NGramPredictiveTextProviding? {
-        get { nGramEngines[language] }
-        set { nGramEngines[language] = newValue }
+        get { nGramEngines[activeNGramLanguage] }
+        set { nGramEngines[activeNGramLanguage] = newValue }
     }
     /// 마지막으로 자동완성 갱신을 요청한 텍스트
     private var lastSuggestionBaseText: String?
@@ -296,9 +309,12 @@ final class SuggestionController: SuggestionService {
     /// 초기화 시점에는 엔진을 생성하지 않습니다.
     /// 설정값은 저장만 하고, 해당 엔진은 준비 API에서 생성합니다.
     ///
-    /// - Parameter language: `UITextChecker`, NGram엔진에서 사용할 언어 코드 (기본값: "ko-KR")
+    /// - Parameters:
+    ///   - language: `UITextChecker`에서 사용할 언어 코드 (기본값: "ko-KR")
+    ///   - nGramLanguage: NGram 엔진 식별자. `nil`이면 `language`를 따른다
     init(
         language: String = "ko-KR",
+        nGramLanguage: String? = nil,
         engineFactory: SuggestionControllerEngineFactory = .live,
         textCheckerQueue: DispatchQueue = DispatchQueue(
             label: "com.snmac.sykeyboard.suggestion.textchecker",
@@ -306,6 +322,7 @@ final class SuggestionController: SuggestionService {
         )
     ) {
         self.language = language
+        self.nGramLanguage = nGramLanguage
         self.engineFactory = engineFactory
         self.textCheckerQueue = textCheckerQueue
     }
@@ -315,10 +332,13 @@ final class SuggestionController: SuggestionService {
     func updateLanguage(to language: String) {
         guard self.language != language else { return }
 
-        // 전환 전 언어의 학습 결과는 즉시 보존하되, 엔진 자체는 캐시에 남겨
-        // 같은 언어로 돌아왔을 때 디스크 로드를 반복하지 않는다
-        nGramEngine?.saveToDisk()
-        engineGeneration += 1
+        if nGramLanguage == nil {
+            // 전환 전 언어의 학습 결과는 즉시 보존하되, 엔진 자체는 캐시에 남겨
+            // 같은 언어로 돌아왔을 때 디스크 로드를 반복하지 않는다.
+            // 통합 NGram은 엔진이 바뀌지 않으므로 저장하지 않고 로딩 완료 콜백도 살려 둔다
+            nGramEngine?.saveToDisk()
+            engineGeneration += 1
+        }
         self.language = language
         lastSuggestionBaseText = nil
         lastMathExpressionText = nil
@@ -340,7 +360,7 @@ final class SuggestionController: SuggestionService {
         if nGramEngine == nil {
             let state = signposter.beginInterval("PrepareNGramEngine")
             let generation = engineGeneration
-            let engineLanguage = language
+            let engineLanguage = activeNGramLanguage
             let engine = engineFactory.makeNGramEngine(engineLanguage)
             // 이 콜백은 엔진이 이미 main으로 넘겨 호출하므로 동기로 갱신할 수도 있지만,
             // 그러면 엔진의 로딩 완료 클로저 안에서 후보 갱신이 엔진으로 재진입한다.
@@ -349,7 +369,7 @@ final class SuggestionController: SuggestionService {
                 Task { @MainActor [weak self] in
                     guard let self,
                           self.engineGeneration == generation,
-                          self.language == engineLanguage else { return }
+                          self.activeNGramLanguage == engineLanguage else { return }
                     self.performRefreshSuggestionsAfterNGramLoadIfNeeded()
                 }
             }
@@ -364,7 +384,8 @@ final class SuggestionController: SuggestionService {
     /// 그 뒤로는 학습을 받지 않으므로, 저장 없이 버려도 유실되는 기록이 없습니다.
     func releaseInactiveLanguageEngines() {
         let activeLanguage = language
-        nGramEngines = nGramEngines.filter { $0.key == activeLanguage }
+        let activeNGram = activeNGramLanguage
+        nGramEngines = nGramEngines.filter { $0.key == activeNGram }
         textCheckerEngines = textCheckerEngines.filter { $0.key == activeLanguage }
     }
 
@@ -972,7 +993,7 @@ private extension SuggestionController {
     /// - Returns: n-gram 예측 후보 배열 (최대 `maxSuggestions`개)
     func nGramSuggestions(for inputBuffer: String) -> [SuggestionItem] {
         guard let nGramEngine else { return [] }
-        let results = nGramEngine.suggestions(for: inputBuffer)
+        let results = nGramEngine.suggestions(for: inputBuffer, preferredScript: nGramPreferredScript)
         return results.prefix(maxSuggestions).map {
             SuggestionItem(text: $0, source: .nGram)
         }

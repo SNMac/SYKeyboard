@@ -84,7 +84,10 @@ final class HangeulEnglishKeyboardViewController: BaseKeyboardViewController {
         )
         initialLanguageMode = mode
         SwitchButton.previewPrimaryLanguage = mode.languageIdentifier
-        super.init(language: mode.languageIdentifier)
+        super.init(
+            language: mode.languageIdentifier,
+            nGramLanguage: NGramPredictiveTextEngine.hangeulEnglishLanguage
+        )
         primaryLanguage = mode.languageIdentifier
 
         // loadView와 viewDidLoad에서 발생하는 크래시도 기록되도록 가장 먼저 설정한다
