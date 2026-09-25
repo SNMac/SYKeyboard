@@ -772,13 +772,31 @@ private extension NGramPredictiveTextEngine {
     ///
     /// - Parameter store: n-gram 저장소
     func pruneKeys(in store: inout [String: [String: Int]]) {
-        guard store.count > maxKeys else { return }
-        
+        let removeCount = store.count - maxKeys
+        guard removeCount > 0 else { return }
+
+        // pruneUnigram과 같이 정상 경로는 기록마다 최대 1개 초과라 총 빈도가 가장 낮은 키 1개만 찾는다.
+        // 가득 찬 저장소에서는 trigram 새 문맥이 거의 매 스페이스마다 생겨 전체 정렬이 입력 지연이 된다
+        if removeCount == 1 {
+            var lowestKey: String?
+            var lowestTotal = Int.max
+            for (key, entries) in store {
+                let total = entries.values.reduce(0, +)
+                if total < lowestTotal {
+                    lowestTotal = total
+                    lowestKey = key
+                }
+            }
+            if let lowestKey {
+                store.removeValue(forKey: lowestKey)
+            }
+            return
+        }
+
         // 각 키의 총 빈도를 계산하여 낮은 순으로 제거
         let keysWithTotalFreq = store.map { (key: $0.key, total: $0.value.values.reduce(0, +)) }
         let sorted = keysWithTotalFreq.sorted { $0.total < $1.total }
-        
-        let removeCount = store.count - maxKeys
+
         for i in 0..<removeCount {
             store.removeValue(forKey: sorted[i].key)
         }

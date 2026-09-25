@@ -2177,3 +2177,32 @@ git commit -m "docs: #157 - 언어 전환 경계 제거 뒤 전체 검증 결과
   → `** TEST SUCCEEDED **`, `Test run with 762 tests in 84 suites passed after 6.155 seconds.` 로그: `<scratchpad>/t13-full.log`
 - 시뮬레이터(idb, 확인 동안만 `isClipboardHistoryEnabled` false): 영어 'a' 스페이스 → 후보 `ok, sync, A` → 한/A 뒤 `아, 오늘, sy키보드`
   → 한/A 뒤 `ok, sync, A`로 매번 바로 바뀜(수정 전에는 입력 뒤 전환에서 바뀌지 않음). 영어 'a' 입력 중 한/A 뒤에는 `"a", and, are` 그대로.
+
+### Task 14: `pruneKeys` 정상 경로를 정렬 없이 최솟값 1개 제거로 변경
+
+성능 측정(설계 문서 6-2)에서 `addWord` 시간의 약 98%가 `pruneKeys`였고, 하루 1,000단어 × 1년 파일도 키가 이미
+상한이라 같은 비용이 들었다. 사용자 확인 뒤 동작을 유지하는 방식으로 이 브랜치에서 고쳤다.
+
+**Files:**
+- Modify: `Modules/SYKeyboardCore/Domain/PredictiveText/NGramPredictiveTextEngine.swift` (`pruneKeys(in:)`)
+- Create: `SYKeyboardTests/Domain/NGramPredictiveTextEnginePruneTests.swift`
+- Modify: `docs/architecture/자동완성 로직.md`, 설계 문서 6-2
+
+- [x] **Step 1: 현재 동작을 고정하는 테스트**
+
+bigram·trigram 문맥 키 상한 정리 테스트가 없어 `maxKeys: 3`에서 총 빈도가 가장 낮은 문맥이 지워지는지 확인하는
+테스트 2개를 추가했다. 수정 전 코드에서 `-only-testing:SYKeyboardTests/NGramPredictiveTextEnginePruneTests`
+→ `Test run with 2 tests in 1 suite passed`(동작 고정용이라 처음부터 통과).
+
+- [x] **Step 2: 구현**
+
+`removeCount == 1`이면 키를 한 번 훑어 총 빈도 최솟값 1개만 지운다(동률은 기존과 같이 딕셔너리 순서상 첫 최솟값).
+2개 이상 초과는 기존 정렬 방식을 유지한다.
+
+- [x] **Step 3: 검증**
+
+- 전체: `xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=18.6' -parallel-testing-enabled NO GADApplicationIdentifier='ca-app-pub-3940256099942544~1458002511'`
+  → `** TEST SUCCEEDED **`, `Test run with 764 tests in 85 suites passed after 5.951 seconds.` 로그: `<scratchpad>/prune-full.log`
+- 성능: 버리는 측정 테스트(`<scratchpad>/bench/ZZNGramPerfMeasureTests.swift`, 커밋하지 않음)를 `SWIFT_OPTIMIZATION_LEVEL=-O`
+  `build-for-testing` 뒤 시나리오마다 `test-without-building -only-testing:SYKeyboardTests/ZZNGramPerfMeasureTests/<시나리오>()`로 실행.
+  결과는 `<scratchpad>/perf-results-run3-prunefix.txt`, 수정 전은 `<scratchpad>/perf-results-run2.txt`. 요약은 설계 문서 6-2.
