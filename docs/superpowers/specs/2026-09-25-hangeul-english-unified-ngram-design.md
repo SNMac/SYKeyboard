@@ -107,7 +107,7 @@ NGram과 별개라 그대로 유지된다.
   - 한글 음절·자모가 하나라도 있으면 `.hangeul` ('SY키보드'는 한글)
   - 아니고 라틴 문자가 있으면 `.latin`
   - 둘 다 없으면 `.other` (어느 쪽을 선호해도 뒤로 간다)
-- `SuggestionController`는 `nGramLanguage != language`일 때만 `language`에서 선호 문자 종류를 정해 넘긴다
+- `SuggestionController`는 `nGramLanguage != nil`(통합 NGram)일 때만 `language`에서 선호 문자 종류를 정해 넘긴다
   (`"ko-KR"` → `.hangeul`, `"en-US"` → `.latin`). 단독 키보드는 `nil`이다.
 - 한/A 전환 때 후보 바가 NGram 후보를 보이는 중이면 `updateLanguage(to:)`가 마지막 요청값으로 다시 조회해
   새 언어 순서로 바꾼다(순서가 같으면 전달하지 않음). 입력 중 후보는 다시 계산하지 않는다.

@@ -2221,3 +2221,11 @@ guard를 `currentMode != .typing`으로 임시 변경한 코드에서 이 테스
 `completeLoad` 뒤 `await waitForMainQueue()`를 넣었다.
 - `-only-testing:SYKeyboardTests/SuggestionControllerUnifiedNGramTests` 5회 연속 `Test run with 9 tests in 1 suite passed`
 - 전체 2회 연속 `Test run with 765 tests in 85 suites passed` (`<scratchpad>/t15-full1.log`, `t15-full2.log`)
+
+- [x] **Step 2: 문서 수정**
+
+- `docs/architecture/한영 통합 키보드.md` §5: 재전달 조건 문장을 "후보 텍스트 순서가 같으면 전달하지 않고, unigram 보충분 순서가 바뀌면 전달"로 고침(Minor 4).
+  §8 검증 표에 `SuggestionControllerUnifiedNGramTests` 행 추가, 실행 명령에 같은 suite 추가(감사 1).
+- `docs/architecture/자동완성 로직.md` §12 실행 명령에 `NGramPredictiveTextEnginePruneTests` 추가(감사 2).
+- 설계 문서 4절 "`nGramLanguage != language`" → "`nGramLanguage != nil`(통합 NGram)"(Minor 5, 이 diff 전부터 있던 오기).
+- 감사에서 `전체 아키텍처.md`, `README.md`, `CLAUDE.md` 아키텍처 서술과 제거된 심볼(`KeyboardLanguageSegmentTracker` 등) 잔여 참조는 불일치 없음.
