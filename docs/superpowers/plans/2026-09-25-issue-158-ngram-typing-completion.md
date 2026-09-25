@@ -346,7 +346,7 @@ EOF
 **Interfaces:**
 - Consumes: Task 1의 `PredictiveTextCompletionMatchPolicy(typedWord:)`, `isCompletion(_:)`. 기존 `HangeulCompositionTestHarness(processor:)`, `input(_:)`, `text`(`SYKeyboardTests/Utils/HangeulCompositionTestHarness.swift`).
 
-- [ ] **Step 1: 테스트를 쓴다**
+- [x] **Step 1: 테스트를 쓴다**
 
 `SYKeyboardTests/Domain/HangeulCompletionMatchScenarioTests.swift`:
 
@@ -444,12 +444,12 @@ struct HangeulCompletionMatchScenarioTests {
 }
 ```
 
-- [ ] **Step 2: 테스트가 통과하는 것을 확인한다**
+- [x] **Step 2: 테스트가 통과하는 것을 확인한다**
 
 production 코드는 Task 1에서 이미 있으므로 바로 통과해야 한다. Global Constraints의 테스트 명령을 `-only-testing:SYKeyboardTests/HangeulCompletionMatchScenarioTests`, 로그 이름 `158-task2`로 실행한다.
 Expected: 3개 테스트 통과. 실패하면 로그의 `Step` 배열(예: `[ㄱ:F, ㅋ:T, …]`)을 spec 1절 표와 비교한다. 텍스트가 다르면 처리기 동작이 계획 작성 이후 바뀐 것이므로 기대값을 고치지 말고 멈추고 사용자에게 알린다.
 
-- [ ] **Step 3: 커밋**
+- [x] **Step 3: 커밋**
 
 ```bash
 git add SYKeyboardTests/Domain/HangeulCompletionMatchScenarioTests.swift docs/superpowers/plans/2026-09-25-issue-158-ngram-typing-completion.md
@@ -460,6 +460,8 @@ Co-Authored-By: Claude Opus 5.5 (1M context) <noreply@anthropic.com>
 EOF
 )"
 ```
+
+**결과:** `HangeulCompletionMatchScenarioTests` 3개 테스트 통과(iPhone 13 mini / iOS 18.6). 처리기별 상태 배열이 spec 1절 표와 일치.
 
 ---
 
