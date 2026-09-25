@@ -59,6 +59,29 @@ struct PredictiveTextCompletionMatchPolicyTests {
     func test비교할글자가없으면_판정하지않음(typedWord: String) {
         #expect(PredictiveTextCompletionMatchPolicy(typedWord: typedWord) == nil)
     }
+
+    @Test("입력 첫 글자가 대문자이면 소문자로만 저장된 후보의 첫 글자를 대문자로 보여줌", arguments: [
+        ("hello", "Hel", "Hello"), ("sync", "SY", "Sync")
+    ])
+    func test입력첫글자가대문자이면_소문자로만저장된후보의_첫글자를대문자로보여줌(
+        candidate: String,
+        typedWord: String,
+        expected: String
+    ) {
+        #expect(PredictiveTextCompletionMatchPolicy(typedWord: typedWord)?.displayText(for: candidate) == expected)
+    }
+
+    // 대소문자가 섞인 표기는 사용자가 학습시킨 고유 표기라 바꾸지 않는다
+    @Test("입력이 소문자이거나 후보에 대문자가 있으면 저장된 표기 그대로 보여줌", arguments: [
+        ("hello", "hel", "hello"), ("SY키보드", "Sy", "SY키보드"), ("iPhone", "IP", "iPhone"), ("키보드", "키", "키보드")
+    ])
+    func test입력이소문자이거나_후보에대문자가있으면_저장된표기그대로보여줌(
+        candidate: String,
+        typedWord: String,
+        expected: String
+    ) {
+        #expect(PredictiveTextCompletionMatchPolicy(typedWord: typedWord)?.displayText(for: candidate) == expected)
+    }
 }
 
 private func isCompletion(_ candidate: String, of typedWord: String) -> Bool {

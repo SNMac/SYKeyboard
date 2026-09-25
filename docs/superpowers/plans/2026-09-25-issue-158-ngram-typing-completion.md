@@ -1543,6 +1543,8 @@ EOF
 8. 일부 확인. 입력 중 완성 후보 'Keyboards'를 길게 누르면 삭제 확인창이 해당 단어로 뜸. 확인창의 Cancel·Delete 버튼이 `idb ui tap`에 반응하지 않아 삭제 뒤 사라지는지는 미확인.
 9. 미확인. 시뮬레이터라 입력 지연 체감과 실기기 `NGramCompletions` signpost는 확인하지 못함.
 
+리뷰 반영(첫 글자 대문자 규칙, 커밋 c9cbaf37) 뒤 추가 확인: 단독 영어 키보드에 `hello`(3)·`Hello`(1)를 학습시키고 문장 첫머리 'Hel'에서 1번 칸 'Hello'(TextChecker 'Help'가 뒤), 'Hel ' 뒤 'hel'에서 'hello'(TextChecker 'help'가 뒤). 통과.
+
 idb 조작 메모: 맨 아래 줄 키(한/A, 나랏글 획·ㅡ)는 y=706pt에서 반응하지 않고 y=695~700pt에서 반응한다. 한/A는 `--duration 0.05`가 필요했다. 지구본 길게 눌러 뜬 키보드 목록은 탭·끌기로 선택되지 않아 `AppleKeyboards`를 잠시 두 개로 줄여 전환했다.
 
 - [ ] **Step 2: 결과를 기록한다**

@@ -69,6 +69,17 @@ struct NGramPredictiveTextEngineCompletionTests {
         #expect(engine.completions(forTypedWord: "날", previousWord: "오늘", limit: 1) == ["날씨"])
     }
 
+    @Test("문장 첫머리처럼 대문자로 시작한 입력에는 소문자로 학습한 단어의 첫 글자를 대문자로 반환")
+    func test대문자로시작한입력에는_소문자로학습한단어의_첫글자를대문자로반환() async {
+        let engine = await makeLoadedNGramFixture(name: "completion-capitalize").engine
+        recordAlone(engine, "hello", times: 3)
+        recordAlone(engine, "SY키보드", times: 1)
+
+        #expect(engine.completions(forTypedWord: "Hel", previousWord: nil, limit: 3) == ["Hello"])
+        #expect(engine.completions(forTypedWord: "hel", previousWord: nil, limit: 3) == ["hello"])
+        #expect(engine.completions(forTypedWord: "Sy", previousWord: nil, limit: 3) == ["SY키보드"])
+    }
+
     @Test("디스크 로딩 전에는 빈 배열을 반환하고 로딩 뒤에 찾음")
     func test디스크로딩전에는_빈배열을반환하고_로딩뒤에찾음() async throws {
         let url = FileManager.default.temporaryDirectory

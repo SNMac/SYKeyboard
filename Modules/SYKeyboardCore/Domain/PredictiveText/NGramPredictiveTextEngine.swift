@@ -361,7 +361,7 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
     /// 입력 중인 단어를 이어 쓴 학습 단어를 반환합니다.
     ///
     /// `previousWord` 뒤에 쓴 bigram 후보 중 맞는 것을 빈도순으로 먼저, 남은 칸은 unigram 빈도순으로 채웁니다.
-    /// 비교 규칙은 `PredictiveTextCompletionMatchPolicy`를 따르고, 입력 중인 단어 자체는 뺍니다.
+    /// 비교·표기 규칙은 `PredictiveTextCompletionMatchPolicy`를 따르고, 입력 중인 단어 자체는 뺍니다.
     /// 디스크 로딩이 완료되지 않은 경우 빈 배열을 반환합니다.
     ///
     /// - Parameters:
@@ -382,7 +382,7 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
         if let previousWord {
             for word in rankedCandidates(from: bigramStore, key: previousWord) where policy.isCompletion(word) {
                 guard seen.insert(word.lowercased()).inserted else { continue }
-                results.append(word)
+                results.append(policy.displayText(for: word))
                 if results.count >= limit { return results }
             }
         }
@@ -392,7 +392,7 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
         for entry in unigramStore where policy.isCompletion(entry.key) && !seen.contains(entry.key.lowercased()) {
             insertTopUnigram(entry, into: &top)
         }
-        return results + top.prefix(limit - results.count).map(\.key)
+        return results + top.prefix(limit - results.count).map { policy.displayText(for: $0.key) }
     }
 
     /// n-gram에서는 단어 단위 학습을 사용하지 않습니다.

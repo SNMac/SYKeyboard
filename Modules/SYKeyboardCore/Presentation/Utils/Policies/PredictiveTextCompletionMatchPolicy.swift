@@ -37,6 +37,8 @@ struct PredictiveTextCompletionMatchPolicy {
     private let head: String
     /// 마지막 글자의 호환 자모
     private let lastJamo: [Unicode.Scalar]
+    /// 입력 첫 글자가 대문자인지. 문장 첫머리 자동 대문자처럼 사용자가 이미 대문자로 시작한 경우다
+    private let startsWithUppercase: Bool
 
     // MARK: - Initializer
 
@@ -53,6 +55,7 @@ struct PredictiveTextCompletionMatchPolicy {
         loweredTypedWord = lowered
         head = String(typed.dropLast())
         lastJamo = Self.jamo(of: last)
+        startsWithUppercase = typedWord.first?.isUppercase == true
     }
 
     // MARK: - Internal Methods
@@ -73,6 +76,18 @@ struct PredictiveTextCompletionMatchPolicy {
             candidateJamo += Self.jamo(of: character)
         }
         return candidateJamo.starts(with: lastJamo)
+    }
+
+    /// 후보 바에 보여주고 삽입할 표기를 반환합니다.
+    ///
+    /// 입력이 대문자로 시작했고 후보가 소문자로만 저장돼 있으면 첫 글자만 대문자로 올린다.
+    /// 그대로 두면 문장 첫머리의 `"Hel"`에서 `"hello"`를 골라 사용자가 입력한 대문자가 사라진다.
+    /// 대문자가 섞인 표기(`"SY키보드"`, `"iPhone"`)는 사용자가 학습시킨 고유 표기라 바꾸지 않는다
+    func displayText(for candidate: String) -> String {
+        guard startsWithUppercase,
+              candidate == candidate.lowercased(),
+              let first = candidate.first else { return candidate }
+        return first.uppercased() + candidate.dropFirst()
     }
 }
 
