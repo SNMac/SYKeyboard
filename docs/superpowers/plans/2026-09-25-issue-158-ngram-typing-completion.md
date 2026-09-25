@@ -1386,12 +1386,12 @@ EOF
 - Modify: 이 계획 문서(결과 기록만)
 - 임시: `"$SCRATCH/ZZNGramCompletionPerfTests.swift"` → 측정하는 동안만 `SYKeyboardTests/Domain/`에 복사하고 지운다. 커밋하지 않는다.
 
-- [ ] **Step 1: 전체 테스트를 실행한다**
+- [x] **Step 1: 전체 테스트를 실행한다**
 
 Global Constraints의 테스트 명령에서 `-only-testing`을 빼고 로그 이름 `158-task6-all`로 실행한다.
 Expected: `** TEST SUCCEEDED **`. 실행한 테스트 수와 소요 시간을 이 문서에 적는다(`grep -E "Test run with|tests? passed|failed" "$SCRATCH/158-task6-all.log" | tail -5`).
 
-- [ ] **Step 2: 4개 scheme을 빌드한다**
+- [x] **Step 2: 4개 scheme을 빌드한다**
 
 `-only-testing`·coverage 옵션 없이 각각 실행한다.
 
@@ -1409,7 +1409,7 @@ git status --short
 
 Expected: 네 줄 모두 `** BUILD SUCCEEDED **`. `.xcscheme`이 보이면 Global Constraints대로 처리한다.
 
-- [ ] **Step 3: 시뮬레이터에서 production 엔진 조회 비용을 잰다**
+- [x] **Step 3: 시뮬레이터에서 production 엔진 조회 비용을 잰다**
 
 `"$SCRATCH/ZZNGramCompletionPerfTests.swift"`를 만든다.
 
@@ -1483,7 +1483,7 @@ grep NGRAM_COMPLETION_PERF "$SCRATCH/158-task6-perf.log"; git status --short
 
 Expected: `NGRAM_COMPLETION_PERF median=… p95=… max=…` 한 줄, `git status`에 `ZZNGramCompletionPerfTests.swift`가 없다. 값을 이 문서와 spec 5절에 적는다. **p95가 2ms를 넘으면 여기서 멈추고 사용자에게 알린다**(spec 5절, 고치지 않음).
 
-- [ ] **Step 4: spec에 측정 결과를 적는다**
+- [x] **Step 4: spec에 측정 결과를 적는다**
 
 `docs/superpowers/specs/2026-09-25-ngram-typing-completion-design.md` 5절 끝에 한 문단을 덧붙인다. 형식:
 
@@ -1494,7 +1494,7 @@ Expected: `NGRAM_COMPLETION_PERF median=… p95=… max=…` 한 줄, `git statu
 
 `YYYY-MM-DD`와 `N`은 Step 3의 실제 값으로 채운다.
 
-- [ ] **Step 5: 커밋**
+- [x] **Step 5: 커밋**
 
 ```bash
 git add docs/superpowers/specs/2026-09-25-ngram-typing-completion-design.md docs/superpowers/plans/2026-09-25-issue-158-ngram-typing-completion.md
@@ -1506,6 +1506,8 @@ EOF
 )"
 ```
 
+**결과:** 전체 테스트 `xcodebuild test`(-only-testing 없음) 89개 suite 788개 테스트 통과, 21초(iPhone 13 mini / iOS 18.6). 4개 scheme(SYKeyboard, HangeulKeyboard, EnglishKeyboard, HangeulEnglishKeyboard) 모두 `** BUILD SUCCEEDED **`, `.xcscheme` 변경 없음. 시뮬레이터 측정(`SWIFT_OPTIMIZATION_LEVEL=-O`, 로그 `$SCRATCH/158-task6-perf.log`, `grep NGRAM_COMPLETION_PERF`): 중앙값 0.84ms, p95 1.72ms, 최대 2.53ms — 기준 2ms 안. 임시 측정 파일은 같은 명령 끝에서 삭제했고 `git status`에 남지 않음.
+
 ---
 
 ### Task 7: 실제 입력 앱 확인
@@ -1515,7 +1517,7 @@ EOF
 **Files:**
 - Modify: 이 계획 문서(결과 기록만)
 
-- [ ] **Step 1: 사용자에게 확인 목록을 전달한다**
+- [x] **Step 1: 사용자에게 확인 목록을 전달한다**
 
 아래 목록을 그대로 보내고 결과를 받는다. 앱에서 자동완성을 켜고, 먼저 각 단어를 스페이스로 두세 번 입력해 학습시킨다.
 
@@ -1528,6 +1530,20 @@ EOF
 7. bigram: '오늘 날씨'를 여러 번 입력한 뒤 '오늘 날'에서 '날씨'가 다른 '날…' 단어보다 앞에 온다.
 8. 입력 중 완성 후보를 길게 눌러 삭제하면 사라지고 다시 입력하기 전까지 뜨지 않는다.
 9. 빠르게 타이핑할 때 입력 지연이 체감되지 않는다. 가능하면 Instruments `os_signpost`에서 subsystem = 키보드 extension bundle id, category = `NGramPredictiveTextEngine`, 구간 `NGramCompletions`의 최대값을 알려준다.
+
+**시뮬레이터 확인 결과(2026-09-25, iPhone 13 mini / iOS 18.6 시뮬레이터, 앱 `KeyboardTestView` 입력 필드, `idb ui`로 조작).** 실기기 확인이 아니다. 학습 데이터는 App Group의 `ngram_ko-KR.plist`·`ngram_en-US.plist`·`ngram_ko-en.plist`에 미리 써 넣었고, 확인 뒤 원래 파일과 설정(키보드 목록, 두벌식, 클립보드 기록)을 되돌렸다.
+
+1. 통과. 두벌식 'ㅋ'·'키'·'킵'·'키보'·'키볻' 모두에서 '키보드'·'키보드로'가 1·2번 칸에 유지.
+2. 통과. 나랏글은 'ㄱ'·'킴'·'키본'에서만 빠지고 나머지 상태에서 유지, 천지인은 'ㄱ'에서만 빠지고 '킵ㆍ'를 포함한 나머지 상태에서 유지(spec 1절 표와 같음). 마지막 '키보드'에서는 입력 단어 자신이 빠지고 '키보드로'만 남음.
+3. 통과. '달' → '닭'에서 '달걀'이 1번 칸에 유지(TextChecker '닭꼬치'는 그 뒤).
+4. 통과. 단독 영어 키보드 'Key'에서 'Keyboard'·'Keyboards', 1번 칸을 고르면 'Key' → 'Keyboard'.
+5. 통과. 한영 키보드 'SY' → 한/A → '키'에서 'SY키보드'가 1번 칸, 고르면 'SY키' 전체가 앞 공백 없이 'SY키보드'로 바뀜. 'sY'(대소문자 섞임)에서도 1번 칸에 뜨고 TextChecker 'sync'가 뒤에 옴. '오늘 SY키'는 확인하지 않음.
+6. 통과. 'SY키' 입력 중 한/A로 영어 자판이 되어도 후보('"SY키"', 'SY키보드')가 그대로.
+7. 통과. '날'은 날개·날짜 순, '오늘 날'은 bigram '날씨'가 맨 앞, 이어서 날개.
+8. 일부 확인. 입력 중 완성 후보 'Keyboards'를 길게 누르면 삭제 확인창이 해당 단어로 뜸. 확인창의 Cancel·Delete 버튼이 `idb ui tap`에 반응하지 않아 삭제 뒤 사라지는지는 미확인.
+9. 미확인. 시뮬레이터라 입력 지연 체감과 실기기 `NGramCompletions` signpost는 확인하지 못함.
+
+idb 조작 메모: 맨 아래 줄 키(한/A, 나랏글 획·ㅡ)는 y=706pt에서 반응하지 않고 y=695~700pt에서 반응한다. 한/A는 `--duration 0.05`가 필요했다. 지구본 길게 눌러 뜬 키보드 목록은 탭·끌기로 선택되지 않아 `AppleKeyboards`를 잠시 두 개로 줄여 전환했다.
 
 - [ ] **Step 2: 결과를 기록한다**
 
