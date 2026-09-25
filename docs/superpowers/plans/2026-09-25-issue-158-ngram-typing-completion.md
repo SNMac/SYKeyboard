@@ -694,7 +694,7 @@ EOF
 - Consumes: Task 3의 `completions(forTypedWord:previousWord:limit:)`.
 - Produces: `NGramPredictiveTextProviding.completions(forTypedWord:previousWord:limit:)` 프로토콜 요구사항. `StubNGramPredictiveTextProvider.completionResults: [String]`, `completionQueries: [StubNGramPredictiveTextProvider.CompletionQuery]`.
 
-- [ ] **Step 1: stub에 완성 조회를 넣는다**
+- [x] **Step 1: stub에 완성 조회를 넣는다**
 
 `SYKeyboardTests/Domain/SuggestionControllerTestSupport.swift`의 `StubNGramPredictiveTextProvider`에서 아래 줄 바로 뒤에 넣는다.
 
@@ -741,7 +741,7 @@ new:
     func completions(forTypedWord typedWord: String, previousWord: String?, limit: Int) -> [String] { [] }
 ```
 
-- [ ] **Step 2: 실패하는 테스트를 쓴다**
+- [x] **Step 2: 실패하는 테스트를 쓴다**
 
 `SYKeyboardTests/Domain/SuggestionControllerNGramCompletionTests.swift`:
 
@@ -938,12 +938,12 @@ private final class RecordingTextCheckerProvider: PredictiveTextProvider, @unche
 }
 ```
 
-- [ ] **Step 3: 테스트가 실패하는 것을 확인한다**
+- [x] **Step 3: 테스트가 실패하는 것을 확인한다**
 
 Global Constraints의 테스트 명령을 `-only-testing:SYKeyboardTests/SuggestionControllerNGramCompletionTests`, 로그 이름 `158-task4-red`로 실행한다.
 Expected: 컴파일은 되고(`NGramPredictiveTextEngine`과 두 stub에 메서드가 이미 있으므로) 다음이 실패한다: `test입력중후보는_…병합`(NGram 완성 없음), `test바로앞단어를_bigram문맥으로넘김`·`test한영전환을…대치`(조회 기록 없음), `test입력중NGram완성후보는_길게눌러삭제할수있음`, `testNGram로딩이끝나면_…채움`, `testLexicon과NGram완성이_9칸을채우면_…`. `test한A전환은_…다시조회하지않음`은 조회 횟수 기대(1)가 0이라 실패한다.
 
-- [ ] **Step 4: 프로토콜에 완성 조회를 넣는다**
+- [x] **Step 4: 프로토콜에 완성 조회를 넣는다**
 
 `SuggestionController.swift`의 `NGramPredictiveTextProviding`에서:
 
@@ -962,7 +962,7 @@ new:
 }
 ```
 
-- [ ] **Step 5: 완성 후보 칸 수와 주석을 고친다**
+- [x] **Step 5: 완성 후보 칸 수와 주석을 고친다**
 
 클래스 문서 주석:
 
@@ -1003,7 +1003,7 @@ new:
     private let maxNGramCompletions = 3
 ```
 
-- [ ] **Step 6: 입력 중 모드에서 완성을 조회하고 병합한다**
+- [x] **Step 6: 입력 중 모드에서 완성을 조회하고 병합한다**
 
 `performUpdateSuggestions`의 문서 주석:
 
@@ -1101,7 +1101,7 @@ new:
                 )
 ```
 
-- [ ] **Step 7: 완성 조회 helper를 넣고 병합 함수를 바꾼다**
+- [x] **Step 7: 완성 조회 helper를 넣고 병합 함수를 바꾼다**
 
 `nGramSuggestions(for:)` 메서드가 끝나는 `}` 바로 뒤, `/// lexicon 결과와 TextChecker 결과를 병합합니다.` 앞에 넣는다.
 
@@ -1215,12 +1215,12 @@ new:
     }
 ```
 
-- [ ] **Step 8: 새 테스트가 통과하는 것을 확인한다**
+- [x] **Step 8: 새 테스트가 통과하는 것을 확인한다**
 
 Step 3과 같은 명령을 로그 이름 `158-task4-green`으로 실행한다.
 Expected: 7개 테스트 통과
 
-- [ ] **Step 9: 기존 컨트롤러 테스트가 그대로인지 확인한다**
+- [x] **Step 9: 기존 컨트롤러 테스트가 그대로인지 확인한다**
 
 Global Constraints의 테스트 명령에 아래 `-only-testing`을 모두 붙여 로그 이름 `158-task4-controller`로 실행한다.
 
@@ -1237,7 +1237,7 @@ Global Constraints의 테스트 명령에 아래 `-only-testing`을 모두 붙�
 
 Expected: 모두 통과. 기존 stub의 `completionResults` 기본값이 빈 배열이라 입력 중 후보 기대값은 바뀌지 않는다. 실패하면 기대값을 고치기 전에 이번 변경의 회귀인지 확인하고 사용자에게 알린다.
 
-- [ ] **Step 10: 커밋**
+- [x] **Step 10: 커밋**
 
 ```bash
 git add Modules/SYKeyboardCore/Domain/SuggestionController.swift SYKeyboardTests/Domain/SuggestionControllerTestSupport.swift SYKeyboardTests/Domain/SuggestionControllerSuggestionRemovalTests.swift SYKeyboardTests/Domain/SuggestionControllerNGramCompletionTests.swift docs/superpowers/plans/2026-09-25-issue-158-ngram-typing-completion.md
@@ -1248,6 +1248,8 @@ Co-Authored-By: Claude Opus 5.5 (1M context) <noreply@anthropic.com>
 EOF
 )"
 ```
+
+**결과:** RED는 컴파일 성공 뒤 새 테스트 7개가 모두 실패(12 issues)로 확인. Step 8·9를 한 번에 실행: `SuggestionControllerNGramCompletionTests` 7개와 기존 컨트롤러 suite 8개를 합쳐 9개 suite 79개 테스트 통과(iPhone 13 mini / iOS 18.6).
 
 ---
 

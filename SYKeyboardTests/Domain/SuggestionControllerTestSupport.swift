@@ -49,6 +49,16 @@ final class StubNGramPredictiveTextProvider: NGramPredictiveTextProviding, @unch
     private var loadedSuggestions: [String]
     /// 선호 문자 종류별 결과. 없으면 `loadedSuggestions`를 돌려준다
     var resultsByPreferredScript: [PredictiveTextScript: [String]] = [:]
+    /// 입력 중 단어 완성 조회에 돌려줄 결과. 앞에서부터 `limit`개만 돌려준다
+    var completionResults: [String] = []
+    /// 입력 중 단어 완성 조회에 받은 인자
+    private(set) var completionQueries: [CompletionQuery] = []
+
+    struct CompletionQuery: Equatable {
+        let typedWord: String
+        let previousWord: String?
+        let limit: Int
+    }
 
     init(results: [String] = []) {
         self.loadedSuggestions = results
@@ -63,6 +73,11 @@ final class StubNGramPredictiveTextProvider: NGramPredictiveTextProviding, @unch
             return results
         }
         return loadedSuggestions
+    }
+
+    func completions(forTypedWord typedWord: String, previousWord: String?, limit: Int) -> [String] {
+        completionQueries.append(CompletionQuery(typedWord: typedWord, previousWord: previousWord, limit: limit))
+        return Array(completionResults.prefix(limit))
     }
 
     func addWord(_ word: String) {
