@@ -104,7 +104,7 @@ EOF
   - `init?(typedWord: String)` — 비교할 글자가 없으면(빈 문자열, 천지인 조합 중 모음뿐) `nil`
   - `func isCompletion(_ candidate: String) -> Bool`
 
-- [ ] **Step 1: 실패하는 테스트를 쓴다**
+- [x] **Step 1: 실패하는 테스트를 쓴다**
 
 `SYKeyboardTests/Utils/PredictiveTextCompletionMatchPolicyTests.swift`:
 
@@ -177,12 +177,12 @@ private func isCompletion(_ candidate: String, of typedWord: String) -> Bool {
 }
 ```
 
-- [ ] **Step 2: 테스트가 실패하는 것을 확인한다**
+- [x] **Step 2: 테스트가 실패하는 것을 확인한다**
 
 Global Constraints의 테스트 명령을 `-only-testing:SYKeyboardTests/PredictiveTextCompletionMatchPolicyTests`, 로그 이름 `158-task1-red`로 실행한다.
 Expected: 컴파일 실패 `cannot find 'PredictiveTextCompletionMatchPolicy' in scope`
 
-- [ ] **Step 3: policy를 만든다**
+- [x] **Step 3: policy를 만든다**
 
 `Modules/SYKeyboardCore/Presentation/Utils/Policies/PredictiveTextCompletionMatchPolicy.swift`:
 
@@ -296,7 +296,7 @@ private extension PredictiveTextCompletionMatchPolicy {
 }
 ```
 
-- [ ] **Step 4: pbxproj 두 목록에 파일을 넣는다**
+- [x] **Step 4: pbxproj 두 목록에 파일을 넣는다**
 
 `SYKeyboard.xcodeproj/project.pbxproj`에서 아래 줄은 두 번(`SYKeyboard` 대상, `SYKeyboardCore` 대상) 나온다. Edit을 `replace_all: true`로 써서 두 곳 모두 바로 앞에 새 경로를 넣는다(알파벳 순서상 `PredictiveTextC…`가 `PredictiveTextS…`보다 앞).
 
@@ -313,12 +313,12 @@ new:
 Run: `grep -c "PredictiveTextCompletionMatchPolicy.swift" SYKeyboard.xcodeproj/project.pbxproj`
 Expected: `2`
 
-- [ ] **Step 5: 테스트가 통과하는 것을 확인한다**
+- [x] **Step 5: 테스트가 통과하는 것을 확인한다**
 
 Step 2와 같은 명령을 로그 이름 `158-task1-green`으로 실행한다.
 Expected: `PredictiveTextCompletionMatchPolicyTests` 7개 테스트(인자 포함 케이스 26개) 모두 통과, `** TEST SUCCEEDED **`
 
-- [ ] **Step 6: 커밋**
+- [x] **Step 6: 커밋**
 
 이 문서의 Task 1 체크박스와 실제 결과(통과 테스트 수)를 적은 뒤 커밋한다.
 
@@ -331,6 +331,8 @@ Co-Authored-By: Claude Opus 5.5 (1M context) <noreply@anthropic.com>
 EOF
 )"
 ```
+
+**결과:** RED는 `cannot find 'PredictiveTextCompletionMatchPolicy' in scope` 컴파일 실패로 확인. GREEN은 `PredictiveTextCompletionMatchPolicyTests` 7개 테스트 통과(iPhone 13 mini / iOS 18.6 시뮬레이터). pbxproj 등록 2곳 확인.
 
 ---
 

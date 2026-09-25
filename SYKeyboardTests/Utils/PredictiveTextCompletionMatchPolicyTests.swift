@@ -1,0 +1,66 @@
+//
+//  PredictiveTextCompletionMatchPolicyTests.swift
+//  SYKeyboardTests
+//
+//  Created by Claude on 9/25/26.
+//
+
+import Testing
+
+@testable import SYKeyboardCore
+
+@Suite("NGram 완성 후보 접두어 판정 검증")
+struct PredictiveTextCompletionMatchPolicyTests {
+
+    @Test("라틴 문자는 대소문자를 무시하고 접두어로 비교", arguments: [
+        ("hello", "hel"), ("Hello", "hel"), ("SY키보드", "sy"), ("SY키보드", "sy키"), ("sy키보드", "SY키볻")
+    ])
+    func test라틴문자는_대소문자를무시하고_접두어로비교(candidate: String, typedWord: String) {
+        #expect(isCompletion(candidate, of: typedWord))
+    }
+
+    @Test("마지막 받침은 다음 글자 초성으로도 봄", arguments: [
+        ("키보드", "키볻"), ("가방", "갑"), ("값", "갑")
+    ])
+    func test마지막받침은_다음글자초성으로도봄(candidate: String, typedWord: String) {
+        #expect(isCompletion(candidate, of: typedWord))
+    }
+
+    @Test("겹받침은 두 자음으로 나눠 봄", arguments: [
+        ("달걀", "닭"), ("안주", "앉"), ("닭고기", "닭")
+    ])
+    func test겹받침은_두자음으로나눠봄(candidate: String, typedWord: String) {
+        #expect(isCompletion(candidate, of: typedWord))
+    }
+
+    // "고\u{11A2}"는 한 Character다. 스칼라 단위로 떼야 한다
+    @Test("끝에 붙은 천지인 조합 중 모음은 떼고 비교", arguments: [
+        ("키보드", "킵\u{318D}"), ("키보드", "키ㅂ\u{318D}"), ("여기", "ㅇ\u{11A2}"), ("고양이", "고\u{11A2}")
+    ])
+    func test끝에붙은_천지인조합중모음은_떼고비교(candidate: String, typedWord: String) {
+        #expect(isCompletion(candidate, of: typedWord))
+    }
+
+    @Test("이어 쓴 단어가 아니면 완성이 아님", arguments: [
+        ("키보드", "킴"), ("과자", "고"), ("개발", "가"), ("help", "hex"), ("가", "각"), ("달", "닭")
+    ])
+    func test이어쓴단어가아니면_완성이아님(candidate: String, typedWord: String) {
+        #expect(!isCompletion(candidate, of: typedWord))
+    }
+
+    @Test("입력 단어와 같은 단어는 대소문자가 달라도 완성이 아님", arguments: [
+        ("키보드", "키보드"), ("KEYBOARD", "keyboard")
+    ])
+    func test입력단어와같은단어는_대소문자가달라도_완성이아님(candidate: String, typedWord: String) {
+        #expect(!isCompletion(candidate, of: typedWord))
+    }
+
+    @Test("비교할 글자가 없으면 판정하지 않음", arguments: ["", "\u{318D}", "\u{318D}\u{11A2}"])
+    func test비교할글자가없으면_판정하지않음(typedWord: String) {
+        #expect(PredictiveTextCompletionMatchPolicy(typedWord: typedWord) == nil)
+    }
+}
+
+private func isCompletion(_ candidate: String, of typedWord: String) -> Bool {
+    PredictiveTextCompletionMatchPolicy(typedWord: typedWord)?.isCompletion(candidate) == true
+}
