@@ -31,6 +31,8 @@ protocol NGramPredictiveTextProviding: PredictiveTextProvider {
 
     /// 문맥으로 다음 단어를 예측합니다. `preferredScript`가 있으면 unigram 후보만 그 문자 종류를 앞에 둡니다.
     func suggestions(for baseText: String, preferredScript: PredictiveTextScript?) -> [String]
+    /// 입력 중인 단어를 이어 쓴 학습 단어를 반환합니다. `previousWord` 뒤에 쓴 bigram 후보가 먼저입니다.
+    func completions(forTypedWord typedWord: String, previousWord: String?, limit: Int) -> [String]
 }
 
 extension NGramPredictiveTextEngine: NGramPredictiveTextProviding {}
@@ -101,7 +103,7 @@ private enum MathSuggestionOrigin: Equatable {
 /// 수행되며, 현재 키보드 세션에서 직접 입력한 텍스트만 대상으로 합니다.
 ///
 /// ## 동작 흐름
-/// 1. **입력 중**: SuggestionBar에 `UILexicon` + `UITextChecker` 후보 표시
+/// 1. **입력 중**: SuggestionBar에 `UILexicon` + n-gram 단어 완성 + `UITextChecker` 후보 표시
 /// 2. **후보 탭**: 현재 단어를 선택한 후보로 교체 (텍스트 대치 후보는 대치 이력 기록)
 /// 3. **스페이스**: `UILexicon`에 정확히 매칭되는 텍스트 대치 자동 수행, n-gram 기록
 /// 4. **삭제**: 방금 대치된 단어를 원래 단축어로 복구
@@ -226,7 +228,7 @@ final class SuggestionController: SuggestionService {
             case lexicon
             /// `UITextChecker` 기반 (시스템 사전)
             case textChecker
-            /// n-gram 기반 (다음 단어 예측)
+            /// n-gram 기반 (다음 단어 예측, 입력 중 단어 완성)
             case nGram
             /// 수식 원문 확인 후보
             case mathExpressionOriginal
@@ -285,6 +287,10 @@ final class SuggestionController: SuggestionService {
     /// 입력 중 모드는 0번 칸이 `"현재단어"`라 엔진 몫이 `maxSuggestions - 1`이다.
     /// 이 값을 3으로 되돌리면 후보가 뷰포트를 넘지 않아 스크롤이 사라진다
     private let maxSuggestions = 10
+    /// 입력 중 모드에서 n-gram 단어 완성에 주는 최대 칸 수
+    ///
+    /// lexicon 뒤, TextChecker 앞에 둔다. 자주 쓰는 접두어에서도 TextChecker 몫(오타 교정 포함)이 남도록 제한한다
+    private let maxNGramCompletions = 3
     /// 복구 가능한 텍스트 대치 이력 최대 개수
     private let maxReplacementHistoryCount = 20
 
@@ -857,7 +863,7 @@ private extension SuggestionController {
     ///
     /// 입력 버퍼에 따라 두 가지 모드로 분기합니다:
     /// - 버퍼 비어있음 또는 마지막 문자가 공백 → n-gram 모드
-    /// - 단어 타이핑 중 → 입력 중 모드 (lexicon + textChecker)
+    /// - 단어 타이핑 중 → 입력 중 모드 (lexicon + n-gram 단어 완성 + textChecker)
     ///
     /// - Parameter baseText: 자동완성을 제공할 텍스트
     func performUpdateSuggestions(
@@ -913,9 +919,10 @@ private extension SuggestionController {
         // 직전에도 입력 중이었다면 TextChecker 후보만 이어받는다.
         // TextChecker 조회는 한 프레임보다 오래 걸려 유지하지 않으면 타이핑 내내
         // 빈 후보 프레임이 한 번씩 그려진다.
-        // lexicon·n-gram·수식 후보를 이어받지 않는 이유: n-gram 후보는 다음 단어 예측이라
+        // lexicon·n-gram·수식 후보를 이어받지 않는 이유: n-gram 모드 후보는 다음 단어 예측이라
         // 입력 중 모드에서 탭되면 현재 단어를 잘못 교체하고, lexicon 후보는 이번 입력의
-        // 조회 결과로 대치되어야 `textReplacementPreviewSuggestionIndex`가 어긋나지 않는다
+        // 조회 결과로 대치되어야 `textReplacementPreviewSuggestionIndex`가 어긋나지 않는다.
+        // n-gram 단어 완성은 lexicon처럼 이번 입력으로 동기 조회하므로 이어받을 필요가 없다
         let previousCheckerTexts = currentMode == .typing
             ? currentSuggestions.filter { $0.source == .textChecker }.map(\.text)
             : []
@@ -928,11 +935,14 @@ private extension SuggestionController {
         let lexiconState = signposter.beginInterval("LexiconSuggestions")
         let lexiconResults = lexiconEngine?.suggestions(for: baseText) ?? []
         signposter.endInterval("LexiconSuggestions", lexiconState)
+        // n-gram 저장소는 main에서만 바뀌므로 TextChecker와 달리 큐로 넘기지 않고 동기로 조회한다
+        let nGramCompletions = nGramCompletionSuggestions(for: baseText, currentWord: currentWord)
 
-        // 새 lexicon 결과를 앞에 두고 직전 TextChecker 후보로 남은 슬롯을 채워 먼저 갱신한다.
+        // 새 lexicon·n-gram 완성 결과를 앞에 두고 직전 TextChecker 후보로 남은 슬롯을 채워 먼저 갱신한다.
         // TextChecker 결과가 도착하면 그 결과로 다시 병합한다
         currentSuggestions = mergeSuggestions(
             lexiconResults: lexiconResults,
+            nGramCompletions: nGramCompletions,
             checkerResults: previousCheckerTexts,
             currentWord: currentWord
         )
@@ -942,9 +952,9 @@ private extension SuggestionController {
             suggestions: currentSuggestions.map { $0.text }
         )
 
-        // lexicon이 슬롯을 다 채웠으면 TextChecker 조회가 결과에 기여할 수 없다.
+        // lexicon·n-gram 완성이 슬롯을 다 채웠으면 TextChecker 조회가 결과에 기여할 수 없다.
         // 이어받은 후보는 이번 조회 결과로 대치될 값이라 세지 않는다
-        guard currentSuggestions.filter({ $0.source == .lexicon }).count < maxSuggestionSlots,
+        guard currentSuggestions.filter({ $0.source != .textChecker }).count < maxSuggestionSlots,
               let textCheckerEngine else { return }
 
         let signposter = signposter
@@ -965,6 +975,7 @@ private extension SuggestionController {
                       self.currentMode == .typing else { return }
                 self.currentSuggestions = self.mergeSuggestions(
                     lexiconResults: lexiconResults,
+                    nGramCompletions: nGramCompletions,
                     checkerResults: checkerResults,
                     currentWord: currentWord
                 )
@@ -1022,18 +1033,39 @@ private extension SuggestionController {
         }
     }
 
-    /// lexicon 결과와 TextChecker 결과를 병합합니다.
+    /// 입력 중인 단어를 이어 쓴 n-gram 학습 단어를 조회합니다.
+    ///
+    /// 바로 앞 단어가 있으면 bigram 문맥으로 넘겨 그 뒤에 자주 쓴 단어를 먼저 받는다.
+    ///
+    /// - Parameters:
+    ///   - baseText: 자동완성을 제공할 텍스트
+    ///   - currentWord: `baseText`의 마지막 단어
+    /// - Returns: 완성 후보 (최대 `maxNGramCompletions`개)
+    func nGramCompletionSuggestions(for baseText: String, currentWord: String) -> [String] {
+        guard let nGramEngine, !currentWord.isEmpty else { return [] }
+        let words = baseText.split(whereSeparator: { $0.isWhitespace })
+        let previousWord = words.count >= 2 ? String(words[words.count - 2]) : nil
+        return nGramEngine.completions(
+            forTypedWord: currentWord,
+            previousWord: previousWord,
+            limit: maxNGramCompletions
+        )
+    }
+
+    /// lexicon, n-gram 단어 완성, TextChecker 결과를 병합합니다.
     ///
     /// 현재 입력 중인 단어와 동일한 후보는 제외하고,
-    /// lexicon 결과를 먼저 배치하여 사용자 개인화 데이터를 우선시합니다.
+    /// lexicon → n-gram 단어 완성 → TextChecker 순으로 배치하여 사용자 개인화 데이터를 우선시합니다.
     ///
     /// - Parameters:
     ///   - lexiconResults: `UILexicon` 후보
+    ///   - nGramCompletions: n-gram 단어 완성 후보
     ///   - checkerResults: `UITextChecker` 후보 (아직 도착하지 않았으면 빈 배열)
     ///   - currentWord: 현재 입력 중인 단어
     /// - Returns: 중복 제거된 후보 배열 (최대 `maxSuggestions - 1`개. 0번 칸은 `"현재단어"` 몫이다)
     func mergeSuggestions(
         lexiconResults: [String],
+        nGramCompletions: [String],
         checkerResults: [String],
         currentWord: String
     ) -> [SuggestionItem] {
@@ -1042,21 +1074,20 @@ private extension SuggestionController {
         var merged: [SuggestionItem] = []
 
         let maxSuggestionSlots = maxSuggestions - 1
+        let sources: [(results: [String], source: SuggestionItem.Source)] = [
+            (lexiconResults, .lexicon),
+            (nGramCompletions, .nGram),
+            (checkerResults, .textChecker)
+        ]
 
-        for suggestion in lexiconResults {
-            let lowered = suggestion.lowercased()
-            guard !seen.contains(lowered) else { continue }
-            seen.insert(lowered)
-            merged.append(SuggestionItem(text: suggestion, source: .lexicon))
-            if merged.count >= maxSuggestionSlots { return merged }
-        }
-
-        for suggestion in checkerResults {
-            let lowered = suggestion.lowercased()
-            guard !seen.contains(lowered) else { continue }
-            seen.insert(lowered)
-            merged.append(SuggestionItem(text: suggestion, source: .textChecker))
-            if merged.count >= maxSuggestionSlots { return merged }
+        for (results, source) in sources {
+            for suggestion in results {
+                let lowered = suggestion.lowercased()
+                guard !seen.contains(lowered) else { continue }
+                seen.insert(lowered)
+                merged.append(SuggestionItem(text: suggestion, source: source))
+                if merged.count >= maxSuggestionSlots { return merged }
+            }
         }
 
         return merged

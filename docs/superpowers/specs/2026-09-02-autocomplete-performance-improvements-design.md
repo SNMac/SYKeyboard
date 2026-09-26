@@ -27,6 +27,9 @@ GitHub Issue #123에 따라 자동완성 키 입력 경로에서 확인된 성�
   `nGramSuggestions`. 전부 메인 스레드에서 동기로 실행된다.
 - `SuggestionController.maxSuggestions = 3`, `mergeSuggestions`의
   `maxSuggestionSlots = maxSuggestions - 1 = 2`.
+  (2026-09-27 추기: #141에서 `maxSuggestions`와 `NGramPredictiveTextEngine.maxPredictions`가 10으로
+  바뀌어 슬롯은 9, unigram 부분 선택도 상위 10개다. 이 문서의 "상위 3개"는 당시 값이다.
+  현재 값은 [성능 고려 사항](../../architecture/성능%20고려%20사항.md)을 따른다)
 - `textCheckerEngine`의 선언 타입은 `PredictiveTextProvider`, `lexiconEngine`은
   `LexiconSuggestionProviding`, `nGramEngine`은 `NGramPredictiveTextProviding`이다.
   엔진은 `SuggestionControllerEngineFactory`로 주입되므로 테스트에서 stub으로 교체할 수 있다.

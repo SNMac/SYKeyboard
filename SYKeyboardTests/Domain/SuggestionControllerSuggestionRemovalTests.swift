@@ -175,6 +175,7 @@ private final class RemovableNGramStub: NGramPredictiveTextProviding {
 
     func suggestions(for baseText: String) -> [String] { results }
     func suggestions(for baseText: String, preferredScript: PredictiveTextScript?) -> [String] { results }
+    func completions(forTypedWord typedWord: String, previousWord: String?, limit: Int) -> [String] { [] }
     func learn(word: String) {}
     func addWord(_ word: String) {}
     func endSentence() {}
