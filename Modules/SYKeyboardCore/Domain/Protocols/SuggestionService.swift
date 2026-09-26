@@ -144,10 +144,19 @@ protocol SuggestionService: AnyObject {
     /// 길게 눌러 삭제할 수 있는 후보면 그 단어를 반환합니다.
     ///
     /// n-gram 후보와 앱이 학습시킨 TextChecker 후보만 삭제할 수 있습니다.
+    /// 후보 바는 이 값이 있는 칸을 medium 굵기로 표시하므로(`removableBarIndices`) 후보 바를 갱신할 때마다 불린다
     ///
     /// - Parameter index: 바에서 누른 후보 인덱스. 입력 중 모드의 0번은 현재 단어다
     /// - Returns: 삭제할 단어, 삭제할 수 없으면 `nil`
     func removableSuggestionText(atBarIndex index: Int) -> String?
+
+    /// 지금 표시 중인 후보 중 길게 눌러 삭제할 수 있는 바 인덱스
+    ///
+    /// 후보 바의 medium 굵기 표시에 쓴다. 칸마다 `removableSuggestionText(atBarIndex:)`로 판단한다
+    var removableBarIndices: IndexSet { get }
+
+    /// 다른 프로세스가 바꾼 학습 단어 목록을 다음 조회 때 다시 읽도록 TextChecker 엔진의 캐시를 비웁니다.
+    func invalidateLearnedWordsCache()
 
     /// 앱 학습 데이터(n-gram, TextChecker)에서 단어를 지우고 후보를 다시 계산합니다.
     ///

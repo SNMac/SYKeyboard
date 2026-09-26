@@ -44,19 +44,15 @@ final public class TextCheckerPredictiveTextEngine: PredictiveTextProvider {
         category: "TextCheckerPredictiveTextEngine"
     )
     
-    private static let learnedWordsKey = "com.snmac.sykeyboard.textchecker.learnedWords"
+    static let learnedWordsKey = "com.snmac.sykeyboard.textchecker.learnedWords"
     
-    private let storage: UserDefaults = {
-        guard let userDefaults = UserDefaults(suiteName: DefaultValues.groupBundleID) else {
-            fatalError("UserDefaults를 suiteName으로 불러오는 데 실패했습니다.")
-        }
-        return userDefaults
-    }()
+    private let storage: UserDefaults
     
     /// 학습한 단어 목록
     ///
     /// App Group `UserDefaults`에 `[String]`으로 저장되며,
     /// getter에서 `Set`으로 변환하여 중복을 방지합니다.
+    /// 다른 프로세스가 쓴 값을 덮어쓰지 않도록 수정할 때마다 저장소에서 다시 읽는다
     private var learnedWords: Set<String> {
         get {
             let array = storage.stringArray(forKey: Self.learnedWordsKey) ?? []
@@ -64,16 +60,33 @@ final public class TextCheckerPredictiveTextEngine: PredictiveTextProvider {
         }
         set {
             storage.set(Array(newValue), forKey: Self.learnedWordsKey)
+            cachedLearnedWords = newValue
         }
     }
+    
+    /// `canUnlearn(word:)`용 학습 단어 목록 캐시. `nil`이면 다음 조회 때 저장소에서 읽는다.
+    ///
+    /// 후보 바를 갱신할 때마다 `UITextChecker.hasLearnedWord`나 `UserDefaults`를 읽지 않으려고 둔다(#156, #161).
+    /// main에서만 접근한다
+    private var cachedLearnedWords: Set<String>?
     
     // MARK: - Initializer
     
     /// 지정한 언어 목록으로 엔진을 초기화합니다.
     ///
-    /// - Parameter language: 자동완성에 사용할 언어 코드
-    public init(language: String) {
+    /// - Parameters:
+    ///   - language: 자동완성에 사용할 언어 코드
+    ///   - storage: 학습 단어 목록 저장소. 기본값은 App Group `UserDefaults`
+    public init(language: String, storage: UserDefaults? = nil) {
         self.language = language
+        if let storage {
+            self.storage = storage
+        } else {
+            guard let userDefaults = UserDefaults(suiteName: DefaultValues.groupBundleID) else {
+                fatalError("UserDefaults를 suiteName으로 불러오는 데 실패했습니다.")
+            }
+            self.storage = userDefaults
+        }
     }
     
     // MARK: - PredictiveTextProvider Methods
@@ -136,13 +149,30 @@ final public class TextCheckerPredictiveTextEngine: PredictiveTextProvider {
         logger.debug("[TextChecker] 시스템 사전 학습: \(word)")
     }
 
+    /// 앱이 저장한 학습 단어 목록에 있으면 `true`를 반환합니다.
+    ///
+    /// 시스템 사전(`UITextChecker.hasLearnedWord`)은 보지 않는다. 학습 단어 수에 비례해 느려 후보 바를
+    /// 갱신할 때마다 부를 수 없고(#156), 앱이 학습시킨 단어만 지울 수 있게 하려는 것이다(#161).
+    /// 그래서 iOS 키보드 사전 재설정으로 시스템 사전에서 빠진 단어도 목록에 남아 있으면 `true`다
     func canUnlearn(word: String) -> Bool {
-        UITextChecker.hasLearnedWord(word)
+        if cachedLearnedWords == nil {
+            let state = Self.signposter.beginInterval("TextCheckerLoadLearnedWords")
+            cachedLearnedWords = learnedWords
+            Self.signposter.endInterval("TextCheckerLoadLearnedWords", state)
+        }
+        return cachedLearnedWords?.contains(word) == true
+    }
+
+    func invalidateLearnedWordsCache() {
+        cachedLearnedWords = nil
     }
 
     func unlearn(word: String) {
-        guard !word.isEmpty, UITextChecker.hasLearnedWord(word) else { return }
-        UITextChecker.unlearnWord(word)
+        guard !word.isEmpty else { return }
+        // 시스템 사전에서 이미 빠진 단어(키보드 사전 재설정)도 목록에서는 빼야 medium 표시가 사라진다
+        if UITextChecker.hasLearnedWord(word) {
+            UITextChecker.unlearnWord(word)
+        }
         learnedWords.remove(word)
 
         logger.debug("[TextChecker] 시스템 사전 학습 해제: \(word)")
