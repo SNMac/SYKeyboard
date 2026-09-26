@@ -1578,7 +1578,15 @@ EOF
 
 기준을 "실기기 p95 ≤ 4ms"로 바꾸고, 실기기 측정, Time Profiler 원인, scratchpad 벤치마크 결과를 적는다. 벤치마크는 `$SCRATCH/prof/`에서 production 엔진·정책 소스를 `xcrun swiftc -O`로 묶고 `xcrun xctrace record --template 'Time Profiler' --launch -- ./bench <10000개 plist> 12`로 기록했다(`tp.trace`, 수정본 `tpD.trace`). 수정본 정책은 지금 정책과 약 97만 건(1만 개 데이터 + 유니코드 특수 사례) + 무작위 약 60만 건을 비교해 불일치 0건이었다.
 
-- [ ] **Step 2: 사전 거르기가 바꿀 수 있는 경계 사례 테스트를 추가하고 지금 코드에서 통과를 확인한다**
-- [ ] **Step 3: 사전 거르기를 소문자 변환 앞으로 옮기고 첫 음절 모음·받침까지 넓힌다**
-- [ ] **Step 4: 전체 테스트와 4개 scheme 빌드**
-- [ ] **Step 5: 실기기 재측정(사용자)과 기록**
+- [x] **Step 2: 사전 거르기가 바꿀 수 있는 경계 사례 테스트를 추가하고 지금 코드에서 통과를 확인한다**
+
+`PredictiveTextCompletionMatchPolicyTests`에 소문자 변환으로 첫 글자가 바뀌는 후보(켈빈 기호 K, İ, É), 첫가끝 자모로 쓴 앞 글자(`"가\u{11A8}나다"` ← `"각ㄴ"`), 자음 단어(`"ㅋㅋㅋ"` ← `"ㅋ"`), 첫 음절 모음·겹받침이 다른 경우(`"고양이"` ← `"가"`, `"각시"` ← `"ㄳ"`, `"값"` ← `"갓"`, `"닮다"` ← `"닭"`)를 추가했다. 지금 코드에서 `-only-testing:SYKeyboardTests/PredictiveTextCompletionMatchPolicyTests` 41개 통과(`$SCRATCH/158-t8-baseline.log`, `** TEST SUCCEEDED **`).
+- [x] **Step 3: 사전 거르기를 소문자 변환 앞으로 옮기고 첫 음절 모음·받침까지 넓힌다**
+
+`PredictiveTextCompletionMatchPolicy`에 `quickFirstJamo(of:)`(ASCII·완성형 음절·호환 자모만, 그 밖은 nil)와 `syllable(_:overlaps:)`를 두고 `isCompletion(_:)` 맨 앞에서 거른다. `firstJamo(of:)`는 완성형 음절을 겹받침 표보다 먼저 본다. 코드는 Step 1에서 검증한 `$SCRATCH/prof/policyE.swift`와 같다. 완성 관련 4개 suite(`PredictiveTextCompletionMatchPolicyTests`, `HangeulCompletionMatchScenarioTests`, `NGramPredictiveTextEngineCompletionTests`, `SuggestionControllerNGramCompletionTests`) 61개 통과(`$SCRATCH/158-t8-green.log`). 변이 확인: 안전 범위 밖 스칼라도 거르게 바꾸고(M1) 두 글자째부터 첫 스칼라가 다르면 버리게 바꾸면(M2) 새 테스트 중 정확히 4건(켈빈 기호 K·İ·É, 첫가끝 자모)만 실패했다(`$SCRATCH/158-t8-mutant.log`). 확인 뒤 같은 명령 끝에서 원래 파일로 되돌렸다.
+- [x] **Step 4: 전체 테스트와 4개 scheme 빌드**
+
+`xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=18.6'`(-only-testing 없음) 797개 통과, 실패 0(`xcrun xcresulttool get test-results summary --path <DerivedData>/Logs/Test/Test-SYKeyboard-2026.09.26_17-40-14-+0900.xcresult`, 로그 `$SCRATCH/158-t8-all.log`). 4개 scheme(SYKeyboard, HangeulKeyboard, EnglishKeyboard, HangeulEnglishKeyboard) 모두 `** BUILD SUCCEEDED **`, `.xcscheme` 변경 없음.
+- [x] **Step 5: 실기기 재측정(사용자)과 기록**
+
+iPhone 15 Pro Max / iOS 27.0, Release 빌드(`Release-iphoneos/HangeulEnglishKeyboard.appex`, 17:52 빌드, `SYKeyboardCore`에 `quickFirstJamo` 심볼 있음을 `nm`으로 확인). 기기 파일을 `$SCRATCH/device/ngram_ko-en.backup-0926.plist`(당시 기기 학습 단어 121개)로 백업한 뒤 1만 개 파일을 넣고, 확장을 종료한 뒤 다시 읽어 같음을 확인했다. 사용자가 기록한 `~/Documents/Untitled.trace`(75초)를 `xcrun xctrace export --xpath '/trace-toc/run[@number="1"]/data/table[@schema="os-signpost"]'`로 뽑아 `$SCRATCH/sp.py`로 Begin/End를 짝지었다. `NGramCompletions` n=167, 중앙값 0.93ms, p95 4.48ms, 최대 5.04ms, 4ms 초과 13회, 8.3ms 초과 0회. **기준(p95 ≤ 4ms)을 0.48ms 넘었다.** 측정 뒤 확장이 떠 있지 않은 상태에서 121개 백업본으로 되돌리고 다시 읽어 같음을 확인했다.

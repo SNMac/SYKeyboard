@@ -39,6 +39,10 @@ struct PredictiveTextCompletionMatchPolicy {
     private let lastJamo: [Unicode.Scalar]
     /// 입력 첫 글자가 대문자인지. 문장 첫머리 자동 대문자처럼 사용자가 이미 대문자로 시작한 경우다
     private let startsWithUppercase: Bool
+    /// 후보 첫 스칼라가 가져야 할 첫 자모. nil이면 미리 거르지 않는다
+    private let requiredFirstJamo: Unicode.Scalar?
+    /// `lastJamo`가 모두 호환 자모·ASCII라 음절 분해와 바로 비교할 수 있는지
+    private let lastJamoIsSimple: Bool
 
     // MARK: - Initializer
 
@@ -56,12 +60,29 @@ struct PredictiveTextCompletionMatchPolicy {
         head = String(typed.dropLast())
         lastJamo = Self.jamo(of: last)
         startsWithUppercase = typedWord.first?.isUppercase == true
+        lastJamoIsSimple = lastJamo.allSatisfy { $0.isASCII || (0x3131...0x318E).contains($0.value) }
+        if let headFirst = head.unicodeScalars.first {
+            requiredFirstJamo = Self.quickFirstJamo(of: headFirst)
+        } else {
+            requiredFirstJamo = lastJamo.first.flatMap(Self.quickFirstJamo(of:))
+        }
     }
 
     // MARK: - Internal Methods
 
     /// `candidate`가 입력 단어를 이어 쓴 단어면 `true`다
     func isCompletion(_ candidate: String) -> Bool {
+        // 소문자 변환 전에 첫 스칼라로 거른다. 소문자 변환이 자명한 ASCII·한글만 버린다
+        if let requiredFirstJamo, let first = candidate.unicodeScalars.first,
+           let candidateFirstJamo = Self.quickFirstJamo(of: first),
+           candidateFirstJamo != requiredFirstJamo {
+            return false
+        }
+        // 한 글자째 입력이면 첫 음절의 자모를 배열 없이 맞춰 본다
+        if head.isEmpty, lastJamoIsSimple, let first = candidate.unicodeScalars.first,
+           let index = Self.syllableIndex(of: first), !Self.syllable(index, overlaps: lastJamo) {
+            return false
+        }
         let lowered = candidate.lowercased()
         guard lowered.hasPrefix(head) else { return false }
         let rest = lowered.dropFirst(head.count)
@@ -96,9 +117,33 @@ struct PredictiveTextCompletionMatchPolicy {
 private extension PredictiveTextCompletionMatchPolicy {
     static func firstJamo(of character: Character) -> Unicode.Scalar? {
         guard let scalar = character.unicodeScalars.first else { return nil }
-        if let consonants = compoundConsonants[scalar] { return consonants.first }
-        guard let index = syllableIndex(of: scalar) else { return scalar }
-        return choseongTable[index / 588]
+        if let index = syllableIndex(of: scalar) { return choseongTable[index / 588] }
+        return compoundConsonants[scalar]?.first ?? scalar
+    }
+
+    /// 음절을 자모로 나눈 앞부분과 `jamo`가 겹치는 길이만큼 같은지
+    static func syllable(_ index: Int, overlaps jamo: [Unicode.Scalar]) -> Bool {
+        guard jamo.count > 1 else { return true }
+        guard jungseongTable[(index % 588) / 28] == jamo[1] else { return false }
+        let jongseongIndex = index % 28
+        guard jamo.count > 2, jongseongIndex > 0 else { return true }
+        let jongseong = jongseongTable[jongseongIndex - 1]
+        if let parts = compoundConsonants[jongseong] {
+            guard parts[0] == jamo[2] else { return false }
+            return jamo.count == 3 || parts[1] == jamo[3]
+        }
+        return jongseong == jamo[2]
+    }
+
+    /// ASCII는 소문자, 완성형 음절은 초성, 호환 자모는 겹자음을 나눈 첫 자음. 그 밖은 nil
+    static func quickFirstJamo(of scalar: Unicode.Scalar) -> Unicode.Scalar? {
+        if scalar.isASCII {
+            guard (65...90).contains(scalar.value) else { return scalar }
+            return Unicode.Scalar(scalar.value + 32)
+        }
+        if let index = syllableIndex(of: scalar) { return choseongTable[index / 588] }
+        guard (0x3131...0x318E).contains(scalar.value) else { return nil }
+        return compoundConsonants[scalar]?.first ?? scalar
     }
 
     static func jamo(of character: Character) -> [Unicode.Scalar] {
