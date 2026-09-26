@@ -92,6 +92,17 @@ struct NGramPredictiveTextEngineCompletionTests {
         #expect(engine.completions(forTypedWord: "Hel", previousWord: nil, limit: 3) == ["Hello", "Helium", "Help"])
     }
 
+    // "hello" 1 + "Hello" 3 = 4로 "HELLO" 2보다 앞선다. 합치지 않으면 "Hello"(3)가, 빼기만 하고 더하지 않으면 "HELLO"가 대표가 된다
+    @Test("문장 첫머리 표기 빈도를 더한 소문자 표기가 다른 대문자 표기보다 대표로 앞섬")
+    func test문장첫머리표기빈도를더한소문자표기가_다른대문자표기보다대표로앞섬() async {
+        let engine = await makeLoadedNGramFixture(name: "completion-case-fold").engine
+        recordAlone(engine, "hello", times: 1)
+        recordAlone(engine, "Hello", times: 3)
+        recordAlone(engine, "HELLO", times: 2)
+
+        #expect(engine.completions(forTypedWord: "hel", previousWord: nil, limit: 3) == ["hello"])
+    }
+
     @Test("대문자가 섞인 고유 표기는 더 자주 쓴 표기 하나만 반환")
     func test대문자가섞인고유표기는_더자주쓴표기하나만반환() async {
         let engine = await makeLoadedNGramFixture(name: "completion-case-proper").engine

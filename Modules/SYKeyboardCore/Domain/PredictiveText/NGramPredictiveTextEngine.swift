@@ -390,21 +390,22 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
 
         // ponytail: 키 입력마다 unigram 전체(최대 10000개)를 훑는다. 대부분은 판정 정책의 첫 스칼라 거르기에서 바로 빠지고,
         // 남은 비용은 실제로 맞는 단어 몫이라 첫 자모 색인으로는 줄지 않는다
-        var spellingGroups: [String: [String: Int]] = [:]
+        var spellingGroups: [String: CaseSpellingGroup] = [:]
         var top: [(key: String, value: Int)] = []
         for entry in unigramStore where policy.isCompletion(entry.key) {
             // 대소문자가 없는 단어는 묶일 다른 표기가 없어 바로 순위에 넣는다
             if PredictiveTextCompletionMatchPolicy.hasNoCaseVariants(entry.key) {
-                guard !seen.contains(entry.key) else { continue }
+                guard results.isEmpty || !seen.contains(entry.key) else { continue }
                 insertTopUnigram(entry, into: &top)
                 continue
             }
             let lowered = entry.key.lowercased()
-            guard !seen.contains(lowered) else { continue }
-            spellingGroups[lowered, default: [:]][entry.key] = entry.value
+            // bigram 후보가 없으면 seen에는 입력 단어뿐이고, 입력 단어는 판정 정책이 이미 뺀다
+            guard results.isEmpty || !seen.contains(lowered) else { continue }
+            spellingGroups[lowered, default: CaseSpellingGroup(lowered: lowered)].add(entry.key, count: entry.value)
         }
-        for (lowered, spellings) in spellingGroups {
-            insertTopUnigram(representativeSpelling(lowered: lowered, spellings: spellings), into: &top)
+        for group in spellingGroups.values {
+            insertTopUnigram(group.representative, into: &top)
         }
         return results + top.prefix(limit - results.count).map { policy.displayText(for: $0.key) }
     }
@@ -758,24 +759,6 @@ private extension NGramPredictiveTextEngine {
         return ranked
     }
 
-    /// 대소문자만 다른 표기 묶음에서 보여줄 표기와 합친 빈도를 고른다.
-    ///
-    /// 소문자 표기가 있으면 첫 글자만 대문자인 표기(문장 첫머리에서 학습된 `"Hello"`)를 그 빈도에 더한다.
-    /// 문장 첫머리 대문자는 `PredictiveTextCompletionMatchPolicy.displayText(for:)`가 입력에 맞춰 다시 붙인다.
-    /// 나머지는 더 자주 쓴 표기를 고른다(`"SY키보드"` 5 > `"sy키보드"` 1). 소문자 표기가 없는 `"Seoul"`은 그대로다
-    func representativeSpelling(lowered: String, spellings: [String: Int]) -> (key: String, value: Int) {
-        var spellings = spellings
-        if spellings[lowered] != nil, let first = lowered.first {
-            let sentenceStartSpelling = first.uppercased() + lowered.dropFirst()
-            if sentenceStartSpelling != lowered, let count = spellings.removeValue(forKey: sentenceStartSpelling) {
-                spellings[lowered, default: 0] += count
-            }
-        }
-        // 동률이면 코드 포인트 순으로 앞선 표기를 골라 결과가 매번 같게 한다
-        let representative = spellings.max { ($0.value, $1.key) < ($1.value, $0.key) }?.key ?? lowered
-        return (key: representative, value: spellings.values.reduce(0, +))
-    }
-
     /// 빈도 내림차순을 유지하며 상위 `maxPredictions`개 안에 들면 넣는다
     func insertTopUnigram(_ entry: (key: String, value: Int), into top: inout [(key: String, value: Int)]) {
         guard top.count < maxPredictions || entry.value > top[top.count - 1].value else { return }
@@ -880,5 +863,49 @@ private extension NGramPredictiveTextEngine {
             writeCounter = 0
             saveToDisk()
         }
+    }
+}
+
+// MARK: - CaseSpellingGroup
+
+/// 대소문자만 다른 표기 묶음에서 보여줄 표기와 합친 빈도를 고른다.
+///
+/// 소문자 표기가 있으면 첫 글자만 대문자인 표기(문장 첫머리에서 학습된 `"Hello"`)를 그 빈도에 더한다.
+/// 문장 첫머리 대문자는 `PredictiveTextCompletionMatchPolicy.displayText(for:)`가 입력에 맞춰 다시 붙인다.
+/// 나머지는 더 자주 쓴 표기를 고른다(`"SY키보드"` 5 > `"sy키보드"` 1). 소문자 표기가 없는 `"Seoul"`은 그대로다.
+/// 키 입력마다 맞는 단어 수만큼 만들고 대부분은 표기가 하나라, 표기가 둘 이상일 때만 표기별 사전을 만든다
+private struct CaseSpellingGroup {
+    private let lowered: String
+    private var first: (key: String, value: Int)?
+    private var others: [(key: String, value: Int)] = []
+
+    init(lowered: String) {
+        self.lowered = lowered
+    }
+
+    mutating func add(_ spelling: String, count: Int) {
+        if first == nil {
+            first = (spelling, count)
+        } else {
+            others.append((spelling, count))
+        }
+    }
+
+    /// 대표 표기와 묶음 전체 빈도
+    var representative: (key: String, value: Int) {
+        guard let first else { return (key: lowered, value: 0) }
+        // 표기가 하나면 규칙과 관계없이 그 표기가 대표다
+        guard !others.isEmpty else { return first }
+
+        var spellings = Dictionary([first] + others, uniquingKeysWith: { _, latest in latest })
+        if spellings[lowered] != nil, let firstCharacter = lowered.first {
+            let sentenceStartSpelling = firstCharacter.uppercased() + lowered.dropFirst()
+            if sentenceStartSpelling != lowered, let count = spellings.removeValue(forKey: sentenceStartSpelling) {
+                spellings[lowered, default: 0] += count
+            }
+        }
+        // 동률이면 코드 포인트 순으로 앞선 표기를 골라 결과가 매번 같게 한다
+        let representative = spellings.max { ($0.value, $1.key) < ($1.value, $0.key) }?.key ?? lowered
+        return (key: representative, value: spellings.values.reduce(0, +))
     }
 }

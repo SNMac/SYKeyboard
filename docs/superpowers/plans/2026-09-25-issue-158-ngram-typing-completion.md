@@ -1584,7 +1584,8 @@ EOF
 - [x] **Step 3: 사전 거르기를 소문자 변환 앞으로 옮기고 첫 음절 모음·받침까지 넓힌다**
 
 `PredictiveTextCompletionMatchPolicy`에 `quickFirstJamo(of:)`(ASCII·완성형 음절·호환 자모만, 그 밖은 nil)와 `syllable(_:overlaps:)`를 두고 `isCompletion(_:)` 맨 앞에서 거른다. `firstJamo(of:)`는 완성형 음절을 겹받침 표보다 먼저 본다. 코드는 Step 1에서 검증한 `$SCRATCH/prof/policyE.swift`와 같다. 완성 관련 4개 suite(`PredictiveTextCompletionMatchPolicyTests`, `HangeulCompletionMatchScenarioTests`, `NGramPredictiveTextEngineCompletionTests`, `SuggestionControllerNGramCompletionTests`) 61개 통과(`$SCRATCH/158-t8-green.log`). 변이 확인: 안전 범위 밖 스칼라도 거르게 바꾸고(M1) 두 글자째부터 첫 스칼라가 다르면 버리게 바꾸면(M2) 새 테스트 중 정확히 4건(켈빈 기호 K·İ·É, 첫가끝 자모)만 실패했다(`$SCRATCH/158-t8-mutant.log`). 확인 뒤 같은 명령 끝에서 원래 파일로 되돌렸다.
-- [x] **Step 4: 전체 테스트와 4개 scheme 빌드**
+
+- [x] **Step 4: 전체 테스트와 4개 scheme 빌드** (Step 3 변경 전 결과. Step 3 뒤 결과는 Step 3 끝에 적었다)
 
 `xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=18.6'`(-only-testing 없음) 797개 통과, 실패 0(`xcrun xcresulttool get test-results summary --path <DerivedData>/Logs/Test/Test-SYKeyboard-2026.09.26_17-40-14-+0900.xcresult`, 로그 `$SCRATCH/158-t8-all.log`). 4개 scheme(SYKeyboard, HangeulKeyboard, EnglishKeyboard, HangeulEnglishKeyboard) 모두 `** BUILD SUCCEEDED **`, `.xcscheme` 변경 없음.
 - [x] **Step 5: 실기기 재측정(사용자)과 기록**
@@ -1630,12 +1631,21 @@ iPhone 15 Pro Max / iOS 27.0, Release 빌드(`Release-iphoneos`, 19:18 빌드, `
 
 데이터 `$SCRATCH/device/ngram_ko-en.en10000.plist`: `/usr/share/dict/words`의 소문자 단어 8800개(Zipf에 가까운 빈도), 그중 900개의 첫 글자 대문자 표기와 100개의 전부 대문자 표기, 무작위 한글 300개로 1만 개(ASCII로 시작 9800개, 's'로 시작 1106개). 벤치마크 `$SCRATCH/prof/benchEn`(저장소 엔진·정책 소스를 `swiftc -O`로 컴파일, 영어 입력 's'·'p'·'c'·'st'·'pro'·'The' 등 반복) 2회: 전체 중앙값 0.09ms, p95 0.40~0.44ms, 's' 0.45~0.46ms, 'p' 0.36ms, 'c' 0.38ms. 리뷰어 측정(0.46ms)과 같다. 기기/Mac 비율 약 6.8을 적용하면 's' 약 3.1ms로 기준 안으로 추정한다.
 
-- [ ] **Step 3: 필요하면 결과를 바꾸지 않는 선에서 표기 묶기 비용을 줄인다**
+- [x] **Step 3: 필요하면 결과를 바꾸지 않는 선에서 표기 묶기 비용을 줄인다**
 
-Step 5의 실기기 p95가 4ms를 넘을 때만 한다. 추정이 기준 안이라 측정 전에는 코드를 늘리지 않는다.
-- [x] **Step 4: 전체 테스트와 4개 scheme 빌드**
+처음에는 Step 5의 실기기 p95가 4ms를 넘을 때만 하기로 했으나, Step 5가 3.76ms로 여유가 0.24ms뿐이라 사용자와 진행하기로 했다. 영어 데이터 Time Profiler(`$SCRATCH/prof/tpEn.trace`)에서 표기 묶기가 약 60%(`representativeSpelling` 24%, 표기별 사전 넣기·고치기 29%)였고 `lowercased()`는 1.5%였다.
+
+- `representativeSpelling(lowered:spellings:)`를 `CaseSpellingGroup`으로 옮겼다. 표기가 하나면 바로 대표로 쓰고, 둘 이상일 때만 이전 규칙 코드를 그대로 적용한다. 처음 시도한 누적 구조체(규칙을 다시 짠 판)는 15% 줄었지만 묶음마다 문장 첫머리 표기를 만드는 비용이 남아 버렸다.
+- bigram 후보가 없으면 `seen` 검사를 건너뛴다.
+- 결과 불변(`$SCRATCH/prof/grp/`, 이전 엔진은 `git show HEAD:`, 저장 데이터가 두 엔진에서 바이트 단위로 같은지 먼저 확인하고 표기도 바이트 단위로 비교): 영어 데이터 3종(서로 다른 빈도, 묶음 안 동률, 동률·합산 혼합)과 한글 데이터, 그리고 bigram 경로를 태운 데이터 2종에서 차이 0. 묶음 합계가 같은 다른 묶음끼리 순서만 바뀐 경우(묶음 합계 동률)는 따로 셌다. 정규 등가인 키(`"éclair"`/`"e\u{301}clair"`)가 함께 든 데이터는 두 엔진이 서로 다른 표기를 남기며 로드되는 경우가 있어(드물게 "stores byte-identical: false") 비교에서 뺐다. bigram 빈도가 동률이면 두 엔진의 bigram 후보 순서가 달라져(이번 변경과 무관한 기존 동작) 고유 빈도로 바꿔 비교했다.
+- 속도(같은 프로세스 A/B, 스레드 CPU 시간): 영어 's' 0.448ms → 0.376ms, 영어 전체 p95 0.455ms → 0.382ms, 한글 전체 p95 0.173ms → 0.141ms.
+- 테스트: 처음 시도한 누적 구조체 판에서 문장 첫머리 표기 빈도를 더하지 않는 변이(M7-b, 합계는 따로 셈)는 기존 테스트가 모두 통과해 공백이 드러났다. 그래서 `test문장첫머리표기빈도를더한소문자표기가_다른대문자표기보다대표로앞섬`(`"hello"` 1 + `"Hello"` 3 > `"HELLO"` 2)을 추가했다. HEAD 엔진에서 통과(`$SCRATCH/158-t10s3-baseline.log`), 새 엔진에서 두 suite 19개 통과(`158-t10s3-green3.log`). 변이 확인(최종 코드): 문장 첫머리 표기를 빼기만 하고 더하지 않기(M7-c, 새 테스트와 기존 대소문자 묶기 테스트가 함께 실패), 동률 규칙 반전(M8), 중복 검사 제거(M9), 표기 하나일 때 소문자 문자열 반환(M10)에서 각각 1~3개 테스트가 실패(`158-t10s3-M7-c.log`, `M8-d.log`, `M9-c.log`, `M10-c.log`)했고, 확인 뒤 같은 명령 끝에서 원래 파일로 되돌렸다. 한 번은 변이 테스트 실행이 2시간 넘게 끝나지 않아 종료하고 파일을 되돌린 뒤 시뮬레이터를 재부팅했다.
+- Step 3 뒤 전체 테스트 재실행: 800개 통과, 실패 0(`Test-SYKeyboard-2026.09.26_23-45-17-+0900.xcresult`, 로그 `$SCRATCH/158-t10s4-all.log`). 4개 scheme 모두 `** BUILD SUCCEEDED **`, `.xcscheme` 변경 없음.
+- 영어 데이터 실기기 재측정: iPhone 15 Pro Max / iOS 27.0, Release 빌드(23:55 빌드, `f7317b0e` 23:45 커밋 이후, `SYKeyboardCore`에 `CaseSpellingGroup` 심볼 있음을 `nm`으로 확인). 기기 파일(학습 단어 146개로 늘어 있었음)을 `$SCRATCH/device/ngram_ko-en.backup-0926d.plist`로 백업하고 `ngram_ko-en.en10000.plist`를 넣어 다시 읽어 같음을 확인했다. 사용자가 기록한 `~/Documents/Untitled.trace`(38초, 23:56 시작. 같은 이름의 이전 trace는 덮어써졌다)를 Task 8 Step 5와 같은 명령으로 읽었다(`$SCRATCH/trace6-sp.xml`). `NGramCompletions` n=55, 중앙값 0.80ms, p95 2.99ms, 최대 3.09ms, 4ms 초과 0회. 측정 뒤 확장이 떠 있지 않은 상태에서 146개 백업본으로 되돌리고 다시 읽어 같음을 확인했다.
+
+- [x] **Step 4: 전체 테스트와 4개 scheme 빌드** (Step 3 변경 전 결과. Step 3 뒤 결과는 Step 3 끝에 적었다)
 
 `xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=18.6'`(-only-testing 없음) 799개 통과, 실패 0(`xcrun xcresulttool get test-results summary --path <DerivedData>/Logs/Test/Test-SYKeyboard-2026.09.26_19-45-41-+0900.xcresult`, 로그 `$SCRATCH/158-t10-all.log`). 4개 scheme 모두 `** BUILD SUCCEEDED **`, `.xcscheme` 변경 없음.
-- [x] **Step 5: 영어 위주 데이터로 실기기 측정(사용자)과 기록**
+- [x] **Step 5: 영어 위주 데이터로 실기기 측정(사용자)과 기록** (Step 3 변경 전 결과. Step 3 뒤 재측정은 Step 3 끝에 적었다)
 
 iPhone 15 Pro Max / iOS 27.0, Release 빌드(`Release-iphoneos`, 19:51 빌드, `SYKeyboardCore`에 새 심볼 있음을 `nm`으로 확인). 기기 파일(125개 백업본과 같음을 `cmp`로 확인)을 `$SCRATCH/device/ngram_ko-en.backup-0926c.plist`로 한 번 더 백업하고 `ngram_ko-en.en10000.plist`를 넣어 다시 읽어 같음을 확인했다. 사용자가 영어 자판으로 's'·'p'·'c'·'a'·'S'·'st'·'pro'·'the'·문장·빠른 타이핑을 기록한 `~/Documents/Untitled3.trace`(52초)를 Task 8 Step 5와 같은 명령으로 읽었다(`$SCRATCH/trace5-sp.xml`). `NGramCompletions` n=58, 중앙값 0.90ms, p95 3.76ms, 최대 3.95ms, 3ms 초과 7회, 4ms 초과 0회. **기준(p95 ≤ 4ms)은 통과했지만 여유가 0.24ms다.** Mac 추정(약 3.1ms)보다 높았고 표본이 58회로 적다. 측정 뒤 확장이 떠 있지 않은 상태에서 125개 백업본으로 되돌리고 다시 읽어 같음을 확인했다.
