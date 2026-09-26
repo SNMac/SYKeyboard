@@ -1543,7 +1543,7 @@ EOF
 8. 일부 확인. 입력 중 완성 후보 'Keyboards'를 길게 누르면 삭제 확인창이 해당 단어로 뜸. 확인창의 Cancel·Delete 버튼이 `idb ui tap`에 반응하지 않아 삭제 뒤 사라지는지는 미확인.
 9. 미확인. 시뮬레이터라 입력 지연 체감과 실기기 `NGramCompletions` signpost는 확인하지 못함.
 
-리뷰 반영(첫 글자 대문자 규칙, 커밋 c9cbaf37) 뒤 추가 확인: 단독 영어 키보드에 `hello`(3)·`Hello`(1)를 학습시키고 문장 첫머리 'Hel'에서 1번 칸 'Hello'(TextChecker 'Help'가 뒤), 'Hel ' 뒤 'hel'에서 'hello'(TextChecker 'help'가 뒤). 통과.
+리뷰 반영(첫 글자 대문자 규칙, 커밋 7525b9ab) 뒤 추가 확인: 단독 영어 키보드에 `hello`(3)·`Hello`(1)를 학습시키고 문장 첫머리 'Hel'에서 1번 칸 'Hello'(TextChecker 'Help'가 뒤), 'Hel ' 뒤 'hel'에서 'hello'(TextChecker 'help'가 뒤). 통과.
 
 idb 조작 메모: 맨 아래 줄 키(한/A, 나랏글 획·ㅡ)는 y=706pt에서 반응하지 않고 y=695~700pt에서 반응한다. 한/A는 `--duration 0.05`가 필요했다. 지구본 길게 눌러 뜬 키보드 목록은 탭·끌기로 선택되지 않아 `AppleKeyboards`를 잠시 두 개로 줄여 전환했다.
 
@@ -1607,7 +1607,7 @@ Task 8 뒤 실기기 p95가 4.48ms로 기준(4ms)을 넘어 사용자와 이어�
 
 - [x] **Step 1: 빠른 경로가 바꿀 수 있는 경계 사례 테스트를 추가하고 지금 코드에서 통과를 확인한다**
 
-판정 정책 테스트에 호환 겹자음 낱자 후보(`"ㄳ"` ← `"ㄱ"`)와 천지인 조합 중 모음까지 같은 단어(`"킵ㆍ"` ← `"킵ㆍ"`, 완성 아님)를, 엔진 테스트에 대소문자 없는 단어와 표기 묶음을 합친 빈도로 함께 순위 매기기(`"1st"`2 + `"1ST"`2 = 4 > `"123"` 3 > `"1위"` 1 → `["1ST", "123", "1위"]`)를 추가했다. 지금 코드(HEAD `e623083f`의 `Modules/`를 stash한 상태)에서 두 suite 54개 통과(`$SCRATCH/158-t9-baseline2.log`).
+판정 정책 테스트에 호환 겹자음 낱자 후보(`"ㄳ"` ← `"ㄱ"`)와 천지인 조합 중 모음까지 같은 단어(`"킵ㆍ"` ← `"킵ㆍ"`, 완성 아님)를, 엔진 테스트에 대소문자 없는 단어와 표기 묶음을 합친 빈도로 함께 순위 매기기(`"1st"`2 + `"1ST"`2 = 4 > `"123"` 3 > `"1위"` 1 → `["1ST", "123", "1위"]`)를 추가했다. 지금 코드(HEAD `38ec24e8`의 `Modules/`를 stash한 상태)에서 두 suite 54개 통과(`$SCRATCH/158-t9-baseline2.log`).
 
 - [x] **Step 2: E2·E3 구현**
 
@@ -1617,11 +1617,11 @@ Task 8 뒤 실기기 p95가 4.48ms로 기준(4ms)을 넘어 사용자와 이어�
 `xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=18.6'`(-only-testing 없음) 798개 통과, 실패 0(`xcrun xcresulttool get test-results summary --path <DerivedData>/Logs/Test/Test-SYKeyboard-2026.09.26_19-11-21-+0900.xcresult`, 로그 `$SCRATCH/158-t9-all.log`). 4개 scheme(SYKeyboard, HangeulKeyboard, EnglishKeyboard, HangeulEnglishKeyboard) 모두 `** BUILD SUCCEEDED **`, `.xcscheme` 변경 없음.
 - [x] **Step 4: 실기기 재측정(사용자)과 기록**
 
-iPhone 15 Pro Max / iOS 27.0, Release 빌드(`Release-iphoneos`, 19:18 빌드, `aaf4720e` 19:11 커밋 이후, `SYKeyboardCore`에 새 심볼 있음을 `nm`으로 확인). 기기 파일을 `$SCRATCH/device/ngram_ko-en.backup-0926b.plist`(당시 학습 단어 125개)로 백업하고 1만 개 파일을 넣어 다시 읽어 같음을 확인했다. 사용자가 기록한 `~/Documents/Untitled2.trace`(50초, 19:19 시작. 첫 측정과 같은 이름이라 첫 측정 trace는 덮어써졌다)를 Task 8 Step 5와 같은 명령으로 읽었다(`$SCRATCH/trace4-sp.xml`). `NGramCompletions` n=151, 중앙값 0.73ms, p95 1.17ms, 최대 1.23ms, 2ms 초과 0회로 **기준(p95 ≤ 4ms) 통과**. 사용자 확인: 측정 중 입력이 느리게 느껴지지 않았다(Task 7 항목 9의 실기기 체감 확인을 겸한다). 측정 뒤 확장이 떠 있지 않은 상태에서 125개 백업본으로 되돌리고 다시 읽어 같음을 확인했다.
+iPhone 15 Pro Max / iOS 27.0, Release 빌드(`Release-iphoneos`, 19:18 빌드, `0eef6d5d`와 같은 `Modules/` 코드(squash 전 19:11 커밋), `SYKeyboardCore`에 새 심볼 있음을 `nm`으로 확인). 기기 파일을 `$SCRATCH/device/ngram_ko-en.backup-0926b.plist`(당시 학습 단어 125개)로 백업하고 1만 개 파일을 넣어 다시 읽어 같음을 확인했다. 사용자가 기록한 `~/Documents/Untitled2.trace`(50초, 19:19 시작. 첫 측정과 같은 이름이라 첫 측정 trace는 덮어써졌다)를 Task 8 Step 5와 같은 명령으로 읽었다(`$SCRATCH/trace4-sp.xml`). `NGramCompletions` n=151, 중앙값 0.73ms, p95 1.17ms, 최대 1.23ms, 2ms 초과 0회로 **기준(p95 ≤ 4ms) 통과**. 사용자 확인: 측정 중 입력이 느리게 느껴지지 않았다(Task 7 항목 9의 실기기 체감 확인을 겸한다). 측정 뒤 확장이 떠 있지 않은 상태에서 125개 백업본으로 되돌리고 다시 읽어 같음을 확인했다.
 
 ### Task 10: 리뷰 반영(Task 8·9 이후 변경)
 
-`7c26abf7..f357920f`를 opus 리뷰어가 검토했다. Critical 없음, 판정 "수정 후 머지 가능". 결과 불변은 리뷰어가 따로 확인했다(fuzz 약 319만 건, 유니코드 전 범위 검사). 반영 범위는 사용자와 정했다. 동률 표기 선택(코드 포인트 순이라 `"1ST"`가 `"1st"`보다 앞섬)과 Caps Lock 전부 대문자 입력의 표시(`"HEL"` → `"Hello"`)는 제품 판단 사항이라 이번 범위 밖으로 두고 지금 동작을 유지한다. "단순" 판정 기준 두 가지가 섞인 점(Minor 4)은 결과에 영향이 없어 손대지 않는다.
+`68bb2870..0eef6d5d`를 opus 리뷰어가 검토했다. Critical 없음, 판정 "수정 후 머지 가능". 결과 불변은 리뷰어가 따로 확인했다(fuzz 약 319만 건, 유니코드 전 범위 검사). 반영 범위는 사용자와 정했다. 동률 표기 선택(코드 포인트 순이라 `"1ST"`가 `"1st"`보다 앞섬)과 Caps Lock 전부 대문자 입력의 표시(`"HEL"` → `"Hello"`)는 제품 판단 사항이라 이번 범위 밖으로 두고 지금 동작을 유지한다. "단순" 판정 기준 두 가지가 섞인 점(Minor 4)은 결과에 영향이 없어 손대지 않는다.
 
 - [x] **Step 1: Minor 반영**
 
@@ -1641,7 +1641,7 @@ iPhone 15 Pro Max / iOS 27.0, Release 빌드(`Release-iphoneos`, 19:18 빌드, `
 - 속도(같은 프로세스 A/B, 스레드 CPU 시간): 영어 's' 0.448ms → 0.376ms, 영어 전체 p95 0.455ms → 0.382ms, 한글 전체 p95 0.173ms → 0.141ms.
 - 테스트: 처음 시도한 누적 구조체 판에서 문장 첫머리 표기 빈도를 더하지 않는 변이(M7-b, 합계는 따로 셈)는 기존 테스트가 모두 통과해 공백이 드러났다. 그래서 `test문장첫머리표기빈도를더한소문자표기가_다른대문자표기보다대표로앞섬`(`"hello"` 1 + `"Hello"` 3 > `"HELLO"` 2)을 추가했다. HEAD 엔진에서 통과(`$SCRATCH/158-t10s3-baseline.log`), 새 엔진에서 두 suite 19개 통과(`158-t10s3-green3.log`). 변이 확인(최종 코드): 문장 첫머리 표기를 빼기만 하고 더하지 않기(M7-c, 새 테스트와 기존 대소문자 묶기 테스트가 함께 실패), 동률 규칙 반전(M8), 중복 검사 제거(M9), 표기 하나일 때 소문자 문자열 반환(M10)에서 각각 1~3개 테스트가 실패(`158-t10s3-M7-c.log`, `M8-d.log`, `M9-c.log`, `M10-c.log`)했고, 확인 뒤 같은 명령 끝에서 원래 파일로 되돌렸다. 한 번은 변이 테스트 실행이 2시간 넘게 끝나지 않아 종료하고 파일을 되돌린 뒤 시뮬레이터를 재부팅했다.
 - Step 3 뒤 전체 테스트 재실행: 800개 통과, 실패 0(`Test-SYKeyboard-2026.09.26_23-45-17-+0900.xcresult`, 로그 `$SCRATCH/158-t10s4-all.log`). 4개 scheme 모두 `** BUILD SUCCEEDED **`, `.xcscheme` 변경 없음.
-- 영어 데이터 실기기 재측정: iPhone 15 Pro Max / iOS 27.0, Release 빌드(23:55 빌드, `f7317b0e` 23:45 커밋 이후, `SYKeyboardCore`에 `CaseSpellingGroup` 심볼 있음을 `nm`으로 확인). 기기 파일(학습 단어 146개로 늘어 있었음)을 `$SCRATCH/device/ngram_ko-en.backup-0926d.plist`로 백업하고 `ngram_ko-en.en10000.plist`를 넣어 다시 읽어 같음을 확인했다. 사용자가 기록한 `~/Documents/Untitled.trace`(38초, 23:56 시작. 같은 이름의 이전 trace는 덮어써졌다)를 Task 8 Step 5와 같은 명령으로 읽었다(`$SCRATCH/trace6-sp.xml`). `NGramCompletions` n=55, 중앙값 0.80ms, p95 2.99ms, 최대 3.09ms, 4ms 초과 0회. 측정 뒤 확장이 떠 있지 않은 상태에서 146개 백업본으로 되돌리고 다시 읽어 같음을 확인했다.
+- 영어 데이터 실기기 재측정: iPhone 15 Pro Max / iOS 27.0, Release 빌드(23:55 빌드, `cccbbfa6`와 같은 `Modules/` 코드(squash 전 23:45 커밋), `SYKeyboardCore`에 `CaseSpellingGroup` 심볼 있음을 `nm`으로 확인). 기기 파일(학습 단어 146개로 늘어 있었음)을 `$SCRATCH/device/ngram_ko-en.backup-0926d.plist`로 백업하고 `ngram_ko-en.en10000.plist`를 넣어 다시 읽어 같음을 확인했다. 사용자가 기록한 `~/Documents/Untitled.trace`(38초, 23:56 시작. 같은 이름의 이전 trace는 덮어써졌다)를 Task 8 Step 5와 같은 명령으로 읽었다(`$SCRATCH/trace6-sp.xml`). `NGramCompletions` n=55, 중앙값 0.80ms, p95 2.99ms, 최대 3.09ms, 4ms 초과 0회. 측정 뒤 확장이 떠 있지 않은 상태에서 146개 백업본으로 되돌리고 다시 읽어 같음을 확인했다.
 
 - [x] **Step 4: 전체 테스트와 4개 scheme 빌드** (Step 3 변경 전 결과. Step 3 뒤 결과는 Step 3 끝에 적었다)
 
