@@ -51,6 +51,23 @@ struct TextCheckerPredictiveTextEngineLearnedWordsTests {
         #expect(storage.stringArray(forKey: key) == ["keep"])
     }
 
+    @Test("전체 초기화 뒤에는 목록에 있던 단어도 삭제 대상이 아님")
+    func test전체초기화뒤에는_목록에있던단어도_삭제대상이아님() {
+        // 시스템 사전에 없는 단어라 unlearnWord가 전역 사전을 바꾸지 않는다
+        let word = "zzsyk161resetall"
+        let (suiteName, storage) = makeStorage()
+        defer { storage.removePersistentDomain(forName: suiteName) }
+        let key = TextCheckerPredictiveTextEngine.learnedWordsKey
+        storage.set([word], forKey: key)
+        let engine = TextCheckerPredictiveTextEngine(language: "en_US", storage: storage)
+        #expect(engine.canUnlearn(word: word))
+
+        engine.unlearnAllWords()
+
+        #expect(!engine.canUnlearn(word: word))
+        #expect(storage.stringArray(forKey: key) == [])
+    }
+
     private func makeStorage() -> (String, UserDefaults) {
         let suiteName = "TextCheckerPredictiveTextEngineLearnedWordsTests-\(UUID().uuidString)"
         return (suiteName, UserDefaults(suiteName: suiteName)!)

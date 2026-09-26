@@ -261,6 +261,13 @@ final class SuggestionController: SuggestionService {
         get { textCheckerEngines[language] }
         set { textCheckerEngines[language] = newValue }
     }
+    /// 학습 단어 목록으로 삭제를 판단하고 해제할 TextChecker 엔진
+    ///
+    /// 학습 목록과 `UITextChecker` 학습 사전은 언어와 무관하게 공유된다. 한영 키보드는 한/A 전환 뒤에도 입력 중
+    /// 후보를 그대로 두는데 새 언어 엔진은 다음 후보 요청 때 만들어지므로, 그 사이에는 다른 언어 엔진으로 판단한다
+    private var learnedWordsEngine: PredictiveTextProvider? {
+        textCheckerEngine ?? textCheckerEngines.values.first
+    }
     /// n-gram 기반 엔진 (다음 단어 예측)
     ///
     /// `isPredictiveTextEnabled`가 `false`이면 `nil`이 됩니다.
@@ -547,10 +554,16 @@ final class SuggestionController: SuggestionService {
         case .nGram:
             return item.text
         case .textChecker:
-            return textCheckerEngine?.canUnlearn(word: item.text) == true ? item.text : nil
+            return learnedWordsEngine?.canUnlearn(word: item.text) == true ? item.text : nil
         default:
             return nil
         }
+    }
+
+    var removableBarIndices: IndexSet {
+        // 입력 중 모드는 0번 칸이 현재 단어라 바 칸이 후보보다 하나 많다
+        let barCount = currentSuggestions.count + (currentMode == .typing ? 1 : 0)
+        return IndexSet((0..<barCount).filter { removableSuggestionText(atBarIndex: $0) != nil })
     }
 
     func invalidateLearnedWordsCache() {
@@ -559,7 +572,7 @@ final class SuggestionController: SuggestionService {
 
     func removeSuggestionWord(_ word: String) {
         nGramEngine?.removeWord(word)
-        textCheckerEngine?.unlearn(word: word)
+        learnedWordsEngine?.unlearn(word: word)
         // typing 모드는 직전 TextChecker 후보를 이어받으므로 지운 단어가 한 프레임 다시 보이지 않게 뺀다
         currentSuggestions.removeAll { $0.text == word }
         // n-gram 모드에서는 lastSuggestionBaseText가 공백으로 끝나지 않아 typing 모드로 새는 것을 막는다

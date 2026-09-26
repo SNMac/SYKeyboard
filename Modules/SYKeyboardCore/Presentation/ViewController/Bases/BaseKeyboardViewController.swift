@@ -2410,10 +2410,7 @@ extension BaseKeyboardViewController: SuggestionControllerDelegate {
             )
         } else {
             // 길게 눌러 삭제할 수 있는 칸만 medium으로 표시한다. 삭제가 막힌 미리보기에서는 표시도 하지 않는다
-            let barCount = suggestions.count + (currentWord?.isEmpty == false ? 1 : 0)
-            let removableIndices = BaseKeyboardViewController.isPreview
-                ? IndexSet()
-                : IndexSet((0..<barCount).filter { controller.removableSuggestionText(atBarIndex: $0) != nil })
+            let removableIndices = BaseKeyboardViewController.isPreview ? IndexSet() : controller.removableBarIndices
             suggestionBarView.updateSuggestions(
                 currentWord: currentWord,
                 suggestions: suggestions,
