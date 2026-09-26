@@ -63,6 +63,12 @@ struct PredictiveTextCompletionMatchPolicyTests {
         #expect(isCompletion("가\u{11A8}나다", of: "각ㄴ"))
     }
 
+    // 입력이 첫가끝 자모면(붙여넣은 NFD 한글) 스칼라 비교 빠른 경로를 타면 안 된다. 정규 등가로 앞 글자가 같다
+    @Test("입력 앞 글자가 첫가끝 자모로 쓰여도 완성형 후보를 완성으로 봄")
+    func test입력앞글자가첫가끝자모로쓰여도_완성형후보를완성으로봄() {
+        #expect(isCompletion("가나다", of: "\u{1100}\u{1161}나"))
+    }
+
     @Test("자음만 입력하면 그 자음으로 시작하는 자음 단어도 완성")
     func test자음만입력하면_그자음으로시작하는자음단어도완성() {
         #expect(isCompletion("ㅋㅋㅋ", of: "ㅋ"))

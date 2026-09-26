@@ -108,16 +108,16 @@ struct PredictiveTextCompletionMatchPolicy {
         return candidateJamo.starts(with: lastJamo)
     }
 
-    /// 후보 바에 보여주고 삽입할 표기를 반환합니다.
-    ///
-    /// 입력이 대문자로 시작했고 후보가 소문자로만 저장돼 있으면 첫 글자만 대문자로 올린다.
-    /// 그대로 두면 문장 첫머리의 `"Hel"`에서 `"hello"`를 골라 사용자가 입력한 대문자가 사라진다.
-    /// 대문자가 섞인 표기(`"SY키보드"`, `"iPhone"`)는 사용자가 학습시킨 고유 표기라 바꾸지 않는다
     /// 대소문자가 없어 다른 표기와 소문자가 같아질 수 없는 단어인지. 한글과 ASCII 문자가 아닌 글자로만 이뤄지면 참이다
     static func hasNoCaseVariants(_ word: String) -> Bool {
         word.unicodeScalars.allSatisfy { isSimple($0) && !(65...90).contains($0.value) && !(97...122).contains($0.value) }
     }
 
+    /// 후보 바에 보여주고 삽입할 표기를 반환합니다.
+    ///
+    /// 입력이 대문자로 시작했고 후보가 소문자로만 저장돼 있으면 첫 글자만 대문자로 올린다.
+    /// 그대로 두면 문장 첫머리의 `"Hel"`에서 `"hello"`를 골라 사용자가 입력한 대문자가 사라진다.
+    /// 대문자가 섞인 표기(`"SY키보드"`, `"iPhone"`)는 사용자가 학습시킨 고유 표기라 바꾸지 않는다
     func displayText(for candidate: String) -> String {
         guard startsWithUppercase,
               candidate == candidate.lowercased(),

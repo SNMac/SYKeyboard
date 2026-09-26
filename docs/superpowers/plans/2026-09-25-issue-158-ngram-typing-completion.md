@@ -1617,3 +1617,25 @@ Task 8 뒤 실기기 p95가 4.48ms로 기준(4ms)을 넘어 사용자와 이어�
 - [x] **Step 4: 실기기 재측정(사용자)과 기록**
 
 iPhone 15 Pro Max / iOS 27.0, Release 빌드(`Release-iphoneos`, 19:18 빌드, `aaf4720e` 19:11 커밋 이후, `SYKeyboardCore`에 새 심볼 있음을 `nm`으로 확인). 기기 파일을 `$SCRATCH/device/ngram_ko-en.backup-0926b.plist`(당시 학습 단어 125개)로 백업하고 1만 개 파일을 넣어 다시 읽어 같음을 확인했다. 사용자가 기록한 `~/Documents/Untitled2.trace`(50초, 19:19 시작. 첫 측정과 같은 이름이라 첫 측정 trace는 덮어써졌다)를 Task 8 Step 5와 같은 명령으로 읽었다(`$SCRATCH/trace4-sp.xml`). `NGramCompletions` n=151, 중앙값 0.73ms, p95 1.17ms, 최대 1.23ms, 2ms 초과 0회로 **기준(p95 ≤ 4ms) 통과**. 사용자 확인: 측정 중 입력이 느리게 느껴지지 않았다(Task 7 항목 9의 실기기 체감 확인을 겸한다). 측정 뒤 확장이 떠 있지 않은 상태에서 125개 백업본으로 되돌리고 다시 읽어 같음을 확인했다.
+
+### Task 10: 리뷰 반영(Task 8·9 이후 변경)
+
+`7c26abf7..f357920f`를 opus 리뷰어가 검토했다. Critical 없음, 판정 "수정 후 머지 가능". 결과 불변은 리뷰어가 따로 확인했다(fuzz 약 319만 건, 유니코드 전 범위 검사). 반영 범위는 사용자와 정했다. 동률 표기 선택(코드 포인트 순이라 `"1ST"`가 `"1st"`보다 앞섬)과 Caps Lock 전부 대문자 입력의 표시(`"HEL"` → `"Hello"`)는 제품 판단 사항이라 이번 범위 밖으로 두고 지금 동작을 유지한다. "단순" 판정 기준 두 가지가 섞인 점(Minor 4)은 결과에 영향이 없어 손대지 않는다.
+
+- [x] **Step 1: Minor 반영**
+
+`displayText(for:)`의 문서 주석이 Task 9에서 끼워 넣은 `hasNoCaseVariants(_:)` 위로 밀려 있던 것을 제자리로 옮겼다. spec 2절 "결과는 같다"에 동률 순서 예외를 적었다. 입력이 첫가끝 자모(NFD)일 때 빠른 경로를 막는 조건을 고정하는 테스트(`"가나다"` ← `"\u{1100}\u{1161}나"`)를 추가했다. `PredictiveTextCompletionMatchPolicyTests` 44개 통과(`$SCRATCH/158-t10-green.log`). 입력 쪽 가드를 빼는 변이(M6)에서 새 테스트만 실패(`$SCRATCH/158-t10-mutant.log`)했고, 확인 뒤 같은 명령 끝에서 원래 파일로 되돌렸다.
+
+- [x] **Step 2: 영어 위주 1만 개 데이터의 최악 경우를 Mac 벤치마크로 잰다(Important 1)**
+
+데이터 `$SCRATCH/device/ngram_ko-en.en10000.plist`: `/usr/share/dict/words`의 소문자 단어 8800개(Zipf에 가까운 빈도), 그중 900개의 첫 글자 대문자 표기와 100개의 전부 대문자 표기, 무작위 한글 300개로 1만 개(ASCII로 시작 9800개, 's'로 시작 1106개). 벤치마크 `$SCRATCH/prof/benchEn`(저장소 엔진·정책 소스를 `swiftc -O`로 컴파일, 영어 입력 's'·'p'·'c'·'st'·'pro'·'The' 등 반복) 2회: 전체 중앙값 0.09ms, p95 0.40~0.44ms, 's' 0.45~0.46ms, 'p' 0.36ms, 'c' 0.38ms. 리뷰어 측정(0.46ms)과 같다. 기기/Mac 비율 약 6.8을 적용하면 's' 약 3.1ms로 기준 안으로 추정한다.
+
+- [ ] **Step 3: 필요하면 결과를 바꾸지 않는 선에서 표기 묶기 비용을 줄인다**
+
+Step 5의 실기기 p95가 4ms를 넘을 때만 한다. 추정이 기준 안이라 측정 전에는 코드를 늘리지 않는다.
+- [x] **Step 4: 전체 테스트와 4개 scheme 빌드**
+
+`xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=18.6'`(-only-testing 없음) 799개 통과, 실패 0(`xcrun xcresulttool get test-results summary --path <DerivedData>/Logs/Test/Test-SYKeyboard-2026.09.26_19-45-41-+0900.xcresult`, 로그 `$SCRATCH/158-t10-all.log`). 4개 scheme 모두 `** BUILD SUCCEEDED **`, `.xcscheme` 변경 없음.
+- [x] **Step 5: 영어 위주 데이터로 실기기 측정(사용자)과 기록**
+
+iPhone 15 Pro Max / iOS 27.0, Release 빌드(`Release-iphoneos`, 19:51 빌드, `SYKeyboardCore`에 새 심볼 있음을 `nm`으로 확인). 기기 파일(125개 백업본과 같음을 `cmp`로 확인)을 `$SCRATCH/device/ngram_ko-en.backup-0926c.plist`로 한 번 더 백업하고 `ngram_ko-en.en10000.plist`를 넣어 다시 읽어 같음을 확인했다. 사용자가 영어 자판으로 's'·'p'·'c'·'a'·'S'·'st'·'pro'·'the'·문장·빠른 타이핑을 기록한 `~/Documents/Untitled3.trace`(52초)를 Task 8 Step 5와 같은 명령으로 읽었다(`$SCRATCH/trace5-sp.xml`). `NGramCompletions` n=58, 중앙값 0.90ms, p95 3.76ms, 최대 3.95ms, 3ms 초과 7회, 4ms 초과 0회. **기준(p95 ≤ 4ms)은 통과했지만 여유가 0.24ms다.** Mac 추정(약 3.1ms)보다 높았고 표본이 58회로 적다. 측정 뒤 확장이 떠 있지 않은 상태에서 125개 백업본으로 되돌리고 다시 읽어 같음을 확인했다.
