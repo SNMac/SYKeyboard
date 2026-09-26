@@ -1597,6 +1597,8 @@ Task 6 결과:
 ## 기준선 측정 (2026-09-02)
 
 - 기기: iPhone 15 Pro Max, iOS 27.0 (24A5430a), 실기기. 커밋 `b60a275b`(계측만 포함). 프로세스 `HangeulEnglishKeyboard`.
+  빌드 구성은 Debug다(2026-09-27 추기, GitHub Issue #123 댓글 기준. 적용 후 측정도 같다.
+  #141·#158의 실기기 측정은 Release라 이 표와 직접 비교하지 않는다).
 - 입력 스크립트: 애국가 1절(개행 섞음) → 알파벳 a~z 3~4회 반복(스페이스 섞음, z 뒤 개행) → 개행 10회 → 스페이스 10회 → 스페이스 길게 누르기 10초. 총 68.5초.
 - trace: `~/Documents/baseline-iPhone15ProMax-iOS27.trace`. 추출 명령:
 
