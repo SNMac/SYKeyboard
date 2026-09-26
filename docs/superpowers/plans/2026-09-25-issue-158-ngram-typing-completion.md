@@ -1562,3 +1562,23 @@ Co-Authored-By: Claude Opus 5.5 (1M context) <noreply@anthropic.com>
 EOF
 )"
 ```
+
+**실기기 성능 측정(2026-09-26, 항목 9 일부).** iPhone 15 Pro Max / iOS 27.0, Release, `HangeulEnglishKeyboard.appex`, 학습 단어 10000개(`$SCRATCH/device/ngram_ko-en.10000.plist`를 기기 App Group에 넣고 측정 뒤 원래 파일로 복원). 사용자가 Instruments Blank 템플릿 + `os_signpost`로 기록한 `~/Documents/Untitled2.trace`를 `xcrun xctrace export --xpath '/trace-toc/run[@number="1"]/data/table[@schema="os-signpost"]'`로 뽑아 Begin/End를 짝지어 읽었다. `NGramCompletions` n=138, 중앙값 4.52ms, p95 9.95ms, 최대 11.55ms로 당시 기준(p95 2ms)을 넘었다. 입력 지연 체감은 사용자 확인 전이다. Task 8에서 기준을 바꾸고 대응했다.
+
+### Task 8: 실기기 성능 기준 조정과 사전 거르기 확대
+
+실기기 측정이 기준을 넘어 사용자와 기준을 다시 정했다(spec 5절, 설계 변경 이력). 결과를 바꾸지 않는 최적화이므로 새 테스트는 구현 전에도 통과한다. 먼저 통과하는 것을 확인해 기준선으로 삼고, 구현 뒤에도 통과하는지 본다.
+
+**Files:**
+- Modify: `docs/superpowers/specs/2026-09-25-ngram-typing-completion-design.md`
+- Modify: `Modules/SYKeyboardCore/Presentation/Utils/Policies/PredictiveTextCompletionMatchPolicy.swift`
+- Test: `SYKeyboardTests/Utils/PredictiveTextCompletionMatchPolicyTests.swift`
+
+- [x] **Step 1: 기준 조정과 측정·프로파일링 결과를 spec 5절에 기록한다**
+
+기준을 "실기기 p95 ≤ 4ms"로 바꾸고, 실기기 측정, Time Profiler 원인, scratchpad 벤치마크 결과를 적는다. 벤치마크는 `$SCRATCH/prof/`에서 production 엔진·정책 소스를 `xcrun swiftc -O`로 묶고 `xcrun xctrace record --template 'Time Profiler' --launch -- ./bench <10000개 plist> 12`로 기록했다(`tp.trace`, 수정본 `tpD.trace`). 수정본 정책은 지금 정책과 약 97만 건(1만 개 데이터 + 유니코드 특수 사례) + 무작위 약 60만 건을 비교해 불일치 0건이었다.
+
+- [ ] **Step 2: 사전 거르기가 바꿀 수 있는 경계 사례 테스트를 추가하고 지금 코드에서 통과를 확인한다**
+- [ ] **Step 3: 사전 거르기를 소문자 변환 앞으로 옮기고 첫 음절 모음·받침까지 넓힌다**
+- [ ] **Step 4: 전체 테스트와 4개 scheme 빌드**
+- [ ] **Step 5: 실기기 재측정(사용자)과 기록**
