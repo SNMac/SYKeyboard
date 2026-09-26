@@ -138,6 +138,19 @@ struct SuggestionControllerSuggestionRemovalTests {
         #expect(harness.checker.invalidateCallCount == 1)
     }
 
+    @Test("한영 키보드에서 언어를 바꾸면 TextChecker 엔진의 학습 단어 목록 캐시를 비움")
+    func test한영키보드에서언어를바꾸면_TextChecker엔진의_학습단어목록캐시를비움() async {
+        let harness = makeHarness(checkerResults: ["help"], nGramLanguage: "unified")
+        harness.controller.updateSuggestions(for: "hel")
+        harness.queue.sync {}
+        await waitForMainQueue()
+
+        harness.controller.updateLanguage(to: "ko-KR")
+        harness.controller.updateLanguage(to: "ko-KR")
+
+        #expect(harness.checker.invalidateCallCount == 1)
+    }
+
     private struct Harness {
         let controller: SuggestionController
         let delegate: RecordingSuggestionControllerDelegate
@@ -150,7 +163,8 @@ struct SuggestionControllerSuggestionRemovalTests {
         nGramResults: [String] = [],
         checkerResults: [String] = [],
         learnedWords: Set<String> = [],
-        lexiconEntries: [TextReplacementEntry] = []
+        lexiconEntries: [TextReplacementEntry] = [],
+        nGramLanguage: String? = nil
     ) -> Harness {
         let nGram = RemovableNGramStub(results: nGramResults)
         let checker = LearnedWordCheckerStub(results: checkerResults, learnedWords: learnedWords)
@@ -163,6 +177,7 @@ struct SuggestionControllerSuggestionRemovalTests {
         let queue = DispatchQueue(label: "SYKeyboardTests.suggestion.removal")
         let controller = SuggestionController(
             language: "en-US",
+            nGramLanguage: nGramLanguage,
             engineFactory: factory,
             textCheckerQueue: queue
         )

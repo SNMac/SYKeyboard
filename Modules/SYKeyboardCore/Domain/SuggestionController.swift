@@ -337,6 +337,9 @@ final class SuggestionController: SuggestionService {
 
     func updateLanguage(to language: String) {
         guard self.language != language else { return }
+        // 언어별 TextChecker 엔진은 학습 단어 목록 캐시를 따로 들고 있다.
+        // 다른 언어 엔진에서 학습·삭제한 단어가 반영되도록 전환 때 비운다
+        invalidateLearnedWordsCache()
 
         // 통합 NGram(한영 키보드)은 한/A 전환에서 자판만 바뀌어야 하므로 TextChecker 언어만 바꾸고
         // NGram 엔진·문장 버퍼·후보·마지막 요청 상태는 그대로 둔다
