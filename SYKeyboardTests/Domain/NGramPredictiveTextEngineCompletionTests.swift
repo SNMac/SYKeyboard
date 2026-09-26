@@ -105,6 +105,18 @@ struct NGramPredictiveTextEngineCompletionTests {
         #expect(engine.completions(forTypedWord: "seo", previousWord: nil, limit: 3) == ["Seoul"])
     }
 
+    @Test("대소문자가 없는 단어와 대소문자 표기 묶음을 합친 빈도로 함께 순위를 매김")
+    func test대소문자가없는단어와_대소문자표기묶음을_합친빈도로함께순위를매김() async {
+        let engine = await makeLoadedNGramFixture(name: "completion-caseless").engine
+        recordAlone(engine, "1st", times: 2)
+        recordAlone(engine, "1ST", times: 2)
+        recordAlone(engine, "123", times: 3)
+        recordAlone(engine, "1위", times: 1)
+
+        // "1st"·"1ST"는 합쳐 4라 3인 "123"보다 앞선다. 동률인 두 표기 중 코드 포인트가 앞선 "1ST"를 보여준다
+        #expect(engine.completions(forTypedWord: "1", previousWord: nil, limit: 3) == ["1ST", "123", "1위"])
+    }
+
     @Test("bigram 후보로 나온 단어는 다른 대소문자 표기로 unigram에서 다시 나오지 않음")
     func testBigram후보로나온단어는_다른대소문자표기로_unigram에서다시나오지않음() async {
         let engine = await makeLoadedNGramFixture(name: "completion-case-bigram").engine

@@ -388,14 +388,21 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
             }
         }
 
-        // ponytail: 키 입력마다 unigram 전체(최대 10000개)를 훑는다. 실기기에서 느리면 소문자 키 캐시나 접두어 색인을 둔다
+        // ponytail: 키 입력마다 unigram 전체(최대 10000개)를 훑는다. 대부분은 판정 정책의 첫 스칼라 거르기에서 바로 빠지고,
+        // 남은 비용은 실제로 맞는 단어 몫이라 첫 자모 색인으로는 줄지 않는다
         var spellingGroups: [String: [String: Int]] = [:]
+        var top: [(key: String, value: Int)] = []
         for entry in unigramStore where policy.isCompletion(entry.key) {
+            // 대소문자가 없는 단어는 묶일 다른 표기가 없어 바로 순위에 넣는다
+            if PredictiveTextCompletionMatchPolicy.hasNoCaseVariants(entry.key) {
+                guard !seen.contains(entry.key) else { continue }
+                insertTopUnigram(entry, into: &top)
+                continue
+            }
             let lowered = entry.key.lowercased()
             guard !seen.contains(lowered) else { continue }
             spellingGroups[lowered, default: [:]][entry.key] = entry.value
         }
-        var top: [(key: String, value: Int)] = []
         for (lowered, spellings) in spellingGroups {
             insertTopUnigram(representativeSpelling(lowered: lowered, spellings: spellings), into: &top)
         }

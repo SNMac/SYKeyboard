@@ -43,6 +43,9 @@ struct PredictiveTextCompletionMatchPolicy {
     private let requiredFirstJamo: Unicode.Scalar?
     /// `lastJamo`가 모두 호환 자모·ASCII라 음절 분해와 바로 비교할 수 있는지
     private let lastJamoIsSimple: Bool
+    /// 입력이 모두 단순 스칼라면 소문자 입력 전체와 앞 글자들의 스칼라. 아니면 nil
+    private let simpleTypedScalars: [Unicode.Scalar]?
+    private let simpleHeadScalars: [Unicode.Scalar]?
 
     // MARK: - Initializer
 
@@ -60,6 +63,11 @@ struct PredictiveTextCompletionMatchPolicy {
         head = String(typed.dropLast())
         lastJamo = Self.jamo(of: last)
         startsWithUppercase = typedWord.first?.isUppercase == true
+        let typedScalars = Array(lowered.unicodeScalars)
+        let headScalars = Array(head.unicodeScalars)
+        let typedIsSimple = typedScalars.allSatisfy(Self.isSimple)
+        simpleTypedScalars = typedIsSimple ? typedScalars : nil
+        simpleHeadScalars = typedIsSimple && headScalars.allSatisfy(Self.isSimple) ? headScalars : nil
         lastJamoIsSimple = lastJamo.allSatisfy { $0.isASCII || (0x3131...0x318E).contains($0.value) }
         if let headFirst = head.unicodeScalars.first {
             requiredFirstJamo = Self.quickFirstJamo(of: headFirst)
@@ -83,6 +91,7 @@ struct PredictiveTextCompletionMatchPolicy {
            let index = Self.syllableIndex(of: first), !Self.syllable(index, overlaps: lastJamo) {
             return false
         }
+        if let result = simpleIsCompletion(candidate) { return result }
         let lowered = candidate.lowercased()
         guard lowered.hasPrefix(head) else { return false }
         let rest = lowered.dropFirst(head.count)
@@ -104,6 +113,11 @@ struct PredictiveTextCompletionMatchPolicy {
     /// 입력이 대문자로 시작했고 후보가 소문자로만 저장돼 있으면 첫 글자만 대문자로 올린다.
     /// 그대로 두면 문장 첫머리의 `"Hel"`에서 `"hello"`를 골라 사용자가 입력한 대문자가 사라진다.
     /// 대문자가 섞인 표기(`"SY키보드"`, `"iPhone"`)는 사용자가 학습시킨 고유 표기라 바꾸지 않는다
+    /// 대소문자가 없어 다른 표기와 소문자가 같아질 수 없는 단어인지. 한글과 ASCII 문자가 아닌 글자로만 이뤄지면 참이다
+    static func hasNoCaseVariants(_ word: String) -> Bool {
+        word.unicodeScalars.allSatisfy { isSimple($0) && !(65...90).contains($0.value) && !(97...122).contains($0.value) }
+    }
+
     func displayText(for candidate: String) -> String {
         guard startsWithUppercase,
               candidate == candidate.lowercased(),
@@ -119,6 +133,80 @@ private extension PredictiveTextCompletionMatchPolicy {
         guard let scalar = character.unicodeScalars.first else { return nil }
         if let index = syllableIndex(of: scalar) { return choseongTable[index / 588] }
         return compoundConsonants[scalar]?.first ?? scalar
+    }
+
+    /// 스칼라 하나가 곧 글자 하나이고 소문자 변환이 자명한 스칼라: ASCII 인쇄 문자, 완성형 음절, 호환 자모
+    static func isSimple(_ scalar: Unicode.Scalar) -> Bool {
+        (0x20...0x7E).contains(scalar.value) || (0xAC00...0xD7A3).contains(scalar.value)
+            || (0x3131...0x318E).contains(scalar.value)
+    }
+
+    static func lowercasedSimple(_ scalar: Unicode.Scalar) -> Unicode.Scalar {
+        (65...90).contains(scalar.value) ? Unicode.Scalar(scalar.value + 32)! : scalar
+    }
+
+    /// 입력과 후보가 모두 단순 스칼라면 글자·문자열을 만들지 않고 스칼라로 판정한다. 아니면 nil
+    func simpleIsCompletion(_ candidate: String) -> Bool? {
+        guard let simpleHeadScalars, let simpleTypedScalars, lastJamoIsSimple else { return nil }
+        let scalars = candidate.unicodeScalars
+        // 뒤에 결합 문자가 붙으면 앞 스칼라와 한 글자가 되므로 전부 단순할 때만 스칼라 비교가 글자 비교와 같다
+        guard scalars.allSatisfy(Self.isSimple) else { return nil }
+
+        var index = scalars.startIndex
+        for headScalar in simpleHeadScalars {
+            guard index != scalars.endIndex, Self.lowercasedSimple(scalars[index]) == headScalar else { return false }
+            scalars.formIndex(after: &index)
+        }
+        guard index != scalars.endIndex,
+              !scalars.lazy.map(Self.lowercasedSimple).elementsEqual(simpleTypedScalars) else { return false }
+
+        var matched = 0
+        var consumed = 0
+        while consumed < lastJamo.count, index != scalars.endIndex {
+            let scalar = Self.lowercasedSimple(scalars[index])
+            let zero = Unicode.Scalar(UInt8(0))
+            var buffer = (zero, zero, zero, zero)
+            let count = Self.simpleJamo(of: scalar, into: &buffer)
+            for offset in 0..<count {
+                guard matched < lastJamo.count else { return true }
+                let jamo = switch offset {
+                case 0: buffer.0
+                case 1: buffer.1
+                case 2: buffer.2
+                default: buffer.3
+                }
+                guard jamo == lastJamo[matched] else { return false }
+                matched += 1
+            }
+            consumed += 1
+            scalars.formIndex(after: &index)
+        }
+        return matched == lastJamo.count
+    }
+
+    /// `jamo(of:)`를 단순 스칼라에 대해 배열 없이 계산한다
+    static func simpleJamo(of scalar: Unicode.Scalar, into buffer: inout (Unicode.Scalar, Unicode.Scalar, Unicode.Scalar, Unicode.Scalar)) -> Int {
+        guard let index = syllableIndex(of: scalar) else {
+            if let consonants = compoundConsonants[scalar] {
+                buffer.0 = consonants[0]
+                buffer.1 = consonants[1]
+                return 2
+            }
+            buffer.0 = scalar
+            return 1
+        }
+        buffer.0 = choseongTable[index / 588]
+        buffer.1 = jungseongTable[(index % 588) / 28]
+        let jongseongIndex = index % 28
+        guard jongseongIndex > 0 else { return 2 }
+        let jongseong = jongseongTable[jongseongIndex - 1]
+        if let parts = compoundConsonants[jongseong] {
+            buffer.2 = parts[0]
+            buffer.3 = parts[1]
+            return 4
+        }
+        buffer.2 = jongseong
+        return 3
     }
 
     /// 음절을 자모로 나눈 앞부분과 `jamo`가 겹치는 길이만큼 같은지

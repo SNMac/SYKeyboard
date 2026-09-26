@@ -1590,3 +1590,30 @@ EOF
 - [x] **Step 5: 실기기 재측정(사용자)과 기록**
 
 iPhone 15 Pro Max / iOS 27.0, Release 빌드(`Release-iphoneos/HangeulEnglishKeyboard.appex`, 17:52 빌드, `SYKeyboardCore`에 `quickFirstJamo` 심볼 있음을 `nm`으로 확인). 기기 파일을 `$SCRATCH/device/ngram_ko-en.backup-0926.plist`(당시 기기 학습 단어 121개)로 백업한 뒤 1만 개 파일을 넣고, 확장을 종료한 뒤 다시 읽어 같음을 확인했다. 사용자가 기록한 `~/Documents/Untitled.trace`(75초)를 `xcrun xctrace export --xpath '/trace-toc/run[@number="1"]/data/table[@schema="os-signpost"]'`로 뽑아 `$SCRATCH/sp.py`로 Begin/End를 짝지었다. `NGramCompletions` n=167, 중앙값 0.93ms, p95 4.48ms, 최대 5.04ms, 4ms 초과 13회, 8.3ms 초과 0회. **기준(p95 ≤ 4ms)을 0.48ms 넘었다.** 측정 뒤 확장이 떠 있지 않은 상태에서 121개 백업본으로 되돌리고 다시 읽어 같음을 확인했다.
+
+### Task 9: 맞는 단어 하나당 판정·묶기 비용 줄이기
+
+Task 8 뒤 실기기 p95가 4.48ms로 기준(4ms)을 넘어 사용자와 이어서 진행하기로 했다. 남은 비용은 실제로 맞는 단어(자음 한 글자 입력에서 수백 개)를 처리하는 몫이다. 결과를 바꾸지 않는 최적화이므로 Task 8과 같이 새 테스트가 지금 코드에서도 통과하는 것을 기준선으로 삼는다.
+
+- E2: 입력과 후보가 모두 단순 스칼라(ASCII 인쇄 문자, 완성형 음절, 호환 자모)면 글자·소문자 문자열·자모 배열을 만들지 않고 스칼라로 판정한다.
+- E3: 대소문자가 없는 단어(한글과 ASCII 문자가 아닌 글자로만 된 단어)는 묶일 다른 표기가 없으므로 표기 묶기를 건너뛰고 바로 순위에 넣는다.
+
+**Files:**
+- Modify: `Modules/SYKeyboardCore/Presentation/Utils/Policies/PredictiveTextCompletionMatchPolicy.swift`
+- Modify: `Modules/SYKeyboardCore/Domain/PredictiveText/NGramPredictiveTextEngine.swift`
+- Modify: `docs/superpowers/specs/2026-09-25-ngram-typing-completion-design.md`
+- Test: `SYKeyboardTests/Utils/PredictiveTextCompletionMatchPolicyTests.swift`, `SYKeyboardTests/Domain/NGramPredictiveTextEngineCompletionTests.swift`
+
+- [x] **Step 1: 빠른 경로가 바꿀 수 있는 경계 사례 테스트를 추가하고 지금 코드에서 통과를 확인한다**
+
+판정 정책 테스트에 호환 겹자음 낱자 후보(`"ㄳ"` ← `"ㄱ"`)와 천지인 조합 중 모음까지 같은 단어(`"킵ㆍ"` ← `"킵ㆍ"`, 완성 아님)를, 엔진 테스트에 대소문자 없는 단어와 표기 묶음을 합친 빈도로 함께 순위 매기기(`"1st"`2 + `"1ST"`2 = 4 > `"123"` 3 > `"1위"` 1 → `["1ST", "123", "1위"]`)를 추가했다. 지금 코드(HEAD `e623083f`의 `Modules/`를 stash한 상태)에서 두 suite 54개 통과(`$SCRATCH/158-t9-baseline2.log`).
+
+- [x] **Step 2: E2·E3 구현**
+
+판정 정책에 `isSimple(_:)`, `lowercasedSimple(_:)`, `simpleIsCompletion(_:)`, `simpleJamo(of:into:)`, `hasNoCaseVariants(_:)`를, 엔진 `completions`에 대소문자 없는 단어를 바로 `insertTopUnigram`에 넣는 분기를 두었다. 결과 불변 확인(`$SCRATCH/prof/final/`에서 저장소 코드와 `git show HEAD:` 코드를 함께 `swiftc -O`로 컴파일): 판정 973977건 + 무작위 약 60만 건 불일치 0, 엔진 완성 38368건(비어 있지 않은 결과 30990건) 차이 0. Mac 벤치마크 전체 중앙값 0.126ms, p95 0.172ms. 완성 관련 4개 suite 64개 통과(`$SCRATCH/158-t9-green.log`). 변이 확인: 묶기를 늘 건너뛰기(M3), 단순 스칼라 확인 빼기(M4), 겹받침 순서 뒤집기(M5)에서 각각 새·기존 테스트가 실패했다(`$SCRATCH/158-t9-mutant.log`, `158-t9-mutant3.log`). 확인 뒤 같은 명령 끝에서 원래 파일로 되돌렸다.
+- [x] **Step 3: 전체 테스트와 4개 scheme 빌드**
+
+`xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=18.6'`(-only-testing 없음) 798개 통과, 실패 0(`xcrun xcresulttool get test-results summary --path <DerivedData>/Logs/Test/Test-SYKeyboard-2026.09.26_19-11-21-+0900.xcresult`, 로그 `$SCRATCH/158-t9-all.log`). 4개 scheme(SYKeyboard, HangeulKeyboard, EnglishKeyboard, HangeulEnglishKeyboard) 모두 `** BUILD SUCCEEDED **`, `.xcscheme` 변경 없음.
+- [x] **Step 4: 실기기 재측정(사용자)과 기록**
+
+iPhone 15 Pro Max / iOS 27.0, Release 빌드(`Release-iphoneos`, 19:18 빌드, `aaf4720e` 19:11 커밋 이후, `SYKeyboardCore`에 새 심볼 있음을 `nm`으로 확인). 기기 파일을 `$SCRATCH/device/ngram_ko-en.backup-0926b.plist`(당시 학습 단어 125개)로 백업하고 1만 개 파일을 넣어 다시 읽어 같음을 확인했다. 사용자가 기록한 `~/Documents/Untitled2.trace`(50초, 19:19 시작. 첫 측정과 같은 이름이라 첫 측정 trace는 덮어써졌다)를 Task 8 Step 5와 같은 명령으로 읽었다(`$SCRATCH/trace4-sp.xml`). `NGramCompletions` n=151, 중앙값 0.73ms, p95 1.17ms, 최대 1.23ms, 2ms 초과 0회로 **기준(p95 ≤ 4ms) 통과**. 사용자 확인: 측정 중 입력이 느리게 느껴지지 않았다(Task 7 항목 9의 실기기 체감 확인을 겸한다). 측정 뒤 확장이 떠 있지 않은 상태에서 125개 백업본으로 되돌리고 다시 읽어 같음을 확인했다.

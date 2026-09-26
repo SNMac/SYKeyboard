@@ -27,7 +27,7 @@ struct PredictiveTextCompletionMatchPolicyTests {
     }
 
     @Test("겹받침은 두 자음으로 나눠 봄", arguments: [
-        ("달걀", "닭"), ("안주", "앉"), ("닭고기", "닭")
+        ("달걀", "닭"), ("안주", "앉"), ("닭고기", "닭"), ("ㄳ", "ㄱ")
     ])
     func test겹받침은_두자음으로나눠봄(candidate: String, typedWord: String) {
         #expect(isCompletion(candidate, of: typedWord))
@@ -69,7 +69,7 @@ struct PredictiveTextCompletionMatchPolicyTests {
     }
 
     @Test("입력 단어와 같은 단어는 대소문자가 달라도 완성이 아님", arguments: [
-        ("키보드", "키보드"), ("KEYBOARD", "keyboard")
+        ("키보드", "키보드"), ("KEYBOARD", "keyboard"), ("킵\u{318D}", "킵\u{318D}")
     ])
     func test입력단어와같은단어는_대소문자가달라도_완성이아님(candidate: String, typedWord: String) {
         #expect(!isCompletion(candidate, of: typedWord))
