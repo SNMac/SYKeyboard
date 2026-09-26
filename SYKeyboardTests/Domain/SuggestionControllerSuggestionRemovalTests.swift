@@ -126,6 +126,18 @@ struct SuggestionControllerSuggestionRemovalTests {
         #expect(harness.controller.removableSuggestionText(atBarIndex: 10) == nil)
     }
 
+    @Test("학습 단어 목록 무효화는 캐시한 TextChecker 엔진에 전달")
+    func test학습단어목록무효화는_캐시한TextChecker엔진에전달() async {
+        let harness = makeHarness(checkerResults: ["help"])
+        harness.controller.updateSuggestions(for: "hel")
+        harness.queue.sync {}
+        await waitForMainQueue()
+
+        harness.controller.invalidateLearnedWordsCache()
+
+        #expect(harness.checker.invalidateCallCount == 1)
+    }
+
     private struct Harness {
         let controller: SuggestionController
         let delegate: RecordingSuggestionControllerDelegate
@@ -194,6 +206,7 @@ private final class LearnedWordCheckerStub: PredictiveTextProvider, @unchecked S
     private var results: [String]
     private let learnedWords: Set<String>
     private(set) var unlearnedWords: [String] = []
+    private(set) var invalidateCallCount = 0
 
     init(results: [String], learnedWords: Set<String>) {
         self.results = results
@@ -205,6 +218,10 @@ private final class LearnedWordCheckerStub: PredictiveTextProvider, @unchecked S
 
     func canUnlearn(word: String) -> Bool {
         learnedWords.contains(word)
+    }
+
+    func invalidateLearnedWordsCache() {
+        invalidateCallCount += 1
     }
 
     func unlearn(word: String) {

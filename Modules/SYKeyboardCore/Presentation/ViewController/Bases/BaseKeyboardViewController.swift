@@ -350,6 +350,8 @@ open class BaseKeyboardViewController: UIInputViewController {
         logger.debug("viewWillAppear")
         if !BaseKeyboardViewController.isPreview { setKeyboardHeight() }
         synchronizeClipboardHistoryIfNeeded()
+        // 시뮬레이터(iOS 18.6)에서는 키보드가 나타날 때마다 새 VC라 엔진 캐시도 새로 읽지만, 같은 VC가 다시 나타나는 경우에 대비한다
+        suggestionController.invalidateLearnedWordsCache()
         FeedbackManager.shared.prepareHaptic()
         updateEdgeTouchSystemGesturePolicy()
     }
@@ -2407,9 +2409,15 @@ extension BaseKeyboardViewController: SuggestionControllerDelegate {
                 suggestions: suggestions
             )
         } else {
+            // 길게 눌러 삭제할 수 있는 칸만 medium으로 표시한다. 삭제가 막힌 미리보기에서는 표시도 하지 않는다
+            let barCount = suggestions.count + (currentWord?.isEmpty == false ? 1 : 0)
+            let removableIndices = BaseKeyboardViewController.isPreview
+                ? IndexSet()
+                : IndexSet((0..<barCount).filter { controller.removableSuggestionText(atBarIndex: $0) != nil })
             suggestionBarView.updateSuggestions(
                 currentWord: currentWord,
-                suggestions: suggestions
+                suggestions: suggestions,
+                removableIndices: removableIndices
             )
         }
 

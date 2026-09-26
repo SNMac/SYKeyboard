@@ -550,6 +550,10 @@ final class SuggestionController: SuggestionService {
         }
     }
 
+    func invalidateLearnedWordsCache() {
+        textCheckerEngines.values.forEach { $0.invalidateLearnedWordsCache() }
+    }
+
     func removeSuggestionWord(_ word: String) {
         nGramEngine?.removeWord(word)
         textCheckerEngine?.unlearn(word: word)

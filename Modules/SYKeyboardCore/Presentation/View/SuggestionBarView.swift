@@ -352,7 +352,8 @@ final class SuggestionBarView: UIView {
     /// - Parameters:
     ///   - currentWord: 현재 입력 중인 단어 (없으면 nil)
     ///   - suggestions: 자동완성 또는 예측 후보 배열
-    func updateSuggestions(currentWord: String?, suggestions: [String]) {
+    ///   - removableIndices: medium 굵기로 표시할 바 인덱스. 입력 중이면 0번이 현재 단어 칸이다
+    func updateSuggestions(currentWord: String?, suggestions: [String], removableIndices: IndexSet = []) {
         var titles: [String] = []
         if let word = currentWord, !word.isEmpty {
             // 입력 중: 0번 칸이 "현재단어", 그 뒤가 자동완성 후보
@@ -363,7 +364,7 @@ final class SuggestionBarView: UIView {
         ensurePooledViews(count: titles.count)
         for (index, button) in pooledButtons.enumerated() {
             let title = index < titles.count ? titles[index] : ""
-            button.update(to: title)
+            button.update(to: title, isRemovable: removableIndices.contains(index))
             button.isHidden = index >= titles.count
         }
         visibleSuggestionCount = titles.count
