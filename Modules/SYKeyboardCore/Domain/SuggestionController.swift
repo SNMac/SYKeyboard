@@ -562,6 +562,8 @@ final class SuggestionController: SuggestionService {
 
     var removableBarIndices: IndexSet {
         // 입력 중 모드는 0번 칸이 현재 단어라 바 칸이 후보보다 하나 많다
+        let state = signposter.beginInterval("SuggestionRemovableBarIndices")
+        defer { signposter.endInterval("SuggestionRemovableBarIndices", state) }
         let barCount = currentSuggestions.count + (currentMode == .typing ? 1 : 0)
         return IndexSet((0..<barCount).filter { removableSuggestionText(atBarIndex: $0) != nil })
     }

@@ -156,7 +156,9 @@ final public class TextCheckerPredictiveTextEngine: PredictiveTextProvider {
     /// 그래서 iOS 키보드 사전 재설정으로 시스템 사전에서 빠진 단어도 목록에 남아 있으면 `true`다
     func canUnlearn(word: String) -> Bool {
         if cachedLearnedWords == nil {
+            let state = Self.signposter.beginInterval("TextCheckerLoadLearnedWords")
             cachedLearnedWords = learnedWords
+            Self.signposter.endInterval("TextCheckerLoadLearnedWords", state)
         }
         return cachedLearnedWords?.contains(word) == true
     }
