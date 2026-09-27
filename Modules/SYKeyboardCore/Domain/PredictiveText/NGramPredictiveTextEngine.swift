@@ -95,6 +95,10 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
     static let defaultHalfLife: Double = 500
     /// 기본 잊는 기간(입력 단어 수). 한 번 쓴 항목이 이만큼 다시 쓰이지 않으면 저장소에 자리가 있어도 지운다
     static let defaultForgetAfter: Double = 10_000
+    /// 로딩할 때 기준 시점을 되돌리는 클록 경계(반감기 배수). 기본 반감기면 약 15만 단어에 한 번이다
+    private static let loadRebaseLimit: Double = 300
+    /// 입력 중 값이 넘치지 않도록 기준 시점을 되돌리는 경계(반감기 배수). `Double`은 약 2^1023까지다
+    private static let recordRebaseLimit: Double = 900
 
     private lazy var logger = Logger(
         subsystem: Bundle.main.bundleIdentifier ?? "Unknown Bundle",
@@ -288,6 +292,10 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
                 needsCleanup = migrationResult.needsCleanup
             } else {
                 loaded = NGramData(clock: 0, unigram: [:], bigram: [:], trigram: [:])
+            }
+            // 기준 시점 되돌리기와 잊기는 백그라운드에서 끝내고 메인에는 결과만 넘긴다
+            if self.prepareLoadedData(&loaded) {
+                needsSave = true
             }
             
             let applyLoadedData = { [weak self] in
@@ -639,6 +647,64 @@ private extension NGramPredictiveTextEngine {
         storageGenerationLock.unlock()
     }
     
+    // MARK: Decay
+
+    /// 로딩한 데이터의 기준 시점을 필요하면 되돌리고, 잊는 기간 동안 다시 쓰이지 않은 항목을 지웁니다.
+    ///
+    /// ponytail: 잊기는 로딩 때만 한다. 한 프로세스가 오래 살면 그 사이 기준 아래로 내려간 항목이 다음 로딩까지 남는다.
+    /// 그 항목은 점수가 가장 낮아 상한 정리에서 먼저 지워지고 후보에는 맞는 다른 단어가 없을 때만 보인다.
+    /// 확장 프로세스가 오래 사는 것이 실기기에서 확인되면 저장 주기에 맞춰 메모리에서도 지운다
+    ///
+    /// - Returns: 데이터가 바뀌어 다음 저장 기회에 써야 하는지 여부
+    func prepareLoadedData(_ data: inout NGramData) -> Bool {
+        var changed = false
+        if data.clock / halfLife > Self.loadRebaseLimit {
+            Self.rebase(&data.unigram, &data.bigram, &data.trigram, clock: &data.clock, halfLife: halfLife)
+            changed = true
+        }
+
+        // 현재 점수 = 값 × 2^(-clock / halfLife) 가 2^(-forgetAfter / halfLife) 보다 작으면 지운다
+        let floor = exp2((data.clock - forgetAfter) / halfLife)
+        let unigramCount = data.unigram.count
+        data.unigram = data.unigram.filter { $0.value >= floor }
+        changed = changed || data.unigram.count != unigramCount
+
+        var removedContextEntry = false
+        data.bigram = Self.removingForgotten(data.bigram, below: floor, removed: &removedContextEntry)
+        data.trigram = Self.removingForgotten(data.trigram, below: floor, removed: &removedContextEntry)
+        return changed || removedContextEntry
+    }
+
+    /// 모든 값을 현재 점수로 환산하고 클록을 0으로 되돌립니다. 항목 사이 순서와 비율은 그대로입니다
+    static func rebase(
+        _ unigram: inout [String: Double],
+        _ bigram: inout [String: [String: Double]],
+        _ trigram: inout [String: [String: Double]],
+        clock: inout Double,
+        halfLife: Double
+    ) {
+        let factor = exp2(-clock / halfLife)
+        unigram = unigram.mapValues { $0 * factor }
+        bigram = bigram.mapValues { $0.mapValues { $0 * factor } }
+        trigram = trigram.mapValues { $0.mapValues { $0 * factor } }
+        clock = 0
+    }
+
+    /// 문맥 저장소에서 `floor`보다 작은 항목을 지우고, 비게 된 문맥 키도 지웁니다.
+    /// 지울 항목이 없는 문맥은 새로 만들지 않고 그대로 둡니다
+    static func removingForgotten(
+        _ store: [String: [String: Double]],
+        below floor: Double,
+        removed: inout Bool
+    ) -> [String: [String: Double]] {
+        store.compactMapValues { entries in
+            guard entries.values.contains(where: { $0 < floor }) else { return entries }
+            removed = true
+            let kept = entries.filter { $0.value >= floor }
+            return kept.isEmpty ? nil : kept
+        }
+    }
+
     // MARK: File I/O
     
     /// 바이너리 plist 파일에서 n-gram 데이터를 로드합니다.
@@ -760,6 +826,9 @@ private extension NGramPredictiveTextEngine {
         let words = currentSentenceWords
         let count = words.count
         clock += 1
+        if clock / halfLife > Self.recordRebaseLimit {
+            Self.rebase(&unigramStore, &bigramStore, &trigramStore, clock: &clock, halfLife: halfLife)
+        }
         // 사용 시점을 기준 시점으로 환산한 가중치. 모든 항목이 같은 비율로 줄어드는 셈이라 순서가 시간으로 바뀌지 않는다
         let weight = exp2(clock / halfLife)
 

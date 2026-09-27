@@ -1055,7 +1055,7 @@ EOF
 - Consumes (Task 2): `halfLife`, `forgetAfter`, `clock`, `NGramData`, `startBackgroundLoad()`의 `loaded`/`needsSave`, 테스트 헬퍼
 - Produces: `private static let loadRebaseLimit: Double = 300`, `private static let recordRebaseLimit: Double = 900`, `func prepareLoadedData(_ data: inout NGramData) -> Bool`, `static func rebase(_:_:_:clock:halfLife:)`, `static func removingForgotten(_:below:removed:) -> [String: [String: Double]]`
 
-- [ ] **Step 1: 실패하는 테스트 추가**
+- [x] **Step 1: 실패하는 테스트 추가**
 
 `NGramPredictiveTextEngineDecayTests`의 `// MARK: - 옛 형식 변환` 앞에 넣는다.
 
@@ -1148,7 +1148,7 @@ EOF
 
 `test잊는기간...`의 값 계산: `옛문맥`(t1) 값 2, `옛단어`(t2) 값 4, `옛문맥→옛단어` 값 4, `새단어0`~`새단어5`(t3~8) 값 8~256, 클록 8, 기준값 `2^(8-4) = 16`. `새단어1`(값 16)은 경계값이라 남는다(현재 점수가 기준값과 같으면 지우지 않는다).
 
-- [ ] **Step 2: 실패 확인**
+- [x] **Step 2: 실패 확인**
 
 ```sh
 xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
@@ -1161,7 +1161,7 @@ xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
 
 Expected: 새 테스트 4개 실패(잊기 2개는 옛 항목이 남음, 되돌리기는 클록 302, 넘침은 값이 `inf`이거나 저장 실패로 파일 읽기 오류). Task 2 테스트는 통과.
 
-- [ ] **Step 3: 구현**
+- [x] **Step 3: 구현**
 
 상수를 `defaultForgetAfter` 아래에 추가한다.
 
@@ -1251,13 +1251,13 @@ private extension의 `// MARK: File I/O` 앞에 새 절을 추가한다.
         }
 ```
 
-- [ ] **Step 4: 통과 확인**
+- [x] **Step 4: 통과 확인**
 
 Task 2 Step 8과 같은 명령을 `task3-green.log`로 실행한다.
 
 Expected: `** TEST SUCCEEDED **`, 실패 없음.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 이 문서의 Task 3 체크박스와 결과를 기록한 뒤:
 
@@ -1272,7 +1272,9 @@ Co-Authored-By: Claude Opus 5.5 (1M context) <noreply@anthropic.com>
 EOF
 ```
 
-**Task 3 결과:** (실행 뒤 기록)
+**Task 3 결과:** (2026-09-27)
+- Step 2(RED): 새 테스트 4개만 실패, 8 issues. 잊기 2개는 옛 항목이 남음(`suggestions` 불일치, 파일 bigram 불일치), 되돌리기는 `saved.clock == 1`·`w0 < 4` 실패, 넘침은 `clock == 199`·`isFinite`·첫 후보 실패. Task 2 테스트는 통과. 로그 `$SCRATCH/sdd-logs/task3-red.log`
+- Step 4(GREEN): NGram 관련 11 suites 77 tests 전부 통과, 엔진 새 경고 없음. 로그 `$SCRATCH/sdd-logs/task3-green.log`
 
 ---
 

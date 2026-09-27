@@ -151,6 +151,89 @@ struct NGramPredictiveTextEngineDecayTests {
         #expect(engine.suggestions(for: "") == [])
     }
 
+    // MARK: - 잊기와 기준 시점 되돌리기
+
+    @Test("잊는 기간 동안 다시 쓰지 않은 항목은 다시 로딩하면 사라짐")
+    func test잊는기간동안다시쓰지않은항목은_다시로딩하면사라짐() async throws {
+        let fixture = await makeLoadedNGramFixture(name: "forget", halfLife: 1, forgetAfter: 4)
+        recordSentence(fixture.engine, ["옛문맥", "옛단어"], times: 1)
+        for index in 0..<6 {
+            recordAlone(fixture.engine, "새단어\(index)", times: 1)
+        }
+        fixture.engine.endSentence()
+        fixture.saveQueue.sync {}
+
+        let reloaded = await makeLoadedNGramFixture(name: "forget-reload", halfLife: 1, forgetAfter: 4, url: fixture.url).engine
+
+        // 클록 8, 기준값 2^(8-4): 값 2(옛문맥)·4(옛단어, 옛문맥→옛단어)·8(새단어0)은 지우고 16 이상은 남긴다
+        #expect(reloaded.suggestions(for: "") == ["새단어5", "새단어4", "새단어3", "새단어2", "새단어1"])
+        // 문맥 키도 지워져 unigram 보충만 남는다
+        #expect(reloaded.suggestions(for: "옛문맥 ") == reloaded.suggestions(for: ""))
+    }
+
+    @Test("문맥 안 일부만 잊으면 문맥과 남은 항목은 유지")
+    func test문맥안일부만잊으면_문맥과남은항목은유지() async throws {
+        let fixture = await makeLoadedNGramFixture(name: "forget-partial", halfLife: 1, forgetAfter: 4)
+        recordSentence(fixture.engine, ["문맥", "옛단어"], times: 1)
+        for index in 0..<3 {
+            recordAlone(fixture.engine, "채움\(index)", times: 1)
+        }
+        recordSentence(fixture.engine, ["문맥", "새단어"], times: 1)
+        fixture.engine.endSentence()
+        fixture.saveQueue.sync {}
+
+        // 다시 로딩한 엔진은 기록이 없어도 잊은 결과를 저장한다(로딩 때 바뀐 데이터는 dirty)
+        let reloadedFixture = await makeLoadedNGramFixture(name: "forget-partial-reload", halfLife: 1, forgetAfter: 4, url: fixture.url)
+        reloadedFixture.engine.saveToDisk()
+        reloadedFixture.saveQueue.sync {}
+
+        // 클록 7, 기준값 2^3 = 8: 문맥→옛단어(값 4)는 지우고 문맥→새단어(값 128)는 남긴다
+        let saved = try readSavedNGramFile(at: fixture.url)
+        #expect(saved.bigram == ["문맥": ["새단어": 128]])
+        #expect(reloadedFixture.engine.suggestions(for: "문맥 ").first == "새단어")
+    }
+
+    @Test("클록이 반감기의 300배를 넘으면 로딩할 때 되돌리고 순서는 유지")
+    func test클록이반감기300배를넘으면_로딩할때되돌리고_순서는유지() async throws {
+        let fixture = await makeLoadedNGramFixture(name: "rebase-load", halfLife: 1, forgetAfter: 1_000)
+        for index in 0..<301 {
+            recordAlone(fixture.engine, "w\(index % 7)", times: 1)
+        }
+        fixture.engine.endSentence()
+        fixture.saveQueue.sync {}
+        let before = fixture.engine.suggestions(for: "")
+        let firstSaved = try readSavedNGramFile(at: fixture.url)
+        #expect(firstSaved.clock == 301)
+
+        let reloaded = await makeLoadedNGramFixture(name: "rebase-load-reload", halfLife: 1, forgetAfter: 1_000, url: fixture.url)
+        #expect(reloaded.engine.suggestions(for: "") == before)
+
+        reloaded.engine.addWord("w0")
+        reloaded.engine.endSentence()
+        reloaded.saveQueue.sync {}
+        let saved = try readSavedNGramFile(at: fixture.url)
+        #expect(saved.clock == 1)
+        // 되돌린 값은 현재 점수라 가장 최근 단어(w0, 방금 +1) 값이 2 안팎이다
+        let w0 = try #require(saved.unigram["w0"])
+        #expect(w0 < 4)
+    }
+
+    @Test("입력 중 클록이 반감기의 900배를 넘으면 되돌려 값이 넘치지 않음")
+    func test입력중클록이반감기900배를넘으면_되돌려값이넘치지않음() async throws {
+        let fixture = await makeLoadedNGramFixture(name: "rebase-record", halfLife: 1)
+        for index in 0..<1_100 {
+            recordAlone(fixture.engine, "w\(index % 7)", times: 1)
+        }
+        fixture.engine.endSentence()
+        fixture.saveQueue.sync {}
+
+        let saved = try readSavedNGramFile(at: fixture.url)
+        // 901번째 기록에서 0으로 되돌린 뒤 199번 더 기록했다
+        #expect(saved.clock == 199)
+        #expect(saved.unigram.values.allSatisfy { $0.isFinite })
+        #expect(fixture.engine.suggestions(for: "").first == "w\(1_099 % 7)")
+    }
+
     // MARK: - 옛 형식 변환
 
     @Test("기록한 단어가 많은 옛 형식 파일은 빈도 비율을 유지한 점수로 옮기고 새 형식으로 저장")
