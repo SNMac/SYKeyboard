@@ -37,13 +37,10 @@ struct NGramPredictiveTextEngineRemovalTests {
         fixture.engine.removeWord("날씨")
         fixture.saveQueue.sync {}
 
-        let data = try Data(contentsOf: fixture.url)
-        let plist = try #require(
-            PropertyListSerialization.propertyList(from: data, format: nil) as? [String: Any]
-        )
-        #expect(plist["unigram"] as? [String: Int] == ["오늘": 1, "좋다": 1])
-        #expect(plist["bigram"] as? [String: [String: Int]] == [:])
-        #expect(plist["trigram"] as? [String: [String: Int]] == [:])
+        let saved = try readSavedNGramFile(at: fixture.url)
+        #expect(Set(saved.unigram.keys) == ["오늘", "좋다"])
+        #expect(saved.bigram.isEmpty)
+        #expect(saved.trigram.isEmpty)
     }
 
     @Test("대소문자가 다른 같은 단어도 함께 삭제")

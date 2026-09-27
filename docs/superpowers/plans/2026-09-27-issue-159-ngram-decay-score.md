@@ -301,7 +301,7 @@ EOF
   - `startBackgroundLoad()` 안의 `var loaded: NGramData`, `var needsSave: Bool` (Task 3이 두 값 사이에 준비 단계를 끼운다)
   - 테스트 헬퍼: `makeLoadedNGramFixture(name:maxKeys:halfLife:forgetAfter:url:)`, `writeLegacyNGramData(unigram:bigram:trigram:to:)`, `readSavedNGramFile(at:) -> SavedNGramFile`, `temporaryNGramFileURL(name:) -> URL`
 
-- [ ] **Step 1: 테스트 헬퍼 갱신**
+- [x] **Step 1: 테스트 헬퍼 갱신**
 
 `SYKeyboardTests/Domain/NGramEngineTestSupport.swift`에서 `makeLoadedNGramFixture`와 파일 헬퍼를 아래로 바꾼다(`NGramLoadGate`는 그대로).
 
@@ -378,7 +378,7 @@ func readSavedNGramFile(at url: URL) throws -> SavedNGramFile {
 
 호출부 이름을 바꾼다: `NGramPredictiveTextEngineCompletionTests.swift:144`, `NGramPredictiveTextEngineFileMigrationTests.swift:17, 31, 32, 61, 75`, `NGramPredictiveTextEngineLoadingTests.swift:36`의 `writeNGramData(` → `writeLegacyNGramData(`.
 
-- [ ] **Step 2: 새 테스트 작성**
+- [x] **Step 2: 새 테스트 작성**
 
 `SYKeyboardTests/Domain/NGramPredictiveTextEngineDecayTests.swift`:
 
@@ -679,7 +679,7 @@ private func recordSentence(_ engine: NGramPredictiveTextEngine, _ words: [Strin
 
 값 계산(`test문맥당24개를넘는...`): 옛 unigram 합 `N = 30`이라 배율 1, `s0`~`s29` 값 1~30. `k`(클록 1)·`new`(클록 2, 값 `2^(2/500)` ≈ 1.003)를 기록하면 31개가 되고 `pruneEntries`가 값이 큰 24개(`s6`~`s29`)만 남긴다. 기록이 많은 경우(`N = 100,000`)는 배율 `500 / (ln2 × 100,000)` ≈ 0.0072라 옛 값이 모두 `new`보다 작아 `new`와 `s7`~`s29`가 남는다. 두 테스트는 기록량에 따라 새 단어가 남는지가 갈리는 것을 함께 고정한다.
 
-- [ ] **Step 3: 기존 테스트를 새 형식·감쇠에 맞춤**
+- [x] **Step 3: 기존 테스트를 새 형식·감쇠에 맞춤**
 
 `NGramPredictiveTextEngineRemovalTests.swift`의 `test삭제하면_값과문맥키에서모두지우고_바로저장` 단언부(`let data = ...`부터 끝까지)를 바꾼다.
 
@@ -733,7 +733,7 @@ private func recordSentence(_ engine: NGramPredictiveTextEngine, _ words: [Strin
     }
 ```
 
-- [ ] **Step 4: 실패 확인**
+- [x] **Step 4: 실패 확인**
 
 ```sh
 xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
@@ -746,7 +746,7 @@ xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
 
 Expected: 컴파일 실패. `extra arguments at positions ... in call`(`halfLife`/`forgetAfter`) 또는 `type 'NGramPredictiveTextEngine' has no member 'defaultHalfLife'`.
 
-- [ ] **Step 5: 엔진 구현 — 저장 모델과 프로퍼티**
+- [x] **Step 5: 엔진 구현 — 저장 모델과 프로퍼티**
 
 `NGramPredictiveTextEngine.swift`의 `// MARK: - Storage Model` 절을 바꾼다.
 
@@ -839,7 +839,7 @@ internal init에 인자를 추가한다.
         // (이하 기존 그대로)
 ```
 
-- [ ] **Step 6: 엔진 구현 — 로딩·저장·변환**
+- [x] **Step 6: 엔진 구현 — 로딩·저장·변환**
 
 `startBackgroundLoad()`의 로드 분기와 반영부를 바꾼다.
 
@@ -939,7 +939,7 @@ internal init에 인자를 추가한다.
         ))
 ```
 
-- [ ] **Step 7: 엔진 구현 — 기록·순위·정리의 점수화**
+- [x] **Step 7: 엔진 구현 — 기록·순위·정리의 점수화**
 
 `recordNGrams()`:
 
@@ -994,7 +994,7 @@ internal init에 인자를 추가한다.
 
 주석의 "빈도"를 "점수"로 바꾼다: 클래스 설명 "문맥에 따른 다음 단어를 빈도순으로 예측" → "문맥에 따른 다음 단어를 최근 사용이 반영된 점수순으로 예측", `suggestions` 설명의 "unigram(빈도순)"·"빈도순으로 정렬된"·"trigram·bigram 후보는 ... 빈도순" → "점수순", `completions` 설명의 "빈도순"·"합친 빈도" → "점수순"·"합친 점수", `rankedUnigramCandidates`·`insertTopUnigram`·`rankedCandidates`·`pruneUnigram`·`pruneEntries`·`pruneKeys`·`CaseSpellingGroup`의 "빈도" → "점수"("총 빈도" → "총점"). `CaseSpellingGroup`의 `("SY키보드" 5 > "sy키보드" 1)` 예시는 "더 자주 쓴 표기(점수가 높은 표기)"로 바꾼다.
 
-- [ ] **Step 8: 통과 확인**
+- [x] **Step 8: 통과 확인**
 
 ```sh
 xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
@@ -1017,7 +1017,7 @@ xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
 
 Expected: `** TEST SUCCEEDED **`, 실패(`✘`) 없음. 실패가 있으면 기대값을 고치기 전에 그 테스트가 감쇠로 순서가 바뀐 것인지(Step 3과 같은 경우), 동작이 틀린 것인지 먼저 가린다. 기대값을 바꿨다면 이유를 결과에 적는다.
 
-- [ ] **Step 9: Commit**
+- [x] **Step 9: Commit**
 
 이 문서의 Task 2 체크박스와 결과(통과 suite·테스트 개수, 로그 경로, Step 8에서 기대값을 바꾼 테스트가 있으면 그 이유)를 기록한 뒤:
 
@@ -1038,7 +1038,10 @@ Co-Authored-By: Claude Opus 5.5 (1M context) <noreply@anthropic.com>
 EOF
 ```
 
-**Task 2 결과:** (실행 뒤 기록)
+**Task 2 결과:** (2026-09-27)
+- Step 4(RED): 예상대로 컴파일 실패 — `type 'NGramPredictiveTextEngine' has no member 'defaultHalfLife'`/`'defaultForgetAfter'`, `extra arguments at positions #6, #7 in call`. 로그 `$SCRATCH/sdd-logs/task2-red.log`
+- Step 8(GREEN): NGram 관련 11 suites 73 tests 전부 통과(`$SCRATCH/ngram-suites.sh`, 로그 `$SCRATCH/sdd-logs/task2-green.log`). 새 테스트 `NGramPredictiveTextEngineDecayTests` 15개, `FileMigrationTests` 1개 추가. 엔진·테스트 파일의 새 경고 없음
+- 기대값을 바꾼 기존 테스트는 계획 Step 3의 세 곳뿐이다(Removal 파일 단언을 새 형식으로, Ranking 두 곳 기록 순서). 그 밖의 기존 테스트는 고치지 않고 통과했다
 
 ---
 

@@ -141,7 +141,7 @@ struct NGramPredictiveTextEngineCompletionTests {
     func test디스크로딩전에는_빈배열을반환하고_로딩뒤에찾음() async throws {
         let url = FileManager.default.temporaryDirectory
             .appendingPathComponent("SYKeyboardTests-\(UUID().uuidString)-completion-loading.plist")
-        try writeNGramData(unigram: ["키보드": 3], to: url)
+        try writeLegacyNGramData(unigram: ["키보드": 3], to: url)
         let gate = NGramLoadGate()
         let engine = NGramPredictiveTextEngine(
             language: "test-completion-loading",

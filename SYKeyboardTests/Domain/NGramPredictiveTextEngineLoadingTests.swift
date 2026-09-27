@@ -33,7 +33,7 @@ struct NGramPredictiveTextEngineLoadingTests {
     @Test("reset 이후 완료된 이전 로딩 결과는 메모리에 반영하지 않음")
     func testReset이후완료된_이전로딩결과는_메모리에반영하지않음() async throws {
         let url = temporaryFileURL(name: "reset-generation.plist")
-        try writeNGramData(
+        try writeLegacyNGramData(
             unigram: ["stale": 3],
             bigram: [:],
             trigram: [:],

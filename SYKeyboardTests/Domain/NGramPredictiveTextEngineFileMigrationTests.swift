@@ -14,7 +14,7 @@ struct NGramPredictiveTextEngineFileMigrationTests {
     @Test("옛 위치 파일만 있으면 새 위치로 옮기고 학습 데이터를 유지")
     func test옛파일만있으면_새위치로옮기고_데이터유지() async throws {
         let paths = try makeContainer(name: "legacy-only")
-        try writeNGramData(unigram: ["legacy": 3], to: paths.legacyURL)
+        try writeLegacyNGramData(unigram: ["legacy": 3], to: paths.legacyURL)
 
         let gate = NGramLoadGate()
         let engine = makeEngine(paths: paths, name: "legacy-only", gate: gate)
@@ -28,8 +28,8 @@ struct NGramPredictiveTextEngineFileMigrationTests {
     @Test("새 위치 파일이 이미 있으면 옛 파일을 옮기지 않고 새 파일을 읽음")
     func test새파일이있으면_옛파일을옮기지않음() async throws {
         let paths = try makeContainer(name: "both")
-        try writeNGramData(unigram: ["legacy": 3], to: paths.legacyURL)
-        try writeNGramData(unigram: ["new": 3], to: paths.fileURL)
+        try writeLegacyNGramData(unigram: ["legacy": 3], to: paths.legacyURL)
+        try writeLegacyNGramData(unigram: ["new": 3], to: paths.fileURL)
 
         let gate = NGramLoadGate()
         let engine = makeEngine(paths: paths, name: "both", gate: gate)
@@ -58,7 +58,7 @@ struct NGramPredictiveTextEngineFileMigrationTests {
     @Test("옮기기에 실패하면 옛 위치 파일을 계속 읽음")
     func test옮기기실패하면_옛파일을읽음() async throws {
         let paths = try makeContainer(name: "move-failed")
-        try writeNGramData(unigram: ["legacy": 3], to: paths.legacyURL)
+        try writeLegacyNGramData(unigram: ["legacy": 3], to: paths.legacyURL)
         try blockApplicationSupportDirectory(in: paths)
 
         let gate = NGramLoadGate()
@@ -72,13 +72,31 @@ struct NGramPredictiveTextEngineFileMigrationTests {
     @Test("초기화하면 옮기지 못한 옛 위치 파일도 삭제")
     func test초기화는_옛파일도삭제() throws {
         let paths = try makeContainer(name: "reset")
-        try writeNGramData(unigram: ["legacy": 3], to: paths.legacyURL)
+        try writeLegacyNGramData(unigram: ["legacy": 3], to: paths.legacyURL)
         try blockApplicationSupportDirectory(in: paths)
 
         let engine = makeEngine(paths: paths, name: "reset")
         engine.resetAllData()
 
         #expect(FileManager.default.fileExists(atPath: paths.legacyURL.path) == false)
+    }
+
+    @Test("옛 위치의 옛 형식 파일은 옮긴 뒤 다음 저장에서 새 형식으로 씀")
+    func test옛위치옛형식파일은_옮긴뒤_다음저장에서새형식으로씀() async throws {
+        let paths = try makeContainer(name: "legacy-format")
+        try writeLegacyNGramData(unigram: ["legacy": 3], to: paths.legacyURL)
+        let saveQueue = DispatchQueue(label: "SYKeyboardTests.ngram.migration.legacy-format")
+
+        let gate = NGramLoadGate()
+        let engine = makeEngine(paths: paths, name: "legacy-format", gate: gate, saveQueue: saveQueue)
+        await gate.finishLoading()
+        engine.saveToDisk()
+        saveQueue.sync {}
+
+        let saved = try readSavedNGramFile(at: paths.fileURL)
+        #expect(saved.version == 2)
+        #expect(saved.unigram == ["legacy": 3])
+        #expect(engine.suggestions(for: "") == ["legacy"])
     }
 }
 

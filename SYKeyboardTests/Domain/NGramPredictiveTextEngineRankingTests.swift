@@ -38,7 +38,8 @@ struct NGramPredictiveTextEngineRankingTests {
     func test항목수가상한보다많으면_상위10개만_빈도순으로반환() async {
         let engine = await makeLoadedNGramFixture(name: "ranking-more").engine
         let words = (1...14).map { "word\($0)" }
-        for (index, word) in words.enumerated() {
+        // 적게 쓴 단어부터 기록해 최근 사용이 횟수 순서를 뒤집지 않게 한다
+        for (index, word) in words.enumerated().reversed() {
             record(engine, word: word, times: 30 - index)
         }
 
@@ -94,8 +95,8 @@ struct NGramPredictiveTextEngineRankingTests {
         recordSentence(engine, words: ["bravo", "b1"], times: 5)
         recordSentence(engine, words: ["bravo", "b2"], times: 4)
 
-        // unigram 보충용. 위 단어들보다 빈도가 높아 상위에 온다
-        for (index, word) in ["u1", "u2", "u3", "u4", "u5", "u6"].enumerated() {
+        // unigram 보충용. 위 단어들보다 많이 써서 상위에 온다. 적게 쓴 단어부터 기록한다
+        for (index, word) in ["u1", "u2", "u3", "u4", "u5", "u6"].enumerated().reversed() {
             recordSentence(engine, words: [word], times: 30 - index)
         }
 
