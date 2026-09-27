@@ -69,7 +69,7 @@
 - Consumes: 현재 `NGramPredictiveTextEngine(language:fileURL:legacyStorage:maxKeys:)`, `onLoadCompleted`, `addWord`, `endSentence`, `suggestions(for:preferredScript:)`
 - Produces: Task 4가 같은 파일을 `label = "after"`로 다시 돌린다. 결과 파일 `$SCRATCH/perf-159.txt`
 
-- [ ] **Step 1: 측정 데이터 준비**
+- [x] **Step 1: 측정 데이터 준비**
 
 #157 측정 파일(옛 `Int` 형식)을 이번 scratchpad로 복사한다. 원본 scratchpad가 지워질 수 있어 생성 코드도 함께 복사한다.
 
@@ -84,7 +84,7 @@ ls -la "$SCRATCH/bench" "$SCRATCH/bench/typical"
 
 Expected: `ngram_ko-en.plist` 약 2.4MB(통합 최악), `ngram_ko-KR.plist` 약 1.2MB(언어별 최악), `typical/merged.plist` 약 1.0MB(통합 1년 × 하루 1,000단어). 원본이 없으면 `main.swift`(최악)·`typical.swift`(많은 사용)를 `swiftc -O`로 돌려 다시 만들고 그 사실을 기록한다.
 
-- [ ] **Step 2: 측정 코드 작성 (커밋하지 않음)**
+- [x] **Step 2: 측정 코드 작성 (커밋하지 않음)**
 
 `SYKeyboardTests/Domain/ZZNGramDecayPerfTests.swift`:
 
@@ -225,7 +225,7 @@ struct ZZNGramDecayPerfTests {
 }
 ```
 
-- [ ] **Step 3: 최적화 빌드로 시나리오마다 새 프로세스에서 실행**
+- [x] **Step 3: 최적화 빌드로 시나리오마다 새 프로세스에서 실행**
 
 사용자에게 빌드가 수 분 걸린다고 먼저 알린다.
 
@@ -247,7 +247,7 @@ cat "$SCRATCH/perf-159.txt"
 
 Expected: `** TEST BUILD SUCCEEDED **`, 시나리오마다 테스트 1개 통과, `perf-159.txt`에 `[before]` 줄이 시나리오별 6줄. 테스트가 0개 실행되면 `-only-testing` 식별자에서 `()`를 빼고 다시 실행하고 그 사실을 기록한다.
 
-- [ ] **Step 4: 측정 코드를 작업 트리에서 치우고 결과 기록**
+- [x] **Step 4: 측정 코드를 작업 트리에서 치우고 결과 기록**
 
 ```sh
 mv SYKeyboardTests/Domain/ZZNGramDecayPerfTests.swift "$SCRATCH/bench/"
@@ -257,9 +257,18 @@ git status --short
 Expected: `git status --short`에 이 계획 문서 외 변경 없음(`.xcscheme` 변경이 보이면 Global Constraints대로 처리).
 아래 「Task 1 결과」에 `perf-159.txt`의 `[before]` 값을 옮긴다(시나리오별 첫 로딩, 로딩 반복 중앙값, 유지·peak 메모리, 스페이스 1회 중앙값/p95/최대·16ms 초과 횟수, 파일 크기).
 
-**Task 1 결과:** (실행 뒤 기록)
+**Task 1 결과:** (2026-09-27, 변경 전 코드 = `5806926a`와 같음, iPhone 13 mini / iOS 18.6 시뮬레이터, `SWIFT_OPTIMIZATION_LEVEL=-O`, `build-for-testing` 1회 뒤 시나리오마다 `test-without-building` 새 프로세스. `-only-testing` 식별자는 `()`를 붙인 형태로 각 1개 테스트 실행 확인)
 
-- [ ] **Step 5: Commit**
+| 시나리오 | 첫 로딩 | 로딩 반복 중앙값 | 로딩 뒤 유지 | 로딩 중 peak | 입력·저장 중 peak | 스페이스 1회 중앙값 / p95 / 최대 | 16ms 초과 | 파일 크기(입력 → 150단어 뒤) |
+|---|---|---|---|---|---|---|---|---|
+| 통합 최악 | 657ms | 621ms | +19.8MB | +23.0MB | +40.3MB | 1.93 / 10.72 / 14.84ms | 0회 | 2385KB → 2385KB |
+| 통합 많은 사용 | 181ms | 166ms | +9.6MB | +19.9MB | +19.9MB | 3.26 / 6.63 / 7.39ms | 0회 | 1035KB → 1037KB |
+| 언어별 최악 | 354ms | 333ms | +10.6MB | +13.2MB | +20.0MB | 2.16 / 5.98 / 7.30ms | 0회 | 1195KB → 1195KB |
+
+- 원본: `$SCRATCH/perf-159.txt`의 `[before]` 줄, 로그 `$SCRATCH/sdd-logs/task1-*.log`. 측정 코드는 `$SCRATCH/bench/ZZNGramDecayPerfTests.swift`로 옮겼다(커밋 안 함).
+- 데이터는 #157 scratchpad에서 복사했다(재생성 없음).
+
+- [x] **Step 5: Commit**
 
 ```bash
 git add docs/superpowers/plans/2026-09-27-issue-159-ngram-decay-score.md
