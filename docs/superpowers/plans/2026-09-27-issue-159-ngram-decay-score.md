@@ -1284,7 +1284,7 @@ EOF
 - Create (커밋하지 않음): `SYKeyboardTests/Domain/ZZNGramDecayPerfTests.swift` (Task 1 파일 재사용)
 - Modify: `docs/superpowers/plans/2026-09-27-issue-159-ngram-decay-score.md`
 
-- [ ] **Step 1: 측정 코드 되돌려 놓고 라벨 변경**
+- [x] **Step 1: 측정 코드 되돌려 놓고 라벨 변경**
 
 ```sh
 cp "$SCRATCH/bench/ZZNGramDecayPerfTests.swift" SYKeyboardTests/Domain/
@@ -1294,11 +1294,11 @@ grep -n 'private let label' SYKeyboardTests/Domain/ZZNGramDecayPerfTests.swift
 
 Expected: `private let label = "after"`.
 
-- [ ] **Step 2: Task 1 Step 3과 같은 명령으로 실행** (로그 이름만 `task4-*`)
+- [x] **Step 2: Task 1 Step 3과 같은 명령으로 실행** (로그 이름만 `task4-*`)
 
 Expected: `perf-159.txt`에 `[after]` 줄이 시나리오별 6줄. 입력 파일은 옛 형식이라 변경 후에는 변환 경로를 탄다.
 
-- [ ] **Step 3: 측정 코드 치우고 비교 기록**
+- [x] **Step 3: 측정 코드 치우고 비교 기록**
 
 ```sh
 rm SYKeyboardTests/Domain/ZZNGramDecayPerfTests.swift
@@ -1308,9 +1308,29 @@ git status --short
 아래 「Task 4 결과」에 before/after 비교표(시나리오 × 첫 로딩·로딩 반복 중앙값·유지·peak 메모리·스페이스 1회 중앙값/p95/최대·16ms 초과·파일 크기)를 적는다.
 스페이스 p95가 12ms를 넘거나 before보다 20% 이상 늘면 사용자에게 알리고 실기기 측정 여부를 묻는다(spec 「측정」). 파일 크기가 늘어난 비율도 적는다.
 
-**Task 4 결과:** (실행 뒤 기록)
+**Task 4 결과:** (2026-09-27, Task 1과 같은 환경·방법)
 
-- [ ] **Step 4: Commit**
+계획과 다르게 간 곳: 계획대로면 매번 옛 형식 파일을 변환하는 **업데이트 직후 첫 로딩**만 재게 되어, 업데이트 뒤 평소처럼 새 형식 파일을 읽는 로딩은 재지 못한다. 그래서 측정 코드가 150단어 뒤 저장한 새 형식 파일(`version 2`, `clock 150` 확인)을 `$SCRATCH/bench/v2/`에 복사하게 하고, 그 파일을 읽는 시나리오 d·e·f를 추가해 변경 후 측정을 두 번 돌렸다. 옛 형식 미러 디코딩은 새 형식에서 실패하므로 `PropertyListSerialization`으로 unigram 키만 읽게 바꿨다(측정 코드만, 커밋 안 함).
+
+| 시나리오 | 첫 로딩 | 로딩 반복 중앙값 | 로딩 뒤 유지 | 로딩 중 peak | 입력·저장 중 peak | 스페이스 1회 중앙값 / p95 / 최대 | 16ms 초과 | 파일 크기(입력 → 150단어 뒤) |
+|---|---|---|---|---|---|---|---|---|
+| 통합 최악 — 변경 전(옛 형식) | 657ms | 621ms | +19.8MB | +23.0MB | +40.3MB | 1.93 / 10.72 / 14.84ms | 0회 | 2385KB → 2385KB |
+| 통합 최악 — 변경 후, 옛 형식 변환(1회차 / 2회차) | 743 / 650ms | 640 / 658ms | +30.2 / +23.5MB | +39.7 / +29.9MB | +46.2 / +33.5MB | 1.88 / 10.81 / 12.39 · 2.31 / 11.89 / 14.05ms | 0회 | 2385KB → 2376KB |
+| 통합 최악 — 변경 후, 새 형식 | 658ms | 634ms | +18.3MB | +22.2MB | +36.1MB | 1.53 / 7.33 / 12.71ms | 0회 | 2376KB → 2369KB |
+| 통합 많은 사용 — 변경 전 | 181ms | 166ms | +9.6MB | +19.9MB | +19.9MB | 3.26 / 6.63 / 7.39ms | 0회 | 1035KB → 1037KB |
+| 통합 많은 사용 — 변경 후, 변환(1회차 / 2회차) | 830 / 183ms | 179 / 173ms | +9.7 / +7.3MB | +13.1 / +12.3MB | +19.5 / +13.4MB | 2.65 / 6.13 / 7.84 · 2.89 / 6.19 / 6.89ms | 0회 | 1035KB → 1042KB |
+| 통합 많은 사용 — 변경 후, 새 형식 | 214ms | 176ms | +6.8MB | +14.5MB | +14.5MB | 2.82 / 6.18 / 7.11ms | 0회 | 1042KB → 1046KB |
+| 언어별 최악 — 변경 전 | 354ms | 333ms | +10.6MB | +13.2MB | +20.0MB | 2.16 / 5.98 / 7.30ms | 0회 | 1195KB → 1195KB |
+| 언어별 최악 — 변경 후, 변환(1회차 / 2회차) | 364 / 342ms | 361 / 337ms | +14.7 / +12.6MB | +20.9 / +11.3MB | +22.5 / +12.4MB | 2.32 / 5.68 / 6.17 · 1.90 / 5.56 / 7.01ms | 0회 | 1195KB → 1186KB |
+| 언어별 최악 — 변경 후, 새 형식 | 351ms | 337ms | +8.9MB | +10.7MB | +20.1MB | 2.07 / 3.65 / 4.56ms | 0회 | 1186KB → 1179KB |
+
+- 스페이스 1회 p95는 모든 시나리오에서 12ms 이하(최대 11.89ms, 변환 2회차 통합 최악)라 spec 기준(약 12ms)을 넘지 않았다. 실기기 측정은 하지 않는다.
+- 평소(새 형식) 로딩 시간·메모리는 변경 전과 같은 수준이다(통합 최악 유지 +19.8 → +18.3MB, 로딩 중 peak +23.0 → +22.2MB).
+- 옛 형식 변환은 업데이트 뒤 첫 로딩에서 한 번 옛 사전과 새 사전을 함께 들어 통합 최악 기준 로딩 중 peak가 +7~17MB, 유지 메모리가 +4~10MB 크게 나왔다. 두 회차 차이가 커서(메모리 반환 시점에 따라 다름) 범위로 적는다. 다음 로딩부터는 새 형식이라 사라진다.
+- 파일 크기는 옛 형식과 거의 같다(통합 최악 2385KB → 2376KB, 많은 사용 1035KB → 1042KB). 합성 데이터라 잊기로 지워진 항목은 없다.
+- 원본: `$SCRATCH/perf-159.txt`의 `[after]` 줄(두 번째 실행은 `--- second after run` 아래), 로그 `$SCRATCH/sdd-logs/task4-*.log`, `task4b-*.log`, 측정 코드 `$SCRATCH/bench/ZZNGramDecayPerfTests.swift`
+
+- [x] **Step 4: Commit**
 
 ```bash
 git add docs/superpowers/plans/2026-09-27-issue-159-ngram-decay-score.md
