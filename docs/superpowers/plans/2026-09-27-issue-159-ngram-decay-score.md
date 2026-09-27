@@ -1444,7 +1444,7 @@ EOF
 **Files:**
 - Modify: `docs/superpowers/plans/2026-09-27-issue-159-ngram-decay-score.md`
 
-- [ ] **Step 1: 전체 테스트**
+- [x] **Step 1: 전체 테스트**
 
 사용자에게 수 분 걸린다고 알린다.
 
@@ -1458,7 +1458,7 @@ xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
 
 Expected: `** TEST SUCCEEDED **`, 실패 없음. 테스트·suite 개수를 기록한다.
 
-- [ ] **Step 2: 4개 scheme 빌드**
+- [x] **Step 2: 4개 scheme 빌드**
 
 ```sh
 for s in SYKeyboard HangeulKeyboard EnglishKeyboard HangeulEnglishKeyboard; do
@@ -1471,7 +1471,7 @@ git status --short
 
 Expected: 4개 모두 `** BUILD SUCCEEDED **`. `.xcscheme` `RemotePath`만 바뀌었으면 되돌린다.
 
-- [ ] **Step 3: 시뮬레이터 입력 앱 확인 준비 (1.6.3 업데이트 재현)**
+- [x] **Step 3: 시뮬레이터 입력 앱 확인 준비 (1.6.3 업데이트 재현)**
 
 `reference-idb-simulator-quirks` 메모리의 조작 방법을 따른다. 기준 시뮬레이터 UDID를 `xcrun simctl list devices booted`로 확인하고(`$UDID`), 방금 빌드한 앱을 설치한다.
 
@@ -1495,7 +1495,7 @@ plutil -p "$GROUP/Library/Application Support/ngram_ko-KR.plist"
 
 떠 있는 한글 키보드 확장 프로세스가 있으면 호스트에서 끝낸다: `pgrep -fl HangeulKeyboard` → `kill -9 <pid>`.
 
-- [ ] **Step 4: 입력 앱에서 확인**
+- [x] **Step 4: 입력 앱에서 확인**
 
 `xcrun simctl openurl "$UDID" "sms:010"`로 메시지 작성 화면을 띄우고 한글 키보드(SY키보드 한글)로 바꾼다(메모리: `AppleKeyboards`를 두 개로 줄여 전환, 끝나면 원래 배열로 복원). 각 단계를 `xcrun simctl io "$UDID" screenshot "$SCRATCH/sim-<n>.png"`로 캡처해 확인한다.
 
@@ -1504,7 +1504,7 @@ plutil -p "$GROUP/Library/Application Support/ngram_ko-KR.plist"
 3. `회의`를 후보에서 골라 넣고 리턴, 다시 `오늘` + 스페이스 → `회의`를 한 번 더 고르고 리턴한 뒤, `오늘` + 스페이스 후보가 `회의`, `날씨` 순이다(새로 쓴 표현이 앞으로 옴).
 4. 작성 취소로 키보드를 내린 뒤(저장) `plutil -p`로 파일을 보면 `version => 2`, `clock`이 있고 값이 실수다.
 
-- [ ] **Step 5: 원래 상태로 복원**
+- [x] **Step 5: 원래 상태로 복원**
 
 ```sh
 pgrep -fl HangeulKeyboard   # 있으면 kill -9
@@ -1514,7 +1514,7 @@ cp "$SCRATCH/sim-backup/ngram_ko-KR.plist" "$GROUP/Library/Application Support/n
 
 `AppleKeyboards`를 바꿨다면 원래 배열로 되돌린다. 복원한 파일은 옛 형식일 수 있으며, 다음 로딩 때 변환된다.
 
-- [ ] **Step 6: 기록과 Commit**
+- [x] **Step 6: 기록과 Commit**
 
 「Task 6 결과」에 전체 테스트 개수, 4개 빌드 결과, 입력 앱 확인 1~4의 결과와 캡처 경로를 적는다. 입력 앱 확인은 시뮬레이터 확인으로 실기기 확인을 대신한다(사용자 결정). 조작이 막혀 확인하지 못한 항목은 차단 경로와 함께 "미확인"으로 적는다.
 
@@ -1527,4 +1527,12 @@ Co-Authored-By: Claude Opus 5.5 (1M context) <noreply@anthropic.com>
 EOF
 ```
 
-**Task 6 결과:** (실행 뒤 기록)
+**Task 6 결과:** (2026-09-27)
+- Step 1 전체 테스트: `✔ Test run with 827 tests in 91 suites passed`, `** TEST SUCCEEDED **`. 로그 `$SCRATCH/sdd-logs/task6-full.log`
+- Step 2 4개 scheme(`SYKeyboard`, `HangeulKeyboard`, `EnglishKeyboard`, `HangeulEnglishKeyboard`) 모두 `** BUILD SUCCEEDED **`, `.xcscheme` 변경 없음. 로그 `$SCRATCH/sdd-logs/task6-build-*.log`
+- Step 3~4 시뮬레이터 입력 앱 확인(iPhone 13 mini / iOS 18.6, `82146144-…`, 메시지 작성 화면, SY키보드 한글 두벌식). 실기기 확인을 대신한다(사용자 결정). 캡처 `$SCRATCH/sim-1.png`~`sim-4.png`
+  1. 통과 — 1.6.3 형식 파일(안녕 9, 오늘 5, 날씨 3, 회의 2)을 넣고 키보드를 띄우자 빈 입력 후보가 `안녕`, `오늘`, `날씨` 순(`sim-1.png`)
+  2. 통과 — `오늘` + 스페이스 뒤 후보가 `날씨`, `회의` 순(`sim-2.png`)
+  3. 통과 — `회의`를 한 번 고르고 리턴한 뒤 `오늘` + 스페이스 후보가 `회의`, `날씨` 순으로 바뀜(`sim-3a.png`, 회의 약 3.004 > 날씨 3). 계획의 두 번째 선택은 둘째 칸 탭이라 이미 첫 칸으로 올라간 `회의` 대신 `날씨`가 골라졌고, 그 뒤 `날씨`(약 4.006)가 다시 앞섰다(`sim-3.png`). 이것도 점수 규칙대로다
+  4. 통과 — 작성 취소로 키보드를 내린 뒤 파일이 `version => 2`, `clock => 5`, 실수 값(`오늘` 8.0125, `날씨` 4.0056, `회의` 3.0028, `안녕` 9)
+- Step 5 복원: 이 기기 `HangeulKeyboard` 확장 프로세스 종료, 새로 만든 `ngram_ko-KR.plist` 삭제(원래 없던 파일), `AppleKeyboards` 원래 6개 배열로 복원(diff 확인). 메시지 입력란에 남아 있던 이전 초안 "Je"는 확인 중 지웠다
