@@ -53,7 +53,7 @@
 - 파일이 새 형식도 옛 형식도 아니게 깨져 있으면 지금처럼 빈 학습으로 시작하고 멈추지 않아야 한다 → Task 2 `test깨진파일은_빈학습으로시작`.
 - 옛 파일의 unigram이 비어 있고 bigram만 있으면(`N = 0`) 0으로 나누지 않고 배율 1로 옮겨야 한다 → Task 2 `test옛형식unigram이비어있으면_배율1로옮김`.
 - 로딩이 끝나기 전에 친 단어(`pendingEvents`)도 클록을 올려야 한다. 안 올리면 그 단어가 가장 오래된 것으로 취급된다 → Task 2 `test로딩전에친단어도_클록을올림`.
-- 1.6.3 사용자는 문맥 키당 50개까지 저장했다. 변환 뒤 그 문맥에 다시 기록하면 24개로 줄고, 가장 낮은 점수부터 지워져야 한다 → Task 2 `test문맥당24개를넘는옛데이터는_다시기록할때_낮은점수부터24개로줄임`.
+- 1.6.3 사용자는 문맥 키당 50개까지 저장했다. 변환 뒤 그 문맥에 다시 기록하면 24개로 줄고, 가장 낮은 점수부터 지워져야 한다. 기록이 많은 사용자(배율 < 1)는 옛 점수가 작아져 방금 쓴 단어가 남고 오래된 항목이 지워지며, 기록이 적은 사용자(배율 1)는 방금 쓴 단어도 지워질 수 있다(develop과 같은 규칙) → Task 2 `test문맥당24개를넘는옛데이터는_다시기록할때_낮은점수부터24개로줄임`, `test기록이많은사용자의문맥당24개를넘는옛데이터는_새단어를남기고_오래된항목부터지움`.
 - 잊기로 문맥 안 일부 항목만 지워지면 문맥 키와 남은 항목은 그대로여야 한다 → Task 3 `test문맥안일부만잊으면_문맥과남은항목은유지`.
 
 ---
@@ -626,6 +626,25 @@ struct NGramPredictiveTextEngineDecayTests {
         #expect(kept.count == 24)
         #expect(Set(kept.keys) == Set((6..<30).map { "s\($0)" }))
     }
+
+    @Test("기록이 많은 사용자의 문맥당 24개를 넘는 옛 데이터는 새 단어를 남기고 오래된 항목부터 지움")
+    func test기록이많은사용자의문맥당24개를넘는옛데이터는_새단어를남기고_오래된항목부터지움() async throws {
+        let url = temporaryNGramFileURL(name: "decay-legacy-50-heavy")
+        // 전체 기록 10만 단어라 배율이 약 0.0072다. 옛 값 1~30은 0.0072~0.22가 된다
+        let successors = Dictionary(uniqueKeysWithValues: (0..<30).map { ("s\($0)", $0 + 1) })
+        try writeLegacyNGramData(unigram: ["k": 100_000], bigram: ["k": successors], to: url)
+        let fixture = await makeLoadedNGramFixture(name: "decay-legacy-50-heavy", url: url)
+
+        recordSentence(fixture.engine, ["k", "new"], times: 1)
+        fixture.engine.endSentence()
+        fixture.saveQueue.sync {}
+
+        // 방금 쓴 new(≈1.003)가 가장 높고, 옛 항목은 큰 순으로 s7~s29(23개)가 남는다
+        let saved = try readSavedNGramFile(at: url)
+        let kept = try #require(saved.bigram["k"])
+        #expect(kept.count == 24)
+        #expect(Set(kept.keys) == Set((7..<30).map { "s\($0)" } + ["new"]))
+    }
 }
 
 // MARK: - Helpers
@@ -649,7 +668,7 @@ private func recordSentence(_ engine: NGramPredictiveTextEngine, _ words: [Strin
 }
 ```
 
-값 계산(`test문맥당24개를넘는...`): 옛 unigram 합 `N = 30`이라 배율 1, `s0`~`s29` 값 1~30. `k`(클록 1)·`new`(클록 2, 값 `2^(2/500)` ≈ 1.003)를 기록하면 31개가 되고 `pruneEntries`가 값이 큰 24개(`s6`~`s29`)만 남긴다.
+값 계산(`test문맥당24개를넘는...`): 옛 unigram 합 `N = 30`이라 배율 1, `s0`~`s29` 값 1~30. `k`(클록 1)·`new`(클록 2, 값 `2^(2/500)` ≈ 1.003)를 기록하면 31개가 되고 `pruneEntries`가 값이 큰 24개(`s6`~`s29`)만 남긴다. 기록이 많은 경우(`N = 100,000`)는 배율 `500 / (ln2 × 100,000)` ≈ 0.0072라 옛 값이 모두 `new`보다 작아 `new`와 `s7`~`s29`가 남는다. 두 테스트는 기록량에 따라 새 단어가 남는지가 갈리는 것을 함께 고정한다.
 
 - [ ] **Step 3: 기존 테스트를 새 형식·감쇠에 맞춤**
 
