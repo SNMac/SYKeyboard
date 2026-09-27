@@ -33,11 +33,15 @@ struct NGramPredictiveTextEngineRemovalTests {
         fixture.engine.addWord("좋다")
         fixture.engine.endSentence()
         fixture.saveQueue.sync {}
+        let before = try readSavedNGramFile(at: fixture.url)
+        _ = try #require(before.unigram["날씨"])
 
         fixture.engine.removeWord("날씨")
         fixture.saveQueue.sync {}
 
+        // 지운 단어만 빠지고 남은 단어의 점수는 그대로다
         let saved = try readSavedNGramFile(at: fixture.url)
+        #expect(saved.unigram == before.unigram.filter { $0.key != "날씨" })
         #expect(Set(saved.unigram.keys) == ["오늘", "좋다"])
         #expect(saved.bigram.isEmpty)
         #expect(saved.trigram.isEmpty)

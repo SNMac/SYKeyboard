@@ -13,16 +13,16 @@ import Testing
 @Suite("n-gram unigram 후보 문자 종류 우선 정렬 검증")
 struct NGramPredictiveTextEngineScriptPreferenceTests {
 
-    @Test("선호 문자 종류가 없으면 기존처럼 빈도순")
-    func test선호문자종류가없으면_기존처럼빈도순() async {
+    @Test("선호 문자 종류가 없으면 기존처럼 점수순")
+    func test선호문자종류가없으면_기존처럼점수순() async {
         let engine = await makeMixedEngine(name: "script-none")
 
         #expect(engine.suggestions(for: "") == ["meeting", "오늘", "123", "SY키보드", "hello"])
         #expect(engine.suggestions(for: "", preferredScript: nil) == ["meeting", "오늘", "123", "SY키보드", "hello"])
     }
 
-    @Test("선호 문자 종류를 앞에 두고 각 묶음 안은 빈도순")
-    func test선호문자종류를앞에두고_각묶음안은빈도순() async {
+    @Test("선호 문자 종류를 앞에 두고 각 묶음 안은 점수순")
+    func test선호문자종류를앞에두고_각묶음안은점수순() async {
         let engine = await makeMixedEngine(name: "script-prefer")
 
         #expect(engine.suggestions(for: "", preferredScript: .hangeul) == ["오늘", "SY키보드", "meeting", "123", "hello"])
@@ -39,8 +39,8 @@ struct NGramPredictiveTextEngineScriptPreferenceTests {
         #expect(engine.suggestions(for: "", preferredScript: .latin) == ["hello", "meeting", "오늘", "123", "SY키보드"])
     }
 
-    @Test("선호 문자 종류 단어가 부족하면 나머지를 빈도순으로 채움")
-    func test선호문자종류단어가부족하면_나머지를빈도순으로채움() async {
+    @Test("선호 문자 종류 단어가 부족하면 나머지를 점수순으로 채움")
+    func test선호문자종류단어가부족하면_나머지를점수순으로채움() async {
         let engine = await makeLoadedNGramFixture(name: "script-fill").engine
         record(engine, word: "alpha", times: 9)
         record(engine, word: "bravo", times: 8)
@@ -61,8 +61,8 @@ struct NGramPredictiveTextEngineScriptPreferenceTests {
         #expect(engine.suggestions(for: "", preferredScript: .hangeul) == Array(hangeulWords.prefix(10)))
     }
 
-    @Test("문맥 후보는 선호 문자 종류와 무관하게 빈도순")
-    func test문맥후보는_선호문자종류와무관하게빈도순() async {
+    @Test("문맥 후보는 선호 문자 종류와 무관하게 점수순")
+    func test문맥후보는_선호문자종류와무관하게점수순() async {
         let engine = await makeLoadedNGramFixture(name: "script-context").engine
         recordSentence(engine, words: ["오늘", "meeting"])
         recordSentence(engine, words: ["오늘", "날씨"])
@@ -83,7 +83,7 @@ struct NGramPredictiveTextEngineScriptPreferenceTests {
 
 // MARK: - Helpers
 
-/// 빈도: meeting 5, 오늘 4, 123 3, SY키보드 2, hello 1
+/// 사용 횟수: meeting 5, 오늘 4, 123 3, SY키보드 2, hello 1
 private func makeMixedEngine(name: String) async -> NGramPredictiveTextEngine {
     let engine = await makeLoadedNGramFixture(name: name).engine
     record(engine, word: "meeting", times: 5)

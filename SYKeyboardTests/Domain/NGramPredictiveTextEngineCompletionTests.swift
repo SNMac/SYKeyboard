@@ -13,8 +13,8 @@ import Testing
 @Suite("n-gram 입력 중 단어 완성 조회 검증")
 struct NGramPredictiveTextEngineCompletionTests {
 
-    @Test("접두어가 맞는 unigram을 빈도순으로 limit개까지 반환")
-    func test접두어가맞는unigram을_빈도순으로_limit개까지반환() async {
+    @Test("접두어가 맞는 unigram을 점수순으로 limit개까지 반환")
+    func test접두어가맞는unigram을_점수순으로_limit개까지반환() async {
         let engine = await makeLoadedNGramFixture(name: "completion-unigram").engine
         recordAlone(engine, "키보드", times: 3)
         recordAlone(engine, "키보드로", times: 5)
@@ -57,8 +57,8 @@ struct NGramPredictiveTextEngineCompletionTests {
         #expect(engine.completions(forTypedWord: "keyboard", previousWord: nil, limit: 3) == ["keyboards"])
     }
 
-    @Test("바로 앞 단어의 bigram 후보를 unigram 빈도보다 먼저 반환")
-    func test바로앞단어의bigram후보를_unigram빈도보다먼저반환() async {
+    @Test("바로 앞 단어의 bigram 후보를 unigram 점수보다 먼저 반환")
+    func test바로앞단어의bigram후보를_unigram점수보다먼저반환() async {
         let engine = await makeLoadedNGramFixture(name: "completion-bigram").engine
         recordPair(engine, "오늘", "날씨", times: 2)
         recordAlone(engine, "날개", times: 9)
@@ -80,8 +80,8 @@ struct NGramPredictiveTextEngineCompletionTests {
         #expect(engine.completions(forTypedWord: "Sy", previousWord: nil, limit: 3) == ["SY키보드"])
     }
 
-    @Test("문장 첫머리 대문자 표기는 소문자 표기와 한 단어로 묶어 합친 빈도로 순위를 매김")
-    func test문장첫머리대문자표기는_소문자표기와한단어로묶어_합친빈도로순위를매김() async {
+    @Test("문장 첫머리 대문자 표기는 소문자 표기와 한 단어로 묶어 합친 점수로 순위를 매김")
+    func test문장첫머리대문자표기는_소문자표기와한단어로묶어_합친점수로순위를매김() async {
         let engine = await makeLoadedNGramFixture(name: "completion-case-group").engine
         recordAlone(engine, "hello", times: 2)
         recordAlone(engine, "Hello", times: 2)
@@ -93,8 +93,8 @@ struct NGramPredictiveTextEngineCompletionTests {
     }
 
     // "hello" 1 + "Hello" 3 = 4로 "HELLO" 2보다 앞선다. 합치지 않으면 "Hello"(3)가, 빼기만 하고 더하지 않으면 "HELLO"가 대표가 된다
-    @Test("문장 첫머리 표기 빈도를 더한 소문자 표기가 다른 대문자 표기보다 대표로 앞섬")
-    func test문장첫머리표기빈도를더한소문자표기가_다른대문자표기보다대표로앞섬() async {
+    @Test("문장 첫머리 표기 점수를 더한 소문자 표기가 다른 대문자 표기보다 대표로 앞섬")
+    func test문장첫머리표기점수를더한소문자표기가_다른대문자표기보다대표로앞섬() async {
         let engine = await makeLoadedNGramFixture(name: "completion-case-fold").engine
         recordAlone(engine, "hello", times: 1)
         recordAlone(engine, "Hello", times: 3)
@@ -116,8 +116,8 @@ struct NGramPredictiveTextEngineCompletionTests {
         #expect(engine.completions(forTypedWord: "seo", previousWord: nil, limit: 3) == ["Seoul"])
     }
 
-    @Test("대소문자가 없는 단어와 대소문자 표기 묶음을 합친 빈도로 함께 순위를 매김")
-    func test대소문자가없는단어와_대소문자표기묶음을_합친빈도로함께순위를매김() async {
+    @Test("대소문자가 없는 단어와 대소문자 표기 묶음을 합친 점수로 함께 순위를 매김")
+    func test대소문자가없는단어와_대소문자표기묶음을_합친점수로함께순위를매김() async {
         let engine = await makeLoadedNGramFixture(name: "completion-caseless").engine
         recordAlone(engine, "1st", times: 2)
         recordAlone(engine, "1ST", times: 2)
