@@ -1352,7 +1352,7 @@ EOF
 - Modify: `README.md:879`
 - Modify: `docs/superpowers/plans/2026-09-27-issue-159-ngram-decay-score.md`
 
-- [ ] **Step 1: `자동완성 로직.md` §2-3 NGram 표**
+- [x] **Step 1: `자동완성 로직.md` §2-3 NGram 표**
 
 - 「조회」 행: "3순위 unigram(빈도순 보충)" → "3순위 unigram(점수순 보충)", "(trigram/bigram은 문자 종류와 무관하게 빈도순)" → "(trigram/bigram은 문자 종류와 무관하게 점수순)", "unigram이 바뀔 때 무효화" 뒤에 "(시간이 지나도 순서가 바뀌지 않아 기록할 때만 무효화)"를 붙인다. 완성 설명의 "빈도순으로 먼저, 남은 칸은 unigram 빈도순" → "점수순으로 먼저, 남은 칸은 unigram 점수순", "합친 빈도로" → "합친 점수로".
 - 「기록」 행을 바꾼다:
@@ -1375,7 +1375,7 @@ EOF
   | 마이그레이션 | 레거시 `UserDefaults` 키(1.6.0~1.6.2) 발견 시 변환해 새 형식 파일로 쓰고 키 제거. 옛 빈도 형식 파일(1.6.3, #159 이전)은 로딩 때 변환하고 다음 저장에서 새 형식으로 쓴다. 변환은 `converted(_:)` 하나이고 빈도에 `min(1, halfLife / (ln2 × unigram 빈도 합))`을 곱해, 그 비율대로 계속 써 왔을 때의 점수로 옮긴다(항목 사이 순서 유지). 컨테이너 루트 → `Library/Application Support` 파일 이동은 저장소 행 참조. 옛 빌드는 새 형식을 읽지 못해 학습이 초기화된다(TestFlight 테스터만 해당) |
   ```
 
-- [ ] **Step 2: `자동완성 로직.md` 테스트 표와 실행 명령**
+- [x] **Step 2: `자동완성 로직.md` 테스트 표와 실행 명령**
 
 「n-gram 단어 삭제」 행 아래에 넣는다:
 
@@ -1385,7 +1385,7 @@ EOF
 
 「n-gram 파일 위치 이동」 행은 "n-gram 파일 위치 이동, 옛 위치 옛 형식 파일 변환"으로 바꾼다. 실행 명령 블록의 `-only-testing:SYKeyboardTests/NGramPredictiveTextEngineFileMigrationTests \` 다음 줄에 `-only-testing:SYKeyboardTests/NGramPredictiveTextEngineDecayTests \`를 넣는다.
 
-- [ ] **Step 3: `성능 고려 사항.md`**
+- [x] **Step 3: `성능 고려 사항.md`**
 
 - §2-2 「대소문자가 없는 단어…」 행: "빈도가 같은 후보의 순서를 빼면" → "점수가 같은 후보의 순서를 빼면".
 - §2-3 표 맨 아래에 행을 추가한다:
@@ -1409,13 +1409,13 @@ EOF
   | NGram 감쇠 점수·옛 형식 변환·잊기·기준 시점 되돌리기 | `SYKeyboardTests/Domain/NGramPredictiveTextEngineDecayTests` |
   ```
 
-- [ ] **Step 4: `전체 아키텍처.md:206`, `README.md:879`**
+- [x] **Step 4: `전체 아키텍처.md:206`, `README.md:879`**
 
 `전체 아키텍처.md` 206행 설명 칸 끝에 "저장 형식 2(점수 값·클록)이고, 옛 빈도 형식과 레거시 `UserDefaults` 데이터는 로딩 때 변환한다(#159)"를 붙인다.
 
 `README.md` 879행 문장 끝에 붙인다: " 자주 쓰고 최근에 쓴 표현일수록 먼저 추천하고, 오래 쓰지 않은 학습은 자동으로 지워집니다."
 
-- [ ] **Step 5: 확인과 Commit**
+- [x] **Step 5: 확인과 Commit**
 
 ```sh
 grep -n "빈도" "docs/architecture/자동완성 로직.md" "docs/architecture/성능 고려 사항.md" | grep -iE "ngram|n-gram|unigram|bigram|trigram|키당|pruneKeys|표기"
@@ -1432,7 +1432,10 @@ Co-Authored-By: Claude Opus 5.5 (1M context) <noreply@anthropic.com>
 EOF
 ```
 
-**Task 5 결과:** (실행 뒤 기록)
+**Task 5 결과:** (2026-09-27)
+- Step 1~4 문구대로 반영. §3-5 표는 Task 4 결과에서 평소(새 형식) 로딩과 변환 첫 로딩을 나눠 옮겼다.
+- 계획 밖으로 더 고친 곳: `성능 고려 사항.md` §6-3에 "옛 형식 파일을 넣으면 첫 로딩에서 변환된다(평소 로딩은 새 형식 파일로 잰다)" 한 항목, §6-4 "빈도를 겹치지 않는" → "점수 값을 겹치지 않는". Step 5 grep 뒤 전체 "빈도"를 다시 훑다가 찾은 NGram 측정 방법 설명이다.
+- Step 5 grep: 남은 줄은 마이그레이션 행의 "옛 빈도 형식"·"빈도에 ... 곱해", §2-3 새 행의 "빈도 때와 같다", §3-3의 "#159 이전에는 빈도 합", §3-5의 "옛 빈도 형식"으로 모두 옛 형식을 가리키는 의도한 표현이다.
 
 ---
 
