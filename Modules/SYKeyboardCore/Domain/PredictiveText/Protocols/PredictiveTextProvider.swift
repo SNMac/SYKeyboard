@@ -31,9 +31,13 @@ protocol PredictiveTextProvider: AnyObject {
     func learn(word: String)
     /// 앱이 학습시킨 단어라 `unlearn(word:)`로 되돌릴 수 있는지 반환합니다.
     ///
+    /// 후보 바 굵기 표시 때문에 후보 바를 갱신할 때마다 불린다. 메모리에 든 값만 보고 빠르게 반환해야 한다
+    ///
     /// - Parameter word: 확인할 단어
     /// - Returns: 되돌릴 수 있으면 `true`
     func canUnlearn(word: String) -> Bool
+    /// 다른 프로세스가 바꾼 학습 단어 목록을 다음 조회 때 다시 읽도록 캐시를 비웁니다.
+    func invalidateLearnedWordsCache()
     /// 앱이 학습시킨 단어를 학습 데이터에서 제거합니다.
     ///
     /// - Parameter word: 제거할 단어
@@ -46,6 +50,8 @@ extension PredictiveTextProvider {
     }
 
     func canUnlearn(word: String) -> Bool { false }
+
+    func invalidateLearnedWordsCache() {}
 
     func unlearn(word: String) {}
 }

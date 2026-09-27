@@ -74,8 +74,12 @@ final class SuggestionButtonView: UIView {
 
     // MARK: - Internal Methods
     
-    func update(to title: String) {
+    /// - Parameters:
+    ///   - title: 표시할 후보 문자열
+    ///   - isRemovable: 길게 눌러 학습에서 삭제할 수 있는 후보면 `true`. 약한 단서로 medium 굵기를 쓴다
+    func update(to title: String, isRemovable: Bool = false) {
         suggestionLabel.text = title
+        suggestionLabel.font = .systemFont(ofSize: FontSize.stringKeyMedium, weight: isRemovable ? .medium : .regular)
         updateAppearance()
     }
 }
