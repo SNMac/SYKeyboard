@@ -143,6 +143,34 @@ extension 프로세스 로컬 상태는 `KeyboardExtensionLocalStateStore`에 �
 - 새 이슈 생성을 요청받으면 기본 생성 위치를 GitHub Issue로 판단하고, Linear 이슈 생성은 사용자가 명시적으로 요청한 경우에만 한다.
 - GitHub Issue는 `.github/ISSUE_TEMPLATE/feature-issue-template.md` 템플릿을 사용한다.
 
+## 출시 기준점과 마이그레이션
+
+- 버전·빌드번호는 `Common/Configs/Version.xcconfig`의 `VERSION`/`BUILD_NUMBER`다. 태그는 없다.
+- App Store에 배포된 빌드는 아래뿐이다. `main`에 머지된 다른 빌드와 TestFlight 빌드는 App Store에
+  나가지 않았다(예: 1.6.0 `202603121`~`202603125`).
+
+  | 버전 | 빌드번호 |
+  |---|---|
+  | 1.6.0 | 202603151 |
+  | 1.6.1 | 202603172 |
+  | 1.6.2 | 202603173 |
+  | 1.6.3 | 202603192 |
+
+- 저장소 키, 저장 형식, 학습 데이터의 의미를 바꿀 때는 **이 표의 빌드가 만든 데이터**를 기준으로
+  마이그레이션 필요 여부를 판단한다. 마지막 배포 빌드 이후 `develop`에서 처음 생긴 데이터라면 영향은
+  TestFlight 테스터뿐이다. 이 경우 마이그레이션 생략 여부를 사용자에게 확인하고 PR에 영향 범위를 적는다.
+- 데이터가 어느 빌드부터 생겼는지는 도입 커밋을 찾은 뒤 그 시점의 빌드번호를 본다.
+
+  ```sh
+  git log --format='%h %ad %s' --date=short -S '<키 이름>' -- Modules | tail -1
+  git show <커밋>:Common/Configs/Version.xcconfig | grep -E 'VERSION|BUILD_NUMBER'
+  ```
+
+  빌드번호가 여러 커밋에 걸쳐 재사용된 적이 있다. 1.6.0 `202603151`은 3/10 커밋에도 붙어 있지만
+  배포된 것은 3/15 이후 빌드다. 예: TextChecker 학습 목록(`learnedWords`)은 3/12 `7b903d0a`부터 있어
+  모든 App Store 사용자에게 있다.
+- 새 버전을 App Store에 배포했다고 사용자가 알려 주면 이 표에 버전·빌드번호를 추가한다.
+
 ## PR 규칙
 
 - PR 제목은 `Type/#이슈번호 제목` 형식을 사용한다. `Type`은 커밋 메시지 타입을 그대로 쓰되 첫 글자를 대문자로 한다.
@@ -440,6 +468,7 @@ XcodeBuildMCP를 사용하는 경우 첫 build/test 전에 `session_show_default
 - 롤백·복원 작업이라면 각 변경이 기준 커밋 이전 동작의 복원인지 확인했는가? 기존부터 존재한 동작 개선을 섞고 있지는 않은가?
 - 코드 리뷰 지적을 반영하기 전에 이번 diff의 회귀인지, 과거에도 동일했던 동작인지 이력과 재현으로 구분했는가?
 - 저장소 키, 기본값, 로컬라이징, 미리보기, 테스트가 함께 필요한가?
+- 저장된 데이터의 형식이나 의미가 바뀐다면 App Store 배포 빌드(`출시 기준점과 마이그레이션`)가 만든 데이터에 마이그레이션이 필요한가?
 - Firebase/AdMob/권한/번들 설정 같은 외부 영향 파일을 건드리고 있지는 않은가?
 - **SPM 의존성을 추가했다면 `SYKeyboard/Resources/opensource_license.json`에 라이브러리명, 저작권 표기,
   라이선스 유형, 저장소 링크를 추가했는가?** 새 라이선스 유형이면 `licenses` 배열에 전문도 넣는다.
