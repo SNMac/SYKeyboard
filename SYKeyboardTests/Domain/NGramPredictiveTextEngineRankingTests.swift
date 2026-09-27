@@ -11,8 +11,8 @@ import Testing
 @Suite("n-gram unigram 후보 순위 검증")
 struct NGramPredictiveTextEngineRankingTests {
 
-    @Test("항목 수가 상한보다 적으면 있는 만큼 빈도순으로 반환")
-    func test항목수가상한보다적으면_있는만큼빈도순으로반환() async {
+    @Test("항목 수가 상한보다 적으면 있는 만큼 점수순으로 반환")
+    func test항목수가상한보다적으면_있는만큼점수순으로반환() async {
         let engine = await makeLoadedNGramFixture(name: "ranking-fewer").engine
         record(engine, word: "alpha", times: 5)
         record(engine, word: "bravo", times: 4)
@@ -23,8 +23,8 @@ struct NGramPredictiveTextEngineRankingTests {
         #expect(engine.suggestions(for: "") == ["alpha", "bravo", "charlie", "delta", "echo"])
     }
 
-    @Test("항목 수가 상한과 같으면 전부 빈도순으로 반환")
-    func test항목수가상한과같으면_전부빈도순으로반환() async {
+    @Test("항목 수가 상한과 같으면 전부 점수순으로 반환")
+    func test항목수가상한과같으면_전부점수순으로반환() async {
         let engine = await makeLoadedNGramFixture(name: "ranking-exact").engine
         let words = (1...10).map { "word\($0)" }
         for (index, word) in words.enumerated() {
@@ -34,11 +34,12 @@ struct NGramPredictiveTextEngineRankingTests {
         #expect(engine.suggestions(for: "") == words)
     }
 
-    @Test("항목 수가 상한보다 많으면 상위 10개만 빈도순으로 반환")
-    func test항목수가상한보다많으면_상위10개만_빈도순으로반환() async {
+    @Test("항목 수가 상한보다 많으면 상위 10개만 점수순으로 반환")
+    func test항목수가상한보다많으면_상위10개만_점수순으로반환() async {
         let engine = await makeLoadedNGramFixture(name: "ranking-more").engine
         let words = (1...14).map { "word\($0)" }
-        for (index, word) in words.enumerated() {
+        // 적게 쓴 단어부터 기록해 최근 사용이 횟수 순서를 뒤집지 않게 한다
+        for (index, word) in words.enumerated().reversed() {
             record(engine, word: word, times: 30 - index)
         }
 
@@ -69,8 +70,8 @@ struct NGramPredictiveTextEngineRankingTests {
         #expect(engine.suggestions(for: "") == [])
     }
 
-    @Test("unigram 상한을 넘으면 최소 빈도 단어가 제거")
-    func testUnigram상한을넘으면_최소빈도단어가제거() async {
+    @Test("unigram 상한을 넘으면 최소 점수 단어가 제거")
+    func testUnigram상한을넘으면_최소점수단어가제거() async {
         let engine = await makeLoadedNGramFixture(name: "ranking-prune", maxKeys: 3).engine
         record(engine, word: "alpha", times: 4)
         record(engine, word: "bravo", times: 3)
@@ -94,8 +95,8 @@ struct NGramPredictiveTextEngineRankingTests {
         recordSentence(engine, words: ["bravo", "b1"], times: 5)
         recordSentence(engine, words: ["bravo", "b2"], times: 4)
 
-        // unigram 보충용. 위 단어들보다 빈도가 높아 상위에 온다
-        for (index, word) in ["u1", "u2", "u3", "u4", "u5", "u6"].enumerated() {
+        // unigram 보충용. 위 단어들보다 많이 써서 상위에 온다. 적게 쓴 단어부터 기록한다
+        for (index, word) in ["u1", "u2", "u3", "u4", "u5", "u6"].enumerated().reversed() {
             recordSentence(engine, words: [word], times: 30 - index)
         }
 

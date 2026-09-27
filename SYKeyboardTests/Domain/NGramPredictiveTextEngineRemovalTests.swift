@@ -33,17 +33,18 @@ struct NGramPredictiveTextEngineRemovalTests {
         fixture.engine.addWord("좋다")
         fixture.engine.endSentence()
         fixture.saveQueue.sync {}
+        let before = try readSavedNGramFile(at: fixture.url)
+        _ = try #require(before.unigram["날씨"])
 
         fixture.engine.removeWord("날씨")
         fixture.saveQueue.sync {}
 
-        let data = try Data(contentsOf: fixture.url)
-        let plist = try #require(
-            PropertyListSerialization.propertyList(from: data, format: nil) as? [String: Any]
-        )
-        #expect(plist["unigram"] as? [String: Int] == ["오늘": 1, "좋다": 1])
-        #expect(plist["bigram"] as? [String: [String: Int]] == [:])
-        #expect(plist["trigram"] as? [String: [String: Int]] == [:])
+        // 지운 단어만 빠지고 남은 단어의 점수는 그대로다
+        let saved = try readSavedNGramFile(at: fixture.url)
+        #expect(saved.unigram == before.unigram.filter { $0.key != "날씨" })
+        #expect(Set(saved.unigram.keys) == ["오늘", "좋다"])
+        #expect(saved.bigram.isEmpty)
+        #expect(saved.trigram.isEmpty)
     }
 
     @Test("대소문자가 다른 같은 단어도 함께 삭제")

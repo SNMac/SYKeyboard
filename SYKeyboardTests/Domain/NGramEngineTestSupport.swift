@@ -15,10 +15,16 @@ struct NGramEngineFixture {
     let saveQueue: DispatchQueue
 }
 
-/// 임시 파일을 쓰는 엔진을 만들고 초기 로딩이 끝날 때까지 기다린다
-func makeLoadedNGramFixture(name: String, maxKeys: Int = 5000) async -> NGramEngineFixture {
-    let url = FileManager.default.temporaryDirectory
-        .appendingPathComponent("SYKeyboardTests-\(UUID().uuidString)-\(name).plist")
+/// 임시 파일을 쓰는 엔진을 만들고 초기 로딩이 끝날 때까지 기다린다.
+/// `url`을 주면 그 파일을 읽는다(저장 뒤 다시 로딩하는 테스트용)
+func makeLoadedNGramFixture(
+    name: String,
+    maxKeys: Int = 5000,
+    halfLife: Double = NGramPredictiveTextEngine.defaultHalfLife,
+    forgetAfter: Double = NGramPredictiveTextEngine.defaultForgetAfter,
+    url: URL? = nil
+) async -> NGramEngineFixture {
+    let url = url ?? temporaryNGramFileURL(name: name)
     let saveQueue = DispatchQueue(label: "SYKeyboardTests.ngram.save.\(name)")
     let gate = NGramLoadGate()
     let engine = NGramPredictiveTextEngine(
@@ -27,10 +33,17 @@ func makeLoadedNGramFixture(name: String, maxKeys: Int = 5000) async -> NGramEng
         legacyStorage: .standard,
         loadApplyScheduler: gate.schedule,
         maxKeys: maxKeys,
+        halfLife: halfLife,
+        forgetAfter: forgetAfter,
         saveQueue: saveQueue
     )
     await gate.finishLoading()
     return NGramEngineFixture(engine: engine, url: url, saveQueue: saveQueue)
+}
+
+func temporaryNGramFileURL(name: String) -> URL {
+    FileManager.default.temporaryDirectory
+        .appendingPathComponent("SYKeyboardTests-\(UUID().uuidString)-\(name).plist")
 }
 
 /// 엔진이 디스크를 읽은 뒤 메모리 반영을 테스트가 정한 시점까지 미룬다.
@@ -80,14 +93,15 @@ final class NGramLoadGate: @unchecked Sendable {
     }
 }
 
-struct TestNGramData: Codable {
+/// #159 이전의 빈도 형식(1.6.3 파일·develop 파일과 같은 구조)
+struct LegacyTestNGramData: Codable {
     var unigram: [String: Int]
     var bigram: [String: [String: Int]]
     var trigram: [String: [String: Int]]
 }
 
-/// 엔진이 읽는 형식(binary plist)으로 학습 데이터를 쓴다. 상위 디렉터리가 없으면 만든다
-func writeNGramData(
+/// 옛 빈도 형식(binary plist)으로 학습 데이터를 쓴다. 상위 디렉터리가 없으면 만든다
+func writeLegacyNGramData(
     unigram: [String: Int],
     bigram: [String: [String: Int]] = [:],
     trigram: [String: [String: Int]] = [:],
@@ -95,7 +109,20 @@ func writeNGramData(
 ) throws {
     let encoder = PropertyListEncoder()
     encoder.outputFormat = .binary
-    let data = try encoder.encode(TestNGramData(unigram: unigram, bigram: bigram, trigram: trigram))
+    let data = try encoder.encode(LegacyTestNGramData(unigram: unigram, bigram: bigram, trigram: trigram))
     try FileManager.default.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
     try data.write(to: url, options: .atomic)
+}
+
+/// 엔진이 저장한 새 형식(version 2) 파일
+struct SavedNGramFile: Decodable {
+    var version: Int
+    var clock: Double
+    var unigram: [String: Double]
+    var bigram: [String: [String: Double]]
+    var trigram: [String: [String: Double]]
+}
+
+func readSavedNGramFile(at url: URL) throws -> SavedNGramFile {
+    try PropertyListDecoder().decode(SavedNGramFile.self, from: Data(contentsOf: url))
 }

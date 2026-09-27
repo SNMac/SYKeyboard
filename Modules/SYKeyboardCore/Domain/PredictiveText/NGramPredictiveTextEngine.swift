@@ -11,8 +11,9 @@ import OSLog
 /// 사용자 입력 이력 기반 n-gram 다음 단어 예측 엔진
 ///
 /// 사용자가 입력한 단어를 unigram(1-gram), bigram(2-gram), trigram(3-gram)으로 기록하여
-/// 문맥에 따른 다음 단어를 빈도순으로 예측합니다.
-/// 문맥이 없는 경우(키보드 처음 열림 등)에는 unigram으로 자주 사용한 단어를 추천합니다.
+/// 문맥에 따른 다음 단어를 최근 사용이 반영된 점수순으로 예측합니다.
+/// 점수는 쓸 때마다 +1, 입력 단어 `halfLife`개마다 절반이 되는 지수 감쇠입니다(#159).
+/// 문맥이 없는 경우(키보드 처음 열림 등)에는 unigram으로 자주·최근에 사용한 단어를 추천합니다.
 ///
 /// 식별자별로 데이터가 분리되어 저장됩니다. 생성 시 전달한 `language` 식별자에 따라
 /// 한글 키보드는 한글 n-gram만, 영어 키보드는 영어 n-gram만 조회·기록합니다.
@@ -35,7 +36,7 @@ import OSLog
 /// ## 저장 구조
 /// - App Group 컨테이너의 `Library/Application Support/`에 식별자별 바이너리 plist 파일로 영구 저장
 /// - 파일명: `ngram_{language}.plist` (예: `ngram_ko.plist`, 한영 통합은 `ngram_ko-en.plist`)
-/// - 항목 수 제한으로 메모리 과다 사용 방지
+/// - 항목 수 제한으로 메모리 과다 사용 방지. 오래 쓰지 않은 항목은 로딩 때 지운다
 ///
 /// ## 동작 흐름
 /// 1. 스페이스 입력 시 `addWord(_:)`로 단어 축적 및 n-gram 기록
@@ -54,8 +55,23 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
     
     // MARK: - Storage Model
     
-    /// n-gram 데이터를 하나의 파일로 묶는 Codable 구조체
+    /// n-gram 데이터를 하나의 파일로 묶는 Codable 구조체 (저장 형식 2, #159)
+    ///
+    /// 값은 기준 시점(클록 0)으로 환산한 점수 `Σ 2^(사용 시점 / halfLife)`다.
+    /// 현재 점수는 `값 × 2^(-clock / halfLife)`이고, 모든 항목이 같은 비율로 줄어드는 셈이라 값끼리 바로 비교·합산한다
     fileprivate struct NGramData: Codable {
+        static let currentVersion = 2
+
+        var version = NGramData.currentVersion
+        /// 기준 시점 이후 기록한 단어 수
+        var clock: Double
+        var unigram: [String: Double]
+        var bigram: [String: [String: Double]]
+        var trigram: [String: [String: Double]]
+    }
+
+    /// 빈도를 저장하던 옛 형식. 1.6.3 파일, 1.6.0~1.6.2 `UserDefaults`, #159 이전 develop 파일이 이 구조다
+    fileprivate struct LegacyNGramData: Codable {
         var unigram: [String: Int]
         var bigram: [String: [String: Int]]
         var trigram: [String: [String: Int]]
@@ -73,6 +89,16 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
     static func maxKeys(forLanguage language: String) -> Int {
         language == hangeulEnglishLanguage ? 10000 : 5000
     }
+
+    /// 기본 반감기(입력 단어 수). 이만큼 입력하면 점수가 절반이 된다.
+    /// 같은 빈도로 습관을 바꾸면 새 표현이 이만큼 뒤에 예전 표현을 추월한다(#159 설계 문서의 시뮬레이션)
+    static let defaultHalfLife: Double = 500
+    /// 기본 잊는 기간(입력 단어 수). 한 번 쓴 항목이 이만큼 다시 쓰이지 않으면 저장소에 자리가 있어도 지운다
+    static let defaultForgetAfter: Double = 10_000
+    /// 로딩할 때 기준 시점을 되돌리는 클록 경계(반감기 배수). 기본 반감기면 약 15만 단어에 한 번이다
+    private static let loadRebaseLimit: Double = 300
+    /// 입력 중 값이 넘치지 않도록 기준 시점을 되돌리는 경계(반감기 배수). `Double`은 약 2^1023까지다
+    private static let recordRebaseLimit: Double = 900
 
     private lazy var logger = Logger(
         subsystem: Bundle.main.bundleIdentifier ?? "Unknown Bundle",
@@ -95,20 +121,26 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
     /// 로딩 완료 전에 들어온 기록 이벤트
     private var pendingEvents: [PendingEvent] = []
     
-    /// unigram 저장소: "단어" → 빈도수
+    /// unigram 저장소: "단어" → 점수 값
     ///
     /// 변이 경로(디스크 로드 반영, reset, 기록, prune)가 모두 이 프로퍼티를 거치므로
-    /// `didSet` 한 곳에서 순위 캐시를 무효화한다
-    private var unigramStore: [String: Int] = [:] {
+    /// `didSet` 한 곳에서 순위 캐시를 무효화한다. 시간이 지나도 순서는 바뀌지 않으므로 기록할 때만 무효화하면 된다
+    private var unigramStore: [String: Double] = [:] {
         didSet { rankedUnigramCache.removeAll() }
     }
     /// 선호 문자 종류별 `rankedUnigramCandidates(preferredScript:)` 결과 캐시.
     /// unigram이 바뀌지 않은 연속 스페이스 입력에서 계산을 건너뛴다
     private var rankedUnigramCache: [PredictiveTextScript?: [String]] = [:]
-    /// bigram 저장소: "직전 단어" → ["다음 단어": 빈도수]
-    private var bigramStore: [String: [String: Int]] = [:]
-    /// trigram 저장소: "직전 2단어" → ["다음 단어": 빈도수]
-    private var trigramStore: [String: [String: Int]] = [:]
+    /// bigram 저장소: "직전 단어" → ["다음 단어": 점수 값]
+    private var bigramStore: [String: [String: Double]] = [:]
+    /// trigram 저장소: "직전 2단어" → ["다음 단어": 점수 값]
+    private var trigramStore: [String: [String: Double]] = [:]
+    /// 기준 시점 이후 기록한 단어 수. 기록할 때만 늘어나므로 키보드를 쓰지 않는 동안에는 점수가 줄지 않는다
+    private var clock: Double = 0
+    /// 반감기(입력 단어 수)
+    private let halfLife: Double
+    /// 잊는 기간(입력 단어 수). 현재 점수가 `2^(-forgetAfter / halfLife)`보다 작으면 로딩 때 지운다
+    private let forgetAfter: Double
     
     /// 현재 문장의 단어 버퍼
     private var currentSentenceWords: [String] = []
@@ -118,9 +150,9 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
     /// 후보 바가 가로로 스크롤되므로 화면 밖 후보까지 만든다. `SuggestionController.maxSuggestions`와 같은 값이다
     private let maxPredictions = 10
     
-    /// n-gram 키 최대 항목 수 (이 수를 초과하면 빈도 낮은 항목부터 정리)
+    /// n-gram 키 최대 항목 수 (이 수를 초과하면 점수 낮은 항목부터 정리)
     ///
-    /// 실제로 노출하는 후보는 `maxPredictions`개뿐이고 나머지는 순위 변동을 위한 빈도 기록이다.
+    /// 실제로 노출하는 후보는 `maxPredictions`개뿐이고 나머지는 순위 변동을 위한 점수 기록이다.
     /// 키보드 확장은 메모리에 민감하므로 여유를 남기는 선에서 상한을 둔다
     private let maxEntriesPerKey = 24
     /// 전체 키 최대 개수
@@ -219,6 +251,8 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
         legacyStorage: UserDefaults,
         loadApplyScheduler: ((@escaping () -> Void) -> Void)? = nil,
         maxKeys: Int = 5000,
+        halfLife: Double = NGramPredictiveTextEngine.defaultHalfLife,
+        forgetAfter: Double = NGramPredictiveTextEngine.defaultForgetAfter,
         saveQueue: DispatchQueue = DispatchQueue(label: "com.snmac.sykeyboard.ngram.save", qos: .utility)
     ) {
         self.language = language
@@ -227,6 +261,8 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
         self.legacyStorage = legacyStorage
         self.loadApplyScheduler = loadApplyScheduler
         self.maxKeys = maxKeys
+        self.halfLife = halfLife
+        self.forgetAfter = forgetAfter
         self.saveQueue = saveQueue
         // 로딩·초기화와 경쟁하지 않도록 백그라운드 로딩 전에 옮긴다. 같은 볼륨 안 rename이라 비용이 작다
         if let legacyFileURL {
@@ -244,15 +280,22 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
             let loadState = signposter.beginInterval("NGramBackgroundLoad")
             
             var needsCleanup = false
-            let loaded: NGramData
-            
-            if let fileData = self.loadFromFile() {
-                loaded = fileData
+            // 메모리와 파일이 달라(옛 형식 변환 등) 다음 저장 기회에 써야 하는지 여부
+            var needsSave = false
+            var loaded: NGramData
+
+            if let fileResult = self.loadFromFile() {
+                loaded = fileResult.data
+                needsSave = fileResult.isConverted
             } else if let migrationResult = self.migrateFromUserDefaults() {
                 loaded = migrationResult.data
                 needsCleanup = migrationResult.needsCleanup
             } else {
-                loaded = NGramData(unigram: [:], bigram: [:], trigram: [:])
+                loaded = NGramData(clock: 0, unigram: [:], bigram: [:], trigram: [:])
+            }
+            // 기준 시점 되돌리기와 잊기는 백그라운드에서 끝내고 메인에는 결과만 넘긴다
+            if self.prepareLoadedData(&loaded) {
+                needsSave = true
             }
             
             let applyLoadedData = { [weak self] in
@@ -267,9 +310,10 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
                     self.unigramStore = loaded.unigram
                     self.bigramStore = loaded.bigram
                     self.trigramStore = loaded.trigram
+                    self.clock = loaded.clock
                     self.needsLegacyCleanup = needsCleanup
-                    // 메모리와 파일이 일치하는 시점. 이후 flushPendingEvents가 기록하면 다시 true가 된다
-                    self.hasUnsavedChanges = false
+                    // 변환한 데이터는 다음 저장 기회에 새 형식으로 쓴다. 이후 flushPendingEvents가 기록하면 다시 true가 된다
+                    self.hasUnsavedChanges = needsSave
                     self.isLoaded = true
                     self.flushPendingEvents()
                     self.logger.debug("[NGram/\(self.language)] 디스크 로딩 완료")
@@ -290,24 +334,24 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
     
     /// 커서 앞 문맥을 기반으로 다음 단어를 예측합니다.
     ///
-    /// trigram(직전 2단어) → bigram(직전 1단어) → unigram(빈도순) 순으로
+    /// trigram(직전 2단어) → bigram(직전 1단어) → unigram(점수순) 순으로
     /// 조회하며, 각 단계에서 부족한 슬롯을 다음 단계로 보충합니다.
     /// 문맥이 비어있으면 unigram만 사용합니다.
     ///
     /// 디스크 로딩이 완료되지 않은 경우 빈 배열을 반환합니다.
     ///
     /// - Parameter baseText: 자동완성을 제공할 텍스트 (`inputBuffer`)
-    /// - Returns: 빈도순으로 정렬된 다음 단어 후보 배열 (최대 `maxPredictions`개)
+    /// - Returns: 점수순으로 정렬된 다음 단어 후보 배열 (최대 `maxPredictions`개)
     func suggestions(for baseText: String) -> [String] {
         suggestions(for: baseText, preferredScript: nil)
     }
 
     /// `preferredScript`가 있으면 unigram 후보(문맥 없음, 남은 칸 보충)만 그 문자 종류를 앞에 둡니다.
-    /// trigram·bigram 후보는 문자 종류와 무관하게 빈도순입니다.
+    /// trigram·bigram 후보는 문자 종류와 무관하게 점수순입니다.
     ///
     /// - Parameters:
     ///   - baseText: 자동완성을 제공할 텍스트 (`inputBuffer`)
-    ///   - preferredScript: unigram 후보에서 먼저 보여줄 문자 종류. `nil`이면 빈도순만 따른다
+    ///   - preferredScript: unigram 후보에서 먼저 보여줄 문자 종류. `nil`이면 점수순만 따른다
     func suggestions(for baseText: String, preferredScript: PredictiveTextScript?) -> [String] {
         guard isLoaded else { return [] }
 
@@ -360,8 +404,8 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
     
     /// 입력 중인 단어를 이어 쓴 학습 단어를 반환합니다.
     ///
-    /// `previousWord` 뒤에 쓴 bigram 후보 중 맞는 것을 빈도순으로 먼저, 남은 칸은 unigram 빈도순으로 채웁니다.
-    /// unigram은 대소문자만 다른 표기를 한 단어로 묶어 합친 빈도로 순위를 매기고 대표 표기 하나만 돌려줍니다.
+    /// `previousWord` 뒤에 쓴 bigram 후보 중 맞는 것을 점수순으로 먼저, 남은 칸은 unigram 점수순으로 채웁니다.
+    /// unigram은 대소문자만 다른 표기를 한 단어로 묶어 합친 점수로 순위를 매기고 대표 표기 하나만 돌려줍니다.
     /// 비교·표기 규칙은 `PredictiveTextCompletionMatchPolicy`를 따르고, 입력 중인 단어 자체는 뺍니다.
     /// 디스크 로딩이 완료되지 않은 경우 빈 배열을 반환합니다.
     ///
@@ -391,7 +435,7 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
         // ponytail: 키 입력마다 unigram 전체(최대 10000개)를 훑는다. 대부분은 판정 정책의 첫 스칼라 거르기에서 바로 빠지고,
         // 남은 비용은 실제로 맞는 단어 몫이라 첫 자모 색인으로는 줄지 않는다
         var spellingGroups: [String: CaseSpellingGroup] = [:]
-        var top: [(key: String, value: Int)] = []
+        var top: [(key: String, value: Double)] = []
         for entry in unigramStore where policy.isCompletion(entry.key) {
             // 대소문자가 없는 단어는 묶일 다른 표기가 없어 바로 순위에 넣는다
             if PredictiveTextCompletionMatchPolicy.hasNoCaseVariants(entry.key) {
@@ -402,7 +446,7 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
             let lowered = entry.key.lowercased()
             // bigram 후보가 없으면 seen에는 입력 단어뿐이고, 입력 단어는 판정 정책이 이미 뺀다
             guard results.isEmpty || !seen.contains(lowered) else { continue }
-            spellingGroups[lowered, default: CaseSpellingGroup(lowered: lowered)].add(entry.key, count: entry.value)
+            spellingGroups[lowered, default: CaseSpellingGroup(lowered: lowered)].add(entry.key, score: entry.value)
         }
         for group in spellingGroups.values {
             insertTopUnigram(group.representative, into: &top)
@@ -481,7 +525,7 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
 
         let target = word.lowercased()
         let matches: (String) -> Bool = { $0.lowercased() == target }
-        let droppingWord: ([String: Int]) -> [String: Int]? = { entries in
+        let droppingWord: ([String: Double]) -> [String: Double]? = { entries in
             let kept = entries.filter { !matches($0.key) }
             return kept.isEmpty ? nil : kept
         }
@@ -517,6 +561,7 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
         let generation = currentStorageGeneration()
         let snapshotState = Self.signposter.beginInterval("NGramSaveSnapshot")
         let snapshot = NGramData(
+            clock: clock,
             unigram: unigramStore,
             bigram: bigramStore,
             trigram: trigramStore
@@ -564,6 +609,7 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
         unigramStore = [:]
         bigramStore = [:]
         trigramStore = [:]
+        clock = 0
         currentSentenceWords = []
         pendingEvents = []
         writeCounter = 0
@@ -601,19 +647,101 @@ private extension NGramPredictiveTextEngine {
         storageGenerationLock.unlock()
     }
     
+    // MARK: Decay
+
+    /// 로딩한 데이터의 기준 시점을 필요하면 되돌리고, 잊는 기간 동안 다시 쓰이지 않은 항목을 지웁니다.
+    ///
+    /// ponytail: 잊기는 로딩 때만 한다. 엔진은 키보드 VC가 만들 때마다 새로 로딩하므로(VC가 deinit되면 함께 사라진다)
+    /// 같은 VC가 계속 쓰이는 동안 기준 아래로 내려간 항목은 다음 VC 생성까지 남는다.
+    /// 그 항목은 점수가 가장 낮아 상한 정리에서 먼저 지워지고 후보에는 맞는 다른 단어가 없을 때만 보인다.
+    /// 키보드 VC가 deinit되지 않고 오래 재사용되는 것이 확인되면 저장 주기에 맞춰 메모리에서도 지운다
+    ///
+    /// - Returns: 데이터가 바뀌어 다음 저장 기회에 써야 하는지 여부
+    func prepareLoadedData(_ data: inout NGramData) -> Bool {
+        var changed = false
+        if data.clock / halfLife > Self.loadRebaseLimit {
+            Self.rebase(&data.unigram, &data.bigram, &data.trigram, clock: &data.clock, halfLife: halfLife)
+            changed = true
+        }
+
+        // 현재 점수 = 값 × 2^(-clock / halfLife) 가 2^(-forgetAfter / halfLife) 보다 작으면 지운다
+        let floor = exp2((data.clock - forgetAfter) / halfLife)
+        let unigramCount = data.unigram.count
+        data.unigram = data.unigram.filter { $0.value >= floor }
+        changed = changed || data.unigram.count != unigramCount
+
+        var removedContextEntry = false
+        data.bigram = Self.removingForgotten(data.bigram, below: floor, removed: &removedContextEntry)
+        data.trigram = Self.removingForgotten(data.trigram, below: floor, removed: &removedContextEntry)
+        return changed || removedContextEntry
+    }
+
+    /// 모든 값을 현재 점수로 환산하고 클록을 0으로 되돌립니다. 항목 사이 순서와 비율은 그대로입니다
+    static func rebase(
+        _ unigram: inout [String: Double],
+        _ bigram: inout [String: [String: Double]],
+        _ trigram: inout [String: [String: Double]],
+        clock: inout Double,
+        halfLife: Double
+    ) {
+        let factor = exp2(-clock / halfLife)
+        unigram = unigram.mapValues { $0 * factor }
+        bigram = bigram.mapValues { $0.mapValues { $0 * factor } }
+        trigram = trigram.mapValues { $0.mapValues { $0 * factor } }
+        clock = 0
+    }
+
+    /// 문맥 저장소에서 `floor`보다 작은 항목을 지우고, 비게 된 문맥 키도 지웁니다.
+    /// 지울 항목이 없는 문맥은 새로 만들지 않고 그대로 둡니다
+    static func removingForgotten(
+        _ store: [String: [String: Double]],
+        below floor: Double,
+        removed: inout Bool
+    ) -> [String: [String: Double]] {
+        store.compactMapValues { entries in
+            guard entries.values.contains(where: { $0 < floor }) else { return entries }
+            removed = true
+            let kept = entries.filter { $0.value >= floor }
+            return kept.isEmpty ? nil : kept
+        }
+    }
+
     // MARK: File I/O
     
     /// 바이너리 plist 파일에서 n-gram 데이터를 로드합니다.
     ///
     /// 새 위치를 먼저 읽고, 없으면 옮기지 못한 옛 위치를 읽습니다.
+    /// 새 형식으로 읽지 못하면 옛 빈도 형식으로 읽어 점수로 변환합니다.
     ///
-    /// - Returns: 로드된 데이터, 파일이 없거나 파싱 실패 시 `nil`
-    func loadFromFile() -> NGramData? {
+    /// - Returns: 로드된 데이터와 옛 형식에서 변환했는지 여부, 파일이 없거나 파싱 실패 시 `nil`
+    func loadFromFile() -> (data: NGramData, isConverted: Bool)? {
         for url in [fileURL, legacyFileURL].compactMap({ $0 }) {
             guard let data = try? Data(contentsOf: url) else { continue }
-            return try? PropertyListDecoder().decode(NGramData.self, from: data)
+            let decoder = PropertyListDecoder()
+            if let current = try? decoder.decode(NGramData.self, from: data) {
+                return (current, false)
+            }
+            guard let legacy = try? decoder.decode(LegacyNGramData.self, from: data) else { return nil }
+            return (converted(legacy), true)
         }
         return nil
+    }
+
+    /// 옛 빈도를, 그 비율대로 지금 반감기로 계속 써 왔다면 가졌을 점수로 옮깁니다.
+    ///
+    /// 일정한 비율 r로 오래 쓴 항목의 점수는 `r × halfLife / ln2`에서 안정되므로 빈도에
+    /// `halfLife / (ln2 × 전체 기록 단어 수)`를 곱합니다. 항목 사이 순서는 그대로입니다.
+    /// 기록한 단어가 적으면(배율이 1을 넘으면) 빈도를 그대로 점수로 씁니다.
+    func converted(_ legacy: LegacyNGramData) -> NGramData {
+        let total = legacy.unigram.values.reduce(0, +)
+        let scale = total > 0 ? min(1, halfLife / (M_LN2 * Double(total))) : 1
+        let scaled: ([String: Int]) -> [String: Double] = { $0.mapValues { Double($0) * scale } }
+        return NGramData(
+            clock: 0,
+            unigram: scaled(legacy.unigram),
+            bigram: legacy.bigram.mapValues(scaled),
+            trigram: legacy.trigram.mapValues(scaled)
+        )
     }
 
     /// 새 위치에 파일이 없고 옛 위치에 있을 때만 옮긴다.
@@ -655,11 +783,11 @@ private extension NGramPredictiveTextEngine {
         
         guard unigram != nil || bigram != nil || trigram != nil else { return nil }
         
-        let migrated = NGramData(
+        let migrated = converted(LegacyNGramData(
             unigram: unigram ?? [:],
             bigram: bigram ?? [:],
             trigram: trigram ?? [:]
-        )
+        ))
         
         do {
             try Self.write(migrated, to: fileURL)
@@ -698,29 +826,35 @@ private extension NGramPredictiveTextEngine {
     func recordNGrams() {
         let words = currentSentenceWords
         let count = words.count
-        
+        clock += 1
+        if clock / halfLife > Self.recordRebaseLimit {
+            Self.rebase(&unigramStore, &bigramStore, &trigramStore, clock: &clock, halfLife: halfLife)
+        }
+        // 사용 시점을 기준 시점으로 환산한 가중치. 모든 항목이 같은 비율로 줄어드는 셈이라 순서가 시간으로 바뀌지 않는다
+        let weight = exp2(clock / halfLife)
+
         // unigram: 현재 단어
         let currentWord = words[count - 1]
-        unigramStore[currentWord, default: 0] += 1
+        unigramStore[currentWord, default: 0] += weight
         pruneUnigram()
-        logger.debug("[NGram/\(self.language)] unigram: \"\(currentWord)\" (count: \(self.unigramStore[currentWord] ?? 0))")
+        logger.debug("[NGram/\(self.language)] unigram: \"\(currentWord)\" (value: \(self.unigramStore[currentWord] ?? 0))")
         
         // bigram: 직전 단어 → 현재 단어
         if count >= 2 {
             let key = words[count - 2]
             let value = words[count - 1]
-            bigramStore[key, default: [:]][value, default: 0] += 1
+            bigramStore[key, default: [:]][value, default: 0] += weight
             pruneEntries(in: &bigramStore, forKey: key)
-            logger.debug("[NGram/\(self.language)] bigram: \"\(key)\" → \"\(value)\" (count: \(self.bigramStore[key]?[value] ?? 0))")
+            logger.debug("[NGram/\(self.language)] bigram: \"\(key)\" → \"\(value)\" (value: \(self.bigramStore[key]?[value] ?? 0))")
         }
         
         // trigram: 직전 2단어 → 현재 단어
         if count >= 3 {
             let key = "\(words[count - 3]) \(words[count - 2])"
             let value = words[count - 1]
-            trigramStore[key, default: [:]][value, default: 0] += 1
+            trigramStore[key, default: [:]][value, default: 0] += weight
             pruneEntries(in: &trigramStore, forKey: key)
-            logger.debug("[NGram/\(self.language)] trigram: \"\(key)\" → \"\(value)\" (count: \(self.trigramStore[key]?[value] ?? 0))")
+            logger.debug("[NGram/\(self.language)] trigram: \"\(key)\" → \"\(value)\" (value: \(self.trigramStore[key]?[value] ?? 0))")
         }
         
         pruneKeys(in: &bigramStore)
@@ -730,12 +864,12 @@ private extension NGramPredictiveTextEngine {
     
     // MARK: Ranking
     
-    /// 빈도순으로 정렬된 unigram 후보를 반환합니다.
+    /// 점수순으로 정렬된 unigram 후보를 반환합니다.
     ///
     /// 문맥이 없거나 trigram/bigram 결과가 부족할 때 사용됩니다.
     /// `preferredScript`가 있으면 그 문자 종류 상위 후보를 먼저, 나머지 상위 후보를 뒤에 둡니다.
     ///
-    /// - Parameter preferredScript: 먼저 보여줄 문자 종류. `nil`이면 빈도순만 따른다
+    /// - Parameter preferredScript: 먼저 보여줄 문자 종류. `nil`이면 점수순만 따른다
     /// - Returns: 단어 배열 (최대 `maxPredictions`개)
     func rankedUnigramCandidates(preferredScript: PredictiveTextScript? = nil) -> [String] {
         if let cached = rankedUnigramCache[preferredScript] { return cached }
@@ -744,8 +878,8 @@ private extension NGramPredictiveTextEngine {
         defer { Self.signposter.endInterval("RankedUnigramCandidates", state) }
 
         // 전체 정렬 대신 묶음마다 상위 maxPredictions개만 유지한다. 동률 순서는 정렬 시절과 마찬가지로 정의하지 않는다
-        var preferred: [(key: String, value: Int)] = []
-        var others: [(key: String, value: Int)] = []
+        var preferred: [(key: String, value: Double)] = []
+        var others: [(key: String, value: Double)] = []
         for entry in unigramStore {
             if let preferredScript, PredictiveTextScriptPolicy.script(of: entry.key) == preferredScript {
                 insertTopUnigram(entry, into: &preferred)
@@ -759,8 +893,8 @@ private extension NGramPredictiveTextEngine {
         return ranked
     }
 
-    /// 빈도 내림차순을 유지하며 상위 `maxPredictions`개 안에 들면 넣는다
-    func insertTopUnigram(_ entry: (key: String, value: Int), into top: inout [(key: String, value: Int)]) {
+    /// 점수 내림차순을 유지하며 상위 `maxPredictions`개 안에 들면 넣는다
+    func insertTopUnigram(_ entry: (key: String, value: Double), into top: inout [(key: String, value: Double)]) {
         guard top.count < maxPredictions || entry.value > top[top.count - 1].value else { return }
         let insertIndex = top.firstIndex { entry.value > $0.value } ?? top.count
         top.insert(entry, at: insertIndex)
@@ -769,29 +903,29 @@ private extension NGramPredictiveTextEngine {
         }
     }
     
-    /// 빈도순으로 정렬된 후보를 반환합니다.
+    /// 점수순으로 정렬된 후보를 반환합니다.
     ///
     /// - Parameters:
     ///   - store: n-gram 저장소
     ///   - key: 문맥 키
-    /// - Returns: 빈도순으로 정렬된 단어 배열
-    func rankedCandidates(from store: [String: [String: Int]], key: String) -> [String] {
-        guard let frequencies = store[key] else { return [] }
-        return frequencies
+    /// - Returns: 점수순으로 정렬된 단어 배열
+    func rankedCandidates(from store: [String: [String: Double]], key: String) -> [String] {
+        guard let scores = store[key] else { return [] }
+        return scores
             .sorted { $0.value > $1.value }
             .map { $0.key }
     }
     
     // MARK: Pruning
     
-    /// unigram 항목 수가 제한을 초과하면 빈도 낮은 항목을 제거합니다.
+    /// unigram 항목 수가 제한을 초과하면 점수 낮은 항목을 제거합니다.
     ///
-    /// `maxKeys`를 초과할 때 빈도가 낮은 순서대로 제거합니다.
+    /// `maxKeys`를 초과할 때 점수가 낮은 순서대로 제거합니다. 같은 횟수면 먼저 쓴 항목이 점수가 낮다.
     func pruneUnigram() {
         let removeCount = unigramStore.count - maxKeys
         guard removeCount > 0 else { return }
 
-        // 정상 경로는 기록마다 최대 1개 초과라 최소 빈도 1개만 찾는다. 2개 이상 초과(상한을 넘긴
+        // 정상 경로는 기록마다 최대 1개 초과라 최소 점수 1개만 찾는다. 2개 이상 초과(상한을 넘긴
         // 마이그레이션 데이터 등)는 드물어 기존 정렬 방식을 유지한다
         if removeCount == 1 {
             if let lowest = unigramStore.min(by: { $0.value < $1.value }) {
@@ -806,12 +940,12 @@ private extension NGramPredictiveTextEngine {
         }
     }
     
-    /// 특정 키의 항목 수가 제한을 초과하면 빈도 낮은 항목을 제거합니다.
+    /// 특정 키의 항목 수가 제한을 초과하면 점수 낮은 항목을 제거합니다.
     ///
     /// - Parameters:
     ///   - store: n-gram 저장소
     ///   - key: 정리할 키
-    func pruneEntries(in store: inout [String: [String: Int]], forKey key: String) {
+    func pruneEntries(in store: inout [String: [String: Double]], forKey key: String) {
         guard let entries = store[key], entries.count > maxEntriesPerKey else { return }
         
         let sorted = entries.sorted { $0.value > $1.value }
@@ -820,18 +954,18 @@ private extension NGramPredictiveTextEngine {
         store[key] = pruned
     }
     
-    /// 전체 키 수가 제한을 초과하면 총 빈도가 낮은 키를 제거합니다.
+    /// 전체 키 수가 제한을 초과하면 총점이 낮은 키를 제거합니다.
     ///
     /// - Parameter store: n-gram 저장소
-    func pruneKeys(in store: inout [String: [String: Int]]) {
+    func pruneKeys(in store: inout [String: [String: Double]]) {
         let removeCount = store.count - maxKeys
         guard removeCount > 0 else { return }
 
-        // pruneUnigram과 같이 정상 경로는 기록마다 최대 1개 초과라 총 빈도가 가장 낮은 키 1개만 찾는다.
+        // pruneUnigram과 같이 정상 경로는 기록마다 최대 1개 초과라 총점이 가장 낮은 키 1개만 찾는다.
         // 가득 찬 저장소에서는 trigram 새 문맥이 거의 매 스페이스마다 생겨 전체 정렬이 입력 지연이 된다
         if removeCount == 1 {
             var lowestKey: String?
-            var lowestTotal = Int.max
+            var lowestTotal = Double.infinity
             for (key, entries) in store {
                 let total = entries.values.reduce(0, +)
                 if total < lowestTotal {
@@ -845,7 +979,7 @@ private extension NGramPredictiveTextEngine {
             return
         }
 
-        // 각 키의 총 빈도를 계산하여 낮은 순으로 제거
+        // 각 키의 총점을 계산하여 낮은 순으로 제거
         let keysWithTotalFreq = store.map { (key: $0.key, total: $0.value.values.reduce(0, +)) }
         let sorted = keysWithTotalFreq.sorted { $0.total < $1.total }
 
@@ -868,31 +1002,31 @@ private extension NGramPredictiveTextEngine {
 
 // MARK: - CaseSpellingGroup
 
-/// 대소문자만 다른 표기 묶음에서 보여줄 표기와 합친 빈도를 고른다.
+/// 대소문자만 다른 표기 묶음에서 보여줄 표기와 합친 점수를 고른다.
 ///
-/// 소문자 표기가 있으면 첫 글자만 대문자인 표기(문장 첫머리에서 학습된 `"Hello"`)를 그 빈도에 더한다.
+/// 소문자 표기가 있으면 첫 글자만 대문자인 표기(문장 첫머리에서 학습된 `"Hello"`)를 그 점수에 더한다.
 /// 문장 첫머리 대문자는 `PredictiveTextCompletionMatchPolicy.displayText(for:)`가 입력에 맞춰 다시 붙인다.
-/// 나머지는 더 자주 쓴 표기를 고른다(`"SY키보드"` 5 > `"sy키보드"` 1). 소문자 표기가 없는 `"Seoul"`은 그대로다.
+/// 나머지는 점수가 높은(자주·최근에 쓴) 표기를 고른다(`"SY키보드"`를 `"sy키보드"`보다 많이 썼으면 `"SY키보드"`). 소문자 표기가 없는 `"Seoul"`은 그대로다.
 /// 키 입력마다 맞는 단어 수만큼 만들고 대부분은 표기가 하나라, 표기가 둘 이상일 때만 표기별 사전을 만든다
 private struct CaseSpellingGroup {
     private let lowered: String
-    private var first: (key: String, value: Int)?
-    private var others: [(key: String, value: Int)] = []
+    private var first: (key: String, value: Double)?
+    private var others: [(key: String, value: Double)] = []
 
     init(lowered: String) {
         self.lowered = lowered
     }
 
-    mutating func add(_ spelling: String, count: Int) {
+    mutating func add(_ spelling: String, score: Double) {
         if first == nil {
-            first = (spelling, count)
+            first = (spelling, score)
         } else {
-            others.append((spelling, count))
+            others.append((spelling, score))
         }
     }
 
-    /// 대표 표기와 묶음 전체 빈도
-    var representative: (key: String, value: Int) {
+    /// 대표 표기와 묶음 전체 점수
+    var representative: (key: String, value: Double) {
         guard let first else { return (key: lowered, value: 0) }
         // 표기가 하나면 규칙과 관계없이 그 표기가 대표다
         guard !others.isEmpty else { return first }
@@ -900,8 +1034,8 @@ private struct CaseSpellingGroup {
         var spellings = Dictionary([first] + others, uniquingKeysWith: { _, latest in latest })
         if spellings[lowered] != nil, let firstCharacter = lowered.first {
             let sentenceStartSpelling = firstCharacter.uppercased() + lowered.dropFirst()
-            if sentenceStartSpelling != lowered, let count = spellings.removeValue(forKey: sentenceStartSpelling) {
-                spellings[lowered, default: 0] += count
+            if sentenceStartSpelling != lowered, let score = spellings.removeValue(forKey: sentenceStartSpelling) {
+                spellings[lowered, default: 0] += score
             }
         }
         // 동률이면 코드 포인트 순으로 앞선 표기를 골라 결과가 매번 같게 한다

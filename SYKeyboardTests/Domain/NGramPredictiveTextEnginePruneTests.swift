@@ -13,8 +13,8 @@ import Testing
 @Suite("n-gram 문맥 키 상한 정리 검증")
 struct NGramPredictiveTextEnginePruneTests {
 
-    @Test("bigram 문맥 키가 상한을 넘으면 총 빈도가 가장 낮은 문맥이 제거")
-    func testBigram문맥키가상한을넘으면_총빈도가가장낮은문맥이제거() async {
+    @Test("bigram 문맥 키가 상한을 넘으면 총점이 가장 낮은 문맥이 제거")
+    func testBigram문맥키가상한을넘으면_총점이가장낮은문맥이제거() async {
         let engine = await makeLoadedNGramFixture(name: "prune-bigram", maxKeys: 3).engine
         recordSentence(engine, words: ["a", "xa"], times: 4)
         recordSentence(engine, words: ["b", "xb"], times: 3)
@@ -28,8 +28,8 @@ struct NGramPredictiveTextEnginePruneTests {
         #expect(engine.suggestions(for: "d ") == engine.suggestions(for: ""))
     }
 
-    @Test("trigram 문맥 키가 상한을 넘으면 총 빈도가 가장 낮은 문맥이 제거")
-    func testTrigram문맥키가상한을넘으면_총빈도가가장낮은문맥이제거() async {
+    @Test("trigram 문맥 키가 상한을 넘으면 총점이 가장 낮은 문맥이 제거")
+    func testTrigram문맥키가상한을넘으면_총점이가장낮은문맥이제거() async {
         let engine = await makeLoadedNGramFixture(name: "prune-trigram", maxKeys: 3).engine
         recordSentence(engine, words: ["p", "a", "xa"], times: 4)
         recordSentence(engine, words: ["p", "b", "xb"], times: 3)
