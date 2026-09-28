@@ -29,9 +29,10 @@ enum MathResultSuggestionAction: Equatable {
 /// - `SuggestionController`: `UILexicon` + `UITextChecker` + n-gram을 조합한 기본 구현
 ///
 /// ## 동작 흐름
-/// 1. **입력 중**: `updateSuggestions(for baseText:)`로 후보 갱신
-/// 2. **후보 탭**: `selectSuggestion(at:inputBuffer:)`로 현재 단어 교체
-/// 3. **스페이스**: `attemptTextReplacement(inputBuffer:)`로 텍스트 대치 수행, `recordWord(_:)`로 n-gram 기록
+/// 1. **입력 중**: `updateSuggestions(for:selectedText:mathExpressionText:textReplacementBaseText:)`로 후보 갱신.
+///    일반 후보는 커서 앞 문맥 기준 텍스트, 텍스트 대치는 `inputBuffer`를 쓴다
+/// 2. **후보 탭**: `selectSuggestion(at:baseText:textReplacementBaseText:)`로 현재 단어 교체
+/// 3. **스페이스**: `attemptTextReplacement(baseText:documentContextBeforeInput:)`로 텍스트 대치 수행, `recordUncommittedWords(from:)`로 n-gram 기록
 /// 4. **삭제**: `attemptRestoreReplacement(inputBuffer:documentContextBeforeInput:selectedText:)`로 대치 복구
 /// 5. **리턴**: `endSentence()`로 n-gram 문장 버퍼 초기화
 /// 6. **기타 키 입력**: `clearIgnoredShortcut()`으로 재대치 방지 상태 초기화
@@ -279,6 +280,8 @@ protocol SuggestionService: AnyObject {
 }
 
 extension SuggestionService {
+    /// 기준 텍스트를 텍스트 대치 조회에도 그대로 쓴다. 선택 텍스트처럼 두 텍스트가 같은 경우에만 쓴다.
+    /// 커서 앞 문맥을 기준 텍스트로 넘길 때는 대치용 텍스트를 따로 받는 요구사항 메서드를 쓴다
     func updateSuggestions(
         for baseText: String,
         selectedText: String?,
@@ -292,12 +295,9 @@ extension SuggestionService {
         )
     }
 
+    /// 기준 텍스트를 텍스트 대치 후보의 교체 길이 계산에도 그대로 쓴다. 두 텍스트가 같은 경우에만 쓴다
     func selectSuggestion(at index: Int, baseText: String) -> (deleteCount: Int, insertText: String)? {
         selectSuggestion(at: index, baseText: baseText, textReplacementBaseText: baseText)
-    }
-
-    func updateSuggestionsAfterNGramSelection(baseText: String) {
-        updateSuggestionsAfterNGramSelection(baseText: baseText, textReplacementBaseText: baseText)
     }
 
     func updateSuggestions(
