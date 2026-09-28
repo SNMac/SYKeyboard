@@ -777,7 +777,7 @@ Expected: `** TEST SUCCEEDED **`. 개수와 결과를 기록하고 커밋한다(
 
 결과(2026-09-28, iPhone 13 mini / iOS 18.6): `Test run with 852 tests in 94 suites passed`, `** TEST SUCCEEDED **`(#164 842 + 검색창 조건 2 + Policy 5 + 컨트롤러 3). 로그 `<scratchpad>/cc4-all.log`(세션 scratchpad라 보존되지 않음)
 
-- [ ] **Step 2: 입력 중 후보 갱신 시간 비교(시뮬레이터)**
+- [x] **Step 2: 입력 중 후보 갱신 시간 비교(시뮬레이터)**
 
 `성능 고려 사항.md` §6-4 방식으로 임시 테스트를 만들어 측정하고, 측정 뒤 삭제한다. 실제 `NGramPredictiveTextEngine`(학습 단어 1,000개)과 stub TextChecker로 같은 입력 단어를 두 기준 텍스트로 각각 1,000번 갱신해 1회 평균을 잰다.
 
@@ -835,6 +835,8 @@ grep "cursor-context-bench" $SCR/cc4-bench.log
 rm SYKeyboardTests/Domain/TemporaryCursorContextBenchmarkTests.swift
 git status --short
 ```
+
+결과(2026-09-28, iPhone 13 mini / iOS 18.6, `-O`): 짧은 기준(5자) 1회 0.154ms, 긴 기준(251자) 1회 0.204ms, 차이 약 0.05ms로 통과. 임시 테스트는 삭제했고 `git status --short`에 남지 않았다. `성능 고려 사항.md` §3-6에 기록. 실기기 Release 측정은 하지 않음(추정 표시)
  차이가 1회 0.1ms 안이면 통과로 본다(120Hz 부가 기능 예산 4ms의 2.5%). 측정값을 `성능 고려 사항.md` §3에 새 절(`3-6. 커서 앞 문맥 기준 텍스트 (#164)`)로 날짜·기기·빌드와 함께 적는다. 실기기 Release Instruments(§6-2)는 사용자가 요청할 때 한다. 적지 않으면 "실기기 미측정(추정)"으로 표시한다. 임시 테스트 파일이 남지 않았는지 `git status --short`로 확인하고 문서만 커밋한다(`docs: #164 - 커서 앞 문맥 기준 텍스트 후보 갱신 시간 측정 기록`).
 
 - [ ] **Step 3: `자동완성 로직.md` 갱신**
