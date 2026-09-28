@@ -582,7 +582,7 @@ git commit -m "feat: #164 - 자동완성 텍스트 대치 조회를 일반 후�
 
 VC 연결은 자동 테스트로 고정하지 않는다(spec "테스트" 절). 검증은 빌드와 Task 5 수동 확인이다.
 
-- [ ] **Step 1: 앞 문맥 상태와 helper**
+- [x] **Step 1: 앞 문맥 상태와 helper**
 
 `private var pendingSentTextSnapshot: SentTextSnapshot?` 아래:
 
@@ -626,7 +626,7 @@ private extension BaseKeyboardViewController {
 }
 ```
 
-- [ ] **Step 2: 버퍼를 바꾸는 5곳 연결**
+- [x] **Step 2: 버퍼를 바꾸는 5곳 연결**
 
 `insertText(_:)` 첫 줄에 `captureInputBufferLeadingContextIfNeeded()`를 넣는다.
 
@@ -654,7 +654,7 @@ private extension BaseKeyboardViewController {
 
 `replaceSelectedText(_:with:)` 첫 줄에 `captureInputBufferLeadingContextIfNeeded()`를 넣는다.
 
-- [ ] **Step 3: 후보 갱신·적용·학습 경로 연결**
+- [x] **Step 3: 후보 갱신·적용·학습 경로 연결**
 
 `updateSuggestionsForCurrentContext()`:
 
@@ -728,7 +728,7 @@ private extension BaseKeyboardViewController {
     }
 ```
 
-- [ ] **Step 4: 4개 scheme 빌드**
+- [x] **Step 4: 4개 scheme 빌드**
 
 ```sh
 for S in SYKeyboard HangeulKeyboard EnglishKeyboard HangeulEnglishKeyboard; do
@@ -741,7 +741,9 @@ git status --short
 
 Expected: 4개 모두 `** BUILD SUCCEEDED **`. `.xcscheme`이 `RemotePath`만 바뀌었으면 되돌린다.
 
-- [ ] **Step 5: 커밋**
+결과(2026-09-28, iPhone 13 mini / iOS 18.6 대상): 4개 scheme 모두 `** BUILD SUCCEEDED **`, 오류 없음, `.xcscheme` 변경 없음. 남은 `inputBuffer` 직접 참조는 텍스트 대치(미리보기·스페이스 대치·복구), 수식 탐지, 버퍼 관리 코드뿐임을 grep으로 확인
+
+- [x] **Step 5: 커밋**
 
 ```sh
 git add Modules/SYKeyboardCore/Presentation/ViewController/Bases/BaseKeyboardViewController.swift \

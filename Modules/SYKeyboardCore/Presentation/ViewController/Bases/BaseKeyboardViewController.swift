@@ -131,6 +131,8 @@ open class BaseKeyboardViewController: UIInputViewController {
     private var smartQuoteState = KeyboardSmartQuoteState()
     /// `textWillChange`에서 리셋 직전에 떠 두는 입력 상태. 바로 다음 `textDidChange`에서 전송 여부를 판단한 뒤 비운다
     private var pendingSentTextSnapshot: SentTextSnapshot?
+    /// 버퍼가 빈 상태에서 첫 글자를 넣기 직전의 커서 앞 문맥(최대 256자). 후보 기준 텍스트와 조각 판정에 쓴다
+    private var inputBufferLeadingContext: String?
 
     /// 키보드 전환 버튼에 마지막으로 반영한 `needsInputModeSwitchKey`.
     /// 이 값은 호스트 연결 이후에야 정확해지므로 레이아웃 시점에 확인하되,
@@ -645,7 +647,7 @@ open class BaseKeyboardViewController: UIInputViewController {
     open func insertSpaceText() {
         if BaseKeyboardViewController.isPreview { return }
 
-        suggestionController.recordUncommittedWords(from: inputBuffer)
+        suggestionController.recordUncommittedWords(from: learnableInputBuffer)
 
         insertText(" ")
         commitUndoRedoGroupIfPossible()
@@ -656,7 +658,7 @@ open class BaseKeyboardViewController: UIInputViewController {
     open func insertReturnText() {
         if BaseKeyboardViewController.isPreview { return }
 
-        suggestionController.endSentence(inputBuffer: inputBuffer)
+        suggestionController.endSentence(inputBuffer: learnableInputBuffer)
 
         textDocumentProxy.insertText("\n")
         recordUndoRedoChange(deletedText: "", insertedText: "\n")
@@ -777,6 +779,7 @@ extension BaseKeyboardViewController {
     ///
     /// - Parameter text: 삽입할 텍스트
     public func insertText(_ text: String) {
+        captureInputBufferLeadingContextIfNeeded()
         textDocumentProxy.insertText(text)
         inputBuffer.append(text)
         recordUndoRedoChange(deletedText: "", insertedText: text)
@@ -830,6 +833,7 @@ extension BaseKeyboardViewController {
         if inputBuffer.isEmpty {
             // 모든 입력을 지운 경우 → 문장 버퍼 전체 초기화
             suggestionController.resetSentenceBuffer()
+            inputBufferLeadingContext = nil
         } else if wasSpaceAtEnd && inputBuffer.last?.isWhitespace != true {
             // 스페이스를 지워서 커밋된 단어 경계를 허문 경우 → n-gram 버퍼에서 pop
             suggestionController.removeLastRecordedWord()
@@ -845,9 +849,16 @@ extension BaseKeyboardViewController {
     ///   - deleteCount: 삭제할 글자 수
     ///   - text: 삭제 후 삽입할 텍스트
     public func replaceText(deleteCount: Int, insert text: String) {
+        captureInputBufferLeadingContextIfNeeded()
+        let inputBufferCountBeforeReplacement = inputBuffer.count
         let deletedText = textBeforeCursorSuffix(count: deleteCount)
         replaceTextInDocument(deleteCount: deleteCount, insert: text)
         replaceInputBufferSuffix(deleteCount: deleteCount, insert: text)
+        inputBufferLeadingContext = KeyboardSuggestionSelectionPolicy.leadingContextAfterReplacement(
+            inputBufferLeadingContext,
+            inputBufferCount: inputBufferCountBeforeReplacement,
+            deleteCount: deleteCount
+        )
         recordUndoRedoChange(deletedText: deletedText, insertedText: text)
     }
 
@@ -857,6 +868,7 @@ extension BaseKeyboardViewController {
     /// 어긋날 수 있는 상황에서 호출합니다.
     public func resetInputBuffer() {
         inputBuffer = ""
+        inputBufferLeadingContext = nil
         smartQuoteState.reset()
         suggestionController.resetSentenceBuffer()
     }
@@ -1971,7 +1983,7 @@ private extension BaseKeyboardViewController {
         let action = KeyboardSuggestionSelectionPolicy.suggestionUpdateAction(
             isPredictiveTextEnabled: suggestionController.isPredictiveTextEnabled,
             selectedText: selectedText,
-            baseText: inputBuffer
+            baseText: generalSuggestionBaseText
         )
         let mathExpressionText = KeyboardSuggestionSelectionPolicy
             .mathExpressionDetectionText(
@@ -1987,7 +1999,9 @@ private extension BaseKeyboardViewController {
             suggestionController.updateSuggestions(
                 for: text,
                 selectedText: selectedText,
-                mathExpressionText: mathExpressionText
+                mathExpressionText: mathExpressionText,
+                // 선택 텍스트 후보는 선택한 단어 그대로 대치를 찾는다
+                textReplacementBaseText: selectedText?.isEmpty == false ? text : inputBuffer
             )
         case .clear:
             suggestionController.clearSuggestions()
@@ -2055,6 +2069,37 @@ extension BaseKeyboardViewController: SwitchGestureControllerDelegate {
     }
 }
 
+// MARK: - Cursor Context Suggestions
+
+private extension BaseKeyboardViewController {
+    /// 버퍼가 비어 있으면 첫 글자를 넣기 직전의 커서 앞 문맥을 떠 둔다
+    func captureInputBufferLeadingContextIfNeeded() {
+        guard inputBuffer.isEmpty else { return }
+        inputBufferLeadingContext = KeyboardSuggestionSelectionPolicy.limitedDocumentContextBeforeInput(
+            textDocumentProxy.documentContextBeforeInput
+        )
+    }
+
+    /// 일반 후보(n-gram·TextChecker)의 기준 텍스트
+    var generalSuggestionBaseText: String {
+        KeyboardSuggestionSelectionPolicy.generalSuggestionBaseText(
+            leadingContext: inputBufferLeadingContext,
+            inputBuffer: inputBuffer,
+            documentContextBeforeInput: textDocumentProxy.documentContextBeforeInput
+        )
+    }
+
+    /// 앞 글자에 붙어 시작한 조각을 뺀 버퍼. NGram 기록과 현재 단어 확정에 쓴다
+    var learnableInputBuffer: String {
+        KeyboardSuggestionSelectionPolicy.learnableInputBuffer(
+            inputBuffer,
+            isAttachedToLeadingContext: KeyboardSuggestionSelectionPolicy.isInputBufferAttachedToLeadingContext(
+                inputBufferLeadingContext
+            )
+        )
+    }
+}
+
 // MARK: - Sent Text Recording
 
 /// 전송 판정과 기록에 쓰는 `textWillChange` 시점의 입력 상태
@@ -2067,9 +2112,10 @@ private struct SentTextSnapshot {
 private extension BaseKeyboardViewController {
     /// 기록하지 않은 입력이 있을 때만 스냅샷을 만든다
     func makeSentTextSnapshot() -> SentTextSnapshot? {
-        guard inputBuffer.contains(where: { !$0.isWhitespace }) else { return nil }
+        let buffer = learnableInputBuffer
+        guard buffer.contains(where: { !$0.isWhitespace }) else { return nil }
         return SentTextSnapshot(
-            inputBuffer: inputBuffer,
+            inputBuffer: buffer,
             sentenceWords: suggestionController.sentenceWordsSnapshot(),
             documentIdentifier: currentDocumentIdentifier()
         )
@@ -2781,6 +2827,7 @@ private extension BaseKeyboardViewController {
     }
 
     func replaceSelectedText(_ selectedText: String, with insertText: String) {
+        captureInputBufferLeadingContextIfNeeded()
         textDocumentProxy.insertText(insertText)
         inputBuffer.append(insertText)
         recordUndoRedoChange(
@@ -2794,7 +2841,7 @@ private extension BaseKeyboardViewController {
         guard let word = suggestionController.nGramSuggestionText(at: index) else { return true }
 
         if KeyboardSuggestionSelectionPolicy.shouldInsertLeadingSpaceBeforeNGramSuggestion(
-            baseText: inputBuffer
+            baseText: generalSuggestionBaseText
         ) {
             insertText(" ")
         }
@@ -2804,7 +2851,8 @@ private extension BaseKeyboardViewController {
         suggestionDidApply()
 
         suggestionController.updateSuggestionsAfterNGramSelection(
-            baseText: inputBuffer
+            baseText: generalSuggestionBaseText,
+            textReplacementBaseText: inputBuffer
         )
         return true
     }
@@ -2813,7 +2861,7 @@ private extension BaseKeyboardViewController {
         guard index == 0 else { return false }
 
         let currentWord = KeyboardSuggestionSelectionPolicy.currentWordForConfirmation(
-            inputBuffer: inputBuffer
+            inputBuffer: learnableInputBuffer
         )
         if !currentWord.isEmpty {
             suggestionController.learnWord(currentWord)
@@ -2827,7 +2875,8 @@ private extension BaseKeyboardViewController {
         let suggestionIndex = index - 1
         guard let result = suggestionController.selectSuggestion(
             at: suggestionIndex,
-            baseText: inputBuffer
+            baseText: generalSuggestionBaseText,
+            textReplacementBaseText: inputBuffer
         ) else { return }
 
         replaceTextWithSmartInsertDeleteSpacing(
