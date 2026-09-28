@@ -63,7 +63,7 @@
 - Consumes: 없음
 - Produces: `KeyboardSentTextDetectionPolicy.isSentAfterTextChange(documentIdentifierBeforeChange: UUID?, documentIdentifierAfterChange: UUID?, beforeInput: String?, afterInput: String?, selectedText: String?) -> Bool`
 
-- [ ] **Step 1: 실패하는 테스트 작성**
+- [x] **Step 1: 실패하는 테스트 작성**
 
 `SYKeyboardTests/Utils/KeyboardSentTextDetectionPolicyTests.swift`:
 
@@ -138,7 +138,7 @@ struct KeyboardSentTextDetectionPolicyTests {
 }
 ```
 
-- [ ] **Step 2: 테스트가 컴파일 실패하는지 확인**
+- [x] **Step 2: 테스트가 컴파일 실패하는지 확인**
 
 ```sh
 SCR=<scratchpad>
@@ -151,7 +151,7 @@ grep -E "error:|TEST (SUCCEEDED|FAILED)" $SCR/task1-red.log | head
 
 Expected: `cannot find 'KeyboardSentTextDetectionPolicy' in scope`
 
-- [ ] **Step 3: Policy 구현과 타깃 등록**
+- [x] **Step 3: Policy 구현과 타깃 등록**
 
 `Modules/SYKeyboardCore/Presentation/Utils/Policies/KeyboardSentTextDetectionPolicy.swift`:
 
@@ -200,11 +200,13 @@ private extension KeyboardSentTextDetectionPolicy {
 
 확인: `grep -c "KeyboardSentTextDetectionPolicy.swift" SYKeyboard.xcodeproj/project.pbxproj` → `2`
 
-- [ ] **Step 4: 테스트 통과 확인**
+- [x] **Step 4: 테스트 통과 확인**
 
 Step 2와 같은 명령(로그 `task1-green.log`). Expected: `** TEST SUCCEEDED **`, 6개 테스트 통과
 
-- [ ] **Step 5: 커밋**
+결과(2026-09-28, iPhone 13 mini / iOS 18.6): RED는 `cannot find 'KeyboardSentTextDetectionPolicy' in scope`로 컴파일 실패, GREEN은 `Test run with 6 tests in 1 suite passed`, `** TEST SUCCEEDED **`. pbxproj 등록 확인 `grep -c` → `2`
+
+- [x] **Step 5: 커밋**
 
 ```sh
 git add Modules/SYKeyboardCore/Presentation/Utils/Policies/KeyboardSentTextDetectionPolicy.swift \
