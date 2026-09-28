@@ -735,7 +735,7 @@ Expected: `** TEST SUCCEEDED **`. 실제 테스트 개수와 `.xcresult` 경로�
 
 결과(2026-09-28, iPhone 13 mini / iOS 18.6): `Test run with 842 tests in 94 suites passed`, `** TEST SUCCEEDED **`. 로그 `<scratchpad>/task5-all.log`, 결과 번들 `<scratchpad>/task5-all.xcresult`(세션 scratchpad라 보존되지 않음). 재확인은 위 명령을 그대로 다시 실행한다
 
-- [ ] **Step 2: 시뮬레이터 수동 확인**
+- [x] **Step 2: 시뮬레이터 수동 확인**
 
 준비: Task 4 빌드를 설치하고(`xcrun simctl install <UDID> <DerivedData>/Build/Products/Debug-iphonesimulator/SYKeyboard.app`), 메시지 앱 목록의 `+1 (888) 555-1212` 더미 대화를 연다. 입력창 포커스와 전송 버튼 클릭은 idb 탭이 먹지 않아 사용자에게 요청한다. 우리 키보드 키는 idb 좌표 탭으로 입력한다.
 
@@ -748,6 +748,21 @@ Expected: `** TEST SUCCEEDED **`. 실제 테스트 개수와 `.xcresult` 경로�
 7. 기존 동작: `오늘 ` 스페이스 학습, 리턴 학습, 커서 이동 뒤 입력이 전과 같음
 
 각 항목의 결과(통과/실패, 확인하지 못한 이유)를 이 문서에 기록한다.
+
+결과(2026-09-28, iPhone 13 mini / iOS 18.6, HangeulKeyboard만 켠 상태, 시작 시 `ngram_ko-KR.plist` 없음). 학습 여부는 후보 바와
+App Group `Library/Application Support/ngram_ko-KR.plist`(`plutil -p`)로 함께 확인했다. 시뮬레이터 이미 학습된 단어와 섞이지 않게 드문 토큰을 썼다.
+
+| # | 동작 | 결과 |
+|---|---|---|
+| 1 | 메시지 더미 대화에서 `ㅁㄴ` 전송 | 통과. unigram `ㅁㄴ` 저장, `ㅁ` 입력 때 완성 후보에 `ㅁㄴ` |
+| 2 | `안녕 ㅍㅍ` 전송 | 통과. bigram `안녕 → ㅍㅍ` 저장, `안녕`은 한 번만 기록(점수 약 1.0), `안녕 ` 입력 때 첫 후보 `ㅍㅍ` |
+| 3 | 연락처 새 연락처 이름 칸 `ㅌㅊ` → 성 칸으로 이동 | 판단 보류. `ㅌㅊ`는 저장되지 않았지만 이름 칸은 후보 바가 비어 자동완성이 일시 중단(`isSuspended`)된 입력창으로 보여, Policy가 걸렀다는 근거가 되지 않는다. Step 3 실기기에서 확인 |
+| 4 | `안녕 ㄷㄱ` 입력 뒤 뒤로 가기로 대화를 나가 키보드 닫기 | 통과. 닫힐 때 저장된 파일에 `ㄷㄱ` 없음 |
+| 5 | 초안 뒤 `ㅋㅌ` 입력 → 편집 메뉴 `Select All` → 키보드 삭제 | 통과. 입력창이 비었고 파일 변경 없음, `ㅋㅌ` 없음 |
+| 6 | `ㅁ` 한 글자를 키보드 삭제로 지워 비우기 | 통과. 파일에 `ㅁ` 없음. 키보드 자체 선택 기능 뒤 삭제는 확인하지 못함(Step 3) |
+| 7 | 스페이스·리턴 학습, 커서 이동 | 스페이스(`안녕`), 리턴(`ㅎㅎ`) 통과. 커서 이동은 iOS 18.6에서 idb 스와이프가 재현되지 않아 확인하지 못함(Step 3) |
+
+입력창 포커스, 전송 버튼, `Select All`, 성 칸 이동은 idb 탭이 먹지 않아 사용자가 시뮬레이터 창에서 직접 클릭했다.
 
 - [ ] **Step 3: 실기기 카카오톡 확인**
 
