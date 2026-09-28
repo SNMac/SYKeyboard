@@ -424,7 +424,7 @@ git commit -m "feat: #164 - NGram 문장 버퍼를 읽고 되돌리는 기능 �
   - `SuggestionService.sentenceWordsSnapshot() -> [String]`
   - `SuggestionService.endSentence(inputBuffer: String, restoringSentenceWords sentenceWords: [String])`
 
-- [ ] **Step 1: 실패하는 테스트 작성**
+- [x] **Step 1: 실패하는 테스트 작성**
 
 `SYKeyboardTests/Domain/SuggestionControllerSentTextTests.swift`:
 
@@ -528,7 +528,7 @@ struct SuggestionControllerSentTextTests {
 }
 ```
 
-- [ ] **Step 2: 컴파일 실패 확인**
+- [x] **Step 2: 컴파일 실패 확인**
 
 ```sh
 timeout 600 xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
@@ -540,7 +540,7 @@ grep -E "error:|TEST (SUCCEEDED|FAILED)" $SCR/task3-red.log | head
 
 Expected: `value of type 'SuggestionController' has no member 'sentenceWordsSnapshot'`
 
-- [ ] **Step 3: API 구현**
+- [x] **Step 3: API 구현**
 
 `SuggestionService.swift`의 `func endSentence(inputBuffer: String)` 선언 바로 아래:
 
@@ -571,11 +571,13 @@ Expected: `value of type 'SuggestionController' has no member 'sentenceWordsSnap
     }
 ```
 
-- [ ] **Step 4: 테스트 통과 확인**
+- [x] **Step 4: 테스트 통과 확인**
 
 Step 2와 같은 명령(로그 `task3-green.log`). Expected: `** TEST SUCCEEDED **`, 6개 테스트 통과
 
-- [ ] **Step 5: 커밋**
+결과(2026-09-28, iPhone 13 mini / iOS 18.6): RED는 `value of type 'SuggestionController' has no member 'sentenceWordsSnapshot'`, `extra argument 'restoringSentenceWords' in call`로 컴파일 실패, GREEN은 `Test run with 6 tests in 1 suite passed`, `** TEST SUCCEEDED **`
+
+- [x] **Step 5: 커밋**
 
 ```sh
 git add Modules/SYKeyboardCore/Domain/Protocols/SuggestionService.swift \

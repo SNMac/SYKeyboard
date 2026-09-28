@@ -204,6 +204,16 @@ protocol SuggestionService: AnyObject {
     /// 미기록 단어를 기록한 뒤 n-gram 문장 버퍼를 초기화합니다.
     func endSentence(inputBuffer: String)
 
+    /// 현재 n-gram 문장 버퍼의 단어를 반환합니다.
+    ///
+    /// 입력창이 외부에서 바뀌기 직전(`textWillChange`)에 떠 두었다가 `endSentence(inputBuffer:restoringSentenceWords:)`에 넘깁니다.
+    func sentenceWordsSnapshot() -> [String]
+
+    /// 문장 버퍼를 `sentenceWords`로 되돌린 뒤 미기록 단어를 기록하고 문장 버퍼를 초기화합니다.
+    ///
+    /// 앱의 전송 버튼으로 입력창이 비었다고 판단했을 때 호출합니다.
+    func endSentence(inputBuffer: String, restoringSentenceWords sentenceWords: [String])
+
     /// n-gram 데이터를 디스크에 저장합니다.
     ///
     /// 키보드가 비활성화되기 전에 호출합니다.

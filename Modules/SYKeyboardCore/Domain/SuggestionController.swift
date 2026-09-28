@@ -681,6 +681,17 @@ final class SuggestionController: SuggestionService {
         nGramEngine?.endSentence()
     }
 
+    func sentenceWordsSnapshot() -> [String] {
+        return nGramEngine?.currentSentenceWords ?? []
+    }
+
+    func endSentence(inputBuffer: String, restoringSentenceWords sentenceWords: [String]) {
+        guard isPredictiveTextEnabled, !isSuspended else { return }
+        preparePredictiveEnginesIfNeeded()
+        nGramEngine?.restoreSentenceBuffer(sentenceWords)
+        endSentence(inputBuffer: inputBuffer)
+    }
+
     func saveNGramData() {
         nGramEngine?.saveToDisk()
     }
