@@ -764,7 +764,7 @@ git commit -m "feat: #164 - 커서 앞 문맥 기준 자동완성과 앞 조각 
 - Consumes: Task 1–3 전체
 - Produces: 검증 기록, 문서
 
-- [ ] **Step 1: 전체 테스트**
+- [x] **Step 1: 전체 테스트**
 
 ```sh
 timeout 900 xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
@@ -774,6 +774,8 @@ grep -E "TEST (SUCCEEDED|FAILED)|Test run with|✘ Test" $SCR/cc4-all.log | tail
 ```
 
 Expected: `** TEST SUCCEEDED **`. 개수와 결과를 기록하고 커밋한다(`docs: #164 - 커서 앞 문맥 자동완성 전체 테스트 결과 기록`).
+
+결과(2026-09-28, iPhone 13 mini / iOS 18.6): `Test run with 852 tests in 94 suites passed`, `** TEST SUCCEEDED **`(#164 842 + 검색창 조건 2 + Policy 5 + 컨트롤러 3). 로그 `<scratchpad>/cc4-all.log`(세션 scratchpad라 보존되지 않음)
 
 - [ ] **Step 2: 입력 중 후보 갱신 시간 비교(시뮬레이터)**
 
