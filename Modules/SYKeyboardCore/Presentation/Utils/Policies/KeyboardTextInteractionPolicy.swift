@@ -59,6 +59,11 @@ struct DeleteMutationResolutionEffects: Equatable {
     let appliesMutationEffects: Bool
     /// coordinator를 resolve할 때 선행 no-op pan left를 버릴지
     let discardsLeadingNoOpPanLeft: Bool
+    /// 보류된 pan을 바로 재생하지 않고 입력창이 늦게 보내는 callback을 먼저 받을지
+    ///
+    /// 줄바꿈 삭제 뒤 입력창이 두 번째 callback을 10~20ms 늦게 보내면서 이어진 삭제 전 문맥으로 되돌려,
+    /// 다음 경계 판정이 낡은 문맥을 보게 되는 것을 막는다
+    let settlesBeforeResumingPan: Bool
 }
 
 struct DeleteInteractionCoordinator {
@@ -1048,7 +1053,8 @@ enum KeyboardTextInteractionPolicy {
         return DeleteMutationResolutionEffects(
             restorableCharacters: restorableCharacters,
             appliesMutationEffects: resolution.origin != .panBoundary || !restorableCharacters.isEmpty,
-            discardsLeadingNoOpPanLeft: resolution.origin == .panBoundary && resolution.completion == .noDeletion
+            discardsLeadingNoOpPanLeft: resolution.origin == .panBoundary && resolution.completion == .noDeletion,
+            settlesBeforeResumingPan: resolution.origin == .panBoundary && !restorableCharacters.isEmpty
         )
     }
 

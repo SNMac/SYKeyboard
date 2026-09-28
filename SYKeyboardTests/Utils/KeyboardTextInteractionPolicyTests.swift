@@ -202,7 +202,8 @@ struct KeyboardTextInteractionPolicyTests {
             == DeleteMutationResolutionEffects(
                 restorableCharacters: [],
                 appliesMutationEffects: false,
-                discardsLeadingNoOpPanLeft: true
+                discardsLeadingNoOpPanLeft: true,
+                settlesBeforeResumingPan: false
             )
         )
         #expect(
@@ -210,7 +211,8 @@ struct KeyboardTextInteractionPolicyTests {
             == DeleteMutationResolutionEffects(
                 restorableCharacters: ["\n"],
                 appliesMutationEffects: true,
-                discardsLeadingNoOpPanLeft: false
+                discardsLeadingNoOpPanLeft: false,
+                settlesBeforeResumingPan: true
             )
         )
         // pan 경계 확정은 "\n" 한 건으로 확정된 경우에만 기록·피드백을 적용한다
@@ -219,7 +221,8 @@ struct KeyboardTextInteractionPolicyTests {
             == DeleteMutationResolutionEffects(
                 restorableCharacters: [],
                 appliesMutationEffects: false,
-                discardsLeadingNoOpPanLeft: false
+                discardsLeadingNoOpPanLeft: false,
+                settlesBeforeResumingPan: false
             )
         )
         #expect(
@@ -227,7 +230,8 @@ struct KeyboardTextInteractionPolicyTests {
             == DeleteMutationResolutionEffects(
                 restorableCharacters: [],
                 appliesMutationEffects: true,
-                discardsLeadingNoOpPanLeft: false
+                discardsLeadingNoOpPanLeft: false,
+                settlesBeforeResumingPan: false
             )
         )
     }

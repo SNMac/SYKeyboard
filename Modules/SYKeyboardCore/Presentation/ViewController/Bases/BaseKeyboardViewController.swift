@@ -1880,10 +1880,31 @@ private extension BaseKeyboardViewController {
             FeedbackManager.shared.playHaptic()
             FeedbackManager.shared.playDeleteSound()
         }
+        guard !effects.settlesBeforeResumingPan else {
+            resumeDeletePanAfterSettling()
+            return
+        }
         resolvePendingDeleteInteractionsIfNeeded(
             discardingLeadingNoOpPanLeft: effects.discardsLeadingNoOpPanLeft
         )
         drainPendingDeleteInteractionsIfPossible()
+    }
+
+    /// 줄바꿈 삭제 뒤 입력창이 늦게 보내는 callback을 먼저 받은 다음 보류된 pan을 이어서 재생합니다.
+    func resumeDeletePanAfterSettling() {
+        guard let generation = deleteInteractionCoordinator.currentGeneration else { return }
+        DispatchQueue.main.asyncAfter(
+            deadline: .now() + KeyboardTextInteractionPolicy.deletePanBoundaryQuietInterval
+        ) { [weak self] in
+            guard let self,
+                  self.deleteInteractionCoordinator.currentGeneration == generation,
+                  self.deleteInteractionCoordinator.isWaitingForResolution,
+                  !self.deleteMutationLifecycle.isPending
+            else { return }
+
+            self.resolvePendingDeleteInteractionsIfNeeded(discardingLeadingNoOpPanLeft: false)
+            self.drainPendingDeleteInteractionsIfPossible()
+        }
     }
 
     func processDeleteMutationCallbackOutcome(_ outcome: DeleteMutationCallbackOutcome) {
