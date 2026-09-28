@@ -823,4 +823,118 @@ private extension KeyboardTextInteractionPolicyTests {
 
         #expect(abs(interval - expected) < 0.0001)
     }
+
+    // MARK: - 삭제 드래그 문맥 모델
+
+    @Test("삭제 드래그 모델은 시작 문맥 끝에서 글자를 떼고 복구하면 다시 붙임")
+    func testDeletePanTextModel_떼고붙이기() {
+        var model = DeletePanTextModel(beforeInput: "가나\n다")
+
+        #expect(model.lastCharacter == "다")
+        #expect(model.removeLast() == "다")
+        #expect(model.removeLast() == "\n")
+        #expect(model.lastCharacter == "나")
+
+        model.append("\n")
+        model.append("다")
+
+        #expect(model.lastCharacter == "다")
+        #expect(model.isExhausted == false)
+    }
+
+    @Test("삭제 드래그 모델은 시작 문맥이 없거나 다 떼면 바닥남")
+    func testDeletePanTextModel_바닥남() {
+        var model = DeletePanTextModel(beforeInput: nil)
+        #expect(model.isExhausted)
+        #expect(model.lastCharacter == nil)
+        #expect(model.removeLast() == nil)
+
+        model = DeletePanTextModel(beforeInput: "가")
+        _ = model.removeLast()
+        #expect(model.isExhausted)
+    }
+
+    @Test("삭제 드래그 모델은 처음 읽은 문맥을 떼고 붙여도 그대로 보관")
+    func testDeletePanTextModel_시작문맥보관() {
+        var model = DeletePanTextModel(beforeInput: "가나")
+        _ = model.removeLast()
+        model.append("다")
+
+        #expect(model.sourceText == "가나")
+        #expect(model.remainingText == "가다")
+    }
+
+    @Test("모델이 바닥났을 때 입력창 앞 문맥이 비었으면 경계를 물음")
+    func testDeletePanExhaustedContext_경계요청() {
+        #expect(
+            KeyboardTextInteractionPolicy.deletePanExhaustedContextAction(
+                sourceText: "ㄱㄱㄱㄱㄱㄱ",
+                documentContextBeforeInput: nil
+            ) == .requestBoundary
+        )
+        #expect(
+            KeyboardTextInteractionPolicy.deletePanExhaustedContextAction(
+                sourceText: "ㄱㄱㄱㄱㄱㄱ",
+                documentContextBeforeInput: ""
+            ) == .requestBoundary
+        )
+    }
+
+    // 실기기 03:00:54: `ㄱ` 6개를 지웠는데 입력창이 아직 `ㄱㄱㄱㄱ`를 보냄
+    @Test("앞 문맥이 방금 지운 모델 글자의 앞부분으로 끝나면 입력창이 따라오기를 기다림")
+    func testDeletePanExhaustedContext_낡은문맥() {
+        #expect(
+            KeyboardTextInteractionPolicy.deletePanExhaustedContextAction(
+                sourceText: "ㄱㄱㄱㄱㄱㄱ",
+                documentContextBeforeInput: "ㄱㄱㄱㄱ"
+            ) == .awaitSync
+        )
+        #expect(
+            KeyboardTextInteractionPolicy.deletePanExhaustedContextAction(
+                sourceText: "가나다",
+                documentContextBeforeInput: "라마\n가나"
+            ) == .awaitSync
+        )
+    }
+
+    // 실기기 03:18:45: 처음 문맥이 앞 줄 없이 `⏎ㄹ…`이었고, 다 지운 뒤 실제 앞 줄 `ㄱ…`이 보임
+    @Test("앞 문맥이 지운 모델 글자와 이어지지 않으면 실제 앞 줄로 보고 모델을 다시 채움")
+    func testDeletePanExhaustedContext_앞줄() {
+        #expect(
+            KeyboardTextInteractionPolicy.deletePanExhaustedContextAction(
+                sourceText: "\nㄹㄹㄹ",
+                documentContextBeforeInput: "ㄱㄱㄱㄱ"
+            ) == .refill
+        )
+        #expect(
+            KeyboardTextInteractionPolicy.deletePanExhaustedContextAction(
+                sourceText: "",
+                documentContextBeforeInput: "가"
+            ) == .refill
+        )
+    }
+
+    @Test("같은 글자가 이어져 실제 앞 문맥과 낡은 문맥을 구분할 수 없으면 기다림으로 판정")
+    func testDeletePanExhaustedContext_구분불가() {
+        #expect(
+            KeyboardTextInteractionPolicy.deletePanExhaustedContextAction(
+                sourceText: "ㄱㄱㄱ",
+                documentContextBeforeInput: "ㄱㄱㄱㄱㄱ"
+            ) == .awaitSync
+        )
+    }
+
+    @Test("삭제 드래그 경계 요청은 마지막 편집 뒤 50ms가 지나야 보냄",
+          arguments: [
+            (0.0, 0.05),
+            (0.02, 0.03),
+            (0.05, 0.0),
+            (0.2, 0.0)
+          ])
+    func testDeletePanBoundaryDelay(_ elapsed: Double, _ expected: Double) {
+        #expect(
+            abs(KeyboardTextInteractionPolicy.deletePanBoundaryDelay(elapsedSinceLastEdit: elapsed) - expected)
+                < 0.000_001
+        )
+    }
 }

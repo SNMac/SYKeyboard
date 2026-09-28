@@ -98,6 +98,80 @@ struct DeleteMutationLifecycleTests {
         )
     }
 
+    @Test("callback 없이 시간이 지난 pan boundary는 앞 문맥이 그대로면 삭제 없음으로 확정")
+    func testPanBoundaryTimeoutWithoutCallbackIsNoDeletion() {
+        var lifecycle = DeleteMutationLifecycle()
+        let context = KeyboardTextContextSnapshot(beforeInput: nil, afterInput: "가나다")
+        _ = lifecycle.beginPanBoundary(context: context, selectedText: nil)
+        _ = lifecycle.capture(
+            deletedText: "",
+            insertedText: "",
+            reliability: .proxyContext
+        )
+
+        #expect(lifecycle.hasPanBoundaryRequest)
+        #expect(
+            lifecycle.completePanBoundaryAfterTimeout(
+                currentContext: context,
+                currentSelectedText: nil
+            ) == DeleteMutationResolution(
+                completion: .noDeletion,
+                origin: .panBoundary,
+                shouldPlayFeedback: false
+            )
+        )
+        #expect(lifecycle.isPending == false)
+        #expect(lifecycle.hasPanBoundaryRequest == false)
+    }
+
+    @Test("시간이 지난 pan boundary도 이전 줄이 나타났으면 줄바꿈으로 확정")
+    func testPanBoundaryTimeoutWithPreviousLineConfirmsNewline() {
+        var lifecycle = DeleteMutationLifecycle()
+        _ = lifecycle.beginPanBoundary(
+            context: KeyboardTextContextSnapshot(beforeInput: nil, afterInput: "라마바"),
+            selectedText: nil
+        )
+        _ = lifecycle.capture(
+            deletedText: "",
+            insertedText: "",
+            reliability: .proxyContext
+        )
+
+        #expect(
+            lifecycle.completePanBoundaryAfterTimeout(
+                currentContext: KeyboardTextContextSnapshot(beforeInput: "가나다", afterInput: "라마바"),
+                currentSelectedText: nil
+            )?.completion == .mutations([
+                RepeatDeleteMutationDraft(
+                    deletedText: "\n",
+                    insertedText: "",
+                    reliability: .authoritative
+                )
+            ])
+        )
+    }
+
+    @Test("pan boundary가 아닌 요청은 시간 초과로 확정하지 않음")
+    func testPanBoundaryTimeoutIgnoresOtherRequests() {
+        var lifecycle = DeleteMutationLifecycle()
+        let context = KeyboardTextContextSnapshot(beforeInput: "가", afterInput: nil)
+        _ = lifecycle.beginTouchDown(context: context, selectedText: nil)
+        _ = lifecycle.capture(
+            deletedText: "가",
+            insertedText: "",
+            reliability: .proxyContext
+        )
+
+        #expect(lifecycle.hasPanBoundaryRequest == false)
+        #expect(
+            lifecycle.completePanBoundaryAfterTimeout(
+                currentContext: context,
+                currentSelectedText: nil
+            ) == nil
+        )
+        #expect(lifecycle.isPending)
+    }
+
     @Test("released pan boundary는 후속 checkpoint에서 noDeletion")
     func testReleasedPanBoundaryLaterCheckpointIsNoDeletion() {
         var lifecycle = DeleteMutationLifecycle()

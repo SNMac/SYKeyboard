@@ -548,6 +548,48 @@ struct RepeatDeleteRequest {
     }
 }
 
+/// 삭제 드래그 동안 커서 앞 문맥을 대신하는 모델
+///
+/// 입력창은 연속 편집을 늦게 반영하면서 낡은 문맥을 callback으로 되돌려 보낼 수 있다.
+/// 드래그를 시작할 때 읽은 문맥에서 글자를 떼고 붙여, 지운 글자를 입력창 문맥에서 다시 읽지 않는다.
+struct DeletePanTextModel: Equatable {
+    /// 모델을 만들 때 읽은 문맥
+    let sourceText: String
+    private(set) var remainingText: String
+
+    init(beforeInput: String?) {
+        sourceText = beforeInput ?? ""
+        remainingText = sourceText
+    }
+
+    var isExhausted: Bool {
+        return remainingText.isEmpty
+    }
+
+    var lastCharacter: Character? {
+        return remainingText.last
+    }
+
+    @discardableResult
+    mutating func removeLast() -> Character? {
+        return remainingText.popLast()
+    }
+
+    mutating func append(_ character: Character) {
+        remainingText.append(character)
+    }
+}
+
+/// 삭제 드래그 모델이 바닥났을 때 입력창 앞 문맥을 보고 정하는 다음 동작
+enum DeletePanExhaustedContextAction: Equatable {
+    /// 앞 문맥이 비었으므로 개행 경계를 묻는다
+    case requestBoundary
+    /// 입력창이 드래그 편집을 아직 반영하지 못한 낡은 문맥일 수 있어 따라오기를 기다린다
+    case awaitSync
+    /// 모델이 짧게 잘려 있었고 앞 문맥은 실제 앞쪽 글이므로 모델을 다시 채운다
+    case refill
+}
+
 struct DeleteMutationLifecycle {
 
     private enum RequestKind {
@@ -571,6 +613,10 @@ struct DeleteMutationLifecycle {
 
     var hasReleasedPanBoundaryRequest: Bool {
         return requestKind == .releasedPanBoundary
+    }
+
+    var hasPanBoundaryRequest: Bool {
+        return requestKind == .panBoundary || requestKind == .releasedPanBoundary
     }
 
     private var isReleasedRequest: Bool {
@@ -764,6 +810,25 @@ struct DeleteMutationLifecycle {
                 currentSelectedText: currentSelectedText
             )
         )
+    }
+
+    /// callback 없이 시간이 지난 pan 경계 요청을 확정합니다.
+    ///
+    /// 이전 줄이 나타났으면 줄바꿈 삭제로, 그 밖에는 삭제 없음으로 확정해 무기한 기다리지 않습니다.
+    mutating func completePanBoundaryAfterTimeout(
+        currentContext: KeyboardTextContextSnapshot,
+        currentSelectedText: String?
+    ) -> DeleteMutationResolution? {
+        guard hasPanBoundaryRequest else { return nil }
+        if let resolution = resolve(
+            request.completeAtCheckpoint(
+                currentContext: currentContext,
+                currentSelectedText: currentSelectedText
+            )
+        ) {
+            return resolution
+        }
+        return resolve(request.completeWithoutDeletion())
     }
 
     mutating func completeReleasedTouchDownAtCheckpoint(
@@ -1008,6 +1073,35 @@ enum KeyboardTextInteractionPolicy {
             return String(lastBeforeCursor)
         }
         return ""
+    }
+
+    /// 삭제 드래그 경계 요청 전 입력창이 따라오도록 기다리는 시간(실측 반영 지연 최대 약 25ms의 두 배)
+    static let deletePanBoundaryQuietInterval: Double = 0.05
+    /// 삭제 드래그 경계 요청이 callback 없이 확정을 기다리는 최대 시간
+    static let deletePanBoundaryTimeout: Double = 0.15
+
+    /// 삭제 드래그 모델이 바닥났을 때 입력창 앞 문맥으로 다음 동작을 정합니다.
+    ///
+    /// 입력창이 드래그 편집을 늦게 반영하면 앞 문맥은 모델에서 방금 지운 글자의 앞부분으로 끝난다.
+    /// 그렇게 끝나면 낡은 문맥일 수 있으므로 기다리고, 아니면 모델이 잘려 있었던 것이므로 다시 채운다.
+    /// 같은 글자가 이어져 둘을 구분할 수 없으면 기다림으로 판정해 틀린 글자를 기록하지 않는다.
+    static func deletePanExhaustedContextAction(
+        sourceText: String,
+        documentContextBeforeInput: String?
+    ) -> DeletePanExhaustedContextAction {
+        let beforeInput = documentContextBeforeInput ?? ""
+        guard !beforeInput.isEmpty else { return .requestBoundary }
+        guard !sourceText.isEmpty else { return .refill }
+
+        let looksStale = (1...sourceText.count).contains { length in
+            beforeInput.hasSuffix(String(sourceText.prefix(length)))
+        }
+        return looksStale ? .awaitSync : .refill
+    }
+
+    /// 마지막 드래그 편집 뒤 경계 요청까지 더 기다릴 시간을 반환합니다.
+    static func deletePanBoundaryDelay(elapsedSinceLastEdit: Double) -> Double {
+        return max(0, deletePanBoundaryQuietInterval - elapsedSinceLastEdit)
     }
 
     static func repeatTimerInterval(repeatRate: Double) -> Double {
