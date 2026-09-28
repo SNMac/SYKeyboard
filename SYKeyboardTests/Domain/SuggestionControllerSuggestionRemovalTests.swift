@@ -99,7 +99,7 @@ struct SuggestionControllerSuggestionRemovalTests {
     @Test("n-gram 후보 선택 직후 예측을 삭제해도 예측 모드를 유지")
     func testNGram후보선택직후_예측을삭제해도_예측모드를유지() {
         let harness = makeHarness(nGramResults: ["좋다", "맑음"])
-        harness.controller.updateSuggestionsAfterNGramSelection(inputBuffer: "오늘 날씨")
+        harness.controller.updateSuggestionsAfterNGramSelection(baseText: "오늘 날씨")
 
         harness.controller.removeSuggestionWord("좋다")
 

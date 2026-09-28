@@ -289,7 +289,7 @@ git commit -m "feat: #164 - 커서 앞 문맥 기준 텍스트와 학습용 버�
   - `SuggestionService.updateSuggestionsAfterNGramSelection(baseText:textReplacementBaseText:)`
   - 호환 extension: `updateSuggestions(for:selectedText:mathExpressionText:)`, `selectSuggestion(at:baseText:)`, `updateSuggestionsAfterNGramSelection(baseText:)`는 대치용 텍스트에 기준 텍스트를 그대로 넘긴다
 
-- [ ] **Step 1: 실패하는 테스트 작성**
+- [x] **Step 1: 실패하는 테스트 작성**
 
 `SuggestionControllerSuggestionRemovalTests.swift`의 `updateSuggestionsAfterNGramSelection(inputBuffer: "오늘 날씨")`를 `updateSuggestionsAfterNGramSelection(baseText: "오늘 날씨")`로 바꾼다.
 
@@ -354,7 +354,7 @@ git commit -m "feat: #164 - 커서 앞 문맥 기준 텍스트와 학습용 버�
     }
 ```
 
-- [ ] **Step 2: RED 확인**
+- [x] **Step 2: RED 확인**
 
 ```sh
 timeout 600 xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
@@ -367,7 +367,7 @@ grep -E "error:|TEST (SUCCEEDED|FAILED)" $SCR/cc2-red.log | sed -E 's/^.*error:/
 
 Expected: `extra argument 'textReplacementBaseText'`, `incorrect argument label ... (have 'baseText:', expected 'inputBuffer:')` 컴파일 오류
 
-- [ ] **Step 3: 구현**
+- [x] **Step 3: 구현**
 
 `SuggestionService.swift`의 요구사항을 바꾼다.
 
@@ -541,7 +541,7 @@ Expected: `extra argument 'textReplacementBaseText'`, `incorrect argument label 
 
 나머지 `performUpdateSuggestions(` 호출도 컴파일 오류를 따라 같은 인자를 넣는다(`grep -n "performUpdateSuggestions(" Modules/SYKeyboardCore/Domain/SuggestionController.swift`).
 
-- [ ] **Step 4: GREEN 확인**
+- [x] **Step 4: GREEN 확인**
 
 Step 2와 같은 명령(로그 `cc2-green.log`). Expected: `** TEST SUCCEEDED **`. 이어서 텍스트 대치 테스트도 돌린다.
 
@@ -556,7 +556,9 @@ grep -E "TEST (SUCCEEDED|FAILED)|Test run with" $SCR/cc2-regress.log
 
 Expected: `** TEST SUCCEEDED **`("분리된 커서 문맥은 일반 추천과 텍스트 대치 입력으로 전달하지 않음" 포함)
 
-- [ ] **Step 5: 커밋**
+결과(2026-09-28, iPhone 13 mini / iOS 18.6): RED는 `extra argument 'textReplacementBaseText' in call`, `missing argument for parameter 'inputBuffer'`로 컴파일 실패. GREEN은 NGramCompletion·SuggestionRemoval 두 suite `Test run with 22 tests in 2 suites passed`, 회귀(TextReplacement·MathResults) `Test run with 30 tests in 2 suites passed`. 계획에 빠진 VC의 `updateSuggestionsAfterNGramSelection(inputBuffer:)` 호출 라벨을 `baseText:`로 바꿨다(값은 Task 3에서 교체)
+
+- [x] **Step 5: 커밋**
 
 ```sh
 git add Modules/SYKeyboardCore/Domain/Protocols/SuggestionService.swift \

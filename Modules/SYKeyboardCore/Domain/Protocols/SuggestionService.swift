@@ -105,17 +105,22 @@ protocol SuggestionService: AnyObject {
     ///   - selectedText: 후보 생성 시점에 선택된 텍스트. 선택이 없으면 `nil`
     ///   - mathExpressionText: 수식 탐지에만 사용하는 텍스트. 일반 예측 엔진과
     ///     텍스트 대치에는 전달하지 않습니다.
+    ///   - textReplacementBaseText: 텍스트 대치(단축어) 조회에만 쓰는 텍스트. 현재 세션 `inputBuffer`이며
+    ///     커서 앞 문맥을 넣지 않습니다.
     func updateSuggestions(
         for baseText: String,
         selectedText: String?,
-        mathExpressionText: String
+        mathExpressionText: String,
+        textReplacementBaseText: String
     )
 
     /// n-gram 추천 탭 후 강제로 n-gram 갱신을 시도하고,
     /// 결과가 없으면 입력 중 모드로 폴백합니다.
     ///
-    /// - Parameter inputBuffer: 현재 키보드 세션에서 직접 입력한 텍스트 버퍼
-    func updateSuggestionsAfterNGramSelection(inputBuffer: String)
+    /// - Parameters:
+    ///   - baseText: 일반 후보 기준 텍스트(커서 앞 문맥)
+    ///   - textReplacementBaseText: 폴백 때 텍스트 대치 조회에 쓰는 `inputBuffer`
+    func updateSuggestionsAfterNGramSelection(baseText: String, textReplacementBaseText: String)
 
     /// 모든 후보를 초기화합니다.
     func clearSuggestions()
@@ -129,8 +134,13 @@ protocol SuggestionService: AnyObject {
     ///   - baseText: 자동완성을 제공할 텍스트.
     ///     일반적으로 키보드 세션의 `inputBuffer`이며,
     ///     텍스트가 선택된 경우 `selectedText`가 전달될 수 있습니다.
+    ///   - textReplacementBaseText: 텍스트 대치 후보의 교체 길이를 계산할 `inputBuffer`
     /// - Returns: 삭제할 글자 수와 삽입할 텍스트의 튜플, 유효하지 않으면 `nil`
-    func selectSuggestion(at index: Int, baseText: String) -> (deleteCount: Int, insertText: String)?
+    func selectSuggestion(
+        at index: Int,
+        baseText: String,
+        textReplacementBaseText: String
+    ) -> (deleteCount: Int, insertText: String)?
 
     /// n-gram 모드에서 특정 인덱스의 후보 텍스트를 반환합니다.
     ///
@@ -269,6 +279,27 @@ protocol SuggestionService: AnyObject {
 }
 
 extension SuggestionService {
+    func updateSuggestions(
+        for baseText: String,
+        selectedText: String?,
+        mathExpressionText: String
+    ) {
+        updateSuggestions(
+            for: baseText,
+            selectedText: selectedText,
+            mathExpressionText: mathExpressionText,
+            textReplacementBaseText: baseText
+        )
+    }
+
+    func selectSuggestion(at index: Int, baseText: String) -> (deleteCount: Int, insertText: String)? {
+        selectSuggestion(at: index, baseText: baseText, textReplacementBaseText: baseText)
+    }
+
+    func updateSuggestionsAfterNGramSelection(baseText: String) {
+        updateSuggestionsAfterNGramSelection(baseText: baseText, textReplacementBaseText: baseText)
+    }
+
     func updateSuggestions(
         for baseText: String,
         selectedText: String?

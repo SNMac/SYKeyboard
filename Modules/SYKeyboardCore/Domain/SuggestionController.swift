@@ -283,6 +283,8 @@ final class SuggestionController: SuggestionService {
     private var lastSuggestionBaseText: String?
     /// 마지막으로 수식 탐지를 요청한 텍스트
     private var lastMathExpressionText: String?
+    /// 마지막으로 텍스트 대치 조회를 요청한 텍스트
+    private var lastTextReplacementBaseText: String?
     /// 마지막으로 자동완성 갱신을 요청한 selection origin
     private var lastSuggestionOrigin: MathSuggestionOrigin?
     /// 현재 표시 중인 수식 후보를 만든 계산 결과
@@ -367,6 +369,7 @@ final class SuggestionController: SuggestionService {
         self.language = language
         lastSuggestionBaseText = nil
         lastMathExpressionText = nil
+        lastTextReplacementBaseText = nil
         lastSuggestionOrigin = nil
         currentMathCompletion = nil
         currentMathSuggestionOrigin = nil
@@ -451,32 +454,36 @@ final class SuggestionController: SuggestionService {
     func updateSuggestions(
         for baseText: String,
         selectedText: String?,
-        mathExpressionText: String
+        mathExpressionText: String,
+        textReplacementBaseText: String
     ) {
         guard isPredictiveTextEnabled, !isSuspended else { return }
         let origin = MathSuggestionOrigin(selectedText: selectedText)
         lastSuggestionBaseText = baseText
         lastMathExpressionText = mathExpressionText
+        lastTextReplacementBaseText = textReplacementBaseText
         lastSuggestionOrigin = origin
         preparePredictiveEnginesIfNeeded()
         prepareLexiconEngineIfNeeded()
         performUpdateSuggestions(
             for: baseText,
             mathExpressionText: mathExpressionText,
+            textReplacementBaseText: textReplacementBaseText,
             origin: origin
         )
     }
 
-    func updateSuggestionsAfterNGramSelection(inputBuffer: String) {
+    func updateSuggestionsAfterNGramSelection(baseText: String, textReplacementBaseText: String) {
         guard isPredictiveTextEnabled, !isSuspended else { return }
         let origin = MathSuggestionOrigin.unselected
-        lastSuggestionBaseText = inputBuffer
-        lastMathExpressionText = inputBuffer
+        lastSuggestionBaseText = baseText
+        lastMathExpressionText = baseText
+        lastTextReplacementBaseText = textReplacementBaseText
         lastSuggestionOrigin = origin
         preparePredictiveEnginesIfNeeded()
         prepareLexiconEngineIfNeeded()
 
-        let nGramResults = nGramSuggestions(for: inputBuffer)
+        let nGramResults = nGramSuggestions(for: baseText)
 
         if !nGramResults.isEmpty {
             currentMathCompletion = nil
@@ -490,8 +497,9 @@ final class SuggestionController: SuggestionService {
             )
         } else {
             performUpdateSuggestions(
-                for: inputBuffer,
-                mathExpressionText: inputBuffer,
+                for: baseText,
+                mathExpressionText: baseText,
+                textReplacementBaseText: textReplacementBaseText,
                 origin: origin
             )
         }
@@ -502,6 +510,7 @@ final class SuggestionController: SuggestionService {
         textCheckerRequestGeneration.withLock { $0 += 1 }
         lastSuggestionBaseText = nil
         lastMathExpressionText = nil
+        lastTextReplacementBaseText = nil
         lastSuggestionOrigin = nil
         currentMathCompletion = nil
         currentMathSuggestionOrigin = nil
@@ -510,13 +519,18 @@ final class SuggestionController: SuggestionService {
         delegate?.suggestionController(self, didUpdateCurrentWord: nil, suggestions: [])
     }
 
-    func selectSuggestion(at index: Int, baseText: String) -> (deleteCount: Int, insertText: String)? {
+    func selectSuggestion(
+        at index: Int,
+        baseText: String,
+        textReplacementBaseText: String
+    ) -> (deleteCount: Int, insertText: String)? {
         guard index >= 0, index < currentSuggestions.count else { return nil }
 
         if let last = baseText.last, last.isWhitespace { return nil }
 
         let item = currentSuggestions[index]
-        let currentWord = extractLastWord(from: baseText)
+        // 텍스트 대치는 이 키보드로 친 단어(`inputBuffer`)만 바꾼다. 나머지는 커서 앞 단어 전체를 바꾼다
+        let currentWord = extractLastWord(from: item.source == .lexicon ? textReplacementBaseText : baseText)
 
         if item.source == .textChecker {
             textCheckerEngine?.learn(word: item.text)
@@ -526,7 +540,7 @@ final class SuggestionController: SuggestionService {
             appendReplacementRecord(
                 userInput: currentWord,
                 documentText: item.text,
-                baseText: baseText,
+                baseText: textReplacementBaseText,
                 currentWord: currentWord
             )
         }
@@ -583,7 +597,10 @@ final class SuggestionController: SuggestionService {
         currentSuggestions.removeAll { $0.text == word }
         // n-gram 모드에서는 lastSuggestionBaseText가 공백으로 끝나지 않아 typing 모드로 새는 것을 막는다
         if currentMode == .nGram, let lastSuggestionBaseText {
-            updateSuggestionsAfterNGramSelection(inputBuffer: lastSuggestionBaseText)
+            updateSuggestionsAfterNGramSelection(
+                baseText: lastSuggestionBaseText,
+                textReplacementBaseText: lastTextReplacementBaseText ?? lastSuggestionBaseText
+            )
         } else {
             // 로딩 완료 후 갱신과 같은 마지막 요청값으로 다시 계산한다
             performRefreshSuggestionsAfterNGramLoadIfNeeded()
@@ -906,6 +923,7 @@ private extension SuggestionController {
     func performUpdateSuggestions(
         for baseText: String,
         mathExpressionText: String,
+        textReplacementBaseText: String,
         origin: MathSuggestionOrigin
     ) {
         if isShowMathResultsEnabled,
@@ -970,7 +988,7 @@ private extension SuggestionController {
         let maxSuggestionSlots = maxSuggestions - 1
 
         let lexiconState = signposter.beginInterval("LexiconSuggestions")
-        let lexiconResults = lexiconEngine?.suggestions(for: baseText) ?? []
+        let lexiconResults = lexiconEngine?.suggestions(for: textReplacementBaseText) ?? []
         signposter.endInterval("LexiconSuggestions", lexiconState)
         // n-gram 저장소는 main에서만 바뀌므로 TextChecker와 달리 큐로 넘기지 않고 동기로 조회한다
         let nGramCompletions = nGramCompletionSuggestions(for: baseText, currentWord: currentWord)
@@ -1051,6 +1069,7 @@ private extension SuggestionController {
         performUpdateSuggestions(
             for: lastSuggestionBaseText,
             mathExpressionText: lastMathExpressionText,
+            textReplacementBaseText: lastTextReplacementBaseText ?? lastSuggestionBaseText,
             origin: lastSuggestionOrigin
         )
     }

@@ -2804,7 +2804,7 @@ private extension BaseKeyboardViewController {
         suggestionDidApply()
 
         suggestionController.updateSuggestionsAfterNGramSelection(
-            inputBuffer: inputBuffer
+            baseText: inputBuffer
         )
         return true
     }
