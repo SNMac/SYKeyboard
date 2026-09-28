@@ -34,8 +34,9 @@ enum MathResultSuggestionAction: Equatable {
 /// 2. **후보 탭**: `selectSuggestion(at:baseText:textReplacementBaseText:)`로 현재 단어 교체
 /// 3. **스페이스**: `attemptTextReplacement(baseText:documentContextBeforeInput:)`로 텍스트 대치 수행, `recordUncommittedWords(from:)`로 n-gram 기록
 /// 4. **삭제**: `attemptRestoreReplacement(inputBuffer:documentContextBeforeInput:selectedText:)`로 대치 복구
-/// 5. **리턴**: `endSentence()`로 n-gram 문장 버퍼 초기화
-/// 6. **기타 키 입력**: `clearIgnoredShortcut()`으로 재대치 방지 상태 초기화
+/// 5. **리턴**: `endSentence(inputBuffer:)`로 미기록 단어를 기록하고 n-gram 문장 버퍼 초기화
+/// 6. **전송**(앱이 입력창을 비움): `endSentence(inputBuffer:restoringSentenceWords:)`로 리턴과 같이 기록
+/// 7. **기타 키 입력**: `clearIgnoredShortcut()`으로 재대치 방지 상태 초기화
 protocol SuggestionService: AnyObject {
 
     // MARK: - Properties
@@ -93,7 +94,7 @@ protocol SuggestionService: AnyObject {
 
     // MARK: - Suggestions
 
-    /// 현재 입력 버퍼를 기반으로 후보를 갱신합니다.
+    /// 커서 앞 문맥 기준 텍스트로 후보를 갱신합니다.
     ///
     /// 갱신 결과는 `delegate`의
     /// `SuggestionControllerDelegate/suggestionController(_:didUpdateCurrentWord:suggestions:)`를 통해 전달됩니다.
@@ -102,7 +103,8 @@ protocol SuggestionService: AnyObject {
     /// 입력이 없거나 마지막 문자가 공백이면 n-gram 기반 다음 단어 예측을 표시합니다.
     ///
     /// - Parameters:
-    ///   - baseText: 일반 자동완성을 제공할 현재 세션 텍스트
+    ///   - baseText: 일반 자동완성(n-gram·TextChecker) 기준 텍스트. 커서 앞 문맥
+    ///     (`KeyboardSuggestionSelectionPolicy.generalSuggestionBaseText`)이거나 선택한 단어
     ///   - selectedText: 후보 생성 시점에 선택된 텍스트. 선택이 없으면 `nil`
     ///   - mathExpressionText: 수식 탐지에만 사용하는 텍스트. 일반 예측 엔진과
     ///     텍스트 대치에는 전달하지 않습니다.
@@ -132,9 +134,8 @@ protocol SuggestionService: AnyObject {
     ///
     /// - Parameters:
     ///   - index: 선택된 후보의 인덱스 (0~1)
-    ///   - baseText: 자동완성을 제공할 텍스트.
-    ///     일반적으로 키보드 세션의 `inputBuffer`이며,
-    ///     텍스트가 선택된 경우 `selectedText`가 전달될 수 있습니다.
+    ///   - baseText: 일반 후보의 교체 길이를 계산할 기준 텍스트.
+    ///     커서 앞 문맥 기준 텍스트이며, 텍스트가 선택된 경우 `selectedText`가 전달될 수 있습니다.
     ///   - textReplacementBaseText: 텍스트 대치 후보의 교체 길이를 계산할 `inputBuffer`
     /// - Returns: 삭제할 글자 수와 삽입할 텍스트의 튜플, 유효하지 않으면 `nil`
     func selectSuggestion(

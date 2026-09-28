@@ -103,8 +103,9 @@ private enum MathSuggestionOrigin: Equatable {
 /// `lexiconEngine`은 자동완성과 텍스트 대치 양쪽에서 사용되므로,
 /// 둘 다 꺼졌을 때만 해제됩니다.
 ///
-/// 모든 후보 조회는 `BaseKeyboardViewController`가 관리하는 `inputBuffer`를 기준으로
-/// 수행되며, 현재 키보드 세션에서 직접 입력한 텍스트만 대상으로 합니다.
+/// 일반 후보(n-gram·TextChecker)는 `BaseKeyboardViewController`가 만든 커서 앞 문맥 기준 텍스트
+/// (`KeyboardSuggestionSelectionPolicy.generalSuggestionBaseText`)로 조회합니다. 텍스트 대치와 n-gram 기록은
+/// 현재 키보드 세션에서 직접 입력한 `inputBuffer`(기록은 앞 조각을 뺀 `learnableInputBuffer`)만 대상으로 합니다.
 ///
 /// ## 동작 흐름
 /// 1. **입력 중**: SuggestionBar에 `UILexicon` + n-gram 단어 완성 + `UITextChecker` 후보 표시
@@ -915,11 +916,13 @@ private extension SuggestionController {
 
     /// 실제 후보 갱신 로직
     ///
-    /// 입력 버퍼에 따라 두 가지 모드로 분기합니다:
-    /// - 버퍼 비어있음 또는 마지막 문자가 공백 → n-gram 모드
+    /// 기준 텍스트에 따라 두 가지 모드로 분기합니다:
+    /// - 기준 텍스트가 비어있음 또는 마지막 문자가 공백 → n-gram 모드
     /// - 단어 타이핑 중 → 입력 중 모드 (lexicon + n-gram 단어 완성 + textChecker)
     ///
-    /// - Parameter baseText: 자동완성을 제공할 텍스트
+    /// - Parameters:
+    ///   - baseText: 일반 후보 기준 텍스트(커서 앞 문맥)
+    ///   - textReplacementBaseText: lexicon(텍스트 대치) 조회에만 쓰는 `inputBuffer`
     func performUpdateSuggestions(
         for baseText: String,
         mathExpressionText: String,
@@ -1076,14 +1079,14 @@ private extension SuggestionController {
 
     /// n-gram 기반 다음 단어 예측 후보를 생성합니다.
     ///
-    /// 입력 버퍼가 비어있으면 unigram(자주 사용한 단어)을,
+    /// 기준 텍스트가 비어있으면 unigram(자주 사용한 단어)을,
     /// 공백으로 끝나면 trigram → bigram → unigram 순으로 조회합니다.
     ///
-    /// - Parameter inputBuffer: 현재 키보드 세션에서 직접 입력한 텍스트 버퍼
+    /// - Parameter baseText: 일반 후보 기준 텍스트(커서 앞 문맥)
     /// - Returns: n-gram 예측 후보 배열 (최대 `maxSuggestions`개)
-    func nGramSuggestions(for inputBuffer: String) -> [SuggestionItem] {
+    func nGramSuggestions(for baseText: String) -> [SuggestionItem] {
         guard let nGramEngine else { return [] }
-        let results = nGramEngine.suggestions(for: inputBuffer, preferredScript: nGramPreferredScript)
+        let results = nGramEngine.suggestions(for: baseText, preferredScript: nGramPreferredScript)
         return results.prefix(maxSuggestions).map {
             SuggestionItem(text: $0, source: .nGram)
         }
