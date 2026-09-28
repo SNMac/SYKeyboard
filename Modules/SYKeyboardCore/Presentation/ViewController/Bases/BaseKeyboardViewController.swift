@@ -2084,7 +2084,8 @@ private extension BaseKeyboardViewController {
             documentIdentifierAfterChange: currentDocumentIdentifier(),
             beforeInput: textDocumentProxy.documentContextBeforeInput,
             afterInput: textDocumentProxy.documentContextAfterInput,
-            selectedText: textDocumentProxy.selectedText
+            selectedText: textDocumentProxy.selectedText,
+            returnKeyType: textDocumentProxy.returnKeyType
         ) else { return }
 
         suggestionController.endSentence(

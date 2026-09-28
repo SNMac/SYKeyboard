@@ -66,6 +66,8 @@
 | 기존 리셋 | `resetInputBuffer()`의 호출 위치와 순서는 바꾸지 않는다 |
 | `learnedWords` | 넣지 않는다 |
 | 놓치는 경우 | 보낸 뒤 입력창을 새로 만드는 앱은 `documentIdentifier`가 달라 학습하지 않는다. 잘못 학습하는 것보다 놓치는 쪽을 택한다 |
+| 검색창 | 리턴 키가 `.search`인 입력창은 제외한다. 지우기(X) 버튼으로 비워도 전송과 같은 모양이기 때문이다. 검색 키로 제출한 검색어는 지금처럼 리턴 경로에서 학습된다 |
+| 알려진 한계 | 호스트 실행 취소(흔들기 등)나 앱이 코드로 초안을 지우는 경우는 전송과 신호가 같아 구분할 수 없다. 입력하다 만 조각이 학습될 수 있다(리뷰에서 확인, 2026-09-28) |
 
 채택하지 않은 방식:
 
@@ -87,11 +89,13 @@ enum KeyboardSentTextDetectionPolicy {
         documentIdentifierAfterChange: UUID?,
         beforeInput: String?,
         afterInput: String?,
-        selectedText: String?
+        selectedText: String?,
+        returnKeyType: UIReturnKeyType?
     ) -> Bool
 }
 ```
 
+- `returnKeyType`이 `.search`가 아니어야 한다. `nil`은 조건에서 빼고 나머지로 판정한다.
 - 두 `documentIdentifier`가 모두 nil이 아니고 같아야 한다.
 - `beforeInput`, `afterInput`, `selectedText`가 모두 `nil` 또는 `""`여야 한다.
 

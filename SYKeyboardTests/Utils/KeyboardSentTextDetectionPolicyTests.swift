@@ -5,8 +5,8 @@
 //  Created by Claude on 9/28/26.
 //
 
-import Foundation
 import Testing
+import UIKit
 
 @testable import SYKeyboardCore
 
@@ -50,19 +50,36 @@ struct KeyboardSentTextDetectionPolicyTests {
         #expect(!isSent(before: document, after: document, beforeInput: nil, afterInput: nil, selectedText: "전체"))
     }
 
+    @Test("리턴 키가 검색인 입력창은 비어도 전송으로 보지 않음")
+    func test리턴키가검색인입력창은_비어도전송으로보지않음() {
+        // 검색창의 지우기(X) 버튼도 같은 입력창을 비우므로 전송과 구분할 수 없다
+        #expect(!isSent(
+            before: document, after: document, beforeInput: nil, afterInput: nil, selectedText: nil, returnKeyType: .search
+        ))
+    }
+
+    @Test("리턴 키 종류를 알 수 없어도 나머지 조건으로 판정")
+    func test리턴키종류를알수없어도_나머지조건으로판정() {
+        #expect(isSent(
+            before: document, after: document, beforeInput: nil, afterInput: nil, selectedText: nil, returnKeyType: nil
+        ))
+    }
+
     private func isSent(
         before: UUID?,
         after: UUID?,
         beforeInput: String?,
         afterInput: String?,
-        selectedText: String?
+        selectedText: String?,
+        returnKeyType: UIReturnKeyType? = .default
     ) -> Bool {
         KeyboardSentTextDetectionPolicy.isSentAfterTextChange(
             documentIdentifierBeforeChange: before,
             documentIdentifierAfterChange: after,
             beforeInput: beforeInput,
             afterInput: afterInput,
-            selectedText: selectedText
+            selectedText: selectedText,
+            returnKeyType: returnKeyType
         )
     }
 }
