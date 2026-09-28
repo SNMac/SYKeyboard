@@ -838,7 +838,9 @@ extension BaseKeyboardViewController {
     public func deleteText() {
         let wasSpaceAtEnd = inputBuffer.last?.isWhitespace == true
         let selectedText = textDocumentProxy.selectedText
-        let deletedText = deletePanDeletedTextOverride
+        // 선택 영역을 지우는 경우에는 모델 글자 대신 선택 영역을 기록한다
+        let panDeletedText = (selectedText ?? "").isEmpty ? deletePanDeletedTextOverride : nil
+        let deletedText = panDeletedText
             ?? KeyboardTextInteractionPolicy.deletedTextForSingleBackward(
                 selectedText: selectedText,
                 documentContextBeforeInput: textDocumentProxy.documentContextBeforeInput
@@ -2596,7 +2598,13 @@ private extension BaseKeyboardViewController {
     }
 
     func resumePendingDeletePanBoundaryIfNeeded() {
-        guard let generation = deletePanBoundaryPendingGeneration else { return }
+        // 마지막 드래그 편집 뒤 조용한 시간이 지나기 전에는 예약된 판정에 맡긴다.
+        // 그 사이 callback은 드래그 전 문맥을 담고 있을 수 있어 모델을 잘못 다시 채울 수 있다
+        guard let generation = deletePanBoundaryPendingGeneration,
+              KeyboardTextInteractionPolicy.deletePanBoundaryDelay(
+                elapsedSinceLastEdit: CACurrentMediaTime() - lastDeletePanEditTime
+              ) == 0
+        else { return }
         evaluatePendingDeletePanBoundary(for: generation)
     }
 
