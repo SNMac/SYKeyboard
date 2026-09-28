@@ -14,8 +14,8 @@ enum KeyboardGesturePolicy {
 
     /// 가장자리 이어 가기 반복 간격 하한
     ///
-    /// 삭제 pan은 입력창 확인 없이 커서 앞 문맥을 바로 읽는다. 입력창 반영 지연(실측 최대 약 25ms)보다
-    /// 빠르게 반복하면 낡은 문맥을 읽어 복구 글자가 틀어지므로 반복 속도 설정보다 우선한다
+    /// 줄 경계에서는 입력창 반영(실측 최대 약 25ms)을 기다려 판정한다. 가장자리 반복이 그보다 빠르면
+    /// 경계마다 대기와 보류가 겹쳐 쌓이므로, 반복 속도 설정보다 우선해 50ms보다 짧아지지 않게 한다
     static let minimumDeletePanEdgeRepeatInterval: TimeInterval = 0.05
 
     static func shouldAddTextInteractionGestures(

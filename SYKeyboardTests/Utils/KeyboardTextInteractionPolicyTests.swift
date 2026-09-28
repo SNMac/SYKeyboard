@@ -865,19 +865,19 @@ private extension KeyboardTextInteractionPolicyTests {
         model.append("다")
 
         #expect(model.lastCharacter == "다")
-        #expect(model.isExhausted == false)
+        #expect(model.remainingText.isEmpty == false)
     }
 
     @Test("삭제 드래그 모델은 시작 문맥이 없거나 다 떼면 바닥남")
     func testDeletePanTextModel_바닥남() {
         var model = DeletePanTextModel(beforeInput: nil)
-        #expect(model.isExhausted)
+        #expect(model.remainingText.isEmpty)
         #expect(model.lastCharacter == nil)
         #expect(model.removeLast() == nil)
 
         model = DeletePanTextModel(beforeInput: "가")
         _ = model.removeLast()
-        #expect(model.isExhausted)
+        #expect(model.remainingText.isEmpty)
     }
 
     @Test("삭제 드래그 모델은 처음 읽은 문맥을 떼고 붙여도 그대로 보관")

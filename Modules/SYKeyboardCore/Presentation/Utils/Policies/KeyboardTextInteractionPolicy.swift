@@ -567,10 +567,6 @@ struct DeletePanTextModel: Equatable {
         remainingText = sourceText
     }
 
-    var isExhausted: Bool {
-        return remainingText.isEmpty
-    }
-
     var lastCharacter: Character? {
         return remainingText.last
     }
@@ -1104,8 +1100,9 @@ enum KeyboardTextInteractionPolicy {
         guard !beforeInput.isEmpty else { return .requestBoundary }
         guard !sourceText.isEmpty else { return .refill }
 
-        let looksStale = (1...sourceText.count).contains { length in
-            beforeInput.hasSuffix(String(sourceText.prefix(length)))
+        // 앞 문맥보다 긴 접두사는 끝에 올 수 없으므로 확인 길이를 짧은 쪽으로 제한한다
+        let looksStale = (1...min(sourceText.count, beforeInput.count)).contains { length in
+            beforeInput.hasSuffix(sourceText.prefix(length))
         }
         return looksStale ? .awaitSync : .refill
     }
