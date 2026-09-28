@@ -126,6 +126,63 @@ struct SuggestionControllerNGramCompletionTests {
 
     // MARK: - Harness
 
+    @Test("앞 글자에 붙여 친 단축어는 대치용 텍스트로 찾고 단축어 길이만 교체")
+    func test앞글자에붙여친단축어는_대치용텍스트로찾고_단축어길이만교체() async {
+        let harness = makeHarness(
+            lexiconEntries: [TextReplacementEntry(userInput: "omw", documentText: "On my way!")]
+        )
+
+        harness.controller.updateSuggestions(
+            for: "가omw",
+            selectedText: nil,
+            mathExpressionText: "omw",
+            textReplacementBaseText: "omw"
+        )
+        let result = harness.controller.selectSuggestion(
+            at: 0,
+            baseText: "가omw",
+            textReplacementBaseText: "omw"
+        )
+        await harness.finishTextChecker()
+
+        #expect(harness.delegate.updates.last?.currentWord == "가omw")
+        #expect(harness.delegate.updates.last?.suggestions.first == "On my way!")
+        #expect(result?.deleteCount == 3)
+        #expect(result?.insertText == "On my way!")
+    }
+
+    @Test("완성 후보 교체 길이는 기준 텍스트의 마지막 단어 길이")
+    func test완성후보교체길이는_기준텍스트의마지막단어길이() async {
+        let harness = makeHarness()
+        harness.nGram.completionResults = ["가방"]
+
+        // 커서를 `가|나`로 옮긴 직후: 버퍼는 비고 기준 텍스트는 커서 앞 문맥
+        harness.controller.updateSuggestions(
+            for: "가",
+            selectedText: nil,
+            mathExpressionText: "",
+            textReplacementBaseText: ""
+        )
+        let result = harness.controller.selectSuggestion(at: 0, baseText: "가", textReplacementBaseText: "")
+        await harness.finishTextChecker()
+
+        #expect(result?.deleteCount == 1)
+        #expect(result?.insertText == "가방")
+    }
+
+    @Test("다음 단어 예측 뒤 입력 중 모드로 돌아가도 대치용 텍스트로 단축어를 찾음")
+    func test다음단어예측뒤_입력중모드로돌아가도_대치용텍스트로단축어를찾음() async {
+        let harness = makeHarness(
+            lexiconEntries: [TextReplacementEntry(userInput: "omw", documentText: "On my way!")]
+        )
+
+        // NGram 결과가 없으면 입력 중 갱신으로 폴백한다
+        harness.controller.updateSuggestionsAfterNGramSelection(baseText: "가omw", textReplacementBaseText: "omw")
+        await harness.finishTextChecker()
+
+        #expect(harness.delegate.updates.last?.suggestions.first == "On my way!")
+    }
+
     private struct Harness {
         let controller: SuggestionController
         let delegate: RecordingSuggestionControllerDelegate
