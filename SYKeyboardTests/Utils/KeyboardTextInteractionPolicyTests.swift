@@ -850,6 +850,39 @@ private extension KeyboardTextInteractionPolicyTests {
         #expect(abs(interval - expected) < 0.0001)
     }
 
+    // MARK: - 복구할 수 없는 글자 앞 멈춤
+
+    @Test("삭제 드래그는 첨부·토큰을 나타내는 개체 대체 문자 앞에서 멈춤",
+          arguments: [
+            (Character?.some("\u{FFFC}"), String?.none, true),
+            ("\u{FFFC}", "", true),
+            ("가", nil, false),
+            ("\n", nil, false),
+            (nil, nil, false)
+          ])
+    func testShouldStopDeletePan(
+        _ previousCharacter: Character?,
+        _ selectedText: String?,
+        _ expected: Bool
+    ) {
+        #expect(
+            KeyboardTextInteractionPolicy.shouldStopDeletePan(
+                previousCharacter: previousCharacter,
+                selectedText: selectedText
+            ) == expected
+        )
+    }
+
+    @Test("선택 영역이 있으면 개체 대체 문자 앞이어도 선택 영역을 지움")
+    func testShouldStopDeletePan_선택영역() {
+        #expect(
+            KeyboardTextInteractionPolicy.shouldStopDeletePan(
+                previousCharacter: "\u{FFFC}",
+                selectedText: "선택"
+            ) == false
+        )
+    }
+
     // MARK: - 삭제 드래그 경계 상태
 
     private func makeBoundaryGeneration() -> DeleteInteractionGeneration {

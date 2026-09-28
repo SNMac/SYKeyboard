@@ -1185,6 +1185,14 @@ enum KeyboardTextInteractionPolicy {
     /// 삭제 드래그 경계 요청이 callback 없이 확정을 기다리는 최대 시간
     static let deletePanBoundaryTimeout: Double = 0.15
 
+    /// 삭제 드래그가 커서 앞 글자 앞에서 멈춰야 하는지 판정합니다.
+    ///
+    /// 사진·첨부·연락처 토큰은 문맥에 개체 대체 문자(U+FFFC) 한 글자로만 보여, 지운 뒤 그 글자를 넣어도 되살아나지 않는다.
+    /// 지운 글자를 되살릴 수 있어야 하는 드래그에서는 그 앞에서 멈춘다. 탭·길게 누르기 삭제는 기본 키보드처럼 막지 않는다.
+    static func shouldStopDeletePan(previousCharacter: Character?, selectedText: String?) -> Bool {
+        return (selectedText ?? "").isEmpty && previousCharacter == "\u{FFFC}"
+    }
+
     /// 삭제 드래그 모델이 바닥났을 때 입력창 앞 문맥으로 다음 동작을 정합니다.
     ///
     /// 입력창이 드래그 편집을 늦게 반영하면 앞 문맥은 모델에서 방금 지운 글자의 앞부분으로 끝난다.

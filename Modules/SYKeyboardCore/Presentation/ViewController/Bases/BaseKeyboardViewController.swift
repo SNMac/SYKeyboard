@@ -2462,6 +2462,11 @@ private extension BaseKeyboardViewController {
 
     func performDeleteButtonPanDeleteIfPossible() {
         prepareDeletePanTextModelIfNeeded()
+        // 되살릴 수 없는 첨부·토큰 앞에서는 지우지 않고 멈춘다
+        guard !KeyboardTextInteractionPolicy.shouldStopDeletePan(
+            previousCharacter: deleteButtonPanPreviousCharacter,
+            selectedText: textDocumentProxy.selectedText
+        ) else { return }
         deletePanDeletedTextOverride = deleteButtonPanPreviousCharacter.map(String.init)
         let deleteResult = deleteButtonPanDeleteText(
             hasPendingRestoreText: !tempDeletedCharacters.isEmpty
