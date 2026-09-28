@@ -129,6 +129,8 @@ open class BaseKeyboardViewController: UIInputViewController {
     /// `resetInputBuffer` 래핑 메서드를 통해 조작합니다.
     private var inputBuffer: String = ""
     private var smartQuoteState = KeyboardSmartQuoteState()
+    /// `textWillChange`에서 리셋 직전에 떠 두는 입력 상태. 바로 다음 `textDidChange`에서 전송 여부를 판단한 뒤 비운다
+    private var pendingSentTextSnapshot: SentTextSnapshot?
 
     /// 키보드 전환 버튼에 마지막으로 반영한 `needsInputModeSwitchKey`.
     /// 이 값은 호스트 연결 이후에야 정확해지므로 레이아웃 시점에 확인하되,
@@ -406,6 +408,7 @@ open class BaseKeyboardViewController: UIInputViewController {
             inputIdentifier: textInputIdentifier(for: textInput),
             context: currentTextContextSnapshot()
         )
+        pendingSentTextSnapshot = makeSentTextSnapshot()
         resetInputBuffer()
         updateKeyboardType()
         updateReturnButtonType()
@@ -420,6 +423,8 @@ open class BaseKeyboardViewController: UIInputViewController {
         logger.debug("textDidChange")
         synchronizeTextInputTraits()
         synchronizeDeleteInteractionInputIdentifier(textInput)
+        // 한영 키보드가 trait 변화로 언어를 다시 판정하기(`inputTraitsDidChange`) 전에, 스냅샷을 뜬 엔진에 기록한다
+        recordSentTextIfNeeded()
         let currentTextContext = currentTextContextSnapshot()
         if KeyboardGesturePolicy.shouldPlayCursorDragHapticOnTextDidChange(
             isPrimaryCursorDragging: isPrimaryCursorDragging,
@@ -474,6 +479,7 @@ open class BaseKeyboardViewController: UIInputViewController {
         lastNotifiedTextInputIdentifier = nil
         undoRedoSession.removeAll()
         updateUndoRedoControls()
+        pendingSentTextSnapshot = nil
         resetInputBuffer()
         suggestionController.saveNGramData()
     }
@@ -2046,6 +2052,51 @@ extension BaseKeyboardViewController: SwitchGestureControllerDelegate {
 
     final func changeOneHandedMode(_ controller: SwitchGestureController, to newMode: OneHandedMode) {
         self.currentOneHandedMode = newMode
+    }
+}
+
+// MARK: - Sent Text Recording
+
+/// 전송 판정과 기록에 쓰는 `textWillChange` 시점의 입력 상태
+private struct SentTextSnapshot {
+    let inputBuffer: String
+    let sentenceWords: [String]
+    let documentIdentifier: UUID?
+}
+
+private extension BaseKeyboardViewController {
+    /// 기록하지 않은 입력이 있을 때만 스냅샷을 만든다
+    func makeSentTextSnapshot() -> SentTextSnapshot? {
+        guard inputBuffer.contains(where: { !$0.isWhitespace }) else { return nil }
+        return SentTextSnapshot(
+            inputBuffer: inputBuffer,
+            sentenceWords: suggestionController.sentenceWordsSnapshot(),
+            documentIdentifier: currentDocumentIdentifier()
+        )
+    }
+
+    /// 입력창이 전송으로 비었으면 스냅샷의 마지막 단어까지 기록하고 문장을 끝낸다
+    func recordSentTextIfNeeded() {
+        guard let snapshot = pendingSentTextSnapshot else { return }
+        pendingSentTextSnapshot = nil
+        guard KeyboardSentTextDetectionPolicy.isSentAfterTextChange(
+            documentIdentifierBeforeChange: snapshot.documentIdentifier,
+            documentIdentifierAfterChange: currentDocumentIdentifier(),
+            beforeInput: textDocumentProxy.documentContextBeforeInput,
+            afterInput: textDocumentProxy.documentContextAfterInput,
+            selectedText: textDocumentProxy.selectedText
+        ) else { return }
+
+        suggestionController.endSentence(
+            inputBuffer: snapshot.inputBuffer,
+            restoringSentenceWords: snapshot.sentenceWords
+        )
+    }
+
+    /// 헤더는 nonnull이지만 키보드가 처음 뜰 때나 입력창이 바뀌는 순간 nil이 온다.
+    /// Swift 프로퍼티로 읽으면 `UUID` 브리징에서 크래시하므로 KVC로 읽는다
+    func currentDocumentIdentifier() -> UUID? {
+        return (textDocumentProxy as AnyObject).value(forKey: "documentIdentifier") as? UUID
     }
 }
 

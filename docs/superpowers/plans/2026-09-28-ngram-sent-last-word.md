@@ -605,7 +605,7 @@ git commit -m "feat: #164 - 문장 버퍼를 되돌려 보낸 문장을 기록�
 
 VC 연결은 자동 테스트로 고정하지 않는다(spec "테스트" 절). 이 task의 검증은 빌드와 Task 5의 수동 확인이다.
 
-- [ ] **Step 1: 프로퍼티 추가**
+- [x] **Step 1: 프로퍼티 추가**
 
 `private var smartQuoteState = KeyboardSmartQuoteState()` 아래:
 
@@ -616,7 +616,7 @@ VC 연결은 자동 테스트로 고정하지 않는다(spec "테스트" 절). �
 
 `SentTextSnapshot`은 Step 2에서 파일 최상위 `private struct`로 선언한다. 클래스 안에 중첩하면 private extension의 메서드(fileprivate) 반환 타입으로 쓸 때 접근 수준 오류가 난다.
 
-- [ ] **Step 2: 콜백 연결**
+- [x] **Step 2: 콜백 연결**
 
 `textWillChange(_:)`:
 
@@ -688,7 +688,7 @@ private extension BaseKeyboardViewController {
 }
 ```
 
-- [ ] **Step 3: 4개 scheme 빌드**
+- [x] **Step 3: 4개 scheme 빌드**
 
 ```sh
 for S in SYKeyboard HangeulKeyboard EnglishKeyboard HangeulEnglishKeyboard; do
@@ -701,7 +701,9 @@ git status --short
 
 Expected: 4개 모두 `** BUILD SUCCEEDED **`. `.xcscheme`이 `RemotePath`만 바뀌었으면 되돌린다.
 
-- [ ] **Step 4: 커밋**
+결과(2026-09-28, iPhone 13 mini / iOS 18.6 대상): `SYKeyboard`, `HangeulKeyboard`, `EnglishKeyboard`, `HangeulEnglishKeyboard` 모두 `** BUILD SUCCEEDED **`, 오류 없음. 빌드 뒤 `git status --short`에 `.xcscheme` 변경 없음
+
+- [x] **Step 4: 커밋**
 
 ```sh
 git add Modules/SYKeyboardCore/Presentation/ViewController/Bases/BaseKeyboardViewController.swift \
