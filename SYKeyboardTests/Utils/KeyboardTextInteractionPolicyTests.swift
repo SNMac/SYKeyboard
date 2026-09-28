@@ -850,6 +850,128 @@ private extension KeyboardTextInteractionPolicyTests {
         #expect(abs(interval - expected) < 0.0001)
     }
 
+    // MARK: - 삭제 드래그 경계 상태
+
+    private func makeBoundaryGeneration() -> DeleteInteractionGeneration {
+        var coordinator = DeleteInteractionCoordinator()
+        return coordinator.beginPanBoundaryMutation(inputIdentifier: nil)!
+    }
+
+    @Test("경계 요청을 보내기 전 대기 중에는 오른쪽 팬과 팬 종료만 대기를 취소")
+    func testDeletePanBoundaryState_보내기전취소대상() {
+        var state = DeletePanBoundaryState()
+        #expect(state.shouldCancelPendingBeforeSend(on: .pan(direction: .right)) == false)
+
+        state.beginPending(generation: makeBoundaryGeneration())
+
+        #expect(state.shouldCancelPendingBeforeSend(on: .pan(direction: .right)))
+        #expect(state.shouldCancelPendingBeforeSend(on: .panStop))
+        #expect(state.shouldCancelPendingBeforeSend(on: .pan(direction: .left)) == false)
+    }
+
+    @Test("경계 대기는 대기를 시작한 generation에만 해당")
+    func testDeletePanBoundaryState_다른generation() {
+        var coordinator = DeleteInteractionCoordinator()
+        let first = coordinator.beginPanBoundaryMutation(inputIdentifier: nil)!
+        coordinator.resolve(first)
+        let second = coordinator.beginPanBoundaryMutation(inputIdentifier: nil)!
+        #expect(first != second)
+
+        var state = DeletePanBoundaryState()
+        state.beginPending(generation: first)
+
+        #expect(state.isPending(generation: first))
+        #expect(state.isPending(generation: second) == false)
+    }
+
+    @Test("보내기 전 대기를 취소하면 이번 드래그에서는 경계를 막고, 모델을 다시 채워 끝내면 막지 않음")
+    func testDeletePanBoundaryState_대기종료() {
+        var cancelled = DeletePanBoundaryState()
+        cancelled.beginPending(generation: makeBoundaryGeneration())
+        cancelled.cancelPending()
+        #expect(cancelled.pendingGeneration == nil)
+        #expect(cancelled.isBlocked)
+
+        var refilled = DeletePanBoundaryState()
+        refilled.beginPending(generation: makeBoundaryGeneration())
+        refilled.finishPendingWithoutRequest()
+        #expect(refilled.pendingGeneration == nil)
+        #expect(refilled.isBlocked == false)
+    }
+
+    @Test("입력창 문맥 대기는 한 번만 시작하고, 요청을 보낸 뒤의 대기 시간 초과는 무시")
+    func testDeletePanBoundaryState_문맥대기() {
+        var state = DeletePanBoundaryState()
+        let waitBeforePending = state.beginSyncWait()
+        #expect(waitBeforePending == nil)
+
+        state.beginPending(generation: makeBoundaryGeneration())
+        let waitID = state.beginSyncWait()
+        let secondWaitID = state.beginSyncWait()
+        #expect(waitID != nil)
+        #expect(secondWaitID == nil)
+        #expect(state.isCurrentSyncWait(waitID!))
+
+        _ = state.didSendRequest()
+        #expect(state.isCurrentSyncWait(waitID!) == false)
+    }
+
+    @Test("보낸 경계 요청의 시간 초과는 확정되지 않은 가장 최근 요청에만 적용되고 경계를 막음")
+    func testDeletePanBoundaryState_요청시간초과() {
+        let newline = DeleteMutationResolution(
+            completion: .mutations([
+                RepeatDeleteMutationDraft(deletedText: "\n", insertedText: "", reliability: .authoritative)
+            ]),
+            origin: .panBoundary,
+            shouldPlayFeedback: true
+        )
+        var state = DeletePanBoundaryState()
+        state.beginPending(generation: makeBoundaryGeneration())
+        let firstID = state.didSendRequest()
+        state.didResolve(newline)
+        let resolvedTimedOut = state.requestDidTimeOut(firstID)
+        #expect(resolvedTimedOut == false)
+        #expect(state.isBlocked == false)
+
+        state.beginPending(generation: makeBoundaryGeneration())
+        let secondID = state.didSendRequest()
+        let staleTimedOut = state.requestDidTimeOut(firstID)
+        let currentTimedOut = state.requestDidTimeOut(secondID)
+        #expect(staleTimedOut == false)
+        #expect(currentTimedOut)
+        #expect(state.isBlocked)
+    }
+
+    @Test("경계 요청이 삭제 없음으로 확정되면 경계를 막고 줄바꿈 확정이면 막지 않음")
+    func testDeletePanBoundaryState_확정() {
+        var noDeletion = DeletePanBoundaryState()
+        noDeletion.didResolve(
+            DeleteMutationResolution(completion: .noDeletion, origin: .panBoundary, shouldPlayFeedback: false)
+        )
+        #expect(noDeletion.isBlocked)
+
+        var touchDown = DeletePanBoundaryState()
+        touchDown.didResolve(
+            DeleteMutationResolution(completion: .noDeletion, origin: .touchDown, shouldPlayFeedback: false)
+        )
+        #expect(touchDown.isBlocked == false)
+    }
+
+    @Test("드래그를 다시 시작하면 막힘과 대기를 풀지만 이전 요청의 시간 초과는 되살리지 않음")
+    func testDeletePanBoundaryState_초기화() {
+        var state = DeletePanBoundaryState()
+        state.beginPending(generation: makeBoundaryGeneration())
+        let requestID = state.didSendRequest()
+        state.cancelPending()
+
+        state.reset()
+
+        let timedOutAfterReset = state.requestDidTimeOut(requestID)
+        #expect(state.isBlocked == false)
+        #expect(state.pendingGeneration == nil)
+        #expect(timedOutAfterReset == false)
+    }
+
     // MARK: - 삭제 드래그 문맥 모델
 
     @Test("삭제 드래그 모델은 시작 문맥 끝에서 글자를 떼고 복구하면 다시 붙임")

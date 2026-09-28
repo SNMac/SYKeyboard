@@ -581,6 +581,104 @@ struct DeletePanTextModel: Equatable {
     }
 }
 
+/// 삭제 드래그가 줄 경계를 넘을 때의 상태
+///
+/// 경계 요청(`deleteBackward()`)을 보내기 전 대기, 입력창 문맥 대기, 보낸 요청의 시간 초과, 이번 드래그의
+/// 경계 막힘을 함께 관리한다. 타이머 발화는 번호로 받아, 끝났거나 새 요청으로 바뀐 대기의 발화를 무시한다.
+struct DeletePanBoundaryState: Equatable {
+    /// 경계 요청을 보내기 전 단계에 있는 대기의 generation
+    private(set) var pendingGeneration: DeleteInteractionGeneration?
+    /// 이번 드래그에서 더 이상 경계를 넘지 않는지(문서 맨 앞 확인, 취소, 시간 초과)
+    private(set) var isBlocked = false
+    private var syncWaitID: Int?
+    private var requestTimeoutID: Int?
+    private var lastTimerID = 0
+
+    mutating func beginPending(generation: DeleteInteractionGeneration) {
+        pendingGeneration = generation
+    }
+
+    func isPending(generation: DeleteInteractionGeneration) -> Bool {
+        return pendingGeneration == generation
+    }
+
+    /// 보내기 전 대기 중에 들어온 사용자 입력이 대기를 취소해야 하는지 판정합니다.
+    ///
+    /// 방향을 바꾸거나 손을 뗀 사용자를 경계 대기로 붙잡지 않는다.
+    func shouldCancelPendingBeforeSend(on event: PendingDeleteInteractionEvent) -> Bool {
+        guard pendingGeneration != nil else { return false }
+        switch event {
+        case .pan(direction: .right), .panStop:
+            return true
+        case .pan, .touchDown:
+            return false
+        }
+    }
+
+    /// 입력창 문맥 대기를 시작하고 시간 초과를 가를 번호를 반환합니다. 이미 기다리는 중이면 nil입니다.
+    mutating func beginSyncWait() -> Int? {
+        guard pendingGeneration != nil, syncWaitID == nil else { return nil }
+        let id = nextTimerID()
+        syncWaitID = id
+        return id
+    }
+
+    func isCurrentSyncWait(_ id: Int) -> Bool {
+        return pendingGeneration != nil && syncWaitID == id
+    }
+
+    /// 경계 요청을 보냈습니다. 시간 초과를 가를 번호를 반환합니다.
+    mutating func didSendRequest() -> Int {
+        pendingGeneration = nil
+        syncWaitID = nil
+        let id = nextTimerID()
+        requestTimeoutID = id
+        return id
+    }
+
+    /// 보낸 요청의 시간 초과가 아직 확정되지 않은 가장 최근 요청이면 경계를 막고 true를 반환합니다.
+    mutating func requestDidTimeOut(_ id: Int) -> Bool {
+        guard requestTimeoutID == id else { return false }
+        requestTimeoutID = nil
+        isBlocked = true
+        return true
+    }
+
+    /// 경계를 묻지 않고 보내기 전 대기를 끝냅니다(모델을 다시 채운 경우).
+    mutating func finishPendingWithoutRequest() {
+        pendingGeneration = nil
+        syncWaitID = nil
+    }
+
+    /// 보내기 전 대기를 취소하고 이번 드래그에서는 경계를 막습니다.
+    mutating func cancelPending() {
+        isBlocked = true
+        finishPendingWithoutRequest()
+    }
+
+    /// 확정 결과를 반영합니다. pan 경계가 삭제 없음으로 확정되면 문서 맨 앞이므로 경계를 막습니다.
+    mutating func didResolve(_ resolution: DeleteMutationResolution) {
+        guard resolution.origin == .panBoundary else { return }
+        requestTimeoutID = nil
+        if resolution.completion == .noDeletion {
+            isBlocked = true
+        }
+    }
+
+    /// 드래그가 끝나거나 새로 시작할 때 초기화합니다. 번호는 이어서 써 이전 발화를 되살리지 않습니다.
+    mutating func reset() {
+        pendingGeneration = nil
+        isBlocked = false
+        syncWaitID = nil
+        requestTimeoutID = nil
+    }
+
+    private mutating func nextTimerID() -> Int {
+        lastTimerID += 1
+        return lastTimerID
+    }
+}
+
 /// 삭제 드래그 모델이 바닥났을 때 입력창 앞 문맥을 보고 정하는 다음 동작
 enum DeletePanExhaustedContextAction: Equatable {
     /// 앞 문맥이 비었으므로 개행 경계를 묻는다

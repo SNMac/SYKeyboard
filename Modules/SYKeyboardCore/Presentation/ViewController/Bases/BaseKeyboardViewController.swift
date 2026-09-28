@@ -207,15 +207,8 @@ open class BaseKeyboardViewController: UIInputViewController {
     private var deletePanTextModel: DeletePanTextModel?
     /// 삭제 버튼 팬 제스처가 마지막으로 문서를 편집한 시각
     private var lastDeletePanEditTime: CFTimeInterval = 0
-    /// 현재 확인을 기다리는 삭제 버튼 팬 경계 요청 번호(시간 초과 예약을 구분)
-    private var deletePanBoundaryRequestID = 0
-    /// 이번 드래그에서 더 이상 경계 요청을 보내지 않는지 여부(문서 맨 앞 확인 또는 시간 초과)
-    private var isDeletePanBoundaryBlocked = false
-    /// 경계 요청(`deleteBackward()`)을 보내기 전 단계에 있는 삭제 버튼 팬 경계의 generation
-    private var deletePanBoundaryPendingGeneration: DeleteInteractionGeneration?
-    /// 경계 요청 전 입력창 문맥이 따라오기를 기다리는 대기 번호(nil이면 기다리지 않음)
-    private var deletePanBoundarySyncWaitID: Int?
-    private var lastDeletePanBoundarySyncWaitID = 0
+    /// 삭제 버튼 팬 제스처가 줄 경계를 넘을 때의 대기·막힘 상태
+    private var deletePanBoundaryState = DeletePanBoundaryState()
     /// 다음 `deleteText()`가 undo에 기록할 삭제 문자열(삭제 버튼 팬 제스처가 모델에서 정한 값)
     private var deletePanDeletedTextOverride: String?
 
@@ -1859,14 +1852,10 @@ private extension BaseKeyboardViewController {
 
         let effects = KeyboardTextInteractionPolicy.mutationResolutionEffects(resolution)
         tempDeletedCharacters.append(contentsOf: effects.restorableCharacters)
-        if resolution.origin == .panBoundary {
-            if !effects.restorableCharacters.isEmpty {
-                // 줄바꿈을 지워 새로 보이는 이전 줄로 모델을 다시 채운다
-                deletePanTextModel = DeletePanTextModel(beforeInput: textDocumentProxy.documentContextBeforeInput)
-            } else if resolution.completion == .noDeletion {
-                // 문서 맨 앞을 확인했으므로 이번 드래그에서는 경계를 다시 묻지 않는다
-                isDeletePanBoundaryBlocked = true
-            }
+        deletePanBoundaryState.didResolve(resolution)
+        if resolution.origin == .panBoundary, !effects.restorableCharacters.isEmpty {
+            // 줄바꿈을 지워 새로 보이는 이전 줄로 모델을 다시 채운다
+            deletePanTextModel = DeletePanTextModel(beforeInput: textDocumentProxy.documentContextBeforeInput)
         }
 
         if effects.appliesMutationEffects,
@@ -2227,7 +2216,7 @@ extension BaseKeyboardViewController: TextInteractionGestureControllerDelegate {
         showDeleteDragOverlays()
         guard deleteInteractionCoordinator.enqueuePan(direction) == .performNow else {
             // 경계 요청을 보내기 전이면 방향을 바꾼 사용자를 기다리게 하지 않는다
-            if direction == .right, deletePanBoundaryPendingGeneration != nil {
+            if deletePanBoundaryState.shouldCancelPendingBeforeSend(on: .pan(direction: direction)) {
                 cancelPendingDeletePanBoundary()
             }
             return
@@ -2239,7 +2228,7 @@ extension BaseKeyboardViewController: TextInteractionGestureControllerDelegate {
         hideDeleteDragOverlays()
         guard deleteInteractionCoordinator.enqueuePanStop() == .performNow else {
             // 경계 요청을 보내기 전이면 손을 뗀 뒤에 보내지 않고 바로 끝낸다
-            if deletePanBoundaryPendingGeneration != nil {
+            if deletePanBoundaryState.shouldCancelPendingBeforeSend(on: .panStop) {
                 cancelPendingDeletePanBoundary()
                 return
             }
@@ -2414,9 +2403,7 @@ private extension BaseKeyboardViewController {
 
     func resetDeletePanTextModel() {
         deletePanTextModel = nil
-        isDeletePanBoundaryBlocked = false
-        deletePanBoundaryPendingGeneration = nil
-        deletePanBoundarySyncWaitID = nil
+        deletePanBoundaryState.reset()
     }
 
     func scheduleReleasedPanBoundaryCheckpoint(
@@ -2492,7 +2479,7 @@ private extension BaseKeyboardViewController {
             return
         }
 
-        guard !isDeletePanBoundaryBlocked,
+        guard !deletePanBoundaryState.isBlocked,
               KeyboardTextInteractionPolicy.shouldRequestDeletePanBoundary(
                 hasText: textDocumentProxy.hasText,
                 hasDeletedInCurrentPan: !tempDeletedCharacters.isEmpty,
@@ -2502,7 +2489,7 @@ private extension BaseKeyboardViewController {
         guard let generation = deleteInteractionCoordinator.beginPanBoundaryMutation(
             inputIdentifier: currentTextInputIdentifier
         ) else { return }
-        deletePanBoundaryPendingGeneration = generation
+        deletePanBoundaryState.beginPending(generation: generation)
 
         // 입력창이 직전 편집을 반영할 시간을 준 뒤 앞 문맥을 본다
         let delay = KeyboardTextInteractionPolicy.deletePanBoundaryDelay(
@@ -2521,7 +2508,7 @@ private extension BaseKeyboardViewController {
     ///
     /// 경계 요청(`deleteBackward()`)을 보내기 전 단계라서 이 동안의 방향 전환·팬 종료는 바로 취소할 수 있습니다.
     func evaluatePendingDeletePanBoundary(for generation: DeleteInteractionGeneration) {
-        guard deletePanBoundaryPendingGeneration == generation,
+        guard deletePanBoundaryState.isPending(generation: generation),
               deleteInteractionCoordinator.currentGeneration == generation,
               deleteInteractionCoordinator.isWaitingForResolution,
               !deleteMutationLifecycle.hasPanBoundaryRequest
@@ -2545,8 +2532,7 @@ private extension BaseKeyboardViewController {
     }
 
     func sendDeletePanBoundaryRequest(for generation: DeleteInteractionGeneration) {
-        deletePanBoundaryPendingGeneration = nil
-        deletePanBoundarySyncWaitID = nil
+        let timeoutID = deletePanBoundaryState.didSendRequest()
         guard deleteMutationLifecycle.beginPanBoundary(
             context: currentTextContextSnapshot(),
             selectedText: textDocumentProxy.selectedText
@@ -2558,21 +2544,18 @@ private extension BaseKeyboardViewController {
 
         lastDeletePanEditTime = CACurrentMediaTime()
         deleteText()
-        scheduleDeletePanBoundaryTimeout(for: generation)
+        scheduleDeletePanBoundaryTimeout(for: generation, timeoutID: timeoutID)
     }
 
     /// 입력창 문맥이 따라오기를 기다리고, 끝내 따라오지 않으면 경계를 넘지 않고 끝냅니다.
     func waitForDeletePanBoundaryContextSync(for generation: DeleteInteractionGeneration) {
-        guard deletePanBoundarySyncWaitID == nil else { return }
-        lastDeletePanBoundarySyncWaitID += 1
-        let waitID = lastDeletePanBoundarySyncWaitID
-        deletePanBoundarySyncWaitID = waitID
+        guard let waitID = deletePanBoundaryState.beginSyncWait() else { return }
         DispatchQueue.main.asyncAfter(
             deadline: .now() + KeyboardTextInteractionPolicy.deletePanBoundaryTimeout
         ) { [weak self] in
             guard let self,
-                  self.deletePanBoundarySyncWaitID == waitID,
-                  self.deletePanBoundaryPendingGeneration == generation,
+                  self.deletePanBoundaryState.isCurrentSyncWait(waitID),
+                  self.deletePanBoundaryState.isPending(generation: generation),
                   self.deleteInteractionCoordinator.currentGeneration == generation,
                   self.deleteInteractionCoordinator.isWaitingForResolution,
                   !self.deleteMutationLifecycle.hasPanBoundaryRequest
@@ -2584,14 +2567,13 @@ private extension BaseKeyboardViewController {
 
     /// 경계 요청을 보내기 전 단계의 대기를 취소하고, 이번 드래그에서는 더 이상 경계를 넘지 않습니다.
     func cancelPendingDeletePanBoundary() {
-        isDeletePanBoundaryBlocked = true
-        finishPendingDeletePanBoundaryWithoutRequest(discardingLeadingNoOpPanLeft: true)
+        deletePanBoundaryState.cancelPending()
+        resolvePendingDeleteInteractionsIfNeeded(discardingLeadingNoOpPanLeft: true)
         drainPendingDeleteInteractionsIfPossible()
     }
 
     func finishPendingDeletePanBoundaryWithoutRequest(discardingLeadingNoOpPanLeft: Bool) {
-        deletePanBoundaryPendingGeneration = nil
-        deletePanBoundarySyncWaitID = nil
+        deletePanBoundaryState.finishPendingWithoutRequest()
         resolvePendingDeleteInteractionsIfNeeded(
             discardingLeadingNoOpPanLeft: discardingLeadingNoOpPanLeft
         )
@@ -2600,7 +2582,7 @@ private extension BaseKeyboardViewController {
     func resumePendingDeletePanBoundaryIfNeeded() {
         // 마지막 드래그 편집 뒤 조용한 시간이 지나기 전에는 예약된 판정에 맡긴다.
         // 그 사이 callback은 드래그 전 문맥을 담고 있을 수 있어 모델을 잘못 다시 채울 수 있다
-        guard let generation = deletePanBoundaryPendingGeneration,
+        guard let generation = deletePanBoundaryState.pendingGeneration,
               KeyboardTextInteractionPolicy.deletePanBoundaryDelay(
                 elapsedSinceLastEdit: CACurrentMediaTime() - lastDeletePanEditTime
               ) == 0
@@ -2609,21 +2591,21 @@ private extension BaseKeyboardViewController {
     }
 
     /// callback 없이 경계 요청이 끝나지 않으면 일정 시간 뒤 확정해 드래그가 멈추지 않게 합니다.
-    func scheduleDeletePanBoundaryTimeout(for generation: DeleteInteractionGeneration) {
-        deletePanBoundaryRequestID += 1
-        let requestID = deletePanBoundaryRequestID
+    func scheduleDeletePanBoundaryTimeout(
+        for generation: DeleteInteractionGeneration,
+        timeoutID: Int
+    ) {
         DispatchQueue.main.asyncAfter(
             deadline: .now() + KeyboardTextInteractionPolicy.deletePanBoundaryTimeout
         ) { [weak self] in
             guard let self,
-                  self.deletePanBoundaryRequestID == requestID,
                   self.deleteInteractionCoordinator.currentGeneration == generation,
                   self.deleteInteractionCoordinator.isWaitingForResolution,
-                  self.deleteMutationLifecycle.hasPanBoundaryRequest
+                  self.deleteMutationLifecycle.hasPanBoundaryRequest,
+                  // 입력창 확인 없이 확정하므로 이번 드래그에서는 더 이상 경계를 넘지 않는다
+                  self.deletePanBoundaryState.requestDidTimeOut(timeoutID)
             else { return }
 
-            // 입력창 확인 없이 확정했으므로 이번 드래그에서는 더 이상 경계를 넘지 않는다
-            self.isDeletePanBoundaryBlocked = true
             self.processDeleteMutationResolution(
                 self.deleteMutationLifecycle.completePanBoundaryAfterTimeout(
                     currentContext: self.currentTextContextSnapshot(),
