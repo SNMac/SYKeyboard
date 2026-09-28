@@ -1026,12 +1026,17 @@ enum KeyboardTextInteractionPolicy {
         return ""
     }
 
+    /// 삭제 드래그가 커서 앞 개행 경계를 물어볼지 판정합니다.
+    ///
+    /// 줄 단위로 문맥을 주는 입력창은 마지막 줄을 다 지우면 앞 줄이 남아도 `hasText`가 false다.
+    /// 이번 드래그에서 이미 지운 글자가 있으면 문서가 비었다고 단정하지 않고 한 번 묻는다.
     static func shouldRequestDeletePanBoundary(
         hasText: Bool,
+        hasDeletedInCurrentPan: Bool,
         documentContextBeforeInput: String?,
         selectedText: String?
     ) -> Bool {
-        return hasText
+        return (hasText || hasDeletedInCurrentPan)
             && (documentContextBeforeInput ?? "").isEmpty
             && (selectedText ?? "").isEmpty
     }

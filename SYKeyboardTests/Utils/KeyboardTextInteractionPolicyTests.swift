@@ -62,11 +62,12 @@ struct KeyboardTextInteractionPolicyTests {
         )
     }
 
-    @Test("앞 문맥이 비고 문서에 텍스트가 남으면 pan boundary 요청")
+    @Test("앞 문맥이 비고 문서에 텍스트가 남거나 이번 드래그에서 지운 글자가 있으면 pan boundary 요청")
     func testDeletePanBoundaryRequestPolicy() {
         #expect(
             KeyboardTextInteractionPolicy.shouldRequestDeletePanBoundary(
                 hasText: true,
+                hasDeletedInCurrentPan: false,
                 documentContextBeforeInput: nil,
                 selectedText: nil
             )
@@ -74,6 +75,7 @@ struct KeyboardTextInteractionPolicyTests {
         #expect(
             KeyboardTextInteractionPolicy.shouldRequestDeletePanBoundary(
                 hasText: true,
+                hasDeletedInCurrentPan: false,
                 documentContextBeforeInput: "",
                 selectedText: ""
             )
@@ -81,6 +83,7 @@ struct KeyboardTextInteractionPolicyTests {
         #expect(
             KeyboardTextInteractionPolicy.shouldRequestDeletePanBoundary(
                 hasText: false,
+                hasDeletedInCurrentPan: false,
                 documentContextBeforeInput: "",
                 selectedText: nil
             ) == false
@@ -88,6 +91,7 @@ struct KeyboardTextInteractionPolicyTests {
         #expect(
             KeyboardTextInteractionPolicy.shouldRequestDeletePanBoundary(
                 hasText: true,
+                hasDeletedInCurrentPan: false,
                 documentContextBeforeInput: "가",
                 selectedText: nil
             ) == false
@@ -95,8 +99,26 @@ struct KeyboardTextInteractionPolicyTests {
         #expect(
             KeyboardTextInteractionPolicy.shouldRequestDeletePanBoundary(
                 hasText: true,
+                hasDeletedInCurrentPan: false,
                 documentContextBeforeInput: "",
                 selectedText: "선택"
+            ) == false
+        )
+        // 줄 단위 문맥 입력창은 마지막 줄을 다 지우면 앞 줄이 남아도 hasText가 false다
+        #expect(
+            KeyboardTextInteractionPolicy.shouldRequestDeletePanBoundary(
+                hasText: false,
+                hasDeletedInCurrentPan: true,
+                documentContextBeforeInput: nil,
+                selectedText: nil
+            )
+        )
+        #expect(
+            KeyboardTextInteractionPolicy.shouldRequestDeletePanBoundary(
+                hasText: false,
+                hasDeletedInCurrentPan: true,
+                documentContextBeforeInput: "가",
+                selectedText: nil
             ) == false
         )
     }

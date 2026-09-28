@@ -2472,6 +2472,7 @@ private extension BaseKeyboardViewController {
         guard !isDeletePanBoundaryBlocked,
               KeyboardTextInteractionPolicy.shouldRequestDeletePanBoundary(
                 hasText: textDocumentProxy.hasText,
+                hasDeletedInCurrentPan: !tempDeletedCharacters.isEmpty,
                 documentContextBeforeInput: deletePanTextModel?.remainingText,
                 selectedText: textDocumentProxy.selectedText
               ) else { return }
