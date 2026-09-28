@@ -214,4 +214,43 @@ struct KeyboardGesturePolicyTests {
 
         #expect(gesture.isEnabled == false)
     }
+
+    @Test("삭제 pan 위치가 창 좌우 가장자리 구역이면 그 방향을 반환",
+          arguments: [
+            (CGFloat(0), PanDirection?.some(.left)),
+            (20, .left),
+            (20.5, nil),
+            (195, nil),
+            (369.5, nil),
+            (370, .right),
+            (390, .right)
+          ])
+    func testDeletePanEdgeDirection(_ locationX: CGFloat, _ expected: PanDirection?) {
+        #expect(
+            KeyboardGesturePolicy.deletePanEdgeDirection(
+                locationX: locationX,
+                containerWidth: 390
+            ) == expected
+        )
+    }
+
+    @Test("삭제 pan 가장자리 반복 간격은 반복 속도를 따르되 50ms보다 짧아지지 않음",
+          arguments: [
+            (0.09, 0.05),
+            (0.05, 0.05),
+            (0.03, 0.07),
+            (0.01, 0.09)
+          ])
+    func testDeletePanEdgeRepeatInterval(_ repeatRate: Double, _ expected: Double) {
+        #expect(
+            abs(KeyboardGesturePolicy.deletePanEdgeRepeatInterval(repeatRate: repeatRate) - expected) < 0.000_001
+        )
+    }
+
+    @Test("삭제 pan 가장자리 구역은 창 너비를 모르면 판정하지 않음")
+    func testDeletePanEdgeDirection_너비없음() {
+        #expect(
+            KeyboardGesturePolicy.deletePanEdgeDirection(locationX: 0, containerWidth: 0) == nil
+        )
+    }
 }
