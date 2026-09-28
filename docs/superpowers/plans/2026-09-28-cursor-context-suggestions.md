@@ -839,7 +839,7 @@ git status --short
 결과(2026-09-28, iPhone 13 mini / iOS 18.6, `-O`): 짧은 기준(5자) 1회 0.154ms, 긴 기준(251자) 1회 0.204ms, 차이 약 0.05ms로 통과. 임시 테스트는 삭제했고 `git status --short`에 남지 않았다. `성능 고려 사항.md` §3-6에 기록. 실기기 Release 측정은 하지 않음(추정 표시)
  차이가 1회 0.1ms 안이면 통과로 본다(120Hz 부가 기능 예산 4ms의 2.5%). 측정값을 `성능 고려 사항.md` §3에 새 절(`3-6. 커서 앞 문맥 기준 텍스트 (#164)`)로 날짜·기기·빌드와 함께 적는다. 실기기 Release Instruments(§6-2)는 사용자가 요청할 때 한다. 적지 않으면 "실기기 미측정(추정)"으로 표시한다. 임시 테스트 파일이 남지 않았는지 `git status --short`로 확인하고 문서만 커밋한다(`docs: #164 - 커서 앞 문맥 기준 텍스트 후보 갱신 시간 측정 기록`).
 
-- [ ] **Step 3: `자동완성 로직.md` 갱신**
+- [x] **Step 3: `자동완성 로직.md` 갱신**
 
 - 핵심 원칙의 "모든 후보 조회는 `inputBuffer` 기준" 문단을 바꾼다: 일반 후보는 커서 앞 문맥 기준(버퍼가 비면 그 순간의 문맥, 있으면 떠 둔 앞 문맥 + 버퍼), 텍스트 대치·학습은 `inputBuffer` 기준, 앞 글자에 붙은 첫 조각은 학습하지 않음.
 - §3의 `updateSuggestions` 시그니처와 인자 설명에 `textReplacementBaseText`를 넣고, 정책 트리의 `.update(inputBuffer)`를 `.update(generalSuggestionBaseText)`로 바꾼다.
@@ -847,6 +847,8 @@ git status --short
 - §8-2 기록 표: 스페이스·리턴·현재 단어 확정은 `learnableInputBuffer`를 쓴다고 고치고, #164 전송 행을 추가한다. "전송(입력창이 전송으로 비워짐) | `textWillChange`에서 뜬 스냅샷으로 `KeyboardSentTextDetectionPolicy`가 판정하면 `endSentence(inputBuffer:restoringSentenceWords:)` — 리턴과 같은 기록·저장. 검색창(`.search`) 제외"
 
 커밋: `docs: #164 - 자동완성 로직 문서에 커서 앞 문맥 기준과 전송 학습 경로 반영`
+
+결과(2026-09-28): 핵심 원칙(일반 후보는 커서 앞 문맥, 텍스트 대치·학습은 `inputBuffer`), §3 `updateSuggestions` 시그니처·인자, 정책 트리, §3-4 NGram 재조회, 공백 규칙 표, `selectSuggestion` 설명, §8-2 기록 표(`learnableInputBuffer`, 전송 행 추가)를 고쳤다
 
 ---
 
