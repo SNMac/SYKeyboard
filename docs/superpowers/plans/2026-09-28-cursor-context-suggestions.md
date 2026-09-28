@@ -66,7 +66,7 @@
   - `leadingContextAfterReplacement(_ leadingContext: String?, inputBufferCount: Int, deleteCount: Int) -> String?`
   - 인자 이름 변경: `suggestionUpdateAction(isPredictiveTextEnabled:selectedText:baseText:)`, `shouldInsertLeadingSpaceBeforeNGramSuggestion(baseText:)`
 
-- [ ] **Step 1: 실패하는 테스트 작성**
+- [x] **Step 1: 실패하는 테스트 작성**
 
 `KeyboardSuggestionSelectionPolicyTests.swift`에서 기존 호출의 인자 이름을 바꾼다.
 
@@ -160,7 +160,7 @@ grep -n "inputBuffer:" SYKeyboardTests/Utils/KeyboardSuggestionSelectionPolicyTe
     }
 ```
 
-- [ ] **Step 2: RED 확인**
+- [x] **Step 2: RED 확인**
 
 ```sh
 SCR=<scratchpad>
@@ -173,7 +173,7 @@ grep -E "error:|TEST (SUCCEEDED|FAILED)" $SCR/cc1-red.log | sed -E 's/^.*error:/
 
 Expected: `extra argument 'baseText'`/`incorrect argument label`과 새 함수의 `has no member` 컴파일 오류
 
-- [ ] **Step 3: Policy 구현과 VC 인자 이름 변경**
+- [x] **Step 3: Policy 구현과 VC 인자 이름 변경**
 
 `KeyboardSuggestionSelectionPolicy.swift`:
 
@@ -255,11 +255,13 @@ open(p,'w').write(s)
 EOF
 ```
 
-- [ ] **Step 4: GREEN 확인**
+- [x] **Step 4: GREEN 확인**
 
 Step 2와 같은 명령(로그 `cc1-green.log`). Expected: `** TEST SUCCEEDED **`, 기존 테스트 + 새 테스트 5개 통과
 
-- [ ] **Step 5: 커밋**
+결과(2026-09-28, iPhone 13 mini / iOS 18.6): RED는 `incorrect argument label ... (have 'baseText:', expected 'inputBuffer:')`와 새 함수 4개의 `has no member`로 컴파일 실패, GREEN은 `Test run with 15 tests in 1 suite passed`(기존 10 + 새 5), `** TEST SUCCEEDED **`
+
+- [x] **Step 5: 커밋**
 
 ```sh
 git add Modules/SYKeyboardCore/Presentation/Utils/Policies/KeyboardSuggestionSelectionPolicy.swift \

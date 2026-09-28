@@ -1971,7 +1971,7 @@ private extension BaseKeyboardViewController {
         let action = KeyboardSuggestionSelectionPolicy.suggestionUpdateAction(
             isPredictiveTextEnabled: suggestionController.isPredictiveTextEnabled,
             selectedText: selectedText,
-            inputBuffer: inputBuffer
+            baseText: inputBuffer
         )
         let mathExpressionText = KeyboardSuggestionSelectionPolicy
             .mathExpressionDetectionText(
@@ -2794,7 +2794,7 @@ private extension BaseKeyboardViewController {
         guard let word = suggestionController.nGramSuggestionText(at: index) else { return true }
 
         if KeyboardSuggestionSelectionPolicy.shouldInsertLeadingSpaceBeforeNGramSuggestion(
-            inputBuffer: inputBuffer
+            baseText: inputBuffer
         ) {
             insertText(" ")
         }

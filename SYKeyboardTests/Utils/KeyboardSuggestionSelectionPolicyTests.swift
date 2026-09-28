@@ -17,26 +17,26 @@ struct KeyboardSuggestionSelectionPolicyTests {
         #expect(KeyboardSuggestionSelectionPolicy.removalLongPressDuration == 0.5)
     }
 
-    @Test("n-gram 후보 앞 공백은 입력 버퍼가 비어 있지 않고 공백으로 끝나지 않을 때만 삽입")
+    @Test("n-gram 후보 앞 공백은 기준 텍스트가 비어 있지 않고 공백으로 끝나지 않을 때만 삽입")
     func testNGram후보앞공백삽입조건() {
         #expect(
             KeyboardSuggestionSelectionPolicy.shouldInsertLeadingSpaceBeforeNGramSuggestion(
-                inputBuffer: "hello"
+                baseText: "hello"
             )
         )
         #expect(
             KeyboardSuggestionSelectionPolicy.shouldInsertLeadingSpaceBeforeNGramSuggestion(
-                inputBuffer: ""
+                baseText: ""
             ) == false
         )
         #expect(
             KeyboardSuggestionSelectionPolicy.shouldInsertLeadingSpaceBeforeNGramSuggestion(
-                inputBuffer: "hello "
+                baseText: "hello "
             ) == false
         )
         #expect(
             KeyboardSuggestionSelectionPolicy.shouldInsertLeadingSpaceBeforeNGramSuggestion(
-                inputBuffer: "hello\n"
+                baseText: "hello\n"
             ) == false
         )
     }
@@ -71,56 +71,56 @@ struct KeyboardSuggestionSelectionPolicyTests {
             KeyboardSuggestionSelectionPolicy.suggestionUpdateAction(
                 isPredictiveTextEnabled: false,
                 selectedText: "hello",
-                inputBuffer: "input"
+                baseText: "input"
             ) == .none
         )
         #expect(
             KeyboardSuggestionSelectionPolicy.suggestionUpdateAction(
                 isPredictiveTextEnabled: true,
                 selectedText: "hello",
-                inputBuffer: "input"
+                baseText: "input"
             ) == .update("hello")
         )
         #expect(
             KeyboardSuggestionSelectionPolicy.suggestionUpdateAction(
                 isPredictiveTextEnabled: true,
                 selectedText: "hello world",
-                inputBuffer: "input"
+                baseText: "input"
             ) == .clear
         )
         #expect(
             KeyboardSuggestionSelectionPolicy.suggestionUpdateAction(
                 isPredictiveTextEnabled: true,
                 selectedText: "3 + 1 =",
-                inputBuffer: "input"
+                baseText: "input"
             ) == .update("3 + 1 =")
         )
         #expect(
             KeyboardSuggestionSelectionPolicy.suggestionUpdateAction(
                 isPredictiveTextEnabled: true,
                 selectedText: "hello\nworld",
-                inputBuffer: "input"
+                baseText: "input"
             ) == .clear
         )
         #expect(
             KeyboardSuggestionSelectionPolicy.suggestionUpdateAction(
                 isPredictiveTextEnabled: true,
                 selectedText: "",
-                inputBuffer: "input"
+                baseText: "input"
             ) == .update("input")
         )
         #expect(
             KeyboardSuggestionSelectionPolicy.suggestionUpdateAction(
                 isPredictiveTextEnabled: true,
                 selectedText: nil,
-                inputBuffer: "input"
+                baseText: "input"
             ) == .update("input")
         )
         #expect(
             KeyboardSuggestionSelectionPolicy.suggestionUpdateAction(
                 isPredictiveTextEnabled: true,
                 selectedText: nil,
-                inputBuffer: ""
+                baseText: ""
             ) == .update("")
         )
     }
@@ -223,6 +223,77 @@ struct KeyboardSuggestionSelectionPolicyTests {
             KeyboardSuggestionSelectionPolicy.shouldUpdateInitialSuggestionsAfterDeferredPreparation(
                 shouldPreparePredictiveEngines: false
             ) == false
+        )
+    }
+
+    @Test("일반 후보 기준 텍스트는 버퍼가 비면 커서 앞 문맥, 있으면 앞 문맥과 버퍼")
+    func test일반후보기준텍스트() {
+        #expect(
+            KeyboardSuggestionSelectionPolicy.generalSuggestionBaseText(
+                leadingContext: nil, inputBuffer: "", documentContextBeforeInput: "가나 가"
+            ) == "가나 가"
+        )
+        #expect(
+            KeyboardSuggestionSelectionPolicy.generalSuggestionBaseText(
+                leadingContext: "가나 가", inputBuffer: "방", documentContextBeforeInput: "무시됨"
+            ) == "가나 가방"
+        )
+        #expect(
+            KeyboardSuggestionSelectionPolicy.generalSuggestionBaseText(
+                leadingContext: nil, inputBuffer: "안녕", documentContextBeforeInput: nil
+            ) == "안녕"
+        )
+        #expect(
+            KeyboardSuggestionSelectionPolicy.generalSuggestionBaseText(
+                leadingContext: nil, inputBuffer: "", documentContextBeforeInput: nil
+            ) == ""
+        )
+    }
+
+    @Test("일반 후보 기준 텍스트는 앞 문맥과 버퍼를 합쳐 끝 256자로 제한")
+    func test일반후보기준텍스트는_끝256자로제한() {
+        let leading = String(repeating: "a", count: 300)
+        let base = KeyboardSuggestionSelectionPolicy.generalSuggestionBaseText(
+            leadingContext: leading, inputBuffer: "b", documentContextBeforeInput: nil
+        )
+
+        #expect(base.count == 256)
+        #expect(base.hasSuffix("ab"))
+    }
+
+    @Test("앞 문맥이 공백이 아닌 글자로 끝날 때만 버퍼 첫 단어를 조각으로 판정")
+    func test조각판정() {
+        #expect(KeyboardSuggestionSelectionPolicy.isInputBufferAttachedToLeadingContext("가"))
+        #expect(KeyboardSuggestionSelectionPolicy.isInputBufferAttachedToLeadingContext("가나 ") == false)
+        #expect(KeyboardSuggestionSelectionPolicy.isInputBufferAttachedToLeadingContext("가나\n") == false)
+        #expect(KeyboardSuggestionSelectionPolicy.isInputBufferAttachedToLeadingContext("") == false)
+        #expect(KeyboardSuggestionSelectionPolicy.isInputBufferAttachedToLeadingContext(nil) == false)
+    }
+
+    @Test("학습용 버퍼는 앞 글자에 붙은 첫 조각을 뺌")
+    func test학습용버퍼는_앞조각을뺌() {
+        #expect(KeyboardSuggestionSelectionPolicy.learnableInputBuffer("방 가방 ", isAttachedToLeadingContext: true) == " 가방 ")
+        #expect(KeyboardSuggestionSelectionPolicy.learnableInputBuffer("방", isAttachedToLeadingContext: true) == "")
+        #expect(KeyboardSuggestionSelectionPolicy.learnableInputBuffer(" 가방", isAttachedToLeadingContext: true) == " 가방")
+        #expect(KeyboardSuggestionSelectionPolicy.learnableInputBuffer("방 가방", isAttachedToLeadingContext: false) == "방 가방")
+    }
+
+    @Test("교체가 버퍼보다 길면 넘친 글자 수만큼 앞 문맥 끝을 자름")
+    func test교체뒤앞문맥() {
+        // 버퍼가 빈 상태의 교체: `가|`에서 `가방` 탭
+        #expect(
+            KeyboardSuggestionSelectionPolicy.leadingContextAfterReplacement("가", inputBufferCount: 0, deleteCount: 1) == ""
+        )
+        // 일부 넘침: 앞 문맥 `가` + 버퍼 `방`에서 `가방끈` 탭
+        #expect(
+            KeyboardSuggestionSelectionPolicy.leadingContextAfterReplacement("나 가", inputBufferCount: 1, deleteCount: 2) == "나 "
+        )
+        // 넘치지 않음: 한글 조합 교체
+        #expect(
+            KeyboardSuggestionSelectionPolicy.leadingContextAfterReplacement("나 가", inputBufferCount: 2, deleteCount: 1) == "나 가"
+        )
+        #expect(
+            KeyboardSuggestionSelectionPolicy.leadingContextAfterReplacement(nil, inputBufferCount: 0, deleteCount: 3) == nil
         )
     }
 }
