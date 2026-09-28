@@ -250,6 +250,26 @@ struct KeyboardSuggestionSelectionPolicyTests {
         )
     }
 
+    @Test("일반 후보 기준 텍스트는 줄바꿈을 넘지 않음")
+    func test일반후보기준텍스트는_줄바꿈을넘지않음() {
+        // 리턴은 학습에서 문장 끝이라, 윗줄 단어를 다음 단어 예측 문맥으로 쓰지 않는다
+        #expect(
+            KeyboardSuggestionSelectionPolicy.generalSuggestionBaseText(
+                leadingContext: nil, inputBuffer: "", documentContextBeforeInput: "안녕\n"
+            ) == ""
+        )
+        #expect(
+            KeyboardSuggestionSelectionPolicy.generalSuggestionBaseText(
+                leadingContext: nil, inputBuffer: "", documentContextBeforeInput: "안녕\n가"
+            ) == "가"
+        )
+        #expect(
+            KeyboardSuggestionSelectionPolicy.generalSuggestionBaseText(
+                leadingContext: "안녕\n", inputBuffer: "가", documentContextBeforeInput: nil
+            ) == "가"
+        )
+    }
+
     @Test("일반 후보 기준 텍스트는 앞 문맥과 버퍼를 합쳐 끝 256자로 제한")
     func test일반후보기준텍스트는_끝256자로제한() {
         let leading = String(repeating: "a", count: 300)

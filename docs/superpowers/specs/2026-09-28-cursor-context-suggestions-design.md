@@ -71,6 +71,8 @@ static func learnableInputBuffer(_ inputBuffer: String, isAttachedToLeadingConte
 - `generalSuggestionBaseText`
   - 버퍼가 비면 `limitedDocumentContextBeforeInput(documentContextBeforeInput)`
   - 버퍼가 있으면 `(leadingContext ?? "") + inputBuffer`의 끝 256자
+  - 결과에서 마지막 줄바꿈 뒤만 쓴다. 리턴은 학습에서 문장 끝이라 윗줄 단어를 다음 단어 예측 문맥으로 쓰지 않고,
+    리턴 직후 후보는 지금처럼 빈 문맥 후보다(리뷰에서 추가, 2026-09-28)
 - `isInputBufferAttachedToLeadingContext`: `leadingContext`의 마지막 글자가 있고 공백이 아니면 참
 - `learnableInputBuffer`: 조각이면 버퍼 앞의 공백이 아닌 글자들을 뺀다. `방 가방 ` → ` 가방 `, `방` → `""`.
   같은 규칙을 매번 적용하므로 `recordUncommittedWords`의 단어 수 비교가 어긋나지 않는다
