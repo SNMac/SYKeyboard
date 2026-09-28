@@ -12,8 +12,9 @@ import Testing
 @Suite("삭제 mutation lifecycle 검증")
 struct DeleteMutationLifecycleTests {
 
-    @Test("pan boundary 동일 문맥 callback은 줄바꿈 mutation을 확정")
-    func testPanBoundarySameContextCallbackConfirmsNewline() {
+    // 문서 시작의 무효 삭제에도 callback을 보내는 입력창이 있어, 빈 앞 문맥이 그대로면 줄바꿈으로 추론하지 않는다
+    @Test("pan boundary 동일 문맥 callback은 삭제 없음으로 확정")
+    func testPanBoundarySameContextCallbackIsNoDeletion() {
         var lifecycle = DeleteMutationLifecycle()
         let context = KeyboardTextContextSnapshot(beforeInput: "", afterInput: "라마바")
 
@@ -37,15 +38,9 @@ struct DeleteMutationLifecycleTests {
                 currentSelectedText: nil
             ) == .resolved(
                 DeleteMutationResolution(
-                    completion: .mutations([
-                        RepeatDeleteMutationDraft(
-                            deletedText: "\n",
-                            insertedText: "",
-                            reliability: .authoritative
-                        )
-                    ]),
+                    completion: .noDeletion,
                     origin: .panBoundary,
-                    shouldPlayFeedback: true
+                    shouldPlayFeedback: false
                 )
             )
         )

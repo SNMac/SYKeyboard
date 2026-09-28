@@ -235,10 +235,6 @@ enum RepeatDeleteConfirmationSource: Equatable {
     case checkpoint
 }
 
-enum RepeatDeleteBoundaryExpectation: Equatable {
-    case newline
-}
-
 struct RepeatDeleteMutationDraft: Equatable {
     let deletedText: String
     let insertedText: String
@@ -306,7 +302,6 @@ struct RepeatDeleteRequest {
 
     private var requestContext: KeyboardTextContextSnapshot?
     private var requestSelectedText: String?
-    private var boundaryExpectation: RepeatDeleteBoundaryExpectation?
     private var drafts: [RepeatDeleteMutationDraft] = []
     private var callbackObservationBeforeCapture: RepeatDeleteObservation?
 
@@ -322,12 +317,10 @@ struct RepeatDeleteRequest {
 
     mutating func begin(
         context: KeyboardTextContextSnapshot,
-        selectedText: String?,
-        boundaryExpectation: RepeatDeleteBoundaryExpectation? = nil
+        selectedText: String?
     ) {
         requestContext = context
         requestSelectedText = selectedText
-        self.boundaryExpectation = boundaryExpectation
         drafts.removeAll()
         callbackObservationBeforeCapture = nil
     }
@@ -508,19 +501,9 @@ struct RepeatDeleteRequest {
             ]
         }
 
-        guard boundaryExpectation == .newline else { return [] }
-
-        let isSameLineCallback = source == .textDidChange && currentBefore == before
-        let isEmptyToPreviousLine = before.isEmpty && !currentBefore.isEmpty
-        guard isSameLineCallback || isEmptyToPreviousLine else { return [] }
-
-        return [
-            RepeatDeleteMutationDraft(
-                deletedText: "\n",
-                insertedText: "",
-                reliability: .authoritative
-            )
-        ]
+        // 빈 앞 문맥이 그대로인 pan 경계는 줄바꿈으로 추론하지 않는다.
+        // 문서 시작의 무효 삭제에도 callback을 보내는 입력창이 있어 빈 줄 삭제와 구분할 수 없다
+        return []
     }
 
     private func expectedBeforeInput(
@@ -556,7 +539,6 @@ struct RepeatDeleteRequest {
     private mutating func consume() {
         requestContext = nil
         requestSelectedText = nil
-        boundaryExpectation = nil
         drafts.removeAll()
         callbackObservationBeforeCapture = nil
     }
@@ -631,8 +613,7 @@ struct DeleteMutationLifecycle {
         return begin(
             kind: .panBoundary,
             context: context,
-            selectedText: selectedText,
-            boundaryExpectation: .newline
+            selectedText: selectedText
         )
     }
 
@@ -674,13 +655,16 @@ struct DeleteMutationLifecycle {
         if let resolution {
             return .resolved(resolution)
         }
+        // 활성 pan 경계는 손을 떼기 전이라도 callback에서 무효 삭제가 증명되면 바로 확정한다
+        if isReleasedRequest || requestKind == .panBoundary,
+           let noDeletion = request.completeWithoutDeletionIfProven(
+               currentContext: currentContext,
+               currentSelectedText: currentSelectedText
+           ),
+           let resolution = resolve(noDeletion) {
+            return .resolved(resolution)
+        }
         if isReleasedRequest {
-            if let noDeletion = request.completeWithoutDeletionIfProven(
-                currentContext: currentContext,
-                currentSelectedText: currentSelectedText
-            ), let resolution = resolve(noDeletion) {
-                return .resolved(resolution)
-            }
             cancelCurrentRequest()
             return .cancelled
         }
@@ -883,16 +867,14 @@ struct DeleteMutationLifecycle {
     private mutating func begin(
         kind: RequestKind,
         context: KeyboardTextContextSnapshot,
-        selectedText: String?,
-        boundaryExpectation: RepeatDeleteBoundaryExpectation? = nil
+        selectedText: String?
     ) -> DeleteMutationStartResult {
         guard requestKind == nil else { return .awaitingPreviousMutation }
 
         didCompleteWithoutDeletion = false
         request.begin(
             context: context,
-            selectedText: selectedText,
-            boundaryExpectation: boundaryExpectation
+            selectedText: selectedText
         )
         requestKind = kind
         return .started

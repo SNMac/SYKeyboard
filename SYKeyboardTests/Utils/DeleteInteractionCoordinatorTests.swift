@@ -259,6 +259,38 @@ struct DeleteInteractionCoordinatorTests {
         #expect(harness.coordinator.currentGeneration == nil)
     }
 
+    @Test("문서 시작 pan 경계에 앞 문맥이 그대로인 callback이 오면 복구 문자 없이 선행 left를 버림")
+    func testDocumentStartPanBoundaryCallbackDoesNotRestoreNewline() {
+        var harness = DeleteInteractionStateHarness()
+        let context = KeyboardTextContextSnapshot(beforeInput: nil, afterInput: "가나다")
+
+        let didBeginBoundary = harness.beginPanBoundary(context: context)
+        let dispositions = [
+            harness.enqueuePan(.left),
+            harness.enqueuePan(.left),
+            harness.enqueuePan(.right),
+            harness.enqueuePanStop()
+        ]
+        #expect(didBeginBoundary)
+        #expect(dispositions == [.enqueued, .enqueued, .enqueued, .enqueued])
+
+        let outcome = harness.completeAfterTextChange(context: context)
+        harness.process(outcome)
+        harness.drain { _, _ in }
+
+        #expect(
+            outcome == .resolved(
+                DeleteMutationResolution(
+                    completion: .noDeletion,
+                    origin: .panBoundary,
+                    shouldPlayFeedback: false
+                )
+            )
+        )
+        #expect(harness.tempDeletedCharacters.isEmpty)
+        #expect(harness.observedEvents == ["pan:right", "panStop"])
+    }
+
     @Test("pan boundary 확인 전 이벤트는 FIFO이고 noDeletion은 앞쪽 left만 폐기")
     func testPanBoundaryFIFOAndNoOpLeftDiscard() throws {
         var coordinator = DeleteInteractionCoordinator()
