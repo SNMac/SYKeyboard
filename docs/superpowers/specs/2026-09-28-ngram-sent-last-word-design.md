@@ -103,9 +103,9 @@ enum KeyboardSentTextDetectionPolicy {
 - `textWillChange(_:)`: `resetInputBuffer()` 직전에, `inputBuffer`에 공백이 아닌 글자가 있을 때만 스냅샷을
   만든다. 없으면 스냅샷을 nil로 둔다. 이후 처리는 지금과 같다.
 - `textDidChange(_:)`: 스냅샷을 꺼내 비운다. 바로 다음 한 번만 본다. Policy가 전송으로 판단하면
-  `suggestionController.endSentence(inputBuffer:restoringSentenceWords:)`를 부른다. 이 호출은
-  `inputTraitsDidChange()`보다 앞에 둔다. 한영 키보드가 trait 변화로 언어를 다시 판정하면서 엔진이
-  바뀌기 전에, 스냅샷을 뜬 엔진에 기록하기 위해서다.
+  `suggestionController.endSentence(inputBuffer:restoringSentenceWords:)`를 부른다. 호출 위치는 trait
+  동기화 직후지만 순서에 기대는 이유는 없다. 한영 통합 키보드는 NGram 엔진 하나(`ko-en`)를 쓰고 언어를
+  바꿔도 엔진이 바뀌지 않으며, 단일 언어 키보드는 언어를 바꾸지 않는다.
 - `viewWillDisappear(_:)`: 스냅샷을 버린다.
 - `documentIdentifier`는 `UUID?`를 돌려주는 private helper로 읽는다.
   `(textDocumentProxy as AnyObject).value(forKey: "documentIdentifier") as? UUID`처럼 KVC를 거쳐 nil을

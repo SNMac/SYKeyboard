@@ -423,7 +423,7 @@ open class BaseKeyboardViewController: UIInputViewController {
         logger.debug("textDidChange")
         synchronizeTextInputTraits()
         synchronizeDeleteInteractionInputIdentifier(textInput)
-        // 한영 키보드가 trait 변화로 언어를 다시 판정하기(`inputTraitsDidChange`) 전에, 스냅샷을 뜬 엔진에 기록한다
+        // `textWillChange`에서 떠 둔 스냅샷과 지금 문맥을 비교해 전송으로 비워졌으면 기록한다
         recordSentTextIfNeeded()
         let currentTextContext = currentTextContextSnapshot()
         if KeyboardGesturePolicy.shouldPlayCursorDragHapticOnTextDidChange(
