@@ -2081,11 +2081,13 @@ private extension BaseKeyboardViewController {
     }
 
     /// 일반 후보(n-gram·TextChecker)의 기준 텍스트
+    ///
+    /// 버퍼가 있으면 떠 둔 앞 문맥을 쓰므로 프록시 문맥을 읽지 않는다(키 입력마다 프록시 왕복을 늘리지 않음)
     var generalSuggestionBaseText: String {
         KeyboardSuggestionSelectionPolicy.generalSuggestionBaseText(
             leadingContext: inputBufferLeadingContext,
             inputBuffer: inputBuffer,
-            documentContextBeforeInput: textDocumentProxy.documentContextBeforeInput
+            documentContextBeforeInput: inputBuffer.isEmpty ? textDocumentProxy.documentContextBeforeInput : nil
         )
     }
 
