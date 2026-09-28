@@ -722,7 +722,7 @@ git commit -m "feat: #164 - 전송으로 입력창이 비면 마지막 단어까
 - Consumes: Task 1–4 전체
 - Produces: 검증 기록
 
-- [ ] **Step 1: 전체 테스트**
+- [x] **Step 1: 전체 테스트**
 
 ```sh
 timeout 900 xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
@@ -732,6 +732,8 @@ grep -E "TEST (SUCCEEDED|FAILED)|Test run with" $SCR/task5-all.log | tail -3
 ```
 
 Expected: `** TEST SUCCEEDED **`. 실제 테스트 개수와 `.xcresult` 경로를 이 문서에 기록한다.
+
+결과(2026-09-28, iPhone 13 mini / iOS 18.6): `Test run with 842 tests in 94 suites passed`, `** TEST SUCCEEDED **`. 로그 `<scratchpad>/task5-all.log`, 결과 번들 `<scratchpad>/task5-all.xcresult`(세션 scratchpad라 보존되지 않음). 재확인은 위 명령을 그대로 다시 실행한다
 
 - [ ] **Step 2: 시뮬레이터 수동 확인**
 
