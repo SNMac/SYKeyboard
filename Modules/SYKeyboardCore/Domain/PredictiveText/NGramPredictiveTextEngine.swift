@@ -143,7 +143,7 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
     private let forgetAfter: Double
     
     /// 현재 문장의 단어 버퍼
-    private var currentSentenceWords: [String] = []
+    private(set) var currentSentenceWords: [String] = []
     
     /// 예측 최대 반환 개수
     ///
@@ -510,6 +510,14 @@ final public class NGramPredictiveTextEngine: PredictiveTextProvider {
     /// 함께 호출하여 n-gram 문맥을 리셋합니다.
     func resetSentenceBuffer() {
         currentSentenceWords.removeAll()
+    }
+
+    /// 문장 버퍼를 주어진 단어들로 바꿉니다.
+    ///
+    /// 입력창이 비워지기 직전의 문장 버퍼를 되돌려, 보낸 마지막 단어를 앞 단어와 이어 기록할 때 호출합니다.
+    /// 기록·저장은 하지 않습니다.
+    func restoreSentenceBuffer(_ words: [String]) {
+        currentSentenceWords = words
     }
 
     /// 단어를 모든 n-gram 저장소에서 지우고 바로 저장합니다.

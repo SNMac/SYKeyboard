@@ -15,6 +15,8 @@ protocol NGramPredictiveTextProviding: PredictiveTextProvider {
     var onLoadCompleted: (() -> Void)? { get set }
     /// 현재 문장 버퍼의 단어 수
     var currentSentenceWordsCount: Int { get }
+    /// 현재 문장 버퍼의 단어
+    var currentSentenceWords: [String] { get }
 
     /// 단어를 현재 문장 버퍼에 추가하고 n-gram을 기록합니다.
     func addWord(_ word: String)
@@ -24,6 +26,8 @@ protocol NGramPredictiveTextProviding: PredictiveTextProvider {
     func removeLastWord()
     /// 문장 버퍼를 초기화합니다.
     func resetSentenceBuffer()
+    /// 문장 버퍼를 주어진 단어들로 바꿉니다. 기록·저장은 하지 않습니다.
+    func restoreSentenceBuffer(_ words: [String])
     /// n-gram 데이터를 디스크에 저장합니다.
     func saveToDisk()
     /// 단어를 모든 n-gram 저장소에서 지우고 저장합니다.

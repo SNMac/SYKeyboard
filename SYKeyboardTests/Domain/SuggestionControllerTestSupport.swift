@@ -42,8 +42,12 @@ final class StubLexiconSuggestionProvider: LexiconSuggestionProviding {
 final class StubNGramPredictiveTextProvider: NGramPredictiveTextProviding, @unchecked Sendable {
     var onLoadCompleted: (() -> Void)?
     var currentSentenceWordsCount: Int { recordedWords.count }
+    var currentSentenceWords: [String] { recordedWords }
 
     private(set) var saveCount = 0
+    /// `addWord`로 들어온 단어 전체. 문장 버퍼와 달리 비우지 않는다
+    private(set) var addedWords: [String] = []
+    private(set) var endSentenceCount = 0
     private(set) var queriedPreferredScripts: [PredictiveTextScript?] = []
     private var recordedWords: [String] = []
     private var loadedSuggestions: [String]
@@ -82,10 +86,12 @@ final class StubNGramPredictiveTextProvider: NGramPredictiveTextProviding, @unch
 
     func addWord(_ word: String) {
         recordedWords.append(word)
+        addedWords.append(word)
     }
 
     func endSentence() {
         recordedWords.removeAll()
+        endSentenceCount += 1
     }
 
     func removeLastWord() {
@@ -94,6 +100,10 @@ final class StubNGramPredictiveTextProvider: NGramPredictiveTextProviding, @unch
 
     func resetSentenceBuffer() {
         recordedWords.removeAll()
+    }
+
+    func restoreSentenceBuffer(_ words: [String]) {
+        recordedWords = words
     }
 
     func saveToDisk() {

@@ -234,7 +234,7 @@ git commit -m "feat: #164 - 전송으로 입력창이 비었는지 판정하는 
   - `NGramPredictiveTextProviding.restoreSentenceBuffer(_ words: [String])`
   - `StubNGramPredictiveTextProvider.addedWords: [String]`(비우지 않는 `addWord` 기록), `StubNGramPredictiveTextProvider.endSentenceCount: Int`
 
-- [ ] **Step 1: 실패하는 엔진 테스트 작성**
+- [x] **Step 1: 실패하는 엔진 테스트 작성**
 
 `SYKeyboardTests/Domain/NGramPredictiveTextEngineSentenceBufferTests.swift`:
 
@@ -302,7 +302,7 @@ struct NGramPredictiveTextEngineSentenceBufferTests {
 }
 ```
 
-- [ ] **Step 2: 컴파일 실패 확인**
+- [x] **Step 2: 컴파일 실패 확인**
 
 ```sh
 timeout 600 xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
@@ -314,7 +314,7 @@ grep -E "error:|TEST (SUCCEEDED|FAILED)" $SCR/task2-red.log | head
 
 Expected: `'currentSentenceWords' is inaccessible due to 'private' protection level`와 `value of type 'NGramPredictiveTextEngine' has no member 'restoreSentenceBuffer'`
 
-- [ ] **Step 3: 엔진·프로토콜·stub 구현**
+- [x] **Step 3: 엔진·프로토콜·stub 구현**
 
 `NGramPredictiveTextEngine.swift`의 선언을 바꾼다.
 
@@ -391,11 +391,13 @@ Expected: `'currentSentenceWords' is inaccessible due to 'private' protection le
     func restoreSentenceBuffer(_ words: [String]) {}
 ```
 
-- [ ] **Step 4: 테스트 통과 확인**
+- [x] **Step 4: 테스트 통과 확인**
 
 Step 2와 같은 명령(로그 `task2-green.log`). Expected: `** TEST SUCCEEDED **`, 3개 테스트 통과
 
-- [ ] **Step 5: 커밋**
+결과(2026-09-28, iPhone 13 mini / iOS 18.6): RED는 `'currentSentenceWords' is inaccessible due to 'private' protection level`, `value of type 'NGramPredictiveTextEngine' has no member 'restoreSentenceBuffer'`로 컴파일 실패, GREEN은 `Test run with 3 tests in 1 suite passed`, `** TEST SUCCEEDED **`
+
+- [x] **Step 5: 커밋**
 
 ```sh
 git add Modules/SYKeyboardCore/Domain/PredictiveText/NGramPredictiveTextEngine.swift \

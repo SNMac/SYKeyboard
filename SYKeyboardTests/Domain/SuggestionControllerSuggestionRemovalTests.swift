@@ -235,6 +235,7 @@ struct SuggestionControllerSuggestionRemovalTests {
 private final class RemovableNGramStub: NGramPredictiveTextProviding {
     var onLoadCompleted: (() -> Void)?
     var currentSentenceWordsCount: Int { 0 }
+    var currentSentenceWords: [String] { [] }
 
     private var results: [String]
     private(set) var removedWords: [String] = []
@@ -251,6 +252,7 @@ private final class RemovableNGramStub: NGramPredictiveTextProviding {
     func endSentence() {}
     func removeLastWord() {}
     func resetSentenceBuffer() {}
+    func restoreSentenceBuffer(_ words: [String]) {}
     func saveToDisk() {}
 
     func removeWord(_ word: String) {
