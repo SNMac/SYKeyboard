@@ -902,12 +902,32 @@
         }
       }
     },
+    "자동완성 텍스트 삭제" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete Predictive Text"
+          }
+        }
+      }
+    },
     "자동완성 텍스트 설정" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Predictive Text Settings"
+          }
+        }
+      }
+    },
+    "자동완성 텍스트를 좌우로 스크롤하여 추가 추천 단어 탐색" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scroll the predictive text left/right to see more suggestions"
           }
         }
       }
@@ -988,6 +1008,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Add"
+          }
+        }
+      }
+    },
+    "추천된 자동완성 텍스트를 길게 눌러 삭제" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Long press a predictive text suggestion to delete it"
           }
         }
       }
@@ -1138,6 +1168,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Add Keyboard and Set Permission"
+          }
+        }
+      }
+    },
+    "키보드 툴바" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keyboard Toolbar"
           }
         }
       }

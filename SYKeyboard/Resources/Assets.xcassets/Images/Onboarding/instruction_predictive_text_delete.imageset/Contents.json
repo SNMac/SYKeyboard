@@ -1,34 +1,34 @@
 {
   "images" : [
     {
-      "filename" : "instruction_keyboard_predictive_text_delete.png",
+      "filename" : "instruction_predictive_text_delete.png",
       "idiom" : "universal",
       "scale" : "1x"
     },
     {
-      "filename" : "instruction_keyboard_predictive_text_delete@2x.png",
+      "filename" : "instruction_predictive_text_delete@2x.png",
       "idiom" : "universal",
       "scale" : "2x"
     },
     {
-      "filename" : "instruction_keyboard_predictive_text_delete@3x.png",
+      "filename" : "instruction_predictive_text_delete@3x.png",
       "idiom" : "universal",
       "scale" : "3x"
     },
     {
-      "filename" : "instruction_keyboard_predictive_text_delete_english.png",
+      "filename" : "instruction_predictive_text_delete_english.png",
       "idiom" : "universal",
       "locale" : "en",
       "scale" : "1x"
     },
     {
-      "filename" : "instruction_keyboard_predictive_text_delete_english@2x.png",
+      "filename" : "instruction_predictive_text_delete_english@2x.png",
       "idiom" : "universal",
       "locale" : "en",
       "scale" : "2x"
     },
     {
-      "filename" : "instruction_keyboard_predictive_text_delete_english@3x.png",
+      "filename" : "instruction_predictive_text_delete_english@3x.png",
       "idiom" : "universal",
       "locale" : "en",
       "scale" : "3x"
