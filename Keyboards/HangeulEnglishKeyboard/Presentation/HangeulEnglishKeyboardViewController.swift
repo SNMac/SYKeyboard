@@ -439,7 +439,7 @@ final class HangeulEnglishKeyboardViewController: BaseKeyboardViewController {
             return (result.character, result.shouldRestore)
         }
 
-        guard let character = textDocumentProxy.documentContextBeforeInput?.last else { return nil }
+        guard let character = deleteButtonPanPreviousCharacter else { return nil }
         deleteText()
         updateHangeulSpaceButton()
         return (character, true)

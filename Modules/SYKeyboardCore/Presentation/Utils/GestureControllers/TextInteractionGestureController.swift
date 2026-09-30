@@ -32,6 +32,8 @@ final class TextInteractionGestureController: NSObject {
     private var initialPanPoint: CGPoint = .zero
     private var intervalReferPanPoint: CGPoint = .zero
     private var previousPanVelocity: CGFloat = 0
+    private var deletePanEdgeTimer: Timer?
+    private var deletePanEdgeDirection: PanDirection?
     
     // Initializer Injection
     private weak var keyboardHStackView: UIView?
@@ -52,6 +54,7 @@ final class TextInteractionGestureController: NSObject {
     }
     
     deinit {
+        deletePanEdgeTimer?.invalidate()
         logger.debug("\(String(describing: type(of: self))) deinit")
     }
     
@@ -91,6 +94,9 @@ final class TextInteractionGestureController: NSObject {
                     }
                     onPanGestureActivated(gesture)
                 }
+                if gesture.view is DeleteButton {
+                    updateDeletePanEdgeTimer(for: gesture)
+                }
             }
         case .ended, .cancelled, .failed:
             // 순서 중요
@@ -103,6 +109,7 @@ final class TextInteractionGestureController: NSObject {
                 gestureButton?.sendActions(for: .touchUpInside)
             }
             
+            stopDeletePanEdgeTimer()
             onPanGestureEnded(gesture)
             isCursorActive = false
             initialPanPoint = .zero
@@ -199,6 +206,45 @@ private extension TextInteractionGestureController {
             }
             intervalReferPanPoint = currentPoint
         }
+    }
+
+    /// 손가락이 창 가장자리 구역에 있는 동안 삭제·복구를 반복 속도로 이어 갑니다.
+    ///
+    /// 베젤에 막혀 더 끌 수 없어도 손가락을 대고 있으면 계속 진행하고, 구역을 벗어나면 멈춥니다.
+    func updateDeletePanEdgeTimer(for gesture: UIPanGestureRecognizer) {
+        let direction = KeyboardGesturePolicy.deletePanEdgeDirection(
+            locationX: gesture.location(in: nil).x,
+            containerWidth: gesture.view?.window?.bounds.width ?? 0
+        )
+        guard direction != deletePanEdgeDirection else { return }
+
+        stopDeletePanEdgeTimer()
+        guard let direction else { return }
+
+        deletePanEdgeDirection = direction
+        let interval = KeyboardGesturePolicy.deletePanEdgeRepeatInterval(
+            repeatRate: UserDefaultsManager.shared.repeatRate
+        )
+        let timer = Timer(timeInterval: interval, repeats: true) { [weak self, weak gesture] _ in
+            guard let self else { return }
+            // 터치 없이도 발화하므로 pan이 끝났거나 키보드가 내려갔으면 스스로 멈춘다
+            guard let gesture,
+                  gesture.state == .began || gesture.state == .changed,
+                  gesture.view?.window != nil else {
+                stopDeletePanEdgeTimer()
+                return
+            }
+            delegate?.deleteButtonPanning(self, to: direction)
+        }
+        RunLoop.main.add(timer, forMode: .common)
+        deletePanEdgeTimer = timer
+        logger.debug("삭제 pan 가장자리 반복 시작")
+    }
+
+    func stopDeletePanEdgeTimer() {
+        deletePanEdgeTimer?.invalidate()
+        deletePanEdgeTimer = nil
+        deletePanEdgeDirection = nil
     }
     
     func onPanGestureEnded(_ gesture: UIPanGestureRecognizer) {

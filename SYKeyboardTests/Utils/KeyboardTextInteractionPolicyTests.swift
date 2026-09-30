@@ -62,11 +62,12 @@ struct KeyboardTextInteractionPolicyTests {
         )
     }
 
-    @Test("앞 문맥이 비고 문서에 텍스트가 남으면 pan boundary 요청")
+    @Test("앞 문맥이 비고 문서에 텍스트가 남거나 이번 드래그에서 지운 글자가 있으면 pan boundary 요청")
     func testDeletePanBoundaryRequestPolicy() {
         #expect(
             KeyboardTextInteractionPolicy.shouldRequestDeletePanBoundary(
                 hasText: true,
+                hasDeletedInCurrentPan: false,
                 documentContextBeforeInput: nil,
                 selectedText: nil
             )
@@ -74,6 +75,7 @@ struct KeyboardTextInteractionPolicyTests {
         #expect(
             KeyboardTextInteractionPolicy.shouldRequestDeletePanBoundary(
                 hasText: true,
+                hasDeletedInCurrentPan: false,
                 documentContextBeforeInput: "",
                 selectedText: ""
             )
@@ -81,6 +83,7 @@ struct KeyboardTextInteractionPolicyTests {
         #expect(
             KeyboardTextInteractionPolicy.shouldRequestDeletePanBoundary(
                 hasText: false,
+                hasDeletedInCurrentPan: false,
                 documentContextBeforeInput: "",
                 selectedText: nil
             ) == false
@@ -88,6 +91,7 @@ struct KeyboardTextInteractionPolicyTests {
         #expect(
             KeyboardTextInteractionPolicy.shouldRequestDeletePanBoundary(
                 hasText: true,
+                hasDeletedInCurrentPan: false,
                 documentContextBeforeInput: "가",
                 selectedText: nil
             ) == false
@@ -95,8 +99,26 @@ struct KeyboardTextInteractionPolicyTests {
         #expect(
             KeyboardTextInteractionPolicy.shouldRequestDeletePanBoundary(
                 hasText: true,
+                hasDeletedInCurrentPan: false,
                 documentContextBeforeInput: "",
                 selectedText: "선택"
+            ) == false
+        )
+        // 줄 단위 문맥 입력창은 마지막 줄을 다 지우면 앞 줄이 남아도 hasText가 false다
+        #expect(
+            KeyboardTextInteractionPolicy.shouldRequestDeletePanBoundary(
+                hasText: false,
+                hasDeletedInCurrentPan: true,
+                documentContextBeforeInput: nil,
+                selectedText: nil
+            )
+        )
+        #expect(
+            KeyboardTextInteractionPolicy.shouldRequestDeletePanBoundary(
+                hasText: false,
+                hasDeletedInCurrentPan: true,
+                documentContextBeforeInput: "가",
+                selectedText: nil
             ) == false
         )
     }
@@ -180,7 +202,8 @@ struct KeyboardTextInteractionPolicyTests {
             == DeleteMutationResolutionEffects(
                 restorableCharacters: [],
                 appliesMutationEffects: false,
-                discardsLeadingNoOpPanLeft: true
+                discardsLeadingNoOpPanLeft: true,
+                settlesBeforeResumingPan: false
             )
         )
         #expect(
@@ -188,7 +211,8 @@ struct KeyboardTextInteractionPolicyTests {
             == DeleteMutationResolutionEffects(
                 restorableCharacters: ["\n"],
                 appliesMutationEffects: true,
-                discardsLeadingNoOpPanLeft: false
+                discardsLeadingNoOpPanLeft: false,
+                settlesBeforeResumingPan: true
             )
         )
         // pan 경계 확정은 "\n" 한 건으로 확정된 경우에만 기록·피드백을 적용한다
@@ -197,7 +221,8 @@ struct KeyboardTextInteractionPolicyTests {
             == DeleteMutationResolutionEffects(
                 restorableCharacters: [],
                 appliesMutationEffects: false,
-                discardsLeadingNoOpPanLeft: false
+                discardsLeadingNoOpPanLeft: false,
+                settlesBeforeResumingPan: false
             )
         )
         #expect(
@@ -205,7 +230,8 @@ struct KeyboardTextInteractionPolicyTests {
             == DeleteMutationResolutionEffects(
                 restorableCharacters: [],
                 appliesMutationEffects: true,
-                discardsLeadingNoOpPanLeft: false
+                discardsLeadingNoOpPanLeft: false,
+                settlesBeforeResumingPan: false
             )
         )
     }
@@ -822,5 +848,286 @@ private extension KeyboardTextInteractionPolicyTests {
         let interval = KeyboardTextInteractionPolicy.repeatTimerInterval(repeatRate: repeatRate)
 
         #expect(abs(interval - expected) < 0.0001)
+    }
+
+    // MARK: - 복구할 수 없는 글자 앞 멈춤
+
+    @Test("삭제 드래그는 첨부·토큰을 나타내는 개체 대체 문자 앞에서 멈춤",
+          arguments: [
+            (Character?.some("\u{FFFC}"), String?.none, true),
+            ("\u{FFFC}", "", true),
+            ("가", nil, false),
+            ("\n", nil, false),
+            (nil, nil, false)
+          ])
+    func testShouldStopDeletePan(
+        _ previousCharacter: Character?,
+        _ selectedText: String?,
+        _ expected: Bool
+    ) {
+        #expect(
+            KeyboardTextInteractionPolicy.shouldStopDeletePan(
+                previousCharacter: previousCharacter,
+                selectedText: selectedText
+            ) == expected
+        )
+    }
+
+    @Test("선택 영역이 있으면 개체 대체 문자 앞이어도 선택 영역을 지움")
+    func testShouldStopDeletePan_선택영역() {
+        #expect(
+            KeyboardTextInteractionPolicy.shouldStopDeletePan(
+                previousCharacter: "\u{FFFC}",
+                selectedText: "선택"
+            ) == false
+        )
+    }
+
+    @Test("삭제 드래그 한 칸은 선택 영역을 지운 경우 모델과 복구 목록에 반영하지 않음",
+          arguments: [
+            (String?.none, true),
+            ("", true),
+            ("선택", false)
+          ])
+    func testShouldTrackDeletePanStep(_ selectedText: String?, _ expected: Bool) {
+        #expect(
+            KeyboardTextInteractionPolicy.shouldTrackDeletePanStep(selectedText: selectedText) == expected
+        )
+    }
+
+    // MARK: - 삭제 드래그 경계 상태
+
+    private func makeBoundaryGeneration() -> DeleteInteractionGeneration {
+        var coordinator = DeleteInteractionCoordinator()
+        return coordinator.beginPanBoundaryMutation(inputIdentifier: nil)!
+    }
+
+    @Test("경계 요청을 보내기 전 대기 중에는 오른쪽 팬과 팬 종료만 대기를 취소")
+    func testDeletePanBoundaryState_보내기전취소대상() {
+        var state = DeletePanBoundaryState()
+        #expect(state.shouldCancelPendingBeforeSend(on: .pan(direction: .right)) == false)
+
+        state.beginPending(generation: makeBoundaryGeneration())
+
+        #expect(state.shouldCancelPendingBeforeSend(on: .pan(direction: .right)))
+        #expect(state.shouldCancelPendingBeforeSend(on: .panStop))
+        #expect(state.shouldCancelPendingBeforeSend(on: .pan(direction: .left)) == false)
+    }
+
+    @Test("경계 대기는 대기를 시작한 generation에만 해당")
+    func testDeletePanBoundaryState_다른generation() {
+        var coordinator = DeleteInteractionCoordinator()
+        let first = coordinator.beginPanBoundaryMutation(inputIdentifier: nil)!
+        coordinator.resolve(first)
+        let second = coordinator.beginPanBoundaryMutation(inputIdentifier: nil)!
+        #expect(first != second)
+
+        var state = DeletePanBoundaryState()
+        state.beginPending(generation: first)
+
+        #expect(state.isPending(generation: first))
+        #expect(state.isPending(generation: second) == false)
+    }
+
+    @Test("보내기 전 대기를 취소하면 이번 드래그에서는 경계를 막고, 모델을 다시 채워 끝내면 막지 않음")
+    func testDeletePanBoundaryState_대기종료() {
+        var cancelled = DeletePanBoundaryState()
+        cancelled.beginPending(generation: makeBoundaryGeneration())
+        cancelled.cancelPending()
+        #expect(cancelled.pendingGeneration == nil)
+        #expect(cancelled.isBlocked)
+
+        var refilled = DeletePanBoundaryState()
+        refilled.beginPending(generation: makeBoundaryGeneration())
+        refilled.finishPendingWithoutRequest()
+        #expect(refilled.pendingGeneration == nil)
+        #expect(refilled.isBlocked == false)
+    }
+
+    @Test("입력창 문맥 대기는 한 번만 시작하고, 요청을 보낸 뒤의 대기 시간 초과는 무시")
+    func testDeletePanBoundaryState_문맥대기() {
+        var state = DeletePanBoundaryState()
+        let waitBeforePending = state.beginSyncWait()
+        #expect(waitBeforePending == nil)
+
+        state.beginPending(generation: makeBoundaryGeneration())
+        let waitID = state.beginSyncWait()
+        let secondWaitID = state.beginSyncWait()
+        #expect(waitID != nil)
+        #expect(secondWaitID == nil)
+        #expect(state.isCurrentSyncWait(waitID!))
+
+        _ = state.didSendRequest()
+        #expect(state.isCurrentSyncWait(waitID!) == false)
+    }
+
+    @Test("보낸 경계 요청의 시간 초과는 확정되지 않은 가장 최근 요청에만 적용되고 경계를 막음")
+    func testDeletePanBoundaryState_요청시간초과() {
+        let newline = DeleteMutationResolution(
+            completion: .mutations([
+                RepeatDeleteMutationDraft(deletedText: "\n", insertedText: "", reliability: .authoritative)
+            ]),
+            origin: .panBoundary,
+            shouldPlayFeedback: true
+        )
+        var state = DeletePanBoundaryState()
+        state.beginPending(generation: makeBoundaryGeneration())
+        let firstID = state.didSendRequest()
+        state.didResolve(newline)
+        let resolvedTimedOut = state.requestDidTimeOut(firstID)
+        #expect(resolvedTimedOut == false)
+        #expect(state.isBlocked == false)
+
+        state.beginPending(generation: makeBoundaryGeneration())
+        let secondID = state.didSendRequest()
+        let staleTimedOut = state.requestDidTimeOut(firstID)
+        let currentTimedOut = state.requestDidTimeOut(secondID)
+        #expect(staleTimedOut == false)
+        #expect(currentTimedOut)
+        #expect(state.isBlocked)
+    }
+
+    @Test("경계 요청이 삭제 없음으로 확정되면 경계를 막고 줄바꿈 확정이면 막지 않음")
+    func testDeletePanBoundaryState_확정() {
+        var noDeletion = DeletePanBoundaryState()
+        noDeletion.didResolve(
+            DeleteMutationResolution(completion: .noDeletion, origin: .panBoundary, shouldPlayFeedback: false)
+        )
+        #expect(noDeletion.isBlocked)
+
+        var touchDown = DeletePanBoundaryState()
+        touchDown.didResolve(
+            DeleteMutationResolution(completion: .noDeletion, origin: .touchDown, shouldPlayFeedback: false)
+        )
+        #expect(touchDown.isBlocked == false)
+    }
+
+    @Test("드래그를 다시 시작하면 막힘과 대기를 풀지만 이전 요청의 시간 초과는 되살리지 않음")
+    func testDeletePanBoundaryState_초기화() {
+        var state = DeletePanBoundaryState()
+        state.beginPending(generation: makeBoundaryGeneration())
+        let requestID = state.didSendRequest()
+        state.cancelPending()
+
+        state.reset()
+
+        let timedOutAfterReset = state.requestDidTimeOut(requestID)
+        #expect(state.isBlocked == false)
+        #expect(state.pendingGeneration == nil)
+        #expect(timedOutAfterReset == false)
+    }
+
+    // MARK: - 삭제 드래그 문맥 모델
+
+    @Test("삭제 드래그 모델은 시작 문맥 끝에서 글자를 떼고 복구하면 다시 붙임")
+    func testDeletePanTextModel_떼고붙이기() {
+        var model = DeletePanTextModel(beforeInput: "가나\n다")
+
+        #expect(model.lastCharacter == "다")
+        #expect(model.removeLast() == "다")
+        #expect(model.removeLast() == "\n")
+        #expect(model.lastCharacter == "나")
+
+        model.append("\n")
+        model.append("다")
+
+        #expect(model.lastCharacter == "다")
+        #expect(model.remainingText.isEmpty == false)
+    }
+
+    @Test("삭제 드래그 모델은 시작 문맥이 없거나 다 떼면 바닥남")
+    func testDeletePanTextModel_바닥남() {
+        var model = DeletePanTextModel(beforeInput: nil)
+        #expect(model.remainingText.isEmpty)
+        #expect(model.lastCharacter == nil)
+        #expect(model.removeLast() == nil)
+
+        model = DeletePanTextModel(beforeInput: "가")
+        _ = model.removeLast()
+        #expect(model.remainingText.isEmpty)
+    }
+
+    @Test("삭제 드래그 모델은 처음 읽은 문맥을 떼고 붙여도 그대로 보관")
+    func testDeletePanTextModel_시작문맥보관() {
+        var model = DeletePanTextModel(beforeInput: "가나")
+        _ = model.removeLast()
+        model.append("다")
+
+        #expect(model.sourceText == "가나")
+        #expect(model.remainingText == "가다")
+    }
+
+    @Test("모델이 바닥났을 때 입력창 앞 문맥이 비었으면 경계를 물음")
+    func testDeletePanExhaustedContext_경계요청() {
+        #expect(
+            KeyboardTextInteractionPolicy.deletePanExhaustedContextAction(
+                sourceText: "ㄱㄱㄱㄱㄱㄱ",
+                documentContextBeforeInput: nil
+            ) == .requestBoundary
+        )
+        #expect(
+            KeyboardTextInteractionPolicy.deletePanExhaustedContextAction(
+                sourceText: "ㄱㄱㄱㄱㄱㄱ",
+                documentContextBeforeInput: ""
+            ) == .requestBoundary
+        )
+    }
+
+    // 실기기 03:00:54: `ㄱ` 6개를 지웠는데 입력창이 아직 `ㄱㄱㄱㄱ`를 보냄
+    @Test("앞 문맥이 방금 지운 모델 글자의 앞부분으로 끝나면 입력창이 따라오기를 기다림")
+    func testDeletePanExhaustedContext_낡은문맥() {
+        #expect(
+            KeyboardTextInteractionPolicy.deletePanExhaustedContextAction(
+                sourceText: "ㄱㄱㄱㄱㄱㄱ",
+                documentContextBeforeInput: "ㄱㄱㄱㄱ"
+            ) == .awaitSync
+        )
+        #expect(
+            KeyboardTextInteractionPolicy.deletePanExhaustedContextAction(
+                sourceText: "가나다",
+                documentContextBeforeInput: "라마\n가나"
+            ) == .awaitSync
+        )
+    }
+
+    // 실기기 03:18:45: 처음 문맥이 앞 줄 없이 `⏎ㄹ…`이었고, 다 지운 뒤 실제 앞 줄 `ㄱ…`이 보임
+    @Test("앞 문맥이 지운 모델 글자와 이어지지 않으면 실제 앞 줄로 보고 모델을 다시 채움")
+    func testDeletePanExhaustedContext_앞줄() {
+        #expect(
+            KeyboardTextInteractionPolicy.deletePanExhaustedContextAction(
+                sourceText: "\nㄹㄹㄹ",
+                documentContextBeforeInput: "ㄱㄱㄱㄱ"
+            ) == .refill
+        )
+        #expect(
+            KeyboardTextInteractionPolicy.deletePanExhaustedContextAction(
+                sourceText: "",
+                documentContextBeforeInput: "가"
+            ) == .refill
+        )
+    }
+
+    @Test("같은 글자가 이어져 실제 앞 문맥과 낡은 문맥을 구분할 수 없으면 기다림으로 판정")
+    func testDeletePanExhaustedContext_구분불가() {
+        #expect(
+            KeyboardTextInteractionPolicy.deletePanExhaustedContextAction(
+                sourceText: "ㄱㄱㄱ",
+                documentContextBeforeInput: "ㄱㄱㄱㄱㄱ"
+            ) == .awaitSync
+        )
+    }
+
+    @Test("삭제 드래그 경계 요청은 마지막 편집 뒤 50ms가 지나야 보냄",
+          arguments: [
+            (0.0, 0.05),
+            (0.02, 0.03),
+            (0.05, 0.0),
+            (0.2, 0.0)
+          ])
+    func testDeletePanBoundaryDelay(_ elapsed: Double, _ expected: Double) {
+        #expect(
+            abs(KeyboardTextInteractionPolicy.deletePanBoundaryDelay(elapsedSinceLastEdit: elapsed) - expected)
+                < 0.000_001
+        )
     }
 }

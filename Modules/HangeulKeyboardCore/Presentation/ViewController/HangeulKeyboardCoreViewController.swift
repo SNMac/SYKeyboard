@@ -284,7 +284,7 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
             return (result.character, result.shouldRestore)
         }
 
-        guard let deletedCharacter = textDocumentProxy.documentContextBeforeInput?.last else { return nil }
+        guard let deletedCharacter = deleteButtonPanPreviousCharacter else { return nil }
         deleteText()
         updateSpaceButtonImage()
         return (deletedCharacter, true)
