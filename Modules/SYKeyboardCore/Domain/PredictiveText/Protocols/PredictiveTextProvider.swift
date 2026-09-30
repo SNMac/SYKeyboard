@@ -15,8 +15,43 @@ protocol PredictiveTextProvider: AnyObject {
     /// - Parameter baseText: 자동완성을 제공할 텍스트
     /// - Returns: 자동완성 후보 단어 배열
     func suggestions(for baseText: String) -> [String]
+    /// 앞에서부터 최대 `limit`개만 필요한 호출자를 위한 조회입니다.
+    ///
+    /// 기본 구현은 `suggestions(for:)`를 그대로 반환합니다. 후보 생성 비용이 큰 엔진은
+    /// `limit`을 채운 뒤의 작업을 생략하도록 재정의합니다.
+    ///
+    /// - Parameters:
+    ///   - baseText: 자동완성을 제공할 텍스트
+    ///   - limit: 호출자가 실제로 읽는 최대 개수
+    /// - Returns: 자동완성 후보 단어 배열 (앞 `limit`개는 `suggestions(for:)`와 동일)
+    func suggestions(for baseText: String, limit: Int) -> [String]
     /// 사용자가 선택한 단어를 학습하여 이후 추천에 반영합니다.
     ///
     /// - Parameter word: 학습할 단어
     func learn(word: String)
+    /// 앱이 학습시킨 단어라 `unlearn(word:)`로 되돌릴 수 있는지 반환합니다.
+    ///
+    /// 후보 바 굵기 표시 때문에 후보 바를 갱신할 때마다 불린다. 메모리에 든 값만 보고 빠르게 반환해야 한다
+    ///
+    /// - Parameter word: 확인할 단어
+    /// - Returns: 되돌릴 수 있으면 `true`
+    func canUnlearn(word: String) -> Bool
+    /// 다른 프로세스가 바꾼 학습 단어 목록을 다음 조회 때 다시 읽도록 캐시를 비웁니다.
+    func invalidateLearnedWordsCache()
+    /// 앱이 학습시킨 단어를 학습 데이터에서 제거합니다.
+    ///
+    /// - Parameter word: 제거할 단어
+    func unlearn(word: String)
+}
+
+extension PredictiveTextProvider {
+    func suggestions(for baseText: String, limit: Int) -> [String] {
+        suggestions(for: baseText)
+    }
+
+    func canUnlearn(word: String) -> Bool { false }
+
+    func invalidateLearnedWordsCache() {}
+
+    func unlearn(word: String) {}
 }

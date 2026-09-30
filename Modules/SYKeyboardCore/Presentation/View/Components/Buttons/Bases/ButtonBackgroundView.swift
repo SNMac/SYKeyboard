@@ -10,16 +10,10 @@ import UIKit
 /// 키보드 버튼 배경
 final class ButtonBackgroundView: UIView {
     
-    // MARK: - Properties
-    
-    private let cornerRadius: CGFloat
-    
     // MARK: - Initializer
     
-    init(cornerRadius: CGFloat) {
-        self.cornerRadius = cornerRadius
-        super.init(frame: .zero)
-        
+    override init(frame: CGRect) {
+        super.init(frame: frame)
         setupUI()
     }
     
@@ -37,6 +31,6 @@ private extension ButtonBackgroundView {
         self.isUserInteractionEnabled = false
         
         self.clipsToBounds = true
-        self.layer.cornerRadius = cornerRadius
+        self.layer.cornerRadius = KeyboardLayoutFigure.buttonCornerRadius
     }
 }

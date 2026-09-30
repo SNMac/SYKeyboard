@@ -6,6 +6,53 @@
 //
 
 import UIKit
+import OSLog
+import os
+
+/// n-gram 예측 엔진에 필요한 기록/저장 기능 계약
+protocol NGramPredictiveTextProviding: PredictiveTextProvider {
+    /// 디스크 로딩이 완료되었을 때 호출할 콜백
+    var onLoadCompleted: (() -> Void)? { get set }
+    /// 현재 문장 버퍼의 단어 수
+    var currentSentenceWordsCount: Int { get }
+    /// 현재 문장 버퍼의 단어
+    var currentSentenceWords: [String] { get }
+
+    /// 단어를 현재 문장 버퍼에 추가하고 n-gram을 기록합니다.
+    func addWord(_ word: String)
+    /// 문장 버퍼를 초기화하고 디스크에 저장합니다.
+    func endSentence()
+    /// 마지막으로 기록된 단어를 문장 버퍼에서 제거합니다.
+    func removeLastWord()
+    /// 문장 버퍼를 초기화합니다.
+    func resetSentenceBuffer()
+    /// 문장 버퍼를 주어진 단어들로 바꿉니다. 기록·저장은 하지 않습니다.
+    func restoreSentenceBuffer(_ words: [String])
+    /// n-gram 데이터를 디스크에 저장합니다.
+    func saveToDisk()
+    /// 단어를 모든 n-gram 저장소에서 지우고 저장합니다.
+    func removeWord(_ word: String)
+
+    /// 문맥으로 다음 단어를 예측합니다. `preferredScript`가 있으면 unigram 후보만 그 문자 종류를 앞에 둡니다.
+    func suggestions(for baseText: String, preferredScript: PredictiveTextScript?) -> [String]
+    /// 입력 중인 단어를 이어 쓴 학습 단어를 반환합니다. `previousWord` 뒤에 쓴 bigram 후보가 먼저입니다.
+    func completions(forTypedWord typedWord: String, previousWord: String?, limit: Int) -> [String]
+}
+
+extension NGramPredictiveTextEngine: NGramPredictiveTextProviding {}
+
+/// `SuggestionController`가 사용하는 예측 엔진 생성 팩토리
+struct SuggestionControllerEngineFactory {
+    let makeLexiconEngine: () -> LexiconSuggestionProviding
+    let makeTextCheckerEngine: (String) -> PredictiveTextProvider
+    let makeNGramEngine: (String) -> NGramPredictiveTextProviding
+
+    static let live = SuggestionControllerEngineFactory(
+        makeLexiconEngine: { LexiconPredictiveTextEngine() },
+        makeTextCheckerEngine: { TextCheckerPredictiveTextEngine(language: $0) },
+        makeNGramEngine: { NGramPredictiveTextEngine(language: $0) }
+    )
+}
 
 /// `SuggestionController`의 이벤트를 수신하는 델리게이트 프로토콜
 protocol SuggestionControllerDelegate: AnyObject {
@@ -14,16 +61,32 @@ protocol SuggestionControllerDelegate: AnyObject {
     /// - Parameters:
     ///   - controller: 이벤트를 발생시킨 `SuggestionController`
     ///   - currentWord: 현재 입력 중인 단어 (없으면 nil)
-    ///   - suggestions: 업데이트된 후보 단어 배열 (최대 2개, 텍스트 대치 우선)
+    ///   - suggestions: 업데이트된 후보 단어 배열 (입력 중 모드는 최대 `maxSuggestions - 1`개,
+    ///     n-gram 모드는 최대 `maxSuggestions`개. 텍스트 대치 우선)
     func suggestionController(_ controller: SuggestionController, didUpdateCurrentWord currentWord: String?, suggestions: [String])
 }
 
 /// 현재 SuggestionBar의 표시 모드
 enum SuggestionMode {
-    /// 입력 중: button1에 "현재단어", button2~3에 자동완성 후보
+    /// 입력 중: 0번 칸에 "현재단어", 그 뒤 칸에 자동완성 후보
     case typing
-    /// n-gram: button1~3에 다음 단어 예측
+    /// n-gram: 0번 칸부터 다음 단어 예측
     case nGram
+    /// 수식 결과: 0번 칸에 원문, 1번에 원문+결과, 2번에 결과 대치 후보
+    case mathExpression
+}
+
+private enum MathSuggestionOrigin: Equatable {
+    case unselected
+    case selection(String)
+
+    init(selectedText: String?) {
+        if let selectedText, !selectedText.isEmpty {
+            self = .selection(selectedText)
+        } else {
+            self = .unselected
+        }
+    }
 }
 
 /// 자동완성 후보 조회, 텍스트 대치, 대치 복구를 통합 관리하는 컨트롤러
@@ -40,48 +103,67 @@ enum SuggestionMode {
 /// `lexiconEngine`은 자동완성과 텍스트 대치 양쪽에서 사용되므로,
 /// 둘 다 꺼졌을 때만 해제됩니다.
 ///
-/// 모든 후보 조회는 `BaseKeyboardViewController`가 관리하는 `inputBuffer`를 기준으로
-/// 수행되며, 현재 키보드 세션에서 직접 입력한 텍스트만 대상으로 합니다.
+/// 일반 후보(n-gram·TextChecker)는 `BaseKeyboardViewController`가 만든 커서 앞 문맥 기준 텍스트
+/// (`KeyboardSuggestionSelectionPolicy.generalSuggestionBaseText`)로 조회합니다. 텍스트 대치와 n-gram 기록은
+/// 현재 키보드 세션에서 직접 입력한 `inputBuffer`(기록은 앞 조각을 뺀 `learnableInputBuffer`)만 대상으로 합니다.
 ///
 /// ## 동작 흐름
-/// 1. **입력 중**: SuggestionBar에 `UILexicon` + `UITextChecker` 후보 표시
+/// 1. **입력 중**: SuggestionBar에 `UILexicon` + n-gram 단어 완성 + `UITextChecker` 후보 표시
 /// 2. **후보 탭**: 현재 단어를 선택한 후보로 교체 (텍스트 대치 후보는 대치 이력 기록)
 /// 3. **스페이스**: `UILexicon`에 정확히 매칭되는 텍스트 대치 자동 수행, n-gram 기록
 /// 4. **삭제**: 방금 대치된 단어를 원래 단축어로 복구
 /// 5. **복구 후 스페이스**: 같은 단축어에 대해 재대치 방지
 /// 6. **입력 없음 / 자동완성 후**: n-gram 기반 다음 단어 예측
 final class SuggestionController: SuggestionService {
-    
+
     // MARK: - Properties
-    
+
     weak var delegate: SuggestionControllerDelegate?
-    
+
     /// 엔진 재생성 시 사용할 언어 코드
-    private let language: String
-    
+    private var language: String
+    /// NGram 엔진 식별자. `nil`이면 `language`를 따른다.
+    /// 한영 통합 키보드는 언어 모드와 무관하게 통합 엔진 하나를 쓴다
+    private let nGramLanguage: String?
+    /// 지금 쓰는 NGram 엔진 식별자
+    private var activeNGramLanguage: String { nGramLanguage ?? language }
+    /// 통합 NGram일 때만 현재 언어 모드의 문자 종류를 unigram 후보 앞에 둔다
+    private var nGramPreferredScript: PredictiveTextScript? {
+        guard nGramLanguage != nil else { return nil }
+        return PredictiveTextScriptPolicy.preferredScript(forLanguage: language)
+    }
+    /// 비동기 n-gram 로드 콜백을 식별하는 엔진 세대
+    private var engineGeneration = 0
+    /// 예측 엔진 생성 팩토리
+    private let engineFactory: SuggestionControllerEngineFactory
+    /// 성능 계측용 signposter
+    private let signposter = OSSignposter(
+        subsystem: Bundle.main.bundleIdentifier ?? "Unknown Bundle",
+        category: "SuggestionController"
+    )
+    /// TextChecker 조회 전용 직렬 큐. `UITextChecker` 인스턴스는 이 큐에서만 접근한다
+    private let textCheckerQueue: DispatchQueue
+    /// 비동기 TextChecker 조회 결과가 낡았는지 판별하는 요청 세대
+    ///
+    /// main 외 스레드가 읽는 유일한 상태라 lock으로 한정한다
+    private let textCheckerRequestGeneration = OSAllocatedUnfairLock(initialState: 0)
+
     /// 자동완성 사용자 설정
     ///
     /// `false`로 설정하면 `textCheckerEngine`과 `nGramEngine`을 해제합니다.
-    /// `true`로 복구하면 엔진을 재생성합니다.
+    /// `true`로 복구해도 엔진은 즉시 생성하지 않고 준비 API에서 생성합니다.
     var isPredictiveTextEnabled: Bool = false {
         didSet {
             guard oldValue != isPredictiveTextEnabled else { return }
-            if isPredictiveTextEnabled {
-                if textCheckerEngine == nil {
-                    textCheckerEngine = TextCheckerPredictiveTextEngine(language: language)
-                }
-                if nGramEngine == nil {
-                    nGramEngine = NGramPredictiveTextEngine(language: language)
-                }
-            } else {
-                textCheckerEngine = nil
-                nGramEngine = nil
+            if !isPredictiveTextEnabled {
+                textCheckerEngines.removeAll()
+                nGramEngines.removeAll()
                 clearSuggestions()
             }
-            updateLexiconEngine()
+            releaseLexiconEngineIfUnused()
         }
     }
-    
+
     /// 텍스트 대치 사용자 설정
     ///
     /// `false`로 설정하면 텍스트 대치 기능을 비활성화합니다.
@@ -89,108 +171,324 @@ final class SuggestionController: SuggestionService {
     var isTextReplacementEnabled: Bool = false {
         didSet {
             guard oldValue != isTextReplacementEnabled else { return }
-            updateLexiconEngine()
+            releaseLexiconEngineIfUnused()
         }
     }
-    
+
+    /// 수식 결과 후보 표시 사용자 설정
+    var isShowMathResultsEnabled: Bool = true {
+        didSet {
+            guard oldValue != isShowMathResultsEnabled else { return }
+            if !isShowMathResultsEnabled, currentMode == .mathExpression {
+                clearSuggestions()
+            }
+        }
+    }
+
     /// 텍스트 필드별 일시적 비활성화
     ///
     /// `autocorrectionType == .no`인 텍스트 필드 등에서 `true`로 설정합니다.
     /// 엔진을 해제하지 않고 조회·기록만 건너뜁니다.
+    ///
+    /// 후보를 비우는 것은 `false` -> `true` 전이에서 한 번뿐입니다.
+    /// 억제 중에는 후보를 채우는 경로가 모두 `!isSuspended` 가드로 막혀 있고,
+    /// 억제 이전에 발행된 TextChecker 요청은 전이 시점의 세대 증가로 무효화되므로
+    /// 같은 값이 다시 대입돼도 지울 대상이 없습니다.
     var isSuspended: Bool = false {
         didSet {
+            guard oldValue != isSuspended else { return }
             if isSuspended { clearSuggestions() }
         }
     }
-    
+
     /// 현재 표시 모드
     private(set) var currentMode: SuggestionMode = .nGram
-    
+
     /// 자동완성 후보와 출처 정보를 함께 저장하는 모델
     fileprivate struct SuggestionItem {
         /// 후보 텍스트
         let text: String
         /// 후보의 출처
         let source: Source
-        
+        /// 후보 선택 시 삽입할 텍스트
+        let insertText: String?
+        /// 후보 선택 시 삭제할 텍스트 수
+        let replacementDeleteCount: Int?
+
+        init(
+            text: String,
+            source: Source,
+            insertText: String? = nil,
+            replacementDeleteCount: Int? = nil
+        ) {
+            self.text = text
+            self.source = source
+            self.insertText = insertText
+            self.replacementDeleteCount = replacementDeleteCount
+        }
+
         /// 후보 출처 구분
         enum Source {
             /// `UILexicon` 기반 (텍스트 대치)
             case lexicon
             /// `UITextChecker` 기반 (시스템 사전)
             case textChecker
-            /// n-gram 기반 (다음 단어 예측)
+            /// n-gram 기반 (다음 단어 예측, 입력 중 단어 완성)
             case nGram
+            /// 수식 원문 확인 후보
+            case mathExpressionOriginal
+            /// 수식 결과 삽입 후보
+            case mathExpressionInsertion
+            /// 수식 전체 대치 후보
+            case mathExpressionReplacement
         }
     }
-    
+
     /// 현재 표시 중인 후보 배열 (출처 정보 포함)
     private var currentSuggestions: [SuggestionItem] = []
-    
+
     /// `UILexicon` 기반 엔진 (연락처, 텍스트 대치 등)
     ///
     /// 자동완성과 텍스트 대치 양쪽에서 사용되므로, 둘 다 꺼졌을 때만 `nil`이 됩니다.
-    private var lexiconEngine: LexiconPredictiveTextEngine?
+    private var lexiconEngine: LexiconSuggestionProviding?
+    /// 언어별 `UITextChecker` 기반 엔진 캐시
+    private var textCheckerEngines: [String: PredictiveTextProvider] = [:]
+    /// 식별자별 n-gram 엔진 캐시.
+    ///
+    /// 언어별 NGram을 쓰는 키보드가 언어를 바꿀 때마다 엔진을 버리면 그때마다 디스크 로드를
+    /// 다시 한다. 사용한 식별자의 엔진만 들고 있는다. 통합 NGram은 항목이 하나뿐이다
+    private var nGramEngines: [String: NGramPredictiveTextProviding] = [:]
+
     /// `UITextChecker` 기반 엔진 (시스템 사전)
     ///
     /// `isPredictiveTextEnabled`가 `false`이면 `nil`이 됩니다.
-    private var textCheckerEngine: TextCheckerPredictiveTextEngine?
+    private var textCheckerEngine: PredictiveTextProvider? {
+        get { textCheckerEngines[language] }
+        set { textCheckerEngines[language] = newValue }
+    }
+    /// 학습 단어 목록으로 삭제를 판단하고 해제할 TextChecker 엔진
+    ///
+    /// 학습 목록과 `UITextChecker` 학습 사전은 언어와 무관하게 공유된다. 한영 키보드는 한/A 전환 뒤에도 입력 중
+    /// 후보를 그대로 두는데 새 언어 엔진은 다음 후보 요청 때 만들어지므로, 그 사이에는 다른 언어 엔진으로 판단한다
+    private var learnedWordsEngine: PredictiveTextProvider? {
+        textCheckerEngine ?? textCheckerEngines.values.first
+    }
     /// n-gram 기반 엔진 (다음 단어 예측)
     ///
     /// `isPredictiveTextEnabled`가 `false`이면 `nil`이 됩니다.
-    private var nGramEngine: NGramPredictiveTextEngine?
-    
+    private var nGramEngine: NGramPredictiveTextProviding? {
+        get { nGramEngines[activeNGramLanguage] }
+        set { nGramEngines[activeNGramLanguage] = newValue }
+    }
+    /// 마지막으로 자동완성 갱신을 요청한 텍스트
+    private var lastSuggestionBaseText: String?
+    /// 마지막으로 수식 탐지를 요청한 텍스트
+    private var lastMathExpressionText: String?
+    /// 마지막으로 텍스트 대치 조회를 요청한 텍스트
+    private var lastTextReplacementBaseText: String?
+    /// 마지막으로 자동완성 갱신을 요청한 selection origin
+    private var lastSuggestionOrigin: MathSuggestionOrigin?
+    /// 현재 표시 중인 수식 후보를 만든 계산 결과
+    private var currentMathCompletion: MathExpressionCompletion?
+    /// 현재 표시 중인 수식 후보를 만든 selection origin
+    private var currentMathSuggestionOrigin: MathSuggestionOrigin?
+    /// `requestSupplementaryLexicon()` 중복 요청 방지 플래그
+    private var isLoadingLexicon = false
+
     /// 후보 최대 표시 개수
-    private let maxSuggestions = 3
-    
+    ///
+    /// 후보 바가 가로로 스크롤되므로 화면에 보이는 3칸보다 많이 만든다.
+    /// 입력 중 모드는 0번 칸이 `"현재단어"`라 엔진 몫이 `maxSuggestions - 1`이다.
+    /// 이 값을 3으로 되돌리면 후보가 뷰포트를 넘지 않아 스크롤이 사라진다
+    private let maxSuggestions = 10
+    /// 입력 중 모드에서 n-gram 단어 완성에 주는 최대 칸 수
+    ///
+    /// lexicon 뒤, TextChecker 앞에 둔다. 자주 쓰는 접두어에서도 TextChecker 몫(오타 교정 포함)이 남도록 제한한다
+    private let maxNGramCompletions = 3
+    /// 복구 가능한 텍스트 대치 이력 최대 개수
+    private let maxReplacementHistoryCount = 20
+
     /// 텍스트 대치 이력을 저장하는 모델
     private struct ReplacementRecord: Equatable {
         /// 사용자가 입력한 단축어 (예: "ㅈㄱㅈ")
         let userInput: String
         /// 대치된 결과물 (예: "지금 가는 중!")
         let documentText: String
+        /// 대치 결과 앞쪽의 제한된 문맥
+        let contextBeforeDocumentText: String
     }
     /// 텍스트 대치 이력
     private var replacementHistory: [ReplacementRecord] = []
     /// 방금 복구된 단축어 (재대치 방지용)
     private var ignoredShortcut: String?
-    
+
     // MARK: - Initializer
-    
+
     /// 지정한 언어로 컨트롤러를 초기화합니다.
     ///
     /// 초기화 시점에는 엔진을 생성하지 않습니다.
-    /// `isPredictiveTextEnabled`와 `isTextReplacementEnabled`를 설정하면
-    /// 해당 엔진이 자동으로 생성됩니다.
+    /// 설정값은 저장만 하고, 해당 엔진은 준비 API에서 생성합니다.
     ///
-    /// - Parameter language: `UITextChecker`, NGram엔진에서 사용할 언어 코드 (기본값: "ko-KR")
-    init(language: String = "ko-KR") {
+    /// - Parameters:
+    ///   - language: `UITextChecker`에서 사용할 언어 코드 (기본값: "ko-KR")
+    ///   - nGramLanguage: NGram 엔진 식별자. `nil`이면 `language`를 따른다
+    init(
+        language: String = "ko-KR",
+        nGramLanguage: String? = nil,
+        engineFactory: SuggestionControllerEngineFactory = .live,
+        textCheckerQueue: DispatchQueue = DispatchQueue(
+            label: "com.snmac.sykeyboard.suggestion.textchecker",
+            qos: .userInitiated
+        )
+    ) {
         self.language = language
+        self.nGramLanguage = nGramLanguage
+        self.engineFactory = engineFactory
+        self.textCheckerQueue = textCheckerQueue
     }
-    
+
     // MARK: - Lexicon Loading
-    
-    func loadLexicon(from inputViewController: UIInputViewController) {
-        guard lexiconEngine != nil else { return }
-        Task { @MainActor in
-            let lexicon = await inputViewController.requestSupplementaryLexicon()
-            lexiconEngine?.setLexicon(lexicon)
+
+    func updateLanguage(to language: String) {
+        guard self.language != language else { return }
+        // 언어별 TextChecker 엔진은 학습 단어 목록 캐시를 따로 들고 있다.
+        // 다른 언어 엔진에서 학습·삭제한 단어가 반영되도록 전환 때 비운다
+        invalidateLearnedWordsCache()
+
+        // 통합 NGram(한영 키보드)은 한/A 전환에서 자판만 바뀌어야 하므로 TextChecker 언어만 바꾸고
+        // NGram 엔진·문장 버퍼·후보·마지막 요청 상태는 그대로 둔다
+        guard nGramLanguage == nil else {
+            self.language = language
+            refreshNGramSuggestionsForLanguageModeChange()
+            return
+        }
+
+        // 전환 전 언어의 학습 결과는 즉시 보존하되, 엔진 자체는 캐시에 남겨
+        // 같은 언어로 돌아왔을 때 디스크 로드를 반복하지 않는다
+        nGramEngine?.saveToDisk()
+        engineGeneration += 1
+        self.language = language
+        lastSuggestionBaseText = nil
+        lastMathExpressionText = nil
+        lastTextReplacementBaseText = nil
+        lastSuggestionOrigin = nil
+        currentMathCompletion = nil
+        currentMathSuggestionOrigin = nil
+        clearSuggestions()
+    }
+
+    func preparePredictiveEnginesIfNeeded() {
+        guard isPredictiveTextEnabled else { return }
+
+        if textCheckerEngine == nil {
+            let state = signposter.beginInterval("PrepareTextCheckerEngine")
+            textCheckerEngine = engineFactory.makeTextCheckerEngine(language)
+            signposter.endInterval("PrepareTextCheckerEngine", state)
+        }
+
+        if nGramEngine == nil {
+            let state = signposter.beginInterval("PrepareNGramEngine")
+            let generation = engineGeneration
+            let engineLanguage = activeNGramLanguage
+            let engine = engineFactory.makeNGramEngine(engineLanguage)
+            // 이 콜백은 엔진이 이미 main으로 넘겨 호출하므로 동기로 갱신할 수도 있지만,
+            // 그러면 엔진의 로딩 완료 클로저 안에서 후보 갱신이 엔진으로 재진입한다.
+            // 한 프레임을 아끼는 대신 재진입 위험을 지는 거래라 비동기를 유지한다
+            engine.onLoadCompleted = { [weak self] in
+                Task { @MainActor [weak self] in
+                    guard let self,
+                          self.engineGeneration == generation,
+                          self.activeNGramLanguage == engineLanguage else { return }
+                    self.performRefreshSuggestionsAfterNGramLoadIfNeeded()
+                }
+            }
+            nGramEngine = engine
+            signposter.endInterval("PrepareNGramEngine", state)
         }
     }
-    
-    // MARK: - Suggestion Methods
-    
-    func updateSuggestions(for baseText: String) {
-        guard isPredictiveTextEnabled, !isSuspended else { return }
-        performUpdateSuggestions(for: baseText)
+
+    /// 현재 언어가 아닌 예측 엔진 캐시를 해제합니다.
+    ///
+    /// 비활성 언어 엔진은 전환 시점에 이미 `saveToDisk()`로 저장했고
+    /// 그 뒤로는 학습을 받지 않으므로, 저장 없이 버려도 유실되는 기록이 없습니다.
+    func releaseInactiveLanguageEngines() {
+        let activeLanguage = language
+        let activeNGram = activeNGramLanguage
+        nGramEngines = nGramEngines.filter { $0.key == activeNGram }
+        textCheckerEngines = textCheckerEngines.filter { $0.key == activeLanguage }
     }
-    
-    func updateSuggestionsAfterNGramSelection(inputBuffer: String) {
+
+    func prepareLexiconEngineIfNeeded() {
+        guard isPredictiveTextEnabled || isTextReplacementEnabled else { return }
+        guard lexiconEngine == nil else { return }
+
+        let state = signposter.beginInterval("PrepareLexiconEngine")
+        lexiconEngine = engineFactory.makeLexiconEngine()
+        signposter.endInterval("PrepareLexiconEngine", state)
+    }
+
+    func loadLexicon(from inputViewController: UIInputViewController) {
+        prepareLexiconEngineIfNeeded()
+        guard lexiconEngine != nil else { return }
+        guard !isLoadingLexicon else { return }
+        guard lexiconEngine?.hasLoadedLexicon == false else { return }
+
+        isLoadingLexicon = true
+        Task { @MainActor [weak self, weak inputViewController] in
+            guard let self else { return }
+            guard let inputViewController else {
+                self.isLoadingLexicon = false
+                return
+            }
+            let state = self.signposter.beginInterval("RequestSupplementaryLexicon")
+            defer {
+                self.signposter.endInterval("RequestSupplementaryLexicon", state)
+                self.isLoadingLexicon = false
+            }
+            let lexicon = await inputViewController.requestSupplementaryLexicon()
+            (lexiconEngine as? LexiconLoadableSuggestionProviding)?.setLexicon(lexicon)
+        }
+    }
+
+    // MARK: - Suggestion Methods
+
+    func updateSuggestions(
+        for baseText: String,
+        selectedText: String?,
+        mathExpressionText: String,
+        textReplacementBaseText: String
+    ) {
         guard isPredictiveTextEnabled, !isSuspended else { return }
-        
-        let nGramResults = nGramSuggestions(for: inputBuffer)
-        
+        let origin = MathSuggestionOrigin(selectedText: selectedText)
+        lastSuggestionBaseText = baseText
+        lastMathExpressionText = mathExpressionText
+        lastTextReplacementBaseText = textReplacementBaseText
+        lastSuggestionOrigin = origin
+        preparePredictiveEnginesIfNeeded()
+        prepareLexiconEngineIfNeeded()
+        performUpdateSuggestions(
+            for: baseText,
+            mathExpressionText: mathExpressionText,
+            textReplacementBaseText: textReplacementBaseText,
+            origin: origin
+        )
+    }
+
+    func updateSuggestionsAfterNGramSelection(baseText: String, textReplacementBaseText: String) {
+        guard isPredictiveTextEnabled, !isSuspended else { return }
+        let origin = MathSuggestionOrigin.unselected
+        lastSuggestionBaseText = baseText
+        lastMathExpressionText = baseText
+        lastTextReplacementBaseText = textReplacementBaseText
+        lastSuggestionOrigin = origin
+        preparePredictiveEnginesIfNeeded()
+        prepareLexiconEngineIfNeeded()
+
+        let nGramResults = nGramSuggestions(for: baseText)
+
         if !nGramResults.isEmpty {
+            currentMathCompletion = nil
+            currentMathSuggestionOrigin = nil
             currentMode = .nGram
             currentSuggestions = nGramResults
             delegate?.suggestionController(
@@ -199,158 +497,312 @@ final class SuggestionController: SuggestionService {
                 suggestions: currentSuggestions.map { $0.text }
             )
         } else {
-            performUpdateSuggestions(for: inputBuffer)
+            performUpdateSuggestions(
+                for: baseText,
+                mathExpressionText: baseText,
+                textReplacementBaseText: textReplacementBaseText,
+                origin: origin
+            )
         }
     }
-    
+
     func clearSuggestions() {
+        // 진행 중인 TextChecker 조회 결과가 뒤늦게 반영되지 않도록 세대를 올린다
+        textCheckerRequestGeneration.withLock { $0 += 1 }
+        lastSuggestionBaseText = nil
+        lastMathExpressionText = nil
+        lastTextReplacementBaseText = nil
+        lastSuggestionOrigin = nil
+        currentMathCompletion = nil
+        currentMathSuggestionOrigin = nil
         currentSuggestions = []
         currentMode = .nGram
         delegate?.suggestionController(self, didUpdateCurrentWord: nil, suggestions: [])
     }
-    
-    func selectSuggestion(at index: Int, baseText: String) -> (deleteCount: Int, insertText: String)? {
+
+    func selectSuggestion(
+        at index: Int,
+        baseText: String,
+        textReplacementBaseText: String
+    ) -> (deleteCount: Int, insertText: String)? {
         guard index >= 0, index < currentSuggestions.count else { return nil }
-        
+
         if let last = baseText.last, last.isWhitespace { return nil }
-        
+
         let item = currentSuggestions[index]
-        let currentWord = extractLastWord(from: baseText)
-        
+        // 텍스트 대치는 이 키보드로 친 단어(`inputBuffer`)만 바꾼다. 나머지는 커서 앞 단어 전체를 바꾼다
+        let currentWord = extractLastWord(from: item.source == .lexicon ? textReplacementBaseText : baseText)
+
         if item.source == .textChecker {
             textCheckerEngine?.learn(word: item.text)
         }
-        
+
         if item.source == .lexicon {
-            let record = ReplacementRecord(
+            appendReplacementRecord(
                 userInput: currentWord,
-                documentText: item.text
+                documentText: item.text,
+                baseText: textReplacementBaseText,
+                currentWord: currentWord
             )
-            replacementHistory.append(record)
         }
-        
+
         return (deleteCount: currentWord.count, insertText: item.text)
     }
-    
+
     func nGramSuggestionText(at index: Int) -> String? {
         guard index >= 0, index < currentSuggestions.count,
               currentSuggestions[index].source == .nGram else { return nil }
         return currentSuggestions[index].text
     }
-    
+
+    func removableSuggestionText(atBarIndex index: Int) -> String? {
+        let itemIndex: Int
+        switch currentMode {
+        case .nGram:
+            itemIndex = index
+        case .typing:
+            // 0번 버튼은 현재 입력 단어라 후보 배열은 1번부터 시작한다
+            itemIndex = index - 1
+        case .mathExpression:
+            return nil
+        }
+        guard currentSuggestions.indices.contains(itemIndex) else { return nil }
+
+        let item = currentSuggestions[itemIndex]
+        switch item.source {
+        case .nGram:
+            return item.text
+        case .textChecker:
+            return learnedWordsEngine?.canUnlearn(word: item.text) == true ? item.text : nil
+        default:
+            return nil
+        }
+    }
+
+    var removableBarIndices: IndexSet {
+        // 입력 중 모드는 0번 칸이 현재 단어라 바 칸이 후보보다 하나 많다
+        let state = signposter.beginInterval("SuggestionRemovableBarIndices")
+        defer { signposter.endInterval("SuggestionRemovableBarIndices", state) }
+        let barCount = currentSuggestions.count + (currentMode == .typing ? 1 : 0)
+        return IndexSet((0..<barCount).filter { removableSuggestionText(atBarIndex: $0) != nil })
+    }
+
+    func invalidateLearnedWordsCache() {
+        textCheckerEngines.values.forEach { $0.invalidateLearnedWordsCache() }
+    }
+
+    func removeSuggestionWord(_ word: String) {
+        nGramEngine?.removeWord(word)
+        learnedWordsEngine?.unlearn(word: word)
+        // typing 모드는 직전 TextChecker 후보를 이어받으므로 지운 단어가 한 프레임 다시 보이지 않게 뺀다
+        currentSuggestions.removeAll { $0.text == word }
+        // n-gram 모드에서는 lastSuggestionBaseText가 공백으로 끝나지 않아 typing 모드로 새는 것을 막는다
+        if currentMode == .nGram, let lastSuggestionBaseText {
+            updateSuggestionsAfterNGramSelection(
+                baseText: lastSuggestionBaseText,
+                textReplacementBaseText: lastTextReplacementBaseText ?? lastSuggestionBaseText
+            )
+        } else {
+            // 로딩 완료 후 갱신과 같은 마지막 요청값으로 다시 계산한다
+            performRefreshSuggestionsAfterNGramLoadIfNeeded()
+        }
+    }
+
+    func mathResultAction(
+        at index: Int,
+        selectedText: String?
+    ) -> MathResultSuggestionAction? {
+        guard currentMode == .mathExpression,
+              index >= 0,
+              index < currentSuggestions.count else { return nil }
+
+        guard let currentMathCompletion,
+              let currentMathSuggestionOrigin else { return nil }
+
+        let selectedPrefix: String?
+        switch currentMathSuggestionOrigin {
+        case .unselected:
+            guard selectedText?.isEmpty != false else { return nil }
+            selectedPrefix = nil
+        case .selection(let originalSelection):
+            guard selectedText == originalSelection,
+                  originalSelection == lastSuggestionBaseText,
+                  originalSelection.hasSuffix(currentMathCompletion.expressionText) else {
+                return nil
+            }
+            selectedPrefix = String(
+                originalSelection.dropLast(currentMathCompletion.expressionText.count)
+            )
+        }
+
+        let item = currentSuggestions[index]
+
+        switch item.source {
+        case .mathExpressionOriginal:
+            return .confirmOriginal
+        case .mathExpressionInsertion:
+            guard let insertText = item.insertText else { return nil }
+            if let selectedPrefix {
+                return .replaceSelection(selectedPrefix + item.text)
+            }
+            return .insertResult(insertText)
+        case .mathExpressionReplacement:
+            guard let insertText = item.insertText,
+                  let deleteCount = item.replacementDeleteCount else { return nil }
+            if let selectedPrefix {
+                return .replaceSelection(selectedPrefix + insertText)
+            }
+            return .replaceExpression(
+                deleteCount: deleteCount,
+                insertText: insertText
+            )
+        default:
+            return nil
+        }
+    }
+
+    func textReplacementPreviewSuggestionIndex(baseText: String) -> Int? {
+        guard currentMode == .typing,
+              let match = textReplacementMatch(baseText: baseText) else { return nil }
+
+        if let ignored = ignoredShortcut, ignored == match.entry.userInput {
+            return nil
+        }
+
+        guard let suggestionIndex = currentSuggestions.firstIndex(where: {
+            $0.source == .lexicon && $0.text == match.entry.documentText
+        }) else { return nil }
+
+        return suggestionIndex + 1
+    }
+
     // MARK: - Learning
-    
+
     func learnWord(_ word: String) {
         guard isPredictiveTextEnabled, !isSuspended else { return }
+        preparePredictiveEnginesIfNeeded()
         textCheckerEngine?.learn(word: word)
     }
-    
+
     // MARK: - N-Gram Recording
-    
+
     func recordWord(_ word: String) {
         guard isPredictiveTextEnabled, !isSuspended else { return }
+        preparePredictiveEnginesIfNeeded()
         nGramEngine?.addWord(word)
     }
-    
+
     func endSentence(inputBuffer: String) {
         guard isPredictiveTextEnabled, !isSuspended else { return }
+        preparePredictiveEnginesIfNeeded()
         recordUncommittedWords(from: inputBuffer)
         nGramEngine?.endSentence()
     }
-    
+
+    func sentenceWordsSnapshot() -> [String] {
+        return nGramEngine?.currentSentenceWords ?? []
+    }
+
+    func endSentence(inputBuffer: String, restoringSentenceWords sentenceWords: [String]) {
+        guard isPredictiveTextEnabled, !isSuspended else { return }
+        preparePredictiveEnginesIfNeeded()
+        nGramEngine?.restoreSentenceBuffer(sentenceWords)
+        endSentence(inputBuffer: inputBuffer)
+    }
+
     func saveNGramData() {
         nGramEngine?.saveToDisk()
     }
-    
+
     func recordUncommittedWords(from inputBuffer: String) {
         guard isPredictiveTextEnabled, !isSuspended else { return }
+        preparePredictiveEnginesIfNeeded()
         guard let nGramEngine else { return }
-        
+
         let words = inputBuffer
             .split(whereSeparator: { $0.isWhitespace })
             .map(String.init)
-        
+
         guard !words.isEmpty else { return }
-        
+
         let committedCount = nGramEngine.currentSentenceWordsCount
         let uncommitted = Array(words.dropFirst(committedCount))
-        
+
         for word in uncommitted {
             nGramEngine.addWord(word)
         }
     }
-    
+
     func removeLastRecordedWord() {
         guard isPredictiveTextEnabled, !isSuspended else { return }
         nGramEngine?.removeLastWord()
     }
-    
+
     func resetSentenceBuffer() {
         nGramEngine?.resetSentenceBuffer()
     }
-    
+
     // MARK: - Text Replacement Methods
-    
+
     func attemptTextReplacement(baseText: String) -> (deleteCount: Int, insertText: String)? {
-        guard isTextReplacementEnabled,
-              !baseText.isEmpty,
-              let lexicon = lexiconEngine?.lexicon else { return nil }
-        
-        let matchingEntries = lexicon.entries.filter { entry in
-            let isMatch = baseText.lowercased().hasSuffix(entry.userInput.lowercased())
-            
-            if entry.userInput.lowercased() == "m" && entry.documentText == "M" {
-                return false
-            }
-            
-            return isMatch
-        }
-        
-        guard let match = matchingEntries.max(by: {
-            $0.userInput.count < $1.userInput.count
-        }) else { return nil }
-        
-        if let ignored = ignoredShortcut, ignored == match.userInput {
+        return attemptTextReplacement(baseText: baseText, documentContextBeforeInput: nil)
+    }
+
+    func attemptTextReplacement(
+        baseText: String,
+        documentContextBeforeInput: String?
+    ) -> (deleteCount: Int, insertText: String)? {
+        guard let match = textReplacementMatch(baseText: baseText) else { return nil }
+
+        if let ignored = ignoredShortcut, ignored == match.entry.userInput {
             ignoredShortcut = nil
             return nil
         }
-        
-        let record = ReplacementRecord(
-            userInput: match.userInput,
-            documentText: match.documentText
+
+        appendReplacementRecord(
+            userInput: match.entry.userInput,
+            documentText: match.entry.documentText,
+            baseText: documentContextBeforeInput ?? baseText,
+            currentWord: match.currentWord
         )
-        replacementHistory.append(record)
-        
-        return (deleteCount: match.userInput.count, insertText: match.documentText)
+
+        return (deleteCount: match.entry.userInput.count, insertText: match.entry.documentText)
     }
-    
-    func attemptRestoreReplacement(inputBuffer: String) -> (deleteCount: Int, insertText: String)? {
+
+    func attemptRestoreReplacement(
+        inputBuffer: String,
+        documentContextBeforeInput: String?,
+        selectedText: String?
+    ) -> (deleteCount: Int, insertText: String)? {
         guard isTextReplacementEnabled,
-              !inputBuffer.isEmpty,
               !replacementHistory.isEmpty else { return nil }
-        
+
         for (index, record) in replacementHistory.enumerated().reversed() {
-            if inputBuffer.hasSuffix(record.documentText) {
-                replacementHistory.remove(at: index)
-                
-                ignoredShortcut = record.userInput
-                
-                return (
-                    deleteCount: record.documentText.count,
-                    insertText: record.userInput
-                )
-            }
+            guard let deleteCount = textReplacementRestoreDeleteCount(
+                for: record,
+                inputBuffer: inputBuffer,
+                documentContextBeforeInput: documentContextBeforeInput,
+                selectedText: selectedText
+            ) else { continue }
+
+            replacementHistory.remove(at: index)
+            ignoredShortcut = record.userInput
+
+            return (
+                deleteCount: deleteCount,
+                insertText: record.userInput
+            )
         }
-        
+
         return nil
     }
-    
+
     // MARK: - State Management
-    
+
     func clearIgnoredShortcut() {
         ignoredShortcut = nil
     }
-    
+
     func clearReplacementHistory() {
         replacementHistory = []
     }
@@ -359,28 +811,158 @@ final class SuggestionController: SuggestionService {
 // MARK: - Private Methods
 
 private extension SuggestionController {
-    /// `isPredictiveTextEnabled` 또는 `isTextReplacementEnabled` 변경 시
-    /// `lexiconEngine`의 생성/해제를 결정합니다.
-    ///
-    /// 둘 중 하나라도 켜져 있으면 유지, 둘 다 꺼지면 해제합니다.
-    func updateLexiconEngine() {
-        if isPredictiveTextEnabled || isTextReplacementEnabled {
-            if lexiconEngine == nil {
-                lexiconEngine = LexiconPredictiveTextEngine()
+
+    func textReplacementMatch(
+        baseText: String
+    ) -> (entry: TextReplacementEntry, currentWord: String)? {
+        guard isTextReplacementEnabled,
+              !baseText.isEmpty,
+              let lexiconEngine,
+              lexiconEngine.hasLoadedLexicon else { return nil }
+
+        let currentWord = extractLastWord(from: baseText)
+        guard !currentWord.isEmpty else { return nil }
+
+        let matchState = signposter.beginInterval("TextReplacementMatch")
+        defer { signposter.endInterval("TextReplacementMatch", matchState) }
+
+        // 인덱스가 소문자 일치를 보장하므로 여기서는 시스템 기본 대치 제외만 적용한다
+        let matchingEntries = lexiconEngine
+            .textReplacementEntries(matching: currentWord.lowercased())
+            .filter { entry in
+                !(entry.userInput.lowercased() == "m" && entry.documentText == "M")
             }
+
+        guard let entry = matchingEntries.max(by: {
+            $0.userInput.count < $1.userInput.count
+        }) else { return nil }
+
+        return (entry: entry, currentWord: currentWord)
+    }
+
+    func appendReplacementRecord(
+        userInput: String,
+        documentText: String,
+        baseText: String,
+        currentWord: String
+    ) {
+        let contextBeforeDocumentText: String
+        if baseText.hasSuffix(currentWord) {
+            contextBeforeDocumentText = String(
+                baseText
+                    .dropLast(currentWord.count)
+                    .suffix(KeyboardTextContextNavigator.maximumCursorRestoreDistance)
+            )
         } else {
+            contextBeforeDocumentText = String(
+                baseText
+                    .suffix(KeyboardTextContextNavigator.maximumCursorRestoreDistance)
+            )
+        }
+
+        replacementHistory.append(
+            ReplacementRecord(
+                userInput: userInput,
+                documentText: documentText,
+                contextBeforeDocumentText: contextBeforeDocumentText
+            )
+        )
+
+        if replacementHistory.count > maxReplacementHistoryCount {
+            replacementHistory.removeFirst(replacementHistory.count - maxReplacementHistoryCount)
+        }
+    }
+
+    private func textReplacementRestoreDeleteCount(
+        for record: ReplacementRecord,
+        inputBuffer: String,
+        documentContextBeforeInput: String?,
+        selectedText: String?
+    ) -> Int? {
+        guard selectedText?.isEmpty != false else { return nil }
+
+        if replacementRecord(record, matches: inputBuffer) {
+            return record.documentText.count
+        }
+
+        guard inputBuffer.isEmpty,
+              let documentContextBeforeInput else { return nil }
+
+        return replacementRecord(record, matches: documentContextBeforeInput)
+            ? record.documentText.count
+            : nil
+    }
+
+    private func replacementRecord(
+        _ record: ReplacementRecord,
+        matches text: String
+    ) -> Bool {
+        guard !record.documentText.isEmpty else { return false }
+
+        let expectedSuffix = record.contextBeforeDocumentText + record.documentText
+        guard text.count >= expectedSuffix.count else { return false }
+        return text.hasSuffix(expectedSuffix)
+    }
+
+    /// `isPredictiveTextEnabled` 또는 `isTextReplacementEnabled` 변경 시
+    /// 더 이상 필요 없는 `lexiconEngine`을 해제합니다.
+    ///
+    /// 생성은 첫 표시 이후 또는 첫 후보 요청 시점의 준비 API에서 수행합니다.
+    func releaseLexiconEngineIfUnused() {
+        if !isPredictiveTextEnabled && !isTextReplacementEnabled {
             lexiconEngine = nil
         }
     }
-    
+
     /// 실제 후보 갱신 로직
     ///
-    /// 입력 버퍼에 따라 두 가지 모드로 분기합니다:
-    /// - 버퍼 비어있음 또는 마지막 문자가 공백 → n-gram 모드
-    /// - 단어 타이핑 중 → 입력 중 모드 (lexicon + textChecker)
+    /// 기준 텍스트에 따라 두 가지 모드로 분기합니다:
+    /// - 기준 텍스트가 비어있음 또는 마지막 문자가 공백 → n-gram 모드
+    /// - 단어 타이핑 중 → 입력 중 모드 (lexicon + n-gram 단어 완성 + textChecker)
     ///
-    /// - Parameter baseText: 자동완성을 제공할 텍스트
-    func performUpdateSuggestions(for baseText: String) {
+    /// - Parameters:
+    ///   - baseText: 일반 후보 기준 텍스트(커서 앞 문맥)
+    ///   - textReplacementBaseText: lexicon(텍스트 대치) 조회에만 쓰는 `inputBuffer`
+    func performUpdateSuggestions(
+        for baseText: String,
+        mathExpressionText: String,
+        textReplacementBaseText: String,
+        origin: MathSuggestionOrigin
+    ) {
+        if isShowMathResultsEnabled,
+           let completion = MathExpressionCompletionEvaluator.completion(
+               for: mathExpressionText
+           ) {
+            currentMathCompletion = completion
+            currentMathSuggestionOrigin = origin
+            currentMode = .mathExpression
+            currentSuggestions = [
+                SuggestionItem(
+                    text: "\"\(completion.expressionText)\"",
+                    source: .mathExpressionOriginal
+                ),
+                SuggestionItem(
+                    text: completion.displayText,
+                    source: .mathExpressionInsertion,
+                    insertText: completion.insertText
+                ),
+                SuggestionItem(
+                    text: completion.insertText,
+                    source: .mathExpressionReplacement,
+                    insertText: completion.insertText,
+                    replacementDeleteCount: completion.expressionText.count
+                )
+            ]
+            delegate?.suggestionController(
+                self,
+                didUpdateCurrentWord: nil,
+                suggestions: currentSuggestions.map { $0.text }
+            )
+            return
+        }
+
+        currentMathCompletion = nil
+        currentMathSuggestionOrigin = nil
         if baseText.isEmpty || baseText.last?.isWhitespace == true {
             currentMode = .nGram
             currentSuggestions = nGramSuggestions(for: baseText)
@@ -391,70 +973,185 @@ private extension SuggestionController {
             )
             return
         }
-        
+
+        // 직전에도 입력 중이었다면 TextChecker 후보만 이어받는다.
+        // TextChecker 조회는 한 프레임보다 오래 걸려 유지하지 않으면 타이핑 내내
+        // 빈 후보 프레임이 한 번씩 그려진다.
+        // lexicon·n-gram·수식 후보를 이어받지 않는 이유: n-gram 모드 후보는 다음 단어 예측이라
+        // 입력 중 모드에서 탭되면 현재 단어를 잘못 교체하고, lexicon 후보는 이번 입력의
+        // 조회 결과로 대치되어야 `textReplacementPreviewSuggestionIndex`가 어긋나지 않는다.
+        // n-gram 단어 완성은 lexicon처럼 이번 입력으로 동기 조회하므로 이어받을 필요가 없다
+        let previousCheckerTexts = currentMode == .typing
+            ? currentSuggestions.filter { $0.source == .textChecker }.map(\.text)
+            : []
+
         currentMode = .typing
         let currentWord = extractLastWord(from: baseText)
-        currentSuggestions = mergeSuggestions(for: baseText, currentWord: currentWord)
+        let generation = textCheckerRequestGeneration.withLock { $0 += 1; return $0 }
+        let maxSuggestionSlots = maxSuggestions - 1
+
+        let lexiconState = signposter.beginInterval("LexiconSuggestions")
+        let lexiconResults = lexiconEngine?.suggestions(for: textReplacementBaseText) ?? []
+        signposter.endInterval("LexiconSuggestions", lexiconState)
+        // n-gram 저장소는 main에서만 바뀌므로 TextChecker와 달리 큐로 넘기지 않고 동기로 조회한다
+        let nGramCompletions = nGramCompletionSuggestions(for: baseText, currentWord: currentWord)
+
+        // 새 lexicon·n-gram 완성 결과를 앞에 두고 직전 TextChecker 후보로 남은 슬롯을 채워 먼저 갱신한다.
+        // TextChecker 결과가 도착하면 그 결과로 다시 병합한다
+        currentSuggestions = mergeSuggestions(
+            lexiconResults: lexiconResults,
+            nGramCompletions: nGramCompletions,
+            checkerResults: previousCheckerTexts,
+            currentWord: currentWord
+        )
         delegate?.suggestionController(
             self,
             didUpdateCurrentWord: currentWord.isEmpty ? nil : currentWord,
             suggestions: currentSuggestions.map { $0.text }
         )
+
+        // lexicon·n-gram 완성이 슬롯을 다 채웠으면 TextChecker 조회가 결과에 기여할 수 없다.
+        // 이어받은 후보는 이번 조회 결과로 대치될 값이라 세지 않는다
+        guard currentSuggestions.filter({ $0.source != .textChecker }).count < maxSuggestionSlots,
+              let textCheckerEngine else { return }
+
+        let signposter = signposter
+        let requestGeneration = textCheckerRequestGeneration
+        textCheckerQueue.async { [weak self] in
+            // 큐에 밀려 있는 동안 새 입력이 들어왔으면 조회 자체를 건너뛴다.
+            // 조회 한 번이 12~22ms라 쌓인 요청을 전부 수행하면 마지막 결과가 그만큼 늦어진다
+            guard requestGeneration.withLock({ $0 }) == generation else { return }
+
+            let checkerState = signposter.beginInterval("TextCheckerSuggestions")
+            let checkerResults = textCheckerEngine.suggestions(for: baseText, limit: maxSuggestionSlots)
+            signposter.endInterval("TextCheckerSuggestions", checkerState)
+
+            DispatchQueue.main.async {
+                // 세대 검사는 delegate 호출 전에 있어야 낡은 후보가 표시되지 않는다
+                guard let self,
+                      self.textCheckerRequestGeneration.withLock({ $0 }) == generation,
+                      self.currentMode == .typing else { return }
+                self.currentSuggestions = self.mergeSuggestions(
+                    lexiconResults: lexiconResults,
+                    nGramCompletions: nGramCompletions,
+                    checkerResults: checkerResults,
+                    currentWord: currentWord
+                )
+                self.delegate?.suggestionController(
+                    self,
+                    didUpdateCurrentWord: currentWord.isEmpty ? nil : currentWord,
+                    suggestions: self.currentSuggestions.map { $0.text }
+                )
+            }
+        }
     }
-    
+
+    /// 통합 NGram 후보를 보이는 중이면 바뀐 언어 모드의 문자 종류 우선순위로 다시 정렬합니다.
+    ///
+    /// iOS는 한/A 전환 뒤 `textDidChange`를 보낼 때도, 안 보낼 때도 있어 여기서 직접 갱신한다.
+    /// 입력 중 후보는 자판만 바뀌어야 하므로 그대로 두고, 순서가 같으면 다시 보내지 않는다
+    private func refreshNGramSuggestionsForLanguageModeChange() {
+        guard isPredictiveTextEnabled, !isSuspended,
+              currentMode == .nGram,
+              let lastSuggestionBaseText else { return }
+        let refreshed = nGramSuggestions(for: lastSuggestionBaseText)
+        guard refreshed.map(\.text) != currentSuggestions.map(\.text) else { return }
+        currentSuggestions = refreshed
+        delegate?.suggestionController(
+            self,
+            didUpdateCurrentWord: nil,
+            suggestions: refreshed.map { $0.text }
+        )
+    }
+
+    func performRefreshSuggestionsAfterNGramLoadIfNeeded() {
+        guard isPredictiveTextEnabled, !isSuspended else { return }
+        guard let lastSuggestionBaseText,
+              let lastMathExpressionText,
+              let lastSuggestionOrigin else { return }
+        performUpdateSuggestions(
+            for: lastSuggestionBaseText,
+            mathExpressionText: lastMathExpressionText,
+            textReplacementBaseText: lastTextReplacementBaseText ?? lastSuggestionBaseText,
+            origin: lastSuggestionOrigin
+        )
+    }
+
     /// n-gram 기반 다음 단어 예측 후보를 생성합니다.
     ///
-    /// 입력 버퍼가 비어있으면 unigram(자주 사용한 단어)을,
+    /// 기준 텍스트가 비어있으면 unigram(자주 사용한 단어)을,
     /// 공백으로 끝나면 trigram → bigram → unigram 순으로 조회합니다.
     ///
-    /// - Parameter inputBuffer: 현재 키보드 세션에서 직접 입력한 텍스트 버퍼
-    /// - Returns: n-gram 예측 후보 배열 (최대 3개)
-    func nGramSuggestions(for inputBuffer: String) -> [SuggestionItem] {
+    /// - Parameter baseText: 일반 후보 기준 텍스트(커서 앞 문맥)
+    /// - Returns: n-gram 예측 후보 배열 (최대 `maxSuggestions`개)
+    func nGramSuggestions(for baseText: String) -> [SuggestionItem] {
         guard let nGramEngine else { return [] }
-        let results = nGramEngine.suggestions(for: inputBuffer)
+        let results = nGramEngine.suggestions(for: baseText, preferredScript: nGramPreferredScript)
         return results.prefix(maxSuggestions).map {
             SuggestionItem(text: $0, source: .nGram)
         }
     }
-    
-    /// `UILexicon`과 `UITextChecker`의 결과를 병합합니다.
+
+    /// 입력 중인 단어를 이어 쓴 n-gram 학습 단어를 조회합니다.
     ///
-    /// 현재 입력 중인 단어와 동일한 후보는 제외하고,
-    /// `UILexicon` 결과를 먼저 배치하여 사용자 개인화 데이터를 우선시합니다.
+    /// 바로 앞 단어가 있으면 bigram 문맥으로 넘겨 그 뒤에 자주 쓴 단어를 먼저 받는다.
     ///
     /// - Parameters:
-    ///   - text: 자동완성을 제공할 텍스트
+    ///   - baseText: 자동완성을 제공할 텍스트
+    ///   - currentWord: `baseText`의 마지막 단어
+    /// - Returns: 완성 후보 (최대 `maxNGramCompletions`개)
+    func nGramCompletionSuggestions(for baseText: String, currentWord: String) -> [String] {
+        guard let nGramEngine, !currentWord.isEmpty else { return [] }
+        let words = baseText.split(whereSeparator: { $0.isWhitespace })
+        let previousWord = words.count >= 2 ? String(words[words.count - 2]) : nil
+        return nGramEngine.completions(
+            forTypedWord: currentWord,
+            previousWord: previousWord,
+            limit: maxNGramCompletions
+        )
+    }
+
+    /// lexicon, n-gram 단어 완성, TextChecker 결과를 병합합니다.
+    ///
+    /// 현재 입력 중인 단어와 동일한 후보는 제외하고,
+    /// lexicon → n-gram 단어 완성 → TextChecker 순으로 배치하여 사용자 개인화 데이터를 우선시합니다.
+    ///
+    /// - Parameters:
+    ///   - lexiconResults: `UILexicon` 후보
+    ///   - nGramCompletions: n-gram 단어 완성 후보
+    ///   - checkerResults: `UITextChecker` 후보 (아직 도착하지 않았으면 빈 배열)
     ///   - currentWord: 현재 입력 중인 단어
-    /// - Returns: 중복 제거된 후보 배열 (최대 2개)
-    func mergeSuggestions(for text: String, currentWord: String) -> [SuggestionItem] {
-        let lexiconResults = lexiconEngine?.suggestions(for: text) ?? []
-        let checkerResults = textCheckerEngine?.suggestions(for: text) ?? []
-        
+    /// - Returns: 중복 제거된 후보 배열 (최대 `maxSuggestions - 1`개. 0번 칸은 `"현재단어"` 몫이다)
+    func mergeSuggestions(
+        lexiconResults: [String],
+        nGramCompletions: [String],
+        checkerResults: [String],
+        currentWord: String
+    ) -> [SuggestionItem] {
         var seen = Set<String>()
         seen.insert(currentWord.lowercased())
         var merged: [SuggestionItem] = []
-        
+
         let maxSuggestionSlots = maxSuggestions - 1
-        
-        for suggestion in lexiconResults {
-            let lowered = suggestion.lowercased()
-            guard !seen.contains(lowered) else { continue }
-            seen.insert(lowered)
-            merged.append(SuggestionItem(text: suggestion, source: .lexicon))
-            if merged.count >= maxSuggestionSlots { return merged }
+        let sources: [(results: [String], source: SuggestionItem.Source)] = [
+            (lexiconResults, .lexicon),
+            (nGramCompletions, .nGram),
+            (checkerResults, .textChecker)
+        ]
+
+        for (results, source) in sources {
+            for suggestion in results {
+                let lowered = suggestion.lowercased()
+                guard !seen.contains(lowered) else { continue }
+                seen.insert(lowered)
+                merged.append(SuggestionItem(text: suggestion, source: source))
+                if merged.count >= maxSuggestionSlots { return merged }
+            }
         }
-        
-        for suggestion in checkerResults {
-            let lowered = suggestion.lowercased()
-            guard !seen.contains(lowered) else { continue }
-            seen.insert(lowered)
-            merged.append(SuggestionItem(text: suggestion, source: .textChecker))
-            if merged.count >= maxSuggestionSlots { return merged }
-        }
-        
+
         return merged
     }
-    
+
     /// 텍스트에서 마지막 단어를 추출합니다.
     ///
     /// - Parameter text: 원본 텍스트

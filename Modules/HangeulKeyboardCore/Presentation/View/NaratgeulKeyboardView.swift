@@ -44,8 +44,10 @@ final class NaratgeulKeyboardView: FourByFourKeyboardView, HangeulKeyboardLayout
     
     // MARK: - Initializer
     
-    init() {
-        super.init(frame: .zero)
+    override init(showsLanguageSwitchButton: Bool = false,
+                  showsNumberRow: Bool = UserDefaultsManager.shared.showsNumberRow) {
+        super.init(showsLanguageSwitchButton: showsLanguageSwitchButton,
+                   showsNumberRow: showsNumberRow)
         updateLayoutToDefault()
     }
     

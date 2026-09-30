@@ -19,6 +19,9 @@ struct HangeulKeyboardSelectView: View {
     @AppStorage(UserDefaultsKeys.selectedHangeulKeyboard, store: UserDefaultsManager.shared.storage)
     private var selectedHangeulKeyboard = DefaultValues.selectedHangeulKeyboard
     
+    @AppStorage(UserDefaultsKeys.isNaratgeulDotLabelEnabled, store: UserDefaultsManager.shared.storage)
+    private var isNaratgeulDotLabelEnabled = DefaultValues.isNaratgeulDotLabelEnabled
+
     enum HangeulKeyboard: Int, CaseIterable {
         case naratgeul
         case cheonjiin
@@ -68,6 +71,23 @@ struct HangeulKeyboardSelectView: View {
         Picker("한글 키보드", selection: keyboardSelectionBinding) {
             ForEach(HangeulKeyboard.allCases, id: \.self) {
                 Text($0.displayStr)
+            }
+        }
+        
+        if selectedHangeulKeyboard == .naratgeul {
+            Toggle(isOn: $isNaratgeulDotLabelEnabled, label: {
+                Text("나랏글 획·쌍 버튼 기호 표기")
+                Text("'획' → 'ㆍ', '쌍' → 'ᆢ'")
+                    .font(.caption)
+            })
+            .onChange(of: isNaratgeulDotLabelEnabled) { newValue in
+                Analytics.setUserProperty(newValue.analyticsValue,
+                                          forName: "pref_naratgeul_dot_label")
+                Analytics.logEvent("naratgeul_dot_label", parameters: [
+                    "view": "HangeulKeyboardSelectView",
+                    "enabled": newValue.analyticsValue
+                ])
+                hideKeyboard()
             }
         }
     }

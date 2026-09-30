@@ -24,7 +24,7 @@ struct InitialSettingsView: View {
             }
         } label: {
             HStack {
-                Image(.gear)
+                Image(systemName: "gear")
                     .resizable()
                     .scaledToFit()
                     .frame(width: 20, height: 20)

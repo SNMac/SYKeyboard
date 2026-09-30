@@ -11,7 +11,7 @@
         }
       }
     },
-    "'!#1', '한글' 또는 'ABC' 버튼을 위로 드래그 or 길게 누르기" : {
+    "'!#1', '한글' 또는 'ABC' 버튼을 위로 드래그하거나 길게 누르기" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -56,7 +56,27 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "“.” shortcut"
+            "value" : "“.” Shortcut"
+          }
+        }
+      }
+    },
+    "'' → ‘’, \"\" → “”, -- → —, ... → … 으로 변경\n(지원하는 입력창에 한정)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Change '' → ‘’, \"\" → “”, -- → —, ... → …\n(Limited to supported text fields)"
+          }
+        }
+      }
+    },
+    "'획' → 'ㆍ', '쌍' → 'ᆢ'" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“획” → “ㆍ”, “쌍” → “ᆢ”"
           }
         }
       }
@@ -69,6 +89,49 @@
     },
     "%lld" : {
       "shouldTranslate" : false
+    },
+    "%lld개 고정" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pin (%lld)"
+          }
+        }
+      }
+    },
+    "%lld개 고정 해제" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unpin (%lld)"
+          }
+        }
+      }
+    },
+    "%lld개 삭제" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete (%lld)"
+          }
+        }
+      }
+    },
+    "%lld개 선택" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld Selected"
+          }
+        }
+      }
     },
     "iOS 버전" : {
       "localizations" : {
@@ -100,12 +163,139 @@
         }
       }
     },
+    "Undo/Redo 기능" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Undo/Redo Feature"
+          }
+        }
+      }
+    },
     "가로 모드에선 iOS 기본 키보드와 동일한 높이로 표시됩니다." : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "In landscape mode, it displays at the same height as the iOS default keyboard."
+          }
+        }
+      }
+    },
+    "고정" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pin"
+          }
+        }
+      }
+    },
+    "고정 %lld/%lld · 최근 %lld/%lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pinned %lld/%lld · Recent %lld/%lld"
+          }
+        }
+      }
+    },
+    "고정 항목 %lld개가 포함되어 있습니다. 삭제한 항목은 복구할 수 없습니다." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Includes %lld pinned item. Deleted items can't be recovered."
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Includes %lld pinned items. Deleted items can't be recovered."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "고정 항목 %lld개를 삭제할까요?" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Delete %lld pinned item?"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Delete %lld pinned items?"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "고정 항목 추가" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add Pinned Item"
+          }
+        }
+      }
+    },
+    "고정 항목은 직접 삭제할 때까지 유지되고, 최근 항목은 %lld개를 넘으면 오래된 것부터 지워집니다." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pinned items stay until you delete them. Recent items beyond %lld are removed oldest first."
+          }
+        }
+      }
+    },
+    "고정 해제" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unpin"
+          }
+        }
+      }
+    },
+    "공유" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Share"
+          }
+        }
+      }
+    },
+    "글자 열 너비" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Letter Column Width"
           }
         }
       }
@@ -160,6 +350,26 @@
         }
       }
     },
+    "나랏글 획·쌍 버튼 기호 표기" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Symbol Labels for Naratgeul Stroke and Double Keys"
+          }
+        }
+      }
+    },
+    "나랏글·천지인·숫자 키패드에 적용" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Applies to Naratgeul, Cheonjiin, and the numeric keypad"
+          }
+        }
+      }
+    },
     "단말기 모델" : {
       "localizations" : {
         "en" : {
@@ -200,6 +410,26 @@
         }
       }
     },
+    "라이선스 전문" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "License Texts"
+          }
+        }
+      }
+    },
+    "라이선스 정보를 불러오지 못했습니다." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Failed to load license information."
+          }
+        }
+      }
+    },
     "리뷰 및 별점 주기" : {
       "localizations" : {
         "en" : {
@@ -226,6 +456,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Inquiry"
+          }
+        }
+      }
+    },
+    "바이너리 SDK 이용 약관" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Terms for Binary SDKs"
           }
         }
       }
@@ -260,12 +500,134 @@
         }
       }
     },
+    "보조 키 입력" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Secondary Key Input"
+          }
+        }
+      }
+    },
+    "복사" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copy"
+          }
+        }
+      }
+    },
+    "복사한 이미지를 저장하고 탭하면 클립보드로 복원합니다" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Saves copied images and restores one to the clipboard when tapped"
+          }
+        }
+      }
+    },
+    "복사한 텍스트나 이미지가 여기에 표시됩니다." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copied text and images will appear here."
+          }
+        }
+      }
+    },
+    "복사한 텍스트를 키보드 상단 클립보드 버튼으로 붙여넣기\n(설정 ➡️ SY키보드 ➡️ '다른 앱에서 붙여넣기'를 '허용'으로 바꾸면 확인 알림 없이 저장됩니다)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paste copied text with the clipboard button above the keyboard\n(Settings ➡️ SYKeyboard ➡️ set “Paste from Other Apps” to “Allow” to save without confirmation alerts)"
+          }
+        }
+      }
+    },
     "비활성화" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Disabled"
+          }
+        }
+      }
+    },
+    "사용 중인 오픈소스" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open Source in Use"
+          }
+        }
+      }
+    },
+    "삭제" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete"
+          }
+        }
+      }
+    },
+    "삭제한 항목은 복구할 수 없습니다." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deleted items can't be recovered."
+          }
+        }
+      }
+    },
+    "상세" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Details"
+          }
+        }
+      }
+    },
+    "상세 보기" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show Details"
+          }
+        }
+      }
+    },
+    "선택" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Select"
+          }
+        }
+      }
+    },
+    "선택 해제" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deselect All"
           }
         }
       }
@@ -280,12 +642,12 @@
         }
       }
     },
-    "숫자 입력" : {
+    "수식 결과 표시" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Number Input"
+            "value" : "Show Math Results"
           }
         }
       }
@@ -320,12 +682,42 @@
         }
       }
     },
+    "숫자 행 표시" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Number Row"
+          }
+        }
+      }
+    },
+    "스마트 구두점" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Smart Punctuation"
+          }
+        }
+      }
+    },
     "스페이스 바를 두 번 탭하면 마침표와 간격을 차례로 삽입" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Double tapping the space bar will insert a period followed by a space"
+          }
+        }
+      }
+    },
+    "스페이스 하단 배치" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bottom Space Bar"
           }
         }
       }
@@ -410,6 +802,26 @@
         }
       }
     },
+    "오픈소스 라이선스" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open Source Licenses"
+          }
+        }
+      }
+    },
+    "완료" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Done"
+          }
+        }
+      }
+    },
     "외형 설정" : {
       "localizations" : {
         "en" : {
@@ -426,6 +838,36 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Movement Drag Interval"
+          }
+        }
+      }
+    },
+    "이미지" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Image"
+          }
+        }
+      }
+    },
+    "이미지는 한 장에 %lld MB · %lld MP까지 저장합니다. '이미지도 기록'을 끄면 새로 복사한 이미지는 저장하지 않으며, 이미 저장된 이미지는 여기서 삭제할 수 있습니다." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Each image is saved up to %1$lld MB and %2$lld MP. When “Include Images” is off, newly copied images are not saved; saved images can be deleted here."
+          }
+        }
+      }
+    },
+    "이미지도 기록" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Include Images"
           }
         }
       }
@@ -470,12 +912,32 @@
         }
       }
     },
+    "자판 맨 윗줄에 숫자 키 표시" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show number keys above the letter keys"
+          }
+        }
+      }
+    },
     "저장" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Save"
+          }
+        }
+      }
+    },
+    "전체 선택" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Select All"
           }
         }
       }
@@ -510,6 +972,26 @@
         }
       }
     },
+    "천지인·숫자 키패드의 스페이스를 맨 아랫줄로 옮기고 리턴을 위로 올림" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Moves the space bar to the bottom row and the return key up on Cheonjiin and the numeric keypad"
+          }
+        }
+      }
+    },
+    "추가" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add"
+          }
+        }
+      }
+    },
     "취소" : {
       "localizations" : {
         "en" : {
@@ -536,6 +1018,36 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "How to Move Cursor"
+          }
+        }
+      }
+    },
+    "클립보드 기록" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Clipboard History"
+          }
+        }
+      }
+    },
+    "클립보드 기록 관리" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Manage Clipboard History"
+          }
+        }
+      }
+    },
+    "키 모서리에 표시된 문자를 입력" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Types the character shown in the key’s corner"
           }
         }
       }
@@ -580,6 +1092,26 @@
         }
       }
     },
+    "키보드 상단에 Undo/Redo 버튼을 표시\n(일부 앱에서는 정상적으로 동작하지 않을 수 있습니다)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Display the Undo/Redo buttons at the top of the keyboard\n(May not work properly in some apps)"
+          }
+        }
+      }
+    },
+    "키보드 상단에 수식 계산 결과 표시" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Display math results at the top of the keyboard"
+          }
+        }
+      }
+    },
     "키보드 상단에 자동완성 텍스트 표시" : {
       "localizations" : {
         "en" : {
@@ -606,6 +1138,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Add Keyboard and Set Permission"
+          }
+        }
+      }
+    },
+    "키보드 툴바 설정" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keyboard Toolbar Settings"
           }
         }
       }
@@ -656,6 +1198,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Text Replacement"
+          }
+        }
+      }
+    },
+    "편집" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Edit"
           }
         }
       }
@@ -736,6 +1288,39 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Auto-Change to Hangeul Keyboard"
+          }
+        }
+      }
+    },
+    "항목 %lld개를 삭제할까요?" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Delete %lld item?"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Delete %lld items?"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "항목이 삭제되었습니다" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This item was deleted."
           }
         }
       }

@@ -9,14 +9,16 @@ import UIKit
 import OSLog
 
 protocol TextInteractionGestureControllerDelegate: AnyObject {
-    func primaryButtonPanning(_ controller: TextInteractionGestureController, to direction: PanDirection)
+    func primaryButtonCursorDragActivated(_ controller: TextInteractionGestureController)
+    func primaryButtonPanning(_ controller: TextInteractionGestureController, to direction: PanDirection, steps: Int)
     func deleteButtonPanning(_ controller: TextInteractionGestureController, to direction: PanDirection)
+    func primaryButtonPanStopped(_ controller: TextInteractionGestureController)
     func deleteButtonPanStopped(_ controller: TextInteractionGestureController)
     func textInteractableButtonLongPressing(_ controller: TextInteractionGestureController, button: TextInteractable)
     func textInteractableButtonLongPressStopped(_ controller: TextInteractionGestureController, button: TextInteractable)
 }
 
-/// 입력 상호작용 버튼(리턴 버튼 제외) 제스처 컨트롤러
+/// 입력 상호작용 버튼 제스처 컨트롤러
 final class TextInteractionGestureController: NSObject {
     
     // MARK: - Properties
@@ -29,6 +31,9 @@ final class TextInteractionGestureController: NSObject {
     private var isCursorActive: Bool = false
     private var initialPanPoint: CGPoint = .zero
     private var intervalReferPanPoint: CGPoint = .zero
+    private var previousPanVelocity: CGFloat = 0
+    private var deletePanEdgeTimer: Timer?
+    private var deletePanEdgeDirection: PanDirection?
     
     // Initializer Injection
     private weak var keyboardHStackView: UIView?
@@ -49,6 +54,7 @@ final class TextInteractionGestureController: NSObject {
     }
     
     deinit {
+        deletePanEdgeTimer?.invalidate()
         logger.debug("\(String(describing: type(of: self))) deinit")
     }
     
@@ -69,28 +75,46 @@ final class TextInteractionGestureController: NSObject {
             gestureButton?.isGesturing = true
             initialPanPoint = currentPoint
             intervalReferPanPoint = currentPoint
+            previousPanVelocity = 0
             logger.debug("팬 제스처 활성화")
         case .changed:
             let distance = calcDistance(point1: initialPanPoint, point2: currentPoint)
             if isCursorActive || distance >= UserDefaultsManager.shared.cursorActiveDistance {
+                let wasCursorActive = isCursorActive
                 keyboardHStackView?.isUserInteractionEnabled = false
                 
                 isCursorActive = true
                 gestureButton?.isGesturing = false
-                onPanGestureChanged(gesture)
+                if wasCursorActive {
+                    onPanGestureChanged(gesture)
+                } else {
+                    if gesture.view is TextInteractable,
+                       !(gesture.view is DeleteButton) {
+                        delegate?.primaryButtonCursorDragActivated(self)
+                    }
+                    onPanGestureActivated(gesture)
+                }
+                if gesture.view is DeleteButton {
+                    updateDeletePanEdgeTimer(for: gesture)
+                }
             }
         case .ended, .cancelled, .failed:
             // 순서 중요
-            if isCursorActive {
-                setCurrentPressedButton(nil)
+            if isCursorActive || gesture.state != .ended {
+                if let gestureButton,
+                   getCurrentPressedButton() === gestureButton {
+                    setCurrentPressedButton(nil)
+                }
             } else {
                 gestureButton?.sendActions(for: .touchUpInside)
             }
             
+            stopDeletePanEdgeTimer()
             onPanGestureEnded(gesture)
             isCursorActive = false
             initialPanPoint = .zero
             intervalReferPanPoint = .zero
+            previousPanVelocity = 0
             gestureButton?.isGesturing = false
             
             keyboardHStackView?.isUserInteractionEnabled = true
@@ -135,6 +159,27 @@ final class TextInteractionGestureController: NSObject {
 // MARK: - Gesture Methods
 
 private extension TextInteractionGestureController {
+    func onPanGestureActivated(_ gesture: UIPanGestureRecognizer) {
+        let currentPoint = gesture.location(in: gesture.view)
+        let distance = currentPoint.x - intervalReferPanPoint.x
+
+        if let movement = CursorDragAccelerationPolicy.initialMovement(
+            deltaX: distance,
+            cursorMoveInterval: UserDefaultsManager.shared.cursorMoveInterval
+        ) {
+            if gesture.view is DeleteButton {
+                delegate?.deleteButtonPanning(self, to: movement.direction)
+            } else if gesture.view is TextInteractable {
+                delegate?.primaryButtonPanning(self, to: movement.direction, steps: movement.steps)
+            } else {
+                assertionFailure("입력 상호작용 버튼이 아닙니다.")
+            }
+        }
+
+        intervalReferPanPoint = currentPoint
+        previousPanVelocity = 0
+    }
+
     func onPanGestureChanged(_ gesture: UIPanGestureRecognizer) {
         let currentPoint = gesture.location(in: gesture.view)
         
@@ -147,10 +192,14 @@ private extension TextInteractionGestureController {
                     delegate?.deleteButtonPanning(self, to: .left)
                 }
             } else if gesture.view is TextInteractable {
-                if distance > 0 {
-                    delegate?.primaryButtonPanning(self, to: .right)
-                } else {
-                    delegate?.primaryButtonPanning(self, to: .left)
+                if let movement = CursorDragAccelerationPolicy.movement(
+                    deltaX: distance,
+                    velocity: gesture.velocity(in: gesture.view).x,
+                    previousVelocity: previousPanVelocity,
+                    cursorMoveInterval: UserDefaultsManager.shared.cursorMoveInterval
+                ) {
+                    delegate?.primaryButtonPanning(self, to: movement.direction, steps: movement.steps)
+                    previousPanVelocity = movement.velocity
                 }
             } else {
                 assertionFailure("입력 상호작용 버튼이 아닙니다.")
@@ -158,10 +207,52 @@ private extension TextInteractionGestureController {
             intervalReferPanPoint = currentPoint
         }
     }
+
+    /// 손가락이 창 가장자리 구역에 있는 동안 삭제·복구를 반복 속도로 이어 갑니다.
+    ///
+    /// 베젤에 막혀 더 끌 수 없어도 손가락을 대고 있으면 계속 진행하고, 구역을 벗어나면 멈춥니다.
+    func updateDeletePanEdgeTimer(for gesture: UIPanGestureRecognizer) {
+        let direction = KeyboardGesturePolicy.deletePanEdgeDirection(
+            locationX: gesture.location(in: nil).x,
+            containerWidth: gesture.view?.window?.bounds.width ?? 0
+        )
+        guard direction != deletePanEdgeDirection else { return }
+
+        stopDeletePanEdgeTimer()
+        guard let direction else { return }
+
+        deletePanEdgeDirection = direction
+        let interval = KeyboardGesturePolicy.deletePanEdgeRepeatInterval(
+            repeatRate: UserDefaultsManager.shared.repeatRate
+        )
+        let timer = Timer(timeInterval: interval, repeats: true) { [weak self, weak gesture] _ in
+            guard let self else { return }
+            // 터치 없이도 발화하므로 pan이 끝났거나 키보드가 내려갔으면 스스로 멈춘다
+            guard let gesture,
+                  gesture.state == .began || gesture.state == .changed,
+                  gesture.view?.window != nil else {
+                stopDeletePanEdgeTimer()
+                return
+            }
+            delegate?.deleteButtonPanning(self, to: direction)
+        }
+        RunLoop.main.add(timer, forMode: .common)
+        deletePanEdgeTimer = timer
+        logger.debug("삭제 pan 가장자리 반복 시작")
+    }
+
+    func stopDeletePanEdgeTimer() {
+        deletePanEdgeTimer?.invalidate()
+        deletePanEdgeTimer = nil
+        deletePanEdgeDirection = nil
+    }
     
     func onPanGestureEnded(_ gesture: UIPanGestureRecognizer) {
         if gesture.view is DeleteButton {
             delegate?.deleteButtonPanStopped(self)
+        } else if isCursorActive,
+                  gesture.view is TextInteractable {
+            delegate?.primaryButtonPanStopped(self)
         }
     }
     

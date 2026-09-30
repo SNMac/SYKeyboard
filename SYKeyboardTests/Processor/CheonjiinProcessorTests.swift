@@ -115,40 +115,40 @@ struct CheonjiinProcessorTests: HangeulProcessorTestable {
         #expect(c + p == "가니")
         
         // 3. 삭제 (ㅣ 삭제) -> '가ㄴ'이어야 함 ('간'으로 합쳐지면 안 됨)
-        // 프로세서 단위 테스트에서는 protectedCommittedCount가 없으므로
-        // isProtected: false로 전달하면 종성 복원이 동작할 수 있음.
-        // 이 테스트는 Space 확정 보호 시나리오이므로 컨트롤러 통합 테스트에서 검증.
-        // 여기서는 composing 내부 삭제만 확인.
-        let deleteResult = processor.delete(
+        // 종성 복원은 deleteWithRestore종성에 있으므로 그 진입점으로 보호 여부를 대조한다.
+        // Space 확정 보호 상태 전이 자체는 HangeulCompositionState 기반 시나리오에서 검증한다
+        let protectedResult = processor.deleteWithRestore종성(
             composing: p,
             committedTail: String(c.suffix(2)),
             isProtected: true  // Space 확정 보호
         )
-        p = deleteResult.composing
-        #expect(c + p == "가ㄴ")
+        #expect(protectedResult.composing == "ㄴ")
+        #expect(protectedResult.consumedCommittedCount == 0)
+
+        let unprotectedResult = processor.deleteWithRestore종성(
+            composing: p,
+            committedTail: String(c.suffix(2)),
+            isProtected: false
+        )
+        #expect(unprotectedResult.composing == "간")
+        #expect(unprotectedResult.consumedCommittedCount == 1)
     }
     
     @Test("시나리오: '달거' -> 삭제 -> '닭'")
     func testScenario_달거_삭제_닭() {
-        var (c, p) = ("", "")
+        let harness = HangeulCompositionTestHarness(processor: processor)
         
         // 1. '닭' 만들기
-        (c, p) = applyInput("ㄷ", committed: c, composing: p)
-        (c, p) = applyInput(인, committed: c, composing: p)
-        (c, p) = applyInput(천, committed: c, composing: p) // 다
-        (c, p) = applyInput("ㄴ", committed: c, composing: p) // 단
-        (c, p) = applyInput("ㄴ", committed: c, composing: p) // 달 (ㄴ->ㄹ)
-        (c, p) = applyInput("ㄱ", committed: c, composing: p) // 닭
+        ["ㄷ", 인, 천, "ㄴ", "ㄴ", "ㄱ"].forEach(harness.input)
         
         // 2. '달거' 만들기 (닭 + ㆍ + ㅣ)
-        (c, p) = applyInput(천, committed: c, composing: p) // 연음 대기
-        (c, p) = applyInput(인, committed: c, composing: p) // 달거
+        [천, 인].forEach(harness.input)
         
-        #expect(c + p == "달거")
+        #expect(harness.text == "달거")
         
         // 3. 삭제 -> '닭'으로 복원
-        (c, p) = applyDelete(committed: c, composing: p)
-        #expect(c + p == "닭")
+        harness.delete()
+        #expect(harness.text == "닭")
     }
     
     @Test("시나리오: '학교' (스페이스바 확정 활용)")
@@ -196,80 +196,113 @@ struct CheonjiinProcessorTests: HangeulProcessorTestable {
     
     // MARK: - 4. 삭제 후 재입력 결합 테스트
     
-    @Test("삭제 후 재입력: 조합 확정 -> 새 글자 입력 -> 삭제 -> 낱자 자음이 composing으로 복귀")
+    @Test("스페이스 확정 후 삭제·재입력: 끌어온 보호 글자는 다음 입력과 재조합하지 않음")
     func test삭제후_재입력_결합() {
-        var (c, p) = ("", "")
+        let harness = HangeulCompositionTestHarness(processor: processor)
         
         // 1. '간' 만들기
-        (c, p) = applyInput("ㄱ", committed: c, composing: p)
-        (c, p) = applyInput("ㅣ", committed: c, composing: p)
-        (c, p) = applyInput("ㆍ", committed: c, composing: p) // 가
-        (c, p) = applyInput("ㄴ", committed: c, composing: p) // 간
-        #expect(c + p == "간")
+        ["ㄱ", "ㅣ", "ㆍ", "ㄴ"].forEach(harness.input)
+        #expect(harness.text == "간")
         
         // 2. Space(조합 확정) 후 ㄴ 입력
-        _ = processor.inputSpace(composing: p)
-        c += p
-        p = ""
-        (c, p) = applyInput("ㄴ", committed: c, composing: p)
-        #expect(c + p == "간ㄴ")
+        harness.space()
+        harness.input("ㄴ")
+        #expect(harness.text == "간ㄴ")
         
         // 3. 삭제 -> "간" 유지
-        (c, p) = applyDelete(committed: c, composing: p)
-        #expect(c + p == "간")
+        harness.delete()
+        #expect(harness.text == "간")
         
-        // 4. ㅣ + ㆍ 입력 -> "가나" (연음: 간 + ㅏ -> 가나)
-        (c, p) = applyInput("ㅣ", committed: c, composing: p)
-        (c, p) = applyInput("ㆍ", committed: c, composing: p)
-        #expect(c + p == "가나", "삭제 후 확정 글자가 composing으로 복귀하여 연음이 발생해야 합니다.")
-    }
-    
-    @Test("조합 확정 후 삭제: '가' 확정 -> 'ㄴ' 입력 -> 삭제 시 '가' 유지")
-    func test확정후_삭제_이전글자유지() {
-        var (c, p) = ("", "")
-        
-        // 1. '가' 만들기
-        (c, p) = applyInput("ㄱ", committed: c, composing: p)
-        (c, p) = applyInput("ㅣ", committed: c, composing: p)
-        (c, p) = applyInput("ㆍ", committed: c, composing: p)
-        #expect(c + p == "가")
-        
-        // 2. Space(조합 확정)
-        _ = processor.inputSpace(composing: p)
-        c += p
-        p = ""
-        
-        // 3. 'ㄴ' 입력
-        (c, p) = applyInput("ㄴ", committed: c, composing: p)
-        #expect(c + p == "가ㄴ")
-        
-        // 4. 삭제 -> "가"가 남아야 함 (""가 되면 안 됨)
-        (c, p) = applyDelete(committed: c, composing: p)
-        #expect(c + p == "가", "조합 확정 후 새 글자를 삭제해도 이전 확정 글자는 유지되어야 합니다.")
+        // 4. 보호된 마지막 글자를 composingBuffer로 끌어와도 다음 입력과 재조합하지 않음
+        ["ㅣ", "ㆍ"].forEach(harness.input)
+        #expect(harness.text == "간ㅏ", "보호된 마지막 글자는 composingBuffer로 끌어와도 다음 입력과 재조합하지 않아야 합니다.")
     }
     
     // MARK: - 5. 비표준 모음(ㆍ, ᆢ) 삭제 및 연음 테스트
 
     @Test("비표준 모음 삭제 후 입력: '간ᆢㄷ' -> 삭제 -> '간ᆢ' -> 'ㅣ' -> '가녀'")
     func test비표준모음_삭제후_연음() {
-        var (c, p) = ("", "")
+        let harness = HangeulCompositionTestHarness(processor: processor)
         
         // 1. '간ᆢㄷ' 만들기 (ㄱ + ㅣ + ㆍ + ㄴ + ㆍ + ㆍ + ㄷ)
-        (c, p) = applyInput("ㄱ", committed: c, composing: p)
-        (c, p) = applyInput(인, committed: c, composing: p)
-        (c, p) = applyInput(천, committed: c, composing: p) // 가
-        (c, p) = applyInput("ㄴ", committed: c, composing: p) // 간
-        (c, p) = applyInput(천, committed: c, composing: p) // 간ㆍ
-        (c, p) = applyInput(천, committed: c, composing: p) // 간ᆢ
-        (c, p) = applyInput("ㄷ", committed: c, composing: p) // 간ᆢㄷ
+        ["ㄱ", 인, 천, "ㄴ", 천, 천, "ㄷ"].forEach(harness.input)
         
         // 2. 삭제 -> '간ᆢ'
-        (c, p) = applyDelete(committed: c, composing: p)
-        #expect(c + p == "간ᆢ")
+        harness.delete()
+        #expect(harness.text == "간ᆢ")
         
         // 3. 'ㅣ' 입력 -> '가녀' (ᆢ + ㅣ = ㅕ, 간 + ㅕ -> 가 + 녀 연음)
-        (c, p) = applyInput(인, committed: c, composing: p)
-        #expect(c + p == "가녀", "비표준 모음 삭제 후 표준 모음 조합 시 연음이 발생해야 합니다.")
+        harness.input(인)
+        #expect(harness.text == "가녀", "비표준 모음 삭제 후 표준 모음 조합 시 연음이 발생해야 합니다.")
+    }
+
+    @Test("비표준 모음 포함 composing은 마지막 글자만 삭제")
+    func test비표준모음_Composing삭제() {
+        let cases = [
+            (composing: "ㆍ", expected: ""),
+            (composing: "ᆢ", expected: ""),
+            (composing: "간ㆍ", expected: "간"),
+            (composing: "간ᆢ", expected: "간")
+        ]
+
+        for testCase in cases {
+            let result = processor.delete(
+                composing: testCase.composing,
+                committedTail: "",
+                isProtected: false
+            )
+
+            #expect(
+                result.composing == testCase.expected,
+                "'\(testCase.composing)' 삭제 결과가 '\(testCase.expected)'여야 합니다."
+            )
+            #expect(result.consumedCommittedCount == 0)
+        }
+    }
+
+    @Test("committed 비표준 모음 복원은 보호되지 않은 경우에만 committed를 소비")
+    func test비표준모음_Committed복원() {
+        let cases = [
+            (
+                composing: "ㄷ",
+                committedTail: "간ㆍ",
+                isProtected: false,
+                expectedComposing: "간ㆍ",
+                expectedConsumedCount: 2
+            ),
+            (
+                composing: "다",
+                committedTail: "간ᆢ",
+                isProtected: false,
+                expectedComposing: "간ᆢㄷ",
+                expectedConsumedCount: 2
+            ),
+            (
+                composing: "ㄷ",
+                committedTail: "간ㆍ",
+                isProtected: true,
+                expectedComposing: "",
+                expectedConsumedCount: 0
+            ),
+            (
+                composing: "다",
+                committedTail: "간ᆢ",
+                isProtected: true,
+                expectedComposing: "ㄷ",
+                expectedConsumedCount: 0
+            )
+        ]
+
+        for testCase in cases {
+            let result = processor.delete(
+                composing: testCase.composing,
+                committedTail: testCase.committedTail,
+                isProtected: testCase.isProtected
+            )
+
+            #expect(result.composing == testCase.expectedComposing)
+            #expect(result.consumedCommittedCount == testCase.expectedConsumedCount)
+        }
     }
     
     // MARK: - 6. 11,172자 전체 검증 (Heavy Test)
@@ -285,19 +318,32 @@ struct CheonjiinProcessorTests: HangeulProcessorTestable {
             let targetString = String(char)
             
             let keySequence = decomposeTo천지인Keys(char: char)
+
+            processor.reset한글조합()
+            let harness = HangeulCompositionTestHarness(processor: processor)
+            keySequence.forEach(harness.input)
             
-            var (committed, composing) = ("", "")
-            for key in keySequence {
-                (committed, composing) = applyInput(key, committed: committed, composing: composing)
+            if harness.text != targetString {
+                Self.logger.error("실패: \(targetString) (생성됨: \(harness.text)) / 입력키: \(keySequence)")
+                failureCount += 1
+                continue
             }
-            
-            if committed + composing != targetString {
-                Self.logger.error("실패: \(targetString) (생성됨: \(committed + composing)) / 입력키: \(keySequence)")
+
+            let expectedDeleteCount = calculateExpectedDeleteCount(for: char)
+
+            for _ in 0..<expectedDeleteCount {
+                harness.delete()
+            }
+
+            if !harness.text.isEmpty {
+                Self.logger.error(
+                    "삭제 실패: \(targetString) -> 예상 삭제 횟수(\(expectedDeleteCount)) 실행 후 잔여물: '\(harness.text)'"
+                )
                 failureCount += 1
             }
         }
         
-        #expect(failureCount == 0, "총 \(failureCount)개의 글자 생성 실패")
+        #expect(failureCount == 0, "총 \(failureCount)개의 글자에서 생성 또는 삭제 실패")
     }
 }
 
@@ -352,9 +398,6 @@ private extension CheonjiinProcessorTests {
     }
     
     func get중성Keys(index: Int) -> [String] {
-        let 천 = "ㆍ"
-        let 지 = "ㅡ"
-        let 인 = "ㅣ"
         
         switch index {
         case 0: return [인, 천]

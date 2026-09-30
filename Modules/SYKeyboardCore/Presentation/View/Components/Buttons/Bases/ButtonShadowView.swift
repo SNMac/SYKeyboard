@@ -11,17 +11,11 @@ import SYKeyboardAssets
 
 /// 키보드 버튼 그림자
 final class ButtonShadowView: UIView {
-    
-    // MARK: - Properties
-    
-    private let cornerRadius: CGFloat
-    
+        
     // MARK: - Initializer
     
-    init(cornerRadius: CGFloat) {
-        self.cornerRadius = cornerRadius
-        super.init(frame: .zero)
-        
+    override init(frame: CGRect) {
+        super.init(frame: frame)
         setupUI()
     }
     
@@ -47,7 +41,7 @@ private extension ButtonShadowView {
     }
     
     func setShadows() {
-        self.layer.shadowPath = UIBezierPath(roundedRect: self.bounds, cornerRadius: cornerRadius).cgPath
+        self.layer.shadowPath = UIBezierPath(roundedRect: self.bounds, cornerRadius: KeyboardLayoutFigure.buttonCornerRadius).cgPath
         self.layer.shadowColor = UIColor.buttonShadow.cgColor
         self.layer.shadowOpacity = 1
         self.layer.shadowOffset = CGSize(width: 0, height: 1)

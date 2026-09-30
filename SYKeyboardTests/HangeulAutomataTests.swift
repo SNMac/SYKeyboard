@@ -22,36 +22,6 @@ struct HangeulAutomataTests {
     
     private let automata: HangeulAutomataProtocol = HangeulAutomata()
     
-    private let 초성Table = ["ㄱ", "ㄲ", "ㄴ", "ㄷ", "ㄸ", "ㄹ", "ㅁ", "ㅂ", "ㅃ", "ㅅ", "ㅆ", "ㅇ", "ㅈ", "ㅉ", "ㅊ", "ㅋ", "ㅌ", "ㅍ", "ㅎ"]
-    private let 중성Table = ["ㅏ", "ㅐ", "ㅑ", "ㅒ", "ㅓ", "ㅔ", "ㅕ", "ㅖ", "ㅗ", "ㅘ", "ㅙ", "ㅚ", "ㅛ", "ㅜ", "ㅝ", "ㅞ", "ㅟ", "ㅠ", "ㅡ", "ㅢ", "ㅣ"]
-    private let 종성Table = [" ", "ㄱ", "ㄲ", "ㄳ", "ㄴ", "ㄵ", "ㄶ","ㄷ", "ㄹ", "ㄺ", "ㄻ", "ㄼ", "ㄽ", "ㄾ", "ㄿ", "ㅀ", "ㅁ", "ㅂ", "ㅄ", "ㅅ", "ㅆ", "ㅇ", "ㅈ", "ㅊ", "ㅋ", "ㅌ", "ㅍ", "ㅎ"]
-    
-    private let 겹모음조합Table: [(앞모음: String, 뒷모음: String, 겹모음: String)] = [
-        ("ㅗ", "ㅏ", "ㅘ"),
-        ("ㅘ", "ㅣ", "ㅙ"),
-        ("ㅗ", "ㅐ", "ㅙ"),
-        ("ㅗ", "ㅣ", "ㅚ"),
-        ("ㅜ", "ㅓ", "ㅝ"),
-        ("ㅜ", "ㅔ", "ㅞ"),
-        ("ㅝ", "ㅣ", "ㅞ"),
-        ("ㅜ", "ㅣ", "ㅟ"),
-        ("ㅡ", "ㅣ", "ㅢ")
-    ]
-    
-    private let 겹자음조합Table: [(앞자음: String, 뒷자음: String, 겹자음: String)] = [
-        ("ㄱ", "ㅅ", "ㄳ"),
-        ("ㄴ", "ㅈ", "ㄵ"),
-        ("ㄴ", "ㅎ", "ㄶ"),
-        ("ㄹ", "ㄱ", "ㄺ"),
-        ("ㄹ", "ㅁ", "ㄻ"),
-        ("ㄹ", "ㅂ", "ㄼ"),
-        ("ㄹ", "ㅅ", "ㄽ"),
-        ("ㄹ", "ㅌ", "ㄾ"),
-        ("ㄹ", "ㅍ", "ㄿ"),
-        ("ㄹ", "ㅎ", "ㅀ"),
-        ("ㅂ", "ㅅ", "ㅄ")
-    ]
-    
     // MARK: - 1. 한글 11,172자 전체 검증
     
     @Test("한글 11,172자 전체 생성 및 삭제 로직 검증")
@@ -70,7 +40,7 @@ struct HangeulAutomataTests {
             let target한글String = String(target한글Char)
             
             // 2. 키 입력 시퀀스 추출 ('닭' -> "ㄷ", "ㅏ", "ㄹ", "ㄱ")
-            let inputSequence = extract한글Inputs(for: target한글Char)
+            let inputSequence = DubeolsikKeyDecomposer.keys(for: target한글Char)
             
             // -------------------------------------------------
             // A. 입력 테스트
@@ -259,52 +229,5 @@ private extension HangeulAutomataTests {
     func addAndAccumulate(_ input: String, committed: String, composing: String) -> (committed: String, composing: String) {
         let result = automata.add글자(글자Input: input, composing: composing)
         return (committed + result.committed, result.composing)
-    }
-    
-    /// 완성된 한글 문자 하나를 받아서, 이를 만들기 위해 눌러야 할 키보드 입력 배열로 변환
-    func extract한글Inputs(for 한글: Character) -> [String] {
-        guard let scalar = 한글.unicodeScalars.first else { return [] }
-        let value = Int(scalar.value) - 0xAC00
-        
-        let choIndex = value / (21 * 28)
-        let jungIndex = (value % (21 * 28)) / 28
-        let jongIndex = value % 28
-        
-        var inputs: [String] = []
-        
-        // 1. 초성
-        inputs.append(초성Table[choIndex])
-        
-        // 2. 중성 (재귀 필요 O: ㅙ -> ㅘ+ㅣ -> ㅗ+ㅏ+ㅣ)
-        let jungChar = 중성Table[jungIndex]
-        inputs.append(contentsOf: decompose모음Recursively(jungChar))
-        
-        // 3. 종성 (겹받침은 한 번만 쪼개면 됨)
-        if jongIndex != 0 {
-            let jongChar = 종성Table[jongIndex]
-            inputs.append(contentsOf: decompose자음(jongChar))
-        }
-        
-        return inputs
-    }
-    
-    /// 모음을 재귀적으로 분해하는 헬퍼 메서드
-    func decompose모음Recursively(_ 모음: String) -> [String] {
-        if ["ㅐ", "ㅔ", "ㅒ", "ㅖ"].contains(모음) { return [모음] }
-        
-        if let match = 겹모음조합Table.first(where: { $0.겹모음 == 모음 }) {
-            return decompose모음Recursively(match.앞모음) + decompose모음Recursively(match.뒷모음)
-        } else {
-            return [모음]
-        }
-    }
-    
-    /// 자음을 분해하는 헬퍼 메서드
-    func decompose자음(_ 자음: String) -> [String] {
-        if let match = 겹자음조합Table.first(where: { $0.겹자음 == 자음 }) {
-            return [match.앞자음, match.뒷자음]
-        } else {
-            return [자음]
-        }
     }
 }

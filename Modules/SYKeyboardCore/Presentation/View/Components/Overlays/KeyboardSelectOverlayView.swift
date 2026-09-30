@@ -14,6 +14,7 @@ final public class KeyboardSelectOverlayView: UIStackView {
     
     private let keyboard: SYKeyboardType
     private var isEmphasizingTarget: Bool?
+    private let keyboardSelectDirection: PanDirection
     
     // MARK: - UI Components
     
@@ -26,10 +27,10 @@ final public class KeyboardSelectOverlayView: UIStackView {
     private let numericLabel: UILabel = {
         let label = UILabel()
         label.text = "123"
-        label.font = .systemFont(ofSize: 20, weight: .regular)
+        label.font = .systemFont(ofSize: FontSize.overlayMedium, weight: .regular)
         label.textAlignment = .center
         label.clipsToBounds = true
-        label.layer.cornerRadius = 8
+        label.layer.cornerRadius = KeyboardLayoutFigure.buttonCornerRadius
         
         return label
     }()
@@ -37,17 +38,17 @@ final public class KeyboardSelectOverlayView: UIStackView {
     private let symbolLabel: UILabel = {
         let label = UILabel()
         label.text = "!#1"
-        label.font = .systemFont(ofSize: 20, weight: .regular)
+        label.font = .systemFont(ofSize: FontSize.overlayMedium, weight: .regular)
         label.textAlignment = .center
         label.clipsToBounds = true
-        label.layer.cornerRadius = 8
+        label.layer.cornerRadius = KeyboardLayoutFigure.buttonCornerRadius
         
         return label
     }()
     /// 키보드 선택 취소 이미지
     private let xmarkImageView: UIImageView = {
         let imageView = UIImageView()
-        let imageConfig = UIImage.SymbolConfiguration(pointSize: 20, weight: .regular)
+        let imageConfig = UIImage.SymbolConfiguration(pointSize: FontSize.overlayMedium, weight: .regular)
         imageView.image = UIImage(systemName: "xmark.square")?.withConfiguration(imageConfig).withTintColor(.label, renderingMode: .alwaysOriginal)
         imageView.contentMode = .center
         
@@ -57,17 +58,21 @@ final public class KeyboardSelectOverlayView: UIStackView {
     private(set) var xmarkImageContainerView: UIView = {
         let view = UIView()
         view.clipsToBounds = true
-        view.layer.cornerRadius = 8
+        view.layer.cornerRadius = KeyboardLayoutFigure.buttonCornerRadius
         
         return view
     }()
     
     // MARK: - Initializer
     
-    public init(keyboard: SYKeyboardType) {
+    public init(keyboard: SYKeyboardType, usesBottomSpaceLayout: Bool = false) {
         self.keyboard = keyboard
+        self.keyboardSelectDirection = KeyboardSelectDirectionPolicy.targetDirection(
+            for: keyboard,
+            usesBottomSpaceLayout: usesBottomSpaceLayout
+        )
         super.init(frame: .zero)
-        
+
         setupUI()
     }
     
@@ -134,30 +139,48 @@ private extension KeyboardSelectOverlayView {
     func setStyles() {
         self.axis = .horizontal
         self.spacing = 8
-        self.distribution = .fillEqually
+        // 취소 영역의 경계선을 `switchButton` 모서리에 맞춰야 하므로 균등 분배를 쓰지 않는다.
+        // 남는 너비는 목표 라벨이 가져간다
+        self.distribution = .fill
+        [numericLabel, symbolLabel].forEach {
+            $0.setContentHuggingPriority(.defaultLow, for: .horizontal)
+            $0.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+            // 취소 영역 폭은 `switchButton` 크기를 따라가므로 목표 라벨 폭도 함께 변한다.
+            // 계산상 여유가 있지만 좁아지는 경우에도 글자가 잘리지 않게 한다
+            $0.adjustsFontSizeToFitWidth = true
+            $0.minimumScaleFactor = 0.5
+        }
         self.backgroundColor = .clear
         
         self.isLayoutMarginsRelativeArrangement = true
         self.directionalLayoutMargins = NSDirectionalEdgeInsets(top: 8, leading: 8, bottom: 8, trailing: 8)
         
         self.clipsToBounds = true
-        self.layer.cornerRadius = 8
+        self.layer.cornerRadius = KeyboardLayoutFigure.selectOverlayCornerRadius
     }
     
     func setHierarchy() {
         self.addSubview(blurView)
-        
+
         xmarkImageContainerView.addSubview(xmarkImageView)
-        
+
+        let targetLabel: UILabel
         switch keyboard {
-        case .naratgeul, .cheonjiin:
-            [numericLabel, xmarkImageContainerView].forEach { self.addArrangedSubview($0) }
-        case .dubeolsik, .qwerty, .symbol:
-            [xmarkImageContainerView, numericLabel].forEach { self.addArrangedSubview($0) }
+        case .naratgeul, .cheonjiin, .dubeolsik, .qwerty, .symbol:
+            targetLabel = numericLabel
         case .numeric:
-            [symbolLabel, xmarkImageContainerView].forEach { self.addArrangedSubview($0) }
+            targetLabel = symbolLabel
         default:
             assertionFailure("구현되지 않은 case입니다.")
+            return
+        }
+
+        // 목표 라벨은 손가락이 향하는 쪽에, 취소(X)는 `switchButton` 위에 놓인다
+        switch keyboardSelectDirection {
+        case .right:
+            [xmarkImageContainerView, targetLabel].forEach { self.addArrangedSubview($0) }
+        default:
+            [targetLabel, xmarkImageContainerView].forEach { self.addArrangedSubview($0) }
         }
     }
     
@@ -169,6 +192,13 @@ private extension KeyboardSelectOverlayView {
             blurView.trailingAnchor.constraint(equalTo: self.trailingAnchor),
             blurView.bottomAnchor.constraint(equalTo: self.bottomAnchor)
         ])
+        
+        [numericLabel, symbolLabel].forEach {
+            $0.translatesAutoresizingMaskIntoConstraints = false
+            $0.widthAnchor.constraint(
+                equalToConstant: KeyboardLayoutFigure.keyboardSelectTargetWidth
+            ).isActive = true
+        }
         
         xmarkImageView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([

@@ -1,0 +1,521 @@
+# 클립보드 기록 이미지 항목 지원 설계
+
+## 목적
+
+GitHub Issue #55에 따라 #54의 텍스트 클립보드 기록을 확장해, 시스템 pasteboard에
+텍스트 없이 이미지만 있을 때 그 이미지를 App Group 파일 저장소에 저장하고, 사용자가
+키보드 패널이나 앱 관리 화면에서 이미지 항목을 고르면 시스템 pasteboard에 원본
+바이트를 복원해 이미지 붙여넣기를 지원하는 앱에서 붙여넣을 수 있게 한다.
+
+커스텀 키보드 extension은 `UITextDocumentProxy`로 텍스트만 삽입할 수 있으므로 이미지
+항목 선택은 "입력창 직접 삽입"이 아니라 "시스템 pasteboard에 복원"으로 동작한다.
+동영상·GIF·일반 파일 첨부는 범위 밖이다.
+
+## 확인한 기준
+
+- 기준 브랜치 `develop`, 기준 커밋 `b94f2e96`(#54 병합).
+- #54 구현은 `text`가 곧 항목 식별자다. `ClipboardHistoryItem.id`, diffable snapshot
+  식별자, 텍스트 기준 삭제(`remove(texts:)`), 편집 병합(`replacingText`), 앱 관리 화면의
+  `Set<String>` 선택이 모두 텍스트에 기댄다.
+- `ClipboardHistoryStore`는 캐시 없이 매 연산마다 App Group의 `Library/Application Support/clipboard_history.plist`를
+  읽고 쓴다. 세 extension과 앱이 같은 파일을 공유한다.
+- `ClipboardHistoryPasteboardSynchronizer.synchronizeIfNeeded`는 `changeCount` →
+  concealed 타입 → `hasStrings` → `string` 순으로 확인하며 키보드(`viewWillAppear`, 호스트 앱 재활성화 `NSExtensionHostDidBecomeActive`,
+  `textWillChange`, 클립보드 버튼 탭)와 앱(활성화 시)이 함께 호출한다.
+- `UIPasteboard.hasImages`·`changeCount`·`types`·`itemProviders` 확인은 iOS 16 붙여넣기
+  권한 알림을 띄우지 않는다. 이미지 데이터 읽기는 텍스트 읽기와 같은 알림 대상이다.
+  pasteboard 쓰기는 알림 대상이 아니다.
+- `UIPasteboard.setData(_:forPasteboardType:)`는 UIImage 재인코딩 없이 원본 바이트를
+  pasteboard에 놓는다. Context7의 UIKit 문서로 `hasImages`, `itemProviders`(iOS 11+),
+  `data(forPasteboardType:)`, `setData(_:forPasteboardType:)`를 확인했다. ImageIO 썸네일
+  API는 Context7에 없어 WWDC18 Image and Graphics Best Practices의 downsampling 기법을
+  기준으로 삼았다.
+- 키보드 extension 메모리 상한은 기기별로 다르지만 수십 MB 수준이고 초과 시 즉시
+  종료된다. `os_proc_available_memory()`(iOS 13+)가 있지만 extension에서의 정확도를 실측하지
+  않았으므로 판정에는 쓰지 않고 고정 예산을 쓴다.
+- `BaseKeyboardViewController.didReceiveMemoryWarning`은 예측 엔진 캐시를 해제하는
+  훅이 이미 있다.
+- `NGramPredictiveTextEngine`이 백그라운드 큐에서 App Group 파일을 저장하는 선례가
+  있다.
+- #54 설계 문서는 "이미지 저장(#55)에 대비한 필드를 `Item`에 미리 넣지 않는다"고
+  정했다. 이번 변경이 그 확장을 담당한다.
+- `Modules/`에 파일을 추가하면 `project.pbxproj`의 `SYKeyboardCore`·`SYKeyboard` 예외
+  목록에 알파벳순으로 등록해야 한다.
+
+## 결정 사항
+
+| 항목 | 결정 |
+| --- | --- |
+| 결합 구조 | 단일 목록. `ClipboardHistoryItem`에 `content` enum(text/image)을 넣고 식별자를 `id`로 일반화한다. 이미지도 고정·일괄 고정 대상이다. |
+| 이미지 식별 | 원본 바이트의 SHA-256(스트리밍 계산). 바이트가 같은 이미지를 다시 복사하면 텍스트와 같은 규칙으로 기존 항목이 맨 위로 오고 고정 항목은 그대로다. 파일명도 해시라 중복 파일이 생기지 않는다. 시각적 유사 판별은 하지 않는다. |
+| 개수 한도 | 텍스트와 공유. 미고정 20개·고정 20개 안에 텍스트와 이미지가 함께 들어간다. |
+| 이미지당 한도 | 파일 24 MB, 50,000,000픽셀(타입 무관, iPhone 48 MP 촬영본 8064×6048 = 48,771,072픽셀 포함). 초과하면 저장하지 않는다. 디코드 가능 여부는 픽셀 상한이 아니라 런타임 메모리 판정(`requiredDecodeMemory`)으로 정한다. |
+| 혼합 우선순위 | pasteboard에 텍스트가 있으면 텍스트만 저장한다. 텍스트가 없고 이미지가 있을 때만 이미지를 저장한다. |
+| 저장 타입 | `public.jpeg` → `public.heic` → `public.png` 우선순위로 하나. TIFF·GIF 등은 받지 않는다. |
+| 설정 | "클립보드 기록" 아래 "이미지도 기록" 하위 토글, 기본 켜짐. 끄면 새 이미지만 저장하지 않고 기존 이미지 항목은 유지한다. 삭제는 관리 화면에서 한다. |
+| 키보드 패널 이미지 탭 | pasteboard에 복원하고 패널을 유지한다. 헤더의 "클립보드 기록" 제목 자리에 안내 문구를 약 2초 보여준 뒤 되돌린다. 항목은 맨 위로 올라간다. 입력창 탭 시 기존 `textWillChange` 경로로 패널이 닫힌다. |
+| 썸네일 | 긴 변 240 px JPEG. 패널은 썸네일만 읽고 해시 키 `NSCache`(상한 40)에 둔다. 메모리 경고 시 비운다. |
+| 메모리 안전장치 | 헤더의 픽셀 수로 예상 디코드 메모리(PNG: 픽셀 × 4바이트 + 8 MB, JPEG·HEIC: 24 MB 고정)를 구해 프로세스별 고정 예산(키보드 32 MB, 앱 256 MB)을 넘으면 저장·미리보기를 건너뛴다. 런타임 남은 메모리는 조회하지 않는다. 키보드가 예산 초과로 건너뛰면 그 `changeCount`를 `budgetSkippedPasteboardChangeCount`에 남기고, 앱은 활성화·관리 화면 진입 시 `retriesBudgetSkipped: true`로 그 pasteboard를 앱 예산으로 다시 읽어 저장한다(표시는 그때 소비). 키보드는 재시도하지 않는다. |
+| 파일 정리 | `ClipboardHistoryStore.save`가 저장 전후 이미지 해시 차집합의 원본·썸네일을 지운다. |
+
+## 범위 밖
+
+- 동영상, GIF, 일반 파일, 여러 이미지가 든 pasteboard의 두 번째 이후 항목.
+- 시각적 유사 이미지 중복 판별, 이미지 편집, 이미지 항목의 원문 편집.
+- 토글 OFF 시 자동 삭제, "이미지 기록 모두 삭제" 버튼.
+- 고아 파일 정기 정리. 항목 삭제 경로에서 파일을 함께 지우므로 정상 동작에서는 생기지
+  않는다.
+
+## 1. 모델·정책
+
+### `ClipboardImageReference`
+
+`Modules/SYKeyboardCore/Presentation/Utils/Policies/ClipboardHistoryPolicy.swift`에 둔다.
+
+```swift
+public struct ClipboardImageReference: Codable, Equatable {
+    public let hash: String            // SHA-256 hex. 파일명이자 식별자
+    public let typeIdentifier: String  // "public.jpeg" | "public.heic" | "public.png"
+    public let byteSize: Int
+    public let pixelWidth: Int         // EXIF 회전을 적용한 표시 기준 크기
+    public let pixelHeight: Int
+}
+```
+
+파일 경로는 해시와 타입에서 유도하므로 저장하지 않는다. 이슈 본문의 `lastUsedAt`은
+텍스트처럼 재기록 시 `createdAt`이 갱신되어 맨 위로 오므로 두지 않는다.
+
+### `ClipboardHistoryItem`
+
+```swift
+public struct ClipboardHistoryItem: Codable, Equatable, Identifiable {
+    public enum Content: Equatable {
+        case text(String)
+        case image(ClipboardImageReference)
+    }
+    public let content: Content
+    public let createdAt: Date
+    public let pinnedAt: Date?
+
+    /// 텍스트는 텍스트 자체, 이미지는 "image/<hash>"
+    public var id: String
+    public var text: String?                    // .text일 때만
+    public var image: ClipboardImageReference?  // .image일 때만
+    public var isPinned: Bool
+}
+```
+
+- 기존 `init(text:createdAt:pinnedAt:)`를 유지하고 `init(content:createdAt:pinnedAt:)`를
+  추가한다.
+- Codable은 직접 구현한다. 키는 `text`, `image`, `createdAt`, `pinnedAt`. 디코드는
+  `image` 키가 있으면 이미지, 없으면 `text`를 읽는다. 인코드는 텍스트면 `text`만,
+  이미지면 `image`만 쓴다. `text` 키만 있는 기존 파일은 마이그레이션 없이 읽힌다.
+- 텍스트 `id`와 이미지 `id`("image/" 접두)의 충돌은 사용자가 정확히 그 문자열을
+  복사할 때만 생긴다. `load()`가 `id` 기준으로 첫 항목만 남기므로 snapshot이 crash하지
+  않는다.
+
+### `ClipboardHistoryPolicy` 변경
+
+- `inserting(_:into:now:)`, `insertingPinned(_:into:now:)`는 `Content`를 받는다. 빈
+  문자열·공백·`maxTextLength` 검사는 `.text`일 때만 적용한다. 중복 비교는
+  `$0.content == content`.
+- `sorted`의 동률 비교는 `text` 대신 `id`.
+- `pinBatch(selectedTexts:in:)` → `pinBatch(selectedIDs:in:)`,
+  `togglingPins(selectedTexts:in:now:)` → `togglingPins(selectedIDs:in:now:)`.
+- `replacingText(_:with:in:now:)`는 대상 항목이 `.text`가 아니면 `nil`. `openableURL`은
+  변경 없음.
+- 고정 한도 `maxPinnedCount`, 미고정 한도 `maxItemCount`, 정렬 규칙은 텍스트·이미지
+  구분 없이 그대로 적용된다.
+
+### `ClipboardImagePolicy` (신규)
+
+`Modules/SYKeyboardCore/Presentation/Utils/Policies/ClipboardImagePolicy.swift`. UI 의존
+없는 순수 타입이다.
+
+```swift
+public enum ClipboardImagePolicy {
+    public static let maxByteSize = 24 * 1_024 * 1_024
+    public static let maxPixelCount = 50_000_000      // 타입 무관 저장 상한(iPhone 48 MP = 8064×6048 포함)
+    public static let thumbnailMaxPixelSize = 240
+    public static let preferredTypeIdentifiers = ["public.jpeg", "public.heic", "public.png"]
+    /// JPEG·HEIC 디코드(썸네일·미리보기) 예상 메모리(고정). 축소 디코드라 픽셀 수와 무관하다
+    public static let scaledDecodeMemory = 24 * 1_024 * 1_024
+    /// PNG 전체 디코드 비트맵(픽셀 × 4바이트) 위에 더하는 여유
+    public static let decodeMemoryMargin = 8 * 1_024 * 1_024
+    /// 키보드 extension의 디코드 예산. iPad Pro 13" PNG 스크린샷(약 30.7 MB)까지 들어온다
+    public static let keyboardDecodeMemoryBudget = 32 * 1_024 * 1_024
+    /// 앱의 디코드 예산. 키보드가 건너뛴 큰 PNG를 앱이 저장한다
+    public static let appDecodeMemoryBudget = 256 * 1_024 * 1_024
+
+    /// pasteboard 타입 목록에서 저장할 타입 하나. 우선순위 앞쪽부터 고르고 없으면 nil
+    public static func storableType(in types: [String]) -> String?
+    /// 바이트·픽셀 한도 안인지. 0 이하 값은 저장 불가
+    public static func isStorable(byteSize: Int, pixelWidth: Int, pixelHeight: Int) -> Bool
+    /// 이 이미지를 디코드할 때 필요한 메모리. PNG는 픽셀 × 4 + 여유, JPEG·HEIC는 `scaledDecodeMemory`
+    public static func requiredDecodeMemory(typeIdentifier: String, pixelWidth: Int, pixelHeight: Int) -> Int
+    /// 예상 디코드 메모리가 `budget` 안인지
+    public static func canDecode(typeIdentifier: String, pixelWidth: Int, pixelHeight: Int, budget: Int) -> Bool
+    /// 원본 파일 확장자. jpg / heic / png
+    public static func fileExtension(for typeIdentifier: String) -> String
+}
+```
+
+### 설정 키
+
+- `UserDefaultsKeys.isClipboardImageHistoryEnabled = "isClipboardImageHistoryEnabled"`
+- `DefaultValues.isClipboardImageHistoryEnabled: Bool = true`
+- `UserDefaultsManager.isClipboardImageHistoryEnabled` (`@UserDefaultsWrapper`)
+- `UserDefaultsKeys.budgetSkippedPasteboardChangeCount = "budgetSkippedPasteboardChangeCount"`,
+  `DefaultValues.budgetSkippedPasteboardChangeCount = -1`,
+  `UserDefaultsManager.budgetSkippedPasteboardChangeCount`. 키보드가 예산 초과로 건너뛴 pasteboard의
+  `changeCount`이며 앱이 다시 시도할 때 소비한다.
+- `UserDefaultsContractTests`에 키·기본값 계약을 추가한다.
+
+## 2. 이미지 파일 저장소 `ClipboardImageStore`
+
+`Modules/SYKeyboardCore/Storage/ClipboardImageStore.swift`. Foundation·ImageIO·CryptoKit·
+UniformTypeIdentifiers만 쓰고 UIKit은 쓰지 않는다.
+
+### 파일 배치
+
+App Group 컨테이너 아래 `Library/Application Support/ClipboardImages/` 하나다. Apple의 "Using the file system
+effectively" 지침대로 사용자에게 보이지 않는 앱 데이터는 Application Support에 둔다(백업 포함, Caches와 달리
+시스템이 지우지 않음). `clipboard_history.plist`도 `main`에 배포된 적이 없어 마이그레이션 없이 같은 위치로 옮긴다.
+NGram 파일(`ngram_<lang>.plist`)은 `main`(2026-03-19)에 이미 배포된 경로라 마이그레이션이 필요하며 #131에서 따로 진행한다.
+
+```
+Library/Application Support/ClipboardImages/
+  <hash>.jpg          원본 (확장자는 typeIdentifier에서 유도)
+  <hash>.thumb.jpg    썸네일 (항상 JPEG, 긴 변 240 px, 품질 0.7)
+```
+
+### 공개 API
+
+```swift
+public final class ClipboardImageStore {
+    init(directoryURL: URL)
+    public convenience init?()   // App Group 컨테이너를 못 얻으면 nil
+
+    /// 임시 파일의 이미지를 검사·해시·저장하고 참조를 돌려준다. 저장 대상이 아니면 nil.
+    /// 백그라운드 스레드에서 부른다. 실패 시 파일을 남기지 않는다
+    public func store(temporaryFileURL: URL, typeIdentifier: String) -> ClipboardImageReference?
+
+    public func originalURL(for reference: ClipboardImageReference) -> URL
+    public func thumbnailURL(for reference: ClipboardImageReference) -> URL
+
+    /// 항목이 지워질 때 원본·썸네일을 함께 지운다. 없는 파일은 무시한다
+    public func removeFiles(for hashes: Set<String>)
+    public func removeAllFiles()
+}
+```
+
+### `store(temporaryFileURL:typeIdentifier:)` 순서
+
+각 단계가 실패하면 즉시 `nil`이고 새로 만든 파일은 지운다.
+
+1. `FileManager` 속성으로 파일 크기를 읽어 `maxByteSize` 검사. 바이트를 메모리에 올리지
+   않는다.
+2. `CGImageSourceCreateWithURL` + `CGImageSourceCopyPropertiesAtIndex`로 픽셀 크기를
+   헤더에서 읽어 `maxPixelCount` 검사. `kCGImagePropertyOrientation`이 5~8이면 폭·높이를
+   바꿔 기록한다.
+3. `FileHandle`로 64 KB씩 읽어 CryptoKit `SHA256`을 스트리밍 계산한다. 상수 메모리다.
+4. 디렉터리가 없으면 만든다. 원본 경로에 같은 해시 파일이 있으면 쓰기를 건너뛰고,
+   없으면 임시 파일을 `moveItem`으로 옮긴다. 이동 실패 시 대상이 이미 존재하면 성공으로
+   본다.
+5. 썸네일 파일이 없으면 `CGImageSourceCreateThumbnailAtIndex`로 만든다. 옵션은
+   `kCGImageSourceThumbnailMaxPixelSize: 240`, `kCGImageSourceCreateThumbnailFromImageAlways:
+   true`, `kCGImageSourceCreateThumbnailWithTransform: true`. `CGImageDestination`으로 JPEG
+   품질 0.7로 쓴다. 실패하면 이번에 옮긴 원본을 지우고 `nil`이다.
+6. `ClipboardImageReference`를 돌려준다.
+
+### 파일 정리 책임
+
+`ClipboardHistoryStore`는 생성자에서 `ClipboardImageStore?`를 받는다. `save(_:)`가
+저장 전 목록과 저장 후 목록의 이미지 해시 차집합을 구해 `removeFiles(for:)`를 부른다.
+`record`·`remove`·`removeAll`·트리밍 어느 경로로 빠지든 한 곳에서 처리된다.
+`removeAll`은 `removeAllFiles()`를 부른다. 텍스트 항목만 바뀐 저장은 파일 삭제를
+호출하지 않는다.
+
+### 동시성
+
+세 extension과 앱이 같은 디렉터리를 쓴다. 파일명이 해시라 두 프로세스가 같은 이미지를
+동시에 저장해도 같은 파일이다. plist는 기존처럼 atomic 쓰기이고 마지막 쓰기가 이긴다.
+정리에서 이미 없는 파일의 삭제 실패는 무시한다.
+
+### 메모리
+
+이 클래스가 한 번에 올리는 것은 64 KB 해시 버퍼와 썸네일 디코드뿐이다. JPEG·HEIC는
+축소 디코드라 작고, PNG는 ImageIO가 전체 디코드할 수 있어 픽셀 × 4바이트 피크(iPad Pro 13" 스크린샷 약 23 MB, MacBook Pro 16" 약 31 MB)가
+날 수 있다. 실기기 계측(6절)에서 종료가 확인되면 `keyboardDecodeMemoryBudget`을 낮춘다. HEIC는
+`heicScaledDecodeMaxPixelCount`(24 MP)까지만 축소 디코드로 가정하고 그 위는 PNG처럼 계산한다.
+
+## 3. 동기화·복원 흐름
+
+### `ClipboardHistoryPasteboardSynchronizer` 확장
+
+```swift
+public static func synchronizeIfNeeded(
+    store: ClipboardHistoryStore,
+    imageStore: ClipboardImageStore?,
+    pasteboard: UIPasteboard = .general,
+    settings: UserDefaultsManager = .shared,
+    decodeMemoryBudget: Int = ClipboardImagePolicy.keyboardDecodeMemoryBudget,
+    retriesBudgetSkipped: Bool = false
+)
+```
+
+결과 콜백은 두지 않는다. 이미지 저장이 끝나면 메인 큐에서 `didRecordImageNotification`(기록됨) 또는
+`didSkipImageForBudgetNotification`(예산 초과 건너뜀)을 게시하고, 키보드 패널·앱 화면·테스트가 이 알림을 듣는다.
+앱은 활성화 동기화(`SYKeyboardApp`)와 목록 화면이 분리돼 있어 콜백으로는 화면에 닿지 않기 때문이다.
+
+1. `changeCount` 비교·갱신. `retriesBudgetSkipped`가 참이고 `changeCount == budgetSkippedPasteboardChangeCount`면
+   이미 확인한 값이어도 통과한다. 통과 시 `lastSeen`을 갱신하고 건너뜀 표시를 `-1`로 되돌린다.
+2. concealed 타입 검사. 기존과 같다.
+3. `hasStrings`면 텍스트를 기록하고 끝낸다. 기존과 같다.
+4. 텍스트가 없고 `hasImages`이며 `settings.isClipboardImageHistoryEnabled`이고 `imageStore`가
+   있을 때만 이미지 경로로 간다.
+5. `ClipboardImagePolicy.storableType(in: pasteboard.types)`로 타입을 고른다. 없으면 끝낸다.
+6. (예산 판정은 파일을 받은 뒤 8단계에서 헤더의 픽셀 수로 한다.)
+7. `pasteboard.itemProviders.first?.loadFileRepresentation(forTypeIdentifier:)`를 부른다.
+   완료 클로저는 시스템이 정한 백그라운드 스레드에서 오며 시스템 임시 파일은 클로저가
+   끝나면 사라지므로, 그 안에서는 `ClipboardImageStore.stage(temporaryFileURL:typeIdentifier:)`로
+   우리 tmp에 옮기기만 한다(rename 한 번).
+8. 해시·썸네일 생성(`imageStore.store(temporaryFileURL:typeIdentifier:)`)은 `.utility` QoS
+   직렬 큐에서 한 번에 하나씩 처리해 자판 입력(main)과 경쟁하지 않게 한다. `storeOutcome`은 헤더의
+   픽셀 수로 예상 디코드 메모리를 구해 `decodeMemoryBudget`(키보드 32 MB, 앱 256 MB)을 넘으면
+   `.skippedForBudget`, 손상·한도 초과·저장 실패면 `.rejected`를 돌려주고, 어느 경우든 옮겨 둔 임시
+   파일을 지운다. `.skippedForBudget`이면 메인에서 `budgetSkippedPasteboardChangeCount = changeCount`를
+   남기고 `didSkipImageForBudgetNotification`을 게시한다(다시 시도하는 앱 호출에서는 표시를 남기지 않아
+   활성화마다 반복하지 않는다).
+9. 참조를 얻으면 메인 큐로 넘어가 `store.record(.image(reference))`를 부르고
+   `didRecordImageNotification`을 게시한다. 파일 저장만 백그라운드에서 하고 plist 기록은 메인에서
+   해 같은 프로세스 안의 연산 순서를 단순하게 유지한다.
+
+`loadFileRepresentation`이 pasteboard 항목에서 우리 프로세스 메모리를 거치지 않는지는
+문서로 확정되지 않는다. 8단계의 고정 예산 판정과 6절의 실기기 계측으로 보완한다.
+
+### 키보드 `BaseKeyboardViewController`
+
+- `clipboardImageStore: ClipboardImageStore?`를 `clipboardHistoryStore` 옆에 두고
+  `ClipboardHistoryStore(imageStore:)`로 주입한다.
+- `viewDidLoad`에서 `didRecordImageNotification`을 관찰하고(`clipboardImageDidRecord`),
+  `isClipboardPanelVisible`이면 `reloadClipboardPanel()`을 부른다. 패널이 닫혀 있으면 다음에 열 때 읽는다.
+- `reloadClipboardPanel()`은 `configure(state:thumbnailURL:)`에 `clipboardImageStore`의
+  썸네일 경로 클로저를 넘긴다.
+- `didReceiveMemoryWarning`에 `clipboardHistoryPanelView.purgeThumbnailCache()`를 추가한다.
+
+### 복원: 이미지 항목 선택
+
+`clipboardPanel(_:didSelectItemAt:)`에서 `item.content`로 분기한다. `.text`는 기존
+그대로다. `.image(reference)`는 다음 순서다.
+
+1. `Data(contentsOf: originalURL, options: .mappedIfSafe)`로 원본을 메모리 맵으로 연다.
+2. `UIPasteboard.general.setData(data, forPasteboardType: reference.typeIdentifier)`.
+3. `keyboardSettingsManager.lastSeenPasteboardChangeCount = pasteboard.changeCount`. 우리가
+   쓴 값을 다음 동기화에서 다시 캡처하지 않는다. 텍스트 복사(`copyTextToPasteboard`)와 같은 규칙이다.
+4. `clipboardHistoryStore.record(.image(reference))`로 맨 위로 올린다. 고정 항목은 정책상
+   그대로다.
+5. `reloadClipboardPanel()` 후 `clipboardHistoryPanelView.showTransientMessage(...)`로 하단
+   토스트 안내를 띄운다. 패널은 닫지 않고 `updateSuggestions()`도 부르지 않는다.
+6. 파일 읽기에 실패하면(앱에서 지운 뒤 키보드가 옛 목록을 들고 있는 경우) 해당 항목을
+   `remove(ids:)`로 지우고 패널을 다시 읽는다.
+
+상세 뷰의 붙여넣기(텍스트)·복사(이미지) 버튼도 행 탭과 같은 `didSelectItemAt` 경로를 탄다.
+`didRequestOpenURLAt`과 편집은 이미지에서 호출되지 않는다.
+
+텍스트 행 탭(실기기 확인 뒤 결정, #54 동작 변경): 입력창에 삽입하면서 시스템 pasteboard에도 복사한다. macOS Tahoe
+Spotlight 클립보드 기록이 고른 항목을 붙여넣으며 현재 클립보드로 올리는 것과 같은 기대를 따른다(Windows Win+V도
+같은 동작으로 알려져 있으나 공식 문서로 확인하지는 못함). 키보드가 뜰 때 동기화가
+기록한 내용은 목록에 남으므로 덮어써도 잃지 않지만, 동기화가 기록하지 않는 내용은 덮어써져 복구할 수 없다.
+이미지 기록 OFF 상태의 이미지, 키보드 예산 초과로 앱 재시도를 기다리던 이미지(덮어쓰면 changeCount가 달라져 재시도도
+되지 않음), concealed 타입, 문자열이 없는 파일·URL 전용 항목, 저장 대상이 아닌 타입이거나 바이트·픽셀 한도로 거부된 이미지가 그렇다.
+동기화가 끝나기 전(파일 수신 중)에 덮어쓴 이미지도 저장이 실패할 수 있다(미확인). Spotlight
+클립보드 기록과 같은 한계로 수용한다. 종전의 `didRequestCopyAt`(상세 뷰 전용 복사)은 이 경로로 흡수돼 제거했다.
+별도 설정은 두지 않는다.
+
+### 앱 `SYKeyboardApp`·`ClipboardHistorySettingsView`
+
+앱 활성화 시 동기화 호출에 `imageStore`를 함께 넘긴다. `ClipboardHistorySettingsView`는
+`didRecordImageNotification`을 `.onReceive`로 받아 `reload()`를 불러 화면이 열려 있는 동안
+저장이 끝나면 목록을 갱신한다.
+
+## 4. UI
+
+### 키보드 패널 `ClipboardHistoryPanelView`
+
+- diffable snapshot 식별자와 `makeCell`의 항목 검색을 `text`에서 `id`로 바꾼다.
+  `applySnapshot`의 고정 상태 비교도 `id` 기준이다.
+- `configure(state:thumbnailURL:)`로 썸네일 경로 클로저를 받는다. 테스트는 임시
+  디렉터리를 주입한다.
+- 이미지 셀: `UIListContentConfiguration`에 `image`를 넣고 `imageProperties.maximumSize`와
+  `reservedLayoutSize`를 44×44로 고정해 텍스트 셀과 행 높이를 맞춘다. `text`는 "이미지",
+  `secondaryText`는 "1920×1080 · 1.2 MB"(`ByteCountFormatter`).
+- 썸네일 캐시: 해시 키 `NSCache<NSString, UIImage>`, `countLimit = 40`. 없으면
+  `UIImage(contentsOfFile:)`로 읽어 넣는다. `purgeThumbnailCache()`가 비운다. 같은 해시는
+  같은 바이트이므로 삭제된 해시를 따로 빼지 않는다.
+- `showTransientMessage(_ text: String)`: 패널 하단 중앙(아래 여백 12 pt, 좌우 최소 16 pt)에
+  `.systemThickMaterial` 알약 토스트를 0.15초 페이드인으로 띄우고 2초 뒤 0.25초 페이드아웃한다. 글자는
+  13 pt regular `label` 색, 최대 2줄이며 터치는 통과시킨다. 안내 문구는 문장 사이에 줄바꿈을 넣어 모든 기기에서 같은 두 줄로 보인다. 편집 모드에서도 뜨고,
+  표시 중에 다시 부르면 문구를 바꾸고 시간을 새로 센다. `configure`는 토스트를 건드리지 않고
+  `resetPresentation`이 즉시 숨긴다. 처음에는 헤더 제목 라벨을 바꾸는 방식이었으나 편집 모드에서 보이지 않고
+  재조회에 지워지는 문제가 있어 실기기 확인 뒤 토스트로 바꿨다. 헤더 제목은 항상 "클립보드 기록"이다.
+- 상세 뷰 `ClipboardHistoryDetailView`: `update(item:preview:isPinned:canPin:canOpenURL:)`.
+  이미지면 `textView`를 숨기고 aspect fit `UIImageView`에 미리보기를 보여주며 붙여넣기
+  버튼을 숨기고 복사·고정·닫기만 둔다. 미리보기는 원본을
+  `CGImageSourceCreateThumbnailAtIndex`로 긴 변 1200 px까지만 디코드한다(3배 화면의 상세 뷰 폭에 맞춘 값, 최대 약 5.8 MB). 패널이 닫힐 때 미리보기를 놓는다.
+  이 수치는 출력 비트맵 크기일 뿐이며, 다운샘플 과정에서 PNG 원본은 ImageIO가 전체
+  디코드할 수 있다(2절 메모리 참고). 그래서 키보드는 미리보기를 디코드하기 전에 이 이미지의
+  예상 디코드 메모리가 `keyboardDecodeMemoryBudget` 안인지 확인하고, 아니면 썸네일로 대신한다.
+  상세 뷰가 닫히면(닫기·고정 토글·재구성·패널 닫힘) 전환 완료 후 미리보기를 놓고, 메모리 경고 시 숨은 상세 뷰의
+  미리보기도 놓는다.
+- 편집 모드의 선택·일괄 삭제·일괄 고정·스와이프 액션은 인덱스 기반이라 그대로다.
+- 편집 모드 길게 누르기(실기기 확인 뒤 추가, 텍스트 항목에도 적용): 편집 모드에서도 길게 누르면 선택을 바꾸지 않고
+  상세 뷰를 연다. 편집 모드에서는 길게 누르기 인식기의 `delaysTouchesBegan`을 켜 인식이 끝날 때까지 셀에 터치를
+  넘기지 않으므로 다중 선택 셀의 눌림(회색·체크)이 먼저 그려지지 않고, 짧은 탭은 인식 실패 시점에 전달돼 선택이
+  토글된다. 편집 모드 전환은 `setEditing(_:animated: true)` 대신 `.allowUserInteraction` 옵션의 0.3초 애니메이션
+  블록 안에서 `setEditing(_:animated: false)` + `layoutIfNeeded()`로 수행한다. UIKit 내부 전환은 애니메이션 동안
+  터치를 통째로 무시해 그사이 스크롤·탭·길게 누르기가 되지 않았기 때문이다.
+- 빈 상태 문구는 "복사한 텍스트나 이미지가 여기에 표시됩니다."로 바꾼다.
+
+### 앱 관리 화면 `ClipboardHistorySettingsView`
+
+- 목록 행(실기기 확인 뒤 변경, 텍스트 항목에도 적용): `.onTapGesture` 대신 `.plain` 스타일 `Button`으로 두어 누르는 동안
+  라벨이 살짝 흐려지는 눌림 효과를 준다. 기본(automatic) 스타일은 List 행 강조를 쓰며 시트를 띄우는 탭 뒤에 강조가
+  남는 일이 있어 쓰지 않는다. 편집 모드에서는 버튼의 hit testing을 꺼 탭이 List 행 선택으로 가고, 바깥의
+  `simultaneousGesture(LongPressGesture)`가 길게 누르기만 받아 선택을 바꾸지 않고 원본 시트를 연다. 행 구조는 편집
+  모드와 무관하게 같아 선택 UI 전환 애니메이션이 유지된다. 보조 기술용으로 "상세 보기" 접근성 액션을 둔다.
+- 원문 시트의 복사·고정(실기기 확인 뒤 변경, 텍스트 항목에도 적용): 동작 직후 시트를 닫는다. 복사는 맨 위로 올라간 행이,
+  고정은 고정 영역으로 옮겨진 행이 결과 피드백이다. 그사이 키보드가 고정 한도를 채웠으면 변화 없이 닫힌다. 공유(시스템
+  시트)와 편집 저장(시트 안에서 수정 내용을 계속 보여 줌)은 그대로다. 시트는 `sheet(item:)`으로 띄우되 항목을
+  `DetailPresentation`(id는 연 시점의 항목 id로 고정)으로 감싼다. `sheet(isPresented:)`는 첫 표시에 같은 액션에서 바꾼 항목을
+  반영하지 못해 빈 시트가 나왔고(실기기에서 이미지 행 첫 탭에 재현), item 기반 시트는 첫 표시에 항목을 직접 받으며 닫힘
+  애니메이션 동안 내용도 유지한다. id를 고정하는 이유는 편집 저장으로 텍스트(= 항목 id)가 바뀌어도 시트가 닫혔다 다시
+  뜨지 않게 하기 위해서다. 시트가 열린 사이 키보드가 그 항목을 지운 경우는 두 경로에서 시트 안에 바로 "항목이 삭제되었습니다"
+  알림을 띄우고 확인 시 시트를 닫는다. (1) 앱이 다시 활성화되어 목록을 다시 읽을 때 시트의 항목이 사라졌으면
+  (`reload(checksPresentedItem:)`. 편집 저장은 id가 바뀌므로 그 경로만 검사를 건너뛴다). (2) 앱이 활성인 채로 지워져
+  재조회가 없었던 경우(iPad 멀티태스킹 등)는 편집 저장이 거부되면(`ClipboardHistoryStore.replaceText`가 `false`). 이때
+  화면의 `items`는 아직 그 항목을 들고 있어 저장 버튼은 그대로 살아 있고, store의 거부만으로 알림 경로에 닿는다.
+  알림이 뜨는 시점에 편집을 끝내야 한다. 편집기가 남아 있으면 알림이
+  닫힐 때 포커스를 되찾아 키보드가 시트를 밀어 올렸다 내려가는 튐이 생긴다(실기기 확인). 시트를 먼저 닫고 목록 화면에
+  띄우는 방식은 시트가 다 내려간 뒤에야 알림이 떠 늦게 느껴져 쓰지 않았다.
+
+- `selection: Set<String>`은 `id`를 담는다. `togglePins`, `requestRemove`, `remove`는 `id`
+  집합으로 store를 부른다.
+- `row(for:)`: 이미지면 썸네일 44 pt `Image(uiImage:)`를 왼쪽에 두고 "이미지" + 크기
+  캡션을 보여준다. 앱 프로세스는 메모리 여유가 있어 캐시 없이 동기 로드한다.
+- 상세 시트: 이미지면 가장 큰 detent(`.large`) 하나로 열고, 스크롤 없이 남은 영역에
+  다운샘플 이미지(`appPreviewMaxPixelSize` 3000 px, 모든 Apple 기기 화면의 긴 변 이상이라 원본과 구분되지 않음)를
+  `.task`에서 백그라운드로 한 번 디코드해 aspect fit으로 맞춘다. 텍스트 시트는 그대로
+  `.medium`/`.large`다. 툴바는 고정·`ShareLink(item: originalURL)`·복사(복원)만 둔다. 편집 버튼은
+  숨긴다.
+- 원문 편집 `replaceText`와 `+` 추가 시트는 텍스트 전용 그대로다. 삭제 확인 문구는
+  개수 기준이라 그대로다.
+- 앱의 복사 버튼도 키보드와 같은 규칙으로 `setData` 후 `lastSeenPasteboardChangeCount`를
+  갱신하고 `record`로 맨 위에 올린다.
+
+### 설정 토글 `KeyboardToolbarSettingsView`
+
+"클립보드 기록" 토글이 켜져 있을 때 그 아래에 "이미지도 기록" 토글을
+`@AppStorage(UserDefaultsKeys.isClipboardImageHistoryEnabled, store:)`로 둔다. 캡션은
+"복사한 이미지를 저장하고 탭하면 클립보드로 복원합니다"만 둔다. 이미지당 한도(24 MB·
+50 MP)와 토글 OFF 규칙 설명은 "클립보드 기록 관리" 화면의 목록 최하단(footer)과
+빈 상태에 항상 둔다(`ClipboardHistorySettingsView.imageLimitDescription`. 처음에는 토글 ON일 때만
+보였으나 실기기 확인 뒤 항상 표시로 바꿈). 기존 토글처럼 Analytics 이벤트(`clipboard_image_history`)를 남긴다.
+
+### Analytics
+
+앱이 활성화되어 클립보드 동기화를 마친 직후 `clipboard_history_status` 이벤트를 남긴다. 매개변수는 `text_count`,
+`image_count`, `pinned_text_count`, `pinned_image_count`, `storage_kb`(plist + 이미지 원본·썸네일 파일 크기 합,
+`ClipboardHistoryStore.storageByteSize()`). 키보드 확장에는 Analytics가 없으므로 앱에서만 남긴다.
+
+### 로컬라이징
+
+Core 문구는 `SYKeyboardAssets/Sources/SYKeyboardAssets/Resources/Localizable.xcstrings`,
+앱 문구는 `SYKeyboard/Resources/Localizable.xcstrings`에 한/영을 넣는다.
+
+- Core: "이미지", "이미지를 복사했습니다.\n입력창을 길게 눌러 붙여넣기 해주세요.",
+  "복사한 텍스트나 이미지가 여기에 표시됩니다."
+- 앱: "이미지도 기록"과 캡션, "이미지"
+
+### `project.pbxproj`
+
+`ClipboardImagePolicy.swift`, `ClipboardImageStore.swift`를 `SYKeyboardCore`·`SYKeyboard`
+타깃의 `membershipExceptions`에 알파벳순으로 추가한다.
+
+## 5. 오류 처리
+
+- App Group 컨테이너를 못 얻으면 `ClipboardImageStore()`가 `nil`이고 이미지 캡처를
+  건너뛴다. 텍스트 기록은 기존대로 동작한다.
+- 한도 초과·손상 파일·썸네일 실패는 저장하지 않고 파일을 남기지 않는다. `changeCount`는
+  갱신돼 같은 pasteboard를 반복해 읽지 않는다.
+- 원본 파일이 없는 항목을 복원하려 하면 항목을 지우고 목록을 다시 읽는다.
+- 파일 삭제 실패는 로그만 남긴다. 다음 저장에서 차집합에 다시 포함되지 않으므로 고아
+  파일이 될 수 있으나 범위 밖으로 둔다.
+
+## 6. 테스트와 검증
+
+### 단위 테스트 (Swift Testing)
+
+| Suite | 검증 |
+| --- | --- |
+| `ClipboardImagePolicyTests` (신규) | 타입 우선순위(JPEG > HEIC > PNG, TIFF·GIF 제외), 바이트 24 MB·픽셀 50 MP 경계값(8064×6048 포함), 타입별 디코드 메모리, 기기별 디코드 예산 판정, 확장자 유도 |
+| `ClipboardHistoryPolicyTests` (확장) | 이미지 content 재삽입 시 맨 위 이동, 고정 이미지 재복사 유지, 텍스트·이미지 혼합 정렬과 미고정 트리밍, 이미지 항목 `replacingText`가 `nil`, `id` 기준 일괄 고정·해제와 한도 |
+| `ClipboardHistoryStoreTests` (확장) | `text` 키만 있는 기존 파일 디코드, 이미지 항목 왕복 저장, 이미지 항목 삭제·트리밍·전체 삭제 시 원본·썸네일 파일 삭제, 텍스트만 바뀐 저장은 파일 삭제 없음 |
+| `ClipboardImageStoreTests` (신규) | 테스트에서 `CGImageDestination`으로 만든 작은 PNG·JPEG 임시 파일 저장 → 해시 파일명·썸네일 생성·참조 값, 같은 파일 두 번 저장 시 파일 하나, 한도 초과는 `nil`이고 파일 미생성, 손상 파일은 `nil`, 회전 메타데이터의 폭·높이 교환, `stage` 후 거부·중복 시 임시 파일 정리, 디코드 예산 초과 거부 |
+| `ClipboardHistoryPasteboardSynchronizerTests` (확장) | 이미지만 있는 pasteboard(`setData`)에서 이미지 기록(완료 콜백을 `withCheckedContinuation`으로 대기), 텍스트+이미지는 텍스트만, 이미지 설정 OFF면 기록 없음, 이미지 경로 진입 시 `changeCount`만 즉시 갱신(예산 초과 저장 거부는 `ClipboardImageStoreTests`) |
+| `ClipboardHistoryPanelViewTests` (확장) | 이미지 항목 `configure` 후 셀 구성, 탭 시 `didSelectItemAt` 인덱스, `showTransientMessage` 토스트 표시·`configure` 후 유지·`resetPresentation` 시 숨김·편집 모드 표시, 텍스트·이미지 혼합 삭제 스냅샷 crash 없음 |
+| `UserDefaultsContractTests` (확장) | `isClipboardImageHistoryEnabled` 키·기본값 |
+
+2초 뒤 자동 복구는 시간 경과 테스트를 금지하는 지침에 따라 단위 테스트로 고정하지
+않고 실기기 확인 항목으로 둔다.
+
+### 빌드
+
+`SYKeyboard` 테스트 실행 후 `HangeulKeyboard`·`EnglishKeyboard`·`HangeulEnglishKeyboard`
+세 scheme 빌드. 기준은 iPhone 13 mini / iOS 18.6이고 없으면 가장 가까운 iOS 16+
+시뮬레이터로 조정해 기록한다. 빌드 후 `.xcscheme`의 `RemotePath` 변경은 되돌린다.
+
+### 실기기 수동 확인 (자동 테스트로 대체 불가)
+
+1. 사진 앱에서 12 MP 사진 복사 → 키보드 열기 → 패널에 썸네일 표시 → 메시지 앱에서 길게
+   눌러 붙여넣기 성공.
+2. 스크린샷(PNG) 복사 → 저장 확인.
+3. 대형 PNG(20 MP 이상) 복사 → Xcode 메모리 게이지로 키보드 피크 확인. 종료되면 PNG
+   전용 픽셀 상한 도입.
+4. 웹페이지에서 텍스트+이미지 영역 복사 → 텍스트만 저장.
+5. 이미지 탭 후 헤더 안내 2초 표시와 복구, 입력창 탭 시 패널 닫힘.
+6. 이미지 paste 미지원 입력 필드(예: 검색창)에서 붙여넣기 메뉴 동작 기록.
+7. "이미지도 기록" OFF → 새 이미지 미저장, 기존 이미지 항목 유지.
+8. 앱 관리 화면에서 이미지 항목 삭제 → App Group `Library/Application Support/ClipboardImages/` 파일 삭제 확인.
+9. 앱 원문 시트에서 공유·복사·고정 동작.
+10. iOS 16 기기에서 이미지 캡처 시 붙여넣기 권한 알림이 텍스트와 같은 방식으로 뜨는지.
+
+## 7. 파일 목록
+
+신규
+
+- `Modules/SYKeyboardCore/Presentation/Utils/Policies/ClipboardImagePolicy.swift`
+- `Modules/SYKeyboardCore/Storage/ClipboardImageStore.swift`
+- `SYKeyboardTests/Utils/ClipboardImagePolicyTests.swift`
+- `SYKeyboardTests/Storage/ClipboardImageStoreTests.swift`
+
+변경
+
+- `Modules/SYKeyboardCore/Presentation/Utils/Policies/ClipboardHistoryPolicy.swift`
+- `Modules/SYKeyboardCore/Storage/ClipboardHistoryStore.swift`
+- `Modules/SYKeyboardCore/Storage/ClipboardHistoryPasteboardSynchronizer.swift`
+- `Modules/SYKeyboardCore/Storage/UserDefaultsKeys.swift`, `DefaultValues.swift`,
+  `UserDefaultsManager.swift`
+- `Modules/SYKeyboardCore/Presentation/View/ClipboardHistoryPanelView.swift`
+- `Modules/SYKeyboardCore/Presentation/ViewController/Bases/BaseKeyboardViewController.swift`
+- `SYKeyboard/App/SYKeyboardApp.swift`
+- `SYKeyboard/Presentation/KeyboardSettings/ClipboardHistorySettingsView.swift`
+- `SYKeyboard/Presentation/KeyboardSettings/KeyboardToolbarSettingsView.swift`
+- `SYKeyboardAssets/Sources/SYKeyboardAssets/Resources/Localizable.xcstrings`
+- `SYKeyboard/Resources/Localizable.xcstrings`
+- `SYKeyboard.xcodeproj/project.pbxproj`
+- `SYKeyboardTests/Utils/ClipboardHistoryPolicyTests.swift`
+- `SYKeyboardTests/Storage/ClipboardHistoryStoreTests.swift`
+- `SYKeyboardTests/Storage/ClipboardHistoryPasteboardSynchronizerTests.swift`
+- `SYKeyboardTests/Presentation/ClipboardHistoryPanelViewTests.swift`
+- `SYKeyboardTests/Storage/UserDefaultsContractTests.swift`

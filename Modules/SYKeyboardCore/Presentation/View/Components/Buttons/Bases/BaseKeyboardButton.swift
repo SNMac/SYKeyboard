@@ -23,7 +23,6 @@ public class BaseKeyboardButton: UIButton {
     
     final let insetDx: CGFloat
     final let insetDy: CGFloat
-    final let cornerRadius: CGFloat
     
     final var isPressed: Bool = false {
         didSet {
@@ -51,9 +50,9 @@ public class BaseKeyboardButton: UIButton {
     // MARK: - UI Components
     
     /// 배경 UI
-    final lazy var backgroundView = ButtonBackgroundView(cornerRadius: self.cornerRadius)
+    final let backgroundView = ButtonBackgroundView()
     /// 그림자 UI
-    final lazy var shadowView = ButtonShadowView(cornerRadius: self.cornerRadius)
+    final let shadowView = ButtonShadowView()
     /// iOS 26 `UIButton.Configuration.attributedTitle` 애니메이션 해결용
     final let primaryKeyListLabel: UILabel = {
         let label = UILabel()
@@ -81,11 +80,6 @@ public class BaseKeyboardButton: UIButton {
         case .dubeolsik, .qwerty, .symbol:
             self.insetDx = 3
             self.insetDy = 4
-        }
-        if #available(iOS 26, *) {
-            self.cornerRadius = 8.5
-        } else {
-            self.cornerRadius = 4.6
         }
         super.init(frame: .zero)
         
@@ -163,7 +157,7 @@ private extension BaseKeyboardButton {
         let trailing = backgroundView.trailingAnchor.constraint(equalTo: self.trailingAnchor, constant: -insetDx)
         let bottom = backgroundView.bottomAnchor.constraint(equalTo: self.bottomAnchor, constant: -insetDy)
         visualConstraints = [top, leading, trailing, bottom]
-        NSLayoutConstraint.activate(visualConstraints)
+        activateVisualConstraints()
         
         primaryKeyListLabel.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
@@ -186,6 +180,12 @@ private extension BaseKeyboardButton {
 // MARK: - Update Methods
 
 private extension BaseKeyboardButton {
+    /// 버튼이 stack에서 접혀 폭이 0이 되면 좌우 인셋 합(`insetDx * 2`)을 만족할 수 없으므로 required보다 낮춘다
+    func activateVisualConstraints() {
+        visualConstraints.forEach { $0.priority = .init(999) }
+        NSLayoutConstraint.activate(visualConstraints)
+    }
+
     func remakeConstraintsForVisuals(referenceView: UIView?, multiplier: CGFloat) {
         NSLayoutConstraint.deactivate(visualConstraints)
         visualConstraints.removeAll()
@@ -217,6 +217,6 @@ private extension BaseKeyboardButton {
             visualConstraints.append(contentsOf: [leading, trailing])
         }
         
-        NSLayoutConstraint.activate(visualConstraints)
+        activateVisualConstraints()
     }
 }

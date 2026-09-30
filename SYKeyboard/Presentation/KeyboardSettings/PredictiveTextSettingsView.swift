@@ -21,12 +21,18 @@ struct PredictiveTextSettingsView: View {
     @AppStorage(UserDefaultsKeys.isPredictiveTextEnabled, store: UserDefaultsManager.shared.storage)
     private var isPredictiveTextEnabled = DefaultValues.isPredictiveTextEnabled
     
+    @AppStorage(UserDefaultsKeys.isShowMathResultsEnabled, store: UserDefaultsManager.shared.storage)
+    private var isShowMathResultsEnabled = DefaultValues.isShowMathResultsEnabled
+
     @State private var showResetLearnedWordsAlert = false
     @State private var showResetNGramAlert = false
     @State private var showResetAllAlert = false
     
     private let supportedLanguages = ["ko-KR", "en-US"]
-    
+
+    /// NGram은 한영 통합 키보드의 통합 파일까지 지운다
+    private let nGramLanguages = ["ko-KR", "en-US", NGramPredictiveTextEngine.hangeulEnglishLanguage]
+
     // MARK: - Content
     
     var body: some View {
@@ -39,7 +45,7 @@ struct PredictiveTextSettingsView: View {
             Analytics.setUserProperty(newValue.analyticsValue,
                                       forName: "pref_text_replacement")
             Analytics.logEvent("text_replacement", parameters: [
-                "view": "InputSettingsView",
+                "view": "PredictiveTextSettingsView",
                 "enabled": newValue.analyticsValue
             ])
             hideKeyboard()
@@ -54,12 +60,29 @@ struct PredictiveTextSettingsView: View {
             Analytics.setUserProperty(newValue.analyticsValue,
                                       forName: "pref_predictive_text")
             Analytics.logEvent("predictive_text", parameters: [
-                "view": "InputSettingsView",
+                "view": "PredictiveTextSettingsView",
                 "enabled": newValue.analyticsValue
             ])
             hideKeyboard()
         }
         
+        if isPredictiveTextEnabled {
+            Toggle(isOn: $isShowMathResultsEnabled, label: {
+                Text("수식 결과 표시")
+                Text("키보드 상단에 수식 계산 결과 표시")
+                    .font(.caption)
+            })
+            .onChange(of: isShowMathResultsEnabled) { newValue in
+                Analytics.setUserProperty(newValue.analyticsValue,
+                                          forName: "pref_math_results")
+                Analytics.logEvent("show_math_results", parameters: [
+                    "view": "PredictiveTextSettingsView",
+                    "enabled": newValue.analyticsValue
+                ])
+                hideKeyboard()
+            }
+        }
+
         Button(role: .destructive) {
             showResetAllAlert = true
         } label: {
@@ -92,11 +115,11 @@ private extension PredictiveTextSettingsView {
     }
     
     func resetNGramData() {
-        for lang in supportedLanguages {
+        for lang in nGramLanguages {
             let engine = NGramPredictiveTextEngine(language: lang)
             engine.resetAllData()
         }
-        
+
         Analytics.logEvent("reset_ngram_data", parameters: [
             "view": "PredictiveTextSettingsView"
         ])

@@ -22,9 +22,18 @@ struct OneHandedKeyboardWidthSettingsView: View {
     
     @AppStorage(UserDefaultsKeys.oneHandedKeyboardWidth, store: UserDefaultsManager.shared.storage)
     private var oneHandedKeyboardWidth = DefaultValues.oneHandedKeyboardWidth
-    
+
+    @AppStorage(UserDefaultsKeys.letterColumnWidthMultiplier, store: UserDefaultsManager.shared.storage)
+    private var letterColumnWidthMultiplier = DefaultValues.letterColumnWidthMultiplier
+
     @AppStorage(UserDefaultsKeys.isPredictiveTextEnabled, store: UserDefaultsManager.shared.storage)
     private var isPredictiveTextEnabled = DefaultValues.isPredictiveTextEnabled
+
+    @AppStorage(UserDefaultsKeys.isUndoRedoEnabled, store: UserDefaultsManager.shared.storage)
+    private var isUndoRedoEnabled = DefaultValues.isUndoRedoEnabled
+
+    @AppStorage(UserDefaultsKeys.isClipboardHistoryEnabled, store: UserDefaultsManager.shared.storage)
+    private var isClipboardHistoryEnabled = DefaultValues.isClipboardHistoryEnabled
     
     @AppStorage(UserDefaultsKeys.needsInputModeSwitchKey, store: UserDefaultsManager.shared.storage)
     private var needsInputModeSwitchKey = DefaultValues.needsInputModeSwitchKey
@@ -38,13 +47,15 @@ struct OneHandedKeyboardWidthSettingsView: View {
     // MARK: - Content
     
     var body: some View {
-        NavigationStack {
+        VStack {
             oneHandedKeyboardWidthSettings
             
             Spacer()
             
             PreviewKeyboardView(keyboardHeight: $previewKeyboardHeight,
+                                keyboardSettingsHeight: keyboardHeight,
                                 oneHandedKeyboardWidth: $tempOneHandedKeyboardWidth,
+                                letterColumnWidthMultiplier: $letterColumnWidthMultiplier,
                                 needsInputModeSwitchKey: $needsInputModeSwitchKey,
                                 previewKeyboardLanguage: $previewKeyboardLanguage,
                                 oneHandedMode: $previewOneHandedMode)
@@ -52,7 +63,7 @@ struct OneHandedKeyboardWidthSettingsView: View {
             tempOneHandedKeyboardWidth = oneHandedKeyboardWidth
             updatePreviewKeyboardHeight()
             updatePreviewLanguageBasedOnSystem()
-        }.requestReviewViewModifier()
+        }.requestReviewOnDetailSettingsReturn()
     }
 }
 
@@ -108,7 +119,12 @@ private extension OneHandedKeyboardWidthSettingsView {
 
 private extension OneHandedKeyboardWidthSettingsView {
     func updatePreviewKeyboardHeight() {
-        let suggestionBarHeight = isPredictiveTextEnabled
+        let isSuggestionBarVisible = KeyboardPresentationStatePolicy.isSuggestionBarVisibleForSettingsPreview(
+            isPredictiveTextEnabled: isPredictiveTextEnabled,
+            isUndoRedoEnabled: isUndoRedoEnabled,
+            isClipboardHistoryEnabled: isClipboardHistoryEnabled
+        )
+        let suggestionBarHeight = isSuggestionBarVisible
         ? KeyboardLayoutFigure.suggestionBarHeightWithTopSpacing + KeyboardLayoutFigure.keyboardFrameSpacing
         : 0
         previewKeyboardHeight = keyboardHeight + suggestionBarHeight
@@ -128,5 +144,7 @@ private extension OneHandedKeyboardWidthSettingsView {
 // MARK: - Preview
 
 #Preview {
-    OneHandedKeyboardWidthSettingsView()
+    NavigationStack {
+        OneHandedKeyboardWidthSettingsView()
+    }
 }

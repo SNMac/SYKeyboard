@@ -34,11 +34,15 @@ final class EnglishKeyboardView: StandardKeyboardView, EnglishKeyboardLayoutProv
     
     override init(
         getIsShiftedLetterInput: @escaping () -> Bool,
-        setIsShiftedLetterInput: @escaping (Bool) -> ()
+        setIsShiftedLetterInput: @escaping (Bool) -> (),
+        showsLanguageSwitchButton: Bool = false,
+        showsNumberRow: Bool = UserDefaultsManager.shared.showsNumberRow
     ) {
         super.init(
             getIsShiftedLetterInput: getIsShiftedLetterInput,
-            setIsShiftedLetterInput: setIsShiftedLetterInput
+            setIsShiftedLetterInput: setIsShiftedLetterInput,
+            showsLanguageSwitchButton: showsLanguageSwitchButton,
+            showsNumberRow: showsNumberRow
         )
         updateLayoutToDefault()
     }
@@ -73,7 +77,8 @@ final class EnglishKeyboardView: StandardKeyboardView, EnglishKeyboardLayoutProv
         
         let disableShift = UIAction { [weak self] _ in
             guard let self else { return }
-            if (!isCapsLocked && wasShifted) || getIsShiftedLetterInput() {
+            // caps lock 중에는 누른 채 글자를 입력했더라도 떼는 동작으로 해제하지 않는다
+            if !isCapsLocked && (wasShifted || getIsShiftedLetterInput()) {
                 isShifted = false
                 setIsShiftedLetterInput(false)
             }

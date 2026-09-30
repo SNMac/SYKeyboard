@@ -15,19 +15,21 @@ final class SuggestionButtonView: UIView {
     
     private let cornerRadius: CGFloat
     
-    var hasText: Bool {
-        return !(suggestionLabel.text?.isEmpty ?? true)
+    /// 현재 표시 중인 후보 문자열
+    var text: String? {
+        return suggestionLabel.text
     }
-    
+
+    var hasText: Bool {
+        return !(text?.isEmpty ?? true)
+    }
+
     var isHighlighted: Bool = false {
         didSet {
-            backgroundView.backgroundColor = isHighlighted ? .suggestionButtonPressed : .clear
+            updateAppearance()
         }
     }
-    
-    weak var leadingDivider: UIView?
-    weak var trailingDivider: UIView?
-    
+
     // MARK: - UI Components
     
     private lazy var backgroundView: UIView = {
@@ -38,9 +40,10 @@ final class SuggestionButtonView: UIView {
         
         return view
     }()
-    
+
     private let suggestionLabel: UILabel = {
         let label = UILabel()
+        label.font = .systemFont(ofSize: FontSize.stringKeyMedium)
         label.textColor = .label
         label.textAlignment = .center
         label.numberOfLines = 2
@@ -56,7 +59,8 @@ final class SuggestionButtonView: UIView {
     
     override init(frame: CGRect) {
         if #available(iOS 26, *) {
-            self.cornerRadius = (KeyboardLayoutFigure.suggestionBarHeightWithTopSpacing - KeyboardLayoutFigure.keyboardFrameSpacing) / 2
+            let height = KeyboardLayoutFigure.suggestionBarHeightWithTopSpacing - KeyboardLayoutFigure.keyboardFrameSpacing
+            self.cornerRadius = height / 2
         } else {
             self.cornerRadius = 4.6
         }
@@ -67,11 +71,16 @@ final class SuggestionButtonView: UIView {
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
+
     // MARK: - Internal Methods
     
-    func update(to title: String) {
+    /// - Parameters:
+    ///   - title: 표시할 후보 문자열
+    ///   - isRemovable: 길게 눌러 학습에서 삭제할 수 있는 후보면 `true`. 약한 단서로 medium 굵기를 쓴다
+    func update(to title: String, isRemovable: Bool = false) {
         suggestionLabel.text = title
+        suggestionLabel.font = .systemFont(ofSize: FontSize.stringKeyMedium, weight: isRemovable ? .medium : .regular)
+        updateAppearance()
     }
 }
 
@@ -111,5 +120,15 @@ private extension SuggestionButtonView {
             suggestionLabel.trailingAnchor.constraint(equalTo: self.trailingAnchor, constant: -4),
             suggestionLabel.bottomAnchor.constraint(equalTo: self.bottomAnchor)
         ])
+    }
+
+    func updateAppearance() {
+        backgroundView.backgroundColor = isHighlighted ? .suggestionButtonPressed : .clear
+
+        if #available(iOS 26.0, *) {
+            suggestionLabel.textColor = isHighlighted ? .label : .suggestionButtonLabel
+        } else {
+            suggestionLabel.textColor = .label
+        }
     }
 }

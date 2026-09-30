@@ -17,29 +17,29 @@ import GoogleMobileAds
 import SYKeyboardCore
 
 final class AppDelegate: UIResponder, UIApplicationDelegate {
-    
+
     // MARK: - Properties
-    
+
     private lazy var logger = Logger(
         subsystem: Bundle.main.bundleIdentifier ?? "Unknown Bundle",
         category: "\(String(describing: type(of: self))) <\(Unmanaged.passUnretained(self).toOpaque())>"
     )
-    
+
     var window: UIWindow?  // FBAudienceNetwork 크래시 방지
-    
+
     // MARK: - didFinishLaunchingWithOptions
-    
+
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         // Firebase 로딩
         FirebaseApp.configure()
-        
+
         // IDFV를 사용하여 Analytics, Crashlytics User ID 설정
         let idfv = UIDevice.current.identifierForVendor?.uuidString
         Analytics.setUserID(idfv)
         Crashlytics.crashlytics().setUserID(idfv)
-        
+
         setInitialUserProperties()
-        
+
         // AdMob 로딩
         Task {
             let initializationStatus = await MobileAds.shared.start()
@@ -47,37 +47,37 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
                 logger.debug("Adapter: \(adapterName), Description: \(status.description), Latency: \(status.latency)")
             }
         }
-        
+
         return true
     }
-    
+
     // MARK: - Helper Methods
-    
+
     /// 앱 실행 시 현재 `UserDefaults`에 저장된 설정값들을 Firebase Analytics User Property로 전송합니다.
     private func setInitialUserProperties() {
         let keyboardSettingsManager = UserDefaultsManager.shared
-        
+
         func setAnalyticsProperty(_ string: String, forName name: String) {
             Analytics.setUserProperty(string, forName: name)
         }
-        
+
         func setAnalyticsProperty(_ bool: Bool, forName name: String) {
             Analytics.setUserProperty(bool.analyticsValue, forName: name)
         }
-        
+
         func setAnalyticsProperty(_ double: Double, format: String, forName name: String) {
             Analytics.setUserProperty(String(format: format, double), forName: name)
         }
-        
+
         // 한글 키보드
         let selectedHangeulKeyboardRaw = keyboardSettingsManager.selectedHangeulKeyboard.rawValue
         let hangeulKeyboard = HangeulKeyboardSelectView.HangeulKeyboard(rawValue: selectedHangeulKeyboardRaw) ?? .naratgeul
         setAnalyticsProperty(hangeulKeyboard.analyticsValue, forName: "pref_hangeul_keyboard")
-        
+
         // 피드백 설정
         setAnalyticsProperty(keyboardSettingsManager.isSoundFeedbackEnabled, forName: "pref_sound_feedback")
         setAnalyticsProperty(keyboardSettingsManager.isHapticFeedbackEnabled, forName: "pref_haptic_feedback")
-        
+
         // 입력 설정
         let selectedLongPressActionRaw = keyboardSettingsManager.selectedLongPressAction.rawValue
         let longPressMode = InputSettingsView.LongPressMode(rawValue: selectedLongPressActionRaw) ?? .repeatInput
@@ -86,18 +86,31 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
         setAnalyticsProperty(keyboardSettingsManager.repeatRate, format: "%.3f", forName: "pref_repeat_rate")
         setAnalyticsProperty(keyboardSettingsManager.isAutoCapitalizationEnabled, forName: "pref_auto_capitalization")
         setAnalyticsProperty(keyboardSettingsManager.isTextReplacementEnabled, forName: "pref_text_replacement")
+        setAnalyticsProperty(keyboardSettingsManager.isShowMathResultsEnabled, forName: "pref_math_results")
         setAnalyticsProperty(keyboardSettingsManager.isPeriodShortcutEnabled, forName: "pref_period_shortcut")
         setAnalyticsProperty(keyboardSettingsManager.isAutoChangeToPrimaryEnabled, forName: "pref_auto_change_primary")
         setAnalyticsProperty(keyboardSettingsManager.isDragToMoveCursorEnabled, forName: "pref_drag_to_move_cursor")
         setAnalyticsProperty(keyboardSettingsManager.cursorActiveDistance, format: "%.1f", forName: "pref_cursor_atv_distance")
         setAnalyticsProperty(keyboardSettingsManager.cursorMoveInterval, format: "%.1f", forName: "pref_cursor_mv_interval")
-        
+
         // 외형 설정
         setAnalyticsProperty(keyboardSettingsManager.keyboardHeight, format: "%.1f", forName: "pref_keyboard_height")
         setAnalyticsProperty(keyboardSettingsManager.isNumericKeypadEnabled, forName: "pref_numeric_keypad")
         setAnalyticsProperty(keyboardSettingsManager.isOneHandedKeyboardEnabled, forName: "pref_one_handed_keyboard")
         setAnalyticsProperty(keyboardSettingsManager.oneHandedKeyboardWidth, format: "%.1f", forName: "pref_one_handed_width")
-        
+        setAnalyticsProperty(keyboardSettingsManager.isNaratgeulDotLabelEnabled, forName: "pref_naratgeul_dot_label")
+        // 사용자 속성은 이름 24자 이하, 앱당 25개까지만 SDK가 전송한다. 스페이스 하단 배치와 숫자 행 표시는 한도 때문에 이벤트로만 남긴다
+        setAnalyticsProperty(keyboardSettingsManager.letterColumnWidthMultiplier, format: "%.2f", forName: "pref_letter_column_width")
+
+        // 입력·자동완성
+        setAnalyticsProperty(keyboardSettingsManager.isSmartPunctuationEnabled, forName: "pref_smart_punctuation")
+        setAnalyticsProperty(keyboardSettingsManager.isPredictiveTextEnabled, forName: "pref_predictive_text")
+
+        // 키보드 툴바
+        setAnalyticsProperty(keyboardSettingsManager.isUndoRedoEnabled, forName: "pref_undo_redo")
+        setAnalyticsProperty(keyboardSettingsManager.isClipboardHistoryEnabled, forName: "pref_clipboard_history")
+        setAnalyticsProperty(keyboardSettingsManager.isClipboardImageHistoryEnabled, forName: "pref_clipboard_images")
+
         logger.debug("Firebase Analytics User Properties 초기화 완료")
     }
 }
@@ -106,28 +119,87 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
 
 @main
 struct SYKeyboardApp: App {
-    
+
     // MARK: - Properties
-    
+
     @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
-    
+
     @Environment(\.openURL) var openURL
-    
+
+    @AppStorage(AppUserDefaultsKeys.isOnboarding, store: AppUserDefaultsManager.shared.storage)
+    private var isOnboarding = AppDefaultValues.isOnboarding
+
+    @State private var isHandlingSettingsRedirect = false
+
     // MARK: - Content
-    
+
     var body: some Scene {
         WindowGroup {
             ContentView()
                 .onOpenURL { url in
+                    isHandlingSettingsRedirect = true
                     if let settingsURL = URL(string: UIApplication.openSettingsURLString) {
                         openURL(settingsURL)
                     }
                 }
                 .onReceive(NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)) { _ in
-                    if ATTrackingManager.trackingAuthorizationStatus == .notDetermined {
+                    synchronizeClipboardHistoryIfNeeded()
+
+                    let result = AppTrackingAuthorizationPolicy.evaluateDidBecomeActive(
+                        isTrackingAuthorizationNotDetermined: ATTrackingManager.trackingAuthorizationStatus == .notDetermined,
+                        isOnboarding: isOnboarding,
+                        isHandlingSettingsRedirect: isHandlingSettingsRedirect
+                    )
+
+                    if result.shouldClearSettingsRedirect {
+                        isHandlingSettingsRedirect = false
+                    }
+
+                    if result.shouldRequestAuthorization {
+                        Task { await ATTrackingManager.requestTrackingAuthorization() }
+                    }
+                }
+                .onChange(of: isOnboarding) { newValue in
+                    guard newValue == false else { return }
+
+                    let result = AppTrackingAuthorizationPolicy.evaluateOnboardingDismissed(
+                        isTrackingAuthorizationNotDetermined: ATTrackingManager.trackingAuthorizationStatus == .notDetermined,
+                        isHandlingSettingsRedirect: isHandlingSettingsRedirect
+                    )
+
+                    if result.shouldRequestAuthorization {
                         Task { await ATTrackingManager.requestTrackingAuthorization() }
                     }
                 }
         }
+    }
+
+    // MARK: - Private Methods
+
+    /// 앱이 활성화될 때 클립보드 기록을 동기화한다. 설정이 꺼져 있으면 pasteboard를 읽지 않는다.
+    /// 활성화는 pasteboard가 바뀌었다는 보장이 없어 읽을 때마다 배너만 반복되므로, 키보드가 예산 초과로
+    /// 건너뛴 이미지가 남아 있을 때만 읽는다(#154)
+    private func synchronizeClipboardHistoryIfNeeded() {
+        guard UserDefaultsManager.shared.isClipboardHistoryEnabled,
+              let store = ClipboardHistoryStore() else { return }
+        // 앱은 메모리 여유가 커서 키보드가 예산 초과로 건너뛴 큰 PNG도 여기서 다시 시도해 저장한다
+        ClipboardHistoryPasteboardSynchronizer.synchronizeIfNeeded(
+            store: store, decodeMemoryBudget: ClipboardImagePolicy.appDecodeMemoryBudget, retriesBudgetSkipped: true
+        )
+        logClipboardHistoryStatus(store)
+    }
+
+    /// 기록의 텍스트·이미지·고정 개수와 저장 용량을 활성화마다 Analytics에 남긴다.
+    /// 용량은 plist와 이미지 원본·썸네일 파일의 합이고, 직전 동기화가 백그라운드에서 저장 중인 이미지는 다음 활성화에 잡힌다
+    private func logClipboardHistoryStatus(_ store: ClipboardHistoryStore) {
+        let items = store.load()
+        let images = items.filter { $0.image != nil }
+        Analytics.logEvent("clipboard_history_status", parameters: [
+            "text_count": items.count - images.count,
+            "image_count": images.count,
+            "pinned_text_count": items.filter { $0.isPinned && $0.image == nil }.count,
+            "pinned_image_count": images.filter(\.isPinned).count,
+            "storage_kb": store.storageByteSize() / 1_024
+        ])
     }
 }

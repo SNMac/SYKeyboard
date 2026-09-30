@@ -46,7 +46,7 @@ struct InstructionsTabView: View {
                                  description: numericPageDescription)
             
             let oneHandedPageTitle = String(localized: "한 손 키보드 변경 방법")
-            let oneHandedPageDescription = String(localized: "'!#1', '한글' 또는 'ABC' 버튼을 위로 드래그 or 길게 누르기")
+            let oneHandedPageDescription = String(localized: "'!#1', '한글' 또는 'ABC' 버튼을 위로 드래그하거나 길게 누르기")
             InstructionsPageView(title: oneHandedPageTitle,
                                  image: .instructionChangeOneHanded,
                                  description: oneHandedPageDescription)

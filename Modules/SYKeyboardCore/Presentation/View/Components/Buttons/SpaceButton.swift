@@ -14,7 +14,7 @@ final public class SpaceButton: PrimaryButton, TextInteractable {
     
     public let type: TextInteractableType = .spaceButton
 
-    private let imageConfig = UIImage.SymbolConfiguration(pointSize: FontSize.imageSize, weight: .medium, scale: .large)
+    private let imageConfig = UIImage.SymbolConfiguration(pointSize: FontSize.imageMedium, weight: .medium, scale: .large)
     
     // MARK: - Initializer
     

@@ -9,6 +9,9 @@ import UIKit
 
 /// 키보드 전환 버튼 제스처 핸들러 프로토콜
 public protocol SwitchGestureHandling: AnyObject {
+    /// 천지인 스페이스 하단 배치처럼 `switchButton`이 행 좌측 끝에 놓이는 레이아웃인지 여부.
+    /// 키보드 선택 오버레이가 열리는 방향이 이 값에 따라 뒤집힌다
+    var usesBottomSpaceLayout: Bool { get }
     /// 키보드 전환 버튼
     var switchButton: SwitchButton { get }
     /// 키보드 레이아웃 선택 UI
@@ -37,6 +40,8 @@ public protocol SwitchGestureHandling: AnyObject {
 }
 
 public extension SwitchGestureHandling {
+    var usesBottomSpaceLayout: Bool { false }
+
     func showKeyboardSelectOverlay(needToEmphasizeTarget: Bool) {
         keyboardSelectOverlayView.configure(needToEmphasizeTarget: needToEmphasizeTarget)
         keyboardSelectOverlayView.isHidden = false

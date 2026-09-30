@@ -20,6 +20,9 @@ final public class KeyboardView: UIInputView {
     )
     
     private var keyboardLayoutWidthConstraint: NSLayoutConstraint?
+
+    /// 사용자가 설정한 한 손 키보드 너비
+    private var configuredOneHandedWidth = CGFloat(UserDefaultsManager.shared.oneHandedKeyboardWidth)
     
     // MARK: - UI Components
     
@@ -34,8 +37,8 @@ final public class KeyboardView: UIInputView {
     
     /// 자동완성 툴바
     lazy var suggestionBarView: SuggestionBarView = {
+        // 표시 여부는 viewDidLoad의 updateSuggestionBarHidden()이 첫 표시 전에 정한다
         let suggestionBar = SuggestionBarView(keyboardHStackView: keyboardHStackView)
-        suggestionBar.isHidden = !UserDefaultsManager.shared.isPredictiveTextEnabled
         
         return suggestionBar
     }()
@@ -45,7 +48,9 @@ final public class KeyboardView: UIInputView {
         let stackView = UIStackView()
         stackView.axis = .horizontal
         stackView.spacing = 0
-        stackView.layoutMargins = UIEdgeInsets(top: KeyboardLayoutFigure.keyboardFrameSpacing, left: 0, bottom: 0, right: 0)
+        // 상하단 간격을 같게 하려고 프레임 여백을 위아래로 나눈다 (전체 높이는 동일)
+        let verticalMargin = KeyboardLayoutFigure.keyboardFrameSpacing / 2
+        stackView.layoutMargins = UIEdgeInsets(top: verticalMargin, left: 0, bottom: verticalMargin, right: 0)
         stackView.isLayoutMarginsRelativeArrangement = true
         
         return stackView
@@ -62,20 +67,35 @@ final public class KeyboardView: UIInputView {
         return chevronButton
     }()
     
-    /// 주 키보드
-    private var primaryKeyboardView: PrimaryKeyboardRepresentable!
+    /// 주 키보드 목록
+    private(set) var primaryKeyboardViews: [PrimaryKeyboardRepresentable] = []
     
+    /// 주 키보드에 한영 전환 버튼이 있는지 여부
+    private var showsLanguageSwitchButton: Bool {
+        primaryKeyboardViews.contains { $0.languageSwitchButton != nil }
+    }
+
+    /// 주 키보드에 숫자 행이 있는지 여부
+    private var showsNumberRow: Bool {
+        primaryKeyboardViews.contains { $0.showsNumberRow }
+    }
+
     /// 기호 키보드
     lazy var symbolKeyboardView: SymbolKeyboardLayoutProvider = {
-        let symbolKeyboardView = SymbolKeyboardView()
+        let symbolKeyboardView = SymbolKeyboardView(
+            showsLanguageSwitchButton: showsLanguageSwitchButton,
+            showsNumberRow: showsNumberRow
+        )
         symbolKeyboardView.isHidden = true
-        
+
         return symbolKeyboardView
     }()
     
     /// 숫자 키보드
     lazy var numericKeyboardView: NumericKeyboardLayoutProvider = {
-        let numericKeyboardView = NumericKeyboardView()
+        let numericKeyboardView = NumericKeyboardView(
+            showsLanguageSwitchButton: showsLanguageSwitchButton
+        )
         numericKeyboardView.isHidden = true
         
         return numericKeyboardView
@@ -85,10 +105,18 @@ final public class KeyboardView: UIInputView {
     lazy var tenkeyKeyboardView: TenkeyKeyboardLayoutProvider = {
         let tenkeyKeyboardView = TenkeyKeyboardView()
         tenkeyKeyboardView.isHidden = true
-        
+
         return tenkeyKeyboardView
     }()
-    
+
+    /// 클립보드 기록 패널. 자판 자리에 겹쳐 두고 `isHidden`으로 전환한다
+    lazy var clipboardHistoryPanelView: ClipboardHistoryPanelView = {
+        let panelView = ClipboardHistoryPanelView()
+        panelView.isHidden = true
+
+        return panelView
+    }()
+
     /// 한 손 키보드 해제 버튼(왼손 모드)
     let rightChevronButton: ChevronButton = {
         let chevronButton = ChevronButton(direction: .right)
@@ -107,9 +135,16 @@ final public class KeyboardView: UIInputView {
         logger.debug("\(String(describing: type(of: self))) deinit")
     }
     
+    // MARK: - Lifecycle
+    
+    public override func layoutSubviews() {
+        super.layoutSubviews()
+        updateKeyboardLayoutWidthConstraint()
+    }
+    
     // MARK: - Internal Methods
     
-    static func loadFromNib(primaryKeyboardView: PrimaryKeyboardRepresentable) -> KeyboardView {
+    static func loadFromNib(primaryKeyboardViews: [PrimaryKeyboardRepresentable]) -> KeyboardView {
         let nibName = "KeyboardView"
         
         let bundle = SYKBDAssets.bundle
@@ -119,7 +154,7 @@ final public class KeyboardView: UIInputView {
             fatalError("bundle로부터 \(nibName)를 불러오는 데에 실패했습니다.")
         }
         
-        view.primaryKeyboardView = primaryKeyboardView
+        view.primaryKeyboardViews = primaryKeyboardViews
         view.setupUI()
         
         return view
@@ -127,8 +162,15 @@ final public class KeyboardView: UIInputView {
     
     /// 한 손 키보드 너비 업데이트를 업데이트하는 메서드
     func updateOneHandedWidth(_ width: Double) {
-        keyboardLayoutWidthConstraint?.constant = width
+        configuredOneHandedWidth = CGFloat(width)
+        updateKeyboardLayoutWidthConstraint()
         self.layoutIfNeeded()
+    }
+
+    /// 현재 한 손 키보드 모드에 맞게 Chevron 표시를 업데이트하는 메서드
+    func updateOneHandedMode(_ mode: OneHandedMode) {
+        leftChevronButton.isHidden = mode != .right
+        rightChevronButton.isHidden = mode != .left
     }
 }
 
@@ -154,7 +196,9 @@ private extension KeyboardView {
         
         [leftChevronButton, keyboardLayoutView, rightChevronButton].forEach { keyboardHStackView.addArrangedSubview($0) }
         
-        [primaryKeyboardView, symbolKeyboardView, numericKeyboardView, tenkeyKeyboardView].forEach { keyboardLayoutView.addSubview($0) }
+        (primaryKeyboardViews.map { $0 as UIView }
+         + [symbolKeyboardView, numericKeyboardView, tenkeyKeyboardView, clipboardHistoryPanelView])
+            .forEach { keyboardLayoutView.addSubview($0) }
     }
     
     func setConstraints() {
@@ -169,16 +213,23 @@ private extension KeyboardView {
         ])
         
         suggestionBarView.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([
-            suggestionBarView.heightAnchor.constraint(equalToConstant: KeyboardLayoutFigure.suggestionBarHeightWithTopSpacing)
-        ])
+        let suggestionBarHeightConstraint = suggestionBarView.heightAnchor.constraint(
+            equalToConstant: KeyboardLayoutFigure.suggestionBarHeightWithTopSpacing
+        )
+        suggestionBarHeightConstraint.priority = .init(999)
+        suggestionBarHeightConstraint.isActive = true
         
         keyboardLayoutView.translatesAutoresizingMaskIntoConstraints = false
-        let minWidth = UserDefaultsManager.shared.oneHandedKeyboardWidth
-        keyboardLayoutWidthConstraint = keyboardLayoutView.widthAnchor.constraint(greaterThanOrEqualToConstant: minWidth)
-        keyboardLayoutWidthConstraint?.isActive = true
+        // required가 아니면 `keyboardHStackView`의 내부 제약에 밀려 조용히 무시된다.
+        // 회전 도중의 제약 충돌은 `updateKeyboardLayoutWidthConstraint()`가 상수를 가용 폭으로 낮춰 막는다
+        let widthConstraint = keyboardLayoutView.widthAnchor.constraint(
+            greaterThanOrEqualToConstant: configuredOneHandedWidth
+        )
+        widthConstraint.isActive = true
+        keyboardLayoutWidthConstraint = widthConstraint
         
-        [primaryKeyboardView, symbolKeyboardView, numericKeyboardView, tenkeyKeyboardView].forEach {
+        (primaryKeyboardViews.map { $0 as UIView }
+         + [symbolKeyboardView, numericKeyboardView, tenkeyKeyboardView, clipboardHistoryPanelView]).forEach {
             $0.translatesAutoresizingMaskIntoConstraints = false
             NSLayoutConstraint.activate([
                 $0.topAnchor.constraint(equalTo: keyboardLayoutView.topAnchor),
@@ -187,5 +238,19 @@ private extension KeyboardView {
                 $0.bottomAnchor.constraint(equalTo: keyboardLayoutView.bottomAnchor)
             ])
         }
+    }
+
+    /// 한 손 키보드 최소 폭 제약의 상수를 현재 가용 폭 안으로 제한하는 메서드
+    func updateKeyboardLayoutWidthConstraint() {
+        guard let keyboardLayoutWidthConstraint else { return }
+
+        // `keyboardHStackView`는 항상 `KeyboardView` 전체 폭을 차지하지만
+        // 하위 레이아웃 순서상 이 시점에 bounds가 비어 있을 수 있어 자기 폭을 사용한다
+        let minWidth = KeyboardPresentationStatePolicy.oneHandedKeyboardMinimumWidth(
+            configuredWidth: configuredOneHandedWidth,
+            availableWidth: self.bounds.width
+        )
+        guard keyboardLayoutWidthConstraint.constant != minWidth else { return }
+        keyboardLayoutWidthConstraint.constant = minWidth
     }
 }

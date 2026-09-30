@@ -7,27 +7,44 @@
 
 /// `UserDefaults`의 키값 관리용
 public enum UserDefaultsKeys {
-    /* 피드백 설정 */
+    
+    // MARK: - 피드백 설정
+    
     /// 소리 피드백
     public static let isSoundFeedbackEnabled = "isSoundFeedbackEnabled"
     /// 햅틱 피드백
     public static let isHapticFeedbackEnabled = "isHapticFeedbackEnabled"
     
-    /* 입력 설정 */
-    /// 선택한 길게 누르기 동작
-    public static let selectedLongPressAction = "selectedLongPressAction"
-    /// 드래그하여 커서 이동
-    public static let isDragToMoveCursorEnabled = "isDragToMoveCursorEnabled"
+    // MARK: - 자동완성 텍스트 설정
+
     /// 텍스트 대치
     public static let isTextReplacementEnabled = "isTextReplacementEnabled"
     /// 자동완성 텍스트
     public static let isPredictiveTextEnabled = "isPredictiveTextEnabled"
+    /// Undo/Redo 기능 활성화 여부
+    public static let isUndoRedoEnabled = "isUndoRedoEnabled"
+    /// 수식 결과 표시
+    public static let isShowMathResultsEnabled = "isShowMathResultsEnabled"
+    /// 클립보드 기록
+    public static let isClipboardHistoryEnabled = "isClipboardHistoryEnabled"
+    /// 클립보드 기록에 이미지도 저장
+    public static let isClipboardImageHistoryEnabled = "isClipboardImageHistoryEnabled"
+
+    // MARK: - 입력 설정
+    
+    /// 선택한 길게 누르기 동작
+    public static let selectedLongPressAction = "selectedLongPressAction"
+    /// 드래그하여 커서 이동
+    public static let isDragToMoveCursorEnabled = "isDragToMoveCursorEnabled"
     /// '.' 단축키
     public static let isPeriodShortcutEnabled = "isPeriodShortcutEnabled"
+    /// Smart Punctuation
+    public static let isSmartPunctuationEnabled = "isSmartPunctuationEnabled"
     /// 스페이스/리턴 입력 후 주 키보드로 변경
     public static let isAutoChangeToPrimaryEnabled = "isAutoChangeToPrimaryEnabled"
     
-    /* 입력 설정 -> 속도/커서 설정 */
+    // MARK: - 입력 설정 -> 속도/커서 설정
+    
     /// 반복 지연 시간
     public static let longPressDuration = "longPressDuration"
     /// 키 반복 속도
@@ -37,21 +54,37 @@ public enum UserDefaultsKeys {
     /// 이동 드래그 간격
     public static let cursorMoveInterval = "cursorMoveInterval"
     
-    /* 외형 설정 */
+    // MARK: - 외형 설정
     /// 키보드 높이
     public static let keyboardHeight = "keyboardHeight"
+    /// 주 자판 숫자 행 표시
+    public static let showsNumberRow = "showsNumberRow"
     /// 숫자 키패드 활성화
     public static let isNumericKeypadEnabled = "isNumericKeypadEnabled"
     /// 한 손 키보드 활성화
     public static let isOneHandedKeyboardEnabled = "isOneHandedKeyboardEnabled"
     /// 한 손 키보드 너비
     public static let oneHandedKeyboardWidth = "oneHandedKeyboardWidth"
-    
-    /* 기타 설정 */
+    /// 4x4 계열 글자 열 너비 배율
+    public static let letterColumnWidthMultiplier = "letterColumnWidthMultiplier"
+    /// 나랏글 '획', '쌍' 버튼을 'ㆍ', 'ᆢ'로 표기
+    public static let isNaratgeulDotLabelEnabled = "isNaratgeulDotLabelEnabled"
+    /// 천지인·숫자 키패드 스페이스 하단 배치
+    public static let isBottomSpaceEnabled = "isBottomSpaceEnabled"
+
+    // MARK: - 기타 설정
     /// 키보드 전환 버튼(􀆪) 표시 설정용
     public static let needsInputModeSwitchKey = "needsInputModeSwitchKey"
     /// 한 손 키보드 저장용
     public static let lastOneHandedMode = "lastOneHandedMode"
+    /// 한영 통합 키보드 마지막 언어 mode 저장용
+    public static let lastHangeulEnglishLanguageMode = "lastHangeulEnglishLanguageMode"
     /// 전체 접근 허용 안내 오버레이 닫음 여부
     public static let isRequestFullAccessOverlayClosed = "isRequestFullAccessOverlayClosed"
+    /// 앱·키보드가 pasteboard에 직접 쓴 직후의 changeCount. 동기화는 이 값을 쓰지 않고 비교만 한다
+    public static let lastSeenPasteboardChangeCount = "lastSeenPasteboardChangeCount"
+    /// 이 프로세스가 마지막으로 확인한 pasteboard changeCount. App Group이 아니라 프로세스별 `UserDefaults.standard`에 저장한다
+    public static let processLastSeenPasteboardChangeCount = "processLastSeenPasteboardChangeCount"
+    /// 키보드가 디코드 예산 초과로 저장을 건너뛴 pasteboard changeCount. 앱이 같은 값을 보면 앱 예산으로 다시 시도한다
+    public static let budgetSkippedPasteboardChangeCount = "budgetSkippedPasteboardChangeCount"
 }

@@ -15,6 +15,7 @@ final public class ReturnButton: SecondaryButton, TextInteractable {
     // MARK: - Properties
     
     public let type: TextInteractableType = .returnButton
+    private var currentReturnKeyType: ReturnKeyType = .default
     
     // MARK: - Initializer
     
@@ -37,6 +38,7 @@ final public class ReturnButton: SecondaryButton, TextInteractable {
     // MARK: - Internal Methods
     
     func update(for returnKeyType: ReturnKeyType) {
+        currentReturnKeyType = returnKeyType
         primaryKeyListImageView.image = returnKeyType.image
         
         self.configurationUpdateHandler = { [weak self] button in
@@ -47,18 +49,18 @@ final public class ReturnButton: SecondaryButton, TextInteractable {
             switch button.state {
             case .highlighted:
                 if isPressed || isGesturing {
-                    primaryKeyListLabel.textColor = returnKeyType.highlightedColor
+                    updateForegroundColor(returnKeyType.highlightedColor)
                     backgroundView.backgroundColor = .secondaryButtonPressed
                 } else {
-                    primaryKeyListLabel.textColor = returnKeyType.normalColor
+                    updateForegroundColor(returnKeyType.normalColor)
                     backgroundView.backgroundColor = returnKeyType.backgroundColor
                 }
             default:
                 if isGesturing {
-                    primaryKeyListLabel.textColor = returnKeyType.highlightedColor
+                    updateForegroundColor(returnKeyType.highlightedColor)
                     backgroundView.backgroundColor = .secondaryButtonPressed
                 } else {
-                    primaryKeyListLabel.textColor = returnKeyType.normalColor
+                    updateForegroundColor(returnKeyType.normalColor)
                     backgroundView.backgroundColor = returnKeyType.backgroundColor
                 }
             }
@@ -72,10 +74,11 @@ final public class ReturnButton: SecondaryButton, TextInteractable {
     func updateEnabled(_ isEnabled: Bool) {
         self.isUserInteractionEnabled = isEnabled
         if isEnabled {
+            updateForegroundColor(currentReturnKeyType.normalColor)
+            backgroundView.backgroundColor = currentReturnKeyType.backgroundColor
             self.setNeedsUpdateConfiguration()
         } else {
-            primaryKeyListLabel.textColor = .returnButtonDisabledLabel
-            primaryKeyListImageView.tintColor = .returnButtonDisabledLabel
+            updateForegroundColor(.returnButtonDisabledLabel)
             backgroundView.backgroundColor = .returnButtonDisabledBackground
         }
     }
@@ -89,7 +92,12 @@ private extension ReturnButton {
     }
     
     func setStyles() {
-        primaryKeyListLabel.font = .systemFont(ofSize: 18)
+        primaryKeyListLabel.font = .systemFont(ofSize: FontSize.stringKeyMedium)
+    }
+
+    func updateForegroundColor(_ color: UIColor?) {
+        primaryKeyListLabel.textColor = color
+        primaryKeyListImageView.tintColor = color
     }
 }
 
@@ -177,8 +185,8 @@ extension ReturnButton {
         var image: UIImage? {
             switch self {
             case .default:
-                let imageConfig = UIImage.SymbolConfiguration(pointSize: FontSize.imageSize, weight: .medium, scale: .large)
-                return UIImage(systemName: "return")?.withConfiguration(imageConfig).withTintColor(.label, renderingMode: .alwaysOriginal)
+                let imageConfig = UIImage.SymbolConfiguration(pointSize: FontSize.imageMedium, weight: .medium, scale: .large)
+                return UIImage(systemName: "return")?.withConfiguration(imageConfig).withRenderingMode(.alwaysTemplate)
             case .go, .google, .join, .next, .route, .search, .send, .yahoo, .done, .emergencyCall, .continue:
                 return nil
             }

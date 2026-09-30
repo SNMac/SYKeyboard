@@ -92,9 +92,8 @@ final public class UserDefaultsManager {
     public static let shared = UserDefaultsManager()
     private init() {}
     
-    // MARK: Getter
+    // MARK: 피드백 설정
     
-    /* 피드백 설정 */
     /// 소리 피드백
     @UserDefaultsWrapper(key: UserDefaultsKeys.isSoundFeedbackEnabled, defaultValue: DefaultValues.isSoundFeedbackEnabled)
     public var isSoundFeedbackEnabled: Bool
@@ -102,7 +101,29 @@ final public class UserDefaultsManager {
     @UserDefaultsWrapper(key: UserDefaultsKeys.isHapticFeedbackEnabled, defaultValue: DefaultValues.isHapticFeedbackEnabled)
     public var isHapticFeedbackEnabled: Bool
     
-    /* 입력 설정 */
+    // MARK: 자동완성 텍스트 설정
+    
+    /// 텍스트 대치
+    @UserDefaultsWrapper(key: UserDefaultsKeys.isTextReplacementEnabled, defaultValue: DefaultValues.isTextReplacementEnabled)
+    public var isTextReplacementEnabled: Bool
+    /// 자동완성 텍스트
+    @UserDefaultsWrapper(key: UserDefaultsKeys.isPredictiveTextEnabled, defaultValue: DefaultValues.isPredictiveTextEnabled)
+    public var isPredictiveTextEnabled: Bool
+    /// Undo/Redo 기능 활성화 여부
+    @UserDefaultsWrapper(key: UserDefaultsKeys.isUndoRedoEnabled, defaultValue: DefaultValues.isUndoRedoEnabled)
+    public var isUndoRedoEnabled: Bool
+    /// 수식 결과 표시
+    @UserDefaultsWrapper(key: UserDefaultsKeys.isShowMathResultsEnabled, defaultValue: DefaultValues.isShowMathResultsEnabled)
+    public var isShowMathResultsEnabled: Bool
+    /// 클립보드 기록
+    @UserDefaultsWrapper(key: UserDefaultsKeys.isClipboardHistoryEnabled, defaultValue: DefaultValues.isClipboardHistoryEnabled)
+    public var isClipboardHistoryEnabled: Bool
+    /// 클립보드 기록에 이미지도 저장
+    @UserDefaultsWrapper(key: UserDefaultsKeys.isClipboardImageHistoryEnabled, defaultValue: DefaultValues.isClipboardImageHistoryEnabled)
+    public var isClipboardImageHistoryEnabled: Bool
+
+    // MARK: 입력 설정
+    
     /// 선택한 길게 누르기 동작
     public var selectedLongPressAction: LongPressAction {
         get {
@@ -119,20 +140,18 @@ final public class UserDefaultsManager {
     /// 드래그하여 커서 이동
     @UserDefaultsWrapper(key: UserDefaultsKeys.isDragToMoveCursorEnabled, defaultValue: DefaultValues.isDragToMoveCursorEnabled)
     public var isDragToMoveCursorEnabled: Bool
-    /// 텍스트 대치
-    @UserDefaultsWrapper(key: UserDefaultsKeys.isTextReplacementEnabled, defaultValue: DefaultValues.isTextReplacementEnabled)
-    public var isTextReplacementEnabled: Bool
-    /// 자동완성 텍스트
-    @UserDefaultsWrapper(key: UserDefaultsKeys.isPredictiveTextEnabled, defaultValue: DefaultValues.isPredictiveTextEnabled)
-    public var isPredictiveTextEnabled: Bool
     /// '.' 단축키
     @UserDefaultsWrapper(key: UserDefaultsKeys.isPeriodShortcutEnabled, defaultValue: DefaultValues.isPeriodShortcutEnabled)
     public var isPeriodShortcutEnabled: Bool
+    /// Smart Punctuation
+    @UserDefaultsWrapper(key: UserDefaultsKeys.isSmartPunctuationEnabled, defaultValue: DefaultValues.isSmartPunctuationEnabled)
+    public var isSmartPunctuationEnabled: Bool
     /// 스페이스/리턴 입력 후 주 키보드로 변경
     @UserDefaultsWrapper(key: UserDefaultsKeys.isAutoChangeToPrimaryEnabled, defaultValue: DefaultValues.isAutoChangeToPrimaryEnabled)
     public var isAutoChangeToPrimaryEnabled: Bool
     
-    /* 입력 설정 -> 속도/커서 설정 */
+    // MARK: 입력 설정 -> 속도/커서 설정
+    
     /// 반복 지연 시간
     @UserDefaultsWrapper(key: UserDefaultsKeys.longPressDuration, defaultValue: DefaultValues.longPressDuration)
     public var longPressDuration: Double
@@ -146,10 +165,14 @@ final public class UserDefaultsManager {
     @UserDefaultsWrapper(key: UserDefaultsKeys.cursorMoveInterval, defaultValue: DefaultValues.cursorMoveInterval)
     public var cursorMoveInterval: Double
     
-    /* 외형 설정 */
+    // MARK: 외형 설정
+    
     /// 키보드 높이
     @UserDefaultsWrapper(key: UserDefaultsKeys.keyboardHeight, defaultValue: DefaultValues.keyboardHeight)
     public var keyboardHeight: Double
+    /// 주 자판 숫자 행 표시
+    @UserDefaultsWrapper(key: UserDefaultsKeys.showsNumberRow, defaultValue: DefaultValues.showsNumberRow)
+    public var showsNumberRow: Bool
     /// 숫자 키패드 활성화
     @UserDefaultsWrapper(key: UserDefaultsKeys.isNumericKeypadEnabled, defaultValue: DefaultValues.isNumericKeypadEnabled)
     public var isNumericKeypadEnabled: Bool
@@ -159,15 +182,41 @@ final public class UserDefaultsManager {
     /// 한 손 키보드 너비
     @UserDefaultsWrapper(key: UserDefaultsKeys.oneHandedKeyboardWidth, defaultValue: DefaultValues.oneHandedKeyboardWidth)
     public var oneHandedKeyboardWidth: Double
+    /// 4x4 계열 글자 열 너비 배율
+    @UserDefaultsWrapper(key: UserDefaultsKeys.letterColumnWidthMultiplier, defaultValue: DefaultValues.letterColumnWidthMultiplier)
+    public var letterColumnWidthMultiplier: Double
+    /// 나랏글 '획', '쌍' 버튼 점 기호 표기
+    @UserDefaultsWrapper(key: UserDefaultsKeys.isNaratgeulDotLabelEnabled, defaultValue: DefaultValues.isNaratgeulDotLabelEnabled)
+    public var isNaratgeulDotLabelEnabled: Bool
+    /// 천지인·숫자 키패드 스페이스 하단 배치
+    @UserDefaultsWrapper(key: UserDefaultsKeys.isBottomSpaceEnabled, defaultValue: DefaultValues.isBottomSpaceEnabled)
+    public var isBottomSpaceEnabled: Bool
+
+    // MARK: 기타 설정
     
-    /* 기타 설정 */
     /// 키보드 전환 버튼(􀆪) 표시 설정용
     @UserDefaultsWrapper(key: UserDefaultsKeys.needsInputModeSwitchKey, defaultValue: DefaultValues.needsInputModeSwitchKey)
     public var needsInputModeSwitchKey: Bool
     /// 한 손 키보드 저장용
     @UserDefaultsRawRepresentableWrapper(key: UserDefaultsKeys.lastOneHandedMode, defaultValue: DefaultValues.lastOneHandedMode)
     public var lastOneHandedMode: OneHandedMode
+    /// 한영 통합 키보드 마지막 언어 mode 저장용
+    @UserDefaultsRawRepresentableWrapper(key: UserDefaultsKeys.lastHangeulEnglishLanguageMode, defaultValue: DefaultValues.lastHangeulEnglishLanguageMode)
+    public var lastHangeulEnglishLanguageMode: HangeulEnglishLanguageMode
     /// 전체 접근 허용 안내 오버레이 닫음 여부
     @UserDefaultsWrapper(key: UserDefaultsKeys.isRequestFullAccessOverlayClosed, defaultValue: DefaultValues.isRequestFullAccessOverlayClosed)
     public var isRequestFullAccessOverlayClosed: Bool
+    /// 앱·키보드가 pasteboard에 직접 쓴 직후의 changeCount. 동기화는 이 값을 쓰지 않고 비교만 한다
+    @UserDefaultsWrapper(key: UserDefaultsKeys.lastSeenPasteboardChangeCount, defaultValue: DefaultValues.lastSeenPasteboardChangeCount)
+    public var lastSeenPasteboardChangeCount: Int
+    /// 키보드가 디코드 예산 초과로 저장을 건너뛴 pasteboard changeCount
+    @UserDefaultsWrapper(key: UserDefaultsKeys.budgetSkippedPasteboardChangeCount, defaultValue: DefaultValues.budgetSkippedPasteboardChangeCount)
+    public var budgetSkippedPasteboardChangeCount: Int
+
+    /// 한영 통합 키보드의 마지막 언어가 저장되어 있는지 여부
+    ///
+    /// 저장값이 없을 때와 기본값이 저장된 경우를 구분하기 위해 키 존재만 확인합니다.
+    public var hasLastHangeulEnglishLanguageMode: Bool {
+        storage.object(forKey: UserDefaultsKeys.lastHangeulEnglishLanguageMode) != nil
+    }
 }

@@ -24,7 +24,7 @@ struct LongPressSettingsView: View {
     // MARK: - Content
     
     var body: some View {
-        NavigationStack {
+        VStack {
             KeyboardTestView()
             List {
                 Section {
@@ -41,19 +41,19 @@ struct LongPressSettingsView: View {
             }
             .navigationTitle("길게 누르기 입력")
             .navigationBarTitleDisplayMode(.inline)
-            .requestReviewViewModifier()
+            .requestReviewOnDetailSettingsReturn()
         }.onDisappear {
             Analytics.setUserProperty(String(format: "%.2f", longPressDuration),
                                       forName: "pref_long_press_duration")
             Analytics.logEvent("long_press_duration", parameters: [
-                "view": "KeyRepeatSettingsView",
+                "view": "LongPressSettingsView",
                 "value": longPressDuration,
             ])
             
             Analytics.setUserProperty(String(format: "%.3f", repeatRate),
                                       forName: "pref_repeat_rate")
             Analytics.logEvent("repeat_rate", parameters: [
-                "view": "KeyRepeatSettingsView",
+                "view": "LongPressSettingsView",
                 "value": repeatRate
             ])
         }
@@ -103,5 +103,7 @@ private extension LongPressSettingsView {
 // MARK: - Preview
 
 #Preview {
-    LongPressSettingsView()
+    NavigationStack {
+        LongPressSettingsView()
+    }
 }

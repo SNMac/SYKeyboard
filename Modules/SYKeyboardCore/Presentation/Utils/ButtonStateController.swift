@@ -75,8 +75,15 @@ final public class ButtonStateController {
     func setExclusiveActionToButtons(_ buttonList: [BaseKeyboardButton]) {
         buttonList.forEach { button in
             let buttonReleaseAction: UIAction
+            let buttonCancelAction: UIAction
             if button is ShiftButton {
                 buttonReleaseAction = UIAction { [weak self] _ in
+                    self?.isShiftButtonPressed = false
+                }
+                buttonCancelAction = UIAction { [weak self] action in
+                    guard let senderButton = action.sender as? BaseKeyboardButton,
+                          senderButton.isGesturing == false else { return }
+
                     self?.isShiftButtonPressed = false
                 }
             } else {
@@ -87,8 +94,17 @@ final public class ButtonStateController {
                         self?.currentPressedButton = nil
                     }
                 }
+                buttonCancelAction = UIAction { [weak self] action in
+                    guard let senderButton = action.sender as? BaseKeyboardButton,
+                          senderButton.isGesturing == false else { return }
+
+                    if self?.currentPressedButton == senderButton {
+                        self?.currentPressedButton = nil
+                    }
+                }
             }
             button.addAction(buttonReleaseAction, for: [.touchUpInside, .touchUpOutside])
+            button.addAction(buttonCancelAction, for: .touchCancel)
         }
     }
 }

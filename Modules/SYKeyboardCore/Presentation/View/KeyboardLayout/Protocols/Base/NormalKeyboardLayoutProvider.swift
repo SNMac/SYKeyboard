@@ -19,16 +19,38 @@ public protocol NormalKeyboardLayoutProvider: BaseKeyboardLayoutProvider, Switch
     var switchButton: SwitchButton { get }
     /// iPhone SE용 키보드 전환 버튼
     var nextKeyboardButton: NextKeyboardButton { get }
+
+    func updateNextKeyboardButton(needsInputModeSwitchKey: Bool, nextKeyboardAction: Selector)
+    func nextKeyboardButtonVisibilityDidChange(needsInputModeSwitchKey: Bool)
+    func updateLetterColumnWidthMultiplier(_ multiplier: Double)
+    /// 숫자 행 표시 여부
+    var showsNumberRow: Bool { get }
+    /// 숫자 행 높이를 갱신한다. 숫자 행이 없는 키보드는 무시한다
+    func updateNumberRowHeight(_ height: CGFloat)
 }
 
 // MARK: - Protocol Properties & Methods
 
 public extension NormalKeyboardLayoutProvider {
     func updateNextKeyboardButton(needsInputModeSwitchKey: Bool, nextKeyboardAction: Selector) {
+        let wasNextKeyboardButtonHidden = nextKeyboardButton.isHidden
         nextKeyboardButton.addTarget(nil, action: nextKeyboardAction, for: .allTouchEvents)
         nextKeyboardButton.isHidden = !needsInputModeSwitchKey
+
+        guard wasNextKeyboardButtonHidden != nextKeyboardButton.isHidden else { return }
+        nextKeyboardButtonVisibilityDidChange(needsInputModeSwitchKey: needsInputModeSwitchKey)
     }
-    
+
+    func nextKeyboardButtonVisibilityDidChange(needsInputModeSwitchKey: Bool) {}
+
+    /// 4열 격자가 아닌 키보드는 글자 열 너비 배율의 영향을 받지 않는다
+    func updateLetterColumnWidthMultiplier(_ multiplier: Double) {}
+
+    /// 기본값은 숫자 행이 없는 키보드를 위한 것이다
+    var showsNumberRow: Bool { false }
+
+    func updateNumberRowHeight(_ height: CGFloat) {}
+
     func enableAllButtonUserInteraction() {
         allButtonList.forEach { $0.isUserInteractionEnabled = true }
     }

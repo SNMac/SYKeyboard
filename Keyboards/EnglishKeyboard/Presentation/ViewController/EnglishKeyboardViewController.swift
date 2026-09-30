@@ -9,6 +9,7 @@ import UIKit
 import OSLog
 
 import EnglishKeyboardCore
+import SYKeyboardCore
 
 import FirebaseCore
 import FirebaseCrashlytics
@@ -23,22 +24,20 @@ final class EnglishKeyboardViewController: EnglishKeyboardCoreViewController {
         category: "\(String(describing: type(of: self))) <\(Unmanaged.passUnretained(self).toOpaque())>"
     )
     
-    // MARK: - UI Components
+    // MARK: - Initializer
     
-    /// 전체 접근 허용 안내 오버레이
-    private lazy var requestFullAccessOverlayView = RequestFullAccessOverlayView()
+    override init() {
+        super.init()
+        
+        // loadView와 viewDidLoad에서 발생하는 크래시도 기록되도록 가장 먼저 설정한다
+        setupFirebase()
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
     
     // MARK: - Lifecycle
-    
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        
-        setupFirebase()
-        
-        if needToShowFullAccessGuide {
-            setupRequestFullAccessOverlayView()
-        }
-    }
     
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
@@ -49,41 +48,6 @@ final class EnglishKeyboardViewController: EnglishKeyboardCoreViewController {
         // 메모리 경고 발생 시 Crashlytics에 로그 남기기
         Crashlytics.crashlytics().log(msg)
         Crashlytics.crashlytics().setCustomValue(true, forKey: "did_receive_memory_warning")
-    }
-}
-
-// MARK: - UI Methods
-
-private extension EnglishKeyboardViewController {
-    func setupRequestFullAccessOverlayView() {
-        self.view.addSubview(requestFullAccessOverlayView)
-        
-        requestFullAccessOverlayView.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([
-            requestFullAccessOverlayView.topAnchor.constraint(equalTo: self.view.topAnchor),
-            requestFullAccessOverlayView.leadingAnchor.constraint(equalTo: self.view.leadingAnchor),
-            requestFullAccessOverlayView.trailingAnchor.constraint(equalTo: self.view.trailingAnchor),
-            requestFullAccessOverlayView.bottomAnchor.constraint(equalTo: self.view.bottomAnchor)
-        ])
-        
-        let closeOverlayAction = UIAction { [weak self] _ in
-            self?.keyboardSettingsManager.isRequestFullAccessOverlayClosed = true
-            self?.requestFullAccessOverlayView.isHidden = true
-        }
-        requestFullAccessOverlayView.closeButton.addAction(closeOverlayAction, for: .touchUpInside)
-        
-        let redirectToSettingsAction = UIAction { [weak self] _ in
-            let urlString = "sykeyboard://"
-            guard let url = URL(string: urlString) else {
-                assertionFailure("올바르지 않은 URL 형식입니다.")
-                
-                let error = KeyboardError.invalidSettingsURL(url: urlString)
-                Crashlytics.crashlytics().record(error: error)
-                return
-            }
-            self?.openURL(url)
-        }
-        requestFullAccessOverlayView.goToSettingsButton.addAction(redirectToSettingsAction, for: .touchUpInside)
     }
 }
 
@@ -99,16 +63,10 @@ private extension EnglishKeyboardViewController {
         // IDFV를 사용하여 Crashlytics User ID 설정
         let idfv = UIDevice.current.identifierForVendor?.uuidString
         Crashlytics.crashlytics().setUserID(idfv)
-    }
-    
-    func openURL(_ url: URL) {
-        var responder: UIResponder? = self
-        while responder != nil {
-            if let application = responder as? UIApplication {
-                application.open(url)
-                return
-            }
-            responder = responder?.next
+        
+        // 진단 기록 연결. 입력한 텍스트는 전달되지 않는다(`KeyboardDiagnostics` 참고)
+        KeyboardDiagnostics.record = { message in
+            Crashlytics.crashlytics().log(message)
         }
     }
 }

@@ -8,16 +8,20 @@
 import SwiftUI
 
 struct KeyboardSettingsView: View {
-    
+
     // MARK: - Properties
-    
+
     @Environment(\.scenePhase) private var scenePhase
+
     @State private var isKeyboardExtensionEnabled: Bool = false
-    
+
     // MARK: - Content
-    
+
     var body: some View {
         List {
+            
+            // MARK: - 키보드 추가 및 권한 설정
+            
             Section {
                 InitialSettingsView()
             } header: {
@@ -30,27 +34,39 @@ struct KeyboardSettingsView: View {
                 dimensions[.leading]
             }
             
-            HangeulKeyboardSelectView()
+            // MARK: - 한글 키보드
             
+            Section {
+                HangeulKeyboardSelectView()
+            }
+            
+            // MARK: - 키보드 세부 설정
+
             if isKeyboardExtensionEnabled {
                 Section {
                     FeedbackSettingsView()
                 } header: {
                     Text("피드백 설정")
                 }
-                
+
                 Section {
                     PredictiveTextSettingsView()
                 } header: {
                     Text("자동완성 텍스트 설정")
                 }
-                
+
+                Section {
+                    KeyboardToolbarSettingsView()
+                } header: {
+                    Text("키보드 툴바 설정")
+                }
+
                 Section {
                     InputSettingsView()
                 } header: {
                     Text("입력 설정")
                 }
-                
+
                 Section {
                     AppearanceSettingsView()
                 } header: {
@@ -64,6 +80,8 @@ struct KeyboardSettingsView: View {
                 }
             }
             
+            // MARK: - 정보
+
             Section {
                 InfoView()
             } header: {
@@ -72,46 +90,36 @@ struct KeyboardSettingsView: View {
             .alignmentGuide(.listRowSeparatorLeading) { dimensions in
                 dimensions[.leading]
             }
+            
+            Section {
+                VersionView()
+            }
+
+#if DEBUG
+            // MARK: - 개발용
+
+            Section {
+                NavigationLink("키보드 타입 확인") {
+                    KeyboardTypeTestView()
+                }
+            } header: {
+                Text("개발용")
+            }
+#endif
         }
         .ignoresSafeArea(.keyboard, edges: .all)
         .scrollDismissesKeyboard(.immediately)
         .onAppear {
-            isKeyboardExtensionEnabled = checkKeyboardExtensionEnabled()
+            isKeyboardExtensionEnabled = KeyboardExtensionAvailability.isEnabled()
         }
         .onChange(of: scenePhase) { newPhase in
             switch newPhase {
             case .active, .inactive:
-                isKeyboardExtensionEnabled = checkKeyboardExtensionEnabled()
+                isKeyboardExtensionEnabled = KeyboardExtensionAvailability.isEnabled()
             default:
                 break
             }
         }
-    }
-}
-
-// MARK: - Private Methods
-
-private extension KeyboardSettingsView {
-    /// 사용자의 "AppleKeyboards" 설정에 현재 앱의 키보드 확장이 포함되어 있는지 여부를 반환하는 메서드
-    func checkKeyboardExtensionEnabled() -> Bool {
-        // 사용자의 설정 데이터 가져옴
-        //   - "AppleKeyboards" 값은 사용자가 설정에서 활성화한 키보드 목록(예: "com.apple.keyboard.emoji", "com.thirdparty.customkeyboard")을 포함
-        guard let keyboards = UserDefaults.standard.dictionaryRepresentation()["AppleKeyboards"] as? [String] else {
-            return false
-        }
-        
-        // 현재 앱의 Bundle ID에 "."을 붙여서 키보드 확장의 Bundle ID 패턴을 생성
-        //   - 메인 앱의 Bundle ID: "github.com-SNMac.SYKeyboard"
-        //     -> 키보드 Extension의 Bundle ID: "github.com-SNMac.SYKeyboard.keyboard"
-        let keyboardExtensionBundleIDPrefix = (Bundle.main.bundleIdentifier ?? "Unknown Bundle") + "."
-        for keyboard in keyboards {
-            // "AppleKeyboards" 목록을 순회하며 현재 앱의 키보드 확장이 포함되어 있는지 검사
-            if keyboard.hasPrefix(keyboardExtensionBundleIDPrefix) {
-                return true
-            }
-        }
-        
-        return false
     }
 }
 

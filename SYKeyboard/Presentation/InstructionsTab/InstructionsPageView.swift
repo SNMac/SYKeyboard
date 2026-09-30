@@ -59,5 +59,5 @@ struct InstructionsPageView: View {
 // MARK: - Preview
 
 #Preview {
-    InstructionsPageView(title: "한 손 키보드 변경 방법", subtitle: "", image: .instructionChangeOneHanded, description: "'!#1' 또는 '한글' 버튼을 위로 드래그 or 길게 누르기")
+    InstructionsPageView(title: "한 손 키보드 변경 방법", subtitle: "", image: .instructionChangeOneHanded, description: "'!#1' 또는 '한글' 버튼을 위로 드래그하거나 길게 누르기")
 }

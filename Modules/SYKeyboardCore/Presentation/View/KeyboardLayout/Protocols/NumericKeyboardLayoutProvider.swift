@@ -6,8 +6,13 @@
 //
 
 /// 숫자 키보드 레이아웃 프로토콜
-public protocol NumericKeyboardLayoutProvider: NormalKeyboardLayoutProvider {}
+public protocol NumericKeyboardLayoutProvider: NormalKeyboardLayoutProvider {
+    /// 한영 전환 버튼
+    var languageSwitchButton: LanguageSwitchButton? { get }
+}
 
-extension NumericKeyboardLayoutProvider {
+public extension NumericKeyboardLayoutProvider {
+    var languageSwitchButton: LanguageSwitchButton? { nil }
+
     var keyboard: SYKeyboardType { .numeric }
 }

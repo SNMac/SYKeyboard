@@ -18,22 +18,26 @@ open class EnglishKeyboardCoreViewController: BaseKeyboardViewController {
     
     // MARK: - Properties
     
-    /// 대문자가 입력되었는지 확인하는 플래그
-    private var isUppercaseInput: Bool = false
+    private let inputAdapter: EnglishKeyboardInputAdapter
     
     // MARK: - UI Components
     
-    /// 영어 키보드
-    private lazy var englishKeyboardView: EnglishKeyboardLayoutProvider = EnglishKeyboardView(
-        getIsShiftedLetterInput: { [weak self] in return self?.isUppercaseInput ?? false },
-        setIsShiftedLetterInput: { [weak self] isUppercaseInput in self?.isUppercaseInput = isUppercaseInput }
-    )
-    
-    open override var primaryKeyboardView: PrimaryKeyboardRepresentable { englishKeyboardView }
+    open override var primaryKeyboardView: PrimaryKeyboardRepresentable {
+        return inputAdapter.primaryKeyboardView
+    }
+
+    open override var treatsDefaultSmartQuotesAsEnabled: Bool {
+        return false
+    }
+
+    open override var smartQuoteRule: KeyboardSmartQuoteRule {
+        return .englishSystem
+    }
     
     // MARK: - Initializer
     
     public init() {
+        inputAdapter = EnglishKeyboardInputAdapter()
         SwitchButton.previewPrimaryLanguage = "en-US"
         super.init(language: "en-US")
     }
@@ -53,21 +57,27 @@ open class EnglishKeyboardCoreViewController: BaseKeyboardViewController {
         super.didSetCurrentKeyboard()
         updateShiftButton()
     }
+
+    /// 클립보드 붙여넣기·undo/redo로 커서 앞 문맥이 바뀌었으므로 자동 대문자를 다시 판단한다
+    open override func undoRedoEditDidApply() {
+        super.undoRedoEditDidApply()
+        updateShiftButton()
+    }
     
     open override func updateKeyboardType() {
         guard textDocumentProxy.keyboardType != oldKeyboardType else { return }
+        let symbolKeyboardMode = SymbolKeyboardMode(keyboardType: textDocumentProxy.keyboardType)
+        symbolKeyboardView.currentSymbolKeyboardMode = symbolKeyboardMode
+        inputAdapter.updateLayout(for: textDocumentProxy.keyboardType)
+        
         switch textDocumentProxy.keyboardType {
         case .default, nil:
-            englishKeyboardView.currentEnglishKeyboardMode = .default
             currentKeyboard = .qwerty
         case .asciiCapable:
-            englishKeyboardView.currentEnglishKeyboardMode = .default
             currentKeyboard = .qwerty
         case .numbersAndPunctuation:
-            englishKeyboardView.currentEnglishKeyboardMode = .default
             currentKeyboard = .symbol
         case .URL:
-            englishKeyboardView.currentEnglishKeyboardMode = .URL
             currentKeyboard = .qwerty
         case .numberPad:
             tenkeyKeyboardView.currentTenkeyKeyboardMode = .numberPad
@@ -76,23 +86,18 @@ open class EnglishKeyboardCoreViewController: BaseKeyboardViewController {
             tenkeyKeyboardView.currentTenkeyKeyboardMode = .numberPad
             currentKeyboard = .tenKey
         case .emailAddress:
-            englishKeyboardView.currentEnglishKeyboardMode = .emailAddress
             currentKeyboard = .qwerty
         case .decimalPad:
             tenkeyKeyboardView.currentTenkeyKeyboardMode = .decimalPad
             currentKeyboard = .tenKey
         case .twitter:
-            englishKeyboardView.currentEnglishKeyboardMode = .twitter
             currentKeyboard = .qwerty
         case .webSearch:
-            englishKeyboardView.currentEnglishKeyboardMode = .webSearch
             currentKeyboard = .qwerty
         case .asciiCapableNumberPad:
             tenkeyKeyboardView.currentTenkeyKeyboardMode = .numberPad
             currentKeyboard = .tenKey
         @unknown default:
-            assertionFailure("구현이 필요한 case 입니다.")
-            englishKeyboardView.currentEnglishKeyboardMode = .default
             currentKeyboard = .qwerty
         }
     }
@@ -100,7 +105,7 @@ open class EnglishKeyboardCoreViewController: BaseKeyboardViewController {
     open override func textInteractionDidPerform(button: TextInteractable) {
         super.textInteractionDidPerform(button: button)
         if let primaryKey = button.type.primaryKeyList.first {
-            if primaryKey.count == 1 && Character(primaryKey).isUppercase { isUppercaseInput = true }
+            inputAdapter.recordInsertedText(primaryKey)
         }
         if !isRepeatingInput { updateShiftButton() }
     }
@@ -114,7 +119,7 @@ open class EnglishKeyboardCoreViewController: BaseKeyboardViewController {
         if BaseKeyboardViewController.isPreview { return }
         
         guard let primaryKey = button.type.primaryKeyList.first else { fatalError("keys 배열이 비어있습니다.") }
-        insertText(primaryKey)
+        insertTypedText(primaryKey)
     }
     
     open override func insertSecondaryKeyText(from button: TextInteractable) {
@@ -124,7 +129,7 @@ open class EnglishKeyboardCoreViewController: BaseKeyboardViewController {
             assertionFailure("secondaryKey가 nil입니다.")
             return
         }
-        insertText(secondaryKey)
+        insertTypedText(secondaryKey)
     }
     
     open override func repeatInsertPrimaryKeyText(from button: TextInteractable) {
@@ -134,7 +139,7 @@ open class EnglishKeyboardCoreViewController: BaseKeyboardViewController {
             assertionFailure("keys 배열이 비어있습니다.")
             return
         }
-        insertText(primaryKey)
+        insertTypedText(primaryKey)
     }
 }
 
@@ -143,23 +148,12 @@ open class EnglishKeyboardCoreViewController: BaseKeyboardViewController {
 private extension EnglishKeyboardCoreViewController {
     /// Shift 버튼을 상황에 맞게 업데이트하는 메서드
     func updateShiftButton() {
-        guard !buttonStateController.isShiftButtonPressed else { return }
-        
-        var shouldShift: Bool = false
-        if UserDefaultsManager.shared.isAutoCapitalizationEnabled {
-            switch textDocumentProxy.autocapitalizationType {
-            case .allCharacters:
-                shouldShift = true
-            case .sentences:
-                shouldShift = textDocumentProxy.documentContextBeforeInput?.hasOnlyWhitespaceAfterLastDot() ?? true
-            case .words:
-                shouldShift = textDocumentProxy.documentContextBeforeInput?.endsWithWhitespace() ?? true
-            default:
-                break
-            }
-        }
-        
-        primaryKeyboardView.updateShiftButton(to: shouldShift)
-        isUppercaseInput = false
+        let isShiftButtonPressed = buttonStateController.isShiftButtonPressed
+        inputAdapter.updateAutocapitalization(
+            type: textDocumentProxy.autocapitalizationType ?? .none,
+            documentContextBeforeInput: textDocumentProxy.documentContextBeforeInput,
+            isEnabled: UserDefaultsManager.shared.isAutoCapitalizationEnabled,
+            isShiftButtonPressed: isShiftButtonPressed
+        )
     }
 }

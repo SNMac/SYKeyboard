@@ -12,7 +12,10 @@ import SYKeyboardCore
 extension UserDefaultsManager {
     /// 자동 대문자
     public var isAutoCapitalizationEnabled: Bool {
-        get { storage.bool(forKey: UserDefaultsKeys.isAutoCapitalizationEnabled) }
+        get {
+            storage.object(forKey: UserDefaultsKeys.isAutoCapitalizationEnabled) as? Bool
+            ?? DefaultValues.isAutoCapitalizationEnabled
+        }
         set { storage.set(newValue, forKey: UserDefaultsKeys.isAutoCapitalizationEnabled) }
     }
 }

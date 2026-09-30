@@ -11,31 +11,37 @@ import OSLog
 import GoogleMobileAds
 
 struct BannerAdView: UIViewRepresentable {
-    
+
     // MARK: - Properties
-    
+
     let adSize: AdSize
     @Binding var isAdReceived: Bool
-    
+
     // MARK: - Internal Methods
-    
+
     func makeUIView(context: Context) -> UIView {
         let banner = BannerView(adSize: adSize)
         banner.adUnitID = Configuration.admobID
         banner.load(Request())
         banner.delegate = context.coordinator
-        
+
         let coordinator = context.coordinator
         banner.paidEventHandler = { [weak coordinator, weak banner] value in
             guard let banner else { return }
             coordinator?.handlePaidEvent(value: value, banner: banner)
         }
-        
+
         return banner
     }
-    
-    func updateUIView(_ uiView: UIView, context: Context) {}
-    
+
+    func updateUIView(_ uiView: UIView, context: Context) {
+        guard let banner = uiView as? BannerView,
+              banner.adSize.size != adSize.size else { return }
+
+        banner.adSize = adSize
+        banner.load(Request())
+    }
+
     func makeCoordinator() -> BannerAdCoordinator {
         return BannerAdCoordinator(parent: self)
     }
@@ -47,12 +53,12 @@ private extension BannerAdView {
     enum Configuration: String  {
         case debug
         case release
-        
+
         static var current: Configuration? {
             guard let buildConfigString = Bundle.main.infoDictionary?["Configuration"] as? String else { return nil }
             return Configuration(rawValue: buildConfigString.lowercased())
         }
-        
+
         static var admobID: String {
             switch current {
             case .release:

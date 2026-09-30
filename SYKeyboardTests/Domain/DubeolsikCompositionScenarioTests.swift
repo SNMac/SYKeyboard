@@ -1,0 +1,76 @@
+//
+//  DubeolsikCompositionScenarioTests.swift
+//  SYKeyboardTests
+//
+//  Created by 서동환 on 3/8/26.
+//
+
+import Testing
+
+@testable import HangeulKeyboardCore
+
+@Suite("두벌식 HangeulCompositionState 기반 입력 상태 시나리오")
+struct DubeolsikCompositionScenarioTests {
+    
+    // MARK: - Properties
+    
+    private let automata: HangeulAutomataProtocol = HangeulAutomata()
+    
+    // MARK: - 1. 반복 입력 후 다음 입력과 조합
+    
+    @Test("반복 입력 후 조합: 'ㄱㄱㄱ' 후 'ㅣ' -> 'ㄱㄱ기'")
+    func test반복입력후_조합() {
+        let sim = HangeulCompositionTestHarness(
+            processor: DubeolsikProcessor(automata: automata)
+        )
+        
+        sim.input("ㄱ")
+        sim.repeatInsert()
+        sim.repeatInsert()
+        #expect(sim.text == "ㄱㄱㄱ")
+        
+        sim.input("ㅣ")
+        #expect(sim.text == "ㄱㄱ기", "반복 입력 후 마지막 글자가 다음 입력과 조합되어야 합니다.")
+    }
+    
+    @Test("반복 입력 후 조합: 'ㅏㅏㅏ' 후 'ㄴ' -> 'ㅏㅏㅏㄴ'")
+    func test반복입력_모음후_자음() {
+        let sim = HangeulCompositionTestHarness(
+            processor: DubeolsikProcessor(automata: automata)
+        )
+        
+        sim.input("ㅏ")
+        sim.repeatInsert()
+        sim.repeatInsert()
+        #expect(sim.text == "ㅏㅏㅏ")
+        
+        sim.input("ㄴ")
+        #expect(sim.text == "ㅏㅏㅏㄴ")
+    }
+    
+    // MARK: - 2. 반복 삭제 후 끌어오기
+    
+    @Test("반복 삭제 후 조합: '개ㅐㅏㅏ' -> 반복 삭제 -> '개' -> 'ㄴ' -> '갠'")
+    func test반복삭제후_끌어오기_조합() {
+        let sim = HangeulCompositionTestHarness(
+            processor: DubeolsikProcessor(automata: automata)
+        )
+        
+        // '개' 입력
+        sim.input("ㄱ"); sim.input("ㅐ") // 개
+        
+        sim.repeatInsert() // 개ㅐ
+        sim.input("ㅏ")    // 개ㅐㅏ
+        sim.repeatInsert() // 개ㅐㅏㅏ
+        #expect(sim.text == "개ㅐㅏㅏ")
+        
+        // 반복 삭제로 '개'까지
+        sim.repeatDelete() // 개ㅐㅏ
+        sim.repeatDelete() // 개ㅐ
+        sim.repeatDelete() // 개
+        sim.finishRepeatDelete() // 끌어오기 → composing = "개"
+        
+        sim.input("ㄴ")
+        #expect(sim.text == "갠", "반복 삭제 후 끌어오기 된 글자와 다음 입력이 조합되어야 합니다.")
+    }
+}

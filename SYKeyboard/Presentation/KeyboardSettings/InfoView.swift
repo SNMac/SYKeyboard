@@ -34,12 +34,17 @@ struct InfoView: View {
             isShowingInstructions = true
         } label: {
             HStack {
-                Image(.textPage)
+                Image(systemName: "doc.text.image")
                     .resizable()
                     .scaledToFit()
                     .frame(width: 20, height: 20)
                 Text("키보드 사용 안내")
             }
+        }
+        .sheet(isPresented: $isShowingInstructions) {
+            InstructionsTabView()
+                .presentationDragIndicator(.visible)
+                .presentationDetents([.fraction(0.8)])
         }
         
         Button {
@@ -73,7 +78,7 @@ struct InfoView: View {
             }
         } label: {
             HStack {
-                Image(.questionmarkBubble)
+                Image(systemName: "questionmark.bubble")
                     .resizable()
                     .scaledToFit()
                     .frame(width: 20, height: 20)
@@ -98,26 +103,12 @@ struct InfoView: View {
             openURL(url)
         } label: {
             HStack {
-                Image(.pencilLine)
+                Image(systemName: "pencil.line")
                     .resizable()
                     .scaledToFit()
                     .frame(width: 20, height: 20)
                 Text("리뷰 및 별점 주기")
             }
-        }
-        
-        HStack {
-            Text("버전")
-            
-            Spacer()
-            
-            Text(Bundle.appVersion ?? "Unknown")
-                .foregroundStyle(.gray)
-        }
-        .sheet(isPresented: $isShowingInstructions) {
-            InstructionsTabView()
-                .presentationDragIndicator(.visible)
-                .presentationDetents([.fraction(0.8)])
         }
     }
 }

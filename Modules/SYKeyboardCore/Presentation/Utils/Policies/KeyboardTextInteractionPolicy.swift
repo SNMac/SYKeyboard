@@ -1,0 +1,1240 @@
+//
+//  KeyboardTextInteractionPolicy.swift
+//  SYKeyboardCore
+//
+//  Created by Codex on 6/1/26.
+//
+
+struct DeleteInteractionGeneration: Equatable {
+    fileprivate let rawValue: UInt64
+}
+
+enum DeleteInteractionDisposition: Equatable {
+    case performNow
+    case enqueued
+}
+
+enum PendingDeleteInteractionEvent {
+    case touchDown(button: any TextInteractable)
+    case pan(direction: PanDirection)
+    case panStop
+}
+
+struct DeleteInteractionCancellationResult: Equatable {
+    let shouldFinishPanTracking: Bool
+}
+
+enum DeleteInteractionNonDeleteMutationBoundary {
+
+    static func cancel(
+        lifecycle: inout DeleteMutationLifecycle,
+        coordinator: inout DeleteInteractionCoordinator
+    ) -> DeleteInteractionCancellationResult {
+        lifecycle.cancel()
+        return coordinator.cancel()
+    }
+}
+
+/// 입력 대상이 바뀌면 진행 중인 삭제 요청을 함께 취소한다. 대상이 같으면 `nil`
+enum DeleteInteractionInputChangeBoundary {
+
+    static func cancelIfInputIdentifierChanged(
+        to inputIdentifier: ObjectIdentifier?,
+        lifecycle: inout DeleteMutationLifecycle,
+        coordinator: inout DeleteInteractionCoordinator
+    ) -> DeleteInteractionCancellationResult? {
+        guard let cancellation = coordinator.cancelIfInputIdentifierChanged(to: inputIdentifier) else {
+            return nil
+        }
+        lifecycle.cancel()
+        return cancellation
+    }
+}
+
+/// 확정된 삭제 mutation resolution이 VC에 요구하는 효과
+struct DeleteMutationResolutionEffects: Equatable {
+    /// pan 경계에서 확정된 줄바꿈처럼 복구 스택에 쌓을 글자
+    let restorableCharacters: [Character]
+    /// undo 기록과 피드백을 적용할지. pan 경계에서 아무것도 지우지 못했으면 적용하지 않는다
+    let appliesMutationEffects: Bool
+    /// coordinator를 resolve할 때 선행 no-op pan left를 버릴지
+    let discardsLeadingNoOpPanLeft: Bool
+    /// 보류된 pan을 바로 재생하지 않고 입력창이 늦게 보내는 callback을 먼저 받을지
+    ///
+    /// 줄바꿈 삭제 뒤 입력창이 두 번째 callback을 10~20ms 늦게 보내면서 이어진 삭제 전 문맥으로 되돌려,
+    /// 다음 경계 판정이 낡은 문맥을 보게 되는 것을 막는다
+    let settlesBeforeResumingPan: Bool
+}
+
+struct DeleteInteractionCoordinator {
+
+    // MARK: - Properties
+
+    private(set) var currentGeneration: DeleteInteractionGeneration?
+    private(set) var isWaitingForResolution = false
+
+    private var nextGenerationRawValue: UInt64 = 0
+    private var inputIdentifier: ObjectIdentifier?
+    private var pendingEvents: [PendingDeleteInteractionEvent] = []
+    private var isPanTrackingActive = false
+
+    // MARK: - Internal Methods
+
+    mutating func beginTouchDown(
+        button: any TextInteractable,
+        inputIdentifier: ObjectIdentifier?
+    ) -> DeleteInteractionDisposition {
+        guard currentGeneration != nil else {
+            nextGenerationRawValue &+= 1
+            currentGeneration = DeleteInteractionGeneration(rawValue: nextGenerationRawValue)
+            self.inputIdentifier = inputIdentifier
+            isWaitingForResolution = true
+            return .performNow
+        }
+
+        pendingEvents.append(.touchDown(button: button))
+        return .enqueued
+    }
+
+    mutating func enqueuePan(_ direction: PanDirection) -> DeleteInteractionDisposition {
+        isPanTrackingActive = true
+        guard currentGeneration != nil else { return .performNow }
+
+        pendingEvents.append(.pan(direction: direction))
+        return .enqueued
+    }
+
+    mutating func enqueuePanStop() -> DeleteInteractionDisposition {
+        guard currentGeneration != nil else {
+            isPanTrackingActive = false
+            return .performNow
+        }
+
+        pendingEvents.append(.panStop)
+        return .enqueued
+    }
+
+    mutating func beginPanBoundaryMutation(
+        inputIdentifier: ObjectIdentifier?
+    ) -> DeleteInteractionGeneration? {
+        return beginMutation(inputIdentifier: inputIdentifier)
+    }
+
+    mutating func beginRepeatMutation(
+        inputIdentifier: ObjectIdentifier?
+    ) -> DeleteInteractionGeneration? {
+        return beginMutation(inputIdentifier: inputIdentifier)
+    }
+
+    @discardableResult
+    mutating func resolve(
+        _ generation: DeleteInteractionGeneration,
+        discardingLeadingNoOpPanLeft: Bool = false
+    ) -> Bool {
+        guard currentGeneration == generation, isWaitingForResolution else { return false }
+
+        if discardingLeadingNoOpPanLeft {
+            while case .pan(.left)? = pendingEvents.first {
+                pendingEvents.removeFirst()
+            }
+        }
+        isWaitingForResolution = false
+        finishGenerationIfReadyAndEmpty()
+        return true
+    }
+
+    mutating func nextReadyEvent() -> PendingDeleteInteractionEvent? {
+        guard currentGeneration != nil,
+              !isWaitingForResolution,
+              !pendingEvents.isEmpty
+        else { return nil }
+
+        let event = pendingEvents.removeFirst()
+        switch event {
+        case .touchDown:
+            isWaitingForResolution = true
+        case .pan:
+            isPanTrackingActive = true
+        case .panStop:
+            isPanTrackingActive = false
+        }
+        finishGenerationIfReadyAndEmpty()
+        return event
+    }
+
+    mutating func cancel() -> DeleteInteractionCancellationResult {
+        let result = DeleteInteractionCancellationResult(
+            shouldFinishPanTracking: isPanTrackingActive
+        )
+        pendingEvents.removeAll()
+        currentGeneration = nil
+        inputIdentifier = nil
+        isWaitingForResolution = false
+        isPanTrackingActive = false
+        return result
+    }
+
+    mutating func cancelIfInputIdentifierChanged(
+        to inputIdentifier: ObjectIdentifier?
+    ) -> DeleteInteractionCancellationResult? {
+        guard currentGeneration != nil else { return nil }
+
+        if let currentIdentifier = self.inputIdentifier,
+           let inputIdentifier,
+           currentIdentifier != inputIdentifier {
+            return cancel()
+        }
+        if self.inputIdentifier == nil, let inputIdentifier {
+            self.inputIdentifier = inputIdentifier
+        }
+        return nil
+    }
+
+    // MARK: - Private Methods
+
+    private mutating func beginMutation(
+        inputIdentifier: ObjectIdentifier?
+    ) -> DeleteInteractionGeneration? {
+        if let currentGeneration {
+            guard !isWaitingForResolution else { return nil }
+            if let currentInputIdentifier = self.inputIdentifier,
+               let inputIdentifier,
+               currentInputIdentifier != inputIdentifier {
+                return nil
+            }
+            if self.inputIdentifier == nil {
+                self.inputIdentifier = inputIdentifier
+            }
+            isWaitingForResolution = true
+            return currentGeneration
+        }
+
+        nextGenerationRawValue &+= 1
+        let generation = DeleteInteractionGeneration(rawValue: nextGenerationRawValue)
+        currentGeneration = generation
+        self.inputIdentifier = inputIdentifier
+        isWaitingForResolution = true
+        return generation
+    }
+
+    private mutating func finishGenerationIfReadyAndEmpty() {
+        guard !isWaitingForResolution, pendingEvents.isEmpty else { return }
+
+        currentGeneration = nil
+        inputIdentifier = nil
+    }
+}
+
+enum RepeatDeleteAction: Equatable {
+    case deleteAwaitingTextChange(previousCompletion: RepeatDeleteCompletion?)
+    case finishWithoutDeletion
+}
+
+enum RepeatDeleteMutationReliability: Equatable {
+    case proxyContext
+    case authoritative
+}
+
+enum RepeatDeleteConfirmationSource: Equatable {
+    case textDidChange
+    case checkpoint
+}
+
+struct RepeatDeleteMutationDraft: Equatable {
+    let deletedText: String
+    let insertedText: String
+    let reliability: RepeatDeleteMutationReliability
+}
+
+enum RepeatDeleteCompletion: Equatable {
+    case mutations([RepeatDeleteMutationDraft])
+    case noDeletion
+}
+
+enum RepeatDeleteCaptureResult: Equatable {
+    case awaitingTextChange
+    case completion(RepeatDeleteCompletion)
+}
+
+struct DeleteMutationResolution: Equatable {
+    let completion: RepeatDeleteCompletion
+    let origin: DeleteMutationOrigin
+    let shouldPlayFeedback: Bool
+}
+
+enum DeleteMutationOrigin: Equatable {
+    case touchDown
+    case repeatTick
+    case panBoundary
+}
+
+enum DeleteMutationCallbackOutcome: Equatable {
+    case noResolution
+    case resolved(DeleteMutationResolution)
+    case cancelled
+}
+
+enum DeleteMutationCaptureResult: Equatable {
+    case awaitingTextChange
+    case completion(DeleteMutationResolution)
+}
+
+enum DeleteMutationAction: Equatable {
+    case deleteAwaitingTextChange(previousResolution: DeleteMutationResolution?)
+    case awaitingPreviousMutation
+    case finishWithoutDeletion
+}
+
+enum DeleteMutationBoundaryAction: Equatable {
+    case perform(previousResolution: DeleteMutationResolution?)
+    case awaitingPreviousMutation
+}
+
+enum DeleteMutationStartResult: Equatable {
+    case started
+    case deferred
+    case awaitingPreviousMutation
+}
+
+struct RepeatDeleteRequest {
+
+    private struct RepeatDeleteObservation {
+        let context: KeyboardTextContextSnapshot
+        let selectedText: String?
+    }
+
+    // MARK: - Properties
+
+    private var requestContext: KeyboardTextContextSnapshot?
+    private var requestSelectedText: String?
+    private var drafts: [RepeatDeleteMutationDraft] = []
+    private var callbackObservationBeforeCapture: RepeatDeleteObservation?
+
+    var isPending: Bool {
+        return requestContext != nil
+    }
+
+    var hasCapturedMutation: Bool {
+        return !drafts.isEmpty
+    }
+
+    // MARK: - Internal Methods
+
+    mutating func begin(
+        context: KeyboardTextContextSnapshot,
+        selectedText: String?
+    ) {
+        requestContext = context
+        requestSelectedText = selectedText
+        drafts.removeAll()
+        callbackObservationBeforeCapture = nil
+    }
+
+    @discardableResult
+    mutating func capture(
+        deletedText: String,
+        insertedText: String,
+        reliability: RepeatDeleteMutationReliability
+    ) -> RepeatDeleteCaptureResult? {
+        guard requestContext != nil else { return nil }
+        drafts.append(
+            RepeatDeleteMutationDraft(
+                deletedText: deletedText,
+                insertedText: insertedText,
+                reliability: reliability
+            )
+        )
+        if let observation = callbackObservationBeforeCapture,
+           let completion = complete(
+                source: .textDidChange,
+                currentContext: observation.context,
+                currentSelectedText: observation.selectedText
+            ) {
+            return .completion(completion)
+        }
+        return .awaitingTextChange
+    }
+
+    mutating func completeAfterTextChange(
+        currentContext: KeyboardTextContextSnapshot,
+        currentSelectedText: String?
+    ) -> RepeatDeleteCompletion? {
+        guard let requestContext else { return nil }
+        guard normalized(requestContext.afterInput) == normalized(currentContext.afterInput)
+        else { return nil }
+
+        guard !drafts.isEmpty else {
+            callbackObservationBeforeCapture = RepeatDeleteObservation(
+                context: currentContext,
+                selectedText: currentSelectedText
+            )
+            return nil
+        }
+        return complete(
+            source: .textDidChange,
+            currentContext: currentContext,
+            currentSelectedText: currentSelectedText
+        )
+    }
+
+    mutating func completeAtCheckpoint(
+        currentContext: KeyboardTextContextSnapshot,
+        currentSelectedText: String?
+    ) -> RepeatDeleteCompletion? {
+        return complete(
+            source: .checkpoint,
+            currentContext: currentContext,
+            currentSelectedText: currentSelectedText
+        )
+    }
+
+    mutating func actionForNextTick(
+        currentContext: KeyboardTextContextSnapshot,
+        currentSelectedText: String?
+    ) -> RepeatDeleteAction {
+        guard isPending else {
+            return .deleteAwaitingTextChange(previousCompletion: nil)
+        }
+        guard let completion = completeAtCheckpoint(
+            currentContext: currentContext,
+            currentSelectedText: currentSelectedText
+        ) else {
+            return .finishWithoutDeletion
+        }
+        return .deleteAwaitingTextChange(previousCompletion: completion)
+    }
+
+    mutating func completeWithoutDeletion() -> RepeatDeleteCompletion? {
+        guard requestContext != nil else { return nil }
+        consume()
+        return .noDeletion
+    }
+
+    mutating func completeWithoutDeletionIfProven(
+        currentContext: KeyboardTextContextSnapshot,
+        currentSelectedText: String?
+    ) -> RepeatDeleteCompletion? {
+        guard provesNoDeletion(
+            currentContext: currentContext,
+            currentSelectedText: currentSelectedText
+        ) else { return nil }
+
+        consume()
+        return .noDeletion
+    }
+
+    mutating func cancel() {
+        consume()
+    }
+
+    // MARK: - Private Methods
+
+    private mutating func complete(
+        source: RepeatDeleteConfirmationSource,
+        currentContext: KeyboardTextContextSnapshot,
+        currentSelectedText: String?
+    ) -> RepeatDeleteCompletion? {
+        guard let requestContext else { return nil }
+        guard normalized(requestContext.afterInput) == normalized(currentContext.afterInput)
+        else { return nil }
+        let completedDrafts = confirmedDrafts(
+            source: source,
+            requestContext: requestContext,
+            currentContext: currentContext,
+            currentSelectedText: currentSelectedText
+        )
+        guard !completedDrafts.isEmpty else { return nil }
+
+        consume()
+        return .mutations(completedDrafts)
+    }
+
+    private func confirmedDrafts(
+        source: RepeatDeleteConfirmationSource,
+        requestContext: KeyboardTextContextSnapshot,
+        currentContext: KeyboardTextContextSnapshot,
+        currentSelectedText: String?
+    ) -> [RepeatDeleteMutationDraft] {
+        if let requestSelectedText, !requestSelectedText.isEmpty {
+            guard normalized(currentSelectedText).isEmpty,
+                  normalized(requestContext.beforeInput) == normalized(currentContext.beforeInput),
+                  normalized(requestContext.afterInput) == normalized(currentContext.afterInput),
+                  drafts.count == 1,
+                  drafts[0].reliability == .authoritative,
+                  drafts[0].deletedText == requestSelectedText,
+                  drafts[0].insertedText.isEmpty
+            else { return [] }
+            return drafts
+        }
+
+        guard normalized(currentSelectedText).isEmpty else { return [] }
+
+        if drafts.contains(where: { $0.reliability == .authoritative }) {
+            guard drafts.allSatisfy({ $0.reliability == .authoritative }),
+                  let expectedBefore = expectedBeforeInput(
+                    byApplying: drafts,
+                    to: normalized(requestContext.beforeInput)
+                  ),
+                  expectedBefore != normalized(requestContext.beforeInput),
+                  expectedBefore == normalized(currentContext.beforeInput)
+            else { return [] }
+            return drafts
+        }
+
+        let before = normalized(requestContext.beforeInput)
+        let currentBefore = normalized(currentContext.beforeInput)
+        guard let candidate = drafts.last else { return [] }
+
+        if !candidate.deletedText.isEmpty,
+           before.hasSuffix(candidate.deletedText),
+           currentBefore == String(before.dropLast(candidate.deletedText.count)) {
+            return drafts
+        }
+
+        let isSameLineContextBoundary = source == .textDidChange
+            && !candidate.deletedText.isEmpty
+            && currentBefore == before
+        let isEmptyToPreviousLineBoundary = before.isEmpty
+            && !currentBefore.isEmpty
+        if isSameLineContextBoundary || isEmptyToPreviousLineBoundary {
+            return [
+                RepeatDeleteMutationDraft(
+                    deletedText: "\n",
+                    insertedText: "",
+                    reliability: .authoritative
+                )
+            ]
+        }
+
+        // 빈 앞 문맥이 그대로인 pan 경계는 줄바꿈으로 추론하지 않는다.
+        // 문서 시작의 무효 삭제에도 callback을 보내는 입력창이 있어 빈 줄 삭제와 구분할 수 없다
+        return []
+    }
+
+    private func expectedBeforeInput(
+        byApplying drafts: [RepeatDeleteMutationDraft],
+        to beforeInput: String
+    ) -> String? {
+        var expectedBefore = beforeInput
+        for draft in drafts {
+            guard expectedBefore.hasSuffix(draft.deletedText) else { return nil }
+            expectedBefore.removeLast(draft.deletedText.count)
+            expectedBefore.append(draft.insertedText)
+        }
+        return expectedBefore
+    }
+
+    private func provesNoDeletion(
+        currentContext: KeyboardTextContextSnapshot,
+        currentSelectedText: String?
+    ) -> Bool {
+        guard let requestContext,
+              normalized(requestSelectedText).isEmpty,
+              normalized(currentSelectedText).isEmpty,
+              normalized(requestContext.beforeInput).isEmpty,
+              normalized(requestContext.beforeInput) == normalized(currentContext.beforeInput),
+              normalized(requestContext.afterInput) == normalized(currentContext.afterInput)
+        else { return false }
+
+        return drafts.allSatisfy {
+            $0.deletedText.isEmpty && $0.insertedText.isEmpty
+        }
+    }
+
+    private mutating func consume() {
+        requestContext = nil
+        requestSelectedText = nil
+        drafts.removeAll()
+        callbackObservationBeforeCapture = nil
+    }
+
+    private func normalized(_ context: String?) -> String {
+        return context ?? ""
+    }
+}
+
+/// 삭제 드래그 동안 커서 앞 문맥을 대신하는 모델
+///
+/// 입력창은 연속 편집을 늦게 반영하면서 낡은 문맥을 callback으로 되돌려 보낼 수 있다.
+/// 드래그를 시작할 때 읽은 문맥에서 글자를 떼고 붙여, 지운 글자를 입력창 문맥에서 다시 읽지 않는다.
+struct DeletePanTextModel: Equatable {
+    /// 모델을 만들 때 읽은 문맥
+    let sourceText: String
+    private(set) var remainingText: String
+
+    init(beforeInput: String?) {
+        sourceText = beforeInput ?? ""
+        remainingText = sourceText
+    }
+
+    var lastCharacter: Character? {
+        return remainingText.last
+    }
+
+    @discardableResult
+    mutating func removeLast() -> Character? {
+        return remainingText.popLast()
+    }
+
+    mutating func append(_ character: Character) {
+        remainingText.append(character)
+    }
+}
+
+/// 삭제 드래그가 줄 경계를 넘을 때의 상태
+///
+/// 경계 요청(`deleteBackward()`)을 보내기 전 대기, 입력창 문맥 대기, 보낸 요청의 시간 초과, 이번 드래그의
+/// 경계 막힘을 함께 관리한다. 타이머 발화는 번호로 받아, 끝났거나 새 요청으로 바뀐 대기의 발화를 무시한다.
+struct DeletePanBoundaryState: Equatable {
+    /// 경계 요청을 보내기 전 단계에 있는 대기의 generation
+    private(set) var pendingGeneration: DeleteInteractionGeneration?
+    /// 이번 드래그에서 더 이상 경계를 넘지 않는지(문서 맨 앞 확인, 취소, 시간 초과)
+    private(set) var isBlocked = false
+    private var syncWaitID: Int?
+    private var requestTimeoutID: Int?
+    private var lastTimerID = 0
+
+    mutating func beginPending(generation: DeleteInteractionGeneration) {
+        pendingGeneration = generation
+    }
+
+    func isPending(generation: DeleteInteractionGeneration) -> Bool {
+        return pendingGeneration == generation
+    }
+
+    /// 보내기 전 대기 중에 들어온 사용자 입력이 대기를 취소해야 하는지 판정합니다.
+    ///
+    /// 방향을 바꾸거나 손을 뗀 사용자를 경계 대기로 붙잡지 않는다.
+    func shouldCancelPendingBeforeSend(on event: PendingDeleteInteractionEvent) -> Bool {
+        guard pendingGeneration != nil else { return false }
+        switch event {
+        case .pan(direction: .right), .panStop:
+            return true
+        case .pan, .touchDown:
+            return false
+        }
+    }
+
+    /// 입력창 문맥 대기를 시작하고 시간 초과를 가를 번호를 반환합니다. 이미 기다리는 중이면 nil입니다.
+    mutating func beginSyncWait() -> Int? {
+        guard pendingGeneration != nil, syncWaitID == nil else { return nil }
+        let id = nextTimerID()
+        syncWaitID = id
+        return id
+    }
+
+    func isCurrentSyncWait(_ id: Int) -> Bool {
+        return pendingGeneration != nil && syncWaitID == id
+    }
+
+    /// 경계 요청을 보냈습니다. 시간 초과를 가를 번호를 반환합니다.
+    mutating func didSendRequest() -> Int {
+        pendingGeneration = nil
+        syncWaitID = nil
+        let id = nextTimerID()
+        requestTimeoutID = id
+        return id
+    }
+
+    /// 보낸 요청의 시간 초과가 아직 확정되지 않은 가장 최근 요청이면 경계를 막고 true를 반환합니다.
+    mutating func requestDidTimeOut(_ id: Int) -> Bool {
+        guard requestTimeoutID == id else { return false }
+        requestTimeoutID = nil
+        isBlocked = true
+        return true
+    }
+
+    /// 경계를 묻지 않고 보내기 전 대기를 끝냅니다(모델을 다시 채운 경우).
+    mutating func finishPendingWithoutRequest() {
+        pendingGeneration = nil
+        syncWaitID = nil
+    }
+
+    /// 보내기 전 대기를 취소하고 이번 드래그에서는 경계를 막습니다.
+    mutating func cancelPending() {
+        isBlocked = true
+        finishPendingWithoutRequest()
+    }
+
+    /// 확정 결과를 반영합니다. pan 경계가 삭제 없음으로 확정되면 문서 맨 앞이므로 경계를 막습니다.
+    mutating func didResolve(_ resolution: DeleteMutationResolution) {
+        guard resolution.origin == .panBoundary else { return }
+        requestTimeoutID = nil
+        if resolution.completion == .noDeletion {
+            isBlocked = true
+        }
+    }
+
+    /// 드래그가 끝나거나 새로 시작할 때 초기화합니다. 번호는 이어서 써 이전 발화를 되살리지 않습니다.
+    mutating func reset() {
+        pendingGeneration = nil
+        isBlocked = false
+        syncWaitID = nil
+        requestTimeoutID = nil
+    }
+
+    private mutating func nextTimerID() -> Int {
+        lastTimerID += 1
+        return lastTimerID
+    }
+}
+
+/// 삭제 드래그 모델이 바닥났을 때 입력창 앞 문맥을 보고 정하는 다음 동작
+enum DeletePanExhaustedContextAction: Equatable {
+    /// 앞 문맥이 비었으므로 개행 경계를 묻는다
+    case requestBoundary
+    /// 입력창이 드래그 편집을 아직 반영하지 못한 낡은 문맥일 수 있어 따라오기를 기다린다
+    case awaitSync
+    /// 모델이 짧게 잘려 있었고 앞 문맥은 실제 앞쪽 글이므로 모델을 다시 채운다
+    case refill
+}
+
+struct DeleteMutationLifecycle {
+
+    private enum RequestKind {
+        case touchDown
+        case releasedTouchDown
+        case repeatTick
+        case releasedRepeatTick
+        case panBoundary
+        case releasedPanBoundary
+    }
+
+    // MARK: - Properties
+
+    private var request = RepeatDeleteRequest()
+    private var requestKind: RequestKind?
+    private var didCompleteWithoutDeletion = false
+
+    var isPending: Bool {
+        return request.isPending
+    }
+
+    var hasReleasedPanBoundaryRequest: Bool {
+        return requestKind == .releasedPanBoundary
+    }
+
+    var hasPanBoundaryRequest: Bool {
+        return requestKind == .panBoundary || requestKind == .releasedPanBoundary
+    }
+
+    private var isReleasedRequest: Bool {
+        return requestKind == .releasedTouchDown
+            || requestKind == .releasedRepeatTick
+            || requestKind == .releasedPanBoundary
+    }
+
+    private var isActiveRequest: Bool {
+        return requestKind == .touchDown
+            || requestKind == .repeatTick
+            || requestKind == .panBoundary
+    }
+
+    // MARK: - Internal Methods
+
+    @discardableResult
+    mutating func beginTouchDown(
+        context: KeyboardTextContextSnapshot,
+        selectedText: String?
+    ) -> DeleteMutationStartResult {
+        guard requestKind == nil else { return .deferred }
+        return begin(kind: .touchDown, context: context, selectedText: selectedText)
+    }
+
+    @discardableResult
+    mutating func beginRepeat(
+        context: KeyboardTextContextSnapshot,
+        selectedText: String?
+    ) -> DeleteMutationStartResult {
+        return begin(kind: .repeatTick, context: context, selectedText: selectedText)
+    }
+
+    @discardableResult
+    mutating func beginPanBoundary(
+        context: KeyboardTextContextSnapshot,
+        selectedText: String?
+    ) -> DeleteMutationStartResult {
+        guard requestKind == nil else { return .deferred }
+        return begin(
+            kind: .panBoundary,
+            context: context,
+            selectedText: selectedText
+        )
+    }
+
+    mutating func capture(
+        deletedText: String,
+        insertedText: String,
+        reliability: RepeatDeleteMutationReliability
+    ) -> DeleteMutationCaptureResult? {
+        if isReleasedRequest {
+            cancel()
+            return nil
+        }
+
+        guard let captureResult = request.capture(
+            deletedText: deletedText,
+            insertedText: insertedText,
+            reliability: reliability
+        ) else { return nil }
+
+        switch captureResult {
+        case .awaitingTextChange:
+            return .awaitingTextChange
+        case .completion(let completion):
+            guard let resolution = resolve(completion) else { return nil }
+            return .completion(resolution)
+        }
+    }
+
+    mutating func completeAfterTextChange(
+        currentContext: KeyboardTextContextSnapshot,
+        currentSelectedText: String?
+    ) -> DeleteMutationCallbackOutcome {
+        let resolution = resolve(
+            request.completeAfterTextChange(
+                currentContext: currentContext,
+                currentSelectedText: currentSelectedText
+            )
+        )
+        if let resolution {
+            return .resolved(resolution)
+        }
+        // 활성 pan 경계는 손을 떼기 전이라도 callback에서 무효 삭제가 증명되면 바로 확정한다
+        if isReleasedRequest || requestKind == .panBoundary,
+           let noDeletion = request.completeWithoutDeletionIfProven(
+               currentContext: currentContext,
+               currentSelectedText: currentSelectedText
+           ),
+           let resolution = resolve(noDeletion) {
+            return .resolved(resolution)
+        }
+        if isReleasedRequest {
+            cancelCurrentRequest()
+            return .cancelled
+        }
+        if isActiveRequest, request.hasCapturedMutation {
+            cancelCurrentRequest()
+            return .cancelled
+        }
+        return .noResolution
+    }
+
+    mutating func actionForNextRepeat(
+        currentContext: KeyboardTextContextSnapshot,
+        currentSelectedText: String?
+    ) -> DeleteMutationAction {
+        if didCompleteWithoutDeletion {
+            return .finishWithoutDeletion
+        }
+
+        if requestKind == .touchDown
+            || requestKind == .releasedTouchDown
+            || requestKind == .releasedRepeatTick
+            || requestKind == .panBoundary
+            || requestKind == .releasedPanBoundary {
+            if let completion = request.completeAtCheckpoint(
+                currentContext: currentContext,
+                currentSelectedText: currentSelectedText
+            ) {
+                return .deleteAwaitingTextChange(
+                    previousResolution: resolve(completion)
+                )
+            }
+            if let noDeletion = request.completeWithoutDeletionIfProven(
+                currentContext: currentContext,
+                currentSelectedText: currentSelectedText
+            ) {
+                _ = resolve(noDeletion)
+                return .finishWithoutDeletion
+            }
+            return .awaitingPreviousMutation
+        }
+
+        switch request.actionForNextTick(
+            currentContext: currentContext,
+            currentSelectedText: currentSelectedText
+        ) {
+        case .deleteAwaitingTextChange(let previousCompletion):
+            return .deleteAwaitingTextChange(
+                previousResolution: resolve(previousCompletion)
+            )
+        case .finishWithoutDeletion:
+            return .finishWithoutDeletion
+        }
+    }
+
+    mutating func actionForDeletePan(
+        currentContext: KeyboardTextContextSnapshot,
+        currentSelectedText: String?
+    ) -> DeleteMutationBoundaryAction {
+        guard requestKind != nil else {
+            didCompleteWithoutDeletion = false
+            return .perform(previousResolution: nil)
+        }
+
+        if let completion = request.completeAtCheckpoint(
+            currentContext: currentContext,
+            currentSelectedText: currentSelectedText
+        ) {
+            return .perform(previousResolution: resolve(completion))
+        }
+        if let noDeletion = request.completeWithoutDeletionIfProven(
+            currentContext: currentContext,
+            currentSelectedText: currentSelectedText
+        ) {
+            let resolution = resolve(noDeletion)
+            didCompleteWithoutDeletion = false
+            return .perform(previousResolution: resolution)
+        }
+        return .awaitingPreviousMutation
+    }
+
+    mutating func completeAtCheckpoint(
+        currentContext: KeyboardTextContextSnapshot,
+        currentSelectedText: String?
+    ) -> DeleteMutationResolution? {
+        if let resolution = resolve(
+            request.completeAtCheckpoint(
+                currentContext: currentContext,
+                currentSelectedText: currentSelectedText
+            )
+        ) {
+            return resolution
+        }
+        guard requestKind == .releasedPanBoundary else { return nil }
+        return resolve(
+            request.completeWithoutDeletionIfProven(
+                currentContext: currentContext,
+                currentSelectedText: currentSelectedText
+            )
+        )
+    }
+
+    /// callback 없이 시간이 지난 pan 경계 요청을 확정합니다.
+    ///
+    /// 이전 줄이 나타났으면 줄바꿈 삭제로, 그 밖에는 삭제 없음으로 확정해 무기한 기다리지 않습니다.
+    mutating func completePanBoundaryAfterTimeout(
+        currentContext: KeyboardTextContextSnapshot,
+        currentSelectedText: String?
+    ) -> DeleteMutationResolution? {
+        guard hasPanBoundaryRequest else { return nil }
+        if let resolution = resolve(
+            request.completeAtCheckpoint(
+                currentContext: currentContext,
+                currentSelectedText: currentSelectedText
+            )
+        ) {
+            return resolution
+        }
+        return resolve(request.completeWithoutDeletion())
+    }
+
+    mutating func completeReleasedTouchDownAtCheckpoint(
+        currentContext: KeyboardTextContextSnapshot,
+        currentSelectedText: String?
+    ) -> DeleteMutationResolution? {
+        guard requestKind == .releasedTouchDown else { return nil }
+        return resolve(
+            request.completeAtCheckpoint(
+                currentContext: currentContext,
+                currentSelectedText: currentSelectedText
+            )
+        )
+    }
+
+    mutating func finishTouchDown(
+        currentContext: KeyboardTextContextSnapshot,
+        currentSelectedText: String?
+    ) -> DeleteMutationResolution? {
+        guard requestKind == .touchDown else { return nil }
+
+        let resolution = resolve(
+            request.completeAtCheckpoint(
+                currentContext: currentContext,
+                currentSelectedText: currentSelectedText
+            )
+        )
+        if let resolution {
+            return resolution
+        }
+        if let noDeletion = request.completeWithoutDeletionIfProven(
+            currentContext: currentContext,
+            currentSelectedText: currentSelectedText
+        ) {
+            return resolve(noDeletion)
+        }
+        requestKind = .releasedTouchDown
+        return nil
+    }
+
+    mutating func finishPanBoundary(
+        currentContext: KeyboardTextContextSnapshot,
+        currentSelectedText: String?
+    ) -> DeleteMutationResolution? {
+        guard requestKind == .panBoundary else { return nil }
+
+        requestKind = .releasedPanBoundary
+        return resolve(
+            request.completeAtCheckpoint(
+                currentContext: currentContext,
+                currentSelectedText: currentSelectedText
+            )
+        )
+    }
+
+    mutating func prepareForNonDeleteEdit() {
+        didCompleteWithoutDeletion = false
+        guard isReleasedRequest else { return }
+        cancel()
+    }
+
+    mutating func finishRepeatTracking() {
+        switch requestKind {
+        case .touchDown:
+            requestKind = .releasedTouchDown
+        case .releasedTouchDown:
+            break
+        case .repeatTick:
+            requestKind = .releasedRepeatTick
+        case .releasedRepeatTick, .panBoundary, .releasedPanBoundary, nil:
+            break
+        }
+    }
+
+    mutating func completeWithoutDeletion() -> RepeatDeleteCompletion? {
+        let completion = request.completeWithoutDeletion()
+        if completion != nil {
+            requestKind = nil
+            didCompleteWithoutDeletion = false
+            return completion
+        }
+        if didCompleteWithoutDeletion {
+            didCompleteWithoutDeletion = false
+            return .noDeletion
+        }
+        return nil
+    }
+
+    mutating func cancel() {
+        cancelCurrentRequest()
+        didCompleteWithoutDeletion = false
+    }
+
+    // MARK: - Private Methods
+
+    private mutating func cancelCurrentRequest() {
+        request.cancel()
+        requestKind = nil
+    }
+
+    private mutating func begin(
+        kind: RequestKind,
+        context: KeyboardTextContextSnapshot,
+        selectedText: String?
+    ) -> DeleteMutationStartResult {
+        guard requestKind == nil else { return .awaitingPreviousMutation }
+
+        didCompleteWithoutDeletion = false
+        request.begin(
+            context: context,
+            selectedText: selectedText
+        )
+        requestKind = kind
+        return .started
+    }
+
+    private mutating func resolve(
+        _ completion: RepeatDeleteCompletion?
+    ) -> DeleteMutationResolution? {
+        guard let completion, let requestKind else { return nil }
+
+        self.requestKind = nil
+        didCompleteWithoutDeletion = completion == .noDeletion
+        let origin = origin(for: requestKind)
+        return DeleteMutationResolution(
+            completion: completion,
+            origin: origin,
+            shouldPlayFeedback: completion.isMutation
+                && (origin == .repeatTick || origin == .panBoundary)
+        )
+    }
+
+    private func origin(for requestKind: RequestKind) -> DeleteMutationOrigin {
+        switch requestKind {
+        case .touchDown, .releasedTouchDown:
+            return .touchDown
+        case .repeatTick, .releasedRepeatTick:
+            return .repeatTick
+        case .panBoundary, .releasedPanBoundary:
+            return .panBoundary
+        }
+    }
+}
+
+private extension RepeatDeleteCompletion {
+    var isMutation: Bool {
+        guard case .mutations = self else { return false }
+        return true
+    }
+}
+
+enum KeyboardTextInteractionPolicy {
+
+    static func shouldInsertSecondaryKey(
+        insertSecondaryKeyIfAvailable: Bool,
+        secondaryKey: String?
+    ) -> Bool {
+        return insertSecondaryKeyIfAvailable && secondaryKey != nil
+    }
+
+    /// 숫자 행을 쓸 때 길게 누르기로 입력할 shift 짝 보조 키 목록.
+    ///
+    /// 비shift 층은 같은 자리의 shift 문자(대문자·쌍자음), shift 층은 비shift 문자를 보조 키로 쓴다.
+    /// 두 층의 문자가 같으면(두벌식 ㅁ, ㅛ 등) 보조 키를 두지 않는다
+    /// - Parameter primaryKeyList: `[shift 층][행][키][문자열]` 모양의 키 배열
+    static func shiftPairSecondaryKeyList(from primaryKeyList: [[[[String]]]]) -> [[[[String]]]] {
+        guard primaryKeyList.count == 2 else {
+            return primaryKeyList.map { $0.map { $0.map { _ in [] } } }
+        }
+
+        func pair(_ source: [[[String]]], with target: [[[String]]]) -> [[[String]]] {
+            zip(source, target).map { sourceRow, targetRow in
+                zip(sourceRow, targetRow).map { sourceKey, targetKey in
+                    sourceKey == targetKey ? [] : targetKey
+                }
+            }
+        }
+
+        return [
+            pair(primaryKeyList[0], with: primaryKeyList[1]),
+            pair(primaryKeyList[1], with: primaryKeyList[0])
+        ]
+    }
+
+    static func temporaryDeletedCharactersForSingleDelete(
+        selectedText: String?,
+        documentContextBeforeInput: String?
+    ) -> String {
+        if let selectedText, !selectedText.isEmpty {
+            return String(selectedText.reversed())
+        }
+        if let lastBeforeCursor = documentContextBeforeInput?.last {
+            return String(lastBeforeCursor)
+        }
+        return ""
+    }
+
+    /// 삭제 드래그가 커서 앞 개행 경계를 물어볼지 판정합니다.
+    ///
+    /// 줄 단위로 문맥을 주는 입력창은 마지막 줄을 다 지우면 앞 줄이 남아도 `hasText`가 false다.
+    /// 이번 드래그에서 이미 지운 글자가 있으면 문서가 비었다고 단정하지 않고 한 번 묻는다.
+    static func shouldRequestDeletePanBoundary(
+        hasText: Bool,
+        hasDeletedInCurrentPan: Bool,
+        documentContextBeforeInput: String?,
+        selectedText: String?
+    ) -> Bool {
+        return (hasText || hasDeletedInCurrentPan)
+            && (documentContextBeforeInput ?? "").isEmpty
+            && (selectedText ?? "").isEmpty
+    }
+
+    static func mutationResolutionEffects(
+        _ resolution: DeleteMutationResolution
+    ) -> DeleteMutationResolutionEffects {
+        let restorableCharacters = temporaryDeletedCharactersForConfirmedPanBoundary(resolution)
+        return DeleteMutationResolutionEffects(
+            restorableCharacters: restorableCharacters,
+            appliesMutationEffects: resolution.origin != .panBoundary || !restorableCharacters.isEmpty,
+            discardsLeadingNoOpPanLeft: resolution.origin == .panBoundary && resolution.completion == .noDeletion,
+            settlesBeforeResumingPan: resolution.origin == .panBoundary && !restorableCharacters.isEmpty
+        )
+    }
+
+    static func temporaryDeletedCharactersForConfirmedPanBoundary(
+        _ resolution: DeleteMutationResolution
+    ) -> [Character] {
+        guard resolution.origin == .panBoundary,
+              case .mutations(let drafts) = resolution.completion,
+              drafts.count == 1,
+              let draft = drafts.first,
+              draft.deletedText == "\n",
+              draft.insertedText.isEmpty,
+              draft.reliability == .authoritative
+        else { return [] }
+
+        return ["\n"]
+    }
+
+    static func deletedTextForSingleBackward(
+        selectedText: String?,
+        documentContextBeforeInput: String?
+    ) -> String {
+        if let selectedText, !selectedText.isEmpty {
+            return selectedText
+        }
+        if let lastBeforeCursor = documentContextBeforeInput?.last {
+            return String(lastBeforeCursor)
+        }
+        return ""
+    }
+
+    /// 삭제 드래그 경계 요청 전 입력창이 따라오도록 기다리는 시간(실측 반영 지연 최대 약 25ms의 두 배)
+    static let deletePanBoundaryQuietInterval: Double = 0.05
+    /// 삭제 드래그 경계 요청이 callback 없이 확정을 기다리는 최대 시간
+    static let deletePanBoundaryTimeout: Double = 0.15
+
+    /// 삭제 드래그가 커서 앞 글자 앞에서 멈춰야 하는지 판정합니다.
+    ///
+    /// 사진·첨부·연락처 토큰은 문맥에 개체 대체 문자(U+FFFC) 한 글자로만 보여, 지운 뒤 그 글자를 넣어도 되살아나지 않는다.
+    /// 지운 글자를 되살릴 수 있어야 하는 드래그에서는 그 앞에서 멈춘다. 탭·길게 누르기 삭제는 기본 키보드처럼 막지 않는다.
+    static func shouldStopDeletePan(previousCharacter: Character?, selectedText: String?) -> Bool {
+        return (selectedText ?? "").isEmpty && previousCharacter == "\u{FFFC}"
+    }
+
+    /// 삭제 드래그 한 칸을 모델과 복구 목록에 반영해야 하는지 판정합니다.
+    ///
+    /// 선택 영역을 지운 칸은 커서 앞 글이 그대로이므로 모델에서 글자를 떼지 않는다.
+    /// 지운 선택 영역은 한 글자로 되살릴 수 없으므로 복구 목록에도 넣지 않는다. undo에는 선택 영역이 기록된다.
+    static func shouldTrackDeletePanStep(selectedText: String?) -> Bool {
+        return (selectedText ?? "").isEmpty
+    }
+
+    /// 삭제 드래그 모델이 바닥났을 때 입력창 앞 문맥으로 다음 동작을 정합니다.
+    ///
+    /// 입력창이 드래그 편집을 늦게 반영하면 앞 문맥은 모델에서 방금 지운 글자의 앞부분으로 끝난다.
+    /// 그렇게 끝나면 낡은 문맥일 수 있으므로 기다리고, 아니면 모델이 잘려 있었던 것이므로 다시 채운다.
+    /// 같은 글자가 이어져 둘을 구분할 수 없으면 기다림으로 판정해 틀린 글자를 기록하지 않는다.
+    static func deletePanExhaustedContextAction(
+        sourceText: String,
+        documentContextBeforeInput: String?
+    ) -> DeletePanExhaustedContextAction {
+        let beforeInput = documentContextBeforeInput ?? ""
+        guard !beforeInput.isEmpty else { return .requestBoundary }
+        guard !sourceText.isEmpty else { return .refill }
+
+        // 앞 문맥보다 긴 접두사는 끝에 올 수 없으므로 확인 길이를 짧은 쪽으로 제한한다
+        let looksStale = (1...min(sourceText.count, beforeInput.count)).contains { length in
+            beforeInput.hasSuffix(sourceText.prefix(length))
+        }
+        return looksStale ? .awaitSync : .refill
+    }
+
+    /// 마지막 드래그 편집 뒤 경계 요청까지 더 기다릴 시간을 반환합니다.
+    static func deletePanBoundaryDelay(elapsedSinceLastEdit: Double) -> Double {
+        return max(0, deletePanBoundaryQuietInterval - elapsedSinceLastEdit)
+    }
+
+    static func repeatTimerInterval(repeatRate: Double) -> Double {
+        return max(0.01, 0.10 - repeatRate)
+    }
+
+    static func shouldContinueRepeatInput(
+        startedInputIdentifier: ObjectIdentifier?,
+        currentInputIdentifier: ObjectIdentifier?
+    ) -> Bool {
+        guard let startedInputIdentifier else { return true }
+        return startedInputIdentifier == currentInputIdentifier
+    }
+}

@@ -25,11 +25,18 @@ open class FourByFourKeyboardView: UIView {
     open var secondaryKeyList: [[[String]]] { fatalError("프로퍼티가 오버라이딩 되지 않았습니다.") }
     
     public private(set) lazy var allButtonList: [BaseKeyboardButton] = primaryButtonList + secondaryButtonList
-    public private(set) lazy var primaryButtonList: [PrimaryButton] = firstRowPrimaryKeyButtonList + secondRowPrimaryKeyButtonList + thirdRowPrimaryKeyButtonList + fourthRowPrimaryKeyButtonList + [spaceButton]
+    public private(set) lazy var primaryButtonList: [PrimaryButton] = numberRowPrimaryKeyButtonList + firstRowPrimaryKeyButtonList + secondRowPrimaryKeyButtonList + thirdRowPrimaryKeyButtonList + fourthRowPrimaryKeyButtonList + [spaceButton]
     public private(set) lazy var secondaryButtonList: [SecondaryButton] = [deleteButton, returnButton, secondaryAtButton, secondarySharpButton, switchButton, nextKeyboardButton]
-    public private(set) lazy var totalTextInterableButtonList: [TextInteractable] = firstRowPrimaryKeyButtonList + secondRowPrimaryKeyButtonList + thirdRowPrimaryKeyButtonList + fourthRowPrimaryKeyButtonList
+    + [languageSwitchButton].compactMap { $0 as SecondaryButton? }
+    public private(set) lazy var totalTextInterableButtonList: [TextInteractable] = numberRowPrimaryKeyButtonList + firstRowPrimaryKeyButtonList + secondRowPrimaryKeyButtonList + thirdRowPrimaryKeyButtonList + fourthRowPrimaryKeyButtonList
     + [deleteButton, spaceButton, returnButton, secondaryAtButton, secondarySharpButton]
-    
+
+    private let showsLanguageSwitchButton: Bool
+    /// 숫자 행 표시 여부
+    public let showsNumberRow: Bool
+    /// 4열 폭 비율 제약 관리자
+    private let columnWidthLayoutController = FourColumnWidthLayoutController()
+
     // MARK: - UI Components
     
     /// 키보드 레이아웃 수직 스택
@@ -48,6 +55,10 @@ open class FourByFourKeyboardView: UIView {
     /// 키보드 네번째 우측 `SecondaryButton` 행
     private let fourthRowRightSecondaryButtonHStackView = KeyboardRowHStackView()
     
+    /// 숫자 행
+    private lazy var numberRow = KeyboardNumberRow(isEnabled: showsNumberRow)
+    /// 숫자 행 `PrimaryKeyButton` 배열. 숫자 행이 꺼져 있으면 비어 있다
+    private var numberRowPrimaryKeyButtonList: [PrimaryKeyButton] { numberRow.buttonList }
     /// 키보드 첫번째 행 `PrimaryKeyButton` 배열
     private lazy var firstRowPrimaryKeyButtonList = zip(primaryKeyList[0], secondaryKeyList[0]).map { (primary, secondary) in
         PrimaryKeyButton(
@@ -85,16 +96,20 @@ open class FourByFourKeyboardView: UIView {
     public private(set) lazy var secondaryAtButton = SecondaryKeyButton(keyboard: keyboard, button: .keyButton(primary: ["@"], secondary: nil))
     public private(set) lazy var secondarySharpButton = SecondaryKeyButton(keyboard: keyboard, button: .keyButton(primary: ["#"], secondary: nil))
     
-    public  private(set) lazy var switchButton = SwitchButton(keyboard: keyboard)
-    public  private(set) lazy var nextKeyboardButton = NextKeyboardButton(keyboard: keyboard)
+    public private(set) lazy var switchButton = SwitchButton(keyboard: keyboard)
+    public private(set) lazy var languageSwitchButton: LanguageSwitchButton? = {
+        guard showsLanguageSwitchButton else { return nil }
+        return LanguageSwitchButton(mode: .hangeul, keyboard: keyboard)
+    }()
+    public private(set) lazy var nextKeyboardButton = NextKeyboardButton(keyboard: keyboard)
     
-    public  private(set) lazy var keyboardSelectOverlayView: KeyboardSelectOverlayView = {
+    public private(set) lazy var keyboardSelectOverlayView: KeyboardSelectOverlayView = {
         let overlayView = KeyboardSelectOverlayView(keyboard: keyboard)
         overlayView.isHidden = true
         
         return overlayView
     }()
-    public  private(set) lazy var oneHandedModeSelectOverlayView: OneHandedModeSelectOverlayView = {
+    public private(set) lazy var oneHandedModeSelectOverlayView: OneHandedModeSelectOverlayView = {
         let overlayView = OneHandedModeSelectOverlayView()
         overlayView.isHidden = true
         
@@ -103,8 +118,13 @@ open class FourByFourKeyboardView: UIView {
     
     // MARK: - Initializer
     
-    public override init(frame: CGRect) {
-        super.init(frame: frame)
+    public init(
+        showsLanguageSwitchButton: Bool = false,
+        showsNumberRow: Bool = UserDefaultsManager.shared.showsNumberRow
+    ) {
+        self.showsLanguageSwitchButton = showsLanguageSwitchButton
+        self.showsNumberRow = showsNumberRow
+        super.init(frame: .zero)
         setupUI()
     }
     
@@ -114,6 +134,28 @@ open class FourByFourKeyboardView: UIView {
     
     deinit {
         logger.debug("\(String(describing: type(of: self))) deinit")
+    }
+}
+
+// MARK: - Update Methods
+
+extension FourByFourKeyboardView {
+    /// 지구본 표시 여부가 바뀌면 modifier 영역을 다시 배치합니다.
+    ///
+    /// modifier 스택은 항상 균등 분배이므로 분배 방식을 바꿀 필요는 없지만,
+    /// 숨김 상태 변경이 같은 레이아웃 패스에 반영되도록 무효화는 해야 한다
+    public func nextKeyboardButtonVisibilityDidChange(needsInputModeSwitchKey: Bool) {
+        setNeedsLayout()
+    }
+
+    public func updateNumberRowHeight(_ height: CGFloat) {
+        numberRow.updateHeight(height)
+    }
+
+    /// 글자 열 너비 배율을 다시 적용합니다.
+    public func updateLetterColumnWidthMultiplier(_ multiplier: Double) {
+        columnWidthLayoutController.update(multiplier: multiplier)
+        setNeedsLayout()
     }
 }
 
@@ -152,32 +194,59 @@ private extension FourByFourKeyboardView {
         
         fourthRowPrimaryKeyButtonList.forEach { fourthRowHStackView.addArrangedSubview($0) }
         fourthRowHStackView.addArrangedSubview(fourthRowRightSecondaryButtonHStackView)
-        [nextKeyboardButton, switchButton].forEach { fourthRowRightSecondaryButtonHStackView.addArrangedSubview($0) }
+        let modifierButtons: [SecondaryButton] = [nextKeyboardButton]
+        + [languageSwitchButton].compactMap { $0 }
+        + [switchButton]
+        modifierButtons.forEach(fourthRowRightSecondaryButtonHStackView.addArrangedSubview)
     }
     
     func setConstraints() {
         layoutVStackView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
-            layoutVStackView.topAnchor.constraint(equalTo: self.topAnchor),
             layoutVStackView.leadingAnchor.constraint(equalTo: self.leadingAnchor),
             layoutVStackView.trailingAnchor.constraint(equalTo: self.trailingAnchor),
             layoutVStackView.bottomAnchor.constraint(equalTo: self.bottomAnchor)
         ])
-        
+        numberRow.install(in: self, above: layoutVStackView)
+
+        // 4열 폭 비율은 컨트롤러가 관리한다
+        columnWidthLayoutController.install(
+            rows: [firstRowHStackView,
+                   secondRowHStackView,
+                   thirdRowHStackView,
+                   fourthRowHStackView],
+            referenceView: self,
+            multiplier: UserDefaultsManager.shared.letterColumnWidthMultiplier
+        )
+
         keyboardSelectOverlayView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             keyboardSelectOverlayView.trailingAnchor.constraint(equalTo: self.trailingAnchor, constant: -4),
-            keyboardSelectOverlayView.centerYAnchor.constraint(equalTo: returnButton.centerYAnchor),
-            keyboardSelectOverlayView.widthAnchor.constraint(equalTo: self.widthAnchor, multiplier: KeyboardLayoutFigure.keyboardSelectOverlayWidthMultiplier),
-            keyboardSelectOverlayView.heightAnchor.constraint(equalTo: returnButton.heightAnchor)
+            keyboardSelectOverlayView.bottomAnchor.constraint(equalTo: switchButton.topAnchor, constant: -4),
+            keyboardSelectOverlayView.heightAnchor.constraint(equalToConstant: KeyboardLayoutFigure.selectOverlayHeight)
+        ])
+
+        // 취소 영역의 경계선을 `switchButton` 왼쪽 모서리보다 안쪽에 둔다.
+        // 오버레이가 열리는 순간 손가락이 이미 목표 쪽에 있게 된다
+        let cancelBoundary = keyboardSelectOverlayView.xmarkImageContainerView.leadingAnchor.constraint(
+            equalTo: switchButton.leadingAnchor,
+            constant: KeyboardLayoutFigure.keyboardSelectBoundaryInset
+        )
+        cancelBoundary.priority = .init(999)
+        NSLayoutConstraint.activate([
+            cancelBoundary,
+            keyboardSelectOverlayView.xmarkImageContainerView.widthAnchor.constraint(
+                greaterThanOrEqualToConstant: KeyboardLayoutFigure.keyboardSelectCancelMinWidth
+            )
         ])
         
         oneHandedModeSelectOverlayView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             oneHandedModeSelectOverlayView.trailingAnchor.constraint(equalTo: self.trailingAnchor, constant: -4),
-            oneHandedModeSelectOverlayView.centerYAnchor.constraint(equalTo: returnButton.centerYAnchor),
-            oneHandedModeSelectOverlayView.widthAnchor.constraint(equalTo: self.widthAnchor, multiplier: KeyboardLayoutFigure.oneHandedModeSelectOverlayWidthMultiplier),
-            oneHandedModeSelectOverlayView.heightAnchor.constraint(equalTo: returnButton.heightAnchor)
+            oneHandedModeSelectOverlayView.bottomAnchor.constraint(equalTo: switchButton.topAnchor, constant: -4),
+            oneHandedModeSelectOverlayView.widthAnchor.constraint(equalToConstant: KeyboardLayoutFigure.oneHandedModeSelectOverlayWidth),
+            oneHandedModeSelectOverlayView.heightAnchor.constraint(equalToConstant: KeyboardLayoutFigure.selectOverlayHeight)
         ])
     }
+
 }

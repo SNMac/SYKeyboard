@@ -11,50 +11,83 @@ public enum DefaultValues {
     /// 그룹 번들 ID
     public static let groupBundleID = "group.github.com-SNMac.SYKeyboard"
     
-    /* 피드백 설정 */
+    // MARK: - 피드백 설정
+    
     /// 소리 피드백 기본값
     public static let isSoundFeedbackEnabled: Bool = true
     /// 햅틱 피드백
     public static let isHapticFeedbackEnabled: Bool = true
     
-    /* 입력 설정 */
-    /// 선택한 길게 누르기 동작
-    public static let selectedLongPressAction: LongPressAction = .repeatInput
-    /// 드래그하여 커서 이동 기본값
-    public static let isDragToMoveCursorEnabled: Bool = true
+    // MARK: - 자동완성 텍스트 설정
+
     /// 텍스트 대치 기본값
     public static let isTextReplacementEnabled: Bool = true
     /// 자동완성 텍스트 기본값
     public static let isPredictiveTextEnabled: Bool = true
+    /// Undo/Redo 기능 활성화 여부 기본값
+    public static let isUndoRedoEnabled: Bool = true
+    /// 수식 결과 표시 기본값
+    public static let isShowMathResultsEnabled: Bool = true
+    /// 클립보드 기록 기본값. 클립보드 내용을 저장하므로 사용자가 직접 켠다
+    public static let isClipboardHistoryEnabled: Bool = false
+    /// 이미지 클립보드 기록 기본값. 클립보드 기록이 켜져 있으면 이미지도 함께 저장한다
+    public static let isClipboardImageHistoryEnabled: Bool = true
+
+    // MARK: - 입력 설정
+    
+    /// 선택한 길게 누르기 동작
+    public static let selectedLongPressAction: LongPressAction = .repeatInput
+    /// 드래그하여 커서 이동 기본값
+    public static let isDragToMoveCursorEnabled: Bool = true
     /// '.' 단축키 여부 기본값
     public static let isPeriodShortcutEnabled: Bool = true
+    /// Smart Punctuation 기본값
+    public static let isSmartPunctuationEnabled: Bool = true
     /// 스페이스/리턴 입력 후 주 키보드로 변경 기본값
     public static let isAutoChangeToPrimaryEnabled: Bool = true
     
+    // MARK: - 입력 설정 -> 속도/커서 설정
+
+    /// 반복 지연 시간 기본값
+    public static let longPressDuration: Double = 0.5
+    /// 키 반복 속도 기본값
+    public static let repeatRate: Double = 0.05
+    /// 활성화 드래그 거리 기본값
+    public static let cursorActiveDistance: Double = 30.0
+    /// 이동 드래그 간격 기본값
+    public static let cursorMoveInterval: Double = 5.0
+    
+    // MARK: - 외형 설정
+    
     /// 키보드 높이 기본값
     public static let keyboardHeight: Double = 240.0
+    /// 주 자판 숫자 행 표시 여부 기본값
+    public static let showsNumberRow: Bool = false
     /// 숫자 키보드 활성화 여부 기본값
     public static let isNumericKeypadEnabled: Bool = true
     /// 한 손 키보드 활성화 여부 기본값
     public static let isOneHandedKeyboardEnabled: Bool = true
     /// 한 손 키보드 너비 기본값
     public static let oneHandedKeyboardWidth: Double = 320.0
-    
-    /* 입력 설정 -> 속도/커서 설정 */
-    /// 반복 지연 시간 기본값
-    public static let longPressDuration: Double = 0.5
-    /// 키 반복 속도 기본값
-    public static let repeatRate: Double = 0.05
-    /// 활성화 드래그 거리 기본값
-    public static let cursorActiveDistance: Double = 50.0
-    /// 이동 드래그 간격 기본값
-    public static let cursorMoveInterval: Double = 5.0
-    
-    /* 기타 설정 */
+    /// 4x4 계열 글자 열 너비 배율 기본값. 현재의 균등 분할과 같다
+    public static let letterColumnWidthMultiplier: Double = 1.0
+    /// 나랏글 '획', '쌍' 버튼 점 기호 표기 여부 기본값
+    public static let isNaratgeulDotLabelEnabled: Bool = false
+    /// 천지인·숫자 키패드 스페이스 하단 배치 여부 기본값
+    public static let isBottomSpaceEnabled: Bool = false
+
+    // MARK: - 기타 설정
+
     /// 키보드 전환 버튼(􀆪) 표시 설정용 기본값
     public static let needsInputModeSwitchKey: Bool = true
     /// 한 손 키보드 저장용 기본값
     public static let lastOneHandedMode: OneHandedMode = .center
+    /// 한영 통합 키보드 마지막 언어 mode 기본값
+    public static let lastHangeulEnglishLanguageMode: HangeulEnglishLanguageMode = .hangeul
     /// 전체 접근 허용 안내 오버레이 닫음 여부 기본값
     public static let isRequestFullAccessOverlayClosed: Bool = false
+    /// 확인한 pasteboard changeCount 기본값. 아직 확인하거나 직접 쓴 적 없음을 뜻한다
+    public static let lastSeenPasteboardChangeCount: Int = -1
+    /// 키보드가 예산 초과로 건너뛴 changeCount 기본값. 건너뛴 것이 없음을 뜻한다
+    public static let budgetSkippedPasteboardChangeCount: Int = -1
 }

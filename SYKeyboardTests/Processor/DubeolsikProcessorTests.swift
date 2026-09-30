@@ -23,21 +23,6 @@ struct DubeolsikProcessorTests: HangeulProcessorTestable {
     let automata: HangeulAutomataProtocol = HangeulAutomata()
     let processor: HangeulProcessable
     
-    private let 초성Table = ["ㄱ", "ㄲ", "ㄴ", "ㄷ", "ㄸ", "ㄹ", "ㅁ", "ㅂ", "ㅃ", "ㅅ", "ㅆ", "ㅇ", "ㅈ", "ㅉ", "ㅊ", "ㅋ", "ㅌ", "ㅍ", "ㅎ"]
-    private let 중성Table = ["ㅏ", "ㅐ", "ㅑ", "ㅒ", "ㅓ", "ㅔ", "ㅕ", "ㅖ", "ㅗ", "ㅘ", "ㅙ", "ㅚ", "ㅛ", "ㅜ", "ㅝ", "ㅞ", "ㅟ", "ㅠ", "ㅡ", "ㅢ", "ㅣ"]
-    private let 종성Table = [" ", "ㄱ", "ㄲ", "ㄳ", "ㄴ", "ㄵ", "ㄶ", "ㄷ", "ㄹ", "ㄺ", "ㄻ", "ㄼ", "ㄽ", "ㄾ", "ㄿ", "ㅀ", "ㅁ", "ㅂ", "ㅄ", "ㅅ", "ㅆ", "ㅇ", "ㅈ", "ㅊ", "ㅋ", "ㅌ", "ㅍ", "ㅎ"]
-    
-    private let 겹모음조합Table: [(앞모음: String, 뒷모음: String, 겹모음: String)] = [
-        ("ㅗ", "ㅏ", "ㅘ"), ("ㅘ", "ㅣ", "ㅙ"), ("ㅗ", "ㅐ", "ㅙ"), ("ㅗ", "ㅣ", "ㅚ"),
-        ("ㅜ", "ㅓ", "ㅝ"), ("ㅜ", "ㅔ", "ㅞ"), ("ㅝ", "ㅣ", "ㅞ"), ("ㅜ", "ㅣ", "ㅟ"), ("ㅡ", "ㅣ", "ㅢ")
-    ]
-    
-    private let 겹자음조합Table: [(앞자음: String, 뒷자음: String, 겹자음: String)] = [
-        ("ㄱ", "ㅅ", "ㄳ"), ("ㄴ", "ㅈ", "ㄵ"), ("ㄴ", "ㅎ", "ㄶ"), ("ㄹ", "ㄱ", "ㄺ"),
-        ("ㄹ", "ㅁ", "ㄻ"), ("ㄹ", "ㅂ", "ㄼ"), ("ㄹ", "ㅅ", "ㄽ"), ("ㄹ", "ㅌ", "ㄾ"),
-        ("ㄹ", "ㅍ", "ㄿ"), ("ㄹ", "ㅎ", "ㅀ"), ("ㅂ", "ㅅ", "ㅄ")
-    ]
-    
     // MARK: - Initializer
     
     init() {
@@ -46,46 +31,22 @@ struct DubeolsikProcessorTests: HangeulProcessorTestable {
     
     // MARK: - 1. 기본 입력 및 조합 테스트
     
-    @Test("기본 입력: '가' 생성 (ㄱ + ㅏ)")
-    func test기본입력_가() {
+    @Test("한 음절 조합: 키 입력 순서대로 음절을 완성",
+          arguments: [
+            (["ㄱ", "ㅏ"], "가"),           // 초성 + 중성
+            (["ㄱ", "ㅏ", "ㄱ"], "각"),      // 종성
+            (["ㅇ", "ㅗ", "ㅏ"], "와"),      // 복합 모음 (ㅗ + ㅏ -> ㅘ)
+            (["ㄷ", "ㅏ", "ㄹ", "ㄱ"], "닭")  // 겹받침 (ㄹ + ㄱ -> ㄺ)
+          ])
+    func test한음절조합(keys: [String], expected: String) {
         var (c, p) = ("", "")
-        (c, p) = applyInput("ㄱ", committed: c, composing: p)
-        (c, p) = applyInput("ㅏ", committed: c, composing: p)
-        
-        #expect(c + p == "가")
+        for key in keys {
+            (c, p) = applyInput(key, committed: c, composing: p)
+        }
+
+        #expect(c + p == expected)
     }
-    
-    @Test("종성 입력: '각' 생성 (가 + ㄱ)")
-    func test기본입력_각() {
-        var (c, p) = ("", "")
-        (c, p) = applyInput("ㄱ", committed: c, composing: p)
-        (c, p) = applyInput("ㅏ", committed: c, composing: p) // 가
-        (c, p) = applyInput("ㄱ", committed: c, composing: p) // 각
-        
-        #expect(c + p == "각")
-    }
-    
-    @Test("복합 모음 입력: '와' 생성 (ㅇ + ㅗ + ㅏ)")
-    func test복합모음_와() {
-        var (c, p) = ("", "")
-        (c, p) = applyInput("ㅇ", committed: c, composing: p)
-        (c, p) = applyInput("ㅗ", committed: c, composing: p)
-        (c, p) = applyInput("ㅏ", committed: c, composing: p) // ㅗ + ㅏ -> ㅘ
-        
-        #expect(c + p == "와")
-    }
-    
-    @Test("겹받침 입력: '닭' 생성 (ㄷ + ㅏ + ㄹ + ㄱ)")
-    func test겹받침_닭() {
-        var (c, p) = ("", "")
-        (c, p) = applyInput("ㄷ", committed: c, composing: p)
-        (c, p) = applyInput("ㅏ", committed: c, composing: p)
-        (c, p) = applyInput("ㄹ", committed: c, composing: p) // 달
-        (c, p) = applyInput("ㄱ", committed: c, composing: p) // 닭
-        
-        #expect(c + p == "닭")
-    }
-    
+
     @Test("연음 입력: '안녕' (ㅇ+ㅏ+ㄴ+ㄴ+ㅕ+ㅇ)")
     func test연음입력_안녕() {
         var (c, p) = ("", "")
@@ -97,7 +58,26 @@ struct DubeolsikProcessorTests: HangeulProcessorTestable {
         
         #expect(c + p == "안녕")
     }
-    
+
+    @Test("shift 짝 입력: 쌍자음 ㅆ·ㄲ가 받침으로, ㅒ·ㅖ가 모음으로 조합")
+    func testShift짝입력_조합() {
+        var (c, p) = ("", "")
+        for 글자 in ["ㄱ", "ㅏ", "ㅆ"] { (c, p) = applyInput(글자, committed: c, composing: p) }
+        #expect(c + p == "갔")
+
+        (c, p) = ("", "")
+        for 글자 in ["ㄱ", "ㅏ", "ㄲ"] { (c, p) = applyInput(글자, committed: c, composing: p) }
+        #expect(c + p == "갂")
+
+        (c, p) = ("", "")
+        for 글자 in ["ㄱ", "ㅒ"] { (c, p) = applyInput(글자, committed: c, composing: p) }
+        #expect(c + p == "걔")
+
+        (c, p) = ("", "")
+        for 글자 in ["ㅅ", "ㅖ"] { (c, p) = applyInput(글자, committed: c, composing: p) }
+        #expect(c + p == "셰")
+    }
+
     // MARK: - 2. 스페이스바 및 특수문자 동작 테스트
     
     @Test("Space 입력: 항상 insertSpace 반환 및 공백 입력")
@@ -171,91 +151,80 @@ struct DubeolsikProcessorTests: HangeulProcessorTestable {
     
     @Test("종성 복원: '갉' + 'ㅏ' = '갈가' -> 삭제 -> '갉' 복귀 확인")
     func test종성복원_갉_아_삭제() {
+        let harness = HangeulCompositionTestHarness(processor: processor)
+
         // 1. '갉' 만들기
-        var (c, p) = ("", "")
-        (c, p) = applyInput("ㄱ", committed: c, composing: p)
-        (c, p) = applyInput("ㅏ", committed: c, composing: p)
-        (c, p) = applyInput("ㄹ", committed: c, composing: p)
-        (c, p) = applyInput("ㄱ", committed: c, composing: p) // 갉
-        
-        #expect(c + p == "갉")
+        ["ㄱ", "ㅏ", "ㄹ", "ㄱ"].forEach(harness.input)
+        #expect(harness.text == "갉")
         
         // 2. 'ㅏ' 입력 -> '갈가' (연음 발생)
-        (c, p) = applyInput("ㅏ", committed: c, composing: p)
-        #expect(c + p == "갈가")
+        harness.input("ㅏ")
+        #expect(harness.text == "갈가")
         
         // 3. 삭제 -> '갉'으로 복원되어야 함
-        (c, p) = applyDelete(committed: c, composing: p)
-        #expect(c + p == "갉", "연음된 글자를 지웠을 때, 앞 글자의 겹받침으로 복원되어야 합니다.")
+        harness.delete()
+        #expect(harness.text == "갉", "연음된 글자를 지웠을 때, 앞 글자의 겹받침으로 복원되어야 합니다.")
     }
     
     @Test("종성 복원: '앉' + 'ㅏ' = '안자' -> 삭제 -> '앉' 복귀 확인")
     func test종성복원_앉_아_삭제() {
+        let harness = HangeulCompositionTestHarness(processor: processor)
+
         // 1. '앉' 만들기 (ㄴ + ㅈ)
-        var (c, p) = ("", "")
-        (c, p) = applyInput("ㅇ", committed: c, composing: p)
-        (c, p) = applyInput("ㅏ", committed: c, composing: p)
-        (c, p) = applyInput("ㄴ", committed: c, composing: p)
-        (c, p) = applyInput("ㅈ", committed: c, composing: p) // 앉
-        
-        #expect(c + p == "앉")
+        ["ㅇ", "ㅏ", "ㄴ", "ㅈ"].forEach(harness.input)
+        #expect(harness.text == "앉")
         
         // 2. 'ㅏ' 입력 -> '안자'
-        (c, p) = applyInput("ㅏ", committed: c, composing: p)
-        #expect(c + p == "안자")
+        harness.input("ㅏ")
+        #expect(harness.text == "안자")
         
         // 3. 삭제 -> '앉'
-        (c, p) = applyDelete(committed: c, composing: p)
-        #expect(c + p == "앉")
+        harness.delete()
+        #expect(harness.text == "앉")
     }
     
     @Test("종성 복원 예외: 남은 글자가 모음이거나 완성형일 때는 합치지 않음")
     func test종성복원_예외케이스() {
-        var (c, p) = ("", "")
-        (c, p) = applyInput("ㄱ", committed: c, composing: p)
-        (c, p) = applyInput("ㅏ", committed: c, composing: p)
-        (c, p) = applyInput("ㄱ", committed: c, composing: p) // "각"
-        
-        // Space로 확정
-        _ = processor.inputSpace(composing: p)
-        c += p
-        p = ""
-        c += " " // "각 "
-        
-        // 삭제 -> "각" (공백만 삭제)
-        p = String(c.removeLast()) // p = " "
-        let deleteResult = processor.delete(composing: p, committedTail: String(c.suffix(2)), isProtected: false)
-        p = deleteResult.composing
-        if p.isEmpty && !c.isEmpty {
-            p = String(c.removeLast())
-        }
-        #expect(c + p == "각")
+        let 모음결과 = processor.deleteWithRestore종성(
+            composing: "ㅘ",
+            committedTail: "각",
+            isProtected: false
+        )
+        #expect(모음결과.composing == "ㅗ")
+        #expect(모음결과.consumedCommittedCount == 0)
+
+        let 완성형결과 = processor.deleteWithRestore종성(
+            composing: "과",
+            committedTail: "각",
+            isProtected: false
+        )
+        #expect(완성형결과.composing == "고")
+        #expect(완성형결과.consumedCommittedCount == 0)
     }
     
     // MARK: - 4. 삭제 후 재입력 결합 테스트
     
     @Test("삭제 후 재입력: ㄴㄴ -> 삭제 -> ㄴ -> ㅏ 입력 시 '나'로 결합")
     func test삭제후_재입력_결합() {
-        var (c, p) = ("", "")
+        let harness = HangeulCompositionTestHarness(processor: processor)
         
         // 1. ㄴ 두 번 입력 -> "ㄴㄴ"
-        (c, p) = applyInput("ㄴ", committed: c, composing: p)
-        (c, p) = applyInput("ㄴ", committed: c, composing: p)
-        #expect(c + p == "ㄴㄴ")
+        ["ㄴ", "ㄴ"].forEach(harness.input)
+        #expect(harness.text == "ㄴㄴ")
         
         // 2. ㅏ 입력 -> "ㄴ나"
-        (c, p) = applyInput("ㅏ", committed: c, composing: p)
-        #expect(c + p == "ㄴ나")
+        harness.input("ㅏ")
+        #expect(harness.text == "ㄴ나")
         
         // 3. 삭제 두 번 -> "ㄴ"
-        (c, p) = applyDelete(committed: c, composing: p)
-        #expect(c + p == "ㄴㄴ")
-        (c, p) = applyDelete(committed: c, composing: p)
-        #expect(c + p == "ㄴ")
+        harness.delete()
+        #expect(harness.text == "ㄴㄴ")
+        harness.delete()
+        #expect(harness.text == "ㄴ")
         
         // 4. ㅏ 입력 -> "나"여야 함 ("ㄴㅏ"가 아님)
-        (c, p) = applyInput("ㅏ", committed: c, composing: p)
-        #expect(c + p == "나", "삭제 후 남은 낱자 자음이 다음 모음과 결합되어야 합니다.")
+        harness.input("ㅏ")
+        #expect(harness.text == "나", "삭제 후 남은 낱자 자음이 다음 모음과 결합되어야 합니다.")
     }
     
     // MARK: - 5. 11,172자 전체 검증 (Heavy Test)
@@ -274,28 +243,27 @@ struct DubeolsikProcessorTests: HangeulProcessorTestable {
             let 목표글자String = String(목표글자Char)
             
             // 1. 두벌식 입력 시퀀스로 변환
-            let 입력키배열 = decompose두벌식키분해(char: 목표글자Char)
+            let 입력키배열 = DubeolsikKeyDecomposer.keys(for: 목표글자Char)
             
             // 2. 입력 시뮬레이션
-            var (committed, composing) = ("", "")
-            for 키 in 입력키배열 {
-                (committed, composing) = applyInput(키, committed: committed, composing: composing)
-            }
+            processor.reset한글조합()
+            let harness = HangeulCompositionTestHarness(processor: processor)
+            입력키배열.forEach(harness.input)
             
             // 3. 생성 검증
-            if committed + composing != 목표글자String {
-                Self.logger.error("생성 실패: 목표(\(목표글자String)) != 결과(\(committed + composing)) / 입력: \(입력키배열)")
+            if harness.text != 목표글자String {
+                Self.logger.error("생성 실패: 목표(\(목표글자String)) != 결과(\(harness.text)) / 입력: \(입력키배열)")
                 실패횟수 += 1
                 continue
             }
             
             // 4. 삭제 시뮬레이션
             for _ in 0..<입력키배열.count {
-                (committed, composing) = applyDelete(committed: committed, composing: composing)
+                harness.delete()
             }
             
-            if !(committed + composing).isEmpty {
-                Self.logger.error("삭제 실패: \(목표글자String) -> 잔여물: '\(committed + composing)'")
+            if !harness.text.isEmpty {
+                Self.logger.error("삭제 실패: \(목표글자String) -> 잔여물: '\(harness.text)'")
                 실패횟수 += 1
             }
         }
@@ -304,53 +272,6 @@ struct DubeolsikProcessorTests: HangeulProcessorTestable {
         
         if 실패횟수 == 0 {
             Self.logger.info("[Swift Testing - \(#function)] 11,172자 검증 완료.")
-        }
-    }
-}
-
-// MARK: - Private Methods
-
-private extension DubeolsikProcessorTests {
-    
-    /// 완성된 한글 문자를 두벌식 키 입력 배열로 분해
-    func decompose두벌식키분해(char: Character) -> [String] {
-        guard let scalar = char.unicodeScalars.first else { return [] }
-        let 한글값 = Int(scalar.value) - 0xAC00
-        
-        let 초성Index = 한글값 / (21 * 28)
-        let 중성Index = (한글값 % (21 * 28)) / 28
-        let 종성Index = 한글값 % 28
-        
-        var 입력키배열: [String] = []
-        
-        입력키배열.append(초성Table[초성Index])
-        
-        let 중성Char = 중성Table[중성Index]
-        입력키배열.append(contentsOf: decompose모음_재귀(중성Char))
-        
-        if 종성Index != 0 {
-            let 종성Char = 종성Table[종성Index]
-            입력키배열.append(contentsOf: decompose자음_분해(종성Char))
-        }
-        
-        return 입력키배열
-    }
-    
-    func decompose모음_재귀(_ 모음: String) -> [String] {
-        if ["ㅐ", "ㅔ", "ㅒ", "ㅖ"].contains(모음) { return [모음] }
-        
-        if let 조합 = 겹모음조합Table.first(where: { $0.겹모음 == 모음 }) {
-            return decompose모음_재귀(조합.앞모음) + decompose모음_재귀(조합.뒷모음)
-        } else {
-            return [모음]
-        }
-    }
-    
-    func decompose자음_분해(_ 자음: String) -> [String] {
-        if let 조합 = 겹자음조합Table.first(where: { $0.겹자음 == 자음 }) {
-            return [조합.앞자음, 조합.뒷자음]
-        } else {
-            return [자음]
         }
     }
 }

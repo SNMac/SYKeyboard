@@ -73,7 +73,7 @@ private extension ChevronButton {
         buttonConfig.contentInsets = .zero
         self.configuration = buttonConfig
         
-        let imageConfig = UIImage.SymbolConfiguration(pointSize: 32, weight: .medium)
+        let imageConfig = UIImage.SymbolConfiguration(pointSize: FontSize.imageLarge, weight: .medium)
         self.configurationUpdateHandler = { [weak self] button in
             switch button.state {
             case .highlighted:
