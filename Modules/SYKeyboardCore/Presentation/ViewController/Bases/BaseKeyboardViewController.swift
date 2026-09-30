@@ -2462,10 +2462,11 @@ private extension BaseKeyboardViewController {
 
     func performDeleteButtonPanDeleteIfPossible() {
         prepareDeletePanTextModelIfNeeded()
+        let selectedText = textDocumentProxy.selectedText
         // 되살릴 수 없는 첨부·토큰 앞에서는 지우지 않고 멈춘다
         guard !KeyboardTextInteractionPolicy.shouldStopDeletePan(
             previousCharacter: deleteButtonPanPreviousCharacter,
-            selectedText: textDocumentProxy.selectedText
+            selectedText: selectedText
         ) else { return }
         deletePanDeletedTextOverride = deleteButtonPanPreviousCharacter.map(String.init)
         let deleteResult = deleteButtonPanDeleteText(
@@ -2473,10 +2474,12 @@ private extension BaseKeyboardViewController {
         )
         deletePanDeletedTextOverride = nil
         if let deleteResult {
-            deletePanTextModel?.removeLast()
             lastDeletePanEditTime = CACurrentMediaTime()
-            if deleteResult.shouldRestore {
-                tempDeletedCharacters.append(deleteResult.character)
+            if KeyboardTextInteractionPolicy.shouldTrackDeletePanStep(selectedText: selectedText) {
+                deletePanTextModel?.removeLast()
+                if deleteResult.shouldRestore {
+                    tempDeletedCharacters.append(deleteResult.character)
+                }
             }
             updateSuggestions()
             FeedbackManager.shared.playHaptic()

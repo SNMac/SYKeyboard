@@ -883,6 +883,18 @@ private extension KeyboardTextInteractionPolicyTests {
         )
     }
 
+    @Test("삭제 드래그 한 칸은 선택 영역을 지운 경우 모델과 복구 목록에 반영하지 않음",
+          arguments: [
+            (String?.none, true),
+            ("", true),
+            ("선택", false)
+          ])
+    func testShouldTrackDeletePanStep(_ selectedText: String?, _ expected: Bool) {
+        #expect(
+            KeyboardTextInteractionPolicy.shouldTrackDeletePanStep(selectedText: selectedText) == expected
+        )
+    }
+
     // MARK: - 삭제 드래그 경계 상태
 
     private func makeBoundaryGeneration() -> DeleteInteractionGeneration {

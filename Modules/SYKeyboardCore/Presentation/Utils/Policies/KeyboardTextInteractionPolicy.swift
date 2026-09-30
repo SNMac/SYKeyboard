@@ -1193,6 +1193,14 @@ enum KeyboardTextInteractionPolicy {
         return (selectedText ?? "").isEmpty && previousCharacter == "\u{FFFC}"
     }
 
+    /// 삭제 드래그 한 칸을 모델과 복구 목록에 반영해야 하는지 판정합니다.
+    ///
+    /// 선택 영역을 지운 칸은 커서 앞 글이 그대로이므로 모델에서 글자를 떼지 않는다.
+    /// 지운 선택 영역은 한 글자로 되살릴 수 없으므로 복구 목록에도 넣지 않는다. undo에는 선택 영역이 기록된다.
+    static func shouldTrackDeletePanStep(selectedText: String?) -> Bool {
+        return (selectedText ?? "").isEmpty
+    }
+
     /// 삭제 드래그 모델이 바닥났을 때 입력창 앞 문맥으로 다음 동작을 정합니다.
     ///
     /// 입력창이 드래그 편집을 늦게 반영하면 앞 문맥은 모델에서 방금 지운 글자의 앞부분으로 끝난다.
