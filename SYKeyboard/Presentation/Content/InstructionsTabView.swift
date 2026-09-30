@@ -50,6 +50,18 @@ struct InstructionsTabView: View {
             InstructionsPageView(title: oneHandedPageTitle,
                                  image: .instructionChangeOneHanded,
                                  description: oneHandedPageDescription)
+            
+            let keyboardToolbarTitle = String(localized: "키보드 툴바")
+            let keyboardToolbarDescription = String(localized: "자동완성 텍스트를 좌우로 스크롤하여 추가 추천 단어 탐색")
+            InstructionsPageView(title: keyboardToolbarTitle,
+                                 image: .instructionKeyboardToolbar,
+                                 description: keyboardToolbarDescription)
+            
+            let predictiveTextDeleteTitle = String(localized: "자동완성 텍스트 삭제")
+            let predictiveTextDeleteDescription = String(localized: "추천된 자동완성 텍스트를 길게 눌러 삭제")
+            InstructionsPageView(title: predictiveTextDeleteTitle,
+                                 image: .instructionPredictiveTextDelete,
+                                 description: predictiveTextDeleteDescription)
         }
         .tabViewStyle(.page)
         .indexViewStyle(.page(backgroundDisplayMode: .always))
