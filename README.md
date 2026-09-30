@@ -428,7 +428,7 @@ func setKeyboardHeight() {
 
 ## 📚 문서
 구현 구조와 동작 원리를 설명하는 아키텍처 문서는 [docs/architecture](docs/architecture/README.md)에 있다.
-- 전체 아키텍처 · 한글 입력 로직 · 자동완성 로직 · 삭제와 실행취소 로직 · 한영 통합 키보드
+- 전체 아키텍처 · 한글 입력 로직 · 자동완성 로직 · 삭제와 실행취소 로직 · 한영 통합 키보드 · 성능 고려 사항
 
 <br><br>
 
@@ -807,7 +807,7 @@ direction LR
 
     classDef SYKeyboard_primary fill:#ffa6ed
 ```
-> `BaseKeyboardButton` 계열이 아닌 `ChevronButton`(`UIButton`), `SuggestionButtonView`, `SuggestionActionButtonView`(`UIView`)는 위 다이어그램에 포함하지 않았다.
+> `BaseKeyboardButton` 계열이 아닌 `ChevronButton`(`UIButton`), `SuggestionButtonView`, `SuggestionActionButtonView`, 버튼 내부 구성 뷰 `ButtonBackgroundView`·`ButtonShadowView`(`UIView`)는 위 다이어그램에 포함하지 않았다.
 
 ---
 
@@ -876,7 +876,7 @@ direction LR
 
 
 7. **자동완성 문구**  
-입력한 단어에 맞는 자동완성 문구를 추천합니다. 커서를 옮기면 커서 앞 단어를 기준으로 추천하고, 후보를 누르면 커서 앞 부분만 바꿉니다. 후보가 많으면 좌우로 스크롤해 최대 10개까지 볼 수 있고, 학습된 후보는 길게 눌러 자동완성에서 삭제할 수 있습니다. 삭제할 수 있는 후보는 조금 더 굵게 표시됩니다. 띄어쓰기 없이 전송 버튼으로 보낸 마지막 단어도 학습하며, 자주 쓰고 최근에 쓴 표현일수록 먼저 추천하고, 오래 쓰지 않은 학습은 자동으로 지워집니다.
+입력한 단어에 맞는 자동완성 문구를 추천합니다. 커서를 옮기면 커서 앞 단어를 기준으로 추천하고, 후보를 누르면 커서 앞 부분만 바꿉니다. 후보가 많으면 좌우로 스크롤해 최대 10개까지 볼 수 있고, 학습된 후보는 길게 눌러 자동완성에서 삭제할 수 있습니다. 삭제할 수 있는 후보는 조금 더 굵게 표시됩니다. 띄어쓰기 없이 전송 버튼으로 보낸 마지막 단어도 학습하며, 자주 쓰고 최근에 쓴 표현일수록 먼저 추천하고, 학습이 상한을 넘으면 오래 쓰지 않아 점수가 낮아진 항목부터 자동으로 지워집니다.
 
 |    한국어    |   영어   |
 | :-------------: | :----------: |
