@@ -1688,14 +1688,19 @@ private extension BaseKeyboardViewController {
 
     func performRepeatDeleteTextInteraction(for button: TextInteractable) {
         repeatInputTickCount += 1
+        let context = currentTextContextSnapshot()
+        let selectedText = textDocumentProxy.selectedText
         let action = deleteMutationLifecycle.actionForNextRepeat(
-            currentContext: currentTextContextSnapshot(),
-            currentSelectedText: textDocumentProxy.selectedText
+            currentContext: context,
+            currentSelectedText: selectedText
         )
         switch action {
         case .deleteAwaitingTextChange(let previousResolution):
+            // 처리할 이전 결과가 없으면 그 사이 프록시가 바뀌지 않으므로 방금 읽은 문맥을 다시 쓴다.
+            // 프록시 읽기는 UIKit 내부 레이스로 크래시할 수 있어 틱마다 읽는 횟수를 줄인다
+            let startState = previousResolution == nil ? (context, selectedText) : nil
             processDeleteMutationResolution(previousResolution)
-            guard beginRepeatDeleteRequest() == .started else { return }
+            guard beginRepeatDeleteRequest(reusing: startState) == .started else { return }
             repeatDeleteBackward()
         case .awaitingPreviousMutation:
             return
@@ -1711,16 +1716,21 @@ private extension BaseKeyboardViewController {
         )
     }
 
-    func beginRepeatDeleteRequest() -> DeleteMutationStartResult {
+    /// - Parameter startState: 같은 틱에서 이미 읽은 문맥. `nil`이면 프록시에서 새로 읽는다
+    func beginRepeatDeleteRequest(
+        reusing startState: (KeyboardTextContextSnapshot, String?)? = nil
+    ) -> DeleteMutationStartResult {
         guard deleteInteractionCoordinator.beginRepeatMutation(
             inputIdentifier: currentTextInputIdentifier
         ) != nil else {
             return .awaitingPreviousMutation
         }
 
+        let (context, selectedText) = startState
+            ?? (currentTextContextSnapshot(), textDocumentProxy.selectedText)
         let result = deleteMutationLifecycle.beginRepeat(
-            context: currentTextContextSnapshot(),
-            selectedText: textDocumentProxy.selectedText
+            context: context,
+            selectedText: selectedText
         )
         guard result == .started else {
             cancelPendingDeleteInteractions()
