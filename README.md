@@ -8,7 +8,7 @@
 > 
 > [Figma](https://www.figma.com/design/0i3sNlaez0LG0QMfw80yJ4/SY%ED%82%A4%EB%B3%B4%EB%93%9C?node-id=0-1&t=L8rArjkBX9MJ3UJD-1)
 > 
-> 개발 기간: 2024.07.30 ~ 2025.01.15  
+> 개발 기간: 2024.07.30 ~  
 > 리팩토링 기간: 2025.07.09 ~ 2025.12.07
 
 <br>
@@ -813,14 +813,14 @@ direction LR
 
 <br>
 
-
 ## 📱 주요 기능
 1. **나랏글 키보드**  
 기본에 충실한 나랏글(EZ한글) 키보드입니다.
 
+
 |    한국어    |   영어   |
 | :-------------: | :----------: |
-| <img width="300" alt="나랏글" src="https://github.com/user-attachments/assets/9d171154-d82d-4df0-8faa-2db1ec9d17f0"> | <img width="300" alt="나랏글 - 영어" src="https://github.com/user-attachments/assets/f8e7f761-11c1-4765-8e29-0b1217888bb7"> |
+| <img width="300" alt="나랏글" src="https://github.com/user-attachments/assets/0ae85752-0050-4d4f-a6d4-57d01326a740"> | <img width="300" alt="나랏글 - 영어" src="https://github.com/user-attachments/assets/1c6b0f33-3669-47ae-98fd-ce332d51a85d"> |
 
 <br><br>
 
@@ -830,7 +830,7 @@ direction LR
 
 |    한국어    |   영어   |
 | :-------------: | :----------: |
-| <img width="300" alt="천지인" src="https://github.com/user-attachments/assets/ba3114d3-ddb3-4c10-8c8c-2cc808fc4e6f"> | <img width="300" alt="천지인 - 영어" src="https://github.com/user-attachments/assets/639a7456-aa93-4692-93f6-f02082f4e4e7"> |
+| <img width="300" alt="천지인" src="https://github.com/user-attachments/assets/afcd0fa3-f3a7-4586-bd39-cef8ba0c1ecd"> | <img width="300" alt="천지인 - 영어" src="https://github.com/user-attachments/assets/719b0f43-e9b0-4b09-8561-7d1a67e48e85"> |
 
 <br><br>
 
@@ -838,9 +838,10 @@ direction LR
 3. **두벌식 키보드**  
 대중적인 두벌식(한글 쿼티) 키보드입니다.
 
+
 |    한국어    |   영어   |
 | :-------------: | :----------: |
-| <img width="300" alt="두벌식" src="https://github.com/user-attachments/assets/9c1e00d9-ad12-4794-9274-56ae2e152ea6"> | <img width="300" alt="두벌식 - 영어" src="https://github.com/user-attachments/assets/a1ce6b2f-4fca-4631-8460-6b1c47e37903"> |
+| <img width="300" alt="두벌식" src="https://github.com/user-attachments/assets/313be714-349f-4188-a677-5da968b19a20"> | <img width="300" alt="두벌식 - 영어" src="https://github.com/user-attachments/assets/a3cc8196-e722-4fc8-ae51-c0571dc5c1a1"> |
 
 <br><br>
 
@@ -850,7 +851,7 @@ direction LR
 
 |    한국어    |   영어   |
 | :-------------: | :----------: |
-| <img width="300" alt="쿼티" src="https://github.com/user-attachments/assets/9f0161cf-bf3b-4fde-9547-6fac22f36c40"> | <img width="300" alt="쿼티 - 영어" src="https://github.com/user-attachments/assets/b380b083-1d1b-48a7-b46a-ef80711b4b52"> |
+| <img width="300" alt="쿼티" src="https://github.com/user-attachments/assets/cc2700e3-668e-4c9f-a190-f65195ad7850"> | <img width="300" alt="쿼티 - 영어" src="https://github.com/user-attachments/assets/507d80dd-7749-4a91-95a1-b08031a46703"> |
 
 <br><br>
 
@@ -860,7 +861,7 @@ direction LR
 
 |    한국어    |   영어   |
 | :-------------: | :----------: |
-| <img width="300" alt="숫자 키패드" src="https://github.com/user-attachments/assets/9b350f24-5a04-478d-a9d4-a4e1aa47bc6f"> | <img width="300" alt="숫자 키패드 - 영어" src="https://github.com/user-attachments/assets/0079d83c-c405-4b25-b21b-c86bbeeabef9"> |
+| <img width="300" alt="숫자 키패드" src="https://github.com/user-attachments/assets/99955ea9-0fae-48de-93ba-cc38b403f15d"> | <img width="300" alt="숫자 키패드 - 영어" src="https://github.com/user-attachments/assets/ab0e3cec-c3c2-447d-9046-4e121373c644"> |
 
 <br><br>
 
@@ -870,58 +871,66 @@ direction LR
 
 |    한국어    |   영어   |
 | :-------------: | :----------: |
-| <img width="300" alt="한 손 키보드" src="https://github.com/user-attachments/assets/fae0d5fd-c3a9-4a72-b55f-3ce32acffa36"> | <img width="300" alt="한 손 키보드 - 영어" src="https://github.com/user-attachments/assets/b9462ec1-d47a-4adf-b872-ad414b20f699"> |
+| <img width="300" alt="한 손 키보드" src="https://github.com/user-attachments/assets/d4d38b9d-2de1-4844-9298-c17369e376cc"> | <img width="300" alt="한 손 키보드 - 영어" src="https://github.com/user-attachments/assets/bd3526b2-9b17-4540-acc5-c0b0eff5b331"> |
 
 <br><br>
 
 
-7. **자동완성 문구**  
-입력한 단어에 맞는 자동완성 문구를 추천합니다. 커서를 옮기면 커서 앞 단어를 기준으로 추천하고, 후보를 누르면 커서 앞 부분만 바꿉니다. 후보가 많으면 좌우로 스크롤해 최대 10개까지 볼 수 있고, 학습된 후보는 길게 눌러 자동완성에서 삭제할 수 있습니다. 삭제할 수 있는 후보는 조금 더 굵게 표시됩니다. 띄어쓰기 없이 전송 버튼으로 보낸 마지막 단어도 학습하며, 자주 쓰고 최근에 쓴 표현일수록 먼저 추천하고, 오래 쓰지 않은 학습은 자동으로 지워지며, 학습이 상한을 넘으면 점수가 낮은 항목부터 먼저 지워집니다.
+7. **키보드 툴바**  
+키보드 상단 툴바에서 자동완성 문구, 클립보드 기록, Undo/Redo를 사용할 수 있습니다. 클립보드 기록과 Undo/Redo는 메인 앱의 '키보드 툴바 설정'에서 켜고 끌 수 있습니다.
+   - **자동완성 문구**: 입력한 단어에 맞는 자동완성 문구를 추천합니다. 커서를 옮기면 커서 앞 단어를 기준으로 추천하고, 후보를 누르면 커서 앞 부분만 바꿉니다. 후보가 많으면 좌우로 스크롤해 최대 10개까지 볼 수 있고, 학습된 후보는 길게 눌러 자동완성에서 삭제할 수 있습니다. 삭제할 수 있는 후보는 조금 더 굵게 표시됩니다.
+   - **클립보드 기록**: 복사한 텍스트를 클립보드 버튼으로 붙여넣을 수 있습니다. '이미지도 기록'을 켜면 복사한 이미지도 저장하고, 탭하면 클립보드로 복원합니다. 기록은 메인 앱의 클립보드 기록 화면에서 고정·편집·삭제할 수 있습니다.
+   - **Undo/Redo**: 입력을 되돌리거나 다시 실행할 수 있습니다.
 
 |    한국어    |   영어   |
 | :-------------: | :----------: |
-| <img width="300" alt="자동완성" src="https://github.com/user-attachments/assets/79397f49-fa0b-4a34-a52c-411254b58672"> | <img width="300" alt="자동완성 - 영어" src="https://github.com/user-attachments/assets/6e668b4b-e2be-4da0-b2f8-342c226858e3"> |
+| <img width="300" alt="자동완성" src="https://github.com/user-attachments/assets/6cc9178f-c562-4d89-97a2-8872ac7d46a4"> | <img width="300" alt="자동완성 - 영어" src="https://github.com/user-attachments/assets/d0fb434b-b6d1-4640-92a2-6af96101870e"> |
+| <img width="300" alt="클립보드 기록" src="https://github.com/user-attachments/assets/22659806-ce94-498f-a093-afe0c184d082"> | <img width="300" alt="클립보드 기록 - 영어" src="https://github.com/user-attachments/assets/930d8f4b-91c9-4462-8f59-813cc3c0e12f"> |
 
 <br><br>
 
 
-8. **다양하고 디테일한 키보드 설정**  
+8. **한영 통합 키보드**  
+한글 키보드와 영어 키보드를 한영 전환 버튼으로 오가는 단일 키보드입니다.
+
+|    한국어    |   영어   |
+| :-------------: | :----------: |
+| <img width="300" alt="한영 키보드(한글)" src="https://github.com/user-attachments/assets/8c00827c-7538-4b5e-aff0-a2ae2f0510b5"> | <img width="300" alt="한영 키보드(한글) - 영어" src="https://github.com/user-attachments/assets/5c55f6e6-bde6-48fb-920f-a739f0cf7acb"> |
+| <img width="300" alt="한영 키보드(영어)" src="https://github.com/user-attachments/assets/1b6a653b-0508-4867-bab1-55215d6c514f" width="300"> | <img width="300" alt="한영 키보드(영어) - 영어" src="https://github.com/user-attachments/assets/b1858460-6fdf-4d33-92f4-d1b319471ec8" width="300"> |
+
+<br><br>
+
+
+9. **수식 결과 표시**  
+입력 중인 수식이나 선택한 수식의 계산 결과를 자동완성 후보로 보여줍니다.
+
+|    한국어    |   영어   |
+| :-------------: | :----------: |
+| <img width="300" alt="수식 결과 표시" src="https://github.com/user-attachments/assets/8aa5b7ea-5275-4ff3-ba77-2938bee5ea95"> | <img width="300" alt="수식 결과 표시 - 영어" src="https://github.com/user-attachments/assets/c62a7bd3-50c1-4dca-80af-53188411fdce"> |
+
+<br><br>
+
+
+10. **다양하고 디테일한 키보드 설정**  
 길게 누르기 동작, 커서 이동, 키보드 높이 및 한 손 키보드 너비 조절, 숫자 행 표시, 키보드 툴바(Undo/Redo · 클립보드 기록 · 이미지도 기록) 등 사용자의 편의에 맞게 키보드 설정이 가능합니다.
 
 |    한국어    |   영어   |
 | :-------------: | :----------: |
-| <img width="300" alt="메인 앱 1" src="https://github.com/user-attachments/assets/9bb71497-459a-48b5-9937-f9946f9d56c2"> | <img width="300" alt="메인 앱 1 - 영어" src="https://github.com/user-attachments/assets/92645ff2-ab29-4666-85a1-98409299ee8a"> |
-| <img width="300" alt="메인 앱 2" src="https://github.com/user-attachments/assets/f7de1552-65ce-49cd-841e-0ea68b730093" width="300"> | <img width="300" alt="메인 앱 2 - 영어" src="https://github.com/user-attachments/assets/c5b59eda-dfe7-442e-8993-80dd7712d2ea" width="300"> |
-| <img width="300" alt="메인 앱 3" src="https://github.com/user-attachments/assets/c9ce4a05-0061-45ea-b5ae-46072c5ac976" width="300"> | <img width="300" alt="메인 앱 3 - 영어" src="https://github.com/user-attachments/assets/968b4cc3-562f-47d5-b097-bc055e932531" width="300"> |
+| <img width="300" alt="메인 앱 1" src="https://github.com/user-attachments/assets/cecf4ffd-48f8-4c87-813f-a9a6c6e3e0fa"> | <img width="300" alt="메인 앱 1 - 영어" src="https://github.com/user-attachments/assets/93537f68-c578-49a2-93e4-cc8f3c1e16bb"> |
+| <img width="300" alt="메인 앱 2" src="https://github.com/user-attachments/assets/19437612-df1c-44d4-95da-1417f7f92836" width="300"> | <img width="300" alt="메인 앱 2 - 영어" src="https://github.com/user-attachments/assets/17e7fb99-9963-442d-8795-65fd2eeac77c" width="300"> |
+| <img width="300" alt="메인 앱 3" src="https://github.com/user-attachments/assets/12041cc4-16aa-4480-b32c-54ec0442717f" width="300"> | <img width="300" alt="메인 앱 3 - 영어" src="https://github.com/user-attachments/assets/8d4a056c-a871-4e67-b83f-90175941248b" width="300"> |
+
 
 <br><br>
 
 
-9. **한영 통합 키보드**  
-한글 키보드와 영어 키보드를 한영 전환 버튼으로 오가는 단일 키보드입니다. 한글·영어 InputAdapter 2개와 `HangeulEnglishKeyboardModeCoordinator`가 현재 언어 모드를 결정합니다.
-
-<br><br>
-
-
-10. **클립보드 기록**  
-복사한 텍스트를 키보드 상단 클립보드 버튼으로 붙여넣을 수 있습니다. '이미지도 기록'을 켜면 복사한 이미지도 저장하고 탭하면 클립보드로 복원합니다. 기록은 메인 앱의 클립보드 기록 화면에서 고정·편집·삭제할 수 있습니다.
-
-<br><br>
-
-
-11. **Undo/Redo**  
-키보드 상단에 Undo/Redo 버튼을 표시해 입력을 되돌리거나 다시 실행할 수 있습니다.
-
-<br><br>
-
-
-12. **수식 결과 표시**  
-입력 중인 수식이나 선택한 수식의 계산 결과를 자동완성 후보로 보여줍니다.
-
-<br><br>
-
-
-13. **오픈소스 라이선스 고지**  
+11. **오픈소스 라이선스 고지**  
 메인 앱 설정 화면 하단의 '오픈소스 라이선스' 버튼에서 사용 중인 SPM 의존성의 라이선스 전문을 확인할 수 있습니다.
 
+|    한국어    |   영어   |
+| :-------------: | :----------: |
+| <img width="300" alt="오픈소스 라이선스 1" src="https://github.com/user-attachments/assets/eca32051-4ad9-45ec-b2c4-7bd6f5b15d86"> | <img width="300" alt="오픈소스 라이선스 1 - 영어" src="https://github.com/user-attachments/assets/a4ce7f2d-2131-46fc-8db5-73cad2360ad0"> |
+| <img width="300" alt="오픈소스 라이선스 2" src="https://github.com/user-attachments/assets/bc5aefc8-30ff-4d6f-873c-1ad36131c489"> | <img width="300" alt="오픈소스 라이선스 2 - 영어" src="https://github.com/user-attachments/assets/7fcb84c4-68f4-4259-b274-3b98869844e5"> |
+
 <br><br>
+
