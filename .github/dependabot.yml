@@ -28,13 +28,8 @@ updates:
       # Meta 미디에이션이 고정
       - dependency-name: "github.com/facebook/fbaudiencenetwork"
     groups:
-      firebase:
-        patterns:
-          - "Firebase*"
-          - "firebase-ios-sdk"
       google-ads:
         patterns:
-          - "*GoogleMobileAds*"
-          - "*google-mobile-ads*"
-          - "GoogleUserMessagingPlatform"
+          - "github.com/googleads/swift-package-manager-google-mobile-ads"
+          - "github.com/googleads/swift-package-manager-google-user-messaging-platform"
           
