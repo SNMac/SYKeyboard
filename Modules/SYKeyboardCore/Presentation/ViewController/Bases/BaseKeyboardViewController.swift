@@ -134,11 +134,6 @@ open class BaseKeyboardViewController: UIInputViewController {
     /// 버퍼가 빈 상태에서 첫 글자를 넣기 직전의 커서 앞 문맥(최대 256자). 후보 기준 텍스트와 조각 판정에 쓴다
     private var inputBufferLeadingContext: String?
 
-    /// 키보드 전환 버튼에 마지막으로 반영한 `needsInputModeSwitchKey`.
-    /// 이 값은 호스트 연결 이후에야 정확해지므로 레이아웃 시점에 확인하되,
-    /// 바뀌지 않았으면 다시 반영하지 않는다
-    private var appliedNeedsInputModeSwitchKey: Bool?
-
     /// `KeyboardView` 높이 제약 조건
     private var keyboardViewHeightConstraint: NSLayoutConstraint?
     /// `keyboardHStackView` 높이 제약 조건
@@ -316,6 +311,8 @@ open class BaseKeyboardViewController: UIInputViewController {
         KeyboardDiagnostics.installConstraintConflictLogging()
         resetInputBuffer()
         setupUI()
+        // 레이아웃마다 읽으면 호스트가 문서 상태를 교체하는 순간과 겹쳐 UIKit 내부에서 크래시가 나므로 한 번만 읽는다
+        setNextKeyboardButton()
         // 호스트 앱이 다른 앱(사진 등)을 거쳐 돌아올 때는 viewWillAppear가 다시 오지 않으므로 여기서 pasteboard를 확인한다
         NotificationCenter.default.addObserver(
             self, selector: #selector(hostDidBecomeActive), name: .NSExtensionHostDidBecomeActive, object: nil
@@ -374,16 +371,6 @@ open class BaseKeyboardViewController: UIInputViewController {
         suggestionController.releaseInactiveLanguageEngines()
         // 클립보드 패널 썸네일은 파일에서 다시 읽을 수 있다
         clipboardHistoryPanelView.purgeThumbnailCache()
-    }
-
-    open override func viewWillLayoutSubviews() {
-        // `needsInputModeSwitchKey`는 호스트 연결 전에는 부정확하므로 레이아웃 시점에 확인한다.
-        // 다만 매 레이아웃 패스마다 action 재등록과 App Group 저장이 일어나지 않도록
-        // 값이 바뀐 경우에만 반영한다
-        if appliedNeedsInputModeSwitchKey != needsInputModeSwitchKey {
-            setNextKeyboardButton()
-        }
-        super.viewWillLayoutSubviews()
     }
 
     open override func viewDidAppear(_ animated: Bool) {
@@ -1124,7 +1111,6 @@ private extension BaseKeyboardViewController {
     func setNextKeyboardButton() {
         // 뷰마다 다시 조회하면 호스트 연결 전 경고 로그가 그만큼 반복되므로 한 번만 읽는다
         let needsInputModeSwitchKey = self.needsInputModeSwitchKey
-        appliedNeedsInputModeSwitchKey = needsInputModeSwitchKey
 
         primaryKeyboardViews.forEach {
             $0.updateNextKeyboardButton(needsInputModeSwitchKey: needsInputModeSwitchKey,
