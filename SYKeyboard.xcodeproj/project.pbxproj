@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		5B17397D2FDE0E84001DB248 /* MetaAdapterTarget in Frameworks */ = {isa = PBXBuildFile; productRef = 5B17397C2FDE0E84001DB248 /* MetaAdapterTarget */; };
 		5B25D1162F155B23003122E2 /* HangeulKeyboardCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5BB373DA2ED5DADC006AB083 /* HangeulKeyboardCore.framework */; };
 		5B25D1192F155B27003122E2 /* EnglishKeyboardCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5BB373AA2ED5D937006AB083 /* EnglishKeyboardCore.framework */; };
 		5B25D11C2F155BB9003122E2 /* SYKeyboardCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5BB373512ED5AA18006AB083 /* SYKeyboardCore.framework */; };
@@ -22,11 +21,11 @@
 		5BB377A42ED600AC006AB083 /* FirebaseCrashlytics in Frameworks */ = {isa = PBXBuildFile; productRef = 5BB377A32ED600AC006AB083 /* FirebaseCrashlytics */; };
 		5BB377D62ED62420006AB083 /* SYKeyboardCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5BB373512ED5AA18006AB083 /* SYKeyboardCore.framework */; };
 		5BB377D92ED62423006AB083 /* SYKeyboardCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5BB373512ED5AA18006AB083 /* SYKeyboardCore.framework */; };
-		5BB37A612ED644B5006AB083 /* GoogleMobileAds in Frameworks */ = {isa = PBXBuildFile; productRef = 5BB37A602ED644B5006AB083 /* GoogleMobileAds */; };
 		5BC3041A2FF15A030064DC60 /* HangeulEnglishKeyboard.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 5BC304132FF15A030064DC60 /* HangeulEnglishKeyboard.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		5BC3042E2FF15A860064DC60 /* FirebaseCrashlytics in Frameworks */ = {isa = PBXBuildFile; productRef = 5BC3042D2FF15A860064DC60 /* FirebaseCrashlytics */; };
 		5BC3042F2FF15A860064DC60 /* EnglishKeyboardCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5BB373AA2ED5D937006AB083 /* EnglishKeyboardCore.framework */; };
 		5BC304332FF15A860064DC60 /* HangeulKeyboardCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5BB373DA2ED5DADC006AB083 /* HangeulKeyboardCore.framework */; };
+		5BCB0494306F84C8002DE27B /* MetaAdapterTarget in Frameworks */ = {isa = PBXBuildFile; productRef = 5BCB0493306F84C8002DE27B /* MetaAdapterTarget */; };
 		5BCED1112F26DEEC00A7F562 /* SYKeyboardAssets in Frameworks */ = {isa = PBXBuildFile; productRef = 5BCED1102F26DEEC00A7F562 /* SYKeyboardAssets */; };
 /* End PBXBuildFile section */
 
@@ -576,11 +575,10 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				5B17397D2FDE0E84001DB248 /* MetaAdapterTarget in Frameworks */,
 				5B2CF1092EDE384D00F4A844 /* AdSupport.framework in Frameworks */,
+				5BCB0494306F84C8002DE27B /* MetaAdapterTarget in Frameworks */,
 				5B25D11C2F155BB9003122E2 /* SYKeyboardCore.framework in Frameworks */,
 				5B8E6E112E1E42D800657BF4 /* FirebaseAnalytics in Frameworks */,
-				5BB37A612ED644B5006AB083 /* GoogleMobileAds in Frameworks */,
 				5B25D1212F155BBC003122E2 /* EnglishKeyboardCore.framework in Frameworks */,
 				5BB377A42ED600AC006AB083 /* FirebaseCrashlytics in Frameworks */,
 				5B25D11F2F155BBA003122E2 /* HangeulKeyboardCore.framework in Frameworks */,
@@ -758,6 +756,9 @@
 				5BF8E7482FD7D15A00BA7B7F /* ci_scripts */,
 			);
 			name = SYKeyboard;
+			packageProductDependencies = (
+				5BCB0493306F84C8002DE27B /* MetaAdapterTarget */,
+			);
 			productName = SYKeyboard;
 			productReference = 5B7B3F562C569B7800F7C093 /* SYKeyboard.app */;
 			productType = "com.apple.product-type.application";
@@ -939,9 +940,8 @@
 			mainGroup = 5B7B3F4D2C569B7800F7C093;
 			packageReferences = (
 				5B8E6E0F2E1E42D800657BF4 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
-				5BB37A5F2ED644B5006AB083 /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */,
 				5BCED1092F26DD8A00A7F562 /* XCLocalSwiftPackageReference "SYKeyboardAssets" */,
-				5B17397B2FDE0E84001DB248 /* XCRemoteSwiftPackageReference "googleads-mobile-ios-mediation-meta" */,
+				5BCB0492306F84C8002DE27B /* XCRemoteSwiftPackageReference "googleads-mobile-ios-mediation-meta" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 5B7B3F572C569B7800F7C093 /* Products */;
@@ -2194,14 +2194,6 @@
 /* End XCLocalSwiftPackageReference section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		5B17397B2FDE0E84001DB248 /* XCRemoteSwiftPackageReference "googleads-mobile-ios-mediation-meta" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/googleads/googleads-mobile-ios-mediation-meta.git";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 6.21.101;
-			};
-		};
 		5B8E6E0F2E1E42D800657BF4 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/firebase/firebase-ios-sdk.git";
@@ -2210,22 +2202,17 @@
 				minimumVersion = 12.14.0;
 			};
 		};
-		5BB37A5F2ED644B5006AB083 /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */ = {
+		5BCB0492306F84C8002DE27B /* XCRemoteSwiftPackageReference "googleads-mobile-ios-mediation-meta" */ = {
 			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/googleads/swift-package-manager-google-mobile-ads.git";
+			repositoryURL = "https://github.com/googleads/googleads-mobile-ios-mediation-meta.git";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 13.4.0;
+				minimumVersion = 6.22.0;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		5B17397C2FDE0E84001DB248 /* MetaAdapterTarget */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 5B17397B2FDE0E84001DB248 /* XCRemoteSwiftPackageReference "googleads-mobile-ios-mediation-meta" */;
-			productName = MetaAdapterTarget;
-		};
 		5B3D95882F22A9A900200234 /* FirebaseCrashlytics */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 5B8E6E0F2E1E42D800657BF4 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
@@ -2246,15 +2233,15 @@
 			package = 5B8E6E0F2E1E42D800657BF4 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseCrashlytics;
 		};
-		5BB37A602ED644B5006AB083 /* GoogleMobileAds */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 5BB37A5F2ED644B5006AB083 /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */;
-			productName = GoogleMobileAds;
-		};
 		5BC3042D2FF15A860064DC60 /* FirebaseCrashlytics */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 5B8E6E0F2E1E42D800657BF4 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseCrashlytics;
+		};
+		5BCB0493306F84C8002DE27B /* MetaAdapterTarget */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 5BCB0492306F84C8002DE27B /* XCRemoteSwiftPackageReference "googleads-mobile-ios-mediation-meta" */;
+			productName = MetaAdapterTarget;
 		};
 		5BCED1102F26DEEC00A7F562 /* SYKeyboardAssets */ = {
 			isa = XCSwiftPackageProductDependency;

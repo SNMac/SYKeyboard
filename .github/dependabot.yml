@@ -11,14 +11,25 @@ updates:
     schedule:
       interval: "monthly"
     open-pull-requests-limit: 5
+    # patch 버전 업데이트는 PR을 만들지 않는다 (보안 업데이트는 영향 없음)
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-patch"]
+      # 상위 패키지가 버전을 좁게 고정하는 하위 패키지는 단독으로 올리면 해석이 깨진다
+      # Firebase가 고정
+      - dependency-name: "github.com/google/googleappmeasurement"
+      - dependency-name: "github.com/google/app-check"
+      - dependency-name: "github.com/google/abseil-cpp-binary"
+      - dependency-name: "github.com/google/grpc-binary"
+      - dependency-name: "github.com/firebase/nanopb"
+      - dependency-name: "github.com/firebase/leveldb"
+      # GoogleAppMeasurement가 고정
+      - dependency-name: "github.com/googleads/google-ads-on-device-conversion-ios-sdk"
+      # Meta 미디에이션이 고정
+      - dependency-name: "github.com/facebook/fbaudiencenetwork"
     groups:
-      firebase:
-        patterns:
-          - "Firebase*"
-          - "firebase-ios-sdk"
       google-ads:
         patterns:
-          - "*GoogleMobileAds*"
-          - "*google-mobile-ads*"
-          - "GoogleUserMessagingPlatform"
+          - "github.com/googleads/swift-package-manager-google-mobile-ads"
+          - "github.com/googleads/swift-package-manager-google-user-messaging-platform"
           
