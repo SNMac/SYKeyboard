@@ -1477,10 +1477,13 @@ private extension BaseKeyboardViewController {
     }
 
     func updateSuggestionPreviewHighlight() {
-        if suggestionController.mathResultAction(
-            at: 1,
-            selectedText: textDocumentProxy.selectedText
-        ) != nil {
+        // 수식 모드가 아니면 mathResultAction은 선택 텍스트를 보지 않고 nil이다.
+        // 비동기 후보 결과가 문서 상태 교체와 겹쳐 프록시를 읽으면 크래시하므로 이때는 읽지 않는다
+        if suggestionController.currentMode == .mathExpression,
+           suggestionController.mathResultAction(
+               at: 1,
+               selectedText: textDocumentProxy.selectedText
+           ) != nil {
             suggestionBarView.updatePreviewHighlight(index: 1)
             return
         }
@@ -1943,7 +1946,12 @@ private extension BaseKeyboardViewController {
             isSuggestionBarHidden: suggestionBarView.isHidden,
             isUndoRedoFeatureAvailable: isUndoRedoFeatureAvailable
         )
-        let currentContext = currentTextContextSnapshot()
+        // 기록이 없으면 결과가 문맥과 무관하게 false다.
+        // 키보드가 사라질 때처럼 문서 상태가 교체되는 순간 프록시를 읽으면 크래시하므로 읽지 않는다
+        let hasUndoRedoHistory = undoRedoSession.canUndo || undoRedoSession.canRedo
+        let currentContext = hasUndoRedoHistory
+            ? currentTextContextSnapshot()
+            : KeyboardTextContextSnapshot(beforeInput: nil, afterInput: nil)
         suggestionBarView.updateUndoRedoControls(
             isVisible: shouldShowUndoRedo,
             canUndo: undoRedoSession.canApplyUndo(from: currentContext),
