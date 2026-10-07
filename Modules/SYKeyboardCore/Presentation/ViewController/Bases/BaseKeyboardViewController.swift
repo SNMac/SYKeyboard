@@ -1477,10 +1477,13 @@ private extension BaseKeyboardViewController {
     }
 
     func updateSuggestionPreviewHighlight() {
-        if suggestionController.mathResultAction(
-            at: 1,
-            selectedText: textDocumentProxy.selectedText
-        ) != nil {
+        // 수식 모드가 아니면 mathResultAction은 선택 텍스트를 보지 않고 nil이다.
+        // 비동기 후보 결과가 문서 상태 교체와 겹쳐 프록시를 읽으면 크래시하므로 이때는 읽지 않는다
+        if suggestionController.currentMode == .mathExpression,
+           suggestionController.mathResultAction(
+               at: 1,
+               selectedText: textDocumentProxy.selectedText
+           ) != nil {
             suggestionBarView.updatePreviewHighlight(index: 1)
             return
         }
