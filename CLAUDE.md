@@ -143,6 +143,22 @@ extension 프로세스 로컬 상태는 `KeyboardExtensionLocalStateStore`에 �
 - 새 이슈 생성을 요청받으면 기본 생성 위치를 GitHub Issue로 판단하고, Linear 이슈 생성은 사용자가 명시적으로 요청한 경우에만 한다.
 - GitHub Issue는 `.github/ISSUE_TEMPLATE/feature-issue-template.md` 템플릿을 사용한다.
 
+### Crashlytics 크래시 이슈
+
+Crashlytics 크래시는 별도의 분류 봇이 Notion `SY키보드 크래시 트리아지` DB에 분석해 올리고 GitHub Issue를
+만든다(본문 끝 `<!-- crashlytics-issue: ... -->` 주석). 봇의 reconcile 단계가 매일 이슈·PR 상태를 보고
+Notion 행과 Crashlytics 이슈를 정리하므로, **사람이 할 일은 수정 PR 본문에 `Closes #번호`를 넣는 것뿐이다.**
+
+- 수정 PR의 `## #️⃣ 연관된 이슈`에 `- Closes #180`처럼 쓰고 `develop`에 머지한다. 기본 브랜치가
+  `develop`이라 머지하면 이슈가 자동으로 닫힌다. 다른 PR의 `- #번호` 참조 관례와 다르다.
+- 봇은 이슈를 닫은 PR의 merge commit을 Notion `수정 커밋`에 적고 행을 `게시됨` → `배포 대기`로 옮긴다.
+  `develop`을 `main`에 머지하면(App Store 제출 시점) Crashlytics 이슈를 닫고 행을 `종료`로 옮긴다.
+- PR 없이 커밋으로 바로 고쳤으면 Notion 행의 `수정 커밋`에 커밋 SHA만 적는다. 이후는 같다.
+- **Notion 상태를 손으로 바꾸지 않는다.**
+  - `배포 대기`로만 바꾸고 `수정 커밋`을 비우면 확인할 커밋이 없어 행이 멈춘다.
+  - `종료`로 바꾸면 reconcile이 그 행을 더 보지 않아 Crashlytics 이슈가 열린 채 남는다. 열린 이슈는
+    회귀로 표시되지 않아 같은 크래시가 다시 나도 재분석되지 않는다.
+
 ## 출시 기준점과 마이그레이션
 
 - 버전·빌드번호는 `Common/Configs/Version.xcconfig`의 `VERSION`/`BUILD_NUMBER`다. 태그는 없다.
@@ -177,6 +193,7 @@ extension 프로세스 로컬 상태는 `KeyboardExtensionLocalStateStore`에 �
   - `Feat/#46 한영 통합 키보드 추가`
   - `Fix/#44 NGram 단어 중복 저장 수정`
 - PR 본문은 `.github/pull_request_template.md` 템플릿을 사용하고, 연관된 이슈·작업 내용·검증 항목을 채운다.
+- Crashlytics 크래시 이슈를 고치는 PR은 연관된 이슈에 `Closes #번호`를 쓴다(`이슈 관리` > `Crashlytics 크래시 이슈`).
 - 스크린샷 항목은 화면이 바뀌는 작업에만 채운다. UI 변경이 없으면(로직·저장 형식·테스트·문서만 바뀐 경우)
   `## 📸 스크린샷` 섹션을 표까지 통째로 빼고 PR을 올린다. 빈 표나 `-`로 남기지 않는다.
 - 검증 항목에는 실제 실행한 빌드/테스트 명령과 결과를 적고, 실행하지 못한 항목은 이유를 함께 남긴다.
