@@ -26,12 +26,30 @@ struct BaseKeyboardViewControllerProxyReadTests {
         #expect(controller.proxy.readCount == 0)
     }
 
+    @Test("undo 기록이 남은 채 키보드가 사라져도 텍스트 프록시 문맥을 읽지 않음")
+    func testViewWillDisappearWithUndoHistoryDoesNotReadDocumentContext() {
+        let oldIsUndoRedoEnabled = UserDefaultsManager.shared.isUndoRedoEnabled
+        UserDefaultsManager.shared.isUndoRedoEnabled = true
+        defer { UserDefaultsManager.shared.isUndoRedoEnabled = oldIsUndoRedoEnabled }
+
+        let controller = TestProxyReadViewController()
+        controller.loadViewIfNeeded()
+        // 입력으로 아직 확정되지 않은 undo 기록을 만든다. 실제 크래시는 이 상태에서 키보드가 내려갈 때 났다
+        controller.insertText("가")
+        controller.proxy.readCount = 0
+
+        controller.viewWillDisappear(false)
+
+        #expect(controller.proxy.readCount == 0)
+    }
+
     @Test("수식 모드가 아닌 후보 갱신 알림은 텍스트 프록시를 읽지 않음")
     func testNonMathSuggestionUpdateDoesNotReadProxy() {
         let controller = TestProxyReadViewController()
         controller.loadViewIfNeeded()
         controller.proxy.readCount = 0
 
+        // 넘기는 controller는 표시 분기에만 쓰인다. 하이라이트는 VC 자신의 controller(기본 nGram 모드)를 본다
         controller.suggestionController(
             SuggestionController(),
             didUpdateCurrentWord: "안녕",
