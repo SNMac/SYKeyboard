@@ -1943,7 +1943,12 @@ private extension BaseKeyboardViewController {
             isSuggestionBarHidden: suggestionBarView.isHidden,
             isUndoRedoFeatureAvailable: isUndoRedoFeatureAvailable
         )
-        let currentContext = currentTextContextSnapshot()
+        // 기록이 없으면 결과가 문맥과 무관하게 false다.
+        // 키보드가 사라질 때처럼 문서 상태가 교체되는 순간 프록시를 읽으면 크래시하므로 읽지 않는다
+        let hasUndoRedoHistory = undoRedoSession.canUndo || undoRedoSession.canRedo
+        let currentContext = hasUndoRedoHistory
+            ? currentTextContextSnapshot()
+            : KeyboardTextContextSnapshot(beforeInput: nil, afterInput: nil)
         suggestionBarView.updateUndoRedoControls(
             isVisible: shouldShowUndoRedo,
             canUndo: undoRedoSession.canApplyUndo(from: currentContext),
