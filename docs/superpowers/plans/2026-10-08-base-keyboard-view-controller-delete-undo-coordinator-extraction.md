@@ -3067,3 +3067,13 @@ EOF
 제목: `Refactor/#185 BaseKeyboardViewController에서 삭제 드래그·반복 삭제·undo/redo를 별도 타입으로 추출`
 
 본문은 `.github/pull_request_template.md`를 따른다. 연관된 이슈 `- #185`. UI 변경이 없으므로 `## 📸 스크린샷` 절은 표까지 통째로 뺀다. 검증 항목에 Task 6의 실제 명령·결과·시뮬레이터 항목·`deinit`/`leaks` 결과·미확인 항목(햅틱·삭제 사운드, 첨부 앞 멈춤은 시뮬레이터에서 못 했을 때)을 적는다. 본문에 범위 물결표가 있으면 `\~`. `🤖 Generated with` 줄은 넣지 않는다. PR 생성과 push는 사용자가 지시할 때만 한다.
+
+## 최종 리뷰 (2026-10-09)
+
+브랜치 전체 리뷰(별도 리뷰어, f14e15e0..5944c5a1): Critical 0, Important 0, Minor 4, Ready to merge. 옮겨진 본문·콜백 순서·프록시 읽기 횟수·undo 기록 경로가 원본과 일치하고 해제 경로가 `weak host`+`[weak self]`로 닫혀 있음을 확인했다. Minor는 코드 수정 없이 기록만 한다.
+
+- Minor 1: 시뮬레이터 확인이 spec의 `HangeulKeyboard`가 아니라 `HangeulEnglishKeyboard` 한글 모드에서 이뤄짐 → Task 6 결과와 PR 검증 항목에 실제 scheme을 적는다(두 VC의 삭제 훅 오버라이드 집합이 같고 이 diff가 두 VC를 건드리지 않음).
+- Minor 2: `RecordingTextDeletionHost.performSingleDelete`가 VC `deleteText()`의 override·reliability 계약을 흉내 냄 → 단언 대상은 Coordinator→Host 호출 순서와 프록시 쓰기이고 실제 계약은 `BaseKeyboardViewControllerDeleteUndoBehaviorTests`가 덮는다. 주석 추가는 보류.
+- Minor 3: 반복 타이머 테스트 2개가 `RunLoop.main.run(until:)` 0.25s/0.15s 대기에 의존 → 간격 상한 0.1s라 최소 2틱 보장. 느린 CI에서 흔들리면 간격 주입으로 바꾼다.
+- Minor 4: `beginDeleteTouchDownRequest`/`beginRepeatDeleteRequest`가 host nil일 때 `.deferred` 반환 → 호출자가 모두 host guard 뒤라 도달하지 않음. 주석 추가는 보류.
+- 이후 사용자 요청으로 `CLAUDE.md`의 디렉터리·코드 스타일·빌드와 테스트 절을 추가로 최신화했다(caafa9c3).
