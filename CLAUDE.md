@@ -66,6 +66,15 @@ primary/symbol/numeric/tenkey 레이아웃이 들어간다. 레이아웃은 `*Ke
 `SYKeyboardTests/Storage/UserDefaultsContractTests.swift`가 키 계약을 지킨다.
 extension 프로세스 로컬 상태는 `KeyboardExtensionLocalStateStore`에 둔다.
 
+**텍스트 프록시는 `textDocument`(`CachingTextDocumentProxy`)로만 읽고 쓴다.**
+`textWillChange`/`textDidChange`는 `withReadCaching`으로 같은 값을 한 번만 읽고, 쓰기 메서드가 캐시를 비워
+쓰기 뒤에는 새 값을 읽는다. `textDocumentProxy.insertText` 등을 직접 부르면 그 쓰기는 캐시를 비우지 않는다.
+하위 VC가 `textWillChange`/`textDidChange` 오버라이드에서 `super` 호출 뒤에 프록시를 읽으면 오버라이드 본문도
+`withReadCaching`으로 감싼다.
+확인: `grep -rn "textDocumentProxy" Modules Keyboards | grep -v -E ":[0-9]+:[[:space:]]*//"` 결과가
+`BaseKeyboardViewController.swift`에서 `textDocument`를 만드는 한 줄뿐이어야 한다. 점(`.`) 접근만 찾으면
+`(textDocumentProxy as AnyObject)`나 지역 변수에 담아 쓰는 경우를 놓친다.
+
 ## 작업 원칙
 
 - **기존 구조와 네이밍을 먼저 따른다. 불필요한 아키텍처 변경이나 대규모 이동은 하지 않는다.**

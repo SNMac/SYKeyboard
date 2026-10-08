@@ -923,7 +923,7 @@ git commit -m "refactor: #181 - 하위 키보드 VC도 텍스트 프록시를 te
 **Files:**
 - Modify: `CLAUDE.md` (아키텍처 절, `**저장소**` 문단 뒤)
 
-- [ ] **Step 1: CLAUDE.md 규칙 추가**
+- [x] **Step 1: CLAUDE.md 규칙 추가**
 
 `CLAUDE.md` `## 아키텍처`의 `**저장소**:` 문단 끝(`extension 프로세스 로컬 상태는 ...에 둔다.`) 다음 빈 줄 뒤에 추가:
 
@@ -937,7 +937,7 @@ git commit -m "refactor: #181 - 하위 키보드 VC도 텍스트 프록시를 te
 
 `.github/copilot-instructions.md`에는 프록시 관련 규칙이 없어 바꾸지 않는다(작성 시점 확인).
 
-- [ ] **Step 2: 전체 테스트**
+- [x] **Step 2: 전체 테스트**
 
 사용자에게 전체 테스트를 시작한다고 알린 뒤 실행한다. 붙여넣기 알림 위험을 줄이려 병렬을 끈다.
 
@@ -949,7 +949,9 @@ xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
 ```
 Expected: `TEST SUCCEEDED`. 테스트 개수와 `.xcresult` 경로(`grep -m1 "xcresult" "$SCRATCH/task4-full.log"`)를 이 step에 적는다.
 
-- [ ] **Step 3: 계획 문서 체크와 결과 기록 후 커밋**
+결과: `Test run with 893 tests in 97 suites passed`, `** TEST SUCCEEDED **`(기준 시뮬레이터 `id=82146144-24DE-4F91-B25D-23D147A91142`, 병렬 끔). `.xcresult`: `~/Library/Developer/Xcode/DerivedData/SYKeyboard-hgprdtyustcuukabeovkjzrtclhy/Logs/Test/Test-SYKeyboard-2026.10.08_18-55-48-+0900.xcresult`, 추출: `grep "Test run with" task4-full.log`.
+
+- [x] **Step 3: 계획 문서 체크와 결과 기록 후 커밋**
 
 ```sh
 git add CLAUDE.md docs/superpowers/plans/2026-10-08-text-proxy-read-cache.md
