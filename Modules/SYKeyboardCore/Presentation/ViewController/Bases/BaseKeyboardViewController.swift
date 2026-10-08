@@ -50,8 +50,17 @@ open class BaseKeyboardViewController: UIInputViewController {
     /// 마지막으로 확인한 `textContentType`. `inputTraitsDidChange()` 판정에 쓰입니다
     final public lazy var oldTextContentType: UITextContentType? = textDocument.textContentType
     /// 텍스트 프록시 읽기·쓰기 창구. 프록시는 이것으로만 읽고 쓴다
-    final public private(set) lazy var textDocument = CachingTextDocumentProxy { [unowned self] in
-        self.textDocumentProxy
+    final public private(set) lazy var textDocument = CachingTextDocumentProxy { [weak self] in
+        guard let self else {
+            // 키보드가 이미 사라졌으므로 프록시를 읽거나 쓰지 않는다. 크래시 대신 기록만 남긴다
+            let message = "text document accessed after controller deinit"
+            Logger(subsystem: Bundle.main.bundleIdentifier ?? "Unknown Bundle", category: "BaseKeyboardViewController")
+                .fault("\(message)")
+            KeyboardDiagnostics.log(message)
+            assertionFailure("BaseKeyboardViewController가 해제된 뒤 textDocument에 접근했습니다")
+            return nil
+        }
+        return self.textDocumentProxy
     }
 
     /// 현재 표시되는 키보드

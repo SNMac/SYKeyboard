@@ -1054,3 +1054,8 @@ git commit -m "docs: #181 - 시뮬레이터 확인 결과 기록" \
 - 계획과 달리 한 것: 전화(`type="tel"`)·숫자 패드(`inputmode="numeric"`) 입력창은 iOS가 서드파티 키보드 대신 시스템 키패드를 띄워 `type="number"`로 대신했다. `ㅌㅊㅋ`는 이미 학습돼 있어 `ㅋㅍㅌ`를 썼다. 전송 입력창 탭과 전송 버튼은 사용자가 눌렀다.
 - 정리: `AppleKeyboards`와 `isClipboardHistoryEnabled`(true)를 원래대로 돌렸고, 이 브랜치 빌드를 다시 설치했다. 학습 파일에 확인용 단어(`ㅋㅍㅌ`, `가나`, `다라`, `hi`, `there` 등)가 남아 있다.
 
+## 리뷰 뒤 추가 변경
+
+- 브랜치 리뷰 Minor 1·2: CLAUDE.md 확인 grep을 `textDocumentProxy` 전체 검색(결과가 Base의 `textDocument` 생성 한 줄뿐)으로 바꾸고, `textDidChange` 오버라이드까지 규칙을 넓혔다(`66e1ccd4`, 규칙 문서 커밋에 합침). Minor 4: Copilot 리뷰 지침에 직접 접근 경고 추가(같은 커밋). Minor 3(쓰기 뒤에도 캐시 비우기)은 재진입 경로가 없어 하지 않았다.
+- 사용자 요청으로 `[unowned self]` → `[weak self]`. VC 해제 뒤 접근은 크래시 대신 읽기 `nil`·`false`, 쓰기 무시가 되고, `logger.fault` + `KeyboardDiagnostics.log`(Crashlytics 로그)를 남기며 Debug에서만 `assertionFailure`. 테스트 `testMissingProxyReturnsEmptyValuesAndIgnoresWrites`는 클로저 타입 불일치 컴파일 오류로 RED 확인 후 통과. 검증: 관련 16개 통과, 전체 `Test run with 894 tests in 97 suites passed`(클립보드 기록 설정을 잠시 끄고 실행, `.xcresult`: `Test-SYKeyboard-2026.10.08_19-37-12-+0900.xcresult`), extension 3개 `BUILD SUCCEEDED`. VC 해제 뒤 경로는 Debug에서 실행하면 멈추므로 자동 테스트로 확인하지 않았다.
+

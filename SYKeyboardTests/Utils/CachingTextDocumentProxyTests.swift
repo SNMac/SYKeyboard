@@ -116,4 +116,21 @@ struct CachingTextDocumentProxyTests {
 
         #expect(proxy.readCount(of: "documentIdentifier") == 1)
     }
+
+    @Test("프록시가 없으면 읽기는 nil이나 false를 돌려주고 쓰기는 무시함")
+    func testMissingProxyReturnsEmptyValuesAndIgnoresWrites() {
+        let textDocument = CachingTextDocumentProxy { nil }
+
+        textDocument.withReadCaching {
+            #expect(textDocument.documentContextBeforeInput == nil)
+            #expect(textDocument.selectedText == nil)
+            #expect(textDocument.documentIdentifier == nil)
+            #expect(textDocument.keyboardType == nil)
+            #expect(textDocument.hasText == false)
+            textDocument.insertText("가")
+            textDocument.deleteBackward()
+            textDocument.adjustTextPosition(byCharacterOffset: -1)
+        }
+        #expect(textDocument.documentContextAfterInput == nil)
+    }
 }

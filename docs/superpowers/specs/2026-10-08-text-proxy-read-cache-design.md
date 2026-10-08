@@ -54,7 +54,9 @@ UIKit이 XPC 스레드에서 문서 상태(`_controllerState`)를 교체하는 �
   Base VC만 쓰는 보조 타입이라 Base 옆 `Utils/`에 둔다. 하위 VC는 타입이 아니라 `textDocument` 인스턴스만 쓴다.
   `project.pbxproj`의 `SYKeyboard`·`SYKeyboardCore` 두 타깃 `membershipExceptions`에 등록한다.
 - `() -> UITextDocumentProxy` 클로저로 프록시를 받는다. 테스트가 `textDocumentProxy`를 오버라이드해 가짜
-  프록시를 넣으므로 매번 VC의 현재 값을 따른다. VC는 `[unowned self]`로 넘겨 순환 참조를 만들지 않는다.
+  프록시를 넣으므로 매번 VC의 현재 값을 따른다. VC는 `[weak self]`로 넘겨 순환 참조를 만들지 않는다.
+  VC가 해제된 뒤 접근하면 클로저가 `nil`을 돌려주고, 이 타입은 읽기에 `nil`·`false`를 돌려주며 쓰기를 무시한다.
+  Base 클로저는 그때 `logger.fault`와 `KeyboardDiagnostics.log`(Crashlytics 로그)를 남기고 Debug에서만 `assertionFailure`로 멈춘다.
 - `UITextDocumentProxy`를 채택하지 않고 실제로 쓰는 멤버만 둔다.
   - 읽기 16개: `documentContextBeforeInput`, `documentContextAfterInput`, `selectedText`,
     `documentIdentifier`(기존처럼 KVC, `UUID?`), `documentInputMode`, `hasText`, `keyboardType`, `textContentType`, `returnKeyType`,
