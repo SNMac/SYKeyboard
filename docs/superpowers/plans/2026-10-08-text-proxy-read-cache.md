@@ -74,7 +74,7 @@
     - 기록: `readCounts: [String: Int]`(키 = 프로퍼티 이름), `writes: [String]`
     - `readCount(of:) -> Int`, `contextReadCount: Int`(앞·뒤 문맥 + 선택 텍스트 합), `resetReadCounts()`
 
-- [ ] **Step 1: 공통 가짜 프록시 작성**
+- [x] **Step 1: 공통 가짜 프록시 작성**
 
 `SYKeyboardTests/Utils/CountingTextDocumentProxy.swift`:
 
@@ -214,7 +214,7 @@ final class CountingTextDocumentProxy: NSObject, UITextDocumentProxy {
 }
 ```
 
-- [ ] **Step 2: 기존 프록시 읽기 테스트를 공통 가짜 프록시로 교체**
+- [x] **Step 2: 기존 프록시 읽기 테스트를 공통 가짜 프록시로 교체**
 
 `SYKeyboardTests/Controller/BaseKeyboardViewControllerProxyReadTests.swift`에서:
 - 파일 끝의 `/// 문맥·선택 텍스트 읽기 횟수를 세는 프록시`부터 `private final class ReadCountingTextDocumentProxy { ... }` 끝까지 삭제한다.
@@ -222,7 +222,7 @@ final class CountingTextDocumentProxy: NSObject, UITextDocumentProxy {
 - `controller.proxy.readCount = 0` 3곳 → `controller.proxy.resetReadCounts()`
 - `#expect(controller.proxy.readCount == 0)` 3곳 → `#expect(controller.proxy.contextReadCount == 0)`
 
-- [ ] **Step 3: 타입 단위 테스트 작성**
+- [x] **Step 3: 타입 단위 테스트 작성**
 
 `SYKeyboardTests/Utils/CachingTextDocumentProxyTests.swift`:
 
@@ -348,7 +348,7 @@ struct CachingTextDocumentProxyTests {
 }
 ```
 
-- [ ] **Step 4: 테스트가 컴파일 실패하는지 확인**
+- [x] **Step 4: 테스트가 컴파일 실패하는지 확인**
 
 Run:
 ```sh
@@ -359,7 +359,9 @@ xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
 ```
 (`$SCRATCH`는 세션 scratchpad 경로.) Expected: `cannot find 'CachingTextDocumentProxy' in scope`로 실패.
 
-- [ ] **Step 5: 타입 구현**
+결과: `CachingTextDocumentProxyTests.swift` 7곳에서 `cannot find 'CachingTextDocumentProxy' in scope`, `** TEST FAILED **`. 공통 가짜 프록시와 기존 테스트 파일은 컴파일 오류 없음.
+
+- [x] **Step 5: 타입 구현**
 
 `Modules/SYKeyboardCore/Presentation/ViewController/Bases/Utils/CachingTextDocumentProxy.swift`:
 
@@ -476,7 +478,7 @@ private extension CachingTextDocumentProxy {
 
 `$0.textContentType ?? nil`은 선택 요구사항 + IUO로 이중 옵셔널이 되는 경우를 한 겹으로 편다. 컴파일러가 프로퍼티 타입을 다르게 추론해 오류가 나면 반환 타입은 그대로 두고 클로저 본문만 맞춘다.
 
-- [ ] **Step 6: pbxproj 등록**
+- [x] **Step 6: pbxproj 등록**
 
 `SYKeyboard.xcodeproj/project.pbxproj`에서 아래 줄(2곳: `SYKeyboard` 타깃, `SYKeyboardCore` 타깃 예외 목록)을 Edit `replace_all`로 바꾼다.
 
@@ -493,7 +495,7 @@ private extension CachingTextDocumentProxy {
 
 확인: `grep -c "CachingTextDocumentProxy.swift" SYKeyboard.xcodeproj/project.pbxproj` → `2`.
 
-- [ ] **Step 7: 테스트 통과 확인**
+- [x] **Step 7: 테스트 통과 확인**
 
 Run:
 ```sh
@@ -505,7 +507,9 @@ xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
 ```
 Expected: 10 tests passed (새 7 + 기존 3).
 
-- [ ] **Step 8: 계획 문서 체크와 결과 기록 후 커밋**
+결과: 10개 통과, `** TEST SUCCEEDED **`. 첫 두 번은 `GADAdSize.h has been modified since the module file ... GoogleMobileAds-*.pcm was built`로 컴파일 전에 실패했다(환경 오류, 다른 xcodebuild 없음). `DerivedData/.../SwiftExplicitPrecompiledModules/GoogleMobileAds-*.pcm`만 지우고 같은 명령으로 통과. `.xcresult`: `~/Library/Developer/Xcode/DerivedData/SYKeyboard-hgprdtyustcuukabeovkjzrtclhy/Logs/Test/Test-SYKeyboard-2026.10.08_18-37-19-+0900.xcresult`, 추출: `grep "passed on" task1-green.log`.
+
+- [x] **Step 8: 계획 문서 체크와 결과 기록 후 커밋**
 
 ```sh
 git add Modules/SYKeyboardCore/Presentation/ViewController/Bases/Utils/CachingTextDocumentProxy.swift \
