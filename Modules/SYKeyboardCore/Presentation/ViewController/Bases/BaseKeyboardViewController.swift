@@ -52,10 +52,11 @@ open class BaseKeyboardViewController: UIInputViewController {
     /// 텍스트 프록시 읽기·쓰기 창구. 프록시는 이것으로만 읽고 쓴다
     final public private(set) lazy var textDocument = CachingTextDocumentProxy { [weak self] in
         guard let self else {
-            // 키보드가 이미 사라졌으므로 프록시를 읽거나 쓰지 않는다. 크래시 대신 기록만 남긴다
+            // 키보드가 이미 사라졌으므로 프록시를 읽거나 쓰지 않는다.
+            // Release는 크래시 대신 기록만 남기고, Debug는 `assertionFailure`로 멈춘다
             let message = "text document accessed after controller deinit"
             Logger(subsystem: Bundle.main.bundleIdentifier ?? "Unknown Bundle", category: "BaseKeyboardViewController")
-                .fault("\(message)")
+                .fault("\(message, privacy: .public)")
             KeyboardDiagnostics.log(message)
             assertionFailure("BaseKeyboardViewController가 해제된 뒤 textDocument에 접근했습니다")
             return nil
