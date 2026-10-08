@@ -90,6 +90,50 @@ final class RequestFullAccessOverlayView: UIView {
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
+
+    // MARK: - Install
+
+    /// 컨테이너를 가득 채우도록 붙이고 버튼 액션을 연결한다.
+    /// - Parameters:
+    ///   - container: 오버레이를 올릴 뷰. 키보드 뷰 위에 덮어야 하므로 호출자가 마지막에 부른다
+    ///   - onClose: 닫기 버튼. 호출 뒤 오버레이를 숨긴다
+    ///   - onOpenSettings: 시스템 설정 이동 버튼. 앱 URL scheme을 넘긴다
+    func install(
+        in container: UIView,
+        onClose: @escaping () -> Void,
+        onOpenSettings: @escaping (URL) -> Void
+    ) {
+        container.addSubview(self)
+
+        translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            topAnchor.constraint(equalTo: container.topAnchor),
+            leadingAnchor.constraint(equalTo: container.leadingAnchor),
+            trailingAnchor.constraint(equalTo: container.trailingAnchor),
+            bottomAnchor.constraint(equalTo: container.bottomAnchor)
+        ])
+
+        closeButton.addAction(
+            UIAction { [weak self] _ in
+                onClose()
+                self?.isHidden = true
+            },
+            for: .touchUpInside
+        )
+        goToSettingsButton.addAction(
+            UIAction { _ in
+                let urlString = "sykeyboard://"
+                guard let url = URL(string: urlString) else {
+                    assertionFailure("올바르지 않은 URL 형식입니다.")
+                    // Core는 Firebase에 의존하지 않으므로 non-fatal 대신 진단 로그로만 남긴다. 상수 URL이라 실제로는 오지 않는 분기다
+                    KeyboardDiagnostics.log("Invalid settings URL: \(urlString)")
+                    return
+                }
+                onOpenSettings(url)
+            },
+            for: .touchUpInside
+        )
+    }
 }
 
 // MARK: - UI Methods

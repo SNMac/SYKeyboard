@@ -361,7 +361,11 @@ open class BaseKeyboardViewController: UIInputViewController {
 
         // 키보드 뷰 위에 덮어야 하므로 마지막에 올린다. 앱 미리보기에서는 표시하지 않는다
         if !BaseKeyboardViewController.isPreview, needToShowFullAccessGuide {
-            setupRequestFullAccessOverlayView()
+            requestFullAccessOverlayView.install(
+                in: view,
+                onClose: { [weak self] in self?.keyboardExtensionLocalStateStore.isClosed = true },
+                onOpenSettings: { [weak self] url in self?.openURLThroughResponderChain(url) }
+            )
         }
     }
 
@@ -2967,7 +2971,7 @@ extension BaseKeyboardViewController: ClipboardHistoryPanelDelegate {
         guard panel.items.indices.contains(index),
               let text = panel.items[index].text,
               let url = ClipboardHistoryPolicy.openableURL(in: text) else { return }
-        openURL(url)
+        openURLThroughResponderChain(url)
     }
 }
 
@@ -3166,54 +3170,5 @@ private extension BaseKeyboardViewController {
 
         suggestionRemovalConfirmView = overlay
         return overlay
-    }
-}
-
-// MARK: - Full Access Guide
-
-private extension BaseKeyboardViewController {
-    func setupRequestFullAccessOverlayView() {
-        view.addSubview(requestFullAccessOverlayView)
-
-        requestFullAccessOverlayView.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([
-            requestFullAccessOverlayView.topAnchor.constraint(equalTo: view.topAnchor),
-            requestFullAccessOverlayView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            requestFullAccessOverlayView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            requestFullAccessOverlayView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
-        ])
-
-        requestFullAccessOverlayView.closeButton.addAction(
-            UIAction { [weak self] _ in
-                self?.keyboardExtensionLocalStateStore.isClosed = true
-                self?.requestFullAccessOverlayView.isHidden = true
-            },
-            for: .touchUpInside
-        )
-        requestFullAccessOverlayView.goToSettingsButton.addAction(
-            UIAction { [weak self] _ in
-                let urlString = "sykeyboard://"
-                guard let url = URL(string: urlString) else {
-                    assertionFailure("올바르지 않은 URL 형식입니다.")
-                    // Core는 Firebase에 의존하지 않으므로 non-fatal 대신 진단 로그로만 남긴다. 상수 URL이라 실제로는 오지 않는 분기다
-                    KeyboardDiagnostics.log("Invalid settings URL: \(urlString)")
-                    return
-                }
-                self?.openURL(url)
-            },
-            for: .touchUpInside
-        )
-    }
-
-    /// extension은 `UIApplication`을 직접 쓸 수 없으므로 responder chain을 따라 올라가 연다
-    func openURL(_ url: URL) {
-        var responder: UIResponder? = self
-        while responder != nil {
-            if let application = responder as? UIApplication {
-                application.open(url)
-                return
-            }
-            responder = responder?.next
-        }
     }
 }
