@@ -470,6 +470,8 @@ flowchart TB
         Button["BaseKeyboardButton 계열<br/>(TextInteractable)"]
     end
 
+    SuggestionCoord["SuggestionSelectionCoordinator"]
+    ClipboardCoord["ClipboardHistoryCoordinator"]
     Suggestion["자동완성<br/>SuggestionController · 예측 엔진"]
     ClipboardStore["클립보드 저장소<br/>ClipboardHistoryStore · ClipboardImageStore"]
     Host["호스트 앱 텍스트 필드<br/>(textDocumentProxy)"]
@@ -480,11 +482,14 @@ flowchart TB
     Layout -->|상단 툴바| Toolbar
     Layout -->|클립보드 패널| ClipboardPanel
     Button -->|UIAction| BaseVC
-    Toolbar -->|후보 탭 · undo/redo · 패널 열기| BaseVC
-    ClipboardPanel -->|항목 탭 · 편집| BaseVC
+    Toolbar -->|후보 탭 · undo/redo · 패널 열기| SuggestionCoord
+    ClipboardPanel -->|항목 탭 · 편집| ClipboardCoord
+    SuggestionCoord -->|Host: 삽입 · 후보 갱신 · undo/redo| BaseVC
+    ClipboardCoord -->|Host: 삽입 · 자판 갱신| BaseVC
+    SuggestionCoord -->|후보 선택 · 학습| Suggestion
+    ClipboardCoord -->|기록 조회 · 저장| ClipboardStore
     BaseVC -->|터치/드래그| Gesture
     BaseVC -->|후보 조회 · 학습| Suggestion
-    BaseVC -->|기록 조회 · 저장| ClipboardStore
     BaseVC -->|insert/delete| Host
 ```
 
@@ -536,6 +541,8 @@ direction LR
     BaseKeyboardViewController *-- SymbolKeyboardLayoutProvider: Composition
     BaseKeyboardViewController *-- NumericKeyboardLayoutProvider: Composition
     BaseKeyboardViewController *-- TenkeyKeyboardLayoutProvider: Composition
+    BaseKeyboardViewController *-- SuggestionSelectionCoordinator: Composition
+    BaseKeyboardViewController *-- ClipboardHistoryCoordinator: Composition
 
     BaseKeyboardViewController <|-- HangeulKeyboardCoreViewController: Inheritance
     BaseKeyboardViewController <|-- EnglishKeyboardCoreViewController: Inheritance

@@ -22,7 +22,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ```
 UIInputViewController
-└── BaseKeyboardViewController          (SYKeyboardCore, ~2400줄, 입력 흐름의 중심)
+└── BaseKeyboardViewController          (SYKeyboardCore, ~2700줄, 입력 흐름의 중심)
     ├── HangeulKeyboardCoreViewController → HangeulKeyboardViewController
     ├── EnglishKeyboardCoreViewController → EnglishKeyboardViewController
     └── HangeulEnglishKeyboardViewController   (Core VC 없이 Base를 직접 상속)
@@ -33,6 +33,9 @@ UIInputViewController
 (`primaryKeyboardView`, `primaryKeyboardViews`, `updateKeyboardType()`, `shouldDeferUndoRedoCommit`,
 `smartQuoteRule` 등)를 오버라이드해 언어별 차이만 주입한다. **언어 공통 동작을 하위 VC에 복제하지 말고
 Base에 두거나 Policy로 분리한다.**
+후보 탭 처리·전송 기록·후보 삭제 확인은 `SuggestionSelectionCoordinator`, 클립보드 패널·pasteboard 동기화는
+`ClipboardHistoryCoordinator`가 맡는다. 둘은 VC 계층 보조 타입이라 `Presentation/ViewController/Utils/`에 있고 VC를 `weak` Host 프로토콜
+(`SuggestionSelectionHost`, `ClipboardHistoryHost`)로 역참조하며, 프록시는 Host가 노출하는 `textDocument`만 쓴다.
 
 **언어별 입력 로직은 Adapter를 통해 들어온다.**
 `HangeulKeyboardInputAdapter` / `EnglishKeyboardInputAdapter`가 VC와 Domain 사이의 유일한 경계다.
@@ -55,7 +58,7 @@ VC는 이 값만 보고 프록시를 갱신하므로, 조합 규칙 변경은 Pr
 **자동완성은 `SuggestionController` 한 곳으로 모인다.**
 `LexiconPredictiveTextEngine`(UILexicon), `TextCheckerPredictiveTextEngine`(UITextChecker),
 `NGramPredictiveTextEngine`(학습형), `MathExpressionCompletionEvaluator`(수식)가
-`PredictiveTextProvider`로 붙고 `SuggestionBarView`가 표시한다.
+`PredictiveTextProvider`로 붙고 `SuggestionBarView`가 표시한다. 후보 탭은 `SuggestionSelectionCoordinator`가 받는다.
 
 **뷰 계층**: `KeyboardView`(XIB, `SYKeyboardAssets` 번들에서 로드) 안에 `SuggestionBarView` +
 primary/symbol/numeric/tenkey 레이아웃이 들어간다. 레이아웃은 `*KeyboardLayoutProvider` 프로토콜 구현체이며
