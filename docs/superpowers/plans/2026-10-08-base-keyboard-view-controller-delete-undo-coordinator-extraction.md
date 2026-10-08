@@ -1326,7 +1326,7 @@ EOF
   - `protocol TextDeletionHost: AnyObject` — `textDocument`, `currentInputBuffer`, `isViewInWindow`, `textInteractionWillPerform(button:)`, `textInteractionDidPerform(button:)`, `deleteBackward()`, `repeatDeleteBackward()`, `deleteText()`, `replaceText(deleteCount:insert:)`, `deleteButtonPanDeleteText(hasPendingRestoreText:)`, `deleteButtonPanRestoreText(_:)`, `deleteButtonPanDidStop()`, `performRepeatTextInteraction(for:)`, `performDeleteTextInteraction(for:)`, `recordEditForUndo(deletedText:insertedText:)`, `refreshSuggestions()`
   - `final class TextDeletionCoordinator` — `init(deleteDragIndicatorView:suggestionController:keyboardSettingsManager:host:)`, `isRepeatingInput`(`private(set)`), `panPreviousCharacter`, `synchronizeInputIdentifier(_:)`, `completeAfterTextChange(currentContext:)`, `resetInputIdentifier()`, `performTouchDown(for:)`, `finishTouchDown()`, `cancelPendingInteractions()`, `captureMutation(deletedText:insertedText:reliability:) -> Bool`, `takePanDeletedTextOverride() -> String?`, `clearPanRestoreState()`, `beginRepeatInput()`, `endRepeatInput(isDeleteButton:)`, `performRepeatTick(for:)`, `performInitialRepeatDelete(for:)`, `startRepeatInputTimer(for:)`, `stopRepeatInputTracking(preservingTouchDown:)`, `handlePan(to:)`, `handlePanStop()`
 
-- [ ] **Step 1: 실패하는 Coordinator 테스트 작성**
+- [x] **Step 1: 실패하는 Coordinator 테스트 작성**
 
 가짜 Host는 VC의 래퍼가 제공하는 계약(프록시에 쓰고, 지운 글자를 `captureMutation`으로 삭제 파이프라인에 넘기고, 반복 틱·touchDown 요청을 Coordinator로 되돌려 보냄)을 최소로 흉내 낸다. 그 계약이 실제 VC에서 성립하는지는 Task 1의 VC 수준 테스트가 확인하므로, 이 파일의 단언은 Coordinator가 Host를 부르는 순서·횟수와 프록시 쓰기에 한정한다.
 
@@ -1676,7 +1676,7 @@ private func makeFixture() -> Fixture {
 
 `FakeSuggestionService.attemptRestoreReplacement`는 지금 항상 `nil`을 돌려준다. `SYKeyboardTests/Utils/FakeSuggestionService.swift`의 stub 프로퍼티 목록(`textReplacementPreviewSuggestionIndexResult` 아래)에 `var restoreReplacementResult: (deleteCount: Int, insertText: String)?`를 추가하고 `attemptRestoreReplacement`가 `return restoreReplacementResult`를 돌려주게 바꾼다(`calls.append`는 유지).
 
-- [ ] **Step 2: 컴파일 실패 확인**
+- [x] **Step 2: 컴파일 실패 확인**
 
 ```sh
 S=/private/tmp/claude-501/-Users-macmillan-Projects-XcodeProjects-SNMac-SYKeyboard-SYKeyboard/d55fb879-2fd6-4e31-bf24-9aa46889bd80/scratchpad
@@ -1688,7 +1688,7 @@ timeout 300 xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
 
 Expected: `cannot find type 'TextDeletionHost' in scope`.
 
-- [ ] **Step 3: `TextDeletionCoordinator.swift` 작성**
+- [x] **Step 3: `TextDeletionCoordinator.swift` 작성**
 
 VC의 Private Methods(삭제 부분)와 `TextInteractionGestureControllerDelegate` 보조 extension(삭제 pan 부분), `startRepeatInputTimer`, `stopRepeatInputTracking`, `cancelTimer`, `finishRepeatDeleteWithoutDeletion`을 옮긴 것이다. 바뀐 것은 `self`의 VC 멤버 → `host.`, `currentTextContextSnapshot()` → `host.textDocument.contextSnapshot`, `textDocument.` → `host.textDocument.`, `recordUndoRedoChange(deletedText:insertedText:)` → `host.recordEditForUndo`, `updateSuggestions()` → `host.refreshSuggestions()`, `inputBuffer` → `host.currentInputBuffer`, `view.window` → `host.isViewInWindow`, `performTextInteraction(for:)` → `host.performDeleteTextInteraction(for:)`, `cancelPendingDeleteInteractions()` → `cancelPendingInteractions()`, `deleteButtonPanPreviousCharacter` → `panPreviousCharacter`뿐이다.
 
@@ -2551,7 +2551,7 @@ private extension TextDeletionCoordinator {
 
 `DeletePanTextModel.removeLast()`가 `@discardableResult`가 아니면 VC와 같이 경고가 나지 않도록 원래 VC 코드와 동일하게 둔다(VC에서 경고 없이 컴파일되던 표현이다). `deletePanTextModel?.remainingText`·`sourceText`·`pendingGeneration`·`isBlocked`는 모두 기존 순수 타입의 멤버다.
 
-- [ ] **Step 4: pbxproj에 `TextDeletionCoordinator.swift` 등록**
+- [x] **Step 4: pbxproj에 `TextDeletionCoordinator.swift` 등록**
 
 Task 4 Step 4와 같은 두 자리에서 `SuggestionSelectionCoordinator.swift,` 줄 바로 뒤, `UndoRedoCoordinator.swift,` 줄 앞에 추가한다(알파벳 순 S < T < U).
 
@@ -2561,7 +2561,7 @@ Task 4 Step 4와 같은 두 자리에서 `SuggestionSelectionCoordinator.swift,`
 
 확인: `grep -c "Utils/TextDeletionCoordinator.swift" SYKeyboard.xcodeproj/project.pbxproj`가 2.
 
-- [ ] **Step 5: VC에서 삭제 섹션을 Coordinator 호출로 교체**
+- [x] **Step 5: VC에서 삭제 섹션을 Coordinator 호출로 교체**
 
 `BaseKeyboardViewController.swift`를 위에서 아래로 고친다.
 
@@ -2782,7 +2782,7 @@ grep -nE "deleteMutationLifecycle|deleteInteractionCoordinator|tempDeletedCharac
 
 결과는 `textDeletionCoordinator.…` 호출 줄뿐이어야 한다. `wc -l $F`는 1900 아래여야 한다.
 
-- [ ] **Step 6: 테스트 통과 확인**
+- [x] **Step 6: 테스트 통과 확인**
 
 "SYKeyboardTests 전체 실행, 약 3\~5분"이라고 알린 뒤 실행한다.
 
@@ -2795,7 +2795,7 @@ xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
 
 Expected: 0 failures. Task 1 테스트가 수정 없이 통과한다. 틱 읽기 횟수가 달라졌다면 `performRepeatDeleteTextInteraction`의 `startState` 재사용이나 `completeAfterTextChange(currentContext:)`에 스냅샷을 넘기는 자리가 어긋난 것이다. Coordinator 쪽을 고치고 테스트 기대값은 바꾸지 않는다.
 
-- [ ] **Step 7: 커밋**
+- [x] **Step 7: 커밋**
 
 ```sh
 git branch --show-current
@@ -2811,6 +2811,10 @@ Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>
 EOF
 )"
 ```
+
+#### Task 5 결과 (2026-10-09)
+
+- Step 2 RED: `cannot find type 'TextDeletionHost'`. Step 5 (k)에서 `moveCursorIfPossible`의 `currentTextContextSnapshot()` 호출이 하나 남아 `textDocument.contextSnapshot`으로 바꿨다(계획의 "남은 호출처가 없으면 삭제" 조건을 이 호출처만 고치고 적용). Step 6: 전체 1056개 통과, 0 failures, 소스 파일 경고 0건(`scratchpad/task5-test.log`). VC 고정 테스트 11개 수정 없이 통과. VC 2579 → 1931줄, `TextDeletionCoordinator.swift` 854줄.
 
 ---
 
