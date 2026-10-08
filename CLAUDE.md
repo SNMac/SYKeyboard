@@ -229,6 +229,12 @@ Notion 행과 Crashlytics 이슈를 정리하므로, **사람이 할 일은 수�
 - 문자열 안에서 설정·버튼 이름을 인용할 때 한국어(원문 키)는 작은따옴표 `'이미지도 기록'`, 영어 값은
   둥근 큰따옴표 `“Include Images”`를 쓴다. 영어에 곧은따옴표(`'`, `"`)를 인용 용도로 쓰지 않는다.
 - 새 설정값을 추가할 때는 관련 `UserDefaultsKeys`, `DefaultValues`, 앱 설정 화면, 키보드 런타임 반영 위치를 함께 확인한다.
+- `BaseKeyboardViewController`에서 접착 코드를 뺄 때는 extension 파일 분리(`private` → `internal`)가 아니라 상태를 소유하는
+  Coordinator + `weak` Host 프로토콜 방식(#184·#185)을 따른다. Host는 `weak var host`와 `guard let host`로만 쓰고
+  `unowned`를 쓰지 않는다. VC의 `private` 메서드를 감싸는 Host 요구사항은 `refresh…`/`…LastEdit`/`interrupt…`처럼 VC 메서드와
+  다른 이름으로 선언하고 같은 파일의 Host 채택 extension이 한 줄로 전달하며, VC 저장 프로퍼티를 `internal`로 올리지 않는다.
+  Coordinator는 `textDocument`를 저장하지 않고 호출마다 `host.textDocument`로 읽고, 클로저·타이머 sink는 `[weak self]`로 캡처하며
+  `deinit`에 로그를 남긴다. 새 Coordinator는 해제 테스트(참조를 놓은 뒤 `weak == nil`)를 함께 추가한다.
 
 ## 주요 디렉터리
 
@@ -239,13 +245,16 @@ Notion 행과 Crashlytics 이슈를 정리하므로, **사람이 할 일은 수�
 - `Keyboards/EnglishKeyboard/`: 영문 키보드 extension 진입점과 리소스.
 - `Keyboards/HangeulEnglishKeyboard/`: 한영 통합 키보드 extension 진입점과 리소스.
 - `Modules/SYKeyboardCore/`: 공통 키보드 UI, 버튼, 제스처, 자동완성, 저장소 기본 타입.
-  - `Presentation/Utils/Policies/`, `Presentation/Utils/Coordinators/`: UI 의존 없는 순수 정책·모드 결정 타입.
+  - `Presentation/Utils/Policies/`, `Presentation/Utils/Coordinators/`(`HangeulEnglishKeyboardModeCoordinator`): UI 의존 없는 순수 정책·모드 결정 타입.
+  - `Presentation/ViewController/Bases/`: `BaseKeyboardViewController`만. `Presentation/ViewController/Utils/`: VC 계층 보조 타입
+    (`SuggestionSelectionCoordinator`, `ClipboardHistoryCoordinator`, `TextDeletionCoordinator`, `UndoRedoCoordinator`, `CachingTextDocumentProxy`).
 - `Modules/HangeulKeyboardCore/`: 한글 오토마타, 입력 Processor, 한글 키보드 View.
 - `Modules/EnglishKeyboardCore/`: 영문 키보드 View와 저장소 확장.
 - `Modules/*/Presentation/Input/`: VC와 Domain의 경계인 InputAdapter.
 - `SYKeyboardTests/`: Swift Testing 기반 한글 오토마타/Processor/조합 상태 시나리오/Policy/View/Controller 테스트.
-  `Domain/`(조합 상태·자동완성·NGram), `Processor/`, `Utils/`(Policy·제스처 컨트롤러), `View/`(키보드 뷰·레이아웃),
-  `Controller/`(`BaseKeyboardViewController`), `Storage/`, `Presentation/`(앱 타깃)으로 나뉜다.
+  `Domain/`(조합 상태·자동완성·NGram), `Processor/`, `Utils/`(Policy·제스처 컨트롤러·Coordinator 단위 테스트와 가짜 Host),
+  `View/`(키보드 뷰·레이아웃), `Controller/`(`BaseKeyboardViewController` 동작 고정·프록시 읽기 횟수), `Storage/`,
+  `Presentation/`(앱 타깃)으로 나뉜다.
 - `SYKeyboardAssets/`: XIB와 색상 asset을 제공하는 로컬 SPM 패키지.
 - `Common/Firebase/`: Debug/Release Firebase plist. 민감 설정 변경에 주의한다.
 - `docs/superpowers/`: 과거 계획·설계 기록. 현재 동작의 근거로 사용하지 않는다.
@@ -298,8 +307,9 @@ xcodebuild test \
   -only-testing:SYKeyboardTests/NaratgeulProcessorTests
 ```
 
-- `-only-testing:SYKeyboardTests/<SuiteName>/<testFunctionName>`으로 단일 테스트까지 좁힌다.
-  suite 이름은 `@Suite(...)`의 표시 이름이 아니라 **타입 이름**을 쓴다.
+- `-only-testing:SYKeyboardTests/<SuiteName>`으로 suite 단위로 좁힌다. suite 이름은 `@Suite(...)`의 표시 이름이 아니라
+  **타입 이름**을 쓴다. `/<testFunctionName>`을 붙인 함수 단위 필터는 Swift Testing suite에서 0개가 실행됐다(2026-10-09,
+  `** TEST SUCCEEDED **`만 찍히고 `Test case` 줄이 없음). 결과에 `Test case … passed` 줄이 있는지 확인한다.
 - `-only-testing`이나 code coverage 옵션을 쓴 뒤 extension scheme을 빌드할 때는 옵션을 반드시 비운다.
 - **`Modules/`에 새 파일을 추가하면 `SYKeyboard.xcodeproj/project.pbxproj`를 함께 고쳐야 한다.**
   `Modules`는 `PBXFileSystemSynchronizedRootGroup`이지만 세 모듈 타깃이 한 폴더를 공유하므로
@@ -359,6 +369,24 @@ xcodebuild test \
 같은 로그에 보이는 `[Sandbox] Could not enable Mach bootstrap, errno = 22`는 시뮬레이터에서 흔히
 나오는 노이즈다. 이 줄만 보고 샌드박스 제약으로 단정하지 말고 위 `scheduling.log`와 실제 시뮬레이터
 화면을 확인한다.
+
+#### 키보드 extension의 해제·누수 확인
+
+VC와 Coordinator는 `deinit`에 `logger.debug`를 남긴다. `.debug` 로그는 `log show`에 저장되지 않으므로 **미리** live stream을
+띄운 뒤 키보드를 내렸다 올려 횟수를 센다. subsystem은 실제로 떠 있는 extension의 번들 ID다. `AppleKeyboards` 순서와 무관하게
+Safari가 마지막에 쓴 키보드가 뜰 수 있으니 `pgrep -x HangeulKeyboard`(또는 `HangeulEnglishKeyboard`, `EnglishKeyboard`)로 먼저 확인한다.
+
+```sh
+xcrun simctl spawn <UDID> log stream --level debug \
+  --predicate 'subsystem == "github.com-SNMac.SYKeyboard.HangeulEnglishKeyboard" AND eventMessage CONTAINS "deinit"' > deinit.log &
+# 키보드를 N회 내렸다 올린 뒤
+grep -oE "(BaseKeyboardViewController|[A-Za-z]+Coordinator)[^]]*" deinit.log | sed -E 's/ <0x[0-9a-f]+>//' | sort | uniq -c
+```
+
+VC와 Coordinator 4개의 횟수가 N으로 같아야 한다. `leaks <pid>`와 Instruments Leaks(`xctrace record --template Leaks --device <UDID> --attach …`)는
+시뮬레이터 extension 프로세스에 붙지 않는다(2026-10-09: `Failed to get DYLD info for task`, `libmalloc hasn't been initialized`).
+누수 0건 확인은 실기기 Instruments로 하고, 시뮬레이터에서는 위 `deinit` 횟수 일치를 근거로 적는다.
+단위 테스트에서 `UIWindow`에 올렸던 VC는 참조를 놓은 뒤 `RunLoop.main.run(until: Date(timeIntervalSinceNow: 0.2))`를 돌려야 해제된다.
 
 #### 호스트 앱이 뜨지도 않고 테스트가 매달리는 경우
 
