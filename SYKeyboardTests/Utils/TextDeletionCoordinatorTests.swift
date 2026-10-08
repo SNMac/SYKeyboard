@@ -215,7 +215,11 @@ struct TextDeletionCoordinatorTests {
 // MARK: - Test Helpers
 
 /// VC의 래퍼 계약을 흉내 내는 host: 프록시에 쓰고, 지운 글자를 Coordinator의 `captureMutation`에 넘기며,
-/// 반복 틱·touchDown 요청은 Coordinator로 되돌려 보낸다
+/// 반복 틱·touchDown 요청은 Coordinator로 되돌려 보낸다.
+///
+/// 이 계약(`deleteText()`의 override·reliability 처리)의 권위는 VC를 실제로 거치는
+/// `BaseKeyboardViewControllerDeleteUndoBehaviorTests`에 있다. VC 쪽 계약이 바뀌면 그 suite가 먼저 깨지고,
+/// 이 가짜도 같이 고쳐야 한다. 여기서는 Coordinator가 host를 부르는 순서와 프록시 쓰기만 단언한다
 @MainActor
 private final class RecordingTextDeletionHost: TextDeletionHost {
     var calls: [String] = []

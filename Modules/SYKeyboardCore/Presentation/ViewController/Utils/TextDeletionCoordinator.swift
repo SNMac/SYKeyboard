@@ -404,6 +404,7 @@ private extension TextDeletionCoordinator {
     }
 
     func beginDeleteTouchDownRequest() -> DeleteMutationStartResult {
+        // 호출자가 모두 `guard let host` 뒤라 도달하지 않는다. `.started`만 아니면 되므로 `.deferred`를 돌려준다
         guard let host else { return .deferred }
         return deleteMutationLifecycle.beginTouchDown(
             context: host.textDocument.contextSnapshot,
@@ -415,6 +416,7 @@ private extension TextDeletionCoordinator {
     func beginRepeatDeleteRequest(
         reusing startState: (KeyboardTextContextSnapshot, String?)? = nil
     ) -> DeleteMutationStartResult {
+        // 호출자가 모두 `guard let host` 뒤라 도달하지 않는다. `.started`만 아니면 되므로 `.deferred`를 돌려준다
         guard let host else { return .deferred }
         guard deleteInteractionCoordinator.beginRepeatMutation(
             inputIdentifier: currentTextInputIdentifier
