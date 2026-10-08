@@ -391,7 +391,7 @@ EOF
 **Interfaces:**
 - Produces: `extension CachingTextDocumentProxy { var contextSnapshot: KeyboardTextContextSnapshot { get } }`. 앞 문맥을 먼저, 뒤 문맥을 다음에 한 번씩 읽는다. Task 4·5의 Coordinator와 VC가 쓴다
 
-- [ ] **Step 1: 실패하는 테스트 작성**
+- [x] **Step 1: 실패하는 테스트 작성**
 
 `SYKeyboardTests/Utils/CachingTextDocumentProxyTests.swift`를 먼저 읽고 suite 안 마지막 테스트 뒤에 추가한다.
 
@@ -412,7 +412,7 @@ EOF
     }
 ```
 
-- [ ] **Step 2: 컴파일 실패 확인**
+- [x] **Step 2: 컴파일 실패 확인**
 
 ```sh
 S=/private/tmp/claude-501/-Users-macmillan-Projects-XcodeProjects-SNMac-SYKeyboard-SYKeyboard/d55fb879-2fd6-4e31-bf24-9aa46889bd80/scratchpad
@@ -424,7 +424,7 @@ timeout 300 xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
 
 Expected: `value of type 'CachingTextDocumentProxy' has no member 'contextSnapshot'`.
 
-- [ ] **Step 3: extension 추가**
+- [x] **Step 3: extension 추가**
 
 `CachingTextDocumentProxy.swift` 끝(`// MARK: - Private Methods` extension 뒤)에 추가한다.
 
@@ -442,7 +442,7 @@ extension CachingTextDocumentProxy {
 }
 ```
 
-- [ ] **Step 4: VC의 `currentTextContextSnapshot()`이 extension을 쓰게 교체**
+- [x] **Step 4: VC의 `currentTextContextSnapshot()`이 extension을 쓰게 교체**
 
 `BaseKeyboardViewController.swift`의 Private Methods에서
 
@@ -465,7 +465,7 @@ extension CachingTextDocumentProxy {
 
 로 바꾼다. 호출처 13곳은 그대로 둔다(Task 4·5에서 Coordinator로 옮겨지며 줄어든다).
 
-- [ ] **Step 5: 테스트 통과 확인**
+- [x] **Step 5: 테스트 통과 확인**
 
 ```sh
 S=/private/tmp/claude-501/-Users-macmillan-Projects-XcodeProjects-SNMac-SYKeyboard-SYKeyboard/d55fb879-2fd6-4e31-bf24-9aa46889bd80/scratchpad
@@ -479,7 +479,7 @@ xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
 
 Expected: 0 failures. `ProxyReadTests`의 콜백 읽기 횟수와 Task 1의 틱 읽기 횟수가 그대로다.
 
-- [ ] **Step 6: 커밋**
+- [x] **Step 6: 커밋**
 
 ```sh
 git branch --show-current
@@ -493,6 +493,10 @@ Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>
 EOF
 )"
 ```
+
+#### Task 2 결과 (2026-10-09)
+
+- Step 2 RED: `has no member 'contextSnapshot'`. Step 5: 세 suite 26개 통과(`scratchpad/task2-test.log`), `ProxyReadTests`·틱 읽기 횟수 그대로.
 
 ---
 

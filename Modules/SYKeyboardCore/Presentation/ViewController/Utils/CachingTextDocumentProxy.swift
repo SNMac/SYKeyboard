@@ -110,3 +110,15 @@ private extension CachingTextDocumentProxy {
         return value
     }
 }
+
+// MARK: - Context Snapshot
+
+extension CachingTextDocumentProxy {
+    /// 커서 앞·뒤 문맥을 그 순서로 한 번씩 읽은 스냅샷. VC와 Coordinator가 같은 헬퍼를 써서 읽기 횟수를 같게 유지한다
+    var contextSnapshot: KeyboardTextContextSnapshot {
+        KeyboardTextContextSnapshot(
+            beforeInput: documentContextBeforeInput,
+            afterInput: documentContextAfterInput
+        )
+    }
+}

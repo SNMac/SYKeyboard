@@ -2001,10 +2001,7 @@ private extension BaseKeyboardViewController {
     }
 
     func currentTextContextSnapshot() -> KeyboardTextContextSnapshot {
-        return KeyboardTextContextSnapshot(
-            beforeInput: textDocument.documentContextBeforeInput,
-            afterInput: textDocument.documentContextAfterInput
-        )
+        return textDocument.contextSnapshot
     }
 
     func textInputIdentifier(for textInput: (any UITextInput)?) -> ObjectIdentifier? {
