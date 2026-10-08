@@ -472,6 +472,8 @@ flowchart TB
 
     SuggestionCoord["SuggestionSelectionCoordinator"]
     ClipboardCoord["ClipboardHistoryCoordinator"]
+    DeletionCoord["TextDeletionCoordinator"]
+    UndoCoord["UndoRedoCoordinator"]
     Suggestion["자동완성<br/>SuggestionController · 예측 엔진"]
     ClipboardStore["클립보드 저장소<br/>ClipboardHistoryStore · ClipboardImageStore"]
     Host["호스트 앱 텍스트 필드<br/>(textDocumentProxy)"]
@@ -488,6 +490,11 @@ flowchart TB
     ClipboardCoord -->|Host: 삽입 · 자판 갱신| BaseVC
     SuggestionCoord -->|후보 선택 · 학습| Suggestion
     ClipboardCoord -->|기록 조회 · 저장| ClipboardStore
+    Gesture -->|삭제 드래그 · 길게 누르기| BaseVC
+    BaseVC -->|삭제 · 반복 · 드래그 위임| DeletionCoord
+    DeletionCoord -->|Host: open 삭제 메서드 · 훅| BaseVC
+    BaseVC -->|기록 · 확정 · 적용 위임| UndoCoord
+    UndoCoord -->|Host: 쓰기 · 갱신| BaseVC
     BaseVC -->|터치/드래그| Gesture
     BaseVC -->|후보 조회 · 학습| Suggestion
     BaseVC -->|insert/delete| Host
@@ -543,6 +550,8 @@ direction LR
     BaseKeyboardViewController *-- TenkeyKeyboardLayoutProvider: Composition
     BaseKeyboardViewController *-- SuggestionSelectionCoordinator: Composition
     BaseKeyboardViewController *-- ClipboardHistoryCoordinator: Composition
+    BaseKeyboardViewController *-- TextDeletionCoordinator: Composition
+    BaseKeyboardViewController *-- UndoRedoCoordinator: Composition
 
     BaseKeyboardViewController <|-- HangeulKeyboardCoreViewController: Inheritance
     BaseKeyboardViewController <|-- EnglishKeyboardCoreViewController: Inheritance

@@ -22,7 +22,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ```
 UIInputViewController
-└── BaseKeyboardViewController          (SYKeyboardCore, ~2700줄, 입력 흐름의 중심)
+└── BaseKeyboardViewController          (SYKeyboardCore, ~1900줄, 입력 흐름의 중심)
     ├── HangeulKeyboardCoreViewController → HangeulKeyboardViewController
     ├── EnglishKeyboardCoreViewController → EnglishKeyboardViewController
     └── HangeulEnglishKeyboardViewController   (Core VC 없이 Base를 직접 상속)
@@ -34,8 +34,11 @@ UIInputViewController
 `smartQuoteRule` 등)를 오버라이드해 언어별 차이만 주입한다. **언어 공통 동작을 하위 VC에 복제하지 말고
 Base에 두거나 Policy로 분리한다.**
 후보 탭 처리·전송 기록·후보 삭제 확인은 `SuggestionSelectionCoordinator`, 클립보드 패널·pasteboard 동기화는
-`ClipboardHistoryCoordinator`가 맡는다. 둘은 VC 계층 보조 타입이라 `Presentation/ViewController/Utils/`에 있고 VC를 `weak` Host 프로토콜
-(`SuggestionSelectionHost`, `ClipboardHistoryHost`)로 역참조하며, 프록시는 Host가 노출하는 `textDocument`만 쓴다.
+`ClipboardHistoryCoordinator`, 삭제 touchDown·반복 삭제·삭제 드래그·삭제 확정 파이프라인은 `TextDeletionCoordinator`,
+undo/redo 기록·확정·적용은 `UndoRedoCoordinator`가 맡는다. 넷은 VC 계층 보조 타입이라 `Presentation/ViewController/Utils/`에 있고
+VC를 `weak` Host 프로토콜(`SuggestionSelectionHost`, `ClipboardHistoryHost`, `TextDeletionHost`, `UndoRedoHost`)로 역참조하며,
+프록시는 Host가 노출하는 `textDocument`만 쓴다. 삭제 파이프라인의 프록시 쓰기는 VC의 `open` 메서드(`deleteText`,
+`deleteButtonPanDeleteText` 등)를 거치므로 하위 VC 오버라이드가 그대로 불린다.
 
 **언어별 입력 로직은 Adapter를 통해 들어온다.**
 `HangeulKeyboardInputAdapter` / `EnglishKeyboardInputAdapter`가 VC와 Domain 사이의 유일한 경계다.
@@ -71,7 +74,7 @@ extension 프로세스 로컬 상태는 `KeyboardExtensionLocalStateStore`에 �
 
 **텍스트 프록시는 `textDocument`(`CachingTextDocumentProxy`)로만 읽고 쓴다.**
 `textWillChange`/`textDidChange`는 `withReadCaching`으로 같은 값을 한 번만 읽고, 쓰기 메서드가 캐시를 비워
-쓰기 뒤에는 새 값을 읽는다. `textDocumentProxy.insertText` 등을 직접 부르면 그 쓰기는 캐시를 비우지 않는다.
+쓰기 뒤에는 새 값을 읽는다. 앞·뒤 문맥 스냅샷은 `textDocument.contextSnapshot`으로 읽는다. `textDocumentProxy.insertText` 등을 직접 부르면 그 쓰기는 캐시를 비우지 않는다.
 하위 VC가 `textWillChange`/`textDidChange` 오버라이드에서 `super` 호출 뒤에 프록시를 읽으면 오버라이드 본문도
 `withReadCaching`으로 감싼다.
 확인: `grep -rn "textDocumentProxy" Modules Keyboards | grep -v -E ":[0-9]+:[[:space:]]*//"` 결과가
