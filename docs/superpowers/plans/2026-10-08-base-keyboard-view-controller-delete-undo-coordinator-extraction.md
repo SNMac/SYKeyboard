@@ -2954,7 +2954,7 @@ EOF
 
 사실과 다른 문장을 고치는 것이 목적이다. 설계 배경을 길게 쓰지 않는다. **각 파일을 먼저 전부 읽고** 아래 지점과, 읽으며 발견한 다른 불일치를 고친다. 아래 줄 번호는 기준 커밋 기준이라 어긋날 수 있다.
 
-- [ ] **Step 1: `CLAUDE.md`**
+- [x] **Step 1: `CLAUDE.md`**
 
 아키텍처 절 트리의 `BaseKeyboardViewController          (SYKeyboardCore, ~2700줄, 입력 흐름의 중심)`의 줄 수를 Task 6 Step 3 실측값(백 단위 반올림)으로. 그 아래 "후보 탭 처리·전송 기록·후보 삭제 확인은 `SuggestionSelectionCoordinator`, 클립보드 패널·pasteboard 동기화는 `ClipboardHistoryCoordinator`가 맡는다. 둘은 …" 문단을 다음으로 바꾼다.
 
@@ -2969,7 +2969,7 @@ VC를 `weak` Host 프로토콜(`SuggestionSelectionHost`, `ClipboardHistoryHost`
 
 "텍스트 프록시는 `textDocument`(`CachingTextDocumentProxy`)로만 읽고 쓴다" 문단에 "앞·뒤 문맥 스냅샷은 `textDocument.contextSnapshot`으로 읽는다" 한 문장을 덧붙인다.
 
-- [ ] **Step 2: `docs/architecture/삭제와 실행취소 로직.md`**
+- [x] **Step 2: `docs/architecture/삭제와 실행취소 로직.md`**
 
 - §1 "관련 타입은 모두 … 있고, Base VC가 두 인스턴스를 보유한다" 문단과 다이어그램을 `TextDeletionCoordinator`가 보유하고 VC가 `textDeletionCoordinator`를 소유하는 구조로 바꾼다. 다이어그램:
 
@@ -2988,7 +2988,7 @@ BaseKeyboardViewController
 - §5 다이어그램 `KeyboardUndoRedoSession ← VC가 보유` → `← UndoRedoCoordinator가 보유(VC는 undoRedoCoordinator를 소유하고 UndoRedoHost로 역참조된다)`. §5-1 `updateUndoRedoControls()` → `UndoRedoCoordinator.refreshControls()`. §5-2 "모든 래핑 메서드가 `recordUndoRedoChange`를 호출한다 … 이 함수는 먼저 삭제 확정 파이프라인에 캡처를 시도하고(§2), 삭제 요청 중이 아니면 undo 세션에 기록한다" → "… VC의 `recordUndoRedoChange`는 `TextDeletionCoordinator.captureMutation`이 `false`일 때만 `UndoRedoCoordinator.record`를 부른다". §5-4 `performUndo/performRedo` → `UndoRedoCoordinator.undo/redo`, "6. undoRedoEditDidApply()" 앞에 "host.".
 - §6 테스트 표에 `TextDeletionCoordinatorTests`, `UndoRedoCoordinatorTests`, `BaseKeyboardViewControllerDeleteUndoBehaviorTests` 행과 `-only-testing` 줄을 추가한다.
 
-- [ ] **Step 3: `docs/architecture/전체 아키텍처.md`**
+- [x] **Step 3: `docs/architecture/전체 아키텍처.md`**
 
 - 약 64줄 "**undo/redo**: `KeyboardUndoRedoSession` 보유, …(버튼 탭은 Coordinator가 받아 Host로 전달)" → "**undo/redo**: `UndoRedoCoordinator`(`ViewController/Utils/`)가 `KeyboardUndoRedoSession`을 보유하고 기록·확정·적용·컨트롤 갱신을 맡는다. 버튼 탭은 `SuggestionSelectionCoordinator`가 받아 `host.undoLastEdit` → VC → `UndoRedoCoordinator.undo`로 전달".
 - 약 68줄 "**삭제 파이프라인**: `DeleteMutationLifecycle` + `DeleteInteractionCoordinator`로 …" → "**삭제 파이프라인**: `TextDeletionCoordinator`(`ViewController/Utils/`)가 `DeleteMutationLifecycle` + `DeleteInteractionCoordinator`를 보유하고 touchDown·반복·드래그 삭제를 실제 텍스트 변경 확인 후 확정. 프록시 쓰기는 VC의 `open` 메서드를 거친다".
@@ -2997,16 +2997,16 @@ BaseKeyboardViewController
 - 라이프사이클 표: `textWillChange` 행의 "undo/redo 준비" → "undo/redo 준비(`UndoRedoCoordinator.prepareForTextWillChange`)"; `textDidChange` 행의 "**삭제 확정 파이프라인 완료 처리**" → "**삭제 확정 파이프라인 완료 처리**(`TextDeletionCoordinator.completeAfterTextChange`)", 이어지는 undo 무효화 언급이 있으면 `UndoRedoCoordinator.invalidateHistoryIfNeededAfterTextChange`; `viewWillDisappear` 행 "반복 입력 중단, …, undo 이력 제거" → "반복 입력 중단(`TextDeletionCoordinator.stopRepeatInputTracking`), …, undo 이력 제거(`UndoRedoCoordinator.removeAllHistory`)".
 - 약 209줄 Coordinator 목록 "`SuggestionSelectionCoordinator`/`ClipboardHistoryCoordinator`(ViewController/Utils/, …)"에 `TextDeletionCoordinator`/`UndoRedoCoordinator`를 추가한다.
 
-- [ ] **Step 4: `docs/architecture/성능 고려 사항.md`**
+- [x] **Step 4: `docs/architecture/성능 고려 사항.md`**
 
 §2-4 표에서 "반복 삭제 tick에서 프록시 문맥·선택 텍스트는 한 번만 읽고 …" 행의 위치 열과 "삭제 드래그 가장자리 반복은 50ms 하한 …" 행의 위치 열에 `BaseKeyboardViewController`가 있으면 `TextDeletionCoordinator`로. `handlePeriodShortcutOnDelete()` 행은 VC에 남으므로 그대로. 테스트 표(약 464줄 이후)에 "삭제·undo 접착 코드의 Host 호출 순서 | `TextDeletionCoordinatorTests`, `UndoRedoCoordinatorTests`" 행을 추가한다. 4절 체크리스트(약 444줄)에 "삭제 확정 파이프라인, 반복 타이머, 삭제 드래그 가장자리·경계 대기 | …" 행이 문서 절만 가리키면 그대로 둔다.
 
-- [ ] **Step 5: `docs/architecture/자동완성 로직.md`, `한영 통합 키보드.md`**
+- [x] **Step 5: `docs/architecture/자동완성 로직.md`, `한영 통합 키보드.md`**
 
 - 자동완성 §1 다이어그램 약 26줄 "undo/redo 버튼 ← KeyboardUndoRedoSession 연동 (후보와 별개)" → "undo/redo 버튼 ← UndoRedoCoordinator 연동 (후보와 별개)".
 - 한영 통합 약 103줄 "1. stopInputInteractionsForLanguageChange() ← 반복 입력·눌린 버튼·Shift 상태 종료 (Base)" 뒤에 "(반복 중단은 `TextDeletionCoordinator.stopRepeatInputTracking`)"을 덧붙인다. 약 105줄 `commitDeferredUndoRedoGroupIfNeeded()`는 VC public 래퍼 이름이 그대로라 유지한다.
 
-- [ ] **Step 6: `README.md`**
+- [x] **Step 6: `README.md`**
 
 "전체 구조" flowchart에 노드 2개와 간선을 추가한다. `ClipboardCoord["ClipboardHistoryCoordinator"]` 아래에
 
@@ -3036,11 +3036,11 @@ BaseKeyboardViewController
 
 를 추가한다. 트러블 슈팅 절은 과거 코드라고 명시돼 있으므로 손대지 않는다.
 
-- [ ] **Step 7: `docs/architecture/README.md`, `한글 입력 로직.md` 확인**
+- [x] **Step 7: `docs/architecture/README.md`, `한글 입력 로직.md` 확인**
 
 둘을 읽고 삭제·undo·VC 보유 구조를 서술한 문장이 있으면 고치고, 없으면 "확인함, 변경 없음"으로 Step 8 결과에 적는다. 한글 입력 로직 §6(팬 복구 보정)에서 "Base VC가 …" 주어가 삭제 pan 처리를 가리키면 `TextDeletionCoordinator`로 바꾼다.
 
-- [ ] **Step 8: 물결표 규칙 확인과 커밋**
+- [x] **Step 8: 물결표 규칙 확인과 커밋**
 
 ```sh
 grep -nE '[^\\`]~[^`]' CLAUDE.md README.md docs/architecture/*.md | grep -v "http" || echo "물결표 위반 없음"
@@ -3055,6 +3055,10 @@ EOF
 ```
 
 이미 있던 위반(이번 변경과 무관한 줄)은 고치지 않고 결과에 적는다. 이 Step의 결과를 이 계획 문서에 적고 `docs: #185 - 문서 갱신 결과 기록`으로 커밋한다.
+
+#### Task 7 결과 (2026-10-09)
+
+- 7개 파일 갱신(`CLAUDE.md`, `README.md`, 삭제와 실행취소 로직·전체 아키텍처·성능 고려 사항·자동완성 로직·한영 통합 키보드). `docs/architecture/README.md`와 `한글 입력 로직.md`는 읽은 뒤 변경 없음(한글 입력 로직 §6의 `deleteButtonPanPreviousCharacter`는 여전히 Base의 공개 계산 프로퍼티라 맞음). 물결표 검사에서 걸린 줄은 CLAUDE.md 코드 블록 안의 `~1900줄`과 이번 변경과 무관한 기존 문장(README 개발 기간, 삭제 로직 §4-3의 `10~20ms`, 한글 입력 로직·자동완성 로직의 범위 표기)이라 손대지 않았다.
 
 ---
 
