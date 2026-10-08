@@ -2936,13 +2936,13 @@ EOF
   - [x] 줄 경계 — "ㄱ나⏎다"에서 짧은 드래그는 "다"만 지우고 줄 경계에서 멈춤(`crop-09`→`crop-10`). 빈 둘째 줄에서 더 길게 끌자 줄바꿈을 넘어 첫 줄까지 지워지고(`crop-11`), undo로 줄바꿈과 "ㄱ나"가 복원(`crop-12`).
   - [x] 선택 영역 — JS로 끝 2자 "녕하"를 선택한 뒤 삭제 키 드래그 → 선택이 지워지고 이어진 드래그가 나머지도 지움(`crop-13`→`crop-14`), undo 한 번으로 선택 텍스트까지 전부 복원(`crop-15`). 드래그는 touchDown에서 선택을 먼저 지우므로 "선택만 드래그로 지우는" 단계는 단위 테스트(`testDeletePanDeletesSelectionAndUndoRestoresIt`, `testPanWithSelectionDoesNotTrackStep`)로 본다.
   - [x] 반복 삭제 — 조합 중("…안ㄴ") 삭제 키 0.9초 누름 → 조합부터 이어서 지워짐(`crop-16`→`crop-17`). ㅏ 14개에서 0.8초 누름 → 6개 남음, 손을 떼면 멈춤(`crop-18`).
-  - [ ] 삭제 드래그 오른쪽 복구 — idb `ui swipe`는 직선 한 구간이라 한 제스처 안에서 방향을 바꿀 수 없어 시뮬레이터로 재현하지 못함. `testDeletePanDeleteRestoreStop`(VC)·`testPanDeleteRestoreStop`(Coordinator)이 고정. **실기기 확인 필요**.
-  - [ ] 삭제 드래그 중 다른 입력창 탭 — idb로 제스처를 겹칠 수 없어 재현하지 못함. `testTextInputChangeCancelsPendingPan`(VC)·`testInputChangeCancelsPendingPan`(Coordinator)이 고정. **실기기 확인 필요**.
-  - [ ] 첨부(U+FFFC) 앞 멈춤 — 메시지 앱 첨부를 시도하지 않음(웹 입력창에는 첨부가 없음). `testDeletePanStopsBeforeAttachment`·`testPanStopsBeforeAttachment`가 고정. **실기기 확인 필요**.
-  - 햅틱·삭제 사운드 — 시뮬레이터로 관찰 불가. **실기기 확인 필요**.
+  - [x] 삭제 드래그 오른쪽 복구 — idb `ui swipe`는 직선 한 구간이라 시뮬레이터로 재현하지 못함. `testDeletePanDeleteRestoreStop`(VC)·`testPanDeleteRestoreStop`(Coordinator)이 고정. **실기기에서 사용자 확인(2026-10-09) 통과**.
+  - [x] 삭제 드래그 중 다른 입력창 탭 — idb로 제스처를 겹칠 수 없어 재현하지 못함. `testTextInputChangeCancelsPendingPan`(VC)·`testInputChangeCancelsPendingPan`(Coordinator)이 고정. **실기기에서 사용자 확인(2026-10-09) 통과**(드래그 상태가 정리됨).
+  - [x] 첨부(U+FFFC) 앞 멈춤 — 시뮬레이터에서는 시도하지 않음. `testDeletePanStopsBeforeAttachment`·`testPanStopsBeforeAttachment`가 고정. **실기기에서 사용자 확인(2026-10-09) 통과**.
+  - [x] 햅틱·삭제 사운드 — 시뮬레이터로 관찰 불가. **실기기에서 사용자 확인(2026-10-09) 통과**.
 - Step 5 해제·누수:
   - `xcrun simctl spawn <UDID> log stream --level debug --predicate 'subsystem == "github.com-SNMac.SYKeyboard.HangeulEnglishKeyboard" AND eventMessage CONTAINS "deinit"'`로 받으며 Done → 입력창 탭을 5회 반복: `HangeulEnglishKeyboardViewController` 5, `TextDeletionCoordinator` 5, `UndoRedoCoordinator` 5, `SuggestionSelectionCoordinator` 5, `ClipboardHistoryCoordinator` 5(`TextInteractionGestureController`·`SwitchGestureController`도 5). 로그 `scratchpad/task6-sim.log`. `log show`는 debug 레벨을 저장하지 않아 쓰지 못했고 live stream만 유효했다.
-  - `leaks <pid>`: `Failed to get DYLD info for task … (os/kern) failure (5)`로 실행 불가. `xctrace record --template Leaks --device <UDID> --attach HangeulEnglishKeyboard`: `Failed to generate memory graph … libmalloc hasn't been initialized`로 실패(`task6-xctrace.log`). 시뮬레이터 extension 프로세스에는 두 도구 모두 붙지 않아 **누수 0건 확인은 하지 못했고**, 위 `deinit` 일치(5/5)를 근거로 삼는다.
+  - `leaks <pid>`: `Failed to get DYLD info for task … (os/kern) failure (5)`로 실행 불가. `xctrace record --template Leaks --device <UDID> --attach HangeulEnglishKeyboard`: `Failed to generate memory graph … libmalloc hasn't been initialized`로 실패(`task6-xctrace.log`). 시뮬레이터 extension 프로세스에는 두 도구 모두 붙지 않아 도구로는 확인하지 못했고, 위 `deinit` 일치(5/5)를 근거로 삼는다. 사용자 확인(2026-10-09): 이전에 겪은 누수는 횟수와 무관하게 첫 번째 내림부터 키보드 내부 객체가 남는 형태였으므로 `deinit`이 매번 찍히면 누수가 없다고 본다.
   - 끝난 뒤 `AppleKeyboards` 원래 배열로 복원, App Group `isClipboardHistoryEnabled`는 true로 되돌림(확인 전 원래 값을 읽지 않고 false로 썼으므로 원래 값이 true였다는 가정. 사용자 시뮬레이터 설정과 다르면 메인 앱에서 다시 켜거나 끈다).
 
 ---
