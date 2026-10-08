@@ -19,11 +19,11 @@ struct BaseKeyboardViewControllerProxyReadTests {
     func testViewWillDisappearDoesNotReadDocumentContext() {
         let controller = TestProxyReadViewController()
         controller.loadViewIfNeeded()
-        controller.proxy.readCount = 0
+        controller.proxy.resetReadCounts()
 
         controller.viewWillDisappear(false)
 
-        #expect(controller.proxy.readCount == 0)
+        #expect(controller.proxy.contextReadCount == 0)
     }
 
     @Test("undo 기록이 남은 채 키보드가 사라져도 텍스트 프록시 문맥을 읽지 않음")
@@ -36,18 +36,18 @@ struct BaseKeyboardViewControllerProxyReadTests {
         controller.loadViewIfNeeded()
         // 입력으로 아직 확정되지 않은 undo 기록을 만든다. 실제 크래시는 이 상태에서 키보드가 내려갈 때 났다
         controller.insertText("가")
-        controller.proxy.readCount = 0
+        controller.proxy.resetReadCounts()
 
         controller.viewWillDisappear(false)
 
-        #expect(controller.proxy.readCount == 0)
+        #expect(controller.proxy.contextReadCount == 0)
     }
 
     @Test("수식 모드가 아닌 후보 갱신 알림은 텍스트 프록시를 읽지 않음")
     func testNonMathSuggestionUpdateDoesNotReadProxy() {
         let controller = TestProxyReadViewController()
         controller.loadViewIfNeeded()
-        controller.proxy.readCount = 0
+        controller.proxy.resetReadCounts()
 
         // 넘기는 controller는 표시 분기에만 쓰인다. 하이라이트는 VC 자신의 controller(기본 nGram 모드)를 본다
         controller.suggestionController(
@@ -56,7 +56,62 @@ struct BaseKeyboardViewControllerProxyReadTests {
             suggestions: ["안녕하세요"]
         )
 
-        #expect(controller.proxy.readCount == 0)
+        #expect(controller.proxy.contextReadCount == 0)
+    }
+
+    @Test("textDidChange 한 번에 같은 프록시 값을 두 번 읽지 않음")
+    func testTextDidChangeReadsEachProxyValueAtMostOnce() {
+        let controller = TestProxyReadViewController()
+        controller.loadViewIfNeeded()
+        controller.proxy.resetReadCounts()
+
+        controller.textDidChange(nil)
+
+        let readCounts = controller.proxy.readCounts
+        #expect(readCounts.values.allSatisfy { $0 <= 1 }, "\(readCounts)")
+        #expect(controller.proxy.readCount(of: "documentContextBeforeInput") == 1)
+        #expect(controller.proxy.readCount(of: "keyboardType") == 1)
+        #expect(controller.proxy.readCount(of: "returnKeyType") == 1)
+    }
+
+    @Test("textWillChange 한 번에 같은 프록시 값을 두 번 읽지 않음")
+    func testTextWillChangeReadsEachProxyValueAtMostOnce() {
+        let controller = TestProxyReadViewController()
+        controller.loadViewIfNeeded()
+        controller.proxy.resetReadCounts()
+
+        controller.textWillChange(nil)
+
+        let readCounts = controller.proxy.readCounts
+        #expect(readCounts.values.allSatisfy { $0 <= 1 }, "\(readCounts)")
+        #expect(controller.proxy.readCount(of: "documentContextBeforeInput") == 1)
+        #expect(controller.proxy.readCount(of: "returnKeyType") == 1)
+    }
+
+    @Test("textWillChange에서 읽은 값을 textDidChange가 다시 읽음")
+    func testTextDidChangeRereadsValuesReadInTextWillChange() {
+        let controller = TestProxyReadViewController()
+        controller.loadViewIfNeeded()
+        controller.textWillChange(nil)
+        controller.proxy.resetReadCounts()
+        controller.proxy.beforeInput = "바뀐 문맥"
+
+        controller.textDidChange(nil)
+
+        #expect(controller.proxy.readCount(of: "documentContextBeforeInput") == 1)
+    }
+
+    @Test("keyboardType이 바뀐 textDidChange는 새 값으로 trait 변경 훅을 한 번 부름")
+    func testKeyboardTypeChangeCallsTraitHookOnceWithNewValue() {
+        let controller = TestProxyReadViewController()
+        controller.loadViewIfNeeded()
+        controller.textDidChange(nil)
+        controller.proxy.keyboardType = .emailAddress
+
+        controller.textDidChange(nil)
+
+        #expect(controller.keyboardTypesAtTraitChange == [.emailAddress])
+        #expect(controller.oldKeyboardType == .emailAddress)
     }
 }
 
@@ -65,7 +120,7 @@ struct BaseKeyboardViewControllerProxyReadTests {
 @MainActor
 private final class TestProxyReadViewController: BaseKeyboardViewController {
     let primaryView = TestPrimaryKeyboardView(keyboard: .dubeolsik)
-    let proxy = ReadCountingTextDocumentProxy()
+    let proxy = CountingTextDocumentProxy()
 
     override var primaryKeyboardView: PrimaryKeyboardRepresentable {
         primaryView
@@ -84,34 +139,10 @@ private final class TestProxyReadViewController: BaseKeyboardViewController {
     }
 
     override func updateKeyboardType() {}
-}
 
-/// 문맥·선택 텍스트 읽기 횟수를 세는 프록시
-private final class ReadCountingTextDocumentProxy: NSObject, UITextDocumentProxy {
-    var readCount = 0
+    private(set) var keyboardTypesAtTraitChange: [UIKeyboardType?] = []
 
-    var documentContextBeforeInput: String? {
-        readCount += 1
-        return "안녕"
+    override func inputTraitsDidChange() {
+        keyboardTypesAtTraitChange.append(textDocument.keyboardType)
     }
-
-    var documentContextAfterInput: String? {
-        readCount += 1
-        return nil
-    }
-
-    var selectedText: String? {
-        readCount += 1
-        return nil
-    }
-
-    var documentInputMode: UITextInputMode? { nil }
-    var documentIdentifier: UUID { UUID() }
-    var hasText: Bool { true }
-
-    func adjustTextPosition(byCharacterOffset offset: Int) {}
-    func setMarkedText(_ markedText: String, selectedRange: NSRange) {}
-    func unmarkText() {}
-    func insertText(_ text: String) {}
-    func deleteBackward() {}
 }

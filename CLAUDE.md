@@ -66,6 +66,15 @@ primary/symbol/numeric/tenkey 레이아웃이 들어간다. 레이아웃은 `*Ke
 `SYKeyboardTests/Storage/UserDefaultsContractTests.swift`가 키 계약을 지킨다.
 extension 프로세스 로컬 상태는 `KeyboardExtensionLocalStateStore`에 둔다.
 
+**텍스트 프록시는 `textDocument`(`CachingTextDocumentProxy`)로만 읽고 쓴다.**
+`textWillChange`/`textDidChange`는 `withReadCaching`으로 같은 값을 한 번만 읽고, 쓰기 메서드가 캐시를 비워
+쓰기 뒤에는 새 값을 읽는다. `textDocumentProxy.insertText` 등을 직접 부르면 그 쓰기는 캐시를 비우지 않는다.
+하위 VC가 `textWillChange`/`textDidChange` 오버라이드에서 `super` 호출 뒤에 프록시를 읽으면 오버라이드 본문도
+`withReadCaching`으로 감싼다.
+확인: `grep -rn "textDocumentProxy" Modules Keyboards | grep -v -E ":[0-9]+:[[:space:]]*//"` 결과가
+`BaseKeyboardViewController.swift`에서 `textDocument`를 만드는 한 줄뿐이어야 한다. 점(`.`) 접근만 찾으면
+`(textDocumentProxy as AnyObject)`나 지역 변수에 담아 쓰는 경우를 놓친다.
+
 ## 작업 원칙
 
 - **기존 구조와 네이밍을 먼저 따른다. 불필요한 아키텍처 변경이나 대규모 이동은 하지 않는다.**
@@ -507,3 +516,8 @@ XcodeBuildMCP를 사용하는 경우 첫 build/test 전에 `session_show_default
 - 문서는 한국어를 기본으로 하고, 명령/파일명/API 이름은 원문 그대로 쓴다.
 - 원칙만 쓰지 말고 명령, 체크리스트, 예시 중 하나 이상을 포함한다.
 - README, 한글 입력 로직 정리 문서, 자동완성 로직 정리 문서의 기존 설명과 충돌하지 않게 쓴다.
+- 마크다운으로 쓰는 모든 글(저장소 문서, PR·이슈 본문 등)에서 범위를 물결표로 쓸 때는 `\~`로 이스케이프한다.
+  GitHub 등 여러 마크다운 렌더러가 `~`로 감싼 부분을 취소선으로 바꾸므로, 한 문단에 `~`가 두 번 나오면 그 사이가
+  취소선이 된다. 렌더러마다 다르게 보이지 않도록 GitHub에 올리지 않는 문서도 같은 규칙을 따른다.
+  예: `약 11~13회, 약 25~30회`는 `13회, 약 25`에 취소선이 그어진다. `약 11\~13회`로 쓴다.
+  백틱 코드 표기 안의 `~`는 그대로 둔다.

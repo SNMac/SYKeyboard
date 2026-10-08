@@ -46,9 +46,23 @@ open class BaseKeyboardViewController: UIInputViewController {
     /// 삭제 확인을 기다리는 자동완성 단어
     private var pendingSuggestionRemovalWord: String?
 
-    final public lazy var oldKeyboardType: UIKeyboardType? = textDocumentProxy.keyboardType
+    final public lazy var oldKeyboardType: UIKeyboardType? = textDocument.keyboardType
     /// 마지막으로 확인한 `textContentType`. `inputTraitsDidChange()` 판정에 쓰입니다
-    final public lazy var oldTextContentType: UITextContentType? = textDocumentProxy.textContentType
+    final public lazy var oldTextContentType: UITextContentType? = textDocument.textContentType
+    /// 텍스트 프록시 읽기·쓰기 창구. 프록시는 이것으로만 읽고 쓴다
+    final public private(set) lazy var textDocument = CachingTextDocumentProxy { [weak self] in
+        guard let self else {
+            // 키보드가 이미 사라졌으므로 프록시를 읽거나 쓰지 않는다.
+            // Release는 크래시 대신 기록만 남기고, Debug는 `assertionFailure`로 멈춘다
+            let message = "text document accessed after controller deinit"
+            Logger(subsystem: Bundle.main.bundleIdentifier ?? "Unknown Bundle", category: "BaseKeyboardViewController")
+                .fault("\(message, privacy: .public)")
+            KeyboardDiagnostics.log(message)
+            assertionFailure("BaseKeyboardViewController가 해제된 뒤 textDocument에 접근했습니다")
+            return nil
+        }
+        return self.textDocumentProxy
+    }
 
     /// 현재 표시되는 키보드
     public lazy var currentKeyboard: SYKeyboardType = primaryKeyboardView.keyboard {
@@ -393,67 +407,73 @@ open class BaseKeyboardViewController: UIInputViewController {
     open override func textWillChange(_ textInput: (any UITextInput)?) {
         super.textWillChange(textInput)
         logger.debug("textWillChange")
-        let inputIdentifier = textInputIdentifier(for: textInput)
-        if let inputIdentifier,
-           inputIdentifier != lastNotifiedTextInputIdentifier {
-            lastNotifiedTextInputIdentifier = inputIdentifier
-            textInputDidChange(textInput)
+        // 콜백 한 번에 같은 프록시 값을 다시 읽지 않는다. 문서 상태 교체와 겹친 읽기는 크래시한다
+        textDocument.withReadCaching {
+            let inputIdentifier = textInputIdentifier(for: textInput)
+            if let inputIdentifier,
+               inputIdentifier != lastNotifiedTextInputIdentifier {
+                lastNotifiedTextInputIdentifier = inputIdentifier
+                textInputDidChange(textInput)
+            }
+            synchronizeTextInputTraits()
+            synchronizeDeleteInteractionInputIdentifier(textInput)
+            undoRedoSession.prepareForTextWillChange(
+                inputIdentifier: textInputIdentifier(for: textInput),
+                context: currentTextContextSnapshot()
+            )
+            pendingSentTextSnapshot = makeSentTextSnapshot()
+            resetInputBuffer()
+            updateKeyboardType()
+            updateReturnButtonType()
+            updateReturnButtonEnabled()
+            updateSuggestionBarHidden()
+            closeClipboardPanelIfNeeded()
+            synchronizeClipboardHistoryIfNeeded()
         }
-        synchronizeTextInputTraits()
-        synchronizeDeleteInteractionInputIdentifier(textInput)
-        undoRedoSession.prepareForTextWillChange(
-            inputIdentifier: textInputIdentifier(for: textInput),
-            context: currentTextContextSnapshot()
-        )
-        pendingSentTextSnapshot = makeSentTextSnapshot()
-        resetInputBuffer()
-        updateKeyboardType()
-        updateReturnButtonType()
-        updateReturnButtonEnabled()
-        updateSuggestionBarHidden()
-        closeClipboardPanelIfNeeded()
-        synchronizeClipboardHistoryIfNeeded()
     }
 
     open override func textDidChange(_ textInput: (any UITextInput)?) {
         super.textDidChange(textInput)
         logger.debug("textDidChange")
-        synchronizeTextInputTraits()
-        synchronizeDeleteInteractionInputIdentifier(textInput)
-        // `textWillChange`에서 떠 둔 스냅샷과 지금 문맥을 비교해 전송으로 비워졌으면 기록한다
-        recordSentTextIfNeeded()
-        let currentTextContext = currentTextContextSnapshot()
-        if KeyboardGesturePolicy.shouldPlayCursorDragHapticOnTextDidChange(
-            isPrimaryCursorDragging: isPrimaryCursorDragging,
-            pendingRequestContext: pendingCursorDragHapticContext,
-            currentContext: currentTextContext
-        ) {
-            FeedbackManager.shared.playHaptic(isForcing: true)
-        }
-        pendingCursorDragHapticContext = nil
-        let deleteMutationOutcome = deleteMutationLifecycle.completeAfterTextChange(
-            currentContext: currentTextContext,
-            currentSelectedText: textDocumentProxy.selectedText
-        )
-        processDeleteMutationCallbackOutcome(deleteMutationOutcome)
-        resumePendingDeletePanBoundaryIfNeeded()
-        invalidateUndoRedoHistoryIfNeededAfterTextChange(textInput)
-        updateKeyboardType()
-        // iOS는 키보드 확장에 textWillChange/textDidChange의 textInput을 항상 nil로 준다.
-        // 그래서 필드 객체 동일성으로는 포커스가 다른 필드로 옮겨졌는지 알 수 없다.
-        // keyboardType/textContentType 변화를 대신 신호로 써서 언어 재판정 같은 훅을 부른다
-        let inputTraitsDidChange = textDocumentProxy.keyboardType != oldKeyboardType
-            || textDocumentProxy.textContentType != oldTextContentType
-        oldKeyboardType = textDocumentProxy.keyboardType
-        oldTextContentType = textDocumentProxy.textContentType
-        if inputTraitsDidChange { self.inputTraitsDidChange() }
-        updateReturnButtonType()
-        updateReturnButtonEnabled()
-        updateSuggestionBarHidden()
-        if KeyboardSuggestionSelectionPolicy.shouldUpdateSuggestionsOnTextDidChange(
-            isPrimaryCursorDragging: isPrimaryCursorDragging
-        ) {
-            updateSuggestions()
+        // 보류된 삭제를 이어 가며 프록시에 쓰면 캐시가 비워져 그 뒤 읽기는 삭제가 반영된 값을 본다
+        textDocument.withReadCaching {
+            synchronizeTextInputTraits()
+            synchronizeDeleteInteractionInputIdentifier(textInput)
+            // `textWillChange`에서 떠 둔 스냅샷과 지금 문맥을 비교해 전송으로 비워졌으면 기록한다
+            recordSentTextIfNeeded()
+            let currentTextContext = currentTextContextSnapshot()
+            if KeyboardGesturePolicy.shouldPlayCursorDragHapticOnTextDidChange(
+                isPrimaryCursorDragging: isPrimaryCursorDragging,
+                pendingRequestContext: pendingCursorDragHapticContext,
+                currentContext: currentTextContext
+            ) {
+                FeedbackManager.shared.playHaptic(isForcing: true)
+            }
+            pendingCursorDragHapticContext = nil
+            let deleteMutationOutcome = deleteMutationLifecycle.completeAfterTextChange(
+                currentContext: currentTextContext,
+                currentSelectedText: textDocument.selectedText
+            )
+            processDeleteMutationCallbackOutcome(deleteMutationOutcome)
+            resumePendingDeletePanBoundaryIfNeeded()
+            invalidateUndoRedoHistoryIfNeededAfterTextChange(textInput)
+            updateKeyboardType()
+            // iOS는 키보드 확장에 textWillChange/textDidChange의 textInput을 항상 nil로 준다.
+            // 그래서 필드 객체 동일성으로는 포커스가 다른 필드로 옮겨졌는지 알 수 없다.
+            // keyboardType/textContentType 변화를 대신 신호로 써서 언어 재판정 같은 훅을 부른다
+            let inputTraitsDidChange = textDocument.keyboardType != oldKeyboardType
+                || textDocument.textContentType != oldTextContentType
+            oldKeyboardType = textDocument.keyboardType
+            oldTextContentType = textDocument.textContentType
+            if inputTraitsDidChange { self.inputTraitsDidChange() }
+            updateReturnButtonType()
+            updateReturnButtonEnabled()
+            updateSuggestionBarHidden()
+            if KeyboardSuggestionSelectionPolicy.shouldUpdateSuggestionsOnTextDidChange(
+                isPrimaryCursorDragging: isPrimaryCursorDragging
+            ) {
+                updateSuggestions()
+            }
         }
     }
     
@@ -658,7 +678,7 @@ open class BaseKeyboardViewController: UIInputViewController {
 
         suggestionController.endSentence(inputBuffer: learnableInputBuffer)
 
-        textDocumentProxy.insertText("\n")
+        textDocument.insertText("\n")
         recordUndoRedoChange(deletedText: "", insertedText: "\n")
         commitUndoRedoGroupIfPossible()
         resetInputBuffer()
@@ -785,7 +805,7 @@ extension BaseKeyboardViewController {
     /// - Parameter text: 삽입할 텍스트
     public func insertText(_ text: String) {
         captureInputBufferLeadingContextIfNeeded()
-        textDocumentProxy.insertText(text)
+        textDocument.insertText(text)
         inputBuffer.append(text)
         recordUndoRedoChange(deletedText: "", insertedText: text)
     }
@@ -796,8 +816,8 @@ extension BaseKeyboardViewController {
             text,
             documentContextBeforeInput: typedTextContextBeforeInput(),
             isSmartPunctuationEnabled: keyboardSettingsManager.isSmartPunctuationEnabled,
-            smartQuotesType: textDocumentProxy.smartQuotesType ?? .default,
-            smartDashesType: textDocumentProxy.smartDashesType ?? .default,
+            smartQuotesType: textDocument.smartQuotesType ?? .default,
+            smartDashesType: textDocument.smartDashesType ?? .default,
             isDefaultSmartQuotesEnabled: treatsDefaultSmartQuotesAsEnabled,
             quoteRule: smartQuoteRule,
             nextDoubleQuoteIsOpening: smartQuoteState.nextDoubleQuoteIsOpening
@@ -817,17 +837,17 @@ extension BaseKeyboardViewController {
     /// 입력 버퍼가 항상 실제 입력과 일치하도록 보장합니다.
     public func deleteText() {
         let wasSpaceAtEnd = inputBuffer.last?.isWhitespace == true
-        let selectedText = textDocumentProxy.selectedText
+        let selectedText = textDocument.selectedText
         // 선택 영역을 지우는 경우에는 모델 글자 대신 선택 영역을 기록한다
         let panDeletedText = (selectedText ?? "").isEmpty ? deletePanDeletedTextOverride : nil
         let deletedText = panDeletedText
             ?? KeyboardTextInteractionPolicy.deletedTextForSingleBackward(
                 selectedText: selectedText,
-                documentContextBeforeInput: textDocumentProxy.documentContextBeforeInput
+                documentContextBeforeInput: textDocument.documentContextBeforeInput
             )
         deletePanDeletedTextOverride = nil
 
-        textDocumentProxy.deleteBackward()
+        textDocument.deleteBackward()
         if !inputBuffer.isEmpty {
             inputBuffer.removeLast()
         }
@@ -934,14 +954,14 @@ private extension BaseKeyboardViewController {
         return KeyboardSmartInputPolicy.smartInsertDeleteLeadingSpacePrefix(
             textBeforeInsertion: textBeforeInsertionAfterDeletingSuffix(deleteCount: deleteCount),
             isSmartPunctuationEnabled: keyboardSettingsManager.isSmartPunctuationEnabled,
-            smartInsertDeleteType: textDocumentProxy.smartInsertDeleteType ?? .default
+            smartInsertDeleteType: textDocument.smartInsertDeleteType ?? .default
         ) + text
     }
 
     func textBeforeInsertionAfterDeletingSuffix(deleteCount: Int) -> String {
         let textBeforeCursor = inputBuffer.isEmpty
             ? KeyboardSuggestionSelectionPolicy.limitedDocumentContextBeforeInput(
-                textDocumentProxy.documentContextBeforeInput
+                textDocument.documentContextBeforeInput
             )
             : inputBuffer
 
@@ -952,10 +972,10 @@ private extension BaseKeyboardViewController {
 
     func replaceTextInDocument(deleteCount: Int, insert text: String) {
         for _ in 0..<deleteCount {
-            textDocumentProxy.deleteBackward()
+            textDocument.deleteBackward()
         }
         if !text.isEmpty {
-            textDocumentProxy.insertText(text)
+            textDocument.insertText(text)
         }
     }
 
@@ -971,7 +991,7 @@ private extension BaseKeyboardViewController {
     func typedTextContextBeforeInput() -> String {
         if !inputBuffer.isEmpty { return inputBuffer }
         return KeyboardSuggestionSelectionPolicy.limitedDocumentContextBeforeInput(
-            textDocumentProxy.documentContextBeforeInput
+            textDocument.documentContextBeforeInput
         )
     }
 
@@ -1178,7 +1198,7 @@ private extension BaseKeyboardViewController {
 
             let resolution = deleteMutationLifecycle.finishTouchDown(
                 currentContext: currentTextContextSnapshot(),
-                currentSelectedText: textDocumentProxy.selectedText
+                currentSelectedText: textDocument.selectedText
             )
             processDeleteMutationResolution(resolution)
         }
@@ -1208,7 +1228,7 @@ private extension BaseKeyboardViewController {
                 guard let self else { return }
                 if KeyboardSymbolInputPolicy.shouldSwitchToPrimaryAfterApostropheInput(
                     buttonType: button.type,
-                    keyboardType: textDocumentProxy.keyboardType ?? .default,
+                    keyboardType: textDocument.keyboardType ?? .default,
                     isAutoChangeToPrimaryEnabled: keyboardSettingsManager.isAutoChangeToPrimaryEnabled
                 ) {
                     currentKeyboard = primaryKeyboardView.keyboard
@@ -1221,7 +1241,7 @@ private extension BaseKeyboardViewController {
                 guard let self else { return }
                 if KeyboardSymbolInputPolicy.shouldSwitchToPrimaryAfterSpaceOrReturn(
                     buttonType: button.type,
-                    keyboardType: textDocumentProxy.keyboardType ?? .default,
+                    keyboardType: textDocument.keyboardType ?? .default,
                     isAutoChangeToPrimaryEnabled: keyboardSettingsManager.isAutoChangeToPrimaryEnabled,
                     isSymbolInput: isSymbolInput
                 ) {
@@ -1248,7 +1268,7 @@ private extension BaseKeyboardViewController {
                 guard KeyboardPeriodShortcutPolicy.shouldReplaceTrailingSpaceWithPeriod(
                     isPreview: BaseKeyboardViewController.isPreview,
                     preventsNextPeriodShortcut: preventNextPeriodShortcut,
-                    documentContextBeforeInput: textDocumentProxy.documentContextBeforeInput
+                    documentContextBeforeInput: textDocument.documentContextBeforeInput
                 ) else { return }
 
                 // " " -> "." 교체: 래핑 메서드 사용
@@ -1432,16 +1452,16 @@ private extension BaseKeyboardViewController {
     }
 
     func updateReturnButtonType() {
-        let type = ReturnButton.ReturnKeyType(type: textDocumentProxy.returnKeyType)
+        let type = ReturnButton.ReturnKeyType(type: textDocument.returnKeyType)
         returnButtonList.forEach { $0.update(for: type) }
     }
 
     func updateReturnButtonEnabled() {
         let isEnabled = KeyboardPresentationStatePolicy.isReturnButtonEnabled(
-            enablesReturnKeyAutomatically: textDocumentProxy.enablesReturnKeyAutomatically == true,
-            documentContextBeforeInput: textDocumentProxy.documentContextBeforeInput,
-            selectedText: textDocumentProxy.selectedText,
-            documentContextAfterInput: textDocumentProxy.documentContextAfterInput
+            enablesReturnKeyAutomatically: textDocument.enablesReturnKeyAutomatically == true,
+            documentContextBeforeInput: textDocument.documentContextBeforeInput,
+            selectedText: textDocument.selectedText,
+            documentContextAfterInput: textDocument.documentContextAfterInput
         )
         returnButtonList.forEach { $0.updateEnabled(isEnabled) }
     }
@@ -1482,7 +1502,7 @@ private extension BaseKeyboardViewController {
         if suggestionController.currentMode == .mathExpression,
            suggestionController.mathResultAction(
                at: 1,
-               selectedText: textDocumentProxy.selectedText
+               selectedText: textDocument.selectedText
            ) != nil {
             suggestionBarView.updatePreviewHighlight(index: 1)
             return
@@ -1539,7 +1559,7 @@ extension BaseKeyboardViewController {
                 let previousResolution = deleteMutationLifecycle
                     .completeReleasedTouchDownAtCheckpoint(
                         currentContext: currentTextContextSnapshot(),
-                        currentSelectedText: textDocumentProxy.selectedText
+                        currentSelectedText: textDocument.selectedText
                     )
                 processDeleteMutationResolution(previousResolution)
 
@@ -1584,13 +1604,13 @@ extension BaseKeyboardViewController {
         case .spaceButton:
             if let action = suggestionController.mathResultAction(
                 at: 1,
-                selectedText: textDocumentProxy.selectedText
+                selectedText: textDocument.selectedText
             ), applyMathResultSuggestionAction(action) {
                 // 수식 action을 적용한 경우 일반 텍스트 대치를 건너뜁니다.
             } else {
                 if let replacement = suggestionController.attemptTextReplacement(
                     baseText: inputBuffer,
-                    documentContextBeforeInput: textDocumentProxy.documentContextBeforeInput
+                    documentContextBeforeInput: textDocument.documentContextBeforeInput
                 ) {
                     // 텍스트 대치: 래핑 메서드 사용
                     replaceTextWithSmartInsertDeleteSpacing(
@@ -1640,7 +1660,7 @@ extension BaseKeyboardViewController {
 
         let action = deleteMutationLifecycle.actionForNextRepeat(
             currentContext: currentTextContextSnapshot(),
-            currentSelectedText: textDocumentProxy.selectedText
+            currentSelectedText: textDocument.selectedText
         )
         switch action {
         case .deleteAwaitingTextChange(let previousResolution):
@@ -1678,7 +1698,7 @@ private extension BaseKeyboardViewController {
     func performRepeatDeleteTextInteraction(for button: TextInteractable) {
         repeatInputTickCount += 1
         let context = currentTextContextSnapshot()
-        let selectedText = textDocumentProxy.selectedText
+        let selectedText = textDocument.selectedText
         let action = deleteMutationLifecycle.actionForNextRepeat(
             currentContext: context,
             currentSelectedText: selectedText
@@ -1701,7 +1721,7 @@ private extension BaseKeyboardViewController {
     func beginDeleteTouchDownRequest() -> DeleteMutationStartResult {
         return deleteMutationLifecycle.beginTouchDown(
             context: currentTextContextSnapshot(),
-            selectedText: textDocumentProxy.selectedText
+            selectedText: textDocument.selectedText
         )
     }
 
@@ -1716,7 +1736,7 @@ private extension BaseKeyboardViewController {
         }
 
         let (context, selectedText) = startState
-            ?? (currentTextContextSnapshot(), textDocumentProxy.selectedText)
+            ?? (currentTextContextSnapshot(), textDocument.selectedText)
         let result = deleteMutationLifecycle.beginRepeat(
             context: context,
             selectedText: selectedText
@@ -1731,16 +1751,16 @@ private extension BaseKeyboardViewController {
     func performDeleteButtonTextInteraction() {
         if let restore = suggestionController.attemptRestoreReplacement(
             inputBuffer: inputBuffer,
-            documentContextBeforeInput: textDocumentProxy.documentContextBeforeInput,
-            selectedText: textDocumentProxy.selectedText
+            documentContextBeforeInput: textDocument.documentContextBeforeInput,
+            selectedText: textDocument.selectedText
         ) {
             replaceText(deleteCount: restore.deleteCount, insert: restore.insertText)
             return
         }
 
         let deletedCharacters = KeyboardTextInteractionPolicy.temporaryDeletedCharactersForSingleDelete(
-            selectedText: textDocumentProxy.selectedText,
-            documentContextBeforeInput: textDocumentProxy.documentContextBeforeInput
+            selectedText: textDocument.selectedText,
+            documentContextBeforeInput: textDocument.documentContextBeforeInput
         )
         tempDeletedCharacters.append(contentsOf: deletedCharacters)
         deleteBackward()
@@ -1797,10 +1817,10 @@ private extension BaseKeyboardViewController {
             guard restoreTextPositionIfPossible(to: edit.targetContext) else { return false }
 
             for _ in 0..<edit.deleteCount {
-                textDocumentProxy.deleteBackward()
+                textDocument.deleteBackward()
             }
             if !edit.insertText.isEmpty {
-                textDocumentProxy.insertText(edit.insertText)
+                textDocument.insertText(edit.insertText)
             }
 
             undoRedoEditDidApply()
@@ -1854,7 +1874,7 @@ private extension BaseKeyboardViewController {
         deletePanBoundaryState.didResolve(resolution)
         if resolution.origin == .panBoundary, !effects.restorableCharacters.isEmpty {
             // 줄바꿈을 지워 새로 보이는 이전 줄로 모델을 다시 채운다
-            deletePanTextModel = DeletePanTextModel(beforeInput: textDocumentProxy.documentContextBeforeInput)
+            deletePanTextModel = DeletePanTextModel(beforeInput: textDocument.documentContextBeforeInput)
         }
 
         if effects.appliesMutationEffects,
@@ -1922,7 +1942,7 @@ private extension BaseKeyboardViewController {
     func completeRepeatDeleteAtCurrentContext() -> Bool {
         let resolution = deleteMutationLifecycle.completeAtCheckpoint(
             currentContext: currentTextContextSnapshot(),
-            currentSelectedText: textDocumentProxy.selectedText
+            currentSelectedText: textDocument.selectedText
         )
         guard resolution != nil else { return false }
 
@@ -1973,14 +1993,14 @@ private extension BaseKeyboardViewController {
 
     func textBeforeCursorSuffix(count: Int) -> String {
         guard count > 0,
-              let beforeInput = textDocumentProxy.documentContextBeforeInput else { return "" }
+              let beforeInput = textDocument.documentContextBeforeInput else { return "" }
         return String(beforeInput.suffix(count))
     }
 
     func currentTextContextSnapshot() -> KeyboardTextContextSnapshot {
         return KeyboardTextContextSnapshot(
-            beforeInput: textDocumentProxy.documentContextBeforeInput,
-            afterInput: textDocumentProxy.documentContextAfterInput
+            beforeInput: textDocument.documentContextBeforeInput,
+            afterInput: textDocument.documentContextAfterInput
         )
     }
 
@@ -2010,7 +2030,7 @@ private extension BaseKeyboardViewController {
         }
 
         if offset != 0 {
-            textDocumentProxy.adjustTextPosition(byCharacterOffset: offset)
+            textDocument.adjustTextPosition(byCharacterOffset: offset)
         }
         return true
     }
@@ -2031,7 +2051,7 @@ private extension BaseKeyboardViewController {
     func updateSuggestionsForCurrentContext() {
         suggestionController.isShowMathResultsEnabled = shouldShowMathResults()
 
-        let selectedText = textDocumentProxy.selectedText
+        let selectedText = textDocument.selectedText
         let action = KeyboardSuggestionSelectionPolicy.suggestionUpdateAction(
             isPredictiveTextEnabled: suggestionController.isPredictiveTextEnabled,
             selectedText: selectedText,
@@ -2041,7 +2061,7 @@ private extension BaseKeyboardViewController {
             .mathExpressionDetectionText(
                 selectedText: selectedText,
                 inputBuffer: inputBuffer,
-                documentContextBeforeInput: textDocumentProxy.documentContextBeforeInput
+                documentContextBeforeInput: textDocument.documentContextBeforeInput
             )
 
         switch action {
@@ -2073,7 +2093,7 @@ private extension BaseKeyboardViewController {
             performedPeriodShortcut: performedPeriodShortcut,
             preventsNextPeriodShortcut: preventNextPeriodShortcut,
             documentContextBeforeInput: requiresDocumentContext
-            ? textDocumentProxy.documentContextBeforeInput
+            ? textDocument.documentContextBeforeInput
             : nil
         )
 
@@ -2128,7 +2148,7 @@ private extension BaseKeyboardViewController {
     func captureInputBufferLeadingContextIfNeeded() {
         guard inputBuffer.isEmpty else { return }
         inputBufferLeadingContext = KeyboardSuggestionSelectionPolicy.limitedDocumentContextBeforeInput(
-            textDocumentProxy.documentContextBeforeInput
+            textDocument.documentContextBeforeInput
         )
     }
 
@@ -2139,7 +2159,7 @@ private extension BaseKeyboardViewController {
         KeyboardSuggestionSelectionPolicy.generalSuggestionBaseText(
             leadingContext: inputBufferLeadingContext,
             inputBuffer: inputBuffer,
-            documentContextBeforeInput: inputBuffer.isEmpty ? textDocumentProxy.documentContextBeforeInput : nil
+            documentContextBeforeInput: inputBuffer.isEmpty ? textDocument.documentContextBeforeInput : nil
         )
     }
 
@@ -2182,10 +2202,10 @@ private extension BaseKeyboardViewController {
         guard KeyboardSentTextDetectionPolicy.isSentAfterTextChange(
             documentIdentifierBeforeChange: snapshot.documentIdentifier,
             documentIdentifierAfterChange: currentDocumentIdentifier(),
-            beforeInput: textDocumentProxy.documentContextBeforeInput,
-            afterInput: textDocumentProxy.documentContextAfterInput,
-            selectedText: textDocumentProxy.selectedText,
-            returnKeyType: textDocumentProxy.returnKeyType
+            beforeInput: textDocument.documentContextBeforeInput,
+            afterInput: textDocument.documentContextAfterInput,
+            selectedText: textDocument.selectedText,
+            returnKeyType: textDocument.returnKeyType
         ) else { return }
 
         suggestionController.endSentence(
@@ -2194,10 +2214,9 @@ private extension BaseKeyboardViewController {
         )
     }
 
-    /// 헤더는 nonnull이지만 키보드가 처음 뜰 때나 입력창이 바뀌는 순간 nil이 온다.
-    /// Swift 프로퍼티로 읽으면 `UUID` 브리징에서 크래시하므로 KVC로 읽는다
+    /// 지금 입력창의 문서 식별자. 키보드가 처음 뜰 때나 입력창이 바뀌는 순간 nil일 수 있다
     func currentDocumentIdentifier() -> UUID? {
-        return (textDocumentProxy as AnyObject).value(forKey: "documentIdentifier") as? UUID
+        return textDocument.documentIdentifier
     }
 }
 
@@ -2239,7 +2258,7 @@ extension BaseKeyboardViewController: TextInteractionGestureControllerDelegate {
             let generation = deleteInteractionCoordinator.currentGeneration
             let resolution = deleteMutationLifecycle.finishPanBoundary(
                 currentContext: currentTextContextSnapshot(),
-                currentSelectedText: textDocumentProxy.selectedText
+                currentSelectedText: textDocument.selectedText
             )
             processDeleteMutationResolution(resolution)
             if let generation,
@@ -2333,7 +2352,7 @@ private extension BaseKeyboardViewController {
                 }
                 let resolution = deleteMutationLifecycle.finishTouchDown(
                     currentContext: currentTextContextSnapshot(),
-                    currentSelectedText: textDocumentProxy.selectedText
+                    currentSelectedText: textDocument.selectedText
                 )
                 processDeleteMutationResolution(resolution)
                 if deleteMutationLifecycle.isPending {
@@ -2388,7 +2407,7 @@ private extension BaseKeyboardViewController {
     func performDeleteButtonPanIfLifecycleReady(to direction: PanDirection) {
         let action = deleteMutationLifecycle.actionForDeletePan(
             currentContext: currentTextContextSnapshot(),
-            currentSelectedText: textDocumentProxy.selectedText
+            currentSelectedText: textDocument.selectedText
         )
         switch action {
         case .perform(let previousResolution):
@@ -2402,7 +2421,7 @@ private extension BaseKeyboardViewController {
     /// 드래그의 첫 삭제·복구 전에 커서 앞 문맥을 한 번 읽어 모델을 만듭니다.
     func prepareDeletePanTextModelIfNeeded() {
         guard deletePanTextModel == nil else { return }
-        deletePanTextModel = DeletePanTextModel(beforeInput: textDocumentProxy.documentContextBeforeInput)
+        deletePanTextModel = DeletePanTextModel(beforeInput: textDocument.documentContextBeforeInput)
     }
 
     func resetDeletePanTextModel() {
@@ -2422,7 +2441,7 @@ private extension BaseKeyboardViewController {
 
             let resolution = self.deleteMutationLifecycle.completeAtCheckpoint(
                 currentContext: self.currentTextContextSnapshot(),
-                currentSelectedText: self.textDocumentProxy.selectedText
+                currentSelectedText: self.textDocument.selectedText
             )
             guard let resolution else {
                 self.cancelPendingDeleteInteractions()
@@ -2443,17 +2462,17 @@ private extension BaseKeyboardViewController {
         let actualSteps = CursorDragAccelerationPolicy.applicableSteps(
             to: direction,
             requestedSteps: steps,
-            documentContextBeforeInput: textDocumentProxy.documentContextBeforeInput,
-            documentContextAfterInput: textDocumentProxy.documentContextAfterInput
+            documentContextBeforeInput: textDocument.documentContextBeforeInput,
+            documentContextAfterInput: textDocument.documentContextAfterInput
         )
         guard actualSteps > 0 else { return 0 }
 
         pendingCursorDragHapticContext = currentTextContextSnapshot()
         switch direction {
         case .left:
-            textDocumentProxy.adjustTextPosition(byCharacterOffset: -actualSteps)
+            textDocument.adjustTextPosition(byCharacterOffset: -actualSteps)
         case .right:
-            textDocumentProxy.adjustTextPosition(byCharacterOffset: actualSteps)
+            textDocument.adjustTextPosition(byCharacterOffset: actualSteps)
         default:
             pendingCursorDragHapticContext = nil
             assertionFailure("도달할 수 없는 case 입니다.")
@@ -2466,7 +2485,7 @@ private extension BaseKeyboardViewController {
 
     func performDeleteButtonPanDeleteIfPossible() {
         prepareDeletePanTextModelIfNeeded()
-        let selectedText = textDocumentProxy.selectedText
+        let selectedText = textDocument.selectedText
         // 되살릴 수 없는 첨부·토큰 앞에서는 지우지 않고 멈춘다
         guard !KeyboardTextInteractionPolicy.shouldStopDeletePan(
             previousCharacter: deleteButtonPanPreviousCharacter,
@@ -2493,10 +2512,10 @@ private extension BaseKeyboardViewController {
 
         guard !deletePanBoundaryState.isBlocked,
               KeyboardTextInteractionPolicy.shouldRequestDeletePanBoundary(
-                hasText: textDocumentProxy.hasText,
+                hasText: textDocument.hasText,
                 hasDeletedInCurrentPan: !tempDeletedCharacters.isEmpty,
                 documentContextBeforeInput: deletePanTextModel?.remainingText,
-                selectedText: textDocumentProxy.selectedText
+                selectedText: textDocument.selectedText
               ) else { return }
         guard let generation = deleteInteractionCoordinator.beginPanBoundaryMutation(
             inputIdentifier: currentTextInputIdentifier
@@ -2528,7 +2547,7 @@ private extension BaseKeyboardViewController {
 
         switch KeyboardTextInteractionPolicy.deletePanExhaustedContextAction(
             sourceText: deletePanTextModel?.sourceText ?? "",
-            documentContextBeforeInput: textDocumentProxy.documentContextBeforeInput
+            documentContextBeforeInput: textDocument.documentContextBeforeInput
         ) {
         case .requestBoundary:
             sendDeletePanBoundaryRequest(for: generation)
@@ -2536,7 +2555,7 @@ private extension BaseKeyboardViewController {
             waitForDeletePanBoundaryContextSync(for: generation)
         case .refill:
             // 모델이 잘려 있었으므로 보이는 앞 문맥으로 다시 채우고, 경계를 묻지 않은 채 이어서 지운다
-            deletePanTextModel = DeletePanTextModel(beforeInput: textDocumentProxy.documentContextBeforeInput)
+            deletePanTextModel = DeletePanTextModel(beforeInput: textDocument.documentContextBeforeInput)
             finishPendingDeletePanBoundaryWithoutRequest(discardingLeadingNoOpPanLeft: false)
             performDeleteButtonPanDeleteIfPossible()
             drainPendingDeleteInteractionsIfPossible()
@@ -2547,7 +2566,7 @@ private extension BaseKeyboardViewController {
         let timeoutID = deletePanBoundaryState.didSendRequest()
         guard deleteMutationLifecycle.beginPanBoundary(
             context: currentTextContextSnapshot(),
-            selectedText: textDocumentProxy.selectedText
+            selectedText: textDocument.selectedText
         ) == .started else {
             deleteMutationLifecycle.cancel()
             finishCancelledDeletePanIfNeeded(deleteInteractionCoordinator.cancel())
@@ -2621,7 +2640,7 @@ private extension BaseKeyboardViewController {
             self.processDeleteMutationResolution(
                 self.deleteMutationLifecycle.completePanBoundaryAfterTimeout(
                     currentContext: self.currentTextContextSnapshot(),
-                    currentSelectedText: self.textDocumentProxy.selectedText
+                    currentSelectedText: self.textDocument.selectedText
                 )
             )
         }
@@ -2700,7 +2719,7 @@ private extension BaseKeyboardViewController {
 
         if KeyboardSymbolInputPolicy.shouldSwitchToPrimaryAfterApostropheInput(
             buttonType: button.type,
-            keyboardType: textDocumentProxy.keyboardType ?? .default,
+            keyboardType: textDocument.keyboardType ?? .default,
             isAutoChangeToPrimaryEnabled: keyboardSettingsManager.isAutoChangeToPrimaryEnabled
         ) {
             currentKeyboard = primaryKeyboardView.keyboard
@@ -2954,11 +2973,11 @@ extension BaseKeyboardViewController: ClipboardHistoryPanelDelegate {
 
 private extension BaseKeyboardViewController {
     func synchronizeTextInputTraits() {
-        currentAutocorrectionType = textDocumentProxy.autocorrectionType
+        currentAutocorrectionType = textDocument.autocorrectionType
 
         if #available(iOS 18.0, *) {
             isMathExpressionCompletionAllowed =
-                textDocumentProxy.mathExpressionCompletionType != .no
+                textDocument.mathExpressionCompletionType != .no
         } else {
             isMathExpressionCompletionAllowed = true
         }
@@ -2972,7 +2991,7 @@ private extension BaseKeyboardViewController {
     }
 
     func handleSelectedTextSuggestion(at index: Int) -> Bool {
-        guard let selectedText = textDocumentProxy.selectedText,
+        guard let selectedText = textDocument.selectedText,
               !selectedText.isEmpty else { return false }
 
         if index == 0 {
@@ -3005,7 +3024,7 @@ private extension BaseKeyboardViewController {
 
         guard let action = suggestionController.mathResultAction(
             at: index,
-            selectedText: textDocumentProxy.selectedText
+            selectedText: textDocument.selectedText
         ) else { return true }
         guard applyMathResultSuggestionAction(action) else { return true }
 
@@ -3030,7 +3049,7 @@ private extension BaseKeyboardViewController {
         case .replaceExpression(let deleteCount, let insertText):
             replaceText(deleteCount: deleteCount, insert: insertText)
         case .replaceSelection(let text):
-            guard let selectedText = textDocumentProxy.selectedText,
+            guard let selectedText = textDocument.selectedText,
                   !selectedText.isEmpty else { return false }
             replaceSelectedText(selectedText, with: text)
         }
@@ -3039,7 +3058,7 @@ private extension BaseKeyboardViewController {
 
     func replaceSelectedText(_ selectedText: String, with insertText: String) {
         captureInputBufferLeadingContextIfNeeded()
-        textDocumentProxy.insertText(insertText)
+        textDocument.insertText(insertText)
         inputBuffer.append(insertText)
         recordUndoRedoChange(
             deletedText: selectedText,

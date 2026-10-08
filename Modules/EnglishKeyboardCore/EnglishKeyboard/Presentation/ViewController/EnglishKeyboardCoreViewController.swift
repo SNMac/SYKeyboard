@@ -49,8 +49,11 @@ open class EnglishKeyboardCoreViewController: BaseKeyboardViewController {
     // MARK: - Override Methods
     
     open override func textWillChange(_ textInput: (any UITextInput)?) {
-        super.textWillChange(textInput)
-        updateShiftButton()
+        // shift 자동 대문자 판정도 Base 콜백과 같은 범위에서 읽어 같은 값을 다시 읽지 않는다
+        textDocument.withReadCaching {
+            super.textWillChange(textInput)
+            updateShiftButton()
+        }
     }
     
     open override func didSetCurrentKeyboard() {
@@ -65,12 +68,12 @@ open class EnglishKeyboardCoreViewController: BaseKeyboardViewController {
     }
     
     open override func updateKeyboardType() {
-        guard textDocumentProxy.keyboardType != oldKeyboardType else { return }
-        let symbolKeyboardMode = SymbolKeyboardMode(keyboardType: textDocumentProxy.keyboardType)
+        guard textDocument.keyboardType != oldKeyboardType else { return }
+        let symbolKeyboardMode = SymbolKeyboardMode(keyboardType: textDocument.keyboardType)
         symbolKeyboardView.currentSymbolKeyboardMode = symbolKeyboardMode
-        inputAdapter.updateLayout(for: textDocumentProxy.keyboardType)
+        inputAdapter.updateLayout(for: textDocument.keyboardType)
         
-        switch textDocumentProxy.keyboardType {
+        switch textDocument.keyboardType {
         case .default, nil:
             currentKeyboard = .qwerty
         case .asciiCapable:
@@ -150,8 +153,8 @@ private extension EnglishKeyboardCoreViewController {
     func updateShiftButton() {
         let isShiftButtonPressed = buttonStateController.isShiftButtonPressed
         inputAdapter.updateAutocapitalization(
-            type: textDocumentProxy.autocapitalizationType ?? .none,
-            documentContextBeforeInput: textDocumentProxy.documentContextBeforeInput,
+            type: textDocument.autocapitalizationType ?? .none,
+            documentContextBeforeInput: textDocument.documentContextBeforeInput,
             isEnabled: UserDefaultsManager.shared.isAutoCapitalizationEnabled,
             isShiftButtonPressed: isShiftButtonPressed
         )
