@@ -126,8 +126,8 @@ final class HangeulEnglishKeyboardViewController: BaseKeyboardViewController {
     override func inputTraitsDidChange() {
         let previousMode = modeCoordinator.currentMode
         let requiresLatinInput = KeyboardLanguageModePolicy.requiresLatinInput(
-            keyboardType: textDocumentProxy.keyboardType,
-            textContentType: textDocumentProxy.textContentType
+            keyboardType: textDocument.keyboardType,
+            textContentType: textDocument.textContentType
         )
         let mode = modeCoordinator.modeForInputTraitsChange(
             requiresLatinInput: requiresLatinInput,
@@ -145,15 +145,18 @@ final class HangeulEnglishKeyboardViewController: BaseKeyboardViewController {
     }
 
     override func textWillChange(_ textInput: (any UITextInput)?) {
-        super.textWillChange(textInput)
+        // 영어 모드의 shift 자동 대문자 판정도 Base 콜백과 같은 범위에서 읽는다
+        textDocument.withReadCaching {
+            super.textWillChange(textInput)
 
-        switch modeCoordinator.currentMode {
-        case .hangeul:
-            hangeulAdapter.clearForExternalTextChange()
-            updateHangeulSpaceButton()
-            updateHangeulShiftButton()
-        case .english:
-            updateEnglishShiftButton()
+            switch modeCoordinator.currentMode {
+            case .hangeul:
+                hangeulAdapter.clearForExternalTextChange()
+                updateHangeulSpaceButton()
+                updateHangeulShiftButton()
+            case .english:
+                updateEnglishShiftButton()
+            }
         }
     }
 
@@ -173,15 +176,15 @@ final class HangeulEnglishKeyboardViewController: BaseKeyboardViewController {
     }
 
     override func updateKeyboardType() {
-        guard textDocumentProxy.keyboardType != oldKeyboardType else { return }
+        guard textDocument.keyboardType != oldKeyboardType else { return }
 
         symbolKeyboardView.currentSymbolKeyboardMode = SymbolKeyboardMode(
-            keyboardType: textDocumentProxy.keyboardType
+            keyboardType: textDocument.keyboardType
         )
-        hangeulAdapter.updateLayout(for: textDocumentProxy.keyboardType)
-        englishAdapter.updateLayout(for: textDocumentProxy.keyboardType)
+        hangeulAdapter.updateLayout(for: textDocument.keyboardType)
+        englishAdapter.updateLayout(for: textDocument.keyboardType)
 
-        switch textDocumentProxy.keyboardType {
+        switch textDocument.keyboardType {
         case .default, nil, .asciiCapable, .URL, .emailAddress, .twitter, .webSearch:
             currentKeyboard = primaryKeyboardView.keyboard
         case .numbersAndPunctuation:
@@ -489,9 +492,9 @@ private extension HangeulEnglishKeyboardViewController {
         requiresLatinInput: Bool,
         resolved: HangeulEnglishLanguageMode
     ) {
-        let language = textDocumentProxy.documentInputMode?.primaryLanguage ?? "nil"
-        let keyboardType = textDocumentProxy.keyboardType?.rawValue ?? -1
-        let contentType = textDocumentProxy.textContentType?.rawValue ?? "nil"
+        let language = textDocument.documentInputMode?.primaryLanguage ?? "nil"
+        let keyboardType = textDocument.keyboardType?.rawValue ?? -1
+        let contentType = textDocument.textContentType?.rawValue ?? "nil"
         let message = "languageMode documentPrimaryLanguage=\(language)"
         + " keyboardType=\(keyboardType) textContentType=\(contentType)"
         + " requiresLatinInput=\(requiresLatinInput) resolved=\(resolved)"
@@ -604,8 +607,8 @@ private extension HangeulEnglishKeyboardViewController {
     func updateEnglishShiftButton() {
         let isShiftButtonPressed = buttonStateController.isShiftButtonPressed
         englishAdapter.updateAutocapitalization(
-            type: textDocumentProxy.autocapitalizationType ?? .none,
-            documentContextBeforeInput: textDocumentProxy.documentContextBeforeInput,
+            type: textDocument.autocapitalizationType ?? .none,
+            documentContextBeforeInput: textDocument.documentContextBeforeInput,
             isEnabled: keyboardSettingsManager.isAutoCapitalizationEnabled,
             isShiftButtonPressed: isShiftButtonPressed
         )

@@ -778,7 +778,7 @@ git commit -m "refactor: #181 - 텍스트 변경 콜백에서 Base VC가 같은 
 - Consumes: Task 2의 `textDocument`, Task 1의 `CountingTextDocumentProxy`
 - Produces: 없음
 
-- [ ] **Step 1: 영문 VC 테스트 작성**
+- [x] **Step 1: 영문 VC 테스트 작성**
 
 ```swift
 //
@@ -824,7 +824,7 @@ private final class TestEnglishProxyReadViewController: EnglishKeyboardCoreViewC
 }
 ```
 
-- [ ] **Step 2: 테스트 실패 확인**
+- [x] **Step 2: 테스트 실패 확인**
 
 ```sh
 xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
@@ -834,7 +834,9 @@ xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
 ```
 Expected: `documentContextBeforeInput` 2회로 FAIL. 테스트에서 VC를 띄우지 못해(XIB 로드 등) 크래시·실패하면 이 테스트 파일을 지우고, 이 step에 원인과 "Task 5 커서 이동 확인으로 대신함"을 적은 뒤 Step 4로 간다.
 
-- [ ] **Step 3: 하위 VC 3개 치환과 범위 적용**
+결과: VC는 정상 로드됐고 `documentContextBeforeInput == 1`에서 FAIL(2회), `autocapitalizationType == 1`은 PASS. 기준 시뮬레이터·병렬 끔으로 실행.
+
+- [x] **Step 3: 하위 VC 3개 치환과 범위 적용**
 
 ```sh
 for F in Modules/EnglishKeyboardCore/EnglishKeyboard/Presentation/ViewController/EnglishKeyboardCoreViewController.swift \
@@ -884,7 +886,9 @@ grep -rn "textDocumentProxy\." Modules Keyboards | grep -v -E ":[0-9]+:[[:space:
 ```
 Expected: 출력 없음.
 
-- [ ] **Step 4: 테스트 통과와 extension 빌드 확인**
+결과: 출력 없음(grep 종료 코드 1).
+
+- [x] **Step 4: 테스트 통과와 extension 빌드 확인**
 
 Step 2 명령(`task3-green.log`). Expected: 1 test passed(Step 2에서 뺐다면 생략). 한영 VC는 테스트 타깃에서 import할 수 없으므로 빌드로 확인:
 
@@ -898,7 +902,9 @@ git status --short
 ```
 Expected: 세 scheme 모두 `** BUILD SUCCEEDED **`. `.xcscheme`이 `RemotePath`만 바뀌었으면 되돌린다.
 
-- [ ] **Step 5: 계획 문서 체크와 결과 기록 후 커밋**
+결과: `Test run with 1 test in 1 suite passed`. `HangeulKeyboard`·`EnglishKeyboard`·`HangeulEnglishKeyboard` 모두 `** BUILD SUCCEEDED **`. `.xcscheme` 변경 없음.
+
+- [x] **Step 5: 계획 문서 체크와 결과 기록 후 커밋**
 
 ```sh
 git add Modules/EnglishKeyboardCore/EnglishKeyboard/Presentation/ViewController/EnglishKeyboardCoreViewController.swift \
