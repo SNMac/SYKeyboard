@@ -66,7 +66,7 @@ Host 요구사항 이름 규칙: VC의 `open`/`public` 메서드(`textInteractio
 - Consumes: `BaseKeyboardViewController.init(language:)`, `performTextInteraction(for:)`, `performRepeatTextInteraction(for:)`, `repeatTextInteractionWillPerform(button:)`, `repeatTextInteractionDidPerform(button:)`, `insertText(_:)`, `isRepeatingInput`, `deleteButtonPanning(_:to:)`, `deleteButtonPanStopped(_:)`, `textInteractableButtonLongPressing(_:button:)`, `textWillChange(_:)`, `textDidChange(_:)`, `StandardKeyboardView.deleteButton`, `SuggestionBarView.suggestionDelegate`, `TextInteractionGestureController.init(keyboardHStackView:getCurrentPressedButton:setCurrentPressedButton:)`, `CountingTextDocumentProxy`, `TestPrimaryKeyboardView`
 - Produces: Task 4·5가 끝난 뒤 **수정 없이** 통과해야 하는 테스트 10개. 테스트는 Coordinator 타입, 인디케이터 뷰, 삭제 파이프라인 상태를 참조하지 않는다
 
-- [ ] **Step 1: 테스트 파일 작성**
+- [x] **Step 1: 테스트 파일 작성**
 
 ```swift
 //
@@ -342,7 +342,7 @@ private func makeGestureController() -> TextInteractionGestureController {
 }
 ```
 
-- [ ] **Step 2: 실행해 측정값·해제 여부 확인**
+- [x] **Step 2: 실행해 측정값·해제 여부 확인**
 
 "BaseKeyboardViewControllerDeleteUndoBehaviorTests 실행, 빌드 포함 약 3\~5분"이라고 알린 뒤 실행한다.
 
@@ -356,11 +356,11 @@ xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
 
 Expected: 읽기 횟수 테스트는 통과하거나 측정값만 다르게 실패한다(실패 메시지의 실제 값을 Step 3에서 적는다). 나머지는 통과해야 한다. 통과하지 않는 테스트가 있으면 **production 코드를 고치지 않고** 테스트의 가정(진입점·프록시 초기값)이 현재 동작과 다른 것이므로 로그의 실제 값으로 테스트를 고친다. 단, `testControllerIsReleased`가 실패하면 먼저 상호작용 없이 `TestDeleteUndoViewController()`를 만들고 `loadViewIfNeeded()`만 한 뒤 놓는 변형으로 다시 돌려 UIKit이 `UIInputViewController`를 붙드는지 본다. 그 변형도 실패하면 이 테스트를 지우고 이 Step 아래에 "UIKit이 테스트에서 VC를 해제하지 않아 VC 수준 해제 테스트는 제외, Coordinator 단위 해제 테스트(Task 3·4·5)로 대체"라고 기록한다.
 
-- [ ] **Step 3: 측정값을 테스트에 적고 다시 실행**
+- [x] **Step 3: 측정값을 테스트에 적고 다시 실행**
 
 Step 2에서 읽기 횟수가 달랐다면 세 `readCount` 기대값을 실제 값으로 바꾸고 주석의 설명도 맞춘다. 같은 명령을 다시 실행해 `Executed 11 tests, with 0 failures`(해제 테스트를 뺐으면 10)를 확인한다.
 
-- [ ] **Step 4: 커밋**
+- [x] **Step 4: 커밋**
 
 ```sh
 git branch --show-current   # refactor/#185-extract-delete-undo-coordinators 여야 한다
@@ -372,6 +372,12 @@ Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>
 EOF
 )"
 ```
+
+#### Task 1 결과 (2026-10-09)
+
+- Step 2: 읽기 횟수 기대값(앞 2·뒤 1·선택 2)은 측정값과 같아 수정 없음. `testControllerIsReleased`만 실패 → 상호작용 없는 VC는 해제됨 → 분할(창만·길게 누르기만·드래그만·삽입만)에서 **창에 올렸다 내린 경우만** 붙잡힘 → 참조를 놓은 뒤 `RunLoop.main.run(until: +0.2)`을 돌리면 전체 상호작용을 거친 VC도 해제됨. 누수가 아니라 UIKit이 창에 올라간 VC에 예약한 main queue 작업이 끝날 때까지 들고 있는 것이다. **Ruling:** 해제 테스트는 참조를 놓고 런루프 한 틱 뒤 `nil`을 확인하는 형태로 확정(임시 분할 테스트는 삭제). 틀렸을 때 비용: 런루프 한 틱 안에 끝나는 짧은 보유를 놓칠 수 있으나, 누적 누수는 Task 6의 시뮬레이터 `deinit`·`leaks` 확인이 잡는다. 로그 `scratchpad/task1-test.log`, `task1-bisect.log`, `task1-bisect2.log`, `task1-final.log`.
+- Step 3: 11개 통과(`task1-final.log`). suite 주석은 사용자 요청으로 이슈 번호 없이 테스트 성격만 적었다.
+- `-only-testing:…/<suite>/<함수>` 형식은 이 suite(Swift Testing)에서 0개가 실행됐다. suite 단위로만 좁힌다.
 
 ---
 
