@@ -2823,7 +2823,7 @@ EOF
 **Files:**
 - Modify: 이 계획 문서(결과 기록). 코드 변경 없음(검증 중 발견한 문제는 원인 Task로 돌아가 고치고 `fix: #185 - …`로 따로 커밋한다)
 
-- [ ] **Step 1: 전체 테스트**
+- [x] **Step 1: 전체 테스트**
 
 ```sh
 S=/private/tmp/claude-501/-Users-macmillan-Projects-XcodeProjects-SNMac-SYKeyboard-SYKeyboard/d55fb879-2fd6-4e31-bf24-9aa46889bd80/scratchpad
@@ -2834,7 +2834,7 @@ xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
 
 Expected: `** TEST SUCCEEDED **`, 0 failures. 개수는 기준 1020 + Task 1(11) + Task 2(1) + Task 3(2) + Task 4(10) + Task 5(12) = 1056 이상. 실제 값을 이 Step 아래에 적는다.
 
-- [ ] **Step 2: 4개 scheme 빌드**
+- [x] **Step 2: 4개 scheme 빌드**
 
 ```sh
 S=/private/tmp/claude-501/-Users-macmillan-Projects-XcodeProjects-SNMac-SYKeyboard-SYKeyboard/d55fb879-2fd6-4e31-bf24-9aa46889bd80/scratchpad
@@ -2848,7 +2848,7 @@ git status --short
 
 Expected: 4개 모두 `** BUILD SUCCEEDED **`. `.xcscheme`이 보이면 `RemotePath`만 바뀐 경우 되돌린다.
 
-- [ ] **Step 3: 정적 확인**
+- [x] **Step 3: 정적 확인**
 
 ```sh
 F=Modules/SYKeyboardCore/Presentation/ViewController/Bases/BaseKeyboardViewController.swift
@@ -2866,7 +2866,7 @@ grep -n "unowned\|weak var host" Modules/SYKeyboardCore/Presentation/ViewControl
 
 Expected: 첫 grep은 `return self.textDocumentProxy` 한 줄. 줄 수 1900 아래(실측값 기록). 접근 수식어 없는 저장 프로퍼티 수가 기준과 같음. Coordinator 4개가 `private lazy var`. `unowned` 없음, `weak var host` 4개.
 
-- [ ] **Step 4: 시뮬레이터 기능 확인**
+- [x] **Step 4: 시뮬레이터 기능 확인**
 
 `iPhone 13 mini / iOS 18.6`(UDID `82146144-24DE-4F91-B25D-23D147A91142`)에서 작업자가 직접 한다. 메모리 `reference-idb-simulator-quirks`의 방법을 따른다.
 
@@ -2888,7 +2888,7 @@ Expected: 첫 grep은 `return self.textDocumentProxy` 한 줄. 줄 수 1900 아�
 
 시뮬레이터로 확인할 수 없는 항목(PR 본문 "실기기 확인 필요"): 햅틱·삭제 사운드.
 
-- [ ] **Step 5: 시뮬레이터 해제·누수 확인**
+- [x] **Step 5: 시뮬레이터 해제·누수 확인**
 
 1. 키보드를 띄웠다 내리기를 5회 반복한다(입력창 탭 → 하드웨어 Return `idb ui key 40` 또는 다른 앱 전환). 로그 파일에서 `deinit` 줄을 센다.
 
@@ -2910,7 +2910,7 @@ Expected: `0 leaks for 0 total leaked bytes`. 프로세스가 이미 종료돼 �
 
 3. 끝나면 `AppleKeyboards` 배열과 App Group 설정을 원래대로 되돌리고 로그 프로세스를 종료한다.
 
-- [ ] **Step 6: 결과 기록 커밋**
+- [x] **Step 6: 결과 기록 커밋**
 
 이 계획 문서의 Task 6 각 Step 아래에 실제 명령 결과(테스트 개수, 빌드 결과, 줄 수, 시뮬레이터 항목별 결과, `deinit` 횟수, `leaks` 결과, 미확인 항목과 이유)를 적고 커밋한다.
 
@@ -2924,6 +2924,26 @@ Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>
 EOF
 )"
 ```
+
+#### Task 6 결과 (2026-10-09, 브랜치 `refactor/#185-extract-delete-undo-coordinators` @ 54961918)
+
+- Step 1 전체 테스트: `xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=18.6'` → `** TEST SUCCEEDED **`, 1056 passed, 0 failed(기준 1020 + 36). 로그 `scratchpad/task6-test.log`(Task 5 task-done 실행과 동일 명령).
+- Step 2 빌드: SYKeyboard·HangeulKeyboard·EnglishKeyboard·HangeulEnglishKeyboard 모두 `** BUILD SUCCEEDED **`, 소스 파일 경고 0건. 빌드 뒤 `git status --short` 비어 있음(`.xcscheme` 변경 없음).
+- Step 3 정적 확인: `textDocumentProxy` 직접 참조는 `BaseKeyboardViewController.swift:58 return self.textDocumentProxy` 한 줄. VC 2721 → **1931줄**. 접근 수식어 없는 저장 프로퍼티 수 기준 5 → 현재 5(목록 동일). Coordinator 4개 모두 `private lazy var`. `unowned` 없음, `weak var host` 4개.
+- Step 4 시뮬레이터(iPhone 13 mini / iOS 18.6, Safari의 로컬 http `delete.html` textarea, idb 조작). **떠 있던 키보드는 `HangeulKeyboard`가 아니라 한영 통합 키보드(`HangeulEnglishKeyboard`)의 한글(두벌식) 모드였다**(`AppleKeyboards` 맨 앞에 HangeulKeyboard를 뒀지만 Safari가 마지막 사용 키보드를 유지). 삭제·undo 코드는 Base와 Coordinator에 있어 검증 대상은 같고, 한영 통합 VC의 `deleteButtonPan*`·`repeatDeleteBackward` 오버라이드까지 거쳤다. 캡처 `scratchpad/shot-*.png`, `crop-*.png`.
+  - [x] 삭제 드래그(왼쪽) — "안녕하세요" 입력 뒤 삭제 키에서 왼쪽으로 끌자 전부 지워짐(`shot-03`→`shot-04`). undo 버튼 활성.
+  - [x] undo/redo — undo 탭 → "안녕하세요" 복원, redo 탭 → 다시 비워짐(`crop-05`, `crop-06`).
+  - [x] 줄 경계 — "ㄱ나⏎다"에서 짧은 드래그는 "다"만 지우고 줄 경계에서 멈춤(`crop-09`→`crop-10`). 빈 둘째 줄에서 더 길게 끌자 줄바꿈을 넘어 첫 줄까지 지워지고(`crop-11`), undo로 줄바꿈과 "ㄱ나"가 복원(`crop-12`).
+  - [x] 선택 영역 — JS로 끝 2자 "녕하"를 선택한 뒤 삭제 키 드래그 → 선택이 지워지고 이어진 드래그가 나머지도 지움(`crop-13`→`crop-14`), undo 한 번으로 선택 텍스트까지 전부 복원(`crop-15`). 드래그는 touchDown에서 선택을 먼저 지우므로 "선택만 드래그로 지우는" 단계는 단위 테스트(`testDeletePanDeletesSelectionAndUndoRestoresIt`, `testPanWithSelectionDoesNotTrackStep`)로 본다.
+  - [x] 반복 삭제 — 조합 중("…안ㄴ") 삭제 키 0.9초 누름 → 조합부터 이어서 지워짐(`crop-16`→`crop-17`). ㅏ 14개에서 0.8초 누름 → 6개 남음, 손을 떼면 멈춤(`crop-18`).
+  - [ ] 삭제 드래그 오른쪽 복구 — idb `ui swipe`는 직선 한 구간이라 한 제스처 안에서 방향을 바꿀 수 없어 시뮬레이터로 재현하지 못함. `testDeletePanDeleteRestoreStop`(VC)·`testPanDeleteRestoreStop`(Coordinator)이 고정. **실기기 확인 필요**.
+  - [ ] 삭제 드래그 중 다른 입력창 탭 — idb로 제스처를 겹칠 수 없어 재현하지 못함. `testTextInputChangeCancelsPendingPan`(VC)·`testInputChangeCancelsPendingPan`(Coordinator)이 고정. **실기기 확인 필요**.
+  - [ ] 첨부(U+FFFC) 앞 멈춤 — 메시지 앱 첨부를 시도하지 않음(웹 입력창에는 첨부가 없음). `testDeletePanStopsBeforeAttachment`·`testPanStopsBeforeAttachment`가 고정. **실기기 확인 필요**.
+  - 햅틱·삭제 사운드 — 시뮬레이터로 관찰 불가. **실기기 확인 필요**.
+- Step 5 해제·누수:
+  - `xcrun simctl spawn <UDID> log stream --level debug --predicate 'subsystem == "github.com-SNMac.SYKeyboard.HangeulEnglishKeyboard" AND eventMessage CONTAINS "deinit"'`로 받으며 Done → 입력창 탭을 5회 반복: `HangeulEnglishKeyboardViewController` 5, `TextDeletionCoordinator` 5, `UndoRedoCoordinator` 5, `SuggestionSelectionCoordinator` 5, `ClipboardHistoryCoordinator` 5(`TextInteractionGestureController`·`SwitchGestureController`도 5). 로그 `scratchpad/task6-sim.log`. `log show`는 debug 레벨을 저장하지 않아 쓰지 못했고 live stream만 유효했다.
+  - `leaks <pid>`: `Failed to get DYLD info for task … (os/kern) failure (5)`로 실행 불가. `xctrace record --template Leaks --device <UDID> --attach HangeulEnglishKeyboard`: `Failed to generate memory graph … libmalloc hasn't been initialized`로 실패(`task6-xctrace.log`). 시뮬레이터 extension 프로세스에는 두 도구 모두 붙지 않아 **누수 0건 확인은 하지 못했고**, 위 `deinit` 일치(5/5)를 근거로 삼는다.
+  - 끝난 뒤 `AppleKeyboards` 원래 배열로 복원, App Group `isClipboardHistoryEnabled`는 true로 되돌림(확인 전 원래 값을 읽지 않고 false로 썼으므로 원래 값이 true였다는 가정. 사용자 시뮬레이터 설정과 다르면 메인 앱에서 다시 켜거나 끈다).
 
 ---
 
