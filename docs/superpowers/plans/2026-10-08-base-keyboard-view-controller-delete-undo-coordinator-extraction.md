@@ -622,7 +622,7 @@ EOF
   - `protocol UndoRedoHost: AnyObject` — `textDocument`, `isPreviewMode`, `shouldDeferUndoRedoCommit`, `undoRedoEditDidApply()`, `refreshReturnButtonEnabled()`, `refreshSuggestions()`, `refreshClipboardControl()`, `interruptPendingDeleteInteractions()`
   - `final class UndoRedoCoordinator` — `init(suggestionBarView:suggestionController:keyboardSettingsManager:host:)`, `prepareForTextWillChange(inputIdentifier:)`, `invalidateHistoryIfNeededAfterTextChange(inputIdentifier:)`, `removeAllHistory()`, `record(deletedText:insertedText:)`, `commitPendingGroup()`, `commitPendingGroupIgnoringDeferral()`, `commitDeferredGroupIfNeeded()`, `undo()`, `redo()`, `refreshControls()`. Task 5의 VC `recordUndoRedoChange`가 `record`를 부른다
 
-- [ ] **Step 1: 실패하는 Coordinator 테스트 작성**
+- [x] **Step 1: 실패하는 Coordinator 테스트 작성**
 
 ```swift
 //
@@ -738,8 +738,11 @@ struct UndoRedoCoordinatorTests {
     func testInputChangeInvalidatesHistory() {
         let fixture = makeFixture()
         defer { fixture.restore() }
-        let first = ObjectIdentifier(UITextField())
-        let second = ObjectIdentifier(UITextField())
+        // 임시 객체는 바로 해제돼 다음 객체가 같은 주소를 받을 수 있으므로 필드를 살려 둔다
+        let firstField = UITextField()
+        let secondField = UITextField()
+        let first = ObjectIdentifier(firstField)
+        let second = ObjectIdentifier(secondField)
         fixture.proxy.insertText("가")
         fixture.coordinator.record(deletedText: "", insertedText: "가")
         fixture.coordinator.prepareForTextWillChange(inputIdentifier: first)
@@ -882,7 +885,7 @@ private func makeFixture() -> Fixture {
 }
 ```
 
-- [ ] **Step 2: 컴파일 실패 확인**
+- [x] **Step 2: 컴파일 실패 확인**
 
 ```sh
 S=/private/tmp/claude-501/-Users-macmillan-Projects-XcodeProjects-SNMac-SYKeyboard-SYKeyboard/d55fb879-2fd6-4e31-bf24-9aa46889bd80/scratchpad
@@ -894,7 +897,7 @@ timeout 300 xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
 
 Expected: `cannot find type 'UndoRedoHost' in scope` 또는 `cannot find 'UndoRedoCoordinator' in scope`.
 
-- [ ] **Step 3: `UndoRedoCoordinator.swift` 작성**
+- [x] **Step 3: `UndoRedoCoordinator.swift` 작성**
 
 VC의 `performUndo`/`performRedo`/`applyUndoRedoEdit`/`recordUndoRedoChange`(undo 부분)/`commitPendingUndoRedoGroup`/`invalidateUndoRedoHistoryForTextContextChange`/`updateUndoRedoControls`/`invalidateUndoRedoHistoryIfNeededAfterTextChange`/`restoreTextPositionIfPossible`과 `commit…` public 래퍼 세 개의 본문을 옮긴 것이다. `self`의 VC 멤버는 `host.`로, `currentTextContextSnapshot()`은 `host.textDocument.contextSnapshot`으로, `BaseKeyboardViewController.isPreview`는 `host.isPreviewMode`로, `updateUndoRedoControls()`는 `refreshControls()`로 바뀐 것 외에는 같다.
 
@@ -1160,7 +1163,7 @@ private extension UndoRedoCoordinator {
 }
 ```
 
-- [ ] **Step 4: pbxproj에 `UndoRedoCoordinator.swift` 등록**
+- [x] **Step 4: pbxproj에 `UndoRedoCoordinator.swift` 등록**
 
 `SYKeyboard.xcodeproj/project.pbxproj`에서 `SYKeyboardCore/Presentation/ViewController/Utils/SuggestionSelectionCoordinator.swift,` 줄이 두 번(SYKeyboard 타깃 약 357줄, SYKeyboardCore 타깃 약 463줄) 나온다. 각 줄 바로 뒤에 같은 들여쓰기로 추가한다.
 
@@ -1170,7 +1173,7 @@ private extension UndoRedoCoordinator {
 
 확인: `grep -c "Utils/UndoRedoCoordinator.swift" SYKeyboard.xcodeproj/project.pbxproj`가 2.
 
-- [ ] **Step 5: VC에서 undo/redo 섹션을 Coordinator 호출로 교체**
+- [x] **Step 5: VC에서 undo/redo 섹션을 Coordinator 호출로 교체**
 
 `BaseKeyboardViewController.swift`를 위에서 아래로 고친다. 줄 번호는 Task 2 뒤 기준이라 조금 어긋날 수 있다.
 
@@ -1271,7 +1274,7 @@ extension BaseKeyboardViewController: UndoRedoHost {}
 
 (k) 확인: `grep -n "undoRedoSession\|updateUndoRedoControls\|performUndo\|performRedo\|isUndoRedoFeatureAvailable" Modules/SYKeyboardCore/Presentation/ViewController/Bases/BaseKeyboardViewController.swift`가 비어 있어야 한다.
 
-- [ ] **Step 6: 테스트 통과 확인**
+- [x] **Step 6: 테스트 통과 확인**
 
 ```sh
 S=/private/tmp/claude-501/-Users-macmillan-Projects-XcodeProjects-SNMac-SYKeyboard-SYKeyboard/d55fb879-2fd6-4e31-bf24-9aa46889bd80/scratchpad
@@ -1287,7 +1290,7 @@ xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
 
 Expected: 0 failures. Task 1 테스트는 수정 없이 통과한다. 실패하면 Coordinator가 아니라 VC 교체(Step 5)에서 호출 순서가 바뀐 곳을 먼저 의심한다.
 
-- [ ] **Step 7: 커밋**
+- [x] **Step 7: 커밋**
 
 ```sh
 git branch --show-current
@@ -1302,6 +1305,10 @@ Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>
 EOF
 )"
 ```
+
+#### Task 4 결과 (2026-10-09)
+
+- Step 2 RED: `cannot find type 'UndoRedoHost'`. Step 6: 다섯 suite 통과(`scratchpad/task4-test.log`·`task4-test2.log`). VC 고정 테스트 11개는 수정 없이 통과. `testInputChangeInvalidatesHistory`는 처음에 실패했는데 `ObjectIdentifier(UITextField())`의 임시 객체가 바로 해제돼 두 식별자가 같아진 테스트 결함이었고, 필드를 변수로 살려 두도록 테스트(와 Task 5의 같은 패턴)를 고쳤다. production 변경 없음. VC 2718 → 2579줄.
 
 ---
 
@@ -1432,8 +1439,11 @@ struct TextDeletionCoordinatorTests {
     @Test("입력창 식별자가 바뀌면 보류된 pan을 끝내고 인디케이터를 숨김")
     func testInputChangeCancelsPendingPan() {
         let fixture = makeFixture()
-        let first = ObjectIdentifier(UITextField())
-        let second = ObjectIdentifier(UITextField())
+        // 임시 객체는 바로 해제돼 다음 객체가 같은 주소를 받을 수 있으므로 필드를 살려 둔다
+        let firstField = UITextField()
+        let secondField = UITextField()
+        let first = ObjectIdentifier(firstField)
+        let second = ObjectIdentifier(secondField)
         fixture.coordinator.synchronizeInputIdentifier(first)
         fixture.coordinator.performTouchDown(for: fixture.button)
         fixture.coordinator.handlePan(to: .left)

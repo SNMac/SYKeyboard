@@ -152,8 +152,6 @@ open class BaseKeyboardViewController: UIInputViewController {
     public private(set) var isRepeatingInput: Bool = false
     /// 진단용 반복 입력 tick 수. 구간으로만 기록한다
     private var repeatInputTickCount: Int = 0
-    /// 키보드 세션 동안만 유지되는 undo/redo 상태 관리자
-    private var undoRedoSession = KeyboardUndoRedoSession()
     /// 첫 표시 이후 자동완성 준비를 한 번만 시작했는지 여부
     private var didStartDeferredSuggestionPreparation = false
     /// 첫 후보 갱신 계측 이벤트 중복 방지 플래그
@@ -192,11 +190,6 @@ open class BaseKeyboardViewController: UIInputViewController {
     /// 탭 동작만 `suggestionBarDidTapClipboard`에서 막는다.
     private var isClipboardControlAvailable: Bool {
         return keyboardSettingsManager.isClipboardHistoryEnabled
-    }
-
-    /// undo/redo 기능 사용 가능 여부. 자동완성 설정과 독립이다
-    private var isUndoRedoFeatureAvailable: Bool {
-        return keyboardSettingsManager.isUndoRedoEnabled
     }
 
     /// 삭제 버튼 팬 제스처로 인해 임시로 삭제된 내용을 저장하는 변수
@@ -260,6 +253,13 @@ open class BaseKeyboardViewController: UIInputViewController {
     private lazy var clipboardHistoryCoordinator = ClipboardHistoryCoordinator(
         clipboardHistoryStore: clipboardHistoryStore,
         clipboardHistoryPanelView: clipboardHistoryPanelView,
+        keyboardSettingsManager: keyboardSettingsManager,
+        host: self
+    )
+    /// undo/redo 기록·확정·적용과 컨트롤 갱신을 맡는다. `UndoRedoHost` 채택은 파일 끝의 extension에 있다
+    private lazy var undoRedoCoordinator = UndoRedoCoordinator(
+        suggestionBarView: suggestionBarView,
+        suggestionController: suggestionController,
         keyboardSettingsManager: keyboardSettingsManager,
         host: self
     )
@@ -410,10 +410,7 @@ open class BaseKeyboardViewController: UIInputViewController {
             }
             suggestionSelectionCoordinator.synchronizeTextInputTraits()
             synchronizeDeleteInteractionInputIdentifier(textInput)
-            undoRedoSession.prepareForTextWillChange(
-                inputIdentifier: textInputIdentifier(for: textInput),
-                context: currentTextContextSnapshot()
-            )
+            undoRedoCoordinator.prepareForTextWillChange(inputIdentifier: textInputIdentifier(for: textInput))
             suggestionSelectionCoordinator.captureSentTextSnapshot()
             resetInputBuffer()
             updateKeyboardType()
@@ -449,7 +446,7 @@ open class BaseKeyboardViewController: UIInputViewController {
             )
             processDeleteMutationCallbackOutcome(deleteMutationOutcome)
             resumePendingDeletePanBoundaryIfNeeded()
-            invalidateUndoRedoHistoryIfNeededAfterTextChange(textInput)
+            undoRedoCoordinator.invalidateHistoryIfNeededAfterTextChange(inputIdentifier: textInputIdentifier(for: textInput))
             updateKeyboardType()
             // iOS는 키보드 확장에 textWillChange/textDidChange의 textInput을 항상 nil로 준다.
             // 그래서 필드 객체 동일성으로는 포커스가 다른 필드로 옮겨졌는지 알 수 없다.
@@ -488,8 +485,7 @@ open class BaseKeyboardViewController: UIInputViewController {
         suggestionSelectionCoordinator.hideSuggestionRemovalConfirmation()
         currentTextInputIdentifier = nil
         lastNotifiedTextInputIdentifier = nil
-        undoRedoSession.removeAll()
-        updateUndoRedoControls()
+        undoRedoCoordinator.removeAllHistory()
         suggestionSelectionCoordinator.discardSentTextSnapshot()
         resetInputBuffer()
         suggestionController.saveNGramData()
@@ -909,23 +905,17 @@ extension BaseKeyboardViewController {
 
     /// 조합 확정 지연 요청이 있었고 현재 확정 가능한 상태라면 pending undo 단위를 stack에 반영합니다.
     public final func commitDeferredUndoRedoGroupIfNeeded() {
-        guard undoRedoSession.commitDeferredGroupIfNeeded(
-            shouldDeferCommit: shouldDeferUndoRedoCommit
-        ) else { return }
-        updateUndoRedoControls()
+        undoRedoCoordinator.commitDeferredGroupIfNeeded()
     }
 
     /// 스페이스/리턴처럼 사용자가 명시적인 편집 경계를 만든 경우 pending undo 단위를 확정합니다.
     public final func commitUndoRedoGroupIfPossible() {
-        commitPendingUndoRedoGroup()
+        undoRedoCoordinator.commitPendingGroup()
     }
 
     /// 삭제 시작처럼 조합 중이어도 이전 편집 단위를 끊어야 하는 경우 pending undo 단위를 확정합니다.
     public final func commitUndoRedoGroupIgnoringCompositionDeferral() {
-        guard isUndoRedoFeatureAvailable else { return }
-
-        undoRedoSession.commitPendingGroupIgnoringDeferral()
-        updateUndoRedoControls()
+        undoRedoCoordinator.commitPendingGroupIgnoringDeferral()
     }
 
     /// 선택 영역을 `insertText`로 대치하고 `inputBuffer`와 undo 기록을 맞춘다. 후보 선택과 수식 결과 대치가 쓴다
@@ -1488,7 +1478,7 @@ private extension BaseKeyboardViewController {
         suggestionBarView.isHidden = shouldHideBar
         suggestionBarView.updateSuggestionArea(isVisible: !shouldHideSuggestions)
         suggestionController.isSuspended = shouldHideSuggestions
-        updateUndoRedoControls()
+        undoRedoCoordinator.refreshControls()
 
         if prevSuggestionHiddenState != shouldHideBar {
             DispatchQueue.main.async { [weak self] in
@@ -1769,70 +1759,6 @@ private extension BaseKeyboardViewController {
         deleteBackward()
     }
 
-    func performUndo() {
-        guard isUndoRedoFeatureAvailable else { return }
-
-        cancelPendingDeleteInteractions()
-        undoRedoSession.cancelDebounceTimer()
-        guard undoRedoSession.canApplyUndo(from: currentTextContextSnapshot()) else {
-            updateUndoRedoControls()
-            return
-        }
-        guard let edit = undoRedoSession.undo() else {
-            updateUndoRedoControls()
-            return
-        }
-        guard applyUndoRedoEdit(edit) else {
-            invalidateUndoRedoHistoryForTextContextChange()
-            return
-        }
-        undoRedoSession.updateLastRedoTargetContext(currentTextContextSnapshot())
-        updateUndoRedoControls()
-        FeedbackManager.shared.playHaptic()
-    }
-
-    func performRedo() {
-        guard isUndoRedoFeatureAvailable else { return }
-
-        cancelPendingDeleteInteractions()
-        undoRedoSession.cancelDebounceTimer()
-        guard undoRedoSession.canApplyRedo(from: currentTextContextSnapshot()) else {
-            updateUndoRedoControls()
-            return
-        }
-        guard let edit = undoRedoSession.redo() else {
-            updateUndoRedoControls()
-            return
-        }
-        guard applyUndoRedoEdit(edit) else {
-            invalidateUndoRedoHistoryForTextContextChange()
-            return
-        }
-        undoRedoSession.updateLastUndoTargetContext(currentTextContextSnapshot())
-        updateUndoRedoControls()
-        FeedbackManager.shared.playHaptic()
-    }
-
-    func applyUndoRedoEdit(_ edit: KeyboardUndoRedoEdit) -> Bool {
-        guard !BaseKeyboardViewController.isPreview else { return false }
-
-        return undoRedoSession.performApplyingEdit {
-            guard restoreTextPositionIfPossible(to: edit.targetContext) else { return false }
-
-            for _ in 0..<edit.deleteCount {
-                textDocument.deleteBackward()
-            }
-            if !edit.insertText.isEmpty {
-                textDocument.insertText(edit.insertText)
-            }
-
-            undoRedoEditDidApply()
-            updateReturnButtonEnabled()
-            updateSuggestions()
-            return true
-        }
-    }
-
     func recordUndoRedoChange(
         deletedText: String,
         insertedText: String,
@@ -1853,20 +1779,7 @@ private extension BaseKeyboardViewController {
             break
         }
 
-        guard isUndoRedoFeatureAvailable,
-              !undoRedoSession.isApplyingEdit else { return }
-        undoRedoSession.record(
-            deletedText: deletedText,
-            insertedText: insertedText,
-            targetContext: currentTextContextSnapshot(),
-            shouldDeferCommit: { [weak self] in
-                self?.shouldDeferUndoRedoCommit == true
-            },
-            debouncedCommitDidFinish: { [weak self] in
-                self?.updateUndoRedoControls()
-            }
-        )
-        updateUndoRedoControls()
+        undoRedoCoordinator.record(deletedText: deletedText, insertedText: insertedText)
     }
 
     func processDeleteMutationResolution(_ resolution: DeleteMutationResolution?) {
@@ -1953,36 +1866,6 @@ private extension BaseKeyboardViewController {
         return true
     }
 
-    func commitPendingUndoRedoGroup() {
-        undoRedoSession.commitPendingGroup(shouldDeferCommit: shouldDeferUndoRedoCommit)
-        updateUndoRedoControls()
-    }
-
-    func invalidateUndoRedoHistoryForTextContextChange() {
-        guard !undoRedoSession.isApplyingEdit else { return }
-        undoRedoSession.removeAll()
-        updateUndoRedoControls()
-    }
-
-    func updateUndoRedoControls() {
-        let shouldShowUndoRedo = KeyboardPresentationStatePolicy.shouldShowUndoRedoControls(
-            isSuggestionBarHidden: suggestionBarView.isHidden,
-            isUndoRedoFeatureAvailable: isUndoRedoFeatureAvailable
-        )
-        // 기록이 없으면 결과가 문맥과 무관하게 false다.
-        // 키보드가 사라질 때처럼 문서 상태가 교체되는 순간 프록시를 읽으면 크래시하므로 읽지 않는다
-        let hasUndoRedoHistory = undoRedoSession.canUndo || undoRedoSession.canRedo
-        let currentContext = hasUndoRedoHistory
-            ? currentTextContextSnapshot()
-            : KeyboardTextContextSnapshot(beforeInput: nil, afterInput: nil)
-        suggestionBarView.updateUndoRedoControls(
-            isVisible: shouldShowUndoRedo,
-            canUndo: undoRedoSession.canApplyUndo(from: currentContext),
-            canRedo: undoRedoSession.canApplyRedo(from: currentContext)
-        )
-        updateClipboardControl()
-    }
-
     func updateClipboardControl() {
         let shouldShowClipboard = KeyboardPresentationStatePolicy.shouldShowClipboardControl(
             isSuggestionBarHidden: suggestionBarView.isHidden,
@@ -2007,32 +1890,6 @@ private extension BaseKeyboardViewController {
     func textInputIdentifier(for textInput: (any UITextInput)?) -> ObjectIdentifier? {
         guard let textInput else { return nil }
         return ObjectIdentifier(textInput as AnyObject)
-    }
-
-    func invalidateUndoRedoHistoryIfNeededAfterTextChange(_ textInput: (any UITextInput)?) {
-        if undoRedoSession.shouldInvalidateAfterTextChange(
-            inputIdentifier: textInputIdentifier(for: textInput),
-            currentContext: currentTextContextSnapshot()
-        ) {
-            invalidateUndoRedoHistoryForTextContextChange()
-            suggestionController.clearReplacementHistory()
-        }
-    }
-
-    func restoreTextPositionIfPossible(to targetContext: KeyboardTextContextSnapshot?) -> Bool {
-        guard let targetContext else { return true }
-
-        guard let offset = KeyboardTextContextNavigator.cursorOffset(
-            from: currentTextContextSnapshot(),
-            to: targetContext
-        ) else {
-            return false
-        }
-
-        if offset != 0 {
-            textDocument.adjustTextPosition(byCharacterOffset: offset)
-        }
-        return true
     }
 
     func updateSuggestions() {
@@ -2433,7 +2290,7 @@ private extension BaseKeyboardViewController {
             return 0
         }
 
-        updateUndoRedoControls()
+        undoRedoCoordinator.refreshControls()
         return actualSteps
     }
 
@@ -2698,8 +2555,8 @@ extension BaseKeyboardViewController: SuggestionSelectionHost {
     }
 
     func refreshSuggestionPreviewHighlight() { updateSuggestionPreviewHighlight() }
-    func undoLastEdit() { performUndo() }
-    func redoLastEdit() { performRedo() }
+    func undoLastEdit() { undoRedoCoordinator.undo() }
+    func redoLastEdit() { undoRedoCoordinator.redo() }
     func toggleClipboardPanel() { clipboardHistoryCoordinator.togglePanel() }
 }
 
@@ -2716,3 +2573,7 @@ extension BaseKeyboardViewController: ClipboardHistoryHost {
     func interruptPendingDeleteInteractions() { cancelPendingDeleteInteractions() }
     func openURL(_ url: URL) { openURLThroughResponderChain(url) }
 }
+
+// MARK: - UndoRedoHost
+
+extension BaseKeyboardViewController: UndoRedoHost {}
