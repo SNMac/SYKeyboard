@@ -58,6 +58,61 @@ struct BaseKeyboardViewControllerProxyReadTests {
 
         #expect(controller.proxy.contextReadCount == 0)
     }
+
+    @Test("textDidChange 한 번에 같은 프록시 값을 두 번 읽지 않음")
+    func testTextDidChangeReadsEachProxyValueAtMostOnce() {
+        let controller = TestProxyReadViewController()
+        controller.loadViewIfNeeded()
+        controller.proxy.resetReadCounts()
+
+        controller.textDidChange(nil)
+
+        let readCounts = controller.proxy.readCounts
+        #expect(readCounts.values.allSatisfy { $0 <= 1 }, "\(readCounts)")
+        #expect(controller.proxy.readCount(of: "documentContextBeforeInput") == 1)
+        #expect(controller.proxy.readCount(of: "keyboardType") == 1)
+        #expect(controller.proxy.readCount(of: "returnKeyType") == 1)
+    }
+
+    @Test("textWillChange 한 번에 같은 프록시 값을 두 번 읽지 않음")
+    func testTextWillChangeReadsEachProxyValueAtMostOnce() {
+        let controller = TestProxyReadViewController()
+        controller.loadViewIfNeeded()
+        controller.proxy.resetReadCounts()
+
+        controller.textWillChange(nil)
+
+        let readCounts = controller.proxy.readCounts
+        #expect(readCounts.values.allSatisfy { $0 <= 1 }, "\(readCounts)")
+        #expect(controller.proxy.readCount(of: "documentContextBeforeInput") == 1)
+        #expect(controller.proxy.readCount(of: "returnKeyType") == 1)
+    }
+
+    @Test("textWillChange에서 읽은 값을 textDidChange가 다시 읽음")
+    func testTextDidChangeRereadsValuesReadInTextWillChange() {
+        let controller = TestProxyReadViewController()
+        controller.loadViewIfNeeded()
+        controller.textWillChange(nil)
+        controller.proxy.resetReadCounts()
+        controller.proxy.beforeInput = "바뀐 문맥"
+
+        controller.textDidChange(nil)
+
+        #expect(controller.proxy.readCount(of: "documentContextBeforeInput") == 1)
+    }
+
+    @Test("keyboardType이 바뀐 textDidChange는 새 값으로 trait 변경 훅을 한 번 부름")
+    func testKeyboardTypeChangeCallsTraitHookOnceWithNewValue() {
+        let controller = TestProxyReadViewController()
+        controller.loadViewIfNeeded()
+        controller.textDidChange(nil)
+        controller.proxy.keyboardType = .emailAddress
+
+        controller.textDidChange(nil)
+
+        #expect(controller.keyboardTypesAtTraitChange == [.emailAddress])
+        #expect(controller.oldKeyboardType == .emailAddress)
+    }
 }
 
 // MARK: - Test Helpers
@@ -84,4 +139,10 @@ private final class TestProxyReadViewController: BaseKeyboardViewController {
     }
 
     override func updateKeyboardType() {}
+
+    private(set) var keyboardTypesAtTraitChange: [UIKeyboardType?] = []
+
+    override func inputTraitsDidChange() {
+        keyboardTypesAtTraitChange.append(textDocument.keyboardType)
+    }
 }

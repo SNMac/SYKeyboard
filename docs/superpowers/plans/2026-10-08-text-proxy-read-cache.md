@@ -534,7 +534,7 @@ git commit -m "refactor: #181 - 콜백 범위 동안 프록시 값을 한 번만
 - Consumes: Task 1의 `CachingTextDocumentProxy`, `CountingTextDocumentProxy`
 - Produces: `BaseKeyboardViewController.textDocument: CachingTextDocumentProxy` (`final public private(set) lazy var`). Task 3이 하위 VC에서 쓴다.
 
-- [ ] **Step 1: 콜백 테스트 작성**
+- [x] **Step 1: 콜백 테스트 작성**
 
 `BaseKeyboardViewControllerProxyReadTests` struct 안 마지막 테스트 뒤에 추가:
 
@@ -607,7 +607,7 @@ git commit -m "refactor: #181 - 콜백 범위 동안 프록시 값을 한 번만
 
 (Step 4에서 이 줄도 `textDocument.keyboardType`으로 바꾼다. 지금은 `textDocument`가 없어 컴파일되지 않으므로 RED 단계에서는 `textDocumentProxy`로 둔다.)
 
-- [ ] **Step 2: 테스트 실패 확인**
+- [x] **Step 2: 테스트 실패 확인**
 
 Run:
 ```sh
@@ -618,7 +618,9 @@ xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
 ```
 Expected: `testTextDidChangeReadsEachProxyValueAtMostOnce`, `testTextWillChangeReadsEachProxyValueAtMostOnce` FAIL(앞 문맥 2회 이상). `testTextDidChangeRereadsValuesReadInTextWillChange`는 지금도 1회 이상 읽으므로 기대값 1과 다르면 FAIL, `testKeyboardTypeChangeCallsTraitHookOnceWithNewValue`는 기존 동작 보존 확인용이라 PASS. 실제 결과를 이 step에 적는다.
 
-- [ ] **Step 3: `textDocument` 프로퍼티 추가**
+결과: 첫 실행은 병렬 클론에서 호스트 앱이 뜨지 않아 10분 넘게 매달렸다(클론 화면 홈, `launchctl`에 `SYKeyboard` 없음 — 환경 문제). 중단 후 기준 시뮬레이터(`id=82146144-24DE-4F91-B25D-23D147A91142`)를 부팅하고 `-parallel-testing-enabled NO`로 다시 실행. `testTextDidChangeReadsEachProxyValueAtMostOnce`(allSatisfy·앞 문맥·keyboardType), `testTextWillChangeReadsEachProxyValueAtMostOnce`(allSatisfy·앞 문맥), `testTextDidChangeRereadsValuesReadInTextWillChange` FAIL, `testKeyboardTypeChangeCallsTraitHookOnceWithNewValue`와 기존 3개 PASS.
+
+- [x] **Step 3: `textDocument` 프로퍼티 추가**
 
 `final public lazy var oldTextContentType ...` 줄(L51) 바로 아래에 추가:
 
@@ -629,7 +631,7 @@ Expected: `testTextDidChangeReadsEachProxyValueAtMostOnce`, `testTextWillChangeR
     }
 ```
 
-- [ ] **Step 4: 프록시 접근 치환**
+- [x] **Step 4: 프록시 접근 치환**
 
 주석 줄(`//`, `///`로 시작)은 건드리지 않고 코드의 `textDocumentProxy.`만 바꾼다.
 
@@ -651,7 +653,7 @@ sed -i '' -E 's/keyboardTypesAtTraitChange\.append\(textDocumentProxy\.keyboardT
 
 확인: `grep -n "textDocumentProxy" "$F"` 결과가 주석 줄과 Step 3의 `self.textDocumentProxy` 한 줄뿐이어야 한다.
 
-- [ ] **Step 5: 콜백 본문을 범위로 감싸기**
+- [x] **Step 5: 콜백 본문을 범위로 감싸기**
 
 `textWillChange`:
 
@@ -736,7 +738,7 @@ sed -i '' -E 's/keyboardTypesAtTraitChange\.append\(textDocumentProxy\.keyboardT
 
 본문은 기존과 같고 `textDocumentProxy` → `textDocument`와 들여쓰기만 바뀐다. `git diff -w`로 들여쓰기 외 차이가 위 두 가지뿐인지 확인한다.
 
-- [ ] **Step 6: 테스트 통과 확인**
+- [x] **Step 6: 테스트 통과 확인**
 
 Step 2와 같은 명령(`task2-green.log`). Expected: 7 tests passed. 이어서 삭제·조합·undo 회귀를 좁게 확인:
 
@@ -750,7 +752,9 @@ xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
 ```
 Expected: 모두 통과. 개수를 이 step에 적는다.
 
-- [ ] **Step 7: 계획 문서 체크와 결과 기록 후 커밋**
+결과: GREEN과 회귀 suite를 한 명령으로 실행(기준 시뮬레이터, 병렬 끔). `Test run with 49 tests in 4 suites passed`, `BaseKeyboardViewControllerProxyReadTests` 7개 포함. `.xcresult`: `~/Library/Developer/Xcode/DerivedData/SYKeyboard-hgprdtyustcuukabeovkjzrtclhy/Logs/Test/Test-SYKeyboard-2026.10.08_18-51-45-+0900.xcresult`, 추출: `grep "Test run with" task2-green.log`. `git diff -w`로 콜백 본문 차이가 `textDocumentProxy`→`textDocument`와 범위 감싸기뿐임을 확인.
+
+- [x] **Step 7: 계획 문서 체크와 결과 기록 후 커밋**
 
 ```sh
 git add Modules/SYKeyboardCore/Presentation/ViewController/Bases/BaseKeyboardViewController.swift \
