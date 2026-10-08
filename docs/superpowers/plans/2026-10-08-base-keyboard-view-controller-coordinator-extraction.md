@@ -2438,3 +2438,12 @@ EOF
 제목: `Refactor/#184 BaseKeyboardViewController에서 후보 선택·클립보드·전체 접근 안내를 별도 타입으로 추출`
 
 본문은 `.github/pull_request_template.md`를 따른다. 연관된 이슈 `- #184`. UI 변경이 없으므로 `## 📸 스크린샷` 절은 표까지 통째로 뺀다. 검증 항목에 Task 5의 실제 명령·결과·미확인 항목을 적는다. 본문에 범위 물결표가 있으면 `\~`. PR 생성과 push는 사용자가 지시할 때만 한다.
+
+## 최종 리뷰 반영 (2026-10-08)
+
+브랜치 전체 리뷰(Critical 0, Important 0, Minor 4) 뒤 사용자 결정으로 Minor 1·2·4를 반영했다.
+
+- Minor 1: `replaceSelectedText` 위 빈 줄 2개 → 1개.
+- Minor 2: `SuggestionSelectionHost`의 `generalSuggestionBaseText`/`learnableInputBuffer` 요구사항을 `suggestionBaseText`/`learnableWordText`로 바꾸고, VC의 두 계산 프로퍼티는 Cursor Context Suggestions `private extension`으로 되돌린 뒤 Host 채택 extension에서 한 줄씩 전달한다. 이로써 Host 요구사항은 모두 "VC의 private 멤버와 다른 이름으로 전달" 규칙을 따른다. Task 4의 Interfaces 블록에 적힌 옛 이름 두 개는 이 메모가 대체한다.
+- Minor 4: `ClipboardHistoryCoordinatorTests.testReleasedHostIsIgnored`에 `pasteboardDidChange()` 호출 뒤 런루프 한 틱을 돌리고 패널이 비어 있는지 확인하는 단언 추가.
+- Minor 3(고정 테스트가 실제 App Group 저장소에 기록 후 삭제)은 VC의 `clipboardHistoryStore`가 고정 생성이라 주입 없이 고칠 수 없어 반영하지 않았다. PR 본문에 남긴다.

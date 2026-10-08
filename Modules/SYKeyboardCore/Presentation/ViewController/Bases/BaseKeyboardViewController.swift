@@ -41,11 +41,6 @@ open class BaseKeyboardViewController: UIInputViewController {
     /// 전체 접근 허용 안내 오버레이. Full Access가 꺼져 있고 사용자가 닫지 않았을 때만 만든다
     private lazy var requestFullAccessOverlayView = RequestFullAccessOverlayView()
 
-    /// 자동완성 후보 삭제 확인 오버레이. 처음 길게 누를 때 만든다
-    private var suggestionRemovalConfirmView: DeleteConfirmOverlayView?
-    /// 삭제 확인을 기다리는 자동완성 단어
-    private var pendingSuggestionRemovalWord: String?
-
     final public lazy var oldKeyboardType: UIKeyboardType? = textDocument.keyboardType
     /// 마지막으로 확인한 `textContentType`. `inputTraitsDidChange()` 판정에 쓰입니다
     final public lazy var oldTextContentType: UITextContentType? = textDocument.textContentType
@@ -143,8 +138,6 @@ open class BaseKeyboardViewController: UIInputViewController {
     /// `resetInputBuffer` 래핑 메서드를 통해 조작합니다.
     private var inputBuffer: String = ""
     private var smartQuoteState = KeyboardSmartQuoteState()
-    /// `textWillChange`에서 리셋 직전에 떠 두는 입력 상태. 바로 다음 `textDidChange`에서 전송 여부를 판단한 뒤 비운다
-    private var pendingSentTextSnapshot: SentTextSnapshot?
     /// 버퍼가 빈 상태에서 첫 글자를 넣기 직전의 커서 앞 문맥(최대 256자). 후보 기준 텍스트와 조각 판정에 쓴다
     private var inputBufferLeadingContext: String?
 
@@ -181,15 +174,11 @@ open class BaseKeyboardViewController: UIInputViewController {
     private var currentTextInputIdentifier: ObjectIdentifier?
     /// host text input 변경 hook에 마지막으로 전달한 식별자입니다.
     private var lastNotifiedTextInputIdentifier: ObjectIdentifier?
-    /// host 입력 변경 callback에서 마지막으로 확인한 자동 수정 설정입니다.
-    private var currentAutocorrectionType: UITextAutocorrectionType?
-    /// host 입력 변경 callback에서 마지막으로 확인한 수식 자동완성 허용 상태입니다.
-    private var isMathExpressionCompletionAllowed = true
     /// suggestion bar 전체를 숨겨야 하는지 여부
     private var shouldHideSuggestionBar: Bool {
         return KeyboardPresentationStatePolicy.shouldHideSuggestionBar(
             isPredictiveTextEnabled: keyboardSettingsManager.isPredictiveTextEnabled,
-            autocorrectionType: currentAutocorrectionType,
+            autocorrectionType: suggestionSelectionCoordinator.currentAutocorrectionType,
             currentKeyboard: currentKeyboard,
             isUndoRedoEnabled: keyboardSettingsManager.isUndoRedoEnabled,
             isClipboardHistoryEnabled: isClipboardControlAvailable
@@ -238,6 +227,13 @@ open class BaseKeyboardViewController: UIInputViewController {
     }()
     /// 자동완성 툴바
     private lazy var suggestionBarView = keyboardView.suggestionBarView
+    /// 후보 탭 처리·trait 동기화·전송 기록·후보 삭제 확인을 맡는다. `SuggestionSelectionHost` 채택은 파일 끝의 extension에 있다
+    private lazy var suggestionSelectionCoordinator = SuggestionSelectionCoordinator(
+        suggestionController: suggestionController,
+        suggestionBarView: suggestionBarView,
+        keyboardSettingsManager: keyboardSettingsManager,
+        host: self
+    )
     /// 키보드 수평 스택
     private lazy var keyboardHStackView = keyboardView.keyboardHStackView
     /// 한 손 키보드 해제 버튼(오른손 모드)
@@ -341,7 +337,7 @@ open class BaseKeyboardViewController: UIInputViewController {
         // 사용자 설정을 SuggestionController에 전달 — 엔진 생성은 첫 표시 이후로 지연
         suggestionController.isTextReplacementEnabled = keyboardSettingsManager.isTextReplacementEnabled
         suggestionController.isPredictiveTextEnabled = keyboardSettingsManager.isPredictiveTextEnabled
-        suggestionController.isShowMathResultsEnabled = shouldShowMathResults()
+        suggestionController.isShowMathResultsEnabled = suggestionSelectionCoordinator.shouldShowMathResults()
 
         if KeyboardSuggestionSelectionPolicy.shouldStartLexiconLoadBeforeFirstAppearance(
             isTextReplacementEnabled: keyboardSettingsManager.isTextReplacementEnabled
@@ -412,13 +408,13 @@ open class BaseKeyboardViewController: UIInputViewController {
                 lastNotifiedTextInputIdentifier = inputIdentifier
                 textInputDidChange(textInput)
             }
-            synchronizeTextInputTraits()
+            suggestionSelectionCoordinator.synchronizeTextInputTraits()
             synchronizeDeleteInteractionInputIdentifier(textInput)
             undoRedoSession.prepareForTextWillChange(
                 inputIdentifier: textInputIdentifier(for: textInput),
                 context: currentTextContextSnapshot()
             )
-            pendingSentTextSnapshot = makeSentTextSnapshot()
+            suggestionSelectionCoordinator.captureSentTextSnapshot()
             resetInputBuffer()
             updateKeyboardType()
             updateReturnButtonType()
@@ -434,10 +430,10 @@ open class BaseKeyboardViewController: UIInputViewController {
         logger.debug("textDidChange")
         // 보류된 삭제를 이어 가며 프록시에 쓰면 캐시가 비워져 그 뒤 읽기는 삭제가 반영된 값을 본다
         textDocument.withReadCaching {
-            synchronizeTextInputTraits()
+            suggestionSelectionCoordinator.synchronizeTextInputTraits()
             synchronizeDeleteInteractionInputIdentifier(textInput)
             // `textWillChange`에서 떠 둔 스냅샷과 지금 문맥을 비교해 전송으로 비워졌으면 기록한다
-            recordSentTextIfNeeded()
+            suggestionSelectionCoordinator.recordSentTextIfNeeded()
             let currentTextContext = currentTextContextSnapshot()
             if KeyboardGesturePolicy.shouldPlayCursorDragHapticOnTextDidChange(
                 isPrimaryCursorDragging: isPrimaryCursorDragging,
@@ -489,12 +485,12 @@ open class BaseKeyboardViewController: UIInputViewController {
         KeyboardDiagnostics.log("keyboard will disappear")
         stopRepeatInputTracking()
         clipboardHistoryCoordinator.closePanelIfNeeded()
-        hideSuggestionRemovalConfirmation()
+        suggestionSelectionCoordinator.hideSuggestionRemovalConfirmation()
         currentTextInputIdentifier = nil
         lastNotifiedTextInputIdentifier = nil
         undoRedoSession.removeAll()
         updateUndoRedoControls()
-        pendingSentTextSnapshot = nil
+        suggestionSelectionCoordinator.discardSentTextSnapshot()
         resetInputBuffer()
         suggestionController.saveNGramData()
     }
@@ -932,6 +928,16 @@ extension BaseKeyboardViewController {
         updateUndoRedoControls()
     }
 
+    /// 선택 영역을 `insertText`로 대치하고 `inputBuffer`와 undo 기록을 맞춘다. 후보 선택과 수식 결과 대치가 쓴다
+    func replaceSelectedText(_ selectedText: String, with insertText: String) {
+        captureInputBufferLeadingContextIfNeeded()
+        textDocument.insertText(insertText)
+        inputBuffer.append(insertText)
+        recordUndoRedoChange(
+            deletedText: selectedText,
+            insertedText: insertText
+        )
+    }
 }
 
 // MARK: - Text Proxy Wrapper Helper Methods
@@ -1006,8 +1012,8 @@ private extension BaseKeyboardViewController {
     func setDelegates() {
         textInteractionGestureController.delegate = self
         switchGestureController.delegate = self
-        suggestionController.delegate = self
-        suggestionBarView.suggestionDelegate = self
+        suggestionController.delegate = suggestionSelectionCoordinator
+        suggestionBarView.suggestionDelegate = suggestionSelectionCoordinator
         clipboardHistoryPanelView.delegate = clipboardHistoryCoordinator
         clipboardHistoryPanelView.imageStore = clipboardHistoryStore?.imageStore
     }
@@ -1476,7 +1482,7 @@ private extension BaseKeyboardViewController {
         let shouldHideSuggestions = KeyboardPresentationStatePolicy.shouldHideSuggestionButtons(
             isSuggestionBarHidden: shouldHideBar,
             isPredictiveTextEnabled: keyboardSettingsManager.isPredictiveTextEnabled,
-            autocorrectionType: currentAutocorrectionType
+            autocorrectionType: suggestionSelectionCoordinator.currentAutocorrectionType
         )
 
         suggestionBarView.isHidden = shouldHideBar
@@ -1602,7 +1608,7 @@ extension BaseKeyboardViewController {
             if let action = suggestionController.mathResultAction(
                 at: 1,
                 selectedText: textDocument.selectedText
-            ), applyMathResultSuggestionAction(action) {
+            ), suggestionSelectionCoordinator.applyMathResultSuggestionAction(action) {
                 // 수식 action을 적용한 경우 일반 텍스트 대치를 건너뜁니다.
             } else {
                 if let replacement = suggestionController.attemptTextReplacement(
@@ -2046,7 +2052,7 @@ private extension BaseKeyboardViewController {
     }
 
     func updateSuggestionsForCurrentContext() {
-        suggestionController.isShowMathResultsEnabled = shouldShowMathResults()
+        suggestionController.isShowMathResultsEnabled = suggestionSelectionCoordinator.shouldShowMathResults()
 
         let selectedText = textDocument.selectedText
         let action = KeyboardSuggestionSelectionPolicy.suggestionUpdateAction(
@@ -2168,52 +2174,6 @@ private extension BaseKeyboardViewController {
                 inputBufferLeadingContext
             )
         )
-    }
-}
-
-// MARK: - Sent Text Recording
-
-/// 전송 판정과 기록에 쓰는 `textWillChange` 시점의 입력 상태
-private struct SentTextSnapshot {
-    let inputBuffer: String
-    let sentenceWords: [String]
-    let documentIdentifier: UUID?
-}
-
-private extension BaseKeyboardViewController {
-    /// 기록하지 않은 입력이 있을 때만 스냅샷을 만든다
-    func makeSentTextSnapshot() -> SentTextSnapshot? {
-        let buffer = learnableInputBuffer
-        guard buffer.contains(where: { !$0.isWhitespace }) else { return nil }
-        return SentTextSnapshot(
-            inputBuffer: buffer,
-            sentenceWords: suggestionController.sentenceWordsSnapshot(),
-            documentIdentifier: currentDocumentIdentifier()
-        )
-    }
-
-    /// 입력창이 전송으로 비었으면 스냅샷의 마지막 단어까지 기록하고 문장을 끝낸다
-    func recordSentTextIfNeeded() {
-        guard let snapshot = pendingSentTextSnapshot else { return }
-        pendingSentTextSnapshot = nil
-        guard KeyboardSentTextDetectionPolicy.isSentAfterTextChange(
-            documentIdentifierBeforeChange: snapshot.documentIdentifier,
-            documentIdentifierAfterChange: currentDocumentIdentifier(),
-            beforeInput: textDocument.documentContextBeforeInput,
-            afterInput: textDocument.documentContextAfterInput,
-            selectedText: textDocument.selectedText,
-            returnKeyType: textDocument.returnKeyType
-        ) else { return }
-
-        suggestionController.endSentence(
-            inputBuffer: snapshot.inputBuffer,
-            restoringSentenceWords: snapshot.sentenceWords
-        )
-    }
-
-    /// 지금 입력창의 문서 식별자. 키보드가 처음 뜰 때나 입력창이 바뀌는 순간 nil일 수 있다
-    func currentDocumentIdentifier() -> UUID? {
-        return textDocument.documentIdentifier
     }
 }
 
@@ -2724,260 +2684,26 @@ private extension BaseKeyboardViewController {
     }
 }
 
-// MARK: - SuggestionControllerDelegate
+// MARK: - SuggestionSelectionHost
 
-extension BaseKeyboardViewController: SuggestionControllerDelegate {
-    final func suggestionController(_ controller: SuggestionController, didUpdateCurrentWord currentWord: String?, suggestions: [String]) {
-        if controller.currentMode == .mathExpression {
-            suggestionBarView.updateSuggestions(
-                currentWord: nil,
-                suggestions: suggestions
-            )
-        } else {
-            // 길게 눌러 삭제할 수 있는 칸만 medium으로 표시한다. 삭제가 막힌 미리보기에서는 표시도 하지 않는다
-            let removableIndices = BaseKeyboardViewController.isPreview ? IndexSet() : controller.removableBarIndices
-            suggestionBarView.updateSuggestions(
-                currentWord: currentWord,
-                suggestions: suggestions,
-                removableIndices: removableIndices
-            )
-        }
+extension BaseKeyboardViewController: SuggestionSelectionHost {
+    var currentInputBuffer: String { inputBuffer }
+    var suggestionBaseText: String { generalSuggestionBaseText }
+    var learnableWordText: String { learnableInputBuffer }
+    var overlayContainerView: UIView { view }
 
-        updateSuggestionPreviewHighlight()
-    }
-}
-
-// MARK: - SuggestionBarDelegate
-
-extension BaseKeyboardViewController: SuggestionBarDelegate {
-    final func suggestionBar(_ bar: SuggestionBarView, didSelectSuggestionAt index: Int) {
-        cancelPendingDeleteInteractions()
-        if handleMathResultSuggestion(at: index) { return }
-        if handleSelectedTextSuggestion(at: index) { return }
-        if handleNGramSuggestion(at: index) { return }
-        if handleCurrentWordConfirmationIfNeeded(at: index) { return }
-        handleInputBufferSuggestion(at: index)
+    func replaceTextWithSmartSpacing(deleteCount: Int, insert text: String) {
+        replaceTextWithSmartInsertDeleteSpacing(deleteCount: deleteCount, insert: text)
     }
 
-    final func suggestionBar(_ bar: SuggestionBarView, shouldBeginRemovalAt index: Int) -> Bool {
-        guard !BaseKeyboardViewController.isPreview,
-              let word = suggestionController.removableSuggestionText(atBarIndex: index) else { return false }
-        showSuggestionRemovalConfirmation(for: word)
-        return true
+    func smartSpacedText(deleteCount: Int, insert text: String) -> String {
+        textWithSmartInsertDeleteLeadingSpace(deleteCount: deleteCount, insert: text)
     }
 
-    final func suggestionBarDidTapUndo(_ bar: SuggestionBarView) {
-        performUndo()
-    }
-
-    final func suggestionBarDidTapRedo(_ bar: SuggestionBarView) {
-        performRedo()
-    }
-
-    final func suggestionBarDidTapClipboard(_ bar: SuggestionBarView) {
-        // 미리보기는 실제 키보드와 같은 모습을 보여주는 것이 목적이라 버튼을 비활성으로 만들지 않고,
-        // 패널만 열지 않는다. undo/redo가 미리보기에서 회색인 것은 세션이 비어 canUndo가 false이기 때문이다
-        guard !BaseKeyboardViewController.isPreview else { return }
-        clipboardHistoryCoordinator.togglePanel()
-    }
-}
-
-private extension BaseKeyboardViewController {
-    func synchronizeTextInputTraits() {
-        currentAutocorrectionType = textDocument.autocorrectionType
-
-        if #available(iOS 18.0, *) {
-            isMathExpressionCompletionAllowed =
-                textDocument.mathExpressionCompletionType != .no
-        } else {
-            isMathExpressionCompletionAllowed = true
-        }
-    }
-
-    func shouldShowMathResults() -> Bool {
-        return KeyboardPresentationStatePolicy.shouldShowMathResults(
-            isSettingEnabled: keyboardSettingsManager.isShowMathResultsEnabled,
-            isHostCompletionAllowed: isMathExpressionCompletionAllowed
-        )
-    }
-
-    func handleSelectedTextSuggestion(at index: Int) -> Bool {
-        guard let selectedText = textDocument.selectedText,
-              !selectedText.isEmpty else { return false }
-
-        if index == 0 {
-            // 현재 선택된 단어 확정, 후보 비우기
-            suggestionController.clearSuggestions()
-            return true
-        }
-
-        let suggestionIndex = index - 1
-        guard suggestionIndex >= 0,
-              let result = suggestionController.selectSuggestion(
-                at: suggestionIndex,
-                baseText: selectedText
-              ) else { return true }
-
-        let insertText = textWithSmartInsertDeleteLeadingSpace(
-            deleteCount: 0,
-            insert: result.insertText
-        )
-
-        replaceSelectedText(selectedText, with: insertText)
-
-        suggestionDidApply()
-        updateSuggestions()
-        return true
-    }
-
-    func handleMathResultSuggestion(at index: Int) -> Bool {
-        guard suggestionController.currentMode == .mathExpression else { return false }
-
-        guard let action = suggestionController.mathResultAction(
-            at: index,
-            selectedText: textDocument.selectedText
-        ) else { return true }
-        guard applyMathResultSuggestionAction(action) else { return true }
-
-        if case .confirmOriginal = action {
-            return true
-        } else {
-            suggestionDidApply()
-            updateSuggestions()
-        }
-        return true
-    }
-
-    @discardableResult
-    func applyMathResultSuggestionAction(
-        _ action: MathResultSuggestionAction
-    ) -> Bool {
-        switch action {
-        case .confirmOriginal:
-            suggestionController.clearSuggestions()
-        case .insertResult(let text):
-            insertText(text)
-        case .replaceExpression(let deleteCount, let insertText):
-            replaceText(deleteCount: deleteCount, insert: insertText)
-        case .replaceSelection(let text):
-            guard let selectedText = textDocument.selectedText,
-                  !selectedText.isEmpty else { return false }
-            replaceSelectedText(selectedText, with: text)
-        }
-        return true
-    }
-
-    func replaceSelectedText(_ selectedText: String, with insertText: String) {
-        captureInputBufferLeadingContextIfNeeded()
-        textDocument.insertText(insertText)
-        inputBuffer.append(insertText)
-        recordUndoRedoChange(
-            deletedText: selectedText,
-            insertedText: insertText
-        )
-    }
-
-    func handleNGramSuggestion(at index: Int) -> Bool {
-        guard suggestionController.currentMode == .nGram else { return false }
-        guard let word = suggestionController.nGramSuggestionText(at: index) else { return true }
-
-        if KeyboardSuggestionSelectionPolicy.shouldInsertLeadingSpaceBeforeNGramSuggestion(
-            baseText: generalSuggestionBaseText
-        ) {
-            insertText(" ")
-        }
-
-        insertText(word)
-
-        suggestionDidApply()
-
-        suggestionController.updateSuggestionsAfterNGramSelection(
-            baseText: generalSuggestionBaseText,
-            textReplacementBaseText: inputBuffer
-        )
-        return true
-    }
-
-    func handleCurrentWordConfirmationIfNeeded(at index: Int) -> Bool {
-        guard index == 0 else { return false }
-
-        let currentWord = KeyboardSuggestionSelectionPolicy.currentWordForConfirmation(
-            inputBuffer: learnableInputBuffer
-        )
-        if !currentWord.isEmpty {
-            suggestionController.learnWord(currentWord)
-            suggestionController.recordWord(currentWord)
-        }
-        suggestionController.clearSuggestions()
-        return true
-    }
-
-    func handleInputBufferSuggestion(at index: Int) {
-        let suggestionIndex = index - 1
-        guard let result = suggestionController.selectSuggestion(
-            at: suggestionIndex,
-            baseText: generalSuggestionBaseText,
-            textReplacementBaseText: inputBuffer
-        ) else { return }
-
-        replaceTextWithSmartInsertDeleteSpacing(
-            deleteCount: result.deleteCount,
-            insert: result.insertText
-        )
-
-        suggestionController.recordWord(result.insertText)
-
-        suggestionDidApply()
-        updateSuggestions()
-    }
-}
-
-// MARK: - Suggestion Removal
-
-private extension BaseKeyboardViewController {
-    func showSuggestionRemovalConfirmation(for word: String) {
-        let overlay = suggestionRemovalConfirmView ?? makeSuggestionRemovalConfirmView()
-        pendingSuggestionRemovalWord = word
-        overlay.update(
-            title: String(localized: "'\(word)'을(를) 자동완성에서 삭제할까요?", bundle: SYKBDAssets.bundle),
-            message: String(localized: "다시 입력하면 다시 학습됩니다.", bundle: SYKBDAssets.bundle)
-        )
-        // 나중에 붙은 오버레이보다 위에 보이도록 매번 앞으로 가져온다
-        view.bringSubviewToFront(overlay)
-        overlay.isHidden = false
-        FeedbackManager.shared.playHaptic()
-    }
-
-    func confirmSuggestionRemoval() {
-        guard let word = pendingSuggestionRemovalWord else { return }
-        hideSuggestionRemovalConfirmation()
-        suggestionController.removeSuggestionWord(word)
-    }
-
-    func hideSuggestionRemovalConfirmation() {
-        pendingSuggestionRemovalWord = nil
-        suggestionRemovalConfirmView?.isHidden = true
-    }
-
-    /// 키보드 전체를 덮어 확인하는 동안 키 입력을 막는다
-    func makeSuggestionRemovalConfirmView() -> DeleteConfirmOverlayView {
-        let overlay = DeleteConfirmOverlayView()
-        overlay.isHidden = true
-        overlay.onCancel = { [weak self] in self?.hideSuggestionRemovalConfirmation() }
-        overlay.onConfirm = { [weak self] in self?.confirmSuggestionRemoval() }
-        view.addSubview(overlay)
-
-        overlay.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([
-            overlay.topAnchor.constraint(equalTo: view.topAnchor),
-            overlay.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            overlay.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            overlay.bottomAnchor.constraint(equalTo: view.bottomAnchor)
-        ])
-
-        suggestionRemovalConfirmView = overlay
-        return overlay
-    }
+    func refreshSuggestionPreviewHighlight() { updateSuggestionPreviewHighlight() }
+    func undoLastEdit() { performUndo() }
+    func redoLastEdit() { performRedo() }
+    func toggleClipboardPanel() { clipboardHistoryCoordinator.togglePanel() }
 }
 
 // MARK: - ClipboardHistoryHost

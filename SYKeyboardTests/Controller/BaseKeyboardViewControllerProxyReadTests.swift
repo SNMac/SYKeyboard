@@ -49,8 +49,12 @@ struct BaseKeyboardViewControllerProxyReadTests {
         controller.loadViewIfNeeded()
         controller.proxy.resetReadCounts()
 
+        // 후보 갱신 알림은 production 연결(`suggestionBarView.suggestionDelegate`)이 가리키는 Coordinator가 받는다.
         // 넘기는 controller는 표시 분기에만 쓰인다. 하이라이트는 VC 자신의 controller(기본 nGram 모드)를 본다
-        controller.suggestionController(
+        let bar = (controller.view as! KeyboardView).suggestionBarView
+        let suggestionDelegate = bar.suggestionDelegate as? SuggestionControllerDelegate
+        #expect(suggestionDelegate != nil)
+        suggestionDelegate?.suggestionController(
             SuggestionController(),
             didUpdateCurrentWord: "안녕",
             suggestions: ["안녕하세요"]

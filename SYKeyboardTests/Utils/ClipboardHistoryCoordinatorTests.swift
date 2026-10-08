@@ -146,6 +146,9 @@ struct ClipboardHistoryCoordinatorTests {
         coordinator.synchronizeIfNeeded()
         coordinator.hostDidBecomeActive()
         coordinator.clipboardImageDidRecord()
+        // pasteboard 변경 알림은 다음 런루프에서 처리하므로 한 틱 돌린 뒤 확인한다
+        coordinator.pasteboardDidChange()
+        RunLoop.main.run(until: Date(timeIntervalSinceNow: 0.05))
 
         #expect(coordinator.isPanelVisible == false)
         #expect(fixture.panel.items.isEmpty)
