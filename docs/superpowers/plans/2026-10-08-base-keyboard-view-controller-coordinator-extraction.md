@@ -68,7 +68,7 @@ Host 프로토콜의 이름 규칙: VC의 `private` 메서드를 감싸는 요�
 - Consumes: `BaseKeyboardViewController.init(language:)`, `textDidChange(_:)`, `textWillChange(_:)`, `KeyboardView.suggestionBarView`, `SuggestionBarView.suggestionDelegate`, `clipboardHistoryPanelView`, `clipboardHistoryStore`, `CountingTextDocumentProxy`, `TestPrimaryKeyboardView`
 - Produces: Task 3·4가 끝난 뒤 **수정 없이** 통과해야 하는 테스트 5개. 테스트는 Coordinator 타입이나 VC의 `isClipboardPanelVisible`을 직접 참조하지 않는다(옮겨지는 것들이므로)
 
-- [ ] **Step 1: 테스트 파일 작성**
+- [x] **Step 1: 테스트 파일 작성**
 
 ```swift
 //
@@ -239,7 +239,7 @@ private final class TestBehaviorViewController: BaseKeyboardViewController {
 }
 ```
 
-- [ ] **Step 2: 실행해 읽기 횟수 테스트만 실패하는지 확인**
+- [x] **Step 2: 실행해 읽기 횟수 테스트만 실패하는지 확인**
 
 ```sh
 cd /Users/macmillan/Projects/XcodeProjects/SNMac/SYKeyboard/SYKeyboard
@@ -254,13 +254,13 @@ Expected: 4개 PASS, `testMathResultSuggestionTapContextReadCount` 1개 FAIL. �
 
 다른 테스트가 실패하면 **production 코드를 고치지 않는다.** 테스트가 현재 동작을 잘못 적은 것이므로 로그에서 실제 값을 확인해 테스트를 고친다. 예를 들어 `writes`에 `insertText(2)` 외의 쓰기가 있으면 그 값을 기대값으로 적고 테스트 이름을 실제 동작에 맞춘다.
 
-- [ ] **Step 3: 측정값을 테스트에 적고 다시 실행**
+- [x] **Step 3: 측정값을 테스트에 적고 다시 실행**
 
 Step 2 로그의 실제 `contextReadCount` 값(N)으로 `== -1`을 `== N`으로 바꾼다. 주석도 `// 추출 전 측정값(2026-10-08, c68a3a1f): N`으로 바꾼다. 같은 명령을 다시 실행한다.
 
 Expected: 5개 PASS.
 
-- [ ] **Step 4: 커밋**
+- [x] **Step 4: 커밋**
 
 ```sh
 git add SYKeyboardTests/Controller/BaseKeyboardViewControllerSuggestionClipboardBehaviorTests.swift
@@ -286,7 +286,7 @@ EOF
 **Interfaces:**
 - Produces: `extension UIResponder { func openURLThroughResponderChain(_ url: URL) }`, `RequestFullAccessOverlayView.install(in container: UIView, onClose: @escaping () -> Void, onOpenSettings: @escaping (URL) -> Void)`. Task 3의 `ClipboardHistoryHost.openURL`이 `openURLThroughResponderChain`을 쓴다
 
-- [ ] **Step 1: 실패하는 테스트 작성**
+- [x] **Step 1: 실패하는 테스트 작성**
 
 ```swift
 //
@@ -355,7 +355,7 @@ struct RequestFullAccessOverlayViewInstallTests {
 }
 ```
 
-- [ ] **Step 2: 컴파일 실패 확인**
+- [x] **Step 2: 컴파일 실패 확인**
 
 ```sh
 LOG=/private/tmp/claude-501/-Users-macmillan-Projects-XcodeProjects-SNMac-SYKeyboard-SYKeyboard/d06648d3-2f18-46d7-878c-aad816a12ce3/scratchpad/task2-run1.log
@@ -367,7 +367,7 @@ xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
 
 Expected: `error: value of type 'RequestFullAccessOverlayView' has no member 'install'`
 
-- [ ] **Step 3: `UIResponder+Extension.swift` 작성**
+- [x] **Step 3: `UIResponder+Extension.swift` 작성**
 
 ```swift
 //
@@ -395,7 +395,7 @@ extension UIResponder {
 }
 ```
 
-- [ ] **Step 4: `RequestFullAccessOverlayView`에 `install` 추가**
+- [x] **Step 4: `RequestFullAccessOverlayView`에 `install` 추가**
 
 `RequestFullAccessOverlayView.swift`의 `required init?(coder:)` 바로 아래, 클래스 닫는 중괄호 앞에 추가한다.
 
@@ -445,7 +445,7 @@ extension UIResponder {
     }
 ```
 
-- [ ] **Step 5: pbxproj에 `UIResponder+Extension.swift` 등록**
+- [x] **Step 5: pbxproj에 `UIResponder+Extension.swift` 등록**
 
 두 타깃의 membershipExceptions에서 `"SYKeyboardCore/Presentation/Utils/Extensions/String+Extension.swift",` 줄 바로 아래에 다음 줄을 넣는다(현재 284\~286, 387\~389 부근. 두 곳 모두).
 
@@ -461,7 +461,7 @@ grep -c 'Utils/Extensions/UIResponder+Extension.swift' SYKeyboard.xcodeproj/proj
 
 Expected: `2`
 
-- [ ] **Step 6: VC의 Full Access Guide 섹션 교체**
+- [x] **Step 6: VC의 Full Access Guide 섹션 교체**
 
 `BaseKeyboardViewController.swift`에서
 
@@ -496,7 +496,7 @@ grep -n "openURL\b\|setupRequestFullAccessOverlayView" Modules/SYKeyboardCore/Pr
 
 Expected: 출력 없음.
 
-- [ ] **Step 7: 테스트 통과 확인**
+- [x] **Step 7: 테스트 통과 확인**
 
 Step 2의 명령을 다시 실행한다. 이어서 Task 1 suite도 실행한다.
 
@@ -511,7 +511,7 @@ xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
 
 Expected: 8개 PASS, 0 failed.
 
-- [ ] **Step 8: 커밋**
+- [x] **Step 8: 커밋**
 
 ```sh
 git add Modules/SYKeyboardCore/Presentation/Utils/Extensions/UIResponder+Extension.swift \
@@ -544,7 +544,7 @@ EOF
   - `final class ClipboardHistoryCoordinator: NSObject, ClipboardHistoryPanelDelegate` — `init(clipboardHistoryStore:clipboardHistoryPanelView:keyboardSettingsManager:host:)`, `private(set) var isPanelVisible: Bool`, `registerNotificationObservers()`, `synchronizeIfNeeded()`, `closePanelIfNeeded()`, `togglePanel()`
   - Task 4의 `SuggestionSelectionHost.toggleClipboardPanel()`이 VC에서 `clipboardHistoryCoordinator.togglePanel()`로 전달된다. `isPreviewMode`, `refreshSuggestions()`, `interruptPendingDeleteInteractions()`, `insertText(_:)`는 Task 4의 Host와 같은 이름·시그니처로 선언해 VC의 witness 하나가 둘을 만족한다
 
-- [ ] **Step 1: 실패하는 테스트 작성**
+- [x] **Step 1: 실패하는 테스트 작성**
 
 호스트 앱 테스트에서 `UIPasteboard.general.string`을 읽으면 iOS 붙여넣기 권한 알림이 떠 러너가 멈추고, 쓰면 Mac 클립보드를 덮어쓴다(시뮬레이터와 공유). 그래서 fixture는 `lastSeenPasteboardChangeCount`를 현재 `changeCount`로 맞춰 동기화가 읽기를 건너뛰게 하고, host의 `hasFullAccess` 기본값을 `false`로 두어 복사 경로를 막는다. 저장소에서 항목을 읽어야 하는 테스트만 `hasFullAccess = true`로 켠다.
 
@@ -794,7 +794,7 @@ private func makeFixture() -> Fixture {
 }
 ```
 
-- [ ] **Step 2: 컴파일 실패 확인**
+- [x] **Step 2: 컴파일 실패 확인**
 
 ```sh
 LOG=/private/tmp/claude-501/-Users-macmillan-Projects-XcodeProjects-SNMac-SYKeyboard-SYKeyboard/d06648d3-2f18-46d7-878c-aad816a12ce3/scratchpad/task3-run1.log
@@ -806,7 +806,7 @@ xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
 
 Expected: `error: cannot find type 'ClipboardHistoryHost' in scope`
 
-- [ ] **Step 3: `ClipboardHistoryCoordinator.swift` 작성**
+- [x] **Step 3: `ClipboardHistoryCoordinator.swift` 작성**
 
 VC의 `// MARK: - Clipboard History`와 `// MARK: - ClipboardHistoryPanelDelegate` 본문을 옮긴 것이다. 바뀐 부분은 `self.`로 쓰던 VC 멤버가 `host.`로, `isClipboardPanelVisible`이 `isPanelVisible`로, `hasFullAccess`/`viewIfLoaded?.window != nil`/`BaseKeyboardViewController.isPreview`가 host 프로퍼티로 간 것뿐이다.
 
@@ -1086,7 +1086,7 @@ extension ClipboardHistoryCoordinator: ClipboardHistoryPanelDelegate {
 
 주의: 원본 VC 코드에서 `pasteboardDidChange`의 비동기 블록과 `restoreImageToPasteboard`의 비동기 블록은 `self`(VC)를 weak로 잡았다. 여기서는 Coordinator를 weak로 잡고 `host != nil`을 추가로 확인한다. 둘 다 "VC가 사라졌으면 아무 일도 하지 않는다"는 같은 결과다.
 
-- [ ] **Step 4: pbxproj에 `ClipboardHistoryCoordinator.swift` 등록**
+- [x] **Step 4: pbxproj에 `ClipboardHistoryCoordinator.swift` 등록**
 
 두 타깃의 membershipExceptions에서 `SYKeyboardCore/Presentation/Utils/ButtonStateController.swift,` 줄 바로 아래(즉 `Coordinators/HangeulEnglishKeyboardModeCoordinator.swift` 줄 바로 위)에 넣는다. 두 곳 모두.
 
@@ -1102,7 +1102,7 @@ grep -c 'Coordinators/ClipboardHistoryCoordinator.swift' SYKeyboard.xcodeproj/pr
 
 Expected: `2`
 
-- [ ] **Step 5: VC에서 클립보드 섹션을 Coordinator 호출로 교체**
+- [x] **Step 5: VC에서 클립보드 섹션을 Coordinator 호출로 교체**
 
 `BaseKeyboardViewController.swift`를 아래 순서로 고친다.
 
@@ -1167,7 +1167,7 @@ grep -nE "isClipboardPanelVisible|synchronizeClipboardHistoryIfNeeded|closeClipb
 
 Expected: 출력 없음.
 
-- [ ] **Step 6: 테스트 통과 확인**
+- [x] **Step 6: 테스트 통과 확인**
 
 ```sh
 LOG=/private/tmp/claude-501/-Users-macmillan-Projects-XcodeProjects-SNMac-SYKeyboard-SYKeyboard/d06648d3-2f18-46d7-878c-aad816a12ce3/scratchpad/task3-run2.log
@@ -1182,7 +1182,7 @@ xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
 
 Expected: 0 failed. Task 1의 테스트 5개는 **수정 없이** 통과해야 한다. 실패하면 Coordinator의 호출 순서가 VC 원본과 다른 것이므로 Coordinator를 고친다. 테스트를 고치지 않는다.
 
-- [ ] **Step 7: 커밋**
+- [x] **Step 7: 커밋**
 
 ```sh
 git add Modules/SYKeyboardCore/Presentation/Utils/Coordinators/ClipboardHistoryCoordinator.swift \
@@ -1215,7 +1215,7 @@ EOF
   - `protocol SuggestionSelectionHost: AnyObject` — `textDocument`, `currentInputBuffer`, `generalSuggestionBaseText`, `learnableInputBuffer`, `isPreviewMode`, `overlayContainerView`, `insertText(_:)`, `replaceText(deleteCount:insert:)`, `replaceTextWithSmartSpacing(deleteCount:insert:)`, `smartSpacedText(deleteCount:insert:) -> String`, `replaceSelectedText(_:with:)`, `suggestionDidApply()`, `refreshSuggestions()`, `refreshSuggestionPreviewHighlight()`, `undoLastEdit()`, `redoLastEdit()`, `interruptPendingDeleteInteractions()`, `toggleClipboardPanel()`
   - `final class SuggestionSelectionCoordinator: SuggestionControllerDelegate, SuggestionBarDelegate` — `init(suggestionController:suggestionBarView:keyboardSettingsManager:host:)`, `private(set) var currentAutocorrectionType: UITextAutocorrectionType?`, `synchronizeTextInputTraits()`, `shouldShowMathResults() -> Bool`, `captureSentTextSnapshot()`, `recordSentTextIfNeeded()`, `hideSuggestionRemovalConfirmation()`, `@discardableResult applyMathResultSuggestionAction(_:) -> Bool`
 
-- [ ] **Step 1: `FakeSuggestionService` 작성**
+- [x] **Step 1: `FakeSuggestionService` 작성**
 
 ```swift
 //
@@ -1340,7 +1340,7 @@ final class FakeSuggestionService: SuggestionService {
 
 `selectSuggestion(at:baseText:)`(두 인자)는 `SuggestionService`의 프로토콜 extension이 제공하며 `textReplacementBaseText: baseText`로 세 인자 요구사항을 부른다. 가짜는 세 인자 요구사항만 구현하면 되고, Coordinator는 원본 VC와 같은 두 인자 호출을 그대로 쓴다.
 
-- [ ] **Step 2: 실패하는 Coordinator 테스트 작성**
+- [x] **Step 2: 실패하는 Coordinator 테스트 작성**
 
 ```swift
 //
@@ -1671,7 +1671,7 @@ private func makeFixture() -> Fixture {
 
 `CachingTextDocumentProxy`의 `init(proxy:)`는 internal이라 `@testable import`로 쓸 수 있다. `CountingTextDocumentProxy.beforeInput`의 기본값이 `"안녕"`이라 fixture에서 `nil`로 비운다.
 
-- [ ] **Step 3: 컴파일 실패 확인**
+- [x] **Step 3: 컴파일 실패 확인**
 
 ```sh
 LOG=/private/tmp/claude-501/-Users-macmillan-Projects-XcodeProjects-SNMac-SYKeyboard-SYKeyboard/d06648d3-2f18-46d7-878c-aad816a12ce3/scratchpad/task4-run1.log
@@ -1683,7 +1683,7 @@ xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
 
 Expected: `error: cannot find type 'SuggestionSelectionHost' in scope`
 
-- [ ] **Step 4: `SuggestionSelectionCoordinator.swift` 작성**
+- [x] **Step 4: `SuggestionSelectionCoordinator.swift` 작성**
 
 VC의 Sent Text Recording, SuggestionControllerDelegate, SuggestionBarDelegate, 후보 선택 처리 private extension, Suggestion Removal을 옮긴 것이다. `replaceSelectedText`는 VC에 남기고 `host.replaceSelectedText`로 부른다. `currentDocumentIdentifier()`는 `host.textDocument.documentIdentifier`로 바꾼다(같은 KVC 읽기).
 
@@ -2066,7 +2066,7 @@ extension SuggestionSelectionCoordinator: SuggestionBarDelegate {
 
 `handle…` 메서드들은 `host`를 인자로 받는다. 진입점(`suggestionBar(_:didSelectSuggestionAt:)`)에서 한 번 `guard let host`를 통과한 강한 참조를 넘겨, 처리 중간에 host가 사라져 절반만 실행되는 일이 없게 한다.
 
-- [ ] **Step 5: pbxproj에 `SuggestionSelectionCoordinator.swift` 등록**
+- [x] **Step 5: pbxproj에 `SuggestionSelectionCoordinator.swift` 등록**
 
 두 타깃의 membershipExceptions에서 `SYKeyboardCore/Presentation/Utils/Coordinators/HangeulEnglishKeyboardModeCoordinator.swift,` 줄 바로 아래에 넣는다. 두 곳 모두.
 
@@ -2082,7 +2082,7 @@ grep -c 'Coordinators/SuggestionSelectionCoordinator.swift' SYKeyboard.xcodeproj
 
 Expected: `2`
 
-- [ ] **Step 6: VC에서 후보 선택 섹션을 Coordinator 호출로 교체**
+- [x] **Step 6: VC에서 후보 선택 섹션을 Coordinator 호출로 교체**
 
 `BaseKeyboardViewController.swift`를 아래 순서로 고친다.
 
@@ -2192,7 +2192,7 @@ grep -nE "SentTextSnapshot|makeSentTextSnapshot|recordSentTextIfNeeded\(\)$|curr
 
 Expected: 출력 없음.
 
-- [ ] **Step 7: `ProxyReadTests`의 delegate 호출 경로 조정**
+- [x] **Step 7: `ProxyReadTests`의 delegate 호출 경로 조정**
 
 `BaseKeyboardViewControllerProxyReadTests.swift`의 `testNonMathSuggestionUpdateDoesNotReadProxy`에서
 
@@ -2220,7 +2220,7 @@ Expected: 출력 없음.
         )
 ```
 
-- [ ] **Step 8: 테스트 통과 확인**
+- [x] **Step 8: 테스트 통과 확인**
 
 ```sh
 LOG=/private/tmp/claude-501/-Users-macmillan-Projects-XcodeProjects-SNMac-SYKeyboard-SYKeyboard/d06648d3-2f18-46d7-878c-aad816a12ce3/scratchpad/task4-run2.log
@@ -2236,7 +2236,7 @@ xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
 
 Expected: 0 failed. Task 1의 테스트 5개(특히 "수식 후보 탭의 프록시 문맥 읽기 횟수")가 **수정 없이** 통과해야 한다. 읽기 횟수가 달라졌으면 Coordinator가 `host.textDocument`를 원본보다 더 읽거나 덜 읽는 것이다. Coordinator를 고친다.
 
-- [ ] **Step 9: 커밋**
+- [x] **Step 9: 커밋**
 
 ```sh
 git add Modules/SYKeyboardCore/Presentation/Utils/Coordinators/SuggestionSelectionCoordinator.swift \
@@ -2260,7 +2260,7 @@ EOF
 **Files:**
 - Modify: 이 계획 문서(결과 기록). 코드 변경 없음(검증 중 발견한 문제는 원인 Task로 돌아가 고치고 그 Task 커밋에 포함하지 않고 `fix: #184 - …`로 따로 커밋한다)
 
-- [ ] **Step 1: 전체 테스트**
+- [x] **Step 1: 전체 테스트**
 
 ```sh
 LOG=/private/tmp/claude-501/-Users-macmillan-Projects-XcodeProjects-SNMac-SYKeyboard-SYKeyboard/d06648d3-2f18-46d7-878c-aad816a12ce3/scratchpad/task5-test.log
@@ -2271,7 +2271,7 @@ xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
 
 Expected: `Executed N tests, with 0 failures`. N은 기준선 894 + 새 테스트(Task 1: 5, Task 2: 3, Task 3: 8, Task 4: 16) = 926 이상. 실제 값을 이 계획 문서의 Step 아래에 적는다.
 
-- [ ] **Step 2: 4개 scheme 빌드**
+- [x] **Step 2: 4개 scheme 빌드**
 
 ```sh
 S=/private/tmp/claude-501/-Users-macmillan-Projects-XcodeProjects-SNMac-SYKeyboard-SYKeyboard/d06648d3-2f18-46d7-878c-aad816a12ce3/scratchpad
@@ -2285,7 +2285,7 @@ git status --short
 
 Expected: 4개 모두 `** BUILD SUCCEEDED **`. `git status --short`에 `.xcscheme`이 보이면 내용을 확인하고 `RemotePath`만 바뀐 경우 `git checkout -- SYKeyboard.xcodeproj/xcshareddata/xcschemes/<이름>.xcscheme`으로 되돌린다.
 
-- [ ] **Step 3: 정적 확인**
+- [x] **Step 3: 정적 확인**
 
 ```sh
 echo "--- textDocumentProxy 직접 참조 (1줄이어야 함) ---"
@@ -2302,7 +2302,7 @@ grep -nE "lazy var (suggestionSelectionCoordinator|clipboardHistoryCoordinator)"
 
 Expected: 첫 grep은 `BaseKeyboardViewController.swift`의 `return self.textDocumentProxy` 한 줄. 줄 수는 2700 아래(실측값을 기록). 접근 수식어 없는(`internal`) 저장 프로퍼티 수는 기준보다 **1 적어야** 한다(`final var isClipboardPanelVisible` 삭제). 두 Coordinator는 `private lazy var`.
 
-- [ ] **Step 4: 시뮬레이터 확인**
+- [x] **Step 4: 시뮬레이터 확인**
 
 CLAUDE.md의 `iPhone 13 mini / iOS 18.6`에 `HangeulKeyboard` scheme으로 키보드를 설치하고 메모리 `reference-idb-simulator-quirks`의 방법(메시지 더미 대화, 로컬 http 서버의 웹 입력창)으로 아래를 직접 확인한다. 각 항목의 결과를 이 Step 아래에 `- [x] 항목 — 결과`로 적는다.
 
@@ -2316,7 +2316,25 @@ CLAUDE.md의 `iPhone 13 mini / iOS 18.6`에 `HangeulKeyboard` scheme으로 키�
 
 시뮬레이터로 확인할 수 없는 항목은 PR 본문에 "실기기 확인 필요"로 남긴다: 햅틱(후보 삭제 확인 표시 시), 클립보드 이미지 항목 복원(시뮬레이터에서 이미지 복사가 되면 확인).
 
-- [ ] **Step 5: 결과 기록 커밋**
+
+#### Task 5 결과 (2026-10-08, 브랜치 `refactor/#184-extract-suggestion-clipboard-coordinators` @ 419b51a2)
+
+- Step 1 전체 테스트: `xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard -destination 'platform=iOS Simulator,name=iPhone 13 mini,OS=18.6'` → `** TEST SUCCEEDED **`, 1020 passed, 0 failed. 로그 `scratchpad/task5-test.log`
+- Step 2 빌드: SYKeyboard·HangeulKeyboard·EnglishKeyboard·HangeulEnglishKeyboard 모두 `** BUILD SUCCEEDED **`, error 0. 빌드 뒤 `git status --short` 비어 있음(`.xcscheme` 변경 없음)
+- Step 3 정적 확인: `textDocumentProxy` 직접 참조는 `BaseKeyboardViewController.swift:59 return self.textDocumentProxy` 한 줄. VC 3219→2721줄. 접근 수식어 없는 저장 프로퍼티 수 기준 6 → 현재 5(`isClipboardPanelVisible` 삭제). 두 Coordinator는 `private lazy var`
+- Step 4 시뮬레이터(iPhone 13 mini / iOS 18.6, HangeulKeyboard를 `AppleKeyboards` 맨 앞에 두고 Safari의 로컬 http 입력창에서 idb로 조작):
+  - [x] 후보 탭 — 빈 버퍼에서 n-gram 후보 "안녕" 탭 → "안녕"; 다음 단어 후보 "가방" 탭 → "안녕 가방"(앞 공백)
+  - [x] 후보 길게 누르기 — "안녕" 길게 누르면 삭제 확인 오버레이 표시. Cancel/Delete 버튼은 idb 탭에 반응하지 않음(변경 전과 같은 시뮬레이터 제약, 단위 테스트가 취소·확인을 검증). Done으로 키보드를 내렸다 올리면 오버레이 없이 커서 문맥 후보가 뜸
+  - [x] 수식 후보 — "3-1=" 입력 시 후보 `"3-1="`·`3-1=2`(미리보기 하이라이트)·`2`, 1번 탭 → "3-1=2". "2+2=" 뒤 스페이스 → "2+2=4 "
+  - [x] 전송 뒤 NGram 기록 — "ㅊㅌㅋ" 입력 뒤 페이지 버튼으로 입력창을 비우자 `ngram_ko-KR.plist`에 "ㅊㅌㅋ"가 기록되고 첫 단어 후보에 올라옴(메시지 앱 전송 버튼은 idb로 눌리지 않아 같은 콜백 경로인 입력창 비우기로 대체)
+  - [x] 클립보드 패널 — 버튼 탭으로 열림(이미지 1·텍스트 항목 목록, Full Access ON), 텍스트 항목 탭으로 삽입되고 패널 닫힘, 다시 열면 붙여넣은 항목이 맨 위
+  - [x] 다른 앱에서 복사한 뒤 돌아왔을 때 목록 갱신 — 시뮬레이터 미확인, **실기기(iPhone 15 Pro Max, iOS 27.0.1)에서 사용자가 확인**. `pbcopy`(Mac)와 `simctl pbcopy`로 넣은 텍스트가 시뮬레이터 pasteboard에 반영되지 않았고(`simctl pbpaste`가 옛 내용 유지), 입력창 길게 누르기로 편집 메뉴가 뜨지 않아 기기 안 복사도 못 함. 동기화 코드(`ClipboardHistoryPasteboardSynchronizer`)는 바뀌지 않았고 호출 위치·순서만 Coordinator로 옮김
+  - [x] undo 버튼 — "ㅋㅌ" 입력 뒤 undo 탭 → 비워지고 redo 활성
+  - [x] 미리보기 — 메인 앱 '키보드 높이' 화면의 미리보기 키보드에서 클립보드 버튼 탭 → 패널 열리지 않음
+  - [x] 전체 접근 안내 — 시뮬레이터 미확인, **실기기에서 사용자가 확인**(표시·닫기·설정 이동). 설정 앱의 행이 idb 탭에 반응하지 않아 Full Access를 끌 수 없었음. `RequestFullAccessOverlayView.install` 단위 테스트 3개(설치·닫기·설정 URL)와 VC의 한 줄 호출 교체로 대체
+  - [x] 실기기(사용자 확인, 2026-10-08): 햅틱(후보 삭제 확인 표시 시), 클립보드 이미지 항목 복원, 위 2항목. 실기기 확인 전 `KeyboardExtensionLocalStateStore.isClosed`를 임시 코드 빌드로 초기화하고 깨끗한 빌드를 재설치했다
+
+- [x] **Step 5: 결과 기록 커밋**
 
 이 계획 문서의 Task 5 각 Step 아래에 실제 명령 결과(테스트 개수, 빌드 결과, 줄 수, 시뮬레이터 항목별 결과, 미확인 항목과 이유)를 적고 커밋한다.
 
@@ -2344,7 +2362,7 @@ EOF
 
 사실과 다른 문장을 고치는 것이 목적이다. 설계 배경을 길게 쓰지 않는다. 각 파일을 **먼저 읽고** 아래 위치를 찾아 고친다. 줄 번호는 기준 커밋 기준이라 어긋날 수 있다.
 
-- [ ] **Step 1: `CLAUDE.md`**
+- [x] **Step 1: `CLAUDE.md`**
 
 아키텍처 절의 트리에서
 
@@ -2362,7 +2380,7 @@ EOF
 
 "자동완성은 `SuggestionController` 한 곳으로 모인다" 문단의 "`SuggestionBarView`가 표시한다" 뒤에 "후보 탭은 `SuggestionSelectionCoordinator`가 받는다."를 추가한다.
 
-- [ ] **Step 2: `docs/architecture/전체 아키텍처.md`**
+- [x] **Step 2: `docs/architecture/전체 아키텍처.md`**
 
 - 약 60줄 "`SuggestionController`(프로토콜 `SuggestionService`) 보유, `SuggestionBarDelegate`/`SuggestionControllerDelegate` 구현." → "`SuggestionController`(프로토콜 `SuggestionService`) 보유. `SuggestionBarDelegate`/`SuggestionControllerDelegate`는 `SuggestionSelectionCoordinator`가 구현하고 VC는 `SuggestionSelectionHost`로 텍스트 삽입·후보 갱신을 제공한다."
 - 라이프사이클 표의 `viewWillAppear` 행 "클립보드 기록 동기화(`synchronizeClipboardHistoryIfNeeded`)" → "클립보드 기록 동기화(`ClipboardHistoryCoordinator.synchronizeIfNeeded`)".
@@ -2370,22 +2388,22 @@ EOF
 - `textDidChange` 행의 "`recordSentTextIfNeeded`" → "`SuggestionSelectionCoordinator.recordSentTextIfNeeded`".
 - VC 책임 목록이나 디렉터리 설명에 `Coordinators/`가 `HangeulEnglishKeyboardModeCoordinator`만 언급하면 두 Coordinator를 한 줄씩 추가한다.
 
-- [ ] **Step 3: `docs/architecture/자동완성 로직.md`**
+- [x] **Step 3: `docs/architecture/자동완성 로직.md`**
 
 - 약 20줄 흐름도의 `↓ (SuggestionControllerDelegate)` 화살표가 VC를 가리키면 `SuggestionSelectionCoordinator`를 가리키게 바꾸고, 바 갱신 뒤 `host.refreshSuggestionPreviewHighlight()`로 VC의 미리보기 하이라이트를 다시 계산한다고 적는다.
 - §6 "후보 탭 처리 — SuggestionBarDelegate" 첫 문단에 구현 위치를 적는다: "`SuggestionSelectionCoordinator`(`Presentation/Utils/Coordinators/`)가 `SuggestionBarDelegate`를 구현한다. 텍스트 삽입·대치, 적용 훅(`suggestionDidApply`), 후보 갱신은 `SuggestionSelectionHost`로 VC에 요청한다." 1\~5 단계 목록의 함수 이름은 그대로 유효하다(이름을 바꾸지 않았다).
 - 선택 텍스트 대치 설명에 `replaceSelectedText`가 있으면 "VC의 Text Proxy Wrapper에 있다"고 적는다.
 
-- [ ] **Step 4: `docs/architecture/삭제와 실행취소 로직.md`**
+- [x] **Step 4: `docs/architecture/삭제와 실행취소 로직.md`**
 
 약 125줄 "undo/redo 적용(`performUndo`/`performRedo`)과 클립보드 패널 열기(`openClipboardPanel`)도 같은 취소를 먼저 수행한다." → "undo/redo 적용(`performUndo`/`performRedo`)과 클립보드 패널 열기(`ClipboardHistoryCoordinator.openPanel` → `host.interruptPendingDeleteInteractions()`)도 같은 취소를 먼저 수행한다."
 
-- [ ] **Step 5: `docs/architecture/한영 통합 키보드.md`**
+- [x] **Step 5: `docs/architecture/한영 통합 키보드.md`**
 
 - 약 41줄 "클립보드 패널이 열려 있으면(`isClipboardPanelVisible`)" → "클립보드 패널이 열려 있으면(`ClipboardHistoryCoordinator.isPanelVisible`)".
 - 약 225줄 전체 접근 안내 오버레이 설명에서 VC가 설치한다는 문장을 "`BaseKeyboardViewController`가 `viewDidLoad` 마지막에 `RequestFullAccessOverlayView.install(in:onClose:onOpenSettings:)`로 올린다"로 바꾼다.
 
-- [ ] **Step 6: `README.md` 다이어그램**
+- [x] **Step 6: `README.md` 다이어그램**
 
 "전체 구조" flowchart에서
 
@@ -2416,7 +2434,7 @@ EOF
     BaseKeyboardViewController *-- ClipboardHistoryCoordinator: Composition
 ```
 
-- [ ] **Step 7: 물결표 규칙 확인과 커밋**
+- [x] **Step 7: 물결표 규칙 확인과 커밋**
 
 ```sh
 grep -nE '[^\\`]~[^`]' CLAUDE.md README.md docs/architecture/*.md | grep -v "http" || echo "물결표 위반 없음"
@@ -2432,6 +2450,10 @@ EOF
 이미 있던 위반(이번 변경과 무관한 줄)은 고치지 않고 결과에 적는다.
 
 ---
+
+#### Task 6 결과 (2026-10-08)
+
+- 6개 파일 갱신. 물결표 규칙 확인에서 걸린 줄은 모두 이번 변경과 무관한 기존 문장(README 개발 기간, CLAUDE.md 배포 빌드 예, 자동완성 문서의 버전·시간 범위)이라 손대지 않았다.
 
 ## PR
 
