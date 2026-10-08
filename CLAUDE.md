@@ -34,7 +34,7 @@ UIInputViewController
 `smartQuoteRule` 등)를 오버라이드해 언어별 차이만 주입한다. **언어 공통 동작을 하위 VC에 복제하지 말고
 Base에 두거나 Policy로 분리한다.**
 후보 탭 처리·전송 기록·후보 삭제 확인은 `SuggestionSelectionCoordinator`, 클립보드 패널·pasteboard 동기화는
-`ClipboardHistoryCoordinator`가 맡는다. 둘은 `Presentation/Utils/Coordinators/`에 있고 VC를 `weak` Host 프로토콜
+`ClipboardHistoryCoordinator`가 맡는다. 둘은 VC 계층 보조 타입이라 `Presentation/ViewController/Utils/`에 있고 VC를 `weak` Host 프로토콜
 (`SuggestionSelectionHost`, `ClipboardHistoryHost`)로 역참조하며, 프록시는 Host가 노출하는 `textDocument`만 쓴다.
 
 **언어별 입력 로직은 Adapter를 통해 들어온다.**

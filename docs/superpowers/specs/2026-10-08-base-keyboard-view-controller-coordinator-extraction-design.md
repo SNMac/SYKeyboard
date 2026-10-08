@@ -49,8 +49,8 @@ membershipExceptions에 알파벳 순으로 등록한다.
 
 | 파일 | 역할 |
 |---|---|
-| `Modules/SYKeyboardCore/Presentation/Utils/Coordinators/SuggestionSelectionCoordinator.swift` | 후보 탭 처리, 전송 기록, 후보 삭제 확인 오버레이. `SuggestionControllerDelegate`, `SuggestionBarDelegate` 채택 |
-| `Modules/SYKeyboardCore/Presentation/Utils/Coordinators/ClipboardHistoryCoordinator.swift` | 패널 열기·닫기, pasteboard 동기화·복사·이미지 복원, 알림 3개 처리. `ClipboardHistoryPanelDelegate` 채택. selector observer를 위해 `NSObject` 상속 |
+| `Modules/SYKeyboardCore/Presentation/ViewController/Utils/SuggestionSelectionCoordinator.swift` | 후보 탭 처리, 전송 기록, 후보 삭제 확인 오버레이. `SuggestionControllerDelegate`, `SuggestionBarDelegate` 채택 |
+| `Modules/SYKeyboardCore/Presentation/ViewController/Utils/ClipboardHistoryCoordinator.swift` | 패널 열기·닫기, pasteboard 동기화·복사·이미지 복원, 알림 3개 처리. `ClipboardHistoryPanelDelegate` 채택. selector observer를 위해 `NSObject` 상속 |
 | `Modules/SYKeyboardCore/Presentation/Utils/Extensions/UIResponder+Extension.swift` | `openURLThroughResponderChain(_:)`. 클립보드 URL 열기와 설정 이동이 함께 쓴다 |
 | `Modules/SYKeyboardCore/Presentation/View/Components/Overlays/RequestFullAccessOverlayView.swift`(수정) | `install(in:onClose:onOpenSettings:)` 추가. 제약 설치와 버튼 액션 연결을 뷰 안으로 |
 
@@ -270,3 +270,5 @@ production 진입점은 `SuggestionBarView`/`ClipboardHistoryPanelView`의 deleg
 삭제 드래그·반복 삭제·undo/redo 접착 코드는 이 설계의 Host 패턴과 검증 틀을 재사용한다. 그때 §3-1의 `performUndo`, `performRedo`,
 `cancelPendingDeleteInteractions`와 §3-2의 `commitUndoRedoGroupIgnoringCompositionDeferral`은 VC에서 새 Coordinator로 위임하는 한 줄이 되고,
 이 설계의 Coordinator는 바뀌지 않는다.
+
+> 2026-10-08 추가: 두 Coordinator는 VC 계층 보조 타입이라 `Presentation/ViewController/Utils/`로 옮겼고, `CachingTextDocumentProxy`도 `Bases/Utils/`에서 같은 곳으로 옮겼다(PR #187). 본문의 `Utils/Coordinators/` 언급과 pbxproj 등록 위치 설명은 그 전 기준이다.

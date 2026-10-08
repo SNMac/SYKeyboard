@@ -41,8 +41,8 @@
 
 | 구분 | 경로 | 책임 |
 |---|---|---|
-| 생성 | `Modules/SYKeyboardCore/Presentation/Utils/Coordinators/ClipboardHistoryCoordinator.swift` | 패널 열기·닫기, pasteboard 동기화·복사·이미지 복원, 알림 3개. `ClipboardHistoryPanelDelegate` |
-| 생성 | `Modules/SYKeyboardCore/Presentation/Utils/Coordinators/SuggestionSelectionCoordinator.swift` | 후보 탭 처리, trait 동기화, 전송 기록, 후보 삭제 확인 오버레이. `SuggestionControllerDelegate`, `SuggestionBarDelegate` |
+| 생성 | `Modules/SYKeyboardCore/Presentation/ViewController/Utils/ClipboardHistoryCoordinator.swift` | 패널 열기·닫기, pasteboard 동기화·복사·이미지 복원, 알림 3개. `ClipboardHistoryPanelDelegate` |
+| 생성 | `Modules/SYKeyboardCore/Presentation/ViewController/Utils/SuggestionSelectionCoordinator.swift` | 후보 탭 처리, trait 동기화, 전송 기록, 후보 삭제 확인 오버레이. `SuggestionControllerDelegate`, `SuggestionBarDelegate` |
 | 생성 | `Modules/SYKeyboardCore/Presentation/Utils/Extensions/UIResponder+Extension.swift` | `openURLThroughResponderChain(_:)` |
 | 수정 | `Modules/SYKeyboardCore/Presentation/View/Components/Overlays/RequestFullAccessOverlayView.swift` | `install(in:onClose:onOpenSettings:)` |
 | 수정 | `Modules/SYKeyboardCore/Presentation/ViewController/Bases/BaseKeyboardViewController.swift` | 세 영역 삭제, Coordinator 소유, Host 채택 extension |
@@ -532,7 +532,7 @@ EOF
 ### Task 3: `ClipboardHistoryCoordinator` 추출
 
 **Files:**
-- Create: `Modules/SYKeyboardCore/Presentation/Utils/Coordinators/ClipboardHistoryCoordinator.swift`
+- Create: `Modules/SYKeyboardCore/Presentation/ViewController/Utils/ClipboardHistoryCoordinator.swift`
 - Modify: `Modules/SYKeyboardCore/Presentation/ViewController/Bases/BaseKeyboardViewController.swift`
 - Modify: `SYKeyboard.xcodeproj/project.pbxproj`
 - Test: `SYKeyboardTests/Utils/ClipboardHistoryCoordinatorTests.swift`
@@ -1185,7 +1185,7 @@ Expected: 0 failed. Task 1의 테스트 5개는 **수정 없이** 통과해야 �
 - [x] **Step 7: 커밋**
 
 ```sh
-git add Modules/SYKeyboardCore/Presentation/Utils/Coordinators/ClipboardHistoryCoordinator.swift \
+git add Modules/SYKeyboardCore/Presentation/ViewController/Utils/ClipboardHistoryCoordinator.swift \
   Modules/SYKeyboardCore/Presentation/ViewController/Bases/BaseKeyboardViewController.swift \
   SYKeyboard.xcodeproj/project.pbxproj \
   SYKeyboardTests/Utils/ClipboardHistoryCoordinatorTests.swift
@@ -1202,7 +1202,7 @@ EOF
 ### Task 4: `SuggestionSelectionCoordinator` 추출
 
 **Files:**
-- Create: `Modules/SYKeyboardCore/Presentation/Utils/Coordinators/SuggestionSelectionCoordinator.swift`
+- Create: `Modules/SYKeyboardCore/Presentation/ViewController/Utils/SuggestionSelectionCoordinator.swift`
 - Create: `SYKeyboardTests/Utils/FakeSuggestionService.swift`
 - Create: `SYKeyboardTests/Utils/SuggestionSelectionCoordinatorTests.swift`
 - Modify: `Modules/SYKeyboardCore/Presentation/ViewController/Bases/BaseKeyboardViewController.swift`
@@ -2239,7 +2239,7 @@ Expected: 0 failed. Task 1의 테스트 5개(특히 "수식 후보 탭의 프록
 - [x] **Step 9: 커밋**
 
 ```sh
-git add Modules/SYKeyboardCore/Presentation/Utils/Coordinators/SuggestionSelectionCoordinator.swift \
+git add Modules/SYKeyboardCore/Presentation/ViewController/Utils/SuggestionSelectionCoordinator.swift \
   Modules/SYKeyboardCore/Presentation/ViewController/Bases/BaseKeyboardViewController.swift \
   SYKeyboard.xcodeproj/project.pbxproj \
   SYKeyboardTests/Utils/FakeSuggestionService.swift \
@@ -2469,3 +2469,5 @@ EOF
 - Minor 2: `SuggestionSelectionHost`의 `generalSuggestionBaseText`/`learnableInputBuffer` 요구사항을 `suggestionBaseText`/`learnableWordText`로 바꾸고, VC의 두 계산 프로퍼티는 Cursor Context Suggestions `private extension`으로 되돌린 뒤 Host 채택 extension에서 한 줄씩 전달한다. 이로써 Host 요구사항은 모두 "VC의 private 멤버와 다른 이름으로 전달" 규칙을 따른다. Task 4의 Interfaces 블록에 적힌 옛 이름 두 개는 이 메모가 대체한다.
 - Minor 4: `ClipboardHistoryCoordinatorTests.testReleasedHostIsIgnored`에 `pasteboardDidChange()` 호출 뒤 런루프 한 틱을 돌리고 패널이 비어 있는지 확인하는 단언 추가.
 - Minor 3(고정 테스트가 실제 App Group 저장소에 기록 후 삭제)은 VC의 `clipboardHistoryStore`가 고정 생성이라 주입 없이 고칠 수 없어 반영하지 않았다. PR 본문에 남긴다.
+
+> 2026-10-08 추가: 두 Coordinator는 VC 계층 보조 타입이라 `Presentation/ViewController/Utils/`로 옮겼고, `CachingTextDocumentProxy`도 `Bases/Utils/`에서 같은 곳으로 옮겼다(PR #187). 본문의 `Utils/Coordinators/` 언급과 pbxproj 등록 위치 설명은 그 전 기준이다.
