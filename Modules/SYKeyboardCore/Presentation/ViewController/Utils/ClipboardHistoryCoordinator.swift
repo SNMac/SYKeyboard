@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import OSLog
 import SYKeyboardAssets
 
 /// `ClipboardHistoryCoordinator`가 소유자(`BaseKeyboardViewController`)에게 요구하는 것.
@@ -37,6 +38,8 @@ final class ClipboardHistoryCoordinator: NSObject {
 
     // MARK: - Properties
 
+    private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "Unknown Bundle", category: "ClipboardHistoryCoordinator")
+
     /// 패널이 자판 자리에 보이는지. `updateShowingKeyboard`·`updateClipboardControl`이 읽는다
     private(set) var isPanelVisible = false
 
@@ -58,6 +61,10 @@ final class ClipboardHistoryCoordinator: NSObject {
         self.keyboardSettingsManager = keyboardSettingsManager
         self.host = host
         super.init()
+    }
+
+    deinit {
+        logger.debug("ClipboardHistoryCoordinator deinit")
     }
 
     // MARK: - Internal Methods

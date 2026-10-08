@@ -510,7 +510,7 @@ EOF
 **Interfaces:**
 - Produces: 두 Coordinator의 `private let logger`와 `deinit`. 다른 코드가 쓰지 않는다
 
-- [ ] **Step 1: 해제 테스트 작성**
+- [x] **Step 1: 해제 테스트 작성**
 
 `SuggestionSelectionCoordinatorTests.swift`의 `testReleasedHostIsIgnored` 뒤에 추가한다. 오버레이 콜백(`[weak self]`)과 delegate(`weak`)가 걸린 상태에서 놓는다.
 
@@ -549,7 +549,7 @@ EOF
     }
 ```
 
-- [ ] **Step 2: 실행해 통과 확인(RED가 아님)**
+- [x] **Step 2: 실행해 통과 확인(RED가 아님)**
 
 이 테스트는 현재 코드에서도 통과해야 한다(누수가 없다는 §7-1 검토의 증거). 실패하면 누수이므로 원인을 찾아 `fix: #185 - …`로 따로 커밋한다.
 
@@ -564,7 +564,7 @@ xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
 
 Expected: 0 failures.
 
-- [ ] **Step 3: `deinit` 로그 추가**
+- [x] **Step 3: `deinit` 로그 추가**
 
 `SuggestionSelectionCoordinator.swift`: `import SYKeyboardAssets` 아래에 `import OSLog`를 추가하고, `// MARK: - Properties` 첫 줄에
 
@@ -582,11 +582,11 @@ Expected: 0 failures.
 
 를 추가한다. `ClipboardHistoryCoordinator.swift`도 같은 위치에 category `ClipboardHistoryCoordinator`로 추가한다(`super.init()` 뒤 init 블록 뒤). `Logger`는 `Sendable`인 `let`이라 `deinit`에서 isolation 경고 없이 읽힌다. `lazy var`로 만들지 않는다.
 
-- [ ] **Step 4: 빌드와 테스트 재확인**
+- [x] **Step 4: 빌드와 테스트 재확인**
 
 Step 2와 같은 명령. Expected: 0 failures, 경고 없음(`grep -c "warning:" "$S/task3-test.log"`가 기준과 같음).
 
-- [ ] **Step 5: 커밋**
+- [x] **Step 5: 커밋**
 
 ```sh
 git branch --show-current
@@ -601,6 +601,10 @@ Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>
 EOF
 )"
 ```
+
+#### Task 3 결과 (2026-10-09)
+
+- Step 2: 두 해제 테스트가 현재 코드에서 통과(`scratchpad/task3-test.log`, 26개). 누수 없음. Step 4: `deinit` 로그 추가 뒤 26개 통과(`task3-test2.log`). 소스 파일 경고 0건(로그의 `warning:` 117건은 전부 DerivedData 사전컴파일 모듈 경고).
 
 ---
 

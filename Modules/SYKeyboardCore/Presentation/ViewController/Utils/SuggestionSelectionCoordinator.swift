@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import OSLog
 import SYKeyboardAssets
 
 /// `SuggestionSelectionCoordinator`가 소유자(`BaseKeyboardViewController`)에게 요구하는 것.
@@ -53,6 +54,8 @@ final class SuggestionSelectionCoordinator {
 
     // MARK: - Properties
 
+    private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "Unknown Bundle", category: "SuggestionSelectionCoordinator")
+
     /// host 입력 변경 callback에서 마지막으로 확인한 자동 수정 설정. VC가 바 숨김 판정에 읽는다
     private(set) var currentAutocorrectionType: UITextAutocorrectionType?
     /// host 입력 변경 callback에서 마지막으로 확인한 수식 자동완성 허용 상태
@@ -80,6 +83,10 @@ final class SuggestionSelectionCoordinator {
         self.suggestionBarView = suggestionBarView
         self.keyboardSettingsManager = keyboardSettingsManager
         self.host = host
+    }
+
+    deinit {
+        logger.debug("SuggestionSelectionCoordinator deinit")
     }
 
     // MARK: - Internal Methods
