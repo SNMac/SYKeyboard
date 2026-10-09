@@ -1597,5 +1597,5 @@ Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>"
 
 - 반영: 해제 테스트가 한/A 전환 클로저를 실제로 지났는지 `lastHangeulEnglishLanguageMode == .english`로 고정 (`sendActions`가 optional chaining이라 버튼이 nil이면 조용히 건너뛰던 문제). 재실행 `fix-test.log` — 2개 passed
 - 반영: `docs/architecture/한영 통합 키보드.md`의 옛 메서드 이름 `recordLanguageModeDecision` → `languageModeDecisionDidResolve`
-- 보류(사용자 확인): CLAUDE.md "키보드 extension의 해제·누수 확인" grep 패턴이 VC `deinit` 줄을 못 셈(Base가 구체 클래스명을 찍음). 이전부터 같은 문제라 범위 밖
+- 반영(사용자 확인 후): CLAUDE.md "키보드 extension의 해제·누수 확인" grep 패턴이 VC `deinit` 줄을 못 셈(Base가 구체 클래스명을 찍음). 이전부터 같은 문제였으나 사용자 확인을 받아 `grep -oE "\\] [A-Za-z]+ deinit"`로 교체
 - 기록만: Task 1 RED는 모듈 미존재 컴파일 오류였고 동작 RED는 아님. 테스트가 회귀를 잡는 근거는 Base `textWillChange`의 `updateReturnButtonEnabled()`와 Core `updateEnglishShiftButton()`이 모두 `documentContextBeforeInput`을 읽어 `withReadCaching` 없이는 2회가 된다는 코드 확인

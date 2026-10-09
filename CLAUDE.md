@@ -383,11 +383,12 @@ Safari가 마지막에 쓴 키보드가 뜰 수 있으니 `pgrep -x HangeulKeybo
 ```sh
 xcrun simctl spawn <UDID> log stream --level debug \
   --predicate 'subsystem == "github.com-SNMac.SYKeyboard.HangeulEnglishKeyboard" AND eventMessage CONTAINS "deinit"' > deinit.log &
-# 키보드를 N회 내렸다 올린 뒤
-grep -oE "(BaseKeyboardViewController|[A-Za-z]+Coordinator)[^]]*" deinit.log | sed -E 's/ <0x[0-9a-f]+>//' | sort | uniq -c
+# 키보드를 N회 내렸다 올린 뒤. 로그 메시지의 "<타입명> deinit"을 세므로 VC·Coordinator·뷰가 모두 잡힌다
+grep -oE "\] [A-Za-z]+ deinit" deinit.log | sort | uniq -c
 ```
 
-VC와 Coordinator 4개의 횟수가 N으로 같아야 한다. `leaks <pid>`와 Instruments Leaks(`xctrace record --template Leaks --device <UDID> --attach …`)는
+VC와 Coordinator 4개의 횟수가 N으로 같아야 한다. VC 줄은 `BaseKeyboardViewController`가 아니라 실제 클래스 이름
+(`HangeulEnglishKeyboardViewController` 등)으로 찍히므로, 카테고리 이름으로 거르면 VC가 빠진 채 Coordinator만 세게 된다. `leaks <pid>`와 Instruments Leaks(`xctrace record --template Leaks --device <UDID> --attach …`)는
 시뮬레이터 extension 프로세스에 붙지 않는다(2026-10-09: `Failed to get DYLD info for task`, `libmalloc hasn't been initialized`).
 누수 0건 확인은 실기기 Instruments로 하고, 시뮬레이터에서는 위 `deinit` 횟수 일치를 근거로 적는다.
 단위 테스트에서 `UIWindow`에 올렸던 VC는 참조를 놓은 뒤 `RunLoop.main.run(until: Date(timeIntervalSinceNow: 0.2))`를 돌려야 해제된다.
