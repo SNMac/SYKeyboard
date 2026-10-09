@@ -64,70 +64,50 @@ struct KeyboardNumberRowLayoutTests {
 
     /// 숫자 행 높이 시나리오. 갱신할 높이·프레임·기대값은 방향이 정한다
     struct NumberRowHeightCase: CustomTestStringConvertible {
-        enum Keyboard {
-            case dubeolsik
-            case qwerty
-            case naratgeul
-            case cheonjiin
-            case symbol
+        enum Keyboard: String {
+            case dubeolsik = "두벌식"
+            case qwerty = "쿼티"
+            case naratgeul = "나랏글"
+            case cheonjiin = "천지인"
+            case symbol = "기호"
         }
 
-        enum Orientation {
-            /// 기본 높이 설정(240)의 세로
-            case portrait
-            case landscape
+        /// 방향마다 갱신할 숫자 행 높이·프레임과 기대 높이
+        struct Orientation {
+            let name: String
+            let numberRowHeight: CGFloat
+            let frame: CGRect
+            let expectedNumberRowHeight: CGFloat
+            let expectedLetterRowHeight: CGFloat
 
-            /// 실제 키보드처럼 정책 값으로 갱신한다
-            var numberRowHeight: CGFloat {
-                switch self {
-                case .portrait:
-                    return KeyboardHeightPolicy.numberRowHeight(
-                        isEnabled: true,
-                        isPortrait: true,
-                        keyboardSettingsHeight: DefaultValues.keyboardHeight
-                    )
-                case .landscape:
-                    return KeyboardHeightPolicy.landscapeNumberRowHeight
-                }
-            }
-
-            var frame: CGRect {
-                switch self {
+            /// 기본 높이 설정(240)의 세로. 실제 키보드처럼 정책 값으로 갱신한다
+            static let portrait = Orientation(
+                name: "세로",
+                numberRowHeight: KeyboardHeightPolicy.numberRowHeight(
+                    isEnabled: true,
+                    isPortrait: true,
+                    keyboardSettingsHeight: DefaultValues.keyboardHeight
+                ),
                 // keyboardHStackView(240 + 52.75)에서 프레임 여백 4를 뺀 높이
-                case .portrait: return CGRect(x: 0, y: 0, width: 375, height: 288.75)
+                frame: CGRect(x: 0, y: 0, width: 375, height: 288.75),
+                expectedNumberRowHeight: 52.75,
+                expectedLetterRowHeight: 59
+            )
+
+            static let landscape = Orientation(
+                name: "가로",
+                numberRowHeight: KeyboardHeightPolicy.landscapeNumberRowHeight,
                 // 가로 keyboardHStackView(188 - 44 + 35)에서 프레임 여백 4를 뺀 높이
-                case .landscape: return CGRect(x: 0, y: 0, width: 667, height: 175)
-                }
-            }
-
-            var expectedNumberRowHeight: CGFloat {
-                switch self {
-                case .portrait: return 52.75
-                case .landscape: return 35
-                }
-            }
-
-            var expectedLetterRowHeight: CGFloat {
-                switch self {
-                case .portrait: return 59
-                case .landscape: return 35
-                }
-            }
+                frame: CGRect(x: 0, y: 0, width: 667, height: 175),
+                expectedNumberRowHeight: 35,
+                expectedLetterRowHeight: 35
+            )
         }
 
         let keyboard: Keyboard
         let orientation: Orientation
 
-        var testDescription: String {
-            let keyboardName = switch keyboard {
-            case .dubeolsik: "두벌식"
-            case .qwerty: "쿼티"
-            case .naratgeul: "나랏글"
-            case .cheonjiin: "천지인"
-            case .symbol: "기호"
-            }
-            return "\(keyboardName) \(orientation == .portrait ? "세로" : "가로")"
-        }
+        var testDescription: String { "\(keyboard.rawValue) \(orientation.name)" }
     }
 
     @Test("숫자 행이 켜지면 1~0 키가 입력 버튼 목록 맨 앞에 들어감")
@@ -301,7 +281,7 @@ struct KeyboardNumberRowLayoutTests {
             let numberButton = try #require(view.totalTextInterableButtonList.first)
             let letterButton = view.totalTextInterableButtonList[10]
             #expect(abs(numberButton.frame.width - 39) < 0.5)
-            #expect(abs(letterButton.frame.width - 390 * 0.2875) < 1.0)
+            #expect(abs(letterButton.frame.width - 390 * WidenedColumnRatio.letterColumn) < 1.0)
         }
     }
 }

@@ -9,12 +9,44 @@ import UIKit
 @testable import HangeulKeyboardCore
 @testable import SYKeyboardCore
 
+/// 이 파일의 세 suite가 같은 키보드 크기·자판 생성·좌표 변환을 쓰게 한다
+@MainActor
+private protocol BottomSpaceLayoutTesting {}
+
+extension BottomSpaceLayoutTesting {
+    static var keyboardWidth: CGFloat { 390 }
+    static var keyboardHeight: CGFloat { 216 }
+
+    static func makeCheonjiinView(usesBottomSpaceLayout: Bool) -> CheonjiinKeyboardView {
+        layOut(CheonjiinKeyboardView(showsLanguageSwitchButton: true,
+                                     usesBottomSpaceLayout: usesBottomSpaceLayout,
+                                     showsNumberRow: false))
+    }
+
+    static func makeNumericView(usesBottomSpaceLayout: Bool) -> NumericKeyboardView {
+        layOut(NumericKeyboardView(showsLanguageSwitchButton: true,
+                                   usesBottomSpaceLayout: usesBottomSpaceLayout))
+    }
+
+    /// 버튼 프레임은 각자의 행 스택 좌표계에 있어 `midY`가 전부 같다.
+    /// 행을 가로질러 비교하려면 키보드 뷰 좌표계로 변환해야 한다
+    static func rect(_ subview: UIView, in view: UIView) -> CGRect {
+        subview.convert(subview.bounds, to: view)
+    }
+
+    private static func layOut<View: NormalKeyboardLayoutProvider>(_ view: View) -> View {
+        view.frame = CGRect(x: 0, y: 0, width: keyboardWidth, height: keyboardHeight)
+        // 저장된 사용자 설정과 무관하게 기본 배율로 고정한다
+        view.updateLetterColumnWidthMultiplier(1.0)
+        view.layoutIfNeeded()
+
+        return view
+    }
+}
+
 @MainActor
 @Suite("스페이스 하단 배치 공통 동작")
-struct BottomSpaceLayoutTests {
-    private static let keyboardWidth: CGFloat = 390
-    private static let keyboardHeight: CGFloat = 216
-
+struct BottomSpaceLayoutTests: BottomSpaceLayoutTesting {
     /// 스페이스 하단 배치를 지원하는 두 자판
     enum Fixture: CustomTestStringConvertible {
         case cheonjiin
@@ -27,38 +59,19 @@ struct BottomSpaceLayoutTests {
             }
         }
 
-        /// 기본 배율로 레이아웃한 자판. controller처럼 프로토콜 타입으로 다룬다.
-        /// 한/영 버튼은 주 자판·숫자 프로토콜에 따로 있어 함께 돌려준다
+        /// controller처럼 프로토콜 타입으로 다룬다. 한/영 버튼은 주 자판·숫자 프로토콜에 따로 있어 함께 돌려준다
         @MainActor
         func makeView(usesBottomSpaceLayout: Bool)
         -> (view: NormalKeyboardLayoutProvider, languageSwitchButton: LanguageSwitchButton?) {
-            let (view, languageSwitchButton): (NormalKeyboardLayoutProvider, LanguageSwitchButton?)
             switch self {
             case .cheonjiin:
-                let cheonjiin = CheonjiinKeyboardView(showsLanguageSwitchButton: true,
-                                                      usesBottomSpaceLayout: usesBottomSpaceLayout,
-                                                      showsNumberRow: false)
-                (view, languageSwitchButton) = (cheonjiin, cheonjiin.languageSwitchButton)
+                let view = BottomSpaceLayoutTests.makeCheonjiinView(usesBottomSpaceLayout: usesBottomSpaceLayout)
+                return (view, view.languageSwitchButton)
             case .numeric:
-                let numeric = NumericKeyboardView(showsLanguageSwitchButton: true,
-                                                  usesBottomSpaceLayout: usesBottomSpaceLayout)
-                (view, languageSwitchButton) = (numeric, numeric.languageSwitchButton)
+                let view = BottomSpaceLayoutTests.makeNumericView(usesBottomSpaceLayout: usesBottomSpaceLayout)
+                return (view, view.languageSwitchButton)
             }
-            view.frame = CGRect(x: 0, y: 0, width: BottomSpaceLayoutTests.keyboardWidth,
-                                height: BottomSpaceLayoutTests.keyboardHeight)
-            // 저장된 사용자 설정과 무관하게 기본 배율로 고정한다
-            view.updateLetterColumnWidthMultiplier(1.0)
-            view.layoutIfNeeded()
-
-            return (view, languageSwitchButton)
         }
-    }
-
-    /// 버튼 프레임은 각자의 행 스택 좌표계에 있어 `midY`가 전부 같다.
-    /// 행을 가로질러 비교하려면 키보드 뷰 좌표계로 변환해야 한다
-    @MainActor
-    private static func rect(_ subview: UIView, in view: UIView) -> CGRect {
-        subview.convert(subview.bounds, to: view)
     }
 
     /// 지구본을 숨겨 modifier 스택에 한/영과 전환 버튼 2개만 남긴다
@@ -100,15 +113,15 @@ struct BottomSpaceLayoutTests {
         #expect(abs(switchRect.minX) < 0.5)
     }
 
-    @Test("두 배치 모두 삭제·스페이스 버튼이 한 칸 폭을 유지",
-          arguments: [Fixture.cheonjiin, .numeric], [false, true])
-    func testDeleteAndSpaceKeepSingleColumnWidth(fixture: Fixture, usesBottomSpaceLayout: Bool) {
-        let (view, _) = fixture.makeView(usesBottomSpaceLayout: usesBottomSpaceLayout)
+    /// 기본 배치의 균등 분할은 `FourColumnKeyboardColumnWidthTests`가 검증한다
+    @Test("켜짐 상태에서도 삭제·스페이스 버튼이 한 칸 폭을 유지",
+          arguments: [Fixture.cheonjiin, .numeric])
+    func testBottomSpaceLayoutKeepsDeleteAndSpaceSingleColumnWidth(fixture: Fixture) {
+        let (view, _) = fixture.makeView(usesBottomSpaceLayout: true)
         let columnWidth = Self.keyboardWidth / 4
 
         // 폭은 좌표계와 무관하므로 변환이 필요 없다.
-        // 삭제는 항상 1행이고 스페이스는 배치에 따라 다른 행이므로
-        // 두 배치에서 서로 다른 행이 한 칸 폭을 유지하는지 확인한다
+        // 스페이스가 4행으로 내려가도 삭제(1행)와 같은 한 칸 폭을 유지하는지 확인한다
         #expect(abs(view.deleteButton.frame.width - columnWidth) < 0.5)
         #expect(abs(view.spaceButton.frame.width - columnWidth) < 0.5)
     }
@@ -213,33 +226,10 @@ struct BottomSpaceLayoutTests {
 
 @MainActor
 @Suite("천지인 스페이스 하단 배치 고유 동작")
-struct CheonjiinBottomSpaceLayoutTests {
-    private static let keyboardWidth: CGFloat = 390
-    private static let keyboardHeight: CGFloat = 216
-
-    @MainActor
-    private static func makeView(usesBottomSpaceLayout: Bool) -> CheonjiinKeyboardView {
-        let view = CheonjiinKeyboardView(showsLanguageSwitchButton: true,
-                                        usesBottomSpaceLayout: usesBottomSpaceLayout,
-                                        showsNumberRow: false)
-        view.frame = CGRect(x: 0, y: 0, width: keyboardWidth, height: keyboardHeight)
-        // 저장된 사용자 설정과 무관하게 기본 배율로 고정한다
-        view.updateLetterColumnWidthMultiplier(1.0)
-        view.layoutIfNeeded()
-
-        return view
-    }
-
-    /// 버튼 프레임은 각자의 행 스택 좌표계에 있어 `midY`가 전부 같다.
-    /// 행을 가로질러 비교하려면 키보드 뷰 좌표계로 변환해야 한다
-    @MainActor
-    private static func rect(_ subview: UIView, in view: UIView) -> CGRect {
-        subview.convert(subview.bounds, to: view)
-    }
-
+struct CheonjiinBottomSpaceLayoutTests: BottomSpaceLayoutTesting {
     @Test("켜짐 상태의 리턴은 2행, 물음표·느낌표는 3행, 마침표·쉼표는 4행")
     func testBottomSpaceLayoutRowAssignment() throws {
-        let view = Self.makeView(usesBottomSpaceLayout: true)
+        let view = Self.makeCheonjiinView(usesBottomSpaceLayout: true)
         let keyButtons = view.primaryButtonList.compactMap { $0 as? PrimaryKeyButton }
         let periodButton = try #require(keyButtons.first { $0.type.primaryKeyList.first == "." })
         let questionButton = try #require(keyButtons.first { $0.type.primaryKeyList.first == "?" })
@@ -261,7 +251,7 @@ struct CheonjiinBottomSpaceLayoutTests {
 
     @Test("꺼짐 상태의 스페이스는 2행, 리턴은 3행, 마침표·물음표는 4행")
     func testDefaultLayoutRowAssignment() throws {
-        let view = Self.makeView(usesBottomSpaceLayout: false)
+        let view = Self.makeCheonjiinView(usesBottomSpaceLayout: false)
         let keyButtons = view.primaryButtonList.compactMap { $0 as? PrimaryKeyButton }
         let periodButton = try #require(keyButtons.first { $0.type.primaryKeyList.first == "." })
         let jamoButton = try #require(keyButtons.first { $0.type.primaryKeyList.first == "ㅇ" })
@@ -289,7 +279,7 @@ struct CheonjiinBottomSpaceLayoutTests {
 
     @Test("켜짐 상태에서 지구본이 보이면 modifier 세 버튼이 균등 분배")
     func testBottomSpaceLayoutEqualModifierDistributionWithGlobe() throws {
-        let view = Self.makeView(usesBottomSpaceLayout: true)
+        let view = Self.makeCheonjiinView(usesBottomSpaceLayout: true)
         let languageButton = try #require(view.languageSwitchButton)
 
         let primaryView: PrimaryKeyboardRepresentable = view
@@ -302,7 +292,7 @@ struct CheonjiinBottomSpaceLayoutTests {
         #expect(!view.nextKeyboardButton.isHidden)
         #expect(abs(view.switchButton.frame.width - languageButton.frame.width) < 1.0)
         #expect(abs(languageButton.frame.width - view.nextKeyboardButton.frame.width) < 1.0)
-        // 좌→우 !#1 → 한/영 → 🌐
+        // 좌→우 전환 → 한/영 → 🌐
         #expect(view.switchButton.frame.maxX <= languageButton.frame.minX + 0.5)
         #expect(languageButton.frame.maxX <= view.nextKeyboardButton.frame.minX + 0.5)
     }
@@ -310,7 +300,7 @@ struct CheonjiinBottomSpaceLayoutTests {
     @Test("하단 배치에서도 리턴 표시 모드 4종은 스페이스·리턴을 함께 노출",
           arguments: [HangeulKeyboardMode.default, .URL, .emailAddress, .webSearch])
     func testBottomSpaceLayoutReturnVisibleModes(_ mode: HangeulKeyboardMode) {
-        let view = Self.makeView(usesBottomSpaceLayout: true)
+        let view = Self.makeCheonjiinView(usesBottomSpaceLayout: true)
 
         // `currentHangeulKeyboardMode`의 초기값이 `.default`이고 `didSet`이
         // `guard oldMode != currentHangeulKeyboardMode`로 시작하므로,
@@ -328,7 +318,7 @@ struct CheonjiinBottomSpaceLayoutTests {
 
     @Test("하단 배치의 twitter 모드는 리턴 대신 @·#을 2행에 노출")
     func testBottomSpaceLayoutTwitterMode() {
-        let view = Self.makeView(usesBottomSpaceLayout: true)
+        let view = Self.makeCheonjiinView(usesBottomSpaceLayout: true)
 
         view.currentHangeulKeyboardMode = .twitter
         view.layoutIfNeeded()
@@ -346,7 +336,7 @@ struct CheonjiinBottomSpaceLayoutTests {
 
     @Test("꺼짐 상태의 twitter 모드는 기존처럼 @·#이 스페이스보다 아래")
     func testDefaultLayoutTwitterMode() {
-        let view = Self.makeView(usesBottomSpaceLayout: false)
+        let view = Self.makeCheonjiinView(usesBottomSpaceLayout: false)
 
         view.currentHangeulKeyboardMode = .twitter
         view.layoutIfNeeded()
@@ -360,29 +350,7 @@ struct CheonjiinBottomSpaceLayoutTests {
 
 @MainActor
 @Suite("숫자 키패드 스페이스 하단 배치 고유 동작")
-struct NumericBottomSpaceLayoutTests {
-    private static let keyboardWidth: CGFloat = 390
-    private static let keyboardHeight: CGFloat = 216
-
-    @MainActor
-    private static func makeView(usesBottomSpaceLayout: Bool) -> NumericKeyboardView {
-        let view = NumericKeyboardView(showsLanguageSwitchButton: true,
-                                       usesBottomSpaceLayout: usesBottomSpaceLayout)
-        view.frame = CGRect(x: 0, y: 0, width: keyboardWidth, height: keyboardHeight)
-        // 저장된 사용자 설정과 무관하게 기본 배율로 고정한다
-        view.updateLetterColumnWidthMultiplier(1.0)
-        view.layoutIfNeeded()
-
-        return view
-    }
-
-    /// 버튼 프레임은 각자의 행 스택 좌표계에 있어 `midY`가 전부 같다.
-    /// 행을 가로질러 비교하려면 키보드 뷰 좌표계로 변환해야 한다
-    @MainActor
-    private static func rect(_ subview: UIView, in view: UIView) -> CGRect {
-        subview.convert(subview.bounds, to: view)
-    }
-
+struct NumericBottomSpaceLayoutTests: BottomSpaceLayoutTesting {
     /// `numericKeyList[3]`의 문장부호 버튼을 표시 문자로 찾는다
     @MainActor
     private static func keyButton(_ key: String, in view: NumericKeyboardView) throws -> PrimaryKeyButton {
@@ -393,7 +361,7 @@ struct NumericBottomSpaceLayoutTests {
 
     @Test("켜짐 상태는 '-'·'/'가 3행 우측, '.'·','가 4행 끝")
     func testBottomSpaceLayoutRowAssignment() throws {
-        let view = Self.makeView(usesBottomSpaceLayout: true)
+        let view = Self.makeNumericView(usesBottomSpaceLayout: true)
         let hyphen = Self.rect(try Self.keyButton("-", in: view), in: view)
         let slash = Self.rect(try Self.keyButton("/", in: view), in: view)
         let period = Self.rect(try Self.keyButton(".", in: view), in: view)
@@ -422,7 +390,7 @@ struct NumericBottomSpaceLayoutTests {
 
     @Test("꺼짐 상태는 4행이 좌→우 '-' ',' '0' '.' '/' modifier 순서를 유지")
     func testDefaultLayoutRowAssignment() throws {
-        let view = Self.makeView(usesBottomSpaceLayout: false)
+        let view = Self.makeNumericView(usesBottomSpaceLayout: false)
         let hyphen = Self.rect(try Self.keyButton("-", in: view), in: view)
         let comma = Self.rect(try Self.keyButton(",", in: view), in: view)
         let zero = Self.rect(try Self.keyButton("0", in: view), in: view)
