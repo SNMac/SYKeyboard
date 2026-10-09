@@ -1301,7 +1301,7 @@ Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>"
 - Consumes: Task 1의 테스트 helper `TestHangeulEnglishProxyReadViewController`, `withLastLanguageMode(_:_:)`, `PrimaryKeyboardRepresentable.languageSwitchButton`
 - Produces: 없음
 
-- [ ] **Step 1: 해제 테스트 추가**
+- [x] **Step 1: 해제 테스트 추가**
 
 suite 안 첫 테스트 뒤에 추가한다. 한/A 전환 버튼을 실제로 눌러 `setupLanguageSwitchActions()`의 `UIAction` 클로저 경로를 지나게 한다.
 
@@ -1329,7 +1329,7 @@ suite 안 첫 테스트 뒤에 추가한다. 한/A 전환 버튼을 실제로 �
     }
 ```
 
-- [ ] **Step 2: 테스트 실행**
+- [x] **Step 2: 테스트 실행**
 
 ```sh
 xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
@@ -1340,7 +1340,7 @@ xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
 
 기대: `Test case` 2개 `passed`. `testControllerIsReleased`가 실패하면 순환 참조가 생긴 것이다. `languageSwitchButton`이 `nil`이라 `sendActions`가 안 불렸을 가능성도 있으니, 실패 시 `#expect(controller.primaryKeyboardView.languageSwitchButton != nil)`을 임시로 넣어 구분한다.
 
-- [ ] **Step 3: 커밋**
+- [x] **Step 3: 커밋**
 
 ```sh
 git status --short
@@ -1351,8 +1351,8 @@ git commit -m "test: #190 - 한영 Core VC 해제 테스트 추가
 Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>"
 ```
 
-**결과 기록:**
-- 테스트:
+**결과 기록 (2026-10-09):**
+- 테스트: `task3-test.log` — `testControllerIsReleased()` passed, `testTextWillChangeReadsShiftContextOnceInEnglishMode()` passed, `** TEST SUCCEEDED **`. 누수 부재를 지키는 테스트라 RED 단계는 없음(실패 조건이 순환 참조 주입)
 
 ---
 

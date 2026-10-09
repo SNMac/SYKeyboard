@@ -29,6 +29,28 @@ struct HangeulEnglishKeyboardCoreViewControllerProxyReadTests {
             #expect(controller.proxy.readCount(of: "documentContextBeforeInput") == 1)
         }
     }
+
+    @Test("한/A 전환과 textWillChange를 거친 VC는 참조를 놓으면 해제됨")
+    func testControllerIsReleased() {
+        weak var weakController: TestHangeulEnglishProxyReadViewController?
+        withLastLanguageMode(.hangeul) {
+            autoreleasepool {
+                let controller = TestHangeulEnglishProxyReadViewController()
+                let window = UIWindow(frame: UIScreen.main.bounds)
+                window.addSubview(controller.view)
+
+                // 한/A 전환은 UIAction 클로저를 지나며 마지막 언어를 저장한다(withLastLanguageMode가 되돌림)
+                controller.primaryKeyboardView.languageSwitchButton?.sendActions(for: .touchUpInside)
+                controller.textWillChange(nil)
+                controller.view.removeFromSuperview()
+                weakController = controller
+            }
+            // 창에 올렸던 VC는 UIKit이 예약한 main queue 작업이 끝난 뒤 해제되므로 런루프를 한 번 돌린다
+            RunLoop.main.run(until: Date(timeIntervalSinceNow: 0.2))
+        }
+
+        #expect(weakController == nil)
+    }
 }
 
 // MARK: - Test Helpers
