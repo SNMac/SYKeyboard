@@ -53,7 +53,7 @@ struct BaseKeyboardViewControllerDeleteUndoBehaviorTests {
         #expect(controller.proxy.writes == ["deleteBackward", "deleteBackward"])
     }
 
-    @Test("반복 삭제 틱은 프록시 문맥을 한 번씩만 읽음")
+    @Test("반복 삭제 틱은 프록시 문맥을 한 번씩만 읽고 종료 훅은 반복 상태를 끝냄")
     func testRepeatDeleteTickReadsContextOnce() {
         let controller = TestDeleteUndoViewController()
         let window = UIWindow(frame: UIScreen.main.bounds)
@@ -70,21 +70,8 @@ struct BaseKeyboardViewControllerDeleteUndoBehaviorTests {
         #expect(controller.proxy.readCount(of: "documentContextBeforeInput") == 2)
         #expect(controller.proxy.readCount(of: "documentContextAfterInput") == 1)
         #expect(controller.proxy.readCount(of: "selectedText") == 2)
-        window.removeFromSuperview()
-    }
 
-    @Test("반복 삭제 틱은 직전 틱을 확정하고 이어 지우며 손을 떼면 멈춤")
-    func testRepeatDeleteTicksContinueAndStop() {
-        let controller = TestDeleteUndoViewController()
-        let window = UIWindow(frame: UIScreen.main.bounds)
-        window.addSubview(controller.view)
-        let deleteButton = controller.primaryView.deleteButton
-        controller.repeatTextInteractionWillPerform(button: deleteButton)
-
-        controller.performRepeatTextInteraction(for: deleteButton)
-        controller.performRepeatTextInteraction(for: deleteButton)
-        #expect(controller.proxy.writes == ["deleteBackward", "deleteBackward"])
-
+        // 연속 틱 동작은 TextDeletionCoordinatorTests가 소유한다. 여기서는 종료 훅이 반복 상태를 끝내는 연결만 본다
         controller.repeatTextInteractionDidPerform(button: deleteButton)
 
         #expect(controller.isRepeatingInput == false)
@@ -107,18 +94,7 @@ struct BaseKeyboardViewControllerDeleteUndoBehaviorTests {
         #expect(controller.panDidStopCount == 1)
     }
 
-    @Test("첨부 토큰 앞에서는 드래그 삭제가 멈춤")
-    func testDeletePanStopsBeforeAttachment() {
-        let controller = TestDeleteUndoViewController()
-        controller.proxy.beforeInput = "a\u{FFFC}"
-        controller.loadViewIfNeeded()
-        let gesture = makeGestureController()
-
-        controller.deleteButtonPanning(gesture, to: .left)
-
-        #expect(controller.proxy.writes.isEmpty)
-    }
-
+    // 첨부 토큰 앞 멈춤은 TextDeletionCoordinatorTests.testPanStopsBeforeAttachment가 소유한다 (docs/adr/0003)
     @Test("선택 영역이 있으면 드래그 삭제가 선택 영역을 지우고 undo가 선택 텍스트를 되살림")
     func testDeletePanDeletesSelectionAndUndoRestoresIt() {
         let settings = UserDefaultsManager.shared
