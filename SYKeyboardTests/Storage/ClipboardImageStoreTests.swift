@@ -63,23 +63,47 @@ struct ClipboardImageStoreTests {
         #expect(files.sorted() == ["\(firstReference.hash).jpg", "\(firstReference.hash).thumb.jpg"])
     }
 
-    @Test("바이트 한도를 넘는 파일은 저장하지 않고 파일을 남기지 않음")
-    func test바이트한도초과는_저장안함() throws {
-        let fixture = makeFixture(name: "too-big", maxByteSize: 64)
-        defer { fixture.cleanUp() }
-        let temporary = try makeImageFile(width: 400, height: 400, type: .png, name: "big")
+    /// 저장이 거부돼야 하는 원본. 파일은 테스트 본문에서 만든다
+    struct RejectedCase: CustomTestStringConvertible {
+        enum Source {
+            case png(pixels: Int)
+            case jpeg(pixels: Int)
+            /// 이미지가 아닌 바이트를 PNG 확장자로 쓴 파일
+            case corrupt
+        }
 
-        #expect(fixture.store.store(temporaryFileURL: temporary, typeIdentifier: "public.png") == nil)
-        #expect(((try? FileManager.default.contentsOfDirectory(atPath: fixture.directoryURL.path)) ?? []).isEmpty)
+        let name: String
+        let source: Source
+        let typeIdentifier: String
+        var maxByteSize: Int = ClipboardImagePolicy.maxByteSize
+        var maxPixelCount: Int = ClipboardImagePolicy.maxPixelCount
+
+        var testDescription: String { name }
     }
 
-    @Test("픽셀 한도를 넘는 JPEG는 헤더만 읽고 저장하지 않음")
-    func test픽셀한도초과는_저장안함() throws {
-        let fixture = makeFixture(name: "too-many-pixels", maxPixelCount: 100)
-        defer { fixture.cleanUp() }
-        let temporary = try makeImageFile(width: 20, height: 20, type: .jpeg, name: "pixels")
+    private static let rejectedCases: [RejectedCase] = [
+        RejectedCase(name: "바이트 한도를 넘는 파일", source: .png(pixels: 400), typeIdentifier: "public.png", maxByteSize: 64),
+        RejectedCase(name: "픽셀 한도를 넘는 JPEG는 헤더만 읽고 거부", source: .jpeg(pixels: 20), typeIdentifier: "public.jpeg", maxPixelCount: 100),
+        RejectedCase(name: "이미지가 아닌 파일", source: .corrupt, typeIdentifier: "public.png")
+    ]
 
-        #expect(fixture.store.store(temporaryFileURL: temporary, typeIdentifier: "public.jpeg") == nil)
+    @Test("바이트 한도 초과·픽셀 한도 초과·이미지가 아닌 파일은 저장하지 않고 파일을 남기지 않음",
+          arguments: ClipboardImageStoreTests.rejectedCases)
+    func test거부되는원본은_저장안함(_ testCase: RejectedCase) throws {
+        let fixture = makeFixture(name: "rejected", maxByteSize: testCase.maxByteSize, maxPixelCount: testCase.maxPixelCount)
+        defer { fixture.cleanUp() }
+        let temporary: URL
+        switch testCase.source {
+        case .png(let pixels):
+            temporary = try makeImageFile(width: pixels, height: pixels, type: .png, name: "rejected")
+        case .jpeg(let pixels):
+            temporary = try makeImageFile(width: pixels, height: pixels, type: .jpeg, name: "rejected")
+        case .corrupt:
+            temporary = FileManager.default.temporaryDirectory.appendingPathComponent("\(UUID().uuidString).png")
+            try Data("not an image".utf8).write(to: temporary)
+        }
+
+        #expect(fixture.store.store(temporaryFileURL: temporary, typeIdentifier: testCase.typeIdentifier) == nil)
         #expect(((try? FileManager.default.contentsOfDirectory(atPath: fixture.directoryURL.path)) ?? []).isEmpty)
     }
 
@@ -146,17 +170,6 @@ struct ClipboardImageStoreTests {
             Issue.record("저장되어야 한다"); return
         }
         #expect(reference.pixelWidth == 20)
-    }
-
-    @Test("이미지가 아닌 파일은 저장하지 않음")
-    func test손상파일은_저장안함() throws {
-        let fixture = makeFixture(name: "corrupt")
-        defer { fixture.cleanUp() }
-        let temporary = FileManager.default.temporaryDirectory.appendingPathComponent("\(UUID().uuidString).png")
-        try Data("not an image".utf8).write(to: temporary)
-
-        #expect(fixture.store.store(temporaryFileURL: temporary, typeIdentifier: "public.png") == nil)
-        #expect(((try? FileManager.default.contentsOfDirectory(atPath: fixture.directoryURL.path)) ?? []).isEmpty)
     }
 
     @Test("EXIF 회전이 있는 JPEG는 표시 기준으로 폭·높이를 바꿔 기록")
