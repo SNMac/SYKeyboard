@@ -463,9 +463,11 @@ struct TextDeletionCoordinatorTests {
 ///
 /// 이 계약(`deleteText()`의 override·reliability 처리)의 권위는 VC를 실제로 거치는
 /// `BaseKeyboardViewControllerDeleteUndoBehaviorTests`에 있다. VC 쪽 계약이 바뀌면 그 suite가 먼저 깨지고,
-/// 이 가짜도 같이 고쳐야 한다. 여기서는 Coordinator가 host를 부르는 순서와 프록시 쓰기만 단언한다
+/// 이 가짜도 같이 고쳐야 한다. 여기서는 Coordinator가 host를 부르는 순서와 프록시 쓰기만 단언한다.
+///
+/// 한글 VC처럼 삭제 메서드를 오버라이드하는 host는 이 클래스를 상속한다(`HangeulDeleteButtonDragScenarioTests`)
 @MainActor
-private final class RecordingTextDeletionHost: TextDeletionHost {
+class RecordingTextDeletionHost: TextDeletionHost {
     var calls: [String] = []
     /// 파이프라인이 capture하지 않아 undo에 바로 기록됐을 편집
     var uncapturedEdits: [String] = []
@@ -480,7 +482,11 @@ private final class RecordingTextDeletionHost: TextDeletionHost {
         textDocument = CachingTextDocumentProxy { proxy }
     }
 
-    func textInteractionWillPerform(button: TextInteractable) { calls.append("textInteractionWillPerform") }
+    /// VC처럼 삭제를 포함한 모든 입력 전에 pan 복구 상태를 비운다
+    func textInteractionWillPerform(button: TextInteractable) {
+        calls.append("textInteractionWillPerform")
+        coordinator?.clearPanRestoreState()
+    }
     func textInteractionDidPerform(button: TextInteractable) { calls.append("textInteractionDidPerform") }
     func deleteBackward() { calls.append("deleteBackward"); performSingleDelete() }
     func repeatDeleteBackward() { calls.append("repeatDeleteBackward"); performSingleDelete() }
@@ -504,8 +510,13 @@ private final class RecordingTextDeletionHost: TextDeletionHost {
 
     func deleteButtonPanRestoreText(_ character: Character) {
         calls.append("deleteButtonPanRestoreText(\(character))")
-        textDocument.insertText(String(character))
-        capture(deletedText: "", insertedText: String(character), reliability: .authoritative)
+        insertText(String(character))
+    }
+
+    /// VC `insertText(_:)`의 계약: 넣은 글자를 authoritative로 capture한다
+    func insertText(_ text: String) {
+        textDocument.insertText(text)
+        capture(deletedText: "", insertedText: text, reliability: .authoritative)
     }
 
     func deleteButtonPanDidStop() { calls.append("deleteButtonPanDidStop") }

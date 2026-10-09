@@ -8,8 +8,12 @@
 import Testing
 
 @testable import HangeulKeyboardCore
+@testable import SYKeyboardCore
 
-@Suite("한글 삭제 버튼 드래그 HangeulCompositionState 기반 입력 상태 시나리오")
+/// 삭제 버튼 touchDown·드래그는 production `TextDeletionCoordinator`가 복구 스택과 함께 처리하고,
+/// 한글 VC가 오버라이드하는 host 메서드는 production `HangeulCompositionState`가 처리한다
+@Suite("한글 삭제 버튼 드래그 TextDeletionCoordinator + HangeulCompositionState 시나리오", .sharedUserDefaults)
+@MainActor
 struct HangeulDeleteButtonDragScenarioTests {
 
     // MARK: - Properties
@@ -43,7 +47,7 @@ struct HangeulDeleteButtonDragScenarioTests {
 
     @Test("두벌식 삭제 버튼 드래그 복구: '동해물고' touchDown 선삭제 후 전체 복구")
     func test두벌식_삭제버튼드래그_동해물고_touchDown선삭제후_전체복구() {
-        let sim = HangeulCompositionTestHarness(
+        let sim = HangeulDeleteButtonDragSimulator(
             processor: DubeolsikProcessor(automata: automata)
         )
 
@@ -53,7 +57,7 @@ struct HangeulDeleteButtonDragScenarioTests {
 
     @Test("두벌식 삭제 버튼 드래그 복구: '동해물과' touchDown으로 생긴 '동해물고' 전체 복구")
     func test두벌식_삭제버튼드래그_동해물과_touchDown후_동해물고_전체복구() {
-        let sim = HangeulCompositionTestHarness(
+        let sim = HangeulDeleteButtonDragSimulator(
             processor: DubeolsikProcessor(automata: automata)
         )
 
@@ -74,7 +78,7 @@ struct HangeulDeleteButtonDragScenarioTests {
 
     @Test("두벌식 삭제 버튼 드래그 복구: '동해물거ㅓ' touchDown 후 전체 복구")
     func test두벌식_삭제버튼드래그_동해물거ㅓ_touchDown선삭제후_전체복구() {
-        let sim = HangeulCompositionTestHarness(
+        let sim = HangeulDeleteButtonDragSimulator(
             processor: DubeolsikProcessor(automata: automata)
         )
 
@@ -86,25 +90,25 @@ struct HangeulDeleteButtonDragScenarioTests {
 // MARK: - Assertions
 
 private extension HangeulDeleteButtonDragScenarioTests {
-    /// 해당 입력기의 키 입력으로 '동해물과'를 만든 harness
-    func make동해물과Harness(_ inputMethod: InputMethod) -> HangeulCompositionTestHarness {
+    /// 해당 입력기의 키 입력으로 '동해물과'를 만든 simulator
+    func make동해물과Harness(_ inputMethod: InputMethod) -> HangeulDeleteButtonDragSimulator {
         switch inputMethod {
         case .dubeolsik:
-            let sim = HangeulCompositionTestHarness(processor: DubeolsikProcessor(automata: automata))
+            let sim = HangeulDeleteButtonDragSimulator(processor: DubeolsikProcessor(automata: automata))
             inputDubeolsik동해물과(into: sim)
             return sim
         case .cheonjiin:
-            let sim = HangeulCompositionTestHarness(processor: CheonjiinProcessor(automata: automata))
+            let sim = HangeulDeleteButtonDragSimulator(processor: CheonjiinProcessor(automata: automata))
             inputCheonjiin동해물과(into: sim)
             return sim
         case .naratgeul:
-            let sim = HangeulCompositionTestHarness(processor: NaratgeulProcessor(automata: automata))
+            let sim = HangeulDeleteButtonDragSimulator(processor: NaratgeulProcessor(automata: automata))
             inputNaratgeul동해물과(into: sim)
             return sim
         }
     }
 
-    func assert전체복구후_버퍼동기화(_ sim: HangeulCompositionTestHarness) {
+    func assert전체복구후_버퍼동기화(_ sim: HangeulDeleteButtonDragSimulator) {
         #expect(sim.text == "동해물과")
 
         sim.dragDeleteLeft()
@@ -127,7 +131,7 @@ private extension HangeulDeleteButtonDragScenarioTests {
         #expect(sim.text == "동해물광", "드래그 복구 후 내부 composingBuffer가 마지막 글자와 동기화되어야 합니다.")
     }
 
-    func assertTouchDown선삭제후_복구중복방지(_ sim: HangeulCompositionTestHarness) {
+    func assertTouchDown선삭제후_복구중복방지(_ sim: HangeulDeleteButtonDragSimulator) {
         #expect(sim.text == "동해물과")
 
         sim.deleteButtonTouchDown()
@@ -145,7 +149,7 @@ private extension HangeulDeleteButtonDragScenarioTests {
     }
 
     func assertTouchDown선삭제후_전체복구(
-        _ sim: HangeulCompositionTestHarness,
+        _ sim: HangeulDeleteButtonDragSimulator,
         expectedTouchDownText: String,
         expectedRestoredText: String
     ) {
@@ -170,25 +174,25 @@ private extension HangeulDeleteButtonDragScenarioTests {
 
 private extension HangeulDeleteButtonDragScenarioTests {
 
-    func inputDubeolsik동해물과(into sim: HangeulCompositionTestHarness) {
+    func inputDubeolsik동해물과(into sim: HangeulDeleteButtonDragSimulator) {
         ["ㄷ", "ㅗ", "ㅇ", "ㅎ", "ㅐ", "ㅁ", "ㅜ", "ㄹ", "ㄱ", "ㅗ", "ㅏ"].forEach {
             sim.input($0)
         }
     }
 
-    func inputDubeolsik동해물고(into sim: HangeulCompositionTestHarness) {
+    func inputDubeolsik동해물고(into sim: HangeulDeleteButtonDragSimulator) {
         ["ㄷ", "ㅗ", "ㅇ", "ㅎ", "ㅐ", "ㅁ", "ㅜ", "ㄹ", "ㄱ", "ㅗ"].forEach {
             sim.input($0)
         }
     }
 
-    func inputDubeolsik동해물거ㅓ(into sim: HangeulCompositionTestHarness) {
+    func inputDubeolsik동해물거ㅓ(into sim: HangeulDeleteButtonDragSimulator) {
         ["ㄷ", "ㅗ", "ㅇ", "ㅎ", "ㅐ", "ㅁ", "ㅜ", "ㄹ", "ㄱ", "ㅓ", "ㅓ"].forEach {
             sim.input($0)
         }
     }
 
-    func inputCheonjiin동해물과(into sim: HangeulCompositionTestHarness) {
+    func inputCheonjiin동해물과(into sim: HangeulDeleteButtonDragSimulator) {
         [
             "ㄷ", 천, 지, "ㅇ",             // 동
             "ㅅ", "ㅅ", 인, 천, 인,        // 해
@@ -199,7 +203,7 @@ private extension HangeulDeleteButtonDragScenarioTests {
         }
     }
 
-    func inputNaratgeul동해물과(into sim: HangeulCompositionTestHarness) {
+    func inputNaratgeul동해물과(into sim: HangeulDeleteButtonDragSimulator) {
         [
             "ㄴ", "획", "ㅗ", "ㅇ",  // 동
             "ㅇ", "획", "ㅏ", "ㅣ", // 해
@@ -207,6 +211,167 @@ private extension HangeulDeleteButtonDragScenarioTests {
             "ㄱ", "ㅗ", "ㅏ"        // 과
         ].forEach {
             sim.input($0)
+        }
+    }
+}
+
+// MARK: - Test Helpers
+
+/// 키 입력은 `HangeulCompositionState`에 바로 넣고, 삭제 버튼 touchDown·드래그는 `TextDeletionCoordinator`로 보낸다.
+/// 매 동작 뒤에는 입력창처럼 `textDidChange`를 보낸다
+@MainActor
+private final class HangeulDeleteButtonDragSimulator {
+
+    // MARK: - Properties
+
+    private let host: HangeulTextDeletionHost
+    private let coordinator: TextDeletionCoordinator
+    private let button = DeleteButton(keyboard: .dubeolsik)
+
+    /// 현재 화면에 표시되는 전체 텍스트(조합 상태 기준)
+    var text: String { host.text }
+
+    // MARK: - Initializer
+
+    init(processor: HangeulProcessable) {
+        let proxy = CountingTextDocumentProxy()
+        proxy.beforeInput = ""
+        host = HangeulTextDeletionHost(processor: processor, proxy: proxy)
+        coordinator = TextDeletionCoordinator(
+            deleteDragIndicatorView: CursorDragIndicatorView(
+                symbolName: CursorDragIndicatorSymbolFactory.deleteSymbolName
+            ),
+            suggestionController: FakeSuggestionService(),
+            keyboardSettingsManager: .shared,
+            host: host
+        )
+        host.coordinator = coordinator
+    }
+
+    // MARK: - Internal Methods
+
+    /// 글자 입력
+    func input(_ character: String) {
+        host.input(character)
+    }
+
+    /// 삭제 버튼 touchDown. 손은 떼지 않은 채 드래그로 이어진다
+    func deleteButtonTouchDown() {
+        coordinator.performTouchDown(for: button)
+        sendTextDidChange()
+    }
+
+    /// 삭제 버튼 왼쪽 드래그
+    func dragDeleteLeft() {
+        coordinator.handlePan(to: .left)
+        sendTextDidChange()
+    }
+
+    /// 삭제 버튼 오른쪽 드래그
+    func dragRestoreRight() {
+        coordinator.handlePan(to: .right)
+        sendTextDidChange()
+    }
+
+    // MARK: - Private Methods
+
+    private func sendTextDidChange() {
+        coordinator.completeAfterTextChange(currentContext: host.textDocument.contextSnapshot)
+    }
+}
+
+/// `HangeulKeyboardCoreViewController`가 오버라이드한 삭제 host 메서드를 따르는 host.
+/// 조합 상태는 production `HangeulCompositionState`가 갖고, 프록시 쓰기와 capture는 상위 가짜의 VC 래퍼 계약을 쓴다
+@MainActor
+private final class HangeulTextDeletionHost: RecordingTextDeletionHost {
+
+    // MARK: - Properties
+
+    private let processor: HangeulProcessable
+    private var state = HangeulCompositionState()
+
+    var text: String { state.text }
+
+    // MARK: - Initializer
+
+    init(processor: HangeulProcessable, proxy: CountingTextDocumentProxy) {
+        self.processor = processor
+        super.init(proxy: proxy)
+    }
+
+    // MARK: - Internal Methods
+
+    func input(_ character: String) {
+        apply(state.input(character, using: processor))
+    }
+
+    // MARK: - TextDeletionHost
+
+    override func textInteractionWillPerform(button: TextInteractable) {
+        if button is DeleteButton {
+            state.beginDeleteButtonTouchDown()
+        } else {
+            state.cancelDeleteButtonTouchDown()
+        }
+        super.textInteractionWillPerform(button: button)
+    }
+
+    override func textInteractionDidPerform(button: TextInteractable) {
+        super.textInteractionDidPerform(button: button)
+        if button is DeleteButton {
+            state.endDeleteButtonTouchDown()
+        } else {
+            state.cancelDeleteButtonTouchDown()
+        }
+    }
+
+    override func deleteBackward() {
+        apply(state.delete(using: processor))
+    }
+
+    override func repeatDeleteBackward() {
+        apply(state.repeatDelete(using: processor))
+    }
+
+    override func deleteButtonPanDeleteText(hasPendingRestoreText _: Bool) -> (character: Character, shouldRestore: Bool)? {
+        if let result = state.deleteButtonPanDelete(using: processor) {
+            apply(result.transition)
+            return (result.character, result.shouldRestore)
+        }
+
+        guard let deletedCharacter = coordinator?.panPreviousCharacter else { return nil }
+        deleteText()
+        return (deletedCharacter, true)
+    }
+
+    override func deleteButtonPanRestoreText(_ character: Character) {
+        apply(state.deleteButtonPanRestore(character, using: processor))
+    }
+
+    override func deleteButtonPanDidStop() {
+        super.deleteButtonPanDidStop()
+        state.finishDeleteButtonPan()
+    }
+
+    // MARK: - Private Methods
+
+    /// VC `applyCompositionTransition(_:)`과 같은 순서로 프록시에 반영한다
+    private func apply(_ transition: HangeulCompositionTransition) {
+        for proxyEdit in transition.proxyEdits {
+            switch proxyEdit {
+            case .none:
+                break
+            case .insert(let text):
+                insertText(text)
+            case .delete(let count):
+                if count == 1 {
+                    deleteText()
+                } else {
+                    replaceText(deleteCount: count, insert: "")
+                }
+            case .replace(let deleteCount, let insertText):
+                replaceText(deleteCount: deleteCount, insert: insertText)
+            }
         }
     }
 }
