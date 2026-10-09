@@ -12,6 +12,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - 공통 키보드 UI와 입력 보조 기능은 `Modules/SYKeyboardCore/`에 있다.
 - 한글 입력 조합 로직은 `Modules/HangeulKeyboardCore/Domain/`에 있으며, 나랏글/천지인/두벌식 Processor와 Automata 테스트가 중요하다.
 - 영문 키보드 로직은 `Modules/EnglishKeyboardCore/`에 있다.
+- 한영 통합 키보드 VC는 `Modules/HangeulEnglishKeyboardCore/`에 있으며 한글·영문 Core의 Adapter를 함께 쓴다.
 - 공통 XIB, 색상, 리소스는 로컬 SPM 패키지 `SYKeyboardAssets/`에서 제공한다. Core 코드가 쓰는 로컬라이징
   문자열도 이 패키지의 `Localizable.xcstrings`에 두고 `SYKBDAssets.bundle`로 읽는다.
 - 외부 의존성은 SPM으로 관리하며 Firebase, Google Mobile Ads, Meta mediation이 포함된다.
@@ -25,7 +26,7 @@ UIInputViewController
 └── BaseKeyboardViewController          (SYKeyboardCore, ~1900줄, 입력 흐름의 중심)
     ├── HangeulKeyboardCoreViewController → HangeulKeyboardViewController
     ├── EnglishKeyboardCoreViewController → EnglishKeyboardViewController
-    └── HangeulEnglishKeyboardViewController   (Core VC 없이 Base를 직접 상속)
+    └── HangeulEnglishKeyboardCoreViewController → HangeulEnglishKeyboardViewController
 ```
 
 `BaseKeyboardViewController`가 텍스트 프록시 조작, 제스처, 자동완성, undo/redo, 높이·한손 모드,
@@ -47,10 +48,12 @@ VC를 `weak` Host 프로토콜(`SuggestionSelectionHost`, `ClipboardHistoryHost`
 VC는 이 값만 보고 프록시를 갱신하므로, 조합 규칙 변경은 Processor/Automata에서 끝내야 한다.
 
 **한영 통합 키보드는 어댑터 2개 + Coordinator 조합이다.**
-`HangeulEnglishKeyboardViewController`가 두 Adapter를 함께 들고,
+`HangeulEnglishKeyboardCoreViewController`(`HangeulEnglishKeyboardCore`)가 두 Adapter를 함께 들고,
 `HangeulEnglishKeyboardModeCoordinator`(+ `KeyboardLanguageModePolicy`)가 현재 언어 모드를 결정한다.
 `primaryKeyboardView`는 모드에 따라 다른 Adapter의 뷰를 돌려주고, `primaryKeyboardViews`는 양쪽 전부를 돌려준다
 (전환 버튼·레이아웃 갱신이 이 차이에 의존한다).
+Core 모듈은 Firebase를 모르므로 시작 언어 판정 기록은 빈 `open` 훅 `languageModeDecisionDidResolve(requiresLatinInput:resolved:)`로
+내보내고, extension의 `HangeulEnglishKeyboardViewController`가 오버라이드해 Crashlytics에 남긴다.
 
 **분기 로직은 Policy로 뽑혀 있다.**
 `Modules/SYKeyboardCore/Presentation/Utils/Policies/`의 `KeyboardHeightPolicy`,
@@ -250,6 +253,7 @@ Notion 행과 Crashlytics 이슈를 정리하므로, **사람이 할 일은 수�
     (`SuggestionSelectionCoordinator`, `ClipboardHistoryCoordinator`, `TextDeletionCoordinator`, `UndoRedoCoordinator`, `CachingTextDocumentProxy`).
 - `Modules/HangeulKeyboardCore/`: 한글 오토마타, 입력 Processor, 한글 키보드 View.
 - `Modules/EnglishKeyboardCore/`: 영문 키보드 View와 저장소 확장.
+- `Modules/HangeulEnglishKeyboardCore/`: 한영 통합 키보드 Core VC. 두 Core의 Adapter와 `SYKeyboardCore`의 `HangeulEnglishKeyboardModeCoordinator`를 조합한다.
 - `Modules/HangeulKeyboardCore/Presentation/Input/`, `Modules/EnglishKeyboardCore/EnglishKeyboard/Presentation/Input/`: VC와 Domain의 경계인 InputAdapter.
 - `SYKeyboardTests/`: Swift Testing 기반 한글 오토마타/Processor/조합 상태 시나리오/Policy/View/Controller 테스트.
   `Domain/`(조합 상태·자동완성·NGram), `Processor/`, `Utils/`(Policy·제스처 컨트롤러·Coordinator 단위 테스트와 가짜 Host),
@@ -312,7 +316,7 @@ xcodebuild test \
   `** TEST SUCCEEDED **`만 찍히고 `Test case` 줄이 없음). 결과에 `Test case … passed` 줄이 있는지 확인한다.
 - `-only-testing`이나 code coverage 옵션을 쓴 뒤 extension scheme을 빌드할 때는 옵션을 반드시 비운다.
 - **`Modules/`에 새 파일을 추가하면 `SYKeyboard.xcodeproj/project.pbxproj`를 함께 고쳐야 한다.**
-  `Modules`는 `PBXFileSystemSynchronizedRootGroup`이지만 세 모듈 타깃이 한 폴더를 공유하므로
+  `Modules`는 `PBXFileSystemSynchronizedRootGroup`이지만 네 모듈 타깃이 한 폴더를 공유하므로
   타깃별 `membershipExceptions`가 실제 소속 목록 역할을 한다. 등록하지 않으면 같은 모듈 안에서도
   `cannot find ... in scope`로 컴파일이 실패한다. 새 파일 경로를 해당 모듈 타깃과 `SYKeyboard`
   타깃의 예외 목록에 알파벳 순서로 추가한다.
@@ -379,11 +383,12 @@ Safari가 마지막에 쓴 키보드가 뜰 수 있으니 `pgrep -x HangeulKeybo
 ```sh
 xcrun simctl spawn <UDID> log stream --level debug \
   --predicate 'subsystem == "github.com-SNMac.SYKeyboard.HangeulEnglishKeyboard" AND eventMessage CONTAINS "deinit"' > deinit.log &
-# 키보드를 N회 내렸다 올린 뒤
-grep -oE "(BaseKeyboardViewController|[A-Za-z]+Coordinator)[^]]*" deinit.log | sed -E 's/ <0x[0-9a-f]+>//' | sort | uniq -c
+# 키보드를 N회 내렸다 올린 뒤. 로그 메시지의 "<타입명> deinit"을 세므로 VC·Coordinator·뷰가 모두 잡힌다
+grep -oE "\] [A-Za-z]+ deinit" deinit.log | sort | uniq -c
 ```
 
-VC와 Coordinator 4개의 횟수가 N으로 같아야 한다. `leaks <pid>`와 Instruments Leaks(`xctrace record --template Leaks --device <UDID> --attach …`)는
+VC와 Coordinator 4개의 횟수가 N으로 같아야 한다. VC 줄은 `BaseKeyboardViewController`가 아니라 실제 클래스 이름
+(`HangeulEnglishKeyboardViewController` 등)으로 찍히므로, 카테고리 이름으로 거르면 VC가 빠진 채 Coordinator만 세게 된다. `leaks <pid>`와 Instruments Leaks(`xctrace record --template Leaks --device <UDID> --attach …`)는
 시뮬레이터 extension 프로세스에 붙지 않는다(2026-10-09: `Failed to get DYLD info for task`, `libmalloc hasn't been initialized`).
 누수 0건 확인은 실기기 Instruments로 하고, 시뮬레이터에서는 위 `deinit` 횟수 일치를 근거로 적는다.
 단위 테스트에서 `UIWindow`에 올렸던 VC는 참조를 놓은 뒤 `RunLoop.main.run(until: Date(timeIntervalSinceNow: 0.2))`를 돌려야 해제된다.
