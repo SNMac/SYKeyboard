@@ -1588,3 +1588,14 @@ Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>"
 - 4 scheme 빌드: `SYKeyboard`(테스트 실행이 빌드), `HangeulKeyboard`·`EnglishKeyboard`·`HangeulEnglishKeyboard` 모두 `** BUILD SUCCEEDED **`(`task5-build-*.log`). `.xcscheme` 변경 없음
 - 시뮬레이터 확인(메시지 작성 화면 `sms:010`, idb 탭): 1) "안녕" 입력 후 한/A → qwerty로 바뀌고 입력란 "안녕"·후보 바("안녕"·안녕하셨습니까·안녕하신지요) 유지 2) 두벌식 ㅇㅏㄴㄴㅕㅇ → "안녕" 정상 조합 3) 지워서 빈 필드 → shift 켜짐·대문자 자판, h → "H", h → "Hh" 4) 로컬 http 페이지(`www/f.html`)의 `type="email"` 필드 → 영어 자판(@ 키), 접근성 바 ∨로 `type="text"` 필드 → 마지막 언어(한글) 복원. 캡처 `s2`\~`s10.png`
 - deinit 횟수: `deinit.log` — 메시지 작성 열기/Cancel 5회 주기 전후 비교에서 `HangeulEnglishKeyboardViewController`·`ClipboardHistoryCoordinator`·`SuggestionSelectionCoordinator`·`TextDeletionCoordinator`·`UndoRedoCoordinator` 모두 +5(최종 각 7회, 뷰·제스처 컨트롤러 9종도 7회). CLAUDE.md의 grep 패턴은 VC 카테고리가 구체 클래스 이름이라 VC 줄을 못 세므로 `grep -oE "\] [A-Za-z]+ deinit" | sort | uniq -c`로 셌다
+
+---
+
+## 최종 리뷰 반영 (2026-10-09)
+
+전체 브랜치 리뷰(별도 컨텍스트): Critical 0, Important 1, Minor 3. 기록은 `.superpowers/sdd/.../progress.md`의 `Final:` 줄.
+
+- 반영: 해제 테스트가 한/A 전환 클로저를 실제로 지났는지 `lastHangeulEnglishLanguageMode == .english`로 고정 (`sendActions`가 optional chaining이라 버튼이 nil이면 조용히 건너뛰던 문제). 재실행 `fix-test.log` — 2개 passed
+- 반영: `docs/architecture/한영 통합 키보드.md`의 옛 메서드 이름 `recordLanguageModeDecision` → `languageModeDecisionDidResolve`
+- 보류(사용자 확인): CLAUDE.md "키보드 extension의 해제·누수 확인" grep 패턴이 VC `deinit` 줄을 못 셈(Base가 구체 클래스명을 찍음). 이전부터 같은 문제라 범위 밖
+- 기록만: Task 1 RED는 모듈 미존재 컴파일 오류였고 동작 RED는 아님. 테스트가 회귀를 잡는 근거는 Base `textWillChange`의 `updateReturnButtonEnabled()`와 Core `updateEnglishShiftButton()`이 모두 `documentContextBeforeInput`을 읽어 `withReadCaching` 없이는 2회가 된다는 코드 확인

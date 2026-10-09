@@ -41,6 +41,8 @@ struct HangeulEnglishKeyboardCoreViewControllerProxyReadTests {
 
                 // 한/A 전환은 UIAction 클로저를 지나며 마지막 언어를 저장한다(withLastLanguageMode가 되돌림)
                 controller.primaryKeyboardView.languageSwitchButton?.sendActions(for: .touchUpInside)
+                // 전환 클로저가 실제로 돌았는지 고정한다. 버튼이 nil이면 optional chaining이 조용히 건너뛴다
+                #expect(UserDefaultsManager.shared.lastHangeulEnglishLanguageMode == .english)
                 controller.textWillChange(nil)
                 controller.view.removeFromSuperview()
                 weakController = controller
