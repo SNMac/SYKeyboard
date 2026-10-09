@@ -117,8 +117,6 @@ struct SuggestionBarViewLayoutTests {
         // 후보가 0개여도 후보 영역은 3칸으로 보여야 하므로 divider 격자는 2개를 요구한다.
         // 반면 풀은 updateSuggestions가 처음 불릴 때까지 비어 있다. layoutSuggestionContent()가
         // 격자 개수만 믿고 pooledDividers를 훑으면 여기서 인덱스 범위를 넘는다
-        #expect(SuggestionDividerPolicy.dividerCount(forSuggestionCount: 0) == 2)
-
         let bar = SuggestionBarView(keyboardHStackView: UIStackView())
         bar.frame = CGRect(x: 0, y: 0, width: 300, height: 44)
 

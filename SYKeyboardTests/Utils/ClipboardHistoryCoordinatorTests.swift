@@ -41,6 +41,19 @@ struct ClipboardHistoryCoordinatorTests {
         #expect(fixture.coordinator.isPanelVisible == false)
     }
 
+    @Test("열린 패널에 closePanelIfNeeded는 닫고 자판과 클립보드 버튼을 갱신")
+    func testClosePanelIfNeededWhenOpenCloses() {
+        let fixture = makeFixture()
+        defer { fixture.restore() }
+        fixture.coordinator.togglePanel()
+        fixture.host.calls.removeAll()
+
+        fixture.coordinator.closePanelIfNeeded()
+
+        #expect(fixture.coordinator.isPanelVisible == false)
+        #expect(fixture.host.calls == ["refreshShowingKeyboard", "refreshClipboardControl"])
+    }
+
     @Test("텍스트 항목 탭은 undo 1단위로 삽입하고 기록 맨 위로 올리고 패널을 닫음")
     func testTextItemTapInsertsAsOneUndoGroupAndRecords() {
         let fixture = makeFixture()

@@ -450,6 +450,10 @@ XcodeBuildMCP를 사용하는 경우 첫 build/test 전에 `session_show_default
   영향을 주는 정책 수치는 검증한다.
 - exact color, font, SF Symbol 이름, corner radius, effect subclass, private
   subview 계층, `Mirror` 기반 private 상태는 unit test에서 고정하지 않는다.
+- 같은 규칙·시나리오는 가장 아래 계층(Policy > Coordinator > VC/View) 하나가
+  소유한다(`docs/adr/0003`). Policy 테스트가 임계값·경계·입력 조합의 진리표를
+  갖고, 위 계층에는 정상 경로 1개 + 경계 1개와 그 계층 고유 동작만 둔다.
+  나랏글/천지인/두벌식 간 같은 시나리오는 중복이 아니다.
 - production 동작을 검증한다고 설명하는 테스트는 해당 production 진입점을
   호출해야 한다. helper가 결과를 직접 계산하거나 production 로직을 복제한
   경우 통합 검증으로 인정하지 않는다.

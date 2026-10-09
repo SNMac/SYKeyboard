@@ -111,28 +111,6 @@ struct NaratgeulColumnWidthLayoutTests {
         #expect(abs(Self.rect(view.returnButtonHStackView, in: view).width - expected) < Self.tolerance)
     }
 
-    @Test("배율을 올리면 기능 열이 좁아지고 열 경계가 행마다 일치한다")
-    func testHigherMultiplierNarrowsFunctionColumn() {
-        let view = Self.makeView(multiplier: 1.15)
-        let expectedFunctionWidth = Self.keyboardWidth * 0.1375
-        let expectedColumnStart = Self.keyboardWidth * 0.8625
-
-        let delete = Self.rect(view.deleteButton, in: view)
-        let space = Self.rect(view.spaceButton, in: view)
-        let returnStack = Self.rect(view.returnButtonHStackView, in: view)
-        let nextKeyboard = Self.rect(view.nextKeyboardButton, in: view)
-
-        #expect(abs(delete.width - expectedFunctionWidth) < Self.tolerance)
-        #expect(abs(space.width - expectedFunctionWidth) < Self.tolerance)
-        #expect(abs(returnStack.width - expectedFunctionWidth) < Self.tolerance)
-
-        // 1~4행 모두 4열이 같은 x에서 시작한다
-        #expect(abs(delete.minX - expectedColumnStart) < Self.tolerance)
-        #expect(abs(space.minX - expectedColumnStart) < Self.tolerance)
-        #expect(abs(returnStack.minX - expectedColumnStart) < Self.tolerance)
-        #expect(abs(nextKeyboard.minX - expectedColumnStart) < Self.tolerance)
-    }
-
     @Test("배율을 올리면 글자 버튼이 넓어진다")
     func testHigherMultiplierWidensKeyButtons() throws {
         let defaultView = Self.makeView(multiplier: 1.0)
@@ -197,26 +175,6 @@ struct CheonjiinColumnWidthLayoutTests {
     private static func keyButton(_ view: CheonjiinKeyboardView, primary: String) throws -> PrimaryKeyButton {
         let keyButtons = view.primaryButtonList.compactMap { $0 as? PrimaryKeyButton }
         return try #require(keyButtons.first { $0.type.primaryKeyList.first == primary })
-    }
-
-    @Test("기본 배치에서 배율을 올리면 기능 열이 좁아지고 열 경계가 일치한다")
-    func testDefaultLayoutNarrowsFunctionColumn() {
-        let view = Self.makeView(usesBottomSpaceLayout: false, multiplier: 1.15)
-        let expectedFunctionWidth = Self.keyboardWidth * 0.1375
-        let expectedColumnStart = Self.keyboardWidth * 0.8625
-
-        let delete = Self.rect(view.deleteButton, in: view)
-        let space = Self.rect(view.spaceButton, in: view)
-        let returnStack = Self.rect(view.returnButtonHStackView, in: view)
-        let nextKeyboard = Self.rect(view.nextKeyboardButton, in: view)
-
-        #expect(abs(delete.width - expectedFunctionWidth) < Self.tolerance)
-        #expect(abs(space.width - expectedFunctionWidth) < Self.tolerance)
-        #expect(abs(returnStack.width - expectedFunctionWidth) < Self.tolerance)
-        #expect(abs(delete.minX - expectedColumnStart) < Self.tolerance)
-        #expect(abs(space.minX - expectedColumnStart) < Self.tolerance)
-        #expect(abs(returnStack.minX - expectedColumnStart) < Self.tolerance)
-        #expect(abs(nextKeyboard.minX - expectedColumnStart) < Self.tolerance)
     }
 
     @Test("하단 스페이스 배치도 위치 기준으로 4열이 좁아지고 열 경계가 일치한다")
@@ -306,26 +264,6 @@ struct NumericColumnWidthLayoutTests {
         return try #require(keyButtons.first { $0.type.primaryKeyList.first == primary })
     }
 
-    @Test("기본 배치에서 배율을 올리면 기능 열이 좁아지고 열 경계가 일치한다")
-    func testDefaultLayoutNarrowsFunctionColumn() {
-        let view = Self.makeView(usesBottomSpaceLayout: false, multiplier: 1.15)
-        let expectedFunctionWidth = Self.keyboardWidth * 0.1375
-        let expectedColumnStart = Self.keyboardWidth * 0.8625
-
-        let delete = Self.rect(view.deleteButton, in: view)
-        let space = Self.rect(view.spaceButton, in: view)
-        let returnRect = Self.rect(view.returnButton, in: view)
-        let nextKeyboard = Self.rect(view.nextKeyboardButton, in: view)
-
-        #expect(abs(delete.width - expectedFunctionWidth) < Self.tolerance)
-        #expect(abs(space.width - expectedFunctionWidth) < Self.tolerance)
-        #expect(abs(returnRect.width - expectedFunctionWidth) < Self.tolerance)
-        #expect(abs(delete.minX - expectedColumnStart) < Self.tolerance)
-        #expect(abs(space.minX - expectedColumnStart) < Self.tolerance)
-        #expect(abs(returnRect.minX - expectedColumnStart) < Self.tolerance)
-        #expect(abs(nextKeyboard.minX - expectedColumnStart) < Self.tolerance)
-    }
-
     @Test("하단 스페이스 배치도 위치 기준으로 4열이 좁아지고 열 경계가 일치한다")
     func testBottomSpaceLayoutNarrowsFourthColumnByPosition() throws {
         let view = Self.makeView(usesBottomSpaceLayout: true, multiplier: 1.15)
@@ -383,5 +321,86 @@ struct NumericColumnWidthLayoutTests {
         // 붕괴 회귀 방지: 전환 버튼이 라벨 때문에 45.7pt 아래로 눌리지 않아
         // 이전 비율 폭 제약에서는 한/영이 6pt로 붕괴했다
         #expect(buttonWidth > 10)
+    }
+}
+
+@MainActor
+@Suite("4열 자판 기능 열 너비 레이아웃")
+struct FourColumnFunctionColumnWidthTests {
+    private static let keyboardWidth: CGFloat = 390
+    private static let keyboardHeight: CGFloat = 216
+    private static let tolerance: CGFloat = 1.0
+
+    /// 기능 열(4열)을 공유하는 세 자판. 천지인·숫자는 기본 배치다
+    enum Fixture: CustomTestStringConvertible {
+        case naratgeul
+        case cheonjiin
+        case numeric
+
+        var testDescription: String {
+            switch self {
+            case .naratgeul: return "나랏글"
+            case .cheonjiin: return "천지인 기본 배치"
+            case .numeric: return "숫자 키패드 기본 배치"
+            }
+        }
+
+        /// 배율을 적용해 레이아웃한 자판과 4열 버튼들. 리턴 자리는 숫자 키패드만 단일 버튼이고 나머지는 스택이다
+        @MainActor
+        func makeLayout(width: CGFloat, height: CGFloat, multiplier: Double)
+        -> (view: UIView, delete: UIView, space: UIView, returnView: UIView, nextKeyboard: UIView) {
+            let frame = CGRect(x: 0, y: 0, width: width, height: height)
+            switch self {
+            case .naratgeul:
+                let view = NaratgeulKeyboardView(showsLanguageSwitchButton: true, showsNumberRow: false)
+                view.frame = frame
+                view.updateLetterColumnWidthMultiplier(multiplier)
+                view.layoutIfNeeded()
+                return (view, view.deleteButton, view.spaceButton, view.returnButtonHStackView, view.nextKeyboardButton)
+            case .cheonjiin:
+                let view = CheonjiinKeyboardView(showsLanguageSwitchButton: true,
+                                                 usesBottomSpaceLayout: false,
+                                                 showsNumberRow: false)
+                view.frame = frame
+                view.updateLetterColumnWidthMultiplier(multiplier)
+                view.layoutIfNeeded()
+                return (view, view.deleteButton, view.spaceButton, view.returnButtonHStackView, view.nextKeyboardButton)
+            case .numeric:
+                let view = NumericKeyboardView(showsLanguageSwitchButton: true, usesBottomSpaceLayout: false)
+                view.frame = frame
+                view.updateLetterColumnWidthMultiplier(multiplier)
+                view.layoutIfNeeded()
+                return (view, view.deleteButton, view.spaceButton, view.returnButton, view.nextKeyboardButton)
+            }
+        }
+    }
+
+    /// 버튼 프레임은 각자의 행 스택 좌표계에 있어 행을 가로질러 비교하려면 변환해야 한다
+    @MainActor
+    private static func rect(_ subview: UIView, in view: UIView) -> CGRect {
+        subview.convert(subview.bounds, to: view)
+    }
+
+    @Test("배율을 올리면 세 자판 모두 기능 열이 좁아지고 열 경계가 행마다 일치한다",
+          arguments: [Fixture.naratgeul, .cheonjiin, .numeric])
+    func test배율올리면_기능열좁아지고_열경계일치(fixture: Fixture) {
+        let layout = fixture.makeLayout(width: Self.keyboardWidth, height: Self.keyboardHeight, multiplier: 1.15)
+        let expectedFunctionWidth = Self.keyboardWidth * 0.1375
+        let expectedColumnStart = Self.keyboardWidth * 0.8625
+
+        let delete = Self.rect(layout.delete, in: layout.view)
+        let space = Self.rect(layout.space, in: layout.view)
+        let returnRect = Self.rect(layout.returnView, in: layout.view)
+        let nextKeyboard = Self.rect(layout.nextKeyboard, in: layout.view)
+
+        #expect(abs(delete.width - expectedFunctionWidth) < Self.tolerance)
+        #expect(abs(space.width - expectedFunctionWidth) < Self.tolerance)
+        #expect(abs(returnRect.width - expectedFunctionWidth) < Self.tolerance)
+
+        // 1~4행 모두 4열이 같은 x에서 시작한다
+        #expect(abs(delete.minX - expectedColumnStart) < Self.tolerance)
+        #expect(abs(space.minX - expectedColumnStart) < Self.tolerance)
+        #expect(abs(returnRect.minX - expectedColumnStart) < Self.tolerance)
+        #expect(abs(nextKeyboard.minX - expectedColumnStart) < Self.tolerance)
     }
 }

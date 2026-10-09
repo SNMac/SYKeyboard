@@ -58,25 +58,10 @@ struct SymbolKeyboardLayoutTests {
                 visualFrame(view.deleteButton).minX - visualFrame(lastButton).maxX)
     }
 
-    @Test("셋째 줄이 다 찬 기본 자판은 좌우 여백이 같다")
-    func test셋째줄_기본자판_좌우여백() throws {
-        let margins = try #require(thirdRowSideMargins(makeView(mode: .default)))
-
-        #expect(margins.left >= 0)
-        #expect(abs(margins.left - margins.right) < 1)
-    }
-
-    @Test("URL 자판 셋째 줄도 좌우 여백이 같다")
-    func test셋째줄_URL자판_좌우여백() throws {
-        let margins = try #require(thirdRowSideMargins(makeView(mode: .URL)))
-
-        #expect(margins.left >= 0)
-        #expect(abs(margins.left - margins.right) < 1)
-    }
-
-    @Test("이메일 자판 셋째 줄도 좌우 여백이 같다")
-    func test셋째줄_이메일자판_좌우여백() throws {
-        let margins = try #require(thirdRowSideMargins(makeView(mode: .emailAddress)))
+    @Test("셋째 줄이 다 찬 기본·URL·이메일 자판은 좌우 여백이 같다",
+          arguments: [SymbolKeyboardMode.default, .URL, .emailAddress])
+    func test셋째줄_좌우여백(mode: SymbolKeyboardMode) throws {
+        let margins = try #require(thirdRowSideMargins(makeView(mode: mode)))
 
         #expect(margins.left >= 0)
         #expect(abs(margins.left - margins.right) < 1)

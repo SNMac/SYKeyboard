@@ -202,28 +202,21 @@ struct ClipboardHistoryPanelViewTests {
         #expect(cell.isHighlighted)
     }
 
-    @Test("기본 configure는 열린 상세를 닫음")
-    func test기본configure는_상세를닫음() {
-        let items = [unpinned("a"), unpinned("b")]
-        let (panel, spy) = makePanel(items: items)
+    @Test("상세를 연 채 configure하면 상세를 유지하는 갱신에서 보던 항목이 남아 있을 때만 붙여넣기가 그 항목의 새 인덱스를 요청",
+          arguments: [
+            // (label, newTexts, keepsDetail, expectedSelected)
+            ("기본 configure는 열린 상세를 닫음", ["a", "b"], false, [Int]()),
+            ("상세를 유지하는 갱신에서 앞에 새 항목이 들어오면 붙여넣기는 보던 항목의 새 인덱스를 요청", ["new", "a", "b"], true, [2]),
+            ("상세를 유지하는 갱신이어도 보던 항목이 사라지면 상세를 닫고 요청하지 않음", ["a"], true, [])
+          ])
+    func test상세열고configure후_붙여넣기(label: String, newTexts: [String], keepsDetail: Bool, expectedSelected: [Int]) {
+        let (panel, spy) = makePanel(items: [unpinned("a"), unpinned("b")])
 
         panel.showDetail(at: 1)
-        panel.configure(state: .items(items))
+        panel.configure(state: .items(newTexts.map(unpinned)), keepsDetail: keepsDetail)
         panel.pasteDetailItem()
 
-        #expect(spy.selectedIndices.isEmpty)
-    }
-
-    @Test("상세를 유지하는 갱신에서 앞에 새 항목이 들어오면 붙여넣기는 보던 항목의 새 인덱스를 요청")
-    func test상세유지갱신후_붙여넣기는보던항목() {
-        let items = [unpinned("a"), unpinned("b")]
-        let (panel, spy) = makePanel(items: items)
-
-        panel.showDetail(at: 1)
-        panel.configure(state: .items([unpinned("new")] + items), keepsDetail: true)
-
-        panel.pasteDetailItem()
-        #expect(spy.selectedIndices == [2])
+        #expect(spy.selectedIndices == expectedSelected)
     }
 
     @Test("상세를 유지하는 갱신에서 보던 항목이 다시 기록돼 앞으로 오면 고정은 그 항목을 요청")
@@ -235,17 +228,6 @@ struct ClipboardHistoryPanelViewTests {
 
         panel.toggleDetailItemPin()
         #expect(spy.toggledPinIndices == [0])
-    }
-
-    @Test("상세를 유지하는 갱신이어도 보던 항목이 사라지면 상세를 닫고 요청하지 않음")
-    func test보던항목이사라지면_상세를닫음() {
-        let (panel, spy) = makePanel(items: [unpinned("a"), unpinned("b")])
-
-        panel.showDetail(at: 1)
-        panel.configure(state: .items([unpinned("a")]), keepsDetail: true)
-        panel.pasteDetailItem()
-
-        #expect(spy.selectedIndices.isEmpty)
     }
 
     @Test("선택이 없으면 삭제를 요청하지 않음")

@@ -72,60 +72,27 @@ struct KeyboardHeightPolicyTests {
         #expect(isPortrait == false)
     }
 
-    @Test("세로 화면에서는 키보드 높이에 suggestion bar 높이를 더하고 hstack 높이는 설정값을 유지")
-    func test세로화면_높이계산() {
+    // 세로: keyboard view = 설정값 + 보이는 suggestion bar, hstack = 설정값
+    // 가로: keyboard view = 고정값, hstack = 고정값 - 보이는 suggestion bar
+    @Test("설정 260·가로 고정 220·suggestion bar 44에서 화면 방향과 bar 표시에 따른 높이",
+          arguments: [
+            // (isPortrait, isSuggestionBarVisible, keyboardView, hStack)
+            (true, true, 304.0, 260.0),
+            (true, false, 260.0, 260.0),
+            (false, true, 220.0, 176.0),
+            (false, false, 220.0, 220.0)
+          ])
+    func test높이계산(isPortrait: Bool, isSuggestionBarVisible: Bool, keyboardView: CGFloat, hStack: CGFloat) {
         let height = KeyboardHeightPolicy.height(
             keyboardSettingsHeight: 260,
             landscapeKeyboardHeight: 220,
             suggestionBarHeight: 44,
-            isSuggestionBarVisible: true,
-            isPortrait: true
+            isSuggestionBarVisible: isSuggestionBarVisible,
+            isPortrait: isPortrait
         )
 
-        #expect(height.keyboardViewHeight == 304)
-        #expect(height.keyboardHStackViewHeight == 260)
-    }
-
-    @Test("세로 화면에서 suggestion bar가 숨겨지면 keyboard view와 hstack 높이가 설정값과 같음")
-    func test세로화면_suggestionBar숨김_높이계산() {
-        let height = KeyboardHeightPolicy.height(
-            keyboardSettingsHeight: 260,
-            landscapeKeyboardHeight: 220,
-            suggestionBarHeight: 44,
-            isSuggestionBarVisible: false,
-            isPortrait: true
-        )
-
-        #expect(height.keyboardViewHeight == 260)
-        #expect(height.keyboardHStackViewHeight == 260)
-    }
-
-    @Test("가로 화면에서는 keyboard view 높이를 고정하고 hstack에서 suggestion bar 높이를 뺌")
-    func test가로화면_높이계산() {
-        let height = KeyboardHeightPolicy.height(
-            keyboardSettingsHeight: 260,
-            landscapeKeyboardHeight: 220,
-            suggestionBarHeight: 44,
-            isSuggestionBarVisible: true,
-            isPortrait: false
-        )
-
-        #expect(height.keyboardViewHeight == 220)
-        #expect(height.keyboardHStackViewHeight == 176)
-    }
-
-    @Test("가로 화면에서 suggestion bar가 숨겨지면 keyboard view와 hstack 높이가 고정값과 같음")
-    func test가로화면_suggestionBar숨김_높이계산() {
-        let height = KeyboardHeightPolicy.height(
-            keyboardSettingsHeight: 260,
-            landscapeKeyboardHeight: 220,
-            suggestionBarHeight: 44,
-            isSuggestionBarVisible: false,
-            isPortrait: false
-        )
-
-        #expect(height.keyboardViewHeight == 220)
-        #expect(height.keyboardHStackViewHeight == 220)
+        #expect(height.keyboardViewHeight == keyboardView)
+        #expect(height.keyboardHStackViewHeight == hStack)
     }
 
     // MARK: - 숫자 행

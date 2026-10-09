@@ -64,8 +64,10 @@ struct BaseKeyboardViewControllerSuggestionClipboardBehaviorTests {
         #expect(controller.proxy.contextReadCount == 8)
     }
 
-    @Test("클립보드 버튼 탭은 패널을 열고 자판을 숨기며 다시 탭하면 닫음")
-    func testClipboardButtonTapTogglesPanel() {
+    // 패널 열고 닫기는 ClipboardHistoryCoordinatorTests가 소유한다. 여기서는 클립보드 버튼 → 패널 표시 → 자판 숨김 연결과
+    // textWillChange가 패널을 닫는 VC 동기화만 본다 (docs/adr/0003)
+    @Test("클립보드 버튼 탭은 패널을 열고 자판을 숨기며 textWillChange는 열린 패널을 닫음")
+    func testClipboardButtonOpensPanelAndTextWillChangeClosesIt() {
         let settings = UserDefaultsManager.shared
         let oldClipboard = settings.isClipboardHistoryEnabled
         settings.isClipboardHistoryEnabled = false
@@ -74,30 +76,9 @@ struct BaseKeyboardViewControllerSuggestionClipboardBehaviorTests {
         let controller = TestBehaviorViewController()
         controller.loadViewIfNeeded()
         let bar = controller.suggestionBar
-
         bar.suggestionDelegate?.suggestionBarDidTapClipboard(bar)
-
         #expect(controller.clipboardHistoryPanelView.isHidden == false)
         #expect(controller.primaryView.isHidden)
-
-        bar.suggestionDelegate?.suggestionBarDidTapClipboard(bar)
-
-        #expect(controller.clipboardHistoryPanelView.isHidden)
-        #expect(controller.primaryView.isHidden == false)
-    }
-
-    @Test("textWillChange는 열린 클립보드 패널을 닫음")
-    func testTextWillChangeClosesClipboardPanel() {
-        let settings = UserDefaultsManager.shared
-        let oldClipboard = settings.isClipboardHistoryEnabled
-        settings.isClipboardHistoryEnabled = false
-        defer { settings.isClipboardHistoryEnabled = oldClipboard }
-
-        let controller = TestBehaviorViewController()
-        controller.loadViewIfNeeded()
-        let bar = controller.suggestionBar
-        bar.suggestionDelegate?.suggestionBarDidTapClipboard(bar)
-        #expect(controller.clipboardHistoryPanelView.isHidden == false)
 
         controller.textWillChange(nil)
 

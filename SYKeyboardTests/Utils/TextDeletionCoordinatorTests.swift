@@ -156,6 +156,21 @@ struct TextDeletionCoordinatorTests {
         #expect(fixture.host.calls.contains("recordEditForUndo(녕, )"))
     }
 
+    @Test("연속된 반복 틱은 직전 틱을 확정하고 이어 지움")
+    func testConsecutiveRepeatTicksContinueDeleting() {
+        let fixture = makeFixture()
+        fixture.coordinator.beginRepeatInput()
+
+        fixture.coordinator.performRepeatTick(for: fixture.button)
+        fixture.coordinator.performRepeatTick(for: fixture.button)
+
+        #expect(fixture.proxy.writes == ["deleteBackward", "deleteBackward"])
+
+        fixture.coordinator.endRepeatInput(isDeleteButton: true)
+
+        #expect(fixture.coordinator.isRepeatingInput == false)
+    }
+
     @Test("captureMutation은 진행 중 요청이 없으면 false")
     func testCaptureMutationWithoutRequestReturnsFalse() {
         let fixture = makeFixture()

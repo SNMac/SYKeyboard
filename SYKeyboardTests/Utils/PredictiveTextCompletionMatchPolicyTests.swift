@@ -57,21 +57,17 @@ struct PredictiveTextCompletionMatchPolicyTests {
         #expect(isCompletion(candidate, of: typedWord))
     }
 
-    // "가\u{11A8}"은 "각"과 정규 등가라 앞 글자 접두어로 인정된다. 첫 스칼라만 보고 버리면 안 된다
-    @Test("첫가끝 자모로 쓴 같은 글자도 앞 글자로 인정")
-    func test첫가끝자모로쓴같은글자도_앞글자로인정() {
-        #expect(isCompletion("가\u{11A8}나다", of: "각ㄴ"))
-    }
-
-    // 입력이 첫가끝 자모면(붙여넣은 NFD 한글) 스칼라 비교 빠른 경로를 타면 안 된다. 정규 등가로 앞 글자가 같다
-    @Test("입력 앞 글자가 첫가끝 자모로 쓰여도 완성형 후보를 완성으로 봄")
-    func test입력앞글자가첫가끝자모로쓰여도_완성형후보를완성으로봄() {
-        #expect(isCompletion("가나다", of: "\u{1100}\u{1161}나"))
-    }
-
-    @Test("자음만 입력하면 그 자음으로 시작하는 자음 단어도 완성")
-    func test자음만입력하면_그자음으로시작하는자음단어도완성() {
-        #expect(isCompletion("ㅋㅋㅋ", of: "ㅋ"))
+    @Test("첫가끝 자모와 완성형은 정규 등가로 앞 글자를 비교하고 자음만 입력해도 자음 단어를 완성으로 봄", arguments: [
+        // (candidate, typedWord)
+        // "가\u{11A8}"은 "각"과 정규 등가라 앞 글자 접두어로 인정된다. 첫 스칼라만 보고 버리면 안 된다
+        ("가\u{11A8}나다", "각ㄴ"),
+        // 입력이 첫가끝 자모면(붙여넣은 NFD 한글) 스칼라 비교 빠른 경로를 타면 안 된다. 정규 등가로 앞 글자가 같다
+        ("가나다", "\u{1100}\u{1161}나"),
+        // 자음만 입력하면 그 자음으로 시작하는 자음 단어도 완성
+        ("ㅋㅋㅋ", "ㅋ")
+    ])
+    func test첫가끝자모정규등가와_자음만입력도_완성으로봄(candidate: String, typedWord: String) {
+        #expect(isCompletion(candidate, of: typedWord))
     }
 
     @Test("입력 단어와 같은 단어는 대소문자가 달라도 완성이 아님", arguments: [

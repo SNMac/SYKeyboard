@@ -247,15 +247,15 @@ struct NGramPredictiveTextEngineDecayTests {
         fixture.saveQueue.sync {}
 
         let saved = try readSavedNGramFile(at: url)
-        let scale = 500 / (M_LN2 * 4000)
         let a = try #require(saved.unigram["a"])
         let b = try #require(saved.unigram["b"])
         let ab = try #require(saved.bigram["a"]?["b"])
         #expect(saved.version == 2)
         #expect(saved.clock == 0)
-        #expect(abs(a - 3000 * scale) < 1e-9)
-        #expect(abs(b - 1000 * scale) < 1e-9)
-        #expect(abs(ab - 400 * scale) < 1e-9)
+        // 전체 4000회·반감기 500일 때 배율 약 0.18034 (3000:1000:400 비율 유지)
+        #expect(abs(a - 541.0106403333614) < 1e-9)
+        #expect(abs(b - 180.33688011112045) < 1e-9)
+        #expect(abs(ab - 72.13475204444818) < 1e-9)
     }
 
     @Test("기록한 단어가 적은 옛 형식 파일은 빈도를 그대로 점수로 옮김")
@@ -304,12 +304,12 @@ struct NGramPredictiveTextEngineDecayTests {
 
         #expect(engine.suggestions(for: "") == ["a", "b"])
         let saved = try readSavedNGramFile(at: url)
-        let scale = 500 / (M_LN2 * 4000)
         let a = try #require(saved.unigram["a"])
         let ab = try #require(saved.bigram["a"]?["b"])
         #expect(saved.version == 2)
-        #expect(abs(a - 3000 * scale) < 1e-9)
-        #expect(abs(ab - 400 * scale) < 1e-9)
+        // 전체 4000회·반감기 500일 때 배율 약 0.18034 (3000:400 비율 유지)
+        #expect(abs(a - 541.0106403333614) < 1e-9)
+        #expect(abs(ab - 72.13475204444818) < 1e-9)
         #expect(storage.object(forKey: "com.snmac.sykeyboard.ngram.\(language).unigram") == nil)
         #expect(storage.object(forKey: "com.snmac.sykeyboard.ngram.\(language).bigram") == nil)
     }
