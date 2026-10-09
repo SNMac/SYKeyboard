@@ -153,6 +153,22 @@ struct ClipboardHistoryCoordinatorTests {
         #expect(coordinator.isPanelVisible == false)
         #expect(fixture.panel.items.isEmpty)
     }
+
+    @Test("observer와 예약 작업이 걸린 Coordinator는 참조를 놓으면 해제됨")
+    func testCoordinatorIsReleased() {
+        weak var weakCoordinator: ClipboardHistoryCoordinator?
+        autoreleasepool {
+            let fixture = makeFixture()
+            defer { fixture.restore() }
+            fixture.coordinator.registerNotificationObservers()
+            fixture.coordinator.pasteboardDidChange()
+            weakCoordinator = fixture.coordinator
+        }
+
+        #expect(weakCoordinator == nil)
+        RunLoop.main.run(until: Date(timeIntervalSinceNow: 0.05))
+        NotificationCenter.default.post(name: UIPasteboard.changedNotification, object: nil)
+    }
 }
 
 // MARK: - Test Helpers

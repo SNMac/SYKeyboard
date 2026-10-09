@@ -22,6 +22,7 @@ final class FakeSuggestionService: SuggestionService {
     var removableBarIndices = IndexSet()
     var sentenceWordsSnapshotResult: [String] = []
     var textReplacementPreviewSuggestionIndexResult: Int?
+    var restoreReplacementResult: (deleteCount: Int, insertText: String)?
 
     // MARK: - Records
 
@@ -122,7 +123,7 @@ final class FakeSuggestionService: SuggestionService {
         selectedText: String?
     ) -> (deleteCount: Int, insertText: String)? {
         calls.append("attemptRestoreReplacement(\(inputBuffer))")
-        return nil
+        return restoreReplacementResult
     }
 
     func clearIgnoredShortcut() { calls.append("clearIgnoredShortcut") }

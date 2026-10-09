@@ -133,4 +133,20 @@ struct CachingTextDocumentProxyTests {
         }
         #expect(textDocument.documentContextAfterInput == nil)
     }
+
+    @Test("contextSnapshot은 앞·뒤 문맥을 한 번씩 읽어 담음")
+    func testContextSnapshotReadsBeforeAndAfterOnce() {
+        let proxy = CountingTextDocumentProxy()
+        proxy.beforeInput = "앞"
+        proxy.afterInput = "뒤"
+        let document = CachingTextDocumentProxy { proxy }
+
+        let snapshot = document.contextSnapshot
+
+        #expect(snapshot == KeyboardTextContextSnapshot(beforeInput: "앞", afterInput: "뒤"))
+        #expect(proxy.readCount(of: "documentContextBeforeInput") == 1)
+        #expect(proxy.readCount(of: "documentContextAfterInput") == 1)
+        #expect(proxy.readCount(of: "selectedText") == 0)
+    }
 }
+

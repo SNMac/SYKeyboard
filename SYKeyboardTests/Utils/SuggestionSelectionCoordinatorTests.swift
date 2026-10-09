@@ -256,6 +256,19 @@ struct SuggestionSelectionCoordinatorTests {
         #expect(fixture.service.calls.isEmpty)
         #expect(fixture.service.endedSentences.isEmpty)
     }
+
+    @Test("오버레이와 delegate가 걸린 Coordinator는 참조를 놓으면 해제됨")
+    func testCoordinatorIsReleased() {
+        weak var weakCoordinator: SuggestionSelectionCoordinator?
+        autoreleasepool {
+            let fixture = makeFixture()
+            fixture.service.removableSuggestionTextResult = "오늘"
+            _ = fixture.coordinator.suggestionBar(fixture.bar, shouldBeginRemovalAt: 0)
+            weakCoordinator = fixture.coordinator
+        }
+
+        #expect(weakCoordinator == nil)
+    }
 }
 
 // MARK: - Test Helpers
