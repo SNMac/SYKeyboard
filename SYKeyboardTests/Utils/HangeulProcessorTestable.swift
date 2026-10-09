@@ -52,6 +52,11 @@ extension HangeulProcessorTestable {
     }
 
     /// 완성형 한글 한 글자를 모두 지우기 위해 필요한 백스페이스 횟수를 계산
+    ///
+    /// production과 독립적으로 유지하는 oracle이다. 나랏글·천지인 11,172자 전수 삭제 테스트의 기대값을
+    /// 유니코드 인덱스와 아래 표로만 정하고 Processor·Automata 코드를 부르지 않는다. 구현 복제가 아니므로
+    /// production 쪽으로 바꾸거나 production 코드로 기대값을 계산하게 고치지 않는다.
+    /// 조합 규칙이 의도적으로 바뀌면 이 표를 따로 고친다
     func calculateExpectedDeleteCount(for char: Character) -> Int {
         guard let scalar = char.unicodeScalars.first,
               (0xAC00...0xD7A3).contains(scalar.value) else { return 0 }
