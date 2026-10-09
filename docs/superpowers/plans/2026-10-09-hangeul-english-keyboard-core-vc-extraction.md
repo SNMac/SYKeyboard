@@ -1587,6 +1587,7 @@ Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>"
 - 전체 테스트: `task5-test.log` — `Test case … passed` 1057개, failed 0, `** TEST SUCCEEDED **`
 - 4 scheme 빌드: `SYKeyboard`(테스트 실행이 빌드), `HangeulKeyboard`·`EnglishKeyboard`·`HangeulEnglishKeyboard` 모두 `** BUILD SUCCEEDED **`(`task5-build-*.log`). `.xcscheme` 변경 없음
 - 시뮬레이터 확인(메시지 작성 화면 `sms:010`, idb 탭): 1) "안녕" 입력 후 한/A → qwerty로 바뀌고 입력란 "안녕"·후보 바("안녕"·안녕하셨습니까·안녕하신지요) 유지 2) 두벌식 ㅇㅏㄴㄴㅕㅇ → "안녕" 정상 조합 3) 지워서 빈 필드 → shift 켜짐·대문자 자판, h → "H", h → "Hh" 4) 로컬 http 페이지(`www/f.html`)의 `type="email"` 필드 → 영어 자판(@ 키), 접근성 바 ∨로 `type="text"` 필드 → 마지막 언어(한글) 복원. 캡처 `s2`\~`s10.png`
+- 훅 오버라이드 실행 확인(추가, 2026-10-09): `log stream --level info --predicate '… eventMessage CONTAINS "languageMode"'`(`hook2.log`)로 Safari 로컬 페이지에서 email 필드 → text 필드로 옮기자 카테고리 `HangeulEnglishKeyboardViewController`로 `languageMode documentPrimaryLanguage=nil keyboardType=7 textContentType=nil requiresLatinInput=true resolved=english` 와 `… keyboardType=0 … resolved=hangeul` 두 줄이 찍힘. extension의 leaf 오버라이드가 옮기기 전과 같은 메시지를 남긴다. 메시지 작성 화면(`.default` 필드)만 열 때는 trait 변화가 없어 `inputTraitsDidChange()` 자체가 불리지 않으며 이는 옮기기 전과 같다
 - deinit 횟수: `deinit.log` — 메시지 작성 열기/Cancel 5회 주기 전후 비교에서 `HangeulEnglishKeyboardViewController`·`ClipboardHistoryCoordinator`·`SuggestionSelectionCoordinator`·`TextDeletionCoordinator`·`UndoRedoCoordinator` 모두 +5(최종 각 7회, 뷰·제스처 컨트롤러 9종도 7회). CLAUDE.md의 grep 패턴은 VC 카테고리가 구체 클래스 이름이라 VC 줄을 못 세므로 `grep -oE "\] [A-Za-z]+ deinit" | sort | uniq -c`로 셌다
 
 ---
