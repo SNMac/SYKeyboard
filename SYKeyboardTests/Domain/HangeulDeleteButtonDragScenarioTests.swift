@@ -35,14 +35,14 @@ struct HangeulDeleteButtonDragScenarioTests {
 
     @Test("삭제 버튼 드래그 복구: '동해물과' 전체 삭제 후 복구", arguments: InputMethod.allCases)
     func test삭제버튼드래그_전체복구후_버퍼동기화(_ inputMethod: InputMethod) {
-        assert전체복구후_버퍼동기화(make동해물과Harness(inputMethod))
+        assert전체복구후_버퍼동기화(make동해물과Simulator(inputMethod))
     }
 
     // MARK: - touchDown 선삭제 후 pan 복구 중복 방지
 
     @Test("삭제 버튼 드래그 복구: touchDown 선삭제 후 pan 복구가 중복되지 않음", arguments: InputMethod.allCases)
     func test삭제버튼드래그_touchDown선삭제후_복구중복방지(_ inputMethod: InputMethod) {
-        assertTouchDown선삭제후_복구중복방지(make동해물과Harness(inputMethod))
+        assertTouchDown선삭제후_복구중복방지(make동해물과Simulator(inputMethod))
     }
 
     @Test("두벌식 삭제 버튼 드래그 복구: '동해물고' touchDown 선삭제 후 전체 복구")
@@ -91,7 +91,7 @@ struct HangeulDeleteButtonDragScenarioTests {
 
 private extension HangeulDeleteButtonDragScenarioTests {
     /// 해당 입력기의 키 입력으로 '동해물과'를 만든 simulator
-    func make동해물과Harness(_ inputMethod: InputMethod) -> HangeulDeleteButtonDragSimulator {
+    func make동해물과Simulator(_ inputMethod: InputMethod) -> HangeulDeleteButtonDragSimulator {
         switch inputMethod {
         case .dubeolsik:
             let sim = HangeulDeleteButtonDragSimulator(processor: DubeolsikProcessor(automata: automata))
