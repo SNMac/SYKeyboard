@@ -177,6 +177,20 @@ Notion 행과 Crashlytics 이슈를 정리하므로, **사람이 할 일은 수�
   - `종료`로 바꾸면 reconcile이 그 행을 더 보지 않아 Crashlytics 이슈가 열린 채 남는다. 열린 이슈는
     회귀로 표시되지 않아 같은 크래시가 다시 나도 재분석되지 않는다.
 
+## Agent skills
+
+### Issue tracker
+
+GitHub Issues(`SNMac/SYKeyboard`)에 두고 `gh`로 다룬다. 새 이슈는 명시적 허락을 받은 뒤 템플릿에 맞춰 만든다. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+기본 역할 이름 5개(`needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`)를 그대로 쓴다. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+single-context(루트 `CONTEXT.md` + `docs/adr/`). See `docs/agents/domain.md`.
+
 ## 출시 기준점과 마이그레이션
 
 - 버전·빌드번호는 `Common/Configs/Version.xcconfig`의 `VERSION`/`BUILD_NUMBER`다. 태그는 없다.
