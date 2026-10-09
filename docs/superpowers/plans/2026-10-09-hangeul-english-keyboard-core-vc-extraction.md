@@ -1141,7 +1141,7 @@ Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>"
 - Consumes: Task 1의 `HangeulEnglishKeyboardCoreViewController`, `public init()`, `open func languageModeDecisionDidResolve(requiresLatinInput:resolved:)`
 - Produces: 없음(extension 진입점)
 
-- [ ] **Step 1: leaf 파일 교체**
+- [x] **Step 1: leaf 파일 교체**
 
 `HangeulKeyboardViewController.swift`와 같은 틀이다. 훅 오버라이드 본문은 옮기기 전 `recordLanguageModeDecision` 본문 그대로다.
 
@@ -1237,7 +1237,7 @@ private extension HangeulEnglishKeyboardViewController {
 }
 ```
 
-- [ ] **Step 2: 옮기기 전 파일과 Core VC의 diff가 예상 목록과 일치하는지 확인**
+- [x] **Step 2: 옮기기 전 파일과 Core VC의 diff가 예상 목록과 일치하는지 확인**
 
 ```sh
 diff <(git show b1391416:Keyboards/HangeulEnglishKeyboard/Presentation/HangeulEnglishKeyboardViewController.swift) \
@@ -1260,7 +1260,7 @@ diff <(git show b1391416:Keyboards/HangeulEnglishKeyboard/Presentation/HangeulEn
 - `recordLanguageModeDecision` 메서드와 doc 주석 삭제
 - `setupFirebase()` 정의와 `// MARK: - Private Methods` extension 삭제
 
-- [ ] **Step 3: extension 스킴 빌드와 관련 테스트**
+- [x] **Step 3: extension 스킴 빌드와 관련 테스트**
 
 ```sh
 xcodebuild build -project SYKeyboard.xcodeproj -scheme HangeulEnglishKeyboard \
@@ -1275,7 +1275,7 @@ xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
 
 기대: `** BUILD SUCCEEDED **`, 모든 `Test case … passed`, `** TEST SUCCEEDED **`.
 
-- [ ] **Step 4: 스킴 부수 효과 되돌리고 커밋**
+- [x] **Step 4: 스킴 부수 효과 되돌리고 커밋**
 
 ```sh
 git status --short   # .xcscheme RemotePath만 바뀌었으면 checkout으로 되돌림
@@ -1286,9 +1286,9 @@ git commit -m "refactor: #190 - 한영 extension VC를 Core VC를 상속하는 F
 Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>"
 ```
 
-**결과 기록:**
-- diff 잔여 항목:
-- 빌드·테스트:
+**결과 기록 (2026-10-09):**
+- diff 잔여 항목: `task2-diff.txt` — 헤더 5줄, `import OSLog`/`FirebaseCore`/`FirebaseCrashlytics` 삭제, 클래스 doc 2줄·`open class`, `logger` 4줄, `public init()`, `setupFirebase()` 호출·주석, `@MainActor required public init?(coder:)`, `didReceiveMemoryWarning` 블록, 훅 선언, 훅 호출 교체(`applyLanguageMode` 앞 유지), `recordLanguageModeDecision` 정의, extension 이름 2곳, `setupFirebase` extension. 예상 목록 밖 줄 없음
+- 빌드·테스트: `HangeulEnglishKeyboard` 스킴 `** BUILD SUCCEEDED **`; ProxyRead + ModeCoordinator 테스트 7개 passed, `** TEST SUCCEEDED **`; `.xcscheme` 변경 없음
 
 ---
 
