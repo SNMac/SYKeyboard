@@ -526,6 +526,7 @@ direction LR
       class BaseKeyboardViewController
       class HangeulKeyboardCoreViewController
       class EnglishKeyboardCoreViewController
+      class HangeulEnglishKeyboardCoreViewController
     }
 
     namespace FinalKeyboardViewController {
@@ -555,15 +556,16 @@ direction LR
 
     BaseKeyboardViewController <|-- HangeulKeyboardCoreViewController: Inheritance
     BaseKeyboardViewController <|-- EnglishKeyboardCoreViewController: Inheritance
-    BaseKeyboardViewController <|-- HangeulEnglishKeyboardViewController: Inheritance
+    BaseKeyboardViewController <|-- HangeulEnglishKeyboardCoreViewController: Inheritance
     HangeulKeyboardCoreViewController <|-- HangeulKeyboardViewController: Inheritance
     EnglishKeyboardCoreViewController <|-- EnglishKeyboardViewController: Inheritance
+    HangeulEnglishKeyboardCoreViewController <|-- HangeulEnglishKeyboardViewController: Inheritance
 
     HangeulKeyboardCoreViewController *-- HangeulKeyboardInputAdapter: Composition
     EnglishKeyboardCoreViewController *-- EnglishKeyboardInputAdapter: Composition
-    HangeulEnglishKeyboardViewController *-- HangeulKeyboardInputAdapter: Composition
-    HangeulEnglishKeyboardViewController *-- EnglishKeyboardInputAdapter: Composition
-    HangeulEnglishKeyboardViewController *-- HangeulEnglishKeyboardModeCoordinator: Composition
+    HangeulEnglishKeyboardCoreViewController *-- HangeulKeyboardInputAdapter: Composition
+    HangeulEnglishKeyboardCoreViewController *-- EnglishKeyboardInputAdapter: Composition
+    HangeulEnglishKeyboardCoreViewController *-- HangeulEnglishKeyboardModeCoordinator: Composition
 
     HangeulKeyboardInputAdapter --> PrimaryKeyboardRepresentable: Association
     EnglishKeyboardInputAdapter --> PrimaryKeyboardRepresentable: Association

@@ -1367,7 +1367,7 @@ Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>"
 
 **Interfaces:** 없음
 
-- [ ] **Step 1: `CLAUDE.md`**
+- [x] **Step 1: `CLAUDE.md`**
 
 프로젝트 개요, `- 영문 키보드 로직은 \`Modules/EnglishKeyboardCore/\`에 있다.` 뒤에 추가:
 
@@ -1410,7 +1410,7 @@ Core 모듈은 Firebase를 모르므로 시작 언어 판정 기록은 빈 `open
 
 빌드와 테스트, `세 모듈 타깃이 한 폴더를 공유하므로` → `네 모듈 타깃이 한 폴더를 공유하므로`.
 
-- [ ] **Step 2: `README.md` classDiagram**
+- [x] **Step 2: `README.md` classDiagram**
 
 `namespace ParentKeyboardViewController` 블록에 `class HangeulEnglishKeyboardCoreViewController` 추가.
 
@@ -1430,7 +1430,7 @@ Core 모듈은 Firebase를 모르므로 시작 언어 판정 기록은 빈 `open
 
 Composition 3줄의 `HangeulEnglishKeyboardViewController *--` → `HangeulEnglishKeyboardCoreViewController *--`.
 
-- [ ] **Step 3: `docs/architecture/전체 아키텍처.md`**
+- [x] **Step 3: `docs/architecture/전체 아키텍처.md`**
 
 모듈 표, `EnglishKeyboardCore` 행 뒤에 추가:
 
@@ -1461,7 +1461,7 @@ HangeulEnglishKeyboardViewController ──▶ 두 Adapter를 함께 보유, Han
 HangeulEnglishKeyboardCoreViewController ──▶ 두 Adapter를 함께 보유, HangeulEnglishKeyboardModeCoordinator가 언어 결정
 ```
 
-- [ ] **Step 4: `docs/architecture/한영 통합 키보드.md`**
+- [x] **Step 4: `docs/architecture/한영 통합 키보드.md`**
 
 3행: `` `HangeulEnglishKeyboardViewController`의 구조를 정리한다. `` → `` `HangeulEnglishKeyboardCoreViewController`의 구조를 정리한다. ``
 
@@ -1484,7 +1484,7 @@ HangeulEnglishKeyboardCoreViewController ──▶ 두 Adapter를 함께 보유,
 
 문서 나머지에서 `HangeulEnglishKeyboardViewController`를 `grep -n`으로 찾아, 입력 로직을 가리키는 곳은 `HangeulEnglishKeyboardCoreViewController`로 바꾸고 Firebase·진단을 가리키는 곳은 그대로 둔다.
 
-- [ ] **Step 5: `docs/architecture/한글 입력 로직.md`**
+- [x] **Step 5: `docs/architecture/한글 입력 로직.md`**
 
 ```
 한영 통합 키보드(`HangeulEnglishKeyboardViewController`)는 Core VC 없이 `HangeulKeyboardInputAdapter`를 직접 들고
@@ -1496,7 +1496,7 @@ HangeulEnglishKeyboardCoreViewController ──▶ 두 Adapter를 함께 보유,
 `HangeulKeyboardInputAdapter`를 직접 들고 같은 방식으로 Transition을 적용한다. → [한영 통합 키보드](한영%20통합%20키보드.md)
 ```
 
-- [ ] **Step 6: 남은 옛 문구 검색**
+- [x] **Step 6: 남은 옛 문구 검색**
 
 ```sh
 grep -rn "Core VC 없이\|세 모듈 타깃" CLAUDE.md README.md docs/architecture .github/copilot-instructions.md
@@ -1504,7 +1504,9 @@ grep -rn "Core VC 없이\|세 모듈 타깃" CLAUDE.md README.md docs/architectu
 
 기대: 출력 없음. `.github/copilot-instructions.md`에 모듈 목록이 직접 적혀 있으면 같은 식으로 고친다.
 
-- [ ] **Step 7: 커밋**
+**결과 기록 (2026-10-09):** 5개 문서 수정, `grep -rn "Core VC 없이\|세 모듈 타깃"` 출력 없음, `.github/copilot-instructions.md`에는 모듈 목록이 없어 변경 없음
+
+- [x] **Step 7: 커밋**
 
 ```sh
 git status --short
