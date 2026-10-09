@@ -2,7 +2,7 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-이 문서는 이 저장소에서 Claude Code가 작업할 때 따라야 할 프로젝트별 지침이다. 답변보다 실제 완료를 우선하고, 변경 전후의 동작을 가능한 한 검증한다.
+이 문서는 이 저장소에서 Claude Code가 작업할 때 따라야 할 프로젝트별 지침이다. 변경 전후의 동작을 가능한 한 검증한다.
 
 ## 프로젝트 개요
 
@@ -89,8 +89,8 @@ extension 프로세스 로컬 상태는 `KeyboardExtensionLocalStateStore`에 �
 - **롤백·복원 작업은 기준 커밋과 그 이전 이력에서 실제 동작을 확인하고, 요청된 범위만 복원한다. 이전부터 존재한 버그·제약이나 개선 가능성은 이번 변경으로 생긴 회귀와 구분하며, 사용자가 명시적으로 요청하지 않은 기존 동작 개선을 같은 작업에 포함하지 않는다.**
 - 코드 리뷰에서 더 안전하거나 일관된 구현이 제안되어도 바로 수정하지 않는다. 먼저 해당 동작이 이번 diff에서 발생한 회귀인지 과거 커밋과 실제 재현으로 확인하고, 기존 동작이었다면 별도 변경으로 분리하거나 사용자에게 범위 확대를 확인한다.
 - **한글 입력, 삭제, 조합 상태, 커서 이동, 스페이스/리턴 동작 변경은 회귀 위험이 높으므로 테스트를 추가하거나 기존 테스트를 실행한다.**
-- **현재 확인된 환경에서 `UIInputViewController.selectionWillChange(_:)`와 `selectionDidChange(_:)`는 호출되는 경우를 관찰하지 못했다. 커서/selection 상태 동기화를 이 콜백에만 의존하지 않는다. iOS 자체 문제이거나 아직 확인하지 못한 호출 조건일 수 있으므로, 관련 동작을 변경할 때는 실제 입력 앱에서 다시 확인한다.**
-- **현재 확인된 환경에서 focus 중인 텍스트 필드 변경, 사용자의 텍스트 필드 탭, 커서 이동 시 `UIInputViewController.textWillChange(_:)`와 `textDidChange(_:)`가 호출된다. 외부 텍스트 컨텍스트 변경에 따른 `inputBuffer`, 자동완성 후보, undo/redo 상태 동기화는 이 콜백 경로를 함께 확인한다.**
+- 현재 확인된 환경에서 `UIInputViewController.selectionWillChange(_:)`와 `selectionDidChange(_:)`는 호출되는 경우를 관찰하지 못했다. 커서/selection 상태 동기화를 이 콜백에만 의존하지 않는다. iOS 자체 문제이거나 아직 확인하지 못한 호출 조건일 수 있으므로, 관련 동작을 변경할 때는 실제 입력 앱에서 다시 확인한다.
+- 현재 확인된 환경에서 focus 중인 텍스트 필드 변경, 사용자의 텍스트 필드 탭, 커서 이동 시 `UIInputViewController.textWillChange(_:)`와 `textDidChange(_:)`가 호출된다. 외부 텍스트 컨텍스트 변경에 따른 `inputBuffer`, 자동완성 후보, undo/redo 상태 동기화는 이 콜백 경로를 함께 확인한다.
 - 키보드 확장은 메모리/높이/입력 지연에 민감하다. 무거운 작업, 불필요한 비동기 체인, 빈번한 재생성은 피한다.
 - 앱 설정과 키보드 확장은 `UserDefaultsManager`와 `DefaultValues`를 공유한다. 설정 키 변경 시 앱/확장/Core 양쪽 영향을 확인한다.
 - Firebase, AdMob, entitlements, bundle identifier, provisioning, `GoogleService-Info.plist`, `Secrets.xcconfig` 관련 변경은 사용자가 명시적으로 요청한 경우에만 한다.
@@ -99,7 +99,7 @@ extension 프로세스 로컬 상태는 `KeyboardExtensionLocalStateStore`에 �
   `reset`, 브랜치 전환, push, PR 생성 권한을 포함하지 않는다. 사용자가 명시한
   통합 순서와 브랜치/worktree 제약을 그대로 지키고, 다음 단계가 명시적으로
   요청되기 전에는 읽기 전용 확인에 머문다.
-- 자동완성 후보 목록은 #141부터 `UIScrollView` 가로 스크롤이다. 터치 중재는
+- 자동완성 후보 목록은 `UIScrollView` 가로 스크롤이다. 터치 중재는
   `UIScrollView` 기본 동작(`delaysContentTouches = false`, `canCancelContentTouches`)에
   맡기고, `setScrollOffsetX` 같은 offset 직접 조작이나 거리 임계값 기반 제스처 중재를
   되살리지 않는다.
@@ -133,7 +133,7 @@ extension 프로세스 로컬 상태는 `KeyboardExtensionLocalStateStore`에 �
 
 ## 작업 인프라
 
-- 라이브러리/API 문서 확인, 코드 생성, 설정 또는 구성 단계가 필요한 작업에서는 사용자가 명시적으로 요청하지 않아도 항상 Context7 MCP를 먼저 사용해 현재 문서와 권장 사용법을 확인한다.
+- 외부 라이브러리·프레임워크·Apple SDK의 API 사용법, 설정, 버전별 차이를 확인해야 할 때 Context7 MCP로 현재 문서와 권장 사용법을 확인한다.
 - Context7 MCP가 응답하지 않거나 사용량 초과 등으로 사용할 수 없거나 필요한 정보를 찾지 못해도 작업을 중단하지 않는다. 우선 기존 지식을 바탕으로 계속 진행하고, 기존 지식만으로 해결하기 어려울 때 공식 문서를 확인한다. 최종 응답에는 Context7을 사용하지 못한 이유와, 대체 출처를 확인했다면 실제로 확인한 출처를 명시한다.
 - 이 문서가 저장소 에이전트 지침의 단일 기준이다. `.github/copilot-instructions.md`는 GitHub Copilot 코드 리뷰 지침이며 프로젝트 구조와 일반 개발 규칙은 이 문서를 참조하므로, 이 문서의 규칙을 바꾸면 해당 항목도 함께 확인한다.
 
@@ -250,7 +250,7 @@ Notion 행과 Crashlytics 이슈를 정리하므로, **사람이 할 일은 수�
     (`SuggestionSelectionCoordinator`, `ClipboardHistoryCoordinator`, `TextDeletionCoordinator`, `UndoRedoCoordinator`, `CachingTextDocumentProxy`).
 - `Modules/HangeulKeyboardCore/`: 한글 오토마타, 입력 Processor, 한글 키보드 View.
 - `Modules/EnglishKeyboardCore/`: 영문 키보드 View와 저장소 확장.
-- `Modules/*/Presentation/Input/`: VC와 Domain의 경계인 InputAdapter.
+- `Modules/HangeulKeyboardCore/Presentation/Input/`, `Modules/EnglishKeyboardCore/EnglishKeyboard/Presentation/Input/`: VC와 Domain의 경계인 InputAdapter.
 - `SYKeyboardTests/`: Swift Testing 기반 한글 오토마타/Processor/조합 상태 시나리오/Policy/View/Controller 테스트.
   `Domain/`(조합 상태·자동완성·NGram), `Processor/`, `Utils/`(Policy·제스처 컨트롤러·Coordinator 단위 테스트와 가짜 Host),
   `View/`(키보드 뷰·레이아웃), `Controller/`(`BaseKeyboardViewController` 동작 고정·프록시 읽기 횟수), `Storage/`,
@@ -261,7 +261,7 @@ Notion 행과 Crashlytics 이슈를 정리하므로, **사람이 할 일은 수�
 
 ## 빌드와 테스트
 
-가능하면 변경 범위에 맞춰 아래 명령을 실행한다. 기본 검증 기준은 `iPhone 13 mini / iOS 18.6`이다. Xcode 27부터 iOS 16.0 시뮬레이터 런타임은 XCTest 로딩이 실패(`dyld: Symbol not found: _os_log_compare_enablement`, 테스트 러너 `Early unexpected exit`)하므로 테스트 대상으로 쓰지 않는다. 해당 런타임이 없는 로컬 환경에서는 가장 가까운 iOS 16+ 시뮬레이터로 조정하고 최종 응답에 실제 기기명과 OS 버전을 명시한다.
+변경 범위에 맞춰 아래 명령을 실행한다. 기본 검증 기준은 `iPhone 13 mini / iOS 18.6`이다. Xcode 27부터 iOS 16.0 시뮬레이터 런타임은 XCTest 로딩이 실패(`dyld: Symbol not found: _os_log_compare_enablement`, 테스트 러너 `Early unexpected exit`)하므로 테스트 대상으로 쓰지 않는다. 해당 런타임이 없는 로컬 환경에서는 가장 가까운 iOS 16+ 시뮬레이터로 조정하고 최종 응답에 실제 기기명과 OS 버전을 명시한다.
 
 ```sh
 xcodebuild -list -project SYKeyboard.xcodeproj
