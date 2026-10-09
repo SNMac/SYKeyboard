@@ -1526,7 +1526,7 @@ Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>"
 
 **Interfaces:** 없음
 
-- [ ] **Step 1: 전체 테스트**
+- [x] **Step 1: 전체 테스트**
 
 ```sh
 xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
@@ -1537,7 +1537,7 @@ grep -cE "Test case .* passed" "$SCRATCH/task5-test.log"; grep -E "Test case .* 
 
 기대: `** TEST SUCCEEDED **`, failed 0. 통과 개수를 아래에 적는다(#185 직후 기준 1056 + 새 테스트 2).
 
-- [ ] **Step 2: 4개 스킴 빌드**
+- [x] **Step 2: 4개 스킴 빌드**
 
 ```sh
 for s in HangeulKeyboard EnglishKeyboard HangeulEnglishKeyboard; do
@@ -1549,7 +1549,7 @@ done
 
 기대: 세 스킴 모두 `** BUILD SUCCEEDED **`. `SYKeyboard` 스킴은 Step 1이 빌드했다. 끝나면 `.xcscheme` `RemotePath`를 되돌린다.
 
-- [ ] **Step 3: 시뮬레이터 입력 앱 확인**
+- [x] **Step 3: 시뮬레이터 입력 앱 확인**
 
 `HangeulEnglishKeyboard` 스킴을 iPhone 13 mini / iOS 18.6에 설치하고 메모 또는 메시지 앱에서 확인한다. 항목마다 결과를 적는다.
 
@@ -1558,7 +1558,7 @@ done
 3. 영어 모드에서 문장 첫 글자 → shift 자동 대문자
 4. 영어 모드에서 이메일 필드(`textContentType = .emailAddress`. 웹 폼은 로컬 http 서버로 띄운 페이지가 안전하다)로 이동 → 자동으로 영어, 일반 필드로 돌아오면 마지막 언어 복원
 
-- [ ] **Step 4: `deinit` 횟수 확인**
+- [x] **Step 4: `deinit` 횟수 확인**
 
 ```sh
 UDID=$(xcrun simctl list devices booted -j | python3 -c "import json,sys; d=json.load(sys.stdin)['devices']; print([x['udid'] for v in d.values() for x in v][0])")
@@ -1571,7 +1571,7 @@ grep -oE "(BaseKeyboardViewController|[A-Za-z]+Coordinator)[^]]*" "$SCRATCH/dein
 
 기대: VC 1종과 Coordinator 4종이 각 5회. `leaks`·Instruments는 시뮬레이터 extension에 붙지 않으므로 이 횟수 일치를 근거로 적는다.
 
-- [ ] **Step 5: 결과 기록과 커밋**
+- [x] **Step 5: 결과 기록과 커밋**
 
 이 문서의 각 Task 결과 기록을 채우고 커밋한다.
 
@@ -1583,8 +1583,8 @@ git commit -m "docs: #190 - 전체 검증과 시뮬레이터 확인 결과 기�
 Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>"
 ```
 
-**결과 기록:**
-- 전체 테스트:
-- 4 scheme 빌드:
-- 시뮬레이터 확인 1\~4:
-- deinit 횟수:
+**결과 기록 (2026-10-09, iPhone 13 mini / iOS 18.6, UDID 82146144-24DE-4F91-B25D-23D147A91142):**
+- 전체 테스트: `task5-test.log` — `Test case … passed` 1057개, failed 0, `** TEST SUCCEEDED **`
+- 4 scheme 빌드: `SYKeyboard`(테스트 실행이 빌드), `HangeulKeyboard`·`EnglishKeyboard`·`HangeulEnglishKeyboard` 모두 `** BUILD SUCCEEDED **`(`task5-build-*.log`). `.xcscheme` 변경 없음
+- 시뮬레이터 확인(메시지 작성 화면 `sms:010`, idb 탭): 1) "안녕" 입력 후 한/A → qwerty로 바뀌고 입력란 "안녕"·후보 바("안녕"·안녕하셨습니까·안녕하신지요) 유지 2) 두벌식 ㅇㅏㄴㄴㅕㅇ → "안녕" 정상 조합 3) 지워서 빈 필드 → shift 켜짐·대문자 자판, h → "H", h → "Hh" 4) 로컬 http 페이지(`www/f.html`)의 `type="email"` 필드 → 영어 자판(@ 키), 접근성 바 ∨로 `type="text"` 필드 → 마지막 언어(한글) 복원. 캡처 `s2`\~`s10.png`
+- deinit 횟수: `deinit.log` — 메시지 작성 열기/Cancel 5회 주기 전후 비교에서 `HangeulEnglishKeyboardViewController`·`ClipboardHistoryCoordinator`·`SuggestionSelectionCoordinator`·`TextDeletionCoordinator`·`UndoRedoCoordinator` 모두 +5(최종 각 7회, 뷰·제스처 컨트롤러 9종도 7회). CLAUDE.md의 grep 패턴은 VC 카테고리가 구체 클래스 이름이라 VC 줄을 못 세므로 `grep -oE "\] [A-Za-z]+ deinit" | sort | uniq -c`로 셌다
