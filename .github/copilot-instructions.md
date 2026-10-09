@@ -32,6 +32,7 @@
 - 설정 키 변경 시 `UserDefaultsKeys`, `DefaultValues`, 앱 설정 화면과 키보드 런타임 적용 위치의 불일치를 확인한다.
 - 테스트가 production 진입점을 호출하지 않거나 production 로직을 테스트 내부에서 복제하면 회귀 검증으로 인정하지 않는다.
 - exact color, font, SF Symbol, corner radius, private subview 구조처럼 명시적 제품 계약이 아닌 시각 구현 세부사항을 단위 테스트로 고정하도록 요구하지 않는다.
+- Policy 테스트가 이미 고정한 규칙을 Coordinator·VC·View 테스트에 진리표 모양으로 다시 추가하도록 요구하지 않는다(`docs/adr/0003`). 위 계층에는 정상 경로 1개 + 경계 1개와 그 계층 고유 동작만 둔다.
 - 자동완성 후보 UI에 가로 스크롤이나 제스처 중재를 다시 추가하도록 제안하지 않는다.
 - `Package.resolved`에 새 의존성이 추가되었는데 `SYKeyboard/Resources/opensource_license.json`에 해당 라이브러리 고지가 없으면 지적한다. 버전만 바뀐 경우는 해당하지 않는다.
 - `textDocumentProxy`를 직접 읽거나 쓰는 새 코드를 경고한다. 텍스트 프록시는 `textDocument`(`CachingTextDocumentProxy`)로만 다루며, 직접 쓰면 콜백 범위 캐시가 비워지지 않는다.
