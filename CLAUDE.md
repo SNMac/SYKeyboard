@@ -213,9 +213,6 @@ single-context(루트 `CONTEXT.md` + `docs/adr/`). See `docs/agents/domain.md`.
   - `Fix/#44 NGram 단어 중복 저장 수정`
 - PR 본문은 `.github/pull_request_template.md` 템플릿을 사용하고, 연관된 이슈·작업 내용·검증 항목을 채운다.
 - 연관된 이슈는 이 PR로 이슈가 끝나면 `- Closes #번호`, 일부만 다루거나 참조만 하면 `- #번호`로 쓴다.
-  기본 브랜치가 `develop`이라 `Closes`를 쓴 PR이 머지되면 이슈가 바로 닫힌다. 이슈 하나를 PR 여러 개로 나누면
-  마지막 PR에만 쓰고, PR을 올리기 전에 이슈 체크리스트가 모두 끝났는지 확인한다. 머지 뒤 Development 사이드바에서
-  PR을 연결하면 이슈가 자동으로 닫히지 않는다(#194).
 - Crashlytics 크래시 이슈를 고치는 PR은 연관된 이슈에 `Closes #번호`를 쓴다(`이슈 관리` > `Crashlytics 크래시 이슈`).
 - 스크린샷 항목은 화면이 바뀌는 작업에만 채운다. UI 변경이 없으면(로직·저장 형식·테스트·문서만 바뀐 경우)
   `## 📸 스크린샷` 섹션을 표까지 통째로 빼고 PR을 올린다. 빈 표나 `-`로 남기지 않는다.
