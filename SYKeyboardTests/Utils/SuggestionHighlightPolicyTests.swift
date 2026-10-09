@@ -79,9 +79,8 @@ struct SuggestionHighlightPolicyTests {
             // preview는 해당 후보만 강조
             (Int?.some(1), Int?.none, Int?.none, 3, 2,
              SuggestionHighlightPolicy.State(highlightedSuggestionIndex: 1, highlightedActionIndex: nil)),
-            // 후보 touch는 preview를 일시 대체하고 touch가 끝나면 preview가 복원
+            // 후보 touch는 preview를 일시 대체한다. touch가 끝나 touched가 nil로 돌아가면 위 preview 행과 같은 입력이라 preview가 복원된다
             (1, 2, nil, 3, 2, .init(highlightedSuggestionIndex: 2, highlightedActionIndex: nil)),
-            (1, nil, nil, 3, 2, .init(highlightedSuggestionIndex: 1, highlightedActionIndex: nil)),
             // action touch는 preview를 가리고 action만 강조
             (1, nil, 0, 3, 2, .init(highlightedSuggestionIndex: nil, highlightedActionIndex: 0)),
             // nil과 범위 밖 index는 강조하지 않음

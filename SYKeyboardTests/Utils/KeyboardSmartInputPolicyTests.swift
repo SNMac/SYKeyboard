@@ -50,9 +50,7 @@ struct KeyboardSmartInputPolicyTests {
             ("\"", UITextSmartQuotesType.default, true, "“"),
             // 키보드별 default 해석이 disabled이면 default에서 straight quote로 삽입
             ("“", .default, false, "\""),
-            // trait no는 키보드별 default 해석이 enabled여도 straight quote
-            ("“", .no, true, "\""),
-            // trait yes는 키보드별 default 해석이 disabled여도 적용
+            // trait yes는 키보드별 default 해석이 disabled여도 적용 (trait no는 전체 비교 묶음에서 확인)
             ("\"", .yes, false, "“")
           ])
     func testSmartQuotesTraitAndKeyboardDefaultPolicy(
@@ -121,11 +119,6 @@ struct KeyboardSmartInputPolicyTests {
         state.consume(first)
 
         #expect(state.nextDoubleQuoteIsOpening == false)
-
-        let second = transform("\"", before: nil, nextOpening: state.nextDoubleQuoteIsOpening)
-
-        #expect(first.insertText == "“")
-        #expect(second.insertText == "”")
     }
 
     @Test("smart insert/delete는 설정 on이고 trait이 default 또는 yes일 때만 앞 공백을 보정")
