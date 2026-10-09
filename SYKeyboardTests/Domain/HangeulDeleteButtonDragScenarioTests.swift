@@ -127,6 +127,7 @@ private extension HangeulDeleteButtonDragScenarioTests {
         }
         #expect(sim.text == "동해물과")
 
+        sim.endDrag()
         sim.input("ㅇ")
         #expect(sim.text == "동해물광", "드래그 복구 후 내부 composingBuffer가 마지막 글자와 동기화되어야 합니다.")
     }
@@ -217,8 +218,8 @@ private extension HangeulDeleteButtonDragScenarioTests {
 
 // MARK: - Test Helpers
 
-/// 키 입력은 `HangeulCompositionState`에 바로 넣고, 삭제 버튼 touchDown·드래그는 `TextDeletionCoordinator`로 보낸다.
-/// 매 동작 뒤에는 입력창처럼 `textDidChange`를 보낸다
+/// 키 입력은 VC `performTextInteraction`처럼 보류 삭제를 버리고 입력 훅 사이에서 `HangeulCompositionState`에 넣고,
+/// 삭제 버튼 touchDown·드래그는 `TextDeletionCoordinator`로 보낸다. 매 동작 뒤에는 입력창처럼 `textDidChange`를 보낸다
 @MainActor
 private final class HangeulDeleteButtonDragSimulator {
 
@@ -227,6 +228,11 @@ private final class HangeulDeleteButtonDragSimulator {
     private let host: HangeulTextDeletionHost
     private let coordinator: TextDeletionCoordinator
     private let button = DeleteButton(keyboard: .dubeolsik)
+    /// 입력 훅은 버튼 종류만 보므로 글자와 상관없이 한 버튼을 쓴다
+    private let keyButton = PrimaryKeyButton(
+        keyboard: .dubeolsik,
+        button: .keyButton(primary: ["ㄱ"], secondary: nil)
+    )
 
     /// 현재 화면에 표시되는 전체 텍스트(조합 상태 기준)
     var text: String { host.text }
@@ -252,7 +258,11 @@ private final class HangeulDeleteButtonDragSimulator {
 
     /// 글자 입력
     func input(_ character: String) {
+        coordinator.cancelPendingInteractions()
+        host.textInteractionWillPerform(button: keyButton)
         host.input(character)
+        host.textInteractionDidPerform(button: keyButton)
+        sendTextDidChange()
     }
 
     /// 삭제 버튼 touchDown. 손은 떼지 않은 채 드래그로 이어진다
@@ -270,6 +280,12 @@ private final class HangeulDeleteButtonDragSimulator {
     /// 삭제 버튼 오른쪽 드래그
     func dragRestoreRight() {
         coordinator.handlePan(to: .right)
+        sendTextDidChange()
+    }
+
+    /// 삭제 버튼 드래그 종료(손을 뗌)
+    func endDrag() {
+        coordinator.handlePanStop()
         sendTextDidChange()
     }
 
