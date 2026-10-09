@@ -345,9 +345,13 @@ struct KeyboardModifierLayoutTests {
         let switchWidth = view.switchButton.frame.width
         let expectedColumnWidth = width * column.widthRatio
 
+        // @2x 기기에서는 두 버튼 폭이 각각 픽셀 그리드에 반올림돼 서로 정확히 0.5pt 차이가 날 수 있다
+        // (배율 1.0의 48.75 → 48.5/49.0). 형제 버튼끼리 비교할 때는 그보다 크게 잡는다
+        let siblingTolerance: CGFloat = 1.0
+
         #expect(view.nextKeyboardButton.isHidden)
         // 두 버튼이 같은 폭으로 열을 함께 채운다
-        #expect(abs(languageWidth - switchWidth) < column.tolerance)
+        #expect(abs(languageWidth - switchWidth) < siblingTolerance)
         #expect(abs(languageWidth + switchWidth - expectedColumnWidth) < column.tolerance)
         // 열 자체가 무너져도 두 버튼이 반씩 나눠 가지면 위 단언은 통과하므로 절대값으로 고정한다.
         // 기능 열 배율 1.15에서는 전환 버튼이 라벨 때문에 45.7pt 아래로 눌리지 않아
