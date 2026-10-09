@@ -165,29 +165,20 @@ struct CheonjiinColumnWidthLayoutTests {
         #expect(abs(Self.rect(view.switchButton, in: view).minX) < Self.tolerance)
     }
 
-    @Test("하단 스페이스 배치에서 modifier 두 버튼이 스택을 균등 분배하고 붕괴하지 않는다")
-    func testBottomSpaceLayoutSplitsModifierStackEqually() throws {
+    /// 두 버튼이 열 폭을 반씩 나누는지는 `KeyboardModifierLayoutTests`의 지구본 숨김 arguments 테스트가 검증한다
+    @Test("하단 스페이스 배치 최대 배율에서 지구본을 숨겨도 한/영이 붕괴하지 않는다")
+    func testBottomSpaceLayoutKeepsModifierStackFromCollapsing() throws {
         let view = Self.makeView(usesBottomSpaceLayout: true, multiplier: 1.15)
         let languageSwitchButton = try #require(view.languageSwitchButton)
-        // 지구본을 숨기면 modifier 스택에 한/영과 전환 버튼 2개만 남는다.
-        // production 진입점을 그대로 호출해 isHidden 설정과 재배치 콜백을 함께 검증한다
+        // 지구본을 숨기면 modifier 스택에 한/영과 전환 버튼 2개만 남는다
         view.updateNextKeyboardButton(
             needsInputModeSwitchKey: false,
             nextKeyboardAction: NSSelectorFromString("unusedNextKeyboardAction:")
         )
         view.layoutIfNeeded()
 
-        #expect(view.nextKeyboardButton.isHidden)
-
-        let visibleButtonCount: CGFloat = 2
-        let buttonWidth = languageSwitchButton.frame.width
-        // 하단 스페이스 배치의 modifier 열은 4행 1열이므로 배율을 올리면 넓어진다
-        let expectedButtonWidth = Self.keyboardWidth * 0.2875 / visibleButtonCount
-
-        #expect(abs(buttonWidth - expectedButtonWidth) < Self.tolerance)
-        #expect(abs(view.switchButton.frame.width - expectedButtonWidth) < Self.tolerance)
         // 붕괴 회귀 방지: 이전 구현에서는 한/영이 6pt까지 눌렸다
-        #expect(buttonWidth > 10)
+        #expect(languageSwitchButton.frame.width > 10)
     }
 
     @Test("하단 스페이스 배치도 배율을 되돌리면 균등 분할로 돌아온다")
@@ -248,21 +239,18 @@ struct NumericColumnWidthLayoutTests {
         #expect(abs(Self.rect(view.switchButton, in: view).minX) < Self.tolerance)
     }
 
-    @Test("기본 배치 최대 배율에서도 modifier 두 버튼이 균등 분배되고 붕괴하지 않는다")
+    /// 두 버튼이 열 폭을 반씩 나누는지는 `KeyboardModifierLayoutTests`의 지구본 숨김 arguments 테스트가 검증한다
+    @Test("기본 배치 최대 배율에서도 modifier 두 버튼이 기능 열을 함께 채우고 붕괴하지 않는다")
     func testHigherMultiplierKeepsModifierStackFromCollapsing() throws {
         let view = Self.makeView(usesBottomSpaceLayout: false, multiplier: 1.15)
         let languageSwitchButton = try #require(view.languageSwitchButton)
-        // 지구본을 숨기면 modifier 스택에 한/영과 전환 버튼 2개만 남는다.
-        // production 진입점을 그대로 호출해 isHidden 설정과 재배치 콜백을 함께 검증한다
+        // 지구본을 숨기면 modifier 스택에 한/영과 전환 버튼 2개만 남는다
         view.updateNextKeyboardButton(
             needsInputModeSwitchKey: false,
             nextKeyboardAction: NSSelectorFromString("unusedNextKeyboardAction:")
         )
         view.layoutIfNeeded()
 
-        #expect(view.nextKeyboardButton.isHidden)
-
-        let visibleButtonCount: CGFloat = 2
         let buttonWidth = languageSwitchButton.frame.width
         // 배율 1.15에서 기능 열은 키보드 폭의 0.1375다.
         // 기본 배치의 modifier 열은 4행 4열(기능 열)에 놓인다
@@ -271,7 +259,6 @@ struct NumericColumnWidthLayoutTests {
         #expect(abs(buttonWidth - view.switchButton.frame.width) < Self.tolerance)
         #expect(abs(buttonWidth + view.switchButton.frame.width
                     - expectedColumnWidth) < Self.tolerance)
-        #expect(abs(buttonWidth - expectedColumnWidth / visibleButtonCount) < Self.tolerance)
         // 붕괴 회귀 방지: 전환 버튼이 라벨 때문에 45.7pt 아래로 눌리지 않아
         // 이전 비율 폭 제약에서는 한/영이 6pt로 붕괴했다
         #expect(buttonWidth > 10)

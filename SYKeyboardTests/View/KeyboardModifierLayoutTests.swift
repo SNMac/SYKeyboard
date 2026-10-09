@@ -31,6 +31,69 @@ enum FourByFourFixture: Sendable {
     }
 }
 
+/// 지구본을 숨긴 modifier 스택 시나리오. 자판·배치·배율이 modifier 열 폭을 정한다
+struct HiddenGlobeModifierCase: CustomTestStringConvertible {
+    enum Keyboard {
+        case naratgeul
+        case cheonjiin(usesBottomSpaceLayout: Bool)
+        case numeric(usesBottomSpaceLayout: Bool)
+    }
+
+    static let all = [
+        HiddenGlobeModifierCase(keyboard: .naratgeul, multiplier: 1.0, modifierColumnRatio: 1.0 / 4, tolerance: 0.5),
+        HiddenGlobeModifierCase(keyboard: .cheonjiin(usesBottomSpaceLayout: false),
+                                multiplier: 1.0, modifierColumnRatio: 1.0 / 4, tolerance: 0.5),
+        HiddenGlobeModifierCase(keyboard: .numeric(usesBottomSpaceLayout: false),
+                                multiplier: 1.0, modifierColumnRatio: 1.0 / 4, tolerance: 0.5),
+        HiddenGlobeModifierCase(keyboard: .cheonjiin(usesBottomSpaceLayout: true),
+                                multiplier: 1.0, modifierColumnRatio: 1.0 / 4, tolerance: 0.5),
+        HiddenGlobeModifierCase(keyboard: .numeric(usesBottomSpaceLayout: true),
+                                multiplier: 1.0, modifierColumnRatio: 1.0 / 4, tolerance: 0.5),
+        // 하단 배치의 modifier 열은 4행 1열(글자 열)이라 배율을 올리면 넓어진다
+        HiddenGlobeModifierCase(keyboard: .cheonjiin(usesBottomSpaceLayout: true),
+                                multiplier: 1.15, modifierColumnRatio: 0.2875, tolerance: 1.0),
+        // 기본 배치의 modifier 열은 4행 4열(기능 열)이라 배율을 올리면 좁아진다
+        HiddenGlobeModifierCase(keyboard: .numeric(usesBottomSpaceLayout: false),
+                                multiplier: 1.15, modifierColumnRatio: 0.1375, tolerance: 1.0)
+    ]
+
+    let keyboard: Keyboard
+    let multiplier: Double
+    /// modifier 열 폭 ÷ 키보드 폭
+    let modifierColumnRatio: CGFloat
+    /// 배율 1.15의 열 폭은 @2x 픽셀 그리드 반올림으로 최대 0.5pt 어긋나므로 1.0으로 잡는다
+    let tolerance: CGFloat
+
+    var testDescription: String {
+        let keyboardName = switch keyboard {
+        case .naratgeul: "나랏글"
+        case .cheonjiin(let usesBottomSpaceLayout): usesBottomSpaceLayout ? "천지인 하단 배치" : "천지인 기본 배치"
+        case .numeric(let usesBottomSpaceLayout): usesBottomSpaceLayout ? "숫자 하단 배치" : "숫자 기본 배치"
+        }
+        return "\(keyboardName) 배율 \(multiplier)"
+    }
+
+    /// controller처럼 프로토콜 타입으로 다룬다. 한/영 버튼은 주 자판·숫자 프로토콜에 따로 있어 함께 돌려준다
+    @MainActor
+    func makeView() -> (view: NormalKeyboardLayoutProvider, languageSwitchButton: LanguageSwitchButton?) {
+        switch keyboard {
+        case .naratgeul:
+            let view = NaratgeulKeyboardView(showsLanguageSwitchButton: true, showsNumberRow: false)
+            return (view, view.languageSwitchButton)
+        case .cheonjiin(let usesBottomSpaceLayout):
+            // 기본 인자가 영속 설정값(App Group UserDefaults)을 읽으므로 값을 명시한다
+            let view = CheonjiinKeyboardView(showsLanguageSwitchButton: true,
+                                             usesBottomSpaceLayout: usesBottomSpaceLayout,
+                                             showsNumberRow: false)
+            return (view, view.languageSwitchButton)
+        case .numeric(let usesBottomSpaceLayout):
+            let view = NumericKeyboardView(showsLanguageSwitchButton: true,
+                                           usesBottomSpaceLayout: usesBottomSpaceLayout)
+            return (view, view.languageSwitchButton)
+        }
+    }
+}
+
 @MainActor
 @Suite("키보드 modifier row 레이아웃")
 struct KeyboardModifierLayoutTests {
@@ -216,35 +279,6 @@ struct KeyboardModifierLayoutTests {
         #expect(view.allButtonList.contains { $0 === languageButton })
     }
 
-    @Test("숨겨진 globe 상태의 숫자 화면은 modifier 두 버튼이 균등 분배")
-    func testUnifiedNumericHiddenGlobeSplitsModifierStackEqually() throws {
-        let width: CGFloat = 390
-        // 기본 인자가 영속 설정값(App Group UserDefaults)을 읽으므로
-        // 기존 배치를 검증하는 이 테스트는 값을 명시해 시뮬레이터 상태와 무관하게 만든다
-        let view = NumericKeyboardView(showsLanguageSwitchButton: true, usesBottomSpaceLayout: false)
-        view.frame = CGRect(x: 0, y: 0, width: width, height: 216)
-        // 저장된 사용자 설정과 무관하게 기본 배율로 고정한다
-        view.updateLetterColumnWidthMultiplier(1.0)
-        view.layoutIfNeeded()
-
-        let languageButton = try #require(view.languageSwitchButton)
-        view.updateNextKeyboardButton(
-            needsInputModeSwitchKey: false,
-            nextKeyboardAction: NSSelectorFromString("unusedNextKeyboardAction:")
-        )
-        view.layoutIfNeeded()
-
-        // 지구본이 숨겨져 한/영과 전환 버튼 2개만 남는다
-        let visibleButtonCount: CGFloat = 2
-        // 열 자체가 무너져도 두 버튼이 반씩 나눠 가지면 상대 단언은 통과한다.
-        // 배율 1.0에서 modifier 열은 키보드 폭의 1/4이므로 절대값을 함께 고정한다
-        let expectedButtonWidth = width / CGFloat(4) / visibleButtonCount
-
-        #expect(view.nextKeyboardButton.isHidden)
-        #expect(abs(languageButton.frame.width - expectedButtonWidth) < 0.5)
-        #expect(abs(view.switchButton.frame.width - expectedButtonWidth) < 0.5)
-    }
-
     @Test("전용 숫자 화면은 Language 버튼을 만들지 않음")
     func testDedicatedNumericDoesNotCreateLanguageButton() {
         // 기본 인자가 영속 설정값(App Group UserDefaults)을 읽으므로
@@ -283,31 +317,31 @@ struct KeyboardModifierLayoutTests {
         )
     }
 
-    @Test(arguments: [FourByFourFixture.naratgeul, .cheonjiin])
-    func testFourByFourHiddenGlobeSplitsModifierStackEqually(_ fixture: FourByFourFixture) throws {
+    @Test("지구본을 숨기면 modifier 두 버튼이 modifier 열 폭을 반씩 나눈다",
+          arguments: HiddenGlobeModifierCase.all)
+    func testHiddenGlobeSplitsModifierColumnInHalf(_ testCase: HiddenGlobeModifierCase) throws {
         let width: CGFloat = 390
-        let primaryView = fixture.makeView(showsLanguageSwitchButton: true)
-        let view = primaryView
+        let (view, languageSwitchButton) = testCase.makeView()
         view.frame = CGRect(x: 0, y: 0, width: width, height: 216)
-        // 저장된 사용자 설정과 무관하게 기본 배율로 고정한다
-        view.updateLetterColumnWidthMultiplier(1.0)
+        view.updateLetterColumnWidthMultiplier(testCase.multiplier)
         view.layoutIfNeeded()
 
-        let languageButton = try #require(primaryView.languageSwitchButton)
-        primaryView.updateNextKeyboardButton(
+        let languageButton = try #require(languageSwitchButton)
+        // production 진입점을 그대로 호출해 isHidden 설정과 재배치 콜백을 함께 검증한다
+        view.updateNextKeyboardButton(
             needsInputModeSwitchKey: false,
             nextKeyboardAction: NSSelectorFromString("unusedNextKeyboardAction:")
         )
         view.layoutIfNeeded()
 
-        // globe가 빠지면 한/영과 전환 버튼 2개가 modifier 스택을 균등하게 나눈다
+        // 지구본이 숨겨져 한/영과 전환 버튼 2개만 남는다.
+        // 열 자체가 무너져도 두 버튼이 반씩 나눠 가지면 상대 단언은 통과하므로 절대값으로 고정한다
         let visibleButtonCount: CGFloat = 2
-        // 배율 1.0에서 modifier 열은 키보드 폭의 1/4이다. 열 붕괴를 잡으려면 절대값이 필요하다
-        let expectedButtonWidth = width / CGFloat(4) / visibleButtonCount
+        let expectedButtonWidth = width * testCase.modifierColumnRatio / visibleButtonCount
 
-        #expect(primaryView.nextKeyboardButton.isHidden)
-        #expect(abs(languageButton.frame.width - expectedButtonWidth) < 0.5)
-        #expect(abs(primaryView.switchButton.frame.width - expectedButtonWidth) < 0.5)
+        #expect(view.nextKeyboardButton.isHidden)
+        #expect(abs(languageButton.frame.width - expectedButtonWidth) < testCase.tolerance)
+        #expect(abs(view.switchButton.frame.width - expectedButtonWidth) < testCase.tolerance)
     }
 
     @Test(arguments: [FourByFourFixture.naratgeul, .cheonjiin])

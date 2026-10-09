@@ -125,8 +125,9 @@ struct CheonjiinBottomSpaceLayoutTests {
         #expect(abs(view.spaceButton.frame.width - columnWidth) < 0.5)
     }
 
-    @Test("켜짐 상태에서 지구본을 숨기면 modifier 두 버튼이 스택을 균등 분배")
-    func testBottomSpaceLayoutSplitsModifierStackEqually() throws {
+    /// 두 버튼의 폭은 `KeyboardModifierLayoutTests`의 지구본 숨김 arguments 테스트가 검증한다
+    @Test("켜짐 상태에서 지구본을 숨기면 !#1이 한/영 왼쪽에 놓임")
+    func testBottomSpaceLayoutHiddenGlobeModifierOrder() throws {
         let view = Self.makeView(usesBottomSpaceLayout: true)
         let languageButton = try #require(view.languageSwitchButton)
 
@@ -137,15 +138,6 @@ struct CheonjiinBottomSpaceLayoutTests {
         )
         view.layoutIfNeeded()
 
-        // 지구본이 숨겨져 한/영과 전환 버튼 2개만 남는다
-        let visibleButtonCount: CGFloat = 2
-        // 열 자체가 무너져도 두 버튼이 반씩 나눠 가지면 상대 단언은 통과한다.
-        // 배율 1.0에서 modifier 열은 키보드 폭의 1/4이므로 절대값을 함께 고정한다
-        let expectedButtonWidth = Self.keyboardWidth / CGFloat(4) / visibleButtonCount
-
-        #expect(view.nextKeyboardButton.isHidden)
-        #expect(abs(languageButton.frame.width - expectedButtonWidth) < 0.5)
-        #expect(abs(view.switchButton.frame.width - expectedButtonWidth) < 0.5)
         // 좌→우 !#1 → 한/영
         #expect(Self.rect(view.switchButton, in: view).maxX <= Self.rect(languageButton, in: view).minX + 0.5)
     }
