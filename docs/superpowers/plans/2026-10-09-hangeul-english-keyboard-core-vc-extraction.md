@@ -50,7 +50,7 @@ spec이 말하지 않지만 사람이 쓰면서 부딪힐 수 있는 입력·조
 - Consumes: `BaseKeyboardViewController`(SYKeyboardCore), `HangeulKeyboardInputAdapter`(HangeulKeyboardCore), `EnglishKeyboardInputAdapter`(EnglishKeyboardCore), `HangeulEnglishKeyboardModeCoordinator`·`KeyboardLanguageModePolicy`·`HangeulEnglishLanguageMode`(SYKeyboardCore), 테스트 보조 `CountingTextDocumentProxy`·`.sharedUserDefaults`(SYKeyboardTests)
 - Produces: 모듈 `HangeulEnglishKeyboardCore`, `open class HangeulEnglishKeyboardCoreViewController: BaseKeyboardViewController` with `public init()`, 빈 훅 `open func languageModeDecisionDidResolve(requiresLatinInput: Bool, resolved: HangeulEnglishLanguageMode)`. Task 2의 leaf가 이 둘을 쓴다.
 
-- [ ] **Step 1: 실패하는 테스트 작성**
+- [x] **Step 1: 실패하는 테스트 작성**
 
 `SYKeyboardTests/Controller/HangeulEnglishKeyboardCoreViewControllerProxyReadTests.swift`:
 
@@ -119,7 +119,7 @@ private func withLastLanguageMode(_ mode: HangeulEnglishLanguageMode, _ body: ()
 }
 ```
 
-- [ ] **Step 2: 테스트가 실패하는지 확인**
+- [x] **Step 2: 테스트가 실패하는지 확인**
 
 ```sh
 xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
@@ -130,7 +130,7 @@ xcodebuild test -project SYKeyboard.xcodeproj -scheme SYKeyboard \
 
 기대: `error: no such module 'HangeulEnglishKeyboardCore'`로 컴파일 실패, `** TEST FAILED **`.
 
-- [ ] **Step 3: Core VC 파일 작성**
+- [x] **Step 3: Core VC 파일 작성**
 
 `Modules/HangeulEnglishKeyboardCore/Presentation/ViewController/HangeulEnglishKeyboardCoreViewController.swift`. 현재 extension VC 본문을 옮긴 것이다. 바뀐 곳은 (1) 헤더·import, (2) `open class`/`public init`/`open override`, (3) `logger`·`didReceiveMemoryWarning`·`setupFirebase`·`recordLanguageModeDecision` 제거, (4) `inputTraitsDidChange()`의 `recordLanguageModeDecision(...)` 호출을 `languageModeDecisionDidResolve(...)` 훅 호출로 교체, (5) 훅 선언 추가. 그 외 줄은 글자 그대로다.
 
@@ -726,7 +726,7 @@ private extension HangeulEnglishKeyboardCoreViewController {
 }
 ```
 
-- [ ] **Step 4: `project.pbxproj`에 타깃 추가**
+- [x] **Step 4: `project.pbxproj`에 타깃 추가**
 
 새 object ID는 모두 `5BD0A1xx2FF2C0000064DC60` 꼴이다. 기존 ID와 겹치지 않는다(`grep -c 5BD0A1 project.pbxproj`가 0이어야 한다). 각 블록은 해당 section의 `/* End … section */` 줄 **바로 앞**에 넣는다. Xcode가 다음 저장 때 ID 순서로 재정렬하므로 위치는 문제 되지 않는다.
 
@@ -1095,13 +1095,13 @@ grep -c "5BD0A1" SYKeyboard.xcodeproj/project.pbxproj
 
 기대: `OK`, Targets에 `HangeulEnglishKeyboardCore`가 보임, 새 ID가 든 줄 수 57(블록 머리 25줄 + 블록 안·목록 안 참조 32줄). 숫자가 다르면 빠진 참조가 있다.
 
-- [ ] **Step 5: 테스트가 통과하는지 확인**
+- [x] **Step 5: 테스트가 통과하는지 확인**
 
 Step 2와 같은 명령을 `task1-green.log`로 실행한다.
 
 기대: `Test case '…testTextWillChangeReadsShiftContextOnceInEnglishMode()' passed`, `** TEST SUCCEEDED **`. `Test case` 줄이 없으면 suite 이름 필터가 틀린 것이다.
 
-- [ ] **Step 6: 앱 스킴 전체 테스트 빌드로 중복 심볼·누락 등록 확인**
+- [x] **Step 6: 앱 스킴 전체 테스트 빌드로 중복 심볼·누락 등록 확인**
 
 ```sh
 xcodebuild build-for-testing -project SYKeyboard.xcodeproj -scheme SYKeyboard \
@@ -1111,7 +1111,7 @@ xcodebuild build-for-testing -project SYKeyboard.xcodeproj -scheme SYKeyboard \
 
 기대: `** TEST BUILD SUCCEEDED **`, `duplicate symbol`·`cannot find … in scope` 없음.
 
-- [ ] **Step 7: 스킴 부수 효과 되돌리고 커밋**
+- [x] **Step 7: 스킴 부수 효과 되돌리고 커밋**
 
 ```sh
 git status --short
@@ -1124,9 +1124,11 @@ git commit -m "refactor: #190 - HangeulEnglishKeyboardCore 모듈과 Core VC 추
 Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>"
 ```
 
-**결과 기록:**
-- 테스트:
-- 앱 빌드:
+**결과 기록 (2026-10-09):**
+- RED: `task1-red.log` — `error: Unable to resolve module dependency: 'HangeulEnglishKeyboardCore'`, `** TEST FAILED **`
+- pbxproj: `plutil -lint` OK, `xcodebuild -list`에 `HangeulEnglishKeyboardCore` 표시, `5BD0A1` 줄 수 57
+- GREEN: `task1-green.log` — `testTextWillChangeReadsShiftContextOnceInEnglishMode()` passed, `** TEST SUCCEEDED **`
+- 앱 빌드: `build-for-testing` `** TEST BUILD SUCCEEDED **`, duplicate symbol·cannot find 없음, `.xcscheme` 변경 없음
 
 ---
 

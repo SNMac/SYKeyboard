@@ -27,6 +27,11 @@
 		5BC304332FF15A860064DC60 /* HangeulKeyboardCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5BB373DA2ED5DADC006AB083 /* HangeulKeyboardCore.framework */; };
 		5BCB0494306F84C8002DE27B /* MetaAdapterTarget in Frameworks */ = {isa = PBXBuildFile; productRef = 5BCB0493306F84C8002DE27B /* MetaAdapterTarget */; };
 		5BCED1112F26DEEC00A7F562 /* SYKeyboardAssets in Frameworks */ = {isa = PBXBuildFile; productRef = 5BCED1102F26DEEC00A7F562 /* SYKeyboardAssets */; };
+		5BD0A10D2FF2C0000064DC60 /* SYKeyboardCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5BB373512ED5AA18006AB083 /* SYKeyboardCore.framework */; };
+		5BD0A1102FF2C0000064DC60 /* HangeulKeyboardCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5BB373DA2ED5DADC006AB083 /* HangeulKeyboardCore.framework */; };
+		5BD0A1132FF2C0000064DC60 /* EnglishKeyboardCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5BB373AA2ED5D937006AB083 /* EnglishKeyboardCore.framework */; };
+		5BD0A1162FF2C0000064DC60 /* HangeulEnglishKeyboardCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5BD0A1022FF2C0000064DC60 /* HangeulEnglishKeyboardCore.framework */; };
+		5BD0A1192FF2C0000064DC60 /* HangeulEnglishKeyboardCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5BD0A1022FF2C0000064DC60 /* HangeulEnglishKeyboardCore.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -121,6 +126,41 @@
 			remoteGlobalIDString = 5BB373D92ED5DADC006AB083;
 			remoteInfo = HangeulKeyboardCore;
 		};
+		5BD0A10B2FF2C0000064DC60 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 5B7B3F4E2C569B7800F7C093 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 5BB373502ED5AA18006AB083;
+			remoteInfo = SYKeyboardCore;
+		};
+		5BD0A10E2FF2C0000064DC60 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 5B7B3F4E2C569B7800F7C093 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 5BB373D92ED5DADC006AB083;
+			remoteInfo = HangeulKeyboardCore;
+		};
+		5BD0A1112FF2C0000064DC60 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 5B7B3F4E2C569B7800F7C093 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 5BB373A92ED5D937006AB083;
+			remoteInfo = EnglishKeyboardCore;
+		};
+		5BD0A1142FF2C0000064DC60 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 5B7B3F4E2C569B7800F7C093 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 5BD0A1012FF2C0000064DC60;
+			remoteInfo = HangeulEnglishKeyboardCore;
+		};
+		5BD0A1172FF2C0000064DC60 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 5B7B3F4E2C569B7800F7C093 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 5BD0A1012FF2C0000064DC60;
+			remoteInfo = HangeulEnglishKeyboardCore;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -151,6 +191,7 @@
 		5BB373DA2ED5DADC006AB083 /* HangeulKeyboardCore.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = HangeulKeyboardCore.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		5BC304132FF15A030064DC60 /* HangeulEnglishKeyboard.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = HangeulEnglishKeyboard.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		5BC38F1B2D8AE2FE00E6B44E /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		5BD0A1022FF2C0000064DC60 /* HangeulEnglishKeyboardCore.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = HangeulEnglishKeyboardCore.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -246,6 +287,7 @@
 				"EnglishKeyboardCore/Storage/DefaultValues+Extension.swift",
 				"EnglishKeyboardCore/Storage/UserDefaultsKeys+Extension.swift",
 				"EnglishKeyboardCore/Storage/UserDefaultsManager+Extension.swift",
+				HangeulEnglishKeyboardCore/Presentation/ViewController/HangeulEnglishKeyboardCoreViewController.swift,
 				HangeulKeyboardCore/Domain/Automata/HangeulAutomata.swift,
 				HangeulKeyboardCore/Domain/HangeulCompositionState.swift,
 				HangeulKeyboardCore/Domain/Processor/CheonjiinProcessor.swift,
@@ -518,6 +560,13 @@
 			);
 			target = 5BB373D92ED5DADC006AB083 /* HangeulKeyboardCore */;
 		};
+		5BD0A10A2FF2C0000064DC60 /* Exceptions for "Modules" folder in "HangeulEnglishKeyboardCore" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				HangeulEnglishKeyboardCore/Presentation/ViewController/HangeulEnglishKeyboardCoreViewController.swift,
+			);
+			target = 5BD0A1012FF2C0000064DC60 /* HangeulEnglishKeyboardCore */;
+		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -561,6 +610,7 @@
 				5BCECD532F26C3B800A7F562 /* Exceptions for "Modules" folder in "SYKeyboardCore" target */,
 				5BCECD542F26C3B800A7F562 /* Exceptions for "Modules" folder in "EnglishKeyboardCore" target */,
 				5BCECD552F26C3B800A7F562 /* Exceptions for "Modules" folder in "HangeulKeyboardCore" target */,
+				5BD0A10A2FF2C0000064DC60 /* Exceptions for "Modules" folder in "HangeulEnglishKeyboardCore" target */,
 			);
 			path = Modules;
 			sourceTree = "<group>";
@@ -594,6 +644,7 @@
 				5B25D1212F155BBC003122E2 /* EnglishKeyboardCore.framework in Frameworks */,
 				5BB377A42ED600AC006AB083 /* FirebaseCrashlytics in Frameworks */,
 				5B25D11F2F155BBA003122E2 /* HangeulKeyboardCore.framework in Frameworks */,
+				5BD0A1162FF2C0000064DC60 /* HangeulEnglishKeyboardCore.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -646,6 +697,17 @@
 				5BC304332FF15A860064DC60 /* HangeulKeyboardCore.framework in Frameworks */,
 				5BC3042E2FF15A860064DC60 /* FirebaseCrashlytics in Frameworks */,
 				5BC3042F2FF15A860064DC60 /* EnglishKeyboardCore.framework in Frameworks */,
+				5BD0A1192FF2C0000064DC60 /* HangeulEnglishKeyboardCore.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		5BD0A1052FF2C0000064DC60 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5BD0A10D2FF2C0000064DC60 /* SYKeyboardCore.framework in Frameworks */,
+				5BD0A1102FF2C0000064DC60 /* HangeulKeyboardCore.framework in Frameworks */,
+				5BD0A1132FF2C0000064DC60 /* EnglishKeyboardCore.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -687,6 +749,7 @@
 				5BB373AA2ED5D937006AB083 /* EnglishKeyboardCore.framework */,
 				5BB373DA2ED5DADC006AB083 /* HangeulKeyboardCore.framework */,
 				5BC304132FF15A030064DC60 /* HangeulEnglishKeyboard.appex */,
+				5BD0A1022FF2C0000064DC60 /* HangeulEnglishKeyboardCore.framework */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -709,6 +772,13 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		5BB373D52ED5DADC006AB083 /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		5BD0A1032FF2C0000064DC60 /* Headers */ = {
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -759,6 +829,7 @@
 				5BB373B12ED5D937006AB083 /* PBXTargetDependency */,
 				5BB373E12ED5DADC006AB083 /* PBXTargetDependency */,
 				5BC304192FF15A030064DC60 /* PBXTargetDependency */,
+				5BD0A1152FF2C0000064DC60 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				5B53F8012E1E56BD0083F7CA /* Keyboards */,
@@ -895,6 +966,7 @@
 			dependencies = (
 				5BC304322FF15A860064DC60 /* PBXTargetDependency */,
 				5BC304362FF15A860064DC60 /* PBXTargetDependency */,
+				5BD0A1182FF2C0000064DC60 /* PBXTargetDependency */,
 			);
 			name = HangeulEnglishKeyboard;
 			packageProductDependencies = (
@@ -903,6 +975,27 @@
 			productName = HangeulEnglishKeyboard;
 			productReference = 5BC304132FF15A030064DC60 /* HangeulEnglishKeyboard.appex */;
 			productType = "com.apple.product-type.app-extension";
+		};
+		5BD0A1012FF2C0000064DC60 /* HangeulEnglishKeyboardCore */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 5BD0A1072FF2C0000064DC60 /* Build configuration list for PBXNativeTarget "HangeulEnglishKeyboardCore" */;
+			buildPhases = (
+				5BD0A1032FF2C0000064DC60 /* Headers */,
+				5BD0A1042FF2C0000064DC60 /* Sources */,
+				5BD0A1052FF2C0000064DC60 /* Frameworks */,
+				5BD0A1062FF2C0000064DC60 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				5BD0A10C2FF2C0000064DC60 /* PBXTargetDependency */,
+				5BD0A10F2FF2C0000064DC60 /* PBXTargetDependency */,
+				5BD0A1122FF2C0000064DC60 /* PBXTargetDependency */,
+			);
+			name = HangeulEnglishKeyboardCore;
+			productName = HangeulEnglishKeyboardCore;
+			productReference = 5BD0A1022FF2C0000064DC60 /* HangeulEnglishKeyboardCore.framework */;
+			productType = "com.apple.product-type.framework";
 		};
 /* End PBXNativeTarget section */
 
@@ -939,6 +1032,9 @@
 					5BC304122FF15A030064DC60 = {
 						CreatedOnToolsVersion = 27.0;
 					};
+					5BD0A1012FF2C0000064DC60 = {
+						CreatedOnToolsVersion = 27.0;
+					};
 				};
 			};
 			buildConfigurationList = 5B7B3F512C569B7800F7C093 /* Build configuration list for PBXProject "SYKeyboard" */;
@@ -968,6 +1064,7 @@
 				5BB373502ED5AA18006AB083 /* SYKeyboardCore */,
 				5BB373A92ED5D937006AB083 /* EnglishKeyboardCore */,
 				5BB373D92ED5DADC006AB083 /* HangeulKeyboardCore */,
+				5BD0A1012FF2C0000064DC60 /* HangeulEnglishKeyboardCore */,
 			);
 		};
 /* End PBXProject section */
@@ -1023,6 +1120,13 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		5BC304112FF15A030064DC60 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		5BD0A1062FF2C0000064DC60 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -1268,6 +1372,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		5BD0A1042FF2C0000064DC60 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -1335,6 +1446,31 @@
 			isa = PBXTargetDependency;
 			target = 5BB373D92ED5DADC006AB083 /* HangeulKeyboardCore */;
 			targetProxy = 5BC304352FF15A860064DC60 /* PBXContainerItemProxy */;
+		};
+		5BD0A10C2FF2C0000064DC60 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 5BB373502ED5AA18006AB083 /* SYKeyboardCore */;
+			targetProxy = 5BD0A10B2FF2C0000064DC60 /* PBXContainerItemProxy */;
+		};
+		5BD0A10F2FF2C0000064DC60 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 5BB373D92ED5DADC006AB083 /* HangeulKeyboardCore */;
+			targetProxy = 5BD0A10E2FF2C0000064DC60 /* PBXContainerItemProxy */;
+		};
+		5BD0A1122FF2C0000064DC60 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 5BB373A92ED5D937006AB083 /* EnglishKeyboardCore */;
+			targetProxy = 5BD0A1112FF2C0000064DC60 /* PBXContainerItemProxy */;
+		};
+		5BD0A1152FF2C0000064DC60 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 5BD0A1012FF2C0000064DC60 /* HangeulEnglishKeyboardCore */;
+			targetProxy = 5BD0A1142FF2C0000064DC60 /* PBXContainerItemProxy */;
+		};
+		5BD0A1182FF2C0000064DC60 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 5BD0A1012FF2C0000064DC60 /* HangeulEnglishKeyboardCore */;
+			targetProxy = 5BD0A1172FF2C0000064DC60 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -2112,6 +2248,98 @@
 			};
 			name = Release;
 		};
+		5BD0A1082FF2C0000064DC60 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUILD_LIBRARY_FOR_DISTRIBUTION = NO;
+				CODE_SIGN_IDENTITY = "";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				ENABLE_DEBUG_DYLIB = YES;
+				ENABLE_MODULE_VERIFIER = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MACH_O_TYPE = staticlib;
+				MARKETING_VERSION = 1.0;
+				MODULE_VERIFIER_SUPPORTED_LANGUAGES = "objective-c objective-c++";
+				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu17 gnu++20";
+				PRODUCT_BUNDLE_IDENTIFIER = com.snmac.HangeulEnglishKeyboardCore;
+				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_INSTALL_MODULE = YES;
+				SWIFT_INSTALL_OBJC_HEADER = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
+			};
+			name = Debug;
+		};
+		5BD0A1092FF2C0000064DC60 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUILD_LIBRARY_FOR_DISTRIBUTION = NO;
+				CODE_SIGN_IDENTITY = "";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				ENABLE_MODULE_VERIFIER = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MACH_O_TYPE = staticlib;
+				MARKETING_VERSION = 1.0;
+				MODULE_VERIFIER_SUPPORTED_LANGUAGES = "objective-c objective-c++";
+				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu17 gnu++20";
+				PRODUCT_BUNDLE_IDENTIFIER = com.snmac.HangeulEnglishKeyboardCore;
+				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_INSTALL_MODULE = YES;
+				SWIFT_INSTALL_OBJC_HEADER = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -2192,6 +2420,15 @@
 			buildConfigurations = (
 				5BC3041B2FF15A030064DC60 /* Debug */,
 				5BC3041C2FF15A030064DC60 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		5BD0A1072FF2C0000064DC60 /* Build configuration list for PBXNativeTarget "HangeulEnglishKeyboardCore" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				5BD0A1082FF2C0000064DC60 /* Debug */,
+				5BD0A1092FF2C0000064DC60 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
