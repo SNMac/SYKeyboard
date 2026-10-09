@@ -111,18 +111,6 @@ struct NaratgeulColumnWidthLayoutTests {
         #expect(abs(Self.rect(view.returnButtonHStackView, in: view).width - expected) < Self.tolerance)
     }
 
-    @Test("배율을 올리면 글자 버튼이 넓어진다")
-    func testHigherMultiplierWidensKeyButtons() throws {
-        let defaultView = Self.makeView(multiplier: 1.0)
-        let widenedView = Self.makeView(multiplier: 1.15)
-
-        let defaultKey = try #require(defaultView.primaryButtonList.first as? PrimaryKeyButton)
-        let widenedKey = try #require(widenedView.primaryButtonList.first as? PrimaryKeyButton)
-
-        #expect(widenedKey.frame.width > defaultKey.frame.width)
-        #expect(abs(widenedKey.frame.width - Self.keyboardWidth * 0.2875) < Self.tolerance)
-    }
-
     @Test("프로토콜 타입으로 호출해도 배율이 적용된다")
     func testUpdateThroughProtocolDispatch() {
         let view = Self.makeView(multiplier: 1.0)
@@ -282,18 +270,6 @@ struct NumericColumnWidthLayoutTests {
         #expect(abs(Self.rect(view.switchButton, in: view).minX) < Self.tolerance)
     }
 
-    @Test("배율을 올리면 숫자 버튼이 넓어진다")
-    func testHigherMultiplierWidensKeyButtons() throws {
-        let defaultView = Self.makeView(usesBottomSpaceLayout: false, multiplier: 1.0)
-        let widenedView = Self.makeView(usesBottomSpaceLayout: false, multiplier: 1.15)
-
-        let defaultKey = try Self.keyButton(defaultView, primary: "1")
-        let widenedKey = try Self.keyButton(widenedView, primary: "1")
-
-        #expect(widenedKey.frame.width > defaultKey.frame.width)
-        #expect(abs(widenedKey.frame.width - Self.keyboardWidth * 0.2875) < Self.tolerance)
-    }
-
     @Test("기본 배치 최대 배율에서도 modifier 두 버튼이 균등 분배되고 붕괴하지 않는다")
     func testHigherMultiplierKeepsModifierStackFromCollapsing() throws {
         let view = Self.makeView(usesBottomSpaceLayout: false, multiplier: 1.15)
@@ -324,14 +300,27 @@ struct NumericColumnWidthLayoutTests {
     }
 }
 
+
 @MainActor
-@Suite("4열 자판 기능 열 너비 레이아웃")
-struct FourColumnFunctionColumnWidthTests {
+@Suite("4열 자판 공통 열 너비 레이아웃")
+struct FourColumnKeyboardColumnWidthTests {
     private static let keyboardWidth: CGFloat = 390
     private static let keyboardHeight: CGFloat = 216
     private static let tolerance: CGFloat = 1.0
 
-    /// 기능 열(4열)을 공유하는 세 자판. 천지인·숫자는 기본 배치다
+    /// 배율을 적용해 레이아웃한 자판과 비교 대상 버튼들
+    struct Layout {
+        let view: UIView
+        let delete: UIView
+        let space: UIView
+        /// 리턴 자리. 숫자 키패드만 단일 버튼이고 나머지는 스택이다
+        let returnView: UIView
+        let nextKeyboard: UIView
+        /// 1열 맨 위 글자 키
+        let firstLetterKey: UIView?
+    }
+
+    /// 4열 격자를 공유하는 세 자판. 천지인·숫자는 기본 배치다
     enum Fixture: CustomTestStringConvertible {
         case naratgeul
         case cheonjiin
@@ -345,10 +334,17 @@ struct FourColumnFunctionColumnWidthTests {
             }
         }
 
-        /// 배율을 적용해 레이아웃한 자판과 4열 버튼들. 리턴 자리는 숫자 키패드만 단일 버튼이고 나머지는 스택이다
+        /// 1열 맨 위 글자 키의 표시 문자
+        private var firstLetterKey: String {
+            switch self {
+            case .naratgeul: return "ㄱ"
+            case .cheonjiin: return "ㅣ"
+            case .numeric: return "1"
+            }
+        }
+
         @MainActor
-        func makeLayout(width: CGFloat, height: CGFloat, multiplier: Double)
-        -> (view: UIView, delete: UIView, space: UIView, returnView: UIView, nextKeyboard: UIView) {
+        func makeLayout(width: CGFloat, height: CGFloat, multiplier: Double) -> Layout {
             let frame = CGRect(x: 0, y: 0, width: width, height: height)
             switch self {
             case .naratgeul:
@@ -356,7 +352,12 @@ struct FourColumnFunctionColumnWidthTests {
                 view.frame = frame
                 view.updateLetterColumnWidthMultiplier(multiplier)
                 view.layoutIfNeeded()
-                return (view, view.deleteButton, view.spaceButton, view.returnButtonHStackView, view.nextKeyboardButton)
+                return Layout(view: view,
+                              delete: view.deleteButton,
+                              space: view.spaceButton,
+                              returnView: view.returnButtonHStackView,
+                              nextKeyboard: view.nextKeyboardButton,
+                              firstLetterKey: keyButton(firstLetterKey, in: view.primaryButtonList))
             case .cheonjiin:
                 let view = CheonjiinKeyboardView(showsLanguageSwitchButton: true,
                                                  usesBottomSpaceLayout: false,
@@ -364,14 +365,29 @@ struct FourColumnFunctionColumnWidthTests {
                 view.frame = frame
                 view.updateLetterColumnWidthMultiplier(multiplier)
                 view.layoutIfNeeded()
-                return (view, view.deleteButton, view.spaceButton, view.returnButtonHStackView, view.nextKeyboardButton)
+                return Layout(view: view,
+                              delete: view.deleteButton,
+                              space: view.spaceButton,
+                              returnView: view.returnButtonHStackView,
+                              nextKeyboard: view.nextKeyboardButton,
+                              firstLetterKey: keyButton(firstLetterKey, in: view.primaryButtonList))
             case .numeric:
                 let view = NumericKeyboardView(showsLanguageSwitchButton: true, usesBottomSpaceLayout: false)
                 view.frame = frame
                 view.updateLetterColumnWidthMultiplier(multiplier)
                 view.layoutIfNeeded()
-                return (view, view.deleteButton, view.spaceButton, view.returnButton, view.nextKeyboardButton)
+                return Layout(view: view,
+                              delete: view.deleteButton,
+                              space: view.spaceButton,
+                              returnView: view.returnButton,
+                              nextKeyboard: view.nextKeyboardButton,
+                              firstLetterKey: keyButton(firstLetterKey, in: view.primaryButtonList))
             }
+        }
+
+        @MainActor
+        private func keyButton(_ primary: String, in buttons: [PrimaryButton]) -> PrimaryKeyButton? {
+            buttons.compactMap { $0 as? PrimaryKeyButton }.first { $0.type.primaryKeyList.first == primary }
         }
     }
 
@@ -402,5 +418,18 @@ struct FourColumnFunctionColumnWidthTests {
         #expect(abs(space.minX - expectedColumnStart) < Self.tolerance)
         #expect(abs(returnRect.minX - expectedColumnStart) < Self.tolerance)
         #expect(abs(nextKeyboard.minX - expectedColumnStart) < Self.tolerance)
+    }
+
+    @Test("배율을 올리면 세 자판 모두 글자 키가 넓어진다",
+          arguments: [Fixture.naratgeul, .cheonjiin, .numeric])
+    func testHigherMultiplierWidensKeyButtons(fixture: Fixture) throws {
+        let defaultLayout = fixture.makeLayout(width: Self.keyboardWidth, height: Self.keyboardHeight, multiplier: 1.0)
+        let widenedLayout = fixture.makeLayout(width: Self.keyboardWidth, height: Self.keyboardHeight, multiplier: 1.15)
+
+        let defaultKey = try #require(defaultLayout.firstLetterKey)
+        let widenedKey = try #require(widenedLayout.firstLetterKey)
+
+        #expect(widenedKey.frame.width > defaultKey.frame.width)
+        #expect(abs(widenedKey.frame.width - Self.keyboardWidth * 0.2875) < Self.tolerance)
     }
 }
