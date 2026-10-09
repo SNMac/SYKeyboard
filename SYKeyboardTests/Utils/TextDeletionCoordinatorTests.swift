@@ -225,6 +225,235 @@ struct TextDeletionCoordinatorTests {
         // 예약된 타이머 틱·타임아웃 클로저가 실행돼도 크래시가 없어야 한다
         RunLoop.main.run(until: Date(timeIntervalSinceNow: 0.3))
     }
+
+    // MARK: - 줄 경계·취소 시나리오
+
+    @Test("panStop 뒤 late callback이 줄바꿈을 확정한 후 tracking을 종료")
+    func testPanStopBeforeLateCallbackConfirmsNewlineAndFinishesTracking() async throws {
+        let fixture = makeFixture()
+        fixture.proxy.beforeInput = ""
+        fixture.proxy.afterInput = "라마바"
+
+        fixture.coordinator.handlePan(to: .left)
+
+        // 모델이 비어 줄 경계 요청을 보내고, 지운 글자는 파이프라인이 capture한다
+        #expect(fixture.host.calls == ["deleteButtonPanDeleteText(false)", "deleteText"])
+        #expect(fixture.host.uncapturedEdits.isEmpty)
+
+        fixture.coordinator.handlePanStop()
+
+        // 경계 확인 전이라 panStop은 보류되고, 손을 뗀 시점의 문맥으로는 확정되지 않는다
+        #expect(fixture.host.calls.contains("deleteButtonPanDidStop") == false)
+        #expect(fixture.host.calls.contains { $0.hasPrefix("recordEditForUndo") } == false)
+        #expect(fixture.proxy.writes == ["deleteBackward"])
+
+        fixture.proxy.beforeInput = "가나다"
+        fixture.coordinator.completeAfterTextChange(currentContext: fixture.host.textDocument.contextSnapshot)
+
+        // 이전 줄이 나타나 줄바꿈 삭제로 확정되고, 복구할 줄바꿈이 생겨 모델을 이전 줄로 다시 채운다
+        #expect(fixture.host.calls.last == "recordEditForUndo(\n, )")
+        #expect(fixture.coordinator.panPreviousCharacter == "다")
+
+        // 줄바꿈 삭제 뒤에는 입력창의 늦은 callback을 기다렸다가 보류된 panStop을 재생한다.
+        // 예약 블록은 main 큐에서 돌므로 runloop를 돌리지 않고 main actor를 비켜 준다
+        try await Task.sleep(for: .milliseconds(100))
+
+        #expect(fixture.host.calls.filter { $0 == "deleteButtonPanDidStop" }.count == 1)
+        #expect(fixture.coordinator.panPreviousCharacter == nil)
+
+        // 진행·보류 중인 삭제가 없으므로 다음 touchDown은 보류되지 않고 새 요청으로 바로 지운다
+        let uncapturedEdits = fixture.host.uncapturedEdits
+        fixture.coordinator.performTouchDown(for: fixture.button)
+        #expect(fixture.proxy.writes == ["deleteBackward", "deleteBackward"])
+        #expect(fixture.host.calls.suffix(3) == ["textInteractionWillPerform", "deleteBackward", "textInteractionDidPerform"])
+        #expect(fixture.host.uncapturedEdits == uncapturedEdits)
+    }
+
+    @Test("문서 시작 panStop no-op은 후속 checkpoint에서 coordinator를 정리")
+    func testDocumentStartPanStopNoOpCheckpointCleansCoordinator() async throws {
+        let fixture = makeFixture()
+        fixture.proxy.beforeInput = ""
+        fixture.proxy.afterInput = "가나다"
+
+        fixture.coordinator.handlePan(to: .left)
+
+        #expect(fixture.host.calls == ["deleteButtonPanDeleteText(false)", "deleteText"])
+
+        fixture.coordinator.handlePanStop()
+
+        #expect(fixture.host.calls.contains("deleteButtonPanDidStop") == false)
+        #expect(fixture.host.calls.contains { $0.hasPrefix("recordEditForUndo") } == false)
+
+        // 손을 뗀 뒤 예약된 checkpoint가 앞 문맥이 그대로 빈 것을 보고 삭제 없음으로 확정한다
+        try await Task.sleep(for: .milliseconds(50))
+
+        // 삭제 없음은 undo를 남기지 않고, 보류된 panStop만 한 번 재생한다
+        #expect(fixture.host.calls.contains { $0.hasPrefix("recordEditForUndo") } == false)
+        #expect(fixture.host.uncapturedEdits.isEmpty)
+        #expect(fixture.host.calls.filter { $0 == "deleteButtonPanDidStop" }.count == 1)
+
+        fixture.coordinator.performTouchDown(for: fixture.button)
+
+        #expect(fixture.proxy.writes == ["deleteBackward", "deleteBackward"])
+        #expect(fixture.host.calls.suffix(3) == ["textInteractionWillPerform", "deleteBackward", "textInteractionDidPerform"])
+        #expect(fixture.host.uncapturedEdits.isEmpty)
+    }
+
+    @Test("문서 시작 no-op pan 경계가 확정되면 보류된 선행 left는 버리고 right부터 재생")
+    func testNoOpPanBoundaryResolutionDiscardsLeadingLeft() async throws {
+        let fixture = makeFixture()
+        fixture.proxy.beforeInput = ""
+        fixture.proxy.afterInput = "가나다"
+
+        fixture.coordinator.handlePan(to: .left)
+
+        #expect(fixture.host.calls == ["deleteButtonPanDeleteText(false)", "deleteText"])
+
+        fixture.coordinator.handlePan(to: .left)
+        fixture.coordinator.handlePan(to: .right)
+        fixture.coordinator.handlePan(to: .left)
+        fixture.coordinator.handlePanStop()
+
+        // 경계 확인 전 이벤트는 모두 보류되고 손을 뗀 시점에는 확정되지 않는다
+        #expect(fixture.host.calls == ["deleteButtonPanDeleteText(false)", "deleteText"])
+        #expect(fixture.proxy.writes == ["deleteBackward"])
+
+        try await Task.sleep(for: .milliseconds(50))
+
+        // 삭제 없음으로 확정돼 undo가 없고, 문서 맨 앞이라 경계를 다시 묻지 않는다
+        #expect(fixture.host.calls.contains { $0.hasPrefix("recordEditForUndo") } == false)
+        #expect(fixture.proxy.writes == ["deleteBackward"])
+        // 선행 left는 버려지고 right·left·panStop만 재생된다. right는 복구할 글자가 없어 host를 부르지 않는다.
+        // 재생 순서 자체는 `DeleteInteractionCoordinatorTests`가 갖는다
+        #expect(Array(fixture.host.calls.dropFirst(2)) == ["deleteButtonPanDeleteText(false)", "deleteButtonPanDidStop"])
+
+        fixture.coordinator.performTouchDown(for: fixture.button)
+
+        #expect(fixture.proxy.writes == ["deleteBackward", "deleteBackward"])
+        #expect(fixture.host.calls.suffix(3) == ["textInteractionWillPerform", "deleteBackward", "textInteractionDidPerform"])
+    }
+
+    @Test("문서 시작 pan 경계에 앞 문맥이 그대로인 callback이 오면 복구 문자 없이 선행 left를 버림")
+    func testDocumentStartPanBoundaryCallbackDoesNotRestoreNewline() {
+        let fixture = makeFixture()
+        fixture.proxy.beforeInput = nil
+        fixture.proxy.afterInput = "가나다"
+
+        fixture.coordinator.handlePan(to: .left)
+
+        #expect(fixture.host.calls == ["deleteButtonPanDeleteText(false)", "deleteText"])
+
+        fixture.coordinator.handlePan(to: .left)
+        fixture.coordinator.handlePan(to: .left)
+        fixture.coordinator.handlePan(to: .right)
+        fixture.coordinator.handlePanStop()
+
+        #expect(fixture.host.calls == ["deleteButtonPanDeleteText(false)", "deleteText"])
+
+        fixture.coordinator.completeAfterTextChange(currentContext: fixture.host.textDocument.contextSnapshot)
+
+        // 앞 문맥이 그대로인 callback은 삭제 없음으로 확정돼 undo를 남기지 않는다
+        #expect(fixture.host.calls.contains { $0.hasPrefix("recordEditForUndo") } == false)
+        #expect(fixture.host.uncapturedEdits.isEmpty)
+        // 복구 문자가 없어 right는 아무것도 되살리지 않고, 선행 left 둘은 버려져 panStop만 남는다
+        #expect(fixture.host.calls.contains { $0.hasPrefix("deleteButtonPanRestoreText") } == false)
+        #expect(Array(fixture.host.calls.dropFirst(2)) == ["deleteButtonPanDidStop"])
+    }
+
+    @Test("non-delete mutation 경계는 lifecycle과 coordinator를 함께 취소")
+    func testNonDeleteMutationBoundaryCancelsLifecycleAndCoordinator() {
+        let fixture = makeFixture()
+        fixture.proxy.beforeInput = "가"
+        fixture.proxy.afterInput = ""
+
+        fixture.coordinator.performTouchDown(for: fixture.button)
+        fixture.coordinator.handlePan(to: .left)
+
+        // touchDown 확인 전이라 pan은 보류된다
+        #expect(fixture.host.calls == ["textInteractionWillPerform", "deleteBackward", "textInteractionDidPerform"])
+
+        fixture.coordinator.cancelPendingInteractions()
+        fixture.coordinator.completeAfterTextChange(
+            currentContext: KeyboardTextContextSnapshot(beforeInput: "", afterInput: "")
+        )
+
+        // 취소된 touchDown은 늦은 callback으로 확정되지 않고, 보류된 pan도 재생되지 않는다
+        #expect(fixture.host.calls.contains { $0.hasPrefix("recordEditForUndo") } == false)
+        #expect(fixture.host.calls.contains("deleteButtonPanDeleteText(false)") == false)
+        // pan tracking 종료는 취소 때 한 번만 요청한다
+        #expect(fixture.host.calls.filter { $0 == "deleteButtonPanDidStop" }.count == 1)
+        #expect(fixture.indicator.isHidden)
+
+        fixture.coordinator.performTouchDown(for: fixture.button)
+
+        #expect(fixture.proxy.writes == ["deleteBackward", "deleteBackward"])
+    }
+
+    /// 하네스 시절에는 새 touchDown을 시작한 뒤 capture 전에 늦은 callback을 넣었다.
+    /// production touchDown은 시작과 capture가 동기로 이어져 그 틈이 없으므로, 늦은 callback은 새 touchDown 전에 온다
+    @Test("focus 변경 뒤 늦은 callback은 새 입력 대상을 mutate하지 않음")
+    func testFocusChangeDoesNotMutateNewInputIdentifier() {
+        let fixture = makeFixture()
+        // 임시 객체는 바로 해제돼 다음 객체가 같은 주소를 받을 수 있으므로 필드를 살려 둔다
+        let firstField = UITextField()
+        let secondField = UITextField()
+        fixture.proxy.beforeInput = "가"
+        fixture.proxy.afterInput = ""
+        fixture.coordinator.synchronizeInputIdentifier(ObjectIdentifier(firstField))
+
+        fixture.coordinator.performTouchDown(for: fixture.button)
+        fixture.coordinator.handlePan(to: .left)
+
+        #expect(fixture.host.calls == ["textInteractionWillPerform", "deleteBackward", "textInteractionDidPerform"])
+
+        fixture.coordinator.synchronizeInputIdentifier(ObjectIdentifier(secondField))
+        fixture.coordinator.completeAfterTextChange(
+            currentContext: KeyboardTextContextSnapshot(beforeInput: "", afterInput: "")
+        )
+
+        // 이전 입력 대상의 요청은 취소돼 늦은 callback으로 확정되지 않는다
+        #expect(fixture.host.calls.contains { $0.hasPrefix("recordEditForUndo") } == false)
+        #expect(fixture.host.calls.filter { $0 == "deleteButtonPanDidStop" }.count == 1)
+
+        fixture.proxy.beforeInput = "새"
+        fixture.coordinator.performTouchDown(for: fixture.button)
+
+        // 새 입력 대상의 touchDown은 보류되지 않고 바로 지운 뒤 자기 callback을 기다린다
+        #expect(fixture.proxy.writes == ["deleteBackward", "deleteBackward"])
+        #expect(fixture.host.uncapturedEdits.isEmpty)
+
+        fixture.coordinator.handlePan(to: .left)
+
+        // 기다리는 동안 들어온 pan은 보류되고, 이전 입력 대상의 pan은 끝까지 재생되지 않는다
+        #expect(fixture.host.calls.contains("deleteButtonPanDeleteText(false)") == false)
+    }
+
+    @Test("active captured 요청의 관련 없는 callback은 generation과 FIFO를 취소")
+    func testActiveCapturedRequestUnrelatedCallbackCancelsGeneration() {
+        let fixture = makeFixture()
+        fixture.proxy.beforeInput = "가"
+        fixture.proxy.afterInput = ""
+
+        fixture.coordinator.performTouchDown(for: fixture.button)
+        fixture.coordinator.handlePan(to: .left)
+
+        #expect(fixture.host.calls == ["textInteractionWillPerform", "deleteBackward", "textInteractionDidPerform"])
+
+        fixture.proxy.beforeInput = "가"
+        fixture.proxy.afterInput = "외부 변경"
+        fixture.coordinator.completeAfterTextChange(currentContext: fixture.host.textDocument.contextSnapshot)
+
+        // 관련 없는 callback은 요청을 취소한다. undo를 남기지 않고 pan tracking을 한 번 끝낸다
+        #expect(fixture.host.calls.contains { $0.hasPrefix("recordEditForUndo") } == false)
+        #expect(fixture.host.calls.filter { $0 == "deleteButtonPanDidStop" }.count == 1)
+        #expect(fixture.indicator.isHidden)
+        // 보류된 pan은 재생되지 않는다
+        #expect(fixture.host.calls.contains("deleteButtonPanDeleteText(false)") == false)
+
+        fixture.coordinator.performTouchDown(for: fixture.button)
+
+        #expect(fixture.proxy.writes == ["deleteBackward", "deleteBackward"])
+    }
 }
 
 // MARK: - Test Helpers
