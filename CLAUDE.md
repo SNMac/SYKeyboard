@@ -155,7 +155,7 @@ Crashlytics 크래시는 별도의 분류 봇이 Notion `SY키보드 크래시 �
 Notion 행과 Crashlytics 이슈를 정리하므로, **사람이 할 일은 수정 PR 본문에 `Closes #번호`를 넣는 것뿐이다.**
 
 - 수정 PR의 `## #️⃣ 연관된 이슈`에 `- Closes #180`처럼 쓰고 `develop`에 머지한다. 기본 브랜치가
-  `develop`이라 머지하면 이슈가 자동으로 닫힌다. 다른 PR의 `- #번호` 참조 관례와 다르다.
+  `develop`이라 머지하면 이슈가 자동으로 닫힌다. 크래시 수정 PR은 이슈를 끝내는 PR이므로 `PR 규칙`의 `Closes` 기준과 같다.
 - 봇은 이슈를 닫은 PR의 merge commit을 Notion `수정 커밋`에 적고 행을 `게시됨` → `배포 대기`로 옮긴다.
   `develop`을 `main`에 머지하면(App Store 제출 시점) Crashlytics 이슈를 닫고 행을 `종료`로 옮긴다.
 - PR 없이 커밋으로 바로 고쳤으면 Notion 행의 `수정 커밋`에 커밋 SHA만 적는다. 이후는 같다.
@@ -212,6 +212,7 @@ single-context(루트 `CONTEXT.md` + `docs/adr/`). See `docs/agents/domain.md`.
   - `Feat/#46 한영 통합 키보드 추가`
   - `Fix/#44 NGram 단어 중복 저장 수정`
 - PR 본문은 `.github/pull_request_template.md` 템플릿을 사용하고, 연관된 이슈·작업 내용·검증 항목을 채운다.
+- 연관된 이슈는 이 PR로 이슈가 끝나면 `- Closes #번호`, 일부만 다루거나 참조만 하면 `- #번호`로 쓴다.
 - Crashlytics 크래시 이슈를 고치는 PR은 연관된 이슈에 `Closes #번호`를 쓴다(`이슈 관리` > `Crashlytics 크래시 이슈`).
 - 스크린샷 항목은 화면이 바뀌는 작업에만 채운다. UI 변경이 없으면(로직·저장 형식·테스트·문서만 바뀐 경우)
   `## 📸 스크린샷` 섹션을 표까지 통째로 빼고 PR을 올린다. 빈 표나 `-`로 남기지 않는다.
