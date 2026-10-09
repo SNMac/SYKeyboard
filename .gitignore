@@ -157,4 +157,3 @@ Secrets.xcconfig
 .claude/worktrees/
 .claude/settings.local.json
 .codex/
-.superpowers/
