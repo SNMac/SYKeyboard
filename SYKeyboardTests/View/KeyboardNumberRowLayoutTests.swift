@@ -16,12 +16,8 @@ import UIKit
 @Suite("주 자판 숫자 행 레이아웃과 보조 키")
 struct KeyboardNumberRowLayoutTests {
 
-    /// 기본 높이 설정(240)에서의 세로 숫자 행 높이(52.75). 실제 키보드처럼 정책 값으로 갱신한다
-    private static let defaultPortraitNumberRowHeight = KeyboardHeightPolicy.numberRowHeight(
-        isEnabled: true,
-        isPortrait: true,
-        keyboardSettingsHeight: DefaultValues.keyboardHeight
-    )
+    /// 기본 높이 설정(240)에서의 세로 숫자 행 높이(52.75)
+    private static let defaultPortraitNumberRowHeight = NumberRowHeightCase.Orientation.portrait.numberRowHeight
 
     private static let numberKeys = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"]
 
@@ -55,6 +51,85 @@ struct KeyboardNumberRowLayoutTests {
         )
     }
 
+    /// 숫자 행을 켠 자판. controller처럼 프로토콜 타입으로 다룬다
+    private func makeNumberRowView(_ keyboard: NumberRowHeightCase.Keyboard) -> NormalKeyboardLayoutProvider {
+        switch keyboard {
+        case .dubeolsik: makeDubeolsik(showsNumberRow: true)
+        case .qwerty: makeQwerty(showsNumberRow: true)
+        case .naratgeul: makeNaratgeul(showsNumberRow: true)
+        case .cheonjiin: makeCheonjiin(showsNumberRow: true)
+        case .symbol: SymbolKeyboardView(showsLanguageSwitchButton: false, showsNumberRow: true)
+        }
+    }
+
+    /// 숫자 행 높이 시나리오. 갱신할 높이·프레임·기대값은 방향이 정한다
+    struct NumberRowHeightCase: CustomTestStringConvertible {
+        enum Keyboard {
+            case dubeolsik
+            case qwerty
+            case naratgeul
+            case cheonjiin
+            case symbol
+        }
+
+        enum Orientation {
+            /// 기본 높이 설정(240)의 세로
+            case portrait
+            case landscape
+
+            /// 실제 키보드처럼 정책 값으로 갱신한다
+            var numberRowHeight: CGFloat {
+                switch self {
+                case .portrait:
+                    return KeyboardHeightPolicy.numberRowHeight(
+                        isEnabled: true,
+                        isPortrait: true,
+                        keyboardSettingsHeight: DefaultValues.keyboardHeight
+                    )
+                case .landscape:
+                    return KeyboardHeightPolicy.landscapeNumberRowHeight
+                }
+            }
+
+            var frame: CGRect {
+                switch self {
+                // keyboardHStackView(240 + 52.75)에서 프레임 여백 4를 뺀 높이
+                case .portrait: return CGRect(x: 0, y: 0, width: 375, height: 288.75)
+                // 가로 keyboardHStackView(188 - 44 + 35)에서 프레임 여백 4를 뺀 높이
+                case .landscape: return CGRect(x: 0, y: 0, width: 667, height: 175)
+                }
+            }
+
+            var expectedNumberRowHeight: CGFloat {
+                switch self {
+                case .portrait: return 52.75
+                case .landscape: return 35
+                }
+            }
+
+            var expectedLetterRowHeight: CGFloat {
+                switch self {
+                case .portrait: return 59
+                case .landscape: return 35
+                }
+            }
+        }
+
+        let keyboard: Keyboard
+        let orientation: Orientation
+
+        var testDescription: String {
+            let keyboardName = switch keyboard {
+            case .dubeolsik: "두벌식"
+            case .qwerty: "쿼티"
+            case .naratgeul: "나랏글"
+            case .cheonjiin: "천지인"
+            case .symbol: "기호"
+            }
+            return "\(keyboardName) \(orientation == .portrait ? "세로" : "가로")"
+        }
+    }
+
     @Test("숫자 행이 켜지면 1~0 키가 입력 버튼 목록 맨 앞에 들어감")
     func test숫자행_버튼목록() {
         let view = makeDubeolsik(showsNumberRow: true)
@@ -74,33 +149,32 @@ struct KeyboardNumberRowLayoutTests {
         #expect(view.showsNumberRow == false)
     }
 
-    @Test("세로 기본 높이 설정(240)에서 숫자 행은 52.75, 글자 행은 59")
-    func test숫자행_세로높이() throws {
-        let view = makeDubeolsik(showsNumberRow: true)
-        view.updateNumberRowHeight(Self.defaultPortraitNumberRowHeight)
-        // keyboardHStackView(240 + 52.75)에서 프레임 여백 4를 뺀 높이
-        view.frame = CGRect(x: 0, y: 0, width: 375, height: 288.75)
+    @Test("숫자 행 높이를 갱신하면 숫자 행은 정책 높이를 받고 글자 행은 그 아래에서 시작한다",
+          arguments: [
+            NumberRowHeightCase(keyboard: .dubeolsik, orientation: .portrait),
+            NumberRowHeightCase(keyboard: .qwerty, orientation: .landscape),
+            NumberRowHeightCase(keyboard: .naratgeul, orientation: .portrait),
+            NumberRowHeightCase(keyboard: .naratgeul, orientation: .landscape),
+            NumberRowHeightCase(keyboard: .cheonjiin, orientation: .landscape),
+            NumberRowHeightCase(keyboard: .symbol, orientation: .portrait),
+            NumberRowHeightCase(keyboard: .symbol, orientation: .landscape)
+          ])
+    func test숫자행높이(_ testCase: NumberRowHeightCase) throws {
+        // controller는 프로토콜 타입으로 호출하므로 기본 no-op 구현이 witness로 잡히면 실패해야 한다
+        let view = makeNumberRowView(testCase.keyboard)
+        let orientation = testCase.orientation
+
+        #expect(view.showsNumberRow)
+        view.updateNumberRowHeight(orientation.numberRowHeight)
+        view.frame = orientation.frame
         view.layoutIfNeeded()
 
         let numberButton = try #require(view.totalTextInterableButtonList.first)
         let letterButton = view.totalTextInterableButtonList[10]
-        #expect(abs(numberButton.frame.height - 52.75) < 0.5)
-        #expect(abs(letterButton.frame.height - 59) < 0.5)
-        #expect(abs(letterButton.convert(letterButton.bounds, to: view).minY - 52.75) < 0.5)
-    }
-
-    @Test("가로 숫자 행 높이로 갱신하면 숫자 행은 35")
-    func test숫자행_가로높이갱신() throws {
-        let view = makeQwerty(showsNumberRow: true)
-        view.updateNumberRowHeight(KeyboardHeightPolicy.landscapeNumberRowHeight)
-        // 가로 keyboardHStackView(188 - 44 + 35)에서 프레임 여백 4를 뺀 높이
-        view.frame = CGRect(x: 0, y: 0, width: 667, height: 175)
-        view.layoutIfNeeded()
-
-        let numberButton = try #require(view.totalTextInterableButtonList.first)
-        let letterButton = view.totalTextInterableButtonList[10]
-        #expect(abs(numberButton.frame.height - 35) < 0.5)
-        #expect(abs(letterButton.frame.height - 35) < 0.5)
+        #expect(abs(numberButton.frame.height - orientation.expectedNumberRowHeight) < 0.5)
+        #expect(abs(letterButton.frame.height - orientation.expectedLetterRowHeight) < 0.5)
+        #expect(abs(letterButton.convert(letterButton.bounds, to: view).minY
+                    - orientation.expectedNumberRowHeight) < 0.5)
     }
 
     @Test("숫자 행이 켜진 쿼티는 길게 누르기 보조 키가 대문자, shift 중에는 소문자")
@@ -173,40 +247,15 @@ struct KeyboardNumberRowLayoutTests {
         #expect(cheonjiin.totalTextInterableButtonList.first?.type.primaryKeyList == ["ㅣ"])
     }
 
-    @Test("나랏글 세로 기본 높이 설정(240)에서 숫자 행은 52.75로 전체 너비를 10칸으로 나누고, 글자 행은 59")
-    func test나랏글_숫자행_세로높이() throws {
+    @Test("나랏글 세로 기본 높이 설정(240)에서 숫자 행은 전체 너비를 10칸으로 나눈다")
+    func test나랏글_숫자행_10칸너비() throws {
         let view = makeNaratgeul(showsNumberRow: true)
         view.updateNumberRowHeight(Self.defaultPortraitNumberRowHeight)
         view.frame = CGRect(x: 0, y: 0, width: 375, height: 288.75)
         view.layoutIfNeeded()
 
         let numberButton = try #require(view.totalTextInterableButtonList.first)
-        let letterButton = view.totalTextInterableButtonList[10]
-        #expect(abs(numberButton.frame.height - 52.75) < 0.5)
         #expect(abs(numberButton.frame.width - 37.5) < 0.5)
-        #expect(abs(letterButton.frame.height - 59) < 0.5)
-        #expect(abs(letterButton.convert(letterButton.bounds, to: view).minY - 52.75) < 0.5)
-    }
-
-    @Test("나랏글·천지인도 프로토콜 타입으로 가로 숫자 행 높이를 갱신하면 숫자 행은 35")
-    func test4x4_프로토콜로_숫자행_가로높이갱신() throws {
-        // controller는 프로토콜 타입으로 호출하므로 기본 no-op 구현이 witness로 잡히면 실패해야 한다
-        let views: [PrimaryKeyboardRepresentable] = [
-            makeNaratgeul(showsNumberRow: true),
-            makeCheonjiin(showsNumberRow: true)
-        ]
-
-        for view in views {
-            #expect(view.showsNumberRow)
-            view.updateNumberRowHeight(KeyboardHeightPolicy.landscapeNumberRowHeight)
-            view.frame = CGRect(x: 0, y: 0, width: 667, height: 175)
-            view.layoutIfNeeded()
-
-            let numberButton = try #require(view.totalTextInterableButtonList.first)
-            let letterButton = view.totalTextInterableButtonList[10]
-            #expect(abs(numberButton.frame.height - 35) < 0.5)
-            #expect(abs(letterButton.frame.height - 35) < 0.5)
-        }
     }
 
     @Test("나랏글·천지인 숫자 키는 기호 자판 숫자 키와 보이는 크기가 같다")
