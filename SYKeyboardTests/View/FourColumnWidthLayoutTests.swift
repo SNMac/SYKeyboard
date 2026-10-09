@@ -101,16 +101,6 @@ struct NaratgeulColumnWidthLayoutTests {
         subview.convert(subview.bounds, to: view)
     }
 
-    @Test("기본 배율은 네 열을 균등 분할한다")
-    func testDefaultMultiplierKeepsEqualColumns() {
-        let view = Self.makeView(multiplier: 1.0)
-        let expected = Self.keyboardWidth / 4
-
-        #expect(abs(Self.rect(view.deleteButton, in: view).width - expected) < Self.tolerance)
-        #expect(abs(Self.rect(view.spaceButton, in: view).width - expected) < Self.tolerance)
-        #expect(abs(Self.rect(view.returnButtonHStackView, in: view).width - expected) < Self.tolerance)
-    }
-
     @Test("프로토콜 타입으로 호출해도 배율이 적용된다")
     func testUpdateThroughProtocolDispatch() {
         let view = Self.makeView(multiplier: 1.0)
@@ -122,16 +112,6 @@ struct NaratgeulColumnWidthLayoutTests {
         // 기본 no-op 구현이 witness로 잡히면 이 단언이 실패한다
         #expect(abs(Self.rect(view.deleteButton, in: view).width
                     - Self.keyboardWidth * 0.1375) < Self.tolerance)
-    }
-
-    @Test("배율을 되돌리면 균등 분할로 돌아온다")
-    func testUpdatingBackRestoresEqualColumns() {
-        let view = Self.makeView(multiplier: 1.15)
-
-        view.updateLetterColumnWidthMultiplier(1.0)
-        view.layoutIfNeeded()
-
-        #expect(abs(Self.rect(view.deleteButton, in: view).width - Self.keyboardWidth / 4) < Self.tolerance)
     }
 }
 
@@ -210,16 +190,14 @@ struct CheonjiinColumnWidthLayoutTests {
         #expect(buttonWidth > 10)
     }
 
-    @Test("배율을 되돌리면 두 배치 모두 균등 분할로 돌아온다")
-    func testUpdatingBackRestoresEqualColumns() {
-        for usesBottomSpaceLayout in [false, true] {
-            let view = Self.makeView(usesBottomSpaceLayout: usesBottomSpaceLayout, multiplier: 1.15)
+    @Test("하단 스페이스 배치도 배율을 되돌리면 균등 분할로 돌아온다")
+    func testBottomSpaceLayoutUpdatingBackRestoresEqualColumns() {
+        let view = Self.makeView(usesBottomSpaceLayout: true, multiplier: 1.15)
 
-            view.updateLetterColumnWidthMultiplier(1.0)
-            view.layoutIfNeeded()
+        view.updateLetterColumnWidthMultiplier(1.0)
+        view.layoutIfNeeded()
 
-            #expect(abs(Self.rect(view.deleteButton, in: view).width - Self.keyboardWidth / 4) < Self.tolerance)
-        }
+        #expect(abs(Self.rect(view.deleteButton, in: view).width - Self.keyboardWidth / 4) < Self.tolerance)
     }
 }
 
@@ -318,6 +296,8 @@ struct FourColumnKeyboardColumnWidthTests {
         let nextKeyboard: UIView
         /// 1열 맨 위 글자 키
         let firstLetterKey: UIView?
+        /// 자판 구체 타입의 `updateLetterColumnWidthMultiplier`로 배율을 바꾸고 다시 레이아웃한다
+        let updateMultiplier: (Double) -> Void
     }
 
     /// 4열 격자를 공유하는 세 자판. 천지인·숫자는 기본 배치다
@@ -357,7 +337,11 @@ struct FourColumnKeyboardColumnWidthTests {
                               space: view.spaceButton,
                               returnView: view.returnButtonHStackView,
                               nextKeyboard: view.nextKeyboardButton,
-                              firstLetterKey: keyButton(firstLetterKey, in: view.primaryButtonList))
+                              firstLetterKey: keyButton(firstLetterKey, in: view.primaryButtonList),
+                              updateMultiplier: {
+                                  view.updateLetterColumnWidthMultiplier($0)
+                                  view.layoutIfNeeded()
+                              })
             case .cheonjiin:
                 let view = CheonjiinKeyboardView(showsLanguageSwitchButton: true,
                                                  usesBottomSpaceLayout: false,
@@ -370,7 +354,11 @@ struct FourColumnKeyboardColumnWidthTests {
                               space: view.spaceButton,
                               returnView: view.returnButtonHStackView,
                               nextKeyboard: view.nextKeyboardButton,
-                              firstLetterKey: keyButton(firstLetterKey, in: view.primaryButtonList))
+                              firstLetterKey: keyButton(firstLetterKey, in: view.primaryButtonList),
+                              updateMultiplier: {
+                                  view.updateLetterColumnWidthMultiplier($0)
+                                  view.layoutIfNeeded()
+                              })
             case .numeric:
                 let view = NumericKeyboardView(showsLanguageSwitchButton: true, usesBottomSpaceLayout: false)
                 view.frame = frame
@@ -381,7 +369,11 @@ struct FourColumnKeyboardColumnWidthTests {
                               space: view.spaceButton,
                               returnView: view.returnButton,
                               nextKeyboard: view.nextKeyboardButton,
-                              firstLetterKey: keyButton(firstLetterKey, in: view.primaryButtonList))
+                              firstLetterKey: keyButton(firstLetterKey, in: view.primaryButtonList),
+                              updateMultiplier: {
+                                  view.updateLetterColumnWidthMultiplier($0)
+                                  view.layoutIfNeeded()
+                              })
             }
         }
 
@@ -395,6 +387,27 @@ struct FourColumnKeyboardColumnWidthTests {
     @MainActor
     private static func rect(_ subview: UIView, in view: UIView) -> CGRect {
         subview.convert(subview.bounds, to: view)
+    }
+
+    @Test("기본 배율은 세 자판 모두 네 열을 균등 분할한다",
+          arguments: [Fixture.naratgeul, .cheonjiin, .numeric])
+    func testDefaultMultiplierKeepsEqualColumns(fixture: Fixture) {
+        let layout = fixture.makeLayout(width: Self.keyboardWidth, height: Self.keyboardHeight, multiplier: 1.0)
+        let expected = Self.keyboardWidth / 4
+
+        #expect(abs(Self.rect(layout.delete, in: layout.view).width - expected) < Self.tolerance)
+        #expect(abs(Self.rect(layout.space, in: layout.view).width - expected) < Self.tolerance)
+        #expect(abs(Self.rect(layout.returnView, in: layout.view).width - expected) < Self.tolerance)
+    }
+
+    @Test("배율을 되돌리면 세 자판 모두 균등 분할로 돌아온다",
+          arguments: [Fixture.naratgeul, .cheonjiin, .numeric])
+    func testUpdatingBackRestoresEqualColumns(fixture: Fixture) {
+        let layout = fixture.makeLayout(width: Self.keyboardWidth, height: Self.keyboardHeight, multiplier: 1.15)
+
+        layout.updateMultiplier(1.0)
+
+        #expect(abs(Self.rect(layout.delete, in: layout.view).width - Self.keyboardWidth / 4) < Self.tolerance)
     }
 
     @Test("배율을 올리면 세 자판 모두 기능 열이 좁아지고 열 경계가 행마다 일치한다",
