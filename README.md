@@ -470,6 +470,10 @@ flowchart TB
         Button["BaseKeyboardButton 계열<br/>(TextInteractable)"]
     end
 
+    SuggestionCoord["SuggestionSelectionCoordinator"]
+    ClipboardCoord["ClipboardHistoryCoordinator"]
+    DeletionCoord["TextDeletionCoordinator"]
+    UndoCoord["UndoRedoCoordinator"]
     Suggestion["자동완성<br/>SuggestionController · 예측 엔진"]
     ClipboardStore["클립보드 저장소<br/>ClipboardHistoryStore · ClipboardImageStore"]
     Host["호스트 앱 텍스트 필드<br/>(textDocumentProxy)"]
@@ -480,11 +484,19 @@ flowchart TB
     Layout -->|상단 툴바| Toolbar
     Layout -->|클립보드 패널| ClipboardPanel
     Button -->|UIAction| BaseVC
-    Toolbar -->|후보 탭 · undo/redo · 패널 열기| BaseVC
-    ClipboardPanel -->|항목 탭 · 편집| BaseVC
+    Toolbar -->|후보 탭 · undo/redo · 패널 열기| SuggestionCoord
+    ClipboardPanel -->|항목 탭 · 편집| ClipboardCoord
+    SuggestionCoord -->|Host: 삽입 · 후보 갱신 · undo/redo| BaseVC
+    ClipboardCoord -->|Host: 삽입 · 자판 갱신| BaseVC
+    SuggestionCoord -->|후보 선택 · 학습| Suggestion
+    ClipboardCoord -->|기록 조회 · 저장| ClipboardStore
+    Gesture -->|삭제 드래그 · 길게 누르기| BaseVC
+    BaseVC -->|삭제 · 반복 · 드래그 위임| DeletionCoord
+    DeletionCoord -->|Host: open 삭제 메서드 · 훅| BaseVC
+    BaseVC -->|기록 · 확정 · 적용 위임| UndoCoord
+    UndoCoord -->|Host: 쓰기 · 갱신| BaseVC
     BaseVC -->|터치/드래그| Gesture
     BaseVC -->|후보 조회 · 학습| Suggestion
-    BaseVC -->|기록 조회 · 저장| ClipboardStore
     BaseVC -->|insert/delete| Host
 ```
 
@@ -514,6 +526,7 @@ direction LR
       class BaseKeyboardViewController
       class HangeulKeyboardCoreViewController
       class EnglishKeyboardCoreViewController
+      class HangeulEnglishKeyboardCoreViewController
     }
 
     namespace FinalKeyboardViewController {
@@ -536,18 +549,23 @@ direction LR
     BaseKeyboardViewController *-- SymbolKeyboardLayoutProvider: Composition
     BaseKeyboardViewController *-- NumericKeyboardLayoutProvider: Composition
     BaseKeyboardViewController *-- TenkeyKeyboardLayoutProvider: Composition
+    BaseKeyboardViewController *-- SuggestionSelectionCoordinator: Composition
+    BaseKeyboardViewController *-- ClipboardHistoryCoordinator: Composition
+    BaseKeyboardViewController *-- TextDeletionCoordinator: Composition
+    BaseKeyboardViewController *-- UndoRedoCoordinator: Composition
 
     BaseKeyboardViewController <|-- HangeulKeyboardCoreViewController: Inheritance
     BaseKeyboardViewController <|-- EnglishKeyboardCoreViewController: Inheritance
-    BaseKeyboardViewController <|-- HangeulEnglishKeyboardViewController: Inheritance
+    BaseKeyboardViewController <|-- HangeulEnglishKeyboardCoreViewController: Inheritance
     HangeulKeyboardCoreViewController <|-- HangeulKeyboardViewController: Inheritance
     EnglishKeyboardCoreViewController <|-- EnglishKeyboardViewController: Inheritance
+    HangeulEnglishKeyboardCoreViewController <|-- HangeulEnglishKeyboardViewController: Inheritance
 
     HangeulKeyboardCoreViewController *-- HangeulKeyboardInputAdapter: Composition
     EnglishKeyboardCoreViewController *-- EnglishKeyboardInputAdapter: Composition
-    HangeulEnglishKeyboardViewController *-- HangeulKeyboardInputAdapter: Composition
-    HangeulEnglishKeyboardViewController *-- EnglishKeyboardInputAdapter: Composition
-    HangeulEnglishKeyboardViewController *-- HangeulEnglishKeyboardModeCoordinator: Composition
+    HangeulEnglishKeyboardCoreViewController *-- HangeulKeyboardInputAdapter: Composition
+    HangeulEnglishKeyboardCoreViewController *-- EnglishKeyboardInputAdapter: Composition
+    HangeulEnglishKeyboardCoreViewController *-- HangeulEnglishKeyboardModeCoordinator: Composition
 
     HangeulKeyboardInputAdapter --> PrimaryKeyboardRepresentable: Association
     EnglishKeyboardInputAdapter --> PrimaryKeyboardRepresentable: Association

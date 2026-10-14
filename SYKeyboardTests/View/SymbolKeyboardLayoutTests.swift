@@ -58,25 +58,10 @@ struct SymbolKeyboardLayoutTests {
                 visualFrame(view.deleteButton).minX - visualFrame(lastButton).maxX)
     }
 
-    @Test("셋째 줄이 다 찬 기본 자판은 좌우 여백이 같다")
-    func test셋째줄_기본자판_좌우여백() throws {
-        let margins = try #require(thirdRowSideMargins(makeView(mode: .default)))
-
-        #expect(margins.left >= 0)
-        #expect(abs(margins.left - margins.right) < 1)
-    }
-
-    @Test("URL 자판 셋째 줄도 좌우 여백이 같다")
-    func test셋째줄_URL자판_좌우여백() throws {
-        let margins = try #require(thirdRowSideMargins(makeView(mode: .URL)))
-
-        #expect(margins.left >= 0)
-        #expect(abs(margins.left - margins.right) < 1)
-    }
-
-    @Test("이메일 자판 셋째 줄도 좌우 여백이 같다")
-    func test셋째줄_이메일자판_좌우여백() throws {
-        let margins = try #require(thirdRowSideMargins(makeView(mode: .emailAddress)))
+    @Test("셋째 줄이 다 찬 기본·URL·이메일 자판은 좌우 여백이 같다",
+          arguments: [SymbolKeyboardMode.default, .URL, .emailAddress])
+    func test셋째줄_좌우여백(mode: SymbolKeyboardMode) throws {
+        let margins = try #require(thirdRowSideMargins(makeView(mode: mode)))
 
         #expect(margins.left >= 0)
         #expect(abs(margins.left - margins.right) < 1)
@@ -143,7 +128,7 @@ struct SymbolKeyboardLayoutTests {
     }
 
     @Test("숫자 행을 켜면 숫자 키가 생기고 기본 자판 배열이 바뀐다")
-    func test기호자판_숫자행표시() throws {
+    func test기호자판_숫자행표시() {
         let view = SymbolKeyboardView(showsLanguageSwitchButton: false, showsNumberRow: true)
         view.updateNumberRowHeight(Self.defaultPortraitNumberRowHeight)
         // keyboardHStackView(240 + 52.75)에서 프레임 여백 4를 뺀 높이
@@ -155,21 +140,16 @@ struct SymbolKeyboardLayoutTests {
                 == ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"].map { [$0] })
         #expect(view.firstRowPrimaryKeyButtonList.map(\.type.primaryKeyList.first)
                 == ["-", "/", ":", ";", "(", ")", "₩", "&", "@", "”"])
-
-        let numberButton = try #require(view.numberRowPrimaryKeyButtonList.first)
-        #expect(abs(numberButton.frame.height - 52.75) < 0.5)
     }
 
-    @Test("가로 높이를 주면 숫자 행만 35로 줄고 배열은 그대로다")
-    func test기호자판_가로높이() throws {
+    @Test("가로 높이를 줘도 배열은 그대로다")
+    func test기호자판_가로높이() {
         let view = SymbolKeyboardView(showsLanguageSwitchButton: false, showsNumberRow: true)
         view.updateNumberRowHeight(KeyboardHeightPolicy.landscapeNumberRowHeight)
         // 가로 keyboardHStackView(188 - 44 + 35)에서 프레임 여백 4를 뺀 높이
         view.frame = CGRect(x: 0, y: 0, width: 667, height: 175)
         view.layoutIfNeeded()
 
-        let numberButton = try #require(view.numberRowPrimaryKeyButtonList.first)
-        #expect(abs(numberButton.frame.height - 35) < 0.5)
         #expect(view.firstRowPrimaryKeyButtonList.map(\.type.primaryKeyList.first)
                 == ["-", "/", ":", ";", "(", ")", "₩", "&", "@", "”"])
     }

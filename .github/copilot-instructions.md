@@ -21,9 +21,7 @@
 
 - 현재 production 코드와 테스트를 동작 판단의 최우선 근거로 사용한다.
 - 루트 `CLAUDE.md`의 프로젝트별 제약과 명시적 제품 계약을 따른다.
-- `docs/superpowers/**`는 과거 작업 계획과 설계 기록일 수 있으므로 현재 제품 요구사항이나 현재 동작의 권위 있는 근거로 사용하지 않는다.
-- PR 설명이 특정 `docs/superpowers/**` 문서를 명시적으로 구현 기준으로 지정한 경우에만 해당 문서를 요구사항으로 사용한다.
-- 변경된 `docs/superpowers/**` 문서 자체를 리뷰할 때는 문서 내부의 모순, 잘못된 명령, 실제 코드와 명백히 충돌하는 설명만 보고한다.
+- `docs/adr/`의 ADR은 결정과 그 이유의 기록이다. 변경이 ADR과 어긋나면 해당 ADR 번호를 들어 지적한다.
 
 ## SYKeyboard 핵심 회귀 검사
 
@@ -34,5 +32,7 @@
 - 설정 키 변경 시 `UserDefaultsKeys`, `DefaultValues`, 앱 설정 화면과 키보드 런타임 적용 위치의 불일치를 확인한다.
 - 테스트가 production 진입점을 호출하지 않거나 production 로직을 테스트 내부에서 복제하면 회귀 검증으로 인정하지 않는다.
 - exact color, font, SF Symbol, corner radius, private subview 구조처럼 명시적 제품 계약이 아닌 시각 구현 세부사항을 단위 테스트로 고정하도록 요구하지 않는다.
+- Policy 테스트가 이미 고정한 규칙을 Coordinator·VC·View 테스트에 진리표 모양으로 다시 추가하도록 요구하지 않는다(`docs/adr/0003`). 위 계층에는 정상 경로 1개 + 경계 1개와 그 계층 고유 동작만 둔다.
 - 자동완성 후보 UI에 가로 스크롤이나 제스처 중재를 다시 추가하도록 제안하지 않는다.
 - `Package.resolved`에 새 의존성이 추가되었는데 `SYKeyboard/Resources/opensource_license.json`에 해당 라이브러리 고지가 없으면 지적한다. 버전만 바뀐 경우는 해당하지 않는다.
+- `textDocumentProxy`를 직접 읽거나 쓰는 새 코드를 경고한다. 텍스트 프록시는 `textDocument`(`CachingTextDocumentProxy`)로만 다루며, 직접 쓰면 콜백 범위 캐시가 비워지지 않는다.

@@ -34,45 +34,30 @@ struct RequestReviewPolicyTests {
         #expect(result.shouldRequestReview == false)
     }
 
-    @Test("상세 설정 복귀 시 1회 카운트한 뒤 기준 횟수와 빌드 조건을 만족하면 요청하고 카운터를 초기화")
-    func testDetailReturnRequestsReviewWhenThresholdReached() {
+    @Test("상세 설정 복귀는 1회 카운트한 뒤 30회에 닿고 현재 빌드(100)에서 아직 요청하지 않았을 때만 요청하고 카운터를 초기화",
+          arguments: [
+            // (label, reviewCounter, lastBuildPrompted, expectedCounter, expectedLastBuild, expectRequest)
+            ("기준 횟수와 빌드 조건을 만족하면 요청하고 카운터를 초기화", 29, "99", 0, "100", true),
+            ("카운트해도 30회 미만이면 요청하지 않음", 28, "99", 29, "99", false),
+            ("같은 빌드에서는 다시 요청하지 않음", 29, "100", 30, "100", false)
+          ])
+    func testDetailSettingsReturn(
+        label: String,
+        reviewCounter: Int,
+        lastBuildPrompted: String,
+        expectedCounter: Int,
+        expectedLastBuild: String,
+        expectRequest: Bool
+    ) {
         let result = RequestReviewPolicy.recordDetailSettingsReturnAndEvaluate(
-            reviewCounter: 29,
+            reviewCounter: reviewCounter,
             currentAppBuild: "100",
-            lastBuildPromptedForReview: "99",
+            lastBuildPromptedForReview: lastBuildPrompted,
             isEligible: true
         )
 
-        #expect(result.reviewCounter == 0)
-        #expect(result.lastBuildPromptedForReview == "100")
-        #expect(result.shouldRequestReview == true)
-    }
-
-    @Test("상세 설정 복귀 시 카운트해도 30회 미만이면 요청하지 않음")
-    func testDetailReturnDoesNotRequestBelowThreshold() {
-        let result = RequestReviewPolicy.recordDetailSettingsReturnAndEvaluate(
-            reviewCounter: 28,
-            currentAppBuild: "100",
-            lastBuildPromptedForReview: "99",
-            isEligible: true
-        )
-
-        #expect(result.reviewCounter == 29)
-        #expect(result.lastBuildPromptedForReview == "99")
-        #expect(result.shouldRequestReview == false)
-    }
-
-    @Test("같은 빌드에서는 상세 설정 복귀 시에도 다시 요청하지 않음")
-    func testDetailReturnDoesNotRequestTwiceForSameBuild() {
-        let result = RequestReviewPolicy.recordDetailSettingsReturnAndEvaluate(
-            reviewCounter: 29,
-            currentAppBuild: "100",
-            lastBuildPromptedForReview: "100",
-            isEligible: true
-        )
-
-        #expect(result.reviewCounter == 30)
-        #expect(result.lastBuildPromptedForReview == "100")
-        #expect(result.shouldRequestReview == false)
+        #expect(result.reviewCounter == expectedCounter)
+        #expect(result.lastBuildPromptedForReview == expectedLastBuild)
+        #expect(result.shouldRequestReview == expectRequest)
     }
 }

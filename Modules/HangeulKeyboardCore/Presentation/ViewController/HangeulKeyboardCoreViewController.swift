@@ -78,12 +78,12 @@ open class HangeulKeyboardCoreViewController: BaseKeyboardViewController {
     }
     
     open override func updateKeyboardType() {
-        guard textDocumentProxy.keyboardType != oldKeyboardType else { return }
-        let symbolKeyboardMode = SymbolKeyboardMode(keyboardType: textDocumentProxy.keyboardType)
+        guard textDocument.keyboardType != oldKeyboardType else { return }
+        let symbolKeyboardMode = SymbolKeyboardMode(keyboardType: textDocument.keyboardType)
         symbolKeyboardView.currentSymbolKeyboardMode = symbolKeyboardMode
-        inputAdapter.updateLayout(for: textDocumentProxy.keyboardType)
+        inputAdapter.updateLayout(for: textDocument.keyboardType)
         
-        switch textDocumentProxy.keyboardType {
+        switch textDocument.keyboardType {
         case .default, nil:
             currentKeyboard = primaryKeyboardView.keyboard
         case .asciiCapable:

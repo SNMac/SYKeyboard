@@ -143,63 +143,30 @@ struct CursorDragAccelerationPolicyTests {
         #expect(result == nil)
     }
 
-    @Test("왼쪽 커서 이동 적용 step은 요청 step과 앞 문맥 길이 중 작은 값")
-    func test왼쪽커서이동_적용Step계산() {
+    // 적용 step은 요청 step과 이동 방향 문맥 길이 중 작은 값.
+    // 오른쪽 문맥이 비었거나 nil이면 경계 이동을 위해 1칸, 왼쪽 문맥이 nil이면 0
+    @Test("커서 이동 적용 step은 요청 step 4를 문맥 길이로 자름",
+          arguments: [
+            // (direction, beforeInput, afterInput, expectedSteps)
+            (PanDirection.left, String?.some("가나"), String?.some("다라마"), 2),
+            (.right, "가나다", "라마", 2),
+            (.right, "가", "", 1),
+            (.right, "가", nil, 1),
+            (.left, nil, "라마", 0)
+          ])
+    func test커서이동_적용Step계산(
+        direction: PanDirection,
+        beforeInput: String?,
+        afterInput: String?,
+        expectedSteps: Int
+    ) {
         let steps = CursorDragAccelerationPolicy.applicableSteps(
-            to: .left,
+            to: direction,
             requestedSteps: 4,
-            documentContextBeforeInput: "가나",
-            documentContextAfterInput: "다라마"
+            documentContextBeforeInput: beforeInput,
+            documentContextAfterInput: afterInput
         )
 
-        #expect(steps == 2)
-    }
-
-    @Test("오른쪽 커서 이동 적용 step은 요청 step과 뒤 문맥 길이 중 작은 값")
-    func test오른쪽커서이동_적용Step계산() {
-        let steps = CursorDragAccelerationPolicy.applicableSteps(
-            to: .right,
-            requestedSteps: 4,
-            documentContextBeforeInput: "가나다",
-            documentContextAfterInput: "라마"
-        )
-
-        #expect(steps == 2)
-    }
-
-    @Test("오른쪽 문맥이 빈 문자열이면 경계 이동을 위해 1칸 요청")
-    func test오른쪽커서이동_빈문맥_1Step() {
-        let steps = CursorDragAccelerationPolicy.applicableSteps(
-            to: .right,
-            requestedSteps: 4,
-            documentContextBeforeInput: "가",
-            documentContextAfterInput: ""
-        )
-
-        #expect(steps == 1)
-    }
-
-    @Test("오른쪽 문맥이 nil이면 경계 이동을 위해 1칸 요청")
-    func test오른쪽커서이동_nil문맥_1Step() {
-        let steps = CursorDragAccelerationPolicy.applicableSteps(
-            to: .right,
-            requestedSteps: 4,
-            documentContextBeforeInput: "가",
-            documentContextAfterInput: nil
-        )
-
-        #expect(steps == 1)
-    }
-
-    @Test("커서 이동 적용 step은 nil 문맥이면 0")
-    func test커서이동_nil문맥_0Step() {
-        let steps = CursorDragAccelerationPolicy.applicableSteps(
-            to: .left,
-            requestedSteps: 4,
-            documentContextBeforeInput: nil,
-            documentContextAfterInput: "라마"
-        )
-
-        #expect(steps == 0)
+        #expect(steps == expectedSteps)
     }
 }

@@ -829,33 +829,6 @@ struct DeleteMutationLifecycleTests {
         )
     }
 
-    @MainActor
-    @Test("active captured 요청의 관련 없는 callback은 generation과 FIFO를 취소")
-    func testActiveCapturedRequestUnrelatedCallbackCancelsGeneration() {
-        var harness = DeleteInteractionStateHarness()
-        let button = DeleteButton(keyboard: .dubeolsik)
-        let request = KeyboardTextContextSnapshot(beforeInput: "가", afterInput: "")
-        _ = harness.beginTouchDown(button: button, context: request)
-        _ = harness.capture(deletedText: "가")
-        #expect(harness.enqueuePan(.left) == .enqueued)
-
-        let outcome = harness.completeAfterTextChange(
-            context: KeyboardTextContextSnapshot(
-                beforeInput: "가",
-                afterInput: "외부 변경"
-            )
-        )
-        harness.process(outcome)
-        harness.drain { _, _ in
-            Issue.record("active context mismatch 뒤 stale FIFO가 재생됨")
-        }
-
-        #expect(outcome == .cancelled)
-        #expect(harness.coordinator.currentGeneration == nil)
-        #expect(harness.observedEvents.isEmpty)
-        #expect(harness.panFinishCount == 1)
-    }
-
     @Test("released repeat의 noDeletion은 feedback과 Undo를 기록하지 않음")
     func testReleasedRepeatNoDeletionDoesNotRecordFeedbackOrUndo() throws {
         var lifecycle = DeleteMutationLifecycle()

@@ -66,38 +66,26 @@ struct NaratgeulProcessorTests: HangeulProcessorTestable {
         self.processor = NaratgeulProcessor(automata: automata)
     }
     
-    // MARK: - 1. 획추가 테스트
+    // MARK: - 1. 획추가·쌍자음·토글 순환 테스트 (단계별 확인)
     
-    @Test("획추가: 자음 순환 테스트 (ㄱ 계열)")
-    func test자음획추가_ㄱ계열() {
+    @Test("획추가·쌍자음·같은 모음을 반복해 누르면 단계마다 순환 결과가 맞음",
+          arguments: [
+            // (label, keys, expectedPerStep)
+            ("획추가: 자음 순환 (ㄱ 계열, ㄱ -> ㅋ -> ㄱ)",
+             ["ㄱ", "획", "획"], ["ㄱ", "ㅋ", "ㄱ"]),
+            ("획추가: 자음 4단계 순환 (ㅅ 계열, ㅅ -> ㅈ -> ㅊ -> ㅉ -> ㅅ)",
+             ["ㅅ", "획", "획", "획", "획"], ["ㅅ", "ㅈ", "ㅊ", "ㅉ", "ㅅ"]),
+            ("토글: ㅏ/ㅓ 반복 입력 시 교체 (ㅏ -> ㅓ -> ㅏ)",
+             ["ㅏ", "ㅏ", "ㅏ"], ["ㅏ", "ㅓ", "ㅏ"]),
+            ("토글: ㅗ/ㅜ 반복 입력 시 교체 (ㅗ -> ㅜ -> ㅗ)",
+             ["ㅗ", "ㅗ", "ㅗ"], ["ㅗ", "ㅜ", "ㅗ"])
+          ])
+    func test반복키순환(label: String, keys: [String], expectedPerStep: [String]) {
         var (c, p) = ("", "")
-        (c, p) = applyInput("ㄱ", committed: c, composing: p)
-        #expect(c + p == "ㄱ")
-        
-        (c, p) = applyInput("획", committed: c, composing: p)
-        #expect(c + p == "ㅋ")
-        
-        (c, p) = applyInput("획", committed: c, composing: p)
-        #expect(c + p == "ㄱ")
-    }
-    
-    @Test("획추가: 자음 4단계 순환 테스트 (ㅅ 계열)")
-    func test자음획추가_ㅅ계열() {
-        var (c, p) = ("", "")
-        (c, p) = applyInput("ㅅ", committed: c, composing: p)
-        #expect(c + p == "ㅅ")
-        
-        (c, p) = applyInput("획", committed: c, composing: p)
-        #expect(c + p == "ㅈ")
-        
-        (c, p) = applyInput("획", committed: c, composing: p)
-        #expect(c + p == "ㅊ")
-        
-        (c, p) = applyInput("획", committed: c, composing: p)
-        #expect(c + p == "ㅉ")
-        
-        (c, p) = applyInput("획", committed: c, composing: p)
-        #expect(c + p == "ㅅ")
+        for (key, expected) in zip(keys, expectedPerStep) {
+            (c, p) = applyInput(key, committed: c, composing: p)
+            #expect(c + p == expected, "\(label)")
+        }
     }
     
     @Test("획추가: 모음 변환 (ㅏ -> ㅑ)")
@@ -146,35 +134,7 @@ struct NaratgeulProcessorTests: HangeulProcessorTestable {
         #expect(c + p == "ㅇ")
     }
     
-    // MARK: - 3. ㅏ/ㅓ, ㅗ/ㅜ 토글 테스트
-    
-    @Test("토글: ㅏ/ㅓ 반복 입력 시 교체")
-    func testToggle_ㅏㅓ() {
-        var (c, p) = ("", "")
-        (c, p) = applyInput("ㅏ", committed: c, composing: p)
-        #expect(c + p == "ㅏ")
-        
-        (c, p) = applyInput("ㅏ", committed: c, composing: p)
-        #expect(c + p == "ㅓ")
-        
-        (c, p) = applyInput("ㅏ", committed: c, composing: p)
-        #expect(c + p == "ㅏ")
-    }
-    
-    @Test("토글: ㅗ/ㅜ 반복 입력 시 교체")
-    func testToggle_ㅗㅜ() {
-        var (c, p) = ("", "")
-        (c, p) = applyInput("ㅗ", committed: c, composing: p)
-        #expect(c + p == "ㅗ")
-        
-        (c, p) = applyInput("ㅗ", committed: c, composing: p)
-        #expect(c + p == "ㅜ")
-        
-        (c, p) = applyInput("ㅗ", committed: c, composing: p)
-        #expect(c + p == "ㅗ")
-    }
-    
-    // MARK: - 4. 모음 결합 테스트 ('ㅣ' 추가)
+    // MARK: - 3. 모음 결합 테스트 ('ㅣ' 추가)
     
     @Test("'ㅣ' 키 입력 시 모음 결합 및 연음 테스트")
     func test모음결합() {
@@ -201,40 +161,25 @@ struct NaratgeulProcessorTests: HangeulProcessorTestable {
         #expect(c + p == "아니")
     }
     
-    // MARK: - 5. 완성형 글자 변환 테스트
+    // MARK: - 4. 완성형 글자 변환 테스트
     
-    @Test("완성형 글자: 종성이 있는 경우 (종성 변환)")
-    func test완성형_종성변환() {
+    @Test("완성형 글자에 획추가·쌍자음을 누르면 종성이 있으면 종성, 없으면 중성을 바꾸고 바꿀 수 없으면 유지",
+          arguments: [
+            // (label, keys, expected)
+            ("종성이 있는 경우 (각 + 획 -> 갘, 종성 변환)", ["ㄱ", "ㅏ", "ㄱ", "획"], "갘"),
+            ("종성이 없는 경우 (가 + 획 -> 갸, 중성 변환)", ["ㄱ", "ㅏ", "획"], "갸"),
+            ("변환 불가 시 (그 + 쌍 -> 그, 유지)", ["ㄱ", "ㅡ", "쌍"], "그")
+          ])
+    func test완성형글자변환(label: String, keys: [String], expected: String) {
         var (c, p) = ("", "")
-        (c, p) = applyInput("ㄱ", committed: c, composing: p)
-        (c, p) = applyInput("ㅏ", committed: c, composing: p)
-        (c, p) = applyInput("ㄱ", committed: c, composing: p) // 각
+        for key in keys {
+            (c, p) = applyInput(key, committed: c, composing: p)
+        }
         
-        (c, p) = applyInput("획", committed: c, composing: p)
-        #expect(c + p == "갘")
+        #expect(c + p == expected, "\(label)")
     }
     
-    @Test("완성형 글자: 종성이 없는 경우 (중성 변환)")
-    func test완성형_중성변환() {
-        var (c, p) = ("", "")
-        (c, p) = applyInput("ㄱ", committed: c, composing: p)
-        (c, p) = applyInput("ㅏ", committed: c, composing: p) // 가
-        
-        (c, p) = applyInput("획", committed: c, composing: p)
-        #expect(c + p == "갸")
-    }
-    
-    @Test("완성형 글자: 변환 불가 시 (유지)")
-    func test완성형_변환불가() {
-        var (c, p) = ("", "")
-        (c, p) = applyInput("ㄱ", committed: c, composing: p)
-        (c, p) = applyInput("ㅡ", committed: c, composing: p) // 그
-        
-        (c, p) = applyInput("쌍", committed: c, composing: p)
-        #expect(c + p == "그")
-    }
-    
-    // MARK: - 6. 복합 시나리오
+    // MARK: - 5. 복합 시나리오
     
     @Test("나랏글 입력 시나리오: 잠꼬대")
     func testScenario_잠꼬대() {
@@ -262,7 +207,7 @@ struct NaratgeulProcessorTests: HangeulProcessorTestable {
         #expect(c + p == "잠꼬대")
     }
     
-    // MARK: - 7. 반복 입력용 문자 반환 테스트
+    // MARK: - 6. 반복 입력용 문자 반환 테스트
     
     @Test("반복 입력을 위한 입력 문자 반환값 검증")
     func testReturnInputChar() {
@@ -286,7 +231,7 @@ struct NaratgeulProcessorTests: HangeulProcessorTestable {
         #expect(res4.input글자 == "ㅣ")
     }
     
-    // MARK: - 8. 겹받침 분해 및 복원 테스트
+    // MARK: - 7. 겹받침 분해 및 복원 테스트
     
     @Test("겹받침 분해 및 복원: 닭 <-> 달ㅋ")
     func test겹받침분해_복원() {
@@ -308,7 +253,7 @@ struct NaratgeulProcessorTests: HangeulProcessorTestable {
         #expect(c + p == "닭")
     }
     
-    // MARK: - 9. 삭제 후 재입력 결합 테스트
+    // MARK: - 8. 삭제 후 재입력 결합 테스트
     
     @Test("삭제 후 재입력: ㄴㄴ -> 삭제 -> ㄴ -> ㅏ 입력 시 '나'로 결합")
     func test삭제후_재입력_결합() {
@@ -333,7 +278,7 @@ struct NaratgeulProcessorTests: HangeulProcessorTestable {
         #expect(harness.text == "나", "삭제 후 남은 낱자 자음이 다음 모음과 결합되어야 합니다.")
     }
     
-    // MARK: - 10. 나랏글 11,172자 전체 검증 (Heavy Test)
+    // MARK: - 9. 나랏글 11,172자 전체 검증 (Heavy Test)
     
     @Test("나랏글 11,172자 전체 생성 및 삭제 검증")
     func validateAll나랏글한글글자() {

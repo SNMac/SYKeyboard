@@ -7,7 +7,7 @@
 
 import UIKit
 
-public enum SymbolKeyboardMode: Equatable {
+public enum SymbolKeyboardMode: Equatable, Sendable {
     case `default`
     case URL
     case emailAddress

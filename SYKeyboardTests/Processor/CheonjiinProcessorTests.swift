@@ -33,23 +33,24 @@ struct CheonjiinProcessorTests: HangeulProcessorTestable {
         self.processor = CheonjiinProcessor(automata: automata)
     }
     
-    // MARK: - 1. 자음 순환 테스트 (실제 키 입력)
+    // MARK: - 1. 자음 순환·모음 생성 흐름 테스트 (실제 키 입력, 단계별 확인)
     
-    @Test("자음 순환: 'ㄱ' 버튼 반복 입력 (ㄱ -> ㅋ -> ㄲ)")
-    func test자음순환_ㄱ계열() {
+    @Test("같은 키를 반복하거나 천·지·인을 이어 누를 때 단계마다 자음 순환·모음 생성 결과가 맞음",
+          arguments: [
+            // (label, keys, expectedPerStep)
+            ("자음 순환: 'ㄱ' 버튼 반복 입력 (ㄱ -> ㅋ -> ㄲ -> ㄱ)",
+             ["ㄱ", "ㄱ", "ㄱ", "ㄱ"], ["ㄱ", "ㅋ", "ㄲ", "ㄱ"]),
+            ("자음 순환: 'ㅇ' 버튼 반복 입력 (ㅇ -> ㅁ -> ㅇ)",
+             ["ㅇ", "ㅇ", "ㅇ"], ["ㅇ", "ㅁ", "ㅇ"]),
+            ("모음 생성 흐름: ㅡ -> ㅜ(ㆍ) -> ㅠ(ㆍ) -> ㅝ(ㅣ) -> ㅞ(ㅣ)",
+             ["ㅡ", "ㆍ", "ㆍ", "ㅣ", "ㅣ"], ["ㅡ", "ㅜ", "ㅠ", "ㅝ", "ㅞ"])
+          ])
+    func test단계별입력흐름(label: String, keys: [String], expectedPerStep: [String]) {
         var (c, p) = ("", "")
-        (c, p) = applyInput("ㄱ", committed: c, composing: p); #expect(c + p == "ㄱ")
-        (c, p) = applyInput("ㄱ", committed: c, composing: p); #expect(c + p == "ㅋ")
-        (c, p) = applyInput("ㄱ", committed: c, composing: p); #expect(c + p == "ㄲ")
-        (c, p) = applyInput("ㄱ", committed: c, composing: p); #expect(c + p == "ㄱ")
-    }
-    
-    @Test("자음 순환: 'ㅇ' 버튼 반복 입력 (ㅇ -> ㅁ)")
-    func test자음순환_ㅇ계열() {
-        var (c, p) = ("", "")
-        (c, p) = applyInput("ㅇ", committed: c, composing: p); #expect(c + p == "ㅇ")
-        (c, p) = applyInput("ㅇ", committed: c, composing: p); #expect(c + p == "ㅁ")
-        (c, p) = applyInput("ㅇ", committed: c, composing: p); #expect(c + p == "ㅇ")
+        for (key, expected) in zip(keys, expectedPerStep) {
+            (c, p) = applyInput(key, committed: c, composing: p)
+            #expect(c + p == expected, "\(label)")
+        }
     }
     
     // MARK: - 2. 모음 조합 테스트 (천,지,인 키 활용)
@@ -70,26 +71,6 @@ struct CheonjiinProcessorTests: HangeulProcessorTestable {
         (c, p) = applyInput(지, committed: c, composing: p) // ㆍ + ㅡ -> ㅗ
         
         #expect(c + p == "ㅗ")
-    }
-    
-    @Test("모음 생성 흐름: ㅡ -> ㅜ(ㆍ) -> ㅠ(ㆍ) -> ㅝ(ㅣ) -> ㅞ(ㅣ)")
-    func test모음생성_복합() {
-        var (c, p) = ("", "")
-        
-        (c, p) = applyInput(지, committed: c, composing: p) // ㅡ
-        #expect(c + p == "ㅡ")
-        
-        (c, p) = applyInput(천, committed: c, composing: p) // ㅡ + ㆍ -> ㅜ
-        #expect(c + p == "ㅜ")
-        
-        (c, p) = applyInput(천, committed: c, composing: p) // ㅜ + ㆍ -> ㅠ
-        #expect(c + p == "ㅠ")
-        
-        (c, p) = applyInput(인, committed: c, composing: p) // ㅠ + ㅣ -> ㅝ
-        #expect(c + p == "ㅝ")
-        
-        (c, p) = applyInput(인, committed: c, composing: p) // ㅝ + ㅣ -> ㅞ
-        #expect(c + p == "ㅞ")
     }
     
     // MARK: - 3. 단어 생성 및 삭제 시나리오

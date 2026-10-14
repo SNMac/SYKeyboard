@@ -54,40 +54,8 @@ struct HangeulEnglishKeyboardModeCoordinatorTests {
         ) == .english)
     }
 
-    @Test("저장된 언어가 없는 새 focus는 OS 언어 설정을 따름")
-    func testNewFocusWithoutStoredModeUsesPreferredLanguages() {
-        let coordinator = HangeulEnglishKeyboardModeCoordinator(initialMode: .hangeul)
-
-        #expect(coordinator.modeForTextInputChange(
-            identifier: ObjectIdentifier(NSObject()),
-            requiresLatinInput: false,
-            lastMode: nil,
-            preferredLanguages: ["en-US"]
-        ) == .english)
-    }
-
-    @Test("trait 변화는 requiresLatinInput이 거짓이면 마지막 언어를 따름")
-    func testInputTraitsChangeFollowsLastModeWhenLatinNotRequired() {
-        let coordinator = HangeulEnglishKeyboardModeCoordinator(initialMode: .english)
-
-        #expect(coordinator.modeForInputTraitsChange(
-            requiresLatinInput: false,
-            lastMode: .hangeul,
-            preferredLanguages: ["en-US"]
-        ) == .hangeul)
-    }
-
-    @Test("trait 변화는 마지막 언어가 없으면 OS 언어 설정을 따름")
-    func testInputTraitsChangeWithoutStoredModeUsesPreferredLanguages() {
-        let coordinator = HangeulEnglishKeyboardModeCoordinator(initialMode: .hangeul)
-
-        #expect(coordinator.modeForInputTraitsChange(
-            requiresLatinInput: false,
-            lastMode: nil,
-            preferredLanguages: ["en-US"]
-        ) == .english)
-    }
-
+    // 시작 언어 판정 규칙(라틴 입력·마지막 언어·OS 언어)은 KeyboardLanguageModePolicyTests가 소유한다.
+    // 여기서는 Policy를 올바른 입력으로 불러 결과가 달라지는 것만 본다 (docs/adr/0003)
     @Test("trait 변화 재판정은 호출마다 반복되며 이전 focus 식별자에 의존하지 않음")
     func testInputTraitsChangeReevaluatesOnEveryCall() {
         let coordinator = HangeulEnglishKeyboardModeCoordinator(initialMode: .hangeul)

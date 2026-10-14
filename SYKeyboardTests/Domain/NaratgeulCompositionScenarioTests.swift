@@ -16,36 +16,36 @@ struct NaratgeulCompositionScenarioTests {
     
     private let automata: HangeulAutomataProtocol = HangeulAutomata()
     
-    // MARK: - 1. 반복 입력 후 다음 입력과 조합
+    // MARK: - 1. 반복 입력 후 다음 입력과 조합·획추가
     
-    @Test("반복 입력 후 조합: 'ㄱㄱㄱ' 후 'ㅏ' -> 'ㄱㄱ가'")
-    func test반복입력후_조합() {
+    @Test("반복 입력 뒤 다음 키는 마지막 글자와만 조합·획추가되고 앞 글자는 그대로 남음",
+          arguments: [
+            // (label, firstKey, nextKey, expectedAfterRepeat, expectedFinal)
+            ("반복 입력 후 조합: 'ㄱㄱㄱ' 후 'ㅏ' -> 'ㄱㄱ가' (마지막 자음이 다음 모음과 결합)",
+             "ㄱ", "ㅏ", "ㄱㄱㄱ", "ㄱㄱ가"),
+            ("반복 입력 후 조합: 'ㅏㅏㅏ' 후 'ㄴ' -> 'ㅏㅏㅏㄴ'",
+             "ㅏ", "ㄴ", "ㅏㅏㅏ", "ㅏㅏㅏㄴ"),
+            ("반복 입력 후 획추가: 'ㄱㄱㄱ' 후 '획' -> 'ㄱㄱㅋ' (마지막 글자에 획추가 적용)",
+             "ㄱ", "획", "ㄱㄱㄱ", "ㄱㄱㅋ")
+          ])
+    func test반복입력후_다음입력(
+        label: String,
+        firstKey: String,
+        nextKey: String,
+        expectedAfterRepeat: String,
+        expectedFinal: String
+    ) {
         let sim = HangeulCompositionTestHarness(
             processor: NaratgeulProcessor(automata: automata)
         )
         
-        sim.input("ㄱ")
+        sim.input(firstKey)
         sim.repeatInsert()
         sim.repeatInsert()
-        #expect(sim.text == "ㄱㄱㄱ")
+        #expect(sim.text == expectedAfterRepeat, "\(label)")
         
-        sim.input("ㅏ")
-        #expect(sim.text == "ㄱㄱ가", "반복 입력 후 마지막 자음이 다음 모음과 결합되어야 합니다.")
-    }
-    
-    @Test("반복 입력 후 조합: 'ㅏㅏㅏ' 후 'ㄴ' -> 'ㅏㅏㅏㄴ'")
-    func test반복입력_모음후_자음() {
-        let sim = HangeulCompositionTestHarness(
-            processor: NaratgeulProcessor(automata: automata)
-        )
-        
-        sim.input("ㅏ")
-        sim.repeatInsert()
-        sim.repeatInsert()
-        #expect(sim.text == "ㅏㅏㅏ")
-        
-        sim.input("ㄴ")
-        #expect(sim.text == "ㅏㅏㅏㄴ")
+        sim.input(nextKey)
+        #expect(sim.text == expectedFinal, "\(label)")
     }
     
     // MARK: - 2. 반복 삭제 후 끌어오기
@@ -73,21 +73,4 @@ struct NaratgeulCompositionScenarioTests {
         #expect(sim.text == "가", "반복 삭제 후 끌어오기 된 글자와 다음 입력이 조합되어야 합니다.")
     }
     
-    // MARK: - 3. 반복 입력 후 획추가/쌍자음
-    
-    @Test("반복 입력 후 획추가: 'ㄱㄱㄱ' 후 '획' -> 'ㄱㄱㅋ'")
-    func test반복입력후_획추가() {
-        let sim = HangeulCompositionTestHarness(
-            processor: NaratgeulProcessor(automata: automata)
-        )
-        
-        sim.input("ㄱ")
-        sim.repeatInsert()
-        sim.repeatInsert()
-        #expect(sim.text == "ㄱㄱㄱ")
-        
-        sim.input("획")
-        #expect(sim.text == "ㄱㄱㅋ", "반복 입력 후 마지막 글자에 획추가가 적용되어야 합니다.")
-    }
-
 }

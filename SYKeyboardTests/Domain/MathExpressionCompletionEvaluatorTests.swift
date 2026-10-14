@@ -50,28 +50,42 @@ struct MathExpressionCompletionEvaluatorTests {
         #expect(compactCompletion?.insertText == "5")
     }
 
-    @Test("소수점 쉼표와 문자 문맥의 숫자 사이 공백은 거부")
-    func test소수점쉼표와문자문맥의_숫자사이공백은거부() {
-        for expression in [
-            "1 . 2+3=",
-            "1, 000+2=",
-            "memo 2 3+1=",
-            "x 1 2+3=",
-            "1 + 2 3+4="
-        ] {
-            #expect(
-                MathExpressionCompletionEvaluator.completion(
-                    for: expression
-                ) == nil
-            )
-        }
-    }
-
-    @Test("숫자 구성 문자 사이 탭과 NBSP도 거부")
-    func test숫자구성문자사이탭과NBSP도거부() {
-        for expression in ["1\t2+3=", "1\u{00A0}2+3="] {
-            #expect(MathExpressionCompletionEvaluator.completion(for: expression) == nil)
-        }
+    @Test("수식으로 볼 수 없거나 계산할 수 없는 입력은 후보를 만들지 않음",
+          arguments: [
+            // (reason, expression)
+            ("소수점 사이 공백은 거부", "1 . 2+3="),
+            ("천 단위 쉼표 뒤 공백은 거부", "1, 000+2="),
+            ("문자 문맥 뒤 숫자 사이 공백은 거부", "memo 2 3+1="),
+            ("곱셈 별칭 x 뒤 숫자 사이 공백은 거부", "x 1 2+3="),
+            ("연산자 뒤 숫자 사이 공백은 거부", "1 + 2 3+4="),
+            ("숫자 구성 문자 사이 탭은 거부", "1\t2+3="),
+            ("숫자 구성 문자 사이 NBSP는 거부", "1\u{00A0}2+3="),
+            ("잘못된 선행 소수점: 숫자 없는 소수점", ".+1="),
+            ("잘못된 선행 소수점: 소수점 연속", "..5+1="),
+            ("잘못된 선행 소수점: 정수부 뒤 소수점 연속", "1..5+1="),
+            ("이전 등식 뒤 숫자 공백이 여러 번이면 더 짧은 수식을 오탐지하지 않음", "3+1=4 2 3+4="),
+            ("잘못된 천 단위 쉼표: 두 자리 묶음", "10,00+1="),
+            ("잘못된 천 단위 쉼표: 네 자리 선행 묶음", "1234,567+1="),
+            ("소수부 쉼표는 거부", "1,000.0,1+1="),
+            ("수식이 아닌 텍스트", "abc="),
+            ("불완전한 수식: 숫자 하나뿐", "3="),
+            ("불완전한 수식: 연산자 뒤 피연산자 없음", "3+="),
+            ("불완전한 수식: 0으로 나눔", "3/0="),
+            ("불완전한 수식: 등호 없음", "3-1"),
+            ("마지막 등호 외에 등호가 남아 있음: 결과 뒤 등호", "3+1=4="),
+            ("마지막 등호 외에 등호가 남아 있음: 앞쪽 등식", "1=2+3="),
+            ("마지막 등호 외에 등호가 남아 있음: 등호 연속", "3+1=="),
+            ("괄호 쌍이 맞지 않음: ( ]", "(3+2]="),
+            ("괄호 쌍이 맞지 않음: [ )", "[3+2)="),
+            ("괄호 쌍이 맞지 않음: 닫는 괄호 없음", "(3+2="),
+            ("제한보다 긴 숫자(400자리)는 거부", "1/" + String(repeating: "9", count: 400) + "="),
+            ("유한 숫자(308자리)라도 중간 결과가 넘치면 거부", "1/(" + String(repeating: "9", count: 308) + "*2)=")
+          ])
+    func test수식이아닌입력은_후보를만들지않음(reason: String, expression: String) {
+        #expect(
+            MathExpressionCompletionEvaluator.completion(for: expression) == nil,
+            "\(reason)"
+        )
     }
 
     @Test("소수점 연산과 곱셈 나눗셈 우선순위를 계산")
@@ -82,77 +96,56 @@ struct MathExpressionCompletionEvaluatorTests {
         #expect(completion?.insertText == "7.5")
     }
 
-    @Test("정수부를 생략한 소수를 0으로 시작하는 소수로 계산")
-    func test선행소수점숫자를_계산() {
+    private static let depth16Group = String(repeating: "(", count: 16) + "1+1" + String(repeating: ")", count: 16)
+
+    @Test("선행 소수점·음수 0·곱셈 나눗셈 기호·큰 결과 표기·깊은 괄호 그룹의 계산 결과 문자열",
+          arguments: [
+            // (label, expression, expectedInsertText)
+            ("정수부를 생략한 소수를 0으로 시작하는 소수로 계산", ".5+1=", "1.5"),
+            ("정수부를 생략한 음수 소수를 계산", "-.5+1=", "0.5"),
+            ("반올림된 음수 0은 부호 없이 표시", "-0.0001+0=", "0"),
+            ("곱셈 기호 ×", "6×2=", "12"),
+            ("곱셈 기호 ⋅", "6⋅2=", "12"),
+            ("곱셈 기호 *", "6*2=", "12"),
+            ("곱셈 별칭 x", "6x2=", "12"),
+            ("곱셈 별칭 X", "6X2=", "12"),
+            ("나눗셈 기호 ÷", "6÷2=", "3"),
+            ("나눗셈 기호 /", "6/2=", "3"),
+            ("10의 10제곱 미만은 일반 표기", "9999999999+0=", "9,999,999,999"),
+            ("10의 10제곱 이상은 유효숫자 네 자리 과학 표기", "10*1234567890=", "1.235×10¹⁰"),
+            ("음수도 유효숫자 네 자리 과학 표기", "-10*1234567890=", "-1.235×10¹⁰"),
+            ("가수가 정수면 소수 없이 과학 표기", "999999999999999999999+1=", "1×10²¹"),
+            ("과학 표기 가수가 십으로 반올림되면 지수를 올림", "99996000000+0=", "1×10¹¹"),
+            ("동일 깊이(16) 괄호 그룹을 연산자로 연결해 계산",
+             MathExpressionCompletionEvaluatorTests.depth16Group + "+" + MathExpressionCompletionEvaluatorTests.depth16Group + "=",
+             "4")
+          ])
+    func test계산결과문자열(label: String, expression: String, expectedInsertText: String) {
         #expect(
-            MathExpressionCompletionEvaluator.completion(
-                for: ".5+1="
-            )?.insertText == "1.5"
-        )
-        #expect(
-            MathExpressionCompletionEvaluator.completion(
-                for: "-.5+1="
-            )?.insertText == "0.5"
+            MathExpressionCompletionEvaluator.completion(for: expression)?.insertText == expectedInsertText,
+            "\(label)"
         )
     }
 
-    @Test("잘못된 선행 소수점은 후보를 만들지 않음")
-    func test잘못된선행소수점은_거부() {
-        for expression in [".+1=", "..5+1=", "1..5+1="] {
-            #expect(
-                MathExpressionCompletionEvaluator.completion(
-                    for: expression
-                ) == nil
-            )
-        }
-    }
+    @Test("앞쪽 문맥을 떼고 마지막 수식만 계산",
+          arguments: [
+            // (label, text, expectedExpressionText, expectedInsertText)
+            ("이전 등식 결과 뒤 마지막 수식만 계산", "3+1=4 2+3=", "2+3=", "5"),
+            ("단어 끝 곱셈 별칭(x)은 마지막 수식과 분리", "tax 2+3=", "2+3=", "5"),
+            ("단어 끝 곱셈 별칭(X)은 마지막 수식과 분리", "BOX 2+3=", "2+3=", "5"),
+            ("줄바꿈 뒤 마지막 수식을 독립 문맥으로 계산", "1\n2+3=", "2+3=", "5"),
+            ("문자 문맥과 줄바꿈 뒤 마지막 수식을 독립 문맥으로 계산", "memo 1\n2+3=", "2+3=", "5")
+          ])
+    func test앞쪽문맥을떼고_마지막수식만계산(
+        label: String,
+        text: String,
+        expectedExpressionText: String,
+        expectedInsertText: String
+    ) {
+        let completion = MathExpressionCompletionEvaluator.completion(for: text)
 
-    @Test("이전 등식 결과 뒤 마지막 수식만 계산")
-    func test이전등식결과뒤_마지막수식만계산() {
-        let completion = MathExpressionCompletionEvaluator.completion(
-            for: "3+1=4 2+3="
-        )
-
-        #expect(completion?.expressionText == "2+3=")
-        #expect(completion?.insertText == "5")
-    }
-
-    @Test("이전 등식 뒤 숫자 공백이 여러 번이면 더 짧은 수식을 오탐지하지 않음")
-    func test이전등식뒤_애매한숫자공백은거부() {
-        #expect(
-            MathExpressionCompletionEvaluator.completion(
-                for: "3+1=4 2 3+4="
-            ) == nil
-        )
-    }
-
-    @Test("단어 끝 곱셈 별칭은 마지막 수식과 분리")
-    func test단어끝곱셈별칭을_수식과분리() {
-        for text in ["tax 2+3=", "BOX 2+3="] {
-            let completion = MathExpressionCompletionEvaluator.completion(for: text)
-
-            #expect(completion?.expressionText == "2+3=")
-            #expect(completion?.insertText == "5")
-        }
-    }
-
-    @Test("줄바꿈 뒤 마지막 수식을 독립 문맥으로 계산")
-    func test줄바꿈뒤_마지막수식을계산() {
-        for text in ["1\n2+3=", "memo 1\n2+3="] {
-            let completion = MathExpressionCompletionEvaluator.completion(for: text)
-
-            #expect(completion?.expressionText == "2+3=")
-            #expect(completion?.insertText == "5")
-        }
-    }
-
-    @Test("반올림된 음수 0은 부호 없이 표시")
-    func test반올림된음수0은_양수0으로표시() {
-        #expect(
-            MathExpressionCompletionEvaluator.completion(
-                for: "-0.0001+0="
-            )?.insertText == "0"
-        )
+        #expect(completion?.expressionText == expectedExpressionText, "\(label)")
+        #expect(completion?.insertText == expectedInsertText, "\(label)")
     }
 
     @Test("올바른 천 단위 쉼표 숫자는 계산하고 입력 원문을 유지")
@@ -165,32 +158,6 @@ struct MathExpressionCompletionEvaluatorTests {
         #expect(completion?.displayText == "1,000 / 4=250")
     }
 
-    @Test("잘못된 천 단위 쉼표와 소수부 쉼표는 후보를 만들지 않음")
-    func test잘못된천단위쉼표와_소수부쉼표는후보를만들지않음() {
-        #expect(MathExpressionCompletionEvaluator.completion(for: "10,00+1=") == nil)
-        #expect(MathExpressionCompletionEvaluator.completion(for: "1234,567+1=") == nil)
-        #expect(MathExpressionCompletionEvaluator.completion(for: "1,000.0,1+1=") == nil)
-    }
-
-    @Test("지원하는 곱셈과 나눗셈 기호를 동일한 연산으로 계산")
-    func test지원하는곱셈과나눗셈기호를_동일한연산으로계산() {
-        for multiplicationOperator in ["×", "⋅", "*", "x", "X"] {
-            #expect(
-                MathExpressionCompletionEvaluator.completion(
-                    for: "6\(multiplicationOperator)2="
-                )?.insertText == "12"
-            )
-        }
-
-        for divisionOperator in ["÷", "/"] {
-            #expect(
-                MathExpressionCompletionEvaluator.completion(
-                    for: "6\(divisionOperator)2="
-                )?.insertText == "3"
-            )
-        }
-    }
-
     @Test("소수점으로 끝난 숫자는 계산하고 숫자 없는 소수점은 거부")
     func test소수점으로끝난숫자는_계산하고숫자없는소수점은거부() {
         #expect(
@@ -198,22 +165,6 @@ struct MathExpressionCompletionEvaluatorTests {
         )
         #expect(MathExpressionCompletionEvaluator.completion(for: ".+2=") == nil)
         #expect(MathExpressionCompletionEvaluator.completion(for: "1..0+2=") == nil)
-    }
-
-    @Test("수식이 아닌 텍스트와 불완전한 수식은 후보를 만들지 않음")
-    func test수식이아닌텍스트와_불완전한수식은후보를만들지않음() {
-        #expect(MathExpressionCompletionEvaluator.completion(for: "abc=") == nil)
-        #expect(MathExpressionCompletionEvaluator.completion(for: "3=") == nil)
-        #expect(MathExpressionCompletionEvaluator.completion(for: "3+=") == nil)
-        #expect(MathExpressionCompletionEvaluator.completion(for: "3/0=") == nil)
-        #expect(MathExpressionCompletionEvaluator.completion(for: "3-1") == nil)
-    }
-
-    @Test("마지막 등호 외에 등호가 남아 있으면 후보를 만들지 않음")
-    func test마지막등호외에_등호가남아있으면후보를만들지않음() {
-        #expect(MathExpressionCompletionEvaluator.completion(for: "3+1=4=") == nil)
-        #expect(MathExpressionCompletionEvaluator.completion(for: "1=2+3=") == nil)
-        #expect(MathExpressionCompletionEvaluator.completion(for: "3+1==") == nil)
     }
 
     @Test("앞쪽 음수만 허용하고 중간 부호 연속은 수식 후보를 만들지 않음")
@@ -237,13 +188,6 @@ struct MathExpressionCompletionEvaluatorTests {
         #expect(MathExpressionCompletionEvaluator.completion(for: "{[3+2]*(4-1)}=")?.displayText == "{[3+2]*(4-1)}=15")
     }
 
-    @Test("괄호 쌍이 맞지 않으면 수식 후보를 만들지 않음")
-    func test괄호쌍이맞지않으면_수식후보를만들지않음() {
-        #expect(MathExpressionCompletionEvaluator.completion(for: "(3+2]=") == nil)
-        #expect(MathExpressionCompletionEvaluator.completion(for: "[3+2)=") == nil)
-        #expect(MathExpressionCompletionEvaluator.completion(for: "(3+2=") == nil)
-    }
-
     @Test("소수 결과는 최대 세 자리까지 반올림")
     func test소수결과는_최대세자리까지반올림() {
         #expect(MathExpressionCompletionEvaluator.completion(for: "2/3=")?.displayText == "2/3=0.667")
@@ -262,39 +206,6 @@ struct MathExpressionCompletionEvaluatorTests {
             MathExpressionCompletionEvaluator.completion(
                 for: "1234567.8912+0="
             )?.insertText == "1,234,567.891"
-        )
-    }
-
-    @Test("10의 10제곱 미만은 일반 표기하고 이상은 유효숫자 네 자리 과학 표기")
-    func test큰결과는_유효숫자네자리과학표기로표시() {
-        #expect(
-            MathExpressionCompletionEvaluator.completion(
-                for: "9999999999+0="
-            )?.insertText == "9,999,999,999"
-        )
-        #expect(
-            MathExpressionCompletionEvaluator.completion(
-                for: "10*1234567890="
-            )?.insertText == "1.235×10¹⁰"
-        )
-        #expect(
-            MathExpressionCompletionEvaluator.completion(
-                for: "-10*1234567890="
-            )?.insertText == "-1.235×10¹⁰"
-        )
-        #expect(
-            MathExpressionCompletionEvaluator.completion(
-                for: "999999999999999999999+1="
-            )?.insertText == "1×10²¹"
-        )
-    }
-
-    @Test("과학 표기 가수가 십으로 반올림되면 지수를 올림")
-    func test과학표기가수가십으로반올림되면_지수를올림() {
-        #expect(
-            MathExpressionCompletionEvaluator.completion(
-                for: "99996000000+0="
-            )?.insertText == "1×10¹¹"
         )
     }
 
@@ -336,36 +247,5 @@ struct MathExpressionCompletionEvaluatorTests {
                 for: expression(depth: 17)
             ) == nil
         )
-    }
-
-    @Test("동일 깊이 괄호 그룹을 연산자로 연결해 계산")
-    func test동일깊이괄호그룹을_연산자로연결해계산() {
-        let depth16Expression = String(repeating: "(", count: 16)
-            + "1+1"
-            + String(repeating: ")", count: 16)
-        let expression = depth16Expression + "+" + depth16Expression + "="
-
-        #expect(
-            MathExpressionCompletionEvaluator.completion(
-                for: expression
-            )?.insertText == "4"
-        )
-    }
-
-    @Test("제한보다 긴 숫자와 연산 입력은 후보를 만들지 않음")
-    func test제한보다긴입력은_거부() {
-        let overflowingNumber = String(repeating: "9", count: 400)
-        let largeFiniteNumber = String(repeating: "9", count: 308)
-
-        for expression in [
-            "1/\(overflowingNumber)=",
-            "1/(\(largeFiniteNumber)*2)="
-        ] {
-            #expect(
-                MathExpressionCompletionEvaluator.completion(
-                    for: expression
-                ) == nil
-            )
-        }
     }
 }

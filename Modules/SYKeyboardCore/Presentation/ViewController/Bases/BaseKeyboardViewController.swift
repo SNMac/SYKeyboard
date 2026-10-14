@@ -6,7 +6,6 @@
 //
 
 import UIKit
-import Combine
 import OSLog
 import SYKeyboardAssets
 
@@ -41,14 +40,23 @@ open class BaseKeyboardViewController: UIInputViewController {
     /// 전체 접근 허용 안내 오버레이. Full Access가 꺼져 있고 사용자가 닫지 않았을 때만 만든다
     private lazy var requestFullAccessOverlayView = RequestFullAccessOverlayView()
 
-    /// 자동완성 후보 삭제 확인 오버레이. 처음 길게 누를 때 만든다
-    private var suggestionRemovalConfirmView: DeleteConfirmOverlayView?
-    /// 삭제 확인을 기다리는 자동완성 단어
-    private var pendingSuggestionRemovalWord: String?
-
-    final public lazy var oldKeyboardType: UIKeyboardType? = textDocumentProxy.keyboardType
+    final public lazy var oldKeyboardType: UIKeyboardType? = textDocument.keyboardType
     /// 마지막으로 확인한 `textContentType`. `inputTraitsDidChange()` 판정에 쓰입니다
-    final public lazy var oldTextContentType: UITextContentType? = textDocumentProxy.textContentType
+    final public lazy var oldTextContentType: UITextContentType? = textDocument.textContentType
+    /// 텍스트 프록시 읽기·쓰기 창구. 프록시는 이것으로만 읽고 쓴다
+    final public private(set) lazy var textDocument = CachingTextDocumentProxy { [weak self] in
+        guard let self else {
+            // 키보드가 이미 사라졌으므로 프록시를 읽거나 쓰지 않는다.
+            // Release는 크래시 대신 기록만 남기고, Debug는 `assertionFailure`로 멈춘다
+            let message = "text document accessed after controller deinit"
+            Logger(subsystem: Bundle.main.bundleIdentifier ?? "Unknown Bundle", category: "BaseKeyboardViewController")
+                .fault("\(message, privacy: .public)")
+            KeyboardDiagnostics.log(message)
+            assertionFailure("BaseKeyboardViewController가 해제된 뒤 textDocument에 접근했습니다")
+            return nil
+        }
+        return self.textDocumentProxy
+    }
 
     /// 현재 표시되는 키보드
     public lazy var currentKeyboard: SYKeyboardType = primaryKeyboardView.keyboard {
@@ -129,8 +137,6 @@ open class BaseKeyboardViewController: UIInputViewController {
     /// `resetInputBuffer` 래핑 메서드를 통해 조작합니다.
     private var inputBuffer: String = ""
     private var smartQuoteState = KeyboardSmartQuoteState()
-    /// `textWillChange`에서 리셋 직전에 떠 두는 입력 상태. 바로 다음 `textDidChange`에서 전송 여부를 판단한 뒤 비운다
-    private var pendingSentTextSnapshot: SentTextSnapshot?
     /// 버퍼가 빈 상태에서 첫 글자를 넣기 직전의 커서 앞 문맥(최대 256자). 후보 기준 텍스트와 조각 판정에 쓴다
     private var inputBufferLeadingContext: String?
 
@@ -139,14 +145,8 @@ open class BaseKeyboardViewController: UIInputViewController {
     /// `keyboardHStackView` 높이 제약 조건
     private var keyboardHStackViewHeightConstraint: NSLayoutConstraint?
 
-    /// 반복 입력용 타이머
-    private var timer: AnyCancellable?
     /// 현재 반복 입력 동작 중인지 확인하는 플래그
-    public private(set) var isRepeatingInput: Bool = false
-    /// 진단용 반복 입력 tick 수. 구간으로만 기록한다
-    private var repeatInputTickCount: Int = 0
-    /// 키보드 세션 동안만 유지되는 undo/redo 상태 관리자
-    private var undoRedoSession = KeyboardUndoRedoSession()
+    public var isRepeatingInput: Bool { textDeletionCoordinator.isRepeatingInput }
     /// 첫 표시 이후 자동완성 준비를 한 번만 시작했는지 여부
     private var didStartDeferredSuggestionPreparation = false
     /// 첫 후보 갱신 계측 이벤트 중복 방지 플래그
@@ -157,25 +157,13 @@ open class BaseKeyboardViewController: UIInputViewController {
     private var isPrimaryCursorDragging = false
     /// 커서 이동 요청 직전 문맥입니다. `textDidChange`에서 실제 위치 변경을 확인한 뒤 소비합니다.
     private var pendingCursorDragHapticContext: KeyboardTextContextSnapshot?
-    /// touchDown과 반복 삭제 요청을 실제 문맥 변경 확인 후 성공 또는 무효로 한 번만 완료합니다.
-    private var deleteMutationLifecycle = DeleteMutationLifecycle()
-    /// 삭제 touchDown, pan, pan stop을 generation 단위 FIFO로 조정합니다.
-    private var deleteInteractionCoordinator = DeleteInteractionCoordinator()
-    /// 보류 삭제 drain 중 동기 callback 재진입을 막습니다.
-    private var isDrainingPendingDeleteInteractions = false
-    /// 현재 host text input의 식별자입니다.
-    private var currentTextInputIdentifier: ObjectIdentifier?
     /// host text input 변경 hook에 마지막으로 전달한 식별자입니다.
     private var lastNotifiedTextInputIdentifier: ObjectIdentifier?
-    /// host 입력 변경 callback에서 마지막으로 확인한 자동 수정 설정입니다.
-    private var currentAutocorrectionType: UITextAutocorrectionType?
-    /// host 입력 변경 callback에서 마지막으로 확인한 수식 자동완성 허용 상태입니다.
-    private var isMathExpressionCompletionAllowed = true
     /// suggestion bar 전체를 숨겨야 하는지 여부
     private var shouldHideSuggestionBar: Bool {
         return KeyboardPresentationStatePolicy.shouldHideSuggestionBar(
             isPredictiveTextEnabled: keyboardSettingsManager.isPredictiveTextEnabled,
-            autocorrectionType: currentAutocorrectionType,
+            autocorrectionType: suggestionSelectionCoordinator.currentAutocorrectionType,
             currentKeyboard: currentKeyboard,
             isUndoRedoEnabled: keyboardSettingsManager.isUndoRedoEnabled,
             isClipboardHistoryEnabled: isClipboardControlAvailable
@@ -190,22 +178,6 @@ open class BaseKeyboardViewController: UIInputViewController {
     private var isClipboardControlAvailable: Bool {
         return keyboardSettingsManager.isClipboardHistoryEnabled
     }
-
-    /// undo/redo 기능 사용 가능 여부. 자동완성 설정과 독립이다
-    private var isUndoRedoFeatureAvailable: Bool {
-        return keyboardSettingsManager.isUndoRedoEnabled
-    }
-
-    /// 삭제 버튼 팬 제스처로 인해 임시로 삭제된 내용을 저장하는 변수
-    private var tempDeletedCharacters: [Character] = []
-    /// 삭제 버튼 팬 제스처 동안 커서 앞 문맥을 대신하는 모델(드래그 시작 때 한 번 읽음)
-    private var deletePanTextModel: DeletePanTextModel?
-    /// 삭제 버튼 팬 제스처가 마지막으로 문서를 편집한 시각
-    private var lastDeletePanEditTime: CFTimeInterval = 0
-    /// 삭제 버튼 팬 제스처가 줄 경계를 넘을 때의 대기·막힘 상태
-    private var deletePanBoundaryState = DeletePanBoundaryState()
-    /// 다음 `deleteText()`가 undo에 기록할 삭제 문자열(삭제 버튼 팬 제스처가 모델에서 정한 값)
-    private var deletePanDeletedTextOverride: String?
 
     /// '.' 단축키 수행 여부
     final public var performedPeriodShortcut: Bool = false
@@ -224,6 +196,13 @@ open class BaseKeyboardViewController: UIInputViewController {
     }()
     /// 자동완성 툴바
     private lazy var suggestionBarView = keyboardView.suggestionBarView
+    /// 후보 탭 처리·trait 동기화·전송 기록·후보 삭제 확인을 맡는다. `SuggestionSelectionHost` 채택은 파일 끝의 extension에 있다
+    private lazy var suggestionSelectionCoordinator = SuggestionSelectionCoordinator(
+        suggestionController: suggestionController,
+        suggestionBarView: suggestionBarView,
+        keyboardSettingsManager: keyboardSettingsManager,
+        host: self
+    )
     /// 키보드 수평 스택
     private lazy var keyboardHStackView = keyboardView.keyboardHStackView
     /// 한 손 키보드 해제 버튼(오른손 모드)
@@ -246,8 +225,20 @@ open class BaseKeyboardViewController: UIInputViewController {
     final lazy var clipboardHistoryPanelView: ClipboardHistoryPanelView = keyboardView.clipboardHistoryPanelView
     /// 클립보드 기록 저장소. App Group 컨테이너를 얻지 못하면 `nil`이고 기능은 비활성 상태다
     final let clipboardHistoryStore: ClipboardHistoryStore? = ClipboardHistoryStore()
-    /// 클립보드 기록 패널 표시 여부
-    final var isClipboardPanelVisible = false
+    /// 클립보드 패널 열기·닫기와 pasteboard 동기화를 맡는다. `ClipboardHistoryHost` 채택은 파일 끝의 extension에 있다
+    private lazy var clipboardHistoryCoordinator = ClipboardHistoryCoordinator(
+        clipboardHistoryStore: clipboardHistoryStore,
+        clipboardHistoryPanelView: clipboardHistoryPanelView,
+        keyboardSettingsManager: keyboardSettingsManager,
+        host: self
+    )
+    /// undo/redo 기록·확정·적용과 컨트롤 갱신을 맡는다. `UndoRedoHost` 채택은 파일 끝의 extension에 있다
+    private lazy var undoRedoCoordinator = UndoRedoCoordinator(
+        suggestionBarView: suggestionBarView,
+        suggestionController: suggestionController,
+        keyboardSettingsManager: keyboardSettingsManager,
+        host: self
+    )
     /// 한 손 키보드 해제 버튼(왼손 모드)
     private lazy var rightChevronButton = keyboardView.rightChevronButton
     /// 커서 드래그 활성 상태를 표시하는 overlay
@@ -264,6 +255,13 @@ open class BaseKeyboardViewController: UIInputViewController {
         view.isHidden = true
         return view
     }()
+    /// 삭제 touchDown·반복·pan과 삭제 확정 파이프라인을 맡는다. `TextDeletionHost` 채택은 파일 끝의 extension에 있다
+    private lazy var textDeletionCoordinator = TextDeletionCoordinator(
+        deleteDragIndicatorView: deleteDragIndicatorView,
+        suggestionController: suggestionController,
+        keyboardSettingsManager: keyboardSettingsManager,
+        host: self
+    )
 
     // MARK: - Initializer
 
@@ -313,19 +311,7 @@ open class BaseKeyboardViewController: UIInputViewController {
         setupUI()
         // 레이아웃마다 읽으면 호스트가 문서 상태를 교체하는 순간과 겹쳐 UIKit 내부에서 크래시가 나므로 한 번만 읽는다
         setNextKeyboardButton()
-        // 호스트 앱이 다른 앱(사진 등)을 거쳐 돌아올 때는 viewWillAppear가 다시 오지 않으므로 여기서 pasteboard를 확인한다
-        NotificationCenter.default.addObserver(
-            self, selector: #selector(hostDidBecomeActive), name: .NSExtensionHostDidBecomeActive, object: nil
-        )
-        // 이미지는 백그라운드에서 파일로 저장된 뒤 기록되므로, 그사이 패널이 열려 있으면 완료 알림에서 다시 읽는다
-        NotificationCenter.default.addObserver(
-            self, selector: #selector(clipboardImageDidRecord),
-            name: ClipboardHistoryPasteboardSynchronizer.didRecordImageNotification, object: nil
-        )
-        // 상세 뷰에서 본문 일부를 복사하면 viewWillAppear 등 기존 동기화 시점이 오지 않으므로 여기서 기록한다
-        NotificationCenter.default.addObserver(
-            self, selector: #selector(pasteboardDidChange), name: UIPasteboard.changedNotification, object: nil
-        )
+        clipboardHistoryCoordinator.registerNotificationObservers()
         updateShowingKeyboard()
         if BaseKeyboardViewController.isPreview { updateReturnButtonType() }
 
@@ -334,7 +320,7 @@ open class BaseKeyboardViewController: UIInputViewController {
         // 사용자 설정을 SuggestionController에 전달 — 엔진 생성은 첫 표시 이후로 지연
         suggestionController.isTextReplacementEnabled = keyboardSettingsManager.isTextReplacementEnabled
         suggestionController.isPredictiveTextEnabled = keyboardSettingsManager.isPredictiveTextEnabled
-        suggestionController.isShowMathResultsEnabled = shouldShowMathResults()
+        suggestionController.isShowMathResultsEnabled = suggestionSelectionCoordinator.shouldShowMathResults()
 
         if KeyboardSuggestionSelectionPolicy.shouldStartLexiconLoadBeforeFirstAppearance(
             isTextReplacementEnabled: keyboardSettingsManager.isTextReplacementEnabled
@@ -347,7 +333,11 @@ open class BaseKeyboardViewController: UIInputViewController {
 
         // 키보드 뷰 위에 덮어야 하므로 마지막에 올린다. 앱 미리보기에서는 표시하지 않는다
         if !BaseKeyboardViewController.isPreview, needToShowFullAccessGuide {
-            setupRequestFullAccessOverlayView()
+            requestFullAccessOverlayView.install(
+                in: view,
+                onClose: { [weak self] in self?.keyboardExtensionLocalStateStore.isClosed = true },
+                onOpenSettings: { [weak self] url in self?.openURLThroughResponderChain(url) }
+            )
         }
     }
 
@@ -358,7 +348,7 @@ open class BaseKeyboardViewController: UIInputViewController {
         super.viewWillAppear(animated)
         logger.debug("viewWillAppear")
         if !BaseKeyboardViewController.isPreview { setKeyboardHeight() }
-        synchronizeClipboardHistoryIfNeeded()
+        clipboardHistoryCoordinator.synchronizeIfNeeded()
         // 시뮬레이터(iOS 18.6)에서는 키보드가 나타날 때마다 새 VC라 엔진 캐시도 새로 읽지만, 같은 VC가 다시 나타나는 경우에 대비한다
         suggestionController.invalidateLearnedWordsCache()
         FeedbackManager.shared.prepareHaptic()
@@ -393,67 +383,66 @@ open class BaseKeyboardViewController: UIInputViewController {
     open override func textWillChange(_ textInput: (any UITextInput)?) {
         super.textWillChange(textInput)
         logger.debug("textWillChange")
-        let inputIdentifier = textInputIdentifier(for: textInput)
-        if let inputIdentifier,
-           inputIdentifier != lastNotifiedTextInputIdentifier {
-            lastNotifiedTextInputIdentifier = inputIdentifier
-            textInputDidChange(textInput)
+        // 콜백 한 번에 같은 프록시 값을 다시 읽지 않는다. 문서 상태 교체와 겹친 읽기는 크래시한다
+        textDocument.withReadCaching {
+            let inputIdentifier = textInputIdentifier(for: textInput)
+            if let inputIdentifier,
+               inputIdentifier != lastNotifiedTextInputIdentifier {
+                lastNotifiedTextInputIdentifier = inputIdentifier
+                textInputDidChange(textInput)
+            }
+            suggestionSelectionCoordinator.synchronizeTextInputTraits()
+            textDeletionCoordinator.synchronizeInputIdentifier(inputIdentifier)
+            undoRedoCoordinator.prepareForTextWillChange(inputIdentifier: inputIdentifier)
+            suggestionSelectionCoordinator.captureSentTextSnapshot()
+            resetInputBuffer()
+            updateKeyboardType()
+            updateReturnButtonType()
+            updateReturnButtonEnabled()
+            updateSuggestionBarHidden()
+            clipboardHistoryCoordinator.closePanelIfNeeded()
+            clipboardHistoryCoordinator.synchronizeIfNeeded()
         }
-        synchronizeTextInputTraits()
-        synchronizeDeleteInteractionInputIdentifier(textInput)
-        undoRedoSession.prepareForTextWillChange(
-            inputIdentifier: textInputIdentifier(for: textInput),
-            context: currentTextContextSnapshot()
-        )
-        pendingSentTextSnapshot = makeSentTextSnapshot()
-        resetInputBuffer()
-        updateKeyboardType()
-        updateReturnButtonType()
-        updateReturnButtonEnabled()
-        updateSuggestionBarHidden()
-        closeClipboardPanelIfNeeded()
-        synchronizeClipboardHistoryIfNeeded()
     }
 
     open override func textDidChange(_ textInput: (any UITextInput)?) {
         super.textDidChange(textInput)
         logger.debug("textDidChange")
-        synchronizeTextInputTraits()
-        synchronizeDeleteInteractionInputIdentifier(textInput)
-        // `textWillChange`에서 떠 둔 스냅샷과 지금 문맥을 비교해 전송으로 비워졌으면 기록한다
-        recordSentTextIfNeeded()
-        let currentTextContext = currentTextContextSnapshot()
-        if KeyboardGesturePolicy.shouldPlayCursorDragHapticOnTextDidChange(
-            isPrimaryCursorDragging: isPrimaryCursorDragging,
-            pendingRequestContext: pendingCursorDragHapticContext,
-            currentContext: currentTextContext
-        ) {
-            FeedbackManager.shared.playHaptic(isForcing: true)
-        }
-        pendingCursorDragHapticContext = nil
-        let deleteMutationOutcome = deleteMutationLifecycle.completeAfterTextChange(
-            currentContext: currentTextContext,
-            currentSelectedText: textDocumentProxy.selectedText
-        )
-        processDeleteMutationCallbackOutcome(deleteMutationOutcome)
-        resumePendingDeletePanBoundaryIfNeeded()
-        invalidateUndoRedoHistoryIfNeededAfterTextChange(textInput)
-        updateKeyboardType()
-        // iOS는 키보드 확장에 textWillChange/textDidChange의 textInput을 항상 nil로 준다.
-        // 그래서 필드 객체 동일성으로는 포커스가 다른 필드로 옮겨졌는지 알 수 없다.
-        // keyboardType/textContentType 변화를 대신 신호로 써서 언어 재판정 같은 훅을 부른다
-        let inputTraitsDidChange = textDocumentProxy.keyboardType != oldKeyboardType
-            || textDocumentProxy.textContentType != oldTextContentType
-        oldKeyboardType = textDocumentProxy.keyboardType
-        oldTextContentType = textDocumentProxy.textContentType
-        if inputTraitsDidChange { self.inputTraitsDidChange() }
-        updateReturnButtonType()
-        updateReturnButtonEnabled()
-        updateSuggestionBarHidden()
-        if KeyboardSuggestionSelectionPolicy.shouldUpdateSuggestionsOnTextDidChange(
-            isPrimaryCursorDragging: isPrimaryCursorDragging
-        ) {
-            updateSuggestions()
+        // 보류된 삭제를 이어 가며 프록시에 쓰면 캐시가 비워져 그 뒤 읽기는 삭제가 반영된 값을 본다
+        textDocument.withReadCaching {
+            suggestionSelectionCoordinator.synchronizeTextInputTraits()
+            let inputIdentifier = textInputIdentifier(for: textInput)
+            textDeletionCoordinator.synchronizeInputIdentifier(inputIdentifier)
+            // `textWillChange`에서 떠 둔 스냅샷과 지금 문맥을 비교해 전송으로 비워졌으면 기록한다
+            suggestionSelectionCoordinator.recordSentTextIfNeeded()
+            let currentTextContext = textDocument.contextSnapshot
+            if KeyboardGesturePolicy.shouldPlayCursorDragHapticOnTextDidChange(
+                isPrimaryCursorDragging: isPrimaryCursorDragging,
+                pendingRequestContext: pendingCursorDragHapticContext,
+                currentContext: currentTextContext
+            ) {
+                FeedbackManager.shared.playHaptic(isForcing: true)
+            }
+            pendingCursorDragHapticContext = nil
+            textDeletionCoordinator.completeAfterTextChange(currentContext: currentTextContext)
+            undoRedoCoordinator.invalidateHistoryIfNeededAfterTextChange(inputIdentifier: inputIdentifier)
+            updateKeyboardType()
+            // iOS는 키보드 확장에 textWillChange/textDidChange의 textInput을 항상 nil로 준다.
+            // 그래서 필드 객체 동일성으로는 포커스가 다른 필드로 옮겨졌는지 알 수 없다.
+            // keyboardType/textContentType 변화를 대신 신호로 써서 언어 재판정 같은 훅을 부른다
+            let inputTraitsDidChange = textDocument.keyboardType != oldKeyboardType
+                || textDocument.textContentType != oldTextContentType
+            oldKeyboardType = textDocument.keyboardType
+            oldTextContentType = textDocument.textContentType
+            if inputTraitsDidChange { self.inputTraitsDidChange() }
+            updateReturnButtonType()
+            updateReturnButtonEnabled()
+            updateSuggestionBarHidden()
+            if KeyboardSuggestionSelectionPolicy.shouldUpdateSuggestionsOnTextDidChange(
+                isPrimaryCursorDragging: isPrimaryCursorDragging
+            ) {
+                updateSuggestions()
+            }
         }
     }
     
@@ -470,14 +459,13 @@ open class BaseKeyboardViewController: UIInputViewController {
     open override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         KeyboardDiagnostics.log("keyboard will disappear")
-        stopRepeatInputTracking()
-        closeClipboardPanelIfNeeded()
-        hideSuggestionRemovalConfirmation()
-        currentTextInputIdentifier = nil
+        textDeletionCoordinator.stopRepeatInputTracking()
+        clipboardHistoryCoordinator.closePanelIfNeeded()
+        suggestionSelectionCoordinator.hideSuggestionRemovalConfirmation()
+        textDeletionCoordinator.resetInputIdentifier()
         lastNotifiedTextInputIdentifier = nil
-        undoRedoSession.removeAll()
-        updateUndoRedoControls()
-        pendingSentTextSnapshot = nil
+        undoRedoCoordinator.removeAllHistory()
+        suggestionSelectionCoordinator.discardSentTextSnapshot()
         resetInputBuffer()
         suggestionController.saveNGramData()
     }
@@ -514,8 +502,7 @@ open class BaseKeyboardViewController: UIInputViewController {
             suggestionController.clearIgnoredShortcut()
         }
 
-        tempDeletedCharacters.removeAll()
-        resetDeletePanTextModel()
+        textDeletionCoordinator.clearPanRestoreState()
     }
     /// 텍스트 상호작용이 일어난 후 실행되는 메서드
     ///
@@ -561,9 +548,7 @@ open class BaseKeyboardViewController: UIInputViewController {
     ///
     /// > 하위 클래스에서 오버라이드 시 반드시 `super`로 호출 필요
     open func repeatTextInteractionWillPerform(button: TextInteractable) {
-        // 방어 코드
-        cancelTimer()
-        isRepeatingInput = true
+        textDeletionCoordinator.beginRepeatInput()
 
         // 삭제 버튼은 첫 입력을 touchDown에서 처리하거나 하위 클래스가 별도 경로로 처리한다
         guard !(button is DeleteButton) else { return }
@@ -583,13 +568,10 @@ open class BaseKeyboardViewController: UIInputViewController {
         let isDeleteButton: Bool
         if case .deleteButton = button.type {
             isDeleteButton = true
-            completeRepeatDeleteAtCurrentContext()
         } else {
             isDeleteButton = false
         }
-        stopRepeatInputTracking(preservingTouchDown: isDeleteButton)
-        tempDeletedCharacters.removeAll()
-        resetDeletePanTextModel()
+        textDeletionCoordinator.endRepeatInput(isDeleteButton: isDeleteButton)
 
         updateReturnButtonEnabled()
         updateSuggestions()
@@ -658,7 +640,7 @@ open class BaseKeyboardViewController: UIInputViewController {
 
         suggestionController.endSentence(inputBuffer: learnableInputBuffer)
 
-        textDocumentProxy.insertText("\n")
+        textDocument.insertText("\n")
         recordUndoRedoChange(deletedText: "", insertedText: "\n")
         commitUndoRedoGroupIfPossible()
         resetInputBuffer()
@@ -729,7 +711,7 @@ open class BaseKeyboardViewController: UIInputViewController {
     ///
     /// 입력창이 늦게 보낸 낡은 문맥을 읽지 않도록 `documentContextBeforeInput` 대신 드래그 시작 때 읽은 모델을 따릅니다.
     public var deleteButtonPanPreviousCharacter: Character? {
-        return deletePanTextModel?.lastCharacter
+        return textDeletionCoordinator.panPreviousCharacter
     }
 
     /// 삭제 버튼 팬 제스처로 임시 삭제된 문자를 복구합니다.
@@ -785,7 +767,7 @@ extension BaseKeyboardViewController {
     /// - Parameter text: 삽입할 텍스트
     public func insertText(_ text: String) {
         captureInputBufferLeadingContextIfNeeded()
-        textDocumentProxy.insertText(text)
+        textDocument.insertText(text)
         inputBuffer.append(text)
         recordUndoRedoChange(deletedText: "", insertedText: text)
     }
@@ -796,8 +778,8 @@ extension BaseKeyboardViewController {
             text,
             documentContextBeforeInput: typedTextContextBeforeInput(),
             isSmartPunctuationEnabled: keyboardSettingsManager.isSmartPunctuationEnabled,
-            smartQuotesType: textDocumentProxy.smartQuotesType ?? .default,
-            smartDashesType: textDocumentProxy.smartDashesType ?? .default,
+            smartQuotesType: textDocument.smartQuotesType ?? .default,
+            smartDashesType: textDocument.smartDashesType ?? .default,
             isDefaultSmartQuotesEnabled: treatsDefaultSmartQuotesAsEnabled,
             quoteRule: smartQuoteRule,
             nextDoubleQuoteIsOpening: smartQuoteState.nextDoubleQuoteIsOpening
@@ -817,17 +799,17 @@ extension BaseKeyboardViewController {
     /// 입력 버퍼가 항상 실제 입력과 일치하도록 보장합니다.
     public func deleteText() {
         let wasSpaceAtEnd = inputBuffer.last?.isWhitespace == true
-        let selectedText = textDocumentProxy.selectedText
+        let selectedText = textDocument.selectedText
+        let panDeletedTextOverride = textDeletionCoordinator.takePanDeletedTextOverride()
         // 선택 영역을 지우는 경우에는 모델 글자 대신 선택 영역을 기록한다
-        let panDeletedText = (selectedText ?? "").isEmpty ? deletePanDeletedTextOverride : nil
+        let panDeletedText = (selectedText ?? "").isEmpty ? panDeletedTextOverride : nil
         let deletedText = panDeletedText
             ?? KeyboardTextInteractionPolicy.deletedTextForSingleBackward(
                 selectedText: selectedText,
-                documentContextBeforeInput: textDocumentProxy.documentContextBeforeInput
+                documentContextBeforeInput: textDocument.documentContextBeforeInput
             )
-        deletePanDeletedTextOverride = nil
 
-        textDocumentProxy.deleteBackward()
+        textDocument.deleteBackward()
         if !inputBuffer.isEmpty {
             inputBuffer.removeLast()
         }
@@ -889,32 +871,36 @@ extension BaseKeyboardViewController {
 
     /// 언어 전환 전에 진행 중인 반복·삭제·버튼 상호작용을 종료합니다.
     public final func stopInputInteractionsForLanguageChange() {
-        stopRepeatInputTracking()
+        textDeletionCoordinator.stopRepeatInputTracking()
         buttonStateController.currentPressedButton = nil
         buttonStateController.isShiftButtonPressed = false
     }
 
     /// 조합 확정 지연 요청이 있었고 현재 확정 가능한 상태라면 pending undo 단위를 stack에 반영합니다.
     public final func commitDeferredUndoRedoGroupIfNeeded() {
-        guard undoRedoSession.commitDeferredGroupIfNeeded(
-            shouldDeferCommit: shouldDeferUndoRedoCommit
-        ) else { return }
-        updateUndoRedoControls()
+        undoRedoCoordinator.commitDeferredGroupIfNeeded()
     }
 
     /// 스페이스/리턴처럼 사용자가 명시적인 편집 경계를 만든 경우 pending undo 단위를 확정합니다.
     public final func commitUndoRedoGroupIfPossible() {
-        commitPendingUndoRedoGroup()
+        undoRedoCoordinator.commitPendingGroup()
     }
 
     /// 삭제 시작처럼 조합 중이어도 이전 편집 단위를 끊어야 하는 경우 pending undo 단위를 확정합니다.
     public final func commitUndoRedoGroupIgnoringCompositionDeferral() {
-        guard isUndoRedoFeatureAvailable else { return }
-
-        undoRedoSession.commitPendingGroupIgnoringDeferral()
-        updateUndoRedoControls()
+        undoRedoCoordinator.commitPendingGroupIgnoringDeferral()
     }
 
+    /// 선택 영역을 `insertText`로 대치하고 `inputBuffer`와 undo 기록을 맞춘다. 후보 선택과 수식 결과 대치가 쓴다
+    func replaceSelectedText(_ selectedText: String, with insertText: String) {
+        captureInputBufferLeadingContextIfNeeded()
+        textDocument.insertText(insertText)
+        inputBuffer.append(insertText)
+        recordUndoRedoChange(
+            deletedText: selectedText,
+            insertedText: insertText
+        )
+    }
 }
 
 // MARK: - Text Proxy Wrapper Helper Methods
@@ -934,14 +920,14 @@ private extension BaseKeyboardViewController {
         return KeyboardSmartInputPolicy.smartInsertDeleteLeadingSpacePrefix(
             textBeforeInsertion: textBeforeInsertionAfterDeletingSuffix(deleteCount: deleteCount),
             isSmartPunctuationEnabled: keyboardSettingsManager.isSmartPunctuationEnabled,
-            smartInsertDeleteType: textDocumentProxy.smartInsertDeleteType ?? .default
+            smartInsertDeleteType: textDocument.smartInsertDeleteType ?? .default
         ) + text
     }
 
     func textBeforeInsertionAfterDeletingSuffix(deleteCount: Int) -> String {
         let textBeforeCursor = inputBuffer.isEmpty
             ? KeyboardSuggestionSelectionPolicy.limitedDocumentContextBeforeInput(
-                textDocumentProxy.documentContextBeforeInput
+                textDocument.documentContextBeforeInput
             )
             : inputBuffer
 
@@ -952,10 +938,10 @@ private extension BaseKeyboardViewController {
 
     func replaceTextInDocument(deleteCount: Int, insert text: String) {
         for _ in 0..<deleteCount {
-            textDocumentProxy.deleteBackward()
+            textDocument.deleteBackward()
         }
         if !text.isEmpty {
-            textDocumentProxy.insertText(text)
+            textDocument.insertText(text)
         }
     }
 
@@ -971,7 +957,7 @@ private extension BaseKeyboardViewController {
     func typedTextContextBeforeInput() -> String {
         if !inputBuffer.isEmpty { return inputBuffer }
         return KeyboardSuggestionSelectionPolicy.limitedDocumentContextBeforeInput(
-            textDocumentProxy.documentContextBeforeInput
+            textDocument.documentContextBeforeInput
         )
     }
 
@@ -989,9 +975,9 @@ private extension BaseKeyboardViewController {
     func setDelegates() {
         textInteractionGestureController.delegate = self
         switchGestureController.delegate = self
-        suggestionController.delegate = self
-        suggestionBarView.suggestionDelegate = self
-        clipboardHistoryPanelView.delegate = self
+        suggestionController.delegate = suggestionSelectionCoordinator
+        suggestionBarView.suggestionDelegate = suggestionSelectionCoordinator
+        clipboardHistoryPanelView.delegate = clipboardHistoryCoordinator
         clipboardHistoryPanelView.imageStore = clipboardHistoryStore?.imageStore
     }
 
@@ -1174,13 +1160,7 @@ private extension BaseKeyboardViewController {
 
     func makeDeleteButtonReleaseAction() -> UIAction {
         return UIAction { [weak self] _ in
-            guard let self else { return }
-
-            let resolution = deleteMutationLifecycle.finishTouchDown(
-                currentContext: currentTextContextSnapshot(),
-                currentSelectedText: textDocumentProxy.selectedText
-            )
-            processDeleteMutationResolution(resolution)
+            self?.textDeletionCoordinator.finishTouchDown()
         }
     }
 
@@ -1208,7 +1188,7 @@ private extension BaseKeyboardViewController {
                 guard let self else { return }
                 if KeyboardSymbolInputPolicy.shouldSwitchToPrimaryAfterApostropheInput(
                     buttonType: button.type,
-                    keyboardType: textDocumentProxy.keyboardType ?? .default,
+                    keyboardType: textDocument.keyboardType ?? .default,
                     isAutoChangeToPrimaryEnabled: keyboardSettingsManager.isAutoChangeToPrimaryEnabled
                 ) {
                     currentKeyboard = primaryKeyboardView.keyboard
@@ -1221,7 +1201,7 @@ private extension BaseKeyboardViewController {
                 guard let self else { return }
                 if KeyboardSymbolInputPolicy.shouldSwitchToPrimaryAfterSpaceOrReturn(
                     buttonType: button.type,
-                    keyboardType: textDocumentProxy.keyboardType ?? .default,
+                    keyboardType: textDocument.keyboardType ?? .default,
                     isAutoChangeToPrimaryEnabled: keyboardSettingsManager.isAutoChangeToPrimaryEnabled,
                     isSymbolInput: isSymbolInput
                 ) {
@@ -1248,7 +1228,7 @@ private extension BaseKeyboardViewController {
                 guard KeyboardPeriodShortcutPolicy.shouldReplaceTrailingSpaceWithPeriod(
                     isPreview: BaseKeyboardViewController.isPreview,
                     preventsNextPeriodShortcut: preventNextPeriodShortcut,
-                    documentContextBeforeInput: textDocumentProxy.documentContextBeforeInput
+                    documentContextBeforeInput: textDocument.documentContextBeforeInput
                 ) else { return }
 
                 // " " -> "." 교체: 래핑 메서드 사용
@@ -1422,26 +1402,26 @@ private extension BaseKeyboardViewController {
         isSymbolInput = false
         numericKeyboardView.isHidden = (currentKeyboard != .numeric)
         tenkeyKeyboardView.isHidden = (currentKeyboard != .tenKey)
-        if isClipboardPanelVisible {
+        if clipboardHistoryCoordinator.isPanelVisible {
             primaryKeyboardViews.forEach { $0.isHidden = true }
             symbolKeyboardView.isHidden = true
             numericKeyboardView.isHidden = true
             tenkeyKeyboardView.isHidden = true
         }
-        clipboardHistoryPanelView.isHidden = !isClipboardPanelVisible
+        clipboardHistoryPanelView.isHidden = !clipboardHistoryCoordinator.isPanelVisible
     }
 
     func updateReturnButtonType() {
-        let type = ReturnButton.ReturnKeyType(type: textDocumentProxy.returnKeyType)
+        let type = ReturnButton.ReturnKeyType(type: textDocument.returnKeyType)
         returnButtonList.forEach { $0.update(for: type) }
     }
 
     func updateReturnButtonEnabled() {
         let isEnabled = KeyboardPresentationStatePolicy.isReturnButtonEnabled(
-            enablesReturnKeyAutomatically: textDocumentProxy.enablesReturnKeyAutomatically == true,
-            documentContextBeforeInput: textDocumentProxy.documentContextBeforeInput,
-            selectedText: textDocumentProxy.selectedText,
-            documentContextAfterInput: textDocumentProxy.documentContextAfterInput
+            enablesReturnKeyAutomatically: textDocument.enablesReturnKeyAutomatically == true,
+            documentContextBeforeInput: textDocument.documentContextBeforeInput,
+            selectedText: textDocument.selectedText,
+            documentContextAfterInput: textDocument.documentContextAfterInput
         )
         returnButtonList.forEach { $0.updateEnabled(isEnabled) }
     }
@@ -1459,13 +1439,13 @@ private extension BaseKeyboardViewController {
         let shouldHideSuggestions = KeyboardPresentationStatePolicy.shouldHideSuggestionButtons(
             isSuggestionBarHidden: shouldHideBar,
             isPredictiveTextEnabled: keyboardSettingsManager.isPredictiveTextEnabled,
-            autocorrectionType: currentAutocorrectionType
+            autocorrectionType: suggestionSelectionCoordinator.currentAutocorrectionType
         )
 
         suggestionBarView.isHidden = shouldHideBar
         suggestionBarView.updateSuggestionArea(isVisible: !shouldHideSuggestions)
         suggestionController.isSuspended = shouldHideSuggestions
-        updateUndoRedoControls()
+        undoRedoCoordinator.refreshControls()
 
         if prevSuggestionHiddenState != shouldHideBar {
             DispatchQueue.main.async { [weak self] in
@@ -1477,10 +1457,13 @@ private extension BaseKeyboardViewController {
     }
 
     func updateSuggestionPreviewHighlight() {
-        if suggestionController.mathResultAction(
-            at: 1,
-            selectedText: textDocumentProxy.selectedText
-        ) != nil {
+        // 수식 모드가 아니면 mathResultAction은 선택 텍스트를 보지 않고 nil이다.
+        // 비동기 후보 결과가 문서 상태 교체와 겹쳐 프록시를 읽으면 크래시하므로 이때는 읽지 않는다
+        if suggestionController.currentMode == .mathExpression,
+           suggestionController.mathResultAction(
+               at: 1,
+               selectedText: textDocument.selectedText
+           ) != nil {
             suggestionBarView.updatePreviewHighlight(index: 1)
             return
         }
@@ -1532,32 +1515,10 @@ extension BaseKeyboardViewController {
         }
 
         if case .deleteButton = button.type {
-            if !isRepeatingInput {
-                let previousResolution = deleteMutationLifecycle
-                    .completeReleasedTouchDownAtCheckpoint(
-                        currentContext: currentTextContextSnapshot(),
-                        currentSelectedText: textDocumentProxy.selectedText
-                    )
-                processDeleteMutationResolution(previousResolution)
-
-                let disposition = deleteInteractionCoordinator.beginTouchDown(
-                    button: button,
-                    inputIdentifier: currentTextInputIdentifier
-                )
-                if disposition == .enqueued {
-                    return
-                }
-                guard beginDeleteTouchDownRequest() == .started else {
-                    cancelPendingDeleteInteractions()
-                    return
-                }
-            }
-            performDeleteTextInteractionWithSemanticHooks(for: button) {
-                performDeleteButtonTextInteraction()
-            }
+            textDeletionCoordinator.performTouchDown(for: button)
             return
         } else {
-            cancelPendingDeleteInteractions()
+            textDeletionCoordinator.cancelPendingInteractions()
         }
         textInteractionWillPerform(button: button)
         defer { textInteractionDidPerform(button: button) }
@@ -1581,13 +1542,13 @@ extension BaseKeyboardViewController {
         case .spaceButton:
             if let action = suggestionController.mathResultAction(
                 at: 1,
-                selectedText: textDocumentProxy.selectedText
-            ), applyMathResultSuggestionAction(action) {
+                selectedText: textDocument.selectedText
+            ), suggestionSelectionCoordinator.applyMathResultSuggestionAction(action) {
                 // 수식 action을 적용한 경우 일반 텍스트 대치를 건너뜁니다.
             } else {
                 if let replacement = suggestionController.attemptTextReplacement(
                     baseText: inputBuffer,
-                    documentContextBeforeInput: textDocumentProxy.documentContextBeforeInput
+                    documentContextBeforeInput: textDocument.documentContextBeforeInput
                 ) {
                     // 텍스트 대치: 래핑 메서드 사용
                     replaceTextWithSmartInsertDeleteSpacing(
@@ -1606,13 +1567,11 @@ extension BaseKeyboardViewController {
         guard self.view.window != nil else { return }
 
         if case .deleteButton = button.type {
-            performDeleteTextInteractionWithSemanticHooks(for: button) {
-                performRepeatDeleteTextInteraction(for: button)
-            }
+            textDeletionCoordinator.performRepeatTick(for: button)
             return
         }
 
-        cancelPendingDeleteInteractions()
+        textDeletionCoordinator.cancelPendingInteractions()
         textInteractionWillPerform(button: button)
         defer { textInteractionDidPerform(button: button) }
 
@@ -1635,321 +1594,25 @@ extension BaseKeyboardViewController {
     final public func performInitialRepeatDeleteTextInteraction(for button: TextInteractable) {
         guard self.view.window != nil else { return }
 
-        let action = deleteMutationLifecycle.actionForNextRepeat(
-            currentContext: currentTextContextSnapshot(),
-            currentSelectedText: textDocumentProxy.selectedText
-        )
-        switch action {
-        case .deleteAwaitingTextChange(let previousResolution):
-            processDeleteMutationResolution(previousResolution)
-            guard beginRepeatDeleteRequest() == .started else { return }
-            performTextInteraction(for: button)
-        case .awaitingPreviousMutation:
-            return
-        case .finishWithoutDeletion:
-            finishRepeatDeleteWithoutDeletion()
-        }
+        textDeletionCoordinator.performInitialRepeatDelete(for: button)
     }
 }
 
 // MARK: - Private Methods
 
 private extension BaseKeyboardViewController {
-    func performDeleteTextInteractionWithSemanticHooks(
-        for button: TextInteractable,
-        body: () -> Void
-    ) {
-        let wasDraining = isDrainingPendingDeleteInteractions
-        isDrainingPendingDeleteInteractions = true
-        textInteractionWillPerform(button: button)
-        defer {
-            textInteractionDidPerform(button: button)
-            isDrainingPendingDeleteInteractions = wasDraining
-            if !wasDraining {
-                drainPendingDeleteInteractionsIfPossible()
-            }
-        }
-        body()
-    }
-
-    func performRepeatDeleteTextInteraction(for button: TextInteractable) {
-        repeatInputTickCount += 1
-        let context = currentTextContextSnapshot()
-        let selectedText = textDocumentProxy.selectedText
-        let action = deleteMutationLifecycle.actionForNextRepeat(
-            currentContext: context,
-            currentSelectedText: selectedText
-        )
-        switch action {
-        case .deleteAwaitingTextChange(let previousResolution):
-            // 처리할 이전 결과가 없으면 그 사이 프록시가 바뀌지 않으므로 방금 읽은 문맥을 다시 쓴다.
-            // 프록시 읽기는 UIKit 내부 레이스로 크래시할 수 있어 틱마다 읽는 횟수를 줄인다
-            let startState = previousResolution == nil ? (context, selectedText) : nil
-            processDeleteMutationResolution(previousResolution)
-            guard beginRepeatDeleteRequest(reusing: startState) == .started else { return }
-            repeatDeleteBackward()
-        case .awaitingPreviousMutation:
-            return
-        case .finishWithoutDeletion:
-            finishRepeatDeleteWithoutDeletion()
-        }
-    }
-
-    func beginDeleteTouchDownRequest() -> DeleteMutationStartResult {
-        return deleteMutationLifecycle.beginTouchDown(
-            context: currentTextContextSnapshot(),
-            selectedText: textDocumentProxy.selectedText
-        )
-    }
-
-    /// - Parameter startState: 같은 틱에서 이미 읽은 문맥. `nil`이면 프록시에서 새로 읽는다
-    func beginRepeatDeleteRequest(
-        reusing startState: (KeyboardTextContextSnapshot, String?)? = nil
-    ) -> DeleteMutationStartResult {
-        guard deleteInteractionCoordinator.beginRepeatMutation(
-            inputIdentifier: currentTextInputIdentifier
-        ) != nil else {
-            return .awaitingPreviousMutation
-        }
-
-        let (context, selectedText) = startState
-            ?? (currentTextContextSnapshot(), textDocumentProxy.selectedText)
-        let result = deleteMutationLifecycle.beginRepeat(
-            context: context,
-            selectedText: selectedText
-        )
-        guard result == .started else {
-            cancelPendingDeleteInteractions()
-            return result
-        }
-        return .started
-    }
-
-    func performDeleteButtonTextInteraction() {
-        if let restore = suggestionController.attemptRestoreReplacement(
-            inputBuffer: inputBuffer,
-            documentContextBeforeInput: textDocumentProxy.documentContextBeforeInput,
-            selectedText: textDocumentProxy.selectedText
-        ) {
-            replaceText(deleteCount: restore.deleteCount, insert: restore.insertText)
-            return
-        }
-
-        let deletedCharacters = KeyboardTextInteractionPolicy.temporaryDeletedCharactersForSingleDelete(
-            selectedText: textDocumentProxy.selectedText,
-            documentContextBeforeInput: textDocumentProxy.documentContextBeforeInput
-        )
-        tempDeletedCharacters.append(contentsOf: deletedCharacters)
-        deleteBackward()
-    }
-
-    func performUndo() {
-        guard isUndoRedoFeatureAvailable else { return }
-
-        cancelPendingDeleteInteractions()
-        undoRedoSession.cancelDebounceTimer()
-        guard undoRedoSession.canApplyUndo(from: currentTextContextSnapshot()) else {
-            updateUndoRedoControls()
-            return
-        }
-        guard let edit = undoRedoSession.undo() else {
-            updateUndoRedoControls()
-            return
-        }
-        guard applyUndoRedoEdit(edit) else {
-            invalidateUndoRedoHistoryForTextContextChange()
-            return
-        }
-        undoRedoSession.updateLastRedoTargetContext(currentTextContextSnapshot())
-        updateUndoRedoControls()
-        FeedbackManager.shared.playHaptic()
-    }
-
-    func performRedo() {
-        guard isUndoRedoFeatureAvailable else { return }
-
-        cancelPendingDeleteInteractions()
-        undoRedoSession.cancelDebounceTimer()
-        guard undoRedoSession.canApplyRedo(from: currentTextContextSnapshot()) else {
-            updateUndoRedoControls()
-            return
-        }
-        guard let edit = undoRedoSession.redo() else {
-            updateUndoRedoControls()
-            return
-        }
-        guard applyUndoRedoEdit(edit) else {
-            invalidateUndoRedoHistoryForTextContextChange()
-            return
-        }
-        undoRedoSession.updateLastUndoTargetContext(currentTextContextSnapshot())
-        updateUndoRedoControls()
-        FeedbackManager.shared.playHaptic()
-    }
-
-    func applyUndoRedoEdit(_ edit: KeyboardUndoRedoEdit) -> Bool {
-        guard !BaseKeyboardViewController.isPreview else { return false }
-
-        return undoRedoSession.performApplyingEdit {
-            guard restoreTextPositionIfPossible(to: edit.targetContext) else { return false }
-
-            for _ in 0..<edit.deleteCount {
-                textDocumentProxy.deleteBackward()
-            }
-            if !edit.insertText.isEmpty {
-                textDocumentProxy.insertText(edit.insertText)
-            }
-
-            undoRedoEditDidApply()
-            updateReturnButtonEnabled()
-            updateSuggestions()
-            return true
-        }
-    }
-
+    /// 래퍼가 수행한 편집을 기록한다. 삭제 파이프라인이 먼저 capture를 시도하고, 삭제 요청 중이 아니면 undo에 기록한다
     func recordUndoRedoChange(
         deletedText: String,
         insertedText: String,
         reliability: RepeatDeleteMutationReliability = .authoritative
     ) {
-        let captureResult = deleteMutationLifecycle.capture(
+        if textDeletionCoordinator.captureMutation(
             deletedText: deletedText,
             insertedText: insertedText,
             reliability: reliability
-        )
-        switch captureResult {
-        case .awaitingTextChange:
-            return
-        case .completion(let resolution):
-            processDeleteMutationResolution(resolution)
-            return
-        case nil:
-            break
-        }
-
-        guard isUndoRedoFeatureAvailable,
-              !undoRedoSession.isApplyingEdit else { return }
-        undoRedoSession.record(
-            deletedText: deletedText,
-            insertedText: insertedText,
-            targetContext: currentTextContextSnapshot(),
-            shouldDeferCommit: { [weak self] in
-                self?.shouldDeferUndoRedoCommit == true
-            },
-            debouncedCommitDidFinish: { [weak self] in
-                self?.updateUndoRedoControls()
-            }
-        )
-        updateUndoRedoControls()
-    }
-
-    func processDeleteMutationResolution(_ resolution: DeleteMutationResolution?) {
-        guard let resolution else { return }
-
-        let effects = KeyboardTextInteractionPolicy.mutationResolutionEffects(resolution)
-        tempDeletedCharacters.append(contentsOf: effects.restorableCharacters)
-        deletePanBoundaryState.didResolve(resolution)
-        if resolution.origin == .panBoundary, !effects.restorableCharacters.isEmpty {
-            // 줄바꿈을 지워 새로 보이는 이전 줄로 모델을 다시 채운다
-            deletePanTextModel = DeletePanTextModel(beforeInput: textDocumentProxy.documentContextBeforeInput)
-        }
-
-        if effects.appliesMutationEffects,
-           case .mutations(let drafts) = resolution.completion {
-            for draft in drafts {
-                recordUndoRedoChange(
-                    deletedText: draft.deletedText,
-                    insertedText: draft.insertedText
-                )
-            }
-        }
-        if effects.appliesMutationEffects && resolution.shouldPlayFeedback {
-            FeedbackManager.shared.playHaptic()
-            FeedbackManager.shared.playDeleteSound()
-        }
-        guard !effects.settlesBeforeResumingPan else {
-            resumeDeletePanAfterSettling()
-            return
-        }
-        resolvePendingDeleteInteractionsIfNeeded(
-            discardingLeadingNoOpPanLeft: effects.discardsLeadingNoOpPanLeft
-        )
-        drainPendingDeleteInteractionsIfPossible()
-    }
-
-    /// 줄바꿈 삭제 뒤 입력창이 늦게 보내는 callback을 먼저 받은 다음 보류된 pan을 이어서 재생합니다.
-    func resumeDeletePanAfterSettling() {
-        guard let generation = deleteInteractionCoordinator.currentGeneration else { return }
-        DispatchQueue.main.asyncAfter(
-            deadline: .now() + KeyboardTextInteractionPolicy.deletePanBoundaryQuietInterval
-        ) { [weak self] in
-            guard let self,
-                  self.deleteInteractionCoordinator.currentGeneration == generation,
-                  self.deleteInteractionCoordinator.isWaitingForResolution,
-                  !self.deleteMutationLifecycle.isPending
-            else { return }
-
-            self.resolvePendingDeleteInteractionsIfNeeded(discardingLeadingNoOpPanLeft: false)
-            self.drainPendingDeleteInteractionsIfPossible()
-        }
-    }
-
-    func processDeleteMutationCallbackOutcome(_ outcome: DeleteMutationCallbackOutcome) {
-        switch outcome {
-        case .noResolution:
-            break
-        case .resolved(let resolution):
-            processDeleteMutationResolution(resolution)
-        case .cancelled:
-            cancelPendingDeleteInteractions()
-        }
-    }
-
-    func resolvePendingDeleteInteractionsIfNeeded(
-        discardingLeadingNoOpPanLeft: Bool
-    ) {
-        guard let generation = deleteInteractionCoordinator.currentGeneration else { return }
-        _ = deleteInteractionCoordinator.resolve(
-            generation,
-            discardingLeadingNoOpPanLeft: discardingLeadingNoOpPanLeft
-        )
-    }
-
-    @discardableResult
-    func completeRepeatDeleteAtCurrentContext() -> Bool {
-        let resolution = deleteMutationLifecycle.completeAtCheckpoint(
-            currentContext: currentTextContextSnapshot(),
-            currentSelectedText: textDocumentProxy.selectedText
-        )
-        guard resolution != nil else { return false }
-
-        processDeleteMutationResolution(resolution)
-        return true
-    }
-
-    func commitPendingUndoRedoGroup() {
-        undoRedoSession.commitPendingGroup(shouldDeferCommit: shouldDeferUndoRedoCommit)
-        updateUndoRedoControls()
-    }
-
-    func invalidateUndoRedoHistoryForTextContextChange() {
-        guard !undoRedoSession.isApplyingEdit else { return }
-        undoRedoSession.removeAll()
-        updateUndoRedoControls()
-    }
-
-    func updateUndoRedoControls() {
-        let shouldShowUndoRedo = KeyboardPresentationStatePolicy.shouldShowUndoRedoControls(
-            isSuggestionBarHidden: suggestionBarView.isHidden,
-            isUndoRedoFeatureAvailable: isUndoRedoFeatureAvailable
-        )
-        let currentContext = currentTextContextSnapshot()
-        suggestionBarView.updateUndoRedoControls(
-            isVisible: shouldShowUndoRedo,
-            canUndo: undoRedoSession.canApplyUndo(from: currentContext),
-            canRedo: undoRedoSession.canApplyRedo(from: currentContext)
-        )
-        updateClipboardControl()
+        ) { return }
+        undoRedoCoordinator.record(deletedText: deletedText, insertedText: insertedText)
     }
 
     func updateClipboardControl() {
@@ -1959,52 +1622,19 @@ private extension BaseKeyboardViewController {
         )
         suggestionBarView.updateClipboardControl(
             isVisible: shouldShowClipboard,
-            isPanelVisible: isClipboardPanelVisible
+            isPanelVisible: clipboardHistoryCoordinator.isPanelVisible
         )
     }
 
     func textBeforeCursorSuffix(count: Int) -> String {
         guard count > 0,
-              let beforeInput = textDocumentProxy.documentContextBeforeInput else { return "" }
+              let beforeInput = textDocument.documentContextBeforeInput else { return "" }
         return String(beforeInput.suffix(count))
-    }
-
-    func currentTextContextSnapshot() -> KeyboardTextContextSnapshot {
-        return KeyboardTextContextSnapshot(
-            beforeInput: textDocumentProxy.documentContextBeforeInput,
-            afterInput: textDocumentProxy.documentContextAfterInput
-        )
     }
 
     func textInputIdentifier(for textInput: (any UITextInput)?) -> ObjectIdentifier? {
         guard let textInput else { return nil }
         return ObjectIdentifier(textInput as AnyObject)
-    }
-
-    func invalidateUndoRedoHistoryIfNeededAfterTextChange(_ textInput: (any UITextInput)?) {
-        if undoRedoSession.shouldInvalidateAfterTextChange(
-            inputIdentifier: textInputIdentifier(for: textInput),
-            currentContext: currentTextContextSnapshot()
-        ) {
-            invalidateUndoRedoHistoryForTextContextChange()
-            suggestionController.clearReplacementHistory()
-        }
-    }
-
-    func restoreTextPositionIfPossible(to targetContext: KeyboardTextContextSnapshot?) -> Bool {
-        guard let targetContext else { return true }
-
-        guard let offset = KeyboardTextContextNavigator.cursorOffset(
-            from: currentTextContextSnapshot(),
-            to: targetContext
-        ) else {
-            return false
-        }
-
-        if offset != 0 {
-            textDocumentProxy.adjustTextPosition(byCharacterOffset: offset)
-        }
-        return true
     }
 
     func updateSuggestions() {
@@ -2021,9 +1651,9 @@ private extension BaseKeyboardViewController {
     }
 
     func updateSuggestionsForCurrentContext() {
-        suggestionController.isShowMathResultsEnabled = shouldShowMathResults()
+        suggestionController.isShowMathResultsEnabled = suggestionSelectionCoordinator.shouldShowMathResults()
 
-        let selectedText = textDocumentProxy.selectedText
+        let selectedText = textDocument.selectedText
         let action = KeyboardSuggestionSelectionPolicy.suggestionUpdateAction(
             isPredictiveTextEnabled: suggestionController.isPredictiveTextEnabled,
             selectedText: selectedText,
@@ -2033,7 +1663,7 @@ private extension BaseKeyboardViewController {
             .mathExpressionDetectionText(
                 selectedText: selectedText,
                 inputBuffer: inputBuffer,
-                documentContextBeforeInput: textDocumentProxy.documentContextBeforeInput
+                documentContextBeforeInput: textDocument.documentContextBeforeInput
             )
 
         switch action {
@@ -2065,7 +1695,7 @@ private extension BaseKeyboardViewController {
             performedPeriodShortcut: performedPeriodShortcut,
             preventsNextPeriodShortcut: preventNextPeriodShortcut,
             documentContextBeforeInput: requiresDocumentContext
-            ? textDocumentProxy.documentContextBeforeInput
+            ? textDocument.documentContextBeforeInput
             : nil
         )
 
@@ -2073,32 +1703,6 @@ private extension BaseKeyboardViewController {
         preventNextPeriodShortcut = state.preventsNextPeriodShortcut
     }
 
-    func cancelTimer() {
-        timer?.cancel()
-        timer = nil
-        logger.debug("반복 타이머 초기화")
-    }
-
-    func stopRepeatInputTracking(preservingTouchDown: Bool = false) {
-        KeyboardDiagnostics.log(
-            "repeatInput stop ticks=\(KeyboardDiagnostics.bucket(repeatInputTickCount))"
-            + " preservingTouchDown=\(preservingTouchDown)"
-        )
-        cancelTimer()
-        if preservingTouchDown {
-            deleteMutationLifecycle.finishRepeatTracking()
-        } else {
-            cancelPendingDeleteInteractions()
-        }
-        isRepeatingInput = false
-    }
-
-    func finishRepeatDeleteWithoutDeletion() {
-        KeyboardDiagnostics.log("repeatDelete exhausted")
-        guard deleteMutationLifecycle.completeWithoutDeletion() == .noDeletion else { return }
-
-        stopRepeatInputTracking()
-    }
 }
 
 // MARK: - SwitchGestureControllerDelegate
@@ -2120,7 +1724,7 @@ private extension BaseKeyboardViewController {
     func captureInputBufferLeadingContextIfNeeded() {
         guard inputBuffer.isEmpty else { return }
         inputBufferLeadingContext = KeyboardSuggestionSelectionPolicy.limitedDocumentContextBeforeInput(
-            textDocumentProxy.documentContextBeforeInput
+            textDocument.documentContextBeforeInput
         )
     }
 
@@ -2131,7 +1735,7 @@ private extension BaseKeyboardViewController {
         KeyboardSuggestionSelectionPolicy.generalSuggestionBaseText(
             leadingContext: inputBufferLeadingContext,
             inputBuffer: inputBuffer,
-            documentContextBeforeInput: inputBuffer.isEmpty ? textDocumentProxy.documentContextBeforeInput : nil
+            documentContextBeforeInput: inputBuffer.isEmpty ? textDocument.documentContextBeforeInput : nil
         )
     }
 
@@ -2143,53 +1747,6 @@ private extension BaseKeyboardViewController {
                 inputBufferLeadingContext
             )
         )
-    }
-}
-
-// MARK: - Sent Text Recording
-
-/// 전송 판정과 기록에 쓰는 `textWillChange` 시점의 입력 상태
-private struct SentTextSnapshot {
-    let inputBuffer: String
-    let sentenceWords: [String]
-    let documentIdentifier: UUID?
-}
-
-private extension BaseKeyboardViewController {
-    /// 기록하지 않은 입력이 있을 때만 스냅샷을 만든다
-    func makeSentTextSnapshot() -> SentTextSnapshot? {
-        let buffer = learnableInputBuffer
-        guard buffer.contains(where: { !$0.isWhitespace }) else { return nil }
-        return SentTextSnapshot(
-            inputBuffer: buffer,
-            sentenceWords: suggestionController.sentenceWordsSnapshot(),
-            documentIdentifier: currentDocumentIdentifier()
-        )
-    }
-
-    /// 입력창이 전송으로 비었으면 스냅샷의 마지막 단어까지 기록하고 문장을 끝낸다
-    func recordSentTextIfNeeded() {
-        guard let snapshot = pendingSentTextSnapshot else { return }
-        pendingSentTextSnapshot = nil
-        guard KeyboardSentTextDetectionPolicy.isSentAfterTextChange(
-            documentIdentifierBeforeChange: snapshot.documentIdentifier,
-            documentIdentifierAfterChange: currentDocumentIdentifier(),
-            beforeInput: textDocumentProxy.documentContextBeforeInput,
-            afterInput: textDocumentProxy.documentContextAfterInput,
-            selectedText: textDocumentProxy.selectedText,
-            returnKeyType: textDocumentProxy.returnKeyType
-        ) else { return }
-
-        suggestionController.endSentence(
-            inputBuffer: snapshot.inputBuffer,
-            restoringSentenceWords: snapshot.sentenceWords
-        )
-    }
-
-    /// 헤더는 nonnull이지만 키보드가 처음 뜰 때나 입력창이 바뀌는 순간 nil이 온다.
-    /// Swift 프로퍼티로 읽으면 `UUID` 브리징에서 크래시하므로 KVC로 읽는다
-    func currentDocumentIdentifier() -> UUID? {
-        return (textDocumentProxy as AnyObject).value(forKey: "documentIdentifier") as? UUID
     }
 }
 
@@ -2209,39 +1766,11 @@ extension BaseKeyboardViewController: TextInteractionGestureControllerDelegate {
     }
 
     final func deleteButtonPanning(_ controller: TextInteractionGestureController, to direction: PanDirection) {
-        showDeleteDragOverlays()
-        guard deleteInteractionCoordinator.enqueuePan(direction) == .performNow else {
-            // 경계 요청을 보내기 전이면 방향을 바꾼 사용자를 기다리게 하지 않는다
-            if deletePanBoundaryState.shouldCancelPendingBeforeSend(on: .pan(direction: direction)) {
-                cancelPendingDeletePanBoundary()
-            }
-            return
-        }
-        performDeleteButtonPanIfLifecycleReady(to: direction)
+        textDeletionCoordinator.handlePan(to: direction)
     }
 
     final func deleteButtonPanStopped(_ controller: TextInteractionGestureController) {
-        hideDeleteDragOverlays()
-        guard deleteInteractionCoordinator.enqueuePanStop() == .performNow else {
-            // 경계 요청을 보내기 전이면 손을 뗀 뒤에 보내지 않고 바로 끝낸다
-            if deletePanBoundaryState.shouldCancelPendingBeforeSend(on: .panStop) {
-                cancelPendingDeletePanBoundary()
-                return
-            }
-            let generation = deleteInteractionCoordinator.currentGeneration
-            let resolution = deleteMutationLifecycle.finishPanBoundary(
-                currentContext: currentTextContextSnapshot(),
-                currentSelectedText: textDocumentProxy.selectedText
-            )
-            processDeleteMutationResolution(resolution)
-            if let generation,
-               resolution == nil,
-               deleteMutationLifecycle.hasReleasedPanBoundaryRequest {
-                scheduleReleasedPanBoundaryCheckpoint(for: generation)
-            }
-            return
-        }
-        finishDeleteButtonPanTracking()
+        textDeletionCoordinator.handlePanStop()
     }
 
     final func primaryButtonPanStopped(_ controller: TextInteractionGestureController) {
@@ -2261,7 +1790,7 @@ extension BaseKeyboardViewController: TextInteractionGestureControllerDelegate {
         ) {
             repeatTextInteractionWillPerform(button: button)
             guard isRepeatingInput else { return }
-            startRepeatInputTimer(for: button)
+            textDeletionCoordinator.startRepeatInputTimer(for: button)
         } else if KeyboardGesturePolicy.shouldPerformNumberInputOnLongPress(
             selectedLongPressAction: keyboardSettingsManager.selectedLongPressAction,
             isDeleteButton: isDeleteButton
@@ -2290,378 +1819,29 @@ private extension BaseKeyboardViewController {
         cursorDragIndicatorView.isHidden = true
     }
 
-    func showDeleteDragOverlays() {
-        deleteDragIndicatorView.isHidden = false
-    }
-
-    func hideDeleteDragOverlays() {
-        deleteDragIndicatorView.isHidden = true
-    }
-
-    func cancelPendingDeleteInteractions() {
-        finishCancelledDeletePanIfNeeded(
-            DeleteInteractionNonDeleteMutationBoundary.cancel(
-                lifecycle: &deleteMutationLifecycle,
-                coordinator: &deleteInteractionCoordinator
-            )
-        )
-    }
-
-    func drainPendingDeleteInteractionsIfPossible() {
-        guard !isDrainingPendingDeleteInteractions else { return }
-
-        isDrainingPendingDeleteInteractions = true
-        defer { isDrainingPendingDeleteInteractions = false }
-
-        while let event = deleteInteractionCoordinator.nextReadyEvent() {
-            switch event {
-            case .touchDown(let button):
-                guard beginDeleteTouchDownRequest() == .started else {
-                    cancelPendingDeleteInteractions()
-                    return
-                }
-                performDeleteTextInteractionWithSemanticHooks(for: button) {
-                    performDeleteButtonTextInteraction()
-                }
-                let resolution = deleteMutationLifecycle.finishTouchDown(
-                    currentContext: currentTextContextSnapshot(),
-                    currentSelectedText: textDocumentProxy.selectedText
-                )
-                processDeleteMutationResolution(resolution)
-                if deleteMutationLifecycle.isPending {
-                    return
-                }
-            case .pan(let direction):
-                performDeleteButtonPanIfLifecycleReady(to: direction)
-                if deleteMutationLifecycle.isPending {
-                    return
-                }
-            case .panStop:
-                finishDeleteButtonPanTracking()
-            }
-        }
-    }
-
-    func synchronizeDeleteInteractionInputIdentifier(_ textInput: (any UITextInput)?) {
-        let inputIdentifier = textInputIdentifier(for: textInput)
-        if let cancellation = DeleteInteractionInputChangeBoundary.cancelIfInputIdentifierChanged(
-            to: inputIdentifier,
-            lifecycle: &deleteMutationLifecycle,
-            coordinator: &deleteInteractionCoordinator
-        ) {
-            finishCancelledDeletePanIfNeeded(cancellation)
-        }
-        if let inputIdentifier {
-            currentTextInputIdentifier = inputIdentifier
-        }
-    }
-
-    func finishCancelledDeletePanIfNeeded(_ cancellation: DeleteInteractionCancellationResult) {
-        guard cancellation.shouldFinishPanTracking else { return }
-
-        hideDeleteDragOverlays()
-        tempDeletedCharacters.removeAll()
-        resetDeletePanTextModel()
-        deleteButtonPanDidStop()
-        logger.debug("취소된 삭제 pan 임시 상태 초기화")
-    }
-
-    func performDeleteButtonPanInteraction(to direction: PanDirection) {
-        switch direction {
-        case .left:
-            performDeleteButtonPanDeleteIfPossible()
-        case .right:
-            performDeleteButtonPanRestoreIfPossible()
-        default:
-            assertionFailure("도달할 수 없는 case 입니다.")
-        }
-    }
-
-    func performDeleteButtonPanIfLifecycleReady(to direction: PanDirection) {
-        let action = deleteMutationLifecycle.actionForDeletePan(
-            currentContext: currentTextContextSnapshot(),
-            currentSelectedText: textDocumentProxy.selectedText
-        )
-        switch action {
-        case .perform(let previousResolution):
-            processDeleteMutationResolution(previousResolution)
-            performDeleteButtonPanInteraction(to: direction)
-        case .awaitingPreviousMutation:
-            return
-        }
-    }
-
-    /// 드래그의 첫 삭제·복구 전에 커서 앞 문맥을 한 번 읽어 모델을 만듭니다.
-    func prepareDeletePanTextModelIfNeeded() {
-        guard deletePanTextModel == nil else { return }
-        deletePanTextModel = DeletePanTextModel(beforeInput: textDocumentProxy.documentContextBeforeInput)
-    }
-
-    func resetDeletePanTextModel() {
-        deletePanTextModel = nil
-        deletePanBoundaryState.reset()
-    }
-
-    func scheduleReleasedPanBoundaryCheckpoint(
-        for generation: DeleteInteractionGeneration
-    ) {
-        DispatchQueue.main.async { [weak self] in
-            guard let self,
-                  self.deleteInteractionCoordinator.currentGeneration == generation,
-                  self.deleteInteractionCoordinator.isWaitingForResolution,
-                  self.deleteMutationLifecycle.hasReleasedPanBoundaryRequest
-            else { return }
-
-            let resolution = self.deleteMutationLifecycle.completeAtCheckpoint(
-                currentContext: self.currentTextContextSnapshot(),
-                currentSelectedText: self.textDocumentProxy.selectedText
-            )
-            guard let resolution else {
-                self.cancelPendingDeleteInteractions()
-                return
-            }
-            self.processDeleteMutationResolution(resolution)
-        }
-    }
-
-    func finishDeleteButtonPanTracking() {
-        tempDeletedCharacters.removeAll()
-        resetDeletePanTextModel()
-        deleteButtonPanDidStop()
-        logger.debug("임시 삭제 내용 저장 변수 초기화")
-    }
-
     func moveCursorIfPossible(to direction: PanDirection, steps: Int) -> Int {
         let actualSteps = CursorDragAccelerationPolicy.applicableSteps(
             to: direction,
             requestedSteps: steps,
-            documentContextBeforeInput: textDocumentProxy.documentContextBeforeInput,
-            documentContextAfterInput: textDocumentProxy.documentContextAfterInput
+            documentContextBeforeInput: textDocument.documentContextBeforeInput,
+            documentContextAfterInput: textDocument.documentContextAfterInput
         )
         guard actualSteps > 0 else { return 0 }
 
-        pendingCursorDragHapticContext = currentTextContextSnapshot()
+        pendingCursorDragHapticContext = textDocument.contextSnapshot
         switch direction {
         case .left:
-            textDocumentProxy.adjustTextPosition(byCharacterOffset: -actualSteps)
+            textDocument.adjustTextPosition(byCharacterOffset: -actualSteps)
         case .right:
-            textDocumentProxy.adjustTextPosition(byCharacterOffset: actualSteps)
+            textDocument.adjustTextPosition(byCharacterOffset: actualSteps)
         default:
             pendingCursorDragHapticContext = nil
             assertionFailure("도달할 수 없는 case 입니다.")
             return 0
         }
 
-        updateUndoRedoControls()
+        undoRedoCoordinator.refreshControls()
         return actualSteps
-    }
-
-    func performDeleteButtonPanDeleteIfPossible() {
-        prepareDeletePanTextModelIfNeeded()
-        let selectedText = textDocumentProxy.selectedText
-        // 되살릴 수 없는 첨부·토큰 앞에서는 지우지 않고 멈춘다
-        guard !KeyboardTextInteractionPolicy.shouldStopDeletePan(
-            previousCharacter: deleteButtonPanPreviousCharacter,
-            selectedText: selectedText
-        ) else { return }
-        deletePanDeletedTextOverride = deleteButtonPanPreviousCharacter.map(String.init)
-        let deleteResult = deleteButtonPanDeleteText(
-            hasPendingRestoreText: !tempDeletedCharacters.isEmpty
-        )
-        deletePanDeletedTextOverride = nil
-        if let deleteResult {
-            lastDeletePanEditTime = CACurrentMediaTime()
-            if KeyboardTextInteractionPolicy.shouldTrackDeletePanStep(selectedText: selectedText) {
-                deletePanTextModel?.removeLast()
-                if deleteResult.shouldRestore {
-                    tempDeletedCharacters.append(deleteResult.character)
-                }
-            }
-            updateSuggestions()
-            FeedbackManager.shared.playHaptic()
-            FeedbackManager.shared.playDeleteSound()
-            return
-        }
-
-        guard !deletePanBoundaryState.isBlocked,
-              KeyboardTextInteractionPolicy.shouldRequestDeletePanBoundary(
-                hasText: textDocumentProxy.hasText,
-                hasDeletedInCurrentPan: !tempDeletedCharacters.isEmpty,
-                documentContextBeforeInput: deletePanTextModel?.remainingText,
-                selectedText: textDocumentProxy.selectedText
-              ) else { return }
-        guard let generation = deleteInteractionCoordinator.beginPanBoundaryMutation(
-            inputIdentifier: currentTextInputIdentifier
-        ) else { return }
-        deletePanBoundaryState.beginPending(generation: generation)
-
-        // 입력창이 직전 편집을 반영할 시간을 준 뒤 앞 문맥을 본다
-        let delay = KeyboardTextInteractionPolicy.deletePanBoundaryDelay(
-            elapsedSinceLastEdit: CACurrentMediaTime() - lastDeletePanEditTime
-        )
-        guard delay > 0 else {
-            evaluatePendingDeletePanBoundary(for: generation)
-            return
-        }
-        DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [weak self] in
-            self?.evaluatePendingDeletePanBoundary(for: generation)
-        }
-    }
-
-    /// 모델이 바닥난 뒤 입력창 앞 문맥을 보고 경계를 묻거나, 기다리거나, 모델을 다시 채웁니다.
-    ///
-    /// 경계 요청(`deleteBackward()`)을 보내기 전 단계라서 이 동안의 방향 전환·팬 종료는 바로 취소할 수 있습니다.
-    func evaluatePendingDeletePanBoundary(for generation: DeleteInteractionGeneration) {
-        guard deletePanBoundaryState.isPending(generation: generation),
-              deleteInteractionCoordinator.currentGeneration == generation,
-              deleteInteractionCoordinator.isWaitingForResolution,
-              !deleteMutationLifecycle.hasPanBoundaryRequest
-        else { return }
-
-        switch KeyboardTextInteractionPolicy.deletePanExhaustedContextAction(
-            sourceText: deletePanTextModel?.sourceText ?? "",
-            documentContextBeforeInput: textDocumentProxy.documentContextBeforeInput
-        ) {
-        case .requestBoundary:
-            sendDeletePanBoundaryRequest(for: generation)
-        case .awaitSync:
-            waitForDeletePanBoundaryContextSync(for: generation)
-        case .refill:
-            // 모델이 잘려 있었으므로 보이는 앞 문맥으로 다시 채우고, 경계를 묻지 않은 채 이어서 지운다
-            deletePanTextModel = DeletePanTextModel(beforeInput: textDocumentProxy.documentContextBeforeInput)
-            finishPendingDeletePanBoundaryWithoutRequest(discardingLeadingNoOpPanLeft: false)
-            performDeleteButtonPanDeleteIfPossible()
-            drainPendingDeleteInteractionsIfPossible()
-        }
-    }
-
-    func sendDeletePanBoundaryRequest(for generation: DeleteInteractionGeneration) {
-        let timeoutID = deletePanBoundaryState.didSendRequest()
-        guard deleteMutationLifecycle.beginPanBoundary(
-            context: currentTextContextSnapshot(),
-            selectedText: textDocumentProxy.selectedText
-        ) == .started else {
-            deleteMutationLifecycle.cancel()
-            finishCancelledDeletePanIfNeeded(deleteInteractionCoordinator.cancel())
-            return
-        }
-
-        lastDeletePanEditTime = CACurrentMediaTime()
-        deleteText()
-        scheduleDeletePanBoundaryTimeout(for: generation, timeoutID: timeoutID)
-    }
-
-    /// 입력창 문맥이 따라오기를 기다리고, 끝내 따라오지 않으면 경계를 넘지 않고 끝냅니다.
-    func waitForDeletePanBoundaryContextSync(for generation: DeleteInteractionGeneration) {
-        guard let waitID = deletePanBoundaryState.beginSyncWait() else { return }
-        DispatchQueue.main.asyncAfter(
-            deadline: .now() + KeyboardTextInteractionPolicy.deletePanBoundaryTimeout
-        ) { [weak self] in
-            guard let self,
-                  self.deletePanBoundaryState.isCurrentSyncWait(waitID),
-                  self.deletePanBoundaryState.isPending(generation: generation),
-                  self.deleteInteractionCoordinator.currentGeneration == generation,
-                  self.deleteInteractionCoordinator.isWaitingForResolution,
-                  !self.deleteMutationLifecycle.hasPanBoundaryRequest
-            else { return }
-
-            self.cancelPendingDeletePanBoundary()
-        }
-    }
-
-    /// 경계 요청을 보내기 전 단계의 대기를 취소하고, 이번 드래그에서는 더 이상 경계를 넘지 않습니다.
-    func cancelPendingDeletePanBoundary() {
-        deletePanBoundaryState.cancelPending()
-        resolvePendingDeleteInteractionsIfNeeded(discardingLeadingNoOpPanLeft: true)
-        drainPendingDeleteInteractionsIfPossible()
-    }
-
-    func finishPendingDeletePanBoundaryWithoutRequest(discardingLeadingNoOpPanLeft: Bool) {
-        deletePanBoundaryState.finishPendingWithoutRequest()
-        resolvePendingDeleteInteractionsIfNeeded(
-            discardingLeadingNoOpPanLeft: discardingLeadingNoOpPanLeft
-        )
-    }
-
-    func resumePendingDeletePanBoundaryIfNeeded() {
-        // 마지막 드래그 편집 뒤 조용한 시간이 지나기 전에는 예약된 판정에 맡긴다.
-        // 그 사이 callback은 드래그 전 문맥을 담고 있을 수 있어 모델을 잘못 다시 채울 수 있다
-        guard let generation = deletePanBoundaryState.pendingGeneration,
-              KeyboardTextInteractionPolicy.deletePanBoundaryDelay(
-                elapsedSinceLastEdit: CACurrentMediaTime() - lastDeletePanEditTime
-              ) == 0
-        else { return }
-        evaluatePendingDeletePanBoundary(for: generation)
-    }
-
-    /// callback 없이 경계 요청이 끝나지 않으면 일정 시간 뒤 확정해 드래그가 멈추지 않게 합니다.
-    func scheduleDeletePanBoundaryTimeout(
-        for generation: DeleteInteractionGeneration,
-        timeoutID: Int
-    ) {
-        DispatchQueue.main.asyncAfter(
-            deadline: .now() + KeyboardTextInteractionPolicy.deletePanBoundaryTimeout
-        ) { [weak self] in
-            guard let self,
-                  self.deleteInteractionCoordinator.currentGeneration == generation,
-                  self.deleteInteractionCoordinator.isWaitingForResolution,
-                  self.deleteMutationLifecycle.hasPanBoundaryRequest,
-                  // 입력창 확인 없이 확정하므로 이번 드래그에서는 더 이상 경계를 넘지 않는다
-                  self.deletePanBoundaryState.requestDidTimeOut(timeoutID)
-            else { return }
-
-            self.processDeleteMutationResolution(
-                self.deleteMutationLifecycle.completePanBoundaryAfterTimeout(
-                    currentContext: self.currentTextContextSnapshot(),
-                    currentSelectedText: self.textDocumentProxy.selectedText
-                )
-            )
-        }
-    }
-
-    func performDeleteButtonPanRestoreIfPossible() {
-        guard let lastDeleted = tempDeletedCharacters.popLast() else { return }
-
-        prepareDeletePanTextModelIfNeeded()
-        deleteButtonPanRestoreText(lastDeleted)
-        deletePanTextModel?.append(lastDeleted)
-        lastDeletePanEditTime = CACurrentMediaTime()
-        updateSuggestions()
-        FeedbackManager.shared.playHaptic()
-        FeedbackManager.shared.playDeleteSound()
-    }
-
-    func startRepeatInputTimer(for button: TextInteractable) {
-        let repeatTimerInterval = KeyboardTextInteractionPolicy.repeatTimerInterval(
-            repeatRate: keyboardSettingsManager.repeatRate
-        )
-        repeatInputTickCount = 0
-        KeyboardDiagnostics.log(
-            "repeatInput start button=\(String(describing: type(of: button))) interval=\(repeatTimerInterval)"
-        )
-        let startedInputIdentifier = currentTextInputIdentifier
-        timer = Timer.publish(every: repeatTimerInterval, on: .main, in: .common)
-            .autoconnect()
-            .sink { [weak self, weak button] _ in
-                if !KeyboardTextInteractionPolicy.shouldContinueRepeatInput(
-                    startedInputIdentifier: startedInputIdentifier,
-                    currentInputIdentifier: self?.currentTextInputIdentifier
-                ) {
-                    self?.stopRepeatInputTracking()
-                    return
-                }
-                if self?.view.window == nil {
-                    self?.stopRepeatInputTracking()
-                    return
-                }
-                guard let button else {
-                    self?.stopRepeatInputTracking()
-                    return
-                }
-
-                self?.performRepeatTextInteraction(for: button)
-            }
-        logger.debug("반복 타이머 생성")
     }
 
     func performNumberInputLongPress(for button: TextInteractable) {
@@ -2692,7 +1872,7 @@ private extension BaseKeyboardViewController {
 
         if KeyboardSymbolInputPolicy.shouldSwitchToPrimaryAfterApostropheInput(
             buttonType: button.type,
-            keyboardType: textDocumentProxy.keyboardType ?? .default,
+            keyboardType: textDocument.keyboardType ?? .default,
             isAutoChangeToPrimaryEnabled: keyboardSettingsManager.isAutoChangeToPrimaryEnabled
         ) {
             currentKeyboard = primaryKeyboardView.keyboard
@@ -2700,493 +1880,52 @@ private extension BaseKeyboardViewController {
     }
 }
 
-// MARK: - SuggestionControllerDelegate
+// MARK: - SuggestionSelectionHost
 
-extension BaseKeyboardViewController: SuggestionControllerDelegate {
-    final func suggestionController(_ controller: SuggestionController, didUpdateCurrentWord currentWord: String?, suggestions: [String]) {
-        if controller.currentMode == .mathExpression {
-            suggestionBarView.updateSuggestions(
-                currentWord: nil,
-                suggestions: suggestions
-            )
-        } else {
-            // 길게 눌러 삭제할 수 있는 칸만 medium으로 표시한다. 삭제가 막힌 미리보기에서는 표시도 하지 않는다
-            let removableIndices = BaseKeyboardViewController.isPreview ? IndexSet() : controller.removableBarIndices
-            suggestionBarView.updateSuggestions(
-                currentWord: currentWord,
-                suggestions: suggestions,
-                removableIndices: removableIndices
-            )
-        }
+extension BaseKeyboardViewController: SuggestionSelectionHost {
+    var currentInputBuffer: String { inputBuffer }
+    var suggestionBaseText: String { generalSuggestionBaseText }
+    var learnableWordText: String { learnableInputBuffer }
+    var overlayContainerView: UIView { view }
 
-        updateSuggestionPreviewHighlight()
+    func replaceTextWithSmartSpacing(deleteCount: Int, insert text: String) {
+        replaceTextWithSmartInsertDeleteSpacing(deleteCount: deleteCount, insert: text)
+    }
+
+    func smartSpacedText(deleteCount: Int, insert text: String) -> String {
+        textWithSmartInsertDeleteLeadingSpace(deleteCount: deleteCount, insert: text)
+    }
+
+    func refreshSuggestionPreviewHighlight() { updateSuggestionPreviewHighlight() }
+    func undoLastEdit() { undoRedoCoordinator.undo() }
+    func redoLastEdit() { undoRedoCoordinator.redo() }
+    func toggleClipboardPanel() { clipboardHistoryCoordinator.togglePanel() }
+}
+
+// MARK: - ClipboardHistoryHost
+
+extension BaseKeyboardViewController: ClipboardHistoryHost {
+    var isPreviewMode: Bool { BaseKeyboardViewController.isPreview }
+    var isViewInWindow: Bool { viewIfLoaded?.window != nil }
+
+    func refreshShowingKeyboard() { updateShowingKeyboard() }
+    func refreshClipboardControl() { updateClipboardControl() }
+    func refreshReturnButtonEnabled() { updateReturnButtonEnabled() }
+    func refreshSuggestions() { updateSuggestions() }
+    func interruptPendingDeleteInteractions() { textDeletionCoordinator.cancelPendingInteractions() }
+    func openURL(_ url: URL) { openURLThroughResponderChain(url) }
+}
+
+// MARK: - TextDeletionHost
+
+extension BaseKeyboardViewController: TextDeletionHost {
+    func performDeleteTextInteraction(for button: TextInteractable) { performTextInteraction(for: button) }
+
+    func recordEditForUndo(deletedText: String, insertedText: String) {
+        recordUndoRedoChange(deletedText: deletedText, insertedText: insertedText)
     }
 }
 
-// MARK: - SuggestionBarDelegate
+// MARK: - UndoRedoHost
 
-extension BaseKeyboardViewController: SuggestionBarDelegate {
-    final func suggestionBar(_ bar: SuggestionBarView, didSelectSuggestionAt index: Int) {
-        cancelPendingDeleteInteractions()
-        if handleMathResultSuggestion(at: index) { return }
-        if handleSelectedTextSuggestion(at: index) { return }
-        if handleNGramSuggestion(at: index) { return }
-        if handleCurrentWordConfirmationIfNeeded(at: index) { return }
-        handleInputBufferSuggestion(at: index)
-    }
-
-    final func suggestionBar(_ bar: SuggestionBarView, shouldBeginRemovalAt index: Int) -> Bool {
-        guard !BaseKeyboardViewController.isPreview,
-              let word = suggestionController.removableSuggestionText(atBarIndex: index) else { return false }
-        showSuggestionRemovalConfirmation(for: word)
-        return true
-    }
-
-    final func suggestionBarDidTapUndo(_ bar: SuggestionBarView) {
-        performUndo()
-    }
-
-    final func suggestionBarDidTapRedo(_ bar: SuggestionBarView) {
-        performRedo()
-    }
-
-    final func suggestionBarDidTapClipboard(_ bar: SuggestionBarView) {
-        // 미리보기는 실제 키보드와 같은 모습을 보여주는 것이 목적이라 버튼을 비활성으로 만들지 않고,
-        // 패널만 열지 않는다. undo/redo가 미리보기에서 회색인 것은 세션이 비어 canUndo가 false이기 때문이다
-        guard !BaseKeyboardViewController.isPreview else { return }
-        toggleClipboardPanel()
-    }
-}
-
-// MARK: - Clipboard History
-
-private extension BaseKeyboardViewController {
-
-    /// 클립보드 기록 기능 사용 가능 여부. 설정 ON, Full Access, 미리보기 아님
-    var isClipboardHistoryAvailable: Bool {
-        return keyboardSettingsManager.isClipboardHistoryEnabled
-        && hasFullAccess
-        && !BaseKeyboardViewController.isPreview
-    }
-
-    /// pasteboard의 `changeCount`가 마지막 확인값과 다를 때만 텍스트 또는 이미지를 읽어 기록에 저장합니다.
-    ///
-    /// 호출 시점: `viewWillAppear`, 호스트 앱 재활성화, `textWillChange`, 클립보드 버튼 탭. `textDidChange`와 selection 콜백은 쓰지 않습니다.
-    /// 앱도 같은 `ClipboardHistoryPasteboardSynchronizer`를 쓰지만, 활성화 시에는 키보드가 예산 초과로 건너뛴 이미지가 남아 있을 때만 읽는다(#154).
-    /// 이미지 저장 완료는 `didRecordImageNotification`으로 받는다(`clipboardImageDidRecord`)
-    func synchronizeClipboardHistoryIfNeeded() {
-        guard isClipboardHistoryAvailable, let clipboardHistoryStore else { return }
-        ClipboardHistoryPasteboardSynchronizer.synchronizeIfNeeded(store: clipboardHistoryStore)
-    }
-
-    /// 백그라운드 이미지 저장이 끝나 기록됐을 때. 패널이 열려 있으면 새 항목이 보이도록 다시 읽는다
-    @objc func clipboardImageDidRecord() {
-        guard isClipboardPanelVisible else { return }
-        reloadClipboardPanel()
-    }
-
-    /// 호스트 앱이 다시 활성화되면 그사이 다른 앱에서 복사한 내용을 반영한다.
-    /// 텍스트는 동기 저장이라 패널이 열려 있으면 바로 다시 읽고, 이미지는 저장 완료 콜백이 다시 읽는다.
-    /// 제어 센터·알림 센터를 내렸다 올려도 오므로, 목록이 실제로 바뀐 경우에만 다시 구성해 열린 상세 뷰·삭제 확인·안내문을 지우지 않는다
-    @objc func hostDidBecomeActive() {
-        // 키보드가 내려간 뒤 프로세스만 남아 있을 때는 읽지 않는다. 보이지 않는 키보드가 붙여넣기 권한 알림을 띄우지 않게 한다
-        guard viewIfLoaded?.window != nil else { return }
-        synchronizeClipboardHistoryIfNeeded()
-        guard isClipboardPanelVisible, isClipboardHistoryAvailable, let clipboardHistoryStore,
-              clipboardHistoryStore.load() != clipboardHistoryPanelView.items else { return }
-        reloadClipboardPanel()
-    }
-
-    /// 패널이 열린 채 이 키보드 안에서 pasteboard가 바뀌면(상세 뷰 일부 복사) 기록에 반영하고, 보던 상세 뷰는 유지한다.
-    /// 붙여넣기·이미지 복원은 쓴 직후 changeCount를 갱신하므로, 그 갱신이 끝난 다음 runloop에서 확인해 중복 기록하지 않는다
-    @objc func pasteboardDidChange() {
-        DispatchQueue.main.async { [weak self] in
-            guard let self, self.isClipboardPanelVisible, self.isClipboardHistoryAvailable,
-                  let clipboardHistoryStore = self.clipboardHistoryStore else { return }
-            self.synchronizeClipboardHistoryIfNeeded()
-            guard clipboardHistoryStore.load() != self.clipboardHistoryPanelView.items else { return }
-            self.reloadClipboardPanel(keepsDetail: true)
-        }
-    }
-
-    /// 클립보드 버튼 탭. 열려 있으면 닫고, 닫혀 있으면 동기화 후 엽니다.
-    func toggleClipboardPanel() {
-        if isClipboardPanelVisible {
-            closeClipboardPanelIfNeeded()
-        } else {
-            openClipboardPanel()
-        }
-    }
-
-    /// 패널을 닫고 자판으로 돌아갑니다. 이미 닫혀 있으면 아무것도 하지 않습니다.
-    func closeClipboardPanelIfNeeded() {
-        guard isClipboardPanelVisible else { return }
-        isClipboardPanelVisible = false
-        clipboardHistoryPanelView.resetPresentation()
-        updateShowingKeyboard()
-        updateClipboardControl()
-    }
-
-    func openClipboardPanel() {
-        cancelPendingDeleteInteractions()
-        synchronizeClipboardHistoryIfNeeded()
-        reloadClipboardPanel()
-        isClipboardPanelVisible = true
-        updateShowingKeyboard()
-        updateClipboardControl()
-    }
-
-    /// `keepsDetail`은 `ClipboardHistoryPanelView.configure(state:keepsDetail:)`로 그대로 넘긴다
-    func reloadClipboardPanel(keepsDetail: Bool = false) {
-        guard hasFullAccess, let clipboardHistoryStore else {
-            clipboardHistoryPanelView.configure(state: .fullAccessRequired)
-            return
-        }
-        let items = clipboardHistoryStore.load()
-        clipboardHistoryPanelView.configure(state: items.isEmpty ? .empty : .items(items), keepsDetail: keepsDetail)
-    }
-
-    /// 이미지 항목은 입력창에 넣을 수 없으므로 시스템 pasteboard에 원본 바이트를 복원하고 패널을 유지한 채 안내한다.
-    /// 우리가 쓴 값을 다음 동기화에서 다시 기록하지 않도록 changeCount를 갱신한다
-    func restoreImageToPasteboard(_ reference: ClipboardImageReference) {
-        guard isClipboardHistoryAvailable,
-              let clipboardHistoryStore,
-              let imageStore = clipboardHistoryStore.imageStore else { return }
-        // 메모리 맵으로 열어 힙에 올리지 않는다. 앱에서 지운 뒤 키보드가 옛 목록을 들고 있으면 항목을 정리한다
-        guard let data = try? Data(contentsOf: imageStore.originalURL(for: reference), options: .mappedIfSafe) else {
-            clipboardHistoryStore.remove(ids: [ClipboardHistoryItem.Content.image(reference).id])
-            reloadClipboardPanel()
-            return
-        }
-        let pasteboard = UIPasteboard.general
-        pasteboard.setData(data, forPasteboardType: reference.typeIdentifier)
-        keyboardSettingsManager.lastSeenPasteboardChangeCount = pasteboard.changeCount
-
-        // 방금 쓴 항목을 최근 복사한 것처럼 미고정 맨 위로 올린다. 고정 항목은 정책상 그대로다.
-        // 탭 처리(didSelectRowAt) 안에서 행 이동 애니메이션을 시작하면 눌린 표시가 남을 수 있어 다음 런루프에서 다시 읽는다.
-        // 안내 토스트는 재조회와 무관하지만 새 목록이 그려진 뒤에 띄워 순서를 분명히 한다
-        clipboardHistoryStore.record(.image(reference))
-        DispatchQueue.main.async { [weak self] in
-            guard let self else { return }
-            self.reloadClipboardPanel()
-            self.clipboardHistoryPanelView.showTransientMessage(
-                String(localized: "이미지를 복사했습니다.\n입력창을 길게 눌러 붙여넣기 해주세요.", bundle: SYKBDAssets.bundle)
-            )
-        }
-    }
-
-    /// 텍스트를 시스템 pasteboard에 복사한다. 우리가 쓴 값을 다음 동기화에서 다시 기록하지 않도록 changeCount를 갱신한다
-    func copyTextToPasteboard(_ text: String) {
-        guard isClipboardHistoryAvailable else { return }
-        let pasteboard = UIPasteboard.general
-        pasteboard.string = text
-        keyboardSettingsManager.lastSeenPasteboardChangeCount = pasteboard.changeCount
-    }
-}
-
-// MARK: - ClipboardHistoryPanelDelegate
-
-extension BaseKeyboardViewController: ClipboardHistoryPanelDelegate {
-    final func clipboardPanel(_ panel: ClipboardHistoryPanelView, didSelectItemAt index: Int) {
-        guard panel.items.indices.contains(index) else { return }
-        switch panel.items[index].content {
-        case .image(let reference):
-            restoreImageToPasteboard(reference)
-        case .text(let text):
-            // 붙여넣기를 undo 1단위로 만든다: 앞선 입력 그룹을 닫고, 삽입 후 다시 닫는다
-            commitUndoRedoGroupIgnoringCompositionDeferral()
-            insertText(text)
-            undoRedoEditDidApply()
-            commitUndoRedoGroupIgnoringCompositionDeferral()
-
-            // macOS Spotlight 클립보드 기록처럼 고른 항목을 현재 클립보드로도 올린다. 동기화가 기록한 내용은 목록에 남지만,
-            // 기록되지 않는 내용(이미지 기록 OFF·저장 거부 이미지·예산 초과로 앱 재시도 대기 중인 이미지·concealed·문자열 없는 항목)은 덮어써진다
-            copyTextToPasteboard(text)
-            // 방금 쓴 항목을 최근 복사한 것처럼 미고정 맨 위로 올린다. 고정 항목은 정책상 그대로다
-            clipboardHistoryStore?.record(text)
-
-            closeClipboardPanelIfNeeded()
-            updateReturnButtonEnabled()
-            updateSuggestions()
-        }
-    }
-
-    final func clipboardPanel(_ panel: ClipboardHistoryPanelView, didDeleteItemsAt indices: [Int]) {
-        // 인덱스는 패널이 보여준 목록 기준이므로 id로 바꿔 지운다. 파일 순서가 그사이 바뀌어도 안전하다
-        let ids = Set(indices.compactMap { panel.items.indices.contains($0) ? panel.items[$0].id : nil })
-        clipboardHistoryStore?.remove(ids: ids)
-        reloadClipboardPanel()
-    }
-
-    final func clipboardPanelDidDeleteAll(_ panel: ClipboardHistoryPanelView) {
-        clipboardHistoryStore?.removeAll()
-        reloadClipboardPanel()
-    }
-
-    final func clipboardPanel(_ panel: ClipboardHistoryPanelView, didTogglePinAt index: Int) {
-        clipboardHistoryStore?.togglePin(at: index)
-        reloadClipboardPanel()
-    }
-
-    final func clipboardPanel(_ panel: ClipboardHistoryPanelView, didTogglePinsOf ids: Set<String>) {
-        // 저장소가 파일을 다시 읽어 정책을 적용하므로 그사이 앱이 바꾼 내용과 어긋나지 않는다
-        clipboardHistoryStore?.togglePins(selectedIDs: ids)
-        reloadClipboardPanel()
-    }
-
-
-    /// 브라우저가 열리면 호스트 앱을 떠나므로 키보드는 시스템이 내린다. 설정 이동과 같은 responder chain 경로다
-    final func clipboardPanel(_ panel: ClipboardHistoryPanelView, didRequestOpenURLAt index: Int) {
-        guard panel.items.indices.contains(index),
-              let text = panel.items[index].text,
-              let url = ClipboardHistoryPolicy.openableURL(in: text) else { return }
-        openURL(url)
-    }
-}
-
-private extension BaseKeyboardViewController {
-    func synchronizeTextInputTraits() {
-        currentAutocorrectionType = textDocumentProxy.autocorrectionType
-
-        if #available(iOS 18.0, *) {
-            isMathExpressionCompletionAllowed =
-                textDocumentProxy.mathExpressionCompletionType != .no
-        } else {
-            isMathExpressionCompletionAllowed = true
-        }
-    }
-
-    func shouldShowMathResults() -> Bool {
-        return KeyboardPresentationStatePolicy.shouldShowMathResults(
-            isSettingEnabled: keyboardSettingsManager.isShowMathResultsEnabled,
-            isHostCompletionAllowed: isMathExpressionCompletionAllowed
-        )
-    }
-
-    func handleSelectedTextSuggestion(at index: Int) -> Bool {
-        guard let selectedText = textDocumentProxy.selectedText,
-              !selectedText.isEmpty else { return false }
-
-        if index == 0 {
-            // 현재 선택된 단어 확정, 후보 비우기
-            suggestionController.clearSuggestions()
-            return true
-        }
-
-        let suggestionIndex = index - 1
-        guard suggestionIndex >= 0,
-              let result = suggestionController.selectSuggestion(
-                at: suggestionIndex,
-                baseText: selectedText
-              ) else { return true }
-
-        let insertText = textWithSmartInsertDeleteLeadingSpace(
-            deleteCount: 0,
-            insert: result.insertText
-        )
-
-        replaceSelectedText(selectedText, with: insertText)
-
-        suggestionDidApply()
-        updateSuggestions()
-        return true
-    }
-
-    func handleMathResultSuggestion(at index: Int) -> Bool {
-        guard suggestionController.currentMode == .mathExpression else { return false }
-
-        guard let action = suggestionController.mathResultAction(
-            at: index,
-            selectedText: textDocumentProxy.selectedText
-        ) else { return true }
-        guard applyMathResultSuggestionAction(action) else { return true }
-
-        if case .confirmOriginal = action {
-            return true
-        } else {
-            suggestionDidApply()
-            updateSuggestions()
-        }
-        return true
-    }
-
-    @discardableResult
-    func applyMathResultSuggestionAction(
-        _ action: MathResultSuggestionAction
-    ) -> Bool {
-        switch action {
-        case .confirmOriginal:
-            suggestionController.clearSuggestions()
-        case .insertResult(let text):
-            insertText(text)
-        case .replaceExpression(let deleteCount, let insertText):
-            replaceText(deleteCount: deleteCount, insert: insertText)
-        case .replaceSelection(let text):
-            guard let selectedText = textDocumentProxy.selectedText,
-                  !selectedText.isEmpty else { return false }
-            replaceSelectedText(selectedText, with: text)
-        }
-        return true
-    }
-
-    func replaceSelectedText(_ selectedText: String, with insertText: String) {
-        captureInputBufferLeadingContextIfNeeded()
-        textDocumentProxy.insertText(insertText)
-        inputBuffer.append(insertText)
-        recordUndoRedoChange(
-            deletedText: selectedText,
-            insertedText: insertText
-        )
-    }
-
-    func handleNGramSuggestion(at index: Int) -> Bool {
-        guard suggestionController.currentMode == .nGram else { return false }
-        guard let word = suggestionController.nGramSuggestionText(at: index) else { return true }
-
-        if KeyboardSuggestionSelectionPolicy.shouldInsertLeadingSpaceBeforeNGramSuggestion(
-            baseText: generalSuggestionBaseText
-        ) {
-            insertText(" ")
-        }
-
-        insertText(word)
-
-        suggestionDidApply()
-
-        suggestionController.updateSuggestionsAfterNGramSelection(
-            baseText: generalSuggestionBaseText,
-            textReplacementBaseText: inputBuffer
-        )
-        return true
-    }
-
-    func handleCurrentWordConfirmationIfNeeded(at index: Int) -> Bool {
-        guard index == 0 else { return false }
-
-        let currentWord = KeyboardSuggestionSelectionPolicy.currentWordForConfirmation(
-            inputBuffer: learnableInputBuffer
-        )
-        if !currentWord.isEmpty {
-            suggestionController.learnWord(currentWord)
-            suggestionController.recordWord(currentWord)
-        }
-        suggestionController.clearSuggestions()
-        return true
-    }
-
-    func handleInputBufferSuggestion(at index: Int) {
-        let suggestionIndex = index - 1
-        guard let result = suggestionController.selectSuggestion(
-            at: suggestionIndex,
-            baseText: generalSuggestionBaseText,
-            textReplacementBaseText: inputBuffer
-        ) else { return }
-
-        replaceTextWithSmartInsertDeleteSpacing(
-            deleteCount: result.deleteCount,
-            insert: result.insertText
-        )
-
-        suggestionController.recordWord(result.insertText)
-
-        suggestionDidApply()
-        updateSuggestions()
-    }
-}
-
-// MARK: - Suggestion Removal
-
-private extension BaseKeyboardViewController {
-    func showSuggestionRemovalConfirmation(for word: String) {
-        let overlay = suggestionRemovalConfirmView ?? makeSuggestionRemovalConfirmView()
-        pendingSuggestionRemovalWord = word
-        overlay.update(
-            title: String(localized: "'\(word)'을(를) 자동완성에서 삭제할까요?", bundle: SYKBDAssets.bundle),
-            message: String(localized: "다시 입력하면 다시 학습됩니다.", bundle: SYKBDAssets.bundle)
-        )
-        // 나중에 붙은 오버레이보다 위에 보이도록 매번 앞으로 가져온다
-        view.bringSubviewToFront(overlay)
-        overlay.isHidden = false
-        FeedbackManager.shared.playHaptic()
-    }
-
-    func confirmSuggestionRemoval() {
-        guard let word = pendingSuggestionRemovalWord else { return }
-        hideSuggestionRemovalConfirmation()
-        suggestionController.removeSuggestionWord(word)
-    }
-
-    func hideSuggestionRemovalConfirmation() {
-        pendingSuggestionRemovalWord = nil
-        suggestionRemovalConfirmView?.isHidden = true
-    }
-
-    /// 키보드 전체를 덮어 확인하는 동안 키 입력을 막는다
-    func makeSuggestionRemovalConfirmView() -> DeleteConfirmOverlayView {
-        let overlay = DeleteConfirmOverlayView()
-        overlay.isHidden = true
-        overlay.onCancel = { [weak self] in self?.hideSuggestionRemovalConfirmation() }
-        overlay.onConfirm = { [weak self] in self?.confirmSuggestionRemoval() }
-        view.addSubview(overlay)
-
-        overlay.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([
-            overlay.topAnchor.constraint(equalTo: view.topAnchor),
-            overlay.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            overlay.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            overlay.bottomAnchor.constraint(equalTo: view.bottomAnchor)
-        ])
-
-        suggestionRemovalConfirmView = overlay
-        return overlay
-    }
-}
-
-// MARK: - Full Access Guide
-
-private extension BaseKeyboardViewController {
-    func setupRequestFullAccessOverlayView() {
-        view.addSubview(requestFullAccessOverlayView)
-
-        requestFullAccessOverlayView.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([
-            requestFullAccessOverlayView.topAnchor.constraint(equalTo: view.topAnchor),
-            requestFullAccessOverlayView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            requestFullAccessOverlayView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            requestFullAccessOverlayView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
-        ])
-
-        requestFullAccessOverlayView.closeButton.addAction(
-            UIAction { [weak self] _ in
-                self?.keyboardExtensionLocalStateStore.isClosed = true
-                self?.requestFullAccessOverlayView.isHidden = true
-            },
-            for: .touchUpInside
-        )
-        requestFullAccessOverlayView.goToSettingsButton.addAction(
-            UIAction { [weak self] _ in
-                let urlString = "sykeyboard://"
-                guard let url = URL(string: urlString) else {
-                    assertionFailure("올바르지 않은 URL 형식입니다.")
-                    // Core는 Firebase에 의존하지 않으므로 non-fatal 대신 진단 로그로만 남긴다. 상수 URL이라 실제로는 오지 않는 분기다
-                    KeyboardDiagnostics.log("Invalid settings URL: \(urlString)")
-                    return
-                }
-                self?.openURL(url)
-            },
-            for: .touchUpInside
-        )
-    }
-
-    /// extension은 `UIApplication`을 직접 쓸 수 없으므로 responder chain을 따라 올라가 연다
-    func openURL(_ url: URL) {
-        var responder: UIResponder? = self
-        while responder != nil {
-            if let application = responder as? UIApplication {
-                application.open(url)
-                return
-            }
-            responder = responder?.next
-        }
-    }
-}
+extension BaseKeyboardViewController: UndoRedoHost {}

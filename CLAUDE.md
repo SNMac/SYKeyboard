@@ -2,7 +2,7 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-이 문서는 이 저장소에서 Claude Code가 작업할 때 따라야 할 프로젝트별 지침이다. 답변보다 실제 완료를 우선하고, 변경 전후의 동작을 가능한 한 검증한다.
+이 문서는 이 저장소에서 Claude Code가 작업할 때 따라야 할 프로젝트별 지침이다. 변경 전후의 동작을 가능한 한 검증한다.
 
 ## 프로젝트 개요
 
@@ -12,6 +12,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - 공통 키보드 UI와 입력 보조 기능은 `Modules/SYKeyboardCore/`에 있다.
 - 한글 입력 조합 로직은 `Modules/HangeulKeyboardCore/Domain/`에 있으며, 나랏글/천지인/두벌식 Processor와 Automata 테스트가 중요하다.
 - 영문 키보드 로직은 `Modules/EnglishKeyboardCore/`에 있다.
+- 한영 통합 키보드 VC는 `Modules/HangeulEnglishKeyboardCore/`에 있으며 한글·영문 Core의 Adapter를 함께 쓴다.
 - 공통 XIB, 색상, 리소스는 로컬 SPM 패키지 `SYKeyboardAssets/`에서 제공한다. Core 코드가 쓰는 로컬라이징
   문자열도 이 패키지의 `Localizable.xcstrings`에 두고 `SYKBDAssets.bundle`로 읽는다.
 - 외부 의존성은 SPM으로 관리하며 Firebase, Google Mobile Ads, Meta mediation이 포함된다.
@@ -22,10 +23,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ```
 UIInputViewController
-└── BaseKeyboardViewController          (SYKeyboardCore, ~2400줄, 입력 흐름의 중심)
+└── BaseKeyboardViewController          (SYKeyboardCore, ~1900줄, 입력 흐름의 중심)
     ├── HangeulKeyboardCoreViewController → HangeulKeyboardViewController
     ├── EnglishKeyboardCoreViewController → EnglishKeyboardViewController
-    └── HangeulEnglishKeyboardViewController   (Core VC 없이 Base를 직접 상속)
+    └── HangeulEnglishKeyboardCoreViewController → HangeulEnglishKeyboardViewController
 ```
 
 `BaseKeyboardViewController`가 텍스트 프록시 조작, 제스처, 자동완성, undo/redo, 높이·한손 모드,
@@ -33,6 +34,12 @@ UIInputViewController
 (`primaryKeyboardView`, `primaryKeyboardViews`, `updateKeyboardType()`, `shouldDeferUndoRedoCommit`,
 `smartQuoteRule` 등)를 오버라이드해 언어별 차이만 주입한다. **언어 공통 동작을 하위 VC에 복제하지 말고
 Base에 두거나 Policy로 분리한다.**
+후보 탭 처리·전송 기록·후보 삭제 확인은 `SuggestionSelectionCoordinator`, 클립보드 패널·pasteboard 동기화는
+`ClipboardHistoryCoordinator`, 삭제 touchDown·반복 삭제·삭제 드래그·삭제 확정 파이프라인은 `TextDeletionCoordinator`,
+undo/redo 기록·확정·적용은 `UndoRedoCoordinator`가 맡는다. 넷은 VC 계층 보조 타입이라 `Presentation/ViewController/Utils/`에 있고
+VC를 `weak` Host 프로토콜(`SuggestionSelectionHost`, `ClipboardHistoryHost`, `TextDeletionHost`, `UndoRedoHost`)로 역참조하며,
+프록시는 Host가 노출하는 `textDocument`만 쓴다. 삭제 파이프라인의 프록시 쓰기는 VC의 `open` 메서드(`deleteText`,
+`deleteButtonPanDeleteText` 등)를 거치므로 하위 VC 오버라이드가 그대로 불린다.
 
 **언어별 입력 로직은 Adapter를 통해 들어온다.**
 `HangeulKeyboardInputAdapter` / `EnglishKeyboardInputAdapter`가 VC와 Domain 사이의 유일한 경계다.
@@ -41,10 +48,12 @@ Base에 두거나 Policy로 분리한다.**
 VC는 이 값만 보고 프록시를 갱신하므로, 조합 규칙 변경은 Processor/Automata에서 끝내야 한다.
 
 **한영 통합 키보드는 어댑터 2개 + Coordinator 조합이다.**
-`HangeulEnglishKeyboardViewController`가 두 Adapter를 함께 들고,
+`HangeulEnglishKeyboardCoreViewController`(`HangeulEnglishKeyboardCore`)가 두 Adapter를 함께 들고,
 `HangeulEnglishKeyboardModeCoordinator`(+ `KeyboardLanguageModePolicy`)가 현재 언어 모드를 결정한다.
 `primaryKeyboardView`는 모드에 따라 다른 Adapter의 뷰를 돌려주고, `primaryKeyboardViews`는 양쪽 전부를 돌려준다
 (전환 버튼·레이아웃 갱신이 이 차이에 의존한다).
+Core 모듈은 Firebase를 모르므로 시작 언어 판정 기록은 빈 `open` 훅 `languageModeDecisionDidResolve(requiresLatinInput:resolved:)`로
+내보내고, extension의 `HangeulEnglishKeyboardViewController`가 오버라이드해 Crashlytics에 남긴다.
 
 **분기 로직은 Policy로 뽑혀 있다.**
 `Modules/SYKeyboardCore/Presentation/Utils/Policies/`의 `KeyboardHeightPolicy`,
@@ -55,7 +64,7 @@ VC는 이 값만 보고 프록시를 갱신하므로, 조합 규칙 변경은 Pr
 **자동완성은 `SuggestionController` 한 곳으로 모인다.**
 `LexiconPredictiveTextEngine`(UILexicon), `TextCheckerPredictiveTextEngine`(UITextChecker),
 `NGramPredictiveTextEngine`(학습형), `MathExpressionCompletionEvaluator`(수식)가
-`PredictiveTextProvider`로 붙고 `SuggestionBarView`가 표시한다.
+`PredictiveTextProvider`로 붙고 `SuggestionBarView`가 표시한다. 후보 탭은 `SuggestionSelectionCoordinator`가 받는다.
 
 **뷰 계층**: `KeyboardView`(XIB, `SYKeyboardAssets` 번들에서 로드) 안에 `SuggestionBarView` +
 primary/symbol/numeric/tenkey 레이아웃이 들어간다. 레이아웃은 `*KeyboardLayoutProvider` 프로토콜 구현체이며
@@ -66,6 +75,15 @@ primary/symbol/numeric/tenkey 레이아웃이 들어간다. 레이아웃은 `*Ke
 `SYKeyboardTests/Storage/UserDefaultsContractTests.swift`가 키 계약을 지킨다.
 extension 프로세스 로컬 상태는 `KeyboardExtensionLocalStateStore`에 둔다.
 
+**텍스트 프록시는 `textDocument`(`CachingTextDocumentProxy`)로만 읽고 쓴다.**
+`textWillChange`/`textDidChange`는 `withReadCaching`으로 같은 값을 한 번만 읽고, 쓰기 메서드가 캐시를 비워
+쓰기 뒤에는 새 값을 읽는다. 앞·뒤 문맥 스냅샷은 `textDocument.contextSnapshot`으로 읽는다. `textDocumentProxy.insertText` 등을 직접 부르면 그 쓰기는 캐시를 비우지 않는다.
+하위 VC가 `textWillChange`/`textDidChange` 오버라이드에서 `super` 호출 뒤에 프록시를 읽으면 오버라이드 본문도
+`withReadCaching`으로 감싼다.
+확인: `grep -rn "textDocumentProxy" Modules Keyboards | grep -v -E ":[0-9]+:[[:space:]]*//"` 결과가
+`BaseKeyboardViewController.swift`에서 `textDocument`를 만드는 한 줄뿐이어야 한다. 점(`.`) 접근만 찾으면
+`(textDocumentProxy as AnyObject)`나 지역 변수에 담아 쓰는 경우를 놓친다.
+
 ## 작업 원칙
 
 - **기존 구조와 네이밍을 먼저 따른다. 불필요한 아키텍처 변경이나 대규모 이동은 하지 않는다.**
@@ -74,8 +92,8 @@ extension 프로세스 로컬 상태는 `KeyboardExtensionLocalStateStore`에 �
 - **롤백·복원 작업은 기준 커밋과 그 이전 이력에서 실제 동작을 확인하고, 요청된 범위만 복원한다. 이전부터 존재한 버그·제약이나 개선 가능성은 이번 변경으로 생긴 회귀와 구분하며, 사용자가 명시적으로 요청하지 않은 기존 동작 개선을 같은 작업에 포함하지 않는다.**
 - 코드 리뷰에서 더 안전하거나 일관된 구현이 제안되어도 바로 수정하지 않는다. 먼저 해당 동작이 이번 diff에서 발생한 회귀인지 과거 커밋과 실제 재현으로 확인하고, 기존 동작이었다면 별도 변경으로 분리하거나 사용자에게 범위 확대를 확인한다.
 - **한글 입력, 삭제, 조합 상태, 커서 이동, 스페이스/리턴 동작 변경은 회귀 위험이 높으므로 테스트를 추가하거나 기존 테스트를 실행한다.**
-- **현재 확인된 환경에서 `UIInputViewController.selectionWillChange(_:)`와 `selectionDidChange(_:)`는 호출되는 경우를 관찰하지 못했다. 커서/selection 상태 동기화를 이 콜백에만 의존하지 않는다. iOS 자체 문제이거나 아직 확인하지 못한 호출 조건일 수 있으므로, 관련 동작을 변경할 때는 실제 입력 앱에서 다시 확인한다.**
-- **현재 확인된 환경에서 focus 중인 텍스트 필드 변경, 사용자의 텍스트 필드 탭, 커서 이동 시 `UIInputViewController.textWillChange(_:)`와 `textDidChange(_:)`가 호출된다. 외부 텍스트 컨텍스트 변경에 따른 `inputBuffer`, 자동완성 후보, undo/redo 상태 동기화는 이 콜백 경로를 함께 확인한다.**
+- 현재 확인된 환경에서 `UIInputViewController.selectionWillChange(_:)`와 `selectionDidChange(_:)`는 호출되는 경우를 관찰하지 못했다. 커서/selection 상태 동기화를 이 콜백에만 의존하지 않는다. iOS 자체 문제이거나 아직 확인하지 못한 호출 조건일 수 있으므로, 관련 동작을 변경할 때는 실제 입력 앱에서 다시 확인한다.
+- 현재 확인된 환경에서 focus 중인 텍스트 필드 변경, 사용자의 텍스트 필드 탭, 커서 이동 시 `UIInputViewController.textWillChange(_:)`와 `textDidChange(_:)`가 호출된다. 외부 텍스트 컨텍스트 변경에 따른 `inputBuffer`, 자동완성 후보, undo/redo 상태 동기화는 이 콜백 경로를 함께 확인한다.
 - 키보드 확장은 메모리/높이/입력 지연에 민감하다. 무거운 작업, 불필요한 비동기 체인, 빈번한 재생성은 피한다.
 - 앱 설정과 키보드 확장은 `UserDefaultsManager`와 `DefaultValues`를 공유한다. 설정 키 변경 시 앱/확장/Core 양쪽 영향을 확인한다.
 - Firebase, AdMob, entitlements, bundle identifier, provisioning, `GoogleService-Info.plist`, `Secrets.xcconfig` 관련 변경은 사용자가 명시적으로 요청한 경우에만 한다.
@@ -84,7 +102,7 @@ extension 프로세스 로컬 상태는 `KeyboardExtensionLocalStateStore`에 �
   `reset`, 브랜치 전환, push, PR 생성 권한을 포함하지 않는다. 사용자가 명시한
   통합 순서와 브랜치/worktree 제약을 그대로 지키고, 다음 단계가 명시적으로
   요청되기 전에는 읽기 전용 확인에 머문다.
-- 자동완성 후보 목록은 #141부터 `UIScrollView` 가로 스크롤이다. 터치 중재는
+- 자동완성 후보 목록은 `UIScrollView` 가로 스크롤이다. 터치 중재는
   `UIScrollView` 기본 동작(`delaysContentTouches = false`, `canCancelContentTouches`)에
   맡기고, `setScrollOffsetX` 같은 offset 직접 조작이나 거리 임계값 기반 제스처 중재를
   되살리지 않는다.
@@ -118,22 +136,9 @@ extension 프로세스 로컬 상태는 `KeyboardExtensionLocalStateStore`에 �
 
 ## 작업 인프라
 
-- 라이브러리/API 문서 확인, 코드 생성, 설정 또는 구성 단계가 필요한 작업에서는 사용자가 명시적으로 요청하지 않아도 항상 Context7 MCP를 먼저 사용해 현재 문서와 권장 사용법을 확인한다.
+- 외부 라이브러리·프레임워크·Apple SDK의 API 사용법, 설정, 버전별 차이를 확인해야 할 때 Context7 MCP로 현재 문서와 권장 사용법을 확인한다.
 - Context7 MCP가 응답하지 않거나 사용량 초과 등으로 사용할 수 없거나 필요한 정보를 찾지 못해도 작업을 중단하지 않는다. 우선 기존 지식을 바탕으로 계속 진행하고, 기존 지식만으로 해결하기 어려울 때 공식 문서를 확인한다. 최종 응답에는 Context7을 사용하지 못한 이유와, 대체 출처를 확인했다면 실제로 확인한 출처를 명시한다.
 - 이 문서가 저장소 에이전트 지침의 단일 기준이다. `.github/copilot-instructions.md`는 GitHub Copilot 코드 리뷰 지침이며 프로젝트 구조와 일반 개발 규칙은 이 문서를 참조하므로, 이 문서의 규칙을 바꾸면 해당 항목도 함께 확인한다.
-
-### Superpowers 계획 실행
-
-- `docs/superpowers/plans/`의 구현 계획에 따라 작업할 때는 계획 문서를 진행 상태의 기준으로 사용한다.
-- 각 step은 실제 작업과 해당 검증이 모두 끝난 직후에만 체크한다. 실행하지 않았거나 실패한 step을 미리 완료로 표시하지 않는다.
-- step이 끝날 때마다 계획 문서의 체크박스와 실제 결과(테스트 개수, 빌드 결과, 확인하지 못한 항목)를 함께 갱신하고, 해당 step에서 변경한 코드·테스트·문서를 하나의 커밋으로 남긴다.
-- 다음 step은 직전 step의 체크와 커밋이 완료된 뒤 시작한다. 여러 step을 한 커밋으로 합치거나 모든 체크를 작업 마지막에 한꺼번에 반영하지 않는다.
-- 검증만 수행하는 step도 계획 문서에 실제 명령·대상·결과를 기록하고 문서
-  커밋을 남긴다. `.xcresult`, 로그처럼 결과를 별도 산출물에서 판독했다면 실제
-  산출물 경로와 결과 추출 명령도 함께 기록해 다른 작업자가 같은 결과를
-  재확인할 수 있게 한다.
-- step 커밋은 이 문서의 커밋 메시지 규칙을 따르며, 계획에 명시된 파일 범위 밖의 사용자 변경을 포함하지 않는다.
-- `docs/superpowers/plans/`, `docs/superpowers/specs/`는 과거 계획·설계 기록이므로 **현재 제품 요구사항이나 현재 동작의 권위 있는 근거로 사용하지 않는다.** 사용자나 PR 설명이 특정 문서를 구현 기준으로 명시한 경우에만 요구사항으로 사용한다.
 
 ## 이슈 관리
 
@@ -142,6 +147,36 @@ extension 프로세스 로컬 상태는 `KeyboardExtensionLocalStateStore`에 �
 - Linear에는 GitHub Issue에서 파생된 작업 추적, 상태 관리, 연결 정보 정리에 집중한다.
 - 새 이슈 생성을 요청받으면 기본 생성 위치를 GitHub Issue로 판단하고, Linear 이슈 생성은 사용자가 명시적으로 요청한 경우에만 한다.
 - GitHub Issue는 `.github/ISSUE_TEMPLATE/feature-issue-template.md` 템플릿을 사용한다.
+
+### Crashlytics 크래시 이슈
+
+Crashlytics 크래시는 별도의 분류 봇이 Notion `SY키보드 크래시 트리아지` DB에 분석해 올리고 GitHub Issue를
+만든다(본문 끝 `<!-- crashlytics-issue: ... -->` 주석). 봇의 reconcile 단계가 매일 이슈·PR 상태를 보고
+Notion 행과 Crashlytics 이슈를 정리하므로, **사람이 할 일은 수정 PR 본문에 `Closes #번호`를 넣는 것뿐이다.**
+
+- 수정 PR의 `## #️⃣ 연관된 이슈`에 `- Closes #180`처럼 쓰고 `develop`에 머지한다. 기본 브랜치가
+  `develop`이라 머지하면 이슈가 자동으로 닫힌다. 크래시 수정 PR은 이슈를 끝내는 PR이므로 `PR 규칙`의 `Closes` 기준과 같다.
+- 봇은 이슈를 닫은 PR의 merge commit을 Notion `수정 커밋`에 적고 행을 `게시됨` → `배포 대기`로 옮긴다.
+  `develop`을 `main`에 머지하면(App Store 제출 시점) Crashlytics 이슈를 닫고 행을 `종료`로 옮긴다.
+- PR 없이 커밋으로 바로 고쳤으면 Notion 행의 `수정 커밋`에 커밋 SHA만 적는다. 이후는 같다.
+- **Notion 상태를 손으로 바꾸지 않는다.**
+  - `배포 대기`로만 바꾸고 `수정 커밋`을 비우면 확인할 커밋이 없어 행이 멈춘다.
+  - `종료`로 바꾸면 reconcile이 그 행을 더 보지 않아 Crashlytics 이슈가 열린 채 남는다. 열린 이슈는
+    회귀로 표시되지 않아 같은 크래시가 다시 나도 재분석되지 않는다.
+
+## Agent skills
+
+### Issue tracker
+
+GitHub Issues(`SNMac/SYKeyboard`)에 두고 `gh`로 다룬다. 새 이슈는 명시적 허락을 받은 뒤 템플릿에 맞춰 만든다. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+기본 역할 이름 5개(`needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`)를 그대로 쓴다. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+single-context(루트 `CONTEXT.md` + `docs/adr/`). See `docs/agents/domain.md`.
 
 ## 출시 기준점과 마이그레이션
 
@@ -177,6 +212,8 @@ extension 프로세스 로컬 상태는 `KeyboardExtensionLocalStateStore`에 �
   - `Feat/#46 한영 통합 키보드 추가`
   - `Fix/#44 NGram 단어 중복 저장 수정`
 - PR 본문은 `.github/pull_request_template.md` 템플릿을 사용하고, 연관된 이슈·작업 내용·검증 항목을 채운다.
+- 연관된 이슈는 이 PR로 이슈가 끝나면 `- Closes #번호`, 일부만 다루거나 참조만 하면 `- #번호`로 쓴다.
+- Crashlytics 크래시 이슈를 고치는 PR은 연관된 이슈에 `Closes #번호`를 쓴다(`이슈 관리` > `Crashlytics 크래시 이슈`).
 - 스크린샷 항목은 화면이 바뀌는 작업에만 채운다. UI 변경이 없으면(로직·저장 형식·테스트·문서만 바뀐 경우)
   `## 📸 스크린샷` 섹션을 표까지 통째로 빼고 PR을 올린다. 빈 표나 `-`로 남기지 않는다.
 - 검증 항목에는 실제 실행한 빌드/테스트 명령과 결과를 적고, 실행하지 못한 항목은 이유를 함께 남긴다.
@@ -197,6 +234,12 @@ extension 프로세스 로컬 상태는 `KeyboardExtensionLocalStateStore`에 �
 - 문자열 안에서 설정·버튼 이름을 인용할 때 한국어(원문 키)는 작은따옴표 `'이미지도 기록'`, 영어 값은
   둥근 큰따옴표 `“Include Images”`를 쓴다. 영어에 곧은따옴표(`'`, `"`)를 인용 용도로 쓰지 않는다.
 - 새 설정값을 추가할 때는 관련 `UserDefaultsKeys`, `DefaultValues`, 앱 설정 화면, 키보드 런타임 반영 위치를 함께 확인한다.
+- `BaseKeyboardViewController`에서 접착 코드를 뺄 때는 extension 파일 분리(`private` → `internal`)가 아니라 상태를 소유하는
+  Coordinator + `weak` Host 프로토콜 방식(#184·#185)을 따른다. Host는 `weak var host`와 `guard let host`로만 쓰고
+  `unowned`를 쓰지 않는다. VC의 `private` 메서드를 감싸는 Host 요구사항은 `refresh…`/`…LastEdit`/`interrupt…`처럼 VC 메서드와
+  다른 이름으로 선언하고 같은 파일의 Host 채택 extension이 한 줄로 전달하며, VC 저장 프로퍼티를 `internal`로 올리지 않는다.
+  Coordinator는 `textDocument`를 저장하지 않고 호출마다 `host.textDocument`로 읽고, 클로저·타이머 sink는 `[weak self]`로 캡처하며
+  `deinit`에 로그를 남긴다. 새 Coordinator는 해제 테스트(참조를 놓은 뒤 `weak == nil`)를 함께 추가한다.
 
 ## 주요 디렉터리
 
@@ -207,20 +250,26 @@ extension 프로세스 로컬 상태는 `KeyboardExtensionLocalStateStore`에 �
 - `Keyboards/EnglishKeyboard/`: 영문 키보드 extension 진입점과 리소스.
 - `Keyboards/HangeulEnglishKeyboard/`: 한영 통합 키보드 extension 진입점과 리소스.
 - `Modules/SYKeyboardCore/`: 공통 키보드 UI, 버튼, 제스처, 자동완성, 저장소 기본 타입.
-  - `Presentation/Utils/Policies/`, `Presentation/Utils/Coordinators/`: UI 의존 없는 순수 정책·모드 결정 타입.
+  - `Presentation/Utils/Policies/`, `Presentation/Utils/Coordinators/`(`HangeulEnglishKeyboardModeCoordinator`): UI 의존 없는 순수 정책·모드 결정 타입.
+  - `Presentation/ViewController/Bases/`: `BaseKeyboardViewController`만. `Presentation/ViewController/Utils/`: VC 계층 보조 타입
+    (`SuggestionSelectionCoordinator`, `ClipboardHistoryCoordinator`, `TextDeletionCoordinator`, `UndoRedoCoordinator`, `CachingTextDocumentProxy`).
 - `Modules/HangeulKeyboardCore/`: 한글 오토마타, 입력 Processor, 한글 키보드 View.
 - `Modules/EnglishKeyboardCore/`: 영문 키보드 View와 저장소 확장.
-- `Modules/*/Presentation/Input/`: VC와 Domain의 경계인 InputAdapter.
+- `Modules/HangeulEnglishKeyboardCore/`: 한영 통합 키보드 Core VC. 두 Core의 Adapter와 `SYKeyboardCore`의 `HangeulEnglishKeyboardModeCoordinator`를 조합한다.
+- `Modules/HangeulKeyboardCore/Presentation/Input/`, `Modules/EnglishKeyboardCore/EnglishKeyboard/Presentation/Input/`: VC와 Domain의 경계인 InputAdapter.
 - `SYKeyboardTests/`: Swift Testing 기반 한글 오토마타/Processor/조합 상태 시나리오/Policy/View/Controller 테스트.
-  `Domain/`(조합 상태·자동완성·NGram), `Processor/`, `Utils/`(Policy·제스처 컨트롤러), `View/`(키보드 뷰·레이아웃),
-  `Controller/`(`BaseKeyboardViewController`), `Storage/`, `Presentation/`(앱 타깃)으로 나뉜다.
+  `Domain/`(조합 상태·자동완성·NGram), `Processor/`, `Utils/`(Policy·제스처 컨트롤러·Coordinator 단위 테스트와 가짜 Host),
+  `View/`(키보드 뷰·레이아웃), `Controller/`(`BaseKeyboardViewController` 동작 고정·프록시 읽기 횟수), `Storage/`,
+  `Presentation/`(앱 타깃)으로 나뉜다.
 - `SYKeyboardAssets/`: XIB와 색상 asset을 제공하는 로컬 SPM 패키지.
 - `Common/Firebase/`: Debug/Release Firebase plist. 민감 설정 변경에 주의한다.
-- `docs/superpowers/`: 과거 계획·설계 기록. 현재 동작의 근거로 사용하지 않는다.
+- `docs/architecture/`: 현재 아키텍처 설명.
+- `docs/adr/`: 되돌리기 어렵고 코드만 봐서는 이유가 드러나지 않는 결정의 기록.
+- `docs/agents/`: 에이전트 스킬(이슈 트래커·triage 라벨·도메인 문서) 설정.
 
 ## 빌드와 테스트
 
-가능하면 변경 범위에 맞춰 아래 명령을 실행한다. 기본 검증 기준은 `iPhone 13 mini / iOS 18.6`이다. Xcode 27부터 iOS 16.0 시뮬레이터 런타임은 XCTest 로딩이 실패(`dyld: Symbol not found: _os_log_compare_enablement`, 테스트 러너 `Early unexpected exit`)하므로 테스트 대상으로 쓰지 않는다. 해당 런타임이 없는 로컬 환경에서는 가장 가까운 iOS 16+ 시뮬레이터로 조정하고 최종 응답에 실제 기기명과 OS 버전을 명시한다.
+변경 범위에 맞춰 아래 명령을 실행한다. 기본 검증 기준은 `iPhone 13 mini / iOS 18.6`이다. Xcode 27부터 iOS 16.0 시뮬레이터 런타임은 XCTest 로딩이 실패(`dyld: Symbol not found: _os_log_compare_enablement`, 테스트 러너 `Early unexpected exit`)하므로 테스트 대상으로 쓰지 않는다. 해당 런타임이 없는 로컬 환경에서는 가장 가까운 iOS 16+ 시뮬레이터로 조정하고 최종 응답에 실제 기기명과 OS 버전을 명시한다.
 
 ```sh
 xcodebuild -list -project SYKeyboard.xcodeproj
@@ -266,11 +315,12 @@ xcodebuild test \
   -only-testing:SYKeyboardTests/NaratgeulProcessorTests
 ```
 
-- `-only-testing:SYKeyboardTests/<SuiteName>/<testFunctionName>`으로 단일 테스트까지 좁힌다.
-  suite 이름은 `@Suite(...)`의 표시 이름이 아니라 **타입 이름**을 쓴다.
+- `-only-testing:SYKeyboardTests/<SuiteName>`으로 suite 단위로 좁힌다. suite 이름은 `@Suite(...)`의 표시 이름이 아니라
+  **타입 이름**을 쓴다. `/<testFunctionName>`을 붙인 함수 단위 필터는 Swift Testing suite에서 0개가 실행됐다(2026-10-09,
+  `** TEST SUCCEEDED **`만 찍히고 `Test case` 줄이 없음). 결과에 `Test case … passed` 줄이 있는지 확인한다.
 - `-only-testing`이나 code coverage 옵션을 쓴 뒤 extension scheme을 빌드할 때는 옵션을 반드시 비운다.
 - **`Modules/`에 새 파일을 추가하면 `SYKeyboard.xcodeproj/project.pbxproj`를 함께 고쳐야 한다.**
-  `Modules`는 `PBXFileSystemSynchronizedRootGroup`이지만 세 모듈 타깃이 한 폴더를 공유하므로
+  `Modules`는 `PBXFileSystemSynchronizedRootGroup`이지만 네 모듈 타깃이 한 폴더를 공유하므로
   타깃별 `membershipExceptions`가 실제 소속 목록 역할을 한다. 등록하지 않으면 같은 모듈 안에서도
   `cannot find ... in scope`로 컴파일이 실패한다. 새 파일 경로를 해당 모듈 타깃과 `SYKeyboard`
   타깃의 예외 목록에 알파벳 순서로 추가한다.
@@ -328,6 +378,25 @@ xcodebuild test \
 나오는 노이즈다. 이 줄만 보고 샌드박스 제약으로 단정하지 말고 위 `scheduling.log`와 실제 시뮬레이터
 화면을 확인한다.
 
+#### 키보드 extension의 해제·누수 확인
+
+VC와 Coordinator는 `deinit`에 `logger.debug`를 남긴다. `.debug` 로그는 `log show`에 저장되지 않으므로 **미리** live stream을
+띄운 뒤 키보드를 내렸다 올려 횟수를 센다. subsystem은 실제로 떠 있는 extension의 번들 ID다. `AppleKeyboards` 순서와 무관하게
+Safari가 마지막에 쓴 키보드가 뜰 수 있으니 `pgrep -x HangeulKeyboard`(또는 `HangeulEnglishKeyboard`, `EnglishKeyboard`)로 먼저 확인한다.
+
+```sh
+xcrun simctl spawn <UDID> log stream --level debug \
+  --predicate 'subsystem == "github.com-SNMac.SYKeyboard.HangeulEnglishKeyboard" AND eventMessage CONTAINS "deinit"' > deinit.log &
+# 키보드를 N회 내렸다 올린 뒤. 로그 메시지의 "<타입명> deinit"을 세므로 VC·Coordinator·뷰가 모두 잡힌다
+grep -oE "\] [A-Za-z]+ deinit" deinit.log | sort | uniq -c
+```
+
+VC와 Coordinator 4개의 횟수가 N으로 같아야 한다. VC 줄은 `BaseKeyboardViewController`가 아니라 실제 클래스 이름
+(`HangeulEnglishKeyboardViewController` 등)으로 찍히므로, 카테고리 이름으로 거르면 VC가 빠진 채 Coordinator만 세게 된다. `leaks <pid>`와 Instruments Leaks(`xctrace record --template Leaks --device <UDID> --attach …`)는
+시뮬레이터 extension 프로세스에 붙지 않는다(2026-10-09: `Failed to get DYLD info for task`, `libmalloc hasn't been initialized`).
+누수 0건 확인은 실기기 Instruments로 하고, 시뮬레이터에서는 위 `deinit` 횟수 일치를 근거로 적는다.
+단위 테스트에서 `UIWindow`에 올렸던 VC는 참조를 놓은 뒤 `RunLoop.main.run(until: Date(timeIntervalSinceNow: 0.2))`를 돌려야 해제된다.
+
 #### 호스트 앱이 뜨지도 않고 테스트가 매달리는 경우
 
 위 붙여넣기 알림과 증상이 비슷하지만 원인이 다르다. **알림 없이** CoreSimulator/`testmanagerd`가
@@ -382,6 +451,10 @@ XcodeBuildMCP를 사용하는 경우 첫 build/test 전에 `session_show_default
   영향을 주는 정책 수치는 검증한다.
 - exact color, font, SF Symbol 이름, corner radius, effect subclass, private
   subview 계층, `Mirror` 기반 private 상태는 unit test에서 고정하지 않는다.
+- 같은 규칙·시나리오는 가장 아래 계층(Policy > Coordinator > VC/View) 하나가
+  소유한다(`docs/adr/0003`). Policy 테스트가 임계값·경계·입력 조합의 진리표를
+  갖고, 위 계층에는 정상 경로 1개 + 경계 1개와 그 계층 고유 동작만 둔다.
+  나랏글/천지인/두벌식 간 같은 시나리오는 중복이 아니다.
 - production 동작을 검증한다고 설명하는 테스트는 해당 production 진입점을
   호출해야 한다. helper가 결과를 직접 계산하거나 production 로직을 복제한
   경우 통합 검증으로 인정하지 않는다.
@@ -490,3 +563,8 @@ XcodeBuildMCP를 사용하는 경우 첫 build/test 전에 `session_show_default
 - 문서는 한국어를 기본으로 하고, 명령/파일명/API 이름은 원문 그대로 쓴다.
 - 원칙만 쓰지 말고 명령, 체크리스트, 예시 중 하나 이상을 포함한다.
 - README, 한글 입력 로직 정리 문서, 자동완성 로직 정리 문서의 기존 설명과 충돌하지 않게 쓴다.
+- 마크다운으로 쓰는 모든 글(저장소 문서, PR·이슈 본문 등)에서 범위를 물결표로 쓸 때는 `\~`로 이스케이프한다.
+  GitHub 등 여러 마크다운 렌더러가 `~`로 감싼 부분을 취소선으로 바꾸므로, 한 문단에 `~`가 두 번 나오면 그 사이가
+  취소선이 된다. 렌더러마다 다르게 보이지 않도록 GitHub에 올리지 않는 문서도 같은 규칙을 따른다.
+  예: `약 11~13회, 약 25~30회`는 `13회, 약 25`에 취소선이 그어진다. `약 11\~13회`로 쓴다.
+  백틱 코드 표기 안의 `~`는 그대로 둔다.

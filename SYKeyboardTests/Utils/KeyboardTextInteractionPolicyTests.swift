@@ -464,37 +464,6 @@ struct KeyboardTextInteractionPolicyTests {
         )
     }
 
-    @Test("메시지 앱 줄 단위 문맥이 그대로면 proxy 후보 대신 줄바꿈 확정")
-    func test반복삭제_메시지동일앞문맥_줄바꿈확정() {
-        var request = RepeatDeleteRequest()
-        request.begin(
-            context: KeyboardTextContextSnapshot(beforeInput: "다라", afterInput: "마바\n"),
-            selectedText: nil
-        )
-        let captureResult = request.capture(
-            deletedText: "라",
-            insertedText: "",
-            reliability: .proxyContext
-        )
-        #expect(captureResult == .awaitingTextChange)
-
-        #expect(
-            request.completeAfterTextChange(
-                currentContext: KeyboardTextContextSnapshot(
-                    beforeInput: "다라",
-                    afterInput: "마바\n"
-                ),
-                currentSelectedText: nil
-            ) == .mutations([
-                RepeatDeleteMutationDraft(
-                    deletedText: "\n",
-                    insertedText: "",
-                    reliability: .authoritative
-                )
-            ])
-        )
-    }
-
     @Test("변경 없는 checkpoint는 줄바꿈 mutation을 만들지 않음")
     func test반복삭제_변경없는Checkpoint_줄바꿈확정안함() {
         var request = RepeatDeleteRequest()
@@ -559,125 +528,108 @@ struct KeyboardTextInteractionPolicyTests {
         #expect(request.isPending)
     }
 
-    @Test("빈 앞 문맥에서 직전 줄 문맥이 나타나면 줄바꿈 확정")
-    func test반복삭제_빈앞문맥에서직전줄노출_줄바꿈확정() {
-        var request = RepeatDeleteRequest()
-        request.begin(
-            context: KeyboardTextContextSnapshot(beforeInput: nil, afterInput: "마바\n"),
-            selectedText: nil
+    struct RepeatDeleteCommitCase: CustomTestStringConvertible {
+        let name: String
+        let begin: KeyboardTextContextSnapshot
+        let deletedText: String
+        let insertedText: String
+        let reliability: RepeatDeleteMutationReliability
+        let current: KeyboardTextContextSnapshot
+        let expectedMutation: RepeatDeleteMutationDraft
+
+        var testDescription: String { name }
+    }
+
+    private static let repeatDeleteCommitCases: [RepeatDeleteCommitCase] = [
+        RepeatDeleteCommitCase(
+            name: "메시지 앱 줄 단위 문맥이 그대로면 proxy 후보 대신 줄바꿈 확정",
+            begin: KeyboardTextContextSnapshot(beforeInput: "다라", afterInput: "마바\n"),
+            deletedText: "라", insertedText: "", reliability: .proxyContext,
+            current: KeyboardTextContextSnapshot(beforeInput: "다라", afterInput: "마바\n"),
+            expectedMutation: RepeatDeleteMutationDraft(deletedText: "\n", insertedText: "", reliability: .authoritative)
+        ),
+        RepeatDeleteCommitCase(
+            name: "빈 앞 문맥에서 직전 줄 문맥이 나타나면 줄바꿈 확정",
+            begin: KeyboardTextContextSnapshot(beforeInput: nil, afterInput: "마바\n"),
+            deletedText: "", insertedText: "", reliability: .proxyContext,
+            current: KeyboardTextContextSnapshot(beforeInput: "다라", afterInput: "마바\n"),
+            expectedMutation: RepeatDeleteMutationDraft(deletedText: "\n", insertedText: "", reliability: .authoritative)
+        ),
+        RepeatDeleteCommitCase(
+            name: "조합 치환 mutation은 callback 확인 뒤 원형 유지",
+            begin: KeyboardTextContextSnapshot(beforeInput: "한", afterInput: ""),
+            deletedText: "한", insertedText: "하", reliability: .authoritative,
+            current: KeyboardTextContextSnapshot(beforeInput: "하", afterInput: ""),
+            expectedMutation: RepeatDeleteMutationDraft(deletedText: "한", insertedText: "하", reliability: .authoritative)
         )
+    ]
+
+    @Test("capture 뒤 text change callback에서 기대한 문맥이 보이면 mutation을 확정",
+          arguments: KeyboardTextInteractionPolicyTests.repeatDeleteCommitCases)
+    func test반복삭제_Callback확정(testCase: RepeatDeleteCommitCase) {
+        var request = RepeatDeleteRequest()
+        request.begin(context: testCase.begin, selectedText: nil)
         let captureResult = request.capture(
-            deletedText: "",
-            insertedText: "",
-            reliability: .proxyContext
+            deletedText: testCase.deletedText,
+            insertedText: testCase.insertedText,
+            reliability: testCase.reliability
         )
         #expect(captureResult == .awaitingTextChange)
 
         #expect(
             request.completeAfterTextChange(
-                currentContext: KeyboardTextContextSnapshot(
-                    beforeInput: "다라",
-                    afterInput: "마바\n"
-                ),
+                currentContext: testCase.current,
                 currentSelectedText: nil
-            ) == .mutations([
-                RepeatDeleteMutationDraft(
-                    deletedText: "\n",
-                    insertedText: "",
-                    reliability: .authoritative
-                )
-            ])
+            ) == .mutations([testCase.expectedMutation])
         )
     }
 
-    @Test("조합 치환 mutation은 callback 확인 뒤 원형 유지")
-    func test반복삭제_권위있는조합치환_원형유지() {
-        var request = RepeatDeleteRequest()
-        request.begin(
-            context: KeyboardTextContextSnapshot(beforeInput: "한", afterInput: ""),
-            selectedText: nil
-        )
-        let captureResult = request.capture(
-            deletedText: "한",
-            insertedText: "하",
-            reliability: .authoritative
-        )
-        #expect(captureResult == .awaitingTextChange)
+    struct RepeatDeletePendingCase: CustomTestStringConvertible {
+        let name: String
+        let begin: KeyboardTextContextSnapshot
+        let deletedText: String
+        let insertedText: String
+        let reliability: RepeatDeleteMutationReliability
+        let current: KeyboardTextContextSnapshot
 
-        #expect(
-            request.completeAfterTextChange(
-                currentContext: KeyboardTextContextSnapshot(beforeInput: "하", afterInput: ""),
-                currentSelectedText: nil
-            ) == .mutations([
-                RepeatDeleteMutationDraft(
-                    deletedText: "한",
-                    insertedText: "하",
-                    reliability: .authoritative
-                )
-            ])
-        )
+        var testDescription: String { name }
     }
 
-    @Test("권위 치환 뒤 앞 문맥이 그대로면 확정하지 않음")
-    func test반복삭제_권위치환_변경없는앞문맥_확정안함() {
-        var request = RepeatDeleteRequest()
-        request.begin(
-            context: KeyboardTextContextSnapshot(beforeInput: "한", afterInput: ""),
-            selectedText: nil
+    private static let repeatDeletePendingCases: [RepeatDeletePendingCase] = [
+        RepeatDeletePendingCase(
+            name: "권위 치환 뒤 앞 문맥이 그대로면 확정하지 않음",
+            begin: KeyboardTextContextSnapshot(beforeInput: "한", afterInput: ""),
+            deletedText: "한", insertedText: "하", reliability: .authoritative,
+            current: KeyboardTextContextSnapshot(beforeInput: "한", afterInput: "")
+        ),
+        RepeatDeletePendingCase(
+            name: "권위 치환 뒤 예상과 다른 앞 문맥이면 확정하지 않음",
+            begin: KeyboardTextContextSnapshot(beforeInput: "한", afterInput: ""),
+            deletedText: "한", insertedText: "하", reliability: .authoritative,
+            current: KeyboardTextContextSnapshot(beforeInput: "호", afterInput: "")
+        ),
+        RepeatDeletePendingCase(
+            name: "뒤 문맥이 바뀐 callback은 확정하지 않음",
+            begin: KeyboardTextContextSnapshot(beforeInput: "마바", afterInput: "다"),
+            deletedText: "바", insertedText: "", reliability: .proxyContext,
+            current: KeyboardTextContextSnapshot(beforeInput: "마", afterInput: "라")
         )
+    ]
+
+    @Test("capture 뒤 text change callback의 문맥이 기대와 다르면 확정하지 않고 pending 유지",
+          arguments: KeyboardTextInteractionPolicyTests.repeatDeletePendingCases)
+    func test반복삭제_Callback문맥불일치_확정안함(testCase: RepeatDeletePendingCase) {
+        var request = RepeatDeleteRequest()
+        request.begin(context: testCase.begin, selectedText: nil)
         _ = request.capture(
-            deletedText: "한",
-            insertedText: "하",
-            reliability: .authoritative
+            deletedText: testCase.deletedText,
+            insertedText: testCase.insertedText,
+            reliability: testCase.reliability
         )
 
         #expect(
             request.completeAfterTextChange(
-                currentContext: KeyboardTextContextSnapshot(beforeInput: "한", afterInput: ""),
-                currentSelectedText: nil
-            ) == nil
-        )
-        #expect(request.isPending)
-    }
-
-    @Test("권위 치환 뒤 예상과 다른 앞 문맥이면 확정하지 않음")
-    func test반복삭제_권위치환_불일치앞문맥_확정안함() {
-        var request = RepeatDeleteRequest()
-        request.begin(
-            context: KeyboardTextContextSnapshot(beforeInput: "한", afterInput: ""),
-            selectedText: nil
-        )
-        _ = request.capture(
-            deletedText: "한",
-            insertedText: "하",
-            reliability: .authoritative
-        )
-
-        #expect(
-            request.completeAfterTextChange(
-                currentContext: KeyboardTextContextSnapshot(beforeInput: "호", afterInput: ""),
-                currentSelectedText: nil
-            ) == nil
-        )
-        #expect(request.isPending)
-    }
-
-    @Test("뒤 문맥이 바뀐 callback은 확정하지 않음")
-    func test반복삭제_변경된AfterInput_확정안함() {
-        var request = RepeatDeleteRequest()
-        request.begin(
-            context: KeyboardTextContextSnapshot(beforeInput: "마바", afterInput: "다"),
-            selectedText: nil
-        )
-        _ = request.capture(
-            deletedText: "바",
-            insertedText: "",
-            reliability: .proxyContext
-        )
-
-        #expect(
-            request.completeAfterTextChange(
-                currentContext: KeyboardTextContextSnapshot(beforeInput: "마", afterInput: "라"),
+                currentContext: testCase.current,
                 currentSelectedText: nil
             ) == nil
         )
@@ -801,43 +753,50 @@ struct KeyboardTextInteractionPolicyTests {
         expectRepeatTimerInterval(repeatRate: 0.20, expected: 0.01)
     }
 
-    @Test("shift 짝 보조 키: 쿼티는 모든 키가 대소문자로 짝지어짐")
-    func testShiftPairSecondaryKeyList_쿼티() {
-        let primary: [[[[String]]]] = [
-            [[["q"], ["w"]], [["a"]]],
-            [[["Q"], ["W"]], [["A"]]]
-        ]
+    struct ShiftPairSecondaryKeyCase: CustomTestStringConvertible {
+        let name: String
+        let primary: [[[[String]]]]
+        let expected: [[[[String]]]]
 
-        let result = KeyboardTextInteractionPolicy.shiftPairSecondaryKeyList(from: primary)
-
-        #expect(result == [
-            [[["Q"], ["W"]], [["A"]]],
-            [[["q"], ["w"]], [["a"]]]
-        ])
+        var testDescription: String { name }
     }
 
-    @Test("shift 짝 보조 키: 두벌식은 쌍자음·ㅒㅖ 자리만 짝이 생기고 나머지는 보조 키 없음")
-    func testShiftPairSecondaryKeyList_두벌식() {
-        let primary: [[[[String]]]] = [
-            [[["ㅂ"], ["ㅛ"], ["ㅐ"]], [["ㅁ"]]],
-            [[["ㅃ"], ["ㅛ"], ["ㅒ"]], [["ㅁ"]]]
-        ]
+    private static let shiftPairSecondaryKeyCases: [ShiftPairSecondaryKeyCase] = [
+        ShiftPairSecondaryKeyCase(
+            name: "쿼티는 모든 키가 대소문자로 짝지어짐",
+            primary: [
+                [[["q"], ["w"]], [["a"]]],
+                [[["Q"], ["W"]], [["A"]]]
+            ],
+            expected: [
+                [[["Q"], ["W"]], [["A"]]],
+                [[["q"], ["w"]], [["a"]]]
+            ]
+        ),
+        ShiftPairSecondaryKeyCase(
+            name: "두벌식은 쌍자음·ㅒㅖ 자리만 짝이 생기고 나머지는 보조 키 없음",
+            primary: [
+                [[["ㅂ"], ["ㅛ"], ["ㅐ"]], [["ㅁ"]]],
+                [[["ㅃ"], ["ㅛ"], ["ㅒ"]], [["ㅁ"]]]
+            ],
+            expected: [
+                [[["ㅃ"], [], ["ㅒ"]], [[]]],
+                [[["ㅂ"], [], ["ㅐ"]], [[]]]
+            ]
+        ),
+        ShiftPairSecondaryKeyCase(
+            name: "층이 2개가 아니면 보조 키 없이 같은 모양 반환",
+            primary: [[[["q"], ["w"]]]],
+            expected: [[[[], []]]]
+        )
+    ]
 
-        let result = KeyboardTextInteractionPolicy.shiftPairSecondaryKeyList(from: primary)
+    @Test("shift 짝 보조 키는 두 층에서 글자가 다른 자리에만 서로를 보조 키로 둠",
+          arguments: KeyboardTextInteractionPolicyTests.shiftPairSecondaryKeyCases)
+    func testShiftPairSecondaryKeyList(testCase: ShiftPairSecondaryKeyCase) {
+        let result = KeyboardTextInteractionPolicy.shiftPairSecondaryKeyList(from: testCase.primary)
 
-        #expect(result == [
-            [[["ㅃ"], [], ["ㅒ"]], [[]]],
-            [[["ㅂ"], [], ["ㅐ"]], [[]]]
-        ])
-    }
-
-    @Test("shift 짝 보조 키: 층이 2개가 아니면 보조 키 없이 같은 모양 반환")
-    func testShiftPairSecondaryKeyList_층불일치() {
-        let primary: [[[[String]]]] = [[[["q"], ["w"]]]]
-
-        let result = KeyboardTextInteractionPolicy.shiftPairSecondaryKeyList(from: primary)
-
-        #expect(result == [[[[], []]]])
+        #expect(result == testCase.expected)
     }
 }
 
@@ -1057,63 +1016,33 @@ private extension KeyboardTextInteractionPolicyTests {
         #expect(model.remainingText == "가다")
     }
 
-    @Test("모델이 바닥났을 때 입력창 앞 문맥이 비었으면 경계를 물음")
-    func testDeletePanExhaustedContext_경계요청() {
+    @Test("삭제 드래그 모델이 바닥났을 때 입력창 앞 문맥에 따라 경계 요청·동기화 대기·모델 재충전을 판정",
+          arguments: [
+            // (sourceText, documentContextBeforeInput, action)
+            // 입력창 앞 문맥이 비었으면 경계를 묻는다
+            ("ㄱㄱㄱㄱㄱㄱ", String?.none, DeletePanExhaustedContextAction.requestBoundary),
+            ("ㄱㄱㄱㄱㄱㄱ", "", .requestBoundary),
+            // 앞 문맥이 방금 지운 모델 글자의 앞부분으로 끝나면 입력창이 따라오기를 기다린다.
+            // 실기기 03:00:54: `ㄱ` 6개를 지웠는데 입력창이 아직 `ㄱㄱㄱㄱ`를 보냄
+            ("ㄱㄱㄱㄱㄱㄱ", "ㄱㄱㄱㄱ", .awaitSync),
+            ("가나다", "라마\n가나", .awaitSync),
+            // 앞 문맥이 지운 모델 글자와 이어지지 않으면 실제 앞 줄로 보고 모델을 다시 채운다.
+            // 실기기 03:18:45: 처음 문맥이 앞 줄 없이 `⏎ㄹ…`이었고, 다 지운 뒤 실제 앞 줄 `ㄱ…`이 보임
+            ("\nㄹㄹㄹ", "ㄱㄱㄱㄱ", .refill),
+            ("", "가", .refill),
+            // 같은 글자가 이어져 실제 앞 문맥과 낡은 문맥을 구분할 수 없으면 기다림으로 판정
+            ("ㄱㄱㄱ", "ㄱㄱㄱㄱㄱ", .awaitSync)
+          ])
+    func testDeletePanExhaustedContextAction(
+        sourceText: String,
+        documentContextBeforeInput: String?,
+        action: DeletePanExhaustedContextAction
+    ) {
         #expect(
             KeyboardTextInteractionPolicy.deletePanExhaustedContextAction(
-                sourceText: "ㄱㄱㄱㄱㄱㄱ",
-                documentContextBeforeInput: nil
-            ) == .requestBoundary
-        )
-        #expect(
-            KeyboardTextInteractionPolicy.deletePanExhaustedContextAction(
-                sourceText: "ㄱㄱㄱㄱㄱㄱ",
-                documentContextBeforeInput: ""
-            ) == .requestBoundary
-        )
-    }
-
-    // 실기기 03:00:54: `ㄱ` 6개를 지웠는데 입력창이 아직 `ㄱㄱㄱㄱ`를 보냄
-    @Test("앞 문맥이 방금 지운 모델 글자의 앞부분으로 끝나면 입력창이 따라오기를 기다림")
-    func testDeletePanExhaustedContext_낡은문맥() {
-        #expect(
-            KeyboardTextInteractionPolicy.deletePanExhaustedContextAction(
-                sourceText: "ㄱㄱㄱㄱㄱㄱ",
-                documentContextBeforeInput: "ㄱㄱㄱㄱ"
-            ) == .awaitSync
-        )
-        #expect(
-            KeyboardTextInteractionPolicy.deletePanExhaustedContextAction(
-                sourceText: "가나다",
-                documentContextBeforeInput: "라마\n가나"
-            ) == .awaitSync
-        )
-    }
-
-    // 실기기 03:18:45: 처음 문맥이 앞 줄 없이 `⏎ㄹ…`이었고, 다 지운 뒤 실제 앞 줄 `ㄱ…`이 보임
-    @Test("앞 문맥이 지운 모델 글자와 이어지지 않으면 실제 앞 줄로 보고 모델을 다시 채움")
-    func testDeletePanExhaustedContext_앞줄() {
-        #expect(
-            KeyboardTextInteractionPolicy.deletePanExhaustedContextAction(
-                sourceText: "\nㄹㄹㄹ",
-                documentContextBeforeInput: "ㄱㄱㄱㄱ"
-            ) == .refill
-        )
-        #expect(
-            KeyboardTextInteractionPolicy.deletePanExhaustedContextAction(
-                sourceText: "",
-                documentContextBeforeInput: "가"
-            ) == .refill
-        )
-    }
-
-    @Test("같은 글자가 이어져 실제 앞 문맥과 낡은 문맥을 구분할 수 없으면 기다림으로 판정")
-    func testDeletePanExhaustedContext_구분불가() {
-        #expect(
-            KeyboardTextInteractionPolicy.deletePanExhaustedContextAction(
-                sourceText: "ㄱㄱㄱ",
-                documentContextBeforeInput: "ㄱㄱㄱㄱㄱ"
-            ) == .awaitSync
+                sourceText: sourceText,
+                documentContextBeforeInput: documentContextBeforeInput
+            ) == action
         )
     }
 

@@ -31,51 +31,25 @@ struct DubeolsikProcessorTests: HangeulProcessorTestable {
     
     // MARK: - 1. 기본 입력 및 조합 테스트
     
-    @Test("한 음절 조합: 키 입력 순서대로 음절을 완성",
+    @Test("음절 조합: 키 입력 순서대로 음절을 완성 (기본 조합·연음·shift 짝 입력)",
           arguments: [
             (["ㄱ", "ㅏ"], "가"),           // 초성 + 중성
             (["ㄱ", "ㅏ", "ㄱ"], "각"),      // 종성
             (["ㅇ", "ㅗ", "ㅏ"], "와"),      // 복합 모음 (ㅗ + ㅏ -> ㅘ)
-            (["ㄷ", "ㅏ", "ㄹ", "ㄱ"], "닭")  // 겹받침 (ㄹ + ㄱ -> ㄺ)
+            (["ㄷ", "ㅏ", "ㄹ", "ㄱ"], "닭"),  // 겹받침 (ㄹ + ㄱ -> ㄺ)
+            (["ㅇ", "ㅏ", "ㄴ", "ㄴ", "ㅕ", "ㅇ"], "안녕"),  // 연음
+            (["ㄱ", "ㅏ", "ㅆ"], "갔"),      // shift 쌍자음 받침 (ㅆ)
+            (["ㄱ", "ㅏ", "ㄲ"], "갂"),      // shift 쌍자음 받침 (ㄲ)
+            (["ㄱ", "ㅒ"], "걔"),           // shift 모음 (ㅒ)
+            (["ㅅ", "ㅖ"], "셰")            // shift 모음 (ㅖ)
           ])
-    func test한음절조합(keys: [String], expected: String) {
+    func test음절조합(keys: [String], expected: String) {
         var (c, p) = ("", "")
         for key in keys {
             (c, p) = applyInput(key, committed: c, composing: p)
         }
 
         #expect(c + p == expected)
-    }
-
-    @Test("연음 입력: '안녕' (ㅇ+ㅏ+ㄴ+ㄴ+ㅕ+ㅇ)")
-    func test연음입력_안녕() {
-        var (c, p) = ("", "")
-        let 입력배열 = ["ㅇ", "ㅏ", "ㄴ", "ㄴ", "ㅕ", "ㅇ"]
-        
-        for 자소 in 입력배열 {
-            (c, p) = applyInput(자소, committed: c, composing: p)
-        }
-        
-        #expect(c + p == "안녕")
-    }
-
-    @Test("shift 짝 입력: 쌍자음 ㅆ·ㄲ가 받침으로, ㅒ·ㅖ가 모음으로 조합")
-    func testShift짝입력_조합() {
-        var (c, p) = ("", "")
-        for 글자 in ["ㄱ", "ㅏ", "ㅆ"] { (c, p) = applyInput(글자, committed: c, composing: p) }
-        #expect(c + p == "갔")
-
-        (c, p) = ("", "")
-        for 글자 in ["ㄱ", "ㅏ", "ㄲ"] { (c, p) = applyInput(글자, committed: c, composing: p) }
-        #expect(c + p == "갂")
-
-        (c, p) = ("", "")
-        for 글자 in ["ㄱ", "ㅒ"] { (c, p) = applyInput(글자, committed: c, composing: p) }
-        #expect(c + p == "걔")
-
-        (c, p) = ("", "")
-        for 글자 in ["ㅅ", "ㅖ"] { (c, p) = applyInput(글자, committed: c, composing: p) }
-        #expect(c + p == "셰")
     }
 
     // MARK: - 2. 스페이스바 및 특수문자 동작 테스트

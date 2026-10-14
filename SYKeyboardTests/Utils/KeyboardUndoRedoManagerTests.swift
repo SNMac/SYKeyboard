@@ -392,73 +392,44 @@ struct KeyboardUndoRedoManagerTests {
 @Suite("키보드 undo/redo cursor context 검증")
 struct KeyboardTextContextNavigatorTests {
 
-    @Test("커서가 왼쪽으로 이동한 뒤 원래 편집 위치까지 오른쪽 offset을 반환함")
-    func testCursorOffset_왼쪽이동후복원() {
-        let current = KeyboardTextContextSnapshot(beforeInput: "ab", afterInput: "cdef")
-        let target = KeyboardTextContextSnapshot(beforeInput: "abc", afterInput: "def")
+    struct Case: CustomTestStringConvertible {
+        let name: String
+        let currentBefore: String
+        let currentAfter: String?
+        let targetBefore: String
+        let targetAfter: String?
+        let expectedOffset: Int?
 
-        #expect(KeyboardTextContextNavigator.cursorOffset(from: current, to: target) == 1)
+        var testDescription: String { name }
     }
 
-    @Test("커서가 오른쪽으로 이동한 뒤 원래 편집 위치까지 왼쪽 offset을 반환함")
-    func testCursorOffset_오른쪽이동후복원() {
-        let current = KeyboardTextContextSnapshot(beforeInput: "abcd", afterInput: "ef")
-        let target = KeyboardTextContextSnapshot(beforeInput: "abc", afterInput: "def")
+    private static let cases: [Case] = [
+        Case(name: "왼쪽으로 이동한 뒤 원래 편집 위치까지 오른쪽 offset",
+             currentBefore: "ab", currentAfter: "cdef", targetBefore: "abc", targetAfter: "def", expectedOffset: 1),
+        Case(name: "오른쪽으로 이동한 뒤 원래 편집 위치까지 왼쪽 offset",
+             currentBefore: "abcd", currentAfter: "ef", targetBefore: "abc", targetAfter: "def", expectedOffset: -1),
+        Case(name: "현재 위치가 target context와 같으면 0",
+             currentBefore: "abc", currentAfter: "def", targetBefore: "abc", targetAfter: "def", expectedOffset: 0),
+        Case(name: "host context가 바뀌어 커서 이동으로 설명할 수 없으면 nil",
+             currentBefore: "hello", currentAfter: "", targetBefore: "world", targetAfter: "", expectedOffset: nil),
+        Case(name: "짧은 target context는 현재 context의 suffix·prefix로 매칭",
+             currentBefore: "012345abc", currentAfter: "defXYZ", targetBefore: "abc", targetAfter: "def", expectedOffset: 0),
+        Case(name: "nil과 빈 after context는 문서 끝으로 동일하게 취급",
+             currentBefore: "abc", currentAfter: nil, targetBefore: "abc", targetAfter: "", expectedOffset: 0),
+        Case(name: "최대 복원 거리(256) 안쪽의 커서 이동은 복원 offset",
+             currentBefore: String(repeating: "a", count: 256), currentAfter: "tail",
+             targetBefore: "", targetAfter: String(repeating: "a", count: 256) + "tail", expectedOffset: -256),
+        Case(name: "최대 복원 거리를 넘는(257) 커서 이동은 탐색 중단 nil",
+             currentBefore: String(repeating: "a", count: 257), currentAfter: "tail",
+             targetBefore: "", targetAfter: String(repeating: "a", count: 257) + "tail", expectedOffset: nil)
+    ]
 
-        #expect(KeyboardTextContextNavigator.cursorOffset(from: current, to: target) == -1)
-    }
+    @Test("현재 context에서 target context까지의 커서 offset", arguments: KeyboardTextContextNavigatorTests.cases)
+    func testCursorOffset(_ testCase: Case) {
+        let current = KeyboardTextContextSnapshot(beforeInput: testCase.currentBefore, afterInput: testCase.currentAfter)
+        let target = KeyboardTextContextSnapshot(beforeInput: testCase.targetBefore, afterInput: testCase.targetAfter)
 
-    @Test("현재 위치가 target context와 같으면 offset 0을 반환함")
-    func testCursorOffset_같은위치() {
-        let current = KeyboardTextContextSnapshot(beforeInput: "abc", afterInput: "def")
-        let target = KeyboardTextContextSnapshot(beforeInput: "abc", afterInput: "def")
-
-        #expect(KeyboardTextContextNavigator.cursorOffset(from: current, to: target) == 0)
-    }
-
-    @Test("host context가 바뀌어 커서 이동으로 설명할 수 없으면 nil을 반환함")
-    func testCursorOffset_외부변경감지() {
-        let current = KeyboardTextContextSnapshot(beforeInput: "hello", afterInput: "")
-        let target = KeyboardTextContextSnapshot(beforeInput: "world", afterInput: "")
-
-        #expect(KeyboardTextContextNavigator.cursorOffset(from: current, to: target) == nil)
-    }
-
-    @Test("짧은 target context는 현재 context의 suffix prefix로 매칭함")
-    func testCursorOffset_짧은TargetContext매칭() {
-        let current = KeyboardTextContextSnapshot(beforeInput: "012345abc", afterInput: "defXYZ")
-        let target = KeyboardTextContextSnapshot(beforeInput: "abc", afterInput: "def")
-
-        #expect(KeyboardTextContextNavigator.cursorOffset(from: current, to: target) == 0)
-    }
-
-    @Test("nil과 빈 after context는 문서 끝으로 동일하게 취급함")
-    func testCursorOffset_nilEmptyAfterContext동일취급() {
-        let current = KeyboardTextContextSnapshot(beforeInput: "abc", afterInput: nil)
-        let target = KeyboardTextContextSnapshot(beforeInput: "abc", afterInput: "")
-
-        #expect(KeyboardTextContextNavigator.cursorOffset(from: current, to: target) == 0)
-    }
-
-    @Test("최대 복원 거리 안쪽의 커서 이동은 복원 offset을 반환함")
-    func testCursorOffset_최대복원거리내_복원() {
-        let moveText = String(repeating: "a", count: 256)
-        let current = KeyboardTextContextSnapshot(beforeInput: moveText, afterInput: "tail")
-        let target = KeyboardTextContextSnapshot(beforeInput: "", afterInput: moveText + "tail")
-
-        #expect(
-            KeyboardTextContextNavigator.cursorOffset(from: current, to: target)
-            == -256
-        )
-    }
-
-    @Test("최대 복원 거리를 넘는 커서 이동은 탐색을 중단함")
-    func testCursorOffset_최대복원거리초과_nil() {
-        let moveText = String(repeating: "a", count: 257)
-        let current = KeyboardTextContextSnapshot(beforeInput: moveText, afterInput: "tail")
-        let target = KeyboardTextContextSnapshot(beforeInput: "", afterInput: moveText + "tail")
-
-        #expect(KeyboardTextContextNavigator.cursorOffset(from: current, to: target) == nil)
+        #expect(KeyboardTextContextNavigator.cursorOffset(from: current, to: target) == testCase.expectedOffset)
     }
 }
 
