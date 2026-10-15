@@ -18,6 +18,8 @@ final class CountingTextDocumentProxy: NSObject, UITextDocumentProxy {
     private(set) var readCounts: [String: Int] = [:]
     /// 쓰기 호출 기록. 예: `"insertText(가)"`, `"deleteBackward"`, `"adjustTextPosition(-1)"`
     private(set) var writes: [String] = []
+    /// 쓰기마다 그 직전까지의 읽기 횟수. 쓰기 뒤에 생긴 읽기와 나눠 세는 데 쓴다
+    private(set) var readCountsAtWrites: [[String: Int]] = []
 
     // MARK: - Stubbed Values
 
@@ -93,17 +95,17 @@ final class CountingTextDocumentProxy: NSObject, UITextDocumentProxy {
     }
 
     func insertText(_ text: String) {
-        writes.append("insertText(\(text))")
+        recordWrite("insertText(\(text))")
         beforeInput = (beforeInput ?? "") + text
     }
 
     func deleteBackward() {
-        writes.append("deleteBackward")
+        recordWrite("deleteBackward")
         beforeInput = beforeInput.map { String($0.dropLast()) }
     }
 
     func adjustTextPosition(byCharacterOffset offset: Int) {
-        writes.append("adjustTextPosition(\(offset))")
+        recordWrite("adjustTextPosition(\(offset))")
     }
 
     func setMarkedText(_ markedText: String, selectedRange: NSRange) {}
@@ -124,6 +126,12 @@ final class CountingTextDocumentProxy: NSObject, UITextDocumentProxy {
 
     func resetReadCounts() {
         readCounts.removeAll()
+        readCountsAtWrites.removeAll()
+    }
+
+    private func recordWrite(_ write: String) {
+        writes.append(write)
+        readCountsAtWrites.append(readCounts)
     }
 
     private func read<T>(_ value: T, key: String = #function) -> T {

@@ -1571,22 +1571,25 @@ extension BaseKeyboardViewController {
             return
         }
 
-        textDeletionCoordinator.cancelPendingInteractions()
-        textInteractionWillPerform(button: button)
-        defer { textInteractionDidPerform(button: button) }
+        // 틱 하나에서 같은 프록시 값을 다시 읽지 않는다. 반복 중 문서 상태 교체와 겹친 읽기는 크래시한다(#198)
+        textDocument.withReadCaching {
+            textDeletionCoordinator.cancelPendingInteractions()
+            textInteractionWillPerform(button: button)
+            defer { textInteractionDidPerform(button: button) }
 
-        switch button.type {
-        case .keyButton:
-            repeatInsertPrimaryKeyText(from: button)
-            markSymbolInputAfterLongPressIfNeeded(for: button)
-            button.playFeedback()
-        case .deleteButton:
-            assertionFailure("삭제 버튼은 semantic hook 경로에서 먼저 처리됩니다.")
-        case .spaceButton:
-            insertSpaceText()
-            button.playFeedback()
-        case .returnButton:
-            performRepeatReturnButtonTextInteraction(for: button)
+            switch button.type {
+            case .keyButton:
+                repeatInsertPrimaryKeyText(from: button)
+                markSymbolInputAfterLongPressIfNeeded(for: button)
+                button.playFeedback()
+            case .deleteButton:
+                assertionFailure("삭제 버튼은 semantic hook 경로에서 먼저 처리됩니다.")
+            case .spaceButton:
+                insertSpaceText()
+                button.playFeedback()
+            case .returnButton:
+                performRepeatReturnButtonTextInteraction(for: button)
+            }
         }
     }
 
