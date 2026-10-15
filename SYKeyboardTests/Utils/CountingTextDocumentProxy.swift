@@ -18,8 +18,10 @@ final class CountingTextDocumentProxy: NSObject, UITextDocumentProxy {
     private(set) var readCounts: [String: Int] = [:]
     /// 쓰기 호출 기록. 예: `"insertText(가)"`, `"deleteBackward"`, `"adjustTextPosition(-1)"`
     private(set) var writes: [String] = []
-    /// 쓰기마다 그 직전까지의 읽기 횟수. 쓰기 뒤에 생긴 읽기와 나눠 세는 데 쓴다
-    private(set) var readCountsAtWrites: [[String: Int]] = []
+    /// 쓰기마다 그 직전까지의 읽기 횟수(마지막 `resetReadCounts()` 이후). 쓰기 뒤에 생긴 읽기와 나눠 세는 데 쓴다
+    ///
+    /// `writes`와 같은 인덱스를 쓴다. `resetReadCounts()`는 `writes`처럼 이 기록도 지우지 않는다
+    private(set) var readCountsBeforeEachWrite: [[String: Int]] = []
 
     // MARK: - Stubbed Values
 
@@ -126,12 +128,11 @@ final class CountingTextDocumentProxy: NSObject, UITextDocumentProxy {
 
     func resetReadCounts() {
         readCounts.removeAll()
-        readCountsAtWrites.removeAll()
     }
 
     private func recordWrite(_ write: String) {
         writes.append(write)
-        readCountsAtWrites.append(readCounts)
+        readCountsBeforeEachWrite.append(readCounts)
     }
 
     private func read<T>(_ value: T, key: String = #function) -> T {
