@@ -36,6 +36,8 @@ final class SwitchGestureController: NSObject {
     private var isOverlayActive: Bool = false
     private var isDragOutside: Bool = false
     private var isKeepGesturing: Bool = false
+    /// 시작했지만 아직 종료 처리하지 않은 전환 버튼 pan
+    private var unfinishedPans: Set<ObjectIdentifier> = []
     
     private lazy var keyboardHStackViewPressGestureRecognizer: UILongPressGestureRecognizer = {
         let gestureRecognizer = UILongPressGestureRecognizer(target: self, action: #selector(keyboardHStackViewPressGestureHandler(_:)))
@@ -99,6 +101,7 @@ final class SwitchGestureController: NSObject {
         case .began:
             lockedPanDirection = nil
             switchButton.isGesturing = true
+            unfinishedPans.insert(ObjectIdentifier(gesture))
             logger.debug("키보드 선택 팬 제스처 활성화")
         case .changed:
             isOverlayActive = !keyboardSelectOverlayView.isHidden || !oneHandedModeSelectOverlayView.isHidden
@@ -116,7 +119,7 @@ final class SwitchGestureController: NSObject {
             if shouldCommit && !isOverlayActive && switchButton.isGesturing {
                 switchButton.sendActions(for: .touchUpInside)
             }
-            setCurrentPressedButton(nil)
+            releasePressedButtonIfLastPan(gesture)
             
             onkeyboardSelectPanGestureEnded(gesture, config: config, shouldCommit: shouldCommit)
             isOverlayActive = false
@@ -142,6 +145,7 @@ final class SwitchGestureController: NSObject {
         case .began:
             lockedPanDirection = nil
             switchButton.isGesturing = true
+            unfinishedPans.insert(ObjectIdentifier(gesture))
             logger.debug("팬 제스처 활성화")
         case .changed:
             isOverlayActive = !keyboardSelectOverlayView.isHidden || !oneHandedModeSelectOverlayView.isHidden
@@ -159,7 +163,7 @@ final class SwitchGestureController: NSObject {
             if shouldCommit && !isOverlayActive && switchButton.isGesturing {
                 switchButton.sendActions(for: .touchUpInside)
             }
-            setCurrentPressedButton(nil)
+            releasePressedButtonIfLastPan(gesture)
             
             onOneHandedModeSelectPanGestureEnded(gesture, config: config, shouldCommit: shouldCommit)
             isOverlayActive = false
@@ -648,6 +652,19 @@ private extension SwitchGestureController {
             delegate?.changeOneHandedMode(self, to: selectOneHandedModeOverlay(panDirection: panDirection))
             config.gestureHandler.hideOneHandedModeSelectOverlay()
             switchButton.configureOneHandedComponent(needToEmphasize: false)
+        }
+    }
+    
+    /// 같은 터치에서 시작한 pan 중 마지막으로 종료 처리되는 pan만 눌림 버튼을 비운다
+    ///
+    /// 눌림 버튼을 비우면 `ButtonStateController`가 그 버튼의 recognizer를 모두 취소한다.
+    /// 손을 떼면 키보드 선택 pan의 액션이 먼저 불리는데, 이때 비우면 iOS 26 이상에서는 이미 종료된
+    /// 한 손 모드 pan도 취소로 덮어써져 결과가 확정되지 않는다.
+    /// recognizer 상태는 OS마다 다르게 바뀌므로 종료 처리 여부는 직접 기록한 값으로 판단한다
+    func releasePressedButtonIfLastPan(_ gesture: UIPanGestureRecognizer) {
+        unfinishedPans.remove(ObjectIdentifier(gesture))
+        if unfinishedPans.isEmpty {
+            setCurrentPressedButton(nil)
         }
     }
     

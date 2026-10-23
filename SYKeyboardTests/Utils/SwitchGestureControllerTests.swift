@@ -61,6 +61,55 @@ struct SwitchGestureControllerTests {
         #expect(environment.keyboardHStackView.isUserInteractionEnabled)
     }
 
+    @Test("위로 끌어 연 한 손 모드 overlay는 키보드 선택 pan이 먼저 끝나도 손을 뗀 위치의 모드로 확정")
+    func test키보드선택Pan이먼저끝난한손모드Pan() {
+        let handler = SwitchGestureHandlingSpy()
+        let delegate = SwitchGestureDelegateSpy()
+        let buttonStateController = ButtonStateController(
+            suggestionBarView: SuggestionBarView(keyboardHStackView: UIStackView())
+        )
+        let controller = SwitchGestureController(
+            keyboardHStackView: UIView(),
+            hangeulKeyboardView: handler,
+            englishKeyboardView: nil,
+            symbolKeyboardView: handler,
+            numericKeyboardView: handler,
+            getCurrentKeyboard: { .dubeolsik },
+            getCurrentOneHandedMode: { .center },
+            getCurrentPressedButton: { buttonStateController.currentPressedButton },
+            setCurrentPressedButton: { buttonStateController.currentPressedButton = $0 }
+        )
+        controller.delegate = delegate
+
+        let keyboardSelectPan = TestPanGestureRecognizer(state: .began)
+        let oneHandedModePan = TestPanGestureRecognizer(state: .began)
+        handler.switchButton.addGestureRecognizer(keyboardSelectPan)
+        handler.switchButton.addGestureRecognizer(oneHandedModePan)
+        buttonStateController.currentPressedButton = handler.switchButton
+        controller.keyboardSelectPanGestureHandler(keyboardSelectPan)
+        controller.oneHandedModeSelectPanGestureHandler(oneHandedModePan)
+
+        let overlayView = handler.oneHandedModeSelectOverlayView
+        overlayView.frame = CGRect(x: 0, y: 0, width: 240, height: 60)
+        overlayView.layoutIfNeeded()
+        handler.showOneHandedModeSelectOverlay(of: .center)
+        let leftModeLocation = CGPoint(x: overlayView.leftKeyboardImageContainerView.frame.midX,
+                                       y: overlayView.bounds.midY)
+        keyboardSelectPan.location = leftModeLocation
+        oneHandedModePan.location = leftModeLocation
+
+        // 손을 떼면 두 pan이 모두 종료된 뒤 등록 순서대로 액션이 불린다.
+        // iOS 26 이상은 이미 종료된 recognizer에 취소를 넣어도 덮어쓴다(TestPanGestureRecognizer도 같다)
+        keyboardSelectPan.state = .ended
+        oneHandedModePan.state = .ended
+        controller.keyboardSelectPanGestureHandler(keyboardSelectPan)
+        controller.oneHandedModeSelectPanGestureHandler(oneHandedModePan)
+
+        #expect(delegate.changedOneHandedModes == [.left])
+        #expect(overlayView.isHidden)
+        #expect(buttonStateController.currentPressedButton == nil)
+    }
+
     @Test("취소된 한 손 모드 long press는 모드를 변경하지 않고 overlay를 정리")
     func test취소된한손모드LongPress() {
         let environment = makeEnvironment()
