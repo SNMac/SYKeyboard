@@ -106,6 +106,7 @@ enum FontSize {
     static let charKeyLarge: CGFloat = 22.0
     static let stringKeyMedium: CGFloat = 16.0
     static let stringKeySmall: CGFloat = 8.0
+    static let suggestion: CGFloat = 15.0
     static let imageLarge: CGFloat = 32.0
     static let imageMedium: CGFloat = 14.0
     static let overlayLarge: CGFloat = 26.0
