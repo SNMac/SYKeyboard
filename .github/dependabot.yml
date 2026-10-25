@@ -9,7 +9,7 @@ updates:
   - package-ecosystem: "swift"
     directory: "/"
     schedule:
-      interval: "monthly"
+      interval: "quarterly"
     open-pull-requests-limit: 5
     # patch 버전 업데이트는 PR을 만들지 않는다 (보안 업데이트는 영향 없음)
     ignore:
