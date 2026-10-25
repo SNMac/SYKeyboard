@@ -119,7 +119,7 @@ struct BaseKeyboardViewControllerProxyReadTests {
     }
 
     @Test("반복 삭제 틱은 쓰기 전 문맥과 선택 텍스트를 한 번씩만 읽음")
-    func testRepeatDeleteTickReadsContextOnceBeforeWrite() {
+    func testRepeatDeleteTickReadsContextOnceBeforeWrite() throws {
         let controller = TestProxyReadViewController()
         let window = UIWindow(frame: UIScreen.main.bounds)
         window.addSubview(controller.view)
@@ -133,7 +133,8 @@ struct BaseKeyboardViewControllerProxyReadTests {
         controller.proxy.resetReadCounts()
         controller.performRepeatTextInteraction(for: button)
 
-        #expect(controller.proxy.writes.dropFirst(writeCountBeforeTicks) == ["deleteBackward", "deleteBackward"])
+        // 아래에서 쓰기 인덱스로 읽기 기록을 꺼내므로 삭제가 두 번 일어났다는 전제가 깨지면 여기서 끝낸다
+        try #require(controller.proxy.writes.dropFirst(writeCountBeforeTicks) == ["deleteBackward", "deleteBackward"])
         // 쓰기 뒤 undo 기록·컨트롤 갱신의 읽기는 새 문맥이 필요하므로 쓰기 전 읽기만 센다
         let readCountsBeforeFirstWrite = controller.proxy.readCountsBeforeEachWrite[writeCountBeforeTicks]
         #expect(readCountsBeforeFirstWrite["documentContextBeforeInput"] == 1)
