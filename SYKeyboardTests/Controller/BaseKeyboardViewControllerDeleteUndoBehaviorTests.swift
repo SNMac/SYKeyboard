@@ -53,23 +53,19 @@ struct BaseKeyboardViewControllerDeleteUndoBehaviorTests {
         #expect(controller.proxy.writes == ["deleteBackward", "deleteBackward"])
     }
 
-    @Test("반복 삭제 틱은 프록시 문맥을 한 번씩만 읽고 종료 훅은 반복 상태를 끝냄")
-    func testRepeatDeleteTickReadsContextOnce() {
+    @Test("반복 삭제 틱은 한 번 지우고 종료 훅은 반복 상태를 끝냄")
+    func testRepeatDeleteTickDeletesOnceAndEndHookStopsRepeat() {
         let controller = TestDeleteUndoViewController()
         let window = UIWindow(frame: UIScreen.main.bounds)
         window.addSubview(controller.view)
         let deleteButton = controller.primaryView.deleteButton
         controller.repeatTextInteractionWillPerform(button: deleteButton)
         #expect(controller.isRepeatingInput)
-        controller.proxy.resetReadCounts()
 
         controller.performRepeatTextInteraction(for: deleteButton)
 
+        // 틱의 프록시 읽기 횟수는 BaseKeyboardViewControllerProxyReadTests가 소유한다
         #expect(controller.proxy.writes == ["deleteBackward"])
-        // 추출 전 측정값(2026-10-08, f14e15e0): 틱 시작 스냅샷(앞·뒤·선택 1회씩)과 deleteText()의 선택·앞 문맥 읽기
-        #expect(controller.proxy.readCount(of: "documentContextBeforeInput") == 2)
-        #expect(controller.proxy.readCount(of: "documentContextAfterInput") == 1)
-        #expect(controller.proxy.readCount(of: "selectedText") == 2)
 
         // 연속 틱 동작은 TextDeletionCoordinatorTests가 소유한다. 여기서는 종료 훅이 반복 상태를 끝내는 연결만 본다
         controller.repeatTextInteractionDidPerform(button: deleteButton)
