@@ -370,7 +370,8 @@ final class SuggestionBarView: UIView {
         visibleSuggestionCount = titles.count
 
         applyDividerVisibility()
-        suggestionScrollView.contentOffset = .zero
+        // contentOffset 대입만으로는 남은 관성이 멈추지 않아 맨 앞으로 돌아온 뒤에도 계속 흐른다
+        suggestionScrollView.setContentOffset(.zero, animated: false)
         setNeedsLayout()
         applyHighlights()
         // 후보가 바뀌면 divider 색도 다시 정한다. applyHighlights()가 저장한 하이라이트 상태가
