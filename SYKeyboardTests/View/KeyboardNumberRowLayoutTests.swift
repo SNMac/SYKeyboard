@@ -172,6 +172,30 @@ struct KeyboardNumberRowLayoutTests {
         #expect(qButton.type.secondaryKey == "q")
     }
 
+    @Test("숫자 행이 켜진 쿼티의 보조 키 라벨은 터치 영역이 넓은 양 끝 키(a·l·z·m)에서도 보이는 키 안에 있다")
+    func test쿼티_보조키라벨_보이는키안() throws {
+        let view = makeQwerty(showsNumberRow: true)
+        view.updateNumberRowHeight(Self.defaultPortraitNumberRowHeight)
+        view.frame = CGRect(x: 0, y: 0, width: 375, height: 288.75)
+
+        for isShifted in [false, true] {
+            view.isShifted = isShifted
+            view.layoutIfNeeded()
+
+            let labeledButtons = view.totalTextInterableButtonList
+                .compactMap { $0 as? PrimaryKeyButton }
+                .filter { !($0.secondaryKeyLabel.text ?? "").isEmpty }
+            #expect(labeledButtons.count == 26)
+
+            for button in labeledButtons {
+                let key = button.backgroundView.convert(button.backgroundView.bounds, to: view)
+                let label = button.secondaryKeyLabel.convert(button.secondaryKeyLabel.bounds, to: view)
+                #expect(key.contains(label),
+                        "\(button.type.primaryKeyList) 라벨 \(label)이 보이는 키 \(key) 밖에 있음")
+            }
+        }
+    }
+
     @Test("숫자 행이 켜진 두벌식은 쌍자음·ㅒㅖ 자리만 보조 키가 생김")
     func test두벌식_보조키교체() {
         let view = makeDubeolsik(showsNumberRow: true)
