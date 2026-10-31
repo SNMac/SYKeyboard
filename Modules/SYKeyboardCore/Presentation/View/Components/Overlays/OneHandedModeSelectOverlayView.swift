@@ -144,6 +144,7 @@ private extension OneHandedModeSelectOverlayView {
         
         self.isLayoutMarginsRelativeArrangement = true
         self.directionalLayoutMargins = NSDirectionalEdgeInsets(top: 8, leading: 8, bottom: 8, trailing: 8)
+        self.insetsLayoutMarginsFromSafeArea = BaseKeyboardViewController.insetsLayoutMarginsFromSafeArea
         
         self.clipsToBounds = true
         self.layer.cornerRadius = KeyboardLayoutFigure.selectOverlayCornerRadius
