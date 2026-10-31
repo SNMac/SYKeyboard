@@ -78,7 +78,7 @@ private extension KeyboardHeightSettingsView {
                 .padding(.horizontal)
             Slider(value: $tempKeyboardHeight, in: KeyboardLayoutFigure.keyboardHeightRange, step: 1)
                 .padding(EdgeInsets(top: 0, leading: 30, bottom: 0, trailing: 30))
-            Text("가로 모드에선 iOS 기본 키보드와 동일한 높이로 표시됩니다.")
+            Text("가로 모드에선 iOS 기본 키보드와 동일한 높이로 표시됩니다.\n(iPhone Duo의 안쪽 화면 제외)")
                 .font(.footnote)
                 .multilineTextAlignment(.center)
                 .padding()
