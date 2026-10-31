@@ -7,8 +7,8 @@
 - 저장소 루트의 **`CONTEXT.md`**
 - **`docs/adr/`**: 작업할 영역에 닿는 ADR
 
-`CONTEXT.md`는 아직 없다. 없는 파일은 **조용히 넘어간다.** 없다고 지적하거나 미리 만들자고 제안하지 않는다. `/domain-modeling` 스킬
-(`/grill-with-docs`, `/improve-codebase-architecture`에서 진입)이 용어나 결정이 실제로 정해질 때 그때그때 만든다.
+`CONTEXT.md`의 용어는 `/domain-modeling` 스킬(`/grill-with-docs`, `/improve-codebase-architecture`에서 진입)이
+용어가 실제로 정해질 때 그때그때 덧붙인다. 필요한 용어가 없다고 지적하거나 미리 채우자고 제안하지 않는다.
 
 이 저장소의 기존 문서는 아래와 같이 다룬다.
 
