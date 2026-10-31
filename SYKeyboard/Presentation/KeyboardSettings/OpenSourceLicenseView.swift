@@ -40,12 +40,7 @@ struct OpenSourceLicenseView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    // iOS 26부터는 시스템 닫기 버튼(X)으로 다른 시트와 모양을 맞춘다
-                    if #available(iOS 26.0, *) {
-                        Button(role: .close) { dismiss() }
-                    } else {
-                        Button("닫기") { dismiss() }
-                    }
+                    SheetCloseButton { dismiss() }
                 }
             }
         }
