@@ -57,6 +57,8 @@ private extension PreviewKeyboardView {
                                              letterColumnWidthMultiplier: $letterColumnWidthMultiplier,
                                              oneHandedMode: $oneHandedMode,
                                              numberRowHeight: numberRowHeight)
+        // 실제 키보드처럼 iPhone Duo 세로 바 영역까지 키를 채운다
+        .ignoresSafeArea(.container, edges: .horizontal)
         .frame(height: previewFrameHeight)
         .background(.keyboardBackground)
         .padding(.bottom, needsInputModeSwitchKey ? 0 : 40)
@@ -68,6 +70,8 @@ private extension PreviewKeyboardView {
                                              letterColumnWidthMultiplier: $letterColumnWidthMultiplier,
                                              oneHandedMode: $oneHandedMode,
                                              numberRowHeight: numberRowHeight)
+        // 실제 키보드처럼 iPhone Duo 세로 바 영역까지 키를 채운다
+        .ignoresSafeArea(.container, edges: .horizontal)
         .frame(height: previewFrameHeight)
         .background(.keyboardBackground)
         .padding(.bottom, needsInputModeSwitchKey ? 0 : 40)

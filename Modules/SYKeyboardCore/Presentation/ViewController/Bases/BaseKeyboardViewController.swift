@@ -313,7 +313,10 @@ open class BaseKeyboardViewController: UIInputViewController {
         setNextKeyboardButton()
         clipboardHistoryCoordinator.registerNotificationObservers()
         updateShowingKeyboard()
-        if BaseKeyboardViewController.isPreview { updateReturnButtonType() }
+        if BaseKeyboardViewController.isPreview {
+            updateReturnButtonType()
+            stopInsettingLayoutMarginsFromSafeAreaForPreview(in: keyboardView)
+        }
 
         if keyboardSettingsManager.isOneHandedKeyboardEnabled { updateOneHandModekeyboard() }
 
@@ -1058,6 +1061,13 @@ private extension BaseKeyboardViewController {
             return false
         }
         return true
+    }
+
+    /// 앱 미리보기는 iPhone Duo 세로 바 safe area까지 늘려 배치된다.
+    /// 실제 키보드 window에는 좌우 safe area가 없으므로 layout margin에 safe area를 더하지 않아 같은 폭으로 그린다
+    private func stopInsettingLayoutMarginsFromSafeAreaForPreview(in view: UIView) {
+        view.insetsLayoutMarginsFromSafeArea = false
+        view.subviews.forEach { stopInsettingLayoutMarginsFromSafeAreaForPreview(in: $0) }
     }
 
     func updateEdgeTouchSystemGesturePolicy() {
