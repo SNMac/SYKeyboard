@@ -100,14 +100,14 @@ private extension PrimaryKeyButton {
         self.addSubview(secondaryKeyLabel)
     }
     
+    /// 양 끝 키('a', 'l' 등)는 터치 영역이 보이는 키보다 넓으므로 버튼이 아닌 `backgroundView`를 기준으로 붙인다
     func setConstraints() {
-        let offsetX = insetDx + 2
-        let offsetY = insetDy + 2
-        
+        let offset: CGFloat = 2
+
         secondaryKeyLabel.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
-            secondaryKeyLabel.topAnchor.constraint(equalTo: self.topAnchor, constant: offsetY),
-            secondaryKeyLabel.trailingAnchor.constraint(equalTo: self.trailingAnchor, constant: -offsetX)
+            secondaryKeyLabel.topAnchor.constraint(equalTo: backgroundView.topAnchor, constant: offset),
+            secondaryKeyLabel.trailingAnchor.constraint(equalTo: backgroundView.trailingAnchor, constant: -offset)
         ])
     }
 }
