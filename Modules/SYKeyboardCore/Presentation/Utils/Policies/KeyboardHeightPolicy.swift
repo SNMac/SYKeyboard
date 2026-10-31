@@ -119,6 +119,10 @@ public enum KeyboardHeightPolicy {
             return true
         case (.compact, .compact), (.regular, .compact):
             return false
+        case (.regular, .regular):
+            // 아이폰 듀오 안쪽 화면. iOS 기본 키보드처럼 방향과 관계없이 세로 높이 규칙을 쓴다.
+            // 키보드 window는 키보드 영역만이라 bounds 비율로 넘기면 항상 가로로 판정된다
+            return true
         default:
             return nil
         }

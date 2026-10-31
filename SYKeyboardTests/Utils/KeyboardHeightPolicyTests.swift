@@ -72,6 +72,20 @@ struct KeyboardHeightPolicyTests {
         #expect(isPortrait == false)
     }
 
+    // 아이폰 듀오 안쪽 화면에서 키보드 window는 키보드 영역(655×337)만이다
+    @Test("orientation을 사용하지 않는 환경에서 regular×regular trait은 키보드 창 비율과 관계없이 세로 화면으로 판단")
+    func testOrientation미사용환경_regularRegularTrait세로판단() {
+        let isPortrait = KeyboardHeightPolicy.isPortrait(
+            orientation: .landscapeLeft,
+            usesOrientation: false,
+            fallbackBounds: CGRect(x: 0, y: 0, width: 655, height: 337),
+            horizontalSizeClass: .regular,
+            verticalSizeClass: .regular
+        )
+
+        #expect(isPortrait)
+    }
+
     // 세로: keyboard view = 설정값 + 보이는 suggestion bar, hstack = 설정값
     // 가로: keyboard view = 고정값, hstack = 고정값 - 보이는 suggestion bar
     @Test("설정 260·가로 고정 220·suggestion bar 44에서 화면 방향과 bar 표시에 따른 높이",
