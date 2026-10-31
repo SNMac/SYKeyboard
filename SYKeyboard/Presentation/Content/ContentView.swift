@@ -48,6 +48,7 @@ struct ContentView: View {
                 ZStack(alignment: .bottom) {
                     VStack(spacing: 0) {
                         KeyboardTestView()
+                            // 입력창과 목록 사이 간격을 헤더 흰 배경 안에 넣는다. 예전 VStack 기본 간격과 같은 값이다
                             .padding(.bottom, 8)
                             .background(Color(.systemBackground).ignoresSafeArea(edges: .top))
 
