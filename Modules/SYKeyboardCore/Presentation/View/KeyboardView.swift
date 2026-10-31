@@ -52,6 +52,7 @@ final public class KeyboardView: UIInputView {
         let verticalMargin = KeyboardLayoutFigure.keyboardFrameSpacing / 2
         stackView.layoutMargins = UIEdgeInsets(top: verticalMargin, left: 0, bottom: verticalMargin, right: 0)
         stackView.isLayoutMarginsRelativeArrangement = true
+        stackView.insetsLayoutMarginsFromSafeArea = BaseKeyboardViewController.insetsLayoutMarginsFromSafeArea
         
         return stackView
     }()

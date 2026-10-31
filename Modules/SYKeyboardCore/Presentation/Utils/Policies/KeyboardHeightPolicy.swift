@@ -40,15 +40,15 @@ public enum KeyboardHeightPolicy {
     /// 가로 모드는 높이 설정이 적용되지 않으므로 고정값이다
     /// - Parameters:
     ///   - isEnabled: 숫자 행 설정 여부
-    ///   - isPortrait: 세로 화면 여부
+    ///   - usesPortraitHeight: 세로 높이 규칙 적용 여부. iPhone Duo 안쪽 화면은 가로여도 `true`다
     ///   - keyboardSettingsHeight: 키보드 높이 설정값
     public static func numberRowHeight(
         isEnabled: Bool,
-        isPortrait: Bool,
+        usesPortraitHeight: Bool,
         keyboardSettingsHeight: CGFloat
     ) -> CGFloat {
         guard isEnabled else { return 0 }
-        guard isPortrait else { return landscapeNumberRowHeight }
+        guard usesPortraitHeight else { return landscapeNumberRowHeight }
 
         let letterRowGrowth = letterRowHeight(keyboardAreaHeight: keyboardSettingsHeight) - portraitNumberRowHeight
         return portraitNumberRowHeight + letterRowGrowth * portraitNumberRowGrowthRatio
@@ -59,12 +59,12 @@ public enum KeyboardHeightPolicy {
         landscapeKeyboardHeight: CGFloat,
         suggestionBarHeight: CGFloat,
         isSuggestionBarVisible: Bool,
-        isPortrait: Bool,
+        usesPortraitHeight: Bool,
         numberRowHeight: CGFloat = 0
     ) -> Height {
         let visibleSuggestionBarHeight = isSuggestionBarVisible ? suggestionBarHeight : 0
 
-        if isPortrait {
+        if usesPortraitHeight {
             return Height(
                 keyboardViewHeight: keyboardSettingsHeight + visibleSuggestionBarHeight + numberRowHeight,
                 keyboardHStackViewHeight: keyboardSettingsHeight + numberRowHeight
@@ -77,7 +77,7 @@ public enum KeyboardHeightPolicy {
         }
     }
 
-    static func isPortrait(
+    static func usesPortraitHeight(
         orientation: UIInterfaceOrientation,
         usesOrientation: Bool = true,
         fallbackBounds: CGRect,
@@ -85,7 +85,7 @@ public enum KeyboardHeightPolicy {
         verticalSizeClass: UIUserInterfaceSizeClass = .unspecified
     ) -> Bool {
         if !usesOrientation {
-            return isPortrait(
+            return usesPortraitHeight(
                 horizontalSizeClass: horizontalSizeClass,
                 verticalSizeClass: verticalSizeClass
             ) ?? (fallbackBounds.height >= fallbackBounds.width)
@@ -97,11 +97,11 @@ public enum KeyboardHeightPolicy {
         case .landscapeLeft, .landscapeRight:
             return false
         case .unknown:
-            if let traitIsPortrait = isPortrait(
+            if let traitUsesPortraitHeight = usesPortraitHeight(
                 horizontalSizeClass: horizontalSizeClass,
                 verticalSizeClass: verticalSizeClass
             ) {
-                return traitIsPortrait
+                return traitUsesPortraitHeight
             }
 
             return fallbackBounds.height >= fallbackBounds.width
@@ -110,7 +110,7 @@ public enum KeyboardHeightPolicy {
         }
     }
 
-    private static func isPortrait(
+    private static func usesPortraitHeight(
         horizontalSizeClass: UIUserInterfaceSizeClass,
         verticalSizeClass: UIUserInterfaceSizeClass
     ) -> Bool? {
@@ -119,6 +119,10 @@ public enum KeyboardHeightPolicy {
             return true
         case (.compact, .compact), (.regular, .compact):
             return false
+        case (.regular, .regular):
+            // iPhone Duo 안쪽 화면. iOS 기본 키보드처럼 방향과 관계없이 세로 높이 규칙을 쓴다.
+            // 키보드 window는 키보드 영역만이라 bounds 비율로 넘기면 항상 가로로 판정된다
+            return true
         default:
             return nil
         }

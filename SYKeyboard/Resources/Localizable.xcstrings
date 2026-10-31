@@ -173,12 +173,12 @@
         }
       }
     },
-    "가로 모드에선 iOS 기본 키보드와 동일한 높이로 표시됩니다." : {
+    "가로 모드에선 iOS 기본 키보드와 동일한 높이로 표시됩니다.\n(iPhone Duo의 안쪽 화면 제외)" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "In landscape mode, it displays at the same height as the iOS default keyboard."
+            "value" : "In landscape mode, it displays at the same height as the iOS default keyboard.\n(Except on the inner display of iPhone Duo)"
           }
         }
       }

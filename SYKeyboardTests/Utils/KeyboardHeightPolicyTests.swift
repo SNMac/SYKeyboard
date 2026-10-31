@@ -15,53 +15,53 @@ struct KeyboardHeightPolicyTests {
 
     @Test("orientation이 unknown이면 bounds 비율로 세로 화면을 판단")
     func testUnknownOrientation_bounds세로비율_fallback() {
-        let isPortrait = KeyboardHeightPolicy.isPortrait(
+        let usesPortraitHeight = KeyboardHeightPolicy.usesPortraitHeight(
             orientation: .unknown,
             fallbackBounds: CGRect(x: 0, y: 0, width: 430, height: 932)
         )
 
-        #expect(isPortrait)
+        #expect(usesPortraitHeight)
     }
 
     @Test("orientation이 unknown이면 iPhone portrait trait 조합을 세로 화면으로 판단")
     func testUnknownOrientation_iPhonePortraitTrait세로판단() {
-        let isPortrait = KeyboardHeightPolicy.isPortrait(
+        let usesPortraitHeight = KeyboardHeightPolicy.usesPortraitHeight(
             orientation: .unknown,
             fallbackBounds: CGRect(x: 0, y: 0, width: 932, height: 430),
             horizontalSizeClass: .compact,
             verticalSizeClass: .regular
         )
 
-        #expect(isPortrait)
+        #expect(usesPortraitHeight)
     }
 
     @Test("orientation이 unknown이면 일반 iPhone landscape trait 조합을 가로 화면으로 판단")
     func testUnknownOrientation_iPhoneCompactLandscapeTrait가로판단() {
-        let isPortrait = KeyboardHeightPolicy.isPortrait(
+        let usesPortraitHeight = KeyboardHeightPolicy.usesPortraitHeight(
             orientation: .unknown,
             fallbackBounds: CGRect(x: 0, y: 0, width: 430, height: 932),
             horizontalSizeClass: .compact,
             verticalSizeClass: .compact
         )
 
-        #expect(isPortrait == false)
+        #expect(usesPortraitHeight == false)
     }
 
     @Test("orientation이 unknown이면 Max 계열 iPhone landscape trait 조합을 가로 화면으로 판단")
     func testUnknownOrientation_iPhoneRegularLandscapeTrait가로판단() {
-        let isPortrait = KeyboardHeightPolicy.isPortrait(
+        let usesPortraitHeight = KeyboardHeightPolicy.usesPortraitHeight(
             orientation: .unknown,
             fallbackBounds: CGRect(x: 0, y: 0, width: 430, height: 932),
             horizontalSizeClass: .regular,
             verticalSizeClass: .compact
         )
 
-        #expect(isPortrait == false)
+        #expect(usesPortraitHeight == false)
     }
 
     @Test("orientation을 사용하지 않는 환경에서는 trait 조합을 우선 사용")
     func testOrientation미사용환경_trait조합우선() {
-        let isPortrait = KeyboardHeightPolicy.isPortrait(
+        let usesPortraitHeight = KeyboardHeightPolicy.usesPortraitHeight(
             orientation: .portrait,
             usesOrientation: false,
             fallbackBounds: CGRect(x: 0, y: 0, width: 430, height: 932),
@@ -69,26 +69,40 @@ struct KeyboardHeightPolicyTests {
             verticalSizeClass: .compact
         )
 
-        #expect(isPortrait == false)
+        #expect(usesPortraitHeight == false)
+    }
+
+    // iPhone Duo 안쪽 화면에서 키보드 window는 키보드 영역(655×337)만이다
+    @Test("orientation을 사용하지 않는 환경에서 regular×regular trait은 키보드 창 비율과 관계없이 세로 높이 규칙으로 판단")
+    func testOrientation미사용환경_regularRegularTrait세로판단() {
+        let usesPortraitHeight = KeyboardHeightPolicy.usesPortraitHeight(
+            orientation: .landscapeLeft,
+            usesOrientation: false,
+            fallbackBounds: CGRect(x: 0, y: 0, width: 655, height: 337),
+            horizontalSizeClass: .regular,
+            verticalSizeClass: .regular
+        )
+
+        #expect(usesPortraitHeight)
     }
 
     // 세로: keyboard view = 설정값 + 보이는 suggestion bar, hstack = 설정값
     // 가로: keyboard view = 고정값, hstack = 고정값 - 보이는 suggestion bar
     @Test("설정 260·가로 고정 220·suggestion bar 44에서 화면 방향과 bar 표시에 따른 높이",
           arguments: [
-            // (isPortrait, isSuggestionBarVisible, keyboardView, hStack)
+            // (usesPortraitHeight, isSuggestionBarVisible, keyboardView, hStack)
             (true, true, 304.0, 260.0),
             (true, false, 260.0, 260.0),
             (false, true, 220.0, 176.0),
             (false, false, 220.0, 220.0)
           ])
-    func test높이계산(isPortrait: Bool, isSuggestionBarVisible: Bool, keyboardView: CGFloat, hStack: CGFloat) {
+    func test높이계산(usesPortraitHeight: Bool, isSuggestionBarVisible: Bool, keyboardView: CGFloat, hStack: CGFloat) {
         let height = KeyboardHeightPolicy.height(
             keyboardSettingsHeight: 260,
             landscapeKeyboardHeight: 220,
             suggestionBarHeight: 44,
             isSuggestionBarVisible: isSuggestionBarVisible,
-            isPortrait: isPortrait
+            usesPortraitHeight: usesPortraitHeight
         )
 
         #expect(height.keyboardViewHeight == keyboardView)
@@ -110,16 +124,16 @@ struct KeyboardHeightPolicyTests {
 
     @Test("숫자 행 설정이 꺼져 있으면 숫자 행 높이는 0")
     func test숫자행_설정꺼짐() {
-        #expect(KeyboardHeightPolicy.numberRowHeight(isEnabled: false, isPortrait: true, keyboardSettingsHeight: 240) == 0)
-        #expect(KeyboardHeightPolicy.numberRowHeight(isEnabled: false, isPortrait: false, keyboardSettingsHeight: 240) == 0)
+        #expect(KeyboardHeightPolicy.numberRowHeight(isEnabled: false, usesPortraitHeight: true, keyboardSettingsHeight: 240) == 0)
+        #expect(KeyboardHeightPolicy.numberRowHeight(isEnabled: false, usesPortraitHeight: false, keyboardSettingsHeight: 240) == 0)
     }
 
     @Test("세로 숫자 행은 글자 행 증가폭의 절반만큼 키보드 높이 설정을 따라 커짐")
     func test숫자행_세로_설정비례() {
         // 글자 행 46.5 / 59 / 71.5에 대해 46.5 + (글자 행 - 46.5) * 0.5
-        #expect(KeyboardHeightPolicy.numberRowHeight(isEnabled: true, isPortrait: true, keyboardSettingsHeight: 190) == 46.5)
-        #expect(KeyboardHeightPolicy.numberRowHeight(isEnabled: true, isPortrait: true, keyboardSettingsHeight: 240) == 52.75)
-        #expect(KeyboardHeightPolicy.numberRowHeight(isEnabled: true, isPortrait: true, keyboardSettingsHeight: 290) == 59)
+        #expect(KeyboardHeightPolicy.numberRowHeight(isEnabled: true, usesPortraitHeight: true, keyboardSettingsHeight: 190) == 46.5)
+        #expect(KeyboardHeightPolicy.numberRowHeight(isEnabled: true, usesPortraitHeight: true, keyboardSettingsHeight: 240) == 52.75)
+        #expect(KeyboardHeightPolicy.numberRowHeight(isEnabled: true, usesPortraitHeight: true, keyboardSettingsHeight: 290) == 59)
     }
 
     @Test("설정 범위 전체에서 세로 숫자 행은 최소 높이 이상, 글자 행 이하")
@@ -129,7 +143,7 @@ struct KeyboardHeightPolicyTests {
                               by: 1) {
             let numberRow = KeyboardHeightPolicy.numberRowHeight(
                 isEnabled: true,
-                isPortrait: true,
+                usesPortraitHeight: true,
                 keyboardSettingsHeight: setting
             )
             let letterRow = KeyboardHeightPolicy.letterRowHeight(keyboardAreaHeight: setting)
@@ -140,8 +154,8 @@ struct KeyboardHeightPolicyTests {
 
     @Test("가로 숫자 행은 키보드 높이 설정과 무관하게 35")
     func test숫자행_가로_고정() {
-        #expect(KeyboardHeightPolicy.numberRowHeight(isEnabled: true, isPortrait: false, keyboardSettingsHeight: 190) == 35)
-        #expect(KeyboardHeightPolicy.numberRowHeight(isEnabled: true, isPortrait: false, keyboardSettingsHeight: 290) == 35)
+        #expect(KeyboardHeightPolicy.numberRowHeight(isEnabled: true, usesPortraitHeight: false, keyboardSettingsHeight: 190) == 35)
+        #expect(KeyboardHeightPolicy.numberRowHeight(isEnabled: true, usesPortraitHeight: false, keyboardSettingsHeight: 290) == 35)
     }
 
     @Test("세로 화면 숫자 행은 설정 높이와 자동완성 바 위에 더함")
@@ -151,7 +165,7 @@ struct KeyboardHeightPolicyTests {
             landscapeKeyboardHeight: 188,
             suggestionBarHeight: 44,
             isSuggestionBarVisible: true,
-            isPortrait: true,
+            usesPortraitHeight: true,
             numberRowHeight: 52.75
         )
 
@@ -166,7 +180,7 @@ struct KeyboardHeightPolicyTests {
             landscapeKeyboardHeight: 188,
             suggestionBarHeight: 44,
             isSuggestionBarVisible: true,
-            isPortrait: false,
+            usesPortraitHeight: false,
             numberRowHeight: 35
         )
         #expect(visible.keyboardViewHeight == 223)
@@ -177,7 +191,7 @@ struct KeyboardHeightPolicyTests {
             landscapeKeyboardHeight: 188,
             suggestionBarHeight: 44,
             isSuggestionBarVisible: false,
-            isPortrait: false,
+            usesPortraitHeight: false,
             numberRowHeight: 35
         )
         #expect(hidden.keyboardViewHeight == 223)

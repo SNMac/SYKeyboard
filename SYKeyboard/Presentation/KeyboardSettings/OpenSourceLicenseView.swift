@@ -39,8 +39,8 @@ struct OpenSourceLicenseView: View {
             .navigationTitle("오픈소스 라이선스")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("닫기") { dismiss() }
+                ToolbarItem(placement: .topBarTrailing) {
+                    SheetCloseButton { dismiss() }
                 }
             }
         }

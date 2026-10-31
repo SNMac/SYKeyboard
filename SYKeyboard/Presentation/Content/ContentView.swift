@@ -46,12 +46,17 @@ struct ContentView: View {
                 )
 
                 ZStack(alignment: .bottom) {
-                    VStack {
+                    VStack(spacing: 0) {
                         KeyboardTestView()
+                            // 입력창과 목록 사이 간격을 헤더 흰 배경 안에 넣는다. 예전 VStack 기본 간격과 같은 값이다
+                            .padding(.bottom, 8)
+                            .background(Color(.systemBackground).ignoresSafeArea(edges: .top))
 
                         KeyboardSettingsView()
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+                    // iPhone Duo 세로 바 영역을 목록 배경 한 색으로 채운다. 헤더 흰색은 세로 바 앞에서 끝난다
+                    .background(Color(.systemGroupedBackground).ignoresSafeArea())
                     .safeAreaInset(edge: .bottom) {
                         BannerAdView(adSize: adSize, isAdReceived: $isAdReceived)
                             .frame(maxWidth: .infinity, maxHeight: adHeight)

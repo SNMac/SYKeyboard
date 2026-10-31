@@ -39,12 +39,19 @@ struct PreviewKeyboardView: View {
         .frame(height: 44)
         .padding(.horizontal)
         
-        switch previewKeyboardLanguage {
-        case .hangeul:
-            previewHangeulKeyboard
-        case .english:
-            previewEnglishKeyboard
+        Group {
+            switch previewKeyboardLanguage {
+            case .hangeul:
+                previewHangeulKeyboard
+            case .english:
+                previewEnglishKeyboard
+            }
         }
+        // 실제 키보드처럼 iPhone Duo 세로 바 영역까지 키를 채운다
+        .ignoresSafeArea(.container, edges: .horizontal)
+        .frame(height: previewFrameHeight)
+        .background(.keyboardBackground)
+        .padding(.bottom, needsInputModeSwitchKey ? 0 : 40)
     }
 }
 
@@ -57,9 +64,6 @@ private extension PreviewKeyboardView {
                                              letterColumnWidthMultiplier: $letterColumnWidthMultiplier,
                                              oneHandedMode: $oneHandedMode,
                                              numberRowHeight: numberRowHeight)
-        .frame(height: previewFrameHeight)
-        .background(.keyboardBackground)
-        .padding(.bottom, needsInputModeSwitchKey ? 0 : 40)
     }
 
     var previewEnglishKeyboard: some View {
@@ -68,16 +72,13 @@ private extension PreviewKeyboardView {
                                              letterColumnWidthMultiplier: $letterColumnWidthMultiplier,
                                              oneHandedMode: $oneHandedMode,
                                              numberRowHeight: numberRowHeight)
-        .frame(height: previewFrameHeight)
-        .background(.keyboardBackground)
-        .padding(.bottom, needsInputModeSwitchKey ? 0 : 40)
     }
 
     /// 미리보기는 항상 세로 화면이므로 세로 숫자 행 높이를 쓴다
     var numberRowHeight: CGFloat {
         KeyboardHeightPolicy.numberRowHeight(
             isEnabled: showsNumberRow,
-            isPortrait: true,
+            usesPortraitHeight: true,
             keyboardSettingsHeight: keyboardSettingsHeight
         )
     }
