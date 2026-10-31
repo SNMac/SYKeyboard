@@ -72,7 +72,7 @@ struct KeyboardHeightPolicyTests {
         #expect(isPortrait == false)
     }
 
-    // 아이폰 듀오 안쪽 화면에서 키보드 window는 키보드 영역(655×337)만이다
+    // iPhone Duo 안쪽 화면에서 키보드 window는 키보드 영역(655×337)만이다
     @Test("orientation을 사용하지 않는 환경에서 regular×regular trait은 키보드 창 비율과 관계없이 세로 화면으로 판단")
     func testOrientation미사용환경_regularRegularTrait세로판단() {
         let isPortrait = KeyboardHeightPolicy.isPortrait(
